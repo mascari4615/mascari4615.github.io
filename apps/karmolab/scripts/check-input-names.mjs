@@ -48,7 +48,10 @@ function toolsAtRef() {
       .map((l) => l.trim())
       .filter((l) => l.endsWith('.ts'));
     if (!names.length) return null; // 하나도 못 봤다 = 못 물어본 것에 가깝다
-    return names.map((full) => ({ name: full.split('/').pop(), src: git(['show', `${REF}:${full}`]) }));
+    /* `ls-tree` 가 돌려주는 자리는 **지금 선 곳 기준**이다. `show` 에 그대로 넘기면 저장소
+       뿌리 기준으로 읽어 엉뚱한 자리를 찾다 던진다 — 그러면 조용히 디스크로 내려가 버려서
+       고쳐 놓고도 남의 낡은 사본 때문에 계속 빨갰다. `./` 를 붙여 「여기 기준」이라고 말한다. */
+    return names.map((full) => ({ name: full.split('/').pop(), src: git(['show', `${REF}:./${full}`]) }));
   } catch {
     return null;
   }
@@ -61,8 +64,13 @@ const files =
     .filter((n) => n.endsWith('.ts'))
     .map((n) => ({ name: n, src: fs.readFileSync(path.join(dir, n), 'utf8') }));
 
+/* 주석은 화면이 아니다 (2026-08-13). 설명글에 적힌 `<input accept>` 같은 예시가 진짜 칸으로
+   잡혀 「이름 없는 칸 1개」가 됐다 — 없는 결함을 쫓게 만드는 빨강이라 먼저 걷어낸다. */
+const stripBlockComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ');
+
 const offenders = [];
-for (const { name, src } of files) {
+for (const { name, src: raw } of files) {
+  const src = stripBlockComments(raw);
   for (const m of src.matchAll(NEEDS_NAME)) {
     const tag = m[0];
     if (SKIP_TYPES.test(tag)) continue;
