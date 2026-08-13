@@ -993,7 +993,19 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   await page.fill('[data-km="fld-new"]', '출신');
   await page.locator('[data-km="fld-add"]').click();
   await page.waitForSelector('[data-km="fld-value"]', { timeout: ms(4000) });
-  await page.locator('[data-km="fld-value"]').first().fill('마계');
+  /* ★ 칸을 만들면 **그 칸에 커서가 가 있어야 한다** (TASK-KL-271 R7 / C3).
+     패널이 통째로 다시 그려지면서 커서가 판 밖(BODY)으로 떨어졌다 — 칸 이름을 적은 사람은
+     곧바로 값을 적으려는 것인데 손이 한 번 더 갔다. */
+  await page.waitForFunction(
+    () => document.activeElement?.dataset?.km === 'fld-value'
+      && document.activeElement?.dataset?.key === '출신',
+    null,
+    { timeout: ms(4000) },
+  ).catch(async () => {
+    const now = await page.evaluate(() => document.activeElement?.dataset?.km ?? document.activeElement?.tagName);
+    throw new Error(`칸을 만들었는데 커서가 그 칸에 없다 (지금 커서: ${now})`);
+  });
+  await page.fill('[data-km="fld-value"][data-key="출신"]', '마계');
 
   await page.mouse.dblclick(fbox.x + fbox.width * 0.62, fbox.y + fbox.height * 0.6);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: ms(4000) });
