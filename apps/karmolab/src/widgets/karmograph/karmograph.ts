@@ -24,6 +24,7 @@ import { KarmoGraphLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor, INTENTS } from './samples';
+import { COMMAND_GROUPS } from './commands';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
 import type { PanelCtx } from './panels/context';
@@ -448,6 +449,19 @@ import {
     });
 
     /** 노드 종류 <option> — 팩에 없는 종류(다른 팩에서 넘어온 노드)도 잃지 않게 뒤에 붙인다. */
+    /**
+     * ⋯서랍의 차림표를 **등록부에서** 그린다 (TASK-KL-271 R4).
+     * 손으로 적은 HTML 이던 시절엔 「새 자리를 만들고 옛 자리를 안 지우는」 일이 조용히 생겼다.
+     */
+    function drawerHtml(): string {
+      return COMMAND_GROUPS.map((g) => {
+        const head = `<div class="km-drawer-h">${esc(g.title())}</div>`;
+        const rows = g.items.map((c) => `<button class="btn ${c.danger ? 'btn-danger' : 'btn-ghost'}"`
+          + ` data-km="${c.key}">${esc(c.label())}</button>`).join('');
+        return head + rows;
+      }).join('');
+    }
+
     function nodeKindOptions(selected?: string): string {
       // ★ 전부 보여 준다. 팩은 고르는 칸이 아니라 **소제목**일 뿐 — 한 맵에 인물도 카드도 개념도 산다.
       const groups = allNodeKindGroups();
@@ -534,31 +548,7 @@ import {
                   <option value="none">${esc(t('karmograph.opt.none'))}</option>
                 </select>
               </label>
-              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.tidy'))}</div>
-              <button class="btn btn-ghost" data-km="tidy">${esc(t('karmograph.tidy.label'))}</button>
-              <button class="btn btn-ghost" data-km="lay-circle">${esc(t('karmograph.layCircle.label'))}</button>
-              <button class="btn btn-ghost" data-km="lay-tree">${esc(t('karmograph.layTree.label'))}</button>
-              <button class="btn btn-ghost" data-km="lay-time">${esc(t('karmograph.layTime.label'))}</button>
-              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.make'))}</div>
-              <button class="btn btn-ghost" data-km="from-text">${esc(t('karmograph.fromText.label'))}</button>
-              <button class="btn btn-ghost" data-km="stamps">${esc(t('karmograph.stamps.label'))}</button>
-              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.out'))}</div>
-              <button class="btn btn-ghost" data-km="png">${esc(t('karmograph.png.label'))}</button>
-              <button class="btn btn-ghost" data-km="svg">${esc(t('karmograph.svg.label'))}</button>
-              <button class="btn btn-ghost" data-km="svg-story">${esc(t('karmograph.svgStory.label'))}</button>
-              <button class="btn btn-ghost" data-km="export">${esc(t('karmograph.export.label'))}</button>
-              <button class="btn btn-ghost" data-km="import">${esc(t('karmograph.import.label'))}</button>
-              <button class="btn btn-ghost" data-km="canvas-out">${esc(t('karmograph.canvasOut.label'))}</button>
-              <button class="btn btn-ghost" data-km="mermaid">${esc(t('karmograph.mermaid.label'))}</button>
-              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.share'))}</div>
-              <button class="btn btn-ghost" data-km="share">${esc(t('karmograph.share.label'))}</button>
-              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmograph.shareView.label'))}</button>
-              <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.storage.label'))}</button>
-              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.map'))}</div>
-              <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmograph.mapCopy.label'))}</button>
-              <button class="btn btn-ghost" data-km="map-del">${esc(t('karmograph.mapDel.label'))}</button>
-              <hr />
-              <button class="btn btn-danger" data-km="clear">${esc(t('karmograph.clear.label'))}</button>
+              ${drawerHtml()}
             </div>
           </div>
           <input type="file" accept="application/json,.json" data-km="file" hidden />

@@ -646,6 +646,23 @@ const M = await loadModules();
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
   check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
 }
+// ── 할 수 있는 일 등록부 ⟷ 실제 손잡이 (TASK-KL-271 R4 / C5) ────────────────
+// 「새 기능은 여기 한 줄 늘려라」 같은 **사람 규율에 기댄 목록은 반드시 드리프트한다** —
+// 실제로 판 이름 바꾸기가 두 자리에 살아 있었다. 등록만 하고 안 이은 것, 손으로 적은 HTML 로
+// 되돌아간 것을 기계가 잡는다.
+{
+  const reg = fs.readFileSync(path.join(root, 'src/widgets/karmograph/commands.ts'), 'utf8');
+  const listed = [...reg.matchAll(/key: '([\w-]+)'/g)].map((m) => m[1]);
+  const wid = fs.readFileSync(path.join(root, 'src/widgets/karmograph/karmograph.ts'), 'utf8');
+  const wired = new Set([...wid.matchAll(/q<HTML\w+Element>\('([\w-]+)'\)\.onclick/g)].map((m) => m[1]));
+  check(listed.length > 0, '등록부가 비었다 — commands.ts 를 못 읽었다');
+  const dead = listed.filter((k) => !wired.has(k));
+  check(dead.length === 0, `등록만 되고 손잡이가 없는 것: ${dead.join(', ')}`);
+  const dupes = listed.filter((k, i) => listed.indexOf(k) !== i);
+  check(dupes.length === 0, `등록부에 같은 손잡이가 두 번: ${dupes.join(', ')}`);
+  check(/\$\{drawerHtml\(\)\}/.test(wid), '서랍이 등록부에서 안 그려진다(손으로 적은 HTML 로 되돌아갔다)');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
