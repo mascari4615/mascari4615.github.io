@@ -196,8 +196,8 @@ import {
     .km-toolbar.km-blank [data-km="story"] { display:none !important; }
     /* 관계망을 읽어 주는 줄 — 숫자보다 먼저 눈에 들어와야 한다. */
     .km-said { background:var(--bg-tertiary); border-radius:8px; padding:8px 10px; }
-    .km-said-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
-    .km-said-line + .km-said-line { margin-top:4px; }
+    .km-said-line, .km-gap-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
+    .km-said-line + .km-said-line, .km-gap-line + .km-gap-line { margin-top:4px; }
     /* 「글이 있으면 붙여넣기」 — 갈래 카드 밑에 한 줄로. 카드와 같은 무게로 두면 셋이 넷이 된다. */
     .km-intent-text { width:100%; margin-top:6px; justify-content:center; font-size:12px; }
     .km-side.hidden { display:none; }

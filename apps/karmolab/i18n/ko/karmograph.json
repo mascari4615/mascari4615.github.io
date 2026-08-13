@@ -664,5 +664,9 @@
   "karmograph.said.bridge": "<b>{name}</b> 이(가) 다리 역할이에요 — 이 카드를 빼면 길이 끊깁니다.",
   "karmograph.said.hub": "<b>{name}</b> 이(가) 가장 많이 이어져 있어요 ({n}갈래).",
   "karmograph.said.dense": "{n}장이 고르게 이어져 있어요 — 튀는 자리가 없습니다.",
-  "karmograph.intent.fromText": "이미 글로 적어 뒀나요? — 붙여넣으면 판이 됩니다"
+  "karmograph.intent.fromText": "이미 글로 적어 뒀나요? — 붙여넣으면 판이 됩니다",
+  "karmograph.gapField.head": "아직 안 적은 칸",
+  "karmograph.gapField.hint": "채우면 거르기·색·연표에서 바로 쓸 수 있어요.",
+  "karmograph.gapField.none": "「{field}」 칸은 아직 아무도 안 적었어요 ({kind} {total}장)",
+  "karmograph.gapField.some": "{kind} {total}장 가운데 {missing}장은 「{field}」 칸이 비어 있어요"
 }

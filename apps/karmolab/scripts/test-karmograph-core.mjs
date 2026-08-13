@@ -48,6 +48,7 @@ async function loadModules() {
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
+    export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -826,6 +827,34 @@ const M = await loadModules();
   eq(legendRows(many, 4000, false).length, 1, '넓으면 한 줄로 선다');
   check(wrapPoster(art, { title: '<b>&', legend: [], skin }).includes('&lt;b&gt;&amp;'),
     '제목에 꺾쇠가 있어도 그림이 안 깨진다');
+}
+
+// -- 아직 안 적은 칸 (TASK-KL-271 L6) ------------------------------------------
+{
+  const { fieldGaps } = M.fieldGaps;
+  const card = (kind, fields) => ({ kind, fields });
+  const board = [
+    card('person', { '출신': '마계', '첫 등장': '' }),
+    card('person', { '출신': '', '첫 등장': '' }),
+    card('person', { '출신': '  ', '첫 등장': '' }),
+    card('place', { '넓이': '' }),
+  ];
+  const g = fieldGaps(board);
+  eq(g[0].field, '첫 등장', '아무도 안 적은 칸이 먼저 — 놀랍고, 대개 그 칸이 쓸모없다는 신호');
+  check(g[0].none, '다 비었으면 none');
+  eq(g[0].missing, 3, '세 장 다 안 적었다');
+  eq(g[0].total, 3, '그 종류가 몇 장인지도 같이 준다');
+  eq(g[1].field, '출신', '그다음은 많이 빈 것');
+  eq(g[1].missing, 2, '공백만 적은 것도 안 적은 것이다');
+  check(!g.some((x) => x.kind === 'place'), '한 장뿐인 종류는 재촉하지 않는다');
+  eq(fieldGaps([card('person', { '출신': 'a' }), card('person', { '출신': 'b' })]).length, 0,
+    '다 적었으면 할 말이 없다');
+  eq(fieldGaps([]).length, 0, '빈 판은 할 말이 없다');
+  const many = Array.from({ length: 9 }, (_, n) => card('person', { [`칸${n}`]: '' }));
+  eq(fieldGaps(many).length, 3, '많아야 셋 — 넉 줄부터는 안 읽는다');
+  // 같은 판은 두 번 봐도 같은 순서여야 한다(이름순 되풀이 확인).
+  const tie = [card('p', { 'ㄴ': '', 'ㄱ': '' }), card('p', { 'ㄴ': '', 'ㄱ': '' })];
+  eq(fieldGaps(tie).map((x) => x.field).join(''), 'ㄱㄴ', '수가 같으면 이름순');
 }
 
 process.stdout.write('\n');
