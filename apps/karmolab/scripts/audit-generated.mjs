@@ -78,6 +78,11 @@ for (const item of 파생물) {
     encoding: 'utf8',
     shell: process.platform === 'win32'
   });
+  if (r.status === 2) {
+    /* 2 = 「못 돌렸다」 — 이 저장소 규약. 죽은 것이 아니다(잴 것이 아직 없다는 뜻). */
+    console.log(`[audit-generated] ${item.npm} — 못 돌렸다고 한다 (빨강 아님)`);
+    continue;
+  }
   if (r.status !== 0) {
     죽음.push(`${item.npm} — 생성기가 죽었다 (${(r.stderr || '').trim().split('\n').pop() || 'exit ' + r.status})`);
     continue;
