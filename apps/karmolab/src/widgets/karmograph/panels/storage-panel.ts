@@ -18,7 +18,9 @@ export function renderStoragePanel(ctx: PanelCtx): void {
     <h4>${esc(t('karmograph.rep.msg'))}</h4>
     <div class="km-hint">${esc(t('karmograph.rep.msg2'))}</div>
     <div class="km-field">
-      <label>${humanBytes(rep.used)} / 약 ${humanBytes(rep.budget)} (${Math.round(rep.ratio * 100)}%)</label>
+      <label>${t('karmograph.storage.used', {
+        used: humanBytes(rep.used), all: humanBytes(rep.budget), pct: String(Math.round(rep.ratio * 100)),
+      })}</label>
       <div class="km-meter"><div class="km-meter-fill" style="width:${Math.min(100, Math.round(rep.ratio * 100))}%;
         background:${rep.warn ? '#f87171' : '#34d399'}"></div></div>
       ${rep.warn

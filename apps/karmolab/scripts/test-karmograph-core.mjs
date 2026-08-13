@@ -1239,18 +1239,48 @@ const M = await loadModules();
     .map((l) => `${path.basename(f)}|${l}`).join(String.fromCharCode(10))).join(String.fromCharCode(10));
   const hangul = /[가-힣]/;
   const leaks = [];
-  src.split(String.fromCharCode(10)).forEach((raw, i) => {
-    const line = raw.slice(raw.indexOf('|') + 1);
-    const t0 = line.trim();
-    if (t0.startsWith('//') || t0.startsWith('*') || t0.startsWith('/*') || t0.startsWith('<!--')) return;
-    if (line.includes('dataset.kmPan') || line.includes('panned(')) return;   // 계측값(사람이 읽는 글 X)
-    for (const q of ['"', "'", '`']) {
-      const parts = line.split(q);
-      if (parts.length >= 3 && parts.some((p, k) => k % 2 === 1 && hangul.test(p))) {
-        leaks.push(`${raw.slice(0, raw.indexOf('|'))}: ${t0.slice(0, 50)}`);
-        return;
-      }
+  /* 주석은 **상태로** 좇는다 — 여러 줄 주석의 가운데 줄은 `*` 로 시작하지 않을 때가 많아서,
+     줄머리만 보면 주석 본문을 코드로 착각한다(실측 2026-08-14: 244줄이 거짓 빨강). */
+  let inBlock = false;
+  let inHtml = false;
+  src.split(String.fromCharCode(10)).forEach((raw) => {
+    const where = raw.slice(0, raw.indexOf('|'));
+    let line = raw.slice(raw.indexOf('|') + 1);
+    if (inBlock) {
+      const close = line.indexOf('*/');
+      if (close < 0) return;
+      inBlock = false;
+      line = line.slice(close + 2);
     }
+    for (;;) {
+      const open = line.indexOf('/*');
+      if (open < 0) break;
+      const close = line.indexOf('*/', open + 2);
+      if (close < 0) { line = line.slice(0, open); inBlock = true; break; }
+      line = line.slice(0, open) + line.slice(close + 2);
+    }
+    if (line.includes('//') && !line.includes('://')) line = line.slice(0, line.indexOf('//'));
+    /* HTML 주석(<!-- -->)도 같은 대접 — 화면 글이 아니라 사람에게 남기는 말이다. */
+    if (inHtml) {
+      const close = line.indexOf('-->');
+      if (close < 0) return;
+      inHtml = false;
+      line = line.slice(close + 3);
+    }
+    for (;;) {
+      const open = line.indexOf('<!--');
+      if (open < 0) break;
+      const close = line.indexOf('-->', open + 4);
+      if (close < 0) { line = line.slice(0, open); inHtml = true; break; }
+      line = line.slice(0, open) + line.slice(close + 3);
+    }
+    if (line.includes('panned(') || line.includes('dataset.kmPan')) return;
+    // 사람이 읽는 글이 아니라고 **적어 둔** 자리(한글 글자 범위를 받는 정규식 등)는 뺀다.
+    if (raw.includes('i18n-ok')) return;
+    /* ★ 따옴표 **안**만 보면 새는 자리가 있다 — 템플릿 글 안의 HTML 은 따옴표 없이 글자를
+       그대로 쓴다(실측 2026-08-14: 「이 {종류}에 대해 적어 두는 것」이 영어 화면에 한국어로 떴다).
+       코드의 이름은 다 로마자라, **남은 줄에 한글이 있으면 사람이 읽을 글**이라는 뜻이다. */
+    if (hangul.test(line)) leaks.push(`${where}: ${line.trim().slice(0, 50)}`);
   });
   eq(leaks.length, 0, '코드에 박힌 한국어 글: ' + leaks.slice(0, 4).join(' | '));
 }

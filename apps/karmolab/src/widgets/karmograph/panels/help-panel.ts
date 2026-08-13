@@ -12,7 +12,7 @@ export function renderHelpPanel(ctx: PanelCtx): void {
   side.classList.remove('hidden');
   ctx.canvas()?.setSelectedNode(null);
   side.innerHTML = `
-    <h4>? 무엇을 할 수 있나</h4>
+    <h4>${esc(t('karmograph.help.title'))}</h4>
     <div class="km-hint">${t('karmograph.help.count', { n: help().reduce((n2, sec) => n2 + sec.items.length, 0), key: '<b>?</b>' })}</div>
     ${help().map((sec) => `<div class="km-field">
       <label>${esc(sec.title)}</label>
@@ -21,6 +21,6 @@ export function renderHelpPanel(ctx: PanelCtx): void {
         <span class="km-help-how">${esc(it.how)}</span>
       </div>`).join('')}
     </div>`).join('')}
-    <button class="btn btn-ghost" data-km="help-close">닫기</button>`;
+    <button class="btn btn-ghost" data-km="help-close">${esc(t('karmograph.textPanel.close'))}</button>`;
   (side.querySelector('[data-km="help-close"]') as HTMLButtonElement).onclick = ctx.goNode;
 }

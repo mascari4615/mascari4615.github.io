@@ -41,7 +41,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
   side.classList.remove('hidden');
   side.innerHTML = `
-    <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmograph.manyClose.label'))}</button></h4>
+    <h4>${esc(t('karmograph.many.title', { n: String(ctx.selectedMany().length) }))} <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmograph.manyClose.label'))}</button></h4>
     <div class="km-hint">${t('karmograph.hint05', { em: `<b>${esc(t('karmograph.manyPanel.txt'))}</b>` })}</div>
     ${betweenHtml(ctx)}
     <div class="km-field">
@@ -100,7 +100,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
       </div>
       <div class="km-hint">${esc(t('karmograph.manyPanel.txt8'))}</div>
     </div>
-    <button class="btn btn-danger" data-km="many-del">${ctx.selectedMany().length}개 모두 삭제</button>
+    <button class="btn btn-danger" data-km="many-del">${esc(t('karmograph.many.delAll', { n: String(ctx.selectedMany().length) }))}</button>
 `;
 
   /* 나란히 놓기 · 고르게 벌리기 — 셈은 `tidy.ts` 가 하고 여기서는 결과를 얹기만 한다.

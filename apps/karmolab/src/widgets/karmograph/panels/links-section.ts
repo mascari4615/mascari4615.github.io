@@ -33,13 +33,13 @@ export function renderLinkSections(ctx: PanelCtx, node: GraphNode): string {
     `<div class="km-link-row"><span class="km-link-name">${ctx.esc(label)}</span>
       <button class="btn btn-ghost" data-km="${action}" data-key="${ctx.esc(key)}">${extra}</button></div>`;
   return `
-    ${out.length === 0 ? '' : `<div class="km-field"><label>가리키는 것 ${out.length}</label>
+    ${out.length === 0 ? '' : `<div class="km-field"><label>${ctx.esc(t('karmograph.links.out', { n: String(out.length) }))}</label>
       ${out.map((o) => (o.node
         ? row(o.name, 'go-link', o.node.id, t('karmograph.row.msg'))
         : row(o.name, 'make-link', o.name, t('karmograph.row.msg2')))).join('')}</div>`}
-    ${back.length === 0 ? '' : `<div class="km-field"><label>나를 가리키는 것 ${back.length}</label>
+    ${back.length === 0 ? '' : `<div class="km-field"><label>${ctx.esc(t('karmograph.links.back', { n: String(back.length) }))}</label>
       ${back.map((b) => row(b.label, 'go-link', b.id, t('karmograph.row.msg'))).join('')}</div>`}
-    ${loose.length === 0 ? '' : `<div class="km-field"><label>이름만 나온 곳 ${loose.length}</label>
+    ${loose.length === 0 ? '' : `<div class="km-field"><label>${ctx.esc(t('karmograph.links.loose', { n: String(loose.length) }))}</label>
       ${loose.map((m) => row(m.label, 'link-mention', m.id, t('karmograph.row.msg3'))).join('')}
       <div class="km-hint">${esc(t('karmograph.row.msg4'))}</div></div>`}`;
 }

@@ -26,7 +26,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
     <h4>${esc(t('karmograph.arrowGlyph.msg6'))}</h4>
     <div class="km-hint">${t('karmograph.termsOwn', { em: `<b>${esc(t('karmograph.arrowGlyph.msg7'))}</b>` })}</div>
     <div class="km-field">
-      <label>내 노드 종류 ${ctx.terms.nodeKinds.length}개</label>
+      <label>${ctx.esc(t('karmograph.terms.nodeKinds', { n: String(ctx.terms.nodeKinds.length) }))}</label>
       ${ctx.terms.nodeKinds
         .map(
           (k) => `<div class="km-group-row" data-term-node="${esc(k.id)}">
@@ -40,7 +40,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
       <button class="btn btn-ghost" data-km="t-add-node">${esc(t('karmograph.tAddNode.label'))}</button>
     </div>
     <div class="km-field">
-      <label>내 관계 종류 ${ctx.terms.edgeKinds.length}개</label>
+      <label>${ctx.esc(t('karmograph.terms.edgeKinds', { n: String(ctx.terms.edgeKinds.length) }))}</label>
       ${ctx.terms.edgeKinds
         .map(
           (e) => `<div class="km-group-row" data-term-edge="${esc(e.id)}">

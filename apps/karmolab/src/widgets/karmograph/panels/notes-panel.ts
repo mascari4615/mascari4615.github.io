@@ -41,7 +41,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
             <input type="text" data-km="note-title" data-key="${esc(n.id)}" value="${esc(n.title ?? '')}" placeholder="${esc(t('karmograph.noteTitle.ph'))}" />
             <div class="km-link-row">
               <span class="km-link-name">${esc(head || t('karmograph.emptyDoc'))}</span>
-              <span class="km-group-count">${users}곳</span>
+              <span class="km-group-count">${t('karmograph.count.places', { n: String(users) })}</span>
               <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>${esc(t('karmograph.noteGo.label'))}</button>
               <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>${esc(t('karmograph.foreign.msg7'))}</button>
               <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">${esc(t('karmograph.noteCard.label'))}</button>

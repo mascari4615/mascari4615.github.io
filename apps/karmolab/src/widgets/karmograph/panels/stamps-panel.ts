@@ -21,7 +21,7 @@ export function renderStampsPanel(ctx: PanelCtx): void {
       ? t('karmograph.list.msg14')
       : list.map((st) => `<div class="km-link-row">
           <span class="km-link-name">${esc(st.name)}</span>
-          <span class="km-group-count">${st.nodes.length}개</span>
+          <span class="km-group-count">${t('karmograph.count.items', { n: String(st.nodes.length) })}</span>
           <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">${esc(t('karmograph.stampPut.label'))}</button>
           <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="${esc(t('karmograph.stampDel.title'))}">×</button>
         </div>

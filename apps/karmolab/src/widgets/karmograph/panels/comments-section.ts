@@ -31,7 +31,7 @@ export function commentsSectionHtml(ctx: PanelCtx, onId: string): string {
   const rows = listOf(ctx).filter((c) => c.on === onId).sort((a, b) => a.at - b.at);
   return `
     <div class="km-field">
-      <label>코멘트 ${rows.length === 0 ? '' : `<span class="km-group-count">${rows.length}</span>`}</label>
+      <label>${esc(t('karmograph.comments.label'))} ${rows.length === 0 ? '' : `<span class="km-group-count">${rows.length}</span>`}</label>
       <div class="km-hint">${t('karmograph.commentsPile', { em: `<b>${esc(t('karmograph.rows.msg'))}</b>` })}</div>
       ${rows.map((c) => `<div class="km-link-row">
         <span class="km-link-name">${esc(c.text)}</span>
