@@ -13,7 +13,6 @@ import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download, loadImage } from './shared/image';
-import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -235,7 +234,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
-          acceptPastedFiles(container, (files) => { void load(files[0]); });
           [padEl, $<HTMLSelectElement>('#fvBg'), $<HTMLInputElement>('#fvRound')].forEach((el) =>
             el.addEventListener('input', refresh)
           );

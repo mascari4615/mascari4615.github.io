@@ -8,7 +8,6 @@
  * 그리고 스캔 문서라 글자가 아예 없으면 **빈 결과를 성공처럼 내놓지 않고** 그렇다고 말한다 —
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -248,7 +247,6 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type === 'application/pdf');
 
           $<HTMLButtonElement>('#ptRun').onclick = () => {
             void run().catch((err: Error) => say(t('pdf2text.err.run', { msg: err.message }), 'error'));

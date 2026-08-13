@@ -12,7 +12,6 @@
 import { fileSize as size, mmss, download } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { acceptPastedFiles } from './shared/paste';
 
 import { seekTo, downloadUrl, attachVideo } from './shared/video';
 import { encode } from './shared/image';
@@ -202,7 +201,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { load(files[0]); }, (f: File) => f.type.startsWith('video/'));
           everyEl.addEventListener('input', () => {
             $<HTMLElement>('#viEveryVal').textContent = (parseInt(everyEl.value, 10) / 10).toFixed(1) + t('video2img.unit.sec');
           });

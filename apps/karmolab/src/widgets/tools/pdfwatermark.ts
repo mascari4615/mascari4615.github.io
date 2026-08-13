@@ -6,7 +6,6 @@
  *
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -174,7 +173,6 @@ import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } f
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void pick(files[0]) });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { pick(files[0]); }, (f: File) => f.type === 'application/pdf');
           $<HTMLInputElement>('#pwOpacity').addEventListener('input', (e) => {
             $<HTMLElement>('#pwOpacityVal').textContent = (e.target as HTMLInputElement).value + '%';
           });

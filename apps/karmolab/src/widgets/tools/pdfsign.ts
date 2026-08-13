@@ -10,7 +10,6 @@
  * 자리 잡기가 핵심이다 — 좌표를 숫자로 입력하게 하면 아무도 못 쓴다. 미리보기 위를 눌러
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -310,7 +309,6 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type === 'application/pdf');
 
           $<HTMLButtonElement>('#psClearPad').onclick = () => {
             resetPad();

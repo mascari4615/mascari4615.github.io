@@ -5,7 +5,6 @@
  * 회사 컴퓨터나 남의 기기에서 특히 막힌다. 브라우저만으로 되는 자리를 둔다.
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -213,7 +212,6 @@ import { spec as zipCoreSpec } from '../../core/ziptool';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void accept(files) });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { accept(files); }, () => true);
           container.querySelectorAll('#zpMode .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {
               container.querySelectorAll('#zpMode .tool-chip').forEach((c) => c.classList.remove('active'));

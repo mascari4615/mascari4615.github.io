@@ -5,7 +5,6 @@
  * PDF 는 벡터라 **원하는 배율로 다시 그릴 수 있다** — 2배로 그리면 인쇄에도 쓸 만한 그림이 나온다.
  * 파일은 브라우저 밖으로 나가지 않는다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -147,7 +146,6 @@ import { openForRead, renderPage } from './shared/pdf';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void pick(files[0]) });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { pick(files[0]); }, (f: File) => f.type === 'application/pdf');
           scale.addEventListener('input', () => {
             $<HTMLElement>('#p2ScaleVal').textContent = scale.value + t('pdf2img.unit.scale');
           });

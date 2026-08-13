@@ -5,7 +5,6 @@
  * 내 파일의 값을 비교해야 한다. 그런데 그 값을 **눈으로 대조하면 반드시 놓친다** — 64자리다.
  * 그래서 기대값을 붙여 넣으면 기계가 맞춰 준다. 파일은 브라우저 밖으로 나가지 않는다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { FILE_ALGOS as ALGOS, hashBytes, size, verify } from '../../core/filehash';
@@ -114,7 +113,6 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (f) void run(f);
           });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void run(files[0]); }, () => true);
           expect.addEventListener('input', render);
                   });
         }

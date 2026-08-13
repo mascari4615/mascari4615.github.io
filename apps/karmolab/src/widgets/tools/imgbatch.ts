@@ -5,7 +5,6 @@
  * 그래서 여러 장을 한 번에 받아 같은 규칙으로 처리하고, ZIP 하나로 내려준다.
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { loadImage, toCanvas, encode, download } from './shared/image';
@@ -221,7 +220,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void add(files) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
-          acceptPastedFiles(container, (files) => { add(files); });
           maxEl.addEventListener('input', () => {
             $<HTMLElement>('#ibMaxVal').textContent = maxEl.value + 'px';
           });
