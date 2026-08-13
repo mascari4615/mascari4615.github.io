@@ -1759,6 +1759,44 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('폰에서 명령 팔레트 결과를 눌러서 고를 수 있다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 팔레트가 z-index 40 이라 아래 시트(960)가 결과 목록을 덮었다 — 칸에 글자는
+     쳐지는데 **고를 수가 없었다**(보이는 아홉 중 여섯이 시트 단추에 잡혔다). 자판 Enter 를 아는
+     사람만 쓸 수 있는 문은 폰에서 없는 문이다. 그래서 여기서는 **눌러서** 고른다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.25);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('팔레트카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  await m.locator('[data-km="more"]').click();
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await m.locator('[data-km="palette-open"]').click();
+  await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
+  await m.fill('[data-km="pal-find"]', '가지런히');
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="pal-list"] button').length > 0,
+    null, { timeout: ms(4000) });
+  const grabbable = await m.evaluate(() => {
+    const el = document.querySelector('[data-km="pal-list"] button');
+    const r = el.getBoundingClientRect();
+    if (r.bottom > innerHeight || r.width < 2) return ' 화면 밖';
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (hit && !hit.closest('.km-root')) return '';
+    return el === hit || el.contains(hit) ? '' : ' 덮은 것: ' + (hit?.dataset?.km || hit?.className || hit?.tagName);
+  });
+  if (grabbable) throw new Error('팔레트 결과가 안 잡힌다 —' + grabbable);
+  await m.locator('[data-km="pal-list"] button').first().click();
+  await m.waitForSelector('[data-km="pal"].hidden', { state: 'attached', timeout: ms(4000) });
+  await ph.close();
+});
 await step('폰에서 서랍이 시트 밑에 깔리지 않는다 — 접은 명령에 다 닿는다 (KL-271)', async () => {
   /* 실측 2026-08-14: 서랍은 툴바 안에 매달려 있어(z-index 5 짜리 쌓임 맥락) 아래 시트(960)가
      덮었다 — 28개 중 여덟은 짚으면 시트 단추가 잡히고 셋은 화면 밖이었다. 폰에서 서랍은
