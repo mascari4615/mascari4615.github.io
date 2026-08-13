@@ -713,5 +713,9 @@
   "karmograph.time.renameAsk": "この時点を何と呼びますか？",
   "karmograph.time.del": "この時点を削除",
   "karmograph.time.delAsk": "「{name}」を削除しますか？この時点だけに書いた関係も消えます。",
-  "karmograph.time.delAct": "時点を削除"
+  "karmograph.time.delAct": "時点を削除",
+  "karmograph.face.head": "この時点では（{name}）",
+  "karmograph.face.hint": "空にすると元に戻ります — 他の時点は触りません。",
+  "karmograph.face.same": "— 元の種類 —",
+  "karmograph.face.gone": "この時点にはこの関係がない"
 }

@@ -2774,6 +2774,51 @@ await step('시점을 옮기면 선의 얼굴이 바뀐다 (자료는 그대로)
   await ctx.close();
 });
 
+await step('선 패널에서 「이 시점에서」를 고친다 (비우면 원래대로)', async () => {
+  // 자료를 손으로 심지 않고 사람이 고칠 수 있어야 기능이다(KL-271 X2 마지막 조각).
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  await m.locator('.ck-edge-hit').first().click({ force: true });
+  await m.waitForSelector('[data-km="ed-label"]', { timeout: ms(4000) });
+  // 시점을 안 쓰는 판에는 그 칸이 아예 없다 — 안 쓰는 사람에게 자리를 뺏지 않는다.
+  if (await m.locator('[data-km="ed-face-label"]').count() !== 0) {
+    throw new Error('시점이 없는데 「이 시점에서」 칸이 떠 있다');
+  }
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForTimeout(ms(500));
+  await m.locator('.ck-edge-hit').first().click({ force: true });
+  await m.waitForSelector('[data-km="ed-face-label"]', { timeout: ms(4000) });
+  const labels = () => m.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')].map((t) => t.textContent));
+  const before = await labels();
+  await m.fill('[data-km="ed-face-label"]', '라이벌');
+  await m.waitForFunction(() => [...document.querySelectorAll('.ck-edge-label text')]
+    .some((t) => t.textContent === '라이벌'), null, { timeout: ms(4000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
+  await m.waitForTimeout(ms(500));
+  const first = await labels();
+  if (first.includes('라이벌') && !before.includes('라이벌')) throw new Error('1부인데 2부 이름이 보인다');
+  // 비우면 자리째 지운다 — 빈 껍데기가 쌓이면 「이 선은 시점 이야기를 한다」가 거짓이 된다.
+  await m.evaluate(() => document.querySelector('[data-km="time-next"]').click());
+  await m.waitForTimeout(ms(400));
+  await m.fill('[data-km="ed-face-label"]', '');
+  await m.waitForTimeout(ms(600));
+  const at = await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    return JSON.parse(localStorage.getItem(key)).edges[0].at ?? null;
+  });
+  if (at !== null) throw new Error(`비웠는데 빈 껍데기가 남았다: ${JSON.stringify(at)}`);
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');

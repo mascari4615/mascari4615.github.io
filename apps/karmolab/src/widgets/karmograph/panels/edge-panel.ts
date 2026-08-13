@@ -7,6 +7,7 @@
 import type { PanelCtx } from './context';
 import { docFieldHtml, bindDocField, EDGE_DOC_SKIN } from './doc-section';
 import { t, loadNamespace } from '../../../lib/i18n';
+import { setFace, edgeAt } from '../times';
 
 /**
  * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
@@ -41,6 +42,27 @@ export function renderEdgePanel(ctx: PanelCtx): void {
       <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"
         placeholder="${esc(nameOf(edge.to))} 가 보는 ${esc(nameOf(edge.from))}" />
     </div>
+    ${(() => {
+      /* ★ **이 시점에서는** (TASK-KL-271 X2). 시점을 안 쓰는 판에는 아예 안 나온다.
+         비우면 원래대로 — 그래야 「1부는 원본, 2부만 다르게」가 손에 붙는다. */
+      const times = ctx.spec().times ?? [];
+      if (times.length === 0) return '';
+      const nowId = ctx.spec()._meta?.time || times[0].id;
+      const nowName = times.find((x) => x.id === nowId)?.name ?? '';
+      const face = edge.at?.[nowId] ?? {};
+      return `<div class="km-field">
+        <label>${esc(t('karmograph.face.head', { name: nowName }))}</label>
+        <div class="km-hint">${esc(t('karmograph.face.hint'))}</div>
+        <input type="text" data-km="ed-face-label" value="${esc(face.label ?? '')}"
+          placeholder="${esc(edge.label ?? '')}" />
+        <select data-km="ed-face-kind">
+          <option value="">${esc(t('karmograph.face.same'))}</option>
+          ${ctx.edgeKindOptionsHtml(face.kind ?? '')}
+        </select>
+        <label class="km-check"><input type="checkbox" data-km="ed-face-gone"${face.gone ? ' checked' : ''} />
+          ${esc(t('karmograph.face.gone'))}</label>
+      </div>`;
+    })()}
     <div class="km-field">
       <label>${esc(t('karmograph.nameOf.msg6'))} <span class="km-hint">${esc(t('karmograph.nameOf.msg7'))}</span></label>
       <input type="text" data-km="ed-tags" value="${esc((edge.tags ?? []).join(', '))}" />
@@ -79,6 +101,25 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     edge.viewTo = (ev.target as HTMLInputElement).value.trim() || undefined;
     save();
   };
+  /* 이 시점의 얼굴 — 비우면 자리째 지운다(빈 껍데기가 쌓이면 「시점 이야기를 한다」가 거짓이 된다). */
+  const faceBox = side.querySelector('[data-km="ed-face-label"]') as HTMLInputElement | null;
+  if (faceBox) {
+    const times = ctx.spec().times ?? [];
+    const nowId = ctx.spec()._meta?.time || times[0]?.id || '';
+    const kindSel = side.querySelector('[data-km="ed-face-kind"]') as HTMLSelectElement;
+    const goneBox = side.querySelector('[data-km="ed-face-gone"]') as HTMLInputElement;
+    const write = (): void => {
+      const next = setFace(edge, nowId, {
+        label: faceBox.value, kind: kindSel.value, gone: goneBox.checked,
+      });
+      edge.at = next.at;
+      ctx.canvas()?.render();
+      ctx.persist();
+    };
+    faceBox.oninput = write;
+    kindSel.onchange = write;
+    goneBox.onchange = write;
+  }
   (side.querySelector('[data-km="ed-tags"]') as HTMLInputElement).onchange = (ev) => {
     const list = (ev.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean);
     edge.tags = list.length > 0 ? [...new Set(list)] : undefined;

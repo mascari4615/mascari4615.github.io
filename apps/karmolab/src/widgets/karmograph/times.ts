@@ -81,3 +81,22 @@ export function forgetTime<T extends TimedEdge>(edges: T[], timeId: string): T[]
     return { ...e, at: Object.keys(at).length > 0 ? at : undefined };
   });
 }
+
+
+/**
+ * 이 시점의 얼굴을 고쳐 넣는다 — **비어 있으면 자리째 지운다.**
+ *
+ * 「이름을 비우면 원래대로」가 사람이 기대하는 동작인데, 그때 빈 껍데기(`{ }`)를 남기면
+ * 선마다 시점 자리가 조용히 쌓이고 「이 선은 시점 이야기를 한다」는 표시(`isTimed`)가 거짓이 된다.
+ */
+export function setFace<T extends TimedEdge>(edge: T, timeId: string, face: EdgeAtTime): T {
+  if (!timeId) return edge;
+  const clean: EdgeAtTime = {};
+  if (face.label?.trim()) clean.label = face.label.trim();
+  if (face.kind) clean.kind = face.kind;
+  if (face.gone) clean.gone = true;
+  const at = { ...(edge.at ?? {}) };
+  if (Object.keys(clean).length === 0) delete at[timeId];
+  else at[timeId] = clean;
+  return { ...edge, at: Object.keys(at).length > 0 ? at : undefined };
+}
