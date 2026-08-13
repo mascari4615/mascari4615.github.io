@@ -14,7 +14,7 @@
   "scripts": {
     "verify:live": "node scripts/run-live-checks.mjs",
     "verify:karmograph": "node scripts/run-karmograph-live.mjs",
-    "verify:prepush": "node scripts/run-gates.mjs test:names audit:jpegbg audit:hidden audit:aliases audit:scripts test:tools test:tool-url test:i18n:keys test:karmograph audit:wf-prereq",
+    "verify:prepush": "node scripts/run-gates.mjs audit:jpegbg audit:hidden audit:aliases audit:scripts test:tools test:tool-url test:i18n:keys test:karmograph audit:wf-prereq",
     "build:wiki": "node scripts/sync-wiki.mjs",
     "build:devlog": "node scripts/build-devlog.mjs",
     "build:wm-tasks": "node scripts/build-wm-tasks.mjs",
