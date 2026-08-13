@@ -21,9 +21,10 @@ export function renderFilterPanel(ctx: PanelCtx): void {
 
   // ★ 목록 = **이 맵에 실제로 쓰인 종류만**. 종류가 스물여섯인데 안 쓴 것까지 늘어놓으면
   //   「끌 게 없는 스위치」가 대부분이 된다 — 거르기는 있는 것만 거르면 된다.
-  const nodeRows = [...new Set(spec.nodes.map((n) => n.kind))]
+  // 종류가 안 적힌 카드도 있다 — 그 빈 자리를 줄로 세우면 「이름 없는 갈래」가 생긴다(그리고 터진다).
+  const nodeRows = [...new Set(spec.nodes.map((n) => n.kind).filter(Boolean))]
     .map((id) => ({ id, label: ctx.kindLabel(id), icon: ctx.kindIcon(id) }));
-  const edgeRows = [...new Set(spec.edges.map((e) => e.kind))]
+  const edgeRows = [...new Set(spec.edges.map((e) => e.kind).filter(Boolean))]
     .map((id) => ({ id, label: ctx.edgeLabel(id) }));
   const tags = [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
   // 이 맵에서 실제로 쓰인 칸 이름들 — 안 쓴 칸을 늘어놓으면 고를 게 없는 목록이 된다.

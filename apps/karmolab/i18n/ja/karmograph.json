@@ -799,5 +799,6 @@
   "karmograph.many.delAll": "{n} 件すべて削除",
   "karmograph.storage.used": "{used} / 約 {all} ({pct}%)",
   "karmograph.terms.nodeKinds": "自分のノード種類 {n}",
-  "karmograph.terms.edgeKinds": "自分の関係種類 {n}"
+  "karmograph.terms.edgeKinds": "自分の関係種類 {n}",
+  "karmograph.kind.unknown": "不明な種類"
 }

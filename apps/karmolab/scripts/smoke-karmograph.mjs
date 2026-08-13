@@ -1939,6 +1939,46 @@ await step('모자란 자료로도 판은 열린다 (KL-271)', async () => {
     await ctx.close();
   }
   if (broke.length > 0) throw new Error('모자란 자료에 판이 안 열린다: ' + broke.join(' · '));
+
+  /* 열리는 것만으로는 모자란다 — **그 판에서 칸들을 열어 봐야** 안다. 실측 2026-08-14:
+     종류가 안 적힌 카드가 있으면 거르기 칸만 터졌다(다른 아홉은 멀쩡). */
+  const ctx2 = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m2 = await ctx2.newPage();
+  const bad2 = [];
+  m2.on('pageerror', (e) => bad2.push(String(e).slice(0, 90)));
+  await m2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m2.evaluate(() => localStorage.clear());
+  await m2.evaluate(() => {
+    const spec = {
+      version: 1, _meta: { time: '없는시점' },
+      groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
+      nodes: [
+        { id: 'n1', label: '가', x: 0, y: 0, w: 160, h: 44, fields: null, docRef: '없음' },
+        { id: 'n2', label: '나', kind: 'character', x: 220, y: 120, w: 160, h: 44 },
+      ],
+      edges: [
+        { id: 'e1', from: 'n1', to: '없음', label: '?', kind: 'default' },
+        { id: 'e2', from: 'n1', to: 'n2', label: '친구', kind: 'default' },
+      ],
+      story: [{ id: 's1', title: '장', nodeIds: ['없음'] }],
+      times: [], ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.rough2', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'rough2', maps: [{ id: 'rough2', name: '거친 판 2' }] }));
+  });
+  await m2.reload({ waitUntil: 'domcontentloaded' });
+  await m2.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m2.waitForTimeout(ms(700));
+  for (const key of ['filter', 'sna', 'table', 'groups', 'terms', 'notes', 'stamps', 'storage', 'help']) {
+    await m2.evaluate((k) => document.querySelector(`[data-km="tab"][data-key="${k}"], [data-km="${k}"]`)?.click(), key);
+    await m2.waitForTimeout(ms(350));
+    if (bad2.length > 0) throw new Error(`거친 판에서 「${key}」 칸이 터진다: ${bad2[0]}`);
+  }
+  await m2.locator('.ck-node').first().click();
+  await m2.waitForTimeout(ms(500));
+  if (bad2.length > 0) throw new Error('거친 판에서 카드를 고르면 터진다: ' + bad2[0]);
+  await ctx2.close();
 });
 
 await step('파일로 뽑고 다시 불러도 **아무것도 안 빠진다** (KL-271)', async () => {
