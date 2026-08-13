@@ -35,6 +35,7 @@ import { lengthOf, secondsOf } from './length';
 import { readPlays, notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
+import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
 import { record, type Tape } from './replay';
@@ -521,6 +522,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
       '.ac-seat.ac-watch{border-color:var(--accent);color:var(--accent)}',
+      '.ac-seat.ac-team0{border-color:#6aa9ff}',
+      '.ac-seat.ac-team1{border-color:#ff7a7a}',
       '.ac-letter{margin-top:var(--space-md);padding:10px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
       '.ac-room{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
       '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
@@ -696,6 +699,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (!g.realtime && g.seats[0] === 2
           ? '<button ' + (pick ? 'data-pickletter' : 'data-letter') + '="' + g.id + '">' + esc(t('arcade.btn.letter')) + '</button>'
           : '') +
+        /* **넷부터 편이 선다.** 둘·셋은 나눠 봐야 한 편에 하나씩이라 개인전과 같다. */
+        (isTeamy(g.seats[1])
+          ? '<button ' + (pick ? 'data-pickteam' : 'data-team') + '="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
+          : '') +
         '</span></div>'
       );
     };
@@ -761,6 +768,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       on('data-pickhost', 'pickhost', openRoom);
       on('data-letter', 'letter', startLetter);
       on('data-pickletter', 'pickletter', startLetter);
+      on('data-team', 'team', startTeam);
+      on('data-pickteam', 'pickteam', startTeam);
     }
 
     /** 이 게임이 검색어에 걸리나 — 이름·설명·갈래·길이 어디든. */
@@ -827,6 +836,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let lastPersonas: Record<number, BotPersona> = {};
     let lastLevel: BotLevel = 'normal';
     let tape: Tape<unknown> | null = null;
+    /** 편을 갈랐으면 자리→편 표. 개인전이면 null. */
+    let plan: Plan | null = null;
     /** 지금 화면에 도는 것이 **다시 보기**인가 — 그렇다면 손이 안 먹는다. */
     let replaying = false;
     /** 되살리는 중 아직 안 넣은 수의 자리 */
@@ -872,6 +883,26 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 등수는 `rank.ts` 가 센다 — 대회 점수와 같은 셈이라 화면과 점수표가 안 갈린다.
      */
     function showResult(v: MatchView<unknown>, draw: boolean, top: number, note: string): void {
+      /* 편을 갈랐으면 **편 점수로** 줄을 세운다 — 개인 등수를 보여 주면 편이 아니라 개인전이다. */
+      if (plan) {
+        const ts = teamScores(plan, v.seats.map((x) => x.score));
+        const best = Math.max(...ts);
+        const myTeam = plan[mySeat] ?? -1;
+        $<HTMLElement>('#acOverHead').textContent = ts[0] === ts[1]
+          ? '🤝 ' + t('arcade.team.draw')
+          : (ts[myTeam] === best ? '🏆 ' : '🏁 ') + t('arcade.team.win', { who: TEAM_NAMES[ts.indexOf(best)] ?? '' });
+        $<HTMLElement>('#acOverList').innerHTML = ts
+          .map((sc, ti) =>
+            '<li class="ac-overrow' + (ti === myTeam ? ' ac-me' : '') + '">' +
+            '<span class="ac-overrank">' + esc(TEAM_NAMES[ti] ?? '') + '</span>' +
+            '<span class="ac-overname">' +
+            v.seats.filter((_, i) => plan?.[i] === ti).map((x) => esc(x.name)).join(', ') +
+            '</span><span class="ac-overscore">' + sc + '</span></li>')
+          .join('');
+        $<HTMLElement>('#acOverNote').textContent = note;
+        $<HTMLElement>('#acOver').style.display = '';
+        return;
+      }
       const order = ranks(v.seats.map((x) => x.score));
       /* 구경꾼에게는 「내가 이겼다」가 없다. 자리가 -1 이라 점수가 0 인데, 아무도 점수를
          못 낸 판(0:0)에서는 그 0 이 1등과 같아져 구경꾼이 이긴 것으로 뜬다. */
@@ -913,7 +944,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         v.seats
           .map(
             (s, i) =>
-              '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') + '">' +
+              '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') +
+              (plan ? ' ac-team' + plan[i] : '') + '">' +
+              (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
               esc(s.name) + (s.bot ? ' 🤖' : '') + ' <b>' + s.score + '</b></span>'
           )
           .join('');
@@ -1064,7 +1097,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회 — 여럿 대회는 다음 걸음). */
     let tour: TourState | null = null;
 
-    function beginMatch(id: string, seats: SeatSpec[], seed: number): void {
+    function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number): void {
       const g = gameById(id);
       if (!g) return;
       gameId = id;
@@ -1076,7 +1109,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          그건 자리를 채운 것이지 같이 논 것이 아니다. 손버릇도 여기서 정해 판 내내 지킨다. */
       /* 인원은 **판이 아니라 오락실이** 정한다 (`seating.ts`). 최솟값으로 채우면 「1명부터」인
          판 17개가 혼자 열었을 때 봇 없이 혼자 돈다 — 경주에 상대가 없었다(F1 실측). */
-      const need = Math.max(0, partySize(g) - seats.length);
+      /* 편을 가른 판은 인원을 편이 정한다(넷) — 그 밖에는 오락실이 정한다(`seating.ts`). */
+      const need = Math.max(0, (want ?? partySize(g)) - seats.length);
       /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다 — 또 깜냥한테 졌다가 되려면 그래야 한다. */
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       const personas: Record<number, BotPersona> = {};
@@ -1252,10 +1286,30 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [] });
     }
 
+    /**
+     * 편 갈라 — 넷이 앉아 둘씩 나눈다 (TASK-KL-264 E1).
+     *
+     * 커널에는 아무 말도 안 한다. 자리는 그대로 각자 점수를 내고 **합치는 것만 여기서** 한다 —
+     * 그래서 게임 파일은 편이 있다는 것을 모르고, 같은 규칙이 「우리가 잘하기」로 달리 놀린다.
+     */
+    function startTeam(id: string): void {
+      const g = gameById(id);
+      if (!g) return;
+      net?.leave();
+      net = null;
+      letter = null;
+      const n = Math.min(4, g.seats[1]);
+      plan = split(n);
+      show('play');
+      withIntro(id, () =>
+        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())), n));
+    }
+
     /** 혼자 — 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
     function startSolo(id: string): void {
       net?.leave();
       net = null;
+      plan = null;
       show('play');
       withIntro(id, () => beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
     }
@@ -1463,6 +1517,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       swapBtn.style.display = 'none';
       replayBtn.style.display = 'none';
       replaying = false;
+      plan = null;
       letter = null;
       $<HTMLElement>('#acLetter').style.display = 'none';
       hideResult();

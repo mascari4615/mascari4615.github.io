@@ -411,5 +411,8 @@
   "arcade.letter.wait": "{who}'s turn — wait for the link",
   "arcade.letter.over": "the game is over",
   "arcade.letter.toobig": "too long for a link — open a room instead",
-  "arcade.letter.friend": "friend"
+  "arcade.letter.friend": "friend",
+  "arcade.btn.team": "teams",
+  "arcade.team.win": "team {who} takes it",
+  "arcade.team.draw": "the teams tie"
 }

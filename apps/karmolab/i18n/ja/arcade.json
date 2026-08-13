@@ -411,5 +411,8 @@
   "arcade.letter.wait": "{who}の番 — リンクを待て",
   "arcade.letter.over": "終わった",
   "arcade.letter.toobig": "長すぎてリンクに入らない — 部屋を開け",
-  "arcade.letter.friend": "相手"
+  "arcade.letter.friend": "相手",
+  "arcade.btn.team": "チーム戦",
+  "arcade.team.win": "{who}チームの勝ち",
+  "arcade.team.draw": "引き分け"
 }
