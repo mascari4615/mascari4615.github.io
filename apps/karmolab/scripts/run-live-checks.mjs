@@ -23,6 +23,20 @@ const only = (() => {
   return i >= 0 ? argv[i + 1] : null;
 })();
 const skipPrep = argv.includes('--skip-prep');
+/* ★ **여럿이 나눠 든다** (2026-08-13). 서른세 검사를 한 줄로 돌면 17분이 넘는데, 이 판은
+   배포마다 다시 불려 **끝나기 전에 취소된다** — 실측 40판 중 25판이 그렇게 판정을 못 냈다.
+   판정이 안 나오는 검사는 없는 검사다. 그래서 조각으로 나눠 **동시에** 돈다.
+   나누는 방식은 「하나 걸러 하나」다 — 앞쪽에 무거운 것이 몰려 있어 앞뒤로 자르면 한 조각만 길어진다. */
+const shard = (() => {
+  const i = argv.indexOf('--shard');
+  if (i < 0) return null;
+  const m = /^(\d+)\/(\d+)$/.exec(argv[i + 1] || '');
+  if (!m) {
+    console.error('[verify:live] --shard 는 「2/3」 꼴로 준다');
+    process.exit(2);
+  }
+  return { idx: Number(m[1]) - 1, of: Number(m[2]) };
+})();
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function run(cmd) {
@@ -43,7 +57,11 @@ if (!skipPrep && !only) {
   }
 }
 
-const todo = only ? CHECKS.filter((c) => c.name.includes(only)) : CHECKS;
+let todo = only ? CHECKS.filter((c) => c.name.includes(only)) : CHECKS;
+if (shard) {
+  todo = todo.filter((_, i) => i % shard.of === shard.idx);
+  console.log(`[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개`);
+}
 if (!todo.length) {
   console.error(`[verify:live] 「${only}」 에 걸리는 검사가 없다.`);
   process.exit(2);
@@ -110,7 +128,8 @@ const red = results.filter((r) => r.code !== 0);
    경보 이슈에 「로그를 보세요」만 328번 쌓여 있었다 — 무엇이 빨간지 안 적혀 있으면
    경보를 열어도 아무것도 모르고, 그런 경보는 꺼진 경보다. 워크플로가 이 파일을 읽어 적는다. */
 const NL = String.fromCharCode(10);
-writeFileSync('live-check-red.txt', red.map((r) => r.name).join(NL) + (red.length ? NL : ''), 'utf8');
+const redFile = shard ? `live-check-red-${shard.idx + 1}.txt` : 'live-check-red.txt';
+writeFileSync(redFile, red.map((r) => r.name).join(NL) + (red.length ? NL : ''), 'utf8');
 if (process.env.GITHUB_STEP_SUMMARY) {
   const lines = results.map((r) => `- ${r.code === 0 ? '✅' : '❌'} ${r.name} (${r.sec}s)`);
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## 라이브 점검 — 빨강 ${red.length} / ${results.length}` + NL + lines.join(NL) + NL, 'utf8');
