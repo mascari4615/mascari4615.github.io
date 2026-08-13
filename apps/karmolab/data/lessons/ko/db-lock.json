@@ -1,106 +1,756 @@
 {
   "id": "db-lock",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「평소엔 빠른데 가끔 30초씩 멈춰요」 — CPU 도 한가하고 쿼리도 단순하다. 대개 **누군가를 기다리는 중**이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 왜 기다리나"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "같은 행을 두 사람이 고칠 때",
-      "text": "A: BEGIN; UPDATE accounts SET balance=... WHERE id=1;   -- 락 획득\nA: (다른 일 하는 중... 외부 API 호출 3초)               -- ★ 락을 쥔 채로!\nB: UPDATE accounts ... WHERE id=1;                      -- A 가 끝날 때까지 대기\n\n트랜잭션 길이 = 남을 세우는 시간\n→ 트랜잭션 안에서 외부 호출·파일 처리·사용자 입력 대기 금지"
-    },
-    {
-      "type": "h",
-      "text": "2. 데드락"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "서로 상대의 것을 기다린다",
-      "text": "A: 1번 락 → 2번 요청\nB: 2번 락 → 1번 요청     → 영원히 대기 → DB 가 한쪽을 강제 종료\n\n해법: 항상 같은 순서로 잠근다 (예: id 오름차순)\n  UPDATE ... WHERE id IN (1,2) 를 정렬해서 처리\n데드락은 재시도 가능한 오류다 — 잡아서 한 번 재시도하는 것이 정석"
-    },
-    {
-      "type": "h",
-      "text": "3. 지금 무엇이 막혀 있나"
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "사고 중에 이걸 친다",
-      "text": "-- 대기 중인 것과 그 원인 (PostgreSQL)\nSELECT pid, wait_event_type, wait_event, state,\n       now() - query_start AS 경과, left(query, 80)\n  FROM pg_stat_activity\n WHERE state <> 'idle' ORDER BY 경과 DESC;\n\n-- 누가 누구를 막는지\nSELECT pg_blocking_pids(pid), pid, left(query,60) FROM pg_stat_activity\n WHERE cardinality(pg_blocking_pids(pid)) > 0;\n\n-- 최후: 특정 세션 종료\n-- SELECT pg_terminate_backend(12345);"
-    },
-    {
-      "type": "note",
-      "text": "**`idle in transaction` 이 오래 보이면 그게 범인**이다. 애플리케이션이 트랜잭션을 열어 두고 잊은 상태 — 락도 계속 쥐고 있고, 오래된 행 정리(vacuum)도 막는다. 타임아웃을 걸어라."
-    },
-    {
-      "type": "h",
-      "text": "4. 타임아웃을 걸어라"
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "무한 대기 금지",
-      "text": "SET lock_timeout = '3s';                  -- 락을 3초 넘게 기다리면 실패\nSET statement_timeout = '30s';            -- 쿼리 자체 상한\nSET idle_in_transaction_session_timeout = '60s';\n\n-- 실패가 대기보다 낫다: 대기는 연쇄적으로 번지지만 실패는 그 요청에서 끝난다"
-    },
-    {
-      "type": "h",
-      "text": "5. 낙관적 방식으로 피하기"
-    },
-    {
-      "type": "p",
-      "text": "행을 잠그는 대신 **버전 컬럼으로 충돌을 감지**하면 락 대기 자체가 없어진다(앞의 API/동기화 갈래와 같은 방식). 충돌이 드문 경우엔 거의 항상 이쪽이 낫다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "두 세션으로 같은 행을 동시에 수정해 대기를 만들고, 위 조회로 누가 막는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "내 앱의 트랜잭션 안에 외부 호출이 있는지 찾아 밖으로 빼라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "트랜잭션 안에서 외부 API 를 부르면?",
-      "choices": [
-        "락을 쥔 채 대기해 다른 요청을 세운다",
-        "속도가 빨라진다",
-        "롤백이 안 된다"
+      "id": "1",
+      "title": "증상 — 가끔 30초씩 멈춘다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「평소엔 빠른데 가끔 30초씩 멈춰요.」 CPU 도 한가하고 쿼리도 단순한데 응답이 안 온다. 이럴 땐 일하는 게 느린 게 아니라 **누군가를 기다리는 중**이다. 그 「누군가」가 쥔 것이 **락(lock)** 이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "느림의 두 종류 — 일하는 중 vs 기다리는 중",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const slow = kind === 'work';\n  render(slow ? 'CPU 바쁨 — 진짜 일이 느림' : 'CPU 한가 — 락 대기',\n    (slow\n      ? '  실행 계획이 나쁘거나 데이터가 많다 -> db-explain·db-index 의 영역.\\n' +\n        '  프로파일에 CPU·디스크가 바쁘게 잡힌다.'\n      : '  CPU 는 놀고 있는데 응답이 없다 -> 다른 트랜잭션이 쥔 락을 기다린다.\\n' +\n        '  <span class=\\\"warn\\\">이 장의 주제 — 대기 시간은 계측이 다르다.</span>'),\n    '느림 = 일하는 중인가, 기다리는 중인가. 둘은 원인도 처방도 완전히 다르다.',\n    timeline(slow\n      ? [['Q', [[6, 'work', '정렬·스캔으로 바쁨']]]]\n      : [['A', [[2, 'hold', '락 쥠'], [4, 'work', '외부 호출 대기 중...']]],\n         ['B', [[2, 'work', '실행'], [4, 'wait', 'A 의 락 대기 (놀지만 못 감)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "느림의 종류",
+              "type": "select",
+              "value": "wait",
+              "options": [
+                {
+                  "value": "wait",
+                  "label": "기다리는 중(락)"
+                },
+                {
+                  "value": "work",
+                  "label": "일하는 중(쿼리)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**대기는 프로파일러에 「빠른 쿼리」로 보인다.** 락을 기다리는 쿼리는 CPU 를 안 쓰므로, 실행 계획·CPU 프로파일엔 문제가 안 잡힌다. 그래서 「쿼리는 멀쩡한데 느린」 현상이 된다 — 대기 이벤트를 따로 봐야 보인다(6장)."
+        },
+        {
+          "type": "p",
+          "text": "**락은 필요악이다.** 여러 트랜잭션이 **같은 데이터를 동시에 바꾸면** 서로 덮어써 데이터가 깨진다. 락은 그걸 막으려고 순서를 세운다 — 정확성의 대가로 대기가 생긴다. 목표는 락을 없애는 게 아니라 **쥐는 시간을 짧게** 하는 것이다(3장)."
+        },
+        {
+          "type": "try",
+          "text": "「가끔 느린」 요청이 있다면, 그 시각의 DB 대기 이벤트를 확인하라(6장 조회). CPU 가 한가한데 느렸다면 락 대기일 가능성이 높다."
+        }
       ],
-      "answer": 0,
-      "why": "트랜잭션 길이가 곧 남의 대기 시간이다."
+      "quiz": [
+        {
+          "q": "CPU 가 한가한데 응답이 30초 걸린다면 첫 의심은?",
+          "choices": [
+            "느린 쿼리",
+            "락 대기(다른 트랜잭션을 기다림)",
+            "네트워크 다운",
+            "메모리 부족"
+          ],
+          "answer": 1,
+          "why": "일하는 게 아니라 기다린다."
+        },
+        {
+          "q": "락 대기가 CPU 프로파일에 잘 안 잡히는 이유는?",
+          "choices": [
+            "숨겨져서",
+            "기다리는 동안 CPU 를 안 쓰므로",
+            "빨라서",
+            "로그가 없어서"
+          ],
+          "answer": 1,
+          "why": "대기 이벤트를 따로 봐야."
+        },
+        {
+          "q": "락의 목적은?",
+          "choices": [
+            "속도 향상",
+            "동시 수정이 데이터를 깨는 것을 막음",
+            "저장 절약",
+            "인덱스 대체"
+          ],
+          "answer": 1,
+          "why": "정확성의 대가로 대기."
+        }
+      ]
     },
     {
-      "q": "데드락을 예방하는 기본 규칙은?",
-      "choices": [
-        "항상 같은 순서로 잠근다",
-        "락을 안 쓴다",
-        "타임아웃을 없앤다"
+      "id": "2",
+      "title": "락의 기본 — 공유와 배타",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "락에는 크게 둘이 있다. **공유 락(읽기)** 은 여러 트랜잭션이 동시에 쥘 수 있다 — 읽기끼리는 안 부딪친다. **배타 락(쓰기)** 은 혼자만 쥔다 — 쓰는 동안 남의 읽기·쓰기를 막는다. 「읽기-읽기는 OK, 쓰기가 끼면 대기」가 기본 규칙이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "두 작업이 부딪치나 — 조합을 골라 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const a = '{{opA}}', b = '{{opB}}';\n  const conflict = !(a === 'read' && b === 'read');\n  render('같은 행에 A=' + a + ' · B=' + b,\n    '  ' + (conflict\n      ? '<span class=\\\"no\\\">충돌 — B 는 A 가 끝날 때까지 대기</span>'\n      : '<span class=\\\"ok\\\">동시 진행 — 읽기끼리는 공유 락이라 안 부딪친다</span>') +\n    '\\n\\n  규칙: 쓰기(배타 락)가 하나라도 끼면 순서를 세운다.',\n    '읽기-읽기만 동시 가능. 쓰기가 끼면 배타 락이라 대기가 생긴다.',\n    timeline(conflict\n      ? [['A', [[3, a === 'write' ? 'hold' : 'work', a + ' (락 쥠)']]],\n         ['B', [[3, 'wait', 'A 대기'], [2, b === 'write' ? 'hold' : 'work', b]]]]\n      : [['A', [[3, 'work', 'read']]], ['B', [[3, 'work', 'read (동시)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "opA",
+              "label": "A 작업",
+              "type": "select",
+              "value": "write",
+              "options": [
+                {
+                  "value": "read",
+                  "label": "읽기"
+                },
+                {
+                  "value": "write",
+                  "label": "쓰기"
+                }
+              ]
+            },
+            {
+              "id": "opB",
+              "label": "B 작업",
+              "type": "select",
+              "value": "write",
+              "options": [
+                {
+                  "value": "read",
+                  "label": "읽기"
+                },
+                {
+                  "value": "write",
+                  "label": "쓰기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**대부분의 DB 는 「읽기가 쓰기를 막지 않게」 MVCC 를 쓴다.** 쓰는 중에도 읽는 쪽은 **이전 버전**을 보게 해, 읽기-쓰기 충돌을 줄인다. 그래서 실무의 대기는 주로 **쓰기-쓰기**(같은 행을 동시에 UPDATE)에서 생긴다 — 거기에 집중하라."
+        },
+        {
+          "type": "p",
+          "text": "**락의 범위도 중요하다.** 한 행만 잠그는 **행 락**이 보통이지만, `ALTER TABLE`·인덱스 생성 같은 작업은 **테이블 전체**를 잠가 모든 접근을 막는다. 운영 중 스키마 변경이 위험한 이유다 — 테이블 락은 짧게, 가능하면 온라인 방식으로(db-migrate)."
+        },
+        {
+          "type": "try",
+          "text": "네 앱에서 같은 행을 자주 UPDATE 하는 곳(카운터·잔액·재고)을 찾아라. 그곳이 쓰기-쓰기 충돌로 대기가 생기는 지점이다."
+        }
       ],
-      "answer": 0,
-      "why": "순환 대기가 생기지 않는다."
+      "quiz": [
+        {
+          "q": "동시에 진행 가능한 조합은?",
+          "choices": [
+            "읽기-쓰기",
+            "쓰기-쓰기",
+            "읽기-읽기",
+            "모두 불가"
+          ],
+          "answer": 2,
+          "why": "공유 락끼리는 안 부딪친다."
+        },
+        {
+          "q": "MVCC 가 줄여 주는 충돌은?",
+          "choices": [
+            "쓰기-쓰기",
+            "읽기-쓰기(읽기는 이전 버전을 봄)",
+            "테이블 락",
+            "데드락"
+          ],
+          "answer": 1,
+          "why": "실무 대기는 주로 쓰기-쓰기."
+        },
+        {
+          "q": "테이블 전체를 잠그는 위험한 작업은?",
+          "choices": [
+            "단일 행 UPDATE",
+            "ALTER TABLE·인덱스 생성",
+            "SELECT",
+            "COMMIT"
+          ],
+          "answer": 1,
+          "why": "운영 중 스키마 변경 주의."
+        }
+      ]
     },
     {
-      "q": "idle in transaction 세션이 오래 남으면?",
-      "choices": [
-        "락 유지와 정리 지연으로 사고가 된다",
-        "아무 문제 없다",
-        "성능이 좋아진다"
+      "id": "3",
+      "title": "트랜잭션이 락을 쥔다 — 짧게",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "핵심 규칙: **락은 트랜잭션이 커밋(또는 롤백)될 때까지 유지된다.** UPDATE 한 순간부터 `COMMIT` 까지 그 행은 잠겨 있다. 그래서 **트랜잭션이 길수록** 락을 오래 쥐고, 남을 오래 기다리게 한다. 대기 문제의 대부분은 「트랜잭션이 너무 길다」로 귀결된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "트랜잭션 길이 = 락 유지 시간 = 남의 대기",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ms = {{txlen}};                  // 트랜잭션 총 길이(ms)\n  const lockHeld = ms - 20;              // UPDATE 후 커밋까지\n  render('BEGIN ... UPDATE(락) ... [' + ms + 'ms] ... COMMIT',\n    '  락 유지 시간 = ' + Math.max(0, lockHeld) + 'ms — 이 동안 같은 행을 쓰려는 모두가 대기\\n\\n' +\n    (ms > 500\n      ? '  <span class=\\\"no\\\">길다! 트랜잭션 안에 외부 호출·무거운 계산이 있을 것.</span>'\n      : '  <span class=\\\"ok\\\">짧다 — 락을 잠깐만 쥐어 대기가 거의 없다.</span>'),\n    '트랜잭션을 짧게 유지하면 락 유지 시간이 줄어 대기가 사라진다.',\n    timeline([['A', [[1, 'work', 'BEGIN'], [Math.max(1, lockHeld / 100), 'hold', 'UPDATE 락 쥠 ' + Math.max(0, lockHeld) + 'ms'], [1, 'work', 'COMMIT']]],\n              ['B', [[1, 'work', ''], [Math.max(1, lockHeld / 100), 'wait', '대기'], [1, 'hold', '이제 진행']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "txlen",
+              "label": "트랜잭션 길이(ms)",
+              "type": "range",
+              "min": 30,
+              "max": 2000,
+              "step": 10,
+              "value": 800
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "락을 오래 쥐는 안티패턴",
+          "text": "// ❌ 트랜잭션 안에서 외부 호출 — 그 사이 락을 계속 쥔다\nawait db.tx(async (t) => {\n  await t.query('UPDATE stock SET qty = qty-1 WHERE id=$1', [id]); // 락!\n  await fetch('https://payment.api/charge');   // 수백 ms~수 초... 락 유지\n  await t.query('INSERT INTO orders ...');\n});\n// ✅ 외부 호출은 트랜잭션 밖으로. DB 작업만 트랜잭션 안에 짧게."
+        },
+        {
+          "type": "note",
+          "text": "**트랜잭션 안에 외부 호출(HTTP·결제·이메일)을 넣지 마라.** 그 호출이 느리면(또는 멈추면) 락을 그 시간만큼 쥔다. DB 변경만 트랜잭션에 담고, 외부 호출은 트랜잭션 전후로 빼라. 이것이 락 대기를 없애는 가장 흔한 한 수다."
+        },
+        {
+          "type": "p",
+          "text": "**락은 늦게 쥐고 일찍 놓아라.** 트랜잭션 초반에 준비 작업(읽기·계산)을 하고, 실제 UPDATE 는 **커밋 직전**에 몰아 하면 락 유지 시간이 최소가 된다. 「먼저 다 계산하고, 마지막에 짧게 쓰고, 바로 커밋」이 이상적인 모양이다."
+        },
+        {
+          "type": "try",
+          "text": "네 앱의 트랜잭션 블록 안에 `fetch`·외부 API·`sleep`·무거운 계산이 있는지 찾아라. 있으면 트랜잭션 밖으로 빼고 UPDATE~COMMIT 간격을 줄여라."
+        }
       ],
-      "answer": 0,
-      "why": "타임아웃으로 끊어야 한다."
+      "quiz": [
+        {
+          "q": "락이 풀리는 시점은?",
+          "choices": [
+            "UPDATE 직후",
+            "트랜잭션 커밋/롤백 시",
+            "1초 후",
+            "다음 쿼리"
+          ],
+          "answer": 1,
+          "why": "커밋까지 유지."
+        },
+        {
+          "q": "트랜잭션 안에 외부 HTTP 호출을 넣으면?",
+          "choices": [
+            "빨라짐",
+            "그 시간만큼 락을 쥐어 대기 유발",
+            "안전",
+            "락 해제"
+          ],
+          "answer": 1,
+          "why": "밖으로 빼라."
+        },
+        {
+          "q": "락 유지 시간을 최소화하는 방법은?",
+          "choices": [
+            "트랜잭션을 길게",
+            "늦게 쥐고 일찍 놓기(UPDATE 를 커밋 직전에)",
+            "락 제거",
+            "인덱스"
+          ],
+          "answer": 1,
+          "why": "짧게 쥔다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "데드락 — 순환 대기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**데드락**은 둘이 서로를 기다려 영원히 못 나아가는 상태다. A 가 1번을 쥐고 2번을 원하는데, B 가 2번을 쥐고 1번을 원하면 — 둘 다 멈춘다. DB 는 이를 감지해 **한쪽을 강제 종료**(victim)하고 에러를 낸다. 앱은 그 트랜잭션을 재시도해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "순환 대기 — 락 획득 순서를 맞추면 사라진다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  const same = order === 'same';\n  render(same ? '항상 같은 순서로 락 획득' : '서로 반대 순서로 락 획득',\n    (same\n      ? '  A: 1번 -> 2번,  B: 1번 -> 2번  (둘 다 1번 먼저)\\n' +\n        '  <span class=\\\"ok\\\">B 는 1번에서 잠깐 대기했다 순서대로 진행 — 데드락 없음.</span>'\n      : '  A: 1번 -> 2번,  B: 2번 -> 1번  (엇갈림)\\n' +\n        '  <span class=\\\"no\\\">서로 상대 것을 원해 순환 -> DB 가 한쪽을 죽인다(deadlock detected).</span>'),\n    '데드락의 근본 처방: 여러 락을 쥘 때 항상 같은 순서로 쥐어라.',\n    timeline(same\n      ? [['A', [[2, 'hold', '1번'], [2, 'hold', '2번'], [1, 'work', 'COMMIT']]],\n         ['B', [[2, 'wait', '1번 대기'], [2, 'hold', '1번'], [1, 'hold', '2번']]]]\n      : [['A', [[2, 'hold', '1번 쥠'], [3, 'dead', '2번 원함 (B가 쥠) -> victim']]],\n         ['B', [[2, 'hold', '2번 쥠'], [3, 'wait', '1번 원함 (A가 쥠)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "락 획득 순서",
+              "type": "select",
+              "value": "cross",
+              "options": [
+                {
+                  "value": "cross",
+                  "label": "엇갈린 순서(데드락)"
+                },
+                {
+                  "value": "same",
+                  "label": "같은 순서(안전)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "데드락을 막는 규칙",
+          "text": "1. 여러 행/테이블을 잠글 땐 항상 '같은 순서'로 (예: id 오름차순)\n2. 트랜잭션을 짧게 — 락을 쥔 채 오래 있지 않기 (3장)\n3. 데드락은 완전히 못 없앤다 -> 재시도 로직을 둔다\n     (deadlock 에러 잡으면 잠깐 쉬고 트랜잭션 통째 재시도)\n4. 필요하면 SELECT ... FOR UPDATE 로 순서를 명시적으로 확보"
+        },
+        {
+          "type": "note",
+          "text": "**데드락은 「같은 순서」로 대부분 사라진다.** 여러 자원을 잠글 때 모두가 동일한 순서(예: 항상 작은 id 부터)로 쥐면 순환이 생길 수 없다. 계좌 이체에서 `min(id)` 계좌를 먼저 잠그는 관례가 이것이다."
+        },
+        {
+          "type": "p",
+          "text": "**그래도 데드락은 완전히 못 없앤다 — 재시도를 준비하라.** 감지되면 DB 가 한 트랜잭션을 죽이고 에러를 준다. 앱은 이 특정 에러를 잡아 **짧게 쉬고 트랜잭션을 통째로 재시도**해야 한다. 데드락은 「가끔 나는 정상」으로 보고 재시도로 흡수하는 것이 실무다."
+        },
+        {
+          "type": "try",
+          "text": "여러 행을 한 트랜잭션에서 UPDATE 하는 코드를 찾아, 락 획득 순서가 일정한지(예: id 정렬) 확인하라. 아니면 정렬을 추가하고 데드락 재시도를 붙여라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데드락이란?",
+          "choices": [
+            "느린 쿼리",
+            "둘이 서로의 락을 기다려 영원히 멈춤",
+            "테이블 락",
+            "타임아웃"
+          ],
+          "answer": 1,
+          "why": "순환 대기."
+        },
+        {
+          "q": "데드락의 근본 예방책은?",
+          "choices": [
+            "락 제거",
+            "여러 락을 항상 같은 순서로 획득",
+            "트랜잭션 길게",
+            "인덱스 추가"
+          ],
+          "answer": 1,
+          "why": "순환이 안 생긴다."
+        },
+        {
+          "q": "데드락 에러를 받은 앱이 해야 할 일은?",
+          "choices": [
+            "무시",
+            "짧게 쉬고 트랜잭션 통째 재시도",
+            "DB 재시작",
+            "락 해제"
+          ],
+          "answer": 1,
+          "why": "완전히 못 없애니 재시도."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "idle in transaction — 잊힌 트랜잭션",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 악질적인 락 원인: 애플리케이션이 **트랜잭션을 열어 두고 잊은** 상태 — `idle in transaction`. UPDATE 로 락을 쥔 채, 커밋도 롤백도 안 하고 다른 일(느린 코드·외부 대기·버그)을 한다. 그 사이 그 행을 원하는 모두가 무한정 기다린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "idle in transaction — 락이 안 풀린다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const sec = {{idle}};\n  render('A: BEGIN; UPDATE ...; (커밋 안 하고 ' + sec + '초 방치)',\n    '  A 상태 = <span class=\\\"' + (sec > 5 ? 'no' : 'warn') + '\\\">idle in transaction ' + sec + 's</span>\\n' +\n    '  이 동안 그 행의 락은 안 풀린다 — B·C·D 가 계속 쌓여 대기\\n\\n' +\n    (sec > 5\n      ? '  범인이다. 앱이 트랜잭션을 열고 잊었다(외부 대기·예외로 커밋 누락·긴 유휴).'\n      : '  아직 짧지만, 이 상태가 길어지면 곧 대기 행렬이 생긴다.'),\n    'idle in transaction 이 오래 보이면 그게 범인. 트랜잭션을 열어 둔 채 잊은 것.',\n    timeline([['A', [[1, 'work', 'UPDATE'], [Math.max(1, sec), 'hold', 'idle in tx ' + sec + 's (락 쥔 채 놀고 있음)']]],\n              ['B', [[1, 'work', ''], [Math.max(1, sec), 'wait', '대기...']]],\n              ['C', [[2, 'work', ''], [Math.max(1, sec - 1), 'wait', '대기...']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "idle",
+              "label": "방치 시간(초)",
+              "type": "range",
+              "min": 1,
+              "max": 30,
+              "step": 1,
+              "value": 12
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**`idle in transaction` 이 오래 보이면 그게 범인이다.** 대기 조회(6장)에서 이 상태의 세션을 찾으면, 그 세션이 다른 모두를 막고 있다. 원인은 대개 ① 트랜잭션 안 외부 호출(3장) ② 예외 처리에서 커밋/롤백 누락 ③ 커넥션을 트랜잭션째 붙잡은 풀 버그(db-pool)."
+        },
+        {
+          "type": "p",
+          "text": "**`idle_in_transaction_session_timeout` 으로 방어하라.** 이 설정은 트랜잭션을 열고 일정 시간 놀고 있는 세션을 DB 가 강제로 끊게 한다. 잊힌 트랜잭션이 락을 무한정 쥐는 최악을 막는 안전망이다 — 앱 버그를 근본 수정하되, 이 그물도 함께 친다."
+        },
+        {
+          "type": "try",
+          "text": "대기 조회로 `idle in transaction` 세션이 있는지 보라. 있으면 그 쿼리·연결을 추적해, 트랜잭션 안에서 무엇을 기다리다 커밋을 놓쳤는지 찾아라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`idle in transaction` 이 위험한 이유는?",
+          "choices": [
+            "CPU 소모",
+            "트랜잭션을 열어 둔 채 락을 무한정 쥠",
+            "디스크 낭비",
+            "네트워크"
+          ],
+          "answer": 1,
+          "why": "커밋을 안 해 락이 안 풀린다."
+        },
+        {
+          "q": "`idle in transaction` 의 흔한 원인이 아닌 것은?",
+          "choices": [
+            "트랜잭션 안 외부 호출",
+            "예외로 커밋/롤백 누락",
+            "인덱스 부족",
+            "커넥션 풀 버그"
+          ],
+          "answer": 2,
+          "why": "인덱스는 무관."
+        },
+        {
+          "q": "잊힌 트랜잭션의 안전망 설정은?",
+          "choices": [
+            "lock_timeout",
+            "idle_in_transaction_session_timeout",
+            "work_mem",
+            "max_connections"
+          ],
+          "answer": 1,
+          "why": "노는 트랜잭션 세션을 끊는다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "지금 무엇이 막혀 있나 — 조회",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "락 문제는 **지금 누가 누구를 막는지** 조회로 볼 수 있다. 추측하지 말고 DB 에게 물어라 — 대기 중인 세션, 그 세션이 기다리는 락, 그 락을 쥔 세션을 이어 보면 **대기 사슬**의 맨 앞(진짜 범인)이 드러난다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "대기 사슬 — 맨 앞이 진짜 범인",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{depth}};\n  const chain = [\n    ['A', 'idle in transaction — 아무도 안 기다림', 'hold'],\n    ['B', 'A 의 락 대기 (12s)', 'wait'],\n    ['C', 'B 의 락 대기 (8s)', 'wait'],\n    ['D', 'C 의 락 대기 (5s)', 'wait'],\n  ];\n  const rows = chain.slice(0, s + 1).map((c, i) =>\n    '<div style=\\\"font:12px/1.8 ui-monospace;color:' + (i === 0 ? '#fca5a5' : '#fbbf24') + '\\\">' +\n    '  '.repeat(i) + (i === 0 ? '[범인] ' : '-> ') + c[0] + ': ' + esc(c[1]) + '</div>').join('');\n  render('pg_stat_activity + pg_locks 로 대기 사슬 추적',\n    '  대기 사슬 깊이 ' + s + ':\\n\\n  ' +\n    (s >= 1 ? '맨 앞 A 를 풀면(커밋/종료) 뒤 ' + s + '개가 한꺼번에 풀린다.'\n            : 'A 는 아무도 안 기다린다 — 하지만 락을 쥐고 idle. 이게 시작점.'),\n    '뒤엣것을 죽여도 소용없다. 사슬 맨 앞(누구도 안 기다리는데 락 쥔 것)을 풀어라.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "depth",
+              "label": "대기 사슬 깊이",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "무엇이 막혀 있나 (PostgreSQL)",
+          "text": "SELECT pid, state, wait_event_type, wait_event,\n       now() - xact_start AS tx_age,\n       left(query, 60) AS query\nFROM pg_stat_activity\nWHERE state <> 'idle'\nORDER BY tx_age DESC;         -- 오래된 트랜잭션이 위로\n\n-- 누가 누구를 막는지 직접:\nSELECT pg_blocking_pids(pid) AS blocked_by, pid, query\nFROM pg_stat_activity WHERE wait_event_type = 'Lock';"
+        },
+        {
+          "type": "note",
+          "text": "**대기 사슬의 맨 앞을 풀어라.** B·C·D 를 죽여도 A 가 락을 쥐고 있으면 곧 다시 쌓인다. `pg_blocking_pids()` 로 사슬을 거슬러 올라가, **아무도 안 기다리는데 락을 쥔** 세션(대개 idle in transaction)을 찾아 그것을 커밋시키거나 종료(`pg_terminate_backend`)한다."
+        },
+        {
+          "type": "p",
+          "text": "**긴급 처치와 근본 수정은 다르다.** 지금 멈춘 걸 푸는 긴급 처치는 범인 세션 종료다. 하지만 그 세션이 **왜** 트랜잭션을 오래 쥐었는지(외부 호출·커밋 누락·긴 배치)를 고치지 않으면 재발한다. 조회로 범인을 잡되, 코드의 근본을 함께 고쳐라."
+        },
+        {
+          "type": "try",
+          "text": "락 대기가 의심되는 순간에 위 조회를 돌려, `pg_blocking_pids` 로 대기 사슬을 그려라. 맨 앞 세션의 query·state 를 기록해 근본 원인을 추적하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "대기 사슬에서 풀어야 할 세션은?",
+          "choices": [
+            "가장 뒤(최근)",
+            "맨 앞(아무도 안 기다리는데 락 쥔 것)",
+            "가장 큰 쿼리",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "뒤를 죽여도 재발."
+        },
+        {
+          "q": "누가 누구를 막는지 보는 PostgreSQL 함수는?",
+          "choices": [
+            "pg_stat_statements",
+            "pg_blocking_pids()",
+            "EXPLAIN",
+            "ANALYZE"
+          ],
+          "answer": 1,
+          "why": "대기 사슬 추적."
+        },
+        {
+          "q": "범인 세션 종료가 근본 해결이 아닌 이유는?",
+          "choices": [
+            "느려서",
+            "왜 오래 쥐었는지 코드를 안 고치면 재발",
+            "권한",
+            "위험해서"
+          ],
+          "answer": 1,
+          "why": "긴급 처치 ≠ 근본."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "타임아웃을 걸어라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "락 대기를 **무한정** 두면 요청이 30초·1분씩 매달려 사용자·커넥션을 잡아먹는다. **타임아웃**을 걸면 「일정 시간 안에 락을 못 얻으면 **빠르게 실패**」한다. 무한 대기보다 빠른 실패가 낫다 — 실패는 재시도·안내로 다룰 수 있지만 매달림은 시스템을 마비시킨다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "타임아웃 유무 — 매달림 vs 빠른 실패",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = {{timeout}};                 // lock_timeout(초), 0=무제한\n  const wait = 30;                       // 앞 트랜잭션이 락을 쥐는 시간\n  const noTimeout = t === 0;\n  const actual = noTimeout ? wait : Math.min(t, wait);\n  render('SET lock_timeout = ' + (noTimeout ? '0 (무제한)' : t + 's'),\n    '  이 요청의 운명 = ' + (noTimeout\n      ? '<span class=\\\"no\\\">' + wait + '초 매달림</span> (앞 트랜잭션이 풀릴 때까지 통째로 대기)'\n      : (t < wait ? '<span class=\\\"ok\\\">' + t + '초 후 빠른 실패</span> -> 재시도·안내로 처리'\n                  : '<span class=\\\"ok\\\">' + wait + '초 안에 락 획득 (타임아웃 전에 풀림)</span>')) +\n    '\\n\\n  무한 대기는 커넥션·사용자를 잡아먹는다. 빠른 실패가 시스템을 지킨다.',\n    '타임아웃은 매달림을 빠른 실패로 바꾼다 — 0(무제한)은 위험하다.',\n    bars([['대기 상한', noTimeout ? 100 : Math.min(100, t * 3), noTimeout ? '무제한' : t + 's', noTimeout ? '#fca5a5' : '#4ade80'],\n          ['실제 소요', Math.min(100, actual * 3), actual + 's', noTimeout ? '#fca5a5' : '#38bdf8']]));\n</script>",
+          "controls": [
+            {
+              "id": "timeout",
+              "label": "lock_timeout(초, 0=무제한)",
+              "type": "range",
+              "min": 0,
+              "max": 20,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "두 가지 타임아웃",
+          "text": "SET lock_timeout = '3s';       -- 락을 3초 넘게 기다리면 실패\nSET statement_timeout = '10s'; -- 한 문장이 10초 넘게 돌면 중단\n-- 트랜잭션·세션·전역 수준에서 걸 수 있다\n-- 배치·마이그레이션엔 더 길게, 사용자 요청 경로엔 짧게"
+        },
+        {
+          "type": "note",
+          "text": "**두 타임아웃은 역할이 다르다.** `lock_timeout` 은 **락을 기다리는** 시간의 상한, `statement_timeout` 은 **문장이 도는** 시간의 상한이다. 락 대기엔 전자, 폭주하는 느린 쿼리엔 후자가 방어선이다. 사용자 요청 경로엔 둘 다 짧게 걸어 매달림을 막는다."
+        },
+        {
+          "type": "p",
+          "text": "**타임아웃은 근본 수정이 아니라 방어선이다.** 빠른 실패로 시스템 마비는 막지만, 왜 락을 오래 기다렸는지(긴 트랜잭션·idle·데드락)는 여전히 고쳐야 한다. 타임아웃으로 피를 멈추고, 3~6장의 근본 원인을 함께 제거하라."
+        },
+        {
+          "type": "try",
+          "text": "사용자 요청 경로의 트랜잭션에 `lock_timeout` 과 `statement_timeout` 을 짧게(예: 3s·10s) 걸어라. 배치 경로와 값을 다르게 두었는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "락 타임아웃이 무한 대기보다 나은 이유는?",
+          "choices": [
+            "더 정확",
+            "빠른 실패로 커넥션·사용자를 지킴(재시도 가능)",
+            "락 제거",
+            "더 빠른 쿼리"
+          ],
+          "answer": 1,
+          "why": "매달림은 시스템을 마비."
+        },
+        {
+          "q": "`lock_timeout` 과 `statement_timeout` 의 차이는?",
+          "choices": [
+            "같다",
+            "락 대기 상한 vs 문장 실행 상한",
+            "세션 vs 전역",
+            "읽기 vs 쓰기"
+          ],
+          "answer": 1,
+          "why": "역할이 다르다."
+        },
+        {
+          "q": "타임아웃의 한계는?",
+          "choices": [
+            "느림",
+            "방어선일 뿐 — 왜 오래 기다렸는지는 따로 고쳐야",
+            "위험",
+            "락 증가"
+          ],
+          "answer": 1,
+          "why": "근본 수정 아님."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "낙관적 잠금으로 피하기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "충돌이 **드물다면**, 아예 락을 안 쥐고 **버전 컬럼으로 충돌을 감지**하는 방법이 있다 — 낙관적 잠금(optimistic). 읽을 때 버전을 같이 읽고, 쓸 때 `WHERE version = 읽은값` 으로 UPDATE 한다. 그 사이 남이 바꿨으면 버전이 안 맞아 **0행 갱신** — 충돌을 알고 재시도한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "비관 vs 낙관 — 충돌 빈도로 갈린다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rate = {{conflict}};             // 충돌 비율(%)\n  const optimisticRetryCost = rate;      // 충돌 시 재시도 비용(대략)\n  const pessimisticWaitCost = 30;        // 항상 락 대기 비용(고정)\n  const optWins = optimisticRetryCost < pessimisticWaitCost;\n  render('충돌 비율 ' + rate + '%',\n    '  비관적(락): 항상 락을 쥐고 대기 -> 충돌 없어도 대기 비용\\n' +\n    '  낙관적(버전): 락 없이 진행, 충돌 시에만 재시도\\n\\n' +\n    '  -> ' + (optWins\n      ? '<span class=\\\"ok\\\">낙관적 유리 — 충돌이 드무니 대부분 락 없이 통과</span>'\n      : '<span class=\\\"no\\\">충돌이 잦음 — 재시도가 잦아 비관적(락)이 나을 수 있다</span>'),\n    '충돌이 드물면 낙관적, 잦으면 비관적. 빈도가 선택을 가른다.',\n    bars([['낙관적 비용', Math.min(100, optimisticRetryCost * 2), rate + '% 재시도', optWins ? '#4ade80' : '#fca5a5'],\n          ['비관적 비용', pessimisticWaitCost * 2, '항상 대기', optWins ? '#64748b' : '#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "conflict",
+              "label": "충돌 비율(%)",
+              "type": "range",
+              "min": 0,
+              "max": 50,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "낙관적 잠금 — 버전 컬럼",
+          "text": "-- 읽을 때 버전도 함께\nSELECT id, balance, version FROM accounts WHERE id = 1;  -- version=7\n\n-- 쓸 때 버전이 그대로일 때만 갱신\nUPDATE accounts SET balance = 500, version = version + 1\nWHERE id = 1 AND version = 7;\n-- 갱신된 행이 0 이면 -> 그 사이 남이 바꿨다 -> 다시 읽고 재시도"
+        },
+        {
+          "type": "note",
+          "text": "**낙관적 잠금은 API·동기화 갈래와 같은 원리다.** HTTP 의 ETag/If-Match, 분산 동기화의 버전 벡터가 모두 「읽은 버전이 그대로일 때만 쓰기」다. 락으로 **막는** 대신 충돌을 **감지하고 재시도**하는 이 발상은 DB 를 넘어 널리 쓰인다."
+        },
+        {
+          "type": "p",
+          "text": "**비관적(락)과 낙관적(버전)은 충돌 빈도로 고른다.** 재고 차감처럼 같은 행에 경합이 **잦으면** 비관적 락(`SELECT … FOR UPDATE`)이 낫다. 문서 편집처럼 같은 것을 동시에 고칠 일이 **드물면** 낙관적이 낫다 — 대부분 락 없이 통과하고 가끔만 재시도한다."
+        },
+        {
+          "type": "try",
+          "text": "동시 수정이 드문 엔티티(프로필·설정·문서)에 버전 컬럼을 추가하고, UPDATE 에 `AND version = ?` 를 걸어 낙관적 잠금으로 바꿔 보라. 0행 갱신을 충돌로 처리하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "낙관적 잠금의 충돌 감지 방식은?",
+          "choices": [
+            "행 락",
+            "WHERE version=읽은값 으로 UPDATE, 0행이면 충돌",
+            "테이블 락",
+            "타임아웃"
+          ],
+          "answer": 1,
+          "why": "버전 불일치 = 0행 갱신."
+        },
+        {
+          "q": "낙관적 잠금이 유리한 경우는?",
+          "choices": [
+            "충돌이 잦음",
+            "충돌이 드묾",
+            "쓰기 전용",
+            "락이 많음"
+          ],
+          "answer": 1,
+          "why": "대부분 락 없이 통과."
+        },
+        {
+          "q": "낙관적 잠금과 같은 원리의 웹 기술은?",
+          "choices": [
+            "쿠키",
+            "ETag/If-Match",
+            "gzip",
+            "CORS"
+          ],
+          "answer": 1,
+          "why": "읽은 버전이 그대로일 때만 쓰기."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 락 다루기",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「가끔 멈추는」 문제를 만나거나 동시 수정 코드를 짤 때 이 목록을 확인하라. 락은 없앨 수 없지만, 쥐는 시간을 줄이고 순서를 맞추고 방어선을 치면 대기는 거의 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:26px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .work { background:#38bdf8; } .tl .hold { background:#4ade80; }\n  .tl .wait { background:#f59e0b; } .tl .dead { background:#ef4444; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  // lanes: [ ['A', [[w, cls, label], ...]], ['B', [...]] ]\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '느림이 일하는 중인지 기다리는 중인지 구분했다',\n    '트랜잭션을 짧게 유지한다(늦게 쥐고 일찍 놓기)',\n    '트랜잭션 안에 외부 호출·무거운 계산이 없다',\n    '여러 락은 항상 같은 순서로 획득한다(데드락 예방)',\n    '데드락 재시도 로직이 있다',\n    'idle in transaction 을 감시·차단한다(타임아웃)',\n    '요청 경로에 lock/statement 타임아웃을 걸었다',\n    '충돌이 드문 곳은 낙관적 잠금을 고려했다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 대기가 짧고 매달림이 없다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '락은 짧게 쥐고, 순서를 맞추고, 방어선(타임아웃)을 친다. 세 축이 전부다.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**세 축으로 기억하라: 짧게·순서·방어선.** ① 트랜잭션을 짧게 쥐고(3·5장) ② 여러 락을 같은 순서로(4장) ③ 타임아웃·idle 차단으로 방어선을 친다(5·7장). 이 셋이면 대기·데드락·매달림 대부분이 사라진다. 낙관적 잠금은 아예 락을 피하는 선택지(8장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙의 합류점.** 락은 인덱스(db-index)·실행 계획(db-explain)이 쿼리를 빠르게 해 **락 유지 시간을 줄이고**, N+1(db-nplus1) 감소가 트랜잭션을 짧게 하고, 커넥션 풀(db-pool)이 잊힌 트랜잭션을 회수한다. **트랜잭션을 짧게 유지하는 습관이 동시성 안정의 출발점**이다."
+        },
+        {
+          "type": "try",
+          "text": "「가끔 멈추는」 증상이 있는 경로 하나에 이 8개 항목을 채점하라. 가장 낮은 것(대개 「트랜잭션 안 외부 호출」)부터 오늘 고쳐라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "락 대기를 줄이는 세 축은?",
+          "choices": [
+            "크게·많이·자주",
+            "짧게·순서·방어선(타임아웃)",
+            "락 제거·캐시·인덱스",
+            "재시작·증설·분할"
+          ],
+          "answer": 1,
+          "why": "짧게 쥐고 순서 맞추고 방어선."
+        },
+        {
+          "q": "동시성 안정의 출발점 습관은?",
+          "choices": [
+            "큰 트랜잭션",
+            "트랜잭션을 짧게 유지",
+            "락 제거",
+            "무한 타임아웃"
+          ],
+          "answer": 1,
+          "why": "짧으면 대기·데드락이 준다."
+        },
+        {
+          "q": "락을 아예 피하는 선택지는?",
+          "choices": [
+            "테이블 락",
+            "낙관적 잠금(버전 컬럼)",
+            "긴 트랜잭션",
+            "무한 대기"
+          ],
+          "answer": 1,
+          "why": "충돌 드물면 감지+재시도."
+        }
+      ]
     }
   ]
 }
