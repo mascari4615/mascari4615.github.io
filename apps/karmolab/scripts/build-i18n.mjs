@@ -376,6 +376,29 @@ if (CHECK && regionDrift) {
   console.error('[i18n] src/lib/region-registry.ts 가 data/regions.json 과 어긋남 — `npm run build:i18n` 후 커밋');
   process.exit(1);
 }
+/* ★ **빠진 번역은 늘지 않게 잠근다** (2026-08-14).
+   지금은 「빠짐 50」을 말만 하고 지나간다 — 그러면 새 도구가 늘 때마다 조용히 커지고,
+   영어·일본어로 보는 사람은 한국어 이름을 본다(실측: 도구 여덟이 그 상태다).
+   「지금 0으로 만들어라」가 아니라 **「여기서부터 늘지 마라」** — 줄이면 기준선을 다시 박는다.
+   `--baseline` 으로 다시 박고, 이 검사는 `--check` 일 때만 막는다. */
+{
+  const 기준선길 = path.join(APP_ROOT, 'data/i18n-missing-baseline.json');
+  const 지금 = Object.fromEntries(report.map((r) => [r.code, r.missing.length]));
+  if (process.argv.includes('--baseline')) {
+    fs.writeFileSync(기준선길, JSON.stringify({ 목록: 지금 }, null, 2) + String.fromCharCode(10), 'utf8');
+    console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(지금));
+  } else if (CHECK && fs.existsSync(기준선길)) {
+    const 기준 = JSON.parse(fs.readFileSync(기준선길, 'utf8')).목록 || {};
+    const 늘어난것 = Object.entries(지금).filter(([c, n]) => n > (기준[c] ?? 0));
+    if (늘어난것.length) {
+      console.error('[i18n] 빠진 번역이 늘었다 — 새로 만든 것에 en/ja 를 같이 넣어라:');
+      for (const [c, n] of 늘어난것) console.error(`  - ${c}: ${기준[c] ?? 0} → ${n}`);
+      console.error('  줄인 뒤 기준선을 다시 박으려면: node scripts/build-i18n.mjs --baseline');
+      process.exit(1);
+    }
+  }
+}
+
 if (bad) {
   console.error('[i18n] 낡거나 남는 번역이 있다 — 위 목록 처리 후 다시');
   process.exit(1);
