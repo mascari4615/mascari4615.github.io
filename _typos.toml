@@ -80,6 +80,11 @@ COSE = "COSE"        # WebAuthn/CBOR 표준 키 형식 이름 (RFC 8152) — pas
 cose = "cose"        # 동일 (소문자 케이스)
 Dota = "Dota"        # 게임 이름 (Dota 2) — steam 연동 시험 데이터
 
+Canva = "Canva"      # 디자인 서비스 이름 (canva.com) — Canvas 오타 아님
+# 타이포스쿼팅 강의가 **실제 악성 패키지 이름**을 예로 든다 (`lodahs`·`reqeusts`·`crossenv`).
+# 낱말을 고치면 강의가 거짓이 된다 — 그게 요점인 자리라 그대로 둔다 (sec-supply 강의).
+reqeusts = "reqeusts"
+lodahs = "lodahs"
 SOOP = "SOOP"        # 한국 OTT 서비스 이름
 soop = "soop"        # 동일 (소문자 케이스)
 INFP = "INFP"        # MBTI 성격 유형

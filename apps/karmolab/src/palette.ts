@@ -20,6 +20,9 @@
  * 「닿을 수 없다」를 뜻하지 않게 된다. 메뉴 123개 대 찾기 160개의 차이가 여기서 난다.
  */
 
+import { compactSearchText } from './search/tool-search';
+import { createSearchSystem } from './search/search-system';
+
 type PaletteTool = {
   id: string;
   title?: string;
@@ -187,6 +190,7 @@ function answersFor(q: string): Answer[] {
 
 const KarmoPalette = (() => {
   let entries: Entry[] = [];
+  const searchIndex = createSearchSystem<Entry>();
   let aliasMap: Record<string, string> = {};
   let aliasLoaded = false;
   /** 이번 주에 많이 쓴 도구 id — 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
@@ -258,7 +262,8 @@ const KarmoPalette = (() => {
       const json = await res.json();
       if (json && json.aliases && typeof json.aliases === 'object') {
         aliasMap = json.aliases as Record<string, string>;
-        entries = entries.map((e) => ({ ...e, alias: norm(aliasMap[e.id] || '') }));
+        entries = entries.map((e) => ({ ...e, alias: String(aliasMap[e.id] || '') }));
+        rebuildSearchIndex();
       }
     } catch (_) {
       /* 오프라인이면 이름·설명으로만 찾는다 */
@@ -279,10 +284,22 @@ const KarmoPalette = (() => {
         desc: t.desc || '',
         category: t.category || '기타',
         icon: t.icon || '',
-        alias: norm(aliasMap[t.id] || ''),
+        alias: String(aliasMap[t.id] || ''),
         cho: toCho(norm(t.title || t.id)),
         bundle: bundleOf(t.id),
       }));
+    rebuildSearchIndex();
+  }
+
+  function rebuildSearchIndex(): void {
+    searchIndex.replace(entries.map((entry) => ({
+      value: entry,
+      id: entry.id,
+      title: entry.title,
+      description: entry.desc,
+      aliases: entry.alias,
+      initials: entry.cho,
+    })));
   }
 
   /** 묶음 소속은 매니페스트가 안다 (toolbox 의 findBundleFor 와 같은 출처). */
@@ -298,35 +315,6 @@ const KarmoPalette = (() => {
    * 높을수록 위. 자리를 이름 안에서 어디서 맞췄는지까지 본다 —
    * 「pdf」를 쳤을 때 이름이 「PDF 편집」인 것이 설명에만 pdf 가 있는 것보다 위여야 한다.
    */
-  function scoreOf(e: Entry, q: string): Hit | null {
-    const nq = norm(q);
-    if (!nq) return null;
-
-    const nTitle = norm(e.title);
-
-    if (e.id === nq) return { entry: e, score: 1000, range: null };
-    if (nTitle === nq) return { entry: e, score: 900, range: [0, e.title.length] };
-
-    const ti = nTitle.indexOf(nq);
-    if (ti === 0) return { entry: e, score: 800 - nTitle.length, range: titleRange(e.title, nq, 0) };
-    if (ti > 0) return { entry: e, score: 600 - ti, range: titleRange(e.title, nq, ti) };
-
-    // 초성은 이름을 다 치기 전에 닿는 길이다. 이름 일치보다는 아래, 설명보다는 위.
-    if (isChoQuery(nq)) {
-      const ci = e.cho.indexOf(nq);
-      if (ci === 0) return { entry: e, score: 500, range: null };
-      if (ci > 0) return { entry: e, score: 400 - ci, range: null };
-    }
-
-    if (e.id.indexOf(nq) >= 0) return { entry: e, score: 350, range: null };
-    if (e.alias.indexOf(nq) >= 0) return { entry: e, score: 300, range: null };
-
-    const di = norm(e.desc).indexOf(nq);
-    if (di >= 0) return { entry: e, score: 200 - Math.min(di, 150), range: null };
-
-    return null;
-  }
-
   /**
    * 정규화된 자리(공백 제거)를 원래 이름의 자리로 되돌린다.
    * 이것을 안 하면 「글자수 세기」에서 공백 때문에 강조가 한 칸씩 밀린다.
@@ -346,15 +334,14 @@ const KarmoPalette = (() => {
   }
 
   function search(q: string): Hit[] {
-    const hits: Hit[] = [];
-    for (const e of entries) {
-      const h = scoreOf(e, q);
-      if (h) hits.push(h);
-    }
-    /* 자르는 일은 부르는 쪽이 한다 (TASK-KL-136) — 자리마다 담을 수 있는 줄 수가 다르고,
-     * 여기서 미리 자르면 「몇 개 중 몇 개」의 앞 숫자가 진짜 개수가 아니게 된다. */
-    hits.sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'ko-KR'));
-    return hits;
+    const nq = compactSearchText(q);
+    return searchIndex.search(q).map((result) => ({
+      entry: result.value,
+      score: result.score,
+      range: result.reason === 'title' && result.titleNormStart != null
+        ? titleRange(result.value.title, nq, result.titleNormStart)
+        : null,
+    }));
   }
 
   /* ── 화면 ─────────────────────────────────────────────────── */

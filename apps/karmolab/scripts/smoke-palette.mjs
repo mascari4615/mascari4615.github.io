@@ -8,7 +8,7 @@
  * 보는 것:
  *  - 첫 화면에 입력이 있고 포커스를 쥐고 있다
  *  - 이름으로 찾으면 결과가 나오고, 일치한 글자가 강조된다
- *  - 초성(「ㄱㅈㅅ」)으로도 찾힌다
+ *  - 초성(「ㅌㅅㅌㄷㄱ」)으로도 찾힌다
  *  - Enter 로 실제로 그 도구가 열린다 (주소·제목이 바뀐다)
  *  - 연 것이 「최근」 맨 위로 올라온다
  *  - 도구를 보는 중에 Ctrl+K 로 뜨고 Esc 로 닫힌다
@@ -146,19 +146,31 @@ if (inputSkin.shadow && inputSkin.shadow !== 'none') {
 }
 
 /* ── ② 이름으로 찾기 + 일치 글자 강조 ──────────────────────── */
-await type('글자수');
+await type('텍스트 도구');
 let titles = await rowTitles();
-if (!titles.length) problems.push('「글자수」 로 찾은 결과가 0개다');
-else if (!titles[0].includes('글자수')) problems.push(`「글자수」 첫 결과가 엉뚱하다 — ${titles[0]}`);
+if (!titles.length) problems.push('「텍스트 도구」 로 찾은 결과가 0개다');
+else if (!titles[0].includes('텍스트 도구')) problems.push(`「텍스트 도구」 첫 결과가 엉뚱하다 — ${titles[0]}`);
 
 const markText = await page.$eval('.kp-inline .kp-mark', (e) => e.textContent).catch(() => null);
 if (!markText) problems.push('일치한 글자가 강조되지 않는다');
 
 /* ── ③ 초성으로 찾기 ───────────────────────────────────────── */
-await type('ㄱㅈㅅ');
+await type('ㅌㅅㅌㄷㄱ');
 titles = await rowTitles();
-if (!titles.some((t) => t.includes('글자수'))) {
-  problems.push(`초성 「ㄱㅈㅅ」 로 「글자수 세기」 가 안 나온다 — 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
+if (!titles.some((t) => t.includes('텍스트 도구'))) {
+  problems.push(`초성 「ㅌㅅㅌㄷㄱ」 로 「텍스트 도구」 가 안 나온다 — 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
+}
+
+/* ── ③-b 도구 이름을 몰라도 하려는 일로 찾기 ─────────────── */
+await type('이미지 압축');
+titles = await rowTitles();
+if (!titles.some((t) => t.includes('이미지'))) {
+  problems.push(`「이미지 압축」으로 이미지 도구가 안 나온다 — 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
+}
+await type('dlalwl dkqcnr');
+titles = await rowTitles();
+if (!titles.some((t) => t.includes('이미지'))) {
+  problems.push(`영문 자판 「dlalwl dkqcnr」로 이미지 도구가 안 나온다 — 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
 }
 
 /* ── ④ 메뉴에 숨겨진 묶음 탭도 찾아진다 ────────────────────── */
@@ -172,7 +184,7 @@ const emptyLink = await page.$('.kp-inline .kp-empty-link');
 if (!emptyLink) problems.push('결과 0건일 때 다음 갈 곳이 없다');
 
 /* ── ⑥ Enter 로 실제로 열린다 ──────────────────────────────── */
-await type('글자수');
+await type('텍스트 도구');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(400);
 const opened = await page.evaluate(() => ({
@@ -207,7 +219,7 @@ if (!sections.includes('최근')) {
   problems.push(`도구를 쓰고 돌아왔는데 「최근」 칸이 없다 — 나온 칸: ${sections.join(', ') || '없음'}`);
 } else {
   const first = (await rowTitles())[0] || '';
-  if (!first.includes('글자수')) problems.push(`방금 연 도구가 최근 맨 위가 아니다 — 맨 위: ${first}`);
+  if (!first.includes('텍스트 도구')) problems.push(`방금 연 도구가 최근 맨 위가 아니다 — 맨 위: ${first}`);
 }
 
 /* ── ⑨ 둘러보기가 「한 번 쓰고 나면」 사라지지 않는다 ─────────
