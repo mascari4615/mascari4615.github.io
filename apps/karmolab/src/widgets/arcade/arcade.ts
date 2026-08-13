@@ -28,11 +28,13 @@ import { iconOf, kindOf, KINDS, type Kind } from './meta';
 import { viewById } from './view-registry';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
+import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { lengthOf, secondsOf } from './length';
 import { readPlays, notePlay } from './plays';
 import { pick6, matches, SLOTS } from './pick6';
+import { ranks } from './rank';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
@@ -514,6 +516,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard span{font-size:20px}',
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
+      '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
+      '.ac-overhead{font-size:var(--font-size-xl);font-weight:700;text-align:center}',
+      '.ac-overlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;min-width:200px;max-width:320px;width:100%}',
+      '.ac-overrow{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:8px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
+      '.ac-overrow.ac-me{outline:1px solid var(--accent)}',
+      '.ac-overrank{width:1.6em;text-align:center;font-weight:700;color:var(--text-secondary)}',
+      '.ac-overname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
+      '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-find{width:100%;max-width:340px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary);color:var(--text-color);margin:var(--space-md) 0}',
       '.ac-len{font-size:var(--font-size-xs);color:var(--text-secondary);border:1px solid var(--border-color);border-radius:999px;padding:1px 7px;align-self:flex-start}',
       '.ac-len.ac-short{color:var(--accent);border-color:var(--accent)}',
@@ -601,6 +612,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="ac-introskip" id="acIntroSkip"></div>' +
       '</div>' +
       '<div id="acView"></div>' +
+      '<div class="ac-over" id="acOver" style="display:none">' +
+      '<div class="ac-overhead" id="acOverHead"></div>' +
+      '<ol class="ac-overlist" id="acOverList"></ol>' +
+      '<div class="ac-overnote" id="acOverNote"></div>' +
+      '</div>' +
       '</div>' +
       '<div class="tool-status" id="acStatus"></div>' +
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
@@ -808,6 +824,43 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 손님 쪽엔 커널이 없다. 주인이 보낸 판을 들고 그린다. */
     let shadow: { v: MatchView<unknown>; now: number; at: number } | null = null;
 
+    /**
+     * 끝난 판의 결과를 **판 위에 덮어** 보여 준다 (TASK-KL-264 C2).
+     *
+     * 전에는 판 아래 한 줄이 전부였다 — 「이슬이 이겼다」. 몇 점이었는지, 내가 몇 등인지는
+     * 자리 줄을 눈으로 훑어야 알았고, 게임마다 제 나름의 결과를 그리기도 했다. 이걸 껍데기
+     * 한 곳으로 모은다: **51개가 한꺼번에 같은 결과 화면을 얻는다.**
+     *
+     * 등수는 `rank.ts` 가 센다 — 대회 점수와 같은 셈이라 화면과 점수표가 안 갈린다.
+     */
+    function showResult(v: MatchView<unknown>, draw: boolean, top: number, note: string): void {
+      const order = ranks(v.seats.map((x) => x.score));
+      const mine = v.seats[mySeat]?.score ?? 0;
+      $<HTMLElement>('#acOverHead').textContent = draw
+        ? '🤝 ' + t('arcade.result.draw')
+        : mine === top
+          ? '🏆 ' + t('arcade.over.mine')
+          : '🏁 ' + t('arcade.result.win', { who: v.seats.filter((x) => x.score === top).map((x) => x.name).join(', ') });
+      $<HTMLElement>('#acOverList').innerHTML = v.seats
+        .map((sq, i) => ({ sq, i, r: order[i] }))
+        .sort((a, b) => a.r - b.r || a.i - b.i)
+        .map(
+          ({ sq, i, r }) =>
+            '<li class="ac-overrow' + (i === mySeat ? ' ac-me' : '') + '">' +
+            '<span class="ac-overrank">' + (r + 1) + '</span>' +
+            '<span class="ac-overname">' + esc(sq.name) + (sq.bot ? ' 🤖' : '') + '</span>' +
+            '<span class="ac-overscore">' + sq.score + '</span></li>'
+        )
+        .join('');
+      $<HTMLElement>('#acOverNote').textContent = note;
+      $<HTMLElement>('#acOver').style.display = '';
+    }
+
+    /** 다음 판·나가기 전에 걷는다 — 안 걷으면 다음 판이 지난 결과 뒤에서 돈다. */
+    function hideResult(): void {
+      $<HTMLElement>('#acOver').style.display = 'none';
+    }
+
     function paint(v: MatchView<unknown>, now: number): void {
       /* 지금 이 창이 **들고 있는 판**을 밖에서 볼 수 있게 둔다 (TASK-KL-264).
          감추기가 새는지는 화면으로 못 잡는다 — 화면은 남의 배를 애초에 안 그리므로,
@@ -832,31 +885,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
            다음 프레임에 이겼다/졌다로 덮인다(실측 — 점수판이 안 보였다). */
         if (!ended) {
           ended = true;
+          const draw = win.length === v.seats.length;
+          const mine = v.seats[mySeat]?.score ?? 0;
           say(
-            win.length === v.seats.length
-              ? t('arcade.result.draw')
-              : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
+            draw ? t('arcade.result.draw') : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
             'ok'
           );
           /* 이긴 판만 세지 않는다 — 이겨야 세면 봇 세기를 순한맛으로 낮추는 놀이가 된다. */
           markPlayed(gameId, picks);
           paintToday();
-          const mine = v.seats[mySeat]?.score ?? 0;
-          blip(win.length === v.seats.length ? 'good' : mine === top ? 'win' : 'lose');
+          blip(draw ? 'good' : mine === top ? 'win' : 'lose');
+          buzz(draw ? 'tap' : mine === top ? 'win' : 'lose');
+          let note = '';
           if (tour) {
             tour = award(tour, v.seats.map((x) => x.score));
             const board = v.seats.map((x, i) => x.name + ' ' + (tour?.points[i] ?? 0)).join(' · ');
-            say(
-              t('arcade.tour.standing', {
-                n: String(Math.min(tour.at, ROUNDS)),
-                of: String(tour.games.length),
-                board
-              }),
-              'ok'
-            );
+            note = t('arcade.tour.standing', {
+              n: String(Math.min(tour.at, ROUNDS)),
+              of: String(tour.games.length),
+              board
+            });
+            say(note, 'ok');
             againBtn.textContent = isOver(tour) ? t('arcade.tour.done') : t('arcade.tour.next');
             againBtn.style.display = '';
           }
+          showResult(v, draw, top, note);
         }
       } else if (v.note) {
         say(t(v.note.key, v.note.params));
@@ -976,6 +1029,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 지난 판의 결과와 「한 판 더」를 치운다 — 안 치우면 다음 판을 세는 동안 지난 판이
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
       againBtn.style.display = 'none';
+      hideResult();
       say('');
       $<HTMLElement>('#acIntroSkip').textContent = t('arcade.intro.skip');
       let left = 3;
@@ -1147,6 +1201,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       shadow = null;
       render = null;
       againBtn.style.display = 'none';
+      hideResult();
+      /* 방금 논 것이 추천에 바로 반영돼야 한다 — 안 그러면 나갔다 온 사람에게 같은 여섯이 뜬다. */
+      paintPicks();
       show('lobby');
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;

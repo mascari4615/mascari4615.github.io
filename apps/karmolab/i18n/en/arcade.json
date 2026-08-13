@@ -394,5 +394,6 @@
   "arcade.len.short": "short",
   "arcade.len.mid": "medium",
   "arcade.len.long": "long",
-  "arcade.len.secs": "about {n}s, bots vs bots"
+  "arcade.len.secs": "about {n}s, bots vs bots",
+  "arcade.over.mine": "you won"
 }
