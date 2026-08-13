@@ -109,6 +109,27 @@ if (todo.some((c) => c.live)) {
   console.log(String.fromCharCode(10) + '──── 준비: 실사이트가 잠잠해질 때까지 ────');
   const code = run(['node', 'scripts/check-live-version.mjs']);
   if (code === 2) console.log('[verify:live] 판이 계속 갈리는 중이다 — 그래도 진행한다(이 판의 빨강은 의심하라).');
+
+  /* ★ **지금 재는 것이 어느 판인지 먼저 말한다** (2026-08-13). 이 검사들은 **실사이트**를 재는데,
+     사이트는 방금 민 커밋이 아니라 **마지막으로 배포된 판**이다. 오늘 그걸 몰라서, 이미 고친
+     빨강을 세 판이나 다시 들여다봤다(고친 커밋이 아직 배포 전이었다).
+     서빙 중인 커밋이 지금 체크아웃보다 **뒤에 있으면** 그 사실을 크게 적는다. */
+  try {
+    const base = process.env.BASE || 'https://blog.mascari4615.com';
+    const res = await fetch(`${base}/apps/karmolab/build.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const served = String((await res.json()).commit || '').slice(0, 8);
+      const here = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim().slice(0, 8) || '(모름)';
+      console.log(`[verify:live] 지금 재는 판 = ${served} · 이 자리의 판 = ${here}`);
+      if (served && here !== '(모름)' && served !== here) {
+        const ahead = spawnSync('git', ['merge-base', '--is-ancestor', served, here]);
+        if (ahead.status === 0) {
+          console.log('  ⚠ 실사이트가 **이 자리보다 뒤진 판**을 서빙 중이다 — 여기서 나는 빨강은');
+          console.log('    「그 옛 판의 빨강」일 수 있다. 고친 것이 아직 안 나갔는지 먼저 봐라.');
+        }
+      }
+    }
+  } catch { /* 못 물어보면 그냥 진행한다 */ }
 }
 
 const results = [];
