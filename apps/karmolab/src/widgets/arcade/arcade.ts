@@ -35,6 +35,7 @@ import { lengthOf, secondsOf } from './length';
 import { readPlays, notePlay } from './plays';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
+import { record, type Tape } from './replay';
 import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
@@ -626,6 +627,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
       '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
+      '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
       '</div></div>';
@@ -639,6 +641,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const statusEl = $<HTMLElement>('#acStatus');
     const againBtn = $<HTMLButtonElement>('#acAgain');
     const swapBtn = $<HTMLButtonElement>('#acSwap');
+    const replayBtn = $<HTMLButtonElement>('#acReplay');
     const startBtn = $<HTMLButtonElement>('#acStart');
     const nameInput = $<HTMLInputElement>('#acName');
     nameInput.value = storedName();
@@ -801,6 +804,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /* ── 판 ──────────────────────────────────────────────────────── */
     let match: Match<unknown, unknown> | null = null;
+    /** 방금 끝난 판을 되살릴 재료 (TASK-KL-264 다시 보기). */
+    let lastSeed = 0;
+    let lastSeats: SeatSpec[] = [];
+    /* 봇의 손버릇·세기까지 같아야 같은 판이 나온다 — 뜸 들이는 시간이 곧 수의 시각이다. */
+    let lastPersonas: Record<number, BotPersona> = {};
+    let lastLevel: BotLevel = 'normal';
+    let tape: Tape<unknown> | null = null;
+    /** 지금 화면에 도는 것이 **다시 보기**인가 — 그렇다면 손이 안 먹는다. */
+    let replaying = false;
+    /** 되살리는 중 아직 안 넣은 수의 자리 */
+    let tapeAt = 0;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
     let raf = 0;
@@ -924,6 +938,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             againBtn.textContent = isOver(tour) ? t('arcade.tour.done') : t('arcade.tour.next');
             againBtn.style.display = '';
           }
+          /* 끝난 순간의 기록을 챙긴다 — 다음 판을 시작하면 커널이 새로 만들어져 사라진다. */
+          if (match && !replaying) {
+            const g0 = gameById(gameId);
+            if (g0) tape = record(g0, match as never, lastSeats, lastSeed) as Tape<unknown>;
+          }
+          /* 다시 보기는 **내 커널이 있을 때만** — 손님은 판을 받아 그리기만 해서 되살릴 것이 없다. */
+          replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying ? '' : 'none';
           showResult(v, draw, top, note);
         }
       } else if (v.note) {
@@ -941,9 +962,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       raf = requestAnimationFrame(loop);
       if (match) {
         const now = performance.now() - t0;
+        /* 다시 보기 중이면 **적어 둔 수를 그때가 되면 다시 넣는다.** 봇의 수는 안 넣는다 —
+           커널이 같은 씨앗에서 똑같이 만들어 내기 때문이다(`replay.ts` 와 같은 규율). */
+        if (replaying && tape) {
+          while (tapeAt < tape.moves.length && tape.moves[tapeAt].at <= match.clock()) {
+            const mv = tape.moves[tapeAt++];
+            match.dispatch(mv.seat, mv.action);
+          }
+        }
         match.step(now);
         const v = match.view();
         paint(v, now);
+        /* 다시 보기는 이 창 안의 일이다 — 남에게 흘리면 손님 화면이 지난 판으로 되돌아간다. */
+        if (replaying) return;
         /* 주인은 판을 통째로 흘려보낸다 — 손님이 커널을 안 돌려야 판정이 하나로 남는다. */
         sendBoard(v, now);
       } else if (shadow) {
@@ -987,7 +1018,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function sendAct(a: unknown): void {
       /* 구경꾼의 손은 여기서 멈춘다. 주인도 자리 없는 사람의 수는 흘리지만, **화면이 반응하면
          사람은 자기가 두고 있다고 믿는다** — 막는 자리는 손이 나가기 전이어야 한다. */
-      if (watching) return;
+      if (watching || replaying) return;
       /* 놀이마다 소리를 붙이지 않는다 — **손이 지나가는 자리가 여기 하나**라, 여기서 울리면
          51개가 한꺼번에 소리를 얻는다(게임 파일은 소리를 몰라도 된다). */
       blip('tap');
@@ -1019,6 +1050,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       });
       const withCrew: SeatSpec[] = [...seats, ...crew.map((b) => ({ name: b.name, bot: true }))];
       match = new Match(withBotLevel(g, levelNow(), personas), seed, withCrew) as Match<unknown, unknown>;
+      /* 되살릴 재료 — 씨앗과 자리. 이 둘과 「누른 것」이면 판이 다시 만들어진다(`replay.ts`). */
+      lastSeed = seed;
+      lastSeats = withCrew;
+      lastPersonas = personas;
+      lastLevel = levelNow();
+      tape = null;
+      replaying = false;
       shadow = null;
       mountView(id);
       againBtn.style.display = 'none';
@@ -1055,6 +1093,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
+      replayBtn.style.display = 'none';
       hideResult();
       say('');
       $<HTMLElement>('#acIntroSkip').textContent = t('arcade.intro.skip');
@@ -1278,6 +1317,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
     }
 
+    /**
+     * 「다시 보기」 — 방금 그 판을 처음부터 다시 굴린다 (TASK-KL-264).
+     *
+     * 판을 저장해 두고 되감는 것이 **아니다.** 씨앗과 「누가 언제 무엇을 눌렀나」로 커널을
+     * 다시 굴린다 — 그래서 51개가 한꺼번에 얻는다. 게임 파일은 이걸 모른다.
+     */
+    replayBtn.onclick = (): void => {
+      const g = gameById(gameId);
+      if (!g || !tape) return;
+      replaying = true;
+      tapeAt = 0;
+      ended = false;
+      soundedRound = -1;
+      match = new Match(withBotLevel(g, lastLevel, lastPersonas), tape.seed, tape.seats) as Match<unknown, unknown>;
+      mountView(gameId);
+      hideResult();
+      againBtn.style.display = 'none';
+      swapBtn.style.display = 'none';
+      replayBtn.style.display = 'none';
+      say(t('arcade.replay.now'), 'ok');
+      t0 = performance.now();
+      cancelAnimationFrame(raf);
+      loop();
+    };
+
     /** 「다른 게임」 — 방을 든 채 로비로. 손님에게는 「고르는 중」이라고 알린다. */
     swapBtn.onclick = (): void => {
       if (!net?.host) return;
@@ -1287,6 +1351,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       render = null;
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
+      replayBtn.style.display = 'none';
+      replaying = false;
       hideResult();
       paintRoom();
       paintPicks();

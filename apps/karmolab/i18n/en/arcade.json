@@ -401,5 +401,7 @@
   "arcade.room.close": "close room",
   "arcade.room.picking": "the host is picking the next game",
   "arcade.watch.now": "watching",
-  "arcade.watch.over": "{n} watching"
+  "arcade.watch.over": "{n} watching",
+  "arcade.btn.replay": "watch again",
+  "arcade.replay.now": "replaying"
 }
