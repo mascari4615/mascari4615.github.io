@@ -77,6 +77,13 @@ jobs:
       - name: npm install (workspace)
         working-directory: apps/discord-bots
         run: npm install --prefer-offline --no-audit --no-fund
+      # `karmolab-ai` 는 이 워크스페이스 **밖**의 별도 패키지다(`file:` 로 물려 있을 뿐).
+      # 그래서 위 install 이 그 패키지의 devDependencies(`@types/node`·`typescript`)를 안 깐다.
+      # 노트북에서 지금까지 지어진 건 그 폴더가 **언젠가 한 번 깔린 잔재** 덕이었다 —
+      # 새 기계에서는 `error TS2688: Cannot find type definition file for 'node'` 로 죽는다(실측).
+      - name: npm install (karmolab-ai — 워크스페이스 밖)
+        working-directory: packages/karmolab-ai
+        run: npm install --prefer-offline --no-audit --no-fund
       # 시험 두 개(`agent-daemon` `discovery-nonagentic`)가 `karmolab-ai` 를 **지어진 모양**
       # (`dist/`)으로 가져온다. 새 체크아웃엔 그게 없으니 먼저 짓는다. 덤으로 타입 오류도
       # 여기서 걸린다 — prod 를 짓기 전에.
