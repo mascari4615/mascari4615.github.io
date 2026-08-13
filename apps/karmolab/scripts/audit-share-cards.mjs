@@ -15,11 +15,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(seo);
+/* 작업대로 합친 옛 도구는 낱개 장이 없다 — 그 주소는 작업대로 보내는 안내라 공유 카드도
+   안 그린다(gen:og 도 같은 목록으로 건너뛴다). 도구가 아닌 것을 「카드가 없다」로 세면
+   이 검사는 늘 빨갛다. 목록 정본은 lib/retired-operations.mjs. */
+const ids = withoutRetired(process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(seo));
 
 const fallback = [];
 const unreachable = [];
