@@ -1,106 +1,741 @@
 {
   "id": "db-nplus1",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "코드는 깔끔한데 화면만 느리다. 로그를 보면 **쿼리가 201개** 나갔다. ORM 을 쓰면 거의 반드시 한 번은 겪는다."
-    },
-    {
-      "type": "h",
-      "text": "1. 어떻게 생기나"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "반복문 안의 조회",
-      "text": "const posts = await Post.findAll({ limit: 200 });      // 쿼리 1\nfor (const p of posts) {\n  p.authorName = (await User.findByPk(p.userId)).name;  // 쿼리 200\n}\n// 총 201 쿼리 · 각 2ms 여도 400ms\n// 게다가 DB 가 아니라 왕복 지연이 대부분이라 서버 CPU 는 한가해 보인다"
-    },
-    {
-      "type": "h",
-      "text": "2. 세 가지 해법"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "위에서부터 시도",
-      "text": "// ① 미리 함께 가져오기 (eager loading)\nawait Post.findAll({ include: [User], limit: 200 });     // 조인 1번\n\n// ② 한 번에 모아서 조회 (IN)\nconst ids = [...new Set(posts.map(p => p.userId))];\nconst users = await User.findAll({ where: { id: ids } }); // 쿼리 2번\nconst map = new Map(users.map(u => [u.id, u]));\n\n// ③ DataLoader 류 — 같은 틱의 조회를 자동으로 묶는다 (GraphQL 에서 표준)"
-    },
-    {
-      "type": "note",
-      "text": "**조인이 항상 답은 아니다.** 1:N 을 조인하면 부모 행이 N번 중복돼 전송량이 커진다. 자식이 많으면 「쿼리 2번(부모·자식 따로)」이 더 빠른 경우가 흔하다 — 재고 판단하라."
-    },
-    {
-      "type": "h",
-      "text": "3. 잡아내는 장치"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "사람 눈으로는 못 막는다",
-      "text": "// 요청당 쿼리 수를 세고 문턱을 넘으면 경고/실패\nlet 쿼리수 = 0;\ndb.on('query', () => 쿼리수++);\n\nafterRequest(() => {\n  if (쿼리수 > 20) log.warn(`쿼리 폭발: ${경로} — ${쿼리수}개`);\n});\n\n// 테스트에서는 아예 실패시켜라\n//   expect(쿼리수).toBeLessThan(10)\n//   ← N+1 회귀를 막는 가장 확실한 방법"
-    },
-    {
-      "type": "h",
-      "text": "4. 반대 방향의 함정"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "너무 많이 가져오는 것도 문제",
-      "text": "· SELECT *  로 큰 텍스트·JSON 컬럼까지 매번 전송\n· 관계를 전부 include 해서 한 요청에 수 MB\n· 목록에 필요 없는 상세 데이터까지\n\n\"쿼리 수\" 와 \"전송량\" 둘 다 봐야 한다 — 하나를 줄이려다 다른 걸 키우기 쉽다"
-    },
-    {
-      "type": "h",
-      "text": "5. 캐시는 나중에"
-    },
-    {
-      "type": "p",
-      "text": "N+1 을 캐시로 덮으면 무효화 문제까지 떠안는다. **쿼리 수를 먼저 줄이고**, 그래도 부족할 때 캐시를 얹어라. 순서를 바꾸면 복잡도만 두 배가 된다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "가장 느린 화면의 요청당 쿼리 수를 세어라. 10개를 넘으면 include 나 IN 조회로 줄여라."
-    },
-    {
-      "type": "try",
-      "text": "핵심 API 하나에 「쿼리 수 상한」 테스트를 붙여 회귀를 막아라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "N+1 문제의 본질은?",
-      "choices": [
-        "왕복 횟수가 많아 지연이 쌓인다",
-        "DB CPU 부족",
-        "인덱스 부재"
+      "id": "1",
+      "title": "증상 — 쿼리가 201개",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "코드는 깔끔한데 화면만 느리다. 로그를 보면 **쿼리가 201개** 나갔다. 목록 200개를 가져오는 쿼리 1개 + 각 항목의 작성자를 가져오는 쿼리 200개. 이것이 **N+1 문제** — ORM 을 쓰면 거의 반드시 한 번은 겪는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "목록 크기와 쿼리 수 — 1 + N",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}};\n  const total = 1 + N;\n  const perMs = 2;                       // 쿼리당 왕복 2ms 가정\n  render('GET /posts  (' + N + '개 표시)',\n    '  나간 쿼리 = 목록 1 + 작성자 ' + N + ' = <span class=\\\"' +\n      (total <= 3 ? 'ok' : total <= 20 ? 'warn' : 'no') + '\\\">' + total + '개</span>\\n' +\n    '  예상 지연 = ' + total + ' x ' + perMs + 'ms = ' + (total * perMs) + 'ms (왕복만)\\n\\n' +\n    '  목록이 커질수록 쿼리 수가 정비례로 늘어난다 — 화면이 점점 느려지는 이유.',\n    '항목 하나 늘 때마다 쿼리 하나 추가. 이 정비례가 N+1 의 특징이다.',\n    bars([['DB 왕복 횟수', Math.min(100, total / 2), total + '회', total > 20 ? '#fca5a5' : '#38bdf8']]));\n</script>",
+          "controls": [
+            {
+              "id": "rows",
+              "label": "목록 항목 수(N)",
+              "type": "range",
+              "min": 1,
+              "max": 200,
+              "step": 1,
+              "value": 50
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "N+1 이 생기는 코드",
+          "text": "const posts = await Post.findAll({ limit: 200 });   // 쿼리 1개\nfor (const p of posts) {\n  const author = await p.getUser();   // 반복마다 쿼리 1개씩 = 200개\n  render(p.title, author.name);\n}\n// 총 201개. 코드는 자연스러워 보이는데 로그는 폭발한다."
+        },
+        {
+          "type": "note",
+          "text": "**N+1 은 개발 중엔 안 보인다.** 로컬 DB 는 왕복이 0.1ms 라 201개도 20ms — 빠르다. 운영에선 DB 가 네트워크 너머라 왕복이 1~5ms, 201개면 수백 ms~1초. **데이터가 적은 개발 환경에서 숨었다가 운영에서 터지는** 대표적 문제다."
+        },
+        {
+          "type": "p",
+          "text": "**핵심 신호는 「쿼리 수가 목록 크기에 비례」다.** 화면이 느린데 각 쿼리는 빠르다면 N+1 을 의심하라. 실행 계획(db-explain)이 개별 쿼리는 멀쩡하다고 말해도, **개수 자체**가 문제인 것이다 — 그래서 쿼리 수를 세는 습관이 중요하다(6장)."
+        },
+        {
+          "type": "try",
+          "text": "가장 느린 목록 화면 하나를 열고, DB 쿼리 로그에서 그 요청이 몇 개의 쿼리를 냈는지 세어 보라. 항목 수 + 1 에 가깝다면 N+1 이다."
+        }
       ],
-      "answer": 0,
-      "why": "각 쿼리는 빨라도 총합이 느리다."
+      "quiz": [
+        {
+          "q": "N+1 에서 「+1」과 「N」은 각각 무엇인가?",
+          "choices": [
+            "둘 다 목록",
+            "목록 조회 1개 + 각 항목 관계 조회 N개",
+            "인덱스와 테이블",
+            "읽기와 쓰기"
+          ],
+          "answer": 1,
+          "why": "부모 1 + 자식 N."
+        },
+        {
+          "q": "N+1 이 개발 중엔 잘 안 보이는 이유는?",
+          "choices": [
+            "코드가 숨겨서",
+            "로컬 DB 왕복이 짧고 데이터가 적어서",
+            "ORM 이 막아서",
+            "캐시 때문"
+          ],
+          "answer": 1,
+          "why": "운영의 네트워크 왕복에서 터진다."
+        },
+        {
+          "q": "N+1 의 핵심 신호는?",
+          "choices": [
+            "쿼리 하나가 느림",
+            "쿼리 수가 목록 크기에 비례해 늘어남",
+            "메모리 부족",
+            "락 경합"
+          ],
+          "answer": 1,
+          "why": "개수 자체가 문제."
+        }
+      ]
     },
     {
-      "q": "1:N 관계를 항상 조인으로 합치면?",
-      "choices": [
-        "부모 행이 중복돼 전송량이 커질 수 있다",
-        "항상 빨라진다",
-        "락이 걸린다"
+      "id": "2",
+      "title": "왜 생기나 — 지연 로딩",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ORM 은 관계를 **지연 로딩(lazy)** 한다 — `post.author` 에 **접근하는 순간** 쿼리를 낸다. 편리하지만 함정이다. 루프 안에서 관계에 접근하면, 그 편리함이 **반복 횟수만큼의 쿼리**로 조용히 바뀐다. 코드엔 `SELECT` 가 한 줄도 안 보이는데."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "관계 접근이 쿼리로 바뀌는 순간",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const lazy = mode === 'lazy';\n  const lines = [['SELECT * FROM posts LIMIT 3', 'one']];\n  if (lazy) {\n    lines.push(['-- 루프 진입, post.author 접근할 때마다:', 'dim']);\n    for (let i = 1; i <= 3; i++) lines.push(['SELECT * FROM users WHERE id = ' + i + '   <- post.author 접근', 'hot']);\n  } else {\n    lines.push(['SELECT * FROM users WHERE id IN (1,2,3)   <- 미리 함께', 'one']);\n    lines.push(['-- 루프 안에서는 이미 메모리에 있어 쿼리 0', 'dim']);\n  }\n  render(lazy ? 'lazy: post.author 를 루프에서 접근' : 'eager: 미리 include',\n    '  나간 쿼리 = <span class=\\\"' + (lazy ? 'no' : 'ok') + '\\\">' + (lazy ? '1 + 3 = 4개' : '2개(고정)') + '</span>\\n\\n' +\n    (lazy\n      ? '  post.author 에 「접근하는 순간」 SELECT 가 나간다 — 코드엔 안 보인다.'\n      : '  미리 함께 가져와 메모리에 두면, 루프의 접근은 쿼리를 안 낸다.'),\n    '지연 로딩은 접근 시점에 쿼리를 낸다. 루프 안 접근 = 반복 수만큼 쿼리.',\n    qlog(lines));\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "로딩 방식",
+              "type": "select",
+              "value": "lazy",
+              "options": [
+                {
+                  "value": "lazy",
+                  "label": "지연 로딩(lazy)"
+                },
+                {
+                  "value": "eager",
+                  "label": "미리 로딩(eager)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「관계 접근 = 쿼리 가능성」이라고 의심하라.** ORM 의 `post.author`, `order.items`, `user.profile` 은 필드처럼 보이지만 DB 왕복일 수 있다. 특히 **루프·맵·템플릿 안**에서 관계에 접근하는 코드를 보면 N+1 을 먼저 떠올려야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**지연 로딩 자체가 나쁜 건 아니다.** 한 건을 다룰 땐(상세 화면) 필요할 때 가져오는 게 효율적이다. 문제는 **여러 건을 루프로 돌 때**다. 그래서 해법은 「지연 로딩을 끄기」가 아니라 「목록을 다룰 땐 **미리 함께** 가져오기」다(3~4장)."
+        },
+        {
+          "type": "try",
+          "text": "N+1 이 의심되는 화면의 코드에서, 루프·map·템플릿 안에서 관계 필드(`.author`, `.items` 등)에 접근하는 줄을 찾아라. 그 줄이 쿼리를 내고 있다."
+        }
       ],
-      "answer": 0,
-      "why": "분리 조회가 나을 때가 있다."
+      "quiz": [
+        {
+          "q": "ORM 지연 로딩이 쿼리를 내는 시점은?",
+          "choices": [
+            "앱 시작 시",
+            "관계 필드에 접근하는 순간",
+            "커밋 시",
+            "안 낸다"
+          ],
+          "answer": 1,
+          "why": "lazy = 접근 시 로드."
+        },
+        {
+          "q": "지연 로딩이 특히 문제가 되는 상황은?",
+          "choices": [
+            "단건 상세 화면",
+            "여러 건을 루프로 도는 목록",
+            "쓰기",
+            "트랜잭션"
+          ],
+          "answer": 1,
+          "why": "반복 수만큼 쿼리."
+        },
+        {
+          "q": "N+1 의 올바른 해법 방향은?",
+          "choices": [
+            "지연 로딩 완전 금지",
+            "목록을 다룰 땐 미리 함께 가져오기",
+            "캐시 우선",
+            "루프 제거"
+          ],
+          "answer": 1,
+          "why": "상황에 맞게."
+        }
+      ]
     },
     {
-      "q": "N+1 회귀를 막는 확실한 방법은?",
-      "choices": [
-        "요청당 쿼리 수 상한 테스트",
-        "코드 리뷰",
-        "문서화"
+      "id": "3",
+      "title": "해법① 미리 함께 — eager 조인",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 흔한 해법은 **eager loading**: 목록을 가져올 때 관계도 **함께** 조회하도록 지시한다. ORM 의 `include`·`with`·`join fetch` 가 이것이다. 내부적으로 **조인** 한 번으로 부모와 자식을 같이 가져와, 201개가 1개로 준다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "include 로 쿼리 수를 접는다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}};\n  const naive = 1 + N;\n  const eager = 1;                       // 조인 한 방\n  render('Post.findAll({ include: [User], limit: ' + N + ' })',\n    '  N+1 방식 = ' + naive + '개 쿼리\\n' +\n    '  include(조인) = <span class=\\\"ok\\\">' + eager + '개 쿼리</span>  ->  ' +\n      Math.round(naive / eager) + '배 감소\\n\\n' +\n    '  DB 는 posts JOIN users 를 한 번에 실행해 작성자까지 채워 돌려준다.',\n    '관계를 미리 선언하면 ORM 이 조인으로 한 번에 가져온다 — 왕복이 1회.',\n    bars([['N+1', Math.min(100, naive / 2), naive + '개', '#fca5a5'],\n          ['include', 3, eager + '개', '#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "rows",
+              "label": "목록 항목 수(N)",
+              "type": "range",
+              "min": 1,
+              "max": 200,
+              "step": 1,
+              "value": 50
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "세 가지 해법",
+          "text": "// ① 미리 함께 가져오기 (eager loading) — 조인 한 방\nawait Post.findAll({ include: [User], limit: 200 });\n\n// ② 자식을 IN 으로 한 번에 (2 쿼리) — 4장\nconst posts = await Post.findAll({ limit: 200 });\nconst ids = posts.map(p => p.userId);\nconst users = await User.findAll({ where: { id: ids } });  // IN (...)\n\n// ③ DataLoader 로 요청 내 자동 배치 — 접근은 그대로, 뒤에서 IN 으로 묶음"
+        },
+        {
+          "type": "note",
+          "text": "**조인이 항상 답은 아니다.** 1:N 관계(게시글 : 댓글)를 조인하면 부모 행이 자식 수만큼 **중복**돼 전송량이 커진다(5장). 자식이 많은 1:N 은 조인보다 **쿼리 2번**(부모·자식 따로, IN 으로)이 더 쌀 때가 많다 — 그래서 4장의 IN 방식이 있다."
+        },
+        {
+          "type": "p",
+          "text": "**필요한 관계만 include 하라.** 「N+1 무섭다」고 모든 관계를 eager 로 걸면, 안 쓰는 데이터까지 매번 조인해 반대편 함정(과다 fetch, 7장)에 빠진다. 그 화면이 **실제로 쓰는** 관계만 골라 함께 가져오는 것이 균형이다."
+        },
+        {
+          "type": "try",
+          "text": "N+1 나는 목록 조회에 `include`(또는 `with`/`join fetch`)를 추가하고, 쿼리 수가 1~2개로 주는지 로그로 확인하라. 화면에 안 쓰는 관계는 빼라."
+        }
       ],
-      "answer": 0,
-      "why": "자동으로 잡혀야 재발하지 않는다."
+      "quiz": [
+        {
+          "q": "eager loading(include)이 하는 일은?",
+          "choices": [
+            "캐시",
+            "관계를 조인으로 함께 가져와 쿼리 수를 접음",
+            "인덱스 생성",
+            "쓰기 배치"
+          ],
+          "answer": 1,
+          "why": "201 -> 1."
+        },
+        {
+          "q": "1:N 을 조인할 때의 단점은?",
+          "choices": [
+            "느린 인덱스",
+            "부모 행이 자식 수만큼 중복돼 전송량 증가",
+            "락",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "그래서 IN 2쿼리가 나을 때가 있다."
+        },
+        {
+          "q": "모든 관계를 eager 로 거는 것의 문제는?",
+          "choices": [
+            "N+1 재발",
+            "안 쓰는 데이터까지 조인 — 과다 fetch",
+            "인덱스 무력화",
+            "락 증가"
+          ],
+          "answer": 1,
+          "why": "필요한 것만 include."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "해법② IN 으로 배치 — 2 쿼리",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "조인 대신 **쿼리를 딱 2번**으로 묶는 방법: 먼저 부모를 다 가져오고, 필요한 자식 id 를 모아 **`WHERE id IN (…)`** 로 한 번에 가져온다. 부모 중복이 없어 전송량이 작고, 1:N 관계에 특히 좋다. N 개의 쿼리가 **상수 2개**로 준다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "N 개 개별 조회 vs IN 한 번",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}};\n  const naive = 1 + N;\n  const batch = 2;                       // 부모 1 + IN 1\n  render('부모 1회 + 자식 IN 1회',\n    '  개별 조회 = 1 + ' + N + ' = ' + naive + '개\\n' +\n    '  IN 배치 = <span class=\\\"ok\\\">2개 (고정)</span>\\n\\n' +\n    '  SELECT * FROM users WHERE id IN (' + (N <= 5 ? Array.from({length:N},(_,i)=>i+1).join(',') : '1,2,3, ... ,' + N) + ')\\n' +\n    '  받아온 자식을 id 로 매핑해 부모에 붙인다 — 왕복은 딱 2번.',\n    'id 를 모아 IN 한 번으로 — 부모 중복 없이 자식을 한 방에 가져온다.',\n    bars([['개별(N+1)', Math.min(100, naive / 2), naive + '개', '#fca5a5'],\n          ['IN 배치', 4, batch + '개', '#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "rows",
+              "label": "목록 항목 수(N)",
+              "type": "range",
+              "min": 1,
+              "max": 200,
+              "step": 1,
+              "value": 50
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**IN 목록이 너무 길면 잘라서 보낸다.** id 가 수천 개면 `IN (…)` 하나가 되레 무거워지고 일부 DB 는 파라미터 한도가 있다. 1000개씩 **청크**로 나눠 여러 번 IN 하면 안전하다 — 그래도 N 번이 아니라 N/1000 번이라 여전히 상수에 가깝다."
+        },
+        {
+          "type": "p",
+          "text": "**DataLoader 패턴이 이걸 자동화한다.** 코드에선 `post.author` 를 그냥 접근하되, 뒤에서 같은 tick 의 요청들을 모아 **한 번의 IN** 으로 배치한다. GraphQL 서버가 N+1 을 이 방식으로 막는다 — 접근 코드는 자연스럽게 두고, 로딩만 묶는다."
+        },
+        {
+          "type": "try",
+          "text": "조인이 부모 중복을 많이 만드는 1:N 화면을 골라, 개별 조회를 「부모 1 + 자식 IN 1」 2쿼리로 바꿔라. 전송량과 쿼리 수를 조인 방식과 비교하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "IN 배치가 조인보다 나은 상황은?",
+          "choices": [
+            "1:1 관계",
+            "부모 중복이 큰 1:N 관계",
+            "쓰기",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "부모 중복 없이 2쿼리."
+        },
+        {
+          "q": "IN 목록이 매우 길 때의 처방은?",
+          "choices": [
+            "그냥 보냄",
+            "1000개씩 청크로 나눠 여러 번",
+            "개별 조회로 회귀",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "파라미터 한도·무거움."
+        },
+        {
+          "q": "DataLoader 패턴의 특징은?",
+          "choices": [
+            "캐시 전용",
+            "접근 코드는 그대로 두고 뒤에서 IN 으로 배치",
+            "조인 강제",
+            "쓰기 배치"
+          ],
+          "answer": 1,
+          "why": "GraphQL N+1 방어."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "조인의 함정 — 중복 폭증",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "N+1 을 조인으로 고쳤는데 **더 느려질** 수 있다. 여러 1:N 을 한 번에 조인하면 행이 **곱셈**으로 폭증한다 — 게시글 1개에 댓글 10, 태그 5 를 함께 조인하면 10 x 5 = **50행**이 나오고, 게시글 데이터가 50번 중복 전송된다. 카테시안 곱의 함정이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "여러 1:N 을 한꺼번에 조인하면",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = {{comments}}, t = {{tags}};\n  const rows = c * t;                    // 카테시안 곱\n  const dupWaste = (rows - 1);           // 부모가 중복된 횟수\n  render('posts JOIN comments JOIN tags   (댓글 ' + c + ' x 태그 ' + t + ')',\n    '  반환 행 = ' + c + ' x ' + t + ' = <span class=\\\"' +\n      (rows <= 10 ? 'ok' : rows <= 50 ? 'warn' : 'no') + '\\\">' + rows + '행</span>\\n' +\n    '  게시글 본문이 ' + rows + '번 중복 전송된다 (실제 고유 데이터는 1+' + c + '+' + t + '개뿐)\\n\\n' +\n    '  처방: 여러 1:N 은 한 조인에 몰지 말고 <span class=\\\"warn\\\">각각 IN 으로 따로</span> 가져온다.',\n    '1:N 을 여러 개 한 번에 조인하면 곱셈으로 폭증. 관계마다 쿼리를 나눠라.',\n    bars([['고유 데이터', Math.min(100, (1 + c + t) * 3), (1 + c + t) + '행', '#4ade80'],\n          ['조인 반환 행', Math.min(100, rows * 2), rows + '행', rows > 50 ? '#fca5a5' : '#38bdf8']]));\n</script>",
+          "controls": [
+            {
+              "id": "comments",
+              "label": "댓글 수",
+              "type": "range",
+              "min": 1,
+              "max": 30,
+              "step": 1,
+              "value": 10
+            },
+            {
+              "id": "tags",
+              "label": "태그 수",
+              "type": "range",
+              "min": 1,
+              "max": 20,
+              "step": 1,
+              "value": 5
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 조인엔 1:N 을 하나만.** 부모에 여러 컬렉션(댓글·태그·좋아요)이 달렸다면, 하나만 조인으로 가져오고 나머지는 **각각 별도 IN 쿼리**로 가져온다. 「쿼리 수를 1로」에 집착하다 전송량을 곱으로 키우는 게 더 나쁘다 — 쿼리 2~3개가 정답일 때가 많다."
+        },
+        {
+          "type": "p",
+          "text": "**N+1 해결의 목표는 「쿼리 1개」가 아니라 「상수 개」다.** 200개든 2000개든 쿼리 수가 **항목 수에 안 늘면** 성공이다. 관계 3개면 쿼리 4개(부모 1 + 관계별 IN 3)라도 훌륭하다. 개수를 상수로 묶되, 전송량 폭증은 피하는 균형을 찾는다."
+        },
+        {
+          "type": "try",
+          "text": "여러 관계를 한 번에 include 하는 조회가 있다면, 반환 행 수를 세어 보라(EXPLAIN ANALYZE 의 actual rows). 곱으로 커졌다면 관계를 나눠 별도 IN 으로 가져오라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "여러 1:N 을 한 번에 조인하면?",
+          "choices": [
+            "행이 합으로",
+            "행이 곱(카테시안)으로 폭증",
+            "변화 없음",
+            "에러"
+          ],
+          "answer": 1,
+          "why": "10 x 5 = 50, 부모 중복."
+        },
+        {
+          "q": "부모에 컬렉션이 여럿일 때 처방은?",
+          "choices": [
+            "모두 한 조인에",
+            "하나만 조인·나머지는 각각 IN",
+            "캐시",
+            "개별 N+1"
+          ],
+          "answer": 1,
+          "why": "전송량 폭증 회피."
+        },
+        {
+          "q": "N+1 해결의 진짜 목표는?",
+          "choices": [
+            "쿼리 정확히 1개",
+            "쿼리 수를 항목 수와 무관한 상수로",
+            "조인만 사용",
+            "캐시 도입"
+          ],
+          "answer": 1,
+          "why": "상수면 성공."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "잡아내는 장치 — 쿼리 수 게이트",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "N+1 은 **다시 스며든다** — 누가 루프에 관계 접근 한 줄을 추가하면 조용히 부활한다. 그래서 **요청당 쿼리 수를 세어 문턱을 넘으면 실패**시키는 자동 장치가 필요하다. 이것이 N+1 회귀를 막는 유일하게 확실한 방법이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "요청당 쿼리 수 게이트",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = {{queries}};\n  const limit = 15;\n  const pass = q <= limit;\n  render('TEST: GET /posts  쿼리 수 상한 ' + limit,\n    '  이 요청이 낸 쿼리 = ' + q + '개\\n\\n  ' + (pass\n      ? '<span class=\\\"ok\\\">PASS — 상한 이하. N+1 없음.</span>'\n      : '<span class=\\\"no\\\">FAIL — 상한 초과. 누군가 루프에 관계 접근을 넣었다(N+1 부활).</span>') +\n    '\\n\\n  이 테스트가 없으면 이 회귀는 조용히 배포되어 운영에서 느려진다.',\n    '쿼리 수에 상한을 걸면 N+1 이 CI 에서 빨강으로 잡힌다 — 슬라이더로 넘겨 보라.',\n    bars([['상한', limit * 4, limit + '개', '#64748b'],\n          ['이번 요청', Math.min(100, q * 4), q + '개', pass ? '#4ade80' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "queries",
+              "label": "요청이 낸 쿼리 수",
+              "type": "range",
+              "min": 1,
+              "max": 50,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "쿼리 수를 세어 게이트",
+          "text": "let count = 0;\ndb.on('query', () => count++);         // 모든 쿼리를 센다\n\ntest('GET /posts 는 쿼리 15개 이하', async () => {\n  count = 0;\n  await request(app).get('/posts?limit=200');\n  expect(count).toBeLessThan(15);       // 넘으면 실패 -> N+1 회귀 차단\n});\n// 개발 중엔 콘솔에 요청당 쿼리 수를 찍어 눈으로도 감시"
+        },
+        {
+          "type": "note",
+          "text": "**상한은 항목 수와 무관한 상수로 잡는다.** `limit=200` 인데 쿼리 15개 이하를 요구하면, 목록이 커져도 상수여야 통과한다 — 즉 N+1 이면 반드시 실패한다. 상한을 목록 크기에 비례해 잡으면(예: N+5) N+1 을 잡지 못한다."
+        },
+        {
+          "type": "p",
+          "text": "**개발 중에도 요청당 쿼리 수를 찍어 두라.** 로컬에선 느리지 않아 N+1 이 안 보이지만, 콘솔에 「이 요청: 쿼리 47개」가 찍히면 즉시 알아챈다. 테스트 게이트(배포 차단)와 개발 로그(즉시 인지)를 함께 두는 것이 이상적이다."
+        },
+        {
+          "type": "try",
+          "text": "핵심 목록 API 하나에 「쿼리 수 상한」 테스트를 붙여라. 일부러 루프에 관계 접근을 넣어 테스트가 빨강이 되는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "N+1 회귀를 막는 확실한 장치는?",
+          "choices": [
+            "코드 리뷰만",
+            "요청당 쿼리 수 상한 테스트",
+            "캐시",
+            "인덱스"
+          ],
+          "answer": 1,
+          "why": "다시 스며들기 때문."
+        },
+        {
+          "q": "쿼리 수 상한을 어떻게 잡아야 N+1 을 잡나?",
+          "choices": [
+            "N+5 비례",
+            "항목 수와 무관한 상수",
+            "무제한",
+            "N x 2"
+          ],
+          "answer": 1,
+          "why": "비례하면 N+1 통과."
+        },
+        {
+          "q": "개발 중 N+1 을 빨리 알아채는 법은?",
+          "choices": [
+            "운영 대기",
+            "요청당 쿼리 수를 콘솔에 찍기",
+            "느려질 때까지",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "로컬은 느리지 않아 숨는다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "반대 방향의 함정 — 과다 fetch",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "N+1 이 무서워 **반대로 과하게** 가져오는 함정도 있다. `SELECT *` 로 큰 텍스트·JSON 컬럼까지 매번 끌어오고, 관계를 전부 eager 로 걸어 한 요청에 수 MB 를 전송한다. 쿼리 수는 적은데 **각 쿼리가 무거워** 느려진다 — N+1 을 피하려다 반대 절벽으로 떨어진 것이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "SELECT * · 전부 include 의 전송량",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const cases = {\n    lean:  ['필요한 컬럼만 · 쓰는 관계만', 3, '목록에 id·title·author.name 만 -> 가볍다', '#4ade80'],\n    star:  ['SELECT * (본문·JSON 포함)', 60, '목록인데 각 행의 본문·메타 JSON 까지 전송', '#fbbf24'],\n    allinc:['모든 관계 eager include', 95, '댓글·태그·좋아요·이력 전부 -> 한 요청 수 MB', '#fca5a5'],\n  }[mode];\n  render('GET /posts  (' + cases[0] + ')',\n    '  전송량 = <span style=\\\"color:' + cases[3] + '\\\">' + cases[1] + ' (상대)</span>\\n\\n  ' + cases[2] +\n    '\\n\\n  쿼리 수는 적어도, 목록 화면에 안 쓰는 큰 데이터를 실어 나르면 느리다.',\n    '목록에 필요한 것만 골라라 — 쿼리 수와 전송량은 둘 다 봐야 한다.',\n    bars([['전송량', cases[1], cases[1] + '단위', cases[3]]]));\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "가져오는 범위",
+              "type": "select",
+              "value": "lean",
+              "options": [
+                {
+                  "value": "lean",
+                  "label": "필요한 것만"
+                },
+                {
+                  "value": "star",
+                  "label": "SELECT *"
+                },
+                {
+                  "value": "allinc",
+                  "label": "관계 전부 include"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**목록과 상세를 다르게 가져와라.** 목록 화면엔 카드에 보이는 몇 컬럼만(제목·작성자·썸네일), 상세 화면에서 본문·댓글·관계를 가져온다. 목록에 상세용 데이터를 실으면 「N+1 은 없는데 느린」 상태가 된다. 커버링 인덱스(db-index)와도 이어진다 — 필요한 컬럼만."
+        },
+        {
+          "type": "p",
+          "text": "**두 절벽 사이의 능선을 걸어라.** 한쪽은 N+1(쿼리 폭발), 다른 쪽은 과다 fetch(전송량 폭발)다. 균형점은 「그 화면이 **실제로 쓰는** 데이터를, **상수 번의** 쿼리로」다. 쿼리 수와 전송량(payload 크기)을 **둘 다** 계측해야 어느 절벽인지 안다."
+        },
+        {
+          "type": "try",
+          "text": "목록 API 의 응답 크기(payload bytes)를 재라. 한 화면에 수백 KB~MB 라면, 목록에 안 쓰는 컬럼·관계를 빼고 상세에서만 가져오도록 나눠라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "N+1 을 피하려다 빠지는 반대 함정은?",
+          "choices": [
+            "인덱스 과다",
+            "과다 fetch(SELECT *·전부 include)로 전송량 폭발",
+            "락",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "쿼리 적어도 무겁다."
+        },
+        {
+          "q": "목록과 상세 화면의 올바른 데이터 전략은?",
+          "choices": [
+            "똑같이 전부",
+            "목록은 필요한 몇 컬럼, 상세에서 본문·관계",
+            "둘 다 SELECT *",
+            "목록에 다 실음"
+          ],
+          "answer": 1,
+          "why": "화면이 쓰는 것만."
+        },
+        {
+          "q": "N+1 과 과다 fetch 사이 균형을 알려면?",
+          "choices": [
+            "쿼리 수만",
+            "쿼리 수와 전송량(payload)을 둘 다 계측",
+            "전송량만",
+            "감으로"
+          ],
+          "answer": 1,
+          "why": "어느 절벽인지 구분."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "캐시는 나중 — 순서가 중요하다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "N+1 로 느린 화면을 **캐시로 덮고 싶은** 유혹이 크다. 하지만 캐시는 **무효화 문제**(언제 지울까)를 새로 떠안는다. **쿼리 수를 먼저 줄이고**(구조 수정), 그래도 부족할 때 캐시를 얹어라. 순서를 바꾸면 복잡도만 쌓인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "캐시 먼저 vs 쿼리 줄이기 먼저",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  const cacheFirst = order === 'cache';\n  render(cacheFirst ? '캐시부터 얹기' : '쿼리부터 줄이기',\n    (cacheFirst\n      ? '  빨라 보인다. 하지만:\\n' +\n        '  · 201개 쿼리는 그대로 — 캐시 미스·만료 때 그대로 느리다\\n' +\n        '  · 데이터 바뀌면 언제 무효화? -> 새 버그의 온상\\n' +\n        '  · <span class=\\\"no\\\">근본(구조)은 그대로, 복잡도만 추가</span>'\n      : '  · include/IN 으로 201 -> 2 (구조 자체가 빨라짐)\\n' +\n        '  · 캐시 미스여도 빠르다\\n' +\n        '  · <span class=\\\"ok\\\">그래도 부족하면 그때 캐시 -> 이득이 명확</span>'),\n    '캐시는 근본 수정을 미루는 도구가 아니다. 구조를 먼저 고치고 캐시는 마지막에.',\n    box(cacheFirst ? '캐시 먼저 (권장 X)' : '쿼리 먼저 (권장 O)',\n      cacheFirst\n        ? '느림의 원인(201쿼리) 방치 + 무효화 버그 추가'\n        : '원인 제거(2쿼리) 후, 필요 시에만 캐시로 마무리',\n      cacheFirst ? 'bad' : 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "접근 순서",
+              "type": "select",
+              "value": "cache",
+              "options": [
+                {
+                  "value": "cache",
+                  "label": "캐시부터"
+                },
+                {
+                  "value": "query",
+                  "label": "쿼리 줄이기부터"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**캐시는 무효화라는 세금을 물린다.** 「컴퓨터 과학의 어려운 두 문제 중 하나가 캐시 무효화」라는 농담이 있다. N+1 을 구조로 고치면 무효화가 필요 없다 — 캐시는 그 뒤, **정말로 반복 조회가 많고 데이터가 잘 안 바뀌는** 곳에만 선택적으로 얹는다."
+        },
+        {
+          "type": "p",
+          "text": "**「느리면 캐시」는 증상 추격이다(db-explain·황금의 정신과 같은 원리).** 왜 느린지(N+1·인덱스·과다 fetch)를 먼저 진단해 구조를 고치고, 캐시는 **그 뒤에도 남는** 반복 부하에만 쓴다. 원인을 덮는 캐시는 문제를 숨기고 무효화 버그로 되돌아온다."
+        },
+        {
+          "type": "try",
+          "text": "캐시로 덮어 둔 느린 화면이 있다면, 캐시를 잠깐 끄고 요청당 쿼리 수를 세어 보라. N+1 이 숨어 있다면 그것부터 구조로 고치고, 캐시는 그 뒤에 판단하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "N+1 에 캐시를 먼저 얹으면 안 되는 이유는?",
+          "choices": [
+            "캐시가 느려서",
+            "원인(쿼리 폭발)을 방치하고 무효화 문제를 새로 떠안음",
+            "메모리 부족",
+            "인덱스 충돌"
+          ],
+          "answer": 1,
+          "why": "구조를 먼저 고친다."
+        },
+        {
+          "q": "캐시를 얹기 좋은 곳은?",
+          "choices": [
+            "아무 데나",
+            "구조 수정 후에도 남는, 반복 많고 잘 안 바뀌는 조회",
+            "쓰기 많은 곳",
+            "N+1 그 자체"
+          ],
+          "answer": 1,
+          "why": "무효화 세금이 있으니 선택적으로."
+        },
+        {
+          "q": "「느리면 캐시」가 문제인 근본 이유는?",
+          "choices": [
+            "비용",
+            "원인 진단 없이 증상을 덮는 것 — 문제를 숨김",
+            "느림",
+            "복잡"
+          ],
+          "answer": 1,
+          "why": "황금의 정신: 근본을 먼저."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — N+1 다루기",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "목록·관계를 다루는 화면을 만들거나 느린 화면을 고칠 때 이 목록을 확인하라. 하나라도 「아니오」면 N+1 이 숨어 있거나 반대 절벽에 있을 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '요청당 쿼리 수를 센다(개발 로그 + 테스트 게이트)',\n    '쿼리 수가 항목 수에 비례하지 않는다(상수)',\n    '루프·map·템플릿 안에서 관계 접근을 안 한다',\n    '목록은 include/IN 으로 관계를 미리 가져온다',\n    '여러 1:N 을 한 조인에 몰지 않는다(중복 폭증)',\n    '목록엔 필요한 컬럼만(SELECT * 회피)',\n    '쿼리 수 상한을 상수로 건 회귀 테스트가 있다',\n    '캐시는 구조 수정 뒤 마지막에만 얹는다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 쿼리 수가 데이터에 안 눌린다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    'N+1 은 쿼리 수를 세는 순간 보인다. 세고, 상수로 묶고, 게이트로 지킨다.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**핵심 한 줄: 세라.** N+1 은 요청당 쿼리 수를 세는 순간 드러난다. 세지 않으면 영영 안 보이고, 세면 즉시 보인다. 나머지 항목은 모두 「센 다음」의 처방이다 — 계측이 먼저다(황금의 정신)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙의 합류점.** N+1 은 실행 계획(db-explain)으로 개별 쿼리가 멀쩡함을 확인하고, 관계 조회를 인덱스(db-index)로 받치고, 줄어든 쿼리가 트랜잭션 락(db-lock) 시간과 커넥션 풀(db-pool) 회전을 개선한다. **쿼리 수를 세는 습관이 목록 성능의 출발점**이다."
+        },
+        {
+          "type": "try",
+          "text": "가장 무거운 목록 화면에 이 8개 항목을 채점하라. 「쿼리 수를 센다」가 아니오라면, 그것부터 오늘 붙여라 — 나머지는 그 뒤에 보인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "N+1 을 다루는 가장 첫 걸음은?",
+          "choices": [
+            "캐시",
+            "요청당 쿼리 수를 센다",
+            "인덱스 추가",
+            "조인"
+          ],
+          "answer": 1,
+          "why": "세는 순간 보인다."
+        },
+        {
+          "q": "쿼리 수 게이트가 통과해야 하는 조건은?",
+          "choices": [
+            "N에 비례",
+            "항목 수와 무관한 상수 이하",
+            "무제한",
+            "1개 고정"
+          ],
+          "answer": 1,
+          "why": "상수여야 N+1 을 잡는다."
+        },
+        {
+          "q": "N+1 개선이 트랙의 다른 주제에 주는 효과는?",
+          "choices": [
+            "없음",
+            "락 시간·커넥션 풀 회전 개선",
+            "인덱스 무력화",
+            "정렬 증가"
+          ],
+          "answer": 1,
+          "why": "쿼리 감소가 연쇄 이득."
+        }
+      ]
     }
   ]
 }
