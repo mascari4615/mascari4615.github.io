@@ -3532,6 +3532,7 @@ import {
         + `<button class="btn btn-ghost" data-km="note-close" aria-label="${esc(t('karmograph.linkBox.close'))}">✕</button>`;
       (box.querySelector('[data-km="note-msg"]') as HTMLElement).textContent = msg;
       canvasEl.appendChild(box);
+      trapTab(box);
       const close = (): void => box.remove();
       (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).onclick = close;
       (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).focus();
@@ -3539,6 +3540,27 @@ import {
         ev.stopPropagation();
         if (ev.key === 'Escape' || ev.key === 'Enter') close();
       };
+    }
+
+    /**
+     * 작은 상자 안에 **초점을 가둔다** (KL-271).
+     *
+     * 되물음이 떠 있는데 Tab 이 뒤로 새면, 답하지 않은 결정 뒤에서 판을 만지게 된다 —
+     * 눈으로 보는 사람에게는 상자가 앞을 막고 있는데 자판만 쓰는 사람에게는 안 막힌 셈이다
+     * (실측 2026-08-14: 되물음에서 두 번째 Tab 이 옆 패널 칸으로 나갔다).
+     */
+    function trapTab(box: HTMLElement): void {
+      box.addEventListener('keydown', (ev: KeyboardEvent) => {
+        if (ev.key !== 'Tab') return;
+        const spots = [...box.querySelectorAll<HTMLElement>('button, input, select, textarea')]
+          .filter((el) => !(el as HTMLButtonElement).disabled);
+        if (spots.length === 0) return;
+        const at = spots.indexOf(document.activeElement as HTMLElement);
+        const next = ev.shiftKey ? at - 1 : at + 1;
+        // 끝에서 다음으로 가면 처음으로 — 상자가 곧 화면의 전부다.
+        ev.preventDefault();
+        spots[(next + spots.length) % spots.length].focus();
+      });
     }
 
     /**
@@ -3562,6 +3584,7 @@ import {
         (box.querySelector('[data-km="ask-msg"]') as HTMLElement).textContent = msg;
         (box.querySelector('[data-km="ask-yes"]') as HTMLElement).textContent = okLabel;
         canvasEl.appendChild(box);
+        trapTab(box);
         const done = (yes: boolean): void => { box.remove(); resolve(yes); };
         (box.querySelector('[data-km="ask-yes"]') as HTMLButtonElement).onclick = () => done(true);
         (box.querySelector('[data-km="ask-no"]') as HTMLButtonElement).onclick = () => done(false);
@@ -3588,6 +3611,7 @@ import {
         + `<button class="btn btn-ghost" data-km="link-copy">${esc(t('karmograph.linkBox.copy'))}</button>`
         + `<button class="btn btn-ghost" data-km="link-close" aria-label="${esc(t('karmograph.linkBox.close'))}">✕</button>`;
       canvasEl.appendChild(box);
+      trapTab(box);
       const field = box.querySelector('[data-km="link-out"]') as HTMLInputElement;
       field.value = url;
       field.focus();

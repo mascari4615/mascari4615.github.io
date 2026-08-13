@@ -1823,6 +1823,40 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+await step('되물음이 떠 있는 동안 Tab 이 뒤로 새지 않는다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 되물음 상자에서 두 번째 Tab 이 옆 패널 칸으로 나갔다 — 눈으로 보는
+     사람에게는 상자가 앞을 막고 있는데, 자판만 쓰는 사람에게는 안 막힌 셈이다(답하지 않은
+     결정 뒤에서 판을 만지게 된다). 상자 안에서 돌게 가둔다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('갇힘카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  for (let i = 0; i < 5; i += 1) {
+    await m.keyboard.press('Tab');
+    const inside = await m.evaluate(() => Boolean(document.activeElement?.closest?.('.km-note')));
+    if (!inside) {
+      const where = await m.evaluate(() => document.activeElement?.dataset?.km || document.activeElement?.tagName);
+      throw new Error(`되물음 뒤로 초점이 샜다 (${i + 1}번째 Tab): ${where}`);
+    }
+  }
+  // 그러고도 Esc 로는 나올 수 있어야 한다 — 갇히기만 하고 못 나오면 그게 덫이다.
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('.km-note', { state: 'detached', timeout: ms(4000) });
+  if (await m.locator('.ck-node').count() !== 1) throw new Error('Esc 로 나왔는데 카드가 지워졌다');
+  await ctx.close();
+});
 await step('Tab 이 손잡이 사이를 지나간다 — 첫 단추에 갇히지 않는다 (KL-271)', async () => {
   /* 실측 2026-08-14: 판은 Tab 을 가로채 **카드**를 훑었는데, 그 가로채기가 「글 칸이 아니면」
      이라는 느슨한 조건이라 툴바 단추에 초점이 있을 때도 먹었다 — Tab 을 45번 눌러도 초점이
