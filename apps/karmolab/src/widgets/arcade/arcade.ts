@@ -32,7 +32,8 @@ import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { lengthOf, secondsOf } from './length';
-import { readPlays, notePlay } from './plays';
+import { readPlays, notePlay, noteBest, bestOf } from './plays';
+import { withGhost, GHOST_NAME } from './ghost';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
 import { record, type Tape } from './replay';
@@ -943,6 +944,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             const g0 = gameById(gameId);
             if (g0) tape = record(g0, match as never, lastSeats, lastSeed) as Tape<unknown>;
           }
+          /* 여태 가장 잘한 판이면 남긴다 — 다음 판에 이 사람이 옆자리에 앉는다 (`ghost.ts`).
+             혼자 둔 판만 남긴다: 여럿이 둔 판의 내 수는 남의 수에 기대어 나온 것이라
+             혼자 하는 판에 옮겨 놓으면 「어제의 나」가 아니라 딴사람이 된다. */
+          if (tape && !net && !replaying && mySeat >= 0) {
+            const mine = tape.moves.filter((mv) => mv.seat === mySeat).map((mv) => ({ at: mv.at, action: mv.action }));
+            if (mine.length) noteBest(gameId, v.seats[mySeat]?.score ?? 0, mine);
+          }
           /* 다시 보기는 **내 커널이 있을 때만** — 손님은 판을 받아 그리기만 해서 되살릴 것이 없다. */
           replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying ? '' : 'none';
           showResult(v, draw, top, note);
@@ -1049,7 +1057,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         personas[seats.length + i] = b;
       });
       const withCrew: SeatSpec[] = [...seats, ...crew.map((b) => ({ name: b.name, bot: true }))];
-      match = new Match(withBotLevel(g, levelNow(), personas), seed, withCrew) as Match<unknown, unknown>;
+
+      /* **어제의 나**를 마지막 자리에 앉힌다 (TASK-KL-264 A3). 고스트는 봇의 한 종류라
+         여기 한 줄이면 끝난다 — 자리도 점수도 결과 화면도 이미 있는 것을 쓴다.
+         혼자 놀 때만. 여럿이 있는 방에 내 지난 판을 끼워 넣으면 자리가 하나 줄어든다. */
+      const past = !net && !tour ? bestOf(id) : null;
+      let def = withBotLevel(g, levelNow(), personas);
+      if (past && withCrew.length > seats.length) {
+        const gseat = withCrew.length - 1;
+        withCrew[gseat] = { name: GHOST_NAME, bot: true };
+        def = withGhost(def, gseat, past as never) as typeof def;
+      }
+      match = new Match(def, seed, withCrew) as Match<unknown, unknown>;
       /* 되살릴 재료 — 씨앗과 자리. 이 둘과 「누른 것」이면 판이 다시 만들어진다(`replay.ts`). */
       lastSeed = seed;
       lastSeats = withCrew;
