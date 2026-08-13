@@ -45,6 +45,7 @@ async function loadModules() {
     export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
+    export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -750,6 +751,27 @@ const M = await loadModules();
   eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }]), 2, '안 이어진 카드는 제 조각이 된다');
   eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }]), 1, '다 이어지면 한 조각');
   eq(islandCount([], []), 0, '빈 판은 0 조각');
+}
+
+// -- 양쪽의 마음이 선 위 어디에 앉나 (TASK-KL-271 X1) -------------------------
+{
+  const { edgeViewChips, isAsymmetric } = M.edgeViews;
+  eq(edgeViewChips({}).length, 0, '아무것도 안 적혔으면 안 그린다');
+  eq(edgeViewChips({ viewFrom: '  ' }).length, 0, '공백만 적힌 것은 안 적은 것이다');
+  const one = edgeViewChips({ viewFrom: '동생처럼' });
+  eq(one.length, 1, '한쪽만 적히면 한 조각');
+  eq(one[0].side, 'from', '적은 쪽이 출발이면 출발 것');
+  check(one[0].at < 0.5, '출발의 마음은 출발 쪽(가운데보다 앞)에 앉는다');
+  const onlyTo = edgeViewChips({ viewTo: '원망함' });
+  check(onlyTo[0].at > 0.5, '도착의 마음은 도착 쪽에 앉는다');
+  const named = edgeViewChips({ viewFrom: 'a', viewTo: 'b', label: '라이벌' });
+  eq(named.length, 2, '둘 다 적히면 두 조각');
+  const bare = edgeViewChips({ viewFrom: 'a', viewTo: 'b' });
+  check(named[0].at < bare[0].at, '가운데에 관계 이름이 있으면 마음은 더 바깥으로 비켜 앉는다');
+  check(bare[0].at < bare[1].at, '두 조각은 출발 -> 도착 순서로 앉는다');
+  check(isAsymmetric({ viewFrom: '좋아함', viewTo: '싫어함' }), '서로 다르게 보면 비대칭이다');
+  check(!isAsymmetric({ viewFrom: '같음', viewTo: '같음' }), '같은 말이면 비대칭이 아니다');
+  check(!isAsymmetric({ viewFrom: '한쪽만' }), '한쪽만 적힌 것은 비대칭이라 못 부른다');
 }
 
 process.stdout.write('\n');

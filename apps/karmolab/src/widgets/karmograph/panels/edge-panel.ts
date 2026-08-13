@@ -69,13 +69,15 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     ctx.persist();
     if (redrawSide) ctx.refresh();
   }, () => {}, EDGE_DOC_SKIN);
+  // 두 마음은 이제 **선 위에도 그려진다**(KL-271 X1) — 적는 즉시 판이 따라가야 한다.
+  // 예전엔 여기 적어도 화면이 그대로라, 적어 둔 사람만 아는 이야기가 됐다.
   (side.querySelector('[data-km="ed-view-from"]') as HTMLInputElement).oninput = (ev) => {
     edge.viewFrom = (ev.target as HTMLInputElement).value.trim() || undefined;
-    ctx.persist();
+    save();
   };
   (side.querySelector('[data-km="ed-view-to"]') as HTMLInputElement).oninput = (ev) => {
     edge.viewTo = (ev.target as HTMLInputElement).value.trim() || undefined;
-    ctx.persist();
+    save();
   };
   (side.querySelector('[data-km="ed-tags"]') as HTMLInputElement).onchange = (ev) => {
     const list = (ev.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean);

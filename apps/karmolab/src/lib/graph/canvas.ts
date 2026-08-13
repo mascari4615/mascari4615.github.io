@@ -52,6 +52,7 @@ import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer, linkDropTarget } from './canvas-edgedrag';
+import { buildEdgeViewLabels } from './edge-views';
 import { groupDelta, resizedBox, sizeGrip, snappedPoint, worldDelta } from './canvas-drag';
 import { alignGuides, clearGuides, drawGuides, neighborBoxes, type GuideBox, type GuideLine } from './canvas-guides';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
@@ -1293,8 +1294,7 @@ export class GraphCanvas {
         out.push(grip);
       }
     }
-    const label = this.buildEdgeLabel(edge);
-    if (label) out.push(label);
+    out.push(...this.buildEdgeLabels(edge));
     return out;
   }
 
@@ -1381,18 +1381,18 @@ export class GraphCanvas {
   }
 
 
-  /** 선 위 라벨 — 베지어 중앙(t=0.5)에 판을 깔고 글자를 얹는다. */
-  private buildEdgeLabel(edge: GraphEdge): SVGGElement | null {
+  /** 선 위 이름표 + **양쪽의 마음**(KL-271 X1). 마음의 자리·옷은 `edge-views.ts` 가 안다. */
+  private buildEdgeLabels(edge: GraphEdge): SVGGElement[] {
     const geom = this.edgeGeom(edge);
-    if (!geom) return null;
-    const kind = this.edgeKindFor(edge.kind);
-    return buildEdgeLabel(edge.id, edge.label ?? '', geom, {
-      at: edge.labelPos,
-      color: edge.color ?? kind.color ?? this.theme.edgeDefaultColor,
-      plateFill: this.theme.nodeFill,
-      textColor: this.theme.nodeText,
+    if (!geom) return [];
+    const color = edge.color ?? this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
+    const name = buildEdgeLabel(edge.id, edge.label ?? '', geom, {
+      at: edge.labelPos, color, plateFill: this.theme.nodeFill, textColor: this.theme.nodeText,
       draggable: Boolean(this.onEdgeChanged),
     });
+    const views = buildEdgeViewLabels(edge, geom,
+      { color, plateFill: this.theme.edgeDotFill, textColor: this.theme.childText });
+    return name ? [name, ...views] : views;
   }
 
   // ── 하이라이트 ───────────────────────────────────────────────────────────────
