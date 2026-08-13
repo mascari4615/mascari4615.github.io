@@ -663,5 +663,6 @@
   "karmograph.said.lonely": "<b>{names}</b> など{n}枚が誰ともつながっていません。",
   "karmograph.said.bridge": "<b>{name}</b> が橋渡しです — 抜けると道が切れます。",
   "karmograph.said.hub": "<b>{name}</b> が一番多くつながっています（{n}本）。",
-  "karmograph.said.dense": "{n}枚が均等につながっています — 目立つ偏りはありません。"
+  "karmograph.said.dense": "{n}枚が均等につながっています — 目立つ偏りはありません。",
+  "karmograph.intent.fromText": "すでに書いてありますか？ — 貼り付ければ盤になります"
 }
