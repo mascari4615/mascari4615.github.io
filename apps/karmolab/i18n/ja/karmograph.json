@@ -700,5 +700,7 @@
   "karmograph.table.kind": "種類",
   "karmograph.table.hint": "同じ資料を表で（{n}枚）— 見出しで並べ替え、行を押すと板で選ばれます。",
   "karmograph.ripe.seed": "🌱 まだ欄を書いていません（{total}欄）",
-  "karmograph.ripe.growing": "🌿 {total}欄のうち{filled}欄 — 残り{left}欄"
+  "karmograph.ripe.growing": "🌿 {total}欄のうち{filled}欄 — 残り{left}欄",
+  "karmograph.print.label": "紙に印刷（A4）",
+  "karmograph.print.blocked": "新しい窓がブロックされました — このサイトのポップアップを許可してください"
 }

@@ -31,6 +31,7 @@ import { pasteIntent } from './paste-intent';
 import { shouldOfferFocus } from './big-board';
 import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { ripenessOf, worthNudging } from './ripeness';
+import { printSheetHtml, isWide } from './print-sheet';
 import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
@@ -3303,6 +3304,24 @@ import {
     }
 
     q<HTMLButtonElement>('png').onclick = () => exportImage(2);
+    /**
+     * **종이 한 장으로** (TASK-KL-271 O7). 탁자에 펼쳐 놓고 여럿이 보는 자리가 있다 —
+     * TRPG 세션·회의·수업. 브라우저 인쇄를 그냥 쓰면 도구의 손잡이·패널까지 찍히고 판이 잘린다.
+     * 뽑을 것만 담은 한 장을 새 창에 띄워 인쇄한다(가로로 긴 판은 눕혀서).
+     */
+    q<HTMLButtonElement>('print').onclick = () => {
+      const art = posterSvgString();
+      if (!art) {
+        Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
+        return;
+      }
+      const win = window.open('', '_blank');
+      if (!win) { alert(t('karmograph.print.blocked')); return; }
+      win.document.write(printSheetHtml({ title: activeMapName(), svg: art, landscape: isWide(art) }));
+      win.document.close();
+      // 그림이 다 실린 뒤에 인쇄창을 띄운다 — 먼저 띄우면 빈 종이가 나온다.
+      win.addEventListener('load', () => win.print());
+    };
 
     q<HTMLButtonElement>('export').onclick = () => {
       const data = JSON.stringify(canvas?.getSpec() ?? spec, null, 2);

@@ -68,6 +68,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
       { hot: true, key: 'png', label: () => t('karmograph.png.label') },
       { key: 'svg', label: () => t('karmograph.svg.label') },
       { key: 'svg-story', label: () => t('karmograph.svgStory.label') },
+      { key: 'print', label: () => t('karmograph.print.label') },
     ],
   },
   {

@@ -700,5 +700,7 @@
   "karmograph.table.kind": "종류",
   "karmograph.table.hint": "같은 자료를 표로 봅니다 ({n}장) — 머리를 누르면 줄이 서고, 줄을 누르면 판에서 골라집니다.",
   "karmograph.ripe.seed": "🌱 아직 칸을 안 적었어요 ({total}칸)",
-  "karmograph.ripe.growing": "🌿 {total}칸 가운데 {filled}칸 적었어요 — {left}칸 남음"
+  "karmograph.ripe.growing": "🌿 {total}칸 가운데 {filled}칸 적었어요 — {left}칸 남음",
+  "karmograph.print.label": "종이로 인쇄 (A4)",
+  "karmograph.print.blocked": "새 창이 막혀 있어요 — 이 사이트의 팝업을 허용해 주세요"
 }
