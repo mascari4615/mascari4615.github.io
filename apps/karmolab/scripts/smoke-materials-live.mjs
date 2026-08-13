@@ -27,7 +27,11 @@ const MATERIALS = [
   ['수·돈', 'smoke-calc-shell.mjs'],
   ['때', 'smoke-time-shell.mjs'],
   ['영상', 'smoke-video-shell.mjs'],
-  ['소리', 'smoke-sound-shell.mjs']
+  ['소리', 'smoke-sound-shell.mjs'],
+  /* 재료 화면 말고 **그리로 오는 길**도 함께 잰다 — 실서비스에서 제일 조용히 끊기는 자리다
+   * (검색으로 들어오는 도구 주소 · 도구끼리 결과 넘기기). */
+  ['숨은 도구 주소', 'smoke-bundle-deeplink.mjs'],
+  ['이어서 넘기기', 'smoke-handoff-bundle.mjs']
 ];
 
 const run = (file) =>
@@ -57,4 +61,4 @@ if (bad.length) {
   console.error('  ※ 방금 올린 판이 아직 안 나갔을 수 있다 — 배포가 끝난 뒤 한 번 더 돌려 보고 판정하라.');
   process.exit(1);
 }
-console.log(`[live] 재료 ${MATERIALS.length}개 전부 실서비스에서 통과`);
+console.log(`[live] ${MATERIALS.length}개 전부 실서비스에서 통과 (재료 여덟 + 오는 길 둘)`);
