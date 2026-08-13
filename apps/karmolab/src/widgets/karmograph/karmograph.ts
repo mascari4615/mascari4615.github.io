@@ -313,7 +313,11 @@ import {
     /* 폰에서 툴바가 접은 것들의 대체 문. 데스크톱에서는 툴바에 그대로 있으므로 **안 보인다**
        (보이면 같은 일에 문이 둘이 된다 — 이 작업이 없애려는 바로 그것). */
     .km-drawer .km-phone-only { display:none; }
-    @media (max-width: 720px) { .km-drawer .km-phone-only { display:flex; } }
+    @media (max-width: 720px) {
+      /* ★ 폰에서는 **시점 줄이 판 위**로 간다 (2026-08-14 실측). 아래에 두면 ① 배율과 겹치고
+         (390px 폭에 둘을 나란히 못 놓는다) ② 아래 시트가 올라오면 그 뒤에 가려 아예 안 보인다.
+         위쪽은 툴바 바로 밑이라 시트와 안 다툰다. */
+      .km-times { top:8px; bottom:auto; left:8px; right:8px; max-width:none; } .km-drawer .km-phone-only { display:flex; } }
     /* 자주 안 쓰는 명령은 서랍에서 접는다 — 목록에서 사라지는 게 아니라 이름으로 부른다(Ctrl+K). */
     .km-drawer .km-cmd-rare { display:none; }
     /* ── 명령 팔레트 (TASK-KL-271 R3) ── 화면 한가운데 뜨는 한 칸. 치면 좁혀지고 Enter 로 실행. */
