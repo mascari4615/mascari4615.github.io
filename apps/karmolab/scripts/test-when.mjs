@@ -17,6 +17,15 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+/* ★ **읽는 시계를 못 박는다** (2026-08-13).
+ *
+ * 「서울 09시는 일하는 때」 같은 기대는 **재는 컴퓨터가 서울일 때만** 맞다. `hourGrid` 는
+ * 보는 사람의 하루(자정~자정)를 기준으로 칸을 만드는데 — 그게 제품으로서는 옳다 —
+ * 검사가 그 기준을 안 박아 두면 CI(UTC)에서는 9번째 칸이 서울 18시가 되어 빨개진다.
+ * 실측: 내 자리(KST)에서는 초록, `TZ=UTC` 로 돌리면 같은 2건이 그대로 실패했다.
+ * 시계는 검사가 정한다. (사람의 시계를 따라가는 동작 자체를 보고 싶으면 그 검사를 따로 둔다.) */
+process.env.TZ = 'Asia/Seoul';
+
 const dir = mkdtempSync(join(tmpdir(), 'when-'));
 const out = join(dir, 'when.mjs');
 await build({
