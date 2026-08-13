@@ -258,12 +258,11 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           };
           saveBtn.onclick = () => {
             const blob = new Blob([out.value], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = fileName.replace(/\.pdf$/i, '') + '.txt';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            const name = fileName.replace(/\.pdf$/i, '') + '.txt';
+            download(blob, name);
             say(t('pdf2text.say.saved'), 'ok');
+            /* 뽑은 글은 대개 **다음에 손본다**(정리·비교·표기법) — 이어서 쓰게 내놓는다 (TASK-KL-298). */
+            Toolbox.offerNext?.(status, { blob, name, from: 'pdf2text' });
           };
   }
 })();
