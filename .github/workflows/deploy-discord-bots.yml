@@ -444,7 +444,18 @@ jobs:
       # === 2026-06-09: 에이전트 팀 폐기 (사용자 결정 — "에이전트 팀 개발 중단, 부질없음") ===
       # agent-orchestrator / agent-worker-* / agent-ambient-* daemon NSSM 설치 step 전부 제거.
       # yawnbot-prod 는 reactive 봇(슬래시·웹훅·게임·뉴스·캐릭터)만 — 자율 cadence 0.
-      # 노트북 잔존 서비스는 수동 sc delete 로 제거 완료.
+      #
+      # ⚠ 2026-08-13 정정: 「노트북 잔존 서비스는 수동 sc delete 로 제거 완료」라고 적혀 있었지만
+      #   <b>실제로는 12개가 두 달 넘게 남아 있었다</b>(ambient 8 + worker 4).
+      #   ambient 는 memo 의 core.md 정본이 폐기(2026-08-01)돼 부팅마다 exit 2 → nssm 무한 재시작 →
+      #   nssm 하나당 핸들 3.2만 개 → 커널 메모리 26GB 잠김 → 노트북 메모리 99% 로 강제 재부팅.
+      #   worker 4 는 기능 플래그 전부 false·notify=stub 라 부팅 로그만 찍고 무동작이었다.
+      #   그날 12개를 실제로 nssm remove 했다(남은 nssm 서비스 = yawnbot-prod · wm-world ·
+      #   laptop-ops · gha-runner-yawnbot). 교훈 = memo/rules/lessons/
+      #   reference_laptop_memory_ambient_agent_handle_leak.md
+      #
+      # ★ 기록만 지우고 <b>기계는 안 지운</b> 것이 이 사고의 뿌리다 — 「제거 완료」라고 적기 전에
+      #   그 기계에 물어봐야 한다(node memo/scripts/pc-say.mjs 가 그 자리를 대신한다).
 
 
       - name: Upsert GitHub webhooks (production URL)
