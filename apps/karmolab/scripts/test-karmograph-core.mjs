@@ -49,6 +49,7 @@ async function loadModules() {
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
+    export * as clusters from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/clusters.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -855,6 +856,34 @@ const M = await loadModules();
   // 같은 판은 두 번 봐도 같은 순서여야 한다(이름순 되풀이 확인).
   const tie = [card('p', { 'ㄴ': '', 'ㄱ': '' }), card('p', { 'ㄴ': '', 'ㄱ': '' })];
   eq(fieldGaps(tie).map((x) => x.field).join(''), 'ㄱㄴ', '수가 같으면 이름순');
+}
+
+// -- 무리 찾기 (TASK-KL-271 L3) ------------------------------------------------
+{
+  const { findClusters, clustersWorthTelling } = M.clusters;
+  const E = (a, b) => ({ from: a, to: b });
+  eq(findClusters([], []).length, 0, '빈 판은 무리가 없다');
+  eq(findClusters(['a'], []).length, 1, '혼자인 카드도 한 무리로 센다');
+  // 삼각형 둘이 다리 하나로 이어진 판 — 눈으로는 두 패인데 다 이어져 있다.
+  const ids = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3'];
+  const es = [E('a1', 'a2'), E('a2', 'a3'), E('a3', 'a1'), E('b1', 'b2'), E('b2', 'b3'), E('b3', 'b1'), E('a1', 'b1')];
+  const cs = findClusters(ids, es);
+  eq(cs.length, 2, '다 이어져 있어도 두 패로 나뉜다');
+  eq(cs[0].members.length + cs[1].members.length, 6, '아무도 빠지지 않는다');
+  check(cs.every((c) => c.members.length === 3), '삼각형 둘이니 셋씩');
+  const same = ['a1', 'a2', 'a3'].every((x) => cs.some((c) => c.members.includes(x) && c.members.includes('a2')));
+  check(same, '같은 삼각형은 한 무리에 든다');
+  // 같은 판을 두 번 돌려도 같은 답 — 이게 안 되면 「어제 본 무리」와 달라져 아무도 안 믿는다.
+  const a = JSON.stringify(findClusters(ids, es));
+  const b2 = JSON.stringify(findClusters([...ids].reverse(), [...es].reverse()));
+  eq(a, b2, '카드·선 순서를 뒤집어도 같은 답');
+  check(cs[0].members.join('') < cs[1].members.join('') || cs[0].members.length >= cs[1].members.length,
+    '큰 무리부터, 같으면 이름 순');
+  eq(findClusters(['x', 'y'], [E('x', 'x')]).length, 2, '제자리 선은 아무도 안 잇는다');
+  eq(findClusters(['x'], [E('x', 'zz')]).length, 1, '판에 없는 카드로 가는 선은 안 센다');
+  check(!clustersWorthTelling(findClusters(['a', 'b'], [E('a', 'b')])), '다 한 패면 할 말이 없다');
+  check(!clustersWorthTelling(findClusters(['a', 'b'], [])), '전부 혼자면 그건 무리 이야기가 아니다');
+  check(clustersWorthTelling(cs), '두 패로 갈리면 말할 만하다');
 }
 
 process.stdout.write('\n');

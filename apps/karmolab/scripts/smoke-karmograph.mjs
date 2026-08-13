@@ -2534,6 +2534,26 @@ await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「�
 });
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
   const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+await step('다 이어져 있어도 무리를 갈라 말해 준다', async () => {
+  // 학교 무리와 가족 무리가 한 사람으로만 붙어 있어도 눈으로는 경계가 안 보인다(KL-271 L3).
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.click('[data-km="more"]');
+  await page.locator('[data-km="from-text"]').click();
+  await page.fill('[data-km="text-src"]', [
+    '가1', '  가2 : 친구', '  가3 : 친구', '가2 -> 가3 : 친구',
+    '나1', '  나2 : 친구', '  나3 : 친구', '나2 -> 나3 : 친구',
+    '가1 -> 나1 : 아는 사이',
+  ].join(String.fromCharCode(10)));
+  await page.click('[data-km="text-go"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 6, null, { timeout: 5000 });
+  await openPanel(page, 'sna');
+  await page.waitForFunction(
+    () => (document.querySelector('.km-clu-line')?.textContent ?? '').includes('2'),
+    null, { timeout: 4000 },
+  );
+  await openPanel(page, 'node');
+});
   const m = await phone.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });

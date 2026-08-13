@@ -668,5 +668,8 @@
   "karmograph.gapField.head": "Fields nobody filled in yet",
   "karmograph.gapField.hint": "Fill them and you can filter, color and lay them on a timeline right away.",
   "karmograph.gapField.none": "Nobody has written \"{field}\" yet ({kind}, {total} cards)",
-  "karmograph.gapField.some": "{missing} of {total} {kind} cards have no \"{field}\""
+  "karmograph.gapField.some": "{missing} of {total} {kind} cards have no \"{field}\"",
+  "karmograph.clusters.head": "Clusters",
+  "karmograph.clusters.line": "Splits into {n} clusters — the biggest is {names} ({size} cards)",
+  "karmograph.clusters.hint": "Grouped by where the links cluster densely."
 }

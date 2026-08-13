@@ -6,6 +6,7 @@
 import { computeSna, topBy, structuralGaps } from '../sna';
 import { snaLines, islandCount } from '../sna-words';
 import { fieldGaps } from '../field-gaps';
+import { findClusters, clustersWorthTelling } from '../clusters';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 
@@ -57,6 +58,20 @@ export function renderSnaPanel(ctx: PanelCtx): void {
   /* ★ **아직 안 적은 칸** (TASK-KL-271 L6). 위의 「이어질 법한데 안 이어진 사이」와 짝이다 —
      이건 **적힐 법한데 안 적힌 칸**. 카드를 하나씩 눌러 보지 않으면 알 수 없던 것이라
      세계관을 짓는 사람이 가장 자주 하는 질문(「무엇을 더 채워야 하나」)에 도구가 처음 답한다. */
+  /* ★ **무리** (TASK-KL-271 L3). 관계망 칸은 「끊긴 덩어리」는 세지만, 다 이어져 있는 판 안에서
+     「누가 누구랑 한 패인가」는 안 말했다 — 학교 무리와 가족 무리가 한 사람으로만 붙어 있어도
+     눈으로는 그 경계가 안 보인다. Gephi·Kumu 가 파는 자리. */
+  const clusters = findClusters(live.nodes.map((n) => n.id), live.edges);
+  const cluHtml = !clustersWorthTelling(clusters) ? '' : `<div class="km-field">
+      <label>${esc(t('karmograph.clusters.head'))}</label>
+      <div class="km-hint">${esc(t('karmograph.clusters.hint'))}</div>
+      <div class="km-clu-line">${esc(t('karmograph.clusters.line', {
+        n: String(clusters.length),
+        size: String(clusters[0].members.length),
+        names: clusters[0].members.slice(0, 3).map(nameOf).join(' · '),
+      }))}</div>
+    </div>`;
+
   const holes = fieldGaps(live.nodes);
   const holesHtml = holes.length === 0 ? '' : `<div class="km-field">
       <label>${esc(t('karmograph.gapField.head'))}</label>
@@ -73,6 +88,7 @@ export function renderSnaPanel(ctx: PanelCtx): void {
     ${list(t('karmograph.list.msg4'), t('karmograph.list.msg5'), topBy(sna.degree, 5), 0)}
     ${list(t('karmograph.list.msg6'), t('karmograph.list.msg7'), topBy(sna.betweenness, 5), 1)}
     ${list(t('karmograph.list.msg8'), t('karmograph.list.msg9'), topBy(sna.closeness, 5), 3)}
+    ${cluHtml}
     ${holesHtml}
     ${gaps.length === 0 ? '' : `<div class="km-field">
       <label>${esc(t('karmograph.list.msg10'))}</label>

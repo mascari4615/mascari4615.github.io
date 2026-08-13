@@ -668,5 +668,8 @@
   "karmograph.gapField.head": "아직 안 적은 칸",
   "karmograph.gapField.hint": "채우면 거르기·색·연표에서 바로 쓸 수 있어요.",
   "karmograph.gapField.none": "「{field}」 칸은 아직 아무도 안 적었어요 ({kind} {total}장)",
-  "karmograph.gapField.some": "{kind} {total}장 가운데 {missing}장은 「{field}」 칸이 비어 있어요"
+  "karmograph.gapField.some": "{kind} {total}장 가운데 {missing}장은 「{field}」 칸이 비어 있어요",
+  "karmograph.clusters.head": "무리",
+  "karmograph.clusters.line": "{n}갈래로 나뉘어요 — 가장 큰 무리는 {names} ({size}장)",
+  "karmograph.clusters.hint": "선이 안쪽으로 촘촘한 덩어리끼리 묶어 본 것이에요."
 }
