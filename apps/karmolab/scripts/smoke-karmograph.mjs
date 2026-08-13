@@ -607,6 +607,43 @@ await step('저장이 실패하면 지지 않는 표시 + 파일로 빼는 길�
   if (alerts > 0) throw new Error(`알림창이 ${alerts}번 떴다 — 닫으면 흔적이 없다`);
   await ctx.close();
 });
+await step('두 장을 고르면 「이 둘 사이」를 말해 준다', async () => {
+  // 관계도 앞에서 가장 자주 나오는 질문인데 답하는 자리가 없었다 — 눈으로 선을 따라가야 했다
+  // (TASK-KL-271 X6).
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box = await m.locator('.km-canvas').boundingBox();
+  const make = async (fx, fy, name) => {
+    await m.mouse.dblclick(box.x + box.width * fx, box.y + box.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+    await m.keyboard.type(name);
+    await m.keyboard.press('Enter');
+    await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: ms(4000) });
+  };
+  await make(0.25, 0.3, '가');
+  await make(0.6, 0.6, '나');
+  // Shift+드래그 = 여럿 고르기
+  await m.keyboard.down('Shift');
+  await m.mouse.move(box.x + box.width * 0.12, box.y + box.height * 0.15);
+  await m.mouse.down();
+  await m.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, { steps: 10 });
+  await m.mouse.up();
+  await m.keyboard.up('Shift');
+  await m.waitForFunction(
+    () => (document.querySelector('.km-side')?.textContent ?? '').includes('이 둘 사이'),
+    null,
+    { timeout: ms(4000) },
+  ).catch(async () => {
+    const t = await m.evaluate(() => (document.querySelector('.km-side')?.textContent ?? '').replace(/\s+/g, ' ').slice(0, 80));
+    throw new Error(`두 장을 골랐는데 「이 둘 사이」가 없다 — 옆 패널: ${t}`);
+  });
+  await ctx.close();
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });

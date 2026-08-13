@@ -6,7 +6,32 @@
  */
 import type { PanelCtx } from './context';
 import { alignBoxes, spreadBoxes, type AlignHow, type Boxish } from '../tidy';
+import { between } from '../between';
 import { t, loadNamespace } from '../../../lib/i18n';
+
+/**
+ * **두 장을 골랐을 때만** — 「이 둘은 무슨 사이야?」에 답한다 (TASK-KL-271 X6).
+ * 관계도 앞에서 가장 자주 나오는 질문인데 지금까지 답하는 자리가 없었다(눈으로 선을 따라가야 했다).
+ */
+function betweenHtml(ctx: PanelCtx): string {
+  const ids = ctx.selectedMany();
+  if (ids.length !== 2) return '';
+  const spec = ctx.spec();
+  const name = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
+  const { path, shared } = between(spec.edges, ids[0], ids[1]);
+  const esc = ctx.esc;
+  const line = path.length === 0
+    ? `<b>${esc(t('karmograph.between.none'))}</b>`
+    : path.map((id) => esc(name(id))).join(' → ');
+  const hops = path.length === 0 ? '' : ` <span class="km-group-count">${path.length - 1}</span>`;
+  const both = shared.length === 0 ? '' :
+    `<div class="km-hint">${esc(t('karmograph.between.shared'))} ${shared.map((id) => esc(name(id))).join(' · ')}</div>`;
+  return `<div class="km-field">
+      <label>${esc(t('karmograph.between.label'))}${hops}</label>
+      <div class="km-hint">${line}</div>
+      ${both}
+    </div>`;
+}
 
 export function renderManyPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -14,6 +39,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
   side.innerHTML = `
     <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmograph.manyClose.label'))}</button></h4>
     <div class="km-hint">${t('karmograph.hint05', { em: `<b>${esc(t('karmograph.manyPanel.txt'))}</b>` })}</div>
+    ${betweenHtml(ctx)}
     <div class="km-field">
       <label>${esc(t('karmograph.manyPanel.txt2'))}</label>
       <select data-km="many-group">
