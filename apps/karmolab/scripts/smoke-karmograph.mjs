@@ -1759,6 +1759,43 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('안 된 일은 판을 얼리지 않고 말한다 — 읽는 동안 화면이 살아 있다 (KL-271)', async () => {
+  /* 예전엔 브라우저 alert 이었다: 판이 통째로 얼어 **무엇이 잘못됐는지 뒤를 못 보고** 답해야
+     했고, 폰에서는 주소창 이름이 함께 떠 「사이트가 하는 말」처럼 읽혔다. 여기서는 판 위 말
+     상자다 — 사라지지도 않고(토스트와 다르다), 얼리지도 않는다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  let dialogs = 0;
+  m.on('dialog', (d) => { dialogs += 1; d.dismiss().catch(() => {}); });
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box0 = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box0.x + box0.width * 0.4, box0.y + box0.height * 0.35);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('말상자카드');
+  await m.keyboard.press('Enter');
+
+  // 백업 파일이 아닌 것을 되살리려 하면 「그게 아니다」라고 말해야 한다.
+  await m.setInputFiles('[data-km="restore-file"]', {
+    name: '엉뚱한.json', mimeType: 'application/json', buffer: Buffer.from('{"kind":"뭔가다른것"}'),
+  });
+  await m.waitForSelector('.km-note', { timeout: ms(6000) });
+  if (dialogs > 0) throw new Error('아직 브라우저 알림창이 뜬다 — 판이 언다');
+  const said = await m.locator('.km-note').textContent();
+  if (!said || said.trim().length < 4) throw new Error('말 상자가 비어 있다');
+
+  // 얼지 않는다 = 말 상자를 띄운 채로도 판을 만질 수 있다.
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('.ck-node.is-selected', { timeout: ms(4000) });
+  if (await m.locator('.km-note').count() !== 1) throw new Error('판을 만졌다고 말 상자가 사라졌다');
+
+  await m.locator('[data-km="note-close"]').click();
+  await m.waitForSelector('.km-note', { state: 'detached', timeout: ms(4000) });
+  await ctx.close();
+});
 await step('복사가 막혀도 링크를 직접 가져간다 — 판 위 상자에 이미 골라져 뜬다 (KL-271)', async () => {
   /* 예전엔 브라우저 prompt 였다: 판을 통째로 가리고, 긴 주소는 한 줄 창에서 끝이 안 보이고,
      「고치라는 건지 복사하라는 건지」가 안 읽혔다. 여기서는 **클립보드를 일부러 막고**
