@@ -19,5 +19,6 @@
   "sound.part.video2audio": "영상에서 소리 뽑기",
   "sound.part.soundscape": "환경음",
   "sound.part.morse": "모스 부호",
-  "sound.more": "{name} 외 {n}개"
+  "sound.more": "{name} 외 {n}개",
+  "sound.wave.aria": "소리 그림 — 화살표로 옮겨 가고 스페이스로 듣습니다"
 }

@@ -29,5 +29,6 @@
   "image.part.qrread": "QRを読む",
   "image.cmp.before": "前 {size}",
   "image.cmp.after": "後 {size}",
-  "image.more": "{name} 他{n}件"
+  "image.more": "{name} 他{n}件",
+  "image.cmp.aria": "前後の比較 — 矢印で動かせます"
 }

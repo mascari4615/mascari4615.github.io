@@ -133,6 +133,27 @@ import { t, loadNamespace } from '../../lib/i18n';
       void player.play();
     };
 
+    /* **자판으로도 옮겨 간다** (TASK-KL-294). 파형을 누르는 건 마우스가 있어야 하는 조작이라,
+     * 그것만 두면 「여기서부터 들어 보기」가 막힌다. 화살표 5초 · Home/End · 스페이스로 듣고 멈추기.
+     * (재생기 자체에도 자판 길이 있지만, 파형에 초점이 갔을 때 아무 반응이 없으면 막힌 것처럼 느낀다.) */
+    canvas.tabIndex = 0;
+    canvas.setAttribute('role', 'slider');
+    canvas.setAttribute('aria-label', t('sound.wave.aria', undefined, '소리 그림 — 화살표로 옮겨 가고 스페이스로 듣습니다'));
+    canvas.addEventListener('keydown', (e) => {
+      const k = e.key;
+      if (k === 'ArrowRight' || k === 'ArrowLeft') {
+        e.preventDefault();
+        player.currentTime = Math.min(buffer.duration, Math.max(0, player.currentTime + (k === 'ArrowRight' ? 5 : -5)));
+      } else if (k === 'Home' || k === 'End') {
+        e.preventDefault();
+        player.currentTime = k === 'Home' ? 0 : Math.max(0, buffer.duration - 0.1);
+      } else if (k === ' ' || k === 'Enter') {
+        e.preventDefault();
+        if (player.paused) void player.play();
+        else player.pause();
+      }
+    });
+
     const kHz = Math.round(buffer.sampleRate / 100) / 10;
     return t(
       'sound.meta',
