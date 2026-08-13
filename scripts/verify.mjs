@@ -25,6 +25,8 @@ function run(label, cwd, command) {
   }
   if (r.status !== 0) {
     console.error(`[verify] X ${label} 실패 (exit ${r.status ?? '?'})`);
+    console.error('[verify] 여기서 멈춘다 — **이 뒤의 검사는 안 돌았다.** 이 하나를 고치면 다음 것이 나온다.');
+    console.error('[verify] 한 판에 다 보고 싶으면: cd apps/karmolab && npm run verify:prepush (게이트 열넷을 모아서 낸다)');
     process.exit(r.status ?? 1);
   }
 }
