@@ -57,5 +57,6 @@
   "datecalc.week.4": "Thu",
   "datecalc.week.5": "Fri",
   "datecalc.week.6": "Sat",
-  "datecalc.quick.add": "+{n} days"
+  "datecalc.quick.add": "+{n} days",
+  "datecalc.copy": "Copy result"
 }

@@ -7,6 +7,7 @@
  * 서명 검증은 비밀키가 필요해 브라우저에서 하지 않는다 (키를 웹에 붙여 넣게 하면 안 된다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 
 (function (): void {
@@ -88,6 +89,13 @@ import { markLive } from './shared/say';
           const status = $<HTMLElement>('#jwStatus');
           /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
+
+          /* 뜯어본 내용은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 그 자리를 눌러 복사한다. */
+          copyOnClick(
+            $<HTMLElement>('#jwRaw'),
+            () => $<HTMLTextAreaElement>('#jwRaw').value,
+            t('jwt.copy.raw', undefined, '뜯어본 내용 복사')
+          );
 
           function row(k: string, v: string, note = ''): string {
             return `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}${

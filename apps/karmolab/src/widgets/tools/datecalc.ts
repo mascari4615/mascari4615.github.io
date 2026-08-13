@@ -3,6 +3,7 @@
  * 모든 계산은 로컬 자정 기준 Date 로 정규화한다 — 시:분이 섞이면 하루가 밀린다(경계 버그의 단골).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 
 import { between, dday, midnight, parseDate, shift, toInput } from '../../core/datecalc';
@@ -100,6 +101,8 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
           const base = $<HTMLInputElement>('#ddBase');
           const target = $<HTMLInputElement>('#ddTarget');
           const out = $<HTMLElement>('#ddResult');
+          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 눌러서 복사한다. */
+          copyOnClick(out, () => out.textContent || '', t('datecalc.copy', undefined, '결과 복사'));
           /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(out);
           const stats = $<HTMLElement>('#ddStats');

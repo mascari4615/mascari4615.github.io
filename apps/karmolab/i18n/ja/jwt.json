@@ -26,5 +26,6 @@
   "jwt.exp.left": " · あと{d}",
   "jwt.exp.gone": " · {d}前に期限切れ",
   "jwt.time.after": " · {d}後",
-  "jwt.time.before": " · {d}前"
+  "jwt.time.before": " · {d}前",
+  "jwt.copy.raw": "解読内容をコピー"
 }

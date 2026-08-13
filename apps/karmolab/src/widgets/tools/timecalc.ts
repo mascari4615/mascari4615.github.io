@@ -6,6 +6,7 @@
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
 import { clock, dayShift as shiftOf, spec, sumTimes, toMinutes } from '../../core/timecalc';
+import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -71,6 +72,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const start = $<HTMLInputElement>('#tcStart');
           const dur = $<HTMLInputElement>('#tcDur');
           const result = $<HTMLElement>('#tcResult');
+          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 눌러서 복사한다. */
+          copyOnClick(result, () => result.textContent || '', t('timecalc.copy', undefined, '결과 복사'));
           const out = $<HTMLElement>('#tcOut');
           const list = $<HTMLTextAreaElement>('#tcList');
           const sum = $<HTMLElement>('#tcSum');

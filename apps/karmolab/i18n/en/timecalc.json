@@ -19,5 +19,6 @@
   "timecalc.value.dayBefore": " ({n} days earlier)",
   "timecalc.value.min": "{n} min",
   "timecalc.value.hour": "{n} h",
-  "timecalc.value.lines": "{n}"
+  "timecalc.value.lines": "{n}",
+  "timecalc.copy": "Copy result"
 }
