@@ -5,7 +5,7 @@
  * 브라우저는 이미 오디오를 해독할 수 있으므로(Web Audio) 잘라 내는 일은 밖으로 나갈 필요가 없다.
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudioInfo } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -78,6 +78,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stats = $<HTMLElement>('#acStats');
           const status = $<HTMLElement>('#acStatus');
           let buffer: AudioBuffer | null = null;
+          /* 파일이 원래 몇 번 잰 소리인가 — 재생 장치 값(`buffer.sampleRate`)과 다르다 */
+          let rate = 0;
           let fileName = 'audio';
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
@@ -134,7 +136,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             stats.innerHTML =
               stat(t('audiocut.stat.picked'), mmss(e - s), true) +
               stat(t('audiocut.stat.total'), mmss(buffer.duration)) +
-              stat(t('audiocut.stat.rate'), `${(buffer.sampleRate / 1000).toFixed(1)} kHz`) +
+              stat(t('audiocut.stat.rate'), `${(rate / 1000).toFixed(1)} kHz`) +
               stat(t('audiocut.stat.channels'), buffer.numberOfChannels === 1 ? t('audiocut.value.mono') : t('audiocut.value.stereo'));
             drawWave();
           }
@@ -143,7 +145,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('audiocut.say.opening'));
             fileName = file.name.replace(/\.[^.]+$/, '');
             try {
-              buffer = await loadAudio(file);
+              ({ buffer, rate } = await loadAudioInfo(file));
             } catch {
               say(t('audiocut.err.format'), 'error');
               return;

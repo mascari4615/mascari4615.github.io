@@ -7,6 +7,7 @@
  * (즉 이 파일을 먼저 불러야 하는 순서 문제가 생기지 않는다).
  */
 import { t, loadNamespace } from '../../../lib/i18n';
+import { sniffSampleRate } from './audio-rate';
 
 /** AudioBuffer → WAV(16비트 PCM). 브라우저에 저장 기능이 없어 머리말을 직접 엮는다. */
 export function toWav(buffer: AudioBuffer): Blob {
@@ -140,6 +141,22 @@ export function audioCtx(): AudioContext {
   const Ctor = w.AudioContext || w.webkitAudioContext;
   if (!w.__karmoAudioCtx || w.__karmoAudioCtx.state === 'closed') w.__karmoAudioCtx = new Ctor();
   return w.__karmoAudioCtx;
+}
+
+export { sniffSampleRate } from './audio-rate';
+
+/**
+ * **이 파일이 원래 몇 번 잰 소리인가.**
+ *
+ * `AudioBuffer.sampleRate` 를 그대로 적으면 안 된다 — 브라우저는 소리를 **재생 장치의 값으로
+ * 바꿔서** 주므로 그 수는 파일이 아니라 이 컴퓨터의 스피커를 가리킨다. 8kHz 로 녹음한 것을
+ * 올려도 44.1kHz 라고 적히고, 다른 두 파일이 늘 같은 값으로 보인다.
+ * 그래서 파일 머리를 직접 읽고, 모르는 형식일 때만 예전 값으로 물러선다.
+ */
+export async function loadAudioInfo(file: File | Blob): Promise<{ buffer: AudioBuffer; rate: number }> {
+  const bytes = await file.arrayBuffer();
+  const buffer = await audioCtx().decodeAudioData(bytes.slice(0));
+  return { buffer, rate: sniffSampleRate(bytes) ?? buffer.sampleRate };
 }
 
 /** 파일을 소리로 읽는다 — 여섯 곳이 각자 적던 세 줄. */
