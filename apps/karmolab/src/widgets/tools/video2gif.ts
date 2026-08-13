@@ -7,7 +7,7 @@
  *
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
  */
-import { seekTo, download } from './shared/video';
+import { seekTo, download, attachVideo } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
 
@@ -194,8 +194,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#vgResult').style.display = 'none';
-            video.src = URL.createObjectURL(f);
-            video.onloadedmetadata = () => {
+            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+             * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
+            void attachVideo(video, f).then(() => {
               duration = video.duration;
               editor.style.display = '';
               startEl.value = '0';
@@ -204,8 +205,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               video.currentTime = 0;
               refresh();
               say(t('video2gif.say.loaded', { name: f.name, len: mmss(duration) }), 'ok');
-            };
-            video.onerror = () => say(t('video2gif.err.open'), 'error');
+            }).catch(() => say(t('video2gif.err.open'), 'error'));
           }
 
           /** 지정 시각의 화면 한 장을 가져온다. 옮겨지기 전에 그리면 엉뚱한 장면이 담긴다. */

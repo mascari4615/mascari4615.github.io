@@ -7,7 +7,7 @@
  * 그래서 이 도구는 고른 구간을 실제로 재생하며 담는다 — 즉 **자르는 데 그 구간만큼 시간이 걸린다**.
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
-import { seekTo, pickRecordType, download } from './shared/video';
+import { seekTo, pickRecordType, download, attachVideo } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -137,8 +137,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#vtResult').style.display = 'none';
-            video.src = URL.createObjectURL(f);
-            video.onloadedmetadata = () => {
+            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+             * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
+            void attachVideo(video, f).then(() => {
               duration = video.duration;
               editor.style.display = '';
               startEl.value = '0';
@@ -146,8 +147,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               video.currentTime = 0;
               refresh();
               say(t('videotrim.say.loaded', { name: f.name, len: mmss(duration) }), 'ok');
-            };
-            video.onerror = () => say(t('videotrim.err.open'), 'error');
+            }).catch(() => say(t('videotrim.err.open'), 'error'));
           }
 
           async function run(): Promise<void> {
