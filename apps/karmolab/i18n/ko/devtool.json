@@ -23,5 +23,9 @@
   "devtool.part.radix": "진법",
   "devtool.part.codeshot": "코드 사진",
   "devtool.part.epoch": "유닉스 시각",
-  "devtool.part.colorconv": "색 변환"
+  "devtool.part.colorconv": "색 변환",
+  "devtool.tree.sum": "{rows}줄 · 가장 깊은 곳 {deep}겹",
+  "devtool.tree.root": "뿌리",
+  "devtool.tree.cut": "너무 커서 여기까지만 폈습니다",
+  "devtool.tree.copied": "길 복사: {path}"
 }

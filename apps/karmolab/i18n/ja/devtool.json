@@ -23,5 +23,9 @@
   "devtool.part.radix": "進法",
   "devtool.part.codeshot": "コード写真",
   "devtool.part.epoch": "Unix時刻",
-  "devtool.part.colorconv": "色変換"
+  "devtool.part.colorconv": "色変換",
+  "devtool.tree.sum": "{rows}行 · 最も深い所 {deep}層",
+  "devtool.tree.root": "ルート",
+  "devtool.tree.cut": "大きすぎるのでここまで展開しました",
+  "devtool.tree.copied": "パスをコピー: {path}"
 }
