@@ -236,6 +236,7 @@
     "test:mail": "node scripts/test-mail.mjs",
     "smoke:arcaderoom": "node scripts/smoke-arcade-room.mjs",
     "smoke:arcadereplay": "node scripts/smoke-arcade-replay.mjs",
+    "smoke:arcadeletter": "node scripts/smoke-arcade-letter.mjs",
     "smoke:tour": "node scripts/smoke-tour.mjs",
     "bench:arcade": "node scripts/bench-arcade.mjs",
     "test:arcade:ui": "node scripts/smoke-arcade.mjs",
