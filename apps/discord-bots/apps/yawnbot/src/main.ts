@@ -34,6 +34,7 @@ import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
+import { registerArcadeRoomCard } from './bot/arcade-room-card';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
@@ -375,6 +376,8 @@ registerKarmolabApi(app);
  * `/kl` CORS·쿠키 미들웨어가 거기서 달리고 Express 는 먼저 달린 것부터 태운다.
  * 자기 파일에 사는 이유 = 그 2700줄짜리 파일을 낡은 사본으로 덮어쓴 커밋이 두 번
  * 이 라우트를 함께 지웠다(2026-08-08). 남이 덮어쓸 파일에 내 줄을 두지 않는다. */
+/* TASK-KL-264 — 오락실 방 링크의 얼굴. 자기 파일에 사는 이유는 위와 같다. */
+registerArcadeRoomCard(app);
 registerWellRoutes(app);
 /* TASK-KL-194 — 오늘의 판. 「오늘의 코스」 연속일이 브라우저 안에만 있어서 기록을 지우면
  * 0일이 됐다. 그 셈을 계정에 옮긴다(판정은 그대로 브라우저). 같은 이유로 자기 파일. */
