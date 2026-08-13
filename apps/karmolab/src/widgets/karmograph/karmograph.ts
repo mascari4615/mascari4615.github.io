@@ -29,6 +29,7 @@ import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
 import { pasteIntent } from './paste-intent';
 import { shouldOfferFocus } from './big-board';
+import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
@@ -198,6 +199,13 @@ import {
     .km-toolbar.km-blank [data-km="story"] { display:none !important; }
     /* 관계망을 읽어 주는 줄 — 숫자보다 먼저 눈에 들어와야 한다. */
     .km-said { background:var(--bg-tertiary); border-radius:8px; padding:8px 10px; }
+    /* 👁 읽는 화면 (KL-271 O3) — 고칠 칸이 아니라 **읽을 글**의 옷이다. */
+    .km-read-note { color:var(--text-secondary); font-size:13px; margin:2px 0 8px; }
+    .km-read-tags { color:var(--accent); font-size:11px; margin-bottom:8px; }
+    .km-read-fields, .km-read-doc { margin-bottom:10px; }
+    .km-read-doc { font-size:13px; line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
+    .km-read-row { display:flex; gap:8px; font-size:12.5px; line-height:1.7; }
+    .km-read-k { color:var(--text-tertiary); min-width:76px; flex-shrink:0; }
     .km-said-line, .km-gap-line, .km-clu-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
     .km-said-line + .km-said-line, .km-gap-line + .km-gap-line, .km-clu-line + .km-clu-line { margin-top:4px; }
     /* 「글이 있으면 붙여넣기」 — 갈래 카드 밑에 한 줄로. 카드와 같은 무게로 두면 셋이 넷이 된다. */
@@ -1736,6 +1744,23 @@ import {
       );
       const related = spec.edges.filter((e) => e.from === node.id || e.to === node.id);
       const labelOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
+
+      /* 👁 **보기 전용은 읽는 화면이다** (TASK-KL-271 O3). 예전엔 편집 화면이 회색으로 잠긴 채
+         나왔다 — 안 눌리는 입력칸이 가득한 「고장 난 폼」. 게다가 정작 읽을 것(설명)은 「더 보기」
+         뒤에 접혀 있어, 받은 사람이 가장 하고 싶은 일이 가장 멀었다. 코멘트만 남기고 글로 낸다. */
+      if (readOnly) {
+        const links = related.map((e) => ({
+          label: e.label || edgeLabel(e.kind),
+          other: labelOf(e.from === node.id ? e.to : e.from),
+        }));
+        sideEl.innerHTML = readCardHtml(panelCtx, node, resolveDoc(spec, node), links)
+          + commentsSectionHtml(panelCtx, node.id);
+        // 읽는 화면에서 할 수 있는 일은 코멘트 하나뿐 — 남기면 저장하고 그 자리만 다시 그린다.
+        bindCommentsSection(panelCtx, node.id, () => { persistStructure(); renderSide(); });
+        prependTabs();
+        ensureSheetGrip();
+        return;
+      }
 
       sideEl.innerHTML = `
         <!-- 머리에는 **이 카드가 무엇인지**를 적는다. 「노드」는 프로그램 말이지 사람 말이 아니고,
