@@ -1,104 +1,780 @@
 {
   "id": "web-deploy",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "내 컴퓨터에서 되는 것은 아직 아무것도 아니다. **남이 열 수 있는 주소**가 생기고, 깨졌을 때 내가 먼저 아는 상태까지가 배포다."
-    },
-    {
-      "type": "h",
-      "text": "1. 한 번의 push 로 나가게"
-    },
-    {
-      "type": "code",
-      "lang": "yaml",
-      "label": "정적 사이트라면 이 정도로 시작",
-      "text": "on:\n  push:\n    branches: [main]\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci && npm run build\n      - uses: actions/deploy-pages@v4"
-    },
-    {
-      "type": "note",
-      "text": "손으로 올리는 단계가 하나라도 남아 있으면 언젠가 그 단계를 빠뜨린다. 「무엇을 손으로 하고 있나」를 적어 두고 하나씩 없애라."
-    },
-    {
-      "type": "h",
-      "text": "2. 되돌릴 수 있어야 배포다"
-    },
-    {
-      "type": "p",
-      "text": "배포가 잘못됐을 때의 계획이 없으면 그건 도박이다. 이전 판으로 돌아가는 방법(재배포·이전 아티팩트 복구·revert push)을 **미리 한 번 해 보라**."
-    },
-    {
-      "type": "h",
-      "text": "3. 환경값과 비밀"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "코드에 박지 않는다",
-      "text": "# 저장소 Settings → Secrets 에 넣고\nAPI_TOKEN: ${{ secrets.API_TOKEN }}\n\n# 로컬은 .env (반드시 .gitignore)\necho '.env' >> .gitignore"
-    },
-    {
-      "type": "h",
-      "text": "4. 나간 뒤를 본다"
-    },
-    {
-      "type": "p",
-      "text": "배포 성공 ≠ 서비스 정상. 배포 뒤 **실제 주소를 찔러 보는 확인**을 자동화하라 — 첫 화면 200, 핵심 API 200, 버전 문자열이 새 것인지."
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "가장 싼 상태 확인",
-      "text": "curl -sS -o /dev/null -w '%{http_code}\\n' https://example.com/\ncurl -s https://example.com/version.json | grep \"$GIT_SHA\""
-    },
-    {
-      "type": "note",
-      "text": "깨졌을 때 **사용자보다 내가 먼저 아는가**가 관측의 기준이다. 알림이 없으면 그 배포 파이프라인은 절반이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "지금 프로젝트를 push 한 번으로 나가게 만들어라. 이미 그렇다면, **일부러 깨진 것을 배포**해 알림이 오는지 확인하고 되돌려라."
-    },
-    {
-      "type": "try",
-      "text": "배포 후 상태 확인 한 줄(curl)을 워크플로 마지막 단계로 추가하라. 실패하면 워크플로가 빨강이 되게."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "「배포 성공」 표시만으로 안심할 수 없는 이유는?",
-      "choices": [
-        "빌드가 성공해도 실제 서비스가 정상인지는 별개이기 때문",
-        "배포 로그가 느려서",
-        "캐시 때문에"
+      "id": "1",
+      "title": "무엇을 어디에 올리나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "웹을 배포하는 방식은 몇 가지로 갈리는데, 갈림길은 **누가 HTML 을 만드나**다(프레임워크 8장). 그에 따라 필요한 것과 비용이 달라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 골라 보라 — 무엇이 필요한가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{kind}}';\n  const t = {\n    static: ['정적 호스팅 (CDN)', '빌드 결과 파일만 올린다',\n      ['+ 가장 싸고 가장 빠르다 — 서버가 없다', '+ 확장이 자동 (CDN 이 알아서)', '+ 장애 요소가 적다'],\n      ['- 서버 로직이 필요하면 별도 API 가 있어야 한다'],\n      'Netlify·Vercel·Cloudflare Pages·S3+CloudFront·GitHub Pages'],\n    server: ['서버 실행 (Node 등)', '프로세스가 계속 떠 있어야 한다',\n      ['+ SSR·API·세션 등 무엇이든 가능'],\n      ['- 프로세스 관리·확장·모니터링이 필요하다', '- 재시작·무중단 배포를 신경 써야 한다'],\n      'Railway·Render·Fly.io·EC2·직접 운영 서버'],\n    container: ['컨테이너', '이미지로 묶어 어디서나 같게',\n      ['+ 「내 컴퓨터에서는 되는데」가 줄어든다', '+ 롤백이 이미지 태그 하나'],\n      ['- 이미지 크기·빌드 시간·오케스트레이션 학습 비용'],\n      'Docker + ECS/Cloud Run/Kubernetes'],\n    edge: ['엣지 함수', '사용자 가까운 곳에서 짧게 실행',\n      ['+ 지연이 매우 낮다 (cs-net 1장)', '+ 확장이 자동'],\n      ['- 실행 시간·메모리 제한 · Node API 일부 사용 불가'],\n      '개인화·A/B·리다이렉트·간단한 API 에 잘 맞는다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2].join('\\n') + '\\n' + t[3].join('\\n') + '\\n\\n예: ' + t[4] + '\\n\\n'\n     + '고르는 순서\\n'\n     + '  1. 정적으로 되나? -> 되면 그게 답이다 (가장 싸고 안 죽는다)\\n'\n     + '  2. 서버 렌더링·API 가 필요한가 -> 서버/컨테이너\\n'\n     + '  3. 지연이 결정적인가 -> 엣지\\n\\n'\n     + '섞어 쓰는 것이 보통이다 — 정적 페이지 + 몇 개의 API + 엣지 리다이렉트.');\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "static",
+              "options": [
+                {
+                  "value": "static",
+                  "label": "정적 호스팅"
+                },
+                {
+                  "value": "server",
+                  "label": "서버 실행"
+                },
+                {
+                  "value": "container",
+                  "label": "컨테이너"
+                },
+                {
+                  "value": "edge",
+                  "label": "엣지 함수"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**정적으로 되면 정적으로 하라.** 서버가 없으면 죽을 서버도 없다 — 운영 부담이 통째로 사라진다. 「나중에 필요할지 몰라서」 서버를 두는 것은 대개 손해다."
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "가장 단순한 정적 배포 (GitHub Actions)",
+          "text": "on:\n  push: { branches: [main] }\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: npm }\n      - run: npm ci\n      - run: npm run build\n      - uses: actions/upload-pages-artifact@v3\n        with: { path: dist }\n      - uses: actions/deploy-pages@v4"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **배포는 자동이어야 한다.** 사람이 손으로 파일을 올리는 순간, 「누가 언제 무엇을 올렸는지」가 사라지고 재현도 안 된다. main 에 합쳐지면 자동으로 나가는 것이 기본값이다(git-flow 2장)."
+        },
+        {
+          "type": "try",
+          "text": "지금 서비스의 배포가 자동인지, 그리고 「누가 언제 배포했나」가 기록으로 남는지 확인하라. 둘 중 하나가 없으면 그것이 첫 개선 항목이다."
+        }
       ],
-      "answer": 0,
-      "why": "나간 뒤 실제 주소를 찔러 보는 확인이 있어야 초록이 사실이 된다."
+      "quiz": [
+        {
+          "q": "가능하면 첫 번째로 고려할 배포 방식은?",
+          "choices": [
+            "컨테이너",
+            "정적 호스팅",
+            "서버 실행",
+            "엣지"
+          ],
+          "answer": 1,
+          "why": "서버가 없으면 죽을 서버도 없다."
+        },
+        {
+          "q": "손으로 파일을 올리는 배포의 문제는?",
+          "choices": [
+            "느리다",
+            "누가 언제 무엇을 올렸는지 남지 않고 재현이 안 된다",
+            "비싸다",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "자동화가 기본값."
+        },
+        {
+          "q": "엣지 함수의 제약은?",
+          "choices": [
+            "지연이 크다",
+            "실행 시간·메모리 제한과 일부 API 미지원",
+            "확장이 어렵다",
+            "비용이 높다"
+          ],
+          "answer": 1,
+          "why": "짧은 작업에 맞는다."
+        }
+      ]
     },
     {
-      "q": "비밀 토큰을 다루는 올바른 방법은?",
-      "choices": [
-        "코드에 상수로 둔다",
-        "CI 의 secret 저장소·환경변수로 주입하고 .env 는 gitignore",
-        "주석 처리해 둔다"
+      "id": "2",
+      "title": "파이프라인 — 무엇을 어떤 순서로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "배포 파이프라인은 **막을 것을 먼저, 비싼 것을 나중에** 배치한다. 린트가 1초에 잡을 것을 E2E 가 10분 뒤에 잡게 두면 모두의 시간이 낭비된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 어디서 막히나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  const stages = [\n    ['체크아웃·설치', 30, '#60a5fa'],\n    ['린트·포맷', 15, '#60a5fa'],\n    ['타입 검사', 40, '#f59e0b'],\n    ['단위·통합 테스트', 90, '#f59e0b'],\n    ['빌드', 70, '#a78bfa'],\n    ['E2E (핵심)', 180, '#ef4444'],\n    ['배포', 60, '#22c55e'],\n    ['배포 후 확인', 30, '#22c55e'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  let acc = 0;\n  const total = stages.reduce((s, x) => s + x[1], 0);\n  stages.forEach(([name, sec, color], i) => {\n    const on = i <= step;\n    const w = (sec / total) * 400;\n    ctx.fillStyle = on ? color : '#1e293b';\n    ctx.fillRect(14 + (acc / total) * 400, 40, Math.max(2, w - 1.5), 30);\n    acc += sec;\n  });\n  const t = stages[step];\n  const until = stages.slice(0, step + 1).reduce((s, x) => s + x[1], 0);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText(t[0] + '  (' + t[1] + '초)', 14, 92);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('여기까지 누적 ' + until + '초 · 전체 ' + total + '초', 14, 112);\n  ctx.fillText('※ 여기서 실패하면 앞의 ' + (until - t[1]) + '초가 헛일이 된다', 14, 132);\n  app.innerHTML = '';\n  show('단계 ' + (step + 1) + ' / ' + stages.length + ' — ' + t[0] + '\\n\\n'\n     + '배치 원칙\\n'\n     + '  · 싸고 자주 걸리는 것을 앞으로 (린트·타입)\\n'\n     + '  · 비싼 것은 뒤로 (E2E·배포)\\n'\n     + '  · 서로 독립적인 것은 병렬로 (린트와 타입은 동시에 가능)\\n'\n     + '  · 실패하면 즉시 멈춘다 (fail fast)\\n\\n'\n     + '그리고 **배포 후 확인**을 잊지 마라 — 나갔다고 끝이 아니다(4장).');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 7,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "병렬 + 순차를 섞는다",
+          "text": "jobs:\n  check:                      # 빠른 것들은 병렬로\n    strategy:\n      matrix: { task: [lint, typecheck, test] }\n    steps: [ …, { run: \"npm run ${{ matrix.task }}\" } ]\n\n  build:\n    needs: check              # 검사가 초록일 때만\n    steps: [ …, { run: npm run build } ]\n\n  deploy:\n    needs: build\n    if: github.ref == 'refs/heads/main'    # main 에서만\n    environment: production                 # 승인·비밀을 여기에 묶는다\n    steps: [ … ]"
+        },
+        {
+          "type": "note",
+          "text": "**빌드 결과물을 재사용하라.** 검사에서 한 번, 배포에서 또 한 번 빌드하면 시간도 두 배이고 **다른 결과물이 나갈 위험**도 있다. 한 번 빌드해 아티팩트로 넘기는 것이 원칙이다 — 「테스트한 그 결과물」이 배포되어야 한다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **배포 자체도 기록**이다. 어떤 커밋이 언제 어디에 나갔는지가 남아야 「이 시각부터 오류가 늘었다」를 배포와 이어 볼 수 있다(8장). 배포 이벤트를 지표에 표시하면 원인 찾기가 훨씬 빨라진다."
+        },
+        {
+          "type": "try",
+          "text": "우리 파이프라인의 각 단계 시간을 적어 보라. 가장 오래 걸리는 단계가 「가장 자주 실패하는 단계」와 같으면, 그것을 앞으로 당길 수 있는지 검토하라."
+        }
       ],
-      "answer": 1,
-      "why": "git 역사에 한 번 들어간 토큰은 지워도 남는다."
+      "quiz": [
+        {
+          "q": "파이프라인 단계 배치 원칙은?",
+          "choices": [
+            "무거운 것 먼저",
+            "싸고 자주 걸리는 것을 앞으로",
+            "무작위",
+            "알파벳 순"
+          ],
+          "answer": 1,
+          "why": "빨리 실패시켜 시간을 아낀다."
+        },
+        {
+          "q": "검사와 배포에서 각각 빌드하면?",
+          "choices": [
+            "안전하다",
+            "시간이 두 배이고 다른 결과물이 나갈 수 있다",
+            "캐시가 는다",
+            "권장된다"
+          ],
+          "answer": 1,
+          "why": "한 번 빌드해 아티팩트로 넘긴다."
+        },
+        {
+          "q": "배포 기록이 필요한 이유는?",
+          "choices": [
+            "감사만",
+            "오류 증가 시점과 배포를 이어 보기 위해",
+            "롤백 속도",
+            "비용"
+          ],
+          "answer": 1,
+          "why": "원인 찾기가 빨라진다."
+        }
+      ]
     },
     {
-      "q": "배포 설계에서 반드시 미리 연습해 둘 것은?",
-      "choices": [
-        "롤백(이전 판으로 돌아가기)",
-        "로그 색 바꾸기",
-        "빌드 캐시 삭제"
+      "id": "3",
+      "title": "환경과 비밀 — 새지 않게, 헷갈리지 않게",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "배포에서 사고가 나는 대표적인 두 자리가 **비밀 유출**과 **환경 혼동**이다. 「운영 DB 에 테스트 스크립트를 돌렸다」는 농담이 아니라 자주 있는 일이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "값을 골라 보라 — 어디에 두어야 하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{value}}';\n  const t = {\n    apiurl: ['API 주소 (https://api.example.com)', '브라우저 번들 OK',\n      '공개돼도 되는 값. 빌드 시점에 박힌다.',\n      'VITE_API_URL · NEXT_PUBLIC_API_URL 처럼 노출 접두사를 붙인다'],\n    dbpass: ['DB 비밀번호', '서버 전용 — 절대 번들 X',\n      '브라우저에 들어가면 누구나 본다(번들러 8장).',\n      '서버 환경변수 · 비밀 관리자(Secrets Manager)에 둔다'],\n    apikey: ['외부 API 키', '대개 서버 전용',\n      '「프론트에서 바로 부르면 편한데」가 유출의 시작이다.',\n      '서버가 대신 부르는 프록시를 두거나, 공개용 제한 키만 노출'],\n    feature: ['기능 깃발 설정', '실행 시점에 바뀌어야 한다',\n      '빌드에 박으면 껐다 켜려고 재배포해야 한다(git-flow 4장).',\n      '설정 서비스나 서버 응답으로 내려 준다'],\n    env: ['환경 이름 (prod/staging)', '어디서나 분명하게',\n      '화면에도 표시하라 — 스테이징에서 실수하는 것을 막는다.',\n      '스테이징은 배너·색을 다르게 해서 한눈에 구분되게'],\n  }[k];\n  const danger = k === 'dbpass' || k === 'apikey';\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:17px;margin-top:6px;color:' + (danger ? '#fca5a5' : '#4ade80') + '\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '규칙\\n'\n     + '  · 비밀은 저장소에 없다 (git-remote 8장) · 번들에도 없다\\n'\n     + '  · 빌드 시점 값과 실행 시점 값을 구분한다\\n'\n     + '  · 환경이 어디인지 화면·로그에서 늘 보이게 한다\\n'\n     + '  · 운영 접근은 최소 권한으로 — 「필요할 때만, 필요한 만큼」');\n</script>",
+          "controls": [
+            {
+              "id": "value",
+              "label": "값",
+              "type": "select",
+              "value": "apiurl",
+              "options": [
+                {
+                  "value": "apiurl",
+                  "label": "API 주소"
+                },
+                {
+                  "value": "dbpass",
+                  "label": "DB 비밀번호"
+                },
+                {
+                  "value": "apikey",
+                  "label": "외부 API 키"
+                },
+                {
+                  "value": "feature",
+                  "label": "기능 깃발"
+                },
+                {
+                  "value": "env",
+                  "label": "환경 이름"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**스테이징을 눈에 띄게 다르게 만들어라.** 색이 다른 배너 하나가 「운영인 줄 알고 지웠다」를 막는다. 그리고 스테이징 데이터에 실제 고객 정보를 넣지 마라 — 유출 경로가 하나 더 생긴다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "환경을 코드가 알게",
+          "text": "// 어디서나 같은 이름으로\nconst ENV = import.meta.env.MODE;          // 'development' | 'staging' | 'production'\n\nif (ENV !== 'production') {\n  document.body.dataset.env = ENV;          // CSS 로 배너 표시\n  console.warn(`⚠ ${ENV} 환경입니다`);\n}\n\n// 로그·오류에도 환경과 버전을 붙인다 (6장)\nSentry.init({ environment: ENV, release: import.meta.env.VITE_COMMIT_SHA });"
+        },
+        {
+          "type": "p",
+          "text": "**빌드 시점 vs 실행 시점**의 구분도 중요하다. 정적 배포에서 환경변수는 빌드에 박히므로, 값을 바꾸려면 다시 빌드해야 한다. 자주 바뀌는 설정(기능 깃발·문구)은 **서버에서 내려 주는** 편이 맞다."
+        },
+        {
+          "type": "try",
+          "text": "브라우저에서 내 사이트의 번들 파일을 열어 `KEY`·`SECRET`·`TOKEN` 을 검색해 보라. 뭔가 나오면 지금 폐기·재발급할 자리다."
+        }
       ],
-      "answer": 0,
-      "why": "되돌릴 수 없는 배포는 사고가 났을 때 선택지가 없다."
+      "quiz": [
+        {
+          "q": "브라우저 번들에 넣어도 되는 값은?",
+          "choices": [
+            "DB 비밀번호",
+            "공개 API 주소",
+            "외부 API 비밀 키",
+            "관리자 토큰"
+          ],
+          "answer": 1,
+          "why": "번들은 누구나 본다."
+        },
+        {
+          "q": "정적 배포에서 환경변수는 언제 박히나?",
+          "choices": [
+            "실행 시점",
+            "빌드 시점",
+            "요청마다",
+            "설정 파일 읽을 때"
+          ],
+          "answer": 1,
+          "why": "바꾸려면 다시 빌드해야 한다."
+        },
+        {
+          "q": "스테이징 사고를 줄이는 값싼 방법은?",
+          "choices": [
+            "권한 축소만",
+            "화면에 환경 배너를 눈에 띄게",
+            "로그 강화",
+            "테스트 추가"
+          ],
+          "answer": 1,
+          "why": "운영인 줄 알고 하는 실수를 막는다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "나간 뒤 — 확인과 되돌리기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "배포는 **버튼을 누른 순간이 아니라 확인이 끝난 순간** 끝난다. 그리고 「되돌리는 데 몇 분 걸리나」를 모르면, 장애 때 가장 비싼 숫자를 모르는 것이다(git-flow 4장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "장애 상황을 시뮬레이션 — 되돌리기 시간이 피해를 정한다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const DETECT = {{detect}}, ROLLBACK = {{rollback}}, RPM = 2000;\n  const impacted = Math.round((DETECT + ROLLBACK) * RPM / 60);\n  ctx.clearRect(0, 0, 440, 190);\n  const total = Math.max(30, DETECT + ROLLBACK + 5);\n  const segs = [['정상', 5, '#22c55e'], ['장애 — 아직 모름', DETECT, '#ef4444'],\n                ['되돌리는 중', ROLLBACK, '#f59e0b'], ['정상', 5, '#22c55e']];\n  let x = 14;\n  segs.forEach(([name, dur, color]) => {\n    const w = (dur / total) * 410;\n    ctx.fillStyle = color;\n    ctx.fillRect(x, 40, Math.max(2, w - 1), 30);\n    if (w > 45) { ctx.fillStyle = '#0b1220'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';\n      ctx.fillText(name, x + w / 2, 60); }\n    x += w;\n  });\n  ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('영향받은 요청 약 ' + impacted.toLocaleString() + '건', 14, 100);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('발견 ' + DETECT + '분 + 되돌리기 ' + ROLLBACK + '분 = ' + (DETECT + ROLLBACK) + '분 (분당 ' + RPM + '요청 가정)', 14, 120);\n  ctx.fillText(DETECT > 10 ? '발견이 늦다 — 관측·알림이 부족하다 (5·8장)'\n             : ROLLBACK > 10 ? '되돌리기가 느리다 — 절차·자동화가 부족하다'\n             : '둘 다 짧다 — 장애가 나도 피해가 작다', 14, 144);\n  app.innerHTML = '';\n  show('피해 = (발견 시간 + 복구 시간) x 트래픽\\n\\n'\n     + '발견을 줄이는 법\\n'\n     + '  · 배포 직후 자동 확인 (핵심 흐름 스모크 테스트)\\n'\n     + '  · 오류율·지연 알림 (8장)\\n'\n     + '  · 카나리로 1% 에만 먼저 (git-flow 4장)\\n\\n'\n     + '복구를 줄이는 법\\n'\n     + '  · 이전 버전을 그대로 다시 올릴 수 있게 (이미지·아티팩트 보관)\\n'\n     + '  · 되돌리기를 명령 하나로 · 연습해 두기\\n'\n     + '  · DB 마이그레이션을 앞뒤 호환으로 (cs-db 8장)');\n</script>",
+          "controls": [
+            {
+              "id": "detect",
+              "label": "발견까지(분)",
+              "type": "range",
+              "min": 1,
+              "max": 60,
+              "step": 1,
+              "value": 20
+            },
+            {
+              "id": "rollback",
+              "label": "되돌리기(분)",
+              "type": "range",
+              "min": 1,
+              "max": 60,
+              "step": 1,
+              "value": 15
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "배포 후 자동 확인",
+          "text": "- name: 배포 후 스모크 테스트\n  run: npx playwright test --grep @smoke\n  env:\n    BASE_URL: https://example.com\n\n- name: 실패하면 자동 롤백\n  if: failure()\n  run: ./scripts/rollback.sh $PREVIOUS_RELEASE\n\n# @smoke 는 5개 안팎 — 홈이 뜨나 · 로그인되나 · 핵심 조회가 되나"
+        },
+        {
+          "type": "note",
+          "text": "**정적 배포에도 되돌리기 함정이 있다.** 캐시된 옛 HTML 이 새 JS 파일명을 모르거나, 서비스 워커가 옛 자산을 붙잡고 있으면 롤백해도 화면이 안 돌아온다(cs-net 6장·개발자도구 7장). 「되돌렸는데 그대로」의 단골 원인이다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **되돌리기를 연습하라.** 장애 상황에서 처음 해 보는 절차는 반드시 막힌다. 평온할 때 한 번 눌러 보고 시간을 재 두면, 그 숫자가 팀의 실제 복구 능력이다."
+        },
+        {
+          "type": "try",
+          "text": "지금 되돌리기를 한 번 해 보라(가능하면 스테이징에서). 몇 분 걸렸는지 적어 두면 그것이 우리의 복구 시간이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "장애 피해를 정하는 식은?",
+          "choices": [
+            "코드 줄 수",
+            "(발견 시간 + 복구 시간) × 트래픽",
+            "테스트 수",
+            "배포 횟수"
+          ],
+          "answer": 1,
+          "why": "둘 다 줄여야 한다."
+        },
+        {
+          "q": "정적 배포에서 「롤백했는데 그대로」의 원인은?",
+          "choices": [
+            "DNS",
+            "캐시·서비스 워커가 옛 자산을 붙잡음",
+            "빌드 실패",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "무효화가 필요하다."
+        },
+        {
+          "q": "되돌리기 절차에 대해 옳은 것은?",
+          "choices": [
+            "문서만 있으면 된다",
+            "평온할 때 연습해 시간을 재 둬야 한다",
+            "자동이면 연습 불필요",
+            "장애 때 배우면 된다"
+          ],
+          "answer": 1,
+          "why": "처음 해 보는 절차는 막힌다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "관측 — 로그 · 지표 · 추적",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트는 「알고 있는 문제」를 막고, **관측은 「모르는 문제」를 보여 준다.** 관측의 세 기둥은 로그(무슨 일이 있었나), 지표(얼마나 자주·얼마나 오래), 추적(한 요청이 어디를 거쳤나)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세 기둥을 골라 보라 — 무엇에 답하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{pillar}}';\n  const t = {\n    log: ['로그 (Logs)', '무슨 일이 있었나 — 사건의 기록',\n      '· 구조화하라: 문자열 대신 JSON (필드로 검색·집계 가능)\\n'\n      + '· 요청 id 를 넣어라: 한 요청의 로그를 모아 볼 수 있다\\n'\n      + '· 개인정보·비밀을 찍지 마라 (로그도 유출 경로다)\\n'\n      + '· 수준을 지켜라: error 는 사람이 봐야 하는 것만',\n      '가장 자유롭지만 가장 비싸다 — 양이 많아지면 비용과 검색 속도가 문제가 된다.'],\n    metric: ['지표 (Metrics)', '얼마나 자주·얼마나 오래 — 숫자의 시계열',\n      '· 요청 수 · 오류율 · 지연(백분위) · 포화도(CPU·메모리·큐)\\n'\n      + '· 평균이 아니라 **백분위**를 보라 (p50·p95·p99)\\n'\n      + '· 라벨(경로·상태코드)을 붙이되 카디널리티를 조심 (사용자 id 는 X)',\n      '싸고 오래 보관할 수 있다 — 대시보드와 알림의 기본 재료.'],\n    trace: ['추적 (Traces)', '한 요청이 어디를 거쳤나 — 분산 타임라인',\n      '· 요청 하나가 프론트 -> API -> DB -> 외부 API 를 거친 시간을 한 줄로\\n'\n      + '· 「어느 구간이 느린가」를 추측 없이 본다\\n'\n      + '· OpenTelemetry 가 사실상 표준',\n      '마이크로서비스가 아니어도 유용하다 — 프론트-백엔드 한 줄만으로도.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '셋을 잇는 것: **공통 id**\\n'\n     + '  요청 id(trace id)를 로그·지표·추적에 모두 넣으면\\n'\n     + '  「이 오류 → 그 요청의 로그 → 그 구간의 지연」으로 바로 이동할 수 있다.');\n</script>",
+          "controls": [
+            {
+              "id": "pillar",
+              "label": "기둥",
+              "type": "select",
+              "value": "log",
+              "options": [
+                {
+                  "value": "log",
+                  "label": "로그"
+                },
+                {
+                  "value": "metric",
+                  "label": "지표"
+                },
+                {
+                  "value": "trace",
+                  "label": "추적"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "구조화 로그 — 검색 가능한 형태로",
+          "text": "// 나쁨 — 나중에 검색·집계가 안 된다\nconsole.log(`user ${id} failed to pay ${amount} because ${e.message}`);\n\n// 좋음 — 필드로 남긴다\nlogger.error({\n  event: 'payment.failed',\n  requestId, userId: id, amount,\n  reason: e.code,\n  err: { name: e.name, message: e.message },\n});\n\n// 이러면 「payment.failed 를 reason 별로 세기」 같은 질문에 답할 수 있다"
+        },
+        {
+          "type": "note",
+          "text": "**평균 응답시간은 거의 거짓말이다.** 100ms 평균 뒤에 p99=5초가 숨어 있으면, 100명 중 1명은 5초를 기다린다. 지표는 **백분위(p50/p95/p99)**로 보고, 알림도 백분위로 걸어라."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **로그 양이 곧 비용**이다. 디버그 로그를 운영에 다 남기면 저장 비용이 커지고 정작 중요한 것이 묻힌다 — 샘플링(예: 성공 요청은 1%만)과 보관 기간 정책이 필요하다."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스 로그 한 줄을 꺼내 보라. 요청 id·사용자 구분·이벤트 이름이 필드로 들어 있나? 문자열 한 덩어리면 검색이 안 되는 상태다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "테스트와 관측의 관계는?",
+          "choices": [
+            "같은 일",
+            "테스트는 아는 문제, 관측은 모르는 문제",
+            "관측이 상위",
+            "테스트가 상위"
+          ],
+          "answer": 1,
+          "why": "둘 다 필요하다."
+        },
+        {
+          "q": "지연 지표를 볼 때 옳은 것은?",
+          "choices": [
+            "평균만 본다",
+            "백분위(p95·p99)를 본다",
+            "최댓값만",
+            "합계"
+          ],
+          "answer": 1,
+          "why": "평균은 꼬리를 숨긴다."
+        },
+        {
+          "q": "로그를 구조화하는 이유는?",
+          "choices": [
+            "예뻐서",
+            "필드로 검색·집계할 수 있어서",
+            "용량 절감",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "문자열은 나중에 못 센다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "오류 추적 — 알림이 살아 있게",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "오류 수집 도구는 「터졌다」를 알려 준다. 그런데 **알림이 너무 많으면 아무도 안 본다** — 테스트의 깜빡임과 똑같은 문제다(테스트 6장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "노이즈를 밀어 보라 — 알림이 언제 무시되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const NOISE = {{noise}}, REAL = 3;\n  const total = NOISE + REAL;\n  const signal = (REAL / total) * 100;\n  ctx.clearRect(0, 0, 440, 190);\n  for (let i = 0; i < Math.min(total, 60); i++) {\n    const real = i < REAL;\n    ctx.fillStyle = real ? '#ef4444' : '#334155';\n    ctx.fillRect(14 + (i % 20) * 21, 30 + Math.floor(i / 20) * 26, 19, 20);\n  }\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('빨강 = 진짜 봐야 할 것 · 회색 = 노이즈', 14, 118);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 128, 410, 24);\n  ctx.fillStyle = signal > 40 ? '#22c55e' : signal > 15 ? '#f59e0b' : '#ef4444';\n  ctx.fillRect(14, 128, 410 * (signal / 100), 24);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n  ctx.fillText('신호 비율 ' + signal.toFixed(0) + '%', 20, 145);\n  app.innerHTML = '<div class=\"hint\">하루 알림 ' + total + '건 중 진짜는 ' + REAL + '건</div>';\n  show((signal > 40 ? '볼 만하다 — 알림이 오면 실제로 확인하게 된다.'\n      : signal > 15 ? '슬슬 무뎌진다 — 「또 그거네」가 시작된다.'\n      : '알림이 죽었다 — 진짜 장애도 묻힌다.') + '\\n\\n'\n     + '노이즈를 줄이는 법\\n'\n     + '  · 같은 오류를 묶는다 (fingerprint) — 1000건이 아니라 1건 + 발생 수\\n'\n     + '  · 사용자 잘못·봇·확장 프로그램발 오류는 걸러 낸다\\n'\n     + '  · 무시할 것은 무시 목록에 (ResizeObserver loop 등 알려진 소음)\\n'\n     + '  · 알림 조건을 「건수」가 아니라 「새 오류 / 급증」으로\\n'\n     + '  · 해결한 오류는 닫고, 다시 나면 다시 열리게');\n</script>",
+          "controls": [
+            {
+              "id": "noise",
+              "label": "노이즈 알림 수",
+              "type": "range",
+              "min": 0,
+              "max": 57,
+              "step": 3,
+              "value": 30
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "오류 수집 설정의 핵심",
+          "text": "Sentry.init({\n  dsn, environment: ENV,\n  release: COMMIT_SHA,             // 어느 배포에서 났나 (2장)\n  tracesSampleRate: 0.1,           // 추적은 표본만\n  ignoreErrors: [\n    'ResizeObserver loop limit exceeded',   // 알려진 소음\n    /^Non-Error promise rejection/,\n  ],\n  beforeSend(event) {\n    if (isBot(navigator.userAgent)) return null;    // 봇 제외\n    return scrubPII(event);                          // 개인정보 제거\n  },\n});"
+        },
+        {
+          "type": "note",
+          "text": "**소스맵을 올려야 오류가 읽힌다.** 압축된 `chunk.a1b2.js:1:8842` 는 아무 정보가 아니다(cs-compiler 8장). 배포 파이프라인에서 소스맵을 오류 수집 도구에 업로드하고, 공개 서버에서는 빼는 것이 표준 조합이다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **오류에 맥락을 붙여라** — 사용자 구분(익명 id), 화면 경로, 직전 동작(breadcrumb), 배포 버전. 「어떤 상황에서 나는지」가 없으면 재현할 수 없고, 재현할 수 없으면 못 고친다(bisect 2장)."
+        },
+        {
+          "type": "try",
+          "text": "오류 대시보드를 열어 상위 5개를 보라. 그중 「우리 코드 문제」가 몇 개인가? 절반 이하라면 필터링부터 손볼 때다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "알림이 많아지면?",
+          "choices": [
+            "더 안전하다",
+            "무뎌져서 진짜 장애도 묻힌다",
+            "정확해진다",
+            "비용만 는다"
+          ],
+          "answer": 1,
+          "why": "신호 비율을 관리해야 한다."
+        },
+        {
+          "q": "압축된 배포 코드의 오류를 읽으려면?",
+          "choices": [
+            "로그 추가",
+            "소스맵 업로드",
+            "재현",
+            "캐시 삭제"
+          ],
+          "answer": 1,
+          "why": "원본 파일·줄로 이어 준다."
+        },
+        {
+          "q": "오류에 붙여야 할 맥락이 아닌 것은?",
+          "choices": [
+            "배포 버전",
+            "화면 경로",
+            "직전 동작",
+            "사용자 비밀번호"
+          ],
+          "answer": 3,
+          "why": "개인정보·비밀은 절대 넣지 않는다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "사용자 관점 — RUM 과 SLO",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "서버 지표가 초록인데 사용자는 느릴 수 있다. 그래서 **실제 사용자에게서 걷는 값**(RUM)이 필요하고, 「얼마나 좋아야 충분한가」를 정하는 것이 **SLO** 다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "목표와 실제를 바꿔 보라 — 오차 예산이 얼마나 남나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const SLO = {{slo}} / 10, ACTUAL = {{actual}} / 10;\n  const budgetTotal = (100 - SLO) / 100 * 30 * 24 * 60;   /* 한 달 허용 분 */\n  const used = (100 - ACTUAL) / 100 * 30 * 24 * 60;\n  const left = budgetTotal - used;\n  const pct = budgetTotal > 0 ? Math.max(0, left / budgetTotal) * 100 : 0;\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('한 달 오차 예산 ' + budgetTotal.toFixed(0) + '분 중 ' + Math.min(used, budgetTotal).toFixed(0) + '분 소진', 14, 20);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 30, 410, 30);\n  ctx.fillStyle = pct > 50 ? '#22c55e' : pct > 20 ? '#f59e0b' : '#ef4444';\n  ctx.fillRect(14, 30, 410 * (pct / 100), 30);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('남은 예산 ' + pct.toFixed(0) + '%  (' + Math.max(0, left).toFixed(0) + '분)', 20, 51);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('목표(SLO) ' + SLO.toFixed(1) + '%  ·  실제(SLI) ' + ACTUAL.toFixed(1) + '%', 14, 84);\n  ctx.fillText(pct > 50 ? '여유가 있다 — 새 기능·실험을 더 해도 된다'\n             : pct > 20 ? '조심할 때 — 위험한 변경은 미룬다'\n             : '예산 소진 — 안정화에 집중해야 한다', 14, 108);\n  app.innerHTML = '';\n  show('SLO 를 정하면 「얼마나 실패해도 되는가」가 숫자로 나온다.\\n\\n'\n     + '  99.9% = 한 달에 약 43분\\n'\n     + '  99.5% = 한 달에 약 3.6시간\\n'\n     + '  99.99% = 한 달에 약 4.3분 (아주 비싸다)\\n\\n'\n     + '오차 예산의 쓸모\\n'\n     + '  · 남아 있으면 → 실험·배포를 더 과감하게\\n'\n     + '  · 소진되면 → 새 기능을 멈추고 안정화\\n'\n     + '  · 「안정성 vs 속도」 논쟁을 감정이 아니라 숫자로 바꾼다\\n\\n'\n     + '주의: 100% 를 목표로 하지 마라 — 비용이 무한대로 간다.');\n</script>",
+          "controls": [
+            {
+              "id": "slo",
+              "label": "목표 SLO(%×10)",
+              "type": "range",
+              "min": 950,
+              "max": 1000,
+              "step": 5,
+              "value": 999
+            },
+            {
+              "id": "actual",
+              "label": "실제(%×10)",
+              "type": "range",
+              "min": 950,
+              "max": 1000,
+              "step": 5,
+              "value": 997
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "브라우저에서 실제 값 걷기",
+          "text": "import { onLCP, onCLS, onINP } from 'web-vitals';\n\nconst send = (m) => navigator.sendBeacon('/rum', JSON.stringify({\n  name: m.name, value: m.value,\n  path: location.pathname,\n  conn: navigator.connection?.effectiveType,   // 4g/3g 별로 나눠 본다\n  release: COMMIT_SHA,\n}));\nonLCP(send); onCLS(send); onINP(send);\n\n// 판단은 75분위로 — 상위 25% 가 나쁜 쪽 (렌더링 7장)"
+        },
+        {
+          "type": "note",
+          "text": "**합성 모니터링(synthetic)과 RUM 은 역할이 다르다.** 합성은 정해진 시나리오를 주기적으로 돌려 「지금 살아 있나」를 보고(장애 감지), RUM 은 실제 사용자 분포를 보여 준다(개선 우선순위). 둘 다 필요하다."
+        },
+        {
+          "type": "p",
+          "text": "SLO 를 정할 때는 **사용자가 실제로 느끼는 것**을 골라라 — 「서버 CPU 80% 이하」는 사용자와 무관하다. 「홈 화면이 2.5초 안에 뜬다」·「결제 성공률 99.9%」처럼 사용자 경험으로 적어야 의미가 있다."
+        },
+        {
+          "type": "try",
+          "text": "우리 서비스에서 「이게 안 되면 장사가 안 된다」는 지표 하나를 골라 목표 숫자를 적어 보라. 그것이 첫 SLO 다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "오차 예산이 소진되면?",
+          "choices": [
+            "더 배포한다",
+            "안정화에 집중한다",
+            "SLO 를 낮춘다",
+            "무시한다"
+          ],
+          "answer": 1,
+          "why": "속도와 안정성을 숫자로 조율한다."
+        },
+        {
+          "q": "합성 모니터링의 역할은?",
+          "choices": [
+            "사용자 분포 파악",
+            "정해진 시나리오로 「지금 살아 있나」 확인",
+            "오류 수집",
+            "로그 집계"
+          ],
+          "answer": 1,
+          "why": "RUM 은 분포, 합성은 감지."
+        },
+        {
+          "q": "좋은 SLO 의 조건은?",
+          "choices": [
+            "서버 자원 기준",
+            "사용자가 느끼는 경험 기준",
+            "높을수록 좋다",
+            "100%"
+          ],
+          "answer": 1,
+          "why": "CPU 는 사용자와 무관하다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "장애가 났을 때",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "장애는 **일어난다**. 중요한 것은 「안 나게 하는 것」만이 아니라 **났을 때 빨리 회복하고 다시 안 나게 하는 것**이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 장애 대응의 순서",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['1. 알아차린다', '알림·제보', '자동 알림이 먼저여야 한다 — 고객이 먼저 알면 이미 늦다'],\n    ['2. 알린다', '상태 페이지·내부 채널', '「인지했다」를 빨리 알리는 것만으로 문의가 줄어든다'],\n    ['3. 지혈한다', '롤백·기능 끄기·트래픽 차단', '원인 조사보다 **먼저** — 사용자를 구하는 것이 1순위 (git-flow 5장)'],\n    ['4. 원인을 찾는다', '최근 배포·지표·로그·추적', '「언제부터인가」와 「그때 무엇이 바뀌었나」 두 질문'],\n    ['5. 고친다', '수정 + 검증', '급하다고 검증을 건너뛰면 두 번째 장애가 난다'],\n    ['6. 배운다', '사후 분석 (비난 없이)', '사람이 아니라 **시스템**을 고친다 — 같은 실수가 불가능하게'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([t], i) => {\n    const on = i <= step;\n    box(14, 6 + i * 30, 412, 26, t, '', on ? '#14351f' : '#111c33',\n        i === step ? '#f59e0b' : on ? '#22c55e' : '#334155');\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + '  —  ' + steps[step][1] + '\\n\\n' + steps[step][2] + '\\n\\n'\n     + '핵심 순서: **지혈 -> 진단**. 반대로 하면 피해가 커진다.\\n'\n     + '그리고 대응 중에는 한 사람이 **지휘**하고 나머지가 실행하는 편이 빠르다.');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "런북 — 장애 때 읽을 문서",
+          "text": "제목: 결제 실패율 급증\n\n증상: 결제 성공률 지표가 5분 평균 95% 아래\n\n먼저 확인\n  1. 최근 30분 배포가 있었나 → 있으면 롤백부터\n  2. 결제 PG 상태 페이지 확인\n  3. 오류 대시보드에서 상위 오류 확인\n\n지혈\n  · 롤백: ./scripts/rollback.sh <이전 릴리스>   (약 3분)\n  · 기능 끄기: 관리자 > 기능 깃발 > new_checkout OFF (즉시)\n\n연락\n  · 내부: #incident 채널  · 외부: 상태 페이지 업데이트\n\n※ 이 문서는 장애 중에 읽는 것이다 — 짧고, 명령이 그대로 적혀 있어야 한다"
+        },
+        {
+          "type": "note",
+          "text": "**사후 분석은 비난 없이(blameless).** 「누가 잘못했나」를 물으면 사람들이 숨기고, 숨기면 다음에도 같은 일이 난다. 물어야 할 것은 「어떻게 그 실수가 가능했나」와 「어떻게 불가능하게 만들까」다 — 게이트·자동화·기본값을 고치는 것."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **후속 조치에 담당자와 기한을 붙여라.** 사후 분석 문서만 쓰고 아무것도 안 바뀌면 같은 장애가 반복된다. 「이 항목은 누가 언제까지」가 없는 개선안은 개선안이 아니다."
+        },
+        {
+          "type": "try",
+          "text": "우리 서비스의 가장 있을 법한 장애 하나를 골라 런북을 한 장 써 보라. 명령까지 그대로 적어 두면 장애 때 그대로 복사해 쓸 수 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "장애 대응의 첫 순서는?",
+          "choices": [
+            "원인 조사",
+            "지혈(롤백·기능 끄기)",
+            "사후 분석",
+            "코드 수정"
+          ],
+          "answer": 1,
+          "why": "사용자를 먼저 구한다."
+        },
+        {
+          "q": "비난 없는 사후 분석에서 묻는 것은?",
+          "choices": [
+            "누가 잘못했나",
+            "어떻게 그 실수가 가능했고 어떻게 불가능하게 만들까",
+            "얼마나 손해인가",
+            "누가 책임지나"
+          ],
+          "answer": 1,
+          "why": "시스템을 고친다."
+        },
+        {
+          "q": "런북의 조건은?",
+          "choices": [
+            "상세할수록 좋다",
+            "짧고 명령이 그대로 적혀 있어야 한다",
+            "이론 설명 포함",
+            "연 1회 갱신"
+          ],
+          "answer": 1,
+          "why": "장애 중에 읽는 문서다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "배포와 관측은 「사고를 없애는 일」이 아니라 **사고의 비용을 줄이는 일**이다. 빨리 알아채고 빨리 되돌릴 수 있으면, 대담하게 배포할 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "배포·운영 점검표",
+          "text": "배포\n  [ ] 배포가 자동이고 기록이 남나                              (1장)\n  [ ] 테스트한 그 결과물이 배포되나 (재빌드 X)                 (2장)\n  [ ] 배포 후 자동 확인(스모크)이 있나                         (4장)\n  [ ] 되돌리기를 명령 하나로 할 수 있고, 시간을 재 봤나        (4장)\n  [ ] DB 마이그레이션이 앞뒤 호환인가                          (4장)\n\n설정·비밀\n  [ ] 번들에 비밀이 없나 (검색해 봤나)                         (3장)\n  [ ] 환경이 화면·로그에서 분명히 구분되나                     (3장)\n  [ ] 자주 바뀌는 설정이 빌드에 박혀 있지 않나                 (3장)\n\n관측\n  [ ] 로그가 구조화돼 있고 요청 id 가 있나                     (5장)\n  [ ] 지연을 백분위로 보나 (평균 X)                            (5장)\n  [ ] 소스맵을 올려 오류가 읽히나                              (6장)\n  [ ] 알림의 신호 비율이 볼 만한가                             (6장)\n  [ ] 실제 사용자 값(RUM)을 걷고 있나                          (7장)\n\n대응\n  [ ] 핵심 흐름에 SLO 가 정해져 있나                           (7장)\n  [ ] 런북이 있고 명령이 그대로 적혀 있나                      (8장)\n  [ ] 사후 분석의 후속 조치에 담당자·기한이 있나               (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여덟 문항",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['정적으로 가능하면 정적 배포가 대개 낫다', true],\n    ['검사 단계와 배포 단계에서 각각 빌드해도 된다', false],\n    ['브라우저 번들의 환경변수는 안전하다', false],\n    ['장애 대응은 원인 조사부터 한다', false],\n    ['지연은 평균보다 백분위로 본다', true],\n    ['알림이 많을수록 안전하다', false],\n    ['오차 예산이 남으면 더 과감히 배포해도 된다', true],\n    ['사후 분석은 책임자를 찾는 자리다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(정적) 2장(아티팩트) 3장(비밀) 4장(지혈) 5장(백분위) 8장(사후분석)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "이것으로 **웹 갈래를 한 바퀴 돌았다** — HTML·CSS·JS·DOM 에서 시작해 렌더링·접근성·도구·타입·프레임워크·번들러·테스트를 지나 배포·관측까지. 각 칸이 서로를 부르고 있었다는 것이 이제 보일 것이다."
+        },
+        {
+          "type": "try",
+          "text": "위 점검표에서 **되돌리기 시간**과 **알림 신호 비율** 두 항목만 오늘 확인하라. 이 둘이 장애의 비용을 가장 크게 좌우한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "배포·관측의 목표는?",
+          "choices": [
+            "사고를 0으로",
+            "사고의 비용을 줄이는 것",
+            "지표 수집",
+            "자동화 자체"
+          ],
+          "answer": 1,
+          "why": "그래야 대담하게 배포할 수 있다."
+        },
+        {
+          "q": "가장 먼저 확인할 두 숫자는?",
+          "choices": [
+            "배포 횟수·테스트 수",
+            "되돌리기 시간·알림 신호 비율",
+            "커버리지·번들 크기",
+            "CPU·메모리"
+          ],
+          "answer": 1,
+          "why": "장애 비용을 좌우한다."
+        }
+      ]
     }
   ]
 }
