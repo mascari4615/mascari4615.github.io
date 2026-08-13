@@ -694,5 +694,9 @@
   "karmograph.views.hint": "今の絞り込みに名前をつけて寝かせます — 押せばそのまま戻ります。",
   "karmograph.views.ph": "例: 第1部",
   "karmograph.views.save": "今の状態を保存",
-  "karmograph.views.del": "この見え方を削除"
+  "karmograph.views.del": "この見え方を削除",
+  "karmograph.table.head": "表で見る",
+  "karmograph.table.name": "名前",
+  "karmograph.table.kind": "種類",
+  "karmograph.table.hint": "同じ資料を表で（{n}枚）— 見出しで並べ替え、行を押すと板で選ばれます。"
 }

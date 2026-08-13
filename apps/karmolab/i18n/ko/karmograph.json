@@ -694,5 +694,9 @@
   "karmograph.views.hint": "지금 걸러 둔 상태를 이름 붙여 재워 둡니다 — 누르면 그대로 돌아옵니다.",
   "karmograph.views.ph": "예: 1부 시점",
   "karmograph.views.save": "지금 상태 저장",
-  "karmograph.views.del": "이 보기 지우기"
+  "karmograph.views.del": "이 보기 지우기",
+  "karmograph.table.head": "표로 보기",
+  "karmograph.table.name": "이름",
+  "karmograph.table.kind": "종류",
+  "karmograph.table.hint": "같은 자료를 표로 봅니다 ({n}장) — 머리를 누르면 줄이 서고, 줄을 누르면 판에서 골라집니다."
 }
