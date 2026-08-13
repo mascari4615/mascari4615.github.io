@@ -29,7 +29,10 @@ const check = (ok, why) => {
 const CASES = [
   ['imgresize', '#irFile'],
   ['pdfcrop', '#pfHost input[type=file]'],
-  ['textclean', '#tcIn'],
+  /* 글 정리는 **글 작업대의 조작**이 됐다 (2026-08-13). 예전엔 표 변환과 한 묶음이라 그 묶음의
+     표시(`#tcIn`)를 봤는데, 이제 `#textclean` 로 들어오면 작업대가 열려야 맞다 —
+     사람 북마크가 걸린 자리라 「열리기만 하면 된다」가 아니라 **이 주소가 살아 있나**를 본다. */
+  ['textclean', '#pfText'],
   ['jsonfmt', '#pfHost textarea'],
   ['videotrim', '#pfHost input[type=file]'],
   ['audiocut', '#pfHost input[type=file]'],
