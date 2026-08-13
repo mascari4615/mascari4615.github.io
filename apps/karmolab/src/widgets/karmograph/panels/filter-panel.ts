@@ -36,6 +36,24 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     <div class="km-secname">${esc(t('karmograph.hideSec.head'))}</div>
     <!-- ★ 「이웃까지만 보기」는 툴바에 따로 있던 고르개다 (TASK-KL-271 P4).
          찾는 건 툴바에서, **덜 보는 건 전부 여기서** — 세 자리로 흩어져 있던 것을 한 자리로. -->
+    <!-- ★ **보기 저장** (TASK-KL-271 O2, Kumu 계보). 한 판은 여러 얼굴을 가진다 —
+         ※ **맨 위에 둔다** (2026-08-14 실측): 아래에 뒀더니 접힌 자리 밖(867px, 보이는 높이 795px)이라
+           스크롤해야 보였다 — 저장해 둔 보기는 거르기를 *맞추기 전에* 찾는 것이라 첫 화면에 있어야 한다.
+         「1부 시점」 「적대 관계만」. 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로
+         하는 것이고, 그러다 보면 결국 아무도 안 거른다. 지금 걸러 둔 것을 이름 붙여 재운다. -->
+    <div class="km-field">
+      <label>${esc(t('karmograph.views.head'))}</label>
+      <div class="km-hint">${esc(t('karmograph.views.hint'))}</div>
+      ${(spec.views ?? []).map((v) => `<div class="km-link-row">
+        <button class="btn btn-ghost km-link-name" data-km="view-go" data-key="${esc(v.id)}">${esc(v.name)}</button>
+        <button class="btn btn-ghost" data-km="view-del" data-key="${esc(v.id)}"
+          title="${esc(t('karmograph.views.del'))}" aria-label="${esc(t('karmograph.views.del'))}">✕</button>
+      </div>`).join('')}
+      <div class="km-trow">
+        <input type="text" data-km="view-name" placeholder="${esc(t('karmograph.views.ph'))}" />
+        <button class="btn btn-ghost" data-km="view-save">${esc(t('karmograph.views.save'))}</button>
+      </div>
+    </div>
     <div class="km-field">
       <label for="km-f-degree">${esc(t('karmograph.focus.label'))}</label>
       <select id="km-f-degree" data-km="degree">
@@ -125,22 +143,6 @@ export function renderFilterPanel(ctx: PanelCtx): void {
         <input type="text" data-km="rule-value" placeholder="${esc(t('karmograph.ruleValue.ph'))}" />
         <input type="color" data-km="rule-color" value="#f472b6" title="${esc(t('karmograph.ruleColor.title'))}" />
         <button class="btn btn-ghost" data-km="rule-add">${esc(t('karmograph.ruleAdd.label'))}</button>
-      </div>
-    </div>
-    <!-- ★ **보기 저장** (TASK-KL-271 O2, Kumu 계보). 한 판은 여러 얼굴을 가진다 —
-         「1부 시점」 「적대 관계만」. 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로
-         하는 것이고, 그러다 보면 결국 아무도 안 거른다. 지금 걸러 둔 것을 이름 붙여 재운다. -->
-    <div class="km-field">
-      <label>${esc(t('karmograph.views.head'))}</label>
-      <div class="km-hint">${esc(t('karmograph.views.hint'))}</div>
-      ${(spec.views ?? []).map((v) => `<div class="km-link-row">
-        <button class="btn btn-ghost km-link-name" data-km="view-go" data-key="${esc(v.id)}">${esc(v.name)}</button>
-        <button class="btn btn-ghost" data-km="view-del" data-key="${esc(v.id)}"
-          title="${esc(t('karmograph.views.del'))}" aria-label="${esc(t('karmograph.views.del'))}">✕</button>
-      </div>`).join('')}
-      <div class="km-trow">
-        <input type="text" data-km="view-name" placeholder="${esc(t('karmograph.views.ph'))}" />
-        <button class="btn btn-ghost" data-km="view-save">${esc(t('karmograph.views.save'))}</button>
       </div>
     </div>
     <button class="btn btn-ghost" data-km="f-reset">${esc(t('karmograph.fReset.label'))}</button>

@@ -3060,6 +3060,14 @@ await step('보기를 이름 붙여 재우고 한 번에 되살린다 (다시 �
   const panel = (k) => m.evaluate((x) => document.querySelector(`[data-km="tab"][data-key="${x}"]`).click(), k);
   await panel('filter');
   await m.waitForSelector('[data-km="view-save"]', { timeout: ms(4000) });
+  /* ★ **첫 화면에 있어야 한다** (2026-08-14 실측): 맨 아래에 뒀더니 접힌 자리 밖(867px /
+     보이는 높이 795px)이라 스크롤해야 보였다 — 저장해 둔 보기는 거르기를 *맞추기 전에* 찾는 것이다. */
+  const foldOut = await m.evaluate(() => {
+    const side = document.querySelector('.km-side');
+    const box = document.querySelector('[data-km="view-save"]').closest('.km-field');
+    return (box.offsetTop - side.offsetTop) > side.clientHeight;
+  });
+  if (foldOut) throw new Error('저장한 보기가 첫 화면 밖으로 밀렸다 — 스크롤해야 보이면 아무도 안 쓴다');
   await m.fill('[data-km="view-name"]', '1부 시점');
   await m.locator('[data-km="view-save"]').click();
   await m.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
