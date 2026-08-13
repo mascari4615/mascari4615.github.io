@@ -671,5 +671,8 @@
   "karmograph.gapField.some": "{kind} {total}枚のうち {missing}枚が「{field}」を書いていません",
   "karmograph.clusters.head": "グループ",
   "karmograph.clusters.line": "{n}つに分かれます — 最大は {names}（{size}枚）",
-  "karmograph.clusters.hint": "線が内側で密なかたまりごとにまとめたものです。"
+  "karmograph.clusters.hint": "線が内側で密なかたまりごとにまとめたものです。",
+  "karmograph.paste.needCard": "先にカードを選んでください — 画像はそのカードの顔になります",
+  "karmograph.paste.done": "顔にしました",
+  "karmograph.paste.act": "顔をつける"
 }

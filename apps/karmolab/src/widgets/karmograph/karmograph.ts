@@ -27,6 +27,7 @@ import { sampleFor, INTENTS } from './samples';
 import { COMMAND_GROUPS } from './commands';
 import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
+import { pasteIntent } from './paste-intent';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
@@ -877,6 +878,50 @@ import {
           alert(t('karmograph.targetId.msg2'));
         });
     };
+
+    /**
+     * **붙여넣으면 얼굴이 된다** (TASK-KL-271 X5).
+     *
+     * 예전엔 얼굴 하나 넣는 데 다섯 걸음이었다(카드 고르기 → 패널 → 「더 보기」 → 🖼 → 파일 찾기).
+     * 사람이 실제로 하는 짓은 어디선가 그림을 복사해 붙여넣는 것 하나다. 무엇을 할지 정하는 규칙은
+     * `paste-intent.ts` 가 안다 — 특히 **글을 치는 중이면 절대 안 가로챈다**.
+     */
+    const onPaste = (ev: ClipboardEvent): void => {
+      const file = [...(ev.clipboardData?.items ?? [])]
+        .find((it) => it.kind === 'file' && it.type.startsWith('image/'))?.getAsFile();
+      const active = document.activeElement as HTMLElement | null;
+      const what = pasteIntent({
+        hasImage: Boolean(file),
+        selectedId,
+        typing: Boolean(active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'
+          || active.isContentEditable)),
+        visible: root.isConnected && root.offsetParent !== null,
+      });
+      if (what === 'ignore') return;
+      ev.preventDefault();
+      if (what === 'need-card') {
+        Toolbox.showToast?.(t('karmograph.paste.needCard'), undefined, undefined);
+        return;
+      }
+      const targetId = selectedId;
+      if (!file || !targetId) return;
+      void shrinkToDataUrl(file)
+        .then((dataUrl) => {
+          const target = spec.nodes.find((n) => n.id === targetId);
+          if (!target) return;
+          lastAction = t('karmograph.paste.act');
+          target.avatar = { kind: 'image', value: dataUrl };
+          resize(target);
+          canvas?.render();
+          canvas?.setSelectedNode(selectedId);
+          persistStructure();
+          renderSide();
+          Toolbox.showToast?.(t('karmograph.paste.done'), undefined, undefined);
+        })
+        .catch(() => alert(t('karmograph.targetId.msg2')));
+    };
+    document.addEventListener('paste', onPaste);
+    Toolbox.onDispose?.(() => document.removeEventListener('paste', onPaste));
 
     // ── 되돌리기 (TASK-KL-202 격차 F) ────────────────────────────────────────
     // 스냅샷 방식. 관계도는 노드 수십 개 규모라 JSON 통째로 떠도 싸고, 델타 방식과 달리

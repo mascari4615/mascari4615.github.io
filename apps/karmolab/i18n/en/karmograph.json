@@ -671,5 +671,8 @@
   "karmograph.gapField.some": "{missing} of {total} {kind} cards have no \"{field}\"",
   "karmograph.clusters.head": "Clusters",
   "karmograph.clusters.line": "Splits into {n} clusters — the biggest is {names} ({size} cards)",
-  "karmograph.clusters.hint": "Grouped by where the links cluster densely."
+  "karmograph.clusters.hint": "Grouped by where the links cluster densely.",
+  "karmograph.paste.needCard": "Pick a card first — the image becomes that card face",
+  "karmograph.paste.done": "Set as the card face",
+  "karmograph.paste.act": "set face"
 }

@@ -2554,6 +2554,37 @@ await step('다 이어져 있어도 무리를 갈라 말해 준다', async () =>
   );
   await openPanel(page, 'node');
 });
+await step('그림을 붙여넣으면 고른 카드의 얼굴이 된다', async () => {
+  // 얼굴 하나 넣는 데 다섯 걸음이었다(고르기 -> 패널 -> 더 보기 -> 그림 단추 -> 파일 찾기).
+  // 사람이 실제로 하는 짓은 어디선가 복사해 붙여넣는 것 하나다(KL-271 X5).
+  await page.locator('.ck-node').first().click({ force: true });
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  const before = await page.evaluate(() => document.querySelectorAll('image').length);
+  await page.evaluate(async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const blob = await (await fetch(`data:image/png;base64,${png}`)).blob();
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], 'face.png', { type: 'image/png' }));
+    document.body.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+  });
+  await page.waitForFunction(
+    (n) => document.querySelectorAll('image').length > n, before, { timeout: 5000 },
+  );
+  // 글을 치는 중에는 가로채지 않는다 — 이름 칸에 붙이다 얼굴이 바뀌면 「내가 뭘 눌렀지」가 된다.
+  await page.focus('[data-km="edit-label"]');
+  const now = await page.evaluate(() => document.querySelectorAll('image').length);
+  await page.evaluate(async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const blob = await (await fetch(`data:image/png;base64,${png}`)).blob();
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], 'face.png', { type: 'image/png' }));
+    document.querySelector('[data-km="edit-label"]').dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+  });
+  await page.waitForTimeout(600);
+  const after = await page.evaluate(() => document.querySelectorAll('image').length);
+  if (after !== now) throw new Error('글 칸에 붙였는데 얼굴이 바뀌었다');
+});
   const m = await phone.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2714,6 +2745,7 @@ if (frozen) {
   if (moved.length) console.log(`  ⚠ 판 도중 옆에서 바뀐 파일 ${moved.length}개 (내준 건 처음 읽은 것): ${moved.slice(0, 5).join(' · ')}`);
   frozen.close();
 }
+
 
 console.log(errors.length ? `\nRESULT: FAIL (${errors.length})\n - ` + errors.join('\n - ') : '\nRESULT: PASS — 콘솔 에러 0');
 process.exit(errors.length ? 1 : 0);
