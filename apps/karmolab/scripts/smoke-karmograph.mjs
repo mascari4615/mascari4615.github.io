@@ -2959,6 +2959,46 @@ await step('「이 둘 사이」와 둘레 보기도 시점을 따른다', async
   await ctx.close();
 });
 
+await step('첫 카드·첫 선까지 드는 손 (처음 연 사람 기준)', async () => {
+  /* ★ 이 작업의 진단서에 「첫 선 잇기까지의 클릭 수」를 재겠다고 적어 두고 못 재고 있었다
+     (TASK-KL-271 § 검증). 여기서 **천장을 박는다** — 나중에 한 걸음이 슬쩍 늘면 그 순간 빨강이다.
+     세는 것은 「사람이 하는 몸짓」이다: 두 번 누르기 1, 이름 치고 Enter 1, 점 끌기 1. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(600));
+  const box = await m.locator('.km-canvas').boundingBox();
+  let acts = 0;
+  // ① 빈 곳 두 번 누르기 → 그 자리에서 바로 이름칸
+  await m.mouse.dblclick(box.x + box.width * 0.25, box.y + box.height * 0.3);
+  acts += 1;
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) })
+    .catch(() => { throw new Error('빈 곳을 두 번 눌렀는데 이름칸이 안 뜬다 — 첫 걸음이 늘었다'); });
+  await m.keyboard.type('주인공');
+  await m.keyboard.press('Enter');
+  acts += 1;
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  if (acts > 2) throw new Error(`첫 카드까지 ${acts} 동작 — 두 동작을 넘었다`);
+  // ② 점을 빈 곳으로 끌기 → 새 카드가 생기며 이어진다(카드 만들고 다시 잇는 세 걸음이 아니다)
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('.ck-link-handle', { timeout: ms(4000) });
+  const port = await m.locator('.ck-link-handle').first().boundingBox();
+  await m.mouse.move(port.x + port.width / 2, port.y + port.height / 2);
+  await m.mouse.down();
+  await m.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.62, { steps: 8 });
+  await m.mouse.up();
+  acts += 1;
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2
+    && document.querySelectorAll('.ck-edge:not(.ck-link-temp)').length >= 1, null, { timeout: ms(4000) })
+    .catch(() => { throw new Error('점을 끌었는데 카드+선이 한 번에 안 생겼다 — 걸음이 늘었다'); });
+  if (acts > 3) throw new Error(`첫 선까지 ${acts} 동작 — 세 동작을 넘었다`);
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');
