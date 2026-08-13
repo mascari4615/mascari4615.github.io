@@ -54,7 +54,10 @@ const open = async (live) => {
   const { browser, page } = await open({
     online: 3,
     recent: [
-      { toolId: 'charcount', at: now },
+      /* 표본은 **지금 목록에 보이는 도구**여야 한다 — `charcount` 는 작업대의 조작이 되어
+         낱개 위젯이 없다(숨은 별칭만 남았다). 없는 이름을 넣으면 실황 줄이 통째로 비어
+         세 판정이 한꺼번에 빨개진다(2026-08-13 실측). */
+      { toolId: 'qrgen', at: now },
       { toolId: 'passgen', at: new Date(Date.now() - 5 * 60000).toISOString() }
     ]
   });
