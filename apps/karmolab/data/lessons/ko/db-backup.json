@@ -1,106 +1,784 @@
 {
   "id": "db-backup",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「백업 있어요?」의 정확한 질문은 **「몇 분 전 상태로, 몇 분 안에 돌아갈 수 있어요?」**다. 답을 모르면 백업은 없는 것과 같다."
-    },
-    {
-      "type": "h",
-      "text": "1. 두 숫자를 먼저 정하라"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "목표가 방식을 정한다",
-      "text": "RPO  얼마까지 잃어도 되나 (복구 시점 목표)\n       하루치? 5분치? 0?\nRTO  얼마 안에 살아나야 하나 (복구 시간 목표)\n       1시간? 10분?\n\n하루 1회 덤프    → RPO 24시간 · RTO 는 데이터 크기에 비례\n연속 아카이브    → RPO 분 단위 (특정 시점 복구 PITR)\n복제본 대기      → RTO 분 단위 (승격만 하면 됨)\n\n※ 복제(replica)는 백업이 아니다 — 실수로 지운 것도 즉시 복제된다"
-    },
-    {
-      "type": "h",
-      "text": "2. 실제로 해 봐야 안다"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "복구 훈련",
-      "text": "# 덤프\npg_dump -Fc mydb > backup.dump\n\n# ★ 빈 DB 에 실제로 복원해 보기 (분기마다 한 번)\ncreatedb restore_test\npg_restore -d restore_test backup.dump\n\n# 재고 기록한다\n#  · 복원에 걸린 시간\n#  · 데이터 건수가 맞는지\n#  · 앱이 그 DB 를 보고 정상 동작하는지  ← 여기까지 해야 훈련이다"
-    },
-    {
-      "type": "note",
-      "text": "**복원해 본 적 없는 백업은 백업이 아니다.** 흔한 실패 — 파일은 있는데 손상됨, 용량 부족, 권한/확장 누락, 복원에 8시간 걸림, 암호화 키를 잃음. 전부 사고 당일에 처음 발견된다."
-    },
-    {
-      "type": "h",
-      "text": "3. 어디에 두나"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "3-2-1 규칙",
-      "text": "사본 3개 · 서로 다른 매체 2종 · 그중 1개는 다른 장소(계정·리전)\n\n· 같은 클라우드 계정 안에만 두면 계정이 잠기면 같이 잃는다\n· 삭제 방지(객체 잠금)·수명 정책을 걸어 실수·랜섬웨어 대비\n· 백업 자체를 암호화 (그리고 키를 백업과 다른 곳에)"
-    },
-    {
-      "type": "h",
-      "text": "4. 실수 복구가 더 흔하다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "진짜 사고는 대개 사람",
-      "text": "서버 화재보다 \"WHERE 빼고 DELETE\" 가 훨씬 자주 일어난다\n\n대비\n · 특정 시점 복구(PITR) — 사고 1분 전으로\n · 운영 DB 에 소프트 삭제(deleted_at) — 되살릴 수 있게\n · 운영 콘솔에서 대량 삭제 시 확인 절차\n · 트랜잭션 습관: BEGIN → SELECT 로 대상 확인 → UPDATE/DELETE → 건수 확인 → COMMIT"
-    },
-    {
-      "type": "h",
-      "text": "5. 감시"
-    },
-    {
-      "type": "p",
-      "text": "백업 **성공 여부**를 알림으로 받아라. 조용히 실패한 백업이 6개월 쌓인 사례가 흔하다. 「마지막 성공 시각」을 지표로 만들고, 문턱을 넘으면 경보를 울려라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 DB 를 실제로 다른 곳에 복원하고 걸린 시간을 재라. 그 시간이 RTO 목표 안인지 판정하라."
-    },
-    {
-      "type": "try",
-      "text": "백업 마지막 성공 시각을 알려 주는 알림을 만들어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "복제본(replica)이 백업을 대신할 수 없는 이유는?",
-      "choices": [
-        "실수로 지운 것도 즉시 복제된다",
-        "느려서",
-        "용량 때문"
+      "id": "1",
+      "title": "정확한 질문 — RPO 와 RTO",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「백업 있어요?」의 정확한 질문은 **「몇 분 전 상태로, 몇 분 안에 돌아갈 수 있어요?」**다. 이 둘이 **RPO**(얼마까지 잃어도 되나)와 **RTO**(얼마 안에 살아나야 하나)다. 두 숫자를 못 답하면, 파일이 있어도 백업은 없는 것과 같다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "RPO·RTO 를 정하면 필요한 백업 방식이 정해진다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rpo = {{rpo}};                   // 허용 데이터 손실(분)\n  const rto = {{rto}};                   // 허용 복구 시간(분)\n  const rpoNeed = rpo <= 5 ? '지속 백업(PITR/WAL) — 몇 분치만 잃음'\n    : rpo <= 60 ? '시간별 백업'\n    : '하루 1회 덤프면 충분';\n  const rtoNeed = rto <= 15 ? '대기(standby)·자동 페일오버 — 즉시 전환'\n    : rto <= 120 ? '빠른 복원 절차·리허설 필수'\n    : '수동 복원도 가능(느긋)';\n  render('RPO ' + rpo + '분 · RTO ' + rto + '분',\n    '  RPO(잃어도 되는 양) ' + rpo + '분  ->  ' + rpoNeed + '\\n' +\n    '  RTO(살아날 시간)   ' + rto + '분  ->  ' + rtoNeed + '\\n\\n' +\n    '  두 숫자가 작을수록 돈·복잡도가 든다 — 서비스 중요도에 맞춰 정한다.',\n    '작은 RPO/RTO 는 비싸다. 「0」을 외치기 전에 진짜 필요한 값을 정하라.',\n    bars([['RPO 요구', Math.max(3, 100 - rpo), rpo + '분치 손실 허용', rpo <= 5 ? '#fca5a5' : '#4ade80'],\n          ['RTO 요구', Math.max(3, 100 - rto), rto + '분 내 복구', rto <= 15 ? '#fca5a5' : '#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "rpo",
+              "label": "RPO — 허용 손실(분)",
+              "type": "range",
+              "min": 0,
+              "max": 240,
+              "step": 5,
+              "value": 60
+            },
+            {
+              "id": "rto",
+              "label": "RTO — 허용 복구시간(분)",
+              "type": "range",
+              "min": 5,
+              "max": 240,
+              "step": 5,
+              "value": 60
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**RPO 와 RTO 는 다른 것이다.** RPO 는 「사고 직전 **어느 시점**으로 돌아가나」(데이터 손실량), RTO 는 「그 복구가 **얼마나 걸리나**」(다운타임)다. 하루 1회 백업이면 RPO 는 최대 24시간, 복원이 8시간 걸리면 RTO 는 8시간이다. 둘을 따로 목표로 세운다."
+        },
+        {
+          "type": "p",
+          "text": "**「0」은 공짜가 아니다.** RPO 0(한 건도 안 잃음)·RTO 0(무중단)은 동기 복제·자동 페일오버 같은 비싼 구조를 요구한다. 모든 데이터가 그렇게 중요하진 않다 — 결제는 RPO 0 에 가깝게, 로그·캐시는 느슨하게. **데이터 중요도별로** 목표를 다르게 잡는 것이 현실적이다."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스의 핵심 데이터에 대해 RPO·RTO 를 숫자로 적어라. 지금의 백업 방식이 그 숫자를 실제로 만족하는지(마지막 백업 시각·복원 소요) 대조하라."
+        }
       ],
-      "answer": 0,
-      "why": "시점 복구가 필요하다."
+      "quiz": [
+        {
+          "q": "RPO 가 뜻하는 것은?",
+          "choices": [
+            "복구에 걸리는 시간",
+            "얼마까지의 데이터를 잃어도 되나(복구 시점)",
+            "백업 크기",
+            "사본 수"
+          ],
+          "answer": 1,
+          "why": "데이터 손실량."
+        },
+        {
+          "q": "RTO 가 뜻하는 것은?",
+          "choices": [
+            "데이터 손실량",
+            "얼마 안에 살아나야 하나(복구 시간)",
+            "백업 주기",
+            "저장 비용"
+          ],
+          "answer": 1,
+          "why": "다운타임."
+        },
+        {
+          "q": "RPO 0·RTO 0 에 대한 올바른 태도는?",
+          "choices": [
+            "항상 목표",
+            "비싸다 — 데이터 중요도별로 다르게 잡는다",
+            "불가능",
+            "기본값"
+          ],
+          "answer": 1,
+          "why": "모든 데이터가 같지 않다."
+        }
+      ]
     },
     {
-      "q": "백업이 유효한지 아는 유일한 방법은?",
-      "choices": [
-        "실제로 복원해 보고 앱까지 확인",
-        "파일 크기 확인",
-        "로그 확인"
+      "id": "2",
+      "title": "백업의 종류 — 논리·물리·증분",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "백업은 크게 **논리 백업**(SQL 덤프 — 데이터를 문장으로)과 **물리 백업**(데이터 파일 자체 복사)으로 나뉜다. 그리고 매번 전부 담는 **전체 백업**과 바뀐 것만 담는 **증분 백업**이 있다. RPO·RTO 와 DB 크기에 따라 조합이 달라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "백업 방식 — 크기·복원 속도·시점 정밀도",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = '{{type}}';\n  const cases = {\n    dump:  ['논리 덤프(pg_dump)', '작다(압축)', '느림(재실행)', '덤프 시점만',\n      '이식성 좋음·버전 간 이동·부분 복원 가능. 큰 DB 엔 복원이 느리다.'],\n    phys:  ['물리 백업(파일 복사)', '큼(원본 크기)', '빠름(그대로)', '백업 시점',\n      '큰 DB 에 빠른 복원. 같은 엔진·버전 필요. PITR 의 기반.'],\n    incr:  ['증분/WAL', '매우 작다(변경분)', '전체+증분 적용', '임의 시점(PITR)',\n      '자주 떠도 부담 적음. 전체 백업 위에 쌓아 특정 순간까지 복원(5장).'],\n  }[t];\n  render('방식: ' + cases[0],\n    '  크기: ' + cases[1] + '\\n  복원 속도: ' + cases[2] + '\\n  복원 가능 시점: ' + cases[3] +\n    '\\n\\n  ' + cases[4],\n    '한 가지만 쓰지 않는다 — 보통 전체(주기적) + 증분/WAL(지속) 를 겹쳐 쓴다.',\n    box(cases[0], '크기 ' + cases[1] + ' · 복원 ' + cases[2] + ' · 시점 ' + cases[3],\n      t === 'incr' ? 'good' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "type",
+              "label": "백업 방식",
+              "type": "select",
+              "value": "dump",
+              "options": [
+                {
+                  "value": "dump",
+                  "label": "논리 덤프"
+                },
+                {
+                  "value": "phys",
+                  "label": "물리 백업"
+                },
+                {
+                  "value": "incr",
+                  "label": "증분/WAL"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "논리 덤프와 복원",
+          "text": "# 덤프 (압축 커스텀 포맷)\npg_dump -Fc mydb > backup.dump\n\n# ★ 빈 DB 에 실제로 복원해 보기 (분기마다 최소 한 번)\ncreatedb restore_test\npg_restore -d restore_test backup.dump\n# 복원 후: 행 수·핵심 쿼리로 무결성 확인, 걸린 시간 기록(= RTO 실측)"
+        },
+        {
+          "type": "note",
+          "text": "**보통은 겹쳐 쓴다.** 주기적 **전체 백업**(기준점) + 지속적 **WAL/증분**(그 사이 변경)의 조합이 표준이다. 전체 백업으로 되돌아간 뒤 증분을 원하는 순간까지 적용하면, 자주 백업하는 부담 없이 촘촘한 RPO(5장 PITR)를 얻는다. 하나만으로는 대개 부족하다."
+        },
+        {
+          "type": "p",
+          "text": "**관리형 DB 라도 「내 백업」을 이해하라.** 클라우드 관리형 DB 는 자동 백업·PITR 를 제공하지만, **보존 기간·복원 소요·다른 계정으로의 내보내기**는 서비스마다 다르다. 「자동이니 괜찮다」가 아니라, 그 자동 백업의 RPO/RTO 와 한계를 문서로 확인하는 것이 여전히 필요하다."
+        },
+        {
+          "type": "try",
+          "text": "네 DB 의 백업이 논리·물리·증분 중 무엇인지, 전체+증분을 겹쳐 쓰는지 확인하라. 관리형이면 보존 기간과 복원 소요를 문서에서 찾아라."
+        }
       ],
-      "answer": 0,
-      "why": "손상·누락은 복원 때만 드러난다."
+      "quiz": [
+        {
+          "q": "논리 덤프(pg_dump)의 특징은?",
+          "choices": [
+            "크고 빠른 복원",
+            "작고 이식성 좋으나 큰 DB 복원이 느림",
+            "임의 시점 복원",
+            "파일 복사"
+          ],
+          "answer": 1,
+          "why": "문장 재실행."
+        },
+        {
+          "q": "촘촘한 RPO 를 부담 적게 얻는 조합은?",
+          "choices": [
+            "전체 백업만 자주",
+            "주기적 전체 + 지속 WAL/증분",
+            "논리 덤프만",
+            "복제만"
+          ],
+          "answer": 1,
+          "why": "기준점 + 변경분."
+        },
+        {
+          "q": "관리형 DB 의 자동 백업에 대한 올바른 태도는?",
+          "choices": [
+            "신경 끔",
+            "보존기간·복원소요·내보내기 한계를 확인",
+            "물리 복사로 대체",
+            "불필요"
+          ],
+          "answer": 1,
+          "why": "자동 ≠ 무조건 충분."
+        }
+      ]
     },
     {
-      "q": "실제로 가장 흔한 데이터 사고는?",
-      "choices": [
-        "사람의 실수(조건 없는 삭제 등)",
-        "디스크 고장",
-        "해킹"
+      "id": "3",
+      "title": "복원해 본 적 없으면 백업이 아니다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**복원해 본 적 없는 백업은 백업이 아니다.** 파일이 매일 생겨도, 그것으로 실제 DB 를 되살릴 수 있는지 확인하지 않았다면 「있다고 믿는 것」일 뿐이다. 정기적으로 **빈 환경에 실제 복원**해, 되살아나는지·얼마나 걸리는지(RTO 실측)를 검증해야 진짜 백업이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "복원 리허설 — 흔한 실패 지점들",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const f = '{{fail}}';\n  const cases = {\n    ok:      ['정상 복원', true, '행 수·핵심 쿼리 일치, RTO 목표 안 -> 진짜 백업 확인'],\n    corrupt: ['파일 손상', false, '덤프가 중간에 잘렸다 — 쓰기 중 오류·용량 부족. 검증 없이 몰랐다'],\n    space:   ['복원 대상 용량 부족', false, '원본만큼 공간이 없어 복원 실패 — 리허설로만 드러난다'],\n    ext:     ['확장·권한 누락', false, '설치 안 된 확장·롤이 없어 복원 중단 — 환경 차이'],\n    slow:    ['8시간 걸림', false, 'RTO 목표는 1시간인데 실측 8시간 -> 목표 미달, 방식 재설계'],\n  }[f];\n  render('복원 리허설 결과: ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">복원 성공 — ' + cases[2] + '</span>'\n      : '<span class=\\\"no\\\">복원 실패 — ' + cases[2] + '</span>') + '\\n\\n' +\n    (cases[1] ? '  이걸 확인했으니 사고 때 믿고 쓸 수 있다.'\n              : '  이 실패는 실제 사고 전에 리허설로만 잡을 수 있었다.'),\n    '백업 파일 존재 ≠ 복원 가능. 실제 복원 리허설만이 증명한다.',\n    box(cases[1] ? '검증됨' : '숨은 실패',\n      cases[1] ? '리허설 통과 — RTO 실측 기록' : cases[2] + '\\n=> 리허설 없이는 사고 당일에야 발견',\n      cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "fail",
+              "label": "리허설 시나리오",
+              "type": "select",
+              "value": "corrupt",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "정상"
+                },
+                {
+                  "value": "corrupt",
+                  "label": "파일 손상"
+                },
+                {
+                  "value": "space",
+                  "label": "용량 부족"
+                },
+                {
+                  "value": "ext",
+                  "label": "확장/권한 누락"
+                },
+                {
+                  "value": "slow",
+                  "label": "너무 느림"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**복원 리허설을 자동화·정기화하라.** 분기마다(또는 매월) 빈 환경에 최신 백업을 복원하고, 행 수·핵심 쿼리로 무결성을 확인하고, 걸린 시간을 기록한다. 이 리허설을 CI/스케줄로 자동화하면 「조용히 망가진 백업」을 사고 전에 잡는다."
+        },
+        {
+          "type": "p",
+          "text": "**리허설은 RTO 를 실측하는 유일한 방법이다.** 「복원은 한 시간이면 되겠지」는 추측이다. 실제로 해 보면 용량·확장·인덱스 재생성 때문에 몇 배 걸리곤 한다. 리허설로 잰 시간이 RTO 목표를 넘으면, 백업 방식(물리·증분)이나 복구 인프라를 다시 설계해야 한다(황금의 정신: 측정)."
+        },
+        {
+          "type": "try",
+          "text": "지금 당장 최신 백업을 빈 DB 에 복원해 보라. 성공하는지, 무결성이 맞는지, 걸린 시간이 RTO 안인지 세 가지를 기록하라. 실패하면 그 자체가 가장 중요한 발견이다."
+        }
       ],
-      "answer": 0,
-      "why": "시점 복구와 소프트 삭제로 대비한다."
+      "quiz": [
+        {
+          "q": "「진짜 백업」의 조건은?",
+          "choices": [
+            "파일이 매일 생김",
+            "실제 복원 리허설로 되살아남을 검증",
+            "용량이 큼",
+            "여러 사본"
+          ],
+          "answer": 1,
+          "why": "복원 안 해본 건 믿음일 뿐."
+        },
+        {
+          "q": "RTO 를 실측하는 유일한 방법은?",
+          "choices": [
+            "추측",
+            "실제 복원 리허설로 시간을 잼",
+            "백업 크기 계산",
+            "문서"
+          ],
+          "answer": 1,
+          "why": "해봐야 안다."
+        },
+        {
+          "q": "복원 리허설로만 잡히는 흔한 실패가 아닌 것은?",
+          "choices": [
+            "파일 손상",
+            "용량 부족",
+            "확장/권한 누락",
+            "인덱스 선택도"
+          ],
+          "answer": 3,
+          "why": "선택도는 백업과 무관."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "어디에 두나 — 3-2-1 규칙",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "백업을 **원본 옆에만** 두면, 그 장소를 덮치는 사고(계정 잠김·리전 장애·랜섬웨어)에 원본과 함께 사라진다. 고전적 원칙 **3-2-1**: 사본 **3개**, 서로 다른 매체 **2종**, 그중 **1개는 다른 장소**(계정·리전·오프라인). 이것이 「같이 죽는」 것을 막는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "장애 시나리오 — 백업이 살아남나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const setup = '{{setup}}';\n  const scenario = '{{scenario}}';\n  const survives = {\n    same: { disk: false, account: false, region: false },   // 원본 옆에만\n    region: { disk: true, account: false, region: false },  // 같은 계정 다른 리전\n    offsite: { disk: true, account: true, region: true },   // 다른 계정/오프사이트\n  }[setup][scenario];\n  const sName = { same: '원본 서버에만', region: '같은 계정·다른 리전', offsite: '다른 계정/오프사이트 사본' }[setup];\n  const scName = { disk: '디스크 고장', account: '계정 잠김/삭제', region: '리전 전체 장애' }[scenario];\n  render('백업 위치: ' + sName + '  ·  사고: ' + scName,\n    '  결과 = ' + (survives\n      ? '<span class=\\\"ok\\\">백업 생존 — 복구 가능</span>'\n      : '<span class=\\\"no\\\">백업도 함께 소실 — 복구 불가</span>') + '\\n\\n' +\n    '  3-2-1 의 핵심은 「그중 1개는 다른 장소」 — 이것이 광역 사고를 견딘다.',\n    '백업을 원본과 같은 운명에 두지 마라. 최소 하나는 다른 계정·리전·매체.',\n    bars([['이 구성의 생존', survives ? 90 : 8, survives ? '견딤' : '함께 소실', survives ? '#4ade80' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "setup",
+              "label": "백업 위치",
+              "type": "select",
+              "value": "same",
+              "options": [
+                {
+                  "value": "same",
+                  "label": "원본 옆에만"
+                },
+                {
+                  "value": "region",
+                  "label": "같은 계정·다른 리전"
+                },
+                {
+                  "value": "offsite",
+                  "label": "다른 계정/오프사이트"
+                }
+              ]
+            },
+            {
+              "id": "scenario",
+              "label": "사고",
+              "type": "select",
+              "value": "account",
+              "options": [
+                {
+                  "value": "disk",
+                  "label": "디스크 고장"
+                },
+                {
+                  "value": "account",
+                  "label": "계정 잠김/삭제"
+                },
+                {
+                  "value": "region",
+                  "label": "리전 전체 장애"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**같은 클라우드 계정 안에만 두면 계정이 잠기면 같이 잠긴다.** 결제 문제·해킹·실수로 계정이 정지되면 그 안의 모든 리소스와 백업이 동시에 막힌다. 최소 하나의 사본은 **다른 계정이나 완전히 분리된 저장소**에 둬, 한 계정의 운명과 떼어 놓아라."
+        },
+        {
+          "type": "p",
+          "text": "**오프사이트 사본은 되도록 변경 불가·삭제 지연으로.** 랜섬웨어·악의적 삭제는 접근 가능한 백업을 함께 지운다. 오브젝트 잠금(WORM)·버전 보관·삭제 유예를 걸면, 공격자나 실수가 백업까지 지우지 못한다. 「백업을 지울 수 있는 권한」을 최소화하는 것도 백업 전략의 일부다."
+        },
+        {
+          "type": "try",
+          "text": "네 백업 사본이 몇 개인지, 서로 다른 매체·장소인지 세어 보라. 전부 같은 계정·리전 안이라면, 하나를 다른 계정이나 오프사이트로 옮기고 삭제 보호를 걸어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "3-2-1 규칙의 「1」이 뜻하는 것은?",
+          "choices": [
+            "사본 1개",
+            "그중 1개는 다른 장소(오프사이트)",
+            "1일 보관",
+            "1종 매체"
+          ],
+          "answer": 1,
+          "why": "광역 사고 대비."
+        },
+        {
+          "q": "백업을 원본과 같은 계정에만 두면?",
+          "choices": [
+            "안전",
+            "계정 잠김 시 백업도 함께 막힘",
+            "더 빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "같은 운명."
+        },
+        {
+          "q": "랜섬웨어·악의적 삭제에 대비한 오프사이트 사본의 성질은?",
+          "choices": [
+            "자주 덮어쓰기",
+            "변경 불가·삭제 지연(WORM·버전 보관)",
+            "공개 접근",
+            "삭제 권한 넓게"
+          ],
+          "answer": 1,
+          "why": "백업까지 지우지 못하게."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "특정 시점 복구 — PITR",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "하루 1회 백업만 있으면, 사고가 오후 3시에 나도 **자정 상태**로밖에 못 돌아간다 — 15시간치 손실. **PITR(특정 시점 복구)** 는 전체 백업 위에 **WAL(변경 로그)** 을 쌓아, **사고 1분 전** 같은 임의의 순간으로 되돌린다. 촘촘한 RPO 의 핵심 기술이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "PITR — 사고 직전으로 되감기",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const restoreTo = {{point}};           // 복구 목표 시각(사고=오후3시=180)\n  const incident = 180;                  // 사고 시각(분, 정오 기준)\n  const lastFull = 0;                    // 자정 전체 백업\n  const noPitrLoss = incident - lastFull;\n  const pitrLoss = Math.max(0, incident - restoreTo);\n  render('전체백업 자정 + WAL 지속 · 사고 오후3시',\n    '  PITR 없이(전체백업만): ' + Math.floor(noPitrLoss / 60) + '시간치 손실(자정으로)\\n' +\n    '  PITR 로 ' + Math.floor(restoreTo / 60) + '시 ' + (restoreTo % 60) + '분 으로 복구: <span class=\\\"' +\n      (pitrLoss <= 5 ? 'ok' : 'warn') + '\\\">' + pitrLoss + '분치만 손실</span>\\n\\n' +\n    '  WAL 을 원하는 순간까지 적용해 사고 직전으로 — 나쁜 쿼리 「전」으로 되감는다.',\n    '전체 백업으로 기준점, 그 위에 WAL 을 적용해 임의 시점으로. 손실을 분 단위로.',\n    timeline([['백업', [[1, 'ok2', '자정 전체'], [9, 'work', 'WAL 계속 쌓임']]],\n              ['복구점', [[Math.max(1, restoreTo / 20), 'ok2', restoreTo === incident ? '' : '여기로 복구'],\n                          [Math.max(0.5, (incident - restoreTo) / 20), 'bad2', '버림']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "point",
+              "label": "복구 목표 시각(분, 정오+)",
+              "type": "range",
+              "min": 0,
+              "max": 180,
+              "step": 5,
+              "value": 175
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "PITR 의 구성",
+          "text": "① 기준: 주기적 전체(베이스) 백업\n② 지속: WAL(Write-Ahead Log) 을 계속 보관\n③ 복구: 베이스를 복원한 뒤, WAL 을 목표 시각까지 재생(replay)\n     recovery_target_time = '2026-08-13 14:59:00'  -- 나쁜 DELETE 직전\n\n=> RPO 를 「마지막 백업」이 아니라 「WAL 보관 간격(초~분)」으로."
+        },
+        {
+          "type": "note",
+          "text": "**PITR 는 실수 복구(6장)에 특히 강하다.** 「오후 3시에 WHERE 없이 DELETE」를 저질렀다면, 2시 59분으로 복구해 그 한 문장 직전 상태를 되찾는다. 전체 백업만으로는 불가능한, 「나쁜 일이 일어나기 직전」으로의 정밀 되감기가 PITR 의 진짜 가치다."
+        },
+        {
+          "type": "p",
+          "text": "**WAL 도 백업의 일부다 — 함께 오프사이트로.** PITR 는 베이스 백업과 WAL 이 **둘 다** 온전해야 동작한다. WAL 을 원본 옆에만 두면 광역 사고에 함께 사라져 PITR 가 무력해진다. WAL 아카이브도 3-2-1(4장)의 대상이며, 보관 기간이 곧 PITR 로 되감을 수 있는 범위다."
+        },
+        {
+          "type": "try",
+          "text": "네 DB 가 PITR 를 지원·설정하고 있는지, WAL(또는 관리형의 연속 백업) 보관 기간이 얼마인지 확인하라. 「사고 5분 전으로 복구」가 실제로 가능한지 리허설로 시험하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "PITR(특정 시점 복구)가 하는 일은?",
+          "choices": [
+            "백업 압축",
+            "전체 백업 + WAL 로 임의 시점으로 되감기",
+            "복제",
+            "인덱스 복구"
+          ],
+          "answer": 1,
+          "why": "사고 직전으로."
+        },
+        {
+          "q": "PITR 가 특히 강한 상황은?",
+          "choices": [
+            "디스크 고장",
+            "실수(WHERE 없는 DELETE) 직전으로 복구",
+            "느린 쿼리",
+            "락"
+          ],
+          "answer": 1,
+          "why": "나쁜 문장 직전으로 정밀 복구."
+        },
+        {
+          "q": "PITR 가 동작하려면 함께 온전해야 하는 것은?",
+          "choices": [
+            "인덱스",
+            "베이스 백업 + WAL(둘 다, 오프사이트)",
+            "복제본만",
+            "덤프만"
+          ],
+          "answer": 1,
+          "why": "WAL 도 3-2-1 대상."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "실수가 더 흔하다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "백업이라 하면 서버 화재를 떠올리지만, 실제로 데이터를 날리는 건 대개 **사람**이다. **「WHERE 빼고 DELETE/UPDATE」**, 잘못된 마이그레이션, 버그가 지운 행 — 이런 실수가 하드웨어 고장보다 훨씬 자주 일어난다. 백업 전략은 이 「내부 사고」를 1순위로 대비해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "데이터 손실의 실제 원인 분포",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  const causes = [\n    ['사람 실수(잘못된 쿼리·삭제)', 55, '#fca5a5'],\n    ['앱 버그(잘못된 쓰기·삭제)', 22, '#fbbf24'],\n    ['악의(해킹·랜섬웨어)', 13, '#f59e0b'],\n    ['하드웨어·인프라 고장', 10, '#38bdf8'],\n  ];\n  render('무엇이 데이터를 날리나 (대략의 경향)',\n    '  ' + (view === 'defense'\n      ? 'PITR(직전 복구) · 소프트 삭제 · 위험 쿼리 리뷰 · 최소 권한\\n' +\n        '  -> 대비의 무게중심을 「사람·앱 실수」에 둬라(합쳐 대부분).'\n      : '「화재 대비」만 하면 정작 흔한 실수에 무방비다.\\n' +\n        '  물리 재해는 소수 — 대비는 필요하되 1순위는 아니다.'),\n    '가장 흔한 원인은 사람과 앱의 실수. 백업·복구 설계의 무게중심을 여기에.',\n    bars(causes.map(c => [c[0], c[1] * 1.5, c[1] + '%', c[2]])));\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "cause",
+              "options": [
+                {
+                  "value": "cause",
+                  "label": "원인 분포"
+                },
+                {
+                  "value": "defense",
+                  "label": "그에 맞는 대비"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**소프트 삭제로 실수의 대부분을 흡수한다.** 즉시 물리 삭제 대신 `deleted_at` 플래그로 「숨김」 처리하면, 잘못 지운 것을 **쿼리 한 줄로** 되살린다. 백업 복원까지 갈 필요 없는, 가장 값싼 안전망이다(db-migrate 5장과 같은 발상). 진짜 삭제는 한참 뒤 배치로."
+        },
+        {
+          "type": "p",
+          "text": "**위험한 쓰기에 방어선을 겹쳐라.** 운영 DB 에 직접 `DELETE/UPDATE` 를 날리기 전 ① `SELECT` 로 대상 행 수 확인 ② 트랜잭션으로 감싸 `ROLLBACK` 여지 ③ 최소 권한(대량 삭제 권한 분리) ④ 그래도 사고 나면 PITR(5장). 한 겹이 뚫려도 다음 겹이 잡게 여러 층으로 막는다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템에서 「WHERE 없는 DELETE」가 실제로 실행 가능한지 점검하라. 핵심 테이블에 소프트 삭제를 도입하고, 운영 쿼리에 트랜잭션·대상 확인 습관을 규칙으로 세워라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 손실의 가장 흔한 원인은?",
+          "choices": [
+            "하드웨어 고장",
+            "사람·앱의 실수(잘못된 쿼리·버그)",
+            "리전 장애",
+            "정전"
+          ],
+          "answer": 1,
+          "why": "내부 사고가 1순위."
+        },
+        {
+          "q": "잘못 지운 데이터를 가장 값싸게 되살리는 방법은?",
+          "choices": [
+            "전체 복원",
+            "소프트 삭제(deleted_at)로 쿼리 복구",
+            "재시작",
+            "복제"
+          ],
+          "answer": 1,
+          "why": "백업 복원까지 안 가도 된다."
+        },
+        {
+          "q": "위험한 운영 쿼리의 방어선이 아닌 것은?",
+          "choices": [
+            "대상 행 수 SELECT 확인",
+            "트랜잭션으로 ROLLBACK 여지",
+            "최소 권한 분리",
+            "인덱스 추가"
+          ],
+          "answer": 3,
+          "why": "인덱스는 실수 방어와 무관."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "감시 — 조용한 실패를 잡아라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 위험한 백업은 **조용히 실패하고 있는** 백업이다. 스크립트가 어느 날부터 에러를 내는데 아무도 안 보면, 「백업이 6개월째 0바이트」인 채로 사고를 맞는다. 백업의 **성공 여부**와 **마지막 성공 시각**을 지표·알림으로 만들어야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "마지막 성공 시각을 감시하지 않으면",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const days = {{days}};                 // 마지막 성공 이후 경과(일)\n  const monitored = '{{mon}}' === 'on';\n  const alerted = monitored && days >= 1;\n  render('마지막 백업 성공: ' + days + '일 전  · 감시 ' + (monitored ? 'ON' : 'OFF'),\n    '  실제 RPO = <span class=\\\"' + (days >= 2 ? 'no' : 'warn') + '\\\">' + days + '일치 위험</span>' +\n      ' (성공 이후 데이터는 백업 안 됨)\\n\\n' +\n    (monitored\n      ? (alerted ? '  <span class=\\\"warn\\\">알림 발생 — ' + days + '일째 실패를 즉시 인지, 오늘 조치.</span>'\n                 : '  <span class=\\\"ok\\\">정상 — 어제 성공, 감시가 지켜본다.</span>')\n      : '  <span class=\\\"no\\\">감시 OFF — ' + days + '일째 실패를 아무도 모른다. 사고 당일 발견.</span>'),\n    '「마지막 성공 시각」을 지표로 만들고, 하루만 밀려도 알림이 오게 하라.',\n    bars([['마지막 성공 이후', Math.min(100, days * 12), days + '일 전', days >= 2 ? '#fca5a5' : '#4ade80'],\n          ['감시', monitored ? 90 : 6, monitored ? '켜짐' : '꺼짐', monitored ? '#4ade80' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "days",
+              "label": "마지막 성공 이후(일)",
+              "type": "range",
+              "min": 0,
+              "max": 14,
+              "step": 1,
+              "value": 5
+            },
+            {
+              "id": "mon",
+              "label": "감시",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**성공을 감시하라, 실패를 기다리지 말고.** 「실패하면 알림」만 걸면, 스크립트가 아예 안 도는(그래서 실패 알림도 안 나는) 경우를 놓친다. **「N 시간 안에 성공 신호가 없으면 알림」**(dead-man's switch)이 더 안전하다 — 침묵 자체를 이상으로 본다."
+        },
+        {
+          "type": "p",
+          "text": "**백업의 「성공」을 파일 존재로 판단하지 마라.** 0바이트 파일도 「생겼다」. 진짜 성공은 ① 크기가 합리적인가 ② 무결성 체크(체크섬·테스트 복원 3장)를 통과하는가까지다. 감시 지표에 크기·복원 검증 결과를 포함해야 「있는데 못 쓰는」 백업을 거른다."
+        },
+        {
+          "type": "try",
+          "text": "백업의 「마지막 성공 시각」을 지표로 내보내고, 예상 주기를 넘기면 알림이 오게 하라(dead-man's switch). 성공 판정에 파일 크기·무결성 검사를 포함하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 위험한 백업 상태는?",
+          "choices": [
+            "느린 백업",
+            "조용히 실패 중인데 아무도 모르는 백업",
+            "큰 백업",
+            "압축 백업"
+          ],
+          "answer": 1,
+          "why": "6개월 쌓인 0바이트."
+        },
+        {
+          "q": "「실패 시 알림」만의 허점은?",
+          "choices": [
+            "느림",
+            "스크립트가 아예 안 돌면 실패 알림도 안 남",
+            "비용",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "침묵을 감시(dead-man's switch)."
+        },
+        {
+          "q": "백업 「성공」의 올바른 판정은?",
+          "choices": [
+            "파일 존재",
+            "합리적 크기 + 무결성/테스트 복원 통과",
+            "0바이트라도 생성",
+            "로그 한 줄"
+          ],
+          "answer": 1,
+          "why": "있는데 못 쓰는 것 거르기."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "복구 연습 — 런북과 자동화",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "사고는 새벽 3시에, 당황한 채로 닥친다. 그때 처음 복구 절차를 고민하면 RTO 를 못 지킨다. **복구 절차를 런북(runbook)으로 적어 두고**, 정기적으로 **연습(리허설)**해 손에 익혀야 한다. 복구는 「할 수 있다」가 아니라 「해 봤다」여야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "복구 준비도 — 무엇까지 되어 있나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const level = {{level}};\n  const items = [\n    '백업이 존재한다 (파일이 생긴다)',\n    '복원을 최소 한 번 성공시켜 봤다 (3장)',\n    '복구 절차가 런북으로 문서화돼 있다',\n    '정기 복구 리허설로 RTO 를 실측한다',\n    '복구가 상당 부분 자동화(스크립트)돼 있다',\n  ];\n  const view = items.map((t, i) => [t, i < level ? 'good' : (i === level ? 'on' : '')]);\n  render('복구 준비도 레벨 ' + level + '/5',\n    '  ' + (level >= 4 ? '<span class=\\\"ok\\\">새벽 3시 사고에도 런북+자동화로 침착하게 복구.</span>'\n     : level >= 2 ? '<span class=\\\"warn\\\">복원은 되지만, 절차가 머릿속에만 — 당황하면 느려진다.</span>'\n     : '<span class=\\\"no\\\">파일만 있고 복구는 미검증 — 사고 당일 처음 시도하게 된다.</span>') +\n    '\\n\\n  준비도가 오를수록 RTO 가 짧아지고 흔들림이 준다.',\n    '복구는 「해 봤다」여야 한다. 런북 + 리허설 + 자동화로 준비도를 올려라.',\n    steps(view));\n</script>",
+          "controls": [
+            {
+              "id": "level",
+              "label": "복구 준비도",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**런북에 담을 것: 명령·순서·연락·검증.** 정확한 복원 명령, 베이스+WAL 적용 순서(PITR), 누구에게 알릴지, 복구 후 무결성을 어떻게 확인할지까지 적는다. 사고 중엔 판단력이 떨어지므로, **그대로 따라 하면 되는** 체크리스트여야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**복구를 자동화하면 RTO 와 스트레스가 함께 준다.** 복원·WAL 적용·검증을 스크립트 한두 개로 묶으면, 손 떨리는 수동 작업의 실수가 사라지고 시간이 준다. 백업 인프라를 코드로(IaC) 두면, 복구 환경 자체를 재현 가능하게 세울 수 있다(devops 트랙과 이어진다)."
+        },
+        {
+          "type": "try",
+          "text": "복구 절차를 런북으로 적고, 스테이징에서 그 런북만 보고 복구를 완주해 보라. 막히는 단계가 있으면 런북을 고치고, 반복되는 수동 단계를 스크립트로 자동화하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "복구를 런북으로 문서화·연습하는 이유는?",
+          "choices": [
+            "규정",
+            "사고 시 판단력이 떨어져도 그대로 따라 하게",
+            "빠른 백업",
+            "저장 절약"
+          ],
+          "answer": 1,
+          "why": "「해 봤다」여야 RTO 를 지킨다."
+        },
+        {
+          "q": "복구 준비도가 오르면?",
+          "choices": [
+            "백업이 커짐",
+            "RTO 가 짧아지고 흔들림이 줄어듦",
+            "RPO 증가",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "런북+리허설+자동화."
+        },
+        {
+          "q": "복구 자동화의 효과가 아닌 것은?",
+          "choices": [
+            "RTO 단축",
+            "수동 실수 감소",
+            "재현 가능한 복구 환경",
+            "RPO 를 0 으로"
+          ],
+          "answer": 3,
+          "why": "RPO 는 백업 주기가 정한다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 백업과 복구",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "백업 전략을 세우거나 점검할 때 이 목록을 확인하라. 핵심은 「목표를 숫자로·복원을 검증·사본을 분산·성공을 감시」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    'RPO·RTO 를 숫자로 정했다(데이터 중요도별)',\n    '전체 + 증분/WAL 를 겹쳐 RPO 를 촘촘히',\n    '실제 복원 리허설로 RTO 를 실측했다',\n    '3-2-1 — 사본 3·매체 2·오프사이트 1',\n    'PITR 로 사고 직전 시점 복구가 가능하다',\n    '실수 대비 — 소프트 삭제·위험 쿼리 방어선',\n    '백업 성공·마지막 성공 시각을 감시(침묵도)',\n    '복구 런북 + 정기 리허설 + 자동화',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 몇 분 전으로, 정해진 시간 안에 돌아갈 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '목표를 숫자로·복원을 검증·사본을 분산·성공을 감시. 이 넷이 백업의 전부.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 복원 못 하는 백업은 백업이 아니다.** 파일 존재가 아니라 「몇 분 전으로, 몇 분 안에」 실제로 돌아갈 수 있음을 리허설로 증명한 것만이 백업이다. RPO·RTO 를 정하고(1장), 복원을 검증하고(3장), 감시하는(7장) 순환을 돈다."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙의 합류점.** 백업은 마이그레이션(db-migrate)의 삭제·되돌리기와 안전망을 공유하고, PITR 는 실수 복구로 락·N+1 로는 못 막는 최후의 방어선이 되며, 복구 자동화는 devops 트랙(IaC·런북)과 이어진다. **「복원해 봤는가」라는 한 질문이 백업 전략 전체의 리트머스**다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 지금의 백업을 채점하라. 가장 낮은 것부터 — 특히 「복원 리허설」과 「성공 감시」가 비어 있다면 그 둘을 이번 주에 채워라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "백업 전략의 리트머스 질문 하나는?",
+          "choices": [
+            "파일이 있나",
+            "실제로 복원해 봤는가",
+            "용량이 큰가",
+            "사본이 많은가"
+          ],
+          "answer": 1,
+          "why": "복원 못 하면 백업 아님."
+        },
+        {
+          "q": "백업의 네 기둥은?",
+          "choices": [
+            "크게·자주·압축·복제",
+            "목표를 숫자로·복원 검증·사본 분산·성공 감시",
+            "논리·물리·증분·전체",
+            "RPO만"
+          ],
+          "answer": 1,
+          "why": "네 축이 전부."
+        },
+        {
+          "q": "PITR 가 트랙에서 갖는 위치는?",
+          "choices": [
+            "성능 도구",
+            "락·N+1 로 못 막는 실수의 최후 방어선",
+            "인덱스 대체",
+            "복제 대체"
+          ],
+          "answer": 1,
+          "why": "사고 직전으로 되감기."
+        }
+      ]
     }
   ]
 }
