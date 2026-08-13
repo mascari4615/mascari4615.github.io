@@ -1978,6 +1978,15 @@ await step('모자란 자료로도 판은 열린다 (KL-271)', async () => {
   await m2.locator('.ck-node').first().click();
   await m2.waitForTimeout(ms(500));
   if (bad2.length > 0) throw new Error('거친 판에서 카드를 고르면 터진다: ' + bad2[0]);
+
+  /* 뽑는 문들도 거친 판에서 열어 본다 — 읽는 쪽은 늘 「있겠지」로 자료를 짚는다
+     (실측 2026-08-14: JSON Canvas 만 빨강이었다 — 네모 없는 묶음). */
+  m2.on('dialog', (d) => d.accept().catch(() => {}));
+  for (const key of ['png', 'svg', 'svg-story', 'export', 'mermaid', 'canvas-out', 'print', 'film', 'share']) {
+    await m2.evaluate((k) => document.querySelector(`[data-km="${k}"]`)?.click(), key);
+    await m2.waitForTimeout(ms(900));
+    if (bad2.length > 0) throw new Error(`거친 판에서 「${key}」 가 터진다: ${bad2[0]}`);
+  }
   await ctx2.close();
 });
 

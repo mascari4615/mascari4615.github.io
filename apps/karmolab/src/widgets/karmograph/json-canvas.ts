@@ -47,10 +47,16 @@ function nodeToText(spec: GraphSpec, n: GraphNode): string {
   return lines.join('\n');
 }
 
+/** 숫자가 아니면 기본값 — 자료가 모자란 것과 못 내보내는 것은 다르다. */
+const num = (v: unknown, fallback: number): number =>
+  (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+
 export function toJsonCanvas(spec: GraphSpec): JsonCanvas {
   return {
     nodes: [
-      ...spec.groups.map((g): CanvasNode => ({
+      /* ★ 네모가 없는 묶음은 **내보낼 자리가 없다** — 건너뛴다.
+         (없는 채로 읽다가 내보내기 자체가 터졌다: 실측 2026-08-14, 거친 판에서 JSON Canvas만 빨강.) */
+      ...spec.groups.filter((g) => g.bbox).map((g): CanvasNode => ({
         id: g.id,
         type: 'group',
         x: Math.round(g.bbox.x),
@@ -59,13 +65,15 @@ export function toJsonCanvas(spec: GraphSpec): JsonCanvas {
         height: Math.round(g.bbox.h),
         label: g.label,
       })),
+      /* 자리·크기가 안 적힌 카드도 있다. `Math.round(undefined)` 는 **NaN** 인데, NaN 이 든
+         파일은 여는 쪽에서 조용히 깨진다(터지지도 않아 더 나쁘다) — 기본 자리로 채운다. */
       ...spec.nodes.map((n): CanvasNode => ({
         id: n.id,
         type: 'text',
-        x: Math.round(n.x),
-        y: Math.round(n.y),
-        width: Math.round(n.w),
-        height: Math.round(n.h),
+        x: Math.round(num(n.x, 0)),
+        y: Math.round(num(n.y, 0)),
+        width: Math.round(num(n.w, 160)),
+        height: Math.round(num(n.h, 44)),
         text: nodeToText(spec, n),
       })),
     ],
