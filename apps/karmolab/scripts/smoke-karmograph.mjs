@@ -1823,6 +1823,52 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+await step('영어·일본어 화면에 한국어가 안 남는다 (KL-271)', async () => {
+  /* 코드 검사(알맹이)는 **글이 코드에 박혀 있나**를 본다. 그런데 화면에는 다른 길로도 글이 온다 —
+     기본값·다른 말 묶음·붙여 만든 문장. 실제로 띄워 보니 「이 Person에 대해 적어 두는 것」이
+     영어 화면에 그대로 떴다 (2026-08-14). 그래서 **띄워서** 잰다. */
+  for (const lang of ['en', 'ja']) {
+    const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+    const m = await ctx.newPage();
+    const missing = [];
+    m.on('pageerror', (e) => { if (String(e).includes('Missing translation')) missing.push(String(e).slice(0, 120)); });
+    await m.addInitScript((l) => {
+      localStorage.setItem('karmolab_locale', l);
+      window.__KARMO_LOCALE = l;
+    }, lang);
+    await m.goto(URL, { waitUntil: 'domcontentloaded' });
+    await m.waitForSelector('.km-canvas', { timeout: ms(10000) });
+    await m.waitForTimeout(ms(1200));
+
+    // 카드 하나 + 칸 하나 + 서랍까지 — 글이 가장 많이 나오는 자리들을 편다.
+    const cbox = await m.locator('.km-canvas').boundingBox();
+    await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.3);
+    await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+    await m.keyboard.type('A');
+    await m.keyboard.press('Enter');
+    await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+    await m.locator('[data-km="more"]').click();
+    await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+
+    const said = await m.evaluate(() => {
+      const kor = /[가-힣]/;
+      const found = [];
+      for (const el of document.querySelectorAll('.km-root *')) {
+        if (el.children.length > 0) continue;
+        const text = (el.textContent || '').trim();
+        if (text && kor.test(text)) found.push(text.slice(0, 30));
+        for (const attr of ['placeholder', 'title', 'aria-label']) {
+          const v = el.getAttribute?.(attr) || '';
+          if (v && kor.test(v)) found.push(`[${attr}] ${v.slice(0, 25)}`);
+        }
+      }
+      return [...new Set(found)];
+    });
+    if (said.length > 0) throw new Error(`${lang} 화면에 한국어가 남았다: ${said.slice(0, 4).join(' · ')}`);
+    if (missing.length > 0) throw new Error(`${lang} 화면에 없는 말 묶음: ${missing[0]}`);
+    await ctx.close();
+  }
+});
 await step('덮개를 닫으면 초점이 제자리로 돌아온다 — 자리를 잃지 않는다 (KL-271)', async () => {
   /* 실측 2026-08-14: 팔레트를 Esc 로 닫으면 초점이 body 로 떨어졌다 — 자판만 쓰는 사람은
      그 순간 자리를 잃고, 다음 Tab 이 페이지 맨 위에서 다시 시작한다. */
