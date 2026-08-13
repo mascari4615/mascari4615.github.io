@@ -363,7 +363,10 @@ import {
     /* 자주 안 쓰는 명령은 서랍에서 접는다 — 목록에서 사라지는 게 아니라 이름으로 부른다(Ctrl+K). */
     .km-drawer .km-cmd-rare { display:none; }
     /* ── 명령 팔레트 (TASK-KL-271 R3) ── 화면 한가운데 뜨는 한 칸. 치면 좁혀지고 Enter 로 실행. */
-    .km-pal { position:absolute; inset:0; z-index:40; display:flex; justify-content:center;
+    /* ★ 팔레트는 **모두의 위**다 (z-index 972). 40 이던 동안 폰에서는 아래 시트(960)가 결과
+       목록을 덮어, 칸에 글자는 쳐지는데 **고를 수가 없었다**(실측 2026-08-14: 보이는 아홉 중
+       여섯이 시트 단추에 잡혔다 — 자판 Enter 를 아는 사람만 쓸 수 있었던 셈). */
+    .km-pal { position:absolute; inset:0; z-index:972; display:flex; justify-content:center;
       align-items:flex-start; padding-top:12vh; background:rgba(0,0,0,.45); }
     .km-pal.hidden { display:none; }
     .km-pal-box { width:min(420px, 92%); max-height:60vh; display:flex; flex-direction:column;
