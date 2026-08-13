@@ -1,100 +1,820 @@
 {
   "id": "net-diag",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「인터넷이 느려요」는 증상이지 원인이 아니다. 도구는 **어느 구간에서 시간이 갔는지**를 숫자로 만든다."
-    },
-    {
-      "type": "h",
-      "text": "1. 도구별 담당 구간"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "아래에서 위로",
-      "text": "ping        상대까지 닿나 · 왕복 지연     (IP 층)\ntraceroute  어느 구간에서 늦나            (경로)\ndig         이름이 제대로 풀리나          (DNS)\ncurl -w     각 단계에 몇 ms 썼나          (앱 전체)\ntcpdump     실제로 무엇이 오갔나          (최후의 진실)"
-    },
-    {
-      "type": "h",
-      "text": "2. curl 로 구간 분해 — 제일 자주 쓴다"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "이 한 줄이면 대부분 끝난다",
-      "text": "curl -o /dev/null -s -w \"dns:%{time_namelookup}s connect:%{time_connect}s tls:%{time_appconnect}s first-byte:%{time_starttransfer}s total:%{time_total}s\\n\" https://example.com\n\n# 읽는 법\n#  dns 가 크다        → 리졸버 문제\n#  connect 가 크다    → 거리·경로·혼잡\n#  tls 가 크다        → 인증서 체인·핸드셰이크\n#  first-byte 가 크다 → 서버가 느린 것 (네트워크 아님)  ← 흔한 오진 지점"
-    },
-    {
-      "type": "h",
-      "text": "3. ping 과 traceroute 읽는 법"
-    },
-    {
-      "type": "note",
-      "text": "중간 홉이 **응답 안 함(\\*)** 인 건 정상일 때가 많다 — 라우터가 응답을 안 할 뿐 통과는 시킨다. 중요한 건 **그 다음 홉부터 계속 안 되는지**, 그리고 특정 홉부터 지연이 확 뛰는지다."
-    },
-    {
-      "type": "h",
-      "text": "4. 어디까지 내 책임인가"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "경계 긋기",
-      "text": "내 기기 → 공유기      : 내 책임\n공유기 → 통신사       : 회선\n통신사 → 중간 인터넷   : 아무도 못 고침 (경로만 바뀌길 기다림)\n목적지 서버           : 서버 책임\n\nfirst-byte 만 크다면 네트워크를 계속 봐도 답이 없다"
-    },
-    {
-      "type": "h",
-      "text": "5. 기록해 두라"
-    },
-    {
-      "type": "p",
-      "text": "느릴 때만 재면 비교 대상이 없다. **평소 값**을 한 번 재서 적어 두면 다음 사고 때 「원래 이랬나」를 5초에 판단한다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "위 curl 한 줄을 내 사이트와 유명 사이트에 각각 돌려 다섯 숫자를 비교하고, 차이가 큰 구간을 지목하라."
-    },
-    {
-      "type": "try",
-      "text": "평소 값을 파일에 적어 두고, 하루 뒤 다시 재서 변동 폭을 보라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "curl 결과에서 first-byte 만 유독 크다면 원인은?",
-      "choices": [
-        "서버 처리 자체가 느리다",
-        "회선이 느리다",
-        "DNS 가 느리다"
+      "id": "1",
+      "title": "증상이 아니라 어느 구간인지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「인터넷이 느려요」는 **증상이지 원인이 아니다.** 진단의 첫걸음은 「느리다」를 **어느 구간에서 시간이 갔는지** 숫자로 만드는 것이다 — 이름 찾기(DNS)? 연결(TCP)? 보안(TLS)? 서버 처리? 각 구간을 나눠 재면 「그냥 느림」이 「DNS 가 2초」처럼 **한 구간의 문제**로 좁혀진다. 추측이 아니라 측정이다(황금의 정신)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "느림을 구간으로 나눈다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const slow = '{{slow}}';\n  const cases = {\n    dns:    ['DNS 가 느림', [1800, 50, 40, 60], '이름→IP 가 오래 — 리졸버·DNS 문제(net-dns)'],\n    connect:['연결이 느림', [40, 900, 40, 60], 'TCP 손잡기 오래 — 네트워크·거리·방화벽'],\n    tls:    ['TLS 가 느림', [40, 50, 700, 60], '보안 협상 오래 — 인증서·프로토콜(net-tls)'],\n    server: ['서버가 느림', [40, 50, 40, 2500], 'TTFB(첫 바이트) 오래 — 서버 처리(db-explain)'],\n  }[slow];\n  const [d, c, t, s] = cases[1];\n  render('증상: 「' + cases[0] + '」',\n    '  구간별 시간을 재니 → ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">「그냥 느림」이 「이 구간이 느림」으로 좁혀졌다.</span>',\n    '「느리다」를 구간(DNS·연결·TLS·서버)으로 나눠 재면 원인이 한 구간으로.',\n    bars([['DNS', Math.min(100, d/25), d+'ms', d>500?'#fca5a5':'#4ade80'],\n          ['연결(TCP)', Math.min(100, c/25), c+'ms', c>500?'#fca5a5':'#4ade80'],\n          ['TLS', Math.min(100, t/25), t+'ms', t>500?'#fca5a5':'#4ade80'],\n          ['서버(TTFB)', Math.min(100, s/25), s+'ms', s>500?'#fca5a5':'#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "slow",
+              "label": "느린 구간",
+              "type": "select",
+              "value": "dns",
+              "options": [
+                {
+                  "value": "dns",
+                  "label": "DNS"
+                },
+                {
+                  "value": "connect",
+                  "label": "연결"
+                },
+                {
+                  "value": "tls",
+                  "label": "TLS"
+                },
+                {
+                  "value": "server",
+                  "label": "서버"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**구간 분해가 네트워크 진단의 핵심이다(net-layers 의 층 사고).** 한 요청은 여러 구간(DNS→TCP→TLS→서버 처리→다운로드)을 거치고, 느림은 그중 **한 구간**에 몰려 있는 경우가 많다. 전체를 「느리다」로 뭉뚱그리면 헤매지만, 구간별로 나눠 재면 「어디를 고칠지」가 즉시 보인다. 이 칸의 도구들(2장)이 각 구간을 숫자로 만든다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸은 net 트랙의 종합이다.** 각 구간이 앞 칸들과 대응한다 — DNS(net-dns)·연결(net-tcp-udp·ip)·TLS(net-tls)·서버(db·api). 어느 구간이 느린지 짚으면, 그 칸의 지식으로 원인을 판다. 진단은 「층으로 나눠(net-layers) 어느 층·구간이 문제인지 측정으로 좁히는」 것 — 앞서 배운 모든 것이 여기서 하나의 흐름으로 꿰인다."
+        },
+        {
+          "type": "try",
+          "text": "「느리다」고 느낀 사이트 하나를 구간별로 재 보라(3장 curl 한 줄). 어느 구간이 유독 큰지 보면, 「그냥 느림」이 「이 구간 문제」로 바뀌는 걸 체감한다."
+        }
       ],
-      "answer": 0,
-      "why": "연결·TLS 는 이미 끝난 뒤의 시간이다."
+      "quiz": [
+        {
+          "q": "「인터넷이 느려요」는?",
+          "choices": [
+            "원인",
+            "증상 — 어느 구간인지 숫자로 만들어야",
+            "DNS 문제",
+            "서버 문제"
+          ],
+          "answer": 1,
+          "why": "구간 분해가 첫걸음."
+        },
+        {
+          "q": "네트워크 진단의 핵심은?",
+          "choices": [
+            "재부팅",
+            "구간(DNS·연결·TLS·서버)으로 나눠 측정",
+            "추측",
+            "포트 스캔"
+          ],
+          "answer": 1,
+          "why": "한 구간으로 좁힌다."
+        },
+        {
+          "q": "느린 구간이 서버(TTFB)면 어느 칸으로?",
+          "choices": [
+            "net-dns",
+            "db-explain·api(서버 처리)",
+            "net-tls",
+            "net-nat"
+          ],
+          "answer": 1,
+          "why": "구간이 칸을 가리킨다."
+        }
+      ]
     },
     {
-      "q": "traceroute 중간 홉이 * 로 나오는 것은?",
-      "choices": [
-        "대개 정상 — 응답만 안 할 뿐 통과시킨다",
-        "항상 장애다",
-        "방화벽이 나를 차단했다"
+      "id": "2",
+      "title": "도구별 담당 구간",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "각 도구는 **담당 층·구간**이 다르다. **ping**(상대까지 닿나·왕복 지연 — IP 층) · **traceroute**(어느 구간에서 늦나 — 경로) · **curl**(DNS·연결·TLS·서버까지 전 구간) · **dig/nslookup**(이름 해석 — DNS) · **netstat/lsof**(소켓·포트 — 전송). 「무엇을 의심하나」에 맞는 도구를 골라야 헛수고가 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 문제 — 어떤 도구?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const p = '{{problem}}';\n  const cases = {\n    reach:  ['상대까지 닿나·지연', 'ping', 'IP 층 — 왕복 시간·손실률(net-ip)'],\n    where:  ['어느 구간에서 늦나', 'traceroute', '경로의 홉별 지연 — 어디서 막히나(net-ip 5장)'],\n    breakdown:['구간별 시간 분해', 'curl -w', 'DNS·연결·TLS·서버 각각(3장) — 제일 자주'],\n    name:   ['이름이 IP 로 바뀌나', 'dig/nslookup', 'DNS 조회·전파(net-dns)'],\n    port:   ['그 포트가 열렸나·누가 잡았나', 'netstat/lsof', '소켓 상태(net-tcp-udp 8장)'],\n    cert:   ['인증서가 유효한가', 'openssl s_client', 'TLS·인증서(net-tls 6장)'],\n  }[p];\n  render('의심: ' + cases[0],\n    '  도구: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n  담당: ' + cases[2] + '\\n\\n' +\n    '  「무엇을 의심하나」에 맞는 도구를 골라야 헛수고가 없다.',\n    'ping=닿나·traceroute=경로·curl=구간분해·dig=이름·netstat=포트·openssl=인증서.',\n    box(cases[1], cases[0] + ' → ' + cases[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "problem",
+              "label": "의심",
+              "type": "select",
+              "value": "breakdown",
+              "options": [
+                {
+                  "value": "reach",
+                  "label": "닿나·지연"
+                },
+                {
+                  "value": "where",
+                  "label": "어느 구간"
+                },
+                {
+                  "value": "breakdown",
+                  "label": "구간 분해"
+                },
+                {
+                  "value": "name",
+                  "label": "이름 해석"
+                },
+                {
+                  "value": "port",
+                  "label": "포트"
+                },
+                {
+                  "value": "cert",
+                  "label": "인증서"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "도구별 담당 구간",
+          "text": "ping        상대까지 닿나 · 왕복 지연        (IP 층)\ntraceroute  어느 구간에서 늦나 (홉별)        (경로)\ncurl -w     DNS·연결·TLS·서버 구간 분해       (전 구간) ← 제일 자주\ndig/nslookup 이름 → IP 해석·전파             (DNS)\nnetstat/lsof 포트를 누가 잡았나·소켓 상태     (전송)\nopenssl s_client 인증서·TLS 검증              (TLS)"
+        },
+        {
+          "type": "note",
+          "text": "**도구를 층 지도(net-layers) 위에 놓으면 무엇을 쓸지 명확해진다.** 링크·IP 문제는 ping·traceroute(아래층), 이름은 dig(앱-DNS), 보안은 openssl(앱-TLS), 서버 처리는 curl 의 TTFB(앱-서버). 「어느 층을 의심하나」가 「어느 도구」를 정한다. 아래에서 위로 올라가며(5장) 각 층의 도구로 확인하면, 문제 층을 하나로 좁힌다."
+        },
+        {
+          "type": "p",
+          "text": "**한 도구로 안 되면 다음 도구로 좁힌다.** ping 이 안 되면(닿지도 않음) traceroute 로 어디서 끊기는지, ping 은 되는데 접속이 안 되면 netstat 으로 포트를, 접속은 되는데 느리면 curl -w 로 구간을. 도구들이 **연쇄 진단**을 이룬다 — 하나가 답을 좁히면 다음 도구로 그 안을 더 판다. 이 흐름이 「막연한 느림」을 「이 구간의 이 원인」까지 데려간다."
+        },
+        {
+          "type": "try",
+          "text": "네가 아는 진단 도구를 「담당 층·구간」으로 분류해 표를 만들어라. 다음에 「안 됨/느림」을 만나면, 의심 층에 맞는 도구부터 꺼내는 습관을 들여라."
+        }
       ],
-      "answer": 0,
-      "why": "그 뒤 홉이 계속 실패하는지가 판단 기준이다."
+      "quiz": [
+        {
+          "q": "구간별 시간 분해에 가장 자주 쓰는 도구는?",
+          "choices": [
+            "ping",
+            "curl -w",
+            "dig",
+            "netstat"
+          ],
+          "answer": 1,
+          "why": "DNS·연결·TLS·서버 한 번에."
+        },
+        {
+          "q": "어느 구간(홉)에서 늦는지 보는 도구는?",
+          "choices": [
+            "curl",
+            "traceroute",
+            "dig",
+            "openssl"
+          ],
+          "answer": 1,
+          "why": "경로의 홉별 지연."
+        },
+        {
+          "q": "도구 선택의 기준은?",
+          "choices": [
+            "유행",
+            "어느 층·구간을 의심하나(도구를 층 지도 위에)",
+            "속도",
+            "이름"
+          ],
+          "answer": 1,
+          "why": "층이 도구를 정한다."
+        }
+      ]
     },
     {
-      "q": "진단을 빠르게 만드는 준비는?",
-      "choices": [
-        "평소 값을 미리 재 두는 것",
-        "도구를 더 설치하는 것",
-        "로그 수준을 올리는 것"
+      "id": "3",
+      "title": "curl 로 구간 분해 — 제일 자주 쓴다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**`curl -w`** 한 줄이 요청을 구간별 시간으로 쪼갠다 — **namelookup**(DNS) · **connect**(TCP) · **appconnect**(TLS) · **starttransfer**(서버가 첫 바이트 낼 때까지, TTFB) · **total**. 이 다섯 숫자를 보면 어느 구간이 시간을 먹는지 한눈에 짚인다. 웹 성능·연결 문제 진단에 가장 자주 쓰는 한 줄이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "curl 다섯 숫자 — 어디가 범인?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const case_ = '{{scene}}';\n  const scenes = {\n    normal: ['정상', [30, 45, 90, 180, 200]],\n    dns:    ['DNS 느림', [2000, 2015, 2060, 2150, 2170]],\n    ttfb:   ['서버 느림(TTFB)', [30, 45, 90, 3000, 3020]],\n    tls:    ['TLS 느림', [30, 45, 800, 900, 920]],\n  }[case_];\n  const [nl, cn, ac, st, tot] = scenes[1];\n  const dns = nl, connect = cn-nl, tls = ac-cn, server = st-ac;\n  render('curl -w — ' + scenes[0],\n    '  namelookup ' + nl + 'ms · connect ' + cn + 'ms · appconnect ' + ac + 'ms · starttransfer ' + st + 'ms\\n\\n' +\n    '  구간으로 환산(차이): DNS ' + dns + ' · TCP ' + connect + ' · TLS ' + tls + ' · 서버 ' + server + '\\n' +\n    '  <span class=\\\"warn\\\">가장 큰 구간이 범인.</span>',\n    'curl 의 다섯 시각을 차이로 환산하면 각 구간 시간 — 가장 큰 게 범인.',\n    bars([['DNS', Math.min(100, dns/25), dns+'ms', dns>400?'#fca5a5':'#4ade80'],\n          ['TCP 연결', Math.min(100, connect/25), connect+'ms', connect>400?'#fca5a5':'#4ade80'],\n          ['TLS', Math.min(100, tls/25), tls+'ms', tls>400?'#fca5a5':'#4ade80'],\n          ['서버(TTFB)', Math.min(100, server/25), server+'ms', server>400?'#fca5a5':'#4ade80']]));\n</script>",
+          "controls": [
+            {
+              "id": "scene",
+              "label": "상황",
+              "type": "select",
+              "value": "ttfb",
+              "options": [
+                {
+                  "value": "normal",
+                  "label": "정상"
+                },
+                {
+                  "value": "dns",
+                  "label": "DNS 느림"
+                },
+                {
+                  "value": "ttfb",
+                  "label": "서버 느림"
+                },
+                {
+                  "value": "tls",
+                  "label": "TLS 느림"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "curl 로 구간 분해",
+          "text": "curl -o /dev/null -s -w \\\n  \"dns:%{time_namelookup}s connect:%{time_connect}s \\\ntls:%{time_appconnect}s ttfb:%{time_starttransfer}s total:%{time_total}s\\n\" \\\n  https://example.com\n\n# 각 값은 「시작부터 그 지점까지」 누적. 구간 = 뒤 - 앞\n#   DNS = namelookup · TCP = connect - namelookup\n#   TLS = appconnect - connect · 서버 = starttransfer - appconnect"
+        },
+        {
+          "type": "note",
+          "text": "**값은 「누적」이라 구간은 차이로 계산한다.** `time_connect` 는 시작부터 TCP 연결까지의 **누적** 시간이지 TCP 만의 시간이 아니다. 그래서 각 구간은 **뒤 값 − 앞 값** 으로 구한다 — TCP = connect − namelookup, TLS = appconnect − connect, 서버 = starttransfer − appconnect. 이 뺄셈을 해야 「어느 구간이 느린지」가 정확히 나온다(안 하면 다 커 보인다)."
+        },
+        {
+          "type": "p",
+          "text": "**TTFB(starttransfer)가 크면 서버·백엔드 문제다.** 첫 바이트까지 오래 = 연결·TLS 는 끝났는데 **서버가 응답을 만드느라** 느린 것 — db-explain(느린 쿼리)·db-nplus1·api 로 넘어간다. 반대로 DNS·연결·TLS 가 크면 네트워크·인프라 구간이다. TTFB 하나로 「네트워크 문제인가 서버 문제인가」의 큰 갈림길이 갈린다 — 진단의 방향타다."
+        },
+        {
+          "type": "try",
+          "text": "위 curl 한 줄을 네 사이트와 유명 사이트에 각각 돌려 다섯 숫자를 비교하라. 차이가 큰 구간을 지목하고, TTFB 가 크면 서버, 앞 구간이 크면 네트워크로 방향을 잡아라."
+        }
       ],
-      "answer": 0,
-      "why": "기준선이 없으면 숫자를 해석할 수 없다."
+      "quiz": [
+        {
+          "q": "curl -w 의 다섯 숫자가 아닌 것은?",
+          "choices": [
+            "namelookup(DNS)",
+            "connect(TCP)",
+            "appconnect(TLS)",
+            "packetloss(손실)"
+          ],
+          "answer": 3,
+          "why": "손실은 ping 의 영역."
+        },
+        {
+          "q": "curl 값에서 각 구간 시간을 구하는 법은?",
+          "choices": [
+            "그대로",
+            "뒤 값 − 앞 값(누적이라 차이로)",
+            "합",
+            "평균"
+          ],
+          "answer": 1,
+          "why": "누적값."
+        },
+        {
+          "q": "TTFB(starttransfer)가 크면?",
+          "choices": [
+            "DNS 문제",
+            "서버·백엔드 처리 문제(db·api)",
+            "TLS",
+            "케이블"
+          ],
+          "answer": 1,
+          "why": "방향타."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "ping 과 traceroute 읽는 법",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**ping** 은 왕복 지연(ms)과 손실률(%)을 준다 — 「닿나, 얼마나 걸리나, 얼마나 잃나」. **traceroute** 는 목적지까지의 홉을 하나씩 찍어 「어느 구간에서 늦거나 끊기나」를 본다. 읽을 때 함정 하나: **중간 홉이 응답 안 함(`*`)은 정상일 때가 많다** — 라우터가 응답을 안 할 뿐 통과는 시킨다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "traceroute 읽기 — 어디가 진짜 문제?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const case_ = '{{scene}}';\n  const scenes = {\n    ok:     ['정상', [['1 홈라우터','1ms'],['2 통신사','8ms'],['3 중간','25ms'],['4 목적지','40ms']], -1],\n    star:   ['중간 홉 * (정상)', [['1 홈라우터','1ms'],['2 * * *','응답안함'],['3 중간','25ms'],['4 목적지','40ms']], -1],\n    jump:   ['특정 홉부터 급증', [['1 홈라우터','1ms'],['2 통신사','8ms'],['3 중간','280ms'],['4 목적지','290ms']], 2],\n    dead:   ['특정 홉부터 끊김', [['1 홈라우터','1ms'],['2 통신사','8ms'],['3 * * *','여기서 끊김'],['4 (없음)','']], 2],\n  }[case_];\n  const rows = scenes[1].map((h, i) => [h[0] + '  ' + h[1], i === scenes[2] ? 'bad' : (h[1]==='응답안함'?'':'good')]);\n  render('traceroute — ' + scenes[0],\n    (case_ === 'star' ? '  <span class=\\\"ok\\\">중간 * 는 정상 — 라우터가 응답만 안 할 뿐 통과는 시킨다.</span>'\n     : case_ === 'jump' ? '  <span class=\\\"warn\\\">3번 홉부터 지연 급증 — 그 구간이 병목(대개 회선·통신사).</span>'\n     : case_ === 'dead' ? '  <span class=\\\"no\\\">3번 홉부터 완전히 끊김 — 그 구간에서 막힘(그 앞까진 정상).</span>'\n     : '  <span class=\\\"ok\\\">홉마다 지연이 점진 증가 — 정상.</span>') + '\\n\\n' +\n    '  * 하나에 놀라지 말 것. 「어느 홉부터 급증/끊김」이 진짜 신호.',\n    'ping=지연·손실, traceroute=홉별. * 는 대개 정상, 「어느 홉부터」가 신호.',\n    steps(rows));\n</script>",
+          "controls": [
+            {
+              "id": "scene",
+              "label": "상황",
+              "type": "select",
+              "value": "star",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "정상"
+                },
+                {
+                  "value": "star",
+                  "label": "중간 * (정상)"
+                },
+                {
+                  "value": "jump",
+                  "label": "홉부터 급증"
+                },
+                {
+                  "value": "dead",
+                  "label": "홉부터 끊김"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**중간 홉이 응답 안 함(`*`)인 건 정상일 때가 많다.** 라우터가 traceroute 의 응답 패킷을 (부하·정책상) 안 보낼 뿐, 실제 트래픽은 통과시킨다. 그래서 중간에 `*` 몇 개가 보여도 목적지까지 도달하면 문제없다. 진짜 신호는 **「어느 홉부터 지연이 급증하거나, 그 뒤로 완전히 끊기는」** 지점이다 — 거기가 병목·차단 구간이다."
+        },
+        {
+          "type": "p",
+          "text": "**ping 의 손실률과 지연 변동(지터)도 본다.** 지연이 낮아도 손실률이 높거나(패킷이 자주 빠짐) 지연이 들쭉날쭉하면(지터), TCP 재전송·실시간 앱 끊김이 난다(net-tcp-udp). 「평균 지연」만 보지 말고 손실·변동을 함께 봐야 무선·불안정 회선의 문제가 드러난다. `ping` 을 여러 번 돌려 통계(min/avg/max/loss)를 보는 이유다."
+        },
+        {
+          "type": "try",
+          "text": "`ping 8.8.8.8` 과 `tracert google.com`(Windows) / `traceroute google.com` 을 돌려, 홉별 지연과 손실을 읽어라. 중간 `*` 에 놀라지 말고, 「어느 홉부터 급증/끊김」이 있는지 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "traceroute 의 중간 홉 `*`(응답 안 함)은?",
+          "choices": [
+            "항상 문제",
+            "대개 정상 — 라우터가 응답만 안 함, 통과는 시킴",
+            "차단",
+            "손실"
+          ],
+          "answer": 1,
+          "why": "「어느 홉부터」가 신호."
+        },
+        {
+          "q": "traceroute 의 진짜 문제 신호는?",
+          "choices": [
+            "중간 *",
+            "어느 홉부터 지연 급증 또는 완전히 끊김",
+            "1번 홉",
+            "목적지 도달"
+          ],
+          "answer": 1,
+          "why": "그 구간이 병목."
+        },
+        {
+          "q": "ping 에서 지연 외에 봐야 할 것은?",
+          "choices": [
+            "없음",
+            "손실률·지터(변동)",
+            "포트",
+            "이름"
+          ],
+          "answer": 1,
+          "why": "무선·불안정 회선."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "아래에서 위로 — 층으로 좁힌다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "진단의 순서는 net-layers 6장 그대로 — **아래에서 위로.** 링크(물리 연결) → 인터넷(ping 으로 IP 닿나) → 전송(포트 열렸나) → 앱(이름 해석·TLS·HTTP). 한 층이 초록이면 그 아래는 더 볼 필요 없다. 무작정 「왜 안 되지」를 헤매지 말고, 가장 아래(가까운)부터 확인해 되는 지점까지 올라가면 문제가 **한 층으로** 좁혀진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "아래서 위로 — 되는 지점 바로 위가 문제",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const reach = {{reach}};\n  const layers = [\n    ['① 링크: 케이블/와이파이 연결', '물리·IP 할당(169.254? net-ip 7장)'],\n    ['② 인터넷: ping 으로 IP 닿나', 'IP 경로·방화벽(net-ip)'],\n    ['③ 전송: 그 포트 열렸나(netstat)', '서버 LISTEN·포트(net-tcp-udp 8장)'],\n    ['④ 앱-DNS: 이름→IP(dig)', '이름 해석·전파(net-dns)'],\n    ['⑤ 앱-TLS/HTTP: 인증서·응답', 'TLS·서버(net-tls·curl)'],\n  ];\n  const rows = layers.map((l, i) => [l[0] + ' — ' + l[1],\n    i < reach ? 'good' : i === reach ? 'bad' : '']);\n  render('되는 지점 = ' + (reach === 0 ? '아무것도 안 됨' : reach + '층까지'),\n    '  <span class=\\\"warn\\\">막힌 층(빨강)이 문제</span> — 그 층의 도구·칸으로 판다.\\n' +\n    '  한 층이 초록이면 그 아래는 정상 — 위만 본다.',\n    '링크→인터넷→전송→DNS→TLS/HTTP. 되는 지점 바로 위가 문제.',\n    steps(rows));\n</script>",
+          "controls": [
+            {
+              "id": "reach",
+              "label": "되는 층",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**층으로 나누면 「이것저것」이 「이 층의 이 도구」가 된다.** 이 트랙 전체가 이 순서로 꿰인다 — ①케이블·IP(net-ip 7장 169.254) ②ping(net-ip) ③netstat·포트(net-tcp-udp 8장) ④dig(net-dns) ⑤openssl·curl(net-tls·서버). 각 층에 담당 도구(2장)가 있으니, 아래부터 그 도구로 확인하면 「연결 안 됨」이 정확히 한 층으로 좁혀진다. 진단이 미로가 아니라 사다리가 된다."
+        },
+        {
+          "type": "p",
+          "text": "**빠른 이등분도 유용하다.** 늘 맨 아래부터 안 가도, 「중간」을 먼저 찔러 위/아래를 반 가른다 — ping(IP 층)이 되면 아래(링크·IP)는 정상이니 위(전송·앱)만, ping 이 안 되면 아래만 보면 된다. git-bisect(quality 트랙)처럼 **반씩 좁히기**다. 어느 쪽이든 원리는 하나 — 「되는 경계」를 찾아 그 바로 위/밖을 판다."
+        },
+        {
+          "type": "try",
+          "text": "「연결 안 됨」을 만나면 아래부터 확인하라 — 물리 연결 → `ping IP` → 포트(netstat) → `dig 도메인` → curl. 되는 지점 바로 위가 문제 층이다. 그 층의 도구로 더 판다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "네트워크 진단의 순서는?",
+          "choices": [
+            "앱부터",
+            "아래에서 위로(링크→인터넷→전송→앱)",
+            "무작위",
+            "위에서 아래로"
+          ],
+          "answer": 1,
+          "why": "되는 지점 바로 위가 문제."
+        },
+        {
+          "q": "ping(IP 층)이 되면?",
+          "choices": [
+            "다 정상",
+            "그 아래(링크·IP)는 정상 — 위(전송·앱)만 보면 됨",
+            "서버 죽음",
+            "DNS 문제"
+          ],
+          "answer": 1,
+          "why": "한 층 초록=아래 정상."
+        },
+        {
+          "q": "빠른 진단의 요령은?",
+          "choices": [
+            "맨 위부터",
+            "중간을 찔러 위/아래 반씩 좁히기(이등분)",
+            "재부팅",
+            "전부 확인"
+          ],
+          "answer": 1,
+          "why": "되는 경계를 찾는다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "어디까지 내 책임인가",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "느림·끊김이 **내가 고칠 수 있는 것**인지 가른다. **내 기기 → 공유기**: 내 책임(설정·방화벽·케이블). **공유기 → 통신사**: 회선(내 통제 밖, 통신사 문의). **통신사 → 중간 인터넷**: 아무도 내 것 아님. **목적지 서버**: 서버 운영자 책임. 「어느 구간」을 알면 「내가 고칠지, 남에게 알릴지」가 정해진다 — 못 고칠 걸 붙들고 시간 낭비 안 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 구간 — 누구 책임?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const seg = '{{seg}}';\n  const cases = {\n    mine:    ['내 기기 ~ 공유기', true, '방화벽·바인딩·케이블·설정 — 내가 고친다'],\n    line:    ['공유기 ~ 통신사', false, '회선 문제 — 통신사 문의(내 통제 밖)'],\n    middle:  ['통신사 ~ 중간 인터넷', false, '아무도 내 것 아님 — 보통 저절로 회복'],\n    server:  ['목적지 서버', false, '서버 운영자 책임 — curl TTFB 로 확인(3장)'],\n  }[seg];\n  const mine = cases[1];\n  render('구간: ' + cases[0],\n    '  책임 = ' + (mine\n      ? '<span class=\\\"ok\\\">내 책임 — 고칠 수 있다</span>'\n      : '<span class=\\\"warn\\\">내 통제 밖 — 알리거나 기다린다</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  어느 구간인지 알면 「내가 고칠지, 남에게 알릴지」가 정해진다.',\n    '내 기기~공유기=내 책임, 그 너머=회선·인터넷·서버. 못 고칠 걸 붙들지 말 것.',\n    box(cases[0], cases[2], mine ? 'good' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "seg",
+              "label": "구간",
+              "type": "select",
+              "value": "line",
+              "options": [
+                {
+                  "value": "mine",
+                  "label": "기기~공유기"
+                },
+                {
+                  "value": "line",
+                  "label": "공유기~통신사"
+                },
+                {
+                  "value": "middle",
+                  "label": "중간 인터넷"
+                },
+                {
+                  "value": "server",
+                  "label": "목적지 서버"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "어디까지 내 책임인가",
+          "text": "내 기기 → 공유기      : 내 책임 (방화벽·바인딩·케이블·설정)\n공유기 → 통신사       : 회선 (통신사 문의)\n통신사 → 중간 인터넷   : 아무도 내 것 아님 (대개 저절로 회복)\n중간 → 목적지 서버     : 서버 운영자 (curl TTFB 로 확인)\n\n=> traceroute 로 어느 구간인지 보고 → 고칠지/알릴지 결정"
+        },
+        {
+          "type": "note",
+          "text": "**못 고치는 구간을 붙들고 있는 게 흔한 시간 낭비다.** 중간 인터넷의 일시적 혼잡을 내 설정 탓으로 몇 시간 뒤지는 경우가 많다. traceroute(4장)로 「내 구간을 벗어난 곳」에서 문제가 나면, 내 쪽은 정상이니 통신사에 알리거나 잠시 기다린다. 「내가 고칠 수 있는 것」과 「알려야 할 것」을 구분하는 게 진단의 실용적 목표다."
+        },
+        {
+          "type": "p",
+          "text": "**서버 쪽 느림은 TTFB 로 확인된다(3장).** 내 구간·회선·경로가 다 정상인데 느리면, 남은 건 목적지 서버다 — curl 의 TTFB 가 크면 서버 운영자의 백엔드 문제(db-explain·api)다. 내가 그 서버 운영자라면 서버 쪽 진단으로(db·api 트랙) 넘어가고, 아니라면 「그쪽 문제」로 판단해 기다리거나 문의한다. 구간이 책임자를 가리킨다."
+        },
+        {
+          "type": "try",
+          "text": "traceroute 로 문제 구간이 내 쪽(기기~공유기)인지 그 너머인지 확인하라. 내 쪽이면 고치고, 너머면 통신사·서버 문제로 판단해 시간을 아껴라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「내 기기 ~ 공유기」 구간은?",
+          "choices": [
+            "통신사 책임",
+            "내 책임(방화벽·바인딩·케이블)",
+            "서버 책임",
+            "아무도 아님"
+          ],
+          "answer": 1,
+          "why": "고칠 수 있다."
+        },
+        {
+          "q": "traceroute 로 문제가 내 구간 너머면?",
+          "choices": [
+            "계속 내 설정 뒤짐",
+            "회선·인터넷·서버 문제 — 알리거나 기다림",
+            "재부팅",
+            "포트 변경"
+          ],
+          "answer": 1,
+          "why": "못 고칠 걸 붙들지 말 것."
+        },
+        {
+          "q": "내 구간·경로 다 정상인데 느리면?",
+          "choices": [
+            "케이블",
+            "목적지 서버(curl TTFB 로 확인)",
+            "DNS",
+            "방화벽"
+          ],
+          "answer": 1,
+          "why": "구간이 책임자를 가리킴."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "흔한 패턴을 바로 짚는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "구간 분해(3장)에 익숙해지면 **패턴으로 바로 짚는다**: DNS 만 크면 리졸버·전파, 연결만 크면 거리·방화벽, TLS 만 크면 인증서·핸드셰이크, TTFB 만 크면 서버, 다운로드만 크면 대역폭·큰 응답. 한 구간이 유독 큰 「모양」이 원인을 가리킨다 — 진단이 패턴 인식이 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 패턴 — 무엇을 의심?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const p = '{{pat}}';\n  const cases = {\n    dns:      ['DNS 만 큼', '리졸버 느림·전파 중·잘못된 DNS 설정', 'dig 로 여러 리졸버 비교(net-dns 6장)'],\n    connect:  ['연결만 큼', '먼 서버(지연)·방화벽·포트 대기', '가까운 서버(CDN)·경로 확인'],\n    tls:      ['TLS 만 큼', '인증서 사슬·핸드셰이크·구버전', 'openssl 로 인증서 확인(net-tls)'],\n    ttfb:     ['TTFB 만 큼', '서버 처리(느린 쿼리·N+1)', 'db-explain·db-nplus1 로'],\n    download: ['다운로드만 큼', '큰 응답·낮은 대역폭·압축 안 함', 'gzip·이미지 최적화(net-http-versions 6장)'],\n    intermittent:['간헐적(가끔)', '손실·지터·NAT 매핑 만료·캐시', 'ping 손실률·keep-alive 확인'],\n  }[p];\n  render('패턴: ' + cases[0],\n    '  의심: ' + cases[1] + '\\n  다음 수: ' + cases[2] + '\\n\\n' +\n    '  한 구간이 유독 큰 「모양」이 원인을 가리킨다 — 패턴으로 바로 짚는다.',\n    'DNS만·연결만·TLS만·TTFB만·다운로드만·간헐 — 모양이 원인을 가리킨다.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "pat",
+              "label": "패턴",
+              "type": "select",
+              "value": "ttfb",
+              "options": [
+                {
+                  "value": "dns",
+                  "label": "DNS만"
+                },
+                {
+                  "value": "connect",
+                  "label": "연결만"
+                },
+                {
+                  "value": "tls",
+                  "label": "TLS만"
+                },
+                {
+                  "value": "ttfb",
+                  "label": "TTFB만"
+                },
+                {
+                  "value": "download",
+                  "label": "다운로드만"
+                },
+                {
+                  "value": "intermittent",
+                  "label": "간헐적"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**간헐적 문제가 가장 어렵다 — 재현이 관건이다(quality 트랙 flaky).** 「가끔 느림·가끔 끊김」은 손실·지터(무선)·NAT 매핑 만료(net-nat 2장)·DNS 캐시 경계·서버 간헐 부하 등이 섞인다. 한 번의 측정으론 안 잡히니, **반복 측정**(ping 을 오래·curl 을 여러 번)으로 손실률·변동을 통계로 본다. 「평소 값」(8장)이 있으면 「가끔 튀는」 것을 숫자로 잡을 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "**패턴이 「다음 어느 칸으로」를 가리킨다.** 이 트랙의 진단은 다른 칸으로 넘겨준다 — TTFB 크면 db-explain(느린 쿼리)·db-nplus1, 다운로드 크면 net-http-versions(압축·이미지), DNS 크면 net-dns, TLS 크면 net-tls. net-diag 는 「어느 구간·어느 칸의 문제인지」까지 좁히는 **분류기**다. 구간을 짚으면, 그 칸의 깊은 지식으로 원인을 판다."
+        },
+        {
+          "type": "try",
+          "text": "네 사이트를 curl -w 로 재 어느 구간이 큰지 보고, 그 패턴에 맞는 「다음 칸」(db-explain·net-tls 등)으로 넘어가 원인을 파라. 간헐적이면 여러 번 재 통계를 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "TTFB 만 큰 패턴이 가리키는 곳은?",
+          "choices": [
+            "DNS",
+            "서버 처리(db-explain·N+1)",
+            "TLS",
+            "케이블"
+          ],
+          "answer": 1,
+          "why": "구간이 칸을 가리킴."
+        },
+        {
+          "q": "가장 진단이 어려운 패턴은?",
+          "choices": [
+            "DNS만",
+            "간헐적(가끔) — 재현·반복 측정 필요",
+            "TTFB만",
+            "다운로드만"
+          ],
+          "answer": 1,
+          "why": "flaky, 통계로."
+        },
+        {
+          "q": "net-diag 의 역할은?",
+          "choices": [
+            "최종 수정",
+            "어느 구간·칸의 문제인지 좁히는 분류기",
+            "속도 향상",
+            "암호화"
+          ],
+          "answer": 1,
+          "why": "다음 칸으로 넘긴다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "평소 값을 기록해 두라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "느릴 때만 재면 **비교 대상이 없다** — 「300ms 가 느린 건가?」를 판단할 기준이 없다. **평소 값(베이스라인)**을 한 번 재서 적어 두면, 다음 사고 때 「원래 이랬나, 아니면 변했나」를 즉시 안다. 정상일 때의 curl 다섯 숫자·ping 지연을 기록하는 5분이, 사고 시 몇 시간을 아낀다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "베이스라인 유무 — 판단할 수 있나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{base}}' === 'yes';\n  const now = 800;\n  render('지금 TTFB = ' + now + 'ms · 베이스라인 ' + (has ? '있음(평소 180ms)' : '없음'),\n    (has\n      ? '  평소 180ms → 지금 800ms = <span class=\\\"no\\\">4배 악화, 명백한 회귀.</span>\\n' +\n        '  <span class=\\\"ok\\\">「원래보다 나빠졌다」를 숫자로 확정 — 언제부터·무엇이 바뀌었나로 판다.</span>'\n      : '  <span class=\\\"warn\\\">800ms 가 원래 이런 건지 나빠진 건지 모른다.</span>\\n' +\n        '  비교 대상이 없어 「느린 건가?」부터 헤맨다 — 진단이 추측이 된다.'),\n    '평소 값이 있어야 「원래 이랬나 변했나」를 안다. 정상일 때 재 두는 5분.',\n    bars(has\n      ? [['평소(베이스라인)', 18, '180ms', '#4ade80'], ['지금', 80, '800ms', '#fca5a5']]\n      : [['지금', 80, '800ms(비교 불가)', '#fbbf24']]));\n</script>",
+          "controls": [
+            {
+              "id": "base",
+              "label": "베이스라인",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "yes",
+                  "label": "있음"
+                },
+                {
+                  "value": "no",
+                  "label": "없음"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「원래 이랬나」를 없애는 게 베이스라인의 힘이다(design-evolve 의 last-known-good, quality 트랙).** 회귀 진단의 첫 질문은 「전엔 어땠나」인데, 평소 값이 없으면 그 답이 없어 「지금이 정상인가」부터 추측하게 된다. 정상일 때의 수치를 파일에 적어 두면, 사고 시 「평소 180 → 지금 800, 4배」처럼 **변화를 숫자로** 확정하고 「언제부터·무엇이 바뀌었나」로 바로 넘어간다."
+        },
+        {
+          "type": "p",
+          "text": "**지속 모니터링이 베이스라인의 확장이다.** 한 번 재는 것을 넘어, 주기적으로(모니터링) 재 두면 「서서히 나빠지는 추세」·「특정 시간대 악화」·「배포 후 급변」이 그래프로 보인다 — 사고가 터지기 전에·터진 순간을 잡는다(db-grow 의 크기 추적, api-limit 의 지표와 같은 정신). 「측정하지 않는 것은 관리할 수 없다」가 네트워크에도 그대로 적용된다."
+        },
+        {
+          "type": "try",
+          "text": "지금 정상일 때 네 사이트의 curl 다섯 숫자·ping 지연을 파일에 적어 두라. 하루 뒤 다시 재서 변동 폭을 보면, 베이스라인이 「원래 이랬나」를 어떻게 없애는지 체감한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "평소 값(베이스라인)을 기록하는 이유는?",
+          "choices": [
+            "규정",
+            "「원래 이랬나 변했나」를 판단할 비교 대상",
+            "속도",
+            "암호화"
+          ],
+          "answer": 1,
+          "why": "없으면 추측."
+        },
+        {
+          "q": "베이스라인이 없으면?",
+          "choices": [
+            "빠름",
+            "「지금이 정상인가」부터 헤맴 — 진단이 추측",
+            "안전",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "비교 대상 부재."
+        },
+        {
+          "q": "베이스라인의 확장은?",
+          "choices": [
+            "없음",
+            "지속 모니터링(추세·급변을 그래프로)",
+            "재부팅",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "터지기 전에 잡음."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 네트워크 진단",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「느림·안 됨」을 만났을 때 이 목록을 확인하라. 핵심은 「구간으로 나누고·맞는 도구로·아래서 위로·책임을 가르고·평소와 비교」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '「느리다」를 구간(DNS·연결·TLS·서버)으로 나눈다',\n    '의심에 맞는 도구를 고른다(ping·curl·dig·netstat)',\n    'curl -w 로 다섯 숫자를 재고 차이로 구간 계산',\n    'ping·traceroute 를 읽는다(* 는 대개 정상)',\n    '아래에서 위로 층으로 좁힌다',\n    '어느 구간이 내 책임인지 가른다',\n    '패턴으로 「다음 칸」(db·tls 등)을 짚는다',\n    '평소 값을 기록해 「변했나」를 판단한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 「느림」을 숫자로 어느 구간까지 좁힌다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '구간으로 나누고·맞는 도구·아래서 위로·책임·평소 비교. 진단의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 증상을 숫자로, 숫자를 구간으로.** 「느리다·안 된다」를 구간별 측정으로 바꾸면(1·3장), 「그냥 느림」이 「이 구간의 이 원인」으로 좁혀진다. 맞는 도구로(2장), 아래서 위로(5장), 책임을 가르고(6장), 평소와 비교하면(8장) 진단이 미로가 아니라 사다리가 된다 — 추측 없이 원인에 닿는다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸은 net 트랙의 종합이자 마무리다.** 진단은 앞 칸들을 하나로 꿴다 — 구간이 layers 의 층, 도구가 각 칸(dns·tls·tcp-udp·ip·nat), TTFB 가 db·api 로 이어진다. 「어느 구간·어느 층·어느 칸」을 짚는 능력이 네트워크 지식을 실전 문제 해결로 바꾼다. **측정으로 좁히는 습관(황금의 정신)이 네트워크뿐 아니라 모든 진단의 뼈대**다 — 이것으로 net 트랙을 닫는다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 네 진단 습관을 점검하라. 「curl -w 로 구간 분해」와 「평소 값 기록」 두 가지만 익혀도, 「느림」 앞에서 헤매는 시간이 크게 준다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "네트워크 진단의 한 줄 요약은?",
+          "choices": [
+            "재부팅",
+            "증상을 숫자로, 숫자를 구간으로",
+            "추측",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "측정으로 좁힌다."
+        },
+        {
+          "q": "진단의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·암호",
+            "구간으로 나누고·맞는 도구·아래서 위로·평소 비교",
+            "캐시·복제·샤딩·압축",
+            "ping만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "net-diag 가 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "종합·마무리 — 층·도구·칸을 꿰는 분류기",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "지식을 문제 해결로."
+        }
+      ]
     }
   ]
 }
