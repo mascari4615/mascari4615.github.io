@@ -6,6 +6,7 @@
  * `ctx.filterState` 로 **빌려 와 직접 고친다** — 고친 뒤 `ctx.applyFilter()` 로 알린다.
  */
 import type { PanelCtx } from './context';
+import { captureView, applyView, upsertView, isNameUsable } from '../views';
 import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderFilterPanel(ctx: PanelCtx): void {
@@ -126,6 +127,22 @@ export function renderFilterPanel(ctx: PanelCtx): void {
         <button class="btn btn-ghost" data-km="rule-add">${esc(t('karmograph.ruleAdd.label'))}</button>
       </div>
     </div>
+    <!-- ★ **보기 저장** (TASK-KL-271 O2, Kumu 계보). 한 판은 여러 얼굴을 가진다 —
+         「1부 시점」 「적대 관계만」. 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로
+         하는 것이고, 그러다 보면 결국 아무도 안 거른다. 지금 걸러 둔 것을 이름 붙여 재운다. -->
+    <div class="km-field">
+      <label>${esc(t('karmograph.views.head'))}</label>
+      <div class="km-hint">${esc(t('karmograph.views.hint'))}</div>
+      ${(spec.views ?? []).map((v) => `<div class="km-link-row">
+        <button class="btn btn-ghost km-link-name" data-km="view-go" data-key="${esc(v.id)}">${esc(v.name)}</button>
+        <button class="btn btn-ghost" data-km="view-del" data-key="${esc(v.id)}"
+          title="${esc(t('karmograph.views.del'))}" aria-label="${esc(t('karmograph.views.del'))}">✕</button>
+      </div>`).join('')}
+      <div class="km-trow">
+        <input type="text" data-km="view-name" placeholder="${esc(t('karmograph.views.ph'))}" />
+        <button class="btn btn-ghost" data-km="view-save">${esc(t('karmograph.views.save'))}</button>
+      </div>
+    </div>
     <button class="btn btn-ghost" data-km="f-reset">${esc(t('karmograph.fReset.label'))}</button>
     <button class="btn btn-ghost" data-km="f-close">${esc(t('karmograph.fClose.label'))}</button>`;
 
@@ -230,5 +247,32 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     ctx.applyDecorate();
     ctx.refresh();
   };
+  /* 보기 저장·되살리기 — 저장하는 것은 「무엇을 보이게 하느냐」뿐이다. 카메라(어디를 보고 있나)는
+     일부러 안 담는다: 판을 고치면 자리는 곧 달라지는데 옛 카메라로 끌려가면 「내가 보던 데가
+     아니다」가 된다(KL-271 O2). */
+  (side.querySelector('[data-km="view-save"]') as HTMLButtonElement).onclick = () => {
+    const box = side.querySelector('[data-km="view-name"]') as HTMLInputElement;
+    if (!isNameUsable(box.value)) { box.focus(); return; }
+    const id = `view-${Date.now().toString(36)}`;
+    spec.views = upsertView(spec.views ?? [], captureView(box.value, st, ctx.focusDegree(), id));
+    ctx.persist();
+    ctx.refresh();
+  };
+  side.querySelectorAll('[data-km="view-go"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const hit = (spec.views ?? []).find((v) => v.id === (el as HTMLElement).dataset.key);
+      if (!hit) return;
+      ctx.setFocusDegree(applyView(hit, st));
+      ctx.applyFilter();
+      ctx.refresh();
+    };
+  });
+  side.querySelectorAll('[data-km="view-del"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      spec.views = (spec.views ?? []).filter((v) => v.id !== (el as HTMLElement).dataset.key);
+      ctx.persist();
+      ctx.refresh();
+    };
+  });
   (side.querySelector('[data-km="f-close"]') as HTMLButtonElement).onclick = ctx.goNode;
 }

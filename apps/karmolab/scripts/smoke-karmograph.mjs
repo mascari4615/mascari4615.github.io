@@ -2625,6 +2625,28 @@ await step('블로그에 넣을 한 줄을 준다', async () => {
   if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
 });
 
+await step('보기를 이름 붙여 재우고 한 번에 되살린다', async () => {
+  // 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로 하는 것이고, 그러다 결국 아무도
+  // 안 거른다(KL-271 O2 · Kumu 계보). 저장하는 것은 「무엇을 보이게 하느냐」뿐이다.
+  await openPanel(page, 'filter');
+  await page.waitForSelector('[data-km="view-save"]', { timeout: ms(4000) });
+  await page.fill('[data-km="view-name"]', '1부 시점');
+  await page.locator('[data-km="view-save"]').click();
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
+    null, { timeout: ms(4000) });
+  // 이름이 같으면 덮어쓴다 — 둘이면 고를 때 구분이 안 된다.
+  await page.fill('[data-km="view-name"]', '1부 시점');
+  await page.locator('[data-km="view-save"]').click();
+  await page.waitForTimeout(ms(500));
+  if (await page.locator('[data-km="view-go"]').count() !== 1) throw new Error('같은 이름이 둘이 됐다');
+  await page.locator('[data-km="view-go"]').first().click();
+  await page.waitForTimeout(ms(500));
+  await page.locator('[data-km="view-del"]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 0,
+    null, { timeout: ms(4000) });
+  await openPanel(page, 'node');
+});
+
 await step('폰에서도 할 수 있는 일이 다 닿는다 — 등록부 ⟷ 팔레트', async () => {
   /* ★ 「모바일이라고 축소판을 주지 않는다」(Kinopio 원칙 4 · KL-271 M3). 폰에서는 서랍이 좁아
      자주 쓰는 것만 펴 두는데, 그러면 나머지가 **닿을 수 없게** 되기 쉽다 — 그 구멍을 여기서 잰다.

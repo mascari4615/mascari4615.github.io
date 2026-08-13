@@ -689,5 +689,10 @@
   "karmograph.intent.idea.sub": "浮かんだものを並べてつなぐ",
   "karmograph.intent.org.title": "チーム・ギルド",
   "karmograph.intent.org.sub": "誰が何を担い、誰と組むか",
-  "karmograph.intent.more": "ほかの種類も見る"
+  "karmograph.intent.more": "ほかの種類も見る",
+  "karmograph.views.head": "保存した見え方",
+  "karmograph.views.hint": "今の絞り込みに名前をつけて寝かせます — 押せばそのまま戻ります。",
+  "karmograph.views.ph": "例: 第1部",
+  "karmograph.views.save": "今の状態を保存",
+  "karmograph.views.del": "この見え方を削除"
 }

@@ -689,5 +689,10 @@
   "karmograph.intent.idea.sub": "떠오른 것들을 늘어놓고 이어 본다",
   "karmograph.intent.org.title": "우리 팀·길드",
   "karmograph.intent.org.sub": "누가 무엇을 맡고 누구와 붙어 있나",
-  "karmograph.intent.more": "다른 갈래도 볼까요"
+  "karmograph.intent.more": "다른 갈래도 볼까요",
+  "karmograph.views.head": "저장한 보기",
+  "karmograph.views.hint": "지금 걸러 둔 상태를 이름 붙여 재워 둡니다 — 누르면 그대로 돌아옵니다.",
+  "karmograph.views.ph": "예: 1부 시점",
+  "karmograph.views.save": "지금 상태 저장",
+  "karmograph.views.del": "이 보기 지우기"
 }
