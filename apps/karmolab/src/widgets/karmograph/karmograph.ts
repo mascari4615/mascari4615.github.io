@@ -192,6 +192,10 @@ import {
     .km-toolbar.km-blank [data-km="find-count"],
     .km-toolbar.km-blank [data-km="fit"],
     .km-toolbar.km-blank [data-km="story"] { display:none !important; }
+    /* 관계망을 읽어 주는 줄 — 숫자보다 먼저 눈에 들어와야 한다. */
+    .km-said { background:var(--bg-tertiary); border-radius:8px; padding:8px 10px; }
+    .km-said-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
+    .km-said-line + .km-said-line { margin-top:4px; }
     .km-side.hidden { display:none; }
     /* 패널 안에서 **성격이 다른 묶음**을 가르는 줄·이름표 (TASK-KL-271 P5). */
     .km-split { border:none; border-top:1px solid var(--border); margin:16px 0 10px; }
