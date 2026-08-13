@@ -26,5 +26,7 @@
   "image.part.exifclean": "撮影情報を消す",
   "image.part.palette": "色を抽出",
   "image.part.comparepic": "2枚を比較",
-  "image.part.qrread": "QRを読む"
+  "image.part.qrread": "QRを読む",
+  "image.cmp.before": "前 {size}",
+  "image.cmp.after": "後 {size}"
 }

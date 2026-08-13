@@ -26,5 +26,7 @@
   "image.part.exifclean": "Strip photo metadata",
   "image.part.palette": "Extract colors",
   "image.part.comparepic": "Compare two",
-  "image.part.qrread": "Read QR"
+  "image.part.qrread": "Read QR",
+  "image.cmp.before": "before {size}",
+  "image.cmp.after": "after {size}"
 }
