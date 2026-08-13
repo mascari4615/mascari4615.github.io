@@ -1,106 +1,833 @@
 {
   "id": "shell-proc",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「서버가 느려요」에 답하려면 **무엇이 CPU·메모리·포트를 물고 있는지** 봐야 한다. 도구 네 개면 충분하다."
-    },
-    {
-      "type": "h",
-      "text": "1. 지금 무엇이 도나"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "top / htop 읽는 법",
-      "text": "top\n# load average: 2.31, 1.90, 1.50   ← 1분/5분/15분 평균 대기 작업 수\n#   코어 수보다 크게·지속적으로 높으면 과부하\n# %CPU 는 코어 1개 기준 (400% = 4코어 풀가동)\n# 상태 S: 자는 중 · R: 실행 중 · D: I/O 대기(못 죽인다) · Z: 좀비"
-    },
-    {
-      "type": "note",
-      "text": "load 가 높은데 CPU 는 한가하면 **I/O 대기**(D 상태)다 — 디스크나 네트워크를 기다리는 것이므로 CPU 를 늘려도 소용없다."
-    },
-    {
-      "type": "h",
-      "text": "2. 누가 포트를 쓰나"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "8080 이 이미 사용 중일 때",
-      "text": "ss -tlnp | grep 8080          # 리스닝 소켓과 PID\nlsof -i :8080                  # 같은 일 (macOS 에서도)\nkill <PID>                     # 정중히 종료(SIGTERM)\nkill -9 <PID>                  # 최후의 수단(정리 없이 죽는다)"
-    },
-    {
-      "type": "h",
-      "text": "3. 메모리"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "free 의 함정",
-      "text": "free -h\n# used 가 높아도 buff/cache 는 언제든 회수된다 — available 을 봐라\n# available 이 바닥나면 스왑 → 그 순간 성능이 절벽처럼 떨어진다\n\ndmesg | grep -i 'killed process'   # OOM 킬러가 뭘 죽였나"
-    },
-    {
-      "type": "h",
-      "text": "4. 무엇을 기다리나"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "한 프로세스를 깊이 보기",
-      "text": "ps -o pid,ppid,stat,etime,cmd -p <PID>\ncat /proc/<PID>/status | head -20\nstrace -p <PID> -f -e trace=network   # 어떤 시스템 콜에서 멈춰 있나 (있으면)"
-    },
-    {
-      "type": "h",
-      "text": "5. 정리"
-    },
-    {
-      "type": "note",
-      "text": "**부모가 죽어 좀비가 남는 것**, 로그가 디스크를 채우는 것, 재시작 루프(서비스가 계속 죽고 다시 뜨는 것)를 확인하라 — `systemctl status <서비스>` 와 `journalctl -u <서비스> -f` 가 첫 창이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "무거운 스크립트를 돌려 놓고 `top` 에서 %CPU 와 load 를 관찰하라. 그 다음 큰 파일을 읽게 해 D 상태(I/O 대기)를 만들어 보라."
-    },
-    {
-      "type": "try",
-      "text": "개발 서버 포트를 하나 띄우고 `ss -tlnp` 로 PID 를 찾아 정중히 종료해 보라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "load 는 높은데 CPU 사용률은 낮다. 무엇을 의심하나?",
-      "choices": [
-        "I/O 대기",
-        "CPU 부족",
-        "메모리 누수"
+      "id": "1",
+      "title": "지금 무엇이 돌고 있나 — ps 읽기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「서버가 이상해요」에 답하는 첫걸음은 **무엇이 돌고 있는지 보는 것**이다. `ps` 는 그 순간의 사진을 찍어 준다 — 움직이는 화면(`top`)은 다음 장이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 보고 싶은지 골라 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const procs = [\n    { pid: 1, user: 'root', cpu: 0.0, mem: 0.1, rss: 12, cmd: '/sbin/init' },\n    { pid: 812, user: 'root', cpu: 0.2, mem: 0.4, rss: 42, cmd: 'sshd: /usr/sbin/sshd -D' },\n    { pid: 1420, user: 'app', cpu: 98.4, mem: 12.1, rss: 980, cmd: 'node /srv/app/server.js' },\n    { pid: 1421, user: 'app', cpu: 1.2, mem: 11.8, rss: 954, cmd: 'node /srv/app/worker.js' },\n    { pid: 2011, user: 'postgres', cpu: 4.5, mem: 22.0, rss: 1780, cmd: 'postgres: writer process' },\n    { pid: 3300, user: 'mas', cpu: 0.0, mem: 0.0, rss: 3, cmd: 'bash' },\n  ];\n  let rows = procs.slice(), cmd, hint;\n  if (q === 'all') { cmd = 'ps aux'; hint = '전부 — u 는 사용자·CPU·메모리를 함께, x 는 터미널 없는 것까지.'; }\n  else if (q === 'cpu') { rows.sort((a, b) => b.cpu - a.cpu); rows = rows.slice(0, 3); cmd = 'ps aux --sort=-%cpu | head -4'; hint = 'CPU 를 많이 쓰는 순 — 「누가 CPU 를 물고 있나」의 답.'; }\n  else if (q === 'mem') { rows.sort((a, b) => b.rss - a.rss); rows = rows.slice(0, 3); cmd = 'ps aux --sort=-rss | head -4'; hint = 'RSS(실제 물리 메모리) 순. %MEM 보다 RSS 로 보는 편이 정확하다.'; }\n  else if (q === 'name') { rows = rows.filter((p) => p.cmd.includes('node')); cmd = 'pgrep -af node'; hint = 'pgrep 은 이름으로 찾는다 — ps | grep 보다 깔끔하고 grep 자신이 안 잡힌다.'; }\n  else { cmd = 'ps -ef --forest'; hint = '부모-자식 관계를 나무로 — 무엇이 무엇을 띄웠는지 보인다.'; }\n  const head = '  PID USER      %CPU %MEM   RSS(MB)  COMMAND';\n  const body = rows.map((p) => {\n    const line = String(p.pid).padStart(5) + ' ' + p.user.padEnd(9) + ' ' +\n      p.cpu.toFixed(1).padStart(5) + ' ' + p.mem.toFixed(1).padStart(4) + ' ' +\n      String(p.rss).padStart(8) + '  ' + (q === 'tree' && p.pid > 1400 ? '  \\\\_ ' : '') + p.cmd;\n    return (p.cpu > 80 ? '<span class=\"no\">' : p.rss > 1000 ? '<span class=\"warn\">' : '<span>') + esc(line) + '</span>';\n  }).join('\\n');\n  render(cmd, '<span class=\"dim\">' + head + '</span>\\n' + body, hint);\n</script>",
+          "controls": [
+            {
+              "id": "q",
+              "label": "무엇을 보나",
+              "type": "select",
+              "value": "cpu",
+              "options": [
+                {
+                  "value": "all",
+                  "label": "전부 (ps aux)"
+                },
+                {
+                  "value": "cpu",
+                  "label": "CPU 많이 쓰는 순"
+                },
+                {
+                  "value": "mem",
+                  "label": "메모리 많이 쓰는 순"
+                },
+                {
+                  "value": "name",
+                  "label": "이름으로 찾기"
+                },
+                {
+                  "value": "tree",
+                  "label": "부모-자식 나무"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "손에 붙여 둘 것",
+          "text": "ps aux --sort=-%cpu | head       # CPU 상위\nps aux --sort=-rss | head        # 메모리 상위\npgrep -af node                   # 이름으로 (PID + 전체 명령줄)\nps -o pid,ppid,etime,cmd -p 1420 # 특정 PID 의 부모·실행 시간\npstree -p 1420                   # 그 아래 자식들"
+        },
+        {
+          "type": "note",
+          "text": "`ps aux | grep node` 는 **grep 자신도 함께 잡힌다.** 그래서 「분명 껐는데 하나 남았네」로 오해한다. `pgrep -af node` 를 쓰거나, 굳이 grep 이면 `grep [n]ode` 처럼 대괄호로 자신을 피한다."
+        },
+        {
+          "type": "try",
+          "text": "지금 기계에서 `ps aux --sort=-rss | head -5` 를 쳐 보라. 1위가 무엇인지, 그것이 예상한 프로그램인지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "디스크·네트워크 대기 중인 프로세스가 load 를 올린다."
+      "quiz": [
+        {
+          "q": "메모리를 많이 쓰는 프로세스를 찾는 정렬 기준은?",
+          "choices": [
+            "%CPU",
+            "RSS",
+            "PID",
+            "TIME"
+          ],
+          "answer": 1,
+          "why": "RSS 가 실제 물리 메모리 사용량이다."
+        },
+        {
+          "q": "`ps aux | grep node` 의 함정은?",
+          "choices": [
+            "느리다",
+            "grep 자신도 결과에 잡힌다",
+            "권한 부족",
+            "이름을 못 찾는다"
+          ],
+          "answer": 1,
+          "why": "pgrep -af 를 쓴다."
+        },
+        {
+          "q": "무엇이 무엇을 띄웠는지 보려면?",
+          "choices": [
+            "ps aux",
+            "pstree · ps --forest",
+            "top",
+            "lsof"
+          ],
+          "answer": 1,
+          "why": "부모-자식 관계를 나무로 보여 준다."
+        }
+      ]
     },
     {
-      "q": "`free -h` 에서 실제 여유를 보려면?",
-      "choices": [
-        "available 값",
-        "free 값만",
-        "used 값"
+      "id": "2",
+      "title": "top 읽기 — 숫자 네 줄이면 진단이 끝난다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`top` 화면에서 실제로 보는 것은 네 가지다 — **load average · CPU 비율 · 메모리 · 상위 프로세스.** 이 네 줄을 읽을 줄 알면 「느려요」의 원인이 세 갈래 중 하나로 좁혀진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 숫자가 무엇을 말하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{sym}}';\n  const cores = 4;\n  const d = {\n    cpu:  { load: [3.9, 3.7, 2.1], us: 92, sy: 5, wa: 1, id: 2, memUsed: 40,\n            top: 'node server.js  98.4% CPU',\n            say: 'us(사용자 코드)가 높다 = 계산이 오래 걸린다. 코드·쿼리를 프로파일하라.' },\n    io:   { load: [8.2, 7.9, 6.0], us: 5, sy: 3, wa: 78, id: 14, memUsed: 55,\n            top: 'postgres: writer  4.5% CPU',\n            say: 'wa(I/O 대기)가 높다 = 디스크를 기다린다. CPU 는 놀고 있다 — 디스크·스왑을 보라.' },\n    mem:  { load: [6.1, 5.5, 4.2], us: 12, sy: 40, wa: 44, id: 4, memUsed: 97,\n            top: 'kswapd0  38% CPU',\n            say: '메모리가 꽉 차 스왑이 돈다(kswapd). 앞 칸(운영체제 5장)의 스래싱이다.' },\n    ok:   { load: [0.4, 0.5, 0.6], us: 12, sy: 3, wa: 1, id: 84, memUsed: 45,\n            top: 'node server.js  11% CPU',\n            say: '정상. load 가 코어 수(4)보다 한참 낮고 idle 이 넉넉하다.' },\n  }[s];\n  const viz = '<div class=\"hint\">CPU 사용</div>' + bar(100 - d.id) +\n              '<div class=\"hint\">메모리</div>' + bar(d.memUsed) +\n              '<div class=\"hint\">I/O 대기(wa)</div>' + bar(d.wa);\n  render('top',\n    '  load average: ' + d.load.join(', ') + '   (코어 ' + cores + '개)\\n' +\n    '  %Cpu(s): ' + d.us + ' us, ' + d.sy + ' sy, ' + d.wa + ' wa, ' + d.id + ' id\\n' +\n    '  Mem: ' + d.memUsed + '% used\\n' +\n    '  상위: ' + esc(d.top) + '\\n\\n' +\n    '  <span class=\"' + (s === 'ok' ? 'ok' : 'no') + '\">' + esc(d.say) + '</span>',\n    'load 는 「돌고 싶어 하는 프로세스 수」다 — 코어 수와 비교해서 읽는다. 세 숫자는 1·5·15분 평균.',\n    viz);\n</script>",
+          "controls": [
+            {
+              "id": "sym",
+              "label": "증상",
+              "type": "select",
+              "value": "cpu",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "정상"
+                },
+                {
+                  "value": "cpu",
+                  "label": "CPU 가 높다"
+                },
+                {
+                  "value": "io",
+                  "label": "느린데 CPU 는 논다"
+                },
+                {
+                  "value": "mem",
+                  "label": "메모리가 꽉 찼다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**load average 는 CPU 비율이 아니다.** 「지금 돌고 있거나 돌 차례를 기다리는 프로세스 수」의 평균이다. 그래서 코어 4개인 기계에서 load 4 는 「딱 맞게 바쁘다」, load 8 은 「두 배로 밀려 있다」는 뜻이다. 리눅스에서는 **디스크를 기다리는 프로세스도 포함**되므로, load 가 높아도 CPU 는 놀 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "숫자별로 갈 곳",
+          "text": "nproc                 # 코어 수 (load 를 이 값과 비교한다)\nuptime                # load average 만 빠르게\ntop / htop            # 상위 프로세스\niostat -x 1           # wa 가 높을 때 — 어느 디스크가 바쁜가\nfree -h               # 메모리 · available 을 보라\nvmstat 1              # si/so 가 0 이 아니면 스왑 중"
+        },
+        {
+          "type": "note",
+          "text": "`top` 의 `%CPU` 는 **코어 하나 기준**이라 400% 가 나올 수 있다(4코어를 다 쓰는 중). 놀라지 말고 `nproc` 와 비교하라. `htop` 은 이걸 코어별 막대로 보여 줘서 읽기 편하다."
+        },
+        {
+          "type": "try",
+          "text": "`uptime && nproc` 을 쳐서 load 를 코어 수로 나눠 보라. 1보다 작으면 여유, 1 근처면 딱 맞음, 훨씬 크면 밀려 있는 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "buff/cache 는 필요 시 회수된다."
+      "quiz": [
+        {
+          "q": "load average 가 뜻하는 것은?",
+          "choices": [
+            "CPU 사용률",
+            "돌고 있거나 기다리는 프로세스 수의 평균",
+            "메모리 사용량",
+            "디스크 사용률"
+          ],
+          "answer": 1,
+          "why": "코어 수와 비교해서 읽는다."
+        },
+        {
+          "q": "`wa` 가 높고 `us` 가 낮으면?",
+          "choices": [
+            "CPU 부족",
+            "디스크·I/O 를 기다리는 중",
+            "메모리 여유",
+            "정상"
+          ],
+          "answer": 1,
+          "why": "CPU 는 놀고 있다."
+        },
+        {
+          "q": "top 의 %CPU 가 380% 라면?",
+          "choices": [
+            "오류",
+            "여러 코어를 함께 쓰는 중",
+            "과부하 경보",
+            "메모리 문제"
+          ],
+          "answer": 1,
+          "why": "코어 하나 기준 백분율이다."
+        }
+      ]
     },
     {
-      "q": "포트를 이미 쓰고 있는 프로세스를 찾는 명령은?",
-      "choices": [
-        "ss -tlnp / lsof -i :포트",
-        "ps aux",
-        "df -h"
+      "id": "3",
+      "title": "포트 — 누가 물고 있나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`EADDRINUSE: address already in use :::3000` — 개발하다 하루에 몇 번씩 보는 오류다. 답은 늘 같다: **그 포트를 물고 있는 프로세스를 찾아 끝낸다.**"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 어떤 명령이 답하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    find: ['lsof -i :3000',\n      ['COMMAND   PID USER   FD   TYPE  NODE NAME',\n       'node     1420  app   23u  IPv6  TCP *:3000 (LISTEN)'],\n      'PID 를 얻었으면 kill 1420. macOS·리눅스 공통.'],\n    ss:   ['ss -tulpn | grep :3000',\n      ['tcp  LISTEN 0  511  *:3000  *:*  users:((\"node\",pid=1420,fd=23))'],\n      't=TCP u=UDP l=듣는 것 p=프로세스 n=숫자그대로. 요즘 리눅스는 netstat 대신 ss.'],\n    all:  ['ss -tlpn',\n      ['*:22     sshd    pid=812', '*:3000   node    pid=1420',\n       '127.0.0.1:5432  postgres pid=2011   <- 바깥에서 못 붙는다'],\n      '듣고 있는 포트 전부. 주소가 127.0.0.1 이면 그 기계 안에서만, *(0.0.0.0)이면 바깥에서도.'],\n    kill: ['kill $(lsof -t -i :3000)',\n      ['-t 는 PID 만 낸다 -> 바로 kill 에 넘긴다',\n       '안 죽으면 kill -9 (마지막 수단)'],\n      '자주 쓰면 별칭으로: alias killport=\\'kill $(lsof -t -i :$1)\\''],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "find",
+              "options": [
+                {
+                  "value": "find",
+                  "label": "3000번을 누가 쓰나"
+                },
+                {
+                  "value": "ss",
+                  "label": "ss 로 보기"
+                },
+                {
+                  "value": "all",
+                  "label": "듣고 있는 포트 전부"
+                },
+                {
+                  "value": "kill",
+                  "label": "찾아서 끝내기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**주소가 `127.0.0.1` 인지 `0.0.0.0` 인지가 중요하다.** 전자는 그 기계 안에서만 붙을 수 있다 — 「컨테이너 안에서는 되는데 바깥에서 안 붙는」 문제의 절반이 이것이다(`--host 0.0.0.0` 이 필요하다)."
+        },
+        {
+          "type": "p",
+          "text": "1024번 아래 포트(80·443 등)는 **root 권한**이 있어야 열 수 있다. 그래서 앱은 3000번에 띄우고 앞에 nginx 를 두거나, `setcap` 으로 그 권한만 준다(앞 칸 권한 8장의 capabilities)."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "포트 진단 세 줄",
+          "text": "ss -tulpn                     # 지금 듣고 있는 것 전부 (리눅스)\nlsof -i :3000                 # 그 포트를 누가 (macOS 포함)\nlsof -t -i :3000 | xargs -r kill\n\ncurl -sv telnet://호스트:3000  # 바깥에서 붙는지 확인\nnc -zv 호스트 3000             # 같은 확인, 더 짧게"
+        },
+        {
+          "type": "try",
+          "text": "개발 서버를 띄운 채 `lsof -i :3000`(또는 쓰는 포트)을 쳐 보라. PID 가 지금 도는 프로세스와 같은지 `ps -p PID` 로 대조하라."
+        }
       ],
-      "answer": 0,
-      "why": "소켓과 PID 를 함께 보여 준다."
+      "quiz": [
+        {
+          "q": "`EADDRINUSE` 를 만났을 때 첫 명령은?",
+          "choices": [
+            "재부팅",
+            "lsof -i :포트 (또는 ss -tlpn)",
+            "chmod",
+            "top"
+          ],
+          "answer": 1,
+          "why": "누가 물고 있는지 찾는다."
+        },
+        {
+          "q": "`127.0.0.1:5432` 로 듣고 있으면?",
+          "choices": [
+            "누구나 붙을 수 있다",
+            "그 기계 안에서만 붙을 수 있다",
+            "포트가 닫혔다",
+            "TLS 전용"
+          ],
+          "answer": 1,
+          "why": "0.0.0.0 이어야 바깥에서 붙는다."
+        },
+        {
+          "q": "80번 포트를 일반 사용자가 못 여는 이유는?",
+          "choices": [
+            "방화벽",
+            "1024 미만은 특권 포트라서",
+            "TLS 필요",
+            "커널 설정"
+          ],
+          "answer": 1,
+          "why": "앞에 nginx 를 두거나 setcap 을 쓴다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "메모리 지표 — free 를 오해하지 않기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`free -h` 를 보고 「메모리가 없다」고 놀라는 것이 흔한 오해다. 리눅스는 **남는 메모리를 캐시로 쓴다** — 비어 있는 메모리는 낭비이기 때문이다. 봐야 할 칸은 `free` 가 아니라 **`available`** 이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 정말 부족한가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const d = {\n    cache: { total: 16, used: 3.2, buffcache: 11.8, available: 12.1, swap: 0,\n      say: '<span class=\"ok\">정상.</span> free 는 1GB 뿐이지만 available 이 12GB — 캐시는 필요하면 즉시 내준다.' },\n    real:  { total: 16, used: 14.8, buffcache: 0.6, available: 0.4, swap: 2.1,\n      say: '<span class=\"no\">진짜 부족.</span> available 이 바닥이고 스왑까지 쓰고 있다 — 앞 칸의 스래싱 직전.' },\n    leak:  { total: 16, used: 12.0, buffcache: 3.0, available: 3.6, swap: 0,\n      say: '<span class=\"warn\">추세를 봐야 한다.</span> 지금은 여유가 있지만 한 프로세스의 RSS 가 계속 는다면 누수다.' },\n  }[c];\n  const viz = '<div class=\"hint\">used</div>' + bar(d.used / d.total * 100) +\n              '<div class=\"hint\">buff/cache (필요하면 내준다)</div>' + bar(d.buffcache / d.total * 100, '#3b82f6') +\n              '<div class=\"hint\">available (진짜 여유)</div>' + bar(d.available / d.total * 100, d.available < 1 ? '#ef4444' : '#22c55e');\n  render('free -h',\n    '              total   used   free   buff/cache   available\\n' +\n    '  Mem:        ' + d.total + 'G    ' + d.used + 'G   ' +\n    (d.total - d.used - d.buffcache).toFixed(1) + 'G      ' + d.buffcache + 'G        ' + d.available + 'G\\n' +\n    '  Swap:       4.0G    ' + d.swap + 'G\\n\\n  ' + d.say,\n    'used + buff/cache + free = total. 판단은 available 하나로 한다.', viz);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "cache",
+              "options": [
+                {
+                  "value": "cache",
+                  "label": "free 가 적다"
+                },
+                {
+                  "value": "real",
+                  "label": "available 이 바닥"
+                },
+                {
+                  "value": "leak",
+                  "label": "계속 늘어난다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "메모리가 진짜 바닥나면 커널이 **OOM Killer** 를 부른다 — 점수를 매겨 하나를 골라 죽인다. 대개 메모리를 제일 많이 쓰는 것이 뽑히므로, 정작 중요한 서비스가 죽는 일이 잦다. `dmesg | grep -i 'killed process'` 로 확인할 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "메모리 진단",
+          "text": "free -h                        # available 을 본다\nps aux --sort=-rss | head      # 누가 많이 쓰나\nvmstat 1 5                     # si/so 가 0 이 아니면 스왑 중\ndmesg -T | grep -i 'killed process'   # OOM 이 있었나\n\n# 컨테이너는 별도 한도가 있다\ncat /sys/fs/cgroup/memory.max\ndocker stats --no-stream"
+        },
+        {
+          "type": "note",
+          "text": "**컨테이너 안에서 `free` 는 호스트 전체를 보여 준다.** 컨테이너의 한도는 cgroup 에 있다 — 그래서 「메모리 넉넉한데 왜 OOM 이 나지」가 생긴다. `docker stats` 나 cgroup 파일을 봐야 진짜 값이다."
+        },
+        {
+          "type": "try",
+          "text": "`free -h` 를 치고 `available` 과 `free` 의 차이를 확인하라. 그리고 큰 파일을 한 번 읽은 뒤(`cat bigfile > /dev/null`) 다시 보라 — buff/cache 가 늘어난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "리눅스에서 메모리 여유를 판단하는 칸은?",
+          "choices": [
+            "free",
+            "available",
+            "used",
+            "buff/cache"
+          ],
+          "answer": 1,
+          "why": "캐시는 필요하면 즉시 내준다."
+        },
+        {
+          "q": "OOM Killer 가 하는 일은?",
+          "choices": [
+            "메모리를 압축",
+            "점수를 매겨 프로세스 하나를 죽인다",
+            "스왑을 늘린다",
+            "재부팅"
+          ],
+          "answer": 1,
+          "why": "dmesg 에 기록이 남는다."
+        },
+        {
+          "q": "컨테이너에서 `free` 를 믿으면 안 되는 이유는?",
+          "choices": [
+            "느려서",
+            "호스트 전체를 보여 주기 때문",
+            "권한 문제",
+            "단위가 달라서"
+          ],
+          "answer": 1,
+          "why": "cgroup 한도를 봐야 한다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "끝내고 다시 살리기 — 신호와 재시작",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "프로세스를 끝내는 방법은 여럿이지만 **순서**가 정해져 있다 — 정중히 부탁(TERM) → 기다림 → 최후 수단(KILL). 그리고 안 죽는 프로세스에는 이유가 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 왜 안 죽나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    term: ['kill 1420', ['기본은 SIGTERM(15) — 「정리하고 끝내라」',\n      '프로그램이 받아서 연결을 닫고 나간다'],\n      '이게 정상 경로다. 곧바로 -9 를 쓰지 마라.'],\n    stuck: ['kill -9 1420', ['SIGKILL(9) — 가로챌 수 없다',\n      '정리 못 하고 죽는다: 임시 파일·잠금·미저장 데이터가 남는다'],\n      'TERM 을 보내고 5~10초 기다린 뒤에도 안 죽을 때만.'],\n    zombie: ['ps aux | grep defunct', ['app 1500 0.0 0.0 0 0 Z  [worker] <defunct>',\n      '좀비 = 이미 죽었는데 부모가 종료 상태를 안 거둬 간 것'],\n      '좀비는 kill 해도 안 사라진다 — 부모를 고치거나 부모를 재시작해야 한다. (자원은 거의 안 먹는다)'],\n    dstate: ['ps -o pid,stat,cmd -p 2011', ['2011 D  postgres: writer process',\n      'D = 끊을 수 없는 대기(uninterruptible) — 대개 디스크·NFS 를 기다리는 중'],\n      'D 상태는 kill -9 로도 안 죽는다. 기다리거나 그 I/O 문제를 풀어야 한다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "term",
+              "options": [
+                {
+                  "value": "term",
+                  "label": "정상 종료"
+                },
+                {
+                  "value": "stuck",
+                  "label": "-9 를 써야 할 때"
+                },
+                {
+                  "value": "zombie",
+                  "label": "좀비(Z)"
+                },
+                {
+                  "value": "dstate",
+                  "label": "안 죽는다(D)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "끝내는 여러 방법",
+          "text": "kill 1420              # TERM (기본)\nkill -TERM 1420        # 같은 것, 명시적으로\npkill -f 'node.*worker' # 이름·명령줄로 (조심: 무엇이 잡히는지 먼저 pgrep 으로 확인)\nkillall node           # 그 이름 전부\ntimeout 10 cmd         # 10초 넘으면 자동으로 TERM\n\npgrep -af 'node.*worker'   # 먼저 확인하고\npkill -f 'node.*worker'    # 그다음 실행"
+        },
+        {
+          "type": "note",
+          "text": "`pkill -f` 는 **명령줄 전체**로 맞춘다. 무늬가 넓으면 엉뚱한 것까지 죽는다 — 반드시 같은 무늬로 `pgrep -af` 를 먼저 돌려 목록을 눈으로 확인하라. 서버에서 한 글자 차이로 사고가 난다."
+        },
+        {
+          "type": "p",
+          "text": "프로세스 상태 글자도 알아 두면 좋다 — `R`(도는 중) `S`(자는 중, 정상) `D`(끊을 수 없는 대기) `Z`(좀비) `T`(멈춤). `S` 가 대부분인 것이 정상이다. `D` 가 여럿이면 디스크가 병목이라는 신호다."
+        },
+        {
+          "type": "try",
+          "text": "`sleep 300 &` 로 하나 띄우고 `pgrep -af sleep` → `kill %1` 로 끝내 보라. 그리고 `ps -o pid,stat,cmd -p $$` 로 지금 셸의 상태 글자를 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "프로세스를 끝내는 정상 순서는?",
+          "choices": [
+            "바로 -9",
+            "TERM → 기다림 → KILL",
+            "KILL → TERM",
+            "재부팅"
+          ],
+          "answer": 1,
+          "why": "정리할 기회를 준다."
+        },
+        {
+          "q": "좀비(Z) 프로세스를 없애려면?",
+          "choices": [
+            "kill -9",
+            "부모를 고치거나 재시작",
+            "재부팅만",
+            "무시할 수 없다"
+          ],
+          "answer": 1,
+          "why": "이미 죽었고 부모가 거둬 가야 한다."
+        },
+        {
+          "q": "`pkill -f` 를 쓰기 전에 할 일은?",
+          "choices": [
+            "백업",
+            "같은 무늬로 pgrep -af 확인",
+            "sudo 붙이기",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "무늬가 넓으면 엉뚱한 것까지 죽는다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "터미널을 닫아도 계속 — nohup · tmux · systemd",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "SSH 를 끊으면 그 세션에서 띄운 프로세스가 함께 죽는다(HUP 신호). 오래 도는 작업에는 **터미널과 수명을 끊어 주는** 장치가 필요하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방법을 골라 보라 — 언제 무엇을",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{how}}';\n  const t = {\n    nohup: ['nohup ./long.sh > out.log 2>&1 &',\n      ['HUP 신호를 무시하게 만들고 백그라운드로', '출력은 파일로 돌려야 한다(안 그러면 nohup.out)'],\n      '한 번 돌리고 마는 작업에 가장 간단하다. 다시 붙어서 보지는 못한다.'],\n    tmux: ['tmux new -s build   →  Ctrl-b d  →  tmux attach -t build',\n      ['세션이 서버에 남는다 — 끊었다 다시 붙을 수 있다', '창을 여러 개 두고 로그를 보며 작업'],\n      '사람이 지켜보며 오래 하는 작업에 맞다. 재부팅하면 사라진다.'],\n    systemd: ['sudo systemctl enable --now myapp',\n      ['부팅 때 자동 시작 · 죽으면 자동 재시작 · 로그는 journal 로', '의존 관계·자원 한도·전용 계정까지 선언으로'],\n      '서비스로 계속 돌 것이면 이것 하나가 정답이다. nohup 으로 서비스를 운영하지 마라.'],\n    disown: ['./long.sh &  →  disown -h %1',\n      ['이미 띄운 것을 뒤늦게 셸에서 떼어 낸다'],\n      'nohup 을 깜빡했을 때의 구제책.'],\n  }[m];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "방법",
+              "type": "select",
+              "value": "nohup",
+              "options": [
+                {
+                  "value": "nohup",
+                  "label": "nohup (한 번 돌리기)"
+                },
+                {
+                  "value": "tmux",
+                  "label": "tmux (붙었다 떨어졌다)"
+                },
+                {
+                  "value": "systemd",
+                  "label": "systemd (서비스)"
+                },
+                {
+                  "value": "disown",
+                  "label": "disown (뒤늦게)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "systemd 유닛 최소 형태",
+          "text": "# /etc/systemd/system/myapp.service\n[Unit]\nDescription=My App\nAfter=network.target\n\n[Service]\nUser=app                      # 전용 계정 (권한 칸 5장)\nWorkingDirectory=/srv/app\nExecStart=/usr/bin/node server.js\nRestart=always                # 죽으면 다시\nRestartSec=3\nEnvironment=NODE_ENV=production\n\n[Install]\nWantedBy=multi-user.target"
+        },
+        {
+          "type": "note",
+          "text": "`systemctl` 세 줄이면 대부분 끝난다 — `status`(지금 상태와 최근 로그), `restart`, `journalctl -u 이름 -f`(로그 따라가기). 「서버가 죽었어요」에서 첫 명령은 언제나 `systemctl status 이름` 이다."
+        },
+        {
+          "type": "p",
+          "text": "백그라운드 작업(`&`)의 짝도 알아 두면 편하다 — `jobs`(목록), `fg %1`(앞으로), `bg %1`(뒤로), `Ctrl-Z`(잠시 멈춤). 편집기를 열어 둔 채 명령 하나만 치고 싶을 때 `Ctrl-Z` → 명령 → `fg` 가 손에 붙으면 빠르다."
+        },
+        {
+          "type": "try",
+          "text": "`nohup sleep 60 > /tmp/s.log 2>&1 &` 로 띄우고 터미널을 닫았다 다시 열어 `pgrep -af sleep` 으로 살아 있는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "SSH 를 끊어도 살아남게 하는 가장 간단한 방법은?",
+          "choices": [
+            "& 만 붙인다",
+            "nohup … &",
+            "tmux 필수",
+            "systemd 필수"
+          ],
+          "answer": 1,
+          "why": "HUP 를 무시하게 만든다."
+        },
+        {
+          "q": "서비스로 계속 돌 프로그램에 맞는 것은?",
+          "choices": [
+            "nohup",
+            "tmux",
+            "systemd 유닛",
+            "cron"
+          ],
+          "answer": 2,
+          "why": "자동 시작·재시작·로그가 함께 온다."
+        },
+        {
+          "q": "「서버가 죽었어요」에서 첫 명령은?",
+          "choices": [
+            "ps aux",
+            "systemctl status 이름",
+            "reboot",
+            "top"
+          ],
+          "answer": 1,
+          "why": "상태와 최근 로그를 함께 보여 준다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "무엇을 기다리나 — 한 프로세스 안을 들여다보기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「그 프로세스가 멈춘 것 같다」에서 한 걸음 더 들어가려면 **무엇을 하고 있는지** 봐야 한다. 파일을 열고 있나, 네트워크를 기다리나, 어떤 시스템 콜에 붙들려 있나."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "도구를 골라 보라 — 무엇을 알려 주나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = '{{tool}}';\n  const d = {\n    lsof: ['lsof -p 1420 | head',\n      ['node 1420 app  cwd  DIR  /srv/app', 'node 1420 app  3r   REG  /srv/app/data.json',\n       'node 1420 app  23u  IPv6 TCP *:3000 (LISTEN)', 'node 1420 app  31u  IPv4 TCP →db:5432 (ESTABLISHED)'],\n      '이 프로세스가 연 것 전부 — 파일·소켓·현재 폴더. 「어느 DB 에 붙어 있나」가 여기서 보인다.'],\n    strace: ['strace -p 1420 -f -e trace=network',\n      ['recvfrom(31, ...) = -1 EAGAIN (Resource temporarily unavailable)',\n       '... 같은 줄이 계속 반복'],\n      '지금 어떤 시스템 콜에 붙들려 있는지. 같은 줄이 반복되면 그것을 기다리는 중이다.'],\n    proc: ['cat /proc/1420/status | head -8',\n      ['State: S (sleeping)', 'Threads: 11', 'VmRSS: 980 MB', 'voluntary_ctxt_switches: 42891'],\n      '/proc/PID 는 커널이 보여 주는 그 프로세스의 모든 것 — 스레드 수·메모리·상태.'],\n    limits: ['cat /proc/1420/limits | grep -i files',\n      ['Max open files   1024   4096   files',\n       '-> \\'EMFILE: too many open files\\' 의 원인'],\n      '열 수 있는 파일 수 한도. 소켓도 파일이라 연결이 많으면 여기서 막힌다(ulimit -n).'],\n  }[t];\n  render(d[0], d[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(d[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "tool",
+              "label": "도구",
+              "type": "select",
+              "value": "lsof",
+              "options": [
+                {
+                  "value": "lsof",
+                  "label": "lsof -p (무엇을 열었나)"
+                },
+                {
+                  "value": "strace",
+                  "label": "strace (무슨 콜에 붙들렸나)"
+                },
+                {
+                  "value": "proc",
+                  "label": "/proc/PID"
+                },
+                {
+                  "value": "limits",
+                  "label": "한도 (too many open files)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**`EMFILE: too many open files`** 는 실무에서 자주 만나는 벽이다. 소켓도 파일로 세기 때문에, 연결을 안 닫는 버그가 있으면 며칠 뒤 터진다. `lsof -p PID | wc -l` 로 세어 보고, 늘어나기만 하면 코드 문제다 — 한도(`ulimit -n`)를 올리는 것은 그다음이다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "한 프로세스를 파고드는 순서",
+          "text": "ps -o pid,stat,etime,cmd -p 1420   # 상태·실행 시간\nlsof -p 1420 | wc -l               # 연 파일 수 (늘어나면 누수)\nlsof -p 1420 | grep TCP            # 어디에 붙어 있나\ncat /proc/1420/status              # 스레드·메모리\nstrace -p 1420 -c                  # 시스템 콜 통계 (어디에 시간을 쓰나)"
+        },
+        {
+          "type": "p",
+          "text": "`strace` 는 강력하지만 **대상 프로세스를 크게 느리게 만든다**(모든 시스템 콜을 가로챈다). 운영 중인 서비스에 오래 붙이지 마라 — 몇 초만 붙였다 떼고, 가능하면 트래픽이 적은 인스턴스에서 하라."
+        },
+        {
+          "type": "try",
+          "text": "지금 도는 개발 서버의 PID 를 찾아 `lsof -p PID | wc -l` 을 두 번(1분 간격) 세어 보라. 숫자가 계속 늘면 무언가 안 닫히고 있다는 뜻이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「어느 DB 에 붙어 있나」를 보려면?",
+          "choices": [
+            "ps aux",
+            "lsof -p PID | grep TCP",
+            "free -h",
+            "top"
+          ],
+          "answer": 1,
+          "why": "소켓도 열린 파일로 보인다."
+        },
+        {
+          "q": "`EMFILE: too many open files` 의 근본 원인은 대개?",
+          "choices": [
+            "디스크 부족",
+            "연결·파일을 안 닫는 코드",
+            "메모리 부족",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "한도를 올리는 것은 그다음이다."
+        },
+        {
+          "q": "운영 중 서비스에 strace 를 오래 붙이면?",
+          "choices": [
+            "안전하다",
+            "크게 느려진다",
+            "죽는다",
+            "권한 오류"
+          ],
+          "answer": 1,
+          "why": "모든 시스템 콜을 가로챈다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "반복되는 일 — cron 과 타이머",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "매일 할 일은 사람이 기억하면 언젠가 빠뜨린다. `cron` 은 정해진 시각에 명령을 돌려 주는 가장 오래된 장치이고, 여전히 가장 많이 쓰인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "시각 표기를 골라 보라 — 언제 도나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{spec}}';\n  const t = {\n    daily: ['0 3 * * *   /srv/backup.sh', '매일 새벽 3시 정각', '분 시 일 월 요일 — 왼쪽부터 다섯 칸'],\n    every5: ['*/5 * * * *  /srv/health.sh', '5분마다', '*/N 은 「N 마다」'],\n    weekly: ['30 4 * * 1   /srv/report.sh', '매주 월요일 새벽 4시 30분', '요일은 0(일)~6(토)'],\n    month: ['0 0 1 * *    /srv/invoice.sh', '매달 1일 자정', '일과 요일을 함께 주면 「둘 중 하나만 맞아도」 돈다 — 헷갈리는 자리'],\n  }[s];\n  render('crontab -e', '  ' + esc(t[0]) + '\\n\\n  <span class=\"ok\">' + esc(t[1]) + '</span>\\n\\n' +\n    '  ┌─── 분 (0-59)\\n  │ ┌─ 시 (0-23)\\n  │ │ ┌ 일 (1-31)\\n  │ │ │ ┌ 월 (1-12)\\n  │ │ │ │ ┌ 요일 (0-6)\\n' +\n    '  ' + esc(t[0].split(/\\s+/).slice(0, 5).join(' ')),\n    t[2]);\n</script>",
+          "controls": [
+            {
+              "id": "spec",
+              "label": "표기",
+              "type": "select",
+              "value": "daily",
+              "options": [
+                {
+                  "value": "daily",
+                  "label": "0 3 * * *"
+                },
+                {
+                  "value": "every5",
+                  "label": "*/5 * * * *"
+                },
+                {
+                  "value": "weekly",
+                  "label": "30 4 * * 1"
+                },
+                {
+                  "value": "month",
+                  "label": "0 0 1 * *"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**cron 은 내 셸 설정을 안 읽는다.** PATH 가 최소값이고 `~/.bashrc` 도 안 돈다 — 그래서 「터미널에서는 되는데 cron 에서만 안 되는」 일이 생긴다. 답은 **절대 경로**를 쓰거나 스크립트 안에서 필요한 환경을 직접 세우는 것이다(앞 칸 8장의 PATH)."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "cron 을 안전하게 쓰는 모양",
+          "text": "# crontab -e\nPATH=/usr/local/bin:/usr/bin:/bin\nMAILTO=\"\"\n\n0 3 * * * /usr/bin/flock -n /tmp/backup.lock /srv/backup.sh >> /var/log/backup.log 2>&1\n#          ^ 겹쳐 도는 것 방지        ^ 절대 경로   ^ 로그를 남긴다(오류까지)\n\ncrontab -l          # 지금 걸린 것 보기\nsystemctl status cron   # cron 자체가 도는지"
+        },
+        {
+          "type": "p",
+          "text": "요즘 리눅스에서는 **systemd 타이머**가 대안이다 — 로그가 journal 로 모이고, 놓친 실행을 나중에 따라잡게 할 수 있고(`Persistent=true`), 의존 관계를 걸 수 있다. 다만 파일이 두 개(`.service` + `.timer`)라 손이 조금 더 간다."
+        },
+        {
+          "type": "try",
+          "text": "`crontab -l` 로 지금 걸린 것을 보라. 하나 걸어 보고 싶으면 `* * * * * date >> /tmp/cron.log` 로 1분마다 찍게 한 뒤, 확인하고 지워라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`*/5 * * * *` 의 뜻은?",
+          "choices": [
+            "5시에",
+            "5분마다",
+            "매일 5시",
+            "5일마다"
+          ],
+          "answer": 1,
+          "why": "*/N 은 N 마다."
+        },
+        {
+          "q": "cron 에서만 명령을 못 찾는 이유는?",
+          "choices": [
+            "권한",
+            "PATH 가 최소값이고 셸 설정을 안 읽어서",
+            "네트워크",
+            "디스크"
+          ],
+          "answer": 1,
+          "why": "절대 경로를 쓴다."
+        },
+        {
+          "q": "작업이 겹쳐 도는 것을 막으려면?",
+          "choices": [
+            "sleep",
+            "flock",
+            "nice",
+            "nohup"
+          ],
+          "answer": 1,
+          "why": "잠금 파일로 하나만 돌게 한다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「서버가 느려요」는 질문이 아니라 증상이다. 이 순서로 좁히면 대개 다섯 줄 안에 원인이 나온다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "느리다 -> 좁히는 순서",
+          "text": "1. 얼마나 밀려 있나        uptime · nproc      (load / 코어 수)        (2장)\n2. 무엇을 기다리나         top 의 us / wa / sy                          (2장)\n     us 높다  -> 코드·쿼리가 오래 걸린다   ps aux --sort=-%cpu\n     wa 높다  -> 디스크·NFS               iostat -x 1 · df -h\n     sy 높다  -> 시스템 콜·문맥교환 폭주   strace -c\n3. 메모리는                free -h 의 available · vmstat 의 si/so       (4장)\n4. 누가 범인인가           ps aux --sort=-rss|-%cpu · lsof -p PID       (1·7장)\n5. 포트·연결은             ss -tulpn · lsof -i :포트                     (3장)\n\n서비스가 안 뜬다\n  [ ] systemctl status 이름 · journalctl -u 이름 -n 50    (6장)\n  [ ] 포트를 이미 누가 물고 있나                           (3장)\n  [ ] 전용 계정의 권한·경로는 맞나                         (권한 칸)\n오래 돌릴 것\n  [ ] 한 번이면 nohup · 지켜보면 tmux · 서비스면 systemd   (6장)\n  [ ] 정기 작업은 cron + flock + 절대 경로 + 로그           (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .bar { height:16px; background:#1e293b; border-radius:4px; overflow:hidden; margin:2px 0 6px; }\n  .bar i { display:block; height:100%; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const bar = (pct, color) => '<div class=\"bar\"><i style=\"width:' + Math.min(100, pct) + '%;background:' +\n    (color || (pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e')) + '\"></i></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['load average 는 CPU 사용률이다', false],\n    ['free 가 적어도 available 이 넉넉하면 정상이다', true],\n    ['좀비 프로세스는 kill -9 로 없앨 수 있다', false],\n    ['127.0.0.1 로 듣는 포트는 바깥에서 못 붙는다', true],\n    ['pkill -f 는 명령줄 전체로 맞춘다', true],\n    ['cron 은 내 ~/.bashrc 를 읽는다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 2장(load) 4장(free) 5장(좀비) 3장(포트) 5장(pkill) 8장(cron)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 SSH 다. 여기까지가 「이 기계에서 무엇이 도나」였다면, 다음은 **다른 기계에 붙어서 같은 일을 하는 법**이다 — 비밀번호 없이."
+        },
+        {
+          "type": "try",
+          "text": "위 다섯 단계를 지금 쓰는 기계에 한 번 돌려 보라. 문제가 없어도 각 명령의 정상 출력이 어떤 모양인지 봐 두면, 이상할 때 바로 알아본다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「느리다」에서 두 번째로 볼 것은?",
+          "choices": [
+            "재부팅",
+            "top 의 us/wa/sy 비율",
+            "디스크 정리",
+            "로그 삭제"
+          ],
+          "answer": 1,
+          "why": "무엇을 기다리는지가 갈래를 정한다."
+        },
+        {
+          "q": "서비스가 안 뜰 때 첫 명령은?",
+          "choices": [
+            "ps aux",
+            "systemctl status 이름",
+            "top",
+            "free"
+          ],
+          "answer": 1,
+          "why": "상태와 최근 로그가 함께 나온다."
+        }
+      ]
     }
   ]
 }
