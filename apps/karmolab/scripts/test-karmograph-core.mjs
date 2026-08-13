@@ -1208,6 +1208,30 @@ const M = await loadModules();
   eq(filmFileName('   '), 'karmograph.webm', '이름이 비면 기본 이름');
 }
 
+{
+  /* 화면에 나갈 **한국어가 코드에 박혀 있지 않은가** (KL-271, 2026-08-14).
+     실측으로 다섯 개가 남아 있었다 — 「맵 N개를 되돌렸습니다」 「겹친 N개를 밀었습니다」
+     판 지우기 되물음 둘 … 영어·일본어로 쓰는 사람에게는 갑자기 한국어가 튀어나온다.
+     i18n 열쇠 검사(test:i18n:keys)는 **부른 열쇠가 있나**만 보지, 안 부른 글은 못 본다.
+     `data-` 에 넣는 계측값(kmPan)은 사람이 읽는 글이 아니라 셈에서 뺀다. */
+  const src = fs.readFileSync(path.join(root, 'src/widgets/karmograph/karmograph.ts'), 'utf8');
+  const hangul = /[가-힣]/;
+  const leaks = [];
+  src.split(String.fromCharCode(10)).forEach((line, i) => {
+    const t0 = line.trim();
+    if (t0.startsWith('//') || t0.startsWith('*') || t0.startsWith('/*') || t0.startsWith('<!--')) return;
+    if (line.includes('dataset.kmPan') || line.includes('panned(')) return;   // 계측값(사람이 읽는 글 X)
+    for (const q of ['"', "'", '`']) {
+      const parts = line.split(q);
+      if (parts.length >= 3 && parts.some((p, k) => k % 2 === 1 && hangul.test(p))) {
+        leaks.push(`${i + 1}: ${t0.slice(0, 60)}`);
+        return;
+      }
+    }
+  });
+  eq(leaks.length, 0, '코드에 박힌 한국어 글: ' + leaks.slice(0, 4).join(' | '));
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
