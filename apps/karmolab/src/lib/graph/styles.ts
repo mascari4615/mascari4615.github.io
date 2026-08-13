@@ -59,6 +59,14 @@ export const GRAPH_CANVAS_CSS = `
 }
 .ck-node:hover .ck-link-handle,
 .ck-node.is-selected .ck-link-handle { opacity: 1; }
+/* ★ 짚는 자리는 **보이는 점보다 크다**. 손가락 기계(pointer: coarse)에서는 44px 규격에 맞춰
+   더 키운다 — 12px 짜리 과녁은 손가락에게 없는 것과 같다(실측 2026-08-14). */
+.ck-link-hit { fill: transparent; }
+@media (pointer: coarse) {
+  .ck-link-hit { r: 22px; }
+  /* 손가락으로는 「올려 두기」가 없다 — 고른 카드의 점은 늘 보이게 둔다. */
+  .ck-node.is-selected .ck-link-dot { r: 8px; }
+}
 .ck-edge-grip {
   opacity: 0;
   cursor: ns-resize;

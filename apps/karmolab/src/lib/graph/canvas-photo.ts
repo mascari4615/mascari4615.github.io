@@ -91,15 +91,34 @@ export function buildSizeHandle(id: string, w: number, effH: number, fill: strin
   return grip;
 }
 
+/**
+ * 선을 뽑는 점 — **보이는 점은 작게, 짚는 자리는 크게**.
+ *
+ * 예전에는 점 하나(반지름 5 = 12px 남짓)가 곧 짚는 자리였다. 마우스로는 넉넉하지만 **손가락**
+ * 에게는 12px 짜리 과녁이다(손가락 규격은 44px) — 폰에서 선 잇기가 사실상 안 되는 셈이었다
+ * (실측 2026-08-14). 그래서 투명한 큰 원을 뒤에 깔고, 손가락 기계에서는 그 원을 키운다.
+ */
 export function buildLinkHandle(id: string, w: number, effH: number, fill: string, stroke: string): SVGElement {
+  const g = document.createElementNS(SVG_NS, 'g');
+  g.setAttribute('class', 'ck-link-handle');
+  (g as SVGElement).dataset.linkFrom = id;
+
+  const hit = document.createElementNS(SVG_NS, 'circle');
+  hit.setAttribute('class', 'ck-link-hit');
+  hit.setAttribute('cx', String(w));
+  hit.setAttribute('cy', String(effH / 2));
+  hit.setAttribute('r', '10');
+  hit.setAttribute('fill', 'transparent');
+  g.appendChild(hit);
+
   const handle = document.createElementNS(SVG_NS, 'circle');
-  handle.setAttribute('class', 'ck-link-handle');
-  (handle as SVGElement).dataset.linkFrom = id;
+  handle.setAttribute('class', 'ck-link-dot');
   handle.setAttribute('cx', String(w));
   handle.setAttribute('cy', String(effH / 2));
   handle.setAttribute('r', '5');
   handle.setAttribute('fill', fill);
   handle.setAttribute('stroke', stroke);
   handle.setAttribute('stroke-width', '1.5');
-  return handle;
+  g.appendChild(handle);
+  return g;
 }
