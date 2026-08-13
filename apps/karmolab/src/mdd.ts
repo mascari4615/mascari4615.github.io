@@ -896,10 +896,23 @@ const Mdd = (() => {
 
     /* ===== CSS 주입 ===== */
 
+    /**
+     * 위젯 스타일을 한 장으로 넣는다. **이미 있으면 덮어쓴다** (2026-08-13, TASK-KL-271).
+     *
+     * 전에는 「같은 id 가 있으면 아무것도 안 함」이었다. 위젯은 같은 판에서 다시 등록될 수 있고
+     * (핫 리로드·다시 열기), 그때 **옛 스타일이 그대로 남아** 새 규칙이 통째로 안 먹었다.
+     * 화면은 멀쩡히 그려지므로 「규칙을 잘못 썼나」로 읽혀, 한 번은 같은 자리를 세 번 고쳤다.
+     * 내용이 같으면 손대지 않는다 — 쓸데없이 스타일을 다시 계산시키지 않으려고.
+     */
     function injectCSS(id: string, css: string): void {
-        if (document.getElementById('mdd-css-' + id)) return;
+        const domId = 'mdd-css-' + id;
+        const found = document.getElementById(domId) as HTMLStyleElement | null;
+        if (found) {
+            if (found.textContent !== css) found.textContent = css;
+            return;
+        }
         const style = document.createElement('style');
-        style.id = 'mdd-css-' + id;
+        style.id = domId;
         style.textContent = css;
         (document.head || document.documentElement).appendChild(style);
     }
