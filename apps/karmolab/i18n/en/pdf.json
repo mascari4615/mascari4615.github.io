@@ -26,5 +26,13 @@
   "pdf.err.mount": "Could not load this task",
   "pdf.btn.more": "Show more ({n} pages)",
   "pdf.btn.chain": "Continue with this result",
-  "pdf.chain.ready": "Result \"{name}\""
+  "pdf.chain.ready": "Result \"{name}\"",
+  "pdf.thumb.zoom": "View larger",
+  "pdf.thumb.rotate": "Rotate 90° right",
+  "pdf.thumb.drop": "Drop this page",
+  "pdf.btn.apply": "Apply changes",
+  "pdf.btn.undoAll": "Undo all",
+  "pdf.edit.count": "{turn} rotated · {drop} dropped",
+  "pdf.edit.suffix": "-tidied",
+  "pdf.edit.fail": "This document can't be edited"
 }

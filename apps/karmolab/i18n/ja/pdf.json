@@ -26,5 +26,13 @@
   "pdf.err.mount": "この作業を読み込めませんでした",
   "pdf.btn.more": "もっと見る（{n}ページ）",
   "pdf.btn.chain": "この結果で続ける",
-  "pdf.chain.ready": "結果「{name}」"
+  "pdf.chain.ready": "結果「{name}」",
+  "pdf.thumb.zoom": "大きく見る",
+  "pdf.thumb.rotate": "右に90°回す",
+  "pdf.thumb.drop": "このページを外す",
+  "pdf.btn.apply": "変更を反映する",
+  "pdf.btn.undoAll": "元に戻す",
+  "pdf.edit.count": "回転 {turn} · 除外 {drop}",
+  "pdf.edit.suffix": "-整理",
+  "pdf.edit.fail": "この文書は編集できません"
 }
