@@ -66,6 +66,37 @@ await page.waitForSelector('#tmFaces', { timeout: 10000 });
 check((await page.locator('#tmFaces .tm-face').count()) === 6, '다시 적으면 되살아난다');
 check(/D-2[01]/.test(await face('D-Day')), `3주 뒤는 D-21 언저리 (지금 ${await face('D-Day')})`);
 
+/* ⑥ **시간 격자** (TASK-KL-287 — World Time Buddy)
+ * 「지금 저기가 몇 시」가 아니라 「**언제 다 같이 깨어 있나**」를 재는 자리다. */
+await page.fill('#pfText', '2026-09-01 오후 3시');
+await page.waitForSelector('#tmGrid', { timeout: 15000 });
+const gridRows = await page.locator('#tmGrid .tm-grid-row').count();
+check(gridRows === 6, `머리줄 + 도시 다섯 (지금 ${gridRows}줄)`);
+check((await page.locator('#tmGrid .tm-cell').count()) === 120, '도시마다 24칸');
+check((await page.locator('#tmGrid .tm-pick').count()) > 0, '언제가 나은지 짚어 준다');
+/* **다 편한 때가 없으면 없다고 말해야** 한다 — 짚어만 주면 「이때가 좋다」로 읽힌다 */
+const noteLevel = await page.locator('#tmGridNote').getAttribute('data-level');
+check(['ok', 'meh', 'least'].includes(noteLevel || ''), `어느 수준으로 골랐는지 말해 준다 (지금 ${noteLevel})`);
+check((await page.locator('#tmGridNote').innerText()).length > 5, '그 뜻을 한 줄로 적어 준다');
+
+/* 자는 때·일하는 때가 색으로 갈린다 — 한 줄이 통째로 같은 색이면 아무것도 안 가른 것이다 */
+const seoulEases = await page
+  .locator('#tmGrid .tm-grid-row')
+  .nth(1)
+  .locator('.tm-cell')
+  .evaluateAll((els) => [...new Set(els.map((e) => e.className.replace(/.*tm-(ok|meh|bad).*/, '$1')))]);
+check(seoulEases.length >= 2, `한 도시 안에서도 편한 때·자는 때가 갈린다 (지금 ${seoulEases.join('/')})`);
+
+/* 칸을 누르면 **그 시각으로 옮겨 간다** */
+await page.locator('#tmGrid .tm-grid-row').nth(1).locator('.tm-cell[data-hour="10"]').click();
+await page.waitForFunction(
+  () => /10:00/.test(document.querySelector('.tm-face[data-face="시각"] strong')?.textContent || ''),
+  { timeout: 10000 }
+).catch(() => {});
+const picked = await page.locator('.tm-face[data-face="시각"] strong').innerText();
+check(picked === '10:00', `격자를 누르면 그 시각으로 옮겨 간다 (지금 ${picked})`);
+
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();

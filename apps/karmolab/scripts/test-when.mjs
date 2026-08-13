@@ -26,7 +26,7 @@ await build({
   outfile: out,
   logLevel: 'silent'
 });
-const { parseWhen, isoWeek, daysBetween, facesOf, inZones } = await import(`file://${out.replace(/\\/g, '/')}`);
+const { parseWhen, isoWeek, daysBetween, facesOf, inZones, hourGrid, bestHours, easeOf } = await import(`file://${out.replace(/\\/g, '/')}`);
 
 const failures = [];
 /** 2026-08-13(목) 10:00 을 「지금」으로 못 박는다 */
@@ -157,6 +157,70 @@ nope('', '빈 줄');
     failures.push('세 도시 다 나와야 한다');
   }
 }
+
+/* ── 시간 격자 (TASK-KL-287) ─────────────────────────────────────
+ * 「지금 저기가 몇 시」(변환)와 「**언제 다 같이 깨어 있나**」(계획)는 다른 물음이다.
+ * 뒤엣것은 한 순간이 아니라 하루가 통째로 있어야 답이 나온다. */
+{
+  const rows = hourGrid(NOW, ['Asia/Seoul', 'America/New_York']);
+  if (rows.length === 2 && rows[0].cells.length === 24) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`도시마다 24칸이어야 한다 — 나온 것 ${rows.length}줄 ${rows[0] && rows[0].cells.length}칸`);
+  }
+  const seoul9 = rows[0].cells[9];
+  if (seoul9.hour === 9 && seoul9.ease === 'ok') process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`서울 09시는 일하는 때 — 나온 것 ${seoul9.hour}시 ${seoul9.ease}`);
+  }
+  /* 서울 09시면 뉴욕은 **전날 20시** — 자는 때는 아니고 「그럭저럭」이다.
+   * (처음엔 'bad' 로 적었다가 틀렸다: 저녁 8시를 자는 시간으로 본 건 내 착각이었다.) */
+  const ny9 = rows[1].cells[9];
+  if (ny9.hour === 20 && ny9.ease === 'meh' && ny9.dayShift === -1) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`서울 09시면 뉴욕은 전날 20시·그럭저럭 — 나온 것 ${ny9.hour}시 ${ny9.ease} 날짜차 ${ny9.dayShift}`);
+  }
+}
+
+{
+  const want = [[9, 'ok'], [17, 'ok'], [18, 'meh'], [7, 'meh'], [3, 'bad'], [23, 'bad']];
+  let ok = true;
+  for (const [h, e] of want) if (easeOf(h) !== e) ok = false;
+  if (ok) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push('일하는 때·그럭저럭·자는 때를 가른다');
+  }
+}
+
+{
+  const near = hourGrid(NOW, ['Asia/Seoul', 'Asia/Tokyo']);
+  const good = bestHours(near).hours;
+  if (good.length > 0 && good.every((i) => near.every((r) => r.cells[i].ease === 'ok'))) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`가까운 두 도시는 겹치는 때가 있어야 한다 — 나온 것 ${good.length}칸`);
+  }
+  /* 반대편끼리는 「일하는 때」가 안 겹칠 수 있다 — 그러면 「그럭저럭」까지 받아 준다.
+   * 빈손으로 두면 화면이 「불가능」이라 말하는데, 실제 답은 이른 아침·늦은 밤이다. */
+  const far = hourGrid(NOW, ['Asia/Seoul', 'America/Los_Angeles']);
+  const farBest = bestHours(far);
+  /* 반대편끼리는 「다 편한 때」가 아예 없을 수 있다. 그때는 **빈손이 아니라 덜 나쁜 때**를 준다 —
+   * 「없다」가 아니라 「이만큼은 감수해야 한다」가 진짜 답이다. */
+  if (farBest.hours.length > 0) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push('겹치는 때가 없어도 덜 나쁜 때는 짚어 줘야 한다');
+  }
+  if (farBest.level === 'least' ? true : farBest.hours.every((i) => far.every((r) => r.cells[i].ease !== 'bad'))) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push('「그럭저럭」 수준으로 골랐으면 자는 시간이 끼면 안 된다');
+  }
+}
+
 
 process.stdout.write('\n');
 rmSync(dir, { recursive: true, force: true });

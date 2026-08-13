@@ -14,7 +14,7 @@
  * 시간대는 브라우저가 가진 표(`Intl`)로 낸다(서머타임까지 그쪽이 안다).
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
-import { parseWhen, facesOf, inZones } from './shared/when';
+import { parseWhen, facesOf, inZones, hourGrid, bestHours } from './shared/when';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -164,6 +164,70 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     box.appendChild(cities);
 
+    /* **시간 격자** (TASK-KL-287 — World Time Buddy·timeanddate 회의 계획표).
+     * 「지금 저기가 몇 시」와 「언제 다 같이 깨어 있나」는 다른 물음이다. 뒤엣것에는 하루가 통째로
+     * 필요해서, 24칸을 늘어놓고 **다 같이 편한 칸**을 짚어 준다. 누르면 그 시각으로 옮겨 간다. */
+    const rows = hourGrid(p.at, ZONES);
+    const best = bestHours(rows);
+    const good = new Set(best.hours);
+    const grid = document.createElement('div');
+    grid.className = 'tm-grid';
+    grid.id = 'tmGrid';
+
+    const head = document.createElement('div');
+    head.className = 'tm-grid-row tm-grid-head';
+    head.appendChild(document.createElement('span'));
+    for (let i = 0; i < 24; i++) {
+      const h = document.createElement('b');
+      h.textContent = i % 3 === 0 ? String(i) : '';
+      if (good.has(i)) h.className = 'tm-good';
+      head.appendChild(h);
+    }
+    grid.appendChild(head);
+
+    for (const row of rows) {
+      const line = document.createElement('div');
+      line.className = 'tm-grid-row';
+      const name = document.createElement('span');
+      name.textContent = row.label;
+      line.appendChild(name);
+      row.cells.forEach((c, i) => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = `tm-cell tm-${c.ease}${good.has(i) ? ' tm-pick' : ''}`;
+        cell.dataset.hour = String(i);
+        cell.textContent = String(c.hour);
+        cell.title = `${row.label} ${c.hour}시${c.dayShift ? (c.dayShift > 0 ? ' (다음 날)' : ' (전날)') : ''}`;
+        /* 누르면 **그 시각으로 옮겨 간다** — 격자는 보는 것만이 아니라 고르는 자리다.
+         * 적어 둔 글을 그 시각으로 바꿔 주면 나머지 화면(얼굴들)이 저절로 따라온다. */
+        cell.onclick = (): void => {
+          const box = document.getElementById('pfText') as HTMLTextAreaElement | null;
+          if (!box || !p.at) return;
+          const d = new Date(p.at);
+          d.setHours(i, 0, 0, 0);
+          const two = (x: number): string => String(x).padStart(2, '0');
+          box.value = `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(i)}:00`;
+          box.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        line.appendChild(cell);
+      });
+      grid.appendChild(line);
+    }
+    /* **다 편한 때가 없으면 없다고 말한다.** 짚어만 주고 말이 없으면 「이때가 좋다」로 읽힌다 —
+     * 서울↔로스앤젤레스처럼 반대편이면 누군가는 늘 이른 아침이거나 늦은 밤이다. */
+    const note = document.createElement('div');
+    note.className = 'tm-grid-note';
+    note.id = 'tmGridNote';
+    note.dataset.level = best.level;
+    note.textContent =
+      best.level === 'ok'
+        ? t('time.grid.ok', undefined, '초록 칸 = 다들 일하는 때')
+        : best.level === 'meh'
+          ? t('time.grid.meh', undefined, '다 편한 때는 없습니다 — 짚은 칸이 그나마 무난합니다')
+          : t('time.grid.least', undefined, '다 깨어 있는 때가 없습니다 — 짚은 칸이 가장 덜 힘듭니다');
+    grid.appendChild(note);
+    box.appendChild(grid);
+
     const f = facesOf(p.at);
     return `${f[0].value}${p.hasTime ? ' ' + f[1].value : ''} · ${f[2].value}`;
   }
@@ -188,6 +252,17 @@ import { t, loadNamespace } from '../../lib/i18n';
 .tm-city.tm-ok{background:rgba(120,200,140,.16);}
 .tm-city.tm-meh{background:rgba(220,190,120,.14);}
 .tm-city.tm-bad{background:rgba(128,128,128,.1);opacity:.65;}
+.tm-grid{margin-top:10px;display:grid;gap:2px;font-size:10px;overflow-x:auto;}
+.tm-grid-row{display:grid;grid-template-columns:56px repeat(24,1fr);gap:1px;align-items:center;}
+.tm-grid-row>span{font-size:10px;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tm-grid-head b{font-size:9px;opacity:.5;text-align:center;font-weight:400;}
+.tm-grid-head b.tm-good{opacity:1;color:var(--accent,#6aa9ff);font-weight:700;}
+.tm-cell{appearance:none;border:0;padding:2px 0;border-radius:3px;font-size:9px;line-height:1.4;cursor:pointer;color:inherit;}
+.tm-cell.tm-ok{background:rgba(120,200,140,.28);}
+.tm-cell.tm-meh{background:rgba(220,190,120,.26);}
+.tm-cell.tm-bad{background:rgba(128,128,128,.14);opacity:.5;}
+.tm-cell.tm-pick{outline:1px solid var(--accent,#6aa9ff);}
+.tm-cell:hover{filter:brightness(1.25);}
 `;
     document.head.appendChild(el);
   }

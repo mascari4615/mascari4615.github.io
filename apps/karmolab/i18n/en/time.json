@@ -25,5 +25,8 @@
   "time.part.countdown": "Countdown",
   "time.part.stopwatch": "Stopwatch",
   "time.part.cron": "Cron",
-  "time.part.icsmake": "Calendar file"
+  "time.part.icsmake": "Calendar file",
+  "time.grid.ok": "Green = everyone at work",
+  "time.grid.meh": "No perfect slot — the marked hours are the workable ones",
+  "time.grid.least": "No slot where everyone is awake — the marked hours hurt least"
 }

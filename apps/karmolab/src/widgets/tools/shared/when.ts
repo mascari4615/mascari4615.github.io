@@ -190,3 +190,101 @@ export function inZones(at: Date, zones: string[]): WhenFace[] {
     }
   });
 }
+
+/* ── 시간 격자 (TASK-KL-287 — World Time Buddy·timeanddate 회의 계획표) ── */
+
+export interface HourCell {
+  /** 그 도시의 그때 시각 (0~23) */
+  hour: number;
+  /** 편한 정도 — 일하는 때 / 그럭저럭 / 자는 때 */
+  ease: 'ok' | 'meh' | 'bad';
+  /** 날짜가 넘어갔나 (-1 어제 · 0 같은 날 · +1 내일) */
+  dayShift: number;
+}
+
+export interface HourRow {
+  zone: string;
+  label: string;
+  cells: HourCell[];
+}
+
+/** 09~18 = 일하는 때, 07~22 = 그럭저럭, 나머지는 자는 때. */
+export function easeOf(hour: number): HourCell['ease'] {
+  if (hour >= 9 && hour < 18) return 'ok';
+  if (hour >= 7 && hour < 22) return 'meh';
+  return 'bad';
+}
+
+/**
+ * **하루치 시간 격자.**
+ *
+ * 「지금 저기가 몇 시인가」(변환)와 「**언제 다 같이 깨어 있나**」(계획)는 다른 물음이다.
+ * 뒤엣것에는 한 순간이 아니라 **하루가 통째로** 필요하다 — 그래서 24칸을 만든다.
+ * 기준은 **여기(브라우저) 시각**이다: 내가 잡을 수 있는 시간대 위에 남들 시각을 겹쳐 본다.
+ */
+export function hourGrid(at: Date, zones: string[], span = 24): HourRow[] {
+  const start = new Date(at);
+  start.setHours(0, 0, 0, 0);
+  return zones.map((zone) => {
+    const cells: HourCell[] = [];
+    for (let i = 0; i < span; i++) {
+      const when = new Date(start.getTime() + i * 3600_000);
+      let hour = when.getHours();
+      let day = when.getDate();
+      try {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: zone,
+          hour: '2-digit',
+          day: '2-digit',
+          hour12: false
+        }).formatToParts(when);
+        hour = Number(parts.find((p) => p.type === 'hour')?.value ?? hour);
+        day = Number(parts.find((p) => p.type === 'day')?.value ?? day);
+        if (hour === 24) hour = 0;
+      } catch {
+        /* 모르는 시간대면 여기 시각 그대로 — 화면이 죽는 것보다 낫다 */
+      }
+      const here = new Date(start.getTime() + i * 3600_000).getDate();
+      cells.push({ hour, ease: easeOf(hour), dayShift: day === here ? 0 : day > here || day === 1 ? 1 : -1 });
+    }
+    return { zone, label: zone.split('/').pop()?.replace(/_/g, ' ') || zone, cells };
+  });
+}
+
+/**
+ * **다 같이 편한 때**를 고른다 — 회의 잡기의 진짜 답.
+ * 한 칸이라도 자는 때면 뺀다. 하나도 없으면 「그럭저럭」까지 받아 준다(그래도 없으면 빈손).
+ */
+export interface BestHours {
+  /** 짚어 줄 칸들 (없을 수도 있다) */
+  hours: number[];
+  /** 어느 수준으로 찾았나 — 「다 편함 / 그럭저럭 / 누군가는 힘듦」 */
+  level: 'ok' | 'meh' | 'least';
+}
+
+export function bestHours(rows: HourRow[]): BestHours {
+  const span = rows[0]?.cells.length || 0;
+  const pick = (allow: Array<HourCell['ease']>): number[] => {
+    const out: number[] = [];
+    for (let i = 0; i < span; i++) if (rows.every((r) => allow.includes(r.cells[i].ease))) out.push(i);
+    return out;
+  };
+  const good = pick(['ok']);
+  if (good.length) return { hours: good, level: 'ok' };
+  const soso = pick(['ok', 'meh']);
+  if (soso.length) return { hours: soso, level: 'meh' };
+
+  /* **아무 때도 다 편하지 않을 수 있다** (서울↔로스앤젤레스처럼 반대편이면 늘 그렇다).
+   * 그때 빈손으로 두면 화면이 「불가능」이라고 말하는 셈인데, 실제로는 **덜 나쁜 때**가 답이다 —
+   * 자는 사람이 가장 적은 칸을 짚어 준다. 「없다」가 아니라 「이만큼은 감수해야 한다」가 진짜 답. */
+  let bestScore = Infinity;
+  let out: number[] = [];
+  for (let i = 0; i < span; i++) {
+    const score = rows.reduce((n, r) => n + (r.cells[i].ease === 'bad' ? 2 : r.cells[i].ease === 'meh' ? 1 : 0), 0);
+    if (score < bestScore) {
+      bestScore = score;
+      out = [i];
+    } else if (score === bestScore) out.push(i);
+  }
+  return { hours: out, level: 'least' };
+}
