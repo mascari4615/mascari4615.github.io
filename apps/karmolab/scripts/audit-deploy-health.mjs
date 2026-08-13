@@ -79,8 +79,27 @@ const done = window.filter((r) => r.status === 'completed');
 const success = done.filter((r) => r.conclusion === 'success');
 const failure = done.filter((r) => r.conclusion === 'failure');
 const cancelled = done.filter((r) => r.conclusion === 'cancelled');
-const superseded = cancelled.filter((r) => life(r) < RUNNING_CANCEL_SEC);
-const killedMidBuild = cancelled.filter((r) => life(r) >= RUNNING_CANCEL_SEC);
+/* ★ **수명만으로는 대기 밀림과 짓다가 죽음을 못 가른다** (2026-08-14 실측).
+   이 배포는 `cancel-in-progress: false` 라 돌던 것은 안 끊는다 — 그런데도 「짓다가 죽음」이
+   쌓여 경보가 울렸다. 까닭: 앞 배포가 13분을 도는 동안 **줄 서서 기다리던** 것들이 새 push 에
+   밀려 취소되는데, 그 대기 시간이 그대로 수명에 들어가 120초를 넘긴다.
+   그래서 실제로 **일을 시작했는지**를 그 판의 작업(job)에 물어본다. 한 건에 한 번,
+   후보가 많으면 앞의 몇 건만(나머지는 「모른다」 쪽 = 정상으로 둔다 — 없는 병을 만들지 않는다). */
+const 시작했나 = (run) => {
+  try {
+    const jobs = JSON.parse(
+      gh(['api', `repos/{owner}/{repo}/actions/runs/${run.databaseId}/jobs`, '--jq', '{jobs:[.jobs[]|{s:.started_at,c:.completed_at}]}'])
+    ).jobs;
+    /* 대기만 하다 밀린 판은 작업이 아예 안 돌았거나(시작=끝) 몇 초짜리다. */
+    return jobs.some((j) => j.s && j.c && (Date.parse(j.c) - Date.parse(j.s)) / 1000 >= 60);
+  } catch {
+    return false; /* 못 물어보면 정상 쪽 — 모르는 것을 병으로 세지 않는다 */
+  }
+};
+const 취소후보 = cancelled.filter((r) => life(r) >= RUNNING_CANCEL_SEC);
+const KILL_LOOKUPS = 8;
+const killedMidBuild = 취소후보.slice(0, KILL_LOOKUPS).filter(시작했나);
+const superseded = cancelled.filter((r) => !killedMidBuild.includes(r));
 
 /* 마지막으로 **끝까지 간** 배포. 이 시각이 「고쳐졌다」의 경계선이다. */
 const lastSuccessAt = success.length ? Math.max(...success.map((r) => Date.parse(r.updatedAt))) : null;
