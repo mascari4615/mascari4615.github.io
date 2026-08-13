@@ -2732,6 +2732,48 @@ await step('시점을 만들면 판 아래에서 오간다 (안 쓰는 판에는
   if (saved !== 2) throw new Error(`시점이 저장본에 안 남았다 (${saved})`);
 });
 
+await step('시점을 옮기면 선의 얼굴이 바뀐다 (자료는 그대로)', async () => {
+  // 「1부에서는 소꿉친구, 2부에서는 라이벌」 — 판은 하나로 두고 선이 시점마다 다른 얼굴을 갖는다.
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="time-go"]').length === 2,
+    null, { timeout: ms(4000) });
+  await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    const s = JSON.parse(localStorage.getItem(key));
+    const t2 = s.times[1].id;
+    s.edges[0].at = { [t2]: { label: '라이벌' } };
+    s.edges[1].at = { [t2]: { gone: true } };
+    localStorage.setItem(key, JSON.stringify(s));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1200));
+  const read = () => m.evaluate(() => ({
+    labels: [...document.querySelectorAll('.ck-edge-label text')].map((t) => t.textContent),
+    edges: document.querySelectorAll('.ck-edge:not(.ck-link-temp)').length,
+  }));
+  const later = await read();
+  if (!later.labels.includes('라이벌')) throw new Error(`2부인데 얼굴이 안 바뀌었다: ${later.labels.join(',')}`);
+  if (await m.locator('[data-km="time-go"]').count() !== 2) throw new Error('시점이 다시 여니 사라졌다');
+  await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
+  await m.waitForTimeout(ms(600));
+  const first = await read();
+  if (first.edges <= later.edges) throw new Error('1부인데 없앤 선이 안 돌아왔다');
+  if (first.labels.includes('라이벌')) throw new Error('1부인데 2부 이름이 남아 있다');
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');
@@ -2748,26 +2790,47 @@ await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골
     null, { timeout: ms(4000) });
 });
 
-await step('보기를 이름 붙여 재우고 한 번에 되살린다', async () => {
-  // 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로 하는 것이고, 그러다 결국 아무도
-  // 안 거른다(KL-271 O2 · Kumu 계보). 저장하는 것은 「무엇을 보이게 하느냐」뿐이다.
-  await openPanel(page, 'filter');
-  await page.waitForSelector('[data-km="view-save"]', { timeout: ms(4000) });
-  await page.fill('[data-km="view-name"]', '1부 시점');
-  await page.locator('[data-km="view-save"]').click();
-  await page.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
+await step('보기를 이름 붙여 재우고 한 번에 되살린다 (다시 열어도 남는다)', async () => {
+  /* 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로 하는 것이고, 그러다 결국 아무도
+     안 거른다(KL-271 O2 · Kumu 계보). 저장하는 것은 「무엇을 보이게 하느냐」뿐이다.
+     ★ 제 판에서 잰다 — 앞선 검사들이 쌓아 둔 저장소(사진·300장 판·맵 열아홉)에서 재면
+     저장 한계에 걸려 「기능이 고장」처럼 보인다. 사람이 처음 쓰는 자리를 재는 것이 맞다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  const panel = (k) => m.evaluate((x) => document.querySelector(`[data-km="tab"][data-key="${x}"]`).click(), k);
+  await panel('filter');
+  await m.waitForSelector('[data-km="view-save"]', { timeout: ms(4000) });
+  await m.fill('[data-km="view-name"]', '1부 시점');
+  await m.locator('[data-km="view-save"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
     null, { timeout: ms(4000) });
-  // 이름이 같으면 덮어쓴다 — 둘이면 고를 때 구분이 안 된다.
-  await page.fill('[data-km="view-name"]', '1부 시점');
-  await page.locator('[data-km="view-save"]').click();
-  await page.waitForTimeout(ms(500));
-  if (await page.locator('[data-km="view-go"]').count() !== 1) throw new Error('같은 이름이 둘이 됐다');
-  await page.locator('[data-km="view-go"]').first().click();
-  await page.waitForTimeout(ms(500));
-  await page.locator('[data-km="view-del"]').first().click();
-  await page.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 0,
+  await m.fill('[data-km="view-name"]', '1부 시점');
+  await m.locator('[data-km="view-save"]').click();
+  await m.waitForTimeout(ms(400));
+  if (await m.locator('[data-km="view-go"]').count() !== 1) throw new Error('같은 이름이 둘이 됐다');
+  await m.locator('[data-km="view-go"]').first().click();
+  await m.waitForTimeout(ms(400));
+  /* ★ 다시 열어도 남아 있나 — 저장본에는 있는데 다시 열면 사라지는 일이 실제로 있었다
+     (저장을 되읽을 때 아는 칸만 골라 담아, 나중에 생긴 칸이 조용히 증발했다). 한 판 안에서만 보면 못 잡는다. */
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1000));
+  await panel('filter');
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
+    null, { timeout: ms(6000) })
+    .catch(() => { throw new Error('저장한 보기가 다시 여니 사라졌다'); });
+  await m.locator('[data-km="view-del"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 0,
     null, { timeout: ms(4000) });
-  await openPanel(page, 'node');
+  await ctx.close();
 });
 
 await step('폰에서도 할 수 있는 일이 다 닿는다 — 등록부 ⟷ 팔레트', async () => {

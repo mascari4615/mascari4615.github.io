@@ -106,3 +106,23 @@ export function buildEdgeViewLabels(
   }
   return out;
 }
+
+
+/**
+ * 선 위 **이름표 + 양쪽의 마음**을 한 번에. `canvas.ts` 는 이 한 줄만 부른다
+ * (본체 1900줄 상한이 「새 기능은 조각 파일로」를 강제한다 — 그 뜻대로 여기로 옮겼다).
+ */
+export function buildEdgeLabelSet(
+  edge: { id: string; label?: string; labelPos?: number; viewFrom?: string; viewTo?: string },
+  geom: { p1: Pt; c1: Pt; c2: Pt; p2: Pt } | null,
+  skin: { color: string; nameFill: string; nameText: string; viewFill: string; viewText: string },
+  draggable: boolean,
+): SVGGElement[] {
+  if (!geom) return [];
+  const name = buildEdgeLabel(edge.id, edge.label ?? '', geom, {
+    at: edge.labelPos, color: skin.color, plateFill: skin.nameFill, textColor: skin.nameText, draggable,
+  });
+  const views = buildEdgeViewLabels(edge, geom,
+    { color: skin.color, plateFill: skin.viewFill, textColor: skin.viewText });
+  return name ? [name, ...views] : views;
+}

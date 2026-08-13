@@ -52,7 +52,7 @@ import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer, linkDropTarget } from './canvas-edgedrag';
-import { buildEdgeViewLabels } from './edge-views';
+import { buildEdgeLabelSet } from './edge-views';
 import { groupDelta, resizedBox, sizeGrip, snappedPoint, worldDelta } from './canvas-drag';
 import { alignGuides, clearGuides, drawGuides, neighborBoxes, type GuideBox, type GuideLine } from './canvas-guides';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
@@ -254,6 +254,8 @@ export class GraphCanvas {
   private onConnect?: (fromId: string, toId: string) => void;
   private onConnectToEmpty?: (fromId: string, world: { x: number; y: number }) => void;
   private onEdgeChanged?: (edgeId: string) => void;
+  /** 그릴 때만 선의 얼굴을 갈아 끼우는 렌즈(시점, KL-271 X2). 없으면 원본. */
+  edgeFace: ((edge: GraphEdge) => GraphEdge | null) | null = null;
   private onEdgeClick?: (edgeId: string) => void;
   private onSelectMany?: (nodeIds: string[]) => void;
   private onGroupChanged?: (groupId: string) => void;
@@ -1212,7 +1214,11 @@ export class GraphCanvas {
     if (!only) { this.edgeLayer.innerHTML = ''; this.dragShown = undefined; }
     const touched = new Set<string>();
     const shown = only ? (this.dragShown ??= this.visibleNodeIds()) : this.visibleNodeIds();
-    for (const edge of this.spec.edges) {
+    for (const edge0 of this.spec.edges) {
+      // ★ 시점 렌즈 (KL-271 X2) — 그릴 때만 얼굴을 갈아 끼운다(자료는 그대로). null = 이 시점엔 없는 선.
+      const face = this.edgeFace ? this.edgeFace(edge0) : edge0;
+      if (!face) continue;
+      const edge = face;
       const from = this.parseNodeRef(edge.from);
       const to = this.parseNodeRef(edge.to);
       if (only && !only.has(from) && !only.has(to)) continue;
@@ -1383,16 +1389,11 @@ export class GraphCanvas {
 
   /** 선 위 이름표 + **양쪽의 마음**(KL-271 X1). 마음의 자리·옷은 `edge-views.ts` 가 안다. */
   private buildEdgeLabels(edge: GraphEdge): SVGGElement[] {
-    const geom = this.edgeGeom(edge);
-    if (!geom) return [];
-    const color = edge.color ?? this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
-    const name = buildEdgeLabel(edge.id, edge.label ?? '', geom, {
-      at: edge.labelPos, color, plateFill: this.theme.nodeFill, textColor: this.theme.nodeText,
-      draggable: Boolean(this.onEdgeChanged),
-    });
-    const views = buildEdgeViewLabels(edge, geom,
-      { color, plateFill: this.theme.edgeDotFill, textColor: this.theme.childText });
-    return name ? [name, ...views] : views;
+    const kind = this.edgeKindFor(edge.kind);
+    const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
+    return buildEdgeLabelSet(edge, this.edgeGeom(edge), { color, nameFill: this.theme.nodeFill,
+      nameText: this.theme.nodeText, viewFill: this.theme.edgeDotFill, viewText: this.theme.childText },
+    Boolean(this.onEdgeChanged));
   }
 
   // ── 하이라이트 ───────────────────────────────────────────────────────────────
