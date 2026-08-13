@@ -630,7 +630,7 @@
   "karmograph.next.one": "카드를 하나 더 만들어 보세요 — 빈 곳을 두 번 클릭.",
   "karmograph.next.oneTouch": "카드를 하나 더 만들어 보세요 — 빈 곳을 두 번 두드리기.",
   "karmograph.next.link": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
-  "karmograph.next.linkTouch": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
+  "karmograph.next.linkTouch": "이제 이어 보세요 — 카드 오른쪽 점을 길게 눌러 다른 카드로 끕니다.",
   "karmograph.btn.newMap": "새 판",
   "karmograph.undoWhat": "되돌리기: {what} (Ctrl+Z)",
   "karmograph.redoWhat": "다시 하기: {what} (Ctrl+Y)",

@@ -690,6 +690,26 @@ const M = await loadModules();
     '버리고 나면 더미 전체가 상한 아래다');
 }
 
+// ── 같은 말이 두 열쇠에 (TASK-KL-271) ────────────────────────────────────────
+// 이 작업의 발원 병이 그것이었다: 「이름 바꾸기」를 새로 만들면서 옛 자리를 못 지웠고, 같은 말이
+// 두 곳에 살아 있다는 것을 **아무도 몰랐다**. 사람 눈 대신 기계가 본다.
+// 짧은 말(이름·종류·메모)은 자리마다 같아도 되고, 도움말 목록과 어휘 팩은 이름을 그대로 비추는
+// 것이 일이라 뺀다 — 걸러 낼 것은 **문장급으로 긴 말이 두 번 적힌 것**이다.
+{
+  const cat = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/karmograph.json'), 'utf8'));
+  const seen = new Map();
+  const dups = [];
+  for (const [k, v] of Object.entries(cat)) {
+    if (typeof v !== 'string') continue;
+    const t = v.trim();
+    if (t.length < 12) continue;
+    if (k.includes('.help.') || k.includes('.pack.')) continue;
+    if (seen.has(t)) dups.push(`${seen.get(t)} = ${k}`);
+    else seen.set(t, k);
+  }
+  check(dups.length === 0, `같은 말이 두 열쇠에 있다(문 둘이 될 자리): ${dups.join(' · ')}`);
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));

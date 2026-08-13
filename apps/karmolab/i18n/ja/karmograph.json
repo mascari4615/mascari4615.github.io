@@ -630,7 +630,7 @@
   "karmograph.next.one": "カードをもう1枚 — 空いた所をダブルクリック。",
   "karmograph.next.oneTouch": "カードをもう1枚 — 空いた所をダブルタップ。",
   "karmograph.next.link": "つないでみましょう — カード右の点を別のカードへドラッグ。",
-  "karmograph.next.linkTouch": "つないでみましょう — カード右の点を別のカードへドラッグ。",
+  "karmograph.next.linkTouch": "つないでみましょう — カード右端の点を長押しして別のカードへ運びます。",
   "karmograph.btn.newMap": "新しい板",
   "karmograph.undoWhat": "元に戻す: {what} (Ctrl+Z)",
   "karmograph.redoWhat": "やり直す: {what} (Ctrl+Y)",

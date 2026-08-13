@@ -630,7 +630,7 @@
   "karmograph.next.one": "Add one more card — double-click empty space.",
   "karmograph.next.oneTouch": "Add one more card — double-tap empty space.",
   "karmograph.next.link": "Now connect them — drag the dot on a card onto another card.",
-  "karmograph.next.linkTouch": "Now connect them — drag the dot on a card onto another card.",
+  "karmograph.next.linkTouch": "Now connect them — press and hold the dot on the card’s right edge, then drag onto another card.",
   "karmograph.btn.newMap": "New map",
   "karmograph.undoWhat": "Undo: {what} (Ctrl+Z)",
   "karmograph.redoWhat": "Redo: {what} (Ctrl+Y)",
