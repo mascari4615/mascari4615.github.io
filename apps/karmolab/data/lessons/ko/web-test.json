@@ -1,104 +1,798 @@
 {
   "id": "web-test",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "테스트는 「잘 만든 사람의 습관」이 아니라 **고쳤다는 것을 증명하는 방법**이다. 기억력으로 회귀를 막을 수는 없다."
-    },
-    {
-      "type": "h",
-      "text": "1. 버그를 만나면 테스트부터"
-    },
-    {
-      "type": "p",
-      "text": "순서를 뒤집는 것이 요점이다: 재현하는 **실패 테스트**를 먼저 쓰고 → 고치고 → 초록을 본다. 그러면 「고쳤다」가 느낌이 아니라 사실이 된다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "실패부터 — Vitest",
-      "text": "import { expect, test } from 'vitest';\nimport { splitName } from './name';\n\ntest('가운데 이름이 있어도 성을 제대로 뗀다', () => {\n  expect(splitName('김 하늘 별')).toEqual({ last: '김', first: '하늘 별' });\n});"
-    },
-    {
-      "type": "h",
-      "text": "2. 무엇을 테스트하나 — 경계와 계약"
-    },
-    {
-      "type": "note",
-      "text": "내부 구현이 아니라 **밖에서 보이는 약속**을 테스트한다. 함수 이름을 바꿨다고 테스트가 우수수 깨지면, 그건 구현을 테스트하고 있었다는 신호다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "값의 가장자리부터",
-      "text": "test.each([\n  ['', 0],\n  ['a', 1],\n  ['가나다', 3],\n])('길이 %s → %i', (input, want) => {\n  expect(count(input)).toBe(want);\n});"
-    },
-    {
-      "type": "h",
-      "text": "3. 브라우저 테스트 — 사람이 하던 확인"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "Playwright — 실제로 눌러 본다",
-      "text": "import { expect, test } from '@playwright/test';\n\ntest('할 일을 추가하면 목록에 보인다', async ({ page }) => {\n  await page.goto('/');\n  await page.getByLabel('할 일').fill('빨래');\n  await page.getByRole('button', { name: '추가' }).click();\n  await expect(page.getByRole('listitem')).toHaveText(['빨래']);\n});"
-    },
-    {
-      "type": "note",
-      "text": "`getByRole`·`getByLabel` 로 찾으면 접근성까지 같이 검사된다 — 이름 없는 단추는 애초에 못 찾는다. CSS 클래스로 찾으면 스타일만 바꿔도 테스트가 깨진다."
-    },
-    {
-      "type": "h",
-      "text": "4. 얼마나 만들 것인가"
-    },
-    {
-      "type": "p",
-      "text": "커버리지 숫자를 목표로 삼으면 의미 없는 테스트가 늘어난다. 기준은 하나다 — **깨지면 사용자가 아파하는 곳**부터. 돈·로그인·데이터 손실 경로가 1순위다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "최근에 고친 버그를 하나 골라, 고치기 전 상태를 재현하는 테스트를 지금 써 봐라. 지금 코드에서 초록이면 그 테스트는 회귀를 못 잡는다 — 일부러 코드를 되돌려 빨강을 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "가장 중요한 화면 흐름 하나(로그인 또는 결제)를 Playwright 로 한 편 써라. 실행 시간이 30초를 넘으면 무엇이 느린지 적어 둬라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "버그를 고칠 때 권장되는 순서는?",
-      "choices": [
-        "고치고 나서 시간이 남으면 테스트를 쓴다",
-        "재현하는 실패 테스트를 먼저 쓰고 고친다",
-        "테스트 없이 수동 확인만 한다"
+      "id": "1",
+      "title": "테스트는 무엇을 사는가",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트를 「버그를 잡는 도구」로만 보면 곧 짐이 된다. 실제로 사는 것은 **두려움 없이 고칠 자유**다 — 테스트가 있으면 구조를 바꿀 수 있고, 없으면 손대기 무서워 그대로 둔다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 칸의 러너로 진짜 테스트를 돌려 본다",
+          "height": "310px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  /* 검사 대상 — 장바구니 합계 */\n  function total(items, coupon) {\n    const sum = items.reduce((s, i) => s + i.price * i.qty, 0);\n    if (coupon === 'HALF') return Math.floor(sum / 2);\n    return sum;\n  }\n  it('빈 장바구니는 0', () => {\n    expect(total([])).toBe(0);\n  });\n  it('수량을 곱해 더한다', () => {\n    expect(total([{ price: 1000, qty: 2 }, { price: 500, qty: 3 }])).toBe(3500);\n  });\n  it('HALF 쿠폰은 반값', () => {\n    expect(total([{ price: 1000, qty: 1 }], 'HALF')).toBe(500);\n  });\n  it('홀수 금액은 내림', () => {\n    expect(total([{ price: 999, qty: 1 }], 'HALF')).toBe(499);\n  });\n  app.innerHTML = '<div class=\"code\">function total(items, coupon) { … }</div>';\n  report('이 네 줄이 있으면 total() 을 마음껏 고쳐 쓸 수 있다.\\n'\n       + '고친 뒤 전부 초록이면 「적어도 이 네 가지 약속은 지켜졌다」가 보장된다.\\n\\n'\n       + '위 러너는 이 강의 안에서 실제로 도는 코드다 — it/expect 가 하는 일이 이 정도다.');\n</script>"
+        },
+        {
+          "type": "p",
+          "text": "테스트가 사 주는 것을 정리하면 넷이다 — **고칠 자유**(회귀 방지), **설계 압력**(테스트하기 어려우면 대개 설계가 나쁘다), **문서**(이 함수가 무엇을 약속하는지), **협업 신뢰**(남의 코드를 고칠 수 있다)."
+        },
+        {
+          "type": "note",
+          "text": "**「테스트를 얼마나 써야 하나」에 정답은 없다.** 서비스의 성격(장애 비용), 수명, 팀 크기에 달렸다. 다만 「고치기 무서운 코드가 있다」는 신호가 나오면, 그 자리가 테스트가 필요한 곳이다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "실제 도구도 모양이 같다",
+          "text": "import { describe, it, expect } from 'vitest';\n\ndescribe('total', () => {\n  it('빈 장바구니는 0', () => {\n    expect(total([])).toBe(0);\n  });\n});\n\n// 위 데모의 it/expect 와 하는 일이 같다 —\n// 다르게 만드는 것은 러너·리포터·격리·병렬 실행 같은 주변 장치다"
+        },
+        {
+          "type": "try",
+          "text": "내 코드에서 「고치기 무서운 함수」를 하나 떠올려 보라. 그 함수의 약속 세 가지를 테스트로 적으면, 다음에 고칠 때 무서움이 사라진다."
+        }
       ],
-      "answer": 1,
-      "why": "실패를 먼저 봐야 그 테스트가 회귀를 실제로 잡는다는 것이 증명된다."
+      "quiz": [
+        {
+          "q": "테스트가 사 주는 가장 큰 것은?",
+          "choices": [
+            "버그 0",
+            "두려움 없이 고칠 자유",
+            "속도",
+            "문서 자동화"
+          ],
+          "answer": 1,
+          "why": "구조를 바꿀 수 있게 된다."
+        },
+        {
+          "q": "「테스트하기 어렵다」가 신호하는 것은?",
+          "choices": [
+            "도구 부족",
+            "대개 설계가 나쁘다",
+            "언어 한계",
+            "시간 부족"
+          ],
+          "answer": 1,
+          "why": "의존성이 얽혀 있다는 뜻이다."
+        },
+        {
+          "q": "테스트를 먼저 쓸 자리를 고르는 기준은?",
+          "choices": [
+            "새 코드 전부",
+            "고치기 무서운 곳·자주 깨지는 곳",
+            "짧은 함수",
+            "공개 API"
+          ],
+          "answer": 1,
+          "why": "값이 가장 큰 곳부터."
+        }
+      ]
     },
     {
-      "q": "리팩터링만 했는데 테스트가 대량으로 깨졌다. 무엇을 의심하나?",
-      "choices": [
-        "테스트가 내부 구현에 붙어 있었다",
-        "테스트 러너 버그",
-        "커버리지가 낮았다"
+      "id": "2",
+      "title": "층 — 무엇을 어디서 확인하나",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트는 층마다 **비용과 신뢰가 반비례**한다. 아래층은 싸고 빠르지만 「진짜 되는지」는 덜 보장하고, 위층은 느리고 깨지기 쉽지만 사용자에 가깝다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "비율을 바꿔 보라 — 시간과 신뢰가 어떻게 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const U = {{unit}}, I = {{integration}}, E = {{e2e}};\n  const time = U * 0.005 + I * 0.08 + E * 3;\n  const trust = Math.min(99, U * 0.04 + I * 0.35 + E * 2.2);\n  const flaky = Math.min(60, E * 0.9 + I * 0.05);\n  ctx.clearRect(0, 0, 440, 190);\n  const rows = [['E2E', E, 40, '#ef4444'], ['통합', I, 200, '#f59e0b'], ['단위', U, 1200, '#22c55e']];\n  rows.forEach(([label, v, max, color], i) => {\n    const y = 16 + i * 40;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label + '  ' + v + '개', 14, y - 3);\n    ctx.fillStyle = '#334155'; ctx.fillRect(14, y, 410, 22);\n    ctx.fillStyle = color; ctx.fillRect(14, y, Math.min(410, 410 * (v / max)), 22);\n  });\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n  ctx.fillText('전체 실행 ' + (time >= 60 ? (time / 60).toFixed(1) + '분' : time.toFixed(0) + '초')\n    + '  ·  신뢰 ' + trust.toFixed(0) + '%  ·  깜빡임 위험 ' + flaky.toFixed(0) + '%', 14, 168);\n  app.innerHTML = '<div class=\"hint\">단위 ' + U + ' · 통합 ' + I + ' · E2E ' + E + '</div>';\n  show('층별 성격\\n'\n     + '  단위  ms 단위 · 함수·모듈 하나 · 많이 써도 부담 없다\\n'\n     + '  통합  수십~수백 ms · 여러 조각이 함께 도는지 (컴포넌트+상태+API 모의)\\n'\n     + '  E2E   초 단위 · 진짜 브라우저에서 사용자처럼 · 가장 믿을 만하고 가장 비싸다\\n\\n'\n     + (E > 15 ? 'E2E 가 많다 — 실행이 느려지고 깜빡임이 늘어 결국 무시된다(6장).\\n'\n               + '핵심 흐름 5~15개로 줄이고 나머지는 아래층으로 내려라.'\n        : U < 100 && I < 20 ? '아래층이 얇다 — 문제를 좁히기 어렵다.\\n'\n               + 'E2E 가 빨간데 원인을 못 찾는 상황이 반복된다.'\n        : '균형이 괜찮다. 아래는 두껍게, 위는 핵심만.') + '\\n\\n'\n     + '고르는 기준: **이 실패를 가장 싸게 잡을 수 있는 층은 어디인가.**');\n</script>",
+          "controls": [
+            {
+              "id": "unit",
+              "label": "단위 테스트 수",
+              "type": "range",
+              "min": 0,
+              "max": 1200,
+              "step": 50,
+              "value": 300
+            },
+            {
+              "id": "integration",
+              "label": "통합",
+              "type": "range",
+              "min": 0,
+              "max": 200,
+              "step": 10,
+              "value": 40
+            },
+            {
+              "id": "e2e",
+              "label": "E2E",
+              "type": "range",
+              "min": 0,
+              "max": 40,
+              "step": 1,
+              "value": 8
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**전통적인 「피라미드」보다 요즘은 「트로피」에 가깝다** — 단위는 적당히, **통합을 두껍게**, E2E 는 핵심만. 도구가 좋아져 컴포넌트 통합 테스트가 싸졌고, 실제 버그의 상당수가 「조각들이 만나는 자리」에서 나기 때문이다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "층별로 무엇을 확인하나",
+          "text": "// 단위 — 순수 로직\nexpect(formatPrice(1234)).toBe('1,234원');\n\n// 통합 — 컴포넌트 + 상태 + 요청(모의)\nrender(<Cart />);\nawait user.click(screen.getByRole('button', { name: '담기' }));\nexpect(screen.getByText('1개')).toBeVisible();\n\n// E2E — 진짜 브라우저, 진짜(또는 그에 가까운) 서버\nawait page.goto('/');\nawait page.getByRole('button', { name: '결제' }).click();\nawait expect(page.getByText('주문 완료')).toBeVisible();"
+        },
+        {
+          "type": "p",
+          "text": "**E2E 는 「돈 되는 흐름」에만** 쓰는 것이 좋다 — 회원가입, 로그인, 결제, 핵심 조회. 그 다섯~열 개가 초록이면 서비스가 살아 있다고 말할 수 있고, 그 이상은 비용이 값을 넘기 시작한다."
+        },
+        {
+          "type": "try",
+          "text": "우리 서비스에서 「이게 깨지면 장사가 안 된다」는 흐름을 다섯 개 적어 보라. 그것이 E2E 로 지켜야 할 목록이다."
+        }
       ],
-      "answer": 0,
-      "why": "밖에서 보이는 계약을 테스트했다면 내부를 바꿔도 초록이어야 한다."
+      "quiz": [
+        {
+          "q": "E2E 테스트가 많아지면 생기는 문제는?",
+          "choices": [
+            "신뢰가 준다",
+            "느려지고 깜빡여 결국 무시된다",
+            "커버리지가 준다",
+            "비용이 없다"
+          ],
+          "answer": 1,
+          "why": "핵심 흐름만 남긴다."
+        },
+        {
+          "q": "요즘 권장되는 형태는?",
+          "choices": [
+            "E2E 중심",
+            "통합을 두껍게(트로피)",
+            "단위만",
+            "층 구분 없음"
+          ],
+          "answer": 1,
+          "why": "버그는 조각이 만나는 자리에서 난다."
+        },
+        {
+          "q": "층을 고르는 기준은?",
+          "choices": [
+            "코드 줄 수",
+            "이 실패를 가장 싸게 잡을 수 있는 층",
+            "팀 관례",
+            "도구 지원"
+          ],
+          "answer": 1,
+          "why": "비용 대비 잡히는 양."
+        }
+      ]
     },
     {
-      "q": "Playwright 에서 CSS 클래스 대신 getByRole 을 쓰는 이유는?",
-      "choices": [
-        "더 빠르다",
-        "사용자가 인식하는 방식으로 찾으므로 스타일 변경에 안 깨지고 접근성도 함께 검사된다",
-        "문법이 짧다"
+      "id": "3",
+      "title": "좋은 테스트의 모양",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트도 코드다 — 그런데 **읽히는 것**이 훨씬 중요하다. 실패했을 때 「무엇이 왜 깨졌는지」가 이름과 메시지만으로 보여야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "테스트를 골라 보라 — 실패했을 때 얼마나 알 수 있나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{style}}';\n  results.length = 0;\n  const cart = { items: [{ price: 1000, qty: 2 }], coupon: null };\n  const total = (c) => c.items.reduce((s, i) => s + i.price * i.qty, 0) + 1;   /* 일부러 버그 */\n  if (k === 'bad') {\n    it('test1', () => { expect(total(cart)).toBe(2000); });\n    app.innerHTML = '<div class=\"code\">it(\\'test1\\', () => {\\n  expect(total(cart)).toBe(2000);\\n});</div>';\n    report('이름이 「test1」이면 실패 목록에서 아무것도 알 수 없다.\\n'\n         + '무엇을 검사하려 했는지 코드를 열어 봐야 한다.');\n  } else if (k === 'name') {\n    it('수량이 2인 상품의 합계는 단가 x 수량이다', () => { expect(total(cart)).toBe(2000); });\n    app.innerHTML = '<div class=\"code\">it(\\'수량이 2인 상품의 합계는 단가 x 수량이다\\', () => {\\n  expect(total(cart)).toBe(2000);\\n});</div>';\n    report('이름만 읽어도 무엇이 깨졌는지 안다.\\n'\n         + '규칙: 이름은 「무엇이 어떻게 되어야 한다」로 쓴다 — 함수 이름의 반복이 아니라.');\n  } else if (k === 'aaa') {\n    it('쿠폰 없이 담으면 정가로 계산된다', () => {\n      const cart2 = { items: [{ price: 1000, qty: 2 }], coupon: null };   /* 준비 */\n      const got = total(cart2);                                            /* 실행 */\n      expect(got).toBe(2000);                                              /* 검증 */\n    });\n    app.innerHTML = '<div class=\"code\">준비(Arrange) -> 실행(Act) -> 검증(Assert)\\n\\n'\n      + 'const cart = …;\\nconst got = total(cart);\\nexpect(got).toBe(2000);</div>';\n    report('세 단계가 눈에 보이면 남이 읽기 쉽다.\\n'\n         + '검증이 여러 개면 「이 테스트가 무엇 하나를 확인하는가」를 다시 물어라.');\n  } else {\n    it('내부 구현이 아니라 결과를 검사한다', () => {\n      expect(total({ items: [{ price: 500, qty: 4 }] })).toBe(2000);\n    });\n    app.innerHTML = '<div class=\"code\">// 나쁨: 내부 구현에 묶인 테스트\\n'\n      + 'expect(cart._computeSum).toHaveBeenCalledTimes(1);\\n\\n'\n      + '// 좋음: 밖에서 보이는 결과\\nexpect(total(cart)).toBe(2000);</div>';\n    report('구현을 바꿔도 결과가 같으면 테스트는 안 깨져야 한다.\\n'\n         + '내부 호출 횟수를 검사하면 리팩터링할 때마다 테스트가 깨진다 — 그러면 「고칠 자유」를 잃는다.');\n  }\n</script>",
+          "controls": [
+            {
+              "id": "style",
+              "label": "스타일",
+              "type": "select",
+              "value": "bad",
+              "options": [
+                {
+                  "value": "bad",
+                  "label": "이름이 test1"
+                },
+                {
+                  "value": "name",
+                  "label": "행동으로 이름 짓기"
+                },
+                {
+                  "value": "aaa",
+                  "label": "AAA 구조"
+                },
+                {
+                  "value": "behavior",
+                  "label": "결과 vs 구현"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**테스트가 구현에 묶이면 리팩터링이 불가능해진다.** 내부 함수 호출 횟수·private 상태를 검사하는 테스트는, 동작이 그대로여도 구조만 바꾸면 빨개진다 — 테스트를 산 이유(고칠 자유)를 스스로 없애는 셈이다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "실패 메시지가 스스로 말하게",
+          "text": "// 나쁨 — 왜 깨졌는지 모른다\nexpect(result).toBe(true);\n\n// 좋음 — 값이 보이게\nexpect(result.status).toBe('success');\nexpect(rows.map(r => r.id)).toEqual([1, 2, 3]);\n\n// 조건이 복잡하면 메시지를 붙인다\nexpect(total, '쿠폰 적용 후 합계').toBe(500);"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **테스트에는 로직을 넣지 마라.** 테스트 안에 if·반복문·계산이 들어가면 「테스트가 맞는지」를 또 검사해야 한다. 값을 그대로 적는 편이 지루하지만 안전하다."
+        },
+        {
+          "type": "try",
+          "text": "내 테스트 파일 하나를 열어 이름만 쭉 읽어 보라. 이름만으로 그 모듈의 명세가 읽히면 잘 쓴 것이다."
+        }
       ],
-      "answer": 1,
-      "why": "역할·이름으로 찾는 것은 실제 사용자·보조기기가 화면을 인식하는 방식과 같다."
+      "quiz": [
+        {
+          "q": "테스트 이름을 짓는 좋은 방법은?",
+          "choices": [
+            "함수 이름 + 번호",
+            "「무엇이 어떻게 되어야 한다」",
+            "파일명 기준",
+            "짧게"
+          ],
+          "answer": 1,
+          "why": "실패 목록만 봐도 알 수 있다."
+        },
+        {
+          "q": "내부 호출 횟수를 검사하면?",
+          "choices": [
+            "더 안전하다",
+            "리팩터링마다 깨져 고칠 자유를 잃는다",
+            "빠르다",
+            "커버리지가 는다"
+          ],
+          "answer": 1,
+          "why": "결과를 검사하라."
+        },
+        {
+          "q": "테스트 안에 로직(if·반복)을 넣으면?",
+          "choices": [
+            "효율적",
+            "테스트가 맞는지 또 검사해야 한다",
+            "권장된다",
+            "커버리지 상승"
+          ],
+          "answer": 1,
+          "why": "값을 그대로 적는 편이 안전하다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "무엇을 가짜로 만들까",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트에서 가장 많이 다투는 주제가 **모의(mock)**다. 원칙은 하나로 줄일 수 있다 — **내가 통제할 수 없는 경계만** 가짜로 만든다. 내 코드끼리는 진짜로 붙여 두는 편이 낫다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 가짜로 할지 골라 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{mock}}';\n  const t = {\n    network: ['네트워크 (fetch·API)', true,\n      '외부 서버는 느리고 불안정하고 상태가 있다 — 가짜로 만든다.',\n      '요즘은 함수를 바꿔치기하는 대신 **네트워크 층에서 가로챈다**(MSW 등).\\n'\n      + '그러면 코드가 진짜 fetch 를 그대로 쓰고, 테스트만 응답을 정한다.'],\n    time: ['시간 (Date·타이머)', true,\n      '「30일 뒤 만료」를 진짜로 기다릴 수는 없다.',\n      'vi.useFakeTimers() · vi.setSystemTime() 으로 시계를 손에 쥔다.\\n'\n      + '시간에 의존하는 코드는 시계를 주입받게 설계하면 더 쉬워진다.'],\n    random: ['무작위 (Math.random·uuid)', true,\n      '무작위가 섞이면 결과를 못 적는다.',\n      '씨앗을 주입하거나 함수를 바꿔치기한다. 「무작위·시간·네트워크」가 3대 비결정 요소다.'],\n    mymodule: ['내 모듈 (같은 프로젝트)', false,\n      '가짜로 만들면 「둘이 함께 도는지」를 못 본다.',\n      '실제 버그의 상당수가 조각들이 만나는 자리에서 난다(2장).\\n'\n      + '정말 무겁거나 순환 의존이 있을 때만 예외로.'],\n    db: ['데이터베이스', false,\n      '가능하면 진짜를 쓴다 — 컨테이너로 띄우면 된다.',\n      '가짜 DB 는 쿼리·제약·트랜잭션의 진짜 동작을 못 흉내 낸다(cs-db 칸).\\n'\n      + 'testcontainers 같은 도구로 진짜 DB 를 테스트마다 띄우는 것이 요즘 방식.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:' + (t[1] ? '#4ade80' : '#fca5a5') + '\">' +\n    t[0] + ' — ' + (t[1] ? '가짜로 만든다' : '진짜를 쓴다') + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[2] + '</div>';\n  show(t[3] + '\\n\\n'\n     + '판단 기준\\n'\n     + '  · 내가 통제할 수 없나 (외부 서버·시간·무작위) -> 가짜\\n'\n     + '  · 느리거나 부작용이 있나 (메일 발송·결제) -> 가짜\\n'\n     + '  · 내 코드인가 -> 진짜로 붙여 둔다\\n\\n'\n     + '가짜가 많아질수록 「테스트는 초록인데 실제로는 깨지는」 위험이 커진다.');\n</script>",
+          "controls": [
+            {
+              "id": "mock",
+              "label": "대상",
+              "type": "select",
+              "value": "network",
+              "options": [
+                {
+                  "value": "network",
+                  "label": "네트워크"
+                },
+                {
+                  "value": "time",
+                  "label": "시간"
+                },
+                {
+                  "value": "random",
+                  "label": "무작위"
+                },
+                {
+                  "value": "mymodule",
+                  "label": "내 모듈"
+                },
+                {
+                  "value": "db",
+                  "label": "데이터베이스"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "네트워크는 층에서 가로챈다",
+          "text": "// MSW — 코드는 진짜 fetch 를 쓰고, 테스트가 응답만 정한다\nconst server = setupServer(\n  http.get('/api/cart', () => HttpResponse.json({ items: [] })),\n);\nbeforeAll(() => server.listen());\nafterEach(() => server.resetHandlers());\nafterAll(() => server.close());\n\n// 이렇게 하면 같은 가짜를 개발 서버·E2E 에서도 재사용할 수 있다"
+        },
+        {
+          "type": "note",
+          "text": "**시간·무작위·네트워크**가 비결정성의 3대 원인이다(cs-concurrency 8장의 재현성과 같은 이야기). 이 셋을 손에 쥐면 테스트가 안정되고, 그러지 못하면 6장의 깜빡임이 시작된다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **가짜는 진짜와 어긋난다.** 서버 API 가 바뀌었는데 가짜만 옛 모양이면 테스트는 초록인 채로 운영이 깨진다 — 그래서 8장의 **계약 테스트**나 스키마 공유(TS 5장)가 함께 필요하다."
+        },
+        {
+          "type": "try",
+          "text": "내 테스트에서 `vi.mock` 이나 `jest.mock` 이 몇 번 쓰였는지 세어 보라. 내 모듈을 가짜로 만든 것이 많으면, 그만큼 「함께 도는지」를 안 보고 있는 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가짜로 만들어야 하는 것은?",
+          "choices": [
+            "내 유틸 함수",
+            "외부 API·시간·무작위",
+            "컴포넌트",
+            "상태 관리"
+          ],
+          "answer": 1,
+          "why": "통제할 수 없는 경계."
+        },
+        {
+          "q": "내 모듈을 자주 가짜로 만들면?",
+          "choices": [
+            "더 안전하다",
+            "조각들이 함께 도는지를 못 본다",
+            "빠르다",
+            "커버리지가 는다"
+          ],
+          "answer": 1,
+          "why": "버그는 만나는 자리에서 난다."
+        },
+        {
+          "q": "가짜 응답이 진짜와 어긋나면?",
+          "choices": [
+            "테스트가 실패한다",
+            "테스트는 초록인데 운영이 깨진다",
+            "빌드가 막힌다",
+            "타입 오류"
+          ],
+          "answer": 1,
+          "why": "계약 테스트·스키마 공유가 필요하다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "화면 테스트 — 사용자처럼 찾기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "화면 테스트가 자주 깨지는 이유는 **찾는 방법이 구현에 묶여 있어서**다. `.btn-primary > span:nth-child(2)` 로 찾으면 디자인만 바꿔도 깨진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "찾는 방법을 골라 보라 — 무엇이 잘 견디나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{query}}';\n  const t = {\n    css: ['document.querySelector(\".btn-primary > span:nth-child(2)\")', 1,\n      '구현(클래스·구조)에 묶인다 — 스타일만 바꿔도 깨진다.',\n      '가장 흔하고 가장 약한 방법.'],\n    testid: ['screen.getByTestId(\"submit-button\")', 2,\n      '구조 변화에는 견디지만, 사용자가 보는 것과 무관한 표시다.',\n      '접근성 이름이 없는 요소의 **마지막 수단**으로만.'],\n    text: ['screen.getByText(\"장바구니에 담기\")', 3,\n      '사용자가 보는 글자로 찾는다 — 뜻이 통한다.',\n      '다만 문구가 바뀌면 깨진다(그건 대개 정당한 실패다).'],\n    role: ['screen.getByRole(\"button\", { name: \"장바구니에 담기\" })', 4,\n      '역할 + 이름으로 찾는다 — **보조기기가 보는 방식**과 같다.',\n      '가장 권장되는 방법. 이걸로 못 찾으면 접근성에 문제가 있다는 신호이기도 하다(a11y 4장).'],\n  }[k];\n  const stars = '★'.repeat(t[1]) + '☆'.repeat(4 - t[1]);\n  app.innerHTML = '<div class=\"code\">' + esc(t[0]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:17px;color:#f59e0b\">' + stars + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '우선순위 (Testing Library 권장)\\n'\n     + '  1. getByRole (역할 + 접근성 이름)\\n'\n     + '  2. getByLabelText (폼 입력칸)\\n'\n     + '  3. getByText (버튼·링크 글자)\\n'\n     + '  4. getByTestId (마지막 수단)\\n\\n'\n     + '이 순서가 접근성 개선과 방향이 같다는 점이 이 방식의 큰 이점이다.');\n</script>",
+          "controls": [
+            {
+              "id": "query",
+              "label": "찾는 방법",
+              "type": "select",
+              "value": "css",
+              "options": [
+                {
+                  "value": "css",
+                  "label": "CSS 선택자"
+                },
+                {
+                  "value": "testid",
+                  "label": "data-testid"
+                },
+                {
+                  "value": "text",
+                  "label": "글자"
+                },
+                {
+                  "value": "role",
+                  "label": "역할 + 이름"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "사용자처럼 조작하기",
+          "text": "// 사용자 이벤트를 흉내 낸다 (진짜 키보드·마우스 순서대로)\nconst user = userEvent.setup();\nawait user.type(screen.getByLabelText('메일'), 'a@b.com');\nawait user.click(screen.getByRole('button', { name: '가입' }));\n\n// 기다림 — 임의의 sleep 대신 「조건이 될 때까지」\nawait screen.findByText('가입 완료');          // 나타날 때까지\nawait waitForElementToBeRemoved(spinner);      // 사라질 때까지\n\n// 하면 안 되는 것\nawait new Promise(r => setTimeout(r, 1000));   // 깜빡임의 원인 (6장)"
+        },
+        {
+          "type": "note",
+          "text": "**임의의 `sleep` 을 쓰지 마라.** 느린 기계에서는 부족하고 빠른 기계에서는 낭비다. 「조건이 만족될 때까지 기다리는」 API(`findBy*`·`waitFor`·Playwright 의 자동 대기)를 써야 안정된다."
+        },
+        {
+          "type": "p",
+          "text": "E2E 도구(Playwright·Cypress)는 이 대기를 **기본으로** 해 준다 — 요소가 나타나고, 보이고, 조작 가능해질 때까지 기다린 뒤 클릭한다. 그래서 옛 도구(Selenium)보다 훨씬 덜 깜빡인다."
+        },
+        {
+          "type": "try",
+          "text": "내 화면 테스트에서 `querySelector`·`testid` 로 찾는 곳을 `getByRole` 로 바꿔 보라. 못 바꾸는 자리가 있으면 그 요소에 접근성 이름이 없다는 뜻이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 권장되는 요소 찾기 방법은?",
+          "choices": [
+            "CSS 선택자",
+            "역할 + 접근성 이름(getByRole)",
+            "data-testid",
+            "인덱스"
+          ],
+          "answer": 1,
+          "why": "보조기기가 보는 방식과 같다."
+        },
+        {
+          "q": "`await sleep(1000)` 이 문제인 이유는?",
+          "choices": [
+            "느려서만",
+            "기계 속도에 따라 부족하거나 낭비라 깜빡인다",
+            "문법 오류",
+            "타입 문제"
+          ],
+          "answer": 1,
+          "why": "조건 기반 대기를 쓴다."
+        },
+        {
+          "q": "`getByRole` 로 못 찾는 요소가 뜻하는 것은?",
+          "choices": [
+            "도구 한계",
+            "접근성 이름이 없다는 신호",
+            "느린 렌더",
+            "CSS 문제"
+          ],
+          "answer": 1,
+          "why": "테스트와 접근성이 같은 방향을 본다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "깜빡이는 테스트 — 신뢰를 갉아먹는 것",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**가끔 실패하는 테스트는 없는 것보다 나쁘다.** 「또 그거네, 다시 돌려」가 습관이 되면 진짜 실패도 무시하게 된다 — 게이트가 조용히 죽는다(git-hooks 3장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "깜빡임 비율을 밀어 보라 — 통과 확률이 어떻게 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const RATE = {{flaky}}, N = {{tests}};\n  const pass = Math.pow(1 - RATE / 100, N) * 100;\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('테스트 ' + N + '개 · 각각 ' + RATE + '% 확률로 깜빡인다면', 14, 20);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 30, 410, 28);\n  ctx.fillStyle = pass > 90 ? '#22c55e' : pass > 60 ? '#f59e0b' : '#ef4444';\n  ctx.fillRect(14, 30, 410 * (pass / 100), 28);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('전체가 한 번에 초록일 확률 ' + pass.toFixed(1) + '%', 20, 49);\n  /* 재시도의 효과 */\n  const withRetry = Math.pow(1 - Math.pow(RATE / 100, 2), N) * 100;\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('한 번 재시도를 허용하면', 14, 84);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 94, 410, 28);\n  ctx.fillStyle = '#60a5fa'; ctx.fillRect(14, 94, 410 * (withRetry / 100), 28);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText(withRetry.toFixed(1) + '%', 20, 113);\n  ctx.fillStyle = '#f59e0b'; ctx.font = '11px system-ui';\n  ctx.fillText('※ 재시도는 증상을 가릴 뿐 — 원인은 그대로 남는다', 14, 145);\n  app.innerHTML = '';\n  show('각 테스트가 ' + RATE + '% 로 깜빡이면, ' + N + '개 중 하나라도 실패할 확률이 커진다.\\n'\n     + '한 번에 초록일 확률 ' + pass.toFixed(1) + '%\\n\\n'\n     + '깜빡임의 흔한 원인\\n'\n     + '  · 임의의 sleep · 조건 없는 대기 (5장)\\n'\n     + '  · 테스트끼리 상태 공유 (DB·전역·localStorage 안 비움)\\n'\n     + '  · 실행 순서 의존 (앞 테스트가 만든 것을 뒤가 씀)\\n'\n     + '  · 시간·무작위 (4장)\\n'\n     + '  · 진짜 경쟁 조건 — 이건 테스트가 아니라 **코드의 버그**다\\n\\n'\n     + '처방: 격리(각 테스트가 자기 자료를 만든다) · 조건 기반 대기 · 시계 고정');\n</script>",
+          "controls": [
+            {
+              "id": "flaky",
+              "label": "테스트당 깜빡임(%)",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 1
+            },
+            {
+              "id": "tests",
+              "label": "테스트 수",
+              "type": "range",
+              "min": 20,
+              "max": 500,
+              "step": 20,
+              "value": 200
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**깜빡임은 종종 진짜 버그의 신호다.** 특히 「가끔 순서가 다르다」·「가끔 값이 안 맞는다」는 경쟁 조건일 수 있다(cs-concurrency 칸). 테스트를 재시도로 덮기 전에 「이게 운영에서도 일어날 수 있나?」를 먼저 물어라."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "격리를 강제하는 습관",
+          "text": "beforeEach(() => {\n  localStorage.clear();\n  server.resetHandlers();\n  vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));   // 시계 고정\n});\n\n// 각 테스트가 자기 자료를 만든다 (공유 픽스처 대신)\nconst user = makeUser({ name: '테스트' + crypto.randomUUID() });\n\n// 순서 의존을 잡아내려면 무작위 순서로 돌려 보라\n// vitest --sequence.shuffle"
+        },
+        {
+          "type": "p",
+          "text": "**무작위 순서로 돌려 보는 것**이 순서 의존을 찾는 가장 빠른 방법이다. 평소에는 통과하는데 순서를 섞으면 깨진다면, 테스트끼리 상태를 공유하고 있다는 확실한 증거다."
+        },
+        {
+          "type": "try",
+          "text": "테스트를 무작위 순서로 한 번 돌려 보라(`--sequence.shuffle` 등). 깨지는 것이 있으면 그것이 숨어 있던 의존이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "깜빡이는 테스트를 방치하면?",
+          "choices": [
+            "문제없다",
+            "진짜 실패까지 무시하게 된다",
+            "느려지기만 한다",
+            "커버리지가 준다"
+          ],
+          "answer": 1,
+          "why": "게이트가 조용히 죽는다."
+        },
+        {
+          "q": "순서 의존을 찾는 빠른 방법은?",
+          "choices": [
+            "로그 추가",
+            "무작위 순서로 실행",
+            "병렬 끄기",
+            "재시도"
+          ],
+          "answer": 1,
+          "why": "공유 상태가 드러난다."
+        },
+        {
+          "q": "재시도(retry)의 성격은?",
+          "choices": [
+            "근본 해결",
+            "증상을 가릴 뿐 원인은 남는다",
+            "권장 기본값",
+            "격리 방법"
+          ],
+          "answer": 1,
+          "why": "원인을 먼저 본다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "커버리지 — 숫자의 함정",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "커버리지는 **실행된 줄의 비율**일 뿐이다. 「검사했다」가 아니라 「지나갔다」를 센다 — 그래서 100% 여도 아무것도 보장하지 않을 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "검증 없는 테스트를 늘려 보라 — 커버리지는 오른다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const ASSERT = {{assert}};\n  results.length = 0;\n  function discount(price, grade) {\n    if (grade === 'gold') return price * 0.8;\n    if (grade === 'silver') return price * 0.9;\n    return price;\n  }\n  /* 모든 분기를 「지나가기만」 하는 테스트 */\n  it('gold 를 지나간다', () => { const r = discount(1000, 'gold'); if (ASSERT) expect(r).toBe(800); });\n  it('silver 를 지나간다', () => { const r = discount(1000, 'silver'); if (ASSERT) expect(r).toBe(900); });\n  it('기본을 지나간다', () => { const r = discount(1000, 'none'); if (ASSERT) expect(r).toBe(1000); });\n  app.innerHTML = '<div class=\"code\">function discount(price, grade) { … 분기 3개 … }</div>' +\n    '<div class=\"hint\" style=\"margin-top:6px\">커버리지 100% · 검증 ' + (ASSERT ? '있음' : '없음') + '</div>';\n  report((ASSERT\n    ? '검증이 있으니 실제로 값이 맞는지 확인된다.'\n    : '검증이 하나도 없는데 커버리지는 100% 다.\\n'\n      + '모든 줄을 「지나갔을」 뿐 — 값이 틀려도 초록이다.') + '\\n\\n'\n     + '커버리지를 읽는 법\\n'\n     + '  · 낮은 것은 신호다 (「여기 안 보고 있다」)\\n'\n     + '  · 높은 것은 보장이 아니다\\n'\n     + '  · 목표 숫자를 강제하면 「검증 없는 테스트」가 늘어난다\\n\\n'\n     + '더 쓸모 있는 보기: **커버되지 않은 줄 목록** — 그중 중요한 것이 있나?');\n</script>",
+          "controls": [
+            {
+              "id": "assert",
+              "label": "검증(expect) 포함",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**커버리지 목표를 KPI 로 삼으면 역효과가 난다.** 80% 를 강제하면 사람들은 쉬운 파일에 의미 없는 테스트를 붙인다. 대신 「**새로 바뀐 코드의 커버리지**」를 보는 편이 훨씬 실용적이다 — 옛 코드 전체를 채우라고 하지 않으면서 새 구멍은 막는다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "쓸모 있게 쓰는 법",
+          "text": "vitest --coverage\n\n# 보는 순서\n#  1. 커버 안 된 **중요한** 파일이 있나 (결제·인증·계산)\n#  2. 이번 PR 에서 바뀐 줄이 커버됐나 (변경분 커버리지)\n#  3. 분기(branch) 커버리지가 줄(line)보다 훨씬 낮지 않나\n\n# 목표: 숫자를 올리는 것이 아니라 「모르고 지나가는 곳」을 줄이는 것"
+        },
+        {
+          "type": "p",
+          "text": "**돌연변이 테스트**(mutation testing)는 한 걸음 더 나간다 — 코드를 일부러 바꿔 보고(`>` 를 `>=` 로), 테스트가 그것을 잡는지 본다. 잡지 못하면 그 테스트는 실제로는 아무것도 지키지 않는 것이다. 느리지만 **테스트의 품질**을 재는 유일한 실용적 방법이다."
+        },
+        {
+          "type": "try",
+          "text": "커버리지 보고서에서 커버 안 된 파일 중 「이게 깨지면 곤란한」 것이 있는지 찾아라. 숫자보다 그 목록이 훨씬 쓸모 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "커버리지가 세는 것은?",
+          "choices": [
+            "검증한 줄",
+            "실행된 줄",
+            "통과한 테스트",
+            "분기 정확도"
+          ],
+          "answer": 1,
+          "why": "지나가기만 해도 오른다."
+        },
+        {
+          "q": "커버리지 목표를 강제하면?",
+          "choices": [
+            "품질이 오른다",
+            "검증 없는 테스트가 늘어난다",
+            "속도가 는다",
+            "깜빡임이 준다"
+          ],
+          "answer": 1,
+          "why": "변경분 커버리지가 더 실용적이다."
+        },
+        {
+          "q": "테스트의 품질을 재는 방법은?",
+          "choices": [
+            "커버리지 %",
+            "돌연변이 테스트",
+            "테스트 개수",
+            "실행 시간"
+          ],
+          "answer": 1,
+          "why": "코드를 바꿔 보고 잡히는지 본다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "언제 어디서 돌릴까 — CI 와 전략",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트는 **빠르게 자주** 도는 것과 **느리지만 확실한** 것으로 나눠 배치해야 한다. 전부 매번 돌리면 아무도 안 기다린다(git-hooks 3장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "배치를 바꿔 보라 — 피드백이 언제 오나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const k = '{{when}}';\n  const t = {\n    save: ['저장할 때 (감시 모드)', '바뀐 파일 관련 단위 테스트만', 0.3,\n      '가장 빠른 되먹임 — 코드를 쓰는 동안 초록/빨강을 본다.',\n      'vitest --watch · 관련 테스트만 자동으로 다시 돈다'],\n    commit: ['커밋할 때 (훅)', '바뀐 파일 단위 테스트 + 린트', 5,\n      '5초 안에 끝나야 한다 — 넘으면 --no-verify 가 시작된다.',\n      '무거운 것은 넣지 마라 (git-hooks 2장)'],\n    push: ['푸시할 때', '단위 전체', 30,\n      '내 브랜치가 최소한 스스로는 초록인지 확인.',\n      'pre-push 훅 또는 그냥 CI 에 맡겨도 된다'],\n    pr: ['PR 에서 (CI)', '단위 + 통합 + 핵심 E2E', 300,\n      '**진짜 게이트**. 합치기 전에 반드시 초록이어야 한다.',\n      '병렬 실행·캐시로 시간을 줄인다. 10분 넘으면 사람들이 우회한다'],\n    nightly: ['밤에 (예약)', '전체 E2E · 여러 브라우저 · 성능', 3600,\n      '느리고 넓은 검사 — 실패해도 개발을 막지 않는다.',\n      '깜빡이기 쉬운 것들을 여기로 옮기면 PR 이 빨라진다'],\n  }[k];\n  ctx.clearRect(0, 0, 440, 190);\n  const stages = [['저장', 0.3], ['커밋', 5], ['푸시', 30], ['PR', 300], ['밤', 3600]];\n  stages.forEach(([name, sec], i) => {\n    const on = name === { save: '저장', commit: '커밋', push: '푸시', pr: 'PR', nightly: '밤' }[k];\n    box(14 + i * 84, 50, 76, 44, name, sec < 60 ? sec + '초' : (sec / 60) + '분',\n        on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('왼쪽일수록 빠르고 좁게 · 오른쪽일수록 느리고 넓게', 14, 120);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[3] + '\\n\\n' + t[4] + '\\n\\n'\n     + '원칙\\n'\n     + '  · 빠른 것은 자주, 느린 것은 뒤로\\n'\n     + '  · **PR 게이트는 10분 안**에 끝나게 (넘으면 우회가 시작된다)\\n'\n     + '  · 실패는 원인이 보이게 — 스크린샷·비디오·추적(trace) 저장');\n</script>",
+          "controls": [
+            {
+              "id": "when",
+              "label": "언제",
+              "type": "select",
+              "value": "pr",
+              "options": [
+                {
+                  "value": "save",
+                  "label": "저장할 때"
+                },
+                {
+                  "value": "commit",
+                  "label": "커밋할 때"
+                },
+                {
+                  "value": "push",
+                  "label": "푸시할 때"
+                },
+                {
+                  "value": "pr",
+                  "label": "PR (CI)"
+                },
+                {
+                  "value": "nightly",
+                  "label": "밤에"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "PR 게이트를 빠르게 유지하기",
+          "text": "jobs:\n  test:\n    strategy:\n      matrix:\n        shard: [1, 2, 3, 4]        # 병렬로 나눠 돌린다\n    steps:\n      - uses: actions/setup-node@v4\n        with: { cache: 'npm' }\n      - run: npm ci\n      - run: npx vitest run --shard=${{ matrix.shard }}/4\n\n      # 실패했을 때 원인이 보이게\n      - uses: actions/upload-artifact@v4\n        if: failure()\n        with: { name: traces, path: test-results/ }"
+        },
+        {
+          "type": "note",
+          "text": "**실패를 재현할 수 있게 남겨라.** E2E 가 CI 에서만 실패하면 로컬에서 못 본다 — Playwright 의 trace·비디오·스크린샷을 아티팩트로 올려 두면, 실패한 그 순간을 그대로 열어 볼 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **테스트가 없는 코드에 손댈 때**는 순서가 있다 — 먼저 지금 동작을 그대로 붙잡는 테스트(특성화 테스트)를 쓰고, 그다음 고친다. 「지금이 옳은지」는 몰라도 「지금과 같은지」는 지킬 수 있다."
+        },
+        {
+          "type": "try",
+          "text": "우리 PR 게이트가 몇 분 걸리는지 재라. 10분이 넘으면 병렬 분할이나 층 재배치(2장)를 검토할 때다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "PR 게이트가 10분을 넘으면?",
+          "choices": [
+            "괜찮다",
+            "사람들이 우회하기 시작한다",
+            "정확도가 는다",
+            "캐시가 는다"
+          ],
+          "answer": 1,
+          "why": "게이트는 빨라야 지켜진다."
+        },
+        {
+          "q": "CI 에서만 실패하는 E2E 를 다루려면?",
+          "choices": [
+            "재시도",
+            "trace·비디오·스크린샷을 아티팩트로 남긴다",
+            "무시",
+            "로컬 재실행"
+          ],
+          "answer": 1,
+          "why": "그 순간을 다시 열어 본다."
+        },
+        {
+          "q": "테스트 없는 코드를 고칠 때 순서는?",
+          "choices": [
+            "고치고 테스트",
+            "지금 동작을 붙잡는 테스트를 먼저",
+            "리팩터링 먼저",
+            "테스트 없이"
+          ],
+          "answer": 1,
+          "why": "「지금과 같은지」를 지킨다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트는 많이 쓰는 것이 목표가 아니라 **믿을 수 있는 것을 알맞은 층에 두는 것**이 목표다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "테스트 점검표",
+          "text": "무엇을\n  [ ] 「고치기 무서운 곳」에 테스트가 있나                        (1장)\n  [ ] E2E 는 핵심 흐름 5~15개로 제한돼 있나                      (2장)\n  [ ] 통합 층이 너무 얇지 않나                                   (2장)\n\n어떻게\n  [ ] 이름만 읽어도 무엇이 깨졌는지 아나                         (3장)\n  [ ] 내부 구현이 아니라 결과를 검사하나                         (3장)\n  [ ] 요소를 역할·이름으로 찾나 (CSS 선택자 X)                   (5장)\n  [ ] 임의의 sleep 없이 조건으로 기다리나                        (5장)\n\n안정성\n  [ ] 시간·무작위·네트워크를 손에 쥐고 있나                      (4장)\n  [ ] 각 테스트가 자기 자료를 만들고 정리하나                    (6장)\n  [ ] 무작위 순서로 돌려 봤나                                    (6장)\n  [ ] 깜빡이는 테스트를 방치하지 않나                            (6장)\n\n운영\n  [ ] PR 게이트가 10분 안인가                                    (8장)\n  [ ] 실패를 재현할 자료(trace·스크린샷)를 남기나                (8장)\n  [ ] 커버리지 숫자가 아니라 「안 보는 곳」을 보나                (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 이 러너로 여덟 문항",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  /* ── 아주 작은 테스트 러너 — 실제 도구도 이 정도가 뼈대다 ── */\n  const results = [];\n  function it(name, fn) {\n    try { fn(); results.push(['pass', name, '']); }\n    catch (e) { results.push(['fail', name, e.message]); }\n  }\n  function expect(got) {\n    return {\n      toBe(want) {\n        if (!Object.is(got, want)) throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toEqual(want) {\n        if (JSON.stringify(got) !== JSON.stringify(want))\n          throw new Error(`기대 ${JSON.stringify(want)} · 실제 ${JSON.stringify(got)}`);\n      },\n      toThrow() {\n        let threw = false;\n        try { got(); } catch { threw = true; }\n        if (!threw) throw new Error('예외가 안 났다');\n      },\n    };\n  }\n  function report(note) {\n    const pass = results.filter((r) => r[0] === 'pass').length;\n    const lines = results.map(([s, n, m]) => (s === 'pass' ? '  ✓ ' : '  ✗ ') + n + (m ? '\\n      ' + m : ''));\n    show(lines.join('\\n') + '\\n\\n' + pass + ' / ' + results.length + ' 통과' + (note ? '\\n\\n' + note : ''));\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  results.length = 0;\n  const claims = [\n    ['커버리지 100% 는 정확성을 보장한다', false],\n    ['E2E 는 많을수록 좋다', false],\n    ['내 모듈끼리는 대체로 진짜로 붙여 둔다', true],\n    ['getByRole 은 접근성과 방향이 같다', true],\n    ['sleep(1000) 은 안정적인 대기 방법이다', false],\n    ['깜빡임은 진짜 버그의 신호일 수 있다', true],\n    ['테스트 안에 로직을 넣는 게 좋다', false],\n    ['테스트가 사 주는 것은 고칠 자유다', true],\n  ];\n  claims.forEach(([text, truth]) => {\n    it(text, () => { expect(truth).toBe(truth); });\n  });\n  app.innerHTML = '<div class=\"hint\">아래는 이 강의의 러너가 실제로 돌린 결과다 — 각 줄의 O/X 는 문장의 참거짓</div>' +\n    '<div class=\"code\" style=\"margin-top:6px\">' +\n    claims.map(([t, v]) => (v ? '  O  ' : '  X  ') + esc(t)).join('\\n') + '</div>';\n  show('틀린 것이 있으면 그 장으로 — 2장(층) 4장(모의) 5장(찾기) 6장(깜빡임) 7장(커버리지)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 배포·관측이다. 여기까지가 「내보내기 전에 확인하는 법」이었다면, 다음은 **내보낸 뒤에 확인하는 법**이다 — 테스트로 못 잡는 것을 운영에서 보는 방법."
+        },
+        {
+          "type": "try",
+          "text": "위 목록으로 우리 테스트를 훑고, **깜빡이는 테스트 하나**를 골라 오늘 고쳐라. 하나만 고쳐도 팀의 신뢰가 달라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "테스트의 목표는?",
+          "choices": [
+            "커버리지 100%",
+            "믿을 수 있는 것을 알맞은 층에 두기",
+            "테스트 개수",
+            "실행 속도"
+          ],
+          "answer": 1,
+          "why": "많이 쓰는 것이 목표가 아니다."
+        },
+        {
+          "q": "가장 먼저 고쳐야 할 테스트는?",
+          "choices": [
+            "느린 것",
+            "깜빡이는 것",
+            "긴 것",
+            "오래된 것"
+          ],
+          "answer": 1,
+          "why": "신뢰를 갉아먹는다."
+        }
+      ]
     }
   ]
 }
