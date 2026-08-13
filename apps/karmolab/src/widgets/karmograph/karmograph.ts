@@ -153,6 +153,13 @@ import {
       display:flex; gap:6px; align-items:center; max-width:min(560px, 92%); padding:10px 12px;
       border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    /* 말 상자 — 「안 됐다」는 말은 사라지면 안 된다(토스트는 3초면 없어진다). 그렇다고
+       브라우저 alert 처럼 판을 얼려서도 안 된다 — 얼면 뒤에 있는 화면을 못 보고 답한다. */
+    .km-note { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:960;
+      display:flex; gap:10px; align-items:flex-start; max-width:min(520px, 92%); padding:12px 14px;
+      border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
+      box-shadow:0 8px 24px rgba(0,0,0,.35); color:var(--text-primary); font-size:13px;
+      white-space:pre-line; }
     .km-linkbox input { flex:1 1 auto; min-width:180px; padding:6px 10px; border-radius:8px;
       border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);
       font-size:12px; }
@@ -915,7 +922,7 @@ import {
         let parsed: Backup | null = null;
         try { parsed = JSON.parse(text) as Backup; } catch { parsed = null; }
         if (!parsed || parsed.kind !== 'karmograph-backup' || !Array.isArray(parsed.maps)) {
-          alert([
+          showNote([
             t('karmograph.file.msg'),
             t('karmograph.file.msg2'),
           ].join(String.fromCharCode(10)));
@@ -961,7 +968,7 @@ import {
         })
         .catch((e: unknown) => {
           console.error(t('karmograph.targetId.msg'), e);
-          alert(t('karmograph.targetId.msg2'));
+          showNote(t('karmograph.targetId.msg2'));
         });
     };
 
@@ -1004,7 +1011,7 @@ import {
           renderSide();
           Toolbox.showToast?.(t('karmograph.paste.done'), undefined, undefined);
         })
-        .catch(() => alert(t('karmograph.targetId.msg2')));
+        .catch(() => showNote(t('karmograph.targetId.msg2')));
     };
     document.addEventListener('paste', onPaste);
     Toolbox.onDispose?.(() => document.removeEventListener('paste', onPaste));
@@ -2182,7 +2189,7 @@ import {
         void encodeShare(live).then(async (code) => {
           const url = withNodeAnchor(buildShareUrl(new URL(location.href), code, true), node.id);
           if (url.length > SHARE_URL_LIMIT) {
-            alert(t('karmograph.nodeLink.label2'));
+            showNote(t('karmograph.nodeLink.label2'));
             return;
           }
           try {
@@ -2980,7 +2987,7 @@ import {
             && confirm(t('karmograph.confirmLeanShare', { n: lean.removed }))) {
             url = leanUrl;
           } else {
-            alert(
+            showNote(
               t('karmograph.tooBigForLink', { k: Math.round(url.length / 1000) }) + '\n' +
               t('karmograph.live.msg')
             );
@@ -3461,6 +3468,32 @@ import {
     }
 
     /**
+     * 💬 **판을 얼리지 않는 말 상자** (KL-271) — 브라우저 alert 을 대신한다.
+     *
+     * `alert` 은 브라우저 창을 띄워 판을 통째로 얼린다: 뒤에 있는 화면(무엇이 잘못됐는지)을
+     * 볼 수 없고, 폰에서는 주소창 이름이 함께 떠 「사이트가 하는 말」처럼 읽힌다. 여기서는
+     * 판 위에 얹고, 읽는 동안 화면은 그대로 살아 있다. 토스트와는 다르다 — **안 사라진다**
+     * (「안 됐다」는 말이 3초 만에 사라지면 사람은 무슨 일이 일어났는지 영영 모른다).
+     */
+    function showNote(msg: string): void {
+      root.querySelector('.km-note')?.remove();
+      const box = document.createElement('div');
+      box.className = 'km-note';
+      box.setAttribute('role', 'status');
+      box.innerHTML = `<span data-km="note-msg"></span>`
+        + `<button class="btn btn-ghost" data-km="note-close" aria-label="${esc(t('karmograph.linkBox.close'))}">✕</button>`;
+      (box.querySelector('[data-km="note-msg"]') as HTMLElement).textContent = msg;
+      canvasEl.appendChild(box);
+      const close = (): void => box.remove();
+      (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).onclick = close;
+      (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).focus();
+      box.onkeydown = (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Escape' || ev.key === 'Enter') close();
+      };
+    }
+
+    /**
      * 🔗 **직접 복사하는 길** — 클립보드가 막힌 자리에서 링크를 보여 준다 (KL-271).
      *
      * 예전엔 `prompt()` 였다. 판이 통째로 가려지고, 긴 주소는 한 줄짜리 시스템 창에서 끝이 안
@@ -3554,14 +3587,14 @@ import {
         ctx.drawImage(im, 0, 0, out.width, out.height);
         out.toBlob((blob) => {
           if (!blob) {
-            alert(t('karmograph.im.msg'));
+            showNote(t('karmograph.im.msg'));
             return;
           }
           downloadBlob(blob, 'karmograph.png');
           Toolbox.showToast?.(t('karmograph.savedPng', { w: out.width, h: out.height }), undefined, undefined);
         }, 'image/png');
       };
-      im.onerror = () => alert(t('karmograph.im.msg'));
+      im.onerror = () => showNote(t('karmograph.im.msg'));
       im.src = src;
     }
 
@@ -3588,7 +3621,7 @@ import {
         return;
       }
       const win = window.open('', '_blank');
-      if (!win) { alert(t('karmograph.print.blocked')); return; }
+      if (!win) { showNote(t('karmograph.print.blocked')); return; }
       win.document.write(printSheetHtml({ title: activeMapName(), svg: art, landscape: isWide(art) }));
       win.document.close();
       // 그림이 다 실린 뒤에 인쇄창을 띄운다 — 먼저 띄우면 빈 종이가 나온다.
@@ -3833,7 +3866,7 @@ import {
         })
         .catch((e: unknown) => {
           console.error(t('karmograph.file.msg5'), e);
-          alert(t('karmograph.file.msg6'));
+          showNote(t('karmograph.file.msg6'));
         })
         .finally(() => {
           fileEl.value = '';
