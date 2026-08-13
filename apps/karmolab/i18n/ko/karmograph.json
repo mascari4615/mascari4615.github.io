@@ -677,5 +677,7 @@
   "karmograph.paste.act": "얼굴 붙이기",
   "karmograph.sample.wipe": "견본 지우고 내 것으로 시작",
   "karmograph.sample.wipeAct": "견본 지우기",
-  "karmograph.sample.wipeDone": "빈 판이에요 — 빈 곳을 두 번 눌러 시작하세요"
+  "karmograph.sample.wipeDone": "빈 판이에요 — 빈 곳을 두 번 눌러 시작하세요",
+  "karmograph.embed.label": "블로그에 넣을 코드",
+  "karmograph.embed.done": "블로그에 붙일 한 줄을 복사했어요"
 }

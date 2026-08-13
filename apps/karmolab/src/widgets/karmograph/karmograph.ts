@@ -2605,7 +2605,20 @@ import {
       renderSide();
     };
 
-    function makeShareLink(readOnly: boolean): void {
+    /**
+     * **블로그에 넣을 한 줄** (TASK-KL-271 O6).
+     *
+     * 보기 전용 링크는 「눌러서 열어 보세요」까지다. 그런데 관계도를 남에게 보이는 가장 흔한 자리는
+     * 글 안이고(블로그·문서), 거기서는 링크가 아니라 **판이 그 자리에 떠 있어야** 읽힌다.
+     * 링크를 이미 만들 줄 아니, 그것을 끼우는 한 줄만 얹으면 된다 — 새 길이 아니라 같은 길의 옷이다.
+     */
+    function embedCodeOf(url: string): string {
+      // 높이는 넉넉히, 테두리는 0 — 블로그 글 안에서 「끼워 넣은 창」처럼 보이면 읽는 흐름이 끊긴다.
+      return `<iframe src="${url}" width="100%" height="600" style="border:0" loading="lazy"`
+        + ` title="${escapeAttr(activeMapName())}"></iframe>`;
+    }
+
+    function makeShareLink(readOnly: boolean, asEmbed = false): void {
       const live = canvas?.getSpec() ?? spec;
       void encodeShare(live).then(async (code) => {
         let url = buildShareUrl(new URL(location.href), code, readOnly);
@@ -2627,12 +2640,14 @@ import {
             return;
           }
         }
+        const out = asEmbed ? embedCodeOf(url) : url;
         try {
-          await navigator.clipboard.writeText(url);
-          Toolbox.showToast?.(t('karmograph.live.msg2'), undefined, undefined);
+          await navigator.clipboard.writeText(out);
+          Toolbox.showToast?.(
+            asEmbed ? t('karmograph.embed.done') : t('karmograph.live.msg2'), undefined, undefined);
         } catch {
           // 클립보드가 막힌 자리(비보안 컨텍스트 등)에서도 사람이 직접 복사할 수 있게 보여 준다.
-          prompt(t('karmograph.nodeLink.label4'), url);
+          prompt(t('karmograph.nodeLink.label4'), out);
         }
       });
     }
@@ -2640,6 +2655,7 @@ import {
     // 보여 주기만 할 때 쓰는 링크 — 받는 쪽에서 편집 손잡이가 사라진다(고쳐도 원본은 안 바뀐다는
     // 사실을 말로 설명하는 것보다, 애초에 못 고치게 하는 편이 헷갈림이 적다).
     q<HTMLButtonElement>('share-view').onclick = () => makeShareLink(true);
+    q<HTMLButtonElement>('embed').onclick = () => makeShareLink(true, true);
 
     /**
      * 구조를 살리는 배치 — 「가지런히」는 있던 자리를 존중하지만, 이미 엉킨 그림은 그것으로 안 풀린다.

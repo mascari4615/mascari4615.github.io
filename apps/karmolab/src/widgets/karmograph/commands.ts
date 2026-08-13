@@ -75,6 +75,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     items: [
       { key: 'share', label: () => t('karmograph.share.label') },
       { hot: true, key: 'share-view', label: () => t('karmograph.shareView.label') },
+      { key: 'embed', label: () => t('karmograph.embed.label') },
     ],
   },
   {
