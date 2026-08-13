@@ -1875,7 +1875,27 @@ const Toolbox = (() => {
 
         const toolForPage = tools.find(t => t.id === pageId);
         if (toolForPage && toolForPage._deferred) {
-            kickLazyLoad(pageId);
+            /* ★ **안 올라오면 그렇다고 말한다** (2026-08-14). 위젯 묶음이 읽히다가 던지면
+               `<script>` 는 그래도 `onload` 를 준다 — 그래서 이 자리는 「다 됐다」고 믿고
+               「장비 꺼내는 중이에요…」를 **영영** 띄운 채로 있었다. 오늘 그런 화면이 아홉이었고,
+               사람이 볼 수 있는 단서는 하나도 없었다(콘솔에만 한 줄). 못 열었으면 못 열었다고
+               적는다 — 새로고침이라도 해 볼 수 있게. */
+            void Promise.resolve(kickLazyLoad(pageId)).then(() => {
+                const after = tools.find(t => t.id === pageId);
+                if (!after || !after._deferred) return;   /* 잘 올라왔다 */
+                /* 자리는 **기다림 판** 자체다. 처음에 깔아 둔 `.tb-lazy-loading` 한 줄은
+                   마스코트가 기다려 주면서 통째로 갈아치우기 때문에 그걸 붙들면 못 찾는다
+                   (실측 2026-08-14: 그래서 첫 판이 아무 말도 못 했다). */
+                const slot = document.getElementById('panel-' + pageId + '-__lazy')
+                    || document.getElementById('page-' + pageId);
+                if (!slot) return;
+                slot.innerHTML = '';
+                const line = document.createElement('p');
+                line.style.cssText = 'padding:32px;text-align:center;color:var(--text-secondary);';
+                line.textContent = '이 화면을 못 열었어요 — 새로고침해 보세요.';
+                line.setAttribute('data-kl-load-failed', pageId);
+                slot.appendChild(line);
+            }).catch(() => { /* 위에서 이미 알린다 */ });
         }
 
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
