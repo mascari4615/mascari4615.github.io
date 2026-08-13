@@ -2909,6 +2909,56 @@ await step('내보내기와 저장한 보기도 시점을 따른다', async () =
   await ctx.close();
 });
 
+await step('「이 둘 사이」와 둘레 보기도 시점을 따른다', async () => {
+  /* 2부에는 없는 선을 밟고 「한 다리」라고 하면, 화면에는 그 길이 안 보인다 —
+     사람은 도구가 틀렸다고 읽는다 (KL-271 X2). */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  // 카드 둘 + 선 하나짜리 작은 판을 글로 만든다.
+  await m.click('[data-km="more"]');
+  await m.locator('[data-km="from-text"]').click();
+  await m.fill('[data-km="text-src"]', ['가', '  나 : 친구'].join(String.fromCharCode(10)));
+  await m.click('[data-km="text-go"]');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: ms(5000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForTimeout(ms(500));
+  await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    const s = JSON.parse(localStorage.getItem(key));
+    s.edges[0].at = { [s.times[1].id]: { gone: true } };   // 2부에는 아직 안 만난 사이
+    localStorage.setItem(key, JSON.stringify(s));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1200));
+  const bothAndRead = async () => {
+    const box = await m.locator('.km-canvas').boundingBox();
+    await m.keyboard.down('Shift');
+    await m.mouse.move(box.x + 8, box.y + 8);
+    await m.mouse.down();
+    await m.mouse.move(box.x + box.width * 0.95, box.y + box.height * 0.95, { steps: 12 });
+    await m.mouse.up();
+    await m.keyboard.up('Shift');
+    await m.waitForTimeout(ms(700));
+    return m.evaluate(() => document.querySelector('.km-side')?.textContent ?? '');
+  };
+  const later = await bothAndRead();
+  if (!/이 둘 사이/.test(later)) throw new Error('두 장을 골랐는데 「이 둘 사이」가 없다');
+  if (!/없|안 이어/.test(later)) throw new Error('2부에는 없는 선인데 길이 있다고 한다');
+  await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
+  await m.waitForTimeout(ms(600));
+  const first = await bothAndRead();
+  if (/없|안 이어/.test(first)) throw new Error('1부에는 이어져 있는데 길이 없다고 한다');
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');
