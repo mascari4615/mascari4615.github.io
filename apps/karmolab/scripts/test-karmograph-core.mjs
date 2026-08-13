@@ -49,6 +49,7 @@ async function loadModules() {
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
     export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
+    export * as times from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/times.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
@@ -1016,6 +1017,41 @@ const M = await loadModules();
   const risky = printSheetHtml({ title: '<b>&', svg });
   check(risky.includes('&lt;b&gt;&amp;'), '제목에 꺾쇠가 있어도 문서가 안 깨진다');
   check(risky.includes('@page { size: A4 portrait'), '기본은 세워 찍기');
+}
+
+// -- 시점에 따라 관계가 변한다 (TASK-KL-271 X2 골격) ---------------------------
+{
+  const { edgeAt, isTimed, stepTime, nextTimeName, forgetTime } = M.times;
+  const plain = { label: '소꿉친구', kind: 'rel' };
+  // 1. 원본이 기본값 — 시점을 안 쓰는 판은 아무것도 안 달라진다(옛 판을 건드리면 그건 고장이다).
+  eq(edgeAt(plain, '').label, '소꿉친구', '시점이 없으면 원래 모습');
+  eq(edgeAt(plain, 't2').label, '소꿉친구', '적어 둔 것이 없는 시점도 원래 모습');
+  const timed = { label: '소꿉친구', kind: 'rel', at: { t2: { label: '라이벌', kind: 'foe' } } };
+  eq(edgeAt(timed, 't1').label, '소꿉친구', '1부에서는 원래대로');
+  eq(edgeAt(timed, 't2').label, '라이벌', '2부에서는 다른 이름');
+  eq(edgeAt(timed, 't2').kind, 'foe', '2부에서는 다른 색');
+  // 2. 덮어쓰기는 부분 — 이름만 바뀌었으면 색은 원본을 따른다.
+  const partial = { label: '동료', kind: 'rel', at: { t2: { label: '앙숙' } } };
+  eq(edgeAt(partial, 't2').kind, 'rel', '이름만 바꿨으면 색은 그대로');
+  eq(edgeAt(partial, 't2').label, '앙숙', '바꾼 이름은 바뀐다');
+  // 3. 사라짐도 하나의 상태 — 빈 이름으로 두면 이름 없는 선이 그려진다.
+  const later = { label: '연인', kind: 'rel', at: { t1: { gone: true } } };
+  eq(edgeAt(later, 't1'), null, '아직 안 만난 사이는 그리지 않는다');
+  check(edgeAt(later, 't2') !== null, '그 뒤에는 그린다');
+  check(isTimed(timed) && !isTimed(plain), '시점 이야기를 하는 선만 골라낼 수 있다');
+  // 시점 옮기기 — 끝에서 더 가면 제자리(돌아 나오면 「처음으로 왔나」를 못 읽는다).
+  const ts = [{ id: 'a', name: '1부' }, { id: 'b', name: '2부' }, { id: 'c', name: '3부' }];
+  eq(stepTime(ts, 'a', 1), 'b', '다음 시점');
+  eq(stepTime(ts, 'c', 1), 'c', '마지막에서 더 가도 제자리');
+  eq(stepTime(ts, 'a', -1), 'a', '처음에서 뒤로 가도 제자리');
+  eq(stepTime(ts, '', 1), 'b', '지금 시점을 모르면 첫 시점에서 센다');
+  eq(stepTime([], 'a', 1), '', '시점이 없으면 갈 데도 없다');
+  eq(nextTimeName(ts, (n) => `${n}부`), '4부', '새 시점은 번호를 달고 나온다');
+  // 시점을 지우면 그 시점 얼굴도 함께 — 안 지우면 아무도 못 보는 자료가 남는다.
+  const cleaned = forgetTime([timed, partial, plain], 't2');
+  eq(cleaned[0].at, undefined, '마지막 얼굴을 지우면 자리도 없앤다');
+  eq(cleaned[2].label, '소꿉친구', '상관없는 선은 안 건드린다');
+  eq(forgetTime([timed], 't9')[0].at.t2.label, '라이벌', '없는 시점을 지워도 남은 것은 그대로');
 }
 
 process.stdout.write('\n');
