@@ -59,6 +59,24 @@ export const 파생물 = [
     why: '앱이 받아서 로비를 그리는 놀이 명부 — 낡으면 새 놀이가 로비에 안 뜬다'
   },
   {
+    npm: 'gen:type-pool',
+    outputs: ['src/core/type-pool.generated.ts'],
+    why: '타자 연습이 치는 글월 — 낡으면 없어진 도구 설명을 사람이 따라 친다'
+  },
+  {
+    npm: 'gen:word-pool',
+    outputs: ['src/core/word-pool.generated.ts'],
+    why: '낱말 놀이의 낱말 — 위와 같은 이유'
+  },
+  {
+    npm: 'gen:han-table',
+    outputs: ['src/core/han-table.generated.ts'],
+    why: '한자 표 — 소스가 바뀌면 같이 바뀌어야 한다',
+    /* 사람이 받아서 푼 자료 폴더를 인자로 줘야 돈다 — 감사기가 혼자서는 못 굽는다.
+       그래서 여기서는 안 굽고, 사실만 적어 둔다(안 보는 것과 구분되게). */
+    무거움: '사람이 받아 푼 자료 폴더가 있어야 돈다 (node scripts/gen-han-table.mjs <폴더>)'
+  },
+  {
     npm: 'gen:core-tools',
     outputs: ['data/core-tools.json', 'src/core/registry.generated.ts', 'src/core/registry-lazy.generated.ts'],
     why: '묶어 쓰기·MCP 가 부를 수 있는 도구 목록'
