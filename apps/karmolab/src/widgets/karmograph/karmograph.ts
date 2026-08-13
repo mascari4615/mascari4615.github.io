@@ -3338,12 +3338,20 @@ import {
           (sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement | null)?.focus();
           return;
         }
-        if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedId) {
-          const node = spec.nodes.find((n) => n.id === selectedId);
+        if (ev.key === 'Delete' || ev.key === 'Backspace') {
+          const node = selectedId ? spec.nodes.find((n) => n.id === selectedId) : null;
           if (node) {
             ev.preventDefault();
             // 지울지 되묻는 일은 **옆 패널 단추 한 곳**에만 둔다 — 여기서도 물으면 두 번 묻는다.
             (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement | null)?.click();
+            return;
+          }
+          /* ★ **선도 자판으로 지운다** (KL-271). 카드만 되던 동안, 선을 골라 패널까지 떠 있는데
+             Delete 를 눌러도 아무 일이 없었다 — 자판만 쓰는 사람은 「고를 수는 있는데 못 지운다」를
+             만난다(실측 2026-08-14). 같은 단추를 눌러 되물음도 한 번만 뜨게 한다. */
+          if (selectedEdgeId) {
+            ev.preventDefault();
+            (sideEl.querySelector('[data-km="ed-del"]') as HTMLButtonElement | null)?.click();
           }
           return;
         }
