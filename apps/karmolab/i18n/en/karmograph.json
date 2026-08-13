@@ -682,5 +682,12 @@
   "karmograph.embed.done": "Copied a one-liner to paste into your blog",
   "karmograph.crowd.offer": "{n} cards — show only what is near this one?",
   "karmograph.crowd.done": "Showing two steps around it — undo this in the filter panel",
-  "karmograph.read.links": "Connections"
+  "karmograph.read.links": "Connections",
+  "karmograph.intent.cardgame.title": "A card game turn",
+  "karmograph.intent.cardgame.sub": "How turns, effects and conditions chain",
+  "karmograph.intent.idea.title": "Rolling an idea",
+  "karmograph.intent.idea.sub": "Lay out what came to mind and link it",
+  "karmograph.intent.org.title": "Our team or guild",
+  "karmograph.intent.org.sub": "Who does what, and who works with whom",
+  "karmograph.intent.more": "Show other kinds"
 }
