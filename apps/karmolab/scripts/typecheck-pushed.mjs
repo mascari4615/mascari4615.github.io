@@ -76,6 +76,15 @@ const nodeModules = join(appRoot, 'node_modules');
 if (!existsSync(nodeModules) || !existsSync(join(nodeModules, 'typescript'))) {
   cannotRun('apps/karmolab/node_modules 가 없거나 비었다 (옆 세션이 npm ci 를 도는 중일 수 있다)');
 }
+/* 앱이 `file:` 로 무는 꾸러미는 **지어야 형태가 생긴다**. dist 가 없으면 「모듈을 못 찾겠다」가
+   무더기로 나는데 그건 커밋 잘못이 아니라 **내 자리가 덜 갖춰진 것**이다 — 실측 2026-08-13:
+   옆 세션이 `packages/` 를 통째로 지웠다 되살리는 사이, 멀쩡한 push 가 이 게이트에 막혔다.
+   못 재는 것은 빨강이 아니다. */
+for (const pkg of ['karmolab-ai', 'badapple']) {
+  if (!existsSync(join(repoRoot, 'packages', pkg, 'dist'))) {
+    cannotRun(`packages/${pkg}/dist 가 없다 — 그 꾸러미를 아직 안 지었다 (npm ci && npm run build)`);
+  }
+}
 
 const tmp = mkdtempSync(join(tmpdir(), 'kl-tc-'));
 const work = join(tmp, 'w');
