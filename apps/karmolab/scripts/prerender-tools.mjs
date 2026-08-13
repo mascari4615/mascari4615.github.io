@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.resolve(root, '../blog/karmolab/t');
@@ -33,7 +34,11 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8801/apps/blog';
  *  검사가 옛 화면을 보고 있어서다. 그 도구는 단추를 누르지 않고 **넣는 즉시** 바뀌게 바뀌었는데
  *  검사는 아직 「CSV → JSON」 단추를 찾는다 — 빼 두고 돌려 봐도 똑같이 빨갛다.)
  */
-const SKIP_IDS = new Set();
+/* ★ **작업대로 합친 옛 도구는 미리 그릴 게 없다** (2026-08-13). 그 자리는 이제 「작업대로
+   보냅니다」 한 장짜리 안내다 — 위젯이 없으니 화면이 안 박히고, 그걸 「안 박혔다」로 세면
+   **배포가 통째로 선다**(실측: 그 이유로 배포 여섯 판 연속 실패, 실사이트가 40분 정체).
+   목록 정본은 `lib/retired-operations.mjs` 하나. */
+const SKIP_IDS = new Set(RETIRED_OPERATION_IDS);
 
 /** 이 자리에 미리 그린 것을 넣는다. 비어 있어야 넣는다(두 번 넣지 않는다). */
 const EMPTY = '<div class="content-body" id="tool-pages"></div>';
