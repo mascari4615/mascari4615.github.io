@@ -1,100 +1,817 @@
 {
   "id": "net-tls",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "자물쇠 아이콘은 두 가지를 말한다 — **엿볼 수 없다**, 그리고 **상대가 맞다**. 두 번째가 인증서의 일이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 손잡기 요약"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "한 왕복 안에 벌어지는 일",
-      "text": "1) 나: 쓸 수 있는 암호 목록 + 원하는 도메인 이름(SNI)\n2) 서버: 인증서 + 선택한 암호\n3) 나: 인증서 검증 (이름·기간·발급 체인)\n4) 둘: 세션 열쇠 합의  → 이후 통신은 대칭키로 암호화"
-    },
-    {
-      "type": "h",
-      "text": "2. 인증서가 증명하는 것"
-    },
-    {
-      "type": "p",
-      "text": "「이 공개키의 주인이 이 **도메인 이름**이다」를 신뢰받는 기관(CA)이 서명한 문서다. 회사가 착하다는 증명도, 사이트가 안전하다는 증명도 아니다."
-    },
-    {
-      "type": "h",
-      "text": "3. 오류 메시지 해독"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "세 가지가 거의 전부",
-      "text": "NET::ERR_CERT_DATE_INVALID      → 만료 (갱신 자동화가 죽었다)\nERR_CERT_COMMON_NAME_INVALID    → 이름 불일치 (SAN 에 그 도메인이 없다)\nERR_CERT_AUTHORITY_INVALID      → 체인 불완전 / 자체 서명\n\n브라우저는 되는데 서버끼리는 안 됨 → 중간 인증서 누락이 단골\n(브라우저가 알아서 채워 주기 때문에 눈에 안 띈다)"
-    },
-    {
-      "type": "h",
-      "text": "4. 직접 본다"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "진짜 인증서를 뜯어 본다",
-      "text": "openssl s_client -connect example.com:443 -servername example.com </dev/null \\\n  | openssl x509 -noout -subject -issuer -dates -ext subjectAltName\n\ncurl -vI https://example.com    # 손잡기 과정이 그대로 보인다"
-    },
-    {
-      "type": "h",
-      "text": "5. 운영에서 중요한 것"
-    },
-    {
-      "type": "note",
-      "text": "**자동 갱신과 만료 알림**이 본체다. Let's Encrypt 는 90일짜리라 사람이 손으로 갱신하면 반드시 언젠가 잊는다. 갱신 실패를 알려 주는 알림까지 있어야 끝이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 사이트 인증서의 만료일·발급자·SAN 목록을 명령으로 뽑아라. 갱신은 무엇이 담당하고, 실패하면 누가 알게 되는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "badssl.com 의 만료·이름불일치 예제에 접속해 브라우저 메시지를 비교하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "인증서가 증명하는 것은?",
-      "choices": [
-        "이 공개키의 주인이 그 도메인 이름이라는 것",
-        "사이트가 안전하다는 것",
-        "회사가 실재한다는 것"
+      "id": "1",
+      "title": "자물쇠는 두 가지를 말한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "브라우저의 자물쇠 아이콘은 **두 가지**를 말한다 — **엿볼 수 없다**(암호화: 중간에서 못 읽음)와 **상대가 맞다**(인증: 진짜 그 사이트다). 사람들은 첫 번째만 생각하지만, 두 번째가 더 어렵고 **인증서**의 일이다. 암호화만 있고 신원 확인이 없으면, 완벽히 암호화된 채로 **가짜 서버**와 대화할 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "자물쇠의 두 약속 — 하나만으론 부족",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{has}}';\n  const enc = has === 'both' || has === 'enc';\n  const auth = has === 'both' || has === 'auth';\n  render('암호화 ' + (enc?'O':'X') + ' · 신원확인 ' + (auth?'O':'X'),\n    (enc && auth\n      ? '  <span class=\\\"ok\\\">진짜 그 사이트와, 아무도 못 엿보게 대화한다 — 자물쇠의 온전한 뜻.</span>'\n      : enc && !auth\n      ? '  <span class=\\\"no\\\">암호화는 됐는데 상대가 가짜일 수 있다 — 가짜 서버와 완벽히 암호화된 대화(중간자).</span>'\n      : !enc && auth\n      ? '  <span class=\\\"no\\\">상대는 맞는데 대화가 평문 — 중간에서 다 엿본다.</span>'\n      : '  <span class=\\\"no\\\">둘 다 없음 — 평문 + 상대 불확실. HTTP 그 자체.</span>'),\n    '자물쇠 = 엿볼 수 없다(암호화) + 상대가 맞다(인증). 둘 다 필요하다.',\n    bars([['암호화(비밀)', enc?90:8, enc?'보장':'없음', enc?'#4ade80':'#fca5a5'],\n          ['신원확인(신뢰)', auth?90:8, auth?'보장':'없음', auth?'#4ade80':'#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "has",
+              "label": "무엇이 있나",
+              "type": "select",
+              "value": "enc",
+              "options": [
+                {
+                  "value": "both",
+                  "label": "암호화+인증(TLS)"
+                },
+                {
+                  "value": "enc",
+                  "label": "암호화만"
+                },
+                {
+                  "value": "auth",
+                  "label": "인증만"
+                },
+                {
+                  "value": "none",
+                  "label": "둘 다 없음(HTTP)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**암호화만으론 부족하다 — 신원 확인이 진짜 어려운 문제다.** 누구와든 암호화된 채널은 쉽게 연다. 문제는 「그 누구가 **정말 ex.com 인가**」다. 신원 확인이 없으면 중간자(공격자)가 자기와 암호화 채널을 열고, 다시 진짜 서버와 열어 **양쪽을 중계하며 다 엿본다**. 인증서가 이 중간자를 막는다(3장)."
+        },
+        {
+          "type": "p",
+          "text": "**TLS 는 세 가지를 준다: 기밀성·무결성·인증.** **기밀성**(암호화 — 못 읽음), **무결성**(변조 감지 — 중간에서 바꾸면 들킴), **인증**(신원 — 진짜 상대). 이 셋이 함께여야 안전하다. HTTP 는 셋 다 없어 평문으로 오가고 변조·가장이 가능하다. HTTPS = HTTP + TLS 로 이 셋을 얹은 것 — 자물쇠는 그 셋의 요약이다."
+        },
+        {
+          "type": "try",
+          "text": "자물쇠 아이콘을 클릭해 인증서 정보를 열어 보라. 「이 연결은 안전」 아래에 발급 대상(도메인)·발급자(CA)·유효기간이 있다 — 암호화만이 아니라 「누구인지」를 확인한 증거다."
+        }
       ],
-      "answer": 0,
-      "why": "신원(이름) 확인이지 품질 보증이 아니다."
+      "quiz": [
+        {
+          "q": "자물쇠 아이콘이 말하는 두 가지는?",
+          "choices": [
+            "빠름·안전",
+            "엿볼 수 없다(암호화)·상대가 맞다(인증)",
+            "포트·IP",
+            "압축·캐시"
+          ],
+          "answer": 1,
+          "why": "비밀 + 신뢰."
+        },
+        {
+          "q": "암호화만 있고 인증이 없으면?",
+          "choices": [
+            "안전",
+            "가짜 서버와 완벽히 암호화된 대화(중간자) 가능",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "신원 확인이 핵심."
+        },
+        {
+          "q": "TLS 가 주는 세 가지는?",
+          "choices": [
+            "속도·압축·캐시",
+            "기밀성·무결성·인증",
+            "포트·IP·MAC",
+            "A·MX·TXT"
+          ],
+          "answer": 1,
+          "why": "HTTPS = HTTP + TLS."
+        }
+      ]
     },
     {
-      "q": "브라우저에선 되는데 서버 간 호출만 TLS 오류가 난다면?",
-      "choices": [
-        "중간 인증서 누락(체인 불완전)",
-        "포트가 다르다",
-        "DNS 문제"
+      "id": "2",
+      "title": "TLS 손잡기 — 비밀 채널을 연다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "TLS 손잡기는 데이터를 보내기 전 **비밀 채널을 여는** 과정이다. 요약: ① 나 → 서버: 쓸 수 있는 암호 목록 + 원하는 도메인 이름(**SNI**) ② 서버 → 나: **인증서** + 선택한 암호 ③ 나: 인증서 검증 후 **키 교환** → 양쪽이 같은 세션 키를 갖는다. 이후 그 키로 대화를 암호화한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "손잡기 단계 — 밀어 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps_ = [\n    ['① 나 → 서버: 쓸 암호 목록 + 도메인 이름(SNI)', ''],\n    ['② 서버 → 나: 인증서 + 선택한 암호', ''],\n    ['③ 나: 인증서 검증(이 도메인 맞나 — 3·4장)', 'good'],\n    ['④ 키 교환: 양쪽이 같은 세션 키를 갖는다', 'good'],\n    ['⑤ 이후 그 키로 암호화해 대화(HTTP 등)', 'good'],\n  ];\n  const view = steps_.map((r, i) => [r[0], i === s ? 'on' : (i < s ? 'good' : (r[1] || ''))]);\n  render('TLS 손잡기 (단계 ' + (s+1) + '/5)',\n    '  현재: ' + steps_[s][0].replace(/^[①②③④⑤]\\s*/, '') + '\\n\\n' +\n    (s === 2 ? '  <span class=\\\"warn\\\">여기서 「진짜 상대인가」를 확인 — 실패하면 손잡기 중단(오류, 5장).</span>'\n     : s >= 3 ? '  키 교환 후엔 대칭키로 빠르게 암호화 — 비대칭은 손잡기에만.'\n     : '  아직 협상 중 — 무엇을 쓸지·상대가 누군지 정하는 단계.'),\n    'TLS 손잡기: 암호 협상 → 인증서 → 검증 → 키 교환 → 이후 암호화 대화.',\n    steps(view));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "손잡기 요약",
+          "text": "1) 나:   쓸 수 있는 암호 목록 + 원하는 도메인 이름(SNI)\n2) 서버: 인증서 + 선택한 암호\n3) 나:   인증서 검증(이 도메인의 진짜 서버인가) → 키 교환\n4) 양쪽: 같은 세션 키 확보 → 이후 그 키로 대칭 암호화\n\n비대칭 암호(느림)는 손잡기에만, 실제 대화는 대칭키(빠름)로."
+        },
+        {
+          "type": "note",
+          "text": "**SNI 가 「어느 사이트인지」를 먼저 말한다.** 한 IP(서버)에 여러 사이트가 살 수 있으니(가상 호스팅), 클라이언트가 손잡기 시작에 「나는 ex.com 을 원한다」(SNI)를 알려야 서버가 맞는 인증서를 준다. 흥미롭게도 이 SNI 는 암호화 전이라 **어느 사이트에 가는지는 중간에서 볼 수 있다**(내용은 못 보지만) — 그래서 최신엔 이것도 암호화하려는(ECH) 움직임이 있다."
+        },
+        {
+          "type": "p",
+          "text": "**비대칭으로 열고 대칭으로 나른다.** 손잡기는 **비대칭 암호**(공개키/개인키 — 느리지만 키 없이 안전하게 키를 교환)를 쓰고, 그렇게 합의한 **세션 키(대칭키)**로 실제 대화를 암호화한다(빠름). 「느린 방식으로 빠른 방식의 키를 안전하게 나눠 갖기」 — 이 조합이 TLS 의 핵심 트릭이다. 손잡기 비용(왕복)은 net-tcp-udp 5장의 연결 비용에 더해진다."
+        },
+        {
+          "type": "try",
+          "text": "`curl -v https://사이트` 출력에서 TLS 구간(`SSL connection using TLSv1.3`)을 찾아라(net-http-versions 8장). TCP 연결 뒤·HTTP 요청 앞에 손잡기가 끼는 순서를 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "브라우저는 빠진 중간 인증서를 보완해 주기도 한다."
+      "quiz": [
+        {
+          "q": "TLS 손잡기의 목적은?",
+          "choices": [
+            "압축",
+            "데이터 전에 비밀 채널(세션 키)을 여는 것",
+            "포트 할당",
+            "라우팅"
+          ],
+          "answer": 1,
+          "why": "협상+인증+키교환."
+        },
+        {
+          "q": "SNI 가 하는 일은?",
+          "choices": [
+            "암호화",
+            "손잡기에 「어느 도메인」인지 알려 맞는 인증서를 받게",
+            "재전송",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "한 IP 에 여러 사이트."
+        },
+        {
+          "q": "TLS 가 비대칭·대칭을 쓰는 방식은?",
+          "choices": [
+            "대칭만",
+            "비대칭으로 키 교환 → 대칭키로 실제 대화(빠름)",
+            "비대칭만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "느린 걸로 빠른 걸의 키를."
+        }
+      ]
     },
     {
-      "q": "TLS 운영에서 가장 자주 나는 사고는?",
-      "choices": [
-        "갱신 실패로 인한 만료",
-        "암호 알고리즘 선택",
-        "SNI 미지원"
+      "id": "3",
+      "title": "인증서가 증명하는 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "인증서는 「이 **공개키**의 주인이 이 **도메인 이름**이다」를 신뢰받는 기관(**CA**)이 서명한 문서다. 그게 전부다 — **회사가 착하다**는 증명도, **사이트가 안전**하다는 증명도 아니다. 오직 「이 키를 가진 자가 이 도메인을 통제한다」만 보증한다. 그래서 피싱 사이트도 자기 도메인의 유효한 인증서를 가질 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "인증서가 증명하는 것 / 아닌 것",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{claim}}';\n  const cases = {\n    domain:  ['이 키의 주인 = 이 도메인', true, 'CA 가 도메인 통제를 확인하고 서명 — 인증서의 본질'],\n    encrypt: ['이 키로 암호화 채널을 열 수 있다', true, '공개키로 안전하게 세션 키 교환(2장)'],\n    safe:    ['이 사이트는 안전하다', false, 'X — 유효 인증서를 가진 악성 사이트도 많다'],\n    trust:   ['이 회사는 믿을 만하다', false, 'X — 도메인 통제만 증명, 회사 신뢰는 별개'],\n    nophish: ['이 사이트는 피싱이 아니다', false, 'X — 피싱 도메인도 자기 인증서를 발급받는다'],\n  }[c];\n  render('주장: 「' + cases[0] + '」',\n    '  인증서가 증명하나? = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">예 — 인증서의 역할</span>'\n      : '<span class=\\\"no\\\">아니오 — 흔한 오해</span>') + '\\n\\n  ' + cases[2],\n    '인증서 = 「이 키 주인이 이 도메인」의 CA 서명. 안전·신뢰의 증명이 아니다.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "claim",
+              "label": "주장",
+              "type": "select",
+              "value": "safe",
+              "options": [
+                {
+                  "value": "domain",
+                  "label": "키 주인=도메인"
+                },
+                {
+                  "value": "encrypt",
+                  "label": "암호화 가능"
+                },
+                {
+                  "value": "safe",
+                  "label": "사이트 안전"
+                },
+                {
+                  "value": "trust",
+                  "label": "회사 신뢰"
+                },
+                {
+                  "value": "nophish",
+                  "label": "피싱 아님"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「자물쇠 = 안전」이 위험한 오해다.** 자물쇠는 「진짜 이 도메인과, 엿보기 없이」만 보증한다 — 그 도메인이 **피싱 사이트**여도 자물쇠는 초록이다. `paypa1.com`(1 이 섞인) 은 자기 도메인의 유효 인증서를 갖고 자물쇠를 띄운다. 그래서 자물쇠를 보고 안심할 게 아니라 **도메인 이름 자체**를 확인해야 한다 — 인증서는 이름이 진짜임을 보증하지, 그 이름이 내가 원한 곳인지는 사람이 봐야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**검증 수준(DV·OV·EV)이 있지만 대부분 DV 다.** **DV**(도메인 검증)는 「이 도메인을 통제하나」만 확인 — Let's Encrypt 등 자동·무료. **OV·EV** 는 회사 실체까지 확인하지만, 브라우저가 더는 특별 표시를 안 해 실효가 줄었다. 오늘날 대부분의 HTTPS 는 DV 라, 인증서는 「도메인 통제」만 보증한다고 보면 된다 — 회사 신뢰는 인증서 밖의 문제다."
+        },
+        {
+          "type": "try",
+          "text": "피싱 위험이 있는 상황에서 자물쇠가 아니라 **도메인 이름**을 정확히 읽는 습관을 들여라. 자물쇠는 「이 이름과 안전하게」일 뿐, 「이 이름이 옳은지」는 네가 확인해야 한다."
+        }
       ],
-      "answer": 0,
-      "why": "자동 갱신과 알림이 실질적인 해법이다."
+      "quiz": [
+        {
+          "q": "인증서가 증명하는 것은?",
+          "choices": [
+            "회사가 착함",
+            "이 공개키의 주인 = 이 도메인(CA 서명)",
+            "사이트 안전",
+            "피싱 아님"
+          ],
+          "answer": 1,
+          "why": "도메인 통제만."
+        },
+        {
+          "q": "「자물쇠 = 안전」이 오해인 이유는?",
+          "choices": [
+            "느려서",
+            "피싱 도메인도 유효 인증서·자물쇠를 가짐",
+            "암호화 없어서",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "도메인 이름을 봐야."
+        },
+        {
+          "q": "오늘날 대부분의 인증서 검증 수준은?",
+          "choices": [
+            "EV(회사 실체)",
+            "DV(도메인 통제만)",
+            "없음",
+            "OV만"
+          ],
+          "answer": 1,
+          "why": "자동·무료·도메인만."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "신뢰 사슬 — 루트에서 서버까지",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "왜 그 CA 서명을 믿나? **신뢰 사슬** 때문이다. 브라우저·OS 에 **루트 CA** 목록이 미리 심겨 있고, 루트가 **중간 CA** 를 서명하고, 중간이 **서버 인증서**를 서명한다. 브라우저는 서버 인증서 → 중간 → 루트로 서명을 거슬러 올라가, **심겨 있는 루트**에 닿으면 신뢰한다. 신뢰의 뿌리는 「미리 심긴 루트 목록」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "신뢰 사슬 — 어디서 끊기면?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const st = '{{state}}';\n  const cases = {\n    ok:     ['정상 — 루트까지 이어짐', true, '서버 → 중간 → 루트(브라우저에 심김) 검증 성공'],\n    nomid:  ['중간 인증서 누락', false, '서버가 중간을 안 보내 사슬이 끊김 → 흔한 서버 설정 실수'],\n    unknown:['루트가 안 심김', false, '자체 서명·사설 CA → 브라우저 신뢰 목록에 없음'],\n  }[st];\n  render('신뢰 사슬: ' + cases[0],\n    '  결과 = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">신뢰 — 심긴 루트까지 서명이 이어짐</span>'\n      : '<span class=\\\"no\\\">불신 — 사슬이 끊김(오류)</span>') + '\\n\\n  ' + cases[2],\n    '서버→중간→루트(브라우저에 심김). 심긴 루트에 닿아야 신뢰. 중간 누락이 흔한 실수.',\n    chain(st === 'nomid'\n      ? [['서버 인증서 (leaf)', 'leaf'], ['중간 CA (누락!)', 'bad'], ['루트 CA', 'root']]\n      : st === 'unknown'\n      ? [['서버 인증서 (leaf)', 'leaf'], ['사설/자체 서명', 'bad'], ['(심긴 루트 없음)', 'bad']]\n      : [['서버 인증서 (leaf)', 'leaf'], ['중간 CA', 'mid'], ['루트 CA (브라우저에 심김)', 'root']]));\n</script>",
+          "controls": [
+            {
+              "id": "state",
+              "label": "사슬 상태",
+              "type": "select",
+              "value": "nomid",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "정상"
+                },
+                {
+                  "value": "nomid",
+                  "label": "중간 누락"
+                },
+                {
+                  "value": "unknown",
+                  "label": "루트 미신뢰"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**중간 인증서 누락이 가장 흔한 서버 설정 실수다.** 서버는 자기 인증서 + **중간 인증서**를 함께 보내야 브라우저가 루트까지 사슬을 잇는다. 중간을 빠뜨리면 「어떤 브라우저는 되고 어떤 건 안 되는」 헷갈리는 증상이 난다(일부 브라우저가 중간을 캐시하고 있어서). SSL 검사 도구(6장)가 「사슬 불완전」을 잡아 준다 — 인증서만이 아니라 **사슬 전체**를 설치했는지 확인한다."
+        },
+        {
+          "type": "p",
+          "text": "**신뢰의 뿌리는 「미리 심긴 루트」라는 전제다.** 이 모델은 루트 CA 들을 신뢰한다는 큰 전제 위에 선다 — 루트 CA 가 뚫리거나 악의적이면(가짜 인증서 발급) 전체가 흔들린다. 그래서 CA 는 엄격히 감사받고, 잘못 발급하면 브라우저가 루트를 **불신 목록**에 넣어 퇴출한다(실제로 있었던 일). 완벽하진 않지만, 「소수의 검증된 뿌리 + 사슬」이 현실적으로 작동하는 신뢰 모델이다."
+        },
+        {
+          "type": "try",
+          "text": "인증서 정보에서 「인증 경로」를 열어 서버 → 중간 → 루트의 사슬을 보라. SSL 검사 도구(ssllabs 등)로 네 사이트의 사슬이 완전한지(중간 포함) 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "신뢰 사슬의 뿌리는?",
+          "choices": [
+            "서버 인증서",
+            "브라우저·OS 에 미리 심긴 루트 CA",
+            "중간 CA",
+            "DNS"
+          ],
+          "answer": 1,
+          "why": "심긴 루트에 닿아야 신뢰."
+        },
+        {
+          "q": "가장 흔한 인증서 설정 실수는?",
+          "choices": [
+            "만료",
+            "중간 인증서 누락(사슬 끊김)",
+            "포트",
+            "SNI"
+          ],
+          "answer": 1,
+          "why": "서버가 사슬 전체를 보내야."
+        },
+        {
+          "q": "루트 CA 가 악의적이면?",
+          "choices": [
+            "안전",
+            "가짜 인증서 발급 가능 — 그래서 엄격 감사·퇴출",
+            "무관",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "신뢰 모델의 전제."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "오류 메시지 해독",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "인증서 오류는 **메시지가 원인을 가리킨다.** `ERR_CERT_DATE_INVALID`(만료 — 갱신 자동화가 죽음) · `ERR_CERT_AUTHORITY_INVALID`(사슬·루트 문제) · `ERR_CERT_COMMON_NAME_INVALID`(이름 불일치 — 인증서의 도메인 ≠ 접속한 도메인). 오류를 읽으면 어디를 고칠지 바로 안다 — 무작정 「경고 무시」를 누르지 않는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 오류 — 무슨 뜻, 어디를 고치나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const e = '{{err}}';\n  const cases = {\n    date:  ['ERR_CERT_DATE_INVALID', '인증서 만료(또는 아직 유효 전)', '갱신 자동화가 죽었다 → 갱신·만료 알림 확인(8장)'],\n    name:  ['ERR_CERT_COMMON_NAME_INVALID', '인증서 도메인 ≠ 접속 도메인', 'www 빠짐·잘못된 인증서 → SAN 목록 확인'],\n    auth:  ['ERR_CERT_AUTHORITY_INVALID', '신뢰 사슬·루트 문제', '중간 누락(4장)·사설 CA·자체 서명'],\n    revoked:['ERR_CERT_REVOKED', 'CA 가 인증서를 폐기함', '키 유출 등으로 무효화됨 → 재발급'],\n    mixed: ['혼합 콘텐츠 경고', 'HTTPS 페이지가 HTTP 자원을 불러옴', '모든 자원을 https 로 — 자물쇠가 깨진다'],\n  }[e];\n  render('오류: ' + cases[0],\n    '  뜻: ' + cases[1] + '\\n  처방: ' + cases[2] + '\\n\\n' +\n    '  메시지가 원인을 가리킨다 — 읽고 고친다(무작정 무시 X).',\n    '만료·이름불일치·사슬·폐기·혼합콘텐츠 — 오류 이름이 어디를 고칠지 알려준다.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "err",
+              "label": "오류",
+              "type": "select",
+              "value": "date",
+              "options": [
+                {
+                  "value": "date",
+                  "label": "DATE_INVALID"
+                },
+                {
+                  "value": "name",
+                  "label": "NAME_INVALID"
+                },
+                {
+                  "value": "auth",
+                  "label": "AUTHORITY_INVALID"
+                },
+                {
+                  "value": "revoked",
+                  "label": "REVOKED"
+                },
+                {
+                  "value": "mixed",
+                  "label": "혼합 콘텐츠"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "오류 메시지 해독",
+          "text": "NET::ERR_CERT_DATE_INVALID       → 만료 (갱신 자동화가 죽었다)\nNET::ERR_CERT_COMMON_NAME_INVALID → 이름 불일치 (인증서 도메인 ≠ 접속 도메인)\nNET::ERR_CERT_AUTHORITY_INVALID  → 사슬·루트 문제 (중간 누락·사설 CA)\nNET::ERR_CERT_REVOKED            → CA 가 폐기 (키 유출 등)\n혼합 콘텐츠 경고                  → HTTPS 페이지가 HTTP 자원 로드"
+        },
+        {
+          "type": "note",
+          "text": "**만료가 가장 흔하고, 가장 예방 가능하다.** 인증서엔 유효기간이 있고(Let's Encrypt 는 90일), 자동 갱신이 어느 날 조용히 실패하면 만료일에 사이트 전체가 경고로 막힌다 — 밤에·주말에 터진다. 그래서 「갱신 자동화 + 만료 며칠 전 알림」이 운영의 핵심이다(8장). 만료 오류를 보면 「갱신이 왜 멈췄나」를 찾는다."
+        },
+        {
+          "type": "p",
+          "text": "**이름 불일치는 SAN 을 봐야 한다.** 인증서엔 이 인증서가 유효한 도메인 목록(**SAN**, Subject Alternative Names)이 들어 있다 — `ex.com`·`www.ex.com`·`*.ex.com`. 접속한 이름이 이 목록에 없으면 이름 불일치다. `ex.com` 인증서로 `www.ex.com` 에 가면 나는 흔한 실수 — SAN 에 두 이름을 다 넣거나 와일드카드(`*.ex.com`)를 쓴다."
+        },
+        {
+          "type": "try",
+          "text": "badssl.com 의 만료·이름불일치 예제에 접속해 브라우저 메시지를 비교하라. 각 오류가 어느 원인(만료·SAN·사슬)을 가리키는지 이름과 맞춰 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ERR_CERT_DATE_INVALID 의 원인은?",
+          "choices": [
+            "이름 불일치",
+            "인증서 만료(갱신 자동화 실패)",
+            "사슬 끊김",
+            "폐기"
+          ],
+          "answer": 1,
+          "why": "가장 흔하고 예방 가능."
+        },
+        {
+          "q": "이름 불일치(NAME_INVALID)를 볼 때 확인할 것은?",
+          "choices": [
+            "만료일",
+            "SAN(인증서가 유효한 도메인 목록)",
+            "포트",
+            "TTL"
+          ],
+          "answer": 1,
+          "why": "접속 이름이 목록에 있나."
+        },
+        {
+          "q": "인증서 오류를 만나면?",
+          "choices": [
+            "무작정 경고 무시",
+            "메시지가 가리키는 원인을 읽고 고침",
+            "재부팅",
+            "포트 변경"
+          ],
+          "answer": 1,
+          "why": "이름이 원인을 가리킨다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "직접 본다 — openssl",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "인증서 문제는 **직접 봐서** 확인한다. `openssl s_client` 로 서버가 주는 인증서·사슬·유효기간을 그대로 뽑고, 브라우저 인증서 뷰어로 발급 대상·발급자·SAN·만료일을 본다. 「이 사이트 인증서가 지금 어떤 상태인가」를 눈으로 보면, 만료·이름·사슬 중 무엇이 문제인지 추측 없이 짚는다(황금의 정신)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "openssl 로 무엇을 보나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{query}}';\n  const cases = {\n    connect: ['s_client -connect ...', '손잡기 전 과정 + 서버가 준 인증서·사슬', 'Verify return code 로 검증 성공/실패 확인'],\n    dates:   ['x509 -dates', '유효 시작·만료일만', 'notAfter 로 언제 만료되는지'],\n    san:     ['x509 -text | grep DNS', 'SAN(유효 도메인 목록)', '접속 이름이 이 목록에 있나(5장)'],\n    issuer:  ['x509 -issuer', '발급자(CA)', '어느 CA 가 발급했나 · 사슬의 다음'],\n  }[q];\n  render('openssl: ' + cases[0],\n    '  본다: ' + cases[1] + '\\n  용도: ' + cases[2] + '\\n\\n' +\n    '  서버가 지금 실제로 주는 인증서를 눈으로 — 브라우저 뷰어로도 같은 정보를 본다.',\n    'openssl s_client 로 인증서·사슬·만료·SAN 을 직접 뽑아 눈으로 확인.',\n    box(cases[0], cases[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "query",
+              "label": "조회",
+              "type": "select",
+              "value": "connect",
+              "options": [
+                {
+                  "value": "connect",
+                  "label": "s_client 연결"
+                },
+                {
+                  "value": "dates",
+                  "label": "만료일"
+                },
+                {
+                  "value": "san",
+                  "label": "SAN 목록"
+                },
+                {
+                  "value": "issuer",
+                  "label": "발급자"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "직접 본다",
+          "text": "# 서버가 주는 인증서·사슬·손잡기 전 과정\nopenssl s_client -connect example.com:443 -servername example.com\n\n# 만료일만\necho | openssl s_client -connect example.com:443 2>/dev/null \\\n  | openssl x509 -noout -dates\n\n# SAN(유효 도메인 목록)\n... | openssl x509 -noout -text | grep -A1 'Subject Alternative Name'\n\n# 브라우저: 자물쇠 클릭 → 인증서 → 발급대상·발급자·SAN·유효기간"
+        },
+        {
+          "type": "note",
+          "text": "**`-servername`(SNI)을 꼭 넣어라.** 한 IP 에 여러 사이트가 있으면(2장 SNI), SNI 없이 조회하면 서버가 기본(엉뚱한) 인증서를 줘 「이름 불일치」처럼 보인다. `-servername example.com` 을 붙여야 그 도메인의 진짜 인증서를 받는다. 브라우저는 자동으로 SNI 를 보내니 브라우저에선 되는데 openssl 로는 이상하면, SNI 를 빠뜨린 것일 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "**`Verify return code` 가 검증 결과를 요약한다.** `openssl s_client` 출력의 `Verify return code: 0 (ok)` 면 사슬·이름·만료가 다 정상이고, 0 이 아니면 그 코드가 무엇이 틀렸는지 말한다(만료·자체서명·사슬 등). 이 한 줄로 「지금 이 인증서가 유효하게 검증되나」를 즉시 판단한다 — 오류 메시지(5장)와 대응시키면 원인이 좁혀진다."
+        },
+        {
+          "type": "try",
+          "text": "네 사이트에 `openssl s_client -connect 사이트:443 -servername 사이트` 를 실행해 만료일·발급자·SAN·Verify return code 를 뽑아라. 브라우저 인증서 뷰어의 같은 항목과 대조하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "인증서를 직접 확인하는 도구는?",
+          "choices": [
+            "ping",
+            "openssl s_client / 브라우저 인증서 뷰어",
+            "netstat",
+            "dig"
+          ],
+          "answer": 1,
+          "why": "서버가 주는 인증서를 본다."
+        },
+        {
+          "q": "openssl 에 -servername(SNI)을 넣는 이유는?",
+          "choices": [
+            "속도",
+            "한 IP 의 여러 사이트 중 맞는 인증서를 받으려",
+            "암호화",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "안 넣으면 엉뚱한 인증서."
+        },
+        {
+          "q": "Verify return code: 0 의 뜻은?",
+          "choices": [
+            "오류",
+            "사슬·이름·만료가 다 정상(검증 성공)",
+            "만료됨",
+            "폐기됨"
+          ],
+          "answer": 1,
+          "why": "0 아니면 원인 코드."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "지키는 것과 못 지키는 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "TLS 는 **전송 중**을 지킨다 — 네트워크에서 오가는 동안 못 읽고·못 바꾸고·상대가 진짜다. 하지만 **끝점**은 못 지킨다: 서버는 받은 데이터를 **평문으로** 보고(복호화해서 처리), 클라이언트 기기가 감염되면 화면·키입력이 새고, 서버 로그에 민감정보가 남을 수 있다. 「전송 암호화 ≠ 전 구간 안전」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "TLS 가 지키는 구간",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const point = '{{point}}';\n  const cases = {\n    wire:   ['네트워크 전송 중', true, 'TLS 가 지킴 — 못 읽고·못 바꾸고·상대 진짜(중간자 차단)'],\n    server: ['서버 안(처리 시)', false, '서버는 복호화해 평문으로 봄 — 서버 보안·저장 암호화는 별개'],\n    client: ['감염된 클라이언트', false, '기기가 뚫리면 화면·키입력이 샘 — TLS 밖'],\n    logs:   ['서버 로그·DB', false, '민감정보가 평문 로그·DB 에 남을 수 있음 — 앱이 챙겨야'],\n  }[point];\n  render('지점: ' + cases[0],\n    '  TLS 가 지키나? = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">예 — 전송 중은 TLS 의 영역</span>'\n      : '<span class=\\\"no\\\">아니오 — 끝점/저장은 TLS 밖</span>') + '\\n\\n  ' + cases[2],\n    'TLS 는 전송 중만 지킨다. 서버 처리·저장·감염된 기기는 TLS 밖 — 따로 지켜야.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "point",
+              "label": "지점",
+              "type": "select",
+              "value": "server",
+              "options": [
+                {
+                  "value": "wire",
+                  "label": "전송 중"
+                },
+                {
+                  "value": "server",
+                  "label": "서버 처리"
+                },
+                {
+                  "value": "client",
+                  "label": "감염 기기"
+                },
+                {
+                  "value": "logs",
+                  "label": "로그·DB"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**TLS 는 「전송 중 암호화(in transit)」이지 「저장 암호화(at rest)」가 아니다.** 데이터가 서버에 도착하면 복호화돼 평문으로 처리·저장된다. DB·로그·백업의 민감정보는 TLS 가 안 지킨다 — 저장 암호화·접근 제어(api-authz·sec)로 따로 지켜야 한다. 「HTTPS 니까 안전」은 전송 구간만의 이야기다. 전 구간 안전은 여러 방어의 합이다."
+        },
+        {
+          "type": "p",
+          "text": "**그래도 TLS 는 필수 기본이다.** 못 지키는 게 있다고 TLS 가 약한 게 아니다 — 전송 중 도청·변조·중간자를 막는 것만으로도 거대한 위협을 없앤다(카페 와이파이 도청, ISP 변조 등). TLS 는 **기본선**이고(모든 사이트가 HTTPS 여야 함), 그 위에 서버 보안·저장 암호화·접근 제어를 쌓는다. 「TLS + 여러 층」이지 「TLS 만으로 끝」이 아니다(net-layers 의 방어 겹치기)."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스에서 민감정보가 어디에 평문으로 있는지 보라 — 서버 로그, DB, 백업. TLS 는 전송만 지키니, 이것들은 저장 암호화·접근 제어로 따로 지켜야 함을 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "TLS 가 지키는 구간은?",
+          "choices": [
+            "서버 안",
+            "네트워크 전송 중(도청·변조·중간자 차단)",
+            "저장",
+            "감염 기기"
+          ],
+          "answer": 1,
+          "why": "in transit."
+        },
+        {
+          "q": "TLS 가 못 지키는 것은?",
+          "choices": [
+            "전송 중 도청",
+            "서버 처리·저장·감염된 기기",
+            "중간자",
+            "변조"
+          ],
+          "answer": 1,
+          "why": "끝점·저장은 TLS 밖."
+        },
+        {
+          "q": "「HTTPS 니까 안전」의 한계는?",
+          "choices": [
+            "없음",
+            "전송 구간만 — 저장·서버·기기는 따로 지켜야",
+            "느림",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "여러 방어의 합."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "운영 — 자동 갱신과 HSTS",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "TLS 운영의 본체는 **자동 갱신과 만료 알림**이다. Let's Encrypt 는 90일짜리라, 사람이 손으로 갱신하면 반드시 언젠가 잊어 만료 사고가 난다. 갱신을 **자동화**하고, 갱신이 실패해도 만료 **며칠 전에 알림**이 오게 한다. 그리고 **HSTS** 로 「이 사이트는 항상 HTTPS」를 브라우저에 각인시켜 다운그레이드를 막는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "갱신 자동화 — 있고 없고",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const auto = '{{auto}}' === 'yes';\n  const days = {{days}};                 // 만료까지 남은 일\n  render((auto ? '자동 갱신 + 만료 알림' : '수동 갱신(잊기 쉬움)') + ' · 만료 ' + days + '일 전',\n    (auto\n      ? '  갱신 스크립트가 만료 30일 전 자동 실행 · 실패 시 알림\\n' +\n        '  <span class=\\\"ok\\\">사람이 안 잊어도 갱신됨 — 만료 사고가 구조적으로 예방된다.</span>'\n      : '  사람이 기억해야 함 → ' + (days <= 3\n          ? '<span class=\\\"no\\\">' + days + '일 남음 — 곧 만료. 주말·밤에 터지면 사이트 전체 경고.</span>'\n          : '아직 여유 있어 방심 → 결국 언젠가 잊는다.')),\n    '90일짜리는 수동 갱신하면 반드시 언젠가 잊는다 — 자동 갱신 + 만료 알림이 본체.',\n    bars([['만료까지', Math.min(100, days), days + '일', days <= 7 ? '#fca5a5' : days <= 30 ? '#fbbf24' : '#4ade80'],\n          ['자동화', auto?90:8, auto?'있음':'없음(위험)', auto?'#4ade80':'#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "auto",
+              "label": "갱신",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "yes",
+                  "label": "자동"
+                },
+                {
+                  "value": "no",
+                  "label": "수동"
+                }
+              ]
+            },
+            {
+              "id": "days",
+              "label": "만료까지(일)",
+              "type": "range",
+              "min": 0,
+              "max": 90,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**자동 갱신과 만료 알림이 본체다.** 갱신 자동화(certbot·ACME·관리형 인증서)가 1차 방어, **만료 며칠 전 알림**(모니터링)이 2차 방어다 — 자동화가 조용히 실패해도 알림이 잡는다(quality: 검증 게이트·무음 실패 회피). 「자동화했으니 안심」이 아니라 「자동화 + 그게 도는지 감시」가 정석이다. 대부분의 인증서 사고는 자동화 없음 또는 자동화 실패를 못 알아챔이다."
+        },
+        {
+          "type": "p",
+          "text": "**HSTS 가 다운그레이드·초기 노출을 막는다.** `Strict-Transport-Security` 헤더는 브라우저에 「이 사이트는 앞으로 무조건 HTTPS 로만」을 기억시킨다 — 사용자가 `http://` 로 쳐도 브라우저가 HTTPS 로 바꾸고, 중간자가 HTTP 로 다운그레이드시키는 공격을 막는다. HTTPS 를 켰으면 HSTS 도 켜는 게 표준이다(단, 한번 켜면 되돌리기 어려우니 신중히 — api-version 의 되돌리기 어려운 결정)."
+        },
+        {
+          "type": "try",
+          "text": "네 사이트 인증서의 만료일·발급자·SAN 을 명령으로 뽑고(6장), 갱신은 무엇이 담당하고 실패하면 누가 알게 되는지 확인하라. 자동화·알림이 없으면 그것부터 세워라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "TLS 운영의 본체는?",
+          "choices": [
+            "빠른 암호",
+            "자동 갱신 + 만료 알림",
+            "포트 관리",
+            "SNI"
+          ],
+          "answer": 1,
+          "why": "90일짜리는 잊는다."
+        },
+        {
+          "q": "자동화만으로 부족한 이유는?",
+          "choices": [
+            "느려서",
+            "자동화가 조용히 실패할 수 있어 만료 알림(감시)도 필요",
+            "복잡",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "무음 실패 회피."
+        },
+        {
+          "q": "HSTS 가 하는 일은?",
+          "choices": [
+            "암호 강화",
+            "브라우저에 「항상 HTTPS」를 각인해 다운그레이드 차단",
+            "갱신",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "되돌리기 어려우니 신중히."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — TLS·HTTPS",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "HTTPS 를 다루거나 인증서 문제를 진단할 때 이 목록을 확인하라. 핵심은 「두 약속을 알고·인증서가 뭘 증명하는지·오류를 읽고·자동 갱신」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .chain { margin:8px 0; }\n  .chain .lnk { padding:6px 10px; margin:3px 0 3px 0; border-radius:6px; border:1px solid #334155; background:#111c33;\n                font:11px ui-monospace; color:#cbd5e1; }\n  .chain .lnk.root { border-color:#22c55e; } .chain .lnk.mid { border-color:#38bdf8; } .chain .lnk.leaf { border-color:#a78bfa; }\n  .chain .arw { color:#64748b; font-size:11px; margin-left:12px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const chain = (links) => '<div class=\"chain\">' + links.map(([name, cls], i) =>\n    '<div class=\"lnk ' + cls + '\">' + esc(name) + '</div>' + (i < links.length-1 ? '<div class=\"arw\">↓ 서명</div>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '자물쇠 = 암호화 + 신원확인(둘 다 필요)',\n    'TLS 손잡기(협상·인증·키교환)를 안다',\n    '인증서는 「키 주인=도메인」만 증명(안전 X)',\n    '신뢰 사슬(서버→중간→루트)·중간 누락을 안다',\n    '오류 메시지로 원인(만료·이름·사슬)을 읽는다',\n    'openssl/브라우저로 직접 확인한다',\n    'TLS 는 전송 중만 — 저장·서버는 따로',\n    '자동 갱신 + 만료 알림(+ HSTS)을 갖춘다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 자물쇠의 진짜 뜻을 안다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '두 약속·인증서가 증명하는 것·오류 읽기·자동 갱신. TLS 의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 자물쇠는 「비밀 + 신원」이다.** 암호화는 쉽고 신원 확인(인증서)이 진짜 어렵다(1·3장). 인증서는 「도메인 통제」만 증명하지 안전을 보증하지 않으니, 자물쇠가 아니라 **도메인 이름**을 봐야 한다. 오류는 메시지가 원인을 가리키고(5장), 운영은 자동 갱신 + 알림이 본체다(8장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** TLS 는 net-layers 의 앱 층(net-dns 로 이름 확인 → TLS 로 신원·보안 → HTTP 로 대화, http-versions 8장의 curl -v 순서)이고, 인증서는 도메인(net-dns)을 검증하며, 「전송만 지킴」은 sec 트랙(저장 암호화·접근 제어)과 이어진다. **「누구와, 엿보기 없이」를 보장하는 것이 오늘날 웹의 기본선**이다 — 모든 사이트가 HTTPS 여야 한다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 네 HTTPS 이해를 점검하라. 「인증서는 도메인만 증명」과 「자동 갱신 + 알림」 두 가지만 익혀도, 자물쇠 오해와 만료 사고를 함께 막는다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "TLS 의 한 줄 요약은?",
+          "choices": [
+            "암호화만",
+            "자물쇠 = 비밀 + 신원(도메인 이름을 봐야)",
+            "포트",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "신원 확인이 어렵다."
+        },
+        {
+          "q": "TLS 의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·압축",
+            "두 약속·인증서가 증명하는 것·오류 읽기·자동 갱신",
+            "캐시·복제·샤딩·압축",
+            "SNI만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "TLS 가 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "앱 층 보안(dns→tls→http) · sec 트랙과 이어짐 · 웹의 기본선",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "누구와·엿보기 없이."
+        }
+      ]
     }
   ]
 }
