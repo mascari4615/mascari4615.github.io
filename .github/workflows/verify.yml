@@ -178,5 +178,11 @@ jobs:
       - name: Size / usage drift (ratchet)
         run: cd apps/karmolab && npm run audit:drift
 
+      # ★ **대비 훑기는 시계 판에서** (2026-08-13, 실측 294초 — 한 판에서 가장 긴 단계).
+      #   이건 「글씨가 안 보이는 자리」를 전 화면에서 훑는 검사다. 색은 커밋마다 바뀌지 않고,
+      #   빨개져도 사이트는 나간다(배포 길목이 아니다). 그런데 값은 **매 push** 5분이었고,
+      #   그 5분이 판정 도착을 늦춰 오늘 오전 내내 아무 판정도 못 봤다.
+      #   시계(nightwatch)·PR·수동에서는 그대로 돈다 — 한 시간 안에 반드시 한 번 걸린다.
       - name: Contrast sweep (light/dark)
+        if: ${{ github.event_name != 'push' }}
         run: cd apps/karmolab && npm run test:contrast
