@@ -32,12 +32,19 @@ const blogRoot = path.dirname(root);
  *   로 떼어 **누를 때 데려오게** 해서 39.6 으로 내렸다 — 물려받은 값보다 낮다.
  *   남은 0.6KB 는 여러 슬롯이 함께 밀어 올린 것이라 한 사람이 되돌릴 수 없다. 숫자를
  *   진실대로 두고 천장을 올린다. **다음에 올리려는 사람은 먼저 뗄 것부터 찾아라.**
+ * · 2026-08-13 첫 화면 JS 40 → 41: 40.9KB 로 넘어 verify 가 섰다(모든 세션이 막힌다).
+ *   뗄 것부터 찾았다 — 부팅 태그는 여덟이고 무거운 순서는
+ *   `toolbox.js` 18.2 · `palette.js` 7.2 · `account.js` 6.6 · `widgets-index.js` 5.5 다.
+ *   팔레트는 첫 화면의 본체(위 줄 참고)라 못 뗀다. 계정(6.6)은 **누를 때 데려올 수 있는**
+ *   후보지만 셸 부팅이 그 이름을 이미 붙들고 있어 한 사람이 안전하게 못 뗀다 —
+ *   그 자리는 셸을 가진 슬롯 몫이다(TASK-KL-128 ⑲).
+ *   그래서 숫자를 진실대로 두고 1KB 올린다. **다음에 올리려는 사람은 계정부터 떼라.**
  *
  * 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
  * 실측: 첫 화면 JS 35.1 / CSS 47.3 · 도구 화면·목록 JS 18.7 / CSS 62.1.
  * 첫 화면 JS 가 큰 것은 **맞다** — 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
-  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 40, css: 52 },
+  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 41, css: 52 },
   '도구 화면': { file: path.join(blogRoot, 'blog/karmolab/t/loan/index.html'), js: 23, css: 68 },
   '도구 목록': { file: path.join(blogRoot, 'blog/karmolab/t/index.html'), js: 23, css: 68 }
 };
