@@ -377,3 +377,43 @@ describe('씨앗을 나중에 늘렸을 때', () => {
     expect(after).toEqual(['나중 표', '첫 표']);
   });
 });
+
+describe('사이트 붙박이 판의 사본 표시 (siteBoard)', () => {
+  const table = (title: string) => ({
+    title,
+    emoji: '🧪',
+    fields: [{ key: 'n1', label: '키', kind: 'number', unit: 'cm' }],
+    items: [1, 2, 3, 4].map((n) => ({ n: `${title}${n}`, i: `https://example.com/${n}.png`, v: { n1: n } })),
+  });
+
+  it('붙박이 판에서 옮겨 심은 씨앗은 어느 판인지 밝힌다 — 사이트가 이걸로 중복을 뺀다', () => {
+    const dir = path.join(tmpRoot, 'mark');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('포켓몬')), 'utf-8');
+    fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('도구 월드컵')), 'utf-8');
+
+    const rows = new KarmolabPackStore(statePath, dir).list();
+    const byTitle = Object.fromEntries(rows.map((p) => [p.title, p.siteBoard]));
+    expect(byTitle['포켓몬']).toBe('pokemon');
+    // 우리가 구운 표는 사이트에 붙박이로 없다 — 표시가 붙으면 목록에서 통째로 사라진다
+    expect(byTitle['도구 월드컵']).toBeNull();
+  });
+
+  it('표시가 붙기 전에 심어 둔 원장에도 뒤늦게 표시가 채워진다', () => {
+    const dir = path.join(tmpRoot, 'backfill');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'higher-lol.json'), JSON.stringify(table('롤 챔피언')), 'utf-8');
+
+    // 옛 원장 흉내 — 씨앗은 심겨 있는데 `siteBoard` 칸이 없다
+    new KarmolabPackStore(statePath, dir);
+    const old = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+    for (const pack of old.packs) delete pack.siteBoard;
+    fs.writeFileSync(statePath, JSON.stringify(old), 'utf-8');
+
+    const rows = new KarmolabPackStore(statePath, dir).list();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].siteBoard).toBe('lol');
+    // 표시만 붙는 것이지 새로 심는 게 아니다
+    expect(JSON.parse(fs.readFileSync(statePath, 'utf-8')).packs).toHaveLength(1);
+  });
+});

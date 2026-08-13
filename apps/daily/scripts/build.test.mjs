@@ -96,6 +96,25 @@ test('표를 한 장 넣으면 코드 수정 없이 페이지가 생긴다', () 
 });
 
 /**
+ * 허브 카드가 판마다 다른 이름을 단다.
+ *
+ * 왜 잠그나: 카드 이름이 「실루엣 아니면 전부 속성 맞히기」로 박혀 있던 적이 있다. 그러면
+ * 전부대기·격자판까지 같은 이름·같은 설명으로 찍혀, 한 주제 아래 **똑같아 보이는 카드가 셋**
+ * 선다 — 화면은 멀쩡하고 링크도 맞아서, 쓰는 사람만 「중복」으로 읽고 아무도 안 고친다.
+ */
+test('한 주제 안에서 카드 이름이 겹치지 않는다', () => {
+  execFileSync(process.execPath, [join(app, 'scripts/build.mjs')], { cwd: app, stdio: 'pipe' });
+  const hub = readFileSync(join(app, 'dist/index.html'), 'utf8');
+  const groups = hub.split('<section class="group">').slice(1);
+  assert.ok(groups.length >= 2, '허브에 주제가 안 그려졌다');
+  for (const group of groups) {
+    const names = [...group.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1]);
+    assert.ok(names.length >= 2, '한 주제에 카드가 하나뿐이다 — 시험이 무의미해졌다');
+    assert.equal(new Set(names).size, names.length, `카드 이름이 겹친다: ${names.join(' / ')}`);
+  }
+});
+
+/**
  * 루트 서비스워커가 우리 주소를 담으면 방문자에게 **어제 문제가 계속 나온다.**
  * 지금은 제대로 빠져 있다 — 빠져 있는 지금 잠근다. 진짜 설정 파일은 안 건드리고 글로만 시험한다.
  */

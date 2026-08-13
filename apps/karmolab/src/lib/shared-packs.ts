@@ -35,6 +35,13 @@ export interface SharedPackSummary {
   createdAt: string;
   updatedAt: string;
   forkOf: string | null;
+  /**
+   * 사이트에 **붙박이로도 있는** 판을 그대로 옮겨 심은 표면 그 판 이름(`pokemon` 등), 아니면 null.
+   *
+   * 놀이 목록은 이걸 뺀다 — 안 빼면 붙박이 「포켓몬」 옆에 봇 사본 「포켓몬 · karmolab」이
+   * 나란히 서서 같은 표가 두 번 보인다.
+   */
+  siteBoard?: string | null;
 }
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T | null> {

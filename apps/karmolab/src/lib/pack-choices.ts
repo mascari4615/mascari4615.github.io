@@ -44,13 +44,17 @@ export function localChoices(needs: PackNeeds): PackChoice[] {
 /**
  * 남이 올린 표. 이미 이 브라우저에 이어받아 둔 것은 **빼고** 준다 — 안 그러면 같은 표가
  * 목록에 두 번 선다(하나는 내 것, 하나는 남의 것으로).
+ *
+ * 같은 이유로 **사이트 붙박이 판의 사본**(`siteBoard`)도 뺀다. 봇 원장은 놀이가 비어 보이지
+ * 않게 붙박이 표 셋을 옮겨 심는데, 그건 디스코드 쪽 사정이지 사이트 목록의 사정이 아니다 —
+ * 안 빼면 「포켓몬」이 붙박이로 한 번, `· karmolab` 사본으로 또 한 번 선다.
  */
 export async function sharedChoices(needs: PackNeeds, limit = 20): Promise<PackChoice[]> {
   const got = await listShared({ needs, sort: 'popular', limit });
   if (!got) return [];
   const already = new Set(loadPacks().map((p) => p.sharedId).filter(Boolean));
   return got.packs
-    .filter((r) => !already.has(r.id))
+    .filter((r) => !r.siteBoard && !already.has(r.id))
     .map((r) => ({ id: `shared:${r.id}`, title: r.title, emoji: r.emoji, remote: true, owner: r.ownerHandle }));
 }
 

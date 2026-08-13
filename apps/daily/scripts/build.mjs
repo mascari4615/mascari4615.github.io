@@ -120,6 +120,25 @@ function checkPwaCache() {
 }
 checkPwaCache();
 
+/**
+ * 허브 카드에 쓸 이름·한 줄 (판 종류별).
+ *
+ * 판 목록의 `short`/`lede` 는 **탭과 페이지 머리**용이라 짧거나 길다. 카드에서는 「무슨 놀이인가」가
+ * 한눈에 서야 하므로 카드용 문구를 따로 둔다 — 없는 종류는 `short`/`lede` 로 자연히 떨어진다.
+ */
+const CARD_NAME = {
+  classic: '속성 맞히기',
+  list: '전부대기',
+  grid: '격자판',
+  silhouette: '실루엣',
+};
+const CARD_LINE = {
+  classic: '초록·노랑·▲▼ 힌트로 좁힌다',
+  list: '조건에 드는 것을 90초 안에 전부',
+  grid: '가로·세로가 만나는 아홉 칸',
+  silhouette: '까만 그림, 틀릴수록 밝아진다',
+};
+
 /** 한 주제가 낼 수 있는 판들. 실루엣은 그림이 있어야 성립한다. */
 function pagesOf(topic) {
   const list = [
@@ -419,9 +438,12 @@ ${topics
     <div class="cards">
 ${pagesOf(t)
   .map(
+    /* 카드 이름은 **판마다 다르다**. 예전엔 「실루엣 아니면 전부 속성 맞히기」로 박아 둬서,
+       전부대기·격자판까지 같은 이름·같은 설명으로 찍혔다 — 한 주제에 똑같은 카드가 셋 서서
+       중복으로 보였다. 판 목록(`pagesOf`)이 이미 이름(`short`)과 한 줄(`lede`)을 갖고 있다. */
     (p) => `      <a class="card" href="${BASE}/${p.path}/" data-topic="${esc(t.id)}" data-mode="${p.mode}">
-        <h3>${esc(p.short === '실루엣' ? '실루엣' : '속성 맞히기')}</h3>
-        <p>${esc(p.mode === 'silhouette' ? '까만 그림, 틀릴수록 밝아진다' : '초록·노랑·▲▼ 힌트로 좁힌다')}</p>
+        <h3>${esc(CARD_NAME[p.mode] ?? p.short)}</h3>
+        <p>${esc(CARD_LINE[p.mode] ?? p.lede)}</p>
         <div class="cnt"></div>
       </a>`,
   )
