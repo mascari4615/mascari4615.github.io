@@ -32,7 +32,7 @@ import { shouldOfferFocus } from './big-board';
 import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { ripenessOf, worthNudging } from './ripeness';
 import { printSheetHtml, isWide } from './print-sheet';
-import { stepTime, nextTimeName, forgetTime, edgeAt, type TimePoint } from './times';
+import { stepTime, nextTimeName, forgetTime, edgeAt, resolveEdges, type TimePoint } from './times';
 import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
@@ -3340,7 +3340,10 @@ import {
     function posterSvgString(): string | null {
       const art = canvas?.exportSVGString({ background: canvasBackground() });
       if (!art) return null;
-      const leg = posterLegend(spec, (k) => kindLabel(k), (k) => edgeLabel(k));
+      /* 범례도 **지금 보고 있는 시점**을 따라야 한다 — 2부를 보며 뽑았는데 범례가 1부 것이면
+         그림과 설명이 어긋난다(어느 쪽을 믿을지 사람이 못 정한다). KL-271 X2. */
+      const shownSpec = { nodes: spec.nodes, edges: resolveEdges(spec.edges, timeNow()) };
+      const leg = posterLegend(shownSpec, (k) => kindLabel(k), (k) => edgeLabel(k));
       const items = legendWorthShowing(leg) ? [...leg.nodes, ...leg.edges] : [];
       const colors = kindColorsNow();
       const edgeColor = (id: string): string | undefined => spec._edge_kinds?.[id]?.color

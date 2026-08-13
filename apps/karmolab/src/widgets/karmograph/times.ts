@@ -100,3 +100,23 @@ export function setFace<T extends TimedEdge>(edge: T, timeId: string, face: Edge
   else at[timeId] = clean;
   return { ...edge, at: Object.keys(at).length > 0 ? at : undefined };
 }
+
+
+/**
+ * 지금 시점에서 **실제로 있는 선들**. 없는 선은 빼고, 이름·색은 그 시점의 것으로 바꾼 사본을 준다.
+ *
+ * 왜 필요한가: 판은 그릴 때 렌즈로 얼굴을 갈아 끼우지만, **판을 읽어 세는 곳**(범례·관계망·무리)은
+ * 원본을 그대로 봤다. 그러면 「2부를 보고 있는데 범례는 1부 것」이 된다 — 화면과 설명이 어긋나는
+ * 것은 둘 중 하나가 틀린 것보다 나쁘다(어느 쪽을 믿을지 사람이 못 정한다).
+ */
+export function resolveEdges<T extends TimedEdge>(edges: T[], timeId: string): T[] {
+  if (!timeId) return edges;
+  const out: T[] = [];
+  for (const e of edges) {
+    const face = edgeAt(e, timeId);
+    if (!face) continue;
+    out.push(face.label === (e.label ?? '') && face.kind === e.kind
+      ? e : { ...e, label: face.label, kind: face.kind });
+  }
+  return out;
+}

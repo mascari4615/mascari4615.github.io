@@ -2819,6 +2819,49 @@ await step('선 패널에서 「이 시점에서」를 고친다 (비우면 원�
   await ctx.close();
 });
 
+await step('판을 읽어 세는 곳도 시점을 따른다 (관계망)', async () => {
+  /* 판은 그릴 때 렌즈로 얼굴을 갈아 끼우는데, 읽어 세는 곳(범례·관계망·무리)은 원본을 봤다 —
+     「2부를 보는데 관계망은 1부 것」. 화면과 설명이 어긋나면 둘 중 하나가 틀린 것보다 나쁘다
+     (어느 쪽을 믿을지 사람이 못 정한다). KL-271 X2. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForTimeout(ms(500));
+  // 2부에서만 선 둘을 없앤다 → 판이 끊긴다.
+  await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    const s = JSON.parse(localStorage.getItem(key));
+    const t2 = s.times[1].id;
+    s.edges[0].at = { [t2]: { gone: true } };
+    s.edges[1].at = { [t2]: { gone: true } };
+    localStorage.setItem(key, JSON.stringify(s));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1200));
+  const said = async () => {
+    await m.evaluate(() => document.querySelector('[data-km="tab"][data-key="sna"]').click());
+    await m.waitForTimeout(ms(700));
+    return m.evaluate(() => document.querySelector('.km-side')?.textContent ?? '');
+  };
+  const now = await said();
+  if (!/끊겨/.test(now)) throw new Error('2부에서 선을 없앴는데 관계망이 옛 시점을 말한다');
+  await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
+  await m.waitForTimeout(ms(700));
+  const first = await said();
+  if (/끊겨/.test(first)) throw new Error('1부인데 2부 이야기를 한다');
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');
