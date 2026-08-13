@@ -30,7 +30,7 @@ import {
 } from './lib/locales.mjs';
 import { toLocalePage, addAlternatesToSource } from './lib/locale-page.mjs';
 import { toLocaleHub } from './lib/locale-hub.mjs';
-import { withoutRetired } from './lib/retired-operations.mjs';
+import { withoutRetired, RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -410,6 +410,47 @@ if (targets.length) {
       continue;
     }
     fs.writeFileSync(file, next, 'utf8');
+  }
+}
+
+/* ★ **접은 도구도 언어 판에 문을 남긴다** (2026-08-14).
+ *
+ * 한국어에는 넘김판(한 장짜리 안내)이 찍히는데 언어 판에는 아무것도 안 찍혀 있었다 —
+ * 실측: `/en/karmolab/t/charcount/` · `/ja/…` 가 **404**(한국어는 200 넘김판). 그 주소들은
+ * 예전에 온전한 도구 장이었으니 검색·북마크가 그리로 온다. 404 는 「없어졌다」만 말하고
+ * 어디로 가야 할지는 안 말한다.
+ *
+ * 도구 장 틀은 못 쓴다(그 자리는 도구가 아니라 안내다) — 그래서 여기서 한 장짜리로 따로 찍는다.
+ */
+if (!CHECK) {
+  for (const code of targets) {
+    for (const id of RETIRED_OPERATION_IDS) {
+      if (!fs.existsSync(path.join(srcDir, id, 'index.html'))) continue; /* 한국어 넘김판이 있는 것만 */
+      const 길 = localizedPath(`/karmolab/t/${id}/`, code);
+      const 작업대 = localizedPath('/karmolab/t/text/', code);
+      const dest = path.join(outRoot, 길.replace(/^\//, ''), 'index.html');
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(
+        dest,
+        `---
+layout: none
+permalink: ${길}
+---
+` +
+          `<!doctype html><html lang="${code}"><head><meta charset="utf-8">` +
+          `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+          `<title>${id} — moved into the text tool · KarmoLab</title>` +
+          `<link rel="canonical" href="${SITE}${작업대}">` +
+          `<meta name="robots" content="noindex,follow">` +
+          `<meta http-equiv="refresh" content="0; url=${작업대}#${id}">` +
+          `<style>body{font:16px/1.7 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}` +
+          `a{color:#2563eb}</style></head><body><main>` +
+          `<h1>${id}</h1><p>This tool now lives inside the <strong>text tool</strong>.</p>` +
+          `<p><a href="${작업대}#${id}">Open it</a></p></main></body></html>`,
+        'utf8'
+      );
+      made.push(dest);
+    }
   }
 }
 
