@@ -107,9 +107,11 @@ export const nunchi: GameDef<NunchiState, NunchiAction> = {
   bot(s, seat, ctx): BotMove<NunchiAction> | null {
     if (s.over || !s.alive[seat]) return null;
     if (s.pending.some((p) => p.seat === seat)) return null;
-    /* 봇마다 성격이 다르다 — 다 같은 때에 외치면 늘 겹쳐 판이 안 굴러간다.
-       자리 번호로 기다리는 버릇을 갈라 두고, 거기에 흔들림을 얹는다. */
-    const habit = 260 + seat * 190;
-    return { action: { kind: 'call' }, delayMs: habit + ctx.rng() * 900 };
+    /* 다 같은 때에 외치면 늘 겹쳐 판이 안 굴러간다. 그래서 기다리는 때를 흩는다.
+     *
+     * **자리 번호로 가르지 않는다** — 전에는 `260 + seat * 190` 이라 0번이 늘 먼저 외쳤다.
+     * 먼저 외치는 쪽이 유리한 놀이에서 그건 실력이 아니라 자리에 붙은 운이다(제기에서
+     * 같은 병을 실측으로 잡았다). 흩는 폭은 그대로 두고 자리만 뗀다. */
+    return { action: { kind: 'call' }, delayMs: 260 + ctx.rng() * 1470 };
   }
 };

@@ -96,10 +96,14 @@ export const jegi: GameDef<JegiState, JegiAction> = {
 
   bot(s, seat, ctx): BotMove<JegiAction> | null {
     if (s.over || !s.alive[seat]) return null;
-    /* 제기가 내려오는 그 시각을 겨눈다. 자리마다 발버릇이 달라 어떤 봇은 살짝 이르고
-       어떤 봇은 살짝 늦는다 — 개수가 오르면 틈이 좁아지니 같은 버릇이라도 언젠가 놓친다. */
-    const bias = ((seat % 3) - 1) * 20;
+    /* 제기가 내려오는 그 시각을 겨눈다. 흔들림이 있어 언젠가는 놓친다.
+     *
+     * **발버릇을 자리 번호로 가르지 않는다.** 전에는 `((seat % 3) - 1) * 20` 이라 0번은 늘
+     * 20ms 이르고 2번은 늘 늦었는데, 제기는 자리끼리 서로를 안 막는 **대칭** 놀이다 —
+     * 대칭인데 결과가 비대칭이면 그건 실력이 아니라 고장이다. 실제로 0번이 97% 이겼고
+     * 평균 개수도 95.0 / 91.7 / 88.6 으로 자리 순서 그대로였다(저울 실측). 지우니 0.37 /
+     * 0.33 / 0.30, 평균 91.7 / 91.7 / 91.6. 봇마다 다른 손버릇은 좌석 층이 따로 씌운다. */
     const shake = (ctx.rng() - 0.5) * window_(s.count[seat]) * 1.4;
-    return { action: { kind: 'kick' }, delayMs: Math.max(0, s.landAt[seat] - ctx.now + bias + shake) };
+    return { action: { kind: 'kick' }, delayMs: Math.max(0, s.landAt[seat] - ctx.now + shake) };
   }
 };
