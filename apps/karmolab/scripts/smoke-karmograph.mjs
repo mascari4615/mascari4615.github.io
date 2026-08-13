@@ -23,7 +23,7 @@ const frozen = process.env.URL ? null : await serveRepo();
 const URL = `${process.env.URL || `${frozen.base}/apps/karmolab/index.html`}#karmograph`;
 const errors = [];
 const browser = await chromium.launch();
-const context0 = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+const context0 = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
  const page = await context0.newPage();
 // 서비스 워커 404 는 이 검사의 대상이 아니다(개발 서버에는 sw 가 없다).
 page.on('console', (m) => {
@@ -497,7 +497,7 @@ await step('옆 패널 — 접힌 「다른 목록」으로 아홉 패널을 오
 await step('점을 빈 곳으로 끌면 새 카드가 생기며 이어진다', async () => {
   // 관계도에서 가장 흔한 동작은 「이 사람에게서 뻗어 나가는 또 한 사람」인데, 전에는
   // 빈 곳 두 번 클릭 → 이름 → 다시 점 끌기 **세 걸음**이었다 (TASK-KL-271 R1).
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -533,7 +533,7 @@ await step('점을 빈 곳으로 끌면 새 카드가 생기며 이어진다', a
 await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온다)', async () => {
   // 카드가 0장인데 「전체 보기 · 발표 · 찾기」가 다 켜져 있었다 — 할 수 있는 게 하나뿐인 순간에
   // 선택지를 열 개 보여 주면 그 하나가 어느 것인지 안 보인다 (TASK-KL-271 F2 / S2).
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -545,10 +545,24 @@ await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온�
   await m.waitForSelector('.km-toolbar.km-blank', { timeout: ms(4000) });
   const blank = await shown();
   if (blank > 7) {
-    const who = await m.evaluate(() => [...document.querySelectorAll('.km-toolbar > *')]
-      .filter((e) => e.offsetParent !== null)
-      .map((e) => `${e.tagName}:${e.dataset?.km ?? e.className}`));
-    throw new Error(`빈 판인데 툴바에 ${blank}개가 켜져 있다 — ${who.join(', ')}`);
+    /* 「규칙이 안 먹었다」와 「규칙이 아예 없다」는 다른 병이다 — 그 자리에서 갈라 적는다.
+       (2026-08-13: 판마다 번갈아 이 항목이 빨개져 원인을 못 좁혔다.) */
+    const dbg = await m.evaluate(() => {
+      const find = document.querySelector('[data-km="find"]');
+      return {
+        who: [...document.querySelectorAll('.km-toolbar > *')]
+          .filter((e) => e.offsetParent !== null)
+          .map((e) => `${e.tagName}:${e.dataset?.km ?? e.className}`),
+        ruleInPage: [...document.querySelectorAll('style')]
+          .some((st) => (st.textContent ?? '').includes('km-toolbar.km-blank')),
+        styleTags: document.querySelectorAll('style').length,
+        findDisplay: find ? getComputedStyle(find).display : null,
+        roots: document.querySelectorAll('.km-root').length,
+        bars: document.querySelectorAll('.km-toolbar').length,
+      };
+    });
+    throw new Error(`빈 판인데 툴바에 ${blank}개 — 규칙실림=${dbg.ruleInPage} 스타일태그=${dbg.styleTags}`
+      + ` 찾기표시=${dbg.findDisplay} 판=${dbg.roots} 툴바=${dbg.bars} · ${dbg.who.join(', ')}`);
   }
   const box = await m.locator('.km-canvas').boundingBox();
   await m.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.3);
@@ -1640,7 +1654,7 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
 await step('「전체 보기」를 누르면 카드가 한 장도 화면 밖에 안 남는다', async () => {
   // 예전엔 왼쪽 위에 붙였다 — 판이 옆으로 넓으면 배율이 가로에 걸려 세로가 남고, 그 남은
   // 자리가 전부 아래에 뭉쳤다(실측 2026-08-12, 40장짜리 판: 그림이 화면 위쪽 40% 에만 몰렸다).
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -1691,7 +1705,7 @@ await step('「전체 보기」를 누르면 카드가 한 장도 화면 밖에 
 await step('여럿 골라 나란히 놓기 — 왼쪽 맞춤이 실제로 한 줄로 세운다', async () => {
   /* 셈(`tidy.ts`)은 알맹이 시험이 본다. 여기서 볼 것은 **그 셈이 화면에 이어져 있나**다 —
      단추는 있는데 아무 일도 안 일어나는 부류가 제일 오래 안 들킨다. */
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -1743,7 +1757,7 @@ await step('큰 판에서도 끄는 손이 무겁지 않다 (300장)', async () 
      42ms/걸음이 나왔는데, 그 대부분이 브라우저 왕복이었다 — 같은 판을 안에서 재면 0.84ms 다
      (실측 2026-08-12). 재는 자리가 틀리면 없는 병목을 쫓는다.
      여기서 지키려는 것: 카드가 늘 때 끌기 비용이 **터지지 않는다**(O(n²) 방지). */
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -1793,7 +1807,7 @@ await step('보이는 단추는 전부 **실제로 눌리는 자리**에 있다'
   /* 발표 줄 사고(캔버스가 단추를 덮고 있는데 검사는 초록)를 한 번 더 당하지 않으려고,
      상태마다 보이는 단추를 훑어 **그 한가운데를 찍으면 그 단추가 잡히는지** 본다.
      항목마다 눌러 보는 검사와 다르다 — 이건 「덮였나」만 싼값에 전수로 본다. */
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-root', { timeout: ms(8000) });
@@ -1855,7 +1869,7 @@ await step('보이는 단추는 전부 **실제로 눌리는 자리**에 있다'
 
 await step('카드를 두 번 누르면 이름을 그 자리에서 고친다 (Enter 저장 · Esc 되돌리기)', async () => {
   // 옆 패널까지 가야 이름을 고칠 수 있으면 보는 자리와 고치는 자리가 갈린다 (TASK-KL-235).
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -1895,7 +1909,7 @@ await step('카드를 두 번 누르면 이름을 그 자리에서 고친다 (En
 
 await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬다', async () => {
   // 격자(8px)는 「대충 맞음」까지다. 폭이 제각각이면 가운데는 격자 위에 없어 영원히 안 맞는다 (TASK-KL-237).
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -1997,7 +2011,7 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
 
 await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)', async () => {
   // 자리는 8px 에 붙는데 크기만 1px 자유면 오른쪽 줄이 매번 어긋난다 (TASK-KL-236).
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2064,7 +2078,7 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
 await step('되돌리기 구멍 감사 — 고친 것마다 Ctrl+Z 로 원래대로 (크기·자리·이름·나란히)', async () => {
   // 「고칠 수 있다」와 「되돌릴 수 있다」는 따로 논다. 새 편집 기능을 넣을 때마다 되돌리기에
   // 걸었는지 **한자리에서 전수로** 본다 — 항목이 늘면 여기 한 줄만 는다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2152,7 +2166,7 @@ await step('되돌리기 구멍 감사 — 고친 것마다 Ctrl+Z 로 원래대
 await step('카드를 만들면 **그 자리에서 바로** 이름을 친다 (옆 패널 안 봐도 된다)', async () => {
   // 처음 쓰는 사람 검토에서 나온 자리(2026-08-12): 두 번 눌러 만든 카드가 **빈 상자**로 남았다.
   // 포커스는 옆 패널 이름칸에 있었는데 눈은 판을 보고 있었기 때문이다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2183,7 +2197,7 @@ await step('카드를 만들면 **그 자리에서 바로** 이름을 친다 (�
 
 await step('옆 패널이 첫 카드부터 다 펼쳐지지 않는다 (꾸미는 칸은 접혀 있다)', async () => {
   // 사용자 검토(2026-08-12): 한 줄 적으려는데 칸 열다섯이 한꺼번에 열렸다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2220,7 +2234,7 @@ await step('옆 패널이 첫 카드부터 다 펼쳐지지 않는다 (꾸미는
 
 await step('처음 저장될 때 **어디에** 저장됐는지 말해 준다', async () => {
   // 사용자 검토(2026-08-12): 「저장됨」만 떠서, 방문기록을 지우면 사라진다는 걸 모른 채 쓰게 된다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2242,7 +2256,7 @@ await step('처음 저장될 때 **어디에** 저장됐는지 말해 준다', a
 
 await step('첫 카드를 만든 뒤에도 **다음 걸음**이 한 줄 남는다 (다 익히면 사라진다)', async () => {
   // 사용자 검토(2026-08-12): 빈 판에는 안내가 있는데 카드를 하나 만드는 순간 통째로 사라졌다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2301,7 +2315,7 @@ await step('첫 카드를 만든 뒤에도 **다음 걸음**이 한 줄 남는�
 await step('되돌리기 단추가 **무엇을** 되돌리는지 말하고, 판 이름은 이름 옆에서 바꾼다', async () => {
   // 사용자 검토(2026-08-12): 화살표만 있으면 무엇이 되돌아가는지 모른 채 눌러야 한다 — 그래서 안 누른다.
   // 판 이름 바꾸기는 ⋯ 서랍 안에만 있어 이름을 보면서는 못 찾았다.
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2333,7 +2347,7 @@ await step('되돌리기 단추가 **무엇을** 되돌리는지 말하고, 판 
 await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「더 있다」 표시가 뜬다', async () => {
   // 사용자 검토(2026-08-12): 폰 첫 화면에서 안내 넉 줄이 아래 시트와 겹쳐 문장 중간에서 끊겼고,
   // 툴바는 옆으로 밀리는데 **밀린다는 표시가 없었다**(스크롤막대는 폰에서 안 보인다).
-  const ph = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const m = await ph.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
@@ -2373,7 +2387,7 @@ await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「�
   await ph.close();
 });
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const m = await phone.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
