@@ -19,9 +19,24 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+
+/* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14).
+   여태 `127.0.0.1:8813`(사람이 켜는 `npm run dev`)만 봤고, 없으면 「못 돌았다」(2)로 끝냈다.
+   정직하긴 한데 CI 는 그 서버를 **한 번도 안 켠다** — 그래서 이 검사는 verify 에서 매번
+   「못 돌림」이었고, 사실상 **아무 데서도 안 돌고 있었다**(실측: 오늘 verify 로그).
+   못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고, 없으면 저장소를 그대로 내어 준다
+   (다른 화면 검사들과 같은 `serveRepo`). */
+let 내서버 = null;
+let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+const 살아있나 = await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false);
+if (!살아있나) {
+  내서버 = await serveRepo();
+  BASE = 내서버.base;
+  console.log(`[arcade-solo] dev 서버가 없어 저장소를 직접 내어 준다 (${BASE})`);
+}
 const PAGE = `${BASE}/apps/karmolab/index.html#arcade`;
 
 const failures = [];
@@ -29,12 +44,6 @@ const check = (name, cond, detail = '') => {
   console.log(`${cond ? '✅' : '❌'} ${name}${cond ? '' : ' — ' + detail}`);
   if (!cond) failures.push(name);
 };
-
-const alive = await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false);
-if (!alive) {
-  console.log(`[arcade-solo] dev 서버(${BASE})가 없다 — 못 돌았다. \`npm run dev\` 를 켜고 다시.`);
-  process.exit(2);
-}
 
 const expected = JSON.parse(fs.readFileSync(path.join(here, '..', 'data', 'games.json'), 'utf8')).games;
 
@@ -56,6 +65,7 @@ try {
     console.log(`
 [arcade-solo] 실패 ${failures.length}건`);
     await browser.close();
+if (내서버) await 내서버.close();
     process.exit(1);
   }
 

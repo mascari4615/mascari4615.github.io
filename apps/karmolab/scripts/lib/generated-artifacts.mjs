@@ -54,6 +54,11 @@ export const 파생물 = [
     무거움: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
+    npm: 'gen:play-roster',
+    outputs: ['data/games.json'],
+    why: '앱이 받아서 로비를 그리는 놀이 명부 — 낡으면 새 놀이가 로비에 안 뜬다'
+  },
+  {
     npm: 'gen:core-tools',
     outputs: ['data/core-tools.json', 'src/core/registry.generated.ts', 'src/core/registry-lazy.generated.ts'],
     why: '묶어 쓰기·MCP 가 부를 수 있는 도구 목록'
