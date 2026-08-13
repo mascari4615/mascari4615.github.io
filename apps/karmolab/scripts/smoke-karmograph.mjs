@@ -7,7 +7,10 @@
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-karmograph.mjs
  */
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 
@@ -19,6 +22,39 @@ import { serveRepo } from './lib/serve-static.mjs';
  * 빨강을 무시하게 만든다 — 그래서 검사는 제 서버를 띄우고, 한 번 읽은 파일을 판 내내 고정한다.
  * `URL=...` 을 주면 그쪽을 쓴다(배포된 사이트를 겨눌 때).
  */
+/**
+ * ★ **낡은 묶음 위에서 초록이 뜨면 그 초록은 거짓말이다** (2026-08-14 실측).
+ *
+ * 이 검사는 `js/widgets/…` 에 **구워진 것**을 읽는다. 그동안은 옆 세션의 감시 빌드가 우연히
+ * 구워 주고 있었는데, 그게 멎은 판에서 나는 **옛 코드를 재고** 「초록」이라 적을 뻔했다.
+ * (더 나쁜 것: 소스가 아예 안 구워지는 상태여도 검사는 통과한다.)
+ * 그래서 판을 열기 전에 **소스가 묶음보다 새것이면 직접 굽는다** — 못 구우면 여기서 선다.
+ */
+async function ensureFresh() {
+  if (process.env.URL || process.env.SKIP_BUILD) return;
+  // ⚠ 이 파일에는 `const URL` 이 따로 있다(검사 주소) — 전역 URL 은 반드시 globalThis 로 부른다.
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const app = path.join(here, '..');
+  const bundle = path.join(app, 'js', 'widgets', 'karmograph', 'karmograph.js');
+  const baked = await stat(bundle).then((x) => x.mtimeMs).catch(() => 0);
+  const newest = async (dir) => {
+    let at = 0;
+    for (const it of await readdir(dir, { withFileTypes: true })) {
+      const child = path.join(dir, it.name);
+      at = Math.max(at, it.isDirectory() ? await newest(child) : (await stat(child)).mtimeMs);
+    }
+    return at;
+  };
+  if (await newest(path.join(app, 'src')) <= baked) return;
+  console.log('· 소스가 묶음보다 새것이다 — 굽고 시작한다 (옛 코드를 재면 초록이 거짓말이 된다)');
+  const out = spawnSync(process.execPath, ['build.mjs'], { cwd: app, encoding: 'utf8' });
+  if (out.status !== 0) {
+    console.error(String(out.stderr || out.stdout).slice(-1200));
+    throw new Error('묶음을 못 구웠다 — 옛 코드를 재는 대신 여기서 선다');
+  }
+}
+await ensureFresh();
+
 const frozen = process.env.URL ? null : await serveRepo();
 const URL = `${process.env.URL || `${frozen.base}/apps/karmolab/index.html`}#karmograph`;
 const errors = [];
@@ -2662,11 +2698,27 @@ await step('되돌리기 단추가 **무엇을** 되돌리는지 말하고, 판 
   const tip = await m.locator('[data-km="undo"]').getAttribute('title');
   if (!/이름|만들기|고침|rename|add|edit/.test(String(tip))) throw new Error(`되돌리기 단추가 대상을 안 말한다: ${tip}`);
 
-  // 판 이름 바꾸기 — 이름 옆 ✎ 가 서랍의 그것과 **같은 길**이어야 한다.
-  m.once('dialog', (d) => d.accept('바뀐 판 이름'));
+  /* 판 이름 바꾸기 — 이름 **옆**에서, 그리고 **그 자리에서**(KL-271). 예전엔 브라우저 prompt 라
+     판이 통째로 가려졌고 폰에서는 화면을 덮었다. 이제 고르개가 잠깐 입력칸이 된다. */
   await m.locator('[data-km="map-rename2"]').click();
+  await m.waitForSelector('[data-km="map-name"]:not(.hidden)', { timeout: ms(4000) });
+  if (await m.locator('[data-km="maps"]').isVisible()) throw new Error('고치는 동안 고르개가 그대로 있다');
+  await m.fill('[data-km="map-name"]', '바뀐 판 이름');
+  await m.keyboard.press('Enter');
   await m.waitForFunction(() => [...document.querySelectorAll('[data-km="maps"] option')]
     .some((o) => o.textContent.includes('바뀐 판 이름')), null, { timeout: ms(4000) });
+  if (!(await m.locator('[data-km="maps"]').isVisible())) throw new Error('다 고쳤는데 고르개가 안 돌아온다');
+
+  // Esc 로 그만두면 옛 이름 그대로 — 고치다 만 것이 저장되면 못 믿는다.
+  await m.locator('[data-km="map-rename2"]').click();
+  await m.waitForSelector('[data-km="map-name"]:not(.hidden)', { timeout: ms(4000) });
+  await m.fill('[data-km="map-name"]', '버릴 이름');
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('[data-km="map-name"].hidden', { state: 'attached', timeout: ms(4000) });
+  const names = await m.evaluate(() => [...document.querySelectorAll('[data-km="maps"] option')]
+    .map((o) => o.textContent).join('|'));
+  if (names.includes('버릴 이름')) throw new Error('그만뒀는데 이름이 바뀌었다: ' + names);
+  if (!names.includes('바뀐 판 이름')) throw new Error('옛 이름이 사라졌다: ' + names);
   await ctx.close();
 });
 
