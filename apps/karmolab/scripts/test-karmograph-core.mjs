@@ -1311,6 +1311,25 @@ const M = await loadModules();
   check(Number.isFinite(nothing.x), '0 자리라도 숫자여야 한다(NaN 이면 SVG 가 통째로 깨진다)');
 }
 
+{
+  /* 남의 도구로 나가는 문(JSON Canvas)도 **모자란 자료에 안 터진다** (KL-271, 2026-08-14). */
+  const { toJsonCanvas } = M.jsonCanvas;
+  const rough = {
+    version: 1, _meta: {},
+    groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
+    nodes: [{ id: 'n1', label: '가', kind: 'character' }],
+    edges: [{ id: 'e1', from: 'n1', to: '없음', label: '?', kind: 'default' }],
+  };
+  const out = toJsonCanvas(rough);
+  eq(out.nodes.filter((n) => n.type === 'group').length, 0, '네모 없는 묶음은 안 내보낸다 — 놓을 자리가 없다');
+  eq(out.nodes.length, 1, '카드는 그대로 나간다');
+  const card = out.nodes[0];
+  check([card.x, card.y, card.width, card.height].every((v) => Number.isFinite(v)),
+    '자리·크기가 없어도 숫자다 — NaN 이 든 파일은 여는 쪽에서 조용히 깨진다');
+  eq(card.width, 160, '너비는 기본값으로 채운다');
+  eq(out.edges.length, 1, '없는 카드를 가리키는 선도 그대로 나간다(여는 쪽이 판단할 일)');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
