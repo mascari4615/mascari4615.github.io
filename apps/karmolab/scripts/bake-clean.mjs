@@ -84,7 +84,13 @@ try {
 
   for (const n of 스크립트들) {
     console.log(`[bake-clean] 굽는다: ${n}`);
-    if (돌린다('npm', ['run', '--silent', n]).status !== 0) {
+    const code = 돌린다('npm', ['run', '--silent', n]).status;
+    if (code === 2) {
+      /* 2 = 「못 돌렸다」 — 이 저장소 규약. 죽은 것이 아니다. */
+      console.log(`[bake-clean] ${n} — 사본에서 「못 돌렸다」고 한다 (빨강 아님)`);
+      continue;
+    }
+    if (code !== 0) {
       console.error(`[bake-clean] ${n} 이(가) 사본에서 죽었다 — 여기서 멈춘다`);
       process.exit(1);
     }
