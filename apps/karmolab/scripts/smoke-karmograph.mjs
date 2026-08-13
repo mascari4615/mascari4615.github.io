@@ -1823,6 +1823,42 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+await step('Tab 이 손잡이 사이를 지나간다 — 첫 단추에 갇히지 않는다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 판은 Tab 을 가로채 **카드**를 훑었는데, 그 가로채기가 「글 칸이 아니면」
+     이라는 느슨한 조건이라 툴바 단추에 초점이 있을 때도 먹었다 — Tab 을 45번 눌러도 초점이
+     한 발짝도 안 움직였다. 자판만 쓰는 사람에게는 첫 단추 하나가 이 도구의 전부였던 셈이다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('탭카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  await m.evaluate(() => document.querySelector('.km-toolbar button')?.focus());
+  const seen = [];
+  for (let i = 0; i < 12; i += 1) {
+    await m.keyboard.press('Tab');
+    seen.push(await m.evaluate(() => document.activeElement?.dataset?.km
+      || document.activeElement?.className || document.activeElement?.tagName));
+  }
+  const spots = new Set(seen);
+  if (spots.size < 6) throw new Error('Tab 이 제자리를 맴돈다: ' + seen.slice(0, 6).join(' → '));
+
+  // 그러면서도 **판 위에서는** Tab 이 카드를 훑는 손이어야 한다(그게 이 판의 자판 길이다).
+  await m.locator('.km-canvas').click({ position: { x: 20, y: 20 } });
+  await m.evaluate(() => document.activeElement?.blur());
+  await m.keyboard.press('Tab');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node.is-selected').length === 1,
+    null, { timeout: ms(4000) });
+  await ctx.close();
+});
 await step('이름 없는 손잡이가 없다 — 눈으로 안 보는 사람에게도 있는 자리다', async () => {
   const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
   const m = await ctx.newPage();
