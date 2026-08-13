@@ -1758,10 +1758,12 @@ import {
             data-km="time-go" data-key="${escapeAttr(tp.id)}">${esc(tp.name)}</button>`).join('')
         + `<button class="btn btn-ghost" data-km="time-next" title="${esc(t('karmograph.time.next'))}"
           aria-label="${esc(t('karmograph.time.next'))}">›</button>`
-        + `<button class="btn btn-ghost" data-km="time-rename" title="${esc(t('karmograph.time.rename'))}"
+        // ★ 남의 판을 보는 중(보기 전용)에는 **오가는 것만** 준다 — 이름 바꾸기·지우기는 고치는 손이다.
+        //   보이기만 해도 「고쳐도 되나」를 묻게 되고, 눌리면 받은 판이 말없이 달라진다.
+        + (readOnly ? '' : `<button class="btn btn-ghost" data-km="time-rename" title="${esc(t('karmograph.time.rename'))}"
           aria-label="${esc(t('karmograph.time.rename'))}">✎</button>`
         + `<button class="btn btn-ghost" data-km="time-del" title="${esc(t('karmograph.time.del'))}"
-          aria-label="${esc(t('karmograph.time.del'))}">✕</button>`;
+          aria-label="${esc(t('karmograph.time.del'))}">✕</button>`);
       const goTo = (id: string): void => {
         spec._meta = { ...spec._meta, time: id };
         canvas?.render();     // 렌즈만 바뀌었다 — 자료는 그대로라 다시 그리기만 하면 된다
@@ -1775,7 +1777,10 @@ import {
         () => goTo(stepTime(list, now, -1));
       (bar.querySelector('[data-km="time-next"]') as HTMLButtonElement).onclick =
         () => goTo(stepTime(list, now, 1));
-      (bar.querySelector('[data-km="time-rename"]') as HTMLButtonElement).onclick = () => {
+      const renameBtn = bar.querySelector('[data-km="time-rename"]') as HTMLButtonElement | null;
+      const delBtn = bar.querySelector('[data-km="time-del"]') as HTMLButtonElement | null;
+      if (!renameBtn || !delBtn) return;   // 보기 전용 — 고치는 단추가 아예 없다
+      renameBtn.onclick = () => {
         const at = list.find((x) => x.id === now);
         if (!at) return;
         const name = prompt(t('karmograph.time.renameAsk'), at.name);
@@ -1784,7 +1789,7 @@ import {
         persistStructure();
         renderTimes();
       };
-      (bar.querySelector('[data-km="time-del"]') as HTMLButtonElement).onclick = () => {
+      delBtn.onclick = () => {
         const at = list.find((x) => x.id === now);
         if (!at || !confirm(t('karmograph.time.delAsk', { name: at.name }))) return;
         lastAction = t('karmograph.time.delAct');
@@ -3600,6 +3605,7 @@ import {
       if (readOnly) return;
       readOnly = true;
       root.classList.add('is-readonly');
+      renderTimes();                // 시점 줄도 다시 짠다 — 고치는 단추를 빼야 한다
       canvas?.setEditable(false);   // 숨기는 게 아니라 **안 만든다**
       canvasEl.style.cursor = 'grab';
       const badge = document.createElement('div');
@@ -3609,6 +3615,7 @@ import {
       (badge.querySelector('[data-km="fork"]') as HTMLButtonElement).onclick = () => {
         readOnly = false;
         root.classList.remove('is-readonly');
+        renderTimes();              // 내 것이 되었으니 고치는 단추도 돌려준다
         canvas?.setEditable(true);
         badge.remove();
         // 주소에서 보기 전용 표시를 지운다 — 새로고침해도 다시 잠기면 「복제했는데 또 잠긴다」가 된다.
