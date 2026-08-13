@@ -88,12 +88,15 @@ export function renderSnaPanel(ctx: PanelCtx): void {
 
   side.innerHTML = `
     <h4>${esc(t('karmograph.list.msg3'))}</h4>
+    <!-- ★ **말이 먼저, 숫자가 나중** (KL-271 L2 의 뜻). 무리·안 적은 칸도 「읽으면 바로 아는 말」인데
+         숫자 목록 셋 뒤에 있어서 접힌 자리 밖으로 밀려났다(실측 2026-08-14: 684·756px / 보이는 795px —
+         카드가 조금만 늘면 안 보인다). 말끼리 앞에 모은다. -->
     ${saidHtml}
+    ${cluHtml}
+    ${holesHtml}
     ${list(t('karmograph.list.msg4'), t('karmograph.list.msg5'), topBy(sna.degree, 5), 0)}
     ${list(t('karmograph.list.msg6'), t('karmograph.list.msg7'), topBy(sna.betweenness, 5), 1)}
     ${list(t('karmograph.list.msg8'), t('karmograph.list.msg9'), topBy(sna.closeness, 5), 3)}
-    ${cluHtml}
-    ${holesHtml}
     ${gaps.length === 0 ? '' : `<div class="km-field">
       <label>${esc(t('karmograph.list.msg10'))}</label>
       <div class="km-hint">${esc(t('karmograph.list.msg11'))}</div>
