@@ -39,17 +39,28 @@ for (const gate of gates) {
   const sec = Math.round((Date.now() - started) / 1000);
   /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
   const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-  results.push({ gate, sec, how });
+  results.push({ gate, sec, how, cantRun: !run.error && run.status === 2 });
 }
 
-const bad = results.filter((r) => r.how);
+/* ★ **exit 2 = 「못 돌았다」** — 이 저장소의 약속이고 검사 서른 곳이 이미 그렇게 쓴다.
+   여태 그걸 빨강으로 셌다. 옆 세션이 `packages/` 를 지우는 중이면 「전제를 못 찾겠다(2)」가
+   나는데 그건 커밋이 틀린 게 아니라 못 잰 것이다 — 못 잰 것을 빨강으로 세면 push 게이트가
+   멀쩡한 커밋을 막고, 사람은 곧 게이트를 안 믿게 된다(2026-08-13 실측). */
+const cantRun = results.filter((r) => r.cantRun);
+const bad = results.filter((r) => r.how && !r.cantRun);
 console.log('\n════ 검사 결과 ════');
 for (const r of results) {
-  console.log(`  ${r.how ? '✘' : '✓'} ${r.gate.padEnd(22)} ${String(r.sec).padStart(4)}s${r.how ? '  — ' + r.how : ''}`);
+  const mark = r.cantRun ? '·' : r.how ? '✘' : '✓';
+  const tail = r.cantRun ? '  — 못 돌림 (빨강 아님)' : r.how ? '  — ' + r.how : '';
+  console.log(`  ${mark} ${r.gate.padEnd(22)} ${String(r.sec).padStart(4)}s${tail}`);
+}
+if (cantRun.length) {
+  console.log(`[gates] 못 돌린 검사 ${cantRun.length}개 — ${cantRun.map((r) => r.gate).join(', ')} (통과도 실패도 아니다)`);
 }
 
 if (!bad.length) {
-  console.log(`\n[gates] 전부 통과 — ${results.length}개`);
+  console.log(`
+[gates] 전부 통과 — ${results.length - cantRun.length}개${cantRun.length ? ` (못 돌림 ${cantRun.length})` : ''}`);
   process.exit(0);
 }
 
