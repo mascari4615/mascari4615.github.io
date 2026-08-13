@@ -35,7 +35,10 @@ import { t, loadNamespace } from '../lib/i18n';
 
   /// 자주 쓰는 Windows 프로세스명을 사람 친화적인 라벨로 매핑.
   /// 매치 안 되는 건 원본 그대로 표시.
-  const PROCESS_LABELS: Record<string, string> = {
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 데스크톱 화면 둘이 이걸로 죽어 있었다).
+     파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 던지고, 그 묶음에 실린
+     화면이 통째로 안 올라간다. 부르는 시점을 늦춘다. */
+  const processLabels = (): Record<string, string> => ({
     'Code.exe': 'VS Code',
     'Cursor.exe': 'Cursor',
     'devenv.exe': 'Visual Studio',
@@ -71,19 +74,23 @@ import { t, loadNamespace } from '../lib/i18n';
     'GitHubDesktop.exe': 'GitHub Desktop',
     'msedgewebview2.exe': 'WebView2',
     'karmolab-desktop.exe': 'KarmoLab'
-  };
+  });
 
   /// 매핑 테이블을 lowercase 키로 미리 정규화 — Windows가 GetModuleBaseName으로 반환하는
   /// 실행파일명 케이스가 OS·드라이버에 따라 들쑥날쑥(예: explorer.exe vs Explorer.EXE).
-  const PROCESS_LABELS_LOWER: Record<string, string> = (() => {
+  let 소문자표: Record<string, string> | null = null;
+  const processLabelsLower = (): Record<string, string> => {
+    if (소문자표) return 소문자표;
+    const table = processLabels();
     const out: Record<string, string> = {};
-    for (const k of Object.keys(PROCESS_LABELS)) out[k.toLowerCase()] = PROCESS_LABELS[k];
+    for (const k of Object.keys(table)) out[k.toLowerCase()] = table[k];
+    소문자표 = out;
     return out;
-  })();
+  };
 
   function readableProcessName(raw: string): string {
     if (!raw) return '(unknown)';
-    return PROCESS_LABELS_LOWER[raw.toLowerCase()] || raw;
+    return processLabelsLower()[raw.toLowerCase()] || raw;
   }
 
   function todayKstDay(): string {

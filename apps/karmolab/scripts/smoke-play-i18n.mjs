@@ -69,6 +69,13 @@ const 문 = `${base}/apps/karmolab/index.html`;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+/* ★ **데스크톱 전용 화면도 본다** (2026-08-14). 브라우저에서는 셸이 그것들을 감춰서
+   `switchPage` 가 아무 일도 안 한다 — 그래서 「앱 안 화면이 아님」으로 넘어갔고,
+   실제로 그 사이 **알람·Claude 환경**이 죽어 있었다(아무 검사도 안 보던 자리다).
+   셸이 보는 표시 하나만 미리 켜 두면 같은 자리에서 같이 잴 수 있다. */
+await ctx.addInitScript(() => {
+  window.__KARMOLAB_DESKTOP__ = true;
+});
 const 빨강 = [];
 const 건너뜀 = [];
 
@@ -96,7 +103,10 @@ for (const id of ids) {
          **여기서 볼 것이 아니다** — 다만 조용히 넘기지 않고 이름을 적어 둔다. */
       건너뜀.push(id);
       process.stdout.write('-');
-    } else if (!판.글 || /꺼내는 중|불러오는 중|Loading/.test(판.글)) {
+    } else if (!판.글 || (판.글.length < 60 && /꺼내는 중|불러오는 중|Loading/.test(판.글))) {
+      /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
+         그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
+         못 닿아 한 칸이 「불러오는 중」이다. 그건 고장이 아니라 그 화면의 정상이다). */
       빨강.push(`${id}: 판이 안 지어졌다 — 화면에 「${판.글.slice(0, 24)}」만 있다`);
     } else {
       process.stdout.write('.');

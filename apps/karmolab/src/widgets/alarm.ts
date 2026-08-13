@@ -26,7 +26,10 @@ import { t, loadNamespace } from '../lib/i18n';
     force_wake: boolean;
   };
 
-  const DOW = [t('alarm.t01'), t('alarm.t02'), t('alarm.t03'), t('alarm.t04'), t('alarm.t05'), t('alarm.t06'), t('alarm.t07')];
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 데스크톱 화면 둘이 이걸로 죽어 있었다).
+     파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 던지고, 그 묶음에 실린
+     화면이 통째로 안 올라간다. 부르는 시점을 늦춘다. */
+  const dow = (): string[] => [t('alarm.t01'), t('alarm.t02'), t('alarm.t03'), t('alarm.t04'), t('alarm.t05'), t('alarm.t06'), t('alarm.t07')];
 
   function newId(): string {
     return 'al-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36);
@@ -54,7 +57,7 @@ import { t, loadNamespace } from '../lib/i18n';
   function fmtRepeat(repeat: number[]): string {
     if (repeat.length === 0) return t('alarm.t08');
     if (repeat.length === 7) return t('alarm.t09');
-    return [...repeat].sort((a, b) => a - b).map((d) => DOW[d]).join('·');
+    return [...repeat].sort((a, b) => a - b).map((d) => dow()[d]).join('·');
   }
 
   function build(container: HTMLElement): void {
@@ -278,7 +281,7 @@ import { t, loadNamespace } from '../lib/i18n';
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'kl-alarm-day';
-        b.textContent = DOW[d];
+        b.textContent = dow()[d];
         b.dataset.sel = a.repeat.includes(d) ? '1' : '0';
         b.addEventListener('click', () => {
           b.dataset.sel = b.dataset.sel === '1' ? '0' : '1';

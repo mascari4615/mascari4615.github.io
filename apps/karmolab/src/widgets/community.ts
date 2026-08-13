@@ -1106,7 +1106,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /** 서식 단추 — [이름, 앞에 붙일 것, 뒤에 붙일 것, 도움말, 단축키] */
-    const FORMAT_BUTTONS: Array<[string, string, string, string, string]> = [
+    /* ★ 위와 같은 이유로 **부를 때 만든다** (2026-08-14). */
+    const formatButtons = (): Array<[string, string, string, string, string]> => [
         [t('community.t120'), '**', '**', t('community.t121'), 'b'],
         [t('community.t122'), '*', '*', t('community.t123'), 'i'],
         [t('community.t124'), '`', '`', t('community.t124'), ''],
@@ -1118,7 +1119,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     function composerHtml(data: ListResponse, isRequest: boolean): string {
         const draft = loadDraft(data.board);
-        const tools = FORMAT_BUTTONS.map(
+        const tools = formatButtons().map(
             ([label, , , title]) =>
                 `<button type="button" class="c-fmt" data-fmt="${esc(label)}" title="${esc(title)}">${esc(label)}</button>`,
         ).join('');
@@ -1241,7 +1242,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         };
 
         form.querySelectorAll<HTMLButtonElement>('[data-fmt]').forEach((button) => {
-            const found = FORMAT_BUTTONS.find(([label]) => label === button.dataset.fmt);
+            const found = formatButtons().find(([label]) => label === button.dataset.fmt);
             if (found) button.addEventListener('click', () => wrap(found[1], found[2]));
         });
 
@@ -1324,7 +1325,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 return;
             }
             if (!(event.ctrlKey || event.metaKey)) return;
-            const shortcut = FORMAT_BUTTONS.find(([, , , , key]) => key && key === event.key.toLowerCase());
+            const shortcut = formatButtons().find(([, , , , key]) => key && key === event.key.toLowerCase());
             if (shortcut) {
                 event.preventDefault();
                 wrap(shortcut[1], shortcut[2]);
