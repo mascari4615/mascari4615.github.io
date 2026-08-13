@@ -3277,7 +3277,20 @@ import {
             return;
           }
         }
-        if (ev.key === 'Tab') {
+        /**
+         * ★ Tab 으로 **카드를 훑는 것은 판에 초점이 있을 때만**.
+         *
+         * 예전엔 글 칸만 아니면 무조건 가로챘다 — 그래서 툴바 단추에 초점이 있는 동안 Tab 을
+         * 눌러도 **초점이 한 발짝도 안 움직였다**(실측 2026-08-14: 45번 눌러도 같은 단추).
+         * 자판만 쓰는 사람에게는 첫 단추 하나가 이 도구의 전부였던 셈이다.
+         * 판(캔버스) 안에 있을 때만 훑고, 손잡이들 사이에서는 브라우저에게 맡긴다.
+         */
+        // 「판에 있다」 = **손잡이에 앉아 있지 않다**. 미니 도구 줄처럼 판 위에 뜬 단추도 손잡이다
+        //   (그것까지 판으로 치면 거기서 또 초점이 갇힌다 — 실측 2026-08-14).
+        const onHandle = Boolean(focus?.closest?.(
+          'button, a[href], select, input, textarea, [contenteditable="true"]'));
+        const onBoard = !onHandle;
+        if (ev.key === 'Tab' && onBoard) {
           const id = canvas?.selectStep(ev.shiftKey ? -1 : 1) ?? null;
           if (id) {
             ev.preventDefault();
