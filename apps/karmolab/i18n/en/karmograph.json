@@ -779,5 +779,8 @@
   "karmograph.group.eye": "Show/hide the box",
   "karmograph.group.del": "Delete group",
   "karmograph.noName": "(no name)",
-  "karmograph.stampDefault": "{n} cards"
+  "karmograph.stampDefault": "{n} cards",
+  "karmograph.note.loop": "(loop)",
+  "karmograph.note.missing": "(missing note)",
+  "karmograph.note.missingBlock": "(missing part)"
 }
