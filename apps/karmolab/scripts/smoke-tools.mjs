@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { RETIRED_OPERATION_IDS, withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const failures = [];
@@ -26,7 +27,10 @@ const metaById = Object.fromEntries((metaWindow.KARMOLAB_LAZY_META || []).map((m
 
 /* SEO 정본에 실린 도구 = 스모크 대상 */
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const ids = Object.keys(seo);
+/* 작업대로 **흡수된** 옛 도구는 낱개 위젯이 없다 — 주소만 원장에 남겨 둔 것이라 여기서 세면
+   「명부에 없다」로 열여섯 건이 뜬다(2026-08-13 실측: 그 상태로 한 시간 넘게 master 가 빨갰다).
+   목록은 `lib/retired-operations.mjs` 한 곳 — 생성기도 같은 것을 읽는다. */
+const ids = withoutRetired(Object.keys(seo));
 
 const registered = {};
 let hangul = null;
@@ -124,26 +128,31 @@ for (const id of ids) {
   if (id === 'morse') morse = win.KarmoMorse;
 }
 
-/* 한영타 변환 — 조합 오토마타가 도구의 존재 이유라 값으로 확인한다 */
-if (!hangul) {
-  failures.push('hangulkey: window.KarmoHangulKey 미노출');
-} else {
-  const cases = [
-    ['dkssud', '안녕'],
-    ['dkssudgktpdy', '안녕하세요'],
-    ['rkskekfk', '가나다라'],
-    ['dhkrpdy', '와게요'],
-    ['gksrmf', '한글'],
-    ['dlqfur', '입력'],
-    ['djqtdj', '없어']
-  ];
-  for (const [eng, kor] of cases) {
-    const got = hangul.engToKor(eng);
-    check(got === kor, `hangulkey: engToKor("${eng}") = "${got}" (기대 "${kor}")`);
-    const back = hangul.korToEng(kor);
-    check(back === eng, `hangulkey: korToEng("${kor}") = "${back}" (기대 "${eng}")`);
+/* 한영타 변환 — 조합 오토마타가 도구의 존재 이유라 값으로 확인한다.
+   단 그 도구가 **작업대로 흡수됐으면** 낱개 위젯이 없으니 여기서 잴 것도 없다
+   (조합 규칙 자체는 작업대 쪽 검사가 본다). */
+if (!RETIRED_OPERATION_IDS.has('hangulkey')) {
+  if (!hangul && !RETIRED_OPERATION_IDS.has('hangulkey')) {
+    failures.push('hangulkey: window.KarmoHangulKey 미노출');
+  } else {
+    const cases = [
+      ['dkssud', '안녕'],
+      ['dkssudgktpdy', '안녕하세요'],
+      ['rkskekfk', '가나다라'],
+      ['dhkrpdy', '와게요'],
+      ['gksrmf', '한글'],
+      ['dlqfur', '입력'],
+      ['djqtdj', '없어']
+    ];
+    for (const [eng, kor] of cases) {
+      const got = hangul.engToKor(eng);
+      check(got === kor, `hangulkey: engToKor("${eng}") = "${got}" (기대 "${kor}")`);
+      const back = hangul.korToEng(kor);
+      check(back === eng, `hangulkey: korToEng("${kor}") = "${back}" (기대 "${eng}")`);
+    }
   }
 }
+
 
 /* 모스 부호 — 부호표와 자모 조립이 도구의 존재 이유라 값으로 확인한다 */
 if (!morse) {
