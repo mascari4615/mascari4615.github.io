@@ -54,8 +54,11 @@ function scriptFileOf(cmd) {
   return null;
 }
 
-/** 바깥 주소를 기본값으로 들고 있나 — 못 읽으면 `null`(모름)이고, 모름은 실주소로 친다. */
-function opensLiveSite(cmd) {
+/**
+ * 그 검사가 **어디를 여나** — 못 읽으면 `null`(모름).
+ *   'live'  실사이트          'local' 이 자리에 띄운 서버        'none' 아무 데도 안 연다
+ */
+function baseKindOf(cmd) {
   const file = scriptFileOf(cmd);
   if (!file) return null;
   let src;
@@ -65,21 +68,24 @@ function opensLiveSite(cmd) {
     return null;
   }
   const m = src.match(/process\.env\.BASE\s*\|\|\s*['"](https?:[^'"]*)['"]/);
-  if (!m) return false;
-  return !/127\.0\.0\.1|localhost/.test(m[1]);
+  if (!m) return 'none';
+  return /127\.0\.0\.1|localhost/.test(m[1]) ? 'local' : 'live';
 }
 
-/** 목록에 적힌 줄들에 `live` 를 채워 넣는다 — 손으로 적은 값이 있으면 그것이 이긴다. */
+/** 목록에 적힌 줄들에 `live`·`needsServer` 를 채워 넣는다 — 손으로 적은 값이 있으면 그것이 이긴다. */
 function withLive(list) {
   return list.map((c) => {
-    if (typeof c.live === 'boolean') return c;
-    const guess = opensLiveSite(c.cmd);
-    if (guess === null) {
+    const kind = baseKindOf(c.cmd);
+    if (kind === null) {
       /* 못 물어본 것은 「아니오」가 아니다 — 실주소로 치고 껍데기를 씌운다(씌워서 손해가 없다). */
       console.warn(`[live-checks] ${c.name} — 어느 파일인지 못 물어봤다 · 실주소로 친다`);
-      return { ...c, live: true };
+      return { live: true, needsServer: false, ...c };
     }
-    return { ...c, live: guess };
+    /* ★ **이 자리에 서버가 있어야 도는 검사가 있다** (2026-08-13).
+       「비워 둔 자리가 실제와 맞는지」가 늘 빨갛길래 봤더니, 재는 상대가
+       `127.0.0.1:8801` 인데 아무도 그 서버를 안 띄우고 있었다 — 「못 돌림」이 **빨강**으로
+       읽히던 자리다. 이제 러너가 필요한 검사가 있을 때만 그 서버를 띄우고 끝나면 내린다. */
+    return { live: kind === 'live', needsServer: kind === 'local', ...c };
   });
 }
 
@@ -107,7 +113,7 @@ const RAW_CHECKS = [
   { name: '실제 사이트에 있어야 하는 것이 있는지', cmd: ['npm', 'run', 'audit:live'], live: true },
   { name: '놀이 셋이 성한지', cmd: ['node', '../play/scripts/smoke.mjs'] },
   { name: '검색엔진이 읽는 머리가 성한지', cmd: ['npm', 'run', 'audit:seo'], live: true },
-  { name: '비워 둔 자리가 실제와 맞는지', cmd: ['npm', 'run', 'audit:heights'], live: true },
+  { name: '비워 둔 자리가 실제와 맞는지', cmd: ['npm', 'run', 'audit:heights'] },
   { name: '설치 정보가 성한지', cmd: ['npm', 'run', 'test:pwa'] },
   { name: '값을 넣으면 답이 나오는지', cmd: ['npm', 'run', 'test:answers'] },
   { name: '글자를 넣으면 반응하는지', cmd: ['npm', 'run', 'test:typing'] },

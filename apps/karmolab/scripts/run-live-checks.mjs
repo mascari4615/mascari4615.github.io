@@ -13,7 +13,7 @@
  *   npm run verify:live -- --skip-prep   # 준비는 건너뛰고 검사만 (이미 빌드해 뒀을 때)
  * exit: 0 = 전부 초록 / 1 = 빨강 있음
  */
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { CHECKS, PREP } from './live-checks.mjs';
 
@@ -49,6 +49,32 @@ if (!todo.length) {
   process.exit(2);
 }
 
+/* ★ **이 자리에 서버가 있어야 도는 검사는 러너가 띄워 준다** (2026-08-13).
+   「비워 둔 자리가 실제와 맞는지」는 `127.0.0.1:8801` 을 재는데 아무도 그 서버를 안 띄웠고,
+   검사는 「연결 실패」를 그대로 **빨강**으로 냈다 — 못 돈 것이 틀린 것으로 읽히던 자리다. */
+let server = null;
+if (todo.some((c) => c.needsServer)) {
+  console.log(String.fromCharCode(10) + '──── 준비: 재는 상대가 될 서버 띄우기 (127.0.0.1:8801) ────');
+  server = spawn(npm, ['run', 'serve:gzip'], { stdio: 'ignore', shell: process.platform === 'win32' });
+  const ready = await (async () => {
+    for (let i = 0; i < 60; i++) {
+      try {
+        const r = await fetch('http://127.0.0.1:8801/apps/blog/karmolab/');
+        if (r.ok) return true;
+      } catch { /* 아직 */ }
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    return false;
+  })();
+  if (!ready) {
+    console.error('[verify:live] 30초 안에 서버가 안 떴다 — 그 검사는 못 돈다(빨강 아님).');
+  } else {
+    console.log('[verify:live] 서버 준비됨');
+  }
+}
+const stopServer = () => { if (server) { try { server.kill(); } catch { /* 이미 죽음 */ } server = null; } };
+process.on('exit', stopServer);
+
 const results = [];
 for (const check of todo) {
   const started = Date.now();
@@ -81,4 +107,5 @@ if (red.length) {
   for (const r of red) console.error(`  - ${r.name}`);
   console.error('  위 로그에서 각 검사가 스스로 말한 사유를 봐라. 하나씩 고치고 또 10분 기다리지 마라.');
 }
+stopServer();
 process.exitCode = red.length ? 1 : 0;
