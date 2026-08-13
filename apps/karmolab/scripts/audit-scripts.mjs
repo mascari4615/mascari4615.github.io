@@ -142,7 +142,13 @@ if (fs.existsSync(wf)) {
   const runnerPath = path.join(root, 'scripts/audit-all.mjs');
   if (fs.existsSync(runnerPath) && wfCalled.length) {
     const runnerNames = [...fs.readFileSync(runnerPath, 'utf8').matchAll(/'([a-z0-9]+:[a-z0-9:]+)'\]/g)].map((m) => m[1]);
-    const missingOnLive = runnerNames.filter((n) => !wfCalled.includes(n));
+    /* 실제 사이트에서 볼 수 없는 것들 — 저장소 안을 보는 검사다. 라이브 목록에 없다고
+       「빠졌다」로 세면 고칠 수 없는 빨강이 된다(2026-08-13: 이 둘로 라이브 점검이 섰다). */
+    const REPO_ONLY = new Set([
+      'audit:generated', // 커밋된 파생물 ↔ 지금 소스 대조 — 저장소가 있어야 본다
+      'ratchet:tighten' // 톱니 조이기(기준선 줄이기) — 손질 도구지 실사이트 판정이 아니다
+    ]);
+    const missingOnLive = runnerNames.filter((n) => !wfCalled.includes(n) && !REPO_ONLY.has(n));
     if (missingOnLive.length) {
       problems.push(`배포 후 확인에 빠진 검사 — ${missingOnLive.join(', ')} (실제 사이트에서는 안 돈다)`);
     }

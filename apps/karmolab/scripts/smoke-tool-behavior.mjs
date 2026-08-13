@@ -16,6 +16,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -208,7 +209,11 @@ const CASES = [
 ];
 
 const only = process.argv.slice(2);
-const cases = only.length ? CASES.filter(([id]) => only.includes(id)) : CASES;
+/* 작업대로 합친 옛 도구는 낱개 장이 없다 — 그 주소를 열면 안내 한 장이라 넣을 칸이 없고
+   「넣어도 답이 안 나온다」로 읽힌다(2026-08-13: `replace` 가 그렇게 빨갰다).
+   조작 자체의 답은 작업대 쪽에서 봐야 한다. 목록 정본은 lib/retired-operations.mjs. */
+const live = CASES.filter(([id]) => !RETIRED_OPERATION_IDS.has(id));
+const cases = only.length ? live.filter(([id]) => only.includes(id)) : live;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
