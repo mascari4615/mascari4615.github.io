@@ -1,98 +1,605 @@
 {
   "id": "pay-tax",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "세금은 **나라마다 다르고**, 영수증은 법적 요구다. 그리고 나중에 고치기가 가장 어려운 영역이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 어디에 세금을 매기나"
-    },
-    {
-      "type": "note",
-      "text": "디지털 서비스는 대개 **구매자의 위치** 기준이다(EU VAT·한국 전자적 용역). 그래서 국가 판별(IP·청구지·카드 발급국)과 증빙 보관이 필요해진다."
-    },
-    {
-      "type": "h",
-      "text": "2. 표시 방식"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "포함이냐 별도냐",
-      "text": "한국·EU 소비자 대상: 세금 포함 가격 표시가 일반적(요구되기도 함)\n미국 B2B·SaaS      : 세금 별도 표시가 흔하다\n\n같은 「10,000원」이 지역에 따라 다른 의미가 된다 — 처음에 정하라"
-    },
-    {
-      "type": "h",
-      "text": "3. 계산은 직접 하지 마라"
-    },
-    {
-      "type": "p",
-      "text": "세율은 자주 바뀌고 예외가 많다. **PG 의 세금 기능**이나 전문 서비스(Stripe Tax 류)를 쓰는 편이 정확하고 싸다. 직접 표를 관리하면 언젠가 낡는다."
-    },
-    {
-      "type": "h",
-      "text": "4. 영수증과 세금계산서"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "남겨야 하는 것",
-      "text": "· 거래 일시 · 금액 · 세액 · 판매자 정보 · 구매자 정보(B2B)\n· 불변 기록(수정 시 새 문서 발행 — 덮어쓰기 X)\n· 사용자가 언제든 다시 받을 수 있는 경로\n· 한국 B2B 는 전자세금계산서 발행 의무를 확인"
-    },
-    {
-      "type": "h",
-      "text": "5. 정산과 회계"
-    },
-    {
-      "type": "note",
-      "text": "PG 는 **수수료를 떼고 며칠 뒤** 입금한다. 그래서 「매출 ≠ 입금」이고, 대사(reconciliation)가 필요하다. PG 정산 파일과 내 DB 를 정기적으로 대조하는 스크립트를 만들어 두라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 서비스의 과세 기준(구매자 위치·세율·표시 방식)을 한 장으로 정리하라. 모르는 칸이 있으면 그게 확인할 목록이다."
-    },
-    {
-      "type": "try",
-      "text": "PG 정산 내역과 내 DB 매출 합계를 한 달치 대조하는 스크립트를 써라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "디지털 서비스의 세금 기준으로 흔한 것은?",
-      "choices": [
-        "구매자의 위치",
-        "판매자의 위치",
-        "서버 위치"
+      "id": "1",
+      "title": "세금은 나라마다 다르고 나중에 고치기 어렵다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "세금은 **나라마다 다르고**(세율·과세 방식·표시 규칙·면세 대상이 제각각), 영수증·세금계산서는 **법적 요구**다. 그리고 세금은 **나중에 고치기가 가장 어려운 영역**이다 — 잘못 매긴 세금은 소급 정정·신고·환급이 복잡하고(세무 당국·회계·법), 과거 거래를 다시 계산해야 하고, 규정 위반은 벌금·감사로 이어진다. 코드 버그는 배포로 고치지만, **잘못된 세금 처리는 이미 발생한 거래·신고를 되돌려야** 해서 훨씬 비싸다. 그래서 세금은 ① **처음부터 제대로 설계**하고(데이터·표시·계산·기록) ② **직접 계산하지 말고 전문 서비스에 맡기고**(3장) ③ **불변 기록**을 남긴다(4장). 「나중에 고치면 되지」가 가장 안 통하는 영역이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세금 — 나라마다 다르고 되돌리기 어렵다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const aspect = '{{aspect}}';\n  const rows = {\n    varies:['나라마다 다름', '세율·과세 방식·표시·면세가 제각각', '한국 10% · EU 나라마다 VAT · 미국 주마다 다름'],\n    legal:['법적 요구', '영수증·세금계산서는 법으로 요구', '발행·보관 의무, 형식 규정'],\n    hard:['되돌리기 어려움', '잘못 매긴 세금은 소급 정정·신고·환급 복잡', '과거 거래 재계산 + 규정 위반은 벌금·감사'],\n    design:['처음부터 설계', '나중에 붙이면 데이터·기록이 어긋남', '데이터 구조·표시·계산·기록을 초기부터'],\n  }[aspect];\n  render('세금: ' + rows[0],\n    '  ' + rows[1] + '\\n  예: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"no\\\">코드는 배포로 고치지만, 잘못된 세금은 이미 발생한 거래·신고를 되돌려야 함.</span>\\n' +\n    '  <span class=\\\"ok\\\">→ 처음부터 제대로 + 전문 서비스에 맡김 + 불변 기록.</span>',\n    '세금은 나라마다 다르고 되돌리기 어렵다 — 처음부터 제대로.',\n    box(rows[0], rows[1] + '\\n예: ' + rows[2], 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "aspect",
+              "label": "측면",
+              "type": "select",
+              "value": "varies",
+              "options": [
+                {
+                  "value": "varies",
+                  "label": "나라마다 다름"
+                },
+                {
+                  "value": "legal",
+                  "label": "법적 요구"
+                },
+                {
+                  "value": "hard",
+                  "label": "되돌리기 어려움"
+                },
+                {
+                  "value": "design",
+                  "label": "처음부터 설계"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**세금은 나라마다 다르고, 영수증은 법적 요구이며, 나중에 고치기가 가장 어렵다 — 그래서 처음부터 제대로 설계하고 전문 서비스에 맡기고 불변 기록을 남긴다.** 세금의 세 가지 어려움: ① **나라마다 다르다** — 세율(한국 부가세 10%, EU 는 나라마다 VAT 17~27%, 미국은 주·시마다 판매세가 다름), 과세 방식(무엇에·누구에게 매기나), 표시 규칙(세금 포함 vs 별도, 3장), 면세·감면 대상(품목·B2B, 7장)이 제각각이다. 글로벌 서비스면 수십~수백 개 관할의 규칙을 다뤄야 한다. ② **법적 요구** — 영수증·세금계산서 발행·보관은 법적 의무다(형식·내용·보관 기간 규정, 4장). 안 하거나 잘못하면 규정 위반. ③ **나중에 고치기가 가장 어렵다** — 이게 핵심이다. 코드 버그는 배포로 즉시 고치지만, **잘못된 세금 처리는 이미 발생한 거래·신고를 되돌려야** 한다: 과거 거래의 세금을 다시 계산하고, 세무 신고를 정정하고, 고객에게 환급·추가 청구하고(고객 불만·혼란), 규정 위반이면 벌금·가산세·감사를 받는다. 「잘못 매긴 세금」은 며칠·몇 달·몇 년의 거래에 누적돼, 소급 정정이 막대한 작업이자 비용이다(회계·세무·법무·개발이 얽힘). 그래서 세금은 **「나중에 고치면 되지」가 가장 안 통하는 영역**이다 — 소프트웨어의 「일단 만들고 고치자」 사고가 세금엔 위험하다(잘못된 세금이 쌓이면 되돌리기가 재앙). 대응 원칙: ① **처음부터 제대로 설계** — 세금 데이터(각 거래의 세율·세액·과세 근거·구매자 위치), 표시(포함/별도), 계산, 영수증·기록을 **초기부터** 올바르게(나중에 붙이면 과거 데이터가 세금 정보를 안 담아 소급 불가). ② **직접 계산하지 말고 전문 서비스에**(3장 — Stripe Tax 등, 세율·규정을 항상 최신으로) — 직접 하면 규정 변화를 못 따라가 틀린다. ③ **불변 기록**(4장 — 발행한 영수증·세금계산서는 수정 X, 정정 시 새 문서) — 세무 감사 대비. 세금은 「돈이 걸리고, 법이 걸리고, 되돌리기 어려운」 삼중고라, 결제 주제 중 가장 신중히·처음부터 제대로 다뤄야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**「되돌리기 어려운 영역은 처음부터 제대로」 — 소급이 비싼 것은 사전 설계에 투자한다.** 세금의 교훈은 「소급 비용이 큰 영역」에 대한 태도다: 대부분의 소프트웨어는 「빨리 만들고 반복 개선」이 좋지만, **소급 정정이 매우 비싼 영역**(세금·회계·법적 기록·규정 준수·데이터 이력)은 다르다 — 여기선 「나중에 고치자」가 재앙이라, **처음부터 제대로 설계하는 데 투자**하는 게 옳다. 왜냐하면 이런 영역은 ① 과거가 누적되고(잘못이 쌓임), ② 되돌리기가 외부·법·타인과 얽혀 복잡하고(내 코드만 고쳐선 안 됨), ③ 위반의 대가가 크다(벌금·신뢰·법). 그래서 「어느 영역이 소급이 비싼가」를 식별하고, 그런 영역은 신중히·처음부터·전문가에 기대어 설계한다. 이는 데이터 스키마(마이그레이션이 어려운 핵심 데이터), 감사 로그(사후에 못 만듦), 개인정보 처리(legal-privacy — 잘못 모으면 되돌리기 어려움), API 계약(외부가 의존하면 못 바꿈)에도 통한다. 반대로 소급이 싼 영역(UI·내부 로직)은 빨리 반복해도 된다. 그래서 「모든 걸 완벽히 처음부터」도 「모든 걸 나중에 고치자」도 아니고, **소급 비용에 따라 투자를 배분**한다 — 되돌리기 비싼 것(세금·기록·계약)은 처음부터 제대로, 싼 것은 빠르게 반복. 세금은 「되돌리기 가장 비싼」 영역의 대표라, 사전 설계·전문가 위임·불변 기록의 원칙이 특히 중요하다. 「어디에 신중함을 투자할지」를 소급 비용으로 판단하는 게 성숙한 엔지니어링이다."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스의 세금 처리가 처음부터 제대로 설계됐는지 점검하라 — 각 거래에 세율·세액·과세 근거·구매자 위치를 기록하나(소급 계산 가능하게), 영수증이 법적 요구를 충족하나. 「나중에 고치면 되지」로 세금을 미뤘다면, 그게 가장 안 통하는 영역임을 알고 지금 제대로 설계하라(과거 데이터가 세금 정보를 안 담으면 소급 불가)."
+        }
       ],
-      "answer": 0,
-      "why": "국가 판별과 증빙 보관이 필요해진다."
+      "quiz": [
+        {
+          "q": "세금이 나중에 고치기 어려운 이유는?",
+          "choices": [
+            "느려서",
+            "이미 발생한 거래·신고를 되돌려야(소급 정정·환급·벌금)",
+            "코드가 많아서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "코드 버그와 다름."
+        },
+        {
+          "q": "세금 대응 원칙이 아닌 것은?",
+          "choices": [
+            "처음부터 제대로 설계",
+            "전문 서비스에 맡김",
+            "불변 기록",
+            "일단 만들고 나중에 고침"
+          ],
+          "answer": 3,
+          "why": "가장 안 통하는 영역."
+        },
+        {
+          "q": "「소급이 비싼 영역」에 대한 태도는?",
+          "choices": [
+            "빨리 반복",
+            "처음부터 제대로 설계에 투자(세금·기록·계약)",
+            "무시",
+            "나중에"
+          ],
+          "answer": 1,
+          "why": "소급 비용으로 투자 배분."
+        }
+      ]
     },
     {
-      "q": "세율 계산을 직접 관리하면?",
-      "choices": [
-        "자주 바뀌고 예외가 많아 낡는다",
-        "더 정확하다",
-        "비용이 준다"
+      "id": "2",
+      "title": "어디에 세금을 매기나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**디지털 서비스는 대개 「구매자의 위치」 기준**으로 과세한다(EU VAT·한국의 전자적 용역 규정 등 — 파는 곳이 아니라 사는 사람이 있는 나라의 세금). 그래서 ① **국가 판별**이 필요하다 — IP 위치·청구지 주소·카드 발급국 등 여러 신호로 구매자가 어느 나라인지 판단한다(신호가 엇갈릴 수 있어 규칙 필요). ② **증빙 보관** — 「이 구매자를 이 나라로 판단한 근거」(IP·청구지 등 2개 이상)를 보관해야 한다(세무 감사 시 「왜 이 나라 세율을 적용했나」를 증명). 물리 상품은 배송지 기준이 흔하다. 핵심: **과세 관할을 정하는 것(구매자 위치)과 그 판단 근거를 증빙으로 남기는 것**이 디지털 세금의 출발이다 — 위치를 잘못 판단하면 잘못된 세금을 매긴다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "과세 위치 — 구매자 기준 + 증빙",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = '{{step}}';\n  const rows = {\n    where:['어디 기준?', '디지털 = 구매자의 위치(파는 곳 X)', 'EU VAT·한국 전자적 용역 — 사는 사람의 나라'],\n    detect:['국가 판별', 'IP·청구지·카드 발급국 등 여러 신호', '신호가 엇갈리면 규칙으로 결정(예: 2개 일치)'],\n    evidence:['증빙 보관', '판단 근거를 2개 이상 보관', '감사 시 「왜 이 나라 세율?」을 증명'],\n    physical:['물리 상품', '대개 배송지 기준', '보내는 곳의 세금(디지털과 다름)'],\n  }[step];\n  render('과세 위치: ' + rows[0],\n    '  ' + rows[1] + '\\n  예: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">구매자 위치로 과세 관할 결정 + 판단 근거를 증빙으로 보관.</span>',\n    '디지털=구매자 위치 기준 · 국가 판별(IP·청구지) · 증빙 보관.',\n    box(rows[0], rows[1] + '\\n예: ' + rows[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "요소",
+              "type": "select",
+              "value": "where",
+              "options": [
+                {
+                  "value": "where",
+                  "label": "어디 기준"
+                },
+                {
+                  "value": "detect",
+                  "label": "국가 판별"
+                },
+                {
+                  "value": "evidence",
+                  "label": "증빙 보관"
+                },
+                {
+                  "value": "physical",
+                  "label": "물리 상품"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**디지털 서비스는 대개 구매자의 위치 기준으로 과세한다 — 그래서 국가 판별(IP·청구지·카드 발급국)과 판단 근거의 증빙 보관이 필요하다.** 과세의 첫 질문은 「**어느 나라의 세금을 매기나**」(과세 관할)다. **디지털 서비스**(소프트웨어·구독·다운로드·온라인 콘텐츠)는 대개 **「구매자가 있는 나라」 기준**으로 과세한다 — 파는 회사가 어디 있든, **사는 사람이 있는 나라의 세금**을 매기고 그 나라에 신고한다. EU 의 VAT(부가가치세) 규정, 한국의 「전자적 용역」 과세(해외 사업자가 한국 소비자에게 디지털 서비스를 팔면 한국 부가세) 등이 이 방식이다(각국이 자국 소비자에 대한 과세권을 주장). 그래서 필요한 것: ① **국가 판별** — 구매자가 어느 나라인지 판단해야 하는데, 확실한 단일 신호가 없어 **여러 신호**를 쓴다: IP 위치(어디서 접속), 청구지 주소(카드 등록 주소), 카드 발급국(BIN), 전화 국가번호, 사용자가 선택한 국가. 이 신호들이 **엇갈릴 수 있어**(VPN 으로 IP 는 다른 나라, 청구지는 본국) 규칙이 필요하다(예: EU 는 「2개 이상의 서로 모순 없는 증거」를 요구 — IP 와 청구지가 일치하면 그 나라). ② **증빙 보관** — 「이 구매자를 이 나라로 판단한 근거」를 **보관**해야 한다(어떤 신호로 어느 나라라 판단했나). 세무 감사 시 「왜 이 거래에 이 나라 세율을 적용했나」를 **증명**해야 하니(근거 없이 세율을 적용하면 문제), IP·청구지 등 판단 근거를 거래 기록에 남긴다(보통 2개 이상의 일치하는 증거). 반면 **물리 상품**은 대개 **배송지 기준**(물건을 보내는 곳의 세금)이라 디지털과 다르다(그래서 무엇을 파나에 따라 기준이 다름). 핵심: 세금은 **「구매자가 어느 관할인가」를 정하는 것**에서 시작하고, 디지털은 구매자 위치가 기준이라 국가 판별과 증빙이 필수다. 위치를 잘못 판단하면(엉뚱한 나라로) 잘못된 세율·잘못된 신고가 되어 1장의 「되돌리기 어려운」 문제가 된다. 그래서 국가 판별을 신중히(여러 신호·규칙) 하고 근거를 남긴다 — 이것도 직접 하기 복잡해 전문 서비스가 처리한다(3장)."
+        },
+        {
+          "type": "p",
+          "text": "**「규칙이 적용되는 맥락을 정확히 판별하고 근거를 남긴다」 — 규정 준수의 기본.** 과세 위치의 교훈은 규정 준수 일반의 원리다: **어떤 규칙(세금·법·정책)이 적용될 「맥락」(관할·대상·조건)을 정확히 판별하고, 그 판별의 근거를 증빙으로 남긴다**. 세금에선 「구매자가 어느 나라인가」가 맥락이고, 그걸 여러 신호로 판별하고 근거를 보관한다. 이는 규정 준수 전반에 통한다 — 개인정보 규제(사용자가 어느 관할인가 — GDPR 적용? legal-privacy), 연령 제한(사용자가 성인인가), 접근 제어(권한이 있나), 콘텐츠 규제(어느 나라 규칙). 핵심 둘: ① **정확한 판별**(맥락을 여러 신호로·규칙으로 — 단일 신호는 틀릴 수 있으니), ② **근거 보관**(왜 그렇게 판단했나를 증빙으로 — 나중에 「왜?」에 답할 수 있게, 감사·분쟁 대비). 이 「판별 + 증빙」이 규정을 지키면서 **입증 가능**하게 하는 것 — 규정 준수는 「지키는 것」뿐 아니라 「지켰음을 증명하는 것」이 중요하다(감사·소송에서). 그래서 규제가 걸린 결정(세율·접근·데이터 처리)은 **근거를 남기며** 한다(누가·언제·왜·어떤 근거로). 이는 감사 로그(pay-security 7장)·의사결정 기록과 통한다. 세금의 「구매자 위치 판별 + 증빙」은 이 원리의 구체적 실천 — 관할을 정확히 정하고, 그 근거를 남겨 입증 가능하게. 규정 준수는 「맥락을 정확히 판별하고, 근거를 남긴다」가 근본이다."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스의 과세 기준을 확인하라 — 디지털이면 구매자 위치 기준인가, 물리면 배송지인가. 국가를 어떻게 판별하나(IP·청구지·카드 발급국), 신호가 엇갈릴 때 규칙이 있나, 판단 근거를 증빙으로 보관하나(감사 대비). 「이 거래에 왜 이 나라 세율을 적용했나」에 근거로 답할 수 있는지 점검하라 — 국가 판별과 증빙이 디지털 세금의 출발이다."
+        }
       ],
-      "answer": 0,
-      "why": "세금 전문 기능을 쓰는 편이 낫다."
+      "quiz": [
+        {
+          "q": "디지털 서비스의 과세 기준은?",
+          "choices": [
+            "파는 곳",
+            "구매자의 위치(EU VAT·한국 전자적 용역)",
+            "무작위",
+            "카드사"
+          ],
+          "answer": 1,
+          "why": "국가 판별·증빙 필요."
+        },
+        {
+          "q": "국가 판별에 쓰는 신호는?",
+          "choices": [
+            "하나만",
+            "IP·청구지·카드 발급국 등 여러 신호(엇갈리면 규칙)",
+            "이름",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "단일 신호는 틀릴 수 있음."
+        },
+        {
+          "q": "증빙 보관이 필요한 이유는?",
+          "choices": [
+            "빠르려고",
+            "감사 시 「왜 이 나라 세율?」을 증명(근거를 남김)",
+            "예뻐서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "규정 준수는 입증도."
+        }
+      ]
     },
     {
-      "q": "「매출 = 입금」이 아닌 이유는?",
-      "choices": [
-        "PG 수수료와 정산 주기 때문",
-        "환율 때문만",
-        "세금 때문만"
+      "id": "3",
+      "title": "표시 방식 — 포함 vs 별도",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "세금 **표시 방식**이 지역·대상마다 다르다: **한국·EU 소비자(B2C)** 대상은 **세금 포함 가격**(「11,000원」에 세금이 포함) 표시가 일반적이고 요구되기도 한다(소비자가 최종 낼 금액을 봄). **미국 B2B·SaaS** 는 **세금 별도**(「$100 + tax」) 표시가 흔하다(구매자가 세금을 따로 처리). 같은 「10,000원 상품」이라도 표시가 다르다: 포함이면 「11,000원(세금 1,000 포함)」, 별도면 「10,000원 + 세금 1,000」. 핵심: ① **표시 규칙을 대상 지역·고객 유형에 맞게**(잘못하면 규정 위반·혼란) ② **내부적으론 세전·세액·세후를 다 기록**(표시는 규칙대로, 데이터는 완전하게) ③ **가격 정책과 연동**(세금 포함으로 팔면 세율 변동 시 마진 변화). 표시는 규정과 UX 둘 다의 문제다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세금 표시 — 포함 vs 별도",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const net = 10000, rate = 0.1;\n  const tax = Math.round(net * rate);\n  if (mode === 'inclusive') {\n    render('세금 포함 (B2C — 한국·EU)',\n      '  표시 가격: ' + won(net + tax) + ' (세금 포함)\\n' +\n      '  소비자는 최종 낼 금액을 봄 — 결제 시 추가 없음\\n\\n' +\n      '  <span class=\\\"ok\\\">B2C 소비자: 세금 포함 표시가 일반·요구됨(최종가 명확).</span>',\n      '세금 포함(B2C): 최종 낼 금액을 표시 — 소비자가 명확.',\n      bill([['표시 가격(세금 포함)', won(net+tax), 'total'], ['  = 공급가', won(net)], ['  + 세금(10%)', won(tax), 'tax']]));\n  } else {\n    render('세금 별도 (B2B — 미국 SaaS)',\n      '  표시 가격: ' + won(net) + ' + 세금\\n' +\n      '  결제 시 세금 추가 → 최종 ' + won(net+tax) + '\\n\\n' +\n      '  <span class=\\\"ok\\\">B2B·미국: 세금 별도 표시가 흔함(구매자가 세금 따로 처리).</span>',\n      '세금 별도(B2B): 공급가 표시 + 세금 추가 — 구매자가 처리.',\n      bill([['표시 가격(공급가)', won(net)], ['+ 세금(10%)', won(tax), 'tax'], ['결제 총액', won(net+tax), 'total']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "표시 방식",
+              "type": "select",
+              "value": "inclusive",
+              "options": [
+                {
+                  "value": "inclusive",
+                  "label": "세금 포함(B2C)"
+                },
+                {
+                  "value": "exclusive",
+                  "label": "세금 별도(B2B)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**세금 표시는 지역·대상마다 다르다 — B2C(한국·EU)는 세금 포함, B2B·미국 SaaS 는 세금 별도가 흔하다. 표시는 규칙대로 하되 내부 데이터는 세전·세액·세후를 완전히 기록한다.** **표시 방식** 두 가지: ① **세금 포함(inclusive)** — 표시 가격에 세금이 이미 포함(「11,000원」이 최종가, 그중 1,000 이 세금). **한국·EU 의 소비자(B2C)** 대상에 일반적이고 **요구되기도** 한다 — 소비자가 「최종 낼 금액」을 명확히 보게 하려는 소비자 보호(표시가와 결제가가 같음, 계산대에서 놀라지 않게). ② **세금 별도(exclusive)** — 표시 가격은 공급가고 세금은 따로 추가(「$100 + tax」, 결제 시 세금 더함). **미국의 B2B·SaaS** 에 흔하다 — 미국은 주·시마다 세율이 달라 최종가를 미리 표시하기 어렵고, B2B 구매자는 세금을 따로 처리·공제하니 공급가 표시가 자연스럽다. 같은 「10,000원 상품」도: 포함이면 「11,000원(세금 1,000 포함)」, 별도면 「10,000원 + 세금 1,000」으로 표시가 다르다(최종 결제액은 같지만 표시가 다름). 핵심 원칙: ① **표시 규칙을 대상 지역·고객 유형에 맞게** — B2C 소비자에게 세금 별도로 표시하면 규정 위반이거나(포함 표시 요구 지역) 소비자 혼란(표시가보다 더 냄), B2B 에 억지로 포함하면 세금 처리가 불편. 대상에 맞는 표시를 한다(같은 상품도 지역·고객에 따라 다른 표시). ② **내부 데이터는 완전하게** — 표시는 규칙대로 하되, **내부적으론 세전(공급가)·세액·세후(총액)를 모두 기록**한다. 표시가 포함이든 별도든, 데이터엔 「공급가 X, 세금 Y, 총액 X+Y」가 다 있어야 회계·신고·영수증·환불(pay-refund 3장 — 실부담 계산)이 정확하다. 표시(사용자에게 보이는 것)와 데이터(내부 기록)를 분리해, 표시는 유연하게·데이터는 완전하게. ③ **가격 정책과 연동** — 세금 포함으로 팔면(11,000원 고정), 세율이 바뀌면(10%→12%) 공급가 마진이 줄거나(총액 고정 시) 총액을 올려야 한다(마진 유지 시). 세금 별도면 세율 변동이 세금액만 바꿔 마진에 영향 적다. 그래서 표시 방식이 가격 전략·마진에 영향을 준다. 표시는 **규정 준수(맞는 표시)와 UX(명확한 가격) 둘 다의 문제**라, 대상에 맞게 정하고 내부 데이터는 완전히 남긴다."
+        },
+        {
+          "type": "p",
+          "text": "**「표시와 데이터를 분리」 — 보이는 형식은 유연하게, 저장은 완전하게.** 세금 표시의 교훈은 「표시와 데이터의 분리」다(pay-flow 5장의 UX vs 진실과 통함): **사용자에게 보이는 형식(표시)은 맥락에 맞게 유연하게, 내부 저장(데이터)은 완전하고 정규화된 형태로** 한다. 세금에선 표시(포함/별도)가 지역·고객마다 다르지만, 데이터는 항상 세전·세액·세후를 완전히 담는다 — 그래야 하나의 완전한 데이터에서 여러 표시를 만들고(포함/별도 표시를 데이터에서 계산), 회계·신고·환불이 정확하다. 만약 데이터를 표시된 형태로만 저장하면(포함가만 저장, 세액 안 저장) 나중에 세액을 못 뽑아 회계·환불이 막힌다(pay-refund 3장 — 구성을 알아야 부분 환불). 이는 데이터 설계의 일반 원칙 — **원본 데이터는 완전·정규화해 저장하고, 표시는 그로부터 파생**한다(계산된 값·포맷은 저장 말고 파생, 통화·날짜·숫자 포맷도 마찬가지). 「보이는 대로 저장」하면 유연성·정확성을 잃는다(다른 표시·계산 불가). 그래서 「완전한 데이터 + 유연한 표시」가 원칙 — 데이터엔 모든 구성 요소를, 표시는 맥락(지역·고객·언어 i18n)에 맞게 파생. 세금의 「세전·세액·세후를 다 기록하고 표시는 규칙대로」는 이 원리의 실천이다. 특히 돈·규정이 걸린 데이터는 완전히 기록해야(구성·근거·이력) 나중의 정확한 처리(회계·환불·감사·신고)가 가능하다. 「보이는 것만 저장」의 유혹을 이기고 「완전히 저장, 유연하게 표시」를 지킨다."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스의 세금 표시가 대상에 맞는지 점검하라 — B2C(한국·EU) 소비자에게 세금 포함으로 표시하나, B2B·미국에 별도로 하나. 내부 데이터에 세전·세액·세후를 모두 기록하는지(표시가 포함이어도 세액을 따로 저장) 확인하라 — 데이터를 표시된 형태로만 저장하면 회계·환불·신고가 막힌다. 「완전한 데이터 + 규칙대로 표시」를 지켜라."
+        }
       ],
-      "answer": 0,
-      "why": "정기적인 대사가 필요하다."
+      "quiz": [
+        {
+          "q": "B2C(한국·EU) 소비자 대상 세금 표시는?",
+          "choices": [
+            "별도",
+            "세금 포함(최종 낼 금액 표시) — 일반·요구됨",
+            "안 함",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "소비자 보호."
+        },
+        {
+          "q": "내부 데이터는 어떻게 기록하나?",
+          "choices": [
+            "표시된 대로만",
+            "세전·세액·세후를 모두(표시가 포함이어도 세액 따로)",
+            "총액만",
+            "안 함"
+          ],
+          "answer": 1,
+          "why": "회계·환불·신고에 필요."
+        },
+        {
+          "q": "「표시와 데이터 분리」의 원리는?",
+          "choices": [
+            "같게",
+            "데이터는 완전·정규화, 표시는 맥락에 맞게 파생",
+            "표시만 저장",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "보이는 대로 저장하면 정확성 잃음."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "계산은 직접 하지 마라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**세율은 자주 바뀌고 예외가 많다** — 나라·주·시마다 다르고, 품목별 감면(식품·책·의약품), B2B 면세, 임계값(일정 매출 넘으면 등록 의무), 규정 개정이 잦다. 이걸 **직접 표로 관리하면 반드시 틀린다**(수백 관할 × 자주 바뀜 × 예외). 그래서 **PG 의 세금 기능이나 전문 서비스(Stripe Tax·Avalara·TaxJar 류)를 쓰는 편이 정확하고 싸다** — 이들이 전 세계 세율·규정을 **항상 최신으로** 유지하고, 위치·품목·고객 유형에 따라 올바른 세금을 계산해 준다. 직접 만들면 규정 변화를 못 따라가 틀린 세금을 매기고(1장 — 되돌리기 어려움), 유지보수(세율 업데이트)가 끝없다. 「세금 계산은 전문 서비스에 위임」이 실무의 정답이다 — 내 코드는 그 결과를 쓰고 기록만."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세금 계산 — 직접 vs 전문 서비스",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const who = '{{who}}';\n  if (who === 'diy') {\n    render('직접 세율표 관리 (틀린다)',\n      '  수백 관할 × 자주 바뀜 × 품목·B2B 예외 → 직접 표로?\\n\\n' +\n      '  <span class=\\\"no\\\">규정 변화를 못 따라가 틀린 세금 → 되돌리기 어려움 + 끝없는 유지보수.</span>',\n      '직접 관리: 수백 관할·잦은 변경·예외 → 반드시 틀리고 유지보수 지옥.',\n      steps([['수백 관할의 세율표', 'bad'],['자주 바뀜(따라가야)', 'bad'],\n             ['품목·B2B·임계값 예외', 'bad'],['틀린 세금 + 끝없는 유지보수', 'bad']]));\n  } else {\n    render('전문 서비스 (정확·싸다)',\n      '  Stripe Tax·Avalara 등이 전 세계 세율·규정을 항상 최신으로\\n' +\n      '  → 위치·품목·고객 유형에 맞는 세금 계산 → 내 코드는 결과를 씀\\n\\n' +\n      '  <span class=\\\"ok\\\">전문 서비스가 최신 유지 → 정확 + 유지보수 없음. 직접보다 싸다.</span>',\n      '전문 서비스: 세율·규정을 항상 최신 → 정확·저비용. 위임이 정답.',\n      steps([['전문 서비스가 세율·규정 최신 유지', 'good'],['위치·품목·고객으로 올바른 계산', 'good'],\n             ['내 코드는 결과를 쓰고 기록만', 'good'],['정확 + 유지보수 없음', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "who",
+              "label": "계산 방식",
+              "type": "select",
+              "value": "diy",
+              "options": [
+                {
+                  "value": "diy",
+                  "label": "직접 세율표"
+                },
+                {
+                  "value": "service",
+                  "label": "전문 서비스"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**세율은 자주 바뀌고 예외가 많아 직접 관리하면 반드시 틀린다 — PG 의 세금 기능이나 전문 서비스가 정확하고 싸다. 세금 계산은 위임하고, 내 코드는 결과를 쓰고 기록만 한다.** 세율을 직접 표로 관리하는 게 왜 재앙인가: ① **수많은 관할** — 나라(수백), 미국은 주·카운티·시(수천 개의 세율 조합), 각각 다른 규칙. ② **자주 바뀜** — 세율·규정이 수시로 개정된다(예산·정책마다). 이걸 다 추적·업데이트해야 하는데, 놓치면 틀린 세금. ③ **많은 예외** — 품목별 감면(식품·책·의약품·의류가 나라마다 다르게 면세·감면), B2B 면세·역과세(7장), 매출 임계값(일정 규모 넘으면 등록·징수 의무 — nexus), 특수 상품(디지털 vs 물리). 이 **수백 관할 × 잦은 변경 × 많은 예외**를 직접 정확히 관리하는 건 사실상 불가능하다 — 반드시 틀리고(잘못된 세금 = 1장의 되돌리기 어려운 재앙), 유지보수(세율 업데이트 추적)가 끝없다. 그래서 **전문 서비스에 위임**한다: **PG 의 세금 기능**(Stripe Tax 등)이나 전문 세금 서비스(Avalara·TaxJar)가 **전 세계 세율·규정을 항상 최신으로** 유지하고(그게 그들의 본업 — 규정 변화를 전담 추적), API 로 「이 거래(위치·품목·고객 유형·금액)에 세금이 얼마인가」를 정확히 계산해 준다. 내 코드는 그 **결과를 받아 쓰고**(청구에 반영·표시) **기록**만 한다(세액·근거를 거래에 저장, 4장 영수증·5장 회계). 이게 **정확하고**(전문가가 최신 유지) **싸다**(직접 만들고 유지하는 비용 vs 서비스 구독료 — 후자가 압도적으로 쌈, 특히 틀렸을 때의 대가 고려하면). 이는 pay-security 1장(카드는 PG 에)·3DS(위임)과 같은 원리 — **복잡·전문적·규정 의존적이고 틀리면 비싼 것은 전문 서비스에 위임**한다. 「직접 만들어 통제하고 싶다」는 유혹은 세금에선 특히 위험하다(끝없는 유지보수 + 틀릴 위험 + 되돌리기 어려움). 세금 계산의 정답은 「직접 하지 말고 전문 서비스에 맡기고, 내 시스템은 그 결과를 정확히 반영·기록」이다. 이걸로 규정 준수를 전문가에게 아웃소싱하고, 나는 내 비즈니스에 집중한다."
+        },
+        {
+          "type": "p",
+          "text": "**「규정 의존적이고 자주 바뀌는 것은 전문 서비스에 위임」 — 핵심 역량이 아니면 사서 쓴다.** 세금 계산 위임의 교훈은 「무엇을 직접 만들고 무엇을 살까」의 판단이다: **핵심 역량(내 비즈니스의 차별점)이 아니면서, 복잡·전문적이고 유지보수가 끝없는 것은 전문 서비스를 사서 쓴다**. 세금은 대부분 회사의 핵심 역량이 아니고(세금 계산으로 경쟁하지 않음), 복잡·규정 의존적이라 직접 만들면 비용·위험만 크다 — 그래서 전문 서비스에 위임하고 내 핵심(제품)에 집중한다. 이는 「build vs buy」의 고전적 판단 — 인증(직접 vs Auth0), 결제(직접 vs Stripe), 세금(직접 vs Stripe Tax), 이메일 발송(직접 vs SendGrid), 검색(직접 vs 전문), 관측성(직접 vs Datadog). 판단 기준: ① **핵심 역량인가**(내 차별점이면 직접, 아니면 사서), ② **복잡·전문적인가**(전문성이 필요하면 사서), ③ **유지보수가 끝없나**(규정·표준이 자주 바뀌면 사서 — 전담 추적 불가), ④ **틀리면 비싼가**(세금·보안·결제 — 전문가가 안전). 세금은 이 네 기준 모두 「사서 쓰기」를 가리킨다(핵심 아님·복잡·규정 잦음·틀리면 재앙). 그래서 「직접 만들기」의 통제 욕구보다 「전문 서비스 위임」이 대개 낫다 — 특히 규정·전문성·안전이 걸린 영역(세금·보안·결제·법). 내 시간·역량을 핵심(제품의 차별점)에 쓰고, 나머지(세금·인증·인프라)는 전문가가 만든 걸 조합한다. 이 「핵심에 집중, 나머지는 위임」이 현대 소프트웨어 개발의 지혜다 — 모든 걸 직접 만들려는 건 비효율이고, 특히 세금처럼 규정 의존적이고 틀리면 비싼 것은 반드시 전문가에게."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스가 세금을 직접 계산하나, 전문 서비스(Stripe Tax·Avalara 등)를 쓰나 점검하라. 직접 세율표를 관리한다면 그게 최신인지·모든 예외(품목·B2B·임계값)를 다루는지 의심하고, 전문 서비스로 옮길지 검토하라. 세금 계산을 위임하고 내 코드는 결과를 쓰고 기록만 하는지, 「핵심 역량 아닌 복잡·규정 의존적인 것을 위임」의 원칙을 따르는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "세율을 직접 표로 관리하면?",
+          "choices": [
+            "정확",
+            "반드시 틀림(수백 관할·잦은 변경·예외) + 유지보수 지옥",
+            "빠름",
+            "싸다"
+          ],
+          "answer": 1,
+          "why": "전문 서비스가 정확·싸다."
+        },
+        {
+          "q": "세금 계산의 실무 정답은?",
+          "choices": [
+            "직접 구현",
+            "PG 세금 기능·전문 서비스에 위임 — 내 코드는 결과를 쓰고 기록",
+            "무시",
+            "고객이"
+          ],
+          "answer": 1,
+          "why": "규정 최신 유지."
+        },
+        {
+          "q": "위임 판단의 기준은?",
+          "choices": [
+            "항상 직접",
+            "핵심 역량 아니고·복잡·규정 잦고·틀리면 비싸면 → 사서 쓴다",
+            "항상 사서",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "핵심에 집중."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "영수증과 세금계산서",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "영수증·세금계산서는 필수 요소를 담고 **불변 기록**이어야 한다: **필수 내용** — 거래 일시·금액·세액·판매자 정보·구매자 정보(B2B 는 사업자번호 등). **불변성** — 한번 발행한 영수증은 **수정하지 않는다**. 정정이 필요하면 **새 문서를 발행**한다(원본은 그대로 두고 수정본·취소본을 추가 — 덮어쓰기 X). 왜 불변: 세무 감사·회계 무결성 — 「발행된 문서가 나중에 바뀌면」 신뢰·법적 효력이 없다(과거 기록은 그때의 사실). 그래서 영수증은 **append-only**(추가만, 수정·삭제 X)로 관리하고, 사용자가 **언제든 조회·재발행**할 수 있게 보관한다(법정 보관 기간). 불변 기록이 세금·회계 신뢰의 근간이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "영수증 — 필수 내용과 불변성",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const aspect = '{{aspect}}';\n  if (aspect === 'content') {\n    render('영수증 필수 내용',\n      '  거래 일시·금액·세액·판매자·구매자(B2B)\\n\\n' +\n      '  <span class=\\\"ok\\\">법적 요구 요소를 다 담아야 유효한 영수증.</span>',\n      '영수증: 거래 일시·금액·세액·판매자·구매자(B2B) — 법적 요소.',\n      bill([['거래 일시', '2026-08-13 14:30'], ['공급가', won(10000)], ['세액(10%)', won(1000), 'tax'],\n            ['합계', won(11000), 'total'], ['판매자', '사업자정보'], ['구매자(B2B)', '사업자번호']]));\n  } else if (aspect === 'immutable') {\n    render('불변 기록 (수정 X)',\n      '  발행한 영수증은 수정하지 않는다 → 정정은 새 문서로\\n' +\n      '  원본 유지 + 취소본/수정본 추가 (덮어쓰기 X, append-only)\\n\\n' +\n      '  <span class=\\\"ok\\\">과거 기록은 그때의 사실 — 바꾸면 감사·법적 효력 상실.</span>',\n      '불변: 발행본은 수정 X, 정정은 새 문서 — append-only(감사 무결성).',\n      steps([['영수증 #001 발행 (확정)', 'good'],['정정 필요?', 'on'],\n             ['#001 수정 X (원본 유지)', 'bad'],['#002 수정본/취소본 발행(추가)', 'good']]));\n  } else {\n    render('조회·재발행·보관',\n      '  사용자가 언제든 조회·재발행 · 법정 기간 보관\\n\\n' +\n      '  <span class=\\\"ok\\\">고객 편의 + 법적 보관 의무 — 안전하게 오래 보관.</span>',\n      '조회·재발행·법정 보관 — 고객 편의 + 법적 의무.',\n      steps([['사용자가 언제든 조회', 'good'],['재발행 가능', 'good'],['법정 기간 보관(수년)', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "aspect",
+              "label": "측면",
+              "type": "select",
+              "value": "content",
+              "options": [
+                {
+                  "value": "content",
+                  "label": "필수 내용"
+                },
+                {
+                  "value": "immutable",
+                  "label": "불변성"
+                },
+                {
+                  "value": "access",
+                  "label": "조회·보관"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "영수증·세금계산서",
+          "text": "· 거래 일시 · 금액 · 세액 · 판매자 정보 · 구매자 정보(B2B)\n· 불변 기록 (수정 시 새 문서 발행 — 덮어쓰기 X)\n    영수증 #001 발행 → 정정 필요 → #001 유지 + #002 수정/취소본\n    (append-only: 추가만, 수정·삭제 X)\n· 사용자가 언제든 조회·재발행 · 법정 기간 보관\n\n왜 불변: 세무 감사·회계 무결성 — 발행된 문서가 바뀌면 신뢰·효력 없음"
+        },
+        {
+          "type": "note",
+          "text": "**영수증·세금계산서는 필수 요소를 담고 불변 기록이어야 한다 — 발행본은 수정하지 말고, 정정은 새 문서로(append-only), 사용자가 언제든 조회·재발행하게 보관한다.** **필수 내용**: 영수증·세금계산서는 법적 요구 요소를 담아야 유효하다 — 거래 일시, 금액(공급가), 세액, 판매자 정보(사업자명·번호·주소), B2B 면 구매자 정보(사업자번호 — 세금계산서), 거래 내역. 나라·문서 종류마다 필수 요소가 다르니(간이영수증 vs 세금계산서 vs invoice) 규정에 맞게. **불변성(immutability)** — 핵심 원칙: **한번 발행한 영수증·세금계산서는 수정하지 않는다**. 정정·취소가 필요하면 **새 문서를 발행**한다 — 원본(#001)은 **그대로 두고**, 취소본·수정본(#002)을 **추가**한다(원본을 덮어쓰거나 지우지 X). 이건 **append-only**(추가만, 수정·삭제 없음)다. **왜 불변**: ① **세무 감사·회계 무결성** — 발행된 세무 문서가 나중에 조용히 바뀌면 신뢰·법적 효력이 없다(「이 영수증이 원래 이랬나?」를 못 믿음). 과거 기록은 **그때의 사실**이어야 하고, 정정도 「언제 무엇을 왜 정정했나」가 추적되게 새 문서로 남긴다(감사 추적). ② **분쟁·증빙** — 고객·세무 당국과의 분쟁 시 원본이 보존돼야 증거가 된다. 그래서 영수증 시스템은 **append-only 로 설계**한다 — 발행하면 확정(불변), 변경은 새 항목 추가(수정본·취소본·재발행). 그리고 **조회·재발행·보관**: 사용자(고객)가 **언제든 자기 영수증을 조회·재발행**할 수 있게 하고(고객 편의 + 법적 요구 — 구매자가 영수증을 받을 권리), **법정 보관 기간** 동안 안전하게 보관한다(나라마다 수년 — 세무 감사 대비). 핵심 통찰: 세무 문서는 **불변의 사실 기록**이라, 일반 데이터처럼 「수정」하지 않고 **회계 원장처럼 추가만** 한다(복식부기의 「전표는 수정 않고 반대 전표로 정정」과 같은 원리). 영수증을 「수정 가능한 레코드」로 다루면(발행 후 금액을 고침) 감사·법적 문제가 되니, 처음부터 append-only·불변으로 설계한다. 이 불변 기록이 세금·회계 신뢰의 근간이다 — 「발행된 것은 사실로 고정되고, 변경은 흔적을 남기며 추가」."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 세금(pay-tax)은 pay 갈래(결제)의 「돈이 걸린 법적·규정 영역」이다. 나라마다 다르고 되돌리기 어려움(1장)은 「소급 비싼 영역은 처음부터」, 구매자 위치·증빙(2장)은 규정 준수(입증)·legal-privacy, 표시(3장)는 「표시와 데이터 분리」·i18n, 계산 위임(4장)은 pay-security 1장(전문 서비스 위임)·build vs buy, 영수증 불변(5장)은 pay-security 7장(감사 로그)·data(append-only)·불변 기록, 정산 대사(6장)는 pay-flow 4장(정합)·회계와 통한다. **「세금은 나라마다 다르고 되돌리기 어렵다 — 구매자 위치로 과세하고 증빙을 남기고, 표시는 규칙대로 데이터는 완전하게, 계산은 전문 서비스에 위임하고, 영수증은 불변 기록으로, 정산은 대사한다」**가 핵심이다. 세금은 결제의 「법·규정·회계」 축으로, 정확성·불변성·위임·처음부터 제대로가 특히 중요하다 — 돈·법·되돌리기 어려움의 삼중고 위에서."
+        },
+        {
+          "type": "try",
+          "text": "네 영수증·세금계산서가 필수 요소(일시·금액·세액·판매자·구매자)를 담고 불변인지 점검하라 — 발행 후 수정하나(위험), 정정을 새 문서로 하나(append-only). 사용자가 언제든 조회·재발행하고 법정 기간 보관되는지 확인하라. 영수증을 「수정 가능한 레코드」로 다루고 있으면, append-only 불변 기록으로 다시 설계하라 — 세무 무결성의 근간이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "발행한 영수증을 정정하려면?",
+          "choices": [
+            "원본 수정",
+            "원본 유지 + 새 문서(수정본/취소본) 발행 — append-only",
+            "삭제",
+            "덮어쓰기"
+          ],
+          "answer": 1,
+          "why": "불변 기록."
+        },
+        {
+          "q": "영수증이 불변이어야 하는 이유는?",
+          "choices": [
+            "빠르려고",
+            "세무 감사·회계 무결성 — 발행본이 바뀌면 신뢰·효력 없음",
+            "예뻐서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "과거는 그때의 사실."
+        },
+        {
+          "q": "영수증 보관은?",
+          "choices": [
+            "안 함",
+            "사용자가 언제든 조회·재발행 + 법정 기간 보관",
+            "즉시 삭제",
+            "1일"
+          ],
+          "answer": 1,
+          "why": "고객 편의 + 법적 의무."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "정산과 회계",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "PG 는 **수수료를 떼고 며칠 뒤** 입금한다 — 그래서 **「매출 ≠ 입금」**이다. 고객이 11,000원 결제해도, PG 수수료(예: 3%)를 뗀 금액이 며칠 후 정산되어 내 계좌에 들어온다. 게다가 환불·분쟁·조정이 섞이면 더 복잡하다. 그래서 **대사(reconciliation)**가 필요하다 — **PG 정산 파일과 내 DB 의 매출·거래를 대조**해, 「내가 기록한 거래」와 「PG 가 실제 정산한 금액」이 맞는지 확인한다. 안 맞으면(누락·중복·금액 차이·수수료 오차) 원인을 찾아 조정한다. 대사는 돈이 걸린 시스템의 필수 — 내 장부와 실제 입금이 맞아야 회계가 정확하고, 누락·오류·부정을 잡는다. 「매출을 기록하는 것」과 「실제로 받은 돈을 확인하는 것」은 다르다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "정산 대사 — 매출 ≠ 입금",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  const gross = 11000, feeRate = 0.03;\n  const fee = Math.round(gross * feeRate);\n  const net = gross - fee;\n  if (view === 'settle') {\n    render('정산 — 수수료 떼고 며칠 뒤',\n      '  고객 결제: ' + won(gross) + ' (내 매출로 기록)\\n' +\n      '  PG 수수료(3%): -' + won(fee) + '\\n' +\n      '  실제 입금(며칠 후): ' + won(net) + '\\n\\n' +\n      '  <span class=\\\"warn\\\">매출(' + won(gross) + ') ≠ 입금(' + won(net) + ') — 수수료·시차.</span>',\n      '매출 ≠ 입금: PG 수수료 떼고 며칠 뒤 입금 — 회계에 반영.',\n      bill([['고객 결제(매출)', won(gross), 'total'], ['PG 수수료(3%)', '-'+won(fee), 'tax'],\n            ['실제 입금(며칠 후)', won(net), 'total']]));\n  } else {\n    render('대사(reconciliation) — 대조',\n      '  PG 정산 파일 ↔ 내 DB 매출·거래 대조\\n' +\n      '  → 맞나? 누락·중복·금액 차이·수수료 오차 확인\\n\\n' +\n      '  <span class=\\\"ok\\\">내 장부와 실제 입금이 맞는지 대조 → 오류·누락·부정을 잡음.</span>',\n      '대사: PG 정산 파일과 내 DB 를 대조 — 안 맞으면 원인 찾아 조정.',\n      steps([['PG 정산 파일 받음', 'on'],['내 DB 거래와 대조', 'on'],\n             ['맞으면 OK', 'good'],['안 맞으면(누락·중복·차이) 원인 조정', 'bad']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "settle",
+              "options": [
+                {
+                  "value": "settle",
+                  "label": "정산(매출≠입금)"
+                },
+                {
+                  "value": "recon",
+                  "label": "대사"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**PG 는 수수료를 떼고 며칠 뒤 입금하니 「매출 ≠ 입금」이다 — PG 정산 파일과 내 DB 를 대조하는 대사(reconciliation)가 필요하다.** 결제가 성공해도 그 돈이 그대로 내 계좌에 즉시 들어오는 게 아니다: ① **수수료** — PG 가 결제액에서 **수수료**(보통 2~3% + 건당 수수료)를 뗀다. 고객이 11,000원 결제하면 수수료(약 330원)를 뗀 10,670원이 내 몫. ② **시차** — 정산은 **며칠 뒤**(정산 주기 — T+2~T+7 등, pay-flow 2장). ③ **조정** — 환불·분쟁(chargeback)·역수수료·보정이 정산에 섞인다. 그래서 **「내가 기록한 매출」과 「실제 입금액」이 다르다**(매출 ≠ 입금) — 매출(총 결제액)은 내 장부에, 입금(수수료 뗀 순액, 며칠 후)은 통장에, 그 사이 수수료·시차·조정이 있다. 이걸 회계에 정확히 반영해야 한다(매출·수수료 비용·미수금을 구분). **대사(reconciliation)** — 필수 작업: **PG 가 주는 정산 파일**(어느 거래가 얼마씩 정산됐나, 수수료 명세)과 **내 DB 의 거래·매출**을 **대조**한다. 확인: 내가 기록한 모든 거래가 PG 정산에 있나(누락 없나), PG 정산의 모든 항목이 내 거래에 있나(모르는 입금·중복 없나), 금액이 맞나(수수료 계산·환불 반영이 정확한가). **안 맞으면**(거래 누락·중복 집계·금액 차이·수수료 오차·환불 미반영) 원인을 찾아 조정한다. 대사가 중요한 이유: ① **회계 정확성** — 장부와 실제 돈이 맞아야 재무제표·세금 신고가 정확. ② **오류·누락 발견** — 웹훅 유실로 안 기록된 거래, 이중 기록, 잘못된 금액을 잡는다(pay-flow 4장 정합의 돈 버전). ③ **부정·문제 탐지** — 예상 밖 입금·출금, 비정상 수수료를 발견. 그래서 돈이 걸린 시스템은 **주기적 대사(보통 매일·매월)**를 자동화한다(정산 파일을 내 DB 와 대조하는 스크립트). 「매출을 기록하는 것」(내 시스템)과 「실제로 받은 돈을 확인하는 것」(PG 정산과 대조)은 **다른 일**이고, 둘을 맞추는 대사가 회계 무결성의 핵심이다. 대사 없이 「결제 성공 = 돈 받음」으로 회계하면, 수수료·시차·누락으로 장부가 틀리고 문제를 못 잡는다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 세금(pay-tax)은 pay 갈래(결제)의 「법·규정·회계」 축으로, 결제의 마지막 조각이다. 나라마다 다르고 되돌리기 어려움(1장)·구매자 위치·증빙(2장)·표시와 데이터 분리(3장)·계산 위임(4장·pay-security)·영수증 불변(5장·감사)·정산 대사(6장)가 pay 갈래 전체(pay-flow 정산·pay-webhook 확정·pay-refund 세액 환불·pay-security 감사)와 통한다. 그리고 pay 갈래(결제)는 이로써 완결된다 — pay-flow(흐름)·pay-webhook(진실)·pay-idem(멱등)·pay-refund(환불)·pay-security(보안)·pay-sub(구독)·pay-tax(세금)가 「돈을 안전·정확·합법적으로 다루는」 결제 시스템을 이룬다. **「세금은 나라마다 다르고 되돌리기 어렵다 — 구매자 위치로 과세하고 증빙을 남기고, 표시는 규칙대로 데이터는 완전하게, 계산은 전문 서비스에 위임하고, 영수증은 불변으로, 정산은 대사한다」**가 핵심이다. 세금·회계는 결제의 「보이지 않지만 필수인」 뒷면 — 정확성·불변성·위임·대사가 돈의 무결성을 지킨다."
+        },
+        {
+          "type": "try",
+          "text": "PG 정산 내역과 내 DB 매출 합계를 한 달치 대조하는 스크립트를 써라(대사) — 모든 거래가 양쪽에 있나, 금액·수수료가 맞나, 누락·중복·차이가 없나. 안 맞는 항목의 원인(웹훅 유실·환불 미반영·수수료 오차)을 찾아라. 「매출(내 기록) ≠ 입금(실제)」을 회계에 정확히 반영하고, 주기적 대사를 자동화해 오류·누락을 잡아라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「매출 ≠ 입금」인 이유는?",
+          "choices": [
+            "같음",
+            "PG 가 수수료 떼고 며칠 뒤 입금(+환불·조정)",
+            "즉시 전액",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "수수료·시차."
+        },
+        {
+          "q": "대사(reconciliation)란?",
+          "choices": [
+            "환불",
+            "PG 정산 파일과 내 DB 를 대조 — 누락·중복·차이 확인·조정",
+            "결제",
+            "세금"
+          ],
+          "answer": 1,
+          "why": "회계 무결성."
+        },
+        {
+          "q": "대사가 잡는 것은?",
+          "choices": [
+            "속도",
+            "오류·누락(웹훅 유실 거래)·중복·부정·수수료 오차",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "장부와 실제를 맞춤."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "점검표 — 세금·회계",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "세금·영수증·회계를 다룰 때 이 목록을 확인하라. 핵심은 「나라마다 다르고 되돌리기 어렵다 — 구매자 위치로·전문 서비스에 위임·불변 기록·대사」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; } .bill .r.tax .val { color:#fbbf24; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Math.round(Number(n)).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '세금은 나라마다 다르고 되돌리기 어렵다 — 처음부터 제대로',\n    '디지털은 구매자 위치 기준 — 국가 판별 + 증빙 보관',\n    '표시는 규칙대로(B2C 포함/B2B 별도), 데이터는 완전하게',\n    '세금 계산은 직접 X — 전문 서비스에 위임(정확·싸다)',\n    '영수증은 불변 기록 — 정정은 새 문서(append-only)',\n    '사용자가 언제든 조회·재발행 + 법정 기간 보관',\n    '매출 ≠ 입금(수수료·시차) — 회계에 반영',\n    '정산 대사(PG 파일 ↔ 내 DB)로 오류·누락을 잡는다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 세금·회계를 정확·불변·합법적으로.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '나라마다 다르고 되돌리기 어렵다 — 구매자 위치·위임·불변·대사.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 세금은 나라마다 다르고 되돌리기 어렵다 — 구매자 위치로 과세하고, 계산은 전문 서비스에 위임하고, 영수증은 불변으로, 정산은 대사한다.** 세금은 나라마다 다르고 되돌리기 가장 어려우니 처음부터 제대로 하고(1장), 디지털은 구매자 위치 기준으로 국가 판별 + 증빙을 남기고(2장), 표시는 규칙대로(B2C 포함/B2B 별도) 데이터는 완전하게(3장), 계산은 직접 하지 말고 전문 서비스에 위임하고(4장), 영수증은 불변 기록으로 정정은 새 문서(append-only)로 하고 조회·재발행·보관하고(5장), 매출≠입금(수수료·시차)을 회계에 반영하며 정산 대사로 오류·누락을 잡는다(6장). 「정확·불변·합법적으로」가 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래 — pay 갈래 완결.** 세금(pay-tax)은 pay 갈래(결제)의 「법·규정·회계」 축이자 마지막 칸이다. 나라마다 다르고 되돌리기 어려움(소급 비싼 영역은 처음부터), 구매자 위치·증빙(규정 준수·입증), 표시와 데이터 분리(i18n·데이터 설계), 계산 위임(build vs buy·pay-security), 영수증 불변(감사·append-only), 정산 대사(pay-flow 정합·회계)와 통한다. 이로써 **pay 갈래가 완결**된다 — pay-flow(흐름)·pay-webhook(진실)·pay-idem(멱등)·pay-refund(환불)·pay-security(보안)·pay-sub(구독)·pay-tax(세금)가 「돈을 안전·정확·합법적으로 다루는」 결제 시스템의 전 영역을 이룬다. **「세금은 나라마다 다르고 되돌리기 어렵다 — 구매자 위치로 과세하고 증빙을 남기고, 표시는 규칙대로 데이터는 완전하게, 계산은 전문 서비스에 위임하고, 영수증은 불변으로, 정산은 대사한다」**가 이 칸의 전부다. 세금·회계는 결제의 보이지 않는 뒷면 — 정확성·불변성·위임·대사가 돈의 무결성을 지킨다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 세금·회계를 점검하라. 「세금 계산을 전문 서비스에 위임」과 「정산 대사 자동화」 두 가지만 잡아도, 가장 위험한 것(틀린 세금·회계 불일치)을 막는다. 세금을 직접 계산하고 있으면 전문 서비스로 옮기고, PG 정산과 내 DB 를 대조하는 대사 스크립트를 만들고, 영수증을 불변으로 설계하라 — 세금·회계를 정확·불변·합법적으로 다뤄라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "세금·회계 장의 한 줄 요약은?",
+          "choices": [
+            "빠르게",
+            "나라마다 다르고 되돌리기 어렵다 — 구매자 위치·위임·불변·대사",
+            "직접 계산",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "정확·불변·합법적으로."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "세금 계산을 전문 서비스에 위임 + 정산 대사 자동화",
+            "재시도·로그",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "틀린 세금·회계 불일치 방지."
+        },
+        {
+          "q": "세금이 이어지는(그리고 pay 갈래를 완결하는) 주제는?",
+          "choices": [
+            "없음",
+            "pay-flow(정산)·pay-security(위임·감사)·pay-refund(세액)·회계 대사",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "결제의 법·회계 축."
+        }
+      ]
     }
   ]
 }
