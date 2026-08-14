@@ -2,7 +2,6 @@
 # 숨김을 보게 하면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 둘째 칸 = 판단 끝난 예외(숨어도 계속 돌아야 하는 이유).
 # 갱신: node scripts/audit-hidden-tab-cpu.mjs --write-baseline
-src/widgets/agent-team/agent-team.ts
 src/widgets/arcade/arcade.ts
 src/widgets/arcade/open-rooms.ts	예외: 「나 여기 있다」를 알리는 심장박동이다. 숨었다고 멈추면 남들 화면에서 내가 나간 것으로 보인다 - 2026-08-14 확인
 src/widgets/chat.ts	예외: SSE 가 끊겼을 때의 폴백 폴링이다. 숨었다고 멈추면 덮어 둔 사이 온 말을 못 받는다 - 2026-08-14 확인
@@ -10,7 +9,6 @@ src/widgets/font.ts	예외: 가챠 굴리는 애니메이션이라 15번 돌고 
 src/widgets/heung/audio-engine.ts
 src/widgets/heung/heung.ts
 src/widgets/imageedit.ts
-src/widgets/imagegen/core.ts
 src/widgets/karmograph/karmograph.ts
 src/widgets/life/life.ts
 src/widgets/meok/meok.ts

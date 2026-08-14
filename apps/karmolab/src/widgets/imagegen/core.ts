@@ -2,6 +2,7 @@
  * imagegen - 큐 시스템, 유틸, 히스토리
  */
 import { t } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function () {
     'use strict';
@@ -182,7 +183,9 @@ import { t } from '../../lib/i18n';
         deps.updateMainPreview();
 
         const start = Date.now();
-        const timerId = setInterval(() => {
+        // 보이는 동안만 센다 (`lib/tick`) — 지난 시간은 `Date.now()` 에서 다시 재므로
+        // 덮어 뒀다 돌아와도 숫자가 안 틀린다(그 자리에서 바로 맞춰 그린다).
+        const stopElapsed = intervalWhileVisible(() => {
             next.elapsed = ((Date.now() - start) / 1000).toFixed(0);
             deps.renderQueueItem(next);
             const lt = document.getElementById('igLoadingText');
@@ -276,7 +279,7 @@ import { t } from '../../lib/i18n';
                 }
             }
         } finally {
-            clearInterval(timerId);
+            stopElapsed();
             queueProcessing = false;
             deps.renderQueue();
 
