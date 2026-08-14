@@ -161,7 +161,14 @@ function offlineNote(show: boolean): void {
         if (existing) return;
         const note = document.createElement('div');
         note.id = ID;
-        note.textContent = t('account.t05');
+        /* ★ **말 묶음이 없어도 떠야 한다** (2026-08-14). 이 쪽지가 뜨는 상황이 바로
+           「그물이 끊겼다」다 — 그런데 `t()` 는 묶음이 안 실렸으면 **던진다**. 대비 문장이
+           없으면 쪽지를 그리다 말고 죽는다(끊긴 순간에만 죽으니 아무도 못 봤다). */
+        note.textContent = t(
+            'account.t05',
+            undefined,
+            '서버에 못 닿고 있어요 — 도구는 그대로 씁니다. 로그인·광장·저장만 잠시 쉽니다.'
+        );
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
             'padding:8px 14px;border-radius:999px;font-size:12px;' +
@@ -273,8 +280,11 @@ function watchLocalChanges(): void {
 }
 
 async function refresh(): Promise<void> {
-    /* 머리띠의 계정 자리도 첫 화면이다 — 스스로 말 묶음을 받고 그린다. */
-    await loadNamespace('account');
+    /* 머리띠의 계정 자리도 첫 화면이다 — 스스로 말 묶음을 받고 그린다.
+       ★ **못 받아도 계속 간다** (2026-08-14). 끊긴 채 열면 이 받기가 실패하는데, 그러면
+          여기서 함수가 통째로 죽어 **「서버에 못 닿는다」 쪽지가 영영 안 떴다** — 정작 그
+          쪽지가 필요한 유일한 순간에. 말이 없으면 대비 문장으로 그린다(위 `offlineNote`). */
+    await loadNamespace('account').catch(() => {});
     const response = await call('/kl/me');
     state.loading = false;
     if (!response || !response.ok) {

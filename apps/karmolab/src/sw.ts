@@ -43,7 +43,13 @@ const APP_SHELL = ['/karmolab/', '/apps/karmolab/manifest.json'];
 const PRECACHE_IDLE = [
   '/apps/karmolab/fonts/sans-latin.woff2',
   '/apps/karmolab/fonts/sans-ko.woff2',
-  '/apps/karmolab/css/fonts.css'
+  '/apps/karmolab/css/fonts.css',
+  /* ★ **「서버에 못 닿는다」는 쪽지가 그 쪽지를 담은 파일과 함께 사라졌다** (2026-08-14).
+     그 쪽지는 `js/account.js` 가 그린다. 그런데 그 파일은 첫 그림 뒤에 늦게 불려 오고
+     여기 미리 받는 목록에도 없었다 — 끊긴 채 열면 그 스크립트부터 404 다(실측:
+     `A bad HTTP response code (404) was received when fetching the script`).
+     즉 **쪽지가 필요한 유일한 순간에 쪽지를 그릴 코드가 없다.** 무겁지도 않다(19KB). */
+  '/apps/karmolab/js/account.js'
 ];
 
 /**
