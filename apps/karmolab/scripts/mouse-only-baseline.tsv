@@ -15,4 +15,3 @@ src/widgets/tierlist/ui.ts
 src/widgets/tools/mesh3d.ts
 src/widgets/tools/pdfredact.ts
 src/widgets/tools/pdfsign.ts
-src/widgets/tools/redact.ts

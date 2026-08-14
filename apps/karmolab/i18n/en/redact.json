@@ -26,5 +26,8 @@
   "redact.err.render": "Could not turn it into an image.",
   "redact.say.saved": "Downloaded {size}. The hidden areas are gone from the file too, and the location data the photo carried came off with it.",
   "redact.file.fallback": "image",
-  "redact.file.suffix": "-redacted"
+  "redact.file.suffix": "-redacted",
+  "redact.kb.hint": "Keyboard works too — arrows move, Shift+arrows resize, Enter redacts",
+  "redact.kb.label": "Choose the area to redact (arrows move, Shift+arrows resize, Enter redacts, Backspace undoes)",
+  "redact.kb.moved": "Area {x},{y} · size {w}×{h}"
 }

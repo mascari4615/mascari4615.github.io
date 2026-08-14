@@ -100,6 +100,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           let mode: 'fill' | 'pixel' = 'fill';
           let dragStart: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
+          /* 자판으로 고르는 네모 (TASK-KL: 마우스 전용 구멍 메우기). 끌기만 있으면 손가락 하나로
+           * 하는 이 일이 **통째로 막힌 사람**이 생긴다 — 가리개는 「못 가림」이 곧 사고다. */
+          let caret: Box | null = null;
           let sourceName = t('redact.file.fallback');
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
@@ -165,6 +168,16 @@ import { t, loadNamespace } from '../../lib/i18n';
                 Math.abs(dragNow.x - dragStart.x),
                 Math.abs(dragNow.y - dragStart.y)
               );
+              ctx.restore();
+            }
+
+            // 자판으로 고르는 중이면 그 네모도 테두리로 보여 준다 (끌기와 같은 모양).
+            if (caret) {
+              ctx.save();
+              ctx.strokeStyle = '#5ab0ff';
+              ctx.lineWidth = Math.max(2, canvas.width / 400);
+              ctx.setLineDash([canvas.width / 60, canvas.width / 120]);
+              ctx.strokeRect(caret.x, caret.y, caret.w, caret.h);
               ctx.restore();
             }
 
@@ -248,6 +261,65 @@ import { t, loadNamespace } from '../../lib/i18n';
             boxes.push(b);
             redraw();
             say(t('redact.say.added', { n: boxes.length }), 'ok');
+          });
+
+          /* 자판 길 — 끌기와 **같은 일**을 자판으로 한다 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
+           * 화살표=옮기기 · Shift+화살표=크기 · Enter=가리기 · Backspace=되돌리기.
+           * 걸음은 그림 크기에 맞춘다(작은 그림에서 한 칸이 화면 절반이 되면 못 쓴다). */
+          canvas.tabIndex = 0;
+          canvas.setAttribute('role', 'application');
+          canvas.setAttribute('aria-label', t('redact.kb.label'));
+          canvas.addEventListener('keydown', (e) => {
+            if (!img) return;
+            const step = e.shiftKey ? 1 : 1;
+            const unit = Math.max(4, Math.round(canvas.width / 50)) * step;
+            if (!caret && /^(Arrow|Enter)/.test(e.key)) {
+              caret = { x: Math.round(canvas.width / 4), y: Math.round(canvas.height / 4), w: unit * 3, h: unit * 2 };
+              e.preventDefault();
+              redraw();
+              say(t('redact.kb.moved', { x: caret.x, y: caret.y, w: caret.w, h: caret.h }));
+              return;
+            }
+            if (!caret) return;
+            const clampBox = (): void => {
+              if (!caret) return;
+              caret.w = Math.max(4, Math.min(caret.w, canvas.width));
+              caret.h = Math.max(4, Math.min(caret.h, canvas.height));
+              caret.x = Math.max(0, Math.min(caret.x, canvas.width - caret.w));
+              caret.y = Math.max(0, Math.min(caret.y, canvas.height - caret.h));
+            };
+            switch (e.key) {
+              case 'ArrowLeft': if (e.shiftKey) caret.w -= unit; else caret.x -= unit; break;
+              case 'ArrowRight': if (e.shiftKey) caret.w += unit; else caret.x += unit; break;
+              case 'ArrowUp': if (e.shiftKey) caret.h -= unit; else caret.y -= unit; break;
+              case 'ArrowDown': if (e.shiftKey) caret.h += unit; else caret.y += unit; break;
+              case 'Enter': {
+                boxes.push({ ...caret });
+                caret = null;
+                e.preventDefault();
+                redraw();
+                say(t('redact.say.added', { n: boxes.length }), 'ok');
+                return;
+              }
+              case 'Backspace': {
+                if (boxes.length > 0) boxes.pop();
+                e.preventDefault();
+                redraw();
+                say(boxes.length ? t('redact.say.left', { n: boxes.length }) : t('redact.say.empty'), 'ok');
+                return;
+              }
+              case 'Escape': {
+                caret = null;
+                e.preventDefault();
+                redraw();
+                return;
+              }
+              default: return;
+            }
+            clampBox();
+            e.preventDefault();
+            redraw();
+            say(t('redact.kb.moved', { x: caret.x, y: caret.y, w: caret.w, h: caret.h }));
           });
 
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
