@@ -71,7 +71,10 @@ check(P.dhash(contrast) === h, '대비가 세져도 같은 해시');
 const jitter = g.map((v, i) => v + ((i % 3) - 1) * 3);
 const dJitter = P.hamming(h, P.dhash(jitter));
 check(dJitter <= 5, `살짝 흔들린 사진은 5비트 안 (나온 것 ${dJitter})`);
-check(P.verdict(dJitter) === 'same' || P.verdict(dJitter) === 'likely', '살짝 흔들림 = 같음/거의 같음');
+/* ★ 「또는」을 쓰면 느슨한 쪽이 늘 이긴다 — 값에 따라 **하나로** 정해 놓고 잰다
+   (`verdict`: 0 = 같음 · 1~5 = 거의 같음). `audit:loose` 가 잡아 줬다. */
+const 기대 = dJitter === 0 ? 'same' : 'likely';
+check(P.verdict(dJitter) === 기대, `살짝 흔들림 = ${기대} (나온 것 ${P.verdict(dJitter)})`);
 
 /* 아예 다른 그림은 멀어야 한다. */
 const dOther = P.hamming(h, P.dhash(noise(7)));
