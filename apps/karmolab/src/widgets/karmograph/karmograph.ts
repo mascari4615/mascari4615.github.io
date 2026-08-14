@@ -564,6 +564,11 @@ import {
     @media (pointer: coarse) {
       .km-toolbar .btn, .km-mini .btn, .km-sheet .btn { min-height:44px; min-width:44px; }
       .km-toolbar select, .km-toolbar input[type=text] { min-height:44px; }
+      /* ★ **크기만으로는 모자란다 — 사이도 벌린다.** 작은 도구 줄의 세 단추가 2px 간격이었다
+         (실측 2026-08-14). 그 줄의 끝은 🗑 라, 손가락이 조금 미끄러지면 복제하려다 **지운다**.
+         손가락 규격 권고는 8px 이상 — 넉넉히 10px 로 벌리고, 지우기만 한 칸 더 띄운다. */
+      .km-mini { gap:10px; padding:6px; }
+      .km-mini [data-km="mini-del"] { margin-left:10px; }
     }
     `;
 ;
@@ -2448,8 +2453,11 @@ import {
       const rect = canvas?.nodeScreenRect(selectedId);
       if (!rect) { miniEl.classList.add('hidden'); return; }
       miniEl.classList.remove('hidden');
-      // 카드 위쪽에 띄우되, 화면 위로 넘치면 아래로 내린다(안 그러면 도구가 잘려 안 눌린다).
-      const above = rect.y - 34;
+      /* 카드 위쪽에 띄우되, 화면 위로 넘치면 아래로 내린다(안 그러면 도구가 잘려 안 눌린다).
+         ★ 띄우는 높이는 **줄의 실제 키**로 잰다. 34 로 못 박아 두었더니, 손가락 규격에 맞춰
+         줄이 58px 로 커진 폰에서 줄이 카드를 덮어 **카드 자체가 안 눌렸다**(실측 2026-08-14). */
+      const barH = Math.max(miniEl.getBoundingClientRect().height, 34);
+      const above = rect.y - barH - 6;
       miniEl.style.left = `${Math.max(4, Math.round(rect.x))}px`;
       miniEl.style.top = `${Math.round(above > 4 ? above : rect.y + rect.h + 6)}px`;
       followMini();

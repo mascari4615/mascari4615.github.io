@@ -1922,6 +1922,32 @@ await step('폰의 손잡이가 모두 손가락 규격이다 (44px, KL-271)', a
     return out;
   });
   if (small.length > 0) throw new Error('손가락에 작은 손잡이: ' + small.slice(0, 6).join(' · '));
+
+  /* 크기만으로는 모자란다 — **사이도** 봐야 한다. 실측 2026-08-14: 작은 도구 줄 세 단추가
+     2px 간격이었고 그 줄의 끝은 🗑 다(복제하려다 지운다). 손가락 권고는 8px 이상. */
+  await m.locator('.ck-node').first().click();
+  await m.waitForTimeout(ms(600));
+  const tight = await m.evaluate(() => {
+    const spots = [...document.querySelectorAll('.km-root button, .km-root select')].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 2 && r.height > 2 && r.top >= 0 && r.bottom <= innerHeight;
+    });
+    const out = [];
+    for (let i = 0; i < spots.length; i += 1) {
+      for (let j = i + 1; j < spots.length; j += 1) {
+        const a = spots[i].getBoundingClientRect();
+        const b = spots[j].getBoundingClientRect();
+        const dx = Math.max(0, Math.max(a.left, b.left) - Math.min(a.right, b.right));
+        const dy = Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
+        if (dx === 0 && dy === 0) continue;   // 겹쳐 있는 것(부모·자식)은 이웃이 아니다
+        if (dx <= 3 && dy <= 3) {
+          out.push(`${spots[i].dataset.km || '?'}↔${spots[j].dataset.km || '?'}`);
+        }
+      }
+    }
+    return out;
+  });
+  if (tight.length > 0) throw new Error('손잡이 사이가 너무 붙었다: ' + tight.slice(0, 5).join(' · '));
   await ph.close();
 });
 
