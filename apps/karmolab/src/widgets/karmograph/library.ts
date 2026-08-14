@@ -49,9 +49,43 @@ function readIndex(): LibraryIndex | null {
   }
 }
 
+/** 지운 판의 id — 「내 목록에 없다」와 「지웠다」를 가르는 유일한 표시. */
+const GONE_KEY = 'karmograph.gone';
+
+function goneIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(GONE_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/** 지웠다고 적어 둔다 — 다른 탭의 목록이 그 판을 되살리지 못하게. */
+function markGone(id: string): void {
+  try {
+    const all = [...goneIds(), id].slice(-50);   // 오래된 것부터 흘려보낸다(무한히 쌓을 값이 아니다)
+    localStorage.setItem(GONE_KEY, JSON.stringify(all));
+  } catch { /* 칸이 좁으면 포기 — 그때는 목록이 조금 되살아날 뿐이다 */ }
+}
+
+/**
+ * 목록을 쓴다 — **남이 만든 판을 지우지 않고**.
+ *
+ * 탭마다 제 기억 속 목록을 통째로 쓰므로, 뒤에 쓴 탭이 앞 탭이 만든 판을 목록에서 **지웠다**
+ * (자료는 남고 미아가 된다 — 사람에게는 판이 통째로 사라진 것으로 보인다. 실측 2026-08-14).
+ * 그래서 쓰기 직전에 저장소를 다시 읽어, 내가 모르는 판은 **뒤에 붙여 살린다**. 「내가 지운 것」과
+ * 「남이 만든 것」은 지운 표시(`karmograph.gone`)로 가른다.
+ */
 function writeIndex(index: LibraryIndex): void {
   try {
-    localStorage.setItem(INDEX_KEY, JSON.stringify(index));
+    const mine = new Set(index.maps.map((m) => m.id));
+    const gone = goneIds();
+    const theirs = (readIndex()?.maps ?? []).filter((m) => !mine.has(m.id) && !gone.has(m.id));
+    const merged: LibraryIndex = theirs.length === 0
+      ? index
+      : { activeId: index.activeId, maps: [...index.maps, ...theirs] };
+    localStorage.setItem(INDEX_KEY, JSON.stringify(merged));
   } catch (e) {
     console.error(t('karmograph.writeIndex.msg'), e);
   }
@@ -133,6 +167,7 @@ export function addMap(index: LibraryIndex, name: string, specJson?: string): { 
  * (0장이면 「어느 맵을 열지」가 다시 특수 케이스가 된다).
  */
 export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
+  markGone(id);   // 지웠다는 표시가 없으면, 다른 탭의 목록이 이 판을 도로 살린다
   try {
     localStorage.removeItem(mapKey(id));
   } catch (e) {
