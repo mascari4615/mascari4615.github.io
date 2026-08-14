@@ -27,6 +27,7 @@
     "audit:registry-impl",
     "audit:hidden-tab",
     "audit:material-shell",
+    "audit:text-count",
     "audit:vendor-globals",
     "audit:wf-prereq",
     "test:i18n:pair",

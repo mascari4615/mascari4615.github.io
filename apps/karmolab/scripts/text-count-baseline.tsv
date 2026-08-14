@@ -1,0 +1,13 @@
+# text-count 기준선 — 세는 법이 공용 문을 안 거치는 자리. 여기 없는 새 것만 막는다.
+# 공용으로 옮기면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 둘째 칸(경로) 다음 셋째 칸 = 판단 끝난 예외.
+# 갱신: node scripts/audit-text-count.mjs --write-baseline
+CORE-DIRECT	src/widgets/tools/text-operations.ts
+GRAPHEME-HAND	src/widgets/tools/devtool.ts
+GRAPHEME-HAND	src/widgets/tools/shared/sniff.ts	예외: 위와 같은 자리(파일 앞머리 살피기) - 2026-08-14 확인
+WORDS-HAND	src/widgets/karmograph/json-canvas.ts	예외: 그래프 이름표를 줄바꿈하려 가른다 - 사람에게 보이는 「낱말 수」가 아니다 - 2026-08-14 확인
+WORDS-HAND	src/widgets/tools/cron.ts	예외: 사람 글이 아니라 **cron 식**을 칸으로 가른다(다섯 칸). 세는 일이 아니다 - 2026-08-14 확인
+WORDS-HAND	src/widgets/tools/morse.ts	예외: 모스 부호를 낱자로 가른다 - 세는 일이 아니다 - 2026-08-14 확인
+WORDS-HAND	src/widgets/tools/shared/code-shot.ts	예외: 코드 줄을 토큰으로 가른다(색칠용) - 세는 일이 아니다 - 2026-08-14 확인
+WORDS-HAND	src/widgets/tools/shared/sniff.ts	예외: 파일 종류를 알아보려 앞머리를 가른다 - 세는 일이 아니다 - 2026-08-14 확인
+WORDS-HAND	src/widgets/tools/text-operations.ts
