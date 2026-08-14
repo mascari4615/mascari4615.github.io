@@ -429,5 +429,9 @@
   "arcade.packs.new": "Make a table",
   "arcade.packs.more": "Make another table",
   "arcade.packs.well": "Today's table — {table}",
-  "arcade.btn.full": "fullscreen"
+  "arcade.btn.full": "fullscreen",
+  "arcade.btn.find": "find players",
+  "arcade.open.title": "rooms open now",
+  "arcade.open.none": "",
+  "arcade.open.card": "{game} · {host}"
 }

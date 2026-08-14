@@ -429,5 +429,9 @@
   "arcade.packs.new": "표 만들기",
   "arcade.packs.more": "표 더 만들기",
   "arcade.packs.well": "오늘의 표 — {table}",
-  "arcade.btn.full": "전체 화면"
+  "arcade.btn.full": "전체 화면",
+  "arcade.btn.find": "같이 찾기",
+  "arcade.open.title": "지금 열린 방",
+  "arcade.open.none": "",
+  "arcade.open.card": "{game} · {host}"
 }
