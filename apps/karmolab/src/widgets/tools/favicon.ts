@@ -12,7 +12,7 @@
 import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { download, loadImage } from './shared/image';
+import { download, encode, loadImage } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -205,8 +205,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             ].join('\n');
           }
 
-          const toBlob = (cv: HTMLCanvasElement): Promise<Blob> =>
-            new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error(t('favicon.err.toBlob')))), 'image/png'));
+          // 공용 한 자리(`shared/image.encode`) — 여기 있던 지역 헬퍼와 같은 일이다.
+          const toBlob = (cv: HTMLCanvasElement): Promise<Blob> => encode(cv, 'png');
 
           /** 공용 `loadImage` 로 (TASK-KL-280) — 주소를 여기서 만들고 안 거두던 자리였다. */
           async function load(f: File): Promise<void> {

@@ -13,7 +13,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { acceptPastedFiles } from './shared/paste';
-import { download, loadImage } from './shared/image';
+import { download, encode, loadImage } from './shared/image';
 import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../../lib/phash';
 
 (function (): void {
@@ -229,14 +229,11 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
           });
 
           $<HTMLButtonElement>('#cpSave').onclick = () => {
-            canvas.toBlob((blob) => {
-              if (blob === null) {
-                say(t('comparepic.say.07'), 'error');
-                return;
-              }
+            // 공용 한 자리(`shared/image.encode`)
+            encode(canvas, 'png').then((blob) => {
               download(blob, 'compare.png');
               say(t('comparepic.say.08'));
-            }, 'image/png');
+            }).catch(() => say(t('comparepic.say.07'), 'error'));
           };
 
           say(t('comparepic.say.09'));
