@@ -9,6 +9,7 @@ import { bullet, equalPayment, equalPrincipal, spec, withExtra, withGrace, type 
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { regionMeta } from '../../lib/region';
 import { readInvocation } from '../../lib/tool-url';
+import { download } from './shared/image';
 
 (function (): void {
   Toolbox.register({
@@ -209,12 +210,8 @@ import { readInvocation } from '../../lib/tool-url';
               .map((r) => [r.n, Math.round(r.pay), Math.round(r.principal), Math.round(r.interest), Math.round(r.left)].join(','))
               .join(BR);
             const blob = new Blob([BOM + head + BR + body], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '대출상환표.csv';
-            a.click();
-            URL.revokeObjectURL(url);
+            // 공용 한 자리. 여기 있던 즉시 `revoke` 는 브라우저가 아직 안 읽었을 수 있는 자리였다.
+            download(blob, '대출상환표.csv');
             Toolbox.trackUse?.('csv');
           };
 

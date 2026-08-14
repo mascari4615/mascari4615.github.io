@@ -13,6 +13,7 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { statusLine } from './shared/say';
+import { download } from './shared/image';
 
 (function (): void {
   /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로.
@@ -286,11 +287,7 @@ import { statusLine } from './shared/say';
               return;
             }
             const blob = new Blob([built], { type: 'text/calendar;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = ($<HTMLInputElement>('#icTitle').value.trim() || '일정') + '.ics';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            download(blob, ($<HTMLInputElement>('#icTitle').value.trim() || '일정') + '.ics'); // 공용 한 자리(`shared/image.download`)
             say(t('icsmake.status.saved'), 'ok');
           };
           run();

@@ -12,6 +12,7 @@ import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/image';
 
 (function (): void {
   const hex = (buf: ArrayBuffer): string =>
@@ -197,11 +198,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             for (let i = 0; i < count; i++) {
               say(t('filesplit.say.splitting', { i: i + 1, n: count }));
               const piece = one.slice(i * chunk, Math.min((i + 1) * chunk, one.size));
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(piece);
-              a.download = `${one.name}.${String(i + 1).padStart(3, '0')}of${String(count).padStart(3, '0')}.part`;
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+              download(piece, `${one.name}.${String(i + 1).padStart(3, '0')}of${String(count).padStart(3, '0')}.part`); // 공용 한 자리(`shared/image.download`)
               // 브라우저가 연속 내려받기를 막지 않도록 사이를 둔다
               await new Promise((r) => setTimeout(r, 250));
             }
@@ -218,11 +215,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const sorted = many.slice().sort((a, b) => partIndex(a.name) - partIndex(b.name));
             const blob = new Blob(sorted, { type: 'application/octet-stream' });
             const name = sorted[0].name.replace(/\.\d+(of\d+)?\.part$/i, '') || t('filesplit.file.joined');
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = name;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+            download(blob, name); // 공용 한 자리(`shared/image.download`)
             // 합친 것이 원본과 같은지 스스로 확인할 수 있게 검사값을 준다
             const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
             say(

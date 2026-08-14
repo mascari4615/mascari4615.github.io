@@ -10,6 +10,7 @@
 import { linkFor, open, packFile, parseLink, seal, unpackFile } from '../../lib/burn-note';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/image';
 
 (function (): void {
   const API = 'https://yawnbot.mascari4615.com/kl/note';
@@ -113,11 +114,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               save.style.display = '';
               save.onclick = (): void => {
                 const blob = new Blob([file.bytes], { type: file.type || 'application/octet-stream' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = file.name;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+                download(blob, file.name); // 공용 한 자리(`shared/image.download`)
               };
               say(t('burnnote.status.openedFile', { name: file.name }, `파일 「${file.name}」 — 지금 받으세요. 창을 닫으면 없습니다`), 'ok');
             } else {
