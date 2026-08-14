@@ -11,6 +11,7 @@ import type {
   KarmoLabImageConvertAPI
 } from '../../../types/karmolab';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from '../tools/shared/image';
 
 (function (global: Window) {
   const StepType = {
@@ -115,17 +116,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       return chain.then(function () {
         return new Promise<void>(function (resolve) {
           const blob = r.blob!;
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = IC.baseNameFromFile(r.file) + '.' + IC.extFromMime(outputMime);
-          a.click();
+          // 공용 한 자리(`shared/image.download`). 바깥 80ms 는 **거두기용이 아니라
+          // 순서 벌리기**다 — 여러 장을 한꺼번에 쏘면 브라우저가 뒤엣것을 버린다.
+          download(blob, IC.baseNameFromFile(r.file) + '.' + IC.extFromMime(outputMime));
           setTimeout(function () {
-            try {
-              URL.revokeObjectURL(url);
-            } catch {
-              /* noop */
-            }
             setTimeout(resolve, dm);
           }, 80);
         });
