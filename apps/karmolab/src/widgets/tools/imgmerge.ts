@@ -10,7 +10,7 @@
 import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { attachImage, download, loadImage } from './shared/image';
+import { attachImage, download, encode, loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -235,11 +235,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('imgmerge.err.make'), 'error');
               return;
             }
-            cv.toBlob((blob) => {
-              if (!blob) {
-                say(t('imgmerge.err.render'), 'error');
-                return;
-              }
+            // 공용 한 자리(`shared/image.encode`)
+            void encode(cv, 'png').then((blob) => {
               made = blob;
               attachImage($<HTMLImageElement>('#imPreview'), blob); // 공용 — 앞 주소를 거두고 물린다
               $<HTMLElement>('#imResult').style.display = '';
@@ -257,7 +254,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'imgmerge' });
               Toolbox.trackUse?.('merge');
-            }, 'image/png');
+            });
           };
           $<HTMLButtonElement>('#imClear').onclick = () => {
             shots = [];

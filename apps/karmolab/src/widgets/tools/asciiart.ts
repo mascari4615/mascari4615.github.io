@@ -20,6 +20,7 @@ import { download, downloadUrl, loadImage } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { attachMedia } from './shared/media';
 
 (function (): void {
   /** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다 — 두 벌 짜지 않는다. */
@@ -629,7 +630,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             element.muted = true;
             element.playsInline = true;
             element.preload = 'auto';
-            element.src = URL.createObjectURL(file);
+            attachMedia(element, file); // 공용 — 앞 주소를 거두고 물린다
             element.addEventListener('loadedmetadata', () => {
               video = element;
               videoBox.hidden = false;

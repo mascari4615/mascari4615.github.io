@@ -13,6 +13,7 @@ import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
+import { attachImage, encode } from './shared/image';
 
 (function (): void {
   interface TextContent {
@@ -159,14 +160,9 @@ import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openFor
             return { canvas, w: base.width, h: base.height };
           }
 
+          // 공용 한 자리(`shared/image.encode`) — 흰 바탕 규칙도 거기 있다.
           const toJpeg = (canvas: HTMLCanvasElement): Promise<Blob> =>
-            new Promise((resolve, reject) => {
-              canvas.toBlob(
-                (b) => (b ? resolve(b) : reject(new Error(t('pdfcompress.error.rasterFailed')))),
-                'image/jpeg',
-                parseInt(qualityEl.value, 10) / 100
-              );
-            });
+            encode(canvas, 'jpeg', parseInt(qualityEl.value, 10) / 100);
 
           async function load(f: File): Promise<void> {
             file = f;
@@ -205,7 +201,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openFor
             say(t('pdfcompress.status.drawingFirst'));
             const { canvas } = await renderPage(1);
             const blob = await toJpeg(canvas);
-            $<HTMLImageElement>('#pcShotImg').src = URL.createObjectURL(blob);
+            attachImage($<HTMLImageElement>('#pcShotImg'), blob); // 공용 — 앞 주소를 거두고 물린다
             $<HTMLElement>('#pcShot').style.display = '';
             // 첫 쪽 크기 × 쪽 수 = 전체 어림. 다 만들고 나서 실망하는 걸 막는다.
             const guess = blob.size * (doc?.numPages || 1);
@@ -266,14 +262,11 @@ import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openFor
           };
           saveBtn.onclick = () => {
             if (!made || !file) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = file.name.replace(/\.pdf$/i, '') + t('pdfcompress.file.suffix');
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            const outName = file.name.replace(/\.pdf$/i, '') + t('pdfcompress.file.suffix');
+            download(made, outName); // 공용 — 거두는 시점까지 같이 온다
             say(t('pdfcompress.status.saved'), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'pdfcompress' });
+            Toolbox.offerNext?.(status, { blob: made, name: outName, from: 'pdfcompress' });
           };
   }
 })();
