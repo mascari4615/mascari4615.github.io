@@ -1,15 +1,7 @@
 {
   "tools": {
-    "charcount": {
-      "print": "1vu3sze",
-      "date": "2026-08-08"
-    },
     "jsonfmt": {
       "print": "1bta8gd",
-      "date": "2026-08-08"
-    },
-    "hangulkey": {
-      "print": "o45f07",
       "date": "2026-08-08"
     },
     "qrgen": {
@@ -39,10 +31,6 @@
     "uuidgen": {
       "print": "1p30otp",
       "date": "2026-08-06"
-    },
-    "textdiff": {
-      "print": "1h2gy9h",
-      "date": "2026-08-08"
     },
     "regextest": {
       "print": "5lhz9k",
@@ -82,10 +70,6 @@
     },
     "radix": {
       "print": "1u5cesm",
-      "date": "2026-08-06"
-    },
-    "textclean": {
-      "print": "n9crin",
       "date": "2026-08-06"
     },
     "ladder": {
@@ -128,10 +112,6 @@
       "print": "1v608fx",
       "date": "2026-08-06"
     },
-    "caseconv": {
-      "print": "1wwx3ej",
-      "date": "2026-08-06"
-    },
     "jwt": {
       "print": "mk1zwa",
       "date": "2026-08-06"
@@ -165,28 +145,28 @@
       "date": "2026-08-09"
     },
     "text": {
-      "print": "16iau41",
-      "date": "2026-08-06"
+      "print": "phbm42",
+      "date": "2026-08-13"
     },
     "reference": {
       "print": "19n1m9a",
       "date": "2026-08-06"
     },
     "calc": {
-      "print": "d8bpyu",
-      "date": "2026-08-06"
+      "print": "nr3mso",
+      "date": "2026-08-13"
     },
     "time": {
-      "print": "1olcvsu",
-      "date": "2026-08-06"
+      "print": "1lm30zf",
+      "date": "2026-08-13"
     },
     "draw": {
       "print": "1t447h1",
       "date": "2026-08-06"
     },
     "devtool": {
-      "print": "r660l5",
-      "date": "2026-08-06"
+      "print": "hovku8",
+      "date": "2026-08-13"
     },
     "epoch": {
       "print": "1p6ilcd",
@@ -194,10 +174,6 @@
     },
     "base64": {
       "print": "1foj8nk",
-      "date": "2026-08-06"
-    },
-    "lorem": {
-      "print": "1n9u0mz",
       "date": "2026-08-06"
     },
     "csvjson": {
@@ -228,10 +204,6 @@
       "print": "zvl3xp",
       "date": "2026-08-06"
     },
-    "replace": {
-      "print": "szlvye",
-      "date": "2026-08-06"
-    },
     "grade": {
       "print": "j40eso",
       "date": "2026-08-06"
@@ -244,24 +216,8 @@
       "print": "18yj4wq",
       "date": "2026-08-06"
     },
-    "slug": {
-      "print": "b1glby",
-      "date": "2026-08-06"
-    },
-    "listdiff": {
-      "print": "17vxity",
-      "date": "2026-08-07"
-    },
     "bizno": {
       "print": "hjubjl",
-      "date": "2026-08-06"
-    },
-    "jamo": {
-      "print": "8v2fvm",
-      "date": "2026-08-06"
-    },
-    "wordfreq": {
-      "print": "8b7fjn",
       "date": "2026-08-06"
     },
     "json2ts": {
@@ -282,14 +238,6 @@
     },
     "pace": {
       "print": "1p2i777",
-      "date": "2026-08-06"
-    },
-    "linebreak": {
-      "print": "14a58p0",
-      "date": "2026-08-06"
-    },
-    "checklist": {
-      "print": "1d61djb",
       "date": "2026-08-06"
     },
     "pdftool": {
@@ -357,8 +305,8 @@
       "date": "2026-08-06"
     },
     "videotool": {
-      "print": "18oa57c",
-      "date": "2026-08-06"
+      "print": "18dig6g",
+      "date": "2026-08-13"
     },
     "videotrim": {
       "print": "nmq0x",
@@ -404,10 +352,6 @@
       "print": "1nui22t",
       "date": "2026-08-06"
     },
-    "text2pdf": {
-      "print": "1x5bb61",
-      "date": "2026-08-06"
-    },
     "qrread": {
       "print": "ovp12v",
       "date": "2026-08-06"
@@ -421,12 +365,12 @@
       "date": "2026-08-06"
     },
     "pdf": {
-      "print": "1cfmf10",
-      "date": "2026-08-06"
+      "print": "t0r0a8",
+      "date": "2026-08-13"
     },
     "sound": {
-      "print": "1ciw9cu",
-      "date": "2026-08-06"
+      "print": "12zkqip",
+      "date": "2026-08-13"
     },
     "favicon": {
       "print": "1tlkben",
@@ -448,20 +392,12 @@
       "print": "yoz802",
       "date": "2026-08-06"
     },
-    "text2img": {
-      "print": "1mypdej",
-      "date": "2026-08-06"
-    },
     "redact": {
       "print": "1bkxaxr",
       "date": "2026-08-06"
     },
     "pdfredact": {
       "print": "324fzu",
-      "date": "2026-08-06"
-    },
-    "textredact": {
-      "print": "8z73zj",
       "date": "2026-08-06"
     },
     "audiospeed": {
@@ -501,20 +437,20 @@
       "date": "2026-08-06"
     },
     "pdfdiff": {
-      "print": "1ndkzc7",
-      "date": "2026-08-07"
+      "print": "1vuorjy",
+      "date": "2026-08-13"
     },
     "ghosttype": {
-      "print": "165bd3n",
-      "date": "2026-08-07"
+      "print": "c5tnsn",
+      "date": "2026-08-13"
     },
     "duel": {
-      "print": "1fkzxun",
-      "date": "2026-08-07"
+      "print": "rzzam1",
+      "date": "2026-08-13"
     },
     "timecapsule": {
-      "print": "rb6iqb",
-      "date": "2026-08-07"
+      "print": "18omkum",
+      "date": "2026-08-13"
     },
     "chain": {
       "print": "6rra6s",
@@ -543,6 +479,14 @@
     "mesh3d": {
       "print": "zlj64u",
       "date": "2026-08-09"
+    },
+    "studymap": {
+      "print": "y8nkp6",
+      "date": "2026-08-13"
+    },
+    "arcade": {
+      "print": "4cwbch",
+      "date": "2026-08-13"
     }
   }
 }
