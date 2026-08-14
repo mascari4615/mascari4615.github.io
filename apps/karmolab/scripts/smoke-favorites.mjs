@@ -8,12 +8,20 @@
  *   ③ 새로고침해도 남아 있다
  *   ④ × 로 빼면 사라진다
  *
- * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html#favorites node scripts/smoke-favorites.mjs
- *       (기본 = 실서비스 도구 상세 페이지)
+ * 사용: node scripts/smoke-favorites.mjs   (다른 데를 재려면 URL=… 로 말해라)
  */
 import { chromium } from 'playwright';
+import { smokeBase } from './lib/smoke-base.mjs';
 
-const URL_TARGET = process.env.URL || 'https://blog.mascari4615.com/karmolab/t/favorites/';
+/* ★ **기본 주소가 없는 장이었다** (2026-08-14). 기본이 실서비스
+   `https://…/karmolab/t/favorites/` 였는데 그 장은 **애초에 안 찍힌다** — 즐겨찾기는
+   `tools-seo.json` 에 없고 갈래도 비어 있어 도구 상세 페이지 대상이 아니다. 실제로 404 다.
+   그래서 이 검사는 열리지도 않는 문 앞에서 15초를 기다리다 빨갛게 죽어 있었다 —
+   그런데 아무 데도 안 물려 있어서(고아) **몇 달간 아무도 못 봤다**.
+   즐겨찾기 화면은 앱 안에서 `#favorites` 로 연다. 그 자리를 재고, 서버는 내가 띄운다
+   (사람의 dev 서버를 몰래 쓰지 않는다 — `lib/smoke-base.mjs`). */
+const 내서버 = process.env.URL ? null : await smokeBase('URL_BASE');
+const URL_TARGET = process.env.URL || `${내서버.base}/apps/karmolab/index.html#favorites`;
 const problems = [];
 
 const browser = await chromium.launch();
@@ -58,6 +66,7 @@ const tools3 = await countTools();
 if (tools3 !== 0) problems.push(`× 를 눌렀는데 도구가 ${tools3}개 남아 있다`);
 
 await browser.close();
+if (내서버) await 내서버.close();
 
 if (problems.length) {
     console.error('[smoke-favorites] 문제 ' + problems.length + '건');
