@@ -2027,6 +2027,54 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await ctx.close();
 });
 
+await step('안 고친 탭은 다른 탭의 변경을 그대로 따라간다 (KL-271)', async () => {
+  /* 덮은 뒤에 알리는 것보다 나은 건 **덮을 일을 안 만드는 것**이다. 내가 이 판을 아직 안
+     고쳤다면 다른 탭이 저장한 그것을 그대로 받으면 된다(이미 고쳤다면 말없이 갈아 끼우지
+     않는다 — 내 일이 사라지는 게 더 나쁘다). */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1200, height: 800 } });
+  const a = await ctx.newPage();
+  const b2 = await ctx.newPage();
+  await a.goto(URL, { waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.evaluate(() => localStorage.clear());
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.waitForTimeout(ms(800));
+
+  // A 는 **아무것도 안 고친 채** 열어 두기만 한다.
+  await b2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await b2.waitForTimeout(ms(900));
+  const bbox = await b2.locator('.km-canvas').boundingBox();
+  await b2.mouse.dblclick(bbox.x + bbox.width * 0.4, bbox.y + bbox.height * 0.35);
+  await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await b2.keyboard.type('저쪽에서 만든 카드');
+  await b2.keyboard.press('Enter');
+  await b2.waitForTimeout(ms(900));
+
+  await a.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node')].some((n) => (n.textContent || '').includes('저쪽에서 만든')),
+    null, { timeout: ms(8000) },
+  );
+
+  /* 이미 고친 탭은 **안 따라간다** — 따라가면 내가 적던 것이 소리 없이 사라진다. */
+  const abox = await a.locator('.km-canvas').boundingBox();
+  await a.mouse.dblclick(abox.x + abox.width * 0.7, abox.y + abox.height * 0.7);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('이쪽 카드');
+  await a.keyboard.press('Enter');
+  await a.waitForTimeout(ms(700));
+  await b2.mouse.dblclick(bbox.x + bbox.width * 0.6, bbox.y + bbox.height * 0.6);
+  await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await b2.keyboard.type('저쪽 카드 둘');
+  await b2.keyboard.press('Enter');
+  await b2.waitForTimeout(ms(1200));
+  const mine = await a.evaluate(() => [...document.querySelectorAll('.ck-node')]
+    .some((n) => (n.textContent || '').includes('이쪽 카드')));
+  if (!mine) throw new Error('내가 적던 카드가 다른 탭 변경에 밀려 사라졌다');
+  await ctx.close();
+});
+
 await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async () => {
   /* 실측 2026-08-14: 한 판을 두 탭에서 열어 두면 **뒤에 쓴 탭이 앞 탭의 일을 지운다** —
      B 탭에서 만든 카드가 A 탭의 다음 저장에 아무 말 없이 사라졌다. 덮는 것을 막을 수는 없어도
