@@ -155,6 +155,16 @@ const RAW_CHECKS = [
      묶음(gates)에 뒀더니 배포가 도는 순간에 걸려 「위젯 파일 404」로 빨갰다 —
      그 자리에는 「배포에 밟혔으면 다시」 껍데기가 없다. 여기가 그 껍데기가 있는 자리다. */
   { name: '흐름이 스스로 이어가는지', cmd: ['npm', 'run', 'test:flow:auto'] },
+  /* ★ **실주소를 보는 검사는 여기 산다** (2026-08-14). 아래 여섯은 어제 내가 묶음(gates)에
+     넣었던 것인데, 전부 `URL` 기본값이 실사이트다. 묶음에는 「배포에 밟혔으면 다시 한 판」
+     껍데기가 없어서, 남의 배포가 도는 순간에 걸리면 우리 push 가 빨개진다
+     (실측: `test:flow:auto` 가 옛 판 표식 파일 404 로 죽었다). 그 껍데기가 있는 이 자리로 옮긴다. */
+  { name: '받은 알림 화면이 도는지', cmd: ['npm', 'run', 'test:inbox'] },
+  { name: '이상형 월드컵이 도는지', cmd: ['npm', 'run', 'test:worldcup'] },
+  { name: '공방 화면이 도는지', cmd: ['npm', 'run', 'test:workshop'] },
+  { name: '약속한 모양이 실제와 맞는지', cmd: ['npm', 'run', 'test:contract:live'] },
+  { name: '대결 한 판이 실제로 도는지', cmd: ['npm', 'run', 'test:duel'] },
+  { name: '남이 만든 도구 화면이 도는지', cmd: ['npm', 'run', 'test:usertool'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
