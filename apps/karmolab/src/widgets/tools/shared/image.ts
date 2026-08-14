@@ -97,6 +97,24 @@ export function renameTo(original: string, suffix: string, format?: ImageFormat)
 }
 
 /** 내려주기 — 아홉 곳이 각자 적던 네 줄. */
+/**
+ * 그림을 **화면에 물린다**. 앞서 물려 있던 주소는 거둔다.
+ *
+ * 왜 (2026-08-14 실측): `imgmerge`·`imgresize` 가 결과 미리보기를 `el.src = createObjectURL(blob)`
+ * 로만 물리고 **거두지 않았다**. 다시 만들 때마다 주소가 쌓인다 — 화면은 멀쩡해서 아무도 모른다.
+ *
+ * `download` 와 다르다: 저건 다 쓰면 바로 거두면 되지만, 미리보기는 **화면이 계속 쥐고 있어야**
+ * 한다. 그래서 「다음 것을 물릴 때 앞 것을 거둔다」가 맞는 규칙이다. (소리 쪽 `attachAudio` 와 짝)
+ */
+export function attachImage(el: HTMLImageElement, src: Blob | File): string {
+  const prev = el.dataset.karmoObjectUrl;
+  if (prev) URL.revokeObjectURL(prev);
+  const url = URL.createObjectURL(src);
+  el.dataset.karmoObjectUrl = url;
+  el.src = url;
+  return url;
+}
+
 export function download(blob: Blob, filename: string): void {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
