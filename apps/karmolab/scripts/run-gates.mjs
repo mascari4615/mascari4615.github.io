@@ -21,7 +21,7 @@
  *
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> …]
  */
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,14 +51,51 @@ if (!gates.length) {
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const results = [];
 
+/**
+ * 검사 하나를 돌린다 — **화면에는 그대로 흘려보내면서, 마지막 몇 줄은 따로 쥔다.**
+ *
+ * 왜 (2026-08-15 실측): 여태 `stdio: 'inherit'` 였다. 그러면 이 스크립트는 검사가 **무슨 말을
+ * 했는지 하나도 모른 채** 「빨강 N개」 목록만 찍고, 사유는 「위 로그를 봐라」로 미룬다.
+ * 그런데 이걸 부르는 쪽(`typecheck-pushed.mjs`)은 **끝 열네 줄만** 사람에게 보여 준다 —
+ * 사유는 그 위로 흘러가 버린다. 오늘 실제로 그 자리에 걸렸다: push 가 `audit:orphans` 로
+ * 막혔는데 **왜 막혔는지 한 줄도 안 나왔다**. 사유 없는 빨강은 게이트가 아니라 벽이다.
+ *
+ * 그래서 흘려보내는 것은 그대로 두고(긴 판에서 진행이 보여야 한다), **빨간 검사의 제 말**을
+ * 요약 바로 아래에 다시 붙인다. 요약만 떼어 봐도 사유가 같이 온다.
+ */
+const 꼬리길이 = 12;
+function 돌린다(gate) {
+  return new Promise((resolve) => {
+    const 꼬리 = [];
+    const 담기 = (chunk) => {
+      for (const line of String(chunk).split(String.fromCharCode(10))) {
+        if (!line.trim()) continue;
+        꼬리.push(line.replace(/\s+$/, ''));
+        if (꼬리.length > 꼬리길이) 꼬리.shift();
+      }
+    };
+    /* ★ 인자 배열 대신 **한 줄 명령**으로 넘긴다 — 윈도우의 `npm.cmd` 는 shell 이 있어야
+       돌고(없으면 EINVAL), shell 에 인자 배열을 같이 주면 Node 가 매 판 DEP0190 경고를 찍는다.
+       그 경고가 꼬리 열두 줄을 채우면 검사의 제 말이 또 밀려난다. 이름은 우리 목록에서만 온다. */
+    const child = spawn(`${npm} run --silent ${gate}`, {
+      stdio: ['inherit', 'pipe', 'pipe'],
+      shell: true
+    });
+    child.stdout.on('data', (c) => { process.stdout.write(c); 담기(c); });
+    child.stderr.on('data', (c) => { process.stderr.write(c); 담기(c); });
+    child.on('error', (error) => resolve({ status: null, error, 꼬리 }));
+    child.on('close', (status) => resolve({ status, error: null, 꼬리 }));
+  });
+}
+
 for (const gate of gates) {
   const started = Date.now();
   console.log(`\n──── ${gate} ────`);
-  const run = spawnSync(npm, ['run', '--silent', gate], { stdio: 'inherit', shell: process.platform === 'win32' });
+  const run = await 돌린다(gate);
   const sec = Math.round((Date.now() - started) / 1000);
   /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
   const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-  results.push({ gate, sec, how, cantRun: !run.error && run.status === 2 });
+  results.push({ gate, sec, how, cantRun: !run.error && run.status === 2, 꼬리: run.꼬리 });
 }
 
 /* ★ **exit 2 = 「못 돌았다」** — 이 저장소의 약속이고 검사 서른 곳이 이미 그렇게 쓴다.
@@ -100,5 +137,13 @@ if (!bad.length) {
 
 console.error(`\n[gates] 빨강 ${bad.length}개 / ${results.length}개 — **한 판에 전부 보인다**:`);
 for (const r of bad) console.error(`  - ${r.gate} (${r.how})`);
-console.error('  위 로그에서 각 검사가 스스로 말한 사유를 봐라. 하나씩 고치고 또 10분 기다리지 마라.');
+
+/* ★ **사유를 요약에 붙여 보낸다** — 「위 로그를 봐라」는 부르는 쪽이 끝 몇 줄만 보여 줄 때
+   거짓말이 된다(2026-08-15: push 가 사유 한 줄 없이 막혔다). 빨간 것의 제 말을 여기 다시 적는다. */
+for (const r of bad) {
+  console.error(`${String.fromCharCode(10)}  ── ${r.gate} 가 스스로 말한 것 ──`);
+  if (!r.꼬리 || r.꼬리.length === 0) console.error('    (아무 말도 안 하고 죽었다 — 그 자체가 고칠 자리다)');
+  else for (const line of r.꼬리) console.error(`    ${line}`);
+}
+console.error(`${String.fromCharCode(10)}  하나씩 고치고 또 10분 기다리지 마라.`);
 process.exit(1);
