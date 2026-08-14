@@ -1889,6 +1889,42 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('폰의 손잡이가 모두 손가락 규격이다 (44px, KL-271)', async () => {
+  /* 실측 2026-08-14: 시점 줄 단추 다섯과 「다른 목록」이 24~38px 이었다 — 좁으면 옆 것이 눌려
+     시점이 엉뚱하게 바뀐다. 하나씩 잡지 말고 **판 위의 손잡이를 전부** 재서 규격 미달을 0 으로. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.25);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('손가락');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(4000) });
+
+  const small = await m.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('.km-root button, .km-root select')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      if (r.bottom < 0 || r.top > innerHeight) continue;
+      if (r.width < 40 || r.height < 40) {
+        out.push(`${el.dataset.km || String(el.className).slice(0, 16)} ${Math.round(r.width)}x${Math.round(r.height)}`);
+      }
+    }
+    return out;
+  });
+  if (small.length > 0) throw new Error('손가락에 작은 손잡이: ' + small.slice(0, 6).join(' · '));
+  await ph.close();
+});
+
 await step('폰에서 선 뽑는 점이 손가락 규격이다 (KL-271)', async () => {
   /* 실측 2026-08-14: 선을 뽑는 점이 **12px** 였다 — 마우스에는 넉넉하지만 손가락에는 없는 과녁이다
      (손가락 규격 44px). 보이는 점은 그대로 두고 **짚는 자리만** 키운다. */

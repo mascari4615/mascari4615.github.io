@@ -518,6 +518,14 @@ import {
          시트를 올리면 화면의 주인은 시트다 — 그때는 **감춘다**(가려진 채 살아 있는 척하지 않는다). */
       .km-zoom { bottom:56px; }
       .km-root.is-sheet-up .km-zoom { display:none; }
+      /* ★ 손가락 규격(44) — 폰에서 시점 줄 단추 다섯과 「다른 목록」이 24~38px 이었다
+         (실측 2026-08-14). 좁아서 옆 것이 눌리면 시점이 엉뚱하게 바뀐다. 시점이 많아지면
+         줄이 넘치므로 **옆으로 굴러가게** 둔다(줄바꿈하면 판을 그만큼 가린다). */
+      .km-times { overflow-x:auto; scrollbar-width:none; }
+      .km-times::-webkit-scrollbar { display:none; }
+      .km-times .btn { min-width:44px; min-height:44px; padding:3px 12px; }
+      .km-times input { min-height:44px; }
+      .km-tabs-more { min-width:44px; min-height:44px; }
       /* 손잡이 — 폰에서 시트를 올리고 내리는 유일한 자리라 **크게**(44px 규격) 잡는다. */
       /* ★ 손잡이는 **가운데 120px 만** 차지한다. 예전엔 가로 전체를 덮어서, 시트가 올라온 순간
          맨 윗줄 단추들이 손잡이 밑에 깔려 **눌리지 않았다**(실측 2026-08-12: 갈래 고르기 단추가
