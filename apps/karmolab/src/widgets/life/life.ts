@@ -3,6 +3,7 @@
  * 기능이 off 상태면 Whisper 모델 (~3.1GB) 이 RAM 에서 해제됨.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
   'use strict';
@@ -240,25 +241,24 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     // voice_loading(decoder 비동기 로드) 동안만 1초 폴링, loaded 시 중단.
     // build() 1회 X — enable 시점 + 초기 복원(이미 로딩 중)에 시작.
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    /** 폴링을 멈추는 함수 (`lib/tick`). **보이는 동안만** 묻는다 — 덮어 둔 탭에서 물어도
+     *  볼 사람이 없고, 돌아오는 순간 한 번 바로 물어 화면이 곧바로 맞춰진다. */
+    let stopPoll: (() => void) | null = null;
+    function endPoll(): void {
+      if (stopPoll === null) return;
+      stopPoll();
+      stopPoll = null;
+    }
     function startVoicePoll(): void {
-      if (pollTimer !== null) return; // 중복 방지
-      pollTimer = setInterval(() => {
+      if (stopPoll !== null) return; // 중복 방지
+      stopPoll = intervalWhileVisible(() => {
         getFeatureStates()
           .then((s) => {
             screenUpdater?.(s.screen_enabled, false);
             voiceUpdater?.(s.voice_enabled, s.voice_loading);
-            if (!s.voice_loading && pollTimer !== null) {
-              clearInterval(pollTimer);
-              pollTimer = null;
-            }
+            if (!s.voice_loading) endPoll();
           })
-          .catch(() => {
-            if (pollTimer !== null) {
-              clearInterval(pollTimer);
-              pollTimer = null;
-            }
-          });
+          .catch(endPoll);
       }, 1000);
     }
 

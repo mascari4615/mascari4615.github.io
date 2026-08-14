@@ -9,5 +9,4 @@ src/widgets/heung/audio-engine.ts
 src/widgets/heung/heung.ts
 src/widgets/imageedit.ts
 src/widgets/karmograph/karmograph.ts
-src/widgets/life/life.ts
 src/widgets/tools/videotrim.ts	예외: 이 시계가 **녹화를 끝내는 판정**을 한다(구간 끝에 닿으면 stop). 숨었다고 멈추면 녹화가 안 끝난다 - 2026-08-14 확인
