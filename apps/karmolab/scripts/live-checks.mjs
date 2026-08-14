@@ -138,6 +138,12 @@ const RAW_CHECKS = [
   { name: '안 쓰는데 첫 화면을 막는 스타일', cmd: ['npm', 'run', 'audit:blocking-css'] },
   { name: '후원 자리가 규칙대로 뜨는지', cmd: ['npm', 'run', 'audit:sponsor'] },
   { name: '공유 카드가 지금 문구와 맞는지', cmd: ['npm', 'run', 'audit:cards:fresh'] },
+  /* ★ **아무도 안 돌리던 검사 둘** (2026-08-14). `audit:orphans` 목록에 몇 달째 앉아 있었다 —
+     써 두고 어디에도 안 물려 있으면 없는 검사다. 그렇다고 묶음(gates)에 넣으면 push 마다
+     83초·154초가 붙는데, 지금도 판정이 밀려 40분씩 걸린다. 한 시간에 한 번 도는 이 자리가
+     느린 검사의 집이다. */
+  { name: '방을 든 채 게임을 갈아타는지', cmd: ['npm', 'run', 'smoke:arcaderoom'] },
+  { name: '무대(관전 화면)가 도는지', cmd: ['npm', 'run', 'smoke:arcadestage'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
