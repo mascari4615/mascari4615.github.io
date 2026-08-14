@@ -62,6 +62,17 @@ if (!cantRun) {
     check('다시 본 판도 끝까지 간다', again);
     await p.waitForTimeout(500);
     const after = await p.evaluate(() => JSON.stringify(window.__arcade?.state));
+    if (after !== before) {
+      const a = JSON.parse(before ?? '{}');
+      const b = JSON.parse(after ?? '{}');
+      const 다른키 = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
+        (k) => JSON.stringify(a[k]) !== JSON.stringify(b[k])
+      );
+      console.log('[DEBUG-5c7d] 다른 칸:', 다른키.join(', ') || '(모양이 다름)');
+      for (const k of 다른키.slice(0, 4)) {
+        console.log(`  · ${k}: ${JSON.stringify(a[k]).slice(0, 80)} → ${JSON.stringify(b[k]).slice(0, 80)}`);
+      }
+    }
     check('되살린 판이 원래 판과 똑같다', after === before, '끝 판이 다르다');
   }
 }
