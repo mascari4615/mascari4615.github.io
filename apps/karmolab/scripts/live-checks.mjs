@@ -150,6 +150,8 @@ const RAW_CHECKS = [
   { name: '자기 성능 재기가 도는지', cmd: ['npm', 'run', 'test:perf:self'] },
   /* 6분짜리다 — 묶음에 넣으면 push 마다 6분이 붙는다. 여기가 그 집이다. */
   { name: '둘러보기가 끝까지 도는지', cmd: ['npm', 'run', 'smoke:tour'] },
+  { name: '성능 예산이 지켜지는지', cmd: ['npm', 'run', 'test:perf:budget:regress'] },
+  { name: '실사이트 화면들이 뜨는지', cmd: ['npm', 'run', 'smoke:live'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);

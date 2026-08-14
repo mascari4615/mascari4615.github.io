@@ -165,6 +165,20 @@ async function measure(url, scenario) {
     await page.waitForTimeout(250);
   }
   await page.waitForTimeout(600);
+  /* ★ **계측기는 늦게 온다 — 없으면 「못 잼」이지 터질 일이 아니다** (2026-08-14).
+     `js/perf.js` 는 첫 그림 뒤 한가할 때 실린다(부팅 짐을 줄이려고 그렇게 옮겼다).
+     여기서 곧장 `window.KLPerf.snapshot()` 을 부르다가 아직 안 왔으면
+     `Cannot read properties of undefined` 로 **검사가 죽었다** — 아래에 이미 「계측기가
+     안 실린 화면은 못 돌림」이라는 자리가 있는데, 거기까지 못 가고 터진 것이다.
+     기다려 보고, 끝내 없으면 그 자리로 보낸다(null). */
+  const 계측기옴 = await page
+    .waitForFunction(() => !!window.KLPerf, null, { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!계측기옴) {
+    await page.close();
+    return null;
+  }
   const snap = await page.evaluate(() => {
     const s = window.KLPerf.snapshot();
     return { verdict: s.verdict, trust: s.trust };
