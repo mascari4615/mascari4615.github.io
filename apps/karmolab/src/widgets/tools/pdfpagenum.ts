@@ -14,7 +14,7 @@ import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 
 import { t, loadNamespace } from '../../lib/i18n';
-import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
 import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
 
 (function (): void {
@@ -213,14 +213,12 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
               }
 
               const blob = pdfBlob(await doc.save());
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download =
+              // 공용 한 자리(`shared/pdf.download`) — 거두는 시점까지 같이 온다.
+              const outName =
                 (file.name || t('pdfpagenum.file.base')).replace(/\.[^.]+$/, '') + t('pdfpagenum.file.suffix') + '.pdf';
-              a.click();
+              download(blob, outName);
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfpagenum' });
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfpagenum' });
               say(
                 t('pdfpagenum.say.done', { n: pages.length - skip, size: size(blob.size) }) +
                   (skip ? t('pdfpagenum.say.doneSkip', { n: skip }) : ''),

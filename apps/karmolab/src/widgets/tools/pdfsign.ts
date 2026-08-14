@@ -13,7 +13,7 @@
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
-import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
 
 (function (): void {
 
@@ -289,14 +289,12 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             });
 
             const blob = pdfBlob(await out.save());
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = file.name.replace(/\.pdf$/i, '') + t('pdfsign.file.suffix') + '.pdf';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            // 공용 한 자리(`shared/pdf.download`).
+            const outName = file.name.replace(/\.pdf$/i, '') + t('pdfsign.file.suffix') + '.pdf';
+            download(blob, outName);
             say(t('pdfsign.say.done', { n: pageNo }), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfsign' });
+            Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfsign' });
             Toolbox.trackUse?.('sign');
           }
 
