@@ -1889,6 +1889,73 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+/**
+ * **떠 있는 것은 화면 안에** — 한 자리에서 전부 잰다 (KL-271, 2026-08-14).
+ *
+ * 사흘 사이 같은 사고가 셋이었다: 도구 줄이 오른쪽으로, 이름 칸이 왼쪽으로, 서랍이 아래로
+ * 흘러 나갔다. 하나씩 잡는 대신 **판 위에 뜨는 것 전부**를 훑는다.
+ */
+async function floatersInside(page, where) {
+  const bad = await page.evaluate(() => {
+    const sel = '.km-mini:not(.hidden), .km-inline, .km-note, .km-linkbox, .km-times:not(.hidden),'
+      + ' .km-zoom, .km-saved, .km-viewbadge, .km-drawer:not(.hidden), .km-pal:not(.hidden), .km-stage:not(.hidden)';
+    const out = [];
+    for (const el of document.querySelectorAll(sel)) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      if (getComputedStyle(el).display === 'none') continue;
+      if (r.left < -1 || r.right > innerWidth + 1 || r.top < -1 || r.bottom > innerHeight + 1) {
+        out.push(`${el.dataset.km || String(el.className).split(' ')[0]} ${Math.round(r.left)}~${Math.round(r.right)}`);
+      }
+    }
+    return out;
+  });
+  if (bad.length > 0) throw new Error(`${where}: 화면 밖으로 흘러나간 것 — ${bad.slice(0, 4).join(' | ')}`);
+}
+
+await step('판 위에 뜨는 것이 화면 밖으로 안 흘러나간다 (폰·데스크톱)', async () => {
+  for (const [tag, view] of [
+    ['폰', { width: 390, height: 844, isMobile: true, hasTouch: true }],
+    ['데스크톱', { width: 1400, height: 900, isMobile: false, hasTouch: false }],
+  ]) {
+    const ctx = await browser.newContext({ serviceWorkers: 'block', ...view, viewport: { width: view.width, height: view.height } });
+    const m = await ctx.newPage();
+    await m.goto(URL, { waitUntil: 'domcontentloaded' });
+    await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+    await m.evaluate(() => localStorage.clear());
+    await m.reload({ waitUntil: 'domcontentloaded' });
+    await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+    await m.waitForTimeout(ms(800));
+    const cbox = await m.locator('.km-canvas').boundingBox();
+    await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.25);
+    await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+    await m.keyboard.type('뜬 것');
+    await m.keyboard.press('Enter');
+    await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+    await floatersInside(m, `${tag}·카드`);
+
+    await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+    await m.waitForSelector('[data-km="time-go"]', { timeout: ms(4000) });
+    await floatersInside(m, `${tag}·시점 줄`);
+
+    await m.evaluate(() => document.querySelector('[data-km="more"]').click());
+    await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+    await floatersInside(m, `${tag}·서랍`);
+
+    await m.evaluate(() => document.querySelector('[data-km="palette-open"]')?.click());
+    await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
+    await floatersInside(m, `${tag}·팔레트`);
+    await m.keyboard.press('Escape');
+    await m.waitForTimeout(ms(300));
+
+    await m.evaluate(() => document.querySelector('[data-km="story"]')?.click());
+    await m.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
+    await floatersInside(m, `${tag}·발표`);
+    await m.evaluate(() => document.querySelector('[data-km="stage-exit"]')?.click());
+    await ctx.close();
+  }
+});
+
 await step('판 끝에서 이름을 고쳐도 칸이 화면 안에 있다 (KL-271)', async () => {
   /* 실측 2026-08-14(데스크톱): 왼쪽 가장자리에서 카드를 두 번 누르면 이름 칸이 **-40px** 에
      떴다 — 글자를 치는데 앞이 안 보인다. 카드는 판을 넘어갈 수 있어도 **칸은 화면 안**이어야 한다. */
