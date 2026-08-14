@@ -11,6 +11,7 @@
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -160,7 +161,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     const tasksSearch = container.querySelector<HTMLInputElement>('.at-tasks-search')!;
     let cachedTasks: TaskBoardEntry[] = [];
 
-    let intervalHandle: number | null = null;
+    /** 자동 새로고침을 멈추는 함수 (`lib/tick` 이 돌려준다). */
+    let stopAuto: (() => void) | null = null;
     let cachedRepoRoot: string | null = null;
     let cachedProposals: ProposalInfo[] = [];
     const proposalsSearch = container.querySelector<HTMLInputElement>('.at-proposals-search')!;
@@ -531,13 +533,14 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       }
     }
 
+    /** 자동 새로고침. **보이는 동안만** 돈다 (`lib/tick`) — 덮어 둔 탭에서 망을 두드릴 이유가 없다. */
     function applyAutoRefresh(): void {
-      if (intervalHandle !== null) {
-        clearInterval(intervalHandle);
-        intervalHandle = null;
+      if (stopAuto !== null) {
+        stopAuto();
+        stopAuto = null;
       }
       if (autoChk.checked) {
-        intervalHandle = window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+        stopAuto = intervalWhileVisible(() => void load(), REFRESH_INTERVAL_MS);
       }
     }
 
@@ -735,7 +738,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     searchInput.addEventListener('input', render);
     refreshBtn.addEventListener('click', () => void load());
     void load();
-    window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+    // 여기도 **멈추는 손잡이를 안 들고 있었다** — 화면을 떠나도 계속 돌던 자리다.
+    Toolbox.onDispose?.(intervalWhileVisible(() => void load(), REFRESH_INTERVAL_MS));
   }
 
   Toolbox.register({
