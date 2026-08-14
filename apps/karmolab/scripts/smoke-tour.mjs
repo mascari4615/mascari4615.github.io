@@ -14,8 +14,13 @@
  * 안 넘어가는 것처럼 보였다).
  */
 import { chromium } from 'playwright';
+import { smokeBase } from './lib/smoke-base.mjs';
 
-const URL = process.env.KL_URL || 'http://127.0.0.1:8813/apps/karmolab/index.html';
+/* ★ **잴 자리는 한 곳에서 정한다** — `lib/smoke-base.mjs` (2026-08-14).
+   여기 8813(사람이 켜는 dev 서버)이 박혀 있어, CI 에서는 `ERR_CONNECTION_REFUSED` 로
+   죽었다(느린 레인 첫 판 실측). 시키지 않으면 늘 제 서버를 띄운다. */
+const 내서버 = process.env.KL_URL ? null : await smokeBase('KL_URL_BASE');
+const URL = process.env.KL_URL || `${내서버.base}/apps/karmolab/index.html`;
 const ROUNDS = 5;
 const fail = [];
 
