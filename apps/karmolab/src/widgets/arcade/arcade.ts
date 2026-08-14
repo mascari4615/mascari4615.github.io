@@ -43,6 +43,7 @@ import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
+import { intervalWhileVisible } from '../../lib/tick';
 import { record, type Tape } from './replay';
 import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
@@ -1052,10 +1053,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     paintGames();
     void paintOpen();
     /* 목록은 살아 있는 것이라 가끔 다시 본다 — 로비에 있을 때만. */
-    const openTimer = window.setInterval(() => {
+    // 보이는 동안만 다시 본다 (`lib/tick`) — 덮어 둔 탭에서 방 목록을 받아 올 이유가 없다.
+    Toolbox.onDispose?.(intervalWhileVisible(() => {
       if (lobby.style.display !== 'none') void paintOpen();
-    }, 20000);
-    Toolbox.onDispose?.(() => window.clearInterval(openTimer));
+    }, 20000));
     paintPacks();
 
     /* 찾는 중에는 오늘의 셋도 접는다 — 찾는 사람은 이미 무엇을 할지 정했다. */
@@ -1508,7 +1509,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const finish = (): void => {
         if (done) return;
         done = true;
-        window.clearInterval(tick);
+        stopTick();
         introEl.style.display = 'none';
         introEl.onclick = null;
         go();
@@ -1517,13 +1518,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       introEl.onclick = finish;
       dropIntro = (): void => {
         done = true;
-        window.clearInterval(tick);
+        stopTick();
         introEl.style.display = 'none';
         introEl.onclick = null;
       };
       numEl.textContent = String(left);
       blip('start');
-      const tick: number = window.setInterval(() => {
+      // 시작 카운트다운도 보이는 동안만 — 안 보는 사이에 판이 시작돼 있으면 지고 들어간다.
+      const stopTick = intervalWhileVisible(() => {
         left -= 1;
         if (left > 0) {
           numEl.textContent = String(left);
@@ -1532,7 +1534,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         }
         finish();
       }, 900);
-      Toolbox.onDispose?.(() => window.clearInterval(tick));
+      Toolbox.onDispose?.(stopTick);
     }
 
     /** 대회 — 다섯 판을 이어서. 점수는 판마다 등수로 매긴다(점수의 뜻이 판마다 달라서다). */

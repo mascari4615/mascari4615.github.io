@@ -12,6 +12,7 @@
 import { loadNamespace, t } from '../../lib/i18n';
 // 내려주기·굽기는 공용 한 자리(`tools/shared/image`) — 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
 import { download, encode } from '../tools/shared/image';
+import { intervalWhileVisible } from '../../lib/tick';
 import { Stroke, defaultBrush, pickColor, type BrushSettings } from './brush';
 import { composite, spriteSheet } from './composite';
 import {
@@ -162,7 +163,8 @@ function buildMeok(container: HTMLElement): void {
   let tool: ToolId = 'brush';
   let onionBefore = 0;
   let onionAfter = 0;
-  let playing = 0;
+  /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다 — 그리기만 하는 시계다. */
+  let stopPlaying: (() => void) | null = null;
   let stroke: Stroke | null = null;
   let strokeBase: Surface | null = null;
   let panning: { x: number; y: number } | null = null;
@@ -170,7 +172,8 @@ function buildMeok(container: HTMLElement): void {
   let selection: Selection = createSelection(doc.w, doc.h);
   /* 고르는 중인 몸짓 — 사각형은 시작점, 올가미는 지나온 점들. */
   let picking: { from: { x: number; y: number }; points: Array<{ x: number; y: number }> } | null = null;
-  let ants = 0;
+  /** 고른 자리 점선(개미) 애니메이션을 멈추는 함수 (`lib/tick`). 이것도 그리기만 한다. */
+  let stopAnts: (() => void) | null = null;
 
   container.innerHTML =
     '<div class="meok">' +
@@ -319,9 +322,9 @@ function buildMeok(container: HTMLElement): void {
   /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다 — 한 길로만 지나가게 묶어 둔다. */
   function selectionChanged(): void {
     view.setSelectionEdges(edgePixels(selection));
-    if (ants) { clearInterval(ants); ants = 0; }
+    if (stopAnts) { stopAnts(); stopAnts = null; }
     if (view.hasSelectionEdges) {
-      ants = window.setInterval(() => { view.antPhase += 1; view.invalidate(); }, 120);
+      stopAnts = intervalWhileVisible(() => { view.antPhase += 1; view.invalidate(); }, 120);
     }
     const empty = isEmpty(selection);
     root.querySelectorAll<HTMLButtonElement>('[data-needs-selection]').forEach(button => { button.disabled = empty; });
@@ -899,10 +902,10 @@ function buildMeok(container: HTMLElement): void {
       else say(T('lastFrame', '마지막 한 장은 못 지운다'));
     },
     'play': () => {
-      if (playing) { clearInterval(playing); playing = 0; pick<HTMLElement>('[data-act="play"]').textContent = '▶'; return; }
+      if (stopPlaying) { stopPlaying(); stopPlaying = null; pick<HTMLElement>('[data-act="play"]').textContent = '▶'; return; }
       if (doc.frames < 2) { say(T('needFrames', '프레임이 두 장 이상이어야 논다')); return; }
       pick<HTMLElement>('[data-act="play"]').textContent = '■';
-      playing = window.setInterval(() => {
+      stopPlaying = intervalWhileVisible(() => {
         doc.activeFrame = (doc.activeFrame + 1) % doc.frames;
         renderFrames();
         repaint();
@@ -1294,8 +1297,8 @@ function buildMeok(container: HTMLElement): void {
   Toolbox.onDispose?.(() => {
     /* 다른 도구로 넘어가는 순간에도 아직 안 쓴 것이 있으면 지금 쓴다. */
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; writeNow(); }
-    if (playing) clearInterval(playing);
-    if (ants) clearInterval(ants);
+    if (stopPlaying) stopPlaying();
+    if (stopAnts) stopAnts();
     observer.disconnect();
     view.dispose();
     document.removeEventListener('keydown', keydown);
