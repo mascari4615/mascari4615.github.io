@@ -16,7 +16,6 @@ IMG-ENCODE	src/widgets/tools/comparepic.ts
 IMG-ENCODE	src/widgets/tools/favicon.ts
 IMG-ENCODE	src/widgets/tools/imgmerge.ts
 IMG-ENCODE	src/widgets/tools/mermaidlite.ts
-IMG-ENCODE	src/widgets/tools/mesh3d.ts
 IMG-ENCODE	src/widgets/tools/pdfcompress.ts
 IMG-ENCODE	src/widgets/tools/pdfpagenum.ts
 IMG-ENCODE	src/widgets/tools/pdfredact.ts
@@ -36,7 +35,6 @@ IMG-LOAD	src/widgets/tools/mermaidlite.ts
 OBJECT-URL	src/widgets/activity.ts
 OBJECT-URL	src/widgets/bluemarble/bluemarble.ts
 OBJECT-URL	src/widgets/bon/bon.ts
-OBJECT-URL	src/widgets/bounce.ts
 OBJECT-URL	src/widgets/chatbot/characters.ts
 OBJECT-URL	src/widgets/chatbot/chatbot.ts
 OBJECT-URL	src/widgets/heung/heung.ts
@@ -64,7 +62,6 @@ OBJECT-URL	src/widgets/tools/imgmerge.ts
 OBJECT-URL	src/widgets/tools/imgresize.ts
 OBJECT-URL	src/widgets/tools/loan.ts
 OBJECT-URL	src/widgets/tools/mermaidlite.ts
-OBJECT-URL	src/widgets/tools/mesh3d.ts
 OBJECT-URL	src/widgets/tools/papermap.ts
 OBJECT-URL	src/widgets/tools/pdfcompress.ts
 OBJECT-URL	src/widgets/tools/pdfpagenum.ts
