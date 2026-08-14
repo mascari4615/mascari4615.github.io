@@ -2055,6 +2055,57 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await ctx.close();
 });
 
+await step('지운 카드의 번호를 새 카드가 물려받지 않는다 (KL-271)', async () => {
+  /* 예전엔 빈 번호를 찾아 줬다 — 카드를 지우고 새로 만들면 **지운 카드의 번호가 되살아나서**,
+     그 번호를 가리키던 것들(저장한 보기의 둘레 보기, 남이 받아 간 링크의 장)이 아무 말 없이
+     **엉뚱한 카드**를 가리켰다. 판마다 「여기까지 줬다」를 적어 두고 그 뒤 번호만 준다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1300, height: 850 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+  const cbox = await m.locator('.km-canvas').boundingBox();
+
+  const make = async (label, fx, fy) => {
+    await m.mouse.dblclick(cbox.x + cbox.width * fx, cbox.y + cbox.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+    await m.keyboard.type(label);
+    await m.keyboard.press('Enter');
+    await m.waitForTimeout(ms(500));
+  };
+  await make('첫째', 0.3, 0.25);
+  const firstId = await m.evaluate(() => document.querySelector('.ck-node').dataset.id);
+
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('[data-km="node-del"]', { timeout: ms(4000) });
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  await m.locator('[data-km="ask-yes"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: ms(4000) });
+
+  await make('둘째', 0.6, 0.5);
+  const secondId = await m.evaluate(() => document.querySelector('.ck-node').dataset.id);
+  if (secondId === firstId) throw new Error(`지운 카드의 번호를 새 카드가 물려받았다: ${secondId}`);
+
+  // 다시 열어도 이어서 준다 — 「여기까지 줬다」가 판에 남아 있어야 한다.
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(700));
+  const cbox2 = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox2.x + cbox2.width * 0.4, cbox2.y + cbox2.height * 0.75);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('셋째');
+  await m.keyboard.press('Enter');
+  await m.waitForTimeout(ms(600));
+  const ids = await m.evaluate(() => [...document.querySelectorAll('.ck-node')].map((n) => n.dataset.id));
+  if (ids.includes(firstId)) throw new Error('새로 연 뒤에 지운 번호가 되살아났다: ' + ids.join(','));
+  if (new Set(ids).size !== ids.length) throw new Error('같은 번호가 둘이다: ' + ids.join(','));
+  await ctx.close();
+});
+
 await step('카드를 지우면 발표 장에서도 빠진다 (KL-271)', async () => {
   /* 실측 2026-08-14: 선과 지시선은 정리하면서 **발표 장**은 지운 카드의 id 를 그대로 안고 있었다.
      화면이 터지진 않지만 ① 그 장이 몇 장을 담았나가 틀리고 ② 카드 id 는 번호를 다시 쓰므로
