@@ -27,7 +27,17 @@ const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await page.goto(`${BASE}#devtool`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfText', { timeout: 20000 });
 
-check((await page.locator('.pf-job').count()) === 16, '할 일 카드가 열여섯 개여야 한다');
+/* ★ **개수를 손으로 박지 않는다** (2026-08-14). 「열여섯 개여야 한다」로 박혀 있었는데
+   도구가 하나 늘자(`XML 다루기`) 그대로 빨개졌다 — 늘어난 것은 좋은 일인데 검사가 운다.
+   그런 빨강은 사람을 길들여 진짜 빨강까지 무시하게 만든다.
+   재려던 것은 「열여섯」이 아니라 **할 일 카드가 제대로 그려지는가**다: 넉넉히 있고,
+   이름이 비지 않고, 아이디가 겹치지 않는다. */
+const 카드 = await page.locator('.pf-job').all();
+const 이름들 = await Promise.all(카드.map((c) => c.textContent()));
+const 아이디들 = await Promise.all(카드.map((c) => c.getAttribute('data-job')));
+check(카드.length >= 16, `할 일 카드가 열여섯 개 이상이어야 한다 (지금 ${카드.length})`);
+check(이름들.every((t) => (t ?? '').trim().length > 0), '이름 없는 할 일 카드가 있다');
+check(new Set(아이디들).size === 아이디들.length, '아이디가 겹치는 할 일 카드가 있다');
 check((await page.locator('.pf-group-label').count()) === 4, '갈래는 넷');
 check(!(await page.locator('#pfTip').isVisible()), '아직 아무것도 안 붙여넣었으면 짚지 않는다');
 

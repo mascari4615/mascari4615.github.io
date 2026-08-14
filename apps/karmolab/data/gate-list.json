@@ -130,6 +130,8 @@
     "test:duel",
     "test:usertool",
     "test:chat",
-    "test:offline"
+    "test:offline",
+    "audit:handoff",
+    "test:paperask"
   ]
 }
