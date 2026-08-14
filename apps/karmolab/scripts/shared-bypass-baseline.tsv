@@ -6,16 +6,15 @@ AUDIO-DECODE	src/widgets/heung/storage.ts
 IMG-ENCODE	src/widgets/bluemarble/bluemarble.ts
 IMG-ENCODE	src/widgets/bon/bon.ts
 IMG-ENCODE	src/widgets/imageconvert/core.ts	예외: 자체 배경칠(fillAlpha/bg)+mime 문자열 API(webp 등)+품질 클램프를 갖는 다른 계약이다. 공용 encode 로 바꾸면 중복 제거가 아니라 재작성 — 2026-08-14 확인
+IMG-ENCODE	src/widgets/imageedit.ts
 IMG-ENCODE	src/widgets/karmograph/karmograph.ts
 IMG-ENCODE	src/widgets/meok/meok.ts
 IMG-ENCODE	src/widgets/meong/meong.ts
-IMG-ENCODE	src/widgets/pulse/card.ts
 IMG-ENCODE	src/widgets/tools/barcode.ts
 IMG-ENCODE	src/widgets/tools/codeshot.ts
 IMG-ENCODE	src/widgets/tools/comparepic.ts
 IMG-ENCODE	src/widgets/tools/favicon.ts
 IMG-ENCODE	src/widgets/tools/imgmerge.ts
-IMG-ENCODE	src/widgets/tools/mermaidlite.ts
 IMG-ENCODE	src/widgets/tools/pdfcompress.ts
 IMG-ENCODE	src/widgets/tools/pdfpagenum.ts
 IMG-ENCODE	src/widgets/tools/pdfredact.ts
@@ -29,23 +28,21 @@ IMG-LOAD	src/widgets/bon/bon.ts
 IMG-LOAD	src/widgets/bounce.ts
 IMG-LOAD	src/widgets/imageconvert/core.ts	예외: objectUrl 을 호출자에게 넘겨 그쪽이 거둔다(공용은 60초 뒤 스스로 거둠). 계약이 다름 — 2026-08-14 확인
 IMG-LOAD	src/widgets/imageconvert/widget.ts
+IMG-LOAD	src/widgets/imageedit.ts
 IMG-LOAD	src/widgets/karmograph/karmograph.ts
 IMG-LOAD	src/widgets/tierlist/storage.ts
-IMG-LOAD	src/widgets/tools/mermaidlite.ts
 OBJECT-URL	src/widgets/activity.ts
 OBJECT-URL	src/widgets/bluemarble/bluemarble.ts
 OBJECT-URL	src/widgets/bon/bon.ts
-OBJECT-URL	src/widgets/chatbot/characters.ts
-OBJECT-URL	src/widgets/chatbot/chatbot.ts
 OBJECT-URL	src/widgets/heung/heung.ts
 OBJECT-URL	src/widgets/imageconvert/batch-pipeline.ts
 OBJECT-URL	src/widgets/imageconvert/core.ts	예외: 위와 같은 이유(주소 수명을 호출자가 쥔다) — 2026-08-14 확인
 OBJECT-URL	src/widgets/imageconvert/widget.ts
+OBJECT-URL	src/widgets/imageedit.ts
 OBJECT-URL	src/widgets/karmograph/karmograph.ts
 OBJECT-URL	src/widgets/meok/meok.ts
 OBJECT-URL	src/widgets/meok/rembg.ts
 OBJECT-URL	src/widgets/meong/meong.ts
-OBJECT-URL	src/widgets/pulse/card.ts
 OBJECT-URL	src/widgets/tierlist/publish.ts
 OBJECT-URL	src/widgets/tools/asciiart.ts
 OBJECT-URL	src/widgets/tools/audiocut.ts
@@ -61,7 +58,6 @@ OBJECT-URL	src/widgets/tools/imgbatch.ts
 OBJECT-URL	src/widgets/tools/imgmerge.ts
 OBJECT-URL	src/widgets/tools/imgresize.ts
 OBJECT-URL	src/widgets/tools/loan.ts
-OBJECT-URL	src/widgets/tools/mermaidlite.ts
 OBJECT-URL	src/widgets/tools/papermap.ts
 OBJECT-URL	src/widgets/tools/pdfcompress.ts
 OBJECT-URL	src/widgets/tools/pdfpagenum.ts

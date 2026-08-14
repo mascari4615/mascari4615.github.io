@@ -12,6 +12,7 @@
  * → 그것도 막히면 글자만 복사. 없는 기능을 있는 척하지 않는다.
  */
 import { t } from '../../lib/i18n';
+import { download, encode } from '../tools/shared/image';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -106,7 +107,7 @@ export async function drawShareable(
   const c = canvas.getContext('2d');
   if (!c) return null;
   render(c, WIDTH, HEIGHT);
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), 'image/png'));
+  return await encode(canvas, 'png'); // 공용 한 자리(`shared/image`)
 }
 
 /** 결과 = 사용자에게 그대로 보여 줄 한마디. 무슨 일이 일어났는지 숨기지 않는다. */
@@ -141,11 +142,6 @@ export async function shareCard(
   }
 
   // 마지막 — 내려받기
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pulse-${facts.text}.png`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  download(blob, `pulse-${facts.text}.png`); // 공용 한 자리 — 거두는 시점까지 같이 온다
   return t('pulse.t20');
 }
