@@ -804,5 +804,7 @@
   "karmograph.otherTab.msg": "다른 탭에서도 이 판을 고쳤습니다. 방금 저장이 그쪽 것을 덮었을 수 있어요 — 「저장」 칸의 「직전 판 되살리기」로 확인하거나, 지금 것을 파일로 빼 두세요.",
   "karmograph.rescue.kept": "⚠ 다른 탭이 고친 판이 따로 보관돼 있습니다 — 「직전 판 되살리기」로 그것을 엽니다.",
   "karmograph.otherTab.followed": "다른 탭에서 고친 내용을 받아 왔습니다",
-  "karmograph.board.aria": "관계도 — 카드 {n}장, 선 {e}개"
+  "karmograph.board.aria": "관계도 — 카드 {n}장, 선 {e}개",
+  "karmograph.board.picked": "{name} 골랐음 — 이어진 것 {n}개",
+  "karmograph.opt.sketchy": "손그림 질감"
 }
