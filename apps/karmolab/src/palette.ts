@@ -22,6 +22,9 @@
 
 import { compactSearchText } from './search/tool-search';
 import { createSearchSystem } from './search/search-system';
+import { studyMapDocuments } from './search/providers/studymap-provider';
+import { lessonDocuments } from './search/providers/lesson-provider';
+import { docsDocuments } from './search/providers/docs-provider';
 
 type PaletteTool = {
   id: string;
@@ -45,6 +48,12 @@ type Entry = {
   cho: string;
   /** 이 도구가 어느 묶음의 탭인지 (아니면 null). 둘러보기에서 부모 밑에 붙인다. */
   bundle: string | null;
+  source?: 'tool' | 'study' | 'lesson' | 'docs';
+  pageId?: string;
+  nodeId?: string;
+  partId?: string;
+  docId?: string;
+  heading?: string;
 };
 
 type Hit = {
@@ -198,6 +207,21 @@ const KarmoPalette = (() => {
   });
   let aliasMap: Record<string, string> = {};
   let aliasLoaded = false;
+  let studyEntries: Entry[] = [];
+  let lessonEntries: Entry[] = [];
+  let docsEntries: Entry[] = [];
+  let studyLoaded = false;
+  let lessonsLoaded = false;
+  let docsLoaded = false;
+  searchIndex.register({ id: 'studymap', documents: () => studyEntries.map((entry) => ({
+    value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
+  })) });
+  searchIndex.register({ id: 'lessons', documents: () => lessonEntries.map((entry) => ({
+    value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
+  })) });
+  searchIndex.register({ id: 'docs', documents: () => docsEntries.map((entry) => ({
+    value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
+  })) });
   /** 이번 주에 많이 쓴 도구 id — 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
   let popularIds: string[] = [];
 
@@ -275,6 +299,57 @@ const KarmoPalette = (() => {
     }
   }
 
+  async function loadStudyMap(): Promise<void> {
+    if (studyLoaded) return;
+    studyLoaded = true;
+    try {
+      const response = await fetch('/apps/karmolab/data/studymap.json');
+      if (!response.ok) return;
+      studyEntries = studyMapDocuments(await response.json()).map((document) => ({
+        id: document.value.id, title: document.value.title, desc: document.value.description,
+        category: document.value.trackTitle, icon: '', alias: document.aliases || '', cho: '', bundle: null,
+        source: 'study', pageId: 'studymap', nodeId: document.value.nodeId,
+      }));
+      searchIndex.refresh('studymap');
+      if (inline?.input.value) render(inline);
+      if (overlay?.input.value) render(overlay);
+    } catch (_) { /* 지도 검색이 없어도 도구 검색은 계속 돈다. */ }
+  }
+
+  async function loadLessons(): Promise<void> {
+    if (lessonsLoaded) return;
+    lessonsLoaded = true;
+    try {
+      const response = await fetch('/apps/karmolab/data/lessons/search-index.ko.json');
+      if (!response.ok) return;
+      lessonEntries = lessonDocuments(await response.json()).map((document) => ({
+        id: `lesson:${document.value.id}`, title: document.value.title, desc: document.value.description,
+        category: document.value.nodeTitle, icon: '', alias: document.aliases || '', cho: '', bundle: null,
+        source: 'lesson', pageId: 'studymap', nodeId: document.value.nodeId, partId: document.value.partId,
+      }));
+      searchIndex.refresh('lessons');
+      if (inline?.input.value) render(inline);
+      if (overlay?.input.value) render(overlay);
+    } catch (_) { /* 강의 색인이 없어도 나머지 검색은 계속 돈다. */ }
+  }
+
+  async function loadDocs(): Promise<void> {
+    if (docsLoaded) return;
+    docsLoaded = true;
+    try {
+      const response = await fetch('/apps/karmolab/data/docs-search-index.ko.json');
+      if (!response.ok) return;
+      docsEntries = docsDocuments(await response.json()).map((document) => ({
+        id: `docs:${document.value.id}`, title: document.value.title, desc: document.value.description,
+        category: '문서', icon: '', alias: document.aliases || '', cho: '', bundle: null,
+        source: 'docs', pageId: 'docs', docId: document.value.docId, heading: document.value.heading,
+      }));
+      searchIndex.refresh('docs');
+      if (inline?.input.value) render(inline);
+      if (overlay?.input.value) render(overlay);
+    } catch (_) { /* 문서 색인이 없어도 나머지 검색은 계속 돈다. */ }
+  }
+
   function buildIndex(): void {
     const all = (typeof Toolbox !== 'undefined' ? Toolbox.getTools() : []) as PaletteTool[];
     const isDesktop = typeof Toolbox !== 'undefined' && Toolbox.isDesktopApp ? Toolbox.isDesktopApp() : false;
@@ -350,7 +425,7 @@ const KarmoPalette = (() => {
     list: HTMLElement;
     mode: 'inline' | 'overlay';
     /** id 가 있으면 도구 줄, copy 가 있으면 답 줄 (TASK-KL-110) */
-    rows: Array<{ el: HTMLElement; id?: string; copy?: string }>;
+    rows: Array<{ el: HTMLElement; entry?: Entry; copy?: string }>;
     active: number;
     restoreFocus: Element | null;
   };
@@ -411,9 +486,9 @@ const KarmoPalette = (() => {
     row.innerHTML = rowHtml(e, range, badge);
     // 마우스로 훑는 동안 키보드 하이라이트가 따라와야 둘이 안 어긋난다.
     row.addEventListener('mousemove', () => setActive(inst, inst.rows.findIndex((r) => r.el === row)));
-    row.addEventListener('click', () => choose(inst, e.id));
+    row.addEventListener('click', () => choose(inst, e));
     inst.list.appendChild(row);
-    inst.rows.push({ el: row, id: e.id });
+    inst.rows.push({ el: row, entry: e });
   }
 
   /**
@@ -533,7 +608,7 @@ const KarmoPalette = (() => {
       b.className = 'kp-browse-chip';
       b.textContent = e.title;
       b.title = e.desc || e.title;
-      b.addEventListener('click', () => choose(inst, e.id));
+      b.addEventListener('click', () => choose(inst, e));
       wrap.appendChild(b);
     });
     return wrap;
@@ -719,7 +794,8 @@ const KarmoPalette = (() => {
       // 한 덩어리로 보여, 첫 줄을 눌렀을 때 무엇이 일어날지 헷갈린다.
       if (answers.length) inst.list.appendChild(sectionEl('도구'));
       extra.forEach((e) => addRow(inst, e, null));
-      hits.forEach((h) => addRow(inst, h.entry, h.range));
+      hits.forEach((h) => addRow(inst, h.entry, h.range,
+        h.entry.source === 'lesson' ? '강의' : h.entry.source === 'study' ? '학습' : h.entry.source === 'docs' ? '문서' : undefined));
     }
     /* 잘라낸 것이 있으면 **말해 준다** — 안 그러면 「이게 전부」로 읽힌다 (TASK-KL-136).
      * 첫 화면 칸에서는 ⌘K 창이 이어받고, 그 창마저 넘치면 전체 목록 페이지로 보낸다. */
@@ -779,9 +855,27 @@ const KarmoPalette = (() => {
     setActive(inst, (inst.active + delta + n) % n);
   }
 
-  function choose(inst: Instance, id: string): void {
+  function choose(inst: Instance, entry: Entry): void {
     if (inst.mode === 'overlay') close();
-    if (typeof Toolbox !== 'undefined') Toolbox.switchPage(id);
+    if (entry.nodeId) sessionStorage.setItem('karmolab-studymap-open-node', entry.nodeId);
+    if (entry.partId) sessionStorage.setItem('karmolab-studymap-open-part', entry.partId);
+    if (entry.docId) sessionStorage.setItem('karmolab-docs-open', JSON.stringify({ id: entry.docId, heading: entry.heading || '' }));
+    if (typeof Toolbox !== 'undefined') Toolbox.switchPage(entry.pageId || entry.id);
+    const retryUntilMounted = (run: () => void, isPending: () => boolean, attempts = 120): void => {
+      if (!isPending() || attempts <= 0) return;
+      run();
+      if (isPending()) requestAnimationFrame(() => retryUntilMounted(run, isPending, attempts - 1));
+    };
+    if (entry.nodeId) retryUntilMounted(
+      () => (window as unknown as { KarmoStudyMapOpen?: (id: string, partId?: string) => void })
+        .KarmoStudyMapOpen?.(entry.nodeId as string, entry.partId),
+      () => sessionStorage.getItem('karmolab-studymap-open-node') === entry.nodeId,
+    );
+    if (entry.docId) retryUntilMounted(
+      () => (window as unknown as { KarmoDocsOpen?: (id: string, heading?: string) => void })
+        .KarmoDocsOpen?.(entry.docId as string, entry.heading),
+      () => sessionStorage.getItem('karmolab-docs-open') !== null,
+    );
   }
 
   /** 지금 짚은 줄을 실행한다 — 도구면 열고, 답이면 복사한다. */
@@ -789,7 +883,7 @@ const KarmoPalette = (() => {
     const r = inst.rows[i];
     if (!r) return;
     if (r.copy !== undefined) copyAnswer(inst, r.copy);
-    else if (r.id) choose(inst, r.id);
+    else if (r.entry) choose(inst, r.entry);
   }
 
   function onKey(inst: Instance, e: KeyboardEvent): void {
@@ -941,6 +1035,9 @@ const KarmoPalette = (() => {
   /** 첫 화면 안에 박아 넣는다 (TASK-KL-099 — 여기가 기본 진입로다). */
   function mountInline(container: HTMLElement): void {
     if (!entries.length) buildIndex();
+    void loadStudyMap();
+    void loadLessons();
+    void loadDocs();
     void loadAliases().then(() => {
       if (inline && !inline.input.value) render(inline);
     });
@@ -967,6 +1064,9 @@ const KarmoPalette = (() => {
       return;
     }
     if (!entries.length) buildIndex();
+    void loadStudyMap();
+    void loadLessons();
+    void loadDocs();
     void loadAliases();
 
     const inst = buildSurface('overlay');
