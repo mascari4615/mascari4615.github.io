@@ -47,6 +47,7 @@ type ImageBatch = {
 };
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from '../tools/shared/image';
 
 (function (): void {
     const IC = (window as unknown as { KarmoLabImageConvert?: ImageConvertCore }).KarmoLabImageConvert;
@@ -445,14 +446,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
 
             function triggerDownloadBlob(blob: Blob, mime: ImageConvertOutputMime): void {
-                var url = URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.href = url;
-                a.download = current.baseName + '.' + core.extFromMime(mime);
-                a.click();
-                setTimeout(function () {
-                    URL.revokeObjectURL(url);
-                }, 2000);
+                // 공용 한 자리(`shared/image.download`) — 거두는 시점(2초)까지 같이 온다.
+                download(blob, current.baseName + '.' + core.extFromMime(mime));
             }
 
             function onSettingsChanged(): void {
