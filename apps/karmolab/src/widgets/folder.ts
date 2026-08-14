@@ -59,6 +59,27 @@ import { t, loadNamespace } from '../lib/i18n';
             draggingWin = null;
           });
 
+          /* 자판 길 (2026-08-14, `audit:mouse-only`) — 제목 줄에 초점을 주고 화살표로 옮긴다.
+           * 끌기만 있으면 창이 겹쳐 놓인 자리를 자판 쓰는 사람은 **영영 못 헤친다.**
+           * 옮기는 계산은 끌기와 같은 것(왼쪽·위 px)이라 두 길이 갈리지 않는다. */
+          desktop.addEventListener('keydown', (e: KeyboardEvent) => {
+            const title = (e.target as Element).closest('.win-title');
+            const win = title?.parentElement;
+            if (!win) return;
+            const step = e.shiftKey ? 40 : 10;
+            const left = parseInt(win.style.left, 10) || 0;
+            const top = parseInt(win.style.top, 10) || 0;
+            switch (e.key) {
+              case 'ArrowLeft': win.style.left = `${left - step}px`; break;
+              case 'ArrowRight': win.style.left = `${left + step}px`; break;
+              case 'ArrowUp': win.style.top = `${top - step}px`; break;
+              case 'ArrowDown': win.style.top = `${top + step}px`; break;
+              default: return;
+            }
+            win.style.zIndex = String(zIndex++);
+            e.preventDefault();
+          });
+
           function spawnWindow(x: number, y: number): void {
             if (count >= MAX_WINDOWS) {
               if (count === MAX_WINDOWS) {
@@ -73,7 +94,7 @@ import { t, loadNamespace } from '../lib/i18n';
             win.style.cssText = `position:absolute; left:${x}px; top:${y}px; width:250px; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; z-index:${zIndex++}; box-shadow: 2px 2px 4px rgba(0,0,0,0.5);`;
 
             win.innerHTML = `
-                        <div class="win-title" style="background:#000080; color:#fff; padding:2px 4px; font-size:var(--font-size-xs); font-weight:bold; display:flex; justify-content:space-between; cursor:default; user-select:none;">
+                        <div class="win-title" tabindex="0" role="application" aria-label="${esc(t('folder.kb.title'))}" style="background:#000080; color:#fff; padding:2px 4px; font-size:var(--font-size-xs); font-weight:bold; display:flex; justify-content:space-between; cursor:default; user-select:none;">
                             <span>Error</span>
                             <button class="win-close" style="background:#c0c0c0; color:#000; border:1px solid; border-color:#fff #808080 #808080 #fff; width:16px; height:16px; font-size:var(--font-size-2xs); line-height:1; cursor:default;">X</button>
                         </div>
