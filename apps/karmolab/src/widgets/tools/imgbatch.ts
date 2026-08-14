@@ -10,6 +10,7 @@ import { runBatch, retryBar, type BatchFail } from './shared/batch';
 import { wireDrop } from './shared/drop-well';
 import { loadImage, toCanvas, encode, download } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
+import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -65,6 +66,21 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <div class="tool-sublabel">${esc(t('imgbatch.label.quality'))} <span id="ibQualityVal" class="range-value">85</span></div>
                 <input type="range" id="ibQuality" aria-label="${esc(t('imgbatch.label.quality'))}" min="40" max="100" value="85">
               </div>
+            </div>
+
+            <div id="ibPreview" hidden style="margin-bottom:var(--space-lg);">
+              <div class="tool-sublabel">${esc(t('imgbatch.preview.title'))} <span id="ibPreviewMeta" class="range-value"></span></div>
+              <div class="tool-grid-2">
+                <figure style="margin:0;">
+                  <canvas id="ibBefore" style="width:100%; height:auto; display:block; border-radius:8px;"></canvas>
+                  <figcaption class="tool-list-dim">${esc(t('imgbatch.preview.before'))}</figcaption>
+                </figure>
+                <figure style="margin:0;">
+                  <canvas id="ibAfter" style="width:100%; height:auto; display:block; border-radius:8px;"></canvas>
+                  <figcaption class="tool-list-dim" id="ibAfterCap">${esc(t('imgbatch.preview.after'))}</figcaption>
+                </figure>
+              </div>
+              <p class="tool-list-dim" style="margin-top:6px;">${esc(t('imgbatch.preview.how'))}</p>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
@@ -126,6 +142,83 @@ import { t, loadNamespace } from '../../lib/i18n';
             listEl.innerHTML = files
               .map((f) => `<div class="tool-list-row"><span class="tool-list-key">${size(f.size)}</span><span class="tool-list-val">${esc(f.name)}</span></div>`)
               .join('');
+          }
+
+          /**
+           * **누르기 전에 보여 준다** (TASK-KL-238 / 17 squoosh).
+           *
+           * 화질 다이얼은 있었지만 그 숫자가 뭘 뜻하는지는 스무 장을 다 바꾼 뒤에야 알았다.
+           * 그래서 첫 장으로 지금 설정 그대로 한 번 눌러 보고, **용량**과 **확대한 그림**을 같이 낸다.
+           * 겹쳐 보기는 `comparepic` 의 일이다 — 압축 자국은 **확대해야** 보이므로 여기선 나란히.
+           */
+          const PREVIEW_BOX = 320;
+          const PREVIEW_ZOOM = 2;
+          let previewTimer = 0;
+          let previewToken = 0;
+
+          async function preview(): Promise<void> {
+            const box = $<HTMLElement>('#ibPreview');
+            const first = files[0];
+            if (first === undefined) {
+              box.hidden = true;
+              return;
+            }
+            const mine = ++previewToken;
+            let img: HTMLImageElement;
+            let result: Result;
+            try {
+              img = await loadImage(first);
+              result = await convert(first);
+            } catch {
+              box.hidden = true; // 미리보기는 **거들 뿐**이다 — 못 하면 조용히 접는다
+              return;
+            }
+            if (mine !== previewToken) return; // 그 사이 다이얼이 또 움직였다 — 낡은 그림을 덮어쓰지 않는다
+
+            const after = await loadImage(new File([result.blob], result.name, { type: result.blob.type }));
+            if (mine !== previewToken) return;
+
+            box.hidden = false;
+            paintCrop($<HTMLCanvasElement>('#ibBefore'), img);
+            paintCrop($<HTMLCanvasElement>('#ibAfter'), after);
+
+            const s = saving(first.size, result.blob.size);
+            const totalBefore = files.reduce((a, f) => a + f.size, 0);
+            const guess = estimateTotal(totalBefore, first.size, result.blob.size);
+            $<HTMLElement>('#ibPreviewMeta').textContent = t('imgbatch.preview.meta', {
+              before: size(first.size),
+              after: size(result.blob.size),
+              verdict:
+                s.kind === 'smaller'
+                  ? t('imgbatch.verdict.smaller', { pct: s.pct })
+                  : s.kind === 'bigger'
+                    ? t('imgbatch.verdict.biggerBy', { pct: s.pct })
+                    : t('imgbatch.verdict.same'),
+              guess: guess === null || files.length < 2 ? '' : t('imgbatch.preview.guess', { n: files.length, total: size(guess) })
+            });
+            $<HTMLElement>('#ibAfterCap').textContent = t('imgbatch.preview.afterMeta', {
+              q: qualityEl.value,
+              w: result.w,
+              h: result.h
+            });
+          }
+
+          /** 같은 자리를 같은 배율로 — 자르는 자리는 `lib/imgpreview` 가 정한다(검사가 그 자리를 본다). */
+          function paintCrop(canvas: HTMLCanvasElement, img: HTMLImageElement): void {
+            const c = centerCrop(img.naturalWidth, img.naturalHeight, PREVIEW_BOX, PREVIEW_BOX, PREVIEW_ZOOM);
+            canvas.width = PREVIEW_BOX;
+            canvas.height = PREVIEW_BOX;
+            const ctx = canvas.getContext('2d');
+            if (ctx === null) return;
+            ctx.imageSmoothingEnabled = false; // 자국을 보려고 확대하는 것이다 — 문질러 놓으면 볼 것이 없다
+            ctx.clearRect(0, 0, PREVIEW_BOX, PREVIEW_BOX);
+            ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, 0, 0, PREVIEW_BOX, PREVIEW_BOX);
+          }
+
+          /** 다이얼은 잡고 움직인다 — 뗄 때마다 누르면 큰 사진에서 화면이 멎는다. */
+          function previewSoon(): void {
+            clearTimeout(previewTimer);
+            previewTimer = window.setTimeout(() => void preview(), 350);
           }
 
           /**
@@ -222,6 +315,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             results = [];
             for (const f of Array.from(list)) if (f.type.startsWith('image/')) files.push(f);
             render();
+            previewSoon();
             say(
                 t('imgbatch.say.picked', {
                   n: files.length,
@@ -249,16 +343,21 @@ import { t, loadNamespace } from '../../lib/i18n';
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
           maxEl.addEventListener('input', () => {
             $<HTMLElement>('#ibMaxVal').textContent = maxEl.value + 'px';
+            previewSoon();
           });
           qualityEl.addEventListener('input', () => {
             $<HTMLElement>('#ibQualityVal').textContent = qualityEl.value;
+            previewSoon();
           });
+          $<HTMLSelectElement>('#ibFormat').addEventListener('change', previewSoon);
           $<HTMLButtonElement>('#ibRun').onclick = () => void run();
           $<HTMLButtonElement>('#ibZip').onclick = () => void zip();
           $<HTMLButtonElement>('#ibClear').onclick = () => {
             files = [];
             results = [];
             lastFails = [];
+            previewToken++;
+            $<HTMLElement>('#ibPreview').hidden = true;
             paintFails();
             render();
             say(t('imgbatch.say.cleared'));
