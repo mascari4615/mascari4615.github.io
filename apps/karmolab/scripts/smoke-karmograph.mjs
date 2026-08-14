@@ -2055,6 +2055,36 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await ctx.close();
 });
 
+await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', async () => {
+  /* 실측 2026-08-14: 알림 자리가 **살아 있는 자리(live region)** 가 아니어서, 화면을 못 보는
+     사람에게는 「저장됨」·「만들었습니다」·「다른 탭에서 고쳤습니다」가 하나도 안 들렸다.
+     눈으로 보는 사람에게만 들리는 알림은 **반쪽**이다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1300, height: 850 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const live = await m.evaluate(() => {
+    const el = document.getElementById('statusToast');
+    if (!el) return null;
+    return { role: el.getAttribute('role'), live: el.getAttribute('aria-live') };
+  });
+  if (!live) throw new Error('알림 자리가 없다');
+  if (live.live !== 'polite' && live.live !== 'assertive') {
+    throw new Error('알림이 살아 있는 자리가 아니다 — 읽어 주는 도구에 안 들린다');
+  }
+
+  /* 실제로 그 자리에 말이 들어가는지까지 — 표시만 붙고 글이 딴 데 뜨면 소용없다.
+     (카드 만들기는 판 위 「저장됨」 알약으로 알린다 — 여기서는 **토스트를 쓰는 일**을 시킨다.) */
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(700));
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForFunction(() => (document.getElementById('statusToast')?.textContent || '').trim().length > 0,
+    null, { timeout: ms(6000) });
+  await ctx.close();
+});
+
 await step('지운 카드의 번호를 새 카드가 물려받지 않는다 (KL-271)', async () => {
   /* 예전엔 빈 번호를 찾아 줬다 — 카드를 지우고 새로 만들면 **지운 카드의 번호가 되살아나서**,
      그 번호를 가리키던 것들(저장한 보기의 둘레 보기, 남이 받아 간 링크의 장)이 아무 말 없이

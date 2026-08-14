@@ -245,7 +245,10 @@ permalink: /karmolab/
         </ul>
       </section>
     </noscript>
-    <div class="status-toast" id="statusToast"></div>
+    <!-- ★ 알림은 **소리로도 닿아야** 한다 (KL-271). 이 자리가 살아 있는 자리(live region)가
+         아니어서, 화면 읽어 주는 도구를 쓰는 사람에게는 「저장됨」·「만들었습니다」·「다른 탭에서
+         고쳤습니다」가 **하나도 안 들렸다**(실측 2026-08-14). polite = 하던 말을 끊지 않는다. -->
+    <div class="status-toast" id="statusToast" role="status" aria-live="polite"></div>
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
             <div class="header-bar-left">
