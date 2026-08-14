@@ -2055,6 +2055,47 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await ctx.close();
 });
 
+await step('다른 탭이 고친 공용 글이 이쪽 카드에도 닿는다 (KL-271)', async () => {
+  /* 글은 판보다 오래 살고 **여러 판이 같은 글을 쓴다**. 저쪽에서 고친 글이 이쪽 카드에 옛
+     글로 남아 있으면 같은 글이 화면마다 다르게 보인다 — 어느 쪽을 믿을지 사람이 못 정한다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1200, height: 800 } });
+  const a = await ctx.newPage();
+  await a.goto(URL, { waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.evaluate(() => localStorage.clear());
+  await a.evaluate(() => {
+    const spec = {
+      version: 1, _meta: {}, groups: [],
+      nodes: [{ id: 'n1', label: '글쓴이', kind: 'character', x: 80, y: 80, w: 160, h: 44, docRef: 'note1' }],
+      edges: [],
+      notes: [{ id: 'note1', title: '공용 글', text: '처음 적은 글' }],
+      ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.note', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'note', maps: [{ id: 'note', name: '글 판' }] }));
+  });
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await a.waitForTimeout(ms(900));
+
+  // 다른 탭이 그 글을 고친 것과 같은 자리 — 창고(공용 글)가 정본이다.
+  await a.evaluate(() => {
+    const lib = [{ id: 'note1', title: '공용 글', text: '저쪽에서 고친 글', from: '딴 판', at: Date.now() }];
+    localStorage.setItem('karmograph.notes', JSON.stringify(lib));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'karmograph.notes', newValue: JSON.stringify(lib),
+    }));
+  });
+  /* 저장까지 밀어 넣지는 않는다 — 그러면 「내가 고쳤다」로 잡혀 판 따라가기가 멈춘다.
+     지켜야 할 것은 **지금 화면이 최신 글을 보여 주는가**다(저장본은 다음에 열 때 맞춰진다). */
+  await a.waitForTimeout(ms(600));
+  await a.locator('.ck-node').first().click();
+  await a.waitForSelector('[data-km="edit-doc"]', { timeout: ms(4000) });
+  const shown = await a.inputValue('[data-km="edit-doc"]');
+  if (!shown.includes('저쪽에서 고친')) throw new Error('카드 칸에는 아직 옛 글이 보인다: ' + shown.slice(0, 30));
+  await ctx.close();
+});
+
 await step('안 고친 탭은 다른 탭의 변경을 그대로 따라간다 (KL-271)', async () => {
   /* 덮은 뒤에 알리는 것보다 나은 건 **덮을 일을 안 만드는 것**이다. 내가 이 판을 아직 안
      고쳤다면 다른 탭이 저장한 그것을 그대로 받으면 된다(이미 고쳤다면 말없이 갈아 끼우지
