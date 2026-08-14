@@ -96,7 +96,10 @@ const wfDir = path.join(root, '../../.github/workflows');
 if (fs.existsSync(wfDir)) {
   for (const file of fs.readdirSync(wfDir)) {
     if (!/\.ya?ml$/.test(file)) continue;
-    for (const m of fs.readFileSync(path.join(wfDir, file), 'utf8').matchAll(/npm run ([\w:.-]+)/g)) {
+    /* `npm run --silent <이름>` 처럼 **깃발이 앞에 오는** 부름도 있다 — 깃발을 이름으로 읽으면
+       진짜 이름은 못 보고 「아무도 안 돌린다」로 잡는다(2026-08-14 실측: `audit:deploy-health`
+       를 워크플로가 부르는데도 고아로 걸려 master 가 빨개졌다). 깃발은 건너뛴다. */
+    for (const m of fs.readFileSync(path.join(wfDir, file), 'utf8').matchAll(/npm run (?:--[\w-]+\s+)*([\w:.-]+)/g)) {
       covered.add(m[1]);
       expand(m[1]);
     }
