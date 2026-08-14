@@ -1242,7 +1242,11 @@ import {
       fitObserver?.disconnect();
     });
 
+    /** 이 탭이 이 판을 **고친 적 있나** — 다른 탭의 변경을 따라갈지 정하는 데 쓴다. */
+    let touchedHere = false;
+
     function persistStructure(): void {
+      touchedHere = true;
       store.saveSpec(canvas?.getSpec() ?? spec);
       flashSaved();
       // 공용 글은 맵보다 오래 산다 — 저장할 때마다 사람 창고에도 같이 적어 둔다.
@@ -4127,7 +4131,32 @@ import {
       };
     }
 
+    /**
+     * 🔁 **다른 탭이 이 판을 고치면 따라간다** (KL-271).
+     *
+     * 105·106·107 회차는 「덮은 뒤에」 알리고 되찾는 길이었다. 그보다 나은 건 **덮을 일을 안
+     * 만드는 것** — 내가 아직 이 판을 안 고쳤다면 다른 탭이 저장한 그것을 그대로 받으면 된다.
+     * 이미 고쳤다면 말없이 갈아 끼우지 않는다(내 일이 사라지는 게 더 나쁘다) — 그때는 저장할 때
+     * 뜨는 경고와 보관본이 받는다.
+     */
+    function followOtherTab(ev: StorageEvent): void {
+      if (ev.key !== mapKey(library.activeId) || !ev.newValue) return;
+      if (touchedHere || readOnly) return;
+      void store.load().then((loaded) => {
+        if (!loaded) return;
+        spec = loaded;
+        spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
+        applySpec();
+        renderSide();
+        renderTimes();
+        Toolbox.showToast?.(t('karmograph.otherTab.followed'), undefined, undefined);
+      });
+    }
+    window.addEventListener('storage', followOtherTab);
+    Toolbox.onDispose?.(() => window.removeEventListener('storage', followOtherTab));
+
     function openActiveMap(): void {
+      touchedHere = false;   // 판을 새로 열면 「내가 고친 적 없다」로 돌아간다
       store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
       store.onWriteError = () => warnSaveFailed();
       store.onForeignWrite = () => warnOtherTab();
