@@ -43,7 +43,9 @@ const openGame = async (id) => {
 };
 
 if (!cantRun) {
-  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  /* 찬 러너는 셸이 늦게 뜬다 — 다른 오락실 검사들과 같은 60초로 맞춘다(그 값으로 CI 초록을 봤다).
+     느린 레인 첫 판이 여기 30초에서 섰다(2026-08-14 실측). */
+  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
   await p.waitForSelector('[data-solo="gomoku"]', { timeout: 30000 });
 
