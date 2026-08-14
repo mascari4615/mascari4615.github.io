@@ -68,8 +68,9 @@ import { t, loadNamespace } from '../lib/i18n';
             isDragging = false;
           });
 
-          petArea.addEventListener('mousemove', () => {
-            if (!isDragging) return;
+          /* 쓰다듬는 일 자체를 함수로 뽑는다 — 마우스로 문지르든 자판을 누르든 **같은 한 번**이다.
+           * (2026-08-14, `audit:mouse-only`: 문지르기만 있으면 자판 쓰는 사람은 아예 못 쓰다듬는다.) */
+          function petOnce(): void {
             count = Toolbox.incrementProgress?.(PROGRESS_KEY) ?? count + 1;
             countLabel.textContent = count.toLocaleString();
             petArea.style.transform = `scale(${1 + Math.random() * 0.1}) rotate(${(Math.random() - 0.5) * 10}deg)`;
@@ -88,6 +89,21 @@ import { t, loadNamespace } from '../lib/i18n';
                 Mdd.bounce();
               }
             }
+          }
+
+          petArea.addEventListener('mousemove', () => {
+            if (isDragging) petOnce();
+          });
+
+          /* 자판 길 — 누르면 한 번 쓰다듬는다. 고양이는 단추가 아니지만, 하는 일이 단추와 같다
+           * (누르면 한 번 일어난다)라서 `role="button"` 이 맞다. */
+          petArea.tabIndex = 0;
+          petArea.setAttribute('role', 'button');
+          petArea.setAttribute('aria-label', t('pet.kb.label'));
+          petArea.addEventListener('keydown', (e) => {
+            if (!['Enter', ' ', 'Spacebar', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+            e.preventDefault();
+            petOnce();
           });
 
           function showMarriagePopup(): void {

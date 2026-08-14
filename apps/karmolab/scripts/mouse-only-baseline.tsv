@@ -8,7 +8,6 @@ src/widgets/bluemarble/bluemarble.ts
 src/widgets/eyes.ts
 src/widgets/folder.ts
 src/widgets/orbita.ts
-src/widgets/pet.ts
 src/widgets/speed.ts
 src/widgets/tierlist/dnd.ts
 src/widgets/tierlist/ui.ts
