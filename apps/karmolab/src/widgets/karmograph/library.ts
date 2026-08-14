@@ -79,12 +79,17 @@ function markGone(id: string): void {
  */
 function writeIndex(index: LibraryIndex): void {
   try {
-    const mine = new Set(index.maps.map((m) => m.id));
     const gone = goneIds();
+    /* ★ 지운 것은 **누구의 기억에도 안 남는다.** 내 목록에서만 빼면, 그 판을 아직 기억하고 있는
+       다른 탭이 다음 저장에 도로 살린다(실측 2026-08-14: 지운 판이 돌아왔다). */
+    const kept = index.maps.filter((m) => !gone.has(m.id));
+    const mine = new Set(kept.map((m) => m.id));
     const theirs = (readIndex()?.maps ?? []).filter((m) => !mine.has(m.id) && !gone.has(m.id));
-    const merged: LibraryIndex = theirs.length === 0
-      ? index
-      : { activeId: index.activeId, maps: [...index.maps, ...theirs] };
+    const maps = [...kept, ...theirs];
+    const merged: LibraryIndex = {
+      activeId: maps.some((m) => m.id === index.activeId) ? index.activeId : (maps[0]?.id ?? index.activeId),
+      maps: maps.length > 0 ? maps : index.maps,
+    };
     localStorage.setItem(INDEX_KEY, JSON.stringify(merged));
   } catch (e) {
     console.error(t('karmograph.writeIndex.msg'), e);
