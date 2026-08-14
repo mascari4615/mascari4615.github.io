@@ -79,6 +79,20 @@ if (!cantRun) {
   }));
   check('풀스크린 대상은 무대다 (창 전체가 아니라)', big.who === 'acStage', String(big.who));
   check('풀스크린이면 판이 커진다', big.cell > small * 1.3, `${small}px → ${big.cell}px`);
+
+  /* **풀스크린에서 단추가 눌리는가.** 브라우저는 풀스크린 대상 밖을 아예 안 그리므로,
+     무대만 키우면 나가기·한 판 더가 통째로 사라진다(실제로 그랬다). DOM 좌표는 이때
+     거짓말을 한다 — 「보인다」로 재면 초록이다. 그 자리를 눌렀을 때 무엇이 잡히나로 본다. */
+  const reach = await p.evaluate(() =>
+    ['acQuit', 'acFull', 'acSound'].map((id) => {
+      const e = document.getElementById(id);
+      if (!e) return `${id}:없음`;
+      const r = e.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return `${id}:${hit === e || e.contains(hit) ? 'ok' : '못누름'}`;
+    })
+  );
+  check('풀스크린에서도 단추가 눌린다', reach.every((r) => r.endsWith(':ok')), reach.join(' '));
 }
 
 await br.close();

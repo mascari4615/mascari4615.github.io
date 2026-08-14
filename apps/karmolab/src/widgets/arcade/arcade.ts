@@ -588,6 +588,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 풀스크린이면 무대가 화면이 된다 — 안에 있는 51개가 그대로 커진다. */
       '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-color);padding:var(--space-lg)}',
       '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
+      /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다** — 아래 § 참고. 판 위에 뜨되 가리지 않게. */
+      '.ac-stage:fullscreen .ac-controls{position:absolute;left:0;right:0;bottom:var(--space-lg);justify-content:center;margin:0;z-index:4}',
       '.ac-fl{max-width:100%;margin:0 auto}',
       '.ac-flmsg{text-align:center;font-size:var(--font-size-sm);min-height:22px}',
       '.ac-flgrids{display:flex;flex-wrap:wrap;gap:var(--space-lg);justify-content:center}',
@@ -687,7 +689,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-primary" id="acLetterCopy">' + esc(t('arcade.btn.copy')) + '</button>' +
       '</div></div>' +
       '<div class="tool-status" id="acStatus"></div>' +
-      '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
+      '<div class="ac-controls" id="acControls" style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
       '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
       '<button class="btn btn-ghost" id="acFull" title="' + esc(t('arcade.btn.full')) + '">⛶</button>' +
@@ -1748,6 +1750,24 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 안 되는 곳(iOS 사파리의 일부)에서는 조용히 아무 일도 안 일어난다. 단추를 숨기지는 않는다 —
      * 눌러 보고 안 되는 것과 아예 없는 것 중, 없는 쪽이 더 오래 헷갈린다.
      */
+    /**
+     * 풀스크린이면 단추 줄을 **무대 안으로 옮긴다** (TASK-KL-314).
+     *
+     * 브라우저는 풀스크린 대상 **밖을 아예 안 그린다.** 그래서 무대만 키웠더니 나가기·한 판
+     * 더·소리가 통째로 사라졌다 — 판이 끝나도 아무것도 못 하고, 나가려면 ESC 를 알아야 했다
+     * (실측: 그 자리를 눌러 보면 무대가 잡힌다). 화면에 안 보이는 단추는 없는 단추다.
+     *
+     * 옮기는 것으로 푼다 — 복제가 아니라 이동이라 붙여 둔 손잡이(onclick)가 그대로 따라온다.
+     * ESC 로 나가는 길도 있으므로 되돌리는 것은 `fullscreenchange` 가 맡는다(단추만 보면 샌다).
+     */
+    const controls = $<HTMLElement>('#acControls');
+    const controlsHome = controls.parentElement;
+    document.addEventListener('fullscreenchange', () => {
+      const stage = $<HTMLElement>('#acStage');
+      if (document.fullscreenElement === stage) stage.appendChild(controls);
+      else controlsHome?.appendChild(controls);
+    });
+
     $<HTMLButtonElement>('#acFull').onclick = (): void => {
       const stage = $<HTMLElement>('#acStage');
       try {
