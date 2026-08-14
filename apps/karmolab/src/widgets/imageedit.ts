@@ -3401,6 +3401,17 @@ const esc = (v: unknown): string =>
             URL.revokeObjectURL(url);
             const sizeKB = (blob.size / 1024).toFixed(1);
             Toolbox.showToast(t('imageedit.t186') + sizeKB + ' KB)');
+            /* 손본 그림은 대개 **거기서 안 끝난다** — 레이어가 필요해지는 순간 「먹」으로 가야 하는데
+             * 여태 그 길이 없어 저장했다 다시 열었다 (TASK-KL-238 / 2 photopea).
+             * 이 도구는 한 장짜리 보정이고 레이어·마스크는 「먹」이 갖고 있다. 그러니 이어 준다. */
+            const nextAnchor = document.getElementById('ieSizeLabel');
+            if (nextAnchor) {
+                Toolbox.offerNext?.(nextAnchor, {
+                    blob,
+                    name: ieDownloadFilenameFromDisplayName(ieImageSourceMeta.displayName, dlExt),
+                    from: 'imageedit',
+                });
+            }
         }, mime, quality);
     }
 

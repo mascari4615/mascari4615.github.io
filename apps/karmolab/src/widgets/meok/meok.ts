@@ -34,6 +34,8 @@ declare const Toolbox: {
   register(spec: unknown): void;
   getLazyWidgetPublicMeta?(id: string): unknown;
   onDispose?(fn: () => void): void;
+  /** 남이 넘긴 파일을 받는 창구 (TASK-KL-238 / 2) — 선언(`accepts`)만 하고 안 받으면 빈 화면이 뜬다. */
+  onHandoff?(id: string, cb: (file: File) => void): void;
 };
 
 type ToolId = 'brush' | 'eraser' | 'fill' | 'pick' | 'pan' | 'marquee' | 'lasso' | 'wand';
@@ -1193,11 +1195,14 @@ function buildMeok(container: HTMLElement): void {
     }
   };
 
-  pick<HTMLInputElement>('[data-place]').onchange = async (event) => {
-    const input = event.target as HTMLInputElement;
-    const file = input.files && input.files[0];
-    input.value = '';
-    if (!file) return;
+  /**
+   * 그림 한 장을 **새 레이어로** 얹는다 (TASK-KL-238 / 2 photopea).
+   *
+   * 파일 고르기 말고 **다른 도구가 넘겨 준 것**도 같은 길로 들어온다 — 예전엔 이 일이 `onchange`
+   * 안에만 있어서, 「이미지 편집」이 넘긴 그림은 받을 손이 없었다(먹은 `accepts: image/*` 라고
+   * 적어 두고도 실제로는 안 받았다 = 눌러도 빈 화면). 선언과 실물은 같아야 한다.
+   */
+  const placeImageFile = async (file: File): Promise<void> => {
     try {
       const bitmap = await createImageBitmap(file);
       /* 판보다 크면 판에 맞춰 줄인다 — 붙였는데 화면 밖이면 붙인 줄도 모른다. */
@@ -1219,6 +1224,19 @@ function buildMeok(container: HTMLElement): void {
       say(T('openFailed', '열지 못했다'));
     }
   };
+
+  pick<HTMLInputElement>('[data-place]').onchange = async (event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    await placeImageFile(file);
+  };
+
+  /* 남이 넘긴 그림도 같은 자리로 (TASK-KL-238 / 2). 「이어서」 줄에서 먹을 고르면 여기로 온다. */
+  Toolbox.onHandoff?.('meok', (file: File) => {
+    if (file.type.startsWith('image/')) void placeImageFile(file);
+  });
 
   /* 단축키 — 입력칸에 글자를 치는 중이면 안 가로챈다. */
   const keydown = (event: KeyboardEvent): void => {

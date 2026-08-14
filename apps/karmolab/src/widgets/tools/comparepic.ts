@@ -184,6 +184,12 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
            * 「어느 쪽에 넣나」를 틀이 모르기 때문이다. 억지로 끼우지 않고 그 판단만 여기 둔다:
            * **비어 있는 쪽**에 넣고, 둘 다 비었으면 왼쪽부터. 둘 다 찼으면 오른쪽을 갈아 끼운다
            * (전/후 비교에서 새로 온 것은 대개 「후」다). */
+          /* 남이 넘긴 그림도 받는다 (TASK-KL-238 / 2). 메타에 `accepts` 를 적어 두고 안 받으면
+           * 「이어서」로 눌렀을 때 **빈 화면**이 뜬다 — 오류도 안 난다. `audit:handoff` 가 그걸 잰다. */
+          Toolbox.onHandoff?.('comparepic', (file: File) => {
+            if (file.type.startsWith('image/')) void load(file, left === null ? 'left' : 'right');
+          });
+
           acceptPastedFiles(container, (files) => {
             const f = files[0];
             if (!f) return;
