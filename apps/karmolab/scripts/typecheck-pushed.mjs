@@ -81,7 +81,11 @@ try {
      `git archive` 는 아무 설정도 안 건드리고 **읽기만** 한다. 값도 더 싸다. */
   mkdirSync(work, { recursive: true });
   const tar = spawnSync('tar', ['-x', '-C', work], {
-    input: execFileSync('git', ['archive', sha, 'apps/karmolab', 'packages', '.github'], {
+    /* ★ 뿌리의 `scripts` 도 같이 푼다 (2026-08-15). 검사 몇은 **검사를 부르는 자리**를 세는데,
+       그 자리 하나가 뿌리 `scripts/verify.mjs` 다. 안 풀면 거기서만 부르는 검사(`audit:pages`)가
+       갑자기 「아무도 안 돌린다」로 보여 **멀쩡한 커밋이 막힌다** — 오늘 실제로 그랬다.
+       여기서 만드는 세상이 반쪽이면 그 안의 판정도 반쪽이다. */
+    input: execFileSync('git', ['archive', sha, 'apps/karmolab', 'packages', '.github', 'scripts'], {
       cwd: repoRoot,
       env,
       maxBuffer: 512 * 1024 * 1024,

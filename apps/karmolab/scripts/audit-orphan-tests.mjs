@@ -132,6 +132,22 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
   }
 }
 
+/* ★ **부르는 자리를 못 보면 「모른다」다 — 빨강이 아니다** (2026-08-15 실측).
+   이 감사는 검사를 부르는 자리를 셋에서 읽는다: npm 묶음 · 뿌리 `scripts/verify.mjs` ·
+   `.github/workflows`. 그런데 push 훅은 **커밋을 임시 폴더에 앱 서브트리만** 풀어 놓고 돌린다 —
+   거기엔 뒤의 둘이 없다. 그러면 「verify 가 매 판 부르는」 검사(`audit:pages`)가 갑자기
+   고아로 보여 **멀쩡한 커밋이 막힌다**. 오늘 실제로 그렇게 막혔고, 사유도 안 보였다.
+   이 파일 위쪽이 스스로 정한 규율(「못 물어보면 모른다 — 모름을 빨강으로 만들지 않는다」)을
+   여기서도 지킨다. exit 2 = 「못 돌림」 = `run-gates` 가 빨강으로 안 센다. */
+const 부르는자리 = [path.join(root, '../../scripts/verify.mjs'), path.join(root, '../../.github/workflows')];
+const 없는자리 = 부르는자리.filter((one) => !fs.existsSync(one));
+if (없는자리.length) {
+  console.error('[audit-orphan-tests] CANNOT-RUN: 검사를 부르는 자리를 못 본다 —');
+  for (const one of 없는자리) console.error(`  없음: ${path.relative(root, one)}`);
+  console.error('  이건 「아무도 안 돌린다」가 아니라 **아무것도 못 봤다**는 뜻이다. 빨강으로 세지 않는다.');
+  process.exit(2);
+}
+
 const wfDir = path.join(root, '../../.github/workflows');
 if (fs.existsSync(wfDir)) {
   for (const file of fs.readdirSync(wfDir)) {
