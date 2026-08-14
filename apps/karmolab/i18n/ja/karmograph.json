@@ -803,5 +803,6 @@
   "karmograph.kind.unknown": "不明な種類",
   "karmograph.otherTab.msg": "他のタブでもこのマップを編集しました。今の保存で上書きした可能性があります — 「保存」パネルの「直前の版を戻す」で確認するか、今の内容をファイルに書き出してください。",
   "karmograph.rescue.kept": "⚠ 他のタブが編集した版を別に保管しています —「直前の版を戻す」で開けます。",
-  "karmograph.otherTab.followed": "他のタブの変更を取り込みました"
+  "karmograph.otherTab.followed": "他のタブの変更を取り込みました",
+  "karmograph.board.aria": "関係図 — カード {n} 枚、線 {e} 本"
 }

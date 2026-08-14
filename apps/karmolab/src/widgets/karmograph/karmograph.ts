@@ -42,6 +42,7 @@ import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf, setNoteWords } from '../../lib/graph/notes';
+import { setBoardWords } from '../../lib/graph/canvas-a11y';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
@@ -596,6 +597,10 @@ import {
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
     /** 되돌리기 스택 이름이 `history` 라 브라우저 것과 겹친다 — 별칭으로 갈라 둔다. */
     // 자료 층이 쓰는 몇 마디를 **제 나라 말로** 얹는다 (KL-271) — 없으면 글 속에 영어가 남는다.
+    // 판을 한 줄로 알리는 말도 제 나라 말로 (KL-271) — 읽어 주는 도구가 이걸 먼저 읽는다.
+    setBoardWords({
+      label: (nodes, edges) => t('karmograph.board.aria', { n: String(nodes), e: String(edges) }),
+    });
     setNoteWords({
       loop: t('karmograph.note.loop'),
       missing: t('karmograph.note.missing'),

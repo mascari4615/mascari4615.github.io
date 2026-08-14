@@ -49,6 +49,7 @@ async function loadModules() {
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
     export * as groupBox from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-group.ts'))};
+    export * as boardA11y from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-a11y.ts'))};
     export * as film from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/film.ts'))};
     export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
     export * as times from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/times.ts'))};
@@ -1328,6 +1329,18 @@ const M = await loadModules();
     '자리·크기가 없어도 숫자다 — NaN 이 든 파일은 여는 쪽에서 조용히 깨진다');
   eq(card.width, 160, '너비는 기본값으로 채운다');
   eq(out.edges.length, 1, '없는 카드를 가리키는 선도 그대로 나간다(여는 쪽이 판단할 일)');
+}
+
+{
+  /* 판을 **글로도** 알린다 (KL-271) — 그림 판은 읽어 주는 도구에 아무 말도 안 했다. */
+  const { boardLabel, setBoardWords, DEFAULT_BOARD_WORDS } = M.boardA11y;
+  check(boardLabel(3, 2).includes('3'), '카드 수가 말에 든다');
+  check(boardLabel(3, 2).includes('2'), '선 수도 든다');
+  eq(boardLabel(-1, Number.NaN), DEFAULT_BOARD_WORDS.label(0, 0),
+    '숫자가 이상하면 0 으로 읽는다 — 이름이 깨지면 아예 안 들린다');
+  setBoardWords({ label: (n, e) => `카드 ${n} 선 ${e}` });
+  eq(boardLabel(1, 0), '카드 1 선 0', '화면이 얹은 말이 실제로 쓰인다');
+  setBoardWords(DEFAULT_BOARD_WORDS);
 }
 
 process.stdout.write('\n');
