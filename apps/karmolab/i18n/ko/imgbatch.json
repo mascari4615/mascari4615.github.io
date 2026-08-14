@@ -29,5 +29,12 @@
   "imgbatch.say.one": "{i}/{total} — {name}",
   "imgbatch.say.partly": "{ok}장 됐고, {bad}장은 안 됩니다: {names}",
   "imgbatch.btn.retry": "안 된 것만 다시",
-  "imgbatch.err.unknown": "왜인지 모르겠습니다"
+  "imgbatch.err.unknown": "왜인지 모르겠습니다",
+  "imgbatch.preview.title": "눌러 보기 전에 — 첫 장으로 미리",
+  "imgbatch.preview.before": "원본 (2배 확대)",
+  "imgbatch.preview.after": "바꾼 뒤 (2배 확대)",
+  "imgbatch.preview.afterMeta": "바꾼 뒤 · 화질 {q} · {w}×{h} (2배 확대)",
+  "imgbatch.preview.meta": "{before} → {after} · {verdict}{guess}",
+  "imgbatch.preview.guess": " · {n}장이면 어림 {total}",
+  "imgbatch.preview.how": "압축 자국은 확대해야 보입니다. 가운데 같은 자리를 같은 배율로 나란히 놓았습니다"
 }

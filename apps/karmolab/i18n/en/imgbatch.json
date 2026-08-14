@@ -29,5 +29,12 @@
   "imgbatch.say.one": "{i}/{total} — {name}",
   "imgbatch.say.partly": "{ok} done, {bad} failed: {names}",
   "imgbatch.btn.retry": "Retry failed only",
-  "imgbatch.err.unknown": "Reason unknown"
+  "imgbatch.err.unknown": "Reason unknown",
+  "imgbatch.preview.title": "Before you press — previewed on the first image",
+  "imgbatch.preview.before": "Original (2× zoom)",
+  "imgbatch.preview.after": "Converted (2× zoom)",
+  "imgbatch.preview.afterMeta": "Converted · quality {q} · {w}×{h} (2× zoom)",
+  "imgbatch.preview.meta": "{before} → {after} · {verdict}{guess}",
+  "imgbatch.preview.guess": " · about {total} for {n} images",
+  "imgbatch.preview.how": "Compression artifacts only show up when zoomed in, so the same center area is shown side by side at the same zoom"
 }

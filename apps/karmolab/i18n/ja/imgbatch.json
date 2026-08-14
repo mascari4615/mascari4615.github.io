@@ -29,5 +29,12 @@
   "imgbatch.say.one": "{i}/{total} — {name}",
   "imgbatch.say.partly": "{ok}枚が完了、{bad}枚は失敗: {names}",
   "imgbatch.btn.retry": "失敗した分だけ再実行",
-  "imgbatch.err.unknown": "理由が分かりません"
+  "imgbatch.err.unknown": "理由が分かりません",
+  "imgbatch.preview.title": "押す前に — 一枚目で下見",
+  "imgbatch.preview.before": "元 (2倍)",
+  "imgbatch.preview.after": "変換後 (2倍)",
+  "imgbatch.preview.afterMeta": "変換後 · 画質 {q} · {w}×{h} (2倍)",
+  "imgbatch.preview.meta": "{before} → {after} · {verdict}{guess}",
+  "imgbatch.preview.guess": " · {n}枚ならおよそ {total}",
+  "imgbatch.preview.how": "圧縮の跡は拡大しないと見えません。真ん中の同じ所を同じ倍率で並べています"
 }
