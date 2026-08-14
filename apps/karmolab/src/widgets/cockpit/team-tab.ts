@@ -4,6 +4,7 @@
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 /** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
 const esc = (v: unknown): string =>
@@ -246,7 +247,8 @@ export function buildTeamTab(container: HTMLElement): void {
   let cachedTasks: TaskBoardEntry[] = [];
   let cachedProposals: ProposalInfo[] = [];
   let cachedRepoRoot: string | null = null;
-  let intervalHandle: number | null = null;
+  /** 자동 새로고침을 멈추는 함수 (`lib/tick` 이 돌려준다). */
+  let stopAuto: (() => void) | null = null;
 
   function renderAgents(rows: AgentInfo[]): void {
     countAgents.textContent = String(rows.length);
@@ -419,9 +421,10 @@ export function buildTeamTab(container: HTMLElement): void {
     }
   }
 
+  /** 자동 새로고침. **보이는 동안만** 돈다 (`lib/tick`) — 덮어 둔 탭에서 망을 두드릴 이유가 없다. */
   function applyAutoRefresh(): void {
-    if (intervalHandle !== null) { clearInterval(intervalHandle); intervalHandle = null; }
-    if (autoChk.checked) intervalHandle = window.setInterval(() => void load(), REFRESH_MS);
+    if (stopAuto !== null) { stopAuto(); stopAuto = null; }
+    if (autoChk.checked) stopAuto = intervalWhileVisible(() => void load(), REFRESH_MS);
   }
 
   async function runCadence(target: 'dev' | 'prod', btn: HTMLButtonElement): Promise<void> {

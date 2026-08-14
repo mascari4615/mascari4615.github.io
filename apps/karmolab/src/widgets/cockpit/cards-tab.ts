@@ -4,6 +4,7 @@
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
 import { t, loadNamespace } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -124,5 +125,7 @@ export function buildCardsTab(container: HTMLElement): void {
   searchInput.addEventListener('input', render);
   refreshBtn.addEventListener('click', () => void load());
   void load();
-  window.setInterval(() => void load(), REFRESH_MS);
+  // 보이는 동안만 받아 온다 (`lib/tick`) — 덮어 둔 탭에서 망을 계속 두드릴 이유가 없다.
+  // (전에는 멈추는 손잡이조차 안 들고 있었다 — 화면을 떠나도 계속 돌던 자리다.)
+  Toolbox.onDispose?.(intervalWhileVisible(() => void load(), REFRESH_MS));
 }
