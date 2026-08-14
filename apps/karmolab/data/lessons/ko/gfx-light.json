@@ -1,100 +1,534 @@
 {
   "id": "gfx-light",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "같은 모델이 게임마다 달라 보이는 이유는 조명 모델이 다르기 때문이다. PBR 은 **물리 기반**이라 규칙이 있고, 규칙이 있으니 예측이 된다."
-    },
-    {
-      "type": "h",
-      "text": "1. 빛이 표면에서 하는 두 가지"
-    },
-    {
-      "type": "p",
-      "text": "**확산 반사**(속으로 들어갔다 흩어져 나옴 — 재질의 색) + **정반사**(표면에서 튕김 — 하이라이트). 이 둘의 합이 우리가 보는 색이다."
-    },
-    {
-      "type": "h",
-      "text": "2. PBR 의 두 손잡이"
-    },
-    {
-      "type": "note",
-      "text": "**거칠기(roughness)**: 0 이면 거울, 1 이면 매트. 하이라이트가 퍼지는 정도. **금속성(metallic)**: 0 이면 비금속(플라스틱·나무), 1 이면 금속. 금속은 확산 반사가 없고 반사색이 재질 색을 띤다."
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "값 감각",
-      "text": "나무·천    roughness 0.7~0.9  metallic 0\n플라스틱    roughness 0.3~0.5  metallic 0\n금 · 구리   roughness 0.1~0.3  metallic 1\n젖은 표면   roughness 를 낮춘다 (그래서 비 오면 반짝인다)"
-    },
-    {
-      "type": "h",
-      "text": "3. 텍스처 채널"
-    },
-    {
-      "type": "p",
-      "text": "Albedo(기본색·그림자 그리지 말 것) · Normal(요철) · Roughness · Metallic · AO(가려짐) · Emissive(스스로 빛남). 여기에 그림자·조명 정보를 미리 그려 넣으면 **다른 조명에서 어색해진다**."
-    },
-    {
-      "type": "h",
-      "text": "4. 조명 종류와 비용"
-    },
-    {
-      "type": "note",
-      "text": "방향광(태양·싸다) · 점광(위치·범위) · 스포트 · 영역광(비쌈). 실시간 그림자는 특히 비싸므로, 움직이지 않는 것은 **라이트맵으로 미리 구워** 두는 것이 정석이다."
-    },
-    {
-      "type": "h",
-      "text": "5. 환경광이 절반"
-    },
-    {
-      "type": "p",
-      "text": "주변 환경이 반사되어 들어오는 빛(IBL·스카이박스)이 없으면 PBR 재질은 밋밋하다. **환경맵 하나만 제대로 넣어도** 같은 재질이 완전히 달라 보인다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "구 하나를 놓고 roughness 를 0 → 1 로, metallic 을 0 → 1 로 바꿔 4개 조합을 나란히 비교하라."
-    },
-    {
-      "type": "try",
-      "text": "환경맵(스카이박스)을 바꿔 같은 재질이 어떻게 달라지는지 보라. 금속일수록 차이가 크다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "PBR 에서 metallic 이 1 인 재질의 특징은?",
-      "choices": [
-        "확산 반사가 거의 없고 반사색이 재질 색을 띤다",
-        "항상 어둡다",
-        "거칠기가 무시된다"
+      "id": "1",
+      "title": "조명 모델이 룩을 정한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**같은 모델이 게임마다 완전히 달라 보이는 큰 이유는 조명 모델이 다르기 때문이다 — PBR(물리 기반 렌더링)은 빛이 표면과 상호작용하는 물리를 근사해, 규칙이 있고 규칙이 있으니 예측이 된다.** 옛날의 임의적 조명(감으로 하이라이트·색 조절)은 조명 환경이 바뀌면 재질이 이상해졌다. PBR 은 **에너지 보존·물리적 재질 파라미터**를 따르므로 — 한 번 잘 만든 재질이 **어떤 조명(낮·밤·실내)에서도 그럴듯하게** 보이고, 재질 파라미터의 의미가 명확해(거칠기 0.5 = 반쯤 매트) 아티스트 간·엔진 간 이식이 쉽다. PBR 의 뼈대: 빛은 표면에서 **확산 반사와 정반사** 두 가지를 하고(2장), 재질은 **거칠기·금속성** 두 손잡이로 표현되며(3장), 텍스처 채널로 표면을 세밀히 정하고(4장), 조명·환경광이 이를 비춘다(5장). 그리고 PBR 은 **선형 색·HDR**을 전제한다(gfx-color). 이 칸은 그 규칙을 다룬다. 아래 데모로 조명 유무가 같은 구를 어떻게 바꾸는지 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "조명이 재질을 드러낸다",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const lit = '{{lit}}' === 'on';\n  render(lit ? '조명 있음 — 형태·재질이 드러남' : '조명 없음(단색) — 밋밋한 실루엣',\n    (lit\n      ? '<span class=\"ok\">빛과 표면의 상호작용(확산+정반사)이 형태와 재질을 보여 준다 — PBR 은 이걸 물리로 규칙화.</span>'\n      : '<span class=\"no\">조명이 없으면 색만 칠한 원 — 재질도 형태도 안 보인다. 보이는 것의 대부분은 빛이 만든다.</span>'),\n    'PBR = 물리 기반이라 규칙이 있고 예측이 된다(어떤 조명에서도 그럴듯).',\n    '<div class=\"spheres\">' +\n    shadeSphere(120, { alb: [0.85, 0.4, 0.3], rough: 0.35, metal: 0, diffuse: lit, spec: lit, ambient: lit ? 0.08 : 0 }, lit ? '조명 있음' : '조명 없음(단색)') +\n    '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "lit",
+              "label": "조명",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "없음(단색)"
+                },
+                {
+                  "value": "on",
+                  "label": "있음(PBR)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**같은 모델이 게임마다 달라 보이는 큰 이유는 조명 모델이 다르기 때문이고, PBR 은 빛-표면 상호작용의 물리를 근사해 규칙과 예측 가능성을 준다.** **왜 조명 모델이 룩을 정하나**: 화면에서 보이는 것의 대부분은 표면 자체가 아니라 **빛이 표면에 부딪혀 눈으로 오는 것**이다 — 같은 3D 모델도 조명 계산 방식(어떻게 확산·정반사를 섞고, 거칠기를 다루고, 환경광을 넣는지)에 따라 플라스틱·금속·천으로 전혀 다르게 보인다. 그래서 조명 모델이 게임의 **비주얼 톤(룩)**을 크게 좌우한다. **PBR(Physically Based Rendering)이란**: 빛이 표면과 상호작용하는 **물리 법칙을 근사**한 조명 모델. 핵심 원칙: ① **에너지 보존** — 표면이 반사하는 빛이 들어온 빛보다 많을 수 없다(옛 모델은 이를 어겨 조명 바뀌면 과하게 밝거나 이상해짐). ② **물리적 재질 파라미터** — 재질을 임의의 다이얼이 아니라 **거칠기·금속성**처럼 물리적 의미가 있는 값으로 표현(3장). ③ **선형 색·HDR 전제** — 빛의 덧셈·곱셈이 옳으려면 선형 공간에서 계산하고 HDR 로 밝기를 다뤄야 한다(gfx-color 2·5장). **PBR 의 이점**: ⓐ **어떤 조명에서도 그럴듯** — 한 번 물리적으로 맞게 만든 재질이 낮·밤·실내·야외 어디서도 자연스럽다(조명별로 재질을 다시 손볼 필요↓). ⓑ **예측 가능·이식 쉬움** — 파라미터 의미가 표준이라(거칠기 0.5 는 어디서나 반쯤 매트) 아티스트끼리·엔진끼리 재질을 주고받기 쉽다. ⓒ **실사 참조 가능** — 실제 물질의 측정값(금의 반사율 등)을 그대로 쓸 수 있다. **PBR 의 뼈대(이 칸의 구성)**: 빛은 표면에서 **확산+정반사**(2장), 재질은 **거칠기·금속성** 두 손잡이(3장), 표면 디테일은 **텍스처 채널**(4장), 이를 비추는 **조명·환경광**(5장). **정리**: 조명 모델이 룩을 정하고, PBR 은 물리를 근사해 규칙·예측·이식성을 준다 — 규칙이 있으니 감이 아니라 이해로 재질을 다룰 수 있다(다음 장이 그 규칙)."
+        },
+        {
+          "type": "try",
+          "text": "쓰는 엔진에서 구 하나에 **PBR 재질**을 주고 **조명을 껐다 켜** 보라 — 조명이 없으면 단색 실루엣, 있으면 형태·재질이 드러난다(보이는 것의 대부분이 빛의 작용). 그리고 같은 재질을 서로 다른 조명(밝은 낮·어두운 실내)에 두어도 그럴듯하게 유지되는지(PBR 의 이점) 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "금속은 빛을 속으로 들이지 않는다."
+      "quiz": [
+        {
+          "q": "같은 모델이 게임마다 달라 보이는 큰 이유는?",
+          "choices": [
+            "폴리곤 수",
+            "조명 모델이 다르기 때문 — 보이는 건 대부분 빛의 작용",
+            "파일 형식",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "조명이 룩을 정함."
+        },
+        {
+          "q": "PBR 이 예측 가능한 이유는?",
+          "choices": [
+            "느려서",
+            "물리(에너지 보존·물리적 파라미터)를 근사해 규칙이 있어서",
+            "색이 많아서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "규칙이 있음."
+        },
+        {
+          "q": "PBR 이 전제하는 것은?",
+          "choices": [
+            "감마 색",
+            "선형 색·HDR(gfx-color)",
+            "저해상도",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "선형에서 계산."
+        }
+      ]
     },
     {
-      "q": "Albedo 텍스처에 그림자를 그려 넣으면?",
-      "choices": [
-        "다른 조명 환경에서 어색해진다",
-        "성능이 좋아진다",
-        "항상 더 사실적이다"
+      "id": "2",
+      "title": "빛이 표면에서 하는 두 가지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**빛이 표면에 닿으면 두 가지 일이 일어나고, 그 합이 우리가 보는 색이다: 확산 반사와 정반사.** ① **확산 반사(diffuse)** — 빛이 표면 **속으로 들어갔다가 흩어져 다시 나오는** 것. 이 과정에서 재질의 색으로 물들어 나온다 — 그래서 확산은 **재질의 기본색(albedo)**을 보여 주고, 방향에 관계없이 부드럽게 퍼진다(사방에서 비슷하게 보임). ② **정반사(specular)** — 빛이 표면에서 **거울처럼 튕겨** 나오는 것. 눈이 반사 각도에 있을 때 **하이라이트(반짝임)**로 보인다. 정반사는 대체로 **빛의 색**(비금속의 경우)을 띠고, 표면이 매끄러울수록 **작고 또렷한** 하이라이트가 된다(3장 거칠기). 최종 색 = **확산(재질색) + 정반사(하이라이트)**. 이 둘의 분리가 PBR 의 출발점이다. 아래 데모로 확산·정반사·합을 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "확산 + 정반사 = 보는 색",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  const d = view === 'diffuse' || view === 'both';\n  const s = view === 'spec' || view === 'both';\n  render(view === 'diffuse' ? '확산만 — 재질색, 부드럽게 퍼짐' : view === 'spec' ? '정반사만 — 하이라이트(반짝임)' : '합 = 확산 + 정반사',\n    (view === 'diffuse' ? '<span class=\"ok\">확산: 빛이 속에 들어갔다 흩어져 나옴 → 재질색(albedo), 방향 무관하게 부드럽게.</span>'\n      : view === 'spec' ? '<span class=\"ok\">정반사: 표면에서 거울처럼 튕김 → 반사 각도에서 하이라이트, 빛의 색.</span>'\n      : '<span class=\"ok\">우리가 보는 색 = 확산(재질색) + 정반사(하이라이트)의 합.</span>'),\n    '확산=속으로 들어갔다 나옴(재질색) · 정반사=표면에서 튕김(하이라이트).',\n    '<div class=\"spheres\">' +\n    shadeSphere(110, { alb: [0.3, 0.55, 0.9], rough: 0.3, metal: 0, diffuse: d, spec: s, ambient: 0.06 }, view === 'diffuse' ? '확산만' : view === 'spec' ? '정반사만' : '확산+정반사') +\n    '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "성분",
+              "type": "select",
+              "value": "both",
+              "options": [
+                {
+                  "value": "diffuse",
+                  "label": "확산만"
+                },
+                {
+                  "value": "spec",
+                  "label": "정반사만"
+                },
+                {
+                  "value": "both",
+                  "label": "합(확산+정반사)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "확산 vs 정반사",
+          "text": "확산 반사(diffuse):\n  빛이 표면 속으로 들어갔다 흩어져 나옴\n  → 재질의 색(albedo) · 방향 무관하게 부드럽게 퍼짐\n\n정반사(specular):\n  빛이 표면에서 거울처럼 튕김\n  → 하이라이트(반짝임) · 반사 각도에서 보임\n  → 비금속은 빛의 색, 금속은 재질색(3장)\n\n보는 색 = 확산 + 정반사"
+        },
+        {
+          "type": "note",
+          "text": "**빛이 표면에 닿으면 확산 반사와 정반사 두 가지가 일어나고, 그 합이 우리가 보는 색이다.** **① 확산 반사(diffuse/subsurface)**: 빛의 일부는 표면을 뚫고 **재질 속으로 들어가** 내부에서 여러 번 산란한 뒤 **다시 밖으로 흩어져 나온다**. 이 과정에서 재질이 특정 파장을 흡수하므로, 나오는 빛은 **재질의 색(albedo/base color)**으로 물든다 — 빨간 사과가 빨갛게 보이는 이유. 확산광은 **모든 방향으로 고르게** 나와, 보는 각도가 바뀌어도 밝기가 비슷하다(람베르트 근사: 밝기 ∝ 표면 법선과 빛 방향의 코사인, `max(0, N·L)`). 그래서 확산은 **형태와 재질색**을 부드럽게 보여 준다. **② 정반사(specular reflection)**: 빛의 나머지는 표면 속으로 안 들어가고 **표면에서 거울처럼 튕겨** 나온다. 이 반사광은 **눈이 반사 방향에 있을 때** 밝은 **하이라이트**로 보인다(빛·눈·법선의 관계 — 하프벡터 H 와 법선의 각도로 계산). 정반사의 색은 — **비금속(유전체)**이면 대체로 **빛의 색**(흰 빛엔 흰 하이라이트), **금속**이면 **재질의 색**(금은 금색 하이라이트, 3장). 정반사 하이라이트의 **크기·선명함은 거칠기**가 정한다 — 매끄러우면 작고 또렷, 거칠면 크고 흐릿(3장). **에너지 보존**: 표면에 들어온 빛은 확산과 정반사로 **나뉜다**(합이 1을 넘지 않음) — 정반사가 강하면 확산이 그만큼 줄어야 물리적으로 옳다(옛 모델은 이를 무시해 과밝음). PBR 은 이 균형을 지킨다. **최종 색 = 확산 + 정반사**: 우리가 보는 픽셀 색은 이 둘의 합이다 — 확산이 재질색과 형태를, 정반사가 반짝임과 표면 느낌을 준다. 여기에 환경광(5장)이 더해진다. **정리**: 빛은 표면에서 속으로 들어갔다 나오거나(확산=재질색) 표면에서 튕기거나(정반사=하이라이트) 하고, 그 합이 보는 색이다 — PBR 은 이 둘을 물리적으로(에너지 보존하며) 계산한다."
+        },
+        {
+          "type": "try",
+          "text": "구에 PBR 재질을 주고, **확산만·정반사만·합**을 (셰이더 디버그나 재질 파라미터로) 분리해 보라 — 확산은 재질색으로 부드럽게 퍼지고, 정반사는 밝은 하이라이트로 나타난다. 빛이나 카메라를 움직여 **하이라이트가 반사 각도를 따라 이동**하는지(정반사) vs 확산은 각도에 덜 민감한지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "조명은 실시간 계산이나 라이트맵이 담당한다."
+      "quiz": [
+        {
+          "q": "확산 반사(diffuse)는?",
+          "choices": [
+            "표면에서 튕김",
+            "속으로 들어갔다 흩어져 나옴 → 재질색, 부드럽게 퍼짐",
+            "발광",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "재질색."
+        },
+        {
+          "q": "정반사(specular)는?",
+          "choices": [
+            "재질 전체 색",
+            "표면에서 거울처럼 튕김 → 하이라이트(반짝임)",
+            "그림자",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "하이라이트."
+        },
+        {
+          "q": "우리가 보는 색은?",
+          "choices": [
+            "확산만",
+            "확산(재질색) + 정반사(하이라이트)의 합",
+            "정반사만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "둘의 합."
+        }
+      ]
     },
     {
-      "q": "PBR 재질이 밋밋해 보일 때 가장 효과적인 개선은?",
-      "choices": [
-        "환경맵(IBL)을 제대로 넣는다",
-        "거칠기를 1 로",
-        "폴리곤을 늘린다"
+      "id": "3",
+      "title": "PBR 의 두 손잡이 — 거칠기·금속성",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**PBR 재질은 대개 두 손잡이로 표현된다: 거칠기(roughness)와 금속성(metallic).** ① **거칠기(roughness)**: 표면이 얼마나 미세하게 거친가 — **0 이면 거울(작고 또렷한 하이라이트), 1 이면 매트(넓고 흐릿하게 퍼진 하이라이트)**. 정반사가 퍼지는 정도를 정한다. ② **금속성(metallic)**: **0 이면 비금속**(플라스틱·나무·천·돌 — 확산색 있음, 하이라이트는 빛의 색), **1 이면 금속**(금·구리·철 — 확산색이 거의 없고, 하이라이트가 재질색을 띰). 중간값은 대개 전환 구간(코팅 등 특수 경우)이라 보통 0 또는 1 로 둔다. 예: 나무·천 = rough 0.7~0.9/metal 0, 플라스틱 = rough 0.3~0.5/metal 0, 금·구리 = rough 낮음/metal 1. 이 두 값 + 기본색(albedo)만으로 대부분의 재질을 표현한다. 아래 데모로 거칠기·금속성 4조합을 나란히 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "거칠기 × 금속성 — 4조합",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rough = {{rough}} / 100;\n  const metal = {{metal}} / 100;\n  const alb = metal > 0.5 ? [0.95, 0.78, 0.35] : [0.3, 0.55, 0.9];\n  render('roughness ' + rough.toFixed(2) + ' · metallic ' + metal.toFixed(2) + ' → ' + (metal > 0.5 ? '금속(금색)' : '비금속(파랑)') + ' · ' + (rough < 0.35 ? '매끈(또렷 하이라이트)' : rough > 0.7 ? '매트(퍼진 하이라이트)' : '중간'),\n    '<span class=\"ok\">거칠기 = 하이라이트가 퍼지는 정도 · 금속성 = 확산색 유무·하이라이트 색.</span>\\n  4조합(0/1 × 0/1)을 슬라이더로 오가며 비교하라.',\n    '거칠기(0 거울~1 매트) · 금속성(0 비금속~1 금속) + 기본색 = 대부분의 재질.',\n    '<div class=\"spheres\">' +\n    shadeSphere(120, { alb: alb, rough: rough, metal: metal > 0.5 ? 1 : 0, diffuse: true, spec: true, ambient: 0.08 }, 'rough ' + rough.toFixed(2) + ' / metal ' + (metal > 0.5 ? 1 : 0)) +\n    '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "rough",
+              "label": "거칠기 ×0.01",
+              "type": "range",
+              "min": 5,
+              "max": 95,
+              "step": 30,
+              "value": 35
+            },
+            {
+              "id": "metal",
+              "label": "금속성 ×0.01",
+              "type": "range",
+              "min": 0,
+              "max": 100,
+              "step": 50,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "재질별 두 손잡이",
+          "text": "나무·천       roughness 0.7~0.9   metallic 0\n플라스틱       roughness 0.3~0.5   metallic 0\n금·구리·철     roughness 0.1~0.5   metallic 1\n거울           roughness ~0        metallic 1\n\n거칠기: 0 거울(또렷 하이라이트) → 1 매트(퍼진 하이라이트)\n금속성: 0 비금속(확산색+빛색 하이라이트) → 1 금속(확산색 X, 재질색 하이라이트)\n중간 금속성은 특수 — 보통 0 또는 1"
+        },
+        {
+          "type": "note",
+          "text": "**PBR 재질은 대개 거칠기와 금속성 두 손잡이(+기본색)로 표현되며, 거칠기는 하이라이트가 퍼지는 정도를, 금속성은 확산색 유무와 하이라이트 색을 정한다.** **① 거칠기(roughness)**: 표면의 **미세 요철** 정도. 매끄러운 표면은 정반사가 한 방향으로 모여 **작고 또렷하고 밝은 하이라이트**(거울에 가까움, roughness→0), 거친 표면은 미세면이 여러 방향을 향해 정반사가 넓게 흩어져 **크고 흐릿한 하이라이트**(매트, roughness→1)가 된다. 즉 거칠기는 **정반사의 선명함/퍼짐**을 조절한다(같은 빛에도 광택 나는 플라스틱 vs 무광 고무의 차이). 일부 워크플로는 반대 개념인 **smoothness/glossiness**(1−roughness)를 쓴다. ② **금속성(metallic)**: 재질이 **도체(금속)인가 부도체(유전체)인가**. **비금속(metallic=0)** — 플라스틱·나무·천·돌·피부: **확산색(albedo)이 있고**(빛이 속에 들어갔다 나옴), 정반사 하이라이트는 대체로 **빛의 색**(흰 빛→흰 하이라이트), 정반사율이 낮다(~4%). **금속(metallic=1)** — 금·구리·철·알루미늄: **확산이 거의 없고**(빛이 표면에서 대부분 반사, 속으로 안 들어감), **정반사가 재질의 색을 띤다**(금은 금색으로 반사, 구리는 붉게). 그래서 금속의 base color 는 **정반사(반사) 색**으로 해석된다. **중간값 주의**: metallic 은 물리적으로 대개 **0 또는 1**이다(순수 금속이거나 아니거나) — 0.5 같은 중간은 코팅·먼지 낀 금속·경계 픽셀 등 특수한 경우라, 보통은 0/1 로 두고 중간은 피한다(어정쩡한 회색 금속은 대개 실수). **세 값으로 대부분의 재질**: **기본색(albedo) + 거칠기 + 금속성** 세 값이면 나무·플라스틱·금속·천·돌 등 현실 재질 대부분을 물리적으로 표현할 수 있다(여기에 법선·AO 등 텍스처, 4장). **정리**: 거칠기(하이라이트 퍼짐)와 금속성(확산 유무·하이라이트 색)이 PBR 의 두 핵심 손잡이다 — 실제 물질을 참조해 값을 정하고, 금속성은 0/1 을 지켜라."
+        },
+        {
+          "type": "try",
+          "text": "구 하나를 놓고 **roughness 를 0→1, metallic 을 0→1** 로 바꿔 **4개 조합**(매끈 비금속·매트 비금속·매끈 금속·매트 금속)을 나란히 비교하라 — 거칠기가 하이라이트를 퍼뜨리고, 금속성이 확산색을 없애고 하이라이트를 재질색으로 바꾸는 걸 눈으로 확인하라. metallic 을 0.5 로 두면 어정쩡해지는 것도 보라(보통 0/1)."
+        }
       ],
-      "answer": 0,
-      "why": "반사되어 들어오는 환경광이 사실감의 큰 부분이다."
+      "quiz": [
+        {
+          "q": "거칠기(roughness)는 무엇을 정하나?",
+          "choices": [
+            "색",
+            "하이라이트가 퍼지는 정도(0 거울~1 매트)",
+            "크기",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "정반사 퍼짐."
+        },
+        {
+          "q": "금속성(metallic) 1 의 특징은?",
+          "choices": [
+            "확산색 강함",
+            "확산색 거의 없고 하이라이트가 재질색을 띰",
+            "투명",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "금속 반사."
+        },
+        {
+          "q": "metallic 값은 보통?",
+          "choices": [
+            "항상 0.5",
+            "0 또는 1 (중간은 특수)",
+            "무작위",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "도체/부도체."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "텍스처 채널",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**PBR 재질의 표면 디테일은 여러 텍스처 채널로 정해진다 — 각 채널이 다른 물리량을 담는다.** ① **Albedo(BaseColor)** — 기본색. **그림자·하이라이트·AO 를 그려 넣지 마라**(조명이 실시간으로 만든다 — 미리 그리면 이중으로 어두워짐). ② **Normal** — 표면의 **요철(법선 방향)**을 픽셀 단위로. 실제 폴리곤을 안 늘리고 디테일을 준다. ③ **Roughness** — 부위별 거칠기(3장). ④ **Metallic** — 부위별 금속성(3장). ⑤ **AO(ambient occlusion)** — 틈·구석이 **주변광에 가려진** 정도(환경광에만 적용). ⑥ **Emissive** — 스스로 **빛나는** 부분(화면·네온 — 조명과 무관하게 밝음). **색 공간 주의**: Albedo·Emissive 는 **sRGB(색)**, Normal·Roughness·Metallic·AO 는 **선형(데이터)**으로 읽어야 한다(gfx-color 4장). 여러 채널을 한 텍스처의 RGB 에 묶어(예: R=AO, G=Roughness, B=Metallic) 대역폭을 아끼기도. 아래 데모로 채널별 역할을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "텍스처 채널 — 무엇을 담나",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ch = '{{ch}}';\n  const table = {\n    'albedo': ['Albedo (BaseColor)', '기본색', 'sRGB', '그림자·하이라이트·AO 그리지 말 것(조명이 함)'],\n    'normal': ['Normal', '요철(법선 방향)', '선형', '폴리곤 안 늘리고 디테일 — 정규 행렬 주의(gfx-space)'],\n    'rough': ['Roughness', '부위별 거칠기', '선형', '0 매끈~1 매트'],\n    'metal': ['Metallic', '부위별 금속성', '선형', '0 비금속~1 금속'],\n    'ao': ['AO', '주변광 가려짐', '선형', '환경광에만 적용 · 틈·구석을 어둡게'],\n    'emissive': ['Emissive', '스스로 빛남', 'sRGB', '조명과 무관하게 밝음(화면·네온)'],\n  };\n  const r = table[ch];\n  const srgb = r[2] === 'sRGB';\n  render('채널: ' + r[0] + '  (' + r[2] + ')',\n    steps([['담는 것: ' + r[1], 'good'], ['색 공간: ' + r[2] + (srgb ? ' (색 — 디감마)' : ' (데이터 — 선형)'), 'on'], ['메모: ' + r[3], '']]) +\n    '  <span class=\"ok\">색(Albedo·Emissive)=sRGB · 데이터(Normal·Rough·Metal·AO)=선형.</span>',\n    'Albedo·Normal·Roughness·Metallic·AO·Emissive — 채널마다 물리량·색공간.',\n    box('색 공간(gfx-color 4장)', 'sRGB: Albedo · Emissive\\n선형: Normal · Roughness · Metallic · AO · Mask', 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "ch",
+              "label": "채널",
+              "type": "select",
+              "value": "albedo",
+              "options": [
+                {
+                  "value": "albedo",
+                  "label": "Albedo"
+                },
+                {
+                  "value": "normal",
+                  "label": "Normal"
+                },
+                {
+                  "value": "rough",
+                  "label": "Roughness"
+                },
+                {
+                  "value": "metal",
+                  "label": "Metallic"
+                },
+                {
+                  "value": "ao",
+                  "label": "AO"
+                },
+                {
+                  "value": "emissive",
+                  "label": "Emissive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "PBR 텍스처 채널",
+          "text": "Albedo/BaseColor  기본색            sRGB   (그림자 그리지 말 것)\nNormal            요철(법선)         선형   (폴리곤 안 늘리고 디테일)\nRoughness         부위별 거칠기      선형\nMetallic          부위별 금속성      선형\nAO                주변광 가려짐      선형   (환경광에만)\nEmissive          스스로 빛남        sRGB   (조명 무관)\n\n묶기: R=AO, G=Roughness, B=Metallic 한 장으로 대역폭 절약"
+        },
+        {
+          "type": "note",
+          "text": "**PBR 표면은 Albedo·Normal·Roughness·Metallic·AO·Emissive 등 여러 텍스처 채널로 정해지고, 각 채널은 다른 물리량을 담으며 색/데이터에 따라 색 공간이 다르다.** ① **Albedo(BaseColor)** — 재질의 **기본색**(비금속의 확산색, 금속의 반사색, 3장). **그림자·하이라이트·명암·AO 를 절대 그려 넣지 마라** — 조명이 실시간으로 만들 것이라, 텍스처에 미리 그리면 **이중으로 어두워지고** 조명이 바뀌면 어색해진다(순수한 색만). sRGB(색). ② **Normal 맵** — 각 픽셀의 **표면 법선 방향**을 담아, 실제 폴리곤을 늘리지 않고 **요철·디테일**(벽돌 홈·천 주름)을 조명에 반응하게 만든다. 법선은 데이터라 **선형**으로 읽고, 비균등 스케일 시 정규 행렬 주의(gfx-space 5장). ③ **Roughness** / ④ **Metallic** — 부위별 거칠기·금속성(3장), 선형. ⑤ **AO(ambient occlusion)** — 틈·구석·접히는 부분이 **주변광(환경광)에 얼마나 가려지는지**를 미리 구운 값. **환경광(ambient/IBL)에만** 곱해 구석을 자연스럽게 어둡게 한다(직접광에는 대개 적용 안 함 — 실시간 그림자가 담당). 선형. ⑥ **Emissive** — **스스로 빛을 내는** 부분(화면·네온·용암). 조명과 무관하게 밝게 보이고(HDR 로 강하면 블룸), sRGB(색). 그 밖에 Height/Displacement(높이), Opacity/Alpha, Detail 맵 등. **채널 묶기(packing)**: 흑백 데이터 채널들(AO·Roughness·Metallic)은 한 텍스처의 R·G·B 에 **묶어**(예: ARM = AO/Roughness/Metallic) 텍스처 수·대역폭을 줄인다 — 이때 그 텍스처는 **선형**으로 읽는다. **색 공간 정합**(gfx-color 4장): **Albedo·Emissive 는 sRGB, Normal·Roughness·Metallic·AO·묶음맵은 선형** — 틀리면 조명·색이 어긋난다(노멀맵을 sRGB 로 읽는 흔한 버그). **정리**: 각 텍스처 채널은 다른 물리량을 담으니 역할과 색 공간을 맞추고, Albedo 에는 순수색만(그림자 X), 데이터 채널은 선형으로 읽어라."
+        },
+        {
+          "type": "try",
+          "text": "PBR 재질의 텍스처 채널들을 열어 **Albedo 에 그림자·명암이 그려져 있지 않은지**(있으면 조명과 이중으로 어두워짐) 확인하라. 각 채널의 **임포트 색 공간**이 맞는지(Albedo·Emissive=sRGB, Normal·Roughness·Metallic·AO=선형, gfx-color) 점검하고, 흑백 데이터 채널을 한 텍스처에 묶어 대역폭을 줄일 수 있는지 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Albedo 텍스처에 하면 안 되는 것은?",
+          "choices": [
+            "순수색",
+            "그림자·하이라이트·AO 를 그려 넣기(조명이 이중 적용)",
+            "빨간색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "순수 색만."
+        },
+        {
+          "q": "AO(ambient occlusion) 채널은?",
+          "choices": [
+            "직접광에",
+            "주변광(환경광)에만 적용 — 틈·구석을 어둡게",
+            "발광",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "환경광 전용."
+        },
+        {
+          "q": "Normal·Roughness·Metallic·AO 의 색 공간은?",
+          "choices": [
+            "sRGB",
+            "선형(데이터)",
+            "무관",
+            "둘 다"
+          ],
+          "answer": 1,
+          "why": "데이터=선형."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "조명 종류·비용과 환경광",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**조명은 종류마다 비용이 다르고, 특히 실시간 그림자는 비싸며, 환경광(IBL)이 없으면 PBR 재질이 밋밋하다 — 환경광이 사실상 절반이다.** ① **조명 종류**: **방향광**(태양 — 위치 없이 방향만, 가장 쌈) · **점광**(위치·범위 있음) · **스포트라이트**(원뿔) · **영역광**(면 광원 — 부드럽지만 비쌈). 개수가 늘수록·범위가 넓을수록 비싸고, **실시간 그림자**는 특히 비싸다(그림자맵을 매 프레임 렌더). 정석: **움직이지 않는 물체·조명은 라이트맵으로 미리 구워** 두어(정적 GI) 실시간 비용을 없앤다(gfx-perf). ② **환경광(IBL·스카이박스)**: 주변 환경이 반사되어 들어오는 빛. 이게 없으면 직접광이 안 닿는 면이 새까맣고 금속·매끈 재질이 반사할 게 없어 **밋밋**하다. **환경맵 하나만 제대로 넣어도** 같은 재질이 완전히 달라 보인다 — 특히 **금속·매끈할수록** 환경 반사가 크게 차이 난다. 아래 데모로 환경광 유무를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "환경광(IBL) 유무 — 금속일수록 차이",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const env = '{{env}}' === 'on';\n  const metal = '{{mat}}' === 'metal';\n  const alb = metal ? [0.95, 0.78, 0.35] : [0.75, 0.75, 0.78];\n  const amb = env ? (metal ? 0.35 : 0.14) : 0.02;\n  render((env ? '환경광 있음' : '환경광 없음') + ' · ' + (metal ? '금속' : '비금속') + ' → ' + (env ? '입체·풍부' : '밋밋·어두운 뒷면'),\n    (env\n      ? '<span class=\"ok\">환경맵 반사가 뒷면·하이라이트를 채워 재질이 살아난다 — 금속일수록 차이가 크다.</span>'\n      : '<span class=\"no\">환경광이 없으니 직접광 안 닿는 면이 새까맣고 반사할 게 없어 밋밋 — PBR 의 절반이 빠짐.</span>'),\n    '환경광(IBL·스카이박스)이 PBR 의 절반 — 환경맵 하나로 재질이 달라진다.',\n    '<div class=\"spheres\">' +\n    shadeSphere(120, { alb: alb, rough: 0.2, metal: metal ? 1 : 0, diffuse: true, spec: true, ambient: amb }, (env ? '환경광 O' : '환경광 X') + ' / ' + (metal ? '금속' : '비금속')) +\n    '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "env",
+              "label": "환경광",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "없음"
+                },
+                {
+                  "value": "on",
+                  "label": "있음(IBL)"
+                }
+              ]
+            },
+            {
+              "id": "mat",
+              "label": "재질",
+              "type": "select",
+              "value": "metal",
+              "options": [
+                {
+                  "value": "metal",
+                  "label": "금속"
+                },
+                {
+                  "value": "nonmetal",
+                  "label": "비금속"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "조명 종류·비용",
+          "text": "방향광(태양)  방향만, 위치 없음 — 가장 쌈\n점광          위치·범위 — 여러 개면 비쌈\n스포트        원뿔 — 점광 + 방향\n영역광        면 광원 — 부드럽지만 비쌈\n\n실시간 그림자 특히 비쌈 → 정적인 것은 라이트맵으로 미리 굽기\n\n환경광(IBL·스카이박스): PBR 의 절반\n  없으면 밋밋 · 환경맵 하나로 재질이 살아남 (금속일수록 차이 큼)"
+        },
+        {
+          "type": "note",
+          "text": "**조명은 종류마다 비용이 다르고 실시간 그림자가 특히 비싸며, 환경광(IBL)이 PBR 재질의 사실상 절반을 담당한다.** **① 조명 종류와 비용**: **방향광(directional)** — 태양처럼 **방향만** 있고 위치·감쇠가 없어 모든 픽셀에 같은 방향으로 비춘다. 가장 싸고 야외 주광에 씀. **점광(point)** — **위치와 범위(반경)**가 있어 거리로 감쇠. 여러 개면 각 픽셀이 여러 광원을 계산해 비싸진다. **스포트라이트(spot)** — 점광에 **원뿔 방향·각도**를 더한 것(손전등). **영역광(area)** — 면·구 형태의 광원으로 **부드러운 그림자·하이라이트**를 주지만 계산이 **비싸다**. 조명 비용은 **개수·범위·겹침**에 비례(픽셀당 여러 광원 = 오버드로우처럼 누적, gfx-pipeline). **실시간 그림자**는 특히 비싸다 — 광원마다 **그림자맵을 매 프레임 렌더**(장면을 광원 시점에서 다시 그림)하고 해상도·거리·소프트섀도가 비용을 키운다. **정석 — 라이트맵 굽기**: **움직이지 않는 물체와 조명**은 조명·그림자·간접광(GI)을 **미리 계산해 텍스처(라이트맵)로 구워** 둔다. 그러면 런타임엔 텍스처를 읽기만 해 실시간 비용이 거의 0 이 된다(정적 GI). 움직이는 것만 실시간 조명(혼합 조명). **② 환경광(IBL — Image-Based Lighting)**: 직접광(태양·전구) 외에, **주변 환경 전체가 반사되어 들어오는 빛**. 하늘·벽·바닥이 사방에서 은은히 비추고, 매끈한 표면엔 주변이 **비쳐 보인다**. PBR 에서 이를 **환경맵(큐브맵·스카이박스)**으로 근사해 — 확산 환경광(irradiance)과 정반사 환경광(prefiltered reflection)을 준다. **왜 절반인가**: 환경광이 없으면 — 직접광이 안 닿는 **뒷면·구석이 새까맣고**(현실은 환경광으로 은은히 밝음), **금속·매끈한 재질은 반사할 게 없어** 밋밋하다(금속은 거의 전적으로 반사로 보임). **환경맵 하나만 제대로 넣어도** 같은 재질이 완전히 달라 보이고, **금속·매끈할수록 차이가 극적**이다(반사가 재질의 대부분이므로). 그래서 실무에서 「PBR 재질이 이상하다」는 흔히 **환경광이 없거나 잘못된** 것. **정리**: 조명 종류·개수·실시간 그림자가 비용을 정하니 정적인 것은 라이트맵으로 굽고, 환경광(IBL)을 반드시 넣어라 — 환경광이 PBR 의 절반이고, 없으면 재질이 밋밋하다."
+        },
+        {
+          "type": "try",
+          "text": "구에 매끈한 **금속 재질**을 주고 **환경맵(스카이박스)을 껐다 켜** 보라 — 없으면 밋밋하고 뒷면이 까맣지만, 넣으면 반사로 살아난다(금속일수록 차이 큼). 환경맵을 다른 것(실내·야외·석양)으로 바꿔 같은 재질이 어떻게 달라지는지 보고, 움직이지 않는 물체는 라이트맵으로 구워 실시간 그림자 비용을 줄여라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 싼 조명 종류는?",
+          "choices": [
+            "영역광",
+            "방향광(태양) — 위치 없이 방향만",
+            "점광 여러 개",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "방향만."
+        },
+        {
+          "q": "움직이지 않는 물체·조명의 정석은?",
+          "choices": [
+            "실시간 그림자",
+            "라이트맵으로 미리 구워 실시간 비용 제거",
+            "조명 제거",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "정적 GI."
+        },
+        {
+          "q": "환경광(IBL)이 없으면?",
+          "choices": [
+            "더 사실적",
+            "PBR 재질이 밋밋 — 특히 금속·매끈할수록 반사할 게 없어",
+            "빨라짐만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "환경광이 절반."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — PBR 조명",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**확산+정반사를 이해하고, 거칠기·금속성으로 재질을 정하고, 텍스처 채널의 색 공간을 맞추고, 조명 비용을 관리하고, 환경광을 넣는다.** 이 점검표를 재질·조명 작업마다 훑어, 밋밋하거나 물리적으로 틀린 조명을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "PBR 조명 점검표 — 통과 수",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .spheres { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; }\n  .spheres .item { text-align:center; }\n  .spheres canvas { border-radius:8px; background:#0e1830; }\n  .spheres .cap { font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function clamp01(x) { return Math.max(0, Math.min(1, x)); }\n  // p: {alb:[r,g,b], rough, metal, diffuse:bool, spec:bool, ambient}\n  function shadeSphere(size, p, cap) {\n    const id = 'sp' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(size, size);\n      const Lx = -0.5, Ly = 0.6, Lz = 0.62; const Ll = Math.hypot(Lx, Ly, Lz);\n      const lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;\n      const Vx = 0, Vy = 0, Vz = 1;\n      const Hx = lx + Vx, Hy = ly + Vy, Hz = lz + Vz; const Hl = Math.hypot(Hx, Hy, Hz);\n      const hx = Hx / Hl, hy = Hy / Hl, hz = Hz / Hl;\n      const shin = 2 + (1 - p.rough) * (1 - p.rough) * 200;\n      const specStr = 0.04 + (1 - p.rough) * 0.9;\n      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {\n        const u = (x / size) * 2 - 1, v = 1 - (y / size) * 2;\n        const i = (y * size + x) * 4;\n        const r2 = u * u + v * v;\n        if (r2 > 1) { img.data[i] = 14; img.data[i+1] = 24; img.data[i+2] = 48; img.data[i+3] = 255; continue; }\n        const nz = Math.sqrt(1 - r2);\n        const nd = clamp01(u * lx + v * ly + nz * lz);\n        const nh = clamp01(u * hx + v * hy + nz * hz);\n        const spec = Math.pow(nh, shin) * specStr;\n        let rr = 0, gg = 0, bb = 0;\n        const diff = (p.diffuse === false) ? 0 : nd;\n        const amb = p.ambient || 0.06;\n        // dielectric: white spec; metal: albedo-tinted spec, no diffuse color contribution\n        const kd = 1 - p.metal;\n        rr = p.alb[0] * (diff * kd + amb * kd);\n        gg = p.alb[1] * (diff * kd + amb * kd);\n        bb = p.alb[2] * (diff * kd + amb * kd);\n        if (p.spec !== false) {\n          const sr = p.metal ? p.alb[0] : 1, sg = p.metal ? p.alb[1] : 1, sb = p.metal ? p.alb[2] : 1;\n          rr += (spec + amb * p.metal) * sr; gg += (spec + amb * p.metal) * sg; bb += (spec + amb * p.metal) * sb;\n        }\n        img.data[i] = clamp01(rr) * 255; img.data[i+1] = clamp01(gg) * 255; img.data[i+2] = clamp01(bb) * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<div class=\"item\"><canvas id=\"' + id + '\" width=\"' + size + '\" height=\"' + size + '\" style=\"width:' + size + 'px;height:' + size + 'px\"></canvas>' +\n      (cap ? '<div class=\"cap\">' + esc(cap) + '</div>' : '') + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '선형 색·HDR 워크플로에서 조명을 계산한다(gfx-color)',\n    '보는 색 = 확산(재질색) + 정반사(하이라이트)로 이해한다',\n    '거칠기·금속성으로 재질을 정했다(metallic 은 0/1)',\n    'Albedo 에 그림자·하이라이트·AO 를 그려 넣지 않았다',\n    '텍스처 채널 색 공간을 맞췄다(색=sRGB, 데이터=선형)',\n    '조명 개수·범위·실시간 그림자 비용을 관리한다',\n    '움직이지 않는 것은 라이트맵으로 구웠다',\n    '환경광(IBL·스카이박스)을 넣었다(밋밋함 방지)',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('PBR 조명 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 물리적으로 옳고 풍부한 조명.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '확산+정반사 · 거칠기/금속성 · 채널 색공간 · 조명 비용 · 환경광.');\n</script>",
+          "controls": [
+            {
+              "id": "done",
+              "label": "통과 수",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**PBR 조명 점검표 — 재질·조명 작업마다 훑는다.** ① **선형·HDR** — 조명은 선형 색·HDR 에서 계산(1장·gfx-color). ② **확산+정반사** — 보는 색을 재질색+하이라이트로 이해(2장). ③ **두 손잡이** — 거칠기·금속성으로 재질, metallic 은 0/1(3장). ④ **Albedo 순수색** — 그림자·하이라이트·AO 를 안 그림(4장). ⑤ **채널 색 공간** — 색=sRGB, 데이터=선형(4장·gfx-color). ⑥ **조명 비용** — 개수·범위·실시간 그림자 관리(5장·gfx-perf). ⑦ **라이트맵** — 정적인 것은 구움(5장). ⑧ **환경광** — IBL·스카이박스로 밋밋함 방지(5장). **관통 원리**: PBR 은 **빛-표면 상호작용의 물리를 근사**해 규칙과 예측 가능성을 준다(1장) — 확산+정반사(2장)를 거칠기·금속성(3장)과 텍스처(4장)로 제어하고, 조명·환경광(5장)으로 비춘다. 이 칸(light)은 gfx 갈래에서 **재질이 빛을 받아 보이는 색을 만드는** 곳 — color(선형·HDR)·space(법선)·shader(구현) 위에서 돌고, pipeline·perf 가 그 비용을 관리한다. 「PBR 이 이상하다」의 흔한 원인은 선형/HDR 아님·환경광 없음·색 공간 틀림·Albedo 에 그림자 그림이다. **정리**: 확산+정반사를 이해하고 거칠기·금속성으로 재질을 정하고 채널 색 공간을 맞추고 조명 비용을 관리하고 환경광을 넣어라 — 이 표로 밋밋하고 틀린 조명을 매번 걸러라."
+        },
+        {
+          "type": "try",
+          "text": "지금 씬의 재질·조명으로 위 8개 항목을 하나씩 확인하라 — 선형·HDR 인가, 거칠기·금속성이 물리적인가(metallic 0/1), Albedo 에 그림자가 없나, 채널 색 공간이 맞나, 환경광이 있나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 재질이 어떤 조명에서도 그럴듯한지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "PBR 이 규칙·예측을 주는 근거는?",
+          "choices": [
+            "운",
+            "빛-표면 상호작용의 물리를 근사(에너지 보존·물리 파라미터)",
+            "색이 많아서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "물리 기반."
+        },
+        {
+          "q": "다음 중 점검표 항목이 아닌 것은?",
+          "choices": [
+            "채널 색 공간 맞추기",
+            "환경광 넣기",
+            "Albedo 에 그림자 그려 넣기",
+            "정적인 것 라이트맵 굽기"
+          ],
+          "answer": 2,
+          "why": "Albedo 는 순수색."
+        },
+        {
+          "q": "「PBR 이 이상하다」의 흔한 원인이 아닌 것은?",
+          "choices": [
+            "환경광 없음",
+            "선형/HDR 아님",
+            "색 공간 틀림",
+            "폴리곤이 많음"
+          ],
+          "answer": 3,
+          "why": "폴리곤은 조명 룩과 무관."
+        }
+      ]
     }
   ]
 }
