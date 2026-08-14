@@ -3465,10 +3465,16 @@ import {
       el.className = 'km-inline';
       el.dataset.nodeId = nodeId;
       el.value = node.label;
-      el.style.left = `${Math.round(box.x)}px`;
-      el.style.top = `${Math.round(box.y)}px`;
-      el.style.width = `${Math.round(box.w)}px`;
-      el.style.height = `${Math.round(box.h)}px`;
+      /* ★ 칸은 **판 안**에 있어야 한다 — 카드가 화면 가장자리에 걸치면 그 자리 그대로 두었을 때
+         칸의 시작이 화면 밖으로 나갔다(실측 2026-08-14: 왼쪽 -40px — 글자를 치는데 앞이 안 보인다). */
+      const w = Math.min(Math.round(box.w), Math.max(80, canvasEl.clientWidth - 8));
+      const h = Math.round(box.h);
+      const left = Math.min(Math.max(4, Math.round(box.x)), Math.max(4, canvasEl.clientWidth - w - 4));
+      const top = Math.min(Math.max(4, Math.round(box.y)), Math.max(4, canvasEl.clientHeight - h - 4));
+      el.style.left = `${left}px`;
+      el.style.top = `${top}px`;
+      el.style.width = `${w}px`;
+      el.style.height = `${h}px`;
       el.style.fontSize = `${Math.max(11, Math.round(13 * (canvas.getScale() || 1)))}px`;
       canvasEl.appendChild(el);
       inlineEl = el;
