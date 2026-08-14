@@ -56,6 +56,23 @@ function expand(name, depth = 0) {
     covered.add(m[1]);
     expand(m[1], depth + 1);
   }
+  /* ★ **이름 목록을 파일로 뺀 묶음도 있다** (2026-08-14): `run-gates.mjs --from data/gate-list.json`.
+     한 줄에 백스물다섯 개를 적어 두니 세션들이 동시에 늘릴 때마다 충돌했고, 손으로 합치다
+     승격 하나가 조용히 사라졌다. 그래서 파일로 뺐다 — 여기서도 그 파일을 읽어야 한다.
+     안 읽으면 「아무도 안 돌리는 검사 119개」라는 거짓 경보가 난다(옮기자마자 실측). */
+  const from = body.match(/--from\s+(\S+)/);
+  if (from) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(path.join(root, from[1]), 'utf8'));
+      for (const n of raw.목록 ?? raw.list ?? []) {
+        covered.add(n);
+        expand(n, depth + 1);
+      }
+    } catch {
+      /* 못 읽으면 아래 낱말 훑기로 떨어진다 */
+    }
+  }
+
   /* `run-gates.mjs a b c` 처럼 인자로 늘어놓는 묶음도 있다 */
   for (const word of body.split(/\s+/)) {
     if (isCheck(word)) {

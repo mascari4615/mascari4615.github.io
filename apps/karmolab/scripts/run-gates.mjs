@@ -22,9 +22,27 @@
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> …]
  */
 import { spawnSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const gates = process.argv.slice(2);
+/* ★ **이름 목록은 파일에 있다** (2026-08-14). 예전에는 `package.json` 의 `gates` 한 줄에
+   백스물다섯 개가 늘어서 있었다. 세션 여럿이 같은 줄을 동시에 늘리니 충돌이 잦았고,
+   손으로 합치다 **승격 하나가 조용히 사라진** 적이 있다(`smoke:arcadeopen`).
+   한 줄에 하나면 서로 다른 줄을 고치므로 git 이 알아서 합친다. */
+const args = process.argv.slice(2);
+const fromIdx = args.indexOf('--from');
+let gates = args;
+if (fromIdx !== -1) {
+  const file = args[fromIdx + 1];
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const raw = JSON.parse(readFileSync(path.join(here, '..', file), 'utf8'));
+  gates = raw.목록 ?? raw.list ?? raw;
+  if (!Array.isArray(gates)) {
+    console.error(`[gates] ${file} 안에서 이름 목록을 못 찾았다`);
+    process.exit(2);
+  }
+}
 if (!gates.length) {
   console.error('[gates] 돌릴 검사가 없다 — 이름을 하나 이상 줘라.');
   process.exit(2);
