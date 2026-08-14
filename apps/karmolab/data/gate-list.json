@@ -127,6 +127,7 @@
     "test:badapple",
     "test:contract:live",
     "smoke:arcadeopen",
-    "test:duel"
+    "test:duel",
+    "test:usertool"
   ]
 }
