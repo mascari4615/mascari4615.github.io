@@ -40,7 +40,7 @@ import { frameCoalesced } from './canvas-raf';
 import { buildEdgePath, buildEdgeLabel, applyEdgeFlow } from './canvas-edge';
 import { renderLeaders } from './canvas-leaders';
 import { renderGroups, computeGroupBox } from './canvas-group';
-import { boardLabel } from './canvas-a11y';
+import { describeBoard } from './canvas-a11y';
 import { renderLanes } from './canvas-lane';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
@@ -955,15 +955,11 @@ export class GraphCanvas {
   }
 
   /** 전체 재렌더 — 노드/엣지를 외부에서 추가·삭제한 뒤 호출. */
-  /** 판을 글로도 알린다 (KL-271) — 말은 canvas-a11y 가 안다. */
-  private describeForReaders(): void {
-    this.svg.setAttribute('role', 'img');
-    this.svg.setAttribute('aria-label', boardLabel(this.spec?.nodes.length ?? 0, this.spec?.edges.length ?? 0));
-  }
+
 
   render(): void {
     if (!this.spec) return;
-    this.describeForReaders();
+    describeBoard(this.svg, this.spec.nodes.length, this.spec.edges.length);
     this.groupLayer.innerHTML = '';
     this.edgeLayer.innerHTML = '';
     this.nodeLayer.innerHTML = '';

@@ -2145,6 +2145,60 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
   await ctx.close();
 });
 
+await step('자판만으로 판에 들어간다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 판 안에서 Tab 으로 카드를 훑는 길은 있었지만 그 길은 **초점이 판에 있을 때만**
+     열린다 — 그런데 판이 자판 순회 대상이 아니라 **닿을 방법이 마우스뿐**이었다. 손잡이를 아무리
+     돌아도 초점이 판에 한 번도 안 온다 = 마우스 없이는 이 도구의 본판에 못 들어간다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1300, height: 850 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(700));
+
+  // 판이 자판 순회에 들어 있나 — 이게 문이다.
+  const tab = await m.evaluate(() => document.querySelector('.km-canvas svg')?.getAttribute('tabindex'));
+  if (tab === null || tab === undefined || Number(tab) < 0) {
+    throw new Error('판에 들어올 문이 없다 (tabindex=' + tab + ')');
+  }
+
+  // 카드 둘을 만들어 두고, 손잡이에서 Tab 을 눌러 판까지 **실제로** 걸어 본다.
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  for (const [name, fx, fy] of [['첫카드', 0.3, 0.3], ['둘째카드', 0.6, 0.55]]) {
+    await m.mouse.dblclick(cbox.x + cbox.width * fx, cbox.y + cbox.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+    await m.keyboard.type(name);
+    await m.keyboard.press('Enter');
+  }
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: ms(5000) });
+
+  await m.evaluate(() => {
+    const first = document.querySelector('.km-widget button:not([tabindex="-1"]):not(.hidden)');
+    first?.focus();
+  });
+  let reached = false;
+  for (let i = 0; i < 60 && !reached; i += 1) {
+    await m.keyboard.press('Tab');
+    reached = await m.evaluate(() => document.activeElement?.closest?.('.km-canvas') !== null
+      && document.activeElement?.tagName?.toLowerCase() === 'svg');
+  }
+  if (!reached) {
+    const trail = await m.evaluate(() => {
+      const el = document.activeElement;
+      return el ? `${el.tagName}.${el.className}` : 'none';
+    });
+    throw new Error('Tab 을 60번 눌러도 초점이 판에 안 온다 — 지금 초점: ' + trail);
+  }
+
+  // 판에 들어왔으면 거기서부터 카드가 훑어져야 한다 (그 길이 이제 열린다).
+  await m.keyboard.press('Tab');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node.is-selected, .ck-node.is-active').length >= 1,
+    null, { timeout: ms(4000) });
+  await ctx.close();
+});
+
 await step('지운 카드의 번호를 새 카드가 물려받지 않는다 (KL-271)', async () => {
   /* 예전엔 빈 번호를 찾아 줬다 — 카드를 지우고 새로 만들면 **지운 카드의 번호가 되살아나서**,
      그 번호를 가리키던 것들(저장한 보기의 둘레 보기, 남이 받아 간 링크의 장)이 아무 말 없이
@@ -3115,8 +3169,11 @@ await step('Tab 이 손잡이 사이를 지나간다 — 첫 단추에 갇히지
   if (spots.size < 6) throw new Error('Tab 이 제자리를 맴돈다: ' + seen.slice(0, 6).join(' → '));
 
   // 그러면서도 **판 위에서는** Tab 이 카드를 훑는 손이어야 한다(그게 이 판의 자판 길이다).
+  /* ★ 「판 위」 = 초점이 **판에 서 있을 때**다. 예전엔 초점을 아예 떼고(body) 눌렀는데, 그렇게
+     되면 아무 데도 안 선 사람의 Tab 까지 판이 삼켜 **초점이 판까지 걸어올 길이 막힌다**
+     (실측 2026-08-14). 이제 판을 누르면 초점이 판에 앉는다 — 거기서부터 카드를 훑는다. */
   await m.locator('.km-canvas').click({ position: { x: 20, y: 20 } });
-  await m.evaluate(() => document.activeElement?.blur());
+  await m.evaluate(() => document.querySelector('.km-canvas svg')?.focus());
   await m.keyboard.press('Tab');
   await m.waitForFunction(() => document.querySelectorAll('.ck-node.is-selected').length === 1,
     null, { timeout: ms(4000) });

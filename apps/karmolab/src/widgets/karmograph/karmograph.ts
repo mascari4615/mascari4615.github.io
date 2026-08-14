@@ -3446,7 +3446,11 @@ import {
         //   (그것까지 판으로 치면 거기서 또 초점이 갇힌다 — 실측 2026-08-14).
         const onHandle = Boolean(focus?.closest?.(
           'button, a[href], select, input, textarea, [contenteditable="true"]'));
-        const onBoard = !onHandle;
+        /* ★ 「판에 있다」 = **판 안에 진짜로 서 있다** (KL-271). 예전엔 「손잡이가 아니면 판」이라
+           쳤는데, 아무 데도 안 서 있을 때(body)도 판으로 쳐서 **Tab 을 삼켰다** — 그래서 초점이
+           영영 판까지 못 걸어왔다(실측 2026-08-14: 60번 눌러도 body 에 머문다). 판 밖이면
+           브라우저에게 맡겨야 초점이 판까지 걸어온다. */
+        const onBoard = !onHandle && Boolean(focus?.closest?.('.km-canvas'));
         if (ev.key === 'Tab' && onBoard) {
           const id = canvas?.selectStep(ev.shiftKey ? -1 : 1) ?? null;
           if (id) {

@@ -48,6 +48,8 @@ export function buildCanvasDom(
     //   (실측 2026-08-09: 캔버스 420px 인데 svg 는 그보다 짧아 하단 더블클릭이 무시됐다).
     svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
     svg.setAttribute('xmlns', SVG_NS);
+    // 자판으로 들어왔을 때 테두리를 보여 주려면 붙잡을 이름이 필요하다 (KL-271).
+    svg.setAttribute('class', 'ck-board');
 
     // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
     // url(#ck-glow) 가 어느 쪽을 잡아도 결과가 같다 (CSS 가 이 id 를 참조한다).

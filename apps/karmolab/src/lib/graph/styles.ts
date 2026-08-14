@@ -9,6 +9,12 @@
 const STYLE_ID = 'kl-graph-canvas-styles';
 
 export const GRAPH_CANVAS_CSS = `
+/* ── 판에 자판으로 들어왔을 때 ────────────────────────────────────────────────
+   Tab 으로 판에 닿을 수 있게 했으니(canvas-a11y), **닿은 것이 보여야** 한다 —
+   테두리가 없으면 자판만 쓰는 사람은 초점이 어디 있는지 모른 채 화살표를 누른다.
+   마우스로 누를 때는 안 뜬다(:focus-visible). */
+.ck-board:focus { outline: none; }
+.ck-board:focus-visible { outline: 2px solid #22d3ee; outline-offset: -2px; }
 /* ── 단계 띠 ─────────────────────────────────────────────────────────────────
    배경이라 아무것도 가리면 안 된다: 색은 아주 옅게, 글자는 작게, 클릭은 통과시킨다. */
 .ck-lane { pointer-events: none; }
