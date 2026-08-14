@@ -10,8 +10,13 @@
  * 실제 서버(욘봇)를 탄다. 못 닿으면 「못 돌았다」(2) — 통과도 실패도 아니다.
  */
 import { chromium } from 'playwright';
+import { smokeBase } from './lib/smoke-base.mjs';
 
-const BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버).
+   전에는 8813 이 떠 있으면 그걸 썼는데, CI 에는 그 서버가 없어 `ERR_CONNECTION_REFUSED` 로
+   죽었다 — 내 자리에서만 초록인 검사였다(2026-08-14 실측). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const API = 'https://yawnbot.mascari4615.com/kl/arcade/rooms';
 const fails = [];

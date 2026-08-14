@@ -11,8 +11,13 @@
  *   ④ 키로 놀 수 있는 놀이가 몇 개인가 — 그림판만 쓰는 놀이는 손이 그대로 마우스다
  */
 import { chromium } from 'playwright';
+import { smokeBase } from './lib/smoke-base.mjs';
 
-const BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버).
+   전에는 8813 이 떠 있으면 그걸 썼는데, CI 에는 그 서버가 없어 `ERR_CONNECTION_REFUSED` 로
+   죽었다 — 내 자리에서만 초록인 검사였다(2026-08-14 실측). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
