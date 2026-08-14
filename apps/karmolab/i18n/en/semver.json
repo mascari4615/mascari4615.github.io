@@ -1,0 +1,22 @@
+{
+  "semver.mdd": "Let me unfold what that caret actually accepts.",
+  "semver.tab": "Version",
+  "semver.label.range": "Range (^1.2.3, ~1.2, 1.x, >=1 <2, a || b)",
+  "semver.label.other": "Another range (do they overlap?)",
+  "semver.label.versions": "Available versions (one per line)",
+  "semver.gets": "accepts",
+  "semver.atLeast": "{v} or higher",
+  "semver.above": "above {v}",
+  "semver.atMost": "{v} or lower",
+  "semver.below": "below {v}",
+  "semver.noLower": "no lower bound",
+  "semver.noUpper": "no upper bound",
+  "semver.in": "inside",
+  "semver.out": "outside",
+  "semver.overlap.yes": "The two ranges overlap — one version can satisfy both",
+  "semver.overlap.no": "No version satisfies both — the package will be installed twice",
+  "semver.status.idle": "Type a range",
+  "semver.status.best": "Highest match: {v}",
+  "semver.status.none": "None of those versions fall inside",
+  "semver.status.bad": "Could not read it — {msg}"
+}

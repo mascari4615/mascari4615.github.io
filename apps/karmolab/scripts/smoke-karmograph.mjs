@@ -2099,6 +2099,36 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
     return { live: el?.getAttribute('aria-live'), seen: getComputedStyle(el).position };
   });
   if (sayLive.live !== 'polite') throw new Error('고른 것을 알리는 자리가 살아 있는 자리가 아니다');
+
+  /* 선을 골라도 말해야 한다 — 카드만 말하면 절반만 들린다. */
+  await m.mouse.dblclick(cbox0.x + cbox0.width * 0.65, cbox0.y + cbox0.height * 0.6);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('저쪽카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: ms(4000) });
+  await m.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    const key = 'karmograph.map.' + idx.activeId;
+    const sp = JSON.parse(localStorage.getItem(key));
+    sp.edges = [{ id: 'e-say', from: sp.nodes[0].id, to: sp.nodes[1].id, label: '친구', kind: 'default' }];
+    localStorage.setItem(key, JSON.stringify(sp));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-edge-label', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(600));
+  const lab = await m.locator('.ck-edge-label').first().boundingBox();
+  await m.mouse.click(lab.x + lab.width / 2, lab.y + lab.height / 2);
+  await m.waitForFunction(
+    () => (document.querySelector('[data-km="say"]')?.textContent || '').includes('친구'),
+    null, { timeout: ms(5000) },
+  );
+
+  /* 여럿을 골라도 — 몇 장인지가 곧 정보다. */
+  await m.keyboard.press('Control+a');
+  await m.waitForFunction(
+    () => /2/.test(document.querySelector('[data-km="say"]')?.textContent || ''),
+    null, { timeout: ms(5000) },
+  );
   if (live.live !== 'polite' && live.live !== 'assertive') {
     throw new Error('알림이 살아 있는 자리가 아니다 — 읽어 주는 도구에 안 들린다');
   }

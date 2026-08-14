@@ -1,0 +1,20 @@
+{
+  "mockdata.mdd": "시험용 줄 백 개, 금방 만들어 드립니다.",
+  "mockdata.tab": "가짜 데이터",
+  "mockdata.label.schema": "칸 적기 (한 줄에 하나)",
+  "mockdata.label.out": "만들어진 데이터",
+  "mockdata.aria.out": "만들어진 데이터",
+  "mockdata.label.count": "몇 줄",
+  "mockdata.label.seed": "씨앗 (같으면 같은 데이터)",
+  "mockdata.label.locale": "어느 말로",
+  "mockdata.label.to": "무슨 모양으로",
+  "mockdata.label.table": "표 이름 (SQL 용)",
+  "mockdata.btn.run": "만들기",
+  "mockdata.btn.shuffle": "다른 걸로 한 판 더",
+  "mockdata.btn.copy": "복사",
+  "mockdata.hint.types": "쓸 수 있는 종류: name · email · phone · address · company · job · id · uuid · int(20,40) · float(0,1) · bool · date(2024-01-01,2026-12-31) · enum(가|나|다) · lorem(6) · url",
+  "mockdata.status.idle": "칸을 적으면 바로 만듭니다",
+  "mockdata.status.empty": "칸을 한 줄이라도 적어 주세요",
+  "mockdata.status.ok": "{n}줄 · {cols}칸 (씨앗 {seed})",
+  "mockdata.copy.done": "복사했습니다"
+}

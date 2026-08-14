@@ -5,6 +5,9 @@ import { countChars, countWords } from './shared/text';
 import { byteLength, manuscriptSheets, sentenceCount } from '../../core/charcount';
 import { STOP, stripParticle } from '../../core/wordfreq';
 import { loadPdfLib, pdfBlob } from './shared/pdf';
+import { countEdits, diffLines } from '../../core/diff';
+import { bestFix, candidates as encCandidates, explain as encExplain, losses as encLosses } from '../../core/encdetective';
+import { clean as uxClean, report as uxReport, scan as uxScan } from '../../core/unicodex';
 
 const CHO = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
 const JUNG = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
@@ -134,18 +137,14 @@ function characterStats(input: string): TextOperationResult {
   return { output, status: input ? '글 통계를 계산했습니다.' : '글을 붙여 넣어 주세요.' };
 }
 
+/* 견주는 셈은 `core/diff` 하나만 쓴다 (TASK-KL-316) — 여기와 `diff` 도구가 따로 세면 같은 두 글에
+   다른 답이 나온다. 여기 남는 건 이 화면의 말투(추가/삭제 표시)뿐이다. */
 function textDiff(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
-  const left = input.split(/\r?\n/); const right = String(values.other || '').split(/\r?\n/);
-  const normalized = (line: string): string => (Boolean(values.trim) ? line.trim() : line).replace(Boolean(values.case) ? /$^/ : /[A-Z]/g, (character) => character.toLowerCase());
-  const table = Array.from({ length: left.length + 1 }, () => new Uint16Array(right.length + 1));
-  for (let leftIndex = left.length - 1; leftIndex >= 0; leftIndex--) for (let rightIndex = right.length - 1; rightIndex >= 0; rightIndex--) table[leftIndex][rightIndex] = normalized(left[leftIndex]) === normalized(right[rightIndex]) ? table[leftIndex + 1][rightIndex + 1] + 1 : Math.max(table[leftIndex + 1][rightIndex], table[leftIndex][rightIndex + 1]);
-  const output: string[] = []; let leftIndex = 0; let rightIndex = 0; let added = 0; let removed = 0;
-  while (leftIndex < left.length || rightIndex < right.length) {
-    if (leftIndex < left.length && rightIndex < right.length && normalized(left[leftIndex]) === normalized(right[rightIndex])) { if (!Boolean(values.changed)) output.push(`  ${left[leftIndex]}`); leftIndex++; rightIndex++; }
-    else if (rightIndex < right.length && (leftIndex === left.length || table[leftIndex][rightIndex + 1] >= table[leftIndex + 1][rightIndex])) { output.push(`+ ${right[rightIndex++]}`); added++; }
-    else { output.push(`- ${left[leftIndex++]}`); removed++; }
-  }
-  return { output: output.join('\n'), status: added || removed ? `추가 ${added}줄 · 삭제 ${removed}줄` : '두 글이 같습니다.' };
+  const trimEnds = (text: string): string => (Boolean(values.trim) ? text.split(/\r?\n/).map((line) => line.replace(/\s+$/, '')).join('\n') : text);
+  const edits = diffLines(trimEnds(input), trimEnds(String(values.other || '')), { ignoreCase: !Boolean(values.case) });
+  const output = edits.filter((edit) => !(Boolean(values.changed) && edit.kind === 'same')).map((edit) => (edit.kind === 'add' ? '+ ' : edit.kind === 'del' ? '- ' : '  ') + edit.text);
+  const stat = countEdits(edits);
+  return { output: output.join('\n'), status: stat.added || stat.removed ? `추가 ${stat.added}줄 · 삭제 ${stat.removed}줄` : '두 글이 같습니다.' };
 }
 
 const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat'.split(' ');
@@ -183,6 +182,26 @@ async function makePdf(input: string, values: Record<string, string | boolean | 
   return { blob: pdfBlob(await image.save()), name: 'text.pdf', status: 'PDF를 만들었습니다.' };
 }
 
+/**
+ * 깨진 글자를 되살린다 (TASK-KL-316) — 셈은 `core/encdetective`, 여기는 말투만.
+ *
+ * 「고쳤다」가 아니라 **무엇이 잘못 읽혔는지**를 같이 적는다. 그래야 다음에 안 겪는다.
+ */
+function encFix(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
+  if (input.trim() === '') return { output: '', status: '깨진 글을 붙여 넣어 주세요.' };
+  const mode = String(values.mode || 'auto');
+  if (mode === 'explain') return { output: encExplain(input), status: `되짚기 ${encCandidates(input).length}가지를 해 봤습니다.` };
+  if (mode === 'all') {
+    const rows = encCandidates(input).map((c) => `[${String(c.score).padStart(3, ' ')}] ${c.how}\n${c.text}`);
+    return { output: rows.join('\n\n'), status: `되짚기 ${rows.length}가지를 점수순으로 놓았습니다.` };
+  }
+  const best = bestFix(input);
+  const lost = encLosses(input);
+  const warn = lost.replacement > 0 ? ` (되살릴 수 없는 자리 ${lost.replacement}곳은 그대로 둡니다)` : '';
+  if (best.text === input) return { output: input, status: `되살릴 것이 없습니다 — 안 깨진 글로 보입니다.${warn}` };
+  return { output: best.text, status: `${best.how}${warn}` };
+}
+
 export const TEXT_OPERATIONS: TextOperation[] = [
   { id: 'text2pdf', title: '글을 PDF로', description: '글을 브라우저 안에서 A4 PDF로 만듭니다.', controls: [{ id: 'size', label: '글자 크기', kind: 'range', initial: 0, min: 0, max: 120 }], run: (input) => ({ output: input, status: input ? 'PDF 만들기를 누르면 내려받습니다.' : '글을 붙여 넣어 주세요.' }), action: { label: 'PDF 만들기', run: makePdf } },
   { id: 'text2img', title: '글 카드', description: '글을 PNG 이미지 카드로 만듭니다.', controls: [{ id: 'ratio', label: '비율', kind: 'select', initial: 'square', options: [{ value: 'square', label: '정사각형' }, { value: 'wide', label: '가로' }, { value: 'story', label: '세로' }, { value: 'banner', label: '배너' }] }, { id: 'theme', label: '색', kind: 'select', initial: 'dark', options: [{ value: 'dark', label: '어두움' }, { value: 'light', label: '밝음' }] }, { id: 'size', label: '글자 크기', kind: 'range', initial: 0, min: 0, max: 160 }], run: (input) => ({ output: input, status: input ? 'PNG 만들기를 누르면 내려받습니다.' : '글을 붙여 넣어 주세요.' }), action: { label: 'PNG 만들기', run: async (input, values) => ({ blob: await canvasBlob(textCanvas(input, values)), name: 'text-card.png', status: 'PNG를 만들었습니다.' }) } },
@@ -191,6 +210,8 @@ export const TEXT_OPERATIONS: TextOperation[] = [
   { id: 'textredact', title: '글 가리기', description: '문서의 개인 정보와 토큰을 찾아 안전한 표기로 바꿉니다.', controls: [{ id: 'kinds', label: '종류 (비우면 모두)', kind: 'text', initial: '' }, { id: 'style', label: '표기', kind: 'select', initial: 'kind', options: [{ value: 'kind', label: '종류 이름' }, { value: 'mask', label: '별표 마스킹' }, { value: 'drop', label: '삭제' }] }, { id: 'numbered', label: '같은 값에 같은 번호', kind: 'checkbox', initial: true }], run: redact },
   { id: 'lorem', title: '더미 텍스트', description: '레이아웃을 확인할 임시 글을 만듭니다.', controls: [{ id: 'language', label: '언어', kind: 'select', initial: 'ko', options: [{ value: 'ko', label: '한국어' }, { value: 'en', label: 'Lorem ipsum' }] }, { id: 'unit', label: '단위', kind: 'select', initial: 'para', options: [{ value: 'para', label: '문단' }, { value: 'sentence', label: '문장' }, { value: 'word', label: '단어' }] }, { id: 'count', label: '개수', kind: 'range', initial: 3, min: 1, max: 20 }], run: (_input, values) => lorem(values) },
   { id: 'textdiff', title: '글 비교', description: '두 글의 달라진 줄을 추가와 삭제로 보여 줍니다.', controls: [{ id: 'other', label: '비교할 글', kind: 'textarea', initial: '' }, { id: 'trim', label: '줄 끝 공백 무시', kind: 'checkbox', initial: true }, { id: 'case', label: '대소문자 구분', kind: 'checkbox', initial: false }, { id: 'changed', label: '바뀐 줄만', kind: 'checkbox', initial: false }], run: textDiff },
+  { id: 'unicodex', title: '안 보이는 글자 찾기', description: '눈에 안 보이는 글자·닮은 글자(키릴 а 같은 것)를 찾아 보여 주고, 골라서 지웁니다.', controls: [{ id: 'mode', label: '어떻게', kind: 'select', initial: 'scan', options: [{ value: 'scan', label: '찾아서 보여 주기' }, { value: 'clean', label: '지우고 바로잡기' }] }, { id: 'keep', label: '닮은 글자는 두기', kind: 'checkbox', initial: false }], run: (input, values) => { if (!input) return { output: '', status: '글을 붙여 넣어 주세요.' }; if (String(values.mode) === 'clean') { const output = uxClean(input, { keepConfusables: Boolean(values.keep) }); const n = uxScan(input).length; return { output, status: n ? '수상한 글자 ' + n + '군데를 손봤습니다.' : '손볼 것이 없었습니다.' }; } const found = uxScan(input); return { output: uxReport(input), status: found.length ? found.length + '군데 찾았습니다 — 지우려면 위에서 「지우고 바로잡기」' : '수상한 글자가 없습니다.' }; } },
+  { id: 'encdetective', title: '깨진 글자 되살리기', description: '「뷁」·「í•œêµ­ì–´」 처럼 잘못 읽힌 글을 되짚어 원문으로 돌립니다.', controls: [{ id: 'mode', label: '어떻게', kind: 'select', initial: 'auto', options: [{ value: 'auto', label: '가장 그럴듯한 것으로' }, { value: 'all', label: '되짚기 전부 보기' }, { value: 'explain', label: '무슨 일이 있었나' }] }], run: encFix },
   { id: 'checklist', title: '체크리스트', description: '한 줄씩 쓴 항목을 Markdown 체크리스트로 만듭니다.', run: (input) => checklist(input) },
   { id: 'listdiff', title: '목록 비교', description: '두 목록에서 공통인 것과 한쪽에만 있는 것을 가릅니다.', controls: [{ id: 'other', label: '둘째 목록', kind: 'textarea', initial: '' }, { id: 'trim', label: '앞뒤 공백 무시', kind: 'checkbox', initial: true }], run: listDiff },
   { id: 'replace', title: '찾아 바꾸기', description: '찾을 글과 바꿀 글을 정해 본문 전체를 한 번에 바꿉니다.', controls: [{ id: 'find', label: '찾을 글', kind: 'text', initial: '' }, { id: 'replace', label: '바꿀 글', kind: 'text', initial: '' }, { id: 'case', label: '대소문자 구분', kind: 'checkbox', initial: false }, { id: 'word', label: '온전한 낱말만', kind: 'checkbox', initial: false }, { id: 'regex', label: '정규식으로 찾기', kind: 'checkbox', initial: false }], run: replaceText },

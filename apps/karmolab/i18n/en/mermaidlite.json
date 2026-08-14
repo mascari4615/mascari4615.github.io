@@ -1,0 +1,17 @@
+{
+  "mermaidlite.mdd": "Write it and I will draw it.",
+  "mermaidlite.tab": "Diagram",
+  "mermaidlite.label.in": "Write mermaid",
+  "mermaidlite.label.out": "Drawing",
+  "mermaidlite.btn.svg": "Save SVG",
+  "mermaidlite.btn.png": "Save PNG",
+  "mermaidlite.btn.copy": "Copy SVG",
+  "mermaidlite.status.idle": "Start with flowchart TD, graph LR or erDiagram",
+  "mermaidlite.status.unknown": "The first line must be flowchart TD, graph LR or erDiagram",
+  "mermaidlite.status.ok": "Drew {nodes} nodes and {edges} links",
+  "mermaidlite.status.savedSvg": "Saved as SVG",
+  "mermaidlite.status.savedPng": "Saved as PNG",
+  "mermaidlite.status.pngFail": "Could not make a PNG — save the SVG instead",
+  "mermaidlite.copy.done": "SVG copied",
+  "mermaidlite.note.subset": "Not all of mermaid — flowcharts (flowchart/graph) and entity diagrams (erDiagram) only. subgraph, class and style are not read yet; lines we could not read are listed under the editor."
+}

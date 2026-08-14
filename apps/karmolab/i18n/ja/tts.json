@@ -1,0 +1,21 @@
+{
+  "tts.mdd": "書いた文、読み上げます。",
+  "tts.tab": "読み上げ",
+  "tts.label.text": "読む文",
+  "tts.label.voice": "声",
+  "tts.label.rate": "速さ",
+  "tts.label.pitch": "高さ",
+  "tts.btn.play": "読む",
+  "tts.btn.pause": "一時停止 / 再開",
+  "tts.btn.stop": "停止",
+  "tts.status.idle": "読む文を書いてください",
+  "tts.status.ready": "文 {n} 個 · 約 {m} 分 {s} 秒",
+  "tts.status.speaking": "{n} 文中 {i} 文目を読み上げ中",
+  "tts.status.paused": "一時停止しました",
+  "tts.status.resumed": "再開しました",
+  "tts.status.stopped": "停止しました",
+  "tts.status.done": "読み終わりました",
+  "tts.status.failed": "途中で止まりました — もう一度押してください",
+  "tts.status.noVoice": "このブラウザに使える声がありません (OS の音声パックを入れると増えます)",
+  "tts.note.noSave": "ファイル保存はできません — ブラウザの読み上げは音をスピーカーに送るだけで、こちらには渡してくれません。録音したい場合は「画面録画」で音ごと録るか、OS の録音機能を使ってください。文はブラウザから出ません。"
+}

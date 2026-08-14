@@ -806,5 +806,7 @@
   "karmograph.otherTab.followed": "Picked up the changes from another tab",
   "karmograph.board.aria": "Relationship graph — {n} cards, {e} links",
   "karmograph.board.picked": "{name} selected — {n} links",
-  "karmograph.opt.sketchy": "Hand-drawn look"
+  "karmograph.opt.sketchy": "Hand-drawn look",
+  "karmograph.board.pickedEdge": "{from} → {to}: {label}",
+  "karmograph.board.pickedMany": "{n} selected"
 }

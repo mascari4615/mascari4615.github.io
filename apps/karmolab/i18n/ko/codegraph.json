@@ -1,0 +1,17 @@
+{
+  "codegraph.mdd": "누가 누구를 부르는지 그려 드립니다.",
+  "codegraph.tab": "부름",
+  "codegraph.label.file": "소스 zip (브라우저 밖으로 안 나갑니다)",
+  "codegraph.note.skip": "node_modules · dist · build · .git · coverage 는 건너뜁니다. 코드 파일(js·ts·jsx·tsx·css·vue·svelte)만 봅니다.",
+  "codegraph.label.cycles": "고리 (서로 부르는 자리)",
+  "codegraph.label.hubs": "많이 불리는 파일",
+  "codegraph.label.orphans": "아무도 안 부르는 파일",
+  "codegraph.cycles.none": "고리가 없습니다",
+  "codegraph.err.zip": "zip 을 읽는 도구를 못 불러왔습니다",
+  "codegraph.status.idle": "소스 zip 을 고르세요",
+  "codegraph.status.reading": "읽는 중…",
+  "codegraph.status.noCode": "zip 안에서 코드 파일을 못 찾았습니다",
+  "codegraph.status.ok": "파일 {files}개 · 부름 {edges}개 · 고리 {cycles}개 · 아무도 안 부르는 파일 {orphans}개",
+  "codegraph.status.capped": "{shown}개만 봤습니다 (zip 안에 {all}개) — 너무 크면 폴더를 나눠 주세요",
+  "codegraph.status.bad": "못 읽었습니다 — {msg}"
+}

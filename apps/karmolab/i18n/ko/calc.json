@@ -30,5 +30,7 @@
   "calc.copy.done": "복사: {v}",
   "calc.btn.recent": "방금 하던 것",
   "calc.plot.mark": "그림",
-  "calc.plot.alt": "{expr} 의 그래프 (x {from}~{to})"
+  "calc.plot.alt": "{expr} 의 그래프 (x {from}~{to})",
+  "calc.part.dutchpay": "나눠 내기",
+  "calc.part.payslip": "실수령액"
 }

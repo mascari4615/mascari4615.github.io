@@ -42,7 +42,21 @@ export interface PdfLibPage {
   setRotation: (d: unknown) => void;
   getRotation: () => { angle: number };
   drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number; opacity?: number; rotate?: unknown }) => void;
-  drawRectangle: (o: { x: number; y: number; width: number; height: number; color?: unknown; opacity?: number }) => void;
+  drawRectangle: (o: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color?: unknown;
+    opacity?: number;
+    /* 테두리만 그리는 자리 — 인쇄용 종이(TASK-KL-316 / 35)가 칸을 그릴 때 쓴다 */
+    borderWidth?: number;
+    borderColor?: unknown;
+    borderOpacity?: number;
+  }) => void;
+  /* 선과 글자 — pdf-lib 에는 원래 있는데 우리 타입에만 없었다. 쓰는 도구가 생겨 여기 적는다. */
+  drawLine: (o: { start: { x: number; y: number }; end: { x: number; y: number }; thickness?: number; color?: unknown; opacity?: number }) => void;
+  drawText: (text: string, o: { x: number; y: number; size?: number; color?: unknown; opacity?: number; font?: unknown }) => void;
 }
 
 export interface PdfLibDoc {

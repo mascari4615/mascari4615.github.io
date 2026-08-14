@@ -1,0 +1,17 @@
+{
+  "erd.mdd": "어느 표가 어느 표를 가리키는지 짚어 드립니다.",
+  "erd.tab": "스키마",
+  "erd.label.in": "CREATE TABLE 이나 Prisma 스키마",
+  "erd.label.outline": "요약",
+  "erd.label.mermaid": "mermaid 원문 (깃허브·노션에 붙이면 그려집니다)",
+  "erd.aria.mermaid": "mermaid 원문",
+  "erd.btn.draw": "그림 그리기",
+  "erd.btn.copy": "mermaid 복사",
+  "erd.status.idle": "스키마를 붙여넣으세요",
+  "erd.status.none": "CREATE TABLE 이나 Prisma model 을 못 찾았습니다",
+  "erd.status.ok": "표 {tables}개 · 이어짐 {links}개",
+  "erd.status.drawing": "그리는 중…",
+  "erd.status.drawn": "그렸습니다",
+  "erd.status.noPic": "그림 꾸러미를 못 불러왔습니다 — 아래 mermaid 원문은 그대로 쓸 수 있습니다",
+  "erd.copy.done": "복사했습니다"
+}

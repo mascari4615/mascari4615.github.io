@@ -1,0 +1,19 @@
+{
+  "curlkit.mdd": "もらった curl、あなたの言語に書き直します。",
+  "curlkit.tab": "curl",
+  "curlkit.label.in": "curl コマンドを貼る",
+  "curlkit.label.to": "何に変換するか",
+  "curlkit.opt.curl": "curl に戻す (整った形)",
+  "curlkit.btn.run": "変換",
+  "curlkit.btn.send": "ここから送ってみる",
+  "curlkit.btn.copy": "コードをコピー",
+  "curlkit.aria.out": "変換されたコード",
+  "curlkit.label.read": "読み取った内容",
+  "curlkit.status.idle": "curl コマンドを貼ってください",
+  "curlkit.status.ok": "{method} リクエスト · ヘッダー {n} 件を読みました",
+  "curlkit.status.bad": "読めませんでした — {msg}",
+  "curlkit.status.sending": "送信中…",
+  "curlkit.status.sent": "{code} · {ms}ms で返事が来ました",
+  "curlkit.status.blocked": "相手がブラウザからの要求を受けません (CORS) — コードはサーバー・端末ではそのまま動きます",
+  "curlkit.copy.done": "コードをコピーしました"
+}
