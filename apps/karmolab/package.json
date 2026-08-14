@@ -46,6 +46,7 @@
     "check:live-version": "node scripts/check-live-version.mjs",
     "test:bundles": "node scripts/check-bundles.mjs",
     "audit:shared-bypass": "node scripts/audit-shared-bypass.mjs",
+    "audit:gate-list": "node scripts/audit-gate-list.mjs",
     "test:xmlfmt": "node scripts/test-xmlfmt-core.mjs",
     "test:reach": "node scripts/test-reachability.mjs",
     "test:ipreview": "node scripts/test-imgpreview.mjs",

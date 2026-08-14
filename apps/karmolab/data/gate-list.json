@@ -23,6 +23,7 @@
     "audit:script-paths",
     "audit:orphan-widgets",
     "audit:shared-bypass",
+    "audit:gate-list",
     "audit:mouse-only",
     "audit:registry-impl",
     "audit:hidden-tab",
