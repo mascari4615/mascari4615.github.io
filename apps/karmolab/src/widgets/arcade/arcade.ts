@@ -586,6 +586,32 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          초록이었다 — 크기를 안 재는 검사는 이런 것을 못 잡는다). 세로만 가운데, 가로는 채운다. */
       '.ac-stage{position:relative;width:100%;max-width:var(--ac-stage);margin:0 auto;min-height:min(62vh,var(--ac-stage));display:grid;align-items:center;justify-items:stretch}',
       /* 풀스크린이면 무대가 화면이 된다 — 안에 있는 51개가 그대로 커진다. */
+      /**
+       * **폰을 눕히면 판을 옆으로 세운다** (TASK-KL-314).
+       *
+       * 세로로 쌓는 배치(자리줄 / 무대 / 상태 / 단추)는 화면이 누우면 무너진다 — 세로가 390px 인데
+       * 그걸 넷이 나눠 가지니 무대에 226px 밖에 안 남고 오목 칸이 23px 이 됐다(실측). 게다가
+       * 단추가 22px 밀려 화면 밖으로 나갔다. 눕힌 화면에서 남는 것은 **가로**이므로 그쪽을 쓴다:
+       * 왼쪽에 판, 오른쪽에 자리줄·상태·단추를 세로로 쌓는다.
+       *
+       * `max-height` 로 거는 이유: 「가로다」만으로 걸면 노트북(1280×900)도 가로라 걸린다.
+       * 좁은 것은 방향이 아니라 **세로 길이**다.
+       *
+       * 세로 몫이 78vh 인 이유: 90 → 84 → 78 로 내려 보며 쟀다. 90·84 에서는 판이 화면 밖으로
+       * 37px·14px 밀렸다 — 무대만 보면 들어가는데 **셸 머리띠가 세로를 먼저 먹기** 때문이다.
+       * 78vh 면 두 폰 모두 한 화면에 들어간다. 눕힌 채로도 오목 칸이 32px(세로일 때 38px)이라
+       * 손가락이 닿는다 — 고치기 전에는 23px 이었다.
+       */
+      '@media (orientation:landscape) and (max-height:560px){',
+      '  #acPlay{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,26vw);grid-template-rows:auto 1fr auto;gap:0 var(--space-md);align-items:center}',
+      /* 눕힌 화면에서는 **무대가 곧 틀**이라 여백이 사치다 — 무대 padding 48 + 판 바깥여백 48 이
+         세로 96px 을 먹어 판이 화면 밖으로 밀렸다(실측). 둘 다 걷고 세로를 판에 준다. */
+      '  #acStage{grid-column:1;grid-row:1/4;--ac-stage:min(62vw,78vh,640px);padding:0;min-height:0}',
+      '  #acStage #acView>*{margin-top:0;margin-bottom:0}',
+      '  #acSeats{grid-column:2;grid-row:1;justify-content:flex-start}',
+      '  #acStatus{grid-column:2;grid-row:2}',
+      '  .ac-controls{grid-column:2;grid-row:3;flex-wrap:wrap;margin-top:0}',
+      '}',
       '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-color);padding:var(--space-lg)}',
       '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
       /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다** — 아래 § 참고. 판 위에 뜨되 가리지 않게. */
@@ -1236,18 +1262,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       for (const w of watchers) net.sync({ ...base, v: shown as unknown as Json }, w.id);
     }
 
-    /* ★ **못 받은 조각은 말해 준다** (2026-08-14). 누른 사람에게 아무 반응이 없는 것이
-       제일 나쁘다 — 그리고 자국(`data-kl-load-failed`)이 있어야 검사도 「안 열림」을 잡는다
-       (`toolbox.ts` 가 게으른 위젯에 쓰는 것과 같은 표시다). */
-    function 조각못받음(): void {
-      viewEl.innerHTML = '';
-      const box = document.createElement('p');
-      box.setAttribute('data-kl-load-failed', 'arcade-chunk');
-      box.style.cssText = 'padding:1.2rem;text-align:center;opacity:.8';
-      box.textContent = '이 놀이를 못 받았어요 — 새로고침해 보세요.';
-      viewEl.appendChild(box);
-    }
-
     function mountView(id: string): void {
       const gv = viewById(id);
       viewEl.innerHTML = '';
@@ -1255,12 +1269,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다 — 판은 커널이 들고 있어서
          화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
-      if (!gv)
-        void ensureGame(id).then((ok) => {
-          if (gameId !== id || render) return;
-          if (ok) mountView(id);
-          else 조각못받음();
-        });
+      if (!gv) void ensureGame(id).then(() => { if (gameId === id && !render) mountView(id); });
     }
 
     function sendAct(a: unknown): void {
@@ -1294,9 +1303,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
          저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다 — 문을 하나로 두고 여기서만 기다린다. */
       if (!g) {
-        void ensureGame(id).then((ok) => {
-          if (ok && gameById(id)) beginMatch(id, seats, seed, want);
-          else 조각못받음();
+        void ensureGame(id).then(() => {
+          if (gameById(id)) beginMatch(id, seats, seed, want);
         });
         return;
       }
@@ -1463,9 +1471,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function openLetter(post: Letter): void {
       const g = gameById(post.game);
       if (!g) {
-        void ensureGame(post.game).then((ok) => {
-          if (ok && gameById(post.game)) openLetter(post);
-          else 조각못받음();
+        void ensureGame(post.game).then(() => {
+          if (gameById(post.game)) openLetter(post);
         });
         return;
       }

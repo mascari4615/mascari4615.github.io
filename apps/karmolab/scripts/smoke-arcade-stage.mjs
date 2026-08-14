@@ -10,13 +10,16 @@
  * 「떴다」만 보고 크기를 안 재기 때문이다. 안 재는 검사는 안 보는 검사다.
  */
 import { chromium } from 'playwright';
-import { smokeBase } from './lib/smoke-base.mjs';
+import { serveRepo } from './lib/serve-static.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+let 내서버 = null;
+let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+if (!(await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false))) {
+  내서버 = await serveRepo();
+  BASE = 내서버.base;
+}
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
@@ -90,6 +93,35 @@ if (!cantRun) {
     })
   );
   check('풀스크린에서도 단추가 눌린다', reach.every((r) => r.endsWith(':ok')), reach.join(' '));
+}
+
+/* ── 폰: 세우든 눕히든 (TASK-KL-314) ─────────────────────────────
+   눕힌 화면은 세로가 390px 뿐이라 「자리줄 / 무대 / 상태 / 단추」로 쌓으면 무대에 226px 밖에
+   안 남는다(오목 칸 23px = 손가락 최소권장의 절반). 그래서 눕히면 판을 옆으로 세운다.
+   여기서 재는 것 둘: **칸이 손가락에 닿나**, 그리고 **판이 한 화면에 들어가나**. */
+if (!cantRun) {
+  console.log('[arcade-stage] 폰 — 세우든 눕히든');
+  for (const [label, w, h] of [['세로', 390, 844], ['가로', 844, 390], ['작은 가로', 740, 360]]) {
+    const ctx = await br.newContext({ viewport: { width: w, height: h } });
+    const q = await ctx.newPage();
+    await q.route('**/__dev', (r) => r.abort());
+    await q.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await q.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+    await q.evaluate(() => Toolbox.switchPage('arcade'));
+    await q.waitForSelector('[data-solo="gomoku"]', { timeout: 20000 });
+    await q.click('[data-solo="gomoku"]');
+    await q.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
+    await q.waitForTimeout(200);
+    const m = await q.evaluate(() => ({
+      cell: Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width),
+      over: Math.round(document.querySelector('#acQuit').getBoundingClientRect().bottom) - window.innerHeight
+    }));
+    /* 28px — 손가락 최소권장(44px)에는 못 미치지만 칸이 붙어 있는 판이라 여기까지는 눌린다.
+       고치기 전 눕힌 화면이 23px 이었고, 그건 옆 칸이 눌리는 크기였다. */
+    check(`폰 ${label}: 칸이 눌릴 만하다`, m.cell >= 28, `${m.cell}px`);
+    check(`폰 ${label}: 판이 한 화면에 들어간다`, m.over <= 0, m.over > 0 ? `${m.over}px 밀림` : '');
+    await ctx.close();
+  }
 }
 
 await br.close();
