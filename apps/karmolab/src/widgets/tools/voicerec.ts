@@ -9,7 +9,7 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, audioCtx, loadAudio, download } from './shared/media';
+import { attachMedia, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
 import { statusLine } from './shared/say';
 import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
@@ -253,7 +253,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             recorded = buffer;
             wav = toWav(buffer); // 미리 듣기는 손실 없는 쪽으로 들려준다
-            preview.src = URL.createObjectURL(wav);
+            attachMedia(preview, wav); // 공용 — 앞 주소를 거두고 물린다
             $<HTMLElement>('#vrResult').style.display = '';
             showAi();
             saveBtn.disabled = false;

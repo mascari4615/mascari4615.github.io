@@ -14,7 +14,7 @@
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
 import { loadVideo, metaOf, filmstrip } from './shared/video';
-import { fileSize, mmss } from './shared/media';
+import { attachMedia, fileSize, mmss } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -107,7 +107,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     player.id = 'vdPlayer';
     player.controls = true;
     player.preload = 'metadata';
-    player.src = URL.createObjectURL(file);
+    attachMedia(player, file); // 공용 — 앞 주소를 거두고 물린다
     box.appendChild(player);
 
     const strip = document.createElement('div');

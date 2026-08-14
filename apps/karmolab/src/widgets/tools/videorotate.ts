@@ -13,7 +13,7 @@
 import { pickRecordType, download } from './shared/video';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { fileSize as size, mmss } from './shared/media';
+import { attachMedia, fileSize as size, mmss } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -143,7 +143,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           function load(file: File): void {
-            video.src = URL.createObjectURL(file);
+            attachMedia(video, file); // 공용 — 앞 주소를 거두고 물린다
             baseName = (file.name || t('videorotate.file.base')).replace(/\.[^.]+$/, '');
             video.onloadeddata = () => {
               $<HTMLElement>('#vrStage').style.display = '';
