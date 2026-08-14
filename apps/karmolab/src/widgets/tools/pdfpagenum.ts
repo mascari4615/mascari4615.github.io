@@ -16,6 +16,7 @@ import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
 import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
+import { encode } from './shared/image';
 
 (function (): void {
 
@@ -35,12 +36,10 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, pad, cv.height / 2);
-    return new Promise((resolve, reject) => {
-      cv.toBlob((b) => {
-        if (!b) return reject(new Error('글자를 그림으로 바꾸지 못했습니다'));
-        b.arrayBuffer().then((ab) => resolve(new Uint8Array(ab)), reject);
-      }, 'image/png');
-    });
+    // 공용 한 자리(`shared/image.encode`) — 굽기 규칙을 여기 또 적지 않는다.
+    return encode(cv, 'png')
+      .then((b) => b.arrayBuffer())
+      .then((ab) => new Uint8Array(ab));
   }
 
   Toolbox.register({

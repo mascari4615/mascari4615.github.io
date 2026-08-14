@@ -11,9 +11,6 @@ IMG-ENCODE	src/widgets/karmograph/karmograph.ts
 IMG-ENCODE	src/widgets/meok/meok.ts
 IMG-ENCODE	src/widgets/tools/imgmerge.ts
 IMG-ENCODE	src/widgets/tools/pdfcompress.ts
-IMG-ENCODE	src/widgets/tools/pdfpagenum.ts
-IMG-ENCODE	src/widgets/tools/pdfredact.ts
-IMG-ENCODE	src/widgets/tools/pdfwatermark.ts
 IMG-ENCODE	src/widgets/tools/text-operations.ts
 IMG-LOAD	src/widgets/bluemarble/textures.ts
 IMG-LOAD	src/widgets/bluemarble/tiles.ts
