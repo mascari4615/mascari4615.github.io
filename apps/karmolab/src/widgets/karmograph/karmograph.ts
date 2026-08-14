@@ -1421,7 +1421,11 @@ import {
 
     // ── 내 용어 (격차 A-2) ───────────────────────────────────────────────────
     /** 용어가 바뀌면 색표·선 정의를 캔버스에 다시 넘겨야 그린 것이 따라온다. */
+    /** 이 탭이 용어를 고친 적 있나 — 다른 탭의 변경을 따라갈지 정하는 데 쓴다. */
+    let termsTouched = false;
+
     function applyTerms(): void {
+      termsTouched = true;
       saveTerms(terms);
       spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
       // 내 용어가 이긴다 — 방금 고친 색이 옛 정의에 덮이면 「고쳤는데 그대로」가 된다.
@@ -4147,6 +4151,27 @@ import {
         // 내가 보고 있는 판은 그대로 둔다 — 목록만 새로 그린다.
         library = { ...fresh, activeId: library.activeId };
         renderMapList();
+        return;
+      }
+      /* 내 용어도 따라간다 — 다른 탭에서 만든 종류가 이 탭의 고르개에 없으면 「분명 만들었는데
+         목록에 없다」가 된다(자료는 이제 안 사라진다 — 107회차 합치기. 화면만 낡았다). */
+      if (ev.key === 'karmograph.terms' && ev.newValue) {
+        /* ★ **내가 고친 적 있으면 갈아 끼우지 않는다.** 저쪽 저장이 늦게 도착하면 내 기억을
+           옛것으로 되돌려 놓고, 그 다음 내 저장이 그 옛것을 그대로 써서 **내 용어가 사라졌다**
+           (실측 2026-08-14: 둘이어야 할 것이 하나로). 자료는 합치기가 지키고, 화면은 다음에 열 때 맞는다. */
+        if (termsTouched) return;
+        /* ★ **자리를 갈아 끼우지 말고 속을 채운다.** 패널은 이 객체를 그대로 쥐고 있어서,
+           변수만 새 객체로 바꾸면 패널이 **버려진 옛 객체**에 용어를 더한다 — 더한 것이 저장도
+           화면도 안 된다(실측 2026-08-14: A 탭의 「새 종류」가 통째로 사라졌다). */
+        const fresh = loadTerms();
+        terms.nodeKinds = fresh.nodeKinds;
+        terms.edgeKinds = fresh.edgeKinds;
+        spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
+        for (const e of terms.edgeKinds) {
+          spec._edge_kinds[e.id] = { color: e.color, style: e.style, arrow: e.arrow, width: e.width };
+        }
+        canvas?.setKindColors(kindColorsNow());
+        renderSide();
         return;
       }
       if (ev.key !== mapKey(library.activeId) || !ev.newValue) return;
