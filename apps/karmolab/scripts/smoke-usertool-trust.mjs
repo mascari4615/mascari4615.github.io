@@ -64,7 +64,11 @@ await context.route('**/run', (route) => route.fulfill({ status: 200, contentTyp
 
 page.on('dialog', (d) => d.accept()); // 신고 확인창
 
-await page.goto(`${BASE}#usertool`, { waitUntil: 'networkidle', timeout: 30000 });
+/* ★ **`networkidle` 을 기다리지 않는다** (2026-08-14). 이 앱은 늘 무언가를 주고받는다
+   (같이쓰기 통로·기록·통계) — 「조용해질 때」가 영영 안 온다. 실사이트에서는 어쩌다 조용한
+   틈이 생겨 붙었다 말았다 했고, 내 자리에 띄운 서버에서는 30초를 그대로 넘겼다.
+   기다릴 것은 「조용함」이 아니라 **볼 것이 나왔는가**다. */
+await page.goto(`${BASE}#usertool`, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await page.waitForSelector('.ut-wrap', { timeout: 20000 });
 
 // ① 요약 — 열기 전에는 없고, 열면 상자 위에 뜬다

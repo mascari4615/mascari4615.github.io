@@ -316,7 +316,33 @@ import { t, loadNamespace } from '../lib/i18n';
                     let drawnFor: string | null | undefined;
                     const account = window.KarmoAccount;
                     if (!account) {
-                        void loadNamespace('usertool').then(() => build(container));
+                        /* ★ **계정 꾸러미는 늦게 온다 — 한 번 그리고 끝내면 목록이 영영 빈다** (2026-08-14).
+                           `js/account.js` 는 첫 그림 뒤 한가할 때 실린다(첫 화면 천장 때문에 그렇게
+                           옮겼다). 그보다 이 화면이 먼저 열리면 여기서 **한 번만** 그리고 끝났는데,
+                           그 시점엔 `api()` 가 null 이라 `loadAll()` 이 요청도 안 보내고 빈 목록을
+                           돌려준다 — 화면은 조용히 비어 있고 다시 그릴 일도 없다.
+                           실측(실사이트): `kl/tools/user` 요청이 **한 번도 안 나간다**.
+                           그래서 꾸러미가 올 때까지 기다렸다가 그때 이어 붙인다. */
+                        let 남은번 = 50; /* 200ms × 50 = 10초 */
+                        const 기다리기 = window.setInterval(() => {
+                            const late = window.KarmoAccount;
+                            if (!late) {
+                                if (--남은번 > 0) return;
+                                window.clearInterval(기다리기);
+                                void loadNamespace('usertool').then(() => build(container)); /* 끝내 안 오면 로그인 없이라도 그린다 */
+                                return;
+                            }
+                            window.clearInterval(기다리기);
+                            const off2 = late.subscribe((state) => {
+                                if (state.loading) return;
+                                const key = state.account?.handle ?? null;
+                                if (drawnFor === key) return;
+                                drawnFor = key;
+                                void loadNamespace('usertool').then(() => build(container));
+                            });
+                            Toolbox.onDispose?.(off2);
+                        }, 200);
+                        Toolbox.onDispose?.(() => window.clearInterval(기다리기));
                         return;
                     }
                     const off = account.subscribe((state) => {
