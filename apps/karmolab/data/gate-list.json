@@ -129,6 +129,7 @@
     "smoke:arcadeopen",
     "test:duel",
     "test:usertool",
-    "test:chat"
+    "test:chat",
+    "test:offline"
   ]
 }

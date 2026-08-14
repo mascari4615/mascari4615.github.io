@@ -49,7 +49,16 @@ const PRECACHE_IDLE = [
      여기 미리 받는 목록에도 없었다 — 끊긴 채 열면 그 스크립트부터 404 다(실측:
      `A bad HTTP response code (404) was received when fetching the script`).
      즉 **쪽지가 필요한 유일한 순간에 쪽지를 그릴 코드가 없다.** 무겁지도 않다(19KB). */
-  '/apps/karmolab/js/account.js'
+  '/apps/karmolab/js/account.js',
+  /* ★ **앱이 뜨는 데 꼭 필요한 것들** (2026-08-14). 끊긴 채 도구 주소로 들어가면 껍데기는
+     오는데 **화면이 하나도 안 그려졌다** — 계측으로 보니 `Toolbox` 가 아예 없었다.
+     워커는 「지나간 것」만 담으므로, 그 사람이 그 판에 안 불러 본 파일은 없다.
+     이 넷은 앱이 뜨는 뼈대다(셸이 직접 부르는 것). 담아 두면 첫 화면을 한 번이라도 연
+     사람은 **어느 도구 주소로 들어와도** 앱이 뜬다. */
+  '/apps/karmolab/js/toolbox.js',
+  '/apps/karmolab/js/widgets-loader.js',
+  '/apps/karmolab/js/widgets-index.js',
+  '/apps/karmolab/js/widgets-manifest.js'
 ];
 
 /**
