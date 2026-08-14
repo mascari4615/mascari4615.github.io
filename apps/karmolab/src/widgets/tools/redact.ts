@@ -12,7 +12,7 @@
  */
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { download, loadImage } from './shared/image';
+import { download, encode, loadImage } from './shared/image';
 import { fileSize as size } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -282,18 +282,15 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('redact.say.reset'), 'ok');
           };
           saveBtn.onclick = () => {
-            canvas.toBlob((blob) => {
-              if (!blob) {
-                say(t('redact.err.render'), 'error');
-                return;
-              }
+            // 공용 한 자리(`shared/image.encode`)
+            encode(canvas, 'png').then((blob) => {
               download(blob, sourceName + t('redact.file.suffix') + '.png');
               /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298) — 받을 도구가 없으면 줄이 안 생긴다. */
               Toolbox.offerNext?.(status, { blob: blob, name: sourceName + t('redact.file.suffix') + '.png', from: 'redact' });
               // 다시 그려 내보내므로 사진에 붙어 있던 위치·기기 정보도 함께 떨어진다
               say(t('redact.say.saved', { size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');
-            }, 'image/png');
+            }).catch(() => say(t('redact.err.render'), 'error'));
           };
   }
 })();

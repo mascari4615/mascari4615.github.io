@@ -8,7 +8,7 @@ import { escapeWifi, type Level, makeGrid, spec, toSvg } from '../../core/qrgen'
 import { readInvocation } from '../../lib/tool-url';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { loadImage } from './shared/image';
+import { encode, loadImage } from './shared/image';
 
 (function (): void {
 
@@ -369,8 +369,8 @@ import { loadImage } from './shared/image';
           };
           $<HTMLButtonElement>('#qrCopy').onclick = () => {
             if (!lastCanvas) return;
-            lastCanvas.toBlob(async (blob) => {
-              if (!blob) return;
+            // 공용 한 자리(`shared/image.encode`)
+            encode(lastCanvas, 'png').then(async (blob) => {
               try {
                 await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
                 Toolbox.trackUse?.('copy-image');
