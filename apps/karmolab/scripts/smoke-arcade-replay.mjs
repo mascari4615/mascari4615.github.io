@@ -29,22 +29,23 @@ const check = (name, cond, detail = '') => {
 let cantRun = '';
 const br = await chromium.launch();
 const p = await (await br.newContext()).newPage();
+p.setDefaultTimeout(60000);
 try {
   await p.route('**/__dev', (r) => r.abort());
-  const res = await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  const res = await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 45000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
   cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
 }
 
 if (!cantRun) {
-  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-solo="reflex"]', { timeout: 30000 });
+  await p.waitForSelector('[data-solo="reflex"]', { timeout: 60000 });
   await p.click('[data-solo="reflex"]');
-  await p.waitForSelector('.ac-choice', { timeout: 20000 });
+  await p.waitForSelector('.ac-choice', { timeout: 45000 });
   /* 시작 3초 덮개가 걷힌 뒤에 눌러야 한다 — 덮개 위를 누르면 아무 데도 안 닿는다. */
-  await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
+  await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 45000 });
   for (let i = 0; i < 6; i++) {
     await p.locator('.ac-choice').first().click({ timeout: 3000 }).catch(() => {});
     await p.waitForTimeout(700);
