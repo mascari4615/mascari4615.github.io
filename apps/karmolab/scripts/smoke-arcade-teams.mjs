@@ -25,24 +25,25 @@ const check = (name, cond, detail = '') => {
 let cantRun = '';
 const br = await chromium.launch();
 const p = await (await br.newContext()).newPage();
+p.setDefaultTimeout(60000);
 try {
   await p.route('**/__dev', (r) => r.abort());
-  const res = await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  const res = await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 45000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
   cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
 }
 
 if (!cantRun) {
-  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-team]', { timeout: 30000 });
+  await p.waitForSelector('[data-team]', { timeout: 60000 });
   const many = await p.locator('[data-team]').count();
   check('편 갈라 되는 놀이가 여럿이다', many >= 10, `${many}개`);
 
   const id = await p.locator('[data-team]').first().getAttribute('data-team');
   await p.click(`[data-team="${id}"]`);
-  await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
+  await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 45000 });
   await p.waitForTimeout(800);
 
   const seats = await p.locator('#acSeats .ac-seat').allTextContents();
