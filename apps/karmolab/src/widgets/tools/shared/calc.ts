@@ -27,6 +27,20 @@ export interface CalcLine {
   name?: string;
   /** 못 센 이유 (있으면 조용히 비운다 — 주석·빈 줄은 흠이 아니다) */
   error?: string;
+  /** 방정식이면 그 뿌리들 (TASK-KL-238 / 13) */
+  roots?: number[];
+  /** 그림을 그릴 줄이면 그 표본 (TASK-KL-238 / 13) */
+  plot?: Plot;
+}
+
+/** 그림 한 장 분량의 표본. 그리는 일은 화면 몫이고, **재는 일은 여기서** 끝낸다. */
+export interface Plot {
+  expr: string;
+  from: number;
+  to: number;
+  points: Array<[number, number]>;
+  minY: number;
+  maxY: number;
 }
 
 /* ── 단위 (환산 계수는 **하나의 기준 단위**로 모은다) ───────────────── */
@@ -146,6 +160,119 @@ function evaluate(src: string, vars: Map<string, number>): number {
   return out;
 }
 
+/* ── 풀이·그림 (TASK-KL-238 / 13 wolframalpha) ────────────────────────
+ *
+ * wolframalpha 의 알맹이는 **거대한 지식 창고 + 기호 대수**라 통째로는 못 짓는다. 그런데 사람이
+ * 거기서 실제로 두드리는 것의 큰 몫은 둘이다: **「x 구해 줘」**와 **「그려 줘」**.
+ * 그 둘은 창고가 없어도 된다 — 재기만 하면 되기 때문이다.
+ *
+ * 기호로 풀지 않고 **재서 푼다**: 직선이면 두 점으로, 이차면 세 점으로 계수를 뽑고(그리고 네
+ * 번째 점으로 *검산*한다 — 검산 없이 맞췄다고 하면 삼차를 이차로 우겨 답을 지어낸다), 아니면
+ * 부호가 바뀌는 자리를 찾아 좁힌다. 지어낸 값을 「정확한 답」인 척하지 않는 것이 이 코드의 규율이다.
+ */
+
+/** 사람이 적는 `2x` 를 `2*x` 로. 셈틀은 곱셈 기호를 안 적은 것을 모른다. */
+export function implicitMul(src: string): string {
+  return src
+    .replace(/(\d)\s*([A-Za-z가-힣_(])/g, '$1*$2')
+    .replace(/\)\s*([A-Za-z가-힣_0-9(])/g, ')*$1');
+}
+
+/** 식을 x 자리에 값을 넣어 잰다. 못 재면 NaN — 던지지 않는다(그리는 쪽은 구간을 훑는다). */
+export function evalAt(expr: string, x: number, name = 'x'): number {
+  const vars = new Map<string, number>([[name, x]]);
+  try {
+    return evaluate(implicitMul(expr), vars);
+  } catch {
+    return NaN;
+  }
+}
+
+const near = (a: number, b: number, eps = 1e-9): boolean => Math.abs(a - b) <= eps * Math.max(1, Math.abs(a), Math.abs(b));
+
+export interface Solved {
+  /** 어떻게 풀었나 — 화면이 「정확」과 「대략」을 다르게 말해야 한다. */
+  kind: 'linear' | 'quadratic' | 'numeric';
+  roots: number[];
+}
+
+/**
+ * `f(x) = 0` 의 뿌리. `f` 는 「왼쪽 − 오른쪽」이다.
+ * 못 찾으면 null — **없는 답을 만들지 않는다**(허근은 「없다」고 말한다).
+ */
+export function solveZero(f: (x: number) => number): Solved | null {
+  const y = (x: number): number => f(x);
+  const [y0, y1, y2, y3] = [y(0), y(1), y(2), y(3)];
+  if (![y0, y1, y2, y3].every(Number.isFinite)) return scan(y);
+
+  // 직선인가 — 기울기가 일정한가(그리고 네 번째 점으로 검산)
+  const a = y1 - y0;
+  if (near(y2 - y1, a) && near(y3 - y2, a)) {
+    if (near(a, 0)) return null; // 기울기가 0 = 뿌리가 없거나 전부다. 지어내지 않는다.
+    return { kind: 'linear', roots: [-y0 / a] };
+  }
+
+  // 이차인가 — 세 점으로 계수, 네 번째 점으로 검산
+  const c = y0;
+  const qa = (y2 - 2 * y1 + y0) / 2;
+  const qb = y1 - y0 - qa;
+  if (!near(qa * 9 + qb * 3 + c, y3, 1e-6)) return scan(y);
+  const disc = qb * qb - 4 * qa * c;
+  if (disc < 0) return null; // 실수 뿌리 없음
+  const rootA = (-qb + Math.sqrt(disc)) / (2 * qa);
+  const rootB = (-qb - Math.sqrt(disc)) / (2 * qa);
+  const roots = near(rootA, rootB) ? [rootA] : [rootA, rootB].sort((p, q) => p - q);
+  return { kind: 'quadratic', roots };
+}
+
+/** 부호가 바뀌는 자리를 훑어 좁힌다. 「대략」이라고 말할 값이다. */
+function scan(y: (x: number) => number, from = -100, to = 100, step = 0.05): Solved | null {
+  const roots: number[] = [];
+  let prevX = from;
+  let prevY = y(from);
+  for (let x = from + step; x <= to && roots.length < 4; x += step) {
+    const cur = y(x);
+    if (Number.isFinite(prevY) && Number.isFinite(cur)) {
+      if (cur === 0) roots.push(x);
+      else if (prevY * cur < 0) {
+        let lo = prevX;
+        let hi = x;
+        for (let i = 0; i < 60; i++) {
+          const mid = (lo + hi) / 2;
+          if (y(lo) * y(mid) <= 0) hi = mid;
+          else lo = mid;
+        }
+        roots.push((lo + hi) / 2);
+      }
+    }
+    prevX = x;
+    prevY = cur;
+  }
+  return roots.length > 0 ? { kind: 'numeric', roots } : null;
+}
+
+/** 그릴 표본. 구간 안에서 못 재는 자리(0으로 나누기 등)는 **건너뛴다** — 0 으로 채우면 없는 골짜기가 생긴다. */
+export function plotSamples(expr: string, from = -10, to = 10, n = 240): Plot | null {
+  const points: Array<[number, number]> = [];
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (let i = 0; i <= n; i++) {
+    const x = from + ((to - from) * i) / n;
+    const v = evalAt(expr, x);
+    if (!Number.isFinite(v) || Math.abs(v) > 1e9) continue;
+    points.push([x, v]);
+    if (v < minY) minY = v;
+    if (v > maxY) maxY = v;
+  }
+  if (points.length < 2) return null;
+  if (near(minY, maxY)) {
+    // 납작한 직선도 보이게 — 위아래로 1 씩 벌린다(안 벌리면 높이 0 인 그림이 된다)
+    minY -= 1;
+    maxY += 1;
+  }
+  return { expr, from, to, points, minY, maxY };
+}
+
 /** 보기 좋은 숫자 — 소수점은 필요한 만큼만. */
 export function fmt(n: number): string {
   if (!Number.isFinite(n)) return '—';
@@ -199,7 +326,28 @@ function one(
   vars: Map<string, number>,
   last: number | null,
   running: number[]
-): { value: number | null; text: string; name?: string } {
+): { value: number | null; text: string; name?: string; roots?: number[]; plot?: Plot } {
+  /* ⓪ **x 구하기 · 그리기** (TASK-KL-238 / 13 wolframalpha)
+   *
+   * 이름 매기기(`밥값 = 32000`)보다 **먼저** 본다. 「2x + 3 = 11」 의 왼쪽은 이름이 아니라 식이라,
+   * 이름 매기기가 먼저 집으면 「2x + 3」 이라는 이상한 이름이 생기고 답은 영영 안 나온다.
+   * 가르는 규칙 하나: **왼쪽이 맨 이름이 아니거나, 어느 한쪽에 미지수 x 가 있으면 방정식이다.** */
+  const drawing = line.match(/^(?:plot|graph|그래프|그려)\s+(.+)$/i) || line.match(/^y\s*=\s*(.+)$/i);
+  if (drawing && HAS_X.test(drawing[1])) {
+    const plot = plotSamples(drawing[1]);
+    if (plot === null) throw new Error('이 식은 못 그립니다');
+    return { value: null, text: '', plot };
+  }
+
+  const eqn = line.replace(/^solve\s+/i, '').match(/^([^=]+)=([^=].*)$/);
+  if (eqn && (HAS_X.test(eqn[1]) || HAS_X.test(eqn[2])) && !/^[A-Za-z가-힣_][A-Za-z0-9가-힣_ ]*$/.test(eqn[1].trim())) {
+    return solvedLine(eqn[1], eqn[2]);
+  }
+  if (eqn && HAS_X.test(eqn[2]) && /^\s*x\s*$/i.test(eqn[1])) {
+    // `x = 2x - 3` 도 방정식이다 (오른쪽에 x 가 또 있으면 값 매기기가 아니다)
+    return solvedLine(eqn[1], eqn[2]);
+  }
+
   /* ① 이름 매기기 — `밥값 = 32000` (`==` 는 아니다) */
   const named = line.match(/^([A-Za-z가-힣_][A-Za-z0-9가-힣_ ]*?)\s*=\s*(.+)$/);
   let name: string | undefined;
@@ -259,4 +407,21 @@ function one(
   const cleaned = body.replace(/(\d)\s*(원|개|명|won)/g, '$1');
   const v = evaluate(cleaned, vars);
   return put(v, tail);
+}
+
+/** 미지수가 든 식인가. 이름 안의 x(`box`·`x2`)는 미지수가 아니다 — 다만 `2x` 의 x 는 미지수다
+ *  (숫자가 앞에 붙는 것은 곱셈이지 이름이 아니다). */
+const HAS_X = /(^|[^A-Za-z가-힣_])x([^A-Za-z0-9가-힣_]|$)/i;
+
+/** 방정식 한 줄 → 뿌리. 못 찾으면 「없다」고 말한다(지어내지 않는다). */
+function solvedLine(lhs: string, rhs: string): { value: number | null; text: string; roots?: number[] } {
+  const solved = solveZero((x) => evalAt(lhs, x) - evalAt(rhs, x));
+  if (solved === null) throw new Error('x 를 못 찾았습니다 (실수 답이 없을 수 있습니다)');
+  const approx = solved.kind === 'numeric';
+  const shown = solved.roots.map((r) => fmt(Math.abs(r) < 1e-9 ? 0 : r)).join(', ');
+  return {
+    value: solved.roots.length === 1 ? solved.roots[0] : null,
+    text: `x = ${approx ? '≈ ' : ''}${shown}`,
+    roots: solved.roots
+  };
 }

@@ -28,5 +28,7 @@
   "calc.part.pace": "Running pace",
   "calc.copy.hint": "Click to copy the answer",
   "calc.copy.done": "Copied: {v}",
-  "calc.btn.recent": "Recent"
+  "calc.btn.recent": "Recent",
+  "calc.plot.mark": "chart",
+  "calc.plot.alt": "Graph of {expr} (x {from}~{to})"
 }

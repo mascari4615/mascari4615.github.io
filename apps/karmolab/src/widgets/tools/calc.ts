@@ -11,7 +11,7 @@
  * 정확한 상환표·학점 계산은 그쪽이 낫다. 공책은 **이어서 셈하는 자리**다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
-import { calcSheet } from './shared/calc';
+import { calcSheet, type Plot } from './shared/calc';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -160,6 +160,12 @@ import { t, loadNamespace } from '../../lib/i18n';
       row.appendChild(src);
       row.appendChild(ans);
       sheet.appendChild(row);
+      /* 그리는 줄이면 **그 줄 밑에** 그림을 둔다 (TASK-KL-238 / 13) — 공책은 위에서 아래로 읽는다.
+       * 그림을 따로 모아 두면 어느 식의 그림인지 다시 찾아야 한다. */
+      if (l.plot) {
+        ans.textContent = t('calc.plot.mark', undefined, '그림');
+        sheet.appendChild(plotRow(l.plot));
+      }
       if (l.value !== null) {
         counted += 1;
         total += l.value;
@@ -175,6 +181,37 @@ import { t, loadNamespace } from '../../lib/i18n';
       lastVal ? `${counted}줄 셈 · 마지막 ${lastVal.text}` : `${counted}줄 셈`
     ) + (counted > 1 ? ` · ${t('calc.sum', undefined, '합')} ${total.toLocaleString('ko-KR')}` : '');
   }
+
+  /**
+   * 표본을 선으로. **자를 같이 그린다** — 눈금 없는 곡선은 모양만 보여 주고 값을 못 읽게 한다.
+   * SVG 한 장이라 저장·복사도 그대로 된다(그림 파일을 만들 필요가 없다).
+   */
+  function plotRow(p: Plot): HTMLElement {
+    const W = 320;
+    const H = 140;
+    const pad = 4;
+    const sx = (x: number): number => pad + ((x - p.from) / (p.to - p.from)) * (W - pad * 2);
+    const sy = (y: number): number => H - pad - ((y - p.minY) / (p.maxY - p.minY)) * (H - pad * 2);
+    const d = p.points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${sx(x).toFixed(1)} ${sy(y).toFixed(1)}`).join(' ');
+    const axes: string[] = [];
+    if (p.minY <= 0 && p.maxY >= 0) axes.push(`M${pad} ${sy(0).toFixed(1)} H${W - pad}`);
+    if (p.from <= 0 && p.to >= 0) axes.push(`M${sx(0).toFixed(1)} ${pad} V${H - pad}`);
+
+    const row = document.createElement('div');
+    row.className = 'ca-row ca-plotrow';
+    row.innerHTML =
+      `<svg class="ca-plot" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img"` +
+      ` aria-label="${esc(t('calc.plot.alt', { expr: p.expr, from: String(p.from), to: String(p.to) }, `${p.expr} 그래프`))}">` +
+      `<path d="${axes.join(' ')}" stroke="currentColor" stroke-width="1" opacity=".25" fill="none"/>` +
+      `<path d="${d}" fill="none" stroke="var(--accent, #6aa9ff)" stroke-width="1.8" stroke-linejoin="round"/>` +
+      '</svg>' +
+      `<span class="ca-plotmeta">x ${p.from}~${p.to} · y ${fmtShort(p.minY)}~${fmtShort(p.maxY)}</span>`;
+    return row;
+  }
+
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const fmtShort = (n: number): string => (Math.abs(n) >= 1000 ? n.toExponential(1) : String(Math.round(n * 100) / 100));
 
   let styled = false;
   function injectStyles(): void {
@@ -192,6 +229,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 .ca-copy:hover{text-decoration:underline;}
 .ca-ans{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent,#6aa9ff);}
 .ca-bad .ca-ans{color:rgba(220,120,120,.9);font-weight:500;cursor:help;}
+.ca-plotrow{display:block;padding:8px 10px;}
+.ca-plot{display:block;color:var(--text-secondary,#999);}
+.ca-plotmeta{display:block;margin-top:4px;font-size:11px;opacity:.6;}
 `;
     document.head.appendChild(el);
   }

@@ -28,5 +28,7 @@
   "calc.part.pace": "ランニングペース",
   "calc.copy.hint": "押して答えをコピー",
   "calc.copy.done": "コピー: {v}",
-  "calc.btn.recent": "さっきの作業"
+  "calc.btn.recent": "さっきの作業",
+  "calc.plot.mark": "図",
+  "calc.plot.alt": "{expr} のグラフ (x {from}~{to})"
 }
