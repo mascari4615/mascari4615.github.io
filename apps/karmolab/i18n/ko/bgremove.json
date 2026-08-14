@@ -1,0 +1,18 @@
+{
+  "bgremove.mdd": "뒤쪽을 걷어내 드립니다.",
+  "bgremove.tab": "배경",
+  "bgremove.label.file": "사진 (브라우저 밖으로 안 나갑니다)",
+  "bgremove.label.tolerance": "얼마나 비슷하면 배경으로 볼까",
+  "bgremove.label.feather": "가장자리 부드럽게",
+  "bgremove.opt.despill": "테두리에 남은 배경색 걷어내기",
+  "bgremove.opt.pick": "배경을 눌러서 집기",
+  "bgremove.btn.save": "투명 PNG 로 저장",
+  "bgremove.status.idle": "사진을 고르세요",
+  "bgremove.status.reading": "읽는 중…",
+  "bgremove.status.badImage": "사진으로 못 읽었습니다",
+  "bgremove.status.ok": "{n}% 를 지웠습니다",
+  "bgremove.status.nothing": "지운 데가 없습니다 — 「비슷함」을 더 느슨하게 하거나 배경을 눌러서 집어 보세요",
+  "bgremove.status.tooMuch": "{n}% 나 지웠습니다 — 너무 느슨합니다. 값을 줄여 보세요",
+  "bgremove.status.saved": "투명 PNG 로 저장했습니다",
+  "bgremove.note.limits": "단색이나 비슷한 색 배경만 지웁니다 (증명사진·상품 사진·스캔). 사람이나 물체의 모양을 알아보지는 않습니다 — 그건 학습 모형이 필요하고 이 사이트는 그런 것을 받지 않습니다. 가장자리에서 이어진 색만 지우므로, 옷 색이 배경과 같아도 안쪽은 안 뚫립니다."
+}

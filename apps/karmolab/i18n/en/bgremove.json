@@ -1,0 +1,18 @@
+{
+  "bgremove.mdd": "Let me lift the background off.",
+  "bgremove.tab": "Background",
+  "bgremove.label.file": "Photo (never leaves your browser)",
+  "bgremove.label.tolerance": "How close counts as background",
+  "bgremove.label.feather": "Soften the edge",
+  "bgremove.opt.despill": "Remove background colour left on the edge",
+  "bgremove.opt.pick": "Click the background to pick it",
+  "bgremove.btn.save": "Save transparent PNG",
+  "bgremove.status.idle": "Pick a photo",
+  "bgremove.status.reading": "Reading…",
+  "bgremove.status.badImage": "Could not read that as an image",
+  "bgremove.status.ok": "Removed {n}%",
+  "bgremove.status.nothing": "Nothing was removed — loosen the threshold or click the background to pick it",
+  "bgremove.status.tooMuch": "Removed {n}% — that is too loose, lower the threshold",
+  "bgremove.status.saved": "Saved as a transparent PNG",
+  "bgremove.note.limits": "Solid or near-solid backgrounds only (ID photos, product shots, scans). It does not recognise people or objects — that needs a machine-learning model this site does not ship. It fills from the edges, so a subject the same colour as the background is not punched through."
+}

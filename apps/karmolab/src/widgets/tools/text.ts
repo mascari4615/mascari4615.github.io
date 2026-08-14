@@ -53,6 +53,7 @@ import { mountTextOperation } from './shared/text-operation';
       jobs: [
         ['text2pdf', t('text.part.text2pdf', undefined, '글 → PDF')],
         ['text2img', t('text.part.text2img', undefined, '글자 카드')],
+        ['tts', t('text.part.tts', undefined, '읽어 주기')],
         ['lorem', t('text.part.lorem', undefined, '더미 텍스트')],
         ['checklist', t('text.part.checklist', undefined, '체크리스트')]
       ]

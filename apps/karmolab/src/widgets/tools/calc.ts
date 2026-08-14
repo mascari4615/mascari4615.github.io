@@ -22,6 +22,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['vat', t('calc.part.vat', undefined, '부가세')],
         ['interest', t('calc.part.interest', undefined, '이자')],
         ['loan', t('calc.part.loan', undefined, '대출 상환')],
+        ['dutchpay', t('calc.part.dutchpay', undefined, '나눠 내기')],
+        ['payslip', t('calc.part.payslip', undefined, '실수령액')],
         ['percent', t('calc.part.percent', undefined, '퍼센트')]
       ]
     },

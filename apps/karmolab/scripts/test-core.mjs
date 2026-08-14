@@ -2751,6 +2751,1242 @@ eq(lvBuckets.length, 4, '칸으로 나눈다');
 eq(lvBuckets.reduce((sum, b) => sum + b.total, 0), 5, '시각 없는 줄은 안 센다 (거짓 봉우리 방지)');
 eq(lv.timeline(lv.parse('시각 없는 줄만')).length, 0, '읽을 시각이 없으면 그림도 없다');
 
+// ── OpenAPI 눌러 보기 (TASK-KL-316) ─────────────────────────────────────────
+const api = await load('src/core/apitest.ts');
+
+const apiDoc = JSON.stringify({
+  openapi: '3.0.0',
+  info: { title: '도토리 API', version: '1.0.0' },
+  servers: [{ url: 'https://api.example.com/v1' }],
+  components: {
+    schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', minimum: 7 },
+          email: { type: 'string', format: 'email' },
+          friend: { $ref: '#/components/schemas/User' },
+          tags: { type: 'array', items: { type: 'string', enum: ['a', 'b'] } }
+        }
+      }
+    }
+  },
+  paths: {
+    '/users/{id}': {
+      parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+      get: {
+        summary: '한 사람 보기',
+        parameters: [{ name: 'expand', in: 'query', schema: { type: 'string', enum: ['friend'] } }],
+        responses: { 200: { description: 'ok', content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } } }
+      },
+      patch: {
+        requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } },
+        responses: { 204: { description: 'no content' } }
+      }
+    }
+  }
+});
+
+const apiParsed = api.parse(apiDoc);
+eq(apiParsed.title, '도토리 API', '제목을 읽는다');
+eq(apiParsed.servers[0], 'https://api.example.com/v1', '서버 주소를 읽는다');
+eq(apiParsed.operations.length, 2, '연산 둘');
+const apiGet = apiParsed.operations[0];
+eq(apiGet.method + ' ' + apiGet.path, 'GET /users/{id}', '메서드와 경로');
+eq(apiGet.summary, '한 사람 보기', '요약을 읽는다');
+/* 경로에 공통으로 걸린 파라미터를 각 연산이 물려받아야 한다 — 안 그러면 필수 값이 사라진다 */
+eq(apiGet.params.length, 2, '공통 파라미터를 물려받는다');
+check(apiGet.params.some((p) => p.name === 'id' && p.where === 'path' && p.required), 'path 파라미터는 필수다');
+
+/* $ref 를 따라가고, 고리(User → friend → User)에서 멈춰야 한다 */
+const apiExample = apiGet.responses[0].example;
+eq(apiExample.id, 7, 'minimum 을 예시로 쓴다');
+eq(apiExample.email, 'someone@example.com', 'format 을 보고 예시를 고른다');
+eq(apiExample.tags[0], 'a', 'enum 의 첫 값');
+check(apiExample.friend !== undefined, '$ref 를 따라간다');
+check(JSON.stringify(apiParsed).length < 20000, '고리에서 안 멎는다 (끝없이 안 펼친다)');
+
+const apiFilled = api.fill(apiGet, 'https://api.example.com/v1', { id: '42' });
+eq(apiFilled.url, 'https://api.example.com/v1/users/42?expand=friend', `값을 채워 진짜 주소로: ${apiFilled.url}`);
+eq(apiFilled.method, 'GET', '메서드를 그대로');
+const apiPatch = api.fill(apiParsed.operations[1], 'https://api.example.com/v1');
+check(apiPatch.body !== undefined && apiPatch.body.includes('email'), '몸통 예시를 만든다');
+eq(apiPatch.headers['Content-Type'], 'application/json', '몸통이 있으면 형식을 붙인다');
+check(apiPatch.url.includes('/users/1'), `안 채운 자리는 예시로 메운다: ${apiPatch.url}`);
+
+const apiMock = api.mockTable(apiParsed);
+check(apiMock['GET /users/{id}'] !== undefined, '목 서버에 붙일 표를 만든다');
+check(apiMock['PATCH /users/{id}'] === undefined, '답 예시가 없는 연산은 표에 안 넣는다');
+
+/* YAML 로 준 문서도 읽어야 한다 (스펙은 대개 YAML 이다) */
+const apiYaml = api.parse('openapi: 3.0.0\ninfo:\n  title: 작은 API\n  version: 0.1.0\npaths:\n  /ping:\n    get:\n      summary: 살아있나\n      responses:\n        200:\n          description: ok');
+eq(apiYaml.title, '작은 API', 'YAML 문서도 읽는다');
+eq(apiYaml.operations[0].path, '/ping', 'YAML 에서 경로를 읽는다');
+
+// ── API 두 판 견주기 (TASK-KL-316) ──────────────────────────────────────────
+const apiDif = await load('src/core/apidiff.ts');
+
+const apiV1 = JSON.stringify({
+  openapi: '3.0.0',
+  info: { title: 'v1', version: '1' },
+  paths: {
+    '/users': {
+      get: {
+        parameters: [{ name: 'page', in: 'query', schema: { type: 'integer' } }],
+        responses: {
+          200: { content: { 'application/json': { schema: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, email: { type: 'string' } } } } } },
+          404: { description: 'gone' }
+        }
+      },
+      post: { responses: { 201: { description: 'made' } } }
+    },
+    '/legacy': { get: { responses: { 200: { description: 'ok' } } } }
+  }
+});
+
+const apiV2 = JSON.stringify({
+  openapi: '3.0.0',
+  info: { title: 'v2', version: '2' },
+  paths: {
+    '/users': {
+      get: {
+        parameters: [
+          { name: 'page', in: 'query', required: true, schema: { type: 'integer' } },
+          { name: 'sort', in: 'query', schema: { type: 'string' } }
+        ],
+        responses: {
+          200: { content: { 'application/json': { schema: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' } } } } } },
+          404: { description: 'gone' },
+          429: { description: 'slow down' }
+        }
+      },
+      post: { requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' } } } } } }, responses: { 201: { description: 'made' } } }
+    },
+    '/teams': { get: { responses: { 200: { description: 'ok' } } } }
+  }
+});
+
+const adChanges = apiDif.compareText(apiV1, apiV2);
+const has = (key, where) => adChanges.some((c) => c.key === key && (where === undefined || c.where === where));
+
+check(has('operationGone', 'GET /legacy'), '사라진 연산을 잡는다');
+check(has('paramNowRequired', 'GET /users'), '선택이 필수가 된 것을 잡는다');
+check(has('fieldGone', 'GET /users'), '답에서 사라진 칸을 잡는다');
+check(has('bodyNew', 'POST /users'), '없던 몸통이 생긴 것을 잡는다');
+check(has('newOptionalParam', 'GET /users'), '새 선택 파라미터도 적는다');
+check(has('responseNew', 'GET /users'), '새 응답 코드도 적는다');
+check(has('operationNew', 'GET /teams'), '새 연산도 적는다');
+
+/* 깨짐/안 깨짐을 제대로 갈라야 이 도구가 쓸모 있다 */
+eq(adChanges.find((c) => c.key === 'operationGone').breaking, true, '연산이 사라지면 깨진다');
+eq(adChanges.find((c) => c.key === 'paramNowRequired').breaking, true, '필수가 되면 깨진다');
+eq(adChanges.find((c) => c.key === 'fieldGone').breaking, true, '읽던 칸이 없어지면 깨진다');
+eq(adChanges.find((c) => c.key === 'bodyNew').breaking, true, '더 보내야 하면 깨진다');
+eq(adChanges.find((c) => c.key === 'newOptionalParam').breaking, false, '새 선택 파라미터는 안 깨진다');
+eq(adChanges.find((c) => c.key === 'responseNew').breaking, false, '새 응답 코드는 안 깨진다');
+eq(adChanges.find((c) => c.key === 'operationNew').breaking, false, '새 연산은 안 깨진다');
+eq(adChanges[0].breaking, true, '깨지는 것부터 보여 준다');
+
+/* 같은 문서끼리는 아무 말도 없어야 한다 (거짓 경보 0) */
+eq(apiDif.compareText(apiV1, apiV1).length, 0, '안 바뀌었으면 조용하다');
+/* 말은 알맹이가 안 만든다 */
+check(adChanges.every((c) => /^[a-zA-Z]+$/.test(c.key)), 'key 는 열쇠일 뿐 문장이 아니다');
+
+// ── protobuf (TASK-KL-316) ──────────────────────────────────────────────────
+const pb = await load('src/core/protobuf.ts');
+
+const pbProto = `
+message Person {
+  string name = 1;
+  int32 age = 2;
+  repeated string tags = 3;
+  Home home = 4;
+  bool warm = 5;
+}
+message Home {
+  string room = 1;
+}`;
+const pbAll = pb.parseProto(pbProto);
+eq(pbAll.length, 2, '메시지 둘을 읽는다');
+eq(pbAll[0].fields.length, 5, '칸 다섯');
+eq(pbAll[0].fields[2].repeated, true, 'repeated 를 읽는다');
+eq(pbAll[0].fields[3].type, 'Home', '다른 메시지를 가리키는 칸');
+
+/* 써 놓고 다시 읽어 같은지 본다 (왕복) — 이게 맞으면 둘 다 맞다 */
+const pbBytes = pb.encode({ name: '윤', age: 24, tags: ['a', 'b'], home: { room: 'inside' }, warm: true }, pbAll[0], pbAll);
+const pbBack = pb.decode(pbBytes, pbAll[0], pbAll);
+eq(pbBack.find((p) => p.no === 1).value, '윤', '한글 문자열 왕복');
+eq(pbBack.find((p) => p.no === 2).value, '24', '숫자 왕복');
+eq(pbBack.filter((p) => p.no === 3).length, 2, 'repeated 는 두 번 나온다');
+eq(pbBack.find((p) => p.no === 5).value, true, 'bool 을 참거짓으로 읽는다');
+const pbHome = pbBack.find((p) => p.no === 4);
+check(pbHome.children !== undefined && pbHome.children[0].value === 'inside', '안에 든 메시지를 펴서 읽는다');
+check(pbBack.every((p) => p.name !== undefined), '스키마가 있으면 이름을 붙인다');
+
+/* 스키마 **없이도** 여기까지는 알 수 있어야 한다 — 이게 이 도구의 진짜 쓸모다 */
+const pbBlind = pb.decode(pbBytes);
+eq(pbBlind[0].no, 1, '번호를 안다');
+eq(pbBlind[0].kind, 'bytes', '선 형식을 안다');
+eq(pbBlind[0].value, '윤', '글로 보이면 글로 읽는다');
+check(pbBlind.find((p) => p.no === 2).alternatives !== undefined, '스키마가 없으면 다른 읽기도 같이 준다');
+check(pbBlind.find((p) => p.no === 4).children !== undefined, '안에 메시지가 또 있으면 알아서 연다');
+check(pbBlind.every((p) => p.name === undefined), '스키마가 없으면 이름을 지어내지 않는다');
+
+/* 16진수·base64 아무거나 받는다 */
+eq(pb.toHex(pb.readBytes('08 96 01')), '089601', '띄어쓴 16진수를 읽는다');
+eq(pb.toHex(pb.readBytes('CJYB')), '089601', 'base64 도 읽는다');
+eq(String(pb.decode(pb.readBytes('089601'))[0].value), '150', 'varint 를 제대로 푼다');
+
+/* 음수는 sint 로 적어야 짧다 — 그 규칙(zigzag)이 왕복하는지 */
+const pbSigned = pb.parseProto('message S { sint32 delta = 1; }');
+eq(pb.decode(pb.encode({ delta: -3 }, pbSigned[0]), pbSigned[0])[0].value, '-3', 'zigzag 왕복');
+
+let pbThrew = false;
+try {
+  pb.decode(new Uint8Array([0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]));
+} catch {
+  pbThrew = true;
+}
+check(pbThrew, '망가진 바이트에서 조용히 안 돈다');
+
+// ── 번들 지도 (TASK-KL-316) ─────────────────────────────────────────────────
+const bm = await load('src/core/bundlemap.ts');
+
+const bmEsbuild = JSON.stringify({
+  inputs: {
+    'src/app.ts': { bytes: 4000 },
+    'src/widgets/big.ts': { bytes: 30000 },
+    'src/widgets/small.ts': { bytes: 1000 },
+    'node_modules/lodash/map.js': { bytes: 12000 },
+    'node_modules/pkg/node_modules/lodash/map.js': { bytes: 12000 }
+  }
+});
+const bmItems = bm.readStats(bmEsbuild);
+eq(bmItems.length, 5, 'esbuild metafile 을 읽는다');
+const bmTree = bm.tree(bmItems);
+eq(bmTree.bytes, 59000, '전부 더한다');
+eq(bmTree.children[0].name, 'src', '무거운 갈래가 앞에 온다 (src 35000 > node_modules 24000)');
+
+const bmTop = bm.heaviest(bmTree, 2);
+eq(bmTop[0].path, 'src', '어디가 무거운지 첫 줄');
+check(bmTop.some((h) => h.path === 'src/widgets' && h.bytes === 31000), `한 겹 더 내려간다: ${JSON.stringify(bmTop.slice(0, 4))}`);
+
+/* 같은 꾸러미가 두 자리에 들어간 것 — 번들이 갑자기 커지는 흔한 이유 */
+const bmDup = bm.duplicates(bmItems);
+eq(bmDup.length, 1, '겹친 꾸러미 하나');
+eq(bmDup[0].name, 'lodash', '이름을 댄다');
+eq(bmDup[0].places.length, 2, '두 자리에 있다');
+eq(bmDup[0].bytes, 24000, '합쳐서 얼마인지');
+
+/* webpack stats 도 같은 나무가 되어야 한다 (뒤쪽 셈은 하나면 된다) */
+const bmWebpack = JSON.stringify({
+  modules: [
+    { name: './src/app.ts', size: 4000 },
+    { name: './src/widgets/big.ts', size: 30000 },
+    { name: 'ignored', size: 0 },
+    { modules: [{ name: './src/widgets/small.ts', size: 1000 }] }
+  ]
+});
+const bmW = bm.readStats(bmWebpack);
+eq(bmW.length, 3, 'webpack stats 를 읽고 합쳐진 덩이의 속도 본다');
+eq(bm.tree(bmW).bytes, 35000, 'webpack 쪽도 같은 나무가 된다');
+eq(bm.tidy('babel-loader!./src/a.js?query'), 'src/a.js', '로더 접두사와 물음표 뒤를 자른다');
+
+/* 넓이로 나눈 칸이 겹치거나 넘치면 그림이 거짓말이 된다 */
+const bmRects = bm.layout(bmTree, 0, 0, 400, 300, 0, 1);
+check(bmRects.length >= 2, '칸을 나눈다');
+check(bmRects.every((r) => r.x >= -0.01 && r.y >= -0.01 && r.x + r.w <= 400.01 && r.y + r.h <= 300.01), '칸이 판을 안 넘는다');
+const bmArea = bmRects.reduce((sum, r) => sum + r.w * r.h, 0);
+check(Math.abs(bmArea - 400 * 300) < 400 * 300 * 0.02, `넓이 합이 판과 거의 같다: ${Math.round(bmArea)}`);
+/* 넓이 비율이 바이트 비율을 따라야 한다 */
+const bmNm = bmRects.find((r) => r.name === 'node_modules');
+check(Math.abs((bmNm.w * bmNm.h) / (400 * 300) - 24000 / 59000) < 0.03, '넓이가 크기를 따라간다');
+
+eq(bm.human(1536), '1.5 KB', '사람이 읽는 크기');
+let bmThrew = false;
+try {
+  bm.readStats('{"nope":1}');
+} catch {
+  bmThrew = true;
+}
+check(bmThrew, '모르는 형식은 그렇다고 말한다');
+
+// ── 파일 사이 부름 (TASK-KL-316) ────────────────────────────────────────────
+const cg = await load('src/core/codegraph.ts');
+
+const cgFiles = {
+  'src/app.ts': "import { hello } from './lib/greet';\nimport React from 'react';\nimport './style.css';\n// import './주석은-안-센다';\n",
+  'src/lib/greet.ts': "export { name } from '../util/name';\nconst lazy = () => import('./deep/other');\n",
+  'src/util/name.ts': "import { back } from '../lib/greet';\nexport const name = '윤';\n",
+  'src/lib/deep/other.ts': "const x = require('@scope/pkg/deep');\nrequire('node:fs');\n",
+  'src/style.css': "@import 'reset.css';\n",
+  'src/reset.css': 'body { margin: 0 }\n',
+  'src/lonely.ts': "import './lib/greet';\n",
+  'README.md': '# not code\n'
+};
+
+const cgGraph = cg.build(cgFiles);
+eq(cgGraph.files.length, 7, '코드 파일만 센다 (README 는 뺀다)');
+check(cgGraph.edges.some((e) => e.from === 'src/app.ts' && e.to === 'src/lib/greet.ts'), '상대 경로를 잇는다 (확장자는 우리가 붙인다)');
+check(cgGraph.edges.some((e) => e.from === 'src/app.ts' && e.to === 'src/style.css'), 'css 도 잇는다');
+check(cgGraph.edges.some((e) => e.from === 'src/style.css' && e.to === 'src/reset.css'), '@import 도 읽는다');
+check(cgGraph.edges.some((e) => e.from === 'src/lib/greet.ts' && e.to === 'src/lib/deep/other.ts'), '동적 import 도 읽는다');
+check(cgGraph.edges.some((e) => e.from === 'src/util/name.ts' && e.to === 'src/lib/greet.ts'), '.. 로 올라가는 경로도 잇는다');
+check(!JSON.stringify(cgGraph.edges).includes('주석'), '주석 안의 import 는 안 센다');
+eq(cgGraph.externals.react, 1, '밖 꾸러미를 센다');
+eq(cgGraph.externals['@scope/pkg'], 1, '@scope 꾸러미는 두 조각까지 묶는다');
+check(cgGraph.externals['node:fs'] === undefined, '기본 꾸러미(node:)는 안 센다');
+
+/* 고리 — 고칠 때 제일 아픈 것 */
+const cgLoops = cg.cycles(cgGraph);
+eq(cgLoops.length, 1, '고리 하나');
+eq(cgLoops[0].length, 2, '두 파일이 서로 부른다');
+check(cgLoops[0].includes('src/lib/greet.ts') && cgLoops[0].includes('src/util/name.ts'), `누가 도는지 댄다: ${cgLoops[0]}`);
+
+const cgRanks = cg.ranks(cgGraph);
+eq(cgRanks[0].file, 'src/lib/greet.ts', '가장 많이 불리는 파일');
+eq(cgRanks[0].imported, 3, '몇 번 불리는지');
+const cgOrphans = cg.unreferenced(cgGraph);
+check(cgOrphans.includes('src/app.ts') && cgOrphans.includes('src/lonely.ts'), '아무도 안 부르는 파일을 짚는다');
+check(!cgOrphans.includes('src/lib/greet.ts'), '불리는 파일은 안 짚는다');
+
+/* 못 이은 자리를 숨기지 않는다 */
+const cgMissing = cg.build({ 'a.ts': "import './없는파일';\n" });
+eq(cgMissing.unresolved.length, 1, '못 이은 상대 경로를 남긴다');
+eq(cgMissing.unresolved[0].what, './없는파일', '무엇을 못 이었는지 적는다');
+
+/* 그림은 mermaidlite 가 읽을 수 있는 글로 (엔진을 또 안 만든다) */
+const cgMer = cg.toMermaid(cgGraph);
+check(cgMer.startsWith('flowchart LR'), 'mermaid 글로 낸다');
+check(ml.parse(cgMer).nodes.length > 0, '우리 그리기가 그 글을 읽는다');
+
+/* 파일이 많아도 재귀로 안 터진다 (손으로 쌓는 이유) */
+const cgBig = {};
+for (let i = 0; i < 3000; i++) cgBig['f' + i + '.ts'] = "import './f" + (i + 1) + "';\n";
+check(cg.cycles(cg.build(cgBig)).length === 0, '3천 개 사슬에서도 안 터진다');
+
+// ── CSS·HTML 펴고 누르기 (TASK-KL-316) ─────────────────────────────────────
+const pa = await load('src/core/prettyall.ts');
+
+eq(pa.detect('.a{color:red}'), 'css', 'CSS 를 알아본다');
+eq(pa.detect('<div><p>가</p></div>'), 'html', 'HTML 을 알아본다');
+eq(pa.detect('{"a":1}'), 'json', 'JSON 은 남의 도구 것이라고 이름을 댄다');
+eq(pa.detect('select 1'), 'sql', 'SQL 도 이름을 댄다');
+eq(pa.goTo('json'), 'jsonfmt', '어느 도구로 가면 되는지 알려 준다');
+eq(pa.goTo('css'), undefined, '우리가 맡는 것은 보내지 않는다');
+
+const paCss = pa.formatCss('.a,.b{color:red;margin:0}/* 메모 */.c{padding:1px}');
+check(paCss.split('\n').length >= 6, `CSS 를 여러 줄로 편다: ${JSON.stringify(paCss)}`);
+check(paCss.includes('color: red;'), '값 앞뒤를 고른다');
+check(paCss.includes('/* 메모 */'), '주석을 안 지운다 (펼 때는)');
+eq(pa.minifyCss('.a { color : red ; }'), '.a{color:red}', '눌러서 붙인다');
+eq(pa.minifyCss('.a{color:red}/* 메모 */'), '.a{color:red}', '누를 때는 주석을 지운다');
+/* 따옴표 안의 중괄호에 무너지면 안 된다 — 이런 게 진짜 파일에 늘 있다 */
+check(pa.minifyCss('.a::after{content:"}"}').includes('content:"}"'), '따옴표 안은 안 건드린다');
+check(pa.formatCss('@media (max-width:600px){.a{color:red}}').includes('@media'), '중첩된 갈래도 편다');
+
+const paHtml = pa.formatHtml('<div><p>가</p><br><span>나</span></div>');
+const paLines = paHtml.split('\n');
+eq(paLines[0], '<div>', '첫 줄');
+check(paLines.some((l) => l.startsWith('  <p>')), '한 겹 들여쓴다');
+check(paLines.some((l) => l.trim() === '<br>'), '닫는 짝이 없는 것은 깊이를 안 늘린다');
+eq(pa.minifyHtml('<div>  <p> 가 </p>  </div>'), '<div><p> 가 </p></div>', 'HTML 을 누른다');
+eq(pa.minifyHtml('<div><!-- 메모 --><p>가</p></div>'), '<div><p>가</p></div>', '주석을 지운다');
+/* pre·script 안의 빈칸은 뜻이 있다 — 건드리면 화면이 바뀐다 */
+check(pa.minifyHtml('<pre>  가\n  나</pre>').includes('  가\n  나'), 'pre 속은 안 건드린다');
+check(pa.formatHtml('<script>const a = 1;\n  const b = 2;</script>').includes('const b = 2;'), 'script 속도 안 건드린다');
+
+/* 우리가 안 맡는 것은 **조용히 하는 척 하지 않는다** */
+let paThrew = false;
+try {
+  pa.format('select 1');
+} catch {
+  paThrew = true;
+}
+check(paThrew, '못 맡는 것은 못 맡는다고 한다');
+
+// ── PEM · ASN.1 (TASK-KL-316) ───────────────────────────────────────────────
+const pem = await load('src/core/pem.ts');
+
+/* base64 왕복부터 — 여기가 어긋나면 아래가 전부 거짓말이 된다 */
+eq(pem.bytesToBase64(new Uint8Array([1, 2, 3])), 'AQID', 'base64 로 쓴다');
+eq([...pem.base64ToBytes('AQID')].join(','), '1,2,3', 'base64 를 읽는다');
+eq([...pem.base64ToBytes(pem.bytesToBase64(new Uint8Array([0, 255, 128, 7])))].join(','), '0,255,128,7', '왕복');
+
+/* 손으로 만든 작은 DER: SEQUENCE { INTEGER 5, OID 1.2.840.113549.1.1.1, UTF8String "윤" } */
+const pemName = new TextEncoder().encode('윤');
+const pemDer = new Uint8Array([
+  0x30, 0x00, // 길이는 아래에서 채운다
+  0x02, 0x01, 0x05,
+  0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01,
+  0x0c, pemName.length, ...pemName
+]);
+pemDer[1] = pemDer.length - 2;
+const pemTree = pem.parseDer(pemDer);
+eq(pemTree.length, 1, '바깥은 하나');
+eq(pemTree[0].kind, 'SEQUENCE', 'SEQUENCE 를 알아본다');
+eq(pemTree[0].children.length, 3, '속이 셋');
+eq(pemTree[0].children[0].value, '5', '정수를 읽는다');
+eq(pemTree[0].children[1].value, 'RSA', '아는 OID 는 이름으로');
+eq(pemTree[0].children[2].value, '윤', '한글 문자열도 그대로');
+
+/* 모르는 OID 는 **지어내지 않는다** */
+eq(pem.oidName('1.2.3.4.5'), '1.2.3.4.5', '모르는 OID 는 숫자 그대로');
+eq(pem.oidName('2.5.4.3'), 'CN', '아는 것만 이름을 댄다');
+
+/* PEM 껍데기 — 여러 덩이가 이어 붙은 파일(사슬)도 다 읽어야 한다 */
+const pemText = pem.toPem('CERTIFICATE', pemDer) + '\n' + pem.toPem('PRIVATE KEY', new Uint8Array([1, 2, 3]));
+const pemBlocks = pem.readPem(pemText);
+eq(pemBlocks.length, 2, '두 덩이를 다 읽는다');
+eq(pemBlocks[0].label, 'CERTIFICATE', '이름표를 읽는다');
+eq([...pemBlocks[0].der].join(','), [...pemDer].join(','), 'PEM 왕복');
+check(pem.toPem('X', new Uint8Array(100)).split('\n').length > 3, '64자마다 줄을 바꾼다');
+
+/* 두 자리 해(UTCTime) — 50 이상이면 1900년대. 틀리면 만료가 50년 어긋난다 */
+const pemUtc = new Uint8Array([0x17, 0x0d, ...new TextEncoder().encode('260814090000Z')]);
+eq(pem.parseDer(pemUtc)[0].value, '2026-08-14T09:00:00Z', '20xx 해');
+const pemOld = new Uint8Array([0x17, 0x0d, ...new TextEncoder().encode('960814090000Z')]);
+eq(pem.parseDer(pemOld)[0].value, '1996-08-14T09:00:00Z', '19xx 해');
+
+/* 잘린 파일에 조용히 반쪽을 주면 안 된다 */
+let pemThrew = false;
+try {
+  pem.parseDer(new Uint8Array([0x30, 0x20, 0x02, 0x01]));
+} catch {
+  pemThrew = true;
+}
+check(pemThrew, '속이 잘렸으면 그렇다고 한다');
+
+// ── 인증서 보기 (TASK-KL-316) ───────────────────────────────────────────────
+const cv = await load('src/core/certview.ts');
+
+/* 진짜 인증서 대신 **손으로 DER 을 쌓아** 만든다 — 남의 인증서를 저장소에 넣지 않고,
+   구조가 바뀌면 시험이 먼저 깨진다. */
+const der = {
+  len(n) {
+    if (n < 0x80) return [n];
+    const bytes = [];
+    let v = n;
+    while (v > 0) {
+      bytes.unshift(v & 0xff);
+      v = Math.floor(v / 256);
+    }
+    return [0x80 | bytes.length, ...bytes];
+  },
+  node(tag, body) {
+    return [tag, ...der.len(body.length), ...body];
+  },
+  int(n) {
+    return der.node(0x02, [n]);
+  },
+  oid(bytes) {
+    return der.node(0x06, bytes);
+  },
+  utf8(text) {
+    return der.node(0x0c, [...new TextEncoder().encode(text)]);
+  },
+  time(text) {
+    return der.node(0x17, [...new TextEncoder().encode(text)]);
+  },
+  seq(...parts) {
+    return der.node(0x30, parts.flat());
+  },
+  set(...parts) {
+    return der.node(0x31, parts.flat());
+  }
+};
+const OID_CN = [0x55, 0x04, 0x03];
+const OID_RSA = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01];
+const OID_SHA256RSA = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b];
+const OID_SAN = [0x55, 0x1d, 0x11];
+const OID_BASIC = [0x55, 0x1d, 0x13];
+
+const nameOf = (cn) => der.seq(der.set(der.seq(der.oid(OID_CN), der.utf8(cn))));
+const dnsName = (host) => der.node(0x82, [...new TextEncoder().encode(host)]);
+const sanExt = der.seq(der.oid(OID_SAN), der.node(0x04, der.seq(dnsName('example.com'), dnsName('www.example.com'))));
+const caExt = der.seq(der.oid(OID_BASIC), der.node(0x04, der.seq(der.node(0x01, [0xff]))));
+const tbs = der.seq(
+  der.int(7),
+  der.seq(der.oid(OID_SHA256RSA)),
+  nameOf('내 작은 CA'),
+  der.seq(der.time('260101000000Z'), der.time('270101000000Z')),
+  nameOf('example.com'),
+  der.seq(der.seq(der.oid(OID_RSA)), der.node(0x03, [0x00, 0x30, 0x03, 0x02, 0x01, 0x01])),
+  der.node(0xa3, der.seq(sanExt, caExt))
+);
+const certDer = new Uint8Array(der.seq(tbs, der.seq(der.oid(OID_SHA256RSA)), der.node(0x03, [0x00, 0x01])));
+
+const cvCert = cv.readCert(certDer);
+eq(cvCert.kind, 'certificate', '인증서로 읽는다');
+eq(cvCert.subject, 'CN=example.com', '누구 것인지');
+eq(cvCert.issuer, 'CN=내 작은 CA', '누가 냈는지 (한글도)');
+eq(cvCert.serial, '7', '일련번호');
+eq(cvCert.notBefore, '2026-01-01T00:00:00Z', '언제부터');
+eq(cvCert.notAfter, '2027-01-01T00:00:00Z', '언제까지');
+eq(cvCert.names.join(','), 'example.com,www.example.com', '덮는 이름들(SAN)');
+eq(cvCert.keyAlgorithm, 'RSA', '열쇠 종류');
+eq(cvCert.signatureAlgorithm, 'SHA256withRSA', '서명 방식');
+eq(cvCert.isCa, true, 'CA 인지');
+eq(cvCert.selfSigned, false, '스스로 서명한 게 아니다');
+
+/* 스스로 서명한 것도 알아본다 — 「왜 브라우저가 빨간 자물쇠를 띄우나」의 첫 답 */
+const selfTbs = der.seq(
+  der.int(1),
+  der.seq(der.oid(OID_SHA256RSA)),
+  nameOf('localhost'),
+  der.seq(der.time('260101000000Z'), der.time('260201000000Z')),
+  nameOf('localhost'),
+  der.seq(der.seq(der.oid(OID_RSA)), der.node(0x03, [0x00, 0x01])),
+);
+const selfDer = new Uint8Array(der.seq(selfTbs, der.seq(der.oid(OID_SHA256RSA)), der.node(0x03, [0x00, 0x01])));
+eq(cv.readCert(selfDer).selfSigned, true, '스스로 서명한 것을 짚는다');
+
+/* 남은 날 — 만료를 넘겼으면 음수여야 한다(0 으로 뭉개면 「아직 괜찮다」로 읽힌다) */
+const cvPem = pem.toPem('CERTIFICATE', certDer);
+const cvChain = cv.readChain(cvPem, Date.parse('2026-12-02T00:00:00Z'));
+eq(cvChain.certs.length, 1, '덩이 하나');
+eq(cvChain.daysLeft, 30, '남은 날을 센다');
+check(cv.readChain(cvPem, Date.parse('2027-02-01T00:00:00Z')).daysLeft < 0, '지났으면 음수');
+
+/* 사슬 — 앞 것의 발급자가 뒤 것의 주체여야 이어진다 */
+const caTbs = der.seq(
+  der.int(2),
+  der.seq(der.oid(OID_SHA256RSA)),
+  nameOf('내 작은 CA'),
+  der.seq(der.time('250101000000Z'), der.time('300101000000Z')),
+  nameOf('내 작은 CA'),
+  der.seq(der.seq(der.oid(OID_RSA)), der.node(0x03, [0x00, 0x01]))
+);
+const caDer = new Uint8Array(der.seq(caTbs, der.seq(der.oid(OID_SHA256RSA)), der.node(0x03, [0x00, 0x01])));
+eq(cv.readChain(cvPem + '\n' + pem.toPem('CERTIFICATE', caDer)).linked, true, '이어진 사슬');
+eq(cv.readChain(cvPem + '\n' + pem.toPem('CERTIFICATE', selfDer)).linked, false, '안 이어진 사슬은 안 이어졌다고 한다');
+
+// ── SSH 열쇠 (TASK-KL-316) ──────────────────────────────────────────────────
+const sk = await load('src/core/sshkey.ts');
+const nodeCrypto = await import('node:crypto');
+const sha256 = (bytes) => new Uint8Array(nodeCrypto.createHash('sha256').update(bytes).digest());
+
+/* 진짜 열쇠를 저장소에 넣지 않는다 — 선 형식대로 손으로 쌓는다 */
+const skField = (bytes) => [bytes.length >>> 24 & 255, bytes.length >>> 16 & 255, bytes.length >>> 8 & 255, bytes.length & 255, ...bytes];
+const skEd = new Uint8Array([...skField([...new TextEncoder().encode('ssh-ed25519')]), ...skField(new Array(32).fill(7))]);
+const skEdB64 = pem.bytesToBase64(skEd);
+const skRsaN = new Array(257).fill(0).map((_, i) => (i === 0 ? 0 : 0xab));
+const skRsa = new Uint8Array([...skField([...new TextEncoder().encode('ssh-rsa')]), ...skField([1, 0, 1]), ...skField(skRsaN)]);
+const skRsaB64 = pem.bytesToBase64(skRsa);
+
+const skLines = [
+  'ssh-ed25519 ' + skEdB64 + ' yon@laptop',
+  'command="/bin/echo hi",no-pty ssh-rsa ' + skRsaB64 + ' 서버-배포키',
+  '# 주석 줄',
+  'ssh-rsa 안녕하세요아님 broken@key',
+  'ssh-ed25519 ' + skRsaB64 + ' 섞인줄'
+].join('\n');
+
+const skEntries = sk.parseAuthorized(skLines);
+eq(skEntries.length, 4, '주석 줄은 빼고 넷');
+eq(skEntries[0].type, 'ssh-ed25519', '종류를 읽는다');
+eq(skEntries[0].comment, 'yon@laptop', '주석(누구 것인지)을 읽는다');
+eq(skEntries[0].bits, 256, 'ed25519 는 256');
+eq(skEntries[1].options, 'command="/bin/echo hi",no-pty', '앞에 붙은 옵션을 가른다');
+eq(skEntries[1].type, 'ssh-rsa', '옵션 뒤의 종류');
+eq(skEntries[1].bits, 2048, 'RSA 길이를 센다 (앞의 0 은 빼고)');
+eq(skEntries[1].comment, '서버-배포키', '한글 주석도');
+eq(skEntries[2].problem, 'badBase64', '깨진 줄은 버리지 않고 왜인지 적는다');
+eq(skEntries[3].problem, 'typeMismatch', '줄에 적힌 종류와 속이 다르면 짚는다');
+
+/* 지문 — 서버에서 지울 줄을 고르는 데 쓰는 그 값 */
+const skPrint = sk.fingerprint(skEdB64, sha256);
+check(skPrint.startsWith('SHA256:'), `SHA256: 로 시작한다: ${skPrint}`);
+check(!skPrint.endsWith('='), '끝의 = 는 뗀다 (ssh-keygen 과 같은 모양)');
+eq(sk.fingerprint(skEdB64, sha256), skPrint, '같은 열쇠는 같은 지문');
+check(sk.fingerprint(skRsaB64, sha256) !== skPrint, '다른 열쇠는 다른 지문');
+
+/* PEM(SPKI) → OpenSSH 한 줄 — 사람이 실제로 막히는 자리 */
+const skSpki = new Uint8Array(der.seq(
+  der.seq(der.oid(OID_RSA), der.node(0x05, [])),
+  der.node(0x03, [0x00, ...der.seq(der.node(0x02, skRsaN), der.node(0x02, [1, 0, 1]))])
+));
+const skLine = sk.toOpenSsh(pem.toPem('PUBLIC KEY', skSpki), 'yon@desktop');
+check(skLine.startsWith('ssh-rsa '), `OpenSSH 줄로 바꾼다: ${skLine.slice(0, 20)}`);
+check(skLine.endsWith(' yon@desktop'), '주석을 붙인다');
+/* 바꾼 줄을 다시 읽어 같은 길이가 나와야 한다 (왕복) */
+eq(sk.parseAuthorized(skLine)[0].bits, 2048, '바꾼 줄을 다시 읽으면 2048');
+eq(sk.parseAuthorized(skLine)[0].problem, undefined, '바꾼 줄에는 흠이 없다');
+
+let skThrew = false;
+try {
+  sk.toOpenSsh(pem.toPem('PUBLIC KEY', new Uint8Array(der.seq(der.seq(der.oid([0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01])), der.node(0x03, [0x00, 0x01])))));
+} catch {
+  skThrew = true;
+}
+check(skThrew, '아직 못 바꾸는 종류는 못 바꾼다고 한다');
+
+// ── 대역·포트 (TASK-KL-316) ─────────────────────────────────────────────────
+const nt = await load('src/core/nettool.ts');
+
+eq(nt.numberToIp(nt.ipToNumber('192.168.0.1')), '192.168.0.1', '주소 왕복');
+eq(nt.ipToNumber('255.255.255.255'), 4294967295, '맨 끝 주소도 센다 (부호 안 뒤집힌다)');
+
+const ntBlock = nt.parseCidr('10.0.4.7/22');
+eq(ntBlock.cidr, '10.0.4.0/22', '적힌 주소가 아니라 **대역의 시작**으로 고친다');
+eq(ntBlock.network, '10.0.4.0', '시작');
+eq(ntBlock.broadcast, '10.0.7.255', '끝');
+eq(ntBlock.firstHost, '10.0.4.1', '쓸 수 있는 첫 주소');
+eq(ntBlock.lastHost, '10.0.7.254', '쓸 수 있는 마지막 주소');
+eq(ntBlock.mask, '255.255.252.0', '마스크');
+eq(ntBlock.wildcard, '0.0.3.255', '와일드카드 (ACL 에 쓰는 그것)');
+eq(ntBlock.total, 1024, '주소 수');
+eq(ntBlock.usable, 1022, '실제로 줄 수 있는 수');
+eq(ntBlock.private, true, '사설 대역인지');
+eq(nt.parseCidr('8.8.8.8/32').private, false, '공인 대역');
+
+/* /31 과 /32 는 규칙이 다르다 — 그냥 -2 하면 음수가 나온다 */
+eq(nt.parseCidr('10.0.0.0/31').usable, 2, '/31 은 둘 다 쓴다 (점대점)');
+eq(nt.parseCidr('10.0.0.1/32').usable, 1, '/32 는 한 대');
+eq(nt.parseCidr('10.0.0.1/32').firstHost, undefined, '/32 에는 「첫 주소」가 없다');
+eq(nt.parseCidr('0.0.0.0/0').total, 4294967296, '/0 은 전부');
+
+eq(nt.contains('10.0.4.0/22', '10.0.7.255'), true, '끝 주소도 안에 든다');
+eq(nt.contains('10.0.4.0/22', '10.0.8.0'), false, '한 칸 넘으면 밖');
+eq(nt.overlaps('10.0.0.0/8', '10.5.0.0/16'), true, '큰 것과 작은 것은 겹친다');
+eq(nt.overlaps('10.0.0.0/16', '10.1.0.0/16'), false, '옆 대역은 안 겹친다');
+
+const ntSplit = nt.split('10.0.0.0/22', 24);
+eq(ntSplit.count, 4, '/22 를 /24 로 넷');
+eq(ntSplit.blocks[0], '10.0.0.0/24', '첫 조각');
+eq(ntSplit.blocks[3], '10.0.3.0/24', '마지막 조각');
+eq(nt.split('10.0.0.0/8', 24).count, 65536, '많으면 개수는 세고');
+eq(nt.split('10.0.0.0/8', 24).blocks.length, 256, '앞의 것만 준다 (화면이 안 멎게)');
+let ntThrew = false;
+try {
+  nt.split('10.0.0.0/24', 16);
+} catch {
+  ntThrew = true;
+}
+check(ntThrew, '원래보다 큰 조각으로는 못 쪼갠다');
+
+eq(nt.summarize(['10.0.1.5', '10.0.2.9']), '10.0.0.0/22', '여러 주소를 한 줄로 덮는다');
+eq(nt.summarize(['192.168.1.1']), '192.168.1.1/32', '하나면 그 하나');
+
+eq(nt.findPort('443')[0].name, 'HTTPS', '번호로 찾는다');
+eq(nt.findPort('5432')[0].name, 'PostgreSQL', '데이터베이스 포트');
+check(nt.findPort('ssh').some((p) => p.port === 22), '이름으로도 찾는다');
+eq(nt.findPort('9999').length, 0, '모르는 포트는 **지어내지 않는다**');
+eq(nt.isWellKnown(80), true, '1024 아래는 관리자 자리');
+eq(nt.isWellKnown(8080), false, '8080 은 아니다');
+
+let ntBad = false;
+try {
+  nt.parseCidr('10.0.0.300/24');
+} catch {
+  ntBad = true;
+}
+check(ntBad, '없는 주소는 없다고 한다');
+
+// ── 배경 지우기 (TASK-KL-316) ───────────────────────────────────────────────
+const bg = await load('src/core/bgremove.ts');
+
+/** 흰 바탕 가운데에 빨간 네모, 그 네모 안에 **흰 구멍** — 안쪽 흰색이 안 뚫려야 한다. */
+function makePicture(w, h) {
+  const px = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const at = (y * w + x) * 4;
+      const inBox = x >= 10 && x < w - 10 && y >= 10 && y < h - 10;
+      const inHole = x >= 20 && x < 26 && y >= 20 && y < 26;
+      const red = inBox && !inHole;
+      px[at] = red ? 220 : 255;
+      px[at + 1] = red ? 30 : 255;
+      px[at + 2] = red ? 30 : 255;
+      px[at + 3] = 255;
+    }
+  }
+  return px;
+}
+
+const bgW = 60;
+const bgH = 60;
+const bgPx = makePicture(bgW, bgH);
+eq(bg.guessBackground(bgPx, bgW, bgH).join(','), '255,255,255', '모서리에서 배경색을 짐작한다');
+
+const bgAlpha = bg.maskOf(bgPx, bgW, bgH, { tolerance: 30, feather: 0 });
+eq(bgAlpha[0], 0, '모서리는 지워진다');
+eq(bgAlpha[(30 * bgW) + 30], 255, '가운데 물체는 남는다');
+/* 이어진 것만 지우는 이유 — 물체 **안쪽**의 같은 색은 남아야 한다 */
+eq(bgAlpha[(22 * bgW) + 22], 255, '물체 안의 흰 구멍은 안 뚫린다 (전역 색 지우기가 아니다)');
+check(bg.removedRatio(bgAlpha) > 0.3 && bg.removedRatio(bgAlpha) < 0.7, `지운 넓이가 그럴듯하다: ${bg.removedRatio(bgAlpha).toFixed(2)}`);
+
+/* 느슨하게 잡으면 더 지우고, 빡빡하게 잡으면 덜 지운다 */
+const bgLoose = bg.removedRatio(bg.maskOf(bgPx, bgW, bgH, { tolerance: 200, feather: 0 }));
+const bgTight = bg.removedRatio(bg.maskOf(bgPx, bgW, bgH, { tolerance: 5, feather: 0 }));
+check(bgLoose >= bg.removedRatio(bgAlpha), '느슨하면 더 지운다');
+check(bgTight <= bg.removedRatio(bgAlpha), '빡빡하면 덜 지운다');
+
+/* 페더 — 가장자리가 딱 잘리지 않고 사이 값이 생겨야 한다 */
+const bgSoft = bg.maskOf(bgPx, bgW, bgH, { tolerance: 30, feather: 3 });
+let bgMiddle = 0;
+for (const a of bgSoft) if (a > 20 && a < 235) bgMiddle++;
+check(bgMiddle > 0, '가장자리에 사이 값이 생긴다 (톱니 안 생긴다)');
+
+const bgOut = bg.apply(bgPx, bgAlpha, { despill: true }, [255, 255, 255]);
+eq(bgOut[3], 0, '모서리는 투명해진다');
+eq(bgOut[((30 * bgW) + 30) * 4 + 3], 255, '물체는 그대로 보인다');
+eq(bgOut.length, bgPx.length, '크기는 안 바뀐다');
+
+/* 배경을 콕 집어 주면 그 색을 지운다 */
+const bgPick = bg.maskOf(bgPx, bgW, bgH, { pick: { x: 0, y: 0 }, tolerance: 30, feather: 0 });
+eq(bgPick[0], 0, '집어 준 색이 배경이 된다');
+
+check(bg.run('describe').includes('machine-learning'), '무엇을 못 하는지 스스로 밝힌다');
+
+// ── 증명사진 (TASK-KL-316) ──────────────────────────────────────────────────
+const idp = await load('src/core/idphoto.ts');
+
+check(idp.SPECS.length >= 10, '규격이 열 가지 넘는다');
+check(idp.SPECS.every((s) => s.widthMm > 0 && s.heightMm > 0 && s.headMin < s.headMax && s.eyeMin < s.eyeMax), '규격 값이 앞뒤가 맞는다');
+eq(idp.findSpec('kr-passport').widthMm, 35, '여권 사진은 35mm');
+eq(idp.findSpec('us-passport').widthMm, idp.findSpec('us-passport').heightMm, '미국 여권은 정사각');
+eq(idp.findSpec('없는것'), undefined, '모르는 규격은 없다고 한다');
+
+eq(idp.mmToPx(25.4, 300), 300, '1인치는 300dpi 에서 300px');
+const idpPlan = idp.plan(idp.findSpec('kr-passport'), 300);
+eq(idpPlan.widthPx, 413, '35mm → 413px');
+eq(idpPlan.heightPx, 531, '45mm → 531px');
+check(idpPlan.headMinPx < idpPlan.headMaxPx, '머리 크기 범위');
+/* 규정은 「아래에서부터」인데 그림은 위에서부터 — 뒤집기를 한 번만 해야 한다 */
+check(idpPlan.eyeTopPx < idpPlan.eyeBottomPx, '눈 자리는 위에서부터 센다');
+check(idpPlan.eyeTopPx > 0 && idpPlan.eyeBottomPx < idpPlan.heightPx, '눈 자리가 사진 안에 있다');
+eq(idp.plan(idp.findSpec('kr-passport'), 600).widthPx, 827, 'dpi 를 올리면 픽셀도 는다');
+
+/* 인화 배치 — 붙여 놓으면 못 자른다. 여유를 빼고 세야 한다 */
+const idpSheet = idp.sheet(idp.findSpec('kr-passport'), '4x6', 300);
+eq(idpSheet.cols * idpSheet.rows, idpSheet.slots.length, '칸 수가 자리 수와 같다');
+check(idpSheet.slots.length >= 6, `4x6 인화지에 여섯 장 넘게 들어간다: ${idpSheet.slots.length}`);
+check(idpSheet.slots.every((s) => s.x >= 0 && s.y >= 0 && s.x + s.w <= idpSheet.widthPx && s.y + s.h <= idpSheet.heightPx), '자리가 종이를 안 넘는다');
+/* 자리끼리 안 겹쳐야 한다 — 겹치면 인화가 통째로 버려진다 */
+let idpOverlap = false;
+for (let i = 0; i < idpSheet.slots.length; i++) {
+  for (let j = i + 1; j < idpSheet.slots.length; j++) {
+    const a = idpSheet.slots[i];
+    const b = idpSheet.slots[j];
+    if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) idpOverlap = true;
+  }
+}
+check(!idpOverlap, '자리끼리 안 겹친다');
+check(idp.sheet(idp.findSpec('kr-passport'), 'a4', 300).slots.length > idpSheet.slots.length, 'A4 에는 더 많이 들어간다');
+
+/* 규격을 지키는지 봐 준다 — 무엇이 어긋났는지까지 */
+const idpOk = idp.check(idp.findSpec('kr-passport'), idpPlan, 320, 200);
+eq(idpOk.ok, true, `가운데 값은 통과: ${JSON.stringify(idpOk)}`);
+check(idp.check(idp.findSpec('kr-passport'), idpPlan, 100, 200).problems.includes('headTooSmall'), '머리가 작으면 짚는다');
+check(idp.check(idp.findSpec('kr-passport'), idpPlan, 500, 200).problems.includes('headTooBig'), '머리가 크면 짚는다');
+check(idp.check(idp.findSpec('kr-passport'), idpPlan, 320, 10).problems.includes('eyesTooHigh'), '눈이 높으면 짚는다');
+check(idp.check(idp.findSpec('kr-passport'), idpPlan, 320, 500).problems.includes('eyesTooLow'), '눈이 낮으면 짚는다');
+/* 말은 알맹이가 안 만든다 */
+check(idp.check(idp.findSpec('kr-passport'), idpPlan, 100, 200).problems.every((p) => /^[a-zA-Z]+$/.test(p)), '흠의 이름은 열쇠다');
+
+// ── 서류 스캔 (TASK-KL-316) ─────────────────────────────────────────────────
+const ds = await load('src/core/docscan.ts');
+
+/* 반듯한 네 점이면 셈이 그대로여야 한다 (안 그러면 멀쩡한 사진이 뒤틀린다) */
+const dsSquare = [
+  { x: 0, y: 0 },
+  { x: 100, y: 0 },
+  { x: 100, y: 50 },
+  { x: 0, y: 50 }
+];
+const dsH = ds.homography(dsSquare, 100, 50);
+eq(dsH.length, 9, '셈은 아홉 칸');
+check(Math.abs(dsH[0] - 1) < 1e-6 && Math.abs(dsH[4] - 1) < 1e-6, '반듯하면 그대로 (배율 1)');
+check(Math.abs(dsH[1]) < 1e-6 && Math.abs(dsH[3]) < 1e-6, '반듯하면 안 기운다');
+
+eq(JSON.stringify(ds.guessSize(dsSquare)), JSON.stringify({ width: 100, height: 50 }), '네 점에서 크기를 잰다');
+/* 사다리꼴이면 **긴 쪽**을 크기로 잡아야 한다 (짧은 쪽을 잡으면 글씨가 눌린다) */
+const dsTrap = [
+  { x: 10, y: 0 },
+  { x: 90, y: 0 },
+  { x: 100, y: 60 },
+  { x: 0, y: 60 }
+];
+eq(ds.guessSize(dsTrap).width, 100, '넓은 쪽으로 잡는다');
+
+/* 한 줄에 가까운 네 점은 못 푼다 — 조용히 이상한 그림을 내지 않는다 */
+let dsThrew = false;
+try {
+  ds.homography([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 20, y: 0 }, { x: 30, y: 0 }], 100, 50);
+} catch {
+  dsThrew = true;
+}
+check(dsThrew, '한 줄에 가까우면 그렇다고 말한다');
+
+/* 되돌리기 — 사다리꼴로 찍은 것을 펴면 네 귀퉁이 색이 제자리로 온다 */
+const dsW = 80;
+const dsH2 = 60;
+const dsPx = new Uint8ClampedArray(dsW * dsH2 * 4);
+for (let y = 0; y < dsH2; y++) {
+  for (let x = 0; x < dsW; x++) {
+    const at = (y * dsW + x) * 4;
+    const left = x < dsW / 2;
+    const top = y < dsH2 / 2;
+    dsPx[at] = left ? 240 : 20;
+    dsPx[at + 1] = top ? 240 : 20;
+    dsPx[at + 2] = 128;
+    dsPx[at + 3] = 255;
+  }
+}
+const dsOut = ds.warp(dsPx, dsW, dsH2, [{ x: 0, y: 0 }, { x: dsW - 1, y: 0 }, { x: dsW - 1, y: dsH2 - 1 }, { x: 0, y: dsH2 - 1 }], 40, 30);
+eq(dsOut.length, 40 * 30 * 4, '결과 크기');
+check(dsOut[0] > 200 && dsOut[1] > 200, '왼위는 밝다 (제자리)');
+const dsRight = ((0 * 40) + 39) * 4;
+check(dsOut[dsRight] < 60, '오른위는 어둡다 (제자리)');
+/* 밖으로 나간 자리는 흰색으로 (검은 테두리가 남으면 인쇄가 지저분해진다) */
+const dsOutside = ds.warp(dsPx, dsW, dsH2, [{ x: -50, y: -50 }, { x: -20, y: -50 }, { x: -20, y: -20 }, { x: -50, y: -20 }], 10, 10);
+eq(dsOutside[0], 255, '사진 밖은 흰색으로 채운다');
+
+/* 스캔처럼 — 그림자가 있어도 반쪽이 통째로 까매지면 안 된다 */
+const shW = 60;
+const shH = 60;
+const shPx = new Uint8ClampedArray(shW * shH * 4);
+for (let y = 0; y < shH; y++) {
+  for (let x = 0; x < shW; x++) {
+    const at = (y * shW + x) * 4;
+    /* 왼쪽은 밝은 종이, 오른쪽은 그림자 진 종이. 둘 다 가운데 줄에 글씨가 있다. */
+    const paper = x < shW / 2 ? 235 : 120;
+    const ink = y > 28 && y < 32;
+    const v = ink ? paper - 70 : paper;
+    shPx[at] = v;
+    shPx[at + 1] = v;
+    shPx[at + 2] = v;
+    shPx[at + 3] = 255;
+  }
+}
+const dsScan = ds.enhance(shPx, shW, shH, 'scan');
+const black = (x, y) => dsScan[((y * shW) + x) * 4] === 0;
+check(black(10, 30) && black(50, 30), '밝은 쪽·그림자 쪽 글씨가 **둘 다** 남는다');
+check(!black(10, 5) && !black(50, 5), '종이는 둘 다 하얗게 (그림자 쪽이 통째로 안 까매진다)');
+const dsGray = ds.enhance(shPx, shW, shH, 'gray');
+check(dsGray[0] === dsGray[1] && dsGray[1] === dsGray[2], '회색은 세 칸이 같다');
+eq(ds.enhance(shPx, shW, shH, 'color')[0], shPx[0], '컬러는 안 건드린다');
+
+const dsFit = ds.fitA4(2000, 3000);
+check(dsFit.heightMm <= 277 && dsFit.widthMm <= 190, 'A4 여백 안에 들어간다');
+eq(dsFit.landscape, false, '세로 사진은 세로 A4');
+eq(ds.fitA4(3000, 2000).landscape, true, '가로 사진은 가로 A4');
+check(Math.abs(dsFit.widthMm / dsFit.heightMm - 2000 / 3000) < 0.02, '비율을 지킨다');
+
+// ── 그림 속 글자 (TASK-KL-316) ──────────────────────────────────────────────
+const ocr = await load('src/core/ocr.ts');
+
+/* 갈래를 가르는 게 이 알맹이의 일 — 글자 든 PDF 를 읽기 모형에 보내면 느리고 더 틀린다 */
+eq(ocr.route('application/pdf', true).route, 'extract', '글자 든 PDF 는 뽑는다');
+eq(ocr.route('application/pdf', true).tool, 'pdf2text', '이미 있는 도구로 보낸다 (다시 안 만든다)');
+eq(ocr.route('application/pdf', false).route, 'recognise', '스캔 PDF 는 읽어야 한다');
+eq(ocr.route('image/jpeg').route, 'recognise', '사진은 읽어야 한다');
+eq(ocr.route('image/jpeg').preprocess, true, '읽기 전에 다듬는다');
+eq(ocr.route('text/plain').route, 'unsupported', '모르는 것은 모른다고 한다');
+
+/* 한국어·일본어는 아직 못 읽는다 — **되는 척하지 않는다** */
+eq(ocr.modelFor('ko'), undefined, '한국어는 아직 없다고 한다');
+eq(ocr.modelFor('ja'), undefined, '일본어도 없다고 한다');
+check(ocr.modelFor('en').id.includes('trocr'), '영어는 모형을 댄다');
+check(ocr.modelFor('en').sizeMb > 0, '얼마나 받는지도 말한다');
+
+/* 다듬기 — 스캔에서 늘 오는 세 가지 */
+eq(ocr.tidy('hyphen-\nated word'), 'hyphenated word', '줄 끝에서 잘린 낱말을 잇는다');
+eq(ocr.tidy('첫 줄\n둘째 줄'), '첫 줄 둘째 줄', '문장이 안 끝났으면 잇는다');
+eq(ocr.tidy('끝났다.\n새 문장'), '끝났다.\n새 문장', '문장이 끝났으면 안 잇는다');
+eq(ocr.tidy('한글이\n이어진다'), '한글이 이어진다', '한국어는 낱말을 띄우니 빈칸을 넣어 잇는다');
+eq(ocr.tidy('日本語が\n続く'), '日本語が続く', '일본어는 붙여 잇는다 (없던 틈을 안 만든다)');
+eq(ocr.tidy('본문 한 줄.\n- 12 -\n다음 쪽 첫 줄'), '본문 한 줄.\n다음 쪽 첫 줄', '쪽 번호만 있는 줄은 버린다');
+eq(ocr.tidy('띄어쓰기    많은   줄.'), '띄어쓰기 많은 줄.', '늘어난 빈칸을 줄인다');
+eq(ocr.tidy('가.\n\n\n\n나.'), '가.\n\n나.', '빈 줄이 넷이어도 하나만 남긴다');
+
+/* 빈 답을 조용히 주지 않으려는 자리 */
+eq(ocr.looksEmpty('   \n 12 . , '), true, '글자가 없으면 비었다고 본다');
+eq(ocr.looksEmpty('안녕하세요'), false, '글이 있으면 안 비었다');
+eq(ocr.looksEmpty('ab'), true, '두 글자는 읽었다고 보기 어렵다');
+
+// ── 닮은 사진 (TASK-KL-316) ─────────────────────────────────────────────────
+const dup = await load('src/core/dupphoto.ts');
+
+/** 9×8 회색 값을 만든다 — `shift` 만큼 밝기를 통째로 올려도 지문은 안 변해야 한다 */
+function grayOf(seed, shift = 0) {
+  const out = [];
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 9; x++) out.push(Math.min(255, ((x * 7 + y * 13 + seed * 31) % 200) + shift));
+  }
+  return out;
+}
+
+const dupA = dup.dHash(grayOf(1));
+const dupBrighter = dup.dHash(grayOf(1, 40));
+/* 아주 다른 사진 — 밝기가 반대로 흐르게 만든다 */
+const dupOther = dup.dHash(grayOf(1).map((v, i) => (Math.floor(i / 9) % 2 === 0 ? 255 - v : v)));
+eq(dupA, dupBrighter, '사진 전체가 밝아져도 지문은 그대로 (이웃과의 차이만 본다)');
+check(dup.distance(dupA, dupOther) > 6, `다른 사진은 멀다: ${dup.distance(dupA, dupOther)}`);
+eq(dup.distance(dupA, dupA), 0, '자기 자신과는 0');
+
+let dupThrew = false;
+try {
+  dup.dHash([1, 2, 3]);
+} catch {
+  dupThrew = true;
+}
+check(dupThrew, '9×8 이 아니면 그렇다고 한다');
+
+/* 묶기 — 크기만 줄인 사본이 같은 묶음에 와야 한다 */
+const photos = [
+  { name: 'IMG_1.jpg', size: 3_000_000, pixels: 12_000_000, hash: dupA },
+  { name: 'IMG_1 (사본).jpg', size: 400_000, pixels: 2_000_000, hash: dupA },
+  { name: 'IMG_1_kakao.jpg', size: 120_000, pixels: 1_000_000, hash: dupA ^ 3n },
+  { name: '다른날.jpg', size: 2_500_000, pixels: 12_000_000, hash: dupOther }
+];
+const groups = dup.group(photos, 6);
+eq(groups.length, 1, '묶음 하나 (다른 사진은 안 들어온다)');
+eq(groups[0].keep.name, 'IMG_1.jpg', '가장 크고 덜 상한 것을 남긴다');
+eq(groups[0].others.length, 2, '나머지 둘은 지워도 되는 쪽');
+eq(groups[0].saved, 520_000, '지우면 얼마나 줄어드는지');
+eq(dup.totalSaved(groups), 520_000, '전체 절약');
+
+/* 이어짐으로 묶는다 — A~B, B~C 면 셋이 한 묶음(연사 사진이 그렇다) */
+const chain = dup.group([
+  { name: 'a', size: 10, hash: 0n },
+  { name: 'b', size: 10, hash: 0b111n },
+  { name: 'c', size: 10, hash: 0b111111n }
+], 3);
+eq(chain.length, 1, '사슬로 이어지면 한 묶음');
+eq(chain[0].others.length + 1, 3, '셋이 다 들어온다');
+check(chain[0].spread > 3, '묶음이 얼마나 벌어졌는지도 말한다');
+
+/* 바이트가 똑같으면 지문과 무관하게 묶는다 */
+const exact = dup.group([
+  { name: 'x', size: 10, hash: 0n, exact: 'abc' },
+  { name: 'y', size: 10, hash: 0xffffffffffffffffn, exact: 'abc' }
+], 0);
+eq(exact.length, 1, '완전히 같은 파일은 무조건 한 묶음');
+eq(dup.group([{ name: 'only', size: 1, hash: 0n }]).length, 0, '혼자면 묶음이 아니다');
+check(dup.run('describe').includes('never deletes'), '지우지 않는다고 스스로 밝힌다');
+
+// ── 사진 정보·자리 (TASK-KL-316) ────────────────────────────────────────────
+const exif = await load('src/core/exif.ts');
+const pmap = await load('src/core/photomap.ts');
+
+/* 진짜 사진 대신 **손으로 JPEG 를 쌓는다** — 저장소에 남의 사진을 안 넣고, 구조가 바뀌면 시험이 먼저 깨진다 */
+function makeJpeg({ lat, lon, date }) {
+  const be = (n, size) => {
+    const out = [];
+    for (let i = size - 1; i >= 0; i--) out.push((n >> (i * 8)) & 255);
+    return out;
+  };
+  const entries = [];
+  const extra = [];
+  const tiffStart = 8; // TIFF 머리 뒤
+  const addEntry = (tag, type, count, valueBytes) => {
+    if (valueBytes.length <= 4) {
+      entries.push([...be(tag, 2), ...be(type, 2), ...be(count, 4), ...valueBytes, ...new Array(4 - valueBytes.length).fill(0)]);
+    } else {
+      entries.push([...be(tag, 2), ...be(type, 2), ...be(count, 4), ...be(0, 4)]);
+      extra.push({ index: entries.length - 1, bytes: valueBytes });
+    }
+  };
+  const ascii = (s) => [...new TextEncoder().encode(s), 0];
+  addEntry(0x010f, 2, ascii('도토리카메라').length, ascii('도토리카메라'));
+  addEntry(0x0132, 2, ascii(date).length, ascii(date));
+  addEntry(0x8825, 4, 1, be(0, 4)); // GPS IFD 자리 — 아래에서 채운다
+  const gpsEntryIndex = entries.length - 1;
+
+  const rational = (value) => {
+    const deg = Math.floor(Math.abs(value));
+    const minFloat = (Math.abs(value) - deg) * 60;
+    const min = Math.floor(minFloat);
+    const sec = Math.round((minFloat - min) * 60 * 100);
+    return [...be(deg, 4), ...be(1, 4), ...be(min, 4), ...be(1, 4), ...be(sec, 4), ...be(100, 4)];
+  };
+  const gpsEntries = [
+    [...be(0x0001, 2), ...be(2, 2), ...be(2, 4), ...ascii(lat >= 0 ? 'N' : 'S'), 0, 0],
+    [...be(0x0002, 2), ...be(5, 2), ...be(3, 4), ...be(0, 4)],
+    [...be(0x0003, 2), ...be(2, 2), ...be(2, 4), ...ascii(lon >= 0 ? 'E' : 'W'), 0, 0],
+    [...be(0x0004, 2), ...be(5, 2), ...be(3, 4), ...be(0, 4)]
+  ];
+
+  /* 자리를 실제로 계산해 넣는다 (길이가 4 를 넘는 값은 뒤쪽에 두고 그 자리를 가리킨다) */
+  const ifd0Size = 2 + entries.length * 12 + 4;
+  let cursor = tiffStart + ifd0Size;
+  const tail = [];
+  for (const e of extra) {
+    entries[e.index].splice(8, 4, ...be(cursor, 4));
+    tail.push(...e.bytes);
+    cursor += e.bytes.length;
+  }
+  const gpsOffset = cursor;
+  entries[gpsEntryIndex].splice(8, 4, ...be(gpsOffset, 4));
+  const gpsIfdSize = 2 + gpsEntries.length * 12 + 4;
+  let gpsCursor = gpsOffset + gpsIfdSize;
+  const gpsTail = [];
+  for (const [i, value] of [[1, rational(lat)], [3, rational(lon)]]) {
+    gpsEntries[i].splice(8, 4, ...be(gpsCursor, 4));
+    gpsTail.push(...value);
+    gpsCursor += value.length;
+  }
+
+  const tiff = [
+    0x4d, 0x4d, 0x00, 0x2a, ...be(tiffStart, 4),
+    ...be(entries.length, 2), ...entries.flat(), ...be(0, 4),
+    ...tail,
+    ...be(gpsEntries.length, 2), ...gpsEntries.flat(), ...be(0, 4),
+    ...gpsTail
+  ];
+  const app1 = [...new TextEncoder().encode('Exif'), 0, 0, ...tiff];
+  return new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...be(app1.length + 2, 2), ...app1, 0xff, 0xd9]);
+}
+
+const shotJpeg = makeJpeg({ lat: 37.5665, lon: 126.978, date: '2026:08:14 09:30:00' });
+const shotInfo = exif.read(shotJpeg);
+eq(shotInfo.camera, '도토리카메라', '카메라 이름을 읽는다 (한글도)');
+eq(shotInfo.date, '2026:08:14 09:30:00', '찍은 때를 읽는다');
+check(shotInfo.gps !== undefined, 'GPS 를 읽는다');
+check(Math.abs(shotInfo.gps.lat - 37.5665) < 0.001, `위도: ${shotInfo.gps.lat}`);
+check(Math.abs(shotInfo.gps.lon - 126.978) < 0.001, `경도: ${shotInfo.gps.lon}`);
+eq(JSON.stringify(exif.read(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]))), '{}', 'EXIF 가 없으면 빈 것 (없는 건 잘못이 아니다)');
+eq(exif.dateToMs('2026:08:14 09:30:00'), Date.parse('2026-08-14T09:30:00'), '때를 밀리초로');
+eq(exif.dateToMs('언제인지 모름'), undefined, '못 읽으면 지어내지 않는다');
+
+/* 자리 묶기 — 한 골목 스무 장이 점 스무 개가 되면 안 된다 */
+const shots = [
+  { name: 'a', lat: 37.5665, lon: 126.978, at: 1 },
+  { name: 'b', lat: 37.5666, lon: 126.9781, at: 2 },
+  { name: 'c', lat: 37.5701, lon: 126.982, at: 3 },
+  { name: 'd', lat: 35.1796, lon: 129.0756, at: 4 }
+];
+const grouped = pmap.places(shots, 300);
+eq(grouped.length, 3, '가까운 둘은 한 자리, 나머지는 따로');
+eq(grouped[0].shots.length, 2, '가장 많은 자리가 먼저');
+check(Math.abs(pmap.metersBetween(37.5665, 126.978, 37.5666, 126.9781) - 14) < 5, '거리를 미터로 잰다');
+check(pmap.metersBetween(37.5665, 126.978, 35.1796, 129.0756) > 300000, '서울–부산은 멀다');
+
+const dayed = pmap.days([
+  { name: 'a', lat: 0, lon: 0, at: Date.parse('2026-08-14T09:00:00') },
+  { name: 'b', lat: 0, lon: 0, at: Date.parse('2026-08-14T20:00:00') },
+  { name: 'c', lat: 0, lon: 0, at: Date.parse('2026-08-15T01:00:00') },
+  { name: 'd', lat: 0, lon: 0 }
+]);
+eq(dayed.days.length, 2, '이틀로 갈린다');
+eq(dayed.days[0].shots.length, 2, '같은 날은 함께');
+eq(dayed.undated.length, 1, '때를 모르는 사진도 **안 버린다**');
+
+const frame = pmap.frameOf(shots);
+check(frame.minLat < 35.18 && frame.maxLat > 37.57, '모든 점이 틀 안에 든다');
+const one = pmap.frameOf([{ name: 'x', lat: 37.5, lon: 127 }]);
+check(one.maxLat > one.minLat && one.maxLon > one.minLon, '한 점뿐이어도 넓이가 0 이 아니다 (그릴 수 있게)');
+
+const dot = pmap.project({ lat: 37.5665, lon: 126.978 }, frame, 400, 300);
+check(dot.x >= 0 && dot.x <= 400 && dot.y >= 0 && dot.y <= 300, '그림 안에 찍힌다');
+const north = pmap.project({ lat: frame.maxLat, lon: 127 }, frame, 400, 300);
+const south = pmap.project({ lat: frame.minLat, lon: 127 }, frame, 400, 300);
+check(north.y < south.y, '북쪽이 위에 온다');
+
+check(pmap.mapLink(37.5665, 126.978).includes('37.566500'), '지도 링크에 자리가 들어간다');
+check(pmap.run('describe').includes('No map tiles'), '타일을 안 받는다고 스스로 밝힌다');
+
+// ── 읽어 주기 (TASK-KL-316) ─────────────────────────────────────────────────
+const tts = await load('src/core/tts.ts');
+
+eq(tts.split('첫 문장이다. 둘째 문장이다.').length, 2, '문장 둘로 자른다');
+/* 숫자 한가운데서 끊기면 「삼 점」 「일사」로 읽힌다 — 여기가 이 알맹이의 핵심 */
+eq(tts.split('원주율은 3.14 이다.').length, 1, '소수점에서는 안 자른다');
+check(tts.split('원주율은 3.14 이다.')[0].includes('3.14'), '점을 되돌려 놓는다 (314 가 되면 안 된다)');
+eq(tts.split('Mr. Kim went home. He slept.').length, 2, '줄임말 뒤에서는 안 자른다');
+eq(tts.split('가나다\n\n라마바').length, 2, '빈 줄은 문단 경계');
+eq(tts.split('한 줄뿐').length, 1, '점이 없어도 한 문장');
+eq(tts.split('').length, 0, '빈 글은 빈 목록');
+
+/* 너무 긴 문장은 한 번 더 자른다 — 길수록 중간에 멎는다 */
+const longOne = '가'.repeat(500);
+const pieces = tts.split(longOne, 180);
+check(pieces.length >= 3, `긴 문장을 나눈다: ${pieces.length}조각`);
+check(pieces.every((p) => p.length <= 180), '조각이 한도를 안 넘는다');
+eq(pieces.join(''), longOne, '자르면서 글자를 잃지 않는다');
+const commas = tts.split('앞부분입니다, 가운데입니다, 뒷부분입니다'.repeat(6), 100);
+check(commas.every((p) => p.length <= 100), '쉼표에서 끊어도 한도를 지킨다');
+
+eq(tts.guessLanguage('안녕하세요 여러분'), 'ko', '한국어를 알아본다');
+eq(tts.guessLanguage('こんにちは皆さん'), 'ja', '일본어를 알아본다');
+eq(tts.guessLanguage('hello everyone'), 'en', '영어를 알아본다');
+eq(tts.guessLanguage('123 456'), 'en', '글자가 없으면 영어로 둔다');
+
+/* 시간 어림 — 글자 수가 아니라 소리 수로 (말이 빠르면 짧아진다) */
+const oneMinute = tts.seconds('가'.repeat(390));
+check(oneMinute > 50 && oneMinute < 70, `한국어 390자는 1분쯤: ${oneMinute}초`);
+check(tts.seconds('가'.repeat(390), 2) < oneMinute, '빠르게 읽으면 짧아진다');
+eq(tts.seconds(''), 0, '빈 글은 0초');
+eq(JSON.stringify(tts.asClock(75)), JSON.stringify({ minutes: 1, seconds: 15 }), '분·초로 나눈다');
+
+// ── 나눠 내기 (TASK-KL-316) ─────────────────────────────────────────────────
+const dp = await load('src/core/dutchpay.ts');
+
+/* 남는 1원을 버리면 총합이 안 맞는다 — 그 1원이 계산을 다시 하게 만든다 */
+eq(dp.splitAmount(10000, 3).join(','), '3334,3333,3333', '1원까지 나눠 붙인다');
+eq(dp.splitAmount(10000, 3).reduce((a, b) => a + b, 0), 10000, '합이 딱 맞는다');
+eq(dp.splitAmount(9, 4).join(','), '3,2,2,2', '작은 돈도 딱 맞는다');
+eq(dp.splitAmount(100, 0).length, 0, '사람이 없으면 나눌 것도 없다');
+
+const lines = dp.parseExpenses([
+  '윤 : 30,000원 : : 저녁',
+  '링:12000',
+  '알리사:9000:윤,링',
+  '# 주석은 건너뛴다',
+  '잘못된 줄'
+].join('\n'));
+eq(lines.length, 3, '주석과 이상한 줄은 뺀다');
+eq(lines[0].amount, 30000, '쉼표와 「원」을 떼고 읽는다');
+eq(lines[0].what, '저녁', '무엇에 썼는지도 읽는다');
+eq(lines[2].forWhom.join(','), '윤,링', '누구 몫인지 읽는다');
+
+const people = ['윤', '링', '알리사'];
+const shares = dp.balances(people, lines);
+eq(shares.length, 3, '세 사람');
+const 윤 = shares.find((s) => s.name === '윤');
+eq(윤.paid, 30000, '낸 돈');
+/* 30000 을 셋이(10000씩) + 12000 을 셋이(4000씩) + 9000 을 둘이(4500씩) */
+eq(윤.owed, 10000 + 4000 + 4500, '내야 할 몫');
+eq(shares.reduce((sum, s) => sum + s.balance, 0), 0, '모두의 셈을 더하면 0 (돈이 안 새고 안 생긴다)');
+
+const transfers = dp.settle(shares);
+check(transfers.length <= people.length - 1, `송금 횟수가 사람 수보다 적다: ${transfers.length}`);
+eq(transfers.reduce((sum, x) => sum + x.amount, 0), shares.filter((s) => s.balance > 0).reduce((sum, s) => sum + s.balance, 0), '주고받는 총액이 받을 총액과 같다');
+check(transfers.every((x) => x.amount > 0), '0원 송금은 안 만든다');
+check(transfers.every((x) => x.from !== x.to), '자기 자신에게 보내지 않는다');
+
+/* 갚고 나면 모두 0 이 되어야 한다 — 이게 최종 검산 */
+const after = new Map(shares.map((s) => [s.name, s.balance]));
+for (const x of transfers) {
+  after.set(x.from, (after.get(x.from) ?? 0) + x.amount);
+  after.set(x.to, (after.get(x.to) ?? 0) - x.amount);
+}
+check([...after.values()].every((v) => v === 0), `갚고 나면 모두 0: ${JSON.stringify([...after])}`);
+
+/* 송금 줄이기 — A→B, B→C 가 A→C 하나가 되는지 */
+const relay = dp.settle([
+  { name: 'A', paid: 0, owed: 0, balance: -10000 },
+  { name: 'B', paid: 0, owed: 0, balance: 0 },
+  { name: 'C', paid: 0, owed: 0, balance: 10000 }
+]);
+eq(relay.length, 1, '가운데 사람을 안 거친다');
+eq(relay[0].from + '→' + relay[0].to, 'A→C', '한 번에 보낸다');
+
+/* 주소로 나눠 갖기 — 서버에 안 맡긴다 */
+const packed = dp.encode(people, lines);
+check(!packed.includes('+') && !packed.includes('/') && !packed.includes('='), '주소에 그대로 쓸 수 있는 글자만');
+const restored = dp.decode(packed);
+eq(restored.people.join(','), people.join(','), '사람이 그대로 돌아온다');
+eq(restored.expenses.length, lines.length, '쓴 돈도 그대로');
+eq(restored.expenses[0].what, '저녁', '한글도 안 깨진다');
+eq(JSON.stringify(dp.balances(restored.people, restored.expenses)), JSON.stringify(shares), '왕복해도 셈이 같다');
+
+// ── 실수령액 (TASK-KL-316) ──────────────────────────────────────────────────
+const slip = await load('src/core/payslip.ts');
+
+const s300 = slip.monthly({ monthly: 3000000, taxFree: 200000, family: 1 });
+eq(s300.gross, 3000000, '세전은 그대로');
+eq(s300.taxable, 2800000, '비과세를 빼고 매긴다');
+eq(s300.pension, 126000, '국민연금 4.5%');
+check(Math.abs(s300.health - 99260) < 200, `건강보험 3.545%: ${s300.health}`);
+/* 장기요양은 **건강보험료의** 비율 — 월급의 비율로 잡으면 열 배쯤 틀린다 */
+check(Math.abs(s300.care - Math.floor((s300.health * 0.1295) / 10) * 10) < 20, `장기요양은 건보료 기준: ${s300.care}`);
+check(s300.care < s300.health / 5, '장기요양이 건보료보다 훨씬 작다');
+eq(s300.employment, 25200, '고용보험 0.9%');
+eq(s300.localTax, Math.floor((s300.incomeTax * 0.1) / 10) * 10, '지방소득세는 소득세의 10%');
+eq(s300.net, s300.gross - s300.deductions, '통장에 들어오는 돈 = 세전 - 뗀 것');
+check(s300.net > 2600000 && s300.net < 2800000, `300만 원이면 260~280만 원쯤: ${s300.net}`);
+eq(s300.year, 2025, '어느 해 표인지 같이 준다');
+
+/* 국민연금 상한 — 월급이 아무리 커도 더 안 뗀다 (여기서 계산이 자주 어긋난다) */
+const rich = slip.monthly({ monthly: 20000000 });
+eq(rich.pension, Math.floor((6170000 * 0.045) / 10) * 10, '상한을 넘으면 상한으로');
+eq(slip.monthly({ monthly: 300000 }).pension, Math.floor((390000 * 0.045) / 10) * 10, '하한 아래면 하한으로');
+check(rich.incomeTax > s300.incomeTax * 5, '많이 벌면 세금이 가파르게 는다 (누진)');
+
+/* 비과세를 늘리면 실수령이 는다 — 그게 식대가 있는 이유다 */
+const noFree = slip.monthly({ monthly: 3000000, taxFree: 0 });
+check(noFree.net < s300.net, '비과세가 없으면 덜 받는다');
+/* 부양가족·자녀가 늘면 세금이 준다 */
+check(slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3 }).incomeTax < s300.incomeTax, '부양가족이 늘면 세금이 준다');
+check(slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3, children: 2 }).incomeTax <= slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3 }).incomeTax, '자녀공제가 더 깎는다');
+
+/* 세율 구간이 이어져야 한다 — 구간 경계에서 세금이 갑자기 뛰면 안 된다 */
+const justUnder = slip.incomeTax(14000000);
+const justOver = slip.incomeTax(14000001);
+check(justOver - justUnder < 100, `구간 경계가 이어진다: ${justUnder} → ${justOver}`);
+eq(slip.incomeTax(0), 0, '과세표준이 0 이면 세금도 0');
+eq(slip.incomeTax(-100), 0, '음수도 0');
+check(slip.earnedIncomeDeduction(100000000) < slip.earnedIncomeDeduction(200000000), '근로소득공제는 늘되');
+check(slip.earnedIncomeDeduction(200000000) <= 20000000, '2천만 원에서 멈춘다');
+
+const fromYear = slip.fromYearly({ yearly: 36000000, taxFree: 200000, monthly: 0 });
+eq(fromYear.gross, 3000000, '연봉을 열둘로 나눈다');
+
+// ── 인쇄 종이 (TASK-KL-316) ─────────────────────────────────────────────────
+const pk = await load('src/core/printkit.ts');
+
+const pkGrid = pk.grid('a4', 5);
+eq(pkGrid.widthMm, 210, 'A4 가로');
+eq(pkGrid.heightMm, 297, 'A4 세로');
+check(pk.fits(pkGrid), '선이 종이를 안 넘는다 (넘으면 인쇄에서 잘린다)');
+check(pkGrid.lines.some((l) => l.faint !== true), '5칸마다 진한 선이 있다');
+check(pkGrid.lines.every((l) => l.x1 >= 8 - 0.001 && l.y1 >= 8 - 0.001), '프린터가 못 찍는 가장자리를 피한다');
+check(pk.grid('a4', 10).lines.length < pkGrid.lines.length, '칸이 크면 선이 적다');
+eq(pk.grid('a4', 5, true).widthMm, 297, '눕히면 가로가 길어진다');
+
+const pkDots = pk.dots('a5', 5);
+check(pkDots.lines.length > 100, '점이 촘촘히 찍힌다');
+check(pk.fits(pkDots), '점도 종이 안에');
+
+/* 원고지 칸은 **정사각**이어야 글자가 안 눌린다 */
+const pkMs = pk.manuscript('a4', 20, 10);
+eq(pkMs.boxes.length, 200, '20×10 = 200칸');
+check(Math.abs(pkMs.boxes[0].w - pkMs.boxes[0].h) < 0.001, '칸이 정사각');
+check(pk.fits(pkMs), '원고지도 종이 안에');
+/* 가운데 정렬 — 한쪽으로 몰리면 접거나 자를 때 어긋난다 */
+const left = pkMs.boxes[0].x;
+const right = pkMs.widthMm - (pkMs.boxes[19].x + pkMs.boxes[19].w);
+check(Math.abs(left - right) < 0.01, '좌우 여백이 같다');
+
+const pkStaff = pk.staff('a4', 10, 7);
+eq(pkStaff.lines.length, 50, '오선 10묶음 = 50줄');
+check(pk.fits(pkStaff), '오선지도 종이 안에');
+/* 묶음 사이가 오선 자체보다 넉넉해야 가사·화음을 적는다 */
+const firstStaffBottom = pkStaff.lines[4].y1;
+const secondStaffTop = pkStaff.lines[5].y1;
+check(secondStaffTop - firstStaffBottom > 7, `묶음 사이가 넉넉하다: ${(secondStaffTop - firstStaffBottom).toFixed(1)}mm`);
+
+/* 달력 — 요일과 날짜 수가 맞아야 한다 */
+eq(pk.daysInMonth(2026, 2), 28, '2026년 2월은 28일');
+eq(pk.daysInMonth(2028, 2), 29, '2028년 2월은 29일 (윤년)');
+eq(pk.firstWeekday(2026, 8), 6, '2026-08-01 은 토요일');
+const pkCal = pk.calendar(2026, 8, 'a4');
+eq(pkCal.widthMm, 297, '달력은 눕힌다');
+const dayLabels = pkCal.labels.filter((l) => /^\d+$/.test(l.text));
+eq(dayLabels.length, 31, '8월은 31칸');
+eq(dayLabels[0].text, '1', '1일부터');
+eq(dayLabels[30].text, '31', '31일까지');
+check(pkCal.labels.some((l) => l.text === '2026-08'), '몇 년 몇 월인지 적는다');
+check(pk.fits(pkCal), '달력도 종이 안에');
+/* 첫날이 토요일이면 첫 줄에 칸이 하나만 찬다 — 그 자리가 비어야 맞다 */
+const firstRowDays = dayLabels.filter((l) => l.y < pkCal.labels.find((x) => x.text === '8')?.y ?? 0);
+check(firstRowDays.length <= 2, '첫 주는 며칠뿐이다');
+
+const pkLabel = pk.labels('24');
+eq(pkLabel.boxes.length, 24, '24칸 라벨');
+check(pk.fits(pkLabel), '라벨이 A4 안에');
+eq(pk.labels('65').boxes.length, 65, '65칸도 있다');
+let pkThrew = false;
+try {
+  pk.labels('없는규격');
+} catch {
+  pkThrew = true;
+}
+check(pkThrew, '모르는 규격은 그렇다고 한다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

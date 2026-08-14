@@ -1,0 +1,23 @@
+{
+  "docscan.mdd": "비뚤어진 서류, 반듯하게 펴 드립니다.",
+  "docscan.tab": "스캔",
+  "docscan.label.file": "서류 사진",
+  "docscan.label.look": "어떻게 보이게",
+  "docscan.label.pick": "네 모서리를 종이 귀퉁이로 끌어 주세요",
+  "docscan.label.result": "펴진 결과",
+  "docscan.look.scan": "스캔처럼 (흑백)",
+  "docscan.look.gray": "회색",
+  "docscan.look.color": "색 그대로",
+  "docscan.btn.reset": "모서리 되돌리기",
+  "docscan.btn.png": "PNG 로 저장",
+  "docscan.btn.pdf": "PDF 로 저장 (A4)",
+  "docscan.status.idle": "서류 사진을 고르세요",
+  "docscan.status.ready": "{w}×{h} 로 폈습니다 — 모서리를 더 정확히 끌면 더 반듯해집니다",
+  "docscan.status.badImage": "사진으로 못 읽었습니다",
+  "docscan.status.savedPng": "PNG 로 저장했습니다",
+  "docscan.status.pdf": "PDF 만드는 중…",
+  "docscan.status.savedPdf": "A4 PDF 로 저장했습니다",
+  "docscan.err.pdfLib": "PDF 도구를 못 불러왔습니다",
+  "docscan.err.png": "그림을 못 만들었습니다",
+  "docscan.note.manual": "모서리는 일부러 손으로 잡습니다 — 자동으로 찾으면 무늬 있는 책상·그림자에서 잘 틀리고, 틀렸을 때 이유가 안 보입니다. 스캔처럼 보기는 자리마다 밝기 기준을 따로 잡아, 그림자가 걸쳐도 반쪽이 통째로 까매지지 않습니다."
+}

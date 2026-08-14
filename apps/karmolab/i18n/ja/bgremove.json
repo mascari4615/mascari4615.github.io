@@ -1,0 +1,18 @@
+{
+  "bgremove.mdd": "後ろを取り除きます。",
+  "bgremove.tab": "背景",
+  "bgremove.label.file": "写真 (ブラウザの外に出ません)",
+  "bgremove.label.tolerance": "どこまで近ければ背景とみなすか",
+  "bgremove.label.feather": "縁をやわらかく",
+  "bgremove.opt.despill": "縁に残った背景色を取る",
+  "bgremove.opt.pick": "背景を押して選ぶ",
+  "bgremove.btn.save": "透明 PNG で保存",
+  "bgremove.status.idle": "写真を選んでください",
+  "bgremove.status.reading": "読み込み中…",
+  "bgremove.status.badImage": "画像として読めませんでした",
+  "bgremove.status.ok": "{n}% を消しました",
+  "bgremove.status.nothing": "何も消えていません — しきい値をゆるめるか、背景を押して選んでください",
+  "bgremove.status.tooMuch": "{n}% も消えました — ゆるすぎます。値を下げてください",
+  "bgremove.status.saved": "透明 PNG で保存しました",
+  "bgremove.note.limits": "単色か近い色の背景だけ消します (証明写真・商品写真・スキャン)。人や物の形は認識しません — それには学習モデルが必要で、このサイトは配布しません。縁からつながった色だけ消すので、服の色が背景と同じでも内側は抜けません。"
+}

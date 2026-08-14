@@ -39,5 +39,10 @@
   "devtool.part.xmlfmt": "XML tools",
   "devtool.part.mermaidlite": "Diagram",
   "devtool.part.semver": "semver",
-  "devtool.part.csp": "Headers"
+  "devtool.part.csp": "Headers",
+  "devtool.part.apitest": "OpenAPI",
+  "devtool.part.protobuf": "protobuf",
+  "devtool.part.prettyall": "CSS/HTML",
+  "devtool.part.sshkey": "SSH keys",
+  "devtool.part.nettool": "Subnets"
 }

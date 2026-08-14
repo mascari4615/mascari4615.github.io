@@ -33,5 +33,6 @@
   "text.part.text2img": "Text card",
   "text.btn.recent": "Recent",
   "text.part.encdetective": "Mojibake",
-  "text.part.unicodex": "Hidden chars"
+  "text.part.unicodex": "Hidden chars",
+  "text.part.tts": "Read aloud"
 }

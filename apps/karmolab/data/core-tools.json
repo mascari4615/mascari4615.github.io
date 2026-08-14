@@ -1,8 +1,25 @@
 {
+  "apidiff": {
+    "ops": [
+      "compare"
+    ]
+  },
+  "apitest": {
+    "ops": [
+      "list",
+      "example",
+      "default"
+    ]
+  },
   "base64": {
     "ops": [
       "encode",
       "decode"
+    ]
+  },
+  "bgremove": {
+    "ops": [
+      "describe"
     ]
   },
   "birth": {
@@ -13,6 +30,16 @@
   "bizno": {
     "ops": [
       "check"
+    ]
+  },
+  "bundlemap": {
+    "ops": [
+      "summary"
+    ]
+  },
+  "certview": {
+    "ops": [
+      "read"
     ]
   },
   "chain": {
@@ -33,6 +60,11 @@
     "ops": [
       "count",
       "fits"
+    ]
+  },
+  "codegraph": {
+    "ops": [
+      "graph"
     ]
   },
   "configconv": {
@@ -89,6 +121,21 @@
       "merge"
     ]
   },
+  "docscan": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "dupphoto": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "dutchpay": {
+    "ops": [
+      "settle"
+    ]
+  },
   "encdetective": {
     "ops": [
       "fix",
@@ -105,6 +152,11 @@
     "ops": [
       "diagram",
       "outline"
+    ]
+  },
+  "exif": {
+    "ops": [
+      "read"
     ]
   },
   "filehash": {
@@ -140,6 +192,13 @@
   "hashgen": {
     "ops": [
       "text"
+    ]
+  },
+  "idphoto": {
+    "ops": [
+      "specs",
+      "plan",
+      "sheet"
     ]
   },
   "interest": {
@@ -195,9 +254,29 @@
       "generate"
     ]
   },
+  "nettool": {
+    "ops": [
+      "cidr",
+      "contains",
+      "split",
+      "port"
+    ]
+  },
+  "ocr": {
+    "ops": [
+      "route",
+      "tidy"
+    ]
+  },
   "passgen": {
     "ops": [
       "strength"
+    ]
+  },
+  "payslip": {
+    "ops": [
+      "monthly",
+      "yearly"
     ]
   },
   "pdf2text": {
@@ -211,6 +290,33 @@
       "pages",
       "extract",
       "rotate"
+    ]
+  },
+  "pem": {
+    "ops": [
+      "look"
+    ]
+  },
+  "photomap": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "prettyall": {
+    "ops": [
+      "format",
+      "minify"
+    ]
+  },
+  "printkit": {
+    "ops": [
+      "sheet"
+    ]
+  },
+  "protobuf": {
+    "ops": [
+      "decode",
+      "encode"
     ]
   },
   "qrgen": {
@@ -239,6 +345,12 @@
       "dialect"
     ]
   },
+  "sshkey": {
+    "ops": [
+      "read",
+      "convert"
+    ]
+  },
   "tableconv": {
     "ops": [
       "convert"
@@ -248,6 +360,12 @@
     "ops": [
       "shift",
       "sum"
+    ]
+  },
+  "tts": {
+    "ops": [
+      "split",
+      "estimate"
     ]
   },
   "unicodex": {

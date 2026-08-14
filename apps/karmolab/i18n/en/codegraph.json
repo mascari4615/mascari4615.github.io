@@ -1,0 +1,17 @@
+{
+  "codegraph.mdd": "Let me draw who calls whom.",
+  "codegraph.tab": "Imports",
+  "codegraph.label.file": "Source zip (never leaves your browser)",
+  "codegraph.note.skip": "node_modules, dist, build, .git and coverage are skipped. Only code files (js, ts, jsx, tsx, css, vue, svelte) are read.",
+  "codegraph.label.cycles": "Cycles (files that import each other)",
+  "codegraph.label.hubs": "Most imported",
+  "codegraph.label.orphans": "Imported by nobody",
+  "codegraph.cycles.none": "No cycles",
+  "codegraph.err.zip": "Could not load the zip reader",
+  "codegraph.status.idle": "Pick a source zip",
+  "codegraph.status.reading": "Reading…",
+  "codegraph.status.noCode": "No code files found inside the zip",
+  "codegraph.status.ok": "{files} files · {edges} imports · {cycles} cycles · {orphans} unreferenced",
+  "codegraph.status.capped": "Read {shown} of {all} files — split the folder if it is bigger",
+  "codegraph.status.bad": "Could not read it — {msg}"
+}

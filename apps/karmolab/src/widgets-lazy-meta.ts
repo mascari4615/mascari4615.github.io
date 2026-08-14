@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/xmlfmt', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/mockdata', 'tools/jqplay', 'tools/sqlfmt', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/xmlfmt', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/mockdata', 'tools/jqplay', 'tools/sqlfmt', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/prettyall', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
   },
   {
     id: 'logview',
@@ -255,6 +255,92 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M4 5h16M4 9h10M4 13h16M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20.2 19.2L22 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/logview']
+  },
+  {
+    id: 'bundlemap',
+    get title() { return t('widgets.bundlemap.title', undefined, "번들 지도"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.bundlemap.desc', undefined, "webpack stats.json 이나 esbuild metafile 을 넣으면 어디가 무거운지 넓이로 보여 주고, 두 번 들어간 꾸러미를 찾아 줍니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="16" y="3" width="5" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="12" y="12" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/bundlemap']
+  },
+  {
+    id: 'dupphoto',
+    get title() { return t('widgets.dupphoto.title', undefined, "닮은 사진 찾기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.dupphoto.desc', undefined, "사진을 여러 장 넣으면 닮은 것끼리 묶어 어느 것을 남기면 되는지 알려 줍니다. 사진이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/dupphoto']
+  },
+  {
+    id: 'photomap',
+    get title() { return t('widgets.photomap.title', undefined, "사진 자리 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.photomap.desc', undefined, "사진에 든 위치·날짜를 읽어 어디서 언제 찍었는지 보여 줍니다. 지도 타일을 받지 않아 위치가 밖으로 안 나갑니다"); },
+    layout: 'wide',
+    icon: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/photomap']
+  },
+  {
+    id: 'codegraph',
+    get title() { return t('widgets.codegraph.title', undefined, "부름 지도"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.codegraph.desc', undefined, "zip 을 넣으면 파일이 서로 무엇을 부르는지 그리고, 고리·많이 불리는 파일·아무도 안 부르는 파일을 짚습니다"); },
+    layout: 'wide',
+    icon: '<circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="7" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.2 7.2l7.2 .6M7 8.3l4 7.4M16.6 9.3l-3.4 6.5" stroke="currentColor" stroke-width="1.4"/>',
+    lazyScriptPaths: ['tools/codegraph']
+  },
+  {
+    id: 'apitest',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.apitest.title', undefined, "API 눌러 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.apitest.desc', undefined, "OpenAPI 스펙을 붙여넣으면 연산 목록이 서고, 값을 채워 그 자리에서 보내 봅니다. 목 응답도 만들어 줍니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/apitest']
+  },
+  {
+    id: 'protobuf',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.protobuf.title', undefined, "protobuf 뜯어보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.protobuf.desc', undefined, "protobuf 바이너리를 16진수·base64 로 붙여넣으면 칸별로 풀어 줍니다. .proto 를 주면 이름까지 붙습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/protobuf']
+  },
+  {
+    id: 'prettyall',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.prettyall.title', undefined, "CSS·HTML 정리"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.prettyall.desc', undefined, "CSS 와 HTML 을 읽기 좋게 펴거나 눌러서 줄입니다. 따옴표 안과 pre·script 속은 건드리지 않습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/prettyall']
+  },
+  {
+    id: 'sshkey',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.sshkey.title', undefined, "SSH 열쇠 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.sshkey.desc', undefined, "authorized_keys 를 붙여넣으면 줄마다 종류·길이·주석·지문을 냅니다. 공개키 PEM 을 OpenSSH 줄로도 바꿉니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/sshkey']
+  },
+  {
+    id: 'nettool',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.nettool.title', undefined, "대역·포트"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.nettool.desc', undefined, "CIDR 이 어디부터 어디까지인지·몇 대가 들어가는지 세고, 두 대역이 겹치는지 봅니다. 포트 번호도 찾습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/nettool']
   },
   {
     id: 'csp',
@@ -812,6 +898,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/text']
   },
   {
+    id: 'tts',
+    hidden: true, // 「텍스트 도구」 작업대의 할 일로 합쳐짐 — 검색·북마크 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.tts.title', undefined, "글 읽어 주기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.tts.desc', undefined, "적은 글을 소리 내어 읽어 줍니다. 문장마다 따라가며 보여 주고, 목소리·속도를 고를 수 있습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/tts']
+  },
+  {
     id: 'encdetective',
     hidden: true, // 「텍스트 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -940,6 +1036,16 @@ window.KARMOLAB_LAZY_META = [
     icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/img2pdf']
+  },
+  {
+    id: 'printkit',
+    hidden: true, // 「PDF」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.printkit.title', undefined, "인쇄용 종이"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.printkit.desc', undefined, "모눈·점모눈·원고지·오선지·달력·라벨을 PDF 로 만듭니다. mm 로 그려 어느 프린터에서도 자리가 맞습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/printkit']
   },
   {
     id: 'ziptool',
@@ -1745,6 +1851,46 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/imgresize']
   },
   {
+    id: 'bgremove',
+    hidden: true, // 「이미지」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.bgremove.title', undefined, "배경 지우기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.bgremove.desc', undefined, "단색이나 비슷한 배경을 지워 투명 PNG 로 만듭니다. 사진이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/bgremove']
+  },
+  {
+    id: 'idphoto',
+    hidden: true, // 「이미지」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.idphoto.title', undefined, "증명사진"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.idphoto.desc', undefined, "여권·주민증·이력서 규격에 맞춰 자르고, 배경을 바꾸고, 인화지 한 장에 여러 장을 놓아 줍니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/idphoto']
+  },
+  {
+    id: 'docscan',
+    hidden: true, // 「이미지」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.docscan.title', undefined, "서류 스캔"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.docscan.desc', undefined, "비스듬히 찍은 서류를 반듯하게 펴고 스캔처럼 다듬어 PNG·PDF 로 냅니다. 사진이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/docscan']
+  },
+  {
+    id: 'ocr',
+    hidden: true, // 「이미지」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.ocr.title', undefined, "그림 속 글자 읽기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.ocr.desc', undefined, "사진 속 글자를 읽어 냅니다. 글자가 든 PDF 는 더 정확한 도구로 보내 주고, 모형은 켤 때만 받습니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/ocr']
+  },
+  {
     id: 'redact',
     hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -1940,6 +2086,26 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M19 5 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16.5" cy="16.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
     lazyScriptPaths: ['tools/percent']
+  },
+  {
+    id: 'dutchpay',
+    hidden: true, // 「계산」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.dutchpay.title', undefined, "나눠 내기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.dutchpay.desc', undefined, "여럿이 쓴 돈을 나누고, 누가 누구에게 얼마를 보내면 되는지 가장 적은 횟수로 알려 줍니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/dutchpay']
+  },
+  {
+    id: 'payslip',
+    hidden: true, // 「계산」 작업대의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 작업대의 이 할 일로 간다
+    get title() { return t('widgets.payslip.title', undefined, "실수령액"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.payslip.desc', undefined, "연봉·월급에서 4대보험과 세금을 떼고 통장에 들어오는 돈을 계산합니다. 비과세·부양가족까지 반영합니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/payslip']
   },
   {
     id: 'interest',
