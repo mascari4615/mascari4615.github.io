@@ -13,7 +13,7 @@
  * 봉우리를 보면 자를 자리가 한눈에 보인다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
-import { loadAudioInfo, peaks, drawWave, fileSize, mmss } from './shared/media';
+import { attachMedia, drawWave, fileSize, loadAudioInfo, mmss, peaks } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     player.className = 'sd-player';
     player.id = 'sdPlayer';
     player.controls = true;
-    player.src = URL.createObjectURL(file);
+    attachMedia(player, file); // 공용 — 앞 주소를 거두고 물린다
     box.appendChild(player);
 
     const wrap = document.createElement('div');

@@ -218,6 +218,25 @@ export function drawWave(canvas: HTMLCanvasElement, values: number[], color = '#
  * 내려받기(`download`)와 다르다: 저건 다 쓰면 바로 거두면 되지만, 이건 **화면이 그 주소를
  * 계속 쥐고 있어야** 한다. 그래서 「다음 것을 물릴 때 앞 것을 거둔다」가 맞는 규칙이다.
  */
+/**
+ * 소리든 영상이든 **재생기에 물린다**. 앞서 물려 있던 주소는 거둔다.
+ *
+ * 실측 2026-08-14: 영상·녹화·소리 도구 **여덟**이 전부 `el.src = createObjectURL(...)` 만 하고
+ * 거두지 않았다(만들기 1 · 거두기 0, 여덟 파일 전부). 결과를 다시 만들 때마다 주소가 쌓인다.
+ * 영상은 한 판이 수십~수백 MB라 여기가 제일 아프다.
+ *
+ * 여덟이 각자 틀린 게 아니라 **여덟 다 같은 것을 안 하고 있었다** — 모으는 자리가 없으면
+ * 아무도 안 한다. 그게 공용이 필요한 이유다.
+ */
+export function attachMedia(el: HTMLMediaElement, src: Blob | File): string {
+  const prev = el.dataset.karmoObjectUrl;
+  if (prev) URL.revokeObjectURL(prev);
+  const url = URL.createObjectURL(src);
+  el.dataset.karmoObjectUrl = url;
+  el.src = url;
+  return url;
+}
+
 export function attachAudio(el: HTMLAudioElement, src: Blob | File): string {
   const prev = el.dataset.karmoObjectUrl;
   if (prev) URL.revokeObjectURL(prev);

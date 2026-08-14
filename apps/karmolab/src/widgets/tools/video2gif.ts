@@ -13,6 +13,7 @@ import { wireDrop } from './shared/drop-well';
 
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { attachImage } from './shared/image';
 
 (function (): void {
   interface GifApi {
@@ -261,7 +262,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               onProgress: (r) => say(t('video2gif.say.encodingPct', { pct: Math.round(r * 100) }))
             });
 
-            preview.src = URL.createObjectURL(made);
+            attachImage(preview, made); // GIF 미리보기는 <img> 다 — 그림 쪽 공용
             $<HTMLElement>('#vgResult').style.display = '';
             saveBtn.disabled = false;
             say(t('video2gif.say.done', { n: count, w, h, size: size(made.size) }), 'ok');

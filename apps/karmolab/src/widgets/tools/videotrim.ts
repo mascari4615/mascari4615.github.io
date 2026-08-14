@@ -12,6 +12,7 @@ import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { attachMedia } from './shared/media';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -211,7 +212,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('videotrim.err.empty'), 'error');
               return;
             }
-            preview.src = URL.createObjectURL(made);
+            attachMedia(preview, made); // 공용 — 앞 주소를 거두고 물린다
             $<HTMLElement>('#vtResult').style.display = '';
             saveBtn.disabled = false;
             say(t('videotrim.say.done', { sec: span.toFixed(1), size: size(made.size) }), 'ok');

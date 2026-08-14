@@ -10,7 +10,7 @@
  * 「얼마나 줄지」는 해 봐야 알기에, 시작 전 어림값을 보여 주고 끝나면 실제 값으로 바꾼다.
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
-import { fileSize as size, mmss, download } from './shared/media';
+import { attachMedia, download, fileSize as size, mmss } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { pickRecordType, attachVideo } from './shared/video';
@@ -266,7 +266,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('videocompress.err.empty'), 'error');
               return;
             }
-            preview.src = URL.createObjectURL(made);
+            attachMedia(preview, made); // 공용 — 앞 주소를 거두고 물린다
             $<HTMLElement>('#vcResult').style.display = '';
             saveBtn.disabled = false;
 
