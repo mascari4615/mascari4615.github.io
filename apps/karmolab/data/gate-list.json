@@ -123,7 +123,6 @@
     "test:orbita",
     "smoke:arcadeteams",
     "smoke:burnnote",
-    "test:flow:auto",
     "test:badapple:home",
     "test:badapple:load",
     "test:contract:live",
