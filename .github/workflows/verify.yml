@@ -142,6 +142,9 @@ jobs:
       - name: Run verify (master invariant)
         env:
           VERIFY_TAURI: ${{ steps.tauri.outputs.run }}
+          # `audit:nightly-alive` 가 「밤에 굽는 워크플로가 실제로 초록이었나」를 물어본다.
+          # 토큰이 없으면 그 검사는 「못 물어봤다」(2번)로 조용히 빠진다 — 그러면 뜻이 없다.
+          GH_TOKEN: ${{ github.token }}
         run: npm run verify
 
       # ★ **두 번 시도한다** (2026-08-12). 이 단계는 검사 프로그램을 깃허브 릴리스에서 **내려받아**
