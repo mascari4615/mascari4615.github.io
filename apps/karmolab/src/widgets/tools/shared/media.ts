@@ -208,6 +208,25 @@ export function drawWave(canvas: HTMLCanvasElement, values: number[], color = '#
 }
 
 /** 내려주기 — 여섯 곳이 각자 적던 네 줄. */
+/**
+ * 소리를 **재생기에 물린다**. 앞서 물려 있던 주소는 거둔다.
+ *
+ * 왜 필요한가 (2026-08-14 실측): 소리 도구 넷(`audiocut`·`audiofade`·`audiolevel`·`audiospeed`)이
+ * 전부 `player.src = URL.createObjectURL(blob)` 만 하고 **거두는 코드가 하나도 없었다.**
+ * 미리듣기를 누를 때마다 주소가 쌓인다 — 오류도 안 뜨고 화면도 멀쩡해서 아무도 모른다.
+ *
+ * 내려받기(`download`)와 다르다: 저건 다 쓰면 바로 거두면 되지만, 이건 **화면이 그 주소를
+ * 계속 쥐고 있어야** 한다. 그래서 「다음 것을 물릴 때 앞 것을 거둔다」가 맞는 규칙이다.
+ */
+export function attachAudio(el: HTMLAudioElement, src: Blob | File): string {
+  const prev = el.dataset.karmoObjectUrl;
+  if (prev) URL.revokeObjectURL(prev);
+  const url = URL.createObjectURL(src);
+  el.dataset.karmoObjectUrl = url;
+  el.src = url;
+  return url;
+}
+
 export function download(blob: Blob, filename: string): void {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

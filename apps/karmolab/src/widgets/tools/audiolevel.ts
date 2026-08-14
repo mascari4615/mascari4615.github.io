@@ -9,7 +9,7 @@
  *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -242,7 +242,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 미리 듣기는 손실 없는 쪽으로. 저장 형식은 받을 때 고른다(소리 자체를 들고 있어야 한다).
             processed = out;
             made = toWav(out);
-            $<HTMLAudioElement>('#alPreview').src = URL.createObjectURL(made);
+            attachAudio($<HTMLAudioElement>('#alPreview'), made); // 공용 — 앞 주소를 거두고 물린다
             $<HTMLElement>('#alResult').style.display = '';
             saveBtn.disabled = false;
 
