@@ -202,5 +202,6 @@
   "widgets-desc.mesh3d.desc": "STL・OBJ を開いて回して見られます — 三角形の数やサイズも。ファイルは端末の外へ出ません",
   "widgets-desc.studymap.desc": "ウェブ・Git・コンピュータサイエンスを順番に — なぜ学ぶのか、どこまでやれば次へ進めるのかまで書いた学習マップ（進捗を保存）",
   "widgets-desc.meong.desc": "ぼーっと眺める画面 — ロゴが集まってより大きなロゴになり、果てしなく内へ吸い込まれます",
-  "widgets-desc.xmlfmt.desc": "XML を見やすく整え、一行にまとめ、JSON に変換します。おかしい所は行・桁で指し示します"
+  "widgets-desc.xmlfmt.desc": "XML を見やすく整え、一行にまとめ、JSON に変換します。おかしい所は行・桁で指し示します",
+  "widgets-desc.isitdown.desc": "サイトが落ちているのか自分の回線の問題かを、いつも生きている所と一緒に測って見分けます"
 }

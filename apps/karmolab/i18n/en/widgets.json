@@ -204,5 +204,6 @@
   "widgets.meong.title": "Meong",
   "widgets.bon.title": "Bon",
   "widgets.foundry.title": "Shelf",
-  "widgets.xmlfmt.title": "XML tools"
+  "widgets.xmlfmt.title": "XML tools",
+  "widgets.isitdown.title": "Is it down?"
 }

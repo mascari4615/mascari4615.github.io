@@ -208,5 +208,6 @@
   "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
   "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다",
   "widgets-desc.studymap.desc": "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)",
-  "widgets-desc.xmlfmt.desc": "XML 을 보기 좋게 펴거나 한 줄로 뭉치고, JSON 으로 옮깁니다. 틀린 자리는 줄·칸으로 짚습니다"
+  "widgets-desc.xmlfmt.desc": "XML 을 보기 좋게 펴거나 한 줄로 뭉치고, JSON 으로 옮깁니다. 틀린 자리는 줄·칸으로 짚습니다",
+  "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다"
 }
