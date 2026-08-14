@@ -26,5 +26,8 @@
   "redact.err.render": "그림으로 바꾸지 못했어요.",
   "redact.say.saved": "{size} 로 받았어요. 가린 자리는 파일 안에도 없고, 사진에 남아 있던 위치 정보도 떨어졌어요.",
   "redact.file.fallback": "그림",
-  "redact.file.suffix": "-가림"
+  "redact.file.suffix": "-가림",
+  "redact.kb.hint": "자판으로도 됩니다 — 화살표로 옮기고, Shift+화살표로 크기를 바꾸고, Enter 로 가립니다",
+  "redact.kb.label": "가릴 자리 고르기 (화살표=옮기기, Shift+화살표=크기, Enter=가리기, Backspace=되돌리기)",
+  "redact.kb.moved": "가릴 자리 {x},{y} · 크기 {w}×{h}"
 }

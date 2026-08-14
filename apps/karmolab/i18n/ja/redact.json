@@ -26,5 +26,8 @@
   "redact.err.render": "画像に変換できませんでした。",
   "redact.say.saved": "{size} でダウンロードしました。隠した場所はファイルの中にも残らず、写真にあった位置情報も一緒に落ちました。",
   "redact.file.fallback": "画像",
-  "redact.file.suffix": "-加工済み"
+  "redact.file.suffix": "-加工済み",
+  "redact.kb.hint": "キーボードでも操作できます — 矢印で移動、Shift+矢印でサイズ、Enter で塗りつぶし",
+  "redact.kb.label": "隠す範囲を選ぶ（矢印=移動、Shift+矢印=サイズ、Enter=隠す、Backspace=取り消し）",
+  "redact.kb.moved": "範囲 {x},{y} · サイズ {w}×{h}"
 }
