@@ -1,100 +1,483 @@
 {
   "id": "analytics-stats",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "평균 하나로 요약하면 절반이 사라진다. **분포와 이상치**가 진짜 이야기다."
-    },
-    {
-      "type": "h",
-      "text": "1. 중심을 재는 세 가지"
-    },
-    {
-      "type": "note",
-      "text": "**평균**은 극단값에 끌려간다. **중앙값**은 안 끌려간다. **최빈값**은 가장 흔한 값. 소득·응답 시간·구매액처럼 한쪽으로 긴 분포에서는 중앙값이 훨씬 정직하다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "같은 데이터, 다른 이야기",
-      "text": "const t = [120, 130, 140, 150, 160, 170, 5000];   // ms\nconst mean = t.reduce((a, b) => a + b) / t.length;   // 981ms\nconst p50 = 150, p95 = 5000;\n// 「평균 981ms」 보다 「대부분 150ms, 상위 5%는 5초」 가 사실에 가깝다"
-    },
-    {
-      "type": "h",
-      "text": "2. 퍼짐을 본다"
-    },
-    {
-      "type": "p",
-      "text": "표준편차·사분위(IQR)·백분위. 서비스 지표에서는 **p50 · p95 · p99** 조합이 실용적이다 — 평균은 좋아 보이는데 사용자 20명 중 1명이 매우 나쁠 수 있다."
-    },
-    {
-      "type": "h",
-      "text": "3. 표본이 작으면 흔들린다"
-    },
-    {
-      "type": "note",
-      "text": "전환율 2/10(20%)과 200/1000(20%)은 같은 20%가 아니다. **신뢰 구간**을 함께 보라 — 앞의 것은 5~50% 어디든 될 수 있다. 작은 표본으로 순위를 매기면 대부분 우연이다."
-    },
-    {
-      "type": "h",
-      "text": "4. 눈으로 먼저 본다"
-    },
-    {
-      "type": "p",
-      "text": "요약값만 보면 완전히 다른 분포가 같아 보인다(앤스컴의 사중주·데이터사우루스). **히스토그램·산점도를 먼저** 그려라 — 10초면 된다."
-    },
-    {
-      "type": "h",
-      "text": "5. 유의성의 함정"
-    },
-    {
-      "type": "note",
-      "text": "「통계적으로 유의」는 **차이가 우연이 아닐 가능성**이지 그 차이가 크다는 뜻이 아니다. 표본이 아주 크면 0.1% 차이도 유의해진다 — **효과 크기**를 함께 봐야 한다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "응답 시간 로그를 하나 골라 평균·중앙값·p95 를 함께 계산하라. 셋이 얼마나 다른지가 이번 강의의 요점이다."
-    },
-    {
-      "type": "try",
-      "text": "같은 데이터로 히스토그램을 그려라. 요약 숫자만 볼 때 못 봤던 것이 보이는지 확인하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "응답 시간처럼 한쪽으로 긴 분포에서 대표값으로 적절한 것은?",
-      "choices": [
-        "중앙값·백분위",
-        "평균만",
-        "최댓값"
+      "id": "1",
+      "title": "평균 하나로는 절반이 사라진다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**평균 하나로 데이터를 요약하면 그 뒤의 절반(분포와 이상치)이 사라진다 — 진짜 이야기는 요약값이 아니라 분포에 있다.** 「평균 응답 시간 200ms」는 좋아 보이지만, 사용자 20명 중 1명이 5초를 기다리는 걸 가릴 수 있다(꼬리). 평균이 같아도 분포는 완전히 다를 수 있다: 고르게 퍼진 것, 두 봉우리로 갈린 것, 한쪽으로 긴 것, 이상치 하나에 끌려간 것 — **요약값만 보면 이 넷이 같아 보인다**. 그래서 통계의 첫 규율은 「하나의 숫자로 뭉개기 전에 **분포를 보라**」다. 이 칸은 중심을 재는 세 가지(2장)·퍼짐과 분위(3장)·표본과 신뢰 구간(4장)·눈으로 먼저 보기와 유의성의 함정(5장)을 다룬다. 아래 데모로 같은 평균의 다른 분포를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "같은 평균, 다른 분포",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const shape = '{{shape}}';\n  let vals, note, tail;\n  if (shape === 'even') { vals = [6,8,10,12,14,12,10,8,6]; note = '고르게 퍼짐 — 평균이 대표성 있음.'; }\n  else if (shape === 'bimodal') { vals = [14,10,4,2,1,2,4,10,14]; note = '두 봉우리 — 평균 자리엔 사람이 거의 없다(가운데가 골).'; }\n  else if (shape === 'skew') { vals = [20,16,10,6,4,3,2,1,1]; note = '한쪽으로 긺(소득·응답시간형) — 평균이 중앙값보다 큼.'; tail = 6; }\n  else { vals = [18,14,10,6,3,1,0,0,12]; note = '이상치 하나(맨 오른쪽) — 평균이 그쪽으로 끌려감.'; tail = 8; }\n  render('평균은 같아도 분포는 다르다: ' + (shape === 'even' ? '고른 분포' : shape === 'bimodal' ? '두 봉우리' : shape === 'skew' ? '한쪽 긴 꼬리' : '이상치'),\n    '<span class=\"warn\">' + note + '</span>\\n  요약값 하나로는 이 네 분포가 같아 보인다.',\n    '평균 뒤엔 분포가 있다 — 뭉개기 전에 분포를 보라.',\n    hist(vals, tail));\n</script>",
+          "controls": [
+            {
+              "id": "shape",
+              "label": "분포 모양",
+              "type": "select",
+              "value": "even",
+              "options": [
+                {
+                  "value": "even",
+                  "label": "고른 분포"
+                },
+                {
+                  "value": "bimodal",
+                  "label": "두 봉우리"
+                },
+                {
+                  "value": "skew",
+                  "label": "한쪽 긴 꼬리"
+                },
+                {
+                  "value": "outlier",
+                  "label": "이상치"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**평균 하나로 요약하면 분포와 이상치라는 절반의 이야기가 사라지므로, 숫자 하나로 뭉개기 전에 분포를 봐야 한다.** **평균의 유혹과 함정**: 평균(mean)은 계산이 쉽고 하나의 숫자라 보고·비교에 편해 남용된다. 하지만 평균은 **분포의 모양을 완전히 지운다** — 서로 완전히 다른 분포가 **같은 평균**을 가질 수 있다: ① **고른 분포** — 평균 근처에 대부분이 모여 평균이 대표성 있음(이럴 때만 평균이 정직). ② **두 봉우리(bimodal)** — 값이 두 무리로 갈릴 때(예: 신규/헤비 유저) 평균은 **두 무리 사이의 골**을 가리켜, 정작 그 값을 가진 사람은 거의 없다(「평균 사용자」가 허구). ③ **한쪽으로 긴 꼬리(skew)** — 소득·응답 시간·구매액처럼 대부분 작고 소수가 매우 큰 분포에서 평균은 큰 값들에 끌려 **중앙값보다 크게** 나온다(「평균 연봉」이 대다수보다 높은 이유). ④ **이상치** — 극단값 하나가 평균을 통째로 끌고 간다(2장). **왜 위험한가**: 평균만 보고 「평균 응답 200ms, 괜찮네」 하면 — p95 가 3초여서 20명 중 1명이 심하게 나쁜 경험을 하는 걸 못 본다(3장 꼬리). 평균 매출이 올라도 소수 고래가 올린 것이고 중앙 사용자는 줄었을 수 있다. **첫 규율**: 요약값(평균) 하나로 결론 내기 전에 **분포를 본다** — 히스토그램을 그리고(5장, 10초면 됨), 중심을 여러 방식으로 재고(2장), 퍼짐과 꼬리를 본다(3장). 「평균 X」라는 한 줄 뒤에 어떤 분포가 있는지 묻는 습관이 통계적 오독을 막는다. **정리**: 평균은 분포를 뭉갠 하나의 요약일 뿐이다 — 같은 평균이 전혀 다른 이야기를 숨길 수 있으니, 뭉개기 전에 분포를 보라."
+        },
+        {
+          "type": "try",
+          "text": "가진 지표 하나(응답 시간·구매액·세션 길이)의 **평균만** 보던 것을, **히스토그램**으로 그려 보라(10초면 됨). 두 봉우리인지·한쪽으로 긴 꼬리인지·이상치가 있는지 — 평균 하나로는 안 보이던 모양이 드러난다. 그 모양이 「평균 X」보다 진짜 이야기다."
+        }
       ],
-      "answer": 0,
-      "why": "평균은 소수의 극단값에 끌려간다."
+      "quiz": [
+        {
+          "q": "평균 하나로 요약하면?",
+          "choices": [
+            "완벽",
+            "분포와 이상치라는 절반의 이야기가 사라짐",
+            "항상 대표",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "분포를 봐야."
+        },
+        {
+          "q": "두 봉우리(bimodal) 분포에서 평균은?",
+          "choices": [
+            "대표값",
+            "두 무리 사이의 골을 가리켜 정작 그 값의 사람이 거의 없음",
+            "최빈값",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "「평균 사용자」 허구."
+        },
+        {
+          "q": "통계의 첫 규율은?",
+          "choices": [
+            "평균만 보고",
+            "숫자 하나로 뭉개기 전에 분포를 본다",
+            "표를 크게",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "분포 먼저."
+        }
+      ]
     },
     {
-      "q": "전환율 2/10 과 200/1000 의 차이는?",
-      "choices": [
-        "같은 20%지만 신뢰 구간이 완전히 다르다",
-        "전자가 더 좋다",
-        "차이 없다"
+      "id": "2",
+      "title": "중심을 재는 세 가지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**중심을 재는 방법은 하나가 아니다 — 평균·중앙값·최빈값이 각각 다른 것을 말한다.** ① **평균(mean)** — 다 더해 나눔. **극단값에 끌려간다**. ② **중앙값(median)** — 정렬 후 가운데 값. **극단값에 안 끌려간다**(로버스트). ③ **최빈값(mode)** — 가장 흔한 값(범주형에 유용). 소득·응답 시간·구매액처럼 **한쪽으로 긴 분포**에서는 평균이 소수 큰 값에 끌려 부풀려지니 **중앙값이 훨씬 정직**하다. 예: 응답 시간 [120,130,140,150,160,170,5000]ms — 평균은 정렬 가운데(150 근처)를 훌쩍 넘겨 800ms 대로 튀지만, 중앙값은 150ms 로 대다수 경험을 대표한다. 「평균이냐 중앙값이냐」는 분포와 질문에 달렸다. 아래 데모로 이상치가 평균만 끌고 가는 걸 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "평균 vs 중앙값 — 이상치 끌림",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const outlier = {{outlier}};\n  const base = [120, 130, 140, 150, 160, 170];\n  const arr = base.concat([outlier]);\n  const mean = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);\n  const sorted = arr.slice().sort((a, b) => a - b);\n  const median = sorted[(sorted.length - 1) / 2];\n  render('데이터: [120..170, ' + outlier + ']ms  →  평균 ' + mean + ' · 중앙값 ' + median,\n    steps([\n      ['평균 ' + mean + 'ms — 이상치 ' + outlier + '에 끌려감', mean > 400 ? 'bad' : ''],\n      ['중앙값 ' + median + 'ms — 이상치와 무관(로버스트)', 'good'],\n    ]) + '  ' + (outlier > 1000\n      ? '<span class=\"warn\">이상치가 커질수록 평균만 폭주 — 중앙값은 그대로. 한쪽 긴 분포엔 중앙값.</span>'\n      : '<span class=\"ok\">이상치가 작으면 둘이 비슷 — 커지면 갈라진다(슬라이더를 올려 보라).</span>'),\n    '평균은 극단값에 끌리고 중앙값은 안 끌린다 — 한쪽 긴 분포엔 중앙값.',\n    bars([{ lab: '평균', pct: Math.min(100, mean / 20), val: mean + 'ms', cls: 'b' }, { lab: '중앙값', pct: median / 20, val: median + 'ms', cls: 'g' }]));\n</script>",
+          "controls": [
+            {
+              "id": "outlier",
+              "label": "이상치 크기",
+              "type": "range",
+              "min": 180,
+              "max": 5000,
+              "step": 380,
+              "value": 5000
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "평균 vs 중앙값",
+          "text": "const t = [120, 130, 140, 150, 160, 170, 5000]; // ms\nconst mean = t.reduce((a, b) => a + b) / t.length;    // ≈ 838ms (이상치에 끌림)\nconst sorted = [...t].sort((a, b) => a - b);\nconst median = sorted[(sorted.length - 1) / 2];       // 150ms (로버스트)\n// 한쪽으로 긴 분포에서는 중앙값이 대다수 경험을 대표한다"
+        },
+        {
+          "type": "note",
+          "text": "**중심을 재는 방법은 평균·중앙값·최빈값 셋이며, 각각 다른 것을 말하고 분포에 따라 정직한 것이 다르다.** ① **평균(mean, 산술평균)** — 모든 값을 더해 개수로 나눈다. 장점: 모든 데이터를 반영, 수학적으로 다루기 좋음(합·기댓값). 단점: **극단값(이상치)에 민감** — 값 하나가 매우 크면 평균이 그쪽으로 끌려간다. 대칭적이고 이상치 없는 분포에서만 대표성이 좋다. ② **중앙값(median)** — 값을 정렬해 가운데 것(짝수면 두 개의 평균). 장점: **이상치에 강함(로버스트)** — 극단값이 몇 개 있어도 가운데는 안 흔들린다. 소득·응답 시간·집값·구매액처럼 **한쪽으로 긴(skewed) 분포**에서 **대다수의 경험**을 대표한다(그래서 「중위 소득」을 쓴다 — 평균 소득은 극소수 고소득에 끌려 부풀려짐). ③ **최빈값(mode)** — 가장 자주 나오는 값. **범주형 데이터**(가장 인기 있는 상품·색)나 다봉 분포의 봉우리를 볼 때 유용. **선택 기준**: 분포가 대칭·이상치 없음 → 평균 OK. 한쪽으로 길거나 이상치 있음 → **중앙값**이 정직. 범주형·최다 → 최빈값. **평균과 중앙값의 차이 자체가 정보**다 — 평균 > 중앙값이면 오른쪽 꼬리(큰 값들), 평균 < 중앙값이면 왼쪽 꼬리. 둘이 크게 다르면 분포가 치우쳤다는 신호(2·3장). **서비스 지표 팁**: 응답 시간·지연은 거의 항상 오른쪽 꼬리라 평균보다 **중앙값(p50)과 상위 분위(p95/p99)**를 본다(3장). **정리**: 「중심」은 하나가 아니다 — 평균은 극단에 끌리고 중앙값은 강건하다. 분포를 보고(1장) 질문에 맞는 중심을 고르되, 한쪽 긴 분포엔 중앙값을, 평균과 중앙값의 차이를 분포의 힌트로 읽어라."
+        },
+        {
+          "type": "try",
+          "text": "응답 시간(또는 구매액·세션 길이) 로그 하나를 골라 **평균·중앙값·(범주면 최빈값)을 함께** 계산하라. 셋이 **얼마나 다른지**가 이 장의 요점이다 — 평균이 중앙값보다 훨씬 크면 오른쪽 꼬리(이상치·긴 분포)라는 뜻이니, 보고할 때 중앙값(또는 분위)을 함께 써라."
+        }
       ],
-      "answer": 0,
-      "why": "표본이 작으면 추정이 크게 흔들린다."
+      "quiz": [
+        {
+          "q": "이상치에 강한(로버스트) 중심은?",
+          "choices": [
+            "평균",
+            "중앙값 — 극단값에 안 끌림",
+            "합계",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "한쪽 긴 분포엔 중앙값."
+        },
+        {
+          "q": "평균 > 중앙값이면 분포는?",
+          "choices": [
+            "대칭",
+            "오른쪽으로 긴 꼬리(큰 값들이 평균을 끌어올림)",
+            "왼쪽 꼬리",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "차이가 정보."
+        },
+        {
+          "q": "최빈값이 유용한 곳은?",
+          "choices": [
+            "연속값 평균",
+            "범주형·가장 흔한 값(인기 상품 등)",
+            "이상치",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "범주형."
+        }
+      ]
     },
     {
-      "q": "「통계적으로 유의하다」가 뜻하지 않는 것은?",
-      "choices": [
-        "차이가 실질적으로 크다",
-        "우연일 가능성이 낮다",
-        "표본에서 관측된 차이가 있다"
+      "id": "3",
+      "title": "퍼짐과 분위 — p95·p99",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**중심만으론 부족하다 — 값이 얼마나 퍼졌는지(퍼짐)와 꼬리가 어떤지를 봐야 진짜 경험이 보인다.** 퍼짐을 재는 도구: **표준편차**(평균 중심의 퍼짐, 이상치에 민감), **사분위 범위 IQR**(가운데 50%의 폭, 로버스트), **백분위/분위수**(p50=중앙값, p90, p95, p99). 서비스 지표에서 특히 **p50·p95·p99 조합**이 실용적이다 — 「평균 응답 200ms」가 좋아 보여도 **p99 가 4초**면 요청 100건 중 1건(자주 발생!)이 매우 나쁘다. 꼬리(p95/p99)는 **최악의 경험을 겪는 사용자**를 보여 주고, 평균은 그들을 가린다. SLO·알람은 대개 꼬리 분위로 건다. 아래 데모로 평균은 좋은데 꼬리가 나쁜 경우를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "p50·p95·p99 — 꼬리를 본다",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const tail = '{{tail}}';\n  const good = tail === 'ok';\n  const p50 = 150, p95 = good ? 320 : 1800, p99 = good ? 480 : 4200;\n  const mean = good ? 190 : 240;\n  render('평균 ' + mean + 'ms · p50 ' + p50 + ' · p95 ' + p95 + ' · p99 ' + p99,\n    (good\n      ? '<span class=\"ok\">평균도 꼬리도 양호 — 대다수와 최악 모두 괜찮다.</span>'\n      : '<span class=\"no\">평균 ' + mean + 'ms 는 멀쩡해 보이지만 p99 ' + p99 + 'ms — 100명 중 1명이 4초 대기. 평균이 꼬리를 가렸다.</span>') +\n    '\\n  꼬리(p95/p99) = 최악의 경험을 겪는 사용자. 평균은 그들을 가린다.',\n    '평균이 아니라 p50·p95·p99 조합으로 — SLO·알람은 꼬리 분위로.',\n    bars([\n      { lab: '평균', pct: mean / 45, val: mean + 'ms', cls: 'c' },\n      { lab: 'p50', pct: p50 / 45, val: p50 + 'ms', cls: 'g' },\n      { lab: 'p95', pct: Math.min(100, p95 / 45), val: p95 + 'ms', cls: good ? 'g' : 'w' },\n      { lab: 'p99', pct: Math.min(100, p99 / 45), val: p99 + 'ms', cls: good ? 'g' : 'b' },\n    ]));\n</script>",
+          "controls": [
+            {
+              "id": "tail",
+              "label": "꼬리 상태",
+              "type": "select",
+              "value": "bad",
+              "options": [
+                {
+                  "value": "bad",
+                  "label": "평균 좋지만 꼬리 나쁨"
+                },
+                {
+                  "value": "ok",
+                  "label": "꼬리도 양호"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "퍼짐을 재는 도구",
+          "text": "표준편차(SD)   평균 중심의 퍼짐 — 이상치에 민감\nIQR(사분위)    가운데 50%의 폭(Q3-Q1) — 로버스트, 상자그림\n백분위/분위    p50(중앙값) · p90 · p95 · p99\n\n서비스 지표:  평균 대신 p50 · p95 · p99 조합\n  「평균 200ms」가 좋아 보여도 p99 4초면\n  요청 100건 중 1건이 매우 나쁨 → SLO·알람은 꼬리 분위로"
+        },
+        {
+          "type": "note",
+          "text": "**중심만으로는 부족하고 값이 얼마나 퍼졌는지와 꼬리가 어떤지를 봐야 하며, 서비스 지표에서는 p50·p95·p99 조합이 평균보다 실용적이다.** **퍼짐(산포)을 재는 도구**: ① **표준편차(standard deviation)** — 값들이 평균에서 얼마나 떨어져 있는지의 평균적 거리. 정규분포에 잘 맞지만 **이상치에 민감**하고(제곱하므로), 치우친 분포에선 해석이 어렵다. ② **사분위 범위(IQR, Q3−Q1)** — 값을 4등분했을 때 **가운데 50%의 폭**. 이상치에 강건(로버스트)하고, **상자그림(box plot)**의 상자가 이것 — 분포의 퍼짐·치우침·이상치를 한눈에. ③ **백분위/분위수(percentile)** — p50(중앙값), p90, p95, p99 등 「하위 X% 지점의 값」. 분포를 가정하지 않고 꼬리를 직접 본다. **왜 서비스 지표는 꼬리인가**: 응답 시간·지연·로딩 시간은 거의 항상 **오른쪽으로 긴 꼬리**를 가진다(대부분 빠르고 소수가 매우 느림). 여기서 **평균은 최악의 경험을 가린다** — 「평균 200ms」라도 p99 가 4초면 **요청 100건 중 1건**이 4초 걸린다는 뜻이고, 사용자는 세션 동안 수십~수백 요청을 하므로 **거의 모든 사용자가** 그 4초를 한 번씩 겪는다(꼬리 지연의 곱셈 효과). 그래서 성능·안정성은 평균이 아니라 **p95·p99**로 재고, SLO(「p99 < 500ms」)·알람을 꼬리 분위로 건다. p50(중앙값)은 전형적 경험, p95/p99 는 **나쁜 경험의 빈도와 심각도**를 보여 준다 — 둘을 함께 봐야 「대다수는 괜찮은데 일부가 심하게 나쁜지」가 드러난다. **주의**: 분위는 표본이 충분해야 안정적이고(꼬리일수록 표본이 더 필요), 여러 구간의 분위를 **평균 내면 안 된다**(분위는 합산·평균이 안 됨 — 원자료에서 다시 계산). **정리**: 중심에 더해 퍼짐(SD·IQR)과 꼬리(p95·p99)를 보라 — 특히 서비스 지표는 평균이 아니라 분위 조합으로 최악의 경험까지 재야 한다."
+        },
+        {
+          "type": "try",
+          "text": "응답 시간(또는 지연) 지표를 **평균 대신 p50·p95·p99 로** 내어 보라. 평균은 괜찮은데 p95/p99 가 나쁘면, 소수(그러나 자주 발생)가 심한 경험을 하는 것이다. 이 지표에 **SLO(예: p99 < 500ms)**를 정하고 알람을 꼬리 분위로 걸어라 — 평균 알람은 최악을 놓친다."
+        }
       ],
-      "answer": 0,
-      "why": "효과 크기를 함께 봐야 실질적 의미를 안다."
+      "quiz": [
+        {
+          "q": "서비스 응답 시간은 무엇으로 재나?",
+          "choices": [
+            "평균만",
+            "p50·p95·p99 조합 — 평균은 꼬리(최악)를 가림",
+            "최빈값",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "꼬리를 봐야."
+        },
+        {
+          "q": "IQR(사분위 범위)의 특징은?",
+          "choices": [
+            "이상치에 민감",
+            "가운데 50%의 폭 — 이상치에 강건(로버스트)",
+            "평균 기반",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "로버스트 산포."
+        },
+        {
+          "q": "「평균 200ms, p99 4초」의 뜻은?",
+          "choices": [
+            "다 빠름",
+            "요청 100건 중 1건이 4초 — 평균이 최악을 가림",
+            "문제없음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "꼬리가 진짜 경험."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "표본이 작으면 흔들린다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**전환율 2/10(20%)과 200/1000(20%)은 같은 20%가 아니다 — 작은 표본의 비율은 크게 흔들린다.** 앞의 것은 실제 값이 5%일 수도 50%일 수도 있다(넓은 신뢰 구간). 그래서 비율·평균을 볼 때 **신뢰 구간(confidence interval)**을 함께 봐야 한다 — 「추정값 ± 오차」로, 표본이 작을수록 넓다(불확실). 작은 표본으로 **순위를 매기면**(전환율 1위 페이지가 3명 중 2명=67%) 우연한 극단이 1위가 되어 헛것을 쫓는다. 규칙: ① 비율엔 **표본 크기와 신뢰 구간**을 항상 병기, ② 표본이 작으면 「모른다」가 정직한 답, ③ 구간이 겹치는 둘은 「차이 있다」고 말할 수 없음, ④ 순위·리더보드는 표본 보정(베이지안·하한값)으로. 아래 데모로 표본 크기에 따라 신뢰 구간이 좁아지는 걸 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "신뢰 구간 — 표본이 클수록 좁아진다",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{n}};\n  const p = 0.2;\n  const k = Math.round(p * n);\n  const se = Math.sqrt(p * (1 - p) / n);\n  const lo = Math.max(0, (p - 1.96 * se) * 100);\n  const hi = Math.min(100, (p + 1.96 * se) * 100);\n  const width = hi - lo;\n  render('전환 ' + k + '/' + n + ' = 20%  →  95% 신뢰 구간 [' + lo.toFixed(0) + '%, ' + hi.toFixed(0) + '%]',\n    (n <= 20\n      ? '<span class=\"no\">표본 ' + n + '명 — 구간 폭 ' + width.toFixed(0) + '%p. 실제는 ' + lo.toFixed(0) + '~' + hi.toFixed(0) + '% 어디든. 「20%」라 단정 못 함.</span>'\n      : n >= 500 ? '<span class=\"ok\">표본 ' + n + '명 — 구간 폭 ' + width.toFixed(0) + '%p. 이제 20% 근처라 믿을 만.</span>'\n                : '<span class=\"warn\">표본 ' + n + '명 — 구간 폭 ' + width.toFixed(0) + '%p. 아직 넓다.</span>'),\n    '작은 표본의 비율은 흔들린다 — 신뢰 구간을 함께 보라(표본↑ = 구간↓).',\n    ciBand(lo, hi, 20, 60, '20%'));\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "표본 크기",
+              "type": "range",
+              "min": 10,
+              "max": 1000,
+              "step": 110,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "표본과 신뢰 구간",
+          "text": "2/10 = 20%     신뢰 구간 대략 [3%, 56%]  → 거의 아무것도 모름\n20/100 = 20%   신뢰 구간 대략 [13%, 29%]\n200/1000 = 20% 신뢰 구간 대략 [17%, 23%]  → 이제 믿을 만\n\n같은 20% 라도 표본 크기에 따라 확신이 다르다\n비율엔 표본 크기 + 신뢰 구간을 항상 병기\n구간이 겹치는 둘은 「차이 있다」고 못 함"
+        },
+        {
+          "type": "note",
+          "text": "**같은 비율이라도 표본 크기에 따라 확신이 전혀 다르며, 작은 표본의 비율은 크게 흔들리므로 신뢰 구간을 함께 봐야 한다.** **핵심 직관**: 전환율 2/10 과 200/1000 은 둘 다 20%지만 의미가 다르다 — 동전을 10번 던져 앞면 2번(20%) 나온 것으로 「이 동전은 20% 동전」이라 할 수 없듯, 작은 표본은 **우연의 요동**이 크다. 표본이 커질수록 추정이 참값에 가까워진다(큰 수의 법칙). **신뢰 구간(confidence interval)**: 점 추정값(20%)만이 아니라 **「참값이 있을 법한 범위」**를 함께 낸다 — 「20% ± 오차」. 표본이 작을수록 구간이 **넓고**(불확실), 클수록 **좁다**(확신). 비율의 대략적 오차는 √(p(1−p)/n) 에 비례해, n 이 4배가 되면 구간 폭이 절반. **95% 신뢰 구간**은 대략 「같은 실험을 반복하면 95%가 참값을 포함하는 구간」(흔한 오해: 「참값이 이 구간에 있을 확률 95%」는 엄밀히는 아님 — 실무에선 불확실성의 크기로 읽으면 충분). **함정들**: ① **작은 표본으로 순위 매기기** — 「전환율 1위」가 3명 중 2명(67%)이면 표본이 작아 우연한 극단일 뿐. 리뷰 별점·A/B·페이지 순위를 표본 무시하고 정렬하면 **작은 표본의 극단이 상위를 독식**한다(헛것 추격). 해법: 신뢰 구간의 **하한값**으로 정렬하거나 베이지안 평활(사전분포로 당김). ② **구간이 겹치면 차이 없음** — 두 그룹의 신뢰 구간이 크게 겹치면 「차이가 있다」고 주장 못 한다(analytics-ab 와 연결). ③ **넓은 구간엔 「모른다」가 정직** — 표본이 작으면 결론을 내리지 말고 더 모으거나 불확실성을 명시(analytics-question 5장). **정리**: 비율·평균에는 **표본 크기와 신뢰 구간**을 항상 병기하라 — 작은 표본의 화려한 숫자에 속지 말고, 구간이 넓으면 「모른다」, 겹치면 「차이 없음」이 정직한 답이다."
+        },
+        {
+          "type": "try",
+          "text": "지금 비교·순위 매기는 비율 지표(전환율·클릭률·별점)에 **표본 크기**를 함께 표시하고, 작은 표본 항목의 **신뢰 구간**을 계산해 보라(온라인 계산기나 √(p(1-p)/n)). 구간이 넓거나 서로 겹치면 「1위」·「차이 있음」이라 단정하지 말고, 표본을 더 모으거나 하한값으로 정렬하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "2/10 과 200/1000 은 둘 다 20%인데?",
+          "choices": [
+            "완전히 같다",
+            "작은 표본은 흔들려 신뢰 구간이 훨씬 넓다 — 같지 않음",
+            "앞이 더 정확",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "표본 크기가 확신을 정함."
+        },
+        {
+          "q": "표본이 커지면 신뢰 구간은?",
+          "choices": [
+            "넓어짐",
+            "좁아짐(확신 ↑)",
+            "그대로",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "√(p(1-p)/n)."
+        },
+        {
+          "q": "두 그룹의 신뢰 구간이 크게 겹치면?",
+          "choices": [
+            "차이 확실",
+            "「차이 있다」고 주장 못 함",
+            "1위 확정",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "겹침=차이 불확실."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "눈으로 먼저 · 유의성의 함정",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**요약 숫자만 보면 완전히 다른 분포가 같아 보인다 — 그래서 히스토그램·산점도를 먼저 그려야 하고, 「통계적으로 유의」를 「차이가 크다」로 착각하면 안 된다.** ① **눈으로 먼저**: 앤스컴의 사중주·데이터사우루스는 **평균·분산·상관이 모두 같은데** 그림은 전혀 다르다(직선/곡선/이상치/공룡 그림). 요약값만 믿으면 이 차이를 놓친다 — **그림 그리기는 10초**면 되고 요약이 숨긴 패턴(비선형·군집·이상치)을 즉시 드러낸다. ② **유의성의 함정**: 「통계적으로 유의(p<0.05)」는 **차이가 우연이 아닐 가능성**이지 **그 차이가 크다(중요하다)**는 뜻이 아니다. 표본이 아주 크면 **0.1% 차이도 유의**해진다 — 그래서 **효과 크기(effect size)**를 함께 봐야 한다: 유의성(우연인가?) + 효과 크기(실질적으로 큰가?) 둘 다. 아래 데모로 큰 표본에서 사소한 차이가 「유의」해지는 걸 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "유의하지만 사소하다 — 효과 크기",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{n}};\n  const diff = 0.1;\n  const significant = n >= 100000;\n  render('두 그룹 차이 0.1%p · 표본 ' + (n >= 1000 ? (n / 1000) + 'k' : n) + '  →  ' + (significant ? 'p < 0.05 (유의!)' : 'p > 0.05 (유의 아님)'),\n    steps([\n      ['효과 크기: 0.1%p 차이 (실질적으로 무시할 수준)', 'bad'],\n      ['통계적 유의: ' + (significant ? '표본이 커서 유의해짐' : '아직 유의 아님'), significant ? 'on' : ''],\n    ]) + '  ' + (significant\n      ? '<span class=\"no\">표본이 크면 0.1% 차이도 「유의」 — 하지만 실질적으론 의미 없다. 유의 ≠ 중요.</span>'\n      : '<span class=\"warn\">표본을 키우면 이 사소한 차이도 곧 「유의」해진다(슬라이더를 올려 보라).</span>'),\n    '유의성(우연인가) + 효과 크기(큰가) 둘 다 — 큰 표본은 사소한 차이도 유의하게.',\n    bars([{ lab: '효과 크기', pct: 3, val: '0.1%p', cls: 'b' }, { lab: 'p값 유의', pct: significant ? 100 : 30, val: significant ? '유의' : '아님', cls: significant ? 'w' : 'g' }]));\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "표본 크기",
+              "type": "range",
+              "min": 1000,
+              "max": 1000000,
+              "step": 111000,
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "눈으로 먼저 · 유의 vs 효과",
+          "text": "앤스컴의 사중주 / 데이터사우루스:\n  평균·분산·상관이 모두 같아도 그림은 전혀 다름\n  → 요약값 전에 히스토그램·산점도 (10초)\n\n「통계적으로 유의」 ≠ 「차이가 크다」\n  유의성 = 차이가 우연이 아닐 가능성 (p값)\n  효과 크기 = 그 차이가 실질적으로 큰가\n  표본이 크면 0.1% 차이도 유의 → 둘 다 봐야"
+        },
+        {
+          "type": "note",
+          "text": "**요약 통계는 서로 다른 분포를 같아 보이게 하므로 그림을 먼저 그려야 하고, 통계적 유의성은 차이의 존재이지 크기가 아니라서 효과 크기를 함께 봐야 한다.** **① 눈으로 먼저(시각화 우선)**: **앤스컴의 사중주(Anscombe's quartet)**는 평균·분산·상관계수·회귀선이 **모두 동일**한 네 데이터셋인데, 그리면 하나는 직선, 하나는 곡선, 하나는 이상치 하나에 끌린 직선, 하나는 수직선+이상치로 **전혀 다르다**. **데이터사우루스(Datasaurus)**는 요약 통계가 같은데 점을 찍으면 공룡 그림이 나온다. 교훈: **요약값(평균·상관)만 보면 분포의 실제 모양·비선형·군집·이상치를 놓친다** — 히스토그램(분포)·산점도(관계)·상자그림(퍼짐)을 **먼저** 그린다. 그림 그리기는 10초면 되고, 숫자가 숨긴 것을 즉시 드러낸다(1장 「분포를 보라」의 실천). ② **유의성의 함정**: 「통계적으로 유의(statistically significant, 보통 p<0.05)」의 뜻은 **「관측된 차이가 순전히 우연일 확률이 낮다」**이다 — **차이가 존재할 가능성**이지 **그 차이가 크거나 중요하다**는 뜻이 **아니다**. **표본이 매우 크면 아주 작은 차이도 유의**해진다 — 100만 명을 비교하면 전환율 0.1%p 차이도 p<0.05 가 되지만, 실질적으론 무시할 수준일 수 있다. 그래서 **효과 크기(effect size)**를 반드시 함께 본다: 차이의 **크기**(절대·상대 차이, Cohen's d 등)와 그것이 **실무적으로 의미 있는지**. **유의성 = 우연 여부, 효과 크기 = 중요도** — 둘은 별개이고 둘 다 필요하다(analytics-question 5장 「답에 크기를」, analytics-ab). **추가 함정**: p<0.05 는 임의의 관례이고, 많은 가설을 검정하면 우연히 유의가 나온다(다중 비교, analytics-question 4장); p값은 「가설이 참일 확률」이 아니다(자주 오해). **정리**: 숫자를 믿기 전에 **그려 보고**(앤스컴), 「유의하다」는 말에 **「그런데 얼마나 큰가?」**를 반드시 덧붙여라 — 유의성과 효과 크기는 다르다."
+        },
+        {
+          "type": "try",
+          "text": "① 최근 분석 데이터로 **히스토그램/산점도를 먼저 그려** 요약 숫자만 볼 때 못 본 것(이상치·군집·비선형)이 있는지 보라(앤스컴 교훈). ② 「유의하다」고 한 결과에 **효과 크기**(차이가 몇 %p·몇 배인지)를 덧붙이고, 표본이 매우 커서 사소한 차이가 유의해진 건 아닌지 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "앤스컴의 사중주가 보여 주는 것은?",
+          "choices": [
+            "요약값이 전부",
+            "평균·분산·상관이 같아도 분포는 전혀 다름 — 먼저 그려라",
+            "그림은 불필요",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시각화 우선."
+        },
+        {
+          "q": "「통계적으로 유의」의 뜻은?",
+          "choices": [
+            "차이가 크다",
+            "차이가 우연이 아닐 가능성 — 크기(효과)는 별개",
+            "무조건 중요",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "유의 ≠ 중요."
+        },
+        {
+          "q": "표본이 아주 크면?",
+          "choices": [
+            "항상 정확",
+            "0.1% 사소한 차이도 유의해짐 — 효과 크기를 함께 봐야",
+            "유의 없음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "효과 크기 병행."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 통계 읽기",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**분포를 보고, 알맞은 중심·퍼짐을 고르고, 표본과 불확실성을 밝히고, 유의성과 효과 크기를 구분한다.** 이 점검표를 지표를 낼 때마다 훑어, 평균 하나로 뭉개거나 작은 표본·유의성에 속는 실수를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "통계 읽기 점검표 — 통과 수",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:110px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .hist { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; padding:6px; background:#0e1830; border-radius:8px; }\n  .hist .b { flex:1; background:#22d3ee; border-radius:2px 2px 0 0; min-height:2px; }\n  .hist .b.tail { background:#f97316; }\n  .ci { position:relative; height:34px; margin:10px 0; background:#0e1830; border-radius:8px; }\n  .ci .band { position:absolute; top:11px; height:12px; background:#22d3ee55; border:1px solid #22d3ee; border-radius:3px; }\n  .ci .pt { position:absolute; top:8px; width:2px; height:18px; background:#e2f5ff; }\n  .ci .tick { position:absolute; bottom:-16px; font:9px ui-monospace, monospace; color:#64748b; transform:translateX(-50%); }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function hist(vals, tailFrom) { const mx = Math.max.apply(null, vals) || 1;\n    return '<div class=\"hist\">' + vals.map((v, i) => '<span class=\"b' + (tailFrom !== undefined && i >= tailFrom ? ' tail' : '') +\n      '\" style=\"height:' + (v / mx * 100) + '%\"></span>').join('') + '</div>'; }\n  function ciBand(lo, hi, pt, scaleMax, label) {\n    const L = lo / scaleMax * 100, W = (hi - lo) / scaleMax * 100, P = pt / scaleMax * 100;\n    return '<div class=\"ci\"><div class=\"band\" style=\"left:' + L + '%;width:' + W + '%\"></div>' +\n      '<div class=\"pt\" style=\"left:' + P + '%\"></div>' +\n      '<div class=\"tick\" style=\"left:' + L + '%\">' + lo.toFixed(0) + '%</div>' +\n      '<div class=\"tick\" style=\"left:' + P + '%\">' + label + '</div>' +\n      '<div class=\"tick\" style=\"left:' + Math.min(99, H(hi, scaleMax)) + '%\">' + hi.toFixed(0) + '%</div></div>'; }\n  function H(x, m) { return x / m * 100; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '평균 하나로 뭉개기 전에 분포(히스토그램)를 봤다',\n    '한쪽 긴 분포·이상치엔 중앙값을 함께 썼다',\n    '서비스 지표는 평균 대신 p50·p95·p99 로 꼬리를 봤다',\n    '비율·평균에 표본 크기와 신뢰 구간을 병기했다',\n    '작은 표본으로 순위를 매기지 않았다(구간 겹침 확인)',\n    '요약값 전에 산점도·상자그림을 먼저 그렸다',\n    '「유의」를 「크다」로 착각하지 않고 효과 크기를 함께 봤다',\n    '불확실성·한계를 결과에 정직하게 밝혔다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('통계 읽기 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 분포·꼬리·불확실성을 읽는 정직한 통계.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '분포 먼저 · 알맞은 중심/퍼짐 · 표본과 구간 · 유의≠효과.');\n</script>",
+          "controls": [
+            {
+              "id": "done",
+              "label": "통과 수",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**통계 읽기 점검표 — 지표를 낼 때마다 훑는다.** ① **분포 먼저** — 평균 하나로 뭉개기 전에 히스토그램(1·5장). ② **알맞은 중심** — 한쪽 긴 분포·이상치엔 중앙값을 함께(2장). ③ **꼬리** — 서비스 지표는 p50·p95·p99, 평균은 최악을 가림(3장). ④ **표본·구간** — 비율·평균에 표본 크기와 신뢰 구간 병기(4장). ⑤ **작은 표본 순위 금지** — 구간 겹침·표본 보정 확인(4장). ⑥ **먼저 그리기** — 산점도·상자그림으로 앤스컴 함정 회피(5장). ⑦ **유의≠효과** — 유의성과 효과 크기를 구분, 큰 표본의 사소한 유의 경계(5장). ⑧ **정직** — 불확실성·한계를 밝힘(analytics-question 5장). **관통 원리**: 통계의 핵심은 **하나의 요약이 숨기는 것을 드러내는 것**이다 — 평균이 숨긴 분포·꼬리(1·2·3장), 작은 표본이 숨긴 불확실성(4장), 요약이 숨긴 모양과 유의성이 숨긴 크기(5장). 이 갈래에서 이 칸(stats)은 **데이터를 정직하게 읽는 법**이고, 씻기(clean) 위에 서며, A/B(ab)·시각화(viz)의 토대가 된다. **정리**: 요약 하나에 속지 말고 분포·꼬리·표본·효과 크기를 보라 — 이 표로 「평균의 거짓말」과 「유의성의 함정」을 매번 걸러라."
+        },
+        {
+          "type": "try",
+          "text": "지금 보고하는 지표 하나를 골라 위 8개 항목을 확인하라 — 분포를 봤나, 중앙값·분위를 함께 썼나, 표본 크기·신뢰 구간을 병기했나, 먼저 그려 봤나, 유의성과 효과 크기를 구분했나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 평균 하나로 뭉개던 곳을 찾아라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "통계 읽기의 핵심은?",
+          "choices": [
+            "평균 하나로 요약",
+            "하나의 요약이 숨기는 것(분포·꼬리·표본·효과)을 드러냄",
+            "표를 크게",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "요약이 숨긴 것을."
+        },
+        {
+          "q": "다음 중 점검표 항목이 아닌 것은?",
+          "choices": [
+            "분포를 먼저 봄",
+            "p50·p95·p99 로 꼬리를 봄",
+            "작은 표본으로도 자신 있게 순위",
+            "유의≠효과 구분"
+          ],
+          "answer": 2,
+          "why": "작은 표본 순위는 위험."
+        },
+        {
+          "q": "서비스 지표에서 봐야 할 것은?",
+          "choices": [
+            "평균만",
+            "p50·p95·p99 꼬리 + 표본/구간 + 효과 크기",
+            "합계",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "분포·꼬리·불확실성."
+        }
+      ]
     }
   ]
 }
