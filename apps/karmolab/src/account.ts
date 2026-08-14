@@ -935,7 +935,12 @@ watchLocalChanges();
 window.addEventListener('hashchange', traceCurrentTool);
 // 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
 async function start(): Promise<void> {
-    await loadNamespace('account');
+    /* ★ **여기서 죽으면 계정 자리가 통째로 안 산다** (2026-08-14). 끊긴 채 열면 이 받기가
+       실패하는데, 그러면 `start()` 가 통째로 죽어 아래가 하나도 안 돈다 — 그중에
+       `refresh()` 가 있고, **「서버에 못 닿는다」 쪽지는 그 안에서 뜬다.** 그래서 그 쪽지가
+       필요한 유일한 순간에만 안 떴다(실측: 끊고 12초를 기다려도 없음).
+       말이 없으면 대비 문장으로 그린다 — 못 받았다고 멈추지 않는다. */
+    await loadNamespace('account').catch(() => {});
     mountHeaderAccount();
     mountBell();
     void refresh();
