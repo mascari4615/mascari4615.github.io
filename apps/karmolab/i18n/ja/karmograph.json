@@ -801,5 +801,6 @@
   "karmograph.terms.nodeKinds": "自分のノード種類 {n}",
   "karmograph.terms.edgeKinds": "自分の関係種類 {n}",
   "karmograph.kind.unknown": "不明な種類",
-  "karmograph.otherTab.msg": "他のタブでもこのマップを編集しました。今の保存で上書きした可能性があります — 「保存」パネルの「直前の版を戻す」で確認するか、今の内容をファイルに書き出してください。"
+  "karmograph.otherTab.msg": "他のタブでもこのマップを編集しました。今の保存で上書きした可能性があります — 「保存」パネルの「直前の版を戻す」で確認するか、今の内容をファイルに書き出してください。",
+  "karmograph.rescue.kept": "⚠ 他のタブが編集した版を別に保管しています —「直前の版を戻す」で開けます。"
 }

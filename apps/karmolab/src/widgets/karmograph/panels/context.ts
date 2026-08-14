@@ -37,6 +37,8 @@ export interface PanelCtx {
   backupAllMaps: () => void;
   /** 직전 판으로 되돌리기. */
   restorePrevRevision: () => void;
+  /** 다른 탭이 고친 판을 덮으며 따로 떠 둔 것이 있나 — 되찾는 길을 눈에 보이게 하려고. */
+  hasRescue?: () => boolean;
 
   // ── 거르기 패널이 빌리는 것들 ──────────────────────────────────────────
   /**
