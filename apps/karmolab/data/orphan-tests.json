@@ -24,11 +24,8 @@
     "test:idle",
     "test:karmograph:repeat",
     "test:offline",
-    "test:orbita",
     "test:perf:budget:regress",
     "test:perf:self",
-    "test:studymap",
-    "test:timecapsule",
     "test:usertool",
     "test:workshop"
   ],
@@ -55,11 +52,8 @@
     "test:idle": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "test:karmograph:repeat": "알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라",
     "test:offline": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
-    "test:orbita": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "test:perf:budget:regress": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "test:perf:self": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
-    "test:studymap": "알맹이지만 24초 걸린다 (실측 2026-08-13)",
-    "test:timecapsule": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:usertool": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:workshop": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다"
   }
