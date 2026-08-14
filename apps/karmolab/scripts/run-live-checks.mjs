@@ -180,5 +180,22 @@ if (red.length) {
   for (const r of red) console.error(`  - ${r.name}`);
   console.error('  위 로그에서 각 검사가 스스로 말한 사유를 봐라. 하나씩 고치고 또 10분 기다리지 마라.');
 }
+/* ★ **이 판에도 지붕이 있다 — 다가가면 말해 준다** (2026-08-14, 실측).
+   한 시간마다 도는 판이 16 → 20 → **40분** 으로 늘다가 워크플로 상한(`timeout-minutes: 40`)에
+   걸려 **끊겼다.** 끊긴 판은 빨강으로 보이지만 무엇이 빨간지는 아무도 모른다 —
+   51개를 재다 말았으니까. 늘어나는 것은 조용해서, 걸리고 나서야 안다.
+   그래서 총 시간을 늘 적고, 지붕에 다가가면 미리 운다. */
+const 총초 = results.reduce((a, r) => a + r.sec, 0);
+const 지붕분 = Number(process.env.LIVE_CHECK_ROOF_MIN || 40);
+const 총분 = 총초 / 60;
+console.log(`
+[verify:live] 합계 ${총초}초 (${총분.toFixed(1)}분) · 검사 ${results.length}개`);
+if (총분 > 지붕분 * 0.6) {
+  console.log(
+    `  ⚠ 지붕(${지붕분}분)의 ${Math.round((총분 / 지붕분) * 100)}% 를 썼다 — 여기 검사를 더 넣기 전에` +
+    ` 제일 무거운 것부터 더 드문 자리로 옮겨라(끊긴 판은 아무것도 못 알려 준다).`
+  );
+}
+
 stopServer();
 process.exitCode = red.length ? 1 : 0;
