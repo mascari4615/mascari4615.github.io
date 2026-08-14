@@ -92,6 +92,29 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
 }
 
 /* CI 가 워크플로에서 직접 부르는 것도 「돌려지는 것」이다 */
+/* ★ **뿌리의 `verify.mjs` 도 검사를 부른다** (2026-08-14). 이 파일은 npm 묶음이 아니라
+   경로로 부르는 자리라 여태 안 봤다 — 그래서 `audit:pages`(도구 장 최신 여부)처럼 **매 verify 마다
+   도는 검사**가 「아무도 안 돌린다」로 기준선에 얹혀 있었다. 부르는 자리는 다 세야 수가 맞는다. */
+{
+  const vf = path.join(root, '../../scripts/verify.mjs');
+  if (fs.existsSync(vf)) {
+    const src = fs.readFileSync(vf, 'utf8');
+    for (const m of src.matchAll(/npm run (?:--[\w-]+\s+)*([\w:.-]+)/g)) {
+      covered.add(m[1]);
+      expand(m[1]);
+    }
+    /* `node scripts/<이름>.mjs` 로 부르는 것도 있다 — 그 파일을 가리키는 npm 이름을 찾아 덮는다. */
+    for (const m of src.matchAll(/node\s+scripts\/([\w-]+)\.mjs/g)) {
+      for (const [name, line] of Object.entries(pkg.scripts || {})) {
+        if (line.includes(`scripts/${m[1]}.mjs`)) {
+          covered.add(name);
+          expand(name);
+        }
+      }
+    }
+  }
+}
+
 const wfDir = path.join(root, '../../.github/workflows');
 if (fs.existsSync(wfDir)) {
   for (const file of fs.readdirSync(wfDir)) {
