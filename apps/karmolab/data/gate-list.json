@@ -130,6 +130,10 @@
     "test:worldbook:unknown",
     "test:badapple",
     "smoke:bm",
-    "test:note-sound"
+    "test:note-sound",
+    "test:search:docs",
+    "test:search:lesson",
+    "test:search:studymap",
+    "test:search:quality"
   ]
 }

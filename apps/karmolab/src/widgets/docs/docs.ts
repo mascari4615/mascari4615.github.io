@@ -733,6 +733,19 @@ import {
 
     let manifest: DocsManifest = { characters: [], systems: [], concepts: [], lore: [] };
     let activeKey: string | null = null;
+    let wantedHeading = '';
+
+    function focusHeading(): void {
+      if (!wantedHeading) return;
+      const wanted = wantedHeading;
+      wantedHeading = '';
+      const heading = [...contentEl.querySelectorAll('h1,h2,h3,h4')]
+        .find((el) => el.textContent?.trim() === wanted);
+      if (heading instanceof HTMLElement) {
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        heading.focus({ preventScroll: true });
+      }
+    }
 
     function escAttr(s: string): string {
       return docsEsc(s).replace(/"/g, '&quot;');
@@ -769,10 +782,20 @@ import {
         };
       });
       // 첫 항목 자동 선택 (initial)
-      if (activeKey == null) {
-        const first = sideEl.querySelector<HTMLButtonElement>('button[data-key]');
-        if (first) first.click();
-      }
+      const pendingRaw = sessionStorage.getItem('karmolab-docs-open');
+      let pending: { id?: string; heading?: string } | null = null;
+      try { pending = pendingRaw ? JSON.parse(pendingRaw) : null; } catch { pending = null; }
+      if (pending?.heading) wantedHeading = pending.heading;
+      const desired = pending?.id ? sideEl.querySelector<HTMLButtonElement>(`button[data-key="external:${CSS.escape(pending.id)}"]`) : null;
+      sessionStorage.removeItem('karmolab-docs-open');
+      if (desired) desired.click();
+      else if (activeKey == null) sideEl.querySelector<HTMLButtonElement>('button[data-key]')?.click();
+      (window as unknown as { KarmoDocsOpen?: (id: string, heading?: string) => void }).KarmoDocsOpen = (id, heading) => {
+        if (!sideEl.isConnected) return;
+        sessionStorage.removeItem('karmolab-docs-open');
+        wantedHeading = heading || '';
+        sideEl.querySelector<HTMLButtonElement>(`button[data-key="external:${CSS.escape(id)}"]`)?.click();
+      };
     }
 
     function selectKey(key: string, btn: HTMLButtonElement): void {
@@ -781,7 +804,7 @@ import {
         b.classList.toggle('docs-shell-btn--active', b === btn);
       });
       contentEl.innerHTML = t('docs.t42');
-      void loadAndRender(key, contentEl);
+      void loadAndRender(key, contentEl).then(focusHeading);
     }
 
     async function loadAndRender(key: string, target: HTMLElement): Promise<void> {
