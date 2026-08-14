@@ -433,5 +433,6 @@
   "arcade.btn.find": "相手を探す",
   "arcade.open.title": "いま開いてる部屋",
   "arcade.open.none": "",
-  "arcade.open.card": "{game} · {host}"
+  "arcade.open.card": "{game} · {host}",
+  "arcade.mine.kb": "キーボード: Enter・スペースで開く、F または Shift+Enter で旗"
 }
