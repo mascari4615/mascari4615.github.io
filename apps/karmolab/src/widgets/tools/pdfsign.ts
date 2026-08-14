@@ -271,7 +271,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             const lib = await loadPdfLib();
             if (!lib) throw new Error(t('pdfsign.err.libWrite'));
 
-            const out = await lib.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+            const out = await openForEdit(file);
             const pageNo = parseInt(pageEl.value, 10);
             const page = out.getPages()[pageNo - 1];
             const { width, height } = page.getSize();

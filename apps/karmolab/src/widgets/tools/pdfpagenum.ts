@@ -169,7 +169,7 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
               return;
             }
             try {
-              const doc = await L.PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
+              const doc = await openForEdit(f);
               pageCount = doc.getPages().length;
             } catch {
               say(t('pdfpagenum.err.open'), 'error');
@@ -189,7 +189,7 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
             say(t('pdfpagenum.say.numbering'));
             try {
               const L = await loadPdfLib();
-              const doc = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+              const doc = await openForEdit(file);
               const pages = doc.getPages();
               const skip = parseInt($<HTMLInputElement>('#pnSkip').value, 10);
               const restart = $<HTMLInputElement>('#pnRestart').checked;
