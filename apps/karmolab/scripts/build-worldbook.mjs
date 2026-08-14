@@ -287,7 +287,16 @@ async function main() {
       process.exit(1);
     }
     const prev = JSON.parse(await fsp.readFile(OUT_PATH, 'utf8'));
-    console.log(`[worldbook] memo 없음 — 커밋된 산출 사용 (문서 ${prev.counts?.docs ?? '?'}건)`);
+    /* 바닥 (2026-08-14). memo 가 있는 갈래에는 「0건이면 실패」·「30% 넘게 줄면 실패」가 있는데
+     * **이 갈래에는 아무것도 없었다** — 그리고 CI 는 언제나 이 갈래로 온다(memo 는 비공개다).
+     * 즉 커밋된 산출이 비어 있으면 배포는 초록, 도감은 백지가 된다. 그 조합이 제일 무섭다. */
+    const kept = prev.counts?.docs;
+    if (typeof kept !== 'number' || kept < 1) {
+      console.error(`[worldbook] ❌ 커밋된 산출에 문서가 ${kept ?? '?'}건이다 — 이건 「memo 가 없다」가 아니라 **산출이 비었다**는 뜻이다.`);
+      console.error('[worldbook]   memo 가 있는 기계에서 `npm run build:worldbook` 을 돌려 다시 커밋할 것.');
+      process.exit(1);
+    }
+    console.log(`[worldbook] memo 없음 — 커밋된 산출 사용 (문서 ${kept}건)`);
     return;
   }
 
