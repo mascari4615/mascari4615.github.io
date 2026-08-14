@@ -1,92 +1,525 @@
 {
   "id": "craft-ask",
-  "minutes": 10,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "좋은 질문은 답을 받기 전에 이미 절반을 푼다. 질문을 다듬는 과정이 곧 문제를 좁히는 과정이기 때문이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 세 가지를 갖춰라"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "재현 · 기대 · 실제",
-      "text": "[상황] Node 20 / macOS / 프로젝트 X 의 main 브랜치\n[한 것] npm ci && npm run build\n[기대] dist/ 가 생긴다\n[실제] \"Cannot find module 'x'\" 로 종료 (전체 로그 첨부)\n[해 본 것] 캐시 삭제, node 18 로 낮춤 — 동일"
-    },
-    {
-      "type": "note",
-      "text": "「안 돼요」만 있는 질문은 상대가 되묻는 데 하루를 쓴다. **상대의 첫 질문을 미리 답해 두는 것**이 요령이다."
-    },
-    {
-      "type": "h",
-      "text": "2. 최소 재현을 만든다"
-    },
-    {
-      "type": "p",
-      "text": "회사 코드를 통째로 보여 줄 수 없다면 **재현되는 최소 예제**를 만들어라. 만들다 보면 원인이 드러나는 경우가 절반이다."
-    },
-    {
-      "type": "h",
-      "text": "3. 어디에 묻나"
-    },
-    {
-      "type": "note",
-      "text": "공개 채널에 묻고, 답도 공개로 남겨라(같은 문제를 겪을 다음 사람). 팀 DM 은 지식을 사라지게 한다. AI 에게 물을 때도 같은 형식이 좋다 — 맥락·기대·실제·시도."
-    },
-    {
-      "type": "h",
-      "text": "4. 답을 받은 뒤"
-    },
-    {
-      "type": "p",
-      "text": "해결됐으면 **무엇이 원인이었는지 한 줄** 남겨라. 「해결됐습니다」로 끝난 스레드는 검색으로 찾아온 다음 사람에게 아무 도움이 안 된다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "지금 막힌 문제를 위 형식으로 적어 보라. 다 적었는데 답을 알게 됐다면 그게 이 방법의 효과다."
-    },
-    {
-      "type": "try",
-      "text": "과거에 내가 올렸던 질문 하나를 찾아 원인 한 줄을 덧붙여라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "질문에 반드시 포함할 세 가지는?",
-      "choices": [
-        "재현 방법·기대·실제",
-        "긴급도·담당자·마감",
-        "코드 전체·스크린샷·감정"
+      "id": "1",
+      "title": "좋은 질문은 답 전에 절반을 푼다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**좋은 질문은 답을 받기 전에 이미 절반을 푼다** — 질문을 다듬는 과정이 곧 **문제를 좁히는 과정**이기 때문이다(적다 보면 원인이 드러난다). 좋은 질문은 **세 가지(넷)를 갖춘다**: ① **[상황]** — 환경·버전·맥락(「Node 20 / macOS / 프로젝트 X 의 main 브랜치」). ② **[한 것]** — 실제로 실행한 명령·코드(「`npm ci && npm run build`」). ③ **[기대]** — 무엇이 일어나길 바랐나(「`dist/` 가 생긴다」). ④ **[실제]** — 무엇이 일어났나(에러 메시지·로그 전문). **「안 돼요」만 있는 질문은 상대가 되묻는 데 하루를 쓴다** — 「환경은? 뭘 했나요? 에러 전문은?」을 왕복하느라(느리고 서로 지침). 요령은 **상대의 첫 질문을 미리 답해 두는 것** — 답하는 사람이 되물을 것들(맥락·재현·에러)을 질문에 미리 담으면, 바로 도움을 받는다. 이 칸은 질문하기 — **세 가지**·**최소 재현**(2장)·**스스로 먼저**(3장)·**어디에 묻나**(4장)·**답 받은 뒤**(5장)를 다룬다. 아래 데모로 나쁜 질문 vs 좋은 질문을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "나쁜 질문 vs 좋은 질문",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = {{has}};   // 갖춘 요소 수(0~4)\n  const fields = [\n    ['[상황]', 'Node 20 / macOS / 프로젝트 X main'],\n    ['[한 것]', 'npm ci && npm run build'],\n    ['[기대]', 'dist/ 가 생긴다'],\n    ['[실제]', 'Error: Cannot find module ... (전문)'],\n  ];\n  const rows = fields.map(([k, v], i) => '<div class=\\\"f ' + (i < has ? '' : 'miss') + '\\\"><span class=\\\"k ' + (i < has ? '' : 'miss') + '\\\">' + k + '</span><span>' + (i < has ? esc(v) : '(빠짐 — 상대가 되물어야)') + '</span></div>').join('');\n  render(has === 0 ? '「안 돼요」만 있는 질문' : has >= 4 ? '네 가지를 갖춘 질문' : has + '개 갖춘 질문',\n    '  ' + (has === 0 ? '「빌드가 안 돼요」 — 상대가 되묻는 데 하루\\n' : '네 요소를 채울수록 상대가 바로 도울 수 있음\\n') +\n    (has >= 4 ? '  → 되물을 것이 없음 — 즉시 도움\\n' : '  → 빠진 것을 상대가 되물어야 함(왕복 지연)\\n') +\n    '\\n  <span class=\\\"' + (has>=4?'ok':'warn') + '\\\">' + (has>=4 ? '상대의 첫 질문을 미리 답해 둠 — 좋은 질문은 답 전에 절반을 푼다.' : '빠진 요소를 채워라 — 「안 돼요」만으론 왕복만 는다.') + '</span>',\n    '좋은 질문 = 상황·한 것·기대·실제 — 상대의 첫 질문을 미리 답해 둠.',\n    '<div class=\\\"field\\\">' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "has",
+              "label": "갖춘 요소 수",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "세 가지를 갖춰라",
+          "text": "[상황] Node 20 / macOS / 프로젝트 X 의 main 브랜치\n[한 것] npm ci && npm run build\n[기대] dist/ 가 생긴다\n[실제] Error: Cannot find module 'foo' (에러 전문)\n\n「안 돼요」만 있는 질문은 상대가 되묻는 데 하루를 쓴다\n요령 = 상대의 첫 질문을 미리 답해 두는 것\n  (답하는 사람이 되물을 것 = 맥락·재현·에러 전문)"
+        },
+        {
+          "type": "note",
+          "text": "**좋은 질문은 답을 받기 전에 이미 절반을 푼다 — 질문을 다듬는 과정이 곧 문제를 좁히는 과정이기 때문이다. 좋은 질문은 상황·한 것·기대·실제를 갖춘다. 「안 돼요」만 있는 질문은 상대가 되묻는 데 하루를 쓰니, 상대의 첫 질문(맥락·재현·에러)을 미리 답해 두는 게 요령이다.** **좋은 질문의 역설 — 답 전에 절반을 푼다**: 질문을 **제대로 적는 과정 자체가 문제를 좁힌다** — 상황·시도·기대·실제를 명확히 쓰려면 스스로 정리해야 하고, 그 과정에서 **원인이 드러나는 경우가 많다**(2장 — 최소 재현 만들다 원인이 드러남과 통함). 그래서 좋은 질문은 답을 받기 전에 이미 절반이 풀린다(질문 다듬기 = 문제 좁히기 = craft-debug 의 재현·가설과 통함). **좋은 질문의 네 요소**: ① **[상황(context)]** — **환경·버전·맥락**: OS(macOS/Windows/Linux), 런타임·언어 버전(Node 20, Python 3.12), 프로젝트·브랜치, 관련 설정. 같은 증상도 환경에 따라 원인이 다르니 필수. ② **[한 것(what I did)]** — **실제로 실행한 명령·코드**: `npm ci && npm run build`, 문제의 코드 스니펫. 「무엇을 했는지」가 있어야 재현·진단이 된다. ③ **[기대(expected)]** — **무엇이 일어나길 바랐나**: 「`dist/` 가 생긴다」, 「200 응답이 온다」. 기대를 알아야 「무엇이 잘못됐나」가 정의된다. ④ **[실제(actual)]** — **무엇이 실제로 일어났나**: **에러 메시지·로그 전문**(요약·「에러가 나요」가 아니라 원문 — 잘라내지 말고 전체, 스택 트레이스 포함). 실제 증상이 진단의 핵심 단서. **「안 돼요」만 있는 질문의 문제**: 「빌드가 안 돼요」, 「로그인이 이상해요」 같은 질문은 — 답하는 사람이 **되묻는 데 하루를 쓴다**: 「어떤 환경이죠? 무슨 명령을 했나요? 에러 전문은요? 뭘 기대했나요?」를 **왕복**하느라 시간이 흐르고(비동기면 하루씩), 서로 지친다. **요령 — 상대의 첫 질문을 미리 답해 둔다**: 답하는 사람이 **되물을 것들**(맥락·재현·에러 전문·시도한 것)을 **질문에 미리 담으면**, 되묻는 왕복 없이 **바로 도움**을 받는다. 「이 사람이 무엇을 물어볼까」를 예상해 미리 답한다(답하는 사람의 입장에서 씀). **정리**: 좋은 질문은 **상황·한 것·기대·실제(에러 전문)**를 갖춰 **상대의 첫 질문을 미리 답해 둔다** — 「안 돼요」만으론 왕복만 늘고, 좋은 질문은 다듬는 과정에서 이미 절반이 풀린다. 질문을 잘 적는 게 빠르게 답받는 길이자 스스로 문제를 좁히는 길이다."
+        },
+        {
+          "type": "note",
+          "text": "**「질문을 정리하는 것이 문제를 정리하는 것」 — 명확히 표현하면 이해가 깊어진다.** 질문의 첫 교훈은 「문제를 남에게 설명할 수 있게 명확히 정리하면, 그 과정에서 스스로 이해가 깊어지고 답이 보인다」다: 상황·시도·기대·실제를 조리 있게 쓰려면 흩어진 것을 정리해야 하고, 정리하는 순간 「아, 이게 원인이구나」가 드러난다 — 질문을 다듬는 것이 곧 문제를 좁히는 것(craft-debug 의 재현·가설과 같은 원리, 다음 장의 rubber duck). 이 「표현이 이해를 낳는다」는 학습·소통의 근본이다 — 러버덕 디버깅(설명하다 답을 찾음 — 3장), 글쓰기로 사고 정리(write 갈래), 가르치며 배우기, 문서화하며 이해(craft-doc). 핵심 통찰: **머릿속 흐릿한 문제를 명확한 언어로 표현하려는 노력이, 흐릿함을 드러내고 이해를 강제한다** — 「설명 못 하면 이해 못 한 것」이라, 남이 이해하게 쓰려는 시도가 스스로의 이해를 완성한다. 그래서 「막힌 문제는, 답을 구하기 전에 먼저 남에게 설명할 수 있게 명확히 정리해 봐라 — 그 과정에서 이해가 깊어지고 답이 보인다」가 근본 — 좋은 질문(상황·시도·기대·실제)은 그 실천으로, 질문을 다듬는 것이 답 전에 절반을 푼다. 명확히 표현하면 이해가 따라온다."
+        },
+        {
+          "type": "try",
+          "text": "지금 막힌 문제를 위 형식으로 적어 보라 — **[상황]**(환경·버전·브랜치), **[한 것]**(실행한 명령·코드), **[기대]**(바란 결과), **[실제]**(에러 메시지·로그 전문). 「안 돼요」가 아니라 상대가 되물을 것을 미리 답해 두어라. **다 적었는데 답을 알게 됐다면 그게 이 방법의 효과**다(질문을 다듬는 과정이 문제를 좁힘). 여전히 막혔으면 그 잘 정리된 질문으로 물어라 — 되묻는 왕복 없이 바로 도움받는다. 질문을 잘 적는 게 스스로 문제를 좁히는 길이자 빠르게 답받는 길이다."
+        }
       ],
-      "answer": 0,
-      "why": "상대가 되묻는 왕복을 없앤다."
+      "quiz": [
+        {
+          "q": "좋은 질문이 「답 전에 절반을 푼다」는 이유는?",
+          "choices": [
+            "운",
+            "질문을 다듬는 과정이 곧 문제를 좁히는 과정(적다 보면 원인이 드러남)",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "표현이 이해를 낳음."
+        },
+        {
+          "q": "좋은 질문의 네 요소는?",
+          "choices": [
+            "제목·본문·태그·서명",
+            "상황·한 것·기대·실제(에러 전문)",
+            "색·크기·소리",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "상대의 첫 질문을 미리."
+        },
+        {
+          "q": "「안 돼요」만 있는 질문의 문제는?",
+          "choices": [
+            "빠름",
+            "상대가 되묻는 데 하루 — 맥락·재현·에러를 왕복(요령=미리 답해 둠)",
+            "정확",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "왕복 지연."
+        }
+      ]
     },
     {
-      "q": "최소 재현 예제를 만드는 부수 효과는?",
-      "choices": [
-        "만드는 도중 원인이 드러나는 경우가 많다",
-        "코드가 짧아진다",
-        "테스트가 생긴다"
+      "id": "2",
+      "title": "최소 재현을 만든다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "질문에 **재현 가능한 최소 예제(minimal reproduction)**를 붙이면 답이 빨라진다 — 회사 코드를 통째로 보여 줄 수 없거나(비공개·너무 큼), 상대가 그 방대한 걸 다 읽을 수 없으니, **문제만 재현하는 작은 예제**를 만든다(불필요한 것을 다 걷어낸 최소). **핵심 — 만들다 보면 원인이 드러나는 경우가 절반이다**: 최소 재현을 만들려면 **불필요한 부분을 하나씩 지우며** 「그래도 재현되나?」를 확인하는데(craft-debug 1장 — 최소 재현 축소), 그 과정에서 **「이것만 있으면 재현되네 → 원인은 이것」**이 드러난다(그래서 질문하기 전에 이미 풀림 — 1장의 「답 전에 절반」). 최소 재현은 답하는 사람에게도 최고의 선물이다 — 그대로 돌려 보고 바로 진단한다(추측 없이). 온라인 놀이터(CodeSandbox·JSFiddle·재현 저장소)나 짧은 스니펫으로. 「재현 안 되는 질문」은 답하기 어렵다. 아래 데모로 최소 재현 축소가 원인을 어떻게 드러내는지 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "최소 재현 — 걷어내다 원인이 드러난다",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const removed = {{removed}};\n  const parts = ['인증 미들웨어', '캐시 레이어', '로깅', 'DB 연결 풀', '문제의 쿼리', '라우터'];\n  const cause = 4;   // '문제의 쿼리'가 원인\n  const kept = parts.filter((_, i) => i >= removed || i === cause);\n  const stillRepro = removed <= cause;\n  const rows = parts.map((p, i) => [\n    (i < removed && i !== cause ? '걷어냄: ' : '남김: ') + p + (i === cause ? '  ← 원인(못 지움)' : ''),\n    i === cause ? 'good' : (i < removed ? 'bad' : 'on')\n  ]);\n  render('최소 재현 만들기 — ' + removed + '개 걷어냄',\n    '  불필요한 부분을 하나씩 지우며 「그래도 재현되나?」\\n' +\n    '  남은 것: ' + kept.join(', ') + '\\n\\n' +\n    '  <span class=\\\"' + (removed>=5?'ok':'warn') + '\\\">' +\n    (removed >= 5 ? '최소로 걷어내니 「문제의 쿼리」만 남음 → 원인이 드러남(질문 전에 풀림).' : '더 걷어내며 최소 재현으로 — 만들다 원인이 드러난다.') + '</span>',\n    '최소 재현: 불필요한 걸 하나씩 걷어냄 — 만들다 원인이 드러난다(절반).',\n    steps(rows));\n</script>",
+          "controls": [
+            {
+              "id": "removed",
+              "label": "걷어낸 부분 수",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "최소 재현을 만든다",
+          "text": "회사 코드를 통째로 보여 줄 수 없다면\n  → 재현되는 최소 예제를 만들어라\n\n방법: 불필요한 부분을 하나씩 지우며 「그래도 재현되나?」\n  (craft-debug 의 최소 재현 축소와 같음)\n\n만들다 보면 원인이 드러나는 경우가 절반이다\n  (그래서 질문하기 전에 이미 풀림 — 답 전에 절반)\n\n온라인 놀이터·짧은 스니펫·재현 저장소로"
+        },
+        {
+          "type": "note",
+          "text": "**질문에 재현 가능한 최소 예제를 붙이면 답이 빨라진다 — 회사 코드를 통째로 못 보여 주니 문제만 재현하는 작은 예제를 만든다. 불필요한 부분을 하나씩 지우며 최소로 줄이는데, 그 과정에서 원인이 드러나는 경우가 절반이다(그래서 질문 전에 이미 풀린다). 답하는 사람에게도 그대로 돌려 볼 수 있는 최고의 선물이다.** 1장의 「좋은 질문(실제·재현)」의 핵심이 **최소 재현(minimal reproduction / MRE — Minimal Reproducible Example)**이다. **왜 필요한가**: ① **통째로는 못 보여 준다** — 회사·프로젝트 코드는 **비공개**(보안·NDA)이거나 **너무 크다**(수천 파일 — 상대가 다 읽을 수 없음). ② **큰 코드는 답하기 어렵다** — 답하는 사람이 방대한 코드에서 문제를 찾느라 시간이 든다(대개 안 함). 그래서 **문제만 재현하는 작은 예제**를 만든다 — 불필요한 것을 다 걷어내고 **문제를 일으키는 최소한**만 남긴 것. **핵심 통찰 — 만들다 보면 원인이 드러난다 (절반)**: 최소 재현을 만들려면 **불필요한 부분을 하나씩 지우며** 「그래도 재현되나?」를 확인해야 한다(craft-debug 1장의 최소 재현 축소와 정확히 같음) — 인증을 빼도 나나? 캐시를 빼도 나나? 로깅을 빼도 나나? **지웠는데 재현이 멈추면 그게(또는 근처가) 원인**이다. 이 축소 과정에서 **「이것만 있으면 재현되네 → 원인은 이것」**이 **절반의 경우 드러난다** — 그래서 **질문을 올리기도 전에 스스로 풀린다**(1장의 「좋은 질문은 답 전에 절반을 푼다」의 핵심 메커니즘). 즉 최소 재현 만들기는 **질문 준비이자 디버깅**이다. **답하는 사람에게 최고의 선물**: 최소 재현이 있으면, 답하는 사람은 **그대로 복사해 돌려 보고** 문제를 즉시 재현·진단한다(추측 없이 사실로 — craft-debug 의 재현). 재현 없는 질문은 답하는 사람이 상상으로 진단해야 해 어렵고 부정확하다. **어떻게 공유하나**: **온라인 놀이터**(CodeSandbox·JSFiddle·StackBlitz·Playground), **짧은 코드 스니펫**(질문에 직접), **재현 저장소**(최소 repo 를 GitHub 에). 실행 가능하고 작을수록 좋다. **정리**: 질문엔 **최소 재현**을 붙인다 — 통째로 못 보여 주니 문제만 재현하는 작은 예제를 만들고, **불필요한 걸 하나씩 걷어내는 과정에서 원인이 절반은 드러난다**(질문 전에 풀림). 답하는 사람에겐 그대로 돌려 볼 수 있는 최고의 단서다. 「재현되는 최소 예제」가 좋은 질문의 심장이다."
+        },
+        {
+          "type": "note",
+          "text": "**「최소화가 곧 진단」 — 문제를 줄이면 원인이 드러난다.** 최소 재현의 교훈은 「문제를 재현하는 최소한으로 줄이는 과정 자체가, 원인을 격리하는 진단이다」다: 최소 재현을 만들려고 불필요한 것을 하나씩 걷어내면 — 노이즈(무관한 코드)가 사라지고 원인(재현에 꼭 필요한 것)만 남아 저절로 드러난다(craft-debug 1장의 최소 재현과 같은 원리). 그래서 「질문을 위한 최소 재현」이 「답을 위한 디버깅」과 같은 일이다. 이 「최소화 = 진단」은 문제 해결의 근본이다 — delta debugging(자동 최소화로 원인 찾기), 이분 탐색(절반씩 걷어냄 — craft-debug 3장), 격리(변수를 하나씩 통제), 최소 재현 예제(MRE — 남에게 묻는 표준). 핵심 통찰: **문제를 「재현하는 최소한」으로 줄이는 것은 원인을 격리하는 것과 같다** — 무관한 것을 걷어낼수록 원인만 남으니, 최소화 과정에서 원인이 드러난다(절반은 질문 전에 풀림). 그래서 「막힌 문제는, 남에게 묻기 전에 재현하는 최소 예제로 줄여 봐라 — 줄이는 과정에서 원인이 드러나고, 안 드러나도 최고의 질문 단서가 된다」가 근본 — 최소 재현은 그 실천으로, 질문 준비가 곧 디버깅이 되는 지점이다. 줄이면 원인이 보인다."
+        },
+        {
+          "type": "try",
+          "text": "막힌 문제를 **재현되는 최소 예제**로 만들어라 — 회사 코드를 통째로가 아니라, 불필요한 부분(인증·캐시·로깅·무관한 코드)을 **하나씩 지우며** 「그래도 재현되나?」를 확인해 문제만 남겨라. **만들다 보면 원인이 드러나는지** 보라(절반은 그렇다 — 그럼 질문 안 하고 해결). 안 드러나면 그 최소 재현을 온라인 놀이터·스니펫·작은 repo 로 질문에 붙여라 — 답하는 사람이 그대로 돌려 보고 즉시 진단한다. 최소화가 곧 진단이니, 질문 준비가 디버깅이 된다."
+        }
       ],
-      "answer": 0,
-      "why": "줄이는 과정이 곧 이분 탐색이다."
+      "quiz": [
+        {
+          "q": "질문에 최소 재현을 붙이는 이유는?",
+          "choices": [
+            "예뻐서",
+            "통째로 못 보여 주고 큰 코드는 답하기 어려움 — 문제만 재현하는 작은 예제로",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "그대로 돌려 봄."
+        },
+        {
+          "q": "최소 재현을 만들다 「절반은」 무엇이 일어나나?",
+          "choices": [
+            "실패",
+            "원인이 드러남(걷어내다 「이것만 있으면 재현」) → 질문 전에 풀림",
+            "느려짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "최소화가 진단."
+        },
+        {
+          "q": "최소 재현을 만드는 방법은?",
+          "choices": [
+            "전체 복사",
+            "불필요한 부분을 하나씩 지우며 「그래도 재현되나?」 확인(craft-debug 와 같음)",
+            "추측",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "줄이면 원인이 보임."
+        }
+      ]
     },
     {
-      "q": "문제가 해결된 뒤에 남겨야 할 것은?",
-      "choices": [
-        "원인 한 줄",
-        "감사 인사만",
-        "스레드 삭제"
+      "id": "3",
+      "title": "스스로 먼저 — 검색·문서·러버덕",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "묻기 **전에 스스로** 할 것들이 있다 — 그래야 좋은 질문이 되고(1·2장), 남의 시간을 아끼고, 자기 실력도 는다. ① **에러 메시지를 그대로 검색** — 대부분의 에러는 남들도 겪었다(검색·문서·이슈 트래커에 답이 있음). ② **공식 문서·README 를 본다** — 사용법이 거기 있을 때가 많다(2차 정보보다 정확). ③ **러버덕(rubber duck)** — 문제를 **소리 내어(또는 글로) 누군가(고무 오리)에게 설명**해 보라 — 설명하다 보면 **스스로 답을 찾는 경우가 많다**(1장의 「질문 다듬기 = 문제 좁히기」, 설명이 흐릿함을 드러냄). ④ **디버깅을 해 본다**(craft-debug — 재현·가설·이분 탐색). 단 **너무 오래 혼자 붙잡지도 마라** — 15~30분 룰(정한 시간 넘게 막히면 물어라 — 자존심으로 하루 낭비 X). **스스로 먼저 + 적당한 때 묻기**의 균형이다 — 검색·문서·러버덕으로 안 풀리고 시간이 넘으면, 그동안 정리한 걸로 좋은 질문을 한다. 아래 데모로 묻기 전 체크를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "묻기 전 스스로 — 러버덕·검색",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'duck') {\n    render('러버덕 — 설명하다 스스로 답을 찾는다',\n      '  문제를 소리 내어(글로) 누군가에게 설명:\\n' +\n      '    「이 함수가 X 를 받아서... 어? Y 를 안 넘기고 있네」\\n\\n' +\n      '  <span class=\\\"ok\\\">설명하다 흐릿함이 드러나 스스로 답을 찾는 경우가 많다(질문 다듬기=문제 좁히기).</span>',\n      '러버덕: 문제를 설명하다 보면 스스로 답을 찾음(흐릿함이 드러남).',\n      steps([\n        ['문제를 소리 내어/글로 설명(고무 오리에게)', 'on'],\n        ['설명하다 「어? 여기가...」 흐릿함이 드러남', 'good'],\n        ['스스로 답을 찾음(1장의 질문 다듬기=문제 좁히기)', 'good'],\n      ]));\n  } else {\n    const done = {{done}};\n    const checks = [\n      ['에러 메시지를 그대로 검색', '대부분의 에러는 남들도 겪음'],\n      ['공식 문서·README 확인', '사용법이 거기 있을 때가 많음'],\n      ['러버덕 — 소리 내어 설명', '설명하다 스스로 답을 찾음'],\n      ['디버깅(재현·가설·이분 탐색)', 'craft-debug'],\n      ['15~30분 넘게 막히면 → 물어라', '자존심으로 하루 낭비 X'],\n    ];\n    const rows = checks.map(([c, why], i) => [c + ' — ' + why, i < done ? 'good' : i === done ? 'on' : '']);\n    render('묻기 전 스스로 — ' + done + '/5',\n      '  스스로 먼저 하면 좋은 질문이 되고(남 시간 아낌·실력 늚)\\n' +\n      '  단 너무 오래 혼자 붙잡지도 마라(15~30분 룰)\\n\\n' +\n      '  <span class=\\\"ok\\\">스스로 먼저 + 적당한 때 묻기의 균형.</span>',\n      '묻기 전: 검색·문서·러버덕·디버깅 — 단 15~30분 넘으면 물어라.',\n      steps(rows));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "checklist",
+              "options": [
+                {
+                  "value": "checklist",
+                  "label": "묻기 전 체크"
+                },
+                {
+                  "value": "duck",
+                  "label": "러버덕"
+                }
+              ]
+            },
+            {
+              "id": "done",
+              "label": "한 것(체크 관점)",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "스스로 먼저",
+          "text": "묻기 전에 스스로:\n · 에러 메시지를 그대로 검색 (대부분 남들도 겪음)\n · 공식 문서·README 확인 (사용법이 거기 있음)\n · 러버덕 — 소리 내어/글로 설명 (설명하다 스스로 답을 찾음)\n · 디버깅 (재현·가설·이분 탐색 — craft-debug)\n\n단 너무 오래 혼자 붙잡지도 마라 — 15~30분 룰\n  (정한 시간 넘게 막히면 물어라 · 자존심으로 하루 낭비 X)"
+        },
+        {
+          "type": "note",
+          "text": "**묻기 전에 스스로 할 것이 있다 — 에러 메시지를 그대로 검색하고, 공식 문서·README 를 보고, 러버덕(소리 내어 설명하다 스스로 답을 찾음)을 하고, 디버깅을 해 본다. 단 너무 오래 혼자 붙잡지 말고 15~30분 넘게 막히면 물어라(자존심으로 하루 낭비 X). 스스로 먼저 + 적당한 때 묻기의 균형이다.** 좋은 질문(1·2장)을 하려면, 또 남의 시간을 아끼고 자기 실력을 키우려면 **묻기 전에 스스로** 할 것들이 있다: ① **에러 메시지를 그대로 검색** — 대부분의 에러는 **남들도 이미 겪었다** — 에러 메시지(핵심 부분)를 그대로 검색하면 Stack Overflow·GitHub 이슈·문서에 **답이 있는 경우가 많다**. 「이 에러 처음 봐」여도 남들에겐 흔한 경우가 대부분(특히 라이브러리·프레임워크 에러). ② **공식 문서·README 를 본다** — 사용법·설정·API 는 **공식 문서에 있을 때가 많다**(2차 정보·추측보다 정확·최신). 「문서 봤어?」는 답하는 사람의 흔한 첫 반문 — 미리 본다(craft-read 2장 — README 먼저). ③ **러버덕 디버깅(rubber duck debugging)** — 문제를 **소리 내어(또는 글로) 누군가에게(심지어 고무 오리에게) 설명**해 본다 — 신기하게도 **설명하다 보면 스스로 답을 찾는 경우가 많다**. 왜? 설명하려면 **흐릿한 이해를 명확한 언어로** 옮겨야 하고, 그 과정에서 **빠진 가정·모순이 드러난다**(「이 함수가 X 를 받아서... 어? Y 를 안 넘기고 있네!」). 1장의 「질문을 다듬는 과정이 문제를 좁힌다」와 정확히 같은 원리 — 질문을 적는 것 자체가 러버덕이다. ④ **디버깅을 해 본다** — craft-debug 의 절차(재현·가설·이분 탐색·관측)로 스스로 좁혀 본다. **균형 — 너무 오래 혼자도 X (15~30분 룰)**: 하지만 **스스로 하겠다고 너무 오래 붙잡는 것도 낭비**다 — **자존심**(「물어보면 무능해 보일까」)으로 하루를 혼자 헤매면 팀 전체가 손해다. **15~30분 룰**(또는 팀이 정한 시간) — **정한 시간 넘게 막히면 물어라**. 그때쯤이면 검색·문서·러버덕·디버깅으로 **문제가 잘 정리돼**(좋은 질문 재료가 쌓임) 좋은 질문을 할 수 있다. **핵심 — 스스로 먼저 + 적당한 때 묻기의 균형**: 「무조건 스스로」(오래 헤맴·낭비)도, 「바로 물어보기」(남 시간 낭비·안 늚)도 아닌 — **스스로 먼저 시도(검색·문서·러버덕·디버깅)하되, 정한 시간 넘으면 그동안 정리한 걸로 좋은 질문을** 한다. 이러면 스스로 풀리면 실력이 늘고(절반은 스스로 풀림), 안 풀려도 좋은 질문이 준비된다. **정리**: 묻기 전 **검색·문서·러버덕·디버깅**을 스스로 하되(좋은 질문 준비 + 실력 + 남 시간 아낌), **15~30분 넘게 막히면 물어라**(자존심으로 낭비 X) — 스스로 먼저와 적당한 때 묻기의 균형이 핵심이다."
+        },
+        {
+          "type": "note",
+          "text": "**「스스로와 도움의 균형」 — 혼자도 바로도 아닌 적당한 때.** 스스로 먼저의 교훈은 「무조건 혼자 해결도, 바로 남에게 의존도 아닌 — 스스로 시도하되 정한 시간 넘으면 도움을 구하는 균형」이다: 너무 오래 혼자(자존심·완벽주의)면 시간 낭비·팀 손해이고, 바로 물으면(스스로 안 해봄) 실력이 안 늘고 남 시간을 낭비한다 — 「스스로 먼저(검색·러버덕·디버깅) + 시간 제한 후 도움」이 둘의 장점을 취한다. 이 「자율과 협력의 균형」은 일하는 법 전반에 통한다 — 타임박싱(정한 시간만 시도 후 에스컬레이션), 도움 요청의 문화(막히면 빨리 공유 — 팀 심리적 안전), 자기주도 학습 + 멘토, 시도 후 질문. 핵심 통찰: **혼자 헤매는 것도 바로 의존하는 것도 극단이고, 스스로 충분히 시도한 뒤(배움·좋은 질문 준비) 정한 시간에 도움을 구하는 게 최적**이다 — 시간 제한(15~30분)이 그 균형점을 정해 준다(자존심·죄책감이 아니라 규칙으로). 그래서 「막힌 문제는, 스스로 먼저 시도(검색·문서·러버덕·디버깅)하되 — 정한 시간을 넘으면 자존심 없이 도움을 구하라. 그때쯤 문제가 정리돼 좋은 질문이 된다」가 근본 — 스스로 먼저는 그 실천으로, 자율과 협력을 시간 제한으로 균형 잡는다. 혼자도 바로도 아닌, 적당한 때."
+        },
+        {
+          "type": "try",
+          "text": "막히면 묻기 전에 스스로 먼저 하라 — **에러 메시지를 그대로 검색**(대부분 남들도 겪음), **공식 문서·README 확인**, **러버덕**(문제를 소리 내어/글로 설명 — 설명하다 스스로 답을 찾는지 보라), **디버깅**(craft-debug). 단 **15~30분 넘게 막히면 물어라** — 자존심으로 하루를 혼자 헤매지 마라(팀 손해). 그때쯤이면 그동안 정리한 걸로 좋은 질문(1·2장)이 준비돼 있다. 스스로 먼저 + 적당한 때 묻기의 균형을 시간 제한으로 잡아라 — 혼자도 바로도 아닌 적당한 때."
+        }
       ],
-      "answer": 0,
-      "why": "검색으로 찾아올 다음 사람을 위해서다."
+      "quiz": [
+        {
+          "q": "묻기 전에 스스로 할 것은?",
+          "choices": [
+            "바로 물어봄",
+            "에러 메시지 검색·문서 확인·러버덕·디버깅",
+            "포기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "좋은 질문 준비·실력."
+        },
+        {
+          "q": "러버덕(rubber duck)이란?",
+          "choices": [
+            "장난감",
+            "문제를 소리 내어/글로 설명 — 설명하다 흐릿함이 드러나 스스로 답을 찾음",
+            "검색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "표현이 이해를 낳음."
+        },
+        {
+          "q": "「15~30분 룰」의 뜻은?",
+          "choices": [
+            "무조건 혼자",
+            "정한 시간 넘게 막히면 물어라 — 자존심으로 하루 낭비 X(스스로 먼저와 균형)",
+            "바로 물어봄",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "자율과 협력의 균형."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "어디에 묻나 — 공개 채널·답도 공개",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**공개 채널에 묻고, 답도 공개로 남겨라** — 같은 문제를 겪을 **다음 사람**을 위해. **팀 DM(개인 메시지)은 지식을 사라지게 한다** — 그 대화는 두 사람에게만 남고, 나중에 같은 문제를 겪는 사람은 **처음부터 다시 묻는다**(검색으로 못 찾음). 공개 채널(팀 채널·포럼·이슈 트래커)에 물으면 — ① **더 많은 사람이 볼 수 있어** 답이 빠르고(누군가는 앎), ② **답이 검색 가능하게 남아** 다음 사람이 찾는다(같은 질문 반복 방지), ③ **여러 관점**이 모인다. **AI 에게 물을 때도 같은 형식이 좋다** — **맥락·기대·실제(에러 전문)·최소 재현**(1·2장)을 주면 AI 도 훨씬 정확히 답한다(사람에게 좋은 질문 = AI 에게도 좋은 질문). AI 는 즉시·무한 인내로 답하니 1차로 좋지만, 최신·프로젝트 특수 맥락은 팀·문서가 나을 때가 있다. **핵심 — 지식을 사라지게 하지 마라**: 공개로 묻고 공개로 남기면 지식이 축적된다(팀 자산 — craft-read 4장의 「지도 남기기」와 통함). 아래 데모로 공개 vs DM 을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어디에 묻나 — 공개 채널 vs DM",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const where = '{{where}}';\n  if (where === 'dm') {\n    render('팀 DM — 지식이 사라진다',\n      '  두 사람의 DM 으로 해결\\n' +\n      '  → 대화가 두 사람에게만 남음 → 다음 사람은 처음부터 다시 물음(검색 X)\\n\\n' +\n      '  <span class=\\\"no\\\">DM 은 지식을 사라지게 함 — 같은 질문이 계속 반복된다.</span>',\n      'DM 은 지식을 사라지게 함 — 다음 사람이 처음부터 다시 묻는다.',\n      box('DM (지식 소멸)', '두 사람만 봄\\n검색 안 됨\\n→ 다음 사람 처음부터 다시', 'bad'));\n  } else if (where === 'public') {\n    render('공개 채널 — 답도 공개로 남긴다',\n      '  팀 채널·포럼·이슈 트래커에 묻고 답도 공개\\n' +\n      '  → 더 많이 봄(빠른 답) · 검색 가능(다음 사람이 찾음) · 여러 관점\\n\\n' +\n      '  <span class=\\\"ok\\\">공개로 묻고 공개로 남기면 지식이 축적됨(팀 자산).</span>',\n      '공개 채널: 빠른 답 + 검색 가능(다음 사람) + 여러 관점 — 지식 축적.',\n      steps([\n        ['더 많은 사람이 봄 → 답이 빠름', 'good'],\n        ['답이 검색 가능하게 남음 → 다음 사람이 찾음', 'good'],\n        ['여러 관점이 모임', 'on'],\n      ]));\n  } else {\n    render('AI 에게 — 같은 형식이 좋다',\n      '  맥락·기대·실제(에러 전문)·최소 재현을 주면 AI 도 정확\\n' +\n      '  즉시·무한 인내(1차로 좋음) · 최신·프로젝트 특수는 팀·문서가 나을 때\\n\\n' +\n      '  <span class=\\\"ok\\\">사람에게 좋은 질문(1·2장) = AI 에게도 좋은 질문.</span>',\n      'AI 에게도 같은 형식(맥락·기대·실제·최소 재현)이 좋다.',\n      box('AI 질문', '맥락·기대·실제·최소 재현 제공\\n→ 즉시·무한 인내로 정확한 답\\n(최신·특수 맥락은 팀·문서)', 'good'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "where",
+              "label": "어디에",
+              "type": "select",
+              "value": "dm",
+              "options": [
+                {
+                  "value": "dm",
+                  "label": "팀 DM(소멸)"
+                },
+                {
+                  "value": "public",
+                  "label": "공개 채널"
+                },
+                {
+                  "value": "ai",
+                  "label": "AI"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "어디에 묻나",
+          "text": "공개 채널에 묻고, 답도 공개로 남겨라 (같은 문제를 겪을 다음 사람)\n  → 더 많이 봄(빠른 답) · 검색 가능(다음 사람) · 여러 관점\n\n팀 DM 은 지식을 사라지게 한다\n  두 사람에게만 남음 → 다음 사람은 처음부터 다시\n\nAI 에게 물을 때도 같은 형식이 좋다\n  맥락·기대·실제(에러 전문)·최소 재현 → AI 도 훨씬 정확"
+        },
+        {
+          "type": "note",
+          "text": "**공개 채널에 묻고 답도 공개로 남긴다 — 팀 DM 은 지식을 두 사람에게만 남겨 사라지게 하고 다음 사람이 처음부터 다시 묻게 하지만, 공개 채널은 더 많은 사람이 봐서 답이 빠르고 검색 가능하게 남아 다음 사람이 찾는다. AI 에게 물을 때도 같은 형식(맥락·기대·실제·최소 재현)이 좋다.** 좋은 질문(1·2장)을 **어디에** 묻는지도 중요하다. **공개 채널에 묻고 답도 공개로**: 팀 채널(공개 슬랙·디스코드 채널)·포럼(Stack Overflow·커뮤니티)·이슈 트래커(GitHub Issues)에 **공개로** 묻고, **답도 그 자리에 공개로** 남긴다(자문자답 포함 — 스스로 풀었어도 답을 남김). **팀 DM(개인 메시지)의 문제 — 지식 소멸**: 특정 사람에게 **DM 으로** 물으면 — 편할 것 같지만 **지식이 사라진다**: ⓐ 그 대화는 **두 사람에게만** 남는다(다른 사람은 못 봄), ⓑ **검색이 안 된다**(나중에 같은 문제를 겪는 사람이 못 찾음), ⓒ 그래서 **다음 사람은 처음부터 다시 묻는다**(같은 질문이 반복 — 답한 사람도 또 답해야). DM 은 「나 하나 편하자고」 팀의 지식을 휘발시킨다. **공개 채널의 이점**: ① **빠른 답** — 더 많은 사람이 보니 **누군가는 답을 안다**(한 사람에게 의존 X, 그 사람이 바쁘거나 모를 때도 커버). ② **검색 가능하게 남음** — 답이 공개 기록으로 남아 **다음 사람이 검색으로 찾는다**(같은 질문 반복 방지 — 3장의 「에러 메시지 검색」이 이 축적된 공개 답에 닿음). ③ **여러 관점** — 여러 사람이 다른 각도로 답해 더 나은 해결. ④ **투명성** — 팀이 무슨 문제를 겪고 어떻게 푸는지 공유(학습). **AI 에게도 같은 형식**: AI(챗봇·코딩 도우미)에게 물을 때도 **같은 형식이 좋다** — **맥락·기대·실제(에러 전문)·최소 재현**(1·2장)을 주면 AI 도 **훨씬 정확히** 답한다(막연한 「안 돼요」엔 AI 도 되물음). **사람에게 좋은 질문 = AI 에게도 좋은 질문**. AI 의 장점: **즉시·무한 인내**(밤에도·몇 번을 물어도), 1차 시도로 좋다. AI 의 한계: **최신 정보·프로젝트 특수 맥락**(우리 코드베이스의 특이한 설정·최근 버전)은 팀·공식 문서가 나을 때가 있으니 — AI 로 1차, 안 되면 공개 채널·문서. **핵심 — 지식을 사라지게 하지 마라**: 공개로 묻고 공개로 남기면 지식이 **축적**된다(craft-read 4장의 「지도 남기기」·이해를 자산으로와 통함) — 팀의 질문·답이 검색 가능한 자산이 되어 온보딩·문제 해결이 빨라진다. **정리**: **공개 채널에 묻고 답도 공개로**(DM 은 지식 소멸 — 다음 사람이 다시 묻게 됨) 남겨 지식을 축적하고, **AI 에게도 같은 형식**(맥락·기대·실제·최소 재현)으로 물어 정확한 답을 받는다. 어디에·어떻게 묻는가가 지식의 축적을 가른다."
+        },
+        {
+          "type": "note",
+          "text": "**「지식을 휘발시키지 말고 축적하라」 — 공개가 다음 사람을 돕는다.** 어디에 묻나의 교훈은 「질문과 답을 사적(DM)으로 휘발시키지 말고, 공개·검색 가능한 곳에 남겨 지식을 축적하라」다: DM 은 편하지만 지식을 두 사람에게 가두어 다음 사람이 같은 고생을 반복하게 하고, 공개 채널은 답을 검색 가능한 자산으로 남겨 미래의 같은 문제를 예방한다 — 「나 하나 편하자」와 「팀 전체의 축적」의 차이. 이 「지식을 공개·축적」은 협업·조직 학습의 근본이다 — 공개 문서화(craft-doc·craft-read 4장의 지도), 이슈 트래커(질문·결정을 검색 가능하게), 공개 채널 우선(DM 지양), ADR(결정 기록 — write-adr), 이 스터디 맵의 「같은 고생 두 번 안 하기」. 핵심 통찰: **사적 소통은 순간엔 편하지만 지식을 휘발시키고, 공개·검색 가능한 기록은 미래의 반복 고생을 없앤다** — 그래서 「다음 사람이 같은 걸 겪을」 질문·답·결정은 공개로 남겨 팀 자산으로 만든다(약간의 공개 노력이 반복을 없앰). 그래서 「질문·답·결정을 남길 땐, 사적(DM)으로 휘발시키지 말고 공개·검색 가능한 곳(채널·이슈·문서)에 남겨 — 다음 사람이 찾을 수 있게 지식을 축적하라」가 근본 — 공개 채널에 묻기는 그 실천으로, 오늘의 질문이 내일의 검색 결과가 된다. 휘발이 아니라 축적."
+        },
+        {
+          "type": "try",
+          "text": "질문을 **팀 DM 이 아니라 공개 채널**(팀 채널·포럼·이슈 트래커)에 하고, **답도 공개로 남겨라**(스스로 풀었어도 자문자답으로 — 다음 사람을 위해). DM 이 지식을 두 사람에게 가두어 같은 질문이 반복됨을 떠올려라. AI 에게 물을 때도 사람에게 하듯 **맥락·기대·실제·최소 재현**(1·2장)을 주면 훨씬 정확한 답을 받는다 — AI 로 1차, 최신·프로젝트 특수 맥락은 팀·문서로. 오늘의 공개 질문이 내일의 검색 결과가 되어 팀 지식을 축적한다 — 휘발이 아니라 축적."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "팀 DM 에 묻는 것의 문제는?",
+          "choices": [
+            "빠름",
+            "지식이 두 사람에게만 남아 사라짐 — 다음 사람이 처음부터 다시 묻음(검색 X)",
+            "정확",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "공개로 축적."
+        },
+        {
+          "q": "공개 채널에 묻는 이점은?",
+          "choices": [
+            "느림",
+            "더 많이 봄(빠른 답)·검색 가능(다음 사람이 찾음)·여러 관점",
+            "복잡",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "지식 축적."
+        },
+        {
+          "q": "AI 에게 물을 때는?",
+          "choices": [
+            "대충",
+            "같은 형식(맥락·기대·실제·최소 재현) — 사람에게 좋은 질문이 AI 에게도 좋음",
+            "무관",
+            "형식 불필요"
+          ],
+          "answer": 1,
+          "why": "AI 도 정확해짐."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "답을 받은 뒤 — 원인 한 줄",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "해결됐으면 **무엇이 원인이었는지 한 줄** 남겨라 — 「**해결됐습니다**」로 끝난 스레드는 검색으로 찾아온 **다음 사람에게 아무 도움이 안 된다**(무엇이 원인·해법이었는지 없으니). 「해결됐습니다 → 원인은 `.env` 에 `API_KEY` 누락, `cp .env.example .env` 로 해결」처럼 **원인과 해법을 한 줄**로 남기면 — 검색으로 온 다음 사람이 **바로 해결**한다(같은 문제 반복 방지 — 4장의 공개·축적을 완성). 이건 ① **답해 준 사람에 대한 예의**(그들의 도움이 결실 맺음을 알림), ② **미래의 나·남을 위한 기록**(craft-debug 5장의 「왜 이 버그가 안 걸렸나」·craft-read 4장의 「지도 남기기」와 통함). 나아가 **재발 방지**(회귀 테스트·문서 갱신 — 근본 원인이면), **감사**(답해 준 사람에게)도. 질문의 마지막은 「해결」이 아니라 **「원인·해법을 남겨 다음 사람이 찾게 하는 것」**이다. 아래 데모로 답 받은 뒤 종결을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "답 받은 뒤 — 원인 한 줄로 종결",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const closed = '{{closed}}' === 'on';\n  render(closed ? '원인 한 줄로 종결 — 다음 사람이 찾는다' : '「해결됐습니다」로 끝 — 도움 안 됨',\n    '  ' + (closed\n      ? '「해결됐습니다 → 원인: .env 에 API_KEY 누락, cp .env.example .env 로 해결」\\n  → 검색으로 온 다음 사람이 바로 해결\\n\\n  <span class=\\\"ok\\\">원인·해법 한 줄 → 다음 사람이 찾음(공개·축적 완성) + 답한 사람 예의.</span>'\n      : '「해결됐습니다」 (원인·해법 없음)\\n  → 검색으로 온 다음 사람: 무엇이 원인이었는지 모름 → 도움 안 됨\\n\\n  <span class=\\\"no\\\">「해결됐습니다」로 끝난 스레드는 다음 사람에게 아무 도움이 안 된다.</span>'),\n    '해결됐으면 원인·해법 한 줄 — 「해결됐습니다」만으론 다음 사람에게 무용.',\n    closed\n      ? steps([['원인·해법 한 줄 남김', 'good'], ['검색으로 온 다음 사람이 바로 해결', 'good'], ['답해 준 사람에 대한 예의 + 미래 기록', 'good']])\n      : box('「해결됐습니다」로 끝 (무용)', '원인·해법 없음\\n→ 다음 사람은 무엇이 원인인지 모름\\n→ 같은 질문 반복', 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "closed",
+              "label": "종결 방식",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "「해결됐습니다」로 끝"
+                },
+                {
+                  "value": "on",
+                  "label": "원인 한 줄"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "답을 받은 뒤",
+          "text": "해결됐으면 무엇이 원인이었는지 한 줄 남겨라\n\n❌ 「해결됐습니다」   ← 검색으로 온 다음 사람에게 아무 도움 안 됨\n✅ 「해결됐습니다 → 원인: .env 에 API_KEY 누락,\n    cp .env.example .env 로 해결」\n\n· 답해 준 사람에 대한 예의 (도움이 결실 맺음)\n· 미래의 나·남을 위한 기록 (다음 사람이 검색으로 찾음)\n· 근본 원인이면 재발 방지(회귀 테스트·문서 갱신)"
+        },
+        {
+          "type": "note",
+          "text": "**해결됐으면 무엇이 원인이었는지 한 줄 남긴다 — 「해결됐습니다」로 끝난 스레드는 검색으로 찾아온 다음 사람에게 아무 도움이 안 되지만, 원인과 해법을 한 줄 남기면 다음 사람이 바로 해결한다. 답해 준 사람에 대한 예의이자 미래의 기록이다.** 질문의 **마지막**이 자주 빠진다 — **답을 받아 해결한 뒤의 종결**. **함정 — 「해결됐습니다」로 끝**: 문제가 풀리면 「해결됐습니다! 감사합니다」로 스레드를 닫기 쉽다 — 하지만 이건 **검색으로 찾아온 다음 사람에게 아무 도움이 안 된다**: 그 사람은 **같은 증상**으로 이 스레드를 찾았는데, **무엇이 원인이었고 어떻게 풀었는지가 없으니** — 스레드를 봐도 「아 이 사람도 해결했구나」만 알고 **자기 문제는 못 푼다**(다시 처음부터). 4장에서 공개로 남긴 의미(다음 사람이 찾음)가 **여기서 완성되거나 무너진다**. **해법 — 원인과 해법을 한 줄**: 「해결됐습니다 → **원인**: `.env` 에 `API_KEY` 누락, **해법**: `cp .env.example .env`」처럼 **무엇이 원인이었고 어떻게 풀었는지를 한 줄**로 남긴다. 그러면 검색으로 온 다음 사람이 **바로 해결**한다(같은 증상 → 같은 원인 → 같은 해법). **왜 남기나**: ① **답해 준 사람에 대한 예의** — 그들의 도움이 **결실을 맺었음을 알린다**(무엇이 맞았는지 피드백 — 답한 사람도 배움). 「해결됐나요?」를 되묻게 하지 않는다. ② **미래의 나·남을 위한 기록** — 나중에 같은 문제를 겪을 나·팀·검색자에게 **검색 가능한 해답**을 남긴다(craft-debug 5장의 「왜 이 버그가 안 걸렸나」·craft-read 4장의 「지도 남기기」·이해를 자산으로와 정확히 통함). ③ **재발 방지** — 근본 원인이면 **회귀 테스트를 추가**하거나 **문서·README 를 갱신**해(설정에 그 항목 명시) 같은 문제가 안 나게 한다(craft-debug 5장). **자문자답도 남겨라** — 스스로 풀었어도(3장 — 러버덕·검색으로) 원인·해법을 공개로 남기면 다음 사람이 찾는다(자문자답이 좋은 지식 자산). **정리**: 질문의 마지막은 「해결」이 아니라 **「원인·해법을 한 줄 남겨 다음 사람이 찾게 하는 것」**이다 — 「해결됐습니다」만으론 검색으로 온 사람에게 무용하니, **무엇이 원인이었는지 한 줄**(+ 근본이면 재발 방지)을 남긴다. 이게 답해 준 사람에 대한 예의이자 지식을 축적하는 완성이다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 질문하기(craft-ask)는 craft 갈래(개발자의 일하는 법·장인정신)에서 「막힌 문제를 잘 묻고 지식으로 남기기」다. 좋은 질문(1장)은 표현이 이해를 낳음(러버덕), 최소 재현(2장)은 최소화가 진단(craft-debug), 스스로 먼저(3장)는 자율과 협력의 균형, 어디에 묻나(4장)는 지식 축적(공개), 답 받은 뒤(5장)는 원인을 남겨 다음 사람에게(craft-debug 5장·craft-read 4장)와 통한다. craft 갈래(ai·ask·debug·doc·focus·read·refactor)가 「개발자가 일을 잘하는 법」이고, ask 는 debug(스스로 진단)와 doc(남기기)를 잇는 협업 기술이다. **「좋은 질문은 답 전에 절반을 푼다 — 상황·한 것·기대·실제(에러 전문)를 갖추고, 최소 재현을 만들며(만들다 원인이 드러남), 묻기 전 스스로(검색·문서·러버덕, 단 15~30분 넘으면 물어라), 공개 채널에 묻고 답도 공개로(DM 은 지식 소멸), 해결됐으면 원인 한 줄을 남겨 다음 사람이 찾게 하라」**가 이 칸의 핵심이다."
+        },
+        {
+          "type": "try",
+          "text": "**과거에 내가 올렸던 질문 하나를 찾아 원인 한 줄을 덧붙여라** — 「해결됐습니다」로 끝났다면 「원인: ..., 해법: ...」을 추가해 다음 사람이 찾을 수 있게. 앞으로도 문제를 풀면(스스로 풀었어도) **원인·해법을 한 줄** 공개로 남겨라 — 「해결됐습니다」만으론 검색으로 온 사람에게 무용하다. 근본 원인이면 회귀 테스트·문서 갱신으로 재발도 막아라(craft-debug 5장). 답해 준 사람에 대한 예의이자 지식을 축적하는 완성 — 질문의 마지막은 원인을 남겨 다음 사람이 찾게 하는 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「해결됐습니다」로 끝난 스레드의 문제는?",
+          "choices": [
+            "없음",
+            "검색으로 온 다음 사람에게 무용 — 무엇이 원인·해법이었는지 없음",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "원인 한 줄을 남겨야."
+        },
+        {
+          "q": "답을 받아 해결한 뒤 남길 것은?",
+          "choices": [
+            "감사만",
+            "무엇이 원인이었는지·어떻게 풀었는지 한 줄 → 다음 사람이 바로 해결",
+            "삭제",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "예의 + 미래 기록."
+        },
+        {
+          "q": "질문의 마지막은?",
+          "choices": [
+            "「해결」",
+            "원인·해법을 남겨 다음 사람이 찾게 하는 것(+ 근본이면 재발 방지)",
+            "닫기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "지식 축적의 완성."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 질문하기",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "막힌 문제를 물을 때 이 목록을 확인하라. 핵심은 「좋은 질문은 절반을 푼다 — 상황·한 것·기대·실제, 최소 재현, 스스로 먼저, 공개로, 원인 한 줄」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .field { margin:8px 0; }\n  .field .f { display:flex; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .field .f .k { width:70px; color:#7dd3fc; } .field .f.miss { opacity:.35; } .field .f .k.miss { color:#f87171; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '좋은 질문은 답 전에 절반을 푼다(다듬기=문제 좁히기)',\n    '상황·한 것·기대·실제(에러 전문) — 상대의 첫 질문을 미리 답',\n    '최소 재현을 만든다(만들다 원인이 드러남 — 절반)',\n    '묻기 전 스스로: 검색·문서·러버덕·디버깅',\n    '단 15~30분 넘게 막히면 물어라(자존심으로 낭비 X)',\n    '공개 채널에 묻고 답도 공개로(DM 은 지식 소멸)',\n    'AI 에게도 같은 형식(맥락·기대·실제·최소 재현)',\n    '해결됐으면 원인 한 줄 남긴다(다음 사람이 찾게)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 잘 묻고, 지식으로 남긴다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '좋은 질문은 절반을 푼다 — 네 요소·최소 재현·스스로 먼저·공개·원인 한 줄.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 좋은 질문은 다듬는 과정이 문제를 좁혀 답 전에 절반을 푸니, 상황·한 것·기대·실제(에러 전문)를 갖춰 상대의 첫 질문을 미리 답하고, 최소 재현을 만들며(만들다 원인이 드러나는 경우가 절반), 묻기 전 스스로(에러 검색·문서·러버덕·디버깅) 하되 15~30분 넘게 막히면 물어(자존심으로 낭비 X), 공개 채널에 묻고 답도 공개로 남겨(DM 은 지식 소멸) AI 에게도 같은 형식으로 물으며, 해결됐으면 원인·해법을 한 줄 남겨 다음 사람이 찾게 한다.** 답 전에 절반을 풀고(1장), 최소 재현(2장), 스스로 먼저(3장), 공개로(4장), 원인 한 줄(5장). 「잘 묻고, 지식으로 남긴다」가 핵심이다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 질문하기(craft-ask)는 craft 갈래(개발자의 일하는 법·장인정신)에서 「막힌 문제를 잘 묻고 지식으로 남기기」다. 좋은 질문은 표현이 이해를 낳음(러버덕), 최소 재현은 최소화가 진단(craft-debug), 스스로 먼저는 자율과 협력의 균형, 어디에 묻나는 지식 축적(공개), 답 받은 뒤는 원인을 남겨 다음 사람에게(craft-debug 5장·craft-read 4장)와 통한다. craft 갈래(ai·ask·debug·doc·focus·read·refactor)가 「개발자가 일을 잘하는 법」이고, ask 는 debug(스스로 진단)와 doc(남기기)를 잇는 협업 기술이다. **「좋은 질문은 절반을 푼다 — 네 요소·최소 재현·스스로 먼저·공개·원인 한 줄」**이 이 칸의 전부다. 질문하기는 단순히 「모르는 걸 묻는」 게 아니라, 잘 다듬어 스스로 절반을 풀고(최소 재현), 남의 시간을 아끼고(네 요소), 공개로 물어 지식을 축적하고(원인 한 줄), 다음 사람을 돕는 협업의 기술이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 다음 질문을 하라. 「상황·한 것·기대·실제」와 「최소 재현」 두 가지만 갖춰도, 되묻는 왕복 없이 바로 답받고 절반은 스스로 풀린다. 막히면 스스로 먼저(검색·문서·러버덕) 하되 15~30분 넘으면 그동안 정리한 걸로 좋은 질문을 공개 채널에 하고, AI 에게도 같은 형식으로 물으며, 해결됐으면 원인 한 줄을 남겨 다음 사람이 찾게 하라 — 잘 묻고, 지식으로 남겨라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "질문하기 장의 한 줄 요약은?",
+          "choices": [
+            "「안 돼요」",
+            "좋은 질문은 절반을 푼다 — 네 요소·최소 재현·스스로 먼저·공개·원인 한 줄",
+            "무시",
+            "포기"
+          ],
+          "answer": 1,
+          "why": "잘 묻고 남긴다."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "상황·한 것·기대·실제 + 최소 재현",
+            "정렬·압축",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "왕복 방지·절반 풀림."
+        },
+        {
+          "q": "질문하기가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "craft-debug(최소 재현·진단)·doc/read(지식 남기기)·팀 협업·AI 활용",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "협업의 기술."
+        }
+      ]
     }
   ]
 }
