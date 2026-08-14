@@ -1949,6 +1949,29 @@ await step('다른 탭이 만든 내 용어가 사라지지 않는다 (KL-271)',
   });
   if (kinds.length !== 2) throw new Error(`두 탭이 만든 용어가 ${kinds.length}개만 남았다`);
   if (new Set(kinds).size !== 2) throw new Error('두 탭이 같은 id 를 뽑았다: ' + kinds.join(','));
+
+  /* 자료가 남아도 **화면에 닿아야** 쓴 것이다. 용어를 고친 탭은 남의 것을 말없이 받지 않지만
+     (내 것이 되돌려질 수 있다), 다시 열면 합쳐진 둘이 다 보여야 한다. */
+  await b2.reload({ waitUntil: 'domcontentloaded' });
+  await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await b2.waitForTimeout(ms(800));
+  await openTerms(b2);
+  const rows = await b2.locator('[data-km="t-del"]').count();
+  if (rows < 2) throw new Error(`다시 열었는데 합쳐진 용어가 안 보인다 (${rows}줄)`);
+
+  /* 아직 아무것도 안 고친 탭은 **그 자리에서** 따라온다. */
+  const c3 = await ctx.newPage();
+  await c3.goto(URL, { waitUntil: 'domcontentloaded' });
+  await c3.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await c3.waitForTimeout(ms(800));
+  await openTerms(c3);
+  await a.bringToFront();
+  await openTerms(a);
+  await a.evaluate(() => document.querySelector('[data-km="t-add-node"]').click());
+  await a.waitForTimeout(ms(900));
+  await c3.bringToFront();
+  await c3.waitForFunction(() => document.querySelectorAll('[data-km="t-del"]').length >= 3,
+    null, { timeout: ms(6000) });
   await ctx.close();
 });
 
