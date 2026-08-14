@@ -145,8 +145,10 @@ const RAW_CHECKS = [
   { name: '방을 든 채 게임을 갈아타는지', cmd: ['npm', 'run', 'smoke:arcaderoom'] },
   { name: '흥 화면이 도는지', cmd: ['npm', 'run', 'test:heung'] },
   { name: '타임캡슐이 도는지', cmd: ['npm', 'run', 'test:timecapsule'] },
+  { name: '오락실 자판이 도는지', cmd: ['npm', 'run', 'smoke:arcadekeys'] },
   { name: '자기 성능 재기가 도는지', cmd: ['npm', 'run', 'test:perf:self'] },
   /* 6분짜리다 — 묶음에 넣으면 push 마다 6분이 붙는다. 여기가 그 집이다. */
+  { name: '둘러보기가 끝까지 도는지', cmd: ['npm', 'run', 'smoke:tour'] },
   { name: '성능 예산이 지켜지는지', cmd: ['npm', 'run', 'test:perf:budget:regress'] },
   { name: '실사이트 화면들이 뜨는지', cmd: ['npm', 'run', 'smoke:live'] },
   /* ★ 이건 **실사이트**를 재는 검사다 (`URL` 기본값이 blog.mascari4615.com).
@@ -163,11 +165,11 @@ const RAW_CHECKS = [
   { name: '약속한 모양이 실제와 맞는지', cmd: ['npm', 'run', 'test:contract:live'] },
   { name: '대결 한 판이 실제로 도는지', cmd: ['npm', 'run', 'test:duel'] },
   { name: '남이 만든 도구 화면이 도는지', cmd: ['npm', 'run', 'test:usertool'] },
+  /* ★ **아무도 안 돌리던 검사 둘** (2026-08-15). `audit:orphans` 가 이름으로 짚어 줬다 —
+     써 두고 어디에도 안 물려 있으면 없는 검사다. 둘 다 18~33초라 push 묶음에는 무겁고,
+     한 시간에 한 번 도는 이 자리가 그런 검사의 집이다. */
+  { name: '라디오가 도는지', cmd: ['npm', 'run', 'smoke:radio'] },
+  { name: '오락실 다시보기가 도는지', cmd: ['npm', 'run', 'smoke:arcadereplay'] },
 ];
 
-/* ★ **이 자리에도 지붕이 있다** (2026-08-14, 실측). 한 시간마다 도는 이 판은
-   16 → 17 → 19 → 20 → **40분(=시간 초과로 끊김)** 으로 늘어났다 — 오늘 내가 느린 검사를
-   자꾸 여기로 옮긴 탓이다. 「느린 검사의 집」이라고 해서 무한히 넣을 수 있는 건 아니다.
-   그래서 제일 무거운 둘(`smoke:tour` 6분 · `smoke:arcadekeys` 2.7분)은 도로 뺐다.
-   그 둘은 **더 드문 자리**(하루 몇 번)가 필요하다 — 그 자리를 만들기 전까지는 고아로 둔다. */
 export const CHECKS = withLive(RAW_CHECKS);
