@@ -8,6 +8,7 @@
  * 단계를 차례로 열어 주고, 앞 단계 결과는 지금 있는 「이어서」 배선으로 다음 단계에 넘어간다.
  */
 import { t, loadNamespace } from '../lib/i18n';
+import { onAccountSettled } from '../lib/account-ready';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -665,23 +666,13 @@ import { t, loadNamespace } from '../lib/i18n';
                 id: 'flow-main',
                 label: t('flow.t31', undefined, "흐름"),
                 build: (container: HTMLElement) => {
-                    /* 로그인 상태는 처음엔 **아직 모름**이다 (계정 확인이 늦게 온다).
-                     * 한 번만 그리면 로그인한 사람에게도 「만들려면 로그인」이 남는다 —
-                     * 상태가 정해질 때 다시 그린다. */
-                    let drawnFor: string | null | undefined;
-                    const account = window.KarmoAccount;
-                    if (!account) {
+                    /* ★ 로그인 상태는 처음엔 **아직 모름**이다 — 계정 꾸러미가 늦게 온다.
+                       한 번만 그리면 로그인한 사람에게도 「만들려면 로그인」이 남는다.
+                       (2026-08-14: 「남이 만든 도구」가 이 병으로 목록을 아예 안 불렀다 —
+                        같은 자리가 여기에도 있었다. 기다리는 방법은 `lib/account-ready.ts` 한 곳.) */
+                    Toolbox.onDispose?.(onAccountSettled(() => {
                         void loadNamespace('flow').then(() => build(container));
-                        return;
-                    }
-                    const off = account.subscribe((state) => {
-                        if (state.loading) return;
-                        const key = state.account?.handle ?? null;
-                        if (drawnFor === key) return;
-                        drawnFor = key;
-                        void loadNamespace('flow').then(() => build(container));
-                    });
-                    Toolbox.onDispose?.(off);
+                    }));
                 },
             },
         ],
