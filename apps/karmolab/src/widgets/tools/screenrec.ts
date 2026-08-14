@@ -12,6 +12,7 @@ import { pickRecordType, download } from './shared/video';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -74,7 +75,8 @@ import { attachMedia } from './shared/media';
           let recorder: MediaRecorder | null = null;
           let made: Blob | null = null;
           let tracks: MediaStreamTrack[] = [];
-          let ticker = 0;
+          /** 녹화 시계를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. */
+          let stopTicker: (() => void) | null = null;
           let startedAt = 0;
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
@@ -84,7 +86,7 @@ import { attachMedia } from './shared/media';
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function cleanup(): void {
-            window.clearInterval(ticker);
+            stopTicker?.();
             tracks.forEach((t) => t.stop());
             tracks = [];
             startBtn.disabled = false;
@@ -152,7 +154,8 @@ import { attachMedia } from './shared/media';
             startedAt = performance.now();
             startBtn.disabled = true;
             stopBtn.disabled = false;
-            ticker = window.setInterval(() => {
+            // 지난 시간은 `performance.now()` 에서 다시 재므로, 덮어 뒀다 돌아와도 시각이 안 틀린다.
+            stopTicker = intervalWhileVisible(() => {
               const sec = (performance.now() - startedAt) / 1000;
               clock.textContent = mmss(sec);
               const guess = chunks.reduce((a, c) => a + c.size, 0);
@@ -180,7 +183,7 @@ import { attachMedia } from './shared/media';
           function stop(): void {
             if (recorder && recorder.state !== 'inactive') recorder.stop();
             recorder = null;
-            window.clearInterval(ticker);
+            stopTicker?.();
           }
 
           startBtn.onclick = () => {
