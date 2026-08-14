@@ -8,6 +8,10 @@ IMG-ENCODE	src/widgets/bon/bon.ts
 IMG-ENCODE	src/widgets/imageconvert/core.ts	예외: 자체 배경칠(fillAlpha/bg)+mime 문자열 API(webp 등)+품질 클램프를 갖는 다른 계약이다. 공용 encode 로 바꾸면 중복 제거가 아니라 재작성 — 2026-08-14 확인
 IMG-ENCODE	src/widgets/imageedit.ts
 IMG-ENCODE	src/widgets/karmograph/karmograph.ts
+IMG-ENCODE	src/widgets/tools/bgremove.ts
+IMG-ENCODE	src/widgets/tools/docscan.ts
+IMG-ENCODE	src/widgets/tools/idphoto.ts
+IMG-ENCODE	src/widgets/tools/mermaidlite.ts
 IMG-ENCODE	src/widgets/tools/text-operations.ts
 IMG-LOAD	src/widgets/bluemarble/textures.ts
 IMG-LOAD	src/widgets/bluemarble/tiles.ts
@@ -17,6 +21,12 @@ IMG-LOAD	src/widgets/imageconvert/widget.ts	예외: 결과 크기만 재려고 �
 IMG-LOAD	src/widgets/imageedit.ts
 IMG-LOAD	src/widgets/karmograph/karmograph.ts
 IMG-LOAD	src/widgets/tierlist/storage.ts
+IMG-LOAD	src/widgets/tools/bgremove.ts
+IMG-LOAD	src/widgets/tools/docscan.ts
+IMG-LOAD	src/widgets/tools/dupphoto.ts
+IMG-LOAD	src/widgets/tools/idphoto.ts
+IMG-LOAD	src/widgets/tools/mermaidlite.ts
+IMG-LOAD	src/widgets/tools/ocr.ts
 OBJECT-URL	src/widgets/bluemarble/bluemarble.ts
 OBJECT-URL	src/widgets/bon/bon.ts
 OBJECT-URL	src/widgets/heung/heung.ts
@@ -26,5 +36,12 @@ OBJECT-URL	src/widgets/imageedit.ts
 OBJECT-URL	src/widgets/karmograph/karmograph.ts
 OBJECT-URL	src/widgets/meok/rembg.ts	예외: 내려받기가 아니라 **워커 코드**를 주소로 만들어 `new Worker(url)` 에 넘긴다. 공용 download 의 일이 아니다 — 2026-08-14 확인
 OBJECT-URL	src/widgets/tierlist/publish.ts
+OBJECT-URL	src/widgets/tools/bgremove.ts
+OBJECT-URL	src/widgets/tools/docscan.ts
+OBJECT-URL	src/widgets/tools/dupphoto.ts
+OBJECT-URL	src/widgets/tools/idphoto.ts
 OBJECT-URL	src/widgets/tools/img2pdf.ts	예외: 썸네일 목록 주소는 화면이 계속 쥐고 있어야 해서 공용 download 로는 못 덮는다. 다시 그릴 때 앞 판을 거두는 방식으로 누수만 고쳤다 — 2026-08-14 확인
+OBJECT-URL	src/widgets/tools/mermaidlite.ts
+OBJECT-URL	src/widgets/tools/ocr.ts
+OBJECT-URL	src/widgets/tools/printkit.ts
 OBJECT-URL	src/widgets/tools/video2img.ts	예외: 필름 스트립 썸네일 주소라 화면이 계속 쥐고 있어야 한다. 새 영상을 물릴 때 앞 판을 모두 거둔다(load 안 revoke 루프) — 2026-08-14 확인

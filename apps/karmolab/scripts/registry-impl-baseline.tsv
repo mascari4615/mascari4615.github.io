@@ -4,6 +4,7 @@
 NO-REGISTER	caseconv	-
 NO-REGISTER	charcount	-
 NO-REGISTER	checklist	-
+NO-REGISTER	encdetective	-
 NO-REGISTER	hangulkey	-
 NO-REGISTER	img2pdf	-
 NO-REGISTER	jamo	-
@@ -22,6 +23,7 @@ NO-REGISTER	text2pdf	-
 NO-REGISTER	textclean	-
 NO-REGISTER	textdiff	-
 NO-REGISTER	textredact	-
+NO-REGISTER	unicodex	-
 NO-REGISTER	wordfreq	-
 NO-REGISTER	ziptool	-
 NOT-IN-META	agent-team	-

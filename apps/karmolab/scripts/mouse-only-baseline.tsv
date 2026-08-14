@@ -5,3 +5,5 @@ src/widgets/arcade/games/airhockey-view.ts
 src/widgets/bluemarble/bluemarble.ts
 src/widgets/tierlist/dnd.ts
 src/widgets/tierlist/ui.ts
+src/widgets/tools/docscan.ts
+src/widgets/tools/idphoto.ts
