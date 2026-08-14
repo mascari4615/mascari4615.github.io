@@ -28,10 +28,14 @@ const check = (name, cond, detail = '') => {
 let cantRun = '';
 const br = await chromium.launch();
 const ctx = await br.newContext();
+/* ★ **찬 러너는 느리다** (2026-08-14). 이 검사를 묶음(gates)에 넣자마자 CI 에서 32초에 섰다 —
+   내 자리에서는 7초다. 오락실 화면 검사가 앞서 같은 병을 겪고 60초로 늘렸다(2026-08-13).
+   못 기다려서 나는 거짓 빨강이 기다림보다 비싸다. */
+ctx.setDefaultTimeout(60000);
 const open = async (url) => {
   const p = await ctx.newPage();
   await p.route('**/__dev', (r) => r.abort());
-  await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   return p;
 };
@@ -47,7 +51,7 @@ try {
 
 if (!cantRun) {
   await a.click('[data-letter="gomoku"]');
-  await a.waitForSelector('.ac-cell', { timeout: 20000 });
+  await a.waitForSelector('.ac-cell', { timeout: 45000 });
   check('편지 줄이 뜬다', await a.locator('#acLetter').isVisible());
 
   await a.locator('.ac-cell').nth(40).click();
