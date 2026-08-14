@@ -4,6 +4,7 @@
  * 손가락이 닿은 자리를 그대로 보낸다 — 이 놀이의 액션은 「눌렀다」가 아니라 **「여기 있다」**다.
  * 그래서 `pointermove` 를 그대로 흘려보내되, 소식이 너무 잦으면 그물망이 막히므로 프레임당 하나만.
  */
+import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { W, H, PUCK_R, PADDLE_R, GOAL_W, type AirState, type AirAction } from './airhockey';
 
@@ -30,12 +31,38 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       pending = toBoard(e);
     });
 
+    /* 자판 길 (2026-08-14, `audit:mouse-only`). 채가 포인터를 그대로 따라가서 자판 쓰는 사람은
+     * **채를 못 움직였다** — 공만 오가는 걸 보고 있게 된다. 화살표로 옮긴다(Shift 는 크게).
+     * 보내는 통로는 마우스와 같은 `pending` 이라 그물망으로 가는 길이 갈리지 않는다. */
+    let mallet: { x: number; y: number } | null = null;
+    cv.tabIndex = 0;
+    cv.setAttribute('role', 'application');
+    cv.setAttribute('aria-label', t('arcade.ah.kb'));
+    cv.addEventListener('keydown', (e) => {
+      if (!mallet) return;
+      const step = e.shiftKey ? W / 8 : W / 24;
+      switch (e.key) {
+        case 'ArrowLeft': mallet.x -= step; break;
+        case 'ArrowRight': mallet.x += step; break;
+        case 'ArrowUp': mallet.y -= step; break;
+        case 'ArrowDown': mallet.y += step; break;
+        default: return;
+      }
+      e.preventDefault();
+      mallet.x = Math.max(0, Math.min(W, mallet.x));
+      mallet.y = Math.max(0, Math.min(H, mallet.y));
+      pending = { x: mallet.x, y: mallet.y };
+    });
+
     return (v, mySeat) => {
       if (pending) {
         act(pending);
         pending = null;
       }
       const s = v.state;
+      // 자판이 아는 자리를 **서버가 말한 내 채 자리**로 맞춘다 — 어긋나면 채가 튄다.
+      const mine = s.paddles[mySeat];
+      if (mine) mallet = { x: mine.x, y: mine.y };
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cw = cv.clientWidth || 260;
