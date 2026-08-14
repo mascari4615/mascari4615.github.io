@@ -40,6 +40,7 @@ import { readPlays, notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
+import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
 import { record, type Tape } from './replay';
@@ -556,6 +557,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-find{width:100%;max-width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary);color:var(--text-color);margin:var(--space-md) 0}',
+      '.ac-openstrip{display:flex;gap:8px;flex-wrap:wrap;margin:var(--space-md) 0}',
+      '.ac-opencard{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
+      '.ac-opencard span{font-size:18px}',
       '.ac-best{font-size:var(--font-size-xs);color:var(--accent);align-self:flex-start}',
       '.ac-len{font-size:var(--font-size-xs);color:var(--text-secondary);border:1px solid var(--border-color);border-radius:999px;padding:1px 7px;align-self:flex-start}',
       '.ac-len.ac-short{color:var(--accent);border-color:var(--accent)}',
@@ -665,6 +669,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<input type="search" id="acFind" class="ac-find" placeholder="' + esc(t('arcade.find.hint')) +
       '" aria-label="' + esc(t('arcade.find.hint')) + '">' +
       '<div class="ac-room" id="acRoom" style="display:none"></div>' +
+      '<div id="acOpen"></div>' +
       '<div class="ac-today" id="acToday"></div>' +
       '<div id="acPicks"></div>' +
       '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
@@ -787,6 +792,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (isTeamy(g.seats[1])
           ? '<button ' + (pick ? 'data-pickteam' : 'data-team') + '="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
           : '') +
+        /* 「같이」는 그대로 비공개(링크 아는 사람만), 이건 목록에 올린다 — 단추로 가른다. */
+        '<button ' + (pick ? 'data-pickfind' : 'data-find') + '="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>' +
         '</span></div>'
       );
     };
@@ -854,6 +861,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       on('data-pickletter', 'pickletter', startLetter);
       on('data-team', 'team', startTeam);
       on('data-pickteam', 'pickteam', startTeam);
+      on('data-find', 'find', (id) => openRoom(id, true));
+      on('data-pickfind', 'pickfind', (id) => openRoom(id, true));
     }
 
     /** 이 게임이 검색어에 걸리나 — 이름·설명·갈래·길이 어디든. */
@@ -864,6 +873,40 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       t('arcade.kind.' + kindOf(id)),
       t('arcade.len.' + lengthOf(id))
     ];
+
+    /**
+     * 지금 열린 방 — 혼자 연 사람이 남을 만나는 유일한 길 (arcade-next ★2).
+     *
+     * 못 물어보면(봇이 죽었거나 회선이 끊겼거나) **그냥 안 그린다.** 「불러올 수 없음」을
+     * 띄우면 로비가 고장 난 것처럼 보이는데, 이건 있으면 좋은 것이지 없으면 안 되는 것이 아니다.
+     */
+    const paintOpen = async (): Promise<void> => {
+      const box = $<HTMLElement>('#acOpen');
+      const rooms = await listRooms();
+      /* 내 방은 빼고 보여 준다 — 내가 연 방에 내가 들어가는 단추는 뜻이 없다. */
+      const mine = new Set(net ? [$<HTMLElement>('#acCode').textContent ?? ''] : []);
+      const list = rooms.filter((r) => !mine.has(r.code));
+      if (!list.length) { box.innerHTML = ''; return; }
+      box.innerHTML =
+        '<h3 class="ac-kind">' + esc(t('arcade.open.title')) + ' <i>' + list.length + '</i></h3>' +
+        '<div class="ac-openstrip">' +
+        list
+          .map((r: OpenRoom) =>
+            '<button class="ac-opencard" data-join="' + esc(r.code) + '">' +
+            '<span>' + iconOf(r.game) + '</span>' +
+            esc(t('arcade.open.card', {
+              game: gameById(r.game) ? t('arcade.game.' + r.game + '.name') : r.game,
+              host: r.host
+            })) + '</button>')
+          .join('') +
+        '</div>';
+      container.querySelectorAll<HTMLButtonElement>('[data-join]').forEach((b) => {
+        b.onclick = (): void => {
+          remember();
+          joinRoomAs(String(b.dataset.join));
+        };
+      });
+    };
 
     const paintPicks = (): void => {
       const box = $<HTMLElement>('#acPicks');
@@ -1007,6 +1050,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     paintPicks();
     paintGames();
+    void paintOpen();
+    /* 목록은 살아 있는 것이라 가끔 다시 본다 — 로비에 있을 때만. */
+    const openTimer = window.setInterval(() => {
+      if (lobby.style.display !== 'none') void paintOpen();
+    }, 20000);
+    Toolbox.onDispose?.(() => window.clearInterval(openTimer));
     paintPacks();
 
     /* 찾는 중에는 오늘의 셋도 접는다 — 찾는 사람은 이미 무엇을 할지 정했다. */
@@ -1014,6 +1063,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acToday').style.display = findEl.value.trim() ? 'none' : '';
       paintPicks();
       paintGames();
+      void paintOpen();
       paintSolo();
       paintPacks();
     };
@@ -1614,13 +1664,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('.ac-share').style.display = host ? '' : 'none';
     }
 
-    function openRoom(id: string): void {
+    /** 목록에 올린 방을 내리는 손 — 방을 닫을 때 부른다. */
+    let dropOpen: (() => void) | null = null;
+
+    function openRoom(id: string, publicly = false): void {
       /* 이미 방을 들고 있으면 새로 파지 않는다 — 그게 「방 유지」의 전부다. */
       if (net?.host) {
         startTogether(id);
         return;
       }
       const code = makeCode();
+      /* 「같이 찾기」로 연 방만 목록에 올린다 — 「같이」는 그대로 링크 아는 사람만이다. */
+      dropOpen?.();
+      dropOpen = publicly ? holdRoom({ code, game: id, host: myName() }) : null;
       gameId = id;
       peers = [];
       show('wait');
@@ -1811,6 +1867,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const quit = (): void => {
       dropIntro?.();
       dropIntro = null;
+      /* 방을 닫으면 목록에서도 내린다 — 안 내리면 10분 동안 「눌렀는데 아무도 없네」가 된다. */
+      dropOpen?.();
+      dropOpen = null;
       cancelAnimationFrame(raf);
       net?.leave();
       net = null;
