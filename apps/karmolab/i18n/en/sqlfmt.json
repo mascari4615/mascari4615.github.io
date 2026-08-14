@@ -1,0 +1,16 @@
+{
+  "sqlfmt.mdd": "Let me unfold that squashed SQL.",
+  "sqlfmt.tab": "SQL",
+  "sqlfmt.label.in": "Paste SQL",
+  "sqlfmt.label.out": "Formatted SQL",
+  "sqlfmt.aria.out": "Formatted SQL",
+  "sqlfmt.opt.upper": "Uppercase keywords",
+  "sqlfmt.opt.convert": "Convert between dialects",
+  "sqlfmt.label.from": "From",
+  "sqlfmt.label.to": "To",
+  "sqlfmt.btn.copy": "Copy",
+  "sqlfmt.status.idle": "Paste some SQL",
+  "sqlfmt.status.ok": "Laid out over {n} lines",
+  "sqlfmt.status.converted": "Converted {from} to {to}, {n} lines (what changed is listed above)",
+  "sqlfmt.copy.done": "Copied"
+}

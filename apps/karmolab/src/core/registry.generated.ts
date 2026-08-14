@@ -7,28 +7,43 @@ import { run as biznoRun, spec as biznoSpec } from './bizno';
 import { run as chainRun, spec as chainSpec } from './chain';
 import { run as charconvRun, spec as charconvSpec } from './charconv';
 import { run as charcountRun, spec as charcountSpec } from './charcount';
+import { run as configconvRun, spec as configconvSpec } from './configconv';
+import { run as cspRun, spec as cspSpec } from './csp';
 import { run as csvjsonRun, spec as csvjsonSpec } from './csvjson';
+import { run as curlkitRun, spec as curlkitSpec } from './curlkit';
 import { run as dailyRun, spec as dailySpec } from './daily';
 import { run as dailychoRun, spec as dailychoSpec } from './dailycho';
 import { run as dailytypeRun, spec as dailytypeSpec } from './dailytype';
 import { run as datecalcRun, spec as datecalcSpec } from './datecalc';
+import { run as diffRun, spec as diffSpec } from './diff';
+import { run as encdetectiveRun, spec as encdetectiveSpec } from './encdetective';
 import { run as epochRun, spec as epochSpec } from './epoch';
+import { run as erdRun, spec as erdSpec } from './erd';
 import { run as filehashRun, spec as filehashSpec } from './filehash';
+import { run as gitundoRun, spec as gitundoSpec } from './gitundo';
 import { run as gradeRun, spec as gradeSpec } from './grade';
 import { run as hangulkeyRun, spec as hangulkeySpec } from './hangulkey';
 import { run as hangultypeRun, spec as hangultypeSpec } from './hangultype';
 import { run as hashgenRun, spec as hashgenSpec } from './hashgen';
 import { run as interestRun, spec as interestSpec } from './interest';
 import { run as jamoRun, spec as jamoSpec } from './jamo';
+import { run as jqplayRun, spec as jqplaySpec } from './jqplay';
 import { run as livecountRun, spec as livecountSpec } from './livecount';
 import { run as loanRun, spec as loanSpec } from './loan';
+import { run as logviewRun, spec as logviewSpec } from './logview';
+import { run as mermaidliteRun, spec as mermaidliteSpec } from './mermaidlite';
 import { run as mesh3dRun, spec as mesh3dSpec } from './mesh3d';
+import { run as mockdataRun, spec as mockdataSpec } from './mockdata';
 import { run as passgenRun, spec as passgenSpec } from './passgen';
 import { run as pdf2textRun, spec as pdf2textSpec } from './pdf2text';
 import { run as pdftoolRun, spec as pdftoolSpec } from './pdftool';
 import { run as qrgenRun, spec as qrgenSpec } from './qrgen';
+import { run as regexplainRun, spec as regexplainSpec } from './regexplain';
+import { run as semverRun, spec as semverSpec } from './semver';
+import { run as sqlfmtRun, spec as sqlfmtSpec } from './sqlfmt';
 import { run as tableconvRun, spec as tableconvSpec } from './tableconv';
 import { run as timecalcRun, spec as timecalcSpec } from './timecalc';
+import { run as unicodexRun, spec as unicodexSpec } from './unicodex';
 import { run as unitconvRun, spec as unitconvSpec } from './unitconv';
 import { run as uuidgenRun, spec as uuidgenSpec } from './uuidgen';
 import { run as vatRun, spec as vatSpec } from './vat';
@@ -50,28 +65,43 @@ export const CORES: Record<string, CoreEntry> = {
   chain: { run: chainRun, ops: Object.keys(chainSpec.ops) },
   charconv: { run: charconvRun, ops: Object.keys(charconvSpec.ops) },
   charcount: { run: charcountRun, ops: Object.keys(charcountSpec.ops) },
+  configconv: { run: configconvRun, ops: Object.keys(configconvSpec.ops) },
+  csp: { run: cspRun, ops: Object.keys(cspSpec.ops) },
   csvjson: { run: csvjsonRun, ops: Object.keys(csvjsonSpec.ops) },
+  curlkit: { run: curlkitRun, ops: Object.keys(curlkitSpec.ops) },
   daily: { run: dailyRun, ops: Object.keys(dailySpec.ops) },
   dailycho: { run: dailychoRun, ops: Object.keys(dailychoSpec.ops) },
   dailytype: { run: dailytypeRun, ops: Object.keys(dailytypeSpec.ops) },
   datecalc: { run: datecalcRun, ops: Object.keys(datecalcSpec.ops) },
+  diff: { run: diffRun, ops: Object.keys(diffSpec.ops) },
+  encdetective: { run: encdetectiveRun, ops: Object.keys(encdetectiveSpec.ops) },
   epoch: { run: epochRun, ops: Object.keys(epochSpec.ops) },
+  erd: { run: erdRun, ops: Object.keys(erdSpec.ops) },
   filehash: { run: filehashRun, ops: Object.keys(filehashSpec.ops) },
+  gitundo: { run: gitundoRun, ops: Object.keys(gitundoSpec.ops) },
   grade: { run: gradeRun, ops: Object.keys(gradeSpec.ops) },
   hangulkey: { run: hangulkeyRun, ops: Object.keys(hangulkeySpec.ops) },
   hangultype: { run: hangultypeRun, ops: Object.keys(hangultypeSpec.ops) },
   hashgen: { run: hashgenRun, ops: Object.keys(hashgenSpec.ops) },
   interest: { run: interestRun, ops: Object.keys(interestSpec.ops) },
   jamo: { run: jamoRun, ops: Object.keys(jamoSpec.ops) },
+  jqplay: { run: jqplayRun, ops: Object.keys(jqplaySpec.ops) },
   livecount: { run: livecountRun, ops: Object.keys(livecountSpec.ops) },
   loan: { run: loanRun, ops: Object.keys(loanSpec.ops) },
+  logview: { run: logviewRun, ops: Object.keys(logviewSpec.ops) },
+  mermaidlite: { run: mermaidliteRun, ops: Object.keys(mermaidliteSpec.ops) },
   mesh3d: { run: mesh3dRun, ops: Object.keys(mesh3dSpec.ops) },
+  mockdata: { run: mockdataRun, ops: Object.keys(mockdataSpec.ops) },
   passgen: { run: passgenRun, ops: Object.keys(passgenSpec.ops) },
   pdf2text: { run: pdf2textRun, ops: Object.keys(pdf2textSpec.ops) },
   pdftool: { run: pdftoolRun, ops: Object.keys(pdftoolSpec.ops) },
   qrgen: { run: qrgenRun, ops: Object.keys(qrgenSpec.ops) },
+  regexplain: { run: regexplainRun, ops: Object.keys(regexplainSpec.ops) },
+  semver: { run: semverRun, ops: Object.keys(semverSpec.ops) },
+  sqlfmt: { run: sqlfmtRun, ops: Object.keys(sqlfmtSpec.ops) },
   tableconv: { run: tableconvRun, ops: Object.keys(tableconvSpec.ops) },
   timecalc: { run: timecalcRun, ops: Object.keys(timecalcSpec.ops) },
+  unicodex: { run: unicodexRun, ops: Object.keys(unicodexSpec.ops) },
   unitconv: { run: unitconvRun, ops: Object.keys(unitconvSpec.ops) },
   uuidgen: { run: uuidgenRun, ops: Object.keys(uuidgenSpec.ops) },
   vat: { run: vatRun, ops: Object.keys(vatSpec.ops) },

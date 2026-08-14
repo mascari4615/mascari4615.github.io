@@ -37,5 +37,7 @@
   "devtool.part.sqlfmt": "SQL 다듬기",
   "devtool.part.erd": "표 관계",
   "devtool.part.xmlfmt": "XML 다루기",
-  "devtool.part.mermaidlite": "그림 그리기"
+  "devtool.part.mermaidlite": "그림 그리기",
+  "devtool.part.semver": "버전 범위",
+  "devtool.part.csp": "보안 헤더"
 }

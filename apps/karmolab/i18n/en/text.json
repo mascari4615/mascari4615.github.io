@@ -31,5 +31,7 @@
   "text.part.textredact": "Redact",
   "text.part.text2pdf": "Text → PDF",
   "text.part.text2img": "Text card",
-  "text.btn.recent": "Recent"
+  "text.btn.recent": "Recent",
+  "text.part.encdetective": "Mojibake",
+  "text.part.unicodex": "Hidden chars"
 }

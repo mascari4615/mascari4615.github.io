@@ -1,0 +1,15 @@
+{
+  "jqplay.mdd": "Ask your JSON directly.",
+  "jqplay.tab": "jq",
+  "jqplay.label.query": "Query (jq style)",
+  "jqplay.label.json": "Paste JSON",
+  "jqplay.label.out": "Result",
+  "jqplay.aria.out": "Query result",
+  "jqplay.opt.compact": "One line each",
+  "jqplay.btn.copy": "Copy result",
+  "jqplay.status.idle": "Paste JSON and ask",
+  "jqplay.status.ok": "{n} results",
+  "jqplay.copy.done": "Copied",
+  "jqplay.help.title": "What works",
+  "jqplay.help.limits": "This is not all of jq — the common parts are here; variables ($x), def, reduce and try/catch are not yet."
+}

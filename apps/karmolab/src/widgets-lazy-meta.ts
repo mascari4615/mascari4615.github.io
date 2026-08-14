@@ -245,7 +245,126 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/xmlfmt', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/xmlfmt', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/mockdata', 'tools/jqplay', 'tools/sqlfmt', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/devtool']
+  },
+  {
+    id: 'logview',
+    get title() { return t('widgets.logview.title', undefined, "로그 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.logview.desc', undefined, "큰 로그를 끌어다 놓으면 언제 몰렸는지 보여 주고, 급·정규식으로 좁혀 봅니다. 파일은 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon: '<path d="M4 5h16M4 9h10M4 13h16M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20.2 19.2L22 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/logview']
+  },
+  {
+    id: 'csp',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.csp.title', undefined, "보안 헤더"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.csp.desc', undefined, "CSP 를 갈래별로 펴서 약한 자리를 짚고, 필요한 것만 골라 헤더 한 줄을 지어 줍니다"); },
+    layout: 'wide',
+    icon: '<path d="M12 3l7 3v6c0 4.4-3 8-7 9-4-1-7-4.6-7-9V6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/csp']
+  },
+  {
+    id: 'semver',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.semver.title', undefined, "버전 범위 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.semver.desc', undefined, "^1.2.3 이 실제로 어디까지 받는지 이상·미만으로 펴 주고, 두 범위가 겹치는지 봅니다"); },
+    layout: 'wide',
+    icon: '<path d="M4 12h4l3-7 3 14 3-7h3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/semver']
+  },
+  {
+    id: 'mermaidlite',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.mermaidlite.title', undefined, "글로 그리는 그림판"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.mermaidlite.desc', undefined, "mermaid 문법으로 흐름도·표 관계를 그리고 SVG·PNG 로 저장합니다. 치는 동안 바로 그려집니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6.5 8v4h11v4M6.5 12v4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/mermaidlite']
+  },
+  {
+    id: 'erd',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.erd.title', undefined, "표 관계 보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.erd.desc', undefined, "CREATE TABLE 이나 Prisma 스키마를 붙여넣으면 표·칸·이어짐을 그림과 글로 보여 줍니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="14" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 7h4a3 3 0 0 1 3 3v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/erd']
+  },
+  {
+    id: 'sqlfmt',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.sqlfmt.title', undefined, "SQL 다듬기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.sqlfmt.desc', undefined, "한 줄로 눌린 SQL 을 읽히게 펴고, MySQL·PostgreSQL·SQL Server·SQLite 사이를 옮겨 줍니다"); },
+    layout: 'wide',
+    icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/sqlfmt']
+  },
+  {
+    id: 'jqplay',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.jqplay.title', undefined, "jq 놀이터"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.jqplay.desc', undefined, "JSON 을 붙여넣고 jq 식으로 물어봅니다. 치는 동안 바로 답이 나오고, 아무것도 올리지 않습니다"); },
+    layout: 'wide',
+    icon: '<path d="M6 4h12M12 4v10M8 14h8l-4 6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/jqplay']
+  },
+  {
+    id: 'mockdata',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.mockdata.title', undefined, "가짜 데이터 만들기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.mockdata.desc', undefined, "칸 종류만 적으면 그럴듯한 시험용 데이터를 만듭니다. 한국어·영어·일본어 이름, CSV·JSON·SQL 로"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M9 10v9M15 10v9" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
+    lazyScriptPaths: ['tools/mockdata']
+  },
+  {
+    id: 'configconv',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.configconv.title', undefined, "설정 옮기기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.configconv.desc', undefined, ".env·YAML·TOML·JSON·.properties 를 서로 옮깁니다. 무엇인지 알아서 알아봅니다"); },
+    layout: 'wide',
+    icon: '<path d="M4 6h7M4 12h7M4 18h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 8l3 4-3 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/configconv']
+  },
+  {
+    id: 'curlkit',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.curlkit.title', undefined, "curl 옮기기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.curlkit.desc', undefined, "curl 명령을 fetch·axios·파이썬·Go 코드로 옮기고, 그 자리에서 보내 봅니다"); },
+    layout: 'wide',
+    icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 15l3 2-3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/curlkit']
+  },
+  {
+    id: 'diff',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.diff.title', undefined, "견주기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.diff.desc', undefined, "두 글·코드의 다른 데를 짚습니다. JSON 은 열쇠 경로로 견주고, 바탕 하나에 고침 둘도 합칩니다"); },
+    layout: 'wide',
+    icon: '<path d="M8 4v11a3 3 0 0 0 3 3h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="8" cy="4" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="18" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 6h4M18 4v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/diff']
   },
   {
     id: 'livecount',
@@ -680,6 +799,26 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.textredact.desc', undefined, "문서의 개인 정보와 토큰을 찾아 안전한 표기로 바꿉니다."); },
     layout: 'wide',
     icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/text']
+  },
+  {
+    id: 'unicodex',
+    hidden: true, // 「텍스트 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.unicodex.title', undefined, "안 보이는 글자 찾기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.unicodex.desc', undefined, "눈에 안 보이는 글자와 닮은 글자를 찾아 보여 주고 골라서 지웁니다"); },
+    layout: 'wide',
+    lazyScriptPaths: ['tools/text']
+  },
+  {
+    id: 'encdetective',
+    hidden: true, // 「텍스트 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.encdetective.title', undefined, "깨진 글자 되살리기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.encdetective.desc', undefined, "잘못 읽힌 글을 되짚어 원문으로 돌리고, 무엇이 잘못됐는지 알려 줍니다"); },
+    layout: 'wide',
     lazyScriptPaths: ['tools/text']
   },
   {

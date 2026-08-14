@@ -1,0 +1,15 @@
+{
+  "jqplay.mdd": "JSON 에 바로 물어보세요.",
+  "jqplay.tab": "jq",
+  "jqplay.label.query": "물어보기 (jq 식)",
+  "jqplay.label.json": "JSON 붙여넣기",
+  "jqplay.label.out": "답",
+  "jqplay.aria.out": "물어본 결과",
+  "jqplay.opt.compact": "한 줄로",
+  "jqplay.btn.copy": "답 복사",
+  "jqplay.status.idle": "JSON 을 붙여넣고 물어보세요",
+  "jqplay.status.ok": "답 {n}개",
+  "jqplay.copy.done": "복사했습니다",
+  "jqplay.help.title": "되는 문법 보기",
+  "jqplay.help.limits": "진짜 jq 를 통째로 넣지 않고 자주 쓰는 만큼만 넣었습니다 — 변수($x)·함수 정의(def)·reduce·try/catch 는 아직 없습니다."
+}

@@ -12,13 +12,10 @@
 export interface BoardWords {
   /** 「카드 N장, 선 M개」 같은 한 줄. */
   label: (nodes: number, edges: number) => string;
-  /** 「가 — 이어진 것 3개」 처럼 **방금 고른 것**을 알리는 한 줄. */
-  picked?: (name: string, links: number) => string;
 }
 
 export const DEFAULT_BOARD_WORDS: BoardWords = {
   label: (nodes, edges) => `graph: ${nodes} cards, ${edges} links`,
-  picked: (name, links) => `${name} — ${links} links`,
 };
 
 let words: BoardWords = DEFAULT_BOARD_WORDS;
@@ -26,19 +23,6 @@ let words: BoardWords = DEFAULT_BOARD_WORDS;
 /** 화면이 뜰 때 한 번 얹는다. */
 export function setBoardWords(w: BoardWords): void {
   words = w;
-}
-
-/**
- * 방금 고른 카드를 한 줄로 — **고르는 것은 눈에만 보이는 일이었다**.
- *
- * 카드를 고르면 화면은 테두리로 알리지만 읽어 주는 도구에는 아무 일도 안 일어난다(초점이 안
- * 움직이니 읽을 것도 없다). 그래서 「무엇을 골랐는지」를 말로 한 줄 흘려 준다.
- * 이름이 없는 카드는 **없는 이름을 지어내지 않는다** — 그런 카드가 있다는 사실 자체가 정보다.
- */
-export function pickedLabel(name: string, links: number): string {
-  const say = words.picked ?? DEFAULT_BOARD_WORDS.picked!;
-  const safe = Number.isFinite(links) && links > 0 ? Math.floor(links) : 0;
-  return say((name ?? '').trim() || '(…)', safe);
 }
 
 /** 지금 판을 한 줄로. 숫자가 이상해도(음수·NaN) **0 으로 읽는다** — 이름이 깨지면 안 들린다. */

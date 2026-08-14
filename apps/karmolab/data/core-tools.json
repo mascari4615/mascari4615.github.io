@@ -35,10 +35,29 @@
       "fits"
     ]
   },
+  "configconv": {
+    "ops": [
+      "convert",
+      "detect"
+    ]
+  },
+  "csp": {
+    "ops": [
+      "parse",
+      "review",
+      "build"
+    ]
+  },
   "csvjson": {
     "ops": [
       "toJson",
       "toCsv"
+    ]
+  },
+  "curlkit": {
+    "ops": [
+      "convert",
+      "parse"
     ]
   },
   "daily": {
@@ -63,15 +82,40 @@
       "dday"
     ]
   },
+  "diff": {
+    "ops": [
+      "text",
+      "structure",
+      "merge"
+    ]
+  },
+  "encdetective": {
+    "ops": [
+      "fix",
+      "explain"
+    ]
+  },
   "epoch": {
     "ops": [
       "toDate",
       "toStamp"
     ]
   },
+  "erd": {
+    "ops": [
+      "diagram",
+      "outline"
+    ]
+  },
   "filehash": {
     "ops": [
       "verify"
+    ]
+  },
+  "gitundo": {
+    "ops": [
+      "steps",
+      "list"
     ]
   },
   "grade": {
@@ -112,6 +156,11 @@
       "initials"
     ]
   },
+  "jqplay": {
+    "ops": [
+      "query"
+    ]
+  },
   "livecount": {
     "ops": [
       "since",
@@ -124,9 +173,26 @@
       "compare"
     ]
   },
+  "logview": {
+    "ops": [
+      "summary",
+      "filter"
+    ]
+  },
+  "mermaidlite": {
+    "ops": [
+      "svg",
+      "check"
+    ]
+  },
   "mesh3d": {
     "ops": [
       "info"
+    ]
+  },
+  "mockdata": {
+    "ops": [
+      "generate"
     ]
   },
   "passgen": {
@@ -154,6 +220,25 @@
       "contact"
     ]
   },
+  "regexplain": {
+    "ops": [
+      "explain",
+      "railroad"
+    ]
+  },
+  "semver": {
+    "ops": [
+      "explain",
+      "satisfies",
+      "overlap"
+    ]
+  },
+  "sqlfmt": {
+    "ops": [
+      "format",
+      "dialect"
+    ]
+  },
   "tableconv": {
     "ops": [
       "convert"
@@ -163,6 +248,12 @@
     "ops": [
       "shift",
       "sum"
+    ]
+  },
+  "unicodex": {
+    "ops": [
+      "scan",
+      "clean"
     ]
   },
   "unitconv": {

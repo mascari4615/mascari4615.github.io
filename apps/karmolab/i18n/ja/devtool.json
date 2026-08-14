@@ -37,5 +37,7 @@
   "devtool.part.sqlfmt": "SQL 整形",
   "devtool.part.erd": "表の関係",
   "devtool.part.xmlfmt": "XML を扱う",
-  "devtool.part.mermaidlite": "図を描く"
+  "devtool.part.mermaidlite": "図を描く",
+  "devtool.part.semver": "バージョン範囲",
+  "devtool.part.csp": "セキュリティヘッダー"
 }

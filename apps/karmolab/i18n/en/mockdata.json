@@ -1,0 +1,20 @@
+{
+  "mockdata.mdd": "A hundred test rows, coming up.",
+  "mockdata.tab": "Mock data",
+  "mockdata.label.schema": "Fields (one per line)",
+  "mockdata.label.out": "Generated data",
+  "mockdata.aria.out": "Generated data",
+  "mockdata.label.count": "How many rows",
+  "mockdata.label.seed": "Seed (same seed, same data)",
+  "mockdata.label.locale": "Language",
+  "mockdata.label.to": "Format",
+  "mockdata.label.table": "Table name (for SQL)",
+  "mockdata.btn.run": "Generate",
+  "mockdata.btn.shuffle": "Another batch",
+  "mockdata.btn.copy": "Copy",
+  "mockdata.hint.types": "Types: name · email · phone · address · company · job · id · uuid · int(20,40) · float(0,1) · bool · date(2024-01-01,2026-12-31) · enum(a|b|c) · lorem(6) · url",
+  "mockdata.status.idle": "Write the fields and it generates as you type",
+  "mockdata.status.empty": "Write at least one field",
+  "mockdata.status.ok": "{n} rows · {cols} fields (seed {seed})",
+  "mockdata.copy.done": "Copied"
+}

@@ -23,6 +23,9 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['json2ts', t('devtool.part.json2ts', undefined, 'JSON → 타입')],
         ['csvjson', 'CSV ↔ JSON'],
         ['tableconv', t('devtool.part.tableconv', undefined, '표 바꾸기')],
+        ['curlkit', t('devtool.part.curlkit', undefined, 'curl 옮기기')],
+        ['configconv', t('devtool.part.configconv', undefined, '설정 옮기기')],
+        ['sqlfmt', t('devtool.part.sqlfmt', undefined, 'SQL 다듬기')],
         ['xmlfmt', t('devtool.part.xmlfmt', undefined, 'XML 다루기')]
       ]
     },
@@ -41,13 +44,20 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['hashgen', t('devtool.part.hashgen', undefined, '해시')],
         ['uuidgen', 'UUID'],
         ['crypto', t('devtool.part.crypto', undefined, '암호화')],
-        ['radix', t('devtool.part.radix', undefined, '진법')]
+        ['radix', t('devtool.part.radix', undefined, '진법')],
+        ['mockdata', t('devtool.part.mockdata', undefined, '가짜 데이터')],
+        ['mermaidlite', t('devtool.part.mermaidlite', undefined, '그림 그리기')],
+        ['csp', t('devtool.part.csp', undefined, '보안 헤더')]
       ]
     },
     {
       label: t('devtool.group.check', undefined, '살펴보기'),
       jobs: [
         ['regextest', t('devtool.part.regextest', undefined, '정규식')],
+        ['diff', t('devtool.part.diff', undefined, '견주기')],
+        ['jqplay', t('devtool.part.jqplay', undefined, 'jq 물어보기')],
+        ['erd', t('devtool.part.erd', undefined, '표 관계')],
+        ['semver', t('devtool.part.semver', undefined, '버전 범위')],
         ['codeshot', t('devtool.part.codeshot', undefined, '코드 사진')],
         ['epoch', t('devtool.part.epoch', undefined, '유닉스 시각')],
         ['colorconv', t('devtool.part.colorconv', undefined, '색 변환')]
@@ -56,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   ];
 
   /** 들고 온 것이 없어도 되는 할 일 — 없는 데서 **만드는** 쪽. */
-  const NO_INPUT_NEEDED = new Set(['uuidgen', 'crypto', 'cron', 'colorconv']);
+  const NO_INPUT_NEEDED = new Set(['uuidgen', 'crypto', 'cron', 'colorconv', 'mockdata', 'mermaidlite', 'csp']);
 
   /** 갈래마다 앞에 띄울 할 일. 첫 번째가 「가장 맞는 것」이다. */
   const FOR: Record<DataKind, string[]> = {

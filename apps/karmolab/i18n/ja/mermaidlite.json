@@ -1,0 +1,17 @@
+{
+  "mermaidlite.mdd": "書けば描きます。",
+  "mermaidlite.tab": "図",
+  "mermaidlite.label.in": "mermaid で書く",
+  "mermaidlite.label.out": "図",
+  "mermaidlite.btn.svg": "SVG で保存",
+  "mermaidlite.btn.png": "PNG で保存",
+  "mermaidlite.btn.copy": "SVG をコピー",
+  "mermaidlite.status.idle": "1行目に flowchart TD・graph LR・erDiagram のどれかを書いてください",
+  "mermaidlite.status.unknown": "1行目は flowchart TD・graph LR・erDiagram のどれかです",
+  "mermaidlite.status.ok": "ノード {nodes} 個・つながり {edges} 個を描きました",
+  "mermaidlite.status.savedSvg": "SVG で保存しました",
+  "mermaidlite.status.savedPng": "PNG で保存しました",
+  "mermaidlite.status.pngFail": "PNG にできませんでした — SVG で保存してください",
+  "mermaidlite.copy.done": "SVG をコピーしました",
+  "mermaidlite.note.subset": "mermaid 全部ではなく、フローチャート(flowchart・graph)と表の関係(erDiagram)だけです。subgraph・class・style はまだ読みません。読めなかった行は編集欄の下にそのまま出します。"
+}
