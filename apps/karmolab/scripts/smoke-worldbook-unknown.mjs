@@ -58,6 +58,9 @@ const FAKE = {
       summary: '수집기가 모르는 종류·필드를 들고 온 문서',
       source: 'memo/wm/design/test-yeast.md',
       body: '# 시험용 효모 한 덩이\n\n본문이다.',
+      // 수집기가 늘 채워 주는 칸(빈 배열이라도)은 그대로 흉내 낸다 — 화면이 `doc.tags.length` 를
+      // 그냥 읽기 때문이다. 여기서 빼면 「제품이 틀렸다」가 아니라 **가짜 자료가 틀린 것**이 된다.
+      tags: [],
       fields: { [새필드]: 새값 },
     },
   ],
@@ -100,13 +103,22 @@ const page = await ctx.newPage();
 const problems = [];
 try {
   // 도구 주소로 곧장 연다 — 첫 화면의 `#wm` 로는 위젯이 안 떴다(2026-08-14 실측: 목록만 나온다).
-  await page.goto(`${BASE}/karmolab/t/wm/`, { waitUntil: 'load', timeout: 30000 });
+  /* 진입 = 껍데기가 읽는 `KARMOLAB_ENTRY_TOOL` (도구 상세 쪽이 심는 값과 같은 것).
+   * `#wm` 해시로는 첫 화면만 떴고, `/karmolab/t/wm/` 로 가면 상대 경로가 깨져 빈 쪽이 온다.
+   * 배포 쪽이 실제로 쓰는 길을 그대로 흉내 내는 것이 맞다. */
+  await page.addInitScript(() => { window.KARMOLAB_ENTRY_TOOL = 'wm'; });
+  await page.goto(`${BASE}/apps/karmolab/index.html`, { waitUntil: 'load', timeout: 30000 });
   await page.waitForTimeout(2500);
-  // 도감은 이 화면의 갈래 하나다 — 눌러야 뜬다.
-  const tab = page.locator('button, a').filter({ hasText: /도감|세계/ }).first();
-  if (await tab.count()) await tab.click().catch(() => {});
-  await page.waitForSelector('.wb-card, .wb-item, .wb-list, .wb-grid', { timeout: 20000 }).catch(() => {});
   const text = () => page.evaluate(() => document.body.innerText);
+  // 도감은 이 화면의 갈래 하나다 — 눌러야 뜬다. 「세계 도감 열기」 단추 쪽이 확실하다.
+  const open = page.getByText('세계 도감 열기').first();
+  if (await open.count()) await open.click().catch(() => {});
+  else {
+    const tab = page.locator('button, a').filter({ hasText: /세계 도감/ }).first();
+    if (await tab.count()) await tab.click().catch(() => {});
+  }
+  // 목록이 그려질 때까지 기다린다 — 자료를 받아 그리는 사이가 있다.
+  await page.waitForFunction((t) => document.body.innerText.includes(t), 새제목, { timeout: 20000 }).catch(() => {});
 
   const listText = await text();
   /* 위젯이 아예 안 떴으면 그건 「제품이 틀렸다」가 아니라 **못 잰 것**이다 (2026-08-14).
