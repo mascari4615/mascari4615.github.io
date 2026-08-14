@@ -127,7 +127,17 @@ export async function serveRepo(options = {}) {
        dev 서버가 그 매핑을 해 줘서 멀쩡했다). 없는 것을 기다리게 두면 「느리다」로 오해한다. */
     if (/^\/karmolab(\/|$)/.test(target)) target = `/apps/blog${target}`;
     if (target.endsWith('/')) target += 'index.html';
-    const file = path.join(root, target.replace(/^\//, ''));
+    let file = path.join(root, target.replace(/^\//, ''));
+    /* ★ **도구 장은 저장소에 없다 — 없으면 셸을 내준다** (2026-08-14, 재현으로 확인).
+       `/karmolab/t/<도구>/index.html` 은 `gen:tool-pages` 가 굽고 배포가 찍는 것이라
+       `git ls-files` 로는 0개다. 앱이 만드는 편지 링크가 바로 그 주소라, CI 의 깨끗한
+       체크아웃에서는 404 → 셸이 영영 안 뜬다(`Toolbox=undefined`, 60초 초과).
+       그 장의 알맹이는 앱 셸과 같다(미리 그린 겉모습만 다르다) — 여기서 재려는 것은
+       겉모습이 아니라 `?m=` 이 열리는 동작이다. */
+    if (!fs.existsSync(file) && /^\/apps\/blog\/karmolab\//.test(target)) {
+      const shell = path.join(root, 'apps/karmolab/index.html');
+      if (fs.existsSync(shell)) file = shell;
+    }
     // 뿌리 밖으로 나가는 주소는 거절한다 — 검사용이라도 열어 두면 안 된다.
     if (!file.startsWith(root)) { res.writeHead(404).end('not found'); return; }
 
