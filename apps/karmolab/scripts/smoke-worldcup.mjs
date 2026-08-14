@@ -18,8 +18,9 @@
  *       URL=http://127.0.0.1:8813/apps/karmolab/index.html#worldcup node scripts/smoke-worldcup.mjs
  */
 import { chromium } from 'playwright';
+import { livePage } from './lib/live-url.mjs';
 
-const URL_TARGET = process.env.URL || 'https://blog.mascari4615.com/karmolab/#worldcup';
+const URL_TARGET = livePage('/karmolab/#worldcup');
 const problems = [];
 
 const browser = await chromium.launch();

@@ -15,8 +15,9 @@
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-workshop-kinds.mjs
  */
 import { chromium } from 'playwright';
+import { livePage } from './lib/live-url.mjs';
 
-const BASE = process.env.URL || 'https://blog.mascari4615.com/karmolab/';
+const BASE = livePage('/karmolab/');
 const problems = [];
 
 const browser = await chromium.launch();

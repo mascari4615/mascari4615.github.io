@@ -178,6 +178,28 @@ if (fs.existsSync(wf)) {
   }
 }
 
+/*
+ * ★ **볼 곳을 손으로 박지 마라** (2026-08-14 red-walk 발견).
+ *
+ * 라이브 점검 러너와 워크플로는 볼 곳을 `BASE` 하나로 정해 준다. 그런데 검사 열여섯이
+ * `URL` 만 읽고 그 기본값에 **실서비스 주소를 박아** 두고 있었다 — `BASE` 를 딴 곳으로 줘도
+ * 그 열여섯은 실서비스를 재고 초록을 냈다. 실제로 `BASE=http://127.0.0.1:1` 로 돌렸는데
+ * 다섯이 멀쩡히 통과했다(안 서 있는 주소를 본 게 아니라 **실서비스**를 보고 있었다).
+ * 재는 대상이 내가 생각한 그것이 아니면, 그 초록은 아무 말도 아니다.
+ *
+ * 규약: 볼 곳은 `lib/live-url.mjs` 의 `livePage(길)` 로 정한다. 실서비스 주소는 거기 한 곳.
+ */
+{
+  const 박은주소 = /process\.env\.URL \|\| ['"]https:\/\/blog\.mascari4615\.com/;
+  for (const file of fs.readdirSync(path.join(root, 'scripts'))) {
+    if (!file.endsWith('.mjs')) continue;
+    const src = fs.readFileSync(path.join(root, 'scripts', file), 'utf8');
+    if (박은주소.test(src)) {
+      problems.push(`scripts/${file} 가 볼 곳을 손으로 박았다 — BASE 를 줘도 실서비스를 본다 (lib/live-url.mjs 의 livePage() 를 써라)`);
+    }
+  }
+}
+
 if (problems.length) {
   console.error(`[audit-scripts] 부르는 이름이 없는 자리 ${problems.length}건 — 그 검사는 안 돈다`);
   problems.forEach((p) => console.error('  - ' + p));
