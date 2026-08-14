@@ -55,15 +55,24 @@ interface WorldBook {
   const DEVLOG_URL = '/apps/karmolab/data/devlog.json';
   const TASKS_URL = '/apps/karmolab/data/wm-tasks.json';
 
-  /** 머리말 키 → 사람이 읽는 이름. 여기 없는 키도 **그대로** 보여 준다(모르는 칸도 그린다). */
-  const FIELD_LABEL: Record<string, string> = {
-    status: t('wm.t38'),
-    updated: t('wm.t39'),
-    tags: t('wm.t40'),
-    aliases: t('wm.t41'),
-    owner: t('wm.t42'),
-    depends: t('wm.t43'),
-    parent: t('wm.t44'),
+  /**
+   * 머리말 키 → 사람이 읽는 이름. 여기 없는 키도 **그대로** 보여 준다(모르는 칸도 그린다).
+   *
+   * **읽는 순간에 말을 읽지 않는다** (2026-08-14). 예전엔 이 표를 파일이 실리는 순간 만들었는데,
+   * 그때 `wm` 말 묶음이 아직 안 왔으면 `t()` 가 던지고 **화면이 통째로 안 열렸다**
+   * (「이 화면을 못 열었어요」). 그리는 순간에 읽으면 그 사이 말 묶음이 도착해 있다.
+   */
+  const fieldLabel = (key: string): string => {
+    const table: Record<string, string> = {
+      status: t('wm.t38'),
+      updated: t('wm.t39'),
+      tags: t('wm.t40'),
+      aliases: t('wm.t41'),
+      owner: t('wm.t42'),
+      depends: t('wm.t43'),
+      parent: t('wm.t44'),
+    };
+    return table[key] || key;
   };
 
   let book: WorldBook | null = null;
@@ -434,7 +443,7 @@ interface WorldBook {
     const rows = fields
       .map(
         ([k, v]) =>
-          `<div class="wb-field"><dt>${escapeHtml(FIELD_LABEL[k] || k)}</dt><dd>${fieldValueHtml(v)}</dd></div>`
+          `<div class="wb-field"><dt>${escapeHtml(fieldLabel(k))}</dt><dd>${fieldValueHtml(v)}</dd></div>`
       )
       .join('');
     // 문서의 첫 큰제목은 곧 이 문서의 제목이다 — 위에 이미 걸었으니 본문에서는 뺀다(두 번 안 보이게).
