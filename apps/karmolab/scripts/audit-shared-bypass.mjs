@@ -86,22 +86,47 @@ if (write) {
     '# 갚으면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.',
     '# 갱신: node scripts/audit-shared-bypass.mjs --write-baseline',
   ];
-  const lines = [...new Set(found.map((f) => f.key))].sort();
+  // 이미 적어 둔 사유는 **지우지 않는다**. 갱신할 때마다 판단이 날아가면 아무도 안 적는다.
+  const prev = new Map();
+  if (existsSync(BASELINE)) {
+    for (const line of readFileSync(BASELINE, 'utf8').split('\n')) {
+      const t2 = line.trimEnd();
+      if (!t2 || t2.startsWith('#')) continue;
+      const parts = t2.split('\t');
+      if (parts[2]) prev.set(`${parts[0]}\t${parts[1]}`, parts[2]);
+    }
+  }
+  const lines = [...new Set(found.map((f) => f.key))].sort()
+    .map((k) => (prev.has(k) ? `${k}\t${prev.get(k)}` : k));
   writeFileSync(BASELINE, `${[...head, ...lines].join('\n')}\n`, 'utf8');
   console.log(`[shared-bypass] 기준선을 새로 썼다: ${lines.length}줄 (도구 ${files.length}개 훑음)`);
   process.exit(0);
 }
 
-const baseline = new Set(
-  existsSync(BASELINE)
-    ? readFileSync(BASELINE, 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))
-    : [],
-);
+/* 기준선 줄은 두 가지다 (2026-08-14):
+     `ID<TAB>경로`          = **갚을 빚** — 언젠가 공용으로 옮긴다
+     `ID<TAB>경로<TAB>사유` = **판단 끝난 예외** — 옮기면 안 되는 이유가 적혀 있다
+   예외를 안 만들면 기준선이 영영 0 이 안 되고, 그러면 목록이 썩는다(아무도 안 본다).
+   판단은 지우는 게 아니라 **적는다** — 다음 사람이 같은 조사를 다시 안 하게. */
+const baselineLines = existsSync(BASELINE)
+  ? readFileSync(BASELINE, 'utf8').split('\n').map((s) => s.trimEnd()).filter((s) => s && !s.startsWith('#'))
+  : [];
+const reasons = new Map();
+const baseline = new Set();
+for (const line of baselineLines) {
+  const parts = line.split('\t');
+  const key = `${parts[0]}\t${parts[1]}`;
+  baseline.add(key);
+  if (parts[2]) reasons.set(key, parts[2]);
+}
 
 const fresh = found.filter((f) => !baseline.has(f.key));
 const stale = [...baseline].filter((k) => !found.some((f) => f.key === k));
 
-console.log(`[shared-bypass] 도구 ${files.length}개 검사 · 기준선 ${baseline.size}줄 · 새 우회 ${fresh.length}건`);
+const debt = baseline.size - reasons.size;
+console.log(
+  `[shared-bypass] 도구 ${files.length}개 검사 · 갚을 빚 ${debt}줄 · 판단 끝난 예외 ${reasons.size}줄 · 새 우회 ${fresh.length}건`,
+);
 
 if (stale.length > 0) {
   console.log(`[shared-bypass] 갚은 것 ${stale.length}줄 — 기준선에서 지워라 (--write-baseline)`);
