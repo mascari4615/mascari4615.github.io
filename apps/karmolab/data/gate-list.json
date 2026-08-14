@@ -66,7 +66,6 @@
     "audit:prerender-home",
     "test:arcade",
     "test:drift",
-    "smoke:arcadestage",
     "test:arcade:solo",
     "test:play-i18n",
     "test:tour",
@@ -133,6 +132,7 @@
     "test:chat",
     "test:offline",
     "audit:handoff",
-    "test:paperask"
+    "test:paperask",
+    "test:worldbook:unknown"
   ]
 }
