@@ -40,6 +40,7 @@ import { frameCoalesced } from './canvas-raf';
 import { buildEdgePath, buildEdgeLabel, applyEdgeFlow } from './canvas-edge';
 import { renderLeaders } from './canvas-leaders';
 import { renderGroups, computeGroupBox } from './canvas-group';
+import { boardLabel } from './canvas-a11y';
 import { renderLanes } from './canvas-lane';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
@@ -57,7 +58,7 @@ import { groupDelta, resizedBox, sizeGrip, snappedPoint, worldDelta } from './ca
 import { alignGuides, clearGuides, drawGuides, neighborBoxes, type GuideBox, type GuideLine } from './canvas-guides';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
 import { DEFAULT_THEME } from './canvas-theme';
-import { nextOverlapping } from './canvas-pick';
+import { nextOverlapping, edgeIdsAtPoint, spawnTempEdge } from './canvas-pick';
 import { buildEphemeralNode } from './canvas-ephemeral';
 import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
@@ -394,22 +395,11 @@ export class GraphCanvas {
 
   /** 이 자리에 겹쳐 있는 선들 — 위에 있는 것부터. */
   private edgeIdsAt(clientX: number, clientY: number): string[] {
-    const under = document.elementsFromPoint(clientX, clientY);
-    return under
-      .filter((el) => el.classList?.contains('ck-edge-hit'))
-      .map((el) => (el as SVGElement).dataset.edgeId ?? '')
-      .filter(Boolean);
+    return edgeIdsAtPoint(clientX, clientY);
   }
 
-  /** 끌고 다니는 **임시 선** — 선 뽑기와 선 끝 다시 잇기가 같은 모양을 쓴다(다르면 다른 기능처럼 보인다). */
   private spawnTempEdge(): SVGPathElement {
-    const temp = document.createElementNS(SVG_NS, 'path');
-    temp.setAttribute('class', 'ck-edge ck-link-temp');
-    temp.setAttribute('fill', 'none');
-    temp.setAttribute('stroke', this.theme.edgeDefaultColor);
-    temp.setAttribute('stroke-width', '2');
-    this.edgeLayer.appendChild(temp);
-    return temp;
+    return spawnTempEdge(this.edgeLayer, this.theme.edgeDefaultColor);
   }
 
   private bindEvents(): void {
@@ -965,8 +955,15 @@ export class GraphCanvas {
   }
 
   /** 전체 재렌더 — 노드/엣지를 외부에서 추가·삭제한 뒤 호출. */
+  /** 판을 글로도 알린다 (KL-271) — 말은 canvas-a11y 가 안다. */
+  private describeForReaders(): void {
+    this.svg.setAttribute('role', 'img');
+    this.svg.setAttribute('aria-label', boardLabel(this.spec?.nodes.length ?? 0, this.spec?.edges.length ?? 0));
+  }
+
   render(): void {
     if (!this.spec) return;
+    this.describeForReaders();
     this.groupLayer.innerHTML = '';
     this.edgeLayer.innerHTML = '';
     this.nodeLayer.innerHTML = '';

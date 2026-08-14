@@ -2069,6 +2069,14 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
     return { role: el.getAttribute('role'), live: el.getAttribute('aria-live') };
   });
   if (!live) throw new Error('알림 자리가 없다');
+  /* 판 자체도 **글로 알려야** 한다 — 그림만 있으면 읽어 주는 도구에는 아무것도 없는 자리다. */
+  const board = await m.evaluate(() => {
+    const svg = document.querySelector('.km-canvas svg');
+    return svg ? { role: svg.getAttribute('role'), label: svg.getAttribute('aria-label') } : null;
+  });
+  if (!board) throw new Error('판이 없다');
+  if (board.role !== 'img' || !board.label) throw new Error('판에 이름이 없다 — 읽어 주는 도구가 지나친다');
+  if (!/\d/.test(board.label)) throw new Error('판 이름에 숫자(카드·선 수)가 없다: ' + board.label);
   if (live.live !== 'polite' && live.live !== 'assertive') {
     throw new Error('알림이 살아 있는 자리가 아니다 — 읽어 주는 도구에 안 들린다');
   }

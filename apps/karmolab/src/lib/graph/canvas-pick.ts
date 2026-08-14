@@ -19,3 +19,27 @@ export function nextOverlapping(idsUnderCursor: string[], currentId: string | nu
   if (at < 0) return ids[0];
   return ids[(at + 1) % ids.length];
 }
+
+/* ── 아래 둘은 canvas.ts 상한(1900줄)에서 밀려나 이사 왔다 (KL-271).
+   둘 다 「지금 화면의 어디」를 다루는 작은 일이라 본체가 알 필요가 없다. ── */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** 그 자리에 겹쳐 있는 **선들** — 위에서부터. 선은 가늘어서 겹치기 쉬우므로 하나만 보면 안 된다. */
+export function edgeIdsAtPoint(clientX: number, clientY: number): string[] {
+  return document.elementsFromPoint(clientX, clientY)
+    .filter((el) => el.classList?.contains('ck-edge-hit'))
+    .map((el) => (el as SVGElement).dataset.edgeId ?? '')
+    .filter(Boolean);
+}
+
+/** 끌고 다니는 **임시 선** — 선 뽑기와 선 끝 다시 잇기가 같은 모양을 쓴다(다르면 다른 기능처럼 보인다). */
+export function spawnTempEdge(layer: SVGGElement, color: string): SVGPathElement {
+  const temp = document.createElementNS(SVG_NS, 'path');
+  temp.setAttribute('class', 'ck-edge ck-link-temp');
+  temp.setAttribute('fill', 'none');
+  temp.setAttribute('stroke', color);
+  temp.setAttribute('stroke-width', '2');
+  layer.appendChild(temp);
+  return temp;
+}
