@@ -1,0 +1,9 @@
+# material-shell 기준선 — 도구를 자기 안에 띄우면서 공용 껍데기는 안 쓰는 화면들.
+# 껍데기를 쓰게 하면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 둘째 칸 = 판단 끝난 예외(재료 화면이 아니라 껍데기를 쓸 이유가 없는 것).
+# 갱신: node scripts/audit-material-shell.mjs --write-baseline
+src/widgets/ref/reference.ts	예외: 재료가 아니라 **문서 모음** 화면이다 — 들일 파일이 없어 파일 줄·할 일 격자가 뜻이 없다 — 2026-08-14 확인
+src/widgets/tools/color.ts	예외: 색 도구 모음 — 재료(파일)가 없다. 껍데기의 「파일 먼저」가 성립 안 함 — 2026-08-14 확인
+src/widgets/tools/draw.ts	예외: 그리기 판 — 빈 판에서 시작한다(들일 재료가 없다) — 2026-08-14 확인
+src/widgets/tools/filetool.ts
+src/widgets/tools/qr.ts	예외: QR 만들기·읽기 모음 — 만드는 쪽은 재료가 글이라 파일 줄이 없다 — 2026-08-14 확인
