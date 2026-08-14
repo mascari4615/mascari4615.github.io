@@ -9,6 +9,7 @@ import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { spec as zipCoreSpec } from '../../core/ziptool';
+import { download } from './shared/image';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -125,11 +126,7 @@ import { spec as zipCoreSpec } from '../../core/ziptool';
               (el as HTMLElement).onclick = async () => {
                 const e = entries[Number((el as HTMLElement).dataset.i)];
                 const blob = await e.async('blob');
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = e.name.split('/').pop() || 'file';
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                download(blob, e.name.split('/').pop() || 'file'); // 공용 한 자리(`shared/image.download`)
               };
             });
             say(t('ziptool.say.opened', { n: entries.length }), 'ok');
@@ -151,11 +148,7 @@ import { spec as zipCoreSpec } from '../../core/ziptool';
               compression: lv === 0 ? 'STORE' : 'DEFLATE',
               compressionOptions: { level: Math.max(1, lv) }
             });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = t('ziptool.file.name');
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            download(blob, t('ziptool.file.name')); // 공용 한 자리(`shared/image.download`)
             const before = files.reduce((s, f) => s + f.size, 0);
             // 사진·영상처럼 이미 눌린 파일은 묶으면 오히려 커진다. 그때 「-3% 줄었어요」라고 하면
             // 숫자도 말도 틀린다 — 늘었으면 늘었다고 적는다.

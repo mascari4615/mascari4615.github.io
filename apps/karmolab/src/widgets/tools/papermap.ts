@@ -11,6 +11,7 @@
 import { buildMap, fetchMany, search, toCanvas, type Paper } from '../../lib/openalex';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/image';
 
 (function (): void {
   Toolbox.register({
@@ -156,11 +157,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     $('#pmExport').onclick = (): void => {
       if (!lastCanvas) return;
       const blob = new Blob([JSON.stringify(lastCanvas, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'papermap.canvas';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      download(blob, 'papermap.canvas'); // 공용 한 자리(`shared/image.download`)
       say(t('papermap.status.exported', undefined, '캔버스 파일로 내보냈습니다 — 카모그래프에서 열 수 있습니다'), 'ok');
     };
   }
