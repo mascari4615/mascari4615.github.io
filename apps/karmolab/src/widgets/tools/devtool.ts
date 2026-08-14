@@ -26,6 +26,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['curlkit', t('devtool.part.curlkit', undefined, 'curl 옮기기')],
         ['configconv', t('devtool.part.configconv', undefined, '설정 옮기기')],
         ['sqlfmt', t('devtool.part.sqlfmt', undefined, 'SQL 다듬기')],
+        ['prettyall', t('devtool.part.prettyall', undefined, 'CSS·HTML 정리')],
         ['xmlfmt', t('devtool.part.xmlfmt', undefined, 'XML 다루기')]
       ]
     },
@@ -35,7 +36,9 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['jwt', 'JWT'],
         ['base64', 'Base64'],
         ['urlparse', 'URL'],
-        ['cron', t('devtool.part.cron', undefined, '크론')]
+        ['cron', t('devtool.part.cron', undefined, '크론')],
+        ['protobuf', t('devtool.part.protobuf', undefined, 'protobuf')],
+        ['sshkey', t('devtool.part.sshkey', undefined, 'SSH 열쇠')]
       ]
     },
     {
@@ -58,6 +61,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['jqplay', t('devtool.part.jqplay', undefined, 'jq 물어보기')],
         ['erd', t('devtool.part.erd', undefined, '표 관계')],
         ['semver', t('devtool.part.semver', undefined, '버전 범위')],
+        ['nettool', t('devtool.part.nettool', undefined, '대역·포트')],
+        ['apitest', t('devtool.part.apitest', undefined, 'API 눌러 보기')],
         ['codeshot', t('devtool.part.codeshot', undefined, '코드 사진')],
         ['epoch', t('devtool.part.epoch', undefined, '유닉스 시각')],
         ['colorconv', t('devtool.part.colorconv', undefined, '색 변환')]

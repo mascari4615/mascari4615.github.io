@@ -1,0 +1,15 @@
+{
+  "dupphoto.mdd": "Let me group the ones that look alike.",
+  "dupphoto.tab": "Similar photos",
+  "dupphoto.label.files": "Several photos (they never leave your browser)",
+  "dupphoto.label.strict": "How alike counts as one group",
+  "dupphoto.btn.copy": "Copy names to delete",
+  "dupphoto.keep": "keep this one",
+  "dupphoto.group": "{n} photos · deleting the rest frees {saved}",
+  "dupphoto.status.idle": "Pick several photos",
+  "dupphoto.status.reading": "Reading {n} photos…",
+  "dupphoto.status.none": "No look-alikes among {n} photos",
+  "dupphoto.status.found": "{groups} groups · {saved} freed if you delete the extras",
+  "dupphoto.copied": "Copied {n} names you can delete",
+  "dupphoto.note.noDelete": "Nothing is deleted — a browser cannot delete files in your folders, and deleting cannot be undone. It only says which copy to keep and copies the list of names. Resized and re-compressed copies land in the same group, because it compares the picture, not the file bytes."
+}

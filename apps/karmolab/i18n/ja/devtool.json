@@ -39,5 +39,10 @@
   "devtool.part.xmlfmt": "XML を扱う",
   "devtool.part.mermaidlite": "図を描く",
   "devtool.part.semver": "バージョン範囲",
-  "devtool.part.csp": "セキュリティヘッダー"
+  "devtool.part.csp": "セキュリティヘッダー",
+  "devtool.part.apitest": "API を押す",
+  "devtool.part.protobuf": "protobuf",
+  "devtool.part.prettyall": "CSS・HTML 整形",
+  "devtool.part.sshkey": "SSH 鍵",
+  "devtool.part.nettool": "ネットワーク"
 }

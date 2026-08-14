@@ -1,0 +1,13 @@
+{
+  "bundlemap.mdd": "Let me show which part is heavy, by area.",
+  "bundlemap.tab": "Bundle",
+  "bundlemap.label.file": "stats.json or metafile (never leaves your browser)",
+  "bundlemap.label.paste": "or paste it here",
+  "bundlemap.label.heavy": "Heaviest paths",
+  "bundlemap.label.dupes": "Packages included twice",
+  "bundlemap.dupes.none": "No package is included twice",
+  "bundlemap.status.idle": "Drop a webpack stats.json or esbuild metafile",
+  "bundlemap.status.reading": "Reading…",
+  "bundlemap.status.ok": "{total} · {n} modules · {dupes} duplicated packages",
+  "bundlemap.status.bad": "Could not read it — {msg}"
+}

@@ -13,6 +13,7 @@ import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/image';
 
+import { read as readCoreExif } from '../../core/exif';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -53,81 +54,21 @@ import { t, loadNamespace } from '../../lib/i18n';
   };
 
   /** EXIF 를 읽어 사람이 알아볼 항목만 뽑는다. 전부 해석할 필요는 없다. */
-  function readExif(bytes: Uint8Array, seg: { start: number; end: number }): Info {
-    const info: Info = {};
-    const base = seg.start + 4 + 6; // 표시(2) + 길이(2) + "Exif\0\0"(6)
-    if (base + 8 > bytes.length) return info;
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    // 바이트 순서가 파일마다 다르다 — 여기서 정하지 않으면 숫자가 전부 엉뚱해진다
-    const little = view.getUint16(base) === 0x4949;
-    const ifdOffset = view.getUint32(base + 4, little);
-
-    const readAscii = (off: number, count: number): string => {
-      let s = '';
-      for (let i = 0; i < count - 1; i++) s += String.fromCharCode(bytes[off + i]);
-      return s.trim();
+  /*
+   * 읽는 셈은 ** 하나뿐이다** (TASK-KL-316 / 31).
+   * 사진 자리 도구가 생기면서 같은 파서가 두 벌이 될 뻔했다 — 한쪽만 고쳐지면 같은 사진에 두 답이 난다.
+   * 여기는 화면 말투(위치를 한 줄 글로)만 맡는다. 지우는 일(strip)은 그림을 다시 잇는 일이라 여기 남는다.
+   */
+  function readExif(bytes: Uint8Array): Info {
+    const core = readCoreExif(bytes);
+    return {
+      date: core.date,
+      camera: core.camera,
+      lens: core.lens,
+      software: core.software,
+      orientation: core.orientation,
+      gps: core.gps === undefined ? undefined : core.gps.lat.toFixed(6) + ', ' + core.gps.lon.toFixed(6)
     };
-
-    const readRational = (off: number): number => {
-      const a = view.getUint32(off, little);
-      const b = view.getUint32(off + 4, little);
-      return b ? a / b : 0;
-    };
-
-    const readIfd = (offset: number, gps = false): number => {
-      const at = base + offset;
-      if (at + 2 > bytes.length) return 0;
-      const count = view.getUint16(at, little);
-      let exifSub = 0;
-      const gpsVals: Record<number, number[]> = {};
-      const gpsRefs: Record<number, string> = {};
-      for (let i = 0; i < count; i++) {
-        const e = at + 2 + i * 12;
-        if (e + 12 > bytes.length) break;
-        const tag = view.getUint16(e, little);
-        const type = view.getUint16(e + 2, little);
-        const num = view.getUint32(e + 4, little);
-        const sizeOf: Record<number, number> = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 };
-        const bytesLen = (sizeOf[type] || 1) * num;
-        const valOff = bytesLen > 4 ? base + view.getUint32(e + 8, little) : e + 8;
-
-        if (gps) {
-          if (type === 5 && (tag === 0x0002 || tag === 0x0004)) {
-            gpsVals[tag] = [readRational(valOff), readRational(valOff + 8), readRational(valOff + 16)];
-          } else if (type === 2 && (tag === 0x0001 || tag === 0x0003)) {
-            gpsRefs[tag] = readAscii(valOff, num);
-          }
-          continue;
-        }
-
-        if (tag === 0x8769) exifSub = view.getUint32(e + 8, little); // Exif SubIFD
-        else if (tag === 0x8825) readIfd(view.getUint32(e + 8, little), true); // GPS IFD
-        else if (TAGS[tag]) {
-          const key = TAGS[tag];
-          if (type === 2) {
-            const s = readAscii(valOff, num);
-            if (!s) continue;
-            if (key === 'camera') info.camera = info.camera ? `${info.camera} ${s}`.trim() : s;
-            else if (key === 'date') info.date = tag === 0x9003 ? s : info.date || s;
-            else info[key] = s as never;
-          } else if (type === 3 && key === 'orientation') {
-            info.orientation = view.getUint16(valOff, little);
-          }
-        }
-      }
-
-      if (gps && gpsVals[0x0002] && gpsVals[0x0004]) {
-        const dms = (v: number[]): number => v[0] + v[1] / 60 + v[2] / 3600;
-        const lat = dms(gpsVals[0x0002]) * (gpsRefs[0x0001] === 'S' ? -1 : 1);
-        const lon = dms(gpsVals[0x0004]) * (gpsRefs[0x0003] === 'W' ? -1 : 1);
-        info.gps = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-      }
-      return exifSub;
-    };
-
-    const sub = readIfd(ifdOffset);
-    if (sub) readIfd(sub);
-    return info;
   }
 
   /** 정보 구획(APP1/APP13 등)만 빼고 다시 잇는다 — 그림 데이터는 그대로다. */
@@ -235,9 +176,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             editor.style.display = '';
 
-            const segs = walkSegments(raw);
-            const exifSeg = segs.find((s) => s.marker === 0xe1);
-            const info = exifSeg ? readExif(raw, exifSeg) : {};
+            const info = readExif(raw);
             const rows: Array<[string, string]> = [];
             if (info.gps) rows.push([t('exifclean.row.gps'), t('exifclean.row.gpsNote', { v: info.gps })]);
             if (info.date) rows.push([t('exifclean.row.date'), info.date]);

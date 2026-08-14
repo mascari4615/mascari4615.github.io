@@ -33,5 +33,6 @@
   "text.part.text2img": "文字カード",
   "text.btn.recent": "さっきの作業",
   "text.part.encdetective": "文字化け",
-  "text.part.unicodex": "見えない文字"
+  "text.part.unicodex": "見えない文字",
+  "text.part.tts": "読み上げ"
 }

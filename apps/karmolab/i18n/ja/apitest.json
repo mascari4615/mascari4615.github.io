@@ -1,0 +1,21 @@
+{
+  "apitest.mdd": "仕様をくれれば、押せる形にします。",
+  "apitest.tab": "API",
+  "apitest.label.doc": "OpenAPI ドキュメント (JSON か YAML)",
+  "apitest.label.op": "どの操作",
+  "apitest.label.server": "どこへ送るか",
+  "apitest.label.request": "送るリクエスト",
+  "apitest.label.answer": "返事",
+  "apitest.btn.send": "送ってみる",
+  "apitest.btn.curl": "curl でコピー",
+  "apitest.btn.mock": "モック応答を作る",
+  "apitest.copy.curl": "curl コマンドをコピーしました",
+  "apitest.copy.mock": "モック応答の表をコピーしました",
+  "apitest.status.idle": "OpenAPI ドキュメントを貼ってください",
+  "apitest.status.ok": "{title} · 操作 {n} 件",
+  "apitest.status.bad": "読めませんでした — {msg}",
+  "apitest.status.sending": "送信中…",
+  "apitest.status.answered": "{code} · {ms}ms で返事が来ました",
+  "apitest.status.blocked": "相手がブラウザからの要求を受けません (CORS) — curl でコピーして端末から試してください",
+  "apitest.status.mock": "操作 {n} 件のモック応答を作りました — 自分のモックサーバーに貼ってください"
+}

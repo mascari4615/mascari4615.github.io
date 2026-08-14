@@ -39,5 +39,10 @@
   "devtool.part.xmlfmt": "XML 다루기",
   "devtool.part.mermaidlite": "그림 그리기",
   "devtool.part.semver": "버전 범위",
-  "devtool.part.csp": "보안 헤더"
+  "devtool.part.csp": "보안 헤더",
+  "devtool.part.apitest": "API 눌러 보기",
+  "devtool.part.protobuf": "protobuf",
+  "devtool.part.prettyall": "CSS·HTML 정리",
+  "devtool.part.sshkey": "SSH 열쇠",
+  "devtool.part.nettool": "대역·포트"
 }

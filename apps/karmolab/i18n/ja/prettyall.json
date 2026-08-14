@@ -1,0 +1,17 @@
+{
+  "prettyall.mdd": "潰れた CSS・HTML、読める形にします。",
+  "prettyall.tab": "整形",
+  "prettyall.label.in": "ここに貼る",
+  "prettyall.label.out": "結果",
+  "prettyall.aria.out": "整形した結果",
+  "prettyall.btn.format": "広げる",
+  "prettyall.btn.minify": "縮める",
+  "prettyall.btn.copy": "コピー",
+  "prettyall.copy.done": "コピーしました",
+  "prettyall.goTo": "{kind} は専用の道具のほうが得意です。",
+  "prettyall.goTo.btn": "その道具へ",
+  "prettyall.status.idle": "CSS か HTML を貼ってください",
+  "prettyall.status.formatted": "{kind} を {n} 行に広げました",
+  "prettyall.status.minified": "{before} 文字 → {after} 文字 ({cut}% 減)",
+  "prettyall.note.noJs": "JavaScript はあえて扱いません — 中途半端な整形はセミコロンのないコードで意味を変えます。エディタの Prettier を使ってください。"
+}

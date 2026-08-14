@@ -1,0 +1,17 @@
+{
+  "protobuf.mdd": "バイトの塊、項目ごとに開きます。",
+  "protobuf.tab": "protobuf",
+  "protobuf.label.data": "バイナリ (16進か base64)",
+  "protobuf.label.proto": ".proto (なくても可)",
+  "protobuf.label.message": "どのメッセージとして読むか",
+  "protobuf.label.json": "JSON",
+  "protobuf.btn.toJson": "解いた結果 → JSON",
+  "protobuf.btn.fromJson": "JSON → バイト",
+  "protobuf.err.noSchema": "先に .proto を書いてください",
+  "protobuf.status.idle": "バイナリを貼ってください",
+  "protobuf.status.blind": "{bytes} バイト · 項目 {n} 個 — .proto がないので名前は付きません (番号・形式・値は正しいです)",
+  "protobuf.status.named": "{bytes} バイト · 項目 {n} 個 · {name} として読みました",
+  "protobuf.status.toJson": "解いた結果を JSON にしました",
+  "protobuf.status.fromJson": "{bytes} バイトにしました",
+  "protobuf.status.bad": "読めませんでした — {msg}"
+}

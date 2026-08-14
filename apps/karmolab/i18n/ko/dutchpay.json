@@ -1,0 +1,21 @@
+{
+  "dutchpay.mdd": "누가 누구에게 얼마인지 정리해 드립니다.",
+  "dutchpay.tab": "나눠 내기",
+  "dutchpay.label.people": "함께한 사람 (쉼표로)",
+  "dutchpay.label.expenses": "쓴 돈 (한 줄에 하나)",
+  "dutchpay.label.shares": "각자의 셈",
+  "dutchpay.label.transfers": "이렇게 보내면 끝",
+  "dutchpay.hint.format": "적는 법: 이름:금액 · 이름:금액:함께 낸 사람들 · 이름:금액:사람들:무엇. 쉼표와 「원」은 그냥 써도 됩니다.",
+  "dutchpay.btn.share": "주소로 나눠 갖기",
+  "dutchpay.btn.copy": "보낼 목록 복사",
+  "dutchpay.shared": "주소를 복사했습니다 — 이 주소에 내용이 담겨 있습니다 (서버에 안 남습니다)",
+  "dutchpay.copied": "복사했습니다",
+  "dutchpay.paidOwed": "낸 돈 {paid} · 몫 {owed}",
+  "dutchpay.getBack": "{n} 받으세요",
+  "dutchpay.mustPay": "{n} 내세요",
+  "dutchpay.even": "딱 맞습니다",
+  "dutchpay.nothingToDo": "주고받을 것이 없습니다",
+  "dutchpay.status.idle": "사람과 쓴 돈을 적으세요",
+  "dutchpay.status.ok": "모두 {total} · 송금 {n}번이면 끝납니다",
+  "dutchpay.status.badLink": "받은 주소를 못 읽었습니다"
+}
