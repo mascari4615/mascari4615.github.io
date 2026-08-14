@@ -158,6 +158,7 @@
     "gen:community": "node scripts/gen-community-pages.mjs",
     "gen:shell-pages": "node scripts/gen-shell-pages.mjs",
     "test:badapple": "node scripts/smoke-badapple.mjs",
+    "test:note-sound": "node scripts/test-note-sound.mjs",
     "test:badapple:home": "node scripts/smoke-badapple-home.mjs",
     "gen:badapple": "node scripts/gen-badapple-demo.mjs",
     "test:badapple:load": "node scripts/smoke-badapple-load.mjs",

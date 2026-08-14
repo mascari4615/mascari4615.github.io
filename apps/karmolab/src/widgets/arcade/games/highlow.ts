@@ -25,6 +25,8 @@ export interface HighLowState {
   turn: number;
   /** 방금 결과 — 0 없음, 1 맞음, -1 틀림 */
   last: number;
+  /** 방금 그 일을 한 자리 (말·소리에 이름을 싣는다) */
+  lastBy?: number;
 }
 
 export type HighLowAction = { kind: 'high' } | { kind: 'low' } | { kind: 'bank' };
@@ -68,7 +70,7 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
       if (s.pot === 0) return s;
       const banked = s.banked.map((v, i) => (i === seat ? v + s.pot : v));
       const left = s.left.map((v, i) => (i === seat ? v - 1 : v));
-      return { ...s, banked, left, pot: 0, shown: 0, last: 0, card: draw(ctx.rng), turn: left[seat] > 0 ? nextSeat() : nextSeat() };
+      return { ...s, banked, left, pot: 0, shown: 0, last: 0, lastBy: seat, card: draw(ctx.rng), turn: left[seat] > 0 ? nextSeat() : nextSeat() };
     }
 
     if (a?.kind !== 'high' && a?.kind !== 'low') return s;
@@ -79,16 +81,23 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
 
     if (ok) {
       /* 맞힐수록 배로 — 「한 장만 더」가 이 놀이의 심장이다. */
-      return { ...s, card: next, shown: next, pot: s.pot === 0 ? 1 : s.pot * 2, last: 1 };
+      return { ...s, card: next, shown: next, pot: s.pot === 0 ? 1 : s.pot * 2, last: 1, lastBy: seat };
     }
 
     /* 틀리면 쌓은 것이 다 날아가고 그 판은 끝. */
     const left = s.left.map((v, i) => (i === seat ? v - 1 : v));
-    return { ...s, card: draw(ctx.rng), shown: next, pot: 0, left, last: -1, turn: nextSeat() };
+    return { ...s, card: draw(ctx.rng), shown: next, pot: 0, left, last: -1, lastBy: seat, turn: nextSeat() };
   },
 
   outcome(s, ctx): Outcome {
-    if (s.left.some((n) => n > 0)) return { over: false };
+    if (s.left.some((n) => n > 0)) {
+      /* 판이 안 끝나도 방금 일은 나른다 — 이어 맞히는 맛과 다 날리는 순간이 이 놀이의 전부다. */
+      if (s.lastBy === undefined) return { over: false };
+      const who = ctx.seats[s.lastBy]?.name ?? '';
+      if (s.last === 1) return { over: false, note: { key: 'arcade.highlow.hit', params: { who, n: String(s.pot) }, sound: 'good' } };
+      if (s.last === -1) return { over: false, note: { key: 'arcade.highlow.bust', params: { who }, sound: 'bad' } };
+      return { over: false, note: { key: 'arcade.highlow.took', params: { who }, sound: 'tap' } };
+    }
     const top = Math.max(...s.banked);
     const winners = ctx.seats.filter((_, i) => s.banked[i] === top);
     return {

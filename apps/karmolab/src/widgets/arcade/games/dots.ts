@@ -21,6 +21,8 @@ export interface DotsState {
   boxes: number[];
   turn: number;
   last: number;
+  /** 방금 칸을 닫은 사람과 몇 칸인가 — 닫는 순간이 이 놀이의 전부다. */
+  got?: { by: number; n: number };
 }
 
 export type DotsAction = { line: number };
@@ -65,11 +67,25 @@ export const dots: GameDef<DotsState, DotsAction> = {
     }
     /* 닫았으면 한 번 더. 아니면 다음 사람. */
     const turn = got ? seat : (seat + 1) % ctx.seats.length;
-    return { lines, boxes, turn, last: i };
+    return { lines, boxes, turn, last: i, got: got ? { by: seat, n: got } : undefined };
   },
 
   outcome(s, ctx): Outcome {
-    if (s.boxes.some((b) => b === 0)) return { over: false };
+    if (s.boxes.some((b) => b === 0)) {
+      /* 판이 안 끝나도 「칸을 닫았다」는 나른다. 선을 긋기만 한 수에는 소리를 안 붙인다 —
+         한 판에 선이 수십 개라 다 울리면 시끄럽고, 이 놀이의 순간은 **닫는 것**이다.
+         뭉치지 않는 이유: 닫힌 칸 수가 매번 늘어 말이 달라진다. */
+      if (!s.got) return { over: false };
+      const closed = s.boxes.filter((b) => b !== 0).length;
+      return {
+        over: false,
+        note: {
+          key: 'arcade.dots.got',
+          params: { who: ctx.seats[s.got.by]?.name ?? '', n: String(s.got.n), at: String(closed) },
+          sound: 'good'
+        }
+      };
+    }
     const scores = ctx.seats.map((_, i) => s.boxes.filter((b) => b === i + 1).length);
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);

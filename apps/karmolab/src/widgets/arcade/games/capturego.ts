@@ -23,6 +23,8 @@ export interface GoState {
   /** 패 — 여기 바로 못 둔다 (없으면 -1) */
   ko: number;
   last: number;
+  /** 방금 따낸 사람과 돌 수 — 이 놀이의 순간은 「따냈다」이지 「놓았다」가 아니다. */
+  took?: { by: number; n: number };
   /** 서로 이어서 거른 횟수 */
   passes: number;
   won: number;
@@ -130,11 +132,27 @@ export const capturego: GameDef<GoState, GoAction> = {
 
     const caught = s.caught.map((v, i) => (i === seat ? v + r.taken.length : v));
     const won = caught[seat] >= TARGET ? seat : -1;
-    return { board: r.board, turn: 1 - seat, caught, ko: r.ko, last: cell as number, passes: 0, won };
+    return {
+      board: r.board, turn: 1 - seat, caught, ko: r.ko, last: cell as number, passes: 0, won,
+      took: r.taken.length ? { by: seat, n: r.taken.length } : undefined
+    };
   },
 
   outcome(s, ctx): Outcome {
-    if (s.won === -1) return { over: false };
+    if (s.won === -1) {
+      /* 돌을 놓기만 한 수에는 소리를 안 붙인다 — 한 판에 수십 번이라 다 울리면 시끄럽다.
+         분간용 값은 안 싣는다 — 빼도 검사가 안 빨개졌다(따낸 돌 수 n 이 이미 갈라 준다).
+         증명 안 되는 코드는 안 남긴다. */
+      if (!s.took) return { over: false };
+      return {
+        over: false,
+        note: {
+          key: 'arcade.go.took',
+          params: { who: ctx.seats[s.took.by]?.name ?? '', n: String(s.took.n) },
+          sound: 'good'
+        }
+      };
+    }
     if (s.won === -2) {
       return { over: true, scores: [0, 0], note: { key: 'arcade.go.draw', params: { n: String(s.caught[0]) } } };
     }

@@ -49,6 +49,16 @@ export interface BotMove<A> {
 export interface Note {
   key: string;
   params?: Record<string, string>;
+  /**
+   * 이 순간의 소리 (arcade-next 「놀이마다의 소리」).
+   *
+   * **게임 파일에 소리 장치를 두지 않는다** — 51개가 각자 WebAudio 를 부르면 켜기/끄기·겹침
+   * 막기가 51벌이 된다. 게임은 「무슨 일이 있었나」만 말하고, **어떤 소리인지는 껍데기가**
+   * 고른다(테마·접근성·나중에 음원 교체가 한 곳에서 끝난다).
+   *
+   * 안 적으면 지금 그대로 — 51개를 한꺼번에 안 고쳐도 된다.
+   */
+  sound?: 'tap' | 'good' | 'bad' | 'start' | 'win' | 'lose';
 }
 
 /** 판이 끝났는지, 그리고 이번 판 점수. */

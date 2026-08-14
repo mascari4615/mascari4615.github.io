@@ -9,6 +9,12 @@ import type { GameView } from '../views';
 import type { LanternsState, LanternsAction } from './lanterns';
 
 const HUE = ['#ef4444', '#22c55e', '#3b82f6'];
+/**
+ * **색이 이 놀이의 규칙 그 자체다** — 빨강 줄·초록 줄·파랑 줄을 따로 쌓는다. 그래서 색만으로
+ * 그리면 색을 못 가르는 사람은 이 놀이를 **아예 못 한다**(적록색약은 스무 명에 하나꼴이다).
+ * 색마다 모양을 같이 준다 — 모양은 아무나 읽는다. 색을 없애는 것이 아니라 **하나 더** 주는 것이다.
+ */
+const MARK = ['◆', '▲', '●'];
 
 export const lanternsView: GameView<LanternsState, LanternsAction> = {
   id: 'lanterns',
@@ -36,7 +42,7 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
         .map(
           (n, c) =>
             '<span class="ac-hbp" style="border-color:' + HUE[c] + ';color:' + HUE[c] + '">' +
-            (n || '·') +
+            MARK[c] + (n || '·') +
             '</span>'
         )
         .join('');
@@ -58,7 +64,7 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
               return (
                 '<button class="ac-hbc" data-o="' + i + '" data-j="' + j +
                 '" style="border-color:' + HUE[c.color] + ';color:' + HUE[c.color] + '">' +
-                c.rank + mark + '</button>'
+                MARK[c.color] + c.rank + mark + '</button>'
               );
             })
             .join('');

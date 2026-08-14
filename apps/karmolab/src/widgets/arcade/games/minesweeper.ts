@@ -27,6 +27,8 @@ export interface SweepState {
   nums: number[];
   /** 자리별로 죽었나 */
   dead: boolean[];
+  /** 방금 밟은 사람 — 여럿이 동시에 파는 놀이라 매 칸마다 울리면 시끄럽다. 밟은 순간만 나른다. */
+  boom?: number;
   /** 자리별 연 칸 수 */
   opened: number[];
   endsAt: number;
@@ -139,7 +141,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     if (mines[c]) {
       const dead = s.dead.map((v, i) => (i === seat ? true : v));
       const seen = s.seen.map((row, i) => (i === seat ? row.map((v, k) => (k === c ? 1 : v)) : row));
-      return { ...s, mines, nums, dead, seen, over: dead.every(Boolean) };
+      return { ...s, mines, nums, dead, seen, boom: seat, over: dead.every(Boolean) };
     }
 
     const r = flood(mines, mine, c);
@@ -156,7 +158,15 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (!s.over) return { over: false };
+    if (!s.over) {
+      /* 판이 안 끝나도 「밟았다」는 나른다 — 이 놀이에서 사람이 제일 크게 느끼는 순간이다.
+         뭉칠 걱정은 없다: 한 사람은 한 번만 밟는다(밟으면 그 사람 판은 끝난다). */
+      if (s.boom === undefined) return { over: false };
+      return {
+        over: false,
+        note: { key: 'arcade.mine.boom', params: { who: ctx.seats[s.boom]?.name ?? '' }, sound: 'bad' }
+      };
+    }
     const top = Math.max(...s.opened);
     const winners = ctx.seats.filter((_, i) => s.opened[i] === top);
     return {

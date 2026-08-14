@@ -61,3 +61,23 @@ export function holdRoom(room: OpenRoom): () => void {
     }).catch(() => {});
   };
 }
+
+/**
+ * 판이 끝났다고 알린다 — **공개로 연 방만** (arcade-next 「결과를 채널로」).
+ *
+ * 링크 아는 사람끼리 둔 판을 채널에 옮기면 그건 중계가 아니라 감시다. 그래서 부르는 쪽이
+ * 「공개로 연 방인가」를 이미 알고 있을 때만 부른다 — 서버도 같은 것을 한 번 더 본다(두 겹).
+ *
+ * 지금은 **방을 연 창만** 부른다(손님에게는 그 코드가 없다). 그래도 서버가 방 코드로 한 번만
+ * 적는다 — 한쪽만 믿지 않는다. 부르는 쪽 규칙이 나중에 바뀌어도 채널이 두 번 울지 않게.
+ *
+ * 못 보내도 판은 이미 끝났다. 조용히 넘어간다.
+ */
+export function tellResult(code: string, game: string, seats: Array<{ name: string; score: number }>): void {
+  void fetch(`${HOST}/kl/arcade/result`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, game, seats }),
+    keepalive: true
+  }).catch(() => {});
+}
