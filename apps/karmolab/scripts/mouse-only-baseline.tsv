@@ -12,4 +12,3 @@ src/widgets/pet.ts
 src/widgets/speed.ts
 src/widgets/tierlist/dnd.ts
 src/widgets/tierlist/ui.ts
-src/widgets/tools/mesh3d.ts
