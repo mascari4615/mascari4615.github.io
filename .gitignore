@@ -125,3 +125,9 @@ apps/karmolab/build.json
 apps/karmolab/.kl-*.mjs
 apps/karmolab/*.png
 apps/karmolab/live-check-red.txt
+
+# 모든 Temp, Tmp
+**/Temp/
+**/temp/
+**/Tmp/
+**/tmp/
