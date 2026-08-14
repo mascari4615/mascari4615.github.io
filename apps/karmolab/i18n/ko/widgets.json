@@ -209,5 +209,6 @@
   "widgets.collection.title": "도감",
   "widgets.karmograph.title": "KarmoGraph",
   "widgets.studymap.title": "개발자 스터디 맵",
-  "widgets.xmlfmt.title": "XML 다루기"
+  "widgets.xmlfmt.title": "XML 다루기",
+  "widgets.isitdown.title": "나만 안 되나?"
 }

@@ -1242,6 +1242,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/xmlfmt']
   },
   {
+    id: 'isitdown',
+    get title() { return t('widgets.isitdown.title', undefined, "나만 안 되나?"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.isitdown.desc', undefined, "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다"); },
+    layout: 'form',
+    icon: '<path d="M12 20h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 12.5a10 10 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M8.5 16a5.5 5.5 0 0 1 7 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M2 9a15 15 0 0 1 20 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/isitdown']
+  },
+  {
     id: 'jsonfmt',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다

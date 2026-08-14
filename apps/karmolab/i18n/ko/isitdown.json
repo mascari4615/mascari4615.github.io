@@ -1,0 +1,16 @@
+{
+  "isitdown.tab": "확인",
+  "isitdown.label.url": "안 되는 주소를 적으세요",
+  "isitdown.btn.run": "재 보기",
+  "isitdown.status.idle": "주소를 넣으면 대상과 늘 살아 있는 곳 셋을 같이 잽니다",
+  "isitdown.status.badUrl": "주소 같지 않습니다 — 예: naver.com",
+  "isitdown.status.working": "{host} 와 대조군을 재는 중…",
+  "isitdown.verdict.up": "{host} 는 지금 대답합니다 — 저쪽은 살아 있습니다",
+  "isitdown.verdict.slow": "{host} 는 대답하지만 느립니다",
+  "isitdown.verdict.mine": "내 쪽 문제로 보입니다 — 대조군도 다 안 됩니다 (인터넷·와이파이·DNS)",
+  "isitdown.verdict.theirs": "{host} 만 안 됩니다 — 저쪽 문제로 보입니다",
+  "isitdown.verdict.unclear": "가릴 수 없습니다 — 대조군이 반반입니다. 잠시 뒤 다시",
+  "isitdown.row.ok": "대답함 · {ms}ms",
+  "isitdown.row.no": "대답 없음",
+  "isitdown.note.limits": "브라우저는 남의 주소가 준 답을 열어 볼 수 없습니다(불투명) — 여기서 「대답한다」는 서버가 살아 있다는 뜻이지 서비스가 멀쩡하다는 뜻은 아닙니다. 로그인만 죽은 경우는 못 잡습니다"
+}
