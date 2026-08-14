@@ -32,11 +32,30 @@ const ctx = await br.newContext();
    내 자리에서는 7초다. 오락실 화면 검사가 앞서 같은 병을 겪고 60초로 늘렸다(2026-08-13).
    못 기다려서 나는 거짓 빨강이 기다림보다 비싸다. */
 ctx.setDefaultTimeout(60000);
+/* ★ **계측** (2026-08-14). 편지 링크 창에서 `Toolbox` 가 60초 안에 안 뜬다 —
+   CI 에서만 그렇고 내 자리에서는 7초다. 「도구 장이 저장소에 없어서 404」라는 가설을
+   세우고 그 장을 숨긴 채 돌려 봤는데 **그대로 통과했다** — 가설이 틀렸다.
+   그래서 추측을 그만두고, 그 창이 무엇을 못 받고 무엇을 던지는지 적어 둔다. */
 const open = async (url) => {
   const p = await ctx.newPage();
+  const 나쁜응답 = [];
+  const 던진것 = [];
+  p.on('response', (r) => { if (r.status() >= 400) 나쁜응답.push(`${r.status()} ${r.url().slice(0, 90)}`); });
+  p.on('pageerror', (e) => 던진것.push(String(e.message).slice(0, 120)));
+  p.on('console', (m) => { if (m.type() === 'error') 던진것.push(`console: ${m.text().slice(0, 120)}`); });
   await p.route('**/__dev', (r) => r.abort());
   await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
+  try {
+    await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
+  } catch (e) {
+    console.error(`[DEBUG-7e21] 셸이 안 떴다: ${url.slice(0, 120)}`);
+    console.error(`[DEBUG-7e21] 400 이상 응답 ${나쁜응답.length}개:`);
+    나쁜응답.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
+    console.error(`[DEBUG-7e21] 던진 것 ${던진것.length}개:`);
+    던진것.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
+    console.error(`[DEBUG-7e21] Toolbox=${await p.evaluate(() => typeof Toolbox).catch(() => '못 물어봄')}`);
+    throw e;
+  }
   return p;
 };
 
