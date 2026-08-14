@@ -2077,6 +2077,28 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
   if (!board) throw new Error('판이 없다');
   if (board.role !== 'img' || !board.label) throw new Error('판에 이름이 없다 — 읽어 주는 도구가 지나친다');
   if (!/\d/.test(board.label)) throw new Error('판 이름에 숫자(카드·선 수)가 없다: ' + board.label);
+
+  /* 고르는 일도 **소리로** 남아야 한다 — 화면은 테두리로 알리지만 그건 눈에만 보인다. */
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(700));
+  const cbox0 = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox0.x + cbox0.width * 0.35, cbox0.y + cbox0.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('말할카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  await m.locator('.ck-node').first().click();
+  await m.waitForFunction(
+    () => (document.querySelector('[data-km="say"]')?.textContent || '').includes('말할카드'),
+    null, { timeout: ms(5000) },
+  );
+  const sayLive = await m.evaluate(() => {
+    const el = document.querySelector('[data-km="say"]');
+    return { live: el?.getAttribute('aria-live'), seen: getComputedStyle(el).position };
+  });
+  if (sayLive.live !== 'polite') throw new Error('고른 것을 알리는 자리가 살아 있는 자리가 아니다');
   if (live.live !== 'polite' && live.live !== 'assertive') {
     throw new Error('알림이 살아 있는 자리가 아니다 — 읽어 주는 도구에 안 들린다');
   }
