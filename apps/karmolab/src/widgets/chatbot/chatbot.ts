@@ -3,6 +3,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 /** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
 const esc = (v: unknown): string =>
     String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+import { download } from '../tools/shared/image';
 import {
     CB_API_SURFACE_PREF_KEY,
     ChatbotApiSurfaceUi,
@@ -1233,11 +1234,8 @@ import {
                 blob = new Blob([lines.join('\n\n')], { type: 'text/plain;charset=utf-8' });
                 filename = `chat-export-${date}.txt`;
             }
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(a.href);
+            // 공용 한 자리(`shared/image.download`) — 즉시 `revoke` 는 위험한 자리였다.
+            download(blob, filename);
             Toolbox.showToast(t('chatbot.exported', { format: format.toUpperCase() }));
         }
     };

@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n';
+import { download } from '../tools/shared/image';
 
 /** 캐릭터 저장소·폼·모달 (chatbot.js에서 세션·전송과 연동) */
 (function () {
@@ -124,11 +125,9 @@ import { t } from '../../lib/i18n';
         };
         const safe = (ch.name || 'character').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 60);
         const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `karmochat-${safe}-${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        // 공용 한 자리(`shared/image.download`) — 여기 있던 즉시 `revoke` 는
+        // 브라우저가 아직 안 읽었을 수 있는 자리였다(공용은 2초 뒤).
+        download(blob, `karmochat-${safe}-${new Date().toISOString().slice(0, 10)}.json`);
         Toolbox.showToast!(t('chatbot.t76'));
     }
 
