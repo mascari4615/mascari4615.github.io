@@ -84,6 +84,3 @@ OBJECT-URL	src/widgets/tools/videotool.ts
 OBJECT-URL	src/widgets/tools/videotrim.ts
 OBJECT-URL	src/widgets/tools/voicerec.ts
 OBJECT-URL	src/widgets/tools/ziptool.ts
-PDF-OPEN	src/widgets/tools/pdfpagenum.ts
-PDF-OPEN	src/widgets/tools/pdfsign.ts
-PDF-OPEN	src/widgets/tools/pdftool.ts

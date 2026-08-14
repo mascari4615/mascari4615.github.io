@@ -165,7 +165,7 @@ import { parsePages } from '../../core/pdftool';
             for (const file of Array.from(list)) {
               if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) continue;
               try {
-                const doc = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+                const doc = await openForEdit(file);
                 files.push({ file, pages: doc.getPageCount() });
               } catch {
                 say(t('pdftool.err.openOne', { name: file.name }), 'error');
@@ -193,7 +193,7 @@ import { parsePages } from '../../core/pdftool';
               if (mode === 'merge') {
                 const outDoc = await L.PDFDocument.create();
                 for (const f of files) {
-                  const src = await L.PDFDocument.load(await f.file.arrayBuffer(), { ignoreEncryption: true });
+                  const src = await openForEdit(f.file);
                   const idx = src.getPages().map((_, i) => i);
                   const copied = await outDoc.copyPages(src, idx);
                   copied.forEach((p) => outDoc.addPage(p));
@@ -201,7 +201,7 @@ import { parsePages } from '../../core/pdftool';
                 download(await outDoc.save(), t('pdftool.file.merged'), status);
                 say(t('pdftool.say.merged', { n: files.length }), 'ok');
               } else {
-                const src = await L.PDFDocument.load(await files[0].file.arrayBuffer(), { ignoreEncryption: true });
+                const src = await openForEdit(files[0].file);
                 const total = src.getPageCount();
                 const picked = rangeSpec.trim() ? parseRange(rangeSpec, total) : src.getPages().map((_, i) => i);
                 if (!picked.length) {
