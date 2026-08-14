@@ -237,6 +237,12 @@ import { t, loadNamespace } from '../../lib/i18n';
           const say = statusLine(status);
 
           let room: Room | null = null;
+
+          /* ★ **들어간 뒤에 이름을 적어도 상대에게 간다** (2026-08-14).
+             이름은 방에 들어갈 때 한 번만 갔다 — 링크로 들어온 사람은 보통 **들어가서**
+             이름을 적으므로, 상대 화면에는 영영 「누군가」로 남았다.
+             (`test:duel` 이 그 사실을 적고 있었는데 그 검사를 아무도 안 돌렸다.) */
+          for (const ev of ['change', 'input']) nameInput.addEventListener(ev, () => room?.rename(내이름()));
           let host = false;
           let foe = '';
           let myScore = 0;

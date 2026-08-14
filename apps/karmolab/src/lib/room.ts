@@ -73,6 +73,15 @@ export interface Room {
   peers(): Peer[];
   /** 주고받을 통로 하나. 이름은 12글자 안쪽(트리스테로 제한). */
   channel<T extends DataPayload>(name: string, onMessage?: (data: T, peerId: string) => void): Channel<T>;
+  /**
+   * 내 이름이 바뀌었다고 방 사람들에게 알린다.
+   *
+   * ★ 왜 필요한가 (2026-08-14): 이름은 방에 들어갈 때 **한 번만** 갔다. 그래서 링크로 들어온
+   *   사람이 그 뒤에 이름을 적으면 **상대 화면에는 영영 「누군가」**였다. 사람은 보통
+   *   들어가고 나서 이름을 적는다 — 그 순서가 정상인데 안 됐다(`test:duel` 이 몇 달간
+   *   빨간 채로 그 사실을 적고 있었는데 아무도 그 검사를 안 돌렸다).
+   */
+  rename(name: string): void;
   leave(): void;
 }
 
@@ -103,9 +112,12 @@ export function openRoom(opts: RoomOptions): Room {
     }
   });
 
+  /* 내 이름은 바뀔 수 있다 — 들어온 뒤에 적는 것이 오히려 보통이다. */
+  let myName = opts.name || '누군가';
+
   /* 새로 온 사람에게 곧장 내 이름을 건다 — 통째로 뿌리면 이미 아는 사람에게도 다시 간다. */
   room.onPeerJoin = (peerId: string): void => {
-    hello.send({ name: opts.name || '누군가' }, { target: peerId });
+    hello.send({ name: myName }, { target: peerId });
   };
   room.onPeerLeave = (peerId: string): void => {
     names.delete(peerId);
@@ -124,6 +136,13 @@ export function openRoom(opts: RoomOptions): Room {
       return {
         send: (data, target) => act.send(data, target ? { target } : undefined)
       };
+    },
+    rename(name: string) {
+      const next = String(name || '').slice(0, 12);
+      if (!next || next === myName) return;
+      myName = next;
+      /* 이번에는 **모두에게** 보낸다 — 바뀐 사실은 이미 아는 사람도 알아야 한다. */
+      hello.send({ name: myName });
     },
     leave() {
       try {
