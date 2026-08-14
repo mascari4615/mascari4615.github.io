@@ -25,5 +25,7 @@
   "pdfsign.say.done": "{n}ページ目に署名を入れてダウンロードしました。",
   "pdfsign.say.redraw": "書き直してください。",
   "pdfsign.say.imageUsed": "画像を署名にしました。プレビューで場所を押してください。",
-  "pdfsign.err.run": "入れている途中で問題が起きました: {msg}"
+  "pdfsign.err.run": "入れている途中で問題が起きました: {msg}",
+  "pdfsign.kb.label": "署名を置く位置を選ぶ（矢印で移動、Enter で配置）",
+  "pdfsign.kb.moved": "署名の位置 {x}%, {y}%"
 }

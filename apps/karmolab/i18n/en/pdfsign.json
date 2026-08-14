@@ -25,5 +25,7 @@
   "pdfsign.say.done": "Signed page {n} and downloaded it.",
   "pdfsign.say.redraw": "Draw it again.",
   "pdfsign.say.imageUsed": "Using that image as the signature. Click the spot in the preview.",
-  "pdfsign.err.run": "Something went wrong while signing: {msg}"
+  "pdfsign.err.run": "Something went wrong while signing: {msg}",
+  "pdfsign.kb.label": "Choose where the signature goes (arrows move, Enter places)",
+  "pdfsign.kb.moved": "Signature spot {x}%, {y}%"
 }

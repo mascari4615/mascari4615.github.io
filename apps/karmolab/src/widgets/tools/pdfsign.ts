@@ -236,6 +236,39 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             else say(t('pdfsign.say.spot'), 'ok');
           });
 
+          /* 자판 길 (2026-08-14, `audit:mouse-only`). 누르는 자리만 있으면 자판 쓰는 사람은
+           * **서명 자리를 아예 못 고른다.** 화살표로 옮기고 Enter 로 놓는다 — 걸음은 쪽의 2%.
+           *
+           * 손글씨 판(`pad`)은 자판으로 대신할 수 없다. 대신 **「그림 넣기」**가 같은 자리에 있어
+           * 서명 그림 파일을 올리면 된다 — 그쪽이 자판·화면낭독기로 닿는 길이다. */
+          view.tabIndex = 0;
+          view.setAttribute('role', 'application');
+          view.setAttribute('aria-label', t('pdfsign.kb.label'));
+          view.addEventListener('keydown', (e) => {
+            const step = 0.02;
+            if (!spot && /^(Arrow|Enter)/.test(e.key)) {
+              spot = { x: 0.5, y: 0.75 };
+            } else if (!spot) {
+              return;
+            } else {
+              switch (e.key) {
+                case 'ArrowLeft': spot.x -= step; break;
+                case 'ArrowRight': spot.x += step; break;
+                case 'ArrowUp': spot.y -= step; break;
+                case 'ArrowDown': spot.y += step; break;
+                case 'Enter': break;
+                default: return;
+              }
+            }
+            spot.x = Math.max(0, Math.min(1, spot.x));
+            spot.y = Math.max(0, Math.min(1, spot.y));
+            e.preventDefault();
+            updateGhost();
+            if (!signature) say(t('pdfsign.err.needSign'), 'error');
+            else if (e.key === 'Enter') say(t('pdfsign.say.spot'), 'ok');
+            else say(t('pdfsign.kb.moved', { x: Math.round(spot.x * 100), y: Math.round(spot.y * 100) }));
+          });
+
           async function load(f: File): Promise<void> {
             file = f;
             spot = null;
