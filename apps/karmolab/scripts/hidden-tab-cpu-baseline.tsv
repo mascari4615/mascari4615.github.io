@@ -8,8 +8,7 @@ src/widgets/arcade/open-rooms.ts
 src/widgets/chat.ts
 src/widgets/cockpit/cards-tab.ts
 src/widgets/cockpit/team-tab.ts
-src/widgets/flow.ts
-src/widgets/font.ts
+src/widgets/font.ts	예외: 가챠 굴리는 애니메이션이라 15번 돌고 스스로 끝난다(오래 안 남는다) - 2026-08-14 확인
 src/widgets/heung/audio-engine.ts
 src/widgets/heung/heung.ts
 src/widgets/imageedit.ts
@@ -17,7 +16,6 @@ src/widgets/imagegen/core.ts
 src/widgets/karmograph/karmograph.ts
 src/widgets/life/life.ts
 src/widgets/meok/meok.ts
-src/widgets/tools/livecount.ts
 src/widgets/tools/screenrec.ts
 src/widgets/tools/videotrim.ts
 src/widgets/tools/voicerec.ts
