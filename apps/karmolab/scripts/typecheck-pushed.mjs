@@ -147,11 +147,25 @@ try {
       console.error('  내 push 가 만든 것이 아니다 — 막지 않는다. 올린 세션에 알려라.');
       for (const [what, out] of failed) {
         console.error(`  [${what}]`);
-        for (const line of out.split(String.fromCharCode(10)).filter(Boolean).slice(-8)) console.error(`    ${line}`);
+        for (const line of 보여줄줄(out)) console.error(`    ${line}`);
       }
       process.exit(0);
     }
   }
+
+/**
+ * 사람에게 보여 줄 줄을 고른다 — **끝 몇 줄이 아니라 「빨강 요약부터 끝까지」.**
+ *
+ * 왜 (2026-08-15 실측): 여기가 끝 열네 줄만 보여 줬다. `run-gates` 의 판정 요약은 맨 끝에 있고
+ * 각 검사의 **사유는 그 훨씬 위**에 있어서, push 가 `audit:orphans` 로 막혔는데 화면에는
+ * 「빨강 1개」만 남고 **왜인지 한 줄도 안 나왔다**. 사유 없는 빨강은 게이트가 아니라 벽이다.
+ * (`run-gates` 도 같은 날 고쳤다 — 이제 빨간 검사의 제 말을 요약 아래 다시 붙인다.)
+ */
+function 보여줄줄(out) {
+  const lines = out.split(String.fromCharCode(10)).filter(Boolean);
+  const mark = lines.findIndex((l) => l.includes('[gates] 빨강'));
+  return mark >= 0 ? lines.slice(mark) : lines.slice(-20);
+}
 
   if (!failed.length) {
     console.log(`[typecheck-pushed] OK — ${sha.slice(0, 8)} 커밋 그대로 타입검사 + 빠른 게이트 통과`);
@@ -159,7 +173,7 @@ try {
   }
   for (const [what, out] of failed) {
     console.error(`[typecheck-pushed] ${sha.slice(0, 8)} **커밋 상태**에서 ${what}이(가) 선다:`);
-    for (const line of out.split(String.fromCharCode(10)).filter(Boolean).slice(-14)) console.error(`  ${line}`);
+    for (const line of 보여줄줄(out)) console.error(`  ${line}`);
   }
   console.error('  내 폴더에서는 초록일 수 있다 — 남이 아직 안 올린 파일에 기대고 있으면 그렇다.');
   process.exit(1);
