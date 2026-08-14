@@ -83,6 +83,13 @@ const CASES = [
     id: 'liars',
     events: (st) => String((st.dice ?? []).reduce((a, d) => a + d.length, 0)),
     want: ['arcade.liars.lost']
+  },
+  /* 윷놀이 — 던지기·움직이기는 수십 번이지만 순간은 **잡을 때**다(잡으면 한 번 더 던진다).
+     사건 세기 = 여태 잡은 횟수. */
+  {
+    id: 'yut',
+    events: (st) => String(st.catches ?? 0),
+    want: ['arcade.yut.caughtBy']
   }
 ];
 

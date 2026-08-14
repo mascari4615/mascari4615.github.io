@@ -202,7 +202,6 @@
   "arcade.liars.call": "うそだ",
   "arcade.liars.waiting": "順番待ち",
   "arcade.liars.real": "実際 {n}個",
-  "arcade.liars.lost": "{who} サイコロを失った (実際 {n})",
   "arcade.liars.win": "{who} が最後まで残った",
   "arcade.game.twenty.name": "20の質問 対決",
   "arcade.game.twenty.desc": "はい/いいえで絞る。一人が答えを持ち、残りが尋ねる",
@@ -346,6 +345,7 @@
   "arcade.yut.yourthrow": "投げる番",
   "arcade.yut.yourmove": "どの駒?",
   "arcade.yut.wait": "{who} の番",
+  "arcade.yut.caughtBy": "{who} 捕まえた ({n}回目)",
   "arcade.yut.win": "{who} が駒を全部あがらせた",
   "arcade.yut.do": "ト(1)",
   "arcade.yut.gae": "ケ(2)",
@@ -435,5 +435,7 @@
   "arcade.open.title": "いま開いてる部屋",
   "arcade.open.none": "",
   "arcade.open.card": "{game} · {host}",
-  "arcade.mine.kb": "キーボード: Enter・スペースで開く、F または Shift+Enter で旗"
+  "arcade.mine.kb": "キーボード: Enter・スペースで開く、F または Shift+Enter で旗",
+  "arcade.pong.kb": "キーボード: 左右矢印でラケットを動かす（Shift で大きく）",
+  "arcade.ah.kb": "キーボード: 矢印でマレットを動かす（Shift で大きく）"
 }
