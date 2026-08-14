@@ -9,7 +9,6 @@ IMG-ENCODE	src/widgets/imageconvert/core.ts	예외: 자체 배경칠(fillAlpha/b
 IMG-ENCODE	src/widgets/imageedit.ts
 IMG-ENCODE	src/widgets/karmograph/karmograph.ts
 IMG-ENCODE	src/widgets/meok/meok.ts
-IMG-ENCODE	src/widgets/meong/meong.ts
 IMG-ENCODE	src/widgets/tools/barcode.ts
 IMG-ENCODE	src/widgets/tools/codeshot.ts
 IMG-ENCODE	src/widgets/tools/comparepic.ts
@@ -41,8 +40,7 @@ OBJECT-URL	src/widgets/imageconvert/widget.ts
 OBJECT-URL	src/widgets/imageedit.ts
 OBJECT-URL	src/widgets/karmograph/karmograph.ts
 OBJECT-URL	src/widgets/meok/meok.ts
-OBJECT-URL	src/widgets/meok/rembg.ts
-OBJECT-URL	src/widgets/meong/meong.ts
+OBJECT-URL	src/widgets/meok/rembg.ts	예외: 내려받기가 아니라 **워커 코드**를 주소로 만들어 `new Worker(url)` 에 넘긴다. 공용 download 의 일이 아니다 — 2026-08-14 확인
 OBJECT-URL	src/widgets/tierlist/publish.ts
 OBJECT-URL	src/widgets/tools/asciiart.ts
 OBJECT-URL	src/widgets/tools/audiocut.ts
