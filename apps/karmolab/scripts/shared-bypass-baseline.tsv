@@ -9,8 +9,6 @@ IMG-ENCODE	src/widgets/imageconvert/core.ts	예외: 자체 배경칠(fillAlpha/b
 IMG-ENCODE	src/widgets/imageedit.ts
 IMG-ENCODE	src/widgets/karmograph/karmograph.ts
 IMG-ENCODE	src/widgets/meok/meok.ts
-IMG-ENCODE	src/widgets/tools/barcode.ts
-IMG-ENCODE	src/widgets/tools/codeshot.ts
 IMG-ENCODE	src/widgets/tools/comparepic.ts
 IMG-ENCODE	src/widgets/tools/favicon.ts
 IMG-ENCODE	src/widgets/tools/imgmerge.ts
