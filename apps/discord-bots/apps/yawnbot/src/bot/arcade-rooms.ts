@@ -38,7 +38,8 @@ const rooms = new Map<string, OpenRoom>();
 
 /** 죽은 방을 걷는다. 부를 때마다 훑어도 서른 개라 값이 안 든다. */
 function sweep(now = Date.now()): void {
-  for (const [code, r] of rooms) if (now - r.at > TTL_MS) rooms.delete(code);
+  for (const [code, r] of rooms) if (now - r.at > TTL_MS) { rooms.delete(code); closed.set(code, now); }
+  for (const [code, at] of closed) if (now - at > TTL_MS) closed.delete(code);
 }
 
 const clean = (v: unknown, re: RegExp, max: number): string | null => {
@@ -46,9 +47,24 @@ const clean = (v: unknown, re: RegExp, max: number): string | null => {
   return re.test(s) ? s : null;
 };
 
+/**
+ * 이 코드가 **공개로 연 방**인가. 결과를 채널에 옮길지 정하는 자리가 이걸 묻는다 —
+ * 비공개 판을 채널에 옮기면 그건 중계가 아니라 감시다.
+ *
+ * 이미 닫힌 방도 참으로 본다(TTL 안이면): 판이 끝나고 방을 내린 **다음에** 결과가 오기 때문이다.
+ */
+export function wasOpen(code: string): boolean {
+  sweep();
+  return rooms.has(code) || closed.has(code);
+}
+
+/** 방금 닫힌 방들 — 결과가 뒤늦게 와도 「공개였다」를 안다. */
+const closed = new Map<string, number>();
+
 /** 검사에서 쓰는 뒷문 — 판마다 빈 목록에서 시작해야 서로를 안 본다. */
 export function resetRooms(): void {
   rooms.clear();
+  closed.clear();
 }
 
 export function registerArcadeRooms(app: Application): void {
@@ -75,7 +91,7 @@ export function registerArcadeRooms(app: Application): void {
   /** 방을 닫는다. 안 불러도 10분이면 사라지지만, 부르면 그 자리에서 깨끗해진다. */
   app.delete('/kl/arcade/rooms/:code', (req: Request, res: Response) => {
     const code = clean(req.params.code, /^[A-Z0-9]{4,12}$/, 12);
-    if (code) rooms.delete(code);
+    if (code && rooms.delete(code)) closed.set(code, Date.now());
     res.json({ ok: true });
   });
 

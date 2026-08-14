@@ -113,7 +113,24 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (!s.over) return { over: false };
+    if (!s.over) {
+      /* 판이 도는 중에도 **마지막 한 발**을 말로 낸다 (arcade-next 「놀이마다의 소리」).
+         아가리에 들었는지는 이미 `shots` 끝에 있다 — 새로 만들지 않고 그걸 쓴다.
+         **발마다 달라지는 값은 안 싣는다** — 여기는 차례가 돌아 `who` 가 매번 바뀌므로
+         말이 저절로 달라진다. 되돌려 재 보고(그 값을 빼도 안 빨개짐) 뺐다. 증명 안 되는 줄은 안 남긴다. */
+      const shot = s.shots[s.shots.length - 1];
+      if (!shot) return { over: false };
+      const who = ctx.seats[shot.seat]?.name ?? '';
+      return {
+        over: false,
+        note:
+          shot.worth === 2
+            ? { key: 'arcade.tuho.in', params: { who }, sound: 'good' }
+            : shot.worth === 1
+              ? { key: 'arcade.tuho.ear', params: { who }, sound: 'good' }
+              : { key: 'arcade.tuho.out', params: { who }, sound: 'bad' }
+      };
+    }
     const top = Math.max(...s.score);
     const best = ctx.seats.filter((_, i) => s.score[i] === top);
     return {

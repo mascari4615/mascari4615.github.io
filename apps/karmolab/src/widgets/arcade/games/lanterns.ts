@@ -215,7 +215,27 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (!s.over) return { over: false };
+    if (!s.over) {
+      /* 판이 도는 중에도 **방금 무슨 일이 있었나**를 말로 낸다 (arcade-next 「놀이마다의 소리」).
+         협동 놀이라 「불이 하나 꺼졌다」가 특히 크다 — 그건 모두의 손해다.
+         **일마다 달라지는 값은 안 싣는다** — 여기는 차례가 돌아 `who` 가 매번 바뀐다.
+         함대는 맞히면 한 번 더 두므로 같은 사람이 연달아 와서 그 값이 필요했다(91발 중 10발).
+         여기서는 빼도 안 빨개져서 뺐다 — 증명 안 되는 줄은 안 남긴다. */
+      if (!s.last) return { over: false };
+      const who = ctx.seats[s.last.who]?.name ?? '';
+      const kind = s.last.kind;
+      return {
+        over: false,
+        note:
+          kind === 'play'
+            ? { key: 'arcade.lanterns.lit', params: { who }, sound: 'good' }
+            : kind === 'fail'
+              ? { key: 'arcade.lanterns.blew', params: { who }, sound: 'bad' }
+              : kind === 'hint'
+                ? { key: 'arcade.lanterns.told', params: { who }, sound: 'tap' }
+                : { key: 'arcade.lanterns.tossed', params: { who }, sound: 'tap' }
+      };
+    }
     const score = s.piles.reduce((a, b) => a + b, 0);
     /* **모두에게 같은 점수.** 협동은 새 기능이 아니라 점수를 이렇게 나눠 주는 것이다. */
     return {

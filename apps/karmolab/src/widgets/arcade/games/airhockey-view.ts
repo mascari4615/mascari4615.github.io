@@ -30,7 +30,50 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       pending = toBoard(e);
     });
 
+    /* ── 키로도 친다 (TASK-KL-317) ────────────────────────────────
+       탁구와 같은 이치인데 축이 둘이다. 대각선은 **정규화**한다 — 안 하면 비스듬히 갈 때만
+       1.41배 빨라져서, 키로 노는 사람은 늘 대각선으로만 움직이는 것이 이득이 된다.
+       속도는 판 높이의 비율(한 변을 1.1초) — 폰이든 와이드든 같은 놀이여야 한다. */
+    const CROSS_S = 1.1;
+    const KEYS: Record<string, [number, number]> = {
+      ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]
+    };
+    const held = new Set<string>();
+    let mallet: { x: number; y: number } | null = null;
+    let last = 0;
+    const onKey = (e: KeyboardEvent): void => {
+      if (!(e.key in KEYS)) return;
+      e.preventDefault();
+      if (e.type === 'keydown') held.add(e.key);
+      else held.delete(e.key);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKey);
+    if (typeof Toolbox !== 'undefined') {
+      Toolbox.onDispose?.(() => {
+        window.removeEventListener('keydown', onKey);
+        window.removeEventListener('keyup', onKey);
+      });
+    }
+    const fromKeys = (now: number, mine: { x: number; y: number }): void => {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      let dx = 0;
+      let dy = 0;
+      for (const k of held) { dx += KEYS[k][0]; dy += KEYS[k][1]; }
+      if (!dx && !dy) { mallet = null; return; }
+      const len = Math.hypot(dx, dy);
+      if (mallet === null) mallet = { x: mine.x, y: mine.y };
+      const step = (H * dt) / CROSS_S;
+      mallet = {
+        x: Math.max(0, Math.min(W, mallet.x + (dx / len) * step)),
+        y: Math.max(0, Math.min(H, mallet.y + (dy / len) * step))
+      };
+      pending = mallet;
+    };
+
     return (v, mySeat) => {
+      fromKeys(performance.now(), v.state.paddles[mySeat] ?? { x: W / 2, y: H / 2 });
       if (pending) {
         act(pending);
         pending = null;

@@ -202,6 +202,7 @@
   "arcade.liars.call": "うそだ",
   "arcade.liars.waiting": "順番待ち",
   "arcade.liars.real": "実際 {n}個",
+  "arcade.liars.lost": "{who} サイコロを失った (実際 {n})",
   "arcade.liars.win": "{who} が最後まで残った",
   "arcade.game.twenty.name": "20の質問 対決",
   "arcade.game.twenty.desc": "はい/いいえで絞る。一人が答えを持ち、残りが尋ねる",

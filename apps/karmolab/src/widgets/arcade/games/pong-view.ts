@@ -29,7 +29,43 @@ export const pongView: GameView<PongState, PongAction> = {
       pending = toX(e);
     });
 
+    /* ── 키로도 친다 (TASK-KL-317) ────────────────────────────────
+       마우스는 *어디에 있나*를 그대로 주지만 키는 *어느 쪽으로*밖에 못 준다. 그래서
+       **여기서** 속도를 위치로 바꾼다 — 규칙(커널)은 지금처럼 위치만 받는다.
+       속도는 px 이 아니라 **판 너비의 비율**로 잡는다: 한 변을 1.1초에 건넌다.
+       폰이든 와이드든 같은 놀이여야 하기 때문이다. */
+    const CROSS_S = 1.1;
+    const held = new Set<string>();
+    let pad: number | null = null;
+    let last = 0;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      if (e.type === 'keydown') held.add(e.key);
+      else held.delete(e.key);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKey);
+    if (typeof Toolbox !== 'undefined') {
+      Toolbox.onDispose?.(() => {
+        window.removeEventListener('keydown', onKey);
+        window.removeEventListener('keyup', onKey);
+      });
+    }
+    /** 눌린 키를 라켓 자리로 옮긴다. 마우스를 쓰면 그쪽이 이긴다(둘 다 산다). */
+    const fromKeys = (now: number, mine: number): void => {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      const dir = (held.has('ArrowRight') ? 1 : 0) - (held.has('ArrowLeft') ? 1 : 0);
+      if (!dir) { pad = null; return; }
+      /* 키를 처음 누른 순간에는 **지금 라켓이 있는 자리**에서 출발한다 — 안 그러면 순간이동한다. */
+      if (pad === null) pad = mine;
+      pad = Math.max(0, Math.min(W, pad + (dir * W * dt) / CROSS_S));
+      pending = pad;
+    };
+
     return (v, mySeat) => {
+      fromKeys(performance.now(), v.state.pad[mySeat] ?? W / 2);
       if (pending !== null) {
         act({ x: pending });
         pending = null;

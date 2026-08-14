@@ -24,40 +24,28 @@ export const gameById = (id: string): GameDef<any, any> | undefined => bag()[id]
 /** 이미 받아 둔 게임의 화면. 위와 같다. */
 export const viewById = (id: string): GameView<any, any> | undefined => bag()[id]?.view;
 
-const 오는중 = new Map<string, Promise<boolean>>();
+const 오는중 = new Map<string, Promise<void>>();
 
 /**
  * 그 게임 조각을 받아 둔다. 이미 있으면 바로 끝난다.
  *
- * **받아졌나를 돌려준다** — 던지지 않는다(한 판 못 받았다고 오락실 전체가 죽으면 안 된다).
- * 대신 부르는 쪽이 「됐다/안 됐다」를 **구별할 수 있어야** 한다:
- *
- * 전에는 `Promise<void>` 라, 부르는 자리 셋이 전부 `.then(() => { if (gameById(id)) … })` 였다.
- * 못 받으면 그 `if` 가 조용히 거짓이 되어 **아무 일도 안 일어났다** — 누른 사람 눈에는
- * 버튼이 죽은 것이고, 검사 눈에도 아무 자국이 안 남는다. 「모름」을 「아니오」로 읽던 자리다.
- *
- * 그리고 **스크립트가 떴다고 받아진 게 아니다**. 파일은 200 인데 안에서 터졌거나 다른 이름으로
- * 등록되면 `onload` 는 그대로 뜬다 — 그래서 뜬 뒤에 **자루를 다시 본다**.
+ * 못 받아도 **던지지 않는다** — 부르는 쪽은 「아직 없다」와 「끝내 없다」를 같게 다룬다
+ * (없으면 그 화면이 안 열릴 뿐, 오락실 전체가 죽지는 않아야 한다).
  */
-export function ensureGame(id: string): Promise<boolean> {
-  if (bag()[id]) return Promise.resolve(true);
+export function ensureGame(id: string): Promise<void> {
+  if (bag()[id]) return Promise.resolve();
   const 있는것 = 오는중.get(id);
   if (있는것) return 있는것;
   const card = cardById(id);
-  if (!card) return Promise.resolve(false);
-  const p = new Promise<boolean>((resolve) => {
-    const 끝 = (ok: boolean): void => {
-      if (!ok) 오는중.delete(id); /* 다음에 다시 눌러 볼 수 있게 — 회선이 잠깐 죽었을 수 있다 */
-      resolve(ok);
-    };
+  if (!card) return Promise.resolve();
+  const p = new Promise<void>((resolve) => {
     const s = document.createElement('script');
     s.src = `/apps/karmolab/arcade/games/${card.chunk}.js`;
-    s.onload = () => {
-      const 왔나 = !!bag()[id];
-      if (!왔나) console.warn(`[arcade-loader] ${card.chunk}.js 는 떴는데 ${id} 가 자루에 없다`);
-      끝(왔나);
+    s.onload = () => resolve();
+    s.onerror = () => {
+      오는중.delete(id); /* 다음에 다시 눌러 볼 수 있게 — 회선이 잠깐 죽었을 수 있다 */
+      resolve();
     };
-    s.onerror = () => 끝(false);
     document.head.appendChild(s);
   });
   오는중.set(id, p);
@@ -65,5 +53,4 @@ export function ensureGame(id: string): Promise<boolean> {
 }
 
 /** 여러 판을 한꺼번에 (대회는 다섯 판을 미리 안다). */
-export const ensureGames = (ids: string[]): Promise<boolean[]> =>
-  Promise.all([...new Set(ids)].map(ensureGame));
+export const ensureGames = (ids: string[]): Promise<void[]> => Promise.all([...new Set(ids)].map(ensureGame));

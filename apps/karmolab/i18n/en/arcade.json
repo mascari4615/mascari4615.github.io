@@ -202,6 +202,7 @@
   "arcade.liars.call": "Liar",
   "arcade.liars.waiting": "Waiting for your turn",
   "arcade.liars.real": "actually {n}",
+  "arcade.liars.lost": "{who} lost a die (actually {n})",
   "arcade.liars.win": "{who} was last standing",
   "arcade.game.twenty.name": "20 Questions Duel",
   "arcade.game.twenty.desc": "Narrow it with yes or no. One holds the answer, the rest ask",
