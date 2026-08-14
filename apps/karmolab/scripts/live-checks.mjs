@@ -146,6 +146,8 @@ const RAW_CHECKS = [
   { name: '무대(관전 화면)가 도는지', cmd: ['npm', 'run', 'smoke:arcadestage'] },
   { name: '흥 화면이 도는지', cmd: ['npm', 'run', 'test:heung'] },
   { name: '타임캡슐이 도는지', cmd: ['npm', 'run', 'test:timecapsule'] },
+  { name: '오락실 자판이 도는지', cmd: ['npm', 'run', 'smoke:arcadekeys'] },
+  { name: '자기 성능 재기가 도는지', cmd: ['npm', 'run', 'test:perf:self'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
