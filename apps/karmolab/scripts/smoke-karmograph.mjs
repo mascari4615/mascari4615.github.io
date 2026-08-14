@@ -2003,6 +2003,11 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   if (after.count !== 2) throw new Error(`다른 탭이 만든 판이 목록에서 사라졌다 (${after.count}장)`);
   if (after.orphan.length > 0) throw new Error('목록에 없는 미아 판이 생겼다: ' + after.orphan.join(','));
 
+  /* 자료가 남아도 **고르개가 낡아 있으면** 「분명 만들었는데 없다」가 된다 —
+     다른 탭이 목록을 바꾸면 화면의 고르개도 따라가야 한다. */
+  const shown = await a.evaluate(() => document.querySelectorAll('[data-km="maps"] option').length);
+  if (shown !== 2) throw new Error(`목록은 2장인데 고르개에는 ${shown}장만 보인다`);
+
   /* 지운 판은 **도로 살아나면 안 된다** — 합치기가 「내 목록에 없다」를 「남이 만들었다」로 오해하면
      지우기가 먹지 않는다. 지운 표시를 심고 저장을 한 번 더 돌려 확인한다. */
   const gone = await a.evaluate(() => {

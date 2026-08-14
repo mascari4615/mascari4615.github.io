@@ -4140,6 +4140,15 @@ import {
      * 뜨는 경고와 보관본이 받는다.
      */
     function followOtherTab(ev: StorageEvent): void {
+      /* 목록이 바뀌었으면 **고르개도 따라간다** — 다른 탭에서 만든 판이 목록에 안 뜨면
+         「분명 만들었는데 없다」가 된다(자료는 이제 안 사라진다 — 106회차 합치기. 화면만 낡았다). */
+      if (ev.key === 'karmograph.index' && ev.newValue) {
+        const fresh = loadLibrary();
+        // 내가 보고 있는 판은 그대로 둔다 — 목록만 새로 그린다.
+        library = { ...fresh, activeId: library.activeId };
+        renderMapList();
+        return;
+      }
       if (ev.key !== mapKey(library.activeId) || !ev.newValue) return;
       if (touchedHere || readOnly) return;
       void store.load().then((loaded) => {
