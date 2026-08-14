@@ -1,4 +1,5 @@
 {
   "eyes.t01": "Eyes",
-  "eyes.t03": "The eyes follow you..."
+  "eyes.t03": "The eyes follow you...",
+  "eyes.kb.label": "Move where the eyes look (arrows move, Enter blinks)"
 }
