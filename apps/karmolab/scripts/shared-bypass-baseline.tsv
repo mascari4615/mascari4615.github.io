@@ -12,7 +12,6 @@ IMG-ENCODE	src/widgets/tools/text-operations.ts
 IMG-LOAD	src/widgets/bluemarble/textures.ts
 IMG-LOAD	src/widgets/bluemarble/tiles.ts
 IMG-LOAD	src/widgets/bon/bon.ts
-IMG-LOAD	src/widgets/bounce.ts
 IMG-LOAD	src/widgets/imageconvert/core.ts	예외: objectUrl 을 호출자에게 넘겨 그쪽이 거둔다(공용은 60초 뒤 스스로 거둠). 계약이 다름 — 2026-08-14 확인
 IMG-LOAD	src/widgets/imageconvert/widget.ts	예외: 결과 크기만 재려고 만드는 임시 Image (주소는 미리보기 것을 재사용) — 2026-08-14 확인
 IMG-LOAD	src/widgets/imageedit.ts
