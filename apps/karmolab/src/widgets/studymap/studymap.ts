@@ -1456,7 +1456,38 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       paint();
     });
 
-    paint();
+    const openRequestedNode = (id: string, partId?: string): void => {
+      // Toolbox keeps the global callback after a lazy widget is detached.  A
+      // stale instance must leave the pending session request for the newly
+      // mounted StudyMap to consume.
+      if (!elStages.isConnected) return;
+      const found = whereIs.get(id);
+      if (!found) return;
+      if (partId) {
+        sessionStorage.removeItem('karmolab-studymap-open-node');
+        sessionStorage.removeItem('karmolab-studymap-open-part');
+        void openLesson(id, false, partId);
+        return;
+      }
+      current = found.trackId;
+      query = '';
+      view = 'list';
+      elSearch.value = '';
+      paint();
+      sessionStorage.removeItem('karmolab-studymap-open-node');
+      requestAnimationFrame(() => {
+        const card = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
+        if (!(card instanceof HTMLElement)) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        setTimeout(() => card.classList.remove('is-flash'), 5000);
+      });
+    };
+    (window as unknown as { KarmoStudyMapOpen?: (id: string, partId?: string) => void }).KarmoStudyMapOpen = openRequestedNode;
+    const pendingNode = sessionStorage.getItem('karmolab-studymap-open-node');
+    const pendingPart = sessionStorage.getItem('karmolab-studymap-open-part') || undefined;
+    if (pendingNode && whereIs.has(pendingNode)) openRequestedNode(pendingNode, pendingPart);
+    else paint();
   }
 
   Toolbox.register({
