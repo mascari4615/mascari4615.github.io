@@ -69,6 +69,32 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
             return { x: p.clientX, y: p.clientY };
           };
 
+          /* 도착 판정 — **끌었든 자판으로 옮겼든 같은 판정**이다 (2026-08-14, `audit:mouse-only`).
+           * 두 벌로 두면 자판 쪽만 기록이 안 남거나 결과가 안 뜬다. */
+          function checkArrival(stop?: () => void): void {
+            const tr = targetArea.getBoundingClientRect();
+            const br = dragBlock.getBoundingClientRect();
+            if (!(br.right > tr.left && br.left < tr.right && br.bottom > tr.top && br.top < tr.bottom)) return;
+            isDragging = false;
+            dragBlock.style.cursor = 'default';
+            stop?.();
+            const endTime = performance.now();
+            const st = startTime;
+            if (st === null) return;
+            const tookMs = endTime - st;
+            const speed = 1000 / tookMs;
+
+            result.innerHTML = `이동 시간: 무려 <span style="color:var(--warning)">${tookMs.toFixed(0)} ms</span>!<br>${esc(t('speed.t02'))} <span style="color:var(--success)">${speed.toFixed(2)} MB/s</span> 이에요!`;
+            startTime = null;
+
+            // 한 판 끝 — 기록 원장에 남긴다 (실패해도 위 결과는 이미 떠 있다).
+            void submitPlay(SPEC, speed).then((r) => {
+              if (!recordOut.isConnected) return;
+              renderPlayResult(recordOut, SPEC, r);
+              if (r.server && r.server.improved) mountPlayBoard(boardOut, SPEC);
+            });
+          }
+
           const onStart = (e: MouseEvent | TouchEvent): void => {
             isDragging = true;
             if (startTime === null) startTime = performance.now();
@@ -93,30 +119,7 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
               dragBlock.style.left = `${x}px`;
               dragBlock.style.top = `${y}px`;
 
-              const tr = targetArea.getBoundingClientRect();
-              const br = dragBlock.getBoundingClientRect();
-
-              if (br.right > tr.left && br.left < tr.right && br.bottom > tr.top && br.top < tr.bottom) {
-                isDragging = false;
-                dragBlock.style.cursor = 'default';
-                stopListening();
-
-                const endTime = performance.now();
-                const st = startTime;
-                if (st === null) return;
-                const tookMs = endTime - st;
-                const speed = 1000 / tookMs;
-
-                result.innerHTML = `이동 시간: 무려 <span style="color:var(--warning)">${tookMs.toFixed(0)} ms</span>!<br>${esc(t('speed.t02'))} <span style="color:var(--success)">${speed.toFixed(2)} MB/s</span> 이에요!`;
-                startTime = null;
-
-                // 한 판 끝 — 기록 원장에 남긴다 (실패해도 위 결과는 이미 떠 있다).
-                void submitPlay(SPEC, speed).then((r) => {
-                  if (!recordOut.isConnected) return;
-                  renderPlayResult(recordOut, SPEC, r);
-                  if (r.server && r.server.improved) mountPlayBoard(boardOut, SPEC);
-                });
-              }
+              checkArrival(stopListening);
             }
 
             function stopListening(): void {
@@ -141,6 +144,31 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
 
           dragBlock.addEventListener('mousedown', onStart);
           dragBlock.addEventListener('touchstart', onStart, { passive: true });
+
+          /* 자판 길 (2026-08-14, `audit:mouse-only`) — 끌기·손가락만 있으면 자판 쓰는 사람은
+           * **한 판도 못 논다.** 화살표로 옮기고, 오른쪽 칸에 닿으면 끌었을 때와 **같은 판정**으로
+           * 시간이 찍힌다(도착 판정을 한 자리로 모아 뒀다). 걸음은 20px, Shift 는 60px. */
+          dragBlock.tabIndex = 0;
+          dragBlock.setAttribute('role', 'application');
+          dragBlock.setAttribute('aria-label', t('speed.kb.label'));
+          dragBlock.addEventListener('keydown', (e: KeyboardEvent) => {
+            const step = e.shiftKey ? 60 : 20;
+            const r = dropZone.getBoundingClientRect();
+            let x = parseInt(dragBlock.style.left, 10) || 0;
+            let y = parseInt(dragBlock.style.top, 10) || 0;
+            switch (e.key) {
+              case 'ArrowLeft': x -= step; break;
+              case 'ArrowRight': x += step; break;
+              case 'ArrowUp': y -= step; break;
+              case 'ArrowDown': y += step; break;
+              default: return;
+            }
+            e.preventDefault();
+            if (startTime === null) startTime = performance.now();
+            dragBlock.style.left = `${Math.max(0, Math.min(x, r.width - 60))}px`;
+            dragBlock.style.top = `${Math.max(0, Math.min(y, r.height - 60))}px`;
+            checkArrival();
+          });
                   });
         }
       }
