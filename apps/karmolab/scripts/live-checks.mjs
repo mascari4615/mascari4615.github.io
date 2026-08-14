@@ -151,6 +151,10 @@ const RAW_CHECKS = [
   { name: '둘러보기가 끝까지 도는지', cmd: ['npm', 'run', 'smoke:tour'] },
   { name: '성능 예산이 지켜지는지', cmd: ['npm', 'run', 'test:perf:budget:regress'] },
   { name: '실사이트 화면들이 뜨는지', cmd: ['npm', 'run', 'smoke:live'] },
+  /* ★ 이건 **실사이트**를 재는 검사다 (`URL` 기본값이 blog.mascari4615.com).
+     묶음(gates)에 뒀더니 배포가 도는 순간에 걸려 「위젯 파일 404」로 빨갰다 —
+     그 자리에는 「배포에 밟혔으면 다시」 껍데기가 없다. 여기가 그 껍데기가 있는 자리다. */
+  { name: '흐름이 스스로 이어가는지', cmd: ['npm', 'run', 'test:flow:auto'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
