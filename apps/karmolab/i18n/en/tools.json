@@ -270,5 +270,9 @@
   "tools.livecount.description": "The time since your reference moment keeps climbing by the second. Months are counted by the calendar, and a rough total is worked out from how many times a day you give.",
   "tools.livecount.lead": "Climbs by the second · by the calendar · rough conversion",
   "tools.mesh3d.description": "Open STL and OBJ 3D files straight in the browser and turn them around. It also tells you the triangle count and the width, depth and height. The file never leaves your device.",
-  "tools.mesh3d.lead": "Open without installing · turn it around · triangle count and size"
+  "tools.mesh3d.lead": "Open without installing · turn it around · triangle count and size",
+  "tools.studymap.description": "A study map of 41 tracks covering the web, computer science, security, AI, data and systems. Every card carries a lesson (explanation, examples, check questions) so you can decide what to study first.",
+  "tools.studymap.lead": "41 tracks · 311 cards · a lesson on each · check questions · progress saved",
+  "tools.arcade.description": "An arcade where several mini games work alone or with others. Bots take the seats nobody fills, so \"solo\" and \"together\" are the same game, and a room opens with a single link.",
+  "tools.arcade.lead": "Nine mini games · solo or together · bots fill empty seats · rooms never stored on a server"
 }

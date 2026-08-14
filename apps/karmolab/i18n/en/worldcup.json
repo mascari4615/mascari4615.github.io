@@ -47,5 +47,6 @@
   "worldcup.theirChampion": "Their winner",
   "worldcup.sameRate": "You chose the same way at <b>{rate}%</b> of the same forks — ",
   "worldcup.roomWaiting": "Room code: {code} — it starts when the other person joins. The set and the number of rounds follow your choice.",
-  "worldcup.roomCopied": "Room code {code} copied — send it to the other person."
+  "worldcup.roomCopied": "Room code {code} copied — send it to the other person.",
+  "worldcup.loading": "Loading the table…"
 }

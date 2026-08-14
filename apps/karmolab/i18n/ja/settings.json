@@ -101,5 +101,7 @@
   "settings.t58": "マスコットの記録を初期化しました",
   "settings.tab.display": "表示 · API",
   "settings.tab.mascot": "マスコット",
-  "settings.tab.data": "このブラウザに保存されているもの"
+  "settings.tab.data": "このブラウザに保存されているもの",
+  "settings.t27": "画面テーマ（明るい・暗い）",
+  "settings.t28": "メニューの配置"
 }

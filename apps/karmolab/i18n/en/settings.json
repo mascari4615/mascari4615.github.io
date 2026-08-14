@@ -101,5 +101,7 @@
   "settings.t58": "Mascot record reset",
   "settings.tab.display": "Display · API",
   "settings.tab.mascot": "Mascot",
-  "settings.tab.data": "What is stored in this browser"
+  "settings.tab.data": "What is stored in this browser",
+  "settings.t27": "Screen theme (light / dark)",
+  "settings.t28": "Menu layout"
 }
