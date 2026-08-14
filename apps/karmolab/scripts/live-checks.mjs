@@ -148,6 +148,8 @@ const RAW_CHECKS = [
   { name: '타임캡슐이 도는지', cmd: ['npm', 'run', 'test:timecapsule'] },
   { name: '오락실 자판이 도는지', cmd: ['npm', 'run', 'smoke:arcadekeys'] },
   { name: '자기 성능 재기가 도는지', cmd: ['npm', 'run', 'test:perf:self'] },
+  /* 6분짜리다 — 묶음에 넣으면 push 마다 6분이 붙는다. 여기가 그 집이다. */
+  { name: '둘러보기가 끝까지 도는지', cmd: ['npm', 'run', 'smoke:tour'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
