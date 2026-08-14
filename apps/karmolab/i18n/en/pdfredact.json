@@ -29,5 +29,8 @@
   "pdfredact.err.generic": "Could not build the redacted PDF.",
   "pdfredact.file.base": "document",
   "pdfredact.file.suffix": "-redacted",
-  "pdfredact.warn": "Drawing a black box on a PDF leaves the text inside the file — copy it and everything comes out. This tool re-renders the pages as images, so the text itself is gone."
+  "pdfredact.warn": "Drawing a black box on a PDF leaves the text inside the file — copy it and everything comes out. This tool re-renders the pages as images, so the text itself is gone.",
+  "pdfredact.kb.label": "Choose the area to redact (arrows move, Shift+arrows resize, Enter redacts, Backspace undoes)",
+  "pdfredact.kb.moved": "Area {x}%, {y}% · size {w}%×{h}%",
+  "pdfredact.say.added": "{n} spot(s) marked. They are really removed when you save."
 }
