@@ -2197,6 +2197,560 @@ try {
 }
 check(m3Threw, '모르는 파일은 던진다');
 
+// ── 견주기 (TASK-KL-316) ────────────────────────────────────────────────────
+const df = await load('src/core/diff.ts');
+
+const dfEdits = df.diffLines('a\nb\nc', 'a\nx\nc');
+eq(df.countEdits(dfEdits).added, 1, 'diff 늘어난 줄');
+eq(df.countEdits(dfEdits).removed, 1, 'diff 줄어든 줄');
+eq(df.countEdits(dfEdits).same, 2, 'diff 그대로인 줄');
+eq(df.countEdits(df.diffLines('a\nb', 'a\nb')).added, 0, '같은 글은 다른 데가 없다');
+eq(df.countEdits(df.diffLines('A\nb', 'a\nb', { ignoreCase: true })).added, 0, '대소문자 무시');
+eq(df.countEdits(df.diffLines('a  b', 'a b', { ignoreWs: true })).added, 0, '띄어쓰기 무시');
+check(df.toUnified(df.diffLines('a\nb\nc', 'a\nx\nc')).startsWith('@@'), 'unified 머리');
+
+/* 자리만 바뀐 것은 「옮김」이지 지우고 넣은 것이 아니다 — 이 도구의 존재 이유다. */
+const dfMoved = df.diffStructure({ a: 1, b: 2 }, { b: 2, a: 1 });
+eq(dfMoved.length, 0, '열쇠 차례가 바뀐 것은 다름이 아니다');
+const dfArr = df.diffStructure([1, 2, 3], [3, 1, 2]);
+check(dfArr.every((c) => c.kind === 'move'), `배열 자리 바뀜은 옮김: ${JSON.stringify(dfArr)}`);
+const dfChanged = df.diffStructure({ user: { name: 'yon', age: 3 } }, { user: { name: 'ring', age: 3 } });
+eq(dfChanged.length, 1, '바뀐 값 하나');
+eq(dfChanged[0].path, 'user.name', '열쇠 경로로 짚는다');
+eq(df.diffStructure({ a: 1 }, { a: 1, b: 2 })[0].kind, 'add', '새 열쇠는 더함');
+
+const dfMerge = df.merge3('a\nb\nc', 'a\nB\nc', 'a\nb\nC');
+eq(dfMerge.conflicts, 0, '서로 다른 줄을 고치면 안 부딪힌다');
+check(dfMerge.text.includes('B') && dfMerge.text.includes('C'), `양쪽 고침이 다 남는다: ${JSON.stringify(dfMerge.text)}`);
+const dfClash = df.merge3('a\nb', 'a\nX', 'a\nY');
+eq(dfClash.conflicts, 1, '같은 줄을 둘 다 고치면 부딪힌다');
+check(dfClash.text.includes('<<<<<<<'), '부딪힌 자리에 표식이 선다');
+
+// ── curl 옮기기 (TASK-KL-316) ───────────────────────────────────────────────
+const ck = await load('src/core/curlkit.ts');
+
+const ckReq = ck.parseCurl(`curl -X POST 'https://api.example.com/v1/items' -H 'Content-Type: application/json' -d '{"name":"yon"}'`);
+eq(ckReq.method, 'POST', 'curl 방법');
+eq(ckReq.url, 'https://api.example.com/v1/items', 'curl 주소');
+eq(ckReq.headers['Content-Type'], 'application/json', 'curl 헤더');
+eq(ckReq.body, '{"name":"yon"}', 'curl 몸통');
+eq(ck.parseCurl('curl https://a.example.com').method, 'GET', '-X 없고 몸통 없으면 GET');
+eq(ck.parseCurl(`curl https://a.example.com -d 'x=1'`).method, 'POST', '몸통이 있으면 POST');
+/* 줄 끝 `\` 로 이어 붙인 여러 줄 — 사람이 복사해 오는 모양 그대로 */
+const ckMulti = ck.parseCurl("curl 'https://a.example.com' \\\n  -H 'A: 1' \\\n  -H 'B: 2'");
+eq(Object.keys(ckMulti.headers).length, 2, '여러 줄 curl 헤더 둘');
+
+const ckFetch = ck.toCode(ckReq, 'fetch');
+check(ckFetch.includes("method: 'POST'") && ckFetch.includes('await fetch('), `fetch 로 옮김: ${ckFetch.split('\n')[0]}`);
+check(ck.toCode(ckReq, 'python').includes('requests.post('), '파이썬으로 옮김');
+check(ck.toCode(ckReq, 'go').includes('http.NewRequest("POST"'), 'Go 로 옮김');
+check(ck.toCode(ckReq, 'axios').includes("method: 'post'"), 'axios 로 옮김');
+/* 되돌려 적은 curl 을 다시 읽으면 같은 것이 나와야 한다 (왕복) */
+const ckRound = ck.parseCurl(ck.toCode(ckReq, 'curl'));
+eq(ckRound.method, ckReq.method, 'curl 왕복 — 방법');
+eq(ckRound.url, ckReq.url, 'curl 왕복 — 주소');
+eq(ckRound.body, ckReq.body, 'curl 왕복 — 몸통');
+
+// ── 설정 옮기기 (TASK-KL-316) ───────────────────────────────────────────────
+const cfg = await load('src/core/configconv.ts');
+
+eq(cfg.detect('{"a":1}'), 'json', '무엇인지 알아본다 — json');
+eq(cfg.detect('a: 1\nb:\n  c: 2'), 'yaml', '무엇인지 알아본다 — yaml');
+eq(cfg.detect('[server]\nport = 8080'), 'toml', '무엇인지 알아본다 — toml');
+eq(cfg.detect('DB_HOST=localhost\nDB_PORT=5432'), 'env', '무엇인지 알아본다 — env');
+
+const ccYaml = cfg.parse('name: yon\nage: 3\nlikes:\n  - acorn\n  - nap\nhome:\n  room: inside\n  warm: true', 'yaml');
+eq(ccYaml.name, 'yon', 'yaml 값');
+eq(ccYaml.age, 3, 'yaml 숫자');
+eq(ccYaml.likes.length, 2, 'yaml 목록');
+eq(ccYaml.likes[0], 'acorn', 'yaml 목록 첫 칸');
+eq(ccYaml.home.warm, true, 'yaml 중첩·참거짓');
+
+const ccToml = cfg.parse('title = "wm"\n\n[server]\nport = 8080\nhosts = ["a", "b"]', 'toml');
+eq(ccToml.title, 'wm', 'toml 값');
+eq(ccToml.server.port, 8080, 'toml 표 안 숫자');
+eq(ccToml.server.hosts[1], 'b', 'toml 배열');
+
+const ccEnv = cfg.parse('export DB_HOST=localhost\nDB_PORT=5432\n# 주석\n', 'env');
+eq(ccEnv.DB_HOST, 'localhost', 'env 값 (export 도 읽는다)');
+eq(ccEnv.DB_PORT, 5432, 'env 숫자');
+
+/* 왕복 — YAML 로 찍고 다시 읽으면 같은 나무여야 한다 */
+const ccTree = { name: 'yon', age: 3, home: { room: 'inside', warm: true }, likes: ['acorn', 'nap'] };
+const ccBack = cfg.parse(cfg.emit(ccTree, 'yaml'), 'yaml');
+eq(JSON.stringify(ccBack), JSON.stringify(ccTree), 'yaml 왕복');
+const ccTomlBack = cfg.parse(cfg.emit(ccTree, 'toml'), 'toml');
+eq(ccTomlBack.home.room, 'inside', 'toml 왕복 — 중첩');
+eq(cfg.emit(ccTree, 'env').includes('HOME_ROOM=inside'), true, 'env 는 평평하게 편다');
+eq(cfg.emit(ccTree, 'properties').includes('home.room=inside'), true, 'properties 는 점으로 편다');
+
+// ── 깨진 글자 되살리기 (TASK-KL-316) ────────────────────────────────────────
+const ed = await load('src/core/encdetective.ts');
+
+/* 진짜로 깨뜨려 놓고 되살아나는지 본다 — 손으로 지어낸 예시는 「되는 척」을 만든다. */
+const edPlain = '안녕하세요 반갑습니다';
+const edBytes = new TextEncoder().encode(edPlain);
+const edAsLatin1 = Array.from(edBytes).map((b) => String.fromCharCode(b)).join('');
+eq(ed.bestFix(edAsLatin1).text, edPlain, 'UTF-8 을 latin1 으로 읽은 깨짐을 되살린다');
+check(ed.bestFix(edAsLatin1).how.includes('latin1') || ed.bestFix(edAsLatin1).how.includes('cp1252'), '무슨 일이 있었는지 이름을 댄다');
+
+/* 두 겹으로 씌운 경우 */
+const edDouble = Array.from(new TextEncoder().encode(edAsLatin1)).map((b) => String.fromCharCode(b)).join('');
+eq(ed.bestFix(edDouble).text, edPlain, '두 겹 씌운 깨짐도 되살린다');
+
+/* 멀쩡한 글은 건드리지 않는다 — 도구가 멀쩡한 것을 망가뜨리면 못 쓴다 */
+eq(ed.bestFix(edPlain).text, edPlain, '안 깨진 글은 그대로 둔다');
+eq(ed.bestFix('hello world').text, 'hello world', '영문도 그대로 둔다');
+
+/* 이미 사라진 자리는 「못 되살린다」고 말한다 */
+const edLost = '안?????요';
+check(ed.explain(edLost).includes('못 되살린다'), `사라진 자리는 사라졌다고 말한다: ${ed.explain(edLost).split('\n').pop()}`);
+eq(ed.losses('한글�글').replacement, 1, '대체 문자를 센다');
+
+/* 감싸인 글도 같은 창구에서 푼다 */
+eq(ed.bestFix('%EC%95%88%EB%85%95').text, '안녕', '주소 인코딩을 푼다');
+eq(ed.bestFix('\\uc548\\ub155').text, '안녕', '자바스크립트 escape 를 푼다');
+check(ed.score('안녕하세요') > ed.score('ì•ˆë…•'), '한글이 깨진 라틴보다 점수가 높다');
+
+// ── 안 보이는 글자·닮은 글자 (TASK-KL-316) ──────────────────────────────────
+const ux = await load('src/core/unicodex.ts');
+
+const ZWSP = String.fromCodePoint(0x200b);
+const NBSP = String.fromCodePoint(0x00a0);
+const RLO = String.fromCodePoint(0x202e);
+
+eq(ux.scan('안녕하세요').length, 0, '멀쩡한 글에는 수상한 것이 없다');
+eq(ux.scan('안녕' + ZWSP + '하세요').length, 1, '폭 없는 공백을 찾는다');
+eq(ux.scan('안녕' + ZWSP + '하세요')[0].kind, 'invisible', '안 보이는 것으로 가른다');
+eq(ux.scan('안녕' + ZWSP + '하세요')[0].code, 'U+200B', '코드값을 댄다');
+eq(ux.clean('안녕' + ZWSP + '하세요'), '안녕하세요', '폭 없는 공백을 지운다');
+eq(ux.clean('a' + NBSP + 'b'), 'a b', 'nbsp 는 보통 공백으로');
+eq(ux.scan('a' + NBSP + 'b')[0].kind, 'space', 'nbsp 는 공백 갈래');
+eq(ux.scan('보기' + RLO + '역순')[0].kind, 'bidi', '거꾸로 보이게 하는 것을 찾는다');
+
+/* 라틴 a 자리에 키릴 а — 사칭에 쓰이는 그것 */
+const fake = 'p' + String.fromCodePoint(0x0430) + 'ypal';
+eq(ux.scan(fake).length, 1, '닮은 글자를 하나 찾는다');
+eq(ux.scan(fake)[0].kind, 'confusable', '닮은 글자로 가른다');
+eq(ux.clean(fake), 'paypal', '닮은 글자를 진짜 라틴으로 바꾼다');
+eq(ux.clean(fake, { keepConfusables: true }), fake, '두라고 하면 안 건드린다');
+check(ux.report(fake).includes('U+0430'), `무엇이 몇 번째인지 적는다: ${ux.report(fake).split('\n')[1]}`);
+eq(ux.report('안녕하세요'), '수상한 글자가 없습니다.', '없으면 없다고 한다');
+
+// ── 가짜 데이터 (TASK-KL-316) ───────────────────────────────────────────────
+const mock = await load('src/core/mockdata.ts');
+
+const mockSchema = 'id:id\n이름:name\n메일:email\n나이:int(20,40)\n등급:enum(a|b|c)\n가입일:date(2024-01-01,2024-12-31)';
+const mockFields = mock.parseSchema(mockSchema);
+eq(mockFields.length, 6, '스키마 여섯 칸');
+eq(mockFields[3].type, 'int', '괄호 붙은 종류를 읽는다');
+eq(mockFields[3].args[1], '40', '괄호 안 값도 읽는다');
+
+const mockRows = mock.generate(mockSchema, { count: 20, locale: 'ko', seed: 42 });
+eq(mockRows.length, 20, '스무 줄');
+eq(mockRows[0].id, 1, 'id 는 1부터');
+eq(mockRows[19].id, 20, 'id 는 끝까지 이어진다');
+check(mockRows.every((row) => row.나이 >= 20 && row.나이 <= 40), '숫자는 정한 범위 안');
+check(mockRows.every((row) => ['a', 'b', 'c'].includes(row.등급)), '고른 값 중에서만');
+check(mockRows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.가입일) && row.가입일 >= '2024-01-01' && row.가입일 <= '2024-12-31'), '날짜도 범위 안');
+check(mockRows.every((row) => /@/.test(row.메일)), '메일에는 골뱅이가 있다');
+check(new Set(mockRows.map((row) => row.이름)).size > 5, `이름이 「홍길동1·2」로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.이름).join(',')}`);
+
+/* 같은 씨앗이면 같은 줄 — 시험이 매번 달라지면 아무것도 못 잠근다 */
+eq(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), '씨앗이 같으면 같다');
+check(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })) !== JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 8 })), '씨앗이 다르면 다르다');
+
+/* 나라마다 다른 이름 — 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다 */
+check(/[가-힣]/.test(String(mock.generate('이름:name', { count: 1, seed: 3, locale: 'ko' })[0].이름)), 'ko 는 한글 이름');
+check(/^[A-Za-z ]+$/.test(String(mock.generate('name:name', { count: 1, seed: 3, locale: 'en' })[0].name)), 'en 은 영문 이름');
+
+const mockCsv = mock.emit(mock.generate('이름:name\n메모:lorem(3)', { count: 2, seed: 5 }), 'csv');
+eq(mockCsv.split('\n')[0], '이름,메모', 'CSV 머리줄');
+eq(mockCsv.split('\n').length, 3, 'CSV 머리 + 두 줄');
+const mockSql = mock.emit(mock.generate('이름:name', { count: 1, seed: 5 }), 'sql', 'people');
+check(mockSql.startsWith('INSERT INTO people ('), `SQL 로도 낸다: ${mockSql}`);
+check(mockSql.trim().endsWith(');'), 'SQL 줄이 닫힌다');
+
+// ── jq 놀이터 (TASK-KL-316) ─────────────────────────────────────────────────
+const jq = await load('src/core/jqplay.ts');
+
+const jqDoc = JSON.stringify({
+  users: [
+    { name: '윤', age: 24, tags: ['a', 'b'] },
+    { name: '링', age: 17, tags: ['b'] },
+    { name: '알리사', age: 31, tags: ['a', 'c'] }
+  ],
+  meta: { count: 3 }
+});
+const jqRun = (q) => jq.query(jqDoc, q);
+const jqOne = (q) => { const got = jqRun(q); check(got.error === undefined, `${q}: ${got.error}`); return got.values; };
+
+eq(JSON.stringify(jqOne('.meta.count')), '[3]', '경로로 꺼낸다');
+eq(JSON.stringify(jqOne('.users | length')), '[3]', '이어서(|) 센다');
+eq(JSON.stringify(jqOne('.users[0].name')), '["윤"]', '자리로 꺼낸다');
+eq(JSON.stringify(jqOne('.users[-1].name')), '["알리사"]', '뒤에서부터도 꺼낸다');
+eq(JSON.stringify(jqOne('.users[] | .name')), '["윤","링","알리사"]', '하나씩 꺼낸다');
+eq(JSON.stringify(jqOne('.users[] | select(.age > 20) | .name')), '["윤","알리사"]', 'select 로 고른다');
+eq(JSON.stringify(jqOne('[.users[] | .age] | add')), '[72]', '모아서 더한다');
+eq(JSON.stringify(jqOne('.users | map(.name) | join("·")')), '["윤·링·알리사"]', 'map 과 join');
+eq(JSON.stringify(jqOne('.users | sort_by(.age) | .[0].name')), '["링"]', 'sort_by');
+eq(JSON.stringify(jqOne('.users | max_by(.age) | .name')), '["알리사"]', 'max_by');
+eq(JSON.stringify(jqOne('.meta | keys')), '["count"]'.replace('"count"', '["count"]'), 'keys');
+eq(JSON.stringify(jqOne('.users[1] | {name, 나이: .age}')), '[{"name":"링","나이":17}]', '물체를 새로 짓는다');
+eq(JSON.stringify(jqOne('.users[0].tags[0], .users[1].tags[0]')), '["a","b"]', '쉼표로 둘 다');
+eq(JSON.stringify(jqOne('.users[0] | has("name")')), '[true]', 'has');
+eq(JSON.stringify(jqOne('.users | map(.tags) | flatten | unique')), '[["a","b","c"]]', 'flatten·unique');
+eq(JSON.stringify(jqOne('.users[] | select(.name | test("리")) | .age')), '[31]', '정규식으로 고른다');
+eq(JSON.stringify(jqOne('.users | group_by(.tags[0]) | length')), '[2]', 'group_by');
+eq(JSON.stringify(jqOne('.meta | to_entries')), '[[{"key":"count","value":3}]]', 'to_entries');
+eq(JSON.stringify(jqOne('.users[0] | del(.tags)')), '[{"name":"윤","age":24}]', 'del 로 지운다');
+eq(JSON.stringify(jqOne('.users[0].nope')), '[null]', '없는 열쇠는 null');
+eq(JSON.stringify(jqOne('.')), '[' + jqDoc + ']', '점 하나는 그대로');
+
+/* 잘못 쓴 것은 **왜 틀렸는지** 말해야 한다 — 조용히 빈 답을 주면 사람이 자기 데이터를 의심한다 */
+check(jqRun('.users[] | .name.first').error !== undefined, '글자에서 열쇠를 꺼내면 알려 준다');
+check(jqRun('.users | ????').error !== undefined, '못 읽는 쿼리는 알려 준다');
+check(jq.query('{못된 json', '.').error.includes('JSON'), 'JSON 이 아니면 그렇다고 한다');
+eq(jq.format([1, 'a'], true), '1\n"a"', '한 줄에 하나씩 낸다');
+
+// ── SQL 다듬기·말 바꾸기 (TASK-KL-316) ──────────────────────────────────────
+const sq = await load('src/core/sqlfmt.ts');
+
+const sqOne = 'select id, name from users where age > 20 and city = \'서울\' order by name limit 10';
+const sqPretty = sq.format(sqOne, { upper: true });
+const sqLines = sqPretty.split('\n');
+check(sqLines[0].startsWith('SELECT'), `첫 줄은 SELECT: ${sqLines[0]}`);
+check(sqLines.some((l) => l.startsWith('FROM users')), 'FROM 이 제 줄에 선다');
+check(sqLines.some((l) => l.startsWith('WHERE')), 'WHERE 가 제 줄에 선다');
+check(sqLines.some((l) => l.startsWith('ORDER BY') || l.startsWith('ORDER')), 'ORDER BY 가 제 줄에 선다');
+check(sqPretty.includes("'서울'"), '따옴표 안 한글은 안 건드린다');
+eq(sq.format('select 1').includes('select'), true, '대문자로 안 바꾸라면 그대로 둔다');
+
+/* 함수 괄호는 줄을 안 바꾼다 — 바꾸면 오히려 안 읽힌다 */
+check(sq.format('select count(*) from t').includes('count(*)'), '함수 괄호는 붙여 둔다');
+/* 하위 질의는 들여쓴다 */
+const sqSub = sq.format('select * from (select id from t) x', { upper: true });
+check(sqSub.split('\n').length >= 3, `하위 질의는 줄을 나눈다: ${JSON.stringify(sqSub)}`);
+/* 주석은 살린다 */
+check(sq.format('-- 메모\nselect 1').includes('-- 메모'), '주석을 안 지운다');
+
+const sqBack = sq.toDialect('SELECT `id` FROM `users` LIMIT 5', 'mysql', 'mssql');
+check(sqBack.sql.includes('[id]') && sqBack.sql.includes('[users]'), `이름 감싸기: ${sqBack.sql}`);
+check(sqBack.sql.includes('SELECT TOP 5'), `LIMIT → TOP: ${sqBack.sql}`);
+check(sqBack.notes.length >= 2, '무엇을 바꿨는지 적어 준다');
+
+const sqPg = sq.toDialect('CREATE TABLE t (id INT AUTO_INCREMENT PRIMARY KEY)', 'mysql', 'postgres');
+check(sqPg.sql.includes('GENERATED BY DEFAULT AS IDENTITY'), `자동 번호: ${sqPg.sql}`);
+const sqNow = sq.toDialect('SELECT NOW()', 'mysql', 'mssql');
+check(sqNow.sql.includes('GETDATE()'), `지금 시각: ${sqNow.sql}`);
+const sqNull = sq.toDialect('SELECT IFNULL(a, 0) FROM t', 'mysql', 'postgres');
+check(sqNull.sql.includes('COALESCE('), `없으면 대신: ${sqNull.sql}`);
+check(sq.toDialect('SELECT 1', 'mysql', 'mysql').notes[0].includes('바꿀 것이 없'), '바꿀 게 없으면 없다고 한다');
+check(sq.toDialect("SELECT a || b FROM t", 'postgres', 'mysql').notes.join(' ').includes('||'), '뜻이 달라지는 자리는 경고한다');
+
+// ── 표 사이 관계 그림 (TASK-KL-316) ─────────────────────────────────────────
+const erd = await load('src/core/erd.ts');
+
+const erdSql = `
+CREATE TABLE users (
+  id INT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  city_id INT REFERENCES cities(id)
+);
+CREATE TABLE cities ( id INT PRIMARY KEY, name VARCHAR(80) NOT NULL );
+CREATE TABLE posts (
+  id INT PRIMARY KEY,
+  title VARCHAR(200),
+  price DECIMAL(10,2),
+  author_id INT NOT NULL,
+  FOREIGN KEY (author_id) REFERENCES users(id)
+);`;
+const erdOut = erd.parse(erdSql);
+eq(erdOut.kind, 'sql', 'DDL 로 알아본다');
+eq(erdOut.tables.length, 3, '표 셋');
+eq(erdOut.tables[0].columns.length, 3, '첫 표의 칸 셋');
+eq(erdOut.tables[0].columns[0].pk, true, '열쇠를 찾는다');
+eq(erdOut.tables[0].columns[1].unique, true, '하나뿐인 칸을 찾는다');
+eq(erdOut.tables[2].columns[2].type, 'DECIMAL(10,2)', '괄호 안 쉼표로 안 쪼갠다');
+eq(erdOut.links.length, 2, '이어짐 둘 (칸에 붙은 것 + FOREIGN KEY 줄)');
+check(erdOut.links.some((l) => l.from === 'posts' && l.to === 'users' && l.by === 'author_id'), 'FOREIGN KEY 줄도 읽는다');
+const erdMer = erd.toMermaid(erdOut);
+check(erdMer.startsWith('erDiagram'), 'mermaid 로 낸다');
+check(erdMer.includes('posts }o--|| users : author_id'), `이어짐을 그린다: ${erdMer.split('\n')[1]}`);
+check(erdMer.includes('INT id PK'), '열쇠 표시를 그림에 넣는다');
+check(erd.outline(erdOut).includes('표 3개'), '글로도 요약한다');
+
+const erdPrisma = `
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  posts Post[]
+}
+model Post {
+  id       Int  @id
+  title    String?
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+}`;
+const erdP = erd.parse(erdPrisma);
+eq(erdP.kind, 'prisma', 'Prisma 로 알아본다');
+eq(erdP.tables.length, 2, '모델 둘');
+eq(erdP.tables[0].columns[0].pk, true, '@id 를 열쇠로 본다');
+check(erdP.tables[1].columns.some((c) => c.name === 'title' && c.required !== true), '물음표 붙은 칸은 필수가 아니다');
+check(erdP.links.some((l) => l.from === 'Post' && l.to === 'User' && l.by === 'authorId'), `관계 칸을 읽는다: ${JSON.stringify(erdP.links)}`);
+check(!erdP.tables[1].columns.some((c) => c.name === 'author'), '관계 칸은 보통 칸으로 안 센다');
+
+/* 없는 표를 가리키면 그렇다고 말한다 — 조용히 빠뜨리면 그림이 거짓말을 한다 */
+const erdMiss = erd.parse('CREATE TABLE a ( id INT PRIMARY KEY, b_id INT REFERENCES b(id) );');
+check(erd.outline(erdMiss).includes('여기 없는 표'), '없는 표를 가리키면 알려 준다');
+check(!erd.toMermaid(erdMiss).includes('a }o--|| b'), '없는 표로는 선을 안 긋는다');
+check(erd.outline(erd.parse('안녕')).includes('못 찾았습니다'), '스키마가 아니면 그렇다고 한다');
+
+// ── 작은 mermaid (TASK-KL-316) ──────────────────────────────────────────────
+const ml = await load('src/core/mermaidlite.ts');
+
+const mlFlow = 'flowchart TD\n  A[시작] --> B{고를까}\n  B -->|응| C(간다)\n  B -->|아니| D[[멈춤]]\n  C --> E((끝))';
+const mlDia = ml.parse(mlFlow);
+eq(mlDia.kind, 'flowchart', '흐름도로 알아본다');
+eq(mlDia.dir, 'TD', '방향을 읽는다');
+eq(mlDia.nodes.length, 5, '마디 다섯');
+eq(mlDia.nodes[0].label, '시작', '대괄호 안 글이 이름이 된다');
+eq(mlDia.nodes[1].shape, 'diamond', '중괄호는 마름모');
+eq(mlDia.nodes[4].shape, 'circle', '두 겹 괄호는 원');
+eq(mlDia.edges.length, 4, '이어짐 넷');
+eq(mlDia.edges[1].label, '응', '화살표에 붙은 글을 읽는다');
+eq(ml.parse('graph LR\n A-->B').dir, 'LR', '옆으로도 읽는다');
+
+/* 층 나누기 — 화살표를 따라 깊이가 매겨져야 한다 */
+const mlRows = ml.levels(mlDia);
+eq(mlRows[0].join(','), 'A', '시작은 첫 층');
+check(mlRows.length >= 3, `층이 여러 겹: ${mlRows.length}`);
+
+/* 고리가 있어도 멈춘다 (무한히 안 돈다) — 이게 없으면 화면이 멎는다 */
+const mlLoop = ml.parse('flowchart TD\n A --> B\n B --> A');
+eq(mlLoop.nodes.length, 2, '고리도 마디를 다 센다');
+check(ml.levels(mlLoop).flat().length === 2, '고리에서도 모든 마디에 자리를 준다');
+
+const mlSvg = ml.toSvg(mlDia);
+check(mlSvg.startsWith('<svg'), 'SVG 로 낸다');
+check(mlSvg.includes('시작'), '글이 그림에 들어간다');
+check(mlSvg.includes('<polygon'), '마름모를 그린다');
+check(mlSvg.includes('marker-end'), '화살표 머리를 단다');
+check(/viewBox="0 0 \d+ \d+"/.test(mlSvg), '크기를 잰다');
+check(ml.toSvg(ml.parse('erDiagram\n  users ||--o{ posts : writes\n  users {\n    INT id PK\n    TEXT email\n  }')).includes('email'), '표 관계도 그린다');
+/* 그림에 들어간 글은 이스케이프되어야 한다 — 안 그러면 SVG 가 깨진다 */
+check(ml.toSvg(ml.parse('flowchart TD\n A["<b>진한</b>"] --> B')).includes('&lt;b&gt;'), '꺾쇠를 그대로 안 넣는다');
+
+check(ml.check(ml.parse('안녕')).includes('첫 줄이'), '무엇을 적어야 하는지 알려 준다');
+check(ml.check(ml.parse('flowchart TD\n subgraph 묶음\n end')).includes('못 읽는 줄'), '아직 못 읽는 줄은 숨기지 않는다');
+
+// ── 정규식 풀이 (TASK-KL-316) ───────────────────────────────────────────────
+const rx = await load('src/core/regexplain.ts');
+
+const rxNode = rx.parse('^\\d{3}-\\d{4}$');
+eq(rxNode.kind, 'seq', '이어 붙임으로 읽는다');
+const rxP = rx.merged(rx.pieces(rxNode));
+eq(rxP[0].what, 'anchor.start', '처음을 알아본다');
+eq(rxP[1].what, 'class.digit', '숫자 무리를 알아본다');
+eq(rxP[1].quant.min, 3, '몇 번인지 읽는다');
+eq(rxP[1].quant.max, 3, '{3} 은 딱 세 번');
+eq(rxP[2].what, 'literal', '그냥 글자');
+eq(rxP[2].text, '-', '글자를 그대로 들고 있다');
+eq(rxP[rxP.length - 1].what, 'anchor.end', '끝을 알아본다');
+
+/* 이어진 글자는 한 덩이로 — 「a」「b」「c」 세 줄은 안 읽힌다 */
+const rxWord = rx.merged(rx.pieces(rx.parse('abc\\d')));
+eq(rxWord.length, 2, '글자 셋은 한 덩이');
+eq(rxWord[0].text, 'abc', '한 덩이로 모은다');
+
+const rxGroup = rx.merged(rx.pieces(rx.parse('(\\w+)@(?:naver|gmail)\\.com')));
+eq(rxGroup[0].what, 'group.capture', '잡아 두는 묶음');
+eq(rxGroup[0].name, '1', '묶음 번호를 매긴다');
+check(rxGroup.some((p) => p.what === 'group.plain'), '(?: 는 안 잡는 묶음');
+check(rxGroup.some((p) => p.what === 'alt'), '갈래를 알아본다');
+eq(rx.merged(rx.pieces(rx.parse('(?<year>\\d{4})')))[0].name, 'year', '이름 붙인 묶음');
+eq(rx.merged(rx.pieces(rx.parse('a(?=b)')))[1].what, 'look.ahead', '앞을 엿본다');
+eq(rx.merged(rx.pieces(rx.parse('a(?<!b)')))[1].what, 'look.behindNot', '뒤를 엿보며 아니라고 한다');
+eq(rx.merged(rx.pieces(rx.parse('[^가-힣]')))[0].what, 'class.noneOf', '아닌 것 무리');
+eq(rx.merged(rx.pieces(rx.parse('a+?')))[0].quant.lazy, true, '게으른 되풀이');
+eq(rx.merged(rx.pieces(rx.parse('a{2,}')))[0].quant.max, undefined, '위가 없는 되풀이');
+
+/* 말은 알맹이가 안 만든다 — 화면(i18n)이 만든다 */
+check(!JSON.stringify(rxP).includes('숫자'), '알맹이가 한국어 문장을 들고 있지 않다');
+
+const rxSvg = rx.toRailroad(rx.parse('^(\\d{3})-\\d{4}$'));
+check(rxSvg.startsWith('<svg'), '철길 그림을 낸다');
+check(rxSvg.includes('rect'), '상자를 그린다');
+check(rxSvg.includes('\\d'), '무엇을 잡는지 상자에 적는다');
+check(rx.toRailroad(rx.parse('a*')).includes('stroke-dasharray'), '되풀이·건너뜀을 점선으로 보인다');
+
+let rxThrew = false;
+try {
+  rx.parse('(a');
+} catch {
+  rxThrew = true;
+}
+check(rxThrew, '안 닫힌 괄호는 그 자리에서 말한다');
+
+// ── git 되돌리기 (TASK-KL-316) ──────────────────────────────────────────────
+const gu = await load('src/core/gitundo.ts');
+
+eq(gu.SCENARIOS.length, 13, '상황 열셋');
+check(gu.SCENARIOS.every((s) => s.steps.length > 0), '빈 상황이 없다');
+check(gu.SCENARIOS.every((s) => s.steps.every((x) => x.cmd.startsWith('git '))), '걸음은 전부 git 명령이다');
+
+/* 안 민 판과 민 판은 **다른 답**이 나와야 한다 — 이게 이 도구의 존재 이유다 */
+const guLocal = gu.stepsFor('lastMessage', { pushed: false });
+const guPushed = gu.stepsFor('lastMessage', { pushed: true });
+eq(guLocal.length, 1, '안 밀었으면 amend 한 걸음');
+eq(guPushed.length, 2, '밀었으면 강제 push 걸음이 붙는다');
+check(guPushed.some((s) => s.cmd.includes('--force-with-lease')), '그냥 --force 가 아니라 --force-with-lease');
+check(guPushed.some((s) => s.undoable === false), '되돌릴 수 없는 걸음을 그렇다고 표시한다');
+
+/* 이미 나간 커밋은 되돌리는 커밋(revert)이 먼저 온다 */
+const guDrop = gu.stepsFor('dropCommit', { pushed: true });
+eq(guDrop[0].cmd.startsWith('git revert'), true, `민 판에서는 revert 가 먼저: ${guDrop[0].cmd}`);
+check(!gu.stepsFor('dropCommit', { pushed: false }).some((s) => s.cmd.startsWith('git revert')), '안 민 판에는 revert 를 안 권한다');
+
+/* 위험한 상황은 위험하다고 말해야 한다 */
+eq(gu.worstRisk(gu.stepsFor('discardFile')), 'destructive', '파일 버리기는 되돌릴 수 없다');
+eq(gu.worstRisk(gu.stepsFor('unstage')), 'safe', '담기 취소는 안전하다');
+eq(gu.worstRisk(gu.stepsFor('abortMerge')), 'rewrite', '머지 취소는 그 사이');
+check(gu.stepsFor('cleanUntracked')[0].cmd.includes('-nd'), '지우기 전에 먼저 보여 준다 (-nd)');
+check(gu.stepsFor('lostReset').some((s) => s.cmd === 'git reflog'), '날린 것은 reflog 로 찾는다');
+
+/* 말은 알맹이가 안 만든다 (why 는 열쇠다) */
+check(gu.SCENARIOS.every((s) => s.steps.every((x) => /^[a-zA-Z]+$/.test(x.why))), 'why 는 열쇠일 뿐 문장이 아니다');
+
+let guThrew = false;
+try {
+  gu.stepsFor('없는상황');
+} catch {
+  guThrew = true;
+}
+check(guThrew, '모르는 상황은 조용히 넘어가지 않는다');
+
+// ── 버전 범위 (TASK-KL-316) ─────────────────────────────────────────────────
+const sv = await load('src/core/semver.ts');
+
+eq(sv.show(sv.parse('v1.2.3')), '1.2.3', 'v 를 떼고 읽는다');
+eq(sv.parse('1.2.3-beta.1').pre, 'beta.1', '미리보기 꼬리를 읽는다');
+check(sv.compare(sv.parse('1.2.3-beta'), sv.parse('1.2.3')) < 0, '미리보기는 정식보다 낮다');
+check(sv.compare(sv.parse('1.10.0'), sv.parse('1.9.0')) > 0, '10 이 9 보다 크다 (글자로 안 견준다)');
+
+/* ^ 와 ~ 를 「이상·미만」으로 펴 준다 — 이게 이 도구의 핵심 */
+eq(JSON.stringify(sv.edges('^1.2.3')[0]), JSON.stringify({ from: '1.2.3', fromInclusive: true, to: '2.0.0', toInclusive: false }), '^1.2.3 = 1.2.3 이상 2.0.0 미만');
+eq(sv.edges('^0.2.3')[0].to, '0.3.0', '^0.2.3 은 0.3.0 미만 (0.x 는 다르다)');
+eq(sv.edges('^0.0.3')[0].to, '0.0.4', '^0.0.3 은 0.0.4 미만');
+eq(sv.edges('~1.2.3')[0].to, '1.3.0', '~1.2.3 은 1.3.0 미만');
+eq(sv.edges('~1')[0].to, '2.0.0', '~1 은 2.0.0 미만');
+eq(sv.edges('1.x')[0].to, '2.0.0', '1.x 는 2.0.0 미만');
+eq(sv.edges('1.2.x')[0].to, '1.3.0', '1.2.x 는 1.3.0 미만');
+eq(sv.edges('>=1.2 <2')[0].from, '1.2.0', '빈칸으로 이은 것은 둘 다 만족');
+eq(sv.edges('>=1.2 <2')[0].to, '2.0.0', '위쪽도 좁힌다');
+eq(sv.edges('^1 || ^2').length, 2, '|| 는 갈래 둘');
+
+eq(sv.satisfies('1.5.0', '^1.2.3'), true, '들어간다');
+eq(sv.satisfies('2.0.0', '^1.2.3'), false, '위로는 안 들어간다');
+eq(sv.satisfies('1.2.2', '^1.2.3'), false, '아래로도 안 들어간다');
+eq(sv.satisfies('0.3.0', '^0.2.3'), false, '0.x 에서 minor 가 오르면 안 들어간다');
+eq(sv.satisfies('1.2.3', '1.2.3'), true, '딱 그 판');
+eq(sv.satisfies('3.0.0', '*'), true, '아무거나');
+/* 미리보기는 적어 준 자리에만 들어간다 — 안 그러면 ^1.0.0 이 2.0.0-beta 를 받는다 */
+eq(sv.satisfies('2.0.0-beta.1', '^1.0.0'), false, '미리보기가 몰래 안 들어온다');
+eq(sv.satisfies('1.2.4-beta.1', '>=1.2.4-beta.1'), true, '적어 준 미리보기는 들어간다');
+
+/* 겹치는 판이 없으면 미리 말한다 — 같은 꾸러미가 두 벌 깔리는 그 상황 */
+eq(sv.overlaps('^1.2.0', '~1.1.0'), false, '^1.2.0 과 ~1.1.0 은 겹치는 판이 없다');
+eq(sv.overlaps('^1.2.0', '^1.5.0'), true, '^1.2.0 과 ^1.5.0 은 겹친다');
+eq(sv.overlaps('^1.0.0', '^2.0.0'), false, '메이저가 다르면 안 겹친다');
+eq(sv.overlaps('>=1 <3', '^2'), true, '넓은 것과 좁은 것');
+eq(sv.overlaps('^1 || ^2', '^2.3.0'), true, '갈래 중 하나만 겹쳐도 겹친다');
+
+eq(sv.maxSatisfying(['1.0.0', '1.4.2', '2.0.0'], '^1.0.0'), '1.4.2', '범위 안에서 가장 높은 판');
+eq(sv.maxSatisfying(['2.0.0'], '^1.0.0'), undefined, '없으면 없다고 한다');
+
+// ── 보안 헤더 (TASK-KL-316) ─────────────────────────────────────────────────
+const cs = await load('src/core/csp.ts');
+
+const csParsed = cs.parseCsp("default-src 'self'; img-src * data:; script-src 'self' 'unsafe-inline'");
+eq(Object.keys(csParsed).length, 3, '갈래 셋으로 편다');
+eq(csParsed['img-src'].join(' '), '* data:', '값을 그대로 들고 있다');
+eq(cs.parseCsp("Content-Security-Policy: default-src 'self'")['default-src'][0], "'self'", '헤더 이름이 붙어 있어도 읽는다');
+
+const csWeak = cs.reviewCsp("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src *");
+check(csWeak.some((f) => f.key === 'unsafeInline' && f.where === 'script-src'), '인라인 허용을 짚는다');
+check(csWeak.some((f) => f.key === 'unsafeEval'), 'eval 허용을 짚는다');
+check(csWeak.some((f) => f.key === 'wildcard' && f.where === 'img-src'), '별표를 짚는다');
+check(csWeak.some((f) => f.key === 'noFrameAncestors'), '빠진 것도 짚는다');
+
+/* nonce 가 같이 있으면 브라우저가 unsafe-inline 을 무시한다 — 그걸 위험이라 하면 거짓 경보다 */
+const csNonce = cs.reviewCsp("default-src 'self'; script-src 'self' 'unsafe-inline' 'nonce-abc123'; frame-ancestors 'none'; base-uri 'self'");
+check(!csNonce.some((f) => f.key === 'unsafeInline'), 'nonce 가 있으면 인라인을 문제 삼지 않는다');
+
+const csHeaders = cs.reviewHeaders([
+  "Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+  'Strict-Transport-Security: max-age=600',
+  'Referrer-Policy: no-referrer'
+].join('\n'));
+check(csHeaders.some((f) => f.key === 'shortHsts'), '짧은 HSTS 를 짚는다');
+check(csHeaders.some((f) => f.key === 'noSniff'), 'nosniff 가 없으면 짚는다');
+check(!csHeaders.some((f) => f.key === 'noReferrer'), '있는 것은 안 짚는다');
+check(cs.reviewHeaders('X-Frame-Options: DENY').some((f) => f.key === 'noCsp'), 'CSP 자체가 없으면 그것부터 짚는다');
+
+const csBuilt = cs.build({ images: 'https://cdn.example.com', inlineStyles: true });
+check(csBuilt.includes("default-src 'self'"), '가장 좁은 데서 시작한다');
+check(csBuilt.includes("img-src 'self' data: https://cdn.example.com"), '고른 것만 넓힌다');
+check(csBuilt.includes("style-src 'self' 'unsafe-inline'"), '인라인 스타일은 골랐을 때만');
+check(csBuilt.includes("object-src 'none'") && csBuilt.includes("frame-ancestors 'none'"), '기본으로 잠가 둔다');
+check(!cs.build().includes('unsafe'), '아무것도 안 고르면 unsafe 가 없다');
+/* 지어 놓고 다시 읽었을 때 지적이 안 나와야 한다 — 우리가 권한 것이 우리 기준을 통과해야 한다 */
+eq(cs.reviewCsp(cs.build()).filter((f) => f.level === 'weak').length, 0, '우리가 지은 헤더에는 약한 자리가 없다');
+
+// ── 로그 보기 (TASK-KL-316) ─────────────────────────────────────────────────
+const lv = await load('src/core/logview.ts');
+
+const lvText = [
+  '2026-08-14T10:00:00.123Z INFO  서버가 떴다 port=8080',
+  '2026-08-14T10:00:05Z WARN  느린 응답 1200ms',
+  '2026-08-14T10:00:06Z ERROR 붙지 못했다 10.0.0.7',
+  '이건 시각이 없는 줄이다',
+  '{"time":"2026-08-14T10:00:07Z","level":"error","msg":"두 번째 실패"}',
+  '2026-08-14T10:00:08Z ERROR 붙지 못했다 10.0.0.9'
+].join('\n');
+const lvRows = lv.parse(lvText);
+eq(lvRows.length, 6, '빈 줄 빼고 여섯 줄');
+eq(lvRows[0].level, 'info', '급을 읽는다');
+eq(lvRows[2].level, 'error', 'ERROR 를 잡는다');
+check(lvRows[0].at !== undefined, 'ISO 시각을 읽는다');
+eq(lvRows[3].at, undefined, '시각이 없으면 없다고 둔다');
+check(lvRows[3].raw.includes('시각이 없는'), '시각 없는 줄도 **버리지 않는다**');
+eq(lvRows[4].level, 'error', 'JSON 한 줄 로그의 level 을 읽는다');
+check(lvRows[4].at !== undefined, 'JSON 한 줄 로그의 시각도 읽는다');
+check(lv.readTime('10/Oct/2000:13:55:36 +0000 GET /') !== undefined, 'nginx 형식도 읽는다');
+check(lv.readTime('1723600000123 something') !== undefined, '유닉스 밀리초도 읽는다');
+
+const lvErrors = lv.filter(lvRows, { levels: ['error'] });
+eq(lvErrors.length, 3, '급으로 좁힌다');
+eq(lv.filter(lvRows, { pattern: '10\\.0\\.0\\.\\d' }).length, 2, '정규식으로 좁힌다');
+eq(lv.filter(lvRows, { pattern: '붙지', invert: true }).length, 4, '뒤집어 좁힌다');
+/* 정규식을 치다 만 상태(`(`)에서도 화면이 죽으면 안 된다 */
+eq(lv.filter(lvRows, { pattern: '(' }).length, 0, '깨진 정규식은 글자 그대로 찾는다 (안 터진다)');
+
+const lvSum = lv.summarise(lvRows);
+eq(lvSum.lines, 6, '줄 수');
+eq(lvSum.timed, 5, '시각을 읽은 줄 수');
+eq(lvSum.levels.error, 3, '급별로 센다');
+check(lvSum.from !== undefined && lvSum.to !== undefined && lvSum.to > lvSum.from, '언제부터 언제까지');
+/* 같은 모양은 묶여야 한다 — 만 줄이 열 줄로 보이는 이유 */
+check(lvSum.common.some((c) => c.shape.includes('<ip>') && c.count === 2), `같은 모양을 묶는다: ${JSON.stringify(lvSum.common[0])}`);
+check(!JSON.stringify(lvSum.common).includes('시각'), '자리표는 말이 아니라 기호다');
+
+const lvBuckets = lv.timeline(lvRows, 4);
+eq(lvBuckets.length, 4, '칸으로 나눈다');
+eq(lvBuckets.reduce((sum, b) => sum + b.total, 0), 5, '시각 없는 줄은 안 센다 (거짓 봉우리 방지)');
+eq(lv.timeline(lv.parse('시각 없는 줄만')).length, 0, '읽을 시각이 없으면 그림도 없다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

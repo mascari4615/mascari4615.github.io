@@ -1,0 +1,20 @@
+{
+  "logview.mdd": "大きなログ、絞り込んで見ましょう。",
+  "logview.tab": "ログ",
+  "logview.label.file": "ログファイル (ブラウザの外に出ません)",
+  "logview.label.paste": "または貼り付け",
+  "logview.label.find": "探すもの (正規表現も可)",
+  "logview.opt.invert": "一致した行を隠す",
+  "logview.level.error": "エラー",
+  "logview.level.warn": "警告",
+  "logview.level.info": "情報",
+  "logview.level.debug": "デバッグ",
+  "logview.level.trace": "トレース",
+  "logview.level.other": "その他",
+  "logview.span": "{from} 〜 {to}",
+  "logview.span.none": "時刻を読めた行がないため図は出ません (行の一覧はそのままです)",
+  "logview.status.idle": "ログファイルを選ぶか貼ってください",
+  "logview.status.reading": "読み込み中…",
+  "logview.status.ok": "{shown} 行表示 (全 {total} 行)",
+  "logview.status.capped": "{shown} 行だけ描きました (該当 {all} 行・全 {total} 行) — もう少し絞ってください"
+}

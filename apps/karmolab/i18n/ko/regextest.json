@@ -28,5 +28,7 @@
   "regextest.hint.replace": "<span style=\"color:var(--text-tertiary);\">치환 문자열을 입력하면 결과가 나옵니다</span>",
   "regextest.label.replace": "치환 (선택) — $1, $<name> 사용 가능",
   "regextest.value.matches": "{n}개 매치",
-  "regextest.value.noMatch": "매치 없음"
+  "regextest.value.noMatch": "매치 없음",
+  "regextest.explain.title": "이 정규식이 무슨 뜻인가 (조각 풀이 · 철길 그림)",
+  "regextest.explain.cannot": "풀지 못했습니다 —"
 }
