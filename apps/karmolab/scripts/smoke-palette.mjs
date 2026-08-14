@@ -173,6 +173,52 @@ if (!titles.some((t) => t.includes('이미지'))) {
   problems.push(`영문 자판 「dlalwl dkqcnr」로 이미지 도구가 안 나온다 — 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
 }
 
+/* ── ③-c 통합 검색은 StudyMap의 정확한 칸까지 연다 ───────── */
+await type('.mjs');
+titles = await rowTitles();
+if (!titles.some((t) => t.includes('.mjs'))) problems.push('「.mjs」 학습 결과가 안 나온다');
+const studyRow = page.locator('.kp-inline .kp-row').filter({ hasText: '.mjs' }).first();
+if (await studyRow.count()) {
+  const badge = await studyRow.locator('.kp-row-badge').textContent().catch(() => '');
+  if (!badge?.includes('학습')) problems.push('StudyMap 결과에 「학습」 출처가 없다');
+  await studyRow.click();
+  await page.waitForSelector('.sm-node[data-id="web-build"]', { timeout: 15000 }).catch(() => null);
+  const focused = await page.$('.sm-node[data-id="web-build"].is-flash');
+  if (!focused) problems.push('「.mjs」 결과를 눌러도 StudyMap의 web-build 칸으로 이동하지 않는다');
+  await gotoHome();
+}
+
+await type('비밀번호 저장하지 말고 검증');
+await page.waitForFunction(() => [...document.querySelectorAll('.kp-inline .kp-row-title')]
+  .some((el) => el.textContent?.includes('비밀번호')), null, { timeout: 15000 }).catch(() => null);
+const lessonRow = page.locator('.kp-inline .kp-row').filter({ hasText: '비밀번호' }).first();
+if (!(await lessonRow.count())) problems.push('강의 본문 검색 결과가 안 나온다');
+else {
+  const badge = await lessonRow.locator('.kp-row-badge').textContent().catch(() => '');
+  if (!badge?.includes('강의')) problems.push('강의 결과에 「강의」 출처가 없다');
+  await lessonRow.click();
+  await page.waitForSelector('.sm-part-title', { timeout: 15000 }).catch(() => null);
+  const partTitle = await page.locator('.sm-part-title').textContent().catch(() => '');
+  if (!partTitle?.includes('비밀번호')) problems.push(`강의 검색 결과가 정확한 장을 열지 않는다 — ${partTitle || '장 없음'}`);
+  await gotoHome();
+}
+
+await type('프로젝트 통합 명령 경로');
+await page.waitForFunction(() => [...document.querySelectorAll('.kp-inline .kp-row-title')]
+  .some((el) => el.textContent?.includes('프로젝트 통합 명령')), null, { timeout: 15000 }).catch(() => null);
+const docsRow = page.locator('.kp-inline .kp-row').filter({ hasText: '프로젝트 통합 명령' }).first();
+if (!(await docsRow.count())) problems.push('문서 제목 검색 결과가 안 나온다');
+else {
+  const badge = await docsRow.locator('.kp-row-badge').textContent().catch(() => '');
+  if (!badge?.includes('문서')) problems.push('문서 결과에 「문서」 출처가 없다');
+  await docsRow.click();
+  await page.waitForFunction(() => [...document.querySelectorAll('.docs-md-main h1,.docs-md-main h2,.docs-md-main h3')]
+    .some((el) => el.textContent?.trim() === '프로젝트 통합 명령·경로 가이드'), null, { timeout: 15000 }).catch(() => null);
+  const heading = await page.locator('.docs-md-main h1,.docs-md-main h2,.docs-md-main h3').first().textContent().catch(() => '');
+  if (!heading?.includes('프로젝트 통합 명령')) problems.push(`문서 검색 결과가 정확한 문서를 열지 않는다 — ${heading || '제목 없음'}`);
+  await gotoHome();
+}
+
 /* ── ④ 메뉴에 숨겨진 묶음 탭도 찾아진다 ────────────────────── */
 await type('base64');
 titles = await rowTitles();

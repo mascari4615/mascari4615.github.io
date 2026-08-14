@@ -9,8 +9,9 @@
  */
 import fs from 'node:fs';
 import { chromium } from 'playwright';
+import { livePage } from './lib/live-url.mjs';
 
-const URL_TARGET = process.env.URL || 'https://blog.mascari4615.com/karmolab/';
+const URL_TARGET = livePage('/karmolab/');
 const problems = [];
 
 const browser = await chromium.launch();
