@@ -1913,6 +1913,81 @@ async function floatersInside(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 화면 밖으로 흘러나간 것 — ${bad.slice(0, 4).join(' | ')}`);
 }
 
+await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-271)', async () => {
+  /* 실측 2026-08-14: B 탭에서 새 판을 만들면, A 탭의 다음 저장이 목록을 통째로 덮어 **그 판이
+     목록에서 사라졌다**(자료는 남고 미아가 된다 — 사람에게는 판이 없어진 것으로 보인다).
+     목록은 이제 쓰기 직전에 합친다. 「내가 지운 것」은 지운 표시로 갈라, 도로 살아나지 않는다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1200, height: 800 } });
+  const a = await ctx.newPage();
+  const b2 = await ctx.newPage();
+  await a.goto(URL, { waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.evaluate(() => localStorage.clear());
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.waitForTimeout(ms(800));
+  const abox = await a.locator('.km-canvas').boundingBox();
+  await a.mouse.dblclick(abox.x + abox.width * 0.3, abox.y + abox.height * 0.3);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('A판카드');
+  await a.keyboard.press('Enter');
+  await a.waitForTimeout(ms(700));
+
+  await b2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await b2.waitForTimeout(ms(1000));
+  await b2.evaluate(() => document.querySelector('[data-km="map-new"]').click());
+  await b2.waitForFunction(() => JSON.parse(localStorage.getItem('karmograph.index')).maps.length === 2,
+    null, { timeout: ms(6000) });
+  const bbox = await b2.locator('.km-canvas').boundingBox();
+  await b2.mouse.dblclick(bbox.x + bbox.width * 0.5, bbox.y + bbox.height * 0.4);
+  await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await b2.keyboard.type('B새판카드');
+  await b2.keyboard.press('Enter');
+  await b2.waitForTimeout(ms(800));
+
+  await a.bringToFront();
+  await a.mouse.dblclick(abox.x + abox.width * 0.5, abox.y + abox.height * 0.6);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('A판카드2');
+  await a.keyboard.press('Enter');
+  await a.waitForTimeout(ms(1200));
+
+  const after = await a.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    const orphan = Object.keys(localStorage)
+      .filter((k) => k.startsWith('karmograph.map.'))
+      .map((k) => k.replace('karmograph.map.', ''))
+      .filter((id) => !idx.maps.some((m) => m.id === id));
+    return { count: idx.maps.length, orphan };
+  });
+  if (after.count !== 2) throw new Error(`다른 탭이 만든 판이 목록에서 사라졌다 (${after.count}장)`);
+  if (after.orphan.length > 0) throw new Error('목록에 없는 미아 판이 생겼다: ' + after.orphan.join(','));
+
+  /* 지운 판은 **도로 살아나면 안 된다** — 합치기가 「내 목록에 없다」를 「남이 만들었다」로 오해하면
+     지우기가 먹지 않는다. 지운 표시를 심고 저장을 한 번 더 돌려 확인한다. */
+  const gone = await a.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    return idx.maps[1].id;
+  });
+  await a.evaluate((id) => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    idx.maps = idx.maps.filter((m) => m.id !== id);
+    localStorage.setItem('karmograph.index', JSON.stringify(idx));
+    localStorage.removeItem('karmograph.map.' + id);
+    localStorage.setItem('karmograph.gone', JSON.stringify([id]));
+  }, gone);
+  await a.mouse.dblclick(abox.x + abox.width * 0.62, abox.y + abox.height * 0.75);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('또 카드');
+  await a.keyboard.press('Enter');
+  await a.waitForTimeout(ms(1200));
+  const back = await a.evaluate((id) => JSON.parse(localStorage.getItem('karmograph.index'))
+    .maps.some((m) => m.id === id), gone);
+  if (back) throw new Error('지운 판이 합치기 때문에 도로 살아났다');
+  await ctx.close();
+});
+
 await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async () => {
   /* 실측 2026-08-14: 한 판을 두 탭에서 열어 두면 **뒤에 쓴 탭이 앞 탭의 일을 지운다** —
      B 탭에서 만든 카드가 A 탭의 다음 저장에 아무 말 없이 사라졌다. 덮는 것을 막을 수는 없어도
