@@ -10,7 +10,7 @@
  * 정렬이 안 무너진다(한글 등폭 글꼴은 우리에게 없다).
  */
 import { FRAMES } from './shared/code-frames';
-import { download } from './shared/image';
+import { download, encode } from './shared/image';
 import { statusLine } from './shared/say';
 import { flatten, paint, toLines, type Seg } from './shared/code-shot';
 import { fileSize } from './shared/media';
@@ -230,19 +230,19 @@ import { t, loadNamespace } from '../../lib/i18n';
     numsEl.addEventListener('change', bump);
 
     $('#csSave').onclick = (): void => {
-      canvas.toBlob((blob) => {
-        if (!blob) return;
+      // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
+      encode(canvas, 'png').then((blob) => {
         const name = (fileEl.value.trim().replace(/\W+/g, '-') || 'code') + '.png';
         download(blob, name);
         say(t('codeshot.status.saved', undefined, '저장했습니다') + ` (${fileSize(blob.size)})`, 'ok');
         /* 만든 사진은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
         Toolbox.offerNext?.(status, { blob, name, from: 'codeshot' });
-      }, 'image/png');
+      });
     };
 
     $('#csCopy').onclick = (): void => {
-      canvas.toBlob((blob) => {
-        if (!blob) return;
+      // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
+      encode(canvas, 'png').then((blob) => {
         const anyNav = navigator as unknown as { clipboard?: { write?: (d: unknown[]) => Promise<void> } };
         const CI = (window as unknown as { ClipboardItem?: new (d: Record<string, Blob>) => unknown }).ClipboardItem;
         if (!anyNav.clipboard?.write || !CI) {
@@ -253,7 +253,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           .write([new CI({ 'image/png': blob })])
           .then(() => say(t('codeshot.status.copied', undefined, '클립보드에 넣었습니다'), 'ok'))
           .catch(() => say(t('codeshot.status.noclip', undefined, '이 브라우저는 그림 복사를 막습니다 — 저장을 쓰세요'), 'warn'));
-      }, 'image/png');
+      });
     };
 
     void render();

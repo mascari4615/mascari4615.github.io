@@ -12,7 +12,7 @@
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { download } from './shared/image';
+import { download, encode as toPng } from './shared/image';
 import { markLive } from './shared/say';
 
 (function (): void {
@@ -233,14 +233,16 @@ import { markLive } from './shared/say';
               say(t('barcode.err.noValue'), 'error');
               return;
             }
-            canvas.toBlob((blob) => {
-              if (!blob) return;
+            // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
+            // ★ 지역 `encode(value, kind)` 와 이름이 겹친다 — 공용은 `toPng` 로 받아 쓴다.
+            //   그냥 부르면 바코드 인코더가 캔버스를 받는 꼴이 된다(타입검사가 잡았다).
+            toPng(canvas, 'png').then((blob) => {
               const name = t('barcode.file.name');
               download(blob, name);
               /* 만든 그림은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
               Toolbox.offerNext?.(status, { blob, name, from: 'barcode' });
               say(t('barcode.say.saved'), 'ok');
-            }, 'image/png');
+            });
           };
           draw();
                   });
