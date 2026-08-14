@@ -15,7 +15,7 @@
  */
 import { AsciiSurface, decode, encode, Player, sampleVideo, type AsciiFrame } from 'badapple';
 import { markLive } from './shared/say';
-import { download, downloadUrl } from './shared/image';
+import { download, downloadUrl, loadImage } from './shared/image';
 
 import { acceptPastedFiles } from './shared/paste';
 
@@ -573,17 +573,15 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           }
 
           function load(src: string, label: string): void {
-            const img = new Image();
-            img.onload = () => {
+            // 공용 한 자리(`shared/image`)를 쓴다 — 주소 거두는 시점이 거기 맞춰져 있다.
+            loadImage(src).then((img) => {
               image = img;
               nameEl.textContent = `${label} · ${img.naturalWidth}×${img.naturalHeight}`;
               Toolbox.trackUse?.('convert');
               render();
-            };
-            img.onerror = () => {
+            }).catch(() => {
               nameEl.textContent = t('asciiart.err.read');
-            };
-            img.src = src;
+            });
           }
 
           function loadFile(file: File): void {
