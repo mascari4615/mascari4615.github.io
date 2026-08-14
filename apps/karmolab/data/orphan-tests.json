@@ -22,10 +22,7 @@
     "test:duel",
     "test:favorites",
     "test:flow:auto",
-    "test:garden",
-    "test:heung",
     "test:idle",
-    "test:inbox",
     "test:karmograph:repeat",
     "test:offline",
     "test:orbita",
@@ -34,8 +31,7 @@
     "test:studymap",
     "test:timecapsule",
     "test:usertool",
-    "test:workshop",
-    "test:worldcup"
+    "test:workshop"
   ],
   "사유": {
     "audit:all": "묶음 — 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다",
@@ -58,10 +54,7 @@
     "test:duel": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:favorites": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:flow:auto": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
-    "test:garden": "알맹이지만 19초 걸린다 — 게이트 한 판이 그만큼 길어진다 (실측 2026-08-13)",
-    "test:heung": "60초를 넘겨도 안 끝난다 — 멈추는 자리가 있다 (실측 2026-08-13, 그 슬롯 몫)",
     "test:idle": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
-    "test:inbox": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:karmograph:repeat": "알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라",
     "test:offline": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "test:orbita": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
@@ -70,7 +63,6 @@
     "test:studymap": "알맹이지만 24초 걸린다 (실측 2026-08-13)",
     "test:timecapsule": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:usertool": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
-    "test:workshop": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
-    "test:worldcup": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다"
+    "test:workshop": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다"
   }
 }

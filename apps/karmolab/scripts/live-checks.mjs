@@ -144,6 +144,7 @@ const RAW_CHECKS = [
      느린 검사의 집이다. */
   { name: '방을 든 채 게임을 갈아타는지', cmd: ['npm', 'run', 'smoke:arcaderoom'] },
   { name: '무대(관전 화면)가 도는지', cmd: ['npm', 'run', 'smoke:arcadestage'] },
+  { name: '흥 화면이 도는지', cmd: ['npm', 'run', 'test:heung'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
