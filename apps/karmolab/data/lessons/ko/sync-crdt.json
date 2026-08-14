@@ -1,131 +1,526 @@
 {
   "id": "sync-crdt",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "공동 편집기는 충돌을 **감지**하지 않는다. 애초에 **항상 합쳐지는 자료구조**를 쓴다 — 그게 CRDT 다."
-    },
-    {
-      "type": "h",
-      "text": "1. 두 갈래"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "OT 와 CRDT",
-      "text": "OT   연산을 남의 연산 기준으로 \"변환\" 한다\n     · 중앙 서버가 순서를 정해 준다 (구글 독스 계열)\n     · 서버가 똑똑해야 하고 구현이 까다롭다\n\nCRDT 합쳐도 결과가 같아지도록 자료구조를 설계\n     · 순서·중복·지연에 무관 → 서버 없이도 됨(P2P 가능)\n     · 메타데이터가 늘어 용량이 커질 수 있다\n\n지금 새로 만든다면 대개 CRDT 라이브러리(Yjs·Automerge)"
-    },
-    {
-      "type": "h",
-      "text": "2. 왜 합쳐지나 — 세 성질"
-    },
-    {
-      "type": "demo",
-      "kind": "js",
-      "label": "순서를 바꿔 합쳐 보라 — 결과가 같은가",
-      "height": "220px",
-      "controls": [
+      "id": "1",
+      "title": "감지 대신 항상 합쳐지는 자료구조",
+      "minutes": 8,
+      "blocks": [
         {
-          "id": "order",
-          "label": "합치는 순서",
-          "type": "select",
-          "value": "abc",
-          "options": [
+          "type": "p",
+          "text": "공동 편집기(구글 독스·Figma·Notion 의 실시간 편집)는 충돌을 **감지하지 않는다** — 애초에 **항상 합쳐지는 자료구조**를 쓴다. 그게 **CRDT**(Conflict-free Replicated Data Type, 충돌 없는 복제 자료형)다. sync-conflict 는 「충돌을 감지해 사용자에게 물어보기」였지만(실시간 협업엔 매번 묻기 불가), CRDT 는 **어떤 순서로 병합해도 같은 결과가 나오는** 자료구조라 **충돌이 아예 안 생긴다**(자동 병합). 각 기기가 오프라인에서 독립적으로 고쳐도, 나중에 합치면 **결정적으로 하나의 상태로 수렴**한다(누구 순서로 합치든 같음). 그래서 실시간 협업·오프라인 편집·다기기 동기화에서 사용자에게 충돌을 안 물어도 된다(자동으로 합쳐지니). 이 칸(sync-crdt)은 「왜·어떻게 항상 합쳐지나」와 「직접 만드는 가장 쉬운 것(LWW)부터 실무 선택」을 다룬다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "감지 vs 항상 합쳐짐 — 두 접근",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const approach = '{{approach}}';\n  if (approach === 'detect') {\n    render('충돌 감지 (sync-conflict)',\n      '  버전 확인 → 충돌 감지 → 사용자에게 「덮어쓸까/비교할까」 물음\\n\\n' +\n      '  <span class=\\\"warn\\\">문서 편집엔 OK · 실시간 협업엔 매번 묻기 불가(수십 번/초).</span>',\n      '감지: 충돌을 사용자에게 물음 — 실시간 협업엔 불가.',\n      steps([['버전 확인 → 충돌 감지', 'on'],['사용자에게 물음(덮어쓸까/비교)', ''],['실시간엔 매번 묻기 불가', 'bad']]));\n  } else {\n    render('항상 합쳐지는 자료구조 (CRDT)',\n      '  어떤 순서로 병합해도 같은 결과 → 충돌 자체가 안 생김(자동 병합)\\n\\n' +\n      '  <span class=\\\"ok\\\">각 기기가 독립적으로 고쳐도 합치면 하나로 수렴 — 안 물어도 됨.</span>',\n      'CRDT: 항상 합쳐지는 자료구조 → 충돌 없음(자동 병합·수렴).',\n      steps([['각 기기가 독립적으로 편집', 'on'],['CRDT 로 자동 병합(순서 무관)', 'good'],['하나의 상태로 수렴(안 물음)', 'good']]));\n  }\n</script>",
+          "controls": [
             {
-              "value": "abc",
-              "label": "A → B → C"
-            },
-            {
-              "value": "cba",
-              "label": "C → B → A"
-            },
-            {
-              "value": "bac",
-              "label": "B → A → C"
+              "id": "approach",
+              "label": "접근",
+              "type": "select",
+              "value": "detect",
+              "options": [
+                {
+                  "value": "detect",
+                  "label": "충돌 감지"
+                },
+                {
+                  "value": "crdt",
+                  "label": "CRDT(자동 병합)"
+                }
+              ]
             }
           ]
+        },
+        {
+          "type": "note",
+          "text": "**공동 편집기는 충돌을 감지하지 않고 애초에 항상 합쳐지는 자료구조(CRDT)를 쓴다 — 어떤 순서로 병합해도 같은 결과라 충돌이 안 생기고 자동으로 하나의 상태로 수렴한다.** sync-conflict(충돌 감지)는 「버전 확인으로 충돌을 감지해 사용자에게 물어보기」였다 — 문서 편집처럼 충돌이 드물고 사용자가 처리할 수 있는 곳엔 좋다. 하지만 **실시간 공동 편집**(구글 독스에서 여럿이 동시에 타자, Figma 에서 함께 디자인)에선 **매번 물을 수 없다** — 충돌이 초당 수십 번 일어나니(각자 타자), 「덮어쓸까요」를 매번 물으면 편집이 불가능하다. 그래서 실시간 협업은 다른 접근을 쓴다 — **충돌을 감지·해결하는 게 아니라, 애초에 충돌이 안 생기게** 한다. 그게 **CRDT(Conflict-free Replicated Data Type, 충돌 없는 복제 자료형)**다. CRDT 는 **어떤 순서로 병합해도 같은 결과가 나오도록** 설계된 자료구조다 — 각 기기(복제본)가 **독립적으로**(오프라인·동시에) 데이터를 고쳐도, 나중에 서로의 변경을 **어떤 순서로 합치든 결정적으로 하나의 같은 상태로 수렴**한다(strong eventual consistency — 강한 결과적 일관성). 그래서 **충돌이 아예 없다**(감지할 것도, 물어볼 것도 없음 — 자동 병합). 각 기기는 남의 변경을 받으면 그냥 자기 것과 병합하고(순서 무관·자동), 모든 기기가 같은 변경들을 받으면 결국 같은 상태가 된다. 이게 구글 독스(실은 OT 계열, 2장)·Figma·Notion·Linear 같은 실시간 협업/로컬 우선 앱의 기반이다 — 사용자에게 충돌을 안 물어도 매끄럽게 합쳐진다. **핵심 통찰: 「충돌을 잘 해결하기」가 아니라 「충돌이 안 생기는 자료구조를 쓰기」**다 — 문제를 사후에 처리하는 대신, 문제가 구조적으로 발생 안 하게 만든다(sync-conflict 4장의 「줄이는 설계」의 극단 — 아예 없앰). 대가: CRDT 는 **복잡하고**(자료구조·병합 규칙이 정교), **메타데이터 오버헤드**(각 변경에 시각·id·인과관계를 붙임 — 4·5장)가 있다. 그래서 모든 앱에 필요하진 않다(sync-conflict 의 감지+알림으로 충분한 곳이 많음, 6장). 하지만 실시간 협업·매끄러운 다기기 동기화가 필요하면 CRDT(또는 OT)가 답이다. 이 칸은 「왜 항상 합쳐지나(세 성질, 3장)」와 「가장 쉬운 CRDT 를 직접 만들기(LWW, 4장)」, 「글자 편집의 어려움(5장)」, 「현실적 선택(6장)」을 다룬다 — 실시간 협업의 마법(자동 병합) 뒤의 원리."
+        },
+        {
+          "type": "note",
+          "text": "**「문제를 해결」보다 「문제가 안 생기게」 — 구조로 문제를 없앤다.** CRDT 의 교훈은 「문제를 사후 처리하지 말고 구조적으로 없애라」다: 충돌을 **감지·해결**(사후 대응)하는 대신, **충돌이 원천적으로 안 생기는 자료구조**(사전 구조)를 쓴다. 사후 처리(감지·병합·물어보기)는 매번 비용·부담이지만, 구조적 방지(항상 합쳐지는 자료구조)는 그 부담 자체를 없앤다. 이 「사후 처리 vs 구조적 방지」는 문제 해결 일반에 통한다 — 버그를 잡기보다 타입으로 불가능하게(plt-error·qa-gate 8장 예방), 에러를 처리하기보다 안 나게 설계, 충돌을 해결하기보다 안 생기게(CRDT). 구조적 방지는 「이런 문제가 애초에 발생 불가능한 구조·불변식」을 만드는 것 — 문제를 「다루는」 게 아니라 「없애는」 것이라 훨씬 강력하다(다룰 게 없으니). 물론 그런 구조를 설계하는 게 어렵고(CRDT 는 정교) 대가(복잡성·오버헤드)가 있어, 「사후 처리로 충분한가, 구조적 방지가 필요한가」를 판단한다(문제가 잦고 처리 부담이 크면 구조적 방지가 값어치). 실시간 협업은 충돌이 극도로 잦아(초당 수십) 사후 처리(물어보기)가 불가능하니, 구조적 방지(CRDT)가 필수다. 그래서 「문제가 아주 잦거나 사후 처리가 불가능하면, 문제가 안 생기는 구조를 찾아라」가 CRDT 의 교훈 — 「해결」의 한계를 「방지」로 넘는다. CRDT 는 「충돌 없는 자료구조」로 동시 편집 충돌을 구조적으로 없앤 정교한 사례다."
+        },
+        {
+          "type": "try",
+          "text": "네 앱이 실시간 협업·매끄러운 다기기 동기화가 필요한지 보라 — 충돌이 잦아(여럿이 동시 편집·자주 오프라인) 매번 물어보기 어렵나. 그렇다면 충돌 감지(sync-conflict)로는 부족하고, CRDT(항상 합쳐지는 자료구조)가 필요하다. Yjs·Automerge 같은 CRDT 라이브러리로 두 창을 띄워 동시 편집해 보고, 「안 물어도 자동으로 합쳐지는」 것을 체감하라 — 문제를 해결이 아니라 구조로 없앤다."
         }
       ],
-      "text": "const ORDER = '{{order}}';\nconst ops = { a: { 제목: { v: '초안', t: 3, by: 'A' } }, b: { 제목: { v: '2차 수정', t: 7, by: 'B' } }, c: { 본문: { v: '내용', t: 5, by: 'C' } } };\nconst merge = (x, y) => {\n  const r = { ...x };\n  for (const [k, v] of Object.entries(y)) {\n    const old = r[k];\n    r[k] = !old || v.t > old.t || (v.t === old.t && v.by > old.by) ? v : old;\n  }\n  return r;\n};\nlet state = {};\nfor (const ch of ORDER) state = merge(state, ops[ch]);\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('합친 순서: ' + ORDER.toUpperCase().split('').join(' → '), 16, 28);\nlet y = 64;\nfor (const [k, v] of Object.entries(state)) {\n  ctx.fillStyle = '#60a5fa'; ctx.font = '15px ui-monospace, monospace';\n  ctx.fillText(k + ' = ' + v.v, 16, y);\n  ctx.fillStyle = '#9ca3af'; ctx.font = '12px ui-monospace, monospace';\n  ctx.fillText('(시각 ' + v.t + ' · ' + v.by + ')', 200, y);\n  y += 30;\n}\nctx.fillStyle = '#4ade80'; ctx.font = '13px system-ui';\nctx.fillText('순서를 바꿔도 결과가 같다 — 그게 CRDT 의 조건', 16, H() - 16);"
+      "quiz": [
+        {
+          "q": "CRDT 란?",
+          "choices": [
+            "충돌 감지",
+            "항상 합쳐지는 자료구조 — 어떤 순서로 병합해도 같은 결과(충돌 없음)",
+            "잠금",
+            "버전"
+          ],
+          "answer": 1,
+          "why": "자동 병합·수렴."
+        },
+        {
+          "q": "실시간 협업에 충돌 감지(물어보기)가 안 맞는 이유는?",
+          "choices": [
+            "느려서",
+            "충돌이 초당 수십 번 → 매번 물으면 편집 불가",
+            "색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "CRDT 로 자동 병합."
+        },
+        {
+          "q": "CRDT 의 일반 원리는?",
+          "choices": [
+            "사후 처리",
+            "문제를 해결이 아니라 구조로 없앰(충돌 없는 자료구조)",
+            "잠금",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "구조적 방지."
+        }
+      ]
     },
     {
-      "type": "code",
-      "lang": "text",
-      "label": "이 셋이면 순서를 안 따져도 된다",
-      "text": "교환   A∪B = B∪A          순서 무관\n결합   (A∪B)∪C = A∪(B∪C)  묶는 방식 무관\n멱등   A∪A = A             중복 수신 무관\n\n집합의 합집합이 이 성질을 갖는다 → 가장 단순한 CRDT"
-    },
-    {
-      "type": "h",
-      "text": "3. 직접 만들어 보는 가장 쉬운 것"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "마지막-쓰기-승리 레지스터 (필드용)",
-      "text": "// 값에 시각과 작성자를 함께 붙이면 병합 규칙이 생긴다\nfunction merge(a, b) {\n  if (a.t !== b.t) return a.t > b.t ? a : b;\n  return a.by > b.by ? a : b;      // 동시각이면 id 로 결정 (누구나 같은 답)\n}\n// 어느 순서로 합쳐도 결과가 같다 → 동기화가 단순해진다\n\n// 카운터라면: 각자 자기 몫만 늘리고 합계는 전부 더한다\n// { a: 3, b: 5 } ⊕ { a: 4 } = { a: 4, b: 5 }  (각 키는 최대값)"
-    },
-    {
-      "type": "h",
-      "text": "4. 글자 편집이 어려운 이유"
-    },
-    {
-      "type": "p",
-      "text": "「3번째 글자 뒤에 삽입」은 남이 앞을 지우면 위치가 어긋난다. 그래서 텍스트 CRDT 는 위치를 **번호가 아니라 고유 식별자**로 다룬다. 이 부분은 직접 만들지 말고 검증된 라이브러리를 써라 — 미묘한 오류가 데이터를 깨뜨린다."
-    },
-    {
-      "type": "h",
-      "text": "5. 현실적 선택"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "난도 순",
-      "text": "1) 필드 단위 LWW + 버전 확인      ← 대부분의 앱은 여기서 충분\n2) 항목 단위 연산 목록 (추가/삭제)\n3) Yjs·Automerge 로 문서 전체 CRDT  ← 진짜 공동 편집이 필요할 때\n\n\"공동 편집기를 만들자\" 로 시작하지 말고, 무엇을 동시에 고치는지부터 좁혀라"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "위 LWW 병합 함수를 만들어 두 상태를 순서를 바꿔 가며 합쳐도 결과가 같은지 시험하라."
-    },
-    {
-      "type": "try",
-      "text": "Yjs 예제로 두 창을 띄워 동시에 타자를 쳐 보고, 오프라인으로 만든 뒤 다시 붙였을 때 어떻게 합쳐지는지 관찰하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "CRDT 가 순서를 신경 쓰지 않아도 되는 이유는?",
-      "choices": [
-        "교환·결합·멱등 성질을 갖도록 설계돼서",
-        "서버가 순서를 정해서",
-        "지연이 없어서"
+      "id": "2",
+      "title": "두 갈래 — OT 와 CRDT",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "실시간 협업 병합엔 **두 갈래**가 있다: ① **OT(Operational Transformation, 연산 변환)** — 연산을 **남의 연산 기준으로 「변환」**한다(내 「3번째에 삽입」을 남이 앞을 지웠으면 「2번째에 삽입」으로 조정). **중앙 서버가 순서를 정해** 준다(모든 연산이 서버를 거쳐 순서·변환) — **구글 독스 계열**. 장점: 성숙·효율적. 단점: **서버가 똑똑해야 하고**(변환 로직 복잡), 중앙 의존(P2P·오프라인이 어려움). ② **CRDT** — 자료구조 자체가 **항상 합쳐지게** 설계돼(1장), **중앙 순서 없이** 각자 병합해도 수렴한다. 장점: **탈중앙**(P2P·오프라인·서버 없이도), 단순한 병합. 단점: 메타데이터 오버헤드(각 요소에 id·시각). 「중앙 서버가 순서를 정하는 OT」 vs 「자료구조가 알아서 합쳐지는 CRDT」 — 요구(중앙 있나·P2P 필요한가)에 따라 고른다. 로컬 우선·P2P·오프라인엔 CRDT 가 맞는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "OT vs CRDT — 두 갈래",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const rows = {\n    ot:['OT (연산 변환)', '연산을 남의 연산 기준으로 변환', '중앙 서버가 순서 정함(구글 독스) · 서버 똑똑해야 · 중앙 의존', '성숙·효율 / 복잡·중앙'],\n    crdt:['CRDT (충돌 없는 자료형)', '자료구조가 항상 합쳐지게', '중앙 순서 없이 각자 병합해도 수렴(탈중앙·P2P·오프라인)', '탈중앙·단순 병합 / 메타데이터 오버헤드'],\n  }[kind];\n  render('갈래: ' + rows[0],\n    '  방식: ' + rows[1] + '\\n  특징: ' + rows[2] + '\\n  장단: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">' + (kind==='ot' ? '중앙 서버가 순서를 정함 — 성숙하나 중앙 의존.' : '자료구조가 알아서 합쳐짐 — 탈중앙·오프라인에 맞음.') + '</span>',\n    'OT(중앙이 순서 정함·구글 독스) vs CRDT(자료구조가 합쳐짐·탈중앙).',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "갈래",
+              "type": "select",
+              "value": "ot",
+              "options": [
+                {
+                  "value": "ot",
+                  "label": "OT(연산 변환)"
+                },
+                {
+                  "value": "crdt",
+                  "label": "CRDT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "OT vs CRDT",
+          "text": "OT   연산을 남의 연산 기준으로 \"변환\" 한다\n     · 중앙 서버가 순서를 정해 준다 (구글 독스 계열)\n     · 서버가 똑똑해야 한다 (변환 로직 복잡) · 중앙 의존\n\nCRDT 자료구조 자체가 항상 합쳐지게 설계\n     · 중앙 순서 없이 각자 병합해도 수렴 (탈중앙·P2P·오프라인)\n     · 메타데이터 오버헤드(각 요소에 id·시각)\n\n로컬 우선·P2P·오프라인 → CRDT 가 맞는다"
+        },
+        {
+          "type": "note",
+          "text": "**실시간 협업 병합엔 OT(연산을 변환, 중앙 서버가 순서 — 구글 독스)와 CRDT(자료구조가 항상 합쳐짐, 탈중앙)의 두 갈래가 있다 — 로컬 우선·P2P·오프라인엔 CRDT 가 맞는다.** ① **OT(Operational Transformation, 연산 변환)** — 각 편집을 **연산**(「위치 3에 'x' 삽입」)으로 표현하고, 다른 사람의 연산과 **동시에 일어난 것들을 「변환」**한다: 내가 「위치 3에 삽입」했는데 그 사이 남이 「위치 1의 글자 삭제」를 했으면, 내 연산을 「위치 **2**에 삽입」으로 **변환**(조정)해 올바른 위치에 적용한다(남의 삭제로 위치가 하나 당겨졌으니). 핵심: **중앙 서버가 모든 연산의 순서를 정하고** 변환을 조율한다 — 모든 편집이 서버를 거쳐 순서가 정해지고, 서버(와 클라이언트)가 변환 로직을 실행한다. **구글 독스 계열**이 OT 다. **장점**: 성숙(오래 연구됨)·효율적(연산만 주고받음). **단점**: **서버가 똑똑해야 하고**(변환 로직이 복잡·정확해야 — 잘못하면 깨짐), **중앙 의존**(서버가 순서를 정하니 P2P·완전 오프라인·서버 없는 병합이 어렵다). ② **CRDT(Conflict-free Replicated Data Type)** — 자료구조 **자체가 항상 합쳐지게** 설계돼(1장·3장의 세 성질), 연산을 변환할 필요 없이 **그냥 병합**하면 수렴한다. **중앙 순서가 없어도** 각 복제본이 독립적으로 병합해도 같은 결과가 된다. **장점**: **탈중앙(decentralized)** — 중앙 서버 없이 P2P 로, 완전 오프라인으로, 여러 서버 간에도 병합 가능(각자 합쳐도 수렴). 병합이 단순(변환 로직 불필요 — 자료구조가 보장). **단점**: **메타데이터 오버헤드** — 각 요소에 고유 id·시각·인과관계 정보를 붙여야 해서(3~5장), 데이터가 커지고 정교하다. **선택**: 「중앙 서버가 순서를 정하는 OT」 vs 「자료구조가 알아서 합쳐지는 CRDT」를 요구에 따라 고른다 — **중앙 서버가 있고(구글 독스처럼) 성숙한 게 필요하면 OT**, **탈중앙·P2P·완전 오프라인·서버 없는 동기화가 필요하면 CRDT**. 특히 **로컬 우선(sync-offline)·P2P·오프라인 편집엔 CRDT 가 맞는다** — 중앙 서버에 의존하지 않고 각 기기가 독립적으로 편집·병합할 수 있으니(로컬 우선의 자족성과 정합). 그래서 요즘 로컬 우선·협업 앱은 CRDT(Yjs·Automerge)를 많이 쓴다(탈중앙·오프라인 친화). 둘 다 「동시 편집을 자동으로 합치는」 목표는 같되, 방법(연산 변환·중앙 vs 자료구조·탈중앙)이 다르다."
+        },
+        {
+          "type": "note",
+          "text": "**「중앙 조율 vs 자율 수렴」 — 탈중앙이 오프라인·P2P 를 가능케 한다.** OT vs CRDT 의 교훈은 「중앙 조율과 자율 수렴의 트레이드오프」다: OT 는 **중앙(서버)이 순서·변환을 조율**해 일관성을 얻고(중앙 의존), CRDT 는 **각 노드가 자율적으로 병합해도 수렴**하게 설계해 중앙 없이 일관성을 얻는다(탈중앙). 「중앙 조율」은 단순·효율적일 수 있지만(중앙이 정리) 중앙 의존(단일점·오프라인 불가·P2P 불가)을 낳고, 「자율 수렴」은 복잡하지만(각자 수렴하게 설계) 탈중앙(오프라인·P2P·확장)을 준다. 이 트레이드오프는 분산 시스템 일반에 통한다 — 중앙 코디네이터(리더·마스터) vs 리더 없는(leaderless) 설계, 중앙 시퀀스 vs 분산 id(sync-offline 3장). 핵심: **중앙 의존을 없애면(자율) 오프라인·P2P·확장이 가능**하지만 그만큼 각 노드가 똑똑해야(수렴 보장) 한다. 로컬 우선·오프라인이 중요하면 자율 수렴(CRDT — 중앙 없이도 동작)이 맞고, 중앙 서버가 늘 있고 성숙함이 필요하면 중앙 조율(OT)이 맞다. 그래서 「중앙에 의존할까, 자율적으로 만들까」가 아키텍처의 근본 선택 — 그리고 오프라인·탈중앙·자족성이 요구되면 자율(CRDT) 쪽으로 간다(sync-offline 의 로컬 우선과 정합). 「자율 수렴 자료구조(CRDT)」는 중앙 없이 일관성을 얻는 정교한 방법 — 탈중앙·오프라인 시대의 핵심 도구다."
+        },
+        {
+          "type": "try",
+          "text": "네 협업 요구를 보고 OT vs CRDT 를 판단하라 — 중앙 서버가 늘 있고(구글 독스식) 성숙한 게 필요하면 OT, 탈중앙·P2P·완전 오프라인·서버 없는 병합이 필요하면 CRDT. 로컬 우선(sync-offline)이면 CRDT 가 맞는다. 대개 직접 구현보다 라이브러리(CRDT: Yjs·Automerge / OT: ShareDB)를 쓴다 — 어느 쪽이 네 아키텍처(중앙 vs 탈중앙)에 맞는지 정하라."
+        }
       ],
-      "answer": 0,
-      "why": "어떤 순서로 합쳐도 결과가 같다."
+      "quiz": [
+        {
+          "q": "OT(연산 변환)의 특징은?",
+          "choices": [
+            "탈중앙",
+            "연산을 변환 + 중앙 서버가 순서 정함(구글 독스) — 서버 똑똑해야",
+            "자료구조",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "중앙 의존."
+        },
+        {
+          "q": "CRDT 가 OT 와 다른 점은?",
+          "choices": [
+            "같음",
+            "자료구조가 항상 합쳐짐 → 중앙 순서 없이 각자 병합해도 수렴(탈중앙)",
+            "느림",
+            "중앙 필요"
+          ],
+          "answer": 1,
+          "why": "P2P·오프라인."
+        },
+        {
+          "q": "로컬 우선·오프라인에 맞는 것은?",
+          "choices": [
+            "OT",
+            "CRDT(탈중앙 — 중앙 없이 각자 병합)",
+            "잠금",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "자율 수렴."
+        }
+      ]
     },
     {
-      "q": "OT 와 CRDT 의 큰 차이는?",
-      "choices": [
-        "OT 는 중앙 서버가 순서를 정해 준다",
-        "CRDT 가 항상 빠르다",
-        "OT 는 오프라인 전용"
+      "id": "3",
+      "title": "왜 합쳐지나 — 세 성질",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "CRDT 가 「어떤 순서로 병합해도 같은 결과」인 이유는 병합 연산이 **세 성질**을 갖기 때문이다: ① **교환(commutative)** — `A∪B = B∪A`(A 를 B 에 합치나 B 를 A 에 합치나 같음 — **순서 무관**). ② **결합(associative)** — `(A∪B)∪C = A∪(B∪C)`(묶는 방식 무관 — 어느 걸 먼저 합치든 같음). ③ **멱등(idempotent)** — `A∪A = A`(같은 걸 여러 번 합쳐도 한 번과 같음 — **중복 병합에 안전**). 이 셋이 있으면 **어떤 순서로·몇 번을 합쳐도 결정적으로 같은 결과**가 된다 — 그래서 각 기기가 변경들을 아무 순서로 받아 병합해도(네트워크는 순서·중복을 보장 안 하니 중요), 모두 같은 상태로 수렴한다. 집합의 합집합(∪)이 이 세 성질을 가진 대표 — 그래서 「집합에 추가만 하는」 CRDT(G-Set)가 가장 단순하다. 이 수학적 성질이 「항상 합쳐짐」의 보증이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세 성질 — 순서·중복 무관하게 같은 결과",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ORDER = '{{order}}';\n  // 세 기기의 변경(집합에 추가) — 순서를 바꿔 합쳐도 같은지\n  const A = ['우유'], B = ['빵'], C = ['우유'];  // C 는 A 와 중복(멱등 시험)\n  const merge = (x, y) => [...new Set([...x, ...y])].sort();\n  let result, orderDesc;\n  if (ORDER === 'abc') { result = merge(merge(A, B), C); orderDesc = '(A∪B)∪C'; }\n  else if (ORDER === 'cba') { result = merge(merge(C, B), A); orderDesc = '(C∪B)∪A'; }\n  else if (ORDER === 'bca') { result = merge(merge(B, C), A); orderDesc = 'B∪(C∪A)'; }\n  else { result = merge(merge(merge(A, A), B), C); orderDesc = 'A∪A∪B∪C (중복 병합)'; }\n  render('병합 순서: ' + orderDesc,\n    '  A=[우유] B=[빵] C=[우유] (C 는 A 와 중복)\\n' +\n    '  결과: [' + result.join(', ') + ']\\n\\n' +\n    '  <span class=\\\"ok\\\">어떤 순서로·중복으로 합쳐도 항상 [빵, 우유] — 교환·결합·멱등!</span>',\n    '교환·결합·멱등 → 어떤 순서로·몇 번 합쳐도 같은 결과([빵, 우유]).',\n    '<div class=\\\"merge\\\"><div class=\\\"row\\\"><span class=\\\"lab\\\">A</span><span class=\\\"val\\\">[우유]</span></div>' +\n    '<div class=\\\"row\\\"><span class=\\\"lab\\\">B</span><span class=\\\"val\\\">[빵]</span></div>' +\n    '<div class=\\\"row\\\"><span class=\\\"lab\\\">C (A 와 중복)</span><span class=\\\"val\\\">[우유]</span></div>' +\n    '<div class=\\\"row result\\\"><span class=\\\"lab\\\">' + orderDesc + '</span><span class=\\\"val\\\">[' + result.join(', ') + ']</span></div></div>');\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "병합 순서",
+              "type": "select",
+              "value": "abc",
+              "options": [
+                {
+                  "value": "abc",
+                  "label": "(A∪B)∪C"
+                },
+                {
+                  "value": "cba",
+                  "label": "(C∪B)∪A"
+                },
+                {
+                  "value": "bca",
+                  "label": "B∪(C∪A)"
+                },
+                {
+                  "value": "dup",
+                  "label": "A∪A∪B∪C(중복)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "세 성질",
+          "text": "교환   A∪B = B∪A          순서 무관 (누구 먼저 합치든 같음)\n결합   (A∪B)∪C = A∪(B∪C)  묶는 방식 무관 (어느 걸 먼저 묶든 같음)\n멱등   A∪A = A            중복 무관 (같은 걸 여러 번 합쳐도 한 번과 같음)\n\n이 셋이 있으면 → 어떤 순서로·몇 번을 합쳐도 결정적으로 같은 결과\n  → 각 기기가 변경을 아무 순서·중복으로 받아 병합해도 모두 수렴\n\n집합 합집합(∪)이 대표 — 「추가만 하는」 CRDT(G-Set)가 가장 단순"
+        },
+        {
+          "type": "note",
+          "text": "**CRDT 가 어떤 순서로 병합해도 같은 결과인 이유는 병합이 교환·결합·멱등의 세 성질을 갖기 때문 — 그래서 각 기기가 변경을 아무 순서·중복으로 받아 병합해도 모두 같은 상태로 수렴한다.** CRDT 의 「항상 합쳐짐」(1장)은 마법이 아니라 **수학적 성질**에서 온다. 병합 연산(∪·merge)이 세 성질을 가지면: ① **교환법칙(commutative)** — `A∪B = B∪A`. A 를 B 에 합치나 B 를 A 에 합치나 결과가 같다 — **순서 무관**. 그래서 기기1이 「기기2 변경을 받아 병합」하나 기기2가 「기기1 변경을 받아 병합」하나 같다. ② **결합법칙(associative)** — `(A∪B)∪C = A∪(B∪C)`. 여러 변경을 **묶는 방식**이 달라도 같다 — 어느 걸 먼저 합치든 같은 결과. 그래서 변경들이 어떤 그룹·순서로 도착해 병합돼도 같다. ③ **멱등(idempotent)** — `A∪A = A`. 같은 변경을 **여러 번** 합쳐도 한 번 합친 것과 같다 — **중복 병합에 안전**. 그래서 같은 변경이 두 번 도착해도(네트워크 재전송·중복) 결과가 안 틀린다. 이 **셋이 다 있으면**, 각 기기가 변경들을 **아무 순서로·중복으로 받아 병합해도** 결정적으로 **같은 상태로 수렴**한다. 이게 중요한 이유: **네트워크는 순서·중복을 보장 안 한다** — 변경이 뒤바뀌어 오거나(순서), 두 번 오거나(중복), 다른 경로로 온다(pay-webhook 5장 — 순서 무관·멱등과 통함). 순진한 자료구조는 이런 순서·중복에 결과가 달라지지만(비결정적), 세 성질을 가진 CRDT 는 **순서·중복과 무관하게 항상 같은 결과** — 그래서 「충돌 없이 수렴」한다. **집합의 합집합(∪)이 이 세 성질을 가진 대표**다 — 그래서 가장 단순한 CRDT 는 **「집합에 추가만 하는」 G-Set(Grow-only Set)**이다(추가만 하고 삭제 안 하면, 합집합은 교환·결합·멱등 — 항상 수렴). 여기에 삭제·카운터·순서·텍스트를 더하면 더 복잡한 CRDT 가 되는데(삭제는 tombstone 이 필요 — sync-conflict 4장, 순서·텍스트는 5장), 핵심 원리는 항상 「병합이 교환·결합·멱등이게 설계」다. 그래서 CRDT 설계 = 「이 자료형의 병합을 어떻게 교환·결합·멱등이게 만드나」다 — 그 세 성질이 「항상 합쳐짐」의 수학적 보증이다. 이걸 알면 CRDT 가 마법이 아니라 「순서·중복에 강건한 병합을 수학적으로 보장」한 것임을 이해한다."
+        },
+        {
+          "type": "note",
+          "text": "**「순서·중복에 강건한 연산」 — 수학적 성질이 분산의 무질서를 이긴다.** 세 성질의 교훈은 「교환·결합·멱등이 분산 환경의 무질서(순서·중복)를 이긴다」다: 분산 환경은 순서(뒤바뀜)·중복(재전송)·경로(다름)를 보장 안 하는데, 연산이 **교환·결합·멱등**이면 이 무질서와 **무관하게 같은 결과**가 나온다(강건). 그래서 「분산에서 안전한 연산」을 설계하려면 이 세 성질을 목표로 한다. 특히: **교환·결합 = 순서 무관**(뒤바뀌어 와도 됨), **멱등 = 중복 무관**(두 번 와도 됨) — 이 둘이 분산 메시징의 핵심 문제(순서·중복, pay-webhook 5장 수렴·멱등)를 푼다. 그래서 이 성질들은 CRDT 뿐 아니라 분산 시스템 전반에 값지다 — 멱등 연산(pay-idem — 재시도 안전), 교환 가능한 집계(순서 무관한 합·최대·집합), 결합 가능한 축약(병렬 처리 — MapReduce 의 reduce 는 결합적이어야). 「이 연산이 교환·결합·멱등인가?」를 물으면 「순서·중복·병렬에 안전한가」를 안다. 그래서 분산·병렬·재시도가 있는 곳에선 **연산을 이 세 성질을 갖게 설계**하는 게 강건함의 열쇠다 — 순서를 강제하거나(비쌈) 중복을 막으려(어려움) 하기보다, 연산 자체를 순서·중복에 강건하게. CRDT 는 이 「수학적 성질로 분산 무질서를 이기는」 것의 정교한 사례 — 교환·결합·멱등이라는 대수적 성질이 「항상 합쳐짐」을 보장한다. 「연산을 순서·중복에 강건하게(교환·결합·멱등)」가 분산 설계의 근본 도구다."
+        },
+        {
+          "type": "try",
+          "text": "LWW 병합(다음 장) 또는 집합 합집합 병합 함수를 만들어, 두(또는 세) 상태를 **순서를 바꿔 가며** 합쳐도 결과가 같은지 시험하라(교환·결합). 같은 걸 여러 번 합쳐도 같은지도(멱등). 순서·중복을 바꿔도 항상 같은 결과가 나오면 CRDT 성질을 가진 것 — 이 세 성질이 「항상 합쳐짐」의 보증임을 확인하라. 안 같으면(순서에 따라 다르면) CRDT 가 아니다."
+        }
       ],
-      "answer": 0,
-      "why": "CRDT 는 서버 없이도 수렴한다."
+      "quiz": [
+        {
+          "q": "CRDT 병합의 세 성질은?",
+          "choices": [
+            "빠름·정확·단순",
+            "교환(순서)·결합(묶음)·멱등(중복)",
+            "색·크기·소리",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "어떤 순서로도 같은 결과."
+        },
+        {
+          "q": "멱등(A∪A=A)이 중요한 이유는?",
+          "choices": [
+            "빠르려고",
+            "같은 변경이 중복 도착해도(재전송) 결과가 안 틀림",
+            "색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "중복 무관."
+        },
+        {
+          "q": "세 성질의 일반 가치는?",
+          "choices": [
+            "속도",
+            "순서·중복에 강건 — 분산 무질서를 이김(연산을 그렇게 설계)",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "분산 설계의 도구."
+        }
+      ]
     },
     {
-      "q": "텍스트 CRDT 를 직접 구현하지 말라는 이유는?",
-      "choices": [
-        "위치 식별의 미묘한 오류가 데이터를 깨뜨린다",
-        "느려서",
-        "라이선스 문제"
+      "id": "4",
+      "title": "직접 만드는 가장 쉬운 것 — LWW",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 쉬운 CRDT 는 **LWW(Last-Write-Wins, 마지막 쓰기 승리)**다 — **값에 시각과 작성자를 함께 붙이면** 병합 규칙이 생긴다: 두 값을 합칠 때 **시각이 큰(더 최근) 것**을 택하고, **시각이 같으면 작성자 id 로 결정**(동점 깨기 — 어느 쪽이든 결정적으로). 이러면 병합이 **교환·결합·멱등**(3장)이라 — 어떤 순서로 합쳐도 「가장 최근 값」이 남아 같은 결과다. 필드마다 이렇게 하면(각 필드에 시각·작성자) **필드 단위 LWW** — sync-conflict 4장의 「필드 단위」에 자동 병합을 더한 것. 주의: LWW 는 **한쪽이 진다**(더 오래된 수정은 버려짐 — 병합이 아니라 선택). 그래서 「마지막 것만 남아도 되는」 필드(제목·상태·설정 — 값 하나)엔 맞고, 「둘 다 살려야 하는」 것(텍스트 편집·목록 — 5장)엔 부족하다. 하지만 LWW 는 **단순하고 대부분의 필드에 충분**해, 실무 CRDT 의 기본이자 첫걸음이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "LWW 병합 — 시각+작성자로 결정적",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ORDER = '{{order}}';\n  const A = { v: '안녕하세요', t: 5, by: 'A' };\n  const B = { v: '안녕 반가워', t: 7, by: 'B' };\n  const C = { v: '초안', t: 3, by: 'C' };\n  const merge = (x, y) => { if (x.t !== y.t) return x.t > y.t ? x : y; return x.by > y.by ? x : y; };\n  let result, desc;\n  if (ORDER === 'abc') { result = merge(merge(A, B), C); desc = 'merge(merge(A,B),C)'; }\n  else if (ORDER === 'cba') { result = merge(merge(C, B), A); desc = 'merge(merge(C,B),A)'; }\n  else { result = merge(A, merge(B, C)); desc = 'merge(A,merge(B,C))'; }\n  render('LWW 병합 — 순서: ' + desc,\n    '  A:「안녕하세요」(t5) · B:「안녕 반가워」(t7) · C:「초안」(t3)\\n' +\n    '  각 병합 = 시각 큰 것 택함(같으면 작성자로)\\n' +\n    '  결과: 「' + result.v + '」 (t' + result.t + ', ' + result.by + ')\\n\\n' +\n    '  <span class=\\\"ok\\\">어떤 순서로 합쳐도 가장 최근(t7 B) 이 남음 — 결정적·교환·결합.</span>',\n    'LWW: 값+시각+작성자 → 시각 큰 것 택함 → 어떤 순서로도 같은 결과.',\n    '<div class=\\\"merge\\\"><div class=\\\"row\\\"><span class=\\\"lab\\\">A (t5)</span><span class=\\\"val\\\">안녕하세요</span></div>' +\n    '<div class=\\\"row\\\"><span class=\\\"lab\\\">B (t7)</span><span class=\\\"val\\\">안녕 반가워</span></div>' +\n    '<div class=\\\"row\\\"><span class=\\\"lab\\\">C (t3)</span><span class=\\\"val\\\">초안</span></div>' +\n    '<div class=\\\"row result\\\"><span class=\\\"lab\\\">병합 결과</span><span class=\\\"val\\\">' + result.v + ' (t' + result.t + ')</span></div></div>');\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "병합 순서",
+              "type": "select",
+              "value": "abc",
+              "options": [
+                {
+                  "value": "abc",
+                  "label": "merge(merge(A,B),C)"
+                },
+                {
+                  "value": "cba",
+                  "label": "merge(merge(C,B),A)"
+                },
+                {
+                  "value": "acb",
+                  "label": "merge(A,merge(B,C))"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "LWW 병합 함수",
+          "text": "// 값에 시각(t)과 작성자(by)를 함께 붙이면 병합 규칙이 생긴다\nfunction merge(a, b) {\n  if (a.t !== b.t) return a.t > b.t ? a : b;   // 시각 큰(최근) 것 승리\n  return a.by > b.by ? a : b;                  // 같으면 작성자 id 로(동점 깨기 — 결정적)\n}\n// { v: '안녕하세요', t: 5, by: 'A' } 처럼 값에 시각·작성자를 붙임\n// → 어떤 순서로 merge 해도 「가장 최근 값」이 남음(교환·결합·멱등)\n// 필드마다 이렇게 = 필드 단위 LWW (대부분의 필드에 충분)"
+        },
+        {
+          "type": "note",
+          "text": "**가장 쉬운 CRDT 는 LWW(Last-Write-Wins) — 값에 시각과 작성자를 붙여 병합 시 최근 것(같으면 작성자로 결정)을 택하면, 어떤 순서로 합쳐도 같은 결과다. 필드 단위 LWW 가 대부분의 필드에 충분하다.** **LWW(Last-Write-Wins, 마지막 쓰기 승리)**: 값 하나를 **`{ 값, 시각(t), 작성자(by) }`**로 감싼다(값에 메타데이터 부착). 두 값을 병합할 때: ① **시각이 큰(더 최근) 것**을 택한다(마지막 쓰기가 이김). ② **시각이 같으면 작성자 id 로 결정**한다(예: 작성자 문자열 비교 — 어느 쪽이든 **결정적으로** 하나를 택함, 동점 깨기 tie-break). 이 병합 규칙이 **교환·결합·멱등**(3장)이다 — 「가장 큰 시각의 값을 택함」은 순서·묶음·중복과 무관하게 항상 같은 결과(max 연산이 교환·결합·멱등이듯). 그래서 각 기기가 값들을 아무 순서로 병합해도 「가장 최근 값」으로 수렴한다. **왜 시각+작성자 둘 다**: 시각만으론 **동시(같은 시각)** 편집 때 어느 걸 택할지 애매하다(비결정적) — 작성자 id 로 동점을 깨면 **모든 기기가 같은 선택**을 한다(결정적 — CRDT 의 필수, 안 그러면 기기마다 다른 값으로 갈라짐). 시각은 논리 시계(Lamport timestamp — 인과관계 반영)나 물리 시계를 쓰되, 시계 문제(기기 시각 어긋남)를 고려한다(하이브리드 논리 시계 등). **필드 단위 LWW**: 각 필드(제목·상태·설정)를 이렇게 LWW 로 하면, sync-conflict 4장의 「필드 단위 저장」에 **자동 병합**을 더한 것 — A 가 제목을·B 가 본문을 고치면 각 필드가 독립적으로 최근 것을 택해(충돌 없이 둘 다 반영), 같은 필드를 동시에 고치면 최근 것이 이긴다(자동 결정). **주의 — LWW 는 한쪽이 진다**: LWW 는 「병합」이 아니라 **「선택」**이다 — 두 수정 중 **더 오래된 것은 버려진다**(합쳐지지 않고 최근 것만 남음). 그래서 「값 하나면 되는」 필드(제목·상태·플래그·설정 — 마지막 것만 남아도 OK)엔 맞지만, **「둘 다 살려야 하는」 것(텍스트 편집 — 두 사람의 문장을 다 보존, 목록 — 두 추가를 다 반영)엔 부족**하다(5장 — 텍스트·목록엔 더 정교한 CRDT). 하지만 **LWW 는 단순하고 대부분의 필드에 충분**하다 — 실무 앱의 필드 대부분은 「마지막 값」이면 되니(상태·설정·단일 값), LWW + 버전 확인(sync-conflict 2장)이 실무 CRDT 의 기본이자 첫걸음이다(6장). 직접 만들 수 있는 가장 쉬운 CRDT 이자, 「값에 시각·작성자를 붙이면 자동 병합 규칙이 생긴다」는 핵심 아이디어를 보여 준다."
+        },
+        {
+          "type": "note",
+          "text": "**「메타데이터를 붙이면 병합 규칙이 생긴다」 — 데이터에 맥락을 실어 자동 결정.** LWW 의 교훈은 「데이터에 메타데이터(시각·출처)를 붙이면 자동 병합·결정이 가능」이다: 값에 **언제·누가**(시각·작성자)를 함께 담으면, 두 값을 만났을 때 **자동으로 결정**할 규칙(최근 것·특정 출처 우선)이 생긴다 — 사람이 매번 판단할 필요 없이(자동), 모든 곳에서 같은 결정(결정적). 이 「데이터에 결정 근거(메타데이터)를 실어 자동 병합」은 분산·동기화 전반에 통한다 — 버전 벡터(누가 무엇을 봤나), 논리 시계(인과 순서), 출처·우선순위 태그(어느 소스 우선). 핵심은 **데이터 자체가 병합 결정에 필요한 정보를 담게** 하는 것 — 그러면 병합이 데이터만 보고 자동·결정적으로 된다(외부 조율·사람 판단 불필요). 이는 sync-offline 의 tombstone(삭제됨 표식 — 삭제 결정 정보), pay-webhook 의 이벤트 id·시각(순서·중복 판단), 감사 로그(누가·언제)와 통한다 — 데이터에 맥락(언제·누가·어느 버전)을 실으면 분산 처리가 자동·정확해진다. 그래서 「분산·동기화에서 자동 병합·결정이 필요하면, 데이터에 필요한 메타데이터(시각·출처·버전)를 붙여라」가 근본 기법 — LWW 는 그 가장 단순한 형태(값 + 시각 + 작성자)다. 데이터를 그냥 값이 아니라 「맥락을 실은 값」으로 다루면, 병합·정합·수렴이 데이터만으로 결정된다."
+        },
+        {
+          "type": "try",
+          "text": "LWW 병합 함수를 만들어라 — `{v, t, by}` 값을 시각 큰 것(같으면 작성자로) 택하는 merge. 두(세) 상태를 순서를 바꿔 가며 합쳐도 결과가 같은지 시험하라(교환·결합). 필드마다 LWW 로 해 「다른 필드는 둘 다 반영, 같은 필드는 최근 것」이 되는지 보라. LWW 는 「값 하나면 되는」 필드에 충분하고, 텍스트·목록엔 부족함(5장)도 확인하라 — 가장 쉬운 CRDT 로 시작하라."
+        }
       ],
-      "answer": 0,
-      "why": "검증된 라이브러리를 쓰는 편이 안전하다."
+      "quiz": [
+        {
+          "q": "LWW(Last-Write-Wins) 병합은?",
+          "choices": [
+            "둘 다 합침",
+            "값+시각+작성자 → 최근 것(같으면 작성자로) 택함 — 결정적",
+            "잠금",
+            "감지"
+          ],
+          "answer": 1,
+          "why": "교환·결합·멱등."
+        },
+        {
+          "q": "시각이 같을 때 작성자로 결정하는 이유는?",
+          "choices": [
+            "빠르려고",
+            "동시 편집 시 모든 기기가 같은 선택(결정적) — 안 그러면 갈라짐",
+            "색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "동점 깨기."
+        },
+        {
+          "q": "LWW 가 부족한 곳은?",
+          "choices": [
+            "값 하나 필드",
+            "둘 다 살려야 하는 것(텍스트·목록) — LWW 는 한쪽이 짐(선택)",
+            "설정",
+            "상태"
+          ],
+          "answer": 1,
+          "why": "병합이 아니라 선택."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "글자 편집이 어려운 이유 · 현실적 선택",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**글자 편집(텍스트)이 CRDT 에서 어렵다.** 「**3번째 글자 뒤에 삽입**」은 남이 앞을 지우면 **위치가 어긋난다**(3번째가 밀림 → 엉뚱한 곳에 삽입). 위치를 **번호**로 다루면 동시 편집에 깨진다. 그래서 텍스트 CRDT 는 위치를 **번호가 아니라 고유 식별자**로 다룬다 — 각 글자에 변하지 않는 고유 id 를 주고(「이 글자 뒤에」로 상대 참조), 삭제·삽입에도 id 는 그대로라 위치가 안 어긋난다. 이게 텍스트 CRDT(Yjs·Automerge 의 텍스트, RGA·Logoot 등)의 핵심 — 정교하다. **현실적 선택(사다리)**: ① **필드 단위 LWW + 버전 확인**(4장·sync-conflict 2장) — **대부분의 앱은 여기서 충분**(값 필드·상태). ② **항목 단위 연산 목록**(추가/삭제 — sync-conflict 4장) — 목록·구조. ③ **Yjs·Automerge**(본격 CRDT 라이브러리) — 실시간 텍스트 공동 편집이 필요할 때. 「필요한 만큼만」 — 대부분 ①로 충분하고, 실시간 텍스트 협업에만 ③."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "텍스트 위치 · 현실적 선택",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'position') {\n    render('글자 편집 — 위치가 어긋난다',\n      '  「ABCDE」에 A: 「3번째(C) 뒤에 X 삽입」 · B: 「1번째(A) 삭제」\\n' +\n      '  B 먼저 적용 → 「BCDE」 → A 의 「3번째 뒤」는 이제 D 뒤 → 「BCDXE」(엉뚱!)\\n\\n' +\n      '  <span class=\\\"no\\\">위치를 번호로 다루면 남의 편집에 어긋남 → 고유 id 로.</span>',\n      '위치를 번호로: 남이 앞을 지우면 어긋남 → 텍스트 CRDT 는 고유 id 로.',\n      cmp('번호 위치 (깨짐)', 'A: 3번째 뒤 삽입\\nB: 1번째 삭제\\n→ 위치 어긋나 엉뚱한 곳', '고유 id (안전)', '각 글자에 고유 id\\n「C(그 id) 뒤에 X」\\n→ 삭제·삽입에도 안 어긋남'));\n  } else {\n    render('현실적 선택 — 사다리',\n      '  1) 필드 단위 LWW + 버전 확인   ← 대부분의 앱은 여기서 충분\\n' +\n      '  2) 항목 단위 연산 목록(추가/삭제)\\n' +\n      '  3) Yjs·Automerge(본격 CRDT)   ← 실시간 텍스트 협업에만\\n\\n' +\n      '  <span class=\\\"ok\\\">필요한 만큼만 — 대부분 ①로 충분, 실시간 텍스트 협업에만 ③.</span>',\n      '사다리: 필드 LWW+버전(대부분 충분) → 항목 연산 → Yjs/Automerge.',\n      steps([['① 필드 LWW + 버전 확인 — 대부분 충분', 'good'],\n             ['② 항목 단위 연산(목록·구조)', 'on'],\n             ['③ Yjs·Automerge — 실시간 텍스트 협업에만', 'on']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "position",
+              "options": [
+                {
+                  "value": "position",
+                  "label": "텍스트 위치"
+                },
+                {
+                  "value": "ladder",
+                  "label": "현실적 선택"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**텍스트 편집이 CRDT 에서 어려운 건 위치를 번호로 다루면 남의 편집에 어긋나기 때문 — 고유 식별자로 위치를 다룬다. 현실적 선택은 필드 LWW+버전(대부분 충분) → 항목 연산 → Yjs·Automerge 의 사다리다.** **텍스트가 어려운 이유**: 「위치 3에 삽입」 같은 **번호 기반 위치**는 동시 편집에 깨진다 — A 가 「3번째 글자 뒤에 X 삽입」을 하려는데 그 사이 B 가 「1번째 글자 삭제」를 하면, 삭제로 모든 글자가 하나씩 당겨져 **A 의 「3번째」가 이제 다른 글자를 가리킨다**(엉뚱한 곳에 삽입). 번호는 다른 편집에 따라 **의미가 변하니**(위치가 밀림) 동시 편집에 안 맞는다. **해법 — 위치를 번호가 아니라 고유 식별자로**: 각 글자(또는 위치)에 **변하지 않는 고유 id**를 부여하고, 삽입을 「**이 id 를 가진 글자 뒤에** X 삽입」처럼 **상대 참조**로 한다. 그러면 남이 앞을 지우거나 삽입해도 그 id 는 그대로라 **위치가 안 어긋난다**(「C(id=abc) 뒤」는 C 가 안 지워지는 한 항상 C 뒤). 이게 텍스트 CRDT(Yjs 의 Y.Text, Automerge, RGA·Logoot·Treedoc 등의 알고리즘)의 핵심 — 각 문자에 고유·순서 있는 id 를 주어 동시 삽입·삭제에도 일관된 순서를 유지한다. 정교하고(id 생성·순서 유지·tombstone) 오버헤드가 있지만, 실시간 텍스트 공동 편집을 가능케 한다. **현실적 선택 — 사다리(필요한 만큼만)**: ① **필드 단위 LWW + 버전 확인**(4장 + sync-conflict 2장) — **대부분의 앱은 여기서 충분**하다. 값 필드(제목·상태·설정)는 LWW 로 자동 병합, 충돌 감지는 버전 확인으로. 대부분의 데이터는 「값 하나」라 이걸로 된다. ② **항목 단위 연산 목록**(추가/삭제/이동 — sync-conflict 4장) — 목록·컬렉션(할일·태그·순서 있는 항목)은 연산 기반으로 병합(추가·삭제 CRDT — OR-Set 등). ③ **Yjs·Automerge**(본격 CRDT 라이브러리) — **실시간 텍스트 공동 편집**(구글 독스식)이나 복잡한 중첩 구조(문서·리치 텍스트)가 필요할 때. 이 라이브러리들이 텍스트·리스트·맵 CRDT 를 다 제공한다(직접 구현 X). **핵심 — 필요한 만큼만**(search-why 5장·오버스펙 회피): **대부분의 앱은 ①(필드 LWW + 버전 확인)로 충분**하다 — 값 필드가 대부분이고 실시간 텍스트 협업은 드무니. **실시간 텍스트 공동 편집이 정말 필요할 때만 ③(Yjs·Automerge)**로 간다(그 복잡성·오버헤드를 감수). 「CRDT = 무조건 Yjs」가 아니라, 요구(값 필드? 목록? 실시간 텍스트?)에 맞는 단계를 고른다 — 대부분 ①, 목록은 ②, 실시간 텍스트만 ③. 이 사다리가 「자동 병합을 필요한 수준만큼」 적용하는 실용적 접근이다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 자동 병합(sync-crdt)은 sync 갈래(동기화)의 정점 — 「충돌을 감지 말고 항상 합쳐지는 자료구조로」. 항상 합쳐짐(1장)은 구조적 방지(예방>처리), OT vs CRDT(2장)는 중앙 조율 vs 자율 수렴(탈중앙), 세 성질(3장)은 순서·중복 강건(분산 설계·pay-webhook 수렴), LWW(4장)는 메타데이터로 자동 결정, 텍스트·사다리(5장)는 고유 id·적정 기술과 통한다. sync 갈래(offline·conflict·crdt·event·transport·reconnect·presence·cost)가 「연결이 불안정한 곳에서 데이터를 맞추는」 전 영역이다. **「공동 편집기는 충돌을 감지 않고 항상 합쳐지는 자료구조(CRDT)를 쓴다 — 교환·결합·멱등의 세 성질로 어떤 순서로도 수렴하고, 가장 쉬운 건 LWW(값+시각+작성자), 텍스트는 위치를 고유 id 로, 현실적으론 필드 LWW+버전이 대부분 충분하고 실시간 텍스트에만 Yjs·Automerge」**가 핵심이다. CRDT 는 「충돌을 구조로 없애」 실시간 협업·오프라인 병합을 자동화하는 정교한 도구 — 필요한 수준만큼 적용한다."
+        },
+        {
+          "type": "try",
+          "text": "Yjs 예제로 두 창을 띄워 동시에 타자를 쳐 보고, 오프라인으로 만든 뒤 다시 붙였을 때 어떻게 합쳐지는지 관찰하라 — 안 물어도 자동으로 합쳐지는(수렴) 마법을 보라. 그리고 네 앱의 요구를 사다리로 판단하라 — 값 필드면 ①(LWW+버전, 대부분 충분), 목록이면 ②(항목 연산), 실시간 텍스트 협업이면 ③(Yjs·Automerge). 「필요한 만큼만」 — 대부분 ①이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "텍스트 CRDT 가 위치를 번호로 안 다루는 이유는?",
+          "choices": [
+            "느려서",
+            "남이 앞을 지우면 번호가 어긋남 → 고유 식별자(상대 참조)로",
+            "색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "위치 안 어긋나게."
+        },
+        {
+          "q": "현실적 선택에서 대부분의 앱에 충분한 것은?",
+          "choices": [
+            "Yjs 무조건",
+            "필드 단위 LWW + 버전 확인 (①)",
+            "OT",
+            "잠금"
+          ],
+          "answer": 1,
+          "why": "값 필드가 대부분."
+        },
+        {
+          "q": "Yjs·Automerge(본격 CRDT)는 언제?",
+          "choices": [
+            "항상",
+            "실시간 텍스트 공동 편집·복잡한 구조가 필요할 때만(필요한 만큼)",
+            "값 필드",
+            "never"
+          ],
+          "answer": 1,
+          "why": "오버스펙 회피."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 자동 병합(CRDT)",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "자동 병합(CRDT)을 다룰 때 이 목록을 확인하라. 핵심은 「감지 말고 항상 합쳐지는 자료구조 — 세 성질로 수렴, LWW 부터, 필요한 만큼만」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .merge { margin:8px 0; }\n  .merge .row { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n                background:#111c33; font:11.5px ui-monospace, monospace; }\n  .merge .row .lab { width:130px; color:#94a3b8; } .merge .row .val { color:#cbd5e1; }\n  .merge .row.result { border:1px solid #166534; background:#132a1c; } .merge .row.result .val { color:#4ade80; font-weight:700; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  // LWW(Last-Write-Wins) 병합: 값에 시각(t)과 작성자(by)를 붙여, 시각 큰 것 우선(같으면 작성자로 결정)\n  function lwwMerge(a, b) {\n    if (a.t !== b.t) return a.t > b.t ? a : b;\n    return a.by > b.by ? a : b;  // 시각 같으면 작성자 id 로 결정(동점 깨기 — 결정적)\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '공동 편집기는 충돌을 감지 않고 항상 합쳐지는 자료구조(CRDT)',\n    'OT(중앙이 순서·구글 독스) vs CRDT(자료구조가 합쳐짐·탈중앙)',\n    '왜 합쳐지나: 교환(순서)·결합(묶음)·멱등(중복) 세 성질',\n    '가장 쉬운 것 = LWW(값+시각+작성자, 최근 것 택함)',\n    'LWW 는 한쪽이 짐(선택) — 값 필드엔 충분, 텍스트엔 부족',\n    '텍스트는 위치를 번호 아니라 고유 id 로(안 어긋나게)',\n    '사다리: 필드 LWW+버전(대부분 충분)→항목 연산→Yjs/Automerge',\n    '필요한 만큼만 — 실시간 텍스트 협업에만 본격 CRDT',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 충돌을 구조로 없앤다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '감지 말고 항상 합쳐지는 자료구조 — 세 성질로 수렴·LWW 부터·필요한 만큼.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 공동 편집기는 충돌을 감지 않고 항상 합쳐지는 자료구조(CRDT)를 쓴다 — 교환·결합·멱등의 세 성질로 어떤 순서로도 수렴하고, 가장 쉬운 건 LWW(값+시각+작성자), 텍스트는 위치를 고유 id 로, 현실적으론 필드 LWW+버전이 대부분 충분하고 실시간 텍스트에만 Yjs·Automerge.** 충돌을 감지 말고 구조로 없애고(1장), OT(중앙)와 CRDT(탈중앙)의 두 갈래가 있고(2장), 세 성질(교환·결합·멱등)이 수렴을 보증하고(3장), LWW(값+시각+작성자)가 가장 쉬운 CRDT 이고(4장, 값 필드엔 충분·텍스트엔 부족), 텍스트는 위치를 고유 id 로 다루며(5장), 사다리(필드 LWW+버전 → 항목 연산 → Yjs·Automerge)에서 필요한 만큼만 고른다. 「충돌을 구조로 없앤다」가 핵심이다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 자동 병합(sync-crdt)은 sync 갈래(동기화)의 정점으로, 「충돌을 감지 말고 항상 합쳐지는 자료구조로」다. 항상 합쳐짐은 구조적 방지(예방>처리), OT vs CRDT 는 중앙 조율 vs 자율 수렴, 세 성질은 순서·중복 강건(분산 설계·pay-webhook 수렴), LWW 는 메타데이터로 자동 결정, 텍스트·사다리는 고유 id·적정 기술과 통한다. sync 갈래(offline·conflict·crdt·event·transport·reconnect·presence·cost)가 「연결이 불안정한 곳에서 데이터를 맞추는」 전 영역이다. **「감지 말고 항상 합쳐지는 자료구조 — 세 성질로 수렴, LWW 부터, 필요한 만큼만」**이 이 칸의 전부다. CRDT 는 「충돌을 구조로 없애」 실시간 협업·오프라인 병합을 자동화하는 정교한 도구 — 대부분의 앱은 필드 LWW+버전으로 충분하고, 실시간 텍스트 협업에만 본격 CRDT(Yjs·Automerge)를 쓴다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 동기화의 자동 병합을 점검하라. 「LWW 병합(값+시각+작성자)」과 「필요한 만큼만(대부분 필드 LWW+버전)」 두 가지만 잡아도, 값 필드의 자동 병합과 과잉 회피를 얻는다. LWW 를 만들어 순서 무관 수렴을 확인하고, 요구를 사다리로 판단하고(대부분 ①), 실시간 텍스트 협업이면 Yjs 예제를 써 보라 — 충돌을 구조로 없애되 필요한 만큼만."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "자동 병합(CRDT) 장의 한 줄 요약은?",
+          "choices": [
+            "감지·물어보기",
+            "감지 말고 항상 합쳐지는 자료구조 — 세 성질로 수렴·LWW 부터·필요한 만큼",
+            "잠금",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "충돌을 구조로 없앰."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "LWW 병합(값+시각+작성자) + 필요한 만큼만(대부분 필드 LWW+버전)",
+            "재시도·정렬",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "자동 병합·과잉 회피."
+        },
+        {
+          "q": "CRDT 가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "sync-event(연산)·sync-transport·pay-webhook(수렴)·분산 시스템",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "동기화의 정점."
+        }
+      ]
     }
   ]
 }
