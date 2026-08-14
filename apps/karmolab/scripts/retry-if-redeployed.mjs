@@ -64,7 +64,22 @@ if (code !== 0 && code !== 2) {
     await settle();
     code = run();
   } else {
-    console.log('[retry-if-redeployed] 판은 그대로였다 — 진짜 빨강이다');
+    /* ★ **「안 바뀌었다」와 「내가 재려던 판이다」는 다른 말이다** (2026-08-14 실측).
+       재는 동안 판이 안 바뀌어도, 그 판이 **이 검사가 태어난 커밋보다 옛것**이면 검사는
+       옛 화면을 보고 빨개진 것이다(그날 두 검사가 그렇게 빨갰고, 몇 분 뒤 같은 명령이
+       실주소에서 그대로 초록이었다). 그러면 「진짜 빨강」이라고 적으면 안 된다 — 한 번 더 잰다. */
+    const 이판 = (process.env.GITHUB_SHA || '').slice(0, 8);
+    if (이판 && before && !before.startsWith(이판)) {
+      console.log(
+        `[retry-if-redeployed] 판은 그대로지만 **내가 재려던 판이 아니다** ` +
+          `(서빙 ${before.slice(0, 8)} · 이 검사 ${이판}) — 잠잠해진 뒤 한 번만 다시 잰다`
+      );
+      await settle();
+      code = run();
+      if (code !== 0) console.log('[retry-if-redeployed] 다시 재도 빨갛다 — 진짜 빨강이다');
+    } else {
+      console.log('[retry-if-redeployed] 판은 그대로였다 — 진짜 빨강이다');
+    }
   }
 }
 process.exitCode = code;
