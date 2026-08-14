@@ -27,5 +27,17 @@
   "subtitle.err.empty": "먼저 자막을 넣어 주세요.",
   "subtitle.copy.done": "맞춘 자막을 복사했어요",
   "subtitle.say.saved": "{name} 로 받았어요.",
-  "subtitle.file.base": "자막"
+  "subtitle.file.base": "자막",
+  "subtitle.tab.sum": "줄이기",
+  "subtitle.sum.drop": "자막 파일(SRT·VTT)을 끌어다 놓거나 눌러서 고르세요",
+  "subtitle.sum.label": "또는 자막을 붙여 넣으세요",
+  "subtitle.sum.every": "몇 분마다 한 칸(분)",
+  "subtitle.sum.copy": "목차 복사",
+  "subtitle.sum.text": "글 전체 복사",
+  "subtitle.sum.idle": "자막을 넣으면 시간이 붙은 목차를 만듭니다. 이름표는 그 구간에 실제로 나온 문장입니다",
+  "subtitle.sum.meta": "{n}칸 · 길이 {len} · 글자 {chars}자",
+  "subtitle.sum.done": "목차 {n}칸을 만들었습니다",
+  "subtitle.sum.noLabel": "(말이 거의 없는 구간)",
+  "subtitle.sum.copied": "목차를 복사했어요",
+  "subtitle.sum.copiedText": "자막 글 전체를 복사했어요"
 }
