@@ -62,9 +62,23 @@ const workers = Array.from({ length: 6 }, async () => {
 await Promise.all(workers);
 
 process.stdout.write('\n');
-if (dead.length > 0) {
-  for (const d of dead) console.log(`  ${d.status || '접속불가'}  ${d.node} — ${d.label}\n         ${d.url}`);
-  console.log(`[studymap-links] 죽은 주소 ${dead.length}개 / 전체 ${targets.length}개`);
+
+/* ★ **「여기서 못 닿았다」와 「링크가 죽었다」는 다른 말이다** (2026-08-14).
+   이 검사를 묶음(gates)에 넣었더니 CI 에서만 빨갰다. 못 닿은 둘은 `privacy.go.kr` 과
+   `nts.go.kr` — **한국 정부 사이트**다. 미국 러너에서 안 열린 것이지 링크가 죽은 게 아니다.
+   그걸 빨강으로 읽으면 사람은 멀쩡한 링크를 지우거나, 더 나쁘게는 이 검사를 무시한다.
+   갈라 적는다: **답이 온 4xx 만 죽은 것**, 아예 못 닿은 것(0)은 **못 잼**(2)이다. */
+const 죽음 = dead.filter((d) => d.status !== 0);
+const 못닿음 = dead.filter((d) => d.status === 0);
+for (const d of 죽음) console.log(`  ${d.status}  ${d.node} — ${d.label}`);
+for (const d of 못닿음) console.log(`  못 닿음  ${d.node} — ${d.label}`);
+if (죽음.length > 0) {
+  console.log(`[studymap-links] 죽은 주소 ${죽음.length}개 / 전체 ${targets.length}개`);
   process.exit(1);
+}
+if (못닿음.length > 0) {
+  /* 2 = 「못 돌렸다」 — 이 저장소 규약. 죽은 것이 아니다. */
+  console.log(`[studymap-links] 여기서 못 닿은 주소 ${못닿음.length}개 — 이 자리에서는 판정 못 한다`);
+  process.exit(2);
 }
 console.log(`[studymap-links] 링크 ${targets.length}개 전부 살아 있다`);
