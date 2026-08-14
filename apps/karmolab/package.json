@@ -46,6 +46,7 @@
     "check:live-version": "node scripts/check-live-version.mjs",
     "test:bundles": "node scripts/check-bundles.mjs",
     "audit:shared-bypass": "node scripts/audit-shared-bypass.mjs",
+    "audit:mouse-only": "node scripts/audit-mouse-only.mjs",
     "audit:orphan-widgets": "node scripts/audit-orphan-widgets.mjs",
     "audit:script-paths": "node scripts/audit-script-paths.mjs",
     "audit:vendor-globals": "node scripts/audit-vendor-globals.mjs",
