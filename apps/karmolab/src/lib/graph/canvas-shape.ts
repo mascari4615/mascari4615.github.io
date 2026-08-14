@@ -6,6 +6,7 @@
  */
 import type { GraphNode, NodeShape } from './spec';
 import { TYPE } from './canvas-type';
+import { seedFrom, sketchyEllipse, sketchyOn, sketchyRect } from './sketchy';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -21,6 +22,21 @@ shape: NodeShape,
 fill: string,
 ): SVGElement {
   const stroke = kindColor + '60';
+
+  /* 손그림 질감 (TASK-KL-238 / 18 excalidraw) — 켜져 있으면 **자로 잰 도형 대신** 삐뚤빼뚤한
+     획을 낸다. 흔들림은 노드 id 로 정해지므로 끌거나 확대해도 같은 모양이다(춤추지 않는다).
+     바깥에서 보는 상자 크기는 그대로라 선 잇는 셈법은 아무것도 모른다. */
+  if (sketchyOn() && (shape === 'circle' || shape === 'rect' || shape === undefined)) {
+    const el = document.createElementNS(SVG_NS, 'path');
+    const seed = seedFrom(node.id);
+    el.setAttribute('d', shape === 'circle' ? sketchyEllipse(node.w, effH, seed) : sketchyRect(node.w, effH, seed));
+    el.setAttribute('fill', fill);
+    el.setAttribute('stroke', stroke);
+    el.setAttribute('stroke-width', '1.5');
+    el.setAttribute('stroke-linecap', 'round');
+    el.setAttribute('stroke-linejoin', 'round');
+    return el;
+  }
 
   if (shape === 'circle') {
     const el = document.createElementNS(SVG_NS, 'ellipse');

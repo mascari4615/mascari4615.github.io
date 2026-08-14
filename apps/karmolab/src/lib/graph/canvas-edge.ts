@@ -10,6 +10,7 @@ import type { EdgeStyle } from './spec';
 import { wobblePath, pointOnCubic } from './canvas-math';
 import type { Pt } from './canvas-math';
 import { TYPE } from './canvas-type';
+import { seedFrom, sketchyCubic, sketchyOn } from './sketchy';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -35,11 +36,15 @@ export function buildEdgePath(
   // 흔들림의 잘기는 **선 길이**에 맞춘다 — 짧은 선을 촘촘히 흔들면 뭉개진다.
   const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
   const steps = Math.max(12, Math.min(120, Math.round(dist / (look.style === 'wavy' ? 6 : 12))));
+  /* 손그림일 때는 굽은 선도 손으로 그은 것처럼 (TASK-KL-238 / 18). 물결·금 간 선은 **이미 제
+     모양이 있으므로** 손대지 않는다 — 흔들림을 두 번 얹으면 무슨 선인지 안 보인다. */
   path.setAttribute(
     'd',
     wobbly
       ? wobblePath(g, look.style as 'wavy' | 'crack', { steps, amp: look.style === 'wavy' ? 3.5 : 5 })
-      : `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`,
+      : sketchyOn()
+        ? sketchyCubic(g, seedFrom(edgeId))
+        : `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`,
   );
   path.setAttribute('fill', 'none');
   path.setAttribute('stroke', look.color);

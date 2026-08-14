@@ -18,6 +18,7 @@
 import { t, loadNamespace } from '../../lib/i18n';
 import { GraphCanvas } from '../../lib/graph/canvas';
 import { themeFromCss } from '../../lib/graph/canvas-theme';
+import { setSketchy } from '../../lib/graph/sketchy';
 import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoGraphLocalStorageAdapter } from './local-storage-adapter';
@@ -768,6 +769,7 @@ import {
                   <option value="none">${esc(t('karmograph.opt.none'))}</option>
                 </select>
               </label>
+              <label><input type="checkbox" data-km="sketchy" /> ${esc(t('karmograph.opt.sketchy'))}</label>
               ${drawerHtml()}
             </div>
           </div>
@@ -3483,6 +3485,21 @@ import {
       spec._meta = { ...spec._meta, bg: bgEl.value };
       persistStructure();
       // 고르고 나면 서랍은 할 일을 다 했다 — 열어 두면 그 아래 버튼이 통째로 안 눌린다.
+      drawerEl.classList.add('hidden');
+    };
+
+    /* ✍ **손그림 질감** (TASK-KL-238 / 18 excalidraw). 자로 잰 상자는 「결정된 것」처럼 보여
+       사람이 고치자는 말을 못 꺼낸다 — 삐뚤빼뚤한 상자는 「아직 얘기 중」으로 읽힌다.
+       흔들림은 카드 id 로 정해져 있어 끌거나 확대해도 모양이 안 변한다(춤추지 않는다).
+       배경 무늬처럼 **맵마다** 기억한다(`_meta.sketchy`) — 그 그림의 말투이지 사람의 취향이 아니다. */
+    const sketchyEl = q<HTMLInputElement>('sketchy');
+    sketchyEl.checked = spec._meta?.sketchy === '1';
+    setSketchy(sketchyEl.checked);
+    sketchyEl.onchange = () => {
+      setSketchy(sketchyEl.checked);
+      spec._meta = { ...spec._meta, sketchy: sketchyEl.checked ? '1' : '0' };
+      persistStructure();
+      canvas?.render();
       drawerEl.classList.add('hidden');
     };
 
