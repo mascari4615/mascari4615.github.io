@@ -433,5 +433,6 @@
   "arcade.btn.find": "find players",
   "arcade.open.title": "rooms open now",
   "arcade.open.none": "",
-  "arcade.open.card": "{game} · {host}"
+  "arcade.open.card": "{game} · {host}",
+  "arcade.mine.kb": "Keyboard: Enter/Space opens, F or Shift+Enter flags"
 }
