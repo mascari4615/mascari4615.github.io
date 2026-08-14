@@ -435,5 +435,6 @@
   "arcade.open.none": "",
   "arcade.open.card": "{game} · {host}",
   "arcade.mine.kb": "キーボード: Enter・スペースで開く、F または Shift+Enter で旗",
-  "arcade.pong.kb": "キーボード: 左右矢印でラケットを動かす（Shift で大きく）"
+  "arcade.pong.kb": "キーボード: 左右矢印でラケットを動かす（Shift で大きく）",
+  "arcade.ah.kb": "キーボード: 矢印でマレットを動かす（Shift で大きく）"
 }
