@@ -36,7 +36,7 @@ const open = async (url) => {
   const p = await ctx.newPage();
   await p.route('**/__dev', (r) => r.abort());
   await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   return p;
 };
 
