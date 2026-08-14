@@ -67,11 +67,11 @@ import { t, loadNamespace } from '../lib/i18n';
 
           let mx = 0;
           let my = 0;
-          arena.onmousemove = (e: MouseEvent) => {
-            const rect = arena.getBoundingClientRect();
-            mx = e.clientX - rect.left;
-            my = e.clientY - rect.top;
-
+          /* 「어디를 보나」를 함수로 뽑는다 — 마우스든 자판이든 **같은 계산**이다
+           * (2026-08-14, `audit:mouse-only`: 마우스만 받으면 눈이 영영 한 곳만 본다). */
+          function lookAt(x: number, y: number): void {
+            mx = x;
+            my = y;
             eyes.forEach((eye) => {
               const ex = eye.box.offsetLeft + 18;
               const ey = eye.box.offsetTop + 18;
@@ -81,14 +81,43 @@ import { t, loadNamespace } from '../lib/i18n';
               const py = Math.sin(angle) * dist;
               eye.pupil.style.transform = `translate(${px}px, ${py}px)`;
             });
+          }
+
+          arena.onmousemove = (e: MouseEvent) => {
+            const rect = arena.getBoundingClientRect();
+            lookAt(e.clientX - rect.left, e.clientY - rect.top);
           };
 
-          arena.onmousedown = () => {
+          const blink = (): void => {
             eyes.forEach((eye) => {
               eye.top.style.transform = 'scaleY(1)';
               eye.bot.style.transform = 'scaleY(1)';
             });
           };
+
+          /* 자판 길 — 화살표로 보는 자리를 옮기고 Enter 로 깜빡인다. 걸음은 마당의 1/12. */
+          arena.tabIndex = 0;
+          arena.setAttribute('role', 'application');
+          arena.setAttribute('aria-label', t('eyes.kb.label'));
+          arena.addEventListener('keydown', (e) => {
+            const stepX = Math.max(8, arena.clientWidth / 12);
+            const stepY = Math.max(8, arena.clientHeight / 12);
+            switch (e.key) {
+              case 'ArrowLeft': lookAt(Math.max(0, mx - stepX), my); break;
+              case 'ArrowRight': lookAt(Math.min(arena.clientWidth, mx + stepX), my); break;
+              case 'ArrowUp': lookAt(mx, Math.max(0, my - stepY)); break;
+              case 'ArrowDown': lookAt(mx, Math.min(arena.clientHeight, my + stepY)); break;
+              case 'Enter': case ' ': {
+                blink();
+                window.setTimeout(() => arena.onmouseup?.(new MouseEvent('mouseup')), 150);
+                break;
+              }
+              default: return;
+            }
+            e.preventDefault();
+          });
+
+          arena.onmousedown = blink;
           arena.onmouseup = () => {
             setTimeout(() => {
               eyes.forEach((eye) => {
