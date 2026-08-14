@@ -108,6 +108,9 @@ import { encode } from './shared/image';
           let baseName = t('pdfredact.file.base');
           let drag: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
+          /* 자판으로 고르는 네모 (0~1 비율 — 상자와 같은 단위). 끌기만 있으면 이 도구가
+           * 통째로 막힌 사람이 생기고, 가리개는 「못 가림」이 곧 사고다. */
+          let caret: { x: number; y: number; w: number; h: number } | null = null;
           let rendering = false;
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
@@ -137,6 +140,16 @@ import { encode } from './shared/image';
               if (b.page !== n) continue;
               // 상자는 0~1 비율로 갖고 있다 — 선명도를 바꿔도 같은 자리를 가리게 하려고
               ctx.fillRect(b.x * target.width, b.y * target.height, b.w * target.width, b.h * target.height);
+            }
+
+            // 자판으로 고르는 중이면 그 네모도 테두리로 보여 준다 (끌 때와 같은 모양, 다른 색).
+            if (preview && caret) {
+              ctx.save();
+              ctx.strokeStyle = '#5ab0ff';
+              ctx.lineWidth = 2;
+              ctx.setLineDash([8, 4]);
+              ctx.strokeRect(caret.x * target.width, caret.y * target.height, caret.w * target.width, caret.h * target.height);
+              ctx.restore();
             }
 
             if (preview && drag && dragNow) {
@@ -236,7 +249,62 @@ import { encode } from './shared/image';
             }
             boxes.push(b);
             void refresh();
-            say(`${boxes.length}군데 잡았어요. 받을 때 실제로 지워집니다.`, 'ok');
+            say(t('pdfredact.say.added', { n: boxes.length }), 'ok');
+          });
+
+          /* 자판 길 — 끌기와 **같은 일**을 자판으로 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
+           * 화살표=옮기기 · Shift+화살표=크기 · Enter=가리기 · Backspace=되돌리기 · Esc=그만.
+           * 단위는 쪽 크기의 2% 다 — 상자를 비율로 갖고 있어 선명도를 바꿔도 같은 자리다. */
+          canvas.tabIndex = 0;
+          canvas.setAttribute('role', 'application');
+          canvas.setAttribute('aria-label', t('pdfredact.kb.label'));
+          const pct = (v: number): number => Math.round(v * 100);
+          canvas.addEventListener('keydown', (e) => {
+            if (!doc) return;
+            const unit = e.shiftKey ? 0.02 : 0.02;
+            if (!caret && /^(Arrow|Enter)/.test(e.key)) {
+              caret = { x: 0.25, y: 0.25, w: 0.2, h: 0.1 };
+              e.preventDefault();
+              void refresh();
+              say(t('pdfredact.kb.moved', { x: pct(caret.x), y: pct(caret.y), w: pct(caret.w), h: pct(caret.h) }));
+              return;
+            }
+            if (!caret) return;
+            switch (e.key) {
+              case 'ArrowLeft': if (e.shiftKey) caret.w -= unit; else caret.x -= unit; break;
+              case 'ArrowRight': if (e.shiftKey) caret.w += unit; else caret.x += unit; break;
+              case 'ArrowUp': if (e.shiftKey) caret.h -= unit; else caret.y -= unit; break;
+              case 'ArrowDown': if (e.shiftKey) caret.h += unit; else caret.y += unit; break;
+              case 'Enter': {
+                boxes.push({ page: cur, x: caret.x, y: caret.y, w: caret.w, h: caret.h });
+                caret = null;
+                e.preventDefault();
+                void refresh();
+                say(t('pdfredact.say.added', { n: boxes.length }), 'ok');
+                return;
+              }
+              case 'Backspace': {
+                if (boxes.length > 0) boxes.pop();
+                e.preventDefault();
+                void refresh();
+                say(boxes.length ? t('pdfredact.say.left', { n: boxes.length }) : t('pdfredact.say.cleared'), 'ok');
+                return;
+              }
+              case 'Escape': {
+                caret = null;
+                e.preventDefault();
+                void refresh();
+                return;
+              }
+              default: return;
+            }
+            caret.w = Math.max(0.01, Math.min(caret.w, 1));
+            caret.h = Math.max(0.01, Math.min(caret.h, 1));
+            caret.x = Math.max(0, Math.min(caret.x, 1 - caret.w));
+            caret.y = Math.max(0, Math.min(caret.y, 1 - caret.h));
+            e.preventDefault();
+            void refresh();
+            say(t('pdfredact.kb.moved', { x: pct(caret.x), y: pct(caret.y), w: pct(caret.w), h: pct(caret.h) }));
           });
 
           const drop = $<HTMLElement>('#prDrop');

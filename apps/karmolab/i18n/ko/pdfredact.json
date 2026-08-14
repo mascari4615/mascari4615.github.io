@@ -29,5 +29,8 @@
   "pdfredact.err.generic": "가린 PDF 를 만들지 못했어요.",
   "pdfredact.file.base": "문서",
   "pdfredact.file.suffix": "-가림",
-  "pdfredact.warn": "PDF 에 검은 네모를 그려도 글자는 파일 안에 남습니다 — 복사하면 다 나옵니다. 이 도구는 페이지를 그림으로 다시 구워서 글자 자체를 없앱니다."
+  "pdfredact.warn": "PDF 에 검은 네모를 그려도 글자는 파일 안에 남습니다 — 복사하면 다 나옵니다. 이 도구는 페이지를 그림으로 다시 구워서 글자 자체를 없앱니다.",
+  "pdfredact.kb.label": "가릴 자리 고르기 (화살표=옮기기, Shift+화살표=크기, Enter=가리기, Backspace=되돌리기)",
+  "pdfredact.kb.moved": "가릴 자리 {x}%, {y}% · 크기 {w}%×{h}%",
+  "pdfredact.say.added": "{n}군데 잡았어요. 받을 때 실제로 지워집니다."
 }

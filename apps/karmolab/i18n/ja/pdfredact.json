@@ -29,5 +29,8 @@
   "pdfredact.err.generic": "隠した PDF を作れませんでした。",
   "pdfredact.file.base": "文書",
   "pdfredact.file.suffix": "-隠し",
-  "pdfredact.warn": "PDF に黒い四角を描いても文字はファイルの中に残ります — コピーすると全部出てきます。このツールはページを画像として焼き直し、文字そのものを消します。"
+  "pdfredact.warn": "PDF に黒い四角を描いても文字はファイルの中に残ります — コピーすると全部出てきます。このツールはページを画像として焼き直し、文字そのものを消します。",
+  "pdfredact.kb.label": "隠す範囲を選ぶ（矢印=移動、Shift+矢印=サイズ、Enter=隠す、Backspace=取り消し）",
+  "pdfredact.kb.moved": "範囲 {x}%, {y}% · サイズ {w}%×{h}%",
+  "pdfredact.say.added": "{n}か所を指定しました。保存時に実際に消えます。"
 }
