@@ -16,6 +16,7 @@
 import { t, loadNamespace } from '../../lib/i18n';
 import { droste } from './droste';
 import { sanitize, type ParamValues, type Piece } from './pieces';
+import { download, encode } from '../tools/shared/image';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -382,19 +383,12 @@ import { sanitize, type ParamValues, type Piece } from './pieces';
           bctx.setTransform(2, 0, 0, 2, 0, 0);
           piece.frame({ ctx: bctx, w, h, dpr: 2, time, params, seed });
         }
-        (bctx ? big : canvas).toBlob(function (blob) {
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'karmolab-meong-' + piece.id + '-' + Math.round(seed * 1e6) + '.png';
-          a.click();
-          setTimeout(function () {
-            URL.revokeObjectURL(url);
-          }, 4000);
+        // 공용 한 자리(`shared/image`) — 굽기·내려받기·주소 거두기가 거기 한 벌로 있다.
+        encode(bctx ? big : canvas, 'png').then(function (blob) {
+          download(blob, 'karmolab-meong-' + piece.id + '-' + Math.round(seed * 1e6) + '.png');
           Toolbox.showToast?.(t('meong.saved'), 'success');
           Toolbox.trackUse?.('meong-save');
-        }, 'image/png');
+        }).catch(function () { /* 굽기 실패 = 저장 안 됨. 조용히 넘어간다(원래도 그랬다) */ });
       });
 
       iconBtn('⛶', 'full', function () {
