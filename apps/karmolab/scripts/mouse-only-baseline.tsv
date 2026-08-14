@@ -2,7 +2,6 @@
 # 자판 길을 내면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 갱신: node scripts/audit-mouse-only.mjs --write-baseline
 src/widgets/arcade/games/airhockey-view.ts
-src/widgets/arcade/games/pong-view.ts
 src/widgets/bluemarble/bluemarble.ts
 src/widgets/tierlist/dnd.ts
 src/widgets/tierlist/ui.ts
