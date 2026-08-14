@@ -4174,6 +4174,16 @@ import {
         renderSide();
         return;
       }
+      /* 공용 글도 따라간다 — 글은 판보다 오래 살고 **여러 판이 같은 글을 쓴다**. 저쪽에서 고친
+         글이 이쪽 카드에 옛 글로 남아 있으면, 같은 글이 화면마다 다르게 보인다. */
+      if (ev.key === 'karmograph.notes' && ev.newValue) {
+        if (refreshFromLibrary(spec) > 0) {
+          applySpec();
+          renderSide();
+          Toolbox.showToast?.(t('karmograph.otherTab.followed'), undefined, undefined);
+        }
+        return;
+      }
       if (ev.key !== mapKey(library.activeId) || !ev.newValue) return;
       if (touchedHere || readOnly) return;
       void store.load().then((loaded) => {
