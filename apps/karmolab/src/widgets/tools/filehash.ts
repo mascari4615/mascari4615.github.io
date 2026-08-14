@@ -7,7 +7,7 @@
  */
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { FILE_ALGOS as ALGOS, hashBytes, size, verify } from '../../core/filehash';
+import { FILE_ALGOS as ALGOS, hashBytes, hashLookups, size, verify } from '../../core/filehash';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -41,6 +41,15 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="tool-display" id="fhVerdict">—</div>
             <div class="tool-list" id="fhOut"></div>
+
+            <div id="fhLookup" hidden style="margin-top:var(--space-lg);">
+              <div class="tool-sublabel">${esc(t('filehash.lookup.title', undefined, '이 검사값으로 물어보기'))}</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <a class="btn btn-ghost btn-sm" id="fhLookupVt" target="_blank" rel="noopener noreferrer">${esc(t('filehash.lookup.virustotal', undefined, 'VirusTotal'))}</a>
+                <a class="btn btn-ghost btn-sm" id="fhLookupBz" target="_blank" rel="noopener noreferrer">${esc(t('filehash.lookup.bazaar', undefined, 'MalwareBazaar'))}</a>
+              </div>
+              <p class="tool-sublabel" style="margin-top:8px;">${esc(t('filehash.lookup.how', undefined, '파일은 여전히 안 나갑니다 — 누르면 64자리 검사값만 그 사이트 주소에 실립니다. 해시로는 파일을 되돌릴 수 없습니다.'))}</p>
+            </div>
             <div class="tool-status" id="fhStatus">${esc(t('filehash.status.idle'))}</div>
           `;
 
@@ -50,6 +59,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const expect = $<HTMLInputElement>('#fhExpect');
           const verdict = $<HTMLElement>('#fhVerdict');
           const out = $<HTMLElement>('#fhOut');
+          const lookup = $<HTMLElement>('#fhLookup');
+          const lookupVt = $<HTMLAnchorElement>('#fhLookupVt');
+          const lookupBz = $<HTMLAnchorElement>('#fhLookupBz');
           const status = $<HTMLElement>('#fhStatus');
           let hashes: Record<string, string> = {};
           let fileName = '';
@@ -57,6 +69,17 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
+
+          /* 남의 창고로 넘겨주는 자리 (TASK-KL-238 / 24). 64자리 SHA-256 이 나왔을 때만 뜬다 —
+           * 반쪽 값으로 열면 아무것도 못 찾고 사람은 「깨끗하다」로 오해한다. */
+          function renderLookup(): void {
+            const links = hashLookups(hashes['SHA-256'] ?? '');
+            lookup.hidden = links.length === 0;
+            for (const l of links) {
+              if (l.id === 'virustotal') lookupVt.href = l.url;
+              if (l.id === 'bazaar') lookupBz.href = l.url;
+            }
+          }
 
           function render(): void {
             const want = expect.value.trim().toLowerCase().replace(/[^0-9a-f]/g, '');
@@ -94,11 +117,13 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function run(file: File): Promise<void> {
             fileName = file.name;
             hashes = {};
+            lookup.hidden = true; // 앞 파일의 검사값으로 남의 창고를 열면 안 된다
             verdict.textContent = t('filehash.say.working');
             say(t('filehash.say.reading', { name: file.name, size: size(file.size) }));
             /* 계산·정리는 `src/core/filehash.ts` 가 한다 — 바이트를 넘긴다(바이트 규약, TASK-KL-205). */
             hashes = await hashBytes(new Uint8Array(await file.arrayBuffer()));
             render();
+            renderLookup();
             if (!expect.value.trim()) say(t('filehash.say.ready', { name: fileName, size: size(file.size) }), 'ok');
             Toolbox.trackUse?.('hash');
           }
