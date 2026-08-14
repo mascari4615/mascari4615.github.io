@@ -33,5 +33,9 @@
   "orbita.t20": "軌道が回りはじめました",
   "orbita.t21": "星をばらまきました",
   "orbita.t22": "軌道に色を置いてみてください",
-  "orbita.midiTo": "{name} へ送ります — 軌道の番号 = MIDI チャンネル。"
+  "orbita.midiTo": "{name} へ送ります — 軌道の番号 = MIDI チャンネル。",
+  "orbita.kb.label": "キーボードでも打てます — 左右=マス、上下=リング、Enter=置く/消す、PageUp/Down=音の高さ",
+  "orbita.kb.at": "リング {ring} マス {slot} — {state}",
+  "orbita.kb.on": "音あり",
+  "orbita.kb.off": "空き"
 }

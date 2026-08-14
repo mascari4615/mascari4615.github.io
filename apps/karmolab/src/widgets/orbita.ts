@@ -229,6 +229,8 @@ import { t, loadNamespace } from '../lib/i18n';
               <div class="orbita-stage">
                 <canvas id="orbitaCanvas"></canvas>
                 <div class="orbita-hint">${esc(t('orbita.t01'))}</div>
+                <!-- 자판으로 고른 자리를 말로도 알린다 — 화면낭독기가 읽도록 aria-live. -->
+                <div class="orbita-hint" id="orbitaKb" aria-live="polite"></div>
               </div>
 
               <div class="orbita-panel">
@@ -588,6 +590,17 @@ import { t, loadNamespace } from '../lib/i18n';
                 const ang = slotAngle(r, i, t);
                 const x = cx + Math.cos(ang) * rad;
                 const y = cy + Math.sin(ang) * rad;
+                if (cursor && cursor.ring === ri && cursor.slot === i) {
+                  // 자판으로 고른 자리 — 돌아가는 중에도 눈에 띄게 테두리로 표시한다.
+                  ctx2d.save();
+                  ctx2d.strokeStyle = 'rgba(255,255,255,0.95)';
+                  ctx2d.lineWidth = 2;
+                  ctx2d.beginPath();
+                  ctx2d.arc(x, y, 9, 0, Math.PI * 2);
+                  ctx2d.stroke();
+                  ctx2d.restore();
+                }
+
                 const slot = r.slots[i];
                 if (!slot) {
                   // 마디 첫 칸은 크게 — 「어디가 처음인가」가 돌아가는 중에도 읽힌다
@@ -677,6 +690,9 @@ import { t, loadNamespace } from '../lib/i18n';
           }
 
           let drag: { ring: number; slot: number; startY: number; startDeg: number } | null = null;
+          /* 자판으로 고르는 자리 (2026-08-14, `audit:mouse-only`). 누르기만 있으면 자판 쓰는 사람은
+           * **음 하나도 못 찍는다** — 만드는 도구에서 그건 도구가 없는 것과 같다. */
+          let cursor: { ring: number; slot: number } | null = null;
 
           canvas.addEventListener('pointerdown', (e: PointerEvent) => {
             const { x, y } = pointFromEvent(e);
@@ -707,6 +723,54 @@ import { t, loadNamespace } from '../lib/i18n';
             synth(r, midiNote(r, brushDeg), brushVel, a.currentTime + 0.01);
             drag = { ring: h.ring, slot: h.slot, startY: e.clientY, startDeg: brushDeg };
             canvas.setPointerCapture(e.pointerId);
+          });
+
+          /* 자판 길 — 좌우=칸, 위아래=고리, Enter=찍기·지우기, PageUp/Down=음 높이.
+           * 찍을 때 그 음을 한 번 들려주는 것도 누를 때와 **같은 길**을 쓴다(소리가 갈리면 안 된다). */
+          canvas.tabIndex = 0;
+          canvas.setAttribute('role', 'application');
+          canvas.setAttribute('aria-label', t('orbita.kb.label'));
+          function sayCursor(): void {
+            if (!cursor) return;
+            const has = song.rings[cursor.ring].slots[cursor.slot] !== null;
+            const el = container.querySelector('#orbitaKb');
+            if (el) {
+              el.textContent = t('orbita.kb.at', {
+                ring: cursor.ring + 1,
+                slot: cursor.slot + 1,
+                state: has ? t('orbita.kb.on') : t('orbita.kb.off'),
+              });
+            }
+          }
+          canvas.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (!cursor) cursor = { ring: 0, slot: 0 };
+            const r = song.rings[cursor.ring];
+            switch (e.key) {
+              case 'ArrowRight': cursor.slot = (cursor.slot + 1) % r.steps; break;
+              case 'ArrowLeft': cursor.slot = (cursor.slot - 1 + r.steps) % r.steps; break;
+              case 'ArrowDown': cursor.ring = Math.min(song.rings.length - 1, cursor.ring + 1); break;
+              case 'ArrowUp': cursor.ring = Math.max(0, cursor.ring - 1); break;
+              case 'PageUp': brushDeg += 1; renderSwatches(); break;
+              case 'PageDown': brushDeg = Math.max(0, brushDeg - 1); renderSwatches(); break;
+              case 'Enter': case ' ': {
+                const ring = song.rings[cursor.ring];
+                if (ring.slots[cursor.slot]) {
+                  ring.slots[cursor.slot] = null;
+                } else {
+                  ring.slots[cursor.slot] = { deg: brushDeg, vel: brushVel };
+                  const a = ensureAudio();
+                  if (a.state === 'suspended') void a.resume();
+                  synth(ring, midiNote(ring, brushDeg), brushVel, a.currentTime + 0.01);
+                }
+                save();
+                break;
+              }
+              default: return;
+            }
+            // 고리를 옮기면 칸 수가 달라진다 — 넘치면 마지막 칸으로 당긴다.
+            cursor.slot = Math.min(cursor.slot, song.rings[cursor.ring].steps - 1);
+            e.preventDefault();
+            sayCursor();
           });
 
           canvas.addEventListener('pointermove', (e: PointerEvent) => {

@@ -33,5 +33,9 @@
   "orbita.t20": "궤도가 돌기 시작했어요",
   "orbita.t21": "별을 뿌렸어요",
   "orbita.t22": "궤도에 색을 찍어 보세요",
-  "orbita.midiTo": "{name} 로 보냅니다 — 궤도 번호 = MIDI 채널."
+  "orbita.midiTo": "{name} 로 보냅니다 — 궤도 번호 = MIDI 채널.",
+  "orbita.kb.label": "자판으로도 찍습니다 — 좌우=칸, 위아래=고리, Enter=찍기·지우기, PageUp/Down=음 높이",
+  "orbita.kb.at": "{ring}번 고리 {slot}번 칸 {state}",
+  "orbita.kb.on": "음 있음",
+  "orbita.kb.off": "빈 칸"
 }
