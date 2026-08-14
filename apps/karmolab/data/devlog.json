@@ -2,14 +2,336 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 1489,
-    "days": 12,
+    "commits": 1949,
+    "days": 10,
     "shown": 60
   },
   "days": [
     {
+      "date": "2026-08-14",
+      "entries": [
+        {
+          "sha": "b27b0739",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "땅이 겹치면 세계를 안 띄운다 (TASK-WM-368)"
+        },
+        {
+          "sha": "0b5239b5",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "앞섬 관문의 배수를 2.0 → 2.5 (CI 거짓 빨강 다섯째)"
+        },
+        {
+          "sha": "70b81b50",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "창 판 도장을 <b>속까지</b> 본다 (TASK-WM-367 이어서)"
+        },
+        {
+          "sha": "189e2536",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "「몇 명이 움직였나」를 절대 수에서 비율로 (CI 거짓 빨강 넷째)"
+        },
+        {
+          "sha": "4524b5b9",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "새 판을 알아채는 길을 진짜 창으로 잰다 (TASK-WM-367 관문)"
+        },
+        {
+          "sha": "3658c851",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "새 판이 나가면 창이 스스로 새로 받는다 (TASK-WM-367)"
+        }
+      ],
+      "quiet": 0,
+      "more": 98
+    },
+    {
+      "date": "2026-08-13",
+      "entries": [
+        {
+          "sha": "35eb8edd",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "창 여럿 관문이 <b>남이 계속 움직이는지</b>까지 본다 (TASK-WM-328)"
+        },
+        {
+          "sha": "cea20947",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "세계가 하늘의 총 분을 밖에 알려준다 (TASK-WM-327)"
+        },
+        {
+          "sha": "f3fd9208",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "룰 검사기가 커밋 blob 을 UTF-8 로 읽는다 (TASK-WM-326)"
+        },
+        {
+          "sha": "dc98a6d1",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "매끄러움을 미터가 아니라 <b>속도</b>로 잰다 (TASK-WM-325)"
+        },
+        {
+          "sha": "63eed5c1",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "「못 쟀다」를 빨강으로 안 치는 자리를 하나로 (TASK-WM-324)"
+        },
+        {
+          "sha": "b9881d70",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "자르는 숫자마다 「왜 그 숫자인가」를 적게 한다 (TASK-WM-323)"
+        }
+      ],
+      "quiet": 14,
+      "more": 66
+    },
+    {
+      "date": "2026-08-12",
+      "entries": [
+        {
+          "sha": "f30f48e4",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "server",
+          "text": "국경을 넘을 때 들고 가는 통행증 — 도장이 찍혀 있다 (WM-253)"
+        },
+        {
+          "sha": "71d4a96e",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "server",
+          "text": "세계가 자기 땅을 안다 — 구역 나누기 1단계 (WM-252)"
+        },
+        {
+          "sha": "a07b677c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "server",
+          "text": "싸움도 세계가 판정한다 — 몸·때리기·다시 세우기 (WM-251)"
+        },
+        {
+          "sha": "2e897c49",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "server",
+          "text": "말이 오간다 — 같이 노는 세계의 최소 조건 (WM-250)"
+        },
+        {
+          "sha": "e65ae39c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "web",
+          "text": "엔진이 영영 안 와도 지도만으로 논다 — 걷고 <b>줍는다</b> (WM-249)"
+        },
+        {
+          "sha": "957cc5aa",
+          "type": "perf",
+          "typeLabel": "빨라진 것",
+          "scope": "gate",
+          "text": "관문이 무조건 자던 시간을 걷어낸다 — 우르르 관문 30초 → 10초 (WM-248)"
+        }
+      ],
+      "quiet": 11,
+      "more": 49
+    },
+    {
+      "date": "2026-08-11",
+      "entries": [
+        {
+          "sha": "5dc3aac3",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "expose snapshot payload metrics"
+        },
+        {
+          "sha": "3d36daf4",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "filter cauldrons by viewer interest"
+        },
+        {
+          "sha": "e737201e",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "scope static world payloads by viewer"
+        },
+        {
+          "sha": "d16677e6",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "filter world presence by interest radius"
+        },
+        {
+          "sha": "fdccc2c6",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "sequence world snapshots"
+        },
+        {
+          "sha": "ef589046",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "",
+          "text": "parse Unity protocol envelopes by type"
+        }
+      ],
+      "quiet": 4,
+      "more": 7
+    },
+    {
+      "date": "2026-08-10",
+      "entries": [
+        {
+          "sha": "fd272659",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "덜 가져간 만큼은 그 자리에 남는다 + 왜 안 되는지 말해 준다 (TASK-WM-217)"
+        },
+        {
+          "sha": "216e5466",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "겨냥 표시를 두 창이 같이 고르게 묶음 (TASK-WM-217)"
+        },
+        {
+          "sha": "580382af",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "관문: 만든 것이 다음 재료가 된다 — 사슬 (TASK-WM-217)"
+        },
+        {
+          "sha": "a376dd56",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "게이트: 파수꾼이 다시 <줄 직접>으로 새지 않게 (TASK-WM-217)"
+        },
+        {
+          "sha": "75512a21",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "관문: 솥도 <게임이 쓰는 길>로 — 이제 전부 그 길이다 (TASK-WM-217)"
+        },
+        {
+          "sha": "0a9e207c",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "관문: 짓기·부수기·이름도 <게임이 쓰는 길>로 (TASK-WM-217)"
+        }
+      ],
+      "quiet": 11,
+      "more": 87
+    },
+    {
+      "date": "2026-08-09",
+      "entries": [
+        {
+          "sha": "463658f8",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-218",
+          "text": "밀려난 창을 정리하다 난 문제가 새 창의 환영을 삼키지 않게"
+        },
+        {
+          "sha": "858da7af",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-218",
+          "text": "/health 가 세계 상태를 말한다 — 「떠 있는데 멈춘 세계」를 알아보게"
+        },
+        {
+          "sha": "45993cc5",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-218",
+          "text": "계정 로그인이 설정 없이 바로 동작 + 웹 창에 코드 입력"
+        },
+        {
+          "sha": "d6555a4f",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-218",
+          "text": "게임 창도 KL 연결 코드를 낸다 (화면은 아직 없음)"
+        },
+        {
+          "sha": "81a58452",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-218",
+          "text": "게임 창을 위한 KL 연결 코드 길 (쿠키는 도메인이 달라 못 읽는다)"
+        },
+        {
+          "sha": "f39fc6d3",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-218",
+          "text": "창이 KL 세션을 싣고, 밀려나면 그렇게 말한다"
+        }
+      ],
+      "quiet": 17,
+      "more": 97
+    },
+    {
       "date": "2026-08-08",
       "entries": [
+        {
+          "sha": "7b96796e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-212",
+          "text": "위험 13건을 「왜 안전한지」가 적힌 5곳으로 줄인다"
+        },
+        {
+          "sha": "473c7d9b",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-212",
+          "text": "검사기가 「깨어나자마자 부르는 메서드」까지 한 단계 따라간다"
+        },
+        {
+          "sha": "4f528e1e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-212",
+          "text": "창 묶음이 자기 창을 「깨어나자마자」 찾던 것을 「다 깨어난 뒤」로 옮긴다"
+        },
+        {
+          "sha": "8d0fbc77",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-211",
+          "text": "지워진 것을 「없다」고 묻는 방법이 유니티에선 달랐다"
+        },
         {
           "sha": "819b7a64",
           "type": "fix",
@@ -23,38 +345,10 @@
           "typeLabel": "고친 것",
           "scope": "WM-052",
           "text": "새 시험 도우미의 짝(.meta)을 빠뜨린 것을 채운다"
-        },
-        {
-          "sha": "c1da9bfe",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "흉내가 진짜보다 더 살아 있어서 초록이던 것을 바로잡는다"
-        },
-        {
-          "sha": "a49c7011",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-211",
-          "text": "짝이 있을 리 없는 파일에 「짝이 없다」고 외치던 것을 멈춘다"
-        },
-        {
-          "sha": "2df25bea",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-211",
-          "text": "초기화 순서 게이트가 못 보던 이름을 보게 한다 — 초록이 「안 봤음」이었다"
-        },
-        {
-          "sha": "4136e849",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-052",
-          "text": "선택지에 「무슨 질문이었나」가 딸려 간다"
         }
       ],
-      "quiet": 35,
-      "more": 60
+      "quiet": 37,
+      "more": 64
     },
     {
       "date": "2026-08-07",
@@ -202,314 +496,6 @@
       ],
       "quiet": 44,
       "more": 63
-    },
-    {
-      "date": "2026-08-04",
-      "entries": [
-        {
-          "sha": "3494a8c0",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "지도 단축키 M — 에셋 손대지 않고 안전하게 + 개척 조작이 월드로 되돌아가던 것"
-        },
-        {
-          "sha": "81700303",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "지도 단축키 되돌림 + 입력 등록이 깨어나는 순서에 걸리던 것"
-        },
-        {
-          "sha": "515f6fb9",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "지도 단축키 M + 씬 DI 커버리지 구멍 메움(시험 실패 0)"
-        },
-        {
-          "sha": "6eca825b",
-          "type": "perf",
-          "typeLabel": "빨라진 것",
-          "scope": "WM-197",
-          "text": "안드로이드는 64비트만 굽는다 — 빌드 시간 절반"
-        },
-        {
-          "sha": "b524e8ea",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "펼치는 지도 — 지형·범례·설명이 한자리에 + 지형 기다리는 가림막"
-        },
-        {
-          "sha": "3c3898ee",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "월드가 한쪽 구석부터 생기던 것 — 발밑부터 퍼지게"
-        }
-      ],
-      "quiet": 12,
-      "more": 18
-    },
-    {
-      "date": "2026-08-03",
-      "entries": [
-        {
-          "sha": "37eaf43f",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-197",
-          "text": "노드 그래프 에셋 열기 — 6.5 에서 에러가 된 옛 식별자 API 교체"
-        },
-        {
-          "sha": "cab79e78",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-197",
-          "text": "6.5 에 맞춰 깎아둔 부품이 이 컴퓨터에만 있었다 — 프로젝트 안으로 들인다"
-        },
-        {
-          "sha": "47eab8bc",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "씨앗 공유 + 고른 카드를 화면이 전부 말하게"
-        },
-        {
-          "sha": "fe30dcb2",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "한 번도 안 뜨던 선택창을 잇고, 예쁜 카드를 코어 레벨업이 쓰게"
-        },
-        {
-          "sha": "170192ce",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-197",
-          "text": "빌드머신이 필요한 유니티를 스스로 깐다 + 로그 한글 깨짐·알림 경로 수정"
-        },
-        {
-          "sha": "e8f9d7d5",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "툴팁이 화면 밖으로 새는지를 커서 없이 증명한다"
-        }
-      ],
-      "quiet": 10,
-      "more": 31
-    },
-    {
-      "date": "2026-08-02",
-      "entries": [
-        {
-          "sha": "95aa3018",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "개척 UI 배율 + 건물마다 작은 파란 바(준비/진행)"
-        },
-        {
-          "sha": "611d4e93",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "연구소 건물 폐기 → 코어에서 연구 + 「건물 선택」 개념 신설"
-        },
-        {
-          "sha": "fefdf7b8",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "전기 — 받아야 돈다 (코어 초기 공급 + 발전 인형)"
-        },
-        {
-          "sha": "d7811052",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "마수 둥지 — 부수면 그 출구가 닫힌다"
-        },
-        {
-          "sha": "ad5e6341",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "자원을 광맥으로 + 채집 처리 범위 + 노드 원 축소"
-        },
-        {
-          "sha": "8e1f879c",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "명일방주식 세로 카드 슬롯 + 건물 실물 모습 + 1회 클릭 설치"
-        }
-      ],
-      "quiet": 3,
-      "more": 30
-    },
-    {
-      "date": "2026-08-01",
-      "entries": [
-        {
-          "sha": "27d0454a",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "재시작 후 유닛 초기화·위치 붕괴 — 풀 반납 주체 이중화가 근본"
-        },
-        {
-          "sha": "5da02663",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "\"다 잡았는데 웨이브가 안 넘어감\" — 겹침·이탈 3중 근본 + 남은 마수 표시"
-        },
-        {
-          "sha": "22c8031c",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "개척 진입 시 카메라 전환 실패 — content 카메라 단일 권위자로 근본 수정"
-        },
-        {
-          "sha": "c0ea84f5",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "줌 속도·건물 체력 표시·웨이브 수동 진행·데미지 숫자 위치"
-        },
-        {
-          "sha": "62da61d2",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "휠 줌(부감 카메라 공용 리그) + 개척 재시작(풀 원상복구 포함)"
-        },
-        {
-          "sha": "f29d8bae",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "개척 카메라 이동(WASD) + 핫바 방식 설치 (좌/우클릭 종류 분리 폐기)"
-        }
-      ],
-      "quiet": 5,
-      "more": 13
-    },
-    {
-      "date": "2026-06-28",
-      "entries": [
-        {
-          "sha": "60aa5fc7",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "terrain",
-          "text": "마을 경영용 지형 평탄화 — FractalPerlin amplitude 32→4"
-        }
-      ],
-      "quiet": 0,
-      "more": 0
-    },
-    {
-      "date": "2026-06-14",
-      "entries": [
-        {
-          "sha": "e6dd41b8",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-192",
-          "text": "GameEventListener OnEnable NRE — DI 의존 제거하고 Bridge 우회"
-        }
-      ],
-      "quiet": 1,
-      "more": 0
-    },
-    {
-      "date": "2026-06-08",
-      "entries": [
-        {
-          "sha": "c34cbd5c",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "#4 건설 co-op step-2a — prefab + 스폰 배선 + 센티넬 게이트"
-        },
-        {
-          "sha": "d342c35c",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "#4 건설 co-op 채널 substrate (step-1) — BuildingNetworkBridge + seam"
-        },
-        {
-          "sha": "78b4c18d",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "#4 공유 가마솥 완결 — 경로 SyncList 동기 + 보상 host-권위"
-        },
-        {
-          "sha": "8e1a4f64",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "#4 step-4b 공유 가마솥 seam — Domain UI 가 네트워크 솥 소비 (둘이 같은 솥)"
-        },
-        {
-          "sha": "6765b79d",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "#4 공유 가마솥 제조 채널 substrate — CauldronNetworkBridge (step-4a)"
-        },
-        {
-          "sha": "af6ada11",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM",
-          "text": "종료 세이브 KeyNotFound 가드 + AutoStart dev-toggle(SessionState)"
-        }
-      ],
-      "quiet": 3,
-      "more": 7
-    },
-    {
-      "date": "2026-06-07",
-      "entries": [
-        {
-          "sha": "22853adc",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "타이틀 「👥 멀티」 버튼 → 멀티 로비 패널 (진입 UX 배선)"
-        },
-        {
-          "sha": "85eb783b",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "host-loopback 실-player 강화 — RunHost 가 실 Player 추종 프록시 검증"
-        },
-        {
-          "sha": "a17d13d3",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "StartHost 진입점 완성 — 시계 bridge(server-active 지연 스폰) + host 프록시 (step-3 host-side)"
-        },
-        {
-          "sha": "1dc00cc1",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-191",
-          "text": "네트워크 플레이어 프록시 per-connection 스폰 + probe-follow client→server (step-2)"
-        }
-      ],
-      "quiet": 6,
-      "more": 17
     }
   ]
 }
