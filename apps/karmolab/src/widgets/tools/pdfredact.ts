@@ -16,6 +16,7 @@ import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
+import { encode } from './shared/image';
 
 (function (): void {
   interface Box { page: number; x: number; y: number; w: number; h: number }
@@ -284,8 +285,8 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               for (let n = 1; n <= doc.numPages; n++) {
                 say(`페이지를 그림으로 다시 굽는 중… ${n} / ${doc.numPages}`);
                 await renderPage(tmp, n, scale, false);
-                const blob = await new Promise<Blob | null>((r) => tmp.toBlob(r, 'image/png'));
-                if (!blob) throw new Error(`${n}쪽을 그림으로 바꾸지 못했습니다`);
+                // 공용 한 자리(`shared/image.encode`) — 못 구우면 스스로 던진다.
+                const blob = await encode(tmp, 'png');
                 const png = await outDoc.embedPng(await blob.arrayBuffer());
                 // 원래 종이 크기로 되돌린다 — 선명도는 그림 쪽에만 반영한다
                 const pw = png.width / scale;

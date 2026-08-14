@@ -10,6 +10,7 @@ import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } from './shared/pdf';
+import { encode } from './shared/image';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -33,12 +34,10 @@ import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } f
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, pad, h / 2);
-    return new Promise((resolve, reject) => {
-      cv.toBlob((b) => {
-        if (!b) return reject(new Error(t('pdfwatermark.err.draw')));
-        b.arrayBuffer().then((ab) => resolve(new Uint8Array(ab)));
-      }, 'image/png');
-    });
+    // 공용 한 자리(`shared/image.encode`) — 굽기 규칙을 여기 또 적지 않는다.
+    return encode(cv, 'png')
+      .then((b) => b.arrayBuffer())
+      .then((ab) => new Uint8Array(ab));
   }
 
   Toolbox.register({
