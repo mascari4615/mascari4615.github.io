@@ -160,7 +160,7 @@ function 갈래(name) {
   return '알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라';
 }
 
-if (process.argv.includes('--update')) {
+function 기준선쓰기() {
   fs.writeFileSync(
     BASELINE,
     JSON.stringify(
@@ -174,6 +174,10 @@ if (process.argv.includes('--update')) {
       2
     ) + '\n'
   );
+}
+
+if (process.argv.includes('--update')) {
+  기준선쓰기();
   console.log(`[audit-orphan-tests] 기준선 갱신 — ${orphans.length}개`);
   process.exit(0);
 }
@@ -210,9 +214,16 @@ if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
   console.log('  커밋 기준으로 보려면: KL_PUSH_SHA=origin/master npm run audit:orphans');
 }
 
+/* ★ **조인 쪽은 사람을 부르지 않는다 — 스스로 줄이고 지나간다** (2026-08-14).
+   여태 이 자리는 빨강이었다: 누가 검사를 묶음에 넣으면 기준선이 그만큼 낡고, 그 사실만으로
+   master 가 빨개졌다. 그런데 **그건 좋아진 것**이다 — 나쁜 쪽(묶음에서 빠짐)만 막으면 된다.
+   실제로 오늘만 두 판이 이걸로 빨갰고, 고치는 일은 언제나 `--update` 한 줄이었다.
+   좋아졌다고 부르는 알람은 사람을 길들여 **진짜 빨강도 무시하게** 만든다.
+   그래서 여기서 바로 줄인다. 내 자리에서 돌면 파일이 남아 다음 커밋에 실리고,
+   CI 에서 돌면 그 판만 초록으로 지나간다(다음 사람이 그 줄어든 값을 올린다). */
 if (fixed.length) {
-  console.log(`[audit-orphan-tests] 이제 묶음에 든 것이 기준선에 남아 있다 ${fixed.length}개: ${fixed.join(', ')}`);
-  console.log('  `npm run audit:orphans -- --update` 로 기준선을 줄여라 (톱니는 되감기지 않는다)');
-  process.exit(1);
+  기준선쓰기();
+  console.log(`[audit-orphan-tests] 이제 묶음에 든 것 ${fixed.length}개를 기준선에서 뺐다: ${fixed.join(', ')}`);
+  console.log(`  기준선 ${orphans.length}개 — 톱니는 조이는 쪽으로만 돈다(막지 않는다).`);
 }
 console.log(`[audit-orphan-tests] 검사 ${all.length}개 · 묶음 밖 ${orphans.length}개 (기준선과 같음 — 늘지 않았다)`);
