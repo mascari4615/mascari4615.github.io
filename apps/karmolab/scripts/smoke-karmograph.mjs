@@ -1889,6 +1889,48 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('판 끝의 카드를 골라도 작은 도구 줄이 화면 안에 있다 (KL-271)', async () => {
+  /* 실측 2026-08-14(폰): 오른쪽 끝 카드를 고르면 도구 줄이 화면 밖으로 나갔다(오른쪽 472 > 390) —
+     복제·지우기가 통째로 사라진다. 위쪽 끝에서는 이미 아래로 뒤집게 돼 있었다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.evaluate(() => {
+    const spec = {
+      version: 1, _meta: {}, groups: [],
+      nodes: [
+        { id: 'r', label: '오른쪽끝', kind: 'character', x: 2000, y: 40, w: 160, h: 44 },
+        { id: 't', label: '맨위', kind: 'character', x: 0, y: 0, w: 160, h: 44 },
+      ],
+      edges: [], ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.edge2', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'edge2', maps: [{ id: 'edge2', name: '끝 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+
+  for (const label of ['오른쪽끝', '맨위']) {
+    const card = await m.locator('.ck-node', { hasText: label }).first().boundingBox();
+    if (!card) throw new Error(`「${label}」 카드가 화면에 없다 — 맞춤이 안 됐다`);
+    await m.mouse.click(card.x + card.width / 2, card.y + card.height / 2);
+    await m.waitForTimeout(ms(600));
+    const bar = await m.evaluate(() => {
+      const el = document.querySelector('.km-mini');
+      if (!el || el.classList.contains('hidden')) return null;
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, vw: innerWidth, vh: innerHeight };
+    });
+    if (!bar) throw new Error(`「${label}」 을 골랐는데 도구 줄이 없다`);
+    if (bar.right > bar.vw + 1 || bar.left < -1) throw new Error(`「${label}」 에서 도구 줄이 옆으로 넘친다: ${Math.round(bar.left)}~${Math.round(bar.right)} / ${bar.vw}`);
+    if (bar.top < -1 || bar.bottom > bar.vh + 1) throw new Error(`「${label}」 에서 도구 줄이 위아래로 넘친다: ${Math.round(bar.top)}~${Math.round(bar.bottom)} / ${bar.vh}`);
+  }
+  await ph.close();
+});
+
 await step('폰의 손잡이가 모두 손가락 규격이다 (44px, KL-271)', async () => {
   /* 실측 2026-08-14: 시점 줄 단추 다섯과 「다른 목록」이 24~38px 이었다 — 좁으면 옆 것이 눌려
      시점이 엉뚱하게 바뀐다. 하나씩 잡지 말고 **판 위의 손잡이를 전부** 재서 규격 미달을 0 으로. */
