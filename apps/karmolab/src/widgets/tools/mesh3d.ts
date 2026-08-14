@@ -14,6 +14,7 @@
  */
 import { describe, parseMesh } from '../../core/mesh3d';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { download, encode } from './shared/image';
 
 /** 삼각형마다 제 법선을 준다(플랫 셰이딩). 파일에 적힌 법선은 틀린 것이 많아 다시 계산한다. */
 function faceNormals(positions: Float32Array): Float32Array {
@@ -278,17 +279,11 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
 
           $<HTMLButtonElement>('#m3Png').onclick = () => {
             render(); // 저장 직전에 한 판 — 그린 지 오래된 화면은 비어 있을 수 있다
-            canvas.toBlob((blob) => {
-              if (blob === null) {
-                say(t('mesh3d.say.11'), 'error');
-                return;
-              }
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'mesh.png';
-              a.click();
-              URL.revokeObjectURL(a.href);
-            }, 'image/png');
+            // 공용 한 자리(`shared/image`). 여기 있던 `revokeObjectURL` 은 `click()` 직후라
+            // 브라우저가 아직 안 읽었을 수 있었다 — 공용은 2초 뒤에 거둔다.
+            encode(canvas, 'png')
+              .then((blob) => download(blob, 'mesh.png'))
+              .catch(() => say(t('mesh3d.say.11'), 'error'));
           };
 
           /* 손가락·마우스 한 벌 — 마우스만 받으면 폰에서는 못 돌린다. */

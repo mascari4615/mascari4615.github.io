@@ -1,4 +1,5 @@
 import { t, loadNamespace } from '../lib/i18n';
+import { loadImage } from './tools/shared/image';
 
 (function (): void {
   const esc = (v: unknown): string =>
@@ -52,7 +53,7 @@ import { t, loadNamespace } from '../lib/i18n';
           }
           resize();
 
-          const img = new Image();
+          let img = new Image();
           let imgLoaded = false;
           const textLogo = 'ANTIGRAVITY';
 
@@ -66,9 +67,9 @@ import { t, loadNamespace } from '../lib/i18n';
             const input = e.target as HTMLInputElement;
             const file = input.files?.[0];
             if (!file) return;
-            const url = URL.createObjectURL(file);
+            // 공용 한 자리(`shared/image`) — 여기서 만든 주소를 **아무도 안 거두고 있었다**.
             imgLoaded = false;
-            img.src = url;
+            loadImage(file).then((loaded) => { img = loaded; imgLoaded = true; }).catch(() => { imgLoaded = false; });
           };
 
           let x = 50;
