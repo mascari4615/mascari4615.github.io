@@ -35,7 +35,8 @@ import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
 import { registerArcadeRoomCard } from './bot/arcade-room-card';
-import { registerArcadeRooms } from './bot/arcade-rooms';
+import { registerArcadeRooms, wasOpen } from './bot/arcade-rooms';
+import { registerArcadeResult } from './bot/arcade-result';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
@@ -381,6 +382,8 @@ registerKarmolabApi(app);
 registerArcadeRoomCard(app);
 /* arcade-next ★2 — 지금 열린 방 목록. 방은 브라우저끼리 돌고 여기 남는 건 쪽지뿐이다. */
 registerArcadeRooms(app);
+/* 판이 끝나면 채널에 한 줄 — 공개로 연 방만. 송신은 sendLocalEvent 한 길을 그대로 쓴다. */
+registerArcadeResult(app, client, wasOpen);
 registerWellRoutes(app);
 /* TASK-KL-194 — 오늘의 판. 「오늘의 코스」 연속일이 브라우저 안에만 있어서 기록을 지우면
  * 0일이 됐다. 그 셈을 계정에 옮긴다(판정은 그대로 브라우저). 같은 이유로 자기 파일. */
