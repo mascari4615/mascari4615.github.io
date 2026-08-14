@@ -1,102 +1,511 @@
 {
   "id": "a11y-test",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "자동 도구는 문제의 **약 3분의 1**만 잡는다. 나머지는 써 봐야 안다 — 그래서 자동 + 사람의 조합이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 자동 검사 붙이기"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "axe 를 테스트에 넣는다",
-      "text": "import AxeBuilder from '@axe-core/playwright';\n\ntest('접근성 위반 0', async ({ page }) => {\n  await page.goto('/');\n  const { violations } = await new AxeBuilder({ page }).analyze();\n  expect(violations).toEqual([]);\n});"
-    },
-    {
-      "type": "note",
-      "text": "CI 에 넣으면 **회귀를 막는다**. 기존 위반이 많으면 우선 「지금보다 늘지 않기」를 기준선으로 잡고 점차 줄여라."
-    },
-    {
-      "type": "h",
-      "text": "2. 자동이 못 잡는 것"
-    },
-    {
-      "type": "p",
-      "text": "alt 가 있지만 **틀린** 설명 · 논리적이지 않은 포커스 순서 · 의미 없는 링크 문구(「여기를 클릭」) · 시간 제한이 너무 짧은 것 · 실제로 조작 가능한지. 전부 사람이 봐야 한다."
-    },
-    {
-      "type": "h",
-      "text": "3. 5분 수동 점검"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "릴리스 전마다 돌리는 목록",
-      "text": "1) Tab 만으로 주요 흐름 완주 · 포커스가 항상 보이나\n2) 화면 확대 200% 에서 안 잘리나\n3) 스크린리더로 제목만 훑어 구조가 잡히나\n4) 이미지 alt 가 내용을 말하나 (장식은 빈 alt)\n5) 오류 메시지가 색 말고 글자로도 나오나\n6) 모달 열고 닫을 때 포커스가 제자리로 오나"
-    },
-    {
-      "type": "h",
-      "text": "4. 실사용자 테스트"
-    },
-    {
-      "type": "note",
-      "text": "가능하면 **보조기기를 실제로 쓰는 사람**에게 보여 줘라. 개발자가 흉내 내는 것과 매일 쓰는 사람의 조작은 다르다 — 한 번의 세션이 문서 열 장보다 낫다."
-    },
-    {
-      "type": "h",
-      "text": "5. 문화로 만든다"
-    },
-    {
-      "type": "p",
-      "text": "PR 체크리스트에 한 줄 넣고(「키보드로 써 봤나?」), 컴포넌트 라이브러리 수준에서 접근성을 해결하면 개별 화면에서 반복할 일이 크게 준다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "axe 검사를 테스트 한 편으로 붙이고 현재 위반 수를 기준선으로 기록하라."
-    },
-    {
-      "type": "try",
-      "text": "위 5분 점검표를 이번 릴리스에 돌리고, 걸린 항목을 이슈로 만들어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "자동 접근성 검사의 한계는?",
-      "choices": [
-        "전체 문제의 일부만 잡는다(약 3분의 1)",
-        "느리다",
-        "유료다"
+      "id": "1",
+      "title": "자동은 3분의 1만 잡는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**접근성 자동 검사 도구(axe·Lighthouse 등)는 문제의 약 3분의 1만 잡는다 — 나머지 3분의 2는 사람이 써 봐야 안다.** 그래서 접근성 검증은 **자동 + 사람의 조합**이다: 자동은 기계로 확실히 판정되는 것(alt 속성 유무·대비 수치·레이블 연결·중복 id)을 **빠르고 반복 가능하게** 잡아 회귀를 막고, 사람은 기계가 못 판단하는 것(alt 가 **적절한지**, 포커스 순서가 **논리적인지**, 링크 문구가 **의미 있는지**, 키보드로 **실제 조작되는지**)을 잡는다. 자동만 믿으면 「위반 0」인데 **키보드로 못 쓰는** 화면이 나오고, 사람만 하면 매 릴리스 회귀를 놓친다. 이 칸은 자동 검사 붙이기(2장)·자동이 못 잡는 것(3장)·5분 수동 점검(4장)·실사용자와 문화(5장)를 다룬다. 아래 데모로 자동·사람의 커버리지를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "커버리지 — 자동 vs 사람",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const auto = mode === 'auto' || mode === 'both';\n  const human = mode === 'human' || mode === 'both';\n  const cov = (auto ? 33 : 0) + (human ? 67 : 0);\n  render('검증 방식: ' + (mode === 'auto' ? '자동만' : mode === 'human' ? '사람만' : '자동+사람') + '  →  대략 ' + cov + '% 커버',\n    (mode === 'both' ? '<span class=\"ok\">자동으로 회귀를 막고 사람으로 나머지를 — 조합이 정답.</span>'\n      : mode === 'auto' ? '<span class=\"no\">자동만: 「위반 0」이어도 키보드로 못 쓰는 화면이 통과된다.</span>'\n      : '<span class=\"warn\">사람만: 잘 잡지만 매 릴리스 회귀를 놓치기 쉽다(반복 불가).</span>'),\n    '자동은 약 1/3, 사람이 나머지 2/3 — 둘의 조합.',\n    bars([\n      { lab: '자동(axe)', pct: auto ? 33 : 0, val: (auto ? 33 : 0) + '%', cls: 'auto' },\n      { lab: '사람(수동)', pct: human ? 67 : 0, val: (human ? 67 : 0) + '%', cls: 'human' },\n      { lab: '놓침', pct: 100 - cov, val: (100 - cov) + '%', cls: 'gap' },\n    ]));\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "검증 방식",
+              "type": "select",
+              "value": "auto",
+              "options": [
+                {
+                  "value": "auto",
+                  "label": "자동만"
+                },
+                {
+                  "value": "human",
+                  "label": "사람만"
+                },
+                {
+                  "value": "both",
+                  "label": "자동+사람"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**접근성 자동 검사 도구는 문제의 약 3분의 1만 잡고 나머지는 사람이 써 봐야 알기에, 검증은 자동과 사람의 조합이어야 한다.** **자동 도구의 강점과 한계**: axe-core·Lighthouse·WAVE 같은 도구는 DOM 을 규칙으로 검사해 **기계로 확실히 판정 가능한** 위반을 찾는다 — alt 속성 **유무**, 대비 **수치**(색값 계산), 폼 레이블 연결, 중복 id, ARIA 속성의 문법 오류, 빈 버튼/링크. 이런 건 **빠르고, 정확하고, 반복 가능**해 CI 에 넣으면 회귀를 자동으로 막는다. 하지만 이들은 연구에 따라 **실제 접근성 문제의 약 30~40%만** 잡는다. **왜 나머지는 못 잡나**: 기계는 **의미·맥락·경험**을 판단 못 한다 — alt 가 **있는지**는 알아도 그것이 이미지를 **제대로 설명하는지**는 모르고(3장), 포커스가 **이동하는지**는 봐도 그 순서가 **논리적인지**는 모르며, 링크에 텍스트가 **있는지**는 알아도 「여기를 클릭」이 **쓸모 있는지**는 모른다. **양쪽의 실패 모드**: **자동만** 믿으면 — 「axe 위반 0」이라는 초록 배지를 달고도 **키보드로 절반이 조작 불가**하거나 스크린리더로 소음인 화면이 통과한다(가짜 안심). **사람만** 하면 — 잘 잡지만 **느리고 반복 불가**해 매 릴리스마다 다시 해야 하고, 놓치면 회귀가 조용히 쌓인다. **조합이 정답**: 자동을 CI 에 넣어 **회귀를 싸게 막고**(2장), 사람이 **5분 수동 점검**(4장)과 **실사용자 테스트**(5장)로 나머지 2/3 를 잡는다. **정리**: 자동 도구는 접근성의 바닥을 지키는 필수 도구지만 **천장이 낮다**(1/3) — 「자동 통과 = 접근 가능」이 아니다. 자동으로 회귀를 막고 사람으로 실제 사용을 검증하라."
+        },
+        {
+          "type": "try",
+          "text": "지금 화면에 **자동 도구 하나**(브라우저 확장 axe DevTools/WAVE, 또는 Lighthouse 접근성 항목)를 돌려 위반 수를 보라. 그다음 **키보드만으로** 같은 화면을 써 보라(a11y-keyboard) — 자동이 「통과」라 해도 키보드로 막히는 곳이 있으면, 그게 바로 자동이 못 잡는 2/3 의 증거다."
+        }
       ],
-      "answer": 0,
-      "why": "나머지는 실제 사용으로만 드러난다."
+      "quiz": [
+        {
+          "q": "자동 접근성 도구는 문제의 얼마를 잡나?",
+          "choices": [
+            "전부",
+            "약 3분의 1 — 나머지는 사람이 써 봐야",
+            "0",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "천장이 낮음."
+        },
+        {
+          "q": "자동만 믿으면?",
+          "choices": [
+            "완벽",
+            "「위반 0」이어도 키보드로 못 쓰는 화면이 통과 — 가짜 안심",
+            "느림",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "조합이 필요."
+        },
+        {
+          "q": "올바른 검증 방식은?",
+          "choices": [
+            "자동만",
+            "자동(회귀 방지) + 사람(실제 사용)의 조합",
+            "사람만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "둘의 조합."
+        }
+      ]
     },
     {
-      "q": "기존 위반이 많은 프로젝트에서 현실적인 시작은?",
-      "choices": [
-        "현재 수를 기준선으로 잡고 늘지 않게 막는다",
-        "전부 고칠 때까지 배포 중단",
-        "검사를 끈다"
+      "id": "2",
+      "title": "자동 검사 붙이기 — axe + 기준선",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**자동 검사는 테스트 한 편으로 붙여 CI 에서 돌리면 회귀를 자동으로 막는다.** `@axe-core/playwright`(또는 jest-axe·cypress-axe)로 페이지를 분석해 **위반이 늘면 빌드를 빨갛게** 만든다. 문제는 **기존 위반이 많은** 레거시 — 「위반 0」을 당장 강제하면 빌드가 영원히 빨갛다. 해법은 **기준선(baseline)**: ① 지금의 위반 수를 **기준선으로 기록**하고, ② 「**지금보다 늘지 않기**」를 게이트로(회귀 방지), ③ 스프린트마다 기준선을 **조금씩 내려** 점차 0 으로. 이러면 새 코드가 접근성을 **악화시키지 못하게** 막으면서(가장 큰 가치), 기존 빚은 점진 상환한다. 자동 검사는 **싸고 반복 가능**하니 반드시 붙이되, 이것이 1/3 임을 잊지 마라(3장). 아래 데모로 기준선 게이트가 회귀를 막는 걸 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "axe 기준선 게이트 — 회귀 차단",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const baseline = 8;\n  const now = {{now}};\n  const pass = now <= baseline;\n  render('기준선 ' + baseline + ' · 이번 빌드 위반 ' + now + '  →  ' + (pass ? '통과' : '빌드 빨강'),\n    steps([\n      ['기준선(기록된 기존 위반): ' + baseline, ''],\n      ['이번 빌드 위반 수: ' + now, pass ? 'good' : 'bad'],\n      ['게이트: 기준선보다 늘지 않기  →  ' + (pass ? '통과' : '실패(회귀!)'), pass ? 'good' : 'bad'],\n    ]) + '  ' + (now < baseline\n      ? '<span class=\"ok\">기준선보다 줄었다 — 기준선을 ' + now + '로 낮춰 다시 못 늘게 잠근다.</span>'\n      : pass ? '<span class=\"ok\">늘지 않음 — 통과. 회귀가 없다.</span>'\n             : '<span class=\"no\">새 코드가 위반을 늘렸다 — 빌드 빨강으로 회귀를 막는다.</span>'),\n    '기준선 = 지금보다 늘지 않기. 줄면 기준선을 내려 잠근다.',\n    bars([{ lab: '기준선', pct: baseline * 6, val: '' + baseline, cls: 'auto' }, { lab: '이번', pct: now * 6, val: '' + now, cls: pass ? 'human' : 'gap' }]));\n</script>",
+          "controls": [
+            {
+              "id": "now",
+              "label": "이번 위반 수",
+              "type": "range",
+              "min": 0,
+              "max": 14,
+              "step": 1,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "axe 검사 한 편",
+          "text": "import AxeBuilder from '@axe-core/playwright';\n\ntest('접근성 위반이 기준선을 안 넘는다', async ({ page }) => {\n  await page.goto('/');\n  const { violations } = await new AxeBuilder({ page }).analyze();\n  // 레거시: 기준선보다 늘지 않기 (점차 낮춤). 신규: toBe(0)\n  expect(violations.length).toBeLessThanOrEqual(BASELINE);\n});"
+        },
+        {
+          "type": "note",
+          "text": "**자동 검사는 테스트 한 편으로 붙여 CI 에서 돌리면 회귀를 자동으로 막고, 기존 위반이 많으면 기준선을 잡아 「늘지 않기」부터 시작해 점차 0 으로 줄인다.** **붙이는 법**: axe-core 를 테스트 러너와 결합한 어댑터(`@axe-core/playwright`, `jest-axe`, `cypress-axe`)로 주요 페이지·컴포넌트를 분석하고, 위반이 있으면 테스트를 실패시킨다. 컴포넌트 단위(스토리북 + axe)로 붙이면 **문제를 근원에서** 잡아 화면마다 반복을 줄인다(5장). **왜 CI 인가**: 접근성은 한 번 고쳐도 **새 코드가 다시 깨뜨린다**(div 버튼 추가·대비 낮춘 색·레이블 뺀 입력). CI 자동 검사는 이 **회귀를 매 PR 에서** 잡아, 사람이 매번 기억하지 않아도 되게 한다 — 가장 큰 가치는 **바닥이 다시 내려가지 않게** 막는 것. **기준선 전략(레거시의 핵심)**: 기존 위반이 수십 개인 프로젝트에서 「위반 0」을 당장 게이트로 걸면 빌드가 영원히 빨개 아무도 안 본다. 대신: ① **현재 위반 수를 기준선으로 기록**(예: 8). ② 게이트 = **「기준선보다 늘지 않기」**(`toBeLessThanOrEqual(baseline)`) — 새 코드가 악화시키면 빨강, 유지하면 통과. ③ 위반을 고쳐 수가 **줄면 기준선을 그 값으로 낮춰** 다시 못 늘게 **잠근다**(래칫). ④ 스프린트마다 반복해 기준선을 0 으로. 이 방식은 **회귀 방지(즉시)**와 **점진 개선(지속)**을 동시에 준다. 신규 프로젝트·컴포넌트는 처음부터 **0** 을 기준으로. **한계 인식**: axe 통과는 **1/3 통과**일 뿐(1장) — 초록 배지를 「접근 가능」으로 오해하지 말고, 3~5장의 사람 검증과 병행하라. **정리**: axe 를 테스트 한 편으로 CI 에 붙여 회귀를 막고, 레거시는 기준선 래칫으로 점차 0 으로 — 단 이것은 바닥일 뿐 천장이 아니다."
+        },
+        {
+          "type": "try",
+          "text": "**axe 검사를 테스트 한 편으로 붙이고**(`@axe-core/playwright` 등) 현재 위반 수를 **기준선으로 기록**하라. 게이트를 「기준선보다 늘지 않기」로 걸어 CI 에서 돌리고, 위반을 하나 고칠 때마다 기준선을 낮춰 잠가라. 신규 컴포넌트는 처음부터 0 을 기준으로."
+        }
       ],
-      "answer": 0,
-      "why": "회귀 방지부터가 실질적이다."
+      "quiz": [
+        {
+          "q": "자동 검사를 CI 에 넣는 가장 큰 가치는?",
+          "choices": [
+            "느려짐",
+            "회귀를 매 PR 에서 막아 바닥이 다시 내려가지 않게",
+            "색이 예뻐짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "회귀 방지."
+        },
+        {
+          "q": "기존 위반이 많은 레거시는?",
+          "choices": [
+            "당장 0 강제",
+            "기준선을 잡아 「늘지 않기」부터, 줄면 기준선을 낮춰 잠금(래칫)",
+            "포기",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "점진 상환."
+        },
+        {
+          "q": "axe 통과의 의미는?",
+          "choices": [
+            "완전 접근 가능",
+            "1/3 통과(바닥) — 사람 검증과 병행 필요",
+            "천장",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "바닥일 뿐."
+        }
+      ]
     },
     {
-      "q": "자동 도구가 잡지 못하는 대표적 문제는?",
-      "choices": [
-        "alt 는 있지만 내용이 틀린 경우",
-        "대비 비율",
-        "label 누락"
+      "id": "3",
+      "title": "자동이 못 잡는 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**자동 도구가 못 잡는 것은 「있는지」가 아니라 「적절한지」를 묻는 문제들이다.** 기계는 존재·문법은 검사해도 **의미·맥락·경험**은 판단 못 한다. 대표적으로: ① **틀린 alt** — alt 는 **있는데** 「이미지」·엉뚱한 설명(자동은 통과, 3장 a11y-sr). ② **비논리적 포커스 순서** — 포커스가 이동은 **하는데** 화면을 튀어 다님(a11y-keyboard 3장). ③ **의미 없는 링크 문구** — 「여기를 클릭」·「더 보기」가 텍스트는 **있어서** 통과(a11y-sr 3장). ④ **너무 짧은 시간 제한** — 세션 만료·자동 넘김이 **기술적으론 동작**하지만 사람에겐 촉박. ⑤ **키보드로 실제 조작 가능?** — 요소가 포커스는 받아도 그 위젯이 **규약대로 동작**하는지(탭 화살표·모달 Esc, a11y-semantics 3장). ⑥ **색만의 신호**(부분적으로만 자동 검출). 이것들은 **사람이 써 봐야** 안다. 아래 데모로 문제 유형별 「자동이 잡나?」를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이건 자동이 잡을까?",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const p = '{{problem}}';\n  const table = {\n    'alt-missing': [true, 'alt 속성 누락 — 자동이 잡음(존재 검사).'],\n    'alt-wrong': [false, 'alt 는 있지만 「이미지」·틀린 설명 — 자동은 통과, 사람만 잡음.'],\n    'contrast': [true, '대비 수치 미달 — 자동이 색값 계산으로 잡음.'],\n    'focus-order': [false, '포커스가 이동은 하나 순서가 비논리적 — 사람만.'],\n    'link-text': [false, '「여기를 클릭」 — 텍스트가 있어 자동 통과, 무의미는 사람만.'],\n    'kbd-op': [false, '탭 위젯이 role 은 있으나 화살표가 안 먹음 — 조작해 봐야 앎.'],\n  };\n  const r = table[p];\n  render((r[0] ? '자동이 잡는다' : '자동이 못 잡는다 — 사람이 필요'),\n    box(r[0] ? '자동 검출 O' : '자동 검출 X', r[1], r[0] ? 'good' : 'bad') + '  ' +\n    (r[0] ? '<span class=\"ok\">존재·문법 문제 — 기계로 판정 가능.</span>'\n          : '<span class=\"no\">의미·경험 문제 — 써 봐야 안다(4장 수동 점검).</span>'),\n    '자동 = 있는지/문법. 사람 = 적절한지/경험.');\n</script>",
+          "controls": [
+            {
+              "id": "problem",
+              "label": "문제 유형",
+              "type": "select",
+              "value": "alt-wrong",
+              "options": [
+                {
+                  "value": "alt-missing",
+                  "label": "alt 누락"
+                },
+                {
+                  "value": "alt-wrong",
+                  "label": "alt 틀림"
+                },
+                {
+                  "value": "contrast",
+                  "label": "대비 미달"
+                },
+                {
+                  "value": "focus-order",
+                  "label": "포커스 순서"
+                },
+                {
+                  "value": "link-text",
+                  "label": "「여기 클릭」"
+                },
+                {
+                  "value": "kbd-op",
+                  "label": "위젯 키보드"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "자동 vs 사람 분담",
+          "text": "자동이 잡는 것 (있는지·문법·수치):\n  alt 속성 유무 · 대비 수치 · 레이블 연결 · 중복 id\n  ARIA 문법 오류 · 빈 버튼/링크 · 문서 언어\n\n사람만 잡는 것 (적절한지·경험·의미):\n  alt 가 맞는지 · 포커스 순서가 논리적인지\n  링크 문구가 쓸모 있는지 · 시간 제한이 촉박한지\n  위젯이 키보드 규약대로 동작하는지 · 낭독이 명료한지"
+        },
+        {
+          "type": "note",
+          "text": "**자동 도구가 못 잡는 것은 「있는지」가 아니라 「적절한지」를 묻는, 의미·맥락·경험의 문제다.** 자동 검사는 **존재와 문법**(alt 속성이 있나, 대비 수치가 기준 이상인가, ARIA 문법이 맞나)은 정확히 판정하지만, **품질과 경험**은 판단 못 한다. 사람이 써 봐야 아는 대표 사례: ① **틀린/무의미한 alt** — 자동은 alt 가 **존재**하면 통과시킨다. 그것이 「이미지」·「chart.png」·엉뚱한 설명이어도 모른다 — 스크린리더로 들어 봐야 「내용을 전하나」를 안다(a11y-sr 3장). ② **비논리적 포커스 순서** — 자동은 요소가 포커스 **가능한지**는 알아도, Tab 순서가 화면을 **논리적으로 훑는지**(위→아래)는 모른다 — 튀는 순서는 사람이 Tab 해 봐야 발견(a11y-keyboard 3장). ③ **무의미한 링크·버튼 문구** — 「여기를 클릭」·「더 보기」·「자세히」는 텍스트가 **있어** 통과하지만, 스크린리더 링크 목록에선 구분 불가(a11y-sr 3장). ④ **촉박한 시간 제한** — 세션 자동 만료·캐러셀 자동 넘김·폼 시간 제한이 **기술적으론 작동**해도, 운동·인지 장애 사용자에겐 너무 빠를 수 있다(연장·정지 수단 필요) — 자동은 「촉박함」을 못 잰다. ⑤ **위젯의 실제 조작성** — 탭·메뉴·모달이 role·이름은 갖췄어도(자동 통과) 화살표·Esc 가 **실제로 동작하는지**는 조작해 봐야 안다(a11y-semantics 3장 「role 만은 거짓말」). ⑥ **의미 전달이 색에만** — 자동이 일부는 잡지만, 「이 빨강이 유일한 오류 신호인지」는 맥락이라 사람이 확인(a11y-contrast 3장). ⑦ **읽기 순서·낭독 명료성** — DOM 순서가 의미와 맞는지, 낭독이 소음인지는 들어 봐야. **공통점**: 이 모두는 **「형식은 갖췄으나 실질이 없는」** 경우다 — 기계는 형식을, 사람은 실질을 본다. **정리**: 자동이 통과시킨 화면에도 틀린 alt·튄 순서·무의미한 문구·안 먹는 위젯이 숨어 있다 — 이 2/3 는 다음 장의 수동 점검과 실사용자 테스트로 잡는다."
+        },
+        {
+          "type": "try",
+          "text": "자동 검사가 「통과」한 화면에서 **자동이 못 잡는 것**을 사람 눈·손으로 찾아라 — 이미지 alt 를 실제로 읽어 맞는지(스크린리더), Tab 순서가 논리적인지, 「여기·더 보기」류 링크가 있는지, 커스텀 위젯이 키보드 규약대로 동작하는지. 하나라도 걸리면 자동 초록의 한계를 체감한 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "의미의 정확성은 사람이 판단한다."
+      "quiz": [
+        {
+          "q": "자동 도구가 못 잡는 것은?",
+          "choices": [
+            "alt 속성 유무",
+            "alt 가 적절한지·포커스 순서가 논리적인지 등 의미·경험",
+            "대비 수치",
+            "중복 id"
+          ],
+          "answer": 1,
+          "why": "형식 아닌 실질."
+        },
+        {
+          "q": "「여기를 클릭」 링크를 자동이 통과시키는 이유는?",
+          "choices": [
+            "버그",
+            "텍스트가 있어(존재) 통과 — 무의미함은 사람만 앎",
+            "느려서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "존재만 검사."
+        },
+        {
+          "q": "자동과 사람의 분담 원리는?",
+          "choices": [
+            "둘 다 같음",
+            "자동=있는지/문법, 사람=적절한지/경험",
+            "사람=속도",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "형식 vs 실질."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "5분 수동 점검",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**자동이 못 잡는 2/3 의 상당수는 「5분 수동 점검」으로 잡힌다 — 특별한 도구 없이, 매 릴리스에.** 순서: ① **Tab 만으로 주요 흐름 완주** — 모든 조작에 도달·실행되나, **포커스가 항상 보이나**(a11y-keyboard). ② **화면 200% 확대** — 잘리거나 겹치지 않나(a11y-contrast 4장). ③ **스크린리더로 제목만 훑기** — H 키로 구조(목차)가 잡히나(a11y-sr 4장). ④ **이미지 alt 확인** — 정보는 서술, 장식은 건너뜀, 소음 없나(a11y-sr 3장). ⑤ **색만의 신호 점검** — 화면을 흑백으로 만들어도 상태가 구분되나(a11y-contrast 3장). 이 다섯을 **체크리스트로 고정**해 릴리스마다 돌리면, 회귀와 새 문제를 싸게 잡는다. 걸린 항목은 **이슈로** 만들어 추적. 아래 데모로 5분 점검을 단계별로 따라가 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "5분 수동 점검 — 단계 진행",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const items = [\n    ['Tab 만으로 주요 흐름 완주 · 포커스가 항상 보이나', 'a11y-keyboard'],\n    ['화면 200% 확대 — 잘리거나 겹치지 않나', 'a11y-contrast 확대'],\n    ['스크린리더 H 키로 제목만 훑어 구조가 잡히나', 'a11y-sr 제목'],\n    ['이미지 alt — 정보는 서술 · 장식은 건너뜀 · 소음 없나', 'a11y-sr alt'],\n    ['흑백으로 만들어도 상태·오류가 색 없이 구분되나', 'a11y-contrast 색'],\n  ];\n  const rows = items.map((it, i) => [(i < step ? 'V ' : i === step ? '> ' : '  ') + it[0] + '  (' + it[1] + ')', i < step ? 'good' : i === step ? 'on' : '']);\n  render('5분 점검  ' + step + '/' + items.length + (step >= items.length ? '  완료' : '  진행 중'),\n    steps(rows) + '  ' + (step >= items.length\n      ? '<span class=\"ok\">다섯 항목 완주 — 자동이 못 잡는 것의 상당수를 5분에 잡았다.</span>'\n      : '<span class=\"warn\">지금: ' + items[Math.min(step, items.length - 1)][0] + '</span>'),\n    '도구 없이 5분 · 매 릴리스 · 걸린 건 이슈로.');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "진행 단계",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "5분 수동 점검표",
+          "text": "1) Tab 만으로 주요 흐름 완주 · 포커스가 항상 보이나\n2) 화면 확대 200% 에서 안 잘리나\n3) 스크린리더로 제목만 훑어 구조가 잡히나 (NVDA H 키)\n4) 이미지 alt: 정보는 서술 · 장식은 건너뜀 · 소음 없나\n5) 흑백으로 만들어도 상태·오류가 구분되나\n→ 걸린 항목은 이슈로 만들어 추적"
+        },
+        {
+          "type": "note",
+          "text": "**자동이 못 잡는 2/3 의 상당수는 도구 없이 5분이면 되는 수동 점검으로 잡히므로, 이를 체크리스트로 고정해 매 릴리스에 돌린다.** **다섯 단계**(각 앞 장의 요약): ① **키보드 완주** — 마우스를 놓고 Tab·Shift+Tab·Enter·Space·Esc·화살표만으로 주요 흐름(가입·검색·구매)을 끝까지. 못 가는 곳, **안 보이는 포커스**, 갇힘·샘을 확인(a11y-keyboard). 이 하나가 가장 많은 것을 잡는다. ② **200% 확대** — 브라우저 Ctrl/Cmd + 로 확대해 잘림·겹침·가로 스크롤 확인(a11y-contrast 4장). ③ **제목만 훑기** — 스크린리더 H 키(또는 VoiceOver 로터)로 제목만 순회해 **목차가 논리적으로 잡히는지**, h1 하나·레벨 순서를 확인(a11y-sr 4장). 스크린리더가 낯설면 이 하나만이라도. ④ **이미지 alt** — 주요 이미지가 정보면 요점을 전하고 장식이면 건너뛰는지, 소음(「이미지」·파일명)이 없는지(a11y-sr 3장). ⑤ **흑백 테스트** — 브라우저/OS 필터로 화면을 회색조로 만들어 상태·오류·링크가 **색 없이도 구분**되는지(a11y-contrast 3장). **운영 방법**: 이 다섯을 **PR/릴리스 체크리스트로 고정**해 매번 돌린다(외우지 말고 목록으로). 각 단계는 앞 장들의 실전 요약이라 새로 배울 게 없다. **걸린 항목은 이슈로** 만들어 추적하고(구두 지적은 사라짐), 심각도로 우선순위. **한계**: 5분 점검도 개발자가 **흉내 내는** 것이라, 매일 보조기기를 쓰는 사람의 조작과는 다르다 — 그래서 다음 장의 실사용자 테스트가 필요(5장). 하지만 5분 점검은 **가장 싼 고효율** 단계다 — 안 하는 것보다 압도적으로 낫다. **정리**: 키보드·확대·제목·alt·흑백 다섯을 체크리스트로 고정해 매 릴리스 5분에 돌리고, 걸린 건 이슈로 — 자동 초록 뒤의 실제 문제를 여기서 잡는다."
+        },
+        {
+          "type": "try",
+          "text": "**위 5분 점검표를 이번 릴리스에 실제로 돌려라** — Tab 완주, 200% 확대, 스크린리더 제목 훑기(H), 이미지 alt, 흑백 테스트. 걸린 항목을 **이슈로 만들어** 심각도로 우선순위를 매기고, 이 다섯을 팀의 PR/릴리스 체크리스트에 고정하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "5분 수동 점검의 첫 단계는?",
+          "choices": [
+            "색 고르기",
+            "Tab 만으로 주요 흐름 완주 · 포커스가 보이나",
+            "빌드",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "키보드가 최고 레버리지."
+        },
+        {
+          "q": "5분 점검을 어떻게 운영하나?",
+          "choices": [
+            "기억에 의존",
+            "PR/릴리스 체크리스트로 고정 · 매번 · 걸린 건 이슈로",
+            "한 번만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "고정해 반복."
+        },
+        {
+          "q": "5분 점검의 한계는?",
+          "choices": [
+            "없음",
+            "개발자가 흉내 내는 것이라 실사용자 테스트가 여전히 필요",
+            "너무 김",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "실사용자로 보완."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "실사용자 테스트와 문화",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**접근성의 마지막 1/3 은 보조기기를 매일 쓰는 사람이 직접 써 볼 때 드러나고, 지속은 「문화」로 만들 때 온다.** ① **실사용자 테스트** — 개발자가 스크린리더를 5분 흉내 내는 것과, 매일 쓰는 사람의 능숙한 조작은 다르다. 실제 사용자 **한 번의 세션이 문서 열 장보다** 많은 걸 가르친다(그들이 어디서 막히고 무엇을 당연히 기대하는지). ② **문화로 만들기** — 접근성을 매번 개인이 기억하는 대신 **시스템에** 심는다: **PR 체크리스트에 한 줄**(「키보드로 써 봤나?」), **컴포넌트 라이브러리 수준에서 해결**(버튼·모달·폼을 접근성 있게 한 번 만들면 개별 화면에서 반복이 사라짐 — 2장 axe 를 컴포넌트에), **자동 검사 CI**(회귀 방지), **디자인 단계에서 대비·포커스 고려**(나중 재작업 방지 — a11y-contrast 1장). 접근성은 **개인의 영웅적 노력**이 아니라 **기본값이 된 시스템**일 때 지속된다. 아래 데모로 화면마다 vs 컴포넌트 수준 해결의 비용을 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "컴포넌트 수준에서 해결 — 반복 제거",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const where = '{{where}}';\n  const screens = {{screens}};\n  const perScreen = where === 'screen';\n  const cost = perScreen ? screens : 1;\n  render(perScreen ? '화면마다 접근성 반복 — 비용 ' + screens + '회' : '컴포넌트 라이브러리에서 한 번 — 비용 1회',\n    steps([\n      ['버튼·모달·폼의 접근성을 ' + (perScreen ? '각 화면에서 매번' : '컴포넌트에서 한 번') + ' 해결', perScreen ? 'bad' : 'good'],\n      ['화면 ' + screens + '개  →  접근성 작업 ' + cost + '회', perScreen ? 'bad' : 'good'],\n      [perScreen ? '새 화면마다 또 반복 · 놓치면 회귀' : '새 화면은 접근성 있는 컴포넌트를 그냥 씀', perScreen ? 'bad' : 'good'],\n    ]) + '  ' + (perScreen\n      ? '<span class=\"no\">화면마다 반복 = ' + screens + '배 비용 + 놓칠 위험. 개인의 기억에 의존.</span>'\n      : '<span class=\"ok\">컴포넌트에서 한 번 해결하면 모든 화면이 공짜로 접근 가능 — 문화가 시스템에.</span>'),\n    '문화 = 시스템에 심기: 컴포넌트 라이브러리 · PR 체크리스트 · CI.',\n    bars([{ lab: '화면마다', pct: Math.min(100, screens * 12), val: screens + '회', cls: 'gap' }, { lab: '컴포넌트', pct: 12, val: '1회', cls: 'human' }]));\n</script>",
+          "controls": [
+            {
+              "id": "where",
+              "label": "해결 위치",
+              "type": "select",
+              "value": "screen",
+              "options": [
+                {
+                  "value": "screen",
+                  "label": "화면마다"
+                },
+                {
+                  "value": "component",
+                  "label": "컴포넌트 수준"
+                }
+              ]
+            },
+            {
+              "id": "screens",
+              "label": "화면 수",
+              "type": "range",
+              "min": 2,
+              "max": 8,
+              "step": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "접근성을 문화로",
+          "text": "PR 체크리스트에 한 줄:  「키보드로 써 봤나?」\n\n컴포넌트 라이브러리 수준에서 해결:\n  Button · Modal · Field 를 접근성 있게 한 번 만들면\n  → 모든 화면이 그걸 쓰기만 해도 접근 가능 (반복 제거)\n\n자동 검사 CI (회귀 방지) + 디자인 단계 대비·포커스 고려\n실사용자 테스트: 한 번의 세션 > 문서 열 장"
+        },
+        {
+          "type": "note",
+          "text": "**접근성의 마지막 1/3 은 보조기기를 매일 쓰는 실사용자가 직접 써 볼 때 드러나고, 이 모든 검증의 지속은 접근성을 개인의 기억이 아니라 시스템·문화에 심을 때 온다.** **① 실사용자 테스트**: 개발자가 스크린리더를 잠깐 켜 보는 것과, 그것을 **매일 쓰는 사람**의 조작은 질적으로 다르다 — 능숙한 사용자는 다른 단축키·다른 순서·다른 기대를 가지고, 개발자가 상상 못 한 지점에서 막히거나 반대로 개발자가 걱정한 것을 쉽게 넘긴다. **실제 사용자 한 번의 관찰 세션이 접근성 문서 열 장보다** 많은 걸 가르친다(그들의 실제 흐름·기대·좌절을 눈으로 봄). 가능하면 장애인 사용자·접근성 전문가에게 테스트를 의뢰하고, 어려우면 최소한 실제 보조기기로 핵심 흐름을 검증한다. **② 문화로 만들기(지속의 열쇠)**: 접근성이 **매번 개인이 기억해야 하는 일**이면 반드시 잊혀 회귀한다 — **시스템에 심어** 기본값으로 만든다: ⓐ **컴포넌트 라이브러리 수준에서 해결** — 버튼·모달·폼·탭을 **접근성 있게 한 번** 만들면(포커스·키보드·ARIA·이름 내장), 그걸 쓰는 **모든 화면이 공짜로** 접근 가능해진다. 화면마다 반복하면 N배 비용에 놓칠 위험이지만, 컴포넌트에서 한 번이면 반복이 사라진다(가장 큰 레버리지). ⓑ **PR 체크리스트에 한 줄** — 「키보드로 써 봤나?」 같은 질문을 리뷰에 넣어 **매 변경에서** 상기. ⓒ **자동 검사 CI**(2장) — 회귀를 기계가 막음. ⓓ **디자인 단계부터** — 대비·포커스·시맨틱을 디자인·기획 때 고려하면(a11y-contrast 1장 「처음부터가 공짜」) 나중 재작업이 사라진다. ⓔ **점진 개선** — 완벽을 한 번에 노리지 말고 기준선을 조금씩 올린다. **핵심 통찰**: 접근성은 **개인의 영웅적 노력**으로는 지속 불가하고, **기본값이 된 시스템**(컴포넌트·체크리스트·CI·디자인 관행)일 때만 유지된다. **정리**: 실사용자 테스트로 마지막 1/3 을 배우고, 접근성을 컴포넌트·체크리스트·CI·디자인에 심어 문화로 만들어라 — 그래야 매 릴리스 반복·회귀가 사라진다."
+        },
+        {
+          "type": "try",
+          "text": "**접근성을 시스템에 한 곳 심어라** — ① PR 체크리스트에 「키보드로 써 봤나?」 한 줄 추가, 또는 ② 자주 쓰는 컴포넌트(버튼·모달·입력) 하나를 접근성 있게 고쳐 라이브러리 수준에서 해결(화면 반복 제거), 또는 ③ 실제 보조기기 사용자에게 핵심 흐름을 보여 줄 세션을 잡아라. 하나라도 심으면 개인 기억 의존에서 벗어난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "실사용자 테스트가 중요한 이유는?",
+          "choices": [
+            "규정",
+            "매일 쓰는 사람의 조작은 개발자 흉내와 달라 — 한 세션이 문서 열 장보다",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "실제 흐름을 봄."
+        },
+        {
+          "q": "접근성을 지속시키는 최대 레버리지는?",
+          "choices": [
+            "화면마다 반복",
+            "컴포넌트 라이브러리 수준에서 한 번 해결 — 모든 화면이 공짜로 접근 가능",
+            "개인 기억",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "반복 제거."
+        },
+        {
+          "q": "접근성이 지속되려면?",
+          "choices": [
+            "개인의 영웅적 노력",
+            "컴포넌트·체크리스트·CI·디자인에 심은 문화(기본값)",
+            "한 번의 감사",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시스템에 심음."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 접근성 검증",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**자동으로 회귀를 막고, 사람으로 실제 사용을 검증하고, 문화로 지속시킨다.** 이 점검표를 프로젝트·릴리스마다 훑어, 「자동 초록 = 접근 가능」의 착각과 매 릴리스 회귀를 없애라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "접근성 검증 점검표 — 통과 수",
+          "height": "420px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:96px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; }\n  .bars .fill.auto { background:#22d3ee; } .bars .fill.human { background:#4ade80; } .bars .fill.gap { background:#7f1d1d; }\n  .bars .val { width:44px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '자동은 문제의 약 1/3 만 잡음을 안다 (초록≠접근 가능)',\n    'axe 검사를 테스트 한 편으로 CI 에 붙였다',\n    '레거시는 기준선을 잡아 「늘지 않기」→ 점차 0 (래칫)',\n    '자동이 못 잡는 것(틀린 alt·순서·문구·위젯)을 사람이 본다',\n    '5분 수동 점검(키보드·확대·제목·alt·흑백)을 매 릴리스에',\n    '걸린 항목을 이슈로 만들어 추적한다',\n    '가능하면 실제 보조기기 사용자에게 테스트한다',\n    '컴포넌트 라이브러리·PR 체크리스트·CI 로 문화에 심었다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('접근성 검증 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 자동+사람+문화로 지속되는 접근성.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '자동으로 회귀 방지 · 사람으로 실사용 검증 · 문화로 지속.');\n</script>",
+          "controls": [
+            {
+              "id": "done",
+              "label": "통과 수",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**접근성 검증 점검표 — 프로젝트·릴리스마다 훑는다.** ① **자동의 한계 인식** — 자동은 약 1/3, 초록 배지 ≠ 접근 가능(1장). ② **axe CI** — 자동 검사를 테스트 한 편으로 붙여 회귀 방지(2장). ③ **기준선 래칫** — 레거시는 「늘지 않기」에서 시작해 점차 0(2장). ④ **사람이 보는 것** — 틀린 alt·비논리 순서·무의미 문구·안 먹는 위젯을 사람이(3장). ⑤ **5분 수동 점검** — 키보드·200% 확대·제목 훑기·alt·흑백을 매 릴리스(4장). ⑥ **이슈화** — 걸린 항목을 이슈로 추적(구두는 사라짐, 4장). ⑦ **실사용자 테스트** — 가능하면 실제 보조기기 사용자에게(5장). ⑧ **문화에 심기** — 컴포넌트 라이브러리·PR 체크리스트·CI·디자인 단계로 반복·회귀 제거(5장). **세 축**: **자동**(싸게 회귀 방지·바닥)+**사람**(실사용 검증·2/3)+**문화**(지속). 하나라도 빠지면 — 자동만은 가짜 안심, 사람만은 회귀, 문화 없으면 개인 기억에 의존해 결국 무너진다. 이 갈래(대비·시맨틱·키보드·스크린리더)가 **무엇을** 고치는지였다면, 이 칸은 **어떻게 검증·지속**하는지다. **정리**: 자동으로 막고 사람으로 검증하고 문화로 심어라 — 그래야 접근성이 한 번의 이벤트가 아니라 지속되는 기본값이 된다."
+        },
+        {
+          "type": "try",
+          "text": "지금 프로젝트에 위 8개 중 **아직 없는 것 하나**를 도입하라 — axe CI 붙이기, 5분 점검표 릴리스에 넣기, PR 체크리스트에 「키보드로 써 봤나?」 한 줄, 또는 실사용자 테스트 잡기. 몇 개가 이미 있고 몇 개를 새로 심는지 세어, 자동+사람+문화의 세 축이 다 서 있는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "접근성 검증의 세 축은?",
+          "choices": [
+            "자동만",
+            "자동(회귀 방지) + 사람(실사용 검증) + 문화(지속)",
+            "사람만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "셋이 다 서야."
+        },
+        {
+          "q": "다음 중 점검표 항목이 아닌 것은?",
+          "choices": [
+            "axe 를 CI 에",
+            "5분 수동 점검",
+            "자동 초록이면 사람 검증 생략",
+            "컴포넌트 수준 해결"
+          ],
+          "answer": 2,
+          "why": "초록≠접근 가능."
+        },
+        {
+          "q": "문화에 심는 방법이 아닌 것은?",
+          "choices": [
+            "컴포넌트 라이브러리에서 해결",
+            "PR 체크리스트 한 줄",
+            "개인이 매번 기억",
+            "자동 검사 CI"
+          ],
+          "answer": 2,
+          "why": "개인 기억은 무너짐."
+        }
+      ]
     }
   ]
 }
