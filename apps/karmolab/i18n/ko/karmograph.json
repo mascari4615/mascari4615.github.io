@@ -800,5 +800,6 @@
   "karmograph.storage.used": "{used} / 약 {all} ({pct}%)",
   "karmograph.terms.nodeKinds": "내 노드 종류 {n}개",
   "karmograph.terms.edgeKinds": "내 관계 종류 {n}개",
-  "karmograph.kind.unknown": "모르는 종류"
+  "karmograph.kind.unknown": "모르는 종류",
+  "karmograph.otherTab.msg": "다른 탭에서도 이 판을 고쳤습니다. 방금 저장이 그쪽 것을 덮었을 수 있어요 — 「저장」 칸의 「직전 판 되살리기」로 확인하거나, 지금 것을 파일로 빼 두세요."
 }
