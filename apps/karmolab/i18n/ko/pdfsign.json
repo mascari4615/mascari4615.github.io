@@ -25,5 +25,7 @@
   "pdfsign.say.done": "{n}쪽에 서명을 넣어 받았어요.",
   "pdfsign.say.redraw": "다시 그려 주세요.",
   "pdfsign.say.imageUsed": "그림을 서명으로 넣었어요. 미리보기에서 자리를 누르세요.",
-  "pdfsign.err.run": "넣는 중 문제가 생겼어요: {msg}"
+  "pdfsign.err.run": "넣는 중 문제가 생겼어요: {msg}",
+  "pdfsign.kb.label": "서명 놓을 자리 고르기 (화살표로 옮기고 Enter 로 놓습니다)",
+  "pdfsign.kb.moved": "서명 자리 {x}%, {y}%"
 }
