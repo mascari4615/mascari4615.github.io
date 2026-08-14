@@ -255,6 +255,7 @@
     "smoke:arcadereplay": "node scripts/smoke-arcade-replay.mjs",
     "smoke:arcadeletter": "node scripts/smoke-arcade-letter.mjs",
     "smoke:arcadestage": "node scripts/smoke-arcade-stage.mjs",
+    "smoke:arcadekeys": "node scripts/smoke-arcade-keys.mjs",
     "smoke:arcadeteams": "node scripts/smoke-arcade-teams.mjs",
     "smoke:tour": "node scripts/smoke-tour.mjs",
     "bench:arcade": "node scripts/bench-arcade.mjs",
