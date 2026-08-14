@@ -1,8 +1,25 @@
 {
+  "apidiff": {
+    "ops": [
+      "compare"
+    ]
+  },
+  "apitest": {
+    "ops": [
+      "list",
+      "example",
+      "default"
+    ]
+  },
   "base64": {
     "ops": [
       "encode",
       "decode"
+    ]
+  },
+  "bgremove": {
+    "ops": [
+      "describe"
     ]
   },
   "birth": {
@@ -13,6 +30,16 @@
   "bizno": {
     "ops": [
       "check"
+    ]
+  },
+  "bundlemap": {
+    "ops": [
+      "summary"
+    ]
+  },
+  "certview": {
+    "ops": [
+      "read"
     ]
   },
   "chain": {
@@ -35,10 +62,34 @@
       "fits"
     ]
   },
+  "codegraph": {
+    "ops": [
+      "graph"
+    ]
+  },
+  "configconv": {
+    "ops": [
+      "convert",
+      "detect"
+    ]
+  },
+  "csp": {
+    "ops": [
+      "parse",
+      "review",
+      "build"
+    ]
+  },
   "csvjson": {
     "ops": [
       "toJson",
       "toCsv"
+    ]
+  },
+  "curlkit": {
+    "ops": [
+      "convert",
+      "parse"
     ]
   },
   "daily": {
@@ -63,15 +114,60 @@
       "dday"
     ]
   },
+  "diff": {
+    "ops": [
+      "text",
+      "structure",
+      "merge"
+    ]
+  },
+  "docscan": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "dupphoto": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "dutchpay": {
+    "ops": [
+      "settle"
+    ]
+  },
+  "encdetective": {
+    "ops": [
+      "fix",
+      "explain"
+    ]
+  },
   "epoch": {
     "ops": [
       "toDate",
       "toStamp"
     ]
   },
+  "erd": {
+    "ops": [
+      "diagram",
+      "outline"
+    ]
+  },
+  "exif": {
+    "ops": [
+      "read"
+    ]
+  },
   "filehash": {
     "ops": [
       "verify"
+    ]
+  },
+  "gitundo": {
+    "ops": [
+      "steps",
+      "list"
     ]
   },
   "grade": {
@@ -98,6 +194,13 @@
       "text"
     ]
   },
+  "idphoto": {
+    "ops": [
+      "specs",
+      "plan",
+      "sheet"
+    ]
+  },
   "interest": {
     "ops": [
       "deposit",
@@ -112,6 +215,11 @@
       "initials"
     ]
   },
+  "jqplay": {
+    "ops": [
+      "query"
+    ]
+  },
   "livecount": {
     "ops": [
       "since",
@@ -124,14 +232,51 @@
       "compare"
     ]
   },
+  "logview": {
+    "ops": [
+      "summary",
+      "filter"
+    ]
+  },
+  "mermaidlite": {
+    "ops": [
+      "svg",
+      "check"
+    ]
+  },
   "mesh3d": {
     "ops": [
       "info"
     ]
   },
+  "mockdata": {
+    "ops": [
+      "generate"
+    ]
+  },
+  "nettool": {
+    "ops": [
+      "cidr",
+      "contains",
+      "split",
+      "port"
+    ]
+  },
+  "ocr": {
+    "ops": [
+      "route",
+      "tidy"
+    ]
+  },
   "passgen": {
     "ops": [
       "strength"
+    ]
+  },
+  "payslip": {
+    "ops": [
+      "monthly",
+      "yearly"
     ]
   },
   "pdf2text": {
@@ -147,11 +292,63 @@
       "rotate"
     ]
   },
+  "pem": {
+    "ops": [
+      "look"
+    ]
+  },
+  "photomap": {
+    "ops": [
+      "describe"
+    ]
+  },
+  "prettyall": {
+    "ops": [
+      "format",
+      "minify"
+    ]
+  },
+  "printkit": {
+    "ops": [
+      "sheet"
+    ]
+  },
+  "protobuf": {
+    "ops": [
+      "decode",
+      "encode"
+    ]
+  },
   "qrgen": {
     "ops": [
       "svg",
       "wifi",
       "contact"
+    ]
+  },
+  "regexplain": {
+    "ops": [
+      "explain",
+      "railroad"
+    ]
+  },
+  "semver": {
+    "ops": [
+      "explain",
+      "satisfies",
+      "overlap"
+    ]
+  },
+  "sqlfmt": {
+    "ops": [
+      "format",
+      "dialect"
+    ]
+  },
+  "sshkey": {
+    "ops": [
+      "read",
+      "convert"
     ]
   },
   "tableconv": {
@@ -163,6 +360,18 @@
     "ops": [
       "shift",
       "sum"
+    ]
+  },
+  "tts": {
+    "ops": [
+      "split",
+      "estimate"
+    ]
+  },
+  "unicodex": {
+    "ops": [
+      "scan",
+      "clean"
     ]
   },
   "unitconv": {

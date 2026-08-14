@@ -30,5 +30,7 @@
   "calc.copy.done": "コピー: {v}",
   "calc.btn.recent": "さっきの作業",
   "calc.plot.mark": "図",
-  "calc.plot.alt": "{expr} のグラフ (x {from}~{to})"
+  "calc.plot.alt": "{expr} のグラフ (x {from}~{to})",
+  "calc.part.dutchpay": "割り勘",
+  "calc.part.payslip": "手取り"
 }

@@ -1,0 +1,13 @@
+{
+  "bundlemap.mdd": "어디가 무거운지 넓이로 보여 드립니다.",
+  "bundlemap.tab": "번들",
+  "bundlemap.label.file": "stats.json 이나 metafile (브라우저 밖으로 안 나갑니다)",
+  "bundlemap.label.paste": "또는 붙여넣기",
+  "bundlemap.label.heavy": "무거운 곳",
+  "bundlemap.label.dupes": "두 번 들어간 꾸러미",
+  "bundlemap.dupes.none": "겹쳐 들어간 꾸러미가 없습니다",
+  "bundlemap.status.idle": "webpack stats.json 이나 esbuild metafile 을 넣으세요",
+  "bundlemap.status.reading": "읽는 중…",
+  "bundlemap.status.ok": "{total} · 조각 {n}개 · 겹친 꾸러미 {dupes}개",
+  "bundlemap.status.bad": "못 읽었습니다 — {msg}"
+}

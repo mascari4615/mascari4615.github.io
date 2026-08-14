@@ -1,0 +1,21 @@
+{
+  "dutchpay.mdd": "誰が誰にいくらか整理します。",
+  "dutchpay.tab": "割り勘",
+  "dutchpay.label.people": "参加者 (カンマ区切り)",
+  "dutchpay.label.expenses": "支払い (1行に1件)",
+  "dutchpay.label.shares": "各自の計算",
+  "dutchpay.label.transfers": "この送金で完了",
+  "dutchpay.hint.format": "書き方: 名前:金額 · 名前:金額:分担する人 · 名前:金額:人:内容。カンマや「円」はそのままで大丈夫です。",
+  "dutchpay.btn.share": "リンクで共有",
+  "dutchpay.btn.copy": "送金リストをコピー",
+  "dutchpay.shared": "リンクをコピーしました — 中身はリンク自体に入っています (サーバーには残りません)",
+  "dutchpay.copied": "コピーしました",
+  "dutchpay.paidOwed": "支払い {paid} · 負担 {owed}",
+  "dutchpay.getBack": "{n} 受け取り",
+  "dutchpay.mustPay": "{n} 支払い",
+  "dutchpay.even": "ちょうど",
+  "dutchpay.nothingToDo": "やり取りは不要です",
+  "dutchpay.status.idle": "参加者と支払いを書いてください",
+  "dutchpay.status.ok": "合計 {total} · 送金 {n} 回で完了",
+  "dutchpay.status.badLink": "そのリンクを読めませんでした"
+}

@@ -1,0 +1,15 @@
+{
+  "jqplay.mdd": "JSON に直接聞いてみましょう。",
+  "jqplay.tab": "jq",
+  "jqplay.label.query": "問い合わせ (jq 風)",
+  "jqplay.label.json": "JSON を貼る",
+  "jqplay.label.out": "答え",
+  "jqplay.aria.out": "問い合わせの結果",
+  "jqplay.opt.compact": "1行ずつ",
+  "jqplay.btn.copy": "答えをコピー",
+  "jqplay.status.idle": "JSON を貼って聞いてください",
+  "jqplay.status.ok": "答え {n} 件",
+  "jqplay.copy.done": "コピーしました",
+  "jqplay.help.title": "使える書き方",
+  "jqplay.help.limits": "jq 全部ではなく、よく使う分だけです — 変数($x)・def・reduce・try/catch はまだありません。"
+}

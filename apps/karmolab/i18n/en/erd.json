@@ -1,0 +1,17 @@
+{
+  "erd.mdd": "Let me show which table points at which.",
+  "erd.tab": "Schema",
+  "erd.label.in": "CREATE TABLE or a Prisma schema",
+  "erd.label.outline": "Summary",
+  "erd.label.mermaid": "mermaid source (paste it into GitHub or Notion and it draws)",
+  "erd.aria.mermaid": "mermaid source",
+  "erd.btn.draw": "Draw it",
+  "erd.btn.copy": "Copy mermaid",
+  "erd.status.idle": "Paste a schema",
+  "erd.status.none": "No CREATE TABLE or Prisma model found",
+  "erd.status.ok": "{tables} tables · {links} links",
+  "erd.status.drawing": "Drawing…",
+  "erd.status.drawn": "Drawn",
+  "erd.status.noPic": "Could not load the drawing library — the mermaid source below still works",
+  "erd.copy.done": "Copied"
+}

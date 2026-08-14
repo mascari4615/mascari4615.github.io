@@ -24,6 +24,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       label: t('image.group.size', undefined, '크기·모양'),
       jobs: [
         ['imgresize', t('image.part.imgresize', undefined, '크기 맞추기')],
+        ['idphoto', t('image.part.idphoto', undefined, '증명사진')],
+        ['docscan', t('image.part.docscan', undefined, '서류 스캔')],
         ['imgmerge', t('image.part.imgmerge', undefined, '여러 장 합치기')],
         ['favicon', t('image.part.favicon', undefined, '파비콘 만들기')]
       ]
@@ -39,6 +41,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     {
       label: t('image.group.hide', undefined, '가리기·지우기'),
       jobs: [
+        ['bgremove', t('image.part.bgremove', undefined, '배경 지우기')],
         ['redact', t('image.part.redact', undefined, '가리개')],
         ['exifclean', t('image.part.exifclean', undefined, '촬영 정보 지우기')]
       ]
@@ -48,6 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       jobs: [
         ['palette', t('image.part.palette', undefined, '색 뽑기')],
         ['comparepic', t('image.part.comparepic', undefined, '두 장 비교')],
+        ['ocr', t('image.part.ocr', undefined, '글자 읽기')],
         ['qrread', t('image.part.qrread', undefined, 'QR 읽기')]
       ]
     },

@@ -50,13 +50,14 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['pdf2text', t('pdf.part.pdf2text', undefined, 'PDF → 글자')],
         ['pdf2img', t('pdf.part.pdf2img', undefined, 'PDF → 이미지')],
         ['text2pdf', t('pdf.part.text2pdf', undefined, '글 → PDF')],
+        ['printkit', t('pdf.part.printkit', undefined, '인쇄용 종이')],
         ['img2pdf', t('pdf.part.img2pdf', undefined, '이미지 → PDF')]
       ]
     }
   ];
 
   /** 파일을 안 들고 와도 되는 할 일 — 다른 것에서 PDF 를 **만드는** 쪽. */
-  const NO_PDF_NEEDED = new Set(['text2pdf', 'img2pdf']);
+  const NO_PDF_NEEDED = new Set(['text2pdf', 'img2pdf', 'printkit']);
 
   /** 한 번에 그릴 쪽 수. 나머지는 「더 보기」로 잇는다 — 200쪽을 한꺼번에 그리면 화면이 멎는다. */
   const CHUNK = 24;

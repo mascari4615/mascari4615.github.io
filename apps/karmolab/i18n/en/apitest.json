@@ -1,0 +1,21 @@
+{
+  "apitest.mdd": "Give me the spec and I will make it clickable.",
+  "apitest.tab": "API",
+  "apitest.label.doc": "OpenAPI document (JSON or YAML)",
+  "apitest.label.op": "Which operation",
+  "apitest.label.server": "Where to send it",
+  "apitest.label.request": "The request",
+  "apitest.label.answer": "Answer",
+  "apitest.btn.send": "Send it",
+  "apitest.btn.curl": "Copy as curl",
+  "apitest.btn.mock": "Build mock responses",
+  "apitest.copy.curl": "curl command copied",
+  "apitest.copy.mock": "Mock response table copied",
+  "apitest.status.idle": "Paste an OpenAPI document",
+  "apitest.status.ok": "{title} · {n} operations",
+  "apitest.status.bad": "Could not read it — {msg}",
+  "apitest.status.sending": "Sending…",
+  "apitest.status.answered": "{code} · answered in {ms}ms",
+  "apitest.status.blocked": "The other side refuses browser requests (CORS) — copy it as curl and run it in a terminal",
+  "apitest.status.mock": "Built mock responses for {n} operations — paste them into your own mock server"
+}

@@ -28,5 +28,7 @@
   "regextest.hint.replace": "<span style=\"color:var(--text-tertiary);\">置換文字列を入れると結果が出ます</span>",
   "regextest.label.replace": "置換（任意）— $1、$<name> が使えます",
   "regextest.value.matches": "{n}件の一致",
-  "regextest.value.noMatch": "一致なし"
+  "regextest.value.noMatch": "一致なし",
+  "regextest.explain.title": "この正規表現の意味 (部分ごと・レールロード図)",
+  "regextest.explain.cannot": "読めませんでした —"
 }

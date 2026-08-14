@@ -37,5 +37,12 @@
   "devtool.part.sqlfmt": "SQL",
   "devtool.part.erd": "ERD",
   "devtool.part.xmlfmt": "XML tools",
-  "devtool.part.mermaidlite": "Diagram"
+  "devtool.part.mermaidlite": "Diagram",
+  "devtool.part.semver": "semver",
+  "devtool.part.csp": "Headers",
+  "devtool.part.apitest": "OpenAPI",
+  "devtool.part.protobuf": "protobuf",
+  "devtool.part.prettyall": "CSS/HTML",
+  "devtool.part.sshkey": "SSH keys",
+  "devtool.part.nettool": "Subnets"
 }

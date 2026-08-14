@@ -1,0 +1,15 @@
+{
+  "dupphoto.mdd": "似ているものをまとめます。",
+  "dupphoto.tab": "似た写真",
+  "dupphoto.label.files": "写真を複数 (ブラウザの外に出ません)",
+  "dupphoto.label.strict": "どれくらい似ていれば同じ組",
+  "dupphoto.btn.copy": "消す名前をコピー",
+  "dupphoto.keep": "これを残す",
+  "dupphoto.group": "{n} 枚 · 消すと {saved} 空きます",
+  "dupphoto.status.idle": "写真を複数選んでください",
+  "dupphoto.status.reading": "{n} 枚を読み込み中…",
+  "dupphoto.status.none": "{n} 枚の中に似たものはありません",
+  "dupphoto.status.found": "組 {groups} 個 · すべて消すと {saved} 空きます",
+  "dupphoto.copied": "消してよい名前 {n} 件をコピーしました",
+  "dupphoto.note.noDelete": "削除はしません — ブラウザはフォルダのファイルを消せませんし、削除は取り消せません。どれを残すかを示し、名前の一覧をコピーします。縮小や再圧縮されたコピーも同じ組に入ります(ファイルのバイトではなく絵の形で比べます)。"
+}
