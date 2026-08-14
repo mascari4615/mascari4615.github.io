@@ -1639,6 +1639,7 @@ import {
         );
         Toolbox.showToast?.(t('karmograph.mapsBundled', { n: all.length }), undefined, undefined);
       },
+      hasRescue: () => store.hasRescue(),
       restorePrevRevision: async () => {
         const prev = store.loadPrev();
         if (!prev) {

@@ -2076,6 +2076,22 @@ await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async
     return JSON.parse(raw).nodes.map((n) => n.label);
   });
   if (!kept.includes('B탭카드')) throw new Error('직전 판에도 남의 카드가 없다 — 되찾을 길이 없다: ' + kept.join(','));
+
+  /* 말 상자는 한 번 뜨고 사라진다 — **되찾는 길이 눈에 남아 있어야** 한다.
+     「저장」 칸에 보관 표시가 뜨고, 되살리기를 누르면 그 판이 실제로 열린다. */
+  await a.evaluate(() => (document.querySelector('[data-km="tab"][data-key="storage"]')
+    || document.querySelector('[data-km="storage"]'))?.click());
+  await a.waitForSelector('[data-km="st-prev"]', { timeout: ms(4000) });
+  if (await a.locator('[data-km="st-rescue-note"]').count() === 0) {
+    throw new Error('보관해 두고도 「저장」 칸에 아무 표시가 없다 — 사람이 못 찾는다');
+  }
+  await a.locator('[data-km="st-prev"]').click();
+  await a.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  await a.locator('[data-km="ask-yes"]').click();
+  await a.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node')].some((n) => (n.textContent || '').includes('B탭카드')),
+    null, { timeout: ms(6000) },
+  );
   await ctx.close();
 });
 

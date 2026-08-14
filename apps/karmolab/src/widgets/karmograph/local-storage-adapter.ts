@@ -87,6 +87,18 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
     return this.key.replace('karmograph.map.', 'karmograph.prev.');
   }
 
+  /**
+   * 다른 탭이 고친 판을 덮으며 **따로 떠 둔 것이 있나** (KL-271).
+   * 말 상자는 한 번 뜨고 사라지지만, 이 표시는 「저장」 칸에 남아 되찾는 길을 가리킨다.
+   */
+  hasRescue(): boolean {
+    try {
+      return Boolean(localStorage.getItem(this.rescueKey()));
+    } catch {
+      return false;
+    }
+  }
+
   /** 직전 판 읽기 — 없으면 null. */
   loadPrev(): GraphSpec | null {
     try {

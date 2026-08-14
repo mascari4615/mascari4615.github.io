@@ -34,7 +34,8 @@ export function renderStoragePanel(ctx: PanelCtx): void {
         <span class="km-group-count">${humanBytes(it.bytes)}</span>
       </div>`).join('')}
     </div>
-    <button class="btn btn-ghost" data-km="st-prev">${esc(t('karmograph.stPrev.label'))}</button>
+    ${ctx.hasRescue?.() ? `<div class="km-hint km-rescue" data-km="st-rescue-note">${esc(t('karmograph.rescue.kept'))}</div>` : ''}
+    <button class="btn ${ctx.hasRescue?.() ? 'btn-primary' : 'btn-ghost'}" data-km="st-prev">${esc(t('karmograph.stPrev.label'))}</button>
     <div class="km-hint">${t('karmograph.hint11', { em: `<b>${esc(t('karmograph.rep.msg5'))}</b>` })}</div>
     <button class="btn btn-primary" data-km="st-backup">${esc(t('karmograph.stBackup.label'))}</button>
     <button class="btn btn-ghost" data-km="st-restore">${esc(t('karmograph.stRestore.label'))}</button>
