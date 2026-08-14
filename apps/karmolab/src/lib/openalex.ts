@@ -27,6 +27,8 @@ export interface Paper {
   refs: string[];
   /** 열어 볼 수 있는 주소 (없을 수 있다) */
   url: string;
+  /** 초록. OpenAlex 는 **뒤집힌 목록**으로 준다 — 여기서는 이미 되돌린 글이다 (TASK-KL-238 / 34) */
+  abstract?: string;
 }
 
 interface RawWork {
@@ -38,6 +40,7 @@ interface RawWork {
   referenced_works?: string[] | null;
   authorships?: Array<{ author?: { display_name?: string } }> | null;
   doi?: string | null;
+  abstract_inverted_index?: Record<string, number[]> | null;
   primary_location?: { landing_page_url?: string | null } | null;
 }
 
@@ -48,6 +51,8 @@ export function shortId(url: string): string {
 }
 
 const FIELDS = 'id,title,display_name,publication_year,cited_by_count,referenced_works,authorships,doi,primary_location';
+/** 초록까지 받는 목록 — 「논문에게 묻기」(34·35·38)는 제목만으로는 아무 답도 못 한다. */
+const FIELDS_ABS = `${FIELDS},abstract_inverted_index`;
 
 export function toPaper(r: RawWork): Paper | null {
   const id = shortId(r.id || '');
@@ -63,7 +68,8 @@ export function toPaper(r: RawWork): Paper | null {
       .filter(Boolean)
       .slice(0, 8),
     refs: (r.referenced_works || []).map(shortId).filter(Boolean),
-    url: r.doi ? `https://doi.org/${String(r.doi).replace(/^https?:\/\/doi\.org\//, '')}` : r.primary_location?.landing_page_url || ''
+    url: r.doi ? `https://doi.org/${String(r.doi).replace(/^https?:\/\/doi\.org\//, '')}` : r.primary_location?.landing_page_url || '',
+    abstract: abstractOf(r.abstract_inverted_index)
   };
 }
 
@@ -203,4 +209,52 @@ export function toCanvas(map: PaperMap): {
     })),
     edges: map.edges.map((e, i) => ({ id: `e${i}`, fromNode: e.from, toNode: e.to }))
   };
+}
+
+/**
+ * **뒤집힌 초록을 되돌린다** (TASK-KL-238 / 34 elicit).
+ *
+ * OpenAlex 는 저작권 때문에 초록을 그대로 안 준다 — 대신 `{낱말: [자리들]}` 로 준다.
+ * 자리를 도로 맞추면 원문이 나온다. 이 되돌리기는 **순수 계산**이라 검사가 그대로 본다.
+ *
+ * 자리가 비어 있으면(빠진 낱말) 그 칸은 비워 둔다 — 지어내면 없던 말이 논문의 말이 된다.
+ */
+export function abstractOf(inverted?: Record<string, number[]> | null): string | undefined {
+  if (!inverted) return undefined;
+  const slots: string[] = [];
+  let max = -1;
+  for (const [word, spots] of Object.entries(inverted)) {
+    for (const at of spots || []) {
+      if (!Number.isInteger(at) || at < 0 || at > 20000) continue;
+      slots[at] = word;
+      if (at > max) max = at;
+    }
+  }
+  if (max < 0) return undefined;
+  const text = slots
+    .slice(0, max + 1)
+    .map((w) => w ?? '')
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text === '' ? undefined : text;
+}
+
+/**
+ * 물음에 답이 될 만한 논문들. **인용 순이 아니라 관련도 순**이다 —
+ * 「무엇부터 읽나」(지도)와 「그래서 답이 뭔가」(묻기)는 고르는 기준이 다르다.
+ */
+export async function searchWithAbstracts(query: string, limit = 8): Promise<Paper[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const d = await get<{ results?: RawWork[] }>(
+    `/works?search=${encodeURIComponent(q)}&per-page=${limit}&select=${FIELDS_ABS}`
+  );
+  if (!d?.results) return [];
+  const out: Paper[] = [];
+  for (const r of d.results) {
+    const p = toPaper(r);
+    if (p) out.push(p);
+  }
+  return out;
 }

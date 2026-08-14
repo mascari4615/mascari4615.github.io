@@ -1547,6 +1547,15 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'askpapers',
+    get title() { return t('widgets.askpapers.title', undefined, "논문에게 묻기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.askpapers.desc', undefined, "물음을 던지면 논문이 답합니다. 지어낸 요약이 아니라 초록에 실제로 있는 문장을 그대로 뽑아 링크와 함께 보여 줍니다"); },
+    layout: 'wide',
+    icon: '<path d="M5 4h11l3 3v13H5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 4v3h3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 12h6M9 15.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/askpapers']
+  },
+  {
     id: 'papermap',
     get title() { return t('widgets.papermap.title', undefined, "논문 지도"); },
     category: 'tool',

@@ -203,5 +203,6 @@
   "widgets-desc.studymap.desc": "Web, Git and computer science in order — a learning map that also tells you why each topic matters and when you can move on (progress saved)",
   "widgets-desc.meong.desc": "A screen to stare into — the logo assembles into a bigger logo, forever zooming inward",
   "widgets-desc.xmlfmt.desc": "Pretty-print XML, minify it to one line, or convert it to JSON. Problems are pinned to a line and column",
-  "widgets-desc.isitdown.desc": "Tells whether a site is really down or your own connection is the problem, by measuring always-up sites alongside it"
+  "widgets-desc.isitdown.desc": "Tells whether a site is really down or your own connection is the problem, by measuring always-up sites alongside it",
+  "widgets-desc.askpapers.desc": "Ask a question and papers answer — sentences are quoted from their abstracts as written, with links, never invented"
 }

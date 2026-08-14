@@ -1,0 +1,15 @@
+{
+  "askpapers.tab": "聞く",
+  "askpapers.label.q": "論文に聞きたいこと",
+  "askpapers.placeholder": "注意機構は翻訳の質を上げるか?",
+  "askpapers.btn.run": "聞いてみる",
+  "askpapers.status.idle": "八本に聞いて、答えた分だけ見せます",
+  "askpapers.say.needQ": "何を聞くか書いてください",
+  "askpapers.say.asking": "「{q}」で論文を探しています…",
+  "askpapers.say.none": "この問いでは論文が見つかりません — 言葉を変えてみてください",
+  "askpapers.say.noAnswer": "{n}本見ましたが、要旨に答える文がありません — 問いを絞ってください",
+  "askpapers.say.done": "{n}本が答えました",
+  "askpapers.tally": "{asked}本中 {answered}本が回答 · {from}〜{to}年 · 最多引用 {cited}回",
+  "askpapers.cited": "引用 {n}回",
+  "askpapers.note.limits": "要約を作りません — 要旨にある文をそのまま引きます。要旨のない論文は答えられず、OpenAlex にないものは見つかりません。必ずリンクで確認してください"
+}
