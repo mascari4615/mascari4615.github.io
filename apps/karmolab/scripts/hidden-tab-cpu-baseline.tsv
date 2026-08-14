@@ -1,0 +1,25 @@
+# hidden-tab 기준선 — 숨김을 안 보는 채로 이미 도는 화면들. 여기 없는 새 것만 막는다.
+# 숨김을 보게 하면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 둘째 칸 = 판단 끝난 예외(숨어도 계속 돌아야 하는 이유).
+# 갱신: node scripts/audit-hidden-tab-cpu.mjs --write-baseline
+src/widgets/agent-team/agent-team.ts
+src/widgets/arcade/arcade.ts
+src/widgets/arcade/open-rooms.ts
+src/widgets/chat.ts
+src/widgets/cockpit/cards-tab.ts
+src/widgets/cockpit/team-tab.ts
+src/widgets/flow.ts
+src/widgets/font.ts
+src/widgets/heung/audio-engine.ts
+src/widgets/heung/heung.ts
+src/widgets/imageedit.ts
+src/widgets/imagegen/core.ts
+src/widgets/karmograph/karmograph.ts
+src/widgets/life/life.ts
+src/widgets/meok/meok.ts
+src/widgets/pulse/pulse.ts
+src/widgets/stone.ts
+src/widgets/tools/livecount.ts
+src/widgets/tools/screenrec.ts
+src/widgets/tools/videotrim.ts
+src/widgets/tools/voicerec.ts
