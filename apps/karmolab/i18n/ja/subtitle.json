@@ -27,5 +27,17 @@
   "subtitle.err.empty": "先に字幕を入れてください。",
   "subtitle.copy.done": "調整した字幕をコピーしました",
   "subtitle.say.saved": "{name} でダウンロードしました。",
-  "subtitle.file.base": "字幕"
+  "subtitle.file.base": "字幕",
+  "subtitle.tab.sum": "要点",
+  "subtitle.sum.drop": "字幕ファイル(SRT・VTT)をドラッグするか、押して選んでください",
+  "subtitle.sum.label": "または字幕を貼り付けてください",
+  "subtitle.sum.every": "何分ごとに一区切り(分)",
+  "subtitle.sum.copy": "目次をコピー",
+  "subtitle.sum.text": "全文をコピー",
+  "subtitle.sum.idle": "字幕から時刻つきの目次を作ります。見出しはその区間に実際に出た文です",
+  "subtitle.sum.meta": "{n}区切り · 長さ {len} · 文字 {chars}",
+  "subtitle.sum.done": "目次を{n}区切り作りました",
+  "subtitle.sum.noLabel": "(ほとんど発話がない区間)",
+  "subtitle.sum.copied": "目次をコピーしました",
+  "subtitle.sum.copiedText": "字幕の全文をコピーしました"
 }

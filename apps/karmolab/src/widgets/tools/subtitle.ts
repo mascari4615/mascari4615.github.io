@@ -15,16 +15,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/video';
+import { clock, outline, parseCues, plainText } from '../../lib/videosum';
 
 (function (): void {
-  interface Cue { start: number; end: number; text: string }
-
-  /** `00:01:02,500` 또는 `00:01:02.500` → 초 */
-  function parseTime(s: string): number {
-    const m = s.trim().match(/(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})/);
-    if (!m) return NaN;
-    return Number(m[1] || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]) + Number(m[4].padEnd(3, '0')) / 1000;
-  }
+  /* 자막을 읽는 일은 **한 군데**서 한다 (`lib/videosum`) — 「줄이기」 탭도 같은 파서를 쓴다.
+     두 벌로 두면 한쪽만 고쳐져 「맞추기에서는 읽히는데 줄이기에서는 안 읽히는」 자막이 생긴다. */
+  type Cue = { start: number; end: number; text: string };
+  const parse = parseCues;
 
   function fmt(sec: number, vtt: boolean): string {
     const s = Math.max(0, sec); // 앞으로 너무 밀어 음수가 되면 0 으로 붙인다
@@ -34,23 +31,6 @@ import { download } from './shared/video';
     const ms = Math.round((s - Math.floor(s)) * 1000);
     const p = (n: number, w = 2): string => String(n).padStart(w, '0');
     return `${p(h)}:${p(m)}:${p(ss)}${vtt ? '.' : ','}${p(ms, 3)}`;
-  }
-
-  /** SRT·VTT 를 모두 받아 자막 줄로 만든다 (번호·머리말은 버린다) */
-  function parse(text: string): Cue[] {
-    const cues: Cue[] = [];
-    const blocks = text.replace(/\r/g, '').replace(/^WEBVTT.*?\n/s, '').split(/\n{2,}/);
-    for (const b of blocks) {
-      const lines = b.split('\n').filter((l) => l.trim() !== '');
-      const at = lines.findIndex((l) => l.includes('-->'));
-      if (at < 0) continue;
-      const [a, z] = lines[at].split('-->');
-      const start = parseTime(a);
-      const end = parseTime(z);
-      if (isNaN(start) || isNaN(end)) continue;
-      cues.push({ start, end, text: lines.slice(at + 1).join('\n') });
-    }
-    return cues;
   }
 
   function build(cues: Cue[], vtt: boolean): string {
@@ -78,6 +58,17 @@ import { download } from './shared/video';
         build: function (container: HTMLElement): void {
           void loadNamespace('subtitle').then(function () {
             draw(container);
+          });
+        }
+      },
+      {
+        /* 영상 줄이기 (TASK-KL-238 / 39 summarize.tech). 30분짜리 앞에서 사람이 알고 싶은 것은
+           줄거리가 아니라 **내가 볼 데가 몇 분인가**다 — 자막에는 시간과 말이 이미 다 있다. */
+        id: 'sum',
+        label: t('subtitle.tab.sum', undefined, '줄이기'),
+        build: function (container: HTMLElement): void {
+          void loadNamespace('subtitle').then(function () {
+            drawSum(container);
           });
         }
       }
@@ -244,4 +235,97 @@ import { download } from './shared/video';
           };
           run();
   }
+
+  /**
+   * 「줄이기」 — 자막을 **시간 붙은 목차**로 (TASK-KL-238 / 39 summarize.tech).
+   *
+   * 이름표는 그 구간에서 **실제로 나온 문장**이다. 지어낸 제목은 그럴듯해서 더 위험하다 —
+   * 사람은 그걸 믿고 그 구간을 건너뛴다. 그래서 여기서는 고르기만 하고 만들지 않는다.
+   */
+  function drawSum(container: HTMLElement): void {
+    const esc = (v: string): string =>
+      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    container.innerHTML = `
+      <div class="tool-drop" id="svDrop">
+        <input type="file" id="svFile" accept=".srt,.vtt,text/plain" hidden>
+        <span>${esc(t('subtitle.sum.drop'))}</span>
+      </div>
+      <div class="field-group" style="margin-top:var(--space-lg);">
+        <label class="field-label" for="svIn">${esc(t('subtitle.sum.label'))}</label>
+        <textarea id="svIn" name="captions" class="mono-input" style="min-height:140px;" placeholder="00:00:00,000 --> 00:00:04,000"></textarea>
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:10px 0 var(--space-lg);">
+        <label class="tool-sublabel" for="svEvery">${esc(t('subtitle.sum.every'))}</label>
+        <select id="svEvery" name="every" style="width:auto;">
+          <option value="120">2</option>
+          <option value="300" selected>5</option>
+          <option value="600">10</option>
+        </select>
+        <button class="btn btn-ghost" id="svCopy">${esc(t('subtitle.sum.copy'))}</button>
+        <button class="btn btn-ghost" id="svText">${esc(t('subtitle.sum.text'))}</button>
+      </div>
+      <div class="tool-display" id="svMeta">—</div>
+      <div class="tool-list" id="svOut"></div>
+      <div class="tool-status" id="svStatus">${esc(t('subtitle.sum.idle'))}</div>
+    `;
+
+    const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
+    const input = $<HTMLTextAreaElement>('#svIn');
+    const every = $<HTMLSelectElement>('#svEvery');
+    const out = $<HTMLElement>('#svOut');
+    const meta = $<HTMLElement>('#svMeta');
+    const say = statusLine($<HTMLElement>('#svStatus'));
+    let lines: string[] = [];
+
+    function render(): void {
+      const cues = parse(input.value);
+      if (cues.length === 0) {
+        out.innerHTML = '';
+        meta.textContent = '—';
+        lines = [];
+        say(input.value.trim() ? t('subtitle.err.noCues') : t('subtitle.sum.idle'), input.value.trim() ? 'error' : '');
+        return;
+      }
+      const o = outline(cues, parseInt(every.value, 10));
+      if (o === null) return;
+      lines = o.chapters.map((c) => `${clock(c.start)} ${c.label}`);
+      out.innerHTML = o.chapters
+        .map(
+          (c) =>
+            `<div class="tool-list-row"><span class="tool-list-key">${esc(clock(c.start))}</span>` +
+            `<span class="tool-list-val">${esc(c.label || t('subtitle.sum.noLabel'))}</span></div>`
+        )
+        .join('');
+      meta.textContent = t('subtitle.sum.meta', {
+        n: String(o.chapters.length),
+        len: clock(o.duration),
+        chars: o.chars.toLocaleString()
+      });
+      say(t('subtitle.sum.done', { n: String(o.chapters.length) }), 'ok');
+    }
+
+    input.addEventListener('input', render);
+    every.addEventListener('change', render);
+    wireDrop({
+      drop: $<HTMLElement>('#svDrop'),
+      input: $<HTMLInputElement>('#svFile'),
+      scope: container,
+      onFiles: (files) => void files[0].text().then((text) => {
+        input.value = text;
+        render();
+      })
+    });
+    $<HTMLButtonElement>('#svCopy').onclick = () => {
+      if (lines.length === 0) return;
+      void Toolbox.copyText?.(lines.join(String.fromCharCode(10)), { message: t('subtitle.sum.copied') });
+    };
+    /* 목차 말고 **글 전체**가 필요할 때도 있다 — 읽어서 찾으려는 사람이다. */
+    $<HTMLButtonElement>('#svText').onclick = () => {
+      const cues = parse(input.value);
+      if (cues.length === 0) return;
+      void Toolbox.copyText?.(plainText(cues), { message: t('subtitle.sum.copiedText') });
+    };
+    render();
+  }
+
 })();

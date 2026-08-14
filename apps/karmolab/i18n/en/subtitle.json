@@ -27,5 +27,17 @@
   "subtitle.err.empty": "Add the subtitles first.",
   "subtitle.copy.done": "Adjusted subtitles copied",
   "subtitle.say.saved": "Downloaded as {name}.",
-  "subtitle.file.base": "subtitles"
+  "subtitle.file.base": "subtitles",
+  "subtitle.tab.sum": "Summarize",
+  "subtitle.sum.drop": "Drop a subtitle file (SRT·VTT) or click to choose",
+  "subtitle.sum.label": "Or paste the captions here",
+  "subtitle.sum.every": "One chapter every (min)",
+  "subtitle.sum.copy": "Copy outline",
+  "subtitle.sum.text": "Copy full text",
+  "subtitle.sum.idle": "Captions become a timestamped outline. Each label is a sentence that actually appears in that stretch",
+  "subtitle.sum.meta": "{n} chapters · {len} long · {chars} characters",
+  "subtitle.sum.done": "Made {n} chapters",
+  "subtitle.sum.noLabel": "(almost no speech here)",
+  "subtitle.sum.copied": "Outline copied",
+  "subtitle.sum.copiedText": "Full caption text copied"
 }

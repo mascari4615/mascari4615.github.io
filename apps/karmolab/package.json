@@ -217,6 +217,7 @@
     "test:sketchy": "node scripts/test-sketchy.mjs",
     "audit:handoff": "node scripts/audit-handoff-accepts.mjs",
     "test:paperask": "node scripts/test-paperask.mjs",
+    "test:vidsum": "node scripts/test-videosum.mjs",
     "smoke:pwned": "node scripts/smoke-pwned.mjs",
     "smoke:papermap": "node scripts/smoke-papermap.mjs",
     "smoke:pdfshell": "node scripts/smoke-pdf-shell.mjs",
