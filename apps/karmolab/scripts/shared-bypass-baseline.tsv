@@ -33,8 +33,6 @@ IMG-LOAD	src/widgets/imageconvert/widget.ts
 IMG-LOAD	src/widgets/imageedit.ts
 IMG-LOAD	src/widgets/karmograph/karmograph.ts
 IMG-LOAD	src/widgets/tierlist/storage.ts
-IMG-LOAD	src/widgets/tools/asciiart.ts
-IMG-LOAD	src/widgets/tools/qrgen.ts
 OBJECT-URL	src/widgets/activity.ts
 OBJECT-URL	src/widgets/bluemarble/bluemarble.ts
 OBJECT-URL	src/widgets/bon/bon.ts
@@ -73,7 +71,6 @@ OBJECT-URL	src/widgets/tools/pdfpagenum.ts
 OBJECT-URL	src/widgets/tools/pdfredact.ts
 OBJECT-URL	src/widgets/tools/pdfsign.ts
 OBJECT-URL	src/widgets/tools/pdftool.ts
-OBJECT-URL	src/widgets/tools/qrgen.ts
 OBJECT-URL	src/widgets/tools/screenrec.ts
 OBJECT-URL	src/widgets/tools/sound.ts
 OBJECT-URL	src/widgets/tools/video2gif.ts

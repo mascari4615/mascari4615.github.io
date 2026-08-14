@@ -8,6 +8,7 @@ import { escapeWifi, type Level, makeGrid, spec, toSvg } from '../../core/qrgen'
 import { readInvocation } from '../../lib/tool-url';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { loadImage } from './shared/image';
 
 (function (): void {
 
@@ -320,11 +321,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           $<HTMLInputElement>('#qrLogo').addEventListener('change', (e: Event) => {
             const f = (e.target as HTMLInputElement).files?.[0];
             if (!f) { logoImg = null; render(); return; }
-            const url = URL.createObjectURL(f);
-            const img = new Image();
-            img.onload = () => { logoImg = img; URL.revokeObjectURL(url); render(); };
-            img.onerror = () => { URL.revokeObjectURL(url); logoImg = null; render(); };
-            img.src = url;
+            // 공용 한 자리(`shared/image`) — 주소 만들기·거두기가 거기 한 벌로 있다.
+            loadImage(f).then((img) => { logoImg = img; render(); })
+              .catch(() => { logoImg = null; render(); });
           });
           $<HTMLInputElement>('#qrLogoSize').addEventListener('input', () => {
             $<HTMLElement>('#qrLogoVal').textContent = $<HTMLInputElement>('#qrLogoSize').value + '%';
