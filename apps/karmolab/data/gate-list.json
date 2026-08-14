@@ -130,7 +130,6 @@
     "test:badapple:load",
     "test:badapple",
     "test:contract:live",
-    "smoke:arcadeopen",
     "test:duel",
     "test:usertool",
     "test:chat",
