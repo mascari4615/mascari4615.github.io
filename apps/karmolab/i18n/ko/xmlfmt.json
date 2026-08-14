@@ -1,0 +1,16 @@
+{
+  "xmlfmt.label.in": "XML 을 붙여 넣으세요",
+  "xmlfmt.label.out": "결과",
+  "xmlfmt.label.indent": "들여쓰기 칸",
+  "xmlfmt.btn.format": "보기 좋게 펴기",
+  "xmlfmt.btn.minify": "한 줄로 뭉치기",
+  "xmlfmt.btn.json": "JSON 으로",
+  "xmlfmt.btn.copy": "복사",
+  "xmlfmt.copy.done": "결과를 복사했어요",
+  "xmlfmt.status.idle": "붙여 넣으면 바로 폅니다. 글은 기기 밖으로 나가지 않습니다",
+  "xmlfmt.status.format": "폈습니다 — {lines}줄",
+  "xmlfmt.status.minify": "뭉쳤습니다",
+  "xmlfmt.status.toJson": "JSON 으로 옮겼습니다 — {lines}줄",
+  "xmlfmt.status.bad": "{msg}",
+  "xmlfmt.note.limits": "모양이 맞는지(well-formed)만 봅니다 — DTD·스키마(XSD)·이름공간 검사는 하지 않습니다. JSON 으로 옮길 때 속성은 @이름, 글자는 #text 가 됩니다"
+}

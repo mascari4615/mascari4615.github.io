@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/xmlfmt', 'tools/devtool']
   },
   {
     id: 'livecount',
@@ -1229,6 +1229,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 8h6M17 8v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/json2ts']
+  },
+  {
+    id: 'xmlfmt',
+    hidden: true, // 「개발 도구」 위젯의 할 일로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    get title() { return t('widgets.xmlfmt.title', undefined, "XML 다루기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.xmlfmt.desc', undefined, "XML 을 보기 좋게 펴거나 한 줄로 뭉치고, JSON 으로 옮깁니다. 틀린 자리는 줄·칸으로 짚습니다"); },
+    layout: 'wide',
+    icon: '<path d="M9 7 4 12l5 5M15 7l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 5l-2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/xmlfmt']
   },
   {
     id: 'jsonfmt',

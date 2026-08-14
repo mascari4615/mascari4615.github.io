@@ -38,6 +38,7 @@ export const CORE_OPS: Record<string, string[]> = {
   wordfreq: ["count"],
   workdays: ["after","between"],
   worldclock: ["convert","offset"],
+  xmlfmt: ["format","minify","toJson"],
   ziptool: ["create","list","extract"],
 };
 
@@ -79,5 +80,6 @@ export const CORE_LOADERS: Record<string, () => Promise<Loaded>> = {
   wordfreq: () => import('./wordfreq').then((m) => ({ run: m.run })),
   workdays: () => import('./workdays').then((m) => ({ run: m.run })),
   worldclock: () => import('./worldclock').then((m) => ({ run: m.run })),
+  xmlfmt: () => import('./xmlfmt').then((m) => ({ run: m.run })),
   ziptool: () => import('./ziptool').then((m) => ({ run: m.run })),
 };

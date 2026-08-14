@@ -199,6 +199,13 @@
       "offset"
     ]
   },
+  "xmlfmt": {
+    "ops": [
+      "format",
+      "minify",
+      "toJson"
+    ]
+  },
   "ziptool": {
     "ops": [
       "create",

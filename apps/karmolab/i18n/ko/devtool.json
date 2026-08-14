@@ -28,5 +28,14 @@
   "devtool.tree.root": "뿌리",
   "devtool.tree.cut": "너무 커서 여기까지만 폈습니다",
   "devtool.tree.copied": "길 복사: {path}",
-  "devtool.btn.recent": "방금 하던 것"
+  "devtool.btn.recent": "방금 하던 것",
+  "devtool.part.diff": "견주기",
+  "devtool.part.curlkit": "curl 옮기기",
+  "devtool.part.configconv": "설정 옮기기",
+  "devtool.part.mockdata": "가짜 데이터",
+  "devtool.part.jqplay": "jq 물어보기",
+  "devtool.part.sqlfmt": "SQL 다듬기",
+  "devtool.part.erd": "표 관계",
+  "devtool.part.xmlfmt": "XML 다루기",
+  "devtool.part.mermaidlite": "그림 그리기"
 }

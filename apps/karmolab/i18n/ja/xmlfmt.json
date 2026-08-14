@@ -1,0 +1,16 @@
+{
+  "xmlfmt.label.in": "XML を貼り付けてください",
+  "xmlfmt.label.out": "結果",
+  "xmlfmt.label.indent": "字下げ",
+  "xmlfmt.btn.format": "見やすく整える",
+  "xmlfmt.btn.minify": "一行にまとめる",
+  "xmlfmt.btn.json": "JSON へ",
+  "xmlfmt.btn.copy": "コピー",
+  "xmlfmt.copy.done": "結果をコピーしました",
+  "xmlfmt.status.idle": "貼り付けるとすぐ整えます。文字は端末の外に出ません",
+  "xmlfmt.status.format": "整えました — {lines}行",
+  "xmlfmt.status.minify": "まとめました",
+  "xmlfmt.status.toJson": "JSON にしました — {lines}行",
+  "xmlfmt.status.bad": "{msg}",
+  "xmlfmt.note.limits": "形が正しいか(well-formed)だけを見ます — DTD・スキーマ(XSD)・名前空間の検証はしません。JSON では属性が @名前、文字が #text になります"
+}

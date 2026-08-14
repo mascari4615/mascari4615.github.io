@@ -28,5 +28,14 @@
   "devtool.tree.root": "root",
   "devtool.tree.cut": "Too big — expanded this far only",
   "devtool.tree.copied": "Path copied: {path}",
-  "devtool.btn.recent": "Recent"
+  "devtool.btn.recent": "Recent",
+  "devtool.part.diff": "Compare",
+  "devtool.part.curlkit": "curl",
+  "devtool.part.configconv": "Config",
+  "devtool.part.mockdata": "Mock data",
+  "devtool.part.jqplay": "jq",
+  "devtool.part.sqlfmt": "SQL",
+  "devtool.part.erd": "ERD",
+  "devtool.part.xmlfmt": "XML tools",
+  "devtool.part.mermaidlite": "Diagram"
 }

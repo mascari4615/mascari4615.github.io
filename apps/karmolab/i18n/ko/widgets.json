@@ -208,5 +208,6 @@
   "widgets.arcade.title": "오락실",
   "widgets.collection.title": "도감",
   "widgets.karmograph.title": "KarmoGraph",
-  "widgets.studymap.title": "개발자 스터디 맵"
+  "widgets.studymap.title": "개발자 스터디 맵",
+  "widgets.xmlfmt.title": "XML 다루기"
 }

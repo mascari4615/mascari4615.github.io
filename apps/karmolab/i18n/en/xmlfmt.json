@@ -1,0 +1,16 @@
+{
+  "xmlfmt.label.in": "Paste XML here",
+  "xmlfmt.label.out": "Result",
+  "xmlfmt.label.indent": "Indent",
+  "xmlfmt.btn.format": "Pretty-print",
+  "xmlfmt.btn.minify": "Minify",
+  "xmlfmt.btn.json": "To JSON",
+  "xmlfmt.btn.copy": "Copy",
+  "xmlfmt.copy.done": "Result copied",
+  "xmlfmt.status.idle": "It formats as you paste. The text never leaves your device",
+  "xmlfmt.status.format": "Formatted — {lines} lines",
+  "xmlfmt.status.minify": "Minified",
+  "xmlfmt.status.toJson": "Converted to JSON — {lines} lines",
+  "xmlfmt.status.bad": "{msg}",
+  "xmlfmt.note.limits": "Only well-formedness is checked — no DTD, XSD or namespace validation. In JSON, attributes become @name and text becomes #text"
+}
