@@ -27,6 +27,8 @@ export interface LiarsState {
   alive: boolean[];
   /** 방금 벌어진 일 — 화면이 한 줄로 말한다 */
   last: { kind: 'bid' | 'call'; who: number; text: string } | null;
+  /** 방금 판정 — 「거짓말이다」가 이 놀이의 순간이다(건 말에는 소리를 안 붙인다). */
+  judge?: { loser: number; real: number };
   /** 판정을 보여 주는 동안 */
   showAt: number;
 }
@@ -113,6 +115,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
       dice,
       alive,
       last: { kind: 'call', who: seat, text: `${real}` },
+      judge: { loser, real },
       showAt: ctx.now + 3000,
       turn: alive[loser] ? loser : nextAlive({ ...s, alive }, loser)
     };
@@ -133,7 +136,23 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (aliveCount(s) > 1) return { over: false };
+    if (aliveCount(s) > 1) {
+      /* 거는 말은 한 판에 수십 번이라 소리를 안 붙인다 — 순간은 **주사위를 잃을 때**다.
+         분간은 남은 주사위 수가 해 준다(잃을 때마다 반드시 준다). */
+      if (!s.judge) return { over: false };
+      return {
+        over: false,
+        note: {
+          key: 'arcade.liars.lost',
+          params: {
+            who: ctx.seats[s.judge.loser]?.name ?? '',
+            n: String(s.judge.real),
+            at: String(s.dice.reduce((a, d) => a + d.length, 0))
+          },
+          sound: 'bad'
+        }
+      };
+    }
     const win = s.alive.findIndex(Boolean);
     return {
       over: true,

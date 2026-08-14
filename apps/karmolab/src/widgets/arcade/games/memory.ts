@@ -10,7 +10,7 @@
  *
  * 2~4인. 사람이 하나면 나머지는 봇이 앉는다.
  */
-import type { GameDef, GameCtx, BotMove } from '../types';
+import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
 
 /** 짝의 수. 8쌍 = 16장 — 4×4 로 떨어져 폰에서도 한 화면에 들어간다. */
@@ -26,6 +26,8 @@ export interface MemoryState {
   /** 지금 뒤집혀 있는 카드 자리 (0~2장) */
   up: number[];
   turn: number;
+  /** 방금 무슨 일이 있었나 — 판이 도는 중에도 할 말(과 소리)이 있어야 한다. */
+  last?: { by: number; hit: boolean; at: number };
   /** 이 시각이 지나면 못 맞힌 두 장을 덮는다. 없으면 0 */
   hideAt: number;
 }
@@ -69,10 +71,10 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
       const taken = s.taken.slice();
       taken[x] = seat + 1;
       taken[y] = seat + 1;
-      return { ...s, taken, up: [] };
+      return { ...s, taken, up: [], last: { by: seat, hit: true, at: x } };
     }
     /* 틀렸다 — 잠깐 보여 준 뒤 덮는다. 덮는 일은 `tick` 이 한다. */
-    return { ...s, up, hideAt: ctx.now + PEEK_MS };
+    return { ...s, up, hideAt: ctx.now + PEEK_MS, last: { by: seat, hit: false, at: x } };
   },
 
   tick(s, ctx) {
@@ -81,8 +83,20 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
     return { ...s, up: [], hideAt: 0, turn: (s.turn + 1) % ctx.seats.length };
   },
 
-  outcome(s, ctx) {
-    if (s.taken.some((v) => v === 0)) return { over: false };
+  outcome(s, ctx): Outcome {
+    if (s.taken.some((v) => v === 0)) {
+      /* 판이 안 끝나도 방금 일은 나른다 — 맞힌 소리와 헛짚은 소리가 다르다. */
+      if (!s.last) return { over: false };
+      const who = ctx.seats[s.last.by]?.name ?? '';
+      return {
+        over: false,
+        note: s.last.hit
+          /* `at` 은 글에 안 쓴다 — **같은 사람이 연달아 맞혀도 다른 순간**임을 나르려고 있다
+             (함대와 같은 이유). 이게 없으면 연속 사건이 하나로 뭉쳐 소리가 빠진다. */
+          ? { key: 'arcade.memory.hit', params: { who, at: String(s.last.at) }, sound: 'good' }
+          : { key: 'arcade.memory.miss', params: { who, at: String(s.last.at) }, sound: 'bad' }
+      };
+    }
     const scores = ctx.seats.map((_, i) => s.taken.filter((v) => v === i + 1).length / 2);
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);

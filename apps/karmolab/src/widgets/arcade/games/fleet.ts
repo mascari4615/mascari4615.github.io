@@ -109,7 +109,21 @@ export const fleet: GameDef<FleetState, FleetAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (!s.over) return { over: false };
+    if (!s.over) {
+      /* 판이 도는 중에도 **마지막 한 발**을 말로 낸다 (arcade-next 「놀이마다의 소리」).
+         맞았는지는 이미 `last` 에 있다 — 새로 만들지 않고 그걸 쓴다. 소리 이름만 붙이면
+         껍데기가 울린다(게임은 소리 장치를 모른다). */
+      if (!s.last) return { over: false };
+      return {
+        over: false,
+        /* `at` 은 **화면에 안 쓰이는 값**이다(말 묶음이 {who} 만 쓴다). 소리를 두 번 안 울리려고
+           껍데기가 「말이 바뀌었나」로 견주는데, 같은 사람이 연달아 빗나가면 말이 똑같아서
+           두 번째가 안 운다 — 발마다 달라지는 값을 하나 실어 그 자리를 막는다. */
+        note: s.last.hit
+          ? { key: 'arcade.fleet.hit', params: { who: ctx.seats[s.last.by]?.name ?? '', at: String(s.last.cell) }, sound: 'good' }
+          : { key: 'arcade.fleet.miss', params: { who: ctx.seats[s.last.by]?.name ?? '', at: String(s.last.cell) }, sound: 'bad' }
+      };
+    }
     const win = s.alive.indexOf(true);
     return {
       over: true,

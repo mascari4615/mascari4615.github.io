@@ -45,6 +45,10 @@ export interface YutState {
   rolled: number;
   /** 방금 잡혔나 (화면이 짚어 준다) */
   caught: boolean;
+  /** 방금 잡은 사람 — 잡는 맛이 이 놀이의 전부라 소리는 여기에만. */
+  catcher?: { by: number; n: number };
+  /** 여태 잡은 횟수 (검사가 사건을 세는 자리) */
+  catches?: number;
   won: number;
 }
 
@@ -128,7 +132,11 @@ export const yut: GameDef<YutState, YutAction> = {
       }
     }
 
-    const next: YutState = { ...s, pos, pending: rest, caught, rolled: 0 };
+    const catches = (s.catches ?? 0) + (caught ? 1 : 0);
+    const next: YutState = {
+      ...s, pos, pending: rest, caught, rolled: 0,
+      catches, catcher: caught ? { by: seat, n: catches } : undefined
+    };
     if (done(next, seat)) { next.won = seat; return next; }
     if (caught) { next.phase = 'throw'; return next; }
     if (rest.length) { next.phase = 'move'; return next; }
@@ -138,7 +146,20 @@ export const yut: GameDef<YutState, YutAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (s.won === -1) return { over: false };
+    if (s.won === -1) {
+      /* 던지기·움직이기는 한 판에 수십 번이라 소리를 안 붙인다 — 순간은 **잡을 때**다
+         (잡으면 한 번 더 던진다. 이 놀이의 맛이 거기서 난다). */
+      if (!s.catcher) return { over: false };
+      return {
+        over: false,
+        note: {
+          key: 'arcade.yut.caughtBy',
+          /* 몇 번째 잡기인지는 안 싣는다 — 빼도 검사가 안 빨개졌다(잡기가 드물어 뭉치지 않는다). */
+          params: { who: ctx.seats[s.catcher.by]?.name ?? '' },
+          sound: 'good'
+        }
+      };
+    }
     return {
       over: true,
       scores: ctx.seats.map((_, i) => s.pos[i].filter((p) => p >= OUT).length),

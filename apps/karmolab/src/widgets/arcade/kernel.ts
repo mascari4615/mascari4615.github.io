@@ -227,7 +227,13 @@ export class Match<S, A> {
   /** 이번 판이 끝났나 보고, 끝났으면 점수를 붙인다. 끝났으면 true. */
   private settle(): boolean {
     const out: Outcome = this.game.outcome(this.state, this.ctx());
-    if (!out.over) return false;
+    if (!out.over) {
+      /* **판이 안 끝나도 할 말은 나른다** (arcade-next 「놀이마다의 소리」).
+         전에는 끝날 때만 말을 받아서, 화면도 소리도 「끝났다」밖에 못 했다 — 화살이 항아리에
+         든 순간·배를 맞힌 순간이 아무 데도 안 남았다. 말이 없으면 지운다(옛말이 눌어붙지 않게). */
+      this.note = out.note;
+      return false;
+    }
     if (out.scores) out.scores.forEach((n, i) => { if (this.seats[i]) this.seats[i].score += n; });
     this.note = out.note;
     this.pending = [];
