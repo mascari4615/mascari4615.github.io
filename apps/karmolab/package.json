@@ -48,6 +48,7 @@
     "audit:shared-bypass": "node scripts/audit-shared-bypass.mjs",
     "audit:mouse-only": "node scripts/audit-mouse-only.mjs",
     "audit:registry-impl": "node scripts/audit-registry-impl.mjs",
+    "audit:hidden-tab": "node scripts/audit-hidden-tab-cpu.mjs",
     "audit:orphan-widgets": "node scripts/audit-orphan-widgets.mjs",
     "audit:script-paths": "node scripts/audit-script-paths.mjs",
     "audit:vendor-globals": "node scripts/audit-vendor-globals.mjs",
