@@ -1,0 +1,23 @@
+{
+  "docscan.mdd": "A crooked document — let me flatten it.",
+  "docscan.tab": "Scan",
+  "docscan.label.file": "Photo of the document",
+  "docscan.label.look": "How it should look",
+  "docscan.label.pick": "Drag the four dots onto the page corners",
+  "docscan.label.result": "Flattened result",
+  "docscan.look.scan": "Like a scan (black & white)",
+  "docscan.look.gray": "Grey",
+  "docscan.look.color": "Keep the colours",
+  "docscan.btn.reset": "Reset corners",
+  "docscan.btn.png": "Save PNG",
+  "docscan.btn.pdf": "Save PDF (A4)",
+  "docscan.status.idle": "Pick a photo of the document",
+  "docscan.status.ready": "Flattened to {w}×{h} — nudge the corners for a straighter result",
+  "docscan.status.badImage": "Could not read that as an image",
+  "docscan.status.savedPng": "Saved as PNG",
+  "docscan.status.pdf": "Building the PDF…",
+  "docscan.status.savedPdf": "Saved as an A4 PDF",
+  "docscan.err.pdfLib": "Could not load the PDF library",
+  "docscan.err.png": "Could not render the image",
+  "docscan.note.manual": "Corners are picked by hand on purpose — automatic detection fails on patterned desks and shadows, and when it fails you cannot see why. The scan look uses a local threshold, so a shadow across the page does not turn half of it black."
+}

@@ -1,0 +1,16 @@
+{
+  "sqlfmt.mdd": "潰れた SQL、読める形にします。",
+  "sqlfmt.tab": "SQL",
+  "sqlfmt.label.in": "SQL を貼る",
+  "sqlfmt.label.out": "整形した SQL",
+  "sqlfmt.aria.out": "整形した SQL",
+  "sqlfmt.opt.upper": "予約語を大文字に",
+  "sqlfmt.opt.convert": "別の DB の書き方へ",
+  "sqlfmt.label.from": "どこの",
+  "sqlfmt.label.to": "どこへ",
+  "sqlfmt.btn.copy": "コピー",
+  "sqlfmt.status.idle": "SQL を貼ってください",
+  "sqlfmt.status.ok": "{n} 行に整えました",
+  "sqlfmt.status.converted": "{from} から {to} に直し、{n} 行に整えました (直した箇所は上に)",
+  "sqlfmt.copy.done": "コピーしました"
+}

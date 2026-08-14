@@ -1,0 +1,17 @@
+{
+  "erd.mdd": "どの表がどの表を指しているか示します。",
+  "erd.tab": "スキーマ",
+  "erd.label.in": "CREATE TABLE か Prisma スキーマ",
+  "erd.label.outline": "まとめ",
+  "erd.label.mermaid": "mermaid のもと (GitHub・Notion に貼ると描かれます)",
+  "erd.aria.mermaid": "mermaid のもと",
+  "erd.btn.draw": "描く",
+  "erd.btn.copy": "mermaid をコピー",
+  "erd.status.idle": "スキーマを貼ってください",
+  "erd.status.none": "CREATE TABLE も Prisma model も見つかりません",
+  "erd.status.ok": "表 {tables} 個 · つながり {links} 個",
+  "erd.status.drawing": "描いています…",
+  "erd.status.drawn": "描きました",
+  "erd.status.noPic": "描画ライブラリを読み込めませんでした — 下の mermaid はそのまま使えます",
+  "erd.copy.done": "コピーしました"
+}

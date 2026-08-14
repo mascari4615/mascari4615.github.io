@@ -1,0 +1,17 @@
+{
+  "protobuf.mdd": "A pile of bytes — let me lay it out field by field.",
+  "protobuf.tab": "protobuf",
+  "protobuf.label.data": "Binary (hex or base64)",
+  "protobuf.label.proto": ".proto (optional)",
+  "protobuf.label.message": "Read it as",
+  "protobuf.label.json": "JSON",
+  "protobuf.btn.toJson": "Decoded → JSON",
+  "protobuf.btn.fromJson": "JSON → bytes",
+  "protobuf.err.noSchema": "Write a .proto first",
+  "protobuf.status.idle": "Paste some binary",
+  "protobuf.status.blind": "{bytes} bytes · {n} fields — no .proto, so no names (numbers, wire types and values are still right)",
+  "protobuf.status.named": "{bytes} bytes · {n} fields · read as {name}",
+  "protobuf.status.toJson": "Copied the decoded fields into JSON",
+  "protobuf.status.fromJson": "Encoded into {bytes} bytes",
+  "protobuf.status.bad": "Could not read it — {msg}"
+}

@@ -1,4 +1,7 @@
 import { t, loadNamespace } from '../lib/i18n';
+import { parseDer, readPem, show, toPem } from '../core/pem';
+import { readChain } from '../core/certview';
+import { markLive } from './tools/shared/say';
 
 (function() {
     async function loadFromTxt(): Promise<void> {
@@ -311,9 +314,182 @@ import { t, loadNamespace } from '../lib/i18n';
 
                     });
                 }
+            },
+            {
+                /*
+                 * 열쇠 다루기 (TASK-KL-316 / 22). 새 도구가 아니라 **이 도구의 탭**인 이유:
+                 * 사람은 「암호화」를 찾아 여기 오고, 열쇠는 그 옆에 있어야 한다.
+                 * 만드는 일은 브라우저의 WebCrypto 가 한다 — 우리가 난수를 만들지 않는다.
+                 * 읽는 일은 `core/pem` (인증서 도구와 **같은 것**을 쓴다).
+                 */
+                id: 'keys',
+                label: t('crypto.keys.tab', undefined, '열쇠'),
+                build(c: HTMLElement) {
+                    void loadNamespace('crypto').then(function () {
+                        drawKeys(c);
+                    });
+                }
+            },
+            {
+                /*
+                 * 인증서 보기 (TASK-KL-316 / 23). 같은 위젯의 탭인 이유: 열쇠·인증서·CSR 은
+                 * **같은 봉투(PEM)** 에 담겨 오고, 사람은 그걸 가른 뒤에야 어느 도구인지 안다.
+                 * 여기서는 「누구 것 · 언제까지 · 어떤 이름들」만 앞에 세운다 — 나머지는 열쇠 탭의 나무로.
+                 */
+                id: 'cert',
+                label: t('crypto.cert.tab', undefined, '인증서'),
+                build(c: HTMLElement) {
+                    void loadNamespace('crypto').then(function () {
+                        drawCert(c);
+                    });
+                }
             }
         ]
     });
+
+    function drawCert(c: HTMLElement): void {
+        c.innerHTML = `
+            <div class="field-group">
+              <label class="field-label" for="cvIn">${esc(t('crypto.cert.label.in'))}</label>
+              <textarea id="cvIn" name="pem" aria-label="${esc(t('crypto.cert.label.in'))}" class="mono-input" style="min-height:150px;" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+            </div>
+            <div id="cvCards"></div>
+            <div class="tool-status" id="cvStatus">${esc(t('crypto.cert.status.idle'))}</div>
+            <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('crypto.cert.note.local'))}</p>
+        `;
+
+        const q = <T extends HTMLElement>(s: string): T => c.querySelector(s) as T;
+        const status = q<HTMLElement>('#cvStatus');
+        markLive(status);
+
+        q<HTMLTextAreaElement>('#cvIn').addEventListener('input', (): void => {
+            const text = q<HTMLTextAreaElement>('#cvIn').value;
+            if (text.trim() === '') {
+                q<HTMLElement>('#cvCards').innerHTML = '';
+                status.textContent = t('crypto.cert.status.idle');
+                return;
+            }
+            try {
+                const chain = readChain(text);
+                q<HTMLElement>('#cvCards').innerHTML = chain.certs
+                    .map((cert, i) => {
+                        const rows: string[] = [];
+                        const row = (k: string, v: string): string =>
+                            '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="tool-list-val">' + esc(v) + '</span></div>';
+                        rows.push(row(t('crypto.cert.row.subject'), cert.subject === '' ? '—' : cert.subject));
+                        if (cert.issuer !== '') rows.push(row(t('crypto.cert.row.issuer'), cert.issuer + (cert.selfSigned ? '  · ' + t('crypto.cert.selfSigned') : '')));
+                        if (cert.notAfter !== undefined) {
+                            const left = i === 0 && chain.daysLeft !== undefined ? '  · ' + t(chain.daysLeft < 0 ? 'crypto.cert.expired' : 'crypto.cert.daysLeft', { n: Math.abs(chain.daysLeft) }) : '';
+                            rows.push(row(t('crypto.cert.row.until'), String(cert.notAfter) + left));
+                        }
+                        if (cert.names.length > 0) rows.push(row(t('crypto.cert.row.names'), cert.names.join(', ')));
+                        rows.push(row(t('crypto.cert.row.key'), (cert.keyAlgorithm ?? '?') + '  ·  ' + (cert.signatureAlgorithm ?? '?')));
+                        if (cert.isCa === true) rows.push(row(t('crypto.cert.row.ca'), t('crypto.cert.isCa')));
+                        return '<div class="tool-list" style="margin-bottom:12px;">' + rows.join('') + '</div>';
+                    })
+                    .join('');
+                status.textContent =
+                    chain.certs.length === 1
+                        ? t('crypto.cert.status.one')
+                        : t(chain.linked ? 'crypto.cert.status.chain' : 'crypto.cert.status.broken', { n: chain.certs.length });
+            } catch (e) {
+                q<HTMLElement>('#cvCards').innerHTML = '';
+                status.textContent = t('crypto.cert.status.failed', { msg: String((e as Error).message) });
+            }
+        });
+    }
+
+    function esc(v: string): string {
+        return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function drawKeys(c: HTMLElement): void {
+        c.innerHTML = `
+            <div class="field-group" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+              <div>
+                <label class="field-label" for="ckKind">${esc(t('crypto.keys.label.kind'))}</label>
+                <select id="ckKind" name="kind" aria-label="${esc(t('crypto.keys.label.kind'))}">
+                  <option value="RSA-2048">RSA 2048</option>
+                  <option value="RSA-4096">RSA 4096</option>
+                  <option value="EC-P-256">EC P-256</option>
+                  <option value="EC-P-384">EC P-384</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="ckMake">${esc(t('crypto.keys.btn.make'))}</button>
+              <button class="btn btn-ghost" id="ckCopyPub">${esc(t('crypto.keys.btn.copyPub'))}</button>
+            </div>
+            <div class="tool-grid-2">
+              <div>
+                <div class="tool-sublabel">${esc(t('crypto.keys.label.private'))}</div>
+                <textarea id="ckPriv" name="private" aria-label="${esc(t('crypto.keys.label.private'))}" class="mono-input" readonly style="min-height:180px;"></textarea>
+              </div>
+              <div>
+                <div class="tool-sublabel">${esc(t('crypto.keys.label.public'))}</div>
+                <textarea id="ckPub" name="public" aria-label="${esc(t('crypto.keys.label.public'))}" class="mono-input" readonly style="min-height:180px;"></textarea>
+              </div>
+            </div>
+            <div class="field-group" style="margin-top:12px;">
+              <label class="field-label" for="ckLook">${esc(t('crypto.keys.label.look'))}</label>
+              <textarea id="ckLook" name="pem" aria-label="${esc(t('crypto.keys.label.look'))}" class="mono-input" style="min-height:120px;" placeholder="-----BEGIN PUBLIC KEY-----"></textarea>
+            </div>
+            <pre id="ckTree" class="mono-input" style="white-space:pre-wrap; padding:10px; margin:0; min-height:120px; overflow:auto;"></pre>
+            <div class="tool-status" id="ckStatus">${esc(t('crypto.keys.status.idle'))}</div>
+            <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('crypto.keys.note.local'))}</p>
+        `;
+
+        const q = <T extends HTMLElement>(s: string): T => c.querySelector(s) as T;
+        const status = q<HTMLElement>('#ckStatus');
+        markLive(status);
+
+        q<HTMLButtonElement>('#ckMake').onclick = async (): Promise<void> => {
+            const kind = q<HTMLSelectElement>('#ckKind').value;
+            status.textContent = t('crypto.keys.status.making');
+            try {
+                const algorithm: RsaHashedKeyGenParams | EcKeyGenParams = kind.startsWith('RSA')
+                    ? {
+                          name: 'RSASSA-PKCS1-v1_5',
+                          modulusLength: Number(kind.split('-')[1]),
+                          publicExponent: new Uint8Array([1, 0, 1]),
+                          hash: 'SHA-256'
+                      }
+                    : { name: 'ECDSA', namedCurve: kind.replace('EC-', '') };
+                const pair = await crypto.subtle.generateKey(algorithm, true, ['sign', 'verify']);
+                const priv = new Uint8Array(await crypto.subtle.exportKey('pkcs8', pair.privateKey));
+                const pub = new Uint8Array(await crypto.subtle.exportKey('spki', pair.publicKey));
+                q<HTMLTextAreaElement>('#ckPriv').value = toPem('PRIVATE KEY', priv);
+                q<HTMLTextAreaElement>('#ckPub').value = toPem('PUBLIC KEY', pub);
+                status.textContent = t('crypto.keys.status.made', { kind });
+            } catch (e) {
+                status.textContent = t('crypto.keys.status.failed', { msg: String((e as Error).message) });
+            }
+        };
+
+        q<HTMLButtonElement>('#ckCopyPub').onclick = async (): Promise<void> => {
+            const pub = q<HTMLTextAreaElement>('#ckPub').value;
+            if (pub === '') return;
+            await Toolbox.copyText?.(pub, { message: t('crypto.keys.copied') });
+        };
+
+        q<HTMLTextAreaElement>('#ckLook').addEventListener('input', (): void => {
+            const text = q<HTMLTextAreaElement>('#ckLook').value;
+            if (text.trim() === '') {
+                q<HTMLElement>('#ckTree').textContent = '';
+                status.textContent = t('crypto.keys.status.idle');
+                return;
+            }
+            try {
+                const blocks = readPem(text);
+                if (blocks.length === 0) throw new Error(t('crypto.keys.err.noPem'));
+                q<HTMLElement>('#ckTree').textContent = blocks
+                    .map((b) => b.label + ' (' + b.der.length + ' bytes)\n' + show(parseDer(b.der)))
+                    .join('\n\n');
+                status.textContent = t('crypto.keys.status.read', { n: blocks.length, label: blocks[0].label });
+            } catch (e) {
+                q<HTMLElement>('#ckTree').textContent = '';
+                status.textContent = t('crypto.keys.status.failed', { msg: String((e as Error).message) });
+            }
+        });
+    }
 
     window.toggleCryptoFields = toggleCryptoFields;
     window.swapResultToInput = swapResultToInput;

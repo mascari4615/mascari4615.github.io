@@ -4,6 +4,7 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { markLive } from './shared/say';
+import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Piece } from '../../core/regexplain';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -33,7 +34,7 @@ import { markLive } from './shared/say';
         id: 'app',
         label: t('regextest.t21', undefined, "정규식"),
         build: function (container: HTMLElement): void {
-          void loadNamespace('regextest').then(function () {
+          void Promise.all([loadNamespace('regextest'), loadNamespace('regexplain')]).then(function () {
 
           Mdd.linePreset('tool_run', { msg: t('regextest.mdd') });
           container.innerHTML = `
@@ -68,6 +69,13 @@ import { markLive } from './shared/say';
 
             <div class="tool-status" id="rxStatus" style="margin-top:var(--space-lg);">${esc(t('regextest.status.idle'))}</div>
             <div id="rxMatches" class="tool-list"></div>
+
+            <!-- 시험만으로는 「왜 이게 잡히나」를 모른다 — 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316) -->
+            <details id="rxExplainBox" style="margin-top:var(--space-lg);">
+              <summary style="cursor:pointer;">${esc(t('regextest.explain.title'))}</summary>
+              <div id="rxRail" style="overflow:auto; margin:10px 0;"></div>
+              <div id="rxPieces" class="tool-list"></div>
+            </details>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const pattern = $<HTMLInputElement>('#rxPattern');
@@ -137,6 +145,55 @@ import { markLive } from './shared/say';
             } else {
               replaced.innerHTML = t('regextest.hint.replace');
             }
+
+            explain(pat);
+          }
+
+          /**
+           * 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316).
+           *
+           * 시험만 있으면 「이게 왜 잡히나」를 못 배운다. 말은 **여기서** 만든다 —
+           * 알맹이(`core/regexplain`)는 `what` 열쇠만 돌려주므로 영어·일본어 화면에서도 그 말이 나온다.
+           */
+          function explain(pat: string): void {
+            const rail = $<HTMLElement>('#rxRail');
+            const list = $<HTMLElement>('#rxPieces');
+            if (pat === '') {
+              rail.textContent = '';
+              list.innerHTML = '';
+              return;
+            }
+            try {
+              const node = parseRegex(pat);
+              rail.innerHTML = toRailroad(node, matchMedia('(prefers-color-scheme: dark)').matches);
+              list.innerHTML = merged(regexPieces(node)).map(sentence).join('');
+            } catch (e) {
+              rail.textContent = '';
+              const why = esc(t('regextest.explain.cannot')) + ' ' + esc(e instanceof Error ? e.message : String(e));
+              list.innerHTML = '<div class="tool-list-row"><span class="tool-list-val">' + why + '</span></div>';
+            }
+          }
+
+          /** 한 조각을 한 줄로. 몇 번인지는 뒤에 붙인다. */
+          function sentence(piece: Piece): string {
+            const what = t('regexplain.what.' + piece.what, { text: piece.text ?? '', name: piece.name ?? '' });
+            const q = piece.quant;
+            let times = '';
+            if (q !== undefined) {
+              if (q.min === 0 && q.max === undefined) times = t('regexplain.times.any');
+              else if (q.min === 1 && q.max === undefined) times = t('regexplain.times.oneOrMore');
+              else if (q.min === 0 && q.max === 1) times = t('regexplain.times.maybe');
+              else if (q.max === undefined) times = t('regexplain.times.atLeast', { n: q.min });
+              else if (q.min === q.max) times = t('regexplain.times.exact', { n: q.min });
+              else times = t('regexplain.times.between', { min: q.min, max: q.max });
+              if (q.lazy === true) times += ' ' + t('regexplain.times.lazy');
+            }
+            const pad = '&nbsp;&nbsp;'.repeat(piece.depth);
+            return (
+              '<div class="tool-list-row"><span class="tool-list-key">' + pad + esc(piece.text ?? '') + '</span>' +
+              '<span class="tool-list-val">' + esc(what) + '</span>' +
+              '<span class="tool-list-dim">' + esc(times) + '</span></div>'
+            );
           }
 
           [pattern, flags, input, replace].forEach((el) => el.addEventListener('input', run));

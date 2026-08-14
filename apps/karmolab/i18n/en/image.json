@@ -31,5 +31,9 @@
   "image.cmp.after": "after {size}",
   "image.more": "{name} and {n} more",
   "image.cmp.aria": "Before/after compare — use arrow keys",
-  "image.btn.recent": "Recent"
+  "image.btn.recent": "Recent",
+  "image.part.bgremove": "Remove background",
+  "image.part.idphoto": "ID photo",
+  "image.part.docscan": "Document scan",
+  "image.part.ocr": "Read text"
 }

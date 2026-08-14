@@ -1,0 +1,21 @@
+{
+  "tts.mdd": "Write it and I will read it out.",
+  "tts.tab": "Read aloud",
+  "tts.label.text": "Text to read",
+  "tts.label.voice": "Voice",
+  "tts.label.rate": "Speed",
+  "tts.label.pitch": "Pitch",
+  "tts.btn.play": "Read",
+  "tts.btn.pause": "Pause / resume",
+  "tts.btn.stop": "Stop",
+  "tts.status.idle": "Write something to read",
+  "tts.status.ready": "{n} sentences · about {m}m {s}s",
+  "tts.status.speaking": "reading sentence {i} of {n}",
+  "tts.status.paused": "Paused",
+  "tts.status.resumed": "Resumed",
+  "tts.status.stopped": "Stopped",
+  "tts.status.done": "Finished",
+  "tts.status.failed": "It stopped mid-way — press read again",
+  "tts.status.noVoice": "This browser has no voices available (installing OS voice packs adds more)",
+  "tts.note.noSave": "Saving to a file is not possible — the browser speech engine sends sound to the speakers and never hands it to us. To record, use the screen recorder with audio, or your operating system recorder. The text never leaves your browser."
+}

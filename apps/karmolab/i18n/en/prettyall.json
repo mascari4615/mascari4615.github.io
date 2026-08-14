@@ -1,0 +1,17 @@
+{
+  "prettyall.mdd": "Squashed CSS or HTML — let me lay it out.",
+  "prettyall.tab": "Tidy",
+  "prettyall.label.in": "Paste here",
+  "prettyall.label.out": "Result",
+  "prettyall.aria.out": "The tidied result",
+  "prettyall.btn.format": "Format",
+  "prettyall.btn.minify": "Minify",
+  "prettyall.btn.copy": "Copy",
+  "prettyall.copy.done": "Copied",
+  "prettyall.goTo": "A dedicated tool handles {kind} better.",
+  "prettyall.goTo.btn": "Go there",
+  "prettyall.status.idle": "Paste some CSS or HTML",
+  "prettyall.status.formatted": "Laid the {kind} out over {n} lines",
+  "prettyall.status.minified": "{before} → {after} chars ({cut}% smaller)",
+  "prettyall.note.noJs": "JavaScript is deliberately not handled — a half-right formatter changes meaning in code without semicolons. Use Prettier in your editor."
+}
