@@ -3,11 +3,8 @@
   "갱신": "2026-08-14",
   "목록": [
     "audit:all",
-    "smoke:arcadeletter",
-    "smoke:arcadereplay",
     "smoke:arcaderoom",
     "smoke:arcadestage",
-    "smoke:arcadeteams",
     "smoke:bm",
     "smoke:burnnote",
     "smoke:codeshot",
@@ -46,11 +43,8 @@
   ],
   "사유": {
     "audit:all": "묶음 — 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다",
-    "smoke:arcadeletter": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
-    "smoke:arcadereplay": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "smoke:arcaderoom": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "smoke:arcadestage": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
-    "smoke:arcadeteams": "화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)",
     "smoke:bm": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "smoke:burnnote": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "smoke:codeshot": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
