@@ -806,5 +806,7 @@
   "karmograph.otherTab.followed": "他のタブの変更を取り込みました",
   "karmograph.board.aria": "関係図 — カード {n} 枚、線 {e} 本",
   "karmograph.board.picked": "{name} を選択 — つながり {n} 件",
-  "karmograph.opt.sketchy": "手描き風"
+  "karmograph.opt.sketchy": "手描き風",
+  "karmograph.board.pickedEdge": "{from} → {to}: {label}",
+  "karmograph.board.pickedMany": "{n} 件選択"
 }
