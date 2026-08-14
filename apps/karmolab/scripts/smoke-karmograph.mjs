@@ -1889,6 +1889,35 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('판 끝에서 이름을 고쳐도 칸이 화면 안에 있다 (KL-271)', async () => {
+  /* 실측 2026-08-14(데스크톱): 왼쪽 가장자리에서 카드를 두 번 누르면 이름 칸이 **-40px** 에
+     떴다 — 글자를 치는데 앞이 안 보인다. 카드는 판을 넘어갈 수 있어도 **칸은 화면 안**이어야 한다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  for (const [where, fx, fy] of [['왼쪽 위', 0.02, 0.03], ['오른쪽 아래', 0.97, 0.9]]) {
+    await m.mouse.dblclick(cbox.x + cbox.width * fx, cbox.y + cbox.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+    const r = await m.evaluate(() => {
+      const el = document.querySelector('.km-inline');
+      const b = el.getBoundingClientRect();
+      return { l: b.left, r: b.right, t: b.top, bo: b.bottom, vw: innerWidth, vh: innerHeight };
+    });
+    if (r.l < -1 || r.r > r.vw + 1 || r.t < -1 || r.bo > r.vh + 1) {
+      throw new Error(`${where} 에서 이름 칸이 화면을 넘는다: ${Math.round(r.l)}~${Math.round(r.r)} / ${r.vw}`);
+    }
+    await m.keyboard.press('Escape');
+    await m.waitForTimeout(ms(300));
+  }
+  await ctx.close();
+});
+
 await step('판 끝의 카드를 골라도 작은 도구 줄이 화면 안에 있다 (KL-271)', async () => {
   /* 실측 2026-08-14(폰): 오른쪽 끝 카드를 고르면 도구 줄이 화면 밖으로 나갔다(오른쪽 472 > 390) —
      복제·지우기가 통째로 사라진다. 위쪽 끝에서는 이미 아래로 뒤집게 돼 있었다. */
