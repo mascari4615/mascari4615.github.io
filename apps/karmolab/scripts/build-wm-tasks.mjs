@@ -65,7 +65,15 @@ async function main() {
       process.exit(1);
     }
     const prev = JSON.parse(await fsp.readFile(OUT_PATH, 'utf8'));
-    console.log(`[wm-tasks] memo 없음 — 커밋된 산출 사용 (${prev.counts?.shown ?? '?'}건)`);
+    /* 바닥 (2026-08-14). 아래 갈래에는 「보여 줄 항목 0건이면 실패」가 있는데 이 갈래엔 없었다.
+     * CI 는 언제나 이 갈래로 온다(memo 는 비공개) — 비면 배포는 초록, 화면은 백지다. */
+    const kept = prev.counts?.shown;
+    if (typeof kept !== 'number' || kept < 1) {
+      console.error(`[wm-tasks] ❌ 커밋된 산출에 보여 줄 항목이 ${kept ?? '?'}건이다 — 「memo 가 없다」가 아니라 **산출이 비었다**.`);
+      console.error('[wm-tasks]   memo 가 있는 기계에서 `npm run build:wm-tasks` 를 돌려 다시 커밋할 것.');
+      process.exit(1);
+    }
+    console.log(`[wm-tasks] memo 없음 — 커밋된 산출 사용 (${kept}건)`);
     return;
   }
 
