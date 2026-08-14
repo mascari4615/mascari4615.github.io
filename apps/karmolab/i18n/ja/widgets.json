@@ -203,5 +203,6 @@
   "widgets.studymap.title": "開発者 学習マップ",
   "widgets.meong.title": "ぼーっと",
   "widgets.bon.title": "本",
-  "widgets.foundry.title": "棚"
+  "widgets.foundry.title": "棚",
+  "widgets.xmlfmt.title": "XML を扱う"
 }

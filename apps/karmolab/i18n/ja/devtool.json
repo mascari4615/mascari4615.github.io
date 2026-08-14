@@ -28,5 +28,14 @@
   "devtool.tree.root": "ルート",
   "devtool.tree.cut": "大きすぎるのでここまで展開しました",
   "devtool.tree.copied": "パスをコピー: {path}",
-  "devtool.btn.recent": "さっきの作業"
+  "devtool.btn.recent": "さっきの作業",
+  "devtool.part.diff": "比べる",
+  "devtool.part.curlkit": "curl 変換",
+  "devtool.part.configconv": "設定変換",
+  "devtool.part.mockdata": "ダミーデータ",
+  "devtool.part.jqplay": "jq",
+  "devtool.part.sqlfmt": "SQL 整形",
+  "devtool.part.erd": "表の関係",
+  "devtool.part.xmlfmt": "XML を扱う",
+  "devtool.part.mermaidlite": "図を描く"
 }

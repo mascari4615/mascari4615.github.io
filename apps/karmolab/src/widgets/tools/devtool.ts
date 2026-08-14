@@ -22,7 +22,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['jsonfmt', 'JSON'],
         ['json2ts', t('devtool.part.json2ts', undefined, 'JSON → 타입')],
         ['csvjson', 'CSV ↔ JSON'],
-        ['tableconv', t('devtool.part.tableconv', undefined, '표 바꾸기')]
+        ['tableconv', t('devtool.part.tableconv', undefined, '표 바꾸기')],
+        ['xmlfmt', t('devtool.part.xmlfmt', undefined, 'XML 다루기')]
       ]
     },
     {

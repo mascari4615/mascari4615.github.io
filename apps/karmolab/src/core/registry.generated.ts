@@ -35,6 +35,7 @@ import { run as vatRun, spec as vatSpec } from './vat';
 import { run as wordfreqRun, spec as wordfreqSpec } from './wordfreq';
 import { run as workdaysRun, spec as workdaysSpec } from './workdays';
 import { run as worldclockRun, spec as worldclockSpec } from './worldclock';
+import { run as xmlfmtRun, spec as xmlfmtSpec } from './xmlfmt';
 import { run as ziptoolRun, spec as ziptoolSpec } from './ziptool';
 
 export interface CoreEntry {
@@ -77,5 +78,6 @@ export const CORES: Record<string, CoreEntry> = {
   wordfreq: { run: wordfreqRun, ops: Object.keys(wordfreqSpec.ops) },
   workdays: { run: workdaysRun, ops: Object.keys(workdaysSpec.ops) },
   worldclock: { run: worldclockRun, ops: Object.keys(worldclockSpec.ops) },
+  xmlfmt: { run: xmlfmtRun, ops: Object.keys(xmlfmtSpec.ops) },
   ziptool: { run: ziptoolRun, ops: Object.keys(ziptoolSpec.ops) },
 };
