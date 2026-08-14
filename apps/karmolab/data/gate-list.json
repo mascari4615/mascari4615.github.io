@@ -24,6 +24,7 @@
     "audit:orphan-widgets",
     "audit:shared-bypass",
     "audit:mouse-only",
+    "audit:registry-impl",
     "audit:vendor-globals",
     "audit:wf-prereq",
     "test:i18n:pair",
