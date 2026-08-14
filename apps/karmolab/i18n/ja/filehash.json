@@ -11,5 +11,9 @@
   "filehash.say.working": "計算中…",
   "filehash.say.match": "{algo} の値が配布元と同じです — ファイルは無事です。",
   "filehash.say.reading": "{name} · {size} を読んでいます…",
-  "filehash.say.ready": "{name} · {size} · 行を押すと値がコピーされます。"
+  "filehash.say.ready": "{name} · {size} · 行を押すと値がコピーされます。",
+  "filehash.lookup.title": "この検査値で問い合わせる",
+  "filehash.lookup.virustotal": "VirusTotal で見る",
+  "filehash.lookup.bazaar": "MalwareBazaar で見る",
+  "filehash.lookup.how": "ファイルは相変わらず出ていきません — 押すと64桁の検査値だけがそのサイトの URL に乗ります。検査値からファイルは復元できません。"
 }

@@ -106,3 +106,38 @@ export const run: ToolRunner = (op, args) => {
 export async function hashText(text: string): Promise<Record<string, string>> {
   return hashBytes(enc.encode(text));
 }
+
+/**
+ * 해시로 남에게 물어보기 (TASK-KL-238 / 24 virustotal)
+ *
+ * 파일을 올리지 않는다. **이미 계산한 64자리만** 주소에 실어 남의 창고를 열어 준다 —
+ * 그 창고들이 아는 것은 「누가 이 해시를 물어봤다」뿐이고, 파일도 이름도 안 나간다.
+ *
+ * ★ 여기서 주의할 것은 `passgen` 의 유출 조회와 **다르다**는 점이다. 그쪽은 앞 다섯 글자만
+ * 보내 서버가 어느 것인지 모르게 한다(k-익명). 여기는 완전한 해시가 나간다 — 대신 그 해시는
+ * *파일을 되돌릴 수 없는* 값이라 성립한다. 화면은 이 차이를 사람에게 그대로 말해야 한다.
+ *
+ * 왜 열어 주기만 하나(직접 조회 X): VirusTotal 의 조회 API 는 **열쇠가 있어야 하고** 브라우저에서
+ * 부를 수 없다(CORS). 열쇠를 우리 쪽에 두면 사용자의 파일 해시가 우리를 거쳐 가게 된다 —
+ * 그건 이 도구가 지키는 「아무것도 안 보낸다」와 부딪힌다. 그래서 **누르면 그쪽으로 간다.**
+ */
+export interface HashLookup {
+  /** 화면·시험이 쓰는 열쇠. 말은 화면이 고른다. */
+  id: 'virustotal' | 'bazaar';
+  url: string;
+}
+
+const SHA256_RE = /^[0-9a-f]{64}$/;
+
+/**
+ * 넘겨줄 자리들. 64자리 SHA-256 이 아니면 **빈 목록**을 낸다 —
+ * 반쪽 값으로 남의 창고를 열면 아무것도 못 찾고 「없다」로 오해한다.
+ */
+export function hashLookups(sha256: string): HashLookup[] {
+  const h = String(sha256 ?? '').trim().toLowerCase();
+  if (!SHA256_RE.test(h)) return [];
+  return [
+    { id: 'virustotal', url: `https://www.virustotal.com/gui/file/${h}` },
+    { id: 'bazaar', url: `https://bazaar.abuse.ch/browse.php?search=sha256%3A${h}` }
+  ];
+}

@@ -11,5 +11,9 @@
   "filehash.say.working": "Computing…",
   "filehash.say.match": "The {algo} value matches the publisher — the file is intact.",
   "filehash.say.reading": "Reading {name} · {size}…",
-  "filehash.say.ready": "{name} · {size} · click a row to copy its value."
+  "filehash.say.ready": "{name} · {size} · click a row to copy its value.",
+  "filehash.lookup.title": "Ask about this checksum",
+  "filehash.lookup.virustotal": "Look up on VirusTotal",
+  "filehash.lookup.bazaar": "Look up on MalwareBazaar",
+  "filehash.lookup.how": "The file still never leaves — clicking sends only the 64-character checksum in that site's URL. A checksum cannot be turned back into your file."
 }
