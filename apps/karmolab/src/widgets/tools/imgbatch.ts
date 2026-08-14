@@ -8,7 +8,7 @@
 import { statusLine } from './shared/say';
 import { runBatch, retryBar, type BatchFail } from './shared/batch';
 import { wireDrop } from './shared/drop-well';
-import { loadImage, toCanvas, encode, download } from './shared/image';
+import { download, encode, loadImage, toCanvas } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
 
@@ -302,11 +302,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
             const z = new Z();
             results.forEach((r) => z.file(r.name, r.blob));
             const blob = await z.generateAsync({ type: 'blob' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = t('imgbatch.file.zip');
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            download(blob, t('imgbatch.file.zip')); // 공용 한 자리
             say(t('imgbatch.say.zipped', { n: results.length }), 'ok');
             Toolbox.trackUse?.('zip');
           }

@@ -100,9 +100,13 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
             return lib;
           }
 
+          let thumbUrls: string[] = [];
           function renderPreview(): void {
+            // 앞 판에서 만든 주소를 먼저 거둔다 — 안 거두면 **다시 그릴 때마다** 쌓인다.
+            for (const u of thumbUrls) URL.revokeObjectURL(u);
+            thumbUrls = files.map((f) => URL.createObjectURL(f));
             preview.innerHTML = files
-              .map((f, i) => `<div class="p2-cell"><img src="${URL.createObjectURL(f)}" alt=""><span>${esc(t('img2pdf.value.nth', { n: i + 1 }))}</span></div>`)
+              .map((f, i) => `<div class="p2-cell"><img src="${thumbUrls[i]}" alt=""><span>${esc(t('img2pdf.value.nth', { n: i + 1 }))}</span></div>`)
               .join('');
           }
 

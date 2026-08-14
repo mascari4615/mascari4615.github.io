@@ -10,7 +10,7 @@
 import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { download, loadImage } from './shared/image';
+import { attachImage, download, loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -241,7 +241,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 return;
               }
               made = blob;
-              $<HTMLImageElement>('#imPreview').src = URL.createObjectURL(blob);
+              attachImage($<HTMLImageElement>('#imPreview'), blob); // 공용 — 앞 주소를 거두고 물린다
               $<HTMLElement>('#imResult').style.display = '';
               const aName = t('imgmerge.file.name');
               download(blob, aName);

@@ -13,7 +13,7 @@
 import { fileSize as size } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { download, encode, loadImage } from './shared/image';
+import { attachImage, download, encode, loadImage } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -263,7 +263,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               if (!blob) throw new Error(t('imgresize.err.convert'));
               made = blob;
-              preview.src = URL.createObjectURL(blob);
+              attachImage(preview, blob); // 공용 — 앞 주소를 거두고 물린다
               preview.style.display = '';
               saveBtn.disabled = false;
 
