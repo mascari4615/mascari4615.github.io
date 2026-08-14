@@ -8,20 +8,13 @@
  * 창을 셋 쓰는 이유: 링크를 여는 것이 곧 「받는 것」이라, 같은 창에서 열면 아무것도 안 재진다.
  */
 import { chromium } from 'playwright';
-import { serveRepo } from './lib/serve-static.mjs';
+import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-/* ★ **사람의 dev 서버를 몰래 쓰지 않는다** (2026-08-14). 전에는 8813 이 떠 있으면 그걸 썼다 —
-   그래서 내 자리에서는 **CI 와 다른 서버**를 재고 있었고, 오늘 그 때문에 「로컬에서는 통과」를
-   근거로 틀린 가설을 세웠다(dev 서버가 `/karmolab/…` 을 대신 이어 줘서 늘 초록이었다).
-   시키지 않으면 언제나 내 서버를 띄운다 — 재는 자리가 하나여야 로컬 통과가 뜻이 있다. */
-let 내서버 = null;
-let BASE = process.env.ARCADE_BASE || '';
-if (!BASE) {
-  내서버 = await serveRepo();
-  BASE = 내서버.base;
-}
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {

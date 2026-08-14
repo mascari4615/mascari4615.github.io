@@ -21,7 +21,7 @@
  * `npm run test:arcade:ui`
  */
 import { chromium } from 'playwright';
-import { serveRepo } from './lib/serve-static.mjs';
+import { smokeBase } from './lib/smoke-base.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14).
@@ -29,13 +29,9 @@ import { waitHydrated } from './lib/hydrated.mjs';
    서버를 **한 번도 안 켠다.** 그래서 오락실 화면 검사(게임 51종을 전부 열어 보는 그 검사)가
    verify 에서 늘 「못 돌림」이었다. 못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고,
    없으면 저장소를 그대로 내어 준다(다른 화면 검사들과 같은 `serveRepo`). */
-let 내서버 = null;
-let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
-if (!(await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false))) {
-  내서버 = await serveRepo();
-  BASE = 내서버.base;
-  console.log(`[arcade-ui] dev 서버가 없어 저장소를 직접 내어 준다 (${BASE})`);
-}
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 
 const failures = [];

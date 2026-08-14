@@ -9,16 +9,13 @@
  * 「판이 안 끝났다」로 빨개지는데, 그건 다시 보기의 흠이 아니다(처음에 그렇게 헛짚었다).
  */
 import { chromium } from 'playwright';
-import { serveRepo } from './lib/serve-static.mjs';
+import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-let 내서버 = null;
-let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
-if (!(await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false))) {
-  내서버 = await serveRepo();
-  BASE = 내서버.base;
-}
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
