@@ -1,98 +1,514 @@
 {
   "id": "product-scope",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "끝내는 힘은 더하기가 아니라 **빼기**에서 나온다. 안 만들 목록이 곧 일정이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 시간을 고정하고 범위를 움직인다"
-    },
-    {
-      "type": "note",
-      "text": "「이 기능 다 되면 출시」는 끝나지 않는다. **「6주 안에 낼 수 있는 만큼」**으로 뒤집어라(Shape Up 의 appetite). 시간이 고정되면 무엇을 뺄지 논의가 시작된다."
-    },
-    {
-      "type": "h",
-      "text": "2. 자르는 기준"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "한 줄로 판단",
-      "text": "이게 없으면 핵심 흐름이 끊기나? → 필수\n없으면 불편하지만 돌아가나? → 다음 판\n있으면 좋은데 아무도 안 물어봤나? → 안 만들 목록\n\n예: 로그인 필수 / 소셜 로그인 다음 판 / 프로필 사진 크롭 안 만듦"
-    },
-    {
-      "type": "h",
-      "text": "3. 세로로 자른다"
-    },
-    {
-      "type": "p",
-      "text": "「DB 부터 다 만들고 화면」은 끝까지 아무것도 못 보여 준다. **한 흐름을 얇게 관통**시켜라(추가 → 목록 → 삭제 하나씩 완결). 그래야 언제 멈춰도 쓸 수 있는 것이 남는다."
-    },
-    {
-      "type": "h",
-      "text": "4. 완성의 조건을 미리 적는다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "「됐다」의 정의",
-      "text": "· 로그인한 사용자가 메모를 만들고 목록에서 본다\n· 새로고침해도 남아 있다\n· 실패하면 사용자에게 이유가 보인다\n(위 세 줄이 되면 끝. 태그·검색·정렬은 이번 판 아님)"
-    },
-    {
-      "type": "h",
-      "text": "5. 커지는 것을 감지한다"
-    },
-    {
-      "type": "note",
-      "text": "「이왕 하는 김에」가 나오면 멈춰라. 새 아이디어는 **목록에 적고 이번 판에는 넣지 않는다**. 적어 두면 잊힐 걱정이 없어져 거절이 쉬워진다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "지금 작업의 「안 만들 목록」을 10줄 적어라. 적고 나면 일정이 절반으로 보인다."
-    },
-    {
-      "type": "try",
-      "text": "만들고 있는 기능을 세로로 자를 수 있는지 보라 — 이번 주에 끝나는 얇은 한 흐름은 무엇인가?"
-    }
-  ],
-  "quiz": [
-    {
-      "q": "범위를 통제하는 실용적 방법은?",
-      "choices": [
-        "시간을 고정하고 범위를 조정한다",
-        "범위를 고정하고 시간을 늘린다",
-        "둘 다 고정한다"
+      "id": "1",
+      "title": "끝내는 힘은 빼기에서 나온다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**끝내는 힘은 더하기가 아니라 빼기에서 나온다 — 「안 만들 목록」이 곧 일정이다.** 무언가를 끝내려면 「무엇을 더 넣을까」가 아니라 **「무엇을 빼도 되나」**를 물어야 한다. 기능을 계속 더하면 일정은 무한히 늘어나고 아무것도 못 끝낸다. 반대로 **핵심만 남기고 잘라내면** 끝이 보인다. 그래서 **범위(scope)를 정하는 것 = 안 만들 것을 정하는 것**이고, 「안 만들 목록」이 실제 완료 일정을 결정한다(game-ship·product-mvp 의 「범위 자르기」와 같은 규율). 핵심 원리: **시간을 고정하고 범위를 움직인다**(2장) — 마감은 지키되 그 안에 들어갈 것을 조절한다. 이 칸은 시간 고정(1장)·자르는 기준(2장)·세로로 자르기(3장)·완성 조건을 미리 적기(4장)·스코프 크립 감지(5장)를 다룬다. 아래 데모로 더하기 vs 빼기를 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "끝내기 — 더하기 vs 빼기",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const cut = way === 'subtract';\n  render(cut ? '빼기 — 핵심만 남기고 잘라 끝이 보임' : '더하기 — 기능이 계속 늘어 못 끝냄',\n    (cut\n      ? '<span class=\"ok\">「무엇을 빼도 되나」를 물어 핵심만 남김 → 안 만들 목록이 곧 일정 → 끝난다.</span>'\n      : '<span class=\"no\">「이것도 넣자」를 반복 → 일정 무한 확장 → 아무것도 못 끝냄.</span>'),\n    '끝내는 힘 = 빼기 · 안 만들 목록이 곧 일정 · 시간 고정, 범위 조절.',\n    cut\n      ? cmp('할 것 (핵심)', '핵심 기능 하나\\n끝까지 작동', '안 만들 목록 (= 일정)', '멀티·설정·통계·꾸미기\\n→ 나중에·안 함', 'good', '')\n      : box('더하기 (미완성)', '핵심 + 멀티 + 설정 + 통계 + 꾸미기 + ...\\n→ 일정 폭발 → 못 끝냄', 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "way",
+              "label": "방식",
+              "type": "select",
+              "value": "add",
+              "options": [
+                {
+                  "value": "add",
+                  "label": "더하기(못 끝냄)"
+                },
+                {
+                  "value": "subtract",
+                  "label": "빼기(끝남)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**끝내는 힘은 기능을 더하는 데서가 아니라 빼는 데서 나오며, 「안 만들 목록」이 실제 완료 일정을 결정한다.** **왜 빼기인가**: 사람은 「이것도 있으면 좋을 텐데」를 끝없이 떠올린다(기능 욕심·완벽주의). 그 유혹을 다 따르면 — 각 기능이 시간·복잡도·버그를 더해 **일정이 무한히 늘어나고**, 핵심에 닿기도 전에 지쳐 **아무것도 못 끝낸다**. 반대로 **핵심만 남기고 나머지를 잘라내면** 만들 것이 확정되고 끝이 보인다. 그래서 완성의 첫 단추는 「무엇을 더 넣을까」가 아니라 **「무엇을 빼도 되나 / 무엇을 안 만들까」**다(game-ship 2장·product-mvp 3장의 「범위 자르기」와 같은 규율). **범위 = 안 만들 것의 정의**: 「범위를 정한다」는 곧 **경계를 긋는 것** — 이 안은 만들고, 이 밖은 안 만든다. 그리고 **「안 만들 목록(not-doing list)」이 곧 일정**이다: 안 만들 것을 명시하면 만들 것이 확정되고, 만들 것의 크기가 완료 시점을 정한다. 안 만들 목록이 짧으면(다 만들려 하면) 일정이 길고, 길면(많이 자르면) 일정이 짧다. **핵심 원리 — 시간 고정, 범위 조절**: 소프트웨어에서 시간(마감)·범위(기능)·품질·자원은 서로 얽혀 있는데, 대개 **시간을 고정하고 범위를 움직이는** 게 낫다(2장) — 마감은 지키되 그 안에 들어갈 기능을 조절해 **항상 끝나게** 한다(반대로 범위를 고정하고 시간을 늘리면 끝이 계속 밀린다). **효용**: 범위를 잘 자르면 — 빨리 끝내 배우고(product-mvp), 완성의 성취를 얻고(game-ship), 복잡도·버그를 줄이고, 정말 필요하면 나중에 추가한다(작은 완성 위에). **정리**: 끝내는 힘은 빼기다 — 「무엇을 안 만들까」를 정하는 것이 곧 일정을 정하는 것이고, 시간을 고정하고 범위를 조절해 항상 끝나게 하라(다음 장이 자르는 법)."
+        },
+        {
+          "type": "try",
+          "text": "지금 만드는 것에서 **「안 만들 목록」을 적어라** — 떠오르는 기능들 중 **핵심이 아닌 것**을 명시적으로 「나중에·안 함」으로 옮겨라. 「무엇을 더 넣을까」가 아니라 **「무엇을 빼도 핵심이 성립하나」**를 물어라. 안 만들 목록이 짧으면 일정이 길어진다 — 끝내려면 더 잘라라."
+        }
       ],
-      "answer": 0,
-      "why": "시간이 고정돼야 무엇을 뺄지 논의가 시작된다."
+      "quiz": [
+        {
+          "q": "끝내는 힘은 어디서 나오나?",
+          "choices": [
+            "더하기(기능 추가)",
+            "빼기 — 안 만들 목록이 곧 일정",
+            "속도",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "핵심만 남김."
+        },
+        {
+          "q": "범위를 정한다는 것은?",
+          "choices": [
+            "다 만들 것 나열",
+            "안 만들 것(경계)을 정하는 것",
+            "색 고르기",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "경계를 그음."
+        },
+        {
+          "q": "완성을 위한 핵심 원리는?",
+          "choices": [
+            "범위 고정·시간 연장",
+            "시간 고정·범위 조절(항상 끝나게)",
+            "둘 다 늘림",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시간 고정."
+        }
+      ]
     },
     {
-      "q": "기능을 「세로로 자른다」는 뜻은?",
-      "choices": [
-        "한 흐름을 얇게 끝까지 관통시켜 쓸 수 있게 만든다",
-        "레이어별로 완성한다",
-        "화면부터 전부 만든다"
+      "id": "2",
+      "title": "시간을 고정하고 범위를 움직인다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**마감(시간)을 고정하고, 그 안에 들어갈 범위를 움직인다 — 「기능 다 될 때까지」가 아니라 「이 날까지 되는 만큼」이다.** 왜 시간 고정인가: 범위를 고정하면(「이 기능들 다 될 때까지」) 일정이 계속 밀려 **끝이 안 난다**(추정은 늘 낙관적이고, 만들다 보면 새 일이 생긴다). 시간을 고정하면(타임박스) — **정해진 날에 반드시 뭔가 완성**되고, 부족하면 **범위를 자른다**(품질이 아니라, 5장). 이것이 애자일·스프린트의 핵심: 고정된 짧은 기간에 **우선순위 높은 것부터** 넣고, 시간이 다 되면 남은 건 다음으로. **우선순위로 자른다** — MoSCoW(**Must**꼭·**Should**중요·**Could**있으면·**Won't**이번엔 안 함)로 나눠, Must 부터 채우고 시간이 남으면 Should, Could 순. 시간이 부족하면 Could·Should 를 잘라 Must 는 지킨다. 아래 데모로 시간 고정 vs 범위 고정을 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "시간 고정 vs 범위 고정",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const fix = '{{fix}}';\n  const time = fix === 'time';\n  render(time ? '시간 고정 — 이 날까지 되는 만큼(범위를 자름)' : '범위 고정 — 다 될 때까지(끝이 밀림)',\n    (time\n      ? '<span class=\"ok\">마감을 못 박고 우선순위(Must부터) 채움 → 정해진 날에 반드시 완성. 부족하면 Could·Should 를 자름.</span>'\n      : '<span class=\"no\">「기능 다 될 때까지」 → 추정 낙관 + 새 일 발생 → 마감이 계속 밀려 끝이 안 남.</span>'),\n    '시간(마감)을 고정하고 범위를 움직인다 — 우선순위(MoSCoW)로 자름.',\n    time\n      ? steps([['마감 고정: 2주', 'on'], ['Must(꼭) 부터 채움', 'good'], ['시간 남으면 Should → Could', 'good'], ['부족하면 Could·Should 자름(Must 지킴)', 'good']])\n      : steps([['범위 고정: 기능 다', 'bad'], ['추정 낙관 + 새 일 발생', 'bad'], ['마감 계속 밀림 → 끝 안 남', 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "fix",
+              "label": "무엇을 고정",
+              "type": "select",
+              "value": "scope",
+              "options": [
+                {
+                  "value": "scope",
+                  "label": "범위 고정(밀림)"
+                },
+                {
+                  "value": "time",
+                  "label": "시간 고정(끝남)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "MoSCoW 우선순위",
+          "text": "Must    꼭 있어야 (없으면 실패) — 먼저 채움\nShould  중요하지만 없어도 동작 — 시간 남으면\nCould   있으면 좋음 — 여유 있을 때\nWon't   이번엔 안 함 (= 안 만들 목록)\n\n시간(마감) 고정 → Must 부터 채우고, 부족하면 Could·Should 자름\n→ Must 는 지키고 항상 정해진 날에 완성"
+        },
+        {
+          "type": "note",
+          "text": "**마감을 고정하고 그 안에 들어갈 범위를 우선순위로 조절해야 하며, 범위를 고정하면 추정 낙관과 새 일 때문에 끝이 계속 밀린다.** **왜 범위 고정이 위험한가**: 「이 기능들이 **다 될 때까지**」로 잡으면 — ① **추정은 늘 낙관적**이다(계획 오류 planning fallacy — 늘 생각보다 오래 걸림), ② 만들다 보면 **예상 못 한 일**(버그·복잡도·의존성)이 생기고, ③ 하는 김에 「이것도」가 붙는다(5장 스코프 크립). 그 결과 마감이 **계속 밀려** 끝이 안 난다. **시간 고정(타임박스)의 힘**: 마감을 **못 박으면(고정)** — 정해진 날에 **반드시 무언가 완성**되어야 하므로, 부족하면 **범위를 자른다**(무엇을 뺄지 결정, 1장). 이것이 애자일·스프린트의 핵심 — 짧은 고정 기간(1~2주)에 우선순위 높은 것부터 넣고, 기간이 끝나면 완성된 것을 내고 남은 건 다음 기간으로. 시간이 강제하는 절제가 「빼기」를 실행하게 한다. **우선순위로 자른다 — MoSCoW**: 무엇을 먼저·무엇을 자를지 정하는 흔한 틀 — **Must**(꼭 있어야, 없으면 실패), **Should**(중요하지만 없어도 동작), **Could**(있으면 좋음), **Won't**(이번엔 안 함 = 안 만들 목록, 1장). 고정된 시간에 **Must 부터** 채우고, 남으면 Should·Could 순으로. 시간이 부족하면 **Could·Should 를 잘라** Must 는 지킨다 — 그래서 「핵심은 늘 완성되고, 부가는 시간이 허락할 때만」. **자르는 것은 품질이 아니라 범위**: 시간이 부족할 때 **완성도를 낮추는(대충 만드는)** 게 아니라 **기능 수를 줄인다**(product-mvp 5장 「적게, 그러나 제대로」) — Must 몇 개를 제대로 만들지, 다 대충 만들지의 선택에서 전자. **효과**: 항상 마감에 무언가 완성되어 출시·학습·피드백이 규칙적으로 일어난다(product-mvp·release·feedback). **정리**: 시간을 고정하고 범위를 우선순위(MoSCoW)로 조절하라 — Must 부터 채우고 부족하면 부가를 잘라, 항상 정해진 날에 핵심을 완성하라."
+        },
+        {
+          "type": "try",
+          "text": "만들 것들을 **MoSCoW**(Must 꼭·Should 중요·Could 있으면·Won't 안 함)로 나눠라. **마감을 고정**하고 Must 부터 채우되, 시간이 부족하면 **Could·Should 를 잘라**(완성도는 낮추지 말고) Must 는 지켜라. 「다 될 때까지」로 잡고 있다면 「이 날까지 되는 만큼」으로 바꿔, 항상 정해진 날에 무언가 완성되게 하라."
+        }
       ],
-      "answer": 0,
-      "why": "언제 멈춰도 동작하는 것이 남는다."
+      "quiz": [
+        {
+          "q": "무엇을 고정해야 하나?",
+          "choices": [
+            "범위(기능 다 될 때까지)",
+            "시간(마감) — 범위를 우선순위로 조절",
+            "품질만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시간 고정."
+        },
+        {
+          "q": "MoSCoW 의 Must 는?",
+          "choices": [
+            "있으면 좋음",
+            "꼭 있어야(없으면 실패) — 먼저 채움",
+            "이번엔 안 함",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "핵심 우선."
+        },
+        {
+          "q": "시간이 부족하면 무엇을 자르나?",
+          "choices": [
+            "완성도(대충 만듦)",
+            "범위(Could·Should 기능) — Must 는 지킴",
+            "Must",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "품질 아닌 범위."
+        }
+      ]
     },
     {
-      "q": "작업 중 새 아이디어가 떠올랐을 때 권장 행동은?",
-      "choices": [
-        "목록에 적고 이번 판에는 넣지 않는다",
-        "바로 구현한다",
-        "무시하고 잊는다"
+      "id": "3",
+      "title": "세로로 자른다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**범위를 자를 때는 「층(수평)」이 아니라 「기능 흐름(수직)」으로 자른다 — DB 부터 다 만들고 화면은 나중이면 끝까지 아무것도 못 보여 준다.** 나쁜 방식(**수평 자르기**): DB 전부 → 백엔드 전부 → 화면 전부. **각 층이 다 끝나기 전엔 작동하는 게 없어** 중간에 보여 줄 것도, 배울 것도 없다(product-mvp 3장 「바퀴」). 좋은 방식(**수직 자르기·slice**): **하나의 얇은 기능 흐름을 처음부터 끝까지 관통**시킨다 — 「추가 → 목록 → 완료」 한 흐름을 화면·로직·DB **한 조각씩** 만들어 **실제로 동작하게** 한 뒤, 다음 흐름을 얇게 더한다. 그러면 **매 단계 작동하는 제품**이 있어 보여 주고 배우고 자를 수 있다(product-mvp 스케이트보드). 각 조각은 **사용자에게 가치 있는 완결된 기능**(vertical slice)이어야 한다. 아래 데모로 수평 자르기 vs 수직 자르기를 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수평 자르기 vs 세로로 자르기",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const vert = way === 'vertical';\n  const prog = {{prog}};\n  render(vert ? '세로로 자르기 — 한 흐름을 끝까지 관통(작동)' : '수평 자르기 — 층별로, 끝까지 안 보임',\n    (vert\n      ? '<span class=\"ok\">「추가→목록→완료」 한 흐름을 화면·로직·DB 한 조각씩 → 매 단계 작동하는 제품. 보여 주고 배움.</span>'\n      : '<span class=\"no\">DB 다 → 로직 다 → 화면 다 → 전부 끝나기 전엔 작동 X, 보여 줄 것도 배울 것도 없음.</span>'),\n    '층(수평) 아니라 기능 흐름(수직)으로 — 얇게 끝까지 관통시켜라.',\n    slices(vert ? 'vertical' : 'horizontal', prog));\n</script>",
+          "controls": [
+            {
+              "id": "way",
+              "label": "자르는 방향",
+              "type": "select",
+              "value": "horizontal",
+              "options": [
+                {
+                  "value": "horizontal",
+                  "label": "수평(층별)"
+                },
+                {
+                  "value": "vertical",
+                  "label": "세로(흐름별)"
+                }
+              ]
+            },
+            {
+              "id": "prog",
+              "label": "진행",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "세로로 자르기(vertical slice)",
+          "text": "수평(나쁨): DB 전부 → 로직 전부 → 화면 전부\n  → 다 끝나기 전엔 작동 X, 보여 줄 것 없음(바퀴)\n\n세로(좋음): 한 흐름을 화면·로직·DB 한 조각씩 관통\n  「추가」 얇게 관통(작동) → 「목록」 관통 → 「완료」 관통\n  → 매 단계 작동하는 제품 (스케이트보드)\n  각 조각 = 사용자에게 가치 있는 완결 기능"
+        },
+        {
+          "type": "note",
+          "text": "**범위는 아키텍처 층(수평)이 아니라 기능 흐름(수직)으로 잘라야 하며, 층별로 다 만들면 마지막까지 작동하는 것이 없어 보여 주지도 배우지도 못한다.** **수평 자르기(나쁨)**: 시스템을 층으로 나눠 **한 층씩 완성**한다 — 데이터베이스를 전부 설계·구현 → 백엔드 로직을 전부 → API 를 전부 → 화면을 전부. 문제: **모든 층이 다 끝나기 전까지는 작동하는 기능이 하나도 없다**. 몇 주~몇 달 동안 「진행 중」이지만 **보여 줄 것도, 사용자에게 테스트할 것도, 배울 것도 없다**(product-mvp 3장 「바퀴 4개」와 같음). 그리고 마지막에 통합할 때 문제가 몰려 터진다. **수직 자르기(vertical slice, 좋음)**: **하나의 얇은 기능 흐름**을 골라 **필요한 모든 층을 조금씩** 관통시켜 **실제로 동작하게** 만든다 — 예: 「할 일 추가」 하나를, 화면(입력창)·로직(저장 처리)·DB(한 테이블)를 **최소한씩** 만들어 **진짜로 추가되게** 한다. 그다음 「목록 보기」를 얇게 관통, 「완료 표시」를 관통… 이렇게 **기능 단위로 끝까지** 만든다. 그러면 **매 단계 작동하는 제품**이 있어 — 데모하고(이해관계자·사용자), 피드백 받고(product-feedback), 우선순위를 재조정하고, 필요하면 자를 수 있다(product-mvp 스케이트보드와 정확히 같은 원리). **각 조각의 조건**: vertical slice 는 **사용자에게 가치 있는 완결된 작은 기능**이어야 한다(기술 층 하나가 아니라). 「추가가 된다」는 가치지만 「DB 스키마가 있다」는 그 자체론 사용자 가치가 아니다. 처음엔 조각이 **거칠어도**(하드코딩·단순 UI) 관통이 우선 — 나중에 각 조각을 깊게 다듬는다(walking skeleton → 살 붙이기). **효용**: 위험을 일찍 만나고(전 층을 관통하며 통합 문제를 조기 발견), 항상 시연 가능하고, 진짜 진척이 보이고(작동하는 기능 수), 범위 조절(2장)이 쉬워진다(조각 단위로 넣고 뺌). **정리**: 층(수평)이 아니라 기능 흐름(수직)으로 잘라 하나의 얇은 흐름을 끝까지 관통시켜라 — 매 단계 작동하는 제품이 있어야 보여 주고 배우고 자를 수 있다."
+        },
+        {
+          "type": "try",
+          "text": "지금 계획을 **수평(DB 다 → 로직 다 → 화면 다)으로 자르고 있는지** 보라. 그렇다면 **수직으로** 다시 잘라 — **하나의 얇은 기능 흐름**(예: 「추가」)을 화면·로직·DB 한 조각씩 만들어 **실제로 동작하게** 하라. 그 흐름이 작동하면 데모·피드백을 받고, 다음 얇은 흐름을 더하라 — 매 단계 작동하는 제품을 유지하라."
+        }
       ],
-      "answer": 0,
-      "why": "적어 두면 거절이 쉬워진다."
+      "quiz": [
+        {
+          "q": "범위를 어떻게 자르나?",
+          "choices": [
+            "층(수평)별로",
+            "기능 흐름(수직)으로 — 얇게 끝까지 관통",
+            "무작위",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "세로로 자르기."
+        },
+        {
+          "q": "수평 자르기(DB 다→화면 다)의 문제는?",
+          "choices": [
+            "빠름",
+            "다 끝나기 전엔 작동 X — 보여 줄 것도 배울 것도 없음",
+            "안전",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "끝까지 안 보임."
+        },
+        {
+          "q": "vertical slice 의 조건은?",
+          "choices": [
+            "기술 층 하나",
+            "사용자에게 가치 있는 완결된 작은 기능(작동)",
+            "DB 스키마",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "가치 있는 조각."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "완성의 조건을 미리 적는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**「완성」이 무엇인지 시작 전에 적어라 — 안 그러면 끝없이 다듬거나, 반쯤 만들고 「됐다」 하게 된다.** 완성 기준(Definition of Done)이 없으면 두 방향으로 실패한다: ① **끝없는 다듬기** — 「조금만 더 예쁘게·완벽하게」로 영영 안 끝남(완벽주의). ② **어정쩡한 종료** — 「대충 되네」로 반쯤 만들고 놓아, 나중에 구멍이 드러남. 그래서 각 조각·기능마다 **완성의 조건을 구체적·검증 가능하게 미리 적는다**: 「할 일을 추가하면 목록에 뜨고, 새로고침해도 남고, 완료 표시가 되면 이 기준이 충족」. 포함할 것: **핵심 동작·엣지 케이스·에러 처리·테스트·(필요하면) 접근성/성능**. 이 기준을 넘으면 **그만 다듬고 다음으로**(craft-refactor 의 「멈출 때」), 못 넘으면 아직 완성 아님. 완성 기준이 있으면 「끝」이 **객관적**이 된다. 아래 데모로 완성 기준 유무를 비교하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "완성의 조건 — 미리 적기",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const dod = '{{dod}}' === 'on';\n  render(dod ? '완성 기준을 미리 적음 — 끝이 객관적' : '완성 기준 없음 — 끝없는 다듬기 or 어정쩡한 종료',\n    (dod\n      ? steps([['핵심 동작: 추가하면 목록에 뜬다', 'good'], ['영속: 새로고침해도 남는다', 'good'], ['엣지/에러: 빈 입력·중복 처리', 'good'], ['이 기준 넘으면 그만, 못 넘으면 미완', 'good']])\n      : steps([['기준 없음', 'bad'], ['완벽주의 → 끝없이 다듬음', 'bad'], ['또는 「대충 되네」 → 반쯤 만들고 놓음', 'bad']])) +\n    '  ' + (dod\n      ? '<span class=\"ok\">구체적·검증 가능한 완성 기준을 미리 적으면 「끝」이 객관적 — 넘으면 그만, 다음으로.</span>'\n      : '<span class=\"no\">기준이 없으면 끝없이 다듬거나 반쯤 만들고 「됐다」 한다.</span>'),\n    '완성 기준(Definition of Done)을 시작 전에 구체적·검증 가능하게.');\n</script>",
+          "controls": [
+            {
+              "id": "dod",
+              "label": "완성 기준",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "없음"
+                },
+                {
+                  "value": "on",
+                  "label": "미리 적음"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "완성의 조건(DoD)",
+          "text": "「할 일 추가」 기능의 완성 조건:\n  [ ] 추가하면 목록에 즉시 뜬다\n  [ ] 새로고침해도 남는다 (영속)\n  [ ] 빈 입력·아주 긴 입력을 처리한다 (엣지)\n  [ ] 저장 실패 시 에러를 보여 준다\n  [ ] 테스트가 있다\n\n→ 이 기준을 넘으면 그만 다듬고 다음으로\n   못 넘으면 아직 완성 아님 (끝이 객관적)"
+        },
+        {
+          "type": "note",
+          "text": "**각 기능의 완성 조건(Definition of Done)을 시작 전에 구체적이고 검증 가능하게 적어야, 끝없이 다듬거나 반쯤 만들고 끝내는 두 실패를 막고 「끝」이 객관적이 된다.** **완성 기준이 없을 때의 두 실패**: ① **끝없는 다듬기(gold-plating)** — 「조금만 더 완벽하게·예쁘게」의 기준 없는 추구로 **영영 안 끝난다**(완벽주의). 이미 충분한데 계속 손대며 시간을 태우고, 다른 일을 못 한다. ② **어정쩡한 종료** — 반대로 「대충 되네」로 **핵심 케이스만 되고 엣지·에러·영속은 안 된 채** 「됐다」 하고 놓는다. 나중에 사용자가 그 구멍(빈 입력·새로고침·에러)에 빠져 신뢰를 잃는다. 둘 다 **「어디가 끝인지 모르기」** 때문. **완성 기준을 미리 적는다**: 각 조각·기능마다 **무엇이 충족되면 완성인지**를 **시작 전에**, **구체적·검증 가능**하게 적는다 — 「할 일을 추가하면 ①목록에 즉시 뜨고 ②새로고침해도 남고 ③빈 입력·중복을 처리하고 ④저장 실패 시 에러를 보여 주고 ⑤테스트가 있다」. 체크리스트 형태가 좋다(각 항목 예/아니오로 판정 가능). **포함할 것**: **핵심 동작**(정상 흐름), **엣지 케이스**(빈 값·경계·대량), **에러 처리**(실패 시 동작), **영속/상태**(새로고침·재시작), **테스트**, 그리고 기능에 따라 **접근성·성능·보안**(a11y·gfx-perf 등). 팀이면 공통 DoD 를 정의(코드 리뷰·테스트 통과·문서 등). **효용**: ⓐ **끝이 객관적** — 기준을 넘으면 **그만 다듬고 다음으로**(완벽주의 차단, craft-refactor 「멈출 때」), 못 넘으면 아직 미완(어정쩡 종료 차단). ⓑ **범위 조절이 명확** — 「완성」의 크기를 알아야 무엇을 자를지 정한다(2장). ⓒ **품질 기준을 범위와 분리** — 범위(기능 수)는 줄여도 각 기능의 완성 기준(품질)은 지킨다(product-mvp 5장 「적게, 그러나 제대로」). **주의**: DoD 는 **과하지 않게** — MVP 단계면 기준을 상황에 맞게(하드코딩 허용 등, 3장 walking skeleton) 정하되, 정한 기준은 지킨다. **정리**: 완성의 조건을 시작 전에 구체적·검증 가능하게 적어라 — 넘으면 그만, 못 넘으면 미완. 「끝」을 객관적으로 만들어 끝없는 다듬기와 어정쩡한 종료를 둘 다 막아라."
+        },
+        {
+          "type": "try",
+          "text": "지금 만드는 기능 하나의 **완성 조건을 시작 전에 체크리스트로** 적어라 — 핵심 동작·엣지 케이스·에러 처리·영속·테스트. 만들면서 그 기준을 **넘으면 그만 다듬고 다음으로**, **못 넘으면 아직 완성 아님**으로 판단하라. 「끝」이 느낌이 아니라 체크리스트로 객관화되는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "완성 기준(DoD)이 없으면?",
+          "choices": [
+            "문제없음",
+            "끝없이 다듬거나 반쯤 만들고 「됐다」 함",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "끝이 불명확."
+        },
+        {
+          "q": "완성 조건은 언제·어떻게 적나?",
+          "choices": [
+            "끝나고 느낌으로",
+            "시작 전에 구체적·검증 가능하게(체크리스트)",
+            "안 적음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "끝을 객관화."
+        },
+        {
+          "q": "완성 기준을 넘으면?",
+          "choices": [
+            "계속 다듬음",
+            "그만 다듬고 다음으로",
+            "처음부터",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "완벽주의 차단."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "커지는 것을 감지한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**범위는 저절로 커진다(스코프 크립) — 「이왕 하는 김에」·「이것도 있으면 좋을 텐데」가 쌓여 일정을 갉아먹으니, 커지는 것을 감지하고 막아야 한다.** 스코프 크립(scope creep): 처음 정한 범위에 **작은 추가들이 슬금슬금** 붙어 어느새 두세 배가 되는 것. 각 추가는 「사소해 보여」 거절하기 어렵지만, 쌓이면 마감을 무너뜨린다. 원인: 새 아이디어(내·이해관계자·사용자), 「하는 김에」, 완벽주의, 요구 변경. **막는 법**: ① **원래 범위(안 만들 목록·완성 기준)를 문서로** 두고 대조 — 새 요청이 오면 「이건 범위 안인가 밖인가」. ② 범위 밖이면 **「나중에 볼 것」에 담고 지금은 거절**(craft-focus 와 통함) — 아예 버리는 게 아니라 다음 사이클로. ③ 정말 중요하면 **명시적으로 교체**(무언가를 빼고 넣기) — 그냥 얹지 않음(시간 고정, 2장). ④ 「이왕 하는 김에」를 경계 — 대개 범위를 늘리는 신호. 아래 데모로 스코프 크립 누적과 감지를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스코프 크립 — 슬금슬금 커진다",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const extras = {{extras}};\n  const overBudget = extras >= 3;\n  const guarded = '{{guard}}' === 'on';\n  render((guarded ? '감지·차단' : '방치') + ' · 「하는 김에」 추가 ' + extras + '개 → ' + (guarded ? '원래 범위 유지' : '범위 ' + (100 + extras * 40) + '%'),\n    (guarded\n      ? '<span class=\"ok\">새 요청을 원래 범위와 대조 → 밖이면 「나중에 볼 것」에 담고 지금은 거절. 넣으려면 무언가 뺌.</span>'\n      : (overBudget ? '<span class=\"no\">사소해 보이는 추가가 ' + extras + '개 쌓여 범위가 ' + (100 + extras * 40) + '% → 마감 무너짐.</span>'\n                    : '<span class=\"warn\">아직 견딜 만하나 「이왕 하는 김에」가 쌓이면 곧 넘친다.</span>')),\n    '스코프 크립 감지: 원래 범위와 대조 · 나중에 볼 것 · 넣으려면 뺀다.',\n    bars([\n      { lab: '원래 범위', pct: 40, val: '100%', cls: 'c' },\n      { lab: (guarded ? '유지' : '늘어난 범위'), pct: guarded ? 40 : Math.min(100, 40 + extras * 16), val: guarded ? '100%' : (100 + extras * 40) + '%', cls: guarded ? 'g' : overBudget ? 'b' : 'w' },\n    ]));\n</script>",
+          "controls": [
+            {
+              "id": "extras",
+              "label": "「하는 김에」 추가",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 3
+            },
+            {
+              "id": "guard",
+              "label": "감지·차단",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "방치"
+                },
+                {
+                  "value": "on",
+                  "label": "감지·차단"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "스코프 크립 막기",
+          "text": "스코프 크립: 작은 추가들이 슬금슬금 → 범위 2~3배 → 마감 붕괴\n  신호: 「이왕 하는 김에」 · 「이것도 있으면 좋을 텐데」\n\n막는 법:\n  1 원래 범위(안 만들 목록·완성 기준)를 문서로 두고 대조\n  2 범위 밖이면 「나중에 볼 것」에 담고 지금은 거절\n  3 정말 중요하면 명시적 교체(무언가 빼고 넣기)\n  4 「하는 김에」를 경계 — 대개 범위를 늘리는 신호"
+        },
+        {
+          "type": "note",
+          "text": "**범위는 작은 추가가 쌓여 저절로 커지므로(스코프 크립), 원래 범위와 대조해 감지하고 「나중에 볼 것」으로 미루거나 명시적 교체로 막아야 한다.** **스코프 크립(scope creep)이란**: 프로젝트가 진행되며 처음 합의한 범위에 **작은 기능·요구가 조금씩 슬금슬금** 추가되어, 어느새 범위가 **1.5~3배**로 부풀어 마감을 무너뜨리는 현상. 각 추가는 「이 정도쯤이야」·「사소하잖아」로 보여 **개별로는 거절하기 어렵지만**, 누적되면 치명적이다(개구리를 서서히 끓이는 것처럼 감지가 늦다). **원인**: ① **새 아이디어** — 나·이해관계자·사용자가 만들다 보니 떠오르는 것. ② **「이왕 하는 김에(while we're at it)」** — 관련된 걸 같이 하려는 유혹(대개 범위 확장 신호). ③ **완벽주의** — 「조금만 더」(4장 끝없는 다듬기). ④ **요구 변경**(비즈니스·시장). ⑤ **모호한 초기 범위** — 경계가 흐리면 뭐든 「범위 안」이라 우김. **막는 법**: ① **원래 범위를 명시적으로 문서화** — 안 만들 목록(1장)·MoSCoW(2장)·완성 기준(4장)을 적어 두고, 새 요청이 오면 **「이건 원래 범위 안인가 밖인가」**를 대조한다(경계가 있어야 판단 가능). ② **범위 밖이면 「나중에 볼 것」에 담고 지금은 거절** — 아이디어를 **버리는 게 아니라** 백로그·다음 사이클로 미룬다(craft-focus 의 「떠오른 건 담아 두고 지금에 집중」과 같음 — 거절이 아니라 연기). 이러면 좋은 아이디어를 잃지 않으면서 현재 범위를 지킨다. ③ **정말 중요하면 명시적 교체** — 새것을 꼭 넣어야 하면 **무언가를 빼서** 자리를 만든다(시간 고정이므로 그냥 얹으면 마감이 밀림, 2장). 「A 를 넣으려면 B 를 뺀다」를 명시적으로 결정·합의. ④ **「하는 김에」를 경계 신호로** — 그 말이 나오면 범위 확장을 의심하고 원래 범위와 대조. ⑤ **정기 점검** — 스프린트마다 범위가 계획 대비 얼마나 커졌는지 본다(product-release 회고와 연결). **핵심 통찰**: 스코프 크립은 나쁜 아이디어 때문이 아니라 **좋은 아이디어를 다 지금 하려 해서** 생긴다 — 해결은 아이디어를 거절하는 게 아니라 **시점을 정하는 것**(지금 vs 나중). **정리**: 범위는 저절로 커지니, 원래 범위를 문서로 두고 새 요청을 대조해 감지하고, 밖이면 「나중에 볼 것」으로 미루거나 무언가를 빼고 넣어라 — 「하는 김에」를 경계하라."
+        },
+        {
+          "type": "try",
+          "text": "진행 중인 작업에서 **원래 범위(안 만들 목록·완성 기준)와 지금 하고 있는 것을 대조**해, **슬금슬금 늘어난 것**이 있는지 보라(스코프 크립). 늘어난 것을 **「나중에 볼 것」 목록으로 옮기고** 현재 범위로 돌아오라. 새 요청이 오면 「범위 안/밖」을 판정하고, 꼭 넣어야 하면 **무언가를 빼서** 자리를 만들어라(그냥 얹지 말고)."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "스코프 크립이란?",
+          "choices": [
+            "범위 축소",
+            "작은 추가가 쌓여 범위가 저절로 커져 마감을 무너뜨림",
+            "품질 향상",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "슬금슬금 커짐."
+        },
+        {
+          "q": "범위 밖 요청이 오면?",
+          "choices": [
+            "즉시 추가",
+            "「나중에 볼 것」에 담고 지금은 거절(버리는 게 아니라 연기)",
+            "무시하고 잊음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시점을 정함."
+        },
+        {
+          "q": "꼭 넣어야 하는 새것이 있으면?",
+          "choices": [
+            "그냥 얹음",
+            "무언가를 빼서 자리를 만듦(명시적 교체)",
+            "마감 연장",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "시간 고정."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 범위와 끝내기",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**시간을 고정하고, 우선순위로 자르고, 세로로 관통시키고, 완성 조건을 미리 적고, 커지는 것을 감지한다.** 이 점검표를 작업마다 훑어, 못 끝내거나 범위가 폭발하는 일을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "범위·끝내기 점검표 — 통과 수",
+          "height": "430px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .slices { margin:8px 0; }\n  .slices .row { display:flex; gap:4px; margin:3px 0; align-items:center; }\n  .slices .lbl { width:56px; font:10px ui-monospace, monospace; color:#94a3b8; text-align:right; }\n  .slices .cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  .slices .done { background:#132a1c; border:1px solid #166534; color:#4ade80; }\n  .slices .none { background:#1a1414; border:1px solid #3a2020; color:#64748b; }\n  .slices .part { background:#2a2410; border:1px solid #facc15; color:#facc15; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // slices: layers x steps grid. mode 'vertical' fills one thin end-to-end column; 'horizontal' fills bottom layers fully\n  function slices(mode, prog) {\n    const layers = ['화면', '로직', 'DB'];\n    const stepsN = ['추가', '목록', '완료', '공유'];\n    let h = '';\n    for (let L = 0; L < layers.length; L++) {\n      h += '<div class=\"row\"><span class=\"lbl\">' + layers[L] + '</span>';\n      for (let s = 0; s < stepsN.length; s++) {\n        let cls = 'none', t = '';\n        if (mode === 'vertical') { if (s < prog) { cls = 'done'; t = L === 0 ? stepsN[s] : ''; } }\n        else { if (L >= layers.length - prog) { cls = 'done'; } }\n        h += '<span class=\"cell ' + cls + '\">' + t + '</span>';\n      }\n      h += '</div>';\n    }\n    return '<div class=\"slices\">' + h + '</div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '「안 만들 목록」을 적었다(빼기로 끝낸다)',\n    '시간(마감)을 고정하고 범위를 조절한다',\n    'MoSCoW 로 우선순위를 나누고 Must 부터 채운다',\n    '부족하면 완성도가 아니라 범위(부가)를 자른다',\n    '층(수평)이 아니라 기능 흐름(수직)으로 자른다',\n    '한 흐름을 얇게 관통시켜 매 단계 작동하게 한다',\n    '각 기능의 완성 조건을 시작 전에 적었다',\n    '스코프 크립을 감지하고 「나중에 볼 것」으로 막는다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('범위·끝내기 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 항상 끝나고 범위가 안 터지는 작업.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '안 만들 목록 · 시간 고정 · MoSCoW · 세로로 · 완성 조건 · 크립 감지.');\n</script>",
+          "controls": [
+            {
+              "id": "done",
+              "label": "통과 수",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**범위·끝내기 점검표 — 작업마다 훑는다.** ① **안 만들 목록** — 빼기로 끝냄, 안 만들 목록이 일정(1장). ② **시간 고정** — 마감 고정, 범위 조절(2장). ③ **MoSCoW** — 우선순위 나눠 Must 부터(2장). ④ **범위를 자름** — 부족하면 완성도 아닌 부가 기능을 자름(2장). ⑤ **세로로 자르기** — 층이 아니라 기능 흐름(3장). ⑥ **얇게 관통** — 매 단계 작동하는 제품(3장). ⑦ **완성 조건** — 시작 전에 구체적·검증 가능하게(4장). ⑧ **크립 감지** — 원래 범위와 대조, 나중에 볼 것으로(5장). **관통 원리**: 끝내는 힘은 **빼기**다(1장) — 시간을 고정해 범위를 강제로 조절하고(2장), 세로로 잘라 매 단계 작동시키고(3장), 완성을 객관적으로 정의하고(4장), 저절로 커지는 것을 감지해 막는다(5장). 이 칸(scope)은 product 갈래에서 **「끝내는 규율」** — problem(문제)·mvp(가장 싼 해결) 위에서 실제로 **완성·출시**하게 하고, metric(측정)·release(알림)·feedback(다듬기)로 이어진다. game-ship·product-mvp 의 「범위 자르기」·craft-focus 의 「완료 가시화」와 한 정신. 「반년째 90% 완성」의 반대편. **정리**: 안 만들 목록·시간 고정·MoSCoW·세로로 자르기·완성 조건·크립 감지 — 이 표로 못 끝내거나 범위가 폭발하는 일을 매번 걸러라."
+        },
+        {
+          "type": "try",
+          "text": "지금 작업으로 위 8개 항목을 하나씩 확인하라 — 안 만들 목록이 있나, 시간을 고정했나, MoSCoW 로 나눴나, 세로로 자르나, 매 단계 작동하나, 완성 조건을 적었나, 크립을 감지하나. 통과 못 한 항목을 채우고 몇 개를 통과시켰는지 세어, 항상 끝나고 범위가 안 터지는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "끝내기의 관통 원리는?",
+          "choices": [
+            "더하기(기능 추가)",
+            "빼기 — 시간 고정·범위 조절·세로로·완성 정의·크립 감지",
+            "완성도 낮추기",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "빼기로 끝냄."
+        },
+        {
+          "q": "다음 중 점검표 항목이 아닌 것은?",
+          "choices": [
+            "안 만들 목록",
+            "세로로 자르기",
+            "부족하면 완성도를 낮춰 대충 만들기",
+            "완성 조건 미리 적기"
+          ],
+          "answer": 2,
+          "why": "품질 아닌 범위를 자름."
+        },
+        {
+          "q": "product-scope 는 product 갈래에서?",
+          "choices": [
+            "부수적",
+            "끝내는 규율 — 실제로 완성·출시하게 함",
+            "선택",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "끝내기."
+        }
+      ]
     }
   ]
 }
