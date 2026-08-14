@@ -9,7 +9,7 @@
  * 부분을 부드럽게 이어 붙이며 조각 사이의 간격만 조절한다(겹쳐 잇기). 높이는 건드리지 않는다.
  * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -193,7 +193,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               for (let c = 0; c < chans.length; c++) outBuf.copyToChannel(chans[c], c);
 
               outBlob = await encodeAudio(outBuf, 'wav');
-              player.src = URL.createObjectURL(outBlob);
+              attachAudio(player, outBlob); // 공용 — 앞 주소를 거두고 물린다
               player.style.display = '';
               saveBtn.disabled = false;
               stats.innerHTML =
