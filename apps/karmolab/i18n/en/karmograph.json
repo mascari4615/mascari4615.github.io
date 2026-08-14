@@ -804,5 +804,6 @@
   "karmograph.otherTab.msg": "Another tab edited this map too. Your last save may have overwritten it — check “restore previous” in the Storage panel, or export the current one to a file.",
   "karmograph.rescue.kept": "⚠ A version another tab edited is kept aside — “restore previous” opens it.",
   "karmograph.otherTab.followed": "Picked up the changes from another tab",
-  "karmograph.board.aria": "Relationship graph — {n} cards, {e} links"
+  "karmograph.board.aria": "Relationship graph — {n} cards, {e} links",
+  "karmograph.board.picked": "{name} selected — {n} links"
 }

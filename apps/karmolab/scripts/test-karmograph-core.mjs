@@ -1338,6 +1338,13 @@ const M = await loadModules();
   check(boardLabel(3, 2).includes('2'), '선 수도 든다');
   eq(boardLabel(-1, Number.NaN), DEFAULT_BOARD_WORDS.label(0, 0),
     '숫자가 이상하면 0 으로 읽는다 — 이름이 깨지면 아예 안 들린다');
+  /* 고른 것도 한 줄로 — 고르는 일은 초점이 안 움직여 **읽어 주는 도구에는 아무 일도 안 일어난다**. */
+  const { pickedLabel } = M.boardA11y;
+  check(pickedLabel('가', 3).includes('가'), '고른 카드의 이름이 든다');
+  check(pickedLabel('가', 3).includes('3'), '이어진 수도 든다');
+  check(pickedLabel('  ', 0).length > 0, '이름 없는 카드도 말은 한다 — 그런 카드가 있다는 것도 정보다');
+  eq(pickedLabel('가', -2), pickedLabel('가', 0), '이상한 숫자는 0 으로 읽는다');
+
   setBoardWords({ label: (n, e) => `카드 ${n} 선 ${e}` });
   eq(boardLabel(1, 0), '카드 1 선 0', '화면이 얹은 말이 실제로 쓰인다');
   setBoardWords(DEFAULT_BOARD_WORDS);

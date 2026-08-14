@@ -42,7 +42,7 @@ import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf, setNoteWords } from '../../lib/graph/notes';
-import { setBoardWords } from '../../lib/graph/canvas-a11y';
+import { setBoardWords, pickedLabel } from '../../lib/graph/canvas-a11y';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
@@ -445,6 +445,10 @@ import {
       color:var(--text-secondary); padding:3px 9px; border-radius:999px; pointer-events:none;
       background:var(--bg-secondary); border:1px solid var(--border); opacity:.94; }
     .km-saved.hidden { display:none; }
+    /* 눈에는 안 보이고 **읽어 주는 도구에만** 들리는 자리 (KL-271) — 고르는 일은 초점이 안
+       움직여서, 여기 한 줄을 흘려 주지 않으면 「무엇을 골랐는지」가 아무 데도 안 남는다. */
+    .km-say { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
+      clip:rect(0 0 0 0); white-space:nowrap; border:0; }
     .km-root.is-presenting .km-saved { display:none; }
     /* 카드 위에 그 자리에서 뜨는 이름 칸 (TASK-KL-235). 카드와 **같은 크기·같은 글자**로 떠야
        「고치는 중」이 딴 창처럼 안 보인다. 판이 움직이면 닫는다 — 떠 있는 채 어긋나면 더 나쁘다. */
@@ -600,6 +604,7 @@ import {
     // 판을 한 줄로 알리는 말도 제 나라 말로 (KL-271) — 읽어 주는 도구가 이걸 먼저 읽는다.
     setBoardWords({
       label: (nodes, edges) => t('karmograph.board.aria', { n: String(nodes), e: String(edges) }),
+      picked: (name, links) => t('karmograph.board.picked', { name, n: String(links) }),
     });
     setNoteWords({
       loop: t('karmograph.note.loop'),
@@ -785,6 +790,7 @@ import {
             <!-- ★ **시점 줄** (TASK-KL-271 X2). 시점을 안 쓰는 판에는 **아예 안 뜬다** —
                  안 쓰는 사람에게 자리를 뺏는 순간 이 도구가 없애려던 그것이 된다. -->
             <div class="km-times hidden" data-km="times"></div>
+            <div class="km-say" data-km="say" role="status" aria-live="polite"></div>
             <!-- 시점 만들기는 **명령 팔레트·서랍**에서 부른다(툴바에 문을 또 내지 않는다). -->
             <button class="btn btn-ghost hidden" data-km="time-add" aria-hidden="true" tabindex="-1"></button>
             <!-- 영상 굽기도 마찬가지 — 자주 쓰는 일이 아니라 툴바에 자리를 안 준다. -->
@@ -1760,9 +1766,29 @@ import {
     }
 
     // ── 선택 패널 ───────────────────────────────────────────────────────────
+    /** 방금 고른 것을 **소리로** 흘린다 (KL-271) — 화면은 테두리로 알리지만 그건 눈에만 보인다. */
+    let saidId: string | null = null;
+    function sayPicked(): void {
+      // ★ **판이 아니라 화면이 쥔 것**을 읽는다 — 방금 친 이름은 아직 판에 안 내려왔을 수 있다
+      //   (실측 2026-08-14: 「(…) 골랐음」이라고 말했다).
+      const live = canvas?.getSpec() ?? spec;
+      const node = selectedId ? live.nodes.find((n) => n.id === selectedId) : null;
+      const box = root.querySelector('[data-km="say"]') as HTMLElement | null;
+      if (!box) return;
+      if (!node) { box.textContent = ''; saidId = null; return; }
+      const links = live.edges.filter((e) => e.from === node.id || e.to === node.id).length;
+      /* ★ **말이 달라졌을 때만** 다시 적는다. 카드 id 로만 견주면, 만들자마자(이름 없을 때) 한 번
+         말하고는 이름을 친 뒤에도 입을 다문다 — 실측 2026-08-14: 「(…) 골랐음」에서 안 바뀌었다. */
+      const say = pickedLabel(node.label, links);
+      if (say === saidId) return;
+      saidId = say;
+      box.textContent = say;
+    }
+
     function renderSide(): void {
       // 패널을 다시 그릴 때마다 고른 것이 바뀌었을 수 있다 — 작은 도구 줄도 따라 움직인다.
       queueMicrotask(placeMini);
+      sayPicked();
       renderSideBody();
       // 패널은 통째로 다시 그려지므로 읽어 줄 이름도 그때마다 다시 붙인다.
       nameIconButtons(sideEl);
