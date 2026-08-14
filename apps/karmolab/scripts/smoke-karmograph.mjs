@@ -2055,6 +2055,51 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await ctx.close();
 });
 
+await step('카드를 지우면 발표 장에서도 빠진다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 선과 지시선은 정리하면서 **발표 장**은 지운 카드의 id 를 그대로 안고 있었다.
+     화면이 터지진 않지만 ① 그 장이 몇 장을 담았나가 틀리고 ② 카드 id 는 번호를 다시 쓰므로
+     **나중에 만든 남의 카드가 그 장에 저절로 낀다**. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1300, height: 850 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.evaluate(() => {
+    const spec = {
+      version: 1, _meta: {},
+      groups: [{ id: 'g1', label: '무리', color: '#ff0000', bbox: { x: 0, y: 0, w: 400, h: 300 } }],
+      nodes: [
+        { id: 'n1', label: '가', kind: 'character', x: 60, y: 60, w: 160, h: 44, groups: ['g1'] },
+        { id: 'n2', label: '나', kind: 'character', x: 300, y: 200, w: 160, h: 44, groups: ['g1'] },
+      ],
+      edges: [{ id: 'e1', from: 'n1', to: 'n2', label: '친구', kind: 'default' }],
+      story: [{ id: 's1', title: '장', nodeIds: ['n1', 'n2'] }],
+      ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.ref', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'ref', maps: [{ id: 'ref', name: '참조 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('[data-km="node-del"]', { timeout: ms(4000) });
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  await m.locator('[data-km="ask-yes"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  const left = await m.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    const sp = JSON.parse(localStorage.getItem('karmograph.map.' + idx.activeId));
+    return { ids: sp.nodes.map((n) => n.id), story: sp.story[0].nodeIds, edges: sp.edges.length };
+  });
+  const ghosts = left.story.filter((id) => !left.ids.includes(id));
+  if (ghosts.length > 0) throw new Error('지운 카드가 발표 장에 남았다: ' + ghosts.join(','));
+  if (left.edges !== 0) throw new Error('지운 카드의 선이 남았다');
+});
+
 await step('다른 탭이 고친 공용 글이 이쪽 카드에도 닿는다 (KL-271)', async () => {
   /* 글은 판보다 오래 살고 **여러 판이 같은 글을 쓴다**. 저쪽에서 고친 글이 이쪽 카드에 옛
      글로 남아 있으면 같은 글이 화면마다 다르게 보인다 — 어느 쪽을 믿을지 사람이 못 정한다. */
