@@ -19,17 +19,20 @@ const lessonsDir = path.join(dataDir, 'lessons');
 
 const map = JSON.parse(fs.readFileSync(path.join(dataDir, 'studymap.json'), 'utf8'));
 const nodeIds = new Set(map.tracks.flatMap((t) => t.stages.flatMap((s) => s.nodes.map((n) => n.id))));
+const nodeTitles = new Map(map.tracks.flatMap((t) => t.stages.flatMap((s) => s.nodes.map((n) => [n.id, n.title]))));
 const BLOCK_TYPES = new Set(['p', 'h', 'code', 'note', 'try', 'demo']);
 /** demo 는 실제로 실행되는 판이라 어떤 판인지(kind)가 반드시 있어야 한다. */
 const DEMO_KINDS = new Set(['html', 'js', 'shader']);
 
 const fail = [];
 const index = {};
+const searchIndex = {};
 
 for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []) {
   const dir = path.join(lessonsDir, locale);
   if (!fs.statSync(dir).isDirectory()) continue;
   const ids = [];
+  const searchDocuments = [];
   for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.json'))) {
     const id = file.replace(/\.json$/, '');
     const where = `${locale}/${file}`;
@@ -61,6 +64,20 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
       fail.push(`${where}: blocks 가 비었다`);
     }
     const chunks = parts ? parts.map((p, i) => [`parts[${i}].`, p]) : [['', lesson]];
+    for (const chunk of (parts || [lesson])) {
+      const prose = (chunk.blocks || []).filter((block) => block.type !== 'demo' && block.type !== 'code')
+        .map((block) => `${block.label || ''} ${block.text || ''}`).join(' ').replace(/[*_`#>|\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
+      const questions = (chunk.quiz || []).map((item) => item.q || '').join(' ');
+      searchDocuments.push({
+        id: `${id}:${chunk.id || ''}`,
+        nodeId: id,
+        partId: chunk.id || '',
+        title: chunk.title || nodeTitles.get(id) || id,
+        nodeTitle: nodeTitles.get(id) || id,
+        description: prose.slice(0, 360),
+        aliases: questions.slice(0, 240),
+      });
+    }
     for (const [tagPrefix, chunk] of chunks) {
     const at0 = tagPrefix;
     if (parts && (!Array.isArray(chunk.blocks) || chunk.blocks.length === 0)) fail.push(`${where}: ${at0}blocks 가 비었다`);
@@ -93,6 +110,7 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     ids.push(id);
   }
   index[locale] = ids.sort();
+  searchIndex[locale] = searchDocuments;
 }
 
 if (fail.length > 0) {
@@ -105,6 +123,10 @@ fs.writeFileSync(
   path.join(lessonsDir, 'index.json'),
   JSON.stringify({ $comment: '자동 생성 — check-studymap-lessons.mjs. 위젯이 「강의 있는 칸」을 표시하는 데 쓴다.', lessons: index }, null, 2) + '\n',
 );
+for (const [locale, documents] of Object.entries(searchIndex)) {
+  fs.writeFileSync(path.join(lessonsDir, `search-index.${locale}.json`),
+    JSON.stringify({ $comment: '자동 생성 — check-studymap-lessons.mjs. 통합 검색용 강의·장 색인.', documents }, null, 2) + '\n');
+}
 
 const total = Object.values(index).reduce((sum, ids) => sum + ids.length, 0);
 console.log(`[studymap-lessons] 강의 ${total}편 정상 · 지도 칸 ${nodeIds.size}개 · 목록 갱신 (${Object.entries(index).map(([l, ids]) => `${l} ${ids.length}`).join(' · ')})`);
