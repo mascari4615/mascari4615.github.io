@@ -15,7 +15,7 @@ import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
-import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
 
 (function (): void {
   interface Box { page: number; x: number; y: number; w: number; h: number }
@@ -295,13 +295,11 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               }
               const out = await outDoc.save();
               const blob = new Blob([out as unknown as BlobPart], { type: 'application/pdf' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = baseName + t('pdfredact.file.suffix') + '.pdf';
-              a.click();
+              // 공용 한 자리(`shared/pdf.download`).
+              const outName = baseName + t('pdfredact.file.suffix') + '.pdf';
+              download(blob, outName);
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfredact' });
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfredact' });
               say(
                 t('pdfredact.say.done', { pages: doc.numPages, size: size(blob.size) }),
                 'ok'

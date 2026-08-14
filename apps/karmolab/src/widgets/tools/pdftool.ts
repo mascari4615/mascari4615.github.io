@@ -8,7 +8,7 @@
 import { markLive } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
-import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
+import { createPdf, download as savePdf, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
 import { parsePages } from '../../core/pdftool';
 
 (function (): void {
@@ -45,11 +45,9 @@ import { parsePages } from '../../core/pdftool';
    */
   function download(bytes: Uint8Array, name: string, after?: HTMLElement | null): void {
     const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    // ★ 공용은 `savePdf` 로 받아 쓴다. 여기 지역 함수 이름이 `download` 라, 그냥 부르면
+    //   **자기 자신을 부른다**(무한 재귀). 타입검사가 그 자리에서 잡았다.
+    savePdf(blob, name);
     if (after) Toolbox.offerNext?.(after, { blob, name, from: 'pdftool' });
   }
 

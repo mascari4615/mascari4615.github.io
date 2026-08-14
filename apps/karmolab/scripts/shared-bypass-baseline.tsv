@@ -50,10 +50,6 @@ OBJECT-URL	src/widgets/tools/img2pdf.ts	예외: 썸네일 목록 주소는 화�
 OBJECT-URL	src/widgets/tools/loan.ts
 OBJECT-URL	src/widgets/tools/papermap.ts
 OBJECT-URL	src/widgets/tools/pdfcompress.ts
-OBJECT-URL	src/widgets/tools/pdfpagenum.ts
-OBJECT-URL	src/widgets/tools/pdfredact.ts
-OBJECT-URL	src/widgets/tools/pdfsign.ts
-OBJECT-URL	src/widgets/tools/pdftool.ts
 OBJECT-URL	src/widgets/tools/screenrec.ts
 OBJECT-URL	src/widgets/tools/sound.ts
 OBJECT-URL	src/widgets/tools/video2gif.ts
