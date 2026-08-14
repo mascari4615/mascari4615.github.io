@@ -2456,9 +2456,13 @@ import {
       /* 카드 위쪽에 띄우되, 화면 위로 넘치면 아래로 내린다(안 그러면 도구가 잘려 안 눌린다).
          ★ 띄우는 높이는 **줄의 실제 키**로 잰다. 34 로 못 박아 두었더니, 손가락 규격에 맞춰
          줄이 58px 로 커진 폰에서 줄이 카드를 덮어 **카드 자체가 안 눌렸다**(실측 2026-08-14). */
-      const barH = Math.max(miniEl.getBoundingClientRect().height, 34);
+      const bar = miniEl.getBoundingClientRect();
+      const barH = Math.max(bar.height, 34);
       const above = rect.y - barH - 6;
-      miniEl.style.left = `${Math.max(4, Math.round(rect.x))}px`;
+      /* ★ 오른쪽도 막는다 — 판 오른쪽 끝의 카드를 고르면 줄이 **화면 밖으로 나갔다**
+         (실측 2026-08-14 폰: 오른쪽 끝 472px > 화면 390px — 지우기·복제가 통째로 사라진다). */
+      const room = canvasEl.clientWidth - Math.max(bar.width, 100) - 4;
+      miniEl.style.left = `${Math.round(Math.min(Math.max(4, rect.x), Math.max(4, room)))}px`;
       miniEl.style.top = `${Math.round(above > 4 ? above : rect.y + rect.h + 6)}px`;
       followMini();
     }
