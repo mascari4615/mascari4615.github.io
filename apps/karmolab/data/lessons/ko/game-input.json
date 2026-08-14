@@ -1,100 +1,527 @@
 {
   "id": "game-input",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "조작감은 그래픽이 아니라 **입력을 언제 받아 언제 반영하느냐**에서 갈린다."
-    },
-    {
-      "type": "h",
-      "text": "1. 누른 순간 · 누르고 있음 · 뗀 순간"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "세 가지를 구분해 저장한다",
-      "text": "const down = new Set(), pressed = new Set(), released = new Set();\naddEventListener('keydown', (e) => { if (!down.has(e.code)) pressed.add(e.code); down.add(e.code); });\naddEventListener('keyup',   (e) => { down.delete(e.code); released.add(e.code); });\n\nfunction endFrame() { pressed.clear(); released.clear(); }   // 매 프레임 끝에 비운다"
-    },
-    {
-      "type": "h",
-      "text": "2. 상태 기계로 겹침을 정리"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "「점프 중 공격」 같은 문제",
-      "text": "const rules = {\n  idle:    { move: 'run', jump: 'air', attack: 'attack' },\n  run:     { stop: 'idle', jump: 'air', attack: 'attack' },\n  air:     { land: 'idle', attack: 'airAttack' },\n  attack:  { done: 'idle' },      // 공격 중에는 이동 입력을 무시\n};\nstate = rules[state]?.[event] ?? state;"
-    },
-    {
-      "type": "note",
-      "text": "if 문이 다섯 개를 넘어가면 상태 기계로 바꿀 때다. **어떤 상태에서 어떤 입력이 무엇이 되는지**를 표로 적으면 버그가 눈에 보인다."
-    },
-    {
-      "type": "h",
-      "text": "3. 조작감을 만드는 작은 장치들"
-    },
-    {
-      "type": "note",
-      "text": "**입력 버퍼**(착지 직전 점프를 눌러도 착지하면 점프) · **코요테 타임**(발판을 벗어난 뒤 0.1초까지 점프 허용) · **선입력 취소**. 이 셋만 넣어도 「반응이 좋다」는 평이 바뀐다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "입력 버퍼와 코요테 타임",
-      "text": "if (pressed.has('Space')) jumpBuffer = 0.12;\njumpBuffer -= dt; coyote = grounded ? 0.1 : coyote - dt;\nif (jumpBuffer > 0 && coyote > 0) { jump(); jumpBuffer = 0; coyote = 0; }"
-    },
-    {
-      "type": "h",
-      "text": "4. 여러 장치"
-    },
-    {
-      "type": "p",
-      "text": "키보드·패드·터치를 **추상 액션**(move, jump, attack)으로 묶어라. 장치별 코드가 게임 로직에 섞이면 나중에 하나를 추가할 때 전부 손봐야 한다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "점프에 입력 버퍼와 코요테 타임을 넣고 끄고 켜며 플레이해 보라. 숫자를 0.05 / 0.1 / 0.2 로 바꿔 감각 차이를 적어라."
-    },
-    {
-      "type": "try",
-      "text": "캐릭터 상태를 표로 그린 뒤(상태 × 입력) 빈칸을 채워라. 빈칸이 곧 미정의 동작이다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "「누른 순간」과 「누르고 있음」을 구분해야 하는 이유는?",
-      "choices": [
-        "한 번만 실행할 동작과 계속할 동작이 다르기 때문",
-        "메모리 때문",
-        "입력 지연 때문"
+      "id": "1",
+      "title": "누른 순간 · 누르고 있음 · 뗀 순간",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "조작감은 그래픽이 아니라 **입력을 언제 받아 언제 반영하느냐**에서 갈린다. 입력을 다룰 때 **세 가지를 구별**해야 한다: ① **누른 순간(pressed / just-down)** — 이번 프레임에 **막 눌린** 것(점프·공격처럼 **한 번** 실행할 것). ② **누르고 있음(held / down)** — **계속 눌린** 상태(이동·조준처럼 **지속**할 것). ③ **뗀 순간(released / just-up)** — 이번 프레임에 **막 뗀** 것(차지 발사·가변 점프 높이처럼 **놓을 때** 실행). **왜 구별하나**: 점프를 「누르고 있음(held)」으로 처리하면 **누르고 있는 동안 계속 점프**한다(버그) — **「누른 순간(pressed)」에 한 번**이어야 한다. 반대로 이동을 「누른 순간」으로 하면 한 번만 움직인다 — **「누르고 있음(held)」으로 지속**이어야. 구현 — **매 프레임 세 집합을 갱신**: `down`(현재 눌린 키), `pressed`(이번 프레임 새로 눌림 = 지난 프레임엔 안 눌렸는데 지금 눌림 — **에지 감지**), `released`(이번 프레임 뗌). 브라우저 `keydown`/`keyup` 이벤트로 down 을 채우고, 프레임 시작에 pressed/released 를 계산한다(**폴링** — 이벤트를 프레임 단위로 모음). 아래 데모로 세 가지를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "누른 순간 · 누르고 있음 · 뗀 순간",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const info = {\n    pressed: ['누른 순간(pressed)', '이번 프레임에 막 눌림 — 한 번 실행', '점프·공격·메뉴 선택(누르고 있어도 한 번만)'],\n    held: ['누르고 있음(held)', '계속 눌린 상태 — 지속', '이동·조준·가속(누르는 동안 계속)'],\n    released: ['뗀 순간(released)', '이번 프레임에 막 뗌 — 놓을 때 실행', '차지 발사·가변 점프 높이(놓을 때)'],\n  }[kind];\n  const bugKind = { pressed: '점프를 held 로 하면 → 누르는 동안 계속 점프(버그)', held: '이동을 pressed 로 하면 → 한 번만 움직임(버그)', released: 'released 를 안 쓰면 → 차지·가변 점프 불가' }[kind];\n  render(info[0],\n    '  뜻: ' + info[1] + '\\n  쓰임: ' + info[2] + '\\n  잘못 쓰면: ' + bugKind + '\\n\\n' +\n    '  <span class=\\\"ok\\\">입력을 언제 받아 언제 반영하느냐 — 세 가지를 구별해야 조작감이 산다.</span>',\n    'pressed(한 번)·held(지속)·released(놓을 때) — 구별해야 조작감이 산다.',\n    steps([\n      ['누른 순간(pressed) — 점프·공격(한 번)', kind==='pressed'?'good':'on'],\n      ['누르고 있음(held) — 이동·조준(지속)', kind==='held'?'good':'on'],\n      ['뗀 순간(released) — 차지·가변 점프(놓을 때)', kind==='released'?'good':'on'],\n    ]));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "입력 종류",
+              "type": "select",
+              "value": "pressed",
+              "options": [
+                {
+                  "value": "pressed",
+                  "label": "누른 순간"
+                },
+                {
+                  "value": "held",
+                  "label": "누르고 있음"
+                },
+                {
+                  "value": "released",
+                  "label": "뗀 순간"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "세 가지 입력 상태",
+          "text": "const down = new Set(), pressed = new Set(), released = new Set();\naddEventListener('keydown', e => { if (!down.has(e.code)) pressedRaw.add(e.code); down.add(e.code); });\naddEventListener('keyup',   e => { down.delete(e.code); releasedRaw.add(e.code); });\n\n// 프레임 시작에 이번 프레임 pressed/released 를 확정(폴링) — 에지 감지\n// pressed = 지난 프레임엔 안 눌렸는데 지금 눌림(막 눌린 순간)\nif (pressed.has('Space')) jump();   // 한 번(점프)\nif (down.has('ArrowRight')) moveRight();   // 지속(이동)\nif (released.has('Space')) endChargeJump();   // 놓을 때(가변 점프)"
+        },
+        {
+          "type": "note",
+          "text": "**조작감은 입력을 언제 받아 언제 반영하느냐에서 갈린다 — 누른 순간(pressed·한 번 실행)·누르고 있음(held·지속)·뗀 순간(released·놓을 때)의 세 가지를 구별해야 한다. 점프를 held 로 하면 누르는 동안 계속 점프하는 버그가 나고, 이동을 pressed 로 하면 한 번만 움직인다.** 게임 입력의 기초 — **세 가지 입력 상태의 구별**. **왜 조작감이 입력 타이밍에서 갈리나**: 좋은 조작감은 화려한 그래픽이 아니라 **입력을 정확한 타이밍에 받아 반영**하는 데서 온다 — 「눌렀는데 반응이 없거나 늦거나 이상하면」 조작감이 나쁘다. 그 기초가 **입력의 세 상태**를 올바르게 구별하는 것이다: ① **누른 순간(pressed / just-pressed / just-down)** — 이번 프레임에 **막 눌린** 것(지난 프레임엔 안 눌렸는데 지금 눌림 — **에지 감지 edge detection**). **한 번만 실행**할 동작에 쓴다: **점프**(한 번 뛰기), **공격**(한 번 휘두르기), **메뉴 선택**, **상호작용**. ② **누르고 있음(held / down / is-pressed)** — **현재 눌려 있는** 상태(계속). **지속**할 동작에: **이동**(누르는 동안 계속 걸음), **조준·차지**(누르는 동안 계속 모음), **가속**. ③ **뗀 순간(released / just-up)** — 이번 프레임에 **막 뗀** 것. **놓을 때 실행**할 것에: **차지 발사**(모았다 놓으면 발사), **가변 점프 높이**(빨리 떼면 낮게·오래 누르면 높게 — 놓는 순간 상승 종료). **왜 구별이 중요 — 잘못 쓰면 버그**: **점프를 「누르고 있음(held)」으로** 처리하면 — **누르고 있는 매 프레임마다 점프**해서 **계속 날아오른다**(버그! 점프는 pressed 로 한 번이어야). 반대로 **이동을 「누른 순간(pressed)」으로** 하면 — 눌러도 **한 프레임만 움직이고 멈춘다**(held 로 지속이어야). 종류를 헷갈리면 조작이 이상해진다. **구현 — 세 집합을 프레임 단위로**: 매 프레임 **`down`**(현재 눌린 키 집합), **`pressed`**(이번 프레임 새로 눌림), **`released`**(이번 프레임 뗌)를 갱신한다. 방법: 브라우저 **`keydown`/`keyup` 이벤트**로 down 집합을 채우되(이벤트는 비동기·중복 발생), **프레임 시작에 pressed/released 를 확정**한다(**폴링 polling** — 이벤트를 프레임 단위로 모아 「이번 프레임에 새로 눌린/뗀 것」을 계산). 이벤트를 직접 게임 로직에 쓰지 말고(프레임과 안 맞음·순서 문제), **프레임 시작에 입력 상태를 스냅샷**해 그걸 update 에서 쓴다(game-loop 의 프레임 리듬과 정합 — 입력도 프레임 단위로). **정리**: 입력은 **누른 순간(pressed·한 번)·누르고 있음(held·지속)·뗀 순간(released·놓을 때)** 세 가지를 구별하고 — 매 프레임 세 집합을 폴링으로 갱신해 update 에서 쓴다. 점프는 pressed, 이동은 held, 차지는 released — 종류를 맞춰야 조작감이 산다. 입력 타이밍이 조작감의 기초다."
+        },
+        {
+          "type": "note",
+          "text": "**「에지와 레벨을 구별하라」 — 순간(변화)과 상태(지속)는 다르다.** 입력의 첫 교훈은 「변화의 순간(에지)과 지속되는 상태(레벨)를 구별하라 — 다른 것을 요구하는 로직이 다르다」다: 「막 눌린 순간」(에지·변화)과 「눌려 있음」(레벨·상태)은 다른 정보이고, 점프(에지)와 이동(레벨)처럼 요구가 다르니 구별해야 한다 — 섞으면 「계속 점프」 같은 버그가 난다. 이 「에지 vs 레벨」은 신호·이벤트 처리 전반에 통한다 — 전자공학(에지 트리거 vs 레벨 트리거), 이벤트(변화 감지 vs 상태 폴링), 상태 변화 감지(이전≠지금 = 에지), 리액티브(값 vs 변화). 핵심 통찰: **「무언가가 방금 바뀌었다(에지)」와 「무언가가 지금 그 상태다(레벨)」는 다른 질문이고, 로직마다 필요한 게 다르다** — 한 번 반응할 것은 에지(변화 순간), 지속 반응할 것은 레벨(현재 상태)을 봐야 한다. 그래서 「입력·신호·상태를 다룰 때, 「변화의 순간(에지)」과 「지속되는 상태(레벨)」를 구별하고 — 로직이 필요로 하는 쪽을 정확히 써라」가 근본 — 게임 입력의 pressed(에지)/held(레벨) 구별은 그 대표로, 순간과 상태를 나누는 것이 조작감의 기초다. 변화와 상태를 구별하라."
+        },
+        {
+          "type": "try",
+          "text": "입력을 **세 가지로 구별**해 처리하라 — `down`(현재 눌림)·`pressed`(이번 프레임 막 눌림, 에지)·`released`(이번 프레임 뗌) 집합을 매 프레임 갱신하라. **점프·공격은 pressed**(한 번), **이동은 held(down)**(지속), **차지·가변 점프는 released**(놓을 때)로 쓰라. 점프를 held 로 잘못 쓰면 「누르는 동안 계속 점프」 버그가 남을 확인하라. keydown/keyup 이벤트를 직접 게임 로직에 쓰지 말고, **프레임 시작에 입력을 스냅샷(폴링)**해 update 에서 쓰라(game-loop 리듬과 정합) — 에지(순간)와 레벨(상태)을 구별해 조작감을 살려라."
+        }
       ],
-      "answer": 0,
-      "why": "점프는 누른 순간, 이동은 누르고 있는 동안이다."
+      "quiz": [
+        {
+          "q": "입력을 다룰 때 구별할 세 가지는?",
+          "choices": [
+            "빨강·초록·파랑",
+            "누른 순간(pressed·한 번)·누르고 있음(held·지속)·뗀 순간(released·놓을 때)",
+            "상·하·좌",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "에지와 레벨."
+        },
+        {
+          "q": "점프를 「누르고 있음(held)」으로 처리하면?",
+          "choices": [
+            "정상",
+            "누르는 동안 매 프레임 계속 점프(버그) — pressed 로 한 번이어야",
+            "안 됨",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "종류를 맞춰야."
+        },
+        {
+          "q": "입력을 프레임 시작에 폴링(스냅샷)하는 이유는?",
+          "choices": [
+            "느려서",
+            "이벤트를 프레임 단위로 모아 update 에서 씀 — game-loop 리듬과 정합",
+            "예뻐서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "프레임 단위 입력."
+        }
+      ]
     },
     {
-      "q": "코요테 타임이 하는 일은?",
-      "choices": [
-        "발판을 살짝 벗어난 뒤에도 짧게 점프를 허용해 조작감을 높인다",
-        "점프 높이를 올린다",
-        "중력을 줄인다"
+      "id": "2",
+      "title": "상태 기계로 겹침을 정리한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "입력이 여러 개고 상태가 여러 개면 **if 문이 폭발**한다 — 「점프 중엔 공격 못 하고, 대시 중엔 방향 못 바꾸고, 착지 중엔…」을 if 로 짜면 **조건이 얽혀** 버그가 숨는다. **if 문이 다섯 개를 넘어가면 상태 기계(state machine)로 바꿀 때**다. 상태 기계 — **명시적 상태들**(idle·run·jump·attack·dash…)과 **각 상태에서 어떤 입력이 어떤 상태로 가는지의 전이(transition) 표**로 정리한다: `idle` 에서 `move` 입력 → `run`, `run` 에서 `jump` → `air`, `air` 에서 `attack` → `airAttack`… **어떤 상태에서 어떤 입력이 무엇이 되는지를 표로 적으면 버그가 눈에 보인다** — 표의 **빈칸 = 미정의 동작**(그 상태에서 그 입력이 어떻게 되나?)이 명확히 드러난다(if 로는 빠뜨린 걸 못 봄). 상태 기계의 이점: **한 번에 한 상태**(겹침 없음 — 점프 중이면서 대시 중일 수 없음), **전이가 명시적**(허용된 전환만), **디버깅·확장 쉬움**(상태·전이를 표로 봄). 아래 데모로 상태 × 입력 표를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상태 기계 — 상태 × 입력 표",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const filled = {{filled}};   // 채운 칸 수\n  const states = ['idle', 'run', 'air'];\n  const inputs = ['move', 'jump', 'attack'];\n  const table = {\n    'idle-move': 'run', 'idle-jump': 'air', 'idle-attack': 'attack',\n    'run-move': 'run', 'run-jump': 'air', 'run-attack': 'attack',\n    'air-move': 'air', 'air-jump': '?', 'air-attack': 'airAtk',\n  };\n  const cells = [];\n  let idx = 0;\n  let html = '<table><tr><th>상태 \\\\ 입력</th>';\n  for (const inp of inputs) html += '<th>' + inp + '</th>';\n  html += '</tr>';\n  for (const st of states) {\n    html += '<tr><td style=\\\"color:#7dd3fc\\\">' + st + '</td>';\n    for (const inp of inputs) {\n      const key = st + '-' + inp;\n      const val = table[key];\n      const show = idx < filled;\n      html += '<td class=\\\"' + (show ? (val==='?'?'empty':'filled') : 'empty') + '\\\">' + (show ? val : '?') + '</td>';\n      idx++;\n    }\n    html += '</tr>';\n  }\n  html += '</table>';\n  render('상태 × 입력 표 — ' + filled + '/9 채움',\n    '  각 상태에서 각 입력이 어떤 상태로 가는지(전이)\\n' +\n    '  빈칸(?) = 미정의 동작 → 표로 적으면 버그가 눈에 보임\\n\\n' +\n    '  <span class=\\\"' + (filled>=9?'ok':'warn') + '\\\">' +\n    (filled >= 9 ? 'air 에서 jump 는 「?」 — 표가 미정의(2단 점프?)를 드러냄. if 로는 못 봄.' : '표를 채우며 빈칸(미정의)을 찾아라.') + '</span>',\n    '상태 × 입력 표: 빈칸이 곧 미정의 동작 — 표로 적으면 버그가 보인다.',\n    html);\n</script>",
+          "controls": [
+            {
+              "id": "filled",
+              "label": "채운 칸",
+              "type": "range",
+              "min": 0,
+              "max": 9,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "상태 기계",
+          "text": "const rules = {\n  idle:   { move: 'run',  jump: 'air',  attack: 'attack' },\n  run:    { move: 'run',  jump: 'air',  attack: 'attack' },\n  air:    { move: 'air',  attack: 'airAttack' },   // jump 없음 = 2단 점프 미정의\n  attack: { /* 애니메이션 끝나면 idle */ },\n};\nfunction handleInput(state, input) {\n  return rules[state]?.[input] ?? state;   // 정의 안 된 전이는 상태 유지\n}\n// if 문이 5개를 넘으면 상태 기계로 — 상태 × 입력을 표로 적으면 버그가 보인다\n// 한 번에 한 상태(겹침 없음) · 전이 명시적 · 빈칸 = 미정의 동작"
+        },
+        {
+          "type": "note",
+          "text": "**입력·상태가 많으면 if 문이 폭발하니, if 가 다섯 개를 넘으면 상태 기계로 바꾼다 — 명시적 상태(idle·run·air…)와 각 상태에서 어떤 입력이 어떤 상태로 가는지의 전이 표로 정리한다. 상태 × 입력을 표로 적으면 빈칸(미정의 동작)이 눈에 보여 버그가 드러난다.** 1장의 입력을 **여러 상태에 걸쳐** 다루면 복잡해진다 — 그 정리 도구가 **상태 기계**. **문제 — if 문 폭발**: 캐릭터가 여러 상태(가만히·달리기·점프·공격·대시)를 갖고 상태마다 입력 처리가 다르면 — 「**점프 중엔 공격 못 하고, 대시 중엔 방향 못 바꾸고, 공격 애니메이션 중엔 이동 못 하고**…」를 **중첩 if** 로 짜게 된다. 조건이 **얽히고**(if 안에 if 안에 if), **빠뜨린 조합**이 생기고(이 상태에서 이 입력은 어떻게?), **버그가 숨는다**(어떤 경로로 잘못된 상태가 됨). **해법 — 상태 기계(finite state machine, FSM)**: **명시적 상태 집합**(idle, run, jump/air, attack, dash…)과 **전이 규칙(transition)** — 「각 상태에서 어떤 입력이 어떤 상태로 가는지」로 정리한다: `idle` + `move` → `run`, `run` + `jump` → `air`, `air` + `attack` → `airAttack`, `attack` → (애니 끝나면) `idle`. **판단 기준 — if 다섯 개**: **if 문이 다섯 개를 넘어가면** 상태 기계로 바꿀 때다(그 전엔 if 로 충분, 넘으면 얽힘). **핵심 이점 — 표로 적으면 버그가 보인다**: **어떤 상태에서 어떤 입력이 무엇이 되는지를 표(상태 × 입력)로 적으면** — **빈칸이 곧 미정의 동작**이다: 「`air` 상태에서 `jump` 입력은?」이 빈칸이면 「공중에서 점프하면(2단 점프)? 아직 안 정함」이 **명확히 드러난다**. if 로 짜면 이 **빠뜨린 조합을 못 보지만**(코드에 없으면 안 보임), **표는 빈칸으로 강제로 보여 준다**(모든 상태×입력 조합을 나열하니). 그래서 표가 버그를 **눈에 보이게** 한다(미정의 동작 = 잠재 버그). **상태 기계의 이점**: ① **한 번에 한 상태** — 겹침이 없다(점프 중이면서 대시 중일 수 없음 — if 로는 실수로 겹침), ② **전이가 명시적** — 허용된 전환만 일어남(임의 상태로 못 감), ③ **디버깅·확장 쉬움** — 「지금 무슨 상태?」가 명확하고, 상태·전이를 표로 보고 추가한다, ④ **애니메이션·로직 연결** — 상태마다 애니메이션·물리가 대응(Unity 의 Animator 상태 기계). **정리**: 입력·상태가 많아 if 가 다섯 개를 넘으면 **상태 기계**(명시적 상태 + 전이 표)로 정리한다 — **상태 × 입력을 표로 적으면 빈칸(미정의 동작)이 드러나** 버그가 보이고, 한 번에 한 상태·명시적 전이로 겹침·얽힘이 사라진다. 얽힌 if 를 표로 바꾸면 복잡한 조작이 명료해진다."
+        },
+        {
+          "type": "note",
+          "text": "**「모든 경우를 표로 만들면 빠진 게 보인다」 — 명시적 열거가 누락을 드러낸다.** 상태 기계의 교훈은 「복잡한 조건 로직을 모든 경우(상태 × 입력)를 명시적으로 나열한 표로 만들면, 빠뜨린 경우(빈칸)가 드러나 버그가 보인다」다: if 문은 「생각난 경우만」 처리하니 빠뜨린 조합이 안 보이지만, 상태×입력 표는 「모든 조합」을 강제로 나열해 빈칸(미처리)을 드러낸다 — 명시적 완전 열거가 누락을 잡는다. 이 「경우를 완전히 열거해 누락을 드러내기」는 정확성의 근본이다 — 진리표(모든 입력 조합), 상태 기계(모든 상태×이벤트), 패턴 매칭의 완전성 검사(모든 경우 처리했나 — 컴파일러가 잡음), 결정 테이블, 테스트 케이스 매트릭스. 핵심 통찰: **암묵적으로 「생각난 경우만」 처리하면 누락이 숨지만, 모든 경우를 명시적으로 열거(표·매트릭스)하면 빠진 것이 빈칸으로 드러난다** — 그래서 복잡한 조건·상태 로직은 표로 만들어 완전성을 확인한다. 그래서 「복잡한 조건·상태 분기가 얽히면, 모든 경우(상태×입력·입력 조합)를 표로 명시적으로 열거하라 — 빈칸(미처리)이 드러나 누락 버그가 보인다」가 근본 — 상태 기계의 「표로 적으면 버그가 보인다」는 그 실천으로, 명시적 열거가 암묵적 누락을 이긴다. 표로 만들어 빈칸을 봐라."
+        },
+        {
+          "type": "try",
+          "text": "캐릭터 상태를 **표로 그린 뒤(상태 × 입력) 빈칸을 채워라** — 세로에 상태(idle·run·air·attack·dash), 가로에 입력(move·jump·attack·dash), 각 칸에 「그 상태에서 그 입력이 가는 상태」를 적어라. **빈칸이 곧 미정의 동작**이다(「air 에서 jump 는? 2단 점프?」) — if 로는 안 보이던 빠뜨린 조합이 표에선 빈칸으로 드러난다. if 가 다섯 개를 넘으면 이 상태 기계(전이 표)로 바꿔라 — 한 번에 한 상태·명시적 전이로 겹침이 사라진다. 모든 경우를 표로 열거해 누락을 드러내라."
+        }
       ],
-      "answer": 0,
-      "why": "사람의 반응 오차를 관대하게 흡수한다."
+      "quiz": [
+        {
+          "q": "if 문이 몇 개를 넘으면 상태 기계로 바꾸나?",
+          "choices": [
+            "10개",
+            "다섯 개 — 조건이 얽혀 버그가 숨을 때",
+            "100개",
+            "안 바꿈"
+          ],
+          "answer": 1,
+          "why": "얽힘을 정리."
+        },
+        {
+          "q": "상태 × 입력 표의 빈칸은 무엇인가?",
+          "choices": [
+            "여백",
+            "미정의 동작 — 그 상태에서 그 입력이 어떻게 되나(잠재 버그)",
+            "장식",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "표가 누락을 드러냄."
+        },
+        {
+          "q": "상태 기계의 이점은?",
+          "choices": [
+            "느림",
+            "한 번에 한 상태(겹침 없음)·전이 명시적·디버깅 쉬움(표로 봄)",
+            "복잡",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "명시적 열거."
+        }
+      ]
     },
     {
-      "q": "조건문이 계속 늘어나는 캐릭터 동작을 정리하는 방법은?",
-      "choices": [
-        "상태 기계로 상태 × 입력 표를 만든다",
-        "함수 이름을 짧게",
-        "전역 변수로 통합"
+      "id": "3",
+      "title": "입력 버퍼 — 착지 직전 점프",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "조작감을 만드는 **작은 관용 장치** — **입력 버퍼(input buffer)**. 문제: 플레이어가 **착지 직전에 점프**를 누르면(0.1초 일찍) — 그 순간엔 공중이라 점프가 **무시**되고, 착지했을 땐 이미 버튼을 뗐다 → 「분명 눌렀는데 점프가 안 됨」(억울함). 사람의 입력은 **완벽한 타이밍이 아니라** 조금 이르거나 늦다. **해법 — 입력 버퍼**: 점프 입력을 **잠깐 기억**해 둔다(예: 0.12초). 「누른 순간」에 `jumpBuffer = 0.12` 로 설정하고, 매 프레임 `jumpBuffer -= dt` 로 줄인다. **착지했을 때 `jumpBuffer > 0` 이면**(최근에 점프를 눌렀으면) **바로 점프**한다(그 사이 뗐어도). 그러면 **착지 직전에 눌러도 착지하면 점프**가 나가 — 「눌렀는데 안 됨」이 사라진다(입력이 조금 일러도 관용). 버퍼 시간은 **0.1~0.15초쯤**(너무 길면 의도 안 한 점프, 너무 짧으면 효과 없음 — 5장에서 튜닝). 이건 **공격·대시 등 모든 「타이밍 맞춰 눌러야 하는」 입력**에 적용된다. 아래 데모로 입력 버퍼의 효과를 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "입력 버퍼 — 착지 직전 점프를 살린다",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const earlyMs = {{early}};   // 착지보다 몇 ms 일찍 눌렀나\n  const bufferMs = {{buffer}}; // 버퍼 시간(ms)\n  const buffered = bufferMs > 0 && earlyMs <= bufferMs;\n  render('착지 ' + earlyMs + 'ms 전에 점프 누름 · 버퍼 ' + bufferMs + 'ms',\n    '  누른 순간: jumpBuffer = ' + bufferMs + 'ms · 매 프레임 -= dt\\n' +\n    '  착지 시점의 남은 버퍼 = ' + Math.max(0, bufferMs - earlyMs) + 'ms\\n' +\n    '  → 버퍼 > 0 이면 착지하며 바로 점프?\\n\\n' +\n    '  <span class=\\\"' + (buffered?'ok':'no') + '\\\">' +\n    (buffered ? '착지 직전에 눌러도 버퍼가 살아 있어 착지하며 점프 — 「눌렀는데 안 됨」 해소.' : (bufferMs===0 ? '버퍼 없음 → 착지 전 입력 무시 → 「눌렀는데 안 됨」' : '너무 일찍 눌러(' + earlyMs + '>' + bufferMs + ') 버퍼 만료 — 버퍼 늘리거나 정타로')) + '</span>',\n    '입력 버퍼: 점프 입력을 잠깐 기억 → 착지 직전에 눌러도 착지하며 점프.',\n    buffered\n      ? steps([['착지 ' + earlyMs + 'ms 전 점프 누름 → 버퍼 ' + bufferMs + 'ms 설정', 'on'], ['공중이라 지금은 점프 무시', 'on'], ['착지! 버퍼 ' + (bufferMs-earlyMs) + 'ms 남음 → 바로 점프', 'good']])\n      : box(bufferMs===0 ? '버퍼 없음 (억울)' : '버퍼 만료', bufferMs===0 ? '착지 전 점프 → 무시\\n착지 시 버튼 이미 뗌\\n→ 「눌렀는데 안 됨」' : earlyMs + 'ms 일찍 > 버퍼 ' + bufferMs + 'ms\\n→ 만료됨', 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "early",
+              "label": "착지보다 일찍 누름(ms)",
+              "type": "range",
+              "min": 0,
+              "max": 300,
+              "step": 20,
+              "value": 80
+            },
+            {
+              "id": "buffer",
+              "label": "버퍼 시간(ms)",
+              "type": "range",
+              "min": 0,
+              "max": 200,
+              "step": 20,
+              "value": 120
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "입력 버퍼",
+          "text": "// 누른 순간: 점프 입력을 잠깐 기억\nif (pressed.has('Space')) jumpBuffer = 0.12;   // 0.12초 버퍼\njumpBuffer -= dt;   // 매 프레임 줄임\n\n// 착지했을 때 버퍼가 살아 있으면 바로 점프 (그 사이 뗐어도)\nif (grounded && jumpBuffer > 0) {\n  jump();\n  jumpBuffer = 0;\n}\n// 착지 직전에 눌러도 착지하며 점프 → 「눌렀는데 안 됨」 해소\n// 공격·대시 등 타이밍 입력에 모두 적용 (버퍼 0.1~0.15초)"
+        },
+        {
+          "type": "note",
+          "text": "**입력 버퍼는 조작감을 만드는 관용 장치다 — 착지 직전(0.1초 일찍)에 점프를 누르면 공중이라 무시되고 착지 땐 버튼을 뗐다는 「눌렀는데 안 됨」 문제를, 점프 입력을 잠깐(0.12초) 기억해 착지했을 때 버퍼가 살아 있으면 바로 점프하는 것으로 해결한다.** 좋은 조작감의 비밀 — **작은 관용(forgiveness) 장치**들이다. 그 첫째가 **입력 버퍼(input buffer)**. **문제 — 완벽한 타이밍은 불가능**: 플레이어가 **착지 직전에 점프를 누르면**(착지보다 0.1초 일찍) — 그 순간엔 아직 **공중**이라 점프가 **무시**된다(공중에선 점프 불가). 그런데 착지했을 땐 이미 **버튼을 뗐다** → 결과: **「분명히 점프를 눌렀는데 안 뛰어졌다」**(플레이어는 억울하고 조작이 나쁘다고 느낌). 사람의 입력은 **완벽한 프레임 타이밍이 아니라** 조금 이르거나 늦다(반응·예측의 오차) — 정확한 순간에만 받으면 「눌렀는데 씹혔다」가 자주 난다. **해법 — 입력 버퍼(입력을 잠깐 기억)**: 점프 입력을 **바로 버리지 말고 잠깐 기억**해 둔다: ① **누른 순간** `jumpBuffer = 0.12`(0.12초 동안 「점프 하고 싶음」을 기억). ② 매 프레임 `jumpBuffer -= dt`(시간이 지나면 줄어 만료). ③ **착지했을 때(grounded) `jumpBuffer > 0` 이면**(최근에 점프를 눌렀으면) **바로 점프**한다(`jump(); jumpBuffer = 0;`). **효과**: 착지 **직전에** 점프를 눌러도(그 사이 버튼을 뗐어도), 착지하는 순간 **버퍼가 살아 있으면 점프가 나간다** → **「착지 직전에 눌렀는데 착지하며 점프」**가 되어 「눌렀는데 안 됨」이 사라진다. 입력이 **조금 일러도 관용**해 주는 것. **버퍼 시간 — 0.1~0.15초쯤**: 너무 **짧으면**(0.02초) 효과가 없고(여전히 씹힘), 너무 **길면**(0.5초) 의도 안 한 점프가 나온다(오래전에 누른 게 뒤늦게 튀어나옴 — 어색). **0.1~0.15초**가 보통(느낌으로 튜닝 — 5장·game-feel 6장의 껐다 켜서 비교). **모든 타이밍 입력에**: 입력 버퍼는 점프뿐 아니라 **타이밍 맞춰 눌러야 하는 모든 입력**에 쓴다 — **공격 콤보**(다음 공격을 조금 일찍 눌러도 이어짐), **대시**, **격투 게임의 커맨드**, 리듬 게임. 다음 동작을 조금 일찍 눌러도 받아 준다. **정리**: **입력 버퍼**는 입력을 **잠깐 기억**(0.1~0.15초)해, **착지 직전에 눌러도 착지하며 점프**가 나가게 한다 — 「눌렀는데 안 됨」(입력 씹힘)을 없애는 관용 장치다. 사람의 입력은 완벽하지 않으니, 조금 이른 입력을 기억해 관용한다. 이게 「반응 좋은」 조작감의 비결 중 하나다."
+        },
+        {
+          "type": "note",
+          "text": "**「관용의 창을 두라」 — 완벽하지 않은 입력을 받아 주면 좋게 느껴진다.** 입력 버퍼의 교훈은 「사람의 입력은 완벽한 타이밍이 아니니, 약간의 오차를 관용하는 창(window)을 두면 훨씬 좋게 느껴진다」다: 정확한 순간에만 받으면 조금 이른 입력이 씹혀 「내 잘못이 아닌데 안 됨」의 억울함이 생기지만, 입력을 잠깐 기억(관용의 창)하면 그 오차를 흡수해 「의도대로 됨」이 된다 — 시스템이 사람의 불완전함을 받아 준다. 이 「관용의 창」은 UX 전반에 통한다 — 디바운스(연타·떨림 관용 — math-random·검색), 재시도(일시적 실패 관용 — sync), 자동 저장(놓친 저장 관용), 오차 허용(math-float 의 eps 비교), 히트박스 관용(살짝 빗나가도 맞음 — game-feel). 핵심 통찰: **사람·환경은 완벽하지 않으니(입력 타이밍·연결·정밀도), 약간의 오차를 흡수하는 관용을 설계하면 「내 탓이 아닌 실패」가 사라져 좋게 느껴진다** — 엄격함(정확히 해야만 됨)은 억울함을 낳고, 관용(조금 틀려도 됨)은 만족을 낳는다. 그래서 「사람의 입력·타이밍·정밀도가 완벽하지 않은 곳엔, 약간의 오차를 관용하는 창(버퍼·디바운스·재시도·허용 오차)을 두어 「의도대로」 되게 하라」가 근본 — 게임의 입력 버퍼는 그 대표로, 조금 이른 입력을 기억해 관용한다. 관용의 창이 조작감을 만든다."
+        },
+        {
+          "type": "try",
+          "text": "점프에 **입력 버퍼**를 넣어라 — `if (pressed) jumpBuffer = 0.12; jumpBuffer -= dt;`, 착지 시 `if (grounded && jumpBuffer > 0) { jump(); jumpBuffer = 0; }`. 착지 **직전에** 점프를 눌러도 착지하며 점프가 나가는지(「눌렀는데 안 됨」 해소) 확인하라. 버퍼를 **끄고 켜며 플레이**해 차이를 느끼고, 숫자를 **0.05 / 0.1 / 0.2 로** 바꿔 감각 차이를 적어라(너무 짧으면 효과 없고 너무 길면 어색). 공격·대시 등 타이밍 입력에도 적용하라 — 사람의 입력은 완벽하지 않으니 관용의 창을 두어라."
+        }
       ],
-      "answer": 0,
-      "why": "표로 만들면 미정의 조합이 드러난다."
+      "quiz": [
+        {
+          "q": "입력 버퍼가 해결하는 문제는?",
+          "choices": [
+            "느림",
+            "착지 직전에 점프를 눌러 공중이라 무시된 「눌렀는데 안 됨」(입력 씹힘)",
+            "그래픽",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "관용의 창."
+        },
+        {
+          "q": "입력 버퍼의 동작은?",
+          "choices": [
+            "무시",
+            "점프 입력을 잠깐(0.12초) 기억 → 착지 시 버퍼가 살아 있으면 바로 점프",
+            "삭제",
+            "느리게"
+          ],
+          "answer": 1,
+          "why": "입력을 기억."
+        },
+        {
+          "q": "입력 버퍼의 일반 원리는?",
+          "choices": [
+            "엄격함",
+            "완벽하지 않은 입력을 관용하는 창 — 오차를 흡수해 의도대로 되게(디바운스·재시도)",
+            "무관",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "관용이 만족."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "코요테 타임 · 선입력 취소",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "관용 장치 둘 더 — **코요테 타임**과 **선입력 취소**. ① **코요테 타임(coyote time)** — 발판을 **벗어난 뒤에도 0.1초까지 점프를 허용**한다(만화의 코요테가 절벽을 지나도 잠깐 안 떨어지는 것에서). 문제: 플레이어가 발판 끝에서 점프하려는데 **한두 프레임 늦으면 이미 떨어진 뒤**라 점프가 안 됨(「분명 발판 위에서 눌렀는데」). **해법**: `coyote = grounded ? 0.1 : coyote - dt` — 땅에 있으면 0.1 로 리셋, 떨어지면 줄어듦. **`coyote > 0` 이면 점프 허용**(막 떨어졌어도 0.1초는 땅으로 침). 그러면 발판을 살짝 벗어난 뒤에도 점프가 나가 — 「낭떠러지에서 씹힘」이 사라진다. ② **선입력 취소** — 이미 시작한 동작을 다른 입력으로 **취소·연결**(공격 도중 대시로 캔슬, 콤보 연결). 정밀한 조작·콤보의 반응성. **입력 버퍼(3장) + 코요테 타임 + 선입력 취소, 이 셋만 넣어도** 조작감이 확 좋아진다 — 사람의 불완전한 타이밍(조금 이르거나 늦음)을 **양쪽으로 관용**(버퍼=조금 이른 입력, 코요테=조금 늦은 발판 이탈). 아래 데모로 코요테 타임을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "코요테 타임 — 발판 벗어난 뒤에도 점프",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const lateMs = {{late}};     // 발판 벗어나고 몇 ms 뒤에 점프 눌렀나\n  const coyoteMs = {{coyote}}; // 코요테 시간(ms)\n  const allowed = coyoteMs > 0 && lateMs <= coyoteMs;\n  render('발판 벗어나고 ' + lateMs + 'ms 뒤 점프 · 코요테 ' + coyoteMs + 'ms',\n    '  coyote = grounded ? ' + coyoteMs + 'ms : coyote - dt (떨어지면 줄어듦)\\n' +\n    '  점프 시점의 남은 코요테 = ' + Math.max(0, coyoteMs - lateMs) + 'ms\\n' +\n    '  → coyote > 0 이면 점프 허용?\\n\\n' +\n    '  <span class=\\\"' + (allowed?'ok':'no') + '\\\">' +\n    (allowed ? '발판을 살짝 벗어난 뒤에도 코요테가 살아 있어 점프 — 「낭떠러지 씹힘」 해소.' : (coyoteMs===0 ? '코요테 없음 → 발판 벗어나면 즉시 점프 불가 → 「발판 위에서 눌렀는데」' : '너무 늦게(' + lateMs + '>' + coyoteMs + ') 코요테 만료 — 이미 떨어짐')) + '</span>',\n    '코요테 타임: 발판 벗어난 뒤 0.1초까지 점프 허용 — 「낭떠러지 씹힘」 해소.',\n    allowed\n      ? steps([['발판 벗어남 → 코요테 ' + coyoteMs + 'ms 시작', 'on'], [lateMs + 'ms 뒤 점프 누름 → 코요테 ' + (coyoteMs-lateMs) + 'ms 남음', 'on'], ['coyote > 0 → 점프 허용(막 떨어졌어도)', 'good']])\n      : box(coyoteMs===0 ? '코요테 없음 (씹힘)' : '코요테 만료', coyoteMs===0 ? '발판 벗어남 → 즉시 점프 불가\\n→ 「발판 위에서 눌렀는데」' : lateMs + 'ms 늦음 > 코요테 ' + coyoteMs + 'ms\\n→ 이미 떨어짐', 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "late",
+              "label": "발판 벗어나고 늦게(ms)",
+              "type": "range",
+              "min": 0,
+              "max": 300,
+              "step": 20,
+              "value": 60
+            },
+            {
+              "id": "coyote",
+              "label": "코요테 시간(ms)",
+              "type": "range",
+              "min": 0,
+              "max": 200,
+              "step": 20,
+              "value": 100
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "코요테 타임 · 선입력",
+          "text": "coyote = grounded ? 0.1 : coyote - dt;   // 땅이면 리셋, 떨어지면 줄어듦\n\n// 점프 허용: 코요테가 살아 있으면(막 떨어졌어도 0.1초는 OK)\nif ((pressed.has('Space') || jumpBuffer > 0) && coyote > 0) {\n  jump(); coyote = 0; jumpBuffer = 0;\n}\n// 버퍼(조금 이른 입력) + 코요테(조금 늦은 발판 이탈) = 양쪽으로 관용\n// 선입력 취소: 이미 시작한 동작을 다른 입력으로 캔슬·연결(콤보)\n// 이 셋(버퍼·코요테·선입력)만 넣어도 조작감이 확 좋아진다"
+        },
+        {
+          "type": "note",
+          "text": "**코요테 타임은 발판을 벗어난 뒤에도 0.1초까지 점프를 허용해(만화의 코요테처럼) 「발판 위에서 눌렀는데 이미 떨어져 씹힌」 문제를 해결하고, 선입력 취소는 이미 시작한 동작을 다른 입력으로 취소·연결한다(콤보). 입력 버퍼 + 코요테 타임 + 선입력 취소 이 셋만 넣어도 조작감이 확 좋아진다.** 3장의 입력 버퍼에 더한 두 관용 장치. ① **코요테 타임(coyote time)** — 발판(땅)을 **벗어난 직후에도 짧은 시간(0.1초쯤) 점프를 허용**한다. 이름은 **만화 「로드 러너」의 코요테**가 절벽을 지나쳐도 **잠깐은 안 떨어지고 공중에 떠 있는** 것에서. **문제**: 플레이어가 **발판 끝에서 점프**하려는데 — 반응이 **한두 프레임 늦으면** 이미 **발판을 벗어나 떨어지는 중**이라 점프가 안 된다(공중이니) → 「**분명 발판 위에서 눌렀는데 안 뛰고 떨어졌다**」(억울 — 특히 픽셀 단위 발판 끝에서). 사람은 발판을 벗어나는 정확한 프레임을 못 맞춘다. **해법**: `coyote = grounded ? 0.1 : coyote - dt` — **땅에 있으면 0.1 로 리셋**하고, **떨어지면 dt 만큼 줄인다**(0.1초 카운트다운). 점프 조건에 **`coyote > 0`**을 쓰면 — **막 떨어졌어도 0.1초 안이면 「아직 땅에 있는 셈」**으로 쳐 점프를 허용한다. 그러면 발판을 **살짝 벗어난 뒤에도 점프가 나가** 「낭떠러지에서 씹힘」이 사라진다. ② **선입력 취소(cancel / input cancel)** — 이미 **시작한 동작을 다른 입력으로 취소·연결**한다: 공격 애니메이션 도중 **대시로 캔슬**(공격 후딜을 취소해 기민하게), **콤보 연결**(공격1 도중 공격2 입력을 받아 이어짐), 특정 프레임에 캔슬 허용(격투 게임의 캔슬 시스템). 이는 **정밀한 조작·콤보의 반응성**을 준다(동작에 묶여 답답하지 않게). **셋이 함께 — 양쪽으로 관용**: **입력 버퍼(3장)** = **조금 이른 입력**을 기억(착지 직전 점프), **코요테 타임** = **조금 늦은 발판 이탈**을 허용(발판 벗어난 뒤 점프) — **입력 타이밍의 양쪽 오차를 관용**한다(사람은 이르거나 늦으니 둘 다 필요). **선입력 취소** = 동작 중 다른 입력의 반응성. **「이 셋만 넣어도 조작감이 확 좋아진다」** — 버퍼·코요테·선입력, 이 세 작은 장치가 「반응 좋고 기민한」 조작감의 핵심이다(유명 플랫포머들이 다 씀 — 보이지 않지만 결정적). 구현: 점프 조건을 `(pressed('Space') || jumpBuffer > 0) && coyote > 0` 로(버퍼와 코요테를 함께). **정리**: **코요테 타임**(발판 벗어난 뒤 0.1초 점프 허용 — 늦은 이탈 관용)과 **선입력 취소**(동작 중 캔슬·연결)를 **입력 버퍼**(이른 입력 관용)와 함께 넣으면 — **입력의 양쪽 오차를 관용**해 조작감이 확 좋아진다. 이 셋이 보이지 않게 「반응 좋은」 조작을 만든다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 게임 입력(game-input)은 game 갈래(게임 개발)에서 「조작감을 만드는 입력 처리」다. 세 상태(1장)는 에지와 레벨, 상태 기계(2장)는 명시적 열거로 누락 드러내기, 입력 버퍼·코요테(3·4장)는 관용의 창(불완전한 입력 흡수), 추상 액션(5장)은 장치 독립·간접층과 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, input 은 game-loop(프레임 단위 폴링)·game-feel(반응성이 손맛)과 함께 「조작감」을 만든다 — feel 이 「보이는 피드백」이면 input 은 「받는 타이밍」이다. **「조작감은 입력을 언제 받아 언제 반영하느냐 — 누른 순간/누르고 있음/뗀 순간을 구별하고, 겹치면 상태 기계(상태×입력 표로 미정의를 드러냄)로 정리하며, 입력 버퍼(이른 입력)·코요테 타임(늦은 이탈)·선입력 취소로 사람의 불완전한 타이밍을 관용하고, 여러 장치를 추상 액션으로 묶어라」**가 이 칸의 핵심이다."
+        },
+        {
+          "type": "try",
+          "text": "점프에 **코요테 타임**을 넣어라 — `coyote = grounded ? 0.1 : coyote - dt;`, 점프 조건에 `coyote > 0` 추가. 발판을 **살짝 벗어난 뒤에** 점프를 눌러도 나가는지(「낭떠러지 씹힘」 해소) 확인하라. **입력 버퍼(3장)와 함께** 넣어(`(pressed || jumpBuffer > 0) && coyote > 0`) 양쪽 오차(이른 입력·늦은 이탈)를 관용하라. 숫자를 0.05/0.1/0.2 로 바꿔 감각을 보고, 선입력 취소(공격 중 대시 캔슬·콤보 연결)도 시도하라. 이 셋(버퍼·코요테·선입력)만 넣어도 조작감이 확 좋아진다 — 보이지 않는 관용이 손맛을 만든다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "코요테 타임(coyote time)이란?",
+          "choices": [
+            "느림",
+            "발판을 벗어난 뒤에도 0.1초까지 점프 허용 — 「낭떠러지 씹힘」 해소",
+            "점프 금지",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "늦은 이탈 관용."
+        },
+        {
+          "q": "입력 버퍼와 코요테 타임의 관계는?",
+          "choices": [
+            "같음",
+            "버퍼=조금 이른 입력 관용, 코요테=조금 늦은 발판 이탈 관용 — 양쪽 오차",
+            "무관",
+            "반대만"
+          ],
+          "answer": 1,
+          "why": "양쪽으로 관용."
+        },
+        {
+          "q": "조작감을 확 좋게 하는 세 장치는?",
+          "choices": [
+            "그래픽·소리·색",
+            "입력 버퍼·코요테 타임·선입력 취소",
+            "속도·크기·무게",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "보이지 않는 관용."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "여러 장치 — 추상 액션으로 묶어라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "키보드·패드·터치를 **추상 액션(abstract action)**으로 묶어라 — 게임 로직은 **`move`·`jump`·`attack`** 같은 **액션**을 보게 하고, **어떤 장치의 어떤 입력이 그 액션이 되는지는 매핑 층**으로 분리한다. **왜**: 게임 로직에 **장치별 코드가 섞이면**(「Space 키 또는 게임패드 A 또는 터치 점프 버튼이면 점프」를 로직 곳곳에) — 나중에 **장치 하나를 추가**할 때(새 게임패드·VR) **전부 손봐야** 한다(로직 전체에 흩어진 장치 조건). **추상 액션으로 묶으면**: 로직은 `if (action.jump)` 만 보고(장치 무관), **매핑 테이블**(`Space → jump`, `GamepadA → jump`, `TouchJump → jump`)만 바꾸면 장치가 추가·변경된다. 이점: ① **장치 추가가 쉬움**(매핑만 추가 — 로직 안 건드림), ② **키 재설정**(사용자가 키를 바꿈 — 매핑만 수정 — 접근성), ③ **로직이 깔끔**(장치 세부가 안 섞임), ④ **입력 버퍼·코요테(3·4장)를 액션 단위로** 한 곳에. 이건 **간접 층(indirection)**으로 장치와 로직을 **분리**하는 것 — 관심사 분리의 실천. 아래 데모로 추상 액션 매핑을 확인하라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "추상 액션 — 장치를 액션으로 묶기",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mapped = '{{mapped}}' === 'on';\n  if (!mapped) {\n    render('장치별 코드가 로직에 섞임 — 확장 지옥',\n      '  로직 곳곳에: if (Space || GamepadA || TouchJump) jump()\\n' +\n      '  → 장치 하나 추가하면 로직 전체를 손봐야\\n\\n' +\n      '  <span class=\\\"no\\\">장치별 코드가 게임 로직에 섞이면 확장 시 전부 손봐야 한다.</span>',\n      '장치별 코드가 로직에 섞이면 장치 추가 시 전부 손봐야(확장 지옥).',\n      box('장치가 로직에 섞임 (X)', 'if (Space||GamepadA||Touch) jump()\\n(로직 곳곳에 장치 조건)\\n→ 장치 추가 시 전부 수정', 'bad'));\n  } else {\n    render('추상 액션으로 묶기 — 매핑 층 분리',\n      '  매핑: Space→jump · GamepadA→jump · TouchJump→jump\\n' +\n      '  로직: if (action.jump) jump()  (장치 무관)\\n' +\n      '  → 장치 추가 = 매핑만 추가(로직 안 건드림)\\n\\n' +\n      '  <span class=\\\"ok\\\">간접 층으로 장치와 로직 분리 — 추가·재설정·접근성이 쉬움.</span>',\n      '추상 액션: 장치 입력 → 액션(move/jump/attack), 로직은 액션만.',\n      steps([\n        ['키보드 Space / 패드 A / 터치 버튼', 'on'],\n        ['→ 매핑 층 → 액션 jump', 'good'],\n        ['로직: if (action.jump) — 장치 무관', 'good'],\n        ['장치 추가·키 재설정 = 매핑만 수정', 'good'],\n      ]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "mapped",
+              "label": "방식",
+              "type": "select",
+              "value": "off",
+              "options": [
+                {
+                  "value": "off",
+                  "label": "장치가 로직에 섞임"
+                },
+                {
+                  "value": "on",
+                  "label": "추상 액션"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "추상 액션",
+          "text": "// 매핑: 장치 입력 → 추상 액션 (한 곳에)\nconst bindings = {\n  jump:   ['Space', 'GamepadA', 'TouchJump'],\n  move:   ['ArrowLeft', 'ArrowRight', 'GamepadStick', 'TouchDpad'],\n  attack: ['KeyX', 'GamepadX', 'TouchAttack'],\n};\n// 게임 로직은 액션만 본다 (장치 무관)\nif (action.jump) jump();\nif (action.move) move(action.moveDir);\n// 장치 추가·키 재설정 = bindings 만 수정 (로직 안 건드림)\n// 입력 버퍼·코요테도 액션 단위로 한 곳에"
+        },
+        {
+          "type": "note",
+          "text": "**키보드·패드·터치를 추상 액션(move·jump·attack)으로 묶는다 — 게임 로직은 액션만 보게 하고, 어떤 장치의 어떤 입력이 그 액션이 되는지는 매핑 층으로 분리한다. 장치별 코드가 로직에 섞이면 장치 하나를 추가할 때 전부 손봐야 하지만, 추상 액션으로 묶으면 매핑만 바꾸면 된다.** 게임 입력의 마무리 — **여러 입력 장치를 어떻게 다루나**. **문제 — 장치별 코드가 로직에 섞임**: 게임이 **여러 입력 장치**(키보드·게임패드·터치·VR 컨트롤러)를 지원할 때, 게임 로직 곳곳에 **`if (Space 키 || 게임패드 A || 터치 점프 버튼) jump()`**처럼 **장치별 조건을 직접** 쓰면 — 장치가 **로직에 흩어져** 섞인다. 결과: **장치 하나를 추가**하거나(새 컨트롤러) **키를 바꾸려** 하면, 그 조건이 **로직 전체에 흩어져 있어 전부 찾아 고쳐야** 한다(확장·수정 지옥). **해법 — 추상 액션(abstract action / input mapping)**: **장치 입력과 게임 로직 사이에 「액션」이라는 추상 층**을 둔다: ① **추상 액션 정의** — 게임이 이해하는 논리적 행동: `move`(이동), `jump`(점프), `attack`(공격), `interact`(상호작용). ② **매핑 테이블(bindings)** — **어떤 장치의 어떤 입력이 어떤 액션이 되는지**를 한 곳에: `jump: ['Space', 'GamepadA', 'TouchJump']`, `move: [방향키, 스틱, D패드]`. 매 프레임 이 매핑으로 **장치 입력 → 액션 상태**를 계산한다. ③ **게임 로직은 액션만** — 로직은 `if (action.jump)`·`if (action.move)` 만 본다(**장치를 전혀 모름** — 무슨 장치로 눌렀든 action.jump). **이점**: ① **장치 추가가 쉬움** — 새 장치는 **매핑에 추가**만 하면 됨(로직은 안 건드림 — action.jump 는 그대로). ② **키 재설정(rebinding)** — 사용자가 키를 바꿀 때 **매핑만 수정**(로직 무관 — 접근성·사용자화, 손 불편한 사용자가 편한 키로). ③ **로직이 깔끔** — 장치 세부(키 코드·버튼 번호)가 로직에 안 섞임(관심사 분리 — craft-refactor 의 책임 분리). ④ **입력 버퍼·코요테를 액션 단위로** — 3·4장의 관용 장치를 「액션」에 한 번 구현(장치마다 X). **원리 — 간접 층(indirection)으로 분리**: 이건 **간접 층**을 두어 **장치(입력)와 로직을 분리**하는 것이다 — 「모든 문제는 간접 층 하나로 풀린다」는 격언처럼, 장치와 로직 사이에 액션 층을 두면 둘이 **독립적으로** 바뀔 수 있다(장치 추가는 매핑만, 로직 변경은 로직만). game 엔진들이 이런 **입력 액션 시스템**을 제공한다(Unity 의 Input System 의 Action, Godot 의 InputMap). **정리**: 여러 입력 장치는 **추상 액션(move·jump·attack)으로 묶고** 매핑 층으로 분리한다 — 로직은 액션만 보고, 장치 추가·키 재설정은 매핑만 바꾼다. 장치별 코드를 로직에 섞지 말고, 간접 층(액션)으로 장치와 로직을 분리하는 게 확장·접근성의 열쇠다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 게임 입력(game-input)은 game 갈래(게임 개발)에서 「조작감을 만드는 입력 처리」다. 세 상태는 에지와 레벨, 상태 기계는 명시적 열거로 누락 드러내기, 입력 버퍼·코요테는 관용의 창, 추상 액션은 간접 층으로 장치·로직 분리(관심사 분리·인터페이스)와 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, input 은 game-loop(프레임 폴링)·game-feel(반응성=손맛)과 함께 「조작감」을 만든다. 추상 액션의 「간접 층으로 분리」는 소프트웨어 전반의 근본(인터페이스·추상화·의존성 역전) — 구체(장치)를 추상(액션) 뒤로 숨겨 독립적으로 바꾸게 한다. **「조작감은 입력을 언제 받아 언제 반영하느냐 — 세 상태(pressed/held/released) 구별, 겹치면 상태 기계(상태×입력 표), 입력 버퍼·코요테·선입력으로 관용, 여러 장치는 추상 액션으로 묶어라」**가 이 칸의 핵심이다."
+        },
+        {
+          "type": "try",
+          "text": "여러 입력 장치를 **추상 액션으로 묶어라** — `bindings = { jump: ['Space','GamepadA','TouchJump'], move: [...] }` 매핑을 한 곳에 두고, 게임 로직은 `if (action.jump)`·`if (action.move)` 만 보게 하라(장치 무관). 장치별 조건(`if (Space || GamepadA)`)이 로직에 흩어져 있으면 액션으로 모아라 — 장치 추가·키 재설정이 매핑만 바꾸면 되게. 입력 버퍼·코요테(3·4장)도 액션 단위로 한 곳에 구현하라. 간접 층(액션)으로 장치와 로직을 분리하면 확장·접근성(키 재설정)이 쉬워진다 — 구체(장치)를 추상(액션) 뒤로 숨겨라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "장치별 코드가 게임 로직에 섞이면?",
+          "choices": [
+            "빠름",
+            "장치 하나 추가·키 재설정 시 로직 전체를 손봐야(확장 지옥)",
+            "정확",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "추상 액션으로 분리."
+        },
+        {
+          "q": "추상 액션(move·jump·attack)으로 묶으면?",
+          "choices": [
+            "복잡",
+            "로직은 액션만 보고 장치 추가·키 재설정은 매핑만 수정(간접 층으로 분리)",
+            "느림",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "장치·로직 분리."
+        },
+        {
+          "q": "추상 액션의 추가 이점은?",
+          "choices": [
+            "없음",
+            "키 재설정(접근성)·로직 깔끔·입력 버퍼를 액션 단위로 한 곳에",
+            "느림",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "관심사 분리."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "점검표 — 입력 처리",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "게임 입력을 다룰 때 이 목록을 확인하라. 핵심은 「입력을 언제 받아 반영하느냐 — 세 상태·상태 기계·버퍼·코요테·추상 액션」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "400px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .timeline { margin:8px 0; }\n  .timeline .t { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px; background:#111c33; font:11.5px ui-monospace, monospace; }\n  .timeline .t .lab { width:120px; color:#94a3b8; } .timeline .t.hit { border-left:3px solid #22c55e; background:#132a1c; } .timeline .t.miss { border-left:3px solid #ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  td.empty { background:#2a1414; color:#f87171; } td.filled { background:#132a1c; color:#4ade80; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '조작감은 입력을 언제 받아 언제 반영하느냐에서 갈린다',\n    '누른 순간(한 번)·누르고 있음(지속)·뗀 순간(놓을 때) 구별',\n    '입력은 프레임 시작에 폴링(스냅샷)해 update 에서 씀',\n    'if 가 5개 넘으면 상태 기계 — 상태×입력 표로 미정의를 드러냄',\n    '입력 버퍼(착지 직전 점프도 살림) — 조금 이른 입력 관용',\n    '코요테 타임(발판 벗어난 뒤 점프) — 조금 늦은 이탈 관용',\n    '선입력 취소(콤보·캔슬) — 버퍼·코요테·선입력 셋이 조작감을',\n    '여러 장치는 추상 액션(move/jump)으로 묶음 — 매핑만 바꿈',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 정확한 타이밍 + 관용으로 조작감을.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '입력을 언제 받아 반영하느냐 — 세 상태·상태 기계·버퍼·코요테·추상 액션.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 조작감은 입력을 언제 받아 언제 반영하느냐에서 갈리니 — 누른 순간(pressed·한 번)·누르고 있음(held·지속)·뗀 순간(released·놓을 때)을 구별하고(프레임 시작에 폴링해 update 에서 씀), 입력·상태가 얽혀 if 가 다섯 개를 넘으면 상태 기계(상태×입력 표로 빈칸=미정의 동작을 드러냄)로 정리하며, 입력 버퍼(착지 직전 점프도 살림 — 조금 이른 입력)·코요테 타임(발판 벗어난 뒤 점프 — 조금 늦은 이탈)·선입력 취소(콤보·캔슬)로 사람의 불완전한 타이밍을 양쪽으로 관용하고, 키보드·패드·터치 여러 장치는 추상 액션(move·jump·attack)으로 묶어 매핑만 바꾸면 되게 한다.** 세 상태(1장), 상태 기계(2장), 입력 버퍼(3장), 코요테·선입력(4장), 추상 액션(5장). 「정확한 타이밍 + 관용으로 조작감」이 핵심이다."
+        },
+        {
+          "type": "note",
+          "text": "**이 칸과 갈래.** 게임 입력(game-input)은 game 갈래(게임 개발)에서 「조작감을 만드는 입력 처리」다. 세 상태는 에지와 레벨, 상태 기계는 명시적 열거로 누락 드러내기, 입력 버퍼·코요테는 관용의 창(불완전한 입력 흡수), 추상 액션은 간접 층으로 장치·로직 분리와 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, input 은 game-loop(프레임 폴링)·game-feel(반응성=손맛) 위에서 「조작감」을 만든다 — feel 이 「보이는 피드백」이면 input 은 「받는 타이밍」이다. **「입력을 언제 받아 반영하느냐 — 세 상태·상태 기계·버퍼·코요테·추상 액션」**이 이 칸의 전부다. 좋은 조작감은 그래픽이 아니라 입력을 정확한 타이밍에 받되(세 상태·프레임 폴링) 사람의 불완전함을 관용하고(버퍼·코요테), 얽힘을 상태 기계로 정리하고, 장치를 추상 액션으로 묶는 데서 온다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 게임 입력을 점검하라. 「세 상태 구별」과 「입력 버퍼·코요테」 두 가지만 잡아도, 조작감이 크게 좋아진다. 입력을 pressed/held/released 로 구별해 프레임 폴링으로 쓰고, if 가 얽히면 상태 기계(상태×입력 표)로 정리하고, 입력 버퍼·코요테 타임·선입력 취소로 관용하고, 여러 장치를 추상 액션으로 묶어라 — 정확한 타이밍 + 관용으로 조작감을 만들어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "입력 처리 장의 한 줄 요약은?",
+          "choices": [
+            "그래픽",
+            "입력을 언제 받아 반영하느냐 — 세 상태·상태 기계·버퍼·코요테·추상 액션",
+            "무시",
+            "느림"
+          ],
+          "answer": 1,
+          "why": "정확한 타이밍 + 관용."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "세 상태 구별 + 입력 버퍼·코요테(관용)",
+            "정렬·압축",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "조작감."
+        },
+        {
+          "q": "입력 처리가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "game-loop(프레임 폴링)·game-feel(반응성)·상태 기계·추상화(간접 층)",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "조작감의 층."
+        }
+      ]
     }
   ]
 }
