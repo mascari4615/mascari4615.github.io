@@ -14,6 +14,7 @@
 import { t, loadNamespace } from '../../lib/i18n';
 import { acceptPastedFiles } from './shared/paste';
 import { download, loadImage } from './shared/image';
+import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../../lib/phash';
 
 (function (): void {
   const esc = (v: unknown): string =>
@@ -48,6 +49,7 @@ import { download, loadImage } from './shared/image';
                   background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.35); cursor:ew-resize;"></div>
               </div>
               <div id="cpSay" class="tool-note" role="status"></div>
+              <div id="cpSame" class="tool-note" hidden></div>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
@@ -68,6 +70,53 @@ import { download, loadImage } from './shared/image';
            * 두 장의 크기가 다르면 **큰 쪽에 맞춘다.** 작은 쪽을 늘리면 흐려지지만, 자르면
            * 비교하려던 부분이 사라진다 — 흐린 편이 낫다(업스케일 전/후가 바로 그 경우다).
            */
+          /**
+           * **같은 사진인가** (TASK-KL-238 / 46 tineye). 손잡이를 밀어 *보는* 것 옆에,
+           * 기계가 *재는* 답을 한 줄 놓는다 — 재압축·크기 변경으로 파일이 달라졌을 때
+           * 「눈에는 같은데 파일 해시는 다르다」를 사람이 혼자 판단하지 않게.
+           *
+           * 그림은 여기서도 밖으로 안 나간다: 9×8 로 줄여 밝기만 읽는다.
+           */
+          const grayOf = (img: HTMLImageElement): number[] | null => {
+            const small = document.createElement('canvas');
+            small.width = HASH_W;
+            small.height = HASH_H;
+            const c = small.getContext('2d', { willReadFrequently: true });
+            if (c === null) return null;
+            c.drawImage(img, 0, 0, HASH_W, HASH_H);
+            let px: Uint8ClampedArray;
+            try {
+              px = c.getImageData(0, 0, HASH_W, HASH_H).data;
+            } catch {
+              return null; // 다른 곳에서 온 그림이면 캔버스가 잠긴다(tainted) — 조용히 안 한다
+            }
+            const gray: number[] = [];
+            for (let i = 0; i < px.length; i += 4) gray.push(luma(px[i], px[i + 1], px[i + 2]));
+            return gray;
+          };
+
+          /** 두 장이 다 들어왔을 때만 한 줄 낸다. 한 장만으로는 견줄 것이 없다. */
+          const sameLine = (): void => {
+            const box = $('#cpSame');
+            if (left === null || right === null) {
+              box.hidden = true;
+              return;
+            }
+            const a = grayOf(left);
+            const b = grayOf(right);
+            if (a === null || b === null) {
+              box.hidden = true;
+              return;
+            }
+            const d = hamming(dhash(a), dhash(b));
+            box.hidden = false;
+            box.textContent = t('comparepic.same.line', {
+              word: t(`comparepic.same.${verdict(d)}`),
+              pct: String(similarity(d)),
+              bits: String(d)
+            });
+          };
+
           const draw = (): void => {
             if (left === null && right === null) return;
             const w = Math.max(left?.naturalWidth ?? 0, right?.naturalWidth ?? 0);
@@ -105,6 +154,7 @@ import { download, loadImage } from './shared/image';
               else right = img;
               $<HTMLButtonElement>('#cpSave').disabled = left === null || right === null;
               draw();
+              sameLine();
               if (left !== null && right !== null) {
                 const differ = left.naturalWidth !== right.naturalWidth || left.naturalHeight !== right.naturalHeight;
                 say(
