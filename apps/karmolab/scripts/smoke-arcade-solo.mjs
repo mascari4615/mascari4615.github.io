@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
-import { serveRepo } from './lib/serve-static.mjs';
+import { smokeBase } from './lib/smoke-base.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,14 +29,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
    「못 돌림」이었고, 사실상 **아무 데서도 안 돌고 있었다**(실측: 오늘 verify 로그).
    못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고, 없으면 저장소를 그대로 내어 준다
    (다른 화면 검사들과 같은 `serveRepo`). */
-let 내서버 = null;
-let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
-const 살아있나 = await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false);
-if (!살아있나) {
-  내서버 = await serveRepo();
-  BASE = 내서버.base;
-  console.log(`[arcade-solo] dev 서버가 없어 저장소를 직접 내어 준다 (${BASE})`);
-}
+/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+const 내서버 = await smokeBase();
+const BASE = 내서버.base;
 const PAGE = `${BASE}/apps/karmolab/index.html#arcade`;
 
 const failures = [];
