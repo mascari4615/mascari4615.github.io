@@ -1,0 +1,15 @@
+{
+  "askpapers.tab": "묻기",
+  "askpapers.label.q": "논문에게 물어볼 것",
+  "askpapers.placeholder": "주의력 기제가 번역 품질을 올리나?",
+  "askpapers.btn.run": "물어보기",
+  "askpapers.status.idle": "물음을 던지면 여덟 편에게 물어보고, 답한 편만 보여 줍니다",
+  "askpapers.say.needQ": "무엇을 물어볼지 적어 주세요",
+  "askpapers.say.asking": "「{q}」 로 논문을 찾는 중…",
+  "askpapers.say.none": "이 물음으로는 논문을 못 찾았습니다 — 낱말을 바꿔 보세요 (영어가 잘 걸립니다)",
+  "askpapers.say.noAnswer": "{n}편을 봤지만 초록에서 답할 문장을 못 찾았습니다 — 물음을 좁혀 보세요",
+  "askpapers.say.done": "{n}편이 답했습니다",
+  "askpapers.tally": "{asked}편 중 {answered}편이 답함 · {from}~{to}년 · 가장 많이 인용된 편 {cited}회",
+  "askpapers.cited": "인용 {n}회",
+  "askpapers.note.limits": "요약을 지어내지 않습니다 — 초록에 실제로 있는 문장을 그대로 뽑습니다. 초록이 없는 논문은 답할 수 없고, OpenAlex 색인에 없는 것도 못 찾습니다. 답은 늘 링크에서 직접 확인하세요"
+}

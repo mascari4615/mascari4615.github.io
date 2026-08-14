@@ -1,0 +1,15 @@
+{
+  "askpapers.tab": "Ask",
+  "askpapers.label.q": "What to ask the papers",
+  "askpapers.placeholder": "does attention improve translation quality?",
+  "askpapers.btn.run": "Ask",
+  "askpapers.status.idle": "It asks eight papers and shows only the ones that answer",
+  "askpapers.say.needQ": "Write what you want to ask",
+  "askpapers.say.asking": "Searching papers for “{q}”…",
+  "askpapers.say.none": "No papers found for that — try different words",
+  "askpapers.say.noAnswer": "Looked at {n} papers, but none of the abstracts answer — try narrowing the question",
+  "askpapers.say.done": "{n} papers answered",
+  "askpapers.tally": "{answered} of {asked} answered · {from}–{to} · most cited {cited}",
+  "askpapers.cited": "cited {n}",
+  "askpapers.note.limits": "Nothing is summarised or invented — sentences are quoted from the abstract as written. Papers without an abstract cannot answer, and anything outside the OpenAlex index cannot be found. Always check the link"
+}
