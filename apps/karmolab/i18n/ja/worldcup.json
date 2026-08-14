@@ -47,5 +47,6 @@
   "worldcup.theirChampion": "相手の優勝",
   "worldcup.sameRate": "同じ分かれ道で <b>{rate}%</b> を同じように選びました — ",
   "worldcup.roomWaiting": "部屋コード: {code} — 相手が入ると始まります。セットと回戦数は自分が選んだ通りに進みます。",
-  "worldcup.roomCopied": "部屋コード {code} をコピーしました — 相手に送ってください。"
+  "worldcup.roomCopied": "部屋コード {code} をコピーしました — 相手に送ってください。",
+  "worldcup.loading": "表を読み込んでいます…"
 }

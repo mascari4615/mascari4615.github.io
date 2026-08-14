@@ -283,6 +283,11 @@
     "explainshell": "명령어 뜻 옵션 설명 커맨드 뜯어보기 쉘 터미널 무슨뜻 explain shell command flags man",
     "soundscape": "배경음 백색소음 빗소리 파도 장작 집중 수면 공부할때 asmr ambient white noise rain",
     "codeshot": "코드 사진 코드 이미지 스크린샷 예쁘게 공유 발표자료 code screenshot carbon snippet image",
-    "arcade": "오락실 미니게임 보드게임 심심할때 놀거리 오목 리버시 퍼즐 arcade minigame board game 놀이터 게임 놀이"
+    "arcade": "오락실 미니게임 보드게임 심심할때 놀거리 오목 리버시 퍼즐 arcade minigame board game 놀이터 게임 놀이",
+    "logview": "log 로그 로그보기 access log 에러로그 grep",
+    "bundlemap": "bundle 번들 webpack esbuild 번들크기 treemap 용량",
+    "dupphoto": "중복사진 사진정리 비슷한사진 duplicate photo 사진중복",
+    "photomap": "사진위치 exif gps 촬영지 photo map 사진지도",
+    "codegraph": "의존성 import graph 호출관계 코드구조 dependency"
   }
 }
