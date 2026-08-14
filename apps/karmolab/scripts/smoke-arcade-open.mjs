@@ -1,0 +1,99 @@
+/**
+ * 혼자 연 사람이 남을 만나는가 — 창 둘로 실측 (arcade-next ★2)
+ *
+ * 이것만 재면 된다: **한 창이 「같이 찾기」로 열면, 다른 창의 로비에 그 방이 보이고, 눌러서
+ * 들어가진다.** 그 셋 중 하나라도 안 되면 이 기능은 없는 것과 같다.
+ *
+ * 그리고 하나 더 — **「같이」로 연 방은 목록에 안 뜬다.** 그게 두 단추를 가른 이유다.
+ * 이걸 안 재면 「공개/비공개」가 말로만 남는다.
+ *
+ * 실제 서버(욘봇)를 탄다. 못 닿으면 「못 돌았다」(2) — 통과도 실패도 아니다.
+ */
+import { chromium } from 'playwright';
+
+const BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+const PAGE = `${BASE}/apps/karmolab/index.html`;
+const API = 'https://yawnbot.mascari4615.com/kl/arcade/rooms';
+const fails = [];
+const check = (name, cond, detail = '') => {
+  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : ' — ' + detail}`);
+  if (!cond) fails.push(name);
+};
+
+let cantRun = '';
+try {
+  const ping = await fetch(API);
+  if (!ping.ok) cantRun = `방 목록 서버가 ${ping.status}`;
+} catch (e) {
+  cantRun = `방 목록 서버에 못 닿았다 — ${e.message}`;
+}
+
+const br = await chromium.launch();
+const ctx = await br.newContext();
+const open = async () => {
+  const p = await ctx.newPage();
+  await p.route('**/__dev', (r) => r.abort());
+  await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  await p.evaluate(() => Toolbox.switchPage('arcade'));
+  await p.waitForSelector('[data-solo="gomoku"]', { timeout: 30000 });
+  return p;
+};
+
+let host;
+if (!cantRun) {
+  host = await open();
+  /* 「같이」(비공개)로 먼저 연다 — 이건 목록에 뜨면 안 된다. */
+  await host.click('[data-host="gomoku"]');
+  await host.waitForSelector('#acCode', { timeout: 20000 });
+  const quiet = await host.locator('#acCode').textContent();
+  await host.waitForTimeout(1500);
+  const after = await (await fetch(API)).json();
+  check('「같이」로 연 방은 목록에 안 뜬다', !after.rooms.some((r) => r.code === quiet), quiet || '');
+  await host.click('#acWaitQuit');
+  await host.waitForSelector('[data-solo]', { timeout: 10000 });
+
+  /* 이제 「같이 찾기」(공개) */
+  await host.click('[data-find="gomoku"]');
+  await host.waitForSelector('#acCode', { timeout: 20000 });
+  const code = (await host.locator('#acCode').textContent())?.trim() ?? '';
+  check('방 코드가 생겼다', /^[A-Z0-9]{4,12}$/.test(code), code);
+
+  const seen = await (async () => {
+    for (let i = 0; i < 10; i++) {
+      const body = await (await fetch(API, { cache: 'no-store' })).json();
+      if (body.rooms.some((r) => r.code === code)) return true;
+      await new Promise((r) => setTimeout(r, 700));
+    }
+    return false;
+  })();
+  check('목록에 올라간다', seen, code);
+
+  /* 남의 창 — 로비에 그 방이 보이나 */
+  const other = await open();
+  const shown = await other
+    .waitForFunction((c) => !!document.querySelector(`[data-join="${c}"]`), code, { timeout: 30000 })
+    .then(() => true)
+    .catch(() => false);
+  check('남의 로비에 그 방이 보인다', shown, code);
+
+  if (shown) {
+    await other.click(`[data-join="${code}"]`);
+    const met = await host
+      .waitForFunction(() => document.querySelectorAll('#acWaitSeats .ac-seat').length >= 2, null, { timeout: 60000 })
+      .then(() => true)
+      .catch(() => false);
+    check('눌러서 그 방에 들어간다 (둘이 앉는다)', met);
+  }
+
+  /* 방을 닫으면 목록에서도 내려가야 한다 — 안 그러면 「눌렀는데 아무도 없네」가 된다. */
+  await host.click('#acWaitQuit').catch(() => {});
+  await host.waitForTimeout(2000);
+  const gone = !(await (await fetch(API, { cache: 'no-store' })).json()).rooms.some((r) => r.code === code);
+  check('방을 닫으면 목록에서 내려간다', gone, code);
+}
+
+await br.close();
+if (cantRun) { console.log(`[arcade-open] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
+if (fails.length) { console.log(`[arcade-open] 실패 ${fails.length}건`); process.exit(1); }
+console.log('[arcade-open] 통과 — 혼자 연 사람이 남을 만난다');
