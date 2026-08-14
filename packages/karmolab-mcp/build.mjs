@@ -140,10 +140,22 @@ if (fs.existsSync(serverJsonPath)) {
   const pkgVersion = pkg.version;
   const pkgName = pkg.name;
   const mismatches = [];
-  if (reg.version !== pkgVersion) mismatches.push(`version ${reg.version} ≠ ${pkgVersion}`);
+
+  /* ★ **베끼면 되는 것은 베낀다** (2026-08-14). 버전과 npm 이름은 `package.json` 이 정본이고,
+     `server.json` 은 그걸 옮겨 적은 자리다 — 갈렸다는 건 사람이 판단할 일이 아니라 잡일이다.
+     오늘 README 개수 하나로 `verify` 가 빌드 단계에서 멈춰 뒤 검사 백여 개를 못 봤다.
+     같은 꼴을 여기도 남겨 둘 이유가 없다.
+     **베낄 수 없는 것**(설명문 길이·대문자 네임스페이스·`mcpName` 불일치)은 그대로 빨강이다 —
+     그건 사람이 무엇을 쓸지 정해야 하는 자리다. */
+  const 고친것 = [];
+  if (reg.version !== pkgVersion) { 고친것.push(`version ${reg.version} → ${pkgVersion}`); reg.version = pkgVersion; }
   for (const entry of reg.packages ?? []) {
-    if (entry.version !== pkgVersion) mismatches.push(`packages[].version ${entry.version} ≠ ${pkgVersion}`);
-    if (entry.identifier !== pkgName) mismatches.push(`packages[].identifier ${entry.identifier} ≠ ${pkgName}`);
+    if (entry.version !== pkgVersion) { 고친것.push(`packages[].version ${entry.version} → ${pkgVersion}`); entry.version = pkgVersion; }
+    if (entry.identifier !== pkgName) { 고친것.push(`packages[].identifier ${entry.identifier} → ${pkgName}`); entry.identifier = pkgName; }
+  }
+  if (고친것.length > 0) {
+    fs.writeFileSync(serverJsonPath, JSON.stringify(reg, null, 2) + String.fromCharCode(10));
+    console.log(`[karmolab-mcp] server.json 을 package.json 에 맞췄다: ${고친것.join(' · ')}`);
   }
   /*
    * 레지스트리는 설명문을 **100자까지만** 받는다 (2026-08-10, 등재가 여기서 422 로 튕겼다).
