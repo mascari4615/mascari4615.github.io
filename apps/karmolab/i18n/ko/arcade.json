@@ -433,5 +433,6 @@
   "arcade.btn.find": "같이 찾기",
   "arcade.open.title": "지금 열린 방",
   "arcade.open.none": "",
-  "arcade.open.card": "{game} · {host}"
+  "arcade.open.card": "{game} · {host}",
+  "arcade.mine.kb": "자판: Enter·스페이스로 열고, F 또는 Shift+Enter 로 깃발"
 }
