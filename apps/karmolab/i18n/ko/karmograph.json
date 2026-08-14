@@ -806,5 +806,7 @@
   "karmograph.otherTab.followed": "다른 탭에서 고친 내용을 받아 왔습니다",
   "karmograph.board.aria": "관계도 — 카드 {n}장, 선 {e}개",
   "karmograph.board.picked": "{name} 골랐음 — 이어진 것 {n}개",
-  "karmograph.opt.sketchy": "손그림 질감"
+  "karmograph.opt.sketchy": "손그림 질감",
+  "karmograph.board.pickedEdge": "{from} → {to}: {label}",
+  "karmograph.board.pickedMany": "{n}장 골랐음"
 }

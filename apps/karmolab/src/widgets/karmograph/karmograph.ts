@@ -43,7 +43,9 @@ import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf, setNoteWords } from '../../lib/graph/notes';
-import { setBoardWords, pickedLabel } from '../../lib/graph/canvas-a11y';
+import {
+  setBoardWords, pickedLabel, pickedEdgeLabel, pickedManyLabel,
+} from '../../lib/graph/canvas-a11y';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
@@ -606,6 +608,8 @@ import {
     setBoardWords({
       label: (nodes, edges) => t('karmograph.board.aria', { n: String(nodes), e: String(edges) }),
       picked: (name, links) => t('karmograph.board.picked', { name, n: String(links) }),
+      pickedEdge: (from, to, label) => t('karmograph.board.pickedEdge', { from, to, label }),
+      pickedMany: (count) => t('karmograph.board.pickedMany', { n: String(count) }),
     });
     setNoteWords({
       loop: t('karmograph.note.loop'),
@@ -1774,9 +1778,22 @@ import {
       // ★ **판이 아니라 화면이 쥔 것**을 읽는다 — 방금 친 이름은 아직 판에 안 내려왔을 수 있다
       //   (실측 2026-08-14: 「(…) 골랐음」이라고 말했다).
       const live = canvas?.getSpec() ?? spec;
-      const node = selectedId ? live.nodes.find((n) => n.id === selectedId) : null;
       const box = root.querySelector('[data-km="say"]') as HTMLElement | null;
       if (!box) return;
+      const nameOfId = (id: string): string => live.nodes.find((n) => n.id === id.split(':')[0])?.label ?? '';
+      /* 카드만 말하고 **선·여럿을 안 말하면 절반만 들린다** — 고르는 갈래마다 한 줄씩 준다. */
+      if (selectedMany.length > 1) {
+        const many = pickedManyLabel(selectedMany.length);
+        if (many !== saidId) { saidId = many; box.textContent = many; }
+        return;
+      }
+      const edge = selectedEdgeId ? live.edges.find((e) => e.id === selectedEdgeId) : null;
+      if (edge) {
+        const line = pickedEdgeLabel(nameOfId(edge.from), nameOfId(edge.to), edge.label ?? '');
+        if (line !== saidId) { saidId = line; box.textContent = line; }
+        return;
+      }
+      const node = selectedId ? live.nodes.find((n) => n.id === selectedId) : null;
       if (!node) { box.textContent = ''; saidId = null; return; }
       const links = live.edges.filter((e) => e.from === node.id || e.to === node.id).length;
       /* ★ **말이 달라졌을 때만** 다시 적는다. 카드 id 로만 견주면, 만들자마자(이름 없을 때) 한 번
