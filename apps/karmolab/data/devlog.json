@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 1949,
+    "commits": 1993,
     "days": 10,
     "shown": 60
   },
@@ -11,50 +11,50 @@
       "date": "2026-08-14",
       "entries": [
         {
-          "sha": "b27b0739",
+          "sha": "2ac13bf9",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "땅이 겹치면 세계를 안 띄운다 (TASK-WM-368)"
+          "text": "쫓기 무대는 아직 <b>자</b>다 — 이름을 그렇게 바꾼다 (TASK-WM-405)"
         },
         {
-          "sha": "0b5239b5",
+          "sha": "dd27111a",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "앞섬 관문의 배수를 2.0 → 2.5 (CI 거짓 빨강 다섯째)"
+          "text": "남의 걸음을 앞질러 그린다 (TASK-WM-405)"
         },
         {
-          "sha": "70b81b50",
+          "sha": "781c30a3",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "창 판 도장을 <b>속까지</b> 본다 (TASK-WM-367 이어서)"
+          "text": "때린 손짓의 갈래를 센다 (TASK-WM-405)"
         },
         {
-          "sha": "189e2536",
+          "sha": "1392c298",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "「몇 명이 움직였나」를 절대 수에서 비율로 (CI 거짓 빨강 넷째)"
+          "text": "달아나는 사람 쫓으며 때리는 무대를 만든다 (TASK-WM-405)"
         },
         {
-          "sha": "4524b5b9",
+          "sha": "c286b29c",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "새 판을 알아채는 길을 진짜 창으로 잰다 (TASK-WM-367 관문)"
+          "text": "되감는 만큼을 <b>그 손짓에 얹힌 도장</b>으로 잰다 (TASK-WM-405)"
         },
         {
-          "sha": "3658c851",
+          "sha": "0aba6ed3",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "새 판이 나가면 창이 스스로 새로 받는다 (TASK-WM-367)"
+          "text": "때리기 공평 관문 — 표본을 키우고, 빨강을 <b>왜 못 걸었는지</b>를 적는다 (TASK-WM-404)"
         }
       ],
       "quiet": 0,
-      "more": 98
+      "more": 144
     },
     {
       "date": "2026-08-13",
