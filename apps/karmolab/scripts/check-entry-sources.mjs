@@ -93,14 +93,32 @@ const registryAtRef = (() => {
   }
   return joined;
 })();
-/** 밀려는 커밋이 이 이름을 실제로 부르나 (안 부르면 새 체크아웃도 안 부른다) */
-const calledAtRef = (name) => registryAtRef.includes(name);
+/**
+ * 밀려는 커밋이 이것을 실제로 부르나 (안 부르면 새 체크아웃도 안 부른다).
+ *
+ * ★ **이름 조각이 아니라 부르는 경로로 맞춘다** (2026-08-14 실측). 예전에는 파일 이름을
+ *   그대로 `includes` 했다 — 그러면 남이 안 올린 `tools/diff.ts` 하나가 이미 올라가 있는
+ *   `listdiff`·`textdiff`·`pdfdiff` 에 걸려 「부른다」가 되고, **나와 무관한 push 가 전부
+ *   막힌다**(이 파일이 세 번이나 고친 바로 그 사고의 네 번째 판이다).
+ *   등록은 언제나 따옴표 안의 경로(`'tools/diff'`)나 주소(`/js/widgets/tools/diff.js`)로
+ *   적히므로, 그 모양으로만 맞힌다.
+ */
+const calledAtRef = (rel) => {
+  const noExt = String(rel).replace(/\.ts$/, '');
+  const forms = new Set([noExt.replace(/^src\//, ''), noExt.replace(/^src\/widgets\//, '')]);
+  for (const f of forms) {
+    if (registryAtRef.includes(`'${f}'`)) return true;
+    if (registryAtRef.includes(`"${f}"`)) return true;
+    if (registryAtRef.includes(`/js/${f}.js`)) return true;
+  }
+  return false;
+};
 
 /* ① 셸이 부르는 것 */
 const { entryPoints } = discoverEntryPoints(root, SPECIAL);
 for (const rel of entryPoints) {
   if (tracked.has(rel)) continue;
-  if (!calledAtRef(path.basename(rel, '.ts'))) continue; // 남이 아직 안 올린 등록
+  if (!calledAtRef(rel)) continue; // 남이 아직 안 올린 등록
   missing.push(`${rel} (셸이 부른다)`);
 }
 
@@ -114,7 +132,7 @@ if (fs.existsSync(metaPath)) {
       /* 형식이 다른 앞머리는 각자 자리에서 산다 — 여기서는 위젯 소스만 본다. */
       if (raw.startsWith('vendor/') || raw.startsWith('root/') || raw.startsWith('world/')) continue;
       const rel = `src/widgets/${raw}.ts`;
-      if (tracked.has(rel) || !calledAtRef(raw)) continue;
+      if (tracked.has(rel) || !calledAtRef(rel)) continue;
       missing.push(`${rel} (위젯 메타가 부른다)`);
     }
   }
