@@ -11,6 +11,7 @@
  */
 import { elapsed, project } from '../../core/livecount';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
   const esc = (v: unknown): string =>
@@ -93,8 +94,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
            * 초마다 다시 그린다. 화면을 떠나면 반드시 멈춘다 — 안 멈추면 닫은 도구가 계속 돈다.
            * (숨겨진 탭에서는 브라우저가 알아서 늦춰 주므로 따로 더 하지 않는다.)
            */
-          const timer = window.setInterval(tick, 1000);
-          Toolbox.onDispose?.(() => window.clearInterval(timer));
+          // 보이는 동안만 돈다 (`lib/tick`) — 돌아오면 한 번 바로 다시 세므로 숫자가 안 뒤처진다.
+          const stopTick = intervalWhileVisible(tick, 1000);
+          Toolbox.onDispose?.(stopTick);
                   });
         }
       }

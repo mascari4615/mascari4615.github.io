@@ -9,6 +9,7 @@
  */
 import { t, loadNamespace } from '../lib/i18n';
 import { onAccountSettled } from '../lib/account-ready';
+import { intervalWhileVisible } from '../lib/tick';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -149,12 +150,13 @@ import { onAccountSettled } from '../lib/account-ready';
      * 것이고, 못 멈추는 자동은 자동이 아니라 덫이다.
      */
     const AUTO_GRACE_MS = 4000;
-    let autoTimer: ReturnType<typeof setInterval> | null = null;
+    /** 보이는 동안만 도는 시계를 멈추는 함수 (`lib/tick`). */
+    let stopAuto: (() => void) | null = null;
 
     function cancelAuto(): void {
-        if (!autoTimer) return;
-        clearInterval(autoTimer);
-        autoTimer = null;
+        if (!stopAuto) return;
+        stopAuto();
+        stopAuto = null;
     }
 
     /** 결과가 나왔고 자동이 켜져 있으면 — 초를 세고 넘어간다. 세는 동안 아무 때나 멈춘다. */
@@ -191,7 +193,9 @@ import { onAccountSettled } from '../lib/account-ready';
             left -= 1;
         };
         tick();
-        autoTimer = setInterval(tick, 1000);
+        // 덮어 둔 탭에서는 세지 않는다 — 안 보는 사이에 **다음 단계로 저 혼자 넘어가** 있으면
+        // 「내가 안 눌렀는데 지나갔다」가 된다. 돌아오면 그 자리에서 이어 센다.
+        stopAuto = intervalWhileVisible(tick, 1000);
     }
 
     function finishRun(run: RunState): void {
