@@ -127,7 +127,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          npm run --silent audit:deploy-health -- --hours=6 || code=$?
+          npm run --silent audit:deploy -- --hours=6 || code=$?
           if [ "${code:-0}" = "2" ]; then echo "못 돌았다 — 통과도 실패도 아니다"; exit 0; fi
           exit "${code:-0}"
 
