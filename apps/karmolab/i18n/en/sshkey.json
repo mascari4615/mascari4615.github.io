@@ -1,0 +1,21 @@
+{
+  "sshkey.mdd": "Let me tell you which line belongs to whom.",
+  "sshkey.tab": "SSH keys",
+  "sshkey.label.in": "Paste authorized_keys",
+  "sshkey.label.pem": "Public key PEM (to convert)",
+  "sshkey.label.comment": "Comment to attach",
+  "sshkey.aria.out": "The OpenSSH line",
+  "sshkey.btn.convert": "To OpenSSH line",
+  "sshkey.btn.copy": "Copy",
+  "sshkey.copied": "Copied",
+  "sshkey.hasOptions": "has options prefix",
+  "sshkey.problem.badBase64": "⚠ the key is not valid base64 (the line is broken)",
+  "sshkey.problem.typeMismatch": "⚠ the declared type does not match the key inside (lines got mixed)",
+  "sshkey.problem.noKey": "⚠ no key on this line",
+  "sshkey.problem.noType": "⚠ could not find the key type",
+  "sshkey.status.idle": "Paste an authorized_keys file",
+  "sshkey.status.ok": "{n} lines · fingerprints included",
+  "sshkey.status.some": "{bad} of {n} lines look wrong",
+  "sshkey.status.converted": "Converted to an OpenSSH line",
+  "sshkey.note.local": "Keys are read inside your browser only — nothing is uploaded. The fingerprint is the SHA256:… value you use to pick a line on the server."
+}

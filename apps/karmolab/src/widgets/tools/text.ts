@@ -25,7 +25,9 @@ import { mountTextOperation } from './shared/text-operation';
         ['textclean', t('text.part.textclean', undefined, '정리')],
         ['linebreak', t('text.part.linebreak', undefined, '줄바꿈')],
         ['replace', t('text.part.replace', undefined, '찾아 바꾸기')],
-        ['textredact', t('text.part.textredact', undefined, '가리개')]
+        ['textredact', t('text.part.textredact', undefined, '가리개')],
+        ['encdetective', t('text.part.encdetective', undefined, '깨진 글자')],
+        ['unicodex', t('text.part.unicodex', undefined, '안 보이는 글자')]
       ]
     },
     {
@@ -51,6 +53,7 @@ import { mountTextOperation } from './shared/text-operation';
       jobs: [
         ['text2pdf', t('text.part.text2pdf', undefined, '글 → PDF')],
         ['text2img', t('text.part.text2img', undefined, '글자 카드')],
+        ['tts', t('text.part.tts', undefined, '읽어 주기')],
         ['lorem', t('text.part.lorem', undefined, '더미 텍스트')],
         ['checklist', t('text.part.checklist', undefined, '체크리스트')]
       ]

@@ -1345,6 +1345,16 @@ const M = await loadModules();
   check(pickedLabel('  ', 0).length > 0, '이름 없는 카드도 말은 한다 — 그런 카드가 있다는 것도 정보다');
   eq(pickedLabel('가', -2), pickedLabel('가', 0), '이상한 숫자는 0 으로 읽는다');
 
+  /* 선·여럿도 말한다 — 카드만 말하면 절반만 들린다. */
+  const { pickedEdgeLabel, pickedManyLabel } = M.boardA11y;
+  const line = pickedEdgeLabel('가', '나', '친구');
+  check(line.includes('가') && line.includes('나'), '선은 양 끝을 말한다');
+  check(line.includes('친구'), '선 이름도 말한다');
+  check(!pickedEdgeLabel('가', '나', '').endsWith(':'), '이름 없는 선은 콜론만 남기지 않는다');
+  check(pickedEdgeLabel('', '', '').length > 0, '이름 없는 끝이어도 말은 한다');
+  check(pickedManyLabel(3).includes('3'), '여럿은 몇 장인지가 곧 정보다');
+  eq(pickedManyLabel(-1), pickedManyLabel(0), '이상한 숫자는 0 으로');
+
   setBoardWords({ label: (n, e) => `카드 ${n} 선 ${e}` });
   eq(boardLabel(1, 0), '카드 1 선 0', '화면이 얹은 말이 실제로 쓰인다');
   setBoardWords(DEFAULT_BOARD_WORDS);

@@ -1,0 +1,19 @@
+{
+  "curlkit.mdd": "Hand me their curl; I will write it in your language.",
+  "curlkit.tab": "curl",
+  "curlkit.label.in": "Paste a curl command",
+  "curlkit.label.to": "Convert to",
+  "curlkit.opt.curl": "Back to curl (tidied)",
+  "curlkit.btn.run": "Convert",
+  "curlkit.btn.send": "Send it from here",
+  "curlkit.btn.copy": "Copy code",
+  "curlkit.aria.out": "The converted code",
+  "curlkit.label.read": "What I read",
+  "curlkit.status.idle": "Paste a curl command",
+  "curlkit.status.ok": "{method} request · read {n} headers",
+  "curlkit.status.bad": "Could not read it — {msg}",
+  "curlkit.status.sending": "Sending…",
+  "curlkit.status.sent": "{code} · answered in {ms}ms",
+  "curlkit.status.blocked": "The other side refuses browser requests (CORS) — the code still works from a server or terminal",
+  "curlkit.copy.done": "Code copied"
+}

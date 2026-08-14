@@ -1,0 +1,22 @@
+{
+  "semver.mdd": "そのキャレットが実際に何を受けるか広げます。",
+  "semver.tab": "バージョン",
+  "semver.label.range": "範囲 (^1.2.3・~1.2・1.x・>=1 <2・a || b)",
+  "semver.label.other": "比べる別の範囲 (重なるか)",
+  "semver.label.versions": "あるバージョン (1行に1つ)",
+  "semver.gets": "受ける範囲",
+  "semver.atLeast": "{v} 以上",
+  "semver.above": "{v} より大きい",
+  "semver.atMost": "{v} 以下",
+  "semver.below": "{v} 未満",
+  "semver.noLower": "下限なし",
+  "semver.noUpper": "上限なし",
+  "semver.in": "入る",
+  "semver.out": "入らない",
+  "semver.overlap.yes": "ふたつの範囲は重なります — 1つのバージョンで足ります",
+  "semver.overlap.no": "重なるバージョンがありません — 同じパッケージが2つ入ります",
+  "semver.status.idle": "範囲を書いてください",
+  "semver.status.best": "この中で最も高いもの: {v}",
+  "semver.status.none": "書いたバージョンで入るものはありません",
+  "semver.status.bad": "読めませんでした — {msg}"
+}

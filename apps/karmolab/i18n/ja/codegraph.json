@@ -1,0 +1,17 @@
+{
+  "codegraph.mdd": "誰が誰を呼んでいるか描きます。",
+  "codegraph.tab": "呼び出し",
+  "codegraph.label.file": "ソースの zip (ブラウザの外に出ません)",
+  "codegraph.note.skip": "node_modules・dist・build・.git・coverage は飛ばします。コードファイル(js・ts・jsx・tsx・css・vue・svelte)だけ読みます。",
+  "codegraph.label.cycles": "循環 (互いに呼び合う場所)",
+  "codegraph.label.hubs": "よく呼ばれるファイル",
+  "codegraph.label.orphans": "誰も呼ばないファイル",
+  "codegraph.cycles.none": "循環はありません",
+  "codegraph.err.zip": "zip を読む道具を読み込めませんでした",
+  "codegraph.status.idle": "ソースの zip を選んでください",
+  "codegraph.status.reading": "読み込み中…",
+  "codegraph.status.noCode": "zip の中にコードファイルが見つかりません",
+  "codegraph.status.ok": "ファイル {files} 個 · 呼び出し {edges} 件 · 循環 {cycles} 件 · 未参照 {orphans} 件",
+  "codegraph.status.capped": "{all} 個中 {shown} 個だけ読みました — 大きい場合はフォルダを分けてください",
+  "codegraph.status.bad": "読めませんでした — {msg}"
+}

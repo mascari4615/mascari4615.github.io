@@ -30,5 +30,7 @@
   "calc.copy.done": "Copied: {v}",
   "calc.btn.recent": "Recent",
   "calc.plot.mark": "chart",
-  "calc.plot.alt": "Graph of {expr} (x {from}~{to})"
+  "calc.plot.alt": "Graph of {expr} (x {from}~{to})",
+  "calc.part.dutchpay": "Split the bill",
+  "calc.part.payslip": "Take-home"
 }

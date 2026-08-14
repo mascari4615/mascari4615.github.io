@@ -28,5 +28,7 @@
   "regextest.hint.replace": "<span style=\"color:var(--text-tertiary);\">Type a replacement and the result appears</span>",
   "regextest.label.replace": "Replacement (optional) — $1 and $<name> work",
   "regextest.value.matches": "{n} matches",
-  "regextest.value.noMatch": "No matches"
+  "regextest.value.noMatch": "No matches",
+  "regextest.explain.title": "What this pattern means (piece by piece · railroad)",
+  "regextest.explain.cannot": "Could not read it —"
 }

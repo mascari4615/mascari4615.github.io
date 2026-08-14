@@ -1,0 +1,16 @@
+{
+  "configconv.mdd": "中身は同じ設定、形だけ着替えさせます。",
+  "configconv.tab": "設定",
+  "configconv.label.in": "ここに貼る",
+  "configconv.label.to": "何に",
+  "configconv.aria.out": "変換された設定",
+  "configconv.btn.run": "変換",
+  "configconv.btn.swap": "結果を左へ",
+  "configconv.btn.copy": "コピー",
+  "configconv.status.idle": "設定ファイルの中身を貼ってください",
+  "configconv.status.ok": "{from} から {to} に変換しました",
+  "configconv.status.same": "すでに {kind} です — 別の形式を選んでください",
+  "configconv.status.bad": "変換できませんでした — {msg}",
+  "configconv.copy.done": "コピーしました",
+  "configconv.note.limits": "あえて対応しないもの: YAML のアンカー・エイリアスと複数文書、TOML の日付形式。.env と .properties は平坦なので入れ子はドット(a.b)で書きます。"
+}

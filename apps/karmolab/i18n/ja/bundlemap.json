@@ -1,0 +1,13 @@
+{
+  "bundlemap.mdd": "どこが重いか、面積で見せます。",
+  "bundlemap.tab": "バンドル",
+  "bundlemap.label.file": "stats.json か metafile (ブラウザの外に出ません)",
+  "bundlemap.label.paste": "または貼り付け",
+  "bundlemap.label.heavy": "重いところ",
+  "bundlemap.label.dupes": "二重に入ったパッケージ",
+  "bundlemap.dupes.none": "二重に入ったパッケージはありません",
+  "bundlemap.status.idle": "webpack の stats.json か esbuild の metafile を入れてください",
+  "bundlemap.status.reading": "読み込み中…",
+  "bundlemap.status.ok": "{total} · モジュール {n} 個 · 重複 {dupes} 件",
+  "bundlemap.status.bad": "読めませんでした — {msg}"
+}

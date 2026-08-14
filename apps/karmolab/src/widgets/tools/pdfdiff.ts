@@ -11,6 +11,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { statusLine } from './shared/say';
+import { diffLines as coreDiffLines } from '../../core/diff';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
@@ -49,34 +50,15 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
       .filter((l) => l.length > 0);
   }
 
-  /** 줄 단위 LCS — textdiff 와 같은 방식. 여기선 「사라진 줄 / 들어온 줄」만 쓴다. */
+  /**
+   * 줄 견주기는 `core/diff` 하나만 쓴다 (TASK-KL-316) — 여기, 글 작업대, 견주기 도구가
+   * 각자 LCS 를 갖고 있으면 같은 두 쪽에 서로 다른 답이 나온다. 여기선 「사라진 줄 / 들어온 줄」만 쓴다.
+   */
   function diffLines(a: string[], b: string[]): Op[] {
-    const n = a.length;
-    const m = b.length;
-    const dp: Uint32Array[] = [];
-    for (let i = 0; i <= n; i++) dp.push(new Uint32Array(m + 1));
-    for (let i = n - 1; i >= 0; i--) {
-      for (let j = m - 1; j >= 0; j--) {
-        dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-      }
-    }
-    const ops: Op[] = [];
-    let i = 0;
-    let j = 0;
-    while (i < n && j < m) {
-      if (a[i] === b[j]) {
-        ops.push({ type: 'same', text: a[i] });
-        i++;
-        j++;
-      } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-        ops.push({ type: 'del', text: a[i++] });
-      } else {
-        ops.push({ type: 'add', text: b[j++] });
-      }
-    }
-    while (i < n) ops.push({ type: 'del', text: a[i++] });
-    while (j < m) ops.push({ type: 'add', text: b[j++] });
-    return ops;
+    return coreDiffLines(a.join('\n'), b.join('\n')).map((edit) => ({
+      type: edit.kind === 'add' ? 'add' : edit.kind === 'del' ? 'del' : 'same',
+      text: edit.text
+    }));
   }
 
   /**

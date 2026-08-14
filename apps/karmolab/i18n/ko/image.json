@@ -31,5 +31,9 @@
   "image.cmp.after": "후 {size}",
   "image.more": "{name} 외 {n}개",
   "image.cmp.aria": "전/후 견주기 — 화살표로 밀어 보세요",
-  "image.btn.recent": "방금 하던 것"
+  "image.btn.recent": "방금 하던 것",
+  "image.part.bgremove": "배경 지우기",
+  "image.part.idphoto": "증명사진",
+  "image.part.docscan": "서류 스캔",
+  "image.part.ocr": "글자 읽기"
 }

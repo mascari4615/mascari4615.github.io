@@ -14,11 +14,17 @@ export interface BoardWords {
   label: (nodes: number, edges: number) => string;
   /** 「가 — 이어진 것 3개」 처럼 **방금 고른 것**을 알리는 한 줄. */
   picked?: (name: string, links: number) => string;
+  /** 선을 골랐을 때 — 「가 → 나: 친구」. */
+  pickedEdge?: (from: string, to: string, label: string) => string;
+  /** 여럿을 골랐을 때 — 「3장 골랐음」. */
+  pickedMany?: (count: number) => string;
 }
 
 export const DEFAULT_BOARD_WORDS: BoardWords = {
   label: (nodes, edges) => `graph: ${nodes} cards, ${edges} links`,
   picked: (name, links) => `${name} — ${links} links`,
+  pickedEdge: (from, to, label) => `${from} → ${to}${label ? `: ${label}` : ''}`,
+  pickedMany: (count) => `${count} selected`,
 };
 
 let words: BoardWords = DEFAULT_BOARD_WORDS;
@@ -39,6 +45,19 @@ export function pickedLabel(name: string, links: number): string {
   const say = words.picked ?? DEFAULT_BOARD_WORDS.picked!;
   const safe = Number.isFinite(links) && links > 0 ? Math.floor(links) : 0;
   return say((name ?? '').trim() || '(…)', safe);
+}
+
+/** 고른 **선**을 한 줄로 — 카드만 말하고 선은 안 말하면 절반만 들린다. */
+export function pickedEdgeLabel(from: string, to: string, label: string): string {
+  const say = words.pickedEdge ?? DEFAULT_BOARD_WORDS.pickedEdge!;
+  const nm = (v: string): string => (v ?? '').trim() || '(…)';
+  return say(nm(from), nm(to), (label ?? '').trim());
+}
+
+/** **여럿**을 골랐을 때 — 몇 장인지가 곧 정보다. */
+export function pickedManyLabel(count: number): string {
+  const say = words.pickedMany ?? DEFAULT_BOARD_WORDS.pickedMany!;
+  return say(Number.isFinite(count) && count > 0 ? Math.floor(count) : 0);
 }
 
 /** 지금 판을 한 줄로. 숫자가 이상해도(음수·NaN) **0 으로 읽는다** — 이름이 깨지면 안 들린다. */

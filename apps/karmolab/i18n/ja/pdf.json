@@ -40,5 +40,6 @@
   "pdf.thumb.rotateAria": "ページを右に90°回す",
   "pdf.thumb.dropAria": "ページを外す",
   "pdf.grid.aria": "ページ一覧 — 矢印で移動、Ctrl+矢印で並べ替え",
-  "pdf.btn.recent": "さっきの作業"
+  "pdf.btn.recent": "さっきの作業",
+  "pdf.part.printkit": "印刷用の紙"
 }

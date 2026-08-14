@@ -6,6 +6,8 @@
  * 되돌릴 수 없는 명령은 위험 분류로 따로 묶었다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { SCENARIOS, stepsFor, worstRisk } from '../../core/gitundo';
+import { markLive } from '../tools/shared/say';
 
 (function (): void {
   /** [명령, 상황(=이름), 설명] */
@@ -107,7 +109,95 @@ import { t, loadNamespace } from '../../lib/i18n';
           });
                   });
         }
+      },
+      {
+        /*
+         * 「망했다」 — 찾아보는 표가 아니라 **묻고 답하는 자리** (TASK-KL-316 / 12).
+         *
+         * 위 표는 「하려는 일 → 명령」이라 되돌리기에는 모자란다. 되돌리기는 **밀었냐 안 밀었냐**로
+         * 답이 갈리고, 그 조건을 빼고 명령만 복사해 가는 데서 사고가 난다. 그래서 조건을 먼저 묻는다.
+         * 셈은 `core/gitundo`, 말은 여기서.
+         */
+        id: 'undo',
+        label: t('gitundo.tab', undefined, '망했다'),
+        build: function (container: HTMLElement): void {
+          void Promise.all([loadNamespace('gitcmd'), loadNamespace('gitundo')]).then(function () {
+            drawUndo(container);
+          });
+        }
       }
     ]
   });
+
+  function drawUndo(container: HTMLElement): void {
+    const esc = (v: string): string =>
+      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    container.innerHTML = `
+      <div class="field-group">
+        <label class="field-label" for="guWhat">${esc(t('gitundo.label.what'))}</label>
+        <select id="guWhat" name="what" aria-label="${esc(t('gitundo.label.what'))}">
+          ${SCENARIOS.map((s) => `<option value="${s.id}">${esc(t('gitundo.case.' + s.id))}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex; gap:14px; margin:10px 0; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+          <input type="checkbox" id="guPushed" name="pushed" style="width:auto;"> ${esc(t('gitundo.ask.pushed'))}
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+          <input type="checkbox" id="guShared" name="shared" style="width:auto;"> ${esc(t('gitundo.ask.shared'))}
+        </label>
+      </div>
+      <div id="guWarn" style="display:none; padding:10px; border-radius:10px; margin-bottom:10px;"></div>
+      <div id="guSteps" class="tool-list"></div>
+      <div class="tool-status" id="guStatus">${esc(t('gitundo.status.idle'))}</div>
+    `;
+
+    const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
+    const status = $<HTMLElement>('#guStatus');
+    markLive(status);
+
+    function render(): void {
+      const id = $<HTMLSelectElement>('#guWhat').value;
+      const pushed = $<HTMLInputElement>('#guPushed').checked;
+      const shared = $<HTMLInputElement>('#guShared').checked;
+      const steps = stepsFor(id, { pushed, shared });
+      const risk = worstRisk(steps);
+
+      const warn = $<HTMLElement>('#guWarn');
+      if (risk === 'safe') {
+        warn.style.display = 'none';
+      } else {
+        warn.style.display = '';
+        warn.style.background = risk === 'destructive' ? 'rgba(198,40,40,.12)' : 'rgba(230,160,30,.12)';
+        warn.textContent = t('gitundo.warn.' + risk);
+      }
+
+      $<HTMLElement>('#guSteps').innerHTML = steps
+        .map((step, i) => {
+          const color = step.risk === 'destructive' ? 'var(--accent-danger, #c62828)' : step.risk === 'rewrite' ? 'var(--accent-warn, #b26a00)' : 'inherit';
+          const back = step.undoable ? t('gitundo.undoable') : t('gitundo.notUndoable');
+          return (
+            '<div class="tool-list-row cc-copy-row" data-copy="' + esc(step.cmd) + '">' +
+            '<span class="tool-list-key" style="color:' + color + '">' + (i + 1) + '</span>' +
+            '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(step.cmd) + '</span>' +
+            '<span class="tool-list-dim">' + esc(t('gitundo.step.' + step.why)) + ' · ' + esc(back) + '</span></div>'
+          );
+        })
+        .join('');
+
+      status.textContent = t('gitundo.status.ok', { n: steps.length });
+    }
+
+    container.querySelectorAll('select, input[type="checkbox"]').forEach((el) => el.addEventListener('change', render));
+    /* 줄을 누르면 그 명령을 복사한다 — 어차피 복사하려고 여기 온 것이다. */
+    $<HTMLElement>('#guSteps').addEventListener('click', (event) => {
+      const row = (event.target as HTMLElement).closest('.cc-copy-row');
+      if (row === null) return;
+      const cmd = row.getAttribute('data-copy') ?? '';
+      void Toolbox.copyText?.(cmd, { message: t('gitundo.copied') });
+    });
+
+    render();
+  }
 })();

@@ -1,0 +1,23 @@
+{
+  "docscan.mdd": "歪んだ書類、まっすぐにします。",
+  "docscan.tab": "スキャン",
+  "docscan.label.file": "書類の写真",
+  "docscan.label.look": "どう見せるか",
+  "docscan.label.pick": "四隅の点を紙の角へドラッグしてください",
+  "docscan.label.result": "補正結果",
+  "docscan.look.scan": "スキャン風 (白黒)",
+  "docscan.look.gray": "グレー",
+  "docscan.look.color": "色そのまま",
+  "docscan.btn.reset": "四隅を戻す",
+  "docscan.btn.png": "PNG で保存",
+  "docscan.btn.pdf": "PDF で保存 (A4)",
+  "docscan.status.idle": "書類の写真を選んでください",
+  "docscan.status.ready": "{w}×{h} に補正しました — 角を合わせるほどまっすぐになります",
+  "docscan.status.badImage": "画像として読めませんでした",
+  "docscan.status.savedPng": "PNG で保存しました",
+  "docscan.status.pdf": "PDF を作成中…",
+  "docscan.status.savedPdf": "A4 の PDF で保存しました",
+  "docscan.err.pdfLib": "PDF ライブラリを読み込めませんでした",
+  "docscan.err.png": "画像を作れませんでした",
+  "docscan.note.manual": "四隅はあえて手で指定します — 自動検出は模様のある机や影で外れやすく、外れた理由が見えません。スキャン風は場所ごとに明るさの基準を取るので、影がかかっても半分が真っ黒になりません。"
+}

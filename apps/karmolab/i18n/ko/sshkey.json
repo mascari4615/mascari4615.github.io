@@ -1,0 +1,21 @@
+{
+  "sshkey.mdd": "어느 줄이 누구 것인지 짚어 드립니다.",
+  "sshkey.tab": "SSH 열쇠",
+  "sshkey.label.in": "authorized_keys 붙여넣기",
+  "sshkey.label.pem": "공개키 PEM (OpenSSH 줄로 바꿀 것)",
+  "sshkey.label.comment": "붙일 주석",
+  "sshkey.aria.out": "바뀐 OpenSSH 줄",
+  "sshkey.btn.convert": "OpenSSH 줄로",
+  "sshkey.btn.copy": "복사",
+  "sshkey.copied": "복사했습니다",
+  "sshkey.hasOptions": "앞에 옵션 붙음",
+  "sshkey.problem.badBase64": "⚠ 열쇠가 base64 가 아닙니다 (줄이 깨졌습니다)",
+  "sshkey.problem.typeMismatch": "⚠ 줄에 적힌 종류와 속이 다릅니다 (붙여넣다 섞인 줄)",
+  "sshkey.problem.noKey": "⚠ 열쇠가 없습니다",
+  "sshkey.problem.noType": "⚠ 종류를 못 찾았습니다",
+  "sshkey.status.idle": "authorized_keys 를 붙여넣으세요",
+  "sshkey.status.ok": "{n}줄 · 지문까지 냈습니다",
+  "sshkey.status.some": "{n}줄 중 {bad}줄이 이상합니다",
+  "sshkey.status.converted": "OpenSSH 줄로 바꿨습니다",
+  "sshkey.note.local": "열쇠는 브라우저 안에서만 읽습니다 — 어디에도 올리지 않습니다. 지문은 서버에서 그 줄을 고를 때 쓰는 그 값(SHA256:…)입니다."
+}
