@@ -8,7 +8,6 @@ IMG-ENCODE	src/widgets/bon/bon.ts
 IMG-ENCODE	src/widgets/imageconvert/core.ts	예외: 자체 배경칠(fillAlpha/bg)+mime 문자열 API(webp 등)+품질 클램프를 갖는 다른 계약이다. 공용 encode 로 바꾸면 중복 제거가 아니라 재작성 — 2026-08-14 확인
 IMG-ENCODE	src/widgets/imageedit.ts
 IMG-ENCODE	src/widgets/karmograph/karmograph.ts
-IMG-ENCODE	src/widgets/meok/meok.ts
 IMG-ENCODE	src/widgets/tools/text-operations.ts
 IMG-LOAD	src/widgets/bluemarble/textures.ts
 IMG-LOAD	src/widgets/bluemarble/tiles.ts
@@ -26,7 +25,6 @@ OBJECT-URL	src/widgets/imageconvert/core.ts	예외: 위와 같은 이유(주소 
 OBJECT-URL	src/widgets/imageconvert/widget.ts	예외: 결과 **미리보기 주소**(outPreviewUrl)라 화면이 다 쓸 때까지 살아 있어야 하고 다음 변환 때 직접 거둔다(revokeOutPreview). 내려받기는 공용으로 옮김 — 2026-08-14 확인
 OBJECT-URL	src/widgets/imageedit.ts
 OBJECT-URL	src/widgets/karmograph/karmograph.ts
-OBJECT-URL	src/widgets/meok/meok.ts
 OBJECT-URL	src/widgets/meok/rembg.ts	예외: 내려받기가 아니라 **워커 코드**를 주소로 만들어 `new Worker(url)` 에 넘긴다. 공용 download 의 일이 아니다 — 2026-08-14 확인
 OBJECT-URL	src/widgets/tierlist/publish.ts
 OBJECT-URL	src/widgets/tools/img2pdf.ts	예외: 썸네일 목록 주소는 화면이 계속 쥐고 있어야 해서 공용 download 로는 못 덮는다. 다시 그릴 때 앞 판을 거두는 방식으로 누수만 고쳤다 — 2026-08-14 확인

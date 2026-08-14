@@ -10,6 +10,8 @@
  */
 
 import { loadNamespace, t } from '../../lib/i18n';
+// 내려주기·굽기는 공용 한 자리(`tools/shared/image`) — 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
+import { download, encode } from '../tools/shared/image';
 import { Stroke, defaultBrush, pickColor, type BrushSettings } from './brush';
 import { composite, spriteSheet } from './composite';
 import {
@@ -76,14 +78,6 @@ function imageToSurface(source: CanvasImageSource, w: number, h: number): Surfac
   const surface = createSurface(w, h);
   surface.data.set(image.data);
   return surface;
-}
-
-function download(blob: Blob, name: string): void {
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = name;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
 const safeName = (name: string): string => name.trim().replace(/[^a-z0-9가-힣_-]+/gi, '-') || 'artwork';
@@ -1012,8 +1006,7 @@ function buildMeok(container: HTMLElement): void {
       if (button.disabled) return;
       button.disabled = true;
       say(T('rembgStart', '배경을 지우는 중 — 처음 한 번은 모델을 받느라 오래 걸린다'));
-      surfaceToCanvas(before).toBlob(blob => {
-        if (!blob) { button.disabled = false; return; }
+      void encode(surfaceToCanvas(before), 'png').then(blob => {
         const run = removeBackground(blob, 'isnet_fp16', progress => {
           if (progress.ratio >= 0) {
             say(t('meok.rembgProgress', { percent: String(Math.round(progress.ratio * 100)) }, '배경 지우는 중 {percent}%'));
@@ -1032,7 +1025,11 @@ function buildMeok(container: HTMLElement): void {
           })
           .catch(() => { say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시')); })
           .then(() => { button.disabled = false; });
-      }, 'image/png');
+      }).catch(() => {
+        // 구우려다 실패해도 단추는 돌려준다 — 안 돌려주면 그 자리에서 영영 못 누른다.
+        button.disabled = false;
+        say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시'));
+      });
     },
     'crop-selection': () => {
       const bounds = selection.bounds;
@@ -1087,9 +1084,8 @@ function buildMeok(container: HTMLElement): void {
       say(t('meok.paletteTaken', { n: String(doc.palette.length) }, '그림에서 색 {n}개를 뽑았다'));
     },
     'save-png': () => {
-      surfaceToCanvas(composite(doc, doc.activeFrame)).toBlob(blob => {
-        if (blob) download(blob, safeName(doc.name) + '.png');
-      }, 'image/png');
+      void encode(surfaceToCanvas(composite(doc, doc.activeFrame)), 'png')
+        .then(blob => download(blob, safeName(doc.name) + '.png'));
     },
     'to-shelf': () => {
       // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 —
@@ -1099,8 +1095,7 @@ function buildMeok(container: HTMLElement): void {
         if (!key.trim()) return;
         setFoundryToken(key.trim());
       }
-      surfaceToCanvas(composite(doc, doc.activeFrame)).toBlob(blob => {
-        if (!blob) return;
+      void encode(surfaceToCanvas(composite(doc, doc.activeFrame)), 'png').then(blob => {
         say(T('shelfSending', '선반에 올리는 중…'));
         void blob.arrayBuffer()
           .then(buffer => uploadToFoundry({
@@ -1111,13 +1106,12 @@ function buildMeok(container: HTMLElement): void {
           }))
           .then(item => say(T('shelfDone', '선반에 올렸다') + ' — ' + item.title))
           .catch(error => say(String(error instanceof Error ? error.message : error)));
-      }, 'image/png');
+      });
     },
     'save-sheet': () => {
       const scale = doc.grid > 0 ? 1 : 1;
-      surfaceToCanvas(spriteSheet(doc, undefined, scale)).toBlob(blob => {
-        if (blob) download(blob, safeName(doc.name) + '-' + doc.frames + 'f.png');
-      }, 'image/png');
+      void encode(surfaceToCanvas(spriteSheet(doc, undefined, scale)), 'png')
+        .then(blob => download(blob, safeName(doc.name) + '-' + doc.frames + 'f.png'));
     },
     'save-meok': () => {
       const stored = packDoc(doc);
