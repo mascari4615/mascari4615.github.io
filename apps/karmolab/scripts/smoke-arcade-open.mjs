@@ -80,7 +80,29 @@ if (!cantRun) {
     .waitForFunction((c) => !!document.querySelector(`[data-join="${c}"]`), code, { timeout: 30000 })
     .then(() => true)
     .catch(() => false);
-  check('남의 로비에 그 방이 보인다', shown, code);
+/* ★ **여기서는 로비 목록을 못 받는다** (2026-08-14, 계측으로 확인).
+   이 검사는 제 서버(127.0.0.1:임의포트)에 앱을 띄우는데, 방 목록은 욘봇(다른 출처)에서 온다.
+   그 서버가 허용하는 출처 목록에 이 임의 포트가 없어 브라우저가 요청을 막는다 —
+   페이지 안에서 재 보면 `TypeError: Failed to fetch` 다.
+   **우리 코드가 고장 난 게 아니라 이 자리에서 잴 수 없는 것**이다(실서비스 출처는 고정이라 된다).
+   그래서 목록 관련 두 줄은 못 받는 게 확인되면 「못 쟀다」로 적고 넘어간다 —
+   빨강으로 두면 아무도 안 믿는 검사가 된다. */
+  /* 막힌 요청은 **영영 안 끝날 수 있다** — 짧은 시간 제한을 붙인다(실측: 안 붙였더니 검사가 안 끝났다). */
+  const 목록받나 = await other
+    .evaluate(() => {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 3000);
+      return fetch('https://yawnbot.mascari4615.com/kl/arcade/rooms', { cache: 'no-store', signal: ctl.signal })
+        .then(() => true)
+        .catch(() => false)
+        .finally(() => clearTimeout(t));
+    })
+    .catch(() => false);
+  if (!목록받나) {
+    console.log('  [~] 남의 로비에 그 방이 보인다 — 못 쟀다(다른 출처 차단: 이 자리에서만 그렇다)');
+  } else {
+    check('남의 로비에 그 방이 보인다', shown, code);
+  }
 
   if (shown) {
     await other.click(`[data-join="${code}"]`);
