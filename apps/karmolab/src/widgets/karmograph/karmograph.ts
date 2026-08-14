@@ -1242,6 +1242,19 @@ import {
       fitObserver?.disconnect();
     });
 
+    /**
+     * 카드가 사라지면 **그 카드를 가리키던 것들도** 손본다 (KL-271).
+     *
+     * 선과 지시선은 이미 정리했는데 **발표 장**은 지운 카드의 id 를 그대로 안고 있었다
+     * (실측 2026-08-14). 화면이 터지진 않지만 ① 그 장이 「몇 장을 담았나」가 틀리고
+     * ② 카드 id 는 번호를 다시 쓰므로 **나중에 만든 남의 카드가 그 장에 저절로 낀다**.
+     */
+    function forgetNodeEverywhere(id: string): void {
+      for (const step of spec.story ?? []) {
+        if (step.nodeIds?.includes(id)) step.nodeIds = step.nodeIds.filter((x) => x !== id);
+      }
+    }
+
     /** 이 탭이 이 판을 **고친 적 있나** — 다른 탭의 변경을 따라갈지 정하는 데 쓴다. */
     let touchedHere = false;
 
@@ -1605,6 +1618,7 @@ import {
         const goneEdges = new Set(
           spec.edges.filter((e) => gone.has(e.from) || gone.has(e.to)).map((e) => e.id)
         );
+        for (const id of gone) forgetNodeEverywhere(id);   // 발표 장에서도 뺀다(한 장씩 지울 때와 같게)
         spec.nodes = spec.nodes.filter((n) => !gone.has(n.id));
         spec.edges = spec.edges.filter((e) => !gone.has(e.from) && !gone.has(e.to));
         for (const n of spec.nodes) {
@@ -2388,6 +2402,7 @@ import {
         const goneEdges = new Set(
           spec.edges.filter((e) => e.from === node.id || e.to === node.id).map((e) => e.id)
         );
+        forgetNodeEverywhere(node.id);
         spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
         spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
         // 사라진 것을 가리키던 지시선은 함께 지운다 — 안 그러면 허공을 가리킨다.
@@ -2544,6 +2559,7 @@ import {
       const node = spec.nodes.find((n) => n.id === selectedId);
       if (!node) return;
       if (!await askNote(t('karmograph.confirmDeleteEdges', { name: node.label }), t('karmograph.ask.del'))) return;
+      forgetNodeEverywhere(node.id);
       spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
       spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
       for (const n of spec.nodes) if (n.attachedTo === node.id) n.attachedTo = undefined;
