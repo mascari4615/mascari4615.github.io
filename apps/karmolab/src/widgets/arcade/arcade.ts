@@ -1236,6 +1236,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       for (const w of watchers) net.sync({ ...base, v: shown as unknown as Json }, w.id);
     }
 
+    /* ★ **못 받은 조각은 말해 준다** (2026-08-14). 누른 사람에게 아무 반응이 없는 것이
+       제일 나쁘다 — 그리고 자국(`data-kl-load-failed`)이 있어야 검사도 「안 열림」을 잡는다
+       (`toolbox.ts` 가 게으른 위젯에 쓰는 것과 같은 표시다). */
+    function 조각못받음(): void {
+      viewEl.innerHTML = '';
+      const box = document.createElement('p');
+      box.setAttribute('data-kl-load-failed', 'arcade-chunk');
+      box.style.cssText = 'padding:1.2rem;text-align:center;opacity:.8';
+      box.textContent = '이 놀이를 못 받았어요 — 새로고침해 보세요.';
+      viewEl.appendChild(box);
+    }
+
     function mountView(id: string): void {
       const gv = viewById(id);
       viewEl.innerHTML = '';
@@ -1243,7 +1255,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다 — 판은 커널이 들고 있어서
          화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
-      if (!gv) void ensureGame(id).then(() => { if (gameId === id && !render) mountView(id); });
+      if (!gv)
+        void ensureGame(id).then((ok) => {
+          if (gameId !== id || render) return;
+          if (ok) mountView(id);
+          else 조각못받음();
+        });
     }
 
     function sendAct(a: unknown): void {
@@ -1277,8 +1294,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
          저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다 — 문을 하나로 두고 여기서만 기다린다. */
       if (!g) {
-        void ensureGame(id).then(() => {
-          if (gameById(id)) beginMatch(id, seats, seed, want);
+        void ensureGame(id).then((ok) => {
+          if (ok && gameById(id)) beginMatch(id, seats, seed, want);
+          else 조각못받음();
         });
         return;
       }
@@ -1445,8 +1463,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function openLetter(post: Letter): void {
       const g = gameById(post.game);
       if (!g) {
-        void ensureGame(post.game).then(() => {
-          if (gameById(post.game)) openLetter(post);
+        void ensureGame(post.game).then((ok) => {
+          if (ok && gameById(post.game)) openLetter(post);
+          else 조각못받음();
         });
         return;
       }
