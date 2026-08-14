@@ -309,6 +309,30 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           };
           canvas.addEventListener('pointerup', stop);
           canvas.addEventListener('pointercancel', stop);
+          /* 자판 길 (2026-08-14, `audit:mouse-only`). 끌기·휠만 있으면 자판 쓰는 사람은
+           * **모형을 한 번도 못 돌린다** — 3D 도구에서 그건 아무것도 못 보는 것과 같다.
+           * 화살표=돌리기(5도) · Shift+화살표=크게(15도) · +/− = 배율 · 0 = 처음 자리. */
+          canvas.tabIndex = 0;
+          canvas.setAttribute('role', 'application');
+          canvas.setAttribute('aria-label', t('mesh3d.kb.label'));
+          const deg = (rad: number): number => Math.round((rad * 180) / Math.PI);
+          canvas.addEventListener('keydown', (e) => {
+            const step = (e.shiftKey ? 15 : 5) * (Math.PI / 180);
+            switch (e.key) {
+              case 'ArrowLeft': yaw -= step; break;
+              case 'ArrowRight': yaw += step; break;
+              case 'ArrowUp': pitch = Math.max(-Math.PI / 2, pitch - step); break;
+              case 'ArrowDown': pitch = Math.min(Math.PI / 2, pitch + step); break;
+              case '+': case '=': zoom = Math.min(8, zoom * 1.12); break;
+              case '-': case '_': zoom = Math.max(0.2, zoom / 1.12); break;
+              case '0': pitch = -0.35; yaw = 0.6; zoom = 1; break;
+              default: return;
+            }
+            e.preventDefault();
+            invalidate();
+            say(t('mesh3d.kb.moved', { yaw: deg(yaw), pitch: deg(pitch), zoom: zoom.toFixed(1) }));
+          });
+
           canvas.addEventListener(
             'wheel',
             (e) => {

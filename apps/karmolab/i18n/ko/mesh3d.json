@@ -14,5 +14,7 @@
   "mesh3d.say.12": "STL·OBJ 파일을 고르세요. 파일은 기기 밖으로 나가지 않습니다",
   "mesh3d.err.shader": "셰이더 오류: {why}",
   "mesh3d.err.link": "WebGL 연결 오류: {why}",
-  "mesh3d.info": "삼각형 {n}개 · 크기 {x} × {y} × {z}"
+  "mesh3d.info": "삼각형 {n}개 · 크기 {x} × {y} × {z}",
+  "mesh3d.kb.label": "3D 보기 (화살표로 돌리고, +/− 로 키우고 줄입니다, 0 으로 처음 자리)",
+  "mesh3d.kb.moved": "좌우 {yaw}° · 위아래 {pitch}° · 배율 {zoom}배"
 }

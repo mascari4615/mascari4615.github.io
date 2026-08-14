@@ -14,5 +14,7 @@
   "mesh3d.say.12": "STL・OBJ のファイルを選んでください。ファイルは端末の外に出ません",
   "mesh3d.err.shader": "シェーダーのエラー: {why}",
   "mesh3d.err.link": "WebGL のリンクエラー: {why}",
-  "mesh3d.info": "三角形 {n}個 · 大きさ {x} × {y} × {z}"
+  "mesh3d.info": "三角形 {n}個 · 大きさ {x} × {y} × {z}",
+  "mesh3d.kb.label": "3D ビュー（矢印で回転、+/− で拡大縮小、0 でリセット）",
+  "mesh3d.kb.moved": "左右 {yaw}° · 上下 {pitch}° · 倍率 {zoom}倍"
 }

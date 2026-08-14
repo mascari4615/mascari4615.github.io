@@ -14,5 +14,7 @@
   "mesh3d.say.12": "Choose an STL or OBJ file. The file never leaves your device",
   "mesh3d.err.shader": "Shader error: {why}",
   "mesh3d.err.link": "WebGL link error: {why}",
-  "mesh3d.info": "{n} triangles · size {x} × {y} × {z}"
+  "mesh3d.info": "{n} triangles · size {x} × {y} × {z}",
+  "mesh3d.kb.label": "3D view (arrows rotate, +/− zoom, 0 resets)",
+  "mesh3d.kb.moved": "yaw {yaw}° · pitch {pitch}° · zoom {zoom}x"
 }
