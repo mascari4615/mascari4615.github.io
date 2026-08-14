@@ -612,6 +612,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '  #acStatus{grid-column:2;grid-row:2}',
       '  .ac-controls{grid-column:2;grid-row:3;flex-wrap:wrap;margin-top:0}',
       '}',
+      '.ac-stage:focus{outline:none}',
+      /* 키로 짚고 있는 자리 — 눌린 것과 구별되게 테두리만. */
+      '.ac-key{outline:3px solid var(--accent);outline-offset:1px;border-radius:4px}',
       '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-color);padding:var(--space-lg)}',
       '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
       /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다** — 아래 § 참고. 판 위에 뜨되 가리지 않게. */
@@ -693,7 +696,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '</div></div>' +
       '<div id="acPlay" style="display:none">' +
       '<div class="ac-seats" id="acSeats"></div>' +
-      '<div class="ac-stage" id="acStage">' +
+      '<div class="ac-stage" id="acStage" tabindex="0">' +
       '<div class="ac-intro" id="acIntro" style="display:none">' +
       '<div class="ac-introicon" id="acIntroIcon"></div>' +
       '<div class="ac-introname" id="acIntroName"></div>' +
@@ -1262,6 +1265,62 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       for (const w of watchers) net.sync({ ...base, v: shown as unknown as Json }, w.id);
     }
 
+    /* ── 키로 논다 (TASK-KL-314 다음 · arcade-next ★1) ───────────────
+     *
+     * **규약을 51개에 나눠 주지 않는다.** 화면들은 이미 `<button>` 으로 판을 그린다 — 오목의 칸,
+     * 반응 측정의 고르기, 카드 한 장. 그러면 껍데기가 할 일은 하나뿐이다:
+     * **그 단추들 위를 화살표로 옮기고 엔터로 누른다.** 게임 화면은 이 사실을 몰라도 된다.
+     *
+     * 열리는 것 셋: 마우스 없는 데스크톱 · 화면낭독기 · **검사가 좌표 대신 키로 두는 것**
+     * (지금은 좌표를 눌러야 해서 놀이마다 다르게 짠다).
+     *
+     * 판이 격자면 2차원으로 움직인다 — 칸 수를 CSS 에서 읽는다(`grid-template-columns`).
+     * 격자가 아니면 한 줄로 본다. 그림판(canvas)만 쓰는 놀이 10개는 손이 그대로 마우스다 —
+     * 거기까지 키로 하려면 게임마다 뜻이 달라 규약이 깨진다.
+     */
+    let keyAt = -1;
+
+    /** 지금 화면에서 누를 수 있는 단추들. 화면이 다시 그려지면 이 목록도 새로 만든다. */
+    const keyable = (): HTMLElement[] =>
+      [...viewEl.querySelectorAll<HTMLElement>('button:not([disabled]),[role="button"]:not([aria-disabled="true"])')]
+        .filter((e) => e.offsetParent !== null);
+
+    const paintKey = (list: HTMLElement[]): void => {
+      list.forEach((e, i) => e.classList.toggle('ac-key', i === keyAt));
+    };
+
+    /** 격자면 한 줄에 몇 칸인가. 아니면 0. */
+    const cols = (el: HTMLElement): number => {
+      const box = el.parentElement;
+      if (!box) return 0;
+      const t = getComputedStyle(box).gridTemplateColumns;
+      return t && t !== 'none' ? t.split(' ').filter(Boolean).length : 0;
+    };
+
+    $<HTMLElement>('#acStage').addEventListener('keydown', (ev: KeyboardEvent) => {
+      const list = keyable();
+      if (!list.length) return;
+      const key = ev.key;
+      if (key === 'Enter' || key === ' ') {
+        if (keyAt < 0) keyAt = 0;
+        list[Math.min(keyAt, list.length - 1)]?.click();
+        ev.preventDefault();
+        return;
+      }
+      const step: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
+      let move = step[key];
+      if (move === undefined && (key === 'ArrowDown' || key === 'ArrowUp')) {
+        const n = cols(list[Math.max(0, keyAt)] ?? list[0]);
+        move = (key === 'ArrowDown' ? 1 : -1) * (n || 1);
+      }
+      if (move === undefined) return;
+      /* 처음 누르는 화살표는 「고르기 시작」이다 — 그때 0번으로 들어간다. */
+      keyAt = keyAt < 0 ? 0 : Math.min(list.length - 1, Math.max(0, keyAt + move));
+      paintKey(list);
+      list[keyAt]?.scrollIntoView({ block: 'nearest' });
+      ev.preventDefault();
+    });
+
     function mountView(id: string): void {
       const gv = viewById(id);
       viewEl.innerHTML = '';
@@ -1354,6 +1413,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       t0 = performance.now();
       cancelAnimationFrame(raf);
       loop();
+      /* 판이 서면 무대에 초점을 준다 — 키를 누를 곳이 어디인지 화면이 말해 줘야 한다.
+         `preventScroll` 없이 부르면 폰에서 화면이 무대로 튄다. */
+      keyAt = -1;
+      $<HTMLElement>('#acStage').focus({ preventScroll: true });
       Toolbox.trackUse?.(id);
       /* 「안 해 본 것 먼저」가 성립하려면 해 본 것을 적어야 한다 (`plays.ts`). */
       notePlay(id);
