@@ -800,5 +800,6 @@
   "karmograph.storage.used": "{used} / about {all} ({pct}%)",
   "karmograph.terms.nodeKinds": "My node kinds: {n}",
   "karmograph.terms.edgeKinds": "My relation kinds: {n}",
-  "karmograph.kind.unknown": "Unknown kind"
+  "karmograph.kind.unknown": "Unknown kind",
+  "karmograph.otherTab.msg": "Another tab edited this map too. Your last save may have overwritten it — check “restore previous” in the Storage panel, or export the current one to a file."
 }

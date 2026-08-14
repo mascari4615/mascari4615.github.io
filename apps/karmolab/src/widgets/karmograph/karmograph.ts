@@ -578,6 +578,7 @@ import {
     let library: LibraryIndex = loadLibrary();
     let store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
     store.onWriteError = () => warnSaveFailed();
+      store.onForeignWrite = () => warnOtherTab();
 
     let spec: GraphSpec = emptyGraphSpec();
     let canvas: GraphCanvas | null = null;
@@ -1139,6 +1140,21 @@ import {
      * 저장이 **실패했다** — 사람에게 지지 않는 표시로 알리고, **빠져나갈 길을 같이 준다**
      * (TASK-KL-271). 저장이 안 되는 판에서 필요한 건 경고문이 아니라 「지금 파일로 빼기」다.
      */
+    /**
+     * 🪟 **다른 탭도 이 판을 고쳤다** (KL-271).
+     *
+     * 한 판을 두 탭에서 열어 두는 일은 흔하다(링크로 열고 원래 탭은 그대로 둔다). 각 탭은 제
+     * 기억 속 판을 통째로 쓰므로 **뒤에 쓴 탭이 앞 탭의 일을 지운다** — 실측 2026-08-14: B 탭에서
+     * 만든 카드가 A 탭의 다음 저장에 아무 말 없이 사라졌다. 여기서는 **말해 준다**: 사라진 것을
+     * 되찾는 길(직전 판 되살리기)과 지금 것을 지키는 길(파일로 빼기)이 둘 다 도구 안에 있다.
+     */
+    let toldOtherTab = false;
+    function warnOtherTab(): void {
+      if (toldOtherTab) return;   // 저장할 때마다 뜨면 일을 못 한다 — 한 번만 말한다
+      toldOtherTab = true;
+      showNote(t('karmograph.otherTab.msg'));
+    }
+
     function warnSaveFailed(): void {
       const old = root.querySelector('.km-storage-warn');
       if (old?.classList.contains('is-fail')) return;
@@ -4113,6 +4129,7 @@ import {
     function openActiveMap(): void {
       store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
       store.onWriteError = () => warnSaveFailed();
+      store.onForeignWrite = () => warnOtherTab();
       history.length = 0;
       histIndex = -1;
       selectedId = null;
@@ -4264,6 +4281,7 @@ import {
         renderMapList();
         store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
       store.onWriteError = () => warnSaveFailed();
+      store.onForeignWrite = () => warnOtherTab();
         spec = {
           ...emptyGraphSpec(),
           ...incoming,

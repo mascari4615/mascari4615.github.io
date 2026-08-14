@@ -1913,6 +1913,58 @@ async function floatersInside(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 화면 밖으로 흘러나간 것 — ${bad.slice(0, 4).join(' | ')}`);
 }
 
+await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 한 판을 두 탭에서 열어 두면 **뒤에 쓴 탭이 앞 탭의 일을 지운다** —
+     B 탭에서 만든 카드가 A 탭의 다음 저장에 아무 말 없이 사라졌다. 덮는 것을 막을 수는 없어도
+     (각 탭은 제 기억 속 판을 쓴다) **말은 해 줘야** 되찾을 수 있다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1200, height: 800 } });
+  const a = await ctx.newPage();
+  const b2 = await ctx.newPage();
+  await a.goto(URL, { waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.evaluate(() => localStorage.clear());
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.waitForTimeout(ms(800));
+  const abox = await a.locator('.km-canvas').boundingBox();
+  await a.mouse.dblclick(abox.x + abox.width * 0.3, abox.y + abox.height * 0.3);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('A탭카드');
+  await a.keyboard.press('Enter');
+  await a.waitForTimeout(ms(700));
+
+  await b2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await b2.waitForTimeout(ms(1000));
+  const bbox = await b2.locator('.km-canvas').boundingBox();
+  await b2.mouse.dblclick(bbox.x + bbox.width * 0.6, bbox.y + bbox.height * 0.5);
+  await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await b2.keyboard.type('B탭카드');
+  await b2.keyboard.press('Enter');
+  await b2.waitForTimeout(ms(800));
+
+  await a.bringToFront();
+  await a.mouse.dblclick(abox.x + abox.width * 0.4, abox.y + abox.height * 0.7);
+  await a.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await a.keyboard.type('A탭카드2');
+  await a.keyboard.press('Enter');
+  await a.waitForSelector('.km-note', { timeout: ms(6000) });
+  const said = await a.locator('.km-note').textContent();
+  if (!said || !said.includes('다른 탭')) throw new Error('덮어썼는데 아무 말이 없다: ' + String(said).slice(0, 40));
+
+  // 되찾는 길이 실제로 있어야 한다 — 직전 판에 B 탭의 카드가 남아 있다.
+  const kept = await a.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    // 남의 판을 덮은 순간 따로 떠 둔 자리 — 보통 저장은 여기를 안 건드린다.
+    const raw = localStorage.getItem('karmograph.rescue.' + idx.activeId)
+      ?? localStorage.getItem('karmograph.prev.' + idx.activeId);
+    if (!raw) return [];
+    return JSON.parse(raw).nodes.map((n) => n.label);
+  });
+  if (!kept.includes('B탭카드')) throw new Error('직전 판에도 남의 카드가 없다 — 되찾을 길이 없다: ' + kept.join(','));
+  await ctx.close();
+});
+
 await step('판 위에 뜨는 것이 화면 밖으로 안 흘러나간다 (폰·데스크톱)', async () => {
   for (const [tag, view] of [
     ['폰', { width: 390, height: 844, isMobile: true, hasTouch: true }],
