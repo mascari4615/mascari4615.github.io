@@ -15,6 +15,7 @@ import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
 import { MODEL_SIZE_MB, toModelAudio, toSrt, transcribe } from '../../lib/ai-transcribe';
 import { t, loadNamespace } from '../../lib/i18n';
+import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
   Toolbox.register({
@@ -146,7 +147,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           // 저장 형식을 나중에 고르므로 소리 자체를 들고 있어야 한다 (WAV 로만 갖고 있으면 MP3 를 못 만든다)
           let recorded: AudioBuffer | null = null;
           let raf = 0;
-          let ticker = 0;
+          /** 녹화 시계를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. */
+          let stopTicker: (() => void) | null = null;
           let startedAt = 0;
           let peak = 0; // 녹음 내내 가장 컸던 소리 — 「안 담겼다」를 판정하는 근거
 
@@ -186,7 +188,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           function cleanup(): void {
             cancelAnimationFrame(raf);
-            window.clearInterval(ticker);
+            stopTicker?.();
             stream?.getTracks().forEach((t) => t.stop());
             stream = null;
             startBtn.disabled = false;
@@ -230,7 +232,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             startedAt = performance.now();
             startBtn.disabled = true;
             stopBtn.disabled = false;
-            ticker = window.setInterval(() => {
+            // 지난 시간은 `performance.now()` 에서 다시 재므로, 덮어 뒀다 돌아와도 시각이 안 틀린다.
+            stopTicker = intervalWhileVisible(() => {
               clock.textContent = mmss((performance.now() - startedAt) / 1000);
             }, 250);
             say(t('voicerec.say.recording'), 'ok');
