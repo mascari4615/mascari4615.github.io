@@ -7,6 +7,7 @@
 import { newTermId } from '../terms';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
+import { forgetTerm } from '../terms';
 
 /** 화살표 상태 글자 — 없음 / 한쪽 / 양쪽. */
 function arrowGlyph(e: { arrow: boolean; arrowStart?: boolean }): string {
@@ -97,6 +98,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
     };
     (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
       // 이미 그 종류로 놓아둔 노드는 건드리지 않는다 — 이름·색만 잃고 그림은 남는다.
+      forgetTerm(id);   // 지운 표시가 없으면 다른 탭의 저장이 이 용어를 도로 살린다
       ctx.terms.nodeKinds = ctx.terms.nodeKinds.filter((k) => k.id !== id);
       ctx.applyTerms();
     ctx.refresh();
@@ -135,6 +137,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
       ctx.canvas()?.render();
     };
     (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
+      forgetTerm(id);
       ctx.terms.edgeKinds = ctx.terms.edgeKinds.filter((k) => k.id !== id);
       ctx.applyTerms();
     ctx.refresh();

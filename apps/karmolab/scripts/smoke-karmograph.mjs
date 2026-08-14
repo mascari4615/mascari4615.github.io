@@ -1913,6 +1913,45 @@ async function floatersInside(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 화면 밖으로 흘러나간 것 — ${bad.slice(0, 4).join(' | ')}`);
 }
 
+await step('다른 탭이 만든 내 용어가 사라지지 않는다 (KL-271)', async () => {
+  /* 용어는 판을 열 때 한 번 읽어 기억해 두고 고칠 때 통째로 쓴다 — 두 탭이 각각 용어를 더하면
+     **뒤에 쓴 탭이 앞 탭의 용어를 지웠다**(실측 2026-08-14: 둘이어야 할 것이 하나).
+     더해서, 번호만 세던 id 는 탭마다 같은 번호를 뽑아 합칠 때도 하나로 뭉갰다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1200, height: 800 } });
+  const a = await ctx.newPage();
+  const b2 = await ctx.newPage();
+  const openTerms = async (page) => {
+    await page.evaluate(() => (document.querySelector('[data-km="tab"][data-key="terms"]')
+      || document.querySelector('[data-km="terms"]'))?.click());
+    await page.waitForSelector('[data-km="t-add-node"]', { timeout: ms(4000) });
+  };
+  await a.goto(URL, { waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.evaluate(() => localStorage.clear());
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await a.waitForTimeout(ms(700));
+  await b2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await b2.waitForTimeout(ms(900));
+
+  await openTerms(b2);
+  await b2.evaluate(() => document.querySelector('[data-km="t-add-node"]').click());
+  await b2.waitForTimeout(ms(700));
+  await a.bringToFront();
+  await openTerms(a);
+  await a.evaluate(() => document.querySelector('[data-km="t-add-node"]').click());
+  await a.waitForTimeout(ms(900));
+
+  const kinds = await a.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem('karmograph.terms') || '{}');
+    return (raw.nodeKinds || []).map((k) => k.id);
+  });
+  if (kinds.length !== 2) throw new Error(`두 탭이 만든 용어가 ${kinds.length}개만 남았다`);
+  if (new Set(kinds).size !== 2) throw new Error('두 탭이 같은 id 를 뽑았다: ' + kinds.join(','));
+  await ctx.close();
+});
+
 await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-271)', async () => {
   /* 실측 2026-08-14: B 탭에서 새 판을 만들면, A 탭의 다음 저장이 목록을 통째로 덮어 **그 판이
      목록에서 사라졌다**(자료는 남고 미아가 된다 — 사람에게는 판이 없어진 것으로 보인다).
