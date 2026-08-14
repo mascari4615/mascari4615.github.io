@@ -208,6 +208,8 @@ import { download } from './shared/video';
           };
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void readFile(files[0]) });
+          /* 남이 넘긴 자막도 받는다 (TASK-KL-238 / 2) — 선언(`accepts`)만 하고 안 받으면 빈 화면이다. */
+          Toolbox.onHandoff?.('subtitle', (file: File) => void readFile(file));
 
           input.addEventListener('input', run);
           $<HTMLInputElement>('#sbShift').addEventListener('input', () => {
