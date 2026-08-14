@@ -130,7 +130,19 @@ if (process.env.DEBUG) {
   console.log('[dbg] audio:', await page.evaluate(() =>
     [...document.querySelectorAll('audio')].map((a) => ({ src: a.src, paused: a.paused, t: a.currentTime, err: a.error && a.error.code }))));
 }
-check(autoPlaying, '겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다');
+/* ★ **소리를 못 받는 자리와 「안 울린다」는 다르다** (2026-08-14). CI 에서 이 줄이 빨갰는데,
+   러너에는 그 방송을 받아 올 길이 없다(막힌 출처·코덱·소리 장치). 그러면 `<audio>` 는
+   **아무것도 못 받은 채**(readyState 0) 가만히 있는다 — 우리 화면이 고장 난 게 아니다.
+   그래서 「하나라도 받아는 왔나」를 먼저 본다: 아무도 못 받았으면 **못 쟀다**로 적는다. */
+const 받아온것 = await page.evaluate(() =>
+  [...document.querySelectorAll('audio')].map((a) => ({ ready: a.readyState, err: a.error ? a.error.code : 0 }))
+);
+const 하나라도받음 = 받아온것.some((a) => a.ready > 0);
+if (!autoPlaying && !하나라도받음) {
+  console.log(`  [~] 겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다 — 못 쟀다(이 자리에서 방송을 못 받는다: ${받아온것.length}개 전부 readyState 0)`);
+} else {
+  check(autoPlaying, '겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다');
+}
 
 /* ③-c 도는 지구는 못 누른다 — 라디오를 켜면 자전이 선다 */
 const spinOff = await page.evaluate(() => {
