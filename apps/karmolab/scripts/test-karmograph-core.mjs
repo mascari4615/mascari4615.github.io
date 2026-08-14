@@ -1351,6 +1351,23 @@ const M = await loadModules();
   check(line.includes('가') && line.includes('나'), '선은 양 끝을 말한다');
   check(line.includes('친구'), '선 이름도 말한다');
   check(!pickedEdgeLabel('가', '나', '').endsWith(':'), '이름 없는 선은 콜론만 남기지 않는다');
+
+  /* ★ 판에 **자판으로 들어올 문**이 있나 — 판 안 Tab 훑기는 초점이 판에 있을 때만 열린다. */
+  const { describeBoard } = M.boardA11y;
+  const fakeSvg = (() => {
+    const at = new Map();
+    return {
+      attrs: at,
+      setAttribute: (k, v) => at.set(k, String(v)),
+      getAttribute: (k) => (at.has(k) ? at.get(k) : null),
+    };
+  })();
+  describeBoard(fakeSvg, 3, 2);
+  eq(fakeSvg.getAttribute('tabindex'), '0', '판은 자판 순회에 든다 — 없으면 마우스로만 들어갈 수 있다');
+  check((fakeSvg.getAttribute('aria-label') || '').includes('3'), '판 이름도 함께 붙는다');
+  fakeSvg.setAttribute('tabindex', '-1');
+  describeBoard(fakeSvg, 3, 2);
+  eq(fakeSvg.getAttribute('tabindex'), '-1', '화면이 제 뜻으로 뺐으면 그릴 때마다 되돌리지 않는다');
   check(pickedEdgeLabel('', '', '').length > 0, '이름 없는 끝이어도 말은 한다');
   check(pickedManyLabel(3).includes('3'), '여럿은 몇 장인지가 곧 정보다');
   eq(pickedManyLabel(-1), pickedManyLabel(0), '이상한 숫자는 0 으로');

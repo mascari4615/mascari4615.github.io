@@ -65,3 +65,17 @@ export function boardLabel(nodes: number, edges: number): string {
   const safe = (n: number): number => (Number.isFinite(n) && n > 0 ? Math.floor(n) : 0);
   return words.label(safe(nodes), safe(edges));
 }
+
+/**
+ * 판(svg)에 **이름과 들어올 문**을 붙인다 — 그릴 때마다 한 번.
+ *
+ * ★ 이름만으로는 반쪽이었다: 판 안에서 Tab 으로 카드를 훑는 길은 **초점이 판에 있을 때만**
+ * 열리는데, 판 자체가 자판 순회 대상이 아니라 **거기에 닿을 방법이 마우스뿐이었다**
+ * (실측 2026-08-14: 손잡이를 다 돌아도 초점이 판에 한 번도 안 온다). `tabindex` 는 이미 있으면
+ * 안 건드린다 — 화면이 제 뜻으로 뺀 것을 그림 그릴 때마다 되돌리지 않기 위해서다.
+ */
+export function describeBoard(svg: Element, nodes: number, edges: number): void {
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', boardLabel(nodes, edges));
+  if (svg.getAttribute('tabindex') === null) svg.setAttribute('tabindex', '0');
+}
