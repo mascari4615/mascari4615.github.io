@@ -33,5 +33,9 @@
   "orbita.t20": "The orbits have started turning",
   "orbita.t21": "Stars scattered",
   "orbita.t22": "Try placing colour on an orbit",
-  "orbita.midiTo": "Sending to {name} — orbit number = MIDI channel."
+  "orbita.midiTo": "Sending to {name} — orbit number = MIDI channel.",
+  "orbita.kb.label": "Keyboard works too — left/right = step, up/down = ring, Enter = place/remove, PageUp/Down = pitch",
+  "orbita.kb.at": "ring {ring}, step {slot} — {state}",
+  "orbita.kb.on": "has a note",
+  "orbita.kb.off": "empty"
 }

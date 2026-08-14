@@ -5,6 +5,5 @@ src/widgets/arcade/games/airhockey-view.ts
 src/widgets/arcade/games/minesweeper-view.ts
 src/widgets/arcade/games/pong-view.ts
 src/widgets/bluemarble/bluemarble.ts
-src/widgets/orbita.ts
 src/widgets/tierlist/dnd.ts
 src/widgets/tierlist/ui.ts
