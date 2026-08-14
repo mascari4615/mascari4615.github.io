@@ -18,20 +18,28 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const metaSrc = fs.readFileSync(path.join(root, 'js/widgets-lazy-meta.js'), 'utf8');
+/* ★ **구운 파일이 아니라 손으로 적는 곳을 읽는다** (2026-08-14).
+   전에는 `js/widgets-lazy-meta.js`(빌드 산출물)를 정규식으로 훑었다. 그런데 그 파일은
+   커밋되지 않는다 — 그래서 **밤에 스스로 굽는 워크플로가 첫 판부터 ENOENT 로 죽어 있었다**
+   (2026-08-13 19:29, 그 워크플로가 돈 유일한 판). 감사기는 「밤에 굽는다」고 약속하고,
+   굽는 놈은 한 번도 안 돌았다 — 「모름」이 「괜찮음」으로 읽히던 자리다.
+   손으로 적는 곳(`src/widgets-lazy-meta.ts`)은 커밋되어 있고, 사람이 쓴 한국어 이름이
+   그대로 들어 있다. 짓지 않아도 읽힌다(그래서 밤 워크플로에 설치·빌드가 필요 없다). */
+const metaSrc = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8');
 
-/** 구워진 매니페스트에서 id → {title, category} 만 훑는다. 파서를 새로 쓰지 않는다. */
+/** 손으로 적는 목록에서 id → {title, category} 만 훑는다. 파서를 새로 쓰지 않는다. */
 const widgets = new Map();
-for (const m of metaSrc.matchAll(/id:\s*"([a-z0-9-]+)"[\s\S]{0,400}?title:\s*"([^"]+)"[\s\S]{0,400}?category:\s*"([^"]+)"/g)) {
-  // 구워진 파일은 한글을 `글` 꼴로 적는다 — 그대로 쓰면 이름이 기호 뭉치가 된다.
-  const unescape = (raw) => {
-    try {
-      return JSON.parse(`"${raw}"`);
-    } catch {
-      return raw;
-    }
-  };
-  widgets.set(m[1], { title: unescape(m[2]), category: unescape(m[3]) });
+for (const block of metaSrc.split('\n  {\n').slice(1)) {
+  const id = block.match(/^\s*(?:\/\*[\s\S]*?\*\/\s*)?id:\s*'([a-z0-9-]+)'/m)?.[1];
+  /* 이름은 `get title() { return t('...', undefined, "한국어"); }` 꼴 — 그 마지막 칸이 정본이다. */
+  const title = block.match(/title\(\)[^}]*?undefined, "([^"]*)"/)?.[1];
+  const category = block.match(/category:\s*'([^']+)'/)?.[1];
+  if (!id || !title || !category) continue;
+  widgets.set(id, { title: JSON.parse(`"${title}"`), category });
+}
+if (widgets.size < 100) {
+  console.error(`[gen-worldcup-tools] 목록을 ${widgets.size}개밖에 못 읽었다 — 적는 꼴이 바뀌었나 보다`);
+  process.exit(1);
 }
 
 /** 갈래 이름은 사람이 보는 칸이다 — 코드 이름을 그대로 내보내지 않는다. */
