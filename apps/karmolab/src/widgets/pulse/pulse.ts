@@ -13,6 +13,7 @@
  *
  * **다음 박동은 절대 안 보여준다.** 계산은 되지만 보여 주면 기다림이 사라진다.
  */
+import { intervalWhileVisible } from '../../lib/tick';
 import type { Beat, Channel, Ink } from './core';
 import { CHANNELS } from './channels';
 import { paintCard, shareCard } from './card';
@@ -428,7 +429,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           update();
           requestAnimationFrame(drawStage);
 
-          const timer = window.setInterval(update, 1000);
+          // 보이는 동안만 돈다 (`lib/tick`) — 덮어 둔 탭에서 배터리를 안 태운다.
+          const stopTick = intervalWhileVisible(update, 1000);
           const onResize = (): void => {
             ink = inkOf(container);
             drawStage();
@@ -437,7 +439,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           window.addEventListener('resize', onResize);
 
           Toolbox.onDispose?.(() => {
-            window.clearInterval(timer);
+            stopTick();
             window.removeEventListener('resize', onResize);
             void audio?.close();
           });

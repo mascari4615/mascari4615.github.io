@@ -1,4 +1,5 @@
 import { t, loadNamespace } from '../lib/i18n';
+import { intervalWhileVisible } from '../lib/tick';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -77,9 +78,11 @@ import { t, loadNamespace } from '../lib/i18n';
           walkEl.onclick = () => react('walk');
           praiseEl.onclick = () => react('praise');
 
-          const timer = window.setInterval(() => {
+          // 보이는 동안만 돈다 (`lib/tick`) — 덮어 둔 탭에서 배터리를 안 태운다.
+          // 화면에서 빠진 뒤에도 스스로 멈추던 규칙은 그대로 둔다(다른 위젯으로 갈아탄 경우).
+          const stopTick = intervalWhileVisible(() => {
             if (!container.offsetParent) {
-              clearInterval(timer);
+              stopTick();
               return;
             }
             seconds++;

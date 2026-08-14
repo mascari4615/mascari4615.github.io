@@ -17,8 +17,6 @@ src/widgets/imagegen/core.ts
 src/widgets/karmograph/karmograph.ts
 src/widgets/life/life.ts
 src/widgets/meok/meok.ts
-src/widgets/pulse/pulse.ts
-src/widgets/stone.ts
 src/widgets/tools/livecount.ts
 src/widgets/tools/screenrec.ts
 src/widgets/tools/videotrim.ts
