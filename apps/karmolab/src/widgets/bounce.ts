@@ -53,15 +53,18 @@ import { loadImage } from './tools/shared/image';
           }
           resize();
 
+          // 공용 한 자리(`shared/image.loadImage`) — 파일에서 읽을 때와 **같은 길**로 읽는다.
+          // 여기만 손으로 `new Image()` 를 쓰면 「다 실렸나」를 재는 방식이 둘로 갈린다.
           let img = new Image();
           let imgLoaded = false;
           const textLogo = 'ANTIGRAVITY';
 
-          img.onload = () => {
-            imgLoaded = true;
-          };
-          img.src =
+          const defaultLogo =
             "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='30'><text x='0' y='20' font-family='sans-serif' font-size='16' font-weight='bold' fill='%2300ff00'>DVD</text></svg>";
+          void loadImage(defaultLogo).then((loaded) => {
+            img = loaded;
+            imgLoaded = true;
+          });
 
           logoInputEl.onchange = function (e: Event): void {
             const input = e.target as HTMLInputElement;

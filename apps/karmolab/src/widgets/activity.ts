@@ -5,6 +5,7 @@
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
+import { download } from './tools/shared/image';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -267,18 +268,10 @@ import { t, loadNamespace } from '../lib/i18n';
     return '﻿' + lines.join('\n');
   }
 
-  /// CSV 텍스트를 파일로 저장 (Blob + a[download]). Tauri 권한 추가 X.
+  /// CSV 텍스트를 파일로 저장. 내려주기·거두기는 **공용 한 자리**(`tools/shared/image.download`)다 —
+  /// 그림 전용이 아니라 「Blob 을 파일로 내려준다」는 같은 일이라 여기서도 그걸 쓴다.
   function downloadCsv(filename: string, csv: string): void {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), filename);
   }
 
   function build(container: HTMLElement): void {
