@@ -23,7 +23,7 @@ await build({
   outfile: out,
   logLevel: 'silent'
 });
-const { calcSheet } = await import(`file://${out.replace(/\\/g, '/')}`);
+const { calcSheet, solveZero, plotSamples, evalAt } = await import(`file://${out.replace(/\\/g, '/')}`);
 
 const failures = [];
 const near = (a, b) => Math.abs(a - b) < 0.01;
@@ -111,6 +111,99 @@ dead('알수없는이름 + 1', '모르는 이름');
     process.stdout.write('x');
     failures.push(`「원」 이 답에 붙어야 한다 — 나온 것 「${r[0].text}」`);
   }
+}
+
+
+/* ── x 구하기 · 그리기 (TASK-KL-238 / 13 wolframalpha) ────────────────
+ *
+ * 여기서 가장 나쁜 실패는 **지어낸 답**이다. 삼차를 이차로 우겨 풀거나, 실수 답이 없는데
+ * 숫자를 내놓으면 사람이 그걸 믿는다. 그래서 「없다」와 「대략」을 말하는지도 같이 본다. */
+const lastLine = (src) => {
+  const r = calcSheet(src);
+  return r[r.length - 1];
+};
+const says = (src, want, why) => {
+  const got = lastLine(src).text;
+  if (got.replace(/\s+/g, '') === want.replace(/\s+/g, '')) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`${why}: 「${got}」 (기대 「${want}」)`);
+  }
+};
+
+says('2x + 3 = 11', 'x = 4', '일차방정식');
+says('2*x + 3 = 11', 'x = 4', '곱셈 기호를 적어도 같다');
+says('x/2 = 8', 'x = 16', '나눗셈만 있어도');
+says('x^2 - 5x + 6 = 0', 'x = 2, 3', '이차방정식은 뿌리 둘');
+says('x^2 = 9', 'x = -3, 3', '이차 — 음수 뿌리를 안 버린다');
+says('x^2 - 6x + 9 = 0', 'x = 3', '중근은 하나로');
+
+{
+  const r = lastLine('x^2 + 1 = 0');
+  if (r.value === null && r.text === '' && r.error) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`허근뿐이면 답을 지어내면 안 된다 — 나온 것 「${r.text}」`);
+  }
+}
+{
+  const r = lastLine('x^3 - 8 = 0');
+  const n = Number(r.text.replace(/[^0-9.-]/g, ''));
+  if (r.text.includes('≈') && Math.abs(n - 2) < 0.01) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`삼차는 대략으로 말해야 한다 — 나온 것 「${r.text}」`);
+  }
+}
+{
+  const r = calcSheet('밥값 = 32000\n밥값 * 2');
+  if (near(r[1].value, 64000)) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`이름 매기기가 방정식으로 오해되면 안 된다 — 나온 것 「${r[1].text}」`);
+  }
+}
+{
+  const r = calcSheet('x = 3\nx + 1');
+  if (near(r[1].value, 4)) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`x = 3 은 값 매기기다 — 나온 것 「${r[1].text}」`);
+  }
+}
+{
+  const p = lastLine('y = x^2 - 3').plot;
+  if (p && p.points.length > 100 && Math.abs(p.minY + 3) < 0.01) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(`y = x^2 - 3 은 표본을 내야 한다 (골은 -3) — 나온 것 ${p ? p.minY : '없음'}`);
+  }
+}
+{
+  const p = plotSamples('1/x', -5, 5, 100);
+  if (p && p.points.every(([, y]) => Number.isFinite(y))) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push('못 재는 자리(1/0)는 건너뛰어야 한다');
+  }
+}
+{
+  const p = plotSamples('5', -1, 1, 10);
+  if (p && p.maxY > p.minY) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push('납작한 직선도 높이를 가져야 그려진다');
+  }
+}
+if (solveZero(() => 1) === null) process.stdout.write('.');
+else {
+  process.stdout.write('x');
+  failures.push('늘 1 인 함수는 뿌리가 없다고 해야 한다');
+}
+if (Number.isNaN(evalAt('알수없는', 1))) process.stdout.write('.');
+else {
+  process.stdout.write('x');
+  failures.push('모르는 이름은 NaN 이어야 한다 (던지면 그리기가 죽는다)');
 }
 
 process.stdout.write('\n');
