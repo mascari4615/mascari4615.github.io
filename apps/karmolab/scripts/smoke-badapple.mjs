@@ -72,7 +72,28 @@ await page.evaluate(async () => {
   input.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
-await page.waitForFunction(() => document.getElementById('baStatus').textContent.includes('재생 중'), undefined, { timeout: 60000 });
+/* ★ **못 트는 자리에서는 「못 잼」으로 물러난다** (2026-08-14). CI 에서 이 기다림이 60초를
+   넘겨 검사가 통째로 죽었다(내 자리에서는 통과). 여기서 만든 영상은 `video/webm` 인데,
+   러너의 브라우저 빌드가 그 코덱을 못 틀면 **영영 「재생 중」이 안 된다** — 그건 우리 코드가
+   고장 난 게 아니라 이 자리에서 잴 수 없는 것이다. 그걸 빨강으로 읽으면 아무도 안 믿게 된다. */
+const 재생됨 = await page
+  .waitForFunction(() => document.getElementById('baStatus').textContent.includes('재생 중'), undefined, { timeout: 60000 })
+  .then(() => true)
+  .catch(() => false);
+if (!재생됨) {
+  const 틀수있나 = await page.evaluate(() => {
+    const v = document.createElement('video');
+    return { webm: v.canPlayType('video/webm'), 상태: document.getElementById('baStatus')?.textContent ?? '' };
+  });
+  if (!틀수있나.webm) {
+    console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (상태: ${틀수있나.상태})`);
+    await browser.close();
+    process.exit(2); /* 2 = 못 돌림. 이 저장소 규약 */
+  }
+  console.error(`[smoke-badapple] 60초 안에 재생이 안 시작됐다 (상태: ${틀수있나.상태})`);
+  await browser.close();
+  process.exit(1);
+}
 
 // 한 순간만 집으면 안 된다 — 영상 첫 장이 비어 있는 건 정상이고(녹화 시작 직후 검은 화면),
 // 그걸 「안 그려졌다」로 읽으면 멀쩡한 걸 빨강이라 우긴다. 한 바퀴 도는 동안 훑어서
