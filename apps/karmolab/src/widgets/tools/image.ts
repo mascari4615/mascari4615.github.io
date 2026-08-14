@@ -12,7 +12,7 @@
  * 얼마나 무거운가」다 — 크기를 줄일지, 형식을 바꿀지가 거기서 갈린다(Squoosh 도 화면 아래에
  * 늘 이 숫자를 붙여 둔다). 눌러서 크게 본다.
  */
-import { loadImage } from './shared/image';
+import { attachImage, loadImage } from './shared/image';
 import { fileSize } from './shared/media';
 import { materialShell, type MaterialGroup } from './shared/material-shell';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -122,7 +122,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       if (!item || !item.blob) return;
       const box = container.querySelector<HTMLElement>('#pfPreview');
       if (!box) return;
-      compare(box, { url: held.url, size: held.file.size }, { url: URL.createObjectURL(item.blob), size: item.blob.size });
+      compare(box, { url: held.url, size: held.file.size }, { blob: item.blob, size: item.blob.size });
     };
     window.addEventListener('karmolab-result', onResult);
     Toolbox.onDispose?.(() => window.removeEventListener('karmolab-result', onResult));
@@ -161,8 +161,16 @@ import { t, loadNamespace } from '../../lib/i18n';
    * 결과가 나온 순간에만 뜬다. 우리 껍데기는 그때 「이 결과로 이어서」 줄을 세우는데,
    * 그 옆에서 **정말 이어받아도 되는지**를 눈으로 재게 해 준다.
    */
-  function compare(box: HTMLElement, before: { url: string; size: number }, after: { url: string; size: number }): void {
+  /**
+   * 뒤 그림 주소는 **결과가 나올 때마다 새로** 만들어진다. 겹치기 판은 매번 새로 그리므로
+   * 요소에 걸어 둔 표(`attachImage`)로는 앞 것을 못 거둔다 — 요소 자체가 갈리기 때문이다.
+   * 그래서 앞 주소를 여기 들고 있다가 새것을 물리기 직전에 거둔다.
+   */
+  let cmpAfterUrl: string | null = null;
+
+  function compare(box: HTMLElement, before: { url: string; size: number }, after: { blob: Blob; size: number }): void {
     box.textContent = '';
+    if (cmpAfterUrl) URL.revokeObjectURL(cmpAfterUrl);
     const wrap = document.createElement('div');
     wrap.className = 'im-cmp';
     wrap.id = 'imCmp';
@@ -174,7 +182,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     bWrap.className = 'im-cmp-clip';
     bWrap.id = 'imCmpClip';
     const b = document.createElement('img');
-    b.src = after.url;
+    cmpAfterUrl = attachImage(b, after.blob); // 공용 — 물리기는 한 자리에서
     b.className = 'im-cmp-b';
     bWrap.appendChild(b);
 
