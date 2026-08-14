@@ -1271,9 +1271,23 @@ import {
     }
 
     // ── id 발급 ─────────────────────────────────────────────────────────────
+    /**
+     * 새 id — **한 번 쓴 번호는 다시 안 준다** (KL-271).
+     *
+     * 예전엔 빈 번호를 찾아 줬다. 그래서 카드를 지우고 새로 만들면 **지운 카드의 번호가 되살아났고**,
+     * 그 번호를 가리키던 것들(저장한 보기의 「둘레 보기」, 남이 받아 간 링크의 장)이 **엉뚱한 카드**를
+     * 가리켰다 — 아무 말 없이(실측 2026-08-14: 발표 장에서 그 일이 났다).
+     * 판마다 「여기까지 줬다」를 적어 두고 그 뒤 번호만 준다. 옛 판은 지금 쓰는 가장 큰 번호에서 잇는다.
+     */
     function nextId(prefix: 'node' | 'edge', taken: Set<string>): string {
-      let n = 1;
+      const key = prefix === 'node' ? 'seqNode' : 'seqEdge';
+      const used = [...taken]
+        .map((id) => Number(id.startsWith(`${prefix}-`) ? id.slice(prefix.length + 1) : NaN))
+        .filter((n) => Number.isFinite(n));
+      const meta = (spec._meta ?? {}) as Record<string, unknown>;
+      let n = Math.max(Number(meta[key] ?? 0), ...used, 0) + 1;
       while (taken.has(`${prefix}-${n}`)) n += 1;
+      spec._meta = { ...spec._meta, [key]: n } as typeof spec._meta;
       return `${prefix}-${n}`;
     }
 
