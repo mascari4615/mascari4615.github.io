@@ -65,8 +65,13 @@ check(!(await page.locator('#pfChain').isVisible()), '결과가 없으면 「이
 /* ① 탭 줄이 없다 — 할 일은 격자로 */
 const tabs = await page.locator('.tool-page.active .tool-tabs button, .tool-page.active [role=tab]').count();
 check(tabs <= 1, `할 일이 탭 줄로 늘어서 있으면 안 된다 (지금 ${tabs}개)`);
-const jobs = await page.locator('.pf-job').count();
-check(jobs === 11, `할 일 카드가 열한 개여야 한다 (지금 ${jobs})`);
+/* 수로 자르지 않는다 (2026-08-16) — 도구가 늘 때마다 이 줄이 빨개졌고 그건 「깨졌다」가
+   아니라 「늘었다」였다. 모양을 본다: 이름이 붙어 있고 · 겹치지 않고 · 갈래마다 하나는 있다. */
+const jobIds = await page.locator('.pf-job').evaluateAll((bs) => bs.map((b) => b.dataset.job || ''));
+const perGroup = await page.locator('.pf-group').evaluateAll((gs) => gs.map((g) => g.querySelectorAll('.pf-job').length));
+check(jobIds.length > 0 && jobIds.every(Boolean), `카드마다 일 이름이 붙어 있다 (${jobIds.length}개)`);
+check(new Set(jobIds).size === jobIds.length, '같은 일이 두 번 놓여 있지 않다');
+check(perGroup.length > 0 && perGroup.every((n) => n > 0), `갈래마다 카드가 하나는 있다 (${perGroup.join('/')})`);
 const groups = await page.locator('.pf-group-label').count();
 check(groups === 4, `갈래는 넷 (지금 ${groups})`);
 

@@ -7,7 +7,7 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { W, H, PAD, type PongState, type PongAction } from './pong';
-import { keyDrive } from './key-drive';
+import { keyDrive } from '../key-drive';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 
