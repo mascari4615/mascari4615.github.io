@@ -109,8 +109,8 @@ export function makeCell(field: Field, r: () => number, locale: Locale, index: n
   switch (field.type) {
     case 'name': {
       const fam = pick(pool.family, r);
-      const giv = pick(pool.given, r);
-      return locale === 'en' ? giv + ' ' + fam : fam + giv;
+      const given = pick(pool.given, r);
+      return locale === 'en' ? given + ' ' + fam : fam + given;
     }
     case 'email': {
       const user = romanize(pick(POOL.en.given, r)) + Math.floor(r() * 900 + 100);

@@ -29,6 +29,10 @@ extend-exclude = [
   # 단어를 하나씩 허용해 봐야 다음 글자에서 또 난다 — 파일째 뺀다 (2026-08-12).
   "apps/karmolab/data/han-pinyin.json",
 
+  # 문서 검색 색인(생성물) — 본문을 잘라 담아서 **낱말이 중간에서 끊긴다**
+  # (2026-08-16: 「requires a clien」 → client 오타로 읽혔다). 다음 색인에서 또 난다 — 파일째 뺀다.
+  "apps/karmolab/data/docs-search-index.*.json",
+
   # Jekyll 빌드 산출물 (gitignored 지만 typos 가 untracked 도 봄)
   "_site/**",
   "apps/blog/_site/**",
@@ -46,6 +50,9 @@ MAPE = "MAPE"            # Mean Absolute Percentage Error — 예측 오차 지�
 RTO = "RTO"              # Recovery Time Objective — 복구 목표 시간 (db-backup 강의). RPO 와 짝
 gae = "gae"              # 윷놀이 「개」의 로마자 (arcade.yut.gae) — game 오타 아님
 Gae = "Gae"              # 같은 이름의 대문자 케이스
+
+# === 2026-08-16 ===
+alikes = "alikes"        # "look-alikes"(닮은꼴) 는 바른 영어다 — 도구가 alike/likes 로 고치려 든다
 
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
 # typos action 이 master log 로 발견한 false-positive (TASK-KL-032 시드).
