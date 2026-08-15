@@ -182,9 +182,14 @@ if (await studyRow.count()) {
   const badge = await studyRow.locator('.kp-row-badge').textContent().catch(() => '');
   if (!badge?.includes('학습')) problems.push('StudyMap 결과에 「학습」 출처가 없다');
   await studyRow.click();
-  await page.waitForSelector('.sm-node[data-id="web-build"]', { timeout: 15000 }).catch(() => null);
-  const focused = await page.$('.sm-node[data-id="web-build"].is-flash');
-  if (!focused) problems.push('「.mjs」 결과를 눌러도 StudyMap의 web-build 칸으로 이동하지 않는다');
+  /* ★ **번쩍임을 「한 번 들여다보기」로 재면 진다** (2026-08-15 계측). 칸이 그려진 뒤
+     다음 그림 프레임에서 표시가 붙는데, 여기서는 클릭 직후 한 번만 봐서
+     대부분 그 프레임을 놓쳤다 — 제품은 멀쩡한데(200ms 뒤 재면 붙어 있다) 검사만 늘 빨갰다.
+     시간을 박지 말고 **일어났나를 기다린다**. 표시는 5초 뒤 스스로 사라지므로 그 안에 잡힌다. */
+  const flashed = await page
+    .waitForSelector('.sm-node[data-id="web-build"].is-flash', { timeout: 15000 })
+    .catch(() => null);
+  if (!flashed) problems.push('「.mjs」 결과를 눌러도 StudyMap의 web-build 칸으로 이동하지 않는다');
   await gotoHome();
 }
 
