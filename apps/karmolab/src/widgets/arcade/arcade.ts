@@ -612,6 +612,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 눕힌 화면에서는 **무대가 곧 틀**이라 여백이 사치다 — 무대 padding 48 + 판 바깥여백 48 이
          세로 96px 을 먹어 판이 화면 밖으로 밀렸다(실측). 둘 다 걷고 세로를 판에 준다. */
       '  #acStage{grid-column:1;grid-row:1/4;--ac-stage:min(62vw,78vh,640px);padding:0;min-height:0}',
+      /* ★ **좁게 눕히면 셸 메뉴 띠가 판 몫을 먹는다** (2026-08-15 실측).
+         폭이 좁아지면 메뉴가 상단 바에서 빠져나와 **바 아래 가로 띠**(`.mobile-nav`)가 된다:
+           844 폭 → 메뉴가 바 안 · 판 위 공간 76px  → 오목 칸 33px
+           740 폭 → 띠가 따로 생김(55px) · 판 위 공간 123px → 오목 칸 24px (손가락 최소 28px 미달)
+         판을 줄이면 화면엔 들어가지만 칸이 눌리지 않고, 판을 키우면 화면 밖으로 밀린다 —
+         **둘 다 만족시킬 세로가 애초에 없다.** 모자란 31px 이 이 띠 안에 있다.
+         그래서 **판이 도는 동안만** 접는다. 나가는 길(상단 바 52px)은 그대로 남고,
+         판을 끝내면 곧바로 돌아온다. 세운 폰·넓은 화면은 아무것도 안 바뀐다. */
+      /* 셸이 이 띠를 display:flex 로 「강제(!important)」 박아 뒀다(css/shell-critical.css) —
+         같은 세기로 말해야 접힌다. 접는 조건이 좁고(눕힘+판 도는 중) 판이 끝나면 풀린다. */
+      '  html.ac-playing .mobile-nav{display:none!important}',
       '  #acStage #acView>*{margin-top:0;margin-bottom:0}',
       '  #acSeats{grid-column:2;grid-row:1;justify-content:flex-start}',
       '  #acStatus{grid-column:2;grid-row:2}',
@@ -756,6 +767,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lobby.style.display = which === 'lobby' ? '' : 'none';
       wait.style.display = which === 'wait' ? '' : 'none';
       play.style.display = which === 'play' ? '' : 'none';
+      /* 판이 도는 동안임을 뿌리에 남긴다 — 좁게 눕힌 화면에서 셸 메뉴 띠를 접는 데 쓴다.
+         (아래 `--ac-playing` 규칙 · 그 이유는 거기 적어 뒀다) */
+      document.documentElement.classList.toggle('ac-playing', which === 'play');
     };
 
     /* ── 로비 ──────────────────────────────────────────────────────
@@ -1910,6 +1924,45 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 옮기는 것으로 푼다 — 복제가 아니라 이동이라 붙여 둔 손잡이(onclick)가 그대로 따라온다.
      * ESC 로 나가는 길도 있으므로 되돌리는 것은 `fullscreenchange` 가 맡는다(단추만 보면 샌다).
      */
+    /* ── 눕힌 좁은 화면: 무대 크기를 **남은 자리에서** 정한다 (2026-08-15 실측) ──────
+     *
+     * 여태 `78vh` 라는 **손으로 맞춘 상수**였다. 그 값은 폰 둘(390×844 · 844×390)에서 재서
+     * 고른 것인데, 셸 머리띠가 세로를 먼저 먹는 양이 **화면 너비마다 다르다**:
+     *   844 폭 → 머리띠 76px · 남는 세로 314 (=80vh)
+     *   740 폭 → 머리띠 **123px** · 남는 세로 237 (=66vh)   ← 머리띠가 한 줄 더 접힌다
+     * 한 개의 vh 상수로는 둘을 동시에 만족시킬 수 없다 — 740×360 에서 판이 **44px** 밀렸다.
+     * 상수를 더 내리면 큰 폰에서 판이 쓸데없이 작아진다.
+     *
+     * 그래서 「몇 vh」를 맞히려 들지 않고, **무대 위가 실제로 얼마를 먹었는지 그 자리에서
+     * 재서** 남은 만큼만 준다.
+     *
+     * ★ **안 보일 때 재면 안 된다** (첫 판에 이걸로 데었다): 화면이 숨어 있으면 무대의 위치가
+     *   0 으로 잡혀 「남은 세로 = 화면 전체」가 되고, 그러면 판이 머리띠 높이만큼 **더** 밀린다
+     *   (44px → 121px 로 악화). 그래서 ⓐ 보이는지 먼저 확인하고 ⓑ 판이 실제로 그려지는
+     *   순간에 다시 잰다.
+     */
+    const stageEl = $<HTMLElement>('#acStage');
+    const 눕힌좁은화면 = (): boolean => window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
+    const fitStage = (): void => {
+      if (!stageEl.isConnected) return;
+      if (!눕힌좁은화면() || document.fullscreenElement) {
+        stageEl.style.removeProperty('--ac-stage');
+        return;
+      }
+      const box = stageEl.getBoundingClientRect();
+      /* 안 보이면 재지 않는다 — 0 을 진짜 위치로 읽으면 위 주석의 그 사고가 난다. */
+      if (stageEl.offsetParent === null || box.height === 0) return;
+      /* 무대 위가 먹은 세로 = 무대의 화면상 위치. 아래로는 2px 만 남긴다(경계선 반올림 몫). */
+      const 남은세로 = Math.max(120, Math.round(window.innerHeight - box.top - 2));
+      stageEl.style.setProperty('--ac-stage', `min(62vw, ${남은세로}px, 640px)`);
+    };
+    /* 판이 그려질 때마다 다시 잰다 — 그때가 무대가 확실히 보이는 시점이다. */
+    new MutationObserver(() => requestAnimationFrame(fitStage))
+      .observe($<HTMLElement>('#acView'), { childList: true, subtree: false });
+    window.addEventListener('resize', () => requestAnimationFrame(fitStage));
+    window.addEventListener('orientationchange', () => requestAnimationFrame(fitStage));
+    document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage));
+
     const controls = $<HTMLElement>('#acControls');
     const controlsHome = controls.parentElement;
     document.addEventListener('fullscreenchange', () => {
