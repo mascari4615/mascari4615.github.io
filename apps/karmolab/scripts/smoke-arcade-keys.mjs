@@ -83,6 +83,22 @@ if (!cantRun) {
 
   await p.click('#acQuit');
 
+  /* ── 짚은 자리가 **그림을 다시 그려도 남는가** (2026-08-16) ───────────
+     매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 화살표를 눌러도 테두리가 곧 지워졌다.
+     사람 눈에는 「키가 안 먹는다」로 보인다 — 실제로 다섯 놀이가 그렇게 세어졌다(45/51).
+     누른 **직후**만 재면 못 잡는다(그때는 있다). 그래서 한 박자 뒤를 잰다. */
+  for (const id of ['checkers', 'president']) {
+    await openGame(id);
+    await p.waitForTimeout(500);
+    await p.keyboard.press('ArrowRight');
+    const now0 = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
+    await p.waitForTimeout(500);
+    const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
+    check(`${id}: 짚은 자리가 다시 그려도 남는다`, now0 === 1 && later === 1, `직후 ${now0} · 0.5초 뒤 ${later}`);
+    await p.click('#acQuit');
+    await p.waitForSelector('[data-solo]', { timeout: 10000 });
+  }
+
   /* ── 한붓그리기: 그림판인데도 키로 긋는다 (TASK-KL-317) ──────────────
      이 놀이는 canvas 가 아니라 **고르기**였다 — 선을 누르는 것이 곧 수다. 그래서 그림은
      그대로 두고 **지금 그을 수 있는 선 위에 투명 단추**만 얹어 껍데기 규약에 태웠다.
