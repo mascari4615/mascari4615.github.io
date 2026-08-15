@@ -6,7 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { keyDrive } from './key-drive';
+import { keyDrive } from '../key-drive';
 import { W, H, PUCK_R, PADDLE_R, GOAL_W, type AirState, type AirAction } from './airhockey';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6'];
