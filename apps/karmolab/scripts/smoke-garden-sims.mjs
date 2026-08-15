@@ -112,14 +112,23 @@ assert('Boids', boidStats.flocks >= 1 && boidStats.largestShare > 0.1 && boidSta
 const lenia = await loadTypeScript('src/widgets/garden/lenia.ts');
 const leniaResults = {};
 for (const preset of lenia.LENIA_PRESETS) {
-  const model = new lenia.Lenia(48, 32, preset);
+  const model = new lenia.Lenia(96, 64, preset);
   model.seed(seededRandom(0xc0ac29b7));
   let stats;
-  for (let step = 0; step < 180; step++) stats = model.step();
-  leniaResults[preset.id] = stats;
+  let minimumMass = Infinity, maximumOccupied = 0, travel = 0, previousCx = 0.5, previousCy = 0.5;
+  for (let step = 0; step < 260; step++) {
+    stats = model.step();
+    if (step >= 130) {
+      minimumMass = Math.min(minimumMass, stats.mass); maximumOccupied = Math.max(maximumOccupied, stats.occupied);
+      let dx = Math.abs(stats.cx - previousCx), dy = Math.abs(stats.cy - previousCy); dx = Math.min(dx, 1 - dx); dy = Math.min(dy, 1 - dy); travel += Math.hypot(dx, dy);
+    }
+    previousCx = stats.cx; previousCy = stats.cy;
+  }
+  leniaResults[preset.id] = { ...stats, minimumMass, maximumOccupied, travel };
 }
 assert('Lenia', Object.values(leniaResults).every(stats =>
-  Number.isFinite(stats.mass) && stats.mass > 0.001 && stats.mass < 0.8 && stats.components > 0
+  Number.isFinite(stats.mass) && stats.minimumMass > 0.004 && stats.maximumOccupied < 0.08 &&
+  stats.components > 0 && stats.components <= 15 && stats.travel > 0.01
 ), leniaResults);
 
 const neural = await loadTypeScript('src/widgets/garden/neural-ca.ts');
