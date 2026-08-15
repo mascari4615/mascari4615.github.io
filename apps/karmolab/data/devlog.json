@@ -2,11 +2,32 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 1993,
-    "days": 10,
+    "commits": 1998,
+    "days": 11,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-08-16",
+      "entries": [
+        {
+          "sha": "182bee84",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "추적되는 자산 일곱에 .meta 가 없었다 — 머신마다 GUID 가 갈린다"
+        },
+        {
+          "sha": "c66f7d13",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "세계가 가득 찼을 때 읽을 글자를 잘못 가리켰다 — 빌드가 4판 연속 깨진 원인"
+        }
+      ],
+      "quiet": 0,
+      "more": 0
+    },
     {
       "date": "2026-08-14",
       "entries": [
@@ -60,6 +81,13 @@
       "date": "2026-08-13",
       "entries": [
         {
+          "sha": "c3e19f44",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "preserve forced damage and input guidance"
+        },
+        {
           "sha": "35eb8edd",
           "type": "",
           "typeLabel": "",
@@ -93,17 +121,10 @@
           "typeLabel": "",
           "scope": "",
           "text": "「못 쟀다」를 빨강으로 안 치는 자리를 하나로 (TASK-WM-324)"
-        },
-        {
-          "sha": "b9881d70",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "자르는 숫자마다 「왜 그 숫자인가」를 적게 한다 (TASK-WM-323)"
         }
       ],
       "quiet": 14,
-      "more": 66
+      "more": 67
     },
     {
       "date": "2026-08-12",
@@ -478,24 +499,10 @@
           "typeLabel": "고친 것",
           "scope": "WM-194",
           "text": "판 전체를 느리게 (손잡이 하나) + 커서 표시를 맨 마지막에 그린다"
-        },
-        {
-          "sha": "03f90634",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-203",
-          "text": "main 을 다시 컴파일되게 — 경고 정리가 모바일 작업을 통째로 되돌렸다"
-        },
-        {
-          "sha": "c5a41325",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "마수가 한 줄로 오던 것 · 유령이 계속 꿈틀대던 것 · 두부 글자"
         }
       ],
       "quiet": 44,
-      "more": 63
+      "more": 65
     }
   ]
 }
