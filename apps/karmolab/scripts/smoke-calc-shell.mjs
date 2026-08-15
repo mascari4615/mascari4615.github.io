@@ -32,7 +32,14 @@ await page.waitForSelector('#pfText', { timeout: 20000 });
 const seeded = await page.inputValue('#pfText');
 check(/밥값/.test(seeded), '처음부터 예시가 적혀 있다 — 무엇을 쓰는 곳인지 글로 설명하지 않는다');
 await page.waitForSelector('#caSheet', { timeout: 15000 });
-check((await page.locator('.pf-job').count()) === 14, '할 일 카드가 열넷');
+/* 할 일 카드는 **수로 자르지 않는다** (2026-08-16). 도구를 하나 늘릴 때마다 이 줄이 빨개졌고,
+   그건 「깨졌다」가 아니라 「늘었다」였다 — 실측: 열여섯을 기대하는데 열아홉이었다.
+   대신 **모양**을 본다: 갈래마다 카드가 있고, 카드마다 일 이름이 있고, 이름이 겹치지 않는다. */
+const jobIds = await page.locator('.pf-job').evaluateAll((bs) => bs.map((b) => b.dataset.job || ''));
+const perGroup = await page.locator('.pf-group').evaluateAll((gs) => gs.map((g) => g.querySelectorAll('.pf-job').length));
+check(jobIds.length > 0 && jobIds.every(Boolean), `카드마다 일 이름이 붙어 있다 (${jobIds.length}개)`);
+check(new Set(jobIds).size === jobIds.length, '같은 일이 두 번 놓여 있지 않다');
+check(perGroup.length > 0 && perGroup.every((n) => n > 0), `갈래마다 카드가 하나는 있다 (${perGroup.join('/')})`);
 
 /* ② 예시 다섯 줄이 그대로 셈된다 — 마지막이 1인당 */
 const rows = await page.locator('#caSheet .ca-row').count();

@@ -34,7 +34,14 @@ await page.waitForSelector('#pfText', { timeout: 20000 });
 /* ① 탭 줄이 없다 · 할 일은 격자로 · **붙여넣는 칸**이 있다(놓는 자리가 아니라) */
 const tabs = await page.locator('.tool-page.active .tool-tabs button, .tool-page.active [role=tab]').count();
 check(tabs <= 1, `할 일이 탭 줄로 늘어서 있으면 안 된다 (지금 ${tabs}개)`);
-check((await page.locator('.pf-job').count()) === 16, '할 일 카드가 열여섯 개여야 한다');
+/* 할 일 카드는 **수로 자르지 않는다** (2026-08-16). 도구를 하나 늘릴 때마다 이 줄이 빨개졌고,
+   그건 「깨졌다」가 아니라 「늘었다」였다 — 실측: 열여섯을 기대하는데 열아홉이었다.
+   대신 **모양**을 본다: 갈래마다 카드가 있고, 카드마다 일 이름이 있고, 이름이 겹치지 않는다. */
+const jobIds = await page.locator('.pf-job').evaluateAll((bs) => bs.map((b) => b.dataset.job || ''));
+const perGroup = await page.locator('.pf-group').evaluateAll((gs) => gs.map((g) => g.querySelectorAll('.pf-job').length));
+check(jobIds.length > 0 && jobIds.every(Boolean), `카드마다 일 이름이 붙어 있다 (${jobIds.length}개)`);
+check(new Set(jobIds).size === jobIds.length, '같은 일이 두 번 놓여 있지 않다');
+check(perGroup.length > 0 && perGroup.every((n) => n > 0), `갈래마다 카드가 하나는 있다 (${perGroup.join('/')})`);
 check((await page.locator('.pf-group-label').count()) === 4, '갈래는 넷');
 check((await page.locator('#pfText').count()) === 1, '글은 **붙여넣는 칸**으로 받는다');
 
