@@ -159,6 +159,23 @@ if (!cantRun) {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
     check(`${id}: 화면이 느려져도 같은 속도다 (프레임 수 X)`,
       slow > fast * 0.6, `보통 ${fast.toFixed(1)} · 8배 느린 화면 ${slow.toFixed(1)}`);
+    /* **마우스가 밀려나지 않았나** (TASK-KL-317). 키를 넣으면서 마우스 길을 끊으면
+       고친 게 아니라 바꾼 것이다 — 둘 다 살아야 한다. 판 위를 한 번 지나가 본다. */
+    /* 판을 화면 안으로 끌어온 **뒤** 자리를 잰다 — 안 그러면 화면 밖 좌표에 마우스를 두고
+       「마우스가 안 먹는다」로 읽는다(실측: elementFromPoint 가 none 이었다). */
+    await p.locator('canvas').first().scrollIntoViewIfNeeded();
+    await p.waitForTimeout(120);
+    const box = await p.locator('canvas').first().boundingBox();
+    if (box) {
+      const before = await p.evaluate(read);
+      await p.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.8);
+      await p.waitForTimeout(120);
+      await p.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
+      await p.waitForTimeout(250);
+      const after = await p.evaluate(read);
+      check(`${id}: 키를 넣어도 마우스는 그대로 먹는다`, Math.abs(after - before) > 1,
+        `${before?.toFixed?.(1)} → ${after?.toFixed?.(1)}`);
+    }
     await p.click('#acQuit');
   }
 

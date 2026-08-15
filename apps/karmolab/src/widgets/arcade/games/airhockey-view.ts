@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { keyDrive } from './key-drive';
 import { W, H, PUCK_R, PADDLE_R, GOAL_W, type AirState, type AirAction } from './airhockey';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6'];
@@ -31,38 +32,35 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       pending = toBoard(e);
     });
 
-    /* 자판 길 (2026-08-14, `audit:mouse-only`). 채가 포인터를 그대로 따라가서 자판 쓰는 사람은
-     * **채를 못 움직였다** — 공만 오가는 걸 보고 있게 된다. 화살표로 옮긴다(Shift 는 크게).
-     * 보내는 통로는 마우스와 같은 `pending` 이라 그물망으로 가는 길이 갈리지 않는다. */
+    /* 자판 길 — **누른 시간만큼** 민다 (TASK-KL-317, 2026-08-15).
+     * 전에는 keydown 한 번에 한 칸씩이었고 판(canvas)에서 듣고 있어 초점이 안 와 안 먹었다.
+     * 이제 창에서 듣고 두 축을 함께 민다 — 대각은 정규화한다(안 하면 비스듬할 때만 1.41배 빠르다). */
     let mallet: { x: number; y: number } | null = null;
+    const drive = keyDrive(W, H);
     cv.tabIndex = 0;
     cv.setAttribute('role', 'application');
     cv.setAttribute('aria-label', t('arcade.ah.kb'));
-    cv.addEventListener('keydown', (e) => {
-      if (!mallet) return;
-      const step = e.shiftKey ? W / 8 : W / 24;
-      switch (e.key) {
-        case 'ArrowLeft': mallet.x -= step; break;
-        case 'ArrowRight': mallet.x += step; break;
-        case 'ArrowUp': mallet.y -= step; break;
-        case 'ArrowDown': mallet.y += step; break;
-        default: return;
-      }
-      e.preventDefault();
-      mallet.x = Math.max(0, Math.min(W, mallet.x));
-      mallet.y = Math.max(0, Math.min(H, mallet.y));
-      pending = { x: mallet.x, y: mallet.y };
-    });
 
     return (v, mySeat) => {
+      const s = v.state;
+      const mine = s.paddles[mySeat];
+      // 키를 누르고 있으면 시간만큼 민다. 마우스가 방금 자리를 줬으면 그쪽이 이긴다(둘 다 산다).
+      const key = drive.step();
+      if (key.held && !pending) {
+        const from = mallet ?? (mine ? { x: mine.x, y: mine.y } : { x: W / 2, y: H / 2 });
+        mallet = {
+          x: Math.max(0, Math.min(W, from.x + key.dx)),
+          y: Math.max(0, Math.min(H, from.y + key.dy))
+        };
+        pending = { x: mallet.x, y: mallet.y };
+      }
       if (pending) {
         act(pending);
         pending = null;
       }
-      const s = v.state;
-      // 자판이 아는 자리를 **서버가 말한 내 채 자리**로 맞춘다 — 어긋나면 채가 튄다.
-      const mine = s.paddles[mySeat];
-      if (mine) mallet = { x: mine.x, y: mine.y };
+      /* 자판이 아는 자리를 **서버가 말한 내 채 자리**로 맞춘다 — 어긋나면 채가 튄다.
+         단 **누르고 있는 동안은 안 맞춘다** — 서버 메아리가 한 박자 늦어 채가 뒤로 끌린다. */
+      if (mine && !key.held) mallet = { x: mine.x, y: mine.y };
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cw = cv.clientWidth || 260;
