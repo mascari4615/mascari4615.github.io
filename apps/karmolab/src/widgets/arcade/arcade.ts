@@ -1216,6 +1216,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           )
           .join('');
       render?.(v, mySeat, now);
+      /* 화면이 판을 다시 그리면 **짚은 자리 표시가 같이 지워진다** (2026-08-16 실측).
+         매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 화살표를 눌러도 테두리가 0.4초 안에
+         사라져, 키로는 못 논다고 느낀다(체커·미니장기·여우와사냥개·대통령·도미노 다섯이 그랬다).
+         표시는 그림의 일부라 그림을 다시 그리면 다시 얹어야 한다 — 여기가 그 자리다. */
+      markKeyCursor();
 
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
@@ -1352,6 +1357,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     const paintKey = (list: HTMLElement[]): void => {
       list.forEach((e, i) => e.classList.toggle('ac-key', i === keyAt));
+    };
+
+    /** 그림을 다시 그린 뒤 짚은 자리를 도로 얹는다. 아직 아무 데도 안 짚었으면 아무것도 안 한다. */
+    const markKeyCursor = (): void => {
+      if (keyAt < 0) return;
+      const list = keyable();
+      if (!list.length) return;
+      // 단추 수가 줄었으면(카드를 냈다) 끝으로 당긴다 — 안 그러면 짚은 자리가 사라진다.
+      keyAt = Math.min(keyAt, list.length - 1);
+      paintKey(list);
     };
 
     /** 격자면 한 줄에 몇 칸인가. 아니면 0. */
