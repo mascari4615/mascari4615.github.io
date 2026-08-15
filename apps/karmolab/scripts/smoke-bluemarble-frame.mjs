@@ -64,6 +64,29 @@ const 우리글꼴 = await page.evaluate(() => document.fonts.check('900 100px K
 if (!우리글꼴) {
   console.log(`  [~] 제목이 화면 폭의 60% 이상에 걸쳐야 한다 — 못 쟀다(한글 글꼴이 이 판에 안 왔다: 지금 ${(title.span * 100).toFixed(0)}%)`);
 } else {
+  /* ★ **빨갈 때는 「왜」를 같이 낸다** (2026-08-16). 이 줄은 CI 에서만 44% 로 빨갛고 내 자리에서는
+     늘 초록이라 몇 달째 원인을 못 짚었다 — 글꼴을 일부러 늦게 줘 재현해 봤더니 오히려 88% 로
+     **더 넓게** 나왔다. 즉 여태 적혀 있던 「글꼴이 안 와서 좁아진다」는 설명이 안 맞는다.
+     추측으로 고치는 대신, 빨간 판이 **자기가 무엇을 보고 있었는지** 말하게 한다:
+     캔버스 실제 크기·픽셀 밀도·글꼴이 정말 실렸는지·재던 띠의 밝은 점 수.
+     다음 CI 빨강 한 판이면 갈린다. */
+  if (title.span <= 0.6) {
+    const 속사정 = await page.evaluate(() => ({
+      dpr: window.devicePixelRatio,
+      css: (() => {
+        const cv = document.querySelector('.bm-canvas');
+        const r = cv.getBoundingClientRect();
+        return `${Math.round(r.width)}x${Math.round(r.height)}`;
+      })(),
+      canvas: (() => {
+        const cv = document.querySelector('.bm-canvas');
+        return `${cv.width}x${cv.height}`;
+      })(),
+      fonts: [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family + '/' + f.weight).slice(0, 6),
+      제목글꼴: getComputedStyle(document.querySelector('.bm-canvas')).fontFamily,
+    }));
+    console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개 · 띠 폭 ${title.w}px · ${JSON.stringify(속사정)}`);
+  }
   check(title.span > 0.6, `제목이 화면 폭의 60% 이상에 걸쳐야 한다 (지금 ${(title.span * 100).toFixed(0)}%)`);
 }
 /* 획이 가는 글꼴이라 가운데 한 줄에 걸리는 점은 원래 많지 않다 — 여기서 재는 것은 두께가
