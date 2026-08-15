@@ -2618,7 +2618,13 @@ await step('폰의 손잡이가 모두 손가락 규격이다 (44px, KL-271)', a
         const dy = Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
         if (dx === 0 && dy === 0) continue;   // 겹쳐 있는 것(부모·자식)은 이웃이 아니다
         if (dx <= 3 && dy <= 3) {
-          out.push(`${spots[i].dataset.km || '?'}↔${spots[j].dataset.km || '?'}`);
+          /* ★ **빨갈 때 「어디가 얼마나」를 같이 낸다** (2026-08-16). 이 줄은 CI 에서만 빨갛고
+             내 자리에서는 초록이라(검사 153개) 몇 판째 원인을 못 짚었다 — 한글 글꼴을 일부러
+             빼고 돌려도 통과했으니 「글꼴 탓」도 아니다. 이름만 적으면 다음 판도 똑같이 막막하다.
+             두 손잡이의 실제 자리와 틈을 적어 다음 CI 빨강 한 판으로 갈리게 한다. */
+          const p1 = `${Math.round(a.left)},${Math.round(a.top)} ${Math.round(a.width)}x${Math.round(a.height)}`;
+          const p2 = `${Math.round(b.left)},${Math.round(b.top)} ${Math.round(b.width)}x${Math.round(b.height)}`;
+          out.push(`${spots[i].dataset.km || '?'}[${p1}]↔${spots[j].dataset.km || '?'}[${p2}] 틈 ${dx}x${dy}`);
         }
       }
     }
