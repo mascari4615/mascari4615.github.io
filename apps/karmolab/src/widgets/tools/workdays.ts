@@ -86,7 +86,7 @@ import { readInvocation } from '../../lib/tool-url';
             </div>
 
             <div class="tool-display" id="wdOut">—</div>
-            <div class="cc-stats" id="wdStats"></div>
+            <div class="cc-stats cc-stats-early" id="wdStats"></div>
             <div class="tool-list" id="wdSkipped"></div>
 
             <div class="tool-status" id="wdStatus">${esc(t('workdays.status.idle'))}</div>

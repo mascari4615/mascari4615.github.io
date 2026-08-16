@@ -142,7 +142,7 @@ import { download } from './shared/image';
               <textarea class="full" id="icNote" rows="3" placeholder="${esc(t('icsmake.ph.note'))}"></textarea>
             </div>
 
-            <div class="cc-stats" id="icStats"></div>
+            <div class="cc-stats cc-stats-early" id="icStats"></div>
             <div class="tool-list" id="icCheck"></div>
 
             <div class="field-group">
