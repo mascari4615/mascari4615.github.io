@@ -56,6 +56,7 @@
     "audit:home-blocks",
     "test:a11y",
     "audit:csp-meta",
+    "audit:serve-fm",
     "test:jsontree",
     "test:dropwell",
     "test:saylive",
