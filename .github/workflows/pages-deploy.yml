@@ -213,6 +213,10 @@ jobs:
       # 같이 사라졌고, 배포가 이 자리에서 Executable doesn't exist 로 섰다.
 
       - name: Prerender KarmoLab tool pages
+        # ★ **한 단계가 멈추면 판 전체가 45분을 태운다** (2026-08-17 실측). 자물쇠 지문이
+        #   어긋나 도구 장이 안 뜨자 이 단계가 18분째 서 있었고, 그동안 **뒤에 온 배포가 전부
+        #   취소**돼 실사이트가 한 시간 가까이 옛 판이었다. 잰 값은 50초 — 8분이면 열 배 여유다.
+        timeout-minutes: 8
         working-directory: apps/karmolab
         # 브라우저는 채비 action 이 캐시로 깔았다 — 여기서 또 받으면 캐시를 안 타고 매번 54초.
         run: |
