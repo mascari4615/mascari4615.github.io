@@ -136,12 +136,16 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
      걸어 뒀지만(첫 화면에서는 쓰임 0%), 여기서는 도로 막는 쪽으로 되돌린다.
      안 그러면 글이 먼저 나왔다가 스타일이 와서 자리가 튄다 (TASK-KL-128 ④-c). */
   const TOOLS_CSS_DEFERRED =
-    '<link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print" onload="this.media=&#39;all&#39;">';
+    /* ★ 2026-08-17: 껍데기에서 `onload="this.media='all'"` 를 걷어냈다(인라인 손잡이 0 = CSP
+       script-src 를 걸기 위한 조건). 그래서 여기서 찾는 글자도 바뀐다 — 안 바꾸면 **배포가 선다**
+       (실제로 네 판이 「도구 스타일 자리를 못 찾음」으로 죽었다). 뜻은 그대로: 도구 상세 장에서는
+       이 스타일을 **막고 그리게** 되돌린다. */
+    '<link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print">';
   if (!html.includes(TOOLS_CSS_DEFERRED)) throw new Error('셸에서 도구 스타일 자리를 못 찾음 — index.html 확인');
   html = html.replace(TOOLS_CSS_DEFERRED, '<link rel="stylesheet" href="/apps/karmolab/css/tools.css">');
 
   const RANDOMGEN_CSS =
-    '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print" onload="this.media=&#39;all&#39;">';
+    '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print">';
   if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
   html = html.replace(RANDOMGEN_CSS, '');
 
