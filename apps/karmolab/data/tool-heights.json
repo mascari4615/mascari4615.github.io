@@ -119,6 +119,10 @@
     "narrow": 507,
     "wide": 658
   },
+  "csp": {
+    "narrow": 368,
+    "wide": 462
+  },
   "cssunit": {
     "narrow": 1313,
     "wide": 1186
@@ -418,6 +422,10 @@
   "screenrec": {
     "narrow": 487,
     "wide": 592
+  },
+  "semver": {
+    "narrow": 725,
+    "wide": 738
   },
   "shortcut": {
     "narrow": 3990,

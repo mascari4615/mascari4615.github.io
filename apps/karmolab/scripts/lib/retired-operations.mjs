@@ -11,6 +11,19 @@
  * 원장에서 이름을 실제로 지우는 날, 이 목록도 같이 빈다.
  */
 export const RETIRED_OPERATION_IDS = new Set([
+  /* ★ **다른 도구 안의 조작** (2026-08-16). 위 목록이 「글 작업대로 흡수」였다면 아래는
+     「그 도구 안의 한 기능」이다 — 알맹이 파일(`src/core/<id>.ts`)만 있고 **자기 화면이 없다**.
+     실측으로 확인했다: 같은 이름의 위젯 파일이 없고, 기능은 괄호 안 도구 화면에서 돈다.
+     이런 것에 주소를 만들면 같은 기능이 두 자리로 갈라진다 — 페이지가 없는 게 맞다.
+     (`unicodex` 는 이걸 모르고 소개글까지 썼다가 게이트가 잡아 줬다.) */
+  'apidiff',      // API 시험 안 (widgets/tools/apitest.ts)
+  'certview',     // 인증서·키 도구 안 (widgets/crypto.ts)
+  'pem',          // 인증서·키 도구 안 (widgets/crypto.ts)
+  'encdetective', // 글 작업대 안 (widgets/tools/text-operations.ts)
+  'exif',         // 사진 정보 지우기 안 (widgets/tools/exifclean.ts)
+  'gitundo',      // git 명령 찾기 안 (widgets/ref/gitcmd.ts)
+  'regexplain',   // 정규식 시험 안 (widgets/tools/regextest.ts)
+
   'slug',
   'caseconv',
   'linebreak',
