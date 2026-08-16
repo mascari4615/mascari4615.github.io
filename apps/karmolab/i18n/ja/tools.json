@@ -296,5 +296,11 @@
   "tools.curlkit.description": "人からもらった curl 一行を自分の言語のコードに変換します。fetch・axios・python・go・node・httpie に対応。",
   "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · 引用符もヘッダーも漏れない",
   "tools.docscan.description": "机の上で斜めに撮った書類を、まっすぐな長方形に戻してスキャンしたように整えます。",
-  "tools.docscan.lead": "四隅をドラッグ · 遠近を戻す · スキャン風 · A4 に合わせる"
+  "tools.docscan.lead": "四隅をドラッグ · 遠近を戻す · スキャン風 · A4 に合わせる",
+  "tools.logview.description": "大きなログを時刻・レベル・正規表現で絞り、いつ集中したかを先に見せます。解析できなかった行も捨てません。",
+  "tools.logview.lead": "ISO · syslog · nginx · JSON 一行 · 時間帯の山 · レベル絞り込み",
+  "tools.mockdata.description": "項目の種類だけ書けば（name:name）それらしいデータを必要な行数だけ作ります。同じ種（seed）なら同じデータになります。",
+  "tools.mockdata.lead": "1行1項目 · 種を固定 · ko/en/ja · JSON・CSV・SQL",
+  "tools.sshkey.description": "SSH 公開鍵の行を貼ると種類・長さ・コメント・指紋(SHA256)を出します。PEM 公開鍵を OpenSSH の一行に変換もします。",
+  "tools.sshkey.lead": "authorized_keys の行を読む · SHA256 指紋 · PEM → OpenSSH"
 }

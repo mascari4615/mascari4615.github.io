@@ -300,6 +300,8 @@
     "bgremove": "배경제거 배경지우기 누끼 투명배경 증명사진 배경 remove background transparent png",
     "erd": "ERD 표관계 스키마 DDL prisma 데이터베이스 다이어그램 erdiagram schema",
     "curlkit": "curl 변환 코드생성 fetch axios python go httpie 요청 옮기기",
-    "docscan": "스캔 서류 사진 반듯하게 원근보정 문서스캔 scan document deskew"
+    "docscan": "스캔 서류 사진 반듯하게 원근보정 문서스캔 scan document deskew",
+    "mockdata": "가짜데이터 더미데이터 목데이터 샘플 생성 mock fake seed 시드 테스트데이터",
+    "sshkey": "ssh 열쇠 공개키 지문 fingerprint authorized_keys ed25519 rsa PEM openssh"
   }
 }

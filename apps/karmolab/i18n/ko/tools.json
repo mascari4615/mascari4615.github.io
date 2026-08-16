@@ -296,5 +296,11 @@
   "tools.curlkit.description": "남이 준 curl 한 줄을 자기 언어 코드로 바꿔 줍니다. fetch · axios · python · go · node · httpie 로 찍어 냅니다.",
   "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · 따옴표·헤더 안 샘",
   "tools.docscan.description": "책상 위에서 비스듬히 찍은 서류를 반듯한 직사각형으로 되돌리고, 스캔한 것처럼 정리합니다.",
-  "tools.docscan.lead": "네 모서리 끌기 · 원근 되돌리기 · 스캔처럼 손보기 · A4 맞춤"
+  "tools.docscan.lead": "네 모서리 끌기 · 원근 되돌리기 · 스캔처럼 손보기 · A4 맞춤",
+  "tools.logview.description": "큰 로그를 시각·급·정규식으로 좁혀 보고, 언제 몰렸는지를 먼저 보여 줍니다. 못 알아본 줄도 버리지 않습니다.",
+  "tools.logview.lead": "ISO · syslog · nginx · JSON 한 줄 · 시간대별 몰림 · 급 필터",
+  "tools.mockdata.description": "칸의 종류만 적으면(이름:name) 그럴듯한 가짜 데이터를 원하는 줄 수만큼 만들어 줍니다. 같은 씨앗이면 같은 데이터가 나옵니다.",
+  "tools.mockdata.lead": "스키마 한 줄씩 · 씨앗 고정 · ko/en/ja · JSON·CSV·SQL",
+  "tools.sshkey.description": "SSH 공개키 한 줄을 붙여넣으면 종류·길이·주석·지문(SHA256)을 냅니다. PEM 공개키를 OpenSSH 한 줄로도 바꿔 줍니다.",
+  "tools.sshkey.lead": "authorized_keys 줄 읽기 · SHA256 지문 · PEM → OpenSSH"
 }
