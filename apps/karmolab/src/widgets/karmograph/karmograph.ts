@@ -2567,7 +2567,22 @@ import {
          (실측 2026-08-14 폰: 오른쪽 끝 472px > 화면 390px — 지우기·복제가 통째로 사라진다). */
       const room = canvasEl.clientWidth - Math.max(bar.width, 100) - 4;
       miniEl.style.left = `${Math.round(Math.min(Math.max(4, rect.x), Math.max(4, room)))}px`;
-      miniEl.style.top = `${Math.round(above > 4 ? above : rect.y + rect.h + 6)}px`;
+      let top = Math.round(above > 4 ? above : rect.y + rect.h + 6);
+      /* ★ **시점 줄에 딱 붙지 않게 한다** (2026-08-16, CI 가 자리까지 찍어 줘서 갈렸다).
+         폰에서는 시점 줄이 판 **맨 위**에 눕는다. 카드가 그 바로 밑이면 이 도구 줄이
+         시점 줄과 **3px** 틈으로 붙었다(실측: 시점 줄 아래끝 343 · 도구 줄 위끝 346).
+         둘 다 44px 손가락 단추라, 3px 틈이면 「복제」를 누르려다 「다음 시점」이 눌린다 —
+         시점이 통째로 바뀌어 무엇을 잘못 눌렀는지도 모른다.
+         손가락 권고 간격은 8px 다. 겹치는 띠에 들어오면 그만큼 아래로 내린다. */
+      const timesEl = root.querySelector('[data-km="times"]');
+      if (timesEl instanceof HTMLElement && timesEl.classList.contains('hidden') === false) {
+        const t = timesEl.getBoundingClientRect();
+        const c = canvasEl.getBoundingClientRect();
+        const timesBottom = Math.round(t.bottom - c.top);
+        const overlap = timesBottom + 8 - top;
+        if (overlap > 0 && top + barH > timesBottom) top += overlap;
+      }
+      miniEl.style.top = `${top}px`;
       followMini();
     }
 
