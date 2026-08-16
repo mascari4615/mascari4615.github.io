@@ -309,6 +309,7 @@
     "test:ibatch": "node scripts/test-imgbatch.mjs",
     "test:vdur": "node scripts/test-video-duration.mjs",
     "audit:hidden": "node scripts/audit-hidden-display.mjs",
+    "audit:csp-meta": "node scripts/audit-csp-meta.mjs",
     "audit:home-blocks": "node scripts/audit-home-blocks.mjs",
     "audit:wait": "node scripts/audit-wait-timeout.mjs",
     "audit:orphans": "node scripts/audit-orphan-tests.mjs",

@@ -17,6 +17,9 @@ export const PREPUSH = [
   /* 0.05초 — 첫 화면 블록이 «그려졌다 사라지는» 것을 막는다. 사람 눈에는 80ms 라 안 보이는데
      사이트 밀림의 대부분이었다(0.103 → 0.0105). 값싸고 잡는 게 크면 앞으로 당긴다. */
   'audit:home-blocks',
+  /* 0.05초 — 나가는 화면에서 보안 한 줄이 빠지는 것을 막는다. GitHub Pages 는 헤더를
+     못 붙여서 이 meta 가 유일한 자리인데, 머리를 조립하는 자리가 여럿이라 조용히 빠진다. */
+  'audit:csp-meta',
   'audit:saylive',
   'audit:iconbtn',
   'audit:aliases',
