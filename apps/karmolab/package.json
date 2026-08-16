@@ -156,6 +156,7 @@
     "audit:blocking-css": "node scripts/audit-blocking-css.mjs",
     "audit:sponsor": "node scripts/audit-sponsor-slot.mjs",
     "audit:live": "node scripts/audit-live-essentials.mjs",
+    "audit:unwired": "node scripts/audit-unwired-scripts.mjs",
     "audit:page-scripts": "node scripts/audit-page-scripts.mjs",
     "audit:pages": "node scripts/audit-tool-pages-fresh.mjs",
     "dev": "node scripts/dev.mjs",

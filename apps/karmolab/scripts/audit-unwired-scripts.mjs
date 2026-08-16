@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+/**
+ * **부를 자리가 아예 없는 검사 파일**을 찾는다 (2026-08-16)
+ *
+ * `audit-orphan-tests` 는 **npm 이름**을 센다 — 「이름은 있는데 어느 묶음에도 안 들어간 것」.
+ * 그런데 그 앞 단계가 있다: **npm 항목 자체가 없는 파일.** 그건 이름이 없으니 그 감사의 눈 밖이고,
+ * 파일은 멀쩡히 있어서 사람 눈에도 「있는 검사」로 보인다.
+ *
+ * 실제로 그렇게 살던 것: `audit-page-scripts.mjs` — 2026-08-07 에 **실서비스 로그인이 통째로
+ * 죽은** 사고에서 만든 검사인데, 저장소 어디에서도 안 불렸다(grep 하면 자기 파일 하나뿐).
+ * 바닥까지 넣어 뒀지만 도는 자리가 없으니 아무 소용이 없었다.
+ *
+ * 보는 법: `scripts/*.mjs` 의 **파일 이름**이 어디엔가 한 번이라도 나오는가.
+ *   찾는 자리 = package.json 의 scripts · 다른 스크립트 · scripts/lib · build.mjs · 워크플로.
+ *   (이름이 나오면 부르든 import 하든 「연결돼 있다」로 본다 — 여기서 더 따지면 오탐이 는다.)
+ *
+ * 톱니다: 지금 것은 기준선에 담고 **늘어날 때만** 빨갛다. 갚으면 저절로 줄어든다.
+ *
+ * 씀: node scripts/audit-unwired-scripts.mjs [--write-baseline]
+ * 나감값: 0 = 안 늘었다 · 1 = 늘었다 · 2 = 못 쟀다(CANNOT-RUN)
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const app = path.resolve(here, '..');
+const repo = path.resolve(app, '..', '..');
+const BASELINE = path.join(app, 'data/unwired-scripts.json');
+
+const 읽기 = (p) => {
+  try {
+    return fs.readFileSync(p, 'utf8');
+  } catch {
+    return '';
+  }
+};
+
+const 스크립트들 = fs
+  .readdirSync(here)
+  .filter((f) => f.endsWith('.mjs'))
+  .sort();
+
+/* 파일을 하나도 못 찾으면 「전부 연결돼 있다」가 아니라 못 쟀다 — 자리가 옮겨진 것이다. */
+if (스크립트들.length === 0) {
+  console.error(`[unwired] CANNOT-RUN: 볼 스크립트를 한 개도 못 찾았다 — ${here}`);
+  process.exit(2);
+}
+
+let 건초 = JSON.stringify(JSON.parse(읽기(path.join(app, 'package.json')) || '{}').scripts ?? {});
+for (const f of 스크립트들) 건초 += 읽기(path.join(here, f));
+const libDir = path.join(here, 'lib');
+if (fs.existsSync(libDir)) for (const f of fs.readdirSync(libDir)) 건초 += 읽기(path.join(libDir, f));
+건초 += 읽기(path.join(app, 'build.mjs'));
+const wfDir = path.join(repo, '.github', 'workflows');
+if (fs.existsSync(wfDir)) for (const f of fs.readdirSync(wfDir)) 건초 += 읽기(path.join(wfDir, f));
+
+/* 건초가 package.json 하나뿐이면 읽기가 깨진 것이다 — 그 상태의 「0건」은 통과가 아니다. */
+if (건초.length < 10_000) {
+  console.error(`[unwired] CANNOT-RUN: 찾을 자리를 제대로 못 읽었다 (${건초.length}자)`);
+  process.exit(2);
+}
+
+const 안불림 = 스크립트들.filter((f) => {
+  const re = new RegExp(f.replace(/[.]/g, '\\.'), 'g');
+  return (건초.match(re) ?? []).length === 0;
+});
+
+const 기준 = new Set(JSON.parse(읽기(BASELINE) || '{"목록":[]}').목록 ?? []);
+const 늘어난것 = 안불림.filter((f) => !기준.has(f));
+const 갚은것 = [...기준].filter((f) => !안불림.includes(f));
+
+if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
+  fs.writeFileSync(
+    BASELINE,
+    `${JSON.stringify(
+      {
+        설명: '부를 자리가 아예 없는 검사 파일 — 늘면 빨강, 연결하면 저절로 줄어든다',
+        왜: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
+        목록: 안불림,
+        갱신: new Date().toISOString().slice(0, 10),
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  if (갚은것.length > 0) console.log(`[unwired] ${갚은것.length}개를 연결했다 — 기준선을 ${기준.size} → ${안불림.length} 로 조인다: ${갚은것.join(', ')}`);
+}
+
+if (늘어난것.length > 0) {
+  console.error(`[unwired] 부를 자리가 없는 검사 파일이 늘었다 — ${늘어난것.length}개:`);
+  for (const f of 늘어난것) console.error(`  scripts/${f}`);
+  console.error('  → package.json 에 이름을 주고 묶음(gates·live-checks·build)에 넣어라.');
+  console.error('  → 안 부르는 검사는 없는 검사다. 정말 버릴 거면 파일을 지워라.');
+  process.exit(1);
+}
+
+console.log(`[unwired] 스크립트 ${스크립트들.length}개 · 부를 자리 없는 것 ${안불림.length}개 (기준선과 같음 — 늘지 않았다)`);
