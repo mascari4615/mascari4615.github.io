@@ -238,7 +238,10 @@ function localizeToolPage(source, id, code) {
       'widgets',
       'widgets-desc',
       'toolpage',
-      'tools',
+      /* ★ `tools` 는 **여기서 안 싣는다** (2026-08-17 실측). 45.6KB 짜리 묶음인데(도구 324항목)
+         이 장이 보여 주는 다른 도구의 한 줄은 **찍을 때 이미 HTML 에 박혀 나간다**(위 `related`).
+         화면 코드가 `tools.*` 를 읽는 자리는 없다 — 원본(ko) 도구 장은 아예 아무 묶음도 안 싣고도
+         멀쩡하다(62KB). 목록 화면으로 넘어가면 그때 `loadNamespace('tools')` 가 받아 온다. */
       ...(fs.existsSync(path.join(root, 'i18n', code, `${id}.json`)) ? [id] : [])
     ]
   });
