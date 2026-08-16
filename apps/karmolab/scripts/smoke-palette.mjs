@@ -181,6 +181,23 @@ const studyRow = page.locator('.kp-inline .kp-row').filter({ hasText: '.mjs' }).
 if (await studyRow.count()) {
   const badge = await studyRow.locator('.kp-row-badge').textContent().catch(() => '');
   if (!badge?.includes('학습')) problems.push('StudyMap 결과에 「학습」 출처가 없다');
+  /* ★ **지나간 순간을 나중에 보면 진다** (2026-08-16 계측). 표시(`is-flash`)는 칸이 생긴
+     그 프레임에 붙고 **5초 뒤 스스로 떨어진다** — 실측으로 179ms 에 붙어 5.2초에 사라졌다.
+     그런데 여기서는 누른 **뒤에** 「칸이 나왔나」를 먼저 기다리고, 그게 끝난 다음에야
+     「표시가 붙었나」를 물었다. 바쁜 판(CI)에서는 그 두 물음 사이가 5초를 넘어
+     **이미 사라진 표시**를 찾게 된다 — 제품은 멀쩡한데 검사만 판마다 빨갰다(로컬 3판 중 1판).
+     그래서 누르기 **전에** 지켜보는 자를 심어, 스치고 지나간 것도 사실로 남긴다. */
+  await page.evaluate(() => {
+    window.__flashSeen = false;
+    const check = () => {
+      const n = document.querySelector('.sm-node[data-id="web-build"]');
+      if (n && n.classList.contains('is-flash')) window.__flashSeen = true;
+    };
+    new MutationObserver(check).observe(document.documentElement, {
+      subtree: true, childList: true, attributes: true, attributeFilter: ['class'],
+    });
+    check();
+  });
   await studyRow.click();
   /* ★ **번쩍임을 「한 번 들여다보기」로 재면 진다** (2026-08-15 계측). 칸이 그려진 뒤
      다음 그림 프레임에서 표시가 붙는데, 여기서는 클릭 직후 한 번만 봐서
@@ -198,7 +215,7 @@ if (await studyRow.count()) {
     problems.push('「.mjs」 결과를 눌렀는데 StudyMap 의 web-build 칸이 20초 안에 안 나온다 (장이 안 열림)');
   } else {
     const flashed = await page
-      .waitForSelector('.sm-node[data-id="web-build"].is-flash', { timeout: 15000 })
+      .waitForFunction(() => window.__flashSeen === true, null, { timeout: 15000 })
       .catch(() => null);
     if (!flashed) problems.push('StudyMap 의 web-build 칸은 나왔는데 그 칸을 짚어 주지 않는다 (표시 없음)');
   }
