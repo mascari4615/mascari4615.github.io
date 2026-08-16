@@ -29,6 +29,8 @@
     --font-size-lg: 22px;
 
     --accent: #a79bef;
+
+    --accent-fg: #0f1016;
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
@@ -126,6 +128,7 @@
     --text-tertiary: #656374;
 
     --accent: #5f4dc2;
+    --accent-fg: #ffffff;
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);
     --accent-subtle: rgba(95, 77, 194, 0.07);
@@ -2647,7 +2650,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     z-index: 9998;
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px;
-    background: var(--bg-elevated, var(--bg-secondary));
+    background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--accent, var(--border));
     border-radius: var(--radius-md);
@@ -2682,7 +2685,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .karmolab-update-banner-install {
     flex-shrink: 0;
     padding: 6px 12px;
-    background: var(--accent); color: var(--accent-contrast, white);
+    background: var(--accent); color: var(--accent-fg);
     border: none; border-radius: var(--radius-sm);
     font-weight: 600; font-size: var(--font-size-xs);
     cursor: pointer;
@@ -2709,7 +2712,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     z-index: 9998;
     display: flex; align-items: center; gap: 8px;
     padding: 8px 10px 8px 12px;
-    background: var(--bg-elevated, var(--bg-secondary));
+    background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--success, #22c55e);
     border-left: 3px solid var(--success, #22c55e);

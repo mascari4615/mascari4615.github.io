@@ -548,7 +548,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-seat.ac-team1{border-color:#ff7a7a}',
       '.ac-letter{margin-top:var(--space-md);padding:10px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
       '.ac-room{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
-      '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
+      '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-primary) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
       '.ac-overhead{font-size:var(--font-size-xl);font-weight:700;text-align:center}',
       '.ac-overlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;min-width:200px;max-width:100%;width:100%}',
       '.ac-overrow{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:8px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
@@ -557,7 +557,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
-      '.ac-find{width:100%;max-width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--bg-secondary);color:var(--text-color);margin:var(--space-md) 0}',
+      '.ac-find{width:100%;max-width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);margin:var(--space-md) 0}',
       '.ac-openstrip{display:flex;gap:8px;flex-wrap:wrap;margin:var(--space-md) 0}',
       '.ac-opencard{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
       '.ac-opencard span{font-size:18px}',
@@ -631,7 +631,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-stage:focus{outline:none}',
       /* 키로 짚고 있는 자리 — 눌린 것과 구별되게 테두리만. */
       '.ac-key{outline:3px solid var(--accent);outline-offset:1px;border-radius:4px}',
-      '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-color);padding:var(--space-lg)}',
+      '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-primary);padding:var(--space-lg)}',
       '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
       /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다** — 아래 § 참고. 판 위에 뜨되 가리지 않게. */
       '.ac-stage:fullscreen .ac-controls{position:absolute;left:0;right:0;bottom:var(--space-lg);justify-content:center;margin:0;z-index:4}',

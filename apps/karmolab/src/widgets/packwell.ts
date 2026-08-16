@@ -325,7 +325,7 @@ interface WellPack {
               const act = view.querySelector('#pwAct') as HTMLElement;
               if (!ok) {
                 act.innerHTML =
-                  `<span style="font-size:var(--font-size-sm);color:var(--danger,#e5484d);">${esc(t('packwell.t13'))}</span>`;
+                  `<span style="font-size:var(--font-size-sm);color:var(--error);">${esc(t('packwell.t13'))}</span>`;
                 return;
               }
               // 놀이가 열릴 때 **이 표가 이미 골라져 있게** 밀어 넣는다 (「내 표」가 쓰는 길과 같다).
@@ -512,7 +512,7 @@ interface WellPack {
                   };
                   if (!putPack(saved)) {
                     (view.querySelector('#pwLibAct') as HTMLElement).innerHTML =
-                      `<span style="font-size:var(--font-size-sm);color:var(--danger,#e5484d);">${esc(t('packwell.t25'))}</span>`;
+                      `<span style="font-size:var(--font-size-sm);color:var(--error);">${esc(t('packwell.t25'))}</span>`;
                     return;
                   }
                   putPick(saved.id);

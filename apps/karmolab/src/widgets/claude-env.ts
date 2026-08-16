@@ -298,7 +298,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .claude-env-section { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); transition: outline-color 0.12s, background 0.12s; }
         .claude-env-section.claude-env-drop-active { outline: 2px dashed var(--accent); outline-offset: 2px; background: var(--bg-tertiary); }
         .claude-env-input--flash { animation: claude-env-flash 0.6s ease-out; }
-        @keyframes claude-env-flash { 0% { background: var(--accent); color: var(--accent-fg, #fff); } 100% { background: var(--bg-primary); } }
+        @keyframes claude-env-flash { 0% { background: var(--accent); color: var(--accent-fg); } 100% { background: var(--bg-primary); } }
         .claude-env-section-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 12px 0; }
         .claude-env-row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
         .claude-env-row:last-child { margin-bottom: 0; }
@@ -310,12 +310,12 @@ import { t, loadNamespace } from '../lib/i18n';
         .claude-env-select, .claude-env-input { flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-primary); font-size: var(--font-size-sm); font-family: inherit; }
         .claude-env-input { font-family: ui-monospace, monospace; }
         .claude-env-play { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--font-size-sm); cursor: pointer; line-height: 1; }
-        .claude-env-play:hover { background: var(--bg-quaternary, var(--bg-tertiary)); border-color: var(--accent); }
+        .claude-env-play:hover { background: var(--bg-tertiary); border-color: var(--accent); }
         .claude-env-browse { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--font-size-xs); cursor: pointer; line-height: 1; white-space: nowrap; }
-        .claude-env-browse:hover { background: var(--bg-quaternary, var(--bg-tertiary)); border-color: var(--accent); color: var(--text-primary); }
+        .claude-env-browse:hover { background: var(--bg-tertiary); border-color: var(--accent); color: var(--text-primary); }
         .claude-env-hint { flex: 1; color: var(--text-tertiary); font-size: var(--font-size-xs); font-family: ui-monospace, monospace; }
         .claude-env-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-        .claude-env-save { padding: 6px 16px; border: 1px solid var(--accent, var(--border)); border-radius: var(--radius-sm); background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg, var(--text-primary)); font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }
+        .claude-env-save { padding: 6px 16px; border: 1px solid var(--accent, var(--border)); border-radius: var(--radius-sm); background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg)); font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }
         .claude-env-save[disabled] { opacity: 0.5; cursor: progress; }
         .claude-env-log { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-md); background: var(--bg-tertiary); border: 1px solid var(--border); font-size: var(--font-size-xs); font-family: ui-monospace, monospace; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; }
         .claude-env-log-err { border-color: var(--error-subtle); color: var(--error); }
