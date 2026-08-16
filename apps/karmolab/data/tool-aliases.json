@@ -295,6 +295,8 @@
     "csp": "Content-Security-Policy 콘텐츠 보안 정책 보안 헤더 security header unsafe-inline XSS 방어",
     "diff": "두 글 비교 텍스트 비교 diff 차이 변경점 JSON 비교 YAML 비교 구조 비교",
     "dutchpay": "더치페이 정산 N빵 나눠내기 회비 정산 송금 정리 1/N",
-    "mermaidlite": "머메이드 mermaid 흐름도 flowchart ER다이어그램 erDiagram 다이어그램 SVG"
+    "mermaidlite": "머메이드 mermaid 흐름도 flowchart ER다이어그램 erDiagram 다이어그램 SVG",
+    "apitest": "openapi swagger API 테스트 API 문서 요청 예시 mock 목서버 api test spec",
+    "bgremove": "배경제거 배경지우기 누끼 투명배경 증명사진 배경 remove background transparent png"
   }
 }

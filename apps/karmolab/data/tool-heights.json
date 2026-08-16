@@ -1,4 +1,8 @@
 {
+  "apitest": {
+    "narrow": 866,
+    "wide": 874
+  },
   "arcade": {
     "narrow": 11939,
     "wide": 4746
@@ -43,6 +47,10 @@
     "narrow": 703,
     "wide": 761
   },
+  "bgremove": {
+    "narrow": 712,
+    "wide": 624
+  },
   "birth": {
     "narrow": 727,
     "wide": 761
@@ -54,6 +62,10 @@
   "bmi": {
     "narrow": 1034,
     "wide": 832
+  },
+  "bundlemap": {
+    "narrow": 435,
+    "wide": 517
   },
   "bytesize": {
     "narrow": 993,

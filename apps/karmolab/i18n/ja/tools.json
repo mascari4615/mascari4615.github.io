@@ -284,5 +284,11 @@
   "tools.dutchpay.description": "それぞれが払った額から、誰が誰にいくら送ればよいかを精算します。1円単位まで合わせ、送金回数を最小にします。",
   "tools.dutchpay.lead": "1円まで正確 · 送金回数は最小 · 整数だけで計算",
   "tools.mermaidlite.description": "テキストで書いた フローチャート・ER 図を SVG として描きます。3MB のライブラリもネット接続も不要です。",
-  "tools.mermaidlite.lead": "フローチャート · ER 図 · SVG で保存 · 文法チェック"
+  "tools.mermaidlite.lead": "フローチャート · ER 図 · SVG で保存 · 文法チェック",
+  "tools.apitest.description": "OpenAPI ドキュメントを読み、送れるリクエストを一覧にし、スキーマからリクエスト本文とレスポンスの例を作ります。",
+  "tools.apitest.lead": "操作一覧 · リクエスト例 · レスポンス例 · モックサーバー用の表",
+  "tools.bgremove.description": "単色またはそれに近い背景を消します。端からつながった色だけを消すので、背景と同じ色の服でも中が抜けません。",
+  "tools.bgremove.lead": "証明写真 · 商品写真 · スキャン · 透過 PNG で保存",
+  "tools.bundlemap.description": "webpack の stats.json や esbuild の metafile を読み、どこが重いかをフォルダの木と面積で見せます。二重に入った同じパッケージも見つけます。",
+  "tools.bundlemap.lead": "webpack · esbuild · 重いパスの順位 · 重複パッケージ"
 }
