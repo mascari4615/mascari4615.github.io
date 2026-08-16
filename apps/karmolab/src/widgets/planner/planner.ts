@@ -17,6 +17,7 @@ import { GOOGLE_CLIENT_ID, forgetToken, requestToken, storedToken } from './gaut
 import { buildCalendarView, type CalendarViewHandle } from './calendar-view';
 import { buildKanbanView, type KanbanViewHandle } from './kanban-view';
 import { buildStreaksView } from './streaks-view';
+import { buildDiaryView, type DiaryViewHandle } from './diary-view';
 
 (function (): void {
     const esc = (v: string): string =>
@@ -113,6 +114,35 @@ import { buildStreaksView } from './streaks-view';
         .pl-pop-time, .pl-pop-cal { font-size: var(--font-size-xs); color: var(--text-tertiary); }
         .pl-pop-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 
+        /* 일기 */
+        .pl-diary { display: flex; gap: 16px; height: 100%; min-height: 0; }
+        .pl-diary-side { width: 260px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+        .pl-diary-search { width: 100%; }
+        .pl-diary-list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+        .pl-diary-empty { font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 4px 2px; }
+        .pl-diary-item { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid transparent; border-radius: var(--radius-md); background: none; cursor: pointer; }
+        .pl-diary-item:hover { background: var(--bg-tertiary); }
+        .pl-diary-item--on { border-color: var(--accent, #4285f4); background: var(--bg-secondary); }
+        .pl-diary-item-date { font-size: var(--font-size-xs); font-weight: 700; color: var(--text-secondary); }
+        .pl-diary-item-preview { font-size: var(--font-size-xs); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pl-diary-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+        .pl-diary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .pl-diary-date { margin: 0; font-size: var(--font-size-md); color: var(--text-primary); }
+        .pl-diary-head-right { display: flex; align-items: center; gap: 8px; }
+        .pl-diary-count { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+        .pl-diary-text { flex: 1; min-height: 240px; resize: none; padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-size: var(--font-size-sm); line-height: 1.8; font-family: inherit; }
+        .pl-diary-text:focus { outline: 2px solid var(--accent, #4285f4); outline-offset: -2px; }
+        .pl-diary-saved { margin: 0; min-height: 1.2em; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+
+        /* 달력 칸의 일기 단추 */
+        /* 단추는 **그 칸 안에서** 자리를 잡아야 한다 — 칸에 자리 기준이 없으면 표 전체를 기준으로
+           잡혀 모든 날의 단추가 한 자리에 겹쳐 쌓인다(실제로 그래서 옆 날 단추가 눌렸다). */
+        .fc .fc-daygrid-day, .fc .fc-daygrid-day-frame { position: relative; }
+        .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: 11px; line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
+        .fc-daygrid-day:hover .pl-daycell-diary, .pl-daycell-diary:focus-visible { opacity: 1; }
+        .pl-daycell-diary--on { opacity: 1; color: var(--accent, #4285f4); }
+        .pl-daycell-diary:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
         /* 칸반 */
         .pl-kanban { display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; }
         .pl-kanban-add { display: flex; gap: 8px; }
@@ -149,12 +179,14 @@ import { buildStreaksView } from './streaks-view';
         .pl-track-stat { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: 4px; }
 
         @media (max-width: 720px) {
+            .pl-diary { flex-direction: column; }
+            .pl-diary-side { width: 100%; max-height: 180px; }
             .pl-cal-layout { flex-direction: column; }
             .pl-cal-side { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
             .pl-kanban-board { grid-template-columns: 1fr; }
         }`;
 
-    type PaneId = 'calendar' | 'kanban' | 'streaks';
+    type PaneId = 'calendar' | 'diary' | 'kanban' | 'streaks';
 
     function build(container: HTMLElement): void {
         Mdd.injectCSS('planner', CSS);
@@ -164,7 +196,9 @@ import { buildStreaksView } from './streaks-view';
 
         let token: string | null = storedToken();
         let pane: PaneId = 'calendar';
-        let live: CalendarViewHandle | KanbanViewHandle | null = null;
+        let live: CalendarViewHandle | KanbanViewHandle | DiaryViewHandle | null = null;
+        /** 달력에서 「그 날 일기」로 건너올 때 그 날짜 */
+        let diaryDate: string | undefined;
 
         const dispose = (): void => {
             live?.destroy();
@@ -187,6 +221,7 @@ import { buildStreaksView } from './streaks-view';
                 <div class="pl-bar">
                     <div class="pl-bar-tabs">
                         <button type="button" class="pl-bar-tab${pane === 'calendar' ? ' active' : ''}" data-pane="calendar">${esc(t('planner.t07'))}</button>
+                        <button type="button" class="pl-bar-tab${pane === 'diary' ? ' active' : ''}" data-pane="diary">${esc(t('planner.t93'))}</button>
                         <button type="button" class="pl-bar-tab${pane === 'kanban' ? ' active' : ''}" data-pane="kanban">${esc(t('planner.t08'))}</button>
                         <button type="button" class="pl-bar-tab${pane === 'streaks' ? ' active' : ''}" data-pane="streaks">${esc(t('planner.t09'))}</button>
                     </div>
@@ -195,9 +230,17 @@ import { buildStreaksView } from './streaks-view';
                 <div class="pl-pane"></div>`;
 
             const paneEl = root.querySelector<HTMLElement>('.pl-pane')!;
-            if (pane === 'calendar') live = buildCalendarView(paneEl, token);
-            else if (pane === 'kanban') live = buildKanbanView(paneEl, token);
-            else buildStreaksView(paneEl);
+            const openDiary = (date?: string): void => {
+                diaryDate = date;
+                pane = 'diary';
+                render();
+            };
+            if (pane === 'calendar') live = buildCalendarView(paneEl, token, openDiary);
+            else if (pane === 'diary') {
+                live = buildDiaryView(paneEl, diaryDate);
+                diaryDate = undefined; // 한 번 쓰고 놓는다 — 다음에 탭을 다시 열면 오늘부터
+            } else if (pane === 'kanban') live = buildKanbanView(paneEl, token);
+            else buildStreaksView(paneEl, () => openDiary());
 
             root.querySelectorAll<HTMLElement>('[data-pane]').forEach((btn) => {
                 btn.addEventListener('click', () => {

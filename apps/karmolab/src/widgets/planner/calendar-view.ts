@@ -28,6 +28,7 @@ import {
     listEvents as listLocalEvents,
     updateEvent as updateLocalEvent
 } from './local-store';
+import { diaryDates } from './diary-store';
 
 import { Calendar, type CalendarOptions, type EventApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -83,7 +84,11 @@ export interface CalendarViewHandle {
  * 달력을 그린다. `token` 이 없으면 **이 브라우저 캘린더만** 쓴다 —
  * 구글은 얹는 것이지 있어야 하는 것이 아니다.
  */
-export function buildCalendarView(container: HTMLElement, token: string | null): CalendarViewHandle {
+export function buildCalendarView(
+    container: HTMLElement,
+    token: string | null,
+    onOpenDiary?: (date: string) => void
+): CalendarViewHandle {
     container.innerHTML = `
         <div class="pl-cal-layout">
             <aside class="pl-cal-side">
@@ -157,6 +162,26 @@ export function buildCalendarView(container: HTMLElement, token: string | null):
            실패하면 되돌린다(`revert`), 안 그러면 화면과 구글이 갈라진 채로 남는다. */
         eventDrop: (info) => void saveMove(info.event, info.revert),
         eventResize: (info) => void saveMove(info.event, info.revert),
+        /* 날짜 칸마다 일기 단추 하나. 쓴 날은 켜져 있고, 안 쓴 날은 마우스를 올려야 보인다 —
+           빈 날마다 표식이 켜져 있으면 「쓴 날」이 눈에 안 들어온다. */
+        dayCellDidMount: (info) => {
+            if (!onOpenDiary) return;
+            const date = ymd(info.date);
+            const written = diaryDates().has(date);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `pl-daycell-diary${written ? ' pl-daycell-diary--on' : ''}`;
+            btn.textContent = '✎';
+            btn.title = written ? t('planner.t91') : t('planner.t92');
+            btn.setAttribute('aria-label', `${date} ${written ? t('planner.t91') : t('planner.t92')}`);
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onOpenDiary(date);
+            });
+            /* 누르는 자리가 칸 선택(일정 만들기)으로 번지지 않게 */
+            btn.addEventListener('mousedown', (e) => e.stopPropagation());
+            info.el.appendChild(btn);
+        },
         datesSet: (info) => {
             miniMonth = new Date(info.view.currentStart);
             renderMini();

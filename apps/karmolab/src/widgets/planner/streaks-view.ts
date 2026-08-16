@@ -29,7 +29,11 @@ function levelTitleKey(level: number): string {
     return 'planner.t65';
 }
 
-export function buildStreaksView(container: HTMLElement): void {
+/**
+ * `onOpenDiary` = 일기 트랙의 단추가 갈 곳. 일기는 **글을 써야** 하루가 는다 —
+ * 여기서 그냥 누르면 늘어나는 것은 거짓이라, 이 트랙만 「쓰러 가기」로 보낸다.
+ */
+export function buildStreaksView(container: HTMLElement, onOpenDiary?: () => void): void {
     function render(): void {
         const data = loadUserData();
         const today = localDateString();
@@ -57,10 +61,16 @@ export function buildStreaksView(container: HTMLElement): void {
                                 <div class="pl-track-label">${esc(t(track.labelKey))}</div>
                                 <div class="pl-track-stat">${esc(t('planner.t67', { current: s?.current ?? 0, longest: s?.longest ?? 0 }))}</div>
                             </div>
-                            <button type="button" class="btn ${doneToday ? 'btn-ghost' : 'btn-accent'} pl-track-btn"
-                                    data-track="${esc(track.id)}"${doneToday ? ' disabled' : ''}>
-                                ${esc(doneToday ? t('planner.t68') : t('planner.t69'))}
-                            </button>
+                            ${
+                                track.id === 'diary'
+                                    ? `<button type="button" class="btn ${doneToday ? 'btn-ghost' : 'btn-accent'} pl-track-btn" data-goto-diary>
+                                           ${esc(doneToday ? t('planner.t89') : t('planner.t90'))}
+                                       </button>`
+                                    : `<button type="button" class="btn ${doneToday ? 'btn-ghost' : 'btn-accent'} pl-track-btn"
+                                               data-track="${esc(track.id)}"${doneToday ? ' disabled' : ''}>
+                                           ${esc(doneToday ? t('planner.t68') : t('planner.t69'))}
+                                       </button>`
+                            }
                         </div>`;
                     }).join('')}
                 </div>
@@ -68,7 +78,12 @@ export function buildStreaksView(container: HTMLElement): void {
     }
 
     container.addEventListener('click', (e) => {
-        const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-track]');
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-goto-diary]')) {
+            onOpenDiary?.();
+            return;
+        }
+        const btn = target.closest<HTMLElement>('[data-track]');
         if (!btn?.dataset.track) return;
         const result = recordStreakActivity(btn.dataset.track);
         if (!result.changed) return;
