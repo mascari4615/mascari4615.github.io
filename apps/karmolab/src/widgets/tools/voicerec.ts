@@ -10,6 +10,7 @@
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
 import { attachMedia, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
@@ -155,8 +156,6 @@ import { intervalWhileVisible } from '../../lib/tick';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 들어오는 소리를 흐르는 막대로 그린다. 숫자보다 눈이 빠르다. */
           function drawMeter(analyser: AnalyserNode): void {
@@ -262,9 +261,9 @@ import { intervalWhileVisible } from '../../lib/tick';
             saveBtn.disabled = false;
             clock.textContent = mmss(buffer.duration);
             stats.innerHTML =
-              stat(t('voicerec.stat.length'), mmss(buffer.duration), true) +
-              stat(t('voicerec.stat.size'), size(wav.size)) +
-              stat(t('voicerec.stat.peak'), `${Math.round(peak * 100)}%`);
+              statCell(t('voicerec.stat.length'), mmss(buffer.duration), true) +
+              statCell(t('voicerec.stat.size'), size(wav.size)) +
+              statCell(t('voicerec.stat.peak'), `${Math.round(peak * 100)}%`);
 
             // 소리가 거의 안 들어왔으면 그냥 저장 성공이라고 하면 안 된다 — 사용자는 나중에야 안다
             if (peak < 0.02) {

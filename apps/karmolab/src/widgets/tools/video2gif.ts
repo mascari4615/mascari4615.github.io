@@ -8,6 +8,7 @@
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
  */
 import { seekTo, download, attachVideo } from './shared/video';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -149,8 +150,6 @@ import { attachImage } from './shared/image';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           const startSec = (): number => (parseInt(startEl.value, 10) / 1000) * duration;
           const endSec = (): number => (parseInt(endEl.value, 10) / 1000) * duration;
@@ -185,9 +184,9 @@ import { attachImage } from './shared/image';
             // 실측 기준 대략치다. 정확한 값은 만들어 봐야 알지만, 「만들고 나서 너무 크네」를 막는 게 목적이다.
             const guess = w * h * count * 0.13 * (parseInt(colorsEl.value, 10) / 128);
             stats.innerHTML =
-              stat(t('video2gif.stat.size'), `${w}×${h}`, true) +
-              stat(t('video2gif.stat.frames'), t('video2gif.value.frames', { n: count })) +
-              stat(t('video2gif.stat.guess'), t('video2gif.value.about', { v: size(guess) }));
+              statCell(t('video2gif.stat.size'), `${w}×${h}`, true) +
+              statCell(t('video2gif.stat.frames'), t('video2gif.value.frames', { n: count })) +
+              statCell(t('video2gif.stat.guess'), t('video2gif.value.about', { v: size(guess) }));
           }
 
           function load(f: File): void {

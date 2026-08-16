@@ -12,6 +12,7 @@
  *  - SRT 와 VTT 를 오간다. 웹 플레이어는 VTT 만 받고, 대부분의 자막은 SRT 로 돌아다닌다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/video';
@@ -142,8 +143,6 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function run(): void {
             const cues = parse(input.value);
@@ -164,12 +163,12 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
 
             const clipped = moved.filter((c) => c.start < 0).length;
             stats.innerHTML =
-              stat(t('subtitle.stat.lines'), t('subtitle.value.lines', { n: cues.length }), true) +
-              stat(
+              statCell(t('subtitle.stat.lines'), t('subtitle.value.lines', { n: cues.length }), true) +
+              statCell(
                 t('subtitle.stat.shift'),
                 (shift >= 0 ? '+' : '') + t('subtitle.value.sec', { n: shift.toFixed(1) })
               ) +
-              stat(t('subtitle.stat.format'), outFmt.toUpperCase());
+              statCell(t('subtitle.stat.format'), outFmt.toUpperCase());
 
             // 자막은 영상을 틀어 봐야 확인되는데, 숫자로라도 맞는지 보여 준다
             const row = (k: string, a: number, b: number): string =>

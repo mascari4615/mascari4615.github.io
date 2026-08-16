@@ -10,6 +10,7 @@
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -150,8 +151,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function labels(): void {
             $<HTMLElement>('#alEvenVal').textContent = EVEN[parseInt(evenEl.value, 10)][1];
@@ -175,9 +174,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             drawWave($<HTMLCanvasElement>('#alBefore'), ch0, '#7a8894');
             drawWave($<HTMLCanvasElement>('#alAfter'), new Float32Array(0), '#4bb3e0');
             stats.innerHTML =
-              stat(t('audiolevel.stat.length'), mmss(source.duration), true) +
-              stat(t('audiolevel.stat.peak'), `${db(peakOf(ch0))} dB`) +
-              stat(t('audiolevel.stat.loudness'), `${db(rms(ch0))} dB`);
+              statCell(t('audiolevel.stat.length'), mmss(source.duration), true) +
+              statCell(t('audiolevel.stat.peak'), `${db(peakOf(ch0))} dB`) +
+              statCell(t('audiolevel.stat.loudness'), `${db(rms(ch0))} dB`);
             say(t('audiolevel.say.ready'), 'ok');
           }
 
@@ -250,10 +249,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             const spanBefore = 20 * Math.log10(peakOf(before) / Math.max(1e-6, rms(before)));
             const spanAfter = 20 * Math.log10(peakOf(after) / Math.max(1e-6, rms(after)));
             stats.innerHTML =
-              stat(t('audiolevel.stat.loudness'), `${db(rms(before))} → ${db(rms(after))} dB`, true) +
-              stat(t('audiolevel.stat.peak'), `${db(peakOf(before))} → ${db(peakOf(after))} dB`) +
-              stat(t('audiolevel.stat.span'), `${spanBefore.toFixed(1)} → ${spanAfter.toFixed(1)} dB`) +
-              stat(t('audiolevel.stat.size'), size(made.size));
+              statCell(t('audiolevel.stat.loudness'), `${db(rms(before))} → ${db(rms(after))} dB`, true) +
+              statCell(t('audiolevel.stat.peak'), `${db(peakOf(before))} → ${db(peakOf(after))} dB`) +
+              statCell(t('audiolevel.stat.span'), `${spanBefore.toFixed(1)} → ${spanAfter.toFixed(1)} dB`) +
+              statCell(t('audiolevel.stat.size'), size(made.size));
             say(
               t('audiolevel.say.done', { before: spanBefore.toFixed(1), after: spanAfter.toFixed(1) }),
               'ok'

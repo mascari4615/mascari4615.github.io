@@ -11,6 +11,7 @@
  *  - 종이 크기가 제각각인 문서에서도 여백 비율로 자리를 잡는다.
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -135,8 +136,6 @@ import { encode } from './shared/image';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 쪽 번호 문구를 만든다 — 모양에 따라 「/ 전체」가 붙는다 */
           function label(n: number, total: number): string {
@@ -155,9 +154,9 @@ import { encode } from './shared/image';
             const numbered = Math.max(0, pageCount - skip);
             const first = restart ? 1 : skip + 1;
             stats.innerHTML =
-              stat(t('pdfpagenum.stat.numbered'), t('pdfpagenum.value.pages', { n: numbered }), true) +
-              stat(t('pdfpagenum.stat.total'), t('pdfpagenum.value.pages', { n: pageCount })) +
-              stat(t('pdfpagenum.stat.first'), numbered ? String(first) : t('pdfpagenum.value.none'));
+              statCell(t('pdfpagenum.stat.numbered'), t('pdfpagenum.value.pages', { n: numbered }), true) +
+              statCell(t('pdfpagenum.stat.total'), t('pdfpagenum.value.pages', { n: pageCount })) +
+              statCell(t('pdfpagenum.stat.first'), numbered ? String(first) : t('pdfpagenum.value.none'));
           }
 
           async function load(f: File): Promise<void> {

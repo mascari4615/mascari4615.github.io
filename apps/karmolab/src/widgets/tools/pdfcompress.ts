@@ -9,6 +9,7 @@
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
 import { statusLine } from './shared/say';
+import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -119,8 +120,6 @@ import { attachImage, encode } from './shared/image';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           async function loadPdfjs(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
@@ -180,9 +179,9 @@ import { attachImage, encode } from './shared/image';
               const text = await first.getTextContent();
               hasText = text.items.map((i) => i.str || '').join('').trim().length > 40;
               stats.innerHTML =
-                stat(t('pdfcompress.stat.originalSize'), size(f.size), true) +
-                stat(t('pdfcompress.stat.pages'), t('pdfcompress.stat.pagesValue', { n: doc.numPages })) +
-                stat(t('pdfcompress.stat.kind'), hasText ? t('pdfcompress.kind.text') : t('pdfcompress.kind.scan'));
+                statCell(t('pdfcompress.stat.originalSize'), size(f.size), true) +
+                statCell(t('pdfcompress.stat.pages'), t('pdfcompress.stat.pagesValue', { n: doc.numPages })) +
+                statCell(t('pdfcompress.stat.kind'), hasText ? t('pdfcompress.kind.text') : t('pdfcompress.kind.scan'));
               if (hasText) {
                 warn.style.display = '';
                 warn.className = 'tool-status error';
@@ -231,9 +230,9 @@ import { attachImage, encode } from './shared/image';
             const after = made.size;
             const pct = Math.round(Math.abs(1 - after / before) * 100);
             stats.innerHTML =
-              stat(t('pdfcompress.stat.originalSize'), size(before)) +
-              stat(t('pdfcompress.stat.newSize'), size(after), true) +
-              stat(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after > before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
+              statCell(t('pdfcompress.stat.originalSize'), size(before)) +
+              statCell(t('pdfcompress.stat.newSize'), size(after), true) +
+              statCell(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after > before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
             // 이미 잘 압축된 PDF 는 오히려 커진다 — 성공이라 우기면 안 된다
             if (after >= before) {
               say(t('pdfcompress.status.noGain', { before: size(before), after: size(after) }), 'error');

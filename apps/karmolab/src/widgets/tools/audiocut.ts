@@ -6,6 +6,7 @@
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudioInfo, mmss } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -85,8 +86,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 파형은 최댓값만 훑어 그린다 — 전 샘플을 그리면 긴 곡에서 멈춘다. */
           function drawWave(): void {
@@ -134,10 +133,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             $<HTMLElement>('#acStartVal').textContent = mmss(s);
             $<HTMLElement>('#acEndVal').textContent = mmss(e);
             stats.innerHTML =
-              stat(t('audiocut.stat.picked'), mmss(e - s), true) +
-              stat(t('audiocut.stat.total'), mmss(buffer.duration)) +
-              stat(t('audiocut.stat.rate'), `${(rate / 1000).toFixed(1)} kHz`) +
-              stat(t('audiocut.stat.channels'), buffer.numberOfChannels === 1 ? t('audiocut.value.mono') : t('audiocut.value.stereo'));
+              statCell(t('audiocut.stat.picked'), mmss(e - s), true) +
+              statCell(t('audiocut.stat.total'), mmss(buffer.duration)) +
+              statCell(t('audiocut.stat.rate'), `${(rate / 1000).toFixed(1)} kHz`) +
+              statCell(t('audiocut.stat.channels'), buffer.numberOfChannels === 1 ? t('audiocut.value.mono') : t('audiocut.value.stereo'));
             drawWave();
           }
 

@@ -9,6 +9,7 @@
  * 그래서 합친 결과는 원본과 완전히 같다(검사값으로 확인시켜 준다).
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -97,8 +98,6 @@ import { download } from './shared/image';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function setMode(next: 'split' | 'join'): void {
             mode = next;
@@ -150,9 +149,9 @@ import { download } from './shared/image';
               const chunk = chunkBytes();
               const count = Math.ceil(one.size / chunk);
               stats.innerHTML =
-                stat(t('filesplit.stat.fileSize'), size(one.size), true) +
-                stat(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: count })) +
-                stat(t('filesplit.stat.last'), size(one.size - chunk * (count - 1)));
+                statCell(t('filesplit.stat.fileSize'), size(one.size), true) +
+                statCell(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: count })) +
+                statCell(t('filesplit.stat.last'), size(one.size - chunk * (count - 1)));
               listEl.innerHTML = `<div class="tool-list-row"><span class="tool-list-key">${esc(one.name)}</span><span class="tool-list-val">${size(one.size)}</span></div>`;
               return;
             }
@@ -176,8 +175,8 @@ import { download } from './shared/image';
               .join('');
             const total = sorted.reduce((a, f) => a + f.size, 0);
             stats.innerHTML =
-              stat(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: sorted.length }), true) +
-              stat(t('filesplit.stat.joined'), size(total));
+              statCell(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: sorted.length }), true) +
+              statCell(t('filesplit.stat.joined'), size(total));
             // 조각이 빠진 채 합치면 열리지 않는 파일이 나온다 — 그 전에 말해 준다
             if (missing.length)
               say(t('filesplit.err.missing', { list: missing.slice(0, 3).join(', ') }), 'error');

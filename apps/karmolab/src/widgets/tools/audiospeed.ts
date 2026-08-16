@@ -10,6 +10,7 @@
  * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -143,17 +144,15 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function showStats(): void {
             if (!buffer) return;
             const rate = parseFloat(rateEl.value);
             const after = buffer.duration / rate;
             stats.innerHTML =
-              stat(t('audiospeed.stat.after'), mmss(after), true) +
-              stat(t('audiospeed.stat.before'), mmss(buffer.duration)) +
-              stat(t('audiospeed.stat.saved'), mmss(Math.abs(buffer.duration - after)));
+              statCell(t('audiospeed.stat.after'), mmss(after), true) +
+              statCell(t('audiospeed.stat.before'), mmss(buffer.duration)) +
+              statCell(t('audiospeed.stat.saved'), mmss(Math.abs(buffer.duration - after)));
           }
 
           async function load(file: File): Promise<void> {
@@ -197,9 +196,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               player.style.display = '';
               saveBtn.disabled = false;
               stats.innerHTML =
-                stat(t('audiospeed.stat.after'), mmss(outBuf.length / outBuf.sampleRate), true) +
-                stat(t('audiospeed.stat.before'), mmss(buffer.duration)) +
-                stat(t('audiospeed.stat.size'), size(outBlob.size));
+                statCell(t('audiospeed.stat.after'), mmss(outBuf.length / outBuf.sampleRate), true) +
+                statCell(t('audiospeed.stat.before'), mmss(buffer.duration)) +
+                statCell(t('audiospeed.stat.size'), size(outBlob.size));
               say(
                 keep
                   ? t('audiospeed.say.doneKeep')

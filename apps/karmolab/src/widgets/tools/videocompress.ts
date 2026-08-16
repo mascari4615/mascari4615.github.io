@@ -11,6 +11,7 @@
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
 import { attachMedia, download, fileSize as size, mmss } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { pickRecordType, attachVideo } from './shared/video';
@@ -130,8 +131,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function outSize(): { w: number; h: number } {
             const s = SCALES[parseInt(scaleEl.value, 10) - 1][0];
@@ -153,11 +152,11 @@ import { t, loadNamespace } from '../../lib/i18n';
             const { w, h } = outSize();
             const guess = (bitsPerSecond() / 8) * duration;
             stats.innerHTML =
-              stat(t('videocompress.stat.srcSize'), size(sourceSize), true) +
-              stat(t('videocompress.stat.outDim'), `${w}×${h}`) +
-              stat(t('videocompress.stat.guess'), t('videocompress.value.about', { v: size(guess) })) +
+              statCell(t('videocompress.stat.srcSize'), size(sourceSize), true) +
+              statCell(t('videocompress.stat.outDim'), `${w}×${h}`) +
+              statCell(t('videocompress.stat.guess'), t('videocompress.value.about', { v: size(guess) })) +
               // 실시간으로 다시 담기 때문에 영상 길이만큼 걸린다. 미리 알려야 「멈춘 건가」 오해가 없다.
-              stat(t('videocompress.stat.time'), t('videocompress.value.about', { v: mmss(duration) }));
+              statCell(t('videocompress.stat.time'), t('videocompress.value.about', { v: mmss(duration) }));
           }
 
           function load(f: File): void {
@@ -272,13 +271,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             const pct = Math.round(Math.abs(1 - made.size / sourceSize) * 100);
             stats.innerHTML =
-              stat(t('videocompress.stat.srcSize'), size(sourceSize)) +
-              stat(t('videocompress.stat.newSize'), size(made.size), true) +
-              stat(
+              statCell(t('videocompress.stat.srcSize'), size(sourceSize)) +
+              statCell(t('videocompress.stat.newSize'), size(made.size), true) +
+              statCell(
                 t('videocompress.stat.change'),
                 t(made.size < sourceSize ? 'videocompress.value.smaller' : 'videocompress.value.bigger', { pct })
               ) +
-              stat(t('videocompress.stat.dim'), `${w}×${h}`);
+              statCell(t('videocompress.stat.dim'), `${w}×${h}`);
             // 이미 잘 눌린 영상은 다시 담으면 커진다 — 그때 줄었다고 말하면 거짓이 된다
             if (leftTab) {
               say(t('videocompress.err.hidden'), 'error');

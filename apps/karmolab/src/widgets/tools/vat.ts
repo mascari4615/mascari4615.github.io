@@ -6,6 +6,7 @@
  * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
  */
 import { spec, vatAdd, vatExtract,  type Rounding } from '../../core/vat';
+import { statCell } from './shared/stats';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -77,8 +78,6 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           let mode = 'add';
           let last = { supply: 0, tax: 0, total: 0 };
 
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
@@ -94,9 +93,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
             last = r;
             stats.innerHTML =
-              stat(mode === 'add' ? t('vat.stat.total') : t('vat.label.supply'), won(mode === 'add' ? r.total : r.supply), true) +
-              stat(t('vat.stat.tax'), won(r.tax)) +
-              stat(t('vat.row.rate'), `${ratePercent.toFixed(1)}%`);
+              statCell(mode === 'add' ? t('vat.stat.total') : t('vat.label.supply'), won(mode === 'add' ? r.total : r.supply), true) +
+              statCell(t('vat.stat.tax'), won(r.tax)) +
+              statCell(t('vat.row.rate'), `${ratePercent.toFixed(1)}%`);
             out.innerHTML =
               row(t('vat.label.supply'), won(r.supply)) +
               row(t('vat.row.tax'), won(r.tax)) +
