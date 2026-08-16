@@ -572,5 +572,17 @@
   "howto.payslip.0": "年収または月給を入れる",
   "howto.payslip.1": "非課税分（食事代など）と扶養人数を入れる",
   "howto.payslip.2": "税金と保険料がそれぞれいくらか見る",
-  "howto.payslip.3": "手取り額と適用年度を確認する"
+  "howto.payslip.3": "手取り額と適用年度を確認する",
+  "howto.dupphoto.0": "写真をまとめてアップロードする",
+  "howto.dupphoto.1": "似たもの同士のまとまりを見る",
+  "howto.dupphoto.2": "まとまりごとに残す一枚を選ぶ",
+  "howto.dupphoto.3": "残りは自分の機械で消す",
+  "howto.photomap.0": "写真をまとめてアップロードする",
+  "howto.photomap.1": "どこで・いつ撮ったかでまとまった結果を見る",
+  "howto.photomap.2": "日付と場所でたどって「あの旅行」を探す",
+  "howto.photomap.3": "必要なら一覧を書き出す",
+  "howto.tts.0": "読ませたい文章を貼る",
+  "howto.tts.1": "文で切られた結果と所要時間を確認する",
+  "howto.tts.2": "声と速さを選ぶ",
+  "howto.tts.3": "再生する — 一文ずつ渡して読ませます"
 }

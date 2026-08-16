@@ -572,5 +572,17 @@
   "howto.payslip.0": "연봉 또는 월급 넣기",
   "howto.payslip.1": "비과세(식대 등)와 부양가족 수 넣기",
   "howto.payslip.2": "세금·보험료가 각각 얼마인지 확인",
-  "howto.payslip.3": "실수령액과 적용 연도 확인"
+  "howto.payslip.3": "실수령액과 적용 연도 확인",
+  "howto.dupphoto.0": "사진 여러 장을 한꺼번에 올리기",
+  "howto.dupphoto.1": "닮은 것끼리 묶인 결과 보기",
+  "howto.dupphoto.2": "묶음마다 남길 한 장 고르기",
+  "howto.dupphoto.3": "나머지를 골라 지우기(내 컴퓨터에서)",
+  "howto.photomap.0": "사진 여러 장 올리기",
+  "howto.photomap.1": "찍은 자리와 때를 모아 묶은 결과 보기",
+  "howto.photomap.2": "날짜·자리로 훑어 그때 그 여행 찾기",
+  "howto.photomap.3": "필요하면 목록을 내보내기",
+  "howto.tts.0": "읽을 글 붙여넣기",
+  "howto.tts.1": "문장으로 잘린 결과와 걸리는 시간 확인",
+  "howto.tts.2": "목소리·속도 고르기",
+  "howto.tts.3": "재생 — 문장 하나씩 넘겨 읽습니다"
 }
