@@ -338,18 +338,35 @@ if (!CHECK) {
 }
 
 if (SEAL) {
-  const next = {};
+  /* ★ **전부에 도장을 찍는 자는 아무것도 못 지킨다** (2026-08-16, 실측). 여기는 낡은 열쇠 넉 장을
+     다시 옮기고 `--seal` 을 부르면 **13781개 전부**에 「원문과 맞다」 도장을 찍고 자물쇠를
+     통째로 덮어썼다. 그러면 여태 안 본 번역까지 한꺼번에 보증되어 「낡음」 경보가 조용히 죽는다 —
+     오늘 내가 그렇게 할 뻔했고(자물쇠 2252줄 → 27000줄) 되돌렸다.
+     이제 열쇠 이름을 주면 **그것만** 찍는다: `--seal tools.calc.description ...`.
+     이름을 안 주면 전과 같이 전부 — 처음 만들 때는 그게 맞다. */
+  const 찍을열쇠 = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  const 통째로 = 찍을열쇠.length === 0;
+  const next = 통째로 ? {} : JSON.parse(fs.existsSync(LOCK_PATH) ? fs.readFileSync(LOCK_PATH, 'utf8') : '{}');
+  let 찍은수 = 0;
   for (const l of LOCALES) {
     if (l.code === SOURCE_LOCALE) continue;
-    next[l.code] = {};
+    next[l.code] = next[l.code] || {};
     for (const [ns, cat] of Object.entries(source)) {
       for (const [k, srcText] of Object.entries(cat)) {
-        if (byLocale[l.code][ns]?.[k] != null) next[l.code][k] = fingerprint(srcText);
+        if (!통째로 && 찍을열쇠.includes(k) === false) continue;
+        if (byLocale[l.code][ns]?.[k] != null) {
+          next[l.code][k] = fingerprint(srcText);
+          찍은수 += 1;
+        }
       }
     }
   }
   fs.writeFileSync(LOCK_PATH, JSON.stringify(next, null, 2) + '\n', 'utf8');
-  console.log('[i18n] 도장 찍음 — i18n/.lock.json 갱신');
+  console.log(
+    통째로
+      ? '[i18n] 도장 찍음 (전부) — i18n/.lock.json 갱신'
+      : `[i18n] 도장 찍음 — 준 열쇠 ${찍을열쇠.length}개 · 실제로 찍은 자리 ${찍은수}개 (나머지는 그대로 둔다)`
+  );
 }
 
 /* ── ⑤ 보고 ─────────────────────────────────────────── */
