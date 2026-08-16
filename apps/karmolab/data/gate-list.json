@@ -137,6 +137,7 @@
     "test:search:docs",
     "test:search:lesson",
     "test:search:studymap",
-    "test:search:quality"
+    "test:search:quality",
+    "audit:tool-state"
   ]
 }

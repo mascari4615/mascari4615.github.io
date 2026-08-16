@@ -220,10 +220,6 @@
       "print": "hjubjl",
       "date": "2026-08-06"
     },
-    "json2ts": {
-      "print": "1tu2ewe",
-      "date": "2026-08-06"
-    },
     "colorblind": {
       "print": "27o0jm",
       "date": "2026-08-06"
@@ -487,6 +483,38 @@
     "arcade": {
       "print": "4cwbch",
       "date": "2026-08-13"
+    },
+    "semver": {
+      "print": "t3sawi",
+      "date": "2026-08-16"
+    },
+    "csp": {
+      "print": "rl4m7f",
+      "date": "2026-08-16"
+    },
+    "diff": {
+      "print": "1ymxttj",
+      "date": "2026-08-16"
+    },
+    "dutchpay": {
+      "print": "88jpcy",
+      "date": "2026-08-16"
+    },
+    "mermaidlite": {
+      "print": "1hagz9u",
+      "date": "2026-08-16"
+    },
+    "apitest": {
+      "print": "1j5gdd3",
+      "date": "2026-08-16"
+    },
+    "bgremove": {
+      "print": "981jdb",
+      "date": "2026-08-16"
+    },
+    "bundlemap": {
+      "print": "u0b781",
+      "date": "2026-08-16"
     }
   }
 }
