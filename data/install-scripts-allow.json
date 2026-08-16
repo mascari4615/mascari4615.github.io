@@ -3,7 +3,6 @@
   "esbuild"
  ],
  "apps/discord-bots": [
-  "@discordjs/opus",
   "esbuild",
   "ffmpeg-static",
   "youtube-dl-exec"
@@ -14,8 +13,8 @@
    "critical": 0
   },
   "apps/discord-bots": {
-   "high": 4,
-   "critical": 1
+   "high": 0,
+   "critical": 0
   }
  }
 }
