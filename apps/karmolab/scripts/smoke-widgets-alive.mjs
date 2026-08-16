@@ -65,8 +65,13 @@ if (전체.length < 10 && !준이름.length) {
 function 바뀐파일() {
   if (argv.includes('--all')) return null;
   try {
-    const 나온것 = execFileSync('git', ['diff', '--name-only', 'origin/master...HEAD'], { cwd: repoRoot, encoding: 'utf8' })
-      + execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
+    /* ★ 신호를 **세 곳**에서 모은다 (2026-08-17). CI 는 갓 꺼낸 체크아웃이라 `origin/master...HEAD`
+       가 비고, 그것만 보면 「손댄 것 0개」로 읽혀 이 검사가 CI 에서 234개를 매번 다 열거나
+       아예 안 돈다. **이 커밋이 무엇을 바꿨나**(HEAD~1..HEAD)가 CI 에서 가장 정직한 신호다. */
+    const 갈래 = execFileSync('git', ['diff', '--name-only', 'origin/master...HEAD'], { cwd: repoRoot, encoding: 'utf8' });
+    const 이커밋 = execFileSync('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' });
+    const 작업중 = execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
+    const 나온것 = (갈래.trim() ? 갈래 : 이커밋) + 작업중;
     return 나온것.split(NL).map((x) => x.trim().replace(/^[A-Z? ]{1,2} /, '')).filter(Boolean);
   } catch {
     return null; // 못 물어봤으면 좁히지 않는다
