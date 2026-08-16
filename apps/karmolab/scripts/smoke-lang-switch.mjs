@@ -14,6 +14,7 @@
  * 사용: node scripts/smoke-lang-switch.mjs
  */
 import { launchOrSkip } from './lib/browser.mjs';
+import { stripFrontMatter } from './lib/serve-html.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,8 +27,11 @@ const PORT = 8829;
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
-/* 앱을 그대로 띄우려면 주소 규칙(`/apps/karmolab/js/…`)이 살아 있어야 한다 —
-   레포 뿌리를 그대로 낸다. Jekyll 앞머리는 화면에 글자로 보이지만 동작에는 지장이 없다. */
+/* 앱을 그대로 띄우려면 주소 규칙(`/apps/karmolab/js/…`)이 살아 있어야 한다 — 레포 뿌리를 낸다.
+   ★ Jekyll 앞머리는 **떼고** 낸다 (2026-08-16). 예전 주석은 「글자로 보일 뿐 지장 없다」였는데
+     그건 head 안에 아무것도 중요한 게 없을 때 이야기였다. 앞머리가 글자로 읽히는 순간
+     `<head>` 가 닫힌 것으로 쳐져서, 그 안의 보안 meta(CSP)가 **head 밖**이 되어 무시된다 —
+     배포(Jekyll 이 떼고 냄)에서는 멀쩡한데 시험만 빨개졌다. 시험이 배포와 같은 모양을 봐야 한다. */
 const server = http.createServer((req, res) => {
   const url = decodeURIComponent(req.url.split('?')[0]);
   let file = path.join(repoRoot, url);
@@ -37,6 +41,10 @@ const server = http.createServer((req, res) => {
     return;
   }
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
+  if (path.extname(file) === '.html') {
+    res.end(stripFrontMatter(fs.readFileSync(file, 'utf8')));
+    return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 
