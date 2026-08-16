@@ -136,6 +136,13 @@ run('apps/karmolab build', 'apps/karmolab', 'npm run build');
 //
 // 그래서 **여기(push 전 verify)** 로 옮긴다 — 고칠 사람이 고칠 자리에서 여전히 빨갛고,
 // 사이트는 나간다.
+/* ★ **정문을 안 재고 품질을 말할 수 없다** (2026-08-16, 실측). 성능 예산 게이트는 화면 둘을
+   본다 — 앱 첫 화면과 **도구 한 장**. 그런데 CI 에서는 도구 장이 늘 「찍힌 페이지가 없다」로
+   건너뛰었다: 그 129장은 배포 단계에서만 찍히고 verify 는 안 찍기 때문이다.
+   그래서 **검색으로 들어오는 정문 129장**은 여기서 한 번도 재진 적이 없다.
+   46초를 더 쓰고 절반을 되찾는다(전체 15분 기준 +5%). */
+run('apps/karmolab 도구 장 찍기 (성능 게이트가 볼 것)', 'apps/karmolab', 'npm run gen:tool-pages');
+
 run('apps/karmolab 품질 래칫 (부팅·성능·누수)', 'apps/karmolab', 'npm run verify:quality');
 
 // 2.1. 도구 페이지가 앱 셸과 갈라졌는지 (KL-097).
