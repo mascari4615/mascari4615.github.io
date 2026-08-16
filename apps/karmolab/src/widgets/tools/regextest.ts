@@ -48,7 +48,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
               <div class="tool-chips" style="margin-top:10px;">
                 ${presets().map((p, i) => `<button type="button" class="tool-chip rx-preset" data-i="${i}">${p.label}</button>`).join('')}
               </div>
-              <div class="tool-status" style="margin-top:8px;">${esc(t('regextest.note.flags'))}</div>
+              <div class="tool-status" style="margin-top:var(--space-sm);">${esc(t('regextest.note.flags'))}</div>
             </div>
 
             <div class="tool-split">

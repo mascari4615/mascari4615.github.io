@@ -153,7 +153,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="field-group">
               <label class="field-label">${esc(t('hashgen.label.expect'))}</label>
               <input type="text" id="hfExpect" placeholder="${esc(t('hashgen.ph.expect'))}">
-              <div class="tool-status" id="hfMatch" style="margin-top:8px;"></div>
+              <div class="tool-status" id="hfMatch" style="margin-top:var(--space-sm);"></div>
             </div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

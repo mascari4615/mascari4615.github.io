@@ -214,7 +214,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
               <div id="pgWordOpts" style="display:none; margin-top:10px;">
                 <div class="tool-sublabel">${esc(t('passgen.label.chunks'))} <span id="pgWordsVal" class="range-value">${esc(t('passgen.label.chunksValue', { n: 4 }))}</span></div>
                 <input type="range" id="pgWords" aria-label="${esc(t('passgen.label.chunks'))}" min="3" max="8" value="5">
-                <div class="tool-status" style="margin-top:8px;">조각 사이는 - 로 잇고 끝에 숫자 두 자를 붙입니다. 소리 내어 읽히므로 외워집니다.</div>
+                <div class="tool-status" style="margin-top:var(--space-sm);">조각 사이는 - 로 잇고 끝에 숫자 두 자를 붙입니다. 소리 내어 읽히므로 외워집니다.</div>
               </div>
             </div>
 

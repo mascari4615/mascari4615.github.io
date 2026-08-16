@@ -68,7 +68,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <div id="ttLines" class="tool-list" style="max-height:260px; overflow:auto;"></div>
       <div class="tool-status" id="ttStatus">${esc(t('tts.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('tts.note.noSave'))}</p>
+      <p class="tool-hint">${esc(t('tts.note.noSave'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

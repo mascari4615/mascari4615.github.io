@@ -96,7 +96,7 @@ import { statusLine } from './shared/say';
             <div class="field-group" style="margin-top:var(--space-lg);">
               <label class="field-label" for="grCss">CSS</label>
               <textarea id="grCss" rows="4" spellcheck="false" style="width:100%;" readonly></textarea>
-              <button class="btn btn-ghost btn-sm" id="grCopy" style="margin-top:8px;">${esc(t('gradient.btn.copy'))}</button>
+              <button class="btn btn-ghost btn-sm" id="grCopy" style="margin-top:var(--space-sm);">${esc(t('gradient.btn.copy'))}</button>
             </div>
 
             <div class="tool-status" id="grStatus">${esc(t('gradient.status.idle'))}</div>

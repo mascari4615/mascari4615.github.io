@@ -84,6 +84,13 @@
 .cc-stat-primary .cc-stat-value { color: var(--accent); }
 
 /* ── 상태 줄 ── */
+/* 작은 회색 글 — 도구 열넷이 같은 두 줄을 손으로 적고 있었다 (TASK-KL-257).
+   「이건 보조 설명이다」라는 뜻이 클래스 이름에 남는다. 색·크기를 바꾸려면 여기 한 곳. */
+.tool-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
 /* 체크박스·라디오는 **넓히지 않는다** (TASK-KL-257).
    도구 스무 곳이 `style="width:auto"` 를 손으로 붙여 막고 있었다 — 어느 규칙이 넓히는지는
    도구마다 다를 수 있고, 그걸 각자 방어하면 하나가 빠졌을 때 그 도구만 이상해진다.

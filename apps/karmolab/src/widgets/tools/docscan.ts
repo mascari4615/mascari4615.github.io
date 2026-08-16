@@ -70,7 +70,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <button class="btn btn-ghost" id="dsPdf">${esc(t('docscan.btn.pdf'))}</button>
       </div>
       <div class="tool-status" id="dsStatus">${esc(t('docscan.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('docscan.note.manual'))}</p>
+      <p class="tool-hint">${esc(t('docscan.note.manual'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

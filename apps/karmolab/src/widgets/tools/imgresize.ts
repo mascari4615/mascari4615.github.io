@@ -108,7 +108,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div id="irSideWrap" style="margin-top:10px;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.side'))} <span id="irSideVal" class="range-value">1024px</span></div>
                 <input type="range" id="irSide" aria-label="긴 변 크기" min="200" max="4000" step="20" value="1024">
-                <div class="tool-chips" style="margin-top:8px;">
+                <div class="tool-chips" style="margin-top:var(--space-sm);">
                   <button type="button" class="tool-chip" data-side="640">640</button>
                   <button type="button" class="tool-chip" data-side="1024">1024</button>
                   <button type="button" class="tool-chip" data-side="1920">1920</button>
@@ -120,7 +120,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div id="irPercentWrap" style="display:none; margin-top:10px;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.percent'))} <span id="irPercentVal" class="range-value">50%</span></div>
                 <input type="range" id="irPercent" aria-label="원본 대비 비율 (%)" min="5" max="200" step="5" value="50">
-                <div class="tool-chips" style="margin-top:8px;">
+                <div class="tool-chips" style="margin-top:var(--space-sm);">
                   <button type="button" class="tool-chip" data-pct="25">25%</button>
                   <button type="button" class="tool-chip" data-pct="50">50%</button>
                   <button type="button" class="tool-chip" data-pct="75">75%</button>
@@ -130,7 +130,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div id="irBytesWrap" style="display:none; margin-top:10px;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.bytes'))} <span id="irBytesVal" class="range-value">1MB</span></div>
                 <input type="range" id="irBytes" aria-label="목표 용량" min="1" max="20" value="4">
-                <div class="tool-status" style="margin-top:8px;">${esc(t('imgresize.hint.bytes'))}</div>
+                <div class="tool-status" style="margin-top:var(--space-sm);">${esc(t('imgresize.hint.bytes'))}</div>
               </div>
 
               <div class="tool-grid-2" style="margin-top:10px;">

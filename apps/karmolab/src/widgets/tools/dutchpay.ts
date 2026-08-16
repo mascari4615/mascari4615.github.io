@@ -52,8 +52,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 알리사:9000:윤,링:택시</textarea>
         </div>
       </div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('dutchpay.hint.format'))}</p>
-      <div class="tool-grid-2" style="margin-top:8px;">
+      <p class="tool-hint">${esc(t('dutchpay.hint.format'))}</p>
+      <div class="tool-grid-2" style="margin-top:var(--space-sm);">
         <div>
           <div class="tool-sublabel">${esc(t('dutchpay.label.shares'))}</div>
           <div id="dpShares" class="tool-list"></div>
