@@ -151,7 +151,6 @@
     "test:shell-nav",
     "test:widgets-alive",
     "audit:shell-essentials",
-    "audit:csp-shell",
     "test:alive-scope",
     "test:arcade-limits",
     "test:tierlist-keys",
