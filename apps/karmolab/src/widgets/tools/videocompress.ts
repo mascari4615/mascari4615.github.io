@@ -78,7 +78,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               <div class="cc-stats" id="vcStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="vcRun">${esc(t('videocompress.btn.run'))}</button>
                 <button class="btn btn-ghost" id="vcStop" style="display:none;">${esc(t('videocompress.btn.stop'))}</button>
                 <button class="btn btn-ghost" id="vcSave" disabled>${esc(t('videocompress.btn.save'))}</button>

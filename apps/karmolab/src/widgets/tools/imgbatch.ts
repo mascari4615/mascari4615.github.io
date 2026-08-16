@@ -82,7 +82,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               <p class="tool-list-dim" style="margin-top:6px;">${esc(t('imgbatch.preview.how'))}</p>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="ibRun">${esc(t('imgbatch.btn.run'))}</button>
               <button class="btn btn-ghost" id="ibZip">${esc(t('imgbatch.btn.zip'))}</button>
               <button class="btn btn-ghost" id="ibClear">${esc(t('imgbatch.btn.clear'))}</button>

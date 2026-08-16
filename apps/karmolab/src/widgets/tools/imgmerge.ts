@@ -78,7 +78,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="cc-stats" id="imStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="imRun">${esc(t('imgmerge.btn.run'))}</button>
               <button class="btn btn-ghost" id="imClear">${esc(t('imgmerge.btn.clear'))}</button>
             </div>

@@ -99,7 +99,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
 
             <div class="cc-stats" id="pcStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="pcRun" disabled>${esc(t('pdfcrop.btn.run'))}</button>
             </div>
 

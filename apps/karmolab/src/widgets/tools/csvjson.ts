@@ -51,7 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <label class="field-label">${esc(t('csvjson.label.csv'))}</label>
               <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="${esc(t('csvjson.ph.csv'))}"></textarea>
             </div>
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <!-- 방향 단추를 없앴다. **고친 쪽이 곧 방향**이다 — CSV 를 고치면 JSON 이,
                    JSON 을 고치면 CSV 가 따라온다 (TASK-KL-133). -->
               <button class="btn btn-ghost" id="cjCopy">${esc(t('csvjson.btn.copy'))}</button>

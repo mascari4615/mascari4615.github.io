@@ -56,7 +56,7 @@ import { download } from './shared/image';
         <div class="tool-sublabel" id="pmMapTitle"></div>
         <div class="pm-legend">${esc(t('papermap.legend', undefined, '큰 것 = 많이 인용된 것(이 분야의 바닥) · 왼쪽 = 옛 논문'))}</div>
         <svg id="pmMap" class="pm-map" role="img"></svg>
-        <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+        <div class="tool-actions">
           <button class="btn" id="pmExport">${esc(t('papermap.btn.export', undefined, '캔버스로 내보내기'))}</button>
         </div>
       </div>

@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               </div>
 
               <div class="cc-stats" id="acStats"></div>
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-ghost" id="acPreview">${esc(t('audiocut.btn.preview'))}</button>
                 <button class="btn btn-primary" id="acSave">${esc(t('audiocut.btn.save'))}</button>
                 <select id="acFormat" aria-label="${esc(t('audiocut.label.format'))}"><option value="mp3">${esc(t('audiocut.format.mp3'))}</option><option value="wav">${esc(t('audiocut.format.wav'))}</option></select>

@@ -151,7 +151,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="cc-stats" id="irStats"></div>
             <img id="irPreview" alt="바뀐 사진 미리보기" style="max-width:100%; border-radius:10px; display:none; margin-bottom:var(--space-lg);">
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="irRun" disabled>${esc(t('imgresize.btn.run'))}</button>
               <button class="btn btn-ghost" id="irSave" disabled>${esc(t('imgresize.btn.save'))}</button>
             </div>

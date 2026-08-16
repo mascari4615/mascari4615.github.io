@@ -92,7 +92,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="cc-swatch-row" id="plSwatches"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-ghost" id="plCopyHex">${esc(t('palette.btn.hex'))}</button>
               <button class="btn btn-ghost" id="plCopyCss">${esc(t('palette.btn.css'))}</button>
             </div>

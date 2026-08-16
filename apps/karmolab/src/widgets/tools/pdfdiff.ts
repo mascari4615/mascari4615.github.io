@@ -193,10 +193,10 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               </div>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="pdRun">${esc(t('pdfdiff.btn.run'))}</button>
               <button class="btn btn-ghost" id="pdSwap">A ↔ B</button>
-              <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+              <label class="tool-checkline">
                 <input type="checkbox" id="pdOnlyChanged" style="width:auto;" checked> ${esc(t('pdfdiff.opt.onlyChanged'))}
               </label>
             </div>

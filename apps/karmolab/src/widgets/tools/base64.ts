@@ -43,7 +43,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <input type="checkbox" id="b6Url"> ${esc(t('base64.opt.urlSafe'))}
               </label>
             </div>
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-ghost" id="b6CopyCode">${esc(t('base64.btn.copyCode'))}</button>
               <button class="btn btn-ghost" id="b6CopyText">${esc(t('base64.btn.copyText'))}</button>
               <button class="btn btn-ghost" id="b6CopyLink">${esc(t('base64.btn.copyLink'))}</button>

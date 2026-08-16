@@ -93,7 +93,7 @@ import { encode } from './shared/image';
               </div>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="pwRun">${esc(t('pdfwatermark.btn.run'))}</button>
             </div>
             <div class="tool-status" id="pwStatus">${esc(t('pdfwatermark.status.idle'))}</div>

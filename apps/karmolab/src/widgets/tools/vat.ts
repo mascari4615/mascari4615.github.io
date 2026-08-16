@@ -53,7 +53,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
             <div class="cc-stats" id="vaStats"></div>
             <div class="tool-list" id="vaOut"></div>
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-ghost" id="vaCopy">${esc(t('vat.btn.copy'))}</button>
             </div>
             <div class="field-group">

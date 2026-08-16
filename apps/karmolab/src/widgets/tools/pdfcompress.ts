@@ -78,7 +78,7 @@ import { attachImage, encode } from './shared/image';
                 </div>
               </div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-ghost" id="pcPreview">${esc(t('pdfcompress.btn.preview'))}</button>
                 <button class="btn btn-primary" id="pcRun">${esc(t('pdfcompress.btn.run'))}</button>
                 <button class="btn btn-ghost" id="pcSave" disabled>${esc(t('pdfcompress.btn.save'))}</button>

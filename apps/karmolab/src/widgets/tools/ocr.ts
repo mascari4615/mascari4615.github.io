@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <option value="ja">日本語</option>
           </select>
         </div>
-        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+        <label class="tool-checkline">
           <input type="checkbox" id="ocClean" name="clean" style="width:auto;" checked> ${esc(t('ocr.opt.clean'))}
         </label>
         <button class="btn btn-primary" id="ocRead">${esc(t('ocr.btn.read'))}</button>

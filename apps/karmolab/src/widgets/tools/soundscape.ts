@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <div id="ssLayers" class="tool-grid-2"></div>
       </div>
 
-      <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+      <div class="tool-actions">
         <button class="btn btn-primary" id="ssPower">${esc(t('soundscape.btn.on', undefined, '틀기'))}</button>
         <button class="btn" id="ssSilence">${esc(t('soundscape.btn.clear', undefined, '전부 0으로'))}</button>
       </div>

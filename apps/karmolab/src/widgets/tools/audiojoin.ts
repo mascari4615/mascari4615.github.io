@@ -47,7 +47,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div class="cc-stats" id="ajStats"></div>
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="ajRun">${esc(t('audiojoin.btn.run'))}</button>
               <select id="ajFormat" aria-label="${esc(t('audiojoin.label.format'))}"><option value="mp3">${esc(t('audiojoin.format.mp3'))}</option><option value="wav">${esc(t('audiojoin.format.wav'))}</option></select>
               <button class="btn btn-ghost" id="ajClear">${esc(t('audiojoin.btn.clear'))}</button>

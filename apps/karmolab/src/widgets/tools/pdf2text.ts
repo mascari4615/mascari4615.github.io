@@ -115,7 +115,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
               <div class="cc-stats" id="ptStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="ptRun">${esc(t('pdf2text.btn.run'))}</button>
                 <button class="btn btn-ghost" id="ptCopy" disabled>${esc(t('pdf2text.btn.copy'))}</button>
                 <button class="btn btn-ghost" id="ptSave" disabled>${esc(t('pdf2text.btn.save'))}</button>

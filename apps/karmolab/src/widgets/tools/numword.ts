@@ -117,7 +117,7 @@ import { markLive } from './shared/say';
                 <input type="checkbox" id="nwFormal"> ${esc(t('numword.opt.formal'))}
               </label>
             </div>
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-ghost" id="nwCopyKor">${esc(t('numword.btn.copyKor'))}</button>
               <button class="btn btn-ghost" id="nwCopyMoney">${esc(t('numword.btn.copyMoney'))}</button>
               <button class="btn btn-ghost" id="nwClear">${esc(t('numword.btn.clear'))}</button>

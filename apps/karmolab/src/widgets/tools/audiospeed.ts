@@ -120,7 +120,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <audio id="asPlay" controls style="width:100%; display:none; margin-bottom:var(--space-lg);"></audio>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="asRun" disabled>${esc(t('audiospeed.btn.run'))}</button>
               <button class="btn btn-ghost" id="asSave" disabled>${esc(t('audiospeed.btn.save'))}</button>
             </div>

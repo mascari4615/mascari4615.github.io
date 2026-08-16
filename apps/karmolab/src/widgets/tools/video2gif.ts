@@ -111,7 +111,7 @@ import { attachImage } from './shared/image';
 
               <div class="cc-stats" id="vgStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="vgRun">${esc(t('video2gif.btn.run'))}</button>
                 <button class="btn btn-ghost" id="vgSave" disabled>${esc(t('video2gif.btn.save'))}</button>
               </div>

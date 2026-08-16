@@ -202,7 +202,7 @@ import { markLive } from './shared/say';
               <button class="btn btn-ghost" id="gtRestart">${esc(t('ghosttype.btn.restart'))}</button>
               <button class="btn btn-ghost" id="gtNextText">${esc(t('ghosttype.btn.next'))}</button>
               <button class="btn btn-ghost" id="gtOwnToggle">${esc(t('ghosttype.btn.own'))}</button>
-              <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+              <label class="tool-checkline">
                 ${esc(t('ghosttype.label.name'))} <input type="text" id="gtName" maxlength="12" placeholder="${esc(
                   t('ghosttype.name.default')
                 )}" style="width:110px;" aria-label="${esc(t('ghosttype.aria.name'))}">

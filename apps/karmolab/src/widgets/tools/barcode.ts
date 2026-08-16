@@ -128,7 +128,7 @@ import { markLive } from './shared/say';
 
             <div class="cc-stats" id="bcStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="bcSave">${esc(t('barcode.btn.save'))}</button>
             </div>
 

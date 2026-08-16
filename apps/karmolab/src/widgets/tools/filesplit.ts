@@ -74,7 +74,7 @@ import { download } from './shared/image';
             <div class="cc-stats" id="fsStats"></div>
             <div class="tool-list" id="fsList"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="fsRun">${esc(t('filesplit.mode.split'))}</button>
               <button class="btn btn-ghost" id="fsClear">${esc(t('filesplit.btn.clear'))}</button>
             </div>

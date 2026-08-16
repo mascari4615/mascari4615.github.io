@@ -97,7 +97,7 @@ import { markLive } from './shared/say';
               </div>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-ghost" id="rxClear">${esc(t('radix.btn.clear'))}</button>
               <button class="btn btn-ghost" data-preset="255">255</button>
               <button class="btn btn-ghost" data-preset="1024">1024</button>

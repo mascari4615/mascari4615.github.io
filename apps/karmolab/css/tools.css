@@ -84,6 +84,28 @@
 .cc-stat-primary .cc-stat-value { color: var(--accent); }
 
 /* ── 상태 줄 ── */
+/* 도구 화면의 되풀이 레이아웃 — 인라인 style 을 여기로 모은다 (TASK-KL-257).
+   왜: 같은 뜻의 style 이 도구마다 손으로 적혀 있으면 **톤을 한 번에 못 바꾼다**.
+   실측 2026-08-16: 인라인 style 이 115파일 650곳. 그중 뜻이 또렷한 둘을 먼저 올린다
+   (단추 줄 50곳 · 체크박스 한 줄 18곳). 나머지는 상태 토글(display:none 70곳)이라
+   JS 와 얽혀 있어 따로 본다. */
+.tool-actions {
+    display: flex;
+    gap: 6px;
+    margin: var(--space-lg) 0;
+    flex-wrap: wrap;
+}
+.tool-actions.tight {
+    margin: 0 0 var(--space-lg);
+}
+.tool-checkline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
 .tool-status {
     font-size: var(--font-size-xs);
     color: var(--text-tertiary);

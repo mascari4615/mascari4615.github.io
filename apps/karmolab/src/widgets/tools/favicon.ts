@@ -111,7 +111,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div class="tool-sublabel">${esc(t('favicon.label.preview'))}</div>
               <div id="fvPreview" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; background:var(--surface-2, #1a1a1a); padding:14px; border-radius:8px;"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="fvRun">${esc(t('favicon.btn.zip'))}</button>
                 <button class="btn btn-ghost" id="fvIco">${esc(t('favicon.btn.ico'))}</button>
               </div>

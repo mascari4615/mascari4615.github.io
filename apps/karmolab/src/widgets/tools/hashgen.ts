@@ -72,7 +72,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="field-group">
               <div class="field-row" style="margin-bottom:8px;">
                 <label class="field-label" style="margin:0;">${esc(t('hashgen.label.out'))}</label>
-                <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+                <label class="tool-checkline">
                   <input type="checkbox" id="hgUpper" style="width:auto;"> ${esc(t('hashgen.opt.upper'))}
                 </label>
               </div>
