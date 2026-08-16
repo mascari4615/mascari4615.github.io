@@ -29,6 +29,14 @@ const SAMPLE = ['loan', 'charcount', 'jsonfmt', 'qrgen'].filter((id) => ids.incl
 const browser = await chromium.launch();
 const problems = [];
 const seen = [];
+/* ★ **「한 줄도 안 쓰인다」만 보면 늘어나는 것을 못 잡는다** (2026-08-17). 실측: 도구 장이
+   첫 그림 전에 기다리는 스타일이 163KB 인데 그중 85%가 그 장에서 안 쓰인다(TASK-KL-323).
+   그건 「0% 짜리 파일」이 아니라 **덩치**의 문제라 지금 판정으로는 영영 안 걸린다.
+   줄이는 일은 그 TASK 몫이고, 여기서는 **더 늘지 않게** 톱니를 건다. */
+const 총량 = {};
+const 여기 = path.dirname(fileURLToPath(import.meta.url));
+const BASELINE_TOTAL = path.join(여기, '..', 'data', 'blocking-css-total.json');
+const 총량기준선 = fs.existsSync(BASELINE_TOTAL) ? JSON.parse(fs.readFileSync(BASELINE_TOTAL, 'utf8')) : { 목록: {} };
 
 for (const id of SAMPLE) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, serviceWorkers: 'block' });
@@ -79,16 +87,19 @@ for (const id of SAMPLE) {
   const blocking = 잰것.length > 0 ? 잰막는것 : 추론막는것;
   if (잰것.length === 0) console.log('[audit-blocking-css] 이 브라우저가 renderBlockingStatus 를 안 준다 — 옛 추론으로 잰다');
 
+  let 막는바이트 = 0;
   for (const url of blocking) {
     const e = cov.find((c) => c.url === url);
     if (!e || !e.text.length) continue;
     const used = e.ranges.reduce((s, r) => s + r.end - r.start, 0);
     const name = url.split('/').pop().split('?')[0];
+    막는바이트 += e.text.length;
     seen.push(`${id}/${name} ${((used / e.text.length) * 100).toFixed(0)}%`);
     if (used === 0) {
       problems.push(`${id} 페이지 — 「${name}」(${(e.text.length / 1024).toFixed(1)}KB) 이 한 줄도 안 쓰이는데 첫 화면을 막는다`);
     }
   }
+  총량[id] = 막는바이트;
   await ctx.close();
 }
 await browser.close();
@@ -97,6 +108,22 @@ if (!seen.length) {
   console.error('[audit-blocking-css] 잰 것이 하나도 없다 — 주소가 맞는지, 스타일이 실리는지 보라');
   process.exit(1);
 }
+/* 톱니 — 기준선보다 늘면 빨강(줄면 조이라고 말한다). 늘 초록인 검사는 검사가 아니다. */
+const 늘어난것 = [];
+const 줄어든것 = [];
+for (const [id, 값] of Object.entries(총량)) {
+  const 전 = 총량기준선.목록?.[id];
+  if (typeof 전 !== 'number') { 늘어난것.push(`${id} — 기준선에 없다(${(값 / 1024).toFixed(0)}KB) · --bless 로 적어라`); continue; }
+  if (값 > 전 + 2048) 늘어난것.push(`${id} — 첫 그림에 기다리는 스타일이 ${(전 / 1024).toFixed(0)}KB → ${(값 / 1024).toFixed(0)}KB 로 늘었다`);
+  else if (값 < 전 - 2048) 줄어든것.push(`${id} ${(전 / 1024).toFixed(0)}→${(값 / 1024).toFixed(0)}KB`);
+}
+if (process.argv.includes('--bless')) {
+  fs.writeFileSync(BASELINE_TOTAL, JSON.stringify({ 설명: '도구 장이 첫 그림 전에 기다리는 스타일 바이트 — 늘면 빨강 (TASK-KL-323 이 줄인다)', 갱신: new Date().toISOString().slice(0, 10), 목록: 총량 }, null, 2) + String.fromCharCode(10));
+  console.log(`[audit-blocking-css] 총량 기준선을 적었다 — ${Object.entries(총량).map(([k, v]) => `${k} ${(v / 1024).toFixed(0)}KB`).join(' · ')}`);
+}
+if (줄어든것.length) console.log('[audit-blocking-css] 줄었다 — ' + 줄어든것.join(' · ') + ' · --bless 로 기준선을 조여라');
+for (const one of 늘어난것) problems.push(one);
+
 if (problems.length) {
   console.error(`[audit-blocking-css] 안 쓰는데 첫 화면을 막는 스타일 ${problems.length}건`);
   problems.forEach((p) => console.error('  - ' + p));
