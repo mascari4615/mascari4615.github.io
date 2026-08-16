@@ -138,6 +138,13 @@ if (todo.some((c) => c.needsServer)) {
     console.log('[verify:live] 서버 준비됨');
   }
 }
+/* ★ **빨강 줄이 「어느 판을 잰 것인지」를 스스로 말해야 한다** (2026-08-17).
+   아래에서 판을 견줘 놓고 그 결과를 **맨 위 안내에만** 찍었다. 그런데 사람이 읽는 것은
+   맨 끝의 빨강 목록이고, 로그가 길어 위쪽은 안 본다 — 오늘만 세 번, 이미 고친 결함을
+   다시 쫓아갔다(재던 판이 고침 전이었다). 견준 값을 들고 있다가 빨강 줄 옆에 같이 적는다. */
+let 재던판 = '';
+let 이자리판 = '';
+
 const stopServer = () => { if (server) { try { server.kill(); } catch { /* 이미 죽음 */ } server = null; } };
 process.on('exit', stopServer);
 
@@ -161,6 +168,8 @@ if (todo.some((c) => c.live)) {
     if (res.ok) {
       const served = String((await res.json()).commit || '').slice(0, 8);
       const here = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim().slice(0, 8) || '(모름)';
+      재던판 = served || '(모름)';
+      이자리판 = here;
       console.log(`[verify:live] 지금 재는 판 = ${served} · 이 자리의 판 = ${here}`);
       if (served && here !== '(모름)' && served !== here) {
         const ahead = spawnSync('git', ['merge-base', '--is-ancestor', served, here]);
@@ -217,7 +226,13 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 }
 
 if (red.length) {
-  console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**:`);
+  const 판정보 =
+    재던판 && 이자리판 && 재던판 !== 이자리판
+      ? ` · ⚠ 잰 것은 **실사이트에 올라간 판 ${재던판}** 이고 이 자리는 ${이자리판} 이다 — 이미 고친 것이 여기 뜰 수 있다`
+      : 재던판
+        ? ` · 잰 판 ${재던판}(이 자리와 같다)`
+        : '';
+  console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**${판정보}:`);
   for (const r of red) console.error(`  - ${r.name}`);
   console.error('  위 로그에서 각 검사가 스스로 말한 사유를 봐라. 하나씩 고치고 또 10분 기다리지 마라.');
 }
