@@ -65,7 +65,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               </div>
             </div>
 
-            <div class="cc-stats" id="itStats"></div>
+            <div class="cc-stats cc-stats-early" id="itStats"></div>
             <div class="tool-list" id="itDetail"></div>
             <div class="tool-status" id="itStatus"></div>
           `;

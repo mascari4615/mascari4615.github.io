@@ -51,7 +51,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               <input type="number" id="vaRate" aria-label="${esc(t('vat.label.rate'))}" value="10" step="0.1" min="0">
             </div>
 
-            <div class="cc-stats" id="vaStats"></div>
+            <div class="cc-stats cc-stats-early" id="vaStats"></div>
             <div class="tool-list" id="vaOut"></div>
             <div class="tool-actions">
               <button class="btn btn-ghost" id="vaCopy">${esc(t('vat.btn.copy'))}</button>

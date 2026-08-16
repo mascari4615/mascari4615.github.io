@@ -40,7 +40,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <textarea id="grList" rows="8" spellcheck="false" placeholder="3 A+&#10;3 B0&#10;2 A0&#10;1 B+"></textarea>
             </div>
 
-            <div class="cc-stats" id="grStats"></div>
+            <div class="cc-stats cc-stats-early" id="grStats"></div>
             <div class="tool-list" id="grOut"></div>
 
             <div class="field-group" style="margin-top:var(--space-xl);">

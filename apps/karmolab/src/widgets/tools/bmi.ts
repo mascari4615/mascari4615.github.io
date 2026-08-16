@@ -109,7 +109,7 @@ import { region, isMetric } from '../../lib/region';
               </div>
               <div class="bmi-pin" id="bmPin"></div>
             </div>
-            <div class="cc-stats" id="bmStats"></div>
+            <div class="cc-stats cc-stats-early" id="bmStats"></div>
             <div class="tool-list" id="bmDetail"></div>
             <div class="tool-status" id="bmStatus"></div>
           `;
