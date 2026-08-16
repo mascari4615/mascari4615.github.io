@@ -290,5 +290,11 @@
   "tools.bgremove.description": "Removes solid or near-solid backgrounds. It only eats colour that is connected to the edge, so a shirt the same colour as the background is not punched through.",
   "tools.bgremove.lead": "ID photos · product shots · scans · download as transparent PNG",
   "tools.bundlemap.description": "Reads a webpack stats.json or an esbuild metafile and shows what is heavy, as a folder tree drawn by area. It also finds packages that got bundled twice.",
-  "tools.bundlemap.lead": "webpack · esbuild · heaviest paths · duplicate packages"
+  "tools.bundlemap.lead": "webpack · esbuild · heaviest paths · duplicate packages",
+  "tools.erd.description": "Paste CREATE TABLE statements or a Prisma schema and it draws how the tables reference each other, so you can see at a glance which table points where.",
+  "tools.erd.lead": "DDL · Prisma · entity relationships · export as mermaid",
+  "tools.curlkit.description": "Turns a curl command somebody handed you into code in your own language — fetch, axios, python, go, node or httpie.",
+  "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · no lost quotes or headers",
+  "tools.docscan.description": "Straightens a document photographed at an angle back into a proper rectangle, then cleans it up so it looks scanned.",
+  "tools.docscan.lead": "Drag four corners · undo the perspective · scan look · fit to A4"
 }

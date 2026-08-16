@@ -25,19 +25,30 @@ function walk(dir, out) {
   }
 }
 
-const files = [];
-walk(root, files);
-if (files.length === 0) {
-  console.error('[csp-meta] 못 쟀다 — 볼 .html 이 없다.');
+/* ★ **정말 나가는 장을 보려면 지어진 자리를 봐야 한다** (2026-08-16).
+   여기는 `apps/karmolab` 만 훑는다 — 사람이 검색으로 처음 밟는 도구 상세 129장은
+   찍혀서 다른 나무로 간다. 그래서 폴더를 인자로 받는다:
+     node scripts/audit-csp-meta.mjs <지어진 폴더>
+   배포에서 사이트를 지은 **직후** 그 폴더로 한 번 더 부른다(사이트맵 검사와 같은 자리).
+   저장소 안의 `apps/blog/karmolab/**` 사본을 훑지 않는 이유: 그건 배포 때 다시 찍히는
+   **낡은 사본**이라, 여기서 보면 없는 병을 17건 만들어 낸다(실측 — 실사이트는 전부 멀쩡했다). */
+/* 폴더를 **여럿** 받는다 — 지어진 사이트에서 우리 앱이 사는 자리가 둘이다
+   (`/karmolab/**` 찍힌 장 · `/apps/karmolab/**` 앱 알맹이). */
+const targets = (process.argv.length > 2 ? process.argv.slice(2) : [root]).map((d) => path.resolve(d));
+const 없는것 = targets.filter((d) => fs.existsSync(d) === false);
+if (없는것.length > 0) {
+  console.error(`[csp-meta] CANNOT-RUN: 볼 폴더가 없다 — ${없는것.join(', ')}`);
   process.exit(2);
 }
+const files = [];
+for (const t of targets) walk(t, files);
 
 const missing = [];
 for (const f of files) {
   const src = fs.readFileSync(f, 'utf8');
   /* 넘김: 곧바로 다른 데로 보내는 안내판(refresh)은 내용이 없다. */
   if (/<meta\s+http-equiv="refresh"/i.test(src)) continue;
-  if (src.includes(CSP_CONTENT) === false) missing.push(path.relative(root, f).split(path.sep).join('/'));
+  if (src.includes(CSP_CONTENT) === false) missing.push(path.relative(targets[0], f).split(path.sep).join('/'));
 }
 
 if (missing.length > 0) {

@@ -29,6 +29,10 @@ on:
   # 한 시간에 한 번 무조건 띄워 본다 (이번 사고도 캔버스 파일 밖에서 시작됐다).
   schedule:
     - cron: "23 * * * *"
+    # ★ **흔들리는 판을 잡는 자의 집** (2026-08-16). 여러 판 돌려 「한 번이라도 빨개진 항목」을
+    #   세는 검사는 16분이 걸린다. 한 시간짜리 라이브 판에 넣었더니 그 조각이 40분 지붕의
+    #   71% 를 썼다(실측 28.3분). 흔들림 통계는 하루 한 번이면 충분하다 — 이 줄이 그 자리다.
+    - cron: "23 17 * * *"
   workflow_dispatch:
 
 # ★ 앞 실행을 **취소하지 않는다** (2026-08-12).
@@ -70,6 +74,14 @@ jobs:
         timeout-minutes: 15
         run: npm run verify:karmograph
 
+
+      # 하루 한 번만: 같은 화면을 세 판 돌려 **한 번이라도** 빨개진 항목을 센다.
+      # 「흔들린다」를 진단으로 안 쓰려고 만든 자다 — 2026-08-13 에 그렇게 재 보니 flaky 가
+      # 아니라 제품 결함이었다(카드를 고르면 판이 튀어 손잡이가 도망갔다).
+      - name: 판마다 흔들리는지 (하루 한 번)
+        if: github.event.schedule == '23 17 * * *'
+        working-directory: apps/karmolab
+        run: npm run test:karmograph:repeat
       - name: 깨진 화면 남기기
         if: failure()
         uses: actions/upload-artifact@v4
