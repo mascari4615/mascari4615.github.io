@@ -62,8 +62,22 @@ for (const l of LOCALES) {
   }
 }
 
+/* ★ **「건너뜀」과 「통과」는 다르다** (2026-08-16).
+   여기는 대상이 0 이면 무조건 exit 0 이었다. 그런데 0 이 되는 길은 둘이고 뜻이 정반대다:
+     ① 다국어 장이 아직 안 찍혔다 — 이 검사가 할 일이 없는 게 맞다(장은 배포에서 찍힌다).
+     ② 장은 찍혀 있는데 대상이 0 — 찾는 자리가 어긋난 것이다. 그건 **못 돌린 것**이다.
+   ②를 초록으로 넘기면 「다른 언어 화면이 그 언어로 나오는지」를 아무도 안 보게 된다. */
 if (!targets.length) {
-  console.log('[widget-i18n] 대상 없음 (도구 말 묶음이 아직 없거나 장이 안 찍혔다) — 건너뜀');
+  const 다국어장 = LOCALES.filter((l) => l.code !== SOURCE_LOCALE).some((l) =>
+    fs.existsSync(path.join(appRoot, '../blog', localizedPath('/karmolab/t/', l.code).replace(/^\//, ''))),
+  );
+  if (다국어장) {
+    console.error('[widget-i18n] CANNOT-RUN: 다국어 도구 장은 찍혀 있는데 볼 대상이 0 건이다');
+    console.error('  → 말 묶음 이름과 장 주소가 어긋났다(둘 중 한쪽 규칙이 바뀐 것).');
+    console.error('  → 0 건은 통과가 아니다.');
+    process.exit(2);
+  }
+  console.log('[widget-i18n] 대상 없음 — 다국어 장이 아직 안 찍혔다(배포에서 찍힌다). 통과가 아니라 건너뜀이다.');
   process.exit(0);
 }
 
