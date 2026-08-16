@@ -54,6 +54,16 @@ if (몸통들.length === 0) {
   process.exit(2);
 }
 
+/* ★ **나갈 때 글자가 바뀌면 지문이 안 맞는다** (2026-08-17 실측). 이 화면은 Jekyll 을 지나며
+   `{{ … }}`(리퀴드)를 값으로 바꾼다 — 소스로 찍은 지문은 그 줄에서 어긋나고, 그 스크립트는
+   **조용히 막힌다**(서비스워커 등록이 그렇게 죽을 뻔했다). 그런 자리가 있으면 아예 안 찍는다. */
+const 리퀴드 = 몸통들.filter((b) => b.includes('{{') || b.includes('{%'));
+if (리퀴드.length) {
+  console.error(`[csp-shell] ❌ 인라인 스크립트 ${리퀴드.length}개에 리퀴드가 들어 있다 — 나갈 때 글자가 바뀌어 지문이 안 맞는다.`);
+  console.error('  고치기: 그 값을 고정 문자열로 적어라(이 저장소는 baseurl 이 비어 있다).');
+  process.exit(1);
+}
+
 const 지문들 = 몸통들.map((b) => `'sha256-${crypto.createHash('sha256').update(b, 'utf8').digest('base64')}'`);
 const 유일 = [...new Set(지문들)];
 /* `'self'` = 우리 파일 · `'inline-speculation-rules'` = 미리읽기 규칙 · 나머지는 지문. */
