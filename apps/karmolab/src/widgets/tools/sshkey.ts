@@ -59,7 +59,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <textarea id="skOut" name="out" aria-label="${esc(t('sshkey.aria.out'))}" class="mono-input" readonly style="min-height:80px;"></textarea>
       <div class="tool-status" id="skStatus">${esc(t('sshkey.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('sshkey.note.local'))}</p>
+      <p class="tool-hint">${esc(t('sshkey.note.local'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

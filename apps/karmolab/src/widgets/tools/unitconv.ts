@@ -235,12 +235,12 @@ import { readInvocation } from '../../lib/tool-url';
                 <div>
                   <div class="tool-sublabel">${esc(t('unitconv.label.value'))}</div>
                   <input type="text" id="ucValue" aria-label="${esc(t('unitconv.label.value'))}" inputmode="decimal" value="1">
-                  <select id="ucFrom" aria-label="${esc(t('unitconv.label.from'))}" style="margin-top:8px;"></select>
+                  <select id="ucFrom" aria-label="${esc(t('unitconv.label.from'))}" style="margin-top:var(--space-sm);"></select>
                 </div>
                 <div>
                   <div class="tool-sublabel">${esc(t('unitconv.label.result'))}</div>
                   <input type="text" id="ucResult" aria-label="${esc(t('unitconv.label.result'))}" readonly>
-                  <select id="ucTo" aria-label="${esc(t('unitconv.label.to'))}" style="margin-top:8px;"></select>
+                  <select id="ucTo" aria-label="${esc(t('unitconv.label.to'))}" style="margin-top:var(--space-sm);"></select>
                 </div>
               </div>
               <div style="display:flex; gap:6px; margin-top:10px;">

@@ -66,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <canvas id="brCanvas" style="max-width:100%; display:block; margin:0 auto;"></canvas>
       </div>
       <div class="tool-status" id="brStatus">${esc(t('bgremove.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('bgremove.note.limits'))}</p>
+      <p class="tool-hint">${esc(t('bgremove.note.limits'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

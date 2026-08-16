@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <input type="text" id="exLine" spellcheck="false" autocomplete="off"
                style="width:100%; font-family:var(--font-mono,monospace);"
                value="${esc(SAMPLES[0])}">
-        <div class="tool-chips" style="margin-top:8px;">
+        <div class="tool-chips" style="margin-top:var(--space-sm);">
           ${SAMPLES.map((s, i) => `<button type="button" class="tool-chip" data-sample="${i}">${esc(s.slice(0, 26))}${s.length > 26 ? '…' : ''}</button>`).join('')}
         </div>
       </div>

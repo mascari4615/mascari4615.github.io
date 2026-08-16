@@ -70,7 +70,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div style="display:flex; gap:16px; flex-wrap:wrap;">
         <div>
           <canvas id="ipCanvas" style="border-radius:8px; border:1px solid rgba(128,128,128,.3); touch-action:none; cursor:grab;"></canvas>
-          <div style="margin-top:8px;">
+          <div style="margin-top:var(--space-sm);">
             <div class="tool-sublabel">${esc(t('idphoto.label.zoom'))} <span id="ipZoomVal" class="range-value">100%</span></div>
             <input type="range" id="ipZoom" name="zoom" aria-label="${esc(t('idphoto.label.zoom'))}" min="20" max="400" value="100" style="width:260px;">
           </div>
@@ -81,7 +81,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <button class="btn btn-primary" id="ipSave">${esc(t('idphoto.btn.save'))}</button>
             <button class="btn btn-ghost" id="ipSheet">${esc(t('idphoto.btn.sheet'))}</button>
           </div>
-          <div style="margin-top:8px;">
+          <div style="margin-top:var(--space-sm);">
             <label class="field-label" for="ipPaper">${esc(t('idphoto.label.paper'))}</label>
             <select id="ipPaper" name="paper" aria-label="${esc(t('idphoto.label.paper'))}">
               <option value="4x6">4×6 in</option>
@@ -92,7 +92,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
       </div>
       <div class="tool-status" id="ipStatus">${esc(t('idphoto.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('idphoto.note.rules'))}</p>
+      <p class="tool-hint">${esc(t('idphoto.note.rules'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

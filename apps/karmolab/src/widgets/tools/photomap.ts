@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
       </div>
       <div class="tool-status" id="pmStatus">${esc(t('photomap.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('photomap.note.noTiles'))}</p>
+      <p class="tool-hint">${esc(t('photomap.note.noTiles'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

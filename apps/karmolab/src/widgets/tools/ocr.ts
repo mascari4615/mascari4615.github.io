@@ -78,11 +78,11 @@ import { t, loadNamespace } from '../../lib/i18n';
         <div style="flex:1; min-width:240px;">
           <div class="tool-sublabel">${esc(t('ocr.label.text'))}</div>
           <textarea id="ocText" name="text" aria-label="${esc(t('ocr.label.text'))}" class="mono-input" style="min-height:240px;"></textarea>
-          <button class="btn btn-ghost" id="ocCopy" style="margin-top:8px;">${esc(t('ocr.btn.copy'))}</button>
+          <button class="btn btn-ghost" id="ocCopy" style="margin-top:var(--space-sm);">${esc(t('ocr.btn.copy'))}</button>
         </div>
       </div>
       <div class="tool-status" id="ocStatus">${esc(t('ocr.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('ocr.note.limits'))}</p>
+      <p class="tool-hint">${esc(t('ocr.note.limits'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

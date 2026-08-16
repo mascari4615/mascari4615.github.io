@@ -65,7 +65,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <input type="text" id="cspConnect" name="connect" aria-label="${esc(t('csp.label.connect'))}" class="mono-input" placeholder="https://api.example.com wss://api.example.com">
           </div>
         </div>
-        <div class="tool-grid-2" style="margin-top:8px;">
+        <div class="tool-grid-2" style="margin-top:var(--space-sm);">
           <div>
             <label class="field-label" for="cspFonts">${esc(t('csp.label.fonts'))}</label>
             <input type="text" id="cspFonts" name="fonts" aria-label="${esc(t('csp.label.fonts'))}" class="mono-input" placeholder="https://fonts.gstatic.com">
@@ -80,7 +80,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           </div>
         </div>
         <textarea id="cspOut" name="out" aria-label="${esc(t('csp.aria.out'))}" class="mono-input" readonly style="min-height:120px; margin-top:10px;"></textarea>
-        <button class="btn btn-ghost" id="cspCopy" style="margin-top:8px;">${esc(t('csp.btn.copy'))}</button>
+        <button class="btn btn-ghost" id="cspCopy" style="margin-top:var(--space-sm);">${esc(t('csp.btn.copy'))}</button>
       </div>
 
       <div class="tool-status" id="cspStatus">${esc(t('csp.status.idle'))}</div>

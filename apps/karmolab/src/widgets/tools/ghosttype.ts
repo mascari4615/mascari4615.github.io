@@ -212,7 +212,7 @@ import { markLive } from './shared/say';
             <div class="field-group" id="gtOwnWrap" style="display:none;">
               <label class="field-label" for="gtOwn">${esc(t('ghosttype.label.own', { max: MAX_TEXT }))}</label>
               <textarea id="gtOwn" rows="2" maxlength="${MAX_TEXT}" placeholder="${esc(t('ghosttype.ph.own'))}"></textarea>
-              <button class="btn btn-primary" id="gtOwnApply" style="margin-top:8px;">${esc(t('ghosttype.btn.ownApply'))}</button>
+              <button class="btn btn-primary" id="gtOwnApply" style="margin-top:var(--space-sm);">${esc(t('ghosttype.btn.ownApply'))}</button>
             </div>
 
             <div class="tool-status" id="gtStatus">${esc(t('ghosttype.status.idle'))}</div>

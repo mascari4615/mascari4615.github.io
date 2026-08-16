@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <div id="dpGroups"></div>
       <div class="tool-status" id="dpStatus">${esc(t('dupphoto.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('dupphoto.note.noDelete'))}</p>
+      <p class="tool-hint">${esc(t('dupphoto.note.noDelete'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

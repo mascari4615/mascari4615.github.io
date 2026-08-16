@@ -47,7 +47,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <a class="btn btn-ghost btn-sm" id="fhLookupVt" target="_blank" rel="noopener noreferrer">${esc(t('filehash.lookup.virustotal', undefined, 'VirusTotal'))}</a>
                 <a class="btn btn-ghost btn-sm" id="fhLookupBz" target="_blank" rel="noopener noreferrer">${esc(t('filehash.lookup.bazaar', undefined, 'MalwareBazaar'))}</a>
               </div>
-              <p class="tool-sublabel" style="margin-top:8px;">${esc(t('filehash.lookup.how', undefined, '파일은 여전히 안 나갑니다 — 누르면 64자리 검사값만 그 사이트 주소에 실립니다. 해시로는 파일을 되돌릴 수 없습니다.'))}</p>
+              <p class="tool-sublabel" style="margin-top:var(--space-sm);">${esc(t('filehash.lookup.how', undefined, '파일은 여전히 안 나갑니다 — 누르면 64자리 검사값만 그 사이트 주소에 실립니다. 해시로는 파일을 되돌릴 수 없습니다.'))}</p>
             </div>
             <div class="tool-status" id="fhStatus">${esc(t('filehash.status.idle'))}</div>
           `;

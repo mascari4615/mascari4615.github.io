@@ -76,7 +76,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div class="tool-display" id="idVerdict">—</div>
       <div class="tool-list" id="idRows"></div>
       <div class="tool-status" id="idStatus">${esc(t('isitdown.status.idle'))}</div>
-      <p class="tool-note" style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('isitdown.note.limits'))}</p>
+      <p class="tool-hint tool-note">${esc(t('isitdown.note.limits'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

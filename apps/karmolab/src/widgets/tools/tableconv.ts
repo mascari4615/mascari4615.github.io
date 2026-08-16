@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="field-group">
               <label class="field-label" for="tcOut">${esc(t('tableconv.label.out'))}</label>
               <textarea id="tcOut" rows="10" spellcheck="false" style="width:100%;" readonly></textarea>
-              <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:8px;">${esc(t('tableconv.btn.copy'))}</button>
+              <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:var(--space-sm);">${esc(t('tableconv.btn.copy'))}</button>
             </div>
 
             <div class="tool-status" id="tcStatus">${esc(t('tableconv.status.idle'))}</div>

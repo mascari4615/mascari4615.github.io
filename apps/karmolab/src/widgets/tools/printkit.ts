@@ -85,7 +85,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <div id="prPreview" style="overflow:auto; background:rgba(128,128,128,.06); border-radius:10px; padding:10px;"></div>
       <div class="tool-status" id="prStatus">${esc(t('printkit.status.idle'))}</div>
-      <p style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('printkit.note.margin'))}</p>
+      <p class="tool-hint">${esc(t('printkit.note.margin'))}</p>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
