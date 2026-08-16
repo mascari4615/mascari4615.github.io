@@ -128,14 +128,24 @@ export function toLocalePage(html, { code, bare, site, codes, namespaces = ['sit
   html = setMeta(html, 'name', 'twitter:title', title);
   html = setMeta(html, 'name', 'twitter:description', desc);
 
-  /* ⑥ 앱이 뜨자마자 제 말로. 원본 언어 묶음도 같이 박는다 — 아직 안 옮긴 열쇠가 떨어질 곳이다. */
+  /* ⑥ 앱이 뜨자마자 제 말로. 원본 언어 묶음은 **떨어질 자리가 있을 때만** 같이 박는다.
+     ★ 전에는 원본을 통째로 박았다 (2026-08-17 실측: 영어 첫 화면 167KB 중 **ko 가 44KB**).
+     그런데 그 자리의 뜻은 「아직 안 옮긴 열쇠가 떨어질 곳」이고, 지금 이 묶음들은 **다 옮겼다**
+     (en/ja 100%). 다 옮긴 말까지 두 벌로 보내면 그건 그냥 짐이다.
+     그래서 **그 판에 없는 열쇠만** 골라 담는다 — 안 옮긴 것이 생기면 그 열쇠만 저절로 다시 실린다.
+     (0건이면 아예 안 싣는다. 「없으면 없는 것」이 「비어 있는 것」보다 낫다.) */
   const inline = {};
   for (const ns of namespaces) {
     inline[code] = inline[code] || {};
     inline[code][ns] = catalog(code, ns);
     if (code !== DEFAULT_LOCALE) {
-      inline[DEFAULT_LOCALE] = inline[DEFAULT_LOCALE] || {};
-      inline[DEFAULT_LOCALE][ns] = catalog(DEFAULT_LOCALE, ns);
+      const 원본 = catalog(DEFAULT_LOCALE, ns) || {};
+      const 내것 = inline[code][ns] || {};
+      const 떨어질것 = Object.fromEntries(Object.entries(원본).filter(([k]) => typeof 내것[k] !== 'string'));
+      if (Object.keys(떨어질것).length > 0) {
+        inline[DEFAULT_LOCALE] = inline[DEFAULT_LOCALE] || {};
+        inline[DEFAULT_LOCALE][ns] = 떨어질것;
+      }
     }
   }
   const boot =
