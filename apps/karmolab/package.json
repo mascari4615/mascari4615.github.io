@@ -160,6 +160,8 @@
     "gen:shell-pages": "node scripts/gen-shell-pages.mjs",
     "test:badapple": "node scripts/smoke-badapple.mjs",
     "test:note-sound": "node scripts/test-note-sound.mjs",
+    "linux": "node scripts/linux.mjs",
+    "repro:linux": "node scripts/linux.mjs scripts/linux-repro.mjs",
     "test:search:docs": "node scripts/test-docs-search-provider.mjs",
     "test:search:lesson": "node scripts/test-lesson-search-provider.mjs",
     "test:search:studymap": "node scripts/test-studymap-search-provider.mjs",
