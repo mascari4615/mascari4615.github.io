@@ -186,10 +186,22 @@ if (await studyRow.count()) {
      다음 그림 프레임에서 표시가 붙는데, 여기서는 클릭 직후 한 번만 봐서
      대부분 그 프레임을 놓쳤다 — 제품은 멀쩡한데(200ms 뒤 재면 붙어 있다) 검사만 늘 빨갰다.
      시간을 박지 말고 **일어났나를 기다린다**. 표시는 5초 뒤 스스로 사라지므로 그 안에 잡힌다. */
-  const flashed = await page
-    .waitForSelector('.sm-node[data-id="web-build"].is-flash', { timeout: 15000 })
+  /* ★ **두 가지를 갈라서 본다** (2026-08-16). 전에는 「번쩍임」 하나만 기다리고 실패하면
+     「이동하지 않는다」라고만 말했다. 그런데 못 가는 데는 두 종류가 있다 —
+     ① StudyMap 장이 아직 안 떴다(느린 판에서 흔하다) ② 떴는데 그 칸을 안 짚었다.
+     둘을 같은 말로 뭉치면 CI 가 빨간데 로컬은 초록일 때 **어느 쪽인지 알 수가 없다**.
+     실제로 그 상태로 하루를 보냈다. 먼저 칸이 생기는지, 그 다음 표시가 붙는지 본다. */
+  const node = await page
+    .waitForSelector('.sm-node[data-id="web-build"]', { timeout: 20000 })
     .catch(() => null);
-  if (!flashed) problems.push('「.mjs」 결과를 눌러도 StudyMap의 web-build 칸으로 이동하지 않는다');
+  if (!node) {
+    problems.push('「.mjs」 결과를 눌렀는데 StudyMap 의 web-build 칸이 20초 안에 안 나온다 (장이 안 열림)');
+  } else {
+    const flashed = await page
+      .waitForSelector('.sm-node[data-id="web-build"].is-flash', { timeout: 15000 })
+      .catch(() => null);
+    if (!flashed) problems.push('StudyMap 의 web-build 칸은 나왔는데 그 칸을 짚어 주지 않는다 (표시 없음)');
+  }
   await gotoHome();
 }
 

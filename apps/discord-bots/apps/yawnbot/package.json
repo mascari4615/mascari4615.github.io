@@ -41,9 +41,6 @@
     "youtube-dl-exec": "^3.1.4",
     "youtubei.js": "^17.0.1"
   },
-  "optionalDependencies": {
-    "@discordjs/opus": "^0.10.0"
-  },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
