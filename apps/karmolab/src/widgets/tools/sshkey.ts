@@ -81,7 +81,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const head = entry.type + (entry.bits === undefined ? '' : ' · ' + entry.bits);
       const tail = [entry.comment ?? '', entry.options === undefined ? '' : t('sshkey.hasOptions')].filter((s) => s !== '').join(' · ');
       return (
-        '<div class="tool-list-row"><span class="tool-list-key" style="color:' + (bad ? 'var(--accent-danger, #c62828)' : 'inherit') + '">' + esc(head) + '</span>' +
+        '<div class="tool-list-row"><span class="tool-list-key" style="color:' + (bad ? 'var(--error)' : 'inherit') + '">' + esc(head) + '</span>' +
         '<span class="mono tool-list-val">' + esc(bad ? t('sshkey.problem.' + entry.problem) : print) + '</span>' +
         '<span class="tool-list-dim">' + esc(tail) + '</span></div>'
       );

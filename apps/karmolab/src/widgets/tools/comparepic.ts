@@ -41,7 +41,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
                 <button id="cpSave" class="tool-btn" type="button" disabled>${esc(t('comparepic.btn.cpSave'))}</button>
               </div>
               <div id="cpStage" style="position:relative; overflow:hidden; border-radius:8px;
-                background:var(--surface-2, #1a1a1a); touch-action:none; user-select:none;">
+                background:var(--bg-secondary); touch-action:none; user-select:none;">
                 <canvas id="cpCanvas" style="display:block; width:100%; height:auto;"></canvas>
                 <div id="cpHandle" role="slider" tabindex="0" aria-label="${esc(t('comparepic.aria.cpHandle'))}"
                   aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"

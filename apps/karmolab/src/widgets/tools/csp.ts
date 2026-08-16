@@ -92,7 +92,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     markLive(status);
 
     function findingRow(f: Finding): string {
-      const color = f.level === 'weak' ? 'var(--accent-danger, #c62828)' : f.level === 'missing' ? 'var(--accent-warn, #b26a00)' : 'var(--text-tertiary)';
+      const color = f.level === 'weak' ? 'var(--error)' : f.level === 'missing' ? 'var(--warning)' : 'var(--text-tertiary)';
       return (
         '<div class="tool-list-row"><span class="tool-list-key" style="color:' + color + '">' + esc(t('csp.level.' + f.level)) + '</span>' +
         '<span class="tool-list-val">' + esc(f.where) + (f.value === undefined ? '' : ' — ' + esc(f.value)) + '</span>' +

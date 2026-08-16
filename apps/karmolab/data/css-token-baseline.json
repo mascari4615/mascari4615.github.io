@@ -1,13 +1,9 @@
 [
  "--accent-contrast",
- "--accent-danger",
  "--accent-fg",
- "--accent-success",
- "--accent-warn",
  "--bg-color",
  "--bg-elevated",
  "--bg-quaternary",
- "--border-color",
  "--ck-bg",
  "--color-success",
  "--danger",
@@ -20,10 +16,7 @@
  "--py",
  "--radius",
  "--shadow-sm",
- "--surface",
- "--surface-2",
  "--text",
  "--text-color",
- "--text-muted",
  "--x"
 ]

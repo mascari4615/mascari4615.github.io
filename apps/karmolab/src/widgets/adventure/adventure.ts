@@ -78,7 +78,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         padding: '4px 8px',
         background: 'var(--bg-tertiary, #1f1f1f)',
         color: 'var(--text-primary, #e8e8e8)',
-        border: '1px solid var(--border-color, #333)',
+        border: '1px solid var(--border)',
         borderRadius: 'var(--radius-sm, 4px)',
       },
     });
@@ -99,7 +99,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         padding: '4px 10px',
         background: 'var(--bg-tertiary, #1f1f1f)',
         color: 'var(--text-primary, #e8e8e8)',
-        border: '1px solid var(--border-color, #333)',
+        border: '1px solid var(--border)',
         borderRadius: 'var(--radius-sm, 4px)',
         cursor: 'pointer',
         marginLeft: 'auto',
@@ -125,7 +125,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     const stage = el('div', {
       style: {
         background: 'var(--bg-secondary, #181818)',
-        border: '1px solid var(--border-color, #333)',
+        border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md, 6px)',
         padding: '14px',
         display: 'flex',
@@ -178,7 +178,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 padding: '8px 12px',
                 background: 'var(--bg-tertiary, #1f1f1f)',
                 color: 'var(--text-primary, #e8e8e8)',
-                border: '1px solid var(--border-color, #333)',
+                border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-sm, 4px)',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -214,7 +214,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             style: {
               padding: '10px 12px',
               background: 'var(--bg-tertiary, #1f1f1f)',
-              border: '1px solid var(--border-color, #333)',
+              border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               display: 'flex',
               flexDirection: 'column',
@@ -258,7 +258,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               padding: '4px 12px',
               background: 'var(--bg-secondary, #181818)',
               color: 'var(--text-tertiary, #888)',
-              border: '1px solid var(--border-color, #333)',
+              border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               cursor: 'pointer',
               fontSize: '13px',
@@ -281,7 +281,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
         if (hasCard) {
           const divider = el('hr', {
-            style: { border: 'none', borderTop: '1px solid var(--border-color, #444)', margin: '4px 0 8px' },
+            style: { border: 'none', borderTop: '1px solid var(--border)', margin: '4px 0 8px' },
           });
           resumeWrapper.appendChild(divider);
           stage.appendChild(resumeWrapper);
@@ -362,7 +362,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       const narrativeBox = el('div', {
         style: {
           background: 'var(--bg-tertiary, #1f1f1f)',
-          border: '1px solid var(--border-color, #333)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--radius-md, 6px)',
           padding: '14px',
           minHeight: '160px',
@@ -393,7 +393,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           padding: '8px',
           background: 'var(--bg-tertiary, #1f1f1f)',
           color: 'var(--text-primary, #e8e8e8)',
-          border: '1px solid var(--border-color, #333)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           minHeight: '60px',
           resize: 'vertical',
@@ -436,7 +436,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
           color: 'var(--text-primary, #e8e8e8)',
-          border: '1px solid var(--border-color, #333)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           cursor: 'pointer',
         },
@@ -465,7 +465,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 marginTop: '8px',
                 maxWidth: '100%',
                 borderRadius: 'var(--radius-sm, 4px)',
-                border: '1px solid var(--border-color, #333)',
+                border: '1px solid var(--border)',
               },
             });
             const narrativeBox = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
@@ -485,7 +485,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
           color: 'var(--text-primary, #e8e8e8)',
-          border: '1px solid var(--border-color, #333)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           cursor: 'pointer',
         },
@@ -532,7 +532,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               padding: '8px 12px',
               background: 'var(--bg-tertiary, #1f1f1f)',
               color: 'var(--text-primary, #e8e8e8)',
-              border: '1px solid var(--border-color, #333)',
+              border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               cursor: 'pointer',
               textAlign: 'left',
@@ -578,7 +578,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 padding: '8px 12px',
                 background: 'var(--bg-tertiary, #1f1f1f)',
                 color: 'var(--text-primary, #e8e8e8)',
-                border: '1px solid var(--border-color, #333)',
+                border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-sm, 4px)',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -600,7 +600,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     const advList = el('div', {
       style: {
         background: 'var(--bg-secondary, #181818)',
-        border: '1px solid var(--border-color, #333)',
+        border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md, 6px)',
         padding: '10px 12px',
         fontSize: '13px',

@@ -105,13 +105,13 @@ import { intervalWhileVisible } from '../../lib/tick';
       input.disabled = loading;
       if (loading) {
         status.textContent = t('life.t05');
-        status.style.color = 'var(--text-muted, #888)';
+        status.style.color = 'var(--text-secondary)';
       } else if (enabled) {
         status.textContent = t('life.t06');
         status.style.color = 'var(--color-success, #4caf50)';
       } else {
         status.textContent = t('life.t07');
-        status.style.color = 'var(--text-muted, #888)';
+        status.style.color = 'var(--text-secondary)';
       }
     };
 
@@ -162,7 +162,7 @@ import { intervalWhileVisible } from '../../lib/tick';
 .life-toggle-switch input:checked + .life-toggle-slider { background: var(--color-success, #4caf50); }
 .life-toggle-switch input:checked + .life-toggle-slider::before { transform: translateX(18px); }
 .life-toggle-switch input:disabled + .life-toggle-slider { opacity: 0.5; cursor: not-allowed; }
-.life-hint { font-size: 0.72rem; color: var(--text-muted, #888); padding: 6px 2px; }
+.life-hint { font-size: 0.72rem; color: var(--text-secondary); padding: 6px 2px; }
 `;
   }
 
