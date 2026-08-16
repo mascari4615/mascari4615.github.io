@@ -59,4 +59,16 @@ if (missing.length) {
   process.exit(1);
 }
 
+/* ★ **0개를 「전부 있다」로 말하면 안 된다** (2026-08-16).
+   이 검사가 생긴 이유가 「부르는 파일이 조용히 안 만들어져 로그인이 죽었다」인데,
+   찾는 자리(HTML 의 <script src="/apps/karmolab/js/…">)가 0건이면 그건 통과가 아니라
+   **못 돌린 것**이다 — 페이지 구조가 바뀌었거나(모듈·importmap) 여기 정규식이 낡은 것이다.
+   그대로 두면 잡으라고 만든 바로 그 사고를 초록으로 넘긴다. */
+if (checked === 0) {
+  console.error('[audit-page-scripts] CANNOT-RUN: 페이지가 부르는 js 를 한 건도 못 찾았다');
+  console.error('  → HTML 이 부르는 방식이 바뀌었거나(모듈·importmap) 이 검사의 정규식이 낡았다.');
+  console.error('  → 0건은 통과가 아니다. 이 검사는 로그인이 죽은 사고(2026-08-07)에서 나왔다.');
+  process.exit(2);
+}
+
 console.log(`[audit-page-scripts] 페이지가 부르는 파일 ${checked}개 전부 만들어져 있다`);
