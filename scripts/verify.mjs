@@ -95,7 +95,14 @@ if (!existsSync('packages/karmolab-ai/dist')) {
 //    discord-bots) 가 build red 로 며칠 막혀도 안 보이던 사고(2026-06-07: GitHubCommit
 //    중복 정의 + isTextBased send 가드, KL-091/096 머지가 노출) 재발 기계 차단.
 //    루트 node_modules(workspace hoist) 있으면 실행 — verify 가 karmolab build 하므로 사실상 상존.
-if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsconfig.json')) {
+/* ★ **저장소 루트 node_modules 를 보면 안 된다** (2026-08-16 실측). CI 는 루트에 설치하지
+   않는다 — `apps/karmolab` · `packages/*` · `apps/blog` 만 깐다. 그래서 이 조건이 CI 에서
+   늘 거짓이었고, yawnbot build 가 **한 번도 안 돌았다**. 뒤이어 `test:chat` 도 영원히
+   「못 돌림」이었다(순서를 고쳤는데도 안 고쳐진 이유가 이것이다 — 자리가 아니라 조건이었다).
+   봐야 할 것은 **yawnbot 이 실제로 지어질 수 있나** = 그 워크스페이스의 node_modules 다. */
+const yawnbotWs = 'apps/discord-bots';
+const yawnbotReady = existsSync(`${yawnbotWs}/node_modules`) && existsSync('apps/discord-bots/apps/yawnbot/tsconfig.json');
+if (yawnbotReady) {
   run('yawnbot build (tsc)', 'apps/discord-bots/apps/yawnbot', 'npx tsc -p tsconfig.json');
   /* 타입만 보면 **라우트가 통째로 사라진 것**은 안 잡힌다 (TASK-KL-153).
    * 실제로 그랬다: 한 세션이 `karmolab-api.ts` 를 통째로 덮어쓰면서 다른 세션이 넣은
@@ -104,7 +111,10 @@ if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsc
    * 배포(노트북) 는 tsc 만 본다. 그래서 여기서 돈다. */
   run('yawnbot 시험 (라우트가 사라져도 잡히게)', 'apps/discord-bots/apps/yawnbot', 'npx vitest run');
 } else {
-  console.log('[verify] ! yawnbot build skip — node_modules/tsconfig 부재 (CI deploy-discord-bots 가 정본 게이트)');
+  /* 조용한 skip 은 「초록」으로 읽힌다. 못 돈 것은 못 돌았다고 말한다 — 그래야 다음 사람이 본다. */
+  console.log(`[verify] ⚠ yawnbot 을 못 지었다 — ${yawnbotWs}/node_modules 가 없다.`);
+  console.log('[verify]   그러면 test:chat(창 둘이 실시간 대화) 도 못 돈다. 통과가 아니다.');
+  console.log(`[verify]   고치기: cd ${yawnbotWs} && npm ci   (CI 는 setup-karmolab 에서 깐다)`);
 }
 
 // 2. apps/karmolab — build (typecheck 포함). karmolab-ai/dist 를 import.
