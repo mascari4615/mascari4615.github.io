@@ -138,6 +138,7 @@
     "test:search:lesson",
     "test:search:studymap",
     "test:search:quality",
-    "audit:tool-state"
+    "audit:tool-state",
+    "audit:unwired"
   ]
 }
