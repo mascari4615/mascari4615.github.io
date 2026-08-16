@@ -166,6 +166,22 @@ const openMore = async (p) => {
 const step = async (name, fn) => {
   try { await withLimit(name, fn); console.log(`  OK   ${name}`); }
   catch (e) {
+    /* ★ **지나간 바쁨은 사후에 못 잰다 — 한 번 더 돌려 본다** (2026-08-16 실측).
+       아래 「그 자리에서 다시 재 보기」는 스파이크가 **아직 남아 있을 때만** 잡는다. 그런데
+       빌드 하나가 400ms 튀고 지나가면, 기다림은 이미 끊겼는데 재 볼 때는 한가하다 —
+       그래서 판마다 다른 한 건이 빨강으로 적혔다(실측: 두 판에 「칸 후보」·「코멘트 개수」가
+       각각 4초에서 끊겼고, 다시 돌리면 둘 다 통과).
+       기계 탓과 제품 탓을 가르는 가장 곧은 증거는 **다시 해 보는 것**이다. 판을 처음으로
+       되돌리고 그 걸음만 한 번 더 밟는다. 두 번째도 넘어지면 그때가 진짜 빨강이다. */
+    if (STALL.test(e.message)) {
+      await page.goto(URL, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await page.waitForSelector('.km-root', { timeout: ms(8000) }).catch(() => {});
+      try {
+        await withLimit(name, fn);
+        console.log(`  OK   ${name} (두 번째 판에 통과 — 첫 판은 기계가 바빴다)`);
+        return;
+      } catch { /* 두 번도 넘어졌다 — 아래로 내려가 원래대로 판정한다 */ }
+    }
     /* ★ **못 잰 판을 빨강으로 적지 않는다** (`domain-wm.md` § 관문 ②·④).
        기다리다 못 만난 것은 제품이 고장 났다는 뜻일 수도, 그 순간 이 컴퓨터가 바빴다는 뜻일 수도
        있다. 둘을 안 가르면 게이트가 「판마다 다른 한 건」이 되어 아무도 안 본다(실측 2026-08-13:
