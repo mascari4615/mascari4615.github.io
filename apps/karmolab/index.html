@@ -126,14 +126,10 @@ permalink: /karmolab/
          맨 앞부터 맞춰 보므로 하나도 안 맞는다. 260여 장이 태그만 달고 이득은 0이었다.
          그래서 세 판을 다 적는다(`/`·`/en/`·`/ja/`). 그 장에 없는 링크는 어차피 아무 일도 안 한다.
          -->
-    <script type="speculationrules">
-    {"prerender":[{"where":{"and":[{"href_matches":"/karmolab/t/*"},{"not":{"href_matches":"/karmolab/t/"}}]},"eagerness":"moderate"},
-                  {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"},
-                  {"where":{"and":[{"href_matches":"/en/karmolab/t/*"},{"not":{"href_matches":"/en/karmolab/t/"}}]},"eagerness":"moderate"},
-                  {"where":{"href_matches":"/en/karmolab/t/"},"eagerness":"moderate"},
-                  {"where":{"and":[{"href_matches":"/ja/karmolab/t/*"},{"not":{"href_matches":"/ja/karmolab/t/"}}]},"eagerness":"moderate"},
-                  {"where":{"href_matches":"/ja/karmolab/t/"},"eagerness":"moderate"}]}
-    </script>
+    <!-- 미리읽기 규칙은 뺐다 (2026-08-17). 이 화면에는 `script-src` 자물쇠가 걸려 있고,
+         크롬이 `'inline-speculation-rules'` 를 안 받아 **어차피 막힌다** — 남겨 두면
+         방문자마다 콘솔에 빨간 줄만 남고(검사도 그걸 오류로 센다) 얻는 것은 0 이다.
+         자물쇠 밖에서 규칙을 줄 길이 생기면 그때 되살린다. -->
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
     <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
