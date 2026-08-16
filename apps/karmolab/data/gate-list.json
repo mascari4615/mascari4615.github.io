@@ -4,7 +4,6 @@
   "목록": [
     "test:gamification",
     "test:planner",
-    "test:diary",
     "test:meok",
     "test:meok:screen",
     "test:karmograph",
@@ -149,6 +148,7 @@
     "audit:shared-builds",
     "test:heung:midi-file",
     "test:shard",
+    "test:redeploy-guard",
     "audit:sleep-read"
   ]
 }
