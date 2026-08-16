@@ -56,7 +56,21 @@ const openGame = async (id) => {
   await p.waitForSelector(`[data-solo="${id}"]`, { state: 'visible', timeout: 20000 });
   await p.click(`[data-solo="${id}"]`);
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
-  await p.waitForTimeout(150);
+  /* ★ **150ms 재우고 키를 누르면 판마다 다른 놀이가 빨개진다** (2026-08-16, 실측).
+     소개가 사라진 뒤에도 판은 아직 그려지는 중이다 — 그때 화살표를 누르면 아무 데도 안 간다.
+     같은 날 CI 는 `president` 가, 내 자리는 `한붓그리기` 가 빨갰다(둘 다 제품은 멀쩡).
+     시간을 세지 말고 **판이 다 서기를** 기다린다: 무대 안 알맹이 수가 두 번 연속 같으면 섰다. */
+  /* 재는 자가 재려는 것을 건드리면 안 된다 — 처음엔 판 안에 표시를 남겨 두 번 비교했는데,
+     매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 그 표시가 지워져 **영영 안 서는 것처럼** 보인다.
+     그래서 바깥에서 두 번 세어 견준다(두 번 연속 같으면 섰다). 최대 5초. */
+  const 알맹이수 = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
+  let 앞 = await 알맹이수();
+  for (let i = 0; i < 40; i += 1) {
+    await p.waitForTimeout(120);
+    const 지금 = await 알맹이수();
+    if (지금 > 0 && 지금 === 앞) break;
+    앞 = 지금;
+  }
 };
 
 if (!cantRun) {
@@ -91,6 +105,11 @@ if (!cantRun) {
     await openGame(id);
     await p.waitForTimeout(500);
     await p.keyboard.press('ArrowRight');
+    /* 눌린 것이 그려질 때까지 기다린다 — 여기서도 「재우고 읽기」면 느린 판에서 0 을 읽는다.
+       끝내 안 그려지면 그때가 진짜 빨강이고, 아래 판정이 그대로 말한다. */
+    await p
+      .waitForFunction(() => document.querySelectorAll('#acView .ac-key').length === 1, null, { timeout: 5000 })
+      .catch(() => {});
     const now0 = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     await p.waitForTimeout(500);
     const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
