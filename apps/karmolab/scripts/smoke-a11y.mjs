@@ -31,6 +31,11 @@ const SCREENS = [
   ['첫 화면', '/apps/karmolab/'],
   ['도구 한 장', '/apps/karmolab/#passgen'],
   ['도구 목록', '/apps/karmolab/#tools'],
+  /* ★ **검색으로 들어오는 정문을 안 재고 있었다** (2026-08-16). 위 셋은 전부 앱 껍데기다.
+     사람 대부분이 처음 밟는 자리는 도구 상세 장(129장)인데 그 장은 껍데기에 SEO 글 뭉치가
+     더 붙어 나간다 — 그래서 껍데기에 없는 위반이 거기에만 있었다(실측: 129장 전부에
+     landmark-unique 하나씩, 같은 이름의 nav 가 둘이라). 한 장을 표본으로 넣는다. */
+  ['도구 상세 한 장', '/apps/blog/karmolab/t/loan/'],
 ];
 
 const MIME = {
@@ -39,6 +44,14 @@ const MIME = {
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
   '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.txt': 'text/plain',
 };
+
+/* 도구 상세 장은 **찍혀야** 존재한다 — 없으면 「위반 0」이 아니라 못 잰 것이다. */
+const SAMPLE_TOOL_PAGE = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
+if (fs.existsSync(SAMPLE_TOOL_PAGE) === false) {
+  console.error(`[smoke-a11y] 못 돌았다 — 도구 상세 표본이 없다 (${SAMPLE_TOOL_PAGE}).`);
+  console.error('  → `npm run gen:tool-pages` 를 먼저 돌려라. 안 재고 통과시키지 않는다.');
+  process.exit(2);
+}
 
 if (fs.existsSync(AXE) === false) {
   console.error(`[smoke-a11y] 못 돌았다 — axe-core 가 없다 (${AXE}). npm i -D axe-core`);
