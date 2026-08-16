@@ -104,7 +104,7 @@ function expand(name, depth = 0) {
        그걸 「부른다」로 세면 아무도 안 돌리는 묶음이 「돈다」가 되어 기준선이 헐거워진다.
        그래서 **띄우는 줄**에 있을 때만 센다 — spawn/execFile/`node ` 처럼 프로세스를 만드는 줄. */
     for (const line of inner.split(String.fromCharCode(10))) {
-      if (!/spawn|execFile|exec\(|run\(|node\s/.test(line)) continue;
+      if (!/spawn|execFile|[.\s]exec\(|[.\s]run\(|node\s/.test(line)) continue;
       for (const call of line.matchAll(/scripts\/([\w-]+)\.mjs/g)) {
         for (const [n, body2] of Object.entries(scripts)) {
           if (isCheck(n) && !covered.has(n) && body2.includes(`scripts/${call[1]}.mjs`)) {
