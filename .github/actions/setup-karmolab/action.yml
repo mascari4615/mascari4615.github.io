@@ -37,6 +37,15 @@ runs:
     #   여기는 자체 워크스페이스(자기 lockfile)라 루트 설치로는 안 채워진다.
     - name: 의존 설치 (yawnbot 워크스페이스)
       shell: bash
+      # ★ **설치가 남의 서버 문을 두드린다** (2026-08-17 실측). `youtube-dl-exec` 는 설치 뒤
+      #   GitHub API 로 실행 파일을 받아 오는데, **토큰 없이** 부르면 러너 아이피가 공용이라
+      #   금세 한도에 걸린다("API rate limit exceeded for 20.109.38.176") — 그날 verify 가
+      #   우리 코드와 아무 상관없이 빨갰다. 토큰을 주면 한도가 몇 십 배로 올라간다.
+      #   그 파일은 **봇이 도는 노트북에서만** 쓰이므로, 검증 판에서는 아예 안 받아도 된다.
+      #   둘 다 건다: 토큰(있으면 쓰고) + 검증 판에서는 내려받기 건너뛰기.
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        YOUTUBE_DL_SKIP_DOWNLOAD: 'true'
       run: cd apps/discord-bots && npm ci --no-audit --no-fund
 
     # ★ **지어 놓은 것을 또 짓지 않는다** (2026-08-13). 이 채비는 한 판에 여러 번 돈다 —
