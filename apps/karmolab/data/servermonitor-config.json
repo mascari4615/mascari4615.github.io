@@ -104,14 +104,6 @@
             "script": "dev",
             "healthUrl": "http://127.0.0.1:8898/apps/karmolab/",
             "npmInstall": true
-        },
-        {
-            "id": "karmolab-react",
-            "label": "KarmoLab React (Vite)",
-            "app": "apps/karmolab-react-src",
-            "script": "dev",
-            "healthUrl": "http://127.0.0.1:5173/",
-            "npmInstall": true
         }
     ]
 }

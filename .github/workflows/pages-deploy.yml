@@ -10,7 +10,6 @@ on:
     paths:
       - apps/blog/**
       - apps/karmolab/**
-      - apps/karmolab-react-src/**
       - apps/daily/**
       - apps/higher/**
       - apps/quest/**
@@ -111,14 +110,6 @@ jobs:
         working-directory: apps/blog
         run: npm run build:graph
 
-      - name: Build KarmoLab React App
-        working-directory: apps/karmolab-react-src
-        run: |
-          npm ci
-          npm run build
-        env:
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-
       # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
       #   karmolab-ai · badapple · karmolab-mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
       #   mcp 설치가 이 배포 잡에만 빠져 **7월 중순부터 배포가 계속 섰고**(실주소 28일 정체),
@@ -145,6 +136,10 @@ jobs:
         #   배포는 산출물만 찍는다 — 브라우저도 필요 없다.
         # `npm ci` 는 위 채비 action 이 이미 했다 — 여기서 또 부르면 같은 설치를 두 번 한다.
         run: npm run build:artifacts
+        # 플래너의 구글 연동 클라이언트 id — 비밀이 아니라 **사람마다 다른 값**이라 여기서 넣는다
+        # (TASK-KL-321, 예전에는 걷어 낸 React 앱 빌드가 같은 값을 받고 있었다).
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Prepare KarmoLab Jekyll page
         run: |
@@ -318,8 +313,6 @@ jobs:
         run: |
           mkdir -p apps/blog/_site/apps/karmolab
           rsync -a --exclude 'node_modules' apps/karmolab/ apps/blog/_site/apps/karmolab/
-          mkdir -p apps/blog/_site/apps/karmolab-react-src
-          rsync -a --exclude 'node_modules' apps/karmolab-react-src/ apps/blog/_site/apps/karmolab-react-src/
 
       # **나갈 파일에 실제로 남아 있나** (TASK-KL-201, 2026-08-10).
       #
