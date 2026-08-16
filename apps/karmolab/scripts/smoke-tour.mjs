@@ -53,7 +53,24 @@ for (let i = 1; i <= ROUNDS; i++) {
     }, null, { timeout: 240000 })
     .then(() => true)
     .catch(() => false);
-  if (!ok) { fail.push(`${i}판이 안 끝났다`); break; }
+  if (!ok) {
+    /* ★ **어느 판이 멈췄는지를 말해야 고칠 수 있다** (2026-08-16, 실측). 여태 「5판이 안 끝났다」
+       한 줄만 남았다 — 그런데 이 검사가 뽑는 다섯 판은 **매번 다르다**(같은 날 실측: CI 는
+       snake·dots·fishing·liars 로 시작, 내 자리는 shellgame 으로 시작). 그러니 그 한 줄로는
+       어느 놀이가 안 끝나는지 영영 알 수 없고, 다음 판에서 또 다른 놀이가 걸린다.
+       멈춘 놀이의 **이름과 그때 화면이 하던 말**을 들고 나간다 — 한 번만 걸려도 범인이 정해진다. */
+    const 멈춘것 = await p
+      .evaluate(() => ({
+        놀이: window.__arcade?.game ?? '(모름)',
+        끝났나: !!window.__arcade?.finished,
+        말: (document.querySelector('#acStatus')?.textContent || '').slice(0, 60),
+      }))
+      .catch(() => ({ 놀이: '(창이 죽었다)', 끝났나: false, 말: '' }));
+    fail.push(
+      `${i}판이 안 끝났다 — 놀이 「${멈춘것.놀이}」 · 끝남표시 ${멈춘것.끝났나 ? '있음' : '없음'} · 화면: 「${멈춘것.말}」 (4분 기다림)`
+    );
+    break;
+  }
 
   const st = await p.evaluate(() => ({
     game: window.__arcade?.game,
