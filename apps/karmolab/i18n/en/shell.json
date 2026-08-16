@@ -36,5 +36,12 @@
   "shell.region.note": "Units, public holidays, document formats and tool order follow this country.",
   "shell.region.aria": "Language and region",
   "shell.region.other": "Elsewhere",
-  "shell.card.save": "Save as image"
+  "shell.card.save": "Save as image",
+  "shell.nav.group.calc": "Calc & convert",
+  "shell.nav.group.media": "Files & media",
+  "shell.nav.group.dev": "Dev & text",
+  "shell.nav.group.create": "Make & tidy",
+  "shell.nav.group.quick": "Quick run",
+  "shell.nav.ref": "Reference",
+  "shell.nav.play": "Play"
 }

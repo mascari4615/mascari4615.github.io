@@ -21,6 +21,19 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 // 실제로 22px 이었던 넉 장 + 대조로 잘 되던 것 하나
 const TOOLS = ['textdiff', 'uuidgen', 'hashgen', 'asciiart', 'textredact'];
 
+/* ★ **지어진 것을 보는 검사다** (2026-08-17). 여기서 읽는 `js/widgets/**` 는 빌드 산출물이라
+   깨끗한 사본(밀 커밋만 풀어 놓은 자리)에는 없다. 없는 것을 읽다 ENOENT 로 죽으면
+   「누를 자리가 작다」가 아니라 **검사가 깨진 것처럼** 보인다 — 실제로 push 관문이 그렇게 섰다.
+   못 볼 상황은 못 본다고 말한다(rc 2 = 통과로 세지 않는다). 지으려면 `node build.mjs`. */
+{
+  const 없는것 = TOOLS.filter((id) => !fs.existsSync(path.join(root, `js/widgets/tools/${id}.js`))
+    && !fs.existsSync(path.join(root, `js/widgets/${id}.js`)));
+  if (없는것.length) {
+    console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${없는것.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
+    process.exit(2);
+  }
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 375, height: 800 } }); // 폰 폭
 await serveAppAssets(page, root);
