@@ -73,8 +73,12 @@ if (shard) {
     }
   })();
   const 값들 = Object.values(잰시간).sort((a, b) => a - b);
-  const 중앙값 = 값들.length ? 값들[Math.floor(값들.length / 2)] : 30;
-  const 무게 = (c) => 잰시간[c.name] ?? 중앙값;
+  /* ★ **모르는 것은 무겁다고 쳐야 한다** (2026-08-16, 실측). 처음엔 중앙값(13초)으로 쳤다.
+     그런데 표에 빠져 있던 딱 하나가 하필 **제일 무거운 검사**(지도 흔들림 955초)였고,
+     13초짜리로 취급되어 한 조각에 얹혔다 — 그 조각만 또 넘쳤다. 덜 채우는 건 싸고
+     넘치는 건 조각 하나를 통째로 잃는다. 그러니 모르는 것은 **위쪽 값**으로 친다. */
+  const 넉넉히 = 값들.length ? 값들[Math.floor(값들.length * 0.9)] : 60;
+  const 무게 = (c) => 잰시간[c.name] ?? 넉넉히;
   const 바구니 = Array.from({ length: shard.of }, () => ({ 합: 0, 것: [] }));
   for (const c of [...todo].sort((a, b) => 무게(b) - 무게(a))) {
     const 한가한곳 = 바구니.reduce((a, b) => (b.합 < a.합 ? b : a));
