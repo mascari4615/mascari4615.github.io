@@ -125,8 +125,18 @@ const browser = await chromium.launch();
 /* 시나리오 둘. 느린 쪽은 Lighthouse 가 쓰는 것과 같은 종류의 설정(느린 폰 + 느린 회선)이다.
    `slack` = 시간 항목 예산에 곱하는 배수. 3102ms 를 봤으므로 4000ms 선(1200×3.4)을 잡는다 —
    지금을 겨우 통과시키는 값이 아니라 **여기서 더 나빠지면 잡히는** 값이다. */
+/* ★ **CI 러너는 「빠른 데스크톱」이 아니다** (2026-08-16 실측). 같은 커밋에서
+   「긴 작업 총합」이 내 데스크톱 106ms · CI 303ms 였다 — 약 3배. 그런데 이 시나리오는
+   배수 1 이라 CI 가 데스크톱 기준으로 재판받았고, 예산 300 을 1% 넘겨(303ms) 빨갛게 났다.
+   코드가 나빠진 게 아니라 **잰 기계가 다른 기계**다.
+
+   예산을 올리지 않는다(그러면 진짜 데스크톱의 회귀를 놓친다). 대신 **환경을 선언한다**:
+   CI 에서는 시간 항목에 배수 2. 지금 값(303)의 두 배 가까이 나빠져야 잡히는 선이 아니라,
+   *우리 기계 기준 106ms* 의 5.6배까지 봐주는 선이다 — 진짜 회귀는 그 전에 잡힌다.
+   `slack` 은 판수(runCount)도 결정하므로 **한도용 배수만** 따로 둔다(측정 품질은 그대로). */
+const CI = process.env.CI === 'true' || process.env.CI === '1';
 const SCENARIOS = [
-  { name: '빠른 데스크톱', cpu: 1, slowNet: false, slack: 1 },
+  { name: '빠른 데스크톱', cpu: 1, slowNet: false, slack: 1, limitSlack: CI ? 2 : 1 },
   { name: '느린 폰 + 느린 회선', cpu: 4, slowNet: true, slack: 3.4 },
 ];
 
@@ -238,9 +248,10 @@ for (const [screen, url] of TARGETS) {
   }
   measuredScreens += 1;
   /* 시간 항목만 이 환경의 배수를 준다. 크기·밀림은 기계가 느리다고 커지지 않는다. */
+  const limitSlack = scenario.limitSlack ?? scenario.slack;
   const scaled = result.verdict.map((v) =>
-    v.unit === 'ms' && scenario.slack !== 1
-      ? { ...v, limit: Math.round(v.limit * scenario.slack), state: v.value == null ? 'unknown' : v.value > v.limit * scenario.slack ? 'fail' : 'pass' }
+    v.unit === 'ms' && limitSlack !== 1
+      ? { ...v, limit: Math.round(v.limit * limitSlack), state: v.value == null ? 'unknown' : v.value > v.limit * limitSlack ? 'fail' : 'pass' }
       : v
   );
   const rows = REGRESS
