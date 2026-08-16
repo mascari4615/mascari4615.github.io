@@ -45,8 +45,14 @@ for (const rel of ['index.html', 'scripts/gen-tool-pages.mjs']) {
   // 부르는 줄이 통째로 사라지면 화면은 멀쩡하고(컴퓨터 글꼴) 글꼴만 조용히 안 온다 — 그것도 잡는다.
   // 단, **자기 머리말을 직접 짜는 파일에만** 묻는다. 도구 페이지 생성기는 셸(index.html)을
   // 그대로 물려받는 쪽으로 바뀔 수 있고(TASK-KL-129), 그때는 여기에 글꼴 줄이 없는 게 맞다.
-  const ownsHead = /<link rel="stylesheet" href="\/apps\/karmolab\/css\/toolbox\.css">/.test(text);
-  if (ownsHead && !text.includes('css/fonts.css')) {
+  /* ★ **이 갈래는 죽어 있었다** (2026-08-17). 「자기 머리말을 짜나」를 `toolbox.css` 를 거는 줄로
+     알아봤는데, 스타일을 갈라 굽게 되면서(shell-critical/deferred) 그 줄을 가진 파일이 **한 개도 없다**.
+     그래서 글꼴 줄이 사라져도 이 검사는 영원히 아무 말도 안 했다. 지금 쓰는 자리로 고친다. */
+  const ownsHead = /<link[^>]+href=("|')[^"']*css\/(toolbox|shell-critical)\.css[^"']*[^>]*>/i.test(text);
+  /* ★ 글자만 보면 주석·본문에 적힌 이름도 「부른다」로 센다 (2026-08-17 룰: 구조를 봐라).
+     진짜 `<link … href="…/css/fonts.css">` 인지 본다. */
+  const 글꼴줄 = /<link[^>]+href=("|')[^"']*css\/fonts\.css[^"']*[^>]*>/i.test(text);
+  if (ownsHead && !글꼴줄) {
     bad.push(`${rel} 이 자기 머리말을 짜면서 글꼴 목록(css/fonts.css)은 안 부른다`);
   }
 }
