@@ -197,7 +197,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               <button class="btn btn-primary" id="pdRun">${esc(t('pdfdiff.btn.run'))}</button>
               <button class="btn btn-ghost" id="pdSwap">A ↔ B</button>
               <label class="tool-checkline">
-                <input type="checkbox" id="pdOnlyChanged" style="width:auto;" checked> ${esc(t('pdfdiff.opt.onlyChanged'))}
+                <input type="checkbox" id="pdOnlyChanged" checked> ${esc(t('pdfdiff.opt.onlyChanged'))}
               </label>
             </div>
 

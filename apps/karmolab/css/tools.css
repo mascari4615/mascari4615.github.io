@@ -84,6 +84,15 @@
 .cc-stat-primary .cc-stat-value { color: var(--accent); }
 
 /* ── 상태 줄 ── */
+/* 체크박스·라디오는 **넓히지 않는다** (TASK-KL-257).
+   도구 스무 곳이 `style="width:auto"` 를 손으로 붙여 막고 있었다 — 어느 규칙이 넓히는지는
+   도구마다 다를 수 있고, 그걸 각자 방어하면 하나가 빠졌을 때 그 도구만 이상해진다.
+   여기서 한 번 못 박으면 스무 곳이 그 방어를 버릴 수 있다. */
+.tool-page input[type="checkbox"],
+.tool-page input[type="radio"] {
+    width: auto;
+}
+
 /* 도구 화면의 되풀이 레이아웃 — 인라인 style 을 여기로 모은다 (TASK-KL-257).
    왜: 같은 뜻의 style 이 도구마다 손으로 적혀 있으면 **톤을 한 번에 못 바꾼다**.
    실측 2026-08-16: 인라인 style 이 115파일 650곳. 그중 뜻이 또렷한 둘을 먼저 올린다

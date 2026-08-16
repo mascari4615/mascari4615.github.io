@@ -55,10 +55,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <div style="display:flex; gap:14px; margin:10px 0; flex-wrap:wrap;">
         <label class="tool-checkline">
-          <input type="checkbox" id="brDespill" name="despill" style="width:auto;" checked> ${esc(t('bgremove.opt.despill'))}
+          <input type="checkbox" id="brDespill" name="despill" checked> ${esc(t('bgremove.opt.despill'))}
         </label>
         <label class="tool-checkline">
-          <input type="checkbox" id="brPickMode" name="pick" style="width:auto;"> ${esc(t('bgremove.opt.pick'))}
+          <input type="checkbox" id="brPickMode" name="pick"> ${esc(t('bgremove.opt.pick'))}
         </label>
         <button class="btn btn-ghost" id="brSave">${esc(t('bgremove.btn.save'))}</button>
       </div>

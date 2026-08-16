@@ -85,13 +85,13 @@ interface ZipArchive {
       </div>
       <div style="display:flex; gap:14px; margin:10px 0; flex-wrap:wrap;" id="dfOpts">
         <label class="tool-checkline">
-          <input type="checkbox" id="dfWs" name="ignoreWs" style="width:auto;"> ${esc(t('diff.opt.ws'))}
+          <input type="checkbox" id="dfWs" name="ignoreWs"> ${esc(t('diff.opt.ws'))}
         </label>
         <label class="tool-checkline">
-          <input type="checkbox" id="dfCase" name="ignoreCase" style="width:auto;"> ${esc(t('diff.opt.case'))}
+          <input type="checkbox" id="dfCase" name="ignoreCase"> ${esc(t('diff.opt.case'))}
         </label>
         <label class="tool-checkline">
-          <input type="checkbox" id="dfOnly" name="onlyChanged" style="width:auto;" checked> ${esc(t('diff.opt.only'))}
+          <input type="checkbox" id="dfOnly" name="onlyChanged" checked> ${esc(t('diff.opt.only'))}
         </label>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-lg);">

@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <input type="text" id="lgPattern" name="pattern" aria-label="${esc(t('logview.label.find'))}" class="mono-input" placeholder="timeout|refused">
         </div>
         <label class="tool-checkline">
-          <input type="checkbox" id="lgInvert" name="invert" style="width:auto;"> ${esc(t('logview.opt.invert'))}
+          <input type="checkbox" id="lgInvert" name="invert"> ${esc(t('logview.opt.invert'))}
         </label>
       </div>
       <div class="tool-chips" id="lgLevels" style="margin-bottom:10px;">

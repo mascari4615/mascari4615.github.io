@@ -73,7 +73,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div class="field-row" style="margin-bottom:8px;">
                 <label class="field-label" style="margin:0;">${esc(t('hashgen.label.out'))}</label>
                 <label class="tool-checkline">
-                  <input type="checkbox" id="hgUpper" style="width:auto;"> ${esc(t('hashgen.opt.upper'))}
+                  <input type="checkbox" id="hgUpper"> ${esc(t('hashgen.opt.upper'))}
                 </label>
               </div>
               <div id="hgOut" class="tool-list"></div>

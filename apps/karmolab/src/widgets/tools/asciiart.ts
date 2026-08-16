@@ -190,10 +190,10 @@ import { attachMedia } from './shared/media';
               </div>
               <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
                 <label class="tool-checkline">
-                  <input type="checkbox" id="aaInvert" style="width:auto;"> ${esc(t('asciiart.opt.invert'))}
+                  <input type="checkbox" id="aaInvert"> ${esc(t('asciiart.opt.invert'))}
                 </label>
                 <label class="tool-checkline">
-                  <input type="checkbox" id="aaColor" style="width:auto;"> ${esc(t('asciiart.opt.color'))}
+                  <input type="checkbox" id="aaColor"> ${esc(t('asciiart.opt.color'))}
                 </label>
               </div>
             </div>

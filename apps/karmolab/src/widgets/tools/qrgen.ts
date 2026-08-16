@@ -72,7 +72,7 @@ import { encode, loadImage } from './shared/image';
                   <option value="nopass">${esc(t('qrgen.enc.nopass'))}</option>
                 </select>
                 <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary); white-space:nowrap;">
-                  <input type="checkbox" id="qrWifiHidden" style="width:auto;"> ${esc(t('qrgen.opt.hidden'))}
+                  <input type="checkbox" id="qrWifiHidden"> ${esc(t('qrgen.opt.hidden'))}
                 </label>
               </div>
             </div>
