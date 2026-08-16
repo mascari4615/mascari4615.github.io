@@ -142,6 +142,7 @@
     "audit:unwired",
     "test:tool-search",
     "test:heung:ux",
-    "smoke:badapple-tool"
+    "smoke:badapple-tool",
+    "audit:shared-builds"
   ]
 }
