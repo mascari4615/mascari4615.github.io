@@ -103,6 +103,7 @@
     "audit:memo-derived": "node scripts/audit-memo-derived.mjs",
     "build:css": "node scripts/split-css.mjs",
     "audit:generated-registry": "node scripts/audit-generated-registry.mjs",
+    "audit:locale-inline": "node scripts/audit-locale-inline.mjs",
     "audit:entry-sources": "node scripts/check-entry-sources.mjs",
     "test:taptarget": "node scripts/test-taptarget.mjs",
     "test:shell-i18n": "node scripts/smoke-shell-i18n.mjs",
