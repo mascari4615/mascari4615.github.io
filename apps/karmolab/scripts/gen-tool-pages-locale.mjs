@@ -236,7 +236,10 @@ function localizeToolPage(source, id, code) {
       'site',
       'shell',
       'widgets',
-      'widgets-desc',
+      /* ★ `widgets-desc` 도 여기서 안 싣는다 (2026-08-17 실측, 27.6KB). 도구 **설명**은 목록 화면의
+         것이고, 그 화면을 그리는 `widgets-lazy-meta` 가 스스로 `loadNamespace('widgets-desc')` 를 부른다.
+         실제로 이 장에서 목록으로 넘어가 봤다 — 설명이 영어로 잘 뜨고 i18n 경고 0건.
+         이름(`widgets`)은 첫 그림의 손잡이에 쓰이므로 남긴다. */
       'toolpage',
       /* ★ `tools` 는 **여기서 안 싣는다** (2026-08-17 실측). 45.6KB 짜리 묶음인데(도구 324항목)
          이 장이 보여 주는 다른 도구의 한 줄은 **찍을 때 이미 HTML 에 박혀 나간다**(위 `related`).
