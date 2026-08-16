@@ -216,6 +216,7 @@
     "test:shard": "node scripts/shard-split.test.mjs",
     "test:shell-nav": "node scripts/smoke-shell-nav.mjs",
     "test:widgets-alive": "node scripts/smoke-widgets-alive.mjs",
+    "test:alive-scope": "node --test scripts/lib/alive-scope.test.mjs",
     "test:tierlist-keys": "node scripts/smoke-tierlist-keys.mjs",
     "test:redeploy-guard": "node --test scripts/retry-if-redeployed.test.mjs",
     "audit:sleep-read": "node scripts/audit-sleep-then-read.mjs",

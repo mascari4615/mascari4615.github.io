@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { stripFrontMatter } from './lib/serve-html.mjs';
+import { 열어볼것 } from './lib/alive-scope.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -59,29 +60,19 @@ if (전체.length < 10 && !준이름.length) {
   process.exit(2);
 }
 /* ★ **다 열면 8분이다** — 그대로 두면 `npm run build` 가 그만큼 느려진다(배포는 지금 250초).
-   그래서 기본값은 **이번에 손댄 도구만** 연다. 껍데기(toolbox·lib·index.html·매니페스트)를
-   건드렸으면 무엇이든 죽을 수 있으니 전부 연다. `--all` 은 언제나 전부(밤 판·조각 검사용). */
-function 손댄것() {
+   그래서 기본값은 **이번에 손댄 도구만** 연다. 무엇을 열지 가르는 셈은 `lib/alive-scope.mjs`
+   에 따로 두고 시험을 붙였다 — 그 셈이 틀리면 **죽은 도구를 지나친다**(제일 조용한 고장). */
+function 바뀐파일() {
   if (argv.includes('--all')) return null;
-  let 목록;
   try {
     const 나온것 = execFileSync('git', ['diff', '--name-only', 'origin/master...HEAD'], { cwd: repoRoot, encoding: 'utf8' })
       + execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
-    목록 = 나온것.split(String.fromCharCode(10)).map((x) => x.trim().replace(/^[A-Z? ]{1,2} /, '')).filter(Boolean);
+    return 나온것.split(NL).map((x) => x.trim().replace(/^[A-Z? ]{1,2} /, '')).filter(Boolean);
   } catch {
-    return null; // 못 물어봤으면 좁히지 않는다 — 모르면 다 본다
+    return null; // 못 물어봤으면 좁히지 않는다
   }
-  const 껍데기 = /apps[/]karmolab[/](index[.]html|src[/]toolbox[.]ts|src[/]lib[/]|src[/]widgets-lazy-meta[.]ts)/;
-  if (목록.some((f) => 껍데기.test(f))) return null;
-  const 이름 = new Set();
-  for (const f of 목록) {
-    const m = /apps[/]karmolab[/]src[/]widgets[/]([a-z0-9-]+)[/]/.exec(f);
-    if (m) 이름.add(m[1]);
-  }
-  return [...이름];
 }
-
-const 좁힌것 = 준이름.length ? null : 손댄것();
+const 좁힌것 = 준이름.length ? null : 열어볼것(바뀐파일());
 const 볼것 = 좁힌것 === null ? 전체 : 전체.filter((id) => 좁힌것.includes(id));
 if (좁힌것 !== null) console.log(`[widgets-alive] 이번에 손댄 도구만 본다 — ${볼것.length}개 (전부 = --all)`);
 const ids = 조각 ? 볼것.filter((_, i) => i % 조각.총 === 조각.of - 1) : 볼것;
