@@ -1,0 +1,1 @@
+{"apps/karmolab": ["esbuild"], "apps/discord-bots": ["@discordjs/opus", "esbuild", "ffmpeg-static", "youtube-dl-exec"], "__vulnerabilities": {"apps/karmolab": {"high": 0, "critical": 0}, "apps/discord-bots": {"high": 7, "critical": 1}}}

@@ -57,7 +57,6 @@
     "test:a11y",
     "audit:csp-meta",
     "audit:serve-fm",
-    "audit:deps",
     "audit:css-tokens",
     "test:jsontree",
     "test:dropwell",
