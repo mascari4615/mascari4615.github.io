@@ -53,6 +53,7 @@
     "test:ibatch",
     "test:vdur",
     "audit:hidden",
+    "audit:home-blocks",
     "test:jsontree",
     "test:dropwell",
     "test:saylive",

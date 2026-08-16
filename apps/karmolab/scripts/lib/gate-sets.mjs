@@ -14,6 +14,9 @@ export const PREPUSH = [
   'test:ink',
   'audit:jpegbg',
   'audit:hidden',
+  /* 0.05초 — 첫 화면 블록이 «그려졌다 사라지는» 것을 막는다. 사람 눈에는 80ms 라 안 보이는데
+     사이트 밀림의 대부분이었다(0.103 → 0.0105). 값싸고 잡는 게 크면 앞으로 당긴다. */
+  'audit:home-blocks',
   'audit:saylive',
   'audit:iconbtn',
   'audit:aliases',
