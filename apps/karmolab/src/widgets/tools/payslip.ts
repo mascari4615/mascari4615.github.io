@@ -108,7 +108,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       const row = (key: string, value: number, dim?: string): string =>
         '<div class="tool-list-row"><span class="tool-list-key">' + esc(t('payslip.row.' + key)) + '</span>' +
-        '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(won(value)) + '</span>' +
+        '<span class="mono tool-list-val">' + esc(won(value)) + '</span>' +
         '<span class="tool-list-dim">' + esc(dim ?? '') + '</span></div>';
 
       $<HTMLElement>('#psRows').innerHTML = [

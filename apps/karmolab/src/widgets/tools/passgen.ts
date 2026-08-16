@@ -198,7 +198,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
           container.innerHTML = `
             <div class="tool-display" id="pgOut" style="word-break:break-all; user-select:all;">—</div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-sublabel">${esc(t('passgen.label.length'))} <span id="pgLenVal" class="range-value">${esc(t('passgen.label.lengthValue', { n: 20 }))}</span></div>
               <input type="range" id="pgLen" aria-label="${esc(t('passgen.label.length'))}" min="8" max="64" value="20">
               <div class="tool-chips" id="pgMode" style="margin-bottom:10px;">
@@ -318,7 +318,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
             <div class="cc-stats" id="pcStats"></div>
             <div class="tool-list" id="pcWhy"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <button class="btn" id="pcPwned">${esc(t('passgen.pwned.btn', undefined, '유출 목록에 있는지 확인'))}</button>
               <p class="pc-how">${esc(t('passgen.pwned.how', undefined, '비밀번호는 안 보냅니다 — 해시 앞 다섯 글자만 보내고, 나머지 대조는 이 브라우저에서 합니다'))}</p>
               <div id="pcPwnedOut"></div>

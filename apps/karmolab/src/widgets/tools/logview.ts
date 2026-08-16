@@ -131,7 +131,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       const summary = summarise(shown);
       $<HTMLElement>('#lgCommon').innerHTML = summary.common
-        .map((c) => '<div class="tool-list-row"><span class="tool-list-key">' + c.count + '</span><span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(c.shape) + '</span></div>')
+        .map((c) => '<div class="tool-list-row"><span class="tool-list-key">' + c.count + '</span><span class="mono tool-list-val">' + esc(c.shape) + '</span></div>')
         .join('');
 
       const draw = shown.slice(0, DRAW_CAP);

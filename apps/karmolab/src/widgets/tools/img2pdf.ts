@@ -44,9 +44,9 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
               ${esc(t('img2pdf.drop'))}
             </div>
 
-            <div class="p2-grid" id="i2Preview" style="margin-top:var(--space-lg);"></div>
+            <div class="tool-section p2-grid" id="i2Preview"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('img2pdf.label.paper'))}</div>

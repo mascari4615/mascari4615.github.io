@@ -62,7 +62,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
                 </label>
               </div>
 
-              <div class="field-group" style="margin-top:var(--space-lg);">
+              <div class="tool-section field-group">
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">${esc(t('pdfsign.label.page'))} <span id="psPageVal" class="range-value">1 / 1</span></div>

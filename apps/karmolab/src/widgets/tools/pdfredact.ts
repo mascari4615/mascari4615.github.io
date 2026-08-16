@@ -53,7 +53,7 @@ import { encode } from './shared/image';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           container.innerHTML = `
-            <div class="tool-status" id="prWarn" style="margin-bottom:var(--space-lg);">
+            <div class="tool-section-end tool-status" id="prWarn">
               ${esc(t('pdfredact.warn'))}
             </div>
 

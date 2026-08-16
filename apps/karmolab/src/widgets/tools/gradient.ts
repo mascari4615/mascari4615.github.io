@@ -57,7 +57,7 @@ import { statusLine } from './shared/say';
           container.innerHTML = `
             <div id="grPreview" style="height:180px; border-radius:10px; border:1px solid rgba(128,128,128,0.25);"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('gradient.label.from'))}</div>
@@ -93,9 +93,9 @@ import { statusLine } from './shared/say';
               <div id="grPerceptual" style="height:34px; border-radius:6px;"></div>
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label" for="grCss">CSS</label>
-              <textarea id="grCss" rows="4" spellcheck="false" style="width:100%;" readonly></textarea>
+              <textarea class="full" id="grCss" rows="4" spellcheck="false" readonly></textarea>
               <button class="btn btn-ghost btn-sm" id="grCopy" style="margin-top:var(--space-sm);">${esc(t('gradient.btn.copy'))}</button>
             </div>
 

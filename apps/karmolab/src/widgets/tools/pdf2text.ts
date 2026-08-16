@@ -109,7 +109,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
                 <input type="text" id="ptRange" placeholder="${esc(t('pdf2text.ph.range'))}" spellcheck="false">
               </div>
 
-              <div class="tool-chips" style="margin-bottom:var(--space-lg);">
+              <div class="tool-section-end tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="ptMark" checked> ${esc(t('pdf2text.opt.mark'))}</label>
               </div>
 
@@ -121,7 +121,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
                 <button class="btn btn-ghost" id="ptSave" disabled>${esc(t('pdf2text.btn.save'))}</button>
               </div>
 
-              <textarea id="ptOut" rows="16" spellcheck="false" style="width:100%;" placeholder="${esc(t('pdf2text.ph.out'))}"></textarea>
+              <textarea class="full" id="ptOut" rows="16" spellcheck="false" placeholder="${esc(t('pdf2text.ph.out'))}"></textarea>
             </div>
 
             <div class="tool-status" id="ptStatus">${esc(t('pdf2text.status.idle'))}</div>

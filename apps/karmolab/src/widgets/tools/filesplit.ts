@@ -49,7 +49,7 @@ import { download } from './shared/image';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           container.innerHTML = `
-            <div class="tool-chips" style="margin-bottom:var(--space-lg);">
+            <div class="tool-section-end tool-chips">
               <button type="button" class="tool-chip active" id="fsModeSplit">${esc(t('filesplit.mode.split'))}</button>
               <button type="button" class="tool-chip" id="fsModeJoin">${esc(t('filesplit.mode.join'))}</button>
             </div>
@@ -59,7 +59,7 @@ import { download } from './shared/image';
               <span id="fsDropLabel">${esc(t('filesplit.drop.split'))}</span>
             </div>
 
-            <div id="fsSplitOpts" style="margin-top:var(--space-lg);">
+            <div class="tool-section" id="fsSplitOpts">
               <div class="field-group">
                 <label class="field-label" for="fsSize">${esc(t('filesplit.label.size'))}</label>
                 <select id="fsSize">

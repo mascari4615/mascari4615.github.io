@@ -41,7 +41,7 @@ import { intervalWhileVisible } from '../../lib/tick';
           void loadNamespace('screenrec').then(function () {
 
           container.innerHTML = `
-            <div class="tool-chips" style="margin-bottom:var(--space-lg);">
+            <div class="tool-section-end tool-chips">
               <label class="tool-chip"><input type="checkbox" id="srSysAudio" checked> ${esc(t('screenrec.opt.sysAudio'))}</label>
               <label class="tool-chip"><input type="checkbox" id="srMic"> ${esc(t('screenrec.opt.mic'))}</label>
             </div>

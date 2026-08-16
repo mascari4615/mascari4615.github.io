@@ -61,7 +61,7 @@ import { encode } from './shared/image';
               ${esc(t('pdfwatermark.drop'))}
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label">${esc(t('pdfwatermark.label.text'))}</label>
               <input type="text" id="pwText" aria-label="${esc(t('pdfwatermark.aria.text'))}" value="${esc(t('pdfwatermark.sample'))}" spellcheck="false">
             </div>

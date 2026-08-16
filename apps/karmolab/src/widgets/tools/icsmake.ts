@@ -139,7 +139,7 @@ import { download } from './shared/image';
                 </div>
               </div>
               <label class="field-label" for="icNote">${esc(t('icsmake.label.note'))}</label>
-              <textarea id="icNote" rows="3" style="width:100%;" placeholder="${esc(t('icsmake.ph.note'))}"></textarea>
+              <textarea class="full" id="icNote" rows="3" placeholder="${esc(t('icsmake.ph.note'))}"></textarea>
             </div>
 
             <div class="cc-stats" id="icStats"></div>
@@ -147,7 +147,7 @@ import { download } from './shared/image';
 
             <div class="field-group">
               <label class="field-label" for="icOut">${esc(t('icsmake.label.out'))}</label>
-              <textarea id="icOut" rows="9" spellcheck="false" style="width:100%;" readonly></textarea>
+              <textarea class="full" id="icOut" rows="9" spellcheck="false" readonly></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                 <button class="btn btn-primary btn-sm" id="icSave">${esc(t('icsmake.btn.save'))}</button>
                 <button class="btn btn-ghost btn-sm" id="icCopy">${esc(t('icsmake.btn.copy'))}</button>

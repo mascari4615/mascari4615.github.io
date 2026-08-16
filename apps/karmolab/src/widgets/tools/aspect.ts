@@ -70,7 +70,7 @@ import { markLive } from './shared/say';
 
             <div class="tool-list" id="asOut"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label">${esc(t('aspect.label.common'))}</label>
               <div class="tool-chips" id="asPresets"></div>
             </div>

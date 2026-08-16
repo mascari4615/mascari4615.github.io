@@ -44,9 +44,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               ${esc(t('imgmerge.drop'))}
             </div>
 
-            <div class="tool-list" id="imList" style="margin-top:var(--space-lg);"></div>
+            <div class="tool-section tool-list" id="imList"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('imgmerge.label.dir'))}</div>

@@ -81,7 +81,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               ${esc(t('palette.drop'))}
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-sublabel">${esc(t('palette.label.count'))} <span id="plCountVal" class="range-value">${esc(t('palette.value.count'))}</span></div>
               <input type="range" id="plCount" aria-label="${esc(t('palette.label.count'))}" min="2" max="6" value="3">
             </div>

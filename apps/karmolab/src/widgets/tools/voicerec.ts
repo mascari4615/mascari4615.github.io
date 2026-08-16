@@ -72,7 +72,7 @@ import { intervalWhileVisible } from '../../lib/tick';
                   style="display:none; margin-top:var(--space-xs);">자막(SRT)으로 복사</button>
               </div>
               <div class="tool-sublabel">${esc(t('voicerec.label.result'))}</div>
-              <audio id="vrPreview" controls style="width:100%;"></audio>
+              <audio class="full" id="vrPreview" controls></audio>
             </div>
 
             <div class="tool-status" id="vrStatus">${esc(t('voicerec.status.idle'))}</div>

@@ -58,7 +58,7 @@ import { download } from './shared/image';
               <span id="zpDropText">${esc(t('ziptool.drop.make'))}</span>
             </div>
 
-            <div class="field-group" id="zpLevelWrap" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group" id="zpLevelWrap">
               <div class="tool-sublabel">${esc(t('ziptool.label.level'))} <span id="zpLevelVal" class="range-value">${esc(t('ziptool.level.mid'))}</span></div>
               <input type="range" id="zpLevel" aria-label="${esc(t('ziptool.label.level'))}" min="0" max="9" value="6">
             </div>

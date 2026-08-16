@@ -85,9 +85,9 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
               <span>${esc(t('subtitle.drop'))}</span>
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label" for="sbIn">${esc(t('subtitle.label.in'))}</label>
-              <textarea id="sbIn" rows="7" spellcheck="false" style="width:100%;" placeholder="${esc(t('subtitle.ph.in')).replace(/\n/g, '&#10;')}"></textarea>
+              <textarea class="full" id="sbIn" rows="7" spellcheck="false" placeholder="${esc(t('subtitle.ph.in')).replace(/\n/g, '&#10;')}"></textarea>
             </div>
 
             <div class="field-group">
@@ -120,7 +120,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
 
             <div class="field-group">
               <label class="field-label" for="sbOut">${esc(t('subtitle.label.out'))}</label>
-              <textarea id="sbOut" rows="8" spellcheck="false" style="width:100%;" readonly></textarea>
+              <textarea class="full" id="sbOut" rows="8" spellcheck="false" readonly></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                 <button class="btn btn-ghost btn-sm" id="sbCopy">${esc(t('subtitle.btn.copy'))}</button>
                 <button class="btn btn-primary btn-sm" id="sbSave">${esc(t('subtitle.btn.save'))}</button>
@@ -246,7 +246,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
         <input type="file" id="svFile" accept=".srt,.vtt,text/plain" hidden>
         <span>${esc(t('subtitle.sum.drop'))}</span>
       </div>
-      <div class="field-group" style="margin-top:var(--space-lg);">
+      <div class="tool-section field-group">
         <label class="field-label" for="svIn">${esc(t('subtitle.sum.label'))}</label>
         <textarea id="svIn" name="captions" class="mono-input" style="min-height:140px;" placeholder="00:00:00,000 --> 00:00:04,000"></textarea>
       </div>

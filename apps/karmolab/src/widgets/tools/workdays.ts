@@ -59,7 +59,7 @@ import { readInvocation } from '../../lib/tool-url';
             `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
           container.innerHTML = `
-            <div class="tool-chips" style="margin-bottom:var(--space-lg);">
+            <div class="tool-section-end tool-chips">
               <button type="button" class="tool-chip active" id="wdModeAfter">${esc(t('workdays.mode.after'))}</button>
               <button type="button" class="tool-chip" id="wdModeBetween">${esc(t('workdays.mode.between'))}</button>
             </div>

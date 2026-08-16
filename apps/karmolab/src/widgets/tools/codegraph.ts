@@ -91,7 +91,7 @@ interface ZipArchive {
               .map(
                 (loop) =>
                   '<div class="tool-list-row"><span class="tool-list-key" style="color:var(--accent-danger, #c62828)">' + loop.length + '</span>' +
-                  '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(loop.join('  →  ')) + '</span></div>'
+                  '<span class="mono tool-list-val">' + esc(loop.join('  →  ')) + '</span></div>'
               )
               .join('');
 
@@ -100,7 +100,7 @@ interface ZipArchive {
         .map(
           (r) =>
             '<div class="tool-list-row"><span class="tool-list-key">' + r.imported + '</span>' +
-            '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(r.file) + '</span>' +
+            '<span class="mono tool-list-val">' + esc(r.file) + '</span>' +
             '<span class="tool-list-dim">→ ' + r.imports + '</span></div>'
         )
         .join('');
@@ -108,7 +108,7 @@ interface ZipArchive {
       const orphans = unreferenced(graph);
       $<HTMLElement>('#cgOrphans').innerHTML = orphans
         .slice(0, 12)
-        .map((f) => '<div class="tool-list-row"><span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(f) + '</span></div>')
+        .map((f) => '<div class="tool-list-row"><span class="mono tool-list-val">' + esc(f) + '</span></div>')
         .join('');
 
       try {
