@@ -56,10 +56,18 @@ async function checkOne(page, id) {
      같은 자리를 곧바로 다시 물어보면 200 이었다. 없는 파일(4xx)과 서버 딸꾹질(5xx)은
      손 갈 데가 다르다. 5xx 는 한 번 더 물어보고, 그때 오면 빨강으로 세지 않는다. */
   const hiccups = [];
+  /* ★ **지문 붙은 파일의 404 도 딸꾹질일 수 있다** (2026-08-16, 실측). 위 규칙은 5xx 만 다시
+     물어본다 — 그런데 배포가 갈리는 순간 실제로 나는 것은 **404** 다: 새 판이 올라가면서
+     `js/perf.<지문>.js` 의 지문이 바뀌는데, 화면과 자산이 서로 다른 판일 수 있기 때문이다.
+     그래서 도구 장 **30장이 한꺼번에 빨갛게** 났고(같은 파일 하나), 몇 분 뒤 같은 주소를
+     받아 보면 200 이었다. 지문이 붙은 이름(`.<8자리 이상 16진수>.js|css`)의 404 만 한 번 더
+     물어본다 — 지문 없는 파일이 없으면 그건 그냥 없는 것이라 곧바로 빨강이다. */
+  const 지문붙은이름 = /\.[0-9a-f]{8,}\.(js|css)$/;
   const onResponse = (r) => {
     if (r.status() >= 400 && !/gc\.zgo\.at|goatcounter/.test(r.url())) {
       const short = `${r.status()} ${r.url().split('/').slice(-2).join('/')}`;
-      if (r.status() >= 500) hiccups.push({ url: r.url(), short });
+      const 다시물어볼것 = r.status() >= 500 || 지문붙은이름.test(r.url().split('?')[0]);
+      if (다시물어볼것) hiccups.push({ url: r.url(), short });
       else missing.push(short);
     }
   };
