@@ -42,9 +42,25 @@ for (const file of WORKFLOWS) {
   const jobs = text
     .split(/\n {4}steps:\n/)
     .slice(1)
-    .filter((block) => /apps\/karmolab && npm (ci|run build)|working-directory: apps\/karmolab/.test(block));
+    /* ★ **「그 폴더를 쓴다」와 「그 앱을 짓는다」는 다르다** (2026-08-16).
+       예전 조건은 `working-directory: apps/karmolab` 만 있으면 짓는 잡으로 봤다. 그런데
+       라이브 점검의 판정 잡은 그 폴더에서 **보고 스크립트만** 돌린다(빌드 결과는 artifact 로
+       받아 온다). 그 잡에 「공용 꾸러미 짓는 단계가 없다」고 2건을 냈다 — 있을 이유가 없다.
+       그래서 **실제로 짓는 명령**이 있는 잡만 본다. */
+    .filter((block) => /npm run build|npm run build:artifacts|npm ci/.test(block) && /apps\/karmolab/.test(block));
   jobs.forEach((block, i) => {
-    const lines = block.split('\n');
+    /* ★ **채비를 한 곳으로 모은 뒤로 이 검사가 거짓말을 했다** (2026-08-16).
+       공용 꾸러미 짓기는 이제 워크플로마다 손으로 적지 않고 `uses: ./.github/actions/<이름>`
+       하나로 부른다(그 목록이 네 곳에 흩어져 사고가 났던 그 자리다). 그런데 여기서는
+       **그 잡의 글자만** 봐서 「짓는 단계가 없다」고 4건을 냈다 — 실제로는 채비 action 안에서
+       짓고 있다. 부르는 action 의 내용을 붙여서 같이 본다. */
+    const 부른action = [...block.matchAll(/uses:\s*(\.[^\s]+)/g)]
+      .map((m) => m[1].replace(/^\.\//, ''))
+      .map((rel) => path.join(repoRoot, rel, 'action.yml'))
+      .filter((f) => fs.existsSync(f))
+      .map((f) => fs.readFileSync(f, 'utf8'))
+      .join('\n');
+    const lines = (block + '\n' + 부른action).split('\n');
     for (const { name, dir } of shared) {
       /* 짓는 줄 = 그 꾸러미 경로가 있는 줄, **또는 그 아래 세 줄 안**에 `npm run build`·`tsc`.
        * 한 줄로 쓰기도 하고(`cd packages/x && npm run build`) 두 줄로 쓰기도 한다
