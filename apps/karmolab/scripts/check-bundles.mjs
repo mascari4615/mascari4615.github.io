@@ -117,9 +117,31 @@ console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(se
   const ghostBundles = [...new Set([...metaSrc.matchAll(/bundle: '([a-z0-9]+)'/g)].map((m) => m[1]))].filter(
     (b) => !ids.has(b)
   );
+  /* ★ **같은 빚을 두 번 막지 않는다** (2026-08-16, 실측). 관련 링크가 비는 이유는 둘이다 —
+     ① **오타나 없는 도구**를 가리킨다(진짜 버그, 영원히 빈다) ③ **있는 도구인데 아직
+     상세 설명을 안 썼다**(이미 `tool-data-baseline.json` 에 세어 둔 빚, 채우면 사라진다).
+     둘을 같이 빨간것으로 두면 ②를 갑는 동안 **그 뒤에 미는 모든 섬션**이 남의 빚으로 빨강을
+     맞는다 — 오늘 verify 가 그렇게 세 판 연속 빨갔다. ②는 이미 한 번 세고 있으므로 여기서는
+     말만 하고 안 막는다. ①은 그대로 빨강이다 — 그건 갑을 사람이 없는 빚이다. */
+  let 아직안쓴것 = new Set();
+  try {
+    아직안쓴것 = new Set(JSON.parse(read('data/tool-data-baseline.json')).목록 || []);
+  } catch {
+    /* 기준선이 없으면 전부 ① 로 본다 — 없는 것을 있다고 치는 쪽이 위험하다. */
+  }
   const danglingRelated = [];
+  const 빚때문에빈것 = [];
   for (const [id, t] of Object.entries(seoTools)) {
-    for (const r of t.related || []) if (!seoTools[r]) danglingRelated.push(`${id} → ${r}`);
+    for (const r of t.related || []) {
+      if (seoTools[r]) continue;
+      (아직안쓴것.has(r) ? 빚때문에빈것 : danglingRelated).push(`${id} → ${r}`);
+    }
+  }
+  if (빚때문에빈것.length) {
+    console.log(
+      `[check-bundles] 관련 링크 ${빚때문에빈것.length}개가 아직 설명 안 쓴 도구를 가리킨다 (막지 않는다) — ` +
+        `${빚때문에빈것.join(', ')} · 그 도구의 설명을 채우면 저절로 사라진다`
+    );
   }
 
   if (ghostBundles.length || danglingRelated.length) {
