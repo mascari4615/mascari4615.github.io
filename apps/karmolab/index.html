@@ -203,8 +203,14 @@ permalink: /karmolab/
      media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
      (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다 — 이미 온 것은 바로,
      아직인 것은 오면. 받는 시점은 그대로라 첫 화면 값은 안 바뀐다. */
+  /* ★ **켜 준 것에는 표를 남긴다** (2026-08-17). 「이건 미뤄 둔 것」이라는 사실은 예전엔
+     `onload=` 라는 글자가 증거였고, 첫 화면을 막는 스타일을 세는 검사도 그 글자를 보고 뺐다.
+     그 글자를 걷어내자 검사는 켜진 뒤의 `media="all"` 만 보고 **미뤄 둔 것을 「막는 것」으로**
+     세기 시작했다(도구 장 넷에서 8건 빨강 — 실제로는 첫 화면을 안 막는다).
+     증거를 다시 남긴다. 켤 때 표를 달아 두면 켠 뒤에도 「미뤄 둔 것」임이 남는다. */
   for (var i=0, ls=document.querySelectorAll('link[rel="stylesheet"][media="print"]'); i<ls.length; i++) {
     (function(l){
+      l.setAttribute('data-deferred','');
       if (l.sheet) { l.media='all'; return; }
       l.addEventListener('load', function(){ l.media='all'; });
     })(ls[i]);

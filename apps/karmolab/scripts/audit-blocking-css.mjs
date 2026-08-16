@@ -44,8 +44,13 @@ for (const id of SAMPLE) {
     [...document.querySelectorAll('link[rel="stylesheet"]')]
       .filter((l) => !l.media || l.media === 'all' || l.media === 'screen')
       /* 일부러 미뤄 둔 것은 뺀다 — 처음엔 안 막게 걸어 두고 다 받은 뒤에 켜는 방식이라,
-       * 이 검사가 볼 때는 이미 켜져 있다. 그 표식(onload)이 남아 있으면 미뤄 둔 것이다. */
-      .filter((l) => !l.hasAttribute('onload'))
+       * 이 검사가 볼 때는 이미 켜져 있다.
+       * ★ **표식이 바뀌면 이 검사가 거짓 빨강을 낸다** (2026-08-17 실측). 예전 표식은
+       * `onload=` 라는 글자였는데, CSP 에 script-src 를 걸려고 그 글자를 전부 걷어냈다.
+       * 그러자 미뤄 둔 스타일 넷이 「첫 화면을 막는다」로 잡혀 라이브 점검 한 조각이 섰다 —
+       * 막지 않는데도. 이제 켜 주는 자리가 `data-deferred` 표를 남긴다(`index.html` 머리).
+       * 옛 표식도 같이 본다: 다른 곳에서 아직 그 방식을 쓸 수 있다. */
+      .filter((l) => !l.hasAttribute('onload') && !l.hasAttribute('data-deferred'))
       /* 글꼴 정의만 들어 있는 것은 뺀다. 브라우저는 `@font-face` 를 「쓰였다」로 안 세므로
        * 늘 0% 로 나온다 — 그건 안 쓰는 게 아니라 셀 수 없는 것이다.
        * 예전엔 「남의 서버에서 오는 것」으로 걸렀는데, 글꼴을 우리 서버에서 주기 시작하면서
