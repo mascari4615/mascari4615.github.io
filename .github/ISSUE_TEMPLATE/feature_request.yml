@@ -40,7 +40,6 @@ body:
       options:
         - Jekyll 블로그
         - KarmoLab 앱
-        - KarmoLab React
         - Discord 봇
         - Chat Overlay
         - 기타
