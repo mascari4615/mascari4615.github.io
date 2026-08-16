@@ -219,6 +219,7 @@
     "test:widgets-alive": "node scripts/smoke-widgets-alive.mjs",
     "audit:shell-essentials": "node scripts/audit-shell-essentials.mjs",
     "test:alive-scope": "node --test scripts/lib/alive-scope.test.mjs",
+    "test:arcade-limits": "node --test scripts/lib/arcade-limits.test.mjs",
     "test:tierlist-keys": "node scripts/smoke-tierlist-keys.mjs",
     "test:redeploy-guard": "node --test scripts/retry-if-redeployed.test.mjs",
     "audit:sleep-read": "node scripts/audit-sleep-then-read.mjs",

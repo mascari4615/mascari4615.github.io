@@ -27,6 +27,12 @@ const fail = [];
 const br = await chromium.launch();
 const p = await (await br.newContext()).newPage();
 await p.route('**/__dev', (r) => r.abort());
+/* ★ **시계를 우리가 쥔다** (2026-08-17 실측). 놀이마다 제 시간 제한이 있고 가장 긴 것은
+   스도쿠 **300초**·지뢰찾기 180초다. 아무 단추나 누르는 이 손으로는 스도쿠가 풀릴 리 없으니,
+   그런 판은 **제 시간이 다 돼야** 끝난다 — 한 판 150초로 자르면 그 놀이가 뽑히는 순간 무조건 빨강이고,
+   자르는 값을 300초로 올리면 다섯 판 최악 25분이라 조각 예산(40분)을 깬다.
+   그래서 잠깐 놀아 본 뒤 **시계를 앞으로 감는다**. 놀이는 제 규칙대로 끝나고, 우리는 안 기다린다. */
+await p.clock.install();
 await p.goto(URL, { waitUntil: 'domcontentloaded' });
 await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
 await p.evaluate(() => Toolbox.switchPage('arcade'));
@@ -56,6 +62,10 @@ const poke = setInterval(async () => {
 const seen = [];
 let prevSum = -1;
 for (let i = 1; i <= ROUNDS; i++) {
+  /* 15초는 진짜로 논다(그려지고 눌리는지 보려면 실제 시간이 필요하다). 그 뒤 6분을 감아
+     어떤 놀이든 제 시간 제한에 닿게 한다 — 감은 시간은 기다린 시간이 아니다. */
+  await p.waitForTimeout(15000);
+  await p.clock.fastForward('06:00');
   const ok = await p
     .waitForFunction(() => {
       const a = document.querySelector('#acAgain');
@@ -64,7 +74,7 @@ for (let i = 1; i <= ROUNDS; i++) {
          라이브 점검 한 조각(예측 14분)이 그 하나 때문에 40분 제한에 걸려 취소됐다.
          정상 판은 실측 60~95초다(로컬 세 판). 150초면 **1.6배 여유**이고, 걸렸을 때 버리는 시간은
          4분 → 2.5분으로 준다. 넘으면 아래 판정이 **어느 놀이가 멈췄는지** 이름까지 적는다. */
-    }, null, { timeout: 150000 })
+    }, null, { timeout: 60000 })
     .then(() => true)
     .catch(() => false);
   if (!ok) {
@@ -111,8 +121,12 @@ for (let i = 1; i <= ROUNDS; i++) {
 if (new Set(seen).size !== seen.length) fail.push(`같은 판이 두 번 나왔다: ${seen.join(', ')}`);
 
 clearInterval(poke);
-await p.waitForTimeout(300);
+/* ★ 시계를 우리가 쥐고 있으므로 **화면의 기다림**(waitForTimeout)은 안 쓴다 — 감아 주지 않으면
+   영영 안 깨어난다. 여기서는 node 쪽 시계로 잠깐 쉰다. */
+await new Promise((r) => setTimeout(r, 300));
 await br.close();
+/* 내가 띄운 서버는 내가 닫는다 — 안 닫으면 검사가 끝나고도 프로세스가 안 죽는다(실측). */
+await 내서버?.close?.();
 
 if (fail.length) {
   console.error('❌ 대회 — ' + fail.join(' / '));

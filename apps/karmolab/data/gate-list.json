@@ -152,6 +152,7 @@
     "test:widgets-alive",
     "audit:shell-essentials",
     "test:alive-scope",
+    "test:arcade-limits",
     "test:tierlist-keys",
     "test:redeploy-guard",
     "audit:sleep-read"
