@@ -149,7 +149,7 @@ import { isMetric } from '../../lib/region';
           function fromSpeed(): void {
             if (syncing) return;
             const v = parseFloat(speedEl.value);
-            if (!(v > 0)) return;
+            if (!(v> 0)) return;
             syncing = true;
             paceEl.value = mmss(3600 / v);
             syncing = false;

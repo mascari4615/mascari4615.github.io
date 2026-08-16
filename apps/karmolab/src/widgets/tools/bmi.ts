@@ -158,7 +158,7 @@ import { region, isMetric } from '../../lib/region';
             const wUnit = t(us ? 'bmi.unit.lb' : 'bmi.unit.kg');
             const showW = (v: number): string => `${(us ? v / 0.45359237 : v).toFixed(1)} ${wUnit}`;
             const 차이 =
-              kg > 정상상한 ? t('bmi.value.lose', { n: showW(kg - 정상상한) })
+              kg> 정상상한 ? t('bmi.value.lose', { n: showW(kg - 정상상한) })
               : kg < 정상하한 ? t('bmi.value.gain', { n: showW(정상하한 - kg) })
               : t('bmi.value.inRange');
 

@@ -170,11 +170,11 @@ import { intervalWhileVisible } from '../../lib/tick';
               history.push(max);
               const w = (meter.width = meter.clientWidth || 600);
               const h = meter.height;
-              while (history.length > Math.floor(w / 3)) history.shift();
+              while (history.length> Math.floor(w / 3)) history.shift();
               ctx.clearRect(0, 0, w, h);
               ctx.fillStyle = 'rgba(255,255,255,0.08)';
               ctx.fillRect(0, h / 2 - 0.5, w, 1);
-              ctx.fillStyle = max > 0.9 ? '#e04b4b' : '#4bb3e0';
+              ctx.fillStyle = max> 0.9 ? '#e04b4b' : '#4bb3e0';
               history.forEach((v, i) => {
                 const bar = Math.max(2, v * h * 0.92);
                 ctx.fillRect(i * 3, (h - bar) / 2, 2, bar);
@@ -267,7 +267,7 @@ import { intervalWhileVisible } from '../../lib/tick';
             // 소리가 거의 안 들어왔으면 그냥 저장 성공이라고 하면 안 된다 — 사용자는 나중에야 안다
             if (peak < 0.02) {
               say(t('voicerec.say.silent', { len: mmss(seconds) }), 'error');
-            } else if (peak > 0.99) {
+            } else if (peak> 0.99) {
               say(t('voicerec.say.clipped', { len: mmss(buffer.duration) }));
             } else {
               say(t('voicerec.say.done', { len: mmss(buffer.duration), size: size(wav.size) }), 'ok');

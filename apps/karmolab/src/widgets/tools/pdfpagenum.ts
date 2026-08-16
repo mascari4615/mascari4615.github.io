@@ -101,7 +101,7 @@ import { encode } from './shared/image';
                   </select>
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('pdfpagenum.label.skip'))} <span id="pnSkipVal" class="range-value">0장</span></div>
                   <input type="range" id="pnSkip" aria-label="건너뛸 장" min="0" max="5" value="0">
@@ -111,7 +111,7 @@ import { encode } from './shared/image';
                   <input type="range" id="pnSize" aria-label="글씨 크기" min="8" max="18" value="11">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="pnRestart" checked> ${esc(t('pdfpagenum.opt.restart'))}</label>
               </div>
             </div>

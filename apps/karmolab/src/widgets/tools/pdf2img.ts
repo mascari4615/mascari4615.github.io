@@ -23,10 +23,10 @@ import { openForRead, renderPage } from './shared/pdf';
       if (m) {
         const from = m[1] ? parseInt(m[1], 10) : 1;
         const to = m[2] ? parseInt(m[2], 10) : total;
-        for (let i = from; i <= Math.min(to, total); i++) if (i >= 1 && !seen.has(i)) (seen.add(i), out.push(i));
+        for (let i = from; i <= Math.min(to, total); i++) if (i>= 1 && !seen.has(i)) (seen.add(i), out.push(i));
       } else if (/^\d+$/.test(s)) {
         const n = parseInt(s, 10);
-        if (n >= 1 && n <= total && !seen.has(n)) (seen.add(n), out.push(n));
+        if (n>= 1 && n <= total && !seen.has(n)) (seen.add(n), out.push(n));
       }
     }
     return out;
@@ -68,7 +68,7 @@ import { openForRead, renderPage } from './shared/pdf';
                   </select>
                 </div>
               </div>
-              <div style="margin-top:10px;">
+              <div>
                 <div class="tool-sublabel">${esc(t('pdf2img.label.range'))}</div>
                 <input type="text" id="p2Range" placeholder="1-3,5" spellcheck="false">
               </div>

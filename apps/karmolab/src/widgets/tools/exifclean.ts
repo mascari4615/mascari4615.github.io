@@ -97,7 +97,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   }
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
   Toolbox.register({
     id: 'exifclean',

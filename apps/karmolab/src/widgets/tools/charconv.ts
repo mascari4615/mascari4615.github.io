@@ -163,12 +163,12 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (mode === 'pinyin' && pinyinTable === null) {
               warn.textContent = t('charconv.t12');
               warn.className = 'tool-note';
-            } else if (multi.length > 0) {
+            } else if (multi.length> 0) {
               warn.textContent =
                 t('charconv.t13') +
                 multi.map((m) => `${m.ch} → ${m.readings.join(t('charconv.t14'))}`).join(' · ');
               warn.className = 'tool-note error';
-            } else if (amb.length > 0) {
+            } else if (amb.length> 0) {
               warn.textContent =
                 t('charconv.t15') +
                 amb.map((a) => `${a.ch} → ${a.candidates.join(t('charconv.t14'))}`).join(' · ');

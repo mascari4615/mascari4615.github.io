@@ -60,7 +60,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                   <input type="range" id="imGap" aria-label="${esc(t('imgmerge.label.gap'))}" min="0" max="60" value="0">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('imgmerge.label.fit'))}</div>
                   <select id="imFit" aria-label="${esc(t('imgmerge.label.fit'))}">
@@ -152,7 +152,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               statCell(t('imgmerge.stat.size'), `${w}×${h}`, true) +
               statCell(t('imgmerge.stat.count'), t('imgmerge.value.shots', { n: shots.length })) +
               // 브라우저가 감당 못 하는 크기가 있다 — 미리 알려 준다
-              statCell(t('imgmerge.stat.state'), w * h > 60_000_000 ? t('imgmerge.verdict.tooBig') : t('imgmerge.verdict.ok'));
+              statCell(t('imgmerge.stat.state'), w * h> 60_000_000 ? t('imgmerge.verdict.tooBig') : t('imgmerge.verdict.ok'));
           }
 
           function draw(): HTMLCanvasElement | null {
@@ -224,7 +224,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               return;
             }
             const { w, h } = plan();
-            if (w * h > 60_000_000) {
+            if (w * h> 60_000_000) {
               say(t('imgmerge.err.tooBig'), 'error');
               return;
             }

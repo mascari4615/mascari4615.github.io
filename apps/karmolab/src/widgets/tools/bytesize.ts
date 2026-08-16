@@ -14,7 +14,7 @@ import { escapeHtml as esc } from './shared/text';
   const BIN = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
 
   const fmt = (n: number): string =>
-    n >= 1000 || Number.isInteger(n) ? n.toLocaleString(locale(), { maximumFractionDigits: 2 }) : n.toFixed(3);
+    n>= 1000 || Number.isInteger(n) ? n.toLocaleString(locale(), { maximumFractionDigits: 2 }) : n.toFixed(3);
 
   Toolbox.register({
     id: 'bytesize',

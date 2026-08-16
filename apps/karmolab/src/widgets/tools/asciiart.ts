@@ -100,7 +100,7 @@ import { attachMedia } from './shared/media';
         const tone = colors[y * cols + x] ?? 0;
         if (tone !== brush) {
           brush = tone;
-          painted += `\u001b[38;2;${(tone >> 16) & 255};${(tone >> 8) & 255};${tone & 255}m`;
+          painted += `\u001b[38;2;${(tone>> 16) & 255};${(tone>> 8) & 255};${tone & 255}m`;
         }
         painted += line[x];
       }
@@ -178,7 +178,7 @@ import { attachMedia } from './shared/media';
                   </select>
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('asciiart.label.bright'))} <span id="aaBrightVal" class="range-value">0</span></div>
                   <input type="range" id="aaBright" aria-label="${esc(t('asciiart.label.bright'))}" min="-100" max="100" value="0">
@@ -188,7 +188,7 @@ import { attachMedia } from './shared/media';
                   <input type="range" id="aaContrast" aria-label="${esc(t('asciiart.label.contrast'))}" min="-100" max="100" value="0">
                 </div>
               </div>
-              <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
+              <div style="display:flex; gap:14px; flex-wrap:wrap;">
                 <label class="tool-checkline">
                   <input type="checkbox" id="aaInvert"> ${esc(t('asciiart.opt.invert'))}
                 </label>
@@ -209,7 +209,7 @@ import { attachMedia } from './shared/media';
                   <input type="range" id="aaSpan" aria-label="${esc(t('asciiart.label.span'))}" min="1" max="60" step="1" value="10">
                 </div>
               </div>
-              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                 <button class="btn btn-primary" id="aaBake">${esc(t('asciiart.btn.bake'))}</button>
                 <button class="btn btn-secondary" id="aaPlay" disabled>${esc(t('asciiart.btn.play'))}</button>
                 <input type="range" id="aaSeek" aria-label="${esc(t('asciiart.label.seek'))}" min="0" max="0" value="0" style="flex:1; min-width:140px;" disabled>

@@ -84,6 +84,30 @@
 .cc-stat-primary .cc-stat-value { color: var(--accent); }
 
 /* ── 상태 줄 ── */
+/* ── 흐름 간격: **여백을 부모가 소유한다** (TASK-KL-257) ──────────────
+   실측: 자식이 자기 바깥 여백을 들고 있었다 — `margin-top:10px` 48곳 · `8px` 20곳 ·
+   `var(--space-lg)` 38곳. 그래서 같은 조각을 다른 자리에 놓을 때마다 여백을 다시 정했고,
+   숫자가 뒤섞였다. 값을 통일해도 **다음 도구가 또 새 숫자를 적는다** — 원인이 소유권이라서.
+
+   부모가 `gap` 을 주면 자식은 여백을 아예 모른다. 값은 **역할 토큰**으로 둔다:
+   값은 척도(4·8·16·24·32·48) 안에서 고른다 — 옛 인라인은 10px 이었지만 척도 밖 숫자를
+   토큰으로 굳히면 다음엔 11px 이 생긴다. 8px 로 재 보니 옛 화면과 가장 가까웠다(측정 아래).
+   톤을 바꾸고 싶으면 여기 한 줄만 고친다 — 그러면 도구 전부가 따라온다. */
+:root {
+    --tool-flow-gap: var(--space-sm);
+}
+.tool-page .tab-panel > * + *,
+.tool-page .field-group > * + *,
+.tool-page .tool-card > * + * {
+    margin-top: var(--tool-flow-gap);
+}
+/* 라벨은 자기 칸에 붙어 있어야 한다 — 흐름 간격이 라벨과 입력칸 사이를 벌리면 짝이 끊긴다.
+   (실측: 넣자마자 카드 안이 벌어져 보였다.) */
+.tool-page .field-group > .field-label + *,
+.tool-page .field-group > .tool-sublabel + * {
+    margin-top: 4px;
+}
+
 /* 작은 회색 글 — 도구 열넷이 같은 두 줄을 손으로 적고 있었다 (TASK-KL-257).
    「이건 보조 설명이다」라는 뜻이 클래스 이름에 남는다. 색·크기를 바꾸려면 여기 한 곳. */
 .tool-hint {

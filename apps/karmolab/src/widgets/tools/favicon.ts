@@ -41,8 +41,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     pngs.forEach((p, i) => {
       const e = 6 + i * 16;
       // 256 은 0 으로 적는 것이 규격이다 (한 바이트라 256 이 안 들어간다)
-      out[e] = p.size >= 256 ? 0 : p.size;
-      out[e + 1] = p.size >= 256 ? 0 : p.size;
+      out[e] = p.size>= 256 ? 0 : p.size;
+      out[e + 1] = p.size>= 256 ? 0 : p.size;
       out[e + 2] = 0; // 색 수
       out[e + 3] = 0; // 예약
       view.setUint16(e + 4, 1, true); // 색 평면
@@ -103,7 +103,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                     </select>
                   </div>
                 </div>
-                <div class="tool-chips" style="margin-top:10px;">
+                <div class="tool-chips">
                   <label class="tool-chip"><input type="checkbox" id="fvRound"> ${esc(t('favicon.opt.round'))}</label>
                 </div>
               </div>
@@ -182,7 +182,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!source) return;
             previewEl.innerHTML = '';
             for (const [px, why] of sizes()) {
-              if (px > 192) continue; // 실제 크기로 보여 주므로 큰 것은 뺀다
+              if (px> 192) continue; // 실제 크기로 보여 주므로 큰 것은 뺀다
               const cv = render(px);
               cv.style.imageRendering = px <= 48 ? 'pixelated' : 'auto';
               const box = document.createElement('div');

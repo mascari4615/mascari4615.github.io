@@ -30,7 +30,7 @@ import { statusLine } from './shared/say';
       const parts: Record<string, string> = {};
       for (const seg of wifi[1].split(';')) {
         const i = seg.indexOf(':');
-        if (i > 0) parts[seg.slice(0, i).toUpperCase()] = seg.slice(i + 1);
+        if (i> 0) parts[seg.slice(0, i).toUpperCase()] = seg.slice(i + 1);
       }
       rows.push([t('qrread.kind'), t('qrread.kind.wifi')]);
       if (parts.S) rows.push([t('qrread.wifi.ssid'), parts.S]);

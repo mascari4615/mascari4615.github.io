@@ -105,7 +105,7 @@ import { download } from './shared/image';
         .join('');
       const boxes = map.nodes
         .map((n) => {
-          const label = n.paper.title.length > 64 ? n.paper.title.slice(0, 62) + '…' : n.paper.title;
+          const label = n.paper.title.length> 64 ? n.paper.title.slice(0, 62) + '…' : n.paper.title;
           const sub = `${n.paper.year || '?'} · ${n.paper.cited.toLocaleString()}`;
           return `<g class="pm-node ${n.root ? 'pm-root' : ''}" data-url="${esc(n.paper.url)}">
             <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="10"/>

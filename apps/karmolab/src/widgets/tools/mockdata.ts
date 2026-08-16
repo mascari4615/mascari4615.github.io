@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <textarea id="mkOut" name="out" aria-label="${esc(t('mockdata.aria.out'))}" class="mono-input" readonly style="min-height:220px;"></textarea>
         </div>
       </div>
-      <div class="tool-grid-2" style="margin-top:10px;">
+      <div class="tool-grid-2">
         <div>
           <div class="tool-sublabel">${esc(t('mockdata.label.count'))} <span id="mkCountVal" class="range-value">20</span></div>
           <input type="range" id="mkCount" name="count" aria-label="${esc(t('mockdata.label.count'))}" min="1" max="500" value="20">

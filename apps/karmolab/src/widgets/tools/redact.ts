@@ -63,7 +63,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <button type="button" class="tool-chip active" id="rdModeFill">${esc(t('redact.mode.fill'))}</button>
                 <button type="button" class="tool-chip" id="rdModePixel">${esc(t('redact.mode.pixel'))}</button>
               </div>
-              <div id="rdPixelWrap" style="display:none; margin-top:10px;">
+              <div id="rdPixelWrap" style="display:none;">
                 <div class="tool-sublabel">${esc(t('redact.label.block'))} <span id="rdBlockVal" class="range-value">16px</span></div>
                 <input type="range" id="rdBlock" aria-label="${esc(t('redact.label.block'))}" min="6" max="48" value="16">
               </div>
@@ -186,7 +186,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               statCell(t('redact.stat.size'), `${canvas.width}×${canvas.height}`) +
               statCell(
                 t('redact.stat.area'),
-                `${pct < 0.1 && covered > 0 ? t('redact.value.tiny') : pct.toFixed(1)}%`
+                `${pct < 0.1 && covered> 0 ? t('redact.value.tiny') : pct.toFixed(1)}%`
               );
             saveBtn.disabled = false;
             undoBtn.disabled = boxes.length === 0;
@@ -300,7 +300,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 return;
               }
               case 'Backspace': {
-                if (boxes.length > 0) boxes.pop();
+                if (boxes.length> 0) boxes.pop();
                 e.preventDefault();
                 redraw();
                 say(boxes.length ? t('redact.say.left', { n: boxes.length }) : t('redact.say.empty'), 'ok');

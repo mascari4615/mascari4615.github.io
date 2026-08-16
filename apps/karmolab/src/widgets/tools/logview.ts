@@ -100,7 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       box.innerHTML = buckets
         .map((b) => {
           const h = top === 0 ? 0 : Math.round((b.total / top) * 100);
-          const bad = b.error > 0;
+          const bad = b.error> 0;
           return (
             '<div title="' + esc(new Date(b.at).toLocaleString()) + ' · ' + b.total + '" style="flex:1; height:' + h + '%; min-height:1px; background:' +
             (bad ? 'var(--accent-danger, #c62828)' : 'var(--accent, #4a7dff)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
@@ -139,7 +139,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .map((r) => '<div style="color:' + COLOR[r.level] + '"><span style="opacity:.4">' + r.no + '</span>  ' + esc(r.raw) + '</div>')
         .join('');
       status.textContent =
-        shown.length > DRAW_CAP
+        shown.length> DRAW_CAP
           ? t('logview.status.capped', { shown: DRAW_CAP, all: shown.length, total: rows.length })
           : t('logview.status.ok', { shown: shown.length, total: rows.length });
     }

@@ -59,7 +59,7 @@ import { markLive } from './shared/say';
         lo = parseInt(m[1], 10);
         hi = m[2] !== undefined ? parseInt(m[2], 10) : stepRaw ? max : lo;
       }
-      if (lo < min || hi > max || lo > hi) return { values: [], ok: false };
+      if (lo < min || hi> max || lo> hi) return { values: [], ok: false };
       for (let v = lo; v <= hi; v += step) values.add(v);
     }
     /* 요일은 0 과 7 이 **둘 다 일요일**이다(표준 cron). 요일 칸만 7 까지 받아 두고 여기서 0 으로
@@ -85,7 +85,7 @@ import { markLive } from './shared/say';
     const show = (n: number): string => (fmt ? fmt(n) : String(n));
     if (f.values.length === total) return '';
     if (f.values.length === 1) return `${show(f.values[0])}${unit}`;
-    if (f.values.length > 8) return t('cron.value.count', { n: f.values.length, unit });
+    if (f.values.length> 8) return t('cron.value.count', { n: f.values.length, unit });
     return f.values.map(show).join(',') + unit;
   }
 

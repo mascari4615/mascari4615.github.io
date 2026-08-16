@@ -30,7 +30,7 @@ import { attachImage } from './shared/image';
   }
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
   const mmss = (sec: number): string => {
     const s = Math.max(0, sec);
@@ -98,7 +98,7 @@ import { attachImage } from './shared/image';
                     <input type="range" id="vgFps" aria-label="초당 장수" min="4" max="24" step="1" value="12">
                   </div>
                 </div>
-                <div class="tool-grid-2" style="margin-top:10px;">
+                <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">${esc(t('video2gif.label.colors'))} <span id="vgColorsVal" class="range-value">128</span></div>
                     <input type="range" id="vgColors" aria-label="색 수" min="16" max="255" step="1" value="128">
@@ -162,7 +162,7 @@ import { attachImage } from './shared/image';
           function refresh(): void {
             if (!duration) return;
             // 시작이 끝을 넘어가면 사람이 뭘 고른 건지 알 수 없다 — 서로 밀어 준다
-            if (parseInt(startEl.value, 10) >= parseInt(endEl.value, 10)) {
+            if (parseInt(startEl.value, 10)>= parseInt(endEl.value, 10)) {
               if (document.activeElement === startEl) endEl.value = String(Math.min(1000, parseInt(startEl.value, 10) + 10));
               else startEl.value = String(Math.max(0, parseInt(endEl.value, 10) - 10));
             }
@@ -230,7 +230,7 @@ import { attachImage } from './shared/image';
             }
             const fps = parseInt(fpsEl.value, 10);
             const count = Math.max(1, Math.round(span * fps));
-            if (count > 600) {
+            if (count> 600) {
               say(t('video2gif.err.tooMany'), 'error');
               return;
             }

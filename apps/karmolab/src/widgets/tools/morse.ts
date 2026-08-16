@@ -46,7 +46,7 @@ import { markLive } from './shared/say';
   /** 완성형 한글 한 글자 → 기본 자모 배열 */
   function decompose(ch: string): string[] {
     const code = ch.charCodeAt(0) - 0xac00;
-    if (code < 0 || code > 11171) return [ch];
+    if (code < 0 || code> 11171) return [ch];
     const jamo = [CHO[Math.floor(code / 588)], JUNG[Math.floor((code % 588) / 28)], JONG[code % 28]];
     return jamo
       .filter(Boolean)
@@ -60,7 +60,7 @@ import { markLive } from './shared/say';
         out.push('/');
         continue;
       }
-      if (korean && raw >= '가' && raw <= '힣') {
+      if (korean && raw>= '가' && raw <= '힣') {
         decompose(raw).forEach((j) => {
           if (KO[j]) out.push(KO[j]);
         });
@@ -113,13 +113,13 @@ import { markLive } from './shared/say';
         out.push(' ');
         continue;
       }
-      const isVowel = JUNG.indexOf(j) >= 0;
+      const isVowel = JUNG.indexOf(j)>= 0;
 
       if (isVowel) {
-        if (jung >= 0 && jong === 0) {
+        if (jung>= 0 && jong === 0) {
           // 겹모음 (ㅗ + ㅏ → ㅘ)
           const merged = JOIN[JUNG[jung] + j];
-          if (merged && JUNG.indexOf(merged) >= 0) {
+          if (merged && JUNG.indexOf(merged)>= 0) {
             jung = JUNG.indexOf(merged);
             continue;
           }
@@ -141,7 +141,7 @@ import { markLive } from './shared/say';
           jung = JUNG.indexOf(j);
           continue;
         }
-        if (jung >= 0) flush();
+        if (jung>= 0) flush();
         if (cho < 0) {
           out.push(j); // 첫소리 없는 홀소리
           continue;
@@ -159,7 +159,7 @@ import { markLive } from './shared/say';
       if (jung < 0) {
         // 홀소리 없이 닿소리가 겹치면 된소리다 (ㄱ + ㄱ → ㄲ). 모스에는 된소리 부호가 없다.
         const twin = JOIN[CHO[cho] + j];
-        if (twin && CHO.indexOf(twin) >= 0) {
+        if (twin && CHO.indexOf(twin)>= 0) {
           cho = CHO.indexOf(twin);
           continue;
         }
@@ -169,7 +169,7 @@ import { markLive } from './shared/say';
       }
       if (jong === 0) {
         const k = JONG.indexOf(j);
-        if (k > 0) {
+        if (k> 0) {
           jong = k;
           continue;
         }
@@ -179,7 +179,7 @@ import { markLive } from './shared/say';
       }
       // 겹받침 (ㄹ + ㄱ → ㄺ)
       const merged = JOIN[JONG[jong] + j];
-      if (merged && JONG.indexOf(merged) > 0) {
+      if (merged && JONG.indexOf(merged)> 0) {
         jong = JONG.indexOf(merged);
         continue;
       }

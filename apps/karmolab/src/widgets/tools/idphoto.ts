@@ -77,7 +77,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <div style="flex:1; min-width:220px;">
           <div id="ipGuide" class="tool-list"></div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <button class="btn btn-primary" id="ipSave">${esc(t('idphoto.btn.save'))}</button>
             <button class="btn btn-ghost" id="ipSheet">${esc(t('idphoto.btn.sheet'))}</button>
           </div>

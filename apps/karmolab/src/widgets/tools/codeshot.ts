@@ -99,7 +99,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </select>
           </div>
         </div>
-        <div class="tool-grid-2" style="margin-top:10px;">
+        <div class="tool-grid-2">
           <div>
             <div class="tool-sublabel">${esc(t('codeshot.label.file', undefined, '파일 이름 (선택)'))}</div>
             <input type="text" id="csFile" spellcheck="false" placeholder="radio.ts" aria-label="${esc(t('codeshot.label.file', undefined, '파일 이름 (선택)'))}">
@@ -109,7 +109,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <input type="range" id="csSize" min="12" max="26" value="16" aria-label="${esc(t('codeshot.label.size', undefined, '글자 크기'))}">
           </div>
         </div>
-        <div class="tool-chips" style="margin-top:10px;">
+        <div class="tool-chips">
           <label class="tool-chip"><input type="checkbox" id="csNums" checked> ${esc(t('codeshot.opt.numbers', undefined, '줄 번호'))}</label>
         </div>
       </div>

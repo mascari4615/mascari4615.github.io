@@ -18,7 +18,7 @@ import { statusLine } from './shared/say';
     const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
     if (!m) return [0, 0, 0];
     const n = parseInt(m[1], 16);
-    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+    return [((n>> 16) & 255) / 255, ((n>> 8) & 255) / 255, (n & 255) / 255];
   }
   const toHex = (rgb: [number, number, number]): string =>
     '#' + rgb.map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('');
@@ -68,7 +68,7 @@ import { statusLine } from './shared/say';
                   <input type="text" id="grTo" aria-label="${esc(t('gradient.label.to'))}" value="#f59e0b" spellcheck="false">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('gradient.label.angle'))} <span id="grAngleVal" class="range-value">135°</span></div>
                   <input type="range" id="grAngle" aria-label="${esc(t('gradient.label.angle'))}" min="0" max="360" step="15" value="135">
@@ -81,7 +81,7 @@ import { statusLine } from './shared/say';
                   </select>
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="grPerc" checked> ${esc(t('gradient.opt.perceptual'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="grSmooth"> ${esc(t('gradient.opt.smooth'))}</label>
               </div>

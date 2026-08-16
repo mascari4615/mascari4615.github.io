@@ -74,7 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                   <input type="range" id="afOut" aria-label="${esc(t('audiofade.label.out'))}" min="0" max="50" value="5">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <button type="button" class="tool-chip" id="afAuto">${esc(t('audiofade.btn.auto'))}</button>
               </div>
             </div>
@@ -129,8 +129,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             const pct = (v: number): string => `${Math.round(v * 100)}%`;
             // 0.02 아래면 사실상 조용히 시작·끝나는 것이라 페이드가 필요 없다
             const rows = [
-              [t('audiofade.edge.head'), head, head > 0.02],
-              [t('audiofade.edge.tail'), tail, tail > 0.02]
+              [t('audiofade.edge.head'), head, head> 0.02],
+              [t('audiofade.edge.tail'), tail, tail> 0.02]
             ] as Array<[string, number, boolean]>;
             foundEl.innerHTML = rows
               .map(
@@ -144,7 +144,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               statCell(t('audiofade.stat.length'), mmss(buffer.duration), true) +
               statCell(t('audiofade.stat.headLevel'), pct(head)) +
               statCell(t('audiofade.stat.tailLevel'), pct(tail));
-            const bad = head > 0.02 || tail > 0.02;
+            const bad = head> 0.02 || tail> 0.02;
             say(
               t(bad ? 'audiofade.say.bad' : 'audiofade.say.good'),
               bad ? 'error' : 'ok'

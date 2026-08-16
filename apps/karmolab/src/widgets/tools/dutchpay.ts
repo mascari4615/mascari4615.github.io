@@ -98,8 +98,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       $<HTMLElement>('#dpShares').innerHTML = shares
         .map((s) => {
-          const color = s.balance > 0 ? 'var(--accent-success, #2e7d32)' : s.balance < 0 ? 'var(--accent-danger, #c62828)' : 'inherit';
-          const note = s.balance > 0 ? t('dutchpay.getBack', { n: won(s.balance) }) : s.balance < 0 ? t('dutchpay.mustPay', { n: won(-s.balance) }) : t('dutchpay.even');
+          const color = s.balance> 0 ? 'var(--accent-success, #2e7d32)' : s.balance < 0 ? 'var(--accent-danger, #c62828)' : 'inherit';
+          const note = s.balance> 0 ? t('dutchpay.getBack', { n: won(s.balance) }) : s.balance < 0 ? t('dutchpay.mustPay', { n: won(-s.balance) }) : t('dutchpay.even');
           return (
             '<div class="tool-list-row"><span class="tool-list-key">' + esc(s.name) + '</span>' +
             '<span class="tool-list-val">' + esc(t('dutchpay.paidOwed', { paid: won(s.paid), owed: won(s.owed) })) + '</span>' +

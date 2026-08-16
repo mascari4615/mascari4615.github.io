@@ -59,7 +59,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                style="width:100%; font-family:var(--font-mono,monospace);"
                value="${esc(SAMPLES[0])}">
         <div class="tool-chips" style="margin-top:var(--space-sm);">
-          ${SAMPLES.map((s, i) => `<button type="button" class="tool-chip" data-sample="${i}">${esc(s.slice(0, 26))}${s.length > 26 ? '…' : ''}</button>`).join('')}
+          ${SAMPLES.map((s, i) => `<button type="button" class="tool-chip" data-sample="${i}">${esc(s.slice(0, 26))}${s.length> 26 ? '…' : ''}</button>`).join('')}
         </div>
       </div>
 

@@ -48,7 +48,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           .replace(/\s+/g, ' ')
           .trim()
       )
-      .filter((l) => l.length > 0);
+      .filter((l) => l.length> 0);
   }
 
   /**
@@ -86,7 +86,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             cnt++;
           }
         }
-        if (cnt > 0 && sum / cnt > DIFF_THRESHOLD) hit[by * cols + bx] = 1;
+        if (cnt> 0 && sum / cnt> DIFF_THRESHOLD) hit[by * cols + bx] = 1;
       }
     }
 
@@ -102,22 +102,22 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
       let maxY = -1;
       stack.push(start);
       seen[start] = 1;
-      while (stack.length > 0) {
+      while (stack.length> 0) {
         const cur = stack.pop() as number;
         const cx = cur % cols;
         const cy = (cur - cx) / cols;
         if (cx < minX) minX = cx;
         if (cy < minY) minY = cy;
-        if (cx > maxX) maxX = cx;
-        if (cy > maxY) maxY = cy;
+        if (cx> maxX) maxX = cx;
+        if (cy> maxY) maxY = cy;
         const near = [
-          cx > 0 ? cur - 1 : -1,
+          cx> 0 ? cur - 1 : -1,
           cx < cols - 1 ? cur + 1 : -1,
-          cy > 0 ? cur - cols : -1,
+          cy> 0 ? cur - cols : -1,
           cy < rows - 1 ? cur + cols : -1
         ];
         for (const nb of near) {
-          if (nb >= 0 && hit[nb] === 1 && seen[nb] === 0) {
+          if (nb>= 0 && hit[nb] === 1 && seen[nb] === 0) {
             seen[nb] = 1;
             stack.push(nb);
           }
@@ -352,7 +352,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
                   added = ops.filter((o) => o.type === 'add').map((o) => o.text);
                 }
 
-                const changed = boxesB.length > 0 || added.length > 0 || removed.length > 0;
+                const changed = boxesB.length> 0 || added.length> 0 || removed.length> 0;
                 if (changed) changedPages++;
                 if (onlyChanged && !changed) continue;
 
@@ -369,12 +369,12 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
                 if (canvasA && canvasB) {
                   bits.push('<div class="pd-pair"><div class="pd-pane" data-side="A"></div><div class="pd-pane" data-side="B"></div></div>');
                 }
-                if (removed.length > 0 || added.length > 0) {
+                if (removed.length> 0 || added.length> 0) {
                   bits.push(
                     '<div class="pd-lines">' +
                       removed.slice(0, 12).map((t) => `<div class="pd-line pd-del">− ${esc(t)}</div>`).join('') +
                       added.slice(0, 12).map((t) => `<div class="pd-line pd-add">+ ${esc(t)}</div>`).join('') +
-                      (removed.length + added.length > 24
+                      (removed.length + added.length> 24
                         ? `<div class="pd-more">${esc(t('pdfdiff.more', { n: removed.length + added.length - 24 }))}</div>`
                         : '') +
                       '</div>'
@@ -390,14 +390,14 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               }
 
               const notes: string[] = [];
-              if (total > limit) notes.push(t('pdfdiff.note.limit', { limit, total }));
-              if (textless > 0) notes.push(t('pdfdiff.note.textless', { n: textless }));
+              if (total> limit) notes.push(t('pdfdiff.note.limit', { limit, total }));
+              if (textless> 0) notes.push(t('pdfdiff.note.textless', { n: textless }));
               if (changedPages === 0) {
-                say(t('pdfdiff.say.same') + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''), 'ok');
+                say(t('pdfdiff.say.same') + (notes.length> 0 ? ' · ' + notes.join(' · ') : ''), 'ok');
                 if (out.children.length === 0)
                   out.innerHTML = `<div class="tool-status ok">${esc(t('pdfdiff.say.noChangedPages'))}</div>`;
               } else {
-                say(t('pdfdiff.say.changed', { n: changedPages }) + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''));
+                say(t('pdfdiff.say.changed', { n: changedPages }) + (notes.length> 0 ? ' · ' + notes.join(' · ') : ''));
               }
               Toolbox.trackUse?.('compare');
             } catch (e) {

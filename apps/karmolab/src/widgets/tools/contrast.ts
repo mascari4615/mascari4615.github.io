@@ -43,14 +43,14 @@ import { markLive } from './shared/say';
 
   /** 배경은 두고 글자색만 밝기를 밀어 기준을 넘기는 가장 가까운 색을 찾는다. */
   function nearestPassing(fg: RGB, bg: RGB, target: number): RGB | null {
-    const bgLight = luminance(bg) > 0.5;
+    const bgLight = luminance(bg)> 0.5;
     let best: RGB | null = null;
     for (let step = 1; step <= 100; step++) {
       const t = step / 100;
       const c: RGB = bgLight
         ? [fg[0] * (1 - t), fg[1] * (1 - t), fg[2] * (1 - t)]
         : [fg[0] + (255 - fg[0]) * t, fg[1] + (255 - fg[1]) * t, fg[2] + (255 - fg[2]) * t];
-      if (ratio(c, bg) >= target) {
+      if (ratio(c, bg)>= target) {
         best = c;
         break;
       }
@@ -127,14 +127,14 @@ import { markLive } from './shared/say';
             const mark = (ok: boolean): string => (ok ? t('contrast.verdict.pass') : t('contrast.verdict.fail'));
             stats.innerHTML =
               stat(t('contrast.row.ratio'), `${r.toFixed(2)} : 1`, true) +
-              stat(t('contrast.stat.body'), mark(r >= 4.5)) +
-              stat(t('contrast.stat.large'), mark(r >= 3));
+              stat(t('contrast.stat.body'), mark(r>= 4.5)) +
+              stat(t('contrast.stat.large'), mark(r>= 3));
 
             const rows = [
-              row(t('contrast.row.aaBody'), t('contrast.note.aaBody', { mark: mark(r >= 4.5) })),
-              row(t('contrast.row.aaLarge'), t('contrast.note.aaLarge', { mark: mark(r >= 3) })),
-              row(t('contrast.row.aaaBody'), t('contrast.note.aaaBody', { mark: mark(r >= 7) })),
-              row(t('contrast.row.nonText'), t('contrast.note.nonText', { mark: mark(r >= 3) }))
+              row(t('contrast.row.aaBody'), t('contrast.note.aaBody', { mark: mark(r>= 4.5) })),
+              row(t('contrast.row.aaLarge'), t('contrast.note.aaLarge', { mark: mark(r>= 3) })),
+              row(t('contrast.row.aaaBody'), t('contrast.note.aaaBody', { mark: mark(r>= 7) })),
+              row(t('contrast.row.nonText'), t('contrast.note.nonText', { mark: mark(r>= 3) }))
             ];
             if (r < 4.5) {
               const fix = nearestPassing(fg, bg, 4.5);
@@ -143,8 +143,8 @@ import { markLive } from './shared/say';
             out.innerHTML = rows.join('');
 
             status.textContent =
-              r >= 7 ? t('contrast.say.great') : r >= 4.5 ? t('contrast.say.ok') : r >= 3 ? t('contrast.say.largeOnly') : t('contrast.say.bad');
-            status.className = 'tool-status' + (r >= 4.5 ? ' ok' : r >= 3 ? '' : ' error');
+              r>= 7 ? t('contrast.say.great') : r>= 4.5 ? t('contrast.say.ok') : r>= 3 ? t('contrast.say.largeOnly') : t('contrast.say.bad');
+            status.className = 'tool-status' + (r>= 4.5 ? ' ok' : r>= 3 ? '' : ' error');
             Toolbox.trackUse?.('check');
           }
 

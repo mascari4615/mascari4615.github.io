@@ -47,7 +47,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                   <input type="range" id="uuLen" aria-label="${esc(t('uuidgen.label.len'))}" min="6" max="64" value="21">
                 </div>
               </div>
-              <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
+              <div style="display:flex; gap:14px; flex-wrap:wrap;">
                 <label class="tool-checkline">
                   <input type="checkbox" id="uuUpper"> ${esc(t('uuidgen.opt.upper'))}
                 </label>

@@ -54,7 +54,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <button class="btn btn-ghost" id="pbFromJson">${esc(t('protobuf.btn.fromJson'))}</button>
       </div>
       <div id="pbOut" class="tool-list"></div>
-      <div class="tool-sublabel" style="margin-top:10px;">${esc(t('protobuf.label.json'))}</div>
+      <div class="tool-sublabel">${esc(t('protobuf.label.json'))}</div>
       <textarea id="pbJson" name="json" aria-label="${esc(t('protobuf.label.json'))}" class="mono-input" style="min-height:120px;"></textarea>
       <div class="tool-status" id="pbStatus">${esc(t('protobuf.status.idle'))}</div>
     `;

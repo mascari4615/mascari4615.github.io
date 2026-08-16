@@ -282,7 +282,7 @@ import { encode } from './shared/image';
                 return;
               }
               case 'Backspace': {
-                if (boxes.length > 0) boxes.pop();
+                if (boxes.length> 0) boxes.pop();
                 e.preventDefault();
                 void refresh();
                 say(boxes.length ? t('pdfredact.say.left', { n: boxes.length }) : t('pdfredact.say.cleared'), 'ok');

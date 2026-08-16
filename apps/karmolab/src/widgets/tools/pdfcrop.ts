@@ -30,9 +30,9 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
         // 옅은 점은 무시한다 — 스캔 얼룩 하나 때문에 여백이 통째로 안 잘리는 일이 잦다
         if (d[i] < tolerance && d[i + 1] < tolerance && d[i + 2] < tolerance) {
           if (x < l) l = x;
-          if (x > r) r = x;
+          if (x> r) r = x;
           if (y < t) t = y;
-          if (y > b) b = y;
+          if (y> b) b = y;
         }
       }
     }
@@ -87,7 +87,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
                   <input type="range" id="pcTol" aria-label="${esc(t('pdfcrop.label.tol'))}" min="120" max="245" value="200">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="pcSame" checked> ${esc(t('pdfcrop.opt.same'))}</label>
               </div>
             </div>

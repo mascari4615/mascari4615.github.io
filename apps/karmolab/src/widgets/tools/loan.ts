@@ -65,7 +65,7 @@ import { download } from './shared/image';
                   <input type="number" id="loR" value="4.5" step="0.1" min="0" aria-label="연 이자율 (%)">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('loan.label.months'))}</div>
                   <input type="number" id="loM" value="360" step="12" min="1" aria-label="기간 (개월)">
@@ -79,7 +79,7 @@ import { download } from './shared/image';
                   </select>
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('loan.label.grace'))}</div>
                   <input type="number" id="loG" value="0" step="6" min="0" aria-label="거치기간 (개월)">
@@ -135,9 +135,9 @@ import { download } from './shared/image';
               statCell(t(type === 'ep' ? 'loan.stat.monthly' : 'loan.stat.firstMonth'), money(rows[0].pay), true) +
               statCell(t('loan.stat.totalInterest'), money(totalInterest)) +
               statCell(t('loan.stat.totalPaid'), money(P + totalInterest)) +
-              (grace > 0 ? statCell(t('loan.stat.graceInterest'), money(P * (rate / 100 / 12))) : '') +
-              (아낀이자 > 0 ? statCell(t('loan.stat.saved'), money(아낀이자), true) : '') +
-              (줄어든달 > 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: 줄어든달 })) : '');
+              (grace> 0 ? statCell(t('loan.stat.graceInterest'), money(P * (rate / 100 / 12))) : '') +
+              (아낀이자> 0 ? statCell(t('loan.stat.saved'), money(아낀이자), true) : '') +
+              (줄어든달> 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: 줄어든달 })) : '');
 
             // 세 방식을 나란히 놓아야 「총이자가 적은 대신 초반이 무겁다」 는 맞바꿈이 보인다
             const alts: Array<[string, Row[]]> = [
@@ -153,7 +153,7 @@ import { download } from './shared/image';
               .join('');
 
             마지막표 = rows;
-            const show = 전체보기 ? rows : [...rows.slice(0, 12), ...(rows.length > 12 ? [rows[rows.length - 1]] : [])];
+            const show = 전체보기 ? rows : [...rows.slice(0, 12), ...(rows.length> 12 ? [rows[rows.length - 1]] : [])];
             $<HTMLElement>('#loTableHead').textContent = 전체보기
               ? `달별 상환표 — ${rows.length}개월 전부`
               : t('loan.table.head');
@@ -175,8 +175,8 @@ import { download } from './shared/image';
             const firstRatio = rows[0].pay ? (rows[0].interest / rows[0].pay) * 100 : 0;
             $<HTMLElement>('#loStatus').textContent =
               t('loan.status.ratio', { pct: firstRatio.toFixed(0) }) +
-              (grace > 0 ? t('loan.status.grace', { n: grace }) : '') +
-              (아낀이자 > 0
+              (grace> 0 ? t('loan.status.grace', { n: grace }) : '') +
+              (아낀이자> 0
                 ? t('loan.status.extra', {
                     extra: money(extra),
                     months: 줄어든달,

@@ -105,7 +105,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       list.innerHTML = answered
         .map(({ paper, picks }) => {
-          const who = paper.authors.slice(0, 3).join(', ') + (paper.authors.length > 3 ? ' 외' : '');
+          const who = paper.authors.slice(0, 3).join(', ') + (paper.authors.length> 3 ? ' 외' : '');
           const head = paper.url
             ? `<a href="${esc(paper.url)}" target="_blank" rel="noopener noreferrer">${esc(paper.title)}</a>`
             : esc(paper.title);

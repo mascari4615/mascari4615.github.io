@@ -28,10 +28,10 @@ import { parsePages } from '../../core/pdftool';
       if (m) {
         const from = m[1] ? parseInt(m[1], 10) : 1;
         const to = m[2] ? parseInt(m[2], 10) : total;
-        for (let i = from; i <= Math.min(to, total); i++) if (i >= 1 && !seen.has(i)) (seen.add(i), out.push(i - 1));
+        for (let i = from; i <= Math.min(to, total); i++) if (i>= 1 && !seen.has(i)) (seen.add(i), out.push(i - 1));
       } else if (/^\d+$/.test(s)) {
         const n = parseInt(s, 10);
-        if (n >= 1 && n <= total && !seen.has(n)) (seen.add(n), out.push(n - 1));
+        if (n>= 1 && n <= total && !seen.has(n)) (seen.add(n), out.push(n - 1));
       }
     }
     return out;

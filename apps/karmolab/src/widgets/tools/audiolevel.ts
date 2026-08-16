@@ -89,7 +89,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div id="alEditor" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('audiolevel.label.before'))}</div>
               <canvas id="alBefore" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
-              <div class="tool-sublabel" style="margin-top:10px;">${esc(t('audiolevel.label.after'))}</div>
+              <div class="tool-sublabel">${esc(t('audiolevel.label.after'))}</div>
               <canvas id="alAfter" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
 
               <div class="field-group" style="margin-top:var(--space-lg);">
@@ -208,12 +208,12 @@ import { t, loadNamespace } from '../../lib/i18n';
                 const shaped = ratio === 1 ? v : Math.sign(v) * Math.pow(Math.abs(v), ratio);
                 to[i] = shaped;
                 const abs = shaped < 0 ? -shaped : shaped;
-                if (abs > maxAfter) maxAfter = abs;
+                if (abs> maxAfter) maxAfter = abs;
                 if (++done % CHUNK === 0) await breathe();
               }
             }
             // 목표를 넘지 않도록 한 번에 맞춘다 (넘으면 찌그러진다)
-            const gain = maxAfter > 0 ? target / maxAfter : 1;
+            const gain = maxAfter> 0 ? target / maxAfter : 1;
             for (let c = 0; c < out.numberOfChannels; c++) {
               const to = out.getChannelData(c);
               for (let i = 0; i < to.length; i++) {

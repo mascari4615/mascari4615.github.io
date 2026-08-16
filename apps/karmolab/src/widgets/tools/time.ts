@@ -153,8 +153,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       row.className = 'tm-city';
       /* 일하는 시간인지 색으로 가른다(timeanddate 회의 계획표) — 09~18시면 편한 때다 */
       const hour = Number(z.value.match(/(\d{1,2}):/)?.[1] ?? -1);
-      if (hour >= 9 && hour < 18) row.classList.add('tm-ok');
-      else if (hour >= 7 && hour < 22) row.classList.add('tm-meh');
+      if (hour>= 9 && hour < 18) row.classList.add('tm-ok');
+      else if (hour>= 7 && hour < 22) row.classList.add('tm-meh');
       else row.classList.add('tm-bad');
       const k = document.createElement('span');
       k.textContent = z.label;
@@ -199,7 +199,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         cell.className = `tm-cell tm-${c.ease}${good.has(i) ? ' tm-pick' : ''}`;
         cell.dataset.hour = String(i);
         cell.textContent = String(c.hour);
-        cell.title = `${row.label} ${c.hour}시${c.dayShift ? (c.dayShift > 0 ? ' (다음 날)' : ' (전날)') : ''}`;
+        cell.title = `${row.label} ${c.hour}시${c.dayShift ? (c.dayShift> 0 ? ' (다음 날)' : ' (전날)') : ''}`;
         /* 누르면 **그 시각으로 옮겨 간다** — 격자는 보는 것만이 아니라 고르는 자리다.
          * 적어 둔 글을 그 시각으로 바꿔 주면 나머지 화면(얼굴들)이 저절로 따라온다. */
         cell.onclick = (): void => {

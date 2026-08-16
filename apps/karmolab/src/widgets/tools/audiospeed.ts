@@ -106,12 +106,12 @@ import { t, loadNamespace } from '../../lib/i18n';
                 t('audiospeed.value.rate', { n: '1.5' })
               )}</span></div>
               <input type="range" id="asRate" aria-label="속도" min="0.5" max="3" step="0.05" value="1.5">
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <button type="button" class="tool-chip" data-preset="0.75">${esc(t('audiospeed.preset.slow'))}</button>
                 <button type="button" class="tool-chip active" data-preset="1.5">${esc(t('audiospeed.preset.fast'))}</button>
                 <button type="button" class="tool-chip" data-preset="2">${esc(t('audiospeed.preset.double'))}</button>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="asKeep" checked> ${esc(t('audiospeed.opt.keep'))}</label>
               </div>
             </div>

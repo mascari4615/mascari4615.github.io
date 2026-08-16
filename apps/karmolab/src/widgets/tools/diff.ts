@@ -253,7 +253,7 @@ interface ZipArchive {
             return;
           }
         }
-        if (skipped > 0) {
+        if (skipped> 0) {
           rows.push(row('same', '', t('diff.skipped', { n: skipped }), '', ''));
           skipped = 0;
         }

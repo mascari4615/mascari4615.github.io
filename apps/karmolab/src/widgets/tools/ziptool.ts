@@ -29,7 +29,7 @@ import { download } from './shared/image';
   }
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
 
   Toolbox.register({
     id: zipCoreSpec.id,
@@ -155,7 +155,7 @@ import { download } from './shared/image';
             const verdict =
               blob.size < before
                 ? t('ziptool.verdict.smaller', { pct })
-                : blob.size > before
+                : blob.size> before
                   ? t('ziptool.verdict.bigger', { pct })
                   : t('ziptool.verdict.same');
             say(

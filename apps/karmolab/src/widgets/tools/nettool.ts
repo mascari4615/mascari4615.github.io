@@ -136,7 +136,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       try {
         const got = split(cidr.value, Number($<HTMLInputElement>('#ntPrefix').value));
         $<HTMLElement>('#ntBlocks').textContent =
-          got.blocks.join('\n') + (got.count > got.blocks.length ? '\n' + t('nettool.split.more', { n: got.count.toLocaleString() }) : '');
+          got.blocks.join('\n') + (got.count> got.blocks.length ? '\n' + t('nettool.split.more', { n: got.count.toLocaleString() }) : '');
         status.textContent = t('nettool.status.split', { n: got.count.toLocaleString() });
       } catch (e) {
         $<HTMLElement>('#ntBlocks').textContent = '';

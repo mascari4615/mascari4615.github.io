@@ -23,7 +23,7 @@ import { attachImage, encode } from './shared/image';
   }
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
   Toolbox.register({
     id: 'pdfcompress',
@@ -177,7 +177,7 @@ import { attachImage, encode } from './shared/image';
               // 글자가 들어 있는 문서면 이 도구가 그 글자를 그림으로 바꿔 버린다 — 먼저 알려야 한다
               const first = await doc.getPage(1);
               const text = await first.getTextContent();
-              hasText = text.items.map((i) => i.str || '').join('').trim().length > 40;
+              hasText = text.items.map((i) => i.str || '').join('').trim().length> 40;
               stats.innerHTML =
                 statCell(t('pdfcompress.stat.originalSize'), size(f.size), true) +
                 statCell(t('pdfcompress.stat.pages'), t('pdfcompress.stat.pagesValue', { n: doc.numPages })) +
@@ -232,9 +232,9 @@ import { attachImage, encode } from './shared/image';
             stats.innerHTML =
               statCell(t('pdfcompress.stat.originalSize'), size(before)) +
               statCell(t('pdfcompress.stat.newSize'), size(after), true) +
-              statCell(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after > before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
+              statCell(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after> before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
             // 이미 잘 압축된 PDF 는 오히려 커진다 — 성공이라 우기면 안 된다
-            if (after >= before) {
+            if (after>= before) {
               say(t('pdfcompress.status.noGain', { before: size(before), after: size(after) }), 'error');
             } else {
               say(t('pdfcompress.status.done', { before: size(before), after: size(after), pct }), 'ok');

@@ -199,10 +199,10 @@ import { t, loadNamespace } from '../../lib/i18n';
     tagA.textContent = t('image.cmp.before', { size: fileSize(before.size) }, `전 ${fileSize(before.size)}`);
     const tagB = document.createElement('span');
     tagB.className = 'im-cmp-tag im-cmp-tag-b';
-    const cut = before.size > 0 ? Math.round((1 - after.size / before.size) * 100) : 0;
+    const cut = before.size> 0 ? Math.round((1 - after.size / before.size) * 100) : 0;
     tagB.textContent =
       t('image.cmp.after', { size: fileSize(after.size) }, `후 ${fileSize(after.size)}`) +
-      (cut > 0 ? ` (−${cut}%)` : cut < 0 ? ` (+${-cut}%)` : '');
+      (cut> 0 ? ` (−${cut}%)` : cut < 0 ? ` (+${-cut}%)` : '');
 
     wrap.appendChild(a);
     wrap.appendChild(bWrap);

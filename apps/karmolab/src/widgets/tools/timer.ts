@@ -14,7 +14,7 @@ import { markLive } from './shared/say';
     const m = Math.floor((t % 3600000) / 60000);
     const s = Math.floor((t % 60000) / 1000);
     const cs = Math.floor((t % 1000) / 10);
-    const base = (h > 0 ? String(h).padStart(2, '0') + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    const base = (h> 0 ? String(h).padStart(2, '0') + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     return sign + base + (withMs ? '.' + String(cs).padStart(2, '0') : '');
   }
 
@@ -94,7 +94,7 @@ import { markLive } from './shared/say';
                 <span style="color:var(--text-tertiary);">:</span>
                 <input type="text" id="tmS" inputmode="numeric" placeholder="${esc(t('timer.ph.s'))}" style="text-align:center;">
               </div>
-              <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-ghost tm-preset" data-sec="60">${esc(t('timer.preset.1m'))}</button>
                 <button class="btn btn-ghost tm-preset" data-sec="180">${esc(t('timer.preset.3m'))}</button>
                 <button class="btn btn-ghost tm-preset" data-sec="300">${esc(t('timer.preset.5m'))}</button>
@@ -134,7 +134,7 @@ import { markLive } from './shared/say';
             display.textContent = fmt(Math.max(ms, 0), false);
             if (running) document.title = fmt(Math.max(ms, 0), false) + t('timer.title.suffix');
             const fill = $<HTMLElement>('#tmFill');
-            if (fill && totalMs > 0) fill.style.width = ((Math.max(ms, 0) / totalMs) * 100).toFixed(1) + '%';
+            if (fill && totalMs> 0) fill.style.width = ((Math.max(ms, 0) / totalMs) * 100).toFixed(1) + '%';
           }
 
           /* 새로고침 한 번에 진행 중인 타이머가 증발했다 — 상태가 전부 메모리에만 있었기 때문이다.
@@ -153,7 +153,7 @@ import { markLive } from './shared/say';
               if (!raw) return;
               const saved = JSON.parse(raw) as { endWall: number; totalMs: number };
               const left = saved.endWall - Date.now();
-              if (!(left > 0)) { localStorage.removeItem(KEEP); return; }
+              if (!(left> 0)) { localStorage.removeItem(KEEP); return; }
               totalMs = saved.totalMs || left;
               remaining = left;
               endAt = performance.now() + left;
@@ -189,7 +189,7 @@ import { markLive } from './shared/say';
 
           $<HTMLButtonElement>('#tmStart').onclick = () => {
             if (running) return;
-            const base = remaining > 0 ? remaining : readInputs();
+            const base = remaining> 0 ? remaining : readInputs();
             if (base <= 0) {
               status.textContent = t('timer.status.needTime');
               status.className = 'tool-status error';

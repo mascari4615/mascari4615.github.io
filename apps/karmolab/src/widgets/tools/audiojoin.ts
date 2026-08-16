@@ -41,7 +41,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('audiojoin.label.gap'))} <span id="ajGapVal" class="range-value">${esc(t('audiojoin.value.gap'))}</span></div>
               <input type="range" id="ajGap" aria-label="${esc(t('audiojoin.label.gap'))}" min="0" max="30" value="0">
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="ajFade" checked> ${esc(t('audiojoin.opt.fade'))}</label>
               </div>
             </div>
@@ -87,7 +87,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               statCell(t('audiojoin.stat.count'), t('audiojoin.value.count', { n: items.length })) +
               statCell(
                 t('audiojoin.stat.rate'),
-                rates.length > 1
+                rates.length> 1
                   ? t('audiojoin.value.matched', {
                       kinds: t('audiojoin.value.kinds', { n: rates.length }),
                       khz: Math.max(...rates) / 1000
@@ -165,7 +165,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                   let v = from[i];
                   if (fade) {
                     if (i < fade) v *= i / fade;
-                    else if (i > part.length - fade) v *= (part.length - i) / fade;
+                    else if (i> part.length - fade) v *= (part.length - i) / fade;
                   }
                   to[off + i] = v;
                 }

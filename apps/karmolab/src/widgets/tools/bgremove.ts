@@ -100,7 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       status.textContent =
         gone === 0
           ? t('bgremove.status.nothing')
-          : gone > 95
+          : gone> 95
             ? t('bgremove.status.tooMuch', { n: gone })
             : t('bgremove.status.ok', { n: gone });
     }

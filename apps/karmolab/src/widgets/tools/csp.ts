@@ -51,7 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <textarea id="cspIn" name="headers" aria-label="${esc(t('csp.label.in'))}" class="mono-input" style="min-height:150px;" placeholder="Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'&#10;Strict-Transport-Security: max-age=600"></textarea>
         </div>
         <div id="cspDirs" class="tool-list"></div>
-        <div id="cspFindings" class="tool-list" style="margin-top:10px;"></div>
+        <div id="cspFindings" class="tool-list"></div>
       </div>
 
       <div id="cspMake" style="display:none;">
@@ -79,7 +79,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </label>
           </div>
         </div>
-        <textarea id="cspOut" name="out" aria-label="${esc(t('csp.aria.out'))}" class="mono-input" readonly style="min-height:120px; margin-top:10px;"></textarea>
+        <textarea id="cspOut" name="out" aria-label="${esc(t('csp.aria.out'))}" class="mono-input" readonly style="min-height:120px;"></textarea>
         <button class="btn btn-ghost" id="cspCopy" style="margin-top:var(--space-sm);">${esc(t('csp.btn.copy'))}</button>
       </div>
 
