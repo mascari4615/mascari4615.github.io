@@ -19,6 +19,18 @@
  */
 export const 파생물 = [
   {
+    /* ★ 목록 감사(`audit:generated-registry`)가 찾아낸 넷 중 셋 (2026-08-17). 나머지 하나(글꼴)는
+       파이썬으로 굽고 원본 글꼴 파일이 있어야 해서 이 자리에서 재현이 안 된다 — 그 검사의 «빼는 것» 에 적었다. */
+    npm: 'build:i18n',
+    outputs: ['src/lib/i18n-registry.ts', 'src/lib/region-registry.ts'],
+    why: '말 판·지역 표를 코드로 찍은 것 — 낡으면 새 언어·지역이 화면에 안 뜬다'
+  },
+  {
+    npm: 'test:studymap:lessons',
+    outputs: ['data/lessons/search-index.ko.json'],
+    why: '강의·장 통합 검색 색인 — 낡으면 새 강의가 검색에 안 잡힌다'
+  },
+  {
     /* ★ 「자동 생성」이라 적혀 있는데 목록에 없던 둘 (2026-08-17 훑기). 스타일 두 벌과 같은 부류다 —
        적어 두지 않으면 손 고침도 낡음도 아무 말이 없다. */
     npm: 'gen:doc-search-index',
