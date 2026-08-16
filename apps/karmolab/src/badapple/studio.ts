@@ -22,8 +22,16 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 	let raf = 0;
 	let baked: Uint8Array | null = null;
 
-	function status(message: string): void {
-		$('baStatus').textContent = message;
+	/* ★ **상태를 말로만 남기면 말이 바뀌는 순간 아무도 못 읽는다** (2026-08-16, 실측).
+	   이 줄은 `t('badapple.playing')` 이라 화면 말에 따라 「재생 중 —」·「Playing —」·「再生中 —」
+	   으로 나온다. 그런데 검사는 「재생 중」을 찾고 있었다 — 그래서 실주소(영어 판)에서는
+	   **재생이 되고 있는데도** 60초를 기다리다 「재생이 안 시작됐다」로 빨갰다(그 빨강 줄 안에
+	   `Playing — 64×48 · 27 frames` 라고 적혀 있었다). 말과 함께 **말이 아닌 표시**를 남긴다. */
+	function status(message: string, state?: string): void {
+		const el = $('baStatus');
+		el.textContent = message;
+		if (state) el.dataset.state = state;
+		else delete el.dataset.state;
 	}
 
 	/**
@@ -75,7 +83,7 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 			raf = requestAnimationFrame(loop);
 		};
 		raf = requestAnimationFrame(loop);
-		status(t('badapple.playing', { w: clip.width, h: clip.height, frames: clip.frameCount, fps: clip.fps }));
+		status(t('badapple.playing', { w: clip.width, h: clip.height, frames: clip.frameCount, fps: clip.fps }), 'playing');
 	}
 
 	async function bake(file: File): Promise<void> {
