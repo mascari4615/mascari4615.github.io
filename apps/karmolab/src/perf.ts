@@ -927,6 +927,14 @@
     marks.sort((a, b) => a.at - b.at);
     queued.length = 0;
   }
+  /* 그린 것도 같은 방식으로 흡수한다 — 안 그러면 계측기보다 먼저 그려진 도구가 통째로
+     「안 그린 코드」가 된다(도구 한 장이 늘 그랬다). */
+  const queuedBuilds = (window as unknown as { __klBuilds?: Array<[string, number]> }).__klBuilds;
+  if (Array.isArray(queuedBuilds)) {
+    for (const [id, ms] of queuedBuilds) build(id, ms);
+    queuedBuilds.length = 0;
+  }
+  (window as unknown as { __klBuild?: (id: string, ms: number) => void }).__klBuild = build;
   (window as unknown as { __klMark?: (n: string) => void }).__klMark = mark;
 
   mark('perf:ready');
