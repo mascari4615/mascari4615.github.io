@@ -64,6 +64,18 @@ const 문제 = [];
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  /* ★ **자물쇠가 기능을 조용히 죽이는지 본다** (2026-08-17). 첫 화면에 `script-src` 를 걸었는데,
+     바깥 스크립트 하나를 안 적어 두면 그 기능만 소리 없이 사라진다 — 실제로 방문 수 세는
+     스크립트가 그렇게 막혔고, **손으로 열어 보고서야** 알았다. 그건 다음 사람에게 안 남는다.
+     그래서 여기서 센다: 아는 것 말고 새로 막히는 게 있으면 빨강.
+     아는 것 = 미리읽기 규칙(속도 도우미. 크롬이 키워드를 안 받아 준다 — `gen-csp-shell.mjs` 머리말). */
+  const 막힌것 = [];
+  page.on('console', (m) => {
+    const t = m.text();
+    if (!/Content Security Policy|Refused to (execute|load)/i.test(t)) return;
+    if (/speculation rules/i.test(t)) return; // 아는 것
+    막힌것.push(t.slice(0, 140));
+  });
   await page.goto(`${BASE}/apps/karmolab/`, { waitUntil: 'networkidle', timeout: 60000 });
   /* `Toolbox` 는 **맨이름 전역**이다(window 에는 안 달려 있다) — 그래서 window.Toolbox 로 기다리면
      영영 안 온다(붙이면서 20초를 그렇게 날렸다). */
@@ -92,6 +104,8 @@ try {
       문제.push(`${곳} 로 안 옮겨진다 — 주소 ${결과.hash} · 보이는 장 ${결과.보임.join(',') || '없음'}`);
     }
   }
+
+  for (const t of 막힌것) 문제.push('자물쇠가 막았다 — ' + t);
 
   const 남은목록 = await page.evaluate(() => [...document.querySelectorAll('*')]
     .filter((e) => [...e.attributes].some((a) => /^on[a-z]+$/.test(a.name)))
