@@ -144,6 +144,7 @@
     "test:heung:ux",
     "smoke:badapple-tool",
     "audit:shared-builds",
-    "test:heung:midi-file"
+    "test:heung:midi-file",
+    "test:shard"
   ]
 }
