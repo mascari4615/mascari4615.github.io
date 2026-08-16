@@ -312,6 +312,7 @@
     "audit:csp-meta": "node scripts/audit-csp-meta.mjs",
     "audit:serve-fm": "node scripts/audit-serve-frontmatter.mjs",
     "audit:deps": "node scripts/audit-deps-supplychain.mjs",
+    "audit:css-tokens": "node scripts/audit-css-tokens.mjs",
     "audit:home-blocks": "node scripts/audit-home-blocks.mjs",
     "audit:wait": "node scripts/audit-wait-timeout.mjs",
     "audit:orphans": "node scripts/audit-orphan-tests.mjs",
