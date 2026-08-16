@@ -2690,6 +2690,8 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     font-weight: 600; font-size: var(--font-size-xs);
     cursor: pointer;
     min-width: 88px;
+
+    min-height: 32px;
 }
 .karmolab-update-banner-install:hover { filter: brightness(1.1); }
 .karmolab-update-banner-install:disabled { opacity: 0.7; cursor: progress; }

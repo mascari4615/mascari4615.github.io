@@ -3368,6 +3368,10 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     font-weight: 600; font-size: var(--font-size-xs);
     cursor: pointer;
     min-width: 88px;
+    /* 손가락이 닿는 자리는 32px 아래로 내려가면 안 된다 (관문 `test:hub` 의 선).
+       실측 88x30 — 두 픽셀이 모자라 폰에서 「누르기 작은 것」으로 잡혔다.
+       글자를 키우지 않고 자리만 넓힌다(좁은 화면에서 배너가 두 줄이 되면 더 나쁘다). */
+    min-height: 32px;
 }
 .karmolab-update-banner-install:hover { filter: brightness(1.1); }
 .karmolab-update-banner-install:disabled { opacity: 0.7; cursor: progress; }
