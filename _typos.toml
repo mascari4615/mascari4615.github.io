@@ -308,3 +308,5 @@ Valtage = "Valtage"
 wqs = "wqs"
 Wrold = "Wrold"
 Wrtie = "Wrtie"
+# === 2026-08-17: 달력 코드가 낸 것 (verify 를 21판째 세우고 있었다) ===
+dows = "dows"            # day-of-week 의 복수 — FullCalendar 도 쓰는 달력 용어 (does/down 아님)
