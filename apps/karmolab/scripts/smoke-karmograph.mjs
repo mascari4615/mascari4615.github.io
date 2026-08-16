@@ -3743,9 +3743,25 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
     const r = g?.getBoundingClientRect();
     return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
   }, name);
-  const from = await boxOf('겹갑');
-  const to = await boxOf('겹을');
-  if (!from || !to) throw new Error('겹칠 카드를 못 찾았다');
+  /* ★ **이름이 카드에 붙기를 기다린다** (2026-08-16, CI 전용 빨강이었다).
+     여기서는 `fill` 뒤 300ms 만 재우고 곧바로 이름으로 카드를 찾았다. 이름이 판에 반영되는 것은
+     한 박자 뒤라, 바쁜 기계에서는 그 사이에 찾아 「겹칠 카드를 못 찾았다」로 죽었다 —
+     못 만든 게 아니라 **아직 안 붙은 것**이다. 시간을 박지 말고 붙을 때까지 기다린다.
+     그래도 없으면 **판에 뭐가 있는지 같이 적는다** — 이름만 적으면 다음 판도 막막하다. */
+  let from = null;
+  let to = null;
+  const 기다림끝 = Date.now() + ms(4000);
+  while (Date.now() < 기다림끝) {
+    from = await boxOf('겹갑');
+    to = await boxOf('겹을');
+    if (from && to) break;
+    await page.waitForTimeout(ms(100));
+  }
+  if (!from || !to) {
+    const 있는것 = await page.evaluate(() => [...document.querySelectorAll('.ck-node')]
+      .map((el) => (el.textContent || '').trim().slice(0, 12)).slice(0, 8));
+    throw new Error(`겹칠 카드를 못 찾았다 — 판에 있는 것: ${있는것.join(' · ') || '없음'}`);
+  }
 
   const edgesBefore = await page.locator('.ck-edge').count();
   await page.mouse.move(from.x, from.y);
