@@ -201,7 +201,7 @@ function toolSeoSection(id, code, sourceHtml) {
     : '';
 
   return `<section class="tool-seo">
-        <nav class="tool-seo-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">
+        <nav class="tool-seo-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria.seo'))}">
           <a href="${home}">KarmoLab</a> / <a href="${hub}">${esc(
     tr(code, 'toolpage.crumb.tools')
   )}</a> / ${esc(title)}

@@ -497,7 +497,10 @@ function seoBlock(id) {
     .join('\n          ');
 
   return `<section class="tool-seo">
-        <nav class="tool-seo-crumb" aria-label="위치">
+        <!-- ★ 위 tool-crumb 과 **다른 이름**이어야 한다 (2026-08-16). 둘 다 「위치」였더니
+             axe 가 landmark-unique 로 잡았다 — 화면낭독기 landmark 목록에 같은 이름이 두 개라
+             어느 쪽으로 갈지 못 고른다. 도구 장 129장 전부에 있던 일이다. -->
+        <nav class="tool-seo-crumb" aria-label="이 글의 위치">
           <a href="/karmolab/">KarmoLab</a> / <a href="${BASE_PATH}/">도구</a> / ${esc(heading(id))}
         </nav>
         <p>${esc(t.description)}</p>${aliasLine(id, [heading(id), t.lead, t.description, t.howto.join(' '), t.faq.map((f) => f.q + f.a).join(' ')].join(' '))}

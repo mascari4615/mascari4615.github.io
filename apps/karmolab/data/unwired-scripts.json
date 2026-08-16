@@ -4,8 +4,7 @@
   "목록": [
     "smoke-companion.mjs",
     "smoke-foundry.mjs",
-    "smoke-wrong-kind.mjs",
-    "test-heung-midi-file.mjs"
+    "smoke-wrong-kind.mjs"
   ],
   "갱신": "2026-08-16"
 }
