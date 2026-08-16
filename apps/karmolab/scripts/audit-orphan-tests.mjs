@@ -81,7 +81,11 @@ function expand(name, depth = 0) {
     }
   }
 }
-for (const entry of ['build', 'gates', 'verify:prepush', 'verify:quality', 'verify:live']) {
+/* ★ **아무도 안 부르는 이름을 입구로 세면 안 된다** (2026-08-16). 여기 `verify:quality` 가
+   들어 있었는데 그 이름을 부르는 워크플로가 하나도 없다 — 그 아래 검사들(성능 예산 등)이
+   「물려 있다」로 세어져 몇 달간 orphan 목록에 안 떴다. 실제로 성능 예산은 한 번도 안 돌았다.
+   입구는 **정말로 도는 것**만 적는다. */
+for (const entry of ['build', 'gates', 'verify:prepush', 'verify:live']) {
   covered.add(entry);
   expand(entry);
 }
