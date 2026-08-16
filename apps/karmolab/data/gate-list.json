@@ -55,6 +55,7 @@
     "audit:hidden",
     "audit:home-blocks",
     "test:a11y",
+    "audit:csp-meta",
     "test:jsontree",
     "test:dropwell",
     "test:saylive",
