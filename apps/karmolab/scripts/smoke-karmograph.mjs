@@ -3260,7 +3260,27 @@ await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮�
   await m.waitForSelector('[data-km="time-go"]', { timeout: ms(4000) });
   await noCovered(m, '시점 줄');
 
-  await m.locator('[data-km="more"]').click();
+  /* ★ **못 눌렀으면 「누가 덮었나」를 말한다** (2026-08-16). 이 줄이 CI 에서 30초를 기다리다
+     죽었는데, 화면에는 「시간 초과」만 남아 무엇이 위에 있었는지 알 길이 없었다 — 내 자리에서는
+     늘 눌린다(잰 값: 단추 322,183 · 그 자리의 주인 = 단추 자신). CI 는 위 여백이 55px 더 커서
+     자리가 달라지는데, 덮은 놈 이름 한 줄이면 그 차이가 곧바로 갈린다.
+     이 검사가 잡으려는 것이 바로 「보이는데 못 누른다」이므로, 못 누른 사실 자체를 증거로 남긴다. */
+  try {
+    await m.locator('[data-km="more"]').click({ timeout: ms(8000) });
+  } catch (e) {
+    const 덮은놈 = await m.evaluate(() => {
+      const el = document.querySelector('[data-km="more"]');
+      if (!el) return '단추 자체가 없다';
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      const name = top ? (top.dataset?.km || String(top.className || top.tagName).slice(0, 28)) : '없음';
+      const tr = top ? top.getBoundingClientRect() : null;
+      return `단추 ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}`
+        + ` · 그 자리의 주인 ${name}`
+        + (tr ? ` (${Math.round(tr.x)},${Math.round(tr.y)} ${Math.round(tr.width)}x${Math.round(tr.height)})` : '');
+    });
+    throw new Error(`「더 보기」를 못 눌렀다 — ${덮은놈}`);
+  }
   await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
   await noCovered(m, '서랍');
 
