@@ -24,7 +24,14 @@ export const esc = (s) =>
  * 한 번 저장되면 줄 끝이 CRLF 로 바뀌고(깃은 되돌려 저장하므로 diff 에는 안 보인다),
  * 그 순간 앞머리 치환부터 전부 못 찾아 **생성기가 통째로 죽는다 = 배포 정지**. */
 export function loadShell(root) {
-  return fs.readFileSync(path.join(root, 'index.html'), 'utf8').split('\r\n').join('\n');
+  const 글 = fs.readFileSync(path.join(root, 'index.html'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+  /* ★ **자물쇠는 껍데기 것이다 — 찍는 장에 물려주면 그 장이 죽는다** (2026-08-17, 두 번 데임).
+     껍데기 CSP 에는 그 화면 인라인의 **지문**이 박혀 있다. 찍는 장에는 장마다 다른 인라인이 더
+     붙는다(도구 이름·말 바꾸기 표시…) — 지문에 없으니 막히고 위젯이 안 뜬다. 실제로
+     ① 도구 장 145개가 막혀 미리그리기 18분 정지 ② 다국어 장 이름이 안 바뀌어 배포가 섰다.
+     그래서 **껍데기를 읽는 이 문 하나**에서 기본 세 줄로 되돌린다 — 생성기마다 고치면 또 빠뜨린다.
+     장마다 지문을 찍는 것은 다음 걸음이고, 그때도 자리는 여기다. */
+  return 글.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)/, (m, a, b) => a + CSP_CONTENT + b);
 }
 
 /** head 의 한 줄짜리 meta 를 값만 갈아끼운다 (셸 구조 변화에 둔감하게 attr 매칭). */
