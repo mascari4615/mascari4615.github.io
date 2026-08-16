@@ -51,6 +51,12 @@ export function 겹친열쇠수(묶음, 판) {
   return n;
 }
 
+/** 도구 한 장이 미리 실어도 되는 묶음 — 그 밖은 목록 화면 몫이다(스스로 늦게 받아 온다). */
+const 허용묶음 = new Set(['site', 'shell', 'widgets', 'toolpage']);
+
+/** 장 주소에서 도구 id 를 뽑는다 — 제 도구의 말 묶음은 실어도 된다(열 때 기다림 0). */
+const 도구id = (rel) => (rel.match(/\/t\/([^/]+)\//) || [])[1] || '';
+
 const 걸린것 = [];
 let 본장 = 0;
 for (const rel of 볼장) {
@@ -63,6 +69,15 @@ for (const rel of 볼장) {
   const 판 = rel.slice(0, 2);
   const 겹침 = 겹친열쇠수(묶음, 판);
   if (겹침 > 0) 걸린것.push(`${rel} — 이미 옮긴 열쇠 ${겹침}개를 원본으로 또 싣는다`);
+
+  /* ★ **도구 한 장에 목록 화면의 짐을 싣지 마라** (2026-08-17 실측: `tools` 45.6KB · `widgets-desc` 27.6KB
+     를 빼서 240KB → 108KB). 둘 다 첫 그림에 안 쓰이고, 필요한 화면이 스스로 늦게 받아 온다.
+     크기 대신 **무엇을 싣나**를 지킨다 — 말이 늘어도 이 목록은 안 변한다. */
+  if (rel.includes('/t/')) {
+    const 실은것 = Object.keys(묶음[판] || {});
+    const 넘친것 = 실은것.filter((ns) => !허용묶음.has(ns) && ns !== 도구id(rel));
+    if (넘친것.length) 걸린것.push(`${rel} — 첫 그림에 안 쓰는 묶음을 싣는다: ${넘친것.join(', ')}`);
+  }
 }
 
 if (본장 === 0) {
@@ -70,9 +85,10 @@ if (본장 === 0) {
   process.exit(2);
 }
 if (걸린것.length) {
-  console.error(`[말판 무게] FAIL — 원본 말 묶음이 두 벌 실린 장 ${걸린것.length}개:`);
+  console.error(`[말판 무게] FAIL — 첫 그림에 안 쓰는 짐을 진 장 ${걸린것.length}개:`);
   for (const one of 걸린것) console.error(`  - ${one}`);
-  console.error('  원본은 **그 판에 없는 열쇠만** 실어라 — 고칠 곳: scripts/lib/locale-page.mjs.');
+  console.error('  · 원본이 두 벌이면: 그 판에 없는 열쇠만 실어라 — scripts/lib/locale-page.mjs.');
+  console.error('  · 안 쓰는 묶음이면: 도구 장의 묶음 목록에서 빼라 — scripts/gen-tool-pages-locale.mjs.');
   process.exit(1);
 }
 console.log(`[말판 무게] 말 판 장 ${본장}개 — 원본 묶음이 겹쳐 실린 곳 없음`);
