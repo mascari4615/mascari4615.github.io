@@ -40,13 +40,16 @@ for (let i = 0; i < runs; i += 1) {
    같은 판에서 매번 다른 항목이 하나씩 빨개졌고 다시 돌리면 초록이었다. 그래서 「한 번만
    빨간 것들」은 한 판 더 돌려 되풀이되는지 본다. 되풀이되면 제품, 아니면 그 판의 부하다. */
 if (reds.size > 0 && [...reds.values()].every((n) => n === 1)) {
-  console.log('한 번씩만 빨갰다 — 부하인지 제품인지 가리려고 한 판 더 돈다 …');
+  /* ★ **어느 항목이 흔들렸는지 이름을 남긴다** (2026-08-17). 여태 「부하로 본다」로 넘기며
+     이름을 안 찍었다 — 그러면 같은 항목이 며칠째 흔들려도 아무도 못 모은다.
+     한 판의 판정은 못 되지만, **쌓이면** 그게 진단이다. */
+  console.log(`한 번씩만 빨갰다 (${[...reds.keys()].join(' · ')}) — 부하인지 제품인지 가리려고 한 판 더 돈다 …`);
   const suspects = new Set(reds.keys());
   reds.clear();
   await once();
   const again = [...reds.keys()].filter((name) => suspects.has(name));
   if (again.length === 0) {
-    console.log('RESULT: STABLE — 되풀이되지 않았다 (그 판의 부하로 본다)');
+    console.log(`RESULT: STABLE — 되풀이되지 않았다 (그 판의 부하로 본다). 이번에 한 번 흔들린 것: ${[...suspects].join(' · ')}`);
     process.exit(0);
   }
   reds.clear();

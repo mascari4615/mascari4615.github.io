@@ -5102,8 +5102,8 @@ await step('내보내기와 저장한 보기도 시점을 따른다', async () =
   await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
   await m.waitForTimeout(ms(500));
   await m.evaluate(() => document.querySelector('[data-km="view-go"]').click());
-  await m.waitForTimeout(ms(700));
-  const back = await m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim());
+  /* 되살린 보기의 시점 이름이 **멎을 때까지** — 재우고 읽으면 되살리는 중의 옛 이름을 읽는다. */
+  const back = await 멎을때까지(m, () => m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim()));
   if (back !== second) throw new Error(`보기를 되살렸는데 시점이 안 따라왔다 (${back} ≠ ${second})`);
   await ctx.close();
 });
