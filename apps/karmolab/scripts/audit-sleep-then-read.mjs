@@ -48,6 +48,12 @@ for (const file of files) {
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10));
   for (let i = 0; i < lines.length; i += 1) {
     if (!lines[i].includes('waitForTimeout(')) continue;
+    /* ★ **재우는 것이 곧 재려는 것일 때가 있다** (2026-08-16). 「눌러 놓고 0.5초 뒤에도 표시가
+       남아 있나」처럼 **시간이 지난 뒤의 상태**가 판정 대상이면 재우는 게 맞다 — 그건 빚이 아니다.
+       그 자리에는 재우는 줄(또는 바로 윗줄)에 `재움-의도` 를 적어 둔다. 표시가 없는 것만 센다.
+       (표시를 남발하면 이 자가 죽는다 — 무엇을 재려고 재우는지 한 줄로 같이 적을 것.) */
+    const 앞쪽 = lines.slice(Math.max(0, i - 3), i + 1).join(String.fromCharCode(10));
+    if (앞쪽.includes('재움-의도')) continue;
     for (let j = i + 1; j < Math.min(i + 3, lines.length); j += 1) {
       /* 사이에 조건 기다리기가 있으면 제대로 기다린 것이다 — 세지 않는다. */
       if (lines[j].includes('waitFor') && !lines[j].includes('waitForTimeout')) break;

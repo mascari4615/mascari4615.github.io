@@ -111,6 +111,8 @@ if (!cantRun) {
       .waitForFunction(() => document.querySelectorAll('#acView .ac-key').length === 1, null, { timeout: 5000 })
       .catch(() => {});
     const now0 = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
+    /* 재움-의도: **0.5초 뒤에도 남아 있나**가 이 판정의 알맹이다 — 매 프레임 다시 그리는 놀이에서
+       표시가 곧 지워지던 것을 잡으려고 일부러 시간을 흘려보낸다. 기다릴 「된 상태」가 따로 없다. */
     await p.waitForTimeout(500);
     const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     check(`${id}: 짚은 자리가 다시 그려도 남는다`, now0 === 1 && later === 1, `직후 ${now0} · 0.5초 뒤 ${later}`);
