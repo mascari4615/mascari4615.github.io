@@ -61,6 +61,35 @@ const workers = Array.from({ length: 6 }, async () => {
 });
 await Promise.all(workers);
 
+/* ★ **한 번 못 닿았다고 315개를 통째로 버리지 않는다** (2026-08-16, 실측). 아예 못 닿은 것이
+   하나라도 있으면 이 검사는 `2`(못 잼)로 끝난다 — 그러면 멀쩡히 확인한 나머지 314개도 같이
+   버려진다. 실제로 CI 에서 여러 판 그렇게 끝났고, 그동안 죽은 링크를 막을 사람이 없었다.
+   게다가 못 닿음의 상당수는 **우리가 만든 것**이다: 일꾼 6명이 동시에 두드리면 상대가 잠깐
+   끊는다. 그래서 못 닿은 것만 **잠깐 쉬었다가 하나씩** 다시 두드린다 — 그래도 안 되면
+   그때가 진짜 「못 닿음」이다. 이건 재우고 넘어가는 것이 아니라 **다시 물어보는** 것이다. */
+const 못닿은것 = dead.filter((d) => d.status === 0);
+/* 다만 **한꺼번에 많이** 못 닿았으면 그건 상대가 아니라 이쪽 그물이 끊긴 것이다 —
+   그때 하나씩 다시 두드리면 몇 분을 버린다. 스무 개가 넘으면 다시 안 묻고 바로 「못 잼」. */
+if (못닿은것.length > 20) {
+  console.log(`
+[studymap-links] 못 닿은 것이 ${못닿은것.length}개 — 그물이 끊긴 판이다. 하나씩 다시 묻지 않는다`);
+} else if (못닿은것.length > 0) {
+  console.log(`
+[studymap-links] 못 닿은 ${못닿은것.length}개를 잠깐 쉬었다가 하나씩 다시 본다`);
+  await new Promise((r) => setTimeout(r, 3000));
+  for (const d of 못닿은것) {
+    let status = await probe(d.url, 'GET');
+    if (!OK_STATUS.has(status)) {
+      await new Promise((r) => setTimeout(r, 1500));
+      status = await probe(d.url, 'GET');
+    }
+    if (OK_STATUS.has(status)) {
+      dead.splice(dead.indexOf(d), 1);
+      console.log(`  살아 있었다 — ${d.node} (${d.url})`);
+    }
+  }
+}
+
 process.stdout.write('\n');
 
 /* ★ **「여기서 못 닿았다」와 「링크가 죽었다」는 다른 말이다** (2026-08-14).
