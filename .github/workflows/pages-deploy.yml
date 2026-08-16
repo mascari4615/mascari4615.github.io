@@ -289,6 +289,12 @@ jobs:
         env:
           JEKYLL_ENV: "production"
 
+      # 사이트맵은 **지어져야만 존재한다** — 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
+      # 날짜가 빠지면 크롤러가 다시 올지 못 정하고, IndexNow 알림에서도 통째로 빠진다.
+      # 2026-08-16 실측 — 905개 중 70개(태그·분류 장)가 그렇게 빠져 있었고 전부 초록이었다.
+      - name: Audit sitemap lastmod
+        run: node scripts/audit-sitemap-lastmod.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
+
       # 글 속 사진 743MB 를 배포 꾸러미에서 뺀다. Pages 는 사이트 전체를 매번 통째로 올려 펼치므로,
       # 도구 파일 한 줄만 고쳐도 이 무게를 다시 물었다 — 배포 단계가 5분 → 10분 → 타임아웃으로 늘었다.
       # 사진은 `_config.yml` 의 cdn 주소(img.mascari4615.com)에서 나오므로 결과물에 있을 이유가 없다.
