@@ -73,7 +73,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .kl-alarm-meta { flex: 1; min-width: 0; }
       .kl-alarm-label { font-size: var(--font-size-sm); color: var(--text-primary); font-weight: 600; }
       .kl-alarm-sub { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: 2px; }
-      .kl-alarm-toggle { position: relative; width: 40px; height: 22px; border-radius: 11px; border: none; background: var(--bg-quaternary, var(--bg-tertiary)); cursor: pointer; flex: none; }
+      .kl-alarm-toggle { position: relative; width: 40px; height: 22px; border-radius: 11px; border: none; background: var(--bg-tertiary); cursor: pointer; flex: none; }
       .kl-alarm-toggle[data-on="1"] { background: var(--accent, #4a9); }
       .kl-alarm-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
       .kl-alarm-toggle[data-on="1"]::after { transform: translateX(18px); }
@@ -93,7 +93,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .kl-alarm-row-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       .kl-alarm-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; }
       .kl-alarm-btn { padding: 6px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }
-      .kl-alarm-btn-primary { background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg, #fff); border-color: var(--accent, var(--border)); }
+      .kl-alarm-btn-primary { background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg); border-color: var(--accent, var(--border)); }
       .kl-alarm-btn-danger { color: var(--error, #c55); border-color: var(--error-subtle, var(--border)); }
       .kl-alarm-add { padding: 8px 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); font-size: var(--font-size-sm); cursor: pointer; width: 100%; }
       .kl-alarm-add:hover { border-color: var(--accent); color: var(--text-primary); }

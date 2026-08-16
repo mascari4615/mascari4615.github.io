@@ -177,7 +177,7 @@ import {
     /* 찾은 수 — 흐려지는 것만으로는 「없다」와 「아직 안 쳤다」가 구별이 안 된다. */
     .km-findcount { font-size:11px; color:var(--text-tertiary); padding:0 2px; white-space:nowrap;
       font-variant-numeric:tabular-nums; }
-    .km-findcount.is-none { color:var(--danger, #f87171); }
+    .km-findcount.is-none { color:var(--error); }
     .km-findcount.hidden { display:none; }
     .km-body { flex:1; display:flex; min-height:0; position:relative; }
         /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.

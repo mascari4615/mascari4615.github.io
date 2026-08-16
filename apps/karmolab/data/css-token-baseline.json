@@ -1,12 +1,5 @@
 [
- "--accent-contrast",
- "--accent-fg",
- "--bg-color",
- "--bg-elevated",
- "--bg-quaternary",
  "--ck-bg",
- "--color-success",
- "--danger",
  "--font-size-2xl",
  "--font-size-base",
  "--font-size-xl",
@@ -14,9 +7,5 @@
  "--oy",
  "--px",
  "--py",
- "--radius",
- "--shadow-sm",
- "--text",
- "--text-color",
  "--x"
 ]

@@ -41,6 +41,10 @@
 
     /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기 — 두 테마가 같은 색을 공유한다. */
     --accent: #a79bef;         /* quiet lavender */
+    /* ★ accent 로 **채운 자리 위의 글자색** (2026-08-16). 여태 토큰이 없어서 여러 자리가
+       `var(--accent-fg)` 로 흰 글자를 썼는데, 어두운 판의 accent 는 **밝은 라벤더**라
+       흰 글자는 2.45:1 이다 — 사실상 안 읽힌다. 판마다 반대 색을 쓴다: 어두운 판 7.76 · 밝은 판 6.31. */
+    --accent-fg: #0f1016;
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
@@ -169,6 +173,7 @@
     --text-tertiary: #656374;  /* ink-3 */
 
     --accent: #5f4dc2;         /* 연보라 잉크 — 다크(#a99bf5)와 같은 hue, 흰 위에서 읽히게 어둡게 */
+    --accent-fg: #ffffff;      /* 밝은 판 accent 는 어두우므로 글자는 흰색 (6.31:1) */
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);
     --accent-subtle: rgba(95, 77, 194, 0.07);
@@ -3323,7 +3328,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     z-index: 9998;
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px;
-    background: var(--bg-elevated, var(--bg-secondary));
+    background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--accent, var(--border));
     border-radius: var(--radius-md);
@@ -3358,7 +3363,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .karmolab-update-banner-install {
     flex-shrink: 0;
     padding: 6px 12px;
-    background: var(--accent); color: var(--accent-contrast, white);
+    background: var(--accent); color: var(--accent-fg);
     border: none; border-radius: var(--radius-sm);
     font-weight: 600; font-size: var(--font-size-xs);
     cursor: pointer;
@@ -3387,7 +3392,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     z-index: 9998;
     display: flex; align-items: center; gap: 8px;
     padding: 8px 10px 8px 12px;
-    background: var(--bg-elevated, var(--bg-secondary));
+    background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--success, #22c55e);
     border-left: 3px solid var(--success, #22c55e);

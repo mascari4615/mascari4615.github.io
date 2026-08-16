@@ -1133,7 +1133,7 @@ import { t, loadNamespace } from '../lib/i18n';
             .sm-section-label { font-weight: 700; margin: 0 0 10px 0; color: var(--accent); font-size: var(--font-size-sm); letter-spacing: 0.02em; }
             .sm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; margin-bottom: 20px; }
             .sm-card { border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-secondary); padding: 14px 16px; min-height: 108px; display: flex; flex-direction: column; transition: border-color 0.15s, box-shadow 0.15s; }
-            .sm-card:hover { border-color: var(--border-hover); box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,.08)); }
+            .sm-card:hover { border-color: var(--border-hover); box-shadow: var(--shadow-float)); }
             .sm-card--up { border-left: 4px solid var(--success, #22c55e); }
             .sm-card--down { border-left: 4px solid var(--error, #e74c3c); }
             .sm-card--na { border-left: 4px solid var(--text-tertiary); }

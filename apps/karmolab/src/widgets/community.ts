@@ -180,10 +180,10 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         .c-bar { display:flex; align-items:center; justify-content:space-between; gap:10px;
             margin-bottom:10px; flex-wrap:wrap; }
         .c-sorts { display:flex; gap:4px; }
-        .c-sort { background:none; border:0; padding:4px 8px; border-radius:var(--radius); cursor:pointer;
+        .c-sort { background:none; border:0; padding:4px 8px; border-radius:var(--radius-md); cursor:pointer;
             font:inherit; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .c-sort[data-on="1"] { color:var(--text-primary); font-weight:700; }
-        .c-newbtn { padding:7px 14px; border-radius:var(--radius); border:1px solid var(--accent);
+        .c-newbtn { padding:7px 14px; border-radius:var(--radius-md); border:1px solid var(--accent);
             background:transparent; color:var(--accent); font:inherit; font-size:var(--font-size-xs);
             font-weight:600; cursor:pointer; }
         .c-newbtn:hover { background:var(--accent); color:var(--bg-primary); }
@@ -195,7 +195,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         .c-anonpick input { accent-color:var(--accent); margin:0; }
 
         /* 신고함 (KL-157) — 주인에게만, 들어온 것이 있을 때만 보인다. */
-        .c-reports { border:1px solid #ef8b8b55; border-radius:var(--radius); padding:10px 12px; }
+        .c-reports { border:1px solid #ef8b8b55; border-radius:var(--radius-md); padding:10px 12px; }
         .c-report-list { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
         .c-report { border-top:1px solid var(--border); padding-top:8px; }
         .c-report:first-child { border-top:none; padding-top:0; }
@@ -206,7 +206,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         .c-write { display:flex; flex-direction:column; gap:8px; margin-bottom:18px;
             border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; background:var(--bg-secondary); }
-        .c-write input, .c-write textarea { width:100%; padding:10px 12px; border-radius:var(--radius);
+        .c-write input, .c-write textarea { width:100%; padding:10px 12px; border-radius:var(--radius-md);
             border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); font:inherit; }
         .c-write textarea { min-height:110px; resize:vertical; }
         .c-write-foot { display:flex; justify-content:space-between; align-items:center; gap:10px; }
@@ -214,15 +214,15 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         /* 작성기 — 기호를 몰라도 단추로 다 되게. */
         .c-compose-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
         .c-fmts { display:flex; gap:4px; flex-wrap:wrap; }
-        .c-fmt { padding:4px 9px; border-radius:var(--radius); border:1px solid var(--border);
+        .c-fmt { padding:4px 9px; border-radius:var(--radius-md); border:1px solid var(--border);
             background:transparent; color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer; }
         .c-fmt:hover { color:var(--text-primary); border-color:var(--accent); }
         .c-modes { display:flex; gap:2px; }
-        .c-mode { padding:4px 10px; border:0; background:none; border-radius:var(--radius);
+        .c-mode { padding:4px 10px; border:0; background:none; border-radius:var(--radius-md);
             color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }
         .c-mode[data-on="1"] { color:var(--text-primary); font-weight:700; background:var(--bg-tertiary); }
         .c-preview { min-height:110px; padding:10px 12px; border:1px dashed var(--border);
-            border-radius:var(--radius); background:var(--bg-primary); }
+            border-radius:var(--radius-md); background:var(--bg-primary); }
 
         /* 서식 있는 글 — 본문·답글·미리보기가 같은 모양을 쓴다. */
         .md { white-space:normal; }
@@ -236,7 +236,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             background:var(--bg-tertiary); color:var(--text-secondary); }
         .md code { padding:1px 5px; border-radius:4px; background:var(--bg-tertiary);
             font-family:var(--font-mono, monospace); font-size:.92em; }
-        .md pre { margin:0 0 10px; padding:12px 14px; border-radius:var(--radius);
+        .md pre { margin:0 0 10px; padding:12px 14px; border-radius:var(--radius-md);
             background:var(--bg-tertiary); overflow-x:auto; }
         .md pre code { padding:0; background:none; }
         .md hr { border:0; border-top:1px solid var(--border); margin:14px 0; }
@@ -298,12 +298,12 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         /* 말머리 — 갤러리 안에서 글을 한 번 더 가른다 (디시·아카의 말머리). */
         .c-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
-        .c-tagchip { padding:4px 10px; border-radius:var(--radius); border:1px solid var(--border);
+        .c-tagchip { padding:4px 10px; border-radius:var(--radius-md); border:1px solid var(--border);
             background:transparent; color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }
         .c-tagchip:hover { color:var(--text-primary); }
         .c-tagchip[data-on="1"] { border-color:var(--accent); color:var(--accent); }
         .c-headword { flex:0 0 auto; color:var(--text-tertiary); font-size:11px; }
-        .c-write select { padding:8px 10px; border-radius:var(--radius); border:1px solid var(--border);
+        .c-write select { padding:8px 10px; border-radius:var(--radius-md); border:1px solid var(--border);
             background:var(--bg-primary); color:var(--text-primary); font:inherit; }
 
         /* 갤러리 목록 — 어느 갤러리가 살아 있나. 글 수만으로는 모른다, 마지막 글이 있어야 안다. */
@@ -374,18 +374,18 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         .c-foot { display:flex; align-items:center; justify-content:space-between; gap:10px;
             margin-top:14px; flex-wrap:wrap; }
         .c-pages { display:flex; gap:2px; }
-        .c-page { min-width:26px; padding:4px 7px; border:1px solid var(--border); border-radius:var(--radius);
+        .c-page { min-width:26px; padding:4px 7px; border:1px solid var(--border); border-radius:var(--radius-md);
             background:transparent; color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer; }
         .c-page[data-on="1"] { border-color:var(--accent); color:var(--accent); font-weight:700; }
         .c-page[disabled] { opacity:.4; cursor:default; }
         .c-search { display:flex; gap:6px; }
-        .c-search input { padding:5px 10px; border-radius:var(--radius); border:1px solid var(--border);
+        .c-search input { padding:5px 10px; border-radius:var(--radius-md); border:1px solid var(--border);
             background:var(--bg-secondary); color:var(--text-primary); font:inherit; font-size:11px; width:150px; }
 
         .c-imgbar { display:flex; align-items:center; gap:8px; }
         .c-search-all { margin-bottom:16px; }
         .c-search-all input { width:100%; padding:9px 12px; font-size:var(--font-size-xs); }
-        .md img { max-width:100%; height:auto; border-radius:var(--radius); display:block; margin:8px 0; }
+        .md img { max-width:100%; height:auto; border-radius:var(--radius-md); display:block; margin:8px 0; }
 
         /* 폰 — 표를 그대로 두면 칸이 눌려 아무것도 안 읽힌다. 줄 하나로 접는다. */
         @media (max-width: 620px) {
@@ -419,7 +419,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         .c-section { margin:26px 0 10px; font-size:var(--font-size-sm); color:var(--text-primary); }
         ul.c-replies { list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:8px; }
-        .c-reply { border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px;
+        .c-reply { border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 14px;
             background:var(--bg-secondary); }
         .c-reply[data-child="1"] { margin-left:28px; background:var(--bg-tertiary); }
         .c-reply[data-owner="1"] { border-color:var(--accent); }
@@ -441,7 +441,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         .c-err-detail { margin-top:10px; font-size:11px; color:var(--text-tertiary); }
         .c-err-detail summary { cursor:pointer; }
         .c-err-detail code { display:block; margin:8px auto 6px; padding:8px 10px; max-width:520px;
-            background:var(--bg-tertiary); border-radius:var(--radius); word-break:break-all; text-align:left; }
+            background:var(--bg-tertiary); border-radius:var(--radius-md); word-break:break-all; text-align:left; }
 
         @media (max-width: 620px) {
             .c-row { flex-wrap:wrap; }

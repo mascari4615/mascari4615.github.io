@@ -108,7 +108,7 @@ import { intervalWhileVisible } from '../../lib/tick';
         status.style.color = 'var(--text-secondary)';
       } else if (enabled) {
         status.textContent = t('life.t06');
-        status.style.color = 'var(--color-success, #4caf50)';
+        status.style.color = 'var(--success)';
       } else {
         status.textContent = t('life.t07');
         status.style.color = 'var(--text-secondary)';
@@ -159,7 +159,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   background: #fff;
   transition: transform 0.2s;
 }
-.life-toggle-switch input:checked + .life-toggle-slider { background: var(--color-success, #4caf50); }
+.life-toggle-switch input:checked + .life-toggle-slider { background: var(--success); }
 .life-toggle-switch input:checked + .life-toggle-slider::before { transform: translateX(18px); }
 .life-toggle-switch input:disabled + .life-toggle-slider { opacity: 0.5; cursor: not-allowed; }
 .life-hint { font-size: 0.72rem; color: var(--text-secondary); padding: 6px 2px; }
