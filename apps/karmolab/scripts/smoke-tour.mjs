@@ -33,13 +33,23 @@ await p.evaluate(() => Toolbox.switchPage('arcade'));
 await p.waitForSelector('#acTour', { timeout: 20000 });
 await p.click('#acTour');
 
-/* 사람 손 대신. 700ms 마다 열려 있는 단추 하나를 누른다. */
+/* 사람 손 대신. 700ms 마다 열려 있는 단추 하나를 누른다.
+   ★ **대회를 모는 단추는 안 만진다** (2026-08-16, 실측). 이 손은 아무 단추나 눌렀는데,
+   거기에는 `#acAgain` 도 들어 있었다. 마지막 판에서 그 단추는 「대회 끝」이고, 누르면
+   `tour = null` 로 대회를 닫고 로비로 나간다(`arcade.ts` 의 `againBtn.onclick`).
+   그러면 검사가 기다리는 `__arcade.finished` 는 **영영 안 온다** — 4분을 기다리다
+   「5판이 안 끝났다」로 빨개진다. 실제로 1~4판은 늘 지나가고 **5판에서만** 걸렸다
+   (CI·내 자리 둘 다, 뽑힌 놀이는 서로 달랐는데도).
+   이 손이 할 일은 **판을 두는 것**이지 대회를 모는 것이 아니다 — 흐름 단추는 검사가 누른다. */
+const 대회를_모는_단추 = '#acAgain, #acSwap, #acReplay, #acStart, #acQuit';
 const poke = setInterval(async () => {
   try {
-    await p.evaluate(() => {
-      const b = [...document.querySelectorAll('#acView button:not([disabled])')];
+    await p.evaluate((빼기) => {
+      const b = [...document.querySelectorAll('#acView button:not([disabled])')].filter(
+        (el) => !el.matches(빼기)
+      );
       if (b.length) b[Math.floor(Math.random() * b.length)].click();
-    });
+    }, 대회를_모는_단추);
   } catch { /* 창이 닫히는 중 */ }
 }, 700);
 
