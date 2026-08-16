@@ -27,8 +27,10 @@
     --text-primary: #f2f2ee;   /* ink */
     --text-secondary: #9a9a94; /* ink-2 */
     /* 흐린 라벨("키 (cm)" 같은 것)이 카드 위에서 2.1:1 까지 떨어져 56곳이 읽기 힘들었다.
-       흐림은 유지하되 읽히는 선까지만 올린다. */
-    --text-tertiary: #7a7a75;  /* ink-3 */
+       흐림은 유지하되 읽히는 선까지만 올린다.
+       2026-08-16 두 번째 올림 — 실사이트 axe 측정에서 가장 어두운 카드(#1d1e28) 위에서
+       3.83:1 로 여전히 모자랐다(기준 4.5). #7a7a75 → #868681 = 4.53. 색상은 그대로. */
+    --text-tertiary: #868681;  /* ink-3 */
 
     /* Typography tokens */
     --font-size-2xs: 12px;
@@ -40,7 +42,7 @@
     /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기 — 두 테마가 같은 색을 공유한다. */
     --accent: #a79bef;         /* quiet lavender */
     --accent-hover: #bdb4f4;
-    --accent-dim: rgba(167, 155, 239, 0.14);
+    --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
     --accent-glow: rgba(167, 155, 239, 0.20);
 
@@ -164,11 +166,11 @@
 
     --text-primary: #1a1a1f;   /* ink — 중성에서 살짝 차갑게 */
     --text-secondary: #64626f; /* ink-2 */
-    --text-tertiary: #918fa0;  /* ink-3 */
+    --text-tertiary: #716f80;  /* ink-3 */
 
     --accent: #6d5bd0;         /* 연보라 잉크 — 다크(#a99bf5)와 같은 hue, 흰 위에서 읽히게 어둡게 */
     --accent-hover: #5a48bd;
-    --accent-dim: rgba(109, 91, 208, 0.14);
+    --accent-dim: rgba(109, 91, 208, 0.10);
     --accent-subtle: rgba(109, 91, 208, 0.07);
     --accent-glow: rgba(109, 91, 208, 0.22);
 
