@@ -92,7 +92,7 @@
     "test:table": "node scripts/test-tableconv.mjs",
     "test:workdays": "node scripts/test-workdays.mjs",
     "test:core": "node scripts/test-core.mjs",
-    "test:meok": "node scripts/test-meok-doc.mjs && node scripts/test-meok-brush.mjs && node scripts/test-meok-selection.mjs",
+    "test:meok": "node scripts/test-meok-doc.mjs && node scripts/test-meok-brush.mjs && node scripts/test-meok-selection.mjs && node scripts/test-meok-ops.mjs && node scripts/test-meok-storage.mjs",
     "test:meok:screen": "node scripts/smoke-meok.mjs",
     "test:tool-url": "node scripts/smoke-tool-url.mjs",
     "test:parity": "node scripts/smoke-core-parity.mjs",

@@ -14,7 +14,6 @@
     "smoke-foundry.mjs",
     "smoke-shell-i18n.mjs",
     "smoke-wrong-kind.mjs",
-    "test-meok-storage.mjs",
     "test-taptarget.mjs",
     "test-videosum.mjs"
   ],
@@ -32,7 +31,6 @@
     "smoke-foundry.mjs": "서버 없을 때의 선반 화면을 본다. 브라우저를 띄운다 — 묶기 전에 시간을 재라.",
     "smoke-shell-i18n.mjs": "열기 전 화면이 그 언어로 뜨나 보는 검사 — 이름이 없어 안 돈다. 묶을 후보다.",
     "smoke-wrong-kind.mjs": "재 보니 2분 05초. 기다리는 자리(#pfDropHint)가 아직 안 지어져 여덟 판 모두 빨갛다(TASK-KL-320). 짓고 나서 묶는다.",
-    "test-meok-storage.mjs": "먹 저장 검사(접었다 펴도 같은 그림인가) — test:meok 묶음이 doc·brush·selection 셋만 부른다. 빠뜨린 것으로 보인다.",
     "test-taptarget.mjs": "체크 상자를 손가락으로 누를 수 있나 보는 검사 — 이름이 없어 안 돈다. 묶을 후보다.",
     "test-videosum.mjs": "영상 요약 검사 — 이름이 없어 안 돈다(무거울 수 있어 시간부터 재야 한다)."
   }
