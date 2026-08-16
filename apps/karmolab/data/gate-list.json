@@ -133,6 +133,7 @@
     "test:paperask",
     "test:worldbook:unknown",
     "test:note-sound",
+    "audit:data",
     "test:search:docs",
     "test:search:lesson",
     "test:search:studymap",

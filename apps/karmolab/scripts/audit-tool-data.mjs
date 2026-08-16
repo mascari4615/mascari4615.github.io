@@ -31,6 +31,8 @@ const tools = withoutRetired(전체);
 const aliases = fs.existsSync(path.join(root, 'data/tool-aliases.json')) ? read('data/tool-aliases.json').aliases || {} : {};
 const heights = fs.existsSync(path.join(root, 'data/tool-heights.json')) ? read('data/tool-heights.json') : {};
 
+/** 알맹이는 있는데 상세 페이지 정보(tools-seo)가 없는 도구 — 아래에서 **래칫**으로 본다. */
+let seoOrphans = [];
 const missing = { 카드: [], 자리: [], 이름: [] };
 for (const id of tools) {
   if (!fs.existsSync(path.join(root, `img/og/${id}.jpg`))) missing['카드'].push(id);
@@ -86,13 +88,7 @@ const problems = [];
       /* 스스로 「화면 없음」이라 밝힌 것은 뺀다 — 예외의 이유는 그 파일 안에 적혀 있다. */
       .filter((f) => /export const SCREENLESS/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')) === false)
       .map((f) => path.basename(f, '.ts'));
-    const orphans = withCore.filter((id) => known.has(id) === false);
-    if (orphans.length > 0) {
-      problems.push(
-        `알맹이는 있는데 tools-seo 에 없다 ${orphans.length}개 — ${orphans.join(', ')}` +
-          ' (도구 페이지·쌍둥이·주소가 안 생긴다)'
-      );
-    }
+    seoOrphans = withCore.filter((id) => known.has(id) === false);
   }
 }
 
@@ -181,6 +177,36 @@ for (const [what, list] of Object.entries(missing)) {
   if (list.length) problems.push(`${what} 없음 ${list.length}개 — ${list.slice(0, 10).join(', ')}${list.length > 10 ? ' …' : ''}`);
 }
 if (stale.length) problems.push(`없어진 도구의 기록이 남아 있다 ${stale.length}건 — ${stale.slice(0, 8).join(', ')}`);
+
+/* ★ **래칫** (2026-08-16, TASK-KAR-219). 여기는 여태 「하나라도 없으면 빨강」이었다.
+   그런데 상세 페이지 정보는 사람이 쓰는 글(설명·순서·자주 묻는 것)이라 한 번에 못 채운다 —
+   그래서 **37개가 밀린 채 몇 달 빨갰고**, 늘 빨간 검사는 막는 자리에 못 넣는다. 그 사이
+   새 도구가 상세 페이지 없이 들어와도 아무도 못 막았다(그렇게 37까지 불었다).
+   톱니는 **조이는 쪽으로만** 돈다: 지금 밀린 수를 기준선으로 박고 **늘면 빨강**.
+   갚으면 기준선이 저절로 줄어든다(여기서 다시 써 준다). 목록은 늘 그대로 보여 준다 —
+   기준선은 「안 보이게 하는 장치」가 아니라 「안 늘게 하는 장치」다. */
+const BASELINE = path.join(root, 'data/tool-data-baseline.json');
+const 기준선 = fs.existsSync(BASELINE)
+  ? JSON.parse(fs.readFileSync(BASELINE, 'utf8'))
+  : { 설명: '상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다', 목록: [] };
+const 옛것 = new Set(기준선.목록 || []);
+const 새로늘어난것 = seoOrphans.filter((id) => 옛것.has(id) === false);
+const 갚은것 = [...옛것].filter((id) => seoOrphans.includes(id) === false);
+
+if (seoOrphans.length > 0) {
+  console.log(`[audit-tool-data] 상세 페이지 정보가 없는 도구 ${seoOrphans.length}개 — ${seoOrphans.join(', ')}`);
+  console.log('  (그 도구는 상세 페이지·주소가 안 생긴다 — `data/tools-seo.json` 에 설명·순서·자주 묻는 것을 적어라)');
+}
+if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
+  fs.writeFileSync(BASELINE, `${JSON.stringify({ ...기준선, 갱신: new Date().toISOString().slice(0, 10), 목록: seoOrphans }, null, 2)}\n`, 'utf8');
+  if (갚은것.length > 0) console.log(`[audit-tool-data] ${갚은것.length}개를 갚았다 — 기준선을 ${옛것.size} → ${seoOrphans.length} 로 조인다: ${갚은것.join(', ')}`);
+}
+if (새로늘어난것.length > 0 && process.argv.includes('--write-baseline') === false) {
+  problems.push(
+    `상세 페이지 정보 없이 새로 들어온 도구 ${새로늘어난것.length}개 — ${새로늘어난것.join(', ')}` +
+      ' (기준선에 없던 것이다. 도구를 만들면 `data/tools-seo.json` 도 같은 판에 채워라)'
+  );
+}
 
 if (problems.length) {
   console.error(`[audit-tool-data] 도구 ${tools.length}개 중 덜 채워진 것이 있다`);
