@@ -180,6 +180,11 @@ const RAW_CHECKS = [
   { name: '배드애플이 재생되는지', cmd: ['npm', 'run', 'test:badapple'] },
   { name: '블루마블 화면 틀이 맞는지', cmd: ['npm', 'run', 'smoke:bm'] },
   { name: '오락실 무대가 서는지', cmd: ['npm', 'run', 'smoke:arcadestage'] },
+  /* ★ 배포 길에서 옮겨 왔다 (2026-08-16, TASK-KAR-217). 한 판 4분 32초인데 **막지는 못하는**
+     검사라(대상에서 원본 언어를 빼고 돌아 막는 조건이 성립하지 않는다) 배포를 세울 이유가 없었다.
+     판정은 계속 필요하므로 — 다른 언어 도구 화면에 한국어가 남았는지는 한국어 쓰는 사람 눈에
+     안 보인다 — 여기서 두 시간마다 본다. */
+  { name: '다른 언어 도구 화면에 그 언어가 보이는지', cmd: ['npm', 'run', 'test:widget-i18n'] },
 ];
 
 export const CHECKS = withLive(RAW_CHECKS);
