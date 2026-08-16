@@ -7,7 +7,6 @@
     "bundlemap",
     "certview",
     "codegraph",
-    "configconv",
     "csp",
     "curlkit",
     "diff",
@@ -19,7 +18,6 @@
     "exif",
     "gitundo",
     "idphoto",
-    "jqplay",
     "logview",
     "mermaidlite",
     "mockdata",
@@ -28,16 +26,13 @@
     "payslip",
     "pem",
     "photomap",
-    "prettyall",
     "printkit",
     "protobuf",
     "regexplain",
     "semver",
-    "sqlfmt",
     "sshkey",
     "tts",
-    "unicodex",
-    "xmlfmt"
+    "unicodex"
   ],
   "갱신": "2026-08-16"
 }
