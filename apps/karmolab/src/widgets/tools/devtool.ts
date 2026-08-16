@@ -10,6 +10,13 @@
  * (`shared/sniff`), 그 갈래의 할 일을 앞에 띄운다. 짚는 것뿐이라 나머지도 그대로 눌린다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
+import { DEVTOOL_OPERATIONS } from './devtool-operations';
+import { mountTextOperation } from './shared/text-operation';
+import { readInvocation } from '../../lib/tool-url';
+import { spec as sqlfmtSpec } from '../../core/sqlfmt';
+
+/** 조작 id → 주소 계약. 조작을 옮길 때마다 여기 한 줄. */
+const SPEC_BY_ID = { sqlfmt: sqlfmtSpec } as Record<string, Parameters<typeof readInvocation>[0]>;
 import { sniff, type DataKind } from './shared/sniff';
 import { flatten, tally, deepest } from './shared/json-tree';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -133,6 +140,15 @@ import { t, loadNamespace } from '../../lib/i18n';
         pasted: t('devtool.pasted', undefined, '붙여넣은 것')
       },
       preview: drawWhat,
+      /* 선언형 조작 — 글 작업대와 같은 길 (TASK-KL-257). 없으면 기존 도구 등록으로 떨어진다.
+         주소 호출(`?op=...`)은 여기서 읽어 조작에 넘긴다 — 합치면서 링크를 잃지 않는다. */
+      mountOperation: (id, host, input): boolean => {
+        const operation = DEVTOOL_OPERATIONS.find((candidate) => candidate.id === id);
+        if (!operation) return false;
+        const call = readInvocation(SPEC_BY_ID[id]);
+        mountTextOperation(host, operation, input, call && call.error === undefined ? call : null);
+        return true;
+      },
       suggest: async (file) => {
         const s = sniff(await file.text());
         const ids = FOR[s.kind] || [];
