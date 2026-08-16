@@ -1503,6 +1503,21 @@ const Toolbox = (() => {
             /* 주소가 이상해도 앱은 그대로 뜬다 */
         }
 
+        /* 껍데기의 자리 이동 단추·링크는 **한 자리에서** 받는다 (2026-08-17).
+           전에는 여섯 곳이 `onclick="Toolbox.switchPage('community')"` 처럼 글로 박혀 있었다.
+           그러면 CSP 에 `script-src` 를 못 넣는다 — 인라인 하나만 있어도 그 자물쇠는 못 건다.
+           `data-goto` 로 바꾸고 여기서 위임해 받으면 셋이 한꺼번에 좋아진다:
+             ① 인라인 손잡이 6개가 사라진다(14 → 8) ② 「Toolbox 가 아직 없나」를 안 물어봐도 된다
+             (이 줄이 도는 시점이 곧 있다는 뜻) ③ 나중에 생기는 자리도 표시만 달면 된다. */
+        document.addEventListener('click', (e) => {
+            const el = (e.target as HTMLElement | null)?.closest?.('[data-goto]') as HTMLElement | null;
+            const 갈곳 = el?.dataset?.goto;
+            if (!갈곳) return;
+            e.preventDefault();
+            closeAllHeaderNav();
+            switchPage(갈곳);
+        });
+
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
         document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
 

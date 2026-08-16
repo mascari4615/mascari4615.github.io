@@ -148,6 +148,7 @@
     "audit:shared-builds",
     "test:heung:midi-file",
     "test:shard",
+    "test:shell-nav",
     "test:redeploy-guard",
     "audit:sleep-read"
   ]
