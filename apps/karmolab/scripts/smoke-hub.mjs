@@ -85,19 +85,17 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
        세는 것은 「영문으로도 찾히나」이지 「카드가 몇 장이냐」가 아니다. */
     for (const [q, least] of [['regex', 2], ['hash', 2], ['timer', 1], ['diff', 1]]) {
       await find.fill(q);
-      await page.waitForTimeout(350);
-      const n = await page.evaluate(
+      const n = await 멎을때까지(page, () => page.evaluate(
         () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
-      );
+      ));
       if (n < least) problems.push(`영문 이름으로 못 찾는다 (「${q}」 로 ${n}개, 적어도 ${least}개)`);
     }
 
     // 갈래 이름으로도 찾힌다 — 사람은 「개발」 처럼 분류 이름을 치기도 한다.
     await find.fill('개발');
-    await page.waitForTimeout(400);
-    const byGroup = await page.evaluate(
+    const byGroup = await 멎을때까지(page, () => page.evaluate(
       () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
-    );
+    ));
     if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (「개발」 로 ${byGroup}개만 남음)`);
     await find.fill('PDF');
     await page.waitForTimeout(400);
@@ -131,12 +129,11 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     /* 초성으로도 찾힌다. 표본은 **지금 카드가 있는 도구**여야 한다 — 예전 표본(글자수 세기)은
        작업대의 조작이 되어 낱개 카드가 없다(그 이름으로는 작업대가 걸린다). */
     await find.fill('ㅌㅅㅌ');
-    await page.waitForTimeout(400);
-    const byCho = await page.evaluate(() =>
+    const byCho = await 멎을때까지(page, () => page.evaluate(() =>
       [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')]
         .filter((c) => c.getBoundingClientRect().height > 0)
         .map((c) => c.querySelector('strong')?.textContent || '')
-    );
+    ));
     if (!byCho.some((n) => n.includes('텍스트'))) problems.push('초성으로 찾기가 안 된다 (ㅌㅅㅌ → 텍스트 도구)');
 
     // 걸러 놓고 엔터를 누르면 맨 앞 도구로 간다.
@@ -157,17 +154,15 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     find = await page.$('#hubFind');
 
     await find.fill('이런건없다');
-    await page.waitForTimeout(400);
-    const emptyShown = await page.evaluate(
+    const emptyShown = await 멎을때까지(page, () => page.evaluate(
       () => (document.querySelector('.tool-hub-empty')?.getBoundingClientRect().height || 0) > 0
-    );
+    ));
     if (!emptyShown) problems.push('찾는 것이 없을 때 안내가 안 뜬다');
 
     await find.fill('');
-    await page.waitForTimeout(400);
-    const restored = await page.evaluate(
+    const restored = await 멎을때까지(page, () => page.evaluate(
       () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
-    );
+    ));
     if (restored !== state.cards) problems.push(`비웠는데 목록이 안 돌아온다 (${restored}/${state.cards})`);
 
     // 찾은 결과를 주소로 주고받을 수 있어야 한다 — 링크로 보낸 사람과 받은 사람이 같은 화면을 본다.
