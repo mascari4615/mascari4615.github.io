@@ -102,6 +102,7 @@
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",
+    "test:a11y": "node scripts/smoke-a11y.mjs",
     "verify:tonight": "node scripts/verify-tonight.mjs",
     "test:live": "node scripts/smoke-live-pages.mjs",
     "gen:og": "node scripts/gen-og-images.mjs",
