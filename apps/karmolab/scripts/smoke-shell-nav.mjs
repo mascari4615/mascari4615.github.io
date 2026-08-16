@@ -23,9 +23,9 @@ const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 
 /** 지금 남아 있는 인라인 손잡이 수 — 0 이 되면 `script-src` 를 걸 수 있다.
- *  실측 기준선(2026-08-17): 자리 이동 여섯을 걷어낸 뒤 **9개**. 남은 것은 미리 받아 둔
- *  스타일시트의 `onload="this.media='all'"` 부류라 걷는 방법이 다르다 — 줄면 이 수를 내려라. */
-const 인라인한계 = Number(process.env.SHELL_INLINE_LIMIT || 9);
+ *  실측 기준선(2026-08-17): 자리 이동 여섯 → 9개, 늦게 받는 스타일 넉 장까지 걷어 **5개**.
+ *  남은 다섯은 아직 못 걷은 자리다 — 줄면 이 수를 내려라(늘면 빨강). */
+const 인라인한계 = Number(process.env.SHELL_INLINE_LIMIT || 5);
 
 if (!fs.existsSync(path.join(appRoot, 'js/toolbox.js'))) {
   console.log('[shell-nav] 못 돌림 — 아직 안 구웠다 (`node build.mjs` 뒤에 돌려라). 이건 통과가 아니다.');

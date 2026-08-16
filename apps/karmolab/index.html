@@ -159,7 +159,7 @@ permalink: /karmolab/
          첫 화면 큰 소개, 옆줄 차림. 글이 나오기를 그것들이 막을 이유가 없다.
          나누는 곳 = `scripts/split-css.mjs` (정본은 여전히 `css/toolbox.css` 한 장이다). -->
     <link rel="stylesheet" href="/apps/karmolab/css/shell-critical.css">
-    <link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css" media="print" onload="this.media=&#39;all&#39;">
+    <link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css" media="print">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css"></noscript>
     <!-- 화면이 바뀔 때 **흰 화면이 깜빡이지 않게** (TASK-KL-208).
          도구 상세는 131장이 각자 별개 페이지라, 목록에서 하나를 누르면 문서를 통째로 갈아
@@ -181,21 +181,31 @@ permalink: /karmolab/
          받는 것은 그대로라 도구를 열 때쯤이면 이미 와 있다.
          도구 상세 페이지(/karmolab/t/…)는 첫 그림부터 이 스타일이 필요하므로
          `scripts/lib/shell-page.mjs` 가 그 장에서만 도로 막는 쪽으로 바꾼다. -->
-    <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print" onload="this.media=&#39;all&#39;">
-    <link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print" onload="this.media=&#39;all&#39;">
+    <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print">
+    <link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/randomgen.css"><link rel="stylesheet" href="/apps/karmolab/css/tools.css"></noscript>
     <!-- 코드 색칠 스타일은 **첫 그림을 막지 않는다** (실측 2026-08-08).
          `rel="stylesheet"` 로 두면 이 한 장이 첫 그림을 붙잡는다 — 그 요청만 1.5초 늦춰 봤더니
          첫 그림이 484ms → 1936ms 가 됐다(3회 중앙값). 그런데 첫 화면에는 코드 블록이 없다.
          도구 상세 장들은 생성기(`scripts/lib/shell-page.mjs`)가 이미 같은 처리를 하고 있었고,
          앱 첫 화면만 빠져 있었다. `id` 는 그대로 둔다 — 테마 고르는 코드가 이 id 로 찾는다. -->
-    <link id="prism-css" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
+    <link id="prism-css" rel="stylesheet" media="print" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
 (function(){
   var t=localStorage.getItem('toolbox_theme')||'dark';
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
   var nav=localStorage.getItem('toolbox_nav_layout')||'header';
   document.documentElement.setAttribute('data-theme',t);
+  /* ★ **글자로 박은 손잡이를 여기서 대신 단다** (2026-08-17). 늦게 받는 스타일 넉 장은
+     media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
+     (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다 — 이미 온 것은 바로,
+     아직인 것은 오면. 받는 시점은 그대로라 첫 화면 값은 안 바뀐다. */
+  for (var i=0, ls=document.querySelectorAll('link[rel="stylesheet"][media="print"]'); i<ls.length; i++) {
+    (function(l){
+      if (l.sheet) { l.media='all'; return; }
+      l.addEventListener('load', function(){ l.media='all'; });
+    })(ls[i]);
+  }
   /* 주소창·넘겨 스크롤한 자리의 색을 테마에 맞춘다. 여기서 안 맞추면 밝은 테마에서
      스크롤 끝에 검은 띠가 보인다. 값은 CSS 의 바탕색과 같아야 한다(--bg-void). */
   var tcm=document.getElementById('themeColorMeta');
