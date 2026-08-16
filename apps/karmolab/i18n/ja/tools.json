@@ -290,5 +290,11 @@
   "tools.bgremove.description": "単色またはそれに近い背景を消します。端からつながった色だけを消すので、背景と同じ色の服でも中が抜けません。",
   "tools.bgremove.lead": "証明写真 · 商品写真 · スキャン · 透過 PNG で保存",
   "tools.bundlemap.description": "webpack の stats.json や esbuild の metafile を読み、どこが重いかをフォルダの木と面積で見せます。二重に入った同じパッケージも見つけます。",
-  "tools.bundlemap.lead": "webpack · esbuild · 重いパスの順位 · 重複パッケージ"
+  "tools.bundlemap.lead": "webpack · esbuild · 重いパスの順位 · 重複パッケージ",
+  "tools.erd.description": "CREATE TABLE 文や Prisma スキーマを貼ると、テーブル同士のつながりを図にします。どのテーブルがどれを指しているか一目で分かります。",
+  "tools.erd.lead": "DDL · Prisma · テーブル関係図(ER) · mermaid で書き出し",
+  "tools.curlkit.description": "人からもらった curl 一行を自分の言語のコードに変換します。fetch・axios・python・go・node・httpie に対応。",
+  "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · 引用符もヘッダーも漏れない",
+  "tools.docscan.description": "机の上で斜めに撮った書類を、まっすぐな長方形に戻してスキャンしたように整えます。",
+  "tools.docscan.lead": "四隅をドラッグ · 遠近を戻す · スキャン風 · A4 に合わせる"
 }

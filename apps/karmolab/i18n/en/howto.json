@@ -536,5 +536,17 @@
   "howto.bundlemap.0": "Paste a stats.json or a metafile — the format is detected for you",
   "howto.bundlemap.1": "Read the area map largest tile first — tile area is size",
   "howto.bundlemap.2": "Pick what to cut from the heaviest-path ranking",
-  "howto.bundlemap.3": "Check the duplicate-package list — the usual reason a bundle suddenly grows"
+  "howto.bundlemap.3": "Check the duplicate-package list — the usual reason a bundle suddenly grows",
+  "howto.erd.0": "Paste CREATE TABLE statements or a Prisma schema",
+  "howto.erd.1": "Tables, columns and references are pulled out and drawn",
+  "howto.erd.2": "Follow the arrows to see which table points at which",
+  "howto.erd.3": "Copy the mermaid erDiagram text into your own docs",
+  "howto.curlkit.0": "Paste the whole curl command",
+  "howto.curlkit.1": "Pick the language to convert to (fetch, axios, python, go, node, httpie)",
+  "howto.curlkit.2": "Copy the generated code and use it as is",
+  "howto.curlkit.3": "It also goes the other way — code back to curl",
+  "howto.docscan.0": "Upload the photo of your document",
+  "howto.docscan.1": "Drag the four corners onto the corners of the paper",
+  "howto.docscan.2": "Check the flattened result (perspective undone)",
+  "howto.docscan.3": "Apply the scan look and download"
 }

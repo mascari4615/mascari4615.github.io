@@ -290,5 +290,11 @@
   "tools.bgremove.description": "단색이나 그에 가까운 배경을 지웁니다. 가장자리에서 이어진 비슷한 색만 지우기 때문에 옷 색이 배경과 같아도 안쪽이 뚫리지 않습니다.",
   "tools.bgremove.lead": "증명사진 · 상품 사진 · 스캔 · 투명 PNG 로 내려받기",
   "tools.bundlemap.description": "webpack stats.json 이나 esbuild metafile 을 읽어 번들에서 누가 무거운지 폴더 나무와 넓이로 보여 줍니다. 같은 꾸러미가 두 번 들어간 자리도 찾아 줍니다.",
-  "tools.bundlemap.lead": "webpack · esbuild · 무거운 경로 순위 · 중복 꾸러미 찾기"
+  "tools.bundlemap.lead": "webpack · esbuild · 무거운 경로 순위 · 중복 꾸러미 찾기",
+  "tools.erd.description": "CREATE TABLE 문이나 Prisma 스키마를 붙여넣으면 표 사이의 이어짐을 그림으로 그립니다. 어느 표가 어느 표를 가리키는지 한눈에 보입니다.",
+  "tools.erd.lead": "DDL · Prisma · 표 관계도(ER) · mermaid 로 내보내기",
+  "tools.curlkit.description": "남이 준 curl 한 줄을 자기 언어 코드로 바꿔 줍니다. fetch · axios · python · go · node · httpie 로 찍어 냅니다.",
+  "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · 따옴표·헤더 안 샘",
+  "tools.docscan.description": "책상 위에서 비스듬히 찍은 서류를 반듯한 직사각형으로 되돌리고, 스캔한 것처럼 정리합니다.",
+  "tools.docscan.lead": "네 모서리 끌기 · 원근 되돌리기 · 스캔처럼 손보기 · A4 맞춤"
 }

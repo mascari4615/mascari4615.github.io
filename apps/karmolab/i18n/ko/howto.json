@@ -536,5 +536,17 @@
   "howto.bundlemap.0": "stats.json 또는 metafile 붙여넣기 (형식은 알아서 알아봄)",
   "howto.bundlemap.1": "넓이 그림에서 큰 칸부터 보기 — 칸 넓이가 곧 용량",
   "howto.bundlemap.2": "무거운 경로 순위에서 줄일 곳 고르기",
-  "howto.bundlemap.3": "중복 꾸러미 목록 확인 — 번들이 갑자기 커지는 흔한 이유"
+  "howto.bundlemap.3": "중복 꾸러미 목록 확인 — 번들이 갑자기 커지는 흔한 이유",
+  "howto.erd.0": "CREATE TABLE 문 또는 Prisma 스키마 붙여넣기",
+  "howto.erd.1": "표·칸·이어짐을 뽑아 그림으로 그려 줍니다",
+  "howto.erd.2": "어느 표가 어느 표를 가리키는지 화살표로 확인",
+  "howto.erd.3": "mermaid erDiagram 글을 복사해 문서에 넣기",
+  "howto.curlkit.0": "curl 명령을 통째로 붙여넣기",
+  "howto.curlkit.1": "옮길 언어 고르기 (fetch · axios · python · go · node · httpie)",
+  "howto.curlkit.2": "나온 코드를 복사해 그대로 쓰기",
+  "howto.curlkit.3": "반대로 코드를 curl 로 되돌릴 수도 있습니다",
+  "howto.docscan.0": "서류를 찍은 사진 올리기",
+  "howto.docscan.1": "네 모서리를 끌어서 종이 귀퉁이에 맞추기",
+  "howto.docscan.2": "반듯하게 펴진 결과 확인 (원근 되돌리기)",
+  "howto.docscan.3": "「스캔처럼」으로 손보고 내려받기"
 }
