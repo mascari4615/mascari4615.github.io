@@ -358,10 +358,25 @@ async function brandBg(page) {
      전에는 만든 뒤 표가 딱 1개여야 통과였다. 그 사이 화면에 기본 표 넷(포켓몬·도구 월드컵·
      원신·롤)이 딸려 오면서, 표는 멀쩡히 만들어지는데 검사만 빨개졌다(실측 5개).
      보려던 것은 「내가 만든 표가 목록에 선다」이므로 **늘어난 수**로 본다. */
-  const 처음개수 = await page.evaluate(() => document.querySelectorAll('.pk-item').length);
+  /* ★ **세기 전에 목록이 멎기를 기다린다** (2026-08-16, 실측). 단추(`#pkSample`)는 기본 표 넷보다
+     **먼저** 선다. 그래서 단추가 보이자마자 세면 0 을 적고, 만든 뒤에는 넷이 다 와서 5 가 된다 —
+     `0 → 5` 라 「하나 늘었는가」가 틀리고, 표는 멀쩡히 만들어졌는데 라이브 점검만 빨갰다
+     (오늘 CI 실측 그대로). 시간을 세지 말고 **수가 멎을 때까지** 본다: 두 번 연속 같으면 멎은 것이다. */
+  const 표수 = () => page.evaluate(() => document.querySelectorAll('.pk-item').length);
+  let 처음개수 = await 표수();
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(150);
+    const 지금 = await 표수();
+    if (지금 === 처음개수 && i > 0) break;
+    처음개수 = 지금;
+  }
   await page.click('#pkSample');
   await page.click('#pkSave');
-  await page.waitForTimeout(500);
+  /* 저장도 마찬가지 — 500ms 를 재우지 말고 **하나 늘 때까지** 기다린다.
+     끝내 안 늘면 그때가 진짜 빨강이고, 아래 판정이 그대로 말한다. */
+  await page
+    .waitForFunction((n) => document.querySelectorAll('.pk-item').length === n + 1, 처음개수, { timeout: 10000 })
+    .catch(() => {});
   const made = await page.evaluate(() => ({
     말: (document.getElementById('pkMsg')?.textContent || '').trim(),
     개수: document.querySelectorAll('.pk-item').length
