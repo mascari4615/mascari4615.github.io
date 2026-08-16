@@ -102,6 +102,7 @@
     "audit:spec-locales": "node scripts/audit-speculation-locales.mjs",
     "audit:memo-derived": "node scripts/audit-memo-derived.mjs",
     "build:css": "node scripts/split-css.mjs",
+    "audit:generated-registry": "node scripts/audit-generated-registry.mjs",
     "prerender": "node scripts/prerender-tools.mjs",
     "prerender:home": "node scripts/prerender-home.mjs",
     "audit:prerender-home": "node scripts/audit-prerender-home.mjs",
