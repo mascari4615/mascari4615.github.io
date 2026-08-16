@@ -14,7 +14,7 @@
  * exit: 0 = 전부 초록 / 1 = 빨강 있음
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { appendFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { CHECKS, PREP } from './live-checks.mjs';
 
 const argv = process.argv.slice(2);
@@ -59,8 +59,34 @@ if (!skipPrep && !only) {
 
 let todo = only ? CHECKS.filter((c) => c.name.includes(only)) : CHECKS;
 if (shard) {
-  todo = todo.filter((_, i) => i % shard.of === shard.idx);
-  console.log(`[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개`);
+  /* ★ **셈이 아니라 시간으로 가른다** (2026-08-16, 실측). 「하나 걸러 하나」는 개수만 맞춘다 —
+     그런데 검사 하나가 10초인 것도 있고 601초인 것도 있다(입력칸 이름 잇기). 그래서 1번 조각이
+     **40분 제한에 걸려 통째로 취소**됐다: 그 조각의 스무 검사는 판정이 아예 안 나온다.
+     「23판 연속 0%」의 한 원인이 이것이다 — 빨간 게 아니라 **끝나지를 않았다**.
+     실측한 초(`data/live-check-times.json`)를 보고 **무거운 것부터 가장 한가한 조각에** 넣는다.
+     처음 보는 검사는 중앙값으로 친다 — 모르는 것을 0 으로 치면 그 조각만 다시 넘친다. */
+  const 잰시간 = (() => {
+    try {
+      return JSON.parse(readFileSync(new URL('../data/live-check-times.json', import.meta.url), 'utf8')).초 || {};
+    } catch {
+      return {};
+    }
+  })();
+  const 값들 = Object.values(잰시간).sort((a, b) => a - b);
+  const 중앙값 = 값들.length ? 값들[Math.floor(값들.length / 2)] : 30;
+  const 무게 = (c) => 잰시간[c.name] ?? 중앙값;
+  const 바구니 = Array.from({ length: shard.of }, () => ({ 합: 0, 것: [] }));
+  for (const c of [...todo].sort((a, b) => 무게(b) - 무게(a))) {
+    const 한가한곳 = 바구니.reduce((a, b) => (b.합 < a.합 ? b : a));
+    한가한곳.것.push(c);
+    한가한곳.합 += 무게(c);
+  }
+  /* 원래 차례를 지킨다 — 무거운 것부터 돌면 사람이 로그에서 길을 잃는다. */
+  const 내것 = new Set(바구니[shard.idx].것);
+  todo = todo.filter((c) => 내것.has(c));
+  console.log(
+    `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${Math.round(바구니[shard.idx].합 / 60)}분어치`
+  );
 }
 if (!todo.length) {
   console.error(`[verify:live] 「${only}」 에 걸리는 검사가 없다.`);
