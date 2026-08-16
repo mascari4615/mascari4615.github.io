@@ -66,6 +66,51 @@ const snippetRows = SNIPPETS.map(([label, re, per, shared]) => {
   return { label, hits, per, save };
 }).sort((a, b) => b.save - a.save);
 
+/* ★ **이미 합쳐 둔 계열이 있다** — 그게 본보기다 (2026-08-16 발견).
+   글은 일 18개가 `text-operations.ts` 안에 **데이터로**(`{id, controls, run}`) 들어 있다 — 224줄.
+   나머지 계열은 일 하나가 파일 하나다. 그래서 「합치면 얼마나 주나」는 어림이 아니라 **견줌**으로 낸다:
+   같은 껍데기 안에서 **일 하나당 몇 줄**인가. 글이 12줄, 나머지가 200~300줄이면 그 차이가 답이다. */
+const SHELLS = [
+  ['글', 'text.ts'],
+  ['수·돈', 'calc.ts'],
+  ['PDF', 'pdf.ts'],
+  ['이미지', 'image.ts'],
+  ['소리', 'sound.ts'],
+  ['영상', 'videotool.ts'],
+  ['때', 'time.ts'],
+  ['데이터·코드', 'devtool.ts'],
+];
+
+function shellJobs(file) {
+  const f = files.find((x) => x.name === file);
+  if (!f) return [];
+  const at = f.text.indexOf('const GROUPS');
+  if (at < 0) return [];
+  return [...f.text.slice(at).matchAll(/\[\s*'([a-z0-9-]+)'\s*,/g)].map((m) => m[1]);
+}
+
+const shellRows = SHELLS.map(([material, file]) => {
+  const jobs = [...new Set(shellJobs(file))];
+  const own = files.find((x) => x.name === file)?.lines ?? 0;
+  const reg = files.find((x) => x.name === file.replace('.ts', '-operations.ts'));
+  let standalone = 0;
+  let matched = 0;
+  for (const id of jobs) {
+    const hit = files.find((x) => x.name === `${id}.ts`);
+    if (!hit) continue;
+    matched += 1;
+    standalone += hit.lines;
+  }
+  const lines = own + (reg?.lines ?? 0) + standalone;
+  return {
+    material,
+    jobs: jobs.length,
+    lines,
+    perJob: jobs.length ? Math.round(lines / jobs.length) : 0,
+    shape: reg ? '데이터(합쳐짐)' : `파일 ${matched}개(흩어짐)`,
+  };
+}).sort((a, b) => b.perJob - a.perJob);
+
 const biggest = [...files].sort((a, b) => b.lines - a.lines).slice(0, 12);
 
 if (process.argv.includes('--json')) {
@@ -87,6 +132,18 @@ if (process.argv.includes('--json')) {
     }
   }
   console.log('');
+  console.log('껍데기별 — **일 하나당 몇 줄**인가 (글은 이미 데이터로 합쳐져 있다: 그게 본보기)');
+  if (md) {
+    console.log('');
+    console.log('| 재료 | 일 | 줄 | 일당 | 모양 |');
+    console.log('| --- | ---: | ---: | ---: | --- |');
+    for (const r of shellRows) console.log(`| ${r.material} | ${r.jobs} | ${r.lines.toLocaleString()} | ${r.perJob} | ${r.shape} |`);
+  } else {
+    for (const r of shellRows) {
+      console.log(`  ${String(r.perJob).padStart(4)}줄/일  ${r.material.padEnd(7)} 일 ${String(r.jobs).padStart(2)}개 · ${String(r.lines).padStart(5)}줄 · ${r.shape}`);
+    }
+  }
+  console.log('');
   console.log('가장 큰 파일 열둘 — 합치기든 쪼개기든 여기부터 (재료 축은 위 주석 참고: 기계가 못 잰다)');
   if (md) {
     console.log('');
@@ -98,6 +155,14 @@ if (process.argv.includes('--json')) {
     for (const f of biggest) console.log(`  ${String(f.lines).padStart(5)}줄  ${bar(f.lines, max).padEnd(24)} ${f.name}`);
   }
   console.log('');
+  /* 「글 모양으로 가면 얼마나 주나」 — 약속이 아니라 **견줌**이다. 글은 글 넣고 글 받는 일이라
+     제일 쉬운 축이고, PDF·이미지는 이진 자료를 다뤄 30줄/일까지는 못 간다. 그래서 **절반만
+     따라간다고 보고** 낸다. 이 수의 쓸모는 크기 감각뿐이다(수백이냐 수천이냐). */
+  const base = shellRows.find((r) => r.shape.startsWith('데이터'))?.perJob ?? 0;
+  const halfway = shellRows
+    .filter((r) => !r.shape.startsWith('데이터'))
+    .reduce((a, r) => a + Math.max(0, Math.round(((r.perJob - base) / 2) * r.jobs)), 0);
+  console.log(`글 모양(일당 ${base}줄)을 나머지가 **절반만** 따라가도 대략 ${halfway.toLocaleString()}줄 — 어림이다.`);
   const save = snippetRows.reduce((a, r) => a + r.save, 0);
   console.log('');
   console.log(`합치면 대략 ${save.toLocaleString()}줄 — 전체 ${totalLines.toLocaleString()}줄의 ${((save / totalLines) * 100).toFixed(0)}%.`);
