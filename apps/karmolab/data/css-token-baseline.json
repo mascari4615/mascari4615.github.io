@@ -1,11 +1,4 @@
 [
  "--ck-bg",
- "--font-size-2xl",
- "--font-size-base",
- "--font-size-xl",
- "--ox",
- "--oy",
- "--px",
- "--py",
  "--x"
 ]
