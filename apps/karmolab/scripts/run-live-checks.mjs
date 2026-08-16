@@ -211,6 +211,26 @@ if (red.length) {
    걸려 **끊겼다.** 끊긴 판은 빨강으로 보이지만 무엇이 빨간지는 아무도 모른다 —
    51개를 재다 말았으니까. 늘어나는 것은 조용해서, 걸리고 나서야 안다.
    그래서 총 시간을 늘 적고, 지붕에 다가가면 미리 운다. */
+/* ★ **잰 표는 스스로 갱신되어야 한다** (2026-08-16). 조각을 시간으로 가르려면 초가 필요한데,
+   그 표를 사람이 손으로 고치는 물건으로 두면 두 달 뒤에는 옛날 값으로 조각을 가르게 된다.
+   그래서 **내 자리에서 돌 때마다** 이번 판의 초를 표에 얹는다(CI 는 파일이 날아가므로 안 쓴다).
+   빨강이어도 시간은 시간이다 — 값은 남긴다. */
+if (!process.env.CI) {
+  try {
+    const 표경로 = new URL('../data/live-check-times.json', import.meta.url);
+    const 표 = JSON.parse(readFileSync(표경로, 'utf8'));
+    표.초 = 표.초 || {};
+    for (const r of results) 표.초[r.name] = r.sec;
+    표.잰날 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    표.초 = Object.fromEntries(Object.entries(표.초).sort((a, b) => b[1] - a[1]));
+    writeFileSync(표경로, `${JSON.stringify(표, null, 2)}
+`, 'utf8');
+    console.log(`[verify:live] 잰 시간 ${results.length}개를 표에 얹었다 — data/live-check-times.json`);
+  } catch (error) {
+    console.log(`[verify:live] 잰 시간을 표에 못 얹었다(그냥 넘어간다): ${String(error.message).slice(0, 60)}`);
+  }
+}
+
 const 총초 = results.reduce((a, r) => a + r.sec, 0);
 const 지붕분 = Number(process.env.LIVE_CHECK_ROOF_MIN || 40);
 const 총분 = 총초 / 60;
