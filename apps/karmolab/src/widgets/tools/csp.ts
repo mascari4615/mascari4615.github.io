@@ -72,10 +72,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           </div>
           <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
             <label class="tool-checkline">
-              <input type="checkbox" id="cspInline" name="inlineStyles" style="width:auto;"> ${esc(t('csp.opt.inlineStyles'))}
+              <input type="checkbox" id="cspInline" name="inlineStyles"> ${esc(t('csp.opt.inlineStyles'))}
             </label>
             <label class="tool-checkline">
-              <input type="checkbox" id="cspFrames" name="frames" style="width:auto;"> ${esc(t('csp.opt.frames'))}
+              <input type="checkbox" id="cspFrames" name="frames"> ${esc(t('csp.opt.frames'))}
             </label>
           </div>
         </div>

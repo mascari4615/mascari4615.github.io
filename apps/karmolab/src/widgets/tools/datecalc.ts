@@ -177,7 +177,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
                 <input type="date" id="daBase" aria-label="${esc(t('datecalc.label.baseDate'))}">
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="daAmount" inputmode="numeric" value="100" placeholder="${esc(t('datecalc.label.number'))}">
-                  <select id="daUnit" aria-label="${esc(t('datecalc.label.unit'))}" style="width:auto;">
+                  <select id="daUnit" aria-label="${esc(t('datecalc.label.unit'))}">
                     <option value="day">${esc(t('datecalc.unit.day'))}</option>
                     <option value="week">${esc(t('datecalc.unit.week'))}</option>
                     <option value="month">${esc(t('datecalc.unit.month'))}</option>

@@ -49,13 +49,13 @@ import { t, loadNamespace } from '../../lib/i18n';
               </div>
               <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
                 <label class="tool-checkline">
-                  <input type="checkbox" id="uuUpper" style="width:auto;"> ${esc(t('uuidgen.opt.upper'))}
+                  <input type="checkbox" id="uuUpper"> ${esc(t('uuidgen.opt.upper'))}
                 </label>
                 <label class="tool-checkline">
-                  <input type="checkbox" id="uuNoDash" style="width:auto;"> ${esc(t('uuidgen.opt.noDash'))}
+                  <input type="checkbox" id="uuNoDash"> ${esc(t('uuidgen.opt.noDash'))}
                 </label>
                 <label class="tool-checkline">
-                  <input type="checkbox" id="uuSymbols" style="width:auto;" checked> ${esc(t('uuidgen.opt.symbols'))}
+                  <input type="checkbox" id="uuSymbols" checked> ${esc(t('uuidgen.opt.symbols'))}
                 </label>
               </div>
             </div>

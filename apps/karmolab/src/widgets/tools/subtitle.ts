@@ -252,7 +252,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:10px 0 var(--space-lg);">
         <label class="tool-sublabel" for="svEvery">${esc(t('subtitle.sum.every'))}</label>
-        <select id="svEvery" name="every" style="width:auto;">
+        <select id="svEvery" name="every">
           <option value="120">2</option>
           <option value="300" selected>5</option>
           <option value="600">10</option>

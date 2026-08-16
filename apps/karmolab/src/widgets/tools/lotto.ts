@@ -59,7 +59,7 @@ import { markLive } from './shared/say';
                 <div>
                   <div class="tool-sublabel">${esc(t('lotto.label.bonus'))}</div>
                   <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-sm); color:var(--text-secondary); height:38px;">
-                    <input type="checkbox" id="ltBonus" style="width:auto;" checked> ${esc(t('lotto.opt.bonusOn'))}
+                    <input type="checkbox" id="ltBonus" checked> ${esc(t('lotto.opt.bonusOn'))}
                   </label>
                 </div>
               </div>
