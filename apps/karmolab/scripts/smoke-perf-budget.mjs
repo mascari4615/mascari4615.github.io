@@ -155,12 +155,31 @@ async function measure(url, scenario) {
       });
     }
   }
+  const 죽은요청 = [];
+  const 터진말 = [];
+  page.on('requestfailed', (r) => 죽은요청.push(String(r.url()).split('/').pop()));
+  page.on('response', (r) => { if (r.status() >= 400) 죽은요청.push(`${String(r.url()).split('/').pop()}(${r.status()})`); });
+  page.on('pageerror', (e) => 터진말.push(String(e.message).split('\n')[0].slice(0, 80)));
   await page.goto(BASE + url, { waitUntil: 'load' });
+  /* ★ **못 돌린 이유를 지어내지 않는다** (2026-08-16, 실측). 여태 여기서 조용히 null 을 주면
+     바깥에서 「계측기가 안 실렸다 — 페이지를 다시 찍어라」로 **한 가지 이유만** 적었다.
+     그런데 진짜 원인은 넷이다: 파일이 404 · 스크립트가 터짐 · 셸이 안 뜸 · 진짜로 계측기 없음.
+     오늘 그 말만 믿고 페이지를 다시 찍었는데 아무것도 안 바뀌었다 — 틀린 사유는 사람을
+     엉뚱한 데로 보낸다. 무엇이 안 왔는지·무엇이 터졌는지를 그대로 들고 나간다. */
   const hasPerf = await page
     .waitForFunction(() => !!window.KLPerf && typeof Toolbox !== 'undefined', null, { timeout: 60000 })
     .then(() => true)
     .catch(() => false);
   if (!hasPerf) {
+    const 왜 = await page.evaluate(() => ({
+      KLPerf: !!window.KLPerf,
+      Toolbox: typeof Toolbox !== 'undefined',
+    })).catch(() => ({ KLPerf: false, Toolbox: false }));
+    못돌린이유 = [
+      `KLPerf ${왜.KLPerf ? '왔다' : '안 왔다'} · Toolbox ${왜.Toolbox ? '떴다' : '안 떴다'}`,
+      죽은요청.length ? `못 받은 파일 ${죽은요청.length}개: ${죽은요청.slice(0, 3).join(' · ')}` : '',
+      터진말.length ? `스크립트가 터졌다: ${터진말.slice(0, 2).join(' · ')}` : '',
+    ].filter(Boolean).join(' | ');
     await page.close();
     return null;
   }
@@ -186,6 +205,11 @@ async function measure(url, scenario) {
     .then(() => true)
     .catch(() => false);
   if (!계측기옴) {
+    못돌린이유 = [
+      '두 번째 판에서 KLPerf 가 15초 안에 안 왔다',
+      죽은요청.length ? `못 받은 파일 ${죽은요청.length}개: ${죽은요청.slice(0, 3).join(' · ')}` : '',
+      터진말.length ? `스크립트가 터졌다: ${터진말.slice(0, 2).join(' · ')}` : '',
+    ].filter(Boolean).join(' | ');
     await page.close();
     return null;
   }
@@ -223,6 +247,9 @@ function median(runs) {
   });
 }
 
+/** 마지막으로 못 돌린 이유 — `measure` 가 채우고 아래 보고가 그대로 쓴다. */
+let 못돌린이유 = '';
+
 const RUNS = 3;
 
 for (const scenario of SCENARIOS)
@@ -243,7 +270,7 @@ for (const [screen, url] of TARGETS) {
   if (!result) {
     /* 계측기가 안 실린 화면은 「통과」가 아니라 **못 돌림**이다. 도구 장은 배포 때 셸을 복사해
        찍히므로, 셸에 계측기를 넣은 뒤 아직 안 찍힌 판에서는 여기로 온다. */
-    console.log('[perf-budget]   못 돌림 — 이 화면에 계측기(js/perf.js)가 안 실렸다 (`npm run gen:tool-pages` 로 다시 찍어라). 통과로 세지 않는다.');
+    console.log(`[perf-budget]   못 돌림 — ${못돌린이유 || '이유를 못 모았다'}. 통과로 세지 않는다.`);
     continue;
   }
   measuredScreens += 1;
