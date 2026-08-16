@@ -35,13 +35,28 @@ try {
   console.error(`[미리읽기-판 검사] FAIL — 규칙이 JSON 이 아니다: ${e.message}`);
   process.exit(1);
 }
-const patterns = JSON.stringify(rules);
+/** 이 규칙 묶음이 그 주소 꼴을 **미리 그리나** — `not` 안에 적힌 것은 빼는 것이니 안 센다. */
+function 덮는가(묶음, 주소꼴) {
+  const 목록 = Array.isArray(묶음?.prerender) ? 묶음.prerender : [];
+  const 판정 = (where) => {
+    if (!where || typeof where !== 'object') return false;
+    if (typeof where.href_matches === 'string') return where.href_matches === 주소꼴;
+    if (Array.isArray(where.and)) return where.and.some(판정);
+    if (Array.isArray(where.or)) return where.or.some(판정);
+    return false;   // not 안쪽은 「빼는 것」이라 안 센다
+  };
+  return 목록.some((r) => 판정(r?.where));
+}
 
 // 각 판의 도구 목록 주소가 규칙에 적혀 있나. (localizedPath 가 판마다의 앞자리를 안다.)
 const missing = [];
 for (const l of LOCALES) {
   const hub = localizedPath('/karmolab/t/', l.code, DEFAULT_LOCALE);
-  if (!patterns.includes(`"${hub}*"`) || !patterns.includes(`"${hub}"`)) missing.push(`${l.code} → ${hub}`);
+  /* ★ **글자로 찾으면 「빼는 규칙」까지 있는 것으로 센다** (2026-08-17 실측, 내 검사의 구멍).
+     규칙은 허브를 `not` 안에도 적는다 — 「도구 장은 미리 그리되 허브 자체는 빼라」는 뜻이다.
+     그런데 글자만 훑으면 그 `not` 이 「허브 규칙이 있다」로 읽혔다. 실제로 허브 규칙이 통째로
+     사라진 판에서 이 검사가 초록이었다. 규칙을 **JSON 으로 펴서** 진짜 대상만 센다. */
+  if (!덮는가(rules, `${hub}*`)) missing.push(`${l.code} → ${hub}* (도구 장)`);
 }
 if (missing.length > 0) {
   console.error(`[미리읽기-판 검사] FAIL — 미리읽기 규칙이 없는 말 판 ${missing.length}개:`);
