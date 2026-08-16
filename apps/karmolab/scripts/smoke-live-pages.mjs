@@ -22,6 +22,22 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
    도구가 아닌 것을 도구로 재면 이 검사는 늘 빨갛다. 목록 정본은 lib/retired-operations.mjs. */
 const ids = withoutRetired(process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(seo));
 
+/* ★ **배포가 갈리는 중이면 그건 우리 잘못이 아니다** (2026-08-16, 실측).
+   새 판이 올라가는 순간 지문 붙은 파일 이름이 바뀐다 — 그때 열린 화면은 **사라진 이름**을
+   부르고 `Toolbox is not defined` 로 죽는다. 오늘 한 판에서 그렇게 **11장**이 한꺼번에 빨갰다
+   (표시가 `xx..xx..xxx!!xx.!xx.` 처럼 뒤쪽에 몰려 있었다 — 도중에 배포가 끼어든 자국).
+   같은 주소를 다시 물어도 소용없다(그 이름은 영영 없다). 그래서 **도장(build.json)** 을
+   앞뒤로 읽어 둔다: 도장이 바뀌었으면 사이트가 발밑에서 바뀐 것이므로 **못 쟀다(2)** 로 끝낸다. */
+const 도장 = async () => {
+  try {
+    const res = await fetch(`${BASE}/apps/karmolab/build.json`, { cache: 'no-store' });
+    return res.ok ? String((await res.json()).stamp || '') : '';
+  } catch {
+    return '';
+  }
+};
+const 처음도장 = await 도장();
+
 const browser = await chromium.launch();
 const failures = [];
 /** 화면은 떴는데 다듬을 것 — 실패로 세지 않는다(늘 빨간 불은 아무도 안 본다). */
@@ -335,6 +351,16 @@ if (polishes.length) {
   console.log(`[smoke-live-pages] 다듬을 것 ${polishes.length}건 — 화면은 뜬다(실패 아님):`);
   for (const w of polishes.slice(0, 5)) console.log('  ~ ' + w);
   if (polishes.length > 5) console.log(`  … 외 ${polishes.length - 5}건`);
+}
+const 나중도장 = await 도장();
+if (failures.length && 처음도장 && 나중도장 && 처음도장 !== 나중도장) {
+  console.log(`[smoke-live-pages] 못 쟀다 — 재는 동안 배포가 갈렸다 (${처음도장} → ${나중도장}).`);
+  console.log(`  그 사이 열린 화면은 사라진 이름을 부른다. 안 뜬 것 ${failures.length}건은 이 판의 판정으로 안 센다.`);
+  console.log('  통과로도 세지 않는다 — 다음 판에서 다시 본다.');
+  /* 브라우저는 위(318줄)에서 이미 닫았다 — 여기서 또 닫으면 윈도우에서 libuv 가 소리 지르며
+     죽고 종료값이 **127** 로 나간다(실측). 그러면 「못 쟀다(2)」가 「빨강」으로 읽힌다.
+     값만 정해 두고 제 발로 끝나게 둔다. */
+  process.exitCode = 2;
 }
 if (failures.length) {
   console.error(`[smoke-live-pages] 화면이 안 뜬 것 ${failures.length}건 / ${ids.length}`);
