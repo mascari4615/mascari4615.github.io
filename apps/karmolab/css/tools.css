@@ -108,6 +108,24 @@
     margin-top: 4px;
 }
 
+/* 뜻이 있는 자리들 — 인라인 style 대신 이름으로 (TASK-KL-257).
+   흐름 간격(8px)보다 **더 크게 띄우는 자리**는 「새 구역이 시작된다」는 뜻이다.
+   그 뜻을 style 에 숫자로 적으면 다음 사람이 왜 24px 인지 모른다. */
+.tool-page .tool-section {
+    margin-top: var(--space-lg);
+}
+.tool-page .tool-section-end {
+    margin-bottom: var(--space-lg);
+}
+/* 칸을 가로로 꽉 채운다 (단추·입력칸) */
+.tool-page .full {
+    width: 100%;
+}
+/* 코드·숫자를 고정폭으로 (입력칸이 아닌 **글**에 붙는다 — 입력칸은 .mono-input) */
+.tool-page .mono {
+    font-family: var(--font-mono);
+}
+
 /* 작은 회색 글 — 도구 열넷이 같은 두 줄을 손으로 적고 있었다 (TASK-KL-257).
    「이건 보조 설명이다」라는 뜻이 클래스 이름에 남는다. 색·크기를 바꾸려면 여기 한 곳. */
 .tool-hint {

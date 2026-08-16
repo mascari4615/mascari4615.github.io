@@ -109,7 +109,7 @@ import { markLive } from './shared/say';
               <button class="btn btn-ghost" id="tmReset">${esc(t('timer.btn.reset'))}</button>
               <button class="btn btn-ghost" id="tmFull">${esc(t('timer.btn.full'))}</button>
             </div>
-            <div class="tool-status" id="tmStatus" style="margin-top:var(--space-lg);">${esc(t('timer.status.idle'))}</div>
+            <div class="tool-section tool-status" id="tmStatus">${esc(t('timer.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

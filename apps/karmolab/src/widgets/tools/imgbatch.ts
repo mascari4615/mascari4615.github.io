@@ -46,7 +46,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               ${esc(t('imgbatch.drop'))}
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('imgbatch.label.format'))}</div>
@@ -67,7 +67,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               </div>
             </div>
 
-            <div id="ibPreview" hidden style="margin-bottom:var(--space-lg);">
+            <div class="tool-section-end" id="ibPreview" hidden>
               <div class="tool-sublabel">${esc(t('imgbatch.preview.title'))} <span id="ibPreviewMeta" class="range-value"></span></div>
               <div class="tool-grid-2">
                 <figure style="margin:0;">

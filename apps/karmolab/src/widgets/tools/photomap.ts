@@ -116,7 +116,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .map(
           (p) =>
             '<div class="tool-list-row"><span class="tool-list-key">' + p.shots.length + '</span>' +
-            '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)) + '</span>' +
+            '<span class="mono tool-list-val">' + esc(p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)) + '</span>' +
             '<span class="tool-list-dim"><a href="' + esc(mapLink(p.lat, p.lon)) + '" target="_blank" rel="noreferrer noopener">' + esc(t('photomap.openMap')) + '</a></span></div>'
         )
         .join('');

@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const findings = looksHeaders ? reviewHeaders(text) : reviewCsp(text);
       const dirs = parseCsp(looksHeaders ? (text.split('\n').find((l) => /^content-security-policy\s*:/i.test(l)) ?? '') : text);
       $<HTMLElement>('#cspDirs').innerHTML = Object.entries(dirs)
-        .map(([k, v]) => '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(v.join(' ')) + '</span></div>')
+        .map(([k, v]) => '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="mono tool-list-val">' + esc(v.join(' ')) + '</span></div>')
         .join('');
       $<HTMLElement>('#cspFindings').innerHTML = findings.map(findingRow).join('');
       const weak = findings.filter((f) => f.level === 'weak').length;

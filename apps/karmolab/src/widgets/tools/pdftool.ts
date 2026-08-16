@@ -84,9 +84,9 @@ import { parsePages } from '../../core/pdftool';
               ${esc(t('pdftool.drop'))}
             </div>
 
-            <div class="tool-list" id="pdFiles" style="margin-top:var(--space-lg);"></div>
+            <div class="tool-section tool-list" id="pdFiles"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-chips" id="pdMode">
                 <button type="button" class="tool-chip active" data-mode="merge">${esc(t('pdftool.mode.merge'))}</button>
                 <button type="button" class="tool-chip" data-mode="extract">${esc(t('pdftool.mode.extract'))}</button>

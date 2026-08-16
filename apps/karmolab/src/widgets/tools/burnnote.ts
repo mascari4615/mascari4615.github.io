@@ -46,7 +46,7 @@ import { download } from './shared/image';
       <div id="bnWrite">
         <div class="field-group">
           <label class="field-label" for="bnText">${esc(t('burnnote.label.text', undefined, '건넬 것'))}</label>
-          <textarea id="bnText" rows="6" spellcheck="false" style="width:100%;"
+          <textarea class="full" id="bnText" rows="6" spellcheck="false"
                     placeholder="${esc(t('burnnote.ph.text', undefined, '비밀번호, 주소, 한 번만 보일 말…'))}"></textarea>
         </div>
         <div class="field-group">

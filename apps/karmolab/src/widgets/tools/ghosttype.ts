@@ -192,7 +192,7 @@ import { markLive } from './shared/say';
 
             <div class="gt-text" id="gtText"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label" for="gtInput">${esc(t('ghosttype.label.input'))}</label>
               <textarea id="gtInput" class="mono-input" rows="3" spellcheck="false" autocomplete="off"
                 placeholder="${esc(t('ghosttype.ph.input'))}"></textarea>

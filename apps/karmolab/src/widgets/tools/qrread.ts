@@ -110,7 +110,7 @@ import { statusLine } from './shared/say';
 
             <div class="field-group" id="qrResultWrap" style="display:none;">
               <label class="field-label" for="qrOut">${esc(t('qrread.out.label'))}</label>
-              <textarea id="qrOut" rows="4" spellcheck="false" style="width:100%;"></textarea>
+              <textarea class="full" id="qrOut" rows="4" spellcheck="false"></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                 <button class="btn btn-ghost btn-sm" id="qrCopy">${esc(t('qrread.btn.copy'))}</button>
                 <a class="btn btn-ghost btn-sm" id="qrOpen" target="_blank" rel="noopener noreferrer" style="display:none;">${esc(t('qrread.btn.open'))}</a>

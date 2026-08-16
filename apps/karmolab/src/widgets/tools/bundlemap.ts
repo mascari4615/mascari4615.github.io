@@ -100,7 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .map(
           (h) =>
             '<div class="tool-list-row"><span class="tool-list-key">' + esc(human(h.bytes)) + '</span>' +
-            '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(h.path) + '</span>' +
+            '<span class="mono tool-list-val">' + esc(h.path) + '</span>' +
             '<span class="tool-list-dim">' + Math.round((h.bytes / root.bytes) * 100) + '%</span></div>'
         )
         .join('');

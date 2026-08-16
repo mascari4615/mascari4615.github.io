@@ -33,7 +33,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               ${esc(t('filehash.drop'))}
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label">${esc(t('filehash.label.expect'))}</label>
               <input type="text" id="fhExpect" spellcheck="false" placeholder="e3b0c44298fc1c14...">
             </div>
@@ -41,7 +41,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="tool-display" id="fhVerdict">—</div>
             <div class="tool-list" id="fhOut"></div>
 
-            <div id="fhLookup" hidden style="margin-top:var(--space-lg);">
+            <div class="tool-section" id="fhLookup" hidden>
               <div class="tool-sublabel">${esc(t('filehash.lookup.title', undefined, '이 검사값으로 물어보기'))}</div>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <a class="btn btn-ghost btn-sm" id="fhLookupVt" target="_blank" rel="noopener noreferrer">${esc(t('filehash.lookup.virustotal', undefined, 'VirusTotal'))}</a>

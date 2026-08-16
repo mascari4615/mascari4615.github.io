@@ -54,7 +54,7 @@ import { openForRead, renderPage } from './shared/pdf';
               ${esc(t('pdf2img.drop'))}
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('pdf2img.label.scale'))} <span id="p2ScaleVal" class="range-value">${esc(t('pdf2img.value.scale'))}</span></div>

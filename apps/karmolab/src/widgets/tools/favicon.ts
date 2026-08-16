@@ -118,7 +118,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               <div class="field-group">
                 <label class="field-label" for="fvCode">${esc(t('favicon.label.code'))}</label>
-                <textarea id="fvCode" rows="6" spellcheck="false" style="width:100%;" readonly></textarea>
+                <textarea class="full" id="fvCode" rows="6" spellcheck="false" readonly></textarea>
                 <button class="btn btn-ghost btn-sm" id="fvCopy" style="margin-top:var(--space-sm);">${esc(t('favicon.btn.copy'))}</button>
               </div>
             </div>

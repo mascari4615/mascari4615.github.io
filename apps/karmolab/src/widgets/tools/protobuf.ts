@@ -84,7 +84,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const alt = p.alternatives === undefined ? '' : Object.entries(p.alternatives).map(([k, v]) => k + '=' + String(v)).join(' · ');
           return (
             '<div class="tool-list-row"><span class="tool-list-key">' + pad + '#' + p.no + (p.name === undefined ? '' : ' ' + esc(p.name)) + '</span>' +
-            '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(String(p.value)) + '</span>' +
+            '<span class="mono tool-list-val">' + esc(String(p.value)) + '</span>' +
             '<span class="tool-list-dim">' + esc(p.declared ?? p.kind) + (alt === '' ? '' : ' · ' + esc(alt)) + '</span></div>'
           );
         })

@@ -41,7 +41,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="cc-stats" id="vaStats"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label" for="vaFormat">${esc(t('video2audio.label.format'))}</label>
               <select id="vaFormat">
                 <option value="mp3">${esc(t('video2audio.format.mp3'))}</option>

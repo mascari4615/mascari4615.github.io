@@ -33,7 +33,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label" for="tcIn">${esc(t('tableconv.label.in'))}</label>
-              <textarea id="tcIn" rows="8" spellcheck="false" style="width:100%;" placeholder="${esc(t('tableconv.ph.in'))}"></textarea>
+              <textarea class="full" id="tcIn" rows="8" spellcheck="false" placeholder="${esc(t('tableconv.ph.in'))}"></textarea>
             </div>
 
             <div class="field-group">
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="field-group">
               <label class="field-label" for="tcOut">${esc(t('tableconv.label.out'))}</label>
-              <textarea id="tcOut" rows="10" spellcheck="false" style="width:100%;" readonly></textarea>
+              <textarea class="full" id="tcOut" rows="10" spellcheck="false" readonly></textarea>
               <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:var(--space-sm);">${esc(t('tableconv.btn.copy'))}</button>
             </div>
 

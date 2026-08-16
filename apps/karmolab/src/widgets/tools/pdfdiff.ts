@@ -176,7 +176,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               </div>
             </div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('pdfdiff.label.sens'))} <span id="pdSensVal" class="range-value">${esc(t('pdfdiff.sens.mid'))}</span></div>

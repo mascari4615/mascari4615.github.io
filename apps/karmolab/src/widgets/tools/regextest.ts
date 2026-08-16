@@ -66,11 +66,11 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
               </div>
             </div>
 
-            <div class="tool-status" id="rxStatus" style="margin-top:var(--space-lg);">${esc(t('regextest.status.idle'))}</div>
+            <div class="tool-section tool-status" id="rxStatus">${esc(t('regextest.status.idle'))}</div>
             <div id="rxMatches" class="tool-list"></div>
 
             <!-- 시험만으로는 「왜 이게 잡히나」를 모른다 — 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316) -->
-            <details id="rxExplainBox" style="margin-top:var(--space-lg);">
+            <details class="tool-section" id="rxExplainBox">
               <summary style="cursor:pointer;">${esc(t('regextest.explain.title'))}</summary>
               <div id="rxRail" style="overflow:auto; margin:10px 0;"></div>
               <div id="rxPieces" class="tool-list"></div>

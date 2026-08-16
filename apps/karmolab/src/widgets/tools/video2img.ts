@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div id="viEditor" style="display:none; margin-top:var(--space-lg);">
               <video id="viVideo" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
 
-              <div class="field-group" style="margin-top:var(--space-lg);">
+              <div class="tool-section field-group">
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">${esc(t('video2img.label.format'))}</div>

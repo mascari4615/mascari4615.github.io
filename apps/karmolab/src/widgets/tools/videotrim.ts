@@ -56,7 +56,7 @@ import { attachMedia } from './shared/media';
             <div id="vtEditor" style="display:none; margin-top:var(--space-lg);">
               <video id="vtVideo" playsinline controls style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
 
-              <div class="field-group" style="margin-top:var(--space-lg);">
+              <div class="tool-section field-group">
                 <div class="tool-sublabel">${esc(t('videotrim.label.range'))} <span id="vtRangeLabel" class="range-value">${esc(t('videotrim.value.range'))}</span></div>
                 <input type="range" id="vtStart" aria-label="${esc(t('videotrim.aria.start'))}" min="0" max="1000" value="0" step="1">
                 <input type="range" id="vtEnd" aria-label="${esc(t('videotrim.aria.end'))}" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
@@ -67,7 +67,7 @@ import { attachMedia } from './shared/media';
                 </div>
               </div>
 
-              <div class="tool-chips" style="margin-bottom:var(--space-lg);">
+              <div class="tool-section-end tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="vtAudio" checked> ${esc(t('videotrim.opt.audio'))}</label>
               </div>
 

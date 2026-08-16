@@ -91,7 +91,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
             <div class="tool-display" id="ddResult">D-0</div>
             <div class="cc-stats" id="ddStats"></div>
             <!-- 기념일 표 — 커플·기념일 계산기가 앞세우는 것. 기준일만 넣으면 나온다. -->
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <label class="field-label">${esc(t('datecalc.label.anniversaries'))}</label>
               <div class="tool-list" id="ddMarks"></div>
             </div>

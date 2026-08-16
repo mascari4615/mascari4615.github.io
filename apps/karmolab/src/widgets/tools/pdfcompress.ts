@@ -62,10 +62,10 @@ import { attachImage, encode } from './shared/image';
             </div>
 
             <div id="pcEditor" style="display:none;">
-              <div class="cc-stats" id="pcStats" style="margin-top:var(--space-lg);"></div>
+              <div class="tool-section cc-stats" id="pcStats"></div>
               <div class="tool-status" id="pcWarn" style="display:none;"></div>
 
-              <div class="field-group" style="margin-top:var(--space-lg);">
+              <div class="tool-section field-group">
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">${esc(t('pdfcompress.label.quality'))} <span id="pcQualityVal" class="range-value">70</span></div>

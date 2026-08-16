@@ -76,7 +76,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     markLive(status);
 
     const row = (k: string, v: string): string =>
-      '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(v) + '</span></div>';
+      '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="mono tool-list-val">' + esc(v) + '</span></div>';
 
     function render(): void {
       const text = cidr.value.trim();

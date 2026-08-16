@@ -36,9 +36,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               ${esc(t('audiojoin.drop'))}
             </div>
 
-            <div class="tool-list" id="ajList" style="margin-top:var(--space-lg);"></div>
+            <div class="tool-section tool-list" id="ajList"></div>
 
-            <div class="field-group" style="margin-top:var(--space-lg);">
+            <div class="tool-section field-group">
               <div class="tool-sublabel">${esc(t('audiojoin.label.gap'))} <span id="ajGapVal" class="range-value">${esc(t('audiojoin.value.gap'))}</span></div>
               <input type="range" id="ajGap" aria-label="${esc(t('audiojoin.label.gap'))}" min="0" max="30" value="0">
               <div class="tool-chips">
