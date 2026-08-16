@@ -104,7 +104,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
  *   ② 도구 한 장 — **검색으로 들어오는 정문**이다(131장). 셸이 다르다: 첫 화면 본문·팔레트·계정을
  *      빼고 찍는다. 그래서 첫 화면만 재면 사람 대부분이 실제로 밟는 길을 안 재는 것이 된다.
  * 도구 장은 배포 때 찍히는 생성물이라 새 체크아웃에는 없을 수 있다 — 없으면 건너뛴다고 말한다. */
-const TARGETS = [['앱 첫 화면', '/apps/karmolab/index.html']];
+const TARGETS = [['앱 첫 화면', '/apps/karmolab/index.html', {}]];
 const toolPage = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
 if (!fs.existsSync(toolPage)) {
   console.log('[perf-budget] 도구 장은 건너뜀 — 찍힌 페이지가 없다 (`npm run gen:tool-pages` 뒤에 다시)');
@@ -113,7 +113,18 @@ if (!fs.existsSync(toolPage)) {
      게이트가 제 발로 느려지면 사람이 안 돌린다. */
   console.log('[perf-budget] 도구 장은 못 돌림 — 그 화면에 계측기(js/perf.js)가 안 실렸다 (다음 `gen:tool-pages` 때 들어간다). 통과로 세지 않는다.');
 } else {
-  TARGETS.push(['도구 한 장(대출)', '/apps/blog/karmolab/t/loan/index.html']);
+  /* ★ **이 화면은 오늘 처음 재졌다** (2026-08-16). 여태 누를 때 머리말의 「KarmoLab」 단추를
+     먼저 눌러 화면을 떠나 버렸고, 그래서 항상 「계측기가 안 왔다」로 끝났다 — 검색으로 들어오는
+     정문 131장을 한 번도 안 잰 것이다. 첫 측정이 바로 말한다: **부팅에 받고 안 쓴 코드 36.8KB**
+     = 채팅 23.0KB(TASK-KL-161 로 일부러 심은 것이다. 그때 문서엔 「8KB 남짓」이라 적혔는데
+     지금 **세 배**다) + 그 도구 자신 13.8KB(제 페이지에서 제 코드를 「안 쓴 것」으로 세는 것은
+     재는 쪽 버그다). 둘 다 따로 갚을 일이라, 지금 값을 그대로 예산으로 박지 **않고**
+     지금+한 위젯몫(16KB)을 준다: 오늘 값은 통과하되 **여기서 더 붙으면 잡힌다**. */
+  TARGETS.push([
+    '도구 한 장(대출)',
+    '/apps/blog/karmolab/t/loan/index.html',
+    { bootwaste: 37 * 1024 + 16 * 1024 },
+  ]);
 }
 
 /* 브라우저가 없으면 「통과」가 아니라 **못 돌림**이다 — CI 의 verify 잡에는 아직 설치 스텝이 없다.
@@ -188,10 +199,51 @@ async function measure(url, scenario) {
   await page.waitForTimeout(scenario.slowNet ? 5000 : 2500);
   /* 조작 지연은 **일으켜야** 잡힌다 — 기다리면 영영 「못 잼」이다.
      진짜 단추를 누른다(빈 곳을 누르면 핸들러가 없어 「우리 코드가 느린가」를 못 본다). */
-  const clickable = await page.$$('.landing-cta, .tool-card, .hp-open, header button, nav button, .tab-btn');
-  for (const target of clickable.slice(0, 4)) {
+  /* ★ **누르는 것이 화면을 떠나면 재는 화면이 사라진다** (2026-08-16, 실측).
+     도구 한 장에서 첫 번째로 잡히는 것은 머리말의 `「KarmoLab」` 단추다 — 생김새는 단추지만
+     누르면 `/karmolab/` 로 **간다**. 그 순간 재던 문서가 죽고 `KLPerf` 도 같이 사라져,
+     검사는 「15초 기다렸는데 계측기가 안 왔다」로 끝났다 — 그래서 **도구 한 장(131장, 검색으로
+     들어오는 정문)은 한 번도 안 재졌다**. 첫 화면만 달려 사람 대부분이 밟는 길을 몰랐다.
+     둘을 고친다: ① 화면을 떠나는 것은 후보에서 뺀다 ② 그래도 떠나면 **그걸 그대로 말한다**
+     (설명 없는 15초 기다림으로 다시 둔갓하지 않게). 도구 자기 입력칸도 후보에 넣는다 —
+     도구 장에서 사람이 실제로 만지는 것이 그것이다. */
+  const 재던주소 = page.url();
+  const clickable = await page.$$(
+    '.landing-cta, .tool-card, .hp-open, header button, nav button, .tab-btn, main input, main select, .tool-card-btn'
+  );
+  /* 떠나는 것 = **틀(chrome)** 이다 — 머리말·메뉴·생김새·링크. 도구 장에서는 그게 전부
+     「앱으로 들어가기」라 하나라도 누르면 재던 화면이 사라진다(설정 단추 → `#settings`).
+     재려는 것은 **그 화면 안의 조작**이므로 틀은 통째로 뺀다. */
+  const 떠나는것 = (el) =>
+    el.evaluate((n) => !!n.closest('a[href], header, nav, .breadcrumb, [data-page], [data-goto]'));
+  let 떠났다 = '';
+  let 떠나게한것 = '';
+  let 누른것 = [];
+  let 누른수 = 0;
+  /* 무엇을 눌렀는지 이름을 들고 다닌다 — 「떠났다」만 말하면 다음 사람이 스무 번 눌러 보며 찾는다
+     (오늘 실제로 그랬다). 틀 거르개는 **누를 것**을 보고 거르는데, 화면을 떠나게 한 것이
+     그 그물을 어떻게 빠져나갔는지는 그 이름이 없으면 영영 모른다. */
+  const 이름 = (el) =>
+    el
+      .evaluate((n) => `${n.tagName}${n.id ? '#' + n.id : ''}${n.className ? '.' + String(n.className).split(' ')[0] : ''}`)
+      .catch(() => '(사라진 것)');
+  for (const target of clickable) {
+    if (누른수 >= 4) break;                                    // 네 번이면 가장 굼뜬 조작이 드러난다
+    if (await 떠나는것(target).catch(() => true)) continue;
+    const who = await 이름(target);
     await target.click({ timeout: 1500 }).catch(() => {});
+    누른수 += 1;
+    누른것.push(who);
     await page.waitForTimeout(250);
+    if (page.url() !== 재던주소) { 떠났다 = page.url(); 떠나게한것 = who; break; }
+  }
+  if (떠났다) {
+    못돌린이유 =
+      `누르는 순간 화면을 떠났다 — 마지막에 누른 것 \`${떠나게한것}\` (${재던주소} → ${떠났다})` +
+      ` · 여기까지 누른 것: ${누른것.join(' → ')}` +
+      ' — 그 화면을 재려면 떠나지 않는 것만 눌러야 한다';
+    await page.close();
+    return null;
   }
   await page.waitForTimeout(600);
   /* ★ **계측기는 늦게 온다 — 없으면 「못 잼」이지 터질 일이 아니다** (2026-08-14).
@@ -253,7 +305,7 @@ let 못돌린이유 = '';
 const RUNS = 3;
 
 for (const scenario of SCENARIOS)
-for (const [screen, url] of TARGETS) {
+for (const [screen, url, 화면예산 = {}] of TARGETS) {
   const label = `${screen} · ${scenario.name}`;
   /* 느린 판은 한 회차가 10초를 넘는다 — 세 번은 과하다. 흔들림이 큰 쪽이 빠른 판이므로
      반복은 거기에 준다. */
@@ -276,7 +328,13 @@ for (const [screen, url] of TARGETS) {
   measuredScreens += 1;
   /* 시간 항목만 이 환경의 배수를 준다. 크기·밀림은 기계가 느리다고 커지지 않는다. */
   const limitSlack = scenario.limitSlack ?? scenario.slack;
-  const scaled = result.verdict.map((v) =>
+  /* 화면마다 셸이 다르면 예산도 다르다 — 같은 자를 대면 엉뚱한 화면이 별을 받는다. */
+  const 예산적용 = result.verdict.map((v) =>
+    화면예산[v.key] != null
+      ? { ...v, limit: 화면예산[v.key], state: v.value == null ? 'unknown' : v.value > 화면예산[v.key] ? 'fail' : 'pass' }
+      : v
+  );
+  const scaled = 예산적용.map((v) =>
     v.unit === 'ms' && limitSlack !== 1
       ? { ...v, limit: Math.round(v.limit * limitSlack), state: v.value == null ? 'unknown' : v.value > v.limit * limitSlack ? 'fail' : 'pass' }
       : v
