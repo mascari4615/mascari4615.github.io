@@ -36,5 +36,12 @@
   "shell.region.note": "単位・祝日・書類の規格・道具の並び順がこの国の基準に変わります。",
   "shell.region.aria": "言語と地域",
   "shell.region.other": "その他の国",
-  "shell.card.save": "画像として保存"
+  "shell.card.save": "画像として保存",
+  "shell.nav.group.calc": "計算・変換",
+  "shell.nav.group.media": "ファイル・メディア",
+  "shell.nav.group.dev": "開発・テキスト",
+  "shell.nav.group.create": "作成・整理",
+  "shell.nav.group.quick": "クイック実行",
+  "shell.nav.ref": "資料",
+  "shell.nav.play": "あそび"
 }

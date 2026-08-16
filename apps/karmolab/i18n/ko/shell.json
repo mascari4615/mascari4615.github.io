@@ -36,5 +36,12 @@
   "shell.region.note": "단위·공휴일·서류 규격·도구 순서가 이 나라 기준으로 바뀝니다.",
   "shell.region.aria": "언어와 지역",
   "shell.region.other": "그 밖의 나라",
-  "shell.card.save": "그림으로 저장"
+  "shell.card.save": "그림으로 저장",
+  "shell.nav.group.calc": "계산 · 변환",
+  "shell.nav.group.media": "파일 · 미디어",
+  "shell.nav.group.dev": "개발 · 텍스트",
+  "shell.nav.group.create": "생성 · 정리",
+  "shell.nav.group.quick": "빠른 실행",
+  "shell.nav.ref": "자료",
+  "shell.nav.play": "놀이"
 }
