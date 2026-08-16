@@ -10,6 +10,7 @@
  *   ③ 엔터가 **진짜로 둔다** (판이 바뀐다)
  *   ④ 키로 놀 수 있는 놀이가 몇 개인가 — 그림판만 쓰는 놀이는 손이 그대로 마우스다
  */
+import { 될때까지 } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 
@@ -91,7 +92,8 @@ if (!cantRun) {
   check('아래위는 한 줄만큼 뛴다 (격자를 안다)', down === 39, `${down}번 (9칸 격자면 39)`);
 
   await p.keyboard.press('Enter');
-  await p.waitForTimeout(400);
+  /* 돌이 놓일 때까지 — 무엇을 기다리는지 아는 자리다(재우면 느린 기계에서 빈 칸을 읽는다). */
+  await 될때까지(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { 최대: 3000 });
   const put = await p.evaluate(() => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim());
   check('엔터가 진짜로 둔다', put === '●', `"${put}"`);
 
