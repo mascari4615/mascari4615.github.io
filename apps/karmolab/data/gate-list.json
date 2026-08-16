@@ -149,6 +149,7 @@
     "test:heung:midi-file",
     "test:shard",
     "test:shell-nav",
+    "test:widgets-alive",
     "test:tierlist-keys",
     "test:redeploy-guard",
     "audit:sleep-read"
