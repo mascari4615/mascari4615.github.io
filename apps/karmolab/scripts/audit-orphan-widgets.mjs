@@ -9,7 +9,7 @@
  * 판정: `src/widgets/<이름>/` 폴더인데 그 폴더 **밖** 어디에서도 이름이 안 나오면 고아다.
  * (등록은 매니페스트·지연 메타·다른 위젯의 import 중 하나로 반드시 드러난다.)
  */
-import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,6 +40,17 @@ if (folders.length === 0) {
   process.exit(1);
 }
 
+/* 지어지는 목록 = build.mjs 가 쓰는 것과 **같은 함수**로 뽑는다(두 벌이면 갈라진다). */
+const { discoverEntryPoints } = await import('./entry-points.mjs');
+const 엔트리 = discoverEntryPoints(app);
+const ENTRY_SET = new Set(
+  (Array.isArray(엔트리) ? 엔트리 : (엔트리.entryPoints ?? [])).map((p) => String(p).split('\\').join('/')),
+);
+if (ENTRY_SET.size === 0) {
+  console.error('[orphan-widgets] CANNOT-RUN: 지어지는 목록이 비었다 — entry-points 가 못 돌았다');
+  process.exit(2);
+}
+
 const orphans = [];
 for (const name of folders) {
   const folderPath = join(widgetsDir, name);
@@ -50,11 +61,42 @@ for (const name of folders) {
     try { text = readFileSync(f, 'utf8'); } catch { continue; }        // 바이너리
     if (text.includes(name)) { referenced = true; break; }
   }
-  if (!referenced) orphans.push(name);
+  /* ★ **이름이 어디 나온다고 닿는 게 아니다** (2026-08-16).
+     예전 판정은 「폴더 밖 어디에서든 이름이 나오면 고아 아님」이었다. 그래서
+     `src/widgets/foundry/` 가 통과했다 — 같은 이름의 **다른 파일**(`src/lib/foundry.ts`)이
+     있었기 때문이다. 정작 그 위젯은 등록도 빌드도 안 돼 있어서 `#foundry` 를 열면 아무것도
+     안 뜬다(smoke-foundry 가 20초 기다리다 죽는다). 전 게이트는 초록이었다.
+     그래서 **지어지는 목록**(build 가 실제로 쓰는 entry 집합)에 있는지로 판정한다. */
+  /* 담는 폴더(`tools/`·`ref/` 처럼 여러 개를 품는 자리)도 있으므로, 그 폴더 **밑의 무엇이든**
+     지어지면 닿는 것으로 본다. 하나도 안 지어지면 그 폴더는 화면에 못 나온다. */
+  const 지어지나 = [...ENTRY_SET].some((e) => e.startsWith(`src/widgets/${name}/`) || e === `src/widgets/${name}.ts`);
+  if (!referenced || !지어지나) orphans.push(name + (referenced && !지어지나 ? ' (이름은 나오는데 **지어지지 않는다**)' : ''));
+}
+
+/* ★ 톱니 — 지금 안 지어지는 것 셋은 「지을지 지울지」가 사람 결정이라 여기서 못 정한다.
+   기준선에 담고 **늘어날 때만** 빨갛다. 갚으면 저절로 줄어든다. 정본 = TASK-KL-319. */
+const BASE_FILE = join(app, 'data/unbuilt-widgets.json');
+const 기준 = new Set(
+  existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).목록 ?? []) : [],
+);
+const 이름만 = orphans.map((o) => String(o).split(' ')[0]);
+const 늘어난것 = 이름만.filter((n) => !기준.has(n));
+const 갚은것 = [...기준].filter((n) => !이름만.includes(n));
+if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
+  writeFileSync(
+    BASE_FILE,
+    `${JSON.stringify({ 설명: '아직 안 지어지는 폴더형 위젯 — 늘면 빨강, 지으면(또는 지우면) 저절로 줄어든다', 목록: 이름만, 갱신: new Date().toISOString().slice(0, 10) }, null, 2)}\n`,
+  );
+  if (갚은것.length > 0) console.log(`[orphan-widgets] ${갚은것.length}개 정리됨 — 기준선 ${기준.size} → ${이름만.length}: ${갚은것.join(', ')}`);
 }
 
 console.log(`[orphan-widgets] 폴더형 위젯 ${folders.length}개 검사 · 고아 ${orphans.length}개`);
 for (const o of orphans) {
   console.error(`  ✗ src/widgets/${o}/ — 폴더 밖 어디서도 안 부른다. 옮기고 지우지 않았나?`);
 }
-process.exit(orphans.length > 0 ? 1 : 0);
+if (늘어난것.length > 0) {
+  console.error(`[orphan-widgets] 새로 생긴 고아 ${늘어난것.length}개 — ${늘어난것.join(', ')}`);
+  process.exit(1);
+}
+if (이름만.length > 0) console.log(`  (위 ${이름만.length}개는 기준선 — TASK-KL-319 에서 지을지 지울지 정한다)`);
+process.exit(0);

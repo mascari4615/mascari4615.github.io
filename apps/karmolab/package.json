@@ -159,6 +159,7 @@
     "test:tool-search": "node scripts/test-tool-search.mjs",
     "test:heung:ux": "node scripts/test-heung-ux-contract.mjs",
     "smoke:badapple-tool": "node scripts/smoke-badapple-tool.mjs",
+    "test:heung:midi-file": "node scripts/test-heung-midi-file.mjs",
     "audit:shared-builds": "node scripts/audit-shared-package-builds.mjs",
     "audit:unwired": "node scripts/audit-unwired-scripts.mjs",
     "audit:page-scripts": "node scripts/audit-page-scripts.mjs",
