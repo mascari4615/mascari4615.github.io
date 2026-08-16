@@ -211,8 +211,15 @@ void (async function (): Promise<void> {
     root.style.left = '16px';
     root.style.bottom = '16px';
     root.style.zIndex = '940';
+    /* ★ **자리뿐 아니라 「접혀 있음」도 인라인으로 박는다** (2026-08-17, 도구 장 실측).
+       위에서 자리를 못 박아 첫 화면 밀림은 잡혔는데, **도구 상세 장**에서는 아직 0.0929 가
+       이 상자 하나였다(`#klChat ↑144px` · `klchat-foot ↓144px`, 243ms). 까닭:
+       판 자체를 감추는 규칙(`.klchat-panel{display:none}`)이 **늦게 오는 CSS** 안에 있어서,
+       그 CSS 가 닿기 전까지 판이 제 내용대로 펼쳐져 있다가 규칙이 오면 접힌다.
+       그래서 접힘도 인라인으로 준다. 펼 때는 `setOpen` 이 인라인을 직접 지운다
+       (인라인은 클래스 규칙을 이기므로, 클래스만 붙여서는 안 열린다). */
     root.innerHTML = `
-        <div class="klchat-panel" role="log" aria-label="${t('chat.aria.panel')}">
+        <div class="klchat-panel" style="display:none" role="log" aria-label="${t('chat.aria.panel')}">
             <div class="klchat-head">
                 <span class="klchat-dot" id="klChatDot"></span>
                 <b>${t('chat.here')}</b>
@@ -396,6 +403,10 @@ void (async function (): Promise<void> {
 
     function setOpen(open: boolean): void {
         root.classList.toggle('open', open);
+        /* 처음에 인라인으로 접어 뒀다(위 § 밀림). 인라인은 클래스 규칙을 이기므로 여기서 치운다 —
+           한 번 치우면 그다음부터는 `.klchat.open` 규칙이 맡는다. */
+        const panelEl = root.querySelector('.klchat-panel');
+        if (panelEl instanceof HTMLElement && panelEl.style.display) panelEl.style.removeProperty('display');
         setPref(OPEN_KEY, open ? '1' : '0');
         if (open) {
             markSeen();
