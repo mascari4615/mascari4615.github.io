@@ -1860,6 +1860,31 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             endDrag();
           });
           canvas.addEventListener('pointercancel', endDrag);
+          /* ★ **자판만으로도 지구를 돌린다** (2026-08-17). 여기는 끌기 말고는 길이 없어서
+             마우스가 없으면 첫 화면에서 한 발짝도 못 갔다(접근성 감사가 이름으로 짚은 자리).
+             화살표 = 돌리기 · +/- = 당기고 밀기 · Home = 처음 자리 · Enter = 한가운데 라디오.
+             끌기와 **같은 상태**(camLon/camLat/zoom)를 만지므로 두 길이 갈라지지 않는다. */
+          canvas.tabIndex = 0;
+          canvas.setAttribute('role', 'application');
+          canvas.setAttribute('aria-label', t('bluemarble.a11y.globe', {}) || '지구본 — 화살표로 돌리고 +/- 로 확대');
+          canvas.addEventListener('keydown', (e: KeyboardEvent) => {
+            const 걸음 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
+            let 먹었나 = true;
+            if (e.key === 'ArrowLeft') camLon -= 걸음;
+            else if (e.key === 'ArrowRight') camLon += 걸음;
+            else if (e.key === 'ArrowUp') camLat = Math.min(85, camLat + 걸음);
+            else if (e.key === 'ArrowDown') camLat = Math.max(-85, camLat - 걸음);
+            else if (e.key === '+' || e.key === '=') zoom = Math.min(420, zoom * 1.18);
+            else if (e.key === '-' || e.key === '_') zoom = Math.max(MIN_ZOOM, zoom * 0.847);
+            else if (e.key === 'Home') { camLon = 126; camLat = 20; zoom = 0.4; }
+            else 먹었나 = false;
+            if (!먹었나) return;
+            e.preventDefault();
+            camLon = ((((camLon + 180) % 360) + 360) % 360) - 180;
+            idleAt = performance.now();
+            scheduleRegion();
+          });
+
           canvas.addEventListener(
             'wheel',
             (e: WheelEvent) => {

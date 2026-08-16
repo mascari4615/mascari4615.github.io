@@ -74,5 +74,6 @@
   "bluemarble.radio.hint": "輪をタップするとその町の放送（同じ輪をもう一度で次の局）",
   "bluemarble.radio.on": "{name} · {where} · 現地は{time}",
   "bluemarble.radio.dead": "そこは今どこも放送していません",
-  "bluemarble.intro.title": "ブルーマーブル"
+  "bluemarble.intro.title": "ブルーマーブル",
+  "bluemarble.a11y.globe": "地球儀 — 矢印キーで回転、+/- で拡大縮小、Home で最初の位置"
 }
