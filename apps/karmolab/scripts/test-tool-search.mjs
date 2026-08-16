@@ -60,4 +60,17 @@ disposeSecond();
 dispose();
 assert.equal(providerSystem.size(), 0, '공급자 해제');
 
-console.log('tool search: 21 assertions passed');
+/* 미리 다듬기(캐시)는 **도구 객체를 열쇠로** 삼는다 — 목록을 새로 지으면 새 값이어야 하고,
+   `warm()` 을 먼저 돌렸든 안 돌렸든 답이 같아야 한다. 캐시가 답을 바꾸면 그게 최악이다. */
+const warmSystem = search.createSearchSystem();
+warmSystem.replace(tools.map((tool) => ({ ...tool, value: tool })));
+const cold = warmSystem.search('pdf').map((r) => r.value.id);
+warmSystem.warm();
+assert.deepEqual(warmSystem.search('pdf').map((r) => r.value.id), cold, '미리 다듬어도 답이 같다');
+const renamed = { ...tools[2], id: 'renamed', title: '전혀 다른 이름', description: '', aliases: '', value: null };
+renamed.value = renamed;
+warmSystem.replace([renamed]);
+assert.equal(warmSystem.search('pdf').length, 0, '새 객체로 갈면 옛 다듬음이 안 남는다');
+assert.equal(warmSystem.search('전혀')[0].value.title, '전혀 다른 이름', '새 이름으로 찾힌다');
+
+console.log('tool search: 24 assertions passed');

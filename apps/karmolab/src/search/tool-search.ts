@@ -48,15 +48,56 @@ function fuzzyToken(query: string, candidates: string[]): number | null {
   return best <= limit ? best : null;
 }
 
+
+/**
+ * 도구 한 개를 **질문과 무관하게** 미리 다듬어 둔다 (2026-08-16).
+ *
+ * 왜: 점수 계산이 글자를 칠 때마다 도구마다 `compactSearchText`/`searchTokens` 를 다섯 번씩
+ * 다시 돌리고 있었다. 그 안은 `normalize('NFC')` + `toLocaleLowerCase('ko-KR')` + 정규식 두 번이라
+ * 싸지 않다. 문서가 250개면 한 글자에 1,250번이다 — 그런데 **그 결과는 질문과 아무 상관이 없다.**
+ * 실측(폰 폭, 로컬): 한 글자당 화면이 바뀌기까지 450~520ms. 사람이 「굼뜨다」고 느끼는 값이다.
+ *
+ * 도구 객체를 열쇠로 삼는다(WeakMap) — 목록을 새로 지으면 새 객체라 저절로 새 값이 되고,
+ * 옛 것은 알아서 사라진다. 「언제 캐시를 비우나」를 사람이 기억할 필요가 없다.
+ */
+type PreparedTool = {
+  id: string; title: string; initials: string; aliases: string; description: string;
+  fields: Array<{ kind: SearchMatchKind; weight: number; tokens: string[] }>;
+  allTokens: string[];
+};
+
+const prepared = new WeakMap<SearchableTool, PreparedTool>();
+
+/** 첫 글자를 치기 **전에** 미리 다듬어 둔다 — 안 그러면 첫 글자만 유독 굼뜨다(실측 305ms). */
+export function warmSearchable(tool: SearchableTool): void { prepare(tool); }
+
+function prepare(tool: SearchableTool): PreparedTool {
+  const hit = prepared.get(tool);
+  if (hit) return hit;
+  const fields = [
+    { kind: 'title' as const, weight: 150, tokens: searchTokens(tool.title) },
+    { kind: 'id' as const, weight: 125, tokens: searchTokens(tool.id) },
+    { kind: 'aliases' as const, weight: 105, tokens: searchTokens(tool.aliases || '') },
+    { kind: 'description' as const, weight: 75, tokens: searchTokens(tool.description || '') },
+  ];
+  const value: PreparedTool = {
+    id: compactSearchText(tool.id),
+    title: compactSearchText(tool.title),
+    initials: compactSearchText(tool.initials || ''),
+    aliases: compactSearchText(tool.aliases || ''),
+    description: compactSearchText(tool.description || ''),
+    fields,
+    allTokens: fields.flatMap((field) => field.tokens),
+  };
+  prepared.set(tool, value);
+  return value;
+}
+
 /** 문구 일치, 여러 단어의 교차 필드 일치, 제한적인 오타 순으로 점수를 계산한다. */
 function scoreQuery(tool: SearchableTool, query: string): SearchScore | null {
   const compact = compactSearchText(query);
   if (!compact) return null;
-  const id = compactSearchText(tool.id);
-  const title = compactSearchText(tool.title);
-  const initials = compactSearchText(tool.initials || '');
-  const aliases = compactSearchText(tool.aliases || '');
-  const description = compactSearchText(tool.description || '');
+  const { id, title, initials, aliases, description, fields, allTokens } = prepare(tool);
 
   if (id === compact) return { score: 1200, kind: 'id', titleNormStart: null };
   if (title === compact) return { score: 1100, kind: 'title', titleNormStart: 0 };
@@ -75,12 +116,6 @@ function scoreQuery(tool: SearchableTool, query: string): SearchScore | null {
   }
 
   const queryTokens = searchTokens(query);
-  const fields = [
-    { kind: 'title' as const, weight: 150, tokens: searchTokens(tool.title) },
-    { kind: 'id' as const, weight: 125, tokens: searchTokens(tool.id) },
-    { kind: 'aliases' as const, weight: 105, tokens: searchTokens(tool.aliases || '') },
-    { kind: 'description' as const, weight: 75, tokens: searchTokens(tool.description || '') },
-  ];
   let score = 0;
   let strongest: SearchMatchKind = 'description';
   let strongestWeight = 0;
@@ -94,7 +129,7 @@ function scoreQuery(tool: SearchableTool, query: string): SearchScore | null {
       }
     }
     if (!tokenScore) {
-      const distance = fuzzyToken(token, fields.flatMap((field) => field.tokens));
+      const distance = fuzzyToken(token, allTokens);
       if (distance == null) return null;
       tokenScore = 42 - distance * 10;
       tokenKind = 'fuzzy';
