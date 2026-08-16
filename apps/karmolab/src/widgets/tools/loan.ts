@@ -6,6 +6,7 @@
  * 초반 상환액이 거의 이자라는 사실은 표를 봐야 실감이 나므로 상환표를 편다.
  */
 import { bullet, equalPayment, equalPrincipal, spec, withExtra, withGrace, type Row } from '../../core/loan';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { regionMeta } from '../../lib/region';
@@ -39,8 +40,6 @@ import { download } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           /* 돈은 **사는 곳**의 통화로 적는다 — 알맹이의 `won()` 은 「원」이 박혀 있어
              글로 답하는 쪽(MCP)에만 쓴다. 화면은 그 나라 돈으로 (₩ · ¥ · $). */
           const money = (n: number): string => {

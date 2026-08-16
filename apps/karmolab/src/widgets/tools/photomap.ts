@@ -8,13 +8,12 @@
  * 점만 그리고, 진짜 지도는 사람이 누를 때만 새 창으로 나간다.
  */
 import { dateToMs, read } from '../../core/exif';
+import { escapeHtml as esc } from './shared/text';
 import { days, frameOf, mapLink, metersBetween, places, project, type Shot } from '../../core/photomap';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'photomap',

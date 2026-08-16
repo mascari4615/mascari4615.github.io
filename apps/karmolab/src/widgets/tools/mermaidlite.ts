@@ -8,13 +8,12 @@
  * 흐름도와 표 관계 둘이다. 못 읽는 줄은 **숨기지 않고** 아래에 적는다.
  */
 import { check, parse, toSvg, spec } from '../../core/mermaidlite';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const SAMPLE = 'flowchart TD\n  A[글을 쓴다] --> B{그림이 필요한가}\n  B -->|응| C(여기에 적는다)\n  B -->|아니| D[그냥 글로]\n  C --> E((끝))';
 

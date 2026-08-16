@@ -8,12 +8,11 @@
  * 「어느 것을 남기면 되는지」와 「지우면 얼마나 줄어드는지」만 말하고, 목록을 복사해 준다.
  */
 import { dHash, group, toGray, totalSaved, type Photo } from '../../core/dupphoto';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const human = (bytes: number): string =>
     bytes < 1024 ? bytes + ' B' : bytes < 1024 * 1024 ? (bytes / 1024).toFixed(0) + ' KB' : (bytes / 1024 / 1024).toFixed(1) + ' MB';

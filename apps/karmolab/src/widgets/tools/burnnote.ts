@@ -8,6 +8,7 @@
  * 적어 둔다: 믿음이 알맹이인 도구에서 그 근거가 안 보이면 값어치가 없다.
  */
 import { linkFor, open, packFile, parseLink, seal, unpackFile } from '../../lib/burn-note';
+import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { download } from './shared/image';
@@ -40,8 +41,6 @@ import { download } from './shared/image';
   });
 
   function draw(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     container.innerHTML = `
       <div id="bnWrite">

@@ -6,13 +6,12 @@
  * 되돌릴 때도 쉼표·따옴표·줄바꿈이 든 값은 따옴표로 감싸고 안쪽 따옴표는 겹쳐 적는다.
  */
 import { coerce, parseCsv, spec, toCsv } from '../../core/csvjson';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'csvjson',

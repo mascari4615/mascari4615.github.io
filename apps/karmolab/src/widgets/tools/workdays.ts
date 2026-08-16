@@ -8,6 +8,7 @@
  * 맞는지 확인할 방법이 없다. 음력 명절은 해마다 날짜가 달라 표로 담는다(계산으로는 못 낸다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { region } from '../../lib/region';
@@ -53,7 +54,6 @@ import { readInvocation } from '../../lib/tool-url';
 
   function draw(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           const today = new Date();
           const iso = (d: Date): string =>
             `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

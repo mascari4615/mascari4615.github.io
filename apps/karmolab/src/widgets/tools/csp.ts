@@ -6,13 +6,12 @@
  * 대신 **어느 갈래의 무엇이 왜 위험한지**를 한 줄씩 적는다.
  */
 import { build, reviewHeaders, reviewCsp, parseCsp, spec, type Finding } from '../../core/csp';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'csp',

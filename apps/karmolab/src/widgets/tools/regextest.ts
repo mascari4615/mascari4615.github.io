@@ -3,12 +3,11 @@
  * 하이라이트는 exec 루프로 만들되, 빈 매치(`a*` 류)에서 lastIndex 를 강제로 밀어 무한루프를 막는다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Piece } from '../../core/regexplain';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /* 예시는 **쓸 때** 만든다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const presets = (): Array<{ label: string; pattern: string; flags: string; sample: string }> => [

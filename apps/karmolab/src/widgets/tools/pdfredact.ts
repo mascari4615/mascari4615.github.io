@@ -11,6 +11,7 @@
  *  - 가린 자리뿐 아니라 그 페이지의 **모든 글자 데이터**가 사라진다 — 숨은 메모·주석 포함.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -51,8 +52,6 @@ import { encode } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-status" id="prWarn" style="margin-bottom:var(--space-lg);">
               ${esc(t('pdfredact.warn'))}

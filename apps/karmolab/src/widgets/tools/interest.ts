@@ -6,6 +6,7 @@
  * 그래서 세전·세후를 나란히 보여주고, 대출은 원리금균등 상환표까지 펼친다.
  */
 import { annuityPayment, depositInterest, savingInterest, spec, TAX_RATE } from '../../core/interest';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -18,8 +19,6 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       Math.round(n)
     );
 
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const TAX = TAX_RATE;
   const deposit = depositInterest;

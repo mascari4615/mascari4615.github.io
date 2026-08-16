@@ -6,6 +6,7 @@
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
 import { clock, dayShift as shiftOf, spec, sumTimes, toMinutes } from '../../core/timecalc';
+import { escapeHtml as esc } from './shared/text';
 import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
@@ -22,8 +23,6 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     return `${neg}${unit(Math.floor(a / 60), 'hour')} ${unit(a % 60, 'minute')}`;
   };
 
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'timecalc',

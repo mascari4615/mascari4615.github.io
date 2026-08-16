@@ -9,6 +9,7 @@
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -96,8 +97,6 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="ptDrop">
               <input type="file" id="ptFile" accept="application/pdf" hidden>

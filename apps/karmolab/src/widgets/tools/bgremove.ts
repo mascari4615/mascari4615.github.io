@@ -6,12 +6,11 @@
  * 학습 모형이 필요하고 이 사이트는 그런 걸 안 받는다. 「되는 줄 알았는데 안 되는」 게 제일 나쁘다.
  */
 import { apply, guessBackground, maskOf, removedRatio } from '../../core/bgremove';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'bgremove',

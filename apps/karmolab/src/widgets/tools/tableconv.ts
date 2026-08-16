@@ -8,14 +8,13 @@
  * 마크다운은 세로줄을 폭에 맞춰 정렬해 준다. 안 맞춰도 보이기는 하지만, 원본을 읽을 사람이 있다.
  */
 import { parse, spec, toCsv, toJson, toMarkdown, toTsv, type Rows } from '../../core/tableconv';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'tableconv',

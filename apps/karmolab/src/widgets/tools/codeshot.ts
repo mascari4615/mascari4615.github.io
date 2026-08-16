@@ -10,6 +10,7 @@
  * 정렬이 안 무너진다(한글 등폭 글꼴은 우리에게 없다).
  */
 import { FRAMES } from './shared/code-frames';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { download, encode } from './shared/image';
 import { statusLine } from './shared/say';
@@ -76,8 +77,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   });
 
   function draw(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     container.innerHTML = `
       <div class="field-group">

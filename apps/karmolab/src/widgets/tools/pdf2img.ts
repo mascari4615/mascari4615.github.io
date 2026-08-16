@@ -6,13 +6,12 @@
  * 파일은 브라우저 밖으로 나가지 않는다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { openForRead, renderPage } from './shared/pdf';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   function parseRange(spec: string, total: number): number[] {
     const out: number[] = [];

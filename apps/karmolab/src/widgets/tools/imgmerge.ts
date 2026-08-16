@@ -8,6 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -15,8 +16,6 @@ import { attachImage, download, encode, loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface Shot {
     name: string;

@@ -7,11 +7,10 @@
  * 통과하는 가장 가까운 색까지 제안해서, 실패했을 때 무엇을 고칠지 바로 알 수 있게 한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   type RGB = [number, number, number];
 

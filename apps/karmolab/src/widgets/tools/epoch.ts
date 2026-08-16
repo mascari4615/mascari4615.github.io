@@ -5,6 +5,7 @@
  * 여기는 칸을 그리고 오간 값을 옮기는 일만 한다.
  */
 import { parseTimestamp, spec, stampRowKeys, toLocalInput } from '../../core/epoch';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 
@@ -37,8 +38,6 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">${esc(t('epoch.label.stamp'))}</label>

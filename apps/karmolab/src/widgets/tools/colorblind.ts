@@ -6,11 +6,10 @@
  * 색을 바꿔 보여주는 데 그치지 않고, **어떤 유형에서 두 색이 구분되지 않는지** 판정한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   type RGB = [number, number, number];
 

@@ -6,13 +6,12 @@
  * 목표 학점을 채우려면 남은 학기에 얼마가 필요한지도 함께 낸다 — 그게 실제 질문이다.
  */
 import { maxOf, neededAverage, parseCourses, scaleOf, spec } from '../../core/grade';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'grade',

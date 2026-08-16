@@ -4,10 +4,9 @@
  * 내부 정본은 HSL 하나로 두고 표기만 바꾼다 (표기별 상태를 따로 들면 반올림 왕복에서 색이 흐른다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface RGB {
     r: number;

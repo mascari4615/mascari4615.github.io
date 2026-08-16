@@ -6,10 +6,9 @@
  * 그래서 **질문 문장 그대로** 줄을 나누고, 각 줄이 빈칸 채우기가 되게 한다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const fmt = (n: number): string => {
     if (!isFinite(n)) return '—';

@@ -6,13 +6,12 @@
  * 머리로 세면 꼭 하나 틀리고, 그 하나가 문을 열어 두거나 닫아 버린다.
  */
 import { findPort, isWellKnown, overlaps, parseCidr, split, summarize, spec } from '../../core/nettool';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'nettool',

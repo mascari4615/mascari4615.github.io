@@ -11,6 +11,7 @@
  *    고르면 그 사실을 말해 준다. 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 import { download, encode, loadImage } from './shared/image';
@@ -51,8 +52,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="rdDrop">
               <input type="file" id="rdFile" accept="image/*" hidden>

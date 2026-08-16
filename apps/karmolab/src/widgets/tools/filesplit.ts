@@ -9,6 +9,7 @@
  * 그래서 합친 결과는 원본과 완전히 같다(검사값으로 확인시켜 준다).
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -47,8 +48,6 @@ import { download } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-chips" style="margin-bottom:var(--space-lg);">
               <button type="button" class="tool-chip active" id="fsModeSplit">${esc(t('filesplit.mode.split'))}</button>

@@ -10,6 +10,7 @@
  * 뽑은 장은 눌러 하나씩 받거나 ZIP 으로 한 번에 받는다.
  */
 import { fileSize as size, mmss, download } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -19,8 +20,6 @@ import { encode } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface Shot {
     time: number;

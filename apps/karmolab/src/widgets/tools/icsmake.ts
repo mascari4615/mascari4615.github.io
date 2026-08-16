@@ -12,6 +12,7 @@
  *    파일을 통째로 거부하는데, 그때 나오는 오류 메시지가 아무 도움이 안 된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { download } from './shared/image';
@@ -90,8 +91,6 @@ import { download } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           /* 시간대는 **그 사람의 것**을 그대로 보여 준다 — 「한국 시간」이라고 적어 두면
              다른 나라 사람은 자기가 넣은 값이 어떻게 읽히는지 알 수 없다. */
           const zone = myZone();

@@ -8,14 +8,13 @@
  * 요약은 그림이 못 떠도 남는다.
  */
 import { outline, parse, toMermaid, spec } from '../../core/erd';
+import { escapeHtml as esc } from './shared/text';
 import { parse as parseMermaid, toSvg } from '../../core/mermaidlite';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const SAMPLE = 'CREATE TABLE users (\n  id INT PRIMARY KEY,\n  email VARCHAR(255) NOT NULL UNIQUE,\n  city_id INT REFERENCES cities(id)\n);\nCREATE TABLE cities ( id INT PRIMARY KEY, name VARCHAR(80) NOT NULL );';
 

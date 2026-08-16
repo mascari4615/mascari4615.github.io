@@ -6,14 +6,13 @@
  * 회사는 간이세액표로 떼므로 세금은 **어림**이라고 적고, 표의 기준 해도 같이 보여 준다.
  */
 import { fromYearly, monthly, YEAR, type Slip } from '../../core/payslip';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { spec } from '../../core/payslip';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const won = (n: number): string => n.toLocaleString();
 

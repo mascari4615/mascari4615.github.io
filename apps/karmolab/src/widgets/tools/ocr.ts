@@ -9,14 +9,13 @@
  *   ③ 한국어·일본어는 **아직 못 읽는다고 말한다**. 되는 척하면 사람이 자기 사진을 의심한다.
  */
 import { looksEmpty, modelFor, route, tidy } from '../../core/ocr';
+import { escapeHtml as esc } from './shared/text';
 import { enhance } from '../../core/docscan';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'ocr',

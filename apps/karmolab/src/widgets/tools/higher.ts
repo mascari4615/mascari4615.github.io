@@ -8,10 +8,9 @@
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface Item {
     n: string;

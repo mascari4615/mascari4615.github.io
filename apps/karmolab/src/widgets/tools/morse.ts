@@ -6,6 +6,7 @@
  * 자모 단위로 찍는다)도 넣는다. 소리·불빛 재생은 그대로 살린다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
@@ -238,8 +239,6 @@ import { markLive } from './shared/say';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           Mdd.linePreset('tool_run', { msg: t('morse.mdd') });
           container.innerHTML = `
             <div class="field-group">

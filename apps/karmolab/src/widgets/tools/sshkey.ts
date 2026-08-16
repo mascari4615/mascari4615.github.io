@@ -6,13 +6,12 @@
  * 지문은 서버에서 그 줄을 지울 때 쓰는 그 값이다 — 여기서는 **열쇠가 브라우저를 안 벗어난다.**
  */
 import { fingerprint, parseAuthorized, toOpenSsh, spec, type Entry } from '../../core/sshkey';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'sshkey',

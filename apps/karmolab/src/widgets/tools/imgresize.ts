@@ -11,6 +11,7 @@
  *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -91,8 +92,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="irDrop">
               <input type="file" id="irFile" accept="image/*" hidden>

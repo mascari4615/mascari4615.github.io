@@ -6,13 +6,12 @@
  * 「화면에선 맞는데 인쇄하면 어긋나는」 일이 안 생긴다.
  */
 import { calendar, dots, grid, labels, manuscript, staff, type Sheet } from '../../core/printkit';
+import { escapeHtml as esc } from './shared/text';
 import { loadPdfLib, pdfBlob } from './shared/pdf';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const MM_TO_PT = 72 / 25.4;
 

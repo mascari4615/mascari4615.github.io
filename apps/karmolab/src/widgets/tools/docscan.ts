@@ -6,13 +6,12 @@
  * 모서리를 자동으로 안 찾는 이유는 알맹이 머리말에 적어 뒀다 — 요약하면 **틀렸을 때 이유가 안 보인다**.
  */
 import { enhance, fitA4, guessSize, warp, type Corners, type Look } from '../../core/docscan';
+import { escapeHtml as esc } from './shared/text';
 import { loadPdfLib, pdfBlob } from './shared/pdf';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'docscan',

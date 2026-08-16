@@ -5,11 +5,10 @@
  * 사실 같은 도구가 필요하다 — 주소를 **조각으로 펼쳐** 보는 것. 인코딩 변환과 분해를 한 화면에 둔다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /** 광고·추적용으로만 붙는 파라미터 — 지워도 링크가 같은 곳을 가리킨다. */
   const TRACKING = /^(utm_|fbclid$|gclid$|igshid$|mc_eid$|mc_cid$|ref$|ref_src$|si$|_ga$|yclid$|msclkid$)/i;

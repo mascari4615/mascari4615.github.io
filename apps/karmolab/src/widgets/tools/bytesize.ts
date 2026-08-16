@@ -6,10 +6,9 @@
  * **두 계열을 나란히** 보여주고 차이를 %로 적는다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const DEC = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const BIN = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];

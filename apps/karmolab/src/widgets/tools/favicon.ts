@@ -10,6 +10,7 @@
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download, encode, loadImage } from './shared/image';
@@ -80,8 +81,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="fvDrop">
               <input type="file" id="fvFile" accept="image/*" hidden>

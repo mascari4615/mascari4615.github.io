@@ -10,6 +10,7 @@
  * 설명서가 아니라 한 문장이다.
  */
 import { dangersOf, explain, type Part, type Segment } from '../../lib/shell-explain';
+import { escapeHtml as esc } from './shared/text';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -46,8 +47,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   });
 
   function draw(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     /** `**굵게**` 만 살린다 — 사전에 적어 둔 강조가 화면에서 그대로 별표로 보이면 안 된다. */
     const strong = (v: string): string =>

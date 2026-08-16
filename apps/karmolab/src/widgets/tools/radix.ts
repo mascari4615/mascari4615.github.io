@@ -5,11 +5,10 @@
  * 진법 사이를 오가며 확인하는 실제 쓰임에 맞는다. 큰 수는 BigInt 라 자릿수 손실이 없다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
 
