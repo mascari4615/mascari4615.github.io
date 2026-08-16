@@ -16,6 +16,7 @@ import { format as xmlFormat, minify as xmlMinify, parse as xmlParse, toJson as 
 import { convert as cfgConvert, detect as cfgDetect, type Format as CfgFormat } from '../../core/configconv';
 import { detect as anyDetect, format as anyFormat, goTo as anyGoTo, minify as anyMinify } from '../../core/prettyall';
 import { toTypes } from '../../core/json2ts';
+import { format as jqFormat, query as jqQuery } from '../../core/jqplay';
 import { t } from '../../lib/i18n';
 
 const DIALECTS: Dialect[] = ['mysql', 'postgres', 'mssql', 'sqlite'];
@@ -214,6 +215,28 @@ export const DEVTOOL_OPERATIONS: TextOperation[] = [
     fromUrl: (call) => ({
       input: call.args.text === undefined ? undefined : String(call.args.text),
       values: (call.args.name === undefined ? {} : { name: String(call.args.name) }) as Record<string, string | number | boolean>
+    })
+  },
+  {
+    id: 'jqplay',
+    title: t('widgets.jqplay.title', undefined, 'JSON 살펴보기'),
+    description: t('widgets-desc.jqplay.desc', undefined, 'jq 처럼 JSON 안을 골라 봅니다'),
+    controls: [
+      { id: 'query', label: t('jqplay.label.query', undefined, '고르는 말'), kind: 'text', initial: '.', placeholder: '.items[].name' },
+      { id: 'compact', label: t('jqplay.opt.compact', undefined, '한 줄로'), kind: 'checkbox', initial: false }
+    ],
+    run: (input, values) => {
+      if (input.trim() === '') return { output: '', status: t('jqplay.status.idle', undefined, 'JSON 을 넣어 주세요') };
+      const got = jqQuery(input, String(values.query || '.'));
+      if (got.error !== undefined) return { output: '', status: got.error };
+      return {
+        output: jqFormat(got.values, values.compact === true),
+        status: t('jqplay.status.ok', { n: got.values.length }, `${got.values.length}개`)
+      };
+    },
+    fromUrl: (call) => ({
+      input: call.args.json === undefined ? undefined : String(call.args.json),
+      values: (call.args.query === undefined ? {} : { query: String(call.args.query) }) as Record<string, string | number | boolean>
     })
   }
 ];

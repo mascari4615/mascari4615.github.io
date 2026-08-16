@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/diff', 'tools/curlkit', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/diff', 'tools/curlkit', 'tools/mockdata', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
   },
   {
     id: 'diff',
@@ -309,7 +309,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.jqplay.desc', undefined, "JSON 을 붙여넣고 jq 식으로 물어봅니다. 치는 동안 바로 답이 나오고, 아무것도 올리지 않습니다"); },
     layout: 'wide',
-    lazyScriptPaths: ['tools/jqplay']
+    lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
   },
   {
     id: 'sqlfmt',

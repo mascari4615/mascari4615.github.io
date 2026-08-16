@@ -111,6 +111,25 @@ const shellRows = SHELLS.map(([material, file]) => {
   };
 }).sort((a, b) => b.perJob - a.perJob);
 
+/* ★ **옮길 수 있는지부터 잰다** (2026-08-16). 「남은 28개」는 세어 봐야 하는 수가 아니다 —
+   작업대의 조작 자리는 「글 넣고 → 칸 몇 개 → 글 받기」 한 모양뿐이라, 표·그림·색 목록을
+   그리는 도구는 옮기면 **화면이 깎인다**(semver 가 그랬다: 범위 경계표와 버전별 통과 색깔).
+   그래서 파일이 무엇을 그리는지 보고 셋으로 가른다. 짐작 대신 이 목록에서 고른다. */
+const richMarks = [/tool-list/, /<svg/i, /canvas/i, /<table/i, /createObjectURL/, /type="file"/];
+function movability(f) {
+  if (SHELLS.some(([, name]) => name === f.name)) return '작업대 자체';
+  let rich = richMarks.filter((re) => re.test(f.text)).length;
+  /* 화면을 **여러 번** 새로 그리면 그 도구는 결과칸 하나로 안 접힌다 (2026-08-16 실측:
+     jsonfmt 이 나무 보기를 그리는데 표·그림 표식이 없어 「옮길 수 있다」로 셌다).
+     첫 innerHTML 은 판 짜기라 안 센다 — 그 뒤부터가 「따로 그리는 것」이다. */
+  const draws = (f.text.match(/innerHTML\s*=/g) || []).length;
+  if (draws > 1) rich += 1;
+  const outputs = (f.text.match(/readonly/g) || []).length;
+  if (rich === 0 && outputs > 0) return '옮길 수 있다';
+  if (rich <= 1) return '아마도 (한 가지만 걸림)';
+  return '아니다 (표·그림·파일)';
+}
+
 const biggest = [...files].sort((a, b) => b.lines - a.lines).slice(0, 12);
 
 if (process.argv.includes('--json')) {
@@ -142,6 +161,20 @@ if (process.argv.includes('--json')) {
     for (const r of shellRows) {
       console.log(`  ${String(r.perJob).padStart(4)}줄/일  ${r.material.padEnd(7)} 일 ${String(r.jobs).padStart(2)}개 · ${String(r.lines).padStart(5)}줄 · ${r.shape}`);
     }
+  }
+  console.log('');
+  /* 개발 도구 계열만 본다 — 지금 옮기는 중인 자리다. */
+  const devIds = new Set(shellJobs('devtool.ts'));
+  const movable = files.filter((f) => devIds.has(f.name.replace(/\.ts$/, '')));
+  const buckets = new Map();
+  for (const f of movable) {
+    const verdict = movability(f);
+    if (!buckets.has(verdict)) buckets.set(verdict, []);
+    buckets.get(verdict).push(`${f.name.replace(/\.ts$/, '')}(${f.lines})`);
+  }
+  console.log('개발 도구 — 작업대로 옮길 수 있나 (그리는 것으로 가름)');
+  for (const [verdict, names] of [...buckets].sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`  ${String(names.length).padStart(2)}개  ${verdict.padEnd(18)} ${names.slice(0, 8).join(' · ')}${names.length > 8 ? ' …' : ''}`);
   }
   console.log('');
   console.log('가장 큰 파일 열둘 — 합치기든 쪼개기든 여기부터 (재료 축은 위 주석 참고: 기계가 못 잰다)');
