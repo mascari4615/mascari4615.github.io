@@ -114,9 +114,14 @@ jobs:
             # 로컬에선 뽑히는데 CI 에서만 빈 채로 지나가 두 판을 헛돌았다).
             if [ -n "$GATES" ]; then
               WHERE="$GATES"
-            else
+            elif printf %s "$WHERE" | grep -q "Run verify"; then
+              # 단계 이름이 「verify › Run verify」뿐이라 아무것도 안 알려 준다 — 그때만 사유를 붙인다.
               WHERE="$WHERE (어느 검사인지 못 읽었다 — 실패 로그에서 verify 줄을 못 찾았다)"
             fi
+            # ★ **단계 이름이 이미 말해 주면 잠자코 있는다** (2026-08-17 실측).
+            #   앞 판에서 진짜 빨강은 `Typos check (다시)` 단계였다. verify.mjs 안에서 죽은 게
+            #   아니니 그 줄이 없는 게 당연한데, 알림은 「어느 검사인지 못 읽었다」를 덧붙였다 —
+            #   멀쩡히 이름이 적혀 있는데 못 읽었다고 말하면 그 말 자체가 잡음이 된다.
           fi
           # 커밋 메시지는 첫 줄만 — 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
           gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" \
