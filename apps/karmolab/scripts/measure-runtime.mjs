@@ -127,6 +127,8 @@ async function once(path, variant) {
   if (await input.count().catch(() => 0)) {
     await input.click({ timeout: 3000 }).catch(() => {});
     for (const c of '이미지를 변환') { await page.keyboard.type(c, { delay: 0 }); await page.waitForTimeout(90); }
+    /* 재움-의도: 마지막 글자 뒤에도 **늦게 오는 반응**이 있다 — 그게 쌓이라고 흘려보낸다.
+       기다릴 「된 상태」가 없다(멈추면 그때가 끝이 아니라, 안 온 것일 수 있다). */
     await page.waitForTimeout(300);
     const ev = await page.evaluate(() => window.__ev).catch(() => []);
     typing = ev.length ? Math.max(...ev) : 0;
@@ -149,6 +151,7 @@ async function once(path, variant) {
   if (spot) {
     await page.mouse.move(spot.x, spot.y);
     for (let i = 0; i < 8; i++) { await page.mouse.wheel(0, 700); await page.waitForTimeout(120); }
+    /* 재움-의도: 굴린 뒤 **늦게 잡히는 긴 작업**까지 담으려고 흘려보낸다(쌓는 자리다). */
     await page.waitForTimeout(300);
     const lf = await page.evaluate(() => window.__loaf).catch(() => []);
     scroll = lf.length ? Math.max(...lf.map((f) => f.d)) : 0;
