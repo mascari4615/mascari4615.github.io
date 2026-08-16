@@ -123,6 +123,10 @@ if (지금 > 옛수) {
   console.error(`[sleep-then-read] 재우고 바로 읽는 자리가 ${지금 - 옛수}개 늘었다 (${옛수} → ${지금}).`);
   console.error('  시간을 재우지 말고 **된 상태를 기다려라** — `waitForFunction` / `waitForSelector`.');
   console.error('  까닭: 바쁜 판에서는 다시 그리기가 안 끝나 옛 값이 읽힌다. 오늘 하루에만 아홉 번 그랬다.');
+  console.error('  손쉬운 두 가지 (scripts/lib/settle.mjs):');
+  console.error("    · 값이 어떤 값으로 굳는 자리 → 멎을때까지(page, () => 읽기())");
+  console.error("    · 되기를 아는 자리       → 될때까지(page, () => 조건)  ← 이쪽이 더 정확하다");
+  console.error('  일부러 흘려보내는 자리라면(쌓이라고 재우는 것) 그 위에 `재움-의도` 와 까닭을 한 줄 적어라 — 그러면 안 센다.');
   console.error('  정본: memo/rules/quality.md § 순간을 나중에 보지 마라');
   for (const one of 자리.slice(0, 10)) console.error(`    ${one}`);
   process.exit(1);
