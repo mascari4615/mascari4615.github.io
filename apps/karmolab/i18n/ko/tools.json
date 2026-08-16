@@ -314,5 +314,13 @@
   "tools.photomap.description": "사진에 들어 있는 찍은 자리와 때(EXIF)를 모아 여행·날짜별로 묶어 보여 줍니다. 지도 타일은 일부러 안 불러옵니다.",
   "tools.photomap.lead": "EXIF 위치·시각 · 날짜별 묶기 · 점만 그리기 · 밖으로 한 줄도 안 나감",
   "tools.tts.description": "글을 문장 단위로 잘라 브라우저가 읽어 주게 합니다. 긴 글을 통째로 넘기면 중간에 멎기 때문에, 자르는 규칙이 이 도구의 핵심입니다.",
-  "tools.tts.lead": "문장 자르기 · 읽는 시간 어림 · 브라우저 목소리 · 설치 없음"
+  "tools.tts.lead": "문장 자르기 · 읽는 시간 어림 · 브라우저 목소리 · 설치 없음",
+  "tools.codegraph.description": "파일이 서로 무엇을 부르는지 그려 줍니다. 고리(A↔B)와 많이 불리는 파일, 아무도 안 부르는 파일을 찾아 「어디부터 읽나」에 답합니다.",
+  "tools.codegraph.lead": "import·require 관계 · 고리 찾기 · 입구와 죽은 파일 · 파서 없이 가볍게",
+  "tools.nettool.description": "10.0.0.0/22 가 어디부터 어디까지인지, 몇 대가 들어가는지 셉니다. 대역이 겹치는지도 보고, 포트 번호 사전도 함께 있습니다.",
+  "tools.nettool.lead": "CIDR 계산 · 대역 겹침 · 호스트 수 · 포트 사전",
+  "tools.printkit.description": "모눈종이·원고지·오선지·달력·라벨을 mm 로 그려 인쇄용으로 만듭니다. 종이 크기와 여백을 알고 그리니 어느 프린터에서도 자리가 맞습니다.",
+  "tools.printkit.lead": "모눈 · 원고지 · 오선지 · 달력 · 라벨 · mm 기준 · SVG/PDF",
+  "tools.protobuf.description": "protobuf 바이너리를 눈으로 볼 수 있게 풀어 줍니다. 스키마가 없어도 「번호 3번, 문자열, 길이 12」까지는 늘 알 수 있고, .proto 를 주면 이름을 붙입니다.",
+  "tools.protobuf.lead": "스키마 없이도 읽기 · .proto 주면 이름 붙이기 · base64/hex 입력"
 }

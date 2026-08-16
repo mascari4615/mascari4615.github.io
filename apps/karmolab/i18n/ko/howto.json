@@ -584,5 +584,21 @@
   "howto.tts.0": "읽을 글 붙여넣기",
   "howto.tts.1": "문장으로 잘린 결과와 걸리는 시간 확인",
   "howto.tts.2": "목소리·속도 고르기",
-  "howto.tts.3": "재생 — 문장 하나씩 넘겨 읽습니다"
+  "howto.tts.3": "재생 — 문장 하나씩 넘겨 읽습니다",
+  "howto.codegraph.0": "소스 파일을 여러 개 올리거나 붙여넣기",
+  "howto.codegraph.1": "누가 누구를 부르는지 그림으로 보기",
+  "howto.codegraph.2": "고리(서로 부르는 짝)가 있으면 먼저 풀 자리로 표시됩니다",
+  "howto.codegraph.3": "많이 불리는 파일 = 먼저 읽을 곳, 아무도 안 부르는 파일 = 입구이거나 죽은 파일",
+  "howto.nettool.0": "대역을 넣기 (예: 10.0.0.0/22)",
+  "howto.nettool.1": "시작·끝 주소와 들어가는 대수 확인",
+  "howto.nettool.2": "여러 줄을 넣으면 겹치는 곳을 짚어 줍니다",
+  "howto.nettool.3": "포트 번호가 궁금하면 사전에서 찾기",
+  "howto.printkit.0": "종이(A4 등)와 만들 종류 고르기",
+  "howto.printkit.1": "칸 크기·여백을 mm 로 맞추기",
+  "howto.printkit.2": "화면에서 자리 확인",
+  "howto.printkit.3": "PDF 로 내려받아 인쇄하기",
+  "howto.protobuf.0": "base64 나 hex 로 된 protobuf 덩이를 붙여넣기",
+  "howto.protobuf.1": "스키마 없이 선 형식(wire format)으로 풀린 결과 보기",
+  "howto.protobuf.2": ".proto 가 있으면 같이 넣어 이름·타입 붙이기",
+  "howto.protobuf.3": "어느 번호가 무엇인지 확인하기"
 }

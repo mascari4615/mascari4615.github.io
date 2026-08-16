@@ -202,5 +202,9 @@
   "payslip": "23cac3123f4a",
   "dupphoto": "2201fc6a5f53",
   "photomap": "7435d8fdfc34",
-  "tts": "be6485458c51"
+  "tts": "be6485458c51",
+  "codegraph": "d873899e8a44",
+  "nettool": "8884f498eab8",
+  "printkit": "94b59c069ff4",
+  "protobuf": "30806421d323"
 }
