@@ -12,8 +12,16 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
+/* ★ **어디까지 왔는지 모르면 고칠 값어치를 못 잰다** (2026-08-16). 여기는 첫 빨강에서 멈춘다 —
+   그건 옳다(뒤 단계가 앞 단계 산출물을 쓴다). 그런데 로그에는 「멈췄다」만 있고 **몇 번째에서**
+   **멈췄는지**가 없었다. 2번째에서 멈춘 것과 8번째에서 멈춘 것은 남은 값이 전혀 다르다 —
+   앞이면 한 판을 통째로 다시 돌려야 하고, 뒤면 거의 다 본 것이다. 숫자를 적어 그 판단을 준다. */
+const 전체단계 = 9;
+let 지금단계 = 0;
+
 function run(label, cwd, command) {
-  console.log(`\n[verify] ${label}: ${command} (cwd: ${cwd})`);
+  지금단계 += 1;
+  console.log(`\n[verify] (${지금단계}/${전체단계}) ${label}: ${command} (cwd: ${cwd})`);
   const r = spawnSync(command, { cwd, stdio: 'inherit', shell: true });
   /* ★ **2 = 「못 돌렸다」(CANNOT-RUN)** — 이 저장소의 규약이다(`run-gates.mjs`·`run-live-checks.mjs`
      도 그렇게 읽는다). 잴 것이 아직 없거나(봇이 안 떠 있다·장이 안 찍혔다) 이 기계에 없는 것은
@@ -25,7 +33,7 @@ function run(label, cwd, command) {
   }
   if (r.status !== 0) {
     console.error(`[verify] X ${label} 실패 (exit ${r.status ?? '?'})`);
-    console.error('[verify] 여기서 멈춘다 — **이 뒤의 검사는 안 돌았다.** 이 하나를 고치면 다음 것이 나온다.');
+    console.error(`[verify] 여기서 멈춘다 — **뒤의 ${전체단계 - 지금단계}단계는 안 돌았다**(${지금단계}/${전체단계}). 이 하나를 고치면 다음 것이 나온다.`);
     console.error('[verify] 한 판에 다 보고 싶으면: cd apps/karmolab && npm run verify:prepush (게이트 열넷을 모아서 낸다)');
     process.exit(r.status ?? 1);
   }
