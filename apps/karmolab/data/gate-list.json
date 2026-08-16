@@ -139,6 +139,9 @@
     "test:search:studymap",
     "test:search:quality",
     "audit:tool-state",
-    "audit:unwired"
+    "audit:unwired",
+    "test:tool-search",
+    "test:heung:ux",
+    "smoke:badapple-tool"
   ]
 }
