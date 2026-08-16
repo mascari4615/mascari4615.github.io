@@ -61,8 +61,11 @@
    그래서 「처음부터 채우는 도구」만 이 변형을 붙인다.
    높이는 실측값이다 — 한 줄(타일 셋)이 데스크톱 74~77px, 좁은 화면은 두 줄. */
 .cc-stats-early { min-height: 74px; }
+/* 타일이 두 줄인 도구도 있다 — 실측으로만 정한다(datecalc 163px). */
+.cc-stats-early.cc-stats-2row { min-height: 163px; }
 @media (max-width: 640px) {
     .cc-stats-early { min-height: 156px; }
+    .cc-stats-early.cc-stats-2row { min-height: 312px; }
 }
 .cc-stat {
     background: var(--bg-tertiary);

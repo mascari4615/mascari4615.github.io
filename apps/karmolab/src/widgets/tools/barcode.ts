@@ -126,7 +126,7 @@ import { markLive } from './shared/say';
 
             <canvas id="bcCanvas" style="max-width:100%; background:#fff; border-radius:8px; display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
 
-            <div class="cc-stats" id="bcStats"></div>
+            <div class="cc-stats cc-stats-early" id="bcStats"></div>
 
             <div class="tool-actions">
               <button class="btn btn-primary" id="bcSave">${esc(t('barcode.btn.save'))}</button>

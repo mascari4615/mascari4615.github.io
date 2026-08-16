@@ -63,7 +63,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               <label class="field-label">${esc(t('timecalc.label.lines'))}</label>
               <textarea id="tcList" rows="5" spellcheck="false" placeholder="7:45&#10;8:20&#10;6:50"></textarea>
             </div>
-            <div class="cc-stats" id="tcSum"></div>
+            <div class="cc-stats cc-stats-early" id="tcSum"></div>
             <div class="tool-status" id="tcStatus">${esc(t('timecalc.status.idle'))}</div>
           `;
 

@@ -91,7 +91,7 @@ import { markLive } from './shared/say';
               <div class="co-sample-sm">${esc(t('contrast.sample.body'))}</div>
             </div>
 
-            <div class="cc-stats" id="coStats"></div>
+            <div class="cc-stats cc-stats-early" id="coStats"></div>
             <div class="tool-list" id="coOut"></div>
             <div class="tool-status" id="coStatus"></div>
           `;
