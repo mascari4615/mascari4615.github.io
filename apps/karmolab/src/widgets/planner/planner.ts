@@ -64,6 +64,12 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-cal-main .fc { font-size: var(--font-size-sm); color: var(--text-primary); }
         .pl-cal-main .fc .fc-toolbar-title { font-size: var(--font-size-md); font-weight: 700; }
         .pl-cal-main .fc .fc-button { padding: 4px 10px; font-size: var(--font-size-xs); box-shadow: none; }
+        /* 켜진 단추의 글씨색을 안 정해 둬서 회색 글씨가 accent 바탕에 얹혔다 —
+           밝은 판 1.06:1 · 어두운 판 1.16:1 로 「주/일」이 사실상 안 보였다(2026-08-16 실주소가 잡음).
+           FullCalendar 는 켜짐 상태에도 --fc-button-text-color 를 그대로 쓴다(켜짐용 토큰이 없다).
+           accent 위에 얹는 글씨는 이 저장소 토큰으로 --accent-fg 다 — 양쪽 판에서 함께 뒤집힌다. */
+        .pl-cal-main .fc .fc-button-primary:not(:disabled).fc-button-active,
+        .pl-cal-main .fc .fc-button-primary:not(:disabled):active { color: var(--accent-fg, #fff); }
         .pl-cal-main .fc .fc-col-header-cell-cushion,
         .pl-cal-main .fc .fc-daygrid-day-number { color: var(--text-secondary); text-decoration: none; }
         .pl-cal-main .fc .fc-event { cursor: pointer; }
