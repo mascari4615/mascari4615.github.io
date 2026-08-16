@@ -97,6 +97,12 @@ function ensureLayer(): HTMLElement {
     if (layer && layer.isConnected) return layer;
     layer = document.createElement('div');
     layer.className = 'kl-cursors';
+    /* ★ **화면낭독기에는 안 보이게 한다** (2026-08-17, axe 로 재서 잡았다). 이 층은 남의 마우스가
+       어디 있는지 **눈으로** 보여 주는 장식이다. 접근성 나무에 남겨 두면 두 가지가 나쁘다:
+       ① 이름표가 랜드마크 밖에 떠 있어 「모든 내용은 랜드마크 안에」 규칙을 어긴다(실측 5건, 세 장 전부)
+       ② 커서가 움직일 때마다 낭독기가 이름을 읽는다 — 도움이 아니라 소음이다.
+       누가 와 있는지는 사람 목록이 따로 말한다. */
+    layer.setAttribute('aria-hidden', 'true');
     document.body.appendChild(layer);
     if (!document.getElementById('kl-cursor-style')) {
         const style = document.createElement('style');
