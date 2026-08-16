@@ -101,7 +101,11 @@ jobs:
           #   verify.mjs 가 그걸 `[verify] X <이름> 실패 (exit N)` 로 이미 찍고 있다. 그 줄을 들고 온다.
           WF_NAME=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq .name || echo '')
           if [ "$WF_NAME" = "verify" ]; then
-            LOG=$(gh run view "$RUN_ID" --log-failed 2>&1 || true)
+            LOG=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>&1 || true)
+            # ★ `--repo` 가 있어야 한다 (2026-08-16, 진단 한 줄로 잡았다). 이 잡은 저장소를
+            #   체크아웃하지 않는데 `gh run view` 는 자리(git)에서 저장소를 알아내려 한다 —
+            #   그래서 「failed to determine base repo … not a git repository」로 118 바이트만 오고
+            #   줄을 못 찾은 채 조용히 지나갔다. 진단 줄은 남겨 둔다: 다음에 또 비면 왜인지 바로 보인다.
             # 가설 박지 말고 재라 — 로그가 아예 안 온 건지, 왔는데 줄이 없는 건지.
             echo "[진단] 실패 로그 ${#LOG} 바이트 · 첫 줄: $(printf %s "$LOG" | head -1 | cut -c1-140)"
             GATES=$(printf %s "$LOG"               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd' · ' -)
