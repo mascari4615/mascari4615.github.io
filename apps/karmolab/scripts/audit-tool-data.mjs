@@ -88,7 +88,11 @@ const problems = [];
       /* 스스로 「화면 없음」이라 밝힌 것은 뺀다 — 예외의 이유는 그 파일 안에 적혀 있다. */
       .filter((f) => /export const SCREENLESS/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')) === false)
       .map((f) => path.basename(f, '.ts'));
-    seoOrphans = withCore.filter((id) => known.has(id) === false);
+    /* ★ **접은 도구는 페이지가 없어야 맞다** (2026-08-16). 알맹이 파일은 남아 있어도
+       그 도구는 다른 도구 안의 「할 일」로 흡수됐다 — 주소를 다시 만들면 오히려 갈라진다.
+       실측: 32개라던 목록에 접은 것 5개(configconv·jqplay·prettyall·sqlfmt·xmlfmt)가 섞여 있었다.
+       접은 목록의 정본은 `lib/retired-operations.mjs` 한 곳이다 — 여기에 다시 적지 않는다. */
+    seoOrphans = withoutRetired(withCore.filter((id) => known.has(id) === false));
   }
 }
 
