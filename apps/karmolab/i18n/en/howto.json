@@ -504,5 +504,13 @@
   "howto.arcade.0": "Pick the game you want and press \"Solo\" to start right away",
   "howto.arcade.1": "Press \"Together\" and you get a five-letter room code and a link",
   "howto.arcade.2": "Whoever opens the link shows up in the waiting seats",
-  "howto.arcade.3": "Press \"Start\" once everyone is in — bots fill the empty seats"
+  "howto.arcade.3": "Press \"Start\" once everyone is in — bots fill the empty seats",
+  "howto.semver.0": "Paste a range (e.g. ^1.2.3, ~1.2, >=1 <2, 1.x || 2.x)",
+  "howto.semver.1": "Read the expanded bounds — shown as \"1.2.3 or later, below 2.0.0\"",
+  "howto.semver.2": "Enter a version to see whether it falls inside the range",
+  "howto.semver.3": "Enter two ranges to see whether they share any version — if not, the package gets installed twice",
+  "howto.csp.0": "Paste the CSP header you are using",
+  "howto.csp.1": "Read the directives, one per line — what was unreadable as a single line is now a list",
+  "howto.csp.2": "Read the flagged parts (unsafe-inline, *, data: scripts) — each says why it matters",
+  "howto.csp.3": "Or pick only what you need and let it build a header for you"
 }

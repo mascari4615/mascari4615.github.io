@@ -30,6 +30,9 @@ export const RETIRED_OPERATION_IDS = new Set([
   /* 개발 도구 작업대로 흡수 (2026-08-16, TASK-KL-257) — 여기 안 적으면 검사가
      「명부에 없다」로 master 를 세운다. 글 열여섯이 그랬던 그 자리다. */
   'json2ts',
+  /* 「안 보이는 글자 찾기」 — 글 작업대 안의 조작이다(2026-08-16 확인: 자기 register 를 안 부른다).
+     알맹이(core/unicodex.ts)만 남아 있어 「페이지가 없다」로 잡히길래 여기 적는다. */
+  'unicodex',
   'sqlfmt',
   'xmlfmt',
   'configconv',
