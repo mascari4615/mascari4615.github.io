@@ -33,6 +33,12 @@ export const PREPUSH = [
   'audit:iconbtn',
   'audit:aliases',
   'audit:scripts',
+  /* ★ 0.4초 — **아무도 안 부르는 파일은 깨져도 조용하다** (2026-08-17 실측).
+     주석 한 줄을 잘못 닫아 `gen-csp-shell.mjs` 가 통째로 안 읽히게 됐는데, 그 파일을 불러 쓰는
+     검사가 하나도 없어 로컬은 전부 초록이었다 — **배포 검사가 그것을 실제로 부르는 순간** 터져
+     verify 가 세 판 연달아 섰다. 여기 `.mjs` 대부분이 그런 자리다(배포 뒤에만·한 달에 한 번만).
+     돌리지 않고 **읽기만** 한다. */
+  'audit:script-syntax',
   'test:tools',
   'test:tool-url',
   'test:i18n:keys',
