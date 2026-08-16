@@ -167,7 +167,7 @@ if (todo.some((c) => c.live)) {
     const base = process.env.BASE || 'https://blog.mascari4615.com';
     const res = await fetch(`${base}/apps/karmolab/build.json?t=${Date.now()}`, { cache: 'no-store' });
     if (res.ok) {
-      /* 시험용 갈아끼우기 — 이 경고 자체를 재 보려면 「옛 판을 서빙 중」 상황을 만들 수 있어야 한다
+      /* ★ 시험용 갈아끼우기 — 이 경고 자체를 재 보려면 「옛 판을 서빙 중」 상황을 만들 수 있어야 한다
          (갈아끼울 자리가 없는 안전장치는 영영 안 검증된 채로 남는다 — commit-isolated 와 같은 규율). */
       const served = String(process.env.LIVE_SERVED_OVERRIDE || (await res.json()).commit || '').slice(0, 8);
       const here = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim().slice(0, 8) || '(모름)';
@@ -177,9 +177,9 @@ if (todo.some((c) => c.live)) {
       if (served && here !== '(모름)' && served !== here) {
         const ahead = spawnSync('git', ['merge-base', '--is-ancestor', served, here]);
         if (ahead.status === 0) {
-          console.log('  경고 실사이트가 **이 자리보다 뒤진 판**을 서빙 중이다 — 여기서 나는 빨강은');
+          console.log('  ⚠ 실사이트가 **이 자리보다 뒤진 판**을 서빙 중이다 — 여기서 나는 빨강은');
           console.log('    「그 옛 판의 빨강」일 수 있다. 고친 것이 아직 안 나갔는지 먼저 봐라.');
-          /* 별 **무엇이 밀려 있는지까지 적는다** (2026-08-17). 「뒤진 판이다」만으로는 사람이
+          /* ★ **무엇이 밀려 있는지까지 적는다** (2026-08-17). 「뒤진 판이다」만으로는 사람이
              결국 로그를 뒤진다 — 오늘 이미 고쳐진 빨강 셋을 다시 진단했다. 밀린 커밋의 제목을
              보여 주면 그 자리에서 「아, 지구본 그거 고쳤네」로 끝난다. */
           밀린것 = spawnSync('git', ['log', '--oneline', '--no-decorate', '-5', `${served}..${here}`], { encoding: 'utf8' })
@@ -240,13 +240,13 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 if (red.length) {
   const 판정보 =
     재던판 && 이자리판 && 재던판 !== 이자리판
-      ? ` · 경고 잰 것은 **실사이트에 올라간 판 ${재던판}** 이고 이 자리는 ${이자리판} 이다 — 이미 고친 것이 여기 뜰 수 있다`
+      ? ` · ⚠ 잰 것은 **실사이트에 올라간 판 ${재던판}** 이고 이 자리는 ${이자리판} 이다 — 이미 고친 것이 여기 뜰 수 있다`
       : 재던판
         ? ` · 잰 판 ${재던판}(이 자리와 같다)`
         : '';
   console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**${판정보}:`);
   for (const r of red) console.error(`  - ${r.name}`);
-  /* 별 **먼저 「이미 고쳤나」를 보게 한다** (2026-08-17). 오늘 이미 고쳐진 빨강 셋을 다시 진단했다 —
+  /* ★ **먼저 「이미 고쳤나」를 보게 한다** (2026-08-17). 오늘 이미 고쳐진 빨강 셋을 다시 진단했다 —
      밀린 커밋 제목만 보였어도 그 자리에서 끝났을 일이다(그 목록에 「광장 입구 … 지금 표시를 본다」가 있었다). */
   if (밀린것.length) {
     console.error(`  아직 안 나간 커밋 ${밀린것.length}개 — 이 중에 답이 있을 수 있다:`);
