@@ -161,6 +161,11 @@ function offlineNote(show: boolean): void {
         if (existing) return;
         const note = document.createElement('div');
         note.id = ID;
+        /* 이건 **상태 알림**이다 — 사람이 뭘 하지 않아도 스스로 떴다 사라진다.
+           역할을 안 주면 ① 화면낭독기가 뜬 줄도 모르고 ② 랜드마크 밖에 떠 있는
+           떠돌이 글로 잡힌다(axe `region`, 2026-08-16 실측 6곳). 둘 다 같은 한 줄로 풀린다. */
+        note.setAttribute('role', 'status');
+        note.setAttribute('aria-live', 'polite');
         /* ★ **말 묶음이 없어도 떠야 한다** (2026-08-14). 이 쪽지가 뜨는 상황이 바로
            「그물이 끊겼다」다 — 그런데 `t()` 는 묶음이 안 실렸으면 **던진다**. 대비 문장이
            없으면 쪽지를 그리다 말고 죽는다(끊긴 순간에만 죽으니 아무도 못 봤다). */

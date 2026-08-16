@@ -1,12 +1,1 @@
-{
- "light|첫 화면|region": 1,
- "light|도구 한 장|color-contrast": 7,
- "light|도구 한 장|region": 1,
- "light|도구 목록|color-contrast": 7,
- "light|도구 목록|region": 1,
- "dark|첫 화면|region": 1,
- "dark|도구 한 장|color-contrast": 4,
- "dark|도구 한 장|region": 1,
- "dark|도구 목록|color-contrast": 4,
- "dark|도구 목록|region": 1
-}
+{}

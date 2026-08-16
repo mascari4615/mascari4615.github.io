@@ -20,7 +20,7 @@
     --text-primary: #f2f2ee;
     --text-secondary: #9a9a94;
 
-    --text-tertiary: #868681;
+    --text-tertiary: #94948f;
 
     --font-size-2xs: 12px;
     --font-size-xs: 14px;
@@ -123,13 +123,13 @@
 
     --text-primary: #1a1a1f;
     --text-secondary: #64626f;
-    --text-tertiary: #716f80;
+    --text-tertiary: #656374;
 
-    --accent: #6d5bd0;
-    --accent-hover: #5a48bd;
-    --accent-dim: rgba(109, 91, 208, 0.10);
-    --accent-subtle: rgba(109, 91, 208, 0.07);
-    --accent-glow: rgba(109, 91, 208, 0.22);
+    --accent: #5f4dc2;
+    --accent-hover: #4f3eb0;
+    --accent-dim: rgba(95, 77, 194, 0.10);
+    --accent-subtle: rgba(95, 77, 194, 0.07);
+    --accent-glow: rgba(95, 77, 194, 0.22);
 
     --secondary: #3f6285;
     --secondary-hover: #4f779f;
@@ -145,12 +145,12 @@
 
     --border: rgba(26, 26, 31, 0.10);
     --border-hover: rgba(26, 26, 31, 0.18);
-    --border-strong: rgba(109, 91, 208, 0.4);
+    --border-strong: rgba(95, 77, 194, 0.4);
 
-    --grid-color: rgba(109, 91, 208, 0.105);
-    --grid-color-fine: rgba(109, 91, 208, 0.045);
+    --grid-color: rgba(95, 77, 194, 0.105);
+    --grid-color-fine: rgba(95, 77, 194, 0.045);
 
-    --vignette: rgba(109, 91, 208, 0.06);
+    --vignette: rgba(95, 77, 194, 0.06);
 
     --holo-sweep: linear-gradient(112deg,
         rgba(150, 132, 246, 0.30) 0%,
@@ -167,8 +167,8 @@
     --decor-d: #b247c9;
     --decor-e: #4a35a8;
 
-    --chrome-grad: linear-gradient(135deg, #8a7ae8 0%, #6d5bd0 30%, #b9a8f0 52%, #6d5bd0 76%, #5847bb 100%);
-    --chrome-grad-hover: linear-gradient(135deg, #9b8cf0 0%, #7b69dc 30%, #cdc0f7 52%, #7b69dc 76%, #6d5bd0 100%);
+    --chrome-grad: linear-gradient(135deg, #8a7ae8 0%, #5f4dc2 30%, #b9a8f0 52%, #5f4dc2 76%, #5847bb 100%);
+    --chrome-grad-hover: linear-gradient(135deg, #9b8cf0 0%, #7b69dc 30%, #cdc0f7 52%, #7b69dc 76%, #5f4dc2 100%);
     --brand-edge: rgba(26, 26, 31, 0.30);
     --brand-shadow: rgba(255, 255, 255, 0.72);
 
