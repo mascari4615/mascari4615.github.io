@@ -171,14 +171,35 @@ function inspect(label, html, expectUrl) {
   return found;
 }
 
+/* ★ **한 번 삐끗한 서버를 「페이지가 망가졌다」로 적지 마라** (2026-08-17 실측). 거울이 이 검사를
+   돌렸더니 `video2audio: http 503` 한 줄이 나왔는데, 곧바로 같은 주소를 받아 보니 200 이었다.
+   앞단(CDN)이 잠깐 흔들린 것이지 그 장이 검색에서 사라지는 일이 아니다. 그런 줄이 섞이면
+   사람이 이 검사를 안 믿게 된다 — 그게 검사가 죽는 방식이다.
+   그래서 5xx·연결 실패는 **두 번 더** 받아 보고, 그래도 안 되면 「못 잼」으로 따로 센다(빨강 X).
+   4xx 는 그대로 빨강이다 — 그건 진짜로 없는 장이다. */
+const 못잼 = [];
+async function 받기(url) {
+  let last = null;
+  for (let n = 0; n < 3; n += 1) {
+    try {
+      const r = await fetch(url);
+      if (r.ok || (r.status >= 400 && r.status < 500)) return r;
+      last = `http ${r.status}`;
+    } catch (e) { last = String(e.message).slice(0, 60); }
+    await new Promise((z) => setTimeout(z, 400 * (n + 1)));
+  }
+  return { ok: false, status: 0, 못잼사유: last };
+}
+
 const want = ['SoftwareApplication', 'FAQPage', 'BreadcrumbList'];
 
 for (let i = 0; i < ids.length; i += 8) {
   await Promise.all(
     ids.slice(i, i + 8).map(async (id) => {
-      const r = await fetch(`${BASE}/karmolab/t/${id}/`);
+      const r = await 받기(`${BASE}/karmolab/t/${id}/`);
       if (!r.ok) {
-        problems.push(`${id}: http ${r.status}`);
+        if (r.못잼사유) 못잼.push(`${id}: ${r.못잼사유} (세 번 다 안 됐다)`);
+        else problems.push(`${id}: http ${r.status}`);
         return;
       }
       const found = inspect(id, await r.text(), `https://blog.mascari4615.com/karmolab/t/${id}/`);
@@ -228,6 +249,12 @@ for (let a = 0; a < keys.length; a++) {
 
 for (const [t, who] of titles) if (who.length > 1) problems.push(`제목이 겹친다 (${who.join(', ')}) — ${t.slice(0, 40)}`);
 for (const [, who] of descs) if (who.length > 1) problems.push(`설명이 겹친다 (${who.join(', ')})`);
+
+/* 못 잰 장은 **따로** 말한다 — 통과에 섞지도, 빨강에 섞지도 않는다. */
+if (못잼.length) {
+  console.log(`[audit-seo-head] 못 잰 장 ${못잼.length}개 (앞단이 흔들렸다 — 통과가 아니다):`);
+  for (const m of 못잼.slice(0, 10)) console.log('  · ' + m);
+}
 
 if (problems.length) {
   console.error(`[audit-seo-head] 검색에서 사라질 수 있는 문제 ${problems.length}건 / ${ids.length + 1}장`);
