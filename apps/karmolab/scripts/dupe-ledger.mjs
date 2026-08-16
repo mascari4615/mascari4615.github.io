@@ -124,6 +124,11 @@ function movability(f) {
      첫 innerHTML 은 판 짜기라 안 센다 — 그 뒤부터가 「따로 그리는 것」이다. */
   const draws = (f.text.match(/innerHTML\s*=/g) || []).length;
   if (draws > 1) rich += 1;
+  /* 단추가 여럿이면 그중에 **일하는 단추**가 있다 — 작업대 조작에는 복사 말고 손이 하나뿐이다
+     (2026-08-16 실측: curlkit 은 「보내기」로 진짜 요청을 보낸다. 그리기 표식만 봐서는 안 잡혔다).
+     복사 단추 하나는 작업대가 이미 주므로 둘째부터 센다. */
+  const hands = (f.text.match(/\.onclick\s*=/g) || []).length;
+  if (hands > 1) rich += 1;
   const outputs = (f.text.match(/readonly/g) || []).length;
   if (rich === 0 && outputs > 0) return '옮길 수 있다';
   if (rich <= 1) return '아마도 (한 가지만 걸림)';
