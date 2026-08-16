@@ -59,6 +59,7 @@ export const PREPUSH = [
   'audit:spec-locales',
   'audit:memo-derived',
   'audit:generated-registry',
+  'test:taptarget',
   'test:i18n'
 ];
 

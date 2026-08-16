@@ -103,6 +103,8 @@
     "audit:memo-derived": "node scripts/audit-memo-derived.mjs",
     "build:css": "node scripts/split-css.mjs",
     "audit:generated-registry": "node scripts/audit-generated-registry.mjs",
+    "audit:entry-sources": "node scripts/check-entry-sources.mjs",
+    "test:taptarget": "node scripts/test-taptarget.mjs",
     "prerender": "node scripts/prerender-tools.mjs",
     "prerender:home": "node scripts/prerender-home.mjs",
     "audit:prerender-home": "node scripts/audit-prerender-home.mjs",

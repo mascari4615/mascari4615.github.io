@@ -2,7 +2,6 @@
   "설명": "부를 자리가 아예 없는 검사 파일 — 늘면 빨강, 연결하면 저절로 줄어든다",
   "왜": "npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).",
   "목록": [
-    "check-entry-sources.mjs",
     "dupe-ledger.mjs",
     "gen-paleo.mjs",
     "gen-passkey-fixture.mjs",
@@ -14,12 +13,10 @@
     "smoke-foundry.mjs",
     "smoke-shell-i18n.mjs",
     "smoke-wrong-kind.mjs",
-    "test-taptarget.mjs",
     "test-videosum.mjs"
   ],
   "갱신": "2026-08-17",
   "사유": {
-    "check-entry-sources.mjs": "화면이 부르는데 소스가 없는 파일을 잡는 검사 — 이름이 없어 아무도 안 부른다. 값이 있어 보인다(묶을 후보 1순위).",
     "dupe-ledger.mjs": "합칠 수 있는 것을 세는 원장(KL-257) — 사람이 볼 때 돌리는 조사 도구다.",
     "gen-paleo.mjs": "옛 지구 해안선을 굽는 일회성 생성기 — 자료를 한 번 만들면 끝이다.",
     "gen-passkey-fixture.mjs": "진짜 브라우저가 만든 패스키를 떠 오는 도구 — 사람이 손으로 한 번 뜬다.",
@@ -31,7 +28,6 @@
     "smoke-foundry.mjs": "서버 없을 때의 선반 화면을 본다. 브라우저를 띄운다 — 묶기 전에 시간을 재라.",
     "smoke-shell-i18n.mjs": "열기 전 화면이 그 언어로 뜨나 보는 검사 — 이름이 없어 안 돈다. 묶을 후보다.",
     "smoke-wrong-kind.mjs": "재 보니 2분 05초. 기다리는 자리(#pfDropHint)가 아직 안 지어져 여덟 판 모두 빨갛다(TASK-KL-320). 짓고 나서 묶는다.",
-    "test-taptarget.mjs": "체크 상자를 손가락으로 누를 수 있나 보는 검사 — 이름이 없어 안 돈다. 묶을 후보다.",
     "test-videosum.mjs": "영상 요약 검사 — 이름이 없어 안 돈다(무거울 수 있어 시간부터 재야 한다)."
   }
 }
