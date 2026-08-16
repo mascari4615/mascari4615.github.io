@@ -163,6 +163,13 @@ async function checkOne(page, id) {
       if (e.scrollWidth <= e.clientWidth + 2) continue;
       const s = getComputedStyle(e);
       if (s.overflowX === 'auto' || s.overflowX === 'scroll') continue;
+      /* ★ **꾸밈 층은 잘려도 잃는 게 없다** (2026-08-16, 실측). 화면 전체를 덮는
+         `pointer-events:none` 고정 층(`.kl-cursors` — 남의 커서가 뜨는 자리)은 자식이
+         화면 밖 좌표에 놓이는 순간 `scrollWidth` 가 폭을 넘는다. 그게 733>375 로 잡혀
+         도구 장 두 곳이 늘 「다듬을 것」에 올라와 있었다. 그런데 거기 잘리는 것은 **남의 커서**지
+         읽을 글이 아니다 — 늘 켜져 있는 경고는 곧 아무도 안 읽는 칸이 된다.
+         「누를 수도 없고 화면에 붙박인 층」만 뺀다 — 진짜 잘린 본문은 그대로 잡힌다. */
+      if (s.pointerEvents === 'none' && s.position === 'fixed') continue;
       const b = e.getBoundingClientRect();
       if (b.height < 8 || b.width < 8) continue;
       const what = (e.className || e.tagName).toString().split(' ')[0].slice(0, 20);
