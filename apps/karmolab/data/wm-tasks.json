@@ -1,16 +1,16 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 158,
+    "docs": 405,
     "groups": 7,
-    "shown": 79,
+    "shown": 81,
     "hidden": 0
   },
   "groups": [
     {
       "status": "in_progress",
       "label": "하는 중",
-      "count": 28,
+      "count": 34,
       "items": [
         {
           "id": "TASK-WM-027",
@@ -165,14 +165,6 @@
           "updated": ""
         },
         {
-          "id": "TASK-WM-196",
-          "title": "투기장 TD 공용 전투셸 추출",
-          "status": "in_progress",
-          "statusLabel": "하는 중",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
           "id": "TASK-WM-198",
           "title": "퀘스트 MainSide축과 Hidden태그",
           "status": "in_progress",
@@ -235,14 +227,86 @@
           "statusLabel": "하는 중",
           "priority": "high",
           "updated": ""
+        },
+        {
+          "id": "TASK-WM-405",
+          "title": "쫓으며 때리기",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-406",
+          "title": "방치형 곡선 MVP-0 — 업그레이드 누르는 맛이 있나",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-407",
+          "title": "DomainSDK 32개 도메인을 각자 조각으로 — 순환이 0이라 지금 할 수 있다",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-408",
+          "title": "행동 원장 코어",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-409",
+          "title": "제품 경계 — Resources 탈피와 빌드 예산",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-410",
+          "title": "밭 복셀 접합 화면",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-411",
+          "title": "versus v0 prototype",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
         }
       ]
     },
     {
       "status": "seed",
       "label": "씨앗",
-      "count": 6,
+      "count": 9,
       "items": [
+        {
+          "id": "2026-04-08-content-first-todo",
+          "title": "콘텐츠 중심 실행 TODO",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "",
+          "updated": ""
+        },
+        {
+          "id": "2026-04-08-iteration1-test-cases",
+          "title": "Iteration 1 테스트 케이스 (간단)",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "",
+          "updated": ""
+        },
         {
           "id": "TASK-WM-147",
           "title": "수치 하드코딩 NodeGraph Codex 파라미터",
@@ -290,13 +354,21 @@
           "statusLabel": "씨앗",
           "priority": "high",
           "updated": ""
+        },
+        {
+          "id": "test-checklist",
+          "title": "WM 통합 테스트 체크리스트",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "",
+          "updated": ""
         }
       ]
     },
     {
       "status": "hold",
       "label": "멈춤",
-      "count": 24,
+      "count": 5,
       "items": [
         {
           "id": "TASK-WM-010",
@@ -312,94 +384,6 @@
           "status": "hold",
           "statusLabel": "멈춤",
           "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-021",
-          "title": "UIToolkit 나머지 패널 마이그레이션",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-021-test-checklist",
-          "title": "test checklist",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-027-G",
-          "title": "TASK-QUALITY-OK 검증 체크박스 marker 업데이트만 — 본 TASK 본문(목표·읽기) 기존 세션 진입 시 작성된 인계 문서로 보존",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-048",
-          "title": "마도서 시스템",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-050",
-          "title": "지형 시스템 후속",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-051",
-          "title": "노드 그래프 시스템 강화",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-054",
-          "title": "밤낮 날씨 시스템",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-054",
-          "title": "TASK-QUALITY-OK 시리즈 통합 인덱스 (TASK-KAR-156 Phase2) — 발화인용은 부모 KAR-156",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "medium",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-054-C",
-          "title": "C SkyDirector",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-054-D",
-          "title": "D WeatherSystem",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-061",
-          "title": "모든 씬 Lighting Skybox 자동화",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
           "updated": ""
         },
         {
@@ -419,75 +403,11 @@
           "updated": ""
         },
         {
-          "id": "TASK-WM-104",
-          "title": "TASK-QUALITY-OK parent(TASK-WM-085 Phase E) 파생 인프라 sub-TASK — 직접 사용자 발화 없음(origin 발화 = 상위 WM-085 + 6-동기 「퀄리티」 canon). slot-C /loop 자율 스카우트로 진입.",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "low",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-120",
-          "title": "WM-078 γ Composition Root 완성 + 부팅 검증 인프라 활용",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "medium",
-          "updated": ""
-        },
-        {
           "id": "TASK-WM-161",
           "title": "TASK-WM-161 — 카메라 가림 판정 (component-based, layer 슬롯 무점유)",
           "status": "hold",
           "statusLabel": "멈춤",
           "priority": "medium",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-171",
-          "title": "되살림그리고배웅 돌봄배웅Phase0",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": "2026-05-31"
-        },
-        {
-          "id": "TASK-WM-172",
-          "title": "잔해에서피어나는 정련공방Phase0",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": "2026-05-31"
-        },
-        {
-          "id": "TASK-WM-180",
-          "title": "SimCity 도시 game feel 건물 성장쇠퇴 연출",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-181",
-          "title": "배치파괴 시스템 통합 복셀네이티브",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-182",
-          "title": "동물 생태 사냥 시스템",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-191",
-          "title": "네트워크 플레이어 아바타 — 풀 인형 (A: MC/Stardew식)",
-          "status": "hold",
-          "statusLabel": "멈춤",
-          "priority": "normal",
           "updated": ""
         }
       ]
@@ -495,99 +415,99 @@
     {
       "status": "done",
       "label": "끝남",
-      "count": 91,
+      "count": 323,
       "items": [
         {
-          "id": "TASK-WM-338",
-          "title": "게임 창에도 유령 덫 지나간 글씨",
+          "id": "TASK-WM-404",
+          "title": "때리기 공평 빨강걷기 재시도",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-403",
+          "title": "관문마다 빈 문",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-402",
+          "title": "칸이 반경보다 크면 안 뜬다",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-337",
-          "title": "끊긴 사람이 제 통행증에서 쫓겨났다",
+          "id": "TASK-WM-401",
+          "title": "서로가 서로를 본다",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-336",
-          "title": "관문마다 빨개지는 것을 봤다",
+          "id": "TASK-WM-400",
+          "title": "칸 48m 되돌림",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-399",
+          "title": "CI 거짓빨강 문턱 둘",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-335",
-          "title": "통행증을 두 번 내밀어도 짐은 한 벌",
+          "id": "TASK-WM-398",
+          "title": "몰린 칸을 쪼갠다",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-334",
-          "title": "탭을 둘 열어도 몸은 하나",
+          "id": "TASK-WM-397",
+          "title": "몰린 칸에서 옆사람이 얼어붙는다",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-333",
-          "title": "못 읽는 기억이면 안 띄운다",
+          "id": "TASK-WM-396",
+          "title": "칸 크기를 재서 고른다",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
           "updated": ""
         },
         {
-          "id": "TASK-WM-332",
-          "title": "상자를 둘이 동시에 비운다",
+          "id": "TASK-WM-395",
+          "title": "창 쪽 깜빡임",
           "status": "done",
           "statusLabel": "끝남",
-          "priority": "high",
+          "priority": "normal",
           "updated": ""
         },
         {
-          "id": "TASK-WM-331",
-          "title": "지킴이가 하루 한 줄로 살아있음을 말한다",
+          "id": "TASK-WM-394",
+          "title": "끝자락 깜빡임",
           "status": "done",
           "statusLabel": "끝남",
-          "priority": "high",
+          "priority": "normal",
           "updated": ""
         },
         {
-          "id": "TASK-WM-330",
-          "title": "지킴이가 국경을 진짜로 건넌다",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-329",
-          "title": "유령에게 덫을 놓는다",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-328",
-          "title": "창 여럿 남이 계속 움직이나",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-327",
-          "title": "prod 두 세계 지킴이",
+          "id": "TASK-WM-393",
+          "title": "브라우저 관문 이 기계에서도",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
@@ -596,9 +516,112 @@
       ]
     },
     {
+      "status": "sealed",
+      "label": "닫힘",
+      "count": 25,
+      "items": [
+        {
+          "id": "TASK-WM-209-HANDOFF",
+          "title": "이 문서는 <b>끝난 세션의 스냅샷</b>이다 — 되살아날 일이 없으므로 봉인(sealed).",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-191",
+          "title": "네트워크 플레이어 아바타 — 풀 인형 (A: MC/Stardew식)",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-182",
+          "title": "동물 생태 사냥 시스템",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-181",
+          "title": "배치파괴 시스템 통합 복셀네이티브",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-180",
+          "title": "SimCity 도시 game feel 건물 성장쇠퇴 연출",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-172",
+          "title": "잔해에서피어나는 정련공방Phase0",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-171",
+          "title": "되살림그리고배웅 돌봄배웅Phase0",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-120",
+          "title": "WM-078 γ Composition Root 완성 + 부팅 검증 인프라 활용",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-104",
+          "title": "TASK-QUALITY-OK parent(TASK-WM-085 Phase E) 파생 인프라 sub-TASK — 직접 사용자 발화 없음(origin 발화 = 상위 WM-085 + 6-동기 「퀄리티」 canon). slot-C /loop 자율 스카우트로 진입.",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-098",
+          "title": "Singleton 자생 boot 패턴",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-082",
+          "title": "build hook PATH sanity",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-061",
+          "title": "모든 씬 Lighting Skybox 자동화",
+          "status": "sealed",
+          "statusLabel": "닫힘",
+          "priority": "normal",
+          "updated": ""
+        }
+      ]
+    },
+    {
       "status": "unit_verified",
       "label": "unit_verified",
-      "count": 5,
+      "count": 6,
       "items": [
         {
           "id": "TASK-WM-029-B",
@@ -611,6 +634,14 @@
         {
           "id": "TASK-WM-049",
           "title": "KCC 엣지케이스 테스트 씬",
+          "status": "unit_verified",
+          "statusLabel": "unit_verified",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-196",
+          "title": "투기장 TD 공용 전투셸 추출",
           "status": "unit_verified",
           "statusLabel": "unit_verified",
           "priority": "normal",
@@ -668,21 +699,6 @@
           "title": "TASK-QUALITY-OK 사용자 발화가 아니라 사고(2026-08-07 대량 삭제)에서 나온 건 — 인용할 원본 발화가 없다. 사고 실측은 본문 § 왜 에 있다.",
           "status": "in_review",
           "statusLabel": "in_review",
-          "priority": "high",
-          "updated": ""
-        }
-      ]
-    },
-    {
-      "status": "reference",
-      "label": "reference",
-      "count": 1,
-      "items": [
-        {
-          "id": "TASK-WM-209-HANDOFF",
-          "title": "TASK-QUALITY-OK 인계 문서 — 사용자 발화가 아니라 세션 종료 시 남기는 상태 스냅샷이다.",
-          "status": "reference",
-          "statusLabel": "reference",
           "priority": "high",
           "updated": ""
         }

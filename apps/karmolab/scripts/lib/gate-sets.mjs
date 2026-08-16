@@ -42,7 +42,7 @@ export const PREPUSH = [
      새 도구가 사이트에서 새것으로 안 보이고 변경일 없이 실린다. 미는 자리가 유일한 자리다. */
   'audit:tool-state',
   'audit:spec-locales',
-  'audit:wiki-fresh',
+  'audit:memo-derived',
   'test:i18n'
 ];
 
