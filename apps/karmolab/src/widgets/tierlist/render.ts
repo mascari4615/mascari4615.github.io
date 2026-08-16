@@ -238,7 +238,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 ? `<img src="${imgData}" alt="${esc(item.name || '')}">`
                 : `<div class="tl-item-text">${esc(item.name || '?')}</div>`;
             const nameTag = item.name ? `<div class="tl-item-name">${esc(item.name)}</div>` : '';
-            return `<div class="tl-item" data-item-id="${itemId}">${itemOriginBadge(item)}${itemUserLabelsHtml(item)}${inner}${nameTag}</div>`;
+            /* 자판으로도 잡을 수 있어야 옮길 수 있다 — 초점 받을 자리를 준다(2026-08-17). */
+            return `<div class="tl-item" data-item-id="${itemId}" tabindex="0" role="listitem">${itemOriginBadge(item)}${itemUserLabelsHtml(item)}${inner}${nameTag}</div>`;
         }
 
         const selector = await buildListSelectorHtml(st, meta);

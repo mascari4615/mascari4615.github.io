@@ -229,6 +229,46 @@ interface TlDnDOptions {
             itemEl.addEventListener('lostpointercapture', onLostCapture);
         }
 
+
+        /* ★ **자판만으로도 카드를 옮긴다** (2026-08-17). 여기는 끌기 말고는 길이 없어서
+           마우스가 없으면 순위를 아예 못 매겼다(접근성 감사가 이름으로 짚은 자리).
+           ← → = 같은 줄에서 앞뒤 · ↑ ↓ = 위/아래 줄로 옮기기.
+           끌기와 **같은 onDrop** 을 부른다 — 두 길이 갈라지면 한쪽만 고쳐진다. */
+        function 줄들(): HTMLElement[] {
+            return Array.from(root.querySelectorAll<HTMLElement>('.tl-dropzone:not([data-toc-drop]), .tl-pool'));
+        }
+        root.addEventListener('keydown', (e: KeyboardEvent) => {
+            const 키 = e.key;
+            if (키 !== 'ArrowLeft' && 키 !== 'ArrowRight' && 키 !== 'ArrowUp' && 키 !== 'ArrowDown') return;
+            const itemEl = (e.target as HTMLElement | null)?.closest<HTMLElement>('.tl-item');
+            const itemId = itemEl?.dataset.itemId;
+            if (!itemEl || !itemId) return;
+            const 지금줄 = itemEl.closest<HTMLElement>('.tl-dropzone, .tl-pool');
+            if (!지금줄) return;
+            const 줄 = 줄들();
+            const 줄자리 = 줄.indexOf(지금줄);
+            const 카드들 = Array.from(지금줄.querySelectorAll<HTMLElement>('.tl-item'));
+            const 자리 = 카드들.indexOf(itemEl);
+            if (자리 < 0) return;
+            e.preventDefault();
+
+            if (키 === 'ArrowLeft' || 키 === 'ArrowRight') {
+                /* 제자리에서 한 칸. 오른쪽으로 갈 때 자기 자신이 빠진 뒤 자리라 +2 다. */
+                const 갈곳 = 키 === 'ArrowLeft' ? 자리 - 1 : 자리 + 2;
+                if (갈곳 < 0 || 갈곳 > 카드들.length) return;
+                onDrop?.({ itemId, tierId: 지금줄.dataset.tierId, insertIdx: 갈곳 });
+            } else {
+                const 다음 = 키 === 'ArrowUp' ? 줄자리 - 1 : 줄자리 + 1;
+                if (다음 < 0 || 다음 >= 줄.length) return;
+                const 끝 = 줄[다음].querySelectorAll('.tl-item').length;
+                onDrop?.({ itemId, tierId: 줄[다음].dataset.tierId, insertIdx: 끝 });
+            }
+            /* 옮기고 나면 화면이 다시 그려진다 — 같은 카드에 초점을 도로 준다(안 그러면 길을 잃는다). */
+            requestAnimationFrame(() => {
+                root.querySelector<HTMLElement>(`.tl-item[data-item-id="${itemId}"]`)?.focus();
+            });
+        });
+
         root.addEventListener('pointerdown', onPointerDown);
     }
 
