@@ -560,5 +560,17 @@
   "howto.sshkey.0": "ssh-rsa / ssh-ed25519 で始まる行を貼る",
   "howto.sshkey.1": "種類・長さ・コメント・指紋(SHA256:…) を確認する",
   "howto.sshkey.2": "サーバーで消す行を指紋で選ぶ",
-  "howto.sshkey.3": "PEM 公開鍵があれば OpenSSH の一行に変換する"
+  "howto.sshkey.3": "PEM 公開鍵があれば OpenSSH の一行に変換する",
+  "howto.idphoto.0": "写真をアップして規格を選ぶ（パスポート 35×45 など）",
+  "howto.idphoto.1": "画面の線に目の高さと頭の大きさを合わせる",
+  "howto.idphoto.2": "切り取り結果を確認する",
+  "howto.idphoto.3": "印刷用の配置（L判など）で保存する",
+  "howto.ocr.0": "画像か PDF をアップロードする",
+  "howto.ocr.1": "どの種類の作業かを確認する（抜く／直す／読む）",
+  "howto.ocr.2": "傾き・影があるならまず直して整える",
+  "howto.ocr.3": "文字を取り出してコピーする",
+  "howto.payslip.0": "年収または月給を入れる",
+  "howto.payslip.1": "非課税分（食事代など）と扶養人数を入れる",
+  "howto.payslip.2": "税金と保険料がそれぞれいくらか見る",
+  "howto.payslip.3": "手取り額と適用年度を確認する"
 }

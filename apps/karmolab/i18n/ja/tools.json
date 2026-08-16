@@ -302,5 +302,11 @@
   "tools.mockdata.description": "項目の種類だけ書けば（name:name）それらしいデータを必要な行数だけ作ります。同じ種（seed）なら同じデータになります。",
   "tools.mockdata.lead": "1行1項目 · 種を固定 · ko/en/ja · JSON・CSV・SQL",
   "tools.sshkey.description": "SSH 公開鍵の行を貼ると種類・長さ・コメント・指紋(SHA256)を出します。PEM 公開鍵を OpenSSH の一行に変換もします。",
-  "tools.sshkey.lead": "authorized_keys の行を読む · SHA256 指紋 · PEM → OpenSSH"
+  "tools.sshkey.lead": "authorized_keys の行を読む · SHA256 指紋 · PEM → OpenSSH",
+  "tools.idphoto.description": "証明写真を規格(mm)に合わせて切り、印画紙一枚に複数枚を配置します。目の高さ・頭の大きさの線が出るので窓口で弾かれにくくなります。",
+  "tools.idphoto.lead": "パスポート・各種規格 · 目の高さの線 · 印刷配置 · ブラウザの中で完結",
+  "tools.ocr.description": "画像から文字を読みます。ただし先に種類を分けます — 文字入り PDF は抜くだけ、傾いた写真はまず直し、本当に読みが要るものだけモデルを使います。",
+  "tools.ocr.lead": "種類分け · 傾き補正 · 文字抽出 · 必要なときだけモデル",
+  "tools.payslip.description": "年収・月給から税金と社会保険を引いて、実際に振り込まれる額を出します。答えが分かれる三つの理由を画面に出したまま計算します。",
+  "tools.payslip.lead": "手取り · 社会保険 · 非課税 · 適用年度の表示"
 }
