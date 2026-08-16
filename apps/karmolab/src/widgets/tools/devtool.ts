@@ -239,7 +239,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     wrap.appendChild(sum);
 
     /** 접힌 가지들의 길 — 이 길로 시작하는 줄은 안 그린다 */
-    const ROOT = ' root';
+    const ROOT = '\0root';
     const idOf = (r: { path: string; depth: number }): string => (r.path === '' ? ROOT : r.path);
     const folded = new Set<string>(rows.filter((r) => r.branch && r.depth>= 2).map((r) => idOf(r)));
 

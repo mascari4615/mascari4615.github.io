@@ -18,9 +18,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 /* 소스만 본다. 만들어진 것·남의 것은 우리가 고칠 자리가 아니다. */
-const DIRS = ['src', 'scripts'];
+/* 볼 폴더는 인자로 늘릴 수 있다 — 같은 저장소의 packages/ 도 같은 사고를 겪었는데
+   이 검사가 karmolab 안만 보고 있었다(companion 의 정규식 한 갈래가 죽어 있었다). */
+const DIRS = process.argv.length > 2 ? process.argv.slice(2) : ['src', 'scripts', '../../packages'];
 const EXT = new Set(['.ts', '.mjs', '.js', '.json']);
-const SKIP = /node_modules|[\\/]vendor[\\/]|\.generated\./;
+/* dist 는 지어진 것이라 원본을 고치면 따라 바뀐다 — 여기서 잡으면 원본이 아니라 산출물을 고치게 된다. */
+const SKIP = /node_modules|[\\/]vendor[\\/]|[\\/]dist[\\/]|\.generated\./;
 
 /**
  * **절대 정상일 수 없는 것만** 본다.
@@ -32,11 +35,16 @@ const SKIP = /node_modules|[\\/]vendor[\\/]|\.generated\./;
  * NUL 도 뺐다 — community-markdown 이 코드블록 자리표시자로 쓰고 있었다. 같은 이유다.
  * 남긴 것: 백스페이스 · 수직탭 · 폼피드 · ESC · DEL. **어디에도 쓸 자리가 없는 것들만.**
  */
-const BAD = new RegExp('[\u0008\u000B\u000C\u001B\u007F]');
+/* 별 **NUL(0x00) 도 센다** (2026-08-17 실측). 여태 빠져 있었고, 그 틈으로 src 에 진짜 NUL 이
+   열 군데 박혀 있었다 — 전부 「사람 글에 안 나올 표식」으로 일부러 쓴 것이라 돌기는 했지만
+   눈에 안 보였다. 뜻이 같은 이스케이프(역슬래시+0)로 적으면 보인다. 그래서 진짜 글자는 막는다.
+   같은 날 memo 쪽에서 이 부류가 검사 하나를 통째로 죽여 놨다 — 정규식이 14건을 0건으로 읽었다. */
+const BAD = new RegExp('[\u0000\u0008\u000B\u000C\u001B\u007F]');
 
 const names = {
   8: '백스페이스(\\b 를 글자로 박은 것)',
   0: 'NUL',
+  0: 'NUL(널 문자 — 뜻이 같은 이스케이프로 적어라)',
   12: '폼피드',
   27: 'ESC'
 };
