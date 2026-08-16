@@ -249,7 +249,7 @@ export function buildCalendarView(
             cells.push(`<button type="button" class="${cls}" data-date="${key}">${d.getDate()}</button>`);
         }
 
-        const dows = [t('planner.t26'), t('planner.t20'), t('planner.t21'), t('planner.t22'), t('planner.t23'), t('planner.t24'), t('planner.t25')];
+        const dowLabels = [t('planner.t26'), t('planner.t20'), t('planner.t21'), t('planner.t22'), t('planner.t23'), t('planner.t24'), t('planner.t25')];
         sideMini.innerHTML = `
             <div class="pl-mini-head">
                 <button type="button" class="pl-mini-nav" data-nav="-1" aria-label="${esc(t('planner.t13'))}">◀</button>
@@ -257,7 +257,7 @@ export function buildCalendarView(
                 <button type="button" class="pl-mini-nav" data-nav="1" aria-label="${esc(t('planner.t14'))}">▶</button>
             </div>
             <div class="pl-mini-grid">
-                ${dows.map((d) => `<span class="pl-mini-dow">${esc(d)}</span>`).join('')}
+                ${dowLabels.map((d) => `<span class="pl-mini-dow">${esc(d)}</span>`).join('')}
                 ${cells.join('')}
             </div>`;
     }
