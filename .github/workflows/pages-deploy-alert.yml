@@ -16,7 +16,11 @@ name: 배포 빨강 알림
 
 on:
   workflow_run:
-    workflows: ['Build and Deploy']
+    # ★ **verify 도 여기서 본다** (2026-08-16). 여태 이 알림은 배포만 봤는데,
+    #   2026-08-16 09:23~10:22 에 verify 가 **15판 연속 빨강**이었고 아무 데도 안 울렸다.
+    #   verify 는 master 불변식 단일 게이트다 — 그게 빨간 채로 한 시간을 가면
+    #   그 사이 밀린 커밋 전부가 검증 안 된 것이다. 배포보다 조용히 위험하다.
+    workflows: ['Build and Deploy', 'verify']
     types: [completed]
   # **시작도 못 하고 죽은 배포**는 위 이벤트를 안 만든다 (2026-08-08, TASK-KL-128 ㉓).
   # 워크플로 표현식 문법이 틀리면 job 이 0개인 채로 끝나는데, 그러면 `workflow_run` 이
@@ -94,13 +98,14 @@ jobs:
           [ -n "$WHERE" ] || WHERE='(어느 단계인지 못 읽었다 — 실행 기록을 열어 봐라)'
           # 커밋 메시지는 첫 줄만 — 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
           gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" \
-            --jq '{title: (.head_commit.message | split("\n")[0]), sha: .head_sha[0:8], who: .head_commit.author.name, url: .html_url}' > run.json
+            --jq '{title: (.head_commit.message | split("\n")[0]), sha: .head_sha[0:8], who: .head_commit.author.name, url: .html_url, wf: .name}' > run.json
           {
             echo "where<<EOF"; echo "$WHERE"; echo "EOF"
             echo "title=$(jq -r .title run.json)"
             echo "sha=$(jq -r .sha run.json)"
             echo "who=$(jq -r .who run.json)"
             echo "url=$(jq -r .url run.json)"
+            echo "wf=$(jq -r .wf run.json)"
           } >> "$GITHUB_OUTPUT"
 
       - name: 디스코드로 보낸다
@@ -113,18 +118,30 @@ jobs:
           SHA: ${{ steps.what.outputs.sha }}
           WHO: ${{ steps.what.outputs.who }}
           RUN_URL: ${{ steps.what.outputs.url }}
+          WF: ${{ steps.what.outputs.wf }}
         run: |
+          # 무엇이 죽었는지에 따라 말이 달라야 한다 — 「사이트가 옛 판본 그대로다」는
+          # 배포에만 맞는 말이고, verify 가 빨간 것은 「이 커밋이 검증 안 됐다」는 뜻이다.
+          if [ "$WF" = "verify" ]; then
+            HEAD_TITLE="master 불변식(verify)이 빨갛다"
+            TAIL="고칠 때까지 이 커밋과 그 뒤 커밋들은 검증 안 된 상태다."
+          else
+            HEAD_TITLE="블로그·KarmoLab 배포가 죽었다"
+            TAIL="고칠 때까지 사이트는 옛 판본 그대로다."
+          fi
           PAYLOAD=$(jq -nc \
+            --arg head_title "$HEAD_TITLE" \
+            --arg tail "$TAIL" \
             --arg where "$WHERE" \
             --arg title "$TITLE" \
             --arg sha "$SHA" \
             --arg who "$WHO" \
             --arg run_url "$RUN_URL" \
             '{
-              username: "배포 감시",
+              username: "빨강 감시",
               embeds: [{
-                title: "블로그·KarmoLab 배포가 죽었다",
-                description: ("죽은 자리: " + $where + "\n커밋: " + $title + " (" + $sha + " · " + $who + ")\n\n고칠 때까지 사이트는 옛 판본 그대로다."),
+                title: $head_title,
+                description: ("죽은 자리: " + $where + "\n커밋: " + $title + " (" + $sha + " · " + $who + ")\n\n" + $tail),
                 color: 15158332,
                 fields: [{ name: "실행 기록", value: $run_url, inline: false }]
               }]
