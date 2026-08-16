@@ -12,6 +12,7 @@
  *       THEMES=light node scripts/smoke-contrast.mjs (기본 = light,dark)
  */
 import fs from 'node:fs';
+import { stripFrontMatter } from './lib/serve-html.mjs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -116,6 +117,12 @@ const server = http.createServer((req, res) => {
     res.writeHead(404); res.end('404'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+  /* ★ Jekyll 앞머리는 **떼고** 낸다 — 안 떼면 브라우저가 그 줄들을 본문 글자로 읽고
+     `<head>` 가 닫힌 것으로 친다. 그러면 이 검사가 **배포와 다른 화면**을 재게 된다. */
+  if (path.extname(file) === '.html') {
+    res.end(stripFrontMatter(fs.readFileSync(file, 'utf8')));
+    return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(PORT, r));
