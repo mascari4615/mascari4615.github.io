@@ -105,8 +105,28 @@ if (choBuilt === false) {
 } else {
   /* ★ 답이 화면 어디에도 없어야 한다. 눈에 보이는 글만이 아니라 **HTML 통째로** 본다 —
      숨긴 칸·data 속성·value 에 들어 있어도 「소스 보기」로 다 보인다. */
-  const html = await page.evaluate(() => document.getElementById('choHost').outerHTML);
-  const leaked = answers.filter((a) => html.includes(a));
+  /* ★ **우리가 쓴 글까지 「샜다」고 세면 안 된다** (2026-08-16, 실측). 답은 우리 도구 설명에서
+     뽑은 **평범한 낱말**이다(`word-pool.generated.ts`). 그래서 그 낱말이 위젯 제 이름표에
+     그냥 들어 있을 수 있다 — 오늘 답 「글자」가 이름표 「🟨 한 글자 다름」에 박혀 있어,
+     아무것도 안 새는데 검사가 빨갰다(도구 설명을 채우자 낱말 뭉치가 바뀌면서 터졌다).
+     이름표는 **말 묶음에서 온 고정 글**이라 답이 될 수 없다 — 먼저 걷어내고 본다.
+     걷어낸 뒤에도 남으면 그건 값·data 속성·숨긴 칸에 든 **진짜 유출**이다. */
+  /* **길이 힌트는 답이 아니다.** 화면은 「2글자」처럼 답의 길이를 알려 준다 — 그런데 답 자체가
+     「글자」 같은 평범한 낱말이면 그 안에 통째로 들어가 버린다(오늘 실측). 사람이 「2글자」를 보고
+     답을 알 수는 없으니 이건 유출이 아니다. 그래서 **힌트 칸은 걷어내고** 본다 —
+     걷어낸 나머지에 답이 있으면 그건 값·data 속성·숨긴 칸에 든 진짜 유출이다. */
+  const html = await page.evaluate(() => {
+    const clone = document.getElementById('choHost').cloneNode(true);
+    clone.querySelectorAll('.tool-hint').forEach((el) => el.remove());
+    return clone.outerHTML;
+  });
+  const 이름표들 = Object.values(catalogs.dailycho)
+    .flatMap((v) => (typeof v === 'string' ? [v] : Object.values(v || {})))
+    .filter((v) => typeof v === 'string' && v.length > 0)
+    .sort((a, b) => b.length - a.length);
+  let 이름표뺀것 = html;
+  for (const label of 이름표들) 이름표뺀것 = 이름표뺀것.split(label).join('');
+  const leaked = answers.filter((a) => 이름표뺀것.includes(a));
   if (leaked.length > 0) fails.push(`답이 화면 안에 들어 있다: ${leaked.join(' · ')}`);
 
   /* 사슬이 이어져 있나 — 답을 넣으면 실제로 맞음이 되는가. */
