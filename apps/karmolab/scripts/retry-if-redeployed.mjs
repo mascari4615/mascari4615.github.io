@@ -35,23 +35,32 @@ async function servedCommit() {
   }
 }
 
-/** 판이 잠잠해질 때까지 (같은 커밋이 20초 이어질 때까지, 최대 3분) */
+/** 판이 잠잠해질 때까지 (같은 커밋이 20초 이어질 때까지, 최대 3분)
+ *  두 값은 **시험에서만** 줄인다(RIR_*) — 실전 기본값은 그대로다. */
+const 잠잠최대 = Number(process.env.RIR_SETTLE_MAX_MS || 180000);
+const 잠잠기준 = Number(process.env.RIR_SETTLE_STABLE_MS || 20000);
 async function settle() {
-  const until = Date.now() + 180000;
+  const until = Date.now() + 잠잠최대;
   let mark = null;
   let since = 0;
   while (Date.now() < until) {
     const now = await servedCommit();
-    if (now && now === mark && Date.now() - since >= 20000) return;
+    if (now && now === mark && Date.now() - since >= 잠잠기준) return;
     if (now && now !== mark) { mark = now; since = Date.now(); }
-    await new Promise((r) => setTimeout(r, 5000));
+    await new Promise((r) => setTimeout(r, Math.min(5000, 잠잠기준)));
   }
 }
 
 function run() {
   const [cmd, ...rest] = argv;
   const bin = process.platform === 'win32' && cmd === 'npm' ? 'npm.cmd' : cmd;
-  return spawnSync(bin, rest, { stdio: 'inherit', shell: process.platform === 'win32' }).status ?? 1;
+  /* 껍데기(shell)는 **.cmd 를 부를 때만** 쓴다. 늘 쓰면 인자를 그냥 이어 붙이는 탓에
+     **띄어쓰기가 든 경로**(예: `C:\Program Files
+odejs
+ode.exe`)가 두 토막으로 갈려
+     명령이 아예 안 뜨고, 그게 조용한 「빨강」으로 둔갑한다(2026-08-17 시험이 잡음). */
+  const 껍데기필요 = process.platform === 'win32' && /\.(cmd|bat)$/i.test(bin);
+  return spawnSync(bin, rest, { stdio: 'inherit', shell: 껍데기필요 }).status ?? 1;
 }
 
 const before = await servedCommit();
@@ -63,6 +72,7 @@ if (code !== 0 && code !== 2) {
     console.log(`[retry-if-redeployed] 재는 동안 판이 바뀌었다 (${before.slice(0, 8)} → ${after.slice(0, 8)}) — 잠잠해진 뒤 한 번만 다시 잰다`);
     await settle();
     code = run();
+    code = await 옛판이면못돌림(code, (process.env.GITHUB_SHA || '').slice(0, 8));
   } else {
     /* ★ **「안 바뀌었다」와 「내가 재려던 판이다」는 다른 말이다** (2026-08-14 실측).
        재는 동안 판이 안 바뀌어도, 그 판이 **이 검사가 태어난 커밋보다 옛것**이면 검사는
@@ -76,10 +86,32 @@ if (code !== 0 && code !== 2) {
       );
       await settle();
       code = run();
-      if (code !== 0) console.log('[retry-if-redeployed] 다시 재도 빨갛다 — 진짜 빨강이다');
+      code = await 옛판이면못돌림(code, 이판);
     } else {
       console.log('[retry-if-redeployed] 판은 그대로였다 — 진짜 빨강이다');
     }
   }
 }
 process.exitCode = code;
+
+/**
+ * ★ **내 코드가 안 올라간 화면을 보고 빨개진 것은 「빨강」이 아니라 「못 돌림」이다** (2026-08-17 실측).
+ * 그날 실주소 검사가 「달리 부르는 이름이 없다 — tts·printkit·nettool·protobuf」로 빨갰는데,
+ * 그 네 개는 **이미 저장소에 적혀 있었다**(커밋 071ce025). 화면이 그 커밋 이전 판이었을 뿐이다.
+ * 3분 기다렸다 다시 재는 것으로는 못 고친다 — 배포가 몇 판 뒤처져 있으면 영영 안 따라잡는다.
+ * 그래서 다시 잰 뒤에도 **서빙 판이 내 판이 아니면** 답을 2(못 돌림)로 내린다.
+ * 초록은 건드리지 않는다 — 옛 판이어도 「실주소가 성하다」는 그 자체로 사실이다.
+ */
+async function 옛판이면못돌림(code, 이판) {
+  if (code === 0 || code === 2 || !이판) return code;
+  const 지금 = await servedCommit();
+  if (지금 && 지금.startsWith(이판)) {
+    console.log('[retry-if-redeployed] 다시 재도 빨갛다 — 진짜 빨강이다');
+    return code;
+  }
+  console.log(
+    `[retry-if-redeployed] 못 돌림 — 화면에 올라간 판(${(지금 || '?').slice(0, 8)})이 ` +
+      `내가 재려던 판(${이판})이 아니다. 내 코드가 없는 화면을 보고 빨개진 것이라 판정하지 않는다.`
+  );
+  return 2;
+}
