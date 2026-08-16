@@ -831,16 +831,20 @@ html[data-intro="off"] .intro-overlay {
     border: 0;
     border-radius: var(--radius-sm);
     background: transparent;
-    color: var(--text-secondary);
+    /* ★ 흐리게 만들 때 `opacity` 를 쓰지 않는다 (2026-08-16, CI 의 axe 가 잡았다).
+       `opacity: 0.8` 은 **흐리게 보이게만 하고 색 토큰 값은 그대로 둔다** — 그래서
+       「이 색은 4.5 를 넘는다」는 계산이 실제 화면과 어긋난다. 흐림은 *색*으로 말한다:
+       그러면 잰 값이 곧 본 값이다. 흐린 글자용 토큰이 이미 있다(--text-tertiary).
+       이 배지는 판 표식이 있을 때만 떠서 로컬에선 안 보였다 — CI 에서만 났다. */
+    color: var(--text-tertiary);
     cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+    transition: color 0.15s ease, background 0.15s ease;
     user-select: none;
 }
 
 .karmolab-version-badge:hover,
 .karmolab-version-badge:focus-visible {
-    opacity: 1;
+    color: var(--text-secondary);
     background: var(--bg-hover);
 }
 
