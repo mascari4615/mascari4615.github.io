@@ -67,7 +67,7 @@ permalink: /karmolab/
          한쪽만 가리키면 양쪽 표시가 통째로 무시된다(다국어 사이트가 가장 자주 틀리는 곳).
          **아래 줄들은 자동 생성이다** — 손으로 고치지 마라. `npm run gen:locale-pages` 가
          `data/locales.json` + 번역 상태를 보고 다시 쓴다(언어를 켜면 여기도 저절로 는다).
-         도구 상세 129장은 이 셸을 복사해 쓰지만 아직 한국어뿐이라, `shell-page.mjs` 가 이 줄을
+         도구 상세 장 전부(수는 `data/tools-seo.json` 이 정본)는 이 셸을 복사해 쓰지만 아직 한국어뿐이라, `shell-page.mjs` 가 이 줄을
          빼고 찍는다 — 안 빼면 129장이 전부 이 주소(/karmolab/)를 제 짝이라고 우긴다. -->
     <link rel="alternate" hreflang="ko" href="https://blog.mascari4615.com/karmolab/">
     <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/karmolab/">
@@ -110,7 +110,7 @@ permalink: /karmolab/
          주소를 아는 사람만 닿게 두면 있으나 마나다. -->
     <link rel="alternate" type="application/rss+xml" title="KarmoLab — 변경 기록" href="/karmolab/changes.xml">
     <!-- 다음에 갈 곳을 **미리 받아 둔다** (TASK-KL-128, Speculation Rules).
-         도구가 128가지라 사람은 목록에서 하나를 고른다 — 그 순간 화면 하나를 통째로 새로
+         도구가 백 가지가 넘어 사람은 목록에서 하나를 고른다 — 그 순간 화면 하나를 통째로 새로
          받아야 했다. 마우스를 올리거나 누르기 시작하면(=고를 낌새) 브라우저가 그 화면을 미리
          받아 둔다. 그러면 누르는 순간에는 이미 와 있다.
          이제 **미리 실행까지** 한다(`prerender`) — 누르는 순간 이미 다 그려져 있다.
@@ -187,7 +187,7 @@ permalink: /karmolab/
     <!-- 코드 색칠 스타일은 **첫 그림을 막지 않는다** (실측 2026-08-08).
          `rel="stylesheet"` 로 두면 이 한 장이 첫 그림을 붙잡는다 — 그 요청만 1.5초 늦춰 봤더니
          첫 그림이 484ms → 1936ms 가 됐다(3회 중앙값). 그런데 첫 화면에는 코드 블록이 없다.
-         도구 페이지 129장은 생성기(`scripts/lib/shell-page.mjs`)가 이미 같은 처리를 하고 있었고,
+         도구 상세 장들은 생성기(`scripts/lib/shell-page.mjs`)가 이미 같은 처리를 하고 있었고,
          앱 첫 화면만 빠져 있었다. `id` 는 그대로 둔다 — 테마 고르는 코드가 이 id 로 찾는다. -->
     <link id="prism-css" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
