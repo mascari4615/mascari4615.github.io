@@ -4,6 +4,7 @@
   "목록": [
     "test:gamification",
     "test:planner",
+    "test:diary",
     "test:meok",
     "test:meok:screen",
     "test:karmograph",
