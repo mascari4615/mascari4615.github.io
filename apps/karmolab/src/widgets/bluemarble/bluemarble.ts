@@ -1866,7 +1866,10 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
              끌기와 **같은 상태**(camLon/camLat/zoom)를 만지므로 두 길이 갈라지지 않는다. */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
-          canvas.setAttribute('aria-label', t('bluemarble.a11y.globe', {}) || '지구본 — 화살표로 돌리고 +/- 로 확대');
+          /* ★ 이름은 **말 묶음을 받은 뒤에** 붙인다 (2026-08-17 실측). 여기는 묶음을 받기 전에
+             도는 자리라, `t()` 를 부르면 「그 말이 없다」로 터지고 **위젯이 통째로 안 뜬다**.
+             실제로 그렇게 올려서 지구본이 한 판 죽었다 — 먼저 밋밋한 이름을 달아 두고 아래에서 바꾼다. */
+          canvas.setAttribute('aria-label', '지구본');
           canvas.addEventListener('keydown', (e: KeyboardEvent) => {
             const 걸음 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
             let 먹었나 = true;
@@ -2244,6 +2247,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             renderPanel();
             renderBodyBtn();
             sub.textContent = t('bluemarble.hint');
+            canvas.setAttribute('aria-label', t('bluemarble.a11y.globe'));
             /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
                정확한 자리는 사용자가 「내 자리」를 눌렀을 때만 묻는다. */
             const DAY0 = 86400000;
