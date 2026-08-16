@@ -13,6 +13,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripJekyll } from './lib/serve-static.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
@@ -22,6 +23,15 @@ const server = http.createServer((req, res) => {
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
   if (!fs.existsSync(file)) return res.writeHead(404).end('nope');
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+  /* ★ **진짜 사이트가 안 내보내는 것을 내보내면 안 된다** (2026-08-16, 실측). 이 서버는 파일을
+     날것 그대로 보냈다 — 그래서 Jekyll 앞머리(`---` 세 줄)가 **글자로** 먼저 나가고, 파서는
+     거기서 `<body>` 를 열어 버린다. 그러면 뒤따르는 `<meta>` 가 전부 머리 밖으로 밀려
+     브라우저가 「CSP 가 head 밖에서 왔다 — 무시한다」고 말한다. 우리 화면 잘못이 아니라
+     **검사가 만든 상태**다(다른 검사들은 이미 `stripJekyll` 을 쓴다). 같은 것을 쓴다. */
+  if (path.extname(file) === '.html') {
+    res.end(stripJekyll(fs.readFileSync(file, 'utf8')));
+    return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((resolve) => server.listen(0, resolve));
@@ -76,8 +86,23 @@ await page.evaluate(async () => {
    넘겨 검사가 통째로 죽었다(내 자리에서는 통과). 여기서 만든 영상은 `video/webm` 인데,
    러너의 브라우저 빌드가 그 코덱을 못 틀면 **영영 「재생 중」이 안 된다** — 그건 우리 코드가
    고장 난 게 아니라 이 자리에서 잴 수 없는 것이다. 그걸 빨강으로 읽으면 아무도 안 믿게 된다. */
+/* ★ **말로 상태를 읽지 않는다** (2026-08-16, 실측). 여기는 「재생 중」이라는 **한국어**를 찾고
+   있었다 — 실주소는 영어 판이라 「Playing — 64×48 · 27 frames · 15 fps」가 떠 있었고,
+   재생이 되고 있는데도 60초를 기다리다 빨개졌다(빨강 줄 안에 그 증거가 그대로 적혀 있었다).
+   이제 제품이 `data-state="playing"` 을 함께 남긴다 — 그것을 먼저 본다.
+   실주소는 다음 배포 전까지 옛 판이므로, 그동안은 **말이 아닌 모양**(`가로×세로` + fps 숫자)으로
+   본다. 어느 말로 쓰든 그 모양은 같다. */
 const 재생됨 = await page
-  .waitForFunction(() => document.getElementById('baStatus').textContent.includes('재생 중'), undefined, { timeout: 60000 })
+  .waitForFunction(
+    () => {
+      const el = document.getElementById('baStatus');
+      if (!el) return false;
+      if (el.dataset.state === 'playing') return true;
+      return /[0-9]+×[0-9]+/.test(el.textContent || '') && /[0-9]+\s*(fps|장|コマ)/.test(el.textContent || '');
+    },
+    undefined,
+    { timeout: 60000 }
+  )
   .then(() => true)
   .catch(() => false);
 if (!재생됨) {
