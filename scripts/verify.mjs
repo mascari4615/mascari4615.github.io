@@ -16,7 +16,7 @@ import { spawnSync } from 'node:child_process';
    그건 옳다(뒤 단계가 앞 단계 산출물을 쓴다). 그런데 로그에는 「멈췄다」만 있고 **몇 번째에서**
    **멈췄는지**가 없었다. 2번째에서 멈춘 것과 8번째에서 멈춘 것은 남은 값이 전혀 다르다 —
    앞이면 한 판을 통째로 다시 돌려야 하고, 뒤면 거의 다 본 것이다. 숫자를 적어 그 판단을 준다. */
-const 전체단계 = 9;
+const 전체단계 = 10;
 let 지금단계 = 0;
 
 function run(label, cwd, command) {
@@ -320,6 +320,17 @@ if (existsSync('apps/daily/engine.test.mjs')) {
   run('apps/daily 규칙 시험', 'apps/daily', 'node --test');
 }
 
-// 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
+/* 6. 오탈자 — **있으면 여기서 돈다** (2026-08-17).
+   전에는 「로컬엔 안 깔려 있을 것」이라며 통째로 건너뛰고 CI 의 별 step 에만 맡겼다. 그랬더니
+   달력 낱말 하나(`dows` = day-of-week 의 복수)가 오타로 잡혀 **verify 가 21판 연속 빨갛게** 서 있었다 —
+   미는 사람은 몇 분 뒤 CI 를 봐야 알았고, 아무도 안 봤다. 깔려 있으면 밀기 전에 알려 준다.
+   없으면 「못 돌림」이라고 **말은 하고** 지나간다(조용한 건너뜀은 안 돈 것과 구분이 안 된다). */
+if (spawnSync('typos --version', { shell: true, stdio: 'ignore' }).status === 0) {
+  /* ★ typos 는 **오탈자를 찾으면 2** 로 나간다. 이 저장소에서 2 는 「못 돌림」이라
+     그대로 두면 진짜 오탈자가 조용히 통과한다(붙이자마자 밟아 봤다). 1 로 바꿔서 넘긴다. */
+  run('오탈자', '.', 'typos . || exit 1');
+} else {
+  console.log('[verify] · 오탈자 — 못 돌림 (typos 가 이 기계에 없다. CI 의 별 step 이 본다)');
+}
 
 console.log('\n[verify] OK — master invariant 통과');
