@@ -66,26 +66,26 @@ function ensureStyle(): void {
   s.id = STYLE_ID;
   s.textContent = `
 .lang-menu{position:absolute;z-index:2000;min-width:9.5rem;padding:.3rem;border-radius:.6rem;
-  background:var(--bg-elev,#1b1b20);border:1px solid var(--border,#33333c);
+  background:var(--bg-secondary);border:1px solid var(--border);
   box-shadow:0 .5rem 1.5rem rgba(0,0,0,.35);display:flex;flex-direction:column;gap:.1rem}
 .lang-menu button{all:unset;cursor:pointer;padding:.45rem .6rem;border-radius:.4rem;
-  font-size:.85rem;color:var(--text,#e8e8ee);display:flex;justify-content:space-between;gap:.75rem}
-.lang-menu button:hover,.lang-menu button:focus-visible{background:var(--bg-hover,#2a2a33)}
+  font-size:.85rem;color:var(--text-primary);display:flex;justify-content:space-between;gap:.75rem}
+.lang-menu button:hover,.lang-menu button:focus-visible{background:var(--bg-hover)}
 .lang-menu button[aria-current="true"]{font-weight:600}
 .lang-menu-head{padding:.35rem .6rem .2rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
-  opacity:.55;color:var(--text,#e8e8ee)}
-.lang-menu-sep{height:1px;margin:.3rem .4rem;background:var(--border,#33333c)}
+  opacity:.55;color:var(--text-primary)}
+.lang-menu-sep{height:1px;margin:.3rem .4rem;background:var(--border)}
 .lang-menu-note{padding:.3rem .6rem .15rem;font-size:.72rem;line-height:1.45;opacity:.6;
-  color:var(--text,#e8e8ee);max-width:15rem;white-space:normal}
+  color:var(--text-primary);max-width:15rem;white-space:normal}
 .lang-hint{display:flex;align-items:center;gap:.6rem;justify-content:center;flex-wrap:wrap;
-  padding:.45rem .8rem;font-size:.85rem;background:var(--bg-elev,#1b1b20);
-  border-bottom:1px solid var(--border,#33333c);color:var(--text,#e8e8ee)}
+  padding:.45rem .8rem;font-size:.85rem;background:var(--bg-secondary);
+  border-bottom:1px solid var(--border);color:var(--text-primary)}
 .lang-hint a{color:inherit;text-decoration:underline;text-underline-offset:.15em}
 /* 손가락으로 누를 만해야 한다 — 닫기 ✕ 가 28x25 라 관문 검사에 걸렸다(기준 32px, 실측 2026-08-13).
    생김새는 그대로 두고 **누를 자리만** 넓힌다. */
 .lang-hint button{all:unset;cursor:pointer;padding:.1rem .45rem;border-radius:.35rem;opacity:.7;
   min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
-.lang-hint button:hover{opacity:1;background:var(--bg-hover,#2a2a33)}`;
+.lang-hint button:hover{opacity:1;background:var(--bg-hover)}`;
   document.head.appendChild(s);
 }
 
