@@ -17,13 +17,15 @@ import { spec as sqlfmtSpec } from '../../core/sqlfmt';
 import { spec as xmlfmtSpec } from '../../core/xmlfmt';
 import { spec as configconvSpec } from '../../core/configconv';
 import { spec as prettyallSpec } from '../../core/prettyall';
+import { spec as json2tsSpec } from '../../core/json2ts';
 
 /** 조작 id → 주소 계약. 조작을 옮길 때마다 여기 한 줄. */
 const SPEC_BY_ID = {
   sqlfmt: sqlfmtSpec,
   xmlfmt: xmlfmtSpec,
   configconv: configconvSpec,
-  prettyall: prettyallSpec
+  prettyall: prettyallSpec,
+  json2ts: json2tsSpec
 } as Record<string, Parameters<typeof readInvocation>[0]>;
 import { sniff, type DataKind } from './shared/sniff';
 import { flatten, tally, deepest } from './shared/json-tree';

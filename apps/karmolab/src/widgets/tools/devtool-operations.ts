@@ -15,6 +15,7 @@ import { format, toDialect, type Dialect } from '../../core/sqlfmt';
 import { format as xmlFormat, minify as xmlMinify, parse as xmlParse, toJson as xmlToJson, XmlError } from '../../core/xmlfmt';
 import { convert as cfgConvert, detect as cfgDetect, type Format as CfgFormat } from '../../core/configconv';
 import { detect as anyDetect, format as anyFormat, goTo as anyGoTo, minify as anyMinify } from '../../core/prettyall';
+import { toTypes } from '../../core/json2ts';
 import { t } from '../../lib/i18n';
 
 const DIALECTS: Dialect[] = ['mysql', 'postgres', 'mssql', 'sqlite'];
@@ -194,6 +195,25 @@ export const DEVTOOL_OPERATIONS: TextOperation[] = [
     fromUrl: (call) => ({
       input: call.args.text === undefined ? undefined : String(call.args.text),
       values: (call.op === 'minify' ? { job: 'minify' } : {}) as Record<string, string | number | boolean>
+    })
+  },
+  {
+    id: 'json2ts',
+    title: t('widgets.json2ts.title', undefined, 'JSON → 타입 선언'),
+    description: t('widgets-desc.json2ts.desc', undefined, 'JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다'),
+    controls: [{ id: 'name', label: t('json2ts.label.name', undefined, '이름'), kind: 'text', initial: 'Root' }],
+    run: (input, values) => {
+      if (input.trim() === '') return { output: '', status: t('json2ts.status.idle', undefined, 'JSON 을 넣어 주세요') };
+      try {
+        const made = toTypes(input, String(values.name || 'Root'));
+        return { output: made.code, status: t('json2ts.say.done', { n: made.interfaces }, `인터페이스 ${made.interfaces}개`) };
+      } catch (e) {
+        return { output: '', status: t('json2ts.err.json', undefined, 'JSON 이 아닙니다: ') + (e as Error).message };
+      }
+    },
+    fromUrl: (call) => ({
+      input: call.args.text === undefined ? undefined : String(call.args.text),
+      values: (call.args.name === undefined ? {} : { name: String(call.args.name) }) as Record<string, string | number | boolean>
     })
   }
 ];
