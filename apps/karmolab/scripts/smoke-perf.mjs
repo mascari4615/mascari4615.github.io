@@ -102,15 +102,21 @@ async function measurePage(url) {
   /* 옛 코드를 흉내 낸다 — 이 게이트가 **진짜 잡는지** 확인하는 자리.
      고친 것을 되돌리지 않고, 같은 모양의 비용만 얹는다. */
   if (process.argv.includes('--regress')) {
+    /* ★ **얹는 것이 진짜 무거워야 자기 시험이 뜻을 가진다** (2026-08-16, 실측).
+       전에는 합성기가 맡는 것(투명도 맥박 + blur)을 얹었다. 그건 주 실오라기를 거의 안 쓴다 —
+       그런데도 빨간불이 났던 이유는 **재는 고리(rAF)가 초당 60번 깨어나 그 비용을 끌어올렸기**
+       때문이다. 그 고리를 손 안 댄 구간에서 끄자(같은 날 고침) 자기 시험이 초록이 되어
+       「예산이 헐겁다」로 실패했다 — 게이트가 약해진 게 아니라 **가짜 감도가 사라진 것**이다.
+       그래서 얹는 것을 **정말 매 프레임 주 실오라기를 쓰는 것**으로 바꾼다: 너비를 애니메이션
+       하면 프레임마다 스타일+배치를 다시 해야 한다. 이게 이 게이트가 잡아야 할 진짜 회귀
+       (「변수+calc 로 만든 transform」·「움직이는 것에 filter」)와 같은 종류의 비용이다. */
     await page.evaluate(() => {
       const st = document.createElement('style');
       st.textContent =
-        '.klchat-dot.on::after{content:"";position:absolute;inset:0;border-radius:50%;'
-        + 'background:rgba(95,211,178,.5);animation:klchat-pulse 2.4s infinite;will-change:transform,opacity;}'
-        + '.home-decor-item{filter:blur(14px);}';
+        '@keyframes kl-regress-jank{0%{width:120px;margin-left:0}50%{width:240px;margin-left:24px}100%{width:120px;margin-left:0}}'
+        + '.home-decor-item{animation:kl-regress-jank 1.2s linear infinite!important;'
+        + 'filter:blur(14px);position:relative!important;display:block!important;height:80px}';
       document.head.appendChild(st);
-      /* 이 기계에서는 채팅이 서버에 못 붙어 점이 저절로 안 켜진다 — 켜 줘야 고리가 실제로 돈다. */
-      document.querySelectorAll('.klchat-dot').forEach((d) => d.classList.add('on'));
     });
     await page.waitForTimeout(1200);
   }
