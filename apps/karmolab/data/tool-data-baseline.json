@@ -7,7 +7,6 @@
     "bundlemap",
     "certview",
     "codegraph",
-    "csp",
     "curlkit",
     "diff",
     "docscan",
@@ -29,10 +28,8 @@
     "printkit",
     "protobuf",
     "regexplain",
-    "semver",
     "sshkey",
-    "tts",
-    "unicodex"
+    "tts"
   ],
   "갱신": "2026-08-16"
 }

@@ -274,5 +274,9 @@
   "tools.studymap.description": "A study map of 41 tracks covering the web, computer science, security, AI, data and systems. Every card carries a lesson (explanation, examples, check questions) so you can decide what to study first.",
   "tools.studymap.lead": "41 tracks · 311 cards · a lesson on each · check questions · progress saved",
   "tools.arcade.description": "An arcade where several mini games work alone or with others. Bots take the seats nobody fills, so \"solo\" and \"together\" are the same game, and a room opens with a single link.",
-  "tools.arcade.lead": "Nine mini games · solo or together · bots fill empty seats · rooms never stored on a server"
+  "tools.arcade.lead": "Nine mini games · solo or together · bots fill empty seats · rooms never stored on a server",
+  "tools.semver.description": "Expands version ranges like ^1.2.3, ~1.2 and 1.x into plain lower/upper bounds, and checks whether two ranges share any version.",
+  "tools.semver.lead": "Expand a range into bounds · Does this version match · Do two ranges overlap",
+  "tools.csp.description": "Splits a Content-Security-Policy header into readable directives and points out the parts that effectively turn protection off. Pick a few options and it writes the header for you.",
+  "tools.csp.lead": "Split the header · Spot the parts that are effectively off · Build one"
 }

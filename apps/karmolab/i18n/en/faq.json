@@ -1006,5 +1006,17 @@
   "faq.arcade.3.q": "Are rooms stored on a server?",
   "faq.arcade.3.a": "They are not. A public relay is used only to introduce the players; what you send flows directly between the people in that room.",
   "faq.arcade.4.q": "We can't connect when playing together.",
-  "faq.arcade.4.a": "Some office and carrier networks block direct connections. Try again from another network, such as mobile data."
+  "faq.arcade.4.a": "Some office and carrier networks block direct connections. Try again from another network, such as mobile data.",
+  "faq.semver.0.q": "Does ^0.2.3 accept 0.3.0?",
+  "faq.semver.0.a": "No. The 0.x rule is different: ^0.2.3 means 0.2.3 or later, below 0.3.0. Remembering \"^ accepts minor bumps\" is wrong for 0.x — which is why this tool shows the bounds instead of asking you to remember.",
+  "faq.semver.1.q": "Why does it matter if two ranges do not overlap?",
+  "faq.semver.1.a": "The install still succeeds. But the same package gets installed twice, at two versions — you end up with two instances, and things like \"same class but instanceof is false\" start happening.",
+  "faq.semver.2.q": "Is anything sent to a server?",
+  "faq.semver.2.a": "No. Everything is computed in your browser.",
+  "faq.csp.0.q": "Why is there no grade or score?",
+  "faq.csp.0.a": "A letter grade gives reassurance without telling you what is actually risky. Instead, each finding says what it is and why it matters.",
+  "faq.csp.1.q": "Can I put it in a meta tag?",
+  "faq.csp.1.a": "Yes, but frame-ancestors and report-uri are ignored in meta — those need a real response header. On hosts that cannot set headers (GitHub Pages, for one), meta is the only place available.",
+  "faq.csp.2.q": "Is the header sent anywhere?",
+  "faq.csp.2.a": "No. Reading and building both happen entirely in your browser."
 }
