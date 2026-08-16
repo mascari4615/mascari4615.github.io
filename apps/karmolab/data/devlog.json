@@ -2,31 +2,108 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 1998,
-    "days": 11,
+    "commits": 2070,
+    "days": 10,
     "shown": 60
   },
   "days": [
     {
+      "date": "2026-08-17",
+      "entries": [
+        {
+          "sha": "f8aa73aa",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "유니티 창이 대결 서버에 붙는다 — 연습/온라인 두 모드 (TASK-WM-411)"
+        },
+        {
+          "sha": "1f6f3ee6",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "손에 든 것이 할 수 있는 일을 정한다 — 마도 괭이 (TASK-WM-410)"
+        },
+        {
+          "sha": "f4a0867f",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "영웅 탭 — 뽑고 · 셋을 고르고 · 판에 세운다 (TASK-WM-406)"
+        },
+        {
+          "sha": "84d0c70d",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "심판을 어디서든 돌릴 수 있게 — 서버든 P2P 호스트든 같은 코드 (TASK-WM-411)"
+        },
+        {
+          "sha": "f16bb660",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "영웅 가챠 · 보유 효과 · 파티 3자리 — 코어 (TASK-WM-406)"
+        },
+        {
+          "sha": "918e80a1",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "폴더 .meta 4개가 빠져 있었다 — 올리고, 폴더까지 검사한다"
+        }
+      ],
+      "quiet": 4,
+      "more": 12
+    },
+    {
       "date": "2026-08-16",
       "entries": [
         {
-          "sha": "182bee84",
+          "sha": "1986ce99",
           "type": "fix",
           "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "추적되는 자산 일곱에 .meta 가 없었다 — 머신마다 GUID 가 갈린다"
+          "scope": "ci",
+          "text": "「검사를 못 돌렸다」를 「게임이 깨졌다」와 안 섞는다 (TASK-WM-406)"
         },
         {
-          "sha": "c66f7d13",
+          "sha": "4e5ad5fd",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "세계가 가득 찼을 때 읽을 글자를 잘못 가리켰다 — 빌드가 4판 연속 깨진 원인"
+          "text": "컴파일러 쉼 층(Compat)은 부를 이름이 없다 — 미배선 감사에 사유와 함께 적는다"
+        },
+        {
+          "sha": "4d75e0d1",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "빌드가 무엇을 왜 실었는지 기계가 답한다 + 예산 상한 (TASK-WM-408)"
+        },
+        {
+          "sha": "7974e56c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "실황 셋 + 영웅 개성 · 못 사는 다음 것도 보이게 (TASK-WM-406)"
+        },
+        {
+          "sha": "4917ff75",
+          "type": "revert",
+          "typeLabel": "되돌림",
+          "scope": "wm",
+          "text": "패키지 7종 제거를 되돌린다 — 전역 변경이라 본편까지 잘렸다"
+        },
+        {
+          "sha": "8166a7be",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "wm",
+          "text": "바닥 격자 + 생산자 맥동 — 게임필 마감 (TASK-WM-406)"
         }
       ],
-      "quiet": 0,
-      "more": 0
+      "quiet": 8,
+      "more": 38
     },
     {
       "date": "2026-08-14",
@@ -419,90 +496,6 @@
       ],
       "quiet": 43,
       "more": 97
-    },
-    {
-      "date": "2026-08-06",
-      "entries": [
-        {
-          "sha": "76e27609",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-194",
-          "text": "파도가 매번 다른 쪽에서 온다 — 테두리 침공 + 방향 예고 (데아빌 레퍼런스)"
-        },
-        {
-          "sha": "72461419",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "자원·정수 뜨는 숫자도 같은 병이었다 — 화면 픽셀을 그대로 앉히고 있었다"
-        },
-        {
-          "sha": "6bc732ea",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "이름표가 세로로 뒤집힌 자리에 붙고 있었다 — 재고 나서 찾았다"
-        },
-        {
-          "sha": "63ccd6e3",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-200",
-          "text": "자료 번호가 겹치면 조용히 사라지던 것을 화면이 말하게 했다"
-        },
-        {
-          "sha": "d28f6de0",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-200",
-          "text": "조작 장치를 손으로 끌어 옮기고, 그 자리를 기기가 기억한다"
-        },
-        {
-          "sha": "1598ef9f",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "이름표가 카메라를 한 프레임 뒤따라가고 있었다 — 그려지는 시점이 틀렸다"
-        }
-      ],
-      "quiet": 39,
-      "more": 134
-    },
-    {
-      "date": "2026-08-05",
-      "entries": [
-        {
-          "sha": "4fbae89f",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "템포 배수를 없애고 진짜 수치를 고친다 (사용자 지적)"
-        },
-        {
-          "sha": "0c3dcfce",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-203",
-          "text": "유니티 티어를 push 레인에서 뺀다 — 5연속 취소 = 실제 실행 0회"
-        },
-        {
-          "sha": "3bcaba0e",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "「멀티」 왼쪽 두부 — 첫 화면 단추에 박혀 있던 그림글자를 뺀다"
-        },
-        {
-          "sha": "686e01cb",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-194",
-          "text": "판 전체를 느리게 (손잡이 하나) + 커서 표시를 맨 마지막에 그린다"
-        }
-      ],
-      "quiet": 44,
-      "more": 65
     }
   ]
 }
