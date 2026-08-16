@@ -308,5 +308,11 @@
   "tools.ocr.description": "Reads text out of images — but sorts the job first: a PDF that already has text only needs extracting, a skewed photo needs flattening, and only the rest needs a model.",
   "tools.ocr.lead": "Sort the job · flatten and clean · extract text · model only when needed",
   "tools.payslip.description": "Works out what actually lands in your account after tax and insurance, and puts the three things that make answers differ right on screen.",
-  "tools.payslip.lead": "Take-home pay · four insurances · tax-free allowance · shows the rate year"
+  "tools.payslip.lead": "Take-home pay · four insurances · tax-free allowance · shows the rate year",
+  "tools.dupphoto.description": "Groups not just identical files but burst shots, resized copies and re-compressed photos — the ones a file hash never groups because the bytes differ.",
+  "tools.dupphoto.lead": "Burst shots · survives resize and recompression · 64-bit dHash · stays in your browser",
+  "tools.photomap.description": "Collects the place and time already stored in your photos (EXIF) and groups them by trip and date. It deliberately loads no map tiles.",
+  "tools.photomap.lead": "EXIF place and time · grouped by date · dots only · nothing leaves the browser",
+  "tools.tts.description": "Splits text into sentences so the browser can read it aloud. Hand a long text over in one go and it stops halfway — the splitting rules are the point of this tool.",
+  "tools.tts.lead": "Sentence splitting · time estimate · browser voices · nothing to install"
 }

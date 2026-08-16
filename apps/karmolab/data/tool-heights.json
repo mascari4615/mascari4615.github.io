@@ -179,6 +179,10 @@
     "narrow": 560,
     "wide": 660
   },
+  "dupphoto": {
+    "narrow": 357,
+    "wide": 316
+  },
   "dutchpay": {
     "narrow": 806,
     "wide": 590
@@ -435,6 +439,10 @@
     "narrow": 1755,
     "wide": 1609
   },
+  "photomap": {
+    "narrow": 434,
+    "wide": 378
+  },
   "pick": {
     "narrow": 723,
     "wide": 795
@@ -554,6 +562,10 @@
   "timer": {
     "narrow": 622,
     "wide": 725
+  },
+  "tts": {
+    "narrow": 711,
+    "wide": 667
   },
   "unitconv": {
     "narrow": 1087,

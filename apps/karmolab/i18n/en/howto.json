@@ -572,5 +572,17 @@
   "howto.payslip.0": "Enter your annual or monthly pay",
   "howto.payslip.1": "Enter the tax-free part (meal allowance etc.) and dependants",
   "howto.payslip.2": "See how much is tax and how much is insurance",
-  "howto.payslip.3": "Check the take-home figure and which year the rates are from"
+  "howto.payslip.3": "Check the take-home figure and which year the rates are from",
+  "howto.dupphoto.0": "Drop in a batch of photos at once",
+  "howto.dupphoto.1": "Look at the groups of look-alikes",
+  "howto.dupphoto.2": "Pick the one to keep in each group",
+  "howto.dupphoto.3": "Delete the rest on your own machine",
+  "howto.photomap.0": "Drop in a batch of photos",
+  "howto.photomap.1": "See them grouped by where and when they were taken",
+  "howto.photomap.2": "Scan by date and place to find that trip",
+  "howto.photomap.3": "Export the list if you need it",
+  "howto.tts.0": "Paste the text you want read aloud",
+  "howto.tts.1": "Check the sentence split and the estimated time",
+  "howto.tts.2": "Pick a voice and a speed",
+  "howto.tts.3": "Play — it hands over one sentence at a time"
 }
