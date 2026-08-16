@@ -84,8 +84,18 @@ for (const theme of THEMES) {
     await page.addScriptTag({ content: axeSource });
     const violations = await page.evaluate(async () => {
       const r = await window.axe.run(document, { resultTypes: ['violations'] });
-      return r.violations.map((v) => ({ id: v.id, impact: v.impact, n: v.nodes.length, help: v.help,
-        sample: (v.nodes[0]?.target || []).join(' ') }));
+      return r.violations.map((v) => {
+        const n0 = v.nodes[0];
+        const d = n0?.any?.[0]?.data;
+        /* ★ **잰 값을 같이 낸다** (2026-08-16). 처음엔 규칙 이름과 대상만 찍었는데, CI 가
+           빨간데 로컬에서 재현이 안 되면 **고칠 수가 없다** — 어떤 색이 어떤 배경 위에서
+           얼마였는지가 없으면 추측으로 색을 바꾸게 된다. 실제로 한 번 그렇게 헤맸다. */
+        const measured = d && d.contrastRatio != null
+          ? `${d.fgColor} on ${d.bgColor} = ${d.contrastRatio} (필요 ${d.expectedContrastRatio})`
+          : '';
+        return { id: v.id, impact: v.impact, n: v.nodes.length, help: v.help,
+          sample: (n0?.target || []).join(' '), measured };
+      });
     });
     for (const v of violations) failures.push({ theme, name, ...v });
   }
@@ -135,6 +145,7 @@ if (늘어난것.length > 0) {
     console.error(`  ${f.theme.padEnd(5)} ${f.name}  [${f.impact}] ${f.id}  ${before} → ${after}`);
     console.error(`        ${f.help}`);
     console.error(`        예: ${f.sample.slice(0, 90)}`);
+    if (f.measured) console.error(`        잰 값: ${f.measured}`);
   }
   console.error('\n색·이름표를 자리마다 박지 말고 토큰·공용 뼈대(shared/markup.ts)를 쓴다.\n');
   process.exit(1);

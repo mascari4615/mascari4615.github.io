@@ -140,8 +140,9 @@
     --success-subtle: rgba(47, 125, 79, 0.08);
     --error: #b3261e;
     --error-subtle: rgba(179, 38, 30, 0.08);
-    --warning: #a8721c;
-    --warning-subtle: rgba(168, 114, 28, 0.08);
+
+    --warning: #8a5c12;
+    --warning-subtle: rgba(138, 92, 18, 0.08);
 
     --border: rgba(26, 26, 31, 0.10);
     --border-hover: rgba(26, 26, 31, 0.18);
