@@ -584,5 +584,21 @@
   "howto.tts.0": "Paste the text you want read aloud",
   "howto.tts.1": "Check the sentence split and the estimated time",
   "howto.tts.2": "Pick a voice and a speed",
-  "howto.tts.3": "Play — it hands over one sentence at a time"
+  "howto.tts.3": "Play — it hands over one sentence at a time",
+  "howto.codegraph.0": "Drop in or paste several source files",
+  "howto.codegraph.1": "See the graph of what calls what",
+  "howto.codegraph.2": "Cycles (files that call each other) are marked as the knots to untie first",
+  "howto.codegraph.3": "Most-called = read first · never-called = an entry point or dead code",
+  "howto.nettool.0": "Enter a range (e.g. 10.0.0.0/22)",
+  "howto.nettool.1": "Check the first and last address and how many hosts fit",
+  "howto.nettool.2": "Enter several lines and overlaps are pointed out",
+  "howto.nettool.3": "Look up a port number in the dictionary",
+  "howto.printkit.0": "Pick the paper (A4 etc.) and what to make",
+  "howto.printkit.1": "Set the cell size and margins in millimetres",
+  "howto.printkit.2": "Check the layout on screen",
+  "howto.printkit.3": "Download as PDF and print",
+  "howto.protobuf.0": "Paste the protobuf blob as base64 or hex",
+  "howto.protobuf.1": "Read the wire-format breakdown with no schema needed",
+  "howto.protobuf.2": "Add a .proto to attach names and types",
+  "howto.protobuf.3": "Check which field number is which"
 }

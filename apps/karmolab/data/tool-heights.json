@@ -99,6 +99,10 @@
     "narrow": 1073,
     "wide": 984
   },
+  "codegraph": {
+    "narrow": 349,
+    "wide": 386
+  },
   "color": {
     "narrow": 1446,
     "wide": 1072
@@ -367,6 +371,10 @@
     "narrow": 688,
     "wide": 803
   },
+  "nettool": {
+    "narrow": 742,
+    "wide": 734
+  },
   "numword": {
     "narrow": 666,
     "wide": 740
@@ -446,6 +454,14 @@
   "pick": {
     "narrow": 723,
     "wide": 795
+  },
+  "printkit": {
+    "narrow": 922,
+    "wide": 1159
+  },
+  "protobuf": {
+    "narrow": 737,
+    "wide": 608
   },
   "qr": {
     "narrow": 1407,

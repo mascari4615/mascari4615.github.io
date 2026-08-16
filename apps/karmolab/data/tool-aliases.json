@@ -306,6 +306,9 @@
     "idphoto": "증명사진 여권사진 규격 인화 배치 반명함 id photo passport",
     "ocr": "글자인식 사진글자 텍스트추출 스캔 ocr text recognition",
     "payslip": "실수령액 월급계산 연봉실수령 4대보험 세후 급여 payslip net pay",
-    "tts": "읽어주기 음성변환 텍스트음성 낭독 tts speech 소리내어"
+    "tts": "읽어주기 음성변환 텍스트음성 낭독 tts speech 소리내어",
+    "nettool": "CIDR 서브넷 대역계산 아이피 계산 포트 방화벽 subnet ip range port",
+    "printkit": "모눈종이 원고지 오선지 달력 라벨 인쇄 출력 grid paper manuscript staff",
+    "protobuf": "프로토버프 protobuf proto 디코드 wire format base64 바이너리"
   }
 }

@@ -314,5 +314,13 @@
   "tools.photomap.description": "Collects the place and time already stored in your photos (EXIF) and groups them by trip and date. It deliberately loads no map tiles.",
   "tools.photomap.lead": "EXIF place and time · grouped by date · dots only · nothing leaves the browser",
   "tools.tts.description": "Splits text into sentences so the browser can read it aloud. Hand a long text over in one go and it stops halfway — the splitting rules are the point of this tool.",
-  "tools.tts.lead": "Sentence splitting · time estimate · browser voices · nothing to install"
+  "tools.tts.lead": "Sentence splitting · time estimate · browser voices · nothing to install",
+  "tools.codegraph.description": "Draws what calls what across your files, finds the cycles, and points at the most-called and the never-called ones — so you know where to start reading.",
+  "tools.codegraph.lead": "import/require graph · cycles · entry points and dead files · no heavy parser",
+  "tools.nettool.description": "Works out where 10.0.0.0/22 starts and ends and how many hosts fit, flags ranges that overlap, and keeps a small port dictionary alongside.",
+  "tools.nettool.lead": "CIDR maths · overlapping ranges · host counts · port lookup",
+  "tools.printkit.description": "Draws graph paper, manuscript paper, staves, calendars and labels in millimetres, so the printout lines up on any printer.",
+  "tools.printkit.lead": "Grid · manuscript · staves · calendar · labels · millimetre-accurate · SVG/PDF",
+  "tools.protobuf.description": "Unpacks a protobuf blob so you can see it. Without a schema you still get \"field 3, string, length 12\"; give it a .proto and the numbers get names.",
+  "tools.protobuf.lead": "Readable without a schema · names from .proto · base64 or hex in"
 }

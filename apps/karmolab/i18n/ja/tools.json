@@ -314,5 +314,13 @@
   "tools.photomap.description": "写真に入っている撮影場所と時刻(EXIF)を集めて、旅行・日付ごとにまとめます。地図タイルはあえて読み込みません。",
   "tools.photomap.lead": "EXIF の場所と時刻 · 日付ごと · 点だけ描く · 外に一行も出さない",
   "tools.tts.description": "文章を文単位に切ってブラウザに読ませます。長い文章をまるごと渡すと途中で止まるので、切る規則がこの道具の要です。",
-  "tools.tts.lead": "文で切る · 所要時間の目安 · ブラウザの声 · インストール不要"
+  "tools.tts.lead": "文で切る · 所要時間の目安 · ブラウザの声 · インストール不要",
+  "tools.codegraph.description": "ファイル同士が何を呼んでいるかを図にし、循環と「よく呼ばれるファイル・誰も呼ばないファイル」を示します。どこから読むかが分かります。",
+  "tools.codegraph.lead": "import/require の関係 · 循環 · 入口と死んだファイル · 重いパーサ不要",
+  "tools.nettool.description": "10.0.0.0/22 がどこからどこまでで何台入るかを計算し、範囲の重なりも指摘します。ポート番号の小辞典つき。",
+  "tools.nettool.lead": "CIDR 計算 · 範囲の重なり · ホスト数 · ポート辞典",
+  "tools.printkit.description": "方眼紙・原稿用紙・五線譜・カレンダー・ラベルをミリで描いて印刷用にします。用紙と余白を分かって描くのでどのプリンタでも位置が合います。",
+  "tools.printkit.lead": "方眼 · 原稿用紙 · 五線譜 · カレンダー · ラベル · mm 基準 · SVG/PDF",
+  "tools.protobuf.description": "protobuf のバイナリを目で見える形にします。スキーマがなくても「3番・文字列・長さ12」までは分かり、.proto を渡すと名前が付きます。",
+  "tools.protobuf.lead": "スキーマ無しでも読める · .proto で名前付け · base64/hex 入力"
 }
