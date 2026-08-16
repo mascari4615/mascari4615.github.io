@@ -43,10 +43,28 @@ let 예측분 = null;
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
+/* ★ **한 검사가 걸리면 조각이 통째로 죽는다** (2026-08-16, 실측). 대회 검사가 「둘러보기가
+   끝까지 도는지」에서 멈춘 채로 남아, 예측 14분짜리 조각이 **40분 제한에 걸려 취소**됐다 —
+   그 조각의 검사 열넷은 판정이 아예 안 나온다(빨강보다 나쁘다: 아무것도 모른다).
+   검사마다 제 나름의 기다림이 있지만 그걸 다 믿을 수는 없다 — **바깥에 하나 더 둔다.**
+   12분을 넘기면 끊고 「걸렸다」로 적는다(2 = 못 돌림). 지금 가장 무거운 검사가 10분이므로
+   정상 판은 절대 안 걸린다. 조각 예산이 14분이니 하나가 걸려도 조각은 살아남는다. */
+const 검사한판최대 = Number(process.env.KL_CHECK_TIMEOUT_MS || 12 * 60 * 1000);
+
 function run(cmd) {
   const [bin, ...rest] = cmd;
   const exe = bin === 'npm' ? npm : bin;
-  const r = spawnSync(exe, rest, { stdio: 'inherit', shell: process.platform === 'win32' });
+  const r = spawnSync(exe, rest, {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    timeout: 검사한판최대,
+    killSignal: 'SIGKILL',
+  });
+  if (r.error && r.error.code === 'ETIMEDOUT') {
+    console.log(`[verify:live] ⏱ ${Math.round(검사한판최대 / 60000)}분을 넘겨 끊었다 — 이 검사는 걸렸다(못 돌림으로 센다).`);
+    console.log('  조각 하나를 통째로 잃는 것보다 낫다. 왜 걸렸는지는 바로 위 로그의 마지막 줄을 봐라.');
+    return 2;
+  }
   return r.status ?? 1;
 }
 
