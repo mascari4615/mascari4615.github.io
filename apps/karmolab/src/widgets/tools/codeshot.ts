@@ -10,6 +10,7 @@
  * 정렬이 안 무너진다(한글 등폭 글꼴은 우리에게 없다).
  */
 import { FRAMES } from './shared/code-frames';
+import { statCell } from './shared/stats';
 import { download, encode } from './shared/image';
 import { statusLine } from './shared/say';
 import { flatten, paint, toLines, type Seg } from './shared/code-shot';
@@ -141,8 +142,6 @@ import { t, loadNamespace } from '../../lib/i18n';
     /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
      * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
     const say = statusLine(status);
-    const stat = (l: string, v: string, primary = false): string =>
-      `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
     /**
      * 색칠. Prism 이 없거나 그 언어를 모르면 **색 없이** 그린다 — 그림이 안 나오는 것보다
@@ -209,8 +208,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         });
         canvas.style.width = Math.min(L.width, 900) + 'px';
         stats.innerHTML =
-          stat(t('codeshot.stat.lines', undefined, '줄'), String(lines.length), true) +
-          stat(t('codeshot.stat.size', undefined, '그림 크기'), `${L.width}×${L.height}`);
+          statCell(t('codeshot.stat.lines', undefined, '줄'), String(lines.length), true) +
+          statCell(t('codeshot.stat.size', undefined, '그림 크기'), `${L.width}×${L.height}`);
         say(t('codeshot.status.ready', undefined, '다 그렸습니다'), 'ok');
       } finally {
         busy = false;

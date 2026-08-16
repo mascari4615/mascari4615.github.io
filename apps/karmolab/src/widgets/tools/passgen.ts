@@ -8,6 +8,7 @@
  * 왜 약한지(자판 순서·반복·연도·흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
  */
 import { analyze, type ChunkKind } from '../../core/passgen';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { checkPassword, verdict } from '../../lib/pwned';
@@ -236,8 +237,6 @@ import { checkPassword, verdict } from '../../lib/pwned';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           let mode: 'random' | 'words' = 'random';
 
@@ -261,9 +260,9 @@ import { checkPassword, verdict } from '../../lib/pwned';
                 ? t('passgen.time.eons', { n: (년 / 1e8).toExponential(1) })
                 : humanDuration(초);
             stats.innerHTML =
-              stat(t('passgen.stat.strength'), bits >= 80 ? t('passgen.level.veryStrong2') : bits >= 60 ? t('passgen.level.strong2') : bits >= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
-              stat(t('passgen.stat.holdsFor'), 시간말) +
-              stat(t('passgen.stat.space'), `${SYLLABLE_SPACE.toLocaleString(locale())}^${n} × 100`);
+              statCell(t('passgen.stat.strength'), bits >= 80 ? t('passgen.level.veryStrong2') : bits >= 60 ? t('passgen.level.strong2') : bits >= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
+              statCell(t('passgen.stat.holdsFor'), 시간말) +
+              statCell(t('passgen.stat.space'), `${SYLLABLE_SPACE.toLocaleString(locale())}^${n} × 100`);
             $<HTMLElement>('#pgWordsVal').textContent = t('passgen.label.chunksValue', { n });
             say(t('passgen.status.madeWords'), 'ok');
             Toolbox.trackUse?.('words');
@@ -281,7 +280,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
             out.textContent = pw;
             const s = strength(pw);
             stats.innerHTML =
-              stat(t('passgen.stat.strength'), s.label, true) + stat(t('passgen.stat.holdsFor'), s.time) + stat(t('passgen.stat.charKinds'), t('passgen.stat.charKindsValue', { n: pool.length }));
+              statCell(t('passgen.stat.strength'), s.label, true) + statCell(t('passgen.stat.holdsFor'), s.time) + statCell(t('passgen.stat.charKinds'), t('passgen.stat.charKindsValue', { n: pool.length }));
             $<HTMLElement>('#pgLenVal').textContent = t('passgen.label.lengthValue', { n: len });
             say(t('passgen.status.made'), 'ok');
             Toolbox.trackUse?.('make');
@@ -335,8 +334,6 @@ import { checkPassword, verdict } from '../../lib/pwned';
           const whyEl = $<HTMLElement>('#pcWhy');
           const status = $<HTMLElement>('#pcStatus');
 
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function refresh(): void {
             const pw = input.value;
@@ -348,7 +345,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
               return;
             }
             const s = strength(pw);
-            stats.innerHTML = stat(t('passgen.stat.strength'), s.label, true) + stat(t('passgen.stat.holdsFor'), s.time) + stat(t('passgen.check.length'), t('passgen.check.lengthValue', { n: pw.length }));
+            stats.innerHTML = statCell(t('passgen.stat.strength'), s.label, true) + statCell(t('passgen.stat.holdsFor'), s.time) + statCell(t('passgen.check.length'), t('passgen.check.lengthValue', { n: pw.length }));
             const found = weaknesses(pw);
             whyEl.innerHTML = found.length
               ? found

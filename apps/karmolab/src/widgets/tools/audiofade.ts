@@ -11,6 +11,7 @@
  *    들린다 — 사람 귀는 소리 세기를 곧게 느끼지 않는다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -107,8 +108,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 시작·끝 20ms 의 최대 진폭 — 0 에서 멀수록 「툭」 소리가 크다 */
           function edgeLevels(buf: AudioBuffer): { head: number; tail: number } {
@@ -143,9 +142,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               )
               .join('');
             stats.innerHTML =
-              stat(t('audiofade.stat.length'), mmss(buffer.duration), true) +
-              stat(t('audiofade.stat.headLevel'), pct(head)) +
-              stat(t('audiofade.stat.tailLevel'), pct(tail));
+              statCell(t('audiofade.stat.length'), mmss(buffer.duration), true) +
+              statCell(t('audiofade.stat.headLevel'), pct(head)) +
+              statCell(t('audiofade.stat.tailLevel'), pct(tail));
             const bad = head > 0.02 || tail > 0.02;
             say(
               t(bad ? 'audiofade.say.bad' : 'audiofade.say.good'),
@@ -205,9 +204,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               saveBtn.disabled = false;
               const after = edgeLevels(out);
               stats.innerHTML =
-                stat(t('audiofade.stat.headLevel'), `${Math.round(after.head * 100)}%`, true) +
-                stat(t('audiofade.stat.tailLevel'), `${Math.round(after.tail * 100)}%`) +
-                stat(t('audiofade.stat.size'), size(outBlob.size));
+                statCell(t('audiofade.stat.headLevel'), `${Math.round(after.head * 100)}%`, true) +
+                statCell(t('audiofade.stat.tailLevel'), `${Math.round(after.tail * 100)}%`) +
+                statCell(t('audiofade.stat.size'), size(outBlob.size));
               say(t('audiofade.say.done'), 'ok');
               Toolbox.trackUse?.('fade');
             } catch (e) {

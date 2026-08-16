@@ -11,6 +11,7 @@
  *    막을 방법이 없으므로 **일어났으면 알려 준다.** 모르고 받아 가는 게 제일 나쁘다.
  */
 import { pickRecordType, download } from './shared/video';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { attachMedia, fileSize as size, mmss } from './shared/media';
@@ -105,8 +106,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 90·270도에서는 가로세로가 바뀐다 — 안 바꾸면 찌그러지거나 잘린다 */
           function outSize(): { w: number; h: number } {
@@ -137,9 +136,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           function showStats(): void {
             const { w, h } = outSize();
             stats.innerHTML =
-              stat(t('videorotate.stat.out'), `${w}×${h}`, true) +
-              stat(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
-              stat(t('videorotate.stat.length'), mmss(video.duration || 0));
+              statCell(t('videorotate.stat.out'), `${w}×${h}`, true) +
+              statCell(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
+              statCell(t('videorotate.stat.length'), mmss(video.duration || 0));
           }
 
           function load(file: File): void {
@@ -220,9 +219,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             saveBtn.disabled = false;
             const { w, h } = outSize();
             stats.innerHTML =
-              stat(t('videorotate.stat.out'), `${w}×${h}`, true) +
-              stat(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
-              stat(t('videorotate.stat.size'), size(made.size));
+              statCell(t('videorotate.stat.out'), `${w}×${h}`, true) +
+              statCell(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
+              statCell(t('videorotate.stat.size'), size(made.size));
             say(
               leftTab
                 ? t('videorotate.say.doneHidden')

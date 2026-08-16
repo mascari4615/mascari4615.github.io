@@ -12,6 +12,7 @@
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { statCell } from './shared/stats';
 import { download, encode as toPng } from './shared/image';
 import { markLive } from './shared/say';
 
@@ -147,8 +148,6 @@ import { markLive } from './shared/say';
             status.textContent = m;
             status.className = 'tool-status' + (k ? ' ' + k : '');
           };
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function draw(): void {
             const value = $<HTMLInputElement>('#bcValue').value;
@@ -189,9 +188,9 @@ import { markLive } from './shared/say';
             }
 
             stats.innerHTML =
-              stat(t('barcode.stat.spec'), kind === 'ean13' ? 'EAN-13' : 'Code128', true) +
-              stat(t('barcode.stat.bars'), t('barcode.value.bars', { n: bits.length })) +
-              stat(t('barcode.stat.size'), `${canvas.width}×${canvas.height}`);
+              statCell(t('barcode.stat.spec'), kind === 'ean13' ? 'EAN-13' : 'Code128', true) +
+              statCell(t('barcode.stat.bars'), t('barcode.value.bars', { n: bits.length })) +
+              statCell(t('barcode.stat.size'), `${canvas.width}×${canvas.height}`);
             say(
               kind === 'ean13'
                 ? t('barcode.say.ean', { full: eanFull(value) })

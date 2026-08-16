@@ -10,6 +10,7 @@
  * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
  */
 import { statusLine } from './shared/say';
+import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/image';
 
@@ -160,8 +161,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /* 방향 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 열쇠가 굳는다. */
           const orientName = (n: number): string => t(`exifclean.orient.${n}`);
@@ -197,9 +196,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             const cleaned = strip(raw);
             stats.innerHTML =
-              stat(t('exifclean.stat.before'), size(raw.length), true) +
-              stat(t('exifclean.stat.after'), size(cleaned.length)) +
-              stat(t('exifclean.stat.gps'), t(info.gps ? 'exifclean.value.has' : 'exifclean.value.none'));
+              statCell(t('exifclean.stat.before'), size(raw.length), true) +
+              statCell(t('exifclean.stat.after'), size(cleaned.length)) +
+              statCell(t('exifclean.stat.gps'), t(info.gps ? 'exifclean.value.has' : 'exifclean.value.none'));
 
             if (info.gps) say(t('exifclean.say.gps'), 'error');
             else if (rows.length) say(t('exifclean.say.someInfo'), 'ok');

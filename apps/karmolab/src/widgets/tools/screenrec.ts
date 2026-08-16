@@ -9,6 +9,7 @@
  * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
 import { pickRecordType, download } from './shared/video';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
@@ -82,8 +83,6 @@ import { intervalWhileVisible } from '../../lib/tick';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function cleanup(): void {
             stopTicker?.();
@@ -159,7 +158,7 @@ import { intervalWhileVisible } from '../../lib/tick';
               const sec = (performance.now() - startedAt) / 1000;
               clock.textContent = mmss(sec);
               const guess = chunks.reduce((a, c) => a + c.size, 0);
-              stats.innerHTML = stat(t('screenrec.stat.length'), mmss(sec), true) + stat(t('screenrec.stat.soFar'), size(guess));
+              stats.innerHTML = statCell(t('screenrec.stat.length'), mmss(sec), true) + statCell(t('screenrec.stat.soFar'), size(guess));
             }, 250);
             say(t('screenrec.say.recording'), 'ok');
 
@@ -175,7 +174,7 @@ import { intervalWhileVisible } from '../../lib/tick';
             $<HTMLElement>('#srResult').style.display = '';
             saveBtn.disabled = false;
             const sec = (performance.now() - startedAt) / 1000;
-            stats.innerHTML = stat(t('screenrec.stat.length'), mmss(sec), true) + stat(t('screenrec.stat.size'), size(made.size));
+            stats.innerHTML = statCell(t('screenrec.stat.length'), mmss(sec), true) + statCell(t('screenrec.stat.size'), size(made.size));
             say(`${mmss(sec)} · ${size(made.size)} 로 담았어요. 확인하고 받으세요.`, 'ok');
             Toolbox.trackUse?.('record');
           }

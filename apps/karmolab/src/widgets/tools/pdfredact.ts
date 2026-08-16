@@ -11,6 +11,7 @@
  *  - 가린 자리뿐 아니라 그 페이지의 **모든 글자 데이터**가 사라진다 — 숨은 메모·주석 포함.
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -116,8 +117,6 @@ import { encode } from './shared/image';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /**
            * 한 페이지를 캔버스에 그리고, 그 페이지에 잡아 둔 가림을 먹인다.
@@ -177,9 +176,9 @@ import { encode } from './shared/image';
             }
             const onPage = boxes.filter((b) => b.page === cur).length;
             stats.innerHTML =
-              stat(t('pdfredact.stat.total'), t('pdfredact.value.spots', { n: boxes.length }), true) +
-              stat(t('pdfredact.stat.onPage'), t('pdfredact.value.spots', { n: onPage })) +
-              stat(t('pdfredact.stat.pages'), t('pdfredact.value.pages', { n: doc.numPages }));
+              statCell(t('pdfredact.stat.total'), t('pdfredact.value.spots', { n: boxes.length }), true) +
+              statCell(t('pdfredact.stat.onPage'), t('pdfredact.value.spots', { n: onPage })) +
+              statCell(t('pdfredact.stat.pages'), t('pdfredact.value.pages', { n: doc.numPages }));
             saveBtn.disabled = false;
             undoBtn.disabled = boxes.length === 0;
           }

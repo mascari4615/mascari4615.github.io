@@ -8,6 +8,7 @@
  * 마크다운은 세로줄을 폭에 맞춰 정렬해 준다. 안 맞춰도 보이기는 하지만, 원본을 읽을 사람이 있다.
  */
 import { parse, spec, toCsv, toJson, toMarkdown, toTsv, type Rows } from '../../core/tableconv';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -73,8 +74,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function refresh(): void {
             const { rows, kind } = parse(input.value);
@@ -99,7 +98,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                화면이 고른다 — 묶음에 없으면 원래 이름이 그대로 나가 빈칸은 안 생긴다. */
             const kindLabel = kind ? t('tableconv.kind.' + kind.toLowerCase().replace(/[^a-z0-9]+/g, '_'), undefined, kind) : kind;
             stats.innerHTML =
-              stat(t('tableconv.stat.kind'), kindLabel, true) + stat(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + stat(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
+              statCell(t('tableconv.stat.kind'), kindLabel, true) + statCell(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + statCell(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
             // 줄마다 칸 수가 다르면 대개 붙여넣기가 잘린 것이다 — 결과는 나오지만 내용이 어긋난다
             if (ragged) say(t('tableconv.warn.ragged'), 'error');
             else say(t('tableconv.say.detected', { kind: kindLabel }), 'ok');

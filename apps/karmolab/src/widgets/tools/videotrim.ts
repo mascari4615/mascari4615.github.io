@@ -8,6 +8,7 @@
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
 import { seekTo, pickRecordType, download, attachVideo } from './shared/video';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -111,8 +112,6 @@ import { attachMedia } from './shared/media';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           const startSec = (): number => (parseInt(startEl.value, 10) / 1000) * duration;
           const endSec = (): number => (parseInt(endEl.value, 10) / 1000) * duration;
@@ -127,10 +126,10 @@ import { attachMedia } from './shared/media';
             const span = Math.max(0, e - s);
             $<HTMLElement>('#vtRangeLabel').textContent = t('videotrim.value.rangeOf', { from: mmss(s), to: mmss(e), sec: span.toFixed(1) }) + ``;
             stats.innerHTML =
-              stat(t('videotrim.stat.cut'), t('videotrim.value.sec', { n: span.toFixed(1) }), true) +
-              stat(t('videotrim.stat.total'), mmss(duration)) +
+              statCell(t('videotrim.stat.cut'), t('videotrim.value.sec', { n: span.toFixed(1) }), true) +
+              statCell(t('videotrim.stat.total'), mmss(duration)) +
               // 실시간 녹화라 걸리는 시간이 구간 길이와 같다. 미리 알려 줘야 「멈춘 건가」 오해가 없다.
-              stat(t('videotrim.stat.eta'), t('videotrim.value.about', { n: Math.ceil(span) }));
+              statCell(t('videotrim.stat.eta'), t('videotrim.value.about', { n: Math.ceil(span) }));
           }
 
           function load(f: File): void {

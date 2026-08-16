@@ -6,6 +6,7 @@
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudioInfo } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -67,8 +68,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function render(): void {
             listEl.innerHTML = items
@@ -85,9 +84,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             const total = items.reduce((a, i) => a + i.buffer.duration, 0) + gapSec * Math.max(0, items.length - 1);
             const rates = [...new Set(items.map((i) => i.rate))];
             stats.innerHTML =
-              stat(t('audiojoin.stat.length'), mmss(total), true) +
-              stat(t('audiojoin.stat.count'), t('audiojoin.value.count', { n: items.length })) +
-              stat(
+              statCell(t('audiojoin.stat.length'), mmss(total), true) +
+              statCell(t('audiojoin.stat.count'), t('audiojoin.value.count', { n: items.length })) +
+              statCell(
                 t('audiojoin.stat.rate'),
                 rates.length > 1
                   ? t('audiojoin.value.matched', {

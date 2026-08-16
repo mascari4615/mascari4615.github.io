@@ -8,6 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { attachImage, download, encode, loadImage } from './shared/image';
@@ -105,8 +106,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 이어 붙인 크기를 미리 계산한다 — 만들기 전에 「너무 큰가」를 알 수 있어야 한다. */
           function plan(): { w: number; h: number; base: number } {
@@ -151,10 +150,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             const { w, h } = plan();
             stats.innerHTML =
-              stat(t('imgmerge.stat.size'), `${w}×${h}`, true) +
-              stat(t('imgmerge.stat.count'), t('imgmerge.value.shots', { n: shots.length })) +
+              statCell(t('imgmerge.stat.size'), `${w}×${h}`, true) +
+              statCell(t('imgmerge.stat.count'), t('imgmerge.value.shots', { n: shots.length })) +
               // 브라우저가 감당 못 하는 크기가 있다 — 미리 알려 준다
-              stat(t('imgmerge.stat.state'), w * h > 60_000_000 ? t('imgmerge.verdict.tooBig') : t('imgmerge.verdict.ok'));
+              statCell(t('imgmerge.stat.state'), w * h > 60_000_000 ? t('imgmerge.verdict.tooBig') : t('imgmerge.verdict.ok'));
           }
 
           function draw(): HTMLCanvasElement | null {

@@ -10,6 +10,7 @@
  * 뽑은 장은 눌러 하나씩 받거나 ZIP 으로 한 번에 받는다.
  */
 import { fileSize as size, mmss, download } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -102,8 +103,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           const extOf = (): string => {
             const f = $<HTMLSelectElement>('#viFormat').value;
@@ -130,7 +129,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             clearBtn.disabled = shots.length === 0;
             if (shots.length) {
               const total = shots.reduce((a, s) => a + s.blob.size, 0);
-              stats.innerHTML = stat(t('video2img.stat.count'), t('video2img.value.shots', { n: shots.length }), true) + stat(t('video2img.stat.size'), size(total)) + stat(t('video2img.stat.duration'), mmss(duration));
+              stats.innerHTML = statCell(t('video2img.stat.count'), t('video2img.value.shots', { n: shots.length }), true) + statCell(t('video2img.stat.size'), size(total)) + statCell(t('video2img.stat.duration'), mmss(duration));
             } else {
               stats.innerHTML = '';
             }

@@ -11,6 +11,7 @@
  *  - 스캔 얼룩 한 점 때문에 여백이 안 잘리는 일이 많아, 옅은 점은 무시하고 본다.
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -119,8 +120,6 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 모든 장을 감싸는 하나의 범위 — 장마다 다르게 자르면 넘길 때 화면이 들썩인다 */
           function unioned(): { l: number; t: number; r: number; b: number } | null {
@@ -196,9 +195,9 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
               ctx.restore();
               const saved = Math.round((1 - (box.r - box.l) * (box.b - box.t)) * 100);
               stats.innerHTML =
-                stat(t('pdfcrop.stat.saved'), `${saved}%`, true) +
-                stat(t('pdfcrop.stat.pages'), t('pdfcrop.value.pages', { n: doc.numPages })) +
-                stat(
+                statCell(t('pdfcrop.stat.saved'), `${saved}%`, true) +
+                statCell(t('pdfcrop.stat.pages'), t('pdfcrop.value.pages', { n: doc.numPages })) +
+                statCell(
                   t('pdfcrop.stat.blank'),
                   t('pdfcrop.value.sheets', { n: bounds.filter((b) => !b).length })
                 );
@@ -208,8 +207,8 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
               );
             } else {
               stats.innerHTML =
-                stat(t('pdfcrop.stat.saved'), '0%', true) +
-                stat(t('pdfcrop.stat.pages'), t('pdfcrop.value.pages', { n: doc.numPages }));
+                statCell(t('pdfcrop.stat.saved'), '0%', true) +
+                statCell(t('pdfcrop.stat.pages'), t('pdfcrop.value.pages', { n: doc.numPages }));
               say(t('pdfcrop.err.noInk'), 'error');
             }
             $<HTMLElement>('#pcStage').style.display = '';

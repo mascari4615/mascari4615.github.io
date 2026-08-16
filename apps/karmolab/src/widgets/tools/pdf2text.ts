@@ -9,6 +9,7 @@
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
 import { statusLine } from './shared/say';
+import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
@@ -144,8 +145,6 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function parseRange(spec: string, total: number): number[] {
             const list: number[] = [];
@@ -186,7 +185,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
               const lib = await loadLib();
               doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
               editor.style.display = '';
-              stats.innerHTML = stat(t('pdf2text.stat.pages'), t('pdf2text.value.pages', { n: doc.numPages }), true);
+              stats.innerHTML = statCell(t('pdf2text.stat.pages'), t('pdf2text.value.pages', { n: doc.numPages }), true);
               say(t('pdf2text.say.opened'), 'ok');
             } catch (e) {
               say(t('pdf2text.err.open', { msg: (e as Error).message }), 'error');
@@ -223,9 +222,9 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
             const chars = joined.replace(/\s/g, '').length;
             stats.innerHTML =
-              stat(t('pdf2text.stat.taken'), t('pdf2text.value.pages', { n: pages.length }), true) +
-              stat(t('pdf2text.stat.chars'), t('pdf2text.value.chars', { n: chars.toLocaleString(locale()) })) +
-              stat(t('pdf2text.stat.empty'), t('pdf2text.value.pages', { n: empty }));
+              statCell(t('pdf2text.stat.taken'), t('pdf2text.value.pages', { n: pages.length }), true) +
+              statCell(t('pdf2text.stat.chars'), t('pdf2text.value.chars', { n: chars.toLocaleString(locale()) })) +
+              statCell(t('pdf2text.stat.empty'), t('pdf2text.value.pages', { n: empty }));
 
             // 스캔 문서는 글자가 아예 없다. 빈 결과를 성공처럼 내놓으면 사용자는 한참 뒤에야 안다.
             if (!chars) {

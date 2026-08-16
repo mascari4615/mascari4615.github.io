@@ -8,6 +8,7 @@
  * 맞는지 확인할 방법이 없다. 음력 명절은 해마다 날짜가 달라 표로 담는다(계산으로는 못 낸다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { region } from '../../lib/region';
 import { knowsYear, hasCalendar } from '../../lib/holidays';
@@ -105,8 +106,6 @@ import { readInvocation } from '../../lib/tool-url';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
           const WEEK = [0, 1, 2, 3, 4, 5, 6].map((i) => t(`workdays.week.${i}`));
           /* 날짜 적는 법은 언어마다 다르다 — 손으로 「년 월 일」을 붙이지 않고 브라우저에 맡긴다. */
           const fmt = (d: Date): string =>
@@ -156,9 +155,9 @@ import { readInvocation } from '../../lib/tool-url';
               }
               out.textContent = fmt(cur);
               stats.innerHTML =
-                stat(t('workdays.stat.business'), t('workdays.value.days', { n: need }), true) +
-                stat(t('workdays.stat.actual'), t('workdays.value.days', { n: Math.round((cur.getTime() - from.getTime()) / 86400000) })) +
-                stat(t('workdays.stat.off'), t('workdays.value.days', { n: skipped.length }));
+                statCell(t('workdays.stat.business'), t('workdays.value.days', { n: need }), true) +
+                statCell(t('workdays.stat.actual'), t('workdays.value.days', { n: Math.round((cur.getTime() - from.getTime()) / 86400000) })) +
+                statCell(t('workdays.stat.off'), t('workdays.value.days', { n: skipped.length }));
               warnUnknown([from.getFullYear(), cur.getFullYear()]);
             } else {
               const to = new Date(toEl.value + 'T00:00:00');
@@ -179,9 +178,9 @@ import { readInvocation } from '../../lib/tool-url';
               const total = Math.round((to.getTime() - from.getTime()) / 86400000);
               out.textContent = t('workdays.out.business', { n: work });
               stats.innerHTML =
-                stat(t('workdays.stat.business'), t('workdays.value.days', { n: work }), true) +
-                stat(t('workdays.stat.calendar'), t('workdays.value.days', { n: total })) +
-                stat(t('workdays.stat.off'), t('workdays.value.days', { n: skipped.length }));
+                statCell(t('workdays.stat.business'), t('workdays.value.days', { n: work }), true) +
+                statCell(t('workdays.stat.calendar'), t('workdays.value.days', { n: total })) +
+                statCell(t('workdays.stat.off'), t('workdays.value.days', { n: skipped.length }));
               warnUnknown([from.getFullYear(), to.getFullYear()]);
             }
 

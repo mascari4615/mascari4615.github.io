@@ -11,6 +11,7 @@
  *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
  */
 import { fileSize as size } from './shared/media';
+import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { attachImage, download, encode, loadImage } from './shared/image';
@@ -175,8 +176,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           /** 공용 `loadImage` 를 쓴다 (TASK-KL-280) — 주소 만들고 거두는 네 줄이 도구마다 있었다. */
           async function load(file: File): Promise<void> {
@@ -197,8 +196,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               $<HTMLElement>('#irControls').style.display = '';
               runBtn.disabled = false;
               stats.innerHTML =
-                stat(t('imgresize.stat.srcSize'), `${im.naturalWidth}×${im.naturalHeight}`, true) +
-                stat(t('imgresize.stat.srcBytes'), size(file.size));
+                statCell(t('imgresize.stat.srcSize'), `${im.naturalWidth}×${im.naturalHeight}`, true) +
+                statCell(t('imgresize.stat.srcBytes'), size(file.size));
               say(t('imgresize.say.ready'), 'ok');
             }
           }
@@ -276,9 +275,9 @@ import { t, loadNamespace } from '../../lib/i18n';
                     ? t('imgresize.verdict.bigger', { pct })
                     : t('imgresize.verdict.same');
               stats.innerHTML =
-                stat(t('imgresize.stat.outSize'), `${dims.w}×${dims.h}`, true) +
-                stat(t('imgresize.stat.outBytes'), size(blob.size)) +
-                stat(t('imgresize.stat.vsSrc'), verdict);
+                statCell(t('imgresize.stat.outSize'), `${dims.w}×${dims.h}`, true) +
+                statCell(t('imgresize.stat.outBytes'), size(blob.size)) +
+                statCell(t('imgresize.stat.vsSrc'), verdict);
               const limit = parseInt($<HTMLInputElement>('#irBytes').value, 10) * 1024 * 1024;
               say(
                 mode === 'bytes' && blob.size > limit

@@ -6,6 +6,7 @@
  * 초반 상환액이 거의 이자라는 사실은 표를 봐야 실감이 나므로 상환표를 편다.
  */
 import { bullet, equalPayment, equalPrincipal, spec, withExtra, withGrace, type Row } from '../../core/loan';
+import { statCell } from './shared/stats';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { regionMeta } from '../../lib/region';
 import { readInvocation } from '../../lib/tool-url';
@@ -110,8 +111,6 @@ import { download } from './shared/image';
           const compare = $<HTMLElement>('#loCompare');
           const table = $<HTMLElement>('#loTable');
 
-          const stat = (l: string, v: string, primary = false): string =>
-            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
@@ -134,12 +133,12 @@ import { download } from './shared/image';
             const 줄어든달 = 기본.length - rows.length;
 
             stats.innerHTML =
-              stat(t(type === 'ep' ? 'loan.stat.monthly' : 'loan.stat.firstMonth'), money(rows[0].pay), true) +
-              stat(t('loan.stat.totalInterest'), money(totalInterest)) +
-              stat(t('loan.stat.totalPaid'), money(P + totalInterest)) +
-              (grace > 0 ? stat(t('loan.stat.graceInterest'), money(P * (rate / 100 / 12))) : '') +
-              (아낀이자 > 0 ? stat(t('loan.stat.saved'), money(아낀이자), true) : '') +
-              (줄어든달 > 0 ? stat(t('loan.stat.faster'), t('loan.value.months', { n: 줄어든달 })) : '');
+              statCell(t(type === 'ep' ? 'loan.stat.monthly' : 'loan.stat.firstMonth'), money(rows[0].pay), true) +
+              statCell(t('loan.stat.totalInterest'), money(totalInterest)) +
+              statCell(t('loan.stat.totalPaid'), money(P + totalInterest)) +
+              (grace > 0 ? statCell(t('loan.stat.graceInterest'), money(P * (rate / 100 / 12))) : '') +
+              (아낀이자 > 0 ? statCell(t('loan.stat.saved'), money(아낀이자), true) : '') +
+              (줄어든달 > 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: 줄어든달 })) : '');
 
             // 세 방식을 나란히 놓아야 「총이자가 적은 대신 초반이 무겁다」 는 맞바꿈이 보인다
             const alts: Array<[string, Row[]]> = [
