@@ -2069,9 +2069,13 @@ const Toolbox = (() => {
         if (tool.tabs.length > 1) {
             const tabRow = document.createElement('div');
             tabRow.className = 'tab-row';
+            /* ★ `role="tablist"` 은 **줄 세우기와 상관없다** (2026-08-16 axe 실측: critical).
+               옆줄(sidebar) 일 때만 붙이고 있었다 — 가로줄 탭에서는 `role="tab"` 단추가
+               tablist 밖에 홀로 서서, 화면낭독기가 「탭 1/3」을 못 읽고 그냥 단추로 읽는다.
+               가로/세로는 `aria-orientation` 이 말한다. 역할은 언제나 붙는다. */
+            tabRow.setAttribute('role', 'tablist');
             if (tool.tabLayout === 'sidebar') {
                 tabRow.classList.add('tab-row--sidebar');
-                tabRow.setAttribute('role', 'tablist');
                 tabRow.setAttribute('aria-orientation', 'vertical');
             }
             tool.tabs.forEach((tab, i) => {
