@@ -23,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { withoutRetired } from './lib/retired-operations.mjs';
+import { 멎을때까지 } from './lib/settle.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -69,11 +70,12 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
   if (!find) problems.push('걸러 찾는 칸이 없다');
   else {
     await find.fill('PDF');
-    await page.waitForTimeout(400);
-    const narrowed = await page.evaluate(() => ({
+    /* 재우지 말고 **걸러진 결과가 멎기를** 기다린다 (`lib/settle.mjs`) — 400ms 를 세면
+       느린 판에서 거르기 전 숫자를 읽는다. */
+    const narrowed = await 멎을때까지(page, () => page.evaluate(() => ({
       shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length,
       total: document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length
-    }));
+    })));
     if (narrowed.shown === 0) problems.push('걸러 찾기에 「PDF」 를 넣으니 하나도 안 남는다');
     else if (narrowed.shown >= narrowed.total) problems.push('걸러 찾기가 아무것도 걸러 내지 못한다');
 
