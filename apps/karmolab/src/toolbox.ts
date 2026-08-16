@@ -61,26 +61,49 @@ const Toolbox = (() => {
     const NAV_TOOL_GROUPS = [
         {
             id: 'tool-calc',
-            label: '계산 · 변환',
+            label: () => t('shell.nav.group.calc', undefined, '계산 · 변환'),
             prefixes: ['aspect', 'birth', 'bmi', 'bytesize', 'calc', 'datecalc', 'grade', 'interest', 'loan', 'numword', 'pace', 'percent', 'time', 'unitconv', 'vat', 'workdays', 'worldclock', 'livecount', 'countdown', 'hourglass']
         },
         {
             id: 'tool-media',
-            label: '파일 · 미디어',
+            label: () => t('shell.nav.group.media', undefined, '파일 · 미디어'),
             prefixes: ['asciiart', 'audio', 'barcode', 'color', 'exif', 'favicon', 'filetool', 'filesplit', 'gif', 'image', 'img', 'icsmake', 'palette', 'pdf', 'qr', 'redact', 'screenrec', 'sound', 'subtitle', 'video', 'voicerec', 'ziptool']
         },
         {
             id: 'tool-dev',
-            label: '개발 · 텍스트',
+            label: () => t('shell.nav.group.dev', undefined, '개발 · 텍스트'),
             prefixes: ['base64', 'caseconv', 'char', 'cron', 'cssunit', 'csvjson', 'devtool', 'epoch', 'filehash', 'hangul', 'hash', 'jamo', 'json', 'jwt', 'linebreak', 'listdiff', 'morse', 'radix', 'regex', 'replace', 'slug', 'tableconv', 'text', 'urlparse', 'uuid', 'wordfreq']
         },
-        { id: 'tool-create', label: '생성 · 정리', prefixes: [] },
+        { id: 'tool-create', label: () => t('shell.nav.group.create', undefined, '생성 · 정리'), prefixes: [] },
     ];
+
+    /* 갈래 이름은 **말 묶음에서 온다** (2026-08-17). 예전엔 한국어가 박혀 있어서
+       영어·일본어 장의 「열기 전 화면」에 한글 다섯이 그대로 보였다(smoke-shell-i18n 이 잡는다).
+       묶음이 아직 안 왔을 수 있어 원본 글을 fallback 으로 함께 준다 — 이 파일의 탭 이름과 같은 규율. */
+    /* ★ **말 묶음이 아직 없을 때도 이름은 나와야 한다** (2026-08-17 실측). 이 파일은 묶지 않고
+       내보내서(bundle:false) `t` 를 **전역**으로 기대하는데, 첫 그리기가 그 전역보다 빠를 수 있다.
+       실제로 「빠른 실행」 이름을 `t(...)` 로 바꾼 뒤 첫 화면이 `ReferenceError: t is not defined`
+       로 터졌고, 말 바꾸기 검사가 그걸 콘솔 오류로 세어 **배포가 통째로 섰다**(5c9333e6).
+       이름 하나 때문에 화면이 죽으면 안 된다 — 없으면 한국어 기본값으로 간다. */
+    const 말 = (key, 기본값) => {
+        try {
+            return typeof t === 'function' ? t(key, undefined, 기본값) : 기본값;
+        } catch {
+            return 기본값;
+        }
+    };
+    const navLabel = (cat) => {
+        try {
+            return typeof cat.label === 'function' ? cat.label() : cat.label;
+        } catch {
+            return cat.id;
+        }
+    };
 
     const NAV_CATEGORIES = [
         ...NAV_TOOL_GROUPS,
-        { id: 'ref', label: '자료' },
-        { id: 'play', label: '놀이' },
+        { id: 'ref', label: () => t('shell.nav.ref', undefined, '자료') },
+        { id: 'play', label: () => t('shell.nav.play', undefined, '놀이') },
     ];
 
     function startsWithAny(value, prefixes) {
@@ -1329,13 +1352,13 @@ const Toolbox = (() => {
                     return (a.title || '').localeCompare(b.title || '', 'ko-KR');
                 })
                 .slice(0, HEADER_QUICK_LIMIT);
-            buildHeaderNavGroup('빠른 실행', quickTools, headerNavScroll);
+            buildHeaderNavGroup(말('shell.nav.group.quick', '빠른 실행'), quickTools, headerNavScroll);
 
             NAV_CATEGORIES.forEach(cat => {
                 const catTools = getNavigationTools(cat.id)
                     .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-                buildHeaderNavGroup(cat.label, catTools, headerNavScroll, cat.id === 'tool-create' ? { limit: HEADER_TOOL_LIMIT } : {});
+                buildHeaderNavGroup(navLabel(cat), catTools, headerNavScroll, cat.id === 'tool-create' ? { limit: HEADER_TOOL_LIMIT } : {});
             });
 
             document.addEventListener('click', (e) => {
@@ -1419,7 +1442,7 @@ const Toolbox = (() => {
                 const catTools = getNavigationTools(cat.id)
                     .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-                buildSidebarGroup(cat.id, cat.label, catTools);
+                buildSidebarGroup(cat.id, navLabel(cat), catTools);
             });
 
         }
@@ -1976,7 +1999,7 @@ const Toolbox = (() => {
                 breadcrumb.innerHTML = `
                     <button class="breadcrumb-link" data-goto="home">KarmoLab</button>
                     <span class="breadcrumb-sep">/</span>
-                    <span class="breadcrumb-current">${cat ? cat.label : ''}</span>
+                    <span class="breadcrumb-current">${cat ? navLabel(cat) : ''}</span>
                 `;
             } else if (breadcrumb) {
                 breadcrumb.innerHTML = `<button class="breadcrumb-link" data-goto="home">KarmoLab</button>`;
