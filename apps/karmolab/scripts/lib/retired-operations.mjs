@@ -29,7 +29,12 @@ export const RETIRED_OPERATION_IDS = new Set([
   'checklist',
   /* 개발 도구 작업대로 흡수 (2026-08-16, TASK-KL-257) — 여기 안 적으면 검사가
      「명부에 없다」로 master 를 세운다. 글 열여섯이 그랬던 그 자리다. */
-  'json2ts'
+  'json2ts',
+  'sqlfmt',
+  'xmlfmt',
+  'configconv',
+  'prettyall',
+  'jqplay'
 ]);
 
 /** 원장 id 목록에서 흡수된 것들을 걸러 낸다 */
