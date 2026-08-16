@@ -90,9 +90,18 @@ if (새것.length > 0 && BLESS === false) {
 /* 윈도에서 `npm` 은 `.cmd` 라 최신 node 가 셸 없이 못 띄운다(EINVAL) — 그 실패가 한때
    「네트워크?」로 보였다. 셸도 안 태운다(DEP0190). npm 은 결국 node 스크립트이므로
    **지금 이 node 로 직접** 부른다. */
-const npmCli = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js');
-if (fs.existsSync(npmCli) === false) {
-  console.error(`[deps] 못 쟀다 — npm-cli.js 를 못 찾았다 (${npmCli}). 통과가 아니다.`);
+/* ★ **npm 이 어디 있는지는 기계마다 다르다** (2026-08-16, 실측). 여기서는 `node` 옆의
+   `node_modules/npm` 한 자리만 봤다 — 그건 **윈도우 배치**다. 리눅스(그리고 GitHub 러너)는
+   `<prefix>/bin/node` 와 `<prefix>/lib/node_modules/npm` 으로 갈라져 있다. 그래서 이 검사는
+   **CI 에서 한 번도 안 돌았다**: 매 판 「못 쟀다」로 조용히 넘어갔고, 그동안 설치 스크립트가
+   늘어도·취약점이 늘어도 아무도 못 막았다(그러라고 만든 검사인데). 아는 자리를 차례로 본다. */
+const npmCli = [
+  process.env.npm_execpath,                                                       // npm 이 부른 경우 제일 정확하다
+  path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'),      // 윈도우
+  path.join(path.dirname(path.dirname(process.execPath)), 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'), // 리눅스·맥
+].find((c) => typeof c === 'string' && c.endsWith('npm-cli.js') && fs.existsSync(c));
+if (!npmCli) {
+  console.error('[deps] 못 쟀다 — npm-cli.js 를 어디서도 못 찾았다 (본 자리: node 옆 · <prefix>/lib · npm_execpath). 통과가 아니다.');
   process.exit(2);
 }
 const 현재취약 = {};
