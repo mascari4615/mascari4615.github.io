@@ -1,0 +1,27 @@
+/**
+ * 「이번 판에 **어떤 도구를 열어 봐야 하나**」를 가르는 셈 (2026-08-17).
+ *
+ * 왜 따로 있나: 도구 234개를 다 열면 8분이고, 그게 매 빌드에 붙으면 배포가 그만큼 늦는다.
+ * 그래서 바뀐 파일로 범위를 좁히는데 — **이 셈이 틀리면 죽은 도구를 지나친다.**
+ * 브라우저·git 을 부르는 자리에 박혀 있으면 시험을 못 붙이므로 셈만 떼어 둔다.
+ *
+ * 규율: 모르면 **넓게** 본다(null = 전부). 좁히는 쪽이 틀리면 못 잡고 지나가기 때문이다.
+ */
+
+/** 껍데기를 건드렸으면 어느 도구든 죽을 수 있다 — 그때는 전부 본다. */
+const 껍데기 = /apps[/]karmolab[/](index[.]html|src[/]toolbox[.]ts|src[/]lib[/]|src[/]widgets-lazy-meta[.]ts)/;
+
+/**
+ * @param {string[]|null} 바뀐파일 - 이번 판에서 바뀐 경로들. null = 못 물어봤다.
+ * @returns {string[]|null} 열어 볼 도구 이름들. null = 전부 열어야 한다.
+ */
+export function 열어볼것(바뀐파일) {
+  if (!Array.isArray(바뀐파일)) return null;          // 못 물어봤으면 좁히지 않는다
+  if (바뀐파일.some((f) => 껍데기.test(f))) return null; // 껍데기가 바뀌었으면 전부
+  const 이름 = new Set();
+  for (const f of 바뀐파일) {
+    const m = /apps[/]karmolab[/]src[/]widgets[/]([a-z0-9-]+)[/]/.exec(String(f));
+    if (m) 이름.add(m[1]);
+  }
+  return [...이름];
+}
