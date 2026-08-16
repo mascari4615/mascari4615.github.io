@@ -147,9 +147,16 @@ const RAW_CHECKS = [
   { name: '타임캡슐이 도는지', cmd: ['npm', 'run', 'test:timecapsule'] },
   { name: '오락실 자판이 도는지', cmd: ['npm', 'run', 'smoke:arcadekeys'] },
   { name: '자기 성능 재기가 도는지', cmd: ['npm', 'run', 'test:perf:self'] },
+  /* 예산 검사의 자기시험 — 예산을 반으로 조여 **빨간불이 실제로 나는지** 본다.
+     초록만 보고 믿지 않으려면 빨강도 나는 걸 봐야 한다. 위 `test:perf:self` 와 같은 짝. */
+  { name: '성능 예산이 빨간불도 내는지', cmd: ['npm', 'run', 'test:perf:budget:regress'] },
   /* 6분짜리다 — 묶음에 넣으면 push 마다 6분이 붙는다. 여기가 그 집이다. */
   { name: '둘러보기가 끝까지 도는지', cmd: ['npm', 'run', 'smoke:tour'] },
-  { name: '성능 예산이 지켜지는지', cmd: ['npm', 'run', 'test:perf:budget:regress'] },
+  /* ★ 2026-08-16 — 이 줄은 `test:perf:budget:regress` 를 부르고 있었다. `:regress` 는 예산을
+     **재어 나온 값의 절반**으로 조여 일부러 빨갛게 만드는 자기시험이고, 한 건이라도 잡히면
+     0 으로 끝난다 — 즉 실제 예산을 넘든 말든 늘 초록이었다. 이름은 「지켜지는지」인데
+     지켜지는지를 한 번도 안 봤다. 진짜 예산으로 바꾼다(실측 14개 항목 전부 예산 안쪽). */
+  { name: '성능 예산이 지켜지는지', cmd: ['npm', 'run', 'test:perf:budget'] },
   { name: '실사이트 화면들이 뜨는지', cmd: ['npm', 'run', 'smoke:live'] },
   /* ★ 이건 **실사이트**를 재는 검사다 (`URL` 기본값이 blog.mascari4615.com).
      묶음(gates)에 뒀더니 배포가 도는 순간에 걸려 「위젯 파일 404」로 빨갰다 —
