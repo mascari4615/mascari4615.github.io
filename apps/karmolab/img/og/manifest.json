@@ -193,5 +193,8 @@
   "bundlemap": "58272b995542",
   "erd": "447b30d94651",
   "curlkit": "d0ee6689c411",
-  "docscan": "3536c12e411f"
+  "docscan": "3536c12e411f",
+  "logview": "d2e62e73442a",
+  "mockdata": "dc4859a517b3",
+  "sshkey": "b5c9ad8ac5ec"
 }

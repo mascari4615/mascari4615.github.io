@@ -319,6 +319,10 @@
     "narrow": 2258,
     "wide": 1216
   },
+  "logview": {
+    "narrow": 869,
+    "wide": 927
+  },
   "lorem": {
     "narrow": 812,
     "wide": 844
@@ -342,6 +346,10 @@
   "mesh3d": {
     "narrow": 730,
     "wide": 765
+  },
+  "mockdata": {
+    "narrow": 1198,
+    "wide": 823
   },
   "moon": {
     "narrow": 478,
@@ -478,6 +486,10 @@
   "specialchar": {
     "narrow": 6597,
     "wide": 972
+  },
+  "sshkey": {
+    "narrow": 867,
+    "wide": 924
   },
   "studymap": {
     "narrow": 1156,

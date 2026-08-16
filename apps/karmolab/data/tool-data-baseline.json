@@ -4,15 +4,12 @@
     "codegraph",
     "dupphoto",
     "idphoto",
-    "logview",
-    "mockdata",
     "nettool",
     "ocr",
     "payslip",
     "photomap",
     "printkit",
     "protobuf",
-    "sshkey",
     "tts"
   ],
   "갱신": "2026-08-16"

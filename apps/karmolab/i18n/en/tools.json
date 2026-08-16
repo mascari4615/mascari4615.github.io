@@ -296,5 +296,11 @@
   "tools.curlkit.description": "Turns a curl command somebody handed you into code in your own language — fetch, axios, python, go, node or httpie.",
   "tools.curlkit.lead": "curl → fetch/axios/python/go/node/httpie · no lost quotes or headers",
   "tools.docscan.description": "Straightens a document photographed at an angle back into a proper rectangle, then cleans it up so it looks scanned.",
-  "tools.docscan.lead": "Drag four corners · undo the perspective · scan look · fit to A4"
+  "tools.docscan.lead": "Drag four corners · undo the perspective · scan look · fit to A4",
+  "tools.logview.description": "Narrows a large log by time, level and regex, and shows you when the spikes happened first. Lines it cannot parse are kept, not dropped.",
+  "tools.logview.lead": "ISO · syslog · nginx · JSON lines · spike timeline · level filter",
+  "tools.mockdata.description": "Write just the field kinds (name:name) and it fills in believable rows — as many as you want. The same seed always gives the same data.",
+  "tools.mockdata.lead": "One field per line · fixed seed · ko/en/ja · JSON, CSV, SQL",
+  "tools.sshkey.description": "Paste an SSH public key line and get its type, size, comment and SHA256 fingerprint. It also turns a PEM public key into a one-line OpenSSH key.",
+  "tools.sshkey.lead": "Read authorized_keys lines · SHA256 fingerprint · PEM → OpenSSH"
 }

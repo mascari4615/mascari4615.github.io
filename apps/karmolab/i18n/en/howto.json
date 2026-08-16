@@ -548,5 +548,17 @@
   "howto.docscan.0": "Upload the photo of your document",
   "howto.docscan.1": "Drag the four corners onto the corners of the paper",
   "howto.docscan.2": "Check the flattened result (perspective undone)",
-  "howto.docscan.3": "Apply the scan look and download"
+  "howto.docscan.3": "Apply the scan look and download",
+  "howto.logview.0": "Paste the log or drop the file in",
+  "howto.logview.1": "Look at when it spiked first (bars per time bucket)",
+  "howto.logview.2": "Narrow by level (error/warn/info) and regex",
+  "howto.logview.3": "Copy just the lines that are left",
+  "howto.mockdata.0": "Write one field per line (e.g. name:name · email:email · joined:date)",
+  "howto.mockdata.1": "Choose how many rows and which seed",
+  "howto.mockdata.2": "Take the result as JSON, CSV or SQL",
+  "howto.mockdata.3": "Put the same seed back in and you get the same data",
+  "howto.sshkey.0": "Paste a line starting with ssh-rsa / ssh-ed25519",
+  "howto.sshkey.1": "Check the type, size, comment and fingerprint (SHA256:…)",
+  "howto.sshkey.2": "Use the fingerprint to pick the line to remove on the server",
+  "howto.sshkey.3": "Have a PEM public key? Convert it to a one-line OpenSSH key"
 }

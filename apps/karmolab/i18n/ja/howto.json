@@ -548,5 +548,17 @@
   "howto.docscan.0": "書類を撮った写真をアップロードする",
   "howto.docscan.1": "四隅を紙の角に合わせてドラッグする",
   "howto.docscan.2": "まっすぐになった結果を確認する（遠近を戻す）",
-  "howto.docscan.3": "スキャン風に整えてダウンロードする"
+  "howto.docscan.3": "スキャン風に整えてダウンロードする",
+  "howto.logview.0": "ログを貼るかファイルを入れる",
+  "howto.logview.1": "いつ集中したか（時間帯の棒）を先に見る",
+  "howto.logview.2": "レベル（error/warn/info）と正規表現で絞る",
+  "howto.logview.3": "残った行だけコピーして持っていく",
+  "howto.mockdata.0": "項目を1行ずつ書く（例: name:name · email:email · joined:date）",
+  "howto.mockdata.1": "作る行数と種（seed）を決める",
+  "howto.mockdata.2": "結果を JSON・CSV・SQL で持っていく",
+  "howto.mockdata.3": "同じ種を入れ直すと同じデータが出る",
+  "howto.sshkey.0": "ssh-rsa / ssh-ed25519 で始まる行を貼る",
+  "howto.sshkey.1": "種類・長さ・コメント・指紋(SHA256:…) を確認する",
+  "howto.sshkey.2": "サーバーで消す行を指紋で選ぶ",
+  "howto.sshkey.3": "PEM 公開鍵があれば OpenSSH の一行に変換する"
 }
