@@ -14,6 +14,7 @@
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
 import { isHiddenAtBuild } from './home-prefs-data.js';
+import { t } from './lib/i18n.js';
 (function () {
     const switchPage = (id, opts) => Toolbox.switchPage(id, opts);
     const mountHomeDecor = () => Toolbox.mountHomeDecor();
@@ -39,7 +40,7 @@ import { isHiddenAtBuild } from './home-prefs-data.js';
         hero.className = 'landing-hero';
         hero.innerHTML = `
             <h1 class="landing-title">KarmoLab</h1>
-            <p class="landing-tagline">삶을 섞고 술을 바꿀 시간</p>
+            <p class="landing-tagline">${t('site.tagline', undefined, '삶을 섞고 술을 바꿀 시간')}</p>
         `;
         landing.appendChild(hero);
 
