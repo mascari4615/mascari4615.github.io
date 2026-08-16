@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/diff', 'tools/curlkit', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/diff', 'tools/curlkit', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
   },
   {
     id: 'diff',
@@ -1430,7 +1430,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.json2ts.desc', undefined, "JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다"); },
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 8h6M17 8v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/json2ts']
+    lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
   },
   {
     id: 'jsonfmt',
