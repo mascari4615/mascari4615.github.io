@@ -158,6 +158,7 @@
     "audit:sleep-read",
     "audit:entry-sources",
     "test:shell-i18n",
-    "test:taptarget"
+    "test:taptarget",
+    "audit:locale-inline"
   ]
 }
