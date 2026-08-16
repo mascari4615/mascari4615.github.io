@@ -1504,7 +1504,7 @@ const Toolbox = (() => {
         }
 
         /* 껍데기의 자리 이동 단추·링크는 **한 자리에서** 받는다 (2026-08-17).
-           전에는 여섯 곳이 `onclick="Toolbox.switchPage('community')"` 처럼 글로 박혀 있었다.
+           전에는 여섯 곳이 `data-goto="community"` 처럼 글로 박혀 있었다.
            그러면 CSP 에 `script-src` 를 못 넣는다 — 인라인 하나만 있어도 그 자물쇠는 못 건다.
            `data-goto` 로 바꾸고 여기서 위임해 받으면 셋이 한꺼번에 좋아진다:
              ① 인라인 손잡이 6개가 사라진다(14 → 8) ② 「Toolbox 가 아직 없나」를 안 물어봐도 된다
@@ -1974,12 +1974,12 @@ const Toolbox = (() => {
             if (breadcrumb && tool.category) {
                 const cat = CATEGORIES.find(c => c.id === tool.category);
                 breadcrumb.innerHTML = `
-                    <button class="breadcrumb-link" onclick="Toolbox.switchPage('home')">KarmoLab</button>
+                    <button class="breadcrumb-link" data-goto="home">KarmoLab</button>
                     <span class="breadcrumb-sep">/</span>
                     <span class="breadcrumb-current">${cat ? cat.label : ''}</span>
                 `;
             } else if (breadcrumb) {
-                breadcrumb.innerHTML = `<button class="breadcrumb-link" onclick="Toolbox.switchPage('home')">KarmoLab</button>`;
+                breadcrumb.innerHTML = `<button class="breadcrumb-link" data-goto="home">KarmoLab</button>`;
             }
         }
     }

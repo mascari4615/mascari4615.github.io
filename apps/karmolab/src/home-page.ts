@@ -111,7 +111,7 @@ import { isHiddenAtBuild } from './home-prefs-data.js';
         cta.hidden = isHiddenAtBuild('cta');
         cta.innerHTML = `
             <div class="landing-cta-grid">
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
+                <button type="button" class="landing-cta-card" data-goto="favorites">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
                     <span class="landing-cta-card-title">즐겨찾기</span>
                 </button>
@@ -119,15 +119,15 @@ import { isHiddenAtBuild } from './home-prefs-data.js';
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
                     <span class="landing-cta-card-title">도구 목록</span>
                 </a>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('community')">
+                <button type="button" class="landing-cta-card" data-goto="community">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></span>
                     <span class="landing-cta-card-title">커뮤니티</span>
                 </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('arcade')">
+                <button type="button" class="landing-cta-card" data-goto="arcade">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
                     <span class="landing-cta-card-title">오락실</span>
                 </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
+                <button type="button" class="landing-cta-card" data-goto="docs">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
                     <span class="landing-cta-card-title">문서</span>
                 </button>
