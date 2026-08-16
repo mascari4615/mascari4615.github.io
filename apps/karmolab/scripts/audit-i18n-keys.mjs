@@ -64,8 +64,9 @@ for (const file of files) {
        그 자리는 t() 호출이 아니라 이 감사의 눈 밖이었고, 그래서 `arcade.mine.boom` 이
        **세 판 모두에 아예 없는 채로** 몇 달을 지났다. 지뢰를 밟는 순간(=이 놀이의 핵심 사건)
        i18n 이 던지고 판이 거기서 멎는다 — 대회 검사가 「5판이 안 끝났다」로 빨갰던 진짜 이유다.
-       열쇠는 어디에 적혀 있든 열쇠다. `key:` 라는 이름의 글자 값도 같이 본다. */
-    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === 'key'
+       열쇠는 어디에 적혀 있든 열쇠다. `key:`·`labelKey:` 같은 이름의 글자 값도 같이 본다
+       (2026-08-17 2차 훑기: `labelKey` 로 담아 두는 자리가 넷 더 있었다 — 계획표 칸 이름·기록 갈래). */
+    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && /^(key|labelKey|titleKey|noteKey|textKey)$/.test(node.name.text)
         && ts.isStringLiteral(node.initializer) && node.initializer.text.includes('.')) {
       calls++;
       const key = node.initializer.text;
