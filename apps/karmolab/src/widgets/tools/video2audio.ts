@@ -8,6 +8,7 @@
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
 import { encodeAudio, fileSize as size, mmss, audioCtx, loadAudioInfo } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -15,8 +16,6 @@ import { download } from './shared/video';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'video2audio',

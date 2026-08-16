@@ -8,6 +8,7 @@
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
  */
 import { seekTo, download, attachVideo } from './shared/video';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -64,8 +65,6 @@ import { attachImage } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="vgDrop">
               <input type="file" id="vgFile" accept="video/*" hidden>

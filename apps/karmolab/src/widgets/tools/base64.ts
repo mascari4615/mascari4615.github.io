@@ -5,13 +5,12 @@
  * 주소로 부른 경우(`?op=encode&text=…`)도 여기서 받아 칸을 채운다 — 규약은 `lib/tool-url.ts`.
  */
 import { byteLength, decode, encode, spec } from '../../core/base64';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { buildToolUrl, readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /* 안내 문구도 **쓸 때** 가져온다 (모듈 바닥에서 부르면 말 묶음 전이라 한국어로 굳는다). */
   const idle = (): string => t('base64.status.idle');

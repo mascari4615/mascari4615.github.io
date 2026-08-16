@@ -9,6 +9,7 @@
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 
@@ -54,7 +55,6 @@ import { attachImage, encode } from './shared/image';
 
   function draw(container: HTMLElement): void {
     /* 화면에 넣는 말은 그대로 붙이지 않는다 — 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pcDrop">
               <input type="file" id="pcFile" accept="application/pdf" hidden>

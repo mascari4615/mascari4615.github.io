@@ -7,14 +7,13 @@
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } from './shared/pdf';
 import { encode } from './shared/image';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 
   /** 글자를 캔버스에 그려 PNG 로 — PDF 기본 글꼴은 한글을 담지 못한다. */

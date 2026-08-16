@@ -8,6 +8,7 @@
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
 import { seekTo, pickRecordType, download, attachVideo } from './shared/video';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -16,8 +17,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;

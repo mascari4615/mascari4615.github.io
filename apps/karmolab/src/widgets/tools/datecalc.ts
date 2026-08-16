@@ -3,6 +3,7 @@
  * 모든 계산은 로컬 자정 기준 Date 로 정규화한다 — 시:분이 섞이면 하루가 밀린다(경계 버그의 단골).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 
@@ -71,7 +72,6 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
 
   function drawDday(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           Mdd.linePreset('tool_run', { msg: t('datecalc.mdd') });
           container.innerHTML = `
             <div class="field-group">
@@ -162,7 +162,6 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
 
   function drawBetween(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">${esc(t('datecalc.label.betweenTwo'))}</label>
@@ -252,7 +251,6 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
 
   function drawAge(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">${esc(t('datecalc.label.birth'))}</label>

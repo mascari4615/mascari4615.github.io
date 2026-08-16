@@ -11,6 +11,7 @@
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
@@ -45,8 +46,6 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="psDrop">
               <input type="file" id="psFile" accept="application/pdf" hidden>

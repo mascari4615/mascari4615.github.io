@@ -6,6 +6,7 @@
  * 스무 줄이 빨개지는 화면을 안 만들려고.
  */
 import { diffLines, countEdits, toUnified, diffStructure, structureReport, merge3, spec } from '../../core/diff';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -21,8 +22,6 @@ interface ZipArchive {
 }
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'diff',

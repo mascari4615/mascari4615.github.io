@@ -8,11 +8,10 @@
  * 사람 눈에 맞는 공간에서 섞으면 그 일이 없다 — 그 차이를 나란히 보여 준다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /** #rrggbb → [0..1] 세 값. 잘못된 값이 들어와도 검은색으로 떨어지게 한다. */
   function toRgb(hex: string): [number, number, number] {

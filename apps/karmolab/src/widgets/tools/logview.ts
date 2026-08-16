@@ -9,12 +9,11 @@
  *   - 시각 없는 줄은 그림에서 빼되 목록에는 남긴다(로그에서 버려진 줄이 대개 범인이다).
  */
 import { filter, parse, summarise, timeline, spec, type Level, type Row } from '../../core/logview';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const LEVELS: Level[] = ['error', 'warn', 'info', 'debug', 'trace', 'other'];
   const COLOR: Record<Level, string> = {

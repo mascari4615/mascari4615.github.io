@@ -10,6 +10,7 @@
  * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/image';
@@ -127,8 +128,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게 — 그리기 **전**에 있어야 한다. */
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="exDrop">
               <input type="file" id="exFile" accept="image/jpeg" hidden>

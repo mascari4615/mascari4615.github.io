@@ -3,13 +3,12 @@
  * 난수는 crypto.getRandomValues 만 쓴다 (Math.random 은 예측 가능해 ID 용도로 부적격).
  */
 import { nanoId, password, spec, ulid, uuidV4, uuidV7 } from '../../core/uuidgen';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'uuidgen',

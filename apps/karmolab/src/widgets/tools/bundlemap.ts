@@ -9,12 +9,11 @@
  * 자기가 무거우면 앞뒤가 안 맞는다.
  */
 import { duplicates, heaviest, human, layout, readStats, tree, spec, type Item } from '../../core/bundlemap';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'bundlemap',

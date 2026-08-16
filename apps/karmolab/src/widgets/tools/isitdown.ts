@@ -10,12 +10,11 @@
  * 「연결이 아예 안 된다」와 「대답은 한다」는 확실히 갈린다. 그 둘이 사람의 다음 행동을 가른다.
  */
 import { hostOf, toUrl, verdict, type Probe } from '../../lib/reachability';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /** 대조군 = 여러 나라·여러 회사. 한 회사만 쓰면 그 회사가 흔들릴 때 「내 인터넷이 죽었다」로 잘못 말한다. */
   const CONTROLS: Array<[string, string]> = [

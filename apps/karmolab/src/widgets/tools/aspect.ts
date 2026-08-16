@@ -6,11 +6,10 @@
  * 나머지를 채워 주고, 흔한 화면비(16:9 등)로 맞출 때 필요한 여백도 함께 낸다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
 

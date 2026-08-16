@@ -7,13 +7,12 @@
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
 import { markLive } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   type RGB = [number, number, number];
 

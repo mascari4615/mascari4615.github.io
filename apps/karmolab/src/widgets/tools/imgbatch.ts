@@ -6,6 +6,7 @@
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { runBatch, retryBar, type BatchFail } from './shared/batch';
 import { wireDrop } from './shared/drop-well';
 import { download, encode, loadImage, toCanvas } from './shared/image';
@@ -13,8 +14,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface Result {
     name: string;

@@ -8,6 +8,7 @@
  * 셈은 `core/codegraph`. 여기 있는 건 zip 을 여는 일과 말투뿐이다.
  */
 import { build, cycles, ranks, toMermaid, unreferenced, type Graph } from '../../core/codegraph';
+import { escapeHtml as esc } from './shared/text';
 import { parse as parseMermaid, toSvg } from '../../core/mermaidlite';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -22,8 +23,6 @@ interface ZipArchive {
 }
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const CODE = /\.(m?[jt]sx?|css|scss|vue|svelte)$/i;
   const SKIP = /(^|\/)(node_modules|dist|build|\.git|coverage)\//i;

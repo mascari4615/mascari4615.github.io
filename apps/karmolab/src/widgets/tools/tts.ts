@@ -10,12 +10,11 @@
  * 긴 글은 문장으로 잘라 하나씩 넘긴다 — 통째로 넘기면 크롬이 중간에 멎는다.
  */
 import { asClock, guessLanguage, seconds, split } from '../../core/tts';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'tts',

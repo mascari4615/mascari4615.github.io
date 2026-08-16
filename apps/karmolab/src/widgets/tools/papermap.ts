@@ -9,6 +9,7 @@
  * 새 그리기 엔진을 만들지 않는다.
  */
 import { buildMap, fetchMany, search, toCanvas, type Paper } from '../../lib/openalex';
+import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { download } from './shared/image';
@@ -39,8 +40,6 @@ import { download } from './shared/image';
   });
 
   function draw(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     container.innerHTML = `
       <div class="field-group">

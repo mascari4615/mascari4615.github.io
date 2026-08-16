@@ -6,11 +6,10 @@
  * 가로줄은 같은 높이에서 겹치지 않게 놓는다 (겹치면 경로가 정의되지 않는다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const COLORS = ['#e8635a', '#f0a33c', '#e8cf4a', '#5fc27e', '#4aa8e8', '#7b7ae8', '#d06ad0', '#4fc7c7', '#9aa04a', '#e88fa8'];
 

@@ -8,6 +8,7 @@
  * 왜 약한지(자판 순서·반복·연도·흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
  */
 import { analyze, type ChunkKind } from '../../core/passgen';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -194,7 +195,6 @@ import { checkPassword, verdict } from '../../lib/pwned';
 
   function drawMake(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-display" id="pgOut" style="word-break:break-all; user-select:all;">—</div>
 
@@ -309,7 +309,6 @@ import { checkPassword, verdict } from '../../lib/pwned';
 
   function drawCheck(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label" for="pcIn">${esc(t('passgen.check.label'))}</label>

@@ -6,13 +6,12 @@
  * 두 번째 칸에 다른 범위를 적으면 **겹치는 판이 있는지**(꾸러미가 두 벌 깔릴 상황) 말해 준다.
  */
 import { edges, overlaps, satisfies, maxSatisfying, spec } from '../../core/semver';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'semver',

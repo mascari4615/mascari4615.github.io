@@ -6,13 +6,12 @@
  * 상대가 문을 안 열어 주면(CORS) 그 사실을 그대로 적는다. 감추면 도구를 의심하게 된다.
  */
 import { parseCurl, toCode, describe, spec, type Request, type Target } from '../../core/curlkit';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'curlkit',

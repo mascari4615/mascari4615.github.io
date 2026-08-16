@@ -11,6 +11,7 @@
  *    막을 방법이 없으므로 **일어났으면 알려 준다.** 모르고 받아 가는 게 제일 나쁘다.
  */
 import { pickRecordType, download } from './shared/video';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -49,8 +50,6 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="vrDrop">
               <input type="file" id="vrFile" accept="video/*" hidden>

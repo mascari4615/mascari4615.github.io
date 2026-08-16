@@ -12,13 +12,12 @@
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { download, encode as toPng } from './shared/image';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /** Code128 (B/C 자동) — 글자·숫자 아무거나 담을 수 있어 물품 관리에 두루 쓴다 */
   const CODE128: string[] = [

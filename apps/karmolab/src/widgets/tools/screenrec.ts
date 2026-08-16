@@ -9,6 +9,7 @@
  * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
 import { pickRecordType, download } from './shared/video';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -16,8 +17,6 @@ import { attachMedia } from './shared/media';
 import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;

@@ -6,6 +6,7 @@
  * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
  */
 import { spec, vatAdd, vatExtract,  type Rounding } from '../../core/vat';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
@@ -19,8 +20,6 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       Math.round(n)
     );
 
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'vat',

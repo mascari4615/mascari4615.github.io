@@ -7,6 +7,7 @@
  * 서명 검증은 비밀키가 필요해 브라우저에서 하지 않는다 (키를 웹에 붙여 넣게 하면 안 된다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { copyOnClick } from './shared/copyable';
 import { markLive } from './shared/say';
 
@@ -58,8 +59,6 @@ import { markLive } from './shared/say';
 
   /** 그리기는 **말 묶음이 온 뒤**에 — 이름표도 남은 시간도 전부 그때 정해진다. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">${esc(t('jwt.label.input'))}</label>

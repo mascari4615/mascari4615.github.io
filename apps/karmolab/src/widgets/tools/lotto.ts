@@ -3,11 +3,10 @@
  * 제외수·고정수·홀짝 균형 조건을 만족할 때까지 재추첨 (최대 시도 후 조건 완화 안내).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const BALL_COLOR = (n: number): string => {
     if (n <= 10) return '#fbc400';

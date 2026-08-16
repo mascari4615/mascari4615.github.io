@@ -12,14 +12,13 @@
  * 그때 불러온다(`import()`). 그래야 이 위젯 하나 때문에 첫 화면이 무거워지지 않는다.
  */
 import { MAX_STEPS, parseSteps, runChain, type Step } from '../../core/chain';
+import { escapeHtml as esc } from './shared/text';
 import { CORE_OPS } from '../../core/registry-lazy.generated';
 import { spec as chainSpec } from '../../core/chain';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /**
    * 화면에서 부를 수 있는 도구 = **알맹이가 있는 것**. 목록을 손으로 안 적는다 —

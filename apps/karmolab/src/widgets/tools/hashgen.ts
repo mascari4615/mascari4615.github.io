@@ -8,6 +8,7 @@
  * **손**만 빌려 준다 — Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
  */
 import { type Algo, bufToHex, FILE_ALGOS, findMatch, hashAll, type HashBackend, spec } from '../../core/hashgen';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
@@ -59,8 +60,6 @@ import { t, loadNamespace } from '../../lib/i18n';
     ]
   });
 
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function drawText(container: HTMLElement): void {

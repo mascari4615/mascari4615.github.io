@@ -6,13 +6,12 @@
  * 무엇인지 알아내는 게 대부분의 상황이라서다. 스키마를 주면 이름이 붙는다.
  */
 import { decode, encode, parseProto, readBytes, toHex, spec, type Message, type Piece } from '../../core/protobuf';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'protobuf',

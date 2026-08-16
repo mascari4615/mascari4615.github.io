@@ -6,14 +6,13 @@
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { spec as zipCoreSpec } from '../../core/ziptool';
 import { download } from './shared/image';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface ZipEntry {
     name: string;

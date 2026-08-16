@@ -8,11 +8,10 @@
  * 비교 함수가 일관되지 않아 자리마다 확률이 치우친다 — 공정함이 이 도구의 존재 이유라 안 쓴다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   function shuffle<T>(arr: T[]): T[] {
     const a = [...arr];

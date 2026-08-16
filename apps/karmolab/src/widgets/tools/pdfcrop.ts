@@ -11,6 +11,7 @@
  *  - 스캔 얼룩 한 점 때문에 여백이 안 잘리는 일이 많아, 옅은 점은 무시하고 본다.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -67,8 +68,6 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pcDrop">
               <input type="file" id="pcFile" accept="application/pdf,.pdf" hidden>

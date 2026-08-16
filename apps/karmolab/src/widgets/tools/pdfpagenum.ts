@@ -11,6 +11,7 @@
  *  - 종이 크기가 제각각인 문서에서도 여백 비율로 자리를 잡는다.
  */
 import { fileSize as size } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
@@ -72,8 +73,6 @@ import { encode } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pnDrop">
               <input type="file" id="pnFile" accept="application/pdf,.pdf" hidden>

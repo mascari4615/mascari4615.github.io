@@ -3,6 +3,7 @@
  * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다 — 나머지는 기준단위 배수 하나로 끝난다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { inRegion, region } from '../../lib/region';
 
@@ -220,8 +221,6 @@ import { readInvocation } from '../../lib/tool-url';
 
   function draw(container: HTMLElement): void {
     /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const CATS = buildCategories();
           Mdd.linePreset('tool_run', { msg: t('unitconv.mdd') });
           container.innerHTML = `

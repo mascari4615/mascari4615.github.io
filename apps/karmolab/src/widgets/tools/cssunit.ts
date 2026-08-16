@@ -6,11 +6,10 @@
  * 이 둘을 나란히 놓지 않으면 계속 헷갈린다. 기준값을 눈에 보이게 두고 함께 계산한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const SCALE = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64];
 

@@ -6,6 +6,7 @@
  * 사람의 해석이 아니라 기계의 답으로 확인되는 형태.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
@@ -15,8 +16,6 @@ import { markLive } from './shared/say';
       mins < 60 ? [mins, 'minute'] : mins < 1440 ? [Math.round(mins / 60), 'hour'] : [Math.round(mins / 1440), 'day'];
     return new Intl.NumberFormat(locale(), { style: 'unit', unit, unitDisplay: 'long' }).format(n);
   }
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   interface Field {
     /** 허용 값 목록 */

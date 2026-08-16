@@ -6,14 +6,13 @@
  * 가운데 맞춰 넣고, 원본 크기를 그대로 쓰고 싶으면 그 선택지도 둔다.
  */
 import { statusLine } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 
   /** 종이 크기 (pt) */

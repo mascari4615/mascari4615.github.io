@@ -5,13 +5,12 @@
  * 씨앗을 화면에 내놓는다 — 같은 씨앗이면 같은 데이터라, 「아까 그 표」를 다시 부를 수 있다.
  */
 import { emit, generate, spec, type Locale, type Out } from '../../core/mockdata';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const SAMPLE = 'id:id\n이름:name\n메일:email\n회사:company\n나이:int(20,40)\n등급:enum(무료|프로|팀)\n가입일:date(2024-01-01,2026-08-14)';
 

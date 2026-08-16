@@ -5,12 +5,11 @@
  * 1원까지 맞추고, 갚는 횟수를 가장 적게 만든다. 나눠 갖기는 **주소 자체에 담는다** — 서버에 안 맡긴다.
  */
 import { balances, decode, encode, parseExpenses, settle } from '../../core/dutchpay';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const won = (n: number): string => n.toLocaleString();
 

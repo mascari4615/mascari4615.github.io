@@ -10,6 +10,7 @@
  * 여기서는 **사람**이 정한다 — 손잡이를 누가 잡느냐만 다르다.
  */
 import { LAYERS, PRESETS, Soundscape, type LayerId } from '../../lib/soundscape';
+import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -41,8 +42,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   });
 
   function draw(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     container.innerHTML = `
       <div class="field-group">

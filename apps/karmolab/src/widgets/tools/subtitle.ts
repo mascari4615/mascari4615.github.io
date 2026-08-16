@@ -12,6 +12,7 @@
  *  - SRT 와 VTT 를 오간다. 웹 플레이어는 VTT 만 받고, 대부분의 자막은 SRT 로 돌아다닌다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
@@ -78,8 +79,6 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="sbDrop">
               <input type="file" id="sbFile" accept=".srt,.vtt,text/plain" hidden>
@@ -242,8 +241,6 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
    * 사람은 그걸 믿고 그 구간을 건너뛴다. 그래서 여기서는 고르기만 하고 만들지 않는다.
    */
   function drawSum(container: HTMLElement): void {
-    const esc = (v: string): string =>
-      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     container.innerHTML = `
       <div class="tool-drop" id="svDrop">
         <input type="file" id="svFile" accept=".srt,.vtt,text/plain" hidden>

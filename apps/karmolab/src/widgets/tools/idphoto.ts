@@ -8,13 +8,12 @@
  * 자동으로 어긋나게 잘리는 것보다, 선 보고 맞춘 사진이 접수에서 안 튕긴다.
  */
 import { SPECS, check as checkSpec, findSpec, plan, sheet, type Paper, type Spec } from '../../core/idphoto';
+import { escapeHtml as esc } from './shared/text';
 import { apply, guessBackground, maskOf } from '../../core/bgremove';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const BACKGROUNDS: Array<[string, string]> = [
     ['keep', ''],

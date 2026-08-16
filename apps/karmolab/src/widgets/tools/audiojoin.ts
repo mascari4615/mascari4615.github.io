@@ -6,14 +6,13 @@
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudioInfo } from './shared/media';
+import { escapeHtml as esc } from './shared/text';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'audiojoin',

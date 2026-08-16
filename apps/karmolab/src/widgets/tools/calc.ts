@@ -11,6 +11,7 @@
  * 정확한 상환표·학점 계산은 그쪽이 낫다. 공책은 **이어서 셈하는 자리**다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
+import { escapeHtml as esc } from './shared/text';
 import { calcSheet, type Plot } from './shared/calc';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -211,8 +212,6 @@ import { t, loadNamespace } from '../../lib/i18n';
     return row;
   }
 
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const fmtShort = (n: number): string => (Math.abs(n) >= 1000 ? n.toExponential(1) : String(Math.round(n * 100) / 100));
 
   let styled = false;

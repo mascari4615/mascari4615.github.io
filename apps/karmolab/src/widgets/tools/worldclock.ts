@@ -6,6 +6,7 @@
  * 그래서 상수를 쓰지 않고 브라우저의 IANA 시간대 데이터에 매번 물어본다 — 서머타임이 자동 반영된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 import { offsetMinutes, spec, wallToInstant as wallToInstantCore } from '../../core/worldclock';
@@ -106,7 +107,6 @@ import { readInvocation } from '../../lib/tool-url';
 
   function draw(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
-    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           Mdd.linePreset('tool_run', { msg: t('worldclock.mdd') });
           container.innerHTML = `
             <div class="field-group">

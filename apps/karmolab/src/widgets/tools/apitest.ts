@@ -9,14 +9,13 @@
  * 대신 **목 응답 표**를 만들어 준다: 그대로 자기 목 서버에 붙이면 된다.
  */
 import { fill, mockTable, parse, spec, type Doc, type Operation } from '../../core/apitest';
+import { escapeHtml as esc } from './shared/text';
 import { compareText } from '../../core/apidiff';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (v: string): string =>
-    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   Toolbox.register({
     id: 'apitest',

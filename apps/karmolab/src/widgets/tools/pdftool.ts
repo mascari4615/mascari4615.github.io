@@ -6,6 +6,7 @@
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
 import { markLive } from './shared/say';
+import { escapeHtml as esc } from './shared/text';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download as savePdf, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PDFLib, type PdfJs, type PdfJsDoc, type PdfLibDoc, type PdfPage } from './shared/pdf';
@@ -77,8 +78,6 @@ import { parsePages } from '../../core/pdftool';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          const esc = (v: string): string =>
-            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pdDrop">
               <input type="file" id="pdFile" accept="application/pdf" multiple hidden>
