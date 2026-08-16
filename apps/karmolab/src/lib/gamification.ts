@@ -38,6 +38,7 @@ export interface TrackMeta {
 
 /** 플래너 스트릭 기본 트랙. 이름표는 `i18n/<언어>/planner.json` 이 들고 있다. */
 export const DEFAULT_TRACKS: readonly TrackMeta[] = [
+    { id: 'diary', labelKey: 'planner.track.diary' },
     { id: 'daily_review', labelKey: 'planner.track.daily_review' },
     { id: 'exercise', labelKey: 'planner.track.exercise' }
 ] as const;
