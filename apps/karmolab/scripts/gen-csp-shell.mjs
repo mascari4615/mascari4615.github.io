@@ -15,6 +15,12 @@
  *   · 껍데기 한 장만 건다. 도구 상세 146장은 인라인 구성이 달라 다음 걸음이다(한 번에 다 걸면
  *     한 장이라도 어긋날 때 **사이트 전체**가 죽는다 — 그건 안전이 아니라 사고다).
  *
+ * 알고 있는 값(2026-08-17, 배포 모양으로 열어 재고 적음)
+ *   · 바깥 스크립트: 방문 수(`gc.zgo.at`) 하나 — 자물쇠에 적어 뒀다. 새로 들이면 여기 늘려야 한다.
+ *   · **미리읽기 규칙은 지금 막힌다.** `'inline-speculation-rules'` 를 적었는데도 크롬이 거부한다
+ *     (실측). 그건 빠르기 도우미일 뿐이라 화면 기능은 멀쩡하다 — 자물쇠를 푸는 값은 아니라고 봤다.
+ *     푸는 길이 생기면(헤더를 붙일 수 있는 자리로 옮기거나 바깥 파일로 빼기) 그때 되살린다.
+ *
  * 사용: node scripts/gen-csp-shell.mjs [--check]
  * 나가는 값: 0 = 맞다(또는 새로 썼다) / 1 = 어긋났다(--check) / 2 = 못 돌림
  */
@@ -67,7 +73,11 @@ if (리퀴드.length) {
 const 지문들 = 몸통들.map((b) => `'sha256-${crypto.createHash('sha256').update(b, 'utf8').digest('base64')}'`);
 const 유일 = [...new Set(지문들)];
 /* `'self'` = 우리 파일 · `'inline-speculation-rules'` = 미리읽기 규칙 · 나머지는 지문. */
-const 새값 = `${CSP_CONTENT}; script-src 'self' 'inline-speculation-rules' ${유일.join(' ')}`;
+/* ★ **바깥에서 받아 오는 스크립트도 적어야 한다** (2026-08-17, 배포 모양으로 미리 열어 보고 잡음).
+   `'self'` 만 적었더니 방문 수 세는 `gc.zgo.at/count.js` 가 막혔다 — 자물쇠를 걸면서 기능을
+   조용히 죽이는 것이 제일 나쁜 결과다. 새 바깥 스크립트를 들이면 여기 한 줄을 늘려야 한다. */
+const 바깥 = ['https://gc.zgo.at'];
+const 새값 = `${CSP_CONTENT}; script-src 'self' 'inline-speculation-rules' ${바깥.join(' ')} ${유일.join(' ')}`;
 
 const 메타 = /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/;
 const 지금 = 메타.exec(글);
