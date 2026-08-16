@@ -297,6 +297,9 @@
     "dutchpay": "더치페이 정산 N빵 나눠내기 회비 정산 송금 정리 1/N",
     "mermaidlite": "머메이드 mermaid 흐름도 flowchart ER다이어그램 erDiagram 다이어그램 SVG",
     "apitest": "openapi swagger API 테스트 API 문서 요청 예시 mock 목서버 api test spec",
-    "bgremove": "배경제거 배경지우기 누끼 투명배경 증명사진 배경 remove background transparent png"
+    "bgremove": "배경제거 배경지우기 누끼 투명배경 증명사진 배경 remove background transparent png",
+    "erd": "ERD 표관계 스키마 DDL prisma 데이터베이스 다이어그램 erdiagram schema",
+    "curlkit": "curl 변환 코드생성 fetch axios python go httpie 요청 옮기기",
+    "docscan": "스캔 서류 사진 반듯하게 원근보정 문서스캔 scan document deskew"
   }
 }

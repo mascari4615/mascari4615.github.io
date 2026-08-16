@@ -40,6 +40,31 @@ if (blocks.length === 0) {
 }
 
 const loc = (block) => (block.match(/<loc>(.*?)<\/loc>/) ?? [])[1] ?? '(주소 없음)';
+
+/* ★ **「오지 마라」와 「여기 있다」를 같이 말하지 않는다** (2026-08-16).
+   robots.txt 가 막아 둔 자리가 사이트맵에 실려 있으면 크롤러는 그걸 「막혔는데 색인됨」으로
+   적는다. 실측: `Disallow: /page*` 인데 /page2/ ~ /page10/ 아홉 장이 실려 있었다.
+   사이트맵에는 색인시키고 싶은 주소만 넣는다. */
+const robotsPath = path.join(siteDir, 'robots.txt');
+const 막은자리 = fs.existsSync(robotsPath)
+  ? fs
+      .readFileSync(robotsPath, 'utf8')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => /^Disallow:/i.test(l))
+      .map((l) => l.replace(/^Disallow:\s*/i, '').trim())
+      .filter((v) => v !== '')
+  : [];
+const 막혔나 = (url) => {
+  let p;
+  try {
+    p = new URL(url).pathname;
+  } catch {
+    return false;
+  }
+  return 막은자리.some((rule) => (rule.endsWith('*') ? p.startsWith(rule.slice(0, -1)) : p.startsWith(rule)));
+};
+
 const 날짜없음 = blocks.filter((b) => b.includes('<lastmod>') === false).map(loc);
 
 /* 빌드 시각을 그대로 찍으면 안 하느니만 못하다 — 전부 같은 값이면 그건 신호가 아니다.
@@ -54,6 +79,14 @@ if (날짜없음.length > 0) {
   if (날짜없음.length > 20) console.error(`  … 그 외 ${날짜없음.length - 20}개`);
   console.error('  → 그 주소는 크롤러가 다시 올지 못 정하고, IndexNow 알림에도 안 실린다.');
   console.error('  → 장을 만드는 자리에서 last_modified_at 을 채워라 (apps/blog/_plugins/pages-lastmod-hook.rb 참고).');
+  process.exit(1);
+}
+
+const 막힌주소 = blocks.map(loc).filter(막혔나);
+if (막힌주소.length > 0) {
+  console.error(`[audit-sitemap-lastmod] robots.txt 가 막아 둔 주소가 사이트맵에 ${막힌주소.length}개 있다:`);
+  for (const url of 막힌주소.slice(0, 10)) console.error(`  ${url}`);
+  console.error('  → 「오지 마라」와 「여기 있다」를 같이 말하는 것이다. 둘 중 하나를 고쳐라.');
   process.exit(1);
 }
 

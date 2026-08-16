@@ -7,6 +7,10 @@ permalink: /karmolab/play/
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- GitHub Pages 는 헤더를 못 붙인다 — 이 한 줄이 유일한 자리다 (2026-08-16).
+     문구 정본 = apps/karmolab/scripts/lib/head-security.mjs 의 CSP_CONTENT.
+     이 관문 장은 여기서 찍히므로 index.html 을 손으로 고쳐도 다음 빌드가 지운다. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="color-scheme" content="dark">
 <title>놀이터 — 하루 한 판씩 | KarmoLab</title>
 <meta name="description" content="KarmoLab 의 놀이 10가지. 오늘의 하나 맞히기, 높은 쪽 고르기, 도구로 푸는 하루 한 문제. 하나 하다 다른 것으로 바로 건너갈 수 있습니다.">
@@ -16,9 +20,7 @@ permalink: /karmolab/play/
 <meta property="og:title" content="놀이터 — 하루 한 판씩">
 <meta property="og:description" content="맞히기 · 고르기 · 풀기. 하나 하다 다른 것으로 바로 건너갑니다.">
 <meta property="og:url" content="https://blog.mascari4615.com/karmolab/play/">
-<!-- 놀이터는 도구 목록(hub)이 아니다 — 제 카드를 쓴다 (TASK-KL-195). 같은 그림을 돌려 쓰면
-     놀이 링크와 도구 링크가 피드에서 구분이 안 된다. 그림 = `gen-og-images.mjs` 의 `play`. -->
-<meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/play.jpg">
+<meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
 <meta property="og:locale" content="ko_KR">
 <link rel="icon" href="/apps/karmolab/img/favicon.ico">
 <style>
