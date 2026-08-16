@@ -4944,7 +4944,10 @@ await step('시점을 옮기면 선의 얼굴이 바뀐다 (자료는 그대로)
   if (!later.labels.includes('라이벌')) throw new Error(`2부인데 얼굴이 안 바뀌었다: ${later.labels.join(',')}`);
   if (await m.locator('[data-km="time-go"]').count() !== 2) throw new Error('시점이 다시 여니 사라졌다');
   await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
-  await m.waitForTimeout(ms(600));
+  /* 위와 같은 꼴 — 재우지 말고 **1부 모습이 될 때까지** 기다린다(선이 돌아오고 2부 이름이 빠진다). */
+  await m.waitForFunction((cnt) => document.querySelectorAll('.ck-edge:not(.ck-link-temp)').length > cnt
+    && [...document.querySelectorAll('.ck-edge-label text')].every((t) => t.textContent !== '라이벌'),
+  later.edges, { timeout: ms(4000) }).catch(() => {});
   const first = await read();
   if (first.edges <= later.edges) throw new Error('1부인데 없앤 선이 안 돌아왔다');
   if (first.labels.includes('라이벌')) throw new Error('1부인데 2부 이름이 남아 있다');
@@ -4980,7 +4983,12 @@ await step('선 패널에서 「이 시점에서」를 고친다 (비우면 원�
   await m.waitForFunction(() => [...document.querySelectorAll('.ck-edge-label text')]
     .some((t) => t.textContent === '라이벌'), null, { timeout: ms(4000) });
   await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
-  await m.waitForTimeout(ms(500));
+  /* ★ **재우지 말고 사라질 때까지 기다린다** (2026-08-16 실측). 여기는 500ms 재운 뒤 읽었는데,
+     바쁜 기계에서는 다시 그리기가 그 안에 안 끝나 **옛 이름이 남은 채** 읽혀 빨개졌다
+     (판마다 다른 검사가 터지던 것 중 하나). 바로 위 세 줄은 이미 「생길 때까지 기다리기」를
+     쓴다 — 없어지는 쪽도 같아야 한다. 끝내 안 사라지면 그때가 진짜 빨강이다. */
+  await m.waitForFunction(() => [...document.querySelectorAll('.ck-edge-label text')]
+    .every((t) => t.textContent !== '라이벌'), null, { timeout: ms(4000) }).catch(() => {});
   const first = await labels();
   if (first.includes('라이벌') && !before.includes('라이벌')) throw new Error('1부인데 2부 이름이 보인다');
   // 비우면 자리째 지운다 — 빈 껍데기가 쌓이면 「이 선은 시점 이야기를 한다」가 거짓이 된다.
