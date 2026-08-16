@@ -104,9 +104,27 @@ check(await radioChip.count(), '겹 단추 목록에 「라디오」가 있어�
 const canvas = page.locator('.bm-canvas');
 const before = await canvas.screenshot();
 await radioChip.click({ force: true });
-await page.waitForFunction(() => /방송 중|못 받았/.test(document.querySelector('.bm-line')?.textContent || ''), undefined, {
-  timeout: 15000
-});
+/* ★ **못 기다렸으면 그 말을 하라 — 죽지 말고** (2026-08-16, 실측). 여기서 15초를 넘기면
+   Playwright 가 예외를 던지고 검사가 **통째로 죽었다**. 라이브 점검 20개 요약에는
+   `TimeoutError ... smoke-radio.mjs:107` 이라는 남의 나라 말만 남아, 무엇이 안 됐는지도
+   우리가 잘못한 것인지도 알 수 없었다(로컬은 초록이라 더 그랬다).
+   게다가 이 줄이 기다리는 것은 **바깥 방송 목록**이다 — 그 목록에 못 닿은 것은
+   우리 화면이 깨진 것이 아니라 **못 잰 것**(2)이다. 둘을 갈라 말한다. */
+const 켜졌나 = await page
+  .waitForFunction(() => /방송 중|못 받았/.test(document.querySelector('.bm-line')?.textContent || ''), undefined, {
+    timeout: 15000,
+  })
+  .then(() => true)
+  .catch(() => false);
+if (!켜졌나) {
+  const 지금말 = (await page.locator('.bm-line').textContent().catch(() => '')) || '(빈 줄)';
+  console.log(`
+[smoke-radio] 못 돌림 — 라디오를 켜도 15초 안에 아무 말이 없다. 화면이 한 말: 「${지금말.trim()}」`);
+  console.log('  이 줄은 **바깥 방송 목록**을 기다린다 — 거기 못 닿으면 우리 화면 잘못이 아니다. 통과로 세지 않는다.');
+  await browser.close();
+  if (frozen) await frozen.close();
+  process.exit(2);
+}
 const said = await page.locator('.bm-line').textContent();
 check(/3곳|3 places|3か所/.test(said || ''), `받은 자리 수를 말해야 한다 (지금: 「${said}」)`);
 
