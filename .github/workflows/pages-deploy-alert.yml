@@ -96,6 +96,14 @@ jobs:
             --jq '[.jobs[] | select(.conclusion=="failure") | .name + " › " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join(" / ")' \
             || echo '')
           [ -n "$WHERE" ] || WHERE='(어느 단계인지 못 읽었다 — 실행 기록을 열어 봐라)'
+          # ★ verify 는 **단계가 하나**다 — 「verify › Run verify」라고 말해 봐야 아무것도 안 알려 준다
+          #   (2026-08-16 실측 dry-run). 정작 알고 싶은 건 **어느 검사**가 빨간지고,
+          #   verify.mjs 가 그걸 `[verify] X <이름> 실패 (exit N)` 로 이미 찍고 있다. 그 줄을 들고 온다.
+          WF_NAME=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq .name || echo '')
+          if [ "$WF_NAME" = "verify" ]; then
+            GATES=$(gh run view "$RUN_ID" --log-failed 2>/dev/null               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd' · ' -)
+            [ -n "$GATES" ] && WHERE="$GATES"
+          fi
           # 커밋 메시지는 첫 줄만 — 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
           gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" \
             --jq '{title: (.head_commit.message | split("\n")[0]), sha: .head_sha[0:8], who: .head_commit.author.name, url: .html_url, wf: .name}' > run.json
