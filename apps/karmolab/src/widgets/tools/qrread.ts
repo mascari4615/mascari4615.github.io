@@ -11,6 +11,7 @@
  * 해독은 브라우저에 그 기능이 있으면 그걸 쓰고(내려받을 것이 없다), 없을 때만 해독기를 받는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { wireDrop } from './shared/drop-well';
 import { statusLine } from './shared/say';
 
 (function (): void {
@@ -244,27 +245,13 @@ import { statusLine } from './shared/say';
             stopBtn.style.display = 'none';
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void fromImage(fileInput.files[0]).catch((e: Error) => say(t('qrread.status.readError', { message: e.message }), 'error'));
+          /* 파일 받는 자리 = 공용 배선 (TASK-KL-290 → KL-257 이관).
+             손으로 적을 때 빠져 있던 둘이 이걸로 생긴다: **키보드로 열기**(Enter/Space)와
+             **붙여넣기**. 여기 코드는 「받은 뒤 무엇을 하나」만 남는다. */
+          const read = (f: File): void => {
+            void fromImage(f).catch((e: Error) => say(t('qrread.status.readError', { message: e.message }), 'error'));
           };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) void fromImage(f).catch((err: Error) => say(t('qrread.status.readError', { message: err.message }), 'error'));
-          });
-          // 캡처를 그대로 붙여 넣는 게 가장 잦은 쓰임이다
-          container.addEventListener('paste', (e) => {
-            const item = Array.from((e as ClipboardEvent).clipboardData?.items || []).find((i) => i.type.startsWith('image/'));
-            const f = item?.getAsFile();
-            if (f) void fromImage(f).catch((err: Error) => say(t('qrread.status.readError', { message: err.message }), 'error'));
-          });
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => read(files[0]) });
 
           camBtn.onclick = () => void startCam().catch((e: Error) => say(t('qrread.status.cameraError', { message: e.message }), 'error'));
           stopBtn.onclick = () => {

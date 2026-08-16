@@ -11,6 +11,7 @@
  *  - 종이 크기가 제각각인 문서에서도 여백 비율로 자리를 잡는다.
  */
 import { fileSize as size } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 import { statCell } from './shared/stats';
 import { statusLine } from './shared/say';
 
@@ -233,25 +234,14 @@ import { encode } from './shared/image';
           const drop = $<HTMLElement>('#pnDrop');
           const fileInput = $<HTMLInputElement>('#pnFile');
           drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void load(fileInput.files[0]);
-          };
+          /* 파일 받는 자리 = 공용 배선 (KL-290 -> KL-257). 손으로 적을 때 늘 빠지던
+             키보드 열기(Enter/Space)와 붙여넣기가 여기서 함께 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133). */
           {
             Toolbox.onHandoff?.('pdfpagenum', (f: File) => void load(f));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) void load(f);
-          });
           $<HTMLInputElement>('#pnSkip').addEventListener('input', () => {
             $<HTMLElement>('#pnSkipVal').textContent = t('pdfpagenum.value.pages', {
               n: $<HTMLInputElement>('#pnSkip').value

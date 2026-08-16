@@ -8,6 +8,7 @@
  * **손**만 빌려 준다 — Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
  */
 import { type Algo, bufToHex, FILE_ALGOS, findMatch, hashAll, type HashBackend, spec } from '../../core/hashgen';
+import { wireDrop } from './shared/drop-well';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -209,10 +210,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           $<HTMLButtonElement>('#hfPick').onclick = () => fileInput.click();
-          fileInput.addEventListener('change', () => {
-            const f = fileInput.files && fileInput.files[0];
-            if (f) void run(f);
-          });
+          /* 파일 받는 자리 = 공용 배선 (KL-290 -> KL-257). 손으로 적으면 늘 빠지던
+             키보드 열기(Enter/Space)와 붙여넣기가 여기서 함께 온다. */
+          wireDrop({ drop: drop, input: fileInput, scope: container, onFiles: (files) => void run(files[0]) });
+
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');

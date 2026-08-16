@@ -10,6 +10,7 @@
  *   그림  : 글자가 없어도(스캔·도장·표 이동) 잡힌다. 대신 「무엇이」는 못 말한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { wireDrop } from './shared/drop-well';
 import { statusLine } from './shared/say';
 import { diffLines as coreDiffLines } from '../../core/diff';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
@@ -215,7 +216,10 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          function wireDrop(side: 'A' | 'B'): void {
+          /* 두 자리(앞·뒤)를 같은 배선으로 연다. 파일 받는 손잡이는 **공용**을 쓴다
+             (KL-290 -> KL-257) — 손으로 적을 때 늘 빠지던 키보드 열기(Enter/Space)와
+             붙여넣기가 여기서 함께 온다. 이 함수에 남는 것은 「받은 뒤 무엇을 하나」뿐이다. */
+          function wireSide(side: 'A' | 'B'): void {
             const drop = $<HTMLElement>('#pdDrop' + side);
             const input = $<HTMLInputElement>('#pdFile' + side);
             const take = (f: File | null | undefined): void => {
@@ -223,21 +227,10 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               files[side] = f;
               drop.innerHTML = `<b>${esc(t(side === 'A' ? 'pdfdiff.side.a' : 'pdfdiff.side.b'))}</b><br>${esc(f.name)}`;
             };
-            drop.onclick = () => input.click();
-            input.onchange = () => take(input.files?.[0]);
-            drop.ondragover = (e) => {
-              e.preventDefault();
-              drop.classList.add('over');
-            };
-            drop.ondragleave = () => drop.classList.remove('over');
-            drop.ondrop = (e) => {
-              e.preventDefault();
-              drop.classList.remove('over');
-              take(e.dataTransfer?.files?.[0]);
-            };
+            wireDrop({ drop, input, scope: container, onFiles: (picked) => take(picked[0]) });
           }
-          wireDrop('A');
-          wireDrop('B');
+          wireSide('A');
+          wireSide('B');
 
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;

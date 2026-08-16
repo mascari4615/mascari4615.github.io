@@ -14,6 +14,7 @@
  * 색이 이어지는 동안 붓을 안 바꾸므로 실제로 색이 몇 개 안 되는 아스키 그림에 잘 맞는다.
  */
 import { AsciiSurface, decode, encode, Player, sampleVideo, type AsciiFrame } from 'badapple';
+import { wireDrop } from './shared/drop-well';
 import { markLive } from './shared/say';
 import { download, downloadUrl, loadImage } from './shared/image';
 
@@ -656,10 +657,10 @@ import { attachMedia } from './shared/media';
           }
 
           $<HTMLButtonElement>('#aaPick').onclick = () => fileInput.click();
-          fileInput.addEventListener('change', () => {
-            const f = fileInput.files && fileInput.files[0];
-            if (f) loadFile(f);
-          });
+          /* 파일 받는 자리 = 공용 배선 (KL-290 -> KL-257). 손으로 적으면 늘 빠지던
+             키보드 열기(Enter/Space)와 붙여넣기가 여기서 함께 온다. */
+          wireDrop({ drop: drop, input: fileInput, scope: container, onFiles: (files) => loadFile(files[0]) });
+
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
