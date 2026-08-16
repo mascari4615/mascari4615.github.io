@@ -145,6 +145,7 @@
     "smoke:badapple-tool",
     "audit:shared-builds",
     "test:heung:midi-file",
-    "test:shard"
+    "test:shard",
+    "audit:sleep-read"
   ]
 }
