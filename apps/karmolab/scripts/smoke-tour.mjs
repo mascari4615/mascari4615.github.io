@@ -49,7 +49,8 @@ await p.click('#acTour');
    (CI·내 자리 둘 다, 뽑힌 놀이는 서로 달랐는데도).
    이 손이 할 일은 **판을 두는 것**이지 대회를 모는 것이 아니다 — 흐름 단추는 검사가 누른다. */
 const 대회를_모는_단추 = '#acAgain, #acSwap, #acReplay, #acStart, #acQuit';
-const poke = setInterval(async () => {
+/** 열려 있는 단추 하나를 누른다. 부르는 자리가 둘이라 함수로 둔다(둘이 갈리면 안 된다). */
+async function 한번누르기() {
   try {
     await p.evaluate((빼기) => {
       const b = [...document.querySelectorAll('#acView button:not([disabled])')].filter(
@@ -58,7 +59,8 @@ const poke = setInterval(async () => {
       if (b.length) b[Math.floor(Math.random() * b.length)].click();
     }, 대회를_모는_단추);
   } catch { /* 창이 닫히는 중 */ }
-}, 700);
+}
+const poke = setInterval(한번누르기, 700);
 
 /* 한 판을 기다리는 참을성. 주석에 「4분」·「2.5분」이 적혀 있었지만 코드는 60초였다 —
    수를 두 군데 적으면 반드시 갈린다. 여기 한 곳만 둔다(실패 문구도 이 값을 읽는다). */
@@ -85,8 +87,16 @@ for (let i = 1; i <= ROUNDS; i++) {
   const 감을것 = Math.round(가장긴제한() * 1.2) + 30000;
   const 마감 = Date.now() + WAIT_MS;
   let 끝났다 = false;
+  /* ★ **시간 제한이 없는 놀이는 시계를 감아도 안 끝난다** (2026-08-17 실측). 놀이 51개 중
+     제한이 박힌 것은 **11개뿐**이고, 나머지 40개는 「다 두면」 끝난다 — 끝나는 데 드는 것은
+     시간이 아니라 **누른 횟수**다. 실제로 `fleet`(8×8 판에 서로 배를 맞히는 놀이)이 그렇게 걸렸다:
+     제한이 없어 감아도 그대로였고, 손은 700ms 에 한 번이라 60초 예산 안에서 85번밖에 못 눌렀다
+     (그중 상당수는 이미 친 칸이라 헛손질이다). 그래서 감을 때마다 **같이 누른다** —
+     기다린 시간이 아니라 판이 나아간 만큼 누르게 된다. */
   for (let 감은 = 0; 감은 < 감을것 && !끝났다 && Date.now() < 마감; 감은 += 조각) {
     await p.clock.fastForward(조각);
+    // eslint-disable-next-line no-await-in-loop -- 한 조각마다 한 번 (위 주석)
+    await 한번누르기();
     // eslint-disable-next-line no-await-in-loop -- 한 조각 감고 그때마다 본다(멈춘 시계에서는 이 길뿐)
     끝났다 = await p.evaluate(() => {
       const a = document.querySelector('#acAgain');
@@ -130,7 +140,7 @@ for (let i = 1; i <= ROUNDS; i++) {
     fail.push(
       `${i}판이 안 끝났다 — 놀이 「${멈춘것.놀이}」 · 끝남표시 ${멈춘것.끝났나 ? '있음' : '없음'} · 화면: 「${멈춘것.말}」`
         + ` · 대회 ${멈춘것.대회} · 창 시계 ${멈춘것.지금}ms · 이 판이 끝날 시각 ${멈춘것.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
-        + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 6분)`
+        + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(감을것 / 1000)}초 + 누른 횟수 ${Math.round(감을것 / 조각)}회+)`
     );
     break;
   }
