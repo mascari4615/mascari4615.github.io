@@ -293,6 +293,11 @@ jobs:
       # 사이트맵은 **지어져야만 존재한다** — 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
       # 날짜가 빠지면 크롤러가 다시 올지 못 정하고, IndexNow 알림에서도 통째로 빠진다.
       # 2026-08-16 실측 — 905개 중 70개(태그·분류 장)가 그렇게 빠져 있었고 전부 초록이었다.
+      # 보안 한 줄(CSP meta)은 GitHub Pages 에서 **유일한 자리**다 — 헤더를 못 붙인다.
+      # 미는 자리 검사는 앱 폴더만 본다. 정말 나가는 장(찍힌 도구 상세 129장 포함)은 여기서만 보인다.
+      - name: Audit CSP meta (built site)
+        run: node apps/karmolab/scripts/audit-csp-meta.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
+
       - name: Audit sitemap lastmod
         run: node scripts/audit-sitemap-lastmod.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
 
