@@ -1203,7 +1203,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          새어도 그림은 똑같다(일부러 새게 해 보고 검사가 안 빨개지는 것을 확인했다).
          새는 자리는 「보낸 값」이라 받은 값을 직접 읽어야 한다. 이 창이 이미 가진 것이므로
          내보낸다고 더 알려지는 것은 없다. */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
+      /* 이 판이 **언제 저절로 끝나나**(`endsAt`)도 같이 내놓는다 — 놀이마다 제한이 25초에서 300초까지 다르다.
+         밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 「안 끝났다」고 적는다(2026-08-17 실측:
+         참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       seatsEl.innerHTML =
         (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
         v.seats
