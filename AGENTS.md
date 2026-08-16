@@ -6,7 +6,7 @@ This file provides context and operating rules for AI coding agents working in t
 
 - Repository: mascari4615.github.io (Jekyll + Chirpy monorepo)
 - Main site: Korean blog/portfolio deployed to GitHub Pages
-- Companion apps: KarmoLab, React app, Tauri app, Discord bots, browser extension
+- Companion apps: KarmoLab, Tauri app, Discord bots, browser extension
 
 ## KarmoLab UI work: use the hot-reload dev server (KL-100)
 
