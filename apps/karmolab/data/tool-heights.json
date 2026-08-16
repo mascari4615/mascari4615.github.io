@@ -147,6 +147,10 @@
     "narrow": 1024,
     "wide": 750
   },
+  "diff": {
+    "narrow": 1068,
+    "wide": 913
+  },
   "draw": {
     "narrow": 1228,
     "wide": 987
@@ -154,6 +158,10 @@
   "duel": {
     "narrow": 560,
     "wide": 660
+  },
+  "dutchpay": {
+    "narrow": 806,
+    "wide": 590
   },
   "emoji": {
     "narrow": 6415,
@@ -302,6 +310,10 @@
   "memo": {
     "narrow": 532,
     "wide": 524
+  },
+  "mermaidlite": {
+    "narrow": 1220,
+    "wide": 889
   },
   "mesh3d": {
     "narrow": 730,

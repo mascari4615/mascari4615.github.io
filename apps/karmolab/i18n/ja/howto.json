@@ -512,5 +512,17 @@
   "howto.csp.0": "使っている CSP ヘッダーを貼り付ける",
   "howto.csp.1": "ディレクティブごとに展開された一覧を確認 — 1行では読めなかったものが並ぶ",
   "howto.csp.2": "指摘された箇所を読む（unsafe-inline・*・data: スクリプトなど。理由も一緒に出る）",
-  "howto.csp.3": "逆に、必要なものだけ選んでヘッダーを生成する"
+  "howto.csp.3": "逆に、必要なものだけ選んでヘッダーを生成する",
+  "howto.diff.0": "左と右に文章を貼り付ける",
+  "howto.diff.1": "行の比較で何が変わったか見る",
+  "howto.diff.2": "JSON・YAML なら構造の比較に切り替える — キー経路で対応づけ、移動と値の変更を区別する",
+  "howto.diff.3": "必要な部分だけ選んで統合する",
+  "howto.dutchpay.0": "人と、それぞれが払った額を入れる",
+  "howto.dutchpay.1": "共有の項目は、誰が参加したか選ぶ",
+  "howto.dutchpay.2": "精算結果を確認 —「A → B 12,000」の形で出る",
+  "howto.dutchpay.3": "その通りに送金する",
+  "howto.mermaidlite.0": "mermaid 記法で書く（flowchart または erDiagram）",
+  "howto.mermaidlite.1": "描かれた図をその場で確認",
+  "howto.mermaidlite.2": "文法が違えば、どの行かを見て直す",
+  "howto.mermaidlite.3": "SVG で保存して文書に貼る"
 }
