@@ -61,6 +61,15 @@
    그래서 「처음부터 채우는 도구」만 이 변형을 붙인다.
    높이는 실측값이다 — 한 줄(타일 셋)이 데스크톱 74~77px, 좁은 화면은 두 줄. */
 .cc-stats-early { min-height: 74px; }
+/* 지금 붙어 있는 열둘 (2026-08-17 실사이트 실측):
+     barcode contrast datecalc* grade icsmake interest loan passgen timecalc vat workdays bmi
+     (*datecalc 은 두 줄 → .cc-stats-2row)
+   **고르는 법 = 브라우저로 재라. 코드를 읽어 세지 마라.**
+   「초기화에서 그리기 함수를 부르나」로 세었더니 셋이 틀렸다 —
+   subtitle·videocompress·videorotate 는 부르는데도 첫 그림에서는 0px 다(사람이 파일을 준 뒤 채운다).
+   그 셋에 자리를 줬으면 빈 칸이 영영 남았다.
+   재는 법: 도구 장을 열고 1.8초 뒤 `.cc-stats` 의 높이를 본다. 0 보다 크면 이 클래스를 붙이고,
+   그 높이를 그대로 min-height 로 쓴다(짐작 금지 — 한 줄 74~77px · 두 줄 163px 도 실측값이다). */
 /* 타일이 두 줄인 도구도 있다 — 실측으로만 정한다(datecalc 163px). */
 .cc-stats-early.cc-stats-2row { min-height: 163px; }
 @media (max-width: 640px) {
