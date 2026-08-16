@@ -289,14 +289,24 @@ const limitOf = (v) => (v.unit === 'B' ? `${(v.limit / 1024).toFixed(0)}KB` : v.
 let totalFails = 0;
 let measuredScreens = 0;
 
-/** 항목별 중앙값. 못 잰 회차가 절반을 넘으면 그 항목은 「못 잼」이다(잰 것만 골라 세지 않는다). */
+/* ★ **밀림만은 중앙값으로 보면 안 된다** (2026-08-17 실측).
+   시간·크기는 기계 잡음이 섞이니 중앙값이 맞다. 그런데 화면 밀림(CLS)은 **늦게 오는 것과의
+   경주**라 판마다 크게 갈린다 — 실사이트 도구 장에서 0.218 / 0.032 / 0.126 이 나왔다.
+   중앙값을 쓰면 0.126 이 되고 세 판 중 하나였던 0.218 은 사라진다. 그런데 사람에게는
+   **그 한 판이 그 사람의 경험 전부**다(구글이 현장값 p75 로 보는 것도 같은 뜻).
+   그래서 밀림은 **가장 나쁜 판**으로 판정한다. 잡음이 아니라 실제로 일어난 일이다. */
+const 가장나쁜쪽 = new Set(['cls']);
+
+/** 항목별 중앙값(밀림은 최댓값). 못 잰 회차가 절반을 넘으면 그 항목은 「못 잼」이다. */
 function median(runs) {
   const base = runs[0].verdict;
   return base.map((sample, index) => {
     const values = runs.map((run) => run.verdict[index].value).filter((v) => v != null);
     if (values.length * 2 <= runs.length) return { ...sample, value: null, state: 'unknown' };
     values.sort((a, b) => a - b);
-    const value = values[Math.floor(values.length / 2)];
+    const worst = 가장나쁜쪽.has(String(sample.key ?? sample.id ?? '').toLowerCase())
+      || /밀림|CLS/i.test(String(sample.label ?? ''));
+    const value = worst ? values[values.length - 1] : values[Math.floor(values.length / 2)];
     return { ...sample, value, state: value > sample.limit ? 'fail' : 'pass' };
   });
 }
@@ -320,7 +330,7 @@ for (const [screen, url, 화면예산 = {}] of TARGETS) {
   const result = runs.length
     ? { verdict: median(runs), trust: runs[runs.length - 1].trust, errors: runs.flatMap((r) => r.errors) }
     : null;
-  console.log(`[perf-budget] ── ${label}${runs.length > 1 ? ` (${runs.length}회 중앙값)` : ''}`);
+  console.log(`[perf-budget] ── ${label}${runs.length > 1 ? ` (${runs.length}회 · 시간·크기는 중앙값 · 밀림은 가장 나쁜 판)` : ''}`);
   if (!result) {
     /* 계측기가 안 실린 화면은 「통과」가 아니라 **못 돌림**이다. 도구 장은 배포 때 셸을 복사해
        찍히므로, 셸에 계측기를 넣은 뒤 아직 안 찍힌 판에서는 여기로 온다. */
