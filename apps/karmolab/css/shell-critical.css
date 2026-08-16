@@ -702,16 +702,16 @@ html[data-intro="off"] .intro-overlay {
     border: 0;
     border-radius: var(--radius-sm);
     background: transparent;
-    color: var(--text-secondary);
+
+    color: var(--text-tertiary);
     cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+    transition: color 0.15s ease, background 0.15s ease;
     user-select: none;
 }
 
 .karmolab-version-badge:hover,
 .karmolab-version-badge:focus-visible {
-    opacity: 1;
+    color: var(--text-secondary);
     background: var(--bg-hover);
 }
 
