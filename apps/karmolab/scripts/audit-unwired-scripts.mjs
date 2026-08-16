@@ -66,7 +66,12 @@ const 안불림 = 스크립트들.filter((f) => {
   return (건초.match(re) ?? []).length === 0;
 });
 
-const 기준 = new Set(JSON.parse(읽기(BASELINE) || '{"목록":[]}').목록 ?? []);
+/* 별 **왜 안 묶었는지를 기준선이 스스로 적게 한다** (2026-08-17). 이름만 늘어놓은 목록은
+   반년 뒤 아무도 못 읽고, 「언젠가 묶자」로 굳는다. 손으로 적은 사유는 다시 쓸 때도 지킨다
+   (오늘 옆 감사에서 자동 문구가 실측 사유를 덮어써 재 본 값이 통째로 사라졌다). */
+const 이전 = JSON.parse(읽기(BASELINE) || '{"목록":[]}');
+const 기준 = new Set(이전.목록 ?? []);
+const 이전사유 = 이전.사유 ?? {};
 const 늘어난것 = 안불림.filter((f) => !기준.has(f));
 const 갚은것 = [...기준].filter((f) => !안불림.includes(f));
 
@@ -78,6 +83,7 @@ if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
         설명: '부를 자리가 아예 없는 검사 파일 — 늘면 빨강, 연결하면 저절로 줄어든다',
         왜: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
         목록: 안불림,
+        사유: Object.fromEntries(안불림.map((f) => [f, 이전사유[f] ?? '아직 사유를 안 적었다 — 재 보고 여기 적어라'])),
         갱신: new Date().toISOString().slice(0, 10),
       },
       null,
