@@ -20,6 +20,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { stripFrontMatter } from './lib/serve-html.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -57,7 +58,33 @@ if (전체.length < 10 && !준이름.length) {
   console.error(`[widgets-alive] CANNOT-RUN: 도구를 ${전체.length}개만 읽었다 — 매니페스트 모양이 바뀌었는지 볼 것.`);
   process.exit(2);
 }
-const ids = 조각 ? 전체.filter((_, i) => i % 조각.총 === 조각.of - 1) : 전체;
+/* ★ **다 열면 8분이다** — 그대로 두면 `npm run build` 가 그만큼 느려진다(배포는 지금 250초).
+   그래서 기본값은 **이번에 손댄 도구만** 연다. 껍데기(toolbox·lib·index.html·매니페스트)를
+   건드렸으면 무엇이든 죽을 수 있으니 전부 연다. `--all` 은 언제나 전부(밤 판·조각 검사용). */
+function 손댄것() {
+  if (argv.includes('--all')) return null;
+  let 목록;
+  try {
+    const 나온것 = execFileSync('git', ['diff', '--name-only', 'origin/master...HEAD'], { cwd: repoRoot, encoding: 'utf8' })
+      + execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
+    목록 = 나온것.split(String.fromCharCode(10)).map((x) => x.trim().replace(/^[A-Z? ]{1,2} /, '')).filter(Boolean);
+  } catch {
+    return null; // 못 물어봤으면 좁히지 않는다 — 모르면 다 본다
+  }
+  const 껍데기 = /apps[/]karmolab[/](index[.]html|src[/]toolbox[.]ts|src[/]lib[/]|src[/]widgets-lazy-meta[.]ts)/;
+  if (목록.some((f) => 껍데기.test(f))) return null;
+  const 이름 = new Set();
+  for (const f of 목록) {
+    const m = /apps[/]karmolab[/]src[/]widgets[/]([a-z0-9-]+)[/]/.exec(f);
+    if (m) 이름.add(m[1]);
+  }
+  return [...이름];
+}
+
+const 좁힌것 = 준이름.length ? null : 손댄것();
+const 볼것 = 좁힌것 === null ? 전체 : 전체.filter((id) => 좁힌것.includes(id));
+if (좁힌것 !== null) console.log(`[widgets-alive] 이번에 손댄 도구만 본다 — ${볼것.length}개 (전부 = --all)`);
+const ids = 조각 ? 볼것.filter((_, i) => i % 조각.총 === 조각.of - 1) : 볼것;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
