@@ -89,6 +89,33 @@ function expand(name, depth = 0) {
     }
   }
 
+  /* ★ **묶음이 부르는 스크립트가 또 다른 검사를 「경로로」 부른다** (2026-08-17 실측).
+     `verify:karmograph` → `run-karmograph-live.mjs` → `node scripts/smoke-karmograph.mjs`.
+     npm 이름을 안 거치므로 여태 안 보였고, `smoke:karmograph` 는 **날마다 CI 에서 도는데도**
+     「아무도 안 돌린다」로 기준선에 얹혀 있었다(사유란에는 「빨개져서 안 묶는다」고 적혀
+     있었지만 사실이 아니었다). 뿌리 verify.mjs 에만 있던 경로-되짚기를 여기로 올린다. */
+  for (const m of body.matchAll(/scripts\/([\w-]+)\.mjs/g)) {
+    const f = path.join(root, `scripts/${m[1]}.mjs`);
+    if (!fs.existsSync(f)) continue;
+    let inner;
+    try { inner = fs.readFileSync(f, 'utf8'); } catch { continue; }
+    /* ★ **「읽는다」와 「돌린다」는 다르다** (2026-08-17, 같은 판에서 바로 데임).
+       `audit-scripts.mjs` 는 `audit-all.mjs` 를 **열어 읽기만** 한다(그 안의 목록을 보려고).
+       그걸 「부른다」로 세면 아무도 안 돌리는 묶음이 「돈다」가 되어 기준선이 헐거워진다.
+       그래서 **띄우는 줄**에 있을 때만 센다 — spawn/execFile/`node ` 처럼 프로세스를 만드는 줄. */
+    for (const line of inner.split(String.fromCharCode(10))) {
+      if (!/spawn|execFile|exec\(|run\(|node\s/.test(line)) continue;
+      for (const call of line.matchAll(/scripts\/([\w-]+)\.mjs/g)) {
+        for (const [n, body2] of Object.entries(scripts)) {
+          if (isCheck(n) && !covered.has(n) && body2.includes(`scripts/${call[1]}.mjs`)) {
+            covered.add(n);
+            expand(n, depth + 1);
+          }
+        }
+      }
+    }
+  }
+
   /* `run-gates.mjs a b c` 처럼 인자로 늘어놓는 묶음도 있다 */
   for (const word of body.split(/\s+/)) {
     if (isCheck(word)) {
@@ -213,7 +240,16 @@ function 갈래(name) {
   return '알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라';
 }
 
+/* ★ **손으로 적은 사유를 자동 문구로 덮지 마라** (2026-08-17 실측). 목록이 하나 줄었을 뿐인데
+   다시 쓰면서 남은 항목의 사유까지 갈래 기본값으로 갈아 끼웠다 — 「rc 2 로 스스로 못 돌았다고
+   끝난다」·「마스코트 rAF 때문에 지금 빨갛다, TASK-KL-318」 같은 **재 본 값**이 「브라우저를 띄워
+   무겁다」로 뭉개졌다. 그 문장들이 기준선의 값어치 전부다. 이미 적힌 사유가 있으면 그것을 남긴다. */
+function 기존사유() {
+  try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).사유 || {}; } catch { return {}; }
+}
+
 function 기준선쓰기() {
+  const 이전 = 기존사유();
   fs.writeFileSync(
     BASELINE,
     JSON.stringify(
@@ -221,7 +257,7 @@ function 기준선쓰기() {
         설명: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         갱신: new Date().toISOString().slice(0, 10),
         목록: orphans,
-        사유: Object.fromEntries(orphans.map((n) => [n, 사유메모[n] || 갈래(n)]))
+        사유: Object.fromEntries(orphans.map((n) => [n, 이전[n] || 사유메모[n] || 갈래(n)]))
       },
       null,
       2
