@@ -36,5 +36,6 @@
   "idphoto.status.badImage": "Could not read that as an image",
   "idphoto.status.saved": "Saved one photo",
   "idphoto.status.sheet": "Saved a sheet with {n} photos (cut lines included)",
-  "idphoto.note.rules": "Faces are not detected automatically — the required position is drawn as guides and you line the photo up. Rules differ slightly between offices, so check their guidance too. The photo never leaves your browser."
+  "idphoto.note.rules": "Faces are not detected automatically — the required position is drawn as guides and you line the photo up. Rules differ slightly between offices, so check their guidance too. The photo never leaves your browser.",
+  "idphoto.a11y.canvas": "Photo position — arrow keys to move it inside the guides"
 }

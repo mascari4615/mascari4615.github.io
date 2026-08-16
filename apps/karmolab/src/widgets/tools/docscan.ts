@@ -196,6 +196,40 @@ import { t, loadNamespace } from '../../lib/i18n';
       render();
     });
 
+    /* ★ **자판만으로도 네 귀를 잡고 옮긴다** (2026-08-17). 여기는 끌기 말고는 길이 없어서
+       마우스가 없으면 자를 자리를 못 정했다(접근성 감사가 이름으로 짚은 자리).
+       Tab 으로 그림에 들어와 → 1~4 로 귀를 고르고 → 화살표로 옮긴다(Shift = 크게).
+       끌기와 **같은 corners** 를 만지므로 두 길이 갈라지지 않는다. */
+    let 고른귀 = 0;
+    pick.tabIndex = 0;
+    pick.setAttribute('role', 'application');
+    pick.setAttribute('aria-label', t('docscan.a11y.pick'));
+    pick.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (corners === undefined) return;
+      if (event.key >= '1' && event.key <= '4') {
+        고른귀 = Number(event.key) - 1;
+        event.preventDefault();
+        paintPick();
+        return;
+      }
+      const 걸음 = (event.shiftKey ? 10 : 2) * (pick.width / 600);
+      let dx = 0;
+      let dy = 0;
+      if (event.key === 'ArrowLeft') dx = -걸음;
+      else if (event.key === 'ArrowRight') dx = 걸음;
+      else if (event.key === 'ArrowUp') dy = -걸음;
+      else if (event.key === 'ArrowDown') dy = 걸음;
+      else return;
+      event.preventDefault();
+      const c = corners[고른귀];
+      corners[고른귀] = {
+        x: Math.max(0, Math.min(pick.width, c.x + dx)),
+        y: Math.max(0, Math.min(pick.height, c.y + dy))
+      };
+      paintPick();
+      render();
+    });
+
     $<HTMLSelectElement>('#dsLook').addEventListener('change', render);
     $<HTMLButtonElement>('#dsReset').onclick = (): void => {
       if (photo === undefined) return;

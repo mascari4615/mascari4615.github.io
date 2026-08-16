@@ -19,5 +19,6 @@
   "docscan.status.savedPdf": "Saved as an A4 PDF",
   "docscan.err.pdfLib": "Could not load the PDF library",
   "docscan.err.png": "Could not render the image",
-  "docscan.note.manual": "Corners are picked by hand on purpose — automatic detection fails on patterned desks and shadows, and when it fails you cannot see why. The scan look uses a local threshold, so a shadow across the page does not turn half of it black."
+  "docscan.note.manual": "Corners are picked by hand on purpose — automatic detection fails on patterned desks and shadows, and when it fails you cannot see why. The scan look uses a local threshold, so a shadow across the page does not turn half of it black.",
+  "docscan.a11y.pick": "Document corners — press 1-4 to pick a corner, arrows to move"
 }
