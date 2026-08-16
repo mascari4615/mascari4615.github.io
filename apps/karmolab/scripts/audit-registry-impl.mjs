@@ -18,6 +18,7 @@
  * 기준선은 이 감사기 자신이 쓴다(`--write-baseline`).
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -93,7 +94,10 @@ for (const e of entries) {
       });
     }
   }
-  if (!registered.has(e.id)) {
+  /* 작업대로 **흡수한** 도구는 낱개로 등록하지 않는 것이 정상이다 — 주소만 명부에 남긴 것이다.
+     그 목록은 `lib/retired-operations.mjs` 한 곳뿐이다. 여기 기준선에 또 적으면 목록이 둘이
+     되고, 둘이면 반드시 갈라진다(2026-08-16: 여섯을 옮기고 이 감사가 master 를 세웠다). */
+  if (!registered.has(e.id) && !RETIRED_OPERATION_IDS.has(e.id)) {
     found.push({
       key: `NO-REGISTER${TAB}${e.id}${TAB}-`,
       why: '명부에 있는데 아무 파일도 이 id 로 등록하지 않는다',
