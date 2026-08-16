@@ -82,7 +82,7 @@
   "voicerec": "66bf339bde27",
   "pdfcompress": "a535fa198186",
   "audiolevel": "f8f58025a708",
-  "video2img": "b5ef166d4e6c",
+  "video2img": "99b303e0acaf",
   "videocompress": "f5ab0f32d12b",
   "pdf2text": "acbcd4d2db25",
   "exifclean": "3779bdab8272",
@@ -182,5 +182,13 @@
   "arcade-yut": "9db768c9285a",
   "arcade-jegi": "4a822a648cfb",
   "arcade-auction": "91b736b1d670",
-  "arcade-tuho": "f659e29b24b9"
+  "arcade-tuho": "f659e29b24b9",
+  "semver": "ce80e9e78786",
+  "csp": "96bbb95582bd",
+  "diff": "3288a1204bde",
+  "dutchpay": "314c26d27f4e",
+  "mermaidlite": "663644e5e930",
+  "apitest": "3ad3c7e98c73",
+  "bgremove": "92fa3c7b3f5d",
+  "bundlemap": "58272b995542"
 }

@@ -1,9 +1,6 @@
 {
   "설명": "상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다",
   "목록": [
-    "apitest",
-    "bgremove",
-    "bundlemap",
     "codegraph",
     "curlkit",
     "docscan",

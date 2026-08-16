@@ -524,5 +524,17 @@
   "howto.mermaidlite.0": "mermaid 記法で書く（flowchart または erDiagram）",
   "howto.mermaidlite.1": "描かれた図をその場で確認",
   "howto.mermaidlite.2": "文法が違えば、どの行かを見て直す",
-  "howto.mermaidlite.3": "SVG で保存して文書に貼る"
+  "howto.mermaidlite.3": "SVG で保存して文書に貼る",
+  "howto.apitest.0": "OpenAPI ドキュメント（JSON または YAML）を貼る",
+  "howto.apitest.1": "出てきた操作の一覧から一つ選ぶ",
+  "howto.apitest.2": "パスとクエリの値を埋めると、そのまま送れる URL ができる",
+  "howto.apitest.3": "レスポンス例を自分のモックサーバー（msw・json-server）に貼る",
+  "howto.bgremove.0": "背景が単色、またはそれに近い写真をアップロードする",
+  "howto.bgremove.1": "背景色は四隅から自動で決まる — 違えば自分で指定する",
+  "howto.bgremove.2": "どこまで違っても背景とみなすか（許容値）と、ふちのぼかしを調整する",
+  "howto.bgremove.3": "透過 PNG で保存する",
+  "howto.bundlemap.0": "stats.json か metafile を貼る — 形式は自動で判別",
+  "howto.bundlemap.1": "面積図の大きいマスから見る — マスの面積がそのまま容量",
+  "howto.bundlemap.2": "重いパスの順位から削る場所を選ぶ",
+  "howto.bundlemap.3": "重複パッケージの一覧を確認する — バンドルが急に膨らむよくある理由"
 }

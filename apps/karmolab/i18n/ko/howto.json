@@ -524,5 +524,17 @@
   "howto.mermaidlite.0": "mermaid 문법으로 적기 (flowchart 또는 erDiagram)",
   "howto.mermaidlite.1": "바로 그려진 그림 확인",
   "howto.mermaidlite.2": "문법이 틀리면 어느 줄인지 확인하고 고치기",
-  "howto.mermaidlite.3": "SVG 로 내려받아 문서에 넣기"
+  "howto.mermaidlite.3": "SVG 로 내려받아 문서에 넣기",
+  "howto.apitest.0": "OpenAPI 문서(JSON 또는 YAML) 붙여넣기",
+  "howto.apitest.1": "나온 연산 목록에서 하나 고르기",
+  "howto.apitest.2": "경로·질의 값 채우면 진짜 보낼 수 있는 주소가 만들어짐",
+  "howto.apitest.3": "예시 답을 받아 자기 목 서버(msw·json-server)에 붙이기",
+  "howto.bgremove.0": "사진 올리기 (배경이 단색이거나 그에 가까울 것)",
+  "howto.bgremove.1": "배경색은 네 모서리에서 자동으로 잡힘 — 틀리면 직접 찍어 주기",
+  "howto.bgremove.2": "얼마나 달라도 배경으로 볼지(허용치)와 가장자리 부드럽기 조절",
+  "howto.bgremove.3": "투명 PNG 로 내려받기",
+  "howto.bundlemap.0": "stats.json 또는 metafile 붙여넣기 (형식은 알아서 알아봄)",
+  "howto.bundlemap.1": "넓이 그림에서 큰 칸부터 보기 — 칸 넓이가 곧 용량",
+  "howto.bundlemap.2": "무거운 경로 순위에서 줄일 곳 고르기",
+  "howto.bundlemap.3": "중복 꾸러미 목록 확인 — 번들이 갑자기 커지는 흔한 이유"
 }

@@ -524,5 +524,17 @@
   "howto.mermaidlite.0": "Write it in mermaid syntax (flowchart or erDiagram)",
   "howto.mermaidlite.1": "See the diagram render as you type",
   "howto.mermaidlite.2": "If the syntax is wrong, check which line it points to and fix it",
-  "howto.mermaidlite.3": "Download as SVG for your document"
+  "howto.mermaidlite.3": "Download as SVG for your document",
+  "howto.apitest.0": "Paste your OpenAPI document (JSON or YAML)",
+  "howto.apitest.1": "Pick one operation from the list",
+  "howto.apitest.2": "Fill in path and query values — you get a URL you can actually call",
+  "howto.apitest.3": "Take the example response into your own mock server (msw, json-server)",
+  "howto.bgremove.0": "Upload a photo whose background is solid, or close to it",
+  "howto.bgremove.1": "The background colour is picked from the four corners — click to set it yourself if that is wrong",
+  "howto.bgremove.2": "Adjust tolerance (how different still counts as background) and edge feather",
+  "howto.bgremove.3": "Download as a transparent PNG",
+  "howto.bundlemap.0": "Paste a stats.json or a metafile — the format is detected for you",
+  "howto.bundlemap.1": "Read the area map largest tile first — tile area is size",
+  "howto.bundlemap.2": "Pick what to cut from the heaviest-path ranking",
+  "howto.bundlemap.3": "Check the duplicate-package list — the usual reason a bundle suddenly grows"
 }

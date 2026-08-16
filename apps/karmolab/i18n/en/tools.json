@@ -284,5 +284,11 @@
   "tools.dutchpay.description": "Settles who owes whom after everyone has paid different amounts. Balances to the last won and keeps the number of transfers as small as possible.",
   "tools.dutchpay.lead": "Exact to the last won · Fewest transfers · Integer-only math",
   "tools.mermaidlite.description": "Draws flowcharts and entity relationships written as text, as SVG — without the 3MB library and without a network connection.",
-  "tools.mermaidlite.lead": "Flowchart · ER diagram · Download as SVG · Syntax check"
+  "tools.mermaidlite.lead": "Flowchart · ER diagram · Download as SVG · Syntax check",
+  "tools.apitest.description": "Reads an OpenAPI document, lists every request you can send, and builds example request bodies and responses straight from the schema.",
+  "tools.apitest.lead": "Operation list · example request · example response · table for your mock server",
+  "tools.bgremove.description": "Removes solid or near-solid backgrounds. It only eats colour that is connected to the edge, so a shirt the same colour as the background is not punched through.",
+  "tools.bgremove.lead": "ID photos · product shots · scans · download as transparent PNG",
+  "tools.bundlemap.description": "Reads a webpack stats.json or an esbuild metafile and shows what is heavy, as a folder tree drawn by area. It also finds packages that got bundled twice.",
+  "tools.bundlemap.lead": "webpack · esbuild · heaviest paths · duplicate packages"
 }
