@@ -19,6 +19,20 @@ export interface TextOperation {
   title: string;
   description: string;
   controls?: TextOperationControl[];
+  /**
+   * 주소로 부를 때 채울 값 (TASK-KL-257).
+   *
+   * 왜 여기 있나: 작업대로 합칠 수 있는 도구가 「글 넣고 글 받기」뿐이 아니다. 개발 도구 쪽은
+   * 대부분 **주소 호출 계약**(`?op=...&칸=값`)을 이미 들고 있는데, 합치는 순간 그 계약이
+   * 사라지면 **링크·에이전트 호출이 조용히 죽는다**. 그래서 조작이 「주소에서 온 값을 내 칸에
+   * 어떻게 넣나」를 스스로 말하게 한다 — 작업대는 그걸 그대로 넣어 주기만 한다.
+   *
+   * 돌려주는 것 = { 입력글, 칸값 } 중 채울 것만. 안 주면 안 바꾼다.
+   */
+  fromUrl?: (call: { op: string; args: Record<string, string | number | boolean> }) => {
+    input?: string;
+    values?: Record<string, string | boolean | number>;
+  };
   run: (input: string, values: Record<string, string | boolean | number>) => TextOperationResult;
   action?: {
     label: string;
@@ -31,8 +45,17 @@ function escapeHtml(value: string): string {
 }
 
 /** 공용 surface. 이 안에만 결과·복사·읽히는 상태 줄이 존재한다. */
-export function mountTextOperation(host: HTMLElement, operation: TextOperation, input: string): void {
+export function mountTextOperation(
+  host: HTMLElement,
+  operation: TextOperation,
+  input: string,
+  call?: { op: string; args: Record<string, string | number | boolean> } | null
+): void {
   const controls = operation.controls || [];
+  /* 주소에서 온 값을 **그리기 전에** 반영한다 — 그린 뒤에 넣으면 한 번 헛돌고(빈 결과가 깜빡),
+     칸 초기값과 어긋난 채로 남는 자리가 생긴다. */
+  const seeded = operation.fromUrl && call ? operation.fromUrl(call) : undefined;
+  if (seeded?.input !== undefined) input = seeded.input;
   host.innerHTML = `
     <section class="op-surface" data-operation="${escapeHtml(operation.id)}">
       <header><h2>${escapeHtml(operation.title)}</h2><p>${escapeHtml(operation.description)}</p></header>
@@ -56,6 +79,13 @@ export function mountTextOperation(host: HTMLElement, operation: TextOperation, 
   const result = get<HTMLTextAreaElement>('#opResult');
   const status = get<HTMLElement>('#opStatus');
   source.value = input;
+  // 주소에서 온 칸값 반영 (없으면 초기값 그대로).
+  for (const [id, value] of Object.entries(seeded?.values ?? {})) {
+    const element = host.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[data-control="${id}"]`);
+    if (!element) continue;
+    if (element instanceof HTMLInputElement && element.type === 'checkbox') element.checked = value === true;
+    else element.value = String(value);
+  }
   const values = (): Record<string, string | boolean | number> => Object.fromEntries(controls.map((control) => {
     const element = host.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[data-control="${control.id}"]`)!;
     return [control.id, control.kind === 'checkbox' ? (element as HTMLInputElement).checked : control.kind === 'range' ? Number(element.value) : element.value];

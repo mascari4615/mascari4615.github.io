@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/xmlfmt', 'tools/mockdata', 'tools/jqplay', 'tools/sqlfmt', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/prettyall', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/xmlfmt', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/prettyall', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
   },
   {
     id: 'diff',
@@ -319,7 +319,8 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.sqlfmt.desc', undefined, "한 줄로 눌린 SQL 을 읽히게 펴고, MySQL·PostgreSQL·SQL Server·SQLite 사이를 옮겨 줍니다"); },
     layout: 'wide',
-    lazyScriptPaths: ['tools/sqlfmt']
+    // 파일이 아니라 작업대의 조작으로 산다 (TASK-KL-257) — 주소는 그대로, 부르면 작업대가 연다.
+    lazyScriptPaths: ['tools/devtool']
   },
   {
     id: 'erd',
