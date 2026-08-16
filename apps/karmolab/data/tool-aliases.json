@@ -302,6 +302,9 @@
     "curlkit": "curl 변환 코드생성 fetch axios python go httpie 요청 옮기기",
     "docscan": "스캔 서류 사진 반듯하게 원근보정 문서스캔 scan document deskew",
     "mockdata": "가짜데이터 더미데이터 목데이터 샘플 생성 mock fake seed 시드 테스트데이터",
-    "sshkey": "ssh 열쇠 공개키 지문 fingerprint authorized_keys ed25519 rsa PEM openssh"
+    "sshkey": "ssh 열쇠 공개키 지문 fingerprint authorized_keys ed25519 rsa PEM openssh",
+    "idphoto": "증명사진 여권사진 규격 인화 배치 반명함 id photo passport",
+    "ocr": "글자인식 사진글자 텍스트추출 스캔 ocr text recognition",
+    "payslip": "실수령액 월급계산 연봉실수령 4대보험 세후 급여 payslip net pay"
   }
 }

@@ -560,5 +560,17 @@
   "howto.sshkey.0": "ssh-rsa / ssh-ed25519 로 시작하는 줄을 붙여넣기",
   "howto.sshkey.1": "종류·길이·주석·지문(SHA256:…) 확인",
   "howto.sshkey.2": "서버에서 지울 줄을 지문으로 골라내기",
-  "howto.sshkey.3": "PEM 공개키가 있으면 OpenSSH 한 줄로 바꾸기"
+  "howto.sshkey.3": "PEM 공개키가 있으면 OpenSSH 한 줄로 바꾸기",
+  "howto.idphoto.0": "사진 올리고 규격 고르기 (여권 35×45 등)",
+  "howto.idphoto.1": "화면의 선에 눈높이와 머리 크기를 맞추기",
+  "howto.idphoto.2": "잘린 결과 확인",
+  "howto.idphoto.3": "인화용 배치(4×6 등)로 내려받기",
+  "howto.ocr.0": "그림이나 PDF 올리기",
+  "howto.ocr.1": "어느 갈래인지 안내를 확인 (뽑기 / 펴기 / 읽기)",
+  "howto.ocr.2": "삐뚤거나 그늘졌으면 먼저 펴고 다듬기",
+  "howto.ocr.3": "글자를 뽑아 복사하기",
+  "howto.payslip.0": "연봉 또는 월급 넣기",
+  "howto.payslip.1": "비과세(식대 등)와 부양가족 수 넣기",
+  "howto.payslip.2": "세금·보험료가 각각 얼마인지 확인",
+  "howto.payslip.3": "실수령액과 적용 연도 확인"
 }

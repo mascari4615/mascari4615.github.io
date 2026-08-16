@@ -255,6 +255,10 @@
     "narrow": 1556,
     "wide": 1437
   },
+  "idphoto": {
+    "narrow": 1301,
+    "wide": 803
+  },
   "imageedit": {
     "narrow": 368,
     "wide": 631
@@ -363,6 +367,10 @@
     "narrow": 666,
     "wide": 740
   },
+  "ocr": {
+    "narrow": 923,
+    "wide": 689
+  },
   "pace": {
     "narrow": 938,
     "wide": 873
@@ -374,6 +382,10 @@
   "passgen": {
     "narrow": 954,
     "wide": 887
+  },
+  "payslip": {
+    "narrow": 1121,
+    "wide": 740
   },
   "pdf": {
     "narrow": 871,

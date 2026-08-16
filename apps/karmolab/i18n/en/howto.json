@@ -560,5 +560,17 @@
   "howto.sshkey.0": "Paste a line starting with ssh-rsa / ssh-ed25519",
   "howto.sshkey.1": "Check the type, size, comment and fingerprint (SHA256:…)",
   "howto.sshkey.2": "Use the fingerprint to pick the line to remove on the server",
-  "howto.sshkey.3": "Have a PEM public key? Convert it to a one-line OpenSSH key"
+  "howto.sshkey.3": "Have a PEM public key? Convert it to a one-line OpenSSH key",
+  "howto.idphoto.0": "Upload the photo and pick the spec (e.g. passport 35×45)",
+  "howto.idphoto.1": "Line the eyes and head up with the guides on screen",
+  "howto.idphoto.2": "Check the cropped result",
+  "howto.idphoto.3": "Download a print sheet layout (4×6 and friends)",
+  "howto.ocr.0": "Upload an image or a PDF",
+  "howto.ocr.1": "Read which kind of job it is (extract / flatten / read)",
+  "howto.ocr.2": "If it is skewed or shaded, flatten and clean it first",
+  "howto.ocr.3": "Pull the text out and copy it",
+  "howto.payslip.0": "Enter your annual or monthly pay",
+  "howto.payslip.1": "Enter the tax-free part (meal allowance etc.) and dependants",
+  "howto.payslip.2": "See how much is tax and how much is insurance",
+  "howto.payslip.3": "Check the take-home figure and which year the rates are from"
 }

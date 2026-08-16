@@ -302,5 +302,11 @@
   "tools.mockdata.description": "Write just the field kinds (name:name) and it fills in believable rows — as many as you want. The same seed always gives the same data.",
   "tools.mockdata.lead": "One field per line · fixed seed · ko/en/ja · JSON, CSV, SQL",
   "tools.sshkey.description": "Paste an SSH public key line and get its type, size, comment and SHA256 fingerprint. It also turns a PEM public key into a one-line OpenSSH key.",
-  "tools.sshkey.lead": "Read authorized_keys lines · SHA256 fingerprint · PEM → OpenSSH"
+  "tools.sshkey.lead": "Read authorized_keys lines · SHA256 fingerprint · PEM → OpenSSH",
+  "tools.idphoto.description": "Crops an ID photo to the millimetre spec and lays several of them out on one print sheet. Guide lines for eye height and head size mean it will not be rejected at the counter.",
+  "tools.idphoto.lead": "Passport / ID / visa specs · eye-height guides · print layout · stays in your browser",
+  "tools.ocr.description": "Reads text out of images — but sorts the job first: a PDF that already has text only needs extracting, a skewed photo needs flattening, and only the rest needs a model.",
+  "tools.ocr.lead": "Sort the job · flatten and clean · extract text · model only when needed",
+  "tools.payslip.description": "Works out what actually lands in your account after tax and insurance, and puts the three things that make answers differ right on screen.",
+  "tools.payslip.lead": "Take-home pay · four insurances · tax-free allowance · shows the rate year"
 }
