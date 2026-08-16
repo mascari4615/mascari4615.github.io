@@ -245,7 +245,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/diff', 'tools/curlkit', 'tools/configconv', 'tools/xmlfmt', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/prettyall', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/diff', 'tools/curlkit', 'tools/mockdata', 'tools/jqplay', 'tools/erd', 'tools/mermaidlite', 'tools/semver', 'tools/csp', 'tools/apitest', 'tools/protobuf', 'tools/sshkey', 'tools/nettool', 'tools/devtool']
   },
   {
     id: 'diff',
@@ -278,7 +278,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.xmlfmt.desc', undefined, "XML 을 보기 좋게 펴거나 한 줄로 뭉치고, JSON 으로 옮깁니다. 틀린 자리는 줄·칸으로 짚습니다"); },
     layout: 'wide',
     icon: '<path d="M9 7 4 12l5 5M15 7l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 5l-2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/xmlfmt']
+    lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
   },
   {
     id: 'configconv',
@@ -289,7 +289,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.configconv.desc', undefined, ".env·YAML·TOML·JSON·.properties 를 서로 옮깁니다. 무엇인지 알아서 알아봅니다"); },
     layout: 'wide',
     icon: '<path d="M4 6h7M4 12h7M4 18h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 8l3 4-3 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/configconv']
+    lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
   },
   {
     id: 'mockdata',
@@ -435,7 +435,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.prettyall.desc', undefined, "CSS 와 HTML 을 읽기 좋게 펴거나 눌러서 줄입니다. 따옴표 안과 pre·script 속은 건드리지 않습니다"); },
     layout: 'wide',
-    lazyScriptPaths: ['tools/prettyall']
+    lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
   },
   {
     id: 'sshkey',
