@@ -36,8 +36,18 @@ const title = await page.evaluate(() => {
   const c = cv.getContext('2d', { willReadFrequently: true });
   const h = cv.height;
   const w = cv.width;
-  // 제목은 화면 한가운데 가로줄에 있다. 지구도 거기 있으므로 **아주 밝은 점**만 센다.
-  const band = c.getImageData(0, Math.round(h / 2) - 2, w, 5).data;
+  /* ★ **5px 한 줄로 재면 글꼴 모양을 재게 된다** (2026-08-16, 리눅스 재현으로 갈렸다).
+     여기는 화면 한가운데 **5px 띠**만 훑었다. 그런데 그 높이에 획이 얼마나 걸치는지는
+     글꼴마다 다르다 — 같은 크기로 그린 같은 글자인데도
+       윈도우 88% · 리눅스 **44%**  (띠를 글자 구역 전체로 넓히면 둘 다 88%)
+     가 나왔다. 판정이 나는 곳은 리눅스(ubuntu-latest)라, 이 줄은 몇 달째 CI 에서만 빨갰고
+     내 자리에서는 늘 초록이라 원인을 못 짚었다(글꼴 탓이라 적혀 있었지만 아니었다 —
+     글자 크기는 두 쪽이 똑같았다: 측정폭 300 · 세로상한 306).
+     재려던 것은 「제목이 크게 그려졌나」지 「이 높이에 획이 있나」가 아니다. 글자가 놓인
+     구역을 통째로 훑는다 — 글꼴이 바뀌어도 안 흔들린다. */
+  const bandTop = Math.round(h * 0.30);
+  const bandH = Math.round(h * 0.40);
+  const band = c.getImageData(0, bandTop, w, bandH).data;
   let min = w;
   let max = 0;
   let lit = 0;
