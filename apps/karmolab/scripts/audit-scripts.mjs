@@ -65,7 +65,11 @@ const wfCalled = fs.existsSync(wfPath)
      * 예전엔 `git ls-files` 로 봤는데 그건 인덱스라, `git add` 만 해 두고 커밋 안 한 파일도
      * 「있다」로 나왔다. 실제로 그 상태로 스크립트 11개와 도구 기록 4개가 오래 떠 있었다 —
      * 배포는 커밋본을 받아 가므로 거기서는 통째로 없는 파일이었는데 검사는 초록이었다. */
-    const out = execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'scripts', 'img', 'data'], { cwd: root, encoding: 'utf8' });
+    /* ★ **밀 커밋을 봐야 한다** (2026-08-17). 여기만 `HEAD` 를 봤다 — 그러면 **새 검사 파일의
+       첫 커밋**은 영원히 막힌다: 파일은 이 커밋에 들어 있는데 HEAD 에는 아직 없으니까.
+       실제로 오늘 그 자물쇠에 걸려 push 가 두 번 튕겼다. 형제 감사들처럼 `KL_PUSH_SHA` 를 쓴다. */
+    const 기준 = process.env.KL_PUSH_SHA || 'HEAD';
+    const out = execFileSync('git', ['ls-tree', '-r', '--name-only', 기준, 'scripts', 'img', 'data'], { cwd: root, encoding: 'utf8' });
     tracked = new Set(out.split('\n').map((s) => s.trim()).filter(Boolean));
   } catch {
     /* ★ **못 물어본 것은 빨강이 아니다** (2026-08-13). 이 검사는 저장소 밖(밀 커밋을 풀어 놓은

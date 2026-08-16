@@ -20,6 +20,9 @@ export const PREPUSH = [
   /* 0.05초 — 나가는 화면에서 보안 한 줄이 빠지는 것을 막는다. GitHub Pages 는 헤더를
      못 붙여서 이 meta 가 유일한 자리인데, 머리를 조립하는 자리가 여럿이라 조용히 빠진다. */
   'audit:csp-meta',
+  /* 0.1초 — 인라인 스크립트를 고쳐 놓고 지문을 안 다시 찍으면 **첫 화면이 통째로 죽는다**
+     (자물쇠가 그 스크립트를 막는다). 미는 자리에서 잡아야 하는 부류다 (2026-08-17). */
+  'audit:csp-shell',
   'audit:saylive',
   'audit:iconbtn',
   'audit:aliases',
