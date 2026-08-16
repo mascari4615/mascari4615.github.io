@@ -290,6 +290,8 @@
     "photomap": "사진위치 exif gps 촬영지 photo map 사진지도",
     "codegraph": "의존성 import graph 호출관계 코드구조 dependency",
     "askpapers": "논문 paper 연구 abstract 문헌조사 서베이 arxiv",
-    "isitdown": "접속안됨 사이트다운 down 서버죽음 나만안되나 접속장애"
+    "isitdown": "접속안됨 사이트다운 down 서버죽음 나만안되나 접속장애",
+    "semver": "시맨틱 버저닝 semantic versioning 버전 범위 캐럿 틸드 caret tilde 의존성 충돌 package.json",
+    "csp": "Content-Security-Policy 콘텐츠 보안 정책 보안 헤더 security header unsafe-inline XSS 방어"
   }
 }
