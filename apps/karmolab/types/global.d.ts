@@ -96,9 +96,6 @@ declare global {
     /** chatbot/characters.ts */
     ChatbotCharacters?: ChatbotCharactersAPI;
 
-    /** apps/karmolab-react-src 내 React 마운트 */
-    mountKarmoPlanner?: (rootId: string) => void;
-
     /** dashboard.ts — 내 정보 탭에서 호출 */
     DashboardBuild?: (container: HTMLElement) => void;
 

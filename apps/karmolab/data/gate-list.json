@@ -2,6 +2,8 @@
   "설명": "묶음(gates)에서 도는 검사 이름 — 한 줄에 하나. 여기가 정본이다 (package.json 이 아니다).",
   "왜": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
   "목록": [
+    "test:gamification",
+    "test:planner",
     "test:meok",
     "test:meok:screen",
     "test:karmograph",
