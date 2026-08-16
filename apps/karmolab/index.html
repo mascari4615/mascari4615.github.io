@@ -253,16 +253,16 @@ permalink: /karmolab/
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
             <div class="header-bar-left">
-                <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" onclick="Toolbox.switchPage('home')" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
+                <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" data-goto="home" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
             </div>
             <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리" data-i18n-aria-label="shell.nav.categories"></nav>
             <div class="header-bar-right">
                 <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록" data-i18n-title="shell.nav.toolsList" data-i18n="shell.nav.tools">≡ 도구</a>
                 <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
                 <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
-                <a href="#community" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('community');return false}" title="이야기 · 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
-                <a href="#plaza" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('plaza');return false}" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
-                <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" data-i18n-title="shell.nav.whoTitle" data-i18n="shell.nav.who">누가 만들었나요?</a>
+                <a href="#community" class="header-tools-link" data-goto="community" title="이야기 · 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
+                <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
+                <a href="#linktree" class="header-dev-link" data-goto="linktree" title="개발자 연락처 · 링크" data-i18n-title="shell.nav.whoTitle" data-i18n="shell.nav.who">누가 만들었나요?</a>
                 <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
                      눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
                 <!-- 알림 종 (TASK-KL-098) — 공용이다. 커뮤니티만이 아니라 도구·계정·봇이 보낸 것도 여기 뜬다.
@@ -339,11 +339,11 @@ permalink: /karmolab/
                     </a>
                     <!-- 상태 · 변경 기록 (TASK-KL-098). 「지금 잘 도나」와 「무엇이 바뀌었나」를
                          밝히는 자리가 없으면, 조용히 망가져도 아무도 모르는 사이트가 된다. -->
-                    <a href="#status" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('status');return false}" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록" data-i18n-title="shell.sidebar.statusTitle" data-i18n-aria-label="shell.sidebar.status">
+                    <a href="#status" class="sidebar-dev-links" data-goto="status" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록" data-i18n-title="shell.sidebar.statusTitle" data-i18n-aria-label="shell.sidebar.status">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">◇</span>
                         <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.status">상태 · 변경 기록</span>
                     </a>
-                    <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요" data-i18n-title="shell.nav.whoTitle" data-i18n-aria-label="shell.nav.who">
+                    <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="개발자 연락처 · 링크" aria-label="누가 만들었나요" data-i18n-title="shell.nav.whoTitle" data-i18n-aria-label="shell.nav.who">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">i</span>
                         <span class="sidebar-dev-links-text" data-i18n="shell.nav.who">누가 만들었나요?</span>
                     </a>
