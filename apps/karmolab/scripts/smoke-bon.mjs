@@ -54,6 +54,17 @@ const check = (label, ok, extra = '') => {
   if (!ok) problems.push(label);
 };
 
+/* ★ **잴 것이 아예 없을 수 있다** (2026-08-17 실측). 이 도구는 소스는 있는데
+   위젯 매니페스트(`src/widgets-lazy-meta.ts`)에 **등록돼 있지 않다** — `#bon` 을 열어도
+   아무것도 안 뜬다. 그때 `.bon-wrap` 을 20초 기다리다 raw TimeoutError 로 터지면
+   「이 도구가 깨졌다」로 읽힌다. 실제로는 **못 재는 것**이다 — 그렇게 말한다(rc 2). */
+const 매니페스트 = fs.readFileSync(new URL('../src/widgets-lazy-meta.ts', import.meta.url), 'utf8');
+if (!/id: 'bon'/.test(매니페스트)) {
+  console.log('[smoke-bon] 못 돌림 — 이 도구가 위젯 매니페스트에 없다(등록되면 그때 잰다). 통과가 아니다.');
+  await browser.close();
+  process.exit(2);
+}
+
 await page.goto(base + '/apps/karmolab/index.html#bon', { waitUntil: 'load', timeout: 30000 });
 try {
   await page.waitForSelector('.bon-wrap', { timeout: 20000 });
