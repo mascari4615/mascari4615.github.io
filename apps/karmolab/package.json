@@ -215,6 +215,7 @@
     "test:perf:budget": "node scripts/smoke-perf-budget.mjs",
     "test:shard": "node scripts/shard-split.test.mjs",
     "test:shell-nav": "node scripts/smoke-shell-nav.mjs",
+    "test:tierlist-keys": "node scripts/smoke-tierlist-keys.mjs",
     "test:redeploy-guard": "node --test scripts/retry-if-redeployed.test.mjs",
     "audit:sleep-read": "node scripts/audit-sleep-then-read.mjs",
     "audit:drift": "node scripts/run-gates.mjs audit:bundles audit:coverage audit:aliases",
