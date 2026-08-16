@@ -40,7 +40,7 @@ flowchart LR
 
 | 노드 | 정본 |
 | --- | --- |
-| 보드 (병렬 세션 협업) | `memo/.claude/active-sessions.md` |
+| 세션 간 채널 | `memo/.claude/session-bus.md` |
 | TASK 스펙 | `memo/TASK-SCHEMA.md` |
 | umbrella 작업 지침 | `memo/UMBRELLA.md` |
 | 문서 지도 | `memo/INDEX.md` |

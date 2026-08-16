@@ -228,6 +228,16 @@ async function walkSingleType(type, memoSubpath) {
       continue;
     }
     if (!meta.type) meta.type = type;  // 디렉토리 위치로 type 추론
+    /* 별 **같은 폴더에 두 가지 글이 산다** (2026-08-17 실측). `memo/systems/` 에는 위키 항목
+       (title·slug·entityId 를 단 것)과 **주제 기획서**(SPEC-SCHEMA — status·updated·tags 만 단 것)가
+       같이 있다. 기획서를 위키 항목으로 읽으려다 「필수 필드 누락」으로 **빌드 전체가 죽었다**.
+       CI 는 memo 를 안 받아 이 단계를 통째로 건너뛰므로 초록이었고, 그래서 **내 자리에서만
+       몇 판이고 죽었다**(오늘 라이브 점검이 여기서 멈췄다).
+       가르는 표는 이미 있다 — 위키 항목은 slug/entityId 를 단다. 없으면 기획서다. 건너뛴다. */
+    if (!meta.slug || !meta.entityId) {
+      console.warn(`[${type}] ${entry.name}: 위키 항목이 아니다(slug/entityId 없음 — 주제 기획서로 본다) — skip`);
+      continue;
+    }
     out.push(await writeEntity(meta, body, `${memoSubpath}/${entry.name}`));
   }
   return out;
