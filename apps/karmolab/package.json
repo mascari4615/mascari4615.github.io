@@ -97,6 +97,8 @@
     "prerender:home": "node scripts/prerender-home.mjs",
     "audit:prerender-home": "node scripts/audit-prerender-home.mjs",
     "measure:live-cls": "node scripts/measure-live-cls.mjs",
+    "measure:live-a11y": "node scripts/measure-live-a11y.mjs",
+    "measure:live-inp": "node scripts/measure-live-inp.mjs",
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",
@@ -322,6 +324,7 @@
     "test:karmograph:repeat": "node scripts/repeat-karmograph.mjs 3"
   },
   "devDependencies": {
+    "axe-core": "^4.13.0",
     "esbuild": "^0.25.0",
     "playwright": "^1.62.1",
     "typescript": "~5.9.0"
