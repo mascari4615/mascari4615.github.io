@@ -31,6 +31,15 @@ function 원본자리(주소) {
   const 끝 = (p) => (p.endsWith('/') ? `${p}index.html` : p);
   if (주소.startsWith('/apps/karmolab/')) return path.join(appsRoot, 끝(주소).slice('/apps/'.length));
   if (주소 === '/karmolab/') return path.join(appRoot, 'index.html');
+  /* ★ 찍힌 장(도구 상세·놀이)은 **갓 찍었을 때만** 본다 (2026-08-17). 늘 보면 낡은 사본 때문에
+     거짓 빨강이 나고, 아예 안 보면 여섯 가지밖에 못 본다. 껍데기보다 새것이면 그건 지금 것이다. */
+  if (주소.startsWith('/karmolab/')) {
+    const 찍힌 = path.join(appsRoot, 'blog', 끝(주소).slice(1));
+    if (!fs.existsSync(찍힌)) return null;
+    const 껍데기 = path.join(appRoot, 'index.html');
+    if (fs.statSync(찍힌).mtimeMs < fs.statSync(껍데기).mtimeMs) return null; // 낡았다 → 건너뜀
+    return 찍힌;
+  }
   return null;
 }
 
