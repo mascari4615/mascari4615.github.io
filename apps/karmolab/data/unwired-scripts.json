@@ -3,13 +3,10 @@
   "왜": "npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).",
   "목록": [
     "audit-shared-package-builds.mjs",
-    "smoke-badapple-tool.mjs",
     "smoke-companion.mjs",
     "smoke-foundry.mjs",
     "smoke-wrong-kind.mjs",
-    "test-heung-midi-file.mjs",
-    "test-heung-ux-contract.mjs",
-    "test-tool-search.mjs"
+    "test-heung-midi-file.mjs"
   ],
   "갱신": "2026-08-16"
 }
