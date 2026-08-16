@@ -101,7 +101,10 @@ jobs:
           #   verify.mjs 가 그걸 `[verify] X <이름> 실패 (exit N)` 로 이미 찍고 있다. 그 줄을 들고 온다.
           WF_NAME=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq .name || echo '')
           if [ "$WF_NAME" = "verify" ]; then
-            GATES=$(gh run view "$RUN_ID" --log-failed 2>&1               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd' · ' -)
+            LOG=$(gh run view "$RUN_ID" --log-failed 2>&1 || true)
+            # 가설 박지 말고 재라 — 로그가 아예 안 온 건지, 왔는데 줄이 없는 건지.
+            echo "[진단] 실패 로그 ${#LOG} 바이트 · 첫 줄: $(printf %s "$LOG" | head -1 | cut -c1-140)"
+            GATES=$(printf %s "$LOG"               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd' · ' -)
             # 못 읽으면 **그렇다고 말한다** — 조용히 옛 문구로 돌아가면
             # 「고쳤는데 왜 그대로지」로 사람을 헤매게 한다(2026-08-16 실제로 그랬다:
             # 로컬에선 뽑히는데 CI 에서만 빈 채로 지나가 두 판을 헛돌았다).
