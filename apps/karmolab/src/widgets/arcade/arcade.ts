@@ -1277,7 +1277,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           showResult(v, draw, top, note);
         }
       } else if (v.note) {
-        say(t(v.note.key, v.note.params));
+        /* ★ **한 줄 알림이 판을 죽이면 안 된다** (2026-08-17, 진짜로 죽였다).
+           i18n 은 없는 열쇠를 **던진다** — 열쇠 이름이 화면에 뜨는 것보다 낫다는 판단이고 옳다.
+           그런데 그 던짐이 그리기 고리 한가운데서 나면 판이 거기서 멎는다: 지뢰를 밟는 순간
+           `arcade.mine.boom` 이 없어서 대회 한 판이 통째로 안 끝났다(빠진 열쇠 17개를 찾아 채웠다).
+           알림은 **그 순간의 곁말**이라 없어도 놀이는 굴러가야 한다. 못 옮기면 조용히 건너뛴다 —
+           대신 창 기록에 한 번 남긴다(감사 `audit:i18n-keys` 가 push 전에 잡으므로 여기는 마지막 그물이다). */
+        try {
+          say(t(v.note.key, v.note.params));
+        } catch (err) {
+          console.warn('[arcade] 알림 글을 못 옮겼다 — 판은 그대로 간다:', v.note.key, err);
+        }
       } else {
         if (v.round !== soundedRound) {
           soundedRound = v.round;
