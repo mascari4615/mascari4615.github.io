@@ -6,6 +6,7 @@
  * 무엇인지 알아내는 게 대부분의 상황이라서다. 스키마를 주면 이름이 붙는다.
  */
 import { decode, encode, parseProto, readBytes, toHex, spec, type Message, type Piece } from '../../core/protobuf';
+import { textPane, twoPane } from './shared/markup';
 import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
@@ -40,16 +41,10 @@ import { t, loadNamespace } from '../../lib/i18n';
   function draw(container: HTMLElement): void {
     Mdd.linePreset('tool_run', { msg: t('protobuf.mdd') });
     container.innerHTML = `
-      <div class="tool-grid-2">
-        <div>
-          <label class="field-label" for="pbData">${esc(t('protobuf.label.data'))}</label>
-          <textarea id="pbData" name="data" aria-label="${esc(t('protobuf.label.data'))}" class="mono-input" style="min-height:120px;" placeholder="08 96 01   ·   CJYB"></textarea>
-        </div>
-        <div>
-          <label class="field-label" for="pbProto">${esc(t('protobuf.label.proto'))}</label>
-          <textarea id="pbProto" name="proto" aria-label="${esc(t('protobuf.label.proto'))}" class="mono-input" style="min-height:120px;" placeholder="message Person { string name = 1; int32 age = 2; }"></textarea>
-        </div>
-      </div>
+      ${twoPane(
+        textPane({ id: 'pbData', name: 'data', label: esc(t('protobuf.label.data')), minHeight: 120 }),
+        textPane({ id: 'pbProto', name: 'proto', label: esc(t('protobuf.label.proto')), minHeight: 120 })
+      )}
       <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin:10px 0;">
         <div>
           <label class="field-label" for="pbMessage">${esc(t('protobuf.label.message'))}</label>

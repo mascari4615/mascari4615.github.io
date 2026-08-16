@@ -9,6 +9,7 @@
  * 대신 **목 응답 표**를 만들어 준다: 그대로 자기 목 서버에 붙이면 된다.
  */
 import { fill, mockTable, parse, spec, type Doc, type Operation } from '../../core/apitest';
+import { textPane, twoPane } from './shared/markup';
 import { escapeHtml as esc } from './shared/text';
 import { compareText } from '../../core/apidiff';
 import { markLive } from './shared/say';
@@ -56,16 +57,10 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   function drawDiff(container: HTMLElement): void {
     container.innerHTML = `
-      <div class="tool-grid-2">
-        <div>
-          <label class="field-label" for="adBefore">${esc(t('apidiff.label.before'))}</label>
-          <textarea id="adBefore" name="before" aria-label="${esc(t('apidiff.label.before'))}" class="mono-input" style="min-height:200px;"></textarea>
-        </div>
-        <div>
-          <label class="field-label" for="adAfter">${esc(t('apidiff.label.after'))}</label>
-          <textarea id="adAfter" name="after" aria-label="${esc(t('apidiff.label.after'))}" class="mono-input" style="min-height:200px;"></textarea>
-        </div>
-      </div>
+      ${twoPane(
+        textPane({ id: 'adBefore', name: 'before', label: esc(t('apidiff.label.before')), minHeight: 200 }),
+        textPane({ id: 'adAfter', name: 'after', label: esc(t('apidiff.label.after')), minHeight: 200 })
+      )}
       <div id="adOut" class="tool-list" style="margin-top:12px;"></div>
       <div class="tool-status" id="adStatus">${esc(t('apidiff.status.idle'))}</div>
     `;

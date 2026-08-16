@@ -34,7 +34,7 @@ const SNIPPETS = [
   ['파일 내보내기 (download)', /createObjectURL|a\.download|\.download\s*=/, 10, 20],
   ['통계 칸 (stat)', /const\s+stat\s*=/, 2, 26], // 실측 보정 2026-08-16: 32곳을 실제로 빼 보니 34줄이었다(어림 111줄)
   ['바깥 라이브러리 (ensureScript)', /ensureScript/, 4, 8],
-  ['화면 통짜 (innerHTML)', /container\.innerHTML/, 30, 0],
+  ['화면 통짜 (innerHTML)', /container\.innerHTML/, 30, 0], // ⚠ 이 수는 「뽑을 수 있는 줄」이 아니다 — 2026-08-16 실측: 같은 뼈대로 보이는 59곳 중 **바이트가 같은 꼴은 2곳뿐**이었다(같은 클래스를 쓰지만 안에 든 것이 제각각). 통짜 줄이기는 조각 뽑기로 거의 안 되고 선언형 조작 자리(KL-256)로만 된다.
 ];
 
 /* ★ **재료 축은 이 도구가 못 잰다** — 그리고 그게 결과다 (2026-08-16).
