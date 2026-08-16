@@ -218,6 +218,13 @@ if (!process.env.CI) {
     const 표 = JSON.parse(readFileSync(표경로, 'utf8'));
     표.초 = 표.초 || {};
     for (const r of results) 표.초[r.name] = r.sec;
+    /* ★ **없어진 검사의 시간이 표에 남는다** (2026-08-16, 실측). 표에 61개가 있는데 검사는 60개였다 —
+       사라진 이름 하나가 합계를 955초나 부풀리고 있었다(그 수를 보고 조각 여유를 잘못 셌다).
+       한 줄로 돌 때(조각 없이)는 목록 전체를 본 것이므로, 그때만 **없는 이름을 턴다.** */
+    if (!shard) {
+      const 사는이름 = new Set(CHECKS.map((c) => c.name));
+      for (const 이름 of Object.keys(표.초)) if (!사는이름.has(이름)) delete 표.초[이름];
+    }
     표.잰날 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     표.초 = Object.fromEntries(Object.entries(표.초).sort((a, b) => b[1] - a[1]));
     writeFileSync(표경로, `${JSON.stringify(표, null, 2)}
@@ -250,7 +257,7 @@ if (예측분 != null) {
   const 한계 = 여기가CI ? 60 : 30;
   const 말 = 어긋남 >= 한계 ? ' ← 표가 낡았다. `data/live-check-times.json` 를 다시 재라' : '';
   const 곁 = 여기가CI ? ' · CI 는 대개 내 자리보다 1.3~1.7배 느리다' : '';
-  console.log(`[verify:live] 예측 ${예측분}분 · 실제 ${총분.toFixed(1)}분 (${어긋남 >= 0 ? '+' : ''}${어긋남}%)${곁}${말}`);
+  console.log(`[verify:live] 예측 ${예측분}분 · 실제 ${총분.toFixed(1)}분(검사만, 준비 단계 별도) (${어긋남 >= 0 ? '+' : ''}${어긋남}%)${곁}${말}`);
 }
 if (총분 > 지붕분 * 0.6) {
   console.log(
