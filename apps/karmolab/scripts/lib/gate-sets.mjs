@@ -41,6 +41,7 @@ export const PREPUSH = [
   /* 0.05초 — 「새로 나옴」 표와 사이트맵 변경일 기록은 개발 머신에서만 남는데, 안 담고 밀면
      새 도구가 사이트에서 새것으로 안 보이고 변경일 없이 실린다. 미는 자리가 유일한 자리다. */
   'audit:tool-state',
+  'audit:spec-locales',
   'test:i18n'
 ];
 
