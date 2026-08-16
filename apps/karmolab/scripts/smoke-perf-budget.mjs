@@ -123,7 +123,9 @@ if (!fs.existsSync(toolPage)) {
   TARGETS.push([
     '도구 한 장(대출)',
     '/apps/blog/karmolab/t/loan/index.html',
-    { bootwaste: 37 * 1024 + 16 * 1024 },
+    /* 톱니를 조인다 (2026-08-16 저녁): 제 도구 코드를 낭비로 세던 것을 고쳐 36.8KB → 22KB.
+       남은 22KB 는 일부러 실은 채팅이다. 예산도 그만큼 내린다 — 22 + 한 위젯몫 16. */
+    { bootwaste: 22 * 1024 + 16 * 1024 },
   ]);
 }
 

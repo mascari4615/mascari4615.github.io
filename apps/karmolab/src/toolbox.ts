@@ -583,7 +583,7 @@ const Toolbox = (() => {
             return undefined;
         } finally {
             buildingTool = prev;
-            window.KLPerf?.build(toolId, performance.now() - startedAt);
+            (window.KLPerf?.build ?? window.__klBuild)?.(toolId, performance.now() - startedAt);
         }
     }
 

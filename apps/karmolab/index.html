@@ -409,6 +409,12 @@ permalink: /karmolab/
     <script>
       window.__klMarks = [];
       window.__klMark = function (n) { window.__klMarks.push([n, performance.now()]); };
+      /* 눈금뿐 아니라 **그린 것**도 담는다 (2026-08-16 실측). 계측기는 첫 그림 뒤에 오는데,
+         도구 한 장에서는 그 전에 이미 그 도구가 다 그려져 있다 — 그래서 계측기가 와서 보면
+         「받아 놓고 한 번도 안 그린 코드」로 보였고, 제 페이지에서 제 코드가 낭비로 잡혔다
+         (대출 장에서 13.8KB). 눈금과 같은 방식으로 통에 담아 두고 흡수하게 한다. */
+      window.__klBuilds = [];
+      window.__klBuild = function (id, ms) { window.__klBuilds.push([id, ms]); };
       addEventListener('load', function () {
         var go = function () {
           var s = document.createElement('script');
