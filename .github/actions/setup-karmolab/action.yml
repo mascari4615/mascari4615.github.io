@@ -31,6 +31,14 @@ runs:
       shell: bash
       run: cd apps/karmolab && npm ci --no-audit --no-fund
 
+    # ★ **yawnbot 도 깐다** (2026-08-16 실측). 안 깔았더니 `verify` 의 yawnbot build 조건이
+    #   늘 거짓이 되어 **한 번도 안 돌았고**, 그 뒤에 오는 `test:chat`(창 둘이 같은 방에서
+    #   실시간으로 말이 오가나)도 영원히 「못 돌림」이었다. 검사는 있는데 도는 곳이 없었다.
+    #   여기는 자체 워크스페이스(자기 lockfile)라 루트 설치로는 안 채워진다.
+    - name: 의존 설치 (yawnbot 워크스페이스)
+      shell: bash
+      run: cd apps/discord-bots && npm ci --no-audit --no-fund
+
     # ★ **지어 놓은 것을 또 짓지 않는다** (2026-08-13). 이 채비는 한 판에 여러 번 돈다 —
     #   verify 두 잡 · 배포 · 라이브 점검 세 조각 · 카모그래프. 꾸러미 셋을 매번 새로 지으면
     #   같은 1분을 예닐곱 번 쓴다. 소스가 그대로면 결과도 그대로이므로 **소스 해시로** 재사용한다.
