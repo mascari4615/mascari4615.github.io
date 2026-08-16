@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             ok = false;
           }
           return (
-            '<div class="tool-list-row"><span class="tool-list-key" style="color:' + (ok ? 'var(--accent-success, #2e7d32)' : 'var(--text-tertiary)') + '">' +
+            '<div class="tool-list-row"><span class="tool-list-key" style="color:' + (ok ? 'var(--success)' : 'var(--text-tertiary)') + '">' +
             esc(ok ? t('semver.in') : t('semver.out')) +
             '</span><span class="mono tool-list-val">' + esc(v) + '</span></div>'
           );

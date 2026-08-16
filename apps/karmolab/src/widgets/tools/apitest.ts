@@ -81,7 +81,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         const changes = compareText(before, after);
         $<HTMLElement>('#adOut').innerHTML = changes
           .map((c) => {
-            const color = c.breaking ? 'var(--accent-danger, #c62828)' : 'var(--text-tertiary)';
+            const color = c.breaking ? 'var(--error)' : 'var(--text-tertiary)';
             const tail = [c.what, c.from === undefined ? '' : c.from + ' → ' + String(c.to)].filter((s) => s !== undefined && s !== '').join(' · ');
             return (
               '<div class="tool-list-row"><span class="tool-list-key" style="color:' + color + '">' +

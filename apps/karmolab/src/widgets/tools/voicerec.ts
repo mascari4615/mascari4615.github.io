@@ -58,7 +58,7 @@ import { intervalWhileVisible } from '../../lib/tick';
             </div>
 
             <div class="tool-display" id="vrClock">0:00</div>
-            <canvas id="vrMeter" height="72" style="width:100%; height:72px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
+            <canvas id="vrMeter" height="72" style="width:100%; height:72px; border-radius:8px; background:var(--bg-secondary); display:block;"></canvas>
 
             <div class="cc-stats" id="vrStats"></div>
 

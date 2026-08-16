@@ -90,7 +90,7 @@ interface ZipArchive {
               .slice(0, 12)
               .map(
                 (loop) =>
-                  '<div class="tool-list-row"><span class="tool-list-key" style="color:var(--accent-danger, #c62828)">' + loop.length + '</span>' +
+                  '<div class="tool-list-row"><span class="tool-list-key" style="color:var(--error)">' + loop.length + '</span>' +
                   '<span class="mono tool-list-val">' + esc(loop.join('  →  ')) + '</span></div>'
               )
               .join('');

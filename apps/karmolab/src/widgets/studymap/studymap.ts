@@ -359,13 +359,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
 .sm-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
 .sm-part-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+  border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-secondary);
   font-size: var(--font-size-2xs); cursor: pointer; }
 .sm-part-btn:hover { border-color: var(--accent); color: var(--text); }
 .sm-part-btn.is-current { border-color: var(--accent); background: var(--accent-subtle); color: var(--text); font-weight: 600; }
 .sm-part-btn.is-done .sm-part-no { background: var(--success); color: #04120a; }
 .sm-part-no { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
-  background: var(--border); color: var(--text-muted); font-size: 10px; font-weight: 700; }
+  background: var(--border); color: var(--text-secondary); font-size: 10px; font-weight: 700; }
 .sm-part-title { margin-top: 10px !important; }
 .sm-quiz { margin-top: 12px; }
 .sm-qbox { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px 16px; margin-bottom: 12px; background: var(--bg-secondary); }

@@ -117,7 +117,7 @@ interface ZipArchive {
 
     function row(kind: string, sign: string, line: string, aNo: string, bNo: string): string {
       const color =
-        kind === 'add' ? 'var(--accent-success, #2e7d32)' : kind === 'del' ? 'var(--accent-danger, #c62828)' : 'inherit';
+        kind === 'add' ? 'var(--success)' : kind === 'del' ? 'var(--error)' : 'inherit';
       const bg = kind === 'add' ? 'rgba(46,125,50,.10)' : kind === 'del' ? 'rgba(198,40,40,.10)' : 'transparent';
       return (
         `<div style="display:flex; gap:8px; background:${bg}; color:${color};">` +

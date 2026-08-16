@@ -17,8 +17,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   const LEVELS: Level[] = ['error', 'warn', 'info', 'debug', 'trace', 'other'];
   const COLOR: Record<Level, string> = {
-    error: 'var(--accent-danger, #c62828)',
-    warn: 'var(--accent-warn, #b26a00)',
+    error: 'var(--error)',
+    warn: 'var(--warning)',
     info: 'inherit',
     debug: 'var(--text-tertiary)',
     trace: 'var(--text-tertiary)',
@@ -103,7 +103,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const bad = b.error> 0;
           return (
             '<div title="' + esc(new Date(b.at).toLocaleString()) + ' · ' + b.total + '" style="flex:1; height:' + h + '%; min-height:1px; background:' +
-            (bad ? 'var(--accent-danger, #c62828)' : 'var(--accent, #4a7dff)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
+            (bad ? 'var(--error)' : 'var(--accent, #4a7dff)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
           );
         })
         .join('');

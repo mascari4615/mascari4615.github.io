@@ -145,7 +145,7 @@ import {
     .km-toolbar select[data-km="maps"] { max-width:138px; }
     /* 이름을 고치는 동안 고르개 자리를 그대로 쓴다 — 자리가 움직이면 옆 단추가 손 밑에서 밀린다. */
     .km-toolbar input[data-km="map-name"] { max-width:138px; padding:4px 8px; border-radius:8px;
-      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); }
+      border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); }
     .km-toolbar input[data-km="map-name"].hidden { display:none; }
     /* ★ 단추의 hidden 클래스만은 **한 줄로** 못 박는다. 없던 동안 「접었다」고 표시한 단추가 그대로
        보였다 — 툴바의 「↑ 위로」가 68×30 으로 살아 있었고(접기의 뜻이 사라진다), 서랍·팔레트가
@@ -159,17 +159,17 @@ import {
        무엇보다 「복사하라는 건지 고치라는 건지」가 안 읽혔다 (KL-271). */
     .km-linkbox { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:6px; align-items:center; max-width:min(560px, 92%); padding:10px 12px;
-      border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
+      border-radius:12px; border:1px solid var(--border); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); }
     /* 말 상자 — 「안 됐다」는 말은 사라지면 안 된다(토스트는 3초면 없어진다). 그렇다고
        브라우저 alert 처럼 판을 얼려서도 안 된다 — 얼면 뒤에 있는 화면을 못 보고 답한다. */
     .km-note { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:10px; align-items:flex-start; max-width:min(520px, 92%); padding:12px 14px;
-      border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
+      border-radius:12px; border:1px solid var(--border); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); color:var(--text-primary); font-size:13px;
       white-space:pre-line; }
     .km-linkbox input { flex:1 1 auto; min-width:180px; padding:6px 10px; border-radius:8px;
-      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);
+      border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary);
       font-size:12px; }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
@@ -209,7 +209,7 @@ import {
     /* 이름은 **그 자리에서** 고친다 (KL-271) — 브라우저 prompt 는 판을 가리고,
        고치는 동안 「어느 시점을 고치는 중인가」가 화면에서 사라진다. */
     .km-times input { padding:3px 9px; font-size:12px; border-radius:999px; min-width:72px; max-width:140px;
-      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); }
+      border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); }
     .km-root.is-presenting .km-times { display:none; }
     .km-zoom { position:absolute; right:16px; bottom:14px; z-index:16; display:flex; align-items:center; gap:2px;
       padding:2px; border-radius:999px; background:var(--glass-strong); border:1px solid var(--border);

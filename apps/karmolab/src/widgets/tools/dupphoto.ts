@@ -117,9 +117,9 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       const card = (photo: Photo, keep: boolean): string =>
         '<figure style="margin:0; text-align:center; opacity:' + (keep ? '1' : '.65') + ';">' +
-        '<img src="' + esc(thumbs.get(photo.name) ?? '') + '" alt="' + esc(photo.name) + '" style="max-width:120px; border-radius:8px; border:2px solid ' + (keep ? 'var(--accent-success, #2e7d32)' : 'transparent') + ';">' +
+        '<img src="' + esc(thumbs.get(photo.name) ?? '') + '" alt="' + esc(photo.name) + '" style="max-width:120px; border-radius:8px; border:2px solid ' + (keep ? 'var(--success)' : 'transparent') + ';">' +
         '<figcaption style="font-size:11px; margin-top:4px;">' + esc(photo.name) + '<br><span style="opacity:.6">' + esc(human(photo.size)) + '</span>' +
-        (keep ? '<br><b style="color:var(--accent-success, #2e7d32)">' + esc(t('dupphoto.keep')) + '</b>' : '') +
+        (keep ? '<br><b style="color:var(--success)">' + esc(t('dupphoto.keep')) + '</b>' : '') +
         '</figcaption></figure>';
 
       $<HTMLElement>('#dpGroups').innerHTML = groups

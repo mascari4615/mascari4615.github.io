@@ -120,7 +120,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
                 <button id="m3Png" class="tool-btn" type="button" disabled>${esc(t('mesh3d.btn.m3Png'))}</button>
               </div>
               <div id="m3Stage" style="position:relative; border-radius:8px; overflow:hidden;
-                background:var(--surface-2, #14161a); touch-action:none;">
+                background:var(--bg-secondary); touch-action:none;">
                 <canvas id="m3Canvas" style="display:block; width:100%; height:min(60vh, 520px);"></canvas>
               </div>
               <div id="m3Info" class="tool-note" role="status"></div>

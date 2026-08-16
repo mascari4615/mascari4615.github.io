@@ -175,7 +175,7 @@ import { markLive } from '../tools/shared/say';
 
       $<HTMLElement>('#guSteps').innerHTML = steps
         .map((step, i) => {
-          const color = step.risk === 'destructive' ? 'var(--accent-danger, #c62828)' : step.risk === 'rewrite' ? 'var(--accent-warn, #b26a00)' : 'inherit';
+          const color = step.risk === 'destructive' ? 'var(--error)' : step.risk === 'rewrite' ? 'var(--warning)' : 'inherit';
           const back = step.undoable ? t('gitundo.undoable') : t('gitundo.notUndoable');
           return (
             '<div class="tool-list-row cc-copy-row" data-copy="' + esc(step.cmd) + '">' +
