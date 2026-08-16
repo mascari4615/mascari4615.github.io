@@ -6,6 +6,7 @@
  *
  * 사용: node scripts/smoke-bon.mjs [--shot]
  */
+import { 멎을때까지, 될때까지 } from './lib/settle.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -148,8 +149,8 @@ await page.mouse.move(r1.x, r1.y);
 await page.mouse.down();
 await page.mouse.move(r2.x, r2.y, { steps: 6 });
 await page.mouse.up();
-await page.waitForTimeout(200);
-const counts = await page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent)));
+/* 재우지 말고 **셈이 멎을 때까지** — 바쁜 기계에서는 200ms 안에 겹 셈이 안 붙어 옛 값을 읽는다. */
+const counts = await 멎을때까지(page, () => page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent))));
 check('새 도형은 고른 겹에 들어간다', counts[0] === 1, JSON.stringify(counts));
 
 // 숨기면 화면에서 사라진다
@@ -170,7 +171,8 @@ check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows(
 
 // ── 9-slice ───────────────────────────────
 await page.keyboard.press('s');
-await page.waitForTimeout(200);
+/* 선 넷이 **생길 때까지** 기다린다 — 무엇을 기다리는지 아는 자리다. */
+await 될때까지(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { 최대: 3000 });
 const sliceLines = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-slice').length);
 check('9-slice 를 켜면 선 넷이 뜬다', (await sliceLines()) === 4, String(await sliceLines()));
 
