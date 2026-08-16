@@ -23,9 +23,9 @@ const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 
 /** 지금 남아 있는 인라인 손잡이 수 — 0 이 되면 `script-src` 를 걸 수 있다.
- *  실측 기준선(2026-08-17): 자리 이동 여섯 → 9개, 늦게 받는 스타일 넉 장까지 걷어 **5개**.
- *  남은 다섯은 아직 못 걷은 자리다 — 줄면 이 수를 내려라(늘면 빨강). */
-const 인라인한계 = Number(process.env.SHELL_INLINE_LIMIT || 5);
+ *  실측(2026-08-17): 14 → 9(붙박이 여섯) → 5(스타일 넉 장) → **0**(첫 화면 큰 단추·빵부스러기 다섯).
+ *  이제 0 이 기준이다 — 하나라도 늘면 빨강이고, 그때 `script-src` 가 다시 멀어진다. */
+const 인라인한계 = Number(process.env.SHELL_INLINE_LIMIT || 0);
 
 if (!fs.existsSync(path.join(appRoot, 'js/toolbox.js'))) {
   console.log('[shell-nav] 못 돌림 — 아직 안 구웠다 (`node build.mjs` 뒤에 돌려라). 이건 통과가 아니다.');
@@ -75,7 +75,9 @@ try {
   const 표시 = await page.$$eval('[data-goto]', (els) => els.map((e) => e.dataset.goto));
   if (표시.length === 0) 문제.push('data-goto 자리가 하나도 없다 — 위임이 받을 것이 없다');
 
-  for (const 곳 of ['community', 'plaza', 'linktree']) {
+  /* 첫 화면 큰 단추(favorites·arcade·docs)는 **자바스크립트가 그린 뒤** 생긴다 —
+     붙박이 표시와 같은 위임으로 먹는지 따로 본다(2026-08-17 에 그 넷을 옮겼다). */
+  for (const 곳 of ['community', 'plaza', 'linktree', 'arcade', 'favorites']) {
     if (!표시.includes(곳)) continue;
     const 결과 = await page.evaluate((g) => {
       Toolbox.switchPage('home');
@@ -91,8 +93,12 @@ try {
     }
   }
 
-  const 남은 = await page.evaluate(() => [...document.querySelectorAll('*')]
-    .filter((e) => [...e.attributes].some((a) => /^on[a-z]+$/.test(a.name))).length);
+  const 남은목록 = await page.evaluate(() => [...document.querySelectorAll('*')]
+    .filter((e) => [...e.attributes].some((a) => /^on[a-z]+$/.test(a.name)))
+    .map((e) => e.tagName.toLowerCase() + '#' + (e.id || '') + '.' + (e.className || '').toString().slice(0, 24)
+      + ' [' + [...e.attributes].filter((a) => /^on[a-z]+$/.test(a.name)).map((a) => a.name).join(',') + ']'));
+  const 남은 = 남은목록.length;
+  if (process.env.SHELL_INLINE_LIST) console.log('[shell-nav] 남은 자리:', JSON.stringify(남은목록));
   console.log(`[shell-nav] 표시 ${표시.length}개 · 남은 인라인 손잡이 ${남은}개 (한계 ${인라인한계})`);
   if (남은 > 인라인한계) {
     문제.push(`인라인 손잡이가 늘었다 ${남은} > ${인라인한계} — script-src 가 그만큼 멀어진다`);
