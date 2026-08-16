@@ -33,39 +33,8 @@ async function get(pathname) {
 }
 
 /** 있어야 하는 것 — [무엇, 어디서, 찾을 것, 없으면 사람이 겪는 일] */
-const WANT = [
-  ['도구 페이지의 이동 경로', '/karmolab/t/loan/', /class="tool-crumb"/, '도구 한 장에 떨어진 사람이 위로 올라갈 길이 없다'],
-  ['그 이동 경로의 모양', '/apps/karmolab/css/tools.css', /\.tool-crumb\s*\{/, '경로가 맨몸으로 떠서 글자 뭉치처럼 보인다'],
-  ['도구 페이지의 찾기 칸', '/karmolab/t/loan/', /class="tool-seo-find"/, '다른 도구를 찾으려면 목록으로 건너가야 한다'],
-  ['그 찾기 칸의 모양', '/apps/karmolab/css/tools.css', /\.tool-seo-find\s*\{/, '칸과 버튼이 줄도 안 맞고 폰에서 화면이 확대된다'],
-  ['도구 페이지의 방문 기록기', '/karmolab/t/loan/', /gc\.zgo\.at/, '어느 도구로 사람이 오는지 하나도 안 세어진다'],
-  ['검색 결과에서 큰 그림 허용', '/karmolab/t/loan/', /max-image-preview:large/, '공유 카드가 작은 썸네일로 나가거나 아예 안 나간다'],
-  ['블로그에서 도구로 가는 길', '/', /href="[^"]*\/karmolab\/t\/"/, '글 수백 장에서 도구로 가는 길이 사라진다'],
-  ['없는 도구 주소 건지기', '/karmolab/t/그런도구없음/', /karmolab-rescue/, '옛 링크로 온 사람이 그냥 버려진다'],
-  /* ★ 찾는 표식을 바꿨다 (2026-08-12). 놀이가 앱 셸 위젯으로 옮겨지면서 `id="picks"` 같은
-     화면 조각은 **자바스크립트가 그린 뒤에만** 생긴다 — 정적 HTML 에는 없다. 그대로 두면
-     페이지가 멀쩡한데도 「열면 없다」로 빨개진다(실제로 그랬다).
-     정적으로 남는 것 둘을 본다: 이 장이 놀이 장이라는 표식과, 그 놀이의 이름.
-     주소도 옮겨졌다 — `/karmolab/higher/` 는 이제 661바이트짜리 「자리를 옮겼다」 안내이고
-     진짜 놀이는 `/karmolab/play/higher/` 에 있다. 옛 주소를 보면 영원히 「없다」가 나온다. */
-  ['놀이 — 높은 쪽 고르기', '/karmolab/play/higher/', /KARMOLAB_ENTRY_STATIC="play"[\s\S]*?높은 쪽 고르기/, '목록에서 링크만 걸리고 열면 없다'],
-  ['놀이 — 오늘의 문제', '/karmolab/play/quest/', /KARMOLAB_ENTRY_STATIC="play"[\s\S]*?오늘의 문제/, '목록에서 링크만 걸리고 열면 없다'],
-  // TASK-KL-098 — 아래 셋은 실제로 한 번 통째로 사라진 적이 있다. 다른 작업이 같은 파일을
-  // 다시 쓰면서 줄이 없어졌고, 내 컴퓨터를 보는 검사는 전부 초록이었다.
-  ['로그인·기록 스크립트', '/karmolab/', /js\/account\.js/, '로그인·헤더·광장이 통째로 죽는다 (한 번 그랬다)'],
-  ['그 스크립트가 실제로 받아진다', '/apps/karmolab/js/account.js', /KarmoAccount/, '부르기는 하는데 파일이 안 만들어져 404 다'],
-  /* 2026-08-17: 첫 화면의 인라인 손잡이를 걷어내며 이 길이 `data-goto` 표시로 바뀌었다
-     (CSP 에 script-src 를 걸기 위한 걸음). 검사는 **지금의 표시**를 본다 — 옛 꼴까지 받아 주면
-     되돌아가도 아무 말이 없어진다. */
-  ['광장 입구', '/karmolab/', /data-goto="plaza"/, '이야기·도구 요청으로 가는 길이 없어진다'],
-  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다'],
-  /* TASK-KL-161 — 채팅은 「사이트 어디에 있든 옆에 뜬다」로 만들었는데, **도구 화면 129장에서는
-     안 떴다.** 그 화면은 앱 셸을 통째로 안 싣기 때문이다. 그런데 사람이 실제로 들어오는 곳은
-     거기다 — 채팅 줄이 하루에 1개였던 진짜 이유가 이것이었다.
-     여기 박아 두면 부팅 목록이 다시 좁아질 때 사람이 아니라 검사가 먼저 안다. */
-  ['도구 화면에 채팅이 실린다', '/karmolab/t/loan/', /KARMOLAB_WIDGETS_BOOT=\[[^\]]*"chat"/, '사람이 제일 많이 있는 자리에서 채팅이 안 뜬다 (한 번 그랬다)'],
-  ['그 채팅이 실제로 받아진다', '/apps/karmolab/js/widgets/chat.js', /klChatDock/, '부르기는 하는데 파일이 안 만들어져 404 다']
-];
+import { WANT } from './lib/live-essentials.mjs';
+
 
 for (const [what, where, re, hurt] of WANT) {
   let got;
