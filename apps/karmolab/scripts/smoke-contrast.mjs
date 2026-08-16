@@ -21,7 +21,12 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 const PORT = Number(process.env.PORT || 4319);
 const THEMES = (process.env.THEMES || 'light,dark').split(',');
-const MIN_RATIO = 2.2;
+/* ★ 2.2 는 실수가 아니라 **이 검사의 목적**이다: 「글씨가 안 보이나」(흰 바탕에 흰 글씨).
+   전 도구 × 양쪽 판 234장을 도는 넓고 얕은 검사라 바를 낮게 잡았다.
+   표준(WCAG AA 4.5:1)은 여기서 안 잰다 — 그건 `smoke-a11y`(axe, 핵심 3장, 좁고 깊은 검사)가
+   맡는다. 둘을 한 검사로 합치면 234장 × 전 규칙이 되어 아무도 안 돌린다.
+   2026-08-16 에 이 구분이 없어서 3.16:1 짜리 글자가 「초록」인 채로 남아 있었다. */
+const MIN_RATIO = Number(process.env.MIN_RATIO || 2.2);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',

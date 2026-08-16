@@ -54,6 +54,7 @@
     "test:vdur",
     "audit:hidden",
     "audit:home-blocks",
+    "test:a11y",
     "test:jsontree",
     "test:dropwell",
     "test:saylive",
