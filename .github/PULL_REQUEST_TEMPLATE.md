@@ -26,7 +26,6 @@
 
 - [ ] Jekyll 블로그 (`_posts/`, `_layouts/`, `_sass/` 등)
 - [ ] KarmoLab 앱 (`apps/karmolab/`)
-- [ ] KarmoLab React (`apps/karmolab-react-src/`)
 - [ ] 기타 앱 (`discord-bots/`, `chat-overlay/`, `karmolab-tauri/`)
 - [ ] CI/CD 워크플로 (`.github/workflows/`)
 - [ ] 루트 설정 파일 (`_config.yml`, `package.json` 등)

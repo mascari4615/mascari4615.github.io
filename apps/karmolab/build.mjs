@@ -28,6 +28,12 @@ const root = __dirname;
 const SAFE_MINIFY = { minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: false };
 const FULL_MINIFY = { minify: true };
 
+/* 구글 연동(플래너)용 클라이언트 id — **비밀이 아니다.** OAuth 클라이언트 id 는 브라우저가
+ * 구글에 보내는 값이라 어차피 화면에서 보인다(비밀은 secret 쪽이고 우리는 그걸 안 쓴다).
+ * 다만 사람마다 다른 값이라 코드에 박지 않고 빌드할 때 넣는다. 없으면 플래너가 연동 대신
+ * 「환경 변수를 넣어라」 안내를 띄운다 — 빌드가 서지는 않는다 (TASK-KL-321). */
+const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+
 await esbuild.build({
   entryPoints: [join(root, 'src/mdd.ts')],
   outfile: join(root, 'js/mdd.js'),
@@ -150,6 +156,7 @@ for (const rel of entryPoints) {
     define: {
       __KARMOLAB_BUILD__: JSON.stringify(buildStamp),
       __KARMOLAB_COMMIT__: JSON.stringify(buildCommit),
+      __KARMOLAB_GOOGLE_CLIENT_ID__: JSON.stringify(googleClientId),
     },
     ...FULL_MINIFY,
     bundle: true,
