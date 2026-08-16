@@ -242,6 +242,27 @@ import { t, loadNamespace } from '../../lib/i18n';
       canvas.style.cursor = 'grab';
     });
 
+    /* ★ **자판만으로도 얼굴을 규격 선에 맞춘다** (2026-08-17). 끌기가 「규격 선에 맞추는 유일한 길」
+       이라고 바로 위에 적혀 있었는데, 그러면 마우스가 없는 사람은 이 도구를 못 쓴다.
+       화살표로 옮기고(Shift = 크게), 끌기와 **같은 offset** 을 만져 두 길이 안 갈린다. */
+    canvas.tabIndex = 0;
+    canvas.setAttribute('role', 'application');
+    canvas.setAttribute('aria-label', t('idphoto.a11y.canvas'));
+    canvas.addEventListener('keydown', (event: KeyboardEvent) => {
+      const 걸음 = (event.shiftKey ? 12 : 3) / view;
+      let dx = 0;
+      let dy = 0;
+      if (event.key === 'ArrowLeft') dx = -걸음;
+      else if (event.key === 'ArrowRight') dx = 걸음;
+      else if (event.key === 'ArrowUp') dy = -걸음;
+      else if (event.key === 'ArrowDown') dy = 걸음;
+      else return;
+      event.preventDefault();
+      offset.x += dx;
+      offset.y += dy;
+      render();
+    });
+
     $<HTMLButtonElement>('#ipSave').onclick = (): void => {
       if (photo === undefined) return;
       const out = document.createElement('canvas');
