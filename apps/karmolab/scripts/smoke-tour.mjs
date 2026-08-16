@@ -69,7 +69,25 @@ for (let i = 1; i <= ROUNDS; i++) {
   /* 15초는 진짜로 논다(그려지고 눌리는지 보려면 실제 시간이 필요하다). 그 뒤 6분을 감아
      어떤 놀이든 제 시간 제한에 닿게 한다 — 감은 시간은 기다린 시간이 아니다. */
   await p.waitForTimeout(15000);
-  await p.clock.fastForward('06:00');
+  /* ★ **시계를 세워 놨으면 「기다리기」가 아무 일도 안 한다** (2026-08-17, 재현해서 알아냈다).
+     이 검사는 창을 열기 전에 `clock.install()` 로 시계를 세운다 — 그래서 판은 **감을 때만** 움직인다.
+     그런데 판이 끝나는 길은 두 걸음이다: ① 놀이가 「이겼다」를 내면 커널이 `roundOverAt = 지금 + 쉬는참`
+     을 잡고 ② **그 시각이 지나야** 다음 판으로 넘어간다. 한 번만 감고 그 뒤로 가만히 기다리면
+     ②가 영영 안 온다 — 시계가 멈춰 있으니 그림틀이 돌아도 커널의 시각이 안 는다.
+     실제로 그렇게 걸렸다: 윷에서 「말을 다 뺐다」(=이겼다는 말)까지 띄우고 60초를 그냥 서 있었다.
+     그러니 **기다리는 동안에도 계속 감는다**. 감는 총량은 그대로(6분), 조각으로 나눌 뿐이다. */
+  const 조각 = 2000;
+  const 감을것 = 6 * 60 * 1000;
+  const 마감 = Date.now() + WAIT_MS;
+  let 끝났다 = false;
+  for (let 감은 = 0; 감은 < 감을것 && !끝났다 && Date.now() < 마감; 감은 += 조각) {
+    await p.clock.fastForward(조각);
+    // eslint-disable-next-line no-await-in-loop -- 한 조각 감고 그때마다 본다(멈춘 시계에서는 이 길뿐)
+    끝났다 = await p.evaluate(() => {
+      const a = document.querySelector('#acAgain');
+      return !!(a && a.style.display !== 'none' && window.__arcade?.finished);
+    }).catch(() => false);
+  }
   const ok = await p
     .waitForFunction(() => {
       const a = document.querySelector('#acAgain');
