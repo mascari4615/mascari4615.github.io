@@ -18,6 +18,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CSP_META } from './lib/head-security.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const API = process.env.KARMOLAB_API_BASE || 'https://yawnbot.mascari4615.com';
@@ -84,6 +85,7 @@ permalink: /karmolab/c/${post.id}/
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+${CSP_META}
 <meta name="color-scheme" content="dark">
 <title>${escapeHtml(title)} — KarmoLab 커뮤니티</title>
 <meta name="description" content="${escapeHtml(desc)}">

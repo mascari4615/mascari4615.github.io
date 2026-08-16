@@ -296,7 +296,12 @@ jobs:
       # 보안 한 줄(CSP meta)은 GitHub Pages 에서 **유일한 자리**다 — 헤더를 못 붙인다.
       # 미는 자리 검사는 앱 폴더만 본다. 정말 나가는 장(찍힌 도구 상세 129장 포함)은 여기서만 보인다.
       - name: Audit CSP meta (built site)
-        run: node apps/karmolab/scripts/audit-csp-meta.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
+        # ⚠ 사이트 **전체**를 주면 안 된다 — 블로그 글 680장에는 이 meta 가 없어서 배포가 통째로 선다
+        #   (2026-08-16, 넣기 전에 지어진 사이트로 재 보고 잡았다). 블로그에도 붙일지는 따로 정할 일이다.
+        #   여기서는 **우리 앱이 사는 두 자리**만 본다.
+        run: |
+          SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
+          node apps/karmolab/scripts/audit-csp-meta.mjs "$SITE/karmolab" "$SITE/apps/karmolab"
 
       - name: Audit sitemap lastmod
         run: node scripts/audit-sitemap-lastmod.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
