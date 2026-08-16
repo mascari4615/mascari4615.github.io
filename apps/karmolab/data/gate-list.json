@@ -156,6 +156,7 @@
     "test:arcade-limits",
     "test:tierlist-keys",
     "test:redeploy-guard",
-    "audit:sleep-read"
+    "audit:sleep-read",
+    "audit:entry-sources"
   ]
 }
