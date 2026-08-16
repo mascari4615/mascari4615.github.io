@@ -20,6 +20,7 @@ on:
       - .github/workflows/pages-deploy.yml
       # 이 워크플로가 <b>부르는 스크립트</b>도 방아쇠에 넣는다 — 이 파일만 고치면 검사가 안 돈다.
       - scripts/indexnow-submit.mjs
+      - scripts/audit-sitemap-lastmod.mjs
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
