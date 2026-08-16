@@ -118,20 +118,39 @@ async function measurePage(url) {
   const metrics = async () =>
     Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
 
+  /* ★ **재는 고리가 재려는 것을 바꾸고 있었다** (2026-08-16 실측).
+     여기 프레임 재는 고리는 한 번 깔면 `__on` 과 무관하게 **매 프레임 다시 요청**했다.
+     그래서 「손 안 댄 5초」 동안에도 초당 60번 깨어났고, 그 깨어남이 스타일 재계산을 끌고 왔다 —
+     CI 에서 그 값이 **43/s**(예산 12)로 빨갰다. 같은 화면을 고리 없이 재면(CDP 지표만) 실주소도
+     로컬도 **0/s** 다. 즉 우리가 잰 것은 화면이 아니라 **우리 자를 자**였다.
+     그래서 고리를 `__on` 동안만 돌게 한다 — 프레임이 필요한 구간(스크롤·마우스)만 켜고,
+     손 안 댄 구간은 아예 안 돈다. */
   await page.evaluate(() => {
     window.__f = [];
     window.__on = false;
-    let last = performance.now();
-    const tick = (t) => { if (window.__on) window.__f.push(Math.round(t - last)); last = t; requestAnimationFrame(tick); };
-    requestAnimationFrame(tick);
+    window.__startFrames = () => {
+      if (window.__on) return;
+      window.__on = true;
+      window.__f = [];
+      let last = performance.now();
+      const tick = (t) => {
+        if (!window.__on) return;              // 끄면 **다시 요청하지 않는다** (여기가 핵심)
+        window.__f.push(Math.round(t - last));
+        last = t;
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    window.__stopFrames = () => { window.__on = false; };
   });
 
-  async function during(action, settleMs) {
+  /** `frames` = 프레임 간격이 필요한 구간에서만 켠다. 손 안 댄 구간은 끄고 재야 값이 뜻을 가진다. */
+  async function during(action, settleMs, { frames: wantFrames = true } = {}) {
     const a = await metrics();
-    await page.evaluate(() => { window.__f = []; window.__on = true; });
+    if (wantFrames) await page.evaluate(() => window.__startFrames());
     await action();
     await page.waitForTimeout(settleMs);
-    const frames = await page.evaluate(() => { window.__on = false; return window.__f; });
+    const frames = await page.evaluate(() => { window.__stopFrames(); return window.__f; });
     const z = await metrics();
     const sorted = [...frames].sort((x, y) => x - y);
     return {
@@ -142,7 +161,7 @@ async function measurePage(url) {
     };
   }
 
-  const idle = await during(async () => {}, 5000);
+  const idle = await during(async () => {}, 5000, { frames: false });
   const scroll = await during(async () => {
     for (let i = 0; i < 12; i += 1) { await page.mouse.wheel(0, 300); await page.waitForTimeout(110); }
   }, 700);
