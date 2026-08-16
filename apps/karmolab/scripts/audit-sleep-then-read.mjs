@@ -95,7 +95,17 @@ if (process.argv.includes('--list')) {
   console.log('  재우는 것 자체가 판정이면(0.5초 뒤에도 남아 있나) 그 줄 앞에 `재움-의도` 를 적어라.');
 }
 
-if (지금 < 옛수 || process.argv.includes('--write-baseline')) {
+/* ★ **그냥 돌렸을 뿐인데 기준선이 조여지면 안 된다** (2026-08-16, 스스로 밟은 함정).
+   처음엔 수가 줄면 곧바로 기준선을 새로 썼다. 그런데 이 자는 **고치는 중에도** 돌린다 —
+   고치다 만 것을 되돌리면 기준선만 조인 채 남아 **모두의 CI 가 빨개진다**.
+   톱니를 조이는 것은 「갚았다」는 **판단**이지 「재 봤다」가 아니다. 그러니 굳히는 건 시켜야 한다.
+   (늘리는 쪽은 원래 자동이 아니다 — 늘면 빨강이다.) */
+const 굳히기 = process.argv.includes('--write-baseline');
+if (지금 < 옛수 && !굳히기) {
+  console.log(`[sleep-then-read] ${옛수 - 지금}자리 갚은 것으로 보인다 — 검사를 돌려 확인한 뒤`);
+  console.log('  `node scripts/audit-sleep-then-read.mjs --write-baseline` 로 굳혀라(기준선은 굳혀야 조여진다).');
+}
+if (굳히기) {
   fs.writeFileSync(
     기준선파일,
     `${JSON.stringify({ ...기준선, 갱신: new Date().toISOString().slice(0, 10), 수: 지금 }, null, 2)}
