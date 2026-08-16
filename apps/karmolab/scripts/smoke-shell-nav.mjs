@@ -67,13 +67,15 @@ try {
   /* ★ **자물쇠가 기능을 조용히 죽이는지 본다** (2026-08-17). 첫 화면에 `script-src` 를 걸었는데,
      바깥 스크립트 하나를 안 적어 두면 그 기능만 소리 없이 사라진다 — 실제로 방문 수 세는
      스크립트가 그렇게 막혔고, **손으로 열어 보고서야** 알았다. 그건 다음 사람에게 안 남는다.
-     그래서 여기서 센다: 아는 것 말고 새로 막히는 게 있으면 빨강.
-     미리읽기 규칙은 CSP 가 `'inline-speculation-rules'` 로 받아 준다(2026-08-17 실측) — 이제 막히면 진짜 빨강이다. */
+     그래서 여기서 센다: 막히는 게 있으면 빨강 — **미리읽기 규칙도 예외가 아니다.**
+     ★ 예전엔 미리읽기 규칙만 빼고 셌다(「아는 것」). 그 한 줄 때문에 이 검사가 초록인 채로
+     배포가 두 판 섰다 (2026-08-17 실측: f5767691·fbf9e8cd — `smoke-lang-switch` 가 뒤늦게 잡았다).
+     지금은 그 규칙이 막힐 이유가 없다: `script-src` 에 지문을 안 적으면 크롬이 키워드를 받아 준다.
+     막혔다면 누가 지문을 적었다는 뜻이고, 그건 **미리읽기가 죽었다**는 뜻이다 — 여기서 잡아야 한다. */
   const 막힌것 = [];
   page.on('console', (m) => {
     const t = m.text();
     if (!/Content Security Policy|Refused to (execute|load)/i.test(t)) return;
-    if (/speculation rules/i.test(t)) return; // 아는 것
     막힌것.push(t.slice(0, 140));
   });
   await page.goto(`${BASE}/apps/karmolab/`, { waitUntil: 'networkidle', timeout: 60000 });
