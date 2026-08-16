@@ -61,12 +61,20 @@ export const 파생물 = [
   {
     npm: 'gen:type-pool',
     outputs: ['src/core/type-pool.generated.ts'],
-    why: '타자 연습이 치는 글월 — 낡으면 없어진 도구 설명을 사람이 따라 친다'
+    why: '타자 연습이 치는 글월 — 낡으면 없어진 도구 설명을 사람이 따라 친다',
+    /* ★ **사람을 굽는 사람으로 두면 안 굽는다** (2026-08-16, 실측). 이 둘은 `data/tools-seo.json`
+       에서 나온다 — 그런데 그 파일은 도구 상세 설명을 채울 때마다 바뀜다(오늘만 여러 섬션이
+       13개를 채웠다). 그래서 설명을 고친 사람이 아니라 **그 뒤에 미는 모든 섬션**이 빨강을
+       맞았고, 실제로 verify 가 세 판 연속 빨갔다. 생성기 머릿말은 이미 「build 사슬에서
+       자동」이라 적어 있었는데 그게 **거짓말**이었다 — 사슬에 넣어 참으로 만들었다.
+       다른 자리: 밤에 굽는 것(worldcup)보다 낛다 — 배포마다 굽으니 서비스본은 항상 새것이다. */
+    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
     npm: 'gen:word-pool',
     outputs: ['src/core/word-pool.generated.ts'],
-    why: '낱말 놀이의 낱말 — 위와 같은 이유'
+    why: '낱말 놀이의 낱말 — 위와 같은 이유',
+    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
     npm: 'gen:han-table',
