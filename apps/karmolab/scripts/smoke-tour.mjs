@@ -60,7 +60,11 @@ for (let i = 1; i <= ROUNDS; i++) {
     .waitForFunction(() => {
       const a = document.querySelector('#acAgain');
       return a && a.style.display !== 'none' && window.__arcade?.finished;
-    }, null, { timeout: 240000 })
+      /* ★ **한 판이 안 끝나면 4분을 버린다** (2026-08-16, 실측). 다섯 판이니 최악 20분 —
+         라이브 점검 한 조각(예측 14분)이 그 하나 때문에 40분 제한에 걸려 취소됐다.
+         정상 판은 실측 60~95초다(로컬 세 판). 150초면 **1.6배 여유**이고, 걸렸을 때 버리는 시간은
+         4분 → 2.5분으로 준다. 넘으면 아래 판정이 **어느 놀이가 멈췄는지** 이름까지 적는다. */
+    }, null, { timeout: 150000 })
     .then(() => true)
     .catch(() => false);
   if (!ok) {
