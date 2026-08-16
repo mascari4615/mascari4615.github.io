@@ -38,7 +38,30 @@ page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: 
 const open = async () => {
   const res = await page.goto(URL_TARGET, { waitUntil: 'networkidle', timeout: 30000 });
   if (!res || res.status() !== 200) problems.push(`첫 화면이 안 열린다 (http ${res && res.status()})`);
-  await page.waitForSelector('#homeToday .lt-chips', { timeout: 15000 });
+  /* ★ **못 기다렸으면 무엇이 있었는지 말하라 — 죽지 말고** (2026-08-16, 실측).
+     여기서 15초를 넘기면 Playwright 가 예외를 던져 검사가 통째로 죽었다. 라이브 점검 요약에는
+     `page.waitForSelector: Timeout ... locator('#homeToday .lt-chips')` 라는 남의 나라 말만
+     남아, **칸이 아예 없는 건지 · 접혀 있는 건지 · 그냥 느린 건지**를 알 수 없었다
+     (로컬은 초록이라 더 그랬다). 화면이 그때 어떤 꼴이었는지를 들고 나간다. */
+  const 칸떴나 = await page
+    .waitForSelector('#homeToday .lt-chips', { timeout: 20000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!칸떴나) {
+    const 꼴 = await page
+      .evaluate(() => {
+        const box = document.querySelector('#homeToday');
+        if (!box) return '#homeToday 자체가 없다';
+        const st = getComputedStyle(box);
+        const chips = box.querySelector('.lt-chips');
+        return [
+          `#homeToday 있음(display=${st.display} · visibility=${st.visibility} · 높이=${Math.round(box.getBoundingClientRect().height)})`,
+          chips ? '.lt-chips 있음(안 보이는 상태)' : '.lt-chips 없음',
+        ].join(' · ');
+      })
+      .catch(() => '화면을 못 읽었다');
+    problems.push(`오늘의 판 칸이 20초 안에 안 보인다 — ${꼴}`);
+  }
 };
 
 const countLine = () => page.locator('#homeToday .lt-count').innerText();
