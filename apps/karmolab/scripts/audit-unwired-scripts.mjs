@@ -48,7 +48,13 @@ if (스크립트들.length === 0) {
 }
 
 let 건초 = JSON.stringify(JSON.parse(읽기(path.join(app, 'package.json')) || '{}').scripts ?? {});
-for (const f of 스크립트들) 건초 += 읽기(path.join(here, f));
+/* 별 **제 이름을 제가 적은 것은 「부른다」가 아니다** (2026-08-17 실측). 검사 파일은 머리주석에
+   「사용: node scripts/test-meok-ops.mjs」처럼 제 이름을 적어 둔다 — 그 글자까지 한 건초에 넣으면
+   아무도 안 부르는 파일이 **스스로를 불러 준 셈**이 된다. 그래서 이 감사는 3개만 세고 있었고
+   옆 감사(audit:orphans)는 같은 자리를 10개로 세고 있었다. 수가 둘이면 사람은 둘 다 안 믿는다.
+   스크립트 글은 파일별로 따로 들고, 볼 때 **자기 글만 뺀다**(옆 감사가 이미 그렇게 한다). */
+const 남의글 = new Map();
+for (const f of 스크립트들) 남의글.set(f, 읽기(path.join(here, f)));
 const libDir = path.join(here, 'lib');
 if (fs.existsSync(libDir)) for (const f of fs.readdirSync(libDir)) 건초 += 읽기(path.join(libDir, f));
 건초 += 읽기(path.join(app, 'build.mjs'));
@@ -62,8 +68,14 @@ if (건초.length < 10_000) {
 }
 
 const 안불림 = 스크립트들.filter((f) => {
-  const re = new RegExp(f.replace(/[.]/g, '\\.'), 'g');
-  return (건초.match(re) ?? []).length === 0;
+  const re = new RegExp(f.replace(/[.]/g, '\.'), 'g');
+  if ((건초.match(re) ?? []).length > 0) return false;
+  /* 다른 스크립트가 부르면 불린 것 — 단, **제 파일은 뺀다**(위 § 참고). */
+  for (const [이름, 글] of 남의글) {
+    if (이름 === f) continue;
+    if (글.includes(f)) return false;
+  }
+  return true;
 });
 
 /* 별 **왜 안 묶었는지를 기준선이 스스로 적게 한다** (2026-08-17). 이름만 늘어놓은 목록은
