@@ -62,6 +62,10 @@ permalink: /karmolab/play/
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- GitHub Pages 는 헤더를 못 붙인다 — 이 한 줄이 유일한 자리다 (2026-08-16).
+     문구 정본 = apps/karmolab/scripts/lib/head-security.mjs 의 CSP_CONTENT.
+     이 관문 장은 여기서 찍히므로 index.html 을 손으로 고쳐도 다음 빌드가 지운다. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="color-scheme" content="dark">
 <title>놀이터 — 하루 한 판씩 | KarmoLab</title>
 <meta name="description" content="KarmoLab 의 놀이 ${list.length}가지. 오늘의 하나 맞히기, 높은 쪽 고르기, 도구로 푸는 하루 한 문제. 하나 하다 다른 것으로 바로 건너갈 수 있습니다.">
