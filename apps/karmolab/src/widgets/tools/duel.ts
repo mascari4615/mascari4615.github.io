@@ -210,7 +210,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <button class="btn btn-ghost" id="duMatch">${esc(t('duel.btn.match'))}</button>
               <button class="btn btn-ghost" id="duGhost">${esc(t('duel.btn.ghost'))}</button>
               <button class="btn btn-ghost" id="duAgain" style="display:none;">${esc(t('duel.btn.again'))}</button>
-              <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+              <label class="tool-checkline">
                 ${esc(t('duel.label.name'))} <input type="text" id="duName" maxlength="10" placeholder="${esc(
                   t('duel.name.default')
                 )}" style="width:100px;" aria-label="${esc(t('duel.aria.name'))}">

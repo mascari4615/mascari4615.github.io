@@ -73,7 +73,7 @@ import { attachMedia } from './shared/media';
 
               <div class="cc-stats" id="vtStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="vtRun">${esc(t('videotrim.btn.run'))}</button>
                 <button class="btn btn-ghost" id="vtStop" style="display:none;">${esc(t('videotrim.btn.stop'))}</button>
                 <button class="btn btn-ghost" id="vtSave" disabled>${esc(t('videotrim.btn.save'))}</button>

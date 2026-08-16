@@ -220,7 +220,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
 
             <div class="cc-stats" id="pgStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="pgMake">${esc(t('passgen.btn.make'))}</button>
               <button class="btn btn-ghost" id="pgCopy">${esc(t('passgen.btn.copy'))}</button>
             </div>

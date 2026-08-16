@@ -74,7 +74,7 @@ import { openForRead, renderPage } from './shared/pdf';
               </div>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="p2Run">${esc(t('pdf2img.btn.run'))}</button>
             </div>
 

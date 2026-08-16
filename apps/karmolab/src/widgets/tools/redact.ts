@@ -76,7 +76,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="cc-stats" id="rdStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;" id="rdActions">
+            <div class="tool-actions" id="rdActions">
               <button class="btn btn-primary" id="rdSave" disabled>${esc(t('redact.btn.save'))}</button>
               <button class="btn btn-ghost" id="rdUndo" disabled>${esc(t('redact.btn.undo'))}</button>
               <button class="btn btn-ghost" id="rdReset" disabled>${esc(t('redact.btn.reset'))}</button>

@@ -118,7 +118,7 @@ import { encode } from './shared/image';
 
             <div class="cc-stats" id="pnStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="pnRun" disabled>${esc(t('pdfpagenum.btn.run'))}</button>
             </div>
 

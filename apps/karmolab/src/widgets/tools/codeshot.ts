@@ -119,7 +119,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       <div class="cc-stats" id="csStats"></div>
 
-      <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+      <div class="tool-actions">
         <button class="btn btn-primary" id="csSave">${esc(t('codeshot.btn.save', undefined, 'PNG 저장'))}</button>
         <button class="btn" id="csCopy">${esc(t('codeshot.btn.copy', undefined, '클립보드로'))}</button>
       </div>

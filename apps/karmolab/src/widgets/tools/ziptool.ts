@@ -65,7 +65,7 @@ import { download } from './shared/image';
 
             <div class="tool-list" id="zpList"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="zpRun">${esc(t('ziptool.btn.run'))}</button>
               <button class="btn btn-ghost" id="zpClear">${esc(t('ziptool.btn.clear'))}</button>
             </div>

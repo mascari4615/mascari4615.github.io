@@ -49,7 +49,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               </select>
             </div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="vaRun">${esc(t('video2audio.btn.run'))}</button>
             </div>
             <div class="tool-status" id="vaStatus">${esc(t('video2audio.status.idle'))}</div>

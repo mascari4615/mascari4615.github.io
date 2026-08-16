@@ -109,7 +109,7 @@ import { parsePages } from '../../core/pdftool';
               </select>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="pdRun">${esc(t('pdftool.btn.run'))}</button>
               <button class="btn btn-ghost" id="pdClear">${esc(t('pdftool.btn.clear'))}</button>
             </div>

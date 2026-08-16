@@ -84,7 +84,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <audio id="afPlay" controls style="width:100%; display:none; margin-bottom:var(--space-lg);"></audio>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="afRun" disabled>${esc(t('audiofade.btn.run'))}</button>
               <button class="btn btn-ghost" id="afSave" disabled>${esc(t('audiofade.btn.save'))}</button>
             </div>

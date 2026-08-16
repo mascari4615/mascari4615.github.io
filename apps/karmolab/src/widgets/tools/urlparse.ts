@@ -33,7 +33,7 @@ import { markLive } from './shared/say';
               <textarea id="upIn" rows="4" spellcheck="false" placeholder="${esc(t('urlparse.ph.in'))}"></textarea>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="upDecode">${esc(t('urlparse.btn.decode'))}</button>
               <button class="btn btn-ghost" id="upEncode">${esc(t('urlparse.btn.encode'))}</button>
               <button class="btn btn-ghost" id="upStrip">${esc(t('urlparse.btn.strip'))}</button>

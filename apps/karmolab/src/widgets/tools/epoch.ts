@@ -47,7 +47,7 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
               <label class="field-label">${esc(t('epoch.label.human'))}</label>
               <input type="datetime-local" id="epDate" aria-label="사람이 읽는 시각" step="1">
             </div>
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="epNow">${esc(t('epoch.btn.now'))}</button>
               <button class="btn btn-ghost" id="epCopySec">${esc(t('epoch.btn.copySec'))}</button>
               <button class="btn btn-ghost" id="epCopyMs">${esc(t('epoch.btn.copyMs'))}</button>

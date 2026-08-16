@@ -107,7 +107,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               <div class="cc-stats" id="alStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="alRun">${esc(t('audiolevel.btn.run'))}</button>
                 <button class="btn btn-ghost" id="alSave" disabled>${esc(t('audiolevel.btn.save'))}</button>
                 <select id="alFormat" aria-label="저장 형식">

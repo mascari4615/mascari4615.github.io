@@ -69,7 +69,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 </div>
               </div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="viNow">${esc(t('video2img.btn.now'))}</button>
                 <button class="btn btn-ghost" id="viEvery2">${esc(t('video2img.btn.every'))}</button>
                 <button class="btn btn-ghost" id="viZip" disabled>${esc(t('video2img.btn.zip'))}</button>

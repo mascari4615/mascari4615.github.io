@@ -56,7 +56,7 @@ import { markLive } from './shared/say';
               <input type="range" id="pkCount" aria-label="${esc(t('pick.label.count'))}" min="1" max="10" value="1">
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="pkRun">${esc(t('pick.btn.run'))}</button>
               <button class="btn btn-ghost" id="pkCopy">${esc(t('pick.btn.copy'))}</button>
             </div>

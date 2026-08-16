@@ -84,7 +84,7 @@ import { encode } from './shared/image';
 
             <div class="cc-stats" id="prStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="prSave" disabled>${esc(t('pdfredact.btn.save'))}</button>
               <button class="btn btn-ghost" id="prUndo" disabled>${esc(t('pdfredact.btn.undo'))}</button>
             </div>

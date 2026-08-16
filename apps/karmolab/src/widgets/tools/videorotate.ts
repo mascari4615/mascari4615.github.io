@@ -79,7 +79,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="cc-stats" id="vrStats"></div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-primary" id="vrRun" disabled>${esc(t('videorotate.btn.run'))}</button>
               <button class="btn btn-ghost" id="vrStop" style="display:none;">${esc(t('videorotate.btn.stop'))}</button>
               <button class="btn btn-ghost" id="vrSave" disabled>${esc(t('videorotate.btn.save'))}</button>

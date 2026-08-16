@@ -54,7 +54,7 @@ import { download } from './shared/image';
           <input type="file" id="bnFile">
           <p class="bn-note" id="bnFileNote" style="display:none;"></p>
         </div>
-        <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+        <div class="tool-actions">
           <button class="btn btn-primary" id="bnMake">${esc(t('burnnote.btn.make', undefined, '링크 만들기'))}</button>
         </div>
         <div class="field-group" id="bnResult" style="display:none;">

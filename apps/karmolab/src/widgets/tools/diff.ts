@@ -84,13 +84,13 @@ interface ZipArchive {
         <textarea id="dfBase" name="base" aria-label="${esc(t('diff.label.base'))}" class="mono-input" style="min-height:120px;"></textarea>
       </div>
       <div style="display:flex; gap:14px; margin:10px 0; flex-wrap:wrap;" id="dfOpts">
-        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+        <label class="tool-checkline">
           <input type="checkbox" id="dfWs" name="ignoreWs" style="width:auto;"> ${esc(t('diff.opt.ws'))}
         </label>
-        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+        <label class="tool-checkline">
           <input type="checkbox" id="dfCase" name="ignoreCase" style="width:auto;"> ${esc(t('diff.opt.case'))}
         </label>
-        <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+        <label class="tool-checkline">
           <input type="checkbox" id="dfOnly" name="onlyChanged" style="width:auto;" checked> ${esc(t('diff.opt.only'))}
         </label>
       </div>

@@ -71,10 +71,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             <input type="text" id="cspFonts" name="fonts" aria-label="${esc(t('csp.label.fonts'))}" class="mono-input" placeholder="https://fonts.gstatic.com">
           </div>
           <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
-            <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+            <label class="tool-checkline">
               <input type="checkbox" id="cspInline" name="inlineStyles" style="width:auto;"> ${esc(t('csp.opt.inlineStyles'))}
             </label>
-            <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
+            <label class="tool-checkline">
               <input type="checkbox" id="cspFrames" name="frames" style="width:auto;"> ${esc(t('csp.opt.frames'))}
             </label>
           </div>

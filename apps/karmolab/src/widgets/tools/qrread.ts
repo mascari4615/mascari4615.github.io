@@ -99,7 +99,7 @@ import { statusLine } from './shared/say';
               ${esc(t('qrread.drop'))}
             </div>
 
-            <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+            <div class="tool-actions">
               <button class="btn btn-ghost" id="qrCam">${esc(t('qrread.btn.camera'))}</button>
               <button class="btn btn-ghost" id="qrStop" style="display:none;">${esc(t('qrread.btn.cameraOff'))}</button>
             </div>

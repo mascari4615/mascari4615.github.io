@@ -47,7 +47,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           container.innerHTML = `
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="vrStart">${esc(t('voicerec.btn.start'))}</button>
               <button class="btn btn-ghost" id="vrStop" disabled>${esc(t('voicerec.btn.stop'))}</button>
               <button class="btn btn-ghost" id="vrSave" disabled>${esc(t('voicerec.btn.save'))}</button>

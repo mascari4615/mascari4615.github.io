@@ -46,7 +46,7 @@ import { intervalWhileVisible } from '../../lib/tick';
               <label class="tool-chip"><input type="checkbox" id="srMic"> ${esc(t('screenrec.opt.mic'))}</label>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="srStart">${esc(t('screenrec.btn.start'))}</button>
               <button class="btn btn-ghost" id="srStop" disabled>${esc(t('screenrec.btn.stop'))}</button>
               <button class="btn btn-ghost" id="srSave" disabled>${esc(t('screenrec.btn.save'))}</button>

@@ -138,7 +138,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div class="tool-list" id="exList"></div>
               <div class="cc-stats" id="exStats"></div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="exRun">${esc(t('exifclean.btn.run'))}</button>
               </div>
             </div>

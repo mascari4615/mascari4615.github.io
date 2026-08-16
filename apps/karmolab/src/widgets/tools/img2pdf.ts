@@ -72,7 +72,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
               </div>
             </div>
 
-            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+            <div class="tool-actions tight">
               <button class="btn btn-primary" id="i2Run">${esc(t('img2pdf.btn.run'))}</button>
               <button class="btn btn-ghost" id="i2Clear">${esc(t('img2pdf.btn.clear'))}</button>
             </div>

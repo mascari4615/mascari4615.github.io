@@ -81,7 +81,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
                 <img id="psGhost" alt="" style="position:absolute; display:none; pointer-events:none; opacity:0.85;">
               </div>
 
-              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+              <div class="tool-actions">
                 <button class="btn btn-primary" id="psRun">${esc(t('pdfsign.btn.run'))}</button>
               </div>
             </div>
