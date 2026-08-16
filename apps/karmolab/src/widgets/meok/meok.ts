@@ -410,6 +410,29 @@ function buildMeok(container: HTMLElement): void {
         const to = doc.layers.findIndex(l => l.id === layer.id);
         if (moveLayer(doc, moved, to)) { renderLayers(); repaint(); }
       };
+      /* ★ **끌기밖에 없으면 못 쓰는 사람이 생긴다** (2026-08-17). 레이어 순서 바꾸기가
+         끌기 하나뿐이었다 — 키보드만 쓰는 사람, 손떨림, 트랙패드에서 끌기가 힘든 사람은
+         순서를 아예 못 바꾼다(WCAG 2.2 「끌기 동작」 — 끌기에는 한 번 누름으로 되는 길이 같이 있어야 한다).
+         같은 저장소의 pdf 장 순서 바꾸기는 이미 화살표를 함께 두고 있다 — 그 꼴을 맞춘다. */
+      row.tabIndex = 0;
+      row.onkeydown = (event) => {
+        const step = event.key === 'ArrowUp' ? 1 : event.key === 'ArrowDown' ? -1 : 0;
+        if (step === 0) return;
+        event.preventDefault();
+        const at = doc.layers.findIndex(l => l.id === layer.id);
+        const to = at + step;
+        if (to < 0 || to >= doc.layers.length) return;
+        if (moveLayer(doc, layer.id, to)) {
+          doc.activeLayer = layer.id;
+          renderLayers();
+          repaint();
+          /* 옮긴 줄에 초점을 다시 준다 — 안 그러면 한 번 옮기고 나서 키가 안 먹는다. */
+          const again = list.querySelector(`[data-layer="${layer.id}"]`);
+          if (again instanceof HTMLElement) again.focus();
+        }
+      };
+      row.dataset.layer = layer.id;
+      row.title = `${row.title || ''} · 위/아래 화살표로 순서 바꾸기`.trim();
       list.append(row);
     });
     syncLayerProps();
