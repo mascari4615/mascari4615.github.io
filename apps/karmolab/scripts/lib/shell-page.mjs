@@ -8,6 +8,7 @@
  * 파는 것: 셸 읽기 · 공통 손질 · meta 갈아끼우기 · 위젯 파일 주소 규칙.
  * 무엇을 보여 줄지(제목·설명·본문)는 부르는 쪽이 정한다.
  */
+import { CSP_CONTENT } from './head-security.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -135,6 +136,15 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   /* 도구 상세 페이지는 **첫 그림부터** 도구 스타일이 필요하다 — 셸에서는 그리기를 안 막게
      걸어 뒀지만(첫 화면에서는 쓰임 0%), 여기서는 도로 막는 쪽으로 되돌린다.
      안 그러면 글이 먼저 나왔다가 스타일이 와서 자리가 튄다 (TASK-KL-128 ④-c). */
+  /* ★ **자물쇠는 껍데기 것이다 — 찍는 장에 그대로 물려주면 그 장이 죽는다** (2026-08-17 실측).
+     껍데기 `index.html` 의 CSP 에는 그 화면 인라인의 지문이 박혀 있다. 그런데 찍는 장에는
+     `KARMOLAB_ENTRY_TOOL="…"` 처럼 **장마다 다른 인라인**이 세 개 더 붙는다 — 지문에 없으니
+     막히고, 위젯이 안 뜬다. 실제로 그 상태로 미리그리기 단계가 16분째 서 있었다.
+     지금은 **기본 세 줄로 되돌린다**(자물쇠 없음 = 예전과 같음). 장마다 지문을 찍는 것이
+     다음 걸음이다 — 그건 145장을 한꺼번에 거는 일이라 따로 검증하고 간다. */
+  html = html.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)/,
+    (m, a, b) => a + CSP_CONTENT + b);
+
   const TOOLS_CSS_DEFERRED =
     /* ★ 2026-08-17: 껍데기에서 `onload="this.media='all'"` 를 걷어냈다(인라인 손잡이 0 = CSP
        script-src 를 걸기 위한 조건). 그래서 여기서 찾는 글자도 바뀐다 — 안 바꾸면 **배포가 선다**
