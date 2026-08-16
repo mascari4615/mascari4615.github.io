@@ -289,7 +289,7 @@ if (existsSync('apps/blog/node_modules')) {
 if (existsSync('packages/companion/node_modules')) {
   run('packages/companion build+test', 'packages/companion', 'npm test');
 } else {
-  console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
+  console.log('[verify] ! packages/companion skip — node_modules 부재. CI 는 `companion.yml` 이 그 꾸러미를 건드린 판에서만 판정한다 (여기서 깔면 매 push 가 수십 MB 만큼 길어진다)');
 }
 
 // 5.6. 「동반자」 위젯이 실제로 봇에 붙는지 (TASK-KAR-201 / KarmoLab 몸).
