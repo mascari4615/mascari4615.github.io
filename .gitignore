@@ -32,9 +32,6 @@ node_modules/
 # karmolab-ai
 packages/karmolab-ai/dist/
 
-# KarmoLab React (apps/karmolab)
-apps/karmolab/react-dist/
-
 # KarmoWorld scripts (built from src/world/*.ts; wiki *.md stay tracked)
 apps/karmolab/world/*.js
 

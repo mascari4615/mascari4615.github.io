@@ -10,7 +10,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     const PROGRESS_KEY = 'pet_strokes';
-    /** [karmolab-react-src DEFAULT_TRACKS] id → 표시 이름 */
+    /** [lib/gamification.ts DEFAULT_TRACKS] id → 표시 이름 */
     const STREAK_TRACK_LABELS: Record<string, string> = {
         daily_review: t('user.t58', undefined, '일일 복습'),
         exercise: t('user.t59', undefined, '운동')
