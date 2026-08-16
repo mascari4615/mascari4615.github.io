@@ -54,6 +54,13 @@ const 지문 = (rel) => {
   return createHash('sha1').update(fs.readFileSync(abs)).digest('hex');
 };
 
+/* ★ **볼 것이 0개면 통과가 아니다** (0건-통과 감사가 짚어 줬다). 굽는 목록이 비면
+   「전부 정본과 같다」가 공짜로 초록이 된다 — 그건 검사가 사라진 것이지 통과가 아니다. */
+if (생성기.length === 0) {
+  console.error('[memo 산출물] 못 봤다 — 굽는 목록이 비어 있다 (통과로 안 센다)');
+  process.exit(2);
+}
+
 const 이전 = 생성기.map(([, , out]) => 지문(out));
 
 for (const [이름, 파일] of 생성기) {
