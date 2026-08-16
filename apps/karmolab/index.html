@@ -120,10 +120,19 @@ permalink: /karmolab/
          **새로 뭘 미리 돌게 만들 때는 그 구분을 같이 봐라** (타이머·소리·서버 두드리기).
          `moderate` = 「올려두거나 누르기 시작했을 때」. 아무것도 안 하는 사람은 아무것도 안 받는다.
          한 번에 두 장까지만 미리 돈다(브라우저 제한) — 화면 128개를 다 돌리지 않는다.
-         이 기능을 모르는 브라우저는 이 덩어리를 그냥 무시한다(우리가 손댈 것 없음). -->
+         이 기능을 모르는 브라우저는 이 덩어리를 그냥 무시한다(우리가 손댈 것 없음).
+         **주소가 한국어 판만이면 나머지 두 판은 이 줄을 달고도 아무 일이 안 난다** (2026-08-17 실측):
+         영어 장의 링크는 `/en/karmolab/t/...` 인데 규칙은 `/karmolab/t/*` 만 봤다 — 규칙은 주소
+         맨 앞부터 맞춰 보므로 하나도 안 맞는다. 260여 장이 태그만 달고 이득은 0이었다.
+         그래서 세 판을 다 적는다(`/`·`/en/`·`/ja/`). 그 장에 없는 링크는 어차피 아무 일도 안 한다.
+         -->
     <script type="speculationrules">
     {"prerender":[{"where":{"and":[{"href_matches":"/karmolab/t/*"},{"not":{"href_matches":"/karmolab/t/"}}]},"eagerness":"moderate"},
-                  {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"}]}
+                  {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"},
+                  {"where":{"and":[{"href_matches":"/en/karmolab/t/*"},{"not":{"href_matches":"/en/karmolab/t/"}}]},"eagerness":"moderate"},
+                  {"where":{"href_matches":"/en/karmolab/t/"},"eagerness":"moderate"},
+                  {"where":{"and":[{"href_matches":"/ja/karmolab/t/*"},{"not":{"href_matches":"/ja/karmolab/t/"}}]},"eagerness":"moderate"},
+                  {"where":{"href_matches":"/ja/karmolab/t/"},"eagerness":"moderate"}]}
     </script>
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
