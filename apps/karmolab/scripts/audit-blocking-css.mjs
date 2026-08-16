@@ -38,9 +38,19 @@ for (const id of SAMPLE) {
   await page.waitForTimeout(1200);
   const cov = await page.coverage.stopCSSCoverage();
 
-  /* 화면을 막는 것만 본다 — media="print" 로 미뤄 둔 것은 막지 않으므로 대상이 아니다.
-   * (남의 서버에서 오는 글꼴 목록도 이미 안 막게 해 뒀다.) */
-  const blocking = await page.evaluate(() =>
+  /* ★ **브라우저에게 직접 묻는다** (2026-08-17). 여태는 「막나」를 우리가 추론했다 —
+     media 값과 표식(`onload` → `data-deferred`)으로. 그 추론이 두 번 거짓 빨강을 냈다
+     (표식 글자를 CSP 때문에 걷어냈을 때 · 표를 다는 코드가 아직 배포 전이었을 때).
+     크롬은 그 답을 이미 갖고 있다: 자원 기록의 `renderBlockingStatus`.
+     추론 대신 **잰 값**을 쓴다. 못 주는 브라우저면 옛 추론으로 물러선다(그때만). */
+  const 잰것 = await page.evaluate(() =>
+    performance.getEntriesByType('resource')
+      .filter((e) => typeof e.renderBlockingStatus === 'string')
+      .map((e) => ({ url: e.name, 막나: e.renderBlockingStatus })));
+  const 잰막는것 = 잰것.filter((e) => e.막나 === 'blocking').map((e) => e.url);
+
+  /* 옛 추론 — 잰 값이 아예 안 나오는 판에서만 쓴다. */
+  const 추론막는것 = await page.evaluate(() =>
     [...document.querySelectorAll('link[rel="stylesheet"]')]
       .filter((l) => !l.media || l.media === 'all' || l.media === 'screen')
       /* 일부러 미뤄 둔 것은 뺀다 — 처음엔 안 막게 걸어 두고 다 받은 뒤에 켜는 방식이라,
@@ -65,6 +75,9 @@ for (const id of SAMPLE) {
       })
       .map((l) => l.href)
   );
+
+  const blocking = 잰것.length > 0 ? 잰막는것 : 추론막는것;
+  if (잰것.length === 0) console.log('[audit-blocking-css] 이 브라우저가 renderBlockingStatus 를 안 준다 — 옛 추론으로 잰다');
 
   for (const url of blocking) {
     const e = cov.find((c) => c.url === url);
