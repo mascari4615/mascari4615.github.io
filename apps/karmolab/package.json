@@ -286,6 +286,7 @@
     "gen:word-pool": "node scripts/gen-word-pool.mjs",
     "bake:clean": "node scripts/bake-clean.mjs",
     "audit:ctl": "node scripts/audit-control-chars.mjs",
+    "audit:script-syntax": "node scripts/audit-script-syntax.mjs",
     "audit:tool-state": "node scripts/audit-tool-state.mjs",
     "test:ai": "node scripts/smoke-ai-import.mjs",
     "test:mesh3d": "node scripts/smoke-mesh3d.mjs",
