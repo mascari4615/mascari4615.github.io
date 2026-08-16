@@ -71,6 +71,11 @@ console.log('[verify] master invariant 게이트 시작');
 //    그러면 npm ci 를 한 번 더 돌리고 — 남은 것까지 지운다. 그 고리를 여기서 끊는다.
 run('링크 꾸러미 실재', '.', 'node scripts/audit-linked-packages.mjs');
 
+// 0.5. 공급망 — **설치만 해도 도는 남의 코드**와 알려진 취약점 (2026-08-16).
+//    karmolab 안에만 세웠다가 재 보니 yawnbot 쪽 면이 훨씬 넓었다(292개 중 4개 vs 46개 중 1개).
+//    좁은 곳만 지키는 문지기는 지키는 척이다. 저장소 자리로 올려 두 작업 공간을 함께 본다.
+run('공급망 (설치 스크립트·취약점)', '.', 'node scripts/audit-deps-supplychain.mjs');
+
 // 1. packages/karmolab-ai — build *먼저* (apps/karmolab 의 의존성, dist 가
 //    있어야 import 해소). 이전 ai-quality.yml shared-ai-package-build 흡수.
 //    TASK-KAR-MASTER-RED (5/19~ 6+연속 RED 진단): 순서가 거꾸로면 apps/karmolab
