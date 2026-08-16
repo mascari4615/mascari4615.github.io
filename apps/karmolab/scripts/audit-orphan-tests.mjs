@@ -73,6 +73,22 @@ function expand(name, depth = 0) {
     }
   }
 
+  /* ★ **이름 목록이 .mjs 안에 사는 묶음도 있다** (2026-08-17 실측). `verify:prepush` 의 몸통은
+     `node scripts/run-prepush.mjs` 한 줄이고, 무엇을 도는지는 `scripts/lib/gate-sets.mjs` 의
+     PREPUSH 배열이 정한다. 그 파일을 안 읽으면 **거기에만 있는 검사가 「아무도 안 돌린다」로
+     빨개진다** — 실제로 방금 그랬다(audit:spec-locales 는 prepush 에서 멀쩡히 돌고 있었다).
+     검사의 세계 모형이 실제와 다르면 그 검사가 거짓말을 한다. 그 파일도 입구로 읽는다. */
+  if (/run-prepush\.mjs|gate-sets\.mjs/.test(body)) {
+    try {
+      const src = fs.readFileSync(path.join(root, 'scripts/lib/gate-sets.mjs'), 'utf8');
+      for (const m of src.matchAll(/'([\w:.-]+)'/g)) {
+        if (isCheck(m[1])) { covered.add(m[1]); expand(m[1], depth + 1); }
+      }
+    } catch {
+      /* 못 읽으면 아래 낱말 훑기로 떨어진다 */
+    }
+  }
+
   /* `run-gates.mjs a b c` 처럼 인자로 늘어놓는 묶음도 있다 */
   for (const word of body.split(/\s+/)) {
     if (isCheck(word)) {
@@ -226,7 +242,7 @@ const fixed = base.filter((k) => !orphans.includes(k));
 if (added.length) {
   console.log(`[audit-orphan-tests] 아무도 안 돌리는 새 검사 ${added.length}개`);
   for (const a of added) console.log(`  - ${a} — 만들어 놓고 어느 묶음에도 안 넣었다`);
-  console.log('  넣을 자리: package.json 의 `gates` (빠른 것) · `live-checks.mjs` (실주소를 보는 것)');
+  console.log('  넣을 자리: `data/gate-list.json` (전체 묶음) · `scripts/lib/gate-sets.mjs` 의 PREPUSH (push 전) · `live-checks.mjs` (실주소를 보는 것)');
   process.exit(1);
 }
 /** 작업 폴더의 `package.json` 이 origin 과 다르면 — 남의 미커밋이 섞였을 수 있다 */
