@@ -292,6 +292,9 @@
     "askpapers": "논문 paper 연구 abstract 문헌조사 서베이 arxiv",
     "isitdown": "접속안됨 사이트다운 down 서버죽음 나만안되나 접속장애",
     "semver": "시맨틱 버저닝 semantic versioning 버전 범위 캐럿 틸드 caret tilde 의존성 충돌 package.json",
-    "csp": "Content-Security-Policy 콘텐츠 보안 정책 보안 헤더 security header unsafe-inline XSS 방어"
+    "csp": "Content-Security-Policy 콘텐츠 보안 정책 보안 헤더 security header unsafe-inline XSS 방어",
+    "diff": "두 글 비교 텍스트 비교 diff 차이 변경점 JSON 비교 YAML 비교 구조 비교",
+    "dutchpay": "더치페이 정산 N빵 나눠내기 회비 정산 송금 정리 1/N",
+    "mermaidlite": "머메이드 mermaid 흐름도 flowchart ER다이어그램 erDiagram 다이어그램 SVG"
   }
 }

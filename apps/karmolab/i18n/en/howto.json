@@ -512,5 +512,17 @@
   "howto.csp.0": "Paste the CSP header you are using",
   "howto.csp.1": "Read the directives, one per line — what was unreadable as a single line is now a list",
   "howto.csp.2": "Read the flagged parts (unsafe-inline, *, data: scripts) — each says why it matters",
-  "howto.csp.3": "Or pick only what you need and let it build a header for you"
+  "howto.csp.3": "Or pick only what you need and let it build a header for you",
+  "howto.diff.0": "Paste text on the left and the right",
+  "howto.diff.1": "Use the line diff to see what changed",
+  "howto.diff.2": "For JSON/YAML switch to the structural diff — keys are matched by path, so moves and value changes are told apart",
+  "howto.diff.3": "Merge only the pieces you want",
+  "howto.dutchpay.0": "Enter each person and what they paid",
+  "howto.dutchpay.1": "For shared items, pick who took part",
+  "howto.dutchpay.2": "Read the settlement — shown as \"A → B 12,000\"",
+  "howto.dutchpay.3": "Send the transfers as listed",
+  "howto.mermaidlite.0": "Write it in mermaid syntax (flowchart or erDiagram)",
+  "howto.mermaidlite.1": "See the diagram render as you type",
+  "howto.mermaidlite.2": "If the syntax is wrong, check which line it points to and fix it",
+  "howto.mermaidlite.3": "Download as SVG for your document"
 }

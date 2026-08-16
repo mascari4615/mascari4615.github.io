@@ -278,5 +278,11 @@
   "tools.semver.description": "^1.2.3・~1.2・1.x のようなバージョン範囲を「以上・未満」の境界に展開し、2つの範囲に共通するバージョンがあるかを確認します。",
   "tools.semver.lead": "範囲を境界に展開 · このバージョンは入るか · 2つの範囲は重なるか",
   "tools.csp.description": "Content-Security-Policy ヘッダーをディレクティブごとに展開して読み、実質的に無効化されている箇所を指摘します。いくつか選ぶとヘッダーを生成します。",
-  "tools.csp.lead": "ヘッダーを展開 · 実質無効な箇所を指摘 · 選んで生成"
+  "tools.csp.lead": "ヘッダーを展開 · 実質無効な箇所を指摘 · 選んで生成",
+  "tools.diff.description": "2つの文章を行単位でも、構造（JSON・YAML のキー経路）でも比較します。位置だけ変わったものは「移動」と示すので、20行が無駄に赤くなりません。",
+  "tools.diff.lead": "行の比較 · 構造の比較（移動を区別） · 選んで統合",
+  "tools.dutchpay.description": "それぞれが払った額から、誰が誰にいくら送ればよいかを精算します。1円単位まで合わせ、送金回数を最小にします。",
+  "tools.dutchpay.lead": "1円まで正確 · 送金回数は最小 · 整数だけで計算",
+  "tools.mermaidlite.description": "テキストで書いた フローチャート・ER 図を SVG として描きます。3MB のライブラリもネット接続も不要です。",
+  "tools.mermaidlite.lead": "フローチャート · ER 図 · SVG で保存 · 文法チェック"
 }

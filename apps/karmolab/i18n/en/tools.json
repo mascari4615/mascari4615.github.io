@@ -278,5 +278,11 @@
   "tools.semver.description": "Expands version ranges like ^1.2.3, ~1.2 and 1.x into plain lower/upper bounds, and checks whether two ranges share any version.",
   "tools.semver.lead": "Expand a range into bounds · Does this version match · Do two ranges overlap",
   "tools.csp.description": "Splits a Content-Security-Policy header into readable directives and points out the parts that effectively turn protection off. Pick a few options and it writes the header for you.",
-  "tools.csp.lead": "Split the header · Spot the parts that are effectively off · Build one"
+  "tools.csp.lead": "Split the header · Spot the parts that are effectively off · Build one",
+  "tools.diff.description": "Compares two texts line by line, and also by structure (JSON/YAML key paths). Something that only moved is reported as a move, so twenty lines do not turn red for nothing.",
+  "tools.diff.lead": "Line diff · Structural diff (moves separated) · Merge picked parts",
+  "tools.dutchpay.description": "Settles who owes whom after everyone has paid different amounts. Balances to the last won and keeps the number of transfers as small as possible.",
+  "tools.dutchpay.lead": "Exact to the last won · Fewest transfers · Integer-only math",
+  "tools.mermaidlite.description": "Draws flowcharts and entity relationships written as text, as SVG — without the 3MB library and without a network connection.",
+  "tools.mermaidlite.lead": "Flowchart · ER diagram · Download as SVG · Syntax check"
 }

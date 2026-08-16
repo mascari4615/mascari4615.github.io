@@ -278,5 +278,11 @@
   "tools.semver.description": "^1.2.3 · ~1.2 · 1.x 같은 버전 범위를 「이상 · 미만」 두 경계로 펴서 보여주고, 두 범위가 겹치는 판이 있는지 확인합니다.",
   "tools.semver.lead": "범위를 경계로 펴기 · 이 버전이 들어가나 · 두 범위가 겹치나",
   "tools.csp.description": "Content-Security-Policy 한 줄을 갈래별로 펴서 읽고, 사실상 꺼 둔 자리를 짚어 줍니다. 몇 가지만 고르면 헤더 한 줄을 지어 줍니다.",
-  "tools.csp.lead": "헤더 펴기 · 사실상 꺼 둔 자리 짚기 · 골라서 짓기"
+  "tools.csp.lead": "헤더 펴기 · 사실상 꺼 둔 자리 짚기 · 골라서 짓기",
+  "tools.diff.description": "두 글을 줄 단위로도, 구조(JSON·YAML 열쇠 경로)로도 견줍니다. 자리만 바뀐 것은 「옮김」이라고 말해 스무 줄이 괜히 빨개지지 않습니다.",
+  "tools.diff.lead": "줄 견주기 · 구조 견주기(옮김 구분) · 골라서 합치기",
+  "tools.dutchpay.description": "여럿이 낸 돈을 정산해 누가 누구에게 얼마를 보내면 되는지 알려줍니다. 1원 단위까지 맞추고, 송금 횟수를 가장 적게 줄입니다.",
+  "tools.dutchpay.lead": "1원까지 딱 맞춤 · 송금 횟수 최소 · 원 단위 정수 계산",
+  "tools.mermaidlite.description": "글로 적은 흐름도·표 관계를 그림(SVG)으로 그립니다. 3MB 짜리 원본 없이, 인터넷 없이 브라우저 안에서 그립니다.",
+  "tools.mermaidlite.lead": "흐름도 · 표 관계(ER) · SVG 로 내려받기 · 문법 검사"
 }

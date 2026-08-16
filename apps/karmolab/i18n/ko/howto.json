@@ -512,5 +512,17 @@
   "howto.csp.0": "쓰고 있는 CSP 헤더 붙여넣기",
   "howto.csp.1": "갈래별로 펴진 목록 확인 — 한 줄로는 안 읽히던 것이 줄줄이 보인다",
   "howto.csp.2": "짚어 준 자리 읽기 (unsafe-inline · * · data: 스크립트 등 — 왜 위험한지 같이 나온다)",
-  "howto.csp.3": "반대로, 필요한 것만 골라 새 헤더 한 줄 짓기"
+  "howto.csp.3": "반대로, 필요한 것만 골라 새 헤더 한 줄 짓기",
+  "howto.diff.0": "왼쪽·오른쪽에 글 붙여넣기",
+  "howto.diff.1": "줄 견주기로 무엇이 달라졌는지 보기",
+  "howto.diff.2": "JSON·YAML 이면 구조 견주기로 바꾸기 — 열쇠 경로로 짝지어 「옮김」과 「값 바뀜」을 가른다",
+  "howto.diff.3": "필요하면 한쪽 조각만 골라 합치기",
+  "howto.dutchpay.0": "사람과 각자 낸 금액 넣기",
+  "howto.dutchpay.1": "같이 쓴 항목이면 누가 참여했는지 고르기",
+  "howto.dutchpay.2": "정산 결과 확인 — 「A → B 12,000원」 형태로 나온다",
+  "howto.dutchpay.3": "송금 목록 그대로 보내기",
+  "howto.mermaidlite.0": "mermaid 문법으로 적기 (flowchart 또는 erDiagram)",
+  "howto.mermaidlite.1": "바로 그려진 그림 확인",
+  "howto.mermaidlite.2": "문법이 틀리면 어느 줄인지 확인하고 고치기",
+  "howto.mermaidlite.3": "SVG 로 내려받아 문서에 넣기"
 }
