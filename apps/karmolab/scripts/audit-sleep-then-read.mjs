@@ -78,6 +78,23 @@ const 지금 = 자리.length;
 
 console.log(`[sleep-then-read] 검사 ${files.length}개 · 재우고 바로 읽는 자리 ${지금}개 (기준선 ${옛수})`);
 
+/* ★ **갚으라고 세는 것이면 어디부터 갚을지 보여야 한다** (2026-08-16). 세는 수만 있으면
+   「249개」는 그냥 큰 수다 — 아무도 손을 못 댄다. `--list` 로 **파일별로 몇 개인지**를 낸다.
+   빨강일 때만 보여 주면 갚으려는 사람이 볼 수가 없다(빨강이 아니어야 정상이므로). */
+if (process.argv.includes('--list')) {
+  const 파일별 = new Map();
+  for (const one of 자리) {
+    const 파일 = one.slice(0, one.lastIndexOf(':'));
+    파일별.set(파일, (파일별.get(파일) || 0) + 1);
+  }
+  const 줄 = [...파일별.entries()].sort((a, b) => b[1] - a[1]);
+  console.log(`[sleep-then-read] 파일 ${줄.length}개에 퍼져 있다 — 많은 곳부터:`);
+  for (const [파일, 수] of 줄.slice(0, 12)) console.log(`   ${String(수).padStart(3)}  ${파일}`);
+  if (줄.length > 12) console.log(`   … 그 외 파일 ${줄.length - 12}개`);
+  console.log('  갚는 법: 시간을 재우지 말고 **된 상태**를 기다려라(`waitForFunction`).');
+  console.log('  재우는 것 자체가 판정이면(0.5초 뒤에도 남아 있나) 그 줄 앞에 `재움-의도` 를 적어라.');
+}
+
 if (지금 < 옛수 || process.argv.includes('--write-baseline')) {
   fs.writeFileSync(
     기준선파일,
