@@ -177,6 +177,31 @@ const layersAfter = await page.locator('.meok:visible .meok-layer').count();
 if (layersAfter !== layersBefore + 1) problems.push('레이어가 안 늘었다 (' + layersBefore + ' → ' + layersAfter + ')');
 if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.push('고른 레이어 표시가 없다');
 
+/* ★ **끌지 않고도 순서를 바꿀 수 있나** (2026-08-17). 순서 바꾸기가 끌기 하나뿐이라
+   키보드만 쓰는 사람은 아예 못 바꿨다(WCAG 2.2 「끌기 동작」). 화살표 길을 냈으니 여기서 지킨다 —
+   끌기는 playwright 로도 잘 안 재지지만 키는 사람이 하는 그대로 잴 수 있다. */
+{
+  const 이름들 = () => page.locator('.meok:visible .meok-layer').evaluateAll(
+    (rows) => rows.map((r) => r.getAttribute('data-layer') || '')
+  );
+  const 전 = await 이름들();
+  if (전.length >= 2 && 전.every(Boolean)) {
+    await page.locator('.meok:visible .meok-layer').nth(1).focus();
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(150);
+    const 후 = await 이름들();
+    if (후.join('|') === 전.join('|')) problems.push('화살표로 레이어 순서가 안 바뀐다 (끌기 말고는 길이 없다)');
+    /* 뒤 검사들이 「몇 번째 줄」로 레이어를 집으므로 **순서를 되돌려 놓는다** —
+       안 그러면 다음 검사가 엉뚱한 레이어를 숨기고 「그림이 그대로다」로 죽는다(방금 겪었다). */
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(150);
+    const 되돌림 = await 이름들();
+    if (되돌림.join('|') !== 전.join('|')) problems.push('화살표로 되돌리기가 안 된다 (한 방향만 먹는다)');
+  } else {
+    problems.push('레이어 줄에 data-layer 표가 없다 — 키로 옮긴 뒤 초점을 되돌릴 수 없다');
+  }
+}
+
 /* ④ 숨기면 화면에서 사라진다 — 합성이 화면까지 이어져 있는가. */
 await page.locator('.meok:visible .meok-layer').nth(1).locator('.meok-eye').click();
 await page.waitForTimeout(250);
@@ -455,4 +480,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막·글자·붓 담기·기울여 돌리기 — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막·글자·붓 담기·기울여 돌리기·레이어 순서(화살표) — 실제 브라우저');
