@@ -156,6 +156,34 @@ const withLimit = (name, fn) => Promise.race([
 ]);
 
 
+/**
+ * **누른다 — 안 눌리면 「누가 덮었나」를 말한다** (2026-08-16, KAR-216).
+ *
+ * 이 검사가 잡으려는 것이 「보이는데 못 누른다」인데, 정작 못 눌렀을 때 남는 말은
+ * `locator.click: Timeout 30000ms exceeded` 한 줄뿐이었다 — 무엇이 위에 있었는지는 물론
+ * **어느 손잡이였는지도** 안 나온다(한 걸음에 클릭이 넷이다). 그래서 리눅스에서 재현해 놓고도
+ * 다시 좁히는 데 시간을 썼다. 못 누른 사실 자체가 이 검사의 증거이므로 자리와 덮은 놈을 적는다.
+ */
+const 눌러본다 = async (p, sel, 왜) => {
+  try {
+    await p.locator(sel).first().click({ timeout: ms(8000) });
+  } catch {
+    const 속 = await p.evaluate((s2) => {
+      const el = document.querySelector(s2);
+      if (!el) return '그런 손잡이가 없다';
+      const r = el.getBoundingClientRect();
+      const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      const 이름 = t ? (t.dataset?.km || String(t.className || t.tagName).slice(0, 28)) : '없음';
+      const tr = t ? t.getBoundingClientRect() : null;
+      return `자리 ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}`
+        + ` · 그 자리의 주인 ${이름}`
+        + (tr ? ` (${Math.round(tr.x)},${Math.round(tr.y)} ${Math.round(tr.width)}x${Math.round(tr.height)})` : '')
+        + ` · 화면 ${innerWidth}x${innerHeight}`;
+    }, sel);
+    throw new Error(`${왜 || sel} 를 못 눌렀다 — ${속}`);
+  }
+};
+
 /** 옆 패널의 **꾸미는 칸**(모양·얼굴·소속·붙이기)은 접혀 있다 — 필요한 걸음만 펼친다. */
 const openMore = async (p) => {
   const btn = p.locator('[data-km="more-toggle"]');
@@ -3284,18 +3312,18 @@ await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮�
   await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
   await noCovered(m, '서랍');
 
-  await m.locator('[data-km="palette-open"]').click();
+  await 눌러본다(m, '[data-km="palette-open"]', '등록부 열기');
   await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
   await noCovered(m, '팔레트');
   await m.keyboard.press('Escape');
   await m.waitForTimeout(ms(300));
 
-  await m.locator('.ck-node').first().click();
+  await 눌러본다(m, '.ck-node', '카드');
   await m.waitForSelector('[data-km="node-del"]', { timeout: ms(4000) });
-  await m.locator('[data-km="node-del"]').click();
+  await 눌러본다(m, '[data-km="node-del"]', '지우기');
   await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
   await noCovered(m, '되물음');
-  await m.locator('[data-km="ask-no"]').click();
+  await 눌러본다(m, '[data-km="ask-no"]', '되물음 아니오');
   await ph.close();
 });
 

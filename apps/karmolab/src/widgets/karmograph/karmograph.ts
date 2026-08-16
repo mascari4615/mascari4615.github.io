@@ -2567,21 +2567,25 @@ import {
          (실측 2026-08-14 폰: 오른쪽 끝 472px > 화면 390px — 지우기·복제가 통째로 사라진다). */
       const room = canvasEl.clientWidth - Math.max(bar.width, 100) - 4;
       miniEl.style.left = `${Math.round(Math.min(Math.max(4, rect.x), Math.max(4, room)))}px`;
-      let top = Math.round(above > 4 ? above : rect.y + rect.h + 6);
-      /* ★ **시점 줄에 딱 붙지 않게 한다** (2026-08-16, CI 가 자리까지 찍어 줘서 갈렸다).
-         폰에서는 시점 줄이 판 **맨 위**에 눕는다. 카드가 그 바로 밑이면 이 도구 줄이
-         시점 줄과 **3px** 틈으로 붙었다(실측: 시점 줄 아래끝 343 · 도구 줄 위끝 346).
-         둘 다 44px 손가락 단추라, 3px 틈이면 「복제」를 누르려다 「다음 시점」이 눌린다 —
-         시점이 통째로 바뀌어 무엇을 잘못 눌렀는지도 모른다.
-         손가락 권고 간격은 8px 다. 겹치는 띠에 들어오면 그만큼 아래로 내린다. */
-      const timesEl = root.querySelector('[data-km="times"]');
-      if (timesEl instanceof HTMLElement && timesEl.classList.contains('hidden') === false) {
-        const t = timesEl.getBoundingClientRect();
+      /* 놓을 자리 후보는 둘 — **카드 위** 아니면 **카드 아래**. 어느 쪽도 시점 줄과 카드를
+         건드리면 안 된다.
+         ★ 처음엔 「시점 줄에 닿으면 그만큼 아래로 민다」로만 고쳤다가 **카드를 덮었다**
+         (2026-08-16 리눅스 재현: 카드 99,385 · 줄 99,355 — 줄이 카드 위에 앉아 카드가 안 눌렸다).
+         한쪽만 피하면 다른 쪽을 밟는다. 그래서 후보를 둘 다 놓고 **둘 다 피하는 쪽**을 고른다. */
+      const timesFloor = (() => {
+        const el = root.querySelector('[data-km="times"]');
+        if (!(el instanceof HTMLElement) || el.classList.contains('hidden')) return -Infinity;
+        const t = el.getBoundingClientRect();
         const c = canvasEl.getBoundingClientRect();
-        const timesBottom = Math.round(t.bottom - c.top);
-        const overlap = timesBottom + 8 - top;
-        if (overlap > 0 && top + barH > timesBottom) top += overlap;
-      }
+        return Math.round(t.bottom - c.top) + 8;   // 손가락 권고 간격
+      })();
+      const above2 = Math.round(rect.y - barH - 6);
+      const below = Math.round(rect.y + rect.h + 6);
+      const hitsCard = (y: number) => y + barH > rect.y && y < rect.y + rect.h;   // 카드와 겹치는가
+      let top = above2 > 4 && above2 >= timesFloor ? above2 : below;
+      /* 아래로 갔는데도 시점 줄에 물리면(줄이 카드보다 아래 있는 배치) 줄 밑으로 더 내린다. */
+      if (top < timesFloor) top = timesFloor;
+      if (hitsCard(top)) top = below;
       miniEl.style.top = `${top}px`;
       followMini();
     }
