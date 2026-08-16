@@ -13,6 +13,7 @@
  * 여기 새 코드를 넣을 때 셸 내부를 더 부르지 마라 — 부르는 순간 도로 셸에 묶인다.
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
+import { isHiddenAtBuild } from './home-prefs-data.js';
 (function () {
     const switchPage = (id, opts) => Toolbox.switchPage(id, opts);
     const mountHomeDecor = () => Toolbox.mountHomeDecor();
@@ -63,12 +64,14 @@
         board.className = 'landing-today';
         board.id = 'homeToday';
         board.dataset.block = 'today';
+        board.hidden = isHiddenAtBuild('today');
         landing.appendChild(board);
         /* 조각은 **첫 그림 뒤에** 데려온다 (`src/today.ts`). 태그로 걸면 첫 화면 부팅 JS 천장
          * (40KB gz) 을 넘는다 — 실제로 넘겨 보고 뗐다. 이 자리는 어차피 놀이 목록을 받아야
          * 채워지므로 비동기가 맞다. 못 데려오면 이 자리만 빈 채로 남고(`:empty` = 안 보임)
          * 첫 화면은 그대로다. */
-        if (Toolbox.ensureScript) {
+        /* 감춘 블록이면 조각도 안 데려온다 — 안 보이는 자리를 위해 그물을 던질 이유가 없다. */
+        if (Toolbox.ensureScript && !board.hidden) {
             /* **자리를 먼저 잡고 데려온다** (TASK-KL-201 후속).
              *
              * 이 칸은 비어 있는 동안 `:empty` 로 사라져 있다가, 조각이 도착하면 65px 로 나타나
@@ -105,6 +108,7 @@
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
         cta.dataset.block = 'cta';
+        cta.hidden = isHiddenAtBuild('cta');
         cta.innerHTML = `
             <div class="landing-cta-grid">
                 <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
@@ -142,8 +146,9 @@
         live.className = 'landing-live';
         live.id = 'homeLive';
         live.dataset.block = 'live';
+        live.hidden = isHiddenAtBuild('live');
         landing.appendChild(live);
-        if (Toolbox.ensureScript) {
+        if (Toolbox.ensureScript && !live.hidden) {
             /* 데려오는 동안 자리를 잡아 둔다 — 안 그러면 도착하는 순간 129px 가 생기며 아래가
                통째로 내려간다(실사이트 실측 0.038). 값은 CSS 가 폭을 보고 정한다. */
             live.dataset.reserving = '1';
@@ -159,6 +164,7 @@
         pulse.className = 'landing-pulse';
         pulse.id = 'homePulse';
         pulse.dataset.block = 'pulse';
+        pulse.hidden = isHiddenAtBuild('pulse');
         landing.appendChild(pulse);
         fillHomePulse(pulse);
 

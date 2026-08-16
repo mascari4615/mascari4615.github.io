@@ -16,43 +16,10 @@
  */
 declare const Toolbox: { showToast?: (msg: string) => void };
 
-interface HomePrefs {
-    version: number;
-    order: string[];
-    hidden: string[];
-    name: string;
-}
+import { KEY, DEFAULT_HIDDEN, BLOCKS, read, type HomePrefs } from './home-prefs-data.js';
 
-const KEY = 'karmolab_home_prefs';
-const DEFAULT_HIDDEN = ['today', 'live', 'cta'];
-
-/** 옮길 수 있는 블록 — 이름은 화면에 그대로 나온다. 여기 없는 블록은 손대지 않는다. */
-const BLOCKS: Array<{ id: string; label: string }> = [
-    { id: 'today', label: '오늘의 판' },
-    { id: 'live', label: '실황' },
-    { id: 'cta', label: '갈 곳 카드' },
-    { id: 'pulse', label: '방문 수' }
-];
-
-function read(): HomePrefs {
-    try {
-        const stored = localStorage.getItem(KEY);
-        if (!stored) return { version: 2, order: [], hidden: [...DEFAULT_HIDDEN], name: '' };
-        const raw = JSON.parse(stored);
-        const savedOrder = Array.isArray(raw.order) ? raw.order.filter((id: unknown) => typeof id === 'string') : [];
-        const savedHidden = Array.isArray(raw.hidden) ? raw.hidden.filter((id: unknown) => typeof id === 'string') : [];
-        const hasCustomLayout = savedOrder.length > 0 || savedHidden.length > 0 || (typeof raw.name === 'string' && raw.name.trim().length > 0);
-        const isLegacyEmpty = raw.version !== 2 && !hasCustomLayout;
-        return {
-            version: 2,
-            order: savedOrder,
-            hidden: isLegacyEmpty ? [...DEFAULT_HIDDEN] : savedHidden,
-            name: typeof raw.name === 'string' ? raw.name.slice(0, 20) : ''
-        };
-    } catch {
-        return { version: 2, order: [], hidden: [...DEFAULT_HIDDEN], name: '' };
-    }
-}
+/* 목록·읽기는 `home-prefs-data.ts` 한 벌이다 — 짓는 쪽(home-page)도 같은 답을 봐야
+   기본으로 감출 블록이 **그려졌다 사라지는** 일이 없다. 여기 다시 적지 말 것. */
 
 function write(prefs: HomePrefs): void {
     try {
