@@ -55,6 +55,7 @@
     "test:xmlfmt": "node scripts/test-xmlfmt-core.mjs",
     "test:gamification": "node scripts/test-gamification.mjs",
     "test:planner": "node scripts/test-planner-core.mjs",
+    "test:diary": "node scripts/test-diary.mjs",
     "test:reach": "node scripts/test-reachability.mjs",
     "test:ipreview": "node scripts/test-imgpreview.mjs",
     "test:sketchy": "node scripts/test-sketchy.mjs",
