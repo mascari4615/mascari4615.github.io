@@ -536,5 +536,17 @@
   "howto.bundlemap.0": "stats.json か metafile を貼る — 形式は自動で判別",
   "howto.bundlemap.1": "面積図の大きいマスから見る — マスの面積がそのまま容量",
   "howto.bundlemap.2": "重いパスの順位から削る場所を選ぶ",
-  "howto.bundlemap.3": "重複パッケージの一覧を確認する — バンドルが急に膨らむよくある理由"
+  "howto.bundlemap.3": "重複パッケージの一覧を確認する — バンドルが急に膨らむよくある理由",
+  "howto.erd.0": "CREATE TABLE 文か Prisma スキーマを貼る",
+  "howto.erd.1": "テーブル・カラム・つながりを取り出して図にする",
+  "howto.erd.2": "どのテーブルがどれを指すか矢印で確認する",
+  "howto.erd.3": "mermaid erDiagram のテキストをコピーして文書に入れる",
+  "howto.curlkit.0": "curl コマンドをまるごと貼る",
+  "howto.curlkit.1": "変換先の言語を選ぶ（fetch・axios・python・go・node・httpie）",
+  "howto.curlkit.2": "出てきたコードをコピーしてそのまま使う",
+  "howto.curlkit.3": "逆にコードから curl に戻すこともできる",
+  "howto.docscan.0": "書類を撮った写真をアップロードする",
+  "howto.docscan.1": "四隅を紙の角に合わせてドラッグする",
+  "howto.docscan.2": "まっすぐになった結果を確認する（遠近を戻す）",
+  "howto.docscan.3": "スキャン風に整えてダウンロードする"
 }

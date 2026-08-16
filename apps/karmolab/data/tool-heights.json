@@ -143,6 +143,10 @@
     "narrow": 916,
     "wide": 941
   },
+  "curlkit": {
+    "narrow": 878,
+    "wide": 974
+  },
   "dailycho": {
     "narrow": 654,
     "wide": 611
@@ -163,6 +167,10 @@
     "narrow": 1068,
     "wide": 913
   },
+  "docscan": {
+    "narrow": 859,
+    "wide": 626
+  },
   "draw": {
     "narrow": 1228,
     "wide": 987
@@ -182,6 +190,10 @@
   "epoch": {
     "narrow": 916,
     "wide": 945
+  },
+  "erd": {
+    "narrow": 1034,
+    "wide": 820
   },
   "exifclean": {
     "narrow": 204,

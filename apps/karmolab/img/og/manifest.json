@@ -190,5 +190,8 @@
   "mermaidlite": "663644e5e930",
   "apitest": "3ad3c7e98c73",
   "bgremove": "92fa3c7b3f5d",
-  "bundlemap": "58272b995542"
+  "bundlemap": "58272b995542",
+  "erd": "447b30d94651",
+  "curlkit": "d0ee6689c411",
+  "docscan": "3536c12e411f"
 }
