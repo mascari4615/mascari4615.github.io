@@ -37,6 +37,9 @@ const shard = (() => {
   }
   return { idx: Number(m[1]) - 1, of: Number(m[2]) };
 })();
+/** 이 조각이 얼마나 걸릴 거라 봤나 — 끝에서 실제와 견준다. */
+let 예측분 = null;
+
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function run(cmd) {
@@ -88,8 +91,9 @@ if (shard) {
   /* 원래 차례를 지킨다 — 무거운 것부터 돌면 사람이 로그에서 길을 잃는다. */
   const 내것 = new Set(바구니[shard.idx].것);
   todo = todo.filter((c) => 내것.has(c));
+  예측분 = Math.round(바구니[shard.idx].합 / 60);
   console.log(
-    `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${Math.round(바구니[shard.idx].합 / 60)}분어치`
+    `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${예측분}분어치`
   );
 }
 if (!todo.length) {
@@ -240,6 +244,17 @@ const 지붕분 = Number(process.env.LIVE_CHECK_ROOF_MIN || 40);
 const 총분 = 총초 / 60;
 console.log(`
 [verify:live] 합계 ${총초}초 (${총분.toFixed(1)}분) · 검사 ${results.length}개`);
+
+/* ★ **예측이 틀렸으면 그 자리에서 말하게 한다** (2026-08-16, 실측). 조각을 시간으로 가른 첫날,
+   2번 조각이 「19분어치」라고 적어 놓고 **40분 제한에 걸려 취소**됐다 — 표에 빠진 검사 하나가
+   하필 제일 무거운 것(955초)이라 13초로 쳐졌기 때문이다. 그때 로그에는 예측만 있고 견줄 것이
+   없어서, 취소된 뒤에야 사람이 눈으로 찾아야 했다. 예측과 실제를 나란히 적으면 표가 낡은 순간
+   **다음 판 로그가 스스로 고발한다**. */
+if (예측분 != null) {
+  const 어긋남 = 총분 === 0 ? 0 : Math.round(((총분 - 예측분) / Math.max(예측분, 1)) * 100);
+  const 말 = Math.abs(어긋남) >= 30 ? ' ← 표가 낡았다. `data/live-check-times.json` 를 다시 재라' : '';
+  console.log(`[verify:live] 예측 ${예측분}분 · 실제 ${총분.toFixed(1)}분 (${어긋남 >= 0 ? '+' : ''}${어긋남}%)${말}`);
+}
 if (총분 > 지붕분 * 0.6) {
   console.log(
     `  ⚠ 지붕(${지붕분}분)의 ${Math.round((총분 / 지붕분) * 100)}% 를 썼다 — 여기 검사를 더 넣기 전에` +
