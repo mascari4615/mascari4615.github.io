@@ -206,6 +206,7 @@
     "test:offline": "node scripts/smoke-offline-app.mjs",
     "test:perf": "node scripts/smoke-perf.mjs",
     "test:perf:budget": "node scripts/smoke-perf-budget.mjs",
+    "test:shard": "node scripts/shard-split.test.mjs",
     "audit:drift": "node scripts/run-gates.mjs audit:bundles audit:coverage audit:aliases",
     "audit:bundles": "node scripts/audit-bundle-budget.mjs",
     "audit:coverage": "node scripts/audit-coverage.mjs",
