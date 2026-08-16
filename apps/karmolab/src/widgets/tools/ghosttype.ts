@@ -43,7 +43,7 @@ import { markLive } from './shared/say';
     let n = 0;
     for (const ch of s) {
       const code = ch.charCodeAt(0);
-      if (code >= 0xac00 && code <= 0xd7a3) {
+      if (code>= 0xac00 && code <= 0xd7a3) {
         const i = code - 0xac00;
         const 중성 = 중성표[Math.floor(i / 28) % 21];
         const 종성 = 종성표[i % 28];
@@ -63,9 +63,9 @@ import { markLive } from './shared/say';
     const out: number[] = [];
     for (const raw of values) {
       let v = Math.max(0, Math.min(MAX_GAP, Math.round(raw)));
-      while (v >= 0x80) {
+      while (v>= 0x80) {
         out.push((v & 0x7f) | 0x80);
-        v >>>= 7;
+        v>>>= 7;
       }
       out.push(v);
     }
@@ -255,7 +255,7 @@ import { markLive } from './shared/say';
             let acc = 0;
             for (let i = 0; i < ghost.gaps.length; i++) {
               const next = acc + ghost.gaps[i];
-              if (ms < next) return i + (next > acc ? (ms - acc) / (next - acc) : 0);
+              if (ms < next) return i + (next> acc ? (ms - acc) / (next - acc) : 0);
               acc = next;
             }
             return ghost.gaps.length;
@@ -416,7 +416,7 @@ import { markLive } from './shared/say';
               lastAt = now;
             }
             paint();
-            if (mine >= target.length) {
+            if (mine>= target.length) {
               input.disabled = true;
               finish();
             }
@@ -425,7 +425,7 @@ import { markLive } from './shared/say';
           $<HTMLButtonElement>('#gtRestart').onclick = () => reset();
           $<HTMLButtonElement>('#gtNextText').onclick = () => {
             let next = target;
-            while (next === target && 지문.length > 1) next = 지문[Math.floor(Math.random() * 지문.length)];
+            while (next === target && 지문.length> 1) next = 지문[Math.floor(Math.random() * 지문.length)];
             setText(next);
           };
           $<HTMLButtonElement>('#gtOwnToggle').onclick = () => {

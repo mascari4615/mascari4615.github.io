@@ -66,7 +66,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
                   </select>
                 </div>
               </div>
-              <div style="margin-top:10px;">
+              <div>
                 <div class="tool-sublabel">${esc(t('img2pdf.label.margin'))} <span id="i2MarginVal" class="range-value">20pt</span></div>
                 <input type="range" id="i2Margin" aria-label="${esc(t('img2pdf.label.margin'))}" min="0" max="72" value="20">
               </div>
@@ -131,7 +131,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
                   continue;
                 }
                 let [pw, ph] = PAPER[paperKey];
-                const wantLandscape = orient === 'landscape' || (orient === 'auto' && img.width > img.height);
+                const wantLandscape = orient === 'landscape' || (orient === 'auto' && img.width> img.height);
                 if (wantLandscape) [pw, ph] = [ph, pw];
 
                 // 비율을 지킨 채 여백 안에 들어가는 최대 크기를 구해 가운데 놓는다

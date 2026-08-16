@@ -174,7 +174,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function grabEvery(): Promise<void> {
             const every = parseInt(everyEl.value, 10) / 10;
             const count = Math.floor(duration / every) + 1;
-            if (count > 200) {
+            if (count> 200) {
               say(t('video2img.err.tooMany'), 'error');
               return;
             }

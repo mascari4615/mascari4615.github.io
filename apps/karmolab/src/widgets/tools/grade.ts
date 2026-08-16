@@ -96,12 +96,12 @@ import { t, loadNamespace } from '../../lib/i18n';
               row(t('grade.row.weighted'), credits ? gpa.toFixed(3) : '—') +
               row(t('grade.row.simple'), counted ? simple.toFixed(3) : '—') +
               row(t('grade.row.ofMax'), credits ? `${gpa.toFixed(2)} / ${max}` : '—') +
-              (bad.length ? row(t('grade.row.unreadable'), bad.slice(0, 3).join(' · ') + (bad.length > 3 ? t('grade.value.andMore', { n: bad.length - 3 }) : '')) : '');
+              (bad.length ? row(t('grade.row.unreadable'), bad.slice(0, 3).join(' · ') + (bad.length> 3 ? t('grade.value.andMore', { n: bad.length - 3 }) : '')) : '');
 
             // 목표를 채우려면 남은 학점에서 평균 얼마가 필요한가
             const target = parseFloat($<HTMLInputElement>('#grTarget').value);
             const future = parseFloat($<HTMLInputElement>('#grFuture').value);
-            if (credits && future > 0 && isFinite(target)) {
+            if (credits && future> 0 && isFinite(target)) {
               const n = neededAverage(points, credits, target, future, max);
               need.innerHTML =
                 row(t('grade.row.needed'), n.possible ? n.required.toFixed(2) : t('grade.value.impossible', { n: n.required.toFixed(2) })) +

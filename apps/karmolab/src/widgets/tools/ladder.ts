@@ -27,14 +27,14 @@ import { markLive } from './shared/say';
       const row: number[] = [];
       // 왼쪽부터 훑으며 확률적으로 놓되, 직전 칸에 놓았으면 건너뛴다 (겹침 방지).
       for (let c = 0; c < cols - 1; c++) {
-        if (row.indexOf(c - 1) >= 0) continue;
+        if (row.indexOf(c - 1)>= 0) continue;
         if (Math.random() < 0.45) row.push(c);
       }
       rungs.push(row);
     }
     // 모든 기둥이 최소 한 번은 섞이도록 보정 — 안 그러면 「그대로 내려오는」 열이 생긴다.
     for (let c = 0; c < cols - 1; c++) {
-      const touched = rungs.some((row) => row.indexOf(c) >= 0);
+      const touched = rungs.some((row) => row.indexOf(c)>= 0);
       if (!touched) {
         const r = Math.floor(Math.random() * rows);
         if (rungs[r].indexOf(c - 1) < 0 && rungs[r].indexOf(c + 1) < 0) rungs[r].push(c);
@@ -49,10 +49,10 @@ import { markLive } from './shared/say';
     const path: [number, number][] = [[c, 0]];
     for (let r = 0; r < l.rows; r++) {
       const row = l.rungs[r];
-      if (row.indexOf(c) >= 0) {
+      if (row.indexOf(c)>= 0) {
         path.push([c, r + 1], [c + 1, r + 1]);
         c += 1;
-      } else if (row.indexOf(c - 1) >= 0) {
+      } else if (row.indexOf(c - 1)>= 0) {
         path.push([c, r + 1], [c - 1, r + 1]);
         c -= 1;
       }
@@ -128,7 +128,7 @@ import { markLive } from './shared/say';
               svg.innerHTML = '';
               return;
             }
-            if (names.length > 10) names = names.slice(0, 10);
+            if (names.length> 10) names = names.slice(0, 10);
             prizes = readLines(prizesEl);
             // 결과를 안 적었거나 모자라면 첫 줄만 당첨인 기본 판을 만든다.
             while (prizes.length < names.length) prizes.push(prizes.length === 0 ? t('ladder.prize.win') : t('ladder.prize.lose'));
@@ -172,7 +172,7 @@ import { markLive } from './shared/say';
             });
 
             for (let c = 0; c < cols; c++) {
-              const on = revealed.indexOf(c) >= 0;
+              const on = revealed.indexOf(c)>= 0;
               parts.push(
                 `<text x="${x(c)}" y="20" class="ld-name${on ? ' on' : ''}" data-col="${c}" style="${on ? `fill:${COLORS[c % COLORS.length]}` : ''}">${esc(names[c])}</text>`
               );

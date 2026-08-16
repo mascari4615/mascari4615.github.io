@@ -51,7 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                     <input type="range" id="acEnd" aria-label="${esc(t('audiocut.aria.end'))}" min="0" max="100" value="100" step="0.1">
                   </div>
                 </div>
-                <div class="tool-chips" style="margin-top:10px;">
+                <div class="tool-chips">
                   <label class="tool-chip"><input type="checkbox" id="acFade" checked> ${esc(t('audiocut.opt.fade'))}</label>
                 </div>
               </div>
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               let peak = 0;
               for (let i = 0; i < step; i++) {
                 const v = Math.abs(data[x * step + i] || 0);
-                if (v > peak) peak = v;
+                if (v> peak) peak = v;
               }
               const barH = Math.max(1, peak * h * 0.9);
               ctx.globalAlpha = 0.75;
@@ -122,7 +122,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const d = buffer.duration;
             let s = (parseFloat(startEl.value) / 100) * d;
             let e = (parseFloat(endEl.value) / 100) * d;
-            if (s > e) [s, e] = [e, s];
+            if (s> e) [s, e] = [e, s];
             return [s, e];
           }
 
@@ -174,7 +174,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 // 자른 자리에서 파형이 뚝 끊기면 딸깍 소리가 난다 — 앞뒤를 짧게 눕힌다
                 if (fade) {
                   if (i < fade) v *= i / fade;
-                  else if (i > len - fade) v *= (len - i) / fade;
+                  else if (i> len - fade) v *= (len - i) / fade;
                 }
                 dst[i] = v;
               }
@@ -205,7 +205,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             player.currentTime = s;
             void player.play();
             const stop = (): void => {
-              if (player.currentTime >= e) {
+              if (player.currentTime>= e) {
                 player.pause();
                 player.removeEventListener('timeupdate', stop);
               }

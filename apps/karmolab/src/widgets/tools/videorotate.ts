@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <button type="button" class="tool-chip" data-turn="180">${esc(t('videorotate.turn.180'))}</button>
                 <button type="button" class="tool-chip" data-turn="270">${esc(t('videorotate.turn.270'))}</button>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="vrFlipH"> ${esc(t('videorotate.opt.flipH'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="vrFlipV"> ${esc(t('videorotate.opt.flipV'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="vrAudio" checked> ${esc(t('videorotate.opt.audio'))}</label>

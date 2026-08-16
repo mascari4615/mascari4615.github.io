@@ -88,7 +88,7 @@ import { escapeHtml as esc } from './shared/text';
             } catch {
               all = {};
             }
-            if (put !== undefined && put > (all[id] || 0)) {
+            if (put !== undefined && put> (all[id] || 0)) {
               all[id] = put;
               try {
                 localStorage.setItem(BEST_KEY, JSON.stringify(all));
@@ -109,7 +109,7 @@ import { escapeHtml as esc } from './shared/text';
             }
             const dur = 700;
             const t0 = performance.now();
-            const dec = String(target).indexOf('.') >= 0 ? String(target).split('.')[1].length : 0;
+            const dec = String(target).indexOf('.')>= 0 ? String(target).split('.')[1].length : 0;
             const step = (now: number): void => {
               const k = Math.min(1, (now - t0) / dur);
               const eased = 1 - Math.pow(1 - k, 3);
@@ -149,7 +149,7 @@ import { escapeHtml as esc } from './shared/text';
           function answer(el: HTMLElement, chosen: Item, other: Item): void {
             if (locked || !field) return;
             locked = true;
-            const win = chosen.v[field.key] > other.v[field.key];
+            const win = chosen.v[field.key]> other.v[field.key];
             ($('hiA') as HTMLButtonElement).disabled = true;
             ($('hiB') as HTMLButtonElement).disabled = true;
             countUp($('hiB').querySelector('.hi-vl') as HTMLElement, right!.v[field.key]);
@@ -159,7 +159,7 @@ import { escapeHtml as esc } from './shared/text';
               $('hiStreak').textContent = String(streak);
               $('hiMsg').textContent = t('higher.say.right');
               setTimeout(() => {
-                left = right!.v[field!.key] > left!.v[field!.key] ? right : left;
+                left = right!.v[field!.key]> left!.v[field!.key] ? right : left;
                 nextRound(true);
               }, 1100);
             } else {

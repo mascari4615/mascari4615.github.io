@@ -72,8 +72,8 @@ import { download } from './shared/image';
           <div class="tool-sublabel">${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}</div>
           <p class="bn-warn">${esc(t('burnnote.note.warn', undefined, '지금 열면 사라집니다. 옮겨 적을 준비가 됐을 때 누르세요.'))}</p>
           <button class="btn btn-primary" id="bnOpen">${esc(t('burnnote.btn.open', undefined, '열기 (한 번뿐)'))}</button>
-          <textarea id="bnGot" rows="6" readonly aria-label="${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}" style="width:100%; display:none; margin-top:10px;"></textarea>
-          <button class="btn btn-primary" id="bnSave" style="display:none; margin-top:10px;">${esc(t('burnnote.btn.save', undefined, '파일 받기'))}</button>
+          <textarea id="bnGot" rows="6" readonly aria-label="${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}" style="width:100%; display:none;"></textarea>
+          <button class="btn btn-primary" id="bnSave" style="display:none;">${esc(t('burnnote.btn.save', undefined, '파일 받기'))}</button>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ import { download } from './shared/image';
           say(t('burnnote.status.empty', undefined, '건넬 것을 적거나 파일을 고르세요'), 'warn');
           return;
         }
-        if (picked && picked.size > 5 * 1024 * 1024) {
+        if (picked && picked.size> 5 * 1024 * 1024) {
           say(t('burnnote.status.big', undefined, '파일이 5MB 를 넘습니다'), 'warn');
           return;
         }

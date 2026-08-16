@@ -109,7 +109,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
                   </select>
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <button type="button" class="tool-chip active" data-out="srt">${esc(t('subtitle.out.srt'))}</button>
                 <button type="button" class="tool-chip" data-out="vtt">${esc(t('subtitle.out.vtt'))}</button>
               </div>
@@ -165,7 +165,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
               statCell(t('subtitle.stat.lines'), t('subtitle.value.lines', { n: cues.length }), true) +
               statCell(
                 t('subtitle.stat.shift'),
-                (shift >= 0 ? '+' : '') + t('subtitle.value.sec', { n: shift.toFixed(1) })
+                (shift>= 0 ? '+' : '') + t('subtitle.value.sec', { n: shift.toFixed(1) })
               ) +
               statCell(t('subtitle.stat.format'), outFmt.toUpperCase());
 

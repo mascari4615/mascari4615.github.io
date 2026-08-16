@@ -121,7 +121,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         paint(l.id);
         save();
         /* 슬라이더를 올렸는데 아무 소리도 안 나면 고장으로 보인다 — 그 손짓 안에서 켠다. */
-        if (!scape.running && Number(el.value) > 0) power(true);
+        if (!scape.running && Number(el.value)> 0) power(true);
         else if (scape.running) report();
       });
     }

@@ -79,7 +79,7 @@ import { readInvocation } from '../../lib/tool-url';
                   <input type="date" id="wdTo" aria-label="${esc(t('workdays.label.to'))}" value="${iso(new Date(today.getTime() + 14 * 86400000))}">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="wdSat"> ${esc(t('workdays.opt.saturday'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="wdIncludeStart"> ${esc(t('workdays.opt.includeStart'))}</label>
               </div>

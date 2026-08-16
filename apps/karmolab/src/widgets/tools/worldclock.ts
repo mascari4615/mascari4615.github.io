@@ -173,7 +173,7 @@ import { readInvocation } from '../../lib/tool-url';
                 /* 45분·30분짜리 시간대(네팔 +5:45, 인도 +5:30)를 `+5.8시간` 처럼 적으면 아무도 못 읽는다.
                    시간과 분으로 적는다. */
                 const diffMin = offsetMinutes(z, at) - baseOff;
-                const sign = diffMin > 0 ? '+' : '-';
+                const sign = diffMin> 0 ? '+' : '-';
                 const am = Math.abs(diffMin);
                 const diffText =
                   diffMin === 0

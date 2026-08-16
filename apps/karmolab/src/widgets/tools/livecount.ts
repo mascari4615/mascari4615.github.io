@@ -76,7 +76,7 @@ import { intervalWhileVisible } from '../../lib/tick';
 
             const perDay = Number(rateInput.value);
             const unit = unitInput.value.trim() === '' ? t('livecount.t05') : unitInput.value.trim();
-            if (Number.isFinite(perDay) && perDay > 0) {
+            if (Number.isFinite(perDay) && perDay> 0) {
               $('#lcRateOut').textContent =
                 t('livecount.projected', {
                   n: project(e, perDay).toLocaleString(locale()),

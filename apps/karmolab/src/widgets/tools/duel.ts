@@ -59,7 +59,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   function shuffle<T>(a: T[]): T[] {
     const out = a.slice();
-    for (let i = out.length - 1; i > 0; i--) {
+    for (let i = out.length - 1; i> 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [out[i], out[j]] = [out[j], out[i]];
     }
@@ -275,7 +275,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           function paintScores(): void {
             $<HTMLElement>('#duMeScore').textContent = String(myScore);
             $<HTMLElement>('#duFoeScore').textContent = String(foeScore);
-            $<HTMLElement>('#duRound').textContent = roundIndex >= 0 ? `${roundIndex + 1} / ${ROUNDS}` : '— ';
+            $<HTMLElement>('#duRound').textContent = roundIndex>= 0 ? `${roundIndex + 1} / ${ROUNDS}` : '— ';
           }
 
           function showRound(r: Round): void {
@@ -298,7 +298,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const tick = (): void => {
               const left = r.limitMs - (performance.now() - startedAt);
               timerEl.style.width = `${Math.max(0, (left / r.limitMs) * 100)}%`;
-              if (left > 0) raf = requestAnimationFrame(tick);
+              if (left> 0) raf = requestAnimationFrame(tick);
             };
             cancelAnimationFrame(raf);
             tick();
@@ -355,7 +355,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           function nextRound(): void {
             roundIndex++;
-            if (roundIndex >= ROUNDS) {
+            if (roundIndex>= ROUNDS) {
               // 끝났다는 것도 말해 줘야 한다 — 손님 쪽은 다음 판을 받아야 화면이 바뀌므로,
               // 안 보내면 마지막 판 화면에서 영영 기다린다(연결은 멀쩡한데 안 끝난 것처럼 보인다).
               sendPlan?.({ round: -1 });
@@ -371,7 +371,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           function finish(): void {
             orderEl.className = 'du-order';
             orderEl.textContent =
-              myScore > foeScore ? t('duel.win') : myScore < foeScore ? t('duel.lose') : t('duel.draw');
+              myScore> foeScore ? t('duel.win') : myScore < foeScore ? t('duel.lose') : t('duel.draw');
             choicesEl.innerHTML = '';
             timerEl.style.width = '0%';
             say(t('duel.status.finish', { me: myScore, foe: foeScore }), 'ok');
@@ -399,7 +399,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 if (!first) return;
                 foe = (first.name || t('duel.who.foe')).slice(0, 10);
                 $<HTMLElement>('#duFoeName').textContent = foe;
-                if (roundIndex >= 0) return;
+                if (roundIndex>= 0) return;
                 if (!asHost) {
                   say(t('duel.status.metGuest'));
                   return;

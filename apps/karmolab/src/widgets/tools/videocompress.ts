@@ -71,7 +71,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                     <input type="range" id="vcRate" aria-label="화질" min="1" max="4" step="1" value="2">
                   </div>
                 </div>
-                <div class="tool-chips" style="margin-top:10px;">
+                <div class="tool-chips">
                   <label class="tool-chip"><input type="checkbox" id="vcAudio" checked> ${esc(t('videocompress.opt.audio'))}</label>
                 </div>
               </div>
@@ -280,7 +280,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 이미 잘 눌린 영상은 다시 담으면 커진다 — 그때 줄었다고 말하면 거짓이 된다
             if (leftTab) {
               say(t('videocompress.err.hidden'), 'error');
-            } else if (made.size >= sourceSize) {
+            } else if (made.size>= sourceSize) {
               say(t('videocompress.say.noGain', { from: size(sourceSize), to: size(made.size) }), 'error');
             } else {
               say(t('videocompress.say.done', { from: size(sourceSize), to: size(made.size), pct }), 'ok');

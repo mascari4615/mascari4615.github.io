@@ -44,7 +44,7 @@ import { escapeHtml as esc } from './shared/text';
       defaults: [100, 80],
       calc: (v) => {
         const d = ((v[1] - v[0]) / v[0]) * 100;
-        return `${d >= 0 ? '+' : ''}${fmt(d)} % (${d >= 0 ? t('percent.word.up') : t('percent.word.down')})`;
+        return `${d>= 0 ? '+' : ''}${fmt(d)} % (${d>= 0 ? t('percent.word.up') : t('percent.word.down')})`;
       },
       formula: (v) => `(${fmt(v[1])} − ${fmt(v[0])}) ÷ ${fmt(v[0])} × 100`
     },
@@ -114,7 +114,7 @@ import { escapeHtml as esc } from './shared/text';
             const line = row.parts
               .map((p) => {
                 if (p !== null) return `<span class="pc-text">${p}</span>`;
-                const label = blanks > 1 ? t('percent.label.nth', { sentence, n: ni + 1 }) : sentence;
+                const label = blanks> 1 ? t('percent.label.nth', { sentence, n: ni + 1 }) : sentence;
                 return `<input type="number" class="pc-num" aria-label="${label}" data-row="${ri}" data-n="${ni++}" step="any" value="${row.defaults[ni - 1]}">`;
               })
               .join('');

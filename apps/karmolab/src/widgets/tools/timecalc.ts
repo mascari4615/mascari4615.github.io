@@ -51,7 +51,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                   <input type="text" id="tcDur" aria-label="${esc(t('timecalc.aria.dur'))}" value="1:25" spellcheck="false">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <button type="button" class="tool-chip active" data-op="add">${esc(t('timecalc.mode.add'))}</button>
                 <button type="button" class="tool-chip" data-op="sub">${esc(t('timecalc.mode.sub'))}</button>
               </div>
@@ -104,7 +104,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             out.innerHTML =
               row(t('timecalc.aria.dur'), fmt(delta)) +
               row(t('timecalc.row.result'), `${clock(total)}${
-                  dayShift > 0
+                  dayShift> 0
                     ? t('timecalc.value.dayAfter', { n: dayShift })
                     : dayShift < 0
                       ? t('timecalc.value.dayBefore', { n: -dayShift })

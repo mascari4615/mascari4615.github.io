@@ -119,7 +119,7 @@ import { markLive } from './shared/say';
                   <input type="range" id="bcHeight" aria-label="${esc(t('barcode.label.height'))}" min="30" max="200" step="5" value="80">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="bcText" checked> ${esc(t('barcode.opt.showText'))}</label>
               </div>
             </div>

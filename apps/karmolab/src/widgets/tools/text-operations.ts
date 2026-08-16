@@ -13,7 +13,7 @@ const CHO = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k
 const JUNG = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
 const JONG = ['','k','k','k','n','n','n','t','l','k','m','p','t','t','p','t','m','p','p','t','t','ng','t','t','k','t','p','t'];
 
-function romanize(text: string): string { return [...text].map((character) => { const code = character.charCodeAt(0) - 0xac00; return code < 0 || code > 11171 ? character : CHO[Math.floor(code / 588)] + JUNG[Math.floor((code % 588) / 28)] + JONG[code % 28]; }).join(''); }
+function romanize(text: string): string { return [...text].map((character) => { const code = character.charCodeAt(0) - 0xac00; return code < 0 || code> 11171 ? character : CHO[Math.floor(code / 588)] + JUNG[Math.floor((code % 588) / 28)] + JONG[code % 28]; }).join(''); }
 function splitWords(text: string): string[] { return text.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').replace(/[_\-.\s]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => word.toLowerCase()); }
 function unwrap(text: string): string { return text.split(/\n\s*\n/).map((paragraph) => paragraph.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).reduce((whole, line) => !whole ? line : /[A-Za-z]-$/.test(whole) ? whole.slice(0, -1) + line : `${whole} ${line}`, '')).filter(Boolean).join('\n\n'); }
 function wrap(text: string, width: number): string { return text.split(/\n\s*\n/).map((paragraph) => { const lines: string[] = []; let line = ''; paragraph.replace(/\s+/g, ' ').trim().split(' ').forEach((word) => { if (!line) line = word; else if (`${line} ${word}`.length <= width) line += ` ${word}`; else { lines.push(line); line = word; } }); if (line) lines.push(line); return lines.join('\n'); }).join('\n\n'); }
@@ -77,7 +77,7 @@ function clean(input: string, values: Record<string, string | boolean | number>)
   if (values.sort === 'asc') lines.sort((left, right) => left.localeCompare(right, 'ko-KR'));
   if (values.sort === 'desc') lines.sort((left, right) => right.localeCompare(left, 'ko-KR'));
   if (values.sort === 'length') lines.sort((left, right) => left.length - right.length);
-  if (values.sort === 'shuffle') for (let index = lines.length - 1; index > 0; index--) { const target = Math.floor(Math.random() * (index + 1)); [lines[index], lines[target]] = [lines[target], lines[index]]; }
+  if (values.sort === 'shuffle') for (let index = lines.length - 1; index> 0; index--) { const target = Math.floor(Math.random() * (index + 1)); [lines[index], lines[target]] = [lines[target], lines[index]]; }
   if (values.reverse) lines.reverse();
   if (values.case === 'upper') lines = lines.map((line) => line.toUpperCase());
   if (values.case === 'lower') lines = lines.map((line) => line.toLowerCase());
@@ -101,7 +101,7 @@ function redact(input: string, values: Record<string, string | boolean | number>
     expression.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = expression.exec(input)) !== null) {
-      if (hits.some((hit) => match!.index < hit.end && match!.index + match![0].length > hit.start)) continue;
+      if (hits.some((hit) => match!.index < hit.end && match!.index + match![0].length> hit.start)) continue;
       hits.push({ start: match.index, end: match.index + match[0].length, kind, value: match[0] });
     }
   }
@@ -120,7 +120,7 @@ function redact(input: string, values: Record<string, string | boolean | number>
 
 function frequency(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
   const lower = Boolean(values.case) ? (word: string): string => word : (word: string): string => word.toLowerCase();
-  const words = (input.match(/[\p{L}\p{N}][\p{L}\p{N}'-]*/gu) || []).map(lower).map((word) => Boolean(values.particle) ? stripParticle(word) : word).filter((word) => word.length > 1 && (!Boolean(values.stop) || !STOP.has(word)));
+  const words = (input.match(/[\p{L}\p{N}][\p{L}\p{N}'-]*/gu) || []).map(lower).map((word) => Boolean(values.particle) ? stripParticle(word) : word).filter((word) => word.length> 1 && (!Boolean(values.stop) || !STOP.has(word)));
   const counts = new Map<string, number>(); for (const word of words) counts.set(word, (counts.get(word) || 0) + 1);
   const rows = [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], 'ko-KR')).slice(0, 100);
   return { output: rows.map(([word, count]) => `${word}\t${count}`).join('\n'), status: `${words.length}개 단어에서 ${rows.length}개 상위 항목을 찾았습니다.` };
@@ -169,7 +169,7 @@ function textCanvas(input: string, values: Record<string, string | boolean | num
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const context = canvas.getContext('2d')!; context.fillStyle = dark ? '#12141a' : '#f7f8fa'; context.fillRect(0, 0, width, height); context.fillStyle = dark ? '#f2f4f8' : '#1a1d24';
   const padding = Math.round(width * 0.09); let fontSize = Number(values.size || 0) || Math.round(width * 0.09); let lines: string[] = [];
-  for (let attempt = 0; attempt < 40; attempt++) { context.font = `700 ${fontSize}px sans-serif`; lines = []; for (const paragraph of input.split('\n')) { let line = ''; for (const character of paragraph || ' ') { if (context.measureText(line + character).width > width - padding * 2 && line) { lines.push(line); line = character; } else line += character; } lines.push(line); } if (lines.length * fontSize * 1.45 <= height - padding * 2 || Number(values.size)) break; fontSize = Math.max(12, Math.round(fontSize * 0.92)); }
+  for (let attempt = 0; attempt < 40; attempt++) { context.font = `700 ${fontSize}px sans-serif`; lines = []; for (const paragraph of input.split('\n')) { let line = ''; for (const character of paragraph || ' ') { if (context.measureText(line + character).width> width - padding * 2 && line) { lines.push(line); line = character; } else line += character; } lines.push(line); } if (lines.length * fontSize * 1.45 <= height - padding * 2 || Number(values.size)) break; fontSize = Math.max(12, Math.round(fontSize * 0.92)); }
   context.textBaseline = 'middle'; const step = fontSize * 1.45; let y = height / 2 - lines.length * step / 2 + step / 2; for (const line of lines) { const measured = context.measureText(line).width; context.fillText(line, (width - measured) / 2, y); y += step; }
   return canvas;
 }
@@ -197,7 +197,7 @@ function encFix(input: string, values: Record<string, string | boolean | number>
   }
   const best = bestFix(input);
   const lost = encLosses(input);
-  const warn = lost.replacement > 0 ? ` (되살릴 수 없는 자리 ${lost.replacement}곳은 그대로 둡니다)` : '';
+  const warn = lost.replacement> 0 ? ` (되살릴 수 없는 자리 ${lost.replacement}곳은 그대로 둡니다)` : '';
   if (best.text === input) return { output: input, status: `되살릴 것이 없습니다 — 안 깨진 글로 보입니다.${warn}` };
   return { output: best.text, status: `${best.how}${warn}` };
 }

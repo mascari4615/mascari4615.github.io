@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
       $<HTMLElement>('#psRows').innerHTML = [
         row('gross', slip.gross),
-        slip.taxFree > 0 ? row('taxFree', slip.taxFree, t('payslip.row.taxFreeNote')) : '',
+        slip.taxFree> 0 ? row('taxFree', slip.taxFree, t('payslip.row.taxFreeNote')) : '',
         row('pension', -slip.pension, '4.5%'),
         row('health', -slip.health, '3.545%'),
         row('care', -slip.care, t('payslip.row.careNote')),

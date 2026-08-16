@@ -34,15 +34,15 @@ import { t, loadNamespace } from '../../lib/i18n';
       let hi = 0;
       for (const p of pixels) {
         if (p[ch] < lo) lo = p[ch];
-        if (p[ch] > hi) hi = p[ch];
+        if (p[ch]> hi) hi = p[ch];
       }
-      if (hi - lo > range) {
+      if (hi - lo> range) {
         range = hi - lo;
         widest = ch;
       }
     }
     pixels.sort((a, b) => a[widest] - b[widest]);
-    const mid = pixels.length >> 1;
+    const mid = pixels.length>> 1;
     return [
       ...medianCut(pixels.slice(0, mid), depth - 1),
       ...medianCut(pixels.slice(mid), depth - 1)
@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const s = v / 255;
       return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
     });
-    return 0.2126 * lum[0] + 0.7152 * lum[1] + 0.0722 * lum[2] > 0.35 ? '#111' : '#fff';
+    return 0.2126 * lum[0] + 0.7152 * lum[1] + 0.0722 * lum[2]> 0.35 ? '#111' : '#fff';
   }
 
   Toolbox.register({

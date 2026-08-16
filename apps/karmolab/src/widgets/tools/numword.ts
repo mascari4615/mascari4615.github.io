@@ -16,11 +16,11 @@ import { markLive } from './shared/say';
   /** 네 자리 덩이 하나를 읽는다 (1234 → 천이백삼십사) */
   function readChunk(n: number, formal: boolean): string {
     let out = '';
-    for (let i = 3; i >= 0; i--) {
+    for (let i = 3; i>= 0; i--) {
       const d = Math.floor(n / Math.pow(10, i)) % 10;
       if (!d) continue;
       // 일십·일백은 보통 「십·백」 으로 읽는다. 금액 표기(formal)에서는 붙여 적기도 한다.
-      out += (d === 1 && i > 0 && !formal ? '' : DIGIT[d]) + SMALL[i];
+      out += (d === 1 && i> 0 && !formal ? '' : DIGIT[d]) + SMALL[i];
     }
     return out;
   }
@@ -30,11 +30,11 @@ import { markLive } from './shared/say';
     const digits = num.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
     if (!digits) return '';
     if (digits === '0') return '영';
-    if (digits.length > 20) return t('numword.err.tooBig');
+    if (digits.length> 20) return t('numword.err.tooBig');
 
     // 뒤에서 네 자리씩 끊는다 — 만·억·조가 네 자리 주기라서.
     const chunks: string[] = [];
-    for (let i = digits.length; i > 0; i -= 4) chunks.unshift(digits.slice(Math.max(0, i - 4), i));
+    for (let i = digits.length; i> 0; i -= 4) chunks.unshift(digits.slice(Math.max(0, i - 4), i));
 
     let out = '';
     chunks.forEach((c, i) => {
@@ -56,11 +56,11 @@ import { markLive } from './shared/say';
       const d = DIGIT.indexOf(ch);
       const s = SMALL.indexOf(ch);
       const b = BIG.indexOf(ch);
-      if (d > 0) cur = d;
-      else if (s > 0) {
+      if (d> 0) cur = d;
+      else if (s> 0) {
         bigAcc += (cur || 1) * Math.pow(10, s);
         cur = 0;
-      } else if (b > 0) {
+      } else if (b> 0) {
         total += (bigAcc + cur) * Math.pow(10000, b);
         bigAcc = 0;
         cur = 0;

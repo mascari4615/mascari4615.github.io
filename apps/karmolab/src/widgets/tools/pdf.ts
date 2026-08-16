@@ -394,7 +394,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         }
       }
       drawn = end;
-      more.hidden = drawn >= doc.numPages;
+      more.hidden = drawn>= doc.numPages;
       more.textContent = t('pdf.btn.more', { n: doc.numPages - drawn }, `더 보기 (${doc.numPages - drawn}쪽)`);
     }
     more.onclick = (): void => void drawMore();

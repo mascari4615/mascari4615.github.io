@@ -101,7 +101,7 @@ import { markLive } from './shared/say';
           function render(): void {
             const W = parseFloat(w.value);
             const H = parseFloat(h.value);
-            if (!(W > 0 && H > 0)) {
+            if (!(W> 0 && H> 0)) {
               out.innerHTML = '';
               return;
             }
@@ -111,16 +111,16 @@ import { markLive } from './shared/say';
             // 한쪽만 채워져 있으면 나머지를 비율대로 맞춘다.
             let outW = parseFloat(nw.value);
             let outH = parseFloat(nh.value);
-            if (lastEdited === 'w' && outW > 0) outH = Math.round(outW / ratio);
-            else if (lastEdited === 'h' && outH > 0) outW = Math.round(outH * ratio);
+            if (lastEdited === 'w' && outW> 0) outH = Math.round(outW / ratio);
+            else if (lastEdited === 'h' && outH> 0) outW = Math.round(outH * ratio);
 
             const rows = [
               row(t('aspect.row.reduced'), `${Math.round(W / g)} : ${Math.round(H / g)}`),
               row(t('aspect.row.decimal'), `${ratio.toFixed(4)} : 1`),
               row(t('aspect.row.area'), `${(W * H).toLocaleString('ko-KR')} px²`),
-              row(t('aspect.row.orientation'), ratio > 1 ? t('aspect.orient.landscape') : ratio < 1 ? t('aspect.orient.portrait') : t('aspect.orient.square'))
+              row(t('aspect.row.orientation'), ratio> 1 ? t('aspect.orient.landscape') : ratio < 1 ? t('aspect.orient.portrait') : t('aspect.orient.square'))
             ];
-            if (outW > 0 && outH > 0) {
+            if (outW> 0 && outH> 0) {
               rows.push(row(t('aspect.row.newSize'), `${outW} × ${outH}`));
               rows.push(row(t('aspect.row.scale'), t('aspect.value.scale', { n: (outW / W).toFixed(3) })));
               // 16:9 화면에 넣을 때 생기는 위아래(또는 좌우) 여백 — 영상 작업에서 자주 필요하다.
@@ -128,15 +128,15 @@ import { markLive } from './shared/say';
               rows.push(
                 row(
                   t('aspect.row.fit169'),
-                  box169 > outH
+                  box169> outH
                     ? t('aspect.value.padY', { n: Math.round((box169 - outH) / 2) })
                     : t('aspect.value.padX', { n: Math.round((outH * (16 / 9) - outW) / 2) })
                 )
               );
             }
             out.innerHTML = rows.join('');
-            status.textContent = outW > 0 && outH > 0 ? t('aspect.say.kept') : t('aspect.status.idle');
-            status.className = 'tool-status' + (outW > 0 && outH > 0 ? ' ok' : '');
+            status.textContent = outW> 0 && outH> 0 ? t('aspect.say.kept') : t('aspect.status.idle');
+            status.className = 'tool-status' + (outW> 0 && outH> 0 ? ' ok' : '');
           }
 
           nw.addEventListener('input', () => {

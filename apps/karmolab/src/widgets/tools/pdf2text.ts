@@ -62,7 +62,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
         .replace(/\s+/g, ' ')
         .trim();
       if (!text) continue;
-      if (prevY !== null && typical > 0 && prevY - l.y > typical * 1.6) out.push('');
+      if (prevY !== null && typical> 0 && prevY - l.y> typical * 1.6) out.push('');
       out.push(text);
       prevY = l.y;
     }
@@ -155,10 +155,10 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
               if (m) {
                 const from = m[1] ? parseInt(m[1], 10) : 1;
                 const to = m[2] ? parseInt(m[2], 10) : total;
-                for (let i = from; i <= Math.min(to, total); i++) if (i >= 1 && !seen.has(i)) (seen.add(i), list.push(i));
+                for (let i = from; i <= Math.min(to, total); i++) if (i>= 1 && !seen.has(i)) (seen.add(i), list.push(i));
               } else if (/^\d+$/.test(s)) {
                 const n = parseInt(s, 10);
-                if (n >= 1 && n <= total && !seen.has(n)) (seen.add(n), list.push(n));
+                if (n>= 1 && n <= total && !seen.has(n)) (seen.add(n), list.push(n));
               }
             }
             return list;

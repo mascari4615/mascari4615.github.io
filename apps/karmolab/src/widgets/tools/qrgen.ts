@@ -112,7 +112,7 @@ import { encode, loadImage } from './shared/image';
                   <input type="range" id="qrSize" aria-label="크기 (픽셀)" min="128" max="1024" step="32" value="320">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('qrgen.label.fg'))}</div>
                   <input type="color" id="qrFg" aria-label="전경색" value="#000000" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
@@ -122,7 +122,7 @@ import { encode, loadImage } from './shared/image';
                   <input type="color" id="qrBg" aria-label="배경색" value="#ffffff" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('qrgen.label.logo'))}</div>
                   <input type="file" id="qrLogo" accept="image/*" aria-label="가운데 로고 이미지">

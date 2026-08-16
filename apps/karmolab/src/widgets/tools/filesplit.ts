@@ -139,7 +139,7 @@ import { download } from './shared/image';
            */
           function chunkBytes(): number {
             const mb = parseFloat($<HTMLSelectElement>('#fsSize').value);
-            return (Number.isFinite(mb) && mb > 0 ? mb : 20) * 1024 * 1024;
+            return (Number.isFinite(mb) && mb> 0 ? mb : 20) * 1024 * 1024;
           }
 
           function render(): void {
@@ -166,7 +166,7 @@ import { download } from './shared/image';
               .map(
                 (f) =>
                   `<div class="tool-list-row"><span class="tool-list-key">${esc(
-                    partIndex(f.name) > 0
+                    partIndex(f.name)> 0
                       ? t('filesplit.value.part', { n: partIndex(f.name) })
                       : t('filesplit.value.unknown')
                   )}</span><span class="tool-list-val">${esc(f.name)} <span class="tool-list-dim">${size(f.size)}</span></span></div>`
@@ -230,7 +230,7 @@ import { download } from './shared/image';
           function take(files: FileList | File[]): void {
             const arr = Array.from(files);
             if (mode === 'split') one = arr[0] || null;
-            else many = arr.filter((f) => partIndex(f.name) > 0 || arr.length > 1);
+            else many = arr.filter((f) => partIndex(f.name)> 0 || arr.length> 1);
             render();
           }
 

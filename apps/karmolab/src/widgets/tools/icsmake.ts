@@ -116,7 +116,7 @@ import { download } from './shared/image';
                   <input type="datetime-local" id="icEnd" aria-label="끝 시각" value="${endDefault}">
                 </div>
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 <label class="tool-chip"><input type="checkbox" id="icAllDay"> ${esc(t('icsmake.opt.allDay'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="icAlarm" checked> ${esc(t('icsmake.opt.alarm'))}</label>
               </div>
@@ -138,7 +138,7 @@ import { download } from './shared/image';
                   </select>
                 </div>
               </div>
-              <label class="field-label" for="icNote" style="margin-top:10px;">${esc(t('icsmake.label.note'))}</label>
+              <label class="field-label" for="icNote">${esc(t('icsmake.label.note'))}</label>
               <textarea id="icNote" rows="3" style="width:100%;" placeholder="${esc(t('icsmake.ph.note'))}"></textarea>
             </div>
 

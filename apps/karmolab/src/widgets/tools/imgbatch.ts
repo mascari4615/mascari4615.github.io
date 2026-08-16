@@ -24,7 +24,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
   }
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
 
   Toolbox.register({
     id: 'imgbatch',
@@ -61,7 +61,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
                   <input type="range" id="ibMax" aria-label="${esc(t('imgbatch.label.max'))}" min="200" max="4000" step="100" value="1600">
                 </div>
               </div>
-              <div style="margin-top:10px;">
+              <div>
                 <div class="tool-sublabel">${esc(t('imgbatch.label.quality'))} <span id="ibQualityVal" class="range-value">85</span></div>
                 <input type="range" id="ibQuality" aria-label="${esc(t('imgbatch.label.quality'))}" min="40" max="100" value="85">
               </div>
@@ -276,7 +276,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
             const verdict =
               after < before
                 ? t('imgbatch.verdict.smaller', { pct })
-                : after > before
+                : after> before
                   ? t('imgbatch.verdict.biggerBy', { pct })
                   : t('imgbatch.verdict.same');
             say(

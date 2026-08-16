@@ -192,8 +192,8 @@ import { readInvocation } from '../../lib/tool-url';
   function pretty(n: number): string {
     if (!isFinite(n)) return '-';
     const abs = Math.abs(n);
-    if (abs !== 0 && (abs < 0.0001 || abs >= 1e15)) return n.toExponential(6);
-    const fixed = abs >= 100 ? 4 : abs >= 1 ? 6 : 8;
+    if (abs !== 0 && (abs < 0.0001 || abs>= 1e15)) return n.toExponential(6);
+    const fixed = abs>= 100 ? 4 : abs>= 1 ? 6 : 8;
     return parseFloat(n.toFixed(fixed)).toLocaleString('ko-KR', { maximumFractionDigits: 8 });
   }
 
@@ -243,7 +243,7 @@ import { readInvocation } from '../../lib/tool-url';
                   <select id="ucTo" aria-label="${esc(t('unitconv.label.to'))}" style="margin-top:var(--space-sm);"></select>
                 </div>
               </div>
-              <div style="display:flex; gap:6px; margin-top:10px;">
+              <div style="display:flex; gap:6px;">
                 <button class="btn btn-ghost" id="ucSwap">↕ ${esc(t('unitconv.btn.swap'))}</button>
                 <button class="btn btn-ghost" id="ucCopy">${esc(t('unitconv.btn.copy'))}</button>
               </div>
@@ -318,7 +318,7 @@ import { readInvocation } from '../../lib/tool-url';
             const 평당 = 만원 / 평;
             const 제곱당 = 만원 / baseSquareMeters;
             const 만원말 = (n: number): string =>
-              n >= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
+              n>= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
             out.textContent = `${평.toFixed(2)}평 · 평당 ${만원말(평당)} · ㎡당 ${만원말(제곱당)}`;
             out.className = 'tool-status ok';
           }

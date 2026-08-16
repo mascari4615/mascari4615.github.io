@@ -208,7 +208,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         opBox.innerHTML = doc.operations
           .map((o, i) => '<option value="' + i + '">' + esc(o.method + ' ' + o.path + (o.summary === undefined ? '' : '  — ' + o.summary)) + '</option>')
           .join('');
-        if (server.value === '' && doc.servers.length > 0) server.value = doc.servers[0];
+        if (server.value === '' && doc.servers.length> 0) server.value = doc.servers[0];
         renderParams();
         renderRequest();
         status.textContent = t('apitest.status.ok', { n: doc.operations.length, title: doc.title ?? '' });

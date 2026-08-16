@@ -77,7 +77,7 @@ import { encode } from './shared/image';
                   <input type="range" id="pwSize" aria-label="${esc(t('pdfwatermark.label.size'))}" min="20" max="95" value="60">
                 </div>
               </div>
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('pdfwatermark.label.angle'))}</div>
                   <select id="pwAngle" aria-label="${esc(t('pdfwatermark.label.angle'))}">

@@ -49,9 +49,9 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
     const 분 = Math.floor(ms / 60000);
     const 시 = Math.floor(분 / 60);
     const 일 = Math.floor(시 / 24);
-    if (일 >= 1) return t('timecapsule.left.days', { n: 일 });
-    if (시 >= 1) return t('timecapsule.left.hours', { n: 시 });
-    if (분 >= 1) return t('timecapsule.left.minutes', { n: 분 });
+    if (일>= 1) return t('timecapsule.left.days', { n: 일 });
+    if (시>= 1) return t('timecapsule.left.hours', { n: 시 });
+    if (분>= 1) return t('timecapsule.left.minutes', { n: 분 });
     return t('timecapsule.left.soon');
   }
 

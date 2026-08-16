@@ -33,7 +33,7 @@
       this.chunks.push(v & 0xff);
     }
     short(v: number): void {
-      this.chunks.push(v & 0xff, (v >> 8) & 0xff);
+      this.chunks.push(v & 0xff, (v>> 8) & 0xff);
     }
     str(s: string): void {
       for (let i = 0; i < s.length; i++) this.chunks.push(s.charCodeAt(i) & 0xff);
@@ -61,11 +61,11 @@
       for (const p of pixels) {
         const r = sample[p * 3], g = sample[p * 3 + 1], b = sample[p * 3 + 2];
         if (r < rMin) rMin = r;
-        if (r > rMax) rMax = r;
+        if (r> rMax) rMax = r;
         if (g < gMin) gMin = g;
-        if (g > gMax) gMax = g;
+        if (g> gMax) gMax = g;
         if (b < bMin) bMin = b;
-        if (b > bMax) bMax = b;
+        if (b> bMax) bMax = b;
       }
       return { pixels, rMin, rMax, gMin, gMax, bMin, bMax };
     };
@@ -79,7 +79,7 @@
         const b = boxes[i];
         if (b.pixels.length < 2) continue;
         const span = Math.max(b.rMax - b.rMin, b.gMax - b.gMin, b.bMax - b.bMin);
-        if (span > widest) {
+        if (span> widest) {
           widest = span;
           target = i;
         }
@@ -88,9 +88,9 @@
 
       const box = boxes[target];
       const rSpan = box.rMax - box.rMin, gSpan = box.gMax - box.gMin, bSpan = box.bMax - box.bMin;
-      const axis = rSpan >= gSpan && rSpan >= bSpan ? 0 : gSpan >= bSpan ? 1 : 2;
+      const axis = rSpan>= gSpan && rSpan>= bSpan ? 0 : gSpan>= bSpan ? 1 : 2;
       const sorted = box.pixels.slice().sort((x, y) => sample[x * 3 + axis] - sample[y * 3 + axis]);
-      const mid = sorted.length >> 1;
+      const mid = sorted.length>> 1;
       boxes.splice(target, 1, measure(sorted.slice(0, mid)), measure(sorted.slice(mid)));
     }
 
@@ -120,9 +120,9 @@
     const emit = (code: number): void => {
       cur |= code << curBits;
       curBits += codeSize;
-      while (curBits >= 8) {
+      while (curBits>= 8) {
         out.push(cur & 0xff);
-        cur >>= 8;
+        cur>>= 8;
         curBits -= 8;
       }
     };
@@ -147,7 +147,7 @@
       emit(prefix.indexOf(',') < 0 ? Number(prefix) : (dict.get(prefix) as number));
       if (next < 4096) {
         dict.set(combined, next++);
-        if (next > 1 << codeSize && codeSize < 12) codeSize++;
+        if (next> 1 << codeSize && codeSize < 12) codeSize++;
       } else {
         emit(clearCode);
         reset();
@@ -156,7 +156,7 @@
     }
     emit(prefix.indexOf(',') < 0 ? Number(prefix) : (dict.get(prefix) as number));
     emit(eoiCode);
-    if (curBits > 0) out.push(cur & 0xff);
+    if (curBits> 0) out.push(cur & 0xff);
     return out;
   }
 
@@ -201,7 +201,7 @@
     // 가까운 색 찾기는 프레임마다 수십만 번 돈다 — 캐시가 없으면 체감이 확 나빠진다.
     const cache = new Map<number, number>();
     const nearest = (r: number, g: number, b: number): number => {
-      const key = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2);
+      const key = (r>> 2) << 12 | (g>> 2) << 6 | (b>> 2);
       const hit = cache.get(key);
       if (hit !== undefined) return hit;
       let best = 0;
@@ -294,7 +294,7 @@
             // 남은 오차를 이웃에게 나눠 준다 — 색 띠 대신 자연스러운 알갱이로 보인다
             const er = r - palette[idx][0], eg = g - palette[idx][1], eb = b - palette[idx][2];
             const spread = (nx: number, ny: number, w: number): void => {
-              if (nx < 0 || nx >= width || ny >= height) return;
+              if (nx < 0 || nx>= width || ny>= height) return;
               const n = (ny * width + nx) * 3;
               work[n] += er * w;
               work[n + 1] += eg * w;

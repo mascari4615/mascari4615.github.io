@@ -24,7 +24,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
   function ageOf(birth: Date, on: Date): { full: number; korean: number; nextBirthday: Date; daysToBirthday: number } {
     let full = on.getFullYear() - birth.getFullYear();
     const passed =
-      on.getMonth() > birth.getMonth() || (on.getMonth() === birth.getMonth() && on.getDate() >= birth.getDate());
+      on.getMonth()> birth.getMonth() || (on.getMonth() === birth.getMonth() && on.getDate()>= birth.getDate());
     if (!passed) full -= 1;
     const korean = on.getFullYear() - birth.getFullYear() + 1;
     let next = new Date(on.getFullYear(), birth.getMonth(), birth.getDate());
@@ -81,7 +81,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
             <div class="field-group">
               <label class="field-label">${esc(t('datecalc.label.target'))}</label>
               <input type="date" id="ddTarget" aria-label="${esc(t('datecalc.label.target'))}">
-              <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-ghost dd-quick" data-add="7">${esc(t('datecalc.quick.add', { n: 7 }))}</button>
                 <button class="btn btn-ghost dd-quick" data-add="30">${esc(t('datecalc.quick.add', { n: 30 }))}</button>
                 <button class="btn btn-ghost dd-quick" data-add="100">${esc(t('datecalc.quick.add', { n: 100 }))}</button>
@@ -143,7 +143,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
                   ? new Date(a.getFullYear() - plus, a.getMonth(), a.getDate())
                   : new Date(a.getTime() + plus * DAY);
                 const left = Math.round((day.getTime() - now.getTime()) / DAY);
-                const leftText = left === 0 ? t('datecalc.mark.today') : left > 0 ? `D-${left}` : t('datecalc.mark.passed', { n: Math.abs(left) });
+                const leftText = left === 0 ? t('datecalc.mark.today') : left> 0 ? `D-${left}` : t('datecalc.mark.passed', { n: Math.abs(left) });
                 return `<div class="tool-list-row"><span class="tool-list-key">${name}</span><span class="tool-list-val">${label(day)} <span class="tool-list-dim">${leftText}</span></span></div>`;
               })
               .join('');
@@ -169,7 +169,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
                 <input type="date" id="dbFrom" aria-label="${esc(t('datecalc.label.from'))}">
                 <input type="date" id="dbTo" aria-label="${esc(t('datecalc.label.to'))}">
               </div>
-              <div class="tool-status" id="dbOut" style="margin-top:10px;"></div>
+              <div class="tool-status" id="dbOut"></div>
             </div>
             <div class="field-group">
               <label class="field-label">${esc(t('datecalc.label.addSubtract'))}</label>
@@ -185,7 +185,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
                   </select>
                 </div>
               </div>
-              <div class="tool-status" id="daOut" style="margin-top:10px;"></div>
+              <div class="tool-status" id="daOut"></div>
             </div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -270,7 +270,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
             const b = parse(birth.value);
             if (!b) return;
             const now = today();
-            if (b.getTime() > now.getTime()) {
+            if (b.getTime()> now.getTime()) {
               out.textContent = '-';
               stats.innerHTML = '';
               return;

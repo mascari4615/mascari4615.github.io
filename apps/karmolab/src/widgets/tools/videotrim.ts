@@ -19,7 +19,7 @@ import { attachMedia } from './shared/media';
 (function (): void {
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
   const mmss = (sec: number): string => {
     const s = Math.max(0, sec);
@@ -117,7 +117,7 @@ import { attachMedia } from './shared/media';
 
           function refresh(): void {
             if (!duration) return;
-            if (parseInt(startEl.value, 10) >= parseInt(endEl.value, 10)) {
+            if (parseInt(startEl.value, 10)>= parseInt(endEl.value, 10)) {
               if (document.activeElement === startEl) endEl.value = String(Math.min(1000, parseInt(startEl.value, 10) + 10));
               else startEl.value = String(Math.max(0, parseInt(endEl.value, 10) - 10));
             }
@@ -191,7 +191,7 @@ import { attachMedia } from './shared/media';
             const watch = window.setInterval(() => {
               const left = Math.max(0, span - (performance.now() - t0) / 1000);
               say(t('videotrim.say.recording', { left: left.toFixed(1) }));
-              if (video.currentTime >= e - 0.03 || left <= 0) stop();
+              if (video.currentTime>= e - 0.03 || left <= 0) stop();
             }, 100);
 
             const stop = (): void => {

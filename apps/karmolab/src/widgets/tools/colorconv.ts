@@ -34,7 +34,7 @@ import { escapeHtml as esc } from './shared/text';
     let s = 0;
     if (max !== min) {
       const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      s = l> 0.5 ? d / (2 - max - min) : d / (max + min);
       if (max === rr) h = ((gg - bb) / d + (gg < bb ? 6 : 0)) * 60;
       else if (max === gg) h = ((bb - rr) / d + 2) * 60;
       else h = ((rr - gg) / d + 4) * 60;
@@ -145,7 +145,7 @@ import { escapeHtml as esc } from './shared/text';
           function swatchInk(hex: string): string {
             const rgb = hexToRgb(hex);
             if (rgb == null) return '#fff';
-            return luminance(rgb) > 0.45 ? '#12100c' : '#fff';
+            return luminance(rgb)> 0.45 ? '#12100c' : '#fff';
           }
 
           function swatches(list: Array<{ hex: string; label: string }>): string {
@@ -191,7 +191,7 @@ import { escapeHtml as esc } from './shared/text';
             const cw = contrast(rgb, white);
             const cb = contrast(rgb, black);
             const verdict = (v: number): string =>
-              v >= 7 ? t('colorconv.grade.aaa') : v >= 4.5 ? t('colorconv.grade.aa') : v >= 3 ? t('colorconv.grade.aaLarge') : t('colorconv.grade.fail');
+              v>= 7 ? t('colorconv.grade.aaa') : v>= 4.5 ? t('colorconv.grade.aa') : v>= 3 ? t('colorconv.grade.aaLarge') : t('colorconv.grade.fail');
             contrastEl.innerHTML = `
               <div class="cc-contrast" style="background:${norm}; color:#fff;">
                 <div style="font-weight:700;">${esc(t('colorconv.value.onWhite', { r: cw.toFixed(2) }))}</div>

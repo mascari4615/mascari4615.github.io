@@ -31,7 +31,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     cur.width = cw;
     cur.height = ch;
     cur.getContext('2d')?.drawImage(src, 0, 0, cw, ch);
-    while (cw > tw * 2 && ch > th * 2) {
+    while (cw> tw * 2 && ch> th * 2) {
       const next = document.createElement('canvas');
       next.width = Math.max(tw, Math.round(cw / 2));
       next.height = Math.max(th, Math.round(ch / 2));
@@ -105,7 +105,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <button type="button" class="tool-chip" data-mode="bytes">${esc(t('imgresize.mode.bytes'))}</button>
               </div>
 
-              <div id="irSideWrap" style="margin-top:10px;">
+              <div id="irSideWrap">
                 <div class="tool-sublabel">${esc(t('imgresize.label.side'))} <span id="irSideVal" class="range-value">1024px</span></div>
                 <input type="range" id="irSide" aria-label="긴 변 크기" min="200" max="4000" step="20" value="1024">
                 <div class="tool-chips" style="margin-top:var(--space-sm);">
@@ -117,7 +117,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               <!-- iLoveIMG 등 상위 도구는 「픽셀 또는 백분율」 둘 다 받는다. 원본 크기를 모르고
                    「반으로만 줄이고 싶다」는 사람에게는 픽셀 칸이 오히려 걸림돌이다. -->
-              <div id="irPercentWrap" style="display:none; margin-top:10px;">
+              <div id="irPercentWrap" style="display:none;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.percent'))} <span id="irPercentVal" class="range-value">50%</span></div>
                 <input type="range" id="irPercent" aria-label="원본 대비 비율 (%)" min="5" max="200" step="5" value="50">
                 <div class="tool-chips" style="margin-top:var(--space-sm);">
@@ -127,13 +127,13 @@ import { t, loadNamespace } from '../../lib/i18n';
                 </div>
               </div>
 
-              <div id="irBytesWrap" style="display:none; margin-top:10px;">
+              <div id="irBytesWrap" style="display:none;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.bytes'))} <span id="irBytesVal" class="range-value">1MB</span></div>
                 <input type="range" id="irBytes" aria-label="목표 용량" min="1" max="20" value="4">
                 <div class="tool-status" style="margin-top:var(--space-sm);">${esc(t('imgresize.hint.bytes'))}</div>
               </div>
 
-              <div class="tool-grid-2" style="margin-top:10px;">
+              <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('imgresize.label.format'))}</div>
                   <select id="irType" aria-label="저장 형식">
@@ -242,7 +242,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 for (let round = 0; round < 6 && !blob; round++) {
                   dims = targetSize(long);
                   const cv = shrink(img, img.naturalWidth, img.naturalHeight, dims.w, dims.h);
-                  for (let q = 92; q >= 40; q -= 8) {
+                  for (let q = 92; q>= 40; q -= 8) {
                     say(`기준에 맞추는 중… 긴 변 ${long}px · 품질 ${q}%`);
                     const b = await toBlob(cv, type === 'image/png' ? 'image/jpeg' : type, q / 100);
                     if (b && b.size <= limit) {
@@ -270,7 +270,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const verdict =
                 blob.size < originalSize
                   ? t('imgresize.verdict.smaller', { pct })
-                  : blob.size > originalSize
+                  : blob.size> originalSize
                     ? t('imgresize.verdict.bigger', { pct })
                     : t('imgresize.verdict.same');
               stats.innerHTML =
@@ -279,10 +279,10 @@ import { t, loadNamespace } from '../../lib/i18n';
                 statCell(t('imgresize.stat.vsSrc'), verdict);
               const limit = parseInt($<HTMLInputElement>('#irBytes').value, 10) * 1024 * 1024;
               say(
-                mode === 'bytes' && blob.size > limit
+                mode === 'bytes' && blob.size> limit
                   ? t('imgresize.say.overLimit')
                   : t('imgresize.say.done', { from: size(originalSize), to: size(blob.size), verdict }),
-                mode === 'bytes' && blob.size > limit ? 'error' : 'ok'
+                mode === 'bytes' && blob.size> limit ? 'error' : 'ok'
               );
               Toolbox.trackUse?.('resize');
             } catch (e) {

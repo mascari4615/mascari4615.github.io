@@ -111,7 +111,7 @@ import { markLive } from './shared/say';
     let arrays = 0;
     let depth = 0;
     (function walk(node: unknown, d: number): void {
-      if (d > depth) depth = d;
+      if (d> depth) depth = d;
       if (Array.isArray(node)) {
         arrays++;
         node.forEach((c) => walk(c, d + 1));
@@ -172,7 +172,7 @@ import { markLive } from './shared/say';
                 <textarea id="jfInput" aria-label="${esc(t('jsonfmt.aria.input'))}" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
                 <!-- 「눌러야 나오는」 도구가 아니라 **모드를 고르면 즉시 나오는** 도구다 (TASK-KL-133).
                      붙여넣고 한 번 더 눌러야 결과가 나오면 그 한 번이 매번 쌓인다. -->
-                <div class="tool-chips" id="jfModes" style="margin-top:10px;">
+                <div class="tool-chips" id="jfModes">
                   <button type="button" class="tool-chip active" data-mode="format">${esc(t('jsonfmt.mode.format'))}</button>
                   <button type="button" class="tool-chip" data-mode="tree">${esc(t('jsonfmt.mode.tree'))}</button>
                   <button type="button" class="tool-chip" data-mode="minify">${esc(t('jsonfmt.mode.minify'))}</button>
@@ -195,7 +195,7 @@ import { markLive } from './shared/say';
                   </div>
                   <div id="jfTree" class="jt-tree" aria-label="JSON 트리"></div>
                 </div>
-                <div id="jfStatus" class="tool-status" style="margin-top:10px;">${esc(t('jsonfmt.status.idle'))}</div>
+                <div id="jfStatus" class="tool-status">${esc(t('jsonfmt.status.idle'))}</div>
                 <div id="jfRepair" class="jf-repair" style="display:none;"></div>
               </div>
             </div>

@@ -116,7 +116,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
 
     function speakFrom(index: number): void {
-      if (index >= sentences.length) {
+      if (index>= sentences.length) {
         at = -1;
         paint();
         status.textContent = t('tts.status.done');

@@ -63,7 +63,7 @@ interface ZipArchive {
       <div id="cgPic" style="overflow:auto; margin-bottom:10px;"></div>
       <div class="tool-sublabel">${esc(t('codegraph.label.cycles'))}</div>
       <div id="cgCycles" class="tool-list"></div>
-      <div class="tool-grid-2" style="margin-top:10px;">
+      <div class="tool-grid-2">
         <div>
           <div class="tool-sublabel">${esc(t('codegraph.label.hubs'))}</div>
           <div id="cgHubs" class="tool-list"></div>
@@ -149,7 +149,7 @@ interface ZipArchive {
         const files: Record<string, string> = {};
         for (const [path, entry] of capped) files[path] = await entry.async('string');
         paint(build(files));
-        if (entries.length > capped.length) {
+        if (entries.length> capped.length) {
           status.textContent = t('codegraph.status.capped', { shown: capped.length, all: entries.length });
         }
       } catch (e) {

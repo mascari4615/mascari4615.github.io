@@ -53,7 +53,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div id="bmPic" style="overflow:auto; margin-bottom:10px;"></div>
       <div class="tool-sublabel">${esc(t('bundlemap.label.heavy'))}</div>
       <div id="bmHeavy" class="tool-list"></div>
-      <div class="tool-sublabel" style="margin-top:10px;">${esc(t('bundlemap.label.dupes'))}</div>
+      <div class="tool-sublabel">${esc(t('bundlemap.label.dupes'))}</div>
       <div id="bmDupes" class="tool-list"></div>
       <div class="tool-status" id="bmStatus">${esc(t('bundlemap.status.idle'))}</div>
     `;
@@ -83,11 +83,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           '<rect x="' + r.x + '" y="' + r.y + '" width="' + Math.max(0, r.w) + '" height="' + Math.max(0, r.h) + '" fill="' + color(r.name, r.depth) +
             '" stroke="rgba(0,0,0,.35)" stroke-width="0.8"><title>' + esc(r.name + ' · ' + human(r.bytes)) + '</title></rect>'
         );
-        if (r.w > 60 && r.h > 16) {
+        if (r.w> 60 && r.h> 16) {
           svg.push(
             '<text x="' + (r.x + 5) + '" y="' + (r.y + 12) + '" fill="#111" style="pointer-events:none">' +
-              esc(r.name.length > Math.floor(r.w / 6) ? r.name.slice(0, Math.floor(r.w / 6)) + '…' : r.name) +
-              (r.w > 140 ? ' <tspan opacity=".6">' + esc(human(r.bytes)) + '</tspan>' : '') +
+              esc(r.name.length> Math.floor(r.w / 6) ? r.name.slice(0, Math.floor(r.w / 6)) + '…' : r.name) +
+              (r.w> 140 ? ' <tspan opacity=".6">' + esc(human(r.bytes)) + '</tspan>' : '') +
               '</text>'
           );
         }

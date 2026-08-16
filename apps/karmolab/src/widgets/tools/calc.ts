@@ -182,7 +182,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       'calc.meta',
       { n: counted, last: lastVal?.text || '' },
       lastVal ? `${counted}줄 셈 · 마지막 ${lastVal.text}` : `${counted}줄 셈`
-    ) + (counted > 1 ? ` · ${t('calc.sum', undefined, '합')} ${total.toLocaleString('ko-KR')}` : '');
+    ) + (counted> 1 ? ` · ${t('calc.sum', undefined, '합')} ${total.toLocaleString('ko-KR')}` : '');
   }
 
   /**
@@ -197,8 +197,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     const sy = (y: number): number => H - pad - ((y - p.minY) / (p.maxY - p.minY)) * (H - pad * 2);
     const d = p.points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${sx(x).toFixed(1)} ${sy(y).toFixed(1)}`).join(' ');
     const axes: string[] = [];
-    if (p.minY <= 0 && p.maxY >= 0) axes.push(`M${pad} ${sy(0).toFixed(1)} H${W - pad}`);
-    if (p.from <= 0 && p.to >= 0) axes.push(`M${sx(0).toFixed(1)} ${pad} V${H - pad}`);
+    if (p.minY <= 0 && p.maxY>= 0) axes.push(`M${pad} ${sy(0).toFixed(1)} H${W - pad}`);
+    if (p.from <= 0 && p.to>= 0) axes.push(`M${sx(0).toFixed(1)} ${pad} V${H - pad}`);
 
     const row = document.createElement('div');
     row.className = 'ca-row ca-plotrow';
@@ -212,7 +212,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     return row;
   }
 
-  const fmtShort = (n: number): string => (Math.abs(n) >= 1000 ? n.toExponential(1) : String(Math.round(n * 100) / 100));
+  const fmtShort = (n: number): string => (Math.abs(n)>= 1000 ? n.toExponential(1) : String(Math.round(n * 100) / 100));
 
   let styled = false;
   function injectStyles(): void {

@@ -23,7 +23,7 @@ import { markLive } from './shared/say';
     const b = BigInt(base);
     for (const ch of body) {
       const d = DIGITS.indexOf(ch);
-      if (d < 0 || d >= base) return null;
+      if (d < 0 || d>= base) return null;
       out = out * b + BigInt(d);
     }
     return neg ? -out : out;
@@ -35,7 +35,7 @@ import { markLive } from './shared/say';
     let n = neg ? -v : v;
     const b = BigInt(base);
     let out = '';
-    while (n > 0n) {
+    while (n> 0n) {
       out = DIGITS[Number(n % b)] + out;
       n /= b;
     }
@@ -129,7 +129,7 @@ import { markLive } from './shared/say';
               el.value = format(value, baseOf(el));
             });
             const bin = format(value, 2);
-            binGroup.textContent = bin.replace('-', '').length > 4 ? groupBin(bin) : '';
+            binGroup.textContent = bin.replace('-', '').length> 4 ? groupBin(bin) : '';
 
             // 실제로 궁금해지는 것 = 자릿수·바이트·부호 없는 표현. 표 하나로 붙여 둔다.
             const bits = value < 0n ? format(-value, 2).length : bin.length;
@@ -137,8 +137,8 @@ import { markLive } from './shared/say';
               [t('radix.row.bits'), `${bits} bit`],
               [t('radix.row.bytes'), `${Math.ceil(bits / 8)} byte`],
               [t('radix.row.ones'), String((bin.match(/1/g) || []).length)],
-              [t('radix.row.int8'), value >= -128n && value <= 127n ? t('radix.verdict.fits') : t('radix.verdict.overflow')],
-              [t('radix.row.uint32'), value >= 0n && value <= 4294967295n ? t('radix.verdict.fits') : t('radix.verdict.overflow')]
+              [t('radix.row.int8'), value>= -128n && value <= 127n ? t('radix.verdict.fits') : t('radix.verdict.overflow')],
+              [t('radix.row.uint32'), value>= 0n && value <= 4294967295n ? t('radix.verdict.fits') : t('radix.verdict.overflow')]
             ]
               .map(
                 ([k, v]) =>

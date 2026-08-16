@@ -54,7 +54,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
     for (let i = 0; i < n; i++) {
       let v = bytes[i];
       const limit = Math.floor(4294967296 / pool.length) * pool.length;
-      while (v >= limit) {
+      while (v>= limit) {
         const again = new Uint32Array(1);
         crypto.getRandomValues(again);
         v = again[0];
@@ -153,7 +153,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
     const time =
       seconds < 1
         ? t('passgen.time.instant')
-        : seconds >= 31536000000
+        : seconds>= 31536000000
           ? t('passgen.time.centuries')
           : humanDuration(seconds);
 
@@ -205,13 +205,13 @@ import { checkPassword, verdict } from '../../lib/pwned';
                 <button type="button" class="tool-chip active" data-mode="random">${esc(t('passgen.mode.random'))}</button>
                 <button type="button" class="tool-chip" data-mode="words">${esc(t('passgen.mode.words'))}</button>
               </div>
-              <div class="tool-chips" id="pgRandomOpts" style="margin-top:10px;">
+              <div class="tool-chips" id="pgRandomOpts">
                 <label class="tool-chip"><input type="checkbox" id="pgUpper" checked> ${esc(t('passgen.opt.upper'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="pgDigit" checked> ${esc(t('passgen.opt.digit'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="pgSym" checked> ${esc(t('passgen.opt.symbol'))}</label>
                 <label class="tool-chip"><input type="checkbox" id="pgAmbig" checked> ${esc(t('passgen.opt.ambiguous'))}</label>
               </div>
-              <div id="pgWordOpts" style="display:none; margin-top:10px;">
+              <div id="pgWordOpts" style="display:none;">
                 <div class="tool-sublabel">${esc(t('passgen.label.chunks'))} <span id="pgWordsVal" class="range-value">${esc(t('passgen.label.chunksValue', { n: 4 }))}</span></div>
                 <input type="range" id="pgWords" aria-label="${esc(t('passgen.label.chunks'))}" min="3" max="8" value="5">
                 <div class="tool-status" style="margin-top:var(--space-sm);">조각 사이는 - 로 잇고 끝에 숫자 두 자를 붙입니다. 소리 내어 읽히므로 외워집니다.</div>
@@ -256,11 +256,11 @@ import { checkPassword, verdict } from '../../lib/pwned';
             const 초 = Math.pow(2, bits - 1) / 1e10;
             const 년 = 초 / 3.15e7;
             const 시간말 =
-              년 > 1e6
+              년> 1e6
                 ? t('passgen.time.eons', { n: (년 / 1e8).toExponential(1) })
                 : humanDuration(초);
             stats.innerHTML =
-              statCell(t('passgen.stat.strength'), bits >= 80 ? t('passgen.level.veryStrong2') : bits >= 60 ? t('passgen.level.strong2') : bits >= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
+              statCell(t('passgen.stat.strength'), bits>= 80 ? t('passgen.level.veryStrong2') : bits>= 60 ? t('passgen.level.strong2') : bits>= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
               statCell(t('passgen.stat.holdsFor'), 시간말) +
               statCell(t('passgen.stat.space'), `${SYLLABLE_SPACE.toLocaleString(locale())}^${n} × 100`);
             $<HTMLElement>('#pgWordsVal').textContent = t('passgen.label.chunksValue', { n });

@@ -19,7 +19,7 @@ import { intervalWhileVisible } from '../../lib/tick';
 (function (): void {
 
   const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
+    n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
   const mmss = (sec: number): string => {
     const s = Math.max(0, Math.floor(sec));

@@ -30,7 +30,7 @@ import { markLive } from './shared/say';
   function parseNums(raw: string): number[] {
     return (raw.match(/\d+/g) || [])
       .map((s) => parseInt(s, 10))
-      .filter((n) => n >= 1 && n <= 45)
+      .filter((n) => n>= 1 && n <= 45)
       .filter((n, i, arr) => arr.indexOf(n) === i);
   }
 
@@ -77,7 +77,7 @@ import { markLive } from './shared/say';
                   <input type="text" id="ltExclude" placeholder="${esc(t('lotto.ph.exclude'))}">
                 </div>
               </div>
-              <div style="margin-top:10px;">
+              <div>
                 <div class="tool-sublabel">${esc(t('lotto.label.parity'))}</div>
                 <select id="ltParity" aria-label="${esc(t('lotto.label.parity'))}">
                   <option value="any">${esc(t('lotto.opt.any'))}</option>
@@ -113,9 +113,9 @@ import { markLive } from './shared/say';
             const odd = nums.filter((n) => n % 2 === 1).length;
             switch ($<HTMLSelectElement>('#ltParity').value) {
               case 'balanced':
-                return odd >= 2 && odd <= 4;
+                return odd>= 2 && odd <= 4;
               case 'odd':
-                return odd >= 4;
+                return odd>= 4;
               case 'even':
                 return odd <= 2;
               default:
@@ -144,7 +144,7 @@ import { markLive } from './shared/say';
                 nums = draw(exclude, include);
                 tries++;
               } while (!parityOk(nums) && tries < 400);
-              if (tries >= 400) relaxed = true;
+              if (tries>= 400) relaxed = true;
 
               let bonus = -1;
               if (wantBonus) {
@@ -159,7 +159,7 @@ import { markLive } from './shared/say';
                 )
                 .join('');
               const bonusHtml =
-                bonus > 0
+                bonus> 0
                   ? `<span class="lt-plus">+</span><span class="lt-ball lt-ball-bonus" style="background:${BALL_COLOR(bonus)}">${bonus}</span>`
                   : '';
               rows.push(

@@ -112,8 +112,8 @@ import { markLive } from './shared/say';
                   const human = humanGap(diff);
                   const tail =
                     k === 'exp'
-                      ? t(diff > 0 ? 'jwt.exp.left' : 'jwt.exp.gone', { d: human })
-                      : t(diff > 0 ? 'jwt.time.after' : 'jwt.time.before', { d: human });
+                      ? t(diff> 0 ? 'jwt.exp.left' : 'jwt.exp.gone', { d: human })
+                      : t(diff> 0 ? 'jwt.time.after' : 'jwt.time.before', { d: human });
                   return row(k, d.toLocaleString(locale()) + tail, t(`jwt.time.${k}`));
                 }
                 return row(

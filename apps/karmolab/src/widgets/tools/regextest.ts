@@ -45,7 +45,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
                 <span style="color:var(--text-tertiary); font-family:var(--font-mono);">/</span>
                 <input type="text" id="rxFlags" aria-label="${esc(t('regextest.aria.flags'))}" class="mono-input" value="gm" style="width:70px;">
               </div>
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips">
                 ${presets().map((p, i) => `<button type="button" class="tool-chip rx-preset" data-i="${i}">${p.label}</button>`).join('')}
               </div>
               <div class="tool-status" style="margin-top:var(--space-sm);">${esc(t('regextest.note.flags'))}</div>
@@ -125,7 +125,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
                 `<div class="tool-list-row"><span class="tool-list-key">#${count} @${m.index}</span><span class="tool-list-val">${esc(m[0])}</span><span class="tool-list-dim">${esc([...groups, ...named].join(' · '))}</span></div>`
               );
               if (m[0] === '') re.lastIndex++;
-              if (count > 5000) break;
+              if (count> 5000) break;
             }
             html += esc(text.slice(last));
             highlight.innerHTML = html || t('regextest.hint.text');

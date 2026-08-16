@@ -62,7 +62,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <button class="btn btn-ghost" id="ckCopy">${esc(t('curlkit.btn.copy'))}</button>
       </div>
       <textarea id="ckOut" name="out" aria-label="${esc(t('curlkit.aria.out'))}" class="mono-input" readonly style="min-height:220px;"></textarea>
-      <div class="tool-sublabel" style="margin-top:10px;">${esc(t('curlkit.label.read'))}</div>
+      <div class="tool-sublabel">${esc(t('curlkit.label.read'))}</div>
       <div id="ckRead" class="mono-input" style="min-height:80px; white-space:pre-wrap; padding:10px;"></div>
       <div class="tool-status" id="ckStatus">${esc(t('curlkit.status.idle'))}</div>
     `;

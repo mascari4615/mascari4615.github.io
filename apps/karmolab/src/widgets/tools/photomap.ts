@@ -77,13 +77,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     function render(): void {
       const near = Number($<HTMLInputElement>('#pmNear').value);
-      $<HTMLElement>('#pmNearVal').textContent = near >= 1000 ? (near / 1000).toFixed(1) + ' km' : near + ' m';
+      $<HTMLElement>('#pmNearVal').textContent = near>= 1000 ? (near / 1000).toFixed(1) + ' km' : near + ' m';
 
       if (shots.length === 0) {
         $<HTMLElement>('#pmDots').innerHTML = '';
         $<HTMLElement>('#pmPlaces').innerHTML = '';
         $<HTMLElement>('#pmDays').innerHTML = '';
-        status.textContent = noPlace > 0 ? t('photomap.status.noneWithGps', { n: noPlace }) : t('photomap.status.idle');
+        status.textContent = noPlace> 0 ? t('photomap.status.noneWithGps', { n: noPlace }) : t('photomap.status.idle');
         return;
       }
 
@@ -99,7 +99,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           return (
             '<circle cx="' + at.x + '" cy="' + at.y + '" r="' + r + '" fill="rgba(70,140,255,.45)" stroke="rgba(70,140,255,.95)" stroke-width="1.5">' +
             '<title>' + esc(p.shots.length + ' · ' + p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)) + '</title></circle>' +
-            (p.shots.length > 1 ? '<text x="' + at.x + '" y="' + (at.y + 4) + '" text-anchor="middle" font-size="11" fill="#111">' + p.shots.length + '</text>' : '')
+            (p.shots.length> 1 ? '<text x="' + at.x + '" y="' + (at.y + 4) + '" text-anchor="middle" font-size="11" fill="#111">' + p.shots.length + '</text>' : '')
           );
         })
         .join('');
@@ -130,7 +130,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               '<span class="tool-list-val">' + esc(t('photomap.shots', { n: d.shots.length })) + '</span></div>'
           )
           .join('') +
-        (byDay.undated.length > 0
+        (byDay.undated.length> 0
           ? '<div class="tool-list-row"><span class="tool-list-key">—</span><span class="tool-list-val">' + esc(t('photomap.undated', { n: byDay.undated.length })) + '</span></div>'
           : '');
 

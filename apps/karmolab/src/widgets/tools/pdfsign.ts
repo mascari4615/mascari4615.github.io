@@ -166,11 +166,11 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             let minX = pad.width, minY = pad.height, maxX = 0, maxY = 0;
             for (let y = 0; y < pad.height; y++) {
               for (let x = 0; x < pad.width; x++) {
-                if (d[(y * pad.width + x) * 4 + 3] > 8) {
+                if (d[(y * pad.width + x) * 4 + 3]> 8) {
                   if (x < minX) minX = x;
-                  if (x > maxX) maxX = x;
+                  if (x> maxX) maxX = x;
                   if (y < minY) minY = y;
-                  if (y > maxY) maxY = y;
+                  if (y> maxY) maxY = y;
                 }
               }
             }
