@@ -277,7 +277,8 @@ if (!opened.hash || opened.hash === '#home') {
 
 /* ── ⑦ 도구를 보는 중에 Ctrl+K 로 뜨고 Esc 로 닫힌다 ───────── */
 await page.keyboard.press('Control+k');
-await page.waitForTimeout(200);
+/* ★ 시간을 박지 말고 뜨기를 기다린다 — 200ms 는 느린 판에서 모자란다(같은 꼴로 라이브가 빨갰다). */
+await page.waitForSelector('.kp-overlay .kp-input', { timeout: 4000 }).catch(() => {});
 if (!(await page.$('.kp-overlay .kp-input'))) problems.push('Ctrl+K 로 팔레트가 안 뜬다');
 else {
   const ovFocused = await page.evaluate(
