@@ -28,7 +28,12 @@ catch (error) {
   console.error('[smoke-heung] boot diagnostic', JSON.stringify(diagnostic), errors);
   throw error;
 }
-await page.waitForTimeout(400);
+/* ★ **모양이 붙기 전에 재면 「레이아웃 오류」로 헛빨개진다** (2026-08-17, 라이브 실측).
+   여기서는 0.4초만 재우고 곧바로 `.hu-work` 의 display 를 읽었는데, 바쁜 기계에서는 아직
+   위젯 스타일이 안 붙어 `block` 이 읽혔다 — 화면이 깨진 게 아니라 **아직 안 꾸며진 것**이다
+   (라이브 점검 조각 하나가 그렇게 섰다). 시간을 재우지 말고 **모양이 붙기를** 기다린다.
+   끝내 안 붙으면 아래 판정이 그대로 빨갛게 말한다 — 진짜 회귀는 그대로 잡힌다. */
+await 될때까지(page, () => getComputedStyle(document.querySelector('.hu-work')).display === 'grid', { 최대: 5000 });
 const problems=[];
 const initial=await page.evaluate(()=>({tracks:document.querySelectorAll('.hu-track-row').length,clips:document.querySelectorAll('.hu-clip').length,notes:document.querySelectorAll('.hu-note').length,layout:getComputedStyle(document.querySelector('.hu-work')).display}));
 /* 우클릭은 드래그/브라우저 메뉴로 새지 않고 위젯 메뉴만 열어야 한다. */
