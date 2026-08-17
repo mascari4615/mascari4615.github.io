@@ -34,5 +34,13 @@
   "text.btn.recent": "Recent",
   "text.part.encdetective": "Mojibake",
   "text.part.unicodex": "Hidden chars",
-  "text.part.tts": "Read aloud"
+  "text.part.tts": "Read aloud",
+  "text.op.wordfreq.title": "Word frequency",
+  "text.op.wordfreq.desc": "Sorts the words you used most, by count.",
+  "text.op.wordfreq.ctl.particle": "Strip Korean particles",
+  "text.op.wordfreq.ctl.stop": "Skip common words",
+  "text.op.wordfreq.ctl.case": "Match case",
+  "text.op.ui.input": "Input",
+  "text.op.ui.result": "Result",
+  "text.op.ui.copy": "Copy"
 }

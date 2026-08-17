@@ -34,5 +34,13 @@
   "text.btn.recent": "방금 하던 것",
   "text.part.encdetective": "깨진 글자",
   "text.part.unicodex": "안 보이는 글자",
-  "text.part.tts": "읽어 주기"
+  "text.part.tts": "읽어 주기",
+  "text.op.wordfreq.title": "단어 빈도",
+  "text.op.wordfreq.desc": "자주 나온 단어를 빈도순으로 정리합니다.",
+  "text.op.wordfreq.ctl.particle": "한국어 조사 덜어내기",
+  "text.op.wordfreq.ctl.stop": "불용어 제외",
+  "text.op.wordfreq.ctl.case": "대소문자 구분",
+  "text.op.ui.input": "입력",
+  "text.op.ui.result": "결과",
+  "text.op.ui.copy": "복사"
 }
