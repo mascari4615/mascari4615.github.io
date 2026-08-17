@@ -220,6 +220,11 @@
       "query"
     ]
   },
+  "json2ts": {
+    "ops": [
+      "types"
+    ]
+  },
   "livecount": {
     "ops": [
       "since",
