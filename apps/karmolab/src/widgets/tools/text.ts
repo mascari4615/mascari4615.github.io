@@ -79,7 +79,9 @@ import { mountTextOperation } from './shared/text-operation';
         id: 'app',
         label: t('text.tab', undefined, '글'),
         build: function (container: HTMLElement): void {
-          void loadNamespace('text').then(function () {
+          /* `enc` 도 같이 받는다 — 되짚기 이름은 core 가 **열쇠**로 돌려주고(그 파일은 말 묶음을 안 쓴다)
+             옮기는 것은 여기다. 안 받아 두면 그 상태 줄만 한국어로 남는다(TASK-KL-324). */
+          void Promise.all([loadNamespace('text'), loadNamespace('enc')]).then(function () {
             draw(container);
           });
         }
