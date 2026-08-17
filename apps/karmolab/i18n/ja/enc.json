@@ -1,0 +1,13 @@
+{
+  "enc.how.asis": "そのまま（触らない）",
+  "enc.how.latin1": "UTF-8をlatin1(ISO-8859-1)で読んだものを戻した",
+  "enc.how.cp1252": "UTF-8をcp1252(Windows西欧)で読んだものを戻した",
+  "enc.how.cp949": "UTF-8をcp949(EUC-KR)で読んだものを戻した",
+  "enc.how.sjis": "UTF-8をshift_jisで読んだものを戻した",
+  "enc.how.cp949asUtf8": "cp949(EUC-KR)の文をUTF-8で読んだものを戻した",
+  "enc.how.sjisAsUtf8": "shift_jisの文をUTF-8で読んだものを戻した",
+  "enc.how.double": "UTF-8を二重にかけたものを戻した",
+  "enc.how.percent": "パーセントエンコード(%EC%95%88…)を解いた",
+  "enc.how.htmlRef": "HTML数値文字参照(&#xAC00;)を解いた",
+  "enc.how.jsEscape": "JavaScriptのエスケープ(가)を解いた"
+}

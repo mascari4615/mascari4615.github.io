@@ -32,8 +32,13 @@ export const spec: ToolSpec = {
 };
 
 export interface Candidate {
-  /** 무슨 되짚기를 했나 — 사람이 읽을 이름 */
+  /** 무슨 되짚기를 했나 — 사람이 읽을 이름 (원본 언어) */
   how: string;
+  /** ★ 그 이름의 **말 열쇠** (2026-08-17, TASK-KL-324). 이 파일은 말 묶음을 안 들여온다 —
+   *  `src/core/*` 는 순수하게 둔다는 규율이다. 그렇다고 화면이 한국어로 굳으면 안 되므로,
+   *  **고르는 것은 여기서, 옮기는 것은 그리는 쪽에서** 하도록 열쇠를 같이 돌려준다.
+   *  글자를 보고 짝 맞추면 한 글자만 바뀌어도 조용히 깨진다 — 그래서 열쇠다. */
+  howKey: string;
   /** 되짚어 나온 글 */
   text: string;
   /** 0~100. 한글·가나·한자로 보이는 정도 */
@@ -140,42 +145,42 @@ export function losses(text: string): Loss {
  * 점수 높은 순, 같으면 먼저 넣은 순.
  */
 export function candidates(text: string): Candidate[] {
-  const out: Candidate[] = [{ how: '그대로 (안 건드림)', text, score: score(text) }];
-  const push = (how: string, value: string | undefined): void => {
+  const out: Candidate[] = [{ how: '그대로 (안 건드림)', howKey: 'enc.how.asis', text, score: score(text) }];
+  const push = (how: string, howKey: string, value: string | undefined): void => {
     if (value === undefined || value === '' || value === text) return;
     if (out.some((c) => c.text === value)) return;
-    out.push({ how, text: value, score: score(value) });
+    out.push({ how, howKey, text: value, score: score(value) });
   };
 
   const latin1 = toBytesLatin1(text);
   const cp1252 = toBytesCp1252(text);
 
   // ① UTF-8 을 서유럽 표로 읽어 버린 경우 — 「í•œêµ­ì–´」
-  if (latin1 !== undefined) push('UTF-8 을 latin1(ISO-8859-1)로 읽은 것을 되짚음', decode(latin1, 'utf-8'));
-  if (cp1252 !== undefined) push('UTF-8 을 cp1252(윈도 서유럽)로 읽은 것을 되짚음', decode(cp1252, 'utf-8'));
+  if (latin1 !== undefined) push('UTF-8 을 latin1(ISO-8859-1)로 읽은 것을 되짚음', 'enc.how.latin1', decode(latin1, 'utf-8'));
+  if (cp1252 !== undefined) push('UTF-8 을 cp1252(윈도 서유럽)로 읽은 것을 되짚음', 'enc.how.cp1252', decode(cp1252, 'utf-8'));
 
   // ② UTF-8 을 한국어 완성형(cp949)으로 읽어 버린 경우 — 「뷁」류
-  if (latin1 !== undefined) push('UTF-8 을 cp949(EUC-KR)로 읽은 것을 되짚음', decode(latin1, 'euc-kr'));
-  if (latin1 !== undefined) push('UTF-8 을 shift_jis 로 읽은 것을 되짚음', decode(latin1, 'shift_jis'));
+  if (latin1 !== undefined) push('UTF-8 을 cp949(EUC-KR)로 읽은 것을 되짚음', 'enc.how.cp949', decode(latin1, 'euc-kr'));
+  if (latin1 !== undefined) push('UTF-8 을 shift_jis 로 읽은 것을 되짚음', 'enc.how.sjis', decode(latin1, 'shift_jis'));
 
   // ③ cp949 로 저장된 것을 UTF-8 로 읽은 경우 — 원문 바이트가 남아 있으면 되짚어진다
   const asUtf8 = enc.encode(text);
-  push('cp949(EUC-KR)로 적힌 것을 UTF-8 로 읽은 것을 되짚음', decode(asUtf8, 'euc-kr'));
-  push('shift_jis 로 적힌 것을 UTF-8 로 읽은 것을 되짚음', decode(asUtf8, 'shift_jis'));
+  push('cp949(EUC-KR)로 적힌 것을 UTF-8 로 읽은 것을 되짚음', 'enc.how.cp949asUtf8', decode(asUtf8, 'euc-kr'));
+  push('shift_jis 로 적힌 것을 UTF-8 로 읽은 것을 되짚음', 'enc.how.sjisAsUtf8', decode(asUtf8, 'shift_jis'));
 
   // ④ 두 번 씌운 경우 — 한 겹 벗기고 또 한 겹
   if (latin1 !== undefined) {
     const once = decode(latin1, 'utf-8');
     if (once !== undefined) {
       const twice = toBytesLatin1(once);
-      if (twice !== undefined) push('UTF-8 을 두 겹 씌운 것을 되짚음', decode(twice, 'utf-8'));
+      if (twice !== undefined) push('UTF-8 을 두 겹 씌운 것을 되짚음', 'enc.how.double', decode(twice, 'utf-8'));
     }
   }
 
   // ⑤ 주소·HTML 로 감싸인 경우 — 깨짐은 아니지만 「글자가 이상하다」로 같이 온다
   if (/%[0-9A-Fa-f]{2}/.test(text)) {
     try {
-      push('주소 인코딩(%EC%95%88…)을 푼 것', decodeURIComponent(text));
+      push('주소 인코딩(%EC%95%88…)을 푼 것', 'enc.how.percent', decodeURIComponent(text));
     } catch {
       /* 반쪽짜리 % 가 섞이면 못 푼다 — 그건 후보로 안 넣는다 */
     }
@@ -183,12 +188,14 @@ export function candidates(text: string): Candidate[] {
   if (/&#x?[0-9A-Fa-f]+;/.test(text)) {
     push(
       'HTML 숫자 문자 참조(&#xAC00;)를 푼 것',
+      'enc.how.htmlRef',
       text.replace(/&#x([0-9A-Fa-f]+);/g, (_, h: string) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(parseInt(d, 10)))
     );
   }
   if (/\\u[0-9A-Fa-f]{4}/.test(text)) {
     push(
       '자바스크립트 escape(\\uAC00)를 푼 것',
+      'enc.how.jsEscape',
       text.replace(/\\u([0-9A-Fa-f]{4})/g, (_, h: string) => String.fromCodePoint(parseInt(h, 16)))
     );
   }

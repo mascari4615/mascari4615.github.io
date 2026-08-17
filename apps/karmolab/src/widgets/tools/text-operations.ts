@@ -200,7 +200,7 @@ function encFix(input: string, values: Record<string, string | boolean | number>
   const lost = encLosses(input);
   const warn = lost.replacement> 0 ? ` (되살릴 수 없는 자리 ${lost.replacement}곳은 그대로 둡니다)` : '';
   if (best.text === input) return { output: input, status: t('text.op.encdetective.status.clean', undefined, '되살릴 것이 없습니다 — 안 깨진 글로 보입니다.') + warn };
-  return { output: best.text, status: `${best.how}${warn}` };
+  return { output: best.text, status: t(best.howKey, undefined, best.how) + warn };
 }
 
 export const TEXT_OPERATIONS: TextOperation[] = [
