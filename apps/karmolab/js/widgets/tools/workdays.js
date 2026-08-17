@@ -26,7 +26,7 @@
             </div>
 
             <div class="tool-display" id="wdOut">\u2014</div>
-            <div class="cc-stats" id="wdStats"></div>
+            <div class="cc-stats cc-stats-early" id="wdStats"></div>
             <div class="tool-list" id="wdSkipped"></div>
 
             <div class="tool-status" id="wdStatus">${d(s("workdays.status.idle"))}</div>

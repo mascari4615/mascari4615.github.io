@@ -36,7 +36,7 @@
               </div>
             </div>
 
-            <div class="cc-stats" id="loStats"></div>
+            <div class="cc-stats cc-stats-early" id="loStats"></div>
             <div class="tool-list" id="loCompare"></div>
 
             <div class="field-row" style="margin:16px 0 6px;">

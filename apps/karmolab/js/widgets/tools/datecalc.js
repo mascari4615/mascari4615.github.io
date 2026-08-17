@@ -14,7 +14,7 @@
               </div>
             </div>
             <div class="tool-display" id="ddResult">D-0</div>
-            <div class="cc-stats" id="ddStats"></div>
+            <div class="cc-stats cc-stats-early cc-stats-2row" id="ddStats"></div>
             <!-- \uAE30\uB150\uC77C \uD45C \u2014 \uCEE4\uD50C\xB7\uAE30\uB150\uC77C \uACC4\uC0B0\uAE30\uAC00 \uC55E\uC138\uC6B0\uB294 \uAC83. \uAE30\uC900\uC77C\uB9CC \uB123\uC73C\uBA74 \uB098\uC628\uB2E4. -->
             <div class="tool-section field-group">
               <label class="field-label">${c(a("datecalc.label.anniversaries"))}</label>

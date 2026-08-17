@@ -39,6 +39,7 @@ import { run as idphotoRun, spec as idphotoSpec } from './idphoto';
 import { run as interestRun, spec as interestSpec } from './interest';
 import { run as jamoRun, spec as jamoSpec } from './jamo';
 import { run as jqplayRun, spec as jqplaySpec } from './jqplay';
+import { run as json2tsRun, spec as json2tsSpec } from './json2ts';
 import { run as livecountRun, spec as livecountSpec } from './livecount';
 import { run as loanRun, spec as loanSpec } from './loan';
 import { run as logviewRun, spec as logviewSpec } from './logview';
@@ -118,6 +119,7 @@ export const CORES: Record<string, CoreEntry> = {
   interest: { run: interestRun, ops: Object.keys(interestSpec.ops) },
   jamo: { run: jamoRun, ops: Object.keys(jamoSpec.ops) },
   jqplay: { run: jqplayRun, ops: Object.keys(jqplaySpec.ops) },
+  json2ts: { run: json2tsRun, ops: Object.keys(json2tsSpec.ops) },
   livecount: { run: livecountRun, ops: Object.keys(livecountSpec.ops) },
   loan: { run: loanRun, ops: Object.keys(loanSpec.ops) },
   logview: { run: logviewRun, ops: Object.keys(logviewSpec.ops) },
