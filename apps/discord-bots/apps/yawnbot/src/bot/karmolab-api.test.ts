@@ -48,6 +48,13 @@ beforeEach(async () => {
       server.once('error', () => resolve(false));
     });
     if (ok) {
+      /* ★ **서버가 놀고 있는 연결을 먼저 끊으면 시험이 헛빨개진다** (2026-08-17 실측).
+         노드는 기본으로 5초 논 연결을 닫는데, `fetch`(undici)는 그 연결을 아직 쓸 수 있다고
+         보고 다시 쓴다 — 그 틈에 걸리면 `SocketError: other side closed` 로 죽는다.
+         코드가 틀린 게 아니라 **연결이 끊긴 것**인데 verify 가 통째로 서고 뒤 여섯 단계가 안 돈다
+         (실제로 그렇게 한 판 섰다: karmolab-api.test.ts:1382).
+         시험 서버는 놀아도 안 끊는다 — 어차피 시험 하나가 끝나면 통째로 닫는다. */
+      server.keepAliveTimeout = 0;
       port = candidate;
       break;
     }
