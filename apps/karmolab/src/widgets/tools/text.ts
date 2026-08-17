@@ -112,7 +112,7 @@ import { mountTextOperation } from './shared/text-operation';
       ,mountOperation: (id, host, input): boolean => {
         const operation = TEXT_OPERATIONS.find((candidate) => candidate.id === id);
         if (!operation) return false;
-        mountTextOperation(host, operation, input);
+        mountTextOperation(host, operation, input, null, 'text.op');
         return true;
       }
     });
