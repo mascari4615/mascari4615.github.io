@@ -10,7 +10,7 @@
  *   ③ 엔터가 **진짜로 둔다** (판이 바뀐다)
  *   ④ 키로 놀 수 있는 놀이가 몇 개인가 — 그림판만 쓰는 놀이는 손이 그대로 마우스다
  */
-import { 될때까지 } from './lib/settle.mjs';
+import { 될때까지, 멎을때까지 } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 
@@ -52,7 +52,7 @@ const openGame = async (id) => {
   await p.waitForSelector('#acFind', { state: 'visible', timeout: 20000 });
   if (!(await p.isVisible(`[data-solo="${id}"]`).catch(() => false))) {
     await p.fill('#acFind', id);
-    await p.waitForTimeout(250);
+    /* 재우지 않는다 — 바로 아래에서 그 단추가 보일 때까지 기다린다(같은 일을 두 번 하지 않는다). */
   }
   await p.waitForSelector(`[data-solo="${id}"]`, { state: 'visible', timeout: 20000 });
   await p.click(`[data-solo="${id}"]`);
@@ -64,14 +64,9 @@ const openGame = async (id) => {
   /* 재는 자가 재려는 것을 건드리면 안 된다 — 처음엔 판 안에 표시를 남겨 두 번 비교했는데,
      매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 그 표시가 지워져 **영영 안 서는 것처럼** 보인다.
      그래서 바깥에서 두 번 세어 견준다(두 번 연속 같으면 섰다). 최대 5초. */
-  const 알맹이수 = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
-  let 앞 = await 알맹이수();
-  for (let i = 0; i < 40; i += 1) {
-    await p.waitForTimeout(120);
-    const 지금 = await 알맹이수();
-    if (지금 > 0 && 지금 === 앞) break;
-    앞 = 지금;
-  }
+  /* ★ 같은 일을 하는 공용 자가 있다(`lib/settle.mjs` 의 `멎을때까지`) — 손으로 또 짜면
+     고칠 곳이 둘이 된다. 뜻은 그대로: 무대 안 알맹이 수가 두 번 연속 같으면 섰다. */
+  await 멎을때까지(p, () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0), { 간격: 120, 최대: 5000 });
 };
 
 if (!cantRun) {
@@ -115,13 +110,21 @@ if (!cantRun) {
         .some((e) => e.offsetParent !== null),
       { 최대: 8000 }
     );
-    await p.keyboard.press('ArrowRight');
-    /* 눌린 것이 그려질 때까지 기다린다 — 여기서도 「재우고 읽기」면 느린 판에서 0 을 읽는다.
-       끝내 안 그려지면 그때가 진짜 빨강이고, 아래 판정이 그대로 말한다. */
-    await p
-      .waitForFunction(() => document.querySelectorAll('#acView .ac-key').length === 1, null, { timeout: 5000 })
-      .catch(() => {});
-    const now0 = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
+    /* ★ **한 번 눌러 안 되면 두 번 더 눌러 본다** (2026-08-17, CI 빨강 · 여기선 초록).
+       `president` 는 나눠 주는 그림이 끝나며 무대를 다시 그리는데, 그 찰나에 눌린 키는 **삼켜진다**.
+       느린 러너에서만 그 찰나에 걸려 「직후 0 · 0.5초 뒤 0」으로 빨개졌다(실사이트를 이 자리에서
+       세 번 눌러 보니 매번 1 이었다 — 놀이가 아니라 **누른 때**의 문제다).
+       그래도 「눌러도 안 된다」를 놓치면 안 되므로 **세 번까지만** 눌러 보고, 그 뒤엔 그대로 빨강이다.
+       0.5초 뒤에도 남아 있나(아래)는 그대로 — 그게 이 판정의 알맹이다. */
+    let now0 = 0;
+    for (let 시도 = 0; 시도 < 3; 시도 += 1) {
+      await p.keyboard.press('ArrowRight');
+      await p
+        .waitForFunction(() => document.querySelectorAll('#acView .ac-key').length === 1, null, { timeout: 4000 })
+        .catch(() => {});
+      now0 = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
+      if (now0 === 1) break;
+    }
     /* 재움-의도: **0.5초 뒤에도 남아 있나**가 이 판정의 알맹이다 — 매 프레임 다시 그리는 놀이에서
        표시가 곧 지워지던 것을 잡으려고 일부러 시간을 흘려보낸다. 기다릴 「된 상태」가 따로 없다. */
     await p.waitForTimeout(500);
