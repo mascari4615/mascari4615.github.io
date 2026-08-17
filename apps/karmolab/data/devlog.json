@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2070,
+    "commits": 2174,
     "days": 10,
     "shown": 60
   },
@@ -11,50 +11,50 @@
       "date": "2026-08-17",
       "entries": [
         {
-          "sha": "f8aa73aa",
+          "sha": "d921608e",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "put buy verbs on the three live panes (TASK-WM-406)"
+        },
+        {
+          "sha": "30158c04",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "wm",
-          "text": "유니티 창이 대결 서버에 붙는다 — 연습/온라인 두 모드 (TASK-WM-411)"
+          "text": "안내가 「앉혀라」를 안 말해 점만 찍혀 있었다 (TASK-WM-406)"
         },
         {
-          "sha": "1f6f3ee6",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "손에 든 것이 할 수 있는 일을 정한다 — 마도 괭이 (TASK-WM-410)"
-        },
-        {
-          "sha": "f4a0867f",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "영웅 탭 — 뽑고 · 셋을 고르고 · 판에 세운다 (TASK-WM-406)"
-        },
-        {
-          "sha": "84d0c70d",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "심판을 어디서든 돌릴 수 있게 — 서버든 P2P 호스트든 같은 코드 (TASK-WM-411)"
-        },
-        {
-          "sha": "f16bb660",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "영웅 가챠 · 보유 효과 · 파티 3자리 — 코어 (TASK-WM-406)"
-        },
-        {
-          "sha": "918e80a1",
+          "sha": "64439084",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "폴더 .meta 4개가 빠져 있었다 — 올리고, 폴더까지 검사한다"
+          "text": "「남의 서버 안 부른다」 감시가 잠들어 있었다 (TASK-WM-406)"
+        },
+        {
+          "sha": "ce56491b",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "그리는 자리가 시간을 흘리고 있었다 — 누를수록 장식이 빨라졌다 (TASK-WM-406)"
+        },
+        {
+          "sha": "9d1895ce",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "룰 게이트가 기준선을 CRLF 로 적어 <유령 수정>을 남겼다 (TASK-WM-406)"
+        },
+        {
+          "sha": "f4116f80",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "wm",
+          "text": "「어디서 파는 게 빠른가」도 판을 건드리며 찾고 있었다 (TASK-WM-406)"
         }
       ],
-      "quiet": 4,
-      "more": 12
+      "quiet": 25,
+      "more": 95
     },
     {
       "date": "2026-08-16",
