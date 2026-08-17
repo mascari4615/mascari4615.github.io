@@ -52,8 +52,26 @@ async function 걸러질때까지(page, 최대 = 5000) {
 
 const problems = [];
 
+/* ★ **못 받은 파일이 있으면 그 기능만 조용히 죽는다** (2026-08-17, 실주소에서 뒤늦게 들켰다).
+   늦게 받는 스크립트(같이 쓰기·알람 화면) 둘이 안 지어진 채 배포돼 404 였는데, 화면은 멀쩡하고
+   검사도 전부 초록이었다 — 도구 상세 장을 보는 검사는 그 파일을 안 부르고, 관문을 보는 이 검사는
+   응답 코드를 안 봤다. 여기서 센다: 관문에서 받다 만 것이 있으면 빨강.
+   지문 붙은 이름의 404 는 **배포가 갈리는 순간**일 수 있어 뺀다(옆 검사가 이미 그렇게 다룬다). */
+const 지문붙은 = /\.[0-9a-f]{8,}\.(js|css)$/;
+const 못받음 = [];
+page.on('response', (r) => {
+  const u = r.url();
+  if (r.status() < 400) return;
+  if (/gc\.zgo\.at|goatcounter/.test(u)) return;   // 남의 서버 — 우리가 못 고친다
+  if (지문붙은.test(u.split('?')[0])) return;
+  못받음.push(`${r.status()} ${u.split('/').slice(-2).join('/')}`);
+});
 const res = await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
 if (res.status() !== 200) problems.push(`목록 페이지가 안 열린다 (http ${res.status()})`);
+
+/* 관문에서 받다 만 것 — 화면이 멀쩡해도 기능이 빠진 것이다. */
+await page.waitForTimeout(2500);   // 재움-의도: 늦게 받는 것들(load 뒤 한가할 때)이 올 시간을 준다
+for (const m of [...new Set(못받음)].slice(0, 5)) problems.push(`관문에서 못 받은 것 — ${m}`);
 
 const state = await page.evaluate(() => {
   const links = [...document.querySelectorAll('a[href^="/karmolab/t/"]')];
