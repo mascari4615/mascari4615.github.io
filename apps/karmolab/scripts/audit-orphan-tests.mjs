@@ -248,6 +248,26 @@ function 기존사유() {
   try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).사유 || {}; } catch { return {}; }
 }
 
+/* ── ★ **이름조차 없는 검사** (2026-08-17 실측) ───────────────────────────────
+   위 셈은 **npm 이름이 있는 검사**만 본다. 그래서 `scripts/smoke-bon.mjs` 처럼
+   **이름이 아예 없는 파일**은 이 감사의 눈에 안 보였다 — 아무 데서도 안 불리고,
+   실제로 돌려 보니 화면이 안 떠서 **깨진 채로** 있었다(README 에만 쓰는 법이 적혀 있었다).
+   「안 도는 검사」의 가장 조용한 얼굴이다. 여기서 같이 센다. */
+const 검사꼴 = /^(smoke|test|audit|check)[-.]|\.test\.mjs$/;
+const 부르는곳 = [pkgText];
+for (const f of fs.readdirSync(path.join(root, 'scripts'))) {
+  if (f.endsWith('.mjs')) 부르는곳.push(fs.readFileSync(path.join(root, 'scripts', f), 'utf8'));
+}
+const wf = path.join(root, '../../.github/workflows');
+if (fs.existsSync(wf)) {
+  for (const f of fs.readdirSync(wf)) 부르는곳.push(fs.readFileSync(path.join(wf, f), 'utf8'));
+}
+const 이름없는것 = fs.readdirSync(path.join(root, 'scripts'))
+  .filter((f) => f.endsWith('.mjs') && 검사꼴.test(f))
+  .filter((f) => {
+    const 나 = fs.readFileSync(path.join(root, 'scripts', f), 'utf8');
+    return !부르는곳.some((t) => t !== 나 && t.includes(f));
+  });
 function 기준선쓰기() {
   const 이전 = 기존사유();
   fs.writeFileSync(
@@ -257,7 +277,13 @@ function 기준선쓰기() {
         설명: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         갱신: new Date().toISOString().slice(0, 10),
         목록: orphans,
-        사유: Object.fromEntries(orphans.map((n) => [n, 이전[n] || 사유메모[n] || 갈래(n)]))
+        사유: Object.fromEntries(orphans.map((n) => [n, 이전[n] || 사유메모[n] || 갈래(n)])),
+        /* ★ **새 칸을 안 적으면 자동 조임이 그것을 날린다** (2026-08-17 실측). 어제 넣은
+           「이름조차 없는 검사」 칸을 여기서 안 적었더니, `ratchet:tighten` 이 이 파일을
+           `--update` 로 다시 써서 그 칸이 통째로 사라졌다 — 그러고는 「새로 생겼다」로 빨개졌다.
+           기준선을 쓰는 자리는 **한 곳**이므로, 이 파일이 아는 칸은 전부 여기서 적는다. */
+        이름없는것,
+        이름없는것_설명: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
       },
       null,
       2
@@ -317,26 +343,6 @@ if (fixed.length) {
 }
 console.log(`[audit-orphan-tests] 검사 ${all.length}개 · 묶음 밖 ${orphans.length}개 (기준선과 같음 — 늘지 않았다)`);
 
-/* ── ★ **이름조차 없는 검사** (2026-08-17 실측) ───────────────────────────────
-   위 셈은 **npm 이름이 있는 검사**만 본다. 그래서 `scripts/smoke-bon.mjs` 처럼
-   **이름이 아예 없는 파일**은 이 감사의 눈에 안 보였다 — 아무 데서도 안 불리고,
-   실제로 돌려 보니 화면이 안 떠서 **깨진 채로** 있었다(README 에만 쓰는 법이 적혀 있었다).
-   「안 도는 검사」의 가장 조용한 얼굴이다. 여기서 같이 센다. */
-const 검사꼴 = /^(smoke|test|audit|check)[-.]|\.test\.mjs$/;
-const 부르는곳 = [pkgText];
-for (const f of fs.readdirSync(path.join(root, 'scripts'))) {
-  if (f.endsWith('.mjs')) 부르는곳.push(fs.readFileSync(path.join(root, 'scripts', f), 'utf8'));
-}
-const wf = path.join(root, '../../.github/workflows');
-if (fs.existsSync(wf)) {
-  for (const f of fs.readdirSync(wf)) 부르는곳.push(fs.readFileSync(path.join(wf, f), 'utf8'));
-}
-const 이름없는것 = fs.readdirSync(path.join(root, 'scripts'))
-  .filter((f) => f.endsWith('.mjs') && 검사꼴.test(f))
-  .filter((f) => {
-    const 나 = fs.readFileSync(path.join(root, 'scripts', f), 'utf8');
-    return !부르는곳.some((t) => t !== 나 && t.includes(f));
-  });
 const 이름없기준 = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).이름없는것 || []);
 const 새로생긴 = 이름없는것.filter((f) => !이름없기준.has(f));
 console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${이름없는것.length}개 (기준선 ${이름없기준.size})`);

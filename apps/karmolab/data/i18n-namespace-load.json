@@ -6,7 +6,6 @@
     "src/widgets/garden/boids-view.ts :: garden",
     "src/widgets/meong/meong.ts :: meong",
     "src/widgets/pack-store.ts :: packs",
-    "src/widgets/planner/planner.ts :: planner",
     "src/widgets/play-course.ts :: play",
     "src/widgets/randomgen/randomgen-color.ts :: randomgen"
   ]
