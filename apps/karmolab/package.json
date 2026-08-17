@@ -113,6 +113,7 @@
     "audit:prerender-home": "node scripts/audit-prerender-home.mjs",
     "measure:live-cls": "node scripts/measure-live-cls.mjs",
     "measure:live-a11y": "node scripts/measure-live-a11y.mjs",
+    "measure:tap-size": "node scripts/measure-tap-size.mjs",
     "measure:live-inp": "node scripts/measure-live-inp.mjs",
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
