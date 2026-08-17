@@ -63,7 +63,7 @@ function listDiff(input: string, values: Record<string, string | boolean | numbe
   const onlyLeft = left.filter((value) => !rightSet.has(value));
   const onlyRight = right.filter((value) => !leftSet.has(value));
   const output = [`둘 다 (${both.length})`, ...both, '', `첫 목록만 (${onlyLeft.length})`, ...onlyLeft, '', `둘째 목록만 (${onlyRight.length})`, ...onlyRight].join('\n');
-  return { output, status: `공통 ${both.length}개 · 첫 목록만 ${onlyLeft.length}개 · 둘째 목록만 ${onlyRight.length}개` };
+  return { output, status: t('text.op.listdiff.status.done', { both: both.length, left: onlyLeft.length, right: onlyRight.length }, `공통 ${both.length}개 · 첫 목록만 ${onlyLeft.length}개 · 둘째 목록만 ${onlyRight.length}개`) };
 }
 function clean(input: string, values: Record<string, string | boolean | number>): string {
   let source = input;
@@ -124,7 +124,7 @@ function frequency(input: string, values: Record<string, string | boolean | numb
   const words = (input.match(/[\p{L}\p{N}][\p{L}\p{N}'-]*/gu) || []).map(lower).map((word) => Boolean(values.particle) ? stripParticle(word) : word).filter((word) => word.length> 1 && (!Boolean(values.stop) || !STOP.has(word)));
   const counts = new Map<string, number>(); for (const word of words) counts.set(word, (counts.get(word) || 0) + 1);
   const rows = [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], 'ko-KR')).slice(0, 100);
-  return { output: rows.map(([word, count]) => `${word}\t${count}`).join('\n'), status: `${words.length}개 단어에서 ${rows.length}개 상위 항목을 찾았습니다.` };
+  return { output: rows.map(([word, count]) => `${word}\t${count}`).join('\n'), status: t('text.op.wordfreq.status.done', { words: words.length, rows: rows.length }, `${words.length}개 단어에서 ${rows.length}개 상위 항목을 찾았습니다.`) };
 }
 
 function characterStats(input: string): TextOperationResult {
@@ -191,10 +191,10 @@ async function makePdf(input: string, values: Record<string, string | boolean | 
 function encFix(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
   if (input.trim() === '') return { output: '', status: t('text.op.encdetective.status.idle', undefined, '깨진 글을 붙여 넣어 주세요.') };
   const mode = String(values.mode || 'auto');
-  if (mode === 'explain') return { output: encExplain(input), status: `되짚기 ${encCandidates(input).length}가지를 해 봤습니다.` };
+  if (mode === 'explain') return { output: encExplain(input), status: t('text.op.encdetective.status.tried', { n: encCandidates(input).length }, `되짚기 ${encCandidates(input).length}가지를 해 봤습니다.`) };
   if (mode === 'all') {
     const rows = encCandidates(input).map((c) => `[${String(c.score).padStart(3, ' ')}] ${c.how}\n${c.text}`);
-    return { output: rows.join('\n\n'), status: `되짚기 ${rows.length}가지를 점수순으로 놓았습니다.` };
+    return { output: rows.join('\n\n'), status: t('text.op.encdetective.status.ranked', { n: rows.length }, `되짚기 ${rows.length}가지를 점수순으로 놓았습니다.`) };
   }
   const best = bestFix(input);
   const lost = encLosses(input);
