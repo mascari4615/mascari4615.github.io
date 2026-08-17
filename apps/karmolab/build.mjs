@@ -83,6 +83,19 @@ writeFileSync(
   'utf8',
 );
 
+/* 첫 화면이 다 뜬 뒤에 하는 잔일(글꼴·방문 기록) — 인라인에서 밖으로 뺀 것.
+   왜 밖인가 = `src/boot-late.ts` 머리말(자물쇠로 가는 길). */
+await esbuild.build({
+  entryPoints: [join(root, 'src/boot-late.ts')],
+  outfile: join(root, 'js/boot-late.js'),
+  ...SAFE_MINIFY,
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
 await esbuild.build({
   entryPoints: [join(root, 'src/toolbox.ts')],
   outfile: join(root, 'js/toolbox.js'),
