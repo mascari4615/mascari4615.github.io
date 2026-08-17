@@ -166,5 +166,11 @@
   "text.op.case.opt.title": "Title Case",
   "text.op.linebreak.opt.unwrap": "段落内の行をつなぐ",
   "text.op.linebreak.opt.wrap": "行を折り直す",
-  "text.op.linebreak.opt.single": "一行にする"
+  "text.op.linebreak.opt.single": "一行にする",
+  "text.op.replace.status.needFind": "探す文字を入れてください",
+  "text.op.replace.status.badRegex": "正規表現が正しくありません",
+  "text.op.text2pdf.status.done": "PDFを作りました。",
+  "text.op.encdetective.status.idle": "文字化けした文章を貼り付けてください。",
+  "text.op.text2img.status.done": "PNGを作りました。",
+  "text.op.unicodex.status.idle": "文章を貼り付けてください。"
 }
