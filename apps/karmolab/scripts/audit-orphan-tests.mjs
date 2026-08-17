@@ -340,6 +340,16 @@ const 이름없는것 = fs.readdirSync(path.join(root, 'scripts'))
 const 이름없기준 = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).이름없는것 || []);
 const 새로생긴 = 이름없는것.filter((f) => !이름없기준.has(f));
 console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${이름없는것.length}개 (기준선 ${이름없기준.size})`);
+/* ★ **톱니는 조이는 쪽으로만 돈다 — 그러려면 조이라고 말해야 한다** (2026-08-17).
+   여기는 늘어난 것만 막고 줄어든 것은 아무 말도 안 했다. 그러면 기준선은 **느슨해진 채로**
+   남고, 나중에 다시 늘어도 그 안이라 초록이다. 위 「묶음 밖」 셈에는 이미 그 규칙이 있는데
+   (기준선에 있는데 이제 들어간 것은 빼라고 막는다) 이쪽에만 없었다. 같은 규칙을 준다. */
+const 이제이름있는것 = [...이름없기준].filter((f) => !이름없는것.includes(f));
+if (이제이름있는것.length) {
+  console.error(`[audit-orphan-tests] ❌ 기준선에 적힌 ${이제이름있는것.length}개는 이제 이름이 있다 — 기준선에서 빼라(data/orphan-tests.json 의 이름없는것):`);
+  for (const f of 이제이름있는것) console.error('  - ' + f);
+  process.exit(1);
+}
 if (새로생긴.length) {
   console.error('[audit-orphan-tests] ❌ 아무 데서도 안 불리는 검사 파일이 새로 생겼다 — 이름을 주고 묶음에 넣어라:');
   for (const f of 새로생긴) console.error('  - scripts/' + f);

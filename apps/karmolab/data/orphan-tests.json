@@ -12,15 +12,9 @@
     "test:idle": "화면 — 재 보니 38초로 빠르다. 그런데 **지금 빨갛다**: 손 안 댄 화면 셋이 전부 초당 60회 돈다(첫 화면 60.3 · 도구 목록 60.0 · 도구 화면 60.3, 기준 4 — 2026-08-16 재측정도 그대로). 범인은 마스코트 rAF 고리(`js/mdd.js`), TASK-KL-318(ready·high). 빨간 검사를 자동 자리에 넣으면 늘 켜진 경보가 된다 — 고친 뒤에 묶는다."
   },
   "이름없는것": [
-    "check-entry-sources.mjs",
-    "smoke-bon.mjs",
     "smoke-companion.mjs",
     "smoke-foundry.mjs",
-    "smoke-shell-i18n.mjs",
     "smoke-wrong-kind.mjs",
-    "test-meok-ops.mjs",
-    "test-meok-storage.mjs",
-    "test-taptarget.mjs",
     "test-videosum.mjs"
   ],
   "이름없는것_설명": "npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영). smoke-bon 은 실제로 화면이 안 떠 깨진 채였다."
