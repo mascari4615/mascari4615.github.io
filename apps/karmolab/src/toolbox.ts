@@ -85,12 +85,24 @@ const Toolbox = (() => {
        실제로 「빠른 실행」 이름을 `t(...)` 로 바꾼 뒤 첫 화면이 `ReferenceError: t is not defined`
        로 터졌고, 말 바꾸기 검사가 그걸 콘솔 오류로 세어 **배포가 통째로 섰다**(5c9333e6).
        이름 하나 때문에 화면이 죽으면 안 된다 — 없으면 한국어 기본값으로 간다. */
+    /* ★ **기본값으로 떨어지면 그 자리는 영영 한국어다** (2026-08-17, 실주소로 재서 알아냈다).
+       위 방어는 화면이 죽는 것은 막았지만, 이 껍데기에는 전역 `t` 가 **처음부터 끝까지 없다**
+       (실측: `typeof t === 'undefined'`). 그래서 en/ja 첫 화면의 갈래 이름 여섯이 늘 한국어로
+       나갔다 — 말 묶음에는 en/ja 번역이 멀쩡히 있는데도(`i18n/en/shell.json`).
+       글은 머리말에 미리 박혀 온다(`window.__KARMO_I18N`) — 들여올 것 없이 거기서 바로 꺼낸다.
+       순서: 지금 언어 → 원본 언어 → 한국어 기본값. */
     const 말 = (key, 기본값) => {
         try {
-            return typeof t === 'function' ? t(key, undefined, 기본값) : 기본값;
-        } catch {
-            return 기본값;
-        }
+            if (typeof t === 'function') return t(key, undefined, 기본값);
+        } catch { /* 전역이 없다 — 아래에서 직접 꺼낸다 */ }
+        try {
+            const 통 = window.__KARMO_I18N || {};
+            const 지금 = window.__KARMO_LOCALE || document.documentElement.lang || 'ko';
+            const 묶음 = key.indexOf('.') < 0 ? 'common' : key.slice(0, key.indexOf('.'));
+            const 하나 = 통[지금]?.[묶음]?.[key] ?? 통.ko?.[묶음]?.[key];
+            if (typeof 하나 === 'string') return 하나;
+        } catch { /* 통이 아직 없다 */ }
+        return 기본값;
     };
     const navLabel = (cat) => {
         try {
