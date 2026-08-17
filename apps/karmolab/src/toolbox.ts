@@ -61,20 +61,20 @@ const Toolbox = (() => {
     const NAV_TOOL_GROUPS = [
         {
             id: 'tool-calc',
-            label: () => t('shell.nav.group.calc', undefined, '계산 · 변환'),
+            label: () => 말('shell.nav.group.calc', '계산 · 변환'),
             prefixes: ['aspect', 'birth', 'bmi', 'bytesize', 'calc', 'datecalc', 'grade', 'interest', 'loan', 'numword', 'pace', 'percent', 'time', 'unitconv', 'vat', 'workdays', 'worldclock', 'livecount', 'countdown', 'hourglass']
         },
         {
             id: 'tool-media',
-            label: () => t('shell.nav.group.media', undefined, '파일 · 미디어'),
+            label: () => 말('shell.nav.group.media', '파일 · 미디어'),
             prefixes: ['asciiart', 'audio', 'barcode', 'color', 'exif', 'favicon', 'filetool', 'filesplit', 'gif', 'image', 'img', 'icsmake', 'palette', 'pdf', 'qr', 'redact', 'screenrec', 'sound', 'subtitle', 'video', 'voicerec', 'ziptool']
         },
         {
             id: 'tool-dev',
-            label: () => t('shell.nav.group.dev', undefined, '개발 · 텍스트'),
+            label: () => 말('shell.nav.group.dev', '개발 · 텍스트'),
             prefixes: ['base64', 'caseconv', 'char', 'cron', 'cssunit', 'csvjson', 'devtool', 'epoch', 'filehash', 'hangul', 'hash', 'jamo', 'json', 'jwt', 'linebreak', 'listdiff', 'morse', 'radix', 'regex', 'replace', 'slug', 'tableconv', 'text', 'urlparse', 'uuid', 'wordfreq']
         },
-        { id: 'tool-create', label: () => t('shell.nav.group.create', undefined, '생성 · 정리'), prefixes: [] },
+        { id: 'tool-create', label: () => 말('shell.nav.group.create', '생성 · 정리'), prefixes: [] },
     ];
 
     /* 갈래 이름은 **말 묶음에서 온다** (2026-08-17). 예전엔 한국어가 박혀 있어서
@@ -102,8 +102,8 @@ const Toolbox = (() => {
 
     const NAV_CATEGORIES = [
         ...NAV_TOOL_GROUPS,
-        { id: 'ref', label: () => t('shell.nav.ref', undefined, '자료') },
-        { id: 'play', label: () => t('shell.nav.play', undefined, '놀이') },
+        { id: 'ref', label: () => 말('shell.nav.ref', '자료') },
+        { id: 'play', label: () => 말('shell.nav.play', '놀이') },
     ];
 
     function startsWithAny(value, prefixes) {
