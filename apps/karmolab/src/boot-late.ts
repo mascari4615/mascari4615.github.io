@@ -39,3 +39,28 @@ addEventListener('load', () => {
   s.setAttribute('data-goatcounter', 'https://mascari4615.goatcounter.com/count');
   document.head.appendChild(s);
 });
+
+/* 늦게 받는 것 셋 — 말 바꾸기·내 정보·같이 쓰기. 화면이 다 뜬 뒤 한가해지면 받는다.
+   (예전엔 똑같은 아홉 줄이 머리에 세 군데 흩어져 있었다 — 한 곳으로 모았고 이제 밖으로 뺐다.) */
+한가할때(() => {
+  ['lang-switch', 'account', 'copresence'].forEach((name) => {
+    const s = document.createElement('script');
+    s.src = `/apps/karmolab/js/${name}.js`;
+    document.head.appendChild(s);
+  });
+});
+
+/* 알람 발화 모드 (TASK-KL-064) — Rust 스케줄러가 띄우는 창이 `#alarm-fire` 로 이 장을 연다.
+   대시보드 부팅 대신 가벼운 풀스크린 알람만 올린다(`widgets-loader.js` 도 같은 해시로 일찍 나간다). */
+if (location.hash === '#alarm-fire') {
+  const s = document.createElement('script');
+  s.src = '/apps/karmolab/js/alarm-fire.js';
+  s.defer = true;
+  document.head.appendChild(s);
+}
+
+/* 코드 색칠 도우미가 언어 파일을 어디서 찾는지 (Prism autoloader). 색칠은 첫 그림과 무관하다. */
+document.addEventListener('DOMContentLoaded', () => {
+  const P = (window as unknown as { Prism?: { plugins?: { autoloader?: { languages_path: string } } } }).Prism;
+  if (P?.plugins?.autoloader) P.plugins.autoloader.languages_path = '/apps/karmolab/js/vendor/prism/components/';
+});

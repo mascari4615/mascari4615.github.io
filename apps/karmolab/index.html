@@ -42,31 +42,12 @@ permalink: /karmolab/
          흩어져 있었다(말 바꾸기·내 정보·같이 쓰기). 뜻이 같은 글이 여러 벌이면 한 곳만 고쳐도
          모르고, `script-src` 자물쇠를 걸 때는 **지문도 세 개**가 된다(인라인 14 → 12).
          하는 일은 그대로다: 화면이 다 뜬 뒤 한가해지면 받는다. -->
-    <script>
-      addEventListener('load', function () {
-        (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(function () {
-          ['lang-switch', 'account', 'copresence'].forEach(function (name) {
-            var s = document.createElement('script');
-            s.src = '/apps/karmolab/js/' + name + '.js';
-            document.head.appendChild(s);
-          });
-        });
-      });
-    </script>
+    <!-- 늦게 받는 것 셋은 boot-late.js 로 옮겼다 (2026-08-17) -->
     <title>KarmoLab — 삶을 섞고 술을 바꿀 시간</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
          경량 풀스크린 알람만 로드 (widgets-loader.js 가 같은 hash 로 early-return). -->
-    <script>
-    (function () {
-      if (location.hash === '#alarm-fire') {
-        var s = document.createElement('script');
-        s.src = '/apps/karmolab/js/alarm-fire.js';
-        s.defer = true;
-        document.head.appendChild(s);
-      }
-    })();
-    </script>
+    <!-- 알람 발화 모드도 boot-late.js 로 (2026-08-17) -->
     <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="canonical" href="https://blog.mascari4615.com/karmolab/">
     <!-- 언어 판 왕복 표시 (TASK-KL-203). 원본(이 장)도 상대를 가리켜야 한 벌로 인정된다 —
@@ -243,13 +224,7 @@ permalink: /karmolab/
     </script>
     <!-- KL-054: marked/prism eager 제거 → 첫 사용 위젯(chatbot/imagegen/docs/user 등)이
          Toolbox.ensureScript / lazyScriptPaths 로 on-demand 로드 (load-once 캐시). -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
-        Prism.plugins.autoloader.languages_path = '/apps/karmolab/js/vendor/prism/components/';
-      }
-    });
-    </script>
+    <!-- 색칠 도우미 경로도 boot-late.js 로 (2026-08-17) -->
 </head>
 <body>
     <!-- 배경 판때기. 화면에 딱 맞게 붙어 있고(fixed + inset:0) 아무것도 안 받는다.
