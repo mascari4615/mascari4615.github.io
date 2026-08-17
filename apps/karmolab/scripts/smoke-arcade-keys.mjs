@@ -66,7 +66,13 @@ const openGame = async (id) => {
      그래서 바깥에서 두 번 세어 견준다(두 번 연속 같으면 섰다). 최대 5초. */
   /* ★ 같은 일을 하는 공용 자가 있다(`lib/settle.mjs` 의 `멎을때까지`) — 손으로 또 짜면
      고칠 곳이 둘이 된다. 뜻은 그대로: 무대 안 알맹이 수가 두 번 연속 같으면 섰다. */
-  await 멎을때까지(p, () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0), { 간격: 120, 최대: 5000 });
+  /* ★ **「멎었다」와 「아직 비었다」는 다르다** (2026-08-17, 갈아 끼우고 한 판 빨개져서 알았다).
+     손으로 짠 옛 고리에는 `지금 > 0` 이 있었다 — 무대가 잠깐 빈 순간이 두 번 겹치면 공용 자는
+     「0 에서 멎었다」로 보고 곧바로 키를 누르고, 그러면 아무 데도 안 간다(지난 판에 고친 그 병).
+     그래서 먼저 **뭐라도 그려지기를** 기다리고, 그 다음에 멎기를 기다린다. */
+  const 알맹이수 = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
+  await 될때까지(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { 최대: 5000 });
+  await 멎을때까지(p, 알맹이수, { 간격: 120, 최대: 5000 });
 };
 
 if (!cantRun) {
