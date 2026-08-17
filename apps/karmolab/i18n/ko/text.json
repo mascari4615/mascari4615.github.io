@@ -176,5 +176,9 @@
   "text.op.listdiff.status.done": "공통 {both}개 · 첫 목록만 {left}개 · 둘째 목록만 {right}개",
   "text.op.wordfreq.status.done": "{words}개 단어에서 {rows}개 상위 항목을 찾았습니다.",
   "text.op.encdetective.status.tried": "되짚기 {n}가지를 해 봤습니다.",
-  "text.op.encdetective.status.ranked": "되짚기 {n}가지를 점수순으로 놓았습니다."
+  "text.op.encdetective.status.ranked": "되짚기 {n}가지를 점수순으로 놓았습니다.",
+  "text.op.lorem.status.word": "{n}개 단어를 만들었습니다.",
+  "text.op.lorem.status.sentence": "{n}개 문장을 만들었습니다.",
+  "text.op.lorem.status.para": "{n}개 문단을 만들었습니다.",
+  "text.op.encdetective.status.clean": "되살릴 것이 없습니다 — 안 깨진 글로 보입니다."
 }

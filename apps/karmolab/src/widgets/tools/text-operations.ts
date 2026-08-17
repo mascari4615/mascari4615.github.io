@@ -156,7 +156,7 @@ function lorem(values: Record<string, string | boolean | number>): TextOperation
   const sentence = (): string => Array.from({ length: 6 + Math.floor(Math.random() * 8) }, pick).join(' ') + '.';
   const unit = String(values.unit || 'para');
   const rows = Array.from({ length: count }, () => unit === 'word' ? pick() : unit === 'sentence' ? sentence() : Array.from({ length: 3 + Math.floor(Math.random() * 3) }, sentence).join(' '));
-  return { output: rows.join(unit === 'word' ? ' ' : unit === 'sentence' ? '\n' : '\n\n'), status: `${count}개 ${unit === 'word' ? '단어' : unit === 'sentence' ? '문장' : '문단'}을 만들었습니다.` };
+  return { output: rows.join(unit === 'word' ? ' ' : unit === 'sentence' ? '\n' : '\n\n'), status: t(`text.op.lorem.status.${unit}`, { n: count }, `${count}개 ${unit === 'word' ? '단어' : unit === 'sentence' ? '문장' : '문단'}을 만들었습니다.`) };
 }
 
 function checklist(input: string): TextOperationResult {
@@ -199,7 +199,7 @@ function encFix(input: string, values: Record<string, string | boolean | number>
   const best = bestFix(input);
   const lost = encLosses(input);
   const warn = lost.replacement> 0 ? ` (되살릴 수 없는 자리 ${lost.replacement}곳은 그대로 둡니다)` : '';
-  if (best.text === input) return { output: input, status: `되살릴 것이 없습니다 — 안 깨진 글로 보입니다.${warn}` };
+  if (best.text === input) return { output: input, status: t('text.op.encdetective.status.clean', undefined, '되살릴 것이 없습니다 — 안 깨진 글로 보입니다.') + warn };
   return { output: best.text, status: `${best.how}${warn}` };
 }
 
