@@ -101,6 +101,18 @@ export function discoverEntryPoints(root, skip = new Set()) {
     }
   }
 
+  /* ★ **주소가 화면 밖으로 옮겨가면 그 파일이 안 지어진다** (2026-08-17, 실주소 404 로 들켰다).
+     위는 HTML 만 훑는다. 그런데 오늘 늦게 받는 것들(말 바꾸기·같이 쓰기·알람)의 주소를
+     인라인에서 `src/boot-late.ts` 로 옮겼더니, 여기서 안 잡혀 **빌드 대상에서 빠졌고**
+     배포에서 `copresence.js`·`alarm-fire.js` 가 404 가 됐다 — 화면은 멀쩡한데 그 기능만 조용히 죽는다.
+     찾을 곳은 「HTML」이 아니라 **그 주소가 적힌 어디든**이다. 소스도 같은 모양으로 훑는다. */
+  for (const file of allSources(root)) {
+    const body = fs.readFileSync(path.join(root, file), 'utf8');
+    for (const match of body.matchAll(SCRIPT_RE)) {
+      if (match[1].startsWith('vendor/')) continue;
+      rels.add(`src/${match[1]}.ts`);
+    }
+  }
   for (const rel of widgetPathsFrom(root)) {
     // toolbox.ts 의 `resolveScriptPath` 와 같은 규약으로 푼다 (한쪽만 바뀌면 빌드가 어긋난다).
     if (rel.startsWith('world/')) continue; // build.mjs 의 world 묶음이 따로 다룬다

@@ -42,10 +42,19 @@ addEventListener('load', () => {
 
 /* 늦게 받는 것 셋 — 말 바꾸기·내 정보·같이 쓰기. 화면이 다 뜬 뒤 한가해지면 받는다.
    (예전엔 똑같은 아홉 줄이 머리에 세 군데 흩어져 있었다 — 한 곳으로 모았고 이제 밖으로 뺐다.) */
+/* ★ **주소는 통째로 적는다 — 조각내면 그 파일이 안 지어진다** (2026-08-17, 실주소 404 로 들켰다).
+   처음엔 이름만 배열에 담고 주소를 `${name}` 으로 붙였다. 그런데 무엇을 지을지 고르는 자
+   (`scripts/entry-points.mjs`)는 **글자로 적힌 주소**를 찾는다 — 조각난 주소는 안 보인다.
+   그래서 `copresence.js`·`alarm-fire.js` 가 빌드에서 빠져 배포에서 404 였다(화면은 멀쩡한데
+   그 기능만 조용히 죽는다). 사람이 읽기에도 이쪽이 낫다. */
 한가할때(() => {
-  ['lang-switch', 'account', 'copresence'].forEach((name) => {
+  [
+    '/apps/karmolab/js/lang-switch.js',
+    '/apps/karmolab/js/account.js',
+    '/apps/karmolab/js/copresence.js',
+  ].forEach((src) => {
     const s = document.createElement('script');
-    s.src = `/apps/karmolab/js/${name}.js`;
+    s.src = src;
     document.head.appendChild(s);
   });
 });
