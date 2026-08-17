@@ -35,6 +35,21 @@ const expected = withoutRetired(Object.keys(seo));
 
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+/** 걸러 찾기가 **끝났나** — 보이는 카드 수가 두 번 연속 같으면 끝난 것으로 본다.
+    시간을 박으면 느린 판에서 옛 수를 읽는다(`quality.md` § 재우고 읽지 마라). */
+async function 걸러질때까지(page, 최대 = 5000) {
+  const 세기 = () => page.evaluate(() =>
+    document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length);
+  const 끝 = Date.now() + 최대;
+  let 앞 = -1;
+  while (Date.now() < 끝) {
+    const 지금 = await 세기();
+    if (지금 === 앞) return;
+    앞 = 지금;
+    await page.waitForTimeout(120);
+  }
+}
+
 const problems = [];
 
 const res = await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
@@ -98,7 +113,9 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     ));
     if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (「개발」 로 ${byGroup}개만 남음)`);
     await find.fill('PDF');
-    await page.waitForTimeout(400);
+    /* ★ 시간을 박지 말고 **걸러진 뒤**를 기다린다 (2026-08-17). 400ms 는 느린 판에서 모자라
+       「거른 수와 분류 숫자가 안 맞는다」로 애먼 빨강이 난다(같은 부류로 오늘 라이브가 빨갰다). */
+    await 걸러질때까지(page);
 
     // 화면에 보이는 카드 수와 분류 옆 숫자의 합은 늘 같아야 한다.
     // 걸러 찾기·분류 숫자·목차가 각각 따로 갱신되므로, 하나만 손보면 조용히 어긋난다.
@@ -138,7 +155,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 
     // 걸러 놓고 엔터를 누르면 맨 앞 도구로 간다.
     await find.fill('글자수');
-    await page.waitForTimeout(400);
+    await 걸러질때까지(page);
     const firstHref = await page.evaluate(() => {
       const c = [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((x) => x.getBoundingClientRect().height > 0)[0];
       return c ? c.getAttribute('href') : null;
@@ -167,7 +184,8 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 
     // 찾은 결과를 주소로 주고받을 수 있어야 한다 — 링크로 보낸 사람과 받은 사람이 같은 화면을 본다.
     await find.fill('PDF');
-    await page.waitForTimeout(400);
+    /* 주소에 남는 것을 보는 자리다 — 주소가 바뀔 때까지 기다린다. */
+    await page.waitForFunction(() => /[?&]q=/.test(location.href), null, { timeout: 5000 }).catch(() => {});
     if (!/[?&]q=/.test(page.url())) problems.push('걸러 찾은 결과가 주소에 안 남는다');
     const shared = await page.goto(`${BASE}/karmolab/t/?q=PDF`, { waitUntil: 'networkidle', timeout: 25000 });
     await page.waitForTimeout(600);
