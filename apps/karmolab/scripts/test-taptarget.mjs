@@ -18,16 +18,31 @@ import { serveAppAssets } from './lib/widget-harness.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
-// 실제로 22px 이었던 넉 장 + 대조로 잘 되던 것 하나
-const TOOLS = ['textdiff', 'uuidgen', 'hashgen', 'asciiart', 'textredact'];
+/* 실제로 22px 이었던 넉 장 + 대조로 잘 되던 것 하나.
+   ★ `textdiff`·`textredact` 는 「텍스트 도구」 작업대(`text`)로 합쳐졌다 — 그 이름으로는 위젯이
+   등록되지 않으므로(실측: 「textdiff 위젯이 등록되지 않았다」) 그 조작이 사는 작업대를 잰다. */
+const TOOLS = ['text', 'uuidgen', 'hashgen', 'asciiart'];
 
 /* ★ **지어진 것을 보는 검사다** (2026-08-17). 여기서 읽는 `js/widgets/**` 는 빌드 산출물이라
    깨끗한 사본(밀 커밋만 풀어 놓은 자리)에는 없다. 없는 것을 읽다 ENOENT 로 죽으면
    「누를 자리가 작다」가 아니라 **검사가 깨진 것처럼** 보인다 — 실제로 push 관문이 그렇게 섰다.
    못 볼 상황은 못 본다고 말한다(rc 2 = 통과로 세지 않는다). 지으려면 `node build.mjs`. */
+/* ★ **도구 이름이 곧 파일 이름은 아니다** (2026-08-17, CI 로그로 알아냈다). textdiff·textredact 는
+   「텍스트 도구」 작업대로 합쳐진 숨은 도구라 제 파일이 없다(메타의 bundle 이 text 다).
+   그런데 여기서는 <이름>.js 만 찾아 「없다」고 하고 **늘 못 돌림으로 끝났다** — CI 에서 이 검사는
+   한 번도 안 돌았다. 내 자리에서는 옛 빌드가 남긴 textdiff.js 때문에 초록으로 보였다(더 나쁘다).
+   지어진 메타에서 그 도구가 어느 묶음인지 읽어 그 파일을 본다. */
+const 메타경로 = path.join(root, 'js/widgets-lazy-meta.js');
+const 메타 = fs.existsSync(메타경로) ? fs.readFileSync(메타경로, 'utf8') : '';
+const 묶음 = (id) => {
+  const m = new RegExp('id:"' + id + '",[^}]*?bundle:"([^"]+)"').exec(메타);
+  return m ? m[1] : id;
+};
+const 자리 = (이름) => ['js/widgets/tools/' + 이름 + '.js', 'js/widgets/' + 이름 + '.js']
+  .find((rel) => fs.existsSync(path.join(root, rel))) || null;
+const 읽을자리 = (id) => 자리(id) || 자리(묶음(id));
 {
-  const 없는것 = TOOLS.filter((id) => !fs.existsSync(path.join(root, `js/widgets/tools/${id}.js`))
-    && !fs.existsSync(path.join(root, `js/widgets/${id}.js`)));
+  const 없는것 = 메타 ? TOOLS.filter((id) => !읽을자리(id)) : TOOLS;
   if (없는것.length) {
     console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${없는것.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
     process.exit(2);
@@ -50,11 +65,8 @@ await page.evaluate(() => {
   };
 });
 for (const id of TOOLS) {
-  try {
-    await page.addScriptTag({ content: read(`js/widgets/tools/${id}.js`) });
-  } catch {
-    await page.addScriptTag({ content: read(`js/widgets/${id}.js`) });
-  }
+  /* 위 고르기와 **같은 규칙**으로 읽는다 — 앞에서만 고치고 여기서 옛 이름을 읽으면 ENOENT 로 죽는다. */
+  await page.addScriptTag({ content: read(읽을자리(id)) });
 }
 
 const out = await page.evaluate(async (tools) => {
