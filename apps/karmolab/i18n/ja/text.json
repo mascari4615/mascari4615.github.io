@@ -34,5 +34,13 @@
   "text.btn.recent": "さっきの作業",
   "text.part.encdetective": "文字化け",
   "text.part.unicodex": "見えない文字",
-  "text.part.tts": "読み上げ"
+  "text.part.tts": "読み上げ",
+  "text.op.wordfreq.title": "単語の頻度",
+  "text.op.wordfreq.desc": "よく出た単語を頻度順に並べます。",
+  "text.op.wordfreq.ctl.particle": "韓国語の助詞を外す",
+  "text.op.wordfreq.ctl.stop": "よくある語を除く",
+  "text.op.wordfreq.ctl.case": "大文字と小文字を区別",
+  "text.op.ui.input": "入力",
+  "text.op.ui.result": "結果",
+  "text.op.ui.copy": "コピー"
 }
