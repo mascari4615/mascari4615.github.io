@@ -105,7 +105,16 @@ if (!cantRun) {
      누른 **직후**만 재면 못 잡는다(그때는 있다). 그래서 한 박자 뒤를 잰다. */
   for (const id of ['checkers', 'president']) {
     await openGame(id);
-    await p.waitForTimeout(500);
+    /* ★ **누를 것이 생기기 전에 화살표를 누르면 아무 일도 안 난다** (2026-08-17, 라이브 빨강을 짚었다).
+       여기서는 0.5초만 재우고 눌렀는데, `president` 는 그 사이 아직 나눠 주는 중이라
+       누를 수 있는 단추가 하나도 없었다 — 그래서 짚은 자리가 0 이고 「키가 안 먹는다」로 빨개졌다.
+       놀이가 아니라 **검사가 이른 것**이다. 누를 것이 생길 때까지 기다린다. */
+    await 될때까지(
+      p,
+      () => [...document.querySelectorAll('#acView button:not([disabled]),#acView [role="button"]:not([aria-disabled="true"])')]
+        .some((e) => e.offsetParent !== null),
+      { 최대: 8000 }
+    );
     await p.keyboard.press('ArrowRight');
     /* 눌린 것이 그려질 때까지 기다린다 — 여기서도 「재우고 읽기」면 느린 판에서 0 을 읽는다.
        끝내 안 그려지면 그때가 진짜 빨강이고, 아래 판정이 그대로 말한다. */
