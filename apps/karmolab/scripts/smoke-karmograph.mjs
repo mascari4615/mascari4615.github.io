@@ -3792,13 +3792,26 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: ms(4000) });
   const dbox = await page.locator('.km-canvas').boundingBox();
+  /* ★ **이름칸이 새 카드 것인지 보고 적는다** (2026-08-17, CI 빨강을 로그로 짚었다).
+     여기서는 두 번 클릭한 뒤 `[data-km="edit-label"]` 이 있기만 하면 곧바로 적었다. 그런데 그 칸은
+     **앞 카드 것이 아직 남아 있을 수 있다** — 옆 패널이 새 카드로 다시 그려지는 사이에 적으면
+     그 글자는 떨어져 나간 칸으로 들어가고 카드는 이름 없이 남는다. 실제로 CI 판에 「👤겹갑 · 👤」
+     이 남아 「겹칠 카드를 못 찾았다」로 죽었다 — 못 만든 게 아니라 **엉뚱한 칸에 적은 것**이다.
+     카드 수가 늘고, 그 칸이 **빈 칸**(= 새 카드 것)일 때 적는다. */
+  const 새카드에적기 = async (몇번째, 이름) => {
+    await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, 몇번째, { timeout: ms(4000) });
+    await page.waitForFunction(() => {
+      const el = document.querySelector('[data-km="edit-label"]');
+      return !!el && el.isConnected && el.value === '';
+    }, null, { timeout: ms(4000) });
+    await page.fill('[data-km="edit-label"]', 이름);
+    await page.waitForFunction((n) => [...document.querySelectorAll('.ck-node')]
+      .some((el) => (el.textContent || '').includes(n)), 이름, { timeout: ms(4000) });
+  };
   await page.mouse.dblclick(dbox.x + dbox.width * 0.3, dbox.y + dbox.height * 0.15);
-  await page.waitForSelector('[data-km="edit-label"]', { timeout: ms(4000) });
-  await page.fill('[data-km="edit-label"]', '겹갑');
+  await 새카드에적기(1, '겹갑');
   await page.mouse.dblclick(dbox.x + dbox.width * 0.62, dbox.y + dbox.height * 0.15);
-  await page.waitForSelector('[data-km="edit-label"]', { timeout: ms(4000) });
-  await page.fill('[data-km="edit-label"]', '겹을');
-  await page.waitForTimeout(ms(300));
+  await 새카드에적기(2, '겹을');
 
   const boxOf = (name) => page.evaluate((n) => {
     const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes(n));
