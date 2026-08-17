@@ -14,6 +14,8 @@
  * 못 잰 것은 통과가 아니다 — axe 나 브라우저가 없으면 **끝값 2(CANNOT-RUN)**.
  */
 import fs from 'node:fs';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { stripFrontMatter } from './lib/serve-html.mjs';
 import http from 'node:http';
 import path from 'node:path';
@@ -45,12 +47,32 @@ const MIME = {
   '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.txt': 'text/plain',
 };
 
-/* 도구 상세 장은 **찍혀야** 존재한다 — 없으면 「위반 0」이 아니라 못 잰 것이다. */
+/* 도구 상세 장은 **찍혀야** 존재한다 — 없으면 「위반 0」이 아니라 못 잰 것이다.
+ *
+ * ★ **없으면 여기서 찍는다** (2026-08-17). 이 장은 배포 때만 찍히고 저장소에 안 들어간다.
+ *   그래서 verify(CI) 에서는 늘 없었고, 이 검사는 **한 번도 안 돌았다**(로그에 매 판
+ *   「못 돌린 검사 2개」로 남아 있었다). 사람 손으로 `gen:tool-pages` 를 먼저 돌리라는 안내는
+ *   기계에게 안 통한다 — 못 돌 이유를 스스로 없앤다. 찍는 데 4초면 된다.
+ *   찍는 것도 실패하면 그때는 진짜 「못 잼」이다(기록 파일은 안 건드린다). */
+let 임시장 = null;
 const SAMPLE_TOOL_PAGE = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
 if (fs.existsSync(SAMPLE_TOOL_PAGE) === false) {
-  console.error(`[smoke-a11y] 못 돌았다 — 도구 상세 표본이 없다 (${SAMPLE_TOOL_PAGE}).`);
-  console.error('  → `npm run gen:tool-pages` 를 먼저 돌려라. 안 재고 통과시키지 않는다.');
-  process.exit(2);
+  임시장 = fs.mkdtempSync(path.join(os.tmpdir(), 'karmolab-a11y-'));
+  try {
+    execFileSync(process.execPath, [path.join(root, 'scripts/gen-tool-pages.mjs'), '--out', path.join(임시장, 't')], {
+      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, KARMOLAB_GEN_NO_STATE: '1' },
+    });
+  } catch (e) {
+    console.error('[smoke-a11y] 못 돌았다 — 도구 상세 표본을 찍지 못했다.');
+    console.error('  ' + String(e.stderr || e.stdout || e.message).trim().split(String.fromCharCode(10))[0].slice(0, 140));
+    console.error('  (구운 것이 없으면 `node build.mjs` 뒤에 다시. 안 재고 통과시키지 않는다.)');
+    process.exit(2);
+  }
+  if (!fs.existsSync(path.join(임시장, 't/loan/index.html'))) {
+    console.error('[smoke-a11y] 못 돌았다 — 찍긴 했는데 표본 장이 없다.');
+    process.exit(2);
+  }
 }
 
 if (fs.existsSync(AXE) === false) {
@@ -62,8 +84,11 @@ const axeSource = fs.readFileSync(AXE, 'utf8');
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p.endsWith('/')) p += 'index.html';
-  const file = path.join(repoRoot, p);
-  if (!file.startsWith(repoRoot) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+  /* 갓 찍은 표본을 쓰는 판이면 그 자리로 보낸다 — 주소는 배포와 같게 둔다. */
+  const file = 임시장 && p.startsWith('/apps/blog/karmolab/t/')
+    ? path.join(임시장, 't', p.slice('/apps/blog/karmolab/t/'.length))
+    : path.join(repoRoot, p);
+  if ((!file.startsWith(repoRoot) && !(임시장 && file.startsWith(임시장))) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404); res.end('404'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -116,6 +141,7 @@ for (const theme of THEMES) {
 }
 await browser.close();
 server.close();
+if (임시장) fs.rmSync(임시장, { recursive: true, force: true });
 
 /* ★ 기준선(래칫). 처음 켰더니 36곳이 이미 어겨져 있었다 — 다 고칠 때까지 게이트를 안 켜면
    그 사이에 **새로 생기는 것**도 못 막는다. 그래서 「지금보다 늘면 빨강」으로 켠다.
