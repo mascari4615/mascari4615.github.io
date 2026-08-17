@@ -176,5 +176,9 @@
   "text.op.listdiff.status.done": "Shared {both} · only in the first {left} · only in the second {right}",
   "text.op.wordfreq.status.done": "Found the top {rows} of {words} words.",
   "text.op.encdetective.status.tried": "Tried {n} ways to trace it back.",
-  "text.op.encdetective.status.ranked": "Ranked {n} candidates by score."
+  "text.op.encdetective.status.ranked": "Ranked {n} candidates by score.",
+  "text.op.lorem.status.word": "Made {n} words.",
+  "text.op.lorem.status.sentence": "Made {n} sentences.",
+  "text.op.lorem.status.para": "Made {n} paragraphs.",
+  "text.op.encdetective.status.clean": "Nothing to repair — the text looks fine."
 }

@@ -176,5 +176,9 @@
   "text.op.listdiff.status.done": "共通 {both}個 · 一つ目だけ {left}個 · 二つ目だけ {right}個",
   "text.op.wordfreq.status.done": "{words}語のうち上位{rows}件を出しました。",
   "text.op.encdetective.status.tried": "{n}通りのたどり直しを試しました。",
-  "text.op.encdetective.status.ranked": "{n}通りを点数順に並べました。"
+  "text.op.encdetective.status.ranked": "{n}通りを点数順に並べました。",
+  "text.op.lorem.status.word": "{n}語つくりました。",
+  "text.op.lorem.status.sentence": "{n}文つくりました。",
+  "text.op.lorem.status.para": "{n}段落つくりました。",
+  "text.op.encdetective.status.clean": "直すものがありません — 文字化けしていないようです。"
 }
