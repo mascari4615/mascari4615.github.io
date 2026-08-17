@@ -166,5 +166,11 @@
   "text.op.case.opt.title": "Title Case",
   "text.op.linebreak.opt.unwrap": "Join lines in a paragraph",
   "text.op.linebreak.opt.wrap": "Rewrap lines",
-  "text.op.linebreak.opt.single": "Make one line"
+  "text.op.linebreak.opt.single": "Make one line",
+  "text.op.replace.status.needFind": "Enter the text to find",
+  "text.op.replace.status.badRegex": "That regular expression is not valid",
+  "text.op.text2pdf.status.done": "Made a PDF.",
+  "text.op.encdetective.status.idle": "Paste the broken text.",
+  "text.op.text2img.status.done": "Made a PNG.",
+  "text.op.unicodex.status.idle": "Paste your text."
 }

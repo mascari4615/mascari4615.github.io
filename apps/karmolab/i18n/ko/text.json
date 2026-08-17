@@ -166,5 +166,11 @@
   "text.op.case.opt.title": "Title Case",
   "text.op.linebreak.opt.unwrap": "문단 안 줄 잇기",
   "text.op.linebreak.opt.wrap": "다시 줄 나누기",
-  "text.op.linebreak.opt.single": "한 줄로 만들기"
+  "text.op.linebreak.opt.single": "한 줄로 만들기",
+  "text.op.replace.status.needFind": "찾을 글을 넣어 주세요",
+  "text.op.replace.status.badRegex": "정규식이 올바르지 않습니다",
+  "text.op.text2pdf.status.done": "PDF를 만들었습니다.",
+  "text.op.encdetective.status.idle": "깨진 글을 붙여 넣어 주세요.",
+  "text.op.text2img.status.done": "PNG를 만들었습니다.",
+  "text.op.unicodex.status.idle": "글을 붙여 넣어 주세요."
 }

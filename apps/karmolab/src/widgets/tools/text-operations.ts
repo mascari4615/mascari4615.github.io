@@ -1,3 +1,4 @@
+import { t } from '../../lib/i18n';
 import type { TextOperation, TextOperationResult } from './shared/text-operation';
 import { engToKor, korToEng } from '../../core/hangulkey';
 import { compose, decompose, initials, split } from '../../core/jamo';
@@ -44,14 +45,14 @@ function autoHangul(input: string): { output: string; korean: number; english: n
 }
 function replaceText(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
   const find = String(values.find || '');
-  if (!find) return { output: input, status: '찾을 글을 넣어 주세요' };
+  if (!find) return { output: input, status: t('text.op.replace.status.needFind', undefined, '찾을 글을 넣어 주세요') };
   const escaped = values.regex ? find : find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const source = values.word ? `\\b${escaped}\\b` : escaped;
   try {
     const expression = new RegExp(source, values.case ? 'g' : 'gi');
     const count = [...input.matchAll(new RegExp(source, values.case ? 'g' : 'gi'))].length;
     return { output: input.replace(expression, String(values.replace || '')), status: count ? `${count}곳을 바꿨습니다` : '찾는 글이 없습니다' };
-  } catch { return { output: input, status: '정규식이 올바르지 않습니다' }; }
+  } catch { return { output: input, status: t('text.op.replace.status.badRegex', undefined, '정규식이 올바르지 않습니다') }; }
 }
 function listDiff(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
   const normalize = (value: string): string => values.trim ? value.trim() : value;
@@ -179,7 +180,7 @@ function canvasBlob(canvas: HTMLCanvasElement): Promise<Blob> { return new Promi
 async function makePdf(input: string, values: Record<string, string | boolean | number>): Promise<{ blob: Blob; name: string; status: string }> {
   if (!input.trim()) throw new Error('글을 붙여 넣어 주세요.'); const library = await loadPdfLib(); if (!library) throw new Error('PDF 라이브러리를 불러오지 못했습니다.');
   const canvas = textCanvas(input, { ...values, ratio: 'story', theme: 'light' }); const image = await library.PDFDocument.create(); const png = await image.embedPng(await (await canvasBlob(canvas)).arrayBuffer()); image.addPage([595, 842]).drawImage(png, { x: 0, y: 0, width: 595, height: 842 });
-  return { blob: pdfBlob(await image.save()), name: 'text.pdf', status: 'PDF를 만들었습니다.' };
+  return { blob: pdfBlob(await image.save()), name: 'text.pdf', status: t('text.op.text2pdf.status.done', undefined, 'PDF를 만들었습니다.') };
 }
 
 /**
@@ -188,7 +189,7 @@ async function makePdf(input: string, values: Record<string, string | boolean | 
  * 「고쳤다」가 아니라 **무엇이 잘못 읽혔는지**를 같이 적는다. 그래야 다음에 안 겪는다.
  */
 function encFix(input: string, values: Record<string, string | boolean | number>): TextOperationResult {
-  if (input.trim() === '') return { output: '', status: '깨진 글을 붙여 넣어 주세요.' };
+  if (input.trim() === '') return { output: '', status: t('text.op.encdetective.status.idle', undefined, '깨진 글을 붙여 넣어 주세요.') };
   const mode = String(values.mode || 'auto');
   if (mode === 'explain') return { output: encExplain(input), status: `되짚기 ${encCandidates(input).length}가지를 해 봤습니다.` };
   if (mode === 'all') {
@@ -204,13 +205,13 @@ function encFix(input: string, values: Record<string, string | boolean | number>
 
 export const TEXT_OPERATIONS: TextOperation[] = [
   { id: 'text2pdf', title: '글을 PDF로', description: '글을 브라우저 안에서 A4 PDF로 만듭니다.', controls: [{ id: 'size', label: '글자 크기', kind: 'range', initial: 0, min: 0, max: 120 }], run: (input) => ({ output: input, status: input ? 'PDF 만들기를 누르면 내려받습니다.' : '글을 붙여 넣어 주세요.' }), action: { label: 'PDF 만들기', run: makePdf } },
-  { id: 'text2img', title: '글 카드', description: '글을 PNG 이미지 카드로 만듭니다.', controls: [{ id: 'ratio', label: '비율', kind: 'select', initial: 'square', options: [{ value: 'square', label: '정사각형' }, { value: 'wide', label: '가로' }, { value: 'story', label: '세로' }, { value: 'banner', label: '배너' }] }, { id: 'theme', label: '색', kind: 'select', initial: 'dark', options: [{ value: 'dark', label: '어두움' }, { value: 'light', label: '밝음' }] }, { id: 'size', label: '글자 크기', kind: 'range', initial: 0, min: 0, max: 160 }], run: (input) => ({ output: input, status: input ? 'PNG 만들기를 누르면 내려받습니다.' : '글을 붙여 넣어 주세요.' }), action: { label: 'PNG 만들기', run: async (input, values) => ({ blob: await canvasBlob(textCanvas(input, values)), name: 'text-card.png', status: 'PNG를 만들었습니다.' }) } },
+  { id: 'text2img', title: '글 카드', description: '글을 PNG 이미지 카드로 만듭니다.', controls: [{ id: 'ratio', label: '비율', kind: 'select', initial: 'square', options: [{ value: 'square', label: '정사각형' }, { value: 'wide', label: '가로' }, { value: 'story', label: '세로' }, { value: 'banner', label: '배너' }] }, { id: 'theme', label: '색', kind: 'select', initial: 'dark', options: [{ value: 'dark', label: '어두움' }, { value: 'light', label: '밝음' }] }, { id: 'size', label: '글자 크기', kind: 'range', initial: 0, min: 0, max: 160 }], run: (input) => ({ output: input, status: input ? 'PNG 만들기를 누르면 내려받습니다.' : '글을 붙여 넣어 주세요.' }), action: { label: 'PNG 만들기', run: async (input, values) => ({ blob: await canvasBlob(textCanvas(input, values)), name: 'text-card.png', status: t('text.op.text2img.status.done', undefined, 'PNG를 만들었습니다.') }) } },
   { id: 'charcount', title: '글자 수', description: '공백·문장·문단·바이트까지 한 번에 셉니다.', run: (input) => characterStats(input) },
   { id: 'wordfreq', title: '단어 빈도', description: '자주 나온 단어를 빈도순으로 정리합니다.', controls: [{ id: 'particle', label: '한국어 조사 덜어내기', kind: 'checkbox', initial: true }, { id: 'stop', label: '불용어 제외', kind: 'checkbox', initial: true }, { id: 'case', label: '대소문자 구분', kind: 'checkbox', initial: false }], run: frequency },
   { id: 'textredact', title: '글 가리기', description: '문서의 개인 정보와 토큰을 찾아 안전한 표기로 바꿉니다.', controls: [{ id: 'kinds', label: '종류 (비우면 모두)', kind: 'text', initial: '' }, { id: 'style', label: '표기', kind: 'select', initial: 'kind', options: [{ value: 'kind', label: '종류 이름' }, { value: 'mask', label: '별표 마스킹' }, { value: 'drop', label: '삭제' }] }, { id: 'numbered', label: '같은 값에 같은 번호', kind: 'checkbox', initial: true }], run: redact },
   { id: 'lorem', title: '더미 텍스트', description: '레이아웃을 확인할 임시 글을 만듭니다.', controls: [{ id: 'language', label: '언어', kind: 'select', initial: 'ko', options: [{ value: 'ko', label: '한국어' }, { value: 'en', label: 'Lorem ipsum' }] }, { id: 'unit', label: '단위', kind: 'select', initial: 'para', options: [{ value: 'para', label: '문단' }, { value: 'sentence', label: '문장' }, { value: 'word', label: '단어' }] }, { id: 'count', label: '개수', kind: 'range', initial: 3, min: 1, max: 20 }], run: (_input, values) => lorem(values) },
   { id: 'textdiff', title: '글 비교', description: '두 글의 달라진 줄을 추가와 삭제로 보여 줍니다.', controls: [{ id: 'other', label: '비교할 글', kind: 'textarea', initial: '' }, { id: 'trim', label: '줄 끝 공백 무시', kind: 'checkbox', initial: true }, { id: 'case', label: '대소문자 구분', kind: 'checkbox', initial: false }, { id: 'changed', label: '바뀐 줄만', kind: 'checkbox', initial: false }], run: textDiff },
-  { id: 'unicodex', title: '안 보이는 글자 찾기', description: '눈에 안 보이는 글자·닮은 글자(키릴 а 같은 것)를 찾아 보여 주고, 골라서 지웁니다.', controls: [{ id: 'mode', label: '어떻게', kind: 'select', initial: 'scan', options: [{ value: 'scan', label: '찾아서 보여 주기' }, { value: 'clean', label: '지우고 바로잡기' }] }, { id: 'keep', label: '닮은 글자는 두기', kind: 'checkbox', initial: false }], run: (input, values) => { if (!input) return { output: '', status: '글을 붙여 넣어 주세요.' }; if (String(values.mode) === 'clean') { const output = uxClean(input, { keepConfusables: Boolean(values.keep) }); const n = uxScan(input).length; return { output, status: n ? '수상한 글자 ' + n + '군데를 손봤습니다.' : '손볼 것이 없었습니다.' }; } const found = uxScan(input); return { output: uxReport(input), status: found.length ? found.length + '군데 찾았습니다 — 지우려면 위에서 「지우고 바로잡기」' : '수상한 글자가 없습니다.' }; } },
+  { id: 'unicodex', title: '안 보이는 글자 찾기', description: '눈에 안 보이는 글자·닮은 글자(키릴 а 같은 것)를 찾아 보여 주고, 골라서 지웁니다.', controls: [{ id: 'mode', label: '어떻게', kind: 'select', initial: 'scan', options: [{ value: 'scan', label: '찾아서 보여 주기' }, { value: 'clean', label: '지우고 바로잡기' }] }, { id: 'keep', label: '닮은 글자는 두기', kind: 'checkbox', initial: false }], run: (input, values) => { if (!input) return { output: '', status: t('text.op.unicodex.status.idle', undefined, '글을 붙여 넣어 주세요.') }; if (String(values.mode) === 'clean') { const output = uxClean(input, { keepConfusables: Boolean(values.keep) }); const n = uxScan(input).length; return { output, status: n ? '수상한 글자 ' + n + '군데를 손봤습니다.' : '손볼 것이 없었습니다.' }; } const found = uxScan(input); return { output: uxReport(input), status: found.length ? found.length + '군데 찾았습니다 — 지우려면 위에서 「지우고 바로잡기」' : '수상한 글자가 없습니다.' }; } },
   { id: 'encdetective', title: '깨진 글자 되살리기', description: '「뷁」·「í•œêµ­ì–´」 처럼 잘못 읽힌 글을 되짚어 원문으로 돌립니다.', controls: [{ id: 'mode', label: '어떻게', kind: 'select', initial: 'auto', options: [{ value: 'auto', label: '가장 그럴듯한 것으로' }, { value: 'all', label: '되짚기 전부 보기' }, { value: 'explain', label: '무슨 일이 있었나' }] }], run: encFix },
   { id: 'checklist', title: '체크리스트', description: '한 줄씩 쓴 항목을 Markdown 체크리스트로 만듭니다.', run: (input) => checklist(input) },
   { id: 'listdiff', title: '목록 비교', description: '두 목록에서 공통인 것과 한쪽에만 있는 것을 가릅니다.', controls: [{ id: 'other', label: '둘째 목록', kind: 'textarea', initial: '' }, { id: 'trim', label: '앞뒤 공백 무시', kind: 'checkbox', initial: true }], run: listDiff },
