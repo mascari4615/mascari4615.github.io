@@ -169,6 +169,7 @@
     "test:ics": "node scripts/test-icsmake.mjs",
     "test:barcode": "node scripts/test-barcode.mjs",
     "test:typing": "node scripts/smoke-typing.mjs",
+    "measure:detail-critical": "node scripts/measure-detail-critical.mjs",
     "audit:blocking-css": "node scripts/audit-blocking-css.mjs",
     "audit:sponsor": "node scripts/audit-sponsor-slot.mjs",
     "audit:live": "node scripts/audit-live-essentials.mjs",
