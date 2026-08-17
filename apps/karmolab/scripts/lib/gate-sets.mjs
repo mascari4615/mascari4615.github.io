@@ -67,6 +67,7 @@ export const PREPUSH = [
   'audit:spec-locales',
   'audit:memo-derived',
   'audit:generated-registry',
+  'audit:shell-t',
   'test:i18n'
 ];
 
