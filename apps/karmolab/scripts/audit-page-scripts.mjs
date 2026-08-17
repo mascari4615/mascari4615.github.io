@@ -38,6 +38,7 @@ function htmlPages() {
 const SRC_RE = /<script[^>]+src=["'](\/apps\/karmolab\/js\/[^"']+\.js)["']/g;
 
 const missing = [];
+const 남의것없음 = [];
 let checked = 0;
 
 for (const page of htmlPages()) {
@@ -50,6 +51,43 @@ for (const page of htmlPages()) {
       missing.push(`${path.relative(root, page)} → ${url}`);
     }
   }
+}
+
+/* ★ **부르는 자리가 HTML 만은 아니다** (2026-08-17, 실주소 404 로 들켰다). 늦게 받는 것들의
+   주소를 인라인에서 `src/boot-late.ts` 로 옮겼더니 이 검사의 눈 밖으로 나갔고, 그 사이
+   `copresence.js`·`alarm-fire.js` 가 안 지어진 채 배포돼 **404** 였다 — 화면은 멀쩡하고
+   검사도 전부 초록인데 그 기능만 조용히 죽었다. 이 검사가 태어난 사고(로그인 404)와 같은 꼴이다.
+   그러니 소스에 적힌 주소도 같이 본다. 찾을 곳은 「HTML」이 아니라 **그 주소가 적힌 어디든**이다. */
+const 소스주소 = /['"](\/apps\/karmolab\/js\/[^'"]+\.js)['"]/g;
+function 소스들(dir, out = [], 깊이 = 4) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === 'node_modules' || e.name.startsWith('.')) continue;
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) { if (깊이 > 0) 소스들(full, out, 깊이 - 1); }
+    else if (/[.](ts|mts|js|mjs)$/.test(e.name)) out.push(full);
+  }
+  return out;
+}
+for (const file of 소스들(path.join(root, 'src'))) {
+  const body = fs.readFileSync(file, 'utf8');
+  for (const m of body.matchAll(소스주소)) {
+    const url = m[1];
+    const 자리 = path.join(root, url.replace('/apps/karmolab/', ''));
+    /* `vendor/` 는 **남이 만든 것을 그대로 두는 자리**다 — 우리가 짓지 않으므로 여기서 막지 않는다
+       (`entry-points.mjs` 도 같은 규약). 대신 없으면 **말은 한다**: 지금 `mermaid.min.js` 가
+       그렇게 빠져 있고 실주소에서 404 다(문서 도구의 그림이 안 그려진다). 남의 파일을 내가
+       임의로 들이는 것은 사람 결정이라 알리기만 한다. */
+    if (url.includes('/vendor/')) {
+      if (!fs.existsSync(자리)) 남의것없음.push(`${path.relative(root, file)} → ${url}`);
+      continue;
+    }
+    checked += 1;
+    if (!fs.existsSync(자리)) missing.push(`${path.relative(root, file)} → ${url}`);
+  }
+}
+if (남의것없음.length) {
+  console.log(`[audit-page-scripts] ⚠ 남의 파일이 빠져 있다 ${남의것없음.length}건 — 막지는 않는다(사람이 들일지 정한다):`);
+  for (const l of 남의것없음) console.log('  · ' + l);
 }
 
 if (missing.length) {
