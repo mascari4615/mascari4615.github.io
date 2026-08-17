@@ -172,5 +172,9 @@
   "text.op.text2pdf.status.done": "Made a PDF.",
   "text.op.encdetective.status.idle": "Paste the broken text.",
   "text.op.text2img.status.done": "Made a PNG.",
-  "text.op.unicodex.status.idle": "Paste your text."
+  "text.op.unicodex.status.idle": "Paste your text.",
+  "text.op.listdiff.status.done": "Shared {both} · only in the first {left} · only in the second {right}",
+  "text.op.wordfreq.status.done": "Found the top {rows} of {words} words.",
+  "text.op.encdetective.status.tried": "Tried {n} ways to trace it back.",
+  "text.op.encdetective.status.ranked": "Ranked {n} candidates by score."
 }

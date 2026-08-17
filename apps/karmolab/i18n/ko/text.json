@@ -172,5 +172,9 @@
   "text.op.text2pdf.status.done": "PDF를 만들었습니다.",
   "text.op.encdetective.status.idle": "깨진 글을 붙여 넣어 주세요.",
   "text.op.text2img.status.done": "PNG를 만들었습니다.",
-  "text.op.unicodex.status.idle": "글을 붙여 넣어 주세요."
+  "text.op.unicodex.status.idle": "글을 붙여 넣어 주세요.",
+  "text.op.listdiff.status.done": "공통 {both}개 · 첫 목록만 {left}개 · 둘째 목록만 {right}개",
+  "text.op.wordfreq.status.done": "{words}개 단어에서 {rows}개 상위 항목을 찾았습니다.",
+  "text.op.encdetective.status.tried": "되짚기 {n}가지를 해 봤습니다.",
+  "text.op.encdetective.status.ranked": "되짚기 {n}가지를 점수순으로 놓았습니다."
 }
