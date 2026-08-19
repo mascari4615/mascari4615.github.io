@@ -73,13 +73,10 @@ const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'w
 
 /* ① */
 const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
-/* 단추는 언어 두 글자 + **지역 두 글자**를 나란히 적는다(「KO · KR」, TASK-KL-203 S12) —
-   언어만 적으면 지역이 짐작으로 정해진 것을 아무도 모른다. 깃발 그림문자는 안 쓴다(윈도우
-   크롬에 깃발 글리프가 없어 「KR」 글자로 떨어진다). */
+/* 단추는 **언어 두 글자만** 적는다(TASK-KL-203 S12). 지역은 눌러서 펴는 목록 안에 있다 —
+   머리띠에 둘 다 적으니 글자 덩어리로 보였다. 깃발 그림문자는 안 쓴다(윈도우 크롬에 깃발
+   글리프가 없어 「KR」 글자로 떨어진다). */
 if (!/^KO$/.test(code || '')) fail.push(`단추 언어 글자가 KO 가 아니다: ${code}`);
-const regionCode = (await page.locator('#langBtn .lang-btn-region').textContent())?.trim();
-if (!/^[A-Z]{2}$|^··$/.test(regionCode || ''))
-  fail.push(`단추 지역 글자가 두 글자가 아니다: ${regionCode}`);
 
 /* ② */
 await page.click('#langBtn');
