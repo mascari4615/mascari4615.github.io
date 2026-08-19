@@ -15,7 +15,12 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test",
     "demo": "npm run build && node demo/run.mjs",
-    "face": "npm run build && node demo/face.mjs"
+    "face": "npm run build && node demo/face.mjs",
+    "page": "npm run build && node demo/launch.mjs",
+    "page:talk": "npm run build && node demo/launch.mjs talk",
+    "page:grok": "npm run build && node demo/launch.mjs grok",
+    "page:preview": "npm run build && node demo/launch.mjs preview",
+    "pack": "npm run build && node scripts/pack.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -26,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "playwright": "^1.62.1",
     "typescript": "~5.9.0"
   }
 }
