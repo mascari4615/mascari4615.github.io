@@ -5,7 +5,8 @@
  * 4-source cross-check:
  *   A. backend   — #[tauri::command] fn names in src-tauri/src/**
  *   B. handler   — generate_handler![...] in lib.rs
- *   C. perms     — permissions/**/*.toml commands.allow
+ *   C. perms     — permissions 아래 .toml 의 commands.allow
+ *                  (경로 glob 을 여기 적으면 `**` + `/` 가 블록 주석을 조기에 닫는다)
  *   D. caps      — capabilities/default.json permissions (custom only, skip core:/updater:)
  *
  * Checks:
