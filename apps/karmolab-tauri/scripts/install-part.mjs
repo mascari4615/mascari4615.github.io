@@ -28,6 +28,14 @@ const RECIPES = {
        target-claude 등) 엉뚱한 데 구워 놓고 「없다」고 하게 된다. */
     args: ['build', '--bin', 'companion-window', '--target-dir', targetRoot],
   },
+  /* 내 컴퓨터에서 도는 한국어 목소리(piper). 받는 자리는 **memo 저장소 안**이다 —
+     이웃 저장소라 여기서 경로를 박지 않고, 받는 쪽 스크립트가 스스로 찾게 둔다.
+     결과물만 여기서 확인한다: 실행기가 있어야 목소리가 난다. */
+  'piper-voice': {
+    artifact: join(repoRoot, '..', 'memo', 'life', '.models', 'piper', 'piper', 'piper.exe'),
+    program: process.execPath,
+    args: [join(repoRoot, 'packages', 'companion', 'scripts', 'get-voice.mjs')],
+  },
 };
 
 const id = process.argv[2];

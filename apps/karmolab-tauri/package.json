@@ -11,7 +11,8 @@
     "dev:tauri": "npm run build:sidecar && wait-on http-get://127.0.0.1:8898/apps/karmolab/ -t 30000 -i 250 && tauri dev --features dev-tools",
     "build": "npm run build:sidecar && tauri build --config src-tauri/tauri.release.conf.json",
     "audit:acl": "node scripts/audit-acl.mjs",
-    "build:companion": "node scripts/install-part.mjs companion-window"
+    "build:companion": "node scripts/install-part.mjs companion-window",
+    "build:piper": "node scripts/install-part.mjs piper-voice"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
