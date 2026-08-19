@@ -73,9 +73,13 @@ const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'w
 
 /* ① */
 const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
-/* 단추는 언어 두 글자 뒤에 **지역 깃발**을 붙인다(「KO 🇰🇷」, TASK-KL-203 S12) — 언어만 적으면
-   지역이 짐작으로 정해진 것을 아무도 모른다. 여기서는 앞의 언어 글자만 못 박는다. */
-if (!/^KO(\s|$)/.test(code || '')) fail.push(`단추가 KO 로 시작하지 않는다: ${code}`);
+/* 단추는 언어 두 글자 + **지역 두 글자**를 나란히 적는다(「KO · KR」, TASK-KL-203 S12) —
+   언어만 적으면 지역이 짐작으로 정해진 것을 아무도 모른다. 깃발 그림문자는 안 쓴다(윈도우
+   크롬에 깃발 글리프가 없어 「KR」 글자로 떨어진다). */
+if (!/^KO$/.test(code || '')) fail.push(`단추 언어 글자가 KO 가 아니다: ${code}`);
+const regionCode = (await page.locator('#langBtn .lang-btn-region').textContent())?.trim();
+if (!/^[A-Z]{2}$|^··$/.test(regionCode || ''))
+  fail.push(`단추 지역 글자가 두 글자가 아니다: ${regionCode}`);
 
 /* ② */
 await page.click('#langBtn');

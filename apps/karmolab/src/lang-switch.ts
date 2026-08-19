@@ -25,7 +25,7 @@ import {
   preferredLocale,
   hasExplicitChoice
 } from './lib/i18n';
-import { REGIONS, region, regionMeta, setRegion } from './lib/region';
+import { REGIONS, region, setRegion } from './lib/region';
 
 /**
  * **이 화면이 실제로 가지고 있는 언어**만 목록에 올린다 (TASK-KL-203 S6).
@@ -57,6 +57,14 @@ function countryName(code: string, fallback: string): string {
   }
 }
 
+/**
+ * 나라를 **두 글자 코드**로. 「그 밖의 나라(XX)」만 지구본 기호를 쓴다 — 코드가 없는 칸이라
+ * 빈자리로 두면 줄이 어긋난다. 깃발 그림문자를 안 쓰는 이유는 `mountButton` 주석 참고.
+ */
+function regionCode(code: string): string {
+  return code === 'XX' ? '··' : code;
+}
+
 const STYLE_ID = 'lang-switch-style';
 const DISMISS_KEY = 'karmolab_locale_hint_off';
 
@@ -74,6 +82,8 @@ function ensureStyle(): void {
 .lang-menu button[aria-current="true"]{font-weight:600}
 .lang-menu-head{padding:.35rem .6rem .2rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
   opacity:.55;color:var(--text-primary)}
+.lang-menu-code{display:inline-block;min-width:1.9em;margin-right:.5em;font-size:.68rem;font-weight:700;
+  letter-spacing:.04em;text-align:center;opacity:.55;font-variant-numeric:tabular-nums}
 .lang-menu-sep{height:1px;margin:.3rem .4rem;background:var(--border)}
 .lang-menu-note{padding:.3rem .6rem .15rem;font-size:.72rem;line-height:1.45;opacity:.6;
   color:var(--text-primary);max-width:15rem;white-space:normal}
@@ -151,7 +161,9 @@ function openMenu(btn: HTMLElement): void {
        말로 화면이 그려진 뒤의 선택이라, 「대한민국」을 못 읽는 사람(=한국 사는 외국인, 이 축을
        만든 이유 그 자체)에게 한글을 던지면 안 된다. */
     const name = r.code === 'XX' ? t('shell.region.other', undefined, '그 밖의 나라') : countryName(r.code, r.endonym);
-    item.innerHTML = `<span>${r.flag} ${name}</span><span>${r.code === nowRegion ? '✓' : ''}</span>`;
+    item.innerHTML =
+      `<span><span class="lang-menu-code">${regionCode(r.code)}</span>${name}</span>` +
+      `<span>${r.code === nowRegion ? '✓' : ''}</span>`;
     item.addEventListener('click', () => {
       if (r.code === nowRegion) return closeMenu();
       setRegion(r.code);
@@ -188,10 +200,15 @@ function onAway(e: MouseEvent): void {
 function mountButton(): void {
   const btn = document.getElementById('langBtn');
   if (!btn) return;
-  /* 단추에 **둘 다** 적는다 — 「KO 🇰🇷」. 언어만 적으면 지역이 짐작으로 정해진 것을 아무도
-     모르고, 한국 사는 영어 사용자는 자기 화면이 왜 이런지 알 길이 없다. */
+  /* 단추에 **둘 다** 적는다 — 「KO · KR」. 언어만 적으면 지역이 짐작으로 정해진 것을 아무도
+     모르고, 한국 사는 영어 사용자는 자기 화면이 왜 이런지 알 길이 없다.
+     깃발 그림문자(🇰🇷)는 **안 쓴다** — 윈도우 크롬에는 깃발 글리프가 없어 그 자리에 「KR」
+     두 글자가 그대로 떨어진다. 그림을 노렸는데 글자가 나오면 「KO KR」이 되어 무슨 말인지
+     모르는 자리가 된다. 처음부터 글자면 어느 기계에서나 같게 보인다. */
   const label = btn.querySelector('.lang-btn-code');
-  if (label) label.textContent = `${locale().toUpperCase()} ${regionMeta().flag}`;
+  if (label) label.textContent = locale().toUpperCase();
+  const reg = btn.querySelector('.lang-btn-region');
+  if (reg) reg.textContent = regionCode(region());
   btn.setAttribute('aria-label', t('shell.region.aria', undefined, '언어와 지역'));
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
