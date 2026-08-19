@@ -430,3 +430,98 @@ pub async fn ai_quota_grok() -> Result<VendorQuota, String> {
         .await
         .map_err(|e| format!("join-error: {e}"))?
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 테스트 — 이 컴퓨터의 진짜 파일을 읽는다. 파서가 벤더의 실제 기록 모양을
+// 따라가는지는 합성 픽스처로는 확인이 안 된다 (스키마가 바뀌면 그때 빨개져야
+// 하는데, 픽스처는 영원히 초록이다). 해당 CLI 가 안 깔린 기계에서는 조용히 건너뛴다.
+// ─────────────────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn skip_unless(cond: bool, why: &str) -> bool {
+        if !cond {
+            eprintln!("[skip] {why}");
+        }
+        !cond
+    }
+
+    #[test]
+    fn codex_snapshot_parses_from_real_sessions() {
+        let installed = home_dir().map(|h| h.join(".codex").is_dir()).unwrap_or(false);
+        if skip_unless(installed, "~/.codex 없음") {
+            return;
+        }
+        match read_codex_quota() {
+            Ok(q) => {
+                assert_eq!(q.vendor, "codex");
+                assert!(!q.live, "세션 기록은 라이브가 아니다");
+                assert!(q.observed_at.is_some(), "관측 시각이 없으면 사용자가 신선도를 못 본다");
+                assert!(!q.windows.is_empty(), "창이 하나도 없으면 카드가 빈다");
+                for w in &q.windows {
+                    if let Some(p) = w.used_percent {
+                        assert!((0.0..=100.0).contains(&p), "퍼센트 범위 밖: {p}");
+                    }
+                }
+            }
+            // 오래 안 썼으면 스냅샷이 없을 수 있다 — 그것도 정상 경로다.
+            Err(e) => assert!(
+                e == "no-snapshot" || e == "no-sessions",
+                "예상 밖 실패: {e}"
+            ),
+        }
+    }
+
+    #[test]
+    fn grok_signal_parses_from_real_log() {
+        let installed = home_dir().map(|h| h.join(".grok").is_dir()).unwrap_or(false);
+        if skip_unless(installed, "~/.grok 없음") {
+            return;
+        }
+        match read_grok_quota() {
+            Ok(q) => {
+                assert_eq!(q.vendor, "grok");
+                assert!(!q.live);
+                assert!(
+                    !q.counts.is_empty() || q.last_rate_limited_at.is_some(),
+                    "둘 다 비면 Err 였어야 한다"
+                );
+                assert!(
+                    q.notes.iter().any(|n| n == "no-percent-api"),
+                    "게이지가 없는 이유를 화면이 말해야 한다"
+                );
+            }
+            Err(e) => assert!(e == "no-signal" || e == "no-log", "예상 밖 실패: {e}"),
+        }
+    }
+
+    #[test]
+    fn claude_token_is_readable_and_never_leaves_the_dto() {
+        let has = home_dir()
+            .map(|h| h.join(".claude").join(".credentials.json").is_file())
+            .unwrap_or(false);
+        if skip_unless(has, "~/.claude/.credentials.json 없음") {
+            return;
+        }
+        let creds = read_claude_token().expect("자격증명 파싱");
+        assert!(!creds.access_token.is_empty());
+
+        // DTO 직렬화 결과에 토큰이 섞여 나가지 않는지 — 이 위젯의 보안 계약.
+        let mut dto = VendorQuota::empty("claude", true);
+        dto.plan = creds.subscription_type.clone();
+        let json = serde_json::to_string(&dto).unwrap();
+        assert!(!json.contains(&creds.access_token), "토큰이 DTO 로 새어 나갔다");
+    }
+
+    #[test]
+    fn iso_and_window_keys_are_stable() {
+        // 2026-08-26T00:59:59Z = 1787705999 (오프셋이 붙은 형식도 그대로 먹는지).
+        assert_eq!(iso_to_epoch("2026-08-26T00:59:59.882619+00:00"), Some(1787705999));
+        assert_eq!(iso_to_epoch("not-a-date"), None);
+        assert_eq!(codex_window_key(Some(10080), "x"), "seven_day");
+        assert_eq!(codex_window_key(Some(300), "x"), "five_hour");
+        assert_eq!(codex_window_key(Some(77), "x"), "minutes_77");
+        assert_eq!(codex_window_key(None, "primary"), "primary");
+    }
+}
