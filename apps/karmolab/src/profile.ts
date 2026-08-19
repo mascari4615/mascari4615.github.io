@@ -17,8 +17,15 @@
 import { t, loadNamespace, locale } from './lib/i18n';
 
 /* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
-   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
-if (typeof document !== 'undefined') void loadNamespace('profile');
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다.
+
+   ★ 받아오기를 **던져 놓고 잊으면 안 된다**. 이 장의 첫 그림은 서버 응답을 기다린 뒤에
+   그려지므로 대개는 말이 먼저 도착하지만, 응답이 빨리 끝나거나 **빨리 실패하면**(catch 길)
+   말보다 그림이 앞선다. 그때 `t()` 는 없는 열쇠로 **던지고**, 그 던짐이 catch 안에서 나면
+   오류 안내마저 못 그려 화면이 통째로 빈다 (실측: `ko/profile.t35` — 오류 안내 자체가 죽었다).
+   그래서 약속을 붙잡아 두고 그리기 전에 기다린다. */
+const 말받기: Promise<void> =
+    typeof document !== 'undefined' ? loadNamespace('profile').catch(() => undefined) : Promise.resolve();
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -408,6 +415,10 @@ function mountShare(root: HTMLElement, profile: PublicProfile): void {
 async function main(): Promise<void> {
     const root = document.getElementById('profileRoot');
     if (!root) return;
+
+    /* 아무 글도 꺼내기 전에. 못 받아 왔으면 아래 `t()` 가 열쇠 이름을 던지지만, 그건 이미
+       기다린 뒤라 「경주에서 졌다」와 구분된다. */
+    await 말받기;
 
     const handle = new URLSearchParams(location.search).get('h') ?? '';
     if (!handle) {
