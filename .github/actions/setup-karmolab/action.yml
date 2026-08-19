@@ -85,6 +85,7 @@ runs:
 
     # 브라우저 내려받기는 매 실행 50초가 넘는다(2026-08-07 실측 54초). 잠금파일이 같으면 같은 판이라 캐시로 건너뛴다.
     - name: 브라우저 캐시
+      id: browsercache
       if: inputs.chromium == 'true'
       uses: actions/cache@v4
       with:
@@ -92,7 +93,17 @@ runs:
         key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
         restore-keys: playwright-${{ runner.os }}-
 
-    - name: 브라우저 준비
-      if: inputs.chromium == 'true'
+    # `--with-deps` 는 apt 로 폰트·라이브러리를 받는다. 그건 위 캐시(브라우저 알맹이)
+    # **밖**이라 미러가 느린 날 그대로 배포 지연이 된다 — 2026-08-19 실측: 이 단계 하나가
+    # 13.9분(폰트 7.5MB 에 1분 27초). 평소는 42초~2분38초라 매 판 문제가 아니라 **꼬리**다.
+    # 캐시가 맞으면 브라우저는 이미 있고 러너 이미지에 필요한 라이브러리도 들어 있다 →
+    # 그때는 apt 를 아예 안 부른다. 미스일 때만 예전대로 `--with-deps` 로 받는다.
+    - name: 브라우저 준비 (캐시 적중 — apt 안 부른다)
+      if: inputs.chromium == 'true' && steps.browsercache.outputs.cache-hit == 'true'
+      shell: bash
+      run: cd apps/karmolab && npx playwright install chromium
+
+    - name: 브라우저 준비 (캐시 미스 — 시스템 꾸러미까지)
+      if: inputs.chromium == 'true' && steps.browsercache.outputs.cache-hit != 'true'
       shell: bash
       run: cd apps/karmolab && npx playwright install --with-deps chromium
