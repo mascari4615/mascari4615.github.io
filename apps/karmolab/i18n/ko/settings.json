@@ -103,5 +103,8 @@
   "settings.t58": "마스코트 기록 초기화 완료",
   "settings.tab.display": "표시 · API",
   "settings.tab.mascot": "마스코트",
-  "settings.tab.data": "이 브라우저에 저장된 것"
+  "settings.tab.data": "이 브라우저에 저장된 것",
+  "settings.t59": "만든 사람 · 문의",
+  "settings.label.setLinks": "연락처 · 링크 모음",
+  "settings.btn.setLinks": "열기"
 }

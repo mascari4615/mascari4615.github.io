@@ -103,5 +103,8 @@
   "settings.tab.mascot": "Mascot",
   "settings.tab.data": "What is stored in this browser",
   "settings.t27": "Screen theme (light / dark)",
-  "settings.t28": "Menu layout"
+  "settings.t28": "Menu layout",
+  "settings.t59": "Who made this · contact",
+  "settings.label.setLinks": "Contact · links",
+  "settings.btn.setLinks": "Open"
 }

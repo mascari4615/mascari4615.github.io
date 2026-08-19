@@ -141,6 +141,18 @@ import { t, loadNamespace } from '../lib/i18n';
                     <h3>🔑 API</h3>
                     ${apiUI.html}
                 </div>
+                <!-- 만든 사람 · 문의 (사용자 요청 2026-08-19). 예전에는 껍데기 맨 윗줄에
+                     「누가 만들었나요?」 단추가 상주했다 — 하루에 한 번 누를까 말까 한 것이
+                     매일 쓰는 도구 이름들과 같은 크기로 자리를 먹고 있었다. 여느 사이트가
+                     그러듯 「문의·정보」는 환경 설정 안에 둔다. 링크 자체는 linktree 위젯이
+                     정본이라 여기서 값을 두 벌 적지 않는다 — 자리 이동만 시킨다. -->
+                <div class="settings-section">
+                    <h3>${esc(t('settings.t59'))}</h3>
+                    <div class="settings-row">
+                        <label>${esc(t('settings.label.setLinks'))}</label>
+                        <button type="button" class="btn-ghost" data-goto="linktree">${esc(t('settings.btn.setLinks'))}</button>
+                    </div>
+                </div>
             </div>`;
 
         container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
