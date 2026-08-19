@@ -308,7 +308,52 @@
 }
 .tool-drop.over { border-color: var(--accent); background: var(--accent-subtle); }
 
-/* ── 로또 ── */
+/* ── 로또 · 연금복권 ──
+   연출 규율 (2026-08-20): 움직임은 **켜질 때만** 붙인다 — 기본이 정지고
+   `prefers-reduced-motion: no-preference` 일 때만 움직인다. 그래야 「끄는 걸 깜빡한」
+   자리가 안 생긴다. 결과(번호)는 연출 없이도 그대로 서 있다. */
+.lt-modes {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+.lt-mode {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.lt-mode:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.lt-mode.is-on {
+    border-color: var(--accent);
+    background: var(--accent-subtle);
+    color: var(--text-primary);
+}
+.lt-mode-name { font-weight: 700; font-size: var(--font-size-sm); }
+.lt-mode-sub { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.lt-check-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    height: 38px;
+}
+
+.lt-actions { align-items: center; flex-wrap: wrap; }
+.lt-go { min-width: 140px; font-weight: 700; }
+.lt-go:active { transform: scale(0.97); }
+
+.lt-result { margin-top: var(--space-sm); }
+.lt-result.is-revealing { cursor: pointer; }
 .lt-row {
     display: flex;
     align-items: center;
@@ -323,7 +368,7 @@
     color: var(--text-tertiary);
     font-family: var(--font-mono);
 }
-.lt-balls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lt-balls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; position: relative; }
 .lt-ball {
     width: 34px;
     height: 34px;
@@ -334,10 +379,196 @@
     font-weight: 700;
     font-size: var(--font-size-sm);
     color: #1a1a1a;
+    background: var(--lt-bg, #ccc);
     box-shadow: inset -2px -3px 4px rgba(0, 0, 0, 0.25);
+    transform-origin: center bottom;
 }
 .lt-ball-bonus { outline: 2px solid var(--text-primary); outline-offset: 1px; }
 .lt-plus { color: var(--text-tertiary); font-weight: 700; }
+.lt-band {
+    flex: none;
+    padding: 3px 9px;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent-dim);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: var(--font-size-2xs);
+}
+
+/* 자릿수 릴 — 통 안에서 0~9 가 네 바퀴 돌다 목표에서 멎는다.
+   `tabular-nums` 가 빠지면 자릿수 폭이 흔들려 릴이 덜덜 떤다. */
+.lt-digits { gap: 3px; }
+.lt-reel {
+    --h: 1.25em;
+    display: inline-block;
+    height: var(--h);
+    overflow: hidden;
+    padding: 0 5px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: var(--h);
+    vertical-align: middle;
+}
+.lt-strip { display: block; }
+.lt-strip b { display: block; height: var(--h); line-height: var(--h); font-weight: 700; }
+/* 멎는 자리는 **연출과 무관하게** 이 한 줄이 정한다 — 연출을 꺼도 숫자는 제자리에 선다.
+   (`is-run` 은 그리자마자가 아니라 한 프레임 뒤에 붙는다. 그래야 미끄러질 거리가 생긴다.) */
+.lt-result.is-run .lt-strip { transform: translateY(calc(var(--h) * -1 * var(--n, 0))); }
+
+@media (prefers-reduced-motion: no-preference) {
+    /* 공: 위에서 떨어져 → 착지에 눌리고 → 반동 뒤 선다 (부피 보존 25~50% 안쪽). */
+    .lt-result.is-revealing .lt-ball,
+    .lt-result.is-revealing .lt-plus,
+    .lt-result.is-revealing .lt-band {
+        animation: lt-drop 460ms cubic-bezier(0.05, 0.7, 0.1, 1) both;
+        animation-delay: calc(var(--d, 0) * 1ms);
+    }
+    /* 릴: 세로로 미끄러지다 감속해 멎는다. 자릿수마다 조금씩 늦게 멎어 왼쪽부터 확정된다. */
+    .lt-result .lt-strip {
+        transition: transform calc(var(--dur, 800) * 1ms) cubic-bezier(0.05, 0.7, 0.1, 1);
+        transition-delay: calc(var(--d, 0) * 1ms);
+    }
+    .lt-panel.is-win { animation: lt-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+}
+
+@keyframes lt-drop {
+    0%   { transform: translateY(-150%) scaleY(1.22) scaleX(0.82); opacity: 0; }
+    55%  { transform: translateY(0) scaleY(1.18) scaleX(0.85); opacity: 1; }
+    70%  { transform: translateY(0) scaleY(0.74) scaleX(1.3); }
+    84%  { transform: translateY(-14%) scaleY(1.08) scaleX(0.94); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes lt-shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* 확정 순간의 스파크. 열 조각이면 컴포지터가 공짜로 그린다 — canvas 를 세울 일이 아니다. */
+.lt-burst {
+    position: absolute;
+    inset: 50% auto auto 100%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.lt-burst i {
+    --n: 10;
+    --angle: calc(360deg / var(--n) * var(--i) + 12deg * var(--i));
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: hsl(calc(var(--i) * 36) 90% 62%);
+    opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .lt-burst i {
+        animation: lt-fling 620ms cubic-bezier(0.05, 0.7, 0.1, 1) both;
+        animation-delay: calc(var(--i) * 8ms);
+    }
+}
+@keyframes lt-fling {
+    0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+    70%  { opacity: 1; }
+    100% {
+        transform:
+            translate(calc(-50% + cos(var(--angle)) * 46px), calc(-50% + sin(var(--angle)) * 46px + 18px))
+            scale(0.2) rotate(calc(var(--angle) * 2));
+        opacity: 0;
+    }
+}
+
+/* ── 확률 표 ── */
+.lt-odds {
+    margin-top: var(--space-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+}
+.lt-odds > summary {
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.lt-odds-lead {
+    font-weight: 400;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-2xs);
+    margin-left: 6px;
+}
+.lt-odds-table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    font-size: var(--font-size-2xs);
+}
+.lt-odds-table th,
+.lt-odds-table td {
+    padding: 5px 6px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+.lt-odds-table thead th { color: var(--text-tertiary); }
+.lt-odds-table tbody th { color: var(--text-primary); font-weight: 700; white-space: nowrap; }
+.lt-odds-p { font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+.lt-odds-prize { color: var(--text-tertiary); }
+.lt-odds-note { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+
+/* ── 최신 회차 대조 ── */
+.lt-panel {
+    position: relative;
+    margin-top: var(--space-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+}
+.lt-panel.is-win { border-color: var(--success); background: var(--success-subtle); }
+.lt-panel-head {
+    font-size: var(--font-size-2xs);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+}
+.lt-panel-note { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.lt-check-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.lt-check-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+}
+.lt-check-list li b { color: var(--text-secondary); font-weight: 700; }
+.lt-check-list li.is-hit b { color: var(--success); }
+.lt-check-hit { font-family: var(--font-mono); }
+
+/* ── 동행복권 바로가기 ── */
+.lt-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-md);
+}
+.lt-links-note { margin: 6px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 
 /* ── 텍스트 비교 ── */
 .td-out {
