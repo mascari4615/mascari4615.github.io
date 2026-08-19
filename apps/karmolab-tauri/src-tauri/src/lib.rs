@@ -16,7 +16,6 @@ mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
 mod quest_writeback;
-mod part_fetch;
 mod repo_file;
 mod terminal;
 mod tray_menu;
@@ -50,13 +49,12 @@ use quest_writeback::{
     toggle_quest_check,
 };
 use local_dev::{
-    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root, localdev_guess_repo_root,
+    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
     localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
     LocalDevState,
 };
-use part_fetch::{part_fetch, part_fetched_path};
 use repo_file::{repofile_open_default, repofile_read, repofile_reveal, repofile_write};
 use terminal::{
     terminal_send_stdin, terminal_start, terminal_status, terminal_stop, TerminalState,
@@ -247,6 +245,23 @@ fn build_tray_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             item.menu_id(),
             item.label_with_state(running_now.contains(quick_profile(item))),
             true,
+            None::<&str>,
+        )?);
+    }
+    /* ★ **비었으면 숨기지 말고 왜 비었는지 말한다** (2026-08-19). 저장소 자리를 모를 때
+       뭆음을 통째로 안 띄우게 둘다. 그랬더니 조수님이 「저장소 설정 안 되어 있으면
+       트레이 옵션이 안 뜼는 거냐」고 물었다 — 안 보이는 기능은 없는 기능과 같다.
+       뭆으면 「왜 비었고 어떻게 채우나」를 한 줄로 높는다(눌러도 아무 일 안 나게 꺼 둔다). */
+    if quick_menu_items.is_empty() {
+        quick_menu_items.push(MenuItem::with_id(
+            app,
+            "tray_quick_none",
+            if repo_root_now.is_none() {
+                "저장소 자리를 먼저 정해라 — 서버 모니터 아래쪽"
+            } else {
+                "적어 둔 손잡이가 없다 — data/tray-menu.json"
+            },
+            false,
             None::<&str>,
         )?);
     }
