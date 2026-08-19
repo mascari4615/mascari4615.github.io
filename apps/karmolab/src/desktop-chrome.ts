@@ -206,33 +206,12 @@
         setTimeout(dismiss, UPDATE_COMPLETED_TOAST_TIMEOUT_MS);
     }
 
-    function injectDesktopBadge() {
+    /** 앱 버전만 셸의 판 표식 배지에 넘긴다 (TASK-KL-192).
+     *  「앱」 배지와 「브라우저」 링크는 없앴다 — 판 표식 배지가 이미 앱/웹을 말한다. */
+    function registerAppVersion() {
         if (typeof window === 'undefined' || !window.__KARMOLAB_DESKTOP__) return;
-        const left = document.querySelector('.header-bar-left');
-        if (left && !left.querySelector('.karmolab-desktop-chrome')) {
-            const row = document.createElement('span');
-            row.className = 'karmolab-desktop-chrome';
-            row.setAttribute('aria-label', '데스크톱 앱 모드');
-            const span = document.createElement('span');
-            span.className = 'karmolab-desktop-badge';
-            const ver = window.__KARMOLAB_VERSION__;
-            /* 버전 숫자는 여기서 안 적는다 (TASK-KL-192). 셸의 판 표식 배지가 웹·앱 공통으로
-             * 「앱 버전 + 웹 빌드」를 한 자리에 보여 준다 — 두 군데서 적으면 갈라진다.
-             * 여기 남는 것은 「지금 앱이다」라는 사실뿐. */
-            span.textContent = '앱';
-            span.title = 'Tauri 데스크톱 앱에서 실행 중입니다. 웹에서는 이 배지가 보이지 않습니다.';
-            if (ver) Toolbox.setAppVersion?.(ver);
-            const browserA = document.createElement('a');
-            browserA.className = 'karmolab-open-browser';
-            browserA.href = 'https://mascari4615.github.io/karmolab/';
-            browserA.target = '_blank';
-            browserA.rel = 'noopener noreferrer';
-            browserA.textContent = '브라우저';
-            browserA.title = '기본 브라우저에서 KarmoLab 열기';
-            row.appendChild(span);
-            row.appendChild(browserA);
-            left.appendChild(row);
-        }
+        const ver = window.__KARMOLAB_VERSION__;
+        if (ver) Toolbox.setAppVersion?.(ver);
     }
 
     function installWindowControls() {
@@ -276,7 +255,7 @@
 
     window.KarmoDesktopChrome = {
         install() {
-            injectDesktopBadge();
+            registerAppVersion();
             setupUpdateBannerListener();
             setupUpdateCompletedToast();
             installWindowControls();
