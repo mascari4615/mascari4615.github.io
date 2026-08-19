@@ -20,6 +20,10 @@
       "볼것": ["src/widgets/karmograph/**", "src/lib/karmograph/**", "scripts/test-karmograph-*.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
     },
     {
+      "이름": "test:karmograph:render",
+      "볼것": ["src/lib/karmograph/render.ts", "src/lib/karmograph/from-mermaid.ts", "src/core/mermaidlite.ts", "src/widgets/docs/**", "js/widgets/docs/*.md", "scripts/test-karmograph-render.mjs", "src/lib/**", "scripts/lib/**", "build.mjs", "package.json", "data/gate-list.json"]
+    },
+    {
       "이름": "test:ink",
       "볼것": ["src/widgets/ink*", "src/widgets/ink/**", "scripts/test-ink-on.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
     },
