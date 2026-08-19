@@ -200,15 +200,12 @@ function onAway(e: MouseEvent): void {
 function mountButton(): void {
   const btn = document.getElementById('langBtn');
   if (!btn) return;
-  /* 단추에 **둘 다** 적는다 — 「KO · KR」. 언어만 적으면 지역이 짐작으로 정해진 것을 아무도
-     모르고, 한국 사는 영어 사용자는 자기 화면이 왜 이런지 알 길이 없다.
+  /* 단추에는 **언어 두 글자만** 적는다. 한때 지역까지 붙였는데(「KO 🇰🇷」) 머리띠가 좁아
+     글자 덩어리로 보였다 — 지역은 누르면 나오는 목록 안에 이미 제자리가 있다.
      깃발 그림문자(🇰🇷)는 **안 쓴다** — 윈도우 크롬에는 깃발 글리프가 없어 그 자리에 「KR」
-     두 글자가 그대로 떨어진다. 그림을 노렸는데 글자가 나오면 「KO KR」이 되어 무슨 말인지
-     모르는 자리가 된다. 처음부터 글자면 어느 기계에서나 같게 보인다. */
+     두 글자가 그대로 떨어진다. 그림을 노렸는데 글자가 나오면 무슨 말인지 모르는 자리가 된다. */
   const label = btn.querySelector('.lang-btn-code');
   if (label) label.textContent = locale().toUpperCase();
-  const reg = btn.querySelector('.lang-btn-region');
-  if (reg) reg.textContent = regionCode(region());
   btn.setAttribute('aria-label', t('shell.region.aria', undefined, '언어와 지역'));
   btn.addEventListener('click', (e) => {
     e.stopPropagation();

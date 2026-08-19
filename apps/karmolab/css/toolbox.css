@@ -1113,10 +1113,11 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     width: 18px; height: 18px;
 }
 
-/* 언어·지역 단추 — 이웃(톱니·해달)과 **같은 몸**을 쓰되, 글자 두 벌(언어/지역)이 들어가므로
-   가로만 늘어난다. 깃발 그림문자를 안 쓰는 이유: 윈도우 크롬은 깃발 글리프가 없어 「🇰🇷」이
-   그대로 「KR」 두 글자로 떨어진다 — 「KO 🇰🇷」가 「KO KR」로 보이던 자리다(2026-08-20 실측).
-   그래서 지구본은 선 아이콘(이웃과 같은 굵기)으로, 나라는 **두 글자 코드**로 못 박는다. */
+/* 언어 단추 — 이웃(톱니·해달)과 **같은 몸**을 쓰되, 언어 두 글자가 들어가므로 가로만 늘어난다.
+   깃발 그림문자를 안 쓰는 이유: 윈도우 크롬은 깃발 글리프가 없어 「🇰🇷」이 그대로 「KR」 두
+   글자로 떨어진다 — 「KO 🇰🇷」가 「KO KR」로 보이던 자리다(2026-08-20 실측).
+   **지역은 단추에 안 적는다** — 머리띠는 좁고, 지역은 눌러서 펴는 목록 안에 이미 있다.
+   지구본은 선 아이콘(이웃과 같은 굵기)으로 통일한다. */
 .header-btn.lang-btn {
     width: auto; min-width: 36px; gap: 5px; padding: 0 8px;
 }
@@ -1125,16 +1126,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     font-size: 11px; font-weight: 700; letter-spacing: .06em; line-height: 1;
     color: var(--text-primary);
 }
-.lang-btn-region {
-    font-size: 10px; font-weight: 600; letter-spacing: .04em; line-height: 1;
-    color: var(--text-tertiary);
-}
-.lang-btn-region:not(:empty)::before {
-    content: ""; display: inline-block; width: 1px; height: 9px; margin-right: 5px;
-    vertical-align: -1px; background: var(--border);
-}
-/* 좁은 화면에서는 지역 두 글자를 접는다 — 머리띠가 밀리면 그게 더 안 예쁘다. */
-@media (max-width: 480px) { .lang-btn-region { display: none; } }
 .theme-toggle .theme-icon { color: inherit; }
 
 [data-theme="dark"] .theme-toggle .sun, [data-theme="light"] .theme-toggle .moon { display: none; }
