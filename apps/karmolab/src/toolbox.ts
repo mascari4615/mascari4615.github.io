@@ -58,25 +58,12 @@ const Toolbox = (() => {
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
-    const NAV_TOOL_GROUPS = [
-        {
-            id: 'tool-calc',
-            label: () => 말('shell.nav.group.calc', '계산 · 변환'),
-            prefixes: ['aspect', 'birth', 'bmi', 'bytesize', 'calc', 'datecalc', 'grade', 'interest', 'loan', 'numword', 'pace', 'percent', 'time', 'unitconv', 'vat', 'workdays', 'worldclock', 'livecount', 'countdown', 'hourglass']
-        },
-        {
-            id: 'tool-media',
-            label: () => 말('shell.nav.group.media', '파일 · 미디어'),
-            prefixes: ['asciiart', 'audio', 'barcode', 'color', 'exif', 'favicon', 'filetool', 'filesplit', 'gif', 'image', 'img', 'icsmake', 'palette', 'pdf', 'qr', 'redact', 'screenrec', 'sound', 'subtitle', 'video', 'voicerec', 'ziptool']
-        },
-        {
-            id: 'tool-dev',
-            label: () => 말('shell.nav.group.dev', '개발 · 텍스트'),
-            prefixes: ['base64', 'caseconv', 'char', 'cron', 'cssunit', 'csvjson', 'devtool', 'epoch', 'filehash', 'hangul', 'hash', 'jamo', 'json', 'jwt', 'linebreak', 'listdiff', 'morse', 'radix', 'regex', 'replace', 'slug', 'tableconv', 'text', 'urlparse', 'uuid', 'wordfreq']
-        },
-        { id: 'tool-create', label: () => 말('shell.nav.group.create', '생성 · 정리'), prefixes: [] },
-    ];
-
+    /* ★ **갈래 표(prefix)와 갈래 내비 목록은 걷어냈다** (2026-08-19).
+     * 머리띠에서 갈래를 뺀 데 이어 옆줄도 머리띠와 같은 칸(내 것·많이 쓰는 것·최근)을
+     * 쓰기로 하면서, 이 표를 읽는 자리가 한 곳도 안 남았다. 안 읽히는 표를 남겨 두면
+     * 다음 사람이 「여기 갈래가 있으니 여기에 넣으면 되겠다」고 믿는다 — 실제로 그 표는
+     * 도구 대부분이 묶음으로 흡수된 뒤 이미 빈 껍데기였다(84개가 4·5·41 로 갈렸다).
+     * 갈래로 훑는 길 = 팔레트 「둘러보기」(`CATEGORIES` 4갈래) + 전체 목록 장. */
     /* 갈래 이름은 **말 묶음에서 온다** (2026-08-17). 예전엔 한국어가 박혀 있어서
        영어·일본어 장의 「열기 전 화면」에 한글 다섯이 그대로 보였다(smoke-shell-i18n 이 잡는다).
        묶음이 아직 안 왔을 수 있어 원본 글을 fallback 으로 함께 준다 — 이 파일의 탭 이름과 같은 규율. */
@@ -104,46 +91,6 @@ const Toolbox = (() => {
         } catch { /* 통이 아직 없다 */ }
         return 기본값;
     };
-    const navLabel = (cat) => {
-        try {
-            return typeof cat.label === 'function' ? cat.label() : cat.label;
-        } catch {
-            return cat.id;
-        }
-    };
-
-    /* ★ **lab 과 「갈래 없음」이 여기 없어서 위젯 15개가 어디에도 안 나왔다** (2026-08-19 실측).
-     * `getNavigationCategory` 는 도구가 아닌 것에 제 갈래를 그대로 돌려주는데(=`'lab'`, `''`),
-     * 이 목록에 그 두 칸이 없으니 옆줄·폰 어느 쪽에서도 그릴 자리가 없었다 — 실험실 13개
-     * (activity·tierlist·planner·cockpit·garden·arcade…) + favorites·linktree.
-     * 못 찾는 것과 없는 것은 같다. 칸을 만든다. */
-    const NAV_CATEGORIES = [
-        ...NAV_TOOL_GROUPS,
-        { id: 'ref', label: () => 말('shell.nav.ref', '자료') },
-        { id: 'play', label: () => 말('shell.nav.play', '놀이') },
-        { id: 'lab', label: () => 말('shell.nav.lab', '실험실 · 개발중') },
-        { id: 'etc', label: () => 말('shell.nav.etc', '기타') },
-    ];
-
-    function startsWithAny(value, prefixes) {
-        return prefixes.some((prefix) => value === prefix || value.startsWith(prefix));
-    }
-
-    function getNavigationCategory(tool) {
-        // 갈래를 안 밝힌 위젯도 갈 곳이 있어야 한다 (favorites·linktree — 2026-08-19).
-        if (!tool.category) return 'etc';
-        if (tool.category !== 'tool') return tool.category;
-        const group = NAV_TOOL_GROUPS.find((candidate) => candidate.prefixes.length > 0 && startsWithAny(tool.id, candidate.prefixes));
-        return group ? group.id : 'tool-create';
-    }
-
-    function getNavigationTools(categoryId) {
-        return tools.filter((tool) => {
-            if (categoryId === 'tool-create') return tool.category === 'tool' && getNavigationCategory(tool) === categoryId;
-            return getNavigationCategory(tool) === categoryId;
-        });
-    }
-
     /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
      *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
     function getCategories() {
@@ -1425,6 +1372,43 @@ const Toolbox = (() => {
             navParent.appendChild(wrap);
         }
 
+        /* ★ 이 셈은 **머리띠와 옆줄이 같이 쓴다** (2026-08-19) — 그래서 둘 중 어느 블록에도
+         * 속하지 않는 자리에 둔다. 목록을 두 벌 세면 규칙도 두 벌이 된다. */
+        const seenList = new Set();
+        const pickTools = (ids, max) => {
+            const out = [];
+            ids.forEach(id => {
+                if (out.length >= max) return;
+                const tool = resolveVisibleTool(id);
+                if (!tool || seenList.has(tool.id)) return;
+                if (hiddenSet.has(tool.id)) return;
+                if (isDesktopOnlyTool(tool) && !isDesktopApp()) return;
+                seenList.add(tool.id);
+                out.push(tool);
+            });
+            return out;
+        };
+        /* 「많이 쓰는 것」의 참값은 서버가 센다 — 그건 늦게 오고 못 올 수도 있다.
+         * 못 오면 골라 둔 여덟이 그 자리를 지킨다(빈 칸을 보여 주지 않는다). */
+
+        /* ★ 목록을 **여는 순간에** 센다 (2026-08-19). 부팅 때 한 번 세어 두면 그 뒤에 꽂은
+         * 별도, 방금 연 도구도 못 담는다 — 판이 어제 것을 보여 준다. */
+        const sections = () => {
+            seenList.clear();
+            const pins = getPins();
+            const popular = (window.KarmoPalette?.getPopular?.() || []).concat(HEADER_QUICK_IDS);
+            const recent = window.KarmoPalette?.getRecent?.() || [];
+            const last = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
+            return [
+                { label: 말('shell.nav.mine', '내 것'), tools: pickTools(pins, 12),
+                  empty: 말('shell.nav.mine.empty', '도구 옆 별을 누르면 여기 모입니다') },
+                { label: 말('shell.nav.popular', '많이 쓰는 것'), tools: pickTools(popular, 6) },
+                { label: 말('shell.nav.recent', '최근 본 것'), tools: pickTools([last, ...recent].filter(Boolean), 6) },
+            ].filter(sec => sec.tools.length || sec.empty);
+        };
+
+        /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /karmolab/t/)와
+         * 무엇이 다른지 알 수 없었다 (2026-08-19 사용자 지적). 이 판은 **내 것**을 모아 둔 자리다. */
         if (headerNav) {
             const headerNavScroll = document.createElement('div');
             headerNavScroll.className = 'header-nav-scroll';
@@ -1448,41 +1432,6 @@ const Toolbox = (() => {
              *      표면을 둘로 늘리면 결과가 두 벌로 갈린다.
              *
              * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/karmolab/t/`). */
-            const seenList = new Set();
-            const pickTools = (ids, max) => {
-                const out = [];
-                ids.forEach(id => {
-                    if (out.length >= max) return;
-                    const tool = resolveVisibleTool(id);
-                    if (!tool || seenList.has(tool.id)) return;
-                    if (hiddenSet.has(tool.id)) return;
-                    if (isDesktopOnlyTool(tool) && !isDesktopApp()) return;
-                    seenList.add(tool.id);
-                    out.push(tool);
-                });
-                return out;
-            };
-            /* 「많이 쓰는 것」의 참값은 서버가 센다 — 그건 늦게 오고 못 올 수도 있다.
-             * 못 오면 골라 둔 여덟이 그 자리를 지킨다(빈 칸을 보여 주지 않는다). */
-
-            /* ★ 목록을 **여는 순간에** 센다 (2026-08-19). 부팅 때 한 번 세어 두면 그 뒤에 꽂은
-             * 별도, 방금 연 도구도 못 담는다 — 판이 어제 것을 보여 준다. */
-            const sections = () => {
-                seenList.clear();
-                const pins = getPins();
-                const popular = (window.KarmoPalette?.getPopular?.() || []).concat(HEADER_QUICK_IDS);
-                const recent = window.KarmoPalette?.getRecent?.() || [];
-                const last = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
-                return [
-                    { label: 말('shell.nav.mine', '내 것'), tools: pickTools(pins, 12),
-                      empty: 말('shell.nav.mine.empty', '도구 옆 별을 누르면 여기 모입니다') },
-                    { label: 말('shell.nav.popular', '많이 쓰는 것'), tools: pickTools(popular, 6) },
-                    { label: 말('shell.nav.recent', '최근 본 것'), tools: pickTools([last, ...recent].filter(Boolean), 6) },
-                ].filter(sec => sec.tools.length || sec.empty);
-            };
-
-            /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /karmolab/t/)와
-             * 무엇이 다른지 알 수 없었다 (2026-08-19 사용자 지적). 이 판은 **내 것**을 모아 둔 자리다. */
             buildHeaderNavGroup(말('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
 
             /* ── 검색칸 ── 진짜 input 이다. 흉내만 낸 단추를 두면 폰에서 자판이 안 올라오고,
@@ -1538,9 +1487,12 @@ const Toolbox = (() => {
             function buildSidebarGroup(catId, label, catTools) {
                 if (!catTools.length) return;
                 // 「내 것」은 처음부터 펴 둔다 — 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
+                /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
+                 * 맞았지만, 지금 칸은 내 것·많이 쓰는 것·최근 = 열댓 줄이다. 접어 두면 옆줄에
+                 * 이름 셋만 남아 아무것도 못 고른다 — 접는 뜻이 사라졌다. */
                 const isOpen = getSidebarGroupState()[catId] !== undefined
                     ? getSidebarGroupState()[catId]
-                    : (catId === 'tool' || catId === 'mine');
+                    : true;
                 const wrap = document.createElement('div');
                 wrap.className = 'sidebar-group';
                 const trigger = document.createElement('button');
@@ -1577,36 +1529,44 @@ const Toolbox = (() => {
                 sidebarNavEl.appendChild(wrap);
             }
 
-            /* 내가 고른 것을 옆줄 맨 위에 (TASK-KL-129).
+            /* ── 옆줄은 **머리띠와 같은 것**을 보여 준다 (2026-08-19, 사용자 결정) ──────
              *
-             * 앱 안에서 도구를 갈아탈 때 제일 자주 보는 곳이 이 옆줄인데, 여기는 127개가
-             * 분류로만 접혀 있었다 — 늘 쓰는 두세 개를 열려면 매번 그 분류를 펼쳐야 했다.
-             * 목록 페이지에서 별로 꽂아 둔 것이 있으면 맨 위에 편다.
-             * 하나도 없으면 이 칸은 아예 안 생긴다 — 빈 상자를 두지 않는다. */
+             * 여기 있던 갈래 8칸은 머리띠에서 걷어낸 그 나눔이다 — 한쪽에서 「쓸모없다」고
+             * 판정한 것을 다른 쪽에서 계속 그리면, 같은 사이트가 두 가지 말을 한다.
+             * 게다가 목록을 두 벌 그리면 규칙도 두 벌이 되어 한쪽만 고쳐지는 날이 온다
+             * (실제로 그랬다: 머리띠에는 없던 `lab` 칸이 옆줄에만 있고, 「내 것」은 옆줄만
+             * 별을 즉시 반영했다).
+             *
+             * 그래서 칸을 **같은 함수**(`sections()`)에서 받는다 — 내 것 · 많이 쓰는 것 ·
+             * 최근 본 것. 머리띠 판을 세로로 편 것이 옆줄이고, 셈은 한 곳에서만 한다.
+             * 갈래로 훑는 길은 팔레트의 「둘러보기」와 전체 목록 장이 받는다. */
             rebuildMineGroup = () => {
-                // 순서는 사람이 꽂은 순서 그대로 — 가나다순으로 다시 세우면 「내가 놓은 자리」가 사라진다.
-                const pinned = getPins()
-                    .map(id => tools.find(t => t.id === id))
-                    .filter(t => !!t && (!isDesktopOnlyTool(t) || isDesktopApp()));
-                const old = sidebarNavEl.querySelector('[data-group="mine"]');
-                if (old) old.remove();
-                if (!pinned.length) return;
-                buildSidebarGroup('mine', '내 것', pinned);
-                // 새로 만든 칸은 맨 위로 — 별을 꽂자마자 그 자리에 보여야 한다.
-                const made = sidebarNavEl.lastElementChild;
-                if (made) {
-                    made.dataset.group = 'mine';
-                    sidebarNavEl.prepend(made);
-                }
+                sidebarNavEl.textContent = '';
+                sections().forEach((sec, i) => {
+                    if (sec.tools.length) {
+                        buildSidebarGroup('side-' + i, sec.label, sec.tools);
+                        return;
+                    }
+                    // 빈 칸도 남긴다 — 「내 것」이 통째로 사라지면 별을 꽂을 수 있다는 것 자체를 모른다.
+                    const wrap = document.createElement('div');
+                    wrap.className = 'sidebar-group';
+                    const label = document.createElement('div');
+                    label.className = 'sidebar-group-label sidebar-group-label--flat';
+                    label.textContent = sec.label;
+                    const note = document.createElement('p');
+                    note.className = 'header-nav-section-empty';
+                    note.textContent = sec.empty;
+                    wrap.append(label, note);
+                    sidebarNavEl.appendChild(wrap);
+                });
+                /* 바닥 줄은 **안 넣는다** — 옆줄 아래 링크 묶음에 「도구 전체 목록」이 이미 있다
+                 * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,
+                 * 여기 또 두면 한 화면에 같은 문이 둘이다. */
             };
             rebuildMineGroup();
-
-            NAV_CATEGORIES.forEach(cat => {
-                const catTools = getNavigationTools(cat.id)
-                    .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
-                    .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-                buildSidebarGroup(cat.id, navLabel(cat), catTools);
-            });
+            /* 별을 꽂거나 도구를 열면 그 자리에서 다시 그린다 — 머리띠 판은 열 때마다 세지만
+             * 옆줄은 늘 떠 있어서, 스스로 다시 그리지 않으면 어제 것을 든 채로 남는다. */
+            // 별 꽂기는 `togglePin` 이 이 손잡이를 직접 부른다. 도구를 열 때는 `switchPage` 가 부른다.
 
         }
 
@@ -1704,6 +1664,8 @@ const Toolbox = (() => {
             switchPage(갈곳);
         });
 
+        // 옆줄 바닥의 찾기 — 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
+        document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => window.KarmoPalette?.open(''));
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
         document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
 
@@ -2108,6 +2070,8 @@ const Toolbox = (() => {
         // TASK-KL-099 — 「최근」 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
         // 화면마다 따로 적을 필요가 없다 (팔레트·메뉴·주소·즐겨찾기 전부 여기를 지난다).
         if (!skipRecent) window.KarmoPalette?.noteOpen(pageId);
+        // 옆줄은 늘 떠 있으므로 스스로 다시 그린다 — 안 그러면 「최근 본 것」이 어제 것이다 (2026-08-19)
+        rebuildMineGroup?.();
 
         allPages.forEach(p => p.classList.remove('active'));
         allNav.forEach(n => n.classList.remove('active'));
@@ -2162,7 +2126,7 @@ const Toolbox = (() => {
                 breadcrumb.innerHTML = `
                     <button class="breadcrumb-link" data-goto="home">KarmoLab</button>
                     <span class="breadcrumb-sep">/</span>
-                    <span class="breadcrumb-current">${cat ? navLabel(cat) : ''}</span>
+                    <span class="breadcrumb-current">${cat ? cat.label : ''}</span>
                 `;
             } else if (breadcrumb) {
                 breadcrumb.innerHTML = `<button class="breadcrumb-link" data-goto="home">KarmoLab</button>`;

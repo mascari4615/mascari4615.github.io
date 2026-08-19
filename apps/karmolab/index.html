@@ -63,6 +63,9 @@ permalink: /karmolab/
     <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/karmolab/">
     <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/karmolab/">
     <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/karmolab/">
+    <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/karmolab/">
+    <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/karmolab/">
+    <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/karmolab/">
     <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
          기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
          도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
@@ -323,35 +326,31 @@ permalink: /karmolab/
                 <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>
+                <!-- 옆줄 바닥 = **링크·문의 한 줄** (2026-08-19, 사용자 결정).
+                     여기 있던 여섯 줄(언어 둘 · 도구 전체 목록 · 디스코드 봇 · 오늘의 · 상태)은
+                     서로 다른 곳으로 가는 문이 한자리에 쌓인 것이었다. 갈 길은 다른 데 있다:
+                     언어 = 머리띠 KO 단추 · 도구 전체 목록 = 팔레트 「둘러보기」 첫 칩 ·
+                     봇/오늘의 = 머리띠 오른쪽 링크 · 상태 = 판 표식 배지.
+                     남는 하나는 **사람에게 닿는 길**이다 — 이메일·GitHub·X·블로그가 모인 「링크」 장.
+                     ⚠ 이 자리에 있던 en/ja 진짜 앵커(TASK-KL-244)와 /karmolab/t/ 앵커(KL-088)가
+                     같이 사라진다 — 크롤러가 타던 내부 링크다. 되살릴 자리는 첫 화면 바닥이 맞다. -->
                 <div class="sidebar-footer">
-                    <!-- 다른 말 판으로 가는 **진짜 링크** (TASK-KL-244). 위 언어 단추(#langBtn)는
-                         JS 가 목록을 만들어서 HTML 엔 `<a>` 가 없다 — 크롤러는 그 길을 못 탄다.
-                         그래서 en/ja 274장이 sitemap 에만 있고 내부 링크 0 이었다.
-                         **안쪽은 생성기가 갈아 끼운다** (`locales.mjs` 의 `withLangLinks`) —
-                         도구 장이면 그 도구의 en/ja 로, 언어 판이면 나머지 말들로. 손으로 고치지 마라.
-                         여기 적힌 것은 첫 화면(/karmolab/)의 몫이다. -->
-                    <div class="sidebar-lang-links" data-lang-links><a href="/en/karmolab/" class="sidebar-dev-links sidebar-lang-link" hreflang="en" lang="en" title="English"><span class="sidebar-dev-links-icon" aria-hidden="true">◐</span><span class="sidebar-dev-links-text">English</span></a><a href="/ja/karmolab/" class="sidebar-dev-links sidebar-lang-link" hreflang="ja" lang="ja" title="日本語"><span class="sidebar-dev-links-icon" aria-hidden="true">◐</span><span class="sidebar-dev-links-text">日本語</span></a></div>
-                    <!-- 정적 앵커 — 크롤러가 도구 상세 페이지(/karmolab/t/*)로 들어오는 입구 (TASK-KL-088) -->
-                    <a href="/karmolab/t/" class="sidebar-dev-links" title="도구 전체 목록" aria-label="도구 전체 목록" data-i18n-title="shell.nav.toolsList" data-i18n-aria-label="shell.nav.toolsList">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">≡</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.nav.toolsList">도구 전체 목록</span>
+                    <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="연락처 · 링크 — 문의는 여기로" aria-label="링크 · 문의" data-i18n-title="shell.sidebar.linksTitle" data-i18n-aria-label="shell.sidebar.links">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">✉</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크 · 문의</span>
                     </a>
-                    <!-- 디스코드 봇 소개 페이지 입구 (TASK-YB-042). 링크가 없으면 주소를 아는 사람만 닿는다. -->
-                    <a href="/karmolab/bot/" class="sidebar-dev-links" title="디스코드 봇 · 서버 결산" aria-label="디스코드 봇" data-i18n-title="shell.nav.botTitle" data-i18n-aria-label="shell.sidebar.discordBot">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">◈</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.discordBot">디스코드 봇</span>
-                    </a>
-                    <!-- 매일 하나씩 맞히기 (TASK-KAR-202). 주제가 늘어도 입구는 /daily/ 하나다. -->
-                    <a href="/daily/" class="sidebar-dev-links" title="매일 하나씩 맞히기 — 포켓몬 · 롤" aria-label="오늘의 하나 맞히기" data-i18n-title="shell.nav.dailyTitle" data-i18n-aria-label="shell.sidebar.dailyOne">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">◉</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.dailyOne">오늘의 하나 맞히기</span>
-                    </a>
-                    <!-- 상태 · 변경 기록 (TASK-KL-098). 「지금 잘 도나」와 「무엇이 바뀌었나」를
-                         밝히는 자리가 없으면, 조용히 망가져도 아무도 모르는 사이트가 된다. -->
-                    <a href="#status" class="sidebar-dev-links" data-goto="status" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록" data-i18n-title="shell.sidebar.statusTitle" data-i18n-aria-label="shell.sidebar.status">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">◇</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.status">상태 · 변경 기록</span>
-                    </a>
+                    <!-- 찾기 (2026-08-19, 사용자 지적). 옆줄 차림에서는 머리띠 내비가 통째로 숨는다
+                         (`html[data-nav="sidebar"] .header-nav { display: none }`) — 그래서 검색칸도
+                         같이 사라졌고, ⌘K 를 아는 사람만 찾을 수 있었다. 맨 아래에 둔다:
+                         옆줄은 위에서부터 「내 것 → 많이 → 최근」으로 읽히고, 거기서 못 찾았을 때
+                         손이 닿는 자리가 바닥이다. 누르면 머리띠 검색칸과 **같은 창**이 열린다. -->
+                    <button type="button" class="sidebar-dev-links sidebar-search-btn" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        </span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.search.placeholder">도구 찾기</span>
+                        <span class="sidebar-search-kbd" aria-hidden="true">Ctrl K</span>
+                    </button>
                 </div>
             </aside>
             <main class="main-content" role="main">

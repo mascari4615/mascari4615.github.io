@@ -52,5 +52,7 @@
   "shell.nav.mine.empty": "Star a tool and it shows up here",
   "shell.search.placeholder": "Find a tool",
   "shell.search.aria": "Find a tool",
-  "shell.nav.toolIndex": "All tools →"
+  "shell.nav.toolIndex": "All tools →",
+  "shell.sidebar.links": "Links · contact",
+  "shell.sidebar.linksTitle": "Contact and links"
 }
