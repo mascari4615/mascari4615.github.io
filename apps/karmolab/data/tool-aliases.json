@@ -309,6 +309,7 @@
     "tts": "읽어주기 음성변환 텍스트음성 낭독 tts speech 소리내어",
     "nettool": "CIDR 서브넷 대역계산 아이피 계산 포트 방화벽 subnet ip range port",
     "printkit": "모눈종이 원고지 오선지 달력 라벨 인쇄 출력 grid paper manuscript staff",
-    "protobuf": "프로토버프 protobuf proto 디코드 wire format base64 바이너리"
+    "protobuf": "프로토버프 protobuf proto 디코드 wire format base64 바이너리",
+    "quota": "usage limit ratelimit 사용량 남은양 잔량 쿼터 한도 구독 claude codex grok 클로드 코덱스 그록"
   }
 }
