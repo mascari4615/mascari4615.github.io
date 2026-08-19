@@ -20,5 +20,6 @@
   "install.badfolder": "이 폴더는 아니다",
   "install.nopick": "폴더 고르기 창을 못 열었다 — 경로를 손으로 적어라.",
   "install.unknown": "상태 모름",
-  "install.locked.why": "작업 폴더를 먼저 정해라 — 위 칸에서 고르면 바로 풀린다."
+  "install.locked.why": "작업 폴더를 먼저 정해라 — 위 칸에서 고르면 바로 풀린다.",
+  "install.guessed": "이 자리로 짐작했다 — 맞으면 저장을 눌러라."
 }

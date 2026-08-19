@@ -48,7 +48,7 @@ use quest_writeback::{
     toggle_quest_check,
 };
 use local_dev::{
-    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
+    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root, localdev_guess_repo_root,
     localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, reattach_persisted_pids,

@@ -20,5 +20,6 @@
   "install.badfolder": "Not this folder",
   "install.nopick": "Could not open the folder picker — type the path instead.",
   "install.unknown": "Status unknown",
-  "install.locked.why": "Set the work folder first — pick it above and this unlocks."
+  "install.locked.why": "Set the work folder first — pick it above and this unlocks.",
+  "install.guessed": "Guessed this path — press Save if it is right."
 }
