@@ -11,5 +11,7 @@
   "install.again": "Rebuild",
   "install.working": "Building…",
   "install.retry": "Retry",
-  "install.failed": "Install failed — see the log above"
+  "install.failed": "Install failed — see the log above",
+  "install.noroot": "This machine has no repository root set yet — nothing can be built without it.",
+  "install.noroot.how": "Open the Server Monitor tool and fill in the repository root at the top. Once is enough."
 }

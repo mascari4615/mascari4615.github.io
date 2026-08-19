@@ -11,5 +11,7 @@
   "install.again": "다시 굽기",
   "install.working": "굽는 중…",
   "install.retry": "다시",
-  "install.failed": "못 깔았다 — 위 기록을 봐라"
+  "install.failed": "못 깔았다 — 위 기록을 봐라",
+  "install.noroot": "이 컴퓨터의 저장소가 어디인지 아직 안 잡혀 있다 — 그게 없으면 굽지 못한다.",
+  "install.noroot.how": "「서버 모니터」 도구를 열어 맨 위 「저장소 뿌리」에 경로를 넣어라. 한 번만 하면 된다."
 }
