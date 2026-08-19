@@ -87,13 +87,21 @@ async function visibleKorean(tab) {
 /* 일부러 세우는 확인: 기준선에 없는 한국어가 하나라도 늘면 빨강이 되어야 한다.
    (새 방어는 정상 경로부터 찔러 본다 — 늘 초록인 검사는 검사가 아니다.) */
 const found = {};
+/* ★ **그 판을 보는 사람의 브라우저로 연다** (2026-08-19). 여태 시스템 언어(한국어) 그대로
+   열었더니, 셸이 일부러 띄우는 「🌐 한국어 판이 있습니다 / 보러 가기」 띠가 en·ja 판에
+   떴고 검사는 그걸 **덜 옮긴 글**로 셌다. 그 띠는 버그가 아니다 — `lang-switch.ts` 가
+   「안내는 그 언어로 뜬다, 그래야 필요한 사람이 읽는다」로 일부러 그렇게 그린다.
+   재현이 틀리면 판정도 틀린다. en 판을 보는 사람은 en 브라우저다. */
+const 브라우저말 = { en: 'en-US', 'en-tool': 'en-US', ja: 'ja-JP', 'ja-tool': 'ja-JP' };
 for (const [code, page] of PAGES) {
-  const tab = await browser.newPage();
+  const ctx = await browser.newContext({ locale: 브라우저말[code] || 'en-US' });
+  const tab = await ctx.newPage();
   await tab.goto(`http://127.0.0.1:${PORT}/${page}`, { waitUntil: 'domcontentloaded' });
   /* 이름은 말 묶음이 온 뒤에 정해진다 — 받아오기가 끝날 시간을 준다. */
   await tab.waitForTimeout(3500);
   found[code] = (await visibleKorean(tab)).sort();
   await tab.close();
+  await ctx.close();
 }
 await browser.close();
 server.close();
