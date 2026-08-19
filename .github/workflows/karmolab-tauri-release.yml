@@ -211,7 +211,14 @@ jobs:
         run: |
           set -euo pipefail
           cd ../../packages/companion
-          npm ci --no-audit --no-fund
+          # `npm ci` 가 아니라 `npm install` 이다. ci 는 lock 이 package.json 과 한 글자도
+          # 안 어긋나야 도는데, 여기 lock 은 playwright 세 줄이 빠져 있어 첫 판이 그대로
+          # 죽었다(실측 2026-08-19). 그건 이 저장소의 다른 자리에서 고칠 일이고, 꾸러미
+          # 묶기가 그 볼모가 될 이유는 없다.
+          #
+          # 개발 의존까지 받는 이유: 묶기 전에 `tsc` 로 굽는다. 굽는 도구는 꾸러미에
+          # 안 들어가지만(pack 이 런타임 의존만 따라간다) 굽는 동안은 있어야 한다.
+          npm install --no-audit --no-fund
           npm run pack
           cd ../..
           # 창은 같은 워크스페이스의 두 번째 바이너리다 (KAR-201).
