@@ -241,5 +241,6 @@
   "widgets.heung.title": "興",
   "widgets.arcade.title": "アーケード",
   "widgets.askpapers.title": "論文に聞く",
-  "widgets.isitdown.title": "落ちてる？"
+  "widgets.isitdown.title": "落ちてる？",
+  "widgets.quota.title": "使用量"
 }

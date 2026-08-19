@@ -732,6 +732,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['terminal/terminal']
   },
   {
+    id: 'quota',
+    get title() { return t('widgets.quota.title', undefined, "할당량"); },
+    category: 'tool',
+    desktopOnly: true,
+    get desc() { return t('widgets-desc.quota.desc', undefined, "Claude · Codex · Grok 구독의 남은 할당량을 한 화면에 (TASK-KL-248) — Claude 는 라이브, Codex·Grok 은 마지막 관측 스냅샷"); },
+    layout: 'form',
+    icon: '<path d="M4 19a8 8 0 1116 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 19l4.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
+    lazyScriptPaths: ['quota']
+  },
+  {
     id: 'claude-env',
     get title() { return t('widgets.claude-env.title', undefined, "Claude 환경"); },
     category: 'tool',

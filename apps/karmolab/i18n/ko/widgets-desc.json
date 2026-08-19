@@ -65,6 +65,7 @@
   "widgets-desc.planner.desc": "나만의 일정 동기화 및 스트릭 칸반 보드 (개발 중)",
   "widgets-desc.cockpit.desc": "프로젝트 구조·상황 단일 표면 — Unity Shader Graph 식 노드 그래프 + TASK 탭 (TASK-KL-082, 통합 위젯)",
   "widgets-desc.terminal.desc": "카드 stdin 무관 단일 셸 (line-IO). pwsh→powershell.exe fallback, cd/Set-Location 자동 추적, 5000줄 cap",
+  "widgets-desc.quota.desc": "Claude · Codex · Grok 구독의 남은 할당량을 한 화면에 (TASK-KL-248) — Claude 는 라이브, Codex·Grok 은 마지막 관측 스냅샷",
   "widgets-desc.claude-env.desc": "Claude Code Stop/Notification hook 사운드 알림 GUI — memo/dotfiles 정본 (v1: read 만, Step 2+: write + sync + preview + wav drag-drop)",
   "widgets-desc.alarm.desc": "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상(절전 깨우기/모니터 ON/볼륨 강제) + autostart",
   "widgets-desc.encdetective.desc": "뷁·í•œêµ­ì–´ 처럼 잘못 읽힌 글을 되짚어 원문으로 돌리고, 무엇이 잘못됐는지 알려 줍니다",
