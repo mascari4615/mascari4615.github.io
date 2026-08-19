@@ -33,7 +33,12 @@ if (!existsSync(PKG) || !existsSync(LIST)) {
 
 const pkg = JSON.parse(readFileSync(PKG, 'utf8'));
 const raw = JSON.parse(readFileSync(LIST, 'utf8'));
-const names = raw.목록 ?? raw.list ?? raw;
+/* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331 — 발판을 적으면 `--changed` 가
+   그 검사를 건너뛸 수 있다). 여기서 보는 것은 여전히 **이름**이다. */
+const entries = raw.목록 ?? raw.list ?? raw;
+const names = Array.isArray(entries)
+  ? entries.map((e) => (typeof e === 'string' ? e : e?.이름 ?? e?.name)).filter((n) => typeof n === 'string')
+  : entries;
 if (!Array.isArray(names) || names.length < 50) {
   console.error(`[gate-list] CANNOT-RUN: 목록에서 이름을 ${Array.isArray(names) ? names.length : 0}개만 읽었다 — 형식이 바뀌었는지 확인할 것.`);
   process.exit(2);

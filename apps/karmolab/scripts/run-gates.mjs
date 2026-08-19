@@ -21,10 +21,11 @@
  *
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> …]
  */
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pick } from './lib/gate-scope.mjs';
 
 /* ★ **이름 목록은 파일에 있다** (2026-08-14). 예전에는 `package.json` 의 `gates` 한 줄에
    백스물다섯 개가 늘어서 있었다. 세션 여럿이 같은 줄을 동시에 늘리니 충돌이 잦았고,
@@ -43,9 +44,84 @@ if (fromIdx !== -1) {
     process.exit(2);
   }
 }
+/* ★ **`--changed` = 바뀐 것에 걸리는 검사만** (TASK-KL-331).
+ *
+ * 개발 중 전용 길이다. push·CI 는 이 깃발 없이 통짜로 돈다 — 「내 자리에선 초록」이
+ * 배포를 빨갛게 만드는 사고를 여기서 만들지 않는다.
+ *
+ * 안전 기본값 둘:
+ *   ① 목록에 `볼것` 을 안 적은 검사는 **언제나 돈다**. 건너뛰려면 적어야 한다.
+ *   ② 바뀐 목록을 못 구하면(git 이 없다·저장소가 아니다) **통짜로 되돌린다.**
+ *      「못 봤다」를 「볼 것 없다」로 바꾸는 것이 이 저장소에서 제일 비싼 고장이다.
+ */
+const changedIdx = args.indexOf('--changed');
+let changed = null;
+let skipped = [];
+if (changedIdx !== -1) {
+  const base = args[changedIdx + 1] && !args[changedIdx + 1].startsWith('--') ? args[changedIdx + 1] : 'origin/master';
+  changed = changedFiles(base);
+  if (changed === null) {
+    console.log(`[gates] 바뀐 것을 못 구했다 (${base}) — 통짜로 돈다.`);
+  } else {
+    const picked = pick(gates, changed);
+    skipped = picked.skipped;
+    gates = picked.run;
+    console.log(
+      `[gates] 바뀐 파일 ${changed.length}개 · 돌릴 검사 ${gates.length}개` +
+        (skipped.length ? ` · 건너뜀 ${skipped.length}개 (발판이 안 걸린다)` : '')
+    );
+  }
+}
+
 if (!gates.length) {
+  if (changed !== null) {
+    // 「걸리는 게 없다」는 정상 결과다 — 아무것도 안 돌았음을 **소리 내어** 말하고 초록으로 끝낸다.
+    console.log(`[gates] 바뀐 것에 걸리는 검사가 없다 — 건너뛴 ${skipped.length}개는 통짜(\`npm run gates\`)에서 돈다.`);
+    process.exit(0);
+  }
   console.error('[gates] 돌릴 검사가 없다 — 이름을 하나 이상 줘라.');
   process.exit(2);
+}
+
+/**
+ * 앱 뿌리 기준으로 바뀐 파일들. 못 구하면 `null` (= 통짜로 되돌린다).
+ *
+ * 「기준과 견준 것」과 「아직 안 담은 것」을 **둘 다** 본다. 하나만 보면 방금 고친 파일이
+ * 빠져 그 검사를 안 돌리게 된다 — 그게 곧 「초록인데 죽음」이다.
+ */
+function changedFiles(base) {
+  const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const repoRoot = path.resolve(appRoot, '..', '..');
+  /* git 의 군말(줄끝 바뀐다는 경고 따위)은 버린다 — 검사 화면을 덮으면 정작 볼 것을 못 본다. */
+  const git = (a) =>
+    execFileSync('git', ['-C', repoRoot, ...a], {
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  let out = '';
+  try {
+    out += git(['diff', '--name-only', base, '--']);
+  } catch {
+    return null; // 기준을 모른다 = 못 봤다
+  }
+  try {
+    out += git(['status', '--porcelain']).split(String.fromCharCode(10))
+      .map((l) => l.slice(3).trim())
+      .filter(Boolean)
+      .map((p) => p.split(' -> ').pop())
+      .join(String.fromCharCode(10));
+  } catch { /* 담긴 것만으로도 고를 수 있다 */ }
+
+  const prefix = path.relative(repoRoot, appRoot).split(path.sep).join('/') + '/';
+  const seen = new Set();
+  for (const line of out.split(String.fromCharCode(10))) {
+    const p = line.trim().replace(/^"|"$/g, '');
+    if (!p) continue;
+    // 목록의 `볼것` 은 앱 뿌리 기준으로 적는다 — 앱 밖 파일은 그대로 둔다(저장소 기준 경로).
+    seen.add(p.startsWith(prefix) ? p.slice(prefix.length) : p);
+  }
+  return [...seen];
 }
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -129,9 +205,16 @@ if (process.env.GITHUB_STEP_SUMMARY) {
   } catch { /* 요약을 못 적는 것이 판을 세울 이유는 아니다 */ }
 }
 
+/* ★ 건너뛴 것을 **소리 내어 적는다**. 조용히 줄어든 초록은 초록이 아니다 — 이 저장소는
+   「안 도는 검사는 조용하다」로 이미 데였다(gate-list 감사기 머리말). */
+if (skipped.length) {
+  console.log(`[gates] 건너뜀 ${skipped.length}개 — 발판이 안 걸린다: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? ` 외 ${skipped.length - 8}개` : ''}`);
+  console.log('[gates]   (전부 보려면 `npm run gates` — push·CI 는 언제나 통짜다)');
+}
+
 if (!bad.length) {
   console.log(`
-[gates] 전부 통과 — ${results.length - cantRun.length}개${cantRun.length ? ` (못 돌림 ${cantRun.length})` : ''}`);
+[gates] 전부 통과 — ${results.length - cantRun.length}개${cantRun.length ? ` (못 돌림 ${cantRun.length})` : ''}${skipped.length ? ` · 건너뜀 ${skipped.length}` : ''}`);
   process.exit(0);
 }
 
