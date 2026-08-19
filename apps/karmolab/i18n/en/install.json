@@ -12,6 +12,13 @@
   "install.working": "Building…",
   "install.retry": "Retry",
   "install.failed": "Install failed — see the log above",
-  "install.noroot": "This machine has no repository root set yet — nothing can be built without it.",
-  "install.noroot.how": "Open the Server Monitor tool and fill in the repository root at the top. Once is enough."
+  "install.noroot": "No work folder yet — set it and you can install right away.",
+  "install.noroot.how": "Where the source lives. Settings › This machine edits the same value.",
+  "install.pick": "Browse",
+  "install.save": "Save",
+  "install.saving": "Checking…",
+  "install.badfolder": "Not this folder",
+  "install.nopick": "Could not open the folder picker — type the path instead.",
+  "install.unknown": "Status unknown",
+  "install.locked.why": "Set the work folder first — pick it above and this unlocks."
 }

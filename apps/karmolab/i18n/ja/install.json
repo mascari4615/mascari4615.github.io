@@ -12,6 +12,13 @@
   "install.working": "ビルド中…",
   "install.retry": "再試行",
   "install.failed": "インストールできませんでした — 上の記録を確認",
-  "install.noroot": "このPCのリポジトリの場所がまだ設定されていません — それがないとビルドできません。",
-  "install.noroot.how": "「サーバーモニター」を開き、上部のリポジトリルートにパスを入れてください。一度だけで済みます。"
+  "install.noroot": "作業フォルダがまだありません — 設定すればすぐインストールできます。",
+  "install.noroot.how": "ソースを置いた場所。設定 › このPC でも同じ値を変更できます。",
+  "install.pick": "参照",
+  "install.save": "保存",
+  "install.saving": "確認中…",
+  "install.badfolder": "このフォルダではありません",
+  "install.nopick": "フォルダ選択を開けませんでした — パスを直接入力してください。",
+  "install.unknown": "状態不明",
+  "install.locked.why": "まず作業フォルダを設定してください — 上で選ぶと解除されます。"
 }
