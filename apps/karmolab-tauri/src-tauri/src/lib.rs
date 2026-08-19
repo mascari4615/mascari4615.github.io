@@ -5,6 +5,7 @@ mod alarm;
 mod cockpit_graph;
 mod claude_env;
 #[cfg(debug_assertions)]
+mod desktop_login;
 mod dev_static;
 mod questlog_hub;
 mod life;
@@ -34,6 +35,7 @@ use agent_team::{
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };
+use desktop_login::desktop_login_start;
 use cockpit_graph::{cockpit_get_graph_spec, cockpit_save_graph_coords, cockpit_get_activity};
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
@@ -595,6 +597,10 @@ fn allow_in_webview(url: &Url) -> bool {
             if host == "localhost" || host == "127.0.0.1" {
                 return true;
             }
+            /* 계정 서버·디스코드 로그인 화면은 **일부러 밖으로 보낸다** —
+             * 앱 창 안에서 남의 비밀번호를 받지 않는다(RFC 8252). 대신 로그인이
+             * 브라우저에서 끝난 뒤 앱이 세션을 받아 오는 길을 따로 뒀다:
+             * `desktop_login.rs` (집 안 loopback 되돌아오기). */
             false
         }
         "mailto" | "tel" | "sms" => false,
@@ -1092,4 +1098,30 @@ pub fn run() {
                 life::sidecar::terminate();
             }
         });
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::allow_in_webview;
+    use tauri::Url;
+
+    fn allows(raw: &str) -> bool {
+        allow_in_webview(&Url::parse(raw).expect("test url"))
+    }
+
+    #[test]
+    fn the_app_itself_stays_inside() {
+        assert!(allows("https://blog.mascari4615.com/karmolab/?kl_login=ok"));
+        assert!(allows("http://127.0.0.1:8898/apps/karmolab/"));
+    }
+
+    #[test]
+    fn login_pages_and_strangers_open_outside() {
+        // 로그인은 시스템 브라우저에서 돈다 (desktop_login.rs 가 되돌려 받는다).
+        assert!(!allows("https://yawnbot.mascari4615.com/kl/auth/discord?return=x"));
+        assert!(!allows("https://discord.com/api/oauth2/authorize?client_id=1"));
+        assert!(!allows("https://example.com/"));
+        assert!(!allows("mailto:a@b.c"));
+    }
 }
