@@ -34,6 +34,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
     { get group() { return t('favorites.group.dev'); }, items: [
         { url: 'https://github.com', label: 'GitHub', icon: 'https://cdn.simpleicons.org/github' },
         { url: 'https://www.postman.com/', label: 'Postman', icon: 'https://cdn.simpleicons.org/postman' },
+        { url: 'https://www.npmjs.com/', label: 'npm', icon: 'https://cdn.simpleicons.org/npm' },
         { url: 'https://discord.com/developers/applications/', label: 'Discord Developer', icon: 'https://cdn.simpleicons.org/discord' },
         { url: 'https://my.vultr.com', label: 'Vultr', icon: 'https://cdn.simpleicons.org/vultr' },
         { url: 'https://solved.ac/class?class=5', label: 'solved.ac CLASS', icon: null },
@@ -44,6 +45,10 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://wrchat.github.io/Woodon/', label: 'WRChat VCC Listing', icon: FAVICON_FALLBACK },
         { url: 'https://wrchat.github.io/Woodon/index.json', label: 'WRChat index.json', icon: FAVICON_FALLBACK },
         { url: 'https://status.vrchat.com/', label: 'VRChat Status', icon: 'https://cdn.simpleicons.org/vrchat' },
+        { url: 'https://search.google.com/search-console', label: 'Google Search Console', icon: 'https://cdn.simpleicons.org/google' },
+        { url: 'https://searchadvisor.naver.com/', label: '네이버 서치어드바이저', icon: FAVICON_FALLBACK },
+        { url: 'https://me.developers.google.com/benefits?hl=ko', label: 'Google Developer Program', icon: 'https://cdn.simpleicons.org/google' },
+        { url: 'https://www.producthunt.com/', label: 'Product Hunt', icon: 'https://cdn.simpleicons.org/producthunt' },
     ]},
     { get group() { return t('favorites.group.career'); }, items: [
         { url: 'https://blog.maplestory.nexon.com/Employment', label: '메이플 채용', icon: 'https://cdn.simpleicons.org/nexon' },
@@ -52,6 +57,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://www.nexon-tutorial.com', label: '넥토리얼', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://www.gamejob.co.kr/User/resumemng/portfolio', label: '게임잡 포트폴리오', icon: null },
         { url: 'https://inditor.co.kr', label: '인디터웹', icon: null },
+        { url: 'https://kmong.com/category/6', label: '크몽 - IT·프로그래밍', icon: FAVICON_FALLBACK },
     ]},
     { get group() { return t('favorites.group.maple'); }, items: [
         { url: 'https://blog.maplestory.nexon.com/Tech', label: '메이플 테크 블로그', icon: 'https://cdn.simpleicons.org/nexon' },
@@ -65,6 +71,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://feedly.com/i/my', label: 'Feedly', icon: null },
         { url: 'https://chat.openai.com', label: 'ChatGPT', icon: null },
         { url: 'https://claude.ai', label: 'Claude', icon: 'https://cdn.simpleicons.org/anthropic' },
+        { url: 'https://claude.ai/design/', label: 'Claude Design', icon: 'https://cdn.simpleicons.org/anthropic' },
         { url: 'https://gemini.google.com', label: 'Gemini', icon: 'https://cdn.simpleicons.org/google' },
         { url: 'https://aistudio.google.com', label: 'AI Studio', icon: 'https://cdn.simpleicons.org/google' },
         { url: 'https://notebooklm.google.com/', label: 'NotebookLM', icon: 'https://cdn.simpleicons.org/google' },
