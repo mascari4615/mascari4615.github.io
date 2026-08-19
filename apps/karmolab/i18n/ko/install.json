@@ -21,5 +21,10 @@
   "install.nopick": "폴더 고르기 창을 못 열었다 — 경로를 손으로 적어라.",
   "install.unknown": "상태 모름",
   "install.locked.why": "작업 폴더를 먼저 정해라 — 위 칸에서 고르면 바로 풀린다.",
-  "install.guessed": "이 자리로 짐작했다 — 맞으면 저장을 눌러라."
+  "install.guessed": "이 자리로 짐작했다 — 맞으면 저장을 눌러라.",
+  "install.get": "받아서 설치",
+  "install.refetch": "다시 받기",
+  "install.getting": "받는 중…",
+  "install.getting.note": "릴리스에서 받아 푼다 — 잠깐 걸린다.",
+  "install.fetched": "받아서 깔았다"
 }

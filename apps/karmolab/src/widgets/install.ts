@@ -22,14 +22,24 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
   const CATALOG_PATH = '/apps/karmolab/data/install-catalog.json';
   const STAMP_PATH = 'apps/karmolab-tauri/target/install.json';
 
+  /**
+   * 부품 하나. 깔리는 길이 둘이다 (TASK-KAR-227):
+   *
+   * - `build` — **소스에서 굽는다.** 작업 폴더가 있어야 한다. 개발자의 길
+   * - `download` — **릴리스에서 받는다.** 작업 폴더도 소스도 필요 없다. 프로그램만
+   *   쓰는 사람의 길이고, 이 갈래가 생기기 전까지 그 사람은 아예 못 깔았다
+   */
   type Part = {
     id: string;
+    how?: 'build' | 'download';
     name: string;
     desc: string;
-    profile: string;
+    profile?: string;
     artifact: string;
     weight: string;
   };
+
+  const howOf = (part: Part): 'build' | 'download' => part.how ?? 'build';
   type Stamp = { builtAt: string; bytes: number; source: string | null };
   type Stamps = Record<string, Stamp>;
   type RowUi = { button: HTMLButtonElement; log: HTMLPreElement; state: HTMLElement; dot: HTMLElement };
@@ -215,18 +225,47 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
        않고 **모른다**고 한다. 안 본 것을 없다고 말하지 않는다. */
     const stamps = root === null ? null : await readStamps();
 
+    /* 받아서 까는 부품은 **작업 폴더와 무관하다** — 그게 이 갈래의 존재 이유다.
+       폴더가 없다고 그 줄까지 잠그면 「소스 없는 사람은 아무것도 못 깐다」가 그대로 남는다. */
+    const fetched = await Promise.all(
+      parts.map(async (p) => (howOf(p) === 'download' ? await fetchedPath(p.id) : null)),
+    );
+
+    // 굽는 부품이 하나라도 있고 폴더가 없을 때만 그 칸을 띄운다.
+    const needFolder = root === null && parts.some((p) => howOf(p) === 'build');
+
     list.textContent = '';
-    if (root === null) list.appendChild(makeFolderBar(list));
-    for (const part of parts) list.appendChild(makeRow(part, stamps?.[part.id], root !== null));
+    if (needFolder) list.appendChild(makeFolderBar(list));
+    parts.forEach((part, i) => {
+      const ready = howOf(part) === 'download' ? true : root !== null;
+      list.appendChild(makeRow(part, stamps?.[part.id], ready, fetched[i]));
+    });
   }
 
-  function makeRow(part: Part, stamp: Stamp | undefined, ready: boolean): HTMLElement {
+  /** 받아 둔 자리. 없으면 null — 「안 깔림」과 「못 봤다」를 가른다. */
+  async function fetchedPath(id: string): Promise<string | null> {
+    try {
+      return ((await invoke('part_fetched_path', { part: id })) as string | null) ?? null;
+    } catch {
+      // 옛 판 앱에는 이 커맨드가 없다 — 그건 「안 깔림」이지 고장이 아니다.
+      return null;
+    }
+  }
+
+  function makeRow(part: Part, stamp: Stamp | undefined, ready: boolean, fetched: string | null = null): HTMLElement {
     const row = document.createElement('section');
     row.className = ready ? 'install-row' : 'install-row install-row--locked';
     row.dataset.part = part.id;
 
-    const installed = stamp !== undefined;
-    const label = installed ? t('install.again', undefined, '다시 굽기') : t('install.do', undefined, '설치');
+    const download = howOf(part) === 'download';
+    const installed = download ? fetched !== null : stamp !== undefined;
+    const label = download
+      ? installed
+        ? t('install.refetch', undefined, '다시 받기')
+        : t('install.get', undefined, '받아서 설치')
+      : installed
+        ? t('install.again', undefined, '다시 굽기')
+        : t('install.do', undefined, '설치');
 
     row.innerHTML =
       '<div class="install-head">' +
@@ -235,7 +274,13 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
       `<button type="button" class="install-go">${esc(label)}</button>` +
       '</div>' +
       `<p class="install-desc">${esc(part.desc)}</p>` +
-      `<p class="install-state">${esc(statusLine(part, stamp, ready))}</p>` +
+      `<p class="install-state">${esc(
+        download
+          ? installed
+            ? `${t('install.done', undefined, '깔림')} · ${t('install.fetched', undefined, '받아서 깔았다')}`
+            : `${t('install.none', undefined, '안 깔림')} · ${part.weight}`
+          : statusLine(part, stamp, ready),
+      )}</p>` +
       '<pre class="install-log" hidden></pre>';
 
     const ui: RowUi = {
@@ -255,9 +300,37 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     }
 
     ui.button.addEventListener('click', () => {
-      void runInstall(part, ui);
+      if (download) void runFetch(part, ui);
+      else void runInstall(part, ui);
     });
     return row;
+  }
+
+  /**
+   * **받아서 깐다** — 릴리스에서 꾸러미를 내려 앱 데이터 폴더에 푼다 (TASK-KAR-227).
+   *
+   * 굽기와 달리 작업 폴더도 소스도 필요 없다. 그래서 이 갈래가 「프로그램만 쓰는 사람」이
+   * 처음으로 동반자를 갖는 길이다.
+   */
+  async function runFetch(part: Part, ui: RowUi): Promise<void> {
+    ui.button.disabled = true;
+    ui.button.textContent = t('install.getting', undefined, '받는 중…');
+    ui.log.hidden = false;
+    ui.log.textContent = t('install.getting.note', undefined, '릴리스에서 받아 푼다 — 잠깐 걸린다.');
+
+    try {
+      const got = (await invoke('part_fetch', { part: part.id })) as { path: string; asset: string; bytes: number };
+      ui.log.textContent = `${got.asset} · ${asMb(got.bytes)}${String.fromCharCode(10)}${got.path}`;
+      ui.state.textContent = `${t('install.done', undefined, '깔림')} · ${asMb(got.bytes)}`;
+      ui.dot.classList.add('on');
+      ui.button.textContent = t('install.refetch', undefined, '다시 받기');
+    } catch (e) {
+      // 「아직 릴리스에 없다」와 「받다 끊겼다」는 다른 일이다 — Rust 가 적어 준 말을 그대로 보인다.
+      ui.log.textContent = e instanceof Error ? e.message : String(e);
+      ui.state.textContent = t('install.failed', undefined, '못 깔았다 — 위 기록을 봐라');
+      ui.button.textContent = t('install.retry', undefined, '다시');
+    }
+    ui.button.disabled = false;
   }
 
   /**

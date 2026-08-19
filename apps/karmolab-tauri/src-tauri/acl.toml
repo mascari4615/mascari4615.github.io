@@ -177,3 +177,9 @@ name = "ai-quota"
 identifier = "allow-ai-quota"
 description = "AI 구독 할당량 위젯 (TASK-KL-248) — 읽기 전용: Claude OAuth usage API 라이브 조회 + ~/.codex 세션 rate_limits 스냅샷 + ~/.grok 로그 잔량/429. accessToken 은 Rust 안에서만, DTO·로그에 안 실림."
 commands = ["ai_quota_all"]
+
+[[group]]
+name = "parts"
+identifier = "allow-parts"
+description = "동반자 꾸러미를 릴리스에서 받아 앱 데이터 폴더에 푼다 (TASK-KAR-227) — 주소는 밖에서 안 받고 부품 이름만 받는다. 저장소 없이 깔 수 있게 하는 유일한 길."
+commands = ["part_fetch", "part_fetched_path"]

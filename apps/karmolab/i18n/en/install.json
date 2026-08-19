@@ -21,5 +21,10 @@
   "install.nopick": "Could not open the folder picker — type the path instead.",
   "install.unknown": "Status unknown",
   "install.locked.why": "Set the work folder first — pick it above and this unlocks.",
-  "install.guessed": "Guessed this path — press Save if it is right."
+  "install.guessed": "Guessed this path — press Save if it is right.",
+  "install.get": "Download & install",
+  "install.refetch": "Download again",
+  "install.getting": "Downloading…",
+  "install.getting.note": "Fetching from the release and unpacking — takes a moment.",
+  "install.fetched": "downloaded"
 }

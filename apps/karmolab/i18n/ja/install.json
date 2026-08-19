@@ -21,5 +21,10 @@
   "install.nopick": "フォルダ選択を開けませんでした — パスを直接入力してください。",
   "install.unknown": "状態不明",
   "install.locked.why": "まず作業フォルダを設定してください — 上で選ぶと解除されます。",
-  "install.guessed": "この場所と推測しました — 合っていれば保存を押してください。"
+  "install.guessed": "この場所と推測しました — 合っていれば保存を押してください。",
+  "install.get": "ダウンロードして導入",
+  "install.refetch": "再ダウンロード",
+  "install.getting": "ダウンロード中…",
+  "install.getting.note": "リリースから取得して展開します — 少しかかります。",
+  "install.fetched": "ダウンロード済み"
 }
