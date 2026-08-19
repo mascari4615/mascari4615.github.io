@@ -4,7 +4,7 @@
  * 모양 목록은 위젯이 쥐고 있는 것을 그대로 받는다(카드·동그라미·말풍선·메모·사진 카드).
  * 기울기는 슬라이더 — 숫자를 치게 하면 「몇 도가 삐딱한가」를 사람이 계산해야 한다.
  */
-import type { GraphNode, NodeShape } from '../../../lib/graph/spec';
+import type { GraphNode, NodeShape } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

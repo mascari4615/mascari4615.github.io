@@ -4,7 +4,7 @@
  * 한 노드가 **여러 묶음에 동시에** 들 수 있으므로 고르기가 아니라 **체크 목록**이다
  * (세로로 늘어놓는 게 훑기 쉽다는 관행 그대로). 여기서 바로 새 묶음도 만든다.
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

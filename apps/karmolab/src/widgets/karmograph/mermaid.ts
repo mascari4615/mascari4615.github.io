@@ -8,7 +8,7 @@
  * 담을 수 없는 것(자리·색·꼬리표·칸)은 버린다 — Mermaid 의 값은 **관계의 뼈대**를 옮기는 것이지
  * 그림을 그대로 베끼는 것이 아니다(그건 SVG 내보내기가 한다).
  */
-import type { GraphSpec } from '../../lib/graph/spec';
+import type { GraphSpec } from '../../lib/karmograph/spec';
 import { t } from '../../lib/i18n';
 
 /** Mermaid 는 id 에 한글·공백·기호를 못 받는다 — 순서대로 짧은 딱지를 붙인다. */

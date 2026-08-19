@@ -20,7 +20,7 @@
  * 「어디에 놓일지」가 예측 가능하다.
  */
 
-import type { NodeShape } from '../../lib/graph/spec';
+import type { NodeShape } from '../../lib/karmograph/spec';
 
 export interface TextNode {
   id: string;

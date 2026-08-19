@@ -8,8 +8,8 @@
  * 한 번에 다 옮기지 않는다. **의존이 가장 적은 패널부터** 하나씩 — 큰 이사를 한 번에 하면
  * 무엇이 깨졌는지 알 수 없고, 화면 검사(35항목)가 있어도 되돌릴 지점이 없어진다.
  */
-import type { GraphCanvas } from '../../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef } from '../../../lib/graph/spec';
+import type { GraphCanvas } from '../../../lib/karmograph/canvas';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef } from '../../../lib/karmograph/spec';
 import type { MyTerms } from '../terms';
 
 export interface PanelCtx {

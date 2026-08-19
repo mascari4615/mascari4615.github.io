@@ -7,7 +7,7 @@
  * 그래서 스키마를 **쓰면서 자라게** 둔다: 칸 이름은 자유롭게 적고, *같은 종류의 다른 노드가 쓴
  * 이름*이 후보로 뜬다. 세 번째 인물부터는 고르기만 하면 되고, 결과적으로 종류마다 칸이 정렬된다.
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

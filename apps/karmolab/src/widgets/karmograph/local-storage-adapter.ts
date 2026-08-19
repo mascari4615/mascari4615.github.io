@@ -8,9 +8,9 @@
  * 같은 *구조* 변경은 위젯이 `saveSpec(spec)` 으로 통째로 쓴다 — 좌표 패치와
  * 구조 저장을 한 메서드로 합치면 캔버스가 구조를 알아야 해서 seam 이 깨진다.
  */
-import type { GraphSpec, NodeCoord } from '../../lib/graph/spec';
-import { emptyGraphSpec } from '../../lib/graph/spec';
-import type { GraphPersistAdapter } from '../../lib/graph/adapter';
+import type { GraphSpec, NodeCoord } from '../../lib/karmograph/spec';
+import { emptyGraphSpec } from '../../lib/karmograph/spec';
+import type { GraphPersistAdapter } from '../../lib/karmograph/adapter';
 import { t, loadNamespace } from '../../lib/i18n';
 
 const DEFAULT_KEY = 'karmograph.graph';

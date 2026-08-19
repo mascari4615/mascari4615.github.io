@@ -5,7 +5,7 @@
  * 만들고·이름 붙이고·색 고르고·감추는 손잡이만 준다.
  */
 import { t } from '../../../lib/i18n';
-import type { GroupDef } from '../../../lib/graph/spec';
+import type { GroupDef } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 
 export function renderGroupsPanel(ctx: PanelCtx): void {

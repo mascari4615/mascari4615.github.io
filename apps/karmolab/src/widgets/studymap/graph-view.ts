@@ -7,8 +7,8 @@
  *
  * 이 파일이 하는 일은 번역 하나뿐: `TreeLayout` → `GraphSpec`.
  */
-import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, LaneDef } from '../../lib/graph/spec';
+import { GraphCanvas } from '../../lib/karmograph/canvas';
+import type { GraphSpec, GraphNode, GraphEdge, LaneDef } from '../../lib/karmograph/spec';
 import type { TreeLayout } from './tree';
 
 /** 칸의 상태 — 색과 아이콘이 여기서 갈린다. */

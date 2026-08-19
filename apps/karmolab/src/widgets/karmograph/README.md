@@ -23,7 +23,7 @@
 | `storage-health.ts` | 저장 공간 재기 · 위험선 |
 | `help.ts` | 할 수 있는 일 + 단축키 목록. **새 기능은 여기 한 줄이 늘어야 한다** |
 
-캔버스 엔진은 여기 없다 — `apps/karmolab/src/lib/graph/` (`canvas.ts` 그리기·조작, `spec.ts` 자료 모양,
+캔버스 엔진은 여기 없다 — `apps/karmolab/src/lib/karmograph/` (`canvas.ts` 그리기·조작, `spec.ts` 자료 모양,
 `styles.ts` CSS, `adapter.ts` 저장 seam). cockpit 위젯도 같은 엔진을 쓴다.
 
 엔진 쪽에서 **자주 찾게 되는 네 조각** (2026-08-12):

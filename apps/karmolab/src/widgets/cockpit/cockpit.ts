@@ -6,7 +6,7 @@ import { loadNamespace, locale } from '../../lib/i18n';
  * Toolbox.register 로 등록. IIFE (Toolbox = lexical).
  */
 import { injectCockpitStyles } from './styles';
-import { GraphCanvas } from '../../lib/graph/canvas';
+import { GraphCanvas } from '../../lib/karmograph/canvas';
 import { cockpitGraphAdapter, COCKPIT_KIND_COLORS } from './graph-tauri-adapter';
 import { ActivityCollector } from './activity-collector';
 import { buildTaskTab } from './task-tab';
