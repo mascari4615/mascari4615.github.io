@@ -57,9 +57,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 계약 해시 — 바이너리 입력이 지난 판과 같으면 안 굽는다
+        id: contract
+        shell: bash
+        # 왜 (KL-064 후속): 트리거를 `apps/karmolab-tauri/**` 로 **일부러** 넓게 쳤다.
+        # 좁혔다가 「프론트엔 있는데 앱엔 없는 command」 스큐가 세 번 났기 때문이다.
+        # 대신 주석 한 줄·문서 한 줄에도 25~30분 빌드가 돌았다.
+        #
+        # 좁히기(=스큐 위험)와 헛빌드 중 하나를 고르지 않는다: 바이너리에 실제로 들어가는
+        # 입력만 해시해(scripts/contract-hash.mjs, 판 번호는 뺀다) 지난 릴리스 값과 견준다.
+        # 같으면 바이너리도 같으므로 건너뛰어도 **스큐가 원리적으로 안 생긴다**.
+        # workflow_dispatch(수동)는 항상 굽는다 — 탈출구는 남긴다.
+        run: |
+          set -e
+          NOW=$(node scripts/contract-hash.mjs)
+          LAST=$(cat .release-contract 2>/dev/null || echo "(아직 없음)")
+          echo "now=$NOW" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "push" ] && [ "$NOW" = "$LAST" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::앱 입력이 지난 판과 같다 — 빌드/릴리스 건너뜀 ($NOW)"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::앱 입력이 달라졌다 — 굽는다 (지난 판 $LAST → $NOW)"
+          fi
+
       - name: Bump version
         # push(backend contract 변경) = 자동 patch. workflow_dispatch = 선택 bump.
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none')
+        if: steps.contract.outputs.changed == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none'))
         shell: bash
         # KL-064 race-safe: concurrency 가 run 을 직렬화해도 늦은 run 의
         # checkout 이 master 보다 뒤 → 옛 코드는 `git push HEAD:master` 가
@@ -117,6 +141,7 @@ jobs:
           if [ -z "$PUSHED" ]; then echo "bump push 6회 실패" >&2; exit 1; fi
 
       - name: Setup Node
+        if: steps.contract.outputs.changed == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: 20
@@ -124,12 +149,15 @@ jobs:
           cache-dependency-path: apps/karmolab-tauri/package-lock.json
 
       - name: Setup Rust
+        if: steps.contract.outputs.changed == 'true'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
+        if: steps.contract.outputs.changed == 'true'
         run: npm ci
 
       - name: Build ML sidecar
+        if: steps.contract.outputs.changed == 'true'
         # KL-052: tauri.release.conf.json externalBin = binaries/karmolab-life-ml.
         # tauri-action 은 `npm run build`(=build:sidecar && tauri build) 가 아니라
         # `tauri build` 만 호출 → sidecar 미생성 시 build.rs:97 panic
@@ -139,6 +167,7 @@ jobs:
         run: npm run build:sidecar
 
       - name: Build and publish release
+        if: steps.contract.outputs.changed == 'true'
         uses: tauri-apps/tauri-action@action-v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -157,6 +186,7 @@ jobs:
           updaterJsonPreferNsis: true
 
       - name: Prune old releases (최신 1개만 유지, tag 보존)
+        if: steps.contract.outputs.changed == 'true'
         # 이 판은 윈도우에서 돈다 — 기본 셸이 PowerShell 이라 bash 문법(줄바꿈 \, 파이프
         # while)이 그대로 죽는다. 실제로 릴리스는 나갔는데 이 단계에서 죽어 「빨강」으로만
         # 보였다(2026-08-06 부터). 셸을 못 박는다.
@@ -179,3 +209,28 @@ jobs:
                 echo "prune release: $tag (tag 보존)"
                 gh release delete "$tag" --repo "${{ github.repository }}" --yes
               done
+
+      - name: 이번 판의 계약 해시를 남긴다 (다음 push 가 헛빌드를 안 하게)
+        # 성공했을 때만 적는다 — 빌드가 죽었는데 적어 두면 다음 판이 「같으니 넘어가자」로
+        # 넘어가 버린다(그 순간 릴리스가 영영 안 나간다). bump 와 같은 race-safe 재시도.
+        if: steps.contract.outputs.changed == 'true' && success()
+        shell: bash
+        run: |
+          set -e
+          cd ../..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          T=apps/karmolab-tauri
+          PUSHED=
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin master
+            git reset --hard origin/master
+            echo "${{ steps.contract.outputs.now }}" > "$T/.release-contract"
+            git add "$T/.release-contract"
+            if git diff --cached --quiet; then echo "이미 같은 값 — 적을 것 없음"; PUSHED=1; break; fi
+            git commit -m "chore(karmolab-tauri): 이번 판 계약 해시 기록 [skip ci]"
+            if git push origin HEAD:master; then PUSHED=1; break; fi
+            echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
+            sleep $((attempt * 3))
+          done
+          if [ -z "$PUSHED" ]; then echo "계약 해시 기록 push 6회 실패" >&2; exit 1; fi
