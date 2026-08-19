@@ -1,5 +1,6 @@
 mod activity;
 mod ai_quota;
+mod app_launcher;
 mod adventure;
 mod agent_team;
 mod alarm;
@@ -43,6 +44,7 @@ use cockpit_graph::{cockpit_get_graph_spec, cockpit_save_graph_coords, cockpit_g
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
 use quest_index::get_quest_tree;
+use app_launcher::{app_check, app_launch, app_list_installed};
 use quest_launcher::{create_task, open_task_in_editor};
 use quest_writeback::{
     add_quest_check, delete_quest_check, rename_quest_check, set_quest_priority, set_quest_status,

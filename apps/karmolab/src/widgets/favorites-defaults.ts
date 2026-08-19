@@ -7,8 +7,14 @@ export type FavoriteItem = {
     url?: string;
     label: string;
     icon?: string | null;
-    type?: 'tool';
+    type?: 'tool' | 'app';
     toolId?: string;
+    /** type:'app' — 열 URI 스킴(`discord`). 브라우저가 쓸 수 있는 유일한 통로. */
+    scheme?: string;
+    /** type:'app' — 실행 파일 경로/이름. 스킴이 없는 앱용 (데스크톱에서만 쓴다). */
+    exec?: string;
+    /** type:'app' — exec 인자. */
+    args?: string[];
     isCustom?: boolean;
 };
 
@@ -110,11 +116,5 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: '/posts/advice/', label: '조언', icon: null },
         { url: '/posts/cold/', label: '찬 바람', icon: null },
         { url: '/posts/ps-algorithm/', label: '코딩테스트', icon: null },
-    ]},
-    { get group() { return t('favorites.group.keep'); }, items: [
-        { url: 'https://brunch.co.kr/@dangkunlove/21', label: '시시콜콜한 이야기의 위로', icon: null },
-        { url: 'https://brunch.co.kr/@064040503a2242a/42', label: '내 작업물에 대한 공격은 나에 대한 공격으로 간주한다', icon: null },
-        { url: 'https://blog.naver.com/jysa000/223676533324', label: '나는 어떤 경험을 하고 싶을까?', icon: FAVICON_FALLBACK },
-        { url: 'https://brunch.co.kr/@whizzer4/79', label: '우리 엄마도 한때는 소녀였으니까', icon: null },
     ]},
 ];
