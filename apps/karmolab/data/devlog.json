@@ -3,10 +3,24 @@
   "windowDays": 120,
   "counts": {
     "commits": 2173,
-    "days": 10,
+    "days": 11,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-08-20",
+      "entries": [
+        {
+          "sha": "fd4e3d25",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "세션이 남기고 간 방치형 화면 작업을 담는다 (TASK-WM-406)"
+        }
+      ],
+      "quiet": 0,
+      "more": 0
+    },
     {
       "date": "2026-08-17",
       "entries": [
@@ -485,17 +499,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "WM-052",
           "text": "원고에 조건을 쓸 수 있다 — 「처음 만났을 때만」을 글로 적는다"
-        },
-        {
-          "sha": "e053dfcf",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-052",
-          "text": "글로 쓴 대화 한 편을 게임이 집어 든다 — 원고에서 화면까지 길이 이어졌다"
         }
       ],
       "quiet": 43,
-      "more": 97
+      "more": 98
     }
   ]
 }
