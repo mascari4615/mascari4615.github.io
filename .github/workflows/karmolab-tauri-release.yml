@@ -202,6 +202,49 @@ jobs:
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
 
+      - name: 동반자 꾸러미·창을 굽는다 (TASK-KAR-227)
+        if: steps.contract.outputs.changed == 'true'
+        shell: bash
+        # 왜 여기냐: 동반자는 저장소 안에서만 돌았다 — 프로그램만 깐 사람에게는 깔 대상도
+        # 방법도 없었다. 실제로 필요한 것은 4.66MB 뿐이라(실측), 앱 릴리스에 같이 얹는다.
+        # Node 런타임은 **안 넣는다** — 게임의 필수 구성 요소처럼 쓰는 쪽에서 깐다(조수님 결정).
+        run: |
+          set -euo pipefail
+          cd ../../packages/companion
+          npm ci --no-audit --no-fund
+          npm run pack
+          cd ../..
+          # 창은 같은 워크스페이스의 두 번째 바이너리다 (KAR-201).
+          cd apps/karmolab-tauri
+          cargo build --release --bin companion-window --target-dir target
+
+      - name: 동반자 에셋을 릴리스에 올린다
+        if: steps.contract.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # 굽는 것과 올리는 것을 나눈 이유: 굽기가 죽었는데 올리기가 「올릴 게 없다」로
+        # 조용히 통과하면, 릴리스에 앱만 있고 동반자는 없는 판이 나간다. 여기서는 없으면 죽는다.
+        run: |
+          set -euo pipefail
+          cd ../..
+          # 버전은 **파일에서 읽는다.** `steps.bump.outputs.version` 을 쓰려다 보니 그
+          # 단계에는 `id` 조차 없어 빈 값이 된다 — 그러면 태그가 `karmolab-v` 가 되고
+          # 업로드가 엉뚱한 데로 간다(조용한 실패). 굽는 쪽과 같은 자리를 본다.
+          VER=$(node -p "require('./apps/karmolab-tauri/package.json').version")
+          test -n "$VER" || { echo "버전을 못 읽었다"; exit 1; }
+          TAG="karmolab-v${VER}"
+          PACK=packages/companion/pack
+          WIN=apps/karmolab-tauri/target/release/companion-window.exe
+          test -d "$PACK" || { echo "동반자 꾸러미가 없다: $PACK"; exit 1; }
+          test -f "$WIN"  || { echo "창이 없다: $WIN"; exit 1; }
+          cp "$WIN" "$PACK/companion-window.exe"
+          ZIP="companion-${VER}.zip"
+          # 압축은 러너의 것을 쓴다 — 새 도구를 들이지 않는다.
+          powershell -NoProfile -Command "Compress-Archive -Path '$PACK/*' -DestinationPath '$ZIP' -Force"
+          ls -la "$ZIP"
+          gh release upload "$TAG" "$ZIP" --repo "${{ github.repository }}" --clobber
+
       - name: Prune old releases (최신 1개만 유지, tag 보존)
         if: steps.contract.outputs.changed == 'true'
         # 이 판은 윈도우에서 돈다 — 기본 셸이 PowerShell 이라 bash 문법(줄바꿈 \, 파이프

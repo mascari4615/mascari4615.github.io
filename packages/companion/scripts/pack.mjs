@@ -142,6 +142,33 @@ writeFileSync(
 
 cpSync(join(root, 'scripts', 'live.mjs'), join(out, 'scripts', 'live.mjs'), { recursive: true });
 cpSync(join(root, 'scripts', 'get-voice.mjs'), join(out, 'scripts', 'get-voice.mjs'), { recursive: true });
+cpSync(join(root, 'scripts', 'start.cmd'), join(out, 'scripts', 'start.cmd'), { recursive: true });
+cpSync(join(root, 'scripts', 'check-node.mjs'), join(out, 'scripts', 'check-node.mjs'), { recursive: true });
+
+/* **받은 사람이 처음 보는 글.** 저장소 README 는 만드는 사람 것이라 여기선 쓸모가 없다 —
+   「어디에 뭐가 있나」가 아니라 「무엇을 누르면 되나」가 필요하다. */
+writeFileSync(
+  join(out, '읽어주세요.txt'),
+  [
+    '동반자 — 곁에 있는 존재',
+    '',
+    '1. Node 가 필요하다 (20 이상). 없으면: https://nodejs.org 에서 LTS',
+    '   게임의 「필수 구성 요소」와 같은 자리다. 이 꾸러미에는 안 들어 있다.',
+    '',
+    '2. scripts\\start.cmd 를 두 번 누른다.',
+    '   Node 가 없으면 그 창이 어디서 받는지 알려 준다.',
+    '',
+    '3. 화면은 http://localhost:4620 에서 열린다.',
+    '   companion-window.exe 가 같이 있으면 창틀 없는 창으로 뜬다.',
+    '',
+    '없어도 도는 것들 (있으면 더 좋다):',
+    '  · 내 컴퓨터 목소리 · 흉내 낸 목소리 · 받아쓰기 · 3D 몸 · 뜻 기억',
+    '  없으면 인터넷 목소리로 말하고, 나머지는 조용히 물러선다.',
+    '',
+    '두뇌는 claude CLI 를 쓴다. 없으면 COMPANION_BRAIN=echo 로 움직임만 볼 수 있다.',
+  ].join(String.fromCharCode(10)) + String.fromCharCode(10),
+  'utf8',
+);
 
 console.log(`[pack] 나갈 자리: ${out}`);
 for (const part of ['dist', 'demo', 'assets', 'node_modules', 'scripts', 'characters']) {
