@@ -97,11 +97,33 @@ export class DomTilesSurface implements Surface {
 			: pickTileGroups(measureCandidates(root), {
 					viewportArea: (window.innerWidth || 1) * (window.innerHeight || 1)
 				}).map((item) => ({ element: null, rect: item.rect }));
-		if (found.length === 0) {
-			this.cachedShape = null;
-			this.cells = [];
-			return null;
-		}
+		/* ★ **타일이 성기면 액정이 죽는다** (2026-08-19 실측).
+		   모자이크는 「타일이 감싸는 사각형에서 차지하는 비율만큼 그림을 받는다」이다.
+		   홈이 고정 한 장으로 바뀌자(KL-325) 잡히는 것이 **위 띠 11개와 아래 띠 5개**뿐이
+		   되었고, 감싸는 사각형은 위아래 전체인데 타일은 33행 중 5행만 덮었다. 그림에서
+		   켜진 곳은 가운데(y 8~29)라 **어느 타일에도 안 걸렸다** — 재생은 도는데 화면은
+		   비어 있는, 증상 없는 고장이다(잰 값: 안 투명한 픽셀 0개).
+
+		   그래서 **덮는 넓이를 본다.** 타일이 감싸는 사각형을 충분히 안 덮으면 타일을
+		   버리고 창 전체를 한 칸으로 쓴다 — 그림은 거칠어져도 비어 있지는 않다.
+		   도구가 격자로 깔린 화면은 넉넉히 덮으므로 예전 그대로 타일을 쓴다. */
+		const 창전체로 = (): SurfaceShape => {
+			const viewWidth = Math.max(1, window.innerWidth || 0);
+			const viewHeight = Math.max(1, window.innerHeight || 0);
+			const sub =
+				this.options.subdivide ??
+				{ cols: 96, rows: Math.max(1, Math.round((96 * viewHeight) / viewWidth)) };
+			this.cols = sub.cols;
+			this.rows = sub.rows;
+			this.span = { left: 0, top: 0, width: viewWidth, height: viewHeight };
+			this.cells = [
+				{ rect: { x: 0, y: 0, width: viewWidth, height: viewHeight }, cols: this.cols, rows: this.rows }
+			];
+			this.cachedShape = { cols: this.cols, rows: this.rows, rect: { x: 0, y: 0, width: viewWidth, height: viewHeight } };
+			return this.cachedShape;
+		};
+
+		if (found.length === 0) return 창전체로();
 
 		// 고른 것들을 감싸는 사각형 안에서, 각 타일이 차지하는 자리를 **칸 단위**로 환산한다.
 		// 그래야 무대에게 「나는 이만한 격자다」 하나로 말할 수 있다.
@@ -121,6 +143,12 @@ export class DomTilesSurface implements Surface {
 		}
 		const boundsWidth = Math.max(1, right - left);
 		const boundsHeight = Math.max(1, bottom - top);
+
+		/* 덮는 넓이가 너무 적으면 타일로 그릴 수 없다 (위 설명). 1/4 은 잰 값에서 왔다:
+		   깨진 홈이 15%, 도구가 깔린 화면은 60% 넘는다. 그 사이를 가른다. */
+		let 덮은넓이 = 0;
+		for (const item of found) 덮은넓이 += item.rect.width * item.rect.height;
+		if (덮은넓이 / (boundsWidth * boundsHeight) < 0.25) return 창전체로();
 
 		// 칸 하나를 몇으로 쪼갤지. 안 주면 **놓인 칸 수를 보고 정한다** — 큰 버튼 다섯 개짜리
 		// 화면과 도구 백 개짜리 화면이 비슷한 해상도로 나오게. 고정으로 박으면 한쪽이 반드시 흐리다.
