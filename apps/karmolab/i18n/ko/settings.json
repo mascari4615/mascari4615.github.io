@@ -106,5 +106,15 @@
   "settings.tab.data": "이 브라우저에 저장된 것",
   "settings.t59": "만든 사람 · 문의",
   "settings.label.setLinks": "연락처 · 링크 모음",
-  "settings.btn.setLinks": "열기"
+  "settings.btn.setLinks": "열기",
+  "settings.tab.machine": "이 컴퓨터",
+  "settings.machine.folder": "작업 폴더",
+  "settings.machine.desc": "소스를 받아 둔 곳. 부품을 굽거나 개발 서버를 띄울 때 쓴다.",
+  "settings.machine.pick": "찾아보기",
+  "settings.machine.save": "저장",
+  "settings.machine.ok": "확인됨 — 부품 굽기·개발 서버가 이 폴더를 쓴다.",
+  "settings.machine.bad": "이 폴더는 아니다",
+  "settings.machine.saving": "확인하는 중…",
+  "settings.machine.nopick": "폴더 고르기 창을 못 열었다 — 경로를 손으로 적어라.",
+  "settings.machine.webonly": "이 칸은 데스크톱 앱에서만 쓴다 — 브라우저에는 이 컴퓨터의 폴더가 없다."
 }

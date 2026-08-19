@@ -14,6 +14,7 @@
  */
 import { isDesktop, invoke, listen } from '../tauri-bridge';
 import { t } from '../lib/i18n';
+import { currentWorkFolder } from '../lib/work-folder';
 
 (function (): void {
   'use strict';
@@ -85,36 +86,6 @@ import { t } from '../lib/i18n';
     return `${t('install.done', undefined, '깔림')} · ${asMb(stamp.bytes)} · ${formatTime(stamp.builtAt)} ${t('install.built', undefined, '구움')}${source}`;
   }
 
-  /**
-   * **저장소 뿌리를 먼저 챙긴다.**
-   *
-   * `localdev_start` 도 `repofile_read` 도 「이 컴퓨터의 저장소가 어디냐」를 알아야 돈다.
-   * 그 값은 서버 모니터가 잡아 두는 것이라, 그 도구를 한 번도 안 연 사람에게는 비어 있다.
-   * 그러면 여기서 「설치」를 눌렀을 때 **누른 뒤에야** 「저장소 루트를 먼저 설정하세요」가
-   * 뜬다 — 무엇을 어디서 해야 하는지는 안 적힌 채로(조수님 실측 2026-08-19).
-   *
-   * 그래서 셋을 한다: ① 이미 잡혀 있으면 그대로 ② 서버 모니터가 적어 둔 값이 있으면
-   * 그걸로 잡아 준다 ③ 그래도 없으면 **누르기 전에** 화면에 말한다.
-   */
-  const REPO_ROOT_PREF = 'karmolab_repo_root';
-
-  async function ensureRepoRoot(): Promise<string | null> {
-    try {
-      const now = (await invoke('localdev_get_repo_root')) as string | null;
-      if (now) return now;
-    } catch {
-      return null;
-    }
-    const saved = (Toolbox.getPref?.(REPO_ROOT_PREF, '') ?? '').trim();
-    if (!saved) return null;
-    try {
-      await invoke('localdev_set_repo_root', { path: saved });
-      return ((await invoke('localdev_get_repo_root')) as string | null) ?? null;
-    } catch {
-      return null;
-    }
-  }
-
   async function readStamps(): Promise<Stamps> {
     try {
       const text = (await invoke('repofile_read', { relPath: STAMP_PATH })) as string;
@@ -161,11 +132,11 @@ import { t } from '../lib/i18n';
   async function render(list: HTMLElement): Promise<void> {
     list.textContent = t('install.loading', undefined, '읽는 중…');
 
-    const root = await ensureRepoRoot();
+    const root = await currentWorkFolder();
     if (root === null) {
       list.innerHTML =
-        `<p class="install-empty">${esc(t('install.noroot', undefined, '이 컴퓨터의 저장소가 어디인지 아직 안 잡혀 있다 — 그게 없으면 굽지 못한다.'))}</p>` +
-        `<p class="install-empty">${esc(t('install.noroot.how', undefined, '「서버 모니터」 도구를 열어 맨 위 「저장소 뿌리」에 경로를 넣어라. 한 번만 하면 된다.'))}</p>`;
+        `<p class="install-empty">${esc(t('install.noroot', undefined, '작업 폴더가 아직 안 잡혀 있다 — 그게 없으면 굽지 못한다.'))}</p>` +
+        `<p class="install-empty">${esc(t('install.noroot.how', undefined, '「환경 설정 › 이 컴퓨터 › 작업 폴더」에서 소스를 받아 둔 곳을 골라라. 한 번만 하면 된다.'))}</p>`;
       return;
     }
 

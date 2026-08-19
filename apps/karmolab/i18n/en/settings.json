@@ -106,5 +106,15 @@
   "settings.t28": "Menu layout",
   "settings.t59": "Who made this · contact",
   "settings.label.setLinks": "Contact · links",
-  "settings.btn.setLinks": "Open"
+  "settings.btn.setLinks": "Open",
+  "settings.tab.machine": "This machine",
+  "settings.machine.folder": "Work folder",
+  "settings.machine.desc": "Where the source lives. Used to build parts and start dev servers.",
+  "settings.machine.pick": "Browse",
+  "settings.machine.save": "Save",
+  "settings.machine.ok": "Verified — builds and dev servers use this folder.",
+  "settings.machine.bad": "Not this folder",
+  "settings.machine.saving": "Checking…",
+  "settings.machine.nopick": "Could not open the folder picker — type the path instead.",
+  "settings.machine.webonly": "This is desktop-app only — a browser has no folder on this machine."
 }
