@@ -34,6 +34,7 @@ import { pick } from './lib/gate-scope.mjs';
 const args = process.argv.slice(2);
 const fromIdx = args.indexOf('--from');
 let gates = args;
+let entries = args;
 if (fromIdx !== -1) {
   const file = args[fromIdx + 1];
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -43,6 +44,13 @@ if (fromIdx !== -1) {
     console.error(`[gates] ${file} 안에서 이름 목록을 못 찾았다`);
     process.exit(2);
   }
+  /* ★ **여기서 이름만 남긴다** (2026-08-19). 목록 항목이 `{이름, 볼것}` 객체로 바뀐 뒤로,
+     `--changed` 로 부를 때만 `pick()` 이 이름을 뽑아 주고 **통짜로 부를 때는 객체가 그대로**
+     흘러갔다. 그래서 `npm run verify` 가 검사를 다 돌리고 마지막 요약 줄에서
+     `r.gate.padEnd is not a function` 으로 죽었다 — 검사는 전부 초록인데 판정은 빨강이었다.
+     뽑는 규칙은 `gate-scope.mjs` 한 곳뿐이다(`pick(entries, null)` = 고르지 않고 이름만). */
+  entries = gates;
+  gates = pick(entries, null).run;
 }
 /* ★ **`--changed` = 바뀐 것에 걸리는 검사만** (TASK-KL-331).
  *
@@ -63,7 +71,7 @@ if (changedIdx !== -1) {
   if (changed === null) {
     console.log(`[gates] 바뀐 것을 못 구했다 (${base}) — 통짜로 돈다.`);
   } else {
-    const picked = pick(gates, changed);
+    const picked = pick(entries, changed);
     skipped = picked.skipped;
     gates = picked.run;
     console.log(
