@@ -13,7 +13,6 @@
  * 여기 새 코드를 넣을 때 셸 내부를 더 부르지 마라 — 부르는 순간 도로 셸에 묶인다.
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
-import { isHiddenAtBuild } from './home-prefs-data.js';
 import { t } from './lib/i18n.js';
 (function () {
     const switchPage = (id, opts) => Toolbox.switchPage(id, opts);
@@ -43,6 +42,7 @@ import { t } from './lib/i18n.js';
             <p class="landing-tagline">${t('site.tagline', undefined, '삶을 섞고 술을 바꿀 시간')}</p>
         `;
         landing.appendChild(hero);
+        greet(hero);
 
         /* TASK-KL-099 — 첫 화면의 본체는 찾는 입력이다. 도구가 160개인데 예전에는 이 자리에
          * 카드 3장과 「상단 메뉴에서 카테고리를 열고 도구를 선택하세요」만 있었다 — 찾는 일을
@@ -56,81 +56,32 @@ import { t } from './lib/i18n.js';
             window.KarmoPalette.mountInline(palette);
         }
 
-        /* 오늘의 판 (TASK-KL-194) — 찾는 칸 바로 아래, 갈 곳 카드 **위**.
-         * 여기 있는 이유: 「오늘의 코스」는 이미 돌고 있었지만 놀이터 안에만 있었다 —
-         * 놀이터로 들어간 사람만 본다. 매일 달라지는 것이 첫 화면에 없으면, 이 사이트는
-         * 「필요할 때 한 번」 오는 도구함이지 매일 오는 곳이 아니다.
-         * 아무것도 못 읽으면(서버·목록 둘 다) 이 자리는 통째로 안 그려진다. */
-        const board = document.createElement('div');
-        board.className = 'landing-today';
-        board.id = 'homeToday';
-        board.dataset.block = 'today';
-        board.hidden = isHiddenAtBuild('today');
-        landing.appendChild(board);
-        /* 조각은 **첫 그림 뒤에** 데려온다 (`src/today.ts`). 태그로 걸면 첫 화면 부팅 JS 천장
-         * (40KB gz) 을 넘는다 — 실제로 넘겨 보고 뗐다. 이 자리는 어차피 놀이 목록을 받아야
-         * 채워지므로 비동기가 맞다. 못 데려오면 이 자리만 빈 채로 남고(`:empty` = 안 보임)
-         * 첫 화면은 그대로다. */
-        /* 감춘 블록이면 조각도 안 데려온다 — 안 보이는 자리를 위해 그물을 던질 이유가 없다. */
-        if (Toolbox.ensureScript && !board.hidden) {
-            /* **자리를 먼저 잡고 데려온다** (TASK-KL-201 후속).
-             *
-             * 이 칸은 비어 있는 동안 `:empty` 로 사라져 있다가, 조각이 도착하면 65px 로 나타나
-             * 아래 있는 카드·글을 통째로 밀어냈다. 실측: 314ms 에 카드 줄이 335 → 415px 로
-             * 한 번에 내려갔고, 그 한 번이 밀림 값의 대부분이었다(0.0163 / 전체 0.02~0.09).
-             *
-             * 그렇다고 무조건 비워 두면 안 된다 — 못 읽었을 때 이 자리는 **통째로 없어야**
-             * 한다(위 주석의 설계). 그래서 「데려오기 시작할 때」 자리를 잡고, 실패하면 도로
-             * 놓는다. 성공 경로에서만 미리 비워 두는 셈이다. */
-            /* ⚠ 높이만 잡아 두면 안 된다 — `.landing-today:empty { display:none }` 이 이겨서
-               자리 자체가 안 생긴다(실측: 예약을 넣었는데도 81px 밀림이 그대로였다).
-               보이게 만들어야 예약이 뜻을 갖는다. */
-            /* 높이를 여기 박지 않는다 — 폭마다 다르다(실측: ~415px 138 · ~663px 97 · 그 위 65).
-               예전엔 65px 한 값만 잡아 두어서, 폰에서는 조각이 붙는 순간 **73px 이 남아** 아래가
-               그대로 내려갔다. 자리 값은 CSS 가 폭을 보고 정한다(`.landing-today[data-reserving]`). */
-            /* 붙은 **뒤에도 예약을 안 뗀다**. 떼 봤더니 밀림이 0.000 → 0.09 로 되레 나빠졌다
-               (실측: 내용 146px ↔ 예약 138px, 그 8px 차이와 flex 로 되돌아가는 순간이 그대로 튄다).
-               예약은 「도착 전에만 쓰는 임시 값」이 아니라 **이 자리의 최소 크기**로 둔다. */
-            board.dataset.reserving = '1';
-            const release = (): void => {
-                delete board.dataset.reserving;
-            };
-            Toolbox.ensureScript('root/today')
-                .then(() => {
-                    if (window.KarmoToday) window.KarmoToday.mount(board);
-                    else release();
-                })
-                .catch(release);
-        }
-
         /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
          * 카드마다 제목+설명 두 줄이던 것을 아이콘+이름 한 줄로 줄였다 — 다섯 장이 한 줄에
          * 들어가야 「검색창이 주인공」이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
-        cta.dataset.block = 'cta';
-        cta.hidden = isHiddenAtBuild('cta');
         cta.innerHTML = `
             <div class="landing-cta-grid">
                 <button type="button" class="landing-cta-card" data-goto="favorites">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
-                    <span class="landing-cta-card-title">즐겨찾기</span>
+                    <span class="landing-cta-card-title">${t('site.cta.favorites', undefined, '즐겨찾기')}</span>
                 </button>
                 <a class="landing-cta-card" href="/karmolab/t/">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
-                    <span class="landing-cta-card-title">도구 목록</span>
+                    <span class="landing-cta-card-title">${t('site.cta.tools', undefined, '도구 목록')}</span>
                 </a>
                 <button type="button" class="landing-cta-card" data-goto="community">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></span>
-                    <span class="landing-cta-card-title">커뮤니티</span>
+                    <span class="landing-cta-card-title">${t('site.cta.community', undefined, '커뮤니티')}</span>
                 </button>
                 <button type="button" class="landing-cta-card" data-goto="arcade">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
-                    <span class="landing-cta-card-title">오락실</span>
+                    <span class="landing-cta-card-title">${t('site.cta.arcade', undefined, '오락실')}</span>
                 </button>
                 <button type="button" class="landing-cta-card" data-goto="docs">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-                    <span class="landing-cta-card-title">문서</span>
+                    <span class="landing-cta-card-title">${t('site.cta.docs', undefined, '문서')}</span>
                 </button>
             </div>
         `;
@@ -140,32 +91,9 @@ import { t } from './lib/i18n.js';
          * 값은 전부 실측이고 지어낸 수는 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는
          * 통째로 안 그려진다. 문장이 아니라 Today / Total 두 칸이다 (사용자 요청) — 문장으로
          * 쓰면 폭에 따라 두 줄이 되고, 세 가지 수를 한 줄에 우겨 넣게 된다. */
-        /* 실황 (TASK-KL-196 G) — 「지금 사람이 있다」는 누적 숫자로는 안 읽힌다.
-         * 조각은 첫 그림 뒤에 데려온다(`src/live.ts`). 아무도 없으면 이 자리는 비어 있고,
-         * 비면 CSS 가 통째로 감춘다 — 「지금 0명」은 북적임이 아니라 죽은 화면이다. */
-        const live = document.createElement('div');
-        live.className = 'landing-live';
-        live.id = 'homeLive';
-        live.dataset.block = 'live';
-        live.hidden = isHiddenAtBuild('live');
-        landing.appendChild(live);
-        if (Toolbox.ensureScript && !live.hidden) {
-            /* 데려오는 동안 자리를 잡아 둔다 — 안 그러면 도착하는 순간 129px 가 생기며 아래가
-               통째로 내려간다(실사이트 실측 0.038). 값은 CSS 가 폭을 보고 정한다. */
-            live.dataset.reserving = '1';
-            Toolbox.ensureScript('root/live')
-                .then(() => {
-                    if (window.KarmoLive) window.KarmoLive.mount(live);
-                    else delete live.dataset.reserving;
-                })
-                .catch(() => { delete live.dataset.reserving; });
-        }
-
         const pulse = document.createElement('div');
         pulse.className = 'landing-pulse';
         pulse.id = 'homePulse';
-        pulse.dataset.block = 'pulse';
-        pulse.hidden = isHiddenAtBuild('pulse');
         landing.appendChild(pulse);
         fillHomePulse(pulse);
 
@@ -173,20 +101,6 @@ import { t } from './lib/i18n.js';
          * 첫 화면에서 「너 이거 안 써 봤지」라고 미는 자리였다 — 발견을 돕는다기보다 재촉으로
          * 읽힌다. 도구를 찾는 길은 이미 둘(도구 전체·검색) 있다. 서버의 `/kl/suggest` 도
          * 이 자리 때문에 첫 화면마다 두드리고 있었으므로 그 요청도 같이 없어진다. */
-
-        /* 꾸미기 단추가 들어올 자리 — 조각이 오기 전에 만들어 둔다(자리는 CSS `.hp-slot`). */
-        const prefSlot = document.createElement('div');
-        prefSlot.className = 'hp-slot';
-        landing.appendChild(prefSlot);
-
-        /* 나만의 첫 화면 (TASK-KL-196 H) — 블록에 이름표(`data-block`)를 달아 두면
-         * 꾸미기 조각이 순서를 바꾸고 감출 수 있다. 이 파일은 **기본 차림**만 만든다.
-         * 조각은 첫 그림 뒤에 온다 — 안 꾸민 사람에게는 없는 것과 같다. */
-        if (Toolbox.ensureScript) {
-            Toolbox.ensureScript('root/home-prefs')
-                .then(() => window.KarmoHomePrefs && window.KarmoHomePrefs.install(landing))
-                .catch(() => {});
-        }
 
         return landing;
     }
@@ -201,6 +115,36 @@ import { t } from './lib/i18n.js';
      * 한 번도 안 열린 도구에는 아무것도 안 쓴다. 「0번 열렸어요」는 재미가 아니라 낙인이다.
      */
     /** 계정 스크립트를 기다린다 — 도구 화면은 그것보다 먼저 그려진다. 안 오면 그냥 포기한다. */
+    /**
+     * 「어서 와요, ○○」 — 이름은 **계정 닉네임**이다 (사용자 요청 2026-08-19).
+     *
+     * 전에는 첫 화면 꾸미기에서 따로 적어 넣는 값이었다. 이름을 두 곳에 두면 반드시 갈라진다 —
+     * 머리 위 계정 메뉴는 「욘」인데 첫 화면은 「ㅋㅋ」인 식이다. 이름의 정본은 계정 하나다.
+     *
+     * 로그인 안 했으면 이 줄은 **아예 없다** — 「어서 와요, 」 같은 반쪽 문장보다 없는 편이 낫다.
+     * 로그인·로그아웃을 그 자리에서 하면 계정 조각이 다시 불러 주므로 그때 붙고 떨어진다.
+     */
+    async function greet(hero) {
+        /* 계정 조각은 첫 화면을 지은 **뒤에** 온다 — 그냥 읽으면 늘 없다(방문 수와 같은 함정). */
+        if (!(await whenApiBase())) return;
+        const account = typeof window !== 'undefined' && window.KarmoAccount;
+        if (!account || !account.subscribe) return;
+        account.subscribe((state) => {
+            const name = (state && state.account && state.account.displayName) || '';
+            let hi = hero.querySelector('.landing-hi');
+            if (!name) {
+                if (hi) hi.remove();
+                return;
+            }
+            if (!hi) {
+                hi = document.createElement('p');
+                hi.className = 'landing-hi';
+                hero.appendChild(hi);
+            }
+            hi.textContent = t('site.greeting', { name }, `어서 와요, ${name}`);
+        });
+    }
+
     /** 화면에 그대로 쓰는 글자 다듬기 — 도구 이름은 우리 것이지만 규칙은 한 곳에 둔다. */
     function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -234,6 +178,13 @@ import { t } from './lib/i18n.js';
      * 「0번 열림」이 떠 있는 화면은 북적이는 게 아니라 죽은 화면으로 읽힌다.
      */
     async function fillHomePulse(slot) {
+        /* **계정 조각을 기다린다** (2026-08-19 — 「켜도 방문 수가 안 보임」).
+         *
+         * 여기서 `window.KarmoAccount` 를 그냥 읽고 없으면 돌아섰다. 그런데 이 함수는 첫 화면을
+         * **짓는 도중**에 불리고, `account.js` 는 그 뒤에 온다 — 그래서 서버가 멀쩡해도 이 칸은
+         * 늘 비었다. 도구 화면의 열림 수(`fillToolCount`)는 이미 `whenApiBase()` 를 기다리고
+         * 있었는데, 이 자리만 그 줄을 안 썼다(창구는 진작 뚫려 있었다). */
+        if (!(await whenApiBase())) return;
         const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
         if (!base) return;
         /* **물어보는 동안 자리를 잡아 둔다** — 대답이 오면 이 칸이 한 줄(23px) 생기면서 아래가
