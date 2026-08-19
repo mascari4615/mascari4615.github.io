@@ -152,6 +152,23 @@ jobs:
         if: steps.contract.outputs.changed == 'true'
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Rust 캐시 (같은 의존성을 매판 다시 안 굽는다)
+        if: steps.contract.outputs.changed == 'true'
+        uses: Swatinem/rust-cache@v2
+        # 왜: 여기서 굽는 것은 두 벌이다 — ML sidecar(candle/tokenizers 등 대형 트리)와
+        # 본체. 실측 sidecar 만 8분13초였고, 그 대부분이 **한 번도 안 바뀐 남의 크레이트**다.
+        # 워크스페이스 하나(멤버 4개)에 target 도 하나라 캐시도 하나면 된다.
+        #
+        # 안 줄어드는 부분: 마지막 링크. 루트 [profile.release] 가 fat LTO +
+        # codegen-units=1 (KL-051 = 바이너리 사이즈 목적)이라 매판 통째로 다시 엮는다.
+        # 그건 「사이즈 ↔ 시간」 맞바꿈이라 여기서 몰래 바꾸지 않는다.
+        with:
+          workspaces: apps/karmolab-tauri -> target
+          # 키는 손대지 않는다 — 기본값이 Cargo.lock + rustc 판으로 잡히고, 그게 「의존성이
+          # 바뀌었나」와 정확히 같은 물음이다. 여기에 우리 코드 해시를 섞으면 코드 한 줄마다
+          # 키가 달라져 캐시가 영영 안 맞는다(넣었다가 되돌린 자리다).
+          cache-on-failure: true
+
       - name: Install dependencies
         if: steps.contract.outputs.changed == 'true'
         run: npm ci
