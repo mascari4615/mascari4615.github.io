@@ -7,6 +7,26 @@
 <link rel="stylesheet" href="/ui.css" />
 </head>
 <body>
+  <nav class="lanes" id="lanes" hidden aria-label="세션 레인"></nav>
+  <header class="bar" id="bar" hidden>
+    <div>
+      <div class="bar-who" id="barWho">방</div>
+      <div class="bar-sub" id="barSub"></div>
+    </div>
+    <button type="button" class="bar-set" id="setBtn" aria-expanded="false">설정</button>
+  </header>
+  <aside class="set" id="set" hidden>
+    <div class="set-head">이 방</div>
+    <label>누구<select id="setWho"></select></label>
+    <div class="set-row"><span>두뇌</span><b id="setBrain"></b></div>
+    <div class="set-row"><span>손</span><b id="setTools"></b></div>
+    <div class="set-row"><span>작업 자리</span><code id="setWork"></code></div>
+    <p class="set-note" id="setNote"></p>
+    <p class="set-note" id="setQuota">그록 초과 과금: grok.com → 설정 → 사용량에서 Auto Top Up 끄기. Extra Usage Credits 사지 않기. 주간이 끝나면 멈춘다. 이 TUI 는 /usage</p>
+    <button type="button" class="set-known" id="setKnown">아는 것</button>
+  </aside>
+  <div class="peek" id="peek" hidden></div>
+
   <!-- 물어보는 자리 — 되돌리기 어려운 일을 하기 전 -->
   <div class="ask" id="ask" hidden>
     <div class="ask-what" id="askWhat"></div>
@@ -18,6 +38,9 @@
 
   <!-- 얘를 우클릭하면 나오는 것. 평소엔 없다. -->
   <div class="menu" id="menu" hidden>
+    <!-- 닫는 길이 Esc 와 「바깥 누르기」뿐이었다. 뚫린 창에서는 바깥이 클릭을 안 받고,
+         창에 초점이 없으면 Esc 도 안 먹는다 — 열면 못 닫는 설정창이었다. 그래서 ✕. -->
+    <div class="menu-head"><span>설정</span><button class="menu-x" id="menuClose" title="닫기 (Esc)" aria-label="닫기">✕</button></div>
     <label>누구<select id="whoPick"></select></label>
     <label>머리<select id="brainPick"></select></label>
     <label>목소리<select id="voicePick"></select></label>
@@ -71,9 +94,9 @@
 
     <!-- 말 걸기 — 얘를 누르면 열린다 -->
     <div class="talk" id="talk">
-      <div class="log" id="log"><div class="empty"></div></div>
+      <div class="log" id="log"><div class="empty">말해 봐. 코드면 그대로.</div></div>
       <form id="form" autocomplete="off">
-        <input id="text" placeholder="말 걸기…" />
+        <input id="text" placeholder="말해 봐…" autofocus />
         <button id="mic" type="button" title="눌러서 말하기">🎤</button>
         <button id="send" type="submit">↵</button>
       </form>
@@ -145,6 +168,11 @@
      끌면 창이 아니라 **얘가** 움직인다 — 잘릴 테두리가 없으니 애초에 잘릴 것도 없다. */
   const 전체화면 = new URLSearchParams(location.search).get('full') === '1';
   if (전체화면) document.body.classList.add('full');
+  const pageSurface = new URLSearchParams(location.search).get('surface') === 'page';
+  if (pageSurface) {
+    document.body.classList.add('page');
+    import('/desk.js').then((m) => m.mountDesk()).catch((e) => tell(`방을 못 깔았다: ${e}`));
+  }
   const 방자리 = {
     x: Number(localStorage.getItem('companion.roomX') ?? '0') || null,
     y: Number(localStorage.getItem('companion.roomY') ?? '0') || null,
@@ -171,7 +199,9 @@
   });
   // **실제로 어떻게 떴는지 창이 직접 말한다.** 띄우는 쪽이 「이렇게 해 달라」고 한 값은
   // 됐다는 증거가 아니다 — 요청과 결과를 같은 것으로 셌다가 「된 것 같은데?」를 들었다.
-  tell(`창 ${innerWidth}×${innerHeight} · 전체화면 ${전체화면 ? 'O' : 'X'} · 화면 ${screen.width}×${screen.height}`);
+  if (pageSurface === false) {
+    tell(`창 ${innerWidth}×${innerHeight} · 전체화면 ${전체화면 ? 'O' : 'X'} · 화면 ${screen.width}×${screen.height}`);
+  }
   // 얘가 사는 자리가 실제로 어디에 얼마만 하게 놓였는지도 같이 말한다 — 창만 커지고
   // 안쪽 배치가 그대로면 보이는 건 하나도 안 달라진다.
   setTimeout(() => {
@@ -184,6 +214,9 @@
      못 불러오면 예전처럼 문장 끝까지 기다린다(늦을 뿐 안 깨진다). */
   let 읽을토막 = null;
   let 표정떼기 = (t) => t;
+  import('/chat-markup.js')
+    .then((m) => { window.chatSegments = m.chatSegments; })
+    .catch((e) => tell(`그림 가르기를 못 불렀다: ${e}`));
   import('/say-chunks.js')
     .then((m) => { 읽을토막 = m.읽을토막; 표정떼기 = m.표정떼기; tell('말 끊는 규칙을 불렀다'); })
     .catch((e) => tell(`말 끊는 규칙을 못 불렀다 — 문장 끝까지 기다리게 된다: ${e}`));
@@ -222,7 +255,7 @@
      소리는 기본으로 꺼둔다: 소리가 갑자기 나오는 건 무례하다. */
   const mute = document.getElementById('mute');
   // 얘가 하는 말은 전부 소리로 나온다 — 혼잣말도, 화면 보고 하는 말도. 예외 없다.
-  const voiceOn = true;
+  const voiceOn = pageSurface === false;
   let koVoice = null;
 
   function pickVoice() {
@@ -419,6 +452,27 @@
     speakAloud('응, 이 목소리로 할게.');
   });
 
+  /** 뭔가 안 되고 있다는 말인가 — 그건 가만히 있는 것과 절대 같아 보이면 안 된다. */
+  const 탈났나 = (말) => /끊겼|막혀|못 |안 들렸|실패|없다|안 됐|에러/.test(말 ?? '');
+
+  /* ── 안 된 건 대화창에 빨갛게 ───────────────────────────
+     조수님: 「실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.」
+     맞다 — 여태 실패는 얼굴 발밑의 옅은 한 줄뿐이었고, 그건 3.5초 뒤 사라졌다.
+     보낸 말이 400 으로 거절돼도 화면상으로는 그냥 조용한 얘였다.
+     실패는 **대화 기록에 남는다.** 스크롤을 올려도 그 자리에 있어야 나중에 안다. */
+  let 마지막탈 = '';
+  /** 초 세는 꼬리(「(3초)」)만 다른 같은 실패를 도배하지 않으려고 벗겨서 비교한다. */
+  const 탈의뼈대 = (글) => String(글 ?? '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+  function 안됐다(글) {
+    const 뼈 = 탈의뼈대(글);
+    if (뼈 === '' || 뼈 === 마지막탈) return; // 같은 실패를 초마다 새로 쌓지 않는다
+    마지막탈 = 뼈;
+    append('안 됨', 글, 'fail');
+  }
+  /** 다시 되면 다음 실패는 또 크게 뜬다 — 한 번 뜬 실패에 영영 묻히지 않게. */
+  function 다시된다() { 마지막탈 = ''; }
+  window.안됐다 = 안됐다;
+
   /* ── 알아챈 것 ─────────────────────────────────────────
      조수님 요청(77회차): 「얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.」
      귀가 열린 것, 창이 바뀐 것, 받아쓴 글을 막은 것, 사건을 담은 것 — 전부 여태
@@ -431,11 +485,43 @@
     const 글 = String(무엇 ?? '').trim();
     if (글 === '' || 글 === 마지막알아챔) return; // 같은 걸 연달아 도배하지 않는다
     마지막알아챔 = 글;
+    /* 알아챔 중에도 **안 된 것**은 옅게 스치면 안 된다 — 「마이크가 막혀 있다」가
+       회색 한 줄로 지나가면 조수님 눈엔 아무 일도 없는 얘다. 빨간 줄로 보낸다. */
+    if (탈났나(글)) { 안됐다(글); return; }
+    /* **말 방(page)에서도 채팅창에 남긴다.** 여기서 통째로 빠져나가는 바람에
+       「들었다: …」도 「기억에 담았다」도 긴 채팅 화면에는 한 줄도 안 떴다 —
+       조수님이 「인식할 땐 무조건 떴으면」이라 한 그 자리가 정작 page 에서만
+       비어 있었다. 발밑 뱃지(잠깐)는 desk 전용이라 거기서만 그린다. */
     append('알아챔', 글, 'notice');
+    if (pageSurface) return;
     // 대화창을 안 열어 뒀어도 뭔가 하고 있다는 건 보여야 한다.
     잠깐(글.startsWith('기억에 담았다') || glob되새김(글) ? '🧠' : 글.includes('귀') || 글.includes('들었다') ? '🎧' : '✨', 짧은말(글));
   }
   window.알아챈것 = 알아챈것;
+
+  function fillWhat(el, message) {
+    el.replaceChildren();
+    const segs = typeof window.chatSegments === 'function'
+      ? window.chatSegments(String(message ?? ''))
+      : [{ kind: 'text', text: String(message ?? '') }];
+    if (segs.length === 0) {
+      el.textContent = '';
+      return;
+    }
+    for (const seg of segs) {
+      if (seg.kind === 'image' && seg.src) {
+        const img = document.createElement('img');
+        img.className = 'inlay';
+        img.alt = seg.alt || '';
+        img.src = seg.src;
+        el.append(img);
+      } else if (seg.kind === 'text' && seg.text) {
+        const span = document.createElement('span');
+        span.textContent = seg.text;
+        el.append(span);
+      }
+    }
+  }
 
   function append(who, message, kind) {
     log.querySelector('.empty')?.remove();
@@ -446,7 +532,7 @@
     label.textContent = who;
     const body = document.createElement('div');
     body.className = 'what';
-    body.textContent = message;
+    fillWhat(body, message);
     line.append(label, body);
     log.append(line);
     // 이미 위로 올려 읽는 중이면 방해하지 않는다.
@@ -467,6 +553,14 @@
       // 지난 대화를 못 불러와도 새 대화는 된다.
     }
   }
+  window.replaceHistory = async () => {
+    log.replaceChildren();
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = '말해 봐. 코드면 그대로.';
+    log.append(empty);
+    await loadHistory();
+  };
 
   // 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다.
   /* ── 지금 뭐 하는 중 ───────────────────────────────────
@@ -481,14 +575,14 @@
     listening: '🎧', thinking: '💭', speaking: '💬', looking: '👀', '': '·',
   };
   let 되돌릴때 = null;
+  /** 3D 몸. 뜨기 전에도 setState 가 돌기 때문에 여기서 미리 잡아 둔다. */
+  let body3d = null;
 
   function setState(state, 말) {
     body3d?.setMood(state);
     그리기(하는일아이콘[state] ?? '·', 말 ?? '');
   }
 
-  /** 뭔가 안 되고 있다는 말인가 — 그건 가만히 있는 것과 절대 같아 보이면 안 된다. */
-  const 탈났나 = (말) => /끊겼|막혀|못 |안 들렸|실패|없다/.test(말 ?? '');
 
   function 그리기(아이콘, 말) {
     const ico = document.getElementById('doingIco');
@@ -499,6 +593,9 @@
        뜨면 조수님 눈에는 그냥 조용한 얘로 보인다 — 지금 이 회차가 고치려는 바로 그
        문제를 새로 만드는 셈이다. */
     const 탈 = 탈났나(글);
+    // 실패는 발밑에서 3.5초 뒤 사라진다 — 대화창에도 남겨야 뒤늦게 볼 수 있다.
+    if (탈) 안됐다(글);
+    else if (글 !== '') 다시된다();
     ico.textContent = 탈 ? '⚠' : 아이콘;
     lab.textContent = 글;
     // 정말 아무 일도 없을 때만 옅게. 그래야 「멈춘 건가」와 「가만히 있는 중」이 갈린다.
@@ -535,7 +632,7 @@
       spokenUpTo = 0;
       새말(); // 새 대답이 흘러나오기 시작했다 — 앞 대답의 남은 문장은 버린다
     }
-    streamLine.querySelector('.what').textContent = soFar;
+    fillWhat(streamLine.querySelector('.what'), soFar);
     bubble.textContent = soFar;
     bubble.classList.add('on');
     // **새로 나온 글자를 따라간다.** 안 그러면 말풍선이 첫 줄에 멈춰 있고 뒷말은
@@ -656,6 +753,8 @@
          모델 쪽이 window.onCompanionFace 를 달면 그대로 이어진다. 화면에는 아주 옅게만. */
       document.body.dataset.face = data.expression;
       try { window.onCompanionFace?.(data.expression); } catch (e) { /* 얼굴 때문에 말이 막히면 안 된다 */ }
+    } else if (data.type === 'part') {
+      showPart(data.part);
     } else if (data.type === 'speak') {
       발화.말함 += 1;
       // 흘러나오던 중이면 그 대답의 이어짐이라 세대를 안 올린다. 새 대답이면 올린다.
@@ -696,16 +795,33 @@
     append('나', message, 'me');
     setState('thinking', '생각하는 중…');
     try {
-      await fetch('/say', {
+      /* **거절을 조용히 삼키면 안 된다.** 서버는 깨진 글을 400 + `안받은이유` 로
+         돌려보내는데 여기서 답을 아예 안 봤다 — 화면에는 내 말풍선이 멀쩡히 뜨고
+         얘는 영영 대답을 안 한다. 「못 알아듣는 것 같다」의 정체가 이것이다. */
+      const res = await fetch('/say', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ text: message }),
       });
+      if (res.ok === false) {
+        let 이유 = `서버가 안 받았다 (${res.status})`;
+        try {
+          const 온것 = await res.json();
+          if (온것?.안받은이유) 이유 = `안 받았다 — ${온것.안받은이유}`;
+        } catch { /* 본문이 없으면 상태 숫자만으로도 충분하다 */ }
+        안됐다(`보낸 말이 ${이유}`);
+        setState('', 이유);
+      }
+    } catch (err) {
+      // 서버가 아주 죽었으면 fetch 자체가 터진다 — 이것도 화면에 남아야 한다.
+      안됐다(`말을 못 보냈다 — 서버가 안 받는다: ${err}`);
+      setState('', '말을 못 보냈다');
     } finally {
       send.disabled = false;
       text.focus();
     }
   });
+  text.focus();
 
   /* ── 나에 대해 아는 것 ─────────────────────────────────── */
   const knownBtn = document.getElementById('knownBtn');
@@ -1099,8 +1215,9 @@
   });
 
   /* ── 3D 몸 ─────────────────────────────────────────────
-     모델이 뜨면 큐브를 물리고, 못 뜨면 큐브가 그대로 남는다. */
-  let body3d = null;
+     모델이 뜨면 큐브를 물리고, 못 뜨면 큐브가 그대로 남는다.
+     그릇(body3d)은 **맨 위에서** 잡는다 — 여기서 잡으면 그 전에 도는 setState 가
+     TDZ 로 터진다(실측: 창을 열자마자 `text.focus()` 가 그 길을 밟았다). */
 
   async function loadBody() {
     try {
@@ -1211,7 +1328,7 @@
      - 아무 데도 안 건드리면 조용히 접힌다. */
   const talk = document.getElementById('talk');
   const menu = document.getElementById('menu');
-  let chatOpen = false;
+  let chatOpen = pageSurface;
   let closer = null;
 
   function render() {
@@ -1219,10 +1336,53 @@
     reportHitAreas();
   }
 
+  function showPart(part) {
+    if (part == null || typeof part !== 'object') return;
+    if (pageSurface) openChatFor(60);
+    log.querySelector('.empty')?.remove();
+    if (part.kind === 'tool') {
+      let card = log.querySelector(`[data-tool="${CSS.escape(String(part.id ?? ''))}"]`);
+      if (card === null) {
+        card = document.createElement('div');
+        card.className = 'line tool';
+        card.dataset.tool = String(part.id ?? '');
+        const label = document.createElement('div');
+        label.className = 'who';
+        label.textContent = '손';
+        const body = document.createElement('div');
+        body.className = 'what card';
+        card.append(label, body);
+        log.append(card);
+      }
+      const body = card.querySelector('.what');
+      const name = part.name || '도구';
+      const st = part.status === 'done' ? '끝' : '하는 중';
+      body.textContent = part.detail ? `${name} · ${st} · ${part.detail}` : `${name} · ${st}`;
+      card.classList.toggle('done', part.status === 'done');
+    } else if (part.kind === 'image' && part.src) {
+      const line = document.createElement('div');
+      line.className = 'line tool image';
+      const label = document.createElement('div');
+      label.className = 'who';
+      label.textContent = '그림';
+      const body = document.createElement('div');
+      body.className = 'what';
+      const img = document.createElement('img');
+      img.className = 'inlay';
+      img.alt = part.alt || '';
+      img.src = part.src;
+      body.append(img);
+      line.append(label, body);
+      log.append(line);
+    }
+    log.scrollTop = log.scrollHeight;
+  }
+
   function openChatFor(seconds) {
     chatOpen = true;
     render();
     clearTimeout(closer);
+    if (pageSurface) return;
     closer = setTimeout(() => {
       // 뭔가 치고 있는 중이면 닫지 않는다.
       if (document.activeElement === text && text.value !== '') return;
@@ -1235,6 +1395,8 @@
     menu.hidden = true;
     reportHitAreas();
   }
+  // 설정창을 여는 길은 하나(우클릭)인데 닫는 길이 없으면, 한 번 열면 화면을 덮은 채 남는다.
+  document.getElementById('menuClose')?.addEventListener('click', closeMenu);
 
   /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 —
      안 그러면 보이지도 않는 창이 화면 한 구석의 클릭을 통째로 삼킨다. */
@@ -1346,16 +1508,17 @@
     if (e.key !== 'Escape') return;
     closeMenu();
     sheet.hidden = true;
-    chatOpen = false;
+    if (pageSurface === false) chatOpen = false;
     render();
   });
 
   loadHistory();
+  render();
   loadVoices();
   loadWho();
   loadBrains();
   probeEars();
-  loadBody();
+  if (pageSurface === false) loadBody();
   text.focus();
 </script>
 </body>

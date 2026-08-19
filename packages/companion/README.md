@@ -50,7 +50,7 @@ TASK-KAR-201. **여기엔 캐릭터가 없다.** 욘도, 말투도, 이름도 �
 ## 굴려보기
 
 ```bash
-npm install && npm test          # 단위 1122개
+npm install && npm test          # 1145개 (창 검사 5개는 진짜 크로뮴)
 
 npm run face                     # 창까지 (기본: 제 창 + 3D 몸 + 흉내 목소리)
 COMPANION_BRAIN=echo COMPANION_DESKTOP=0 npm run face   # 가짜 두뇌, 창 없이 (검사용)
@@ -59,7 +59,20 @@ node demo/run.mjs                # 터미널만
 
 서버 모니터 「동반자 (말하는 봇)」 카드로도 켠다.
 
-환경변수: `COMPANION_BRAIN`(claude|echo|assistant) · `COMPANION_CHARACTER` · `COMPANION_PORT`(기본 **4620** — 4615 는 yawnbot dev 웹훅이 쓴다) · `COMPANION_SCREEN_MS` · `COMPANION_CLOCK_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_DESKTOP`(0=창 없이) · `COMPANION_DISCORD_TOKEN` + `COMPANION_DISCORD_CHANNELS` · `COMPANION_MODEL_YON` · `COMPANION_PIPER_DIR` · `COMPANION_CLONE_REF`.
+환경변수: `COMPANION_BRAIN`(claude|grok|echo|assistant|preview) · `COMPANION_TOOLS`(talk|work) · `COMPANION_WORK_DIR` · `COMPANION_SURFACE`(desk|page) · `COMPANION_CHARACTER_DIR`(기본 패키지 `characters/`. 다른 저장소 폴더를 꽂을 수 있다 — 본문은 이 레포가 모른다) · `COMPANION_CHARACTER` · `COMPANION_PORT`(기본 **4620** — 4615 는 yawnbot dev 웹훅이 쓴다) · `COMPANION_SCREEN_MS` · `COMPANION_CLOCK_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_DESKTOP`(0=창 없이) · `COMPANION_DISCORD_TOKEN` + `COMPANION_DISCORD_CHANNELS` · `COMPANION_MODEL_YON` · `COMPANION_PIPER_DIR` · `COMPANION_CLONE_REF`.
+
+채팅 창: 벤더 세션 목록을 대신하지 않는다. 왼쪽 **일** = 코딩 CLI, **말** = 곁에만. 그 아래 G 는 이미 떠 있는 그록 창 내려다보기.
+
+```
+npm run page           # 일 방
+npm run page:talk      # 말 방
+npm run page:grok      # 그록 강제 + 일
+npm run page:preview   # 가짜 미리보기
+```
+
+그록 주간 할당만: grok.com → 설정 → 사용량에서 Auto Top Up 끄기. Extra Usage Credits 사지 않기. TUI 는 `/usage`.
+
+더블클릭: `page.cmd`. 주소는 `http://localhost:4620/?surface=page`.
 
 재시작 없이 바꾸는 것(창 우클릭 또는 `/settings`): 먼저 말 걸기·화면 보기 간격·조용한 시간·놀리기·애니 목소리 자동/쉬는 시간.
 
@@ -73,7 +86,7 @@ node demo/run.mjs                # 터미널만
 
 ## 검사
 
-- `npm test` — 단위 1122개.
+- `npm test` — 1145개. 그중 `test/face-screen.test.mjs` 5개는 **진짜 브라우저**로 창을 띄운다(실패가 빨갛게 뜨나 · 알아챔이 말 방에도 뜨나 · 설정창이 닫히나 · 열자마자 터지는 자리 없나). 글자 맞춰보기로는 못 잡는 종류라 여기만 크로뮴을 쓴다 — 없으면 건너뛰지 않고 실패한다(`npx playwright install chromium`).
 - `scripts/probe.mjs` — 진짜로 띄우고 말 걸어 대답이 나오는지(단위가 전부 초록인데 얘가 죽어 있던 적이 있다).
 - `scripts/measure-lanes.mjs` — 줄 서기 때문에 생기는 지연.
 - 저장소 게이트(`npm run verify`)가 이 패키지의 `npm test` 를 부른다. KarmoLab 쪽에서는 「동반자」 위젯이 실제로 붙는지도 본다(봇이 안 떠 있으면 건너뜀).

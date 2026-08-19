@@ -5,7 +5,12 @@
  */
 export * from './types';
 export { Companion, type CompanionOptions } from './core';
-export { loadCharacter, loadCharacters } from './character';
+export { loadCharacter, loadCharacters, resolveCharacterDir } from './character';
+export { parseSurfaceName, SURFACE_NAMES, type SurfaceName } from './surface';
+export { listGrokLanes, roomLane, workLane, talkLane, folderTitle, type Lane, type LaneKind, type LaneVendor } from './desk/lanes';
+export { chatSegments, type ChatSegment } from './chat/markup';
+export { grokStreamPart } from './brain/grok-cli';
+export { previewBrain } from './brain/preview';
 export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
 export { dayMark, type DayMark, type DayMarkOptions } from './day-mark';
 export { checkDrift, driftWarning, avoidanceWarning, type Drift, type DriftRules } from './drift';
@@ -53,6 +58,16 @@ export { tactfulAttention, windowsIdleMs, type TactOptions } from './attention/t
 export { echoBrain, silentBrain } from './brain/echo';
 export { assistantBrain, type AssistantBrainOptions } from './brain/assistant';
 export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker, type SwitchableBrain } from './brain/claude-cli';
+export { grokCliBrain, grokJsonText, grokStreamText, type GrokCliBrainOptions } from './brain/grok-cli';
+export {
+  pickBrain,
+  parseBrainName,
+  parseToolMode,
+  BRAIN_NAMES,
+  type BrainName,
+  type PickBrainOptions,
+} from './brain/pick';
+export type { ToolMode } from './brain/mode';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';

@@ -359,6 +359,8 @@ export class Companion {
           // 때까지** 살려 둔다. 이미 소리가 나가는 중이면 창이 알아서 삼킨다.
           soFar += chunk;
           void target.voice.partial?.(chunk, soFar, sensation.channel);
+        }, (part) => {
+          void target.voice.show?.(part);
         });
       } else {
         text = await brain.think(input);

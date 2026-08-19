@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { Companion, InMemoryMemory, alwaysRespond, loadCharacter } from '../dist/index.js';
+import { Companion, InMemoryMemory, alwaysRespond, loadCharacter, parseSurfaceName, resolveCharacterDir } from '../dist/index.js';
 
 function tempFile(name, content) {
   const path = join(mkdtempSync(join(tmpdir(), 'companion-char-')), name);
@@ -71,4 +71,15 @@ test('감각에 딸려온 부가 정보(그림 위치 등)는 두뇌까지 살�
 
   assert.equal(seen.imagePath, 'C:/tmp/now.png');
   assert.equal(seen.windowTitle, '무슨 창');
+});
+
+test('인격 폴더는 기본이 패키지 안이고, 밖 경로를 꽂을 수 있다', () => {
+  assert.equal(resolveCharacterDir('C:/pkg'), join('C:/pkg', 'characters'));
+  assert.equal(resolveCharacterDir('C:/pkg', '  D:/other/cards  '), 'D:/other/cards');
+});
+
+test('화면 자리는 desk 아니면 page', () => {
+  assert.equal(parseSurfaceName(undefined), 'desk');
+  assert.equal(parseSurfaceName('page'), 'page');
+  assert.equal(parseSurfaceName('없는것'), 'desk');
 });

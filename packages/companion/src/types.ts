@@ -82,12 +82,19 @@ export interface Sense {
   stop?(): void | Promise<void>;
 }
 
+/** 채팅 칸에 말 말고 얹는 것 — 도구 카드, 그림. */
+export type ChatPart =
+  | { kind: 'tool'; id: string; name: string; status: 'start' | 'done'; detail?: string }
+  | { kind: 'image'; src: string; alt?: string };
+
 /** 표현 기관. */
 export interface Voice {
   readonly name: string;
   speak(utterance: Utterance): void | Promise<void>;
   /** 아직 다 만들어지지 않은 말 조각. 구현하면 말이 흐르듯 나온다. */
   partial?(chunk: string, soFar: string, channel: string): void | Promise<void>;
+  /** 도구·그림처럼 말풍선이 아닌 칸. 없으면 조용히 버린다. */
+  show?(part: ChatPart): void | Promise<void>;
   /** 하던 말을 즉시 멈춘다 (소리·말풍선 포함). */
   hush?(): void | Promise<void>;
   /**
@@ -154,7 +161,11 @@ export interface Brain {
    * 다 만들어진 뒤에 한꺼번에 내놓으면 몇 초 동안 아무 일도 안 일어나는 것처럼 보인다 —
    * 살아있는 느낌을 가장 많이 깎아먹는 게 그 침묵이다.
    */
-  thinkStream?(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null>;
+  thinkStream?(
+    input: ThinkInput,
+    onDelta: (chunk: string) => void,
+    onPart?: (part: ChatPart) => void,
+  ): Promise<string | null>;
   /**
    * 지금 생각하던 걸 그만둔다.
    *
