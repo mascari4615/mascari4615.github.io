@@ -2542,7 +2542,17 @@ check(ml.toSvg(ml.parse('erDiagram\n  users ||--o{ posts : writes\n  users {\n  
 check(ml.toSvg(ml.parse('flowchart TD\n A["<b>진한</b>"] --> B')).includes('&lt;b&gt;'), '꺾쇠를 그대로 안 넣는다');
 
 check(ml.check(ml.parse('안녕')).includes('첫 줄이'), '무엇을 적어야 하는지 알려 준다');
-check(ml.check(ml.parse('flowchart TD\n subgraph 묶음\n end')).includes('못 읽는 줄'), '아직 못 읽는 줄은 숨기지 않는다');
+/* 못 읽는 줄을 숨기지 않는다 — 예전엔 `subgraph` 이 이 자리에 있었는데 이제 읽는다(TASK-KL-326).
+   그래서 여전히 못 읽는 것(`classDef`)으로 같은 것을 잰다. */
+check(ml.check(ml.parse('flowchart TD\n A --> B\n classDef x fill:#f00')).includes('못 읽는 줄'), '아직 못 읽는 줄은 숨기지 않는다');
+
+/* `subgraph` = 묶음 (TASK-KL-326). 버리면 「누가 어느 쪽인가」가 통째로 사라진다. */
+const mlGroup = ml.parse('flowchart TD\n subgraph kl [브라우저]\n  A --> B\n end\n B --> C');
+eq(mlGroup.groups.length, 1, 'subgraph 를 묶음으로 읽는다');
+eq(mlGroup.groups[0].id, 'kl', '묶음 아이디를 읽는다');
+eq(mlGroup.groups[0].label, '브라우저', '대괄호 안 보이는 이름을 읽는다');
+eq(mlGroup.groups[0].members.join(','), 'A,B', '묶음 안에 적힌 것만 그 묶음이다');
+eq(mlGroup.unknown.length, 0, 'subgraph·end 는 이제 못 읽은 줄이 아니다');
 
 // ── 정규식 풀이 (TASK-KL-316) ───────────────────────────────────────────────
 const rx = await load('src/core/regexplain.ts');
