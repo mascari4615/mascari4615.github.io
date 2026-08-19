@@ -65,6 +65,7 @@
   "widgets.planner.title": "플래너",
   "widgets.cockpit.title": "Cockpit",
   "widgets.terminal.title": "PowerShell 터미널",
+  "widgets.quota.title": "할당량",
   "widgets.claude-env.title": "Claude 환경",
   "widgets.alarm.title": "알람",
   "widgets.slug.title": "슬러그 만들기",

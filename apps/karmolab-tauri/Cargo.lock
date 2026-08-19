@@ -2888,6 +2888,7 @@ dependencies = [
  "notify",
  "notify-rust",
  "open",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "serde_yml",

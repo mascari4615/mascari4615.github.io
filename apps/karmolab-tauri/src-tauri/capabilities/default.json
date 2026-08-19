@@ -38,6 +38,7 @@
     "allow-alarm",
     "allow-agent-team",
     "allow-cockpit",
+    "allow-ai-quota",
     "dialog:allow-open",
     "updater:default",
     {

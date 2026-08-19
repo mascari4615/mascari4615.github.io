@@ -225,5 +225,6 @@
   "widgets-desc.heung.desc": "A browser DAW that finishes multitrack recording, MIDI arranging, mixing and WAV export in one project.",
   "widgets-desc.arcade.desc": "Play several mini games alone or with others. Bots take the seats nobody fills.",
   "widgets-desc.askpapers.desc": "Ask a question and papers answer. Not an invented summary — it pulls sentences that really are in the abstracts and shows them with links.",
-  "widgets-desc.isitdown.desc": "Tells you whether the site is down or your own connection is. It measures always-up sites alongside it for comparison."
+  "widgets-desc.isitdown.desc": "Tells you whether the site is down or your own connection is. It measures always-up sites alongside it for comparison.",
+  "widgets-desc.quota.desc": "Remaining quota for the Claude, Codex and Grok subscriptions on one screen — Claude is live, Codex and Grok are last-observed snapshots."
 }

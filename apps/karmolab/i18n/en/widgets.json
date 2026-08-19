@@ -241,5 +241,6 @@
   "widgets.heung.title": "Heung",
   "widgets.arcade.title": "Arcade",
   "widgets.askpapers.title": "Ask the papers",
-  "widgets.isitdown.title": "Is it down?"
+  "widgets.isitdown.title": "Is it down?",
+  "widgets.quota.title": "Quota"
 }
