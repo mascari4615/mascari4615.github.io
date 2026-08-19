@@ -28,7 +28,7 @@
     "externalBin": ["binaries/karmolab-life-ml"],
     "windows": {
       "webviewInstallMode": { "type": "skip" },
-      "nsis": { "compression": "lzma" }
+      "nsis": { "compression": "lzma", "installerHooks": "installer-hooks.nsh" }
     },
     "icon": [
       "icons/32x32.png",
