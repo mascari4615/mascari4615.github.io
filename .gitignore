@@ -128,3 +128,6 @@ apps/karmolab/live-check-red.txt
 **/temp/
 **/Tmp/
 **/tmp/
+
+# 검사 판을 「긴 것부터」 세우려고 지난 판 시간을 적어 두는 자리 — 판마다 바뀌는 캐시라 담지 않는다.
+apps/karmolab/data/gate-times.json

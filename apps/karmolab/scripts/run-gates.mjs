@@ -22,10 +22,11 @@
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> …]
  */
 import { spawn, execFileSync } from 'node:child_process';
-import { appendFileSync, readFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pick } from './lib/gate-scope.mjs';
+import { parseEntry, pick } from './lib/gate-scope.mjs';
 
 /* ★ **이름 목록은 파일에 있다** (2026-08-14). 예전에는 `package.json` 의 `gates` 한 줄에
    백스물다섯 개가 늘어서 있었다. 세션 여럿이 같은 줄을 동시에 늘리니 충돌이 잦았고,
@@ -34,7 +35,6 @@ import { pick } from './lib/gate-scope.mjs';
 const args = process.argv.slice(2);
 const fromIdx = args.indexOf('--from');
 let gates = args;
-let entries = args;
 if (fromIdx !== -1) {
   const file = args[fromIdx + 1];
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -44,13 +44,6 @@ if (fromIdx !== -1) {
     console.error(`[gates] ${file} 안에서 이름 목록을 못 찾았다`);
     process.exit(2);
   }
-  /* ★ **여기서 이름만 남긴다** (2026-08-19). 목록 항목이 `{이름, 볼것}` 객체로 바뀐 뒤로,
-     `--changed` 로 부를 때만 `pick()` 이 이름을 뽑아 주고 **통짜로 부를 때는 객체가 그대로**
-     흘러갔다. 그래서 `npm run verify` 가 검사를 다 돌리고 마지막 요약 줄에서
-     `r.gate.padEnd is not a function` 으로 죽었다 — 검사는 전부 초록인데 판정은 빨강이었다.
-     뽑는 규칙은 `gate-scope.mjs` 한 곳뿐이다(`pick(entries, null)` = 고르지 않고 이름만). */
-  entries = gates;
-  gates = pick(entries, null).run;
 }
 /* ★ **`--changed` = 바뀐 것에 걸리는 검사만** (TASK-KL-331).
  *
@@ -71,7 +64,7 @@ if (changedIdx !== -1) {
   if (changed === null) {
     console.log(`[gates] 바뀐 것을 못 구했다 (${base}) — 통짜로 돈다.`);
   } else {
-    const picked = pick(entries, changed);
+    const picked = pick(gates, changed);
     skipped = picked.skipped;
     gates = picked.run;
     console.log(
@@ -80,6 +73,13 @@ if (changedIdx !== -1) {
     );
   }
 }
+
+/* ★ **목록에는 두 꼴이 산다** — 이름 문자열, 그리고 발판을 적은 `{이름, 볼것}`(KL-331).
+   고르는 길(`--changed`)만 그걸 이름으로 폈고, **통짜로 도는 길은 안 폈다.** 그래서 판
+   전체가 `npm run --silent [object Object]` 를 열여섯 번 돌리고 요약에서
+   `r.gate.padEnd is not a function` 으로 터졌다 — push 게이트가 통째로 막혔다.
+   펴는 자리를 한 곳으로 모은다: 여기를 지나면 `gates` 는 언제나 이름 배열이다. */
+gates = gates.map(parseEntry).filter((e) => e !== null).map((e) => e.name);
 
 if (!gates.length) {
   if (changed !== null) {
@@ -151,6 +151,7 @@ const 꼬리길이 = 12;
 function 돌린다(gate) {
   return new Promise((resolve) => {
     const 꼬리 = [];
+    const 모은말 = [];
     const 담기 = (chunk) => {
       for (const line of String(chunk).split(String.fromCharCode(10))) {
         if (!line.trim()) continue;
@@ -165,22 +166,73 @@ function 돌린다(gate) {
       stdio: ['inherit', 'pipe', 'pipe'],
       shell: true
     });
-    child.stdout.on('data', (c) => { process.stdout.write(c); 담기(c); });
-    child.stderr.on('data', (c) => { process.stderr.write(c); 담기(c); });
-    child.on('error', (error) => resolve({ status: null, error, 꼬리 }));
-    child.on('close', (status) => resolve({ status, error: null, 꼬리 }));
+    /* ★ **같이 도니까 흘려보내면 안 된다** (2026-08-19). 여덟 판이 한 화면에 섞여 찍히면
+       어느 검사가 한 말인지 못 가린다 — 사유 없는 빨강과 같아진다. 모았다가 끝날 때
+       한 덩이로 낸다(머리글 + 그 검사의 말). */
+    child.stdout.on('data', (c) => { 모은말.push(String(c)); 담기(c); });
+    child.stderr.on('data', (c) => { 모은말.push(String(c)); 담기(c); });
+    child.on('error', (error) => resolve({ status: null, error, 꼬리, 말: 모은말.join('') }));
+    child.on('close', (status) => resolve({ status, error: null, 꼬리, 말: 모은말.join('') }));
   });
 }
 
-for (const gate of gates) {
-  const started = Date.now();
-  console.log(`\n──── ${gate} ────`);
-  const run = await 돌린다(gate);
-  const sec = Math.round((Date.now() - started) / 1000);
-  /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
-  const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-  results.push({ gate, sec, how, cantRun: !run.error && run.status === 2, 꼬리: run.꼬리 });
-}
+/* ★ **하나씩 돌 이유가 없었다** (2026-08-19 실측). 158판 합계 707초인데 이 컴퓨터는
+   코어가 스물넷이다 — 스물셋이 노는 동안 사람이 12분을 기다렸다. 검사들은 저마다 딴
+   프로세스라 같이 돌려도 서로 모른다.
+
+   같이 돌 때 지켜야 하는 것 둘:
+     · **판정은 안 바뀐다.** 바뀌면 빨라진 게 아니라 검사를 망가뜨린 것이다 — 같은 포트·
+       같은 파일을 쥐는 검사가 있으면 여기서 드러난다(조용히 넘기지 않는다).
+     · **누가 한 말인지 안 섞인다.** 모았다가 한 덩이로 낸다(위 `돌린다`).
+
+   그리고 **긴 것부터** 집는다. 짧은 것부터 집으면 끝에 제일 긴 놈만 남아 코어가 또 논다.
+   지난 판 시간을 적어 두고 그 순서로 세운다. */
+const 시간표파일 = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data', 'gate-times.json');
+let 지난시간 = {};
+try { 지난시간 = JSON.parse(readFileSync(시간표파일, 'utf8')); } catch { /* 처음이면 없다 */ }
+
+const 일꾼수 = Math.max(1, Number(process.env.KL_GATE_JOBS || Math.min(8, (os.cpus().length || 4) - 2)));
+/* 모르는 검사는 **중간쯤**으로 친다 — 맨 앞에 세우면 새 검사 하나가 판을 늘어뜨리고,
+   맨 뒤에 세우면 사실 긴 놈이 꼬리에 남는다. */
+const 아는값 = Object.values(지난시간).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+const 중간값 = 아는값.length ? 아는값[Math.floor(아는값.length / 2)] : 1;
+const 순서 = gates
+  .map((gate, i) => ({ gate, i, 예상: 지난시간[gate] ?? 중간값 }))
+  .sort((a, b) => b.예상 - a.예상);
+
+console.log(`[gates] 검사 ${gates.length}개 · 한 번에 ${일꾼수}판씩 (긴 것부터)`);
+const 판시작 = Date.now();
+let 끝난수 = 0;
+const 남은판 = [...순서];
+await Promise.all(
+  Array.from({ length: Math.min(일꾼수, 남은판.length) }, async () => {
+    for (;;) {
+      const 것 = 남은판.shift();
+      if (것 === undefined) return;
+      const started = Date.now();
+      const run = await 돌린다(것.gate);
+      const sec = Math.round((Date.now() - started) / 1000);
+      /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
+      const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
+      results.push({ gate: 것.gate, i: 것.i, sec, how, cantRun: !run.error && run.status === 2, 꼬리: run.꼬리 });
+      끝난수 += 1;
+      const mark = run.error ? '·' : run.status === 0 ? '✓' : run.status === 2 ? '·' : '✘';
+      console.log(`
+──── ${것.gate} ────  ${mark} ${sec}s  (${끝난수}/${gates.length})`);
+      if (run.말) process.stdout.write(run.말.endsWith(String.fromCharCode(10)) ? run.말 : run.말 + String.fromCharCode(10));
+    }
+  })
+);
+// 요약은 목록 순서로 — 끝난 순서로 적으면 판마다 줄이 뒤바뀌어 견주기가 어렵다.
+results.sort((a, b) => a.i - b.i);
+console.log(`
+[gates] 판 전체 ${Math.round((Date.now() - 판시작) / 1000)}초 (한 판씩이면 ${results.reduce((n, r) => n + r.sec, 0)}초였다)`);
+// 다음 판에 긴 것부터 세우려고 이번 시간을 적어 둔다.
+try {
+  const 다음 = { ...지난시간 };
+  for (const r of results) 다음[r.gate] = r.sec;
+  writeFileSync(시간표파일, JSON.stringify(다음, null, 2) + String.fromCharCode(10));
+} catch { /* 못 적어도 판정과는 상관없다 */ }
 
 /* ★ **exit 2 = 「못 돌았다」** — 이 저장소의 약속이고 검사 서른 곳이 이미 그렇게 쓴다.
    여태 그걸 빨강으로 셌다. 옆 세션이 `packages/` 를 지우는 중이면 「전제를 못 찾겠다(2)」가
