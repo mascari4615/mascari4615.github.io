@@ -16,9 +16,9 @@ mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
 mod quest_writeback;
-mod part_fetch;
 mod repo_file;
 mod terminal;
+mod tray_menu;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use alarm::{
@@ -49,18 +49,17 @@ use quest_writeback::{
     toggle_quest_check,
 };
 use local_dev::{
-    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root, localdev_guess_repo_root,
+    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
     localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
-    localdev_stop, localdev_stop_external, localdev_stop_log_follow, reattach_persisted_pids,
+    localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
     LocalDevState,
 };
-use part_fetch::{part_fetch, part_fetched_path};
 use repo_file::{repofile_open_default, repofile_read, repofile_reveal, repofile_write};
 use terminal::{
     terminal_send_stdin, terminal_start, terminal_status, terminal_stop, TerminalState,
 };
-use tauri::menu::{Menu, MenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::TrayIconBuilder;
 
 // Life 기능 on/off 상태 (세션 간 영속).
@@ -151,6 +150,7 @@ fn life_set_feature(
 #[cfg(windows)]
 use tauri::tray::{MouseButton, TrayIconEvent};
 use tauri::webview::{NewWindowResponse, WebviewWindowBuilder};
+use std::collections::{HashMap, HashSet};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -181,6 +181,203 @@ const KARMOLAB_DEV_PORT: u16 = 8899;
 #[derive(Default)]
 struct DevModeState {
     server: std::sync::Mutex<Option<std::process::Child>>,
+}
+
+/// 트레이 메뉴 한 장을 **지금 상태로** 짓는다.
+///
+/// 뜰 때 한 번이 아니라 필요할 때마다 부른다 — 저장소 자리가 나중에 정해지면 그때
+/// 손잡이가 생겨야 한다(그전엔 빈 채로 남아 「설정했는데 트레이엔 없다」가 된다).
+/// 지은 항목은 `TrayState` 에 남긴다: 누르면 뭘 할지, 어느 줄 글자를 고칠지 여기서 찾는다.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn build_tray_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let show_label = if cfg!(debug_assertions) {
+        "KarmoLab [DEV] 창 보이기"
+    } else {
+        "KarmoLab 창 보이기"
+    };
+    let show_i = MenuItem::with_id(app, "tray_show", show_label, true, None::<&str>)?;
+    let browser_i =
+        MenuItem::with_id(app, "tray_browser", "브라우저에서 열기", true, None::<&str>)?;
+    let update_i = MenuItem::with_id(app, "tray_update", "업데이트 확인…", true, None::<&str>)?;
+    // 개발 모드는 켜져 있는 채로 다시 그릴 수 있다 — 글자를 상태에서 되살린다.
+    let dev_on = app
+        .state::<DevModeState>()
+        .server
+        .lock()
+        .map(|g| g.is_some())
+        .unwrap_or(false);
+    let dev_i = MenuItem::with_id(
+        app,
+        "tray_dev_mode",
+        if dev_on {
+            "개발 모드 ✓ (로컬 8899)"
+        } else {
+            "개발 모드 (로컬 8899)"
+        },
+        true,
+        None::<&str>,
+    )?;
+    let quit_i = MenuItem::with_id(app, "tray_quit", "종료", true, None::<&str>)?;
+
+    /* ── 빠른 손잡이 ────────────────────────────────────────────────
+       여기 줄은 **코드가 아니라 `apps/karmolab/data/tray-menu.json` 이 정한다.**
+       손잡이 하나 더 다는 값 = 그 파일에 네 줄(다시 굽지도 않는다).
+       저장소 자리를 아직 모르면 빈 목록이라 이 묶음은 아예 안 뜬다 — 눌러도 아무
+       일도 안 나는 줄을 보여 주는 것보다 낫다. */
+    let repo_root_now = app
+        .state::<LocalDevState>()
+        .repo_root
+        .lock()
+        .ok()
+        .and_then(|g| g.clone());
+    let quick_items = tray_menu::load(repo_root_now.as_deref().map(std::path::Path::new));
+    let running_now: HashSet<String> = app
+        .state::<LocalDevState>()
+        .pids
+        .lock()
+        .map(|g| g.keys().cloned().collect())
+        .unwrap_or_default();
+
+    let mut quick_menu_items: Vec<MenuItem<tauri::Wry>> = Vec::new();
+    for item in &quick_items {
+        quick_menu_items.push(MenuItem::with_id(
+            app,
+            item.menu_id(),
+            item.label_with_state(running_now.contains(quick_profile(item))),
+            true,
+            None::<&str>,
+        )?);
+    }
+    let quick_submenu = if quick_menu_items.is_empty() {
+        None
+    } else {
+        let refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = quick_menu_items
+            .iter()
+            .map(|m| m as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+            .collect();
+        Some(Submenu::with_items(app, "빠른 실행", true, &refs)?)
+    };
+
+    // 누른 줄을 되찾는 표 — 다시 그릴 때마다 통째로 갈아 끼운다.
+    let items_map: HashMap<String, tray_menu::QuickItem> =
+        quick_items.iter().map(|i| (i.menu_id(), i.clone())).collect();
+    let mut labels_map: HashMap<String, MenuItem<tauri::Wry>> = quick_items
+        .iter()
+        .zip(quick_menu_items.iter())
+        .map(|(i, m)| (i.menu_id(), m.clone()))
+        .collect();
+    labels_map.insert("tray_dev_mode".to_string(), dev_i.clone());
+    {
+        let state = app.state::<tray_menu::TrayState>();
+        let items_lock = state.items.lock();
+        if let Ok(mut g) = items_lock {
+            *g = items_map;
+        }
+        let labels_lock = state.labels.lock();
+        if let Ok(mut g) = labels_lock {
+            *g = labels_map;
+        }
+    }
+
+    let separator = PredefinedMenuItem::separator(app)?;
+    let mut top: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = vec![&show_i, &browser_i];
+    if let Some(sub) = quick_submenu.as_ref() {
+        top.push(&separator);
+        top.push(sub);
+        top.push(&separator);
+    }
+    top.push(&update_i);
+    top.push(&dev_i);
+    top.push(&quit_i);
+    Menu::with_items(app, &top)
+}
+
+/// 트레이 메뉴를 다시 그린다 — 저장소 자리가 정해졌을 때 등.
+///
+/// 아이콘을 아직 안 만들었으면(모바일·트레이 없는 판) 조용히 지나간다.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub fn refresh_tray(app: &tauri::AppHandle) {
+    let Ok(menu) = build_tray_menu(app) else { return };
+    let state = app.state::<tray_menu::TrayState>();
+    let Ok(g) = state.icon.lock() else { return };
+    if let Some(icon) = g.as_ref() {
+        let _ = icon.set_menu(Some(menu));
+    }
+}
+
+/// 트레이가 없는 판에서도 부르는 쪽이 갈라지지 않게.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub fn refresh_tray(_app: &tauri::AppHandle) {}
+
+/// 이 줄이 지켜보는 프로필 id. 프로필이 아닌 줄(도구·주소)은 "" — 절대 안 켜진 걸로 본다.
+fn quick_profile(item: &tray_menu::QuickItem) -> &str {
+    match &item.kind {
+        tray_menu::QuickKind::Dev { profile } => profile,
+        _ => "",
+    }
+}
+
+/// 트레이 빠른 손잡이 한 줄을 누른 결과.
+///
+/// **켜고 끄는 손은 사람 카드와 같은 것**(`localdev_start_sync`/`localdev_stop_sync`)이다.
+/// 트레이가 따로 자식을 띄우면 카드에는 안 보이는 프로세스가 생겨 「끈 줄 알았는데 살아
+/// 있다」가 된다. 된 것도 안 된 것도 알림으로 말한다 — 눌렀는데 아무 말이 없으면
+/// 고장과 구분이 안 된다.
+fn run_quick_item(
+    app: &tauri::AppHandle,
+    item: &tray_menu::QuickItem,
+    label: Option<&MenuItem<tauri::Wry>>,
+) {
+    match &item.kind {
+        tray_menu::QuickKind::Dev { profile } => {
+            let state = app.state::<LocalDevState>();
+            let running = state
+                .pids
+                .lock()
+                .map(|g| g.contains_key(profile))
+                .unwrap_or(false);
+            let result = if running {
+                local_dev::localdev_stop_sync(profile.clone(), app.clone(), &state)
+            } else {
+                local_dev::localdev_start_sync(profile.clone(), app.clone(), &state)
+            };
+            let (body, now_running) = match result {
+                Ok(()) => (
+                    if running {
+                        format!("{} — 껐다", item.label)
+                    } else {
+                        format!("{} — 켰다", item.label)
+                    },
+                    !running,
+                ),
+                Err(e) => (format!("{} — 안 됐다: {}", item.label, e), running),
+            };
+            if let Some(label) = label {
+                let _ = label.set_text(item.label_with_state(now_running));
+            }
+            let _ = notify_rust::Notification::new()
+                .summary("KarmoLab 빠른 실행")
+                .body(&body)
+                .appname("KarmoLab")
+                .show();
+        }
+        tray_menu::QuickKind::Tool { tool } => {
+            // 창을 세우고 그 도구로. 주소의 `#<id>` 가 카모랩의 화면 전환 손잡이다.
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.unminimize();
+                let _ = w.show();
+                let _ = w.set_focus();
+                if let Ok(current) = w.url() {
+                    let mut next = current.clone();
+                    next.set_fragment(Some(tool));
+                    let _ = w.navigate(next);
+                }
+            }
+        }
+        tray_menu::QuickKind::Url { url } => {
+            let _ = open::that(url);
+        }
+    }
 }
 
 /// 토글 본체. ON↔OFF 결과를 bool로 반환 (true = 이제 ON).
@@ -837,6 +1034,7 @@ pub fn run() {
     set_app_user_model_id();
     tauri::Builder::default()
         .manage(LocalDevState::default())
+        .manage(tray_menu::TrayState::default())
         .manage(DevModeState::default())
         .manage(TerminalState::default())
         .manage(LifeFeaturesState::default())
@@ -873,7 +1071,7 @@ pub fn run() {
             {
                 let h = handle.clone();
                 std::thread::spawn(move || {
-                    reattach_persisted_pids(&h);
+                    restore_persisted_state(&h);
                 });
             }
 
@@ -982,28 +1180,7 @@ pub fn run() {
 
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             {
-                let show_label = if cfg!(debug_assertions) {
-                    "KarmoLab [DEV] 창 보이기"
-                } else {
-                    "KarmoLab 창 보이기"
-                };
-                let show_i =
-                    MenuItem::with_id(app, "tray_show", show_label, true, None::<&str>)?;
-                let browser_i =
-                    MenuItem::with_id(app, "tray_browser", "브라우저에서 열기", true, None::<&str>)?;
-                let update_i =
-                    MenuItem::with_id(app, "tray_update", "업데이트 확인…", true, None::<&str>)?;
-                let dev_i = MenuItem::with_id(
-                    app,
-                    "tray_dev_mode",
-                    "개발 모드 (로컬 8899)",
-                    true,
-                    None::<&str>,
-                )?;
-                let quit_i = MenuItem::with_id(app, "tray_quit", "종료", true, None::<&str>)?;
-                let menu =
-                    Menu::with_items(app, &[&show_i, &browser_i, &update_i, &dev_i, &quit_i])?;
-                let dev_i_for_event = dev_i.clone();
+                let menu = build_tray_menu(&app.app_handle().clone())?;
 
                 if let Some(icon) = app.default_window_icon().cloned() {
                     let tray_tooltip = if cfg!(debug_assertions) {
@@ -1021,7 +1198,7 @@ pub fn run() {
                         let dev_window_icon = with_dev_overlay(&icon);
                         let _ = main_window.set_icon(dev_window_icon);
                     }
-                    let _ = TrayIconBuilder::new()
+                    let tray_built = TrayIconBuilder::new()
                         .icon(tray_icon)
                         .menu(&menu)
                         .tooltip(tray_tooltip)
@@ -1040,11 +1217,19 @@ pub fn run() {
                             } else if event.id == "tray_dev_mode" {
                                 match toggle_dev_mode(app) {
                                     Ok(on) => {
-                                        let _ = dev_i_for_event.set_text(if on {
-                                            "개발 모드 ✓ (로컬 8899)"
-                                        } else {
-                                            "개발 모드 (로컬 8899)"
-                                        });
+                                        if let Some(dev_item) = app
+                                            .state::<tray_menu::TrayState>()
+                                            .labels
+                                            .lock()
+                                            .ok()
+                                            .and_then(|g| g.get("tray_dev_mode").cloned())
+                                        {
+                                            let _ = dev_item.set_text(if on {
+                                                "개발 모드 ✓ (로컬 8899)"
+                                            } else {
+                                                "개발 모드 (로컬 8899)"
+                                            });
+                                        }
                                         let _ = notify_rust::Notification::new()
                                             .summary("KarmoLab 개발 모드")
                                             .body(if on {
@@ -1063,6 +1248,22 @@ pub fn run() {
                                             .show();
                                     }
                                 }
+                            } else if let Some(item) = app
+                                .state::<tray_menu::TrayState>()
+                                .items
+                                .lock()
+                                .ok()
+                                .and_then(|g| g.get(event.id.as_ref()).cloned())
+                            {
+                                /* 표를 **지금** 다시 본다 — 클로저가 뜰 때의 표를 쥐고 있으면
+                                   나중에 새로 그린 줄은 눌러도 아무 일이 안 난다. */
+                                let label = app
+                                    .state::<tray_menu::TrayState>()
+                                    .labels
+                                    .lock()
+                                    .ok()
+                                    .and_then(|g| g.get(event.id.as_ref()).cloned());
+                                run_quick_item(app, &item, label.as_ref());
                             } else if event.id == "tray_quit" {
                                 terminal::shutdown(&app.state::<TerminalState>());
                                 app.exit(0);
@@ -1087,6 +1288,9 @@ pub fn run() {
                             let _ = (tray, event);
                         })
                         .build(app)?;
+                    if let Ok(mut g) = app.state::<tray_menu::TrayState>().icon.lock() {
+                        *g = Some(tray_built);
+                    }
                 }
             }
 
