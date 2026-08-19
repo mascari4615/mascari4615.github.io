@@ -91,11 +91,18 @@ const 건너뜀 = [];
 const 마감 = Date.now() + Number(process.env.PLAY_I18N_BUDGET_SEC || 600) * 1000;
 const 못잼 = [];
 
-for (const id of ids) {
-  if (Date.now() > 마감) {
-    못잼.push(id);
-    continue;
-  }
+/* ★ **한 판씩 여느라 3분을 썼다** (2026-08-19 실측: 이 검사 하나가 게이트 158개 합계
+   707초 중 192초 = 27%). 안을 열어 보니 값이 두 군데였다:
+     ① 화면마다 **고정 1.2초 잠자기** — 59개면 71초. 이 저장소가 이미 이름 붙여 막는
+        패턴이다(`audit:sleep-read` · `settle.mjs 될때까지`). 여기만 빠져 있었다.
+        → 「지어졌나」를 **조건으로** 기다린다. 못 기다리면 예전 그 자리(1.5초)에서 멈춘다.
+     ② 화면을 **하나씩** 열었다 — 창은 하나뿐인데 코어는 스물넷이다.
+        → 몇 장을 동시에 연다. **판정은 안 바꾼다**: 화면마다 제 페이지를 새로 열고
+          오류도 그 페이지 것만 담는 것은 그대로다(같이 여는 것뿐이다).
+   판정이 한 개라도 달라지면 그건 빨라진 게 아니라 검사를 망가뜨린 것이다. */
+const 동시 = Math.max(1, Number(process.env.PLAY_I18N_JOBS || 6));
+
+async function 화면하나(id) {
   const page = await ctx.newPage();
   const 오류 = [];
   page.on('pageerror', (e) => 오류.push(String(e.message).slice(0, 120)));
@@ -111,7 +118,21 @@ for (const id of ids) {
        (같은 화면이 어떤 판에서는 재어지고 어떤 판에서는 안 재어졌다). 그러면 **정말 죽은
        화면이 건너뛴 것에 섞여** 조용히 지나갈 수 있다. 못 기다린 것만 넘긴다. */
     await page.waitForSelector('#page-' + id, { timeout: 9000 }).catch(() => null);
-    await page.waitForTimeout(1200);
+    /* **다 지어졌나를 묻는다 — 초를 세지 않는다.** 판정이 보는 것은 둘뿐이다:
+       판에 글이 찼나 · 셸이 「못 열었어요」로 바꿨나. 둘 중 하나가 되면 더 기다릴 이유가
+       없다. 못 기다리는 화면은 예전과 같은 자리(1.5초)에서 멈춘다 — 예전 1.2초보다
+       **더 기다리므로** 늦게 뜨는 화면이 빨강으로 뒤집힐 일은 없다. */
+    await page
+      .waitForFunction(
+        (x) => {
+          const el = document.getElementById('page-' + x);
+          if (document.querySelector('[data-kl-load-failed="' + x + '"]')) return true;
+          return !!el && (el.textContent || '').trim() !== '';
+        },
+        id,
+        { timeout: 1500, polling: 50 }
+      )
+      .catch(() => null);
     const 판 = await page.evaluate((x) => {
       const el = document.getElementById('page-' + x);
       /* ★ **건너뛰는 까닭을 갈라 적는다** (2026-08-14). 「판이 안 뜬다」를 한 통에 담으면
@@ -158,6 +179,23 @@ for (const id of ids) {
   }
   await page.close().catch(() => {});
 }
+
+/* 몇 장씩 나눠 연다. 시간이 다 되면 남은 것은 **못 잰 것**으로 센다 — 예전 그대로다
+   (못 잰 것을 초록으로 세는 것이 이 저장소에서 제일 비싼 고장이다). */
+const 남은것 = [...ids];
+await Promise.all(
+  Array.from({ length: Math.min(동시, 남은것.length) }, async () => {
+    for (;;) {
+      const id = 남은것.shift();
+      if (id === undefined) return;
+      if (Date.now() > 마감) {
+        못잼.push(id);
+        continue;
+      }
+      await 화면하나(id);
+    }
+  })
+);
 process.stdout.write(String.fromCharCode(10));
 await browser.close().catch(() => {});
 if (server) server.close();
