@@ -13,6 +13,7 @@ mod questlog_hub;
 mod life;
 mod local_dev;
 mod local_dev_http;
+mod part_fetch;
 mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
@@ -51,12 +52,13 @@ use quest_writeback::{
     toggle_quest_check,
 };
 use local_dev::{
-    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
+    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root, localdev_guess_repo_root,
     localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
     LocalDevState,
 };
+use part_fetch::{part_fetch, part_fetched_path};
 use repo_file::{repofile_open_default, repofile_read, repofile_reveal, repofile_write};
 use terminal::{
     terminal_send_stdin, terminal_start, terminal_status, terminal_stop, TerminalState,

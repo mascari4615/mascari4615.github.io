@@ -32,7 +32,6 @@
     "allow-quest-index",
     "allow-quest-writeback",
     "allow-task-launcher",
-    "allow-app-launcher",
     "allow-terminal",
     "allow-adventure",
     "allow-claude-env",
@@ -40,6 +39,7 @@
     "allow-agent-team",
     "allow-cockpit",
     "allow-ai-quota",
+    "allow-parts",
     "dialog:allow-open",
     "updater:default",
     {

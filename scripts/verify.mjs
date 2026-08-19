@@ -290,6 +290,11 @@ if (tauriTouched && existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
 //      이 게이트를 verify 에서 영구 skip 시키던 잠복 결함 수정).
 if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('Tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
+  /* 3.5-b. **커밋이 반쪽인가** (2026-08-19). 위 검사는 *작업 폴더* 를 본다 — 파일이 다 있는
+     내 자리에서는 늘 초록이다. 그런데 담을 때 파일 목록을 손으로 주므로, 구현 파일 하나를
+     빠뜨리면 트렁크에만 반쪽이 올라가고 **앱이 통째로 안 굽는다**(2026-08-19 하루 세 판).
+     같은 검사를 커밋에 대고도 돌린다 — `KL_PUSH_SHA` 가 있으면 그 커밋을, 없으면 폴더를. */
+  run('Tauri 명령 등록 반쪽 검사', 'apps/karmolab-tauri', 'node scripts/audit-acl-impl.mjs');
 }
 
 // 3.6. Server Monitor 설정 정합 audit — devProfiles {app,script} ⟷ <app>/package.json
