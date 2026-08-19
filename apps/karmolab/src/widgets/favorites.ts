@@ -7,13 +7,50 @@
  * - 기본 목록: favorites-defaults.ts
  */
 import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem } from './favorites-defaults';
+import {
+    APP_CATALOG,
+    appIconUrl,
+    checkInstalled,
+    launchApp,
+    letterIcon,
+    listInstalled,
+    watchLaunch,
+    type InstalledApp,
+    type LaunchSpec
+} from './favorites-apps';
+import {
+    DECK_CSS,
+    getKeySize,
+    getLayout,
+    arrange,
+    getSkin,
+    emptyHtml,
+    keyHtml,
+    loadSlots,
+    registerDeckProps,
+    renderDeckHtml,
+    setKeySize,
+    setLayout,
+    setSkin,
+    SIZE_MAX,
+    SIZE_MIN,
+    SKINS,
+    wireDeck,
+    wireKeys,
+    type FavLayout,
+    type FavSkin
+} from './favorites-deck';
+import { isDesktop } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
     const STORAGE_KEY = 'toolbox_favorites';
-    const VIEW_KEY = 'toolbox_fav_view';
     /** 즐겨찾기에 **직접 담은** 도구 id 목록. 없으면 도구는 한 칸도 안 뜬다 (기본 = 빈 목록). */
     const TOOLS_KEY = 'toolbox_fav_tools';
+    /** 즐겨찾기에 담은 **프로그램**. 사이트와 따로 둔다 — 그룹 이름이 언어 따라 바뀌는
+     *  자리에 섞으면 언어를 바꿨을 때 담은 것이 다른 칸으로 흩어진다 (도구가 이미 그래서
+     *  따로 산다). */
+    const APPS_KEY = 'toolbox_fav_apps';
     const FAVICON_IMG_ONERROR = 'this.onerror=null;this.src=' + JSON.stringify(FAVICON_FALLBACK);
     const FAVICON_API = 'https://www.google.com/s2/favicons?domain=';
     const KARMOLAB_FAVICON = '/apps/karmolab/img/favicon.ico';
@@ -153,6 +190,56 @@ import { t, loadNamespace } from '../lib/i18n';
             .sort((a, b) => a.group.localeCompare(b.group, 'ko') || a.title.localeCompare(b.title, 'ko'));
     }
 
+    /** 담아 둔 프로그램 한 칸. scheme·exec 중 최소 하나는 있다. */
+    type FavApp = { scheme?: string; exec?: string; args?: string[]; label: string };
+
+    /** 이 칸을 다른 칸과 구분하는 열쇠. 스킴이 있으면 스킴, 없으면 실행 파일 경로. */
+    function appKey(a: { scheme?: string; exec?: string }): string {
+        return (a.scheme || a.exec || '').toLowerCase();
+    }
+
+    function loadApps(): FavApp[] {
+        try {
+            const raw = localStorage.getItem(APPS_KEY);
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                    return arr.filter(
+                        (x): x is FavApp =>
+                            !!x && typeof x.label === 'string' && (!!x.scheme || !!x.exec)
+                    );
+                }
+            }
+        } catch (_) {}
+        return [];
+    }
+
+    function saveApps(list: FavApp[]): void {
+        try { localStorage.setItem(APPS_KEY, JSON.stringify(list)); } catch (_) {}
+    }
+
+    function appSpec(a: { scheme?: string; exec?: string; args?: string[] }): LaunchSpec {
+        return { scheme: a.scheme, exec: a.exec, args: a.args };
+    }
+
+    /** 담은 프로그램을 한 칸(「앱」)으로 묶는다. 없으면 칸 자체를 안 만든다. */
+    function getAppGroups(apps: FavApp[]): FavoriteGroup[] {
+        if (!apps.length) return [];
+        return [
+            {
+                group: t('favorites.group.apps'),
+                items: apps.map((a) => ({
+                    type: 'app' as const,
+                    label: a.label,
+                    icon: appIconUrl(a.scheme, a.label),
+                    scheme: a.scheme,
+                    exec: a.exec,
+                    args: a.args
+                }))
+            }
+        ];
+    }
+
     function loadPickedTools(): Set<string> {
         try {
             const raw = localStorage.getItem(TOOLS_KEY);
@@ -200,18 +287,17 @@ import { t, loadNamespace } from '../lib/i18n';
         } catch (_) {}
     }
 
-    function getViewMode(): 'icon' | 'card' {
-        try { return (localStorage.getItem(VIEW_KEY) as 'icon' | 'card') || 'icon'; } catch (_) { return 'icon'; }
-    }
-    function setViewMode(mode: 'icon' | 'card'): void {
-        try { localStorage.setItem(VIEW_KEY, mode); } catch (_) {}
-    }
+    /* 보기는 **세 축**이다 (사용자 결정 2026-08-19) — 레이아웃 2 · 살결 4 · 크기 슬라이더.
+     * 정본은 favorites-deck.ts (옛 `toolbox_fav_view` 는 거기서 한 번 옮기고 지운다). */
 
     function buildGroups(defaultGroups: FavoriteGroup[], customGroups: FavoriteGroup[] | null): FavoriteGroup[] {
         const merged: FavoriteGroup[] = [];
         /* 도구는 **담은 것만** 뜬다 (TASK-KL-147). 예전엔 등록된 도구 전부를 자동으로 부어
          * 넣어서, 「자주 가는 곳」이 도구 127개 밑으로 밀려 있었다. 즐겨찾기 = 고른 것.
          * (TASK-KL-147) */
+        /* 프로그램이 맨 앞이다 — 손이 제일 자주 가는 칸이고, 도구·사이트와 달리
+         * 담은 개수가 적어 위에 둬도 화면을 안 밀어낸다. */
+        merged.push(...getAppGroups(loadApps()));
         merged.push(...getToolboxToolGroups(loadPickedTools()));
         /* 같은 이름이면 한 칸에 합친다. 도구 갈래 이름(「도구」)과 즐겨찾기 기본 그룹 이름이
          * 겹치는데, 그냥 밀어 넣으면 같은 제목의 칸이 화면에 두 번 뜬다 (TASK-KL-096). */
@@ -257,9 +343,21 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-view-toggle-btn .fav-view-icon-grid { display:block; }
         .fav-view-toggle-btn[data-view="card"] .fav-view-icon-card { display:block; }
         .fav-view-toggle-btn[data-view="card"] .fav-view-icon-grid { display:none; }
-        .fav-top-row { position:relative; display:flex; justify-content:center; align-items:center; margin-bottom:var(--space-md); }
-        .fav-top-row .landing-search-wrap { flex:none; width:220px; margin:0; position:relative; }
-        .fav-top-row .fav-view-toggle-wrap { position:absolute; right:0; top:50%; transform:translateY(-50%); display:flex; gap:6px; align-items:center; }
+        /* 한 줄 툴바 — 좁아지면 줄바꿈만 하고, 순서는 그대로 (검색 → 담기 → 배치 → 살결 → 크기). */
+        .fav-bar { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:var(--space-md); }
+        .fav-bar .landing-search-wrap { flex:0 1 240px; min-width:150px; margin:0; position:relative; }
+        .fav-bar-sep { width:1px; height:20px; background:var(--border); flex:none; }
+        /* 담기 칸 — **크기는 다른 칸과 같게**, 대신 옅게. 눈에 먼저 들어오면 안 되지만
+           자리는 격자를 흐트러뜨리지 않아야 한다 (사용자 결정 2026-08-19). */
+        .fav-add-tile {
+            display:flex; align-items:center; justify-content:center; width:100%; height:100%;
+            /* 바탕은 **옅게라도 있어야** 한다 — 완전히 비우면 칸이 아니라 빈틈으로 읽힌다. */
+            background:var(--bg-tertiary); border:1px dashed var(--border-hover); border-radius:var(--radius-md);
+            color:var(--text-tertiary); cursor:pointer; padding:12px 8px; opacity:0.55;
+            transition:var(--transition);
+        }
+        .fav-add-tile:hover { opacity:1; border-color:var(--accent); color:var(--accent); background:var(--accent-subtle); }
+        .fav-add-plus { font-size:20px; line-height:1; }
         .fav-add-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:4px; display:flex; align-items:center; justify-content:center; }
         .fav-add-btn:hover { background:var(--bg-hover); color:var(--accent); }
         .fav-add-btn svg { width:18px; height:18px; }
@@ -272,10 +370,10 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-modal .fav-add-form label { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
         .fav-add-modal .fav-add-form input, .fav-add-modal .fav-add-form select { width:100%; min-width:0; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
         .fav-add-modal .fav-add-form .btn { width:100%; margin-top:4px; }
-        .fav-top-row .landing-search-wrap .landing-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-tertiary); pointer-events:none; flex-shrink:0; }
-        .fav-top-row .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
-        .fav-top-row .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent); }
-        .fav-top-row .landing-search-wrap .landing-search::placeholder { color:var(--text-tertiary); }
+        .fav-bar .landing-search-wrap .landing-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-tertiary); pointer-events:none; flex-shrink:0; }
+        .fav-bar .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-bar .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent); }
+        .fav-bar .landing-search-wrap .landing-search::placeholder { color:var(--text-tertiary); }
         .fav-add-kind { display:flex; gap:6px; margin-bottom:var(--space-md); }
         .fav-add-kind .fav-kind-btn { flex:1; padding:7px 10px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); border-radius:4px; cursor:pointer; transition:var(--transition); }
         .fav-add-kind .fav-kind-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
@@ -296,19 +394,44 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-tool-mark { font-size:var(--font-size-sm); color:var(--text-tertiary); flex-shrink:0; }
         .fav-tool-row.on .fav-tool-mark { color:var(--accent); }
         .fav-tool-empty { padding:16px; text-align:center; font-size:var(--font-size-xs); color:var(--text-tertiary); }
+        /* 「이 PC 에 있나」 표시. **데스크톱에서만 단다** — 브라우저는 설치 여부를 알
+           방법이 없어서, 웹에서 회색 점을 달면 그냥 거짓말이 된다. */
+        .fav-app-badge { position:absolute; left:6px; top:6px; width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px var(--bg-tertiary); pointer-events:none; }
+        .fav-app-badge.off { background:var(--text-tertiary); }
+        .fav-item.fav-app-missing { opacity:0.5; }
+        .fav-add-pane[data-pane="app"] { display:flex; flex-direction:column; gap:10px; }
+        .fav-app-note { font-size:var(--font-size-2xs); color:var(--text-tertiary); line-height:1.6; }
+        .fav-app-custom { display:flex; gap:6px; align-items:stretch; }
+        .fav-app-custom input { flex:1; min-width:0; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-app-custom .btn { flex:none; }
+        .fav-tool-row .fav-app-ico { width:18px; height:18px; border-radius:4px; object-fit:contain; flex-shrink:0; }
         .fav-grid.fav-grid-card { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:16px; }
         .fav-grid.fav-grid-card .fav-item { padding:16px 12px; }
         .fav-grid.fav-grid-card .fav-icon { width:60px; height:60px; border-radius:12px; }
         .fav-grid.fav-grid-card .fav-icon-svg svg { width:40px; height:40px; }
         .fav-grid.fav-grid-card .fav-label { font-size:var(--font-size-xs); }
-    `);
+    ` + DECK_CSS);
+
+    /** 담기 칸의 갈래. */
+    type FavKind = 'site' | 'tool' | 'app';
 
     function buildFavorites(container: HTMLElement): void {
         Mdd.linePreset('home_hub', { msg: t('favorites.t09') });
 
         /* 도구를 담고 빼면 화면을 통째로 다시 그린다 — 그리면 열려 있던 창이 같이 사라지므로,
          * 「어느 갈래를 보고 있었나 · 뭘 치고 있었나」를 여기 적어 뒀다가 그린 뒤 되돌린다. */
-        let pendingOpen: { kind: 'site' | 'tool'; q: string } | null = null;
+        let pendingOpen: { kind: FavKind; q: string } | null = null;
+        /** 덱 배선을 되돌리는 함수. 다시 그리기 전에 꼭 부른다. */
+        let disposeDeck: (() => void) | null = null;
+        /** 키 배선(손 닿음·상태점)을 되돌리는 함수. 살결이 「기존」이 아니면 늘 쓴다. */
+        let disposeKeys: (() => void) | null = null;
+        registerDeckProps();
+        Toolbox.onDispose?.(() => {
+            disposeDeck?.(); disposeDeck = null;
+            disposeKeys?.(); disposeKeys = null;
+        });
+        /** 담기 칸이 「앱」일 때 뿌릴 목록. 데스크톱은 레지스트리 실물, 웹은 카탈로그. */
+        let appChoices: InstalledApp[] | null = null;
 
         function renderToolPicker(query: string): string {
             const esc = Toolbox.escapeHtml ?? ((s: string) => s);
@@ -334,65 +457,156 @@ import { t, loadNamespace } from '../lib/i18n';
                 .join('');
         }
 
+        /**
+         * 「앱 담기」 목록. 데스크톱이면 이 PC 에 **실제로 등록된 것**(`appChoices`),
+         * 웹이면 고를 수 있는 카탈로그를 뿌린다 — 웹은 설치 여부를 못 보므로 카탈로그가
+         * 최선이고, 없는 앱은 아래 「직접 넣기」로 담는다.
+         */
+        function renderAppPicker(query: string): string {
+            const esc = Toolbox.escapeHtml ?? ((s: string) => s);
+            const q = query.trim().toLowerCase();
+            const picked = new Set(loadApps().map(appKey));
+            const rows: { key: string; label: string; sub: string; scheme?: string; exec?: string }[] =
+                appChoices
+                    ? appChoices.map((a) => ({ key: appKey(a), label: a.label, sub: a.scheme, scheme: a.scheme, exec: a.exec }))
+                    : APP_CATALOG.map((a) => ({ key: a.scheme, label: a.label, sub: `${a.scheme}://`, scheme: a.scheme }));
+            const shown = rows.filter((r) => !q || (r.label + ' ' + r.sub).toLowerCase().includes(q));
+            if (!shown.length) {
+                return `<div class="fav-tool-empty">${esc(appChoices ? t('favorites.app.none') : t('favorites.app.noneWeb'))}</div>`;
+            }
+            return shown
+                .map((r) => {
+                    const on = picked.has(r.key);
+                    return `
+                    <button type="button" class="fav-tool-row ${on ? 'on' : ''}" data-app-pick="${esc(r.key)}" data-scheme="${esc(r.scheme || '')}" data-exec="${esc(r.exec || '')}" data-label="${esc(r.label)}">
+                        <img class="fav-app-ico" src="${esc(appIconUrl(r.scheme, r.label))}" alt="" decoding="async" onerror="this.onerror=null;this.src=${esc(JSON.stringify(letterIcon(r.label)))}">
+                        <span class="fav-tool-text">
+                            <span class="fav-tool-name">${esc(r.label)}</span>
+                            <span class="fav-tool-group">${esc(r.sub)}</span>
+                        </span>
+                        <span class="fav-tool-mark">${on ? '✓' : '+'}</span>
+                    </button>`;
+                })
+                .join('');
+        }
+
         function render(): void {
             const customNow = loadFavorites();
             const groupsNow = buildGroups(DEFAULT_ITEMS, customNow);
+            /* 자리표는 **덱 기준 정본**이다. 목록 배치는 같은 표를 읽어 빈 칸만 걷어내고
+             * 순서대로 늘어놓는다 (사용자 결정 2026-08-19). */
+            const slotsNow = loadSlots();
             const esc = Toolbox.escapeHtml ?? ((s: string) => s);
-            const viewMode = getViewMode();
-            const isCard = viewMode === 'card';
+            const layout = getLayout();
+            const skin = getSkin();
+            const keySize = getKeySize();
+            const isDeck = layout === 'deck';
             const reopen = pendingOpen;
             pendingOpen = null;
-            const openKind: 'site' | 'tool' = reopen?.kind ?? 'site';
+            const openKind: FavKind = reopen?.kind ?? 'site';
             const openQuery = reopen?.q ?? '';
 
             container.innerHTML = `
-                <div class="fav-layout">
-                    <div class="fav-top-row">
+                <div class="fav-layout skin-${skin}" style="--fk-size:${keySize}px">
+                    <!-- 툴바 한 줄 — 검색·담기·배치·살결·크기가 **한 자리**에 있다.
+                         전에는 검색줄과 살결/크기가 두 줄로 갈려, 크기 조절이 어디 있는지
+                         찾게 됐다 (사용자 결정 2026-08-19). -->
+                    <div class="fav-bar">
                         <div class="landing-search-wrap">
                             <svg class="landing-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                             <input type="text" class="landing-search" placeholder="${esc(t('favorites.t01'))}" id="favSearch" autocomplete="off">
                         </div>
-                        <div class="fav-view-toggle-wrap">
-                            <button type="button" class="fav-add-btn" id="fav-add-open" title="${esc(t('favorites.title.favaddopen'))}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            </button>
-                            <button type="button" class="fav-view-toggle-btn ${isCard ? 'active' : ''}" data-view="${isCard ? 'card' : 'icon'}" title="${isCard ? t('favorites.t10') : t('favorites.t11')}">
-                                <svg class="fav-view-icon fav-view-icon-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                                <svg class="fav-view-icon fav-view-icon-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
-                            </button>
-                        </div>
+                        <button type="button" class="fav-view-toggle-btn ${isDeck ? 'active' : ''}" id="fav-layout-btn" title="${esc(t('favorites.layout.toggle'))}">
+                            ${isDeck
+                                ? '<svg class="fav-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><rect x="5" y="9" width="4" height="4" rx="1"/><rect x="10" y="9" width="4" height="4" rx="1"/><rect x="15" y="9" width="4" height="4" rx="1"/></svg>'
+                                : '<svg class="fav-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'}
+                        </button>
+                        <span class="fav-bar-sep"></span>
+                        <span class="fav-skins">
+                            ${SKINS.map((k) => `<button type="button" class="fav-skin ${k === skin ? 'on' : ''}" data-skin="${k}">${esc(t('favorites.skin.' + k))}</button>`).join('')}
+                        </span>
+                        <span class="fav-sizer">
+                            <input type="range" min="${SIZE_MIN}" max="${SIZE_MAX}" step="4" value="${keySize}"
+                                   id="fav-size" aria-label="${esc(t('favorites.deck.size'))}">
+                            <output id="fav-size-out">${keySize}</output>
+                        </span>
                     </div>
-                    ${groupsNow.map((g) => `
+
+                    ${isDeck ? renderDeckHtml(
+                        groupsNow,
+                        esc,
+                        getFaviconUrl,
+                        (it) => String((it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '')
+                    ) : ''}
+                    ${isDeck ? '' : groupsNow.map((g) => `
                         <div class="fav-group" data-fav-group="${esc(g.group)}">
                             <div class="fav-group-title">${esc(g.group)}</div>
-                            <div class="fav-grid ${isCard ? 'fav-grid-card' : ''}">
-                                ${g.items.map((it) => {
+                            <div class="fav-grid">
+                                ${arrange(g.items, g.group, slotsNow, 0).filter((x): x is FavoriteItem => !!x).map((it) => {
+                                    /* 살결이 「기존」이 아니면 **덱과 같은 키**를 목록 배치에도 쓴다 —
+                                     * 살결은 배치와 다른 축이라, 어디에 놓든 같은 얼굴이어야 한다. */
+                                    if (skin !== 'plain') {
+                                        return keyHtml(
+                                            it,
+                                            g.group,
+                                            esc,
+                                            getFaviconUrl,
+                                            String((it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '')
+                                        );
+                                    }
                                     const isTool = it.type === 'tool';
+                                const isApp = it.type === 'app';
                                     const metaDesc = (it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '';
-                                    const searchable = [it.label, g.group, it.url || '', it.toolId || '', metaDesc].join(' ').toLowerCase();
+                                    const searchable = [it.label, g.group, it.url || '', it.toolId || '', it.scheme || '', it.exec || '', metaDesc].join(' ').toLowerCase();
                                     const removeBtn = isTool
                                         ? `<button type="button" class="fav-remove" data-tool="${esc(it.toolId || '')}" title="${esc(t('favorites.t02'))}">×</button>`
+                                        : isApp
+                                        ? `<button type="button" class="fav-remove" data-app-remove="${esc(appKey(it))}" title="${esc(t('favorites.t03'))}">×</button>`
                                         : it.isCustom && it.url
                                         ? `<button type="button" class="fav-remove" data-group="${esc(g.group)}" data-url="${esc(it.url)}" title="${esc(t('favorites.t03'))}">×</button>`
                                         : '';
                                     const iconHtml = isTool
                                         ? `<div class="fav-icon fav-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${it.icon || ''}</svg></div>`
+                                        : isApp
+                                        /* 로고 CDN 에 없는 앱(레지스트리에서 주운 것들)이 X 표시로
+                                         * 남지 않게 첫 글자 동그라미로 떨어뜨린다. */
+                                        ? `<img class="fav-icon" src="${esc(it.icon || '')}" alt="" decoding="async" onerror="this.onerror=null;this.src=${esc(JSON.stringify(letterIcon(it.label)))}">`
                                         // 늦은 로딩(lazy)을 쓰지 않는다. 아이콘은 52px 짜리 70장 —
                                         // 미뤄서 아낄 게 없는데, 브라우저가 「미뤘다」며 자리표시자로
                                         // 바꿔 놓으면 아이콘이 통째로 빈칸으로 보인다 (2026-08-08 제보).
-                                        : `<img class="fav-icon" src="${esc(getFaviconUrl(it))}" alt="" decoding="async" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
+                                        /* width/height 를 **속성으로** 박는다. CSS 가 아직
+                                         * 안 붙은 순간에도 브라우저가 이 크기로 자리를 잡아,
+                                         * 파비콘이 화면을 꽉 채우는 첫 깜빡임이 안 생긴다. */
+                                        : `<img class="fav-icon" width="52" height="52" src="${esc(getFaviconUrl(it))}" alt="" decoding="async" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
+                                    /* 앱 칸의 href 에도 스킴을 적는다 — 눌러서 여는 것은
+                                     * 아래 클릭 처리가 맡지만, 가운데 클릭·마우스 올렸을 때
+                                     * 뜨는 주소 같은 브라우저 기본 동작이 살아 있어야 한다.
+                                     * `target=_blank` 는 안 쓴다 — 프로토콜로 넘어가는 데
+                                     * 새 탭이 필요 없고, 쓰면 빈 탭이 하나 남는다. */
                                     const linkAttrs = isTool
                                         ? `href="#" class="fav-item" title="${esc(it.label)}" data-tool-id="${esc(it.toolId || '')}"`
+                                        : isApp
+                                        ? `href="${esc(it.scheme ? it.scheme + '://' : '#')}" class="fav-item" title="${esc(it.label)}" data-app-key="${esc(appKey(it))}"`
                                         : `href="${esc(it.url || '')}" class="fav-item" target="_blank" rel="noopener noreferrer" title="${esc(it.label)}"`;
                                     return `
                                     <div class="fav-item-wrap" data-searchable="${esc(searchable)}">
                                         ${removeBtn}
+                                        ${isApp && isDesktop() ? `<span class="fav-app-badge off" data-app-badge="${esc(appKey(it))}" title="${esc(t('favorites.app.checking'))}"></span>` : ''}
                                         <a ${linkAttrs}>
                                             ${iconHtml}
                                             <span class="fav-label">${esc(it.label)}</span>
                                         </a>
                                     </div>`;
                                 }).join('')}
+                                ${/* 그룹 끝에 담기 칸 — 덱 배치는 빈 칸이 이미 그 일을 하므로
+                                      목록 배치에만 붙인다 (사용자 결정 2026-08-19). */
+                                  skin === 'plain'
+                                    ? `<div class="fav-item-wrap">
+                                           <button type="button" class="fav-add-tile" data-add-slot="-1" data-add-group="${esc(g.group)}" title="${esc(t('favorites.title.favaddopen'))}">
+                                               <span class="fav-add-plus">+</span>
+                                           </button>
+                                       </div>`
+                                    : emptyHtml(g.group, -1, esc)}
                             </div>
                         </div>
                     `).join('')}
@@ -404,6 +618,16 @@ import { t, loadNamespace } from '../lib/i18n';
                         <div class="fav-add-kind">
                             <button type="button" class="fav-kind-btn ${openKind === 'site' ? 'active' : ''}" data-kind="site">${esc(t('favorites.t06'))}</button>
                             <button type="button" class="fav-kind-btn ${openKind === 'tool' ? 'active' : ''}" data-kind="tool">${esc(t('favorites.t07'))}</button>
+                            <button type="button" class="fav-kind-btn ${openKind === 'app' ? 'active' : ''}" data-kind="app">${esc(t('favorites.t17'))}</button>
+                        </div>
+                        <div class="fav-add-pane" data-pane="app" ${openKind === 'app' ? '' : 'hidden'}>
+                            <div class="fav-app-note">${esc(isDesktop() ? t('favorites.app.noteDesktop') : t('favorites.app.noteWeb'))}</div>
+                            <input type="text" class="input fav-tool-search" id="fav-app-search" placeholder="${esc(t('favorites.app.searchPh'))}" autocomplete="off" value="${esc(openKind === 'app' ? openQuery : '')}">
+                            <div class="fav-tool-list" id="fav-app-list">${renderAppPicker(openKind === 'app' ? openQuery : '')}</div>
+                            <div class="fav-app-custom">
+                                <input type="text" id="fav-app-custom" placeholder="${esc(isDesktop() ? t('favorites.app.customPhDesktop') : t('favorites.app.customPhWeb'))}" autocomplete="off">
+                                <button type="button" class="btn" id="fav-app-custom-add">${esc(t('favorites.btn.favaddbtn'))}</button>
+                            </div>
                         </div>
                         <div class="fav-add-pane" data-pane="tool" ${openKind === 'tool' ? '' : 'hidden'}>
                             <input type="text" class="input fav-tool-search" id="fav-tool-search" placeholder="${esc(t('favorites.ph.favtoolsearch'))}" autocomplete="off" value="${esc(openQuery)}">
@@ -443,10 +667,6 @@ import { t, loadNamespace } from '../lib/i18n';
                 </div>`;
 
             const modal = container.querySelector<HTMLElement>('#fav-add-modal');
-            const openAddBtn = container.querySelector<HTMLButtonElement>('#fav-add-open');
-            if (openAddBtn) {
-                openAddBtn.onclick = () => modal?.classList.add('open');
-            }
             if (modal) {
                 modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('open'); };
             }
@@ -454,7 +674,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const toolSearch = container.querySelector<HTMLInputElement>('#fav-tool-search');
             const toolList = container.querySelector<HTMLElement>('#fav-tool-list');
 
-            function showKind(kind: 'site' | 'tool'): void {
+            function showKind(kind: FavKind): void {
                 container.querySelectorAll<HTMLButtonElement>('.fav-kind-btn').forEach((b) => {
                     b.classList.toggle('active', b.dataset.kind === kind);
                 });
@@ -463,7 +683,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 });
             }
             container.querySelectorAll<HTMLButtonElement>('.fav-kind-btn').forEach((b) => {
-                b.onclick = () => showKind((b.dataset.kind as 'site' | 'tool') || 'site');
+                b.onclick = () => showKind((b.dataset.kind as FavKind) || 'site');
             });
 
             function wireToolRows(): void {
@@ -490,11 +710,95 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             }
 
+            // ── 앱 담기 ──────────────────────────────────────────────────────
+            const appSearch = container.querySelector<HTMLInputElement>('#fav-app-search');
+            const appList = container.querySelector<HTMLElement>('#fav-app-list');
+
+            function redrawAppList(): void {
+                if (!appList) return;
+                appList.innerHTML = renderAppPicker(appSearch?.value ?? '');
+                wireAppRows();
+            }
+
+            function toggleApp(entry: FavApp): void {
+                const key = appKey(entry);
+                if (!key) return;
+                const apps = loadApps();
+                const at = apps.findIndex((a) => appKey(a) === key);
+                if (at >= 0) apps.splice(at, 1);
+                else apps.push(entry);
+                saveApps(apps);
+                Toolbox.showToast?.(at >= 0 ? t('favorites.t13') : t('favorites.t12'));
+                pendingOpen = { kind: 'app', q: appSearch?.value ?? '' };
+                render();
+            }
+
+            function wireAppRows(): void {
+                container.querySelectorAll<HTMLButtonElement>('.fav-tool-row[data-app-pick]').forEach((row) => {
+                    row.onclick = () => {
+                        toggleApp({
+                            label: row.dataset.label || row.dataset.scheme || '',
+                            scheme: row.dataset.scheme || undefined,
+                            exec: row.dataset.exec || undefined
+                        });
+                    };
+                });
+            }
+            wireAppRows();
+
+            if (appSearch) appSearch.oninput = redrawAppList;
+
+            /* 데스크톱에서는 담기 칸을 **레지스트리 실물**로 바꾼다. 한 번 읽어 두고
+             * (`appChoices`) 다시 그릴 때는 재사용한다 — 창을 여닫을 때마다 수천 칸을
+             * 훑을 이유가 없다. */
+            if (isDesktop() && appChoices === null) {
+                void listInstalled().then((list) => {
+                    if (!list.length) return;
+                    appChoices = list;
+                    redrawAppList();
+                });
+            }
+
+            const customInput = container.querySelector<HTMLInputElement>('#fav-app-custom');
+            const customAdd = container.querySelector<HTMLButtonElement>('#fav-app-custom-add');
+            if (customAdd && customInput) {
+                const addCustom = (): void => {
+                    const raw = customInput.value.trim();
+                    if (!raw) return;
+                    /* **스킴인지 먼저 본다.** `discord://` 에도 슬래시가 들어 있어서
+                     * 「슬래시가 있으면 경로」로 판정하면 스킴이 전부 경로로 잡힌다
+                     * (그래서 웹에서 스킴을 못 담던 버그). 스킴 = `이름:` 으로 시작하는 것,
+                     * 그 밖에 구분자·확장자가 있는 것만 실행 파일로 본다. */
+                    const schemeMatch = /^([a-z][a-z0-9+.-]*):/i.exec(raw);
+                    const looksPath =
+                        !schemeMatch && (/[\\/]/.test(raw) || /\.(exe|cmd|bat|app|sh)$/i.test(raw));
+                    /* 웹에서는 실행 파일을 못 켠다 — 담기 전에 막는다. 담아 두고 눌러야
+                     * 안 되는 것을 알게 하면 그게 더 나쁘다. */
+                    if (looksPath && !isDesktop()) {
+                        Toolbox.showToast?.(t('favorites.app.pathWebOnly'), 'error');
+                        return;
+                    }
+                    const scheme = looksPath
+                        ? undefined
+                        : (schemeMatch ? schemeMatch[1] : raw).toLowerCase();
+                    const label = looksPath
+                        ? (raw.split(/[\\/]/).pop() || raw).replace(/\.[^.]+$/, '')
+                        : (scheme || raw);
+                    toggleApp({ label, scheme, exec: looksPath ? raw : undefined });
+                    customInput.value = '';
+                };
+                customAdd.onclick = addCustom;
+                customInput.onkeydown = (e: KeyboardEvent) => {
+                    if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
+                };
+            }
+
             if (reopen) {
                 modal?.classList.add('open');
-                if (reopen.kind === 'tool' && toolSearch) {
-                    toolSearch.focus();
-                    toolSearch.setSelectionRange(toolSearch.value.length, toolSearch.value.length);
+                const box = reopen.kind === 'tool' ? toolSearch : reopen.kind === 'app' ? appSearch : null;
+                if (box) {
+                    box.focus();
+                    box.setSelectionRange(box.value.length, box.value.length);
                 }
             }
 
@@ -539,6 +843,13 @@ import { t, loadNamespace } from '../lib/i18n';
                 btn.onclick = (e: MouseEvent) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const appRemove = btn.dataset.appRemove;
+                    if (appRemove) {
+                        saveApps(loadApps().filter((a) => appKey(a) !== appRemove));
+                        Toolbox.showToast?.(t('favorites.t16'));
+                        render();
+                        return;
+                    }
                     const toolId = btn.dataset.tool;
                     if (toolId) {
                         const picked = loadPickedTools();
@@ -561,6 +872,50 @@ import { t, loadNamespace } from '../lib/i18n';
                     }
                 };
             });
+
+            container.querySelectorAll<HTMLAnchorElement>('.fav-item[data-app-key]').forEach((a) => {
+                a.onclick = (e: MouseEvent) => {
+                    e.preventDefault();
+                    const key = a.dataset.appKey;
+                    const app = loadApps().find((x) => appKey(x) === key);
+                    if (!app) return;
+                    /* 웹에서는 「열렸나」를 확실히 알 수 없다. 그래서 *누르기 전에* 지켜보기를
+                     * 걸어 둔다 — 창이 흐려지면 열린 것, 그대로면 안 열린 것으로 본다.
+                     * 미등록 스킴은 브라우저가 아무 말 없이 삼키므로, 이 짐작이라도 없으면
+                     * 사용자는 자기가 잘못 눌렀다고 생각한다. */
+                    const watching = watchLaunch();
+                    void launchApp(appSpec(app))
+                        .then(() => watching)
+                        .then((opened) => {
+                            if (!opened) Toolbox.showToast?.(t('favorites.app.maybeNotOpened', { name: app.label }));
+                        })
+                        .catch((err: unknown) => {
+                            const msg = err instanceof Error ? err.message : String(err);
+                            Toolbox.showToast?.(
+                                msg === 'web-no-scheme'
+                                    ? t('favorites.app.webNeedsScheme', { name: app.label })
+                                    : t('favorites.app.launchFail', { name: app.label, why: msg }),
+                                'error'
+                            );
+                        });
+                };
+            });
+
+            /* 뱃지 = 「이 PC 에 있나」. 데스크톱만 답할 수 있으므로 웹에서는 아예 안 단다
+             * (회색 점 = 「없음」이라는 뜻인데, 웹은 그걸 모른다 — 달면 거짓말이 된다). */
+            if (isDesktop()) {
+                container.querySelectorAll<HTMLElement>('[data-app-badge]').forEach((dot) => {
+                    const app = loadApps().find((x) => appKey(x) === dot.dataset.appBadge);
+                    if (!app) return;
+                    void checkInstalled(appSpec(app)).then((ok) => {
+                        if (ok === null) { dot.remove(); return; }
+                        dot.classList.toggle('off', !ok);
+                        dot.title = ok ? t('favorites.app.installed') : t('favorites.app.missing');
+                        const link = dot.parentElement?.querySelector('.fav-item');
+                        link?.classList.toggle('fav-app-missing', !ok);
+                    });
+                });
+            }
 
             container.querySelectorAll<HTMLAnchorElement>('.fav-item[data-tool-id]').forEach((a) => {
                 a.onclick = (e: MouseEvent) => {
@@ -586,20 +941,58 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             }
 
-            const viewToggleBtn = container.querySelector<HTMLButtonElement>('.fav-view-toggle-btn');
-            if (viewToggleBtn) {
-                viewToggleBtn.onclick = () => {
-                    const current = (viewToggleBtn.dataset.view as 'icon' | 'card' | undefined) ?? 'icon';
-                    const next: 'icon' | 'card' = current === 'card' ? 'icon' : 'card';
-                    setViewMode(next);
-                    viewToggleBtn.dataset.view = next;
-                    viewToggleBtn.title = next === 'card' ? t('favorites.t10') : t('favorites.t11');
-                    viewToggleBtn.classList.toggle('active', next === 'card');
-                    container.querySelectorAll<HTMLElement>('.fav-grid').forEach((grid) => {
-                        grid.classList.toggle('fav-grid-card', next === 'card');
-                    });
+            /* 빈 칸을 누르면 그 자리에 담으라고 추가창을 연다. */
+            container.querySelectorAll<HTMLButtonElement>('[data-add-slot]').forEach((btn) => {
+                btn.onclick = () => {
+                    modal?.classList.add('open');
+                    showKind('site');
+                    /* 누른 칸이 속한 그룹을 미리 골라 둔다 — 어디에 담을지 다시 고르게 하면
+                     * 「그 자리에 담는다」는 뜻이 흐려진다. */
+                    const g = btn.dataset.addGroup;
+                    const sel = container.querySelector<HTMLSelectElement>('#fav-group');
+                    if (g && sel && [...sel.options].some((o) => o.value === g)) sel.value = g;
+                    container.querySelector<HTMLInputElement>('#fav-url')?.focus();
+                };
+            });
+
+            const layoutBtn = container.querySelector<HTMLButtonElement>('#fav-layout-btn');
+            if (layoutBtn) {
+                layoutBtn.onclick = () => {
+                    setLayout(getLayout() === 'deck' ? 'list' : 'deck');
+                    render();
                 };
             }
+
+            /* 살결 — 뼈대는 그대로, 겉만 갈린다. 그래도 항목 마크업이 갈래별로 달라
+             * (기존 살결은 옛 마크업) 다시 그린다. */
+            container.querySelectorAll<HTMLButtonElement>('.fav-skin').forEach((b) => {
+                b.onclick = () => {
+                    setSkin((b.dataset.skin as FavSkin) || 'plain');
+                    render();
+                };
+            });
+
+            /* 크기 — 다시 그리지 않는다. 뿌리의 값 하나만 바꾸면 격자가 따라온다. */
+            const sizeInput = container.querySelector<HTMLInputElement>('#fav-size');
+            const sizeOut = container.querySelector<HTMLElement>('#fav-size-out');
+            const root = container.querySelector<HTMLElement>('.fav-layout');
+            if (sizeInput && root) {
+                sizeInput.oninput = () => {
+                    const px = Number(sizeInput.value);
+                    root.style.setProperty('--fk-size', px + 'px');
+                    if (sizeOut) sizeOut.textContent = String(px);
+                    setKeySize(px);
+                };
+            }
+
+            /* 덱은 그린 뒤에 배선한다. 되돌리는 함수를 받아 다음 그림 전에 푼다 —
+             * 안 풀면 다시 그릴 때마다 리스너가 쌓인다. */
+            /* 키 배선은 **배치와 무관**하다 — 살결이 「기존」이 아니면 목록에서도 키를 쓴다. */
+            disposeKeys?.();
+            disposeKeys = skin === 'plain' ? null : wireKeys(container);
+
+            disposeDeck?.();
+            disposeDeck = isDeck ? wireDeck(container, render) : null;
         }
 
         render();

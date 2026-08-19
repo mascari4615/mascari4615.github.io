@@ -183,3 +183,10 @@ name = "parts"
 identifier = "allow-parts"
 description = "동반자 꾸러미를 릴리스에서 받아 앱 데이터 폴더에 푼다 (TASK-KAR-227) — 주소는 밖에서 안 받고 부품 이름만 받는다. 저장소 없이 깔 수 있게 하는 유일한 길."
 commands = ["part_fetch", "part_fetched_path"]
+commands = ["ai_quota_claude", "ai_quota_codex", "ai_quota_grok"]
+
+[[group]]
+name = "app-launcher"
+identifier = "allow-app-launcher"
+description = "Allow the favourites widget to list, check and launch programs installed on this PC."
+commands = ["app_list_installed", "app_check", "app_launch"]
