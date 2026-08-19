@@ -11,5 +11,7 @@
   "install.again": "再ビルド",
   "install.working": "ビルド中…",
   "install.retry": "再試行",
-  "install.failed": "インストールできませんでした — 上の記録を確認"
+  "install.failed": "インストールできませんでした — 上の記録を確認",
+  "install.noroot": "このPCのリポジトリの場所がまだ設定されていません — それがないとビルドできません。",
+  "install.noroot.how": "「サーバーモニター」を開き、上部のリポジトリルートにパスを入れてください。一度だけで済みます。"
 }
