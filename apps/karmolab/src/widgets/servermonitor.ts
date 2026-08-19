@@ -1,4 +1,5 @@
 import { isDesktop, invoke, listen } from '../tauri-bridge';
+import { savedWorkFolder, setWorkFolder } from '../lib/work-folder';
 
 import { t, loadNamespace } from '../lib/i18n';
 
@@ -8,7 +9,9 @@ import { t, loadNamespace } from '../lib/i18n';
 
   'use strict';
 
-  const REPO_ROOT_PREF = 'karmolab_repo_root';
+  /* 작업 폴더 값의 정본은 `lib/work-folder.ts` 다 (TASK-KL-332 — 환경 설정 › 이 컴퓨터 › 작업 폴더).
+     여기 입력칸은 손 닿는 자리로 남기되, 넣고 확인하는 길은 그쪽 하나를 지난다 —
+     두 화면이 각자 넣으면 반드시 한쪽이 모르는 상태가 된다. */
 
   /**
    * dev 프로필. 두 형식 (Rust `DevProfile::resolve` 와 동형):
@@ -611,7 +614,7 @@ import { t, loadNamespace } from '../lib/i18n';
     rootInput.type = 'text';
     rootInput.className = 'mono-input sm-root-footer-input';
     rootInput.placeholder = '예: C:\\Users\\…\\Mascari4615.github.io';
-    rootInput.value = Toolbox.getPref?.(REPO_ROOT_PREF, '') ?? '';
+    rootInput.value = savedWorkFolder();
 
     const saveRootBtn = document.createElement('button');
     saveRootBtn.className = 'btn btn-ghost btn-sm';
@@ -619,19 +622,13 @@ import { t, loadNamespace } from '../lib/i18n';
     saveRootBtn.textContent = t('servermonitor.t18');
     saveRootBtn.onclick = () => {
       void (async () => {
-        const v = rootInput.value.trim();
-        if (Toolbox.setPref) Toolbox.setPref(REPO_ROOT_PREF, v);
         if (!isDesktop()) {
           Toolbox.showToast?.(t('servermonitor.t21'), 'error', undefined);
           return;
         }
-        try {
-          await invoke('localdev_set_repo_root', { path: v });
-          Toolbox.showToast?.(t('servermonitor.t22'), undefined, undefined);
-        } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : String(e);
-          Toolbox.showToast?.(msg, 'error', undefined);
-        }
+        const r = await setWorkFolder(rootInput.value);
+        if (r.ok) Toolbox.showToast?.(t('servermonitor.t22'), undefined, undefined);
+        else Toolbox.showToast?.(r.why, 'error', undefined);
       })();
     };
 

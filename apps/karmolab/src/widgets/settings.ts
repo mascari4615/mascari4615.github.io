@@ -6,6 +6,8 @@
  * 어느 쪽도 자기 자리처럼 보이지 않는다. 이 화면은 로그인과 무관하고, 서버가 죽어도 멀쩡하다.
  */
 import { t, loadNamespace } from '../lib/i18n';
+import { isDesktop } from '../tauri-bridge';
+import { currentWorkFolder, pickWorkFolder, savedWorkFolder, setWorkFolder } from '../lib/work-folder';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -140,18 +142,6 @@ import { t, loadNamespace } from '../lib/i18n';
                 <div class="settings-section">
                     <h3>🔑 API</h3>
                     ${apiUI.html}
-                </div>
-                <!-- 만든 사람 · 문의 (사용자 요청 2026-08-19). 예전에는 껍데기 맨 윗줄에
-                     「누가 만들었나요?」 단추가 상주했다 — 하루에 한 번 누를까 말까 한 것이
-                     매일 쓰는 도구 이름들과 같은 크기로 자리를 먹고 있었다. 여느 사이트가
-                     그러듯 「문의·정보」는 환경 설정 안에 둔다. 링크 자체는 linktree 위젯이
-                     정본이라 여기서 값을 두 벌 적지 않는다 — 자리 이동만 시킨다. -->
-                <div class="settings-section">
-                    <h3>${esc(t('settings.t59'))}</h3>
-                    <div class="settings-row">
-                        <label>${esc(t('settings.label.setLinks'))}</label>
-                        <button type="button" class="btn-ghost" data-goto="linktree">${esc(t('settings.btn.setLinks'))}</button>
-                    </div>
                 </div>
             </div>`;
 
@@ -562,6 +552,66 @@ import { t, loadNamespace } from '../lib/i18n';
         });
     }
 
+    /**
+     * 「이 컴퓨터」 — 데스크톱 앱에서만 쓰는 값들. 지금은 작업 폴더 하나다 (TASK-KL-332).
+     *
+     * 여기가 그 값의 **정본**이다. 서버 모니터·설치는 읽기만 한다 — 값 하나를 두 화면이
+     * 각자 들고 있으면 반드시 한쪽이 모르는 상태가 되고, 그게 「설치를 눌렀더니 저장소
+     * 루트를 먼저 설정하세요」였다.
+     */
+    function buildMachine(container: HTMLElement): void {
+        const wrap = document.createElement('div');
+        wrap.className = 'settings-layout';
+
+        if (!isDesktop()) {
+            wrap.innerHTML = `<p>${esc(t('settings.machine.webonly', undefined, '이 칸은 데스크톱 앱에서만 쓴다 — 브라우저에는 이 컴퓨터의 폴더가 없다.'))}</p>`;
+            container.appendChild(wrap);
+            return;
+        }
+
+        wrap.innerHTML = `
+            <div class="settings-section">
+                <h3>${esc(t('settings.machine.folder', undefined, '작업 폴더'))}</h3>
+                <div class="settings-row">
+                    <input type="text" id="work-folder-input" class="settings-control" style="min-width:min(560px,60vw);"
+                           placeholder="C:\\...\\Mascari4615.github.io" />
+                    <button type="button" id="work-folder-pick">${esc(t('settings.machine.pick', undefined, '찾아보기'))}</button>
+                    <button type="button" id="work-folder-save">${esc(t('settings.machine.save', undefined, '저장'))}</button>
+                </div>
+                <p id="work-folder-note">${esc(t('settings.machine.desc', undefined, '소스를 받아 둔 곳. 부품을 굽거나 개발 서버를 띄울 때 쓴다.'))}</p>
+            </div>`;
+        container.appendChild(wrap);
+
+        const input = wrap.querySelector('#work-folder-input') as HTMLInputElement;
+        const note = wrap.querySelector('#work-folder-note') as HTMLElement;
+        input.value = savedWorkFolder();
+
+        /* 이미 쓸 수 있는 값이 있으면 그걸 보여 준다 — 적어 둔 것과 실제로 잡힌 것이
+           다를 수 있고, 사람이 봐야 하는 것은 **실제로 잡힌 쪽**이다. */
+        void currentWorkFolder().then((now) => {
+            if (now) {
+                input.value = now;
+                note.textContent = t('settings.machine.ok', undefined, '확인됨 — 부품 굽기·개발 서버가 이 폴더를 쓴다.');
+            }
+        });
+
+        (wrap.querySelector('#work-folder-pick') as HTMLButtonElement).addEventListener('click', () => {
+            void pickWorkFolder().then((picked) => {
+                if (picked) input.value = picked;
+                else note.textContent = t('settings.machine.nopick', undefined, '폴더 고르기 창을 못 열었다 — 경로를 손으로 적어라.');
+            });
+        });
+
+        (wrap.querySelector('#work-folder-save') as HTMLButtonElement).addEventListener('click', () => {
+            note.textContent = t('settings.machine.saving', undefined, '확인하는 중…');
+            void setWorkFolder(input.value).then((r) => {
+                note.textContent = r.ok
+                    ? t('settings.machine.ok', undefined, '확인됨 — 부품 굽기·개발 서버가 이 폴더를 쓴다.')
+                    : `${t('settings.machine.bad', undefined, '이 폴더는 아니다')}: ${r.why}`;
+            });
+        });
+    }
+
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('settings'),
         tabs: [
@@ -582,6 +632,15 @@ import { t, loadNamespace } from '../lib/i18n';
                 build: function (container: HTMLElement): void {
                     void loadNamespace('settings').then(function () {
                         buildMascot(container);
+                    });
+                },
+            },
+            {
+                id: 'settings-machine',
+                label: t('settings.tab.machine', undefined, '이 컴퓨터'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('settings').then(function () {
+                        buildMachine(container);
                     });
                 },
             },

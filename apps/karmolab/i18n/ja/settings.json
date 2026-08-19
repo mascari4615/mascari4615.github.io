@@ -106,5 +106,15 @@
   "settings.t28": "メニューの配置",
   "settings.t59": "作った人 · お問い合わせ",
   "settings.label.setLinks": "連絡先 · リンク集",
-  "settings.btn.setLinks": "開く"
+  "settings.btn.setLinks": "開く",
+  "settings.tab.machine": "このPC",
+  "settings.machine.folder": "作業フォルダ",
+  "settings.machine.desc": "ソースを置いた場所。部品のビルドや開発サーバーの起動に使います。",
+  "settings.machine.pick": "参照",
+  "settings.machine.save": "保存",
+  "settings.machine.ok": "確認できました — ビルドと開発サーバーがこのフォルダを使います。",
+  "settings.machine.bad": "このフォルダではありません",
+  "settings.machine.saving": "確認中…",
+  "settings.machine.nopick": "フォルダ選択を開けませんでした — パスを直接入力してください。",
+  "settings.machine.webonly": "これはデスクトップアプリ専用です — ブラウザにはこのPCのフォルダがありません。"
 }
