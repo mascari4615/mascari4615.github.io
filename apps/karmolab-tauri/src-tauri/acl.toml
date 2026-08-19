@@ -49,6 +49,7 @@ description = "Enables localdev repo-root and process helper commands for the Ka
 commands = [
   "localdev_set_repo_root",
   "localdev_get_repo_root",
+  "localdev_guess_repo_root",
   "localdev_list_tracked",
   "localdev_list_external_pids",
   "localdev_stop_external",

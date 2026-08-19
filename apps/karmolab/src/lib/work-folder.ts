@@ -74,6 +74,26 @@ export async function setWorkFolder(path: string): Promise<{ ok: true; path: str
 }
 
 /**
+ * 기계가 짐작한 작업 폴더. 못 짐작하면 `null`.
+ *
+ * 대개 기계가 알 수 있는 값이다 — 개발 판이면 실행 파일이 저장소 안에 있고, 깔아 쓰는
+ * 판이면 집 폴더 아래 흔한 자리에 있다. 그걸 사람에게 물어보는 것은 물어볼 필요 없는
+ * 것을 묻는 일이다.
+ *
+ * **채우기만 한다.** 정하는 것은 사람이 누른다 — 짐작이 틀렸는데 조용히 정해 버리면
+ * 엉뚱한 폴더에서 굽는다.
+ */
+export async function guessWorkFolder(): Promise<string | null> {
+    if (!isDesktop()) return null;
+    try {
+        return ((await invoke('localdev_guess_repo_root')) as string | null) ?? null;
+    } catch {
+        // 옛 판 앱에는 이 커맨드가 없다 — 없다고 화면이 죽을 이유는 아니다.
+        return null;
+    }
+}
+
+/**
  * 폴더 고르기 창. 못 열면 `null` — 그때는 사람이 손으로 적는다.
  *
  * 경로를 손으로 치는 것은 오타가 나기 쉽고, 오타는 「눌렀는데 안 된다」로만 보인다.

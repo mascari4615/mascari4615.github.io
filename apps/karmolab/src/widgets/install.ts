@@ -14,7 +14,7 @@
  */
 import { isDesktop, invoke, listen } from '../tauri-bridge';
 import { t } from '../lib/i18n';
-import { currentWorkFolder, pickWorkFolder, savedWorkFolder, setWorkFolder } from '../lib/work-folder';
+import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, setWorkFolder } from '../lib/work-folder';
 
 (function (): void {
   'use strict';
@@ -169,6 +169,17 @@ import { currentWorkFolder, pickWorkFolder, savedWorkFolder, setWorkFolder } fro
     const input = bar.querySelector('.install-folder') as HTMLInputElement;
     const note = bar.querySelector('.install-needroot-note') as HTMLElement;
     input.value = savedWorkFolder();
+
+    /* 빈 칸이면 기계가 짐작한 값을 채운다 — 물어볼 필요 없는 것을 묻지 않는다.
+       채우기만 하고 정하지는 않는다: 짐작이 맞는지는 사람이 보고 누른다. */
+    if (!input.value) {
+      void guessWorkFolder().then((guess) => {
+        if (guess && !input.value) {
+          input.value = guess;
+          note.textContent = t('install.guessed', undefined, '이 자리로 짐작했다 — 맞으면 저장을 눌러라.');
+        }
+      });
+    }
 
     (bar.querySelector('.install-pick') as HTMLButtonElement).addEventListener('click', () => {
       void pickWorkFolder().then((picked) => {
