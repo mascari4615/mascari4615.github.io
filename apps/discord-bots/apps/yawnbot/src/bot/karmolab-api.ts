@@ -91,7 +91,28 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:8899',
   'http://127.0.0.1:8899',
   'http://localhost:4000',
+  // 데스크톱 앱 dev 빌드가 띄우는 정적 서버 (karmolab-tauri `devUrl`). 없으면 개발판 앱은
+  // 로그인 코드를 내밀 때 브라우저가 요청을 버린다.
+  'http://127.0.0.1:8898',
+  'http://localhost:8898',
 ]);
+
+/**
+ * 데스크톱 앱이 되돌아오는 자리 — **그 기계 안(loopback)** 에서만 (RFC 8252).
+ *
+ * 앱은 로그인을 자기 창(웹뷰)에서 돌리지 않는다. 그러면 사람이 앱 창 안에서 디스코드
+ * 비밀번호를 치게 되고(그게 바로 가짜 로그인 창이 노리는 그림), 브라우저에 이미 있는
+ * 로그인도 못 쓴다. 그래서 **시스템 브라우저**로 내보내고, 끝나면 앱이 그 순간만 열어 둔
+ * 127.0.0.1 의 임시 포트로 되돌아온다. 포트는 앱이 그때그때 받는 값이라 못 박지 않는다 —
+ * 대신 「집 안 주소 + 이 경로」만 통과시킨다.
+ */
+const DESKTOP_CALLBACK_PATH = '/kl/desktop-callback';
+
+function isDesktopReturn(url: URL): boolean {
+  if (url.protocol !== 'http:') return false;
+  if (url.hostname !== '127.0.0.1' && url.hostname !== '[::1]') return false;
+  return url.pathname === DESKTOP_CALLBACK_PATH;
+}
 
 /** 로그인 후 되돌아갈 수 있는 곳 — 열린 리디렉트(아무 주소로나 튕겨 보내기)를 막는다. */
 function safeReturnUrl(raw: unknown): string {
@@ -100,7 +121,8 @@ function safeReturnUrl(raw: unknown): string {
   if (!value) return fallback;
   try {
     const url = new URL(value);
-    return ALLOWED_ORIGINS.has(url.origin) ? url.toString() : fallback;
+    if (ALLOWED_ORIGINS.has(url.origin) || isDesktopReturn(url)) return url.toString();
+    return fallback;
   } catch {
     return fallback;
   }
@@ -463,6 +485,17 @@ export function registerKarmolabApi(
       const session = store.createSession(account.id, device);
       store.noteEvent(account.id, 'login', { device, detail: '디스코드' });
       setSessionCookie(res, session.token, session.expiresAt - Date.now());
+      /* 데스크톱 앱은 이 쿠키를 못 받는다 — 로그인이 **브라우저에서** 끝나기 때문이다.
+       * 그 자리는 이미 있는 「다른 기기 로그인 코드」로 메운다: 코드를 한 장 실어 보내면
+       * 앱이 자기 웹뷰에서 그 코드를 내밀어 세션을 받아 간다(`/kl/auth/link`).
+       * 새 계정 장치를 만들지 않았다 — 한 번 쓰면 사라지고 몇 분만 사는 그 코드 그대로다. */
+      if (isDesktopReturn(new URL(returnUrl))) {
+        const link = store.issueLinkCode(account.id);
+        if (link) {
+          res.redirect(`${returnUrl}${sep}kl_login=ok&code=${encodeURIComponent(link.code)}`);
+          return;
+        }
+      }
       res.redirect(`${returnUrl}${sep}kl_login=ok`);
     } catch (error) {
       console.error('[karmolab-api] 로그인 처리 중 오류:', error);

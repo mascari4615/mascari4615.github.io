@@ -476,6 +476,41 @@ describe('계정 API — HTTP', () => {
     }
   });
 
+  it('데스크톱 앱이 되돌아올 자리(집 안 loopback)는 통과시킨다 — 앱 로그인이 여기 걸려 죽었다', async () => {
+    const before = process.env.DISCORD_CLIENT_SECRET;
+    delete process.env.DISCORD_CLIENT_SECRET;
+    try {
+      const back = encodeURIComponent('http://127.0.0.1:54321/kl/desktop-callback?nonce=abc');
+      const res = await fetch(`${baseUrl}/kl/auth/discord?return=${back}`, { redirect: 'manual' });
+      const location = res.headers.get('location') ?? '';
+      // 되돌려 보낸 자리가 앱이 준 그 주소여야 한다 (blog 로 눌리면 앱은 영영 못 받는다).
+      expect(location).toContain('http://127.0.0.1:54321/kl/desktop-callback');
+      expect(location).toContain('nonce=abc');
+    } finally {
+      if (before !== undefined) process.env.DISCORD_CLIENT_SECRET = before;
+    }
+  });
+
+  it('집 안 주소라도 정해진 경로가 아니면, 남의 기계면 안 통과한다', async () => {
+    const before = process.env.DISCORD_CLIENT_SECRET;
+    delete process.env.DISCORD_CLIENT_SECRET;
+    try {
+      for (const bad of [
+        'http://127.0.0.1:54321/훔치기',
+        'http://evil.example.com/kl/desktop-callback',
+        'https://127.0.0.1:54321/kl/desktop-callback',
+      ]) {
+        const res = await fetch(`${baseUrl}/kl/auth/discord?return=${encodeURIComponent(bad)}`, {
+          redirect: 'manual',
+        });
+        const location = res.headers.get('location') ?? '';
+        expect(location).toContain('https://blog.mascari4615.com/karmolab/');
+      }
+    } finally {
+      if (before !== undefined) process.env.DISCORD_CLIENT_SECRET = before;
+    }
+  });
+
   it('로그인 후 돌아갈 주소는 아는 곳만 — 아무 데로나 튕겨 보낼 수 없다', async () => {
     process.env.CLIENT_ID = 'test-client';
     process.env.DISCORD_CLIENT_SECRET = 'test-secret';
