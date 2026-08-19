@@ -1,5 +1,5 @@
 {
-  "$comment": "apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라.",
+  "$comment": "apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라 (npm run gen:play-roster).",
   "games": [
     {
       "id": "daily",
