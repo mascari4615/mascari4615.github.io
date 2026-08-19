@@ -1,2 +1,4 @@
 dist/
 *.jsonl
+# 배포용 꾸러미 (TASK-KAR-227) — 굽는 산출물이라 추적 X
+pack/
