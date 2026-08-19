@@ -12,94 +12,26 @@ import {
   addCopyButtons,
   mountDemos,
 } from '../../lib/doc-view';
+import { specFromMermaid } from '../../lib/karmograph/from-mermaid';
+import { renderGraphSvg } from '../../lib/karmograph/render';
 
 (function (): void {
-  /** 동일 출처(Tracking Prevention 회피). CDN 금지.
-   *  KarmoLab 자체 vendor (`apps/karmolab/js/vendor/mermaid.min.js`) 사용 — production /
-   *  dev:static (Mascari4615.github.io root 서빙) 양쪽에서 404 X. */
-  function getMermaidScriptUrl(): string {
-    const w = window as unknown as { KARMOLAB_WIDGET_SCRIPT_BASE?: string };
-    if (w.KARMOLAB_WIDGET_SCRIPT_BASE) {
-      try {
-        // base = apps/karmolab/js/widgets/docs/ → ../../vendor/ = apps/karmolab/js/vendor/
-        return new URL('../../vendor/mermaid.min.js', w.KARMOLAB_WIDGET_SCRIPT_BASE).href;
-      } catch {
-        /* noop */
-      }
-    }
-    const cur = document.currentScript as HTMLScriptElement | null;
-    if (cur?.src) {
-      try {
-        return new URL('../../vendor/mermaid.min.js', cur.src).href;
-      } catch {
-        /* noop */
-      }
-    }
-    return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/js/vendor/mermaid.min.js';
-  }
-
-  type MermaidApi = {
-    initialize: (config: Record<string, unknown>) => void;
-    run: (opts?: { nodes?: Iterable<Element> | null; suppressErrors?: boolean }) => Promise<unknown>;
-    render?: (
-      id: string,
-      text: string
-    ) => Promise<{ svg: string; bindFunctions?: (element: Element) => void }>;
-  };
-
-  let mermaidScriptPromise: Promise<void> | null = null;
+  /**
+   * 도해는 **우리 엔진이 그린다** (TASK-KL-326).
+   *
+   * 예전엔 `js/vendor/mermaid.min.js` 를 `<script>` 로 불렀다. 그런데 **그 파일이 저장소에도
+   * 배포에도 없었다** — 추적되는 vendor 12개 중 mermaid 만 처음부터 안 들어왔고, 그래서 실주소
+   * 에서 그림 자리가 통째로 비어 있었다(404). 3MB 짜리를 들이는 대신, 이미 우리가 가진 것을 잇는다:
+   *
+   *   글  →  `core/mermaidlite` (읽기)  →  `lib/karmograph/from-mermaid` (판으로)
+   *       →  `lib/karmograph/render`   (그림)
+   *
+   * mermaid **문법**은 그대로 받는다 — 남이 쓴 문서(깃허브 raw)를 여는 것이 이 도구의 일이라
+   * 문법은 우리가 못 정한다. 우리 것으로 가져오는 것은 *그리는 일* 뿐이다.
+   *
+   * 편집기(`canvas.ts` 257KB)는 안 부른다. 문서에 필요한 건 그림 한 장이지 끌고 고치는 판이 아니다.
+   */
   let markedMermaidRegistered = false;
-  /** 마지막으로 적용한 Mermaid 설정(불필요한 재초기화 방지) */
-  let mermaidInitKey: string | null = null;
-
-  /** UMD/ESM 번들 모두: default 또는 루트에 API 가 올 수 있음 */
-  function getMermaidApi(): MermaidApi | null {
-    const w = window as unknown as { mermaid?: MermaidApi & { default?: MermaidApi } };
-    const root = w.mermaid;
-    if (!root) return null;
-    if (typeof root.initialize === 'function' && typeof root.run === 'function') return root;
-    const d = root.default;
-    if (d && typeof d.initialize === 'function' && typeof d.run === 'function') return d;
-    return null;
-  }
-
-  /** `run()`이 조용히 실패하는 환경 대비: `render`로 SVG를 대상 요소에 직접 넣음 */
-  async function paintMermaidElements(mm: MermaidApi, elements: Element[]): Promise<void> {
-    const render = mm.render;
-    if (typeof render === 'function') {
-      let n = 0;
-      for (const el of elements) {
-        if (!(el instanceof HTMLElement)) continue;
-        const text = (el.textContent || '').replace(/\uFEFF/g, '').trim();
-        if (!text) continue;
-        const id = 'kl-mmd-' + Date.now() + '-' + ++n;
-        const { svg, bindFunctions } = await render.call(mm, id, text);
-        el.innerHTML = svg;
-        bindFunctions?.(el);
-      }
-      return;
-    }
-    await mm.run({ nodes: elements, suppressErrors: false });
-  }
-
-  function loadMermaidScript(): Promise<void> {
-    if (getMermaidApi()) return Promise.resolve();
-    if (mermaidScriptPromise) return mermaidScriptPromise;
-    mermaidScriptPromise = new Promise(function (resolve, reject) {
-      const s = document.createElement('script');
-      s.src = getMermaidScriptUrl();
-      s.async = true;
-      s.onload = function () {
-        resolve();
-      };
-      s.onerror = function () {
-        mermaidScriptPromise = null;
-        reject(new Error(t('docs.err.01')));
-      };
-      document.head.appendChild(s);
-    });
-    return mermaidScriptPromise;
-  }
 
   /** marked 기본 코드 블록(HTML 이스케이프)을 거치지 않고 ```mermaid 원문을 div 에 넣음 */
   function registerMarkedMermaid(): void {
@@ -531,34 +463,38 @@ import {
 
     const mermaidEls = body.querySelectorAll('.mermaid');
     if (mermaidEls.length > 0) {
-      void (async function () {
+      /* 문서 색을 그대로 쓴다 — 판만 까맣게 남으면 오려 붙인 것처럼 보인다
+         (`canvas-theme.ts` 가 같은 이유로 값을 읽어 박는다). */
+      const css = getComputedStyle(body);
+      const theme = {
+        nodeFill: css.getPropertyValue('--bg-secondary').trim() || '#131720',
+        nodeText: css.getPropertyValue('--text-primary').trim() || '#e2e8f0',
+        childText: css.getPropertyValue('--text-secondary').trim() || 'rgba(226,232,240,0.65)',
+        edgeDotFill: css.getPropertyValue('--bg-primary').trim() || '#0a0c10',
+        edgeDefaultColor: css.getPropertyValue('--text-secondary').trim() || '#64748b',
+      };
+
+      mermaidEls.forEach(function (element) {
+        if (!(element instanceof HTMLElement)) return;
+        const text = (element.textContent || '').replace(/﻿/g, '').trim();
+        if (!text) return;
         try {
-          await loadMermaidScript();
-          const mm = getMermaidApi();
-          if (!mm) {
-            console.error(t('docs.t14'));
+          const { spec, diagram } = specFromMermaid(text);
+          if (diagram.kind === 'unknown') {
+            /* 못 읽는 종류(sequence·state 등)는 **글 그대로** 둔다 — 빈칸보다 낫다.
+               문법이 늘어나면 `core/mermaidlite` 를 넓히는 것이 그 자리다. */
+            element.innerHTML = '';
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            element.appendChild(pre);
             return;
           }
-          const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-          const theme = isDark ? 'dark' : 'default';
-          const initKey = theme + '|loose';
-          if (mermaidInitKey !== initKey) {
-            mermaidInitKey = initKey;
-            mm.initialize({
-              startOnLoad: false,
-              theme,
-              securityLevel: 'loose',
-            });
-          }
-          await paintMermaidElements(mm, Array.from(mermaidEls));
+          element.innerHTML = renderGraphSvg(spec, { theme, title: diagram.kind, className: 'docs-diagram' });
         } catch (e) {
-          console.error('[docs mermaid]', e);
-          body.insertAdjacentHTML(
-            'beforeend',
-            t('docs.t15'),
-          );
+          console.error('[docs diagram]', e);
+          element.insertAdjacentHTML('beforeend', t('docs.t15'));
         }
-      })();
+      });
     }
   }
 

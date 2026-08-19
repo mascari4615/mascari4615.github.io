@@ -46,11 +46,27 @@ export interface Edge {
   dashed?: boolean;
 }
 
+/**
+ * `subgraph` 묶음 (TASK-KL-326).
+ *
+ * 여태 `subgraph`·`end` 를 「못 읽은 줄」로 버렸다. 그런데 그 줄이 버려지면 **소속이
+ * 통째로 사라진다** — `docs/ROADMAP.md` 의 그림은 「어느 것이 글쓴이 쪽이고 어느 것이
+ * 브라우저 쪽인가」가 요점인데, 남는 것은 화살표뿐이었다.
+ */
+export interface Group {
+  id: string;
+  label: string;
+  /** 이 묶음 안에 적힌 마디들 (글에 나온 차례). */
+  members: string[];
+}
+
 export interface Diagram {
   kind: Kind;
   dir: Dir;
   nodes: Node[];
   edges: Edge[];
+  /** `subgraph` 묶음. 흐름도에만 나온다. */
+  groups: Group[];
   /** 못 읽은 줄 — 숨기지 않고 돌려준다 */
   unknown: string[];
 }
@@ -69,7 +85,7 @@ function readNode(raw: string): Node {
 
 export function parse(text: string): Diagram {
   const lines = text.replace(/\r\n?/g, '\n').split('\n').map((l) => l.trim()).filter((l) => l !== '' && !l.startsWith('%%'));
-  const out: Diagram = { kind: 'unknown', dir: 'TD', nodes: [], edges: [], unknown: [] };
+  const out: Diagram = { kind: 'unknown', dir: 'TD', nodes: [], edges: [], groups: [], unknown: [] };
   if (lines.length === 0) return out;
 
   const head = lines[0].toLowerCase();
@@ -123,21 +139,47 @@ export function parse(text: string): Diagram {
     return out;
   }
 
+  /* 묶음은 겹쳐 적을 수 있다(`subgraph` 안의 `subgraph`) — 그래서 쌓아 두고, 마디가 나오면
+     **가장 안쪽 묶음**에 넣는다. 닫는 `end` 가 모자라거나 남아도 터지지 않는다. */
+  const openGroups: Group[] = [];
+
   for (const line of lines.slice(1)) {
-    if (/^(subgraph|end|classDef|class |click |style )/i.test(line)) {
+    /* `subgraph 아이디 [보이는 이름]` · `subgraph 이름` 둘 다 받는다. */
+    const sub = /^subgraph\s+([^\[\]]+?)(?:\s*\[([^\]]*)\])?\s*$/i.exec(line);
+    if (sub !== null) {
+      const id = clean(sub[1]);
+      const group: Group = { id, label: sub[2] === undefined ? id : clean(sub[2]), members: [] };
+      out.groups.push(group);
+      openGroups.push(group);
+      continue;
+    }
+    if (/^end$/i.test(line)) {
+      openGroups.pop();
+      continue;
+    }
+    if (/^(classDef|class |click |style )/i.test(line)) {
       out.unknown.push(line);
       continue;
     }
     /* `A --> B` · `A -->|글| B` · `A -.-> B` · `A --- B` */
+    /* 이 마디가 지금 열려 있는 묶음 안에 적혔다면 그 묶음의 것이다. 같은 마디가 두 번
+       적혀도 한 번만 센다(`A --> B` 와 `B --> C` 에 B 가 둘 다 나온다). */
+    const join = (id: string): void => {
+      const group = openGroups[openGroups.length - 1];
+      if (group !== undefined && group.members.includes(id) === false) group.members.push(id);
+    };
+
     const arrow = /^(.+?)\s*(-\.->|-->|---|-\.-)\s*(?:\|([^|]*)\|\s*)?(.+)$/.exec(line);
     if (arrow !== null) {
       const from = put(readNode(arrow[1]));
       const to = put(readNode(arrow[4]));
+      join(from.id);
+      join(to.id);
       out.edges.push({ from: from.id, to: to.id, label: arrow[3] === undefined ? undefined : clean(arrow[3]), dashed: arrow[2].includes('.') });
       continue;
     }
     if (/^[\w가-힣.\-]+\s*(\(\(|\[|\(|\{)/.test(line) || /^[\w가-힣.\-]+$/.test(line)) {
-      put(readNode(line));
+      join(put(readNode(line)).id);
       continue;
     }
     out.unknown.push(line);
