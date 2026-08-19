@@ -112,10 +112,17 @@ const Toolbox = (() => {
         }
     };
 
+    /* ★ **lab 과 「갈래 없음」이 여기 없어서 위젯 15개가 어디에도 안 나왔다** (2026-08-19 실측).
+     * `getNavigationCategory` 는 도구가 아닌 것에 제 갈래를 그대로 돌려주는데(=`'lab'`, `''`),
+     * 이 목록에 그 두 칸이 없으니 옆줄·폰 어느 쪽에서도 그릴 자리가 없었다 — 실험실 13개
+     * (activity·tierlist·planner·cockpit·garden·arcade…) + favorites·linktree.
+     * 못 찾는 것과 없는 것은 같다. 칸을 만든다. */
     const NAV_CATEGORIES = [
         ...NAV_TOOL_GROUPS,
         { id: 'ref', label: () => 말('shell.nav.ref', '자료') },
         { id: 'play', label: () => 말('shell.nav.play', '놀이') },
+        { id: 'lab', label: () => 말('shell.nav.lab', '실험실 · 개발중') },
+        { id: 'etc', label: () => 말('shell.nav.etc', '기타') },
     ];
 
     function startsWithAny(value, prefixes) {
@@ -123,6 +130,8 @@ const Toolbox = (() => {
     }
 
     function getNavigationCategory(tool) {
+        // 갈래를 안 밝힌 위젯도 갈 곳이 있어야 한다 (favorites·linktree — 2026-08-19).
+        if (!tool.category) return 'etc';
         if (tool.category !== 'tool') return tool.category;
         const group = NAV_TOOL_GROUPS.find((candidate) => candidate.prefixes.length > 0 && startsWithAny(tool.id, candidate.prefixes));
         return group ? group.id : 'tool-create';
@@ -154,9 +163,21 @@ const Toolbox = (() => {
      * 별 하나가 네 곳을 같이 바꾼다: 도구 목록 · 찾는 창 · 옆줄 · 도구 화면.
      * 저장하는 자리는 하나뿐이라 어디서 꽂든 같은 것을 가리킨다. */
     const PINNED_KEY = 'toolbox_pinned_tools';
-    const HEADER_TOOL_LIMIT = 12;
     const HEADER_QUICK_LIMIT = 8;
     const HEADER_QUICK_IDS = ['calc', 'charcount', 'unitconv', 'jsonfmt', 'pdftool', 'imageedit', 'qrgen', 'passgen'];
+
+    /* ★ **이 여덟 중 여섯이 화면에 안 나오고 있었다** (2026-08-19 실측).
+     * charcount·unitconv·jsonfmt·pdftool·imageedit·qrgen 은 그 뒤 묶음 도구로 흡수되면서
+     * `hidden: true` 가 됐다(주소는 살아 있다). 머리띠는 숨긴 것을 거르므로 「빠른 실행」에
+     * 실제로 뜬 것은 calc·passgen 둘뿐이었다 — 골라 둔 목록이 조용히 죽어 있었다.
+     * 숨긴 도구는 제 묶음(`bundle`)으로 바꿔 잡는다. 그러면 누른 사람은 그 도구의 탭으로 간다. */
+    function resolveVisibleTool(id) {
+        const t = tools.find(x => x.id === id);
+        if (!t) return null;
+        if (!t.hidden) return t;
+        const host = t.bundle ? tools.find(x => x.id === t.bundle) : null;
+        return host && !host.hidden ? host : null;
+    }
     /** 옆줄의 「내 것」 칸을 다시 그리는 손잡이 — 옆줄이 만들어질 때 채워진다. */
     let rebuildMineGroup = null;
 
@@ -1276,7 +1297,7 @@ const Toolbox = (() => {
         });
 
         function buildHeaderNavGroup(label, catTools, navParent, options = {}) {
-            if (!catTools.length) return;
+            if (!catTools.length && !options.sections) return;
 
             const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
@@ -1290,9 +1311,19 @@ const Toolbox = (() => {
             const labelSpan = document.createElement('span');
             labelSpan.className = 'header-nav-trigger-label';
             labelSpan.textContent = label;
+            /* 손잡이는 **눌리는 것처럼** 보여야 한다 — 옆이 검색칸이라 맨 글자는 이름표로 읽힌다. */
+            if (options.sections) {
+                trigger.classList.add('header-nav-trigger--list');
+                trigger.insertAdjacentHTML('afterbegin',
+                    '<svg class="header-nav-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                    + 'stroke-width="1.8" stroke-linecap="round" aria-hidden="true">'
+                    + '<path d="M4 7h16M4 12h16M4 17h10"/></svg>');
+            }
 
             const panel = document.createElement('div');
-            panel.className = 'header-nav-panel header-nav-panel--mega';
+            /* 칸이 여럿인 판은 **손잡이 밑에 붙는 작은 판**이다 (2026-08-19). 갈래 메뉴 시절의
+             * 대문짝(--mega, 폭 100vw)을 그대로 쓰면 여섯 줄짜리 목록이 화면 절반을 덮는다. */
+            panel.className = 'header-nav-panel ' + (options.sections ? 'header-nav-panel--list' : 'header-nav-panel--mega');
             panel.hidden = true;
             const inner = document.createElement('div');
             inner.className = 'header-nav-panel-inner';
@@ -1302,6 +1333,49 @@ const Toolbox = (() => {
              * 안 보여도 브라우저는 스타일을 계산하고 자리를 잡는다. 한 번만 만들고 다음부터는 그대로 쓴다. */
             let innerFilled = false;
             function fillPanelOnce() {
+                /* ★ **칸이 있는 판은 열 때마다 새로 그린다** (2026-08-19 버그).
+                 * 여기 있던 「한 번만 만든다」는 갈래 메뉴의 규율이다 — 그 목록은 등록된 도구가
+                 * 곧 내용이라 절대 안 변한다. 그런데 이 판이 담는 것은 **사람이 방금 한 일**이다:
+                 * 별을 꽂고, 도구를 열고. 한 번 만들고 캐시하니 별을 꽂아도 「내 것」은 빈 채였고,
+                 * 도구를 열어도 「최근 본 것」이 안 늘었다 — 새로고침해야 나타났다.
+                 * 다시 그리는 값은 줄 15개다. 여는 사람의 눈보다 훨씬 싸다. */
+                if (options.sections) {
+                    innerFilled = true;
+                    inner.textContent = '';
+                    options.sections().forEach(sec => {
+                        const box = document.createElement('div');
+                        box.className = 'header-nav-section';
+                        const h = document.createElement('div');
+                        h.className = 'header-nav-section-label';
+                        h.textContent = sec.label;
+                        box.appendChild(h);
+                        if (sec.tools.length) sec.tools.forEach(tool => addNavItem(box, tool));
+                        else {
+                            const note = document.createElement('p');
+                            note.className = 'header-nav-section-empty';
+                            note.textContent = sec.empty;
+                            box.appendChild(note);
+                        }
+                        inner.appendChild(box);
+                    });
+                    /* 바닥 줄 = **전체 목록 장으로 가는 길** (2026-08-19).
+                     * 여기 있던 「전체 도구 찾기」(찾는 창 열기)는 지웠다 — 바로 옆에 검색칸이
+                     * 같은 일을 하는데 판까지 열어서 또 권하는 것은 같은 것을 두 번 두는 일이다.
+                     * 대신 머리띠 오른쪽에 있던 「전체 목록」 링크가 이 자리로 내려왔다:
+                     * 그건 찾는 창이 아니라 **딴 장**이라 검색칸과 겹치지 않는다.
+                     * 스크롤 밖에 둔다 — 목록 안에 넣으면 320px 에서 잘려 굴려야 보인다(실측). */
+                    if (panel.querySelector('.header-nav-panel-foot')) return;
+                    const foot = document.createElement('div');
+                    foot.className = 'header-nav-panel-foot';
+                    const indexLink = document.createElement('a');
+                    indexLink.className = 'nav-item nav-item-find';
+                    indexLink.href = '/karmolab/t/';
+                    indexLink.textContent = 말('shell.nav.toolIndex', '전체 도구 목록 →');
+                    indexLink.title = 말('shell.nav.toolsList', '도구 전체 목록 장 — 128개를 한 장에서 훑습니다');
+                    foot.appendChild(indexLink);
+                    panel.appendChild(foot);
+                    return;
+                }
                 if (innerFilled) return;
                 innerFilled = true;
                 const visibleTools = options.limit ? catTools.slice(0, options.limit) : catTools;
@@ -1340,6 +1414,12 @@ const Toolbox = (() => {
                 trigger.addEventListener('click', toggleClick);
             }
 
+            if (options.sections) {
+                trigger.insertAdjacentHTML('beforeend',
+                    '<svg class="header-nav-trigger-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                    + 'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+                    + '<path d="M6 9l6 6 6-6"/></svg>');
+            }
             wrap.appendChild(trigger);
             wrap.appendChild(panel);
             navParent.appendChild(wrap);
@@ -1350,28 +1430,99 @@ const Toolbox = (() => {
             headerNavScroll.className = 'header-nav-scroll';
             headerNav.appendChild(headerNavScroll);
 
-            const visibleToolIds = new Set([
-                ...getPins(),
-                (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })(),
-                ...HEADER_QUICK_IDS,
-            ].filter(Boolean));
-            const quickTools = tools
-                .filter(t => !hiddenSet.has(t.id) && visibleToolIds.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
-                .sort((a, b) => {
-                    const aRank = getPins().indexOf(a.id);
-                    const bRank = getPins().indexOf(b.id);
-                    if (aRank !== -1 || bRank !== -1) return (aRank === -1 ? 999 : aRank) - (bRank === -1 ? 999 : bRank);
-                    return (a.title || '').localeCompare(b.title || '', 'ko-KR');
-                })
-                .slice(0, HEADER_QUICK_LIMIT);
-            buildHeaderNavGroup(말('shell.nav.group.quick', '빠른 실행'), quickTools, headerNavScroll);
+            /* ── 머리띠 = 채널 목록 + 검색칸 (2026-08-19, 아카라이브 참고) ──────────
+             *
+             * ① 왜 갈래를 뺐나. 보이는 도구 84개가 계산 4 · 개발 5 · 자료 3 · 놀이 4 ·
+             *    미디어 12 · **생성·정리 41** 로 갈려 있었다. 마지막 칸은 이름이 아니라
+             *    「나머지 전부」였고, 41개를 떨구면 화면 밖으로 나가니 12개에서 잘랐다 —
+             *    12 라는 수의 정체는 그 가림막이었다. 나눔이 이미 죽어 있었다.
+             *
+             * ② 무엇으로 바꿨나. 채널 사이트의 머리띠를 그대로 본떴다:
+             *      [로고] [도구 목록 ▾] [────── 검색칸 ──────] [바깥 링크들]
+             *    · **도구 목록** = 「구독 채널 · 주요 채널」과 같은 자리다. 세 칸으로 연다 —
+             *      내 것(꽂은 것) · 많이 쓰는 것 · 최근 본 것. 84개를 다 떨구지 않는다:
+             *      사람이 실제로 오가는 것은 늘 그 대여섯이고, 나머지는 ③ 이 받는다.
+             *    · **검색칸** = 늘 보인다. 예전에는 첫 화면에만 있어서, 도구를 보는 중에
+             *      다음 도구로 가려면 ⌘K 를 아는 사람만 갈 수 있었다.
+             *      제 목록은 안 그린다 — 한 글자만 쳐도 찾는 창(팔레트)에 그 글자를 넘긴다.
+             *      표면을 둘로 늘리면 결과가 두 벌로 갈린다.
+             *
+             * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/karmolab/t/`). */
+            const seenList = new Set();
+            const pickTools = (ids, max) => {
+                const out = [];
+                ids.forEach(id => {
+                    if (out.length >= max) return;
+                    const tool = resolveVisibleTool(id);
+                    if (!tool || seenList.has(tool.id)) return;
+                    if (hiddenSet.has(tool.id)) return;
+                    if (isDesktopOnlyTool(tool) && !isDesktopApp()) return;
+                    seenList.add(tool.id);
+                    out.push(tool);
+                });
+                return out;
+            };
+            /* 「많이 쓰는 것」의 참값은 서버가 센다 — 그건 늦게 오고 못 올 수도 있다.
+             * 못 오면 골라 둔 여덟이 그 자리를 지킨다(빈 칸을 보여 주지 않는다). */
 
-            NAV_CATEGORIES.forEach(cat => {
-                const catTools = getNavigationTools(cat.id)
-                    .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
-                    .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-                buildHeaderNavGroup(navLabel(cat), catTools, headerNavScroll, cat.id === 'tool-create' ? { limit: HEADER_TOOL_LIMIT } : {});
-            });
+            /* ★ 목록을 **여는 순간에** 센다 (2026-08-19). 부팅 때 한 번 세어 두면 그 뒤에 꽂은
+             * 별도, 방금 연 도구도 못 담는다 — 판이 어제 것을 보여 준다. */
+            const sections = () => {
+                seenList.clear();
+                const pins = getPins();
+                const popular = (window.KarmoPalette?.getPopular?.() || []).concat(HEADER_QUICK_IDS);
+                const recent = window.KarmoPalette?.getRecent?.() || [];
+                const last = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
+                return [
+                    { label: 말('shell.nav.mine', '내 것'), tools: pickTools(pins, 12),
+                      empty: 말('shell.nav.mine.empty', '도구 옆 별을 누르면 여기 모입니다') },
+                    { label: 말('shell.nav.popular', '많이 쓰는 것'), tools: pickTools(popular, 6) },
+                    { label: 말('shell.nav.recent', '최근 본 것'), tools: pickTools([last, ...recent].filter(Boolean), 6) },
+                ].filter(sec => sec.tools.length || sec.empty);
+            };
+
+            /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /karmolab/t/)와
+             * 무엇이 다른지 알 수 없었다 (2026-08-19 사용자 지적). 이 판은 **내 것**을 모아 둔 자리다. */
+            buildHeaderNavGroup(말('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
+
+            /* ── 검색칸 ── 진짜 input 이다. 흉내만 낸 단추를 두면 폰에서 자판이 안 올라오고,
+             * 붙여넣기·자동완성이 죽는다. 대신 결과는 제가 안 그리고 팔레트에 넘긴다. */
+            const searchWrap = document.createElement('div');
+            searchWrap.className = 'header-search';
+            searchWrap.innerHTML =
+                '<svg class="header-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+                + 'stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'header-search-input';
+            searchInput.autocomplete = 'off';
+            searchInput.placeholder = 말('shell.search.placeholder', '도구 찾기');
+            searchInput.setAttribute('aria-label', 말('shell.search.aria', '도구 찾기'));
+            /* ★ **넘기기 전에 먼저 손을 뗀다** (2026-08-19 버그). 팔레트는 열릴 때 그 순간의
+             * 활성 요소를 적어 뒀다가 닫을 때 거기로 초점을 되돌린다(키보드 사용자가 문서
+             * 맨 위로 떨어지지 않게). 그 요소가 이 칸이면 — 닫는 순간 이 칸이 초점을 받고,
+             * 그 초점이 아래 `focus` 손잡이를 다시 당겨 **팔레트가 곧바로 다시 열렸다**.
+             * 닫기 단추도 바탕 누르기도 Esc 도 전부 이 고리에 걸렸다.
+             * 먼저 blur 하면 팔레트가 적어 두는 것은 이 칸이 아니라 문서가 되어 고리가 끊긴다. */
+            const handoff = (seed) => {
+                closeAllHeaderNav();
+                searchInput.value = '';
+                searchInput.blur();
+                window.KarmoPalette?.open(seed || '');
+            };
+            // 눌러서 들어오면 바로 넘긴다 — 여기서 한 글자라도 치게 두면 목록이 두 벌이 된다.
+            searchInput.addEventListener('focus', () => handoff(''));
+            searchInput.addEventListener('input', () => handoff(searchInput.value));
+            searchWrap.appendChild(searchInput);
+            // 단축키 글씨는 **칸 오른쪽 끝**이다 — 붙이는 순서가 곧 자리다 (왼쪽은 돋보기 자리)
+            const searchKbd = document.createElement('span');
+            searchKbd.className = 'header-search-kbd';
+            searchKbd.setAttribute('aria-hidden', 'true');
+            searchKbd.textContent = 'Ctrl K';
+            searchWrap.appendChild(searchKbd);
+            headerNavScroll.appendChild(searchWrap);
+
+            /* 「전체 도구 목록」은 이미 머리띠 오른쪽에 링크로 있다(`≡ 도구`) — 두 번 두지 않는다. */
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.header-nav')) closeAllHeaderNav();

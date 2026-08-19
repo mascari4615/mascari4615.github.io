@@ -411,8 +411,9 @@ html[data-intro="off"] .intro-overlay {
 
 .header-nav-scroll {
     display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
+    align-items: center;
+
+    flex-wrap: nowrap;
     justify-content: center;
     gap: 2px;
     min-width: 0;
@@ -451,6 +452,129 @@ html[data-intro="off"] .intro-overlay {
     background: var(--bg-hover);
 }
 .header-nav-trigger-label { pointer-events: none; }
+
+.header-nav-trigger--action { flex-shrink: 0; }
+
+.header-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 clamp(180px, 26vw, 340px);
+    min-width: 150px;
+    height: 30px;
+    padding: 0 6px 0 28px;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    transition: border-color var(--transition), background var(--transition);
+}
+.header-search:hover { border-color: var(--border-hover); }
+.header-search:focus-within { border-color: var(--border-strong); background: var(--bg-tertiary); }
+.header-search-icon {
+    position: absolute;
+    left: 9px;
+    width: 14px;
+    height: 14px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+input.header-search-input,
+input.header-search-input:focus {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    border-left: none;
+    outline: none;
+    box-shadow: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    line-height: 1;
+}
+input.header-search-input::placeholder { color: var(--text-tertiary); }
+
+.header-search-kbd {
+    flex-shrink: 0;
+    margin-left: 6px;
+    padding: 2px 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: .04em;
+    color: var(--text-tertiary);
+}
+@media (max-width: 720px) {
+    .header-search-kbd { display: none; }
+}
+
+.header-nav-trigger--list { gap: 5px; padding-left: 8px; padding-right: 7px; }
+.header-nav-trigger--list .header-nav-trigger-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.header-nav-trigger--list .header-nav-trigger-caret {
+    width: 9px; height: 9px; flex-shrink: 0; opacity: .55;
+    transition: transform var(--transition);
+}
+.header-nav-group.is-open .header-nav-trigger--list .header-nav-trigger-caret { transform: rotate(180deg); }
+
+.header-nav-panel--list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: min(620px, calc(100vw - 32px));
+    max-height: var(--header-mega-max-h);
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--space-sm);
+
+    background: var(--glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float), 0 12px 32px -12px rgba(0, 0, 0, .55);
+}
+.header-nav-panel--list .header-nav-panel-inner {
+    min-height: 0;
+    overflow: hidden auto;
+    max-width: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px 8px;
+}
+@media (max-width: 640px) {
+    .header-nav-panel--list { left: auto; right: 0; }
+    .header-nav-panel--list .header-nav-panel-inner { grid-template-columns: 1fr; }
+}
+.header-nav-section { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.header-nav-section-label {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--text-tertiary);
+}
+.header-nav-section-empty {
+    margin: 0;
+    padding: 2px 8px 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+}
+
+.header-nav-panel-foot {
+    flex-shrink: 0;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+}
+.header-nav-panel-foot .nav-item-find { color: var(--text-secondary); }
 
 .header-nav-panel {
     z-index: 200;
@@ -650,12 +774,6 @@ html[data-intro="off"] .intro-overlay {
     border-image: linear-gradient(90deg,
         transparent 0%, var(--accent-dim) 22%, var(--accent-glow) 50%, var(--accent-dim) 78%, transparent 100%) 1;
     pointer-events: none;
-}
-.header-bar:has(.header-nav-group.is-open)::after {
-    height: calc(52px + var(--header-mega-max-h));
-
-    background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
 }
 
 .header-bar > * {

@@ -1,8 +1,7 @@
 {
   "shell.home.title": "Go home",
   "shell.nav.categories": "Tool categories",
-  "shell.nav.toolsList": "Every tool",
-  "shell.nav.tools": "≡ Tools",
+  "shell.nav.toolsList": "Full tool index — browse every tool on one page",
   "shell.nav.bot": "◈ Bot",
   "shell.nav.botTitle": "Discord bot · server wrap-up",
   "shell.nav.daily": "◉ Daily",
@@ -41,5 +40,17 @@
   "shell.nav.group.create": "Make & tidy",
   "shell.nav.group.quick": "Quick run",
   "shell.nav.ref": "Reference",
-  "shell.nav.play": "Play"
+  "shell.nav.play": "Play",
+  "shell.nav.mine": "Mine",
+  "shell.nav.all": "All tools",
+  "shell.nav.all.hint": "Find any tool (Ctrl+K)",
+  "shell.nav.lab": "Lab · in progress",
+  "shell.nav.etc": "Other",
+  "shell.nav.list": "My tools",
+  "shell.nav.popular": "Popular",
+  "shell.nav.recent": "Recent",
+  "shell.nav.mine.empty": "Star a tool and it shows up here",
+  "shell.search.placeholder": "Find a tool",
+  "shell.search.aria": "Find a tool",
+  "shell.nav.toolIndex": "All tools →"
 }

@@ -1,8 +1,7 @@
 {
   "shell.home.title": "ホームへ",
   "shell.nav.categories": "道具のカテゴリ",
-  "shell.nav.toolsList": "道具の一覧",
-  "shell.nav.tools": "≡ 道具",
+  "shell.nav.toolsList": "道具の全一覧ページ",
   "shell.nav.bot": "◈ ボット",
   "shell.nav.botTitle": "Discord ボット · サーバー総括",
   "shell.nav.daily": "◉ 今日の",
@@ -41,5 +40,17 @@
   "shell.nav.group.create": "作成・整理",
   "shell.nav.group.quick": "クイック実行",
   "shell.nav.ref": "資料",
-  "shell.nav.play": "あそび"
+  "shell.nav.play": "あそび",
+  "shell.nav.mine": "マイツール",
+  "shell.nav.all": "すべての道具",
+  "shell.nav.all.hint": "道具を探す (Ctrl+K)",
+  "shell.nav.lab": "実験室 · 開発中",
+  "shell.nav.etc": "その他",
+  "shell.nav.list": "マイ道具",
+  "shell.nav.popular": "よく使う",
+  "shell.nav.recent": "最近見た",
+  "shell.nav.mine.empty": "道具の星を押すとここに集まります",
+  "shell.search.placeholder": "道具を探す",
+  "shell.search.aria": "道具を探す",
+  "shell.nav.toolIndex": "道具の全一覧 →"
 }
