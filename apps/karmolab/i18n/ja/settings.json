@@ -103,5 +103,8 @@
   "settings.tab.mascot": "マスコット",
   "settings.tab.data": "このブラウザに保存されているもの",
   "settings.t27": "画面テーマ（明るい・暗い）",
-  "settings.t28": "メニューの配置"
+  "settings.t28": "メニューの配置",
+  "settings.t59": "作った人 · お問い合わせ",
+  "settings.label.setLinks": "連絡先 · リンク集",
+  "settings.btn.setLinks": "開く"
 }
