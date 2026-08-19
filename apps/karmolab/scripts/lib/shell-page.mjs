@@ -92,10 +92,7 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   html = html.replace(/\n\s*<!-- 언어 판 왕복 표시[\s\S]*?-->/, '');
   html = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
 
-  /* 눈에 보이는 언어 링크도 셸의 것이다 — 짝 표시와 같은 이유로 비운다 (TASK-KL-244).
-     제 짝이 있는 장은 `gen-tool-pages-locale.mjs` 가 **이 장의** 링크로 채운다.
-     짝이 없는 장(봇 소개 등)은 빈 칸으로 남는다 — 없는 주소를 가리키는 것보다 낫다. */
-  html = html.replace(/(<div class="sidebar-lang-links"[^>]*>)[\s\S]*?(<\/div>)/, '$1$2');
+  /* 눈에 보이는 언어 링크 칸은 없앴다 (2026-08-20) — 언어 지도는 머리말 hreflang 하나다. */
 
   // 첫 화면용 뽑기 위젯은 정적 페이지에서 쓰이지 않는다.
   html = html.replace(
