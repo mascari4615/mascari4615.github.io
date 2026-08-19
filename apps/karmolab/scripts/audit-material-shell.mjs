@@ -72,7 +72,13 @@ if (shellUsers.length === 0) {
 }
 
 const gateNames = JSON.parse(readFileSync(GATE_LIST, 'utf8'));
-const gates = Array.isArray(gateNames) ? gateNames : gateNames['목록'] || gateNames.gates || [];
+const gateEntries = Array.isArray(gateNames) ? gateNames : gateNames['목록'] || gateNames.gates || [];
+/* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331). 객체를 안 펴면 아래
+   `filter(정규식)` 이 조용히 빠뜨리고, 그러면 이 검사가 「형식을 확인할 것」으로
+   뒤집힌다 — 발판을 적는 순간 터지는 지뢰라 미리 편다. */
+const gates = gateEntries
+  .map((e) => (typeof e === 'string' ? e : e?.이름 ?? e?.name))
+  .filter((n) => typeof n === 'string');
 const shellSmokes = gates.filter((g) => /^smoke:[a-z]+shell$/.test(g));
 if (shellSmokes.length === 0) {
   console.error('[material-shell] CANNOT-RUN: `gates` 에 `smoke:*shell` 이 하나도 없다 — 목록 형식을 확인할 것.');

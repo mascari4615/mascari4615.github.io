@@ -1,0 +1,15 @@
+{
+  "install.intro": "KarmoLab 에 붙는 부품. 굽는 것은 이 컴퓨터에서 도는 일이라 데스크톱 앱에서만 보인다.",
+  "install.web": "데스크톱 앱에서 열어야 깔 수 있다.",
+  "install.loading": "읽는 중…",
+  "install.tab": "부품",
+  "install.none": "안 깔림",
+  "install.done": "깔림",
+  "install.built": "구움",
+  "install.src": "소스",
+  "install.do": "설치",
+  "install.again": "다시 굽기",
+  "install.working": "굽는 중…",
+  "install.retry": "다시",
+  "install.failed": "못 깔았다 — 위 기록을 봐라"
+}

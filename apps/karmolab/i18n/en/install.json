@@ -1,0 +1,15 @@
+{
+  "install.intro": "Parts that plug into KarmoLab. Building runs on this machine, so this only shows in the desktop app.",
+  "install.web": "Open the desktop app to install.",
+  "install.loading": "Reading…",
+  "install.tab": "Parts",
+  "install.none": "Not installed",
+  "install.done": "Installed",
+  "install.built": "built",
+  "install.src": "source",
+  "install.do": "Install",
+  "install.again": "Rebuild",
+  "install.working": "Building…",
+  "install.retry": "Retry",
+  "install.failed": "Install failed — see the log above"
+}

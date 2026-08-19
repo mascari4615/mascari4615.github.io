@@ -64,7 +64,12 @@ function expand(name, depth = 0) {
   if (from) {
     try {
       const raw = JSON.parse(fs.readFileSync(path.join(root, from[1]), 'utf8'));
-      for (const n of raw.목록 ?? raw.list ?? []) {
+      /* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331 — 발판을 적으면
+         `gates:changed` 가 그 검사를 건너뛸 수 있다). 문자열로만 읽으면 발판을 적은
+         검사들이 통째로 「아무도 안 돌린다」로 뒤집힌다 — 실측으로 열 개가 그랬다. */
+      for (const entry of raw.목록 ?? raw.list ?? []) {
+        const n = typeof entry === 'string' ? entry : entry?.이름 ?? entry?.name;
+        if (typeof n !== 'string') continue;
         covered.add(n);
         expand(n, depth + 1);
       }
