@@ -52,5 +52,7 @@
   "shell.nav.mine.empty": "도구 옆 별을 누르면 여기 모입니다",
   "shell.search.placeholder": "도구 찾기",
   "shell.search.aria": "도구 찾기",
-  "shell.nav.toolIndex": "전체 도구 목록 →"
+  "shell.nav.toolIndex": "전체 도구 목록 →",
+  "shell.sidebar.links": "링크 · 문의",
+  "shell.sidebar.linksTitle": "연락처 · 링크 — 문의는 여기로"
 }

@@ -1,26 +1,26 @@
 /* 이 파일은 `scripts/split-css.mjs` 가 `css/toolbox.css` 에서 뽑아 만든다 — 손으로 고치지 마라.
    고칠 곳은 `css/toolbox.css` 다 (TASK-KL-128). 이 벌: 첫 그림에 필요한 것 — 화면 그리기를 막고 기다린다 */
 :root {
-
+    
     color-scheme: dark;
 
-    --bg-void: #0f1016;
-    --bg-primary: #171821;
-    --bg-secondary: #1d1e28;
-    --bg-tertiary: #292a36;
-    --bg-hover: #343542;
-    --bg-active: #424352;
+    --bg-void: #0f1016;        
+    --bg-primary: #171821;     
+    --bg-secondary: #1d1e28;   
+    --bg-tertiary: #292a36;    
+    --bg-hover: #343542;       
+    --bg-active: #424352;      
 
     --glass: rgba(23, 24, 33, 0.97);
     --glass-hover: rgba(29, 30, 40, 0.98);
     --glass-strong: rgba(15, 16, 22, 0.99);
-
+    
     --glass-blur: blur(16px) saturate(115%);
 
-    --text-primary: #f2f2ee;
-    --text-secondary: #9a9a94;
-
-    --text-tertiary: #94948f;
+    --text-primary: #f2f2ee;   
+    --text-secondary: #9a9a94; 
+    
+    --text-tertiary: #94948f;  
 
     --font-size-2xs: 12px;
     --font-size-xs: 14px;
@@ -28,15 +28,15 @@
     --font-size-md: 18px;
     --font-size-lg: 22px;
 
-    --accent: #a79bef;
-
+    --accent: #a79bef;         
+    
     --accent-fg: #0f1016;
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
     --accent-glow: rgba(167, 155, 239, 0.20);
 
-    --secondary: #8292ad;
+    --secondary: #8292ad;      
     --secondary-hover: #9aa8be;
     --secondary-subtle: rgba(130, 146, 173, 0.08);
     --secondary-glow: rgba(130, 146, 173, 0.16);
@@ -76,7 +76,7 @@
 
     --grid-color: rgba(191, 187, 220, 0.045);
     --grid-color-fine: rgba(191, 187, 220, 0.018);
-    --vignette: rgba(0, 0, 0, 0.38);
+    --vignette: rgba(0, 0, 0, 0.38);   
 
     --holo-sweep: linear-gradient(112deg,
         rgba(126, 113, 190, 0.16) 0%,
@@ -105,17 +105,17 @@
     --shadow-float: 0 1px 0 rgba(0, 0, 0, 0.25);
 
     --header-shell-glass: color-mix(in srgb, var(--glass) 35%, transparent);
-
+    
     --header-mega-max-h: min(44vh, 320px);
 }
 
 [data-theme="light"] {
     color-scheme: light;
 
-    --bg-void: #ffffff;
-    --bg-primary: #ffffff;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #e9e7f2;
+    --bg-void: #ffffff;        
+    --bg-primary: #ffffff;     
+    --bg-secondary: #ffffff;   
+    --bg-tertiary: #e9e7f2;    
     --bg-hover: #e2dff0;
     --bg-active: #d4cfe8;
 
@@ -123,18 +123,18 @@
     --glass-hover: rgba(255, 255, 255, 0.92);
     --glass-strong: rgba(255, 255, 255, 0.96);
 
-    --text-primary: #1a1a1f;
-    --text-secondary: #64626f;
-    --text-tertiary: #656374;
+    --text-primary: #1a1a1f;   
+    --text-secondary: #64626f; 
+    --text-tertiary: #656374;  
 
-    --accent: #5f4dc2;
-    --accent-fg: #ffffff;
+    --accent: #5f4dc2;         
+    --accent-fg: #ffffff;      
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);
     --accent-subtle: rgba(95, 77, 194, 0.07);
     --accent-glow: rgba(95, 77, 194, 0.22);
 
-    --secondary: #3f6285;
+    --secondary: #3f6285;      
     --secondary-hover: #4f779f;
     --secondary-subtle: rgba(63, 98, 133, 0.08);
     --secondary-glow: rgba(63, 98, 133, 0.22);
@@ -143,7 +143,7 @@
     --success-subtle: rgba(47, 125, 79, 0.08);
     --error: #b3261e;
     --error-subtle: rgba(179, 38, 30, 0.08);
-
+    
     --warning: #8a5c12;
     --warning-subtle: rgba(138, 92, 18, 0.08);
 
@@ -153,7 +153,7 @@
 
     --grid-color: rgba(95, 77, 194, 0.105);
     --grid-color-fine: rgba(95, 77, 194, 0.045);
-
+    
     --vignette: rgba(95, 77, 194, 0.06);
 
     --holo-sweep: linear-gradient(112deg,
@@ -164,7 +164,7 @@
         rgba(160, 215, 240, 0.20) 74%,
         rgba(140, 120, 245, 0.26) 100%);
     --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(160, 142, 248, 0.28), transparent 70%);
-
+    
     --decor-a: #c2185b;
     --decor-b: #6d3fd4;
     --decor-c: #0e8fa8;
@@ -181,7 +181,7 @@
     --fill-strong-ink: #ffffff;
     --glow-text: none;
     --glow-box: none;
-
+    
     --shadow-float: 0 1px 2px rgba(26, 26, 31, 0.06), 0 6px 16px -6px rgba(45, 35, 90, 0.16);
 
     --header-shell-glass: color-mix(in srgb, var(--glass) 52%, transparent);
@@ -202,7 +202,7 @@ html { background-color: var(--bg-void); }
 body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
-
+    
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -217,20 +217,20 @@ body:has(> .app-layout) {
 
 .app-bg,
 .bg-swatch {
-
+    
     position: fixed;
     inset: 0;
-
+    
     z-index: -1;
     pointer-events: none;
-
+    
     background-image:
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-
+    
     background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
     background-repeat: repeat, repeat, repeat, repeat, no-repeat;
     background-position: 0 0, 0 0, 0 0, 0 0, center;
@@ -339,18 +339,18 @@ html[data-bg="minimal"] .app-bg,
 .main-content { margin-left: 0; }
 
 .intro-overlay {
-
+    
     position: fixed;
     inset: 0;
-
+    
     height: 100svh;
     z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
-
+    
     background: var(--holo-sweep), var(--holo-bloom), var(--bg-void);
-
+    
     clip-path: inset(0 0 0 0);
     transition: clip-path 0.55s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.55s ease;
     pointer-events: none;
@@ -412,7 +412,7 @@ html[data-intro="off"] .intro-overlay {
 .header-nav-scroll {
     display: flex;
     align-items: center;
-
+    
     flex-wrap: nowrap;
     justify-content: center;
     gap: 2px;
@@ -528,12 +528,12 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     left: 0;
     width: min(620px, calc(100vw - 32px));
     max-height: var(--header-mega-max-h);
-
+    
     display: flex;
     flex-direction: column;
     overflow: hidden;
     padding: var(--space-sm);
-
+    
     background: var(--glass);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
@@ -566,6 +566,20 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     font-size: 11px;
     line-height: 1.5;
     color: var(--text-tertiary);
+}
+
+.sidebar-group-label--flat {
+    padding: 8px 10px 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--text-tertiary);
+}
+.sidebar-foot {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
 }
 
 .header-nav-panel-foot {
@@ -769,7 +783,7 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     background: var(--header-shell-glass);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: blur(22px) saturate(160%);
-
+    
     border-bottom: 1px solid transparent;
     border-image: linear-gradient(90deg,
         transparent 0%, var(--accent-dim) 22%, var(--accent-glow) 50%, var(--accent-dim) 78%, transparent 100%) 1;
@@ -791,7 +805,7 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     border: 0;
     border-radius: var(--radius-sm);
     background: transparent;
-
+    
     color: var(--text-tertiary);
     cursor: pointer;
     transition: color 0.15s ease, background 0.15s ease;
@@ -811,7 +825,7 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
 }
 
 .header-logo {
-
+    
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     background: none;
@@ -1003,24 +1017,24 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     flex: 1;
     min-height: 0;
     padding: 0;
-    padding-top: 52px;
+    padding-top: 52px; 
 }
 
 .landing-page {
     display: none; flex-direction: column;
     padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
     flex: 1 1 auto;
-
+    
     min-height: 100%;
     max-width: 960px; margin: 0 auto; width: 100%;
-
+    
     justify-content: center;
     justify-content: safe center;
 }
 .content-body:has(.landing-page.active) {
     flex: 1;
     min-height: 0;
-
+    
     overflow-y: auto;
 }
 .landing-page.active { display: flex; }
@@ -1068,9 +1082,9 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .home-decor-item {
     position: absolute;
     will-change: transform;
-
+    
     transform: translate3d(0, 0, 0);
-
+    
 }
 .home-decor-float { will-change: transform; }
 .landing-hero, .landing-cta { position: relative; z-index: 1; }
@@ -1079,7 +1093,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     .home-decor-item, .home-decor-float { animation: none !important; }
 }
 @media (max-width: 768px) {
-
+    
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
@@ -1095,7 +1109,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
         background-clip: text;
         color: transparent;
     }
-
+    
     .landing-title .accent {
         -webkit-background-clip: initial;
         background-clip: initial;
@@ -1114,9 +1128,9 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-palette {
     display: flex; justify-content: center;
     width: 100%;
-
+    
     position: relative; z-index: 4;
-
+    
     min-height: 65px;
 }
 
@@ -1163,7 +1177,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     gap: 8px;
     white-space: nowrap;
     position: relative;
-
+    
     border-radius: var(--radius-sm);
     font-family: inherit;
     appearance: none;
@@ -1237,7 +1251,7 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .status-toast.has-detail { cursor: default; pointer-events: auto; padding: 8px 12px; max-width: 90vw; display: flex; align-items: center; gap: 8px; }
 .status-toast-copy {
-
+    
     flex-shrink: 0; padding: 4px 8px; font-size: 12px; background: color-mix(in srgb, currentColor 12%, transparent);
     border: 1px solid color-mix(in srgb, currentColor 28%, transparent); border-radius: 4px; cursor: pointer;
     color: inherit; font-family: inherit;
@@ -1324,7 +1338,7 @@ a.landing-cta-card:hover { color: inherit; }
     margin-bottom: var(--space-lg);
     padding: 0 var(--space-xs);
     position: relative;
-
+    
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -1541,9 +1555,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 .btn:disabled:active { transform: none; }
 
 .btn-primary {
-
+    
     width: 100%;
-
+    
     background: var(--chrome-grad);
     color: var(--fill-strong-ink);
     padding: 12px 18px; margin-top: var(--space-md);
@@ -1682,7 +1696,7 @@ html[data-nav="sidebar"] .header-bar-right { grid-column: 3; }
 html[data-nav="sidebar"] .sidebar {
     display: flex;
     position: fixed;
-    top: 52px;
+    top: 52px; 
     left: 0;
     bottom: 0;
     width: var(--sidebar-collapsed-width);
@@ -1733,6 +1747,26 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
     gap: 2px;
 }
 
+.sidebar-search-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    text-align: left;
+}
+.sidebar-search-kbd {
+    margin-left: auto;
+    padding: 1px 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
 .sidebar-dev-links {
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
@@ -1741,7 +1775,7 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-
+    
     padding: 3px 4px 3px 9px;
     border-radius: 4px;
     overflow: hidden;
@@ -1850,7 +1884,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 ::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.18); }
 
 @media (max-width: 768px) {
-
+    
     .app-layout {
         position: static;
         height: auto;
@@ -1892,7 +1926,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 
     .header-tools-link { display: none !important; }
     .header-dev-link { display: none !important; }
-
+    
     .header-bar { padding: 0 var(--space-sm); }
     .header-bar-left { min-width: 0; }
     .header-bar-right { gap: 2px; }
@@ -1901,20 +1935,20 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     .content-body { padding-bottom: 120px; }
 
     html, body { overflow: visible; overflow-x: hidden; height: auto; }
-
+    
     body:has(> .app-layout) { overflow: visible; overflow-x: hidden; }
 
     :root { --font-size-2xs: 13px; }
 
     .header-btn, .theme-toggle, .header-logo { min-width: 40px; min-height: 40px; }
-
+    
     .mobile-nav .nav-item {
         flex: 0 0 auto;
         min-width: 40px; min-height: 40px;
         display: inline-flex; align-items: center; justify-content: center;
         padding: 5px 12px;
     }
-
+    
     .header-account-signin, .kp-browse-chip { min-height: 40px; }
 
     .btn { min-height: 40px; padding: 9px 14px; }
@@ -1930,7 +1964,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
         grid-template-columns: auto 1fr;
         gap: var(--space-sm);
     }
-
+    
     .mobile-nav { display: flex !important; margin-top: 52px; min-height: 55px; }
     .content-body { padding: var(--space-md); }
     .landing-page { padding: var(--space-md); }
@@ -1963,7 +1997,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     color: var(--accent);
     border-radius: var(--radius-sm);
     font-weight: 700;
-
+    
     box-shadow: 6px 0 6px -4px var(--bg-primary);
 }
 
@@ -2697,7 +2731,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     font-weight: 600; font-size: var(--font-size-xs);
     cursor: pointer;
     min-width: 88px;
-
+    
     min-height: 32px;
 }
 .karmolab-update-banner-install:hover { filter: brightness(1.1); }

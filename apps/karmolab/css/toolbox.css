@@ -702,6 +702,22 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     line-height: 1.5;
     color: var(--text-tertiary);
 }
+
+/* 옆줄이 머리띠와 같은 칸을 쓰게 되면서 생긴 두 조각 (2026-08-19) —
+   접히지 않는 이름표(빈 칸용)와 바닥의 전체 목록 줄. */
+.sidebar-group-label--flat {
+    padding: 8px 10px 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--text-tertiary);
+}
+.sidebar-foot {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+}
 /* 판 아래 「전체 도구 찾기」는 칸이 아니라 **바닥 줄**이다 — 굴러 나가지 않는다 */
 .header-nav-panel-foot {
     flex-shrink: 0;
@@ -2379,6 +2395,27 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
     flex-direction: column;
     align-items: stretch;
     gap: 2px;
+}
+
+/* 옆줄 바닥의 찾기 단추 — 옆 링크 줄과 같은 꼴이되 단축키 글씨가 오른쪽 끝에 붙는다 (2026-08-19) */
+.sidebar-search-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    text-align: left;
+}
+.sidebar-search-kbd {
+    margin-left: auto;
+    padding: 1px 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+    white-space: nowrap;
 }
 
 .sidebar-dev-links {

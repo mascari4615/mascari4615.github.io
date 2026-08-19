@@ -52,5 +52,7 @@
   "shell.nav.mine.empty": "道具の星を押すとここに集まります",
   "shell.search.placeholder": "道具を探す",
   "shell.search.aria": "道具を探す",
-  "shell.nav.toolIndex": "道具の全一覧 →"
+  "shell.nav.toolIndex": "道具の全一覧 →",
+  "shell.sidebar.links": "リンク · お問い合わせ",
+  "shell.sidebar.linksTitle": "連絡先とリンク"
 }
