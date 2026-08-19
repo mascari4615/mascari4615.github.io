@@ -41,13 +41,44 @@ function groupOf(file) {
   return rel.length > 1 ? rel[0] : rel[0].replace(/\.ts$/, '');
 }
 
+/* ★ **없는 묶음을 부르는 자리** — 되받을 글이 있어도 안 봐준다 (2026-08-19 실측).
+ *
+ * 이 파일은 여태 「되받을 글이 있으면 그 자리는 안전하다」로 봤다. 그런데 되받을 글은
+ * **묶음이 있고 열쇠만 없을 때**를 구해 줄 뿐이다. 묶음 파일이 아예 없으면 받아오는
+ * 단계에서 죽는다 — 화면에는 「도구 로드 실패 · CatalogLoadError: Failed to load
+ * catalog: ko/install」로 뜬다. 설치 위젯이 그렇게 죽었다: t() 열세 자리에 전부 되받을
+ * 글을 줬는데도 `i18n/ko/install.json` 이 없어서 도구가 통째로 안 떴다.
+ *
+ * 아래 「받아 오나」 검사는 이 자리를 **일부러 건너뛰며** 「다른 검사 몫」이라고 적어
+ * 뒀는데, 그 다른 검사가 없었다. 여기서 막는다. 기준선은 두지 않는다 — 없는 묶음은
+ * 언제나 진짜 고장이라 「지금 것은 봐준다」가 성립하지 않는다. */
+/* 소문자 `t(` 만, 그리고 **글자 그대로 적힌 열쇠**만 본다.
+   - `i` 플래그를 주면 위젯이 제 이름으로 감싼 `T(` 까지 물어 온다 (meok 의 `T('blend.'+mode)`).
+     그건 다른 함수고, 묶음도 제 것을 이미 받아 온다 — 오탐 둘이 거기서 나왔다.
+   - 이어 붙인 열쇠(`'x.' + v`)는 앞자락이 묶음 이름이 아닐 수 있으니 안 본다. 글자 그대로
+     적힌 것만으로도 오늘 같은 사고(`install`)는 잡힌다. */
+const ANY_T = /\bt\(\s*'([a-z0-9-]+)\.[^']*'\s*[,)]/g;
+const missingNs = [];
+
 const loadedBy = new Map(); // 묶음 이름 -> 그 자리가 받는 i18n 묶음들
 const usedBy = new Map(); // 묶음 이름 -> [ [i18n 묶음, 파일] … ]
+const nsExists = (ns) => fs.existsSync(path.join(root, `i18n/ko/${ns}.json`));
 for (const file of files) {
   const src = fs.readFileSync(file, 'utf8');
   const g = groupOf(file);
   if (!loadedBy.has(g)) loadedBy.set(g, new Set());
   for (const m of src.matchAll(LOADS)) loadedBy.get(g).add(m[1]);
+
+  // ① 없는 묶음을 부르나 — 되받을 글이 있든 없든 본다
+  const 본것 = new Set();
+  for (const m of src.matchAll(ANY_T)) {
+    const ns = m[1];
+    if (NOT_NS.has(ns) || 본것.has(ns) || nsExists(ns)) continue;
+    본것.add(ns);
+    missingNs.push(`${path.relative(root, file).split(path.sep).join('/')} — '${ns}' 를 쓰는데 i18n/ko/${ns}.json 이 없다`);
+  }
+
+  // ② 되받을 글 없이 쓰면서 안 받아 오나 (여태 보던 것)
   if (!src.includes('loadNamespace') && !src.includes("t('")) continue;
   for (const m of src.matchAll(NO_FALLBACK)) {
     const ns = m[1];
@@ -55,6 +86,14 @@ for (const file of files) {
     if (!usedBy.has(g)) usedBy.set(g, []);
     usedBy.get(g).push([ns, file]);
   }
+}
+
+if (missingNs.length) {
+  console.error(`[i18n-load] **없는 말 묶음**을 부르는 자리 ${missingNs.length}곳:`);
+  for (const b of missingNs) console.error(`  - ${b}`);
+  console.error('  되받을 글이 있어도 안 구해진다 — 묶음을 받아오는 단계에서 죽고, 화면에는 「도구 로드 실패」로만 뜬다.');
+  console.error('  고치는 법: i18n/ko|en|ja/<묶음>.json 세 판을 만들고 그 안에 쓰는 열쇠를 적어라.');
+  process.exit(1);
 }
 
 const bad = [];
