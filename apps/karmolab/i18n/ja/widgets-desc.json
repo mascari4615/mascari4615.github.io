@@ -227,5 +227,5 @@
   "widgets-desc.arcade.desc": "複数のミニゲームを一人でも大勢でも遊べます。足りない席にはボットが座ります。",
   "widgets-desc.askpapers.desc": "問いを投げると論文が答えます。作られた要約ではなく、抄録に実際にある文をそのまま抜き出してリンクと共に表示します。",
   "widgets-desc.isitdown.desc": "サイトが落ちているのか自分の回線の問題なのかを切り分けます。常に生きている場所も同時に測って比べます。",
-  "widgets-desc.quota.desc": "Claude・Codex・Grok サブスクリプションの残り使用枠を一画面で — Claude はライブ、Codex と Grok は最終観測スナップショット。"
+  "widgets-desc.my-ai.desc": "自分が使っている AI サブスクの家計簿 — 今は Claude・Codex・Grok の残量。ライブ照会、塞がれたら最終観測値。"
 }

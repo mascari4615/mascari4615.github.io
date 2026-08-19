@@ -743,14 +743,14 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['terminal/terminal']
   },
   {
-    id: 'quota',
-    get title() { return t('widgets.quota.title', undefined, "할당량"); },
+    id: 'my-ai',
+    get title() { return t('widgets.my-ai.title', undefined, "내 AI"); },
     category: 'tool',
     desktopOnly: true,
-    get desc() { return t('widgets-desc.quota.desc', undefined, "Claude · Codex · Grok 구독의 남은 할당량을 한 화면에 (TASK-KL-248) — Claude 는 라이브, Codex·Grok 은 마지막 관측 스냅샷"); },
+    get desc() { return t('widgets-desc.my-ai.desc', undefined, "내가 쓰는 AI 구독 살림 (TASK-KL-248) — 지금은 Claude·Codex·Grok 남은 양. 실시간 조회, 막히면 마지막 관측값"); },
     layout: 'form',
     icon: '<path d="M4 19a8 8 0 1116 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 19l4.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
-    lazyScriptPaths: ['quota']
+    lazyScriptPaths: ['my-ai']
   },
   {
     id: 'claude-env',

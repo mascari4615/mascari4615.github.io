@@ -2893,6 +2893,7 @@ version = "0.1.64"
 dependencies = [
  "base64 0.22.1",
  "chrono",
+ "futures-util",
  "karmolab-shared",
  "notify",
  "notify-rust",

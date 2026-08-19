@@ -55,6 +55,8 @@ tauri-plugin-global-shortcut = "2"
 # TASK-KL-248: AI 구독 할당량 위젯 — Claude OAuth usage API 라이브 조회.
 # rustls 트리는 tauri-plugin-updater 경유로 이미 워크스페이스에 컴파일 중 →
 # 신규 의존성이지만 KL-051 사이즈 규율상 사실상 무료 (native-tls 는 피한다).
+# 벤더 카드 3장을 동시에 물어보는 join_all 하나 (reqwest 가 이미 끌고 오는 트리).
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 # TASK-KL-037: adventure dataUrl → 별 PNG 파일 분리 시 base64 디코드.
