@@ -7,9 +7,14 @@
  * 도구를 선택하세요」라고 적혀 있었다 — 찾는 부담을 사람에게 떠넘기는 문구다.
  *
  * 어떻게: 표면은 **하나**다. 첫 화면에서는 그 자리에 박혀 있고(inline), 도구를 보는
- * 중에는 `Ctrl/⌘+K` 로 같은 것이 떠오른다(overlay). 헤더에 상시 검색창은 두지 않는다 —
- * 사용자가 명시적으로 거부한 항목이고, 그럴 필요도 없다: 첫 화면에서 이미 배우기 때문에
- * 「⌘K 라는 게 있다」를 따로 가르칠 힌트가 필요 없다.
+ * 중에는 `Ctrl/⌘+K` 로 같은 것이 떠오른다(overlay).
+ *
+ * ★ **머리띠 검색칸은 2026-08-19 에 들어왔다** (사용자 요청 — 아카라이브식). 예전 이 자리에는
+ *   「헤더에 상시 검색창은 두지 않는다 — 사용자가 명시적으로 거부했다」가 적혀 있었다.
+ *   그때 뒤집힌 것은 **갈래 메뉴**다: 머리띠에서 갈래 여섯을 뺐으므로(84개가 4·5·41 로 갈려
+ *   나눔이 이미 죽어 있었다) 도구를 여는 정문이 첫 화면에만 남았다 — 도구를 보는 중에는
+ *   ⌘K 를 아는 사람만 열 수 있다. 그래서 그 칸을 머리띠로 올렸다. 표면은 여전히 하나다:
+ *   머리띠 칸은 제 목록을 안 그리고 이 창을 `open(친 글자)` 로 넘긴다.
  *
  * 찾기 대상은 이름·한 줄 설명·별칭·초성이다. 별칭 파일은 이미 있었는데(`tool-aliases.json`)
  * 목록 페이지만 쓰고 앱은 안 쓰고 있었다. 초성은 한국어 입력에서 제일 빠른 길이다 —
@@ -540,6 +545,17 @@ const KarmoPalette = (() => {
     const rowBudget = inst.mode === 'inline' ? INLINE_ROW_MAX : 8 + RECENT_MAX + 8;
     const left = (): number => Math.max(0, rowBudget - inst.rows.length);
 
+    /* ★ 둘러보기가 **맨 위**다 (2026-08-19, 사용자 요청).
+     *
+     * 둘러보기는 언제나 있다 — 예전에는 최근·즐겨찾기가 비었을 때만 보여 줘서, 도구를 한 번이라도
+     * 쓴 순간 둘러볼 길이 통째로 사라졌다(실측: 최근이 생기자 칩 4개 → 0개).
+     * 그 뒤로도 맨 **아래**에 있었는데, 그 자리는 내 것·최근·즐겨찾기를 다 지나야 닿는다 —
+     * 줄이 스무 개 쌓이면 화면 밖이라 없는 것과 같았다. 머리띠에서 갈래를 뺀 지금은 더 그렇다:
+     * 「무엇이 있는지」 훑는 길이 이 줄 하나뿐이다. 그래서 첫 줄로 올린다.
+     * 칩은 낮아서(줄의 절반) 위에 놔도 아래 목록을 크게 밀지 않는다. */
+    inst.list.appendChild(sectionEl('둘러보기'));
+    inst.list.appendChild(browseChips(inst));
+
     /* 이번 주에 많이 쓴 도구 (TASK-KL-136, 사용자 요청 — 첫 화면 칩 줄에서 여기로 옮겼다).
      * 도구로 가는 길이 화면 여기저기 흩어져 있으면 어디를 봐야 하는지 매번 고르게 된다.
      * 실측이 없으면(서버에 못 닿거나 이번 주에 아무도 안 썼으면) 이 자리는 안 생긴다. */
@@ -593,12 +609,6 @@ const KarmoPalette = (() => {
       });
     }
 
-    // 둘러보기는 **언제나** 있다. 예전에는 최근·즐겨찾기가 비었을 때만 보여 줬는데,
-    // 그러면 도구를 한 번이라도 쓴 순간 둘러볼 길이 통째로 사라졌다(실측: 최근이 생기자
-    // 칩 4개 → 0개). 「이름을 알아야만 닿는다」가 되는 지점이 바로 여기였다.
-    inst.list.appendChild(sectionEl('둘러보기'));
-    inst.list.appendChild(browseChips(inst));
-
     setActive(inst, inst.rows.length ? 0 : -1);
   }
 
@@ -625,6 +635,17 @@ const KarmoPalette = (() => {
     const wrap = document.createElement('div');
     wrap.className = 'kp-browse';
     wrap.setAttribute('role', 'presentation');
+    /* 「전체 도구 목록 →」이 **맨 앞**이다 (2026-08-19, 사용자 결정). 갈래 칩은 좁히는 길이고
+     * 이건 전부를 펼치는 길이라, 좁히기를 다 읽은 뒤에 나오면 「좁히는 것 중 하나」로 읽힌다.
+     * 창이 아니라 **딴 장**이므로 단추가 아닌 링크다 — 새 탭·주소 복사가 되어야 한다.
+     * 머리띠 「내 도구」 판 바닥에도 같은 문이 있다: 거기는 판을 열어야 보이고, 여기는
+     * 찾다가 막힌 자리에서 바로 보인다. */
+    const idx = document.createElement('a');
+    idx.className = 'kp-browse-chip kp-browse-chip--index';
+    idx.href = '/karmolab/t/';
+    idx.textContent = '전체 도구 목록 →';
+    idx.title = '도구 전체가 한 장에 적힌 목록';
+    wrap.appendChild(idx);
     cats.forEach((c) => {
       const n = entries.filter((e) => e.category === c.id).length;
       if (!n) return;
@@ -1063,9 +1084,13 @@ const KarmoPalette = (() => {
     return !!overlay;
   }
 
-  function open(): void {
+  /** `seed` = 머리띠 검색칸에 친 글자 (2026-08-19). 거기서 한 글자 치면 이 창이 열리는데,
+   *  그 글자를 안 넘기면 사람은 자기가 친 것이 사라진 줄 안다 — 그대로 이어 받는다. */
+  function open(seed?: string): void {
     if (overlay) {
-      overlay.input.select();
+      if (seed) { overlay.input.value = seed; render(overlay); }
+      else overlay.input.select();
+      overlay.input.focus();
       return;
     }
     if (!entries.length) buildIndex();
@@ -1087,6 +1112,7 @@ const KarmoPalette = (() => {
     inst.root.dataset.scrim = '1';
     overlay = inst;
 
+    if (seed) inst.input.value = seed;
     render(inst);
     inst.input.focus();
   }
@@ -1128,7 +1154,12 @@ const KarmoPalette = (() => {
     if (overlay) render(overlay);
   }
 
-  return { mountInline, focusInline, open, close, toggle, isOpen, noteOpen, refresh, getRecent, setPopular };
+  /** 머리띠 「많이 쓰는 것」이 이 값을 읽는다 (2026-08-19) — 세는 곳은 여기 한 곳뿐이다. */
+  function getPopular(): string[] {
+    return [...popularIds];
+  }
+
+  return { mountInline, focusInline, open, close, toggle, isOpen, noteOpen, refresh, getRecent, setPopular, getPopular };
 })();
 
 (window as unknown as { KarmoPalette: typeof KarmoPalette }).KarmoPalette = KarmoPalette;

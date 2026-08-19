@@ -525,8 +525,10 @@ html[data-intro="off"] .intro-overlay {
 
 .header-nav-scroll {
     display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
+    align-items: center;
+    /* 머리띠에는 이제 손잡이 하나와 검색칸 하나뿐이다 — 줄바꿈을 허용하면 좁은 창에서
+       검색칸이 아래로 떨어져 머리띠가 두 층이 된다 (2026-08-19 실측). 대신 칸이 줄어든다. */
+    flex-wrap: nowrap;
     justify-content: center;
     gap: 2px;
     min-width: 0;
@@ -565,6 +567,149 @@ html[data-intro="off"] .intro-overlay {
     background: var(--bg-hover);
 }
 .header-nav-trigger-label { pointer-events: none; }
+
+/* 「전체 도구」는 무리가 아니라 홀몸 단추다 — 부모(.header-nav-group)가 없으니 제 몫으로
+   안 줄어들게 잡아 준다 (2026-08-19, 머리띠에서 갈래를 뺀 뒤). */
+.header-nav-trigger--action { flex-shrink: 0; }
+
+/* ── 머리띠 검색칸 (2026-08-19, 채널 사이트 본뜬 머리띠) ─────────────────────
+   찾는 창은 첫 화면에만 있었다 — 도구를 보는 중에는 ⌘K 를 아는 사람만 다음 도구로 갔다.
+   여기 칸은 결과를 제가 안 그린다: 한 글자만 쳐도 팔레트로 넘긴다(표면은 하나).
+   ★ 색·테두리는 **있는 토큰만** 쓴다 — 처음엔 없는 이름(--bg-surface·--border-color)을 적어
+     테두리가 통째로 사라진 채 회색 덩어리로 보였다 (2026-08-19 실측). */
+.header-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 clamp(180px, 26vw, 340px);
+    min-width: 150px;
+    height: 30px;
+    padding: 0 6px 0 28px;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    transition: border-color var(--transition), background var(--transition);
+}
+.header-search:hover { border-color: var(--border-hover); }
+.header-search:focus-within { border-color: var(--border-strong); background: var(--bg-tertiary); }
+.header-search-icon {
+    position: absolute;
+    left: 9px;
+    width: 14px;
+    height: 14px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+/* ★ **`input.` 로 적는다** (2026-08-19 실측 — 이게 「위아래로 튀어나옴」의 근본이다).
+   이 파일 아래쪽에 `input[type="text"]{ padding:10px 14px; font-size:16px; border:1px … }`
+   가 있다. 그쪽 특이도가 (0,1,1) 이라 클래스 하나짜리 내 규칙(0,1,0)을 이겼고, 그래서
+   칸 안의 input 이 **높이 46px** 로 자라 30px 알약을 위아래로 뚫고 나왔다(실측: 알약 top 11,
+   input top 3 · h 46). 팔레트도 같은 이유로 `input.kp-input` 으로 적혀 있다 — 같은 규율.
+   눌러 이기는 것으로 끝내지 않고 **안쪽 여백·테두리·그림자까지 0 으로 되돌린다**: 하나라도
+   남으면 알약 안에 두 번째 상자가 생긴다. */
+input.header-search-input,
+input.header-search-input:focus {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    border-left: none;
+    outline: none;
+    box-shadow: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    line-height: 1;
+}
+input.header-search-input::placeholder { color: var(--text-tertiary); }
+/* 단축키 글씨는 팔레트의 것과 같은 모양이다 (`.kp-kbd`) — 같은 창을 여는 자리이므로 */
+.header-search-kbd {
+    flex-shrink: 0;
+    margin-left: 6px;
+    padding: 2px 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: .04em;
+    color: var(--text-tertiary);
+}
+@media (max-width: 720px) {
+    .header-search-kbd { display: none; }
+}
+
+/* ── 「내 도구」 손잡이 = 메뉴처럼 보여야 한다 (2026-08-19) ────────────────
+   글자만 있으면 옆 검색칸에 눌려 「눌리는 것」으로 안 읽힌다. 아이콘 + 꺾쇠를 준다. */
+.header-nav-trigger--list { gap: 5px; padding-left: 8px; padding-right: 7px; }
+.header-nav-trigger--list .header-nav-trigger-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.header-nav-trigger--list .header-nav-trigger-caret {
+    width: 9px; height: 9px; flex-shrink: 0; opacity: .55;
+    transition: transform var(--transition);
+}
+.header-nav-group.is-open .header-nav-trigger--list .header-nav-trigger-caret { transform: rotate(180deg); }
+
+/* ── 「내 도구」 판 = 화면을 가로지르는 대문짝이 아니라 **손잡이 밑 작은 판** ──
+   3칸(내 것 · 많이 쓰는 것 · 최근)은 대여섯 줄이라, 폭 100vw 를 쓰면 오른쪽 3분의 2가
+   빈 채로 화면 절반을 덮는다 (2026-08-19 실측). 손잡이에 붙여 필요한 만큼만 연다. */
+.header-nav-panel--list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: min(620px, calc(100vw - 32px));
+    max-height: var(--header-mega-max-h);
+    /* 굴리는 것은 **목록만**이다 — 바닥 줄은 굴러 나가면 안 된다 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--space-sm);
+    /* ★ 제 바탕을 **직접** 깐다 (2026-08-19). 갈래 시절의 대문짝은 일부러 투명이다 —
+       머리띠의 유리판이 화면 폭을 통째로 덮어 주기 때문이다. 그 규칙을 그대로 물려받았더니
+       글자만 허공에 떠서 뒤의 첫 화면과 겹쳐 읽혔다(실측). 작은 판은 제 바탕이 있어야 한다. */
+    background: var(--glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float), 0 12px 32px -12px rgba(0, 0, 0, .55);
+}
+.header-nav-panel--list .header-nav-panel-inner {
+    min-height: 0;
+    overflow: hidden auto;
+    max-width: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px 8px;
+}
+@media (max-width: 640px) {
+    .header-nav-panel--list { left: auto; right: 0; }
+    .header-nav-panel--list .header-nav-panel-inner { grid-template-columns: 1fr; }
+}
+.header-nav-section { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.header-nav-section-label {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--text-tertiary);
+}
+.header-nav-section-empty {
+    margin: 0;
+    padding: 2px 8px 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+}
+/* 판 아래 「전체 도구 찾기」는 칸이 아니라 **바닥 줄**이다 — 굴러 나가지 않는다 */
+.header-nav-panel-foot {
+    flex-shrink: 0;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+}
+.header-nav-panel-foot .nav-item-find { color: var(--text-secondary); }
 
 .header-nav-panel {
     z-index: 200;
@@ -781,13 +926,12 @@ html[data-intro="off"] .intro-overlay {
         transparent 0%, var(--accent-dim) 22%, var(--accent-glow) 50%, var(--accent-dim) 78%, transparent 100%) 1;
     pointer-events: none;
 }
-.header-bar:has(.header-nav-group.is-open)::after {
-    height: calc(52px + var(--header-mega-max-h));
-    /* 메뉴를 열었을 때만 표면을 한 단계 더 세워 글자와 아이콘을 보호한다.
-       닫힌 헤더의 가벼운 투명감은 유지하고, 열린 메뉴는 읽기 우선으로 처리한다. */
-    background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
-}
+/* ★ **머리띠는 메뉴를 열어도 안 늘어난다** (2026-08-19, 사용자 지적).
+   여기 있던 규칙은 메뉴가 열리면 머리띠 유리판을 `52px + 320px` 로 키워 **화면 폭 전체**를
+   덮었다. 갈래 메뉴 시절에는 판 자신이 투명이라(대문짝) 그 유리가 곧 판의 바탕이었다.
+   지금 「내 도구」 판은 제 바탕·테두리·그림자를 가진 작은 판이므로, 이 확장은 아무것도
+   담지 않은 채 화면 절반만 어둡게 만든다. 규칙을 지운다 — 되살릴 일이 생기면 그때는
+   판이 다시 투명해진 것이므로 그 판 쪽에 바탕을 주는 것이 맞다. */
 
 .header-bar > * {
     position: relative;
@@ -1525,6 +1669,15 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .kp-browse-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .kp-browse-n { font-family: var(--font-mono); color: var(--text-tertiary); }
+/* 「전체 도구 목록 →」은 갈래 칩과 **다른 것**이다 — 좁히는 길이 아니라 딴 장으로 나가는 문.
+   같은 모양이면 갈래 하나로 읽히므로, 바탕을 비우고 점선으로 구분한다 (2026-08-19). */
+.kp-browse-chip--index {
+    background: none;
+    border-style: dashed;
+    text-decoration: none;
+    color: var(--text-tertiary);
+}
+.kp-browse-chip--index:hover { border-style: solid; color: var(--text-primary); }
 /* 이번 주에 많이 쓴 도구 (TASK-KL-136) — 갈래 칩과 같은 모양이되 도구로 바로 간다.
    줄(row)로 냈으면 44px × 6 = 264px 를 먹는다. 칩이면 한 줄이다. */
 .kp-browse-tools .kp-browse-chip { border-color: var(--accent-dim); color: var(--text-primary); }

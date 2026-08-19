@@ -1,8 +1,7 @@
 {
   "shell.home.title": "홈으로",
   "shell.nav.categories": "도구 카테고리",
-  "shell.nav.toolsList": "도구 전체 목록",
-  "shell.nav.tools": "≡ 도구",
+  "shell.nav.toolsList": "도구 전체 목록 장 — 128개를 한 장에서 훑습니다",
   "shell.nav.bot": "◈ 봇",
   "shell.nav.botTitle": "디스코드 봇 · 서버 결산",
   "shell.nav.daily": "◉ 오늘의",
@@ -41,5 +40,17 @@
   "shell.nav.group.create": "생성 · 정리",
   "shell.nav.group.quick": "빠른 실행",
   "shell.nav.ref": "자료",
-  "shell.nav.play": "놀이"
+  "shell.nav.play": "놀이",
+  "shell.nav.mine": "내 것",
+  "shell.nav.all": "전체 도구",
+  "shell.nav.all.hint": "전체 도구 찾기 (Ctrl+K)",
+  "shell.nav.lab": "실험실 · 개발중",
+  "shell.nav.etc": "기타",
+  "shell.nav.list": "내 도구",
+  "shell.nav.popular": "많이 쓰는 것",
+  "shell.nav.recent": "최근 본 것",
+  "shell.nav.mine.empty": "도구 옆 별을 누르면 여기 모입니다",
+  "shell.search.placeholder": "도구 찾기",
+  "shell.search.aria": "도구 찾기",
+  "shell.nav.toolIndex": "전체 도구 목록 →"
 }
