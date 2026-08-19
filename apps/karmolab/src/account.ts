@@ -12,6 +12,7 @@
  * 충분하고, 그 파일은 다른 작업이 동시에 만지고 있다.
  */
 import { stampToday } from './stamps';
+import { isDesktop, invoke } from './tauri-bridge';
 import { t, loadNamespace } from './lib/i18n';
 
 const esc = (v: unknown): string =>
@@ -312,6 +313,63 @@ async function refresh(): Promise<void> {
     if (state.account) await syncNow();
 }
 
+/**
+ * 데스크톱 앱 로그인 (RFC 8252 — 시스템 브라우저 + 집 안 되돌아오기).
+ *
+ * 앱 창 안에서 디스코드 비밀번호를 받지 않는다. 브라우저에서 로그인이 끝나면 앱이 그
+ * 순간만 열어 둔 127.0.0.1 문으로 **한 번 쓰는 코드**가 돌아오고, 그 코드를 여기서
+ * 내밀어 세션을 받는다 — 쿠키가 이 웹뷰 통에 앉는다(그래야 앱이 로그인된다).
+ *
+ * 이 길이 없으면 브라우저만 로그인되고 앱은 영영 남남으로 남는다(실측된 증상).
+ */
+function loginNote(text: string | null): void {
+    const ID = 'kl-login-note';
+    const paint = (): void => {
+        document.getElementById(ID)?.remove();
+        if (!text) return;
+        const note = document.createElement('div');
+        note.id = ID;
+        note.setAttribute('role', 'status');
+        note.setAttribute('aria-live', 'polite');
+        note.textContent = text;
+        note.style.cssText =
+            'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
+            'padding:8px 14px;border-radius:999px;font-size:12px;' +
+            'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
+            'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
+        document.body.appendChild(note);
+    };
+    if (document.body) paint();
+    else document.addEventListener('DOMContentLoaded', paint, { once: true });
+}
+
+/** 브라우저에서 돌아온 코드로 이 창에 세션을 앉힌다. 실패해도 화면은 그대로 산다. */
+async function redeemLoginCode(code: string): Promise<boolean> {
+    const response = await call('/kl/auth/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+    });
+    if (!response || !response.ok) {
+        loginNote(t('account.t06', undefined, '로그인을 못 받았어요 — 다시 눌러 주세요.'));
+        setTimeout(() => loginNote(null), 6000);
+        return false;
+    }
+    loginNote(null);
+    await refresh();
+    return true;
+}
+
+function startDesktopSignIn(): void {
+    loginNote(t('account.t07', undefined, '브라우저에서 로그인하세요 — 끝나면 이 창이 알아서 붙습니다.'));
+    void invoke('desktop_login_start', { apiBase: API_BASE }).catch(() => {
+        // 앱 쪽 문이 안 열렸다 = 브라우저도 안 떴다. 예전 길(창 넘김)로 물러선다.
+        loginNote(null);
+        const back = encodeURIComponent(location.href.split('#')[0]);
+        location.href = `${API_BASE}/kl/auth/discord?return=${back}`;
+    });
+}
+
 const KarmoAccount = {
     /** 지금 상태 (읽기 전용으로 쓸 것). */
     get state(): AccountState {
@@ -329,6 +387,11 @@ const KarmoAccount = {
     },
     /** 디스코드로 로그인. 돌아올 자리를 같이 넘겨 원래 보던 화면으로 복귀한다. */
     signIn(): void {
+        // 데스크톱 앱은 창을 넘기면 안 된다 — 로그인이 브라우저에서 끝나고 앱은 남남이 된다.
+        if (isDesktop()) {
+            startDesktopSignIn();
+            return;
+        }
         const back = encodeURIComponent(location.href.split('#')[0]);
         location.href = `${API_BASE}/kl/auth/discord?return=${back}`;
     },
@@ -931,10 +994,17 @@ function mountBell(): void {
 declare global {
     interface Window {
         KarmoAccount: typeof KarmoAccount;
+        /** 데스크톱 앱(Rust)이 브라우저에서 받아 온 로그인 코드를 여기로 건넨다. */
+        __karmolabDesktopLogin?: (code: string) => void;
     }
 }
 
 window.KarmoAccount = KarmoAccount;
+/* 앱이 언제 부를지 모른다(사람이 브라우저에서 얼마나 꾸물대는지에 달렸다) — 그래서
+   이 손잡이는 **항상 먼저** 걸어 둔다. 웹 브라우저에서는 아무도 안 부른다. */
+window.__karmolabDesktopLogin = (code: string): void => {
+    void redeemLoginCode(String(code ?? ''));
+};
 
 watchLocalChanges();
 window.addEventListener('hashchange', traceCurrentTool);

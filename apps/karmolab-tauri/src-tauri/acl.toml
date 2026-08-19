@@ -37,6 +37,12 @@ description = "Allow in-app update banner to install pending updates and restart
 commands = ["desktop_install_pending_update", "desktop_restart_app"]
 
 [[group]]
+name = "desktop-login"
+identifier = "allow-desktop-login"
+description = "Allow the account UI to start Discord sign-in in the system browser and receive the session back over a one-shot loopback port (RFC 8252)."
+commands = ["desktop_login_start"]
+
+[[group]]
 name = "localdev"
 identifier = "allow-localdev"
 description = "Enables localdev repo-root and process helper commands for the KarmoLab desktop shell."
