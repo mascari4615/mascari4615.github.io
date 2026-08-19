@@ -8,6 +8,7 @@
   "widgets-desc.perf.desc": "KarmoLab measuring itself — boot · weight per widget · long tasks · frames · variant boot comparison (for development)",
   "widgets-desc.community.desc": "Open talk · questions · show-and-tell · tool requests — where the people who use the tools gather",
   "widgets-desc.plaza.desc": "Every number about this site, in the open — visits · tools · community, all measured",
+  "widgets-desc.install.desc": "Build parts like the companion window on this machine (desktop app only)",
   "widgets-desc.servermonitor.desc": "Local URLs, processes and .env (desktop)",
   "widgets-desc.activity.desc": "Which apps and windows took your time on this PC (desktop app only)",
   "widgets-desc.quest-log.desc": "A dev task map that reads the memo TASK source of truth and shows project progress",

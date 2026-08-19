@@ -15,8 +15,19 @@ import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = join(root, '..', '..');
-const windowExe = process.env.COMPANION_WINDOW_EXE
-  ?? join(repoRoot, 'apps', 'karmolab-tauri', 'target', 'debug', 'companion-window.exe');
+const tauriRoot = join(repoRoot, 'apps', 'karmolab-tauri');
+const targetRoot = join(tauriRoot, 'target');
+/* 구운 자리는 릴리스 → 개발 순으로 본다 (`web.ts` 의 ownWindowExe 와 같은 순서).
+   여태 개발 자리만 봐서, 릴리스로 구워 두면 창이 있는데도 없다고 했다. */
+const 손으로준exe = process.env.COMPANION_WINDOW_EXE ?? null;
+function 구운창찾기() {
+  if (손으로준exe !== null) return existsSync(손으로준exe) ? 손으로준exe : null;
+  for (const 자리 of ['release', 'debug']) {
+    const exe = join(targetRoot, 자리, 'companion-window.exe');
+    if (existsSync(exe)) return exe;
+  }
+  return null;
+}
 
 const TASK_NAME = 'Companion';
 
@@ -40,17 +51,55 @@ function supervise() {
   });
 
   let window = null;
-  if (existsSync(windowExe)) {
+  const 창띄우기 = (exe) => {
     // 서버가 먼저 서야 창이 붙는다.
     setTimeout(() => {
-      window = keepAlive('창', windowExe, [], { cwd: dirname(windowExe) }, () => {
+      window = keepAlive('창', exe, [], { cwd: dirname(exe) }, () => {
         // 창을 닫으면 뒤에서 도는 것도 같이 정리한다 — 보이지 않는 것만 남겨두지 않는다.
         face.stop();
         process.exit(0);
       });
     }, 3000);
+  };
+
+  const 구운것 = 구운창찾기();
+  if (구운것 !== null) {
+    창띄우기(구운것);
+  } else if (손으로준exe !== null) {
+    console.log(`알려준 자리에 창이 없다 (${손으로준exe}) — 브라우저로 연다.`);
+    브라우저로열기();
   } else {
-    console.log(`창 프로그램이 없다 (${windowExe}) — 화면은 브라우저로 열면 된다.`);
+    /* **창이 없으면 스스로 굽는다.**
+     *
+     * 여태는 「없다」고 찍고 끝이었다. 그런데 굽는 단계가 어디에도 없어서(package.json
+     * 에도, postinstall 에도) 사람이 손으로 치기 전엔 영영 안 생겼다 — 게다가
+     * `src-tauri-companion` 이 워크스페이스 멤버가 아니라 그 손도 안 먹혔다.
+     * 결과는 「켜면 있다」가 아니라 「켜도 아무것도 없다」였다(2026-08-19 실측).
+     *
+     * target 은 git 에 안 올라가므로 이건 이 컴퓨터만의 사고가 아니다 — 새 컴퓨터·새
+     * 워크트리마다 똑같이 없다. 그래서 고칠 자리는 「한 번 구워 두기」가 아니라
+     * **없으면 알아서 굽기**다.
+     *
+     * 굽는 동안은 브라우저로 연다. 처음 굽기는 몇 분 걸리는데 그동안 얘가 화면에서
+     * 사라져 있으면 그게 곧 「안 뜬다」로 읽힌다. */
+    /* **묻지도 않고 굽지는 않는다** (조수님 결정 2026-08-19: 「무조건 설치하지는 말고」).
+     *
+     * 굽기는 몇 분짜리 일이고 디스크를 크게 문다. 켤 때마다 말없이 그걸 시작하는 건
+     * 도와주는 게 아니라 남의 컴퓨터를 쓰는 일이다. 그래서 기본은 **알려 주기**다 —
+     * 깔 자리는 KarmoLab 데스크톱 앱의 「설치」다.
+     *
+     * 손을 안 대고 켜자마자 굽길 원하면 COMPANION_AUTOBUILD=1. */
+    브라우저로열기();
+    if (process.env.COMPANION_AUTOBUILD === '1') {
+      굽기().then((exe) => {
+        if (exe === null || window !== null) return;
+        console.log('창을 다 구웠다 — 붙인다. (다음부터는 바로 이 창으로 뜬다)');
+        창띄우기(exe);
+      });
+    } else {
+      console.log('창 프로그램이 없다 — KarmoLab 데스크톱 앱 「설치」에서 「동반자 창」을 깔면 다음부터 그 창으로 뜬다.');
+      console.log('  (여기서 바로 굽고 싶으면 COMPANION_AUTOBUILD=1 로 켜라)');
+    }
   }
 
   const stop = () => {
@@ -60,6 +109,56 @@ function supervise() {
   };
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);
+}
+
+/**
+ * 창 프로그램을 굽는다. 없으면 null 을 돌려준다 — 굽기 실패가 곧 동반자 죽음은 아니다.
+ *
+ * 굽는 자리를 `--target-dir` 로 못 박는다. 환경에 `CARGO_TARGET_DIR` 이 잡혀 있으면
+ * (격리 빌드용 `target-claude` 등) 엉뚱한 데 구워 놓고 「없다」고 하게 된다.
+ */
+function 굽기() {
+  return new Promise((resolve) => {
+    const cargo = process.platform === 'win32' ? 'cargo.exe' : 'cargo';
+    console.log('창 프로그램이 없다 — 지금 굽는다. 처음이면 몇 분 걸린다 (그동안은 브라우저 창으로 지낸다).');
+    const child = spawn(cargo, ['build', '--bin', 'companion-window', '--target-dir', targetRoot], {
+      cwd: tauriRoot,
+      stdio: 'inherit',
+      windowsHide: true,
+    });
+    child.on('error', (e) => {
+      console.log(`창을 못 굽는다 (${e.code === 'ENOENT' ? 'cargo 가 없다 — https://rustup.rs' : e.message}) — 브라우저 창으로 지낸다.`);
+      resolve(null);
+    });
+    child.on('exit', (code) => {
+      if (code !== 0) {
+        console.log(`창 굽기가 실패했다 (코드 ${code}) — 브라우저 창으로 지낸다.`);
+        resolve(null);
+        return;
+      }
+      resolve(구운창찾기());
+    });
+  });
+}
+
+/** 창이 없을 때 화면을 여는 유일한 길. 지킴이가 사는 동안 딱 한 번만 연다. */
+let 브라우저열었나 = false;
+function 브라우저로열기() {
+  if (브라우저열었나) return;
+  브라우저열었나 = true;
+  const url = `http://localhost:${process.env.COMPANION_PORT ?? 4620}`;
+  // 서버가 서기 전에 열면 빈 화면이 뜬다.
+  setTimeout(() => {
+    const [명령, 인자] = process.platform === 'win32'
+      ? ['cmd', ['/c', 'start', '', url]]
+      : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
+    try {
+      spawn(명령, 인자, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      console.log(`화면을 브라우저로 열었다 — ${url}`);
+    } catch {
+      console.log(`화면은 브라우저로 열면 된다 — ${url}`);
+    }
+  }, 3000);
 }
 
 /**

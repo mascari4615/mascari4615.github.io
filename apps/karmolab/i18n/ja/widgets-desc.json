@@ -8,6 +8,7 @@
   "widgets-desc.perf.desc": "KarmoLab が自分の性能を実測 — 起動 · ウィジェット別の重さ · 長い処理 · フレーム · 判別起動の比較(開発用)",
   "widgets-desc.community.desc": "雑談 · 質問 · 自慢 · 道具のリクエスト — 道具を使う人が集まる場所",
   "widgets-desc.plaza.desc": "このサイトの数字を全部公開する場所 — 訪問 · 道具 · コミュニティ、すべて実測",
+  "widgets-desc.install.desc": "コンパニオンウィンドウなどの部品をこのPCに導入する（デスクトップアプリ専用）",
   "widgets-desc.servermonitor.desc": "ローカルの URL · プロセス · .env(デスクトップ)",
   "widgets-desc.activity.desc": "この PC でどのアプリ・ウィンドウにどれだけ時間を使ったか(デスクトップ版のみ)",
   "widgets-desc.quest-log.desc": "memo TASK の正本を読み、プロジェクトの進み具合を見せる開発用の作業地図です",

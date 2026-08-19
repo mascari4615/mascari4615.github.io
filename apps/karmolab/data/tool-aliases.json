@@ -1,6 +1,7 @@
 {
   "_note": "목록에서 찾을 때 같이 걸리는 다른 이름들. 사람은 「정규식」 만큼이나 「regex」 라고 친다. 화면에 보이지는 않고 찾기에만 쓰인다.",
   "aliases": {
+    "install": "동반자 창 부품 깔기 설치 install companion window 굽기 빌드",
     "regextest": "regex regexp 정규표현식",
     "regexref": "regex regexp cheatsheet 정규표현식",
     "textdiff": "diff compare 差 비교",

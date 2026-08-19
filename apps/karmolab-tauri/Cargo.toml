@@ -13,8 +13,13 @@
 # verify.mjs 의 `cargo check --all-targets` 는 cwd=`src-tauri` 에서 호출 →
 # 멤버(현재 패키지) scope 만 체크. sidecar 의 무거운 ML dep 은 `--workspace`
 # 가 아니므로 게이트에서 빌드 X — master-invariant 게이트 속도/그린 유지.
+
+# src-tauri-companion (동반자 창, KAR-201) 이 여기 없어서 `cargo build --bin
+# companion-window` 가 「그런 패키지 없다」로 끝났다 — 안내문대로 쳐도 안 구워졌고,
+# 그래서 어느 컴퓨터에서도 창이 뜬 적이 없다(2026-08-19 실측: target/ 자체가 없음).
+# 같은 target 을 쓰라고 워크스페이스에 둔 것이 원래 의도다 (해당 Cargo.toml 머리말).
 [workspace]
-members = ["src-tauri", "src-tauri-ml", "src-tauri-shared"]
+members = ["src-tauri", "src-tauri-ml", "src-tauri-shared", "src-tauri-companion"]
 resolver = "2"
 
 # 워크스페이스에서 [profile.*] 는 *워크스페이스 루트에만* 유효하다.

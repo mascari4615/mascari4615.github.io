@@ -1,0 +1,13 @@
+{
+  "_schema": "설치 위젯이 읽는 부품 목록 (TASK-KL-330). 항목 하나 = 「깔아야 도는 것」 하나.\n부품 추가 = 여기 한 줄 + apps/karmolab-tauri/scripts/install-part.mjs 의 RECIPES 한 줄 + package.json 의 build:* script 하나 + servermonitor-config.json 의 devProfile 하나.\nprofile 은 devProfile id 와 같아야 한다 — localdev_start 가 npm 만 허용하므로(program_allowed) cargo 는 npm script 뒤에 숨는다.",
+  "parts": [
+    {
+      "id": "companion-window",
+      "name": "동반자 창",
+      "desc": "화면 위에 늘 떠 있는 투명 창. 동반자의 몸이다 — 이게 없으면 브라우저 탭으로만 만난다.",
+      "profile": "install-companion-window",
+      "artifact": "apps/karmolab-tauri/target/debug/companion-window.exe",
+      "weight": "22MB · 처음이면 1~5분"
+    }
+  ]
+}
