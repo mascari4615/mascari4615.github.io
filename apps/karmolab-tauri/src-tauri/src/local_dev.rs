@@ -835,6 +835,54 @@ pub fn localdev_get_repo_root(state: State<'_, LocalDevState>) -> Option<String>
         .and_then(|g| g.clone())
 }
 
+/// 작업 폴더를 **짐작해서** 돌려준다. 못 찾으면 `None` (TASK-KL-329).
+///
+/// 왜: 이 값이 없으면 부품을 못 굽는데, 창(웹)은 이 컴퓨터의 폴더를 못 본다. 그래서
+/// 사람이 경로를 손으로 적거나 골라야 했다 — 한 번뿐이라도 「열자마자 막힌 화면」이 된다.
+/// 대개는 기계가 알 수 있는 값이다.
+///
+/// **정하지는 않는다.** 짐작한 값을 칸에 채워 주기만 하고, 정하는 것은 사람이 누른다 —
+/// 짐작이 틀렸는데 조용히 정해 버리면 엉뚱한 폴더에서 굽는다.
+#[tauri::command]
+pub fn localdev_guess_repo_root() -> Option<String> {
+    // 이 파일이 있으면 그 폴더가 맞다. 「폴더가 있다」와 「그 소스가 맞다」는 다르다.
+    fn looks_right(dir: &Path) -> bool {
+        dir.join("apps").join("karmolab").join("package.json").is_file()
+    }
+
+    // ① 개발 판이면 실행 파일이 저장소 **안**에 있다 (target/debug/…). 위로 올라가며 찾는다.
+    if let Ok(exe) = std::env::current_exe() {
+        let mut cur = exe.parent();
+        while let Some(dir) = cur {
+            if looks_right(dir) {
+                return dir.to_str().map(|s| s.to_string());
+            }
+            cur = dir.parent();
+        }
+    }
+
+    // ② 깔아 쓰는 판이면 실행 파일은 저장소 밖이다. 집 폴더 아래 흔한 자리를 훑는다.
+    //    없는 자리를 훑는 것은 값싸고(파일 하나 확인), 맞히면 사람이 할 일이 사라진다.
+    let home = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .ok()?;
+    let home = PathBuf::from(home);
+    for rel in [
+        "repos/karmoddrine/Mascari4615.github.io",
+        "repos/Mascari4615.github.io",
+        "source/repos/Mascari4615.github.io",
+        "Documents/GitHub/Mascari4615.github.io",
+        "git/Mascari4615.github.io",
+        "Mascari4615.github.io",
+    ] {
+        let cand = home.join(rel);
+        if looks_right(&cand) {
+            return cand.to_str().map(|s| s.to_string());
+        }
+    }
+    None
+}
+
 #[tauri::command]
 pub fn localdev_list_tracked(state: State<'_, LocalDevState>) -> Result<Vec<String>, String> {
     let pids = state.pids.lock().map_err(|e| e.to_string())?;
