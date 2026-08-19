@@ -211,7 +211,7 @@ async function measure(url, scenario) {
      도구 장에서 사람이 실제로 만지는 것이 그것이다. */
   const 재던주소 = page.url();
   const clickable = await page.$$(
-    '.landing-cta, .tool-card, .hp-open, header button, nav button, .tab-btn, main input, main select, .tool-card-btn'
+    '.landing-cta, .tool-card, header button, nav button, .tab-btn, main input, main select, .tool-card-btn'
   );
   /* 떠나는 것 = **틀(chrome)** 이다 — 머리말·메뉴·생김새·링크. 도구 장에서는 그게 전부
      「앱으로 들어가기」라 하나라도 누르면 재던 화면이 사라진다(설정 단추 → `#settings`).

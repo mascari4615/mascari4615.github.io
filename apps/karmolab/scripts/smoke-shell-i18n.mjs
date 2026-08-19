@@ -27,7 +27,10 @@ import { fileURLToPath } from 'node:url';
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 const BASELINE = path.join(appRoot, 'i18n/.shell-baseline.json');
-const PORT = 8842;
+/* 자리 번호를 환경변수로 열어 둔다 — 세션마다 자기 책상에서 이 검사를 돌리면 8842 한 자리에
+   전부 부딪힌다(실제로 부딪혔다: EADDRINUSE 로 검사가 죽었다. `dev.mjs` 가 같은 이유로
+   `PORT` 를 읽는다). 기본값은 그대로라 아무도 안 적으면 예전과 똑같이 돈다. */
+const PORT = Number(process.env.PORT || 8842);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 const BLESS = process.argv.includes('--bless');
 

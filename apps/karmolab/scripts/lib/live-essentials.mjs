@@ -14,7 +14,10 @@ export const WANT = [
   ['그 이동 경로의 모양', '/apps/karmolab/css/tools.css', /\.tool-crumb\s*\{/, '경로가 맨몸으로 떠서 글자 뭉치처럼 보인다'],
   ['도구 페이지의 찾기 칸', '/karmolab/t/loan/', /class="tool-seo-find"/, '다른 도구를 찾으려면 목록으로 건너가야 한다'],
   ['그 찾기 칸의 모양', '/apps/karmolab/css/tools.css', /\.tool-seo-find\s*\{/, '칸과 버튼이 줄도 안 맞고 폰에서 화면이 확대된다'],
-  ['도구 페이지의 방문 기록기', '/karmolab/t/loan/', /gc\.zgo\.at/, '어느 도구로 사람이 오는지 하나도 안 세어진다'],
+  /* 기록기는 인라인에서 `js/boot-late.js` 로 옮겼다(자물쇠로 가는 길) — 장에는 그 파일을 부르는
+     줄만 남는다. `gc.zgo.at` 글자만 찾으면 146장이 전부 「없다」가 된다(짝 검사 `audit-seo-head`
+     가 이미 같은 자리에서 당해 두 갈래로 고쳤다. 여기만 옛 글자를 보고 있었다). */
+  ['도구 페이지의 방문 기록기', '/karmolab/t/loan/', /gc\.zgo\.at|js\/boot-late[.\w]*\.js/, '어느 도구로 사람이 오는지 하나도 안 세어진다'],
   ['검색 결과에서 큰 그림 허용', '/karmolab/t/loan/', /max-image-preview:large/, '공유 카드가 작은 썸네일로 나가거나 아예 안 나간다'],
   ['블로그에서 도구로 가는 길', '/', /href="[^"]*\/karmolab\/t\/"/, '글 수백 장에서 도구로 가는 길이 사라진다'],
   ['없는 도구 주소 건지기', '/karmolab/t/그런도구없음/', /karmolab-rescue/, '옛 링크로 온 사람이 그냥 버려진다'],

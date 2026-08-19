@@ -3,7 +3,7 @@
  *
  * 왜 생겼나: 첫 화면을 미리 그려 박았더니 실사이트 밀림이 **되레 커졌다**(0.033 → 0.044).
  * 다 가라앉은 뒤를 떠서, 갈아 끼우는 순간 브라우저가 처음 만드는 것과 어긋난 탓이다:
- *   · 나중에 붙는 꾸미기 단추(`.hp-open`)가 박혀 있었다 → 갈아 끼우면 31px 가 사라진다
+ *   · 나중에 붙는 것(그때는 꾸미기 단추)이 박혀 있었다 → 갈아 끼우면 그 높이가 사라진다
  *   · 나중에 채워질 칸에 예약 표가 없었다 → 0px 였다가 23px 로 뛴다
  *
  * 둘 다 **파일만 보면 안다**. 브라우저를 띄울 필요가 없으니 배포 길목에서 값싸게 지킨다.
@@ -20,9 +20,10 @@ const FILE = path.join(root, '../blog/karmolab/index.html');
 const MARK = '<!-- KARMOLAB_HOME_PRERENDERED -->';
 
 /** 나중에 채워지는 칸 — 미리 박을 때 **예약 표**를 달고 있어야 한다. */
-const LIVE_IDS = ['homeToday', 'homePulse'];
-/** 나중에 붙는 것 — 미리 박은 것에 있으면 안 된다. */
-const LATE_CLASSES = ['hp-open', 'hp-panel'];
+const LIVE_IDS = ['homePulse'];
+/** 나중에 붙는 것 — 미리 박은 것에 있으면 안 된다.
+    `landing-hi` = 계정 닉네임 인사줄. 빌드 기계의 로그인 상태가 모두의 HTML 에 박히면 안 된다. */
+const LATE_CLASSES = ['landing-hi'];
 
 if (!fs.existsSync(FILE)) {
   console.log('[prerender-home 검사] 못 돌림 — 찍힌 첫 화면이 없다 (배포가 만든다). 통과로 안 센다.');
