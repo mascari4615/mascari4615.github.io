@@ -1,16 +1,16 @@
 /**
  * 얼굴 데모 — 브라우저 창에 큐브로 나타난다.
  *
- *   node demo/face.mjs                        격리된 claude CLI (기본)
- *   COMPANION_BRAIN=echo node demo/face.mjs   가짜 두뇌 (움직임만 확인)
- *   COMPANION_BRAIN=assistant …               공용 provider 라우터 (세션·지침 공유 주의)
+ *   node demo/face.mjs                        기본 두뇌 claude
+ *   COMPANION_BRAIN=grok COMPANION_TOOLS=talk …
+ *   COMPANION_BRAIN=echo …                    가짜 두뇌
  *
  *   COMPANION_PORT=4620            주소 (4615 는 yawnbot dev 웹훅이 쓴다)
  *   COMPANION_CLOCK_MS=60000       이 간격으로 스스로 깨어나 혼잣말 (0 = 끔)
  *   COMPANION_COOLDOWN_MS=45000    혼잣말 참는 간격
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, openSync, readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -115,11 +115,14 @@ import {
   touchKindOf,
   touchReply,
   brainDistiller,
-  assistantBrain,
-  claudeCliBrain,
+  pickBrain,
+  parseBrainName,
+  parseToolMode,
+  listGrokLanes,
+  workLane,
+  talkLane,
   clockBody,
   describeHands,
-  echoBrain,
   anySpeech,
   edgeSpeech,
   piperReady,
@@ -141,6 +144,8 @@ import {
   tactfulAttention,
   loadCharacter,
   loadCharacters,
+  resolveCharacterDir,
+  parseSurfaceName,
   readMood,
   pickFiller,
   reflexFor,
@@ -222,20 +227,45 @@ const hands = [
   }),
 ];
 
-const brainName = process.env.COMPANION_BRAIN ?? 'claude';
-const brain =
-  brainName === 'claude' ? claudeCliBrain({ handsNote: describeHands(hands), alwaysNote: expressionNote() })
-  : brainName === 'assistant' ? assistantBrain()
-  : echoBrain;
+let liveRoom = parseToolMode(process.env.COMPANION_TOOLS) === 'work' ? 'work' : 'talk';
+function makeBrain(tools) {
+  return pickBrain(parseBrainName(process.env.COMPANION_BRAIN), {
+    tools,
+    workDir: process.env.COMPANION_WORK_DIR,
+    handsNote: describeHands(hands),
+    alwaysNote: expressionNote(),
+  });
+}
+let liveBrain = makeBrain(liveRoom === 'work' ? 'work' : 'talk');
+const brain = {
+  get name() { return liveBrain.name; },
+  currentModel: () => liveBrain.currentModel ? liveBrain.currentModel() : '',
+  useModel: (n) => liveBrain.useModel?.(n),
+  setHandsNote: (n) => liveBrain.setHandsNote?.(n),
+  abort: () => liveBrain.abort?.(),
+  ask: (p) => (liveBrain.ask ? liveBrain.ask(p) : Promise.resolve(null)),
+  think: (i) => liveBrain.think(i),
+  thinkStream: (i, d, p) => (liveBrain.thinkStream ? liveBrain.thinkStream(i, d, p) : liveBrain.think(i)),
+};
+function enterRoom(id) {
+  if (id !== 'work' && id !== 'talk') return false;
+  if (id === liveRoom) return true;
+  liveBrain.abort?.();
+  liveRoom = id;
+  liveBrain = makeBrain(id === 'work' ? 'work' : 'talk');
+  console.log(`[방] ${id === 'work' ? '일 (코딩 CLI)' : '말 (곁에)'} 으로 들어왔다`);
+  return true;
+}
 const port = Number(process.env.COMPANION_PORT ?? '4620');
 const clockMs = Number(process.env.COMPANION_CLOCK_MS ?? '0');
 const screenMs = Number(process.env.COMPANION_SCREEN_MS ?? '120000');
 const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '90000');
 const memoryFile = process.env.COMPANION_MEMORY_FILE?.trim();
 
-// 인격 = 폴더 안의 파일들. 고정이 아니라 창에서 갈아끼운다.
-const charactersDir = join(root, 'characters');
+// 인격 = 폴더. 이 저장소 밖 경로를 꽂아도 코어는 본문을 해석하지 않는다.
+const charactersDir = resolveCharacterDir(root, process.env.COMPANION_CHARACTER_DIR);
 const roster = loadCharacters(charactersDir);
+const surface = parseSurfaceName(process.env.COMPANION_SURFACE);
 const wanted = process.env.COMPANION_CHARACTER ?? '욘';
 let character = wanted === 'none' ? undefined : (roster.find((c) => c.name === wanted) ?? roster[0]);
 
@@ -243,9 +273,22 @@ let character = wanted === 'none' ? undefined : (roster.find((c) => c.name === w
 const conversationPath = memoryFile ?? join(home, 'conversation.jsonl');
 const knownPath = join(home, '아는-것.md');
 
+const pageWorkMem = surface === 'page'
+  ? new JsonlFileMemory(join(home, 'page-work.jsonl'))
+  : null;
+const pageTalkMem = surface === 'page'
+  ? new JsonlFileMemory(join(home, 'page-talk.jsonl'))
+  : null;
 const memory =
   conversationPath === 'none'
     ? new InMemoryMemory()
+    : surface === 'page'
+    ? {
+        remember(entry) { return (liveRoom === 'work' ? pageWorkMem : pageTalkMem).remember(entry); },
+        recent(limit) { return (liveRoom === 'work' ? pageWorkMem : pageTalkMem).recent(limit); },
+        search(word, limit) { return (liveRoom === 'work' ? pageWorkMem : pageTalkMem).search(word, limit); },
+        forget(word) { return (liveRoom === 'work' ? pageWorkMem : pageTalkMem).forget(word); },
+      }
     : new DistillingMemory({
         inner: new JsonlFileMemory(conversationPath),
         // 졸이는 일도 같은 두뇌가 한다. 두뇌가 못 하면(가짜 두뇌) 아는 것은 안 쌓인다.
@@ -463,11 +506,13 @@ function 받아쓰기모델() {
 /* 뜻으로 찾는 기억 — 낱말이 하나도 안 겹쳐도 옛 말을 부른다.
    모델은 처음 뜰 때 수십 초 걸리므로 **기다리지 않는다**: 준비될 때까지는 낱말 회상만
    나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
-const 뜻 = new 뜻기억({
-  path: join(home, '뜻-색인.json'),
-  재기: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
-  log: (m) => console.log(`[뜻] ${m}`),
-});
+const 뜻 = surface === 'page'
+  ? { 찾기: async () => [], 담기: async () => {} }
+  : new 뜻기억({
+    path: join(home, '뜻-색인.json'),
+    재기: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
+    log: (m) => console.log(`[뜻] ${m}`),
+  });
 
 const touchCount = new TouchCount();
 /* 미리 지어 둔 대꾸 창고 (89회차). 손으로 적은 표는 후보가 셋뿐이라 스무 번이면 또 돈다 —
@@ -561,6 +606,19 @@ ${tallyReport(tally)}`;
     흉내준비: 흉내기동 === null ? null : 흉내기동.준비됐나,
     흉내자동: settings.on('애니목소리자동'),
   }),
+  desk: () => ({
+    brain: brain.name,
+    tools: liveRoom === 'work' ? 'work' : 'talk',
+    workDir: process.env.COMPANION_WORK_DIR?.trim() || process.cwd(),
+    character: companion.character?.name ?? character?.name ?? null,
+    room: liveRoom,
+    lanes: [
+      workLane('코딩 CLI · 손 있음'),
+      talkLane('곁에 있기 · 손 없음'),
+      ...listGrokLanes({ sessionId: process.env.GROK_SESSION_ID }),
+    ],
+  }),
+  enterRoom,
   settings: () => settingsReport(settings),
   putSettings: (next) => settings.put(next),
   // 얼굴 신호를 유도할 재료. 생김새는 다른 세션이 이 신호를 받아 쓴다.
@@ -583,6 +641,11 @@ ${tallyReport(tally)}`;
   // 목소리 — 내 컴퓨터 것과 인터넷 것을 한 목록에 같이 올린다. 어느 쪽이 취향인지는
   // 코드가 아니라 사람이 정한다.
   speech: await (async () => {
+    if (surface === 'page') {
+      목소리목록 = ['인터넷'];
+      console.log('[목소리] page 는 채팅이 먼저라 인터넷 목소리만 쓴다');
+      return edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' });
+    }
     /* 로컬 목소리는 메모 저장소 안에 있다. 「여기서 세 겹 위」로 박아 두면 워크트리에서
        띄웠을 때 통째로 사라진다 — 실제로 목록에서 로컬 목소리가 없어졌다(실측). */
     const memo뿌리 = 이웃('memo', join('life', '.models'));
@@ -902,6 +965,7 @@ const companion = new Companion({
   },
   // 입 앞의 관문 — 새는 말은 말하기 전에 잡는다. 기억에 남기기도 전이다.
   beforeSpeak: async (text, ctx) => {
+    if (surface === 'page') return 표떼기(text);
     // 안 한 걸 했다고 말하는 것 — 여기서 잡는다. 손을 실제로 썼는지는 core 만 안다.
     쓴손 = ctx.usedHands ?? [];
     찾은것 = ctx.found ?? [];
@@ -1201,6 +1265,13 @@ const companion = new Companion({
     되돌릴머리?.();
     되돌릴머리 = null;
     if (report.sensation.channel === 'nudge') shownWindowTitle = lastWindowTitle;
+    /* page 채팅은 두뇌를 일·말에만 쓴다. 되새김·자리 배우기는 다음 답을 훔친다. */
+    if (surface === 'page') {
+      if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
+      else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
+      else console.log(`[참음] ${report.decision.reason}`);
+      return;
+    }
     /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
@@ -1230,13 +1301,15 @@ await companion.start();
 /* 창이 뜨자마자 한 번, 그 뒤로는 이 간격으로 한 갈래씩. 아홉 갈래가 다 차면 그때부터는
    두뇌를 아예 안 부른다(담긴 수만 세고 돌아간다) — 그래서 간격이 짧아도 값이 안 든다.
    너무 길게 잡으면 정작 가장 많이 닿는 자리(계속 찌를 때)가 한참 동안 옛 표 그대로다. */
-const 대사간격 = Number(process.env.COMPANION_STOCK_MS ?? '90000');
-대꾸채워두기();
-setInterval(대꾸채워두기, 대사간격).unref();
+if (surface !== 'page') {
+  const 대사간격 = Number(process.env.COMPANION_STOCK_MS ?? '90000');
+  대꾸채워두기();
+  setInterval(대꾸채워두기, 대사간격).unref();
+}
 if (desktop) {
-  openPinnedWindow(`http://localhost:${port}`, {
-    width: Number(process.env.COMPANION_WIDTH ?? '420'),
-    height: Number(process.env.COMPANION_HEIGHT ?? '640'),
+  openPinnedWindow(`http://localhost:${port}/?surface=${surface}`, {
+    width: Number(process.env.COMPANION_WIDTH ?? (surface === 'page' ? '920' : '420')),
+    height: Number(process.env.COMPANION_HEIGHT ?? (surface === 'page' ? '780' : '640')),
     transparent: process.env.COMPANION_TRANSPARENT !== '0',
   }).then((how) => console.log(`[창] ${how}`));
 }

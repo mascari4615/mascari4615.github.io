@@ -17,6 +17,10 @@
   --edge: rgba(150, 170, 200, 0.22);
   --panel: rgba(14, 16, 22, 0.86);
   --accent: #6ee7ff;
+  /* 안 된 것 — 얘 색(청록)과 절대 안 헷갈리게 반대쪽 빨강. */
+  --bad: #ff6b6b;
+  --bad-bg: rgba(120, 26, 32, 0.32);
+  --bad-edge: rgba(255, 107, 107, 0.55);
 }
 
 html, body {
@@ -145,6 +149,27 @@ html, body {
   background: none; border: 0; padding: 1px 6px;
   font-size: 11px; line-height: 1.4; color: var(--dim); opacity: .72; text-align: center;
 }
+/* ── 안 됨 ────────────────────────────────────────────────
+   조수님(오늘): 「실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.」
+   알아챔(notice)은 일부러 옅게 스치게 그리지만, **실패는 그 반대다** — 가운데 놓고,
+   빨갛게, 테두리까지 세워 눈이 걸리게 한다. 사라지지도 않는다(기록에 남는다). */
+.line.fail { align-self: center; max-width: 96%; }
+.line.fail .who {
+  display: block; font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bad); opacity: .95; text-align: center; margin-bottom: 3px; font-weight: 700;
+}
+.line.fail .what {
+  background: var(--bad-bg);
+  border: 1px solid var(--bad-edge);
+  border-left: 3px solid var(--bad);
+  color: #ffd9d9;
+  font-size: 12px; line-height: 1.5; font-weight: 600; text-align: left;
+}
+/* 새로 뜬 실패는 한 번 크게 깜빡인다 — 스크롤 끝에 조용히 붙는 걸로는 약하다. */
+@keyframes 실패번쩍 { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); } 35% { box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.35); } }
+.line.fail .what { animation: 실패번쩍 900ms ease-out 2; border-radius: 10px; }
+@media (prefers-reduced-motion: reduce) { .line.fail .what { animation: none; } }
+
 .log .empty { display: none; }
 
 form { display: flex; gap: 6px; }
@@ -192,6 +217,23 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
   gap: 2px;
 }
 .menu[hidden] { display: none; }
+
+/* 설정창 머리 — 여는 길은 우클릭 하나뿐인데 닫는 길은 Esc·바깥누르기뿐이었다.
+   뚫린 창에서는 「바깥」이 클릭을 안 받고, 창에 초점이 없으면 Esc 도 안 먹는다.
+   그래서 눈에 보이는 ✕ 를 단다. */
+.menu-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin: -2px 0 6px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--edge);
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim);
+}
+.menu-x {
+  border: 1px solid var(--edge); background: transparent; color: var(--dim);
+  width: 22px; height: 22px; line-height: 1; border-radius: 7px;
+  font-size: 12px; cursor: pointer; padding: 0; flex: none;
+}
+.menu-x:hover { background: rgba(255, 110, 140, 0.14); color: #ff8098; border-color: rgba(255, 110, 140, 0.4); }
+.menu-x:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .menu label {
   display: grid;
   grid-template-columns: 62px 1fr;
@@ -375,3 +417,333 @@ body.showboxes .room::before {
 .menu .level i { position: absolute; inset: 0 auto 0 0; width: 0%; background: #7ee787;
   transition: width .06s linear; }
 .menu .level b { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ffd166; }
+
+/* ── page: 방. 벤더 세션을 한 단 위에서 본다 ──────────────
+   문법 = 디스코드 레일 + 채팅 앱 스레드. 색 = 밤 책상, 블러플 아님. */
+body.page {
+  --rail: #140f14;
+  --ink: #f3ebe6;
+  --dim: #9a8890;
+  --panel: #22181e;
+  --chat: #1a1418;
+  --me: #3d2430;
+  --them: #2a2126;
+  --yon: #e59aaf;
+  --live: #d4a24c;
+  --line: rgba(255, 214, 204, 0.08);
+  background: var(--chat);
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-rows: 56px auto minmax(0, 1fr);
+  font-family: "Malgun Gothic", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+body.page.set-open {
+  grid-template-columns: 76px minmax(0, 1fr) 300px;
+}
+body.page .lanes {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 10px;
+  background: var(--rail);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+body.page .lane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+body.page .lane i {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #2a2026;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: border-radius 160ms ease, background 160ms ease;
+}
+body.page .lane span {
+  font-size: 10px;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.page .lane.on i,
+body.page .lane:hover i { border-radius: 12px; background: #3a2830; }
+body.page .lane.on { color: var(--yon); }
+body.page .lane.here i {
+  box-shadow: 0 0 0 2px var(--rail), 0 0 0 4px var(--live);
+}
+body.page .bar {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: #1e171b;
+}
+body.page .bar-who { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+body.page .bar-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+body.page .bar-set {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+body.page .bar-set:hover { border-color: var(--yon); }
+body.page .set {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  padding: 16px 16px 20px;
+  overflow-y: auto;
+}
+body.page .set-head {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 14px;
+}
+body.page .set label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dim);
+  margin-bottom: 14px;
+}
+body.page .set select,
+body.page .set-known {
+  font: inherit;
+  color: var(--ink);
+  background: #161014;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+body.page .set-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: var(--dim);
+}
+body.page .set-row b,
+body.page .set-row code {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.page .set-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--dim);
+  margin: 16px 0;
+}
+body.page .set-known { width: 100%; cursor: pointer; }
+body.page .peek {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 10px 18px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(212, 162, 76, 0.12);
+  color: #f0d7a0;
+  font-size: 13px;
+  line-height: 1.5;
+  z-index: 2;
+}
+body.page .room {
+  grid-column: 2;
+  grid-row: 3;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  justify-items: stretch;
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+body.page.set-open .room { grid-column: 2; }
+body.page .bubble,
+body.page .stage,
+body.page .shadow { display: none; }
+body.page .doing {
+  position: absolute;
+  top: 18px;
+  right: 88px;
+  z-index: 3;
+  pointer-events: none;
+}
+body.page.set-open .doing { right: 316px; }
+body.page .talk {
+  grid-column: 1;
+  grid-row: 1;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+}
+body.page .log {
+  max-height: none;
+  height: 100%;
+  gap: 10px;
+  padding: 18px 22px 16px;
+}
+body.page .log .empty {
+  display: block;
+  color: var(--dim);
+  font-size: 15px;
+  padding: 28px 8px 8px;
+}
+body.page .line .who {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--dim);
+  margin: 0 0 3px 6px;
+}
+body.page .line.me .who { text-align: right; margin-right: 6px; }
+body.page .what {
+  font-size: 14px;
+  line-height: 1.65;
+  padding: 10px 14px;
+  border-radius: 14px 14px 14px 6px;
+}
+body.page .line.me .what {
+  background: var(--me);
+  border-color: rgba(229, 154, 175, 0.28);
+  border-radius: 14px 14px 6px 14px;
+}
+body.page .line.them .what { background: var(--them); }
+body.page .line.tool .what.card {
+  font-family: "Cascadia Code", ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  background: #2a1c24;
+  border-color: rgba(229, 154, 175, 0.28);
+}
+body.page .line.tool.done .what.card { border-color: rgba(126, 231, 135, 0.35); }
+body.page .inlay {
+  display: block;
+  max-width: min(360px, 100%);
+  border-radius: 10px;
+  margin: 6px 0;
+}
+body.page button:hover { color: var(--yon); border-color: rgba(229, 154, 175, 0.4); }
+body.page .lanes[hidden],
+body.page .bar[hidden],
+body.page .set[hidden],
+body.page .peek[hidden] { display: none !important; }
+body.page #form {
+  padding: 10px 16px 16px;
+  background: #1a1418;
+  border-top: 1px solid var(--line);
+}
+body.page #text {
+  background: #2a2126;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+body.page #text:focus {
+  outline: 2px solid rgba(229, 154, 175, 0.45);
+  outline-offset: 1px;
+}
+@media (max-width: 720px) {
+  body.page,
+  body.page.set-open {
+    grid-template-columns: 1fr;
+    grid-template-rows: 52px auto minmax(0, 1fr) 64px;
+  }
+  body.page .lanes {
+    grid-column: 1;
+    grid-row: 4;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    padding: 8px 10px;
+  }
+  body.page .bar,
+  body.page .room,
+  body.page .peek { grid-column: 1; }
+  body.page .set {
+    position: fixed;
+    inset: 0 0 0 18%;
+    grid-column: auto;
+    grid-row: auto;
+    z-index: 8;
+  }
+  body.page .doing { right: 12px; }
+}
+body.page .log {
+  max-height: none;
+  height: 100%;
+  gap: 10px;
+  padding: 4px 8px 12px 0;
+}
+body.page .line { max-width: 92%; }
+body.page .line .who {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--dim);
+  margin: 0 0 3px 6px;
+}
+body.page .line.me .who { text-align: right; margin-right: 6px; }
+body.page .what {
+  font-size: 14px;
+  line-height: 1.65;
+  padding: 10px 14px;
+  border-radius: 14px 14px 14px 6px;
+}
+body.page .line.me .what { border-radius: 14px 14px 6px 14px; }
+body.page .line.tool .what.card {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  background: rgba(40, 28, 48, 0.9);
+  border-color: rgba(243, 180, 200, 0.28);
+}
+body.page .line.tool.done .what.card { border-color: rgba(126, 231, 135, 0.35); }
+body.page .inlay {
+  display: block;
+  max-width: min(360px, 100%);
+  border-radius: 10px;
+  margin: 6px 0;
+}

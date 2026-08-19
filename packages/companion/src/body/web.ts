@@ -85,6 +85,16 @@ export interface WebBodyOptions {
     current: () => string;
     switchTo: (name: string) => boolean;
   };
+  /** 방 한 단 위 — 벤더 세션 레인 + 지금 두뇌/손. */
+  desk?: () => {
+    brain: string;
+    tools: string;
+    workDir: string;
+    character: string | null;
+    lanes: readonly unknown[];
+  };
+  /** 일 방 / 말 방 들어가기. */
+  enterRoom?: (id: string) => boolean;
 }
 
 /**
@@ -298,7 +308,19 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           serveFile(res, join(packageRoot, 'assets', 'ui.css'), 'text/css; charset=utf-8', log);
           return;
         }
-        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js' || url === '/say-chunks.js' || url === '/listen-gate.js') {
+        if (url === '/desk') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(options.desk?.() ?? { brain: '', tools: '', workDir: '', character: null, lanes: [] }));
+          return;
+        }
+        if (url.startsWith('/room?') && req.method === 'POST') {
+          const want = new URLSearchParams(url.slice(url.indexOf('?') + 1)).get('id') ?? '';
+          const ok = options.enterRoom?.(want) === true;
+          res.writeHead(ok ? 200 : 404, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok, current: want }));
+          return;
+        }
+        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js' || url === '/say-chunks.js' || url === '/listen-gate.js' || url === '/chat-markup.js' || url === '/desk.js') {
           serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;
         }
@@ -770,6 +792,9 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
     hush() {
       // 이미 나가고 있던 소리와 말풍선을 즉시 멈춘다.
       broadcast({ type: 'hush' });
+    },
+    show(part) {
+      broadcast({ type: 'part', part });
     },
     speak(utterance: Utterance) {
       // 말 앞에 붙은 얼굴 표를 뽑아 따로 흘리고, 말에서는 지운다.

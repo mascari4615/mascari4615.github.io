@@ -52,5 +52,11 @@ jobs:
       - name: 깔기
         run: cd packages/companion && npm ci
 
+      # 창 검사(`test/face-screen.test.mjs`)는 **진짜 브라우저**를 띄운다 — 글자 맞춰보기로는
+      # 「창을 여는 것만으로 터지는」 종류(body3d TDZ)를 못 잡는다. 크로뮴이 없으면 그 검사는
+      # 건너뛰지 않고 **실패한다**(조용히 안 도는 검사는 없는 검사다). 그래서 여기서 깐다.
+      - name: 크로뮴 깔기 (창 검사용)
+        run: cd packages/companion && npx playwright install --with-deps chromium
+
       - name: build + test
         run: cd packages/companion && npm test

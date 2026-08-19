@@ -31,3 +31,15 @@ export function loadCharacters(folder: string): Character[] {
     .map((f) => loadCharacter(join(folder, f)))
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }
+
+/**
+ * 인격 폴더.
+ *
+ * 기본은 이 패키지 안 `characters/`. 다른 저장소의 폴더를 꽂을 수 있다 —
+ * 코어는 경로가 어디든 본문을 해석하지 않고 두뇌에 넘긴다.
+ * 어떤 본문이 있는지는 이 저장소가 모른다.
+ */
+export function resolveCharacterDir(packageRoot: string, override?: string): string {
+  const raw = override?.trim();
+  return raw ? raw : join(packageRoot, 'characters');
+}
