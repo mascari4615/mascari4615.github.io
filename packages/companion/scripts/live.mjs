@@ -4,12 +4,14 @@
  * 「내가 실행하는 프로그램」과 「그냥 거기 있는 존재」를 가르는 건 이것 하나다.
  * 컴퓨터를 켜면 알아서 뜨고, 어느 한쪽이 죽으면 혼자 되살아난다.
  *
- *   node scripts/live.mjs            지킴이 시작
- *   node scripts/live.mjs --install  로그인할 때 자동으로 뜨게 등록
- *   node scripts/live.mjs --remove   자동 실행 해제
+ *   node scripts/live.mjs             지킴이 시작 (이 터미널에 매여 있다)
+ *   node scripts/live.mjs --background 창 없이 뒤에서 — 나가는 말은 로그 파일로
+ *   node scripts/live.mjs --install   로그인할 때 자동으로 뜨게 등록 (창 없이)
+ *   node scripts/live.mjs --remove    자동 실행 해제
  */
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, openSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -30,13 +32,43 @@ function 구운창찾기() {
 }
 
 const TASK_NAME = 'Companion';
+const 로그자리 = join(homedir(), '.companion', '지킴이.log');
 
 if (process.argv.includes('--install')) {
   installAutoStart();
 } else if (process.argv.includes('--remove')) {
   removeAutoStart();
+} else if (process.argv.includes('--background')) {
+  뒤에서();
 } else {
   supervise();
+}
+
+/**
+ * **창 없이 뒤에서 돈다.**
+ *
+ * 지킴이는 늘 켜 두는 것인데, 여태 제 터미널 창을 하나 차지하고 앉아 있었다 — 화면에
+ * 검은 창이 남고, 그 창을 닫으면 얘도 같이 죽는다. 「그냥 거기 있는 존재」인데 창 하나를
+ * 붙들고 있는 셈이다(조수님 실측 2026-08-19: 「터미널 보이는건 어떻게 안 되나」).
+ *
+ * 그렇다고 말을 버리지는 않는다. 이 저장소에서 제일 비싼 고장은 **조용한 실패**다
+ * (오늘만 해도 흉내 목소리가 `stdio:'ignore'` 라 왜 죽었는지 아무 데도 안 남았다).
+ * 그래서 창만 없애고 나가는 말은 전부 로그 파일로 받는다.
+ */
+function 뒤에서() {
+  mkdirSync(dirname(로그자리), { recursive: true });
+  // 이어 붙인다 — 다시 띄울 때마다 지난 판이 사라지면 「어제 왜 죽었나」를 못 본다.
+  const 받개 = openSync(로그자리, 'a');
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
+    cwd: root,
+    detached: true,
+    stdio: ['ignore', 받개, 받개],
+    windowsHide: true,
+  });
+  child.unref();
+  console.log(`지킴이를 뒤에서 띄웠다 (pid ${child.pid}) — 창은 없다.`);
+  console.log(`  하는 말: ${로그자리}`);
+  console.log('  끄려면: node scripts/live.mjs --remove (자동 실행) 또는 작업 관리자에서 node 종료');
 }
 
 // ── 지킴이 ────────────────────────────────────────────────────────────────
@@ -207,10 +239,12 @@ function installAutoStart() {
     console.error('지금은 Windows 만 등록할 수 있다.');
     process.exit(1);
   }
-  // 로그인한 내 자리에서 돌아야 한다 — 시스템 계정으로 돌리면 화면도 소리도 없다.
+  /* 로그인한 내 자리에서 돌아야 한다 — 시스템 계정으로 돌리면 화면도 소리도 없다.
+     `--background` 로 등록한다: 로그인할 때 검은 창이 뜨면 그건 매일 아침 치워야 하는
+     쓰레기다. 그 판은 곧바로 빠지고, 창 없는 진짜 지킴이만 남는다. */
   const command =
     `$action = New-ScheduledTaskAction -Execute '${process.execPath}' ` +
-    `-Argument '"${join(root, 'scripts', 'live.mjs')}"' -WorkingDirectory '${root}'; ` +
+    `-Argument '"${join(root, 'scripts', 'live.mjs')}" --background' -WorkingDirectory '${root}'; ` +
     `$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME; ` +
     `$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries ` +
     `-DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1); ` +
