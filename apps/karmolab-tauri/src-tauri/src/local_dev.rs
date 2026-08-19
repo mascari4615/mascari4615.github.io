@@ -259,7 +259,7 @@ fn apply_no_window(cmd: &mut Command) {
 // ─── PID 영속화 (카모랩 재시작 시 reattach) ─────────────────────────────────
 //
 // `<app_local_data_dir>/localdev-state.json`에 `{ pids: { profileId: pid } }`를
-// 매 시작/종료마다 기록. 카모랩 부팅 시 `reattach_persisted_pids`가
+// 매 시작/종료마다 기록. 카모랩 부팅 시 `restore_persisted_state`가
 // 각 PID의 OS 생존 여부를 체크하고 살아있으면 in-memory map에 복원한다.
 // 봇은 detached로 떠 있으므로 카모랩 lifecycle과 독립.
 
@@ -269,6 +269,11 @@ const STATE_FILE_NAME: &str = "localdev-state.json";
 struct PersistedState {
     #[serde(default)]
     pids: HashMap<String, u32>,
+    /* 저장소 자리도 여기 남긴다. 여태 이건 **화면이 켜져야** 들어왔다 — 앱이 막 떴을 때는
+       비어 있어서, 화면 없이 도는 길(트레이 빠른 손잡이·비-GUI HTTP)이 「저장소 루트를
+       먼저 설정하세요」로 막혔다. 창을 한 번도 안 열어도 알아야 하는 값이다. */
+    #[serde(default)]
+    repo_root: Option<String>,
 }
 
 fn state_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -281,9 +286,21 @@ fn state_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 fn persist_pids(app: &tauri::AppHandle, pids: &HashMap<String, u32>) -> Result<(), String> {
+    // 통째로 덮으면 안 된다 — 같은 파일에 저장소 자리도 산다 (덮었다가 그것만 날아갔었다).
+    let mut data = load_persisted_state(app);
+    data.pids = pids.clone();
+    write_persisted_state(app, &data)
+}
+
+fn persist_repo_root(app: &tauri::AppHandle, repo_root: &str) -> Result<(), String> {
+    let mut data = load_persisted_state(app);
+    data.repo_root = Some(repo_root.to_string());
+    write_persisted_state(app, &data)
+}
+
+fn write_persisted_state(app: &tauri::AppHandle, data: &PersistedState) -> Result<(), String> {
     let path = state_file_path(app)?;
-    let data = PersistedState { pids: pids.clone() };
-    let raw = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
+    let raw = serde_json::to_string_pretty(data).map_err(|e| e.to_string())?;
     fs::write(&path, raw).map_err(|e| format!("state 쓰기 실패: {}", e))?;
     Ok(())
 }
@@ -331,8 +348,24 @@ fn is_pid_alive(pid: u32) -> bool {
 
 /// 카모랩 부팅 시 호출. 영속된 PID 중 살아있는 것만 in-memory map에 복원하고
 /// 죽은 항목은 영속 파일에서도 제거.
-pub fn reattach_persisted_pids(app: &tauri::AppHandle) {
+/// 앱이 뜰 때 지난 판의 상태를 되살린다 — 살아 있는 자식 PID + **저장소 자리**.
+///
+/// 저장소 자리를 여기서 안 되살리면, 화면이 뜨기 전에는 아무것도 못 한다
+/// (트레이 빠른 손잡이가 첫 클릭에서 「저장소 루트를 먼저 설정하세요」로 죽었다).
+pub fn restore_persisted_state(app: &tauri::AppHandle) {
     let persisted = load_persisted_state(app);
+
+    if let (Some(root), Some(state)) = (
+        persisted.repo_root.as_deref(),
+        app.try_state::<LocalDevState>(),
+    ) {
+        if let Ok(mut g) = state.repo_root.lock() {
+            if g.is_none() {
+                *g = Some(root.to_string());
+            }
+        }
+    }
+
     if persisted.pids.is_empty() {
         return;
     }
@@ -776,10 +809,20 @@ fn kill_process_tree(pid: u32) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn localdev_set_repo_root(path: String, state: State<'_, LocalDevState>) -> Result<(), String> {
+pub fn localdev_set_repo_root(
+    path: String,
+    app: tauri::AppHandle,
+    state: State<'_, LocalDevState>,
+) -> Result<(), String> {
     let normalized = normalize_repo_root(&path)?;
-    let mut g = state.repo_root.lock().map_err(|e| e.to_string())?;
-    *g = Some(normalized);
+    {
+        let mut g = state.repo_root.lock().map_err(|e| e.to_string())?;
+        *g = Some(normalized.clone());
+    }
+    // 다음 판에도 안다 — 화면이 켜지기 전에 도는 길(트레이)이 이것 하나로 산다.
+    persist_repo_root(&app, &normalized)?;
+    // 트레이 손잡이는 저장소 안의 파일이 정한다 — 자리를 알게 된 **지금** 다시 그린다.
+    crate::refresh_tray(&app);
     Ok(())
 }
 
@@ -790,54 +833,6 @@ pub fn localdev_get_repo_root(state: State<'_, LocalDevState>) -> Option<String>
         .lock()
         .ok()
         .and_then(|g| g.clone())
-}
-
-/// 작업 폴더를 **짐작해서** 돌려준다. 못 찾으면 `None` (TASK-KL-329).
-///
-/// 왜: 이 값이 없으면 부품을 못 굽는데, 창(웹)은 이 컴퓨터의 폴더를 못 본다. 그래서
-/// 사람이 경로를 손으로 적거나 골라야 했다 — 한 번뿐이라도 「열자마자 막힌 화면」이 된다.
-/// 대개는 기계가 알 수 있는 값이다.
-///
-/// **정하지는 않는다.** 짐작한 값을 칸에 채워 주기만 하고, 정하는 것은 사람이 누른다 —
-/// 짐작이 틀렸는데 조용히 정해 버리면 엉뚱한 폴더에서 굽는다.
-#[tauri::command]
-pub fn localdev_guess_repo_root() -> Option<String> {
-    // 이 파일이 있으면 그 폴더가 맞다. 「폴더가 있다」와 「그 소스가 맞다」는 다르다.
-    fn looks_right(dir: &Path) -> bool {
-        dir.join("apps").join("karmolab").join("package.json").is_file()
-    }
-
-    // ① 개발 판이면 실행 파일이 저장소 **안**에 있다 (target/debug/…). 위로 올라가며 찾는다.
-    if let Ok(exe) = std::env::current_exe() {
-        let mut cur = exe.parent();
-        while let Some(dir) = cur {
-            if looks_right(dir) {
-                return dir.to_str().map(|s| s.to_string());
-            }
-            cur = dir.parent();
-        }
-    }
-
-    // ② 깔아 쓰는 판이면 실행 파일은 저장소 밖이다. 집 폴더 아래 흔한 자리를 훑는다.
-    //    없는 자리를 훑는 것은 값싸고(파일 하나 확인), 맞히면 사람이 할 일이 사라진다.
-    let home = std::env::var("USERPROFILE")
-        .or_else(|_| std::env::var("HOME"))
-        .ok()?;
-    let home = PathBuf::from(home);
-    for rel in [
-        "repos/karmoddrine/Mascari4615.github.io",
-        "repos/Mascari4615.github.io",
-        "source/repos/Mascari4615.github.io",
-        "Documents/GitHub/Mascari4615.github.io",
-        "git/Mascari4615.github.io",
-        "Mascari4615.github.io",
-    ] {
-        let cand = home.join(rel);
-        if looks_right(&cand) {
-            return cand.to_str().map(|s| s.to_string());
-        }
-    }
-    None
 }
 
 #[tauri::command]

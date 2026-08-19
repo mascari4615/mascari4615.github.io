@@ -1,0 +1,33 @@
+{
+  "_schema": "트레이 「빠른 손잡이」 — 시계 옆 아이콘을 우클릭하면 뜨는 줄들. 여기 한 줄 = 메뉴 한 줄이고, Rust 는 안 건드린다. kind 셋: dev(서버/봇 켜고 끄기 — profile 은 servermonitor-config.json 의 devProfiles id) · tool(창을 열고 그 도구로 — tool 은 위젯 id) · url(브라우저로). order 는 작은 것부터. 지키는 검사 = scripts/servermonitor-config-audit.mjs (npm run verify).",
+  "items": [
+    {
+      "id": "companion",
+      "kind": "dev",
+      "profile": "companion",
+      "label": "동반자",
+      "order": 10
+    },
+    {
+      "id": "yawnbot-dev",
+      "kind": "dev",
+      "profile": "yawnbot-tunnel",
+      "label": "욘봇 (dev)",
+      "order": 20
+    },
+    {
+      "id": "karmolab-dev",
+      "kind": "dev",
+      "profile": "karmolab-dev",
+      "label": "KarmoLab 핫리로드",
+      "order": 30
+    },
+    {
+      "id": "servermonitor",
+      "kind": "tool",
+      "tool": "servermonitor",
+      "label": "서버 모니터 열기",
+      "order": 40
+    }
+  ]
+}

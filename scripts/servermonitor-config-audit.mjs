@@ -174,14 +174,93 @@ function auditRustForwardCompat() {
 }
 auditRustForwardCompat();
 
+/* ── 트레이 빠른 손잡이 (tray-menu.json) ────────────────────────────────────────
+   같은 사고 갈래라 같은 자리에서 막는다: **설정이 실재하지 않는 것을 가리키는 것.**
+   트레이 줄은 눌러 봐야 죽은 걸 아는데, 트레이는 하루에 한 번 열까 말까다 — 그때
+   알면 늦다. dev 줄은 devProfiles id 를, tool 줄은 위젯 id 를 정본과 맞춘다. */
+const TRAY_REL = 'apps/karmolab/data/tray-menu.json';
+
+function auditTrayMenu() {
+  const trayPath = join(REPO, TRAY_REL);
+  if (!existsSync(trayPath)) return; // 손잡이를 안 쓰는 저장소도 있다 — 없는 건 위반이 아니다.
+
+  let tray;
+  try {
+    tray = JSON.parse(readFileSync(trayPath, 'utf8'));
+  } catch (e) {
+    failures.push(`[tray] JSON 파싱 실패 (${TRAY_REL}): ${e.message}`);
+    return;
+  }
+
+  const items = Array.isArray(tray.items) ? tray.items : [];
+  const profileIds = new Set(profiles.map((p) => p?.id).filter(Boolean));
+
+  // 위젯 id 정본 = widgets-lazy-meta.ts 의 `id: '...'` + core-tools.json 의 열쇠.
+  const widgetIds = new Set();
+  const metaPath = join(REPO, 'apps/karmolab/src/widgets-lazy-meta.ts');
+  if (existsSync(metaPath)) {
+    for (const m of readFileSync(metaPath, 'utf8').matchAll(/^\s*id:\s*'([a-z0-9-]+)'/gm)) {
+      widgetIds.add(m[1]);
+    }
+  }
+  const corePath = join(REPO, 'apps/karmolab/data/core-tools.json');
+  if (existsSync(corePath)) {
+    try {
+      for (const id of Object.keys(JSON.parse(readFileSync(corePath, 'utf8')))) widgetIds.add(id);
+    } catch { /* 이 파일은 다른 검사가 본다 */ }
+  }
+
+  const seen = new Set();
+  for (const item of items) {
+    const id = item?.id ?? '(id 없음)';
+    if (typeof item?.id !== 'string' || item.id.length === 0) {
+      failures.push(`[tray] id 없는 줄 — 메뉴 항목을 구분할 수 없다`);
+      continue;
+    }
+    if (seen.has(item.id)) failures.push(`[tray] ${id}: id 가 겹친다 — 뒤 줄이 앞 줄을 덮는다`);
+    seen.add(item.id);
+    if (typeof item?.label !== 'string' || item.label.length === 0) {
+      failures.push(`[tray] ${id}: label 이 없다 — 빈 줄이 뜬다`);
+    }
+
+    if (item?.kind === 'dev') {
+      if (!profileIds.has(item.profile)) {
+        failures.push(
+          `[tray] ${id}: dev 줄이 없는 프로필 「${item.profile}」 을 가리킨다 ` +
+            `(devProfiles 에 그 id 가 없다 — 눌러도 아무 일도 안 난다)`
+        );
+      }
+    } else if (item?.kind === 'tool') {
+      if (widgetIds.size > 0 && !widgetIds.has(item.tool)) {
+        failures.push(
+          `[tray] ${id}: tool 줄이 없는 위젯 「${item.tool}」 을 가리킨다 ` +
+            `(창은 열리는데 빈 화면이 뜬다)`
+        );
+      }
+    } else if (item?.kind === 'url') {
+      if (typeof item.url !== 'string' || !/^https?:\/\//.test(item.url)) {
+        failures.push(`[tray] ${id}: url 줄인데 주소가 http(s) 로 시작하지 않는다`);
+      }
+    } else {
+      failures.push(
+        `[tray] ${id}: 모르는 kind 「${item?.kind}」 — 앱이 그 줄을 통째로 버린다 ` +
+          `(dev|tool|url 중 하나)`
+      );
+    }
+  }
+  trayCount = items.length;
+}
+let trayCount = 0;
+auditTrayMenu();
+
 if (failures.length === 0) {
   console.log(
-    `[sm-audit] OK — devProfiles ${profiles.length}개 정합 ` +
-      `(npm-script 참조 ⟷ <app>/package.json scripts 실재 확인)`
+    `[sm-audit] OK — devProfiles ${profiles.length}개 · 트레이 손잡이 ${trayCount}개 정합 ` +
+      `(npm-script 참조 ⟷ <app>/package.json scripts · 트레이 줄 ⟷ 프로필/위젯 실재 확인)`
   );
   process.exit(0);
 } else {
-  console.error('[sm-audit] X  servermonitor-config.json 정합 위반:');
+  console.error('[sm-audit] X  서버 모니터/트레이 설정 정합 위반:');
   for (const f of failures) console.error(`             - ${f}`);
   console.error(
     '\n[sm-audit] FAIL — 죽은/모호한 dev 프로필. Fix before push ' +

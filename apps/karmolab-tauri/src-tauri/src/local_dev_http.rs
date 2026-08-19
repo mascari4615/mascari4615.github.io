@@ -128,7 +128,7 @@ fn route(
                 Some(v) => v,
                 None => return (400, json_err("body 에 \"path\" 필요")),
             };
-            wrap_unit(local_dev::localdev_set_repo_root(path_arg, state))
+            wrap_unit(local_dev::localdev_set_repo_root(path_arg, app.clone(), state))
         }
 
         (Method::Get, "/localdev/tracked") => {

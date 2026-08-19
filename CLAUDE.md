@@ -83,6 +83,12 @@ pub async fn cmd(params) -> Result<T, String> {
 
 stale 자동 차단: `servermonitor-config-audit.mjs` 가 `npm run verify` 에서 script 실재 cross-check.
 
+**트레이 「빠른 실행」에도 띄우려면** `apps/karmolab/data/tray-menu.json` 에 한 줄 — 시계 옆
+아이콘에서 바로 켜고 끈다(터미널 불요). `kind` 셋: `dev`(devProfiles id 를 켜고 끄기 —
+사람 카드와 **같은 손**이라 상태가 안 갈라진다) · `tool`(창 열고 그 위젯으로) · `url`.
+Rust 는 안 건드린다(`src/tray_menu.rs` 가 그 파일을 읽어 그린다). 같은 audit 가 죽은 줄
+(없는 프로필·없는 위젯)을 push 전에 막는다.
+
 AI 직접 조작 = `127.0.0.1:8766` HTTP (`localdev-http.json` 에서 토큰·포트 자동 로드). 봇 재기동 등을 사용자에게 안내하지 말고 이 HTTP 로 처리.
 
 ## AI (Vertex / Claude)
