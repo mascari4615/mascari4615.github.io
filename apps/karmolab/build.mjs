@@ -1,5 +1,5 @@
 /**
- * Emit browser scripts from src/ into js/ (mirrors paths under src/), and src/world → ../world/ (wiki loaders).
+ * Emit browser scripts from src/ into js/ (mirrors paths under src/), and src/lib/karmoworld → ../world/ (wiki loaders; 출력 주소는 그대로 /apps/karmolab/world/*.js).
  * - Most entries: bundle + iife (type-only imports resolve).
  * - mdd.ts / gemini.ts / toolbox.ts: bundle false + esm so top-level globals stay visible (no extra IIFE).
  */
@@ -320,13 +320,13 @@ for (const rel of entryPoints) {
 }
 
 const worldEntryPoints = [
-  'src/world/world.ts',
-  'src/world/parse-md.ts',
-  'src/world/load-characters-from-wiki.ts',
-  'src/world/load-adventures-from-wiki.ts'
+  'src/lib/karmoworld/world.ts',
+  'src/lib/karmoworld/parse-md.ts',
+  'src/lib/karmoworld/load-characters-from-wiki.ts',
+  'src/lib/karmoworld/load-adventures-from-wiki.ts'
 ];
 for (const rel of worldEntryPoints) {
-  const outfile = rel.replace(/^src\/world\//, 'world/').replace(/\.ts$/, '.js');
+  const outfile = rel.replace(/^src\/lib\/karmoworld\//, 'world/').replace(/\.ts$/, '.js');
   await esbuild.build({
     entryPoints: [join(root, rel)],
     outfile: join(root, outfile),

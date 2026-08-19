@@ -32,7 +32,7 @@ const write = process.argv.includes('--write-baseline');
 function sourceOf(p) {
   if (p.startsWith('vendor/')) return join(appRoot, 'js/vendor', `${p.slice(7)}.js`);
   if (p.startsWith('root/')) return join(appRoot, 'src', `${p.slice(5)}.ts`);
-  if (p.startsWith('world/')) return join(appRoot, 'src/world', `${p.slice(6)}.ts`);
+  if (p.startsWith('world/')) return join(appRoot, 'src/lib/karmoworld', `${p.slice(6)}.ts`);
   return join(appRoot, 'src/widgets', `${p}.ts`);
 }
 

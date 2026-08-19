@@ -7,7 +7,7 @@
 새 위젯·기능을 *코드로 옮기기 전* 다음 순서로 정독한다. 정독 결과는 TASK 문서 「관련 파일 / 읽기 (참고 패턴)」 에 명시 — *어떤 파일을 보고 어떤 결론* 인지.
 
 - [ ] **같은 카테고리·layout 위젯 1~2개 정독** — `widgets-lazy-meta.ts` 에서 같은 `layout` (`'full'` / `'form'`) 또는 `category` (`'desktop'` / `'lab'` / `'tool'` / `'play'`) 위젯 골라 *컨테이너 / 디자인 토큰 / 폴링·라이프사이클 / 외부 lib 처리* 패턴 확인.
-- [ ] **공통 helper 모듈 검토** — `Toolbox`, `chatbot/markdown.ts` (마크다운→HTML), `world/parse-md.ts` (frontmatter), `widgets/docs/docs.ts` (마크다운+mermaid+Prism+동일 출처 lib), `karmolab-ai` 패키지. 같은 기능 거의 다 *이미 있음*. 새로 만들기 전 grep.
+- [ ] **공통 helper 모듈 검토** — `Toolbox`, `chatbot/markdown.ts` (마크다운→HTML), `lib/karmoworld/parse-md.ts` (frontmatter), `widgets/docs/docs.ts` (마크다운+mermaid+Prism+동일 출처 lib), `karmolab-ai` 패키지. 같은 기능 거의 다 *이미 있음*. 새로 만들기 전 grep.
 - [ ] **외부 lib 동일 출처** — mermaid·marked·prism 등은 `assets/lib/<lib>/<lib>.min.js` 에 동일 출처로 박혀있음 (Tauri webview 의 Tracking Prevention 회피). CDN (`cdn.jsdelivr.net` 등) 우선 안 쓴다.
 - [ ] **글로벌 디자인 토큰 사용** — 자체 색·폰트·spacing 박지 말 것. CSS 변수: `--bg-primary` / `--bg-secondary` / `--bg-tertiary` / `--text-primary` / `--text-tertiary` / `--accent` / `--border` / `--border-color` / `--radius-sm` / `--radius-md` / `--font-mono`. 다른 위젯이 쓰는 패턴 그대로.
 - [ ] **자체 CSS injection 최소화** — `injectStyles()` 패턴은 *위젯 한정 클래스* 만. 컨테이너 / 카드 / 버튼 / 표 / 코드블록은 글로벌 스타일에 맡긴다. 다른 위젯과 외관 톤 어긋나면 사용자가 *이질감* 느낀다.
