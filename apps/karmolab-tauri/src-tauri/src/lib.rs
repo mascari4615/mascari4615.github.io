@@ -16,6 +16,7 @@ mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
 mod quest_writeback;
+mod part_fetch;
 mod repo_file;
 mod terminal;
 
@@ -54,6 +55,7 @@ use local_dev::{
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, reattach_persisted_pids,
     LocalDevState,
 };
+use part_fetch::{part_fetch, part_fetched_path};
 use repo_file::{repofile_open_default, repofile_read, repofile_reveal, repofile_write};
 use terminal::{
     terminal_send_stdin, terminal_start, terminal_status, terminal_stop, TerminalState,
