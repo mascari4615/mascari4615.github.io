@@ -124,33 +124,16 @@ export function hreflangTags(bare, site, codes) {
   return rows.join('\n');
 }
 
-/* ── 눈에 보이는 언어 링크 (TASK-KL-244) ─────────────
+/* ── 눈에 보이는 언어 링크는 **없앴다** (2026-08-20, 사용자 결정) ─────────────
  *
- * hreflang 은 「이 장의 다른 말 판은 저기」라고 **말해 줄 뿐**, 크롤러가 타고 갈 길은 아니다.
- * 화면의 언어 단추(`#langBtn`)는 JS 가 목록을 만들어서 HTML 에 `<a>` 가 한 개도 없었다 —
- * 그래서 en/ja 274장이 sitemap 에만 있고 **내부 링크 0** 인 고아 상태였다(2026-08-13 실측).
- * 여기서 찍는 `<a>` 가 그 길이다. 단추는 그대로 두고 나란히 둔다(사람은 단추, 크롤러는 링크).
+ * 여기 있던 `langLinksHtml`/`withLangLinks` 는 언어 판으로 가는 `<a>` 한 벌을 옆줄에 따로
+ * 찍어 두는 장치였다(TASK-KL-244). 그게 필요했던 이유는 화면의 언어 단추가 `<button>` +
+ * JS 라 주소가 아예 없었기 때문이다 — 즉 **UI 가 링크가 아니라서 링크를 한 벌 더 만든 것**이다.
  *
- * hreflang 과 **같은 인자**(bare·codes)로 만든다 — 둘이 갈라지면 없느니만 못하므로 한 함수에서.
+ * 그런데 「이 장의 다른 말 판은 저기」를 알리는 표준 수단은 머리말의
+ * `<link rel="alternate" hreflang>` 이고, 그건 `hreflangTags()` 가 장마다 이미 박는다.
+ * 보험으로 둔 두 번째 벌이 값을 하기는커녕, 칸이 없으면 **빌드를 통째로 죽이는**
+ * throw 까지 달고 있었다(장식 하나가 배포를 막았다 — 2026-08-13 에 한 번, 2026-08-20 에 또).
+ *
+ * 그래서 계통을 지운다. 남는 단일 출처 = `hreflangTags()`. 화면 단추는 사람 몫으로 그대로.
  */
-export function langLinksHtml(bare, current, codes) {
-  return alternates(bare)
-    .filter((a) => (!codes || codes.includes(a.code)) && a.code !== current)
-    .map((a) => {
-      const m = meta(a.code);
-      return (
-        `<a href="${a.path}" class="sidebar-dev-links sidebar-lang-link" hreflang="${m.htmlLang}" lang="${m.htmlLang}" title="${m.endonym}">` +
-        `<span class="sidebar-dev-links-icon" aria-hidden="true">◐</span>` +
-        `<span class="sidebar-dev-links-text">${m.endonym}</span></a>`
-      );
-    })
-    .join('');
-}
-
-/** 셸에 박아 둔 언어 링크 칸을 **이 장의** 링크로 갈아 끼운다. 칸이 없으면 던진다 —
- *  조용히 안 바뀌면 274장이 다시 고아가 되고, 아무도 몇 달 동안 모른다. */
-export function withLangLinks(html, { bare, current, codes }) {
-  const re = /(<div class="sidebar-lang-links"[^>]*>)[\s\S]*?(<\/div>)/;
-  if (!re.test(html)) throw new Error(`[lang-links] 언어 링크 칸을 못 찾았다 — ${bare} (index.html 의 .sidebar-lang-links 확인)`);
-  return html.replace(re, `$1${langLinksHtml(bare, current, codes)}$2`);
-}
