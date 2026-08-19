@@ -13,6 +13,8 @@
  * 다른 위젯이 쓰는 진입점 = `window.KarmoGif.encodeAsync(...)` (장 사이에 숨 쉴 틈을 준다).
  * 시험·짧은 작업용 = `encode(...)` — 결과 파일은 둘이 완전히 같다.
  */
+
+import type { KarmoGifApi } from '../../lib/karmogif';
 (function (): void {
   interface Frame {
     data: Uint8ClampedArray; // RGBA
@@ -367,7 +369,8 @@
     return job.step(job.count) as Blob;
   }
 
-  (window as unknown as { KarmoGif: { encode: typeof encode; encodeAsync: typeof encodeAsync } }).KarmoGif = {
+  // 약속은 `lib/karmogif` 한 곳 — 쓰는 쪽이 저마다 적던 것을 여기에 맞춘다(타입만 쓰므로 번들은 안 커진다).
+  (window as unknown as { KarmoGif: KarmoGifApi }).KarmoGif = {
     encode,
     encodeAsync
   };

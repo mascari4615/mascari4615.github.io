@@ -22,20 +22,10 @@ import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
+/** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다 — 약속은 `lib/karmogif`, 코드는 늦게 받는다. */
+import { getKarmoGif } from '../../lib/karmogif';
 
 (function (): void {
-  /** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다 — 두 벌 짜지 않는다. */
-  interface GifApi {
-    encodeAsync: (o: {
-      width: number;
-      height: number;
-      frames: Array<{ data: Uint8ClampedArray; delayMs: number }>;
-      maxColors?: number;
-      dither?: boolean;
-      onProgress?: (ratio: number) => void;
-    }) => Promise<Blob>;
-  }
-
   /** 진한 → 옅은 순. 폭이 넓을수록 계조가 부드럽다. */
   const RAMPS: Record<string, string> = {
     detail: '@%#*+=-:. ',
@@ -782,7 +772,7 @@ import { attachMedia } from './shared/media';
            * 화면에 나오는 그림 그대로를 걷는다 — 화면과 저장물이 어긋날 자리를 안 만든다.
            */
           gifBtn.onclick = async () => {
-            const gif = (window as unknown as { KarmoGif?: GifApi }).KarmoGif;
+            const gif = getKarmoGif();
             if (!player || !gif || clipFrames <= 0) {
               status.textContent = t('asciiart.err.gif');
               status.className = 'tool-status err';

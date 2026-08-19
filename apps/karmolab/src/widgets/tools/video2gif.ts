@@ -16,19 +16,9 @@ import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
 import { attachImage } from './shared/image';
+import { getKarmoGif } from '../../lib/karmogif';
 
 (function (): void {
-  interface GifApi {
-    encodeAsync: (o: {
-      width: number;
-      height: number;
-      frames: Array<{ data: Uint8ClampedArray; delayMs: number }>;
-      maxColors?: number;
-      dither?: boolean;
-      onProgress?: (r: number) => void;
-    }) => Promise<Blob>;
-  }
-
   const size = (n: number): string =>
     n>= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n>= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
@@ -217,7 +207,7 @@ import { attachImage } from './shared/image';
           }
 
           async function run(): Promise<void> {
-            const gif = (window as unknown as { KarmoGif?: GifApi }).KarmoGif;
+            const gif = getKarmoGif();
             if (!gif) {
               say(t('video2gif.err.engine'), 'error');
               return;

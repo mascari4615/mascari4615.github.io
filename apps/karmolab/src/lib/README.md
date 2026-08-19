@@ -17,7 +17,7 @@
 
 ## 파일 하나가 기본, 폴더는 예외
 
-`lib/` 45항목 중 44개가 파일 하나다. 폴더는 `karmograph/` 하나뿐 —
+`lib/` 45항목 중 44개가 파일 하나다. 폴더는 `karmograph/`·`karmoworld/`·`karmogif/` 셋 —
 39파일 257KB 로 혼자 자랐기 때문이다. 폴더로 만들 때는 **왜 파일 하나로 안 되는지**를 그 폴더
 README 에 적는다.
 
@@ -50,7 +50,7 @@ README 에 적는다.
 | 대상 | 판정 | 다음 |
 |---|---|---|
 | `KarmoStat` | **승격 X — 배관이다.** 구현은 `analytics.ts` 한 곳뿐이다(`toolbox.ts` 는 부르는 쪽, `arcade/plays.ts` 는 「되읽을 수 없어 안 쓴다」고 스스로 적어 놨다). 자체 자료형도 없고 개념도 「기록 보내기」다 | 그대로 |
-| `KarmoGif` | **승격 O.** `widgets/tools/gifenc.ts` 가 만들고 `asciiart`·`video2gif` 둘이 쓴다(표면 2). `GifApi` 타입이 쓰는 쪽마다 **따로 선언**돼 있다 | `lib/karmogif/` — 단 `window.KarmoGif` 는 **일부러 늦게 받는 통로**다. 정적 import 로 바꾸면 두 위젯 번들이 인코더만큼 커진다. **타입은 lib 로 올리고, 받는 것은 지연 로더를 유지**해야 한다 |
+| `KarmoGif` | **승격 O — 했다.** `gifenc.ts` 가 만들고 `asciiart`·`video2gif` 둘이 쓴다(표면 2). `GifApi` 가 쓰는 쪽마다 따로 선언돼 있었고 **두 선언이 이미 서로 달랐다** | `lib/karmogif/` = **약속(타입) + 받는 창구**만. 인코더 코드는 그대로 `widgets/tools/gifenc.ts` 에 둔다 — `window.KarmoGif` 는 일부러 늦게 받는 통로라(`lazyScriptPaths: tools/gifenc`) 정적 import 로 옮기면 두 위젯 번들이 인코더만큼 커진다. 실측 증가 = 위젯당 **85B** |
 | `src/search/` | **lib 아님 — 셸 부품.** 쓰는 곳이 `palette.ts` 하나다(검사 2개 제외). 「둘 이상」 미달 | 그대로 |
 | `src/badapple/` | **lib 아님 — 페이지 코드.** 엔진은 이미 `packages/badapple`(별도 꾸러미)이고 이 폴더는 그걸 전용 페이지에 붙이는 부트·스튜디오다. 위젯 로더 밖에서 `<script src>` 로 뜬다 | 그대로 |
 
