@@ -46,11 +46,14 @@ impl QuickItem {
         format!("tray_quick_{}", self.id)
     }
 
-    /// 켜져 있으면 ✓ 를 붙인다. 「눌렀는데 뭐가 됐는지 모르겠다」를 없애는 자리다.
+    /// 지금 켜져 있는지 **글자로** 적는다. 「눌렀는데 뭐가 됐는지 모르겠다」를 없애는 자리다.
+    ///
+    /// 기호(✓)를 쓰면 안 된다 — 윈도우 트레이 메뉴 글꼴에 없어서 **두부(□)로 뜼다**
+    /// (조수님이 실제로 그렇게 봤다). 트레이는 글꼴을 우리가 못 고르는 자리다.
     pub fn label_with_state(&self, running: bool) -> String {
         match self.kind {
-            QuickKind::Dev { .. } if running => format!("{} ✓ (끄기)", self.label),
-            QuickKind::Dev { .. } => format!("{} (켜기)", self.label),
+            QuickKind::Dev { .. } if running => format!("{} · 켜짐 (끄기)", self.label),
+            QuickKind::Dev { .. } => format!("{} · 켜기", self.label),
             _ => self.label.clone(),
         }
     }
@@ -220,8 +223,10 @@ mod tests {
                 profile: "companion".into(),
             },
         };
-        assert_eq!(dev.label_with_state(true), "동반자 ✓ (끄기)");
-        assert_eq!(dev.label_with_state(false), "동반자 (켜기)");
+        assert_eq!(dev.label_with_state(true), "동반자 · 켜짐 (끄기)");
+        assert_eq!(dev.label_with_state(false), "동반자 · 켜기");
+        // 기호는 트레이 글꼴에 없어 두부로 뜼다 — 글자만 쓴다.
+        assert!(!dev.label_with_state(true).contains('✓'));
         assert_eq!(dev.menu_id(), "tray_quick_companion");
 
         // 켜고 끄는 게 아닌 줄에는 상태를 안 붙인다 — 없는 상태를 있는 척하면 안 된다.
