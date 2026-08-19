@@ -4,9 +4,9 @@
  * 노드 패널은 위젯 상태와 가장 깊게 얽혀 있어 통째로 옮기기 어렵다. 그래서 **독립적인 조각부터**
  * 떼어낸다 — 이 부분은 설명 글과 노드 목록만 있으면 되므로 가장 먼저 나올 수 있었다.
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from '../links';
-import { resolveDoc, setDocText } from '../../../lib/graph/notes';
+import { resolveDoc, setDocText } from '../../../lib/karmograph/notes';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

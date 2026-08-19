@@ -8,8 +8,8 @@
  * 맞바꿀 수 없는 것(꼬리표·칸·공용 글·묶음 모양·발표 순서)은 **글로 접어 넣는다** — 형식이 못 담는
  * 것을 조용히 버리면, 내보냈다 다시 읽었을 때 세계관이 야위어 있다.
  */
-import type { GraphSpec, GraphNode } from '../../lib/graph/spec';
-import { resolveDoc } from '../../lib/graph/notes';
+import type { GraphSpec, GraphNode } from '../../lib/karmograph/spec';
+import { resolveDoc } from '../../lib/karmograph/notes';
 import { t, loadNamespace } from '../../lib/i18n';
 
 interface CanvasNode {

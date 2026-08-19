@@ -4,7 +4,7 @@
  * 얼굴은 세 갈래 중 **마지막에 고른 것 하나**만 남는다(이모지 / 색 / 사진). 셋을 겹쳐 두면
  * 「지금 뭐가 보이는지」를 사람이 추측해야 한다.
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

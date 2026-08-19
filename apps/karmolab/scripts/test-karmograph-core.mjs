@@ -5,7 +5,7 @@
  * 100초가 걸리고, 「글 안의 고리를 끊는가」·「연표가 작은 값을 왼쪽에 두는가」 같은 **순수한 셈법**까지
  * 브라우저를 띄워 확인해 왔다. 셈법이 깨졌는데 화면 어딘가가 가려 초록으로 보일 위험도 함께다.
  *
- * 그래서 순수 모듈(`lib/graph/notes` · `tidy` · `from-text` · `json-canvas` · `mermaid` · `sna`)만
+ * 그래서 순수 모듈(`lib/karmograph/notes` · `tidy` · `from-text` · `json-canvas` · `mermaid` · `sna`)만
  * esbuild 로 묶어 Node 에서 직접 돌린다. 1초 안에 끝나므로 canvas 해체 같은 큰 수술의 **안전망**이 된다.
  *
  * 사용: node scripts/test-karmograph-core.mjs   (npm run test:karmograph)
@@ -32,24 +32,24 @@ const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (�
 async function loadModules() {
   const entry = path.join(os.tmpdir(), `km-core-${Date.now()}.ts`);
   fs.writeFileSync(entry, `
-    export * as notes from ${JSON.stringify(path.join(root, 'src/lib/graph/notes.ts'))};
+    export * as notes from ${JSON.stringify(path.join(root, 'src/lib/karmograph/notes.ts'))};
     export * as tidy from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/tidy.ts'))};
     export * as fromText from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/from-text.ts'))};
     export * as jsonCanvas from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/json-canvas.ts'))};
     export * as mermaid from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/mermaid.ts'))};
-    export * as save from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-save.ts'))};
-    export * as filter from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-filter.ts'))};
-    export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
-    export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
-    export * as camera from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-camera.ts'))};
-    export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
-    export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
-    export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
-    export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
+    export * as save from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-save.ts'))};
+    export * as filter from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-filter.ts'))};
+    export * as decor from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-decor.ts'))};
+    export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-math.ts'))};
+    export * as camera from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-camera.ts'))};
+    export * as press from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-press.ts'))};
+    export * as release from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-release.ts'))};
+    export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-edgedrag.ts'))};
+    export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/karmograph/edge-views.ts'))};
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
-    export * as groupBox from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-group.ts'))};
-    export * as boardA11y from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-a11y.ts'))};
+    export * as groupBox from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-group.ts'))};
+    export * as boardA11y from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-a11y.ts'))};
     export * as film from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/film.ts'))};
     export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
     export * as times from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/times.ts'))};
@@ -61,11 +61,11 @@ async function loadModules() {
     export * as bigBoard from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/big-board.ts'))};
     export * as ui from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ui-state.ts'))};
     export * as views from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/views.ts'))};
-    export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
-    export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
-    export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
-    export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
-    export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
+    export * as drag from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-drag.ts'))};
+    export * as guides from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-guides.ts'))};
+    export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-minimap.ts'))};
+    export * as pick from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-pick.ts'))};
+    export * as eph from ${JSON.stringify(path.join(root, 'src/lib/karmograph/canvas-ephemeral.ts'))};
     export * as share from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/share.ts'))};
     export * as snaWords from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/sna-words.ts'))};
     export * as between from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/between.ts'))};
@@ -669,7 +669,7 @@ const M = await loadModules();
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
 {
   const CAP = 1900;
-  const file = path.join(root, 'src/lib/graph/canvas.ts');
+  const file = path.join(root, 'src/lib/karmograph/canvas.ts');
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
   check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
 }
@@ -1227,9 +1227,9 @@ const M = await loadModules();
   /* 위젯 본체만 보다가 **패널 여덟 곳**에 스물아홉 줄이 남아 있는 걸 놓쳤다 (2026-08-14).
      한 폴더를 통째로 본다 — 새 조각이 늘어도 저절로 걸린다. */
   const dir = path.join(root, 'src/widgets/karmograph');
-  /* 판을 그리는 자료 층(`lib/graph`)도 함께 본다 — 거기 박힌 「(없는 글)」이 남의 글 속에
+  /* 판을 그리는 자료 층(`lib/karmograph`)도 함께 본다 — 거기 박힌 「(없는 글)」이 남의 글 속에
      그대로 튀어나왔다 (2026-08-14). 그 층은 말 묶음을 안 쓰므로 **부르는 쪽이 말을 얹는다**. */
-  const libDir = path.join(root, 'src/lib/graph');
+  const libDir = path.join(root, 'src/lib/karmograph');
   const kmFiles = [
     ...fs.readdirSync(dir).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f)),
     ...fs.readdirSync(path.join(dir, 'panels')).filter((f) => f.endsWith('.ts'))

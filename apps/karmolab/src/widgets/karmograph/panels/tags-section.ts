@@ -4,7 +4,7 @@
  * 이미 쓴 꼬리표를 **칩으로 늘어놓고 눌러서 붙인다** — 같은 말을 두 번 만들지 않게.
  * 새 말은 그냥 타이핑(쉼표로 여럿).
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 

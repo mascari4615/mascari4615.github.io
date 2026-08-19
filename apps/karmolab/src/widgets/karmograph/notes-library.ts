@@ -14,8 +14,8 @@
  * 두 집이 갈리지 않게 하는 규칙은 **하나**다: *쓸 때는 둘 다*(`mirrorToLibrary`),
  * *읽을 때는 라이브러리가 이긴다*(`refreshFromLibrary`, 맵을 열 때 한 번).
  */
-import type { GraphSpec, GraphNote } from '../../lib/graph/spec';
-import { notesOf } from '../../lib/graph/notes';
+import type { GraphSpec, GraphNote } from '../../lib/karmograph/spec';
+import { notesOf } from '../../lib/karmograph/notes';
 
 const LIB_KEY = 'karmograph.notes';
 

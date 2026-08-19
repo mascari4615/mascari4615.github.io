@@ -27,7 +27,7 @@ const check = (ok, why) => {
 async function load() {
   const stamp = Date.now();
   const entry = path.join(os.tmpdir(), `sketchy-${stamp}.ts`);
-  fs.writeFileSync(entry, `export * from ${JSON.stringify(path.join(root, 'src/lib/graph/sketchy.ts'))};\n`);
+  fs.writeFileSync(entry, `export * from ${JSON.stringify(path.join(root, 'src/lib/karmograph/sketchy.ts'))};\n`);
   const out = path.join(os.tmpdir(), `sketchy-${stamp}.mjs`);
   await esbuild.build({ entryPoints: [entry], bundle: true, format: 'esm', outfile: out, logLevel: 'silent' });
   const mod = await import(pathToFileURL(out).href);

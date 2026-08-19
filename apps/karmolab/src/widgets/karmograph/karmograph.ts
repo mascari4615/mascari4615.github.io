@@ -9,18 +9,18 @@
  * ☆소환/뒷받침 중 하나다. 팩을 갈아끼우면 같은 캔버스가 세계관 정리 도구도,
  * 팬 관계도 도구도, 카드 전개 정리 도구도, 개념 설명 도구도 된다.
  *
- * 캔버스는 `lib/graph/canvas.ts` (cockpit 에서 추출, 단위 0). 저장은
+ * 캔버스는 `lib/karmograph/canvas.ts` (cockpit 에서 추출, 단위 0). 저장은
  * localStorage — 백엔드 0, 웹에서도 동작, 내용은 사적.
  *
  * 내용은 전적으로 사용자가 쓴다. AI 가 노드를 만들지 않는다 —
  * KarmoGraph 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { GraphCanvas } from '../../lib/graph/canvas';
-import { themeFromCss } from '../../lib/graph/canvas-theme';
-import { setSketchy } from '../../lib/graph/sketchy';
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
-import { emptyGraphSpec } from '../../lib/graph/spec';
+import { GraphCanvas } from '../../lib/karmograph/canvas';
+import { themeFromCss } from '../../lib/karmograph/canvas-theme';
+import { setSketchy } from '../../lib/karmograph/sketchy';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/karmograph/spec';
+import { emptyGraphSpec } from '../../lib/karmograph/spec';
 import { KarmoGraphLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
@@ -42,10 +42,10 @@ import { help } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
-import { resolveDoc, notesOf, setNoteWords } from '../../lib/graph/notes';
+import { resolveDoc, notesOf, setNoteWords } from '../../lib/karmograph/notes';
 import {
   setBoardWords, pickedLabel, pickedEdgeLabel, pickedManyLabel,
-} from '../../lib/graph/canvas-a11y';
+} from '../../lib/karmograph/canvas-a11y';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';

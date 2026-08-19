@@ -1,0 +1,96 @@
+/**
+ * lib/karmograph/canvas-drag.ts — **끌면 어디로 가나** (TASK-KL-202 방향① 입력 조각 4).
+ *
+ * 화면에서 손이 100px 움직여도 판이 두 배로 확대돼 있으면 판 위에서는 50 만 움직여야 한다.
+ * 그리고 격자에 붙일 때 **무엇을 붙이느냐가 규칙이다**:
+ *   - 카드 하나 = 그 카드를 붙인다.
+ *   - 묶음 = **묶음의 기준점을 붙이고, 거기서 나온 이동량을 멤버 전원에게 그대로 얹는다.**
+ *     멤버를 각자 붙이면 서로의 간격이 매번 조금씩 달라져 **모양이 뭉개진다** — 이게 이 파일의 핵심이다.
+ */
+
+export interface Delta {
+  dx: number;
+  dy: number;
+}
+
+/** 화면에서 움직인 거리를 판 위 거리로. 확대돼 있을수록 적게 움직인다. */
+export function worldDelta(
+  start: { x: number; y: number },
+  now: { x: number; y: number },
+  scale: number,
+): Delta {
+  const s = scale || 1;
+  return { dx: (now.x - start.x) / s, dy: (now.y - start.y) / s };
+}
+
+/** 카드 하나를 끌 때 — 새 자리를 격자에 붙인다. */
+export function snappedPoint(
+  startX: number,
+  startY: number,
+  d: Delta,
+  snap: (v: number) => number,
+): { x: number; y: number } {
+  return { x: snap(startX + d.dx), y: snap(startY + d.dy) };
+}
+
+/**
+ * 묶음을 끌 때 — **기준점만** 격자에 붙이고 그 차이를 이동량으로 쓴다.
+ * 그래서 멤버끼리의 간격은 끄는 내내 한 픽셀도 안 변한다(모양이 안 뭉개진다).
+ */
+export function groupDelta(
+  startGroupX: number,
+  startGroupY: number,
+  raw: Delta,
+  snap: (v: number) => number,
+): { d: Delta; origin: { x: number; y: number } } {
+  const gx = snap(startGroupX + raw.dx);
+  const gy = snap(startGroupY + raw.dy);
+  return { d: { dx: gx - startGroupX, dy: gy - startGroupY }, origin: { x: gx, y: gy } };
+}
+
+/**
+ * 카드 최소 크기 — 이보다 작으면 글자도 손잡이도 안 들어가 「지운 것」처럼 보인다.
+ * **격자의 배수**여야 한다 — 아니면 제일 작게 줄인 카드만 줄이 어긋난다.
+ */
+export const MIN_NODE_W = 64;
+export const MIN_NODE_H = 32;
+
+/**
+ * 크기도 자리와 **같은 격자**에 붙는다 (TASK-KL-236).
+ * 자리는 8px 에 붙는데 크기만 1px 자유면, 왼쪽 줄은 맞고 오른쪽 줄은 매번 어긋난다 —
+ * 손으로 맞추려 해도 안 맞는다(그게 격자의 뜻이다). `grid <= 1` 이면 붙이지 않는다(Alt).
+ */
+export function resizedBox(
+  startW: number,
+  startH: number,
+  d: Delta,
+  grid = 8,
+): { w: number; h: number } {
+  const q = (v: number): number => (grid > 1 ? Math.round(v / grid) * grid : Math.round(v));
+  return {
+    w: Math.max(MIN_NODE_W, q(startW + d.dx)),
+    h: Math.max(MIN_NODE_H, q(startH + d.dy)),
+  };
+}
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * 카드 오른아래 **크기 손잡이**. 고른 카드 하나에만 붙는다 —
+ * 모든 카드에 붙이면 판이 손잡이 밭이 되고, 통째로 다시 그리면 타자 중에 화면이 튄다.
+ */
+export function sizeGrip(id: string, w: number, h: number, fill: string, stroke: string): SVGRectElement {
+  const grip = document.createElementNS(SVG_NS, 'rect');
+  grip.setAttribute('class', 'ck-size-handle');
+  grip.dataset.sizeFor = id;
+  grip.setAttribute('x', String(w - 7));
+  grip.setAttribute('y', String(h - 7));
+  grip.setAttribute('width', '10');
+  grip.setAttribute('height', '10');
+  grip.setAttribute('rx', '2');
+  grip.setAttribute('fill', fill);
+  grip.setAttribute('stroke', stroke);
+  grip.setAttribute('stroke-width', '1.5');
+  grip.setAttribute('cursor', 'nwse-resize');
+  return grip;
+}

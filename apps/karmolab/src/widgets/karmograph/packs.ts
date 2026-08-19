@@ -12,7 +12,7 @@
  * 노드 종류 id 는 팩마다 겹치지 않게 prefix 를 둔다 — 팩을 바꿔도 이미 놓아둔
  * 노드가 색을 잃지 않도록 `ALL_KIND_COLORS` 가 전 팩을 합쳐 캔버스에 넘어간다.
  */
-import type { EdgeKindDef, EdgeStyle } from '../../lib/graph/spec';
+import type { EdgeKindDef, EdgeStyle } from '../../lib/karmograph/spec';
 import { t } from '../../lib/i18n';
 
 export interface NodeKindDef {

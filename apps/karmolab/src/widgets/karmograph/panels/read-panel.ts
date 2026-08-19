@@ -9,7 +9,7 @@
  * 그래서 보기 전용에서는 고칠 칸을 아예 안 그리고, 읽을 것만 글로 낸다.
  * (코멘트는 그대로 둔다 — 받은 사람이 「여기 이상해요」를 남길 유일한 칸이다.)
  */
-import type { GraphNode } from '../../../lib/graph/spec';
+import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t } from '../../../lib/i18n';
 

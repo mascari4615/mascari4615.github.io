@@ -7,7 +7,7 @@
  * 남과 함께 볼 때를 위한 자리이기도 하다 — 보기 전용으로 받은 사람이 「여기 이상해요」를 남길
  * 유일한 칸이다(다음 조각에서 보기 전용에도 열어 줄 예정).
  */
-import type { GraphComment } from '../../../lib/graph/spec';
+import type { GraphComment } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
 import { t, loadNamespace, locale } from '../../../lib/i18n';
 
