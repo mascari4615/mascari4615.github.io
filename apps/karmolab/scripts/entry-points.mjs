@@ -16,7 +16,7 @@
  * 빌드도 따라온다. 「빌드에 넣는 걸 깜빡」이라는 사고 자체가 없어진다.
  *
  * 여기서 안 뽑는 것 = 형식이 다른 몇 개(`mdd`/`gemini`/`toolbox` 는 묶지 않는 esm,
- * `sw` 는 빌드 스탬프를 박는다)와 `src/world/` (다른 폴더로 나간다). 그건 build.mjs 가 직접 다룬다.
+ * `sw` 는 빌드 스탬프를 박는다)와 `src/lib/karmoworld/` (다른 폴더로 나간다 — 출력은 `/apps/karmolab/world/`). 그건 build.mjs 가 직접 다룬다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -69,14 +69,14 @@ function widgetPathsFrom(root) {
   return paths;
 }
 
-/** `src/` 아래 모든 TypeScript (world 제외 — 그쪽은 build.mjs 가 따로 다룬다). */
+/** `src/` 아래 모든 TypeScript (karmoworld 제외 — 그쪽은 build.mjs 가 따로 다룬다). */
 function allSources(root) {
   const found = [];
   const walk = (dir) => {
     for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
       const rel = `${dir}/${entry.name}`;
       if (entry.isDirectory()) {
-        if (rel !== 'src/world') walk(rel);
+        if (rel !== 'src/lib/karmoworld') walk(rel);
       } else if (entry.name.endsWith('.ts')) found.push(rel);
     }
   };

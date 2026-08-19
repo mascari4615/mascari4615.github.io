@@ -34,7 +34,7 @@ const TYPE_OUT_DIR = {
   lore: 'lore',
 };
 
-// ── frontmatter 파싱 (apps/karmolab/src/world/parse-md.ts 의 parseYamlSimple 와 같은 부분집합) ─────
+// ── frontmatter 파싱 (apps/karmolab/src/lib/karmoworld/parse-md.ts 의 parseYamlSimple 와 같은 부분집합) ─────
 function splitFrontmatter(md) {
   if (!md.startsWith('---\n') && !md.startsWith('---\r\n')) return { fm: '', body: md };
   const lines = md.split(/\r?\n/);

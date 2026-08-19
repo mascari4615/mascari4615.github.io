@@ -36,13 +36,18 @@ README 에 적는다.
 > 주의 — `memo/rules/domain-kl.md:8` 의 「영문 브랜드 조어를 후보로 내지 마라」는
 > **사용자에게 보이는 위젯·도구 이름** 룰이다. 모듈 경로에는 안 걸린다.
 
+## 옮긴 것
+
+| 대상 | 결과 | 메모 |
+|---|---|---|
+| `src/world/` → `lib/karmoworld/` | 2026-08-19 | 소스만 옮겼다. **출력 주소는 `/apps/karmolab/world/*.js` 그대로** — `Toolbox.resolveScriptPath` 의 `world/` 접두사와 `sw.ts` 캐시 규칙이 거기 물려 있다. 옮기려면 그 셋을 같이 옮겨야 한다 |
+
 ## 아직 안 지켜진 것 (후속)
 
 엔진 브랜드는 있는데 코드 자리가 어긋난 것들. 위 기준으로 판정해 옮긴다:
 
 | 대상 | 지금 | 제안 |
 |---|---|---|
-| `src/world/` | src 최상단, 4파일, 쓰는 곳 7 | `KarmoWorld` 가 코드에 59번 → `lib/karmoworld/` |
 | `KarmoStat` (참조 7) | `analytics.ts`+`toolbox.ts`+`arcade/plays.ts` 에 흩어짐 | 한 곳으로 |
 | `KarmoGif` (참조 7) | `asciiart.ts`+`gifenc.ts`+`video2gif.ts` | 한 곳으로 |
 | `src/search/`·`src/badapple/` | src 최상단 | 위 3조건으로 판정부터 |

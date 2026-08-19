@@ -42,7 +42,7 @@ const KIND_LABEL = {
   systems: '시스템',
 };
 
-// ── frontmatter (sync-wiki.mjs / src/world/parse-md.ts 와 같은 부분집합) ────────────────────
+// ── frontmatter (sync-wiki.mjs / src/lib/karmoworld/parse-md.ts 와 같은 부분집합) ────────────────────
 function splitFrontmatter(md) {
   const lines = md.split(/\r?\n/);
   if (lines[0]?.trim() !== '---') return { fm: '', body: md };
