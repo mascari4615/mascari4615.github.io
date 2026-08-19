@@ -184,7 +184,33 @@ jobs:
         run: npm run build:sidecar
 
       - name: Build and publish release
+        id: publish
+        # ★ **한 번은 봐준다** (2026-08-19). 릴리스 *생성* 자리에서 GitHub 가 가끔
+        #   `Resource not accessible by integration`(403) 을 낸다 — 오늘 8판 중 2판.
+        #   사이 판들은 같은 설정으로 초록이라 우리 쪽 권한 문제가 아니다(원인 미확정).
+        #   빌드는 이미 다 끝난 뒤라 다시 부르면 몇 십 초다. 사람이 다시 누르는 대신
+        #   여기서 한 번 더 시도한다 — 못 고친 원인을 **회복**으로 덮는 자리임을 적어 둔다.
+        continue-on-error: true
         if: steps.contract.outputs.changed == 'true'
+        uses: tauri-apps/tauri-action@action-v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/karmolab-tauri
+          tauriScript: npm run tauri
+          args: --config src-tauri/tauri.release.conf.json
+          tagName: karmolab-v__VERSION__
+          releaseName: KarmoLab v__VERSION__
+          generateReleaseNotes: true
+          releaseDraft: false
+          prerelease: false
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
+
+      - name: Build and publish release (한 번 더 — 위가 403 으로 튕겼을 때만)
+        if: steps.contract.outputs.changed == 'true' && steps.publish.outcome == 'failure'
         uses: tauri-apps/tauri-action@action-v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
