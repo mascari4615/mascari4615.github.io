@@ -98,6 +98,13 @@
             "npmInstall": true
         },
         {
+            "id": "install-companion-window",
+            "label": "설치 · 동반자 창",
+            "app": "apps/karmolab-tauri",
+            "script": "build:companion",
+            "npmInstall": false
+        },
+        {
             "id": "karmolab-tauri-dev",
             "label": "KarmoLab Tauri Dev (dual)",
             "app": "apps/karmolab-tauri",

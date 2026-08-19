@@ -12,6 +12,7 @@
   "widgets-desc.linktree.desc": "개발자 연락처 & 링크 모음",
   "widgets-desc.devtools.desc": "데스크톱 앱·연동 점검용 테스트 모음 (알림 등)",
   "widgets-desc.localai.desc": "번역·요약을 서버 없이 이 기기 안에서 — 글이 밖으로 안 나갑니다 (크롬 계열 최신판)",
+  "widgets-desc.install.desc": "동반자 창 같은 부품을 이 컴퓨터에 깐다 (데스크톱 앱 전용)",
   "widgets-desc.servermonitor.desc": "로컬 URL·프로세스·.env (데스크톱)",
   "widgets-desc.activity.desc": "내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)",
   "widgets-desc.quest-log.desc": "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도",

@@ -10,7 +10,7 @@
  *   COMPANION_COOLDOWN_MS=45000    혼잣말 참는 간격
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
-import { existsSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -393,24 +393,57 @@ function 받아쓰기실행파일() {
 
 /** 흉내 낸 목소리 서버(GPT-SoVITS)를 띄운다. 뜨는 데 30초쯤 걸린다 — 기다리지 않는다. */
 let 흉내프로세스 = null;
+let 흉내끄는중 = false;
+const 흉내로그 = join(home, '흉내-목소리.log');
 function 흉내서버띄우기() {
   const memo = 이웃('memo', join('life', '.models'));
   if (memo === null) throw new Error('memo 저장소를 이웃에서 못 찾았다');
   const 자리 = join(memo, 'life', '.models', 'gpt-sovits');
   const 파이썬 = join(자리, '.venv', 'Scripts', 'python.exe');
   if (existsSync(파이썬) === false) throw new Error(`파이썬을 못 찾았다 (${파이썬})`);
+  /* **나가는 말을 로그로 받는다.**
+   *
+   * 여태 `stdio: 'ignore'` 였다. 그래서 이게 죽어도 남는 게 하나도 없었다 — 화면에는
+   * 「목소리가 안 나온다」로만 보이고 이유는 아무 데도 안 적혔다(2026-08-19 실측:
+   * 부팅 한 시간 뒤 9880 도 안 떠 있고 파이썬 프로세스도 0개인데, 같은 명령을 손으로
+   * 치니 멀쩡히 떴다 — 왜 죽었는지 알 방법이 없었다).
+   *
+   * 무음 실패는 없는 기능보다 나쁘다. 나가는 말을 파일에 받아 두고, 죽으면 마지막 몇
+   * 줄을 그 자리에서 보여 준다 — 로그가 있어도 어디 있는지 모르면 없는 것과 같다. */
+  mkdirSync(home, { recursive: true });
+  const 받개 = openSync(흉내로그, 'w');
   흉내프로세스 = spawn(파이썬, ['api_v2.py', '-a', '127.0.0.1', '-p', '9880'], {
     cwd: 자리,
     detached: false,
-    stdio: 'ignore',
+    stdio: ['ignore', 받개, 받개],
     // 안 주면 검은 창이 하나 뜬다.
     windowsHide: true,
   });
-  흉내프로세스.on('exit', () => { 흉내프로세스 = null; });
+  흉내프로세스.on('error', (e) => {
+    흉내프로세스 = null;
+    console.log(`[목소리] 흉내 서버를 못 띄웠다: ${e.message}`);
+  });
+  흉내프로세스.on('exit', (code) => {
+    흉내프로세스 = null;
+    // 우리가 끈 것은 사고가 아니다.
+    if (흉내끄는중) { 흉내끄는중 = false; return; }
+    console.log(`[목소리] 흉내 서버가 저 혼자 죽었다 (코드 ${code}) — 남긴 말: ${흉내로그}`);
+    for (const 줄 of 로그꼬리(흉내로그, 8)) console.log(`[목소리]   ${줄}`);
+  });
+}
+
+/** 로그 마지막 몇 줄. 죽은 이유는 대개 끝에 있다. */
+function 로그꼬리(경로, 줄수) {
+  try {
+    return readFileSync(경로, 'utf8').split(/\r?\n/).filter((줄) => 줄.trim() !== '').slice(-줄수);
+  } catch {
+    return [];
+  }
 }
 
 function 흉내서버끄기() {
   if (흉내프로세스 === null) return;
+  흉내끄는중 = true;
   흉내프로세스.kill();
   흉내프로세스 = null;
 }

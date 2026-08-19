@@ -162,6 +162,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['localai/localai']
   },
   {
+    /* 부품 설치 (TASK-KL-330) — 데스크톱에서만. 웹으로 오는 사람에겐 깔 대상이 없다. */
+    id: 'install',
+    get title() { return t('widgets.install.title', undefined, "설치"); },
+    category: 'tool',
+    desktopOnly: true,
+    get desc() { return t('widgets-desc.install.desc', undefined, "동반자 창 같은 부품을 이 컴퓨터에 깐다 (데스크톱 앱 전용)"); },
+    layout: 'form',
+    icon: '<path d="M12 3v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3h16v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['install']
+  },
+  {
     id: 'servermonitor',
     get title() { return t('widgets.servermonitor.title', undefined, "서버 모니터"); },
     category: 'tool',
