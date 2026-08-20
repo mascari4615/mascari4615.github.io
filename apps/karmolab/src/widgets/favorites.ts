@@ -41,6 +41,7 @@ import {
     type FavSkin
 } from './favorites-deck';
 import { isDesktop } from '../tauri-bridge';
+import { registerContextMenu, type MenuEntry } from '../lib/context-menu';
 import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
@@ -490,6 +491,50 @@ import { t, loadNamespace } from '../lib/i18n';
                 .join('');
         }
 
+        /**
+         * 이 칸을 「즐겨찾기에서 빼기」로 지울 수 있으면 지우는 일을, 아니면 `null`.
+         *
+         * 뺄 수 없는 칸이 있다 — 기본으로 깔린 사이트다. 그건 담은 적이 없어 뺄 것도 없다
+         * (그 칸에는 × 단추도 원래 안 달린다). 메뉴에 회색으로 남겨 두지 않고 아예 빼는 이유 =
+         * 「왜 안 눌리지」를 설명할 자리가 우클릭 메뉴에는 없다.
+         */
+        function removerFor(hit: { toolId: string; appKey: string; url: string }): (() => void) | null {
+            if (hit.toolId) {
+                return () => {
+                    const picked = loadPickedTools();
+                    if (!picked.delete(hit.toolId)) return;
+                    savePickedTools(picked);
+                    Toolbox.showToast?.(t('favorites.t16'));
+                    render();
+                };
+            }
+            if (hit.appKey) {
+                return () => {
+                    const apps = loadApps();
+                    const left = apps.filter((x) => appKey(x) !== hit.appKey);
+                    if (left.length === apps.length) return;
+                    saveApps(left);
+                    Toolbox.showToast?.(t('favorites.t16'));
+                    render();
+                };
+            }
+            if (!hit.url) return null;
+            /* 직접 담은 사이트만. 기본 목록은 저장된 적이 없어서 여기서 안 걸린다. */
+            const data = loadFavorites() || [];
+            const g = data.find((d) => d.items.some((it) => it.url === hit.url && it.isCustom));
+            if (!g) return null;
+            return () => {
+                const now = loadFavorites() || [];
+                const grp = now.find((d) => d.group === g.group);
+                if (!grp) return;
+                grp.items = grp.items.filter((it) => it.url !== hit.url);
+                if (!grp.items.length) now.splice(now.indexOf(grp), 1);
+                saveFavorites(now);
+                Toolbox.showToast?.(t('favorites.t16'));
+                render();
+            };
+        }
+
         function render(): void {
             const customNow = loadFavorites();
             const groupsNow = buildGroups(DEFAULT_ITEMS, customNow);
@@ -899,6 +944,35 @@ import { t, loadNamespace } from '../lib/i18n';
                             );
                         });
                 };
+            });
+
+            /* 칸 우클릭 메뉴 — 데스크톱 앱에서만 뜬다(웹은 브라우저 메뉴가 그대로 산다).
+             * 지금까지 마우스를 올려야 나타나는 작은 × 하나에 「빼기」를 우겨넣고 있었는데,
+             * 그건 손가락이 굵은 날이나 덱 살결에서는 사실상 못 누르는 단추였다.
+             * 선택자로 걸므로 다시 그려도 살아 있다 — 같은 선택자 재등록은 덮어쓴다. */
+            registerContextMenu('.fav-item', (el): MenuEntry[] | null => {
+                const a = el as HTMLAnchorElement;
+                const toolId = a.dataset.toolId || '';
+                const appK = a.dataset.appKey || '';
+                const href = a.getAttribute('href') || '';
+                /* 사이트 칸만 「주소」가 뜻이 있다. 도구는 화면 전환, 앱은 스킴이라 복사해도 쓸 데가 없다. */
+                const url = !toolId && !appK && href && href !== '#' ? href : '';
+                const entries: MenuEntry[] = [
+                    { label: t('ctxmenu.open'), onSelect: () => a.click() }
+                ];
+                if (url) {
+                    entries.push({
+                        label: t('ctxmenu.copyUrl'),
+                        onSelect: () => {
+                            /* 상대 주소로 담은 칸(도구 장 등)이 있어 절대 주소로 펴서 준다 — 붙여 넣은 곳에서 열려야 한다. */
+                            const abs = (() => { try { return new URL(url, location.href).href; } catch (_) { return url; } })();
+                            void navigator.clipboard?.writeText(abs).catch(() => {});
+                        }
+                    });
+                }
+                const remove = removerFor({ toolId, appKey: appK, url });
+                if (remove) entries.push('-', { label: t('ctxmenu.removeFav'), danger: true, onSelect: remove });
+                return entries;
             });
 
             /* 뱃지 = 「이 PC 에 있나」. 데스크톱만 답할 수 있으므로 웹에서는 아예 안 단다

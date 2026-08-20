@@ -1,0 +1,10 @@
+{
+  "ctxmenu.copy": "Copy",
+  "ctxmenu.paste": "Paste",
+  "ctxmenu.selectAll": "Select all",
+  "ctxmenu.reload": "Reload",
+  "ctxmenu.open": "Open",
+  "ctxmenu.openNew": "Open in new window",
+  "ctxmenu.copyUrl": "Copy address",
+  "ctxmenu.removeFav": "Remove from favorites"
+}

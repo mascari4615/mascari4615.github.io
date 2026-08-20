@@ -1,0 +1,10 @@
+{
+  "ctxmenu.copy": "コピー",
+  "ctxmenu.paste": "貼り付け",
+  "ctxmenu.selectAll": "すべて選択",
+  "ctxmenu.reload": "再読み込み",
+  "ctxmenu.open": "開く",
+  "ctxmenu.openNew": "新しいウィンドウで開く",
+  "ctxmenu.copyUrl": "アドレスをコピー",
+  "ctxmenu.removeFav": "お気に入りから外す"
+}
