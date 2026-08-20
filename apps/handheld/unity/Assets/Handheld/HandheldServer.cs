@@ -52,7 +52,12 @@ namespace Handheld
         // 값 하나짜리라 lock 대신 통째로 갈아 끼운다 (읽는 쪽은 항상 한 벌을 본다).
         volatile object _joystick = (object)Vector4.zero;
 
-        readonly ConcurrentQueue<string> _logQueue = new ConcurrentQueue<string>();
+        // 편집 모드에서는 Update 가 규칙적으로 안 돈다 = 큐에 넣으면 로그가 늦거나 안 뜬다.
+        // Debug.Log 는 유니티에서 스레드 안전한 몇 안 되는 API 라 곧장 찍는다.
+        void Log(string line)
+        {
+            if (logToConsole) Debug.Log("[Handheld] " + line);
+        }
 
         // 포즈 기록 (조종석에서 켠다). 켜져 있을 때만 만들어진다.
         HandheldLog _recorder;
@@ -92,8 +97,14 @@ namespace Handheld
             }
         }
 
-        /// <summary>폰 화면 스틱의 지금 값. 손을 떼면 0 이 온다.</summary>
-        public Vector4 Joystick => (Vector4)_joystick;
+        /// <summary>
+        /// 폰 화면 스틱의 지금 값. 손을 떼면 0 이 온다.
+        ///
+        /// **데드맨 스위치** — 연결이 죽었으면 마지막 값이 아니라 0 을 준다. 망이 끊기는
+        /// 순간 폰은 「놓았다」를 못 보내므로, 그 값을 그대로 믿으면 아무도 안 미는데 리그가
+        /// 계속 흐른다 (2026-08-20 실측: 2초에 0.95m). 원격 조종은 신호가 없으면 멈춰야 한다.
+        /// </summary>
+        public Vector4 Joystick => Connected ? (Vector4)_joystick : Vector4.zero;
 
         /// <summary>폰이 「리센터」를 눌렀으면 true 를 한 번 돌려준다.</summary>
         public bool ConsumeRecenterRequest() => Interlocked.Exchange(ref _recenterFlag, 0) == 1;
@@ -150,9 +161,17 @@ namespace Handheld
 
         void Update()
         {
+            Tick();
+        }
+
+        /// <summary>
+        /// 편집 모드에서는 Update 가 규칙적으로 안 돈다 — 조종석 창이 이걸 대신 부른다.
+        /// 스틱 해제가 여기 걸려 있으니 안 불리면 데드맨이 늦게 듣는다.
+        /// </summary>
+        public void Tick()
+        {
+            ReleaseSticksIfDisconnected();
             _recorder?.Flush();
-            while (_logQueue.TryDequeue(out var line))
-                if (logToConsole) Debug.Log("[Handheld] " + line);
         }
 
         void AcceptLoop()
@@ -166,17 +185,24 @@ namespace Handheld
                 }
                 catch (Exception)
                 {
-                    if (_running) _logQueue.Enqueue("accept 중단");
+                    if (_running) Log("accept 중단");
                     return;
                 }
 
                 try { HandleConnection(tcp); }
                 catch (Exception e)
                 {
-                    _logQueue.Enqueue("연결 처리 실패: " + e.Message);
+                    Log("연결 처리 실패: " + e.Message);
                     try { tcp.Close(); } catch { }
                 }
             }
+        }
+
+        /// <summary>연결이 죽었으면 스틱을 0 으로 되돌린다 (틱마다 확인).</summary>
+        void ReleaseSticksIfDisconnected()
+        {
+            if (Connected) return;
+            if ((Vector4)_joystick != Vector4.zero) _joystick = (object)Vector4.zero;
         }
 
         void HandleConnection(TcpClient tcp)
@@ -194,13 +220,13 @@ namespace Handheld
                 var conn = WsConnection.Accept(tcp, headers);
                 if (conn == null) { tcp.Close(); return; }
                 conn.OnText = OnPhoneMessage;
-                conn.OnLog = s => _logQueue.Enqueue(s);
+                conn.OnLog = Log;
 
                 var old = _client;
                 _client = conn;
                 _joystick = (object)Vector4.zero;      // 새 폰이 붙으면 이전 스틱 값을 물려받지 않는다
                 old?.Close();
-                _logQueue.Enqueue("폰 붙음");
+                Log("폰 붙음");
                 return;
             }
 
@@ -300,7 +326,7 @@ namespace Handheld
                         Mathf.Clamp(P(j[1]), -1f, 1f), Mathf.Clamp(P(j[2]), -1f, 1f),
                         Mathf.Clamp(P(j[3]), -1f, 1f), Mathf.Clamp(P(j[4]), -1f, 1f));
                 }
-                catch (Exception e) { _logQueue.Enqueue("스틱 파싱 실패: " + e.Message); }
+                catch (Exception e) { Log("스틱 파싱 실패: " + e.Message); }
                 return;
             }
 
@@ -333,7 +359,7 @@ namespace Handheld
             }
             catch (Exception e)
             {
-                _logQueue.Enqueue("포즈 파싱 실패: " + e.Message);
+                Log("포즈 파싱 실패: " + e.Message);
             }
         }
 
