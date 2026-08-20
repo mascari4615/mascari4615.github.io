@@ -1,0 +1,546 @@
+/**
+ * 영토 — 이 땅의 주인은 누구인가 (TASK-KL-334)
+ *
+ * 사용자: "편의점 뿐만아니라 카페나 햄버거가게 같이 여러 좋류의 영토 점령을 보고 싶어잉"
+ *
+ * 화면 픽셀마다 **가장 가까운 가게**를 묻고 그 브랜드 색으로 칠한다. 그러면 지도 위에
+ * 「여기부터 저 골목까지는 GS25 땅」이 눈으로 보인다. 계산은 `core/territory` 에 있고
+ * (화면 없이 돌고 MCP 로도 나간다), 지도판은 `geomap.ts` 다. 여기는 그 둘을 붙이는 껍데기다.
+ *
+ * ## 폴리곤을 안 만든다
+ *
+ * 원본(conbini.kikkia.dev)은 보로노이 폴리곤을 미리 만들어 geojson 으로 8MB 를 보낸다.
+ * 우리는 **점만 보내고 칠하기는 화면에서** 한다 — 자료가 126KB 로 줄고, 업종을 바꿔도 즉시고,
+ * 무엇보다 **면적 점유율이 픽셀을 세는 것만으로 나온다**(원본에 없는 수다).
+ *
+ * 다만 픽셀마다 묻는 것은 공짜가 아니다. 그래서 ① 실제로는 몇 픽셀에 한 번만 묻고(`step`)
+ * 작은 그림을 늘려 그린다 ② 끌고 있는 동안에는 성기게, 손을 떼면 촘촘하게 다시 그린다.
+ */
+import { t, loadNamespace } from '../../lib/i18n';
+import { GeoMap } from './geomap';
+import { buildGrid, nearest, share, type Grid, type Industry, type Store } from '../../core/territory';
+
+(function (): void {
+  if (typeof Toolbox === 'undefined') return;
+
+  const NS = 'territory';
+
+  /** 자료 파일 주소 — Tauri 에서도 같은 출처로 풀리게 위젯 스크립트 자리에서 되짚는다. */
+  function dataUrl(name: string): string {
+    const w = window as unknown as { KARMOLAB_WIDGET_SCRIPT_BASE?: string };
+    if (w.KARMOLAB_WIDGET_SCRIPT_BASE) return new URL('../../data/' + name, w.KARMOLAB_WIDGET_SCRIPT_BASE).href;
+    return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
+  }
+
+  interface BrandMeta {
+    id: string;
+    label: string;
+    color: string;
+  }
+
+  interface Dataset {
+    industry: Industry;
+    source: string;
+    sample: boolean;
+    scale: number;
+    brands: BrandMeta[];
+    counts: Record<string, number>;
+    points: Record<string, number[]>;
+  }
+
+  interface Loaded {
+    meta: Dataset;
+    grid: Grid;
+    color: Map<string, string>;
+    /** 색을 RGB 로 미리 풀어 둔다 — 픽셀 수만큼 문자열을 파싱할 수는 없다. */
+    rgb: Map<string, [number, number, number]>;
+  }
+
+  const INDUSTRIES: Array<{ id: Industry; label: () => string }> = [
+    { id: 'convenience', label: () => t('territory.industry.convenience', undefined, '편의점') },
+    { id: 'cafe', label: () => t('territory.industry.cafe', undefined, '카페') },
+    { id: 'burger', label: () => t('territory.industry.burger', undefined, '햄버거') }
+  ];
+
+  /** 접어 둔 좌표를 되편다 — 만든 자리는 `scripts/gen-territory-data.mjs`. */
+  function unpack(meta: Dataset): Store[] {
+    const out: Store[] = [];
+    for (const [brand, flat] of Object.entries(meta.points)) {
+      let lat = 0;
+      let lng = 0;
+      for (let i = 0; i < flat.length; i += 2) {
+        lat += flat[i];
+        lng += flat[i + 1];
+        out.push({ lat: lat / meta.scale, lng: lng / meta.scale, brand });
+      }
+    }
+    return out;
+  }
+
+  function hexRgb(hex: string): [number, number, number] {
+    const h = hex.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  Toolbox.register({
+    id: 'territory',
+    title: t('widgets.territory.title', undefined, '영토'),
+    category: 'lab',
+    desc: t('widgets-desc.territory.desc', undefined, '우리 동네 땅 주인은 CU 인가 GS25 인가 — 편의점·카페·햄버거 브랜드 점령도'),
+    layout: 'full',
+    icon:
+      '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+      '<path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>',
+    tabs: [
+      {
+        id: 'app',
+        label: t('territory.tab.map', undefined, '지도'),
+        build: function (container: HTMLElement): void {
+          void loadNamespace(NS).then(function () {
+            render(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /**
+   * 화면 옷. 블루마블이 먼저 푼 문제를 그대로 쓴다 — 위젯 상자 안에 지도를 가두면
+   * 「창문」이 아니라 「계기판 안의 썸네일」이 된다. 머리띠 높이만큼 음수 여백으로 올라타
+   * 화면을 통째로 쓰고, 조작부는 전부 지도 **위에** 떠 있는다.
+   */
+  const CSS = `
+.terr-wrap{--terr-head:52px;--terr-side:52px;position:relative;width:100%;
+  margin-top:calc(var(--terr-head) * -1);
+  height:100svh;max-height:100svh;
+  border-radius:var(--radius-md,12px);overflow:hidden;background:#0c0e12;}
+.terr-wrap:fullscreen{--terr-head:0px;--terr-side:16px;margin-top:0;height:100%;max-height:none;border-radius:0;}
+.terr-map{position:absolute;inset:0;}
+/* --terr-side = 왼쪽 셸 난간이 지도 위를 덮는 폭. 지도는 화면 끝까지 그리되(그게 목적이다)
+   **조작부와 범례는 난간 오른쪽부터** 놓는다 — 안 그러면 첫 칩과 순위표 왼쪽이 잘린다. */
+/* 위아래 그늘 — 글자가 지도 위에서 묻히지 않게. 지도는 그대로 비친다. */
+.terr-scrim-top{position:absolute;top:0;left:0;right:0;height:calc(var(--terr-head) + 74px);z-index:1;
+  pointer-events:none;background:linear-gradient(to bottom,rgba(6,8,12,.72),rgba(6,8,12,0));}
+.terr-scrim-bottom{position:absolute;left:0;right:0;bottom:0;height:120px;z-index:1;
+  pointer-events:none;background:linear-gradient(to top,rgba(6,8,12,.86),rgba(6,8,12,0));}
+.terr-bar{position:absolute;top:calc(10px + var(--terr-head));left:var(--terr-side);right:16px;z-index:4;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.terr-chip{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(10,14,22,.55);
+  color:rgba(255,255,255,.58);font-size:12px;line-height:1;padding:7px 11px;border-radius:999px;
+  cursor:pointer;backdrop-filter:blur(6px);}
+.terr-chip:hover{border-color:rgba(255,255,255,.4);}
+.terr-chip[aria-pressed="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);background:rgba(30,52,96,.55);}
+.terr-right{margin-inline-start:auto;display:flex;gap:6px;}
+/* 범례 = 순위표. 색 · 이름 · 땅 넓이 막대 · 퍼센트. 원본에 없던 「면적」이 주인공이다. */
+.terr-legend{position:absolute;left:var(--terr-side);bottom:18px;z-index:3;min-width:216px;max-width:min(52%,280px);
+  background:rgba(10,14,22,.62);backdrop-filter:blur(7px);border:1px solid rgba(255,255,255,.09);
+  border-radius:var(--radius-md,12px);padding:10px 12px;pointer-events:none;}
+.terr-row{display:grid;grid-template-columns:11px 1fr auto;gap:8px;align-items:center;
+  padding:3px 0;font-size:12px;color:#e6ebf3;}
+.terr-sw{width:11px;height:11px;border-radius:3px;}
+.terr-bararea{position:relative;height:5px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden;}
+.terr-fill{position:absolute;inset:0 auto 0 0;border-radius:3px;}
+.terr-pct{font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;color:rgba(255,255,255,.72);
+  font-variant-numeric:tabular-nums;}
+.terr-name{font-size:11px;color:rgba(255,255,255,.82);margin-bottom:2px;}
+/* 아래 한 줄 — 숫자를 늘어놓지 않고 문장으로 말한다. */
+.terr-note{position:absolute;left:var(--terr-side);right:16px;bottom:0;z-index:3;padding:0 2px 12px;
+  font-size:13px;line-height:1.55;color:#dbe3f0;pointer-events:none;text-shadow:0 1px 10px rgba(0,0,0,.8);}
+.terr-warn{color:#ffc98a;}
+@media (max-width:520px){
+  .terr-wrap{--terr-side:10px;}
+  .terr-legend{right:10px;bottom:64px;max-width:none;}
+  .terr-note{font-size:12px;}
+}`;
+
+  function render(container: HTMLElement): void {
+    if (document.getElementById('terr-css') === null) {
+      const style = document.createElement('style');
+      style.id = 'terr-css';
+      style.textContent = CSS;
+      document.head.appendChild(style);
+    }
+
+    /* ★ 조작부·범례는 전부 지도 **위에** 얹는다(absolute). 흐름으로 지도 아래에 두었더니
+       「글이 길어짐 → 지도 높이 바뀜 → 화면 범위 바뀜 → 통계 다시 셈 → 글 길어짐」이
+       끝없이 돌아 브라우저가 멎었다 (2026-08-20 실측). 칠하는 값이 제 크기에 되먹임되면 안 된다. */
+    container.innerHTML = `
+      <div class="terr-wrap">
+        <div class="terr-map"></div>
+        <div class="terr-scrim-top"></div>
+        <div class="terr-scrim-bottom"></div>
+        <div class="terr-bar">
+          <div class="terr-tabs" style="display:flex;gap:6px"></div>
+          <div class="terr-right">
+            <button type="button" class="terr-chip terr-dots" aria-pressed="false">${esc(t('territory.label.dots', undefined, '가게 점 보기'))}</button>
+            <button type="button" class="terr-chip terr-full" title="${esc(t('territory.label.full', undefined, '전체 화면'))}">⛶</button>
+          </div>
+        </div>
+        <div class="terr-legend"></div>
+        <div class="terr-note"></div>
+      </div>`;
+
+    const wrapEl = container.querySelector('.terr-wrap') as HTMLElement;
+    const tabsEl = container.querySelector('.terr-tabs') as HTMLElement;
+    const mapEl = container.querySelector('.terr-map') as HTMLElement;
+    const legendEl = container.querySelector('.terr-legend') as HTMLElement;
+    const noteEl = container.querySelector('.terr-note') as HTMLElement;
+    const dotsEl = container.querySelector('.terr-dots') as HTMLButtonElement;
+    const fullEl = container.querySelector('.terr-full') as HTMLButtonElement;
+
+    let dotsOn = false;
+    dotsEl.onclick = () => {
+      dotsOn = !dotsOn;
+      dotsEl.setAttribute('aria-pressed', dotsOn ? 'true' : 'false');
+      map.redraw();
+    };
+    fullEl.onclick = () => {
+      if (document.fullscreenElement === wrapEl) void document.exitFullscreen();
+      else void wrapEl.requestFullscreen();
+    };
+
+    const map = new GeoMap(mapEl, {
+      center: { lat: 36.6, lng: 127.9 },
+      zoom: 7,
+      minZoom: 6,
+      maxZoom: 17,
+      attribution: '© OpenStreetMap',
+      /* 바탕을 회색으로 깎고 살짝 어둡게 — 그 위의 브랜드 색만 살아난다.
+         원본(conbini)이 기본 OSM 위에 색을 얹어 서로 싸우던 것이 안 예뻤던 진짜 이유다. */
+      tileFilter: 'grayscale(1) brightness(.72) contrast(.88)',
+      background: '#0c0e12'
+    });
+    Toolbox.onDispose(() => map.destroy());
+
+    let loaded: Loaded | null = null;
+    let current: Industry = 'convenience';
+    /* 끌고 있는 동안에는 성기게 칠한다. 손을 떼면 촘촘하게 한 번 더 — 그래야 안 끊긴다. */
+    let settle = 0;
+
+    const cache = new Map<Industry, Loaded>();
+
+    /* 업종 단추 */
+    for (const ind of INDUSTRIES) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'terr-chip';
+      b.dataset.ind = ind.id;
+      b.textContent = ind.label();
+      b.onclick = () => {
+        void select(ind.id);
+      };
+      tabsEl.appendChild(b);
+    }
+
+    function markTabs(): void {
+      for (const b of Array.from(tabsEl.children) as HTMLButtonElement[]) {
+        b.setAttribute('aria-pressed', b.dataset.ind === current ? 'true' : 'false');
+      }
+    }
+
+    async function load(industry: Industry): Promise<Loaded> {
+      const hit = cache.get(industry);
+      if (hit !== undefined) return hit;
+      const res = await fetch(dataUrl('territory/' + industry + '.json'));
+      if (!res.ok) throw new Error('자료를 못 받았습니다 (' + res.status + ')');
+      const meta = (await res.json()) as Dataset;
+      const stores = unpack(meta);
+      const color = new Map<string, string>();
+      const rgb = new Map<string, [number, number, number]>();
+      for (const b of meta.brands) {
+        color.set(b.id, b.color);
+        rgb.set(b.id, hexRgb(b.color));
+      }
+      const made: Loaded = { meta, grid: buildGrid(stores), color, rgb };
+      cache.set(industry, made);
+      return made;
+    }
+
+    async function select(industry: Industry): Promise<void> {
+      current = industry;
+      markTabs();
+      noteEl.textContent = t('territory.msg.loading', undefined, '자료를 받는 중…');
+      try {
+        loaded = await load(industry);
+      } catch (e) {
+        noteEl.textContent = String(e instanceof Error ? e.message : e);
+        return;
+      }
+      stopJob();
+      raster = null;
+      /* 통계는 칠하기와 무관하게 바로 낼 수 있다(12ms) — 범례가 빈 채로 기다리지 않게 먼저 채운다. */
+      updateSide();
+      startJob(map);
+    }
+
+    /* ── 칠하기 ──
+       화면 픽셀마다 「가장 가까운 가게」를 묻는 일은 전국 한 장에 수십만 번이다. 이걸 한 프레임에
+       다 하면 그 동안 브라우저가 통째로 멎는다 — 끌지도, 누르지도, 스크롤하지도 못한다.
+       (2026-08-20: 그렇게 짰다가 「너무 느려서 쓸 수가 없다」는 말을 들었다.)
+
+       그래서 둘로 나눈다.
+
+       ① **움직이는 동안에는 계산하지 않는다.** 이미 칠해 둔 그림에는 그때의 위경도 두 귀퉁이가
+          붙어 있다. 지금 화면에 그 두 점을 다시 찍으면 어디에 얼마 크기로 얹을지가 나온다 —
+          끌면 따라 움직이고 확대하면 같이 커진다. 살짝 뭉개질 뿐 즉시 반응한다.
+       ② **멈추면 조금씩 다시 칠한다.** 한 프레임에 6ms 어치 줄만 계산하고 다음 프레임에 이어서
+          한다. 위에서 아래로 채워지는 게 보이고, 그 사이에도 지도는 계속 끌린다.
+
+       결과: 무거운 계산이 얼마가 걸리든 **화면은 절대 멎지 않는다.** */
+    const off = document.createElement('canvas');
+    const offCtx = off.getContext('2d', { willReadFrequently: true });
+    /** 갈아 칠하는 동안 밑그림으로 쓸 직전 그림. */
+    const prev = document.createElement('canvas');
+    const prevCtx = prev.getContext('2d');
+
+    /** 다 칠해 둔 그림 한 장과, 그것이 덮고 있던 땅의 두 귀퉁이. */
+    interface Raster {
+      tl: { lat: number; lng: number };
+      br: { lat: number; lng: number };
+      industry: Industry;
+    }
+    let raster: Raster | null = null;
+
+    /** 지금 조금씩 칠하고 있는 일감. */
+    interface Job {
+      img: ImageData;
+      cols: number;
+      rows: number;
+      step: number;
+      maxKm: number;
+      tl: { lat: number; lng: number };
+      br: { lat: number; lng: number };
+      /** 화면 좌표 → 위경도를 job 이 만들어질 때의 화면 기준으로 고정해 둔다. */
+      at: (x: number, y: number) => { lat: number; lng: number };
+      industry: Industry;
+    }
+    let job: Job | null = null;
+    let jobFrame = 0;
+    /** 마지막으로 칠하기 시작한 화면. 같은 화면이면 다시 칠하지 않는다. */
+    let lastView = '';
+
+    /** 지금 화면을 한 줄로 — 중심·확대율·크기가 같으면 칠할 이유가 없다. */
+    function viewKey(m: GeoMap): string {
+      const c = m.getCenter();
+      return [current, m.size.width, m.size.height, m.getZoom().toFixed(3), c.lat.toFixed(5), c.lng.toFixed(5)].join('|');
+    }
+
+
+    function startJob(m: GeoMap): void {
+      if (loaded === null || offCtx === null) return;
+      lastView = viewKey(m);
+      const { width, height } = m.size;
+      if (width < 2 || height < 2) return;
+      /* ★ 화면보다 **넓게** 칠한다. 딱 화면만 칠하면 조금만 끌어도 가장자리가 빈 채로 따라온다
+         (사용자: 「화면 바깥 나가면 사라지는데 정상인가요?」 — 정상 아니었다).
+         사방으로 20% 씩(가로세로 각 1.4배) 더 물어 두면 어지간히 끌어도 채운 자리가 따라온다. */
+      const PAD = 0.2;
+      const padX = Math.round(width * PAD);
+      const padY = Math.round(height * PAD);
+      const owidth = width + padX * 2;
+      const oheight = height + padY * 2;
+      /* 간격은 화면 크기에 맞춘다 — 큰 창일수록 성기게 물어야 전체 시간이 안 늘어난다. */
+      let step = 3;
+      while ((owidth / step) * (oheight / step) > 130000) step += 1;
+      const cols = Math.max(1, Math.ceil(owidth / step));
+      const rows = Math.max(1, Math.ceil(oheight / step));
+      /* 새로 칠하는 동안 화면이 비지 않게, **있던 그림을 밑그림으로 깔고** 그 위에 덮어쓴다.
+         안 그러면 멈출 때마다 영토가 사라졌다가 위에서부터 다시 채워진다(깜빡임).
+
+         ★ 순서가 전부다. `canvas.width` 는 **같은 값을 넣어도 지운다** — 먼저 크기를 맞추면
+         베낄 그림이 이미 지워진 뒤다(그렇게 짰다가 밑그림이 늘 빈 채였다). 베끼고, 맞추고, 얹는다. */
+      const hadRaster = raster !== null && prevCtx !== null && off.width > 0 && off.height > 0;
+      let a = { x: 0, y: 0 };
+      let b = { x: 0, y: 0 };
+      if (hadRaster && raster !== null) {
+        prev.width = off.width;
+        prev.height = off.height;
+        (prevCtx as CanvasRenderingContext2D).drawImage(off, 0, 0);
+        a = m.project(raster.tl.lat, raster.tl.lng);
+        b = m.project(raster.br.lat, raster.br.lng);
+      }
+      off.width = cols;
+      off.height = rows;
+      if (hadRaster && b.x > a.x && b.y > a.y) {
+        offCtx.imageSmoothingEnabled = true;
+        offCtx.drawImage(prev, (a.x + padX) / step, (a.y + padY) / step, (b.x - a.x) / step, (b.y - a.y) / step);
+      }
+      const center = m.getCenter();
+      const zoom = m.getZoom();
+      job = {
+        img: offCtx.getImageData(0, 0, cols, rows),
+        cols,
+        rows,
+        step,
+        /* 「주인 없음」선 — 넓게 볼수록 멀리까지 봐 주되 20km 에서 끊는다.
+           20km 밖 가게를 「이 땅의 주인」이라 부르는 건 어차피 거짓말이고, 이 값이 곧 걸리는 시간이다. */
+        maxKm: Math.min(20, Math.max(2, m.kmPerPixel() * step * 6)),
+        tl: m.unproject(-padX, -padY),
+        br: m.unproject(width + padX, height + padY),
+        at: (x, y) => m.unproject(x, y),
+        industry: current
+      };
+      /* 일감이 만들어진 뒤에 지도가 움직여도 좌표가 어긋나지 않게, 그때의 화면을 붙잡아 둔다. */
+      const snap = { center, zoom, width, height };
+      job.at = (x, y) => unprojectAt(snap, x - padX, y - padY);
+      tick();
+    }
+
+    /** 붙잡아 둔 화면 기준의 화면좌표 → 위경도 (웹 메르카토르). */
+    function unprojectAt(
+      snap: { center: { lat: number; lng: number }; zoom: number; width: number; height: number },
+      x: number,
+      y: number
+    ): { lat: number; lng: number } {
+      const size = 256 * Math.pow(2, snap.zoom);
+      const cxx = ((snap.center.lng + 180) / 360) * size;
+      const sn = Math.sin((snap.center.lat * Math.PI) / 180);
+      const cyy = (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * size;
+      const wx = cxx + x - snap.width / 2;
+      const wy = cyy + y - snap.height / 2;
+      const lng = (wx / size) * 360 - 180;
+      const n = Math.PI * (1 - (2 * wy) / size);
+      return { lat: (Math.atan(Math.sinh(n)) * 180) / Math.PI, lng };
+    }
+
+    /** 한 번에 다 칠한다. 상한(6만 칸)과 거리 상한(20km) 덕에 전국 화면도 수십 ms 다. */
+    function tick(): void {
+      if (job === null || loaded === null || offCtx === null) return;
+      const j = job;
+      const data = j.img.data;
+      for (let r = 0; r < j.rows; r++) {
+        const y = r * j.step + j.step / 2;
+        for (let c = 0; c < j.cols; c++) {
+          const ll = j.at(c * j.step + j.step / 2, y);
+          const owner = nearest(loaded.grid, ll.lat, ll.lng, j.maxKm);
+          if (owner === null) continue;
+          const rgb = loaded.rgb.get(owner.brand);
+          if (rgb === undefined) continue;
+          const o = (r * j.cols + c) * 4;
+          data[o] = rgb[0];
+          data[o + 1] = rgb[1];
+          data[o + 2] = rgb[2];
+          data[o + 3] = 150;
+        }
+      }
+      offCtx.putImageData(j.img, 0, 0);
+      raster = { tl: j.tl, br: j.br, industry: j.industry };
+      job = null;
+      map.redraw();
+      /* ★ 여기서 범례를 갱신하지 않는다. 갱신 → DOM 바뀜 → 크기 알림 → 다시 칠하기 → 또 갱신 …
+         이 고리가 이 위젯을 세 번 멎게 했다 (2026-08-20). 범례는 **칠하기 전에** 한 번만 낸다. */
+    }
+
+    function stopJob(): void {
+      if (jobFrame !== 0) cancelAnimationFrame(jobFrame);
+      jobFrame = 0;
+      job = null;
+    }
+    Toolbox.onDispose(stopJob);
+
+    map.addPainter((ctx, m) => {
+      const { width, height } = m.size;
+      if (raster !== null && off.width > 0) {
+        /* 칠할 때의 두 귀퉁이를 지금 화면에 다시 찍는다 — 그게 얹을 자리와 크기다. */
+        const a = m.project(raster.tl.lat, raster.tl.lng);
+        const b = m.project(raster.br.lat, raster.br.lng);
+        const w = b.x - a.x;
+        const h = b.y - a.y;
+        if (w > 0 && h > 0) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.drawImage(off, a.x, a.y, w, h);
+        }
+      }
+      paintDots(ctx, m, width, height);
+    });
+
+    function paintDots(ctx: CanvasRenderingContext2D, m: GeoMap, width: number, height: number): void {
+      if (loaded === null || !dotsOn) return;
+      for (const s of loaded.grid.stores) {
+        const p = m.project(s.lat, s.lng);
+        if (p.x < -4 || p.y < -4 || p.x > width + 4 || p.y > height + 4) continue;
+        ctx.fillStyle = loaded.color.get(s.brand) ?? '#fff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,.5)';
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+      }
+    }
+
+
+    /* 움직이는 동안 성기게 → 멈추면 촘촘하게. */
+    /* 움직이는 동안에는 칠하지 않는다 — 있던 그림을 늘려 얹어 즉시 따라오게만 한다.
+       손을 떼고 180ms 가 지나면 그때부터 조금씩 다시 칠한다. */
+    map.onView(() => {
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        /* ★ 화면이 실제로 달라졌을 때만 다시 칠한다.
+           범례를 갱신하면 레이아웃이 흔들리고, 그게 크기 알림으로 돌아와 다시 칠하기를 부르고,
+           그 끝에서 또 범례를 갱신한다 — 칠하기가 첫 줄에서 영영 못 벗어난다 (2026-08-20 실측:
+           위쪽 몇 줄만 칠해진 채 멈춰 있었다). 같은 화면이면 아무것도 하지 않는 것이 답이다. */
+        if (viewKey(map) === lastView) return;
+        stopJob();
+        updateSide();
+        startJob(map);
+      }, 180);
+    });
+
+    /* ── 범례와 통계 ── */
+    function updateSide(): void {
+      if (loaded === null) return;
+      const b = map.bounds();
+      /* 통계는 화면보다 성기게 훑는다 — 눈금 120칸이면 순위가 안 바뀐다(실측). */
+      const rows = share(loaded.grid, b, 90, Math.min(20, Math.max(2, map.kmPerPixel() * 40)));
+      const byBrand = new Map(rows.map((r) => [r.brand, r]));
+
+      /* 순위표 — 색·이름·**땅 넓이 막대**·퍼센트. 점포 수는 괄호로 붙인다(주인공은 면적).
+         0% 인 브랜드는 지금 화면에 땅이 없다는 뜻이라 흐리게 남겨 둔다(사라지면 순위가 요동친다). */
+      const maxRatio = rows.length > 0 ? Math.max(...rows.map((r) => r.ratio)) : 1;
+      legendEl.innerHTML =
+        '<div class="terr-name">' +
+        esc(t('territory.msg.owner', undefined, '지금 보이는 땅의 주인')) +
+        '</div>' +
+        [...loaded.meta.brands]
+          .sort((a, x) => (byBrand.get(x.id)?.ratio ?? 0) - (byBrand.get(a.id)?.ratio ?? 0))
+          .map((brand) => {
+            const row = byBrand.get(brand.id);
+            const ratio = row === undefined ? 0 : row.ratio;
+            const n = row === undefined ? 0 : row.stores;
+            const w = maxRatio > 0 ? (ratio / maxRatio) * 100 : 0;
+            return (
+              '<div class="terr-row" style="opacity:' + (ratio > 0 ? 1 : 0.42) + '">' +
+              '<i class="terr-sw" style="background:' + esc(brand.color) + '"></i>' +
+              '<span>' +
+              '<span class="terr-name">' + esc(brand.label) + ' <span style="opacity:.55">' + n.toLocaleString('ko-KR') + '</span></span>' +
+              '<span class="terr-bararea"><i class="terr-fill" style="width:' + w.toFixed(1) + '%;background:' + esc(brand.color) + '"></i></span>' +
+              '</span>' +
+              '<span class="terr-pct">' + (ratio * 100).toFixed(1) + '%</span>' +
+              '</div>'
+            );
+          })
+          .join('');
+
+      const total = Object.values(loaded.meta.counts).reduce((a, c) => a + c, 0);
+      noteEl.innerHTML =
+        '<div>' +
+        esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.')) +
+        '</div>' +
+        '<div style="opacity:.62;font-size:11px;margin-top:2px">' +
+        esc(loaded.meta.source) + ' · ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
+        (loaded.meta.sample
+          ? ' · <span class="terr-warn">' +
+            esc(t('territory.msg.sample', undefined, '표본 주의 — OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다.')) +
+            '</span>'
+          : '') +
+        '</div>';
+    }
+
+    markTabs();
+    void select('convenience');
+  }
+})();

@@ -1,0 +1,13 @@
+{
+  "territory.industry.convenience": "편의점",
+  "territory.industry.cafe": "카페",
+  "territory.industry.burger": "햄버거",
+  "territory.tab.map": "지도",
+  "territory.label.dots": "가게 점 보기",
+  "territory.msg.loading": "자료를 받는 중…",
+  "territory.msg.owner": "지금 보이는 땅의 주인",
+  "territory.msg.hint": "색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.",
+  "territory.msg.source": "자료",
+  "territory.msg.stores": "곳",
+  "territory.msg.sample": "표본 주의 — OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다."
+}

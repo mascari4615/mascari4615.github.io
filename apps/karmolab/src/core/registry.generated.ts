@@ -63,6 +63,7 @@ import { run as semverRun, spec as semverSpec } from './semver';
 import { run as sqlfmtRun, spec as sqlfmtSpec } from './sqlfmt';
 import { run as sshkeyRun, spec as sshkeySpec } from './sshkey';
 import { run as tableconvRun, spec as tableconvSpec } from './tableconv';
+import { run as territoryRun, spec as territorySpec } from './territory';
 import { run as timecalcRun, spec as timecalcSpec } from './timecalc';
 import { run as ttsRun, spec as ttsSpec } from './tts';
 import { run as unicodexRun, spec as unicodexSpec } from './unicodex';
@@ -143,6 +144,7 @@ export const CORES: Record<string, CoreEntry> = {
   sqlfmt: { run: sqlfmtRun, ops: Object.keys(sqlfmtSpec.ops) },
   sshkey: { run: sshkeyRun, ops: Object.keys(sshkeySpec.ops) },
   tableconv: { run: tableconvRun, ops: Object.keys(tableconvSpec.ops) },
+  territory: { run: territoryRun, ops: Object.keys(territorySpec.ops) },
   timecalc: { run: timecalcRun, ops: Object.keys(timecalcSpec.ops) },
   tts: { run: ttsRun, ops: Object.keys(ttsSpec.ops) },
   unicodex: { run: unicodexRun, ops: Object.keys(unicodexSpec.ops) },

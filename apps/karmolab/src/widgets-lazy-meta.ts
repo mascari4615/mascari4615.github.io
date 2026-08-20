@@ -2399,6 +2399,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['bluemarble/bluemarble']
   },
 
+  /* 영토 (TASK-KL-334) — 우리 동네 땅 주인은 CU 인가 GS25 인가. 화면 픽셀마다 가장 가까운
+     가게를 물어 그 브랜드 색으로 칠한다. 편의점·카페·햄버거 세 업종을 갈아 끼운다. */
+  {
+    id: 'territory',
+    get title() { return t('widgets.territory.title', undefined, "영토"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.territory.desc', undefined, "우리 동네 땅 주인은 CU 인가 GS25 인가 — 편의점·카페·햄버거 브랜드 점령도"); },
+    layout: 'full',
+    icon: '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>',
+    lazyScriptPaths: ['territory/territory']
+  },
+
   /* 정원 (TASK-KL-211) — 손대지 않는 것을 켜 두고 구경한다. 9칸이 읽는 규칙 하나로
      도시가 자라고 길이 뚫린다. 무슨 일이 일어났는지는 문장으로 말해 준다. */
   {
