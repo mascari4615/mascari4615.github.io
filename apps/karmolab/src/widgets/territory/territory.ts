@@ -48,6 +48,23 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     points: Record<string, number[]>;
   }
 
+  /** 시군구 하나 — 화면에 그릴 (단순화한) 경계와 미리 잰 점유율. */
+  interface District {
+    code: string;
+    name: string;
+    /** MultiPolygon 좌표 [poly][ring][pt][lng,lat] */
+    rings: number[][][][];
+    minLat: number;
+    minLng: number;
+    maxLat: number;
+    maxLng: number;
+    /** 브랜드 id → 이 구에서 먹은 땅 % */
+    share: Record<string, number>;
+    stores: Record<string, number>;
+    /** 주인 있는 땅이 이 구의 몇 % 인가 */
+    covered: number;
+  }
+
   interface Loaded {
     meta: Dataset;
     grid: Grid;
@@ -259,6 +276,87 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       return made;
     }
 
+    /* ── 시군구 ──
+       「지금 보이는 만큼」이 아니라 **행정구역** 단위로 묻는 것이 사람의 진짜 질문이다 —
+       「우리 구는 누구 땅인가」. 그 답은 화면과 무관하게 고정이라 `scripts/gen-territory-sgg.mjs`
+       가 미리 재 두었다(방문자 계산 0). 여기서는 받아서 경계를 그리고, 짚은 구를 찾을 뿐이다. */
+    let districts: District[] | null = null;
+    let hovered: District | null = null;
+    let sggWanted = false;
+
+    async function loadDistricts(industry: Industry): Promise<void> {
+      const [shapeRes, shareRes] = await Promise.all([
+        fetch(dataUrl('territory/sgg.json')),
+        fetch(dataUrl('territory/sgg-' + industry + '.json'))
+      ]);
+      if (!shapeRes.ok || !shareRes.ok) throw new Error('구 자료를 못 받았습니다');
+      const shapes = (await shapeRes.json()) as { features: Array<{ code: string; name: string; geometry: { coordinates: number[][][][] } }> };
+      const stats = (await shareRes.json()) as { rows: Array<{ code: string; share: Record<string, number>; stores: Record<string, number>; covered: number }> };
+      const byCode = new Map(stats.rows.map((r) => [r.code, r]));
+      districts = shapes.features.map((f) => {
+        let minLat = Infinity;
+        let minLng = Infinity;
+        let maxLat = -Infinity;
+        let maxLng = -Infinity;
+        for (const poly of f.geometry.coordinates) {
+          for (const ring of poly) {
+            for (const [x, y] of ring) {
+              if (y < minLat) minLat = y;
+              if (y > maxLat) maxLat = y;
+              if (x < minLng) minLng = x;
+              if (x > maxLng) maxLng = x;
+            }
+          }
+        }
+        const st = byCode.get(f.code);
+        return {
+          code: f.code,
+          name: f.name,
+          rings: f.geometry.coordinates,
+          minLat,
+          minLng,
+          maxLat,
+          maxLng,
+          share: st?.share ?? {},
+          stores: st?.stores ?? {},
+          covered: st?.covered ?? 0
+        };
+      });
+    }
+
+    /** 광선 교차 — 링 안인가. */
+    function inRing(ring: number[][], x: number, y: number): boolean {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0];
+        const yi = ring[i][1];
+        const xj = ring[j][0];
+        const yj = ring[j][1];
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+      return inside;
+    }
+
+    /** 이 위경도가 어느 구인가. 상자로 먼저 걸러 250개를 몇 개로 줄인다. */
+    function districtAt(lat: number, lng: number): District | null {
+      if (districts === null) return null;
+      for (const d of districts) {
+        if (lat < d.minLat || lat > d.maxLat || lng < d.minLng || lng > d.maxLng) continue;
+        for (const poly of d.rings) {
+          if (!inRing(poly[0], lng, lat)) continue;
+          let hole = false;
+          for (let h = 1; h < poly.length; h++) {
+            if (inRing(poly[h], lng, lat)) {
+              hole = true;
+              break;
+            }
+          }
+          if (!hole) return d;
+        }
+      }
+      return null;
+    }
+
     async function select(industry: Industry): Promise<void> {
       current = industry;
       markTabs();
@@ -271,6 +369,14 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       }
       stopJob();
       raster = null;
+      hovered = null;
+      /* 구 자료는 곁들이다 — 못 받아도 지도는 그대로 돈다. */
+      sggWanted = true;
+      void loadDistricts(industry)
+        .then(() => map.redraw())
+        .catch(() => {
+          districts = null;
+        });
       /* 통계는 칠하기와 무관하게 바로 낼 수 있다(12ms) — 범례가 빈 채로 기다리지 않게 먼저 채운다. */
       updateSide();
       startJob(map);
@@ -454,7 +560,63 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           ctx.drawImage(off, a.x, a.y, w, h);
         }
       }
+      paintDistricts(ctx, m);
       paintDots(ctx, m, width, height);
+    });
+
+    /** 구 경계는 **아주 옅게** 깐다 — 영토 색이 주인공이고 이건 그 위의 눈금이다.
+        짚은 구만 밝은 테두리 + 살짝 밝힘. */
+    function paintDistricts(ctx: CanvasRenderingContext2D, m: GeoMap): void {
+      if (districts === null || !sggWanted) return;
+      const b = m.bounds();
+      const trace = (d: District): void => {
+        ctx.beginPath();
+        for (const poly of d.rings) {
+          for (const ring of poly) {
+            for (let i = 0; i < ring.length; i++) {
+              const p = m.project(ring[i][1], ring[i][0]);
+              if (i === 0) ctx.moveTo(p.x, p.y);
+              else ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+          }
+        }
+      };
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(255,255,255,.3)';
+      ctx.lineWidth = 1;
+      for (const d of districts) {
+        if (d.maxLat < b.minLat || d.minLat > b.maxLat || d.maxLng < b.minLng || d.minLng > b.maxLng) continue;
+        if (d === hovered) continue;
+        trace(d);
+        ctx.stroke();
+      }
+      if (hovered !== null) {
+        trace(hovered);
+        ctx.fillStyle = 'rgba(255,255,255,.16)';
+        ctx.fill('evenodd');
+        ctx.strokeStyle = 'rgba(255,255,255,.85)';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+    }
+
+    /* 마우스가 짚은 구를 따라간다 — 바뀔 때만 다시 그리고 순위표를 갈아 끼운다. */
+    map.canvas.addEventListener('pointermove', (e) => {
+      if (districts === null) return;
+      const rect = map.canvas.getBoundingClientRect();
+      const ll = map.unproject(e.clientX - rect.left, e.clientY - rect.top);
+      const found = districtAt(ll.lat, ll.lng);
+      if (found === hovered) return;
+      hovered = found;
+      map.redraw();
+      updateSide();
+    });
+    map.canvas.addEventListener('pointerleave', () => {
+      if (hovered === null) return;
+      hovered = null;
+      map.redraw();
+      updateSide();
     });
 
     function paintDots(ctx: CanvasRenderingContext2D, m: GeoMap, width: number, height: number): void {
@@ -493,33 +655,41 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     /* ── 범례와 통계 ── */
     function updateSide(): void {
       if (loaded === null) return;
-      const b = map.bounds();
-      /* 통계는 화면보다 성기게 훑는다 — 눈금 120칸이면 순위가 안 바뀐다(실측). */
-      const rows = share(loaded.grid, b, 90, Math.min(20, Math.max(2, map.kmPerPixel() * 40)));
-      const byBrand = new Map(rows.map((r) => [r.brand, r]));
 
-      /* 순위표 — 색·이름·**땅 넓이 막대**·퍼센트. 점포 수는 괄호로 붙인다(주인공은 면적).
-         0% 인 브랜드는 지금 화면에 땅이 없다는 뜻이라 흐리게 남겨 둔다(사라지면 순위가 요동친다). */
-      const maxRatio = rows.length > 0 ? Math.max(...rows.map((r) => r.ratio)) : 1;
+      /* 구를 짚고 있으면 **그 구의 미리 잰 값**을 보여 준다 — 화면 기준 수와 달리 어제와 오늘이 같다.
+         짚지 않았으면 지금 보이는 만큼을 즉석에서 센다. */
+      const d = hovered;
+      const title = d !== null ? d.name : t('territory.msg.owner', undefined, '지금 보이는 땅의 주인');
+      let pctOf: (id: string) => number;
+      let countOf: (id: string) => number;
+      if (d !== null) {
+        pctOf = (id) => d.share[id] ?? 0;
+        countOf = (id) => d.stores[id] ?? 0;
+      } else {
+        const rows = share(loaded.grid, map.bounds(), 90, Math.min(20, Math.max(2, map.kmPerPixel() * 40)));
+        const byBrand = new Map(rows.map((r) => [r.brand, r]));
+        pctOf = (id) => (byBrand.get(id)?.ratio ?? 0) * 100;
+        countOf = (id) => byBrand.get(id)?.stores ?? 0;
+      }
+
+      /* 순위표 — 색·이름·점포 수·**땅 넓이 막대**·%. 주인공은 면적이다.
+         0% 인 브랜드는 여기 땅이 없다는 뜻이라 흐리게 남겨 둔다(사라지면 순위가 요동친다). */
+      const brands = [...loaded.meta.brands].sort((a, b) => pctOf(b.id) - pctOf(a.id));
+      const top = pctOf(brands[0]?.id ?? '') || 1;
       legendEl.innerHTML =
-        '<div class="terr-name">' +
-        esc(t('territory.msg.owner', undefined, '지금 보이는 땅의 주인')) +
-        '</div>' +
-        [...loaded.meta.brands]
-          .sort((a, x) => (byBrand.get(x.id)?.ratio ?? 0) - (byBrand.get(a.id)?.ratio ?? 0))
+        '<div class="terr-name">' + esc(title) + '</div>' +
+        brands
           .map((brand) => {
-            const row = byBrand.get(brand.id);
-            const ratio = row === undefined ? 0 : row.ratio;
-            const n = row === undefined ? 0 : row.stores;
-            const w = maxRatio > 0 ? (ratio / maxRatio) * 100 : 0;
+            const pct = pctOf(brand.id);
+            const n = countOf(brand.id);
             return (
-              '<div class="terr-row" style="opacity:' + (ratio > 0 ? 1 : 0.42) + '">' +
+              '<div class="terr-row" style="opacity:' + (pct > 0 ? 1 : 0.42) + '">' +
               '<i class="terr-sw" style="background:' + esc(brand.color) + '"></i>' +
               '<span>' +
               '<span class="terr-name">' + esc(brand.label) + ' <span style="opacity:.55">' + n.toLocaleString('ko-KR') + '</span></span>' +
-              '<span class="terr-bararea"><i class="terr-fill" style="width:' + w.toFixed(1) + '%;background:' + esc(brand.color) + '"></i></span>' +
+              '<span class="terr-bararea"><i class="terr-fill" style="width:' + ((pct / top) * 100).toFixed(1) + '%;background:' + esc(brand.color) + '"></i></span>' +
               '</span>' +
-              '<span class="terr-pct">' + (ratio * 100).toFixed(1) + '%</span>' +
+              '<span class="terr-pct">' + pct.toFixed(1) + '%</span>' +
               '</div>'
             );
           })
@@ -528,10 +698,13 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       const total = Object.values(loaded.meta.counts).reduce((a, c) => a + c, 0);
       noteEl.innerHTML =
         '<div>' +
-        esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.')) +
+        (d !== null
+          ? esc(t('territory.msg.districtHint', undefined, '구 하나를 짚고 있다 — 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.'))
+          : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
         '</div>' +
         '<div style="opacity:.62;font-size:11px;margin-top:2px">' +
         esc(loaded.meta.source) + ' · ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
+        ' · ' + esc(t('territory.msg.boundary', undefined, '경계: 통계청 시군구(2018)')) +
         (loaded.meta.sample
           ? ' · <span class="terr-warn">' +
             esc(t('territory.msg.sample', undefined, '표본 주의 — OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다.')) +

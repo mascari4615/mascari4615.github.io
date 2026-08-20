@@ -9,5 +9,7 @@
   "territory.msg.hint": "Each spot is colored by its nearest store's brand. Drag to pan, scroll to zoom.",
   "territory.msg.source": "Source",
   "territory.msg.stores": " stores",
-  "territory.msg.sample": "Sample only — OSM lists roughly a third of the real stores, so your block may be missing one."
+  "territory.msg.sample": "Sample only — OSM lists roughly a third of the real stores, so your block may be missing one.",
+  "territory.msg.districtHint": "Hovering one district — these numbers are precomputed. Leave the map to go back to the on-screen view.",
+  "territory.msg.boundary": "Boundaries: KOSTAT districts (2018)"
 }
