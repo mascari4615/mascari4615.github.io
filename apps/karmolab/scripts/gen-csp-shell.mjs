@@ -54,17 +54,17 @@ import { fileURLToPath } from 'node:url';
 import { CSP_CONTENT } from './lib/head-security.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const 화면 = path.join(root, 'index.html');
-const 검사만 = process.argv.includes('--check');
+const screen = path.join(root, 'index.html');
+const gatesOnly = process.argv.includes('--check');
 
-if (!fs.existsSync(화면)) {
+if (!fs.existsSync(screen)) {
   console.error('[csp-shell] CANNOT-RUN: index.html 이 없다 — 자리가 옮겨졌는지 볼 것.');
   process.exit(2);
 }
-const 글 = fs.readFileSync(화면, 'utf8');
+const text = fs.readFileSync(screen, 'utf8');
 
 /** 실행되는 인라인 스크립트만 고른다(자료·미리읽기 규칙은 뺀다). */
-export function 실행되는인라인(html) {
+export function executableInline(html) {
   const out = [];
   const re = /<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/g;
   for (const m of html.matchAll(re)) {
@@ -76,8 +76,8 @@ export function 실행되는인라인(html) {
   return out;
 }
 
-const 몸통들 = 실행되는인라인(글);
-if (몸통들.length === 0) {
+const bodies = executableInline(text);
+if (bodies.length === 0) {
   console.error('[csp-shell] CANNOT-RUN: 인라인 스크립트를 하나도 못 읽었다 — 모양이 바뀌었는지 볼 것.');
   console.error('[csp-shell]   이건 「걸 게 없다」가 아니라 **못 읽었다**는 뜻이다.');
   process.exit(2);
@@ -86,9 +86,9 @@ if (몸통들.length === 0) {
 /* ★ **나갈 때 글자가 바뀌면 지문이 안 맞는다** (2026-08-17 실측). 이 화면은 Jekyll 을 지나며
    `{{ … }}`(리퀴드)를 값으로 바꾼다 — 소스로 찍은 지문은 그 줄에서 어긋나고, 그 스크립트는
    **조용히 막힌다**(서비스워커 등록이 그렇게 죽을 뻔했다). 그런 자리가 있으면 아예 안 찍는다. */
-const 리퀴드 = 몸통들.filter((b) => b.includes('{{') || b.includes('{%'));
-if (리퀴드.length) {
-  console.error(`[csp-shell] ❌ 인라인 스크립트 ${리퀴드.length}개에 리퀴드가 들어 있다 — 나갈 때 글자가 바뀌어 지문이 안 맞는다.`);
+const liquid = bodies.filter((b) => b.includes('{{') || b.includes('{%'));
+if (liquid.length) {
+  console.error(`[csp-shell] ❌ 인라인 스크립트 ${liquid.length}개에 리퀴드가 들어 있다 — 나갈 때 글자가 바뀌어 지문이 안 맞는다.`);
   console.error('  고치기: 그 값을 고정 문자열로 적어라(이 저장소는 baseurl 이 비어 있다).');
   process.exit(1);
 }
@@ -98,32 +98,32 @@ if (리퀴드.length) {
    지문을 뜨는 글과 파일에 있는 글이 다르다. 그대로 찍으면 **인라인 열두 개가 전부 막힌다**
    (실측: 첫 화면이 통째로 죽었고, 그때 「크롬이 미리읽기 키워드를 안 받는다」로 잘못 읽었다).
    그러니 지문은 **LF 로 맞춘 글**에서 뜬다. */
-const 줄맞춤 = (b) => b.split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
-const 지문들 = 몸통들.map((b) => `'sha256-${crypto.createHash('sha256').update(줄맞춤(b), 'utf8').digest('base64')}'`);
-const 유일 = [...new Set(지문들)];
+const alignment = (b) => b.split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+const hashes = bodies.map((b) => `'sha256-${crypto.createHash('sha256').update(alignment(b), 'utf8').digest('base64')}'`);
+const unique = [...new Set(hashes)];
 /* `'self'` = 우리 파일 · `'inline-speculation-rules'` = 미리읽기 규칙 · 나머지는 지문. */
 /* ★ **바깥에서 받아 오는 스크립트도 적어야 한다** (2026-08-17, 배포 모양으로 미리 열어 보고 잡음).
    `'self'` 만 적었더니 방문 수 세는 `gc.zgo.at/count.js` 가 막혔다 — 자물쇠를 걸면서 기능을
    조용히 죽이는 것이 제일 나쁜 결과다. 새 바깥 스크립트를 들이면 여기 한 줄을 늘려야 한다. */
-const 바깥 = ['https://gc.zgo.at'];
-const 새값 = `${CSP_CONTENT}; script-src 'self' 'inline-speculation-rules' ${바깥.join(' ')} ${유일.join(' ')}`;
+const outside = ['https://gc.zgo.at'];
+const nextValue = `${CSP_CONTENT}; script-src 'self' 'inline-speculation-rules' ${outside.join(' ')} ${unique.join(' ')}`;
 
 const 메타 = /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/;
-const 지금 = 메타.exec(글);
-if (!지금) {
+const current = 메타.exec(text);
+if (!current) {
   console.error('[csp-shell] CANNOT-RUN: 껍데기에서 보안 한 줄을 못 찾았다.');
   process.exit(2);
 }
 
-if (지금[1] === 새값) {
-  console.log(`[csp-shell] OK — 지문 ${유일.length}개, 적힌 것과 같다.`);
+if (current[1] === nextValue) {
+  console.log(`[csp-shell] OK — 지문 ${unique.length}개, 적힌 것과 같다.`);
   process.exit(0);
 }
-if (검사만) {
+if (gatesOnly) {
   console.error('[csp-shell] ❌ 인라인 스크립트가 바뀌었는데 지문이 그대로다 — 그대로 나가면 화면이 통째로 죽는다.');
   console.error('  고치기: node scripts/gen-csp-shell.mjs (사람이 손으로 적지 마라)');
   process.exit(1);
 }
 
-fs.writeFileSync(화면, 글.replace(메타, `<meta http-equiv="Content-Security-Policy" content="${새값}">`), 'utf8');
-console.log(`[csp-shell] 지문 ${유일.length}개를 새로 적었다 (인라인 ${몸통들.length}개).`);
+fs.writeFileSync(screen, text.replace(메타, `<meta http-equiv="Content-Security-Policy" content="${nextValue}">`), 'utf8');
+console.log(`[csp-shell] 지문 ${unique.length}개를 새로 적었다 (인라인 ${bodies.length}개).`);

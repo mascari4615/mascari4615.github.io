@@ -17,7 +17,7 @@
  *   · `못잼`     — 다시 구우면 늘 달라서(시각·최근 N일) 「낡았나」를 잴 수 없다.
  *                  감사기는 아예 안 굽는다 — 재면 영원히 빨갛다. 굽는 것은 밤이 한다.
  */
-export const 파생물 = [
+export const generated = [
   {
     /* ★ 목록 감사(`audit:generated-registry`)가 찾아낸 넷 중 셋 (2026-08-17). 나머지 하나(글꼴)는
        파이썬으로 굽고 원본 글꼴 파일이 있어야 해서 이 자리에서 재현이 안 된다 — 그 검사의 «빼는 것» 에 적었다. */
@@ -126,4 +126,4 @@ export const 파생물 = [
 ];
 
 /** 매일 밤 굽는 것들 — `refresh-generated.yml` 이 이걸로 단계를 만든다. */
-export const 밤에굽는것 = 파생물.filter((x) => x.nightly);
+export const nightlyBuilds = generated.filter((x) => x.nightly);

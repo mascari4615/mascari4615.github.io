@@ -151,7 +151,7 @@ try {
       console.error('  내 push 가 만든 것이 아니다 — 막지 않는다. 올린 세션에 알려라.');
       for (const [what, out] of failed) {
         console.error(`  [${what}]`);
-        for (const line of 보여줄줄(out)) console.error(`    ${line}`);
+        for (const line of linesToShow(out)) console.error(`    ${line}`);
       }
       process.exit(0);
     }
@@ -165,7 +165,7 @@ try {
  * 「빨강 1개」만 남고 **왜인지 한 줄도 안 나왔다**. 사유 없는 빨강은 게이트가 아니라 벽이다.
  * (`run-gates` 도 같은 날 고쳤다 — 이제 빨간 검사의 제 말을 요약 아래 다시 붙인다.)
  */
-function 보여줄줄(out) {
+function linesToShow(out) {
   const lines = out.split(String.fromCharCode(10)).filter(Boolean);
   const mark = lines.findIndex((l) => l.includes('[gates] 빨강'));
   return mark >= 0 ? lines.slice(mark) : lines.slice(-20);
@@ -177,7 +177,7 @@ function 보여줄줄(out) {
   }
   for (const [what, out] of failed) {
     console.error(`[typecheck-pushed] ${sha.slice(0, 8)} **커밋 상태**에서 ${what}이(가) 선다:`);
-    for (const line of 보여줄줄(out)) console.error(`  ${line}`);
+    for (const line of linesToShow(out)) console.error(`  ${line}`);
   }
   console.error('  내 폴더에서는 초록일 수 있다 — 남이 아직 안 올린 파일에 기대고 있으면 그렇다.');
   process.exit(1);

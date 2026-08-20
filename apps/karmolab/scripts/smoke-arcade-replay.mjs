@@ -14,8 +14,8 @@ import { smokeBase } from './lib/smoke-base.mjs';
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
 /* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+const server = await smokeBase();
+const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
@@ -65,11 +65,11 @@ if (!cantRun) {
     if (after !== before) {
       const a = JSON.parse(before ?? '{}');
       const b = JSON.parse(after ?? '{}');
-      const 다른키 = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
+      const otherKey = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
         (k) => JSON.stringify(a[k]) !== JSON.stringify(b[k])
       );
-      console.log('[DEBUG-5c7d] 다른 칸:', 다른키.join(', ') || '(모양이 다름)');
-      for (const k of 다른키.slice(0, 4)) {
+      console.log('[DEBUG-5c7d] 다른 칸:', otherKey.join(', ') || '(모양이 다름)');
+      for (const k of otherKey.slice(0, 4)) {
         console.log(`  · ${k}: ${JSON.stringify(a[k]).slice(0, 80)} → ${JSON.stringify(b[k]).slice(0, 80)}`);
       }
     }
@@ -78,7 +78,7 @@ if (!cantRun) {
 }
 
 await br.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 if (cantRun) { console.log(`[arcade-replay] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-replay] 실패 ${fails.length}건`); process.exit(1); }
 console.log('[arcade-replay] 통과 — 껍데기가 씨앗·자리·손버릇을 그대로 다시 씌운다');

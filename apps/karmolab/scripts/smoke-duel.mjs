@@ -36,7 +36,7 @@ let cantRun = '';
 
 /* 검사가 **정답을 푼다.** 아무거나 찍으면 둘 다 틀린 판이 나와 점수가 0:0 이 되고,
  * 그러면 판정이 통째로 고장 나도 통과한다 — 「이긴 판이 하나는 나온다」를 못 박으려면 풀어야 한다. */
-const 팔레트 = { 빨강: '#e0483c', 파랑: '#3b74d8', 초록: '#33a06a', 노랑: '#d8a72a', 보라: '#8a5cd0' };
+const palette = { 빨강: '#e0483c', 파랑: '#3b74d8', 초록: '#33a06a', 노랑: '#d8a72a', 보라: '#8a5cd0' };
 
 /** 지금 화면의 정답 자리. 못 풀면 -1. */
 function solveInPage(팔레트) {
@@ -54,29 +54,29 @@ function solveInPage(팔레트) {
     };
     return btns.findIndex((b) => hex(getComputedStyle(b).color) === want);
   }
-  const 셈 = order.match(/^(\d+)\+(\d+)!$/);
-  if (셈) {
-    const want = String(Number(셈[1]) + Number(셈[2]));
+  const calc = order.match(/^(\d+)\+(\d+)!$/);
+  if (calc) {
+    const want = String(Number(calc[1]) + Number(calc[2]));
     return texts.indexOf(want);
   }
-  const 같은 = order.match(/^(\S+) 찾기!$/);
-  if (같은) return texts.indexOf(같은[1]);
-  const 거꾸로 = order.match(/^(\S+) 거꾸로!$/);
-  if (거꾸로) return texts.indexOf([...거꾸로[1]].reverse().join(''));
+  const same = order.match(/^(\S+) 찾기!$/);
+  if (same) return texts.indexOf(same[1]);
+  const reversed = order.match(/^(\S+) 거꾸로!$/);
+  if (reversed) return texts.indexOf([...reversed[1]].reverse().join(''));
   if (order === '큰 쪽!') {
     const nums = texts.map(Number);
     return nums.indexOf(Math.max(...nums));
   }
   // 초성: 각 보기의 첫소리를 뽑아 명령과 맞춰 본다
-  const 초성표 = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
-  const 첫소리 = (w) =>
+  const initialsTable = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+  const initial = (w) =>
     [...w]
       .map((ch) => {
         const c = ch.charCodeAt(0) - 0xac00;
-        return c >= 0 && c <= 11171 ? 초성표[Math.floor(c / 588)] : ch;
+        return c >= 0 && c <= 11171 ? initialsTable[Math.floor(c / 588)] : ch;
       })
       .join('');
-  return texts.findIndex((t) => 첫소리(t) === order);
+  return texts.findIndex((t) => initial(t) === order);
 }
 
 /** solve=true 면 정답을 눌러 이기려 하고, false 면 늘 첫 칸을 눌러 대충 둔다. */
@@ -135,7 +135,7 @@ try {
   // ③ 다섯 판이 끝까지 굴러 승부가 난다
   const deadline = Date.now() + MATCH_MS;
   // A 는 정답을 풀고, B 는 늘 첫 칸을 누른다 — A 가 이긴 판이 하나도 없으면 판정이 고장 난 것이다.
-  const [endedA, endedB] = await Promise.all([playUntilEnd(a, deadline, true, 팔레트), playUntilEnd(b, deadline, false, 팔레트)]);
+  const [endedA, endedB] = await Promise.all([playUntilEnd(a, deadline, true, palette), playUntilEnd(b, deadline, false, palette)]);
   check('A 쪽 승부', endedA, '다섯 판이 안 끝났다');
   check('B 쪽 승부', endedB, '다섯 판이 안 끝났다');
 
@@ -176,16 +176,16 @@ try {
     )
   );
   check('아무나랑 · 만남', met[0] && met[1], `C ${met[0]} · D ${met[1]}`);
-  const 방 = await Promise.all([c, d].map((p) => p.evaluate(() => location.hash)));
-  check('대기방에 안 남음', 방.every((h) => !/lobby/.test(h)), `주소: ${방.join(' · ')}`);
+  const room = await Promise.all([c, d].map((p) => p.evaluate(() => location.hash)));
+  check('대기방에 안 남음', room.every((h) => !/lobby/.test(h)), `주소: ${room.join(' · ')}`);
   // ⑥ 유령과 — 혼자 와도 논다. 상대 없이 다섯 판이 끝나고 승부가 나야 한다.
   const e1 = await browser.newPage();
   e1.on('pageerror', (err) => failures.push(`E 쪽 페이지 오류: ${err.message}`));
   await e1.goto(TOOL, { waitUntil: 'domcontentloaded' });
   await e1.waitForSelector('#duGhost', { timeout: 30000 });
   await e1.click('#duGhost');
-  const 혼자끝 = await playUntilEnd(e1, Date.now() + 60000, true, 팔레트);
-  check('유령과 · 승부', 혼자끝, '혼자서 다섯 판이 안 끝났다');
+  const aloneEnd = await playUntilEnd(e1, Date.now() + 60000, true, palette);
+  check('유령과 · 승부', aloneEnd, '혼자서 다섯 판이 안 끝났다');
   const se = await e1.evaluate(() => ({
     me: Number(document.querySelector('#duMeScore')?.textContent || -1),
     foe: Number(document.querySelector('#duFoeScore')?.textContent || -1),

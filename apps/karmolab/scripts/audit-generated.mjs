@@ -30,7 +30,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 /* 표는 `lib/generated-artifacts.mjs` 한 곳 — 새벽 워크플로도 같은 표를 읽는다.
    여기 또 적으면 「밤에 굽는다」는 약속만 있고 굽는 놈은 없는 자리가 생긴다. */
-import { 파생물 } from './lib/generated-artifacts.mjs';
+import { generated } from './lib/generated-artifacts.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const UPDATE = process.argv.includes('--update');
@@ -47,18 +47,18 @@ const read = (rel) => {
    (사람은 새벽 로그를 안 본다. 그러니 낮에, 미는 자리에서 잡는다.) */
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  const 없는이름 = 파생물.map((x) => x.npm).filter((n) => !pkg.scripts?.[n]);
-  if (없는이름.length) {
-    console.error('[audit-generated] 표에 적힌 굽는 명령이 package.json 에 없다: ' + 없는이름.join(', '));
+  const unknownNames = generated.map((x) => x.npm).filter((n) => !pkg.scripts?.[n]);
+  if (unknownNames.length) {
+    console.error('[audit-generated] 표에 적힌 굽는 명령이 package.json 에 없다: ' + unknownNames.join(', '));
     console.error('  → scripts/lib/generated-artifacts.mjs 와 package.json 중 한쪽이 낡았다.');
     process.exit(1);
   }
 }
 
-const 낡음 = [];
-const 죽음 = [];
+const stale = [];
+const dead = [];
 
-for (const item of 파생물) {
+for (const item of generated) {
   /* **잴 수 없는 것은 안 잰다** — 다시 구우면 늘 다른 것(시각·최근 N일)을 게이트에 걸면
      영원히 빨갛다. 그건 밤이 굽는다. 그래도 한 줄 남긴다 — 「안 본다」가 보여야 한다. */
   if (item.무거움) {
@@ -84,18 +84,18 @@ for (const item of 파생물) {
     continue;
   }
   if (r.status !== 0) {
-    죽음.push(`${item.npm} — 생성기가 죽었다 (${(r.stderr || '').trim().split('\n').pop() || 'exit ' + r.status})`);
+    dead.push(`${item.npm} — 생성기가 죽었다 (${(r.stderr || '').trim().split('\n').pop() || 'exit ' + r.status})`);
     continue;
   }
 
-  const 바뀐것 = item.outputs.filter((rel) => {
+  const changed = item.outputs.filter((rel) => {
     const a = before.get(rel);
     const b = read(rel);
     if (a === null || b === null) return a !== b;
     return a.equals(b) === false;
   });
 
-  if (바뀐것.length > 0) 낡음.push({ npm: item.npm, files: 바뀐것, why: item.why, nightly: item.nightly });
+  if (changed.length > 0) stale.push({ npm: item.npm, files: changed, why: item.why, nightly: item.nightly });
 
   /* 기본은 원상복구. `--update` 면 새로 구운 것을 남긴다(= 사람이 커밋한다). */
   if (!UPDATE) {
@@ -108,23 +108,23 @@ for (const item of 파생물) {
   }
 }
 
-if (죽음.length) {
+if (dead.length) {
   console.error('[audit-generated] 생성기가 죽었다 — 낡았는지 볼 수조차 없다');
-  죽음.forEach((m) => console.error('  - ' + m));
+  dead.forEach((m) => console.error('  - ' + m));
   process.exit(1);
 }
 
 /* 매일 스스로 굽는 것은 「낡았다」가 아니라 「곧 구워진다」다 — 갈라 낸다. */
-const 밤에굽는것 = 낡음.filter((x) => x.nightly);
-const 진짜낡음 = 낡음.filter((x) => !x.nightly);
-if (밤에굽는것.length) {
-  console.log(`[audit-generated] 밤에 스스로 굽는 파생물 ${밤에굽는것.length}종이 지금은 낡았다 (막지 않는다)`);
-  for (const x of 밤에굽는것) console.log(`  · ${x.files.join(', ')} — ${x.why} · 새벽 refresh-generated 가 굽는다`);
+const nightlyBuilds = stale.filter((x) => x.nightly);
+const reallyStale = stale.filter((x) => !x.nightly);
+if (nightlyBuilds.length) {
+  console.log(`[audit-generated] 밤에 스스로 굽는 파생물 ${nightlyBuilds.length}종이 지금은 낡았다 (막지 않는다)`);
+  for (const x of nightlyBuilds) console.log(`  · ${x.files.join(', ')} — ${x.why} · 새벽 refresh-generated 가 굽는다`);
 }
 
-if (진짜낡음.length) {
-  console.error(`[audit-generated] 커밋된 파생물 ${진짜낡음.length}종이 지금 소스와 다르다`);
-  for (const x of 진짜낡음) {
+if (reallyStale.length) {
+  console.error(`[audit-generated] 커밋된 파생물 ${reallyStale.length}종이 지금 소스와 다르다`);
+  for (const x of reallyStale) {
     console.error(`  - ${x.files.join(', ')}  (${x.why})`);
     console.error(`    → npm run ${x.npm}   후 커밋`);
   }
@@ -139,4 +139,4 @@ if (진짜낡음.length) {
 }
 
 /* 초록도 한 줄 남긴다 — 「아무 말 없음」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[audit-generated] 파생물 ${파생물.filter((x) => !x.못잼 && !x.무거움).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);
+console.log(`[audit-generated] 파생물 ${generated.filter((x) => !x.못잼 && !x.무거움).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);

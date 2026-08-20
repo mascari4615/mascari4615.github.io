@@ -14,15 +14,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const 봇 = process.env.COMPANION_BASE ?? 'http://127.0.0.1:4620';
+const bot = process.env.COMPANION_BASE ?? 'http://127.0.0.1:4620';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
 try {
-  const res = await fetch(`${봇}/ears`, { signal: AbortSignal.timeout(2500) });
+  const res = await fetch(`${bot}/ears`, { signal: AbortSignal.timeout(2500) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 } catch (e) {
-  console.log(`[smoke-companion] 건너뜀 — 봇이 ${봇} 에 안 떠 있다 (${e.message})`);
+  console.log(`[smoke-companion] 건너뜀 — 봇이 ${bot} 에 안 떠 있다 (${e.message})`);
   process.exit(2);
 }
 
@@ -64,18 +64,18 @@ try {
     timeout: 15000,
   });
 } catch {
-  const 화면이한말 = await page.evaluate(() => ({
+  const screenSaid = await page.evaluate(() => ({
     윗줄: document.getElementById('cmpText')?.textContent ?? '',
     아랫줄: document.getElementById('cmpSub')?.textContent ?? '',
   }));
   await browser.close();
   server.close();
-  console.error(`[smoke-companion] X  봇은 떠 있는데 위젯이 못 붙었다 — 화면: "${화면이한말.윗줄} · ${화면이한말.아랫줄}"`);
+  console.error(`[smoke-companion] X  봇은 떠 있는데 위젯이 못 붙었다 — 화면: "${screenSaid.윗줄} · ${screenSaid.아랫줄}"`);
   console.error(`[smoke-companion]    창에서 터진 것: ${errors.length === 0 ? '없음' : errors.join(' / ')}`);
   console.error('[smoke-companion]    의심 자리 = 붙는 주소(포트) · 봇이 이 기계 창에 문을 여는가(CORS)');
   process.exit(1);
 }
-const 상태 = await page.evaluate(() => ({
+const state = await page.evaluate(() => ({
   곁에: document.getElementById('cmpText')?.textContent ?? '',
   아래: document.getElementById('cmpSub')?.textContent ?? '',
   칸열림: document.getElementById('cmpInput')?.disabled === false,
@@ -86,54 +86,54 @@ const 상태 = await page.evaluate(() => ({
 await page
   .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, undefined, { timeout: 10000 })
   .catch(() => {});
-const 칸 = await page.evaluate(() =>
+const cell = await page.evaluate(() =>
   [...document.querySelectorAll('#cmpBits .cmp-bit')].map((el) => el.textContent ?? ''),
 );
 
 // ② 말이 실제로 건너가나 — 화면에서 치고, 봇의 기록에 그 말이 남는지 본다.
 //    화면만 보면 「보낸 척」을 못 가른다.
-const 말 = `스모크 ${Date.now()}`;
-await page.fill('#cmpInput', 말);
+const output = `스모크 ${Date.now()}`;
+await page.fill('#cmpInput', output);
 await page.click('#cmpSend');
-await page.waitForFunction((찾을말) => (document.getElementById('cmpLog')?.textContent ?? '').includes(찾을말), 말, {
+await page.waitForFunction((phrase) => (document.getElementById('cmpLog')?.textContent ?? '').includes(phrase), output, {
   timeout: 15000,
 });
-const 기록 = await (await fetch(`${봇}/history`, { signal: AbortSignal.timeout(4000) })).json();
-const 봇도들었나 = 기록.some((e) => e.text === 말);
+const 기록 = await (await fetch(`${bot}/history`, { signal: AbortSignal.timeout(4000) })).json();
+const botHeard = 기록.some((e) => e.text === output);
 
 /* **끝나고 자국을 지운다.**
  *
  * 여태 검사가 건넨 「스모크 1786…」 이 사람의 말로 그대로 쌓였다. 졸이고 나니 「아는 것」이
  * 통째로 검사 찌꺼기가 됐다(실측 네 줄 전부: 「반복적인 장난스러운 상호작용을 즐김」
  * 「지속적으로 장난을 거는 경향」). **얘가 사람을 잘못 알게 되는 것보다 나쁜 건 없다.** */
-const 지움 = await fetch(`${봇}/known/forget?what=${encodeURIComponent(말)}&deep=1`, { method: 'POST' })
+const cleared = await fetch(`${bot}/known/forget?what=${encodeURIComponent(output)}&deep=1`, { method: 'POST' })
   .then((r) => r.json())
   .catch(() => null);
-const 남은기록 = await (await fetch(`${봇}/history`, { signal: AbortSignal.timeout(4000) })).json();
-const 지워졌나 = 남은기록.some((e) => e.text === 말) === false;
+const remainingLog = await (await fetch(`${bot}/history`, { signal: AbortSignal.timeout(4000) })).json();
+const wasCleared = remainingLog.some((e) => e.text === output) === false;
 
 await browser.close();
 server.close();
 
-const 탈 = [];
-if (상태.칸열림 === false) 탈.push('붙었다면서 말 걸기 칸이 잠겨 있다');
-if (봇도들었나 === false) 탈.push('화면엔 떴는데 봇 기록엔 그 말이 없다');
-if (지워졌나 === false) 탈.push('검사 자국이 사람의 기억에 남았다 — 그게 졸여져 사람의 상이 된다');
-if (errors.length > 0) 탈.push(`창에서 터진 게 있다: ${errors.join(' / ')}`);
+const mask = [];
+if (state.칸열림 === false) mask.push('붙었다면서 말 걸기 칸이 잠겨 있다');
+if (botHeard === false) mask.push('화면엔 떴는데 봇 기록엔 그 말이 없다');
+if (wasCleared === false) mask.push('검사 자국이 사람의 기억에 남았다 — 그게 졸여져 사람의 상이 된다');
+if (errors.length > 0) mask.push(`창에서 터진 게 있다: ${errors.join(' / ')}`);
 // 「곁에 있다」만 보고 끝내면, 몸이 큐브로 물러서거나 목소리가 빠진 걸 화면이 여전히 못 잡는다.
-if (칸.length === 0) 탈.push('창·몸·목소리 칸이 하나도 안 떴다');
-for (const 있어야할것 of ['창', '몸', '목소리']) {
-  if (칸.some((c) => c.startsWith(있어야할것)) === false) 탈.push(`「${있어야할것}」 칸이 없다`);
+if (cell.length === 0) mask.push('창·몸·목소리 칸이 하나도 안 떴다');
+for (const expected of ['창', '몸', '목소리']) {
+  if (cell.some((c) => c.startsWith(expected)) === false) mask.push(`「${expected}」 칸이 없다`);
 }
 
-console.log(`[smoke-companion] ${상태.곁에} · ${상태.아래}`);
+console.log(`[smoke-companion] ${state.곁에} · ${state.아래}`);
 console.log(
-  `[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${봇도들었나 ? 'O' : 'X'} · 자국 지움 ${지워졌나 ? 'O' : 'X'}` +
-    (지움 ? ` (대화 ${지움.conversation}줄)` : ''),
+  `[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${botHeard ? 'O' : 'X'} · 자국 지움 ${wasCleared ? 'O' : 'X'}` +
+    (cleared ? ` (대화 ${cleared.conversation}줄)` : ''),
 );
-console.log(`[smoke-companion] 상태 칸: ${칸.join(' | ') || '(없음)'}`);
-if (탈.length > 0) {
-  console.error(`[smoke-companion] X  ${탈.join(' | ')}`);
+console.log(`[smoke-companion] 상태 칸: ${cell.join(' | ') || '(없음)'}`);
+if (mask.length > 0) {
+  console.error(`[smoke-companion] X  ${mask.join(' | ')}`);
   process.exit(1);
 }
 console.log('[smoke-companion] OK — 위젯이 봇에 붙어 말을 건넸다');

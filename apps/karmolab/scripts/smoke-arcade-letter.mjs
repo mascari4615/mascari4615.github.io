@@ -13,8 +13,8 @@ import { smokeBase } from './lib/smoke-base.mjs';
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
 /* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+const server = await smokeBase();
+const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
@@ -35,21 +35,21 @@ ctx.setDefaultTimeout(60000);
    그래서 추측을 그만두고, 그 창이 무엇을 못 받고 무엇을 던지는지 적어 둔다. */
 const open = async (url) => {
   const p = await ctx.newPage();
-  const 나쁜응답 = [];
-  const 던진것 = [];
-  p.on('response', (r) => { if (r.status() >= 400) 나쁜응답.push(`${r.status()} ${r.url().slice(0, 90)}`); });
-  p.on('pageerror', (e) => 던진것.push(String(e.message).slice(0, 120)));
-  p.on('console', (m) => { if (m.type() === 'error') 던진것.push(`console: ${m.text().slice(0, 120)}`); });
+  const badResponses = [];
+  const sent = [];
+  p.on('response', (r) => { if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().slice(0, 90)}`); });
+  p.on('pageerror', (e) => sent.push(String(e.message).slice(0, 120)));
+  p.on('console', (m) => { if (m.type() === 'error') sent.push(`console: ${m.text().slice(0, 120)}`); });
   await p.route('**/__dev', (r) => r.abort());
   await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
   try {
     await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   } catch (e) {
     console.error(`[DEBUG-7e21] 셸이 안 떴다: ${url.slice(0, 120)}`);
-    console.error(`[DEBUG-7e21] 400 이상 응답 ${나쁜응답.length}개:`);
-    나쁜응답.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
-    console.error(`[DEBUG-7e21] 던진 것 ${던진것.length}개:`);
-    던진것.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
+    console.error(`[DEBUG-7e21] 400 이상 응답 ${badResponses.length}개:`);
+    badResponses.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
+    console.error(`[DEBUG-7e21] 던진 것 ${sent.length}개:`);
+    sent.slice(0, 12).forEach((l) => console.error(`  · ${l}`));
     console.error(`[DEBUG-7e21] Toolbox=${await p.evaluate(() => typeof Toolbox).catch(() => '못 물어봄')}`);
     throw e;
   }
@@ -102,7 +102,7 @@ if (!cantRun) {
 }
 
 await br.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 if (cantRun) { console.log(`[arcade-letter] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-letter] 실패 ${fails.length}건`); process.exit(1); }
 console.log('[arcade-letter] 통과 — 링크 한 줄이 판을 실어 나른다');

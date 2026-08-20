@@ -53,7 +53,7 @@ const SCREENS = [
 const browser = await chromium.launch();
 const failures = [];
 /** 봇이 안 답해 판정할 수 없던 것 — 빨강도 초록도 아니다(2 로 끝낸다). */
-const 못잼 = [];
+const couldNotMeasure = [];
 const notes = [];
 
 async function check(width, height, label) {
@@ -73,13 +73,13 @@ async function check(width, height, label) {
        봇(`yawnbot.mascari4615.com`)이 준다. 봇이 잠깐 늦거나 안 뜨면 이 검사는
        「알맹이가 안 그려졌다」로 **빨강**을 냈다 — 내 자리에서는 늘 초록이라 더 헷갈렸다.
        봇이 답을 줬는지를 따로 세어, 안 줬으면 **못 잼**이라고 말한다. */
-    let 봇응답 = 0;
-    let 봇마지막 = '';
+    let botReply = 0;
+    let botLast = '';
     const onResponse = (r) => {
       if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().slice(0, 90)}`);
       if (r.url().includes('yawnbot.mascari4615.com')) {
-        봇응답 += 1;
-        봇마지막 = `${r.status()} ${r.url().split('/').slice(-1)[0].slice(0, 40)}`;
+        botReply += 1;
+        botLast = `${r.status()} ${r.url().split('/').slice(-1)[0].slice(0, 40)}`;
       }
     };
     page.on('response', onResponse);
@@ -107,15 +107,15 @@ async function check(width, height, label) {
           nodes: document.querySelectorAll('#tool-pages *, main *').length,
         }))
         .catch(() => ({ title: '?', text: '?', nodes: -1 }));
-      if (봇응답 === 0) {
+      if (botReply === 0) {
         /* 봇에 한 번도 못 닿았다 — 이 화면의 알맹이는 봇이 준다. 우리 화면을 판정할 수 없다. */
-        못잼.push(`${label} ${screen.name}: 봇이 한 번도 답을 안 줬다 (알맹이는 봇이 준다) · 마디 ${(await page.evaluate(() => document.querySelectorAll('#tool-pages *, main *').length).catch(() => -1))}개`);
+        couldNotMeasure.push(`${label} ${screen.name}: 봇이 한 번도 답을 안 줬다 (알맹이는 봇이 준다) · 마디 ${(await page.evaluate(() => document.querySelectorAll('#tool-pages *, main *').length).catch(() => -1))}개`);
         page.off('response', onResponse);
         continue;
       }
       failures.push(
         `${label} ${screen.name}: 알맹이가 안 그려졌다 (${screen.need})` +
-          ` · 봇 응답 ${봇응답}건(마지막 ${봇마지막})` +
+          ` · 봇 응답 ${botReply}건(마지막 ${botLast})` +
           ` · 화면에 뜬 글 「${seen.text}」 · 마디 ${seen.nodes}개` +
           (badResponses.length ? ` · 막힌 응답 ${badResponses.slice(0, 3).join(' / ')}` : ' · 막힌 응답 없음'),
       );
@@ -143,9 +143,9 @@ await browser.close();
 for (const note of notes) console.log(`[smoke-platform] ⚠ ${note}`);
 /* 봇이 안 답해 못 본 화면이 있으면 **그 사실을 먼저** 적는다. 빨강이 따로 없으면 2(못 잼)로 끝낸다 —
    통과로 세면 「봇이 죽은 날」이 초록으로 남는다(안 본 것을 봤다고 적는 자리다). */
-for (const one of 못잼) console.log(`[smoke-platform] · ${one}`);
-if (못잼.length && failures.length === 0) {
-  console.log(`[smoke-platform] 못 돌림 ${못잼.length}건 — 봇이 답을 안 줘 그 화면은 판정 못 했다. 통과로 세지 않는다.`);
+for (const one of couldNotMeasure) console.log(`[smoke-platform] · ${one}`);
+if (couldNotMeasure.length && failures.length === 0) {
+  console.log(`[smoke-platform] 못 돌림 ${couldNotMeasure.length}건 — 봇이 답을 안 줘 그 화면은 판정 못 했다. 통과로 세지 않는다.`);
   process.exit(2);
 }
 if (failures.length) {

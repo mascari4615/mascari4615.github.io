@@ -67,17 +67,17 @@ await Promise.all(workers);
    게다가 못 닿음의 상당수는 **우리가 만든 것**이다: 일꾼 6명이 동시에 두드리면 상대가 잠깐
    끊는다. 그래서 못 닿은 것만 **잠깐 쉬었다가 하나씩** 다시 두드린다 — 그래도 안 되면
    그때가 진짜 「못 닿음」이다. 이건 재우고 넘어가는 것이 아니라 **다시 물어보는** 것이다. */
-const 못닿은것 = dead.filter((d) => d.status === 0);
+const unreachable = dead.filter((d) => d.status === 0);
 /* 다만 **한꺼번에 많이** 못 닿았으면 그건 상대가 아니라 이쪽 그물이 끊긴 것이다 —
    그때 하나씩 다시 두드리면 몇 분을 버린다. 스무 개가 넘으면 다시 안 묻고 바로 「못 잼」. */
-if (못닿은것.length > 20) {
+if (unreachable.length > 20) {
   console.log(`
-[studymap-links] 못 닿은 것이 ${못닿은것.length}개 — 그물이 끊긴 판이다. 하나씩 다시 묻지 않는다`);
-} else if (못닿은것.length > 0) {
+[studymap-links] 못 닿은 것이 ${unreachable.length}개 — 그물이 끊긴 판이다. 하나씩 다시 묻지 않는다`);
+} else if (unreachable.length > 0) {
   console.log(`
-[studymap-links] 못 닿은 ${못닿은것.length}개를 잠깐 쉬었다가 하나씩 다시 본다`);
+[studymap-links] 못 닿은 ${unreachable.length}개를 잠깐 쉬었다가 하나씩 다시 본다`);
   await new Promise((r) => setTimeout(r, 3000));
-  for (const d of 못닿은것) {
+  for (const d of unreachable) {
     let status = await probe(d.url, 'GET');
     if (!OK_STATUS.has(status)) {
       await new Promise((r) => setTimeout(r, 1500));
@@ -98,16 +98,16 @@ process.stdout.write('\n');
    그걸 빨강으로 읽으면 사람은 멀쩡한 링크를 지우거나, 더 나쁘게는 이 검사를 무시한다.
    갈라 적는다: **답이 온 4xx 만 죽은 것**, 아예 못 닿은 것(0)은 **못 잼**(2)이다. */
 const 죽음 = dead.filter((d) => d.status !== 0);
-const 못닿음 = dead.filter((d) => d.status === 0);
+const unreachableCount = dead.filter((d) => d.status === 0);
 for (const d of 죽음) console.log(`  ${d.status}  ${d.node} — ${d.label}`);
-for (const d of 못닿음) console.log(`  못 닿음  ${d.node} — ${d.label}`);
+for (const d of unreachableCount) console.log(`  못 닿음  ${d.node} — ${d.label}`);
 if (죽음.length > 0) {
   console.log(`[studymap-links] 죽은 주소 ${죽음.length}개 / 전체 ${targets.length}개`);
   process.exit(1);
 }
-if (못닿음.length > 0) {
+if (unreachableCount.length > 0) {
   /* 2 = 「못 돌렸다」 — 이 저장소 규약. 죽은 것이 아니다. */
-  console.log(`[studymap-links] 여기서 못 닿은 주소 ${못닿음.length}개 — 이 자리에서는 판정 못 한다`);
+  console.log(`[studymap-links] 여기서 못 닿은 주소 ${unreachableCount.length}개 — 이 자리에서는 판정 못 한다`);
   process.exit(2);
 }
 console.log(`[studymap-links] 링크 ${targets.length}개 전부 살아 있다`);

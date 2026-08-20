@@ -295,9 +295,9 @@ for (const l of LOCALES) {
   if (PRUNE && extra.length) {
     /* 남는 열쇠를 파일에서 실제로 덜어 낸다 — 빈 묶음이 되면 그 파일도 지운다. */
     for (const [ns, cat] of Object.entries(mine)) {
-      const 지울것 = Object.keys(cat).filter((k) => source[ns]?.[k] == null);
-      if (지울것.length === 0) continue;
-      for (const k of 지울것) delete cat[k];
+      const toDelete = Object.keys(cat).filter((k) => source[ns]?.[k] == null);
+      if (toDelete.length === 0) continue;
+      for (const k of toDelete) delete cat[k];
       const p = path.join(I18N_DIR, l.code, ns + '.json');
       if (Object.keys(cat).length === 0) fs.rmSync(p, { force: true });
       else fs.writeFileSync(p, JSON.stringify(cat, null, 2) + String.fromCharCode(10), 'utf8');
@@ -344,28 +344,28 @@ if (SEAL) {
      오늘 내가 그렇게 할 뻔했고(자물쇠 2252줄 → 27000줄) 되돌렸다.
      이제 열쇠 이름을 주면 **그것만** 찍는다: `--seal tools.calc.description ...`.
      이름을 안 주면 전과 같이 전부 — 처음 만들 때는 그게 맞다. */
-  const 찍을열쇠 = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-  const 통째로 = 찍을열쇠.length === 0;
-  const next = 통째로 ? {} : JSON.parse(fs.existsSync(LOCK_PATH) ? fs.readFileSync(LOCK_PATH, 'utf8') : '{}');
-  let 찍은수 = 0;
+  const keysToEmit = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  const whole = keysToEmit.length === 0;
+  const next = whole ? {} : JSON.parse(fs.existsSync(LOCK_PATH) ? fs.readFileSync(LOCK_PATH, 'utf8') : '{}');
+  let emittedCount = 0;
   for (const l of LOCALES) {
     if (l.code === SOURCE_LOCALE) continue;
     next[l.code] = next[l.code] || {};
     for (const [ns, cat] of Object.entries(source)) {
       for (const [k, srcText] of Object.entries(cat)) {
-        if (!통째로 && 찍을열쇠.includes(k) === false) continue;
+        if (!whole && keysToEmit.includes(k) === false) continue;
         if (byLocale[l.code][ns]?.[k] != null) {
           next[l.code][k] = fingerprint(srcText);
-          찍은수 += 1;
+          emittedCount += 1;
         }
       }
     }
   }
   fs.writeFileSync(LOCK_PATH, JSON.stringify(next, null, 2) + '\n', 'utf8');
   console.log(
-    통째로
+    whole
       ? '[i18n] 도장 찍음 (전부) — i18n/.lock.json 갱신'
-      : `[i18n] 도장 찍음 — 준 열쇠 ${찍을열쇠.length}개 · 실제로 찍은 자리 ${찍은수}개 (나머지는 그대로 둔다)`
+      : `[i18n] 도장 찍음 — 준 열쇠 ${keysToEmit.length}개 · 실제로 찍은 자리 ${emittedCount}개 (나머지는 그대로 둔다)`
   );
 }
 
@@ -399,17 +399,17 @@ if (CHECK && regionDrift) {
    「지금 0으로 만들어라」가 아니라 **「여기서부터 늘지 마라」** — 줄이면 기준선을 다시 박는다.
    `--baseline` 으로 다시 박고, 이 검사는 `--check` 일 때만 막는다. */
 {
-  const 기준선길 = path.join(APP_ROOT, 'data/i18n-missing-baseline.json');
-  const 지금 = Object.fromEntries(report.map((r) => [r.code, r.missing.length]));
+  const baselinePath = path.join(APP_ROOT, 'data/i18n-missing-baseline.json');
+  const current = Object.fromEntries(report.map((r) => [r.code, r.missing.length]));
   if (process.argv.includes('--baseline')) {
-    fs.writeFileSync(기준선길, JSON.stringify({ 목록: 지금 }, null, 2) + String.fromCharCode(10), 'utf8');
-    console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(지금));
-  } else if (CHECK && fs.existsSync(기준선길)) {
-    const 기준 = JSON.parse(fs.readFileSync(기준선길, 'utf8')).목록 || {};
-    const 늘어난것 = Object.entries(지금).filter(([c, n]) => n > (기준[c] ?? 0));
-    if (늘어난것.length) {
+    fs.writeFileSync(baselinePath, JSON.stringify({ 목록: current }, null, 2) + String.fromCharCode(10), 'utf8');
+    console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(current));
+  } else if (CHECK && fs.existsSync(baselinePath)) {
+    const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')).목록 || {};
+    const grown = Object.entries(current).filter(([c, n]) => n > (baseline[c] ?? 0));
+    if (grown.length) {
       console.error('[i18n] 빠진 번역이 늘었다 — 새로 만든 것에 en/ja 를 같이 넣어라:');
-      for (const [c, n] of 늘어난것) console.error(`  - ${c}: ${기준[c] ?? 0} → ${n}`);
+      for (const [c, n] of grown) console.error(`  - ${c}: ${baseline[c] ?? 0} → ${n}`);
       console.error('  줄인 뒤 기준선을 다시 박으려면: node scripts/build-i18n.mjs --baseline');
       process.exit(1);
     }

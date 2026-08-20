@@ -10,8 +10,8 @@ import { smokeBase } from './lib/smoke-base.mjs';
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
 /* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+const server = await smokeBase();
+const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
@@ -63,7 +63,7 @@ if (!cantRun) {
 }
 
 await br.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 if (cantRun) { console.log(`[arcade-teams] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-teams] 실패 ${fails.length}건`); process.exit(1); }
 console.log('[arcade-teams] 통과 — 화면이 편으로 보인다');

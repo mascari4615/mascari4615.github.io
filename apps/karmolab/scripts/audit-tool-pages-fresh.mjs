@@ -36,17 +36,17 @@ try {
     env: { ...process.env, KARMOLAB_GEN_NO_STATE: '1' },
   });
 } catch (e) {
-  const 말 = String(e.stderr || e.stdout || e.message).trim();
+  const output = String(e.stderr || e.stdout || e.message).trim();
   fs.rmSync(tmp, { recursive: true, force: true });
   /* ★ **안 구운 자리에서는 「못 돌림」이다** (2026-08-17 실측). 이 검사를 미는 자리에 붙였더니
      갓 꺼낸 커밋에는 `sw.js` 같은 **구운 것**이 없어 생성기가 못 돌고 「배포가 멈춘다」로 빨개졌다.
      셸이 깨진 게 아니라 **잴 준비가 안 된 것**이다 — 둘을 같은 빨강으로 말하면 사람이 검사를 끈다. */
-  if (/sw[.]js|npm run build/.test(말)) {
+  if (/sw[.]js|npm run build/.test(output)) {
     console.log('[audit-tool-pages] 못 돌림 — 구운 것이 없다(`npm run build` 뒤에 잰다). 통과가 아니다.');
     process.exit(2);
   }
   console.error('[audit-tool-pages] 지금 셸로는 도구 페이지를 못 찍는다 — 이대로 밀어넣으면 배포가 멈춘다.');
-  console.error(말.split(String.fromCharCode(10)).slice(0, 12).join(String.fromCharCode(10)));
+  console.error(output.split(String.fromCharCode(10)).slice(0, 12).join(String.fromCharCode(10)));
   process.exit(1);
 }
 

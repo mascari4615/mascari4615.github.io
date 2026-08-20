@@ -19,7 +19,7 @@
 import { execFileSync } from 'node:child_process';
 
 const WF = 'refresh-generated.yml';
-const 참는날 = 3;
+const graceDays = 3;
 
 let raw;
 try {
@@ -47,22 +47,22 @@ if (!Array.isArray(runs) || runs.length === 0) {
 }
 
 const [last] = runs;
-const 지난날 = (Date.now() - Date.parse(last.createdAt)) / 86400000;
-const 날 = 지난날.toFixed(1);
+const elapsedDays = (Date.now() - Date.parse(last.createdAt)) / 86400000;
+const day = elapsedDays.toFixed(1);
 
 if (last.status !== 'completed') {
-  console.log(`[nightly-alive] 마지막 판이 아직 돌고 있다 (${날}일 전 시작) — 판정은 다음에`);
+  console.log(`[nightly-alive] 마지막 판이 아직 돌고 있다 (${day}일 전 시작) — 판정은 다음에`);
   process.exit(2);
 }
 if (last.conclusion !== 'success') {
-  console.error(`[nightly-alive] 마지막 판이 **${last.conclusion}** 이다 (${날}일 전).`);
+  console.error(`[nightly-alive] 마지막 판이 **${last.conclusion}** 이다 (${day}일 전).`);
   console.error(`  파생물은 「새벽이 굽는다」고 믿고 낡은 채 서비스된다 — 그 새벽이 안 돈다.`);
   console.error(`  로그: gh run list --workflow ${WF} --limit 3`);
   process.exit(1);
 }
-if (지난날 > 참는날) {
-  console.error(`[nightly-alive] 마지막 초록이 **${날}일 전**이다 (참는 한도 ${참는날}일).`);
+if (elapsedDays > graceDays) {
+  console.error(`[nightly-alive] 마지막 초록이 **${day}일 전**이다 (참는 한도 ${graceDays}일).`);
   console.error(`  매일 돈다고 적혀 있는데 안 돌고 있다 — 일정(cron)이 꺼졌는지 봐라.`);
   process.exit(1);
 }
-console.log(`[nightly-alive] OK — ${WF} 마지막 판 초록 (${날}일 전)`);
+console.log(`[nightly-alive] OK — ${WF} 마지막 판 초록 (${day}일 전)`);

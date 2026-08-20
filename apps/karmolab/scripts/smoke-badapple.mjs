@@ -92,7 +92,7 @@ await page.evaluate(async () => {
    이제 제품이 `data-state="playing"` 을 함께 남긴다 — 그것을 먼저 본다.
    실주소는 다음 배포 전까지 옛 판이므로, 그동안은 **말이 아닌 모양**(`가로×세로` + fps 숫자)으로
    본다. 어느 말로 쓰든 그 모양은 같다. */
-const 재생됨 = await page
+const played = await page
   .waitForFunction(
     () => {
       const el = document.getElementById('baStatus');
@@ -105,17 +105,17 @@ const 재생됨 = await page
   )
   .then(() => true)
   .catch(() => false);
-if (!재생됨) {
-  const 틀수있나 = await page.evaluate(() => {
+if (!played) {
+  const canPlay = await page.evaluate(() => {
     const v = document.createElement('video');
     return { webm: v.canPlayType('video/webm'), 상태: document.getElementById('baStatus')?.textContent ?? '' };
   });
-  if (!틀수있나.webm) {
-    console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (상태: ${틀수있나.상태})`);
+  if (!canPlay.webm) {
+    console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (상태: ${canPlay.상태})`);
     await browser.close();
     process.exit(2); /* 2 = 못 돌림. 이 저장소 규약 */
   }
-  console.error(`[smoke-badapple] 60초 안에 재생이 안 시작됐다 (상태: ${틀수있나.상태})`);
+  console.error(`[smoke-badapple] 60초 안에 재생이 안 시작됐다 (상태: ${canPlay.상태})`);
   await browser.close();
   process.exit(1);
 }

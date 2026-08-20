@@ -54,13 +54,13 @@ for (const file of WORKFLOWS) {
        하나로 부른다(그 목록이 네 곳에 흩어져 사고가 났던 그 자리다). 그런데 여기서는
        **그 잡의 글자만** 봐서 「짓는 단계가 없다」고 4건을 냈다 — 실제로는 채비 action 안에서
        짓고 있다. 부르는 action 의 내용을 붙여서 같이 본다. */
-    const 부른action = [...block.matchAll(/uses:\s*(\.[^\s]+)/g)]
+    const calledAction = [...block.matchAll(/uses:\s*(\.[^\s]+)/g)]
       .map((m) => m[1].replace(/^\.\//, ''))
       .map((rel) => path.join(repoRoot, rel, 'action.yml'))
       .filter((f) => fs.existsSync(f))
       .map((f) => fs.readFileSync(f, 'utf8'))
       .join('\n');
-    const lines = (block + '\n' + 부른action).split('\n');
+    const lines = (block + '\n' + calledAction).split('\n');
     for (const { name, dir } of shared) {
       /* 짓는 줄 = 그 꾸러미 경로가 있는 줄, **또는 그 아래 세 줄 안**에 `npm run build`·`tsc`.
        * 한 줄로 쓰기도 하고(`cd packages/x && npm run build`) 두 줄로 쓰기도 한다

@@ -70,8 +70,8 @@ if (process.env.DEBUG) console.log('[dbg] 제목:', title);
    「빨리 못 오면 그냥 안 쓴다」로 둔 것이다. 그러면 제목은 **대체 글꼴**로 그려지고 폭이 준다 —
    CI 에서 이 줄이 44% 로 빨갰던 이유다(내 자리는 글꼴이 캐시에 있어 늘 초록이었다).
    화면이 고장 난 게 아니므로, 우리 글꼴이 실제로 쓰였을 때만 폭을 잰다. */
-const 우리글꼴 = await page.evaluate(() => document.fonts.check('900 100px KarmoSans', '지구촌'));
-if (!우리글꼴) {
+const ourFonts = await page.evaluate(() => document.fonts.check('900 100px KarmoSans', '지구촌'));
+if (!ourFonts) {
   console.log(`  [~] 제목이 화면 폭의 60% 이상에 걸쳐야 한다 — 못 쟀다(한글 글꼴이 이 판에 안 왔다: 지금 ${(title.span * 100).toFixed(0)}%)`);
 } else {
   /* ★ **빨갈 때는 「왜」를 같이 낸다** (2026-08-16). 이 줄은 CI 에서만 44% 로 빨갛고 내 자리에서는
@@ -81,7 +81,7 @@ if (!우리글꼴) {
      캔버스 실제 크기·픽셀 밀도·글꼴이 정말 실렸는지·재던 띠의 밝은 점 수.
      다음 CI 빨강 한 판이면 갈린다. */
   if (title.span <= 0.6) {
-    const 속사정 = await page.evaluate(() => ({
+    const details = await page.evaluate(() => ({
       dpr: window.devicePixelRatio,
       css: (() => {
         const cv = document.querySelector('.bm-canvas');
@@ -95,7 +95,7 @@ if (!우리글꼴) {
       fonts: [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family + '/' + f.weight).slice(0, 6),
       제목글꼴: getComputedStyle(document.querySelector('.bm-canvas')).fontFamily,
     }));
-    console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개 · 띠 폭 ${title.w}px · ${JSON.stringify(속사정)}`);
+    console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개 · 띠 폭 ${title.w}px · ${JSON.stringify(details)}`);
   }
   check(title.span > 0.6, `제목이 화면 폭의 60% 이상에 걸쳐야 한다 (지금 ${(title.span * 100).toFixed(0)}%)`);
 }

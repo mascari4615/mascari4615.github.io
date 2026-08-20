@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const 문제 = [];
+const problems = [];
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -65,55 +65,55 @@ try {
     for (const n of ['가', '나', '다']) S.addItem(n, null);
     return window.Tierlist.render?.renderAll?.(); // 만들었으면 다시 그려야 화면에 나온다
   });
-  const 카드 = await page.waitForSelector('#page-tierlist .tl-item[data-item-id]', { timeout: 30000 }).catch(() => null);
-  if (!카드) {
+  const card = await page.waitForSelector('#page-tierlist .tl-item[data-item-id]', { timeout: 30000 }).catch(() => null);
+  if (!card) {
     console.log('[tierlist-keys] 못 돌림 — 표를 만들었는데도 카드가 안 뜬다.');
     await browser.close(); server.close();
     process.exit(2);
   }
 
-  const 줄읽기 = () => page.$$eval('#page-tierlist .tl-dropzone:not([data-toc-drop]), #page-tierlist .tl-pool',
+  const readLines = () => page.$$eval('#page-tierlist .tl-dropzone:not([data-toc-drop]), #page-tierlist .tl-pool',
     (zs) => zs.map((z) => [...z.querySelectorAll('.tl-item')].map((e) => e.dataset.itemId)));
 
-  const 처음 = await 줄읽기();
-  const 줄번호 = 처음.findIndex((z) => z.length >= 2);
-  if (줄번호 < 0) {
+  const first = await readLines();
+  const lineNumber = first.findIndex((z) => z.length >= 2);
+  if (lineNumber < 0) {
     console.log('[tierlist-keys] 못 돌림 — 카드가 둘 이상 있는 줄이 없다(옮길 것이 없다).');
     await browser.close(); server.close();
     process.exit(2);
   }
-  const 옮길것 = 처음[줄번호][0];
+  const toMove = first[lineNumber][0];
 
-  await page.click(`.tl-item[data-item-id="${옮길것}"]`, { position: { x: 2, y: 2 } }).catch(() => {});
-  await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`).focus(), 옮길것);
-  const 잡혔나 = await page.evaluate((id) => document.activeElement?.dataset?.itemId === id, 옮길것);
-  if (!잡혔나) 문제.push('카드가 초점을 못 받는다 — 자판으로는 잡을 수조차 없다');
+  await page.click(`.tl-item[data-item-id="${toMove}"]`, { position: { x: 2, y: 2 } }).catch(() => {});
+  await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`).focus(), toMove);
+  const caught = await page.evaluate((id) => document.activeElement?.dataset?.itemId === id, toMove);
+  if (!caught) problems.push('카드가 초점을 못 받는다 — 자판으로는 잡을 수조차 없다');
 
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction((a) => {
     const z = document.querySelectorAll('#page-tierlist .tl-dropzone:not([data-toc-drop]), #page-tierlist .tl-pool')[a.i];
     return z && [...z.querySelectorAll('.tl-item')][0]?.dataset.itemId !== a.id;
-  }, { i: 줄번호, id: 옮길것 }, { timeout: 5000 }).catch(() => 문제.push('→ 를 눌러도 같은 줄에서 자리가 안 바뀐다'));
+  }, { i: lineNumber, id: toMove }, { timeout: 5000 }).catch(() => problems.push('→ 를 눌러도 같은 줄에서 자리가 안 바뀐다'));
 
-  const 옆으로 = await 줄읽기();
-  await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`)?.focus(), 옮길것);
+  const horizontal = await readLines();
+  await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`)?.focus(), toMove);
   /* 맨 아래 줄(담아 두는 자리)에 있으면 ↓ 는 갈 데가 없다 — 그건 결함이 아니라 끝이다. 그때는 ↑ 로 잰다. */
-  const 위로 = 줄번호 >= 처음.length - 1;
-  await page.keyboard.press(위로 ? 'ArrowUp' : 'ArrowDown');
+  const vertical = lineNumber >= first.length - 1;
+  await page.keyboard.press(vertical ? 'ArrowUp' : 'ArrowDown');
   await page.waitForFunction((a) => {
     const zs = document.querySelectorAll('#page-tierlist .tl-dropzone:not([data-toc-drop]), #page-tierlist .tl-pool');
     return ![...zs[a.i].querySelectorAll('.tl-item')].some((e) => e.dataset.itemId === a.id);
-  }, { i: 줄번호, id: 옮길것 }, { timeout: 5000 }).catch(() => 문제.push('↓ 를 눌러도 아래 줄로 안 간다'));
+  }, { i: lineNumber, id: toMove }, { timeout: 5000 }).catch(() => problems.push('↓ 를 눌러도 아래 줄로 안 간다'));
 
-  console.log(`[tierlist-keys] 줄 ${처음.length}개 · 옮긴 카드 ${옮길것} · 문제 ${문제.length}건`);
-  void 옆으로;
+  console.log(`[tierlist-keys] 줄 ${first.length}개 · 옮긴 카드 ${toMove} · 문제 ${problems.length}건`);
+  void horizontal;
 } finally {
   await browser.close();
   server.close();
 }
 
-if (문제.length) {
-  for (const m of 문제) console.error('  - ' + m);
+if (problems.length) {
+  for (const m of problems) console.error('  - ' + m);
   console.error('[tierlist-keys] ❌ 자판으로 티어표를 못 옮긴다.');
   process.exit(1);
 }

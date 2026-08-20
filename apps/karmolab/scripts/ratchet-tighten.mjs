@@ -27,7 +27,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DRY = process.argv.includes('--dry');
 
 /** 기준선 = 전부 빚 카운터(작을수록 좋다). 새 기준선이 생기면 여기 한 줄. */
-const 톱니 = [
+const ratchet = [
   { npm: 'audit:bundles', file: 'data/bundle-baseline.json', what: '번들 gzip 바이트' },
   { npm: 'audit:coverage', file: 'data/coverage-baseline.json', what: '첫 화면에서 안 쓰인 바이트' },
   { npm: 'audit:labels', file: 'data/a11y-baseline.json', what: '이름 없는 입력칸' },
@@ -41,7 +41,7 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const readRaw = (rel) => (fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : null);
 
 /** 숫자·목록 길이만 모은다 — 날짜(`at`·`갱신`)는 값이 아니라 도장이라 뺀다. */
-function 값들(node, prefix = '', out = {}) {
+function values(node, prefix = '', out = {}) {
   if (Array.isArray(node)) {
     out[prefix + '[]'] = node.length;
     return out;
@@ -49,7 +49,7 @@ function 값들(node, prefix = '', out = {}) {
   if (node && typeof node === 'object') {
     for (const [k, v] of Object.entries(node)) {
       if (k === 'at' || k === '갱신' || k === 'note' || k === '설명') continue;
-      값들(v, prefix ? `${prefix}.${k}` : k, out);
+      values(v, prefix ? `${prefix}.${k}` : k, out);
     }
     return out;
   }
@@ -57,11 +57,11 @@ function 값들(node, prefix = '', out = {}) {
   return out;
 }
 
-const 조임 = [];
-const 느슨 = [];
-const 죽음 = [];
+const tighten = [];
+const loose = [];
+const dead = [];
 
-for (const t of 톱니) {
+for (const t of ratchet) {
   const before = readRaw(t.file);
   const r = spawnSync(npm, ['run', '--silent', t.npm, '--', '--update'], {
     cwd: root,
@@ -71,39 +71,39 @@ for (const t of 톱니) {
   const after = readRaw(t.file);
 
   if (after === null) {
-    죽음.push(`${t.npm} — 기준선 파일이 없다 (${t.file}) · ${(r.stderr || '').trim().split('\n').pop() || ''}`);
+    dead.push(`${t.npm} — 기준선 파일이 없다 (${t.file}) · ${(r.stderr || '').trim().split('\n').pop() || ''}`);
     continue;
   }
   if (before === after) continue;
 
-  let 나빠진곳 = [];
+  let regressed = [];
   try {
-    const a = 값들(JSON.parse(before ?? '{}'));
-    const b = 값들(JSON.parse(after));
-    나빠진곳 = Object.keys(b).filter((k) => typeof a[k] === 'number' && b[k] > a[k]);
+    const a = values(JSON.parse(before ?? '{}'));
+    const b = values(JSON.parse(after));
+    regressed = Object.keys(b).filter((k) => typeof a[k] === 'number' && b[k] > a[k]);
   } catch {
-    나빠진곳 = ['(기준선을 못 읽었다 — 안전하게 되돌린다)'];
+    regressed = ['(기준선을 못 읽었다 — 안전하게 되돌린다)'];
   }
 
-  if (나빠진곳.length > 0 || DRY) {
+  if (regressed.length > 0 || DRY) {
     if (before === null) fs.rmSync(path.join(root, t.file), { force: true });
     else fs.writeFileSync(path.join(root, t.file), before, 'utf8');
-    if (나빠진곳.length > 0) 느슨.push({ ...t, 나빠진곳 });
+    if (regressed.length > 0) loose.push({ ...t, regressed });
     continue;
   }
-  조임.push(t);
+  tighten.push(t);
 }
 
-if (죽음.length) {
+if (dead.length) {
   console.error('[ratchet] 조일 수 없었다');
-  죽음.forEach((m) => console.error('  - ' + m));
+  dead.forEach((m) => console.error('  - ' + m));
   process.exit(1);
 }
 
-for (const t of 조임) console.log(`[ratchet] 조였다 — ${t.what} (${t.file})`);
-for (const t of 느슨) {
+for (const t of tighten) console.log(`[ratchet] 조였다 — ${t.what} (${t.file})`);
+for (const t of loose) {
   console.log(`[ratchet] 그대로 뒀다 — ${t.what} 이(가) 늘었다: ${t.나빠진곳.slice(0, 4).join(', ')}`);
   console.log(`          늘어난 것은 자동으로 눈감아 주지 않는다 — 그건 검사(${t.npm})가 빨갛게 말한다.`);
 }
 /* 아무 일 없어도 한 줄 — 「조용함」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[ratchet] 톱니 ${톱니.length}종 · 조임 ${조임.length} · 늘어남 ${느슨.length}${DRY ? ' (--dry, 남긴 것 없음)' : ''}`);
+console.log(`[ratchet] 톱니 ${ratchet.length}종 · 조임 ${tighten.length} · 늘어남 ${loose.length}${DRY ? ' (--dry, 남긴 것 없음)' : ''}`);

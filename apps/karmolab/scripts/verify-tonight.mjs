@@ -24,20 +24,20 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const argv = process.argv.slice(2);
 const daysAt = argv.indexOf('--days');
 const DAYS = daysAt >= 0 ? Number(argv[daysAt + 1]) : 7;
-const 이름들 = argv.filter((a, i) => a.startsWith('--') === false && i !== daysAt + 1);
+const names = argv.filter((a, i) => a.startsWith('--') === false && i !== daysAt + 1);
 
-function 최근도구(days) {
+function recentTools(days) {
   const p = path.join(root, 'data/tools-seen.json');
   if (fs.existsSync(p) === false) return [];
   const seen = JSON.parse(fs.readFileSync(p, 'utf8')).seen || {};
-  const 자른날 = Date.now() - days * 24 * 60 * 60 * 1000;
+  const cutoffDay = Date.now() - days * 24 * 60 * 60 * 1000;
   return Object.entries(seen)
-    .filter(([, date]) => Date.parse(date) >= 자른날)
+    .filter(([, date]) => Date.parse(date) >= cutoffDay)
     .sort((a, b) => (a[1] < b[1] ? 1 : -1))
     .map(([id]) => id);
 }
 
-const TOOLS = 이름들.length > 0 ? 이름들 : 최근도구(DAYS);
+const TOOLS = names.length > 0 ? names : recentTools(DAYS);
 
 if (TOOLS.length === 0) {
   /* 「0개」는 통과가 아니라 **볼 것이 없었다**는 말이다 — 조용히 초록으로 끝내지 않는다. */

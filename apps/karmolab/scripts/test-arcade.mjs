@@ -392,8 +392,8 @@ console.log('[arcade] 오목 — 차례·보드');
 {
   const cards = JSON.parse(readFileSync('src/widgets/arcade/chunks.generated.json', 'utf8'));
   ok(cards.length === GAMES.length, '조각 표가 카탈로그와 같은 수다', `${cards.length}/${GAMES.length}`);
-  const 어긋남 = cards.filter((c, i) => c.id !== GAMES[i]?.id).map((c) => c.id);
-  ok(어긋남.length === 0, '조각 표의 이름이 카탈로그 차례와 같다', 어긋남.join(', '));
+  const drift = cards.filter((c, i) => c.id !== GAMES[i]?.id).map((c) => c.id);
+  ok(drift.length === 0, '조각 표의 이름이 카탈로그 차례와 같다', drift.join(', '));
 
   const builtDir = 'arcade/games';
   const built = existsSync(builtDir) ? readdirSync(builtDir).filter((f) => f.endsWith('.js')) : [];
@@ -406,33 +406,33 @@ console.log('[arcade] 오목 — 차례·보드');
 
     /* 돌려 본다. 조각은 창에서 도는 물건이라 창 흉내를 조금 내 준다 — 게임 규칙은 창을
        안 쓰지만 화면 파일은 붙을 자리를 물어볼 수 있다. */
-    const 살아있음 = { __ARCADE_GAMES: {} };
-    const 흉내 = {
+    const alive = { __ARCADE_GAMES: {} };
+    const mimic = {
       createElement: () => ({ style: {}, dataset: {}, appendChild() {}, addEventListener() {}, setAttribute() {}, classList: { add() {}, remove() {}, toggle() {} } }),
       addEventListener() {},
       head: { appendChild() {} },
       body: { appendChild() {} }
     };
-    const ctx = createContext({ window: 살아있음, document: 흉내, navigator: { userAgent: '' }, performance: { now: () => 0 }, requestAnimationFrame: () => 0, setTimeout, clearTimeout, console });
-    살아있음.document = 흉내;
-    const 터진것 = [];
+    const ctx = createContext({ window: alive, document: mimic, navigator: { userAgent: '' }, performance: { now: () => 0 }, requestAnimationFrame: () => 0, setTimeout, clearTimeout, console });
+    alive.document = mimic;
+    const crashed = [];
     for (const c of cards) {
       if (!built.includes(c.chunk + '.js')) continue;
       try {
         runInContext(readFileSync(`${builtDir}/${c.chunk}.js`, 'utf8'), ctx, { filename: c.chunk + '.js' });
       } catch (e) {
-        터진것.push(`${c.id}: ${String(e.message).split(String.fromCharCode(10))[0]}`);
+        crashed.push(`${c.id}: ${String(e.message).split(String.fromCharCode(10))[0]}`);
       }
     }
-    ok(터진것.length === 0, '조각이 받자마자 터지지 않는다', 터진것.slice(0, 3).join(' · '));
-    const 안붙음 = cards
+    ok(crashed.length === 0, '조각이 받자마자 터지지 않는다', crashed.slice(0, 3).join(' · '));
+    const notAttached = cards
       .filter((c) => built.includes(c.chunk + '.js'))
       .filter((c) => {
-        const slot = 살아있음.__ARCADE_GAMES[c.id];
+        const slot = alive.__ARCADE_GAMES[c.id];
         return !slot || slot.def?.id !== c.id || slot.view?.id !== c.id;
       })
       .map((c) => c.id);
-    ok(안붙음.length === 0, '조각이 자기 이름으로 규칙과 화면을 등록한다', 안붙음.slice(0, 5).join(', '));
+    ok(notAttached.length === 0, '조각이 자기 이름으로 규칙과 화면을 등록한다', notAttached.slice(0, 5).join(', '));
   }
 }
 

@@ -19,21 +19,21 @@ import { fileURLToPath } from 'node:url';
 import esbuild from 'esbuild';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const 넘김 = new Set(['node_modules', 'dist', 'tmp', '.git']);
+const redirect = new Set(['node_modules', 'dist', 'tmp', '.git']);
 
 /** 이 앱이 `node` 로 직접 부르는 자리들 — 껍데기 안(`src/`)은 typecheck 가 본다. */
-const 볼곳 = [path.join(root, 'scripts'), root];
+const targets = [path.join(root, 'scripts'), root];
 
 const files = [];
-function 훑기(dir, 깊이) {
+function scan(dir, depth) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (넘김.has(e.name)) continue;
+    if (redirect.has(e.name)) continue;
     const full = path.join(dir, e.name);
-    if (e.isDirectory()) { if (깊이 > 0) 훑기(full, 깊이 - 1); }
+    if (e.isDirectory()) { if (depth > 0) scan(full, depth - 1); }
     else if (e.name.endsWith('.mjs')) files.push(full);
   }
 }
-훑기(볼곳[0], 3);
+scan(targets[0], 3);
 for (const e of fs.readdirSync(root, { withFileTypes: true })) {
   if (e.isFile() && e.name.endsWith('.mjs')) files.push(path.join(root, e.name));
 }
@@ -44,21 +44,21 @@ if (files.length < 50) {
   process.exit(2);
 }
 
-const 깨진것 = [];
+const broken = [];
 for (const f of files) {
   const 글 = fs.readFileSync(f, 'utf8');
   try {
     /* 문법만 본다 — 옮기지도, 이름을 지우지도 않는다(그래야 「안 쓰는 것」이 사라지지 않는다). */
     esbuild.transformSync(글, { loader: 'js', format: 'esm', sourcefile: f });
   } catch (e) {
-    const 첫줄 = (e.errors?.[0] ? `${e.errors[0].text} (${e.errors[0].location?.line}줄)` : String(e.message)).split('\n')[0];
-    깨진것.push(`${path.relative(root, f).split(path.sep).join('/')} — ${첫줄}`);
+    const firstLine = (e.errors?.[0] ? `${e.errors[0].text} (${e.errors[0].location?.line}줄)` : String(e.message)).split('\n')[0];
+    broken.push(`${path.relative(root, f).split(path.sep).join('/')} — ${firstLine}`);
   }
 }
 
-if (깨진것.length) {
-  console.error(`[script-syntax] 안 읽히는 파일 ${깨진것.length}개 — 부르는 순간 그 자리가 통째로 죽는다:`);
-  for (const b of 깨진것) console.error('  - ' + b);
+if (broken.length) {
+  console.error(`[script-syntax] 안 읽히는 파일 ${broken.length}개 — 부르는 순간 그 자리가 통째로 죽는다:`);
+  for (const b of broken) console.error('  - ' + b);
   process.exit(1);
 }
 console.log(`[script-syntax] 스크립트 ${files.length}개 — 전부 읽힌다.`);

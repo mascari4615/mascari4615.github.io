@@ -51,8 +51,8 @@ for (const rel of ['index.html', 'scripts/gen-tool-pages.mjs']) {
   const ownsHead = /<link[^>]+href=("|')[^"']*css\/(toolbox|shell-critical)\.css[^"']*[^>]*>/i.test(text);
   /* ★ 글자만 보면 주석·본문에 적힌 이름도 「부른다」로 센다 (2026-08-17 룰: 구조를 봐라).
      진짜 `<link … href="…/css/fonts.css">` 인지 본다. */
-  const 글꼴줄 = /<link[^>]+href=("|')[^"']*css\/fonts\.css[^"']*[^>]*>/i.test(text);
-  if (ownsHead && !글꼴줄) {
+  const fontLines = /<link[^>]+href=("|')[^"']*css\/fonts\.css[^"']*[^>]*>/i.test(text);
+  if (ownsHead && !fontLines) {
     bad.push(`${rel} 이 자기 머리말을 짜면서 글꼴 목록(css/fonts.css)은 안 부른다`);
   }
 }

@@ -15,8 +15,8 @@ import { smokeBase } from './lib/smoke-base.mjs';
 /* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버).
    전에는 8813 이 떠 있으면 그걸 썼는데, CI 에는 그 서버가 없어 `ERR_CONNECTION_REFUSED` 로
    죽었다 — 내 자리에서만 초록인 검사였다(2026-08-14 실측). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+const server = await smokeBase();
+const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const API = 'https://yawnbot.mascari4615.com/kl/arcade/rooms';
 const fails = [];
@@ -88,7 +88,7 @@ if (!cantRun) {
    그래서 목록 관련 두 줄은 못 받는 게 확인되면 「못 쟀다」로 적고 넘어간다 —
    빨강으로 두면 아무도 안 믿는 검사가 된다. */
   /* 막힌 요청은 **영영 안 끝날 수 있다** — 짧은 시간 제한을 붙인다(실측: 안 붙였더니 검사가 안 끝났다). */
-  const 목록받나 = await other
+  const listsOk = await other
     .evaluate(() => {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 3000);
@@ -98,7 +98,7 @@ if (!cantRun) {
         .finally(() => clearTimeout(t));
     })
     .catch(() => false);
-  if (!목록받나) {
+  if (!listsOk) {
     console.log('  [~] 남의 로비에 그 방이 보인다 — 못 쟀다(다른 출처 차단: 이 자리에서만 그렇다)');
   } else {
     check('남의 로비에 그 방이 보인다', shown, code);

@@ -10,10 +10,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const 놀이터 = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'src/widgets/arcade/games');
+const playground = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'src/widgets/arcade/games');
 
 /** @returns {{이름: string, 제한: number}[]} 제한이 박힌 놀이들 */
-export function 놀이제한들(dir = 놀이터) {
+export function playLimits(dir = playground) {
   const out = [];
   for (const f of readdirSync(dir)) {
     if (!f.endsWith('.ts') || f.endsWith('-view.ts')) continue;
@@ -24,6 +24,6 @@ export function 놀이제한들(dir = 놀이터) {
 }
 
 /** 가장 긴 제한(ms). 하나도 못 읽으면 0 — 부르는 쪽이 「못 읽었다」로 다뤄야 한다. */
-export function 가장긴제한(dir = 놀이터) {
-  return 놀이제한들(dir).reduce((n, x) => Math.max(n, x.제한), 0);
+export function longestLimit(dir = playground) {
+  return playLimits(dir).reduce((n, x) => Math.max(n, x.제한), 0);
 }

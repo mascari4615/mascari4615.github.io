@@ -7,7 +7,7 @@
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-karmograph.mjs
  */
-import { 멎을때까지, 될때까지 } from './lib/settle.mjs';
+import { untilSettled, untilTrue } from './lib/settle.mjs';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -165,11 +165,11 @@ const withLimit = (name, fn) => Promise.race([
  * **어느 손잡이였는지도** 안 나온다(한 걸음에 클릭이 넷이다). 그래서 리눅스에서 재현해 놓고도
  * 다시 좁히는 데 시간을 썼다. 못 누른 사실 자체가 이 검사의 증거이므로 자리와 덮은 놈을 적는다.
  */
-const 눌러본다 = async (p, sel, 왜) => {
+const clickIt = async (p, sel, 왜) => {
   try {
     await p.locator(sel).first().click({ timeout: ms(8000) });
   } catch {
-    const 속 = await p.evaluate((s2) => {
+    const inner = await p.evaluate((s2) => {
       const el = document.querySelector(s2);
       if (!el) return '그런 손잡이가 없다';
       const r = el.getBoundingClientRect();
@@ -181,7 +181,7 @@ const 눌러본다 = async (p, sel, 왜) => {
         + (tr ? ` (${Math.round(tr.x)},${Math.round(tr.y)} ${Math.round(tr.width)}x${Math.round(tr.height)})` : '')
         + ` · 화면 ${innerWidth}x${innerHeight}`;
     }, sel);
-    throw new Error(`${왜 || sel} 를 못 눌렀다 — ${속}`);
+    throw new Error(`${왜 || sel} 를 못 눌렀다 — ${inner}`);
   }
 };
 
@@ -2034,7 +2034,7 @@ await step('다른 탭이 만든 판이 목록에서 사라지지 않는다 (KL-
   await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const abox = await 멎을때까지(a, () => a.locator('.km-canvas').boundingBox());
+  const abox = await untilSettled(a, () => a.locator('.km-canvas').boundingBox());
   await a.mouse.dblclick(abox.x + abox.width * 0.3, abox.y + abox.height * 0.3);
   await a.waitForSelector('.km-inline', { timeout: ms(5000) });
   await a.keyboard.type('A판카드');
@@ -2130,7 +2130,7 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const cbox0 = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const cbox0 = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   await m.mouse.dblclick(cbox0.x + cbox0.width * 0.35, cbox0.y + cbox0.height * 0.3);
   await m.waitForSelector('.km-inline', { timeout: ms(5000) });
   await m.keyboard.type('말할카드');
@@ -2164,7 +2164,7 @@ await step('알림이 소리로도 닿는다 (읽어 주는 도구, KL-271)', as
   await m.waitForSelector('.ck-edge-label', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const lab = await 멎을때까지(m, () => m.locator('.ck-edge-label').first().boundingBox());
+  const lab = await untilSettled(m, () => m.locator('.ck-edge-label').first().boundingBox());
   await m.mouse.click(lab.x + lab.width / 2, lab.y + lab.height / 2);
   await m.waitForFunction(
     () => (document.querySelector('[data-km="say"]')?.textContent || '').includes('친구'),
@@ -2260,7 +2260,7 @@ await step('지운 카드의 번호를 새 카드가 물려받지 않는다 (KL-
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const cbox = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const cbox = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
 
   const make = async (label, fx, fy) => {
     await m.mouse.dblclick(cbox.x + cbox.width * fx, cbox.y + cbox.height * fy);
@@ -2288,13 +2288,13 @@ await step('지운 카드의 번호를 새 카드가 물려받지 않는다 (KL-
   await m.waitForSelector('.ck-node', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const cbox2 = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const cbox2 = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   await m.mouse.dblclick(cbox2.x + cbox2.width * 0.4, cbox2.y + cbox2.height * 0.75);
   await m.waitForSelector('.km-inline', { timeout: ms(5000) });
   await m.keyboard.type('셋째');
   await m.keyboard.press('Enter');
   /* 다시 그리기가 멎을 때까지 — 재우고 읽으면 바쁜 기계에서 **옛 목록**을 본다. */
-  const ids = await 멎을때까지(m, () => m.evaluate(() => [...document.querySelectorAll('.ck-node')].map((x) => x.dataset.id)));
+  const ids = await untilSettled(m, () => m.evaluate(() => [...document.querySelectorAll('.ck-node')].map((x) => x.dataset.id)));
   if (ids.includes(firstId)) throw new Error('새로 연 뒤에 지운 번호가 되살아났다: ' + ids.join(','));
   if (new Set(ids).size !== ids.length) throw new Error('같은 번호가 둘이다: ' + ids.join(','));
   await ctx.close();
@@ -2405,7 +2405,7 @@ await step('안 고친 탭은 다른 탭의 변경을 그대로 따라간다 (KL
   await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const bbox = await 멎을때까지(b2, () => b2.locator('.km-canvas').boundingBox());
+  const bbox = await untilSettled(b2, () => b2.locator('.km-canvas').boundingBox());
   await b2.mouse.dblclick(bbox.x + bbox.width * 0.4, bbox.y + bbox.height * 0.35);
   await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
   await b2.keyboard.type('저쪽에서 만든 카드');
@@ -2449,7 +2449,7 @@ await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async
   await a.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const abox = await 멎을때까지(a, () => a.locator('.km-canvas').boundingBox());
+  const abox = await untilSettled(a, () => a.locator('.km-canvas').boundingBox());
   await a.mouse.dblclick(abox.x + abox.width * 0.3, abox.y + abox.height * 0.3);
   await a.waitForSelector('.km-inline', { timeout: ms(5000) });
   await a.keyboard.type('A탭카드');
@@ -2460,7 +2460,7 @@ await step('다른 탭이 같은 판을 고치면 말해 준다 (KL-271)', async
   await b2.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const bbox = await 멎을때까지(b2, () => b2.locator('.km-canvas').boundingBox());
+  const bbox = await untilSettled(b2, () => b2.locator('.km-canvas').boundingBox());
   await b2.mouse.dblclick(bbox.x + bbox.width * 0.6, bbox.y + bbox.height * 0.5);
   await b2.waitForSelector('.km-inline', { timeout: ms(5000) });
   await b2.keyboard.type('B탭카드');
@@ -2519,7 +2519,7 @@ await step('판 위에 뜨는 것이 화면 밖으로 안 흘러나간다 (폰·
     await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
     /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
        옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-    const cbox = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+    const cbox = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
     await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.25);
     await m.waitForSelector('.km-inline', { timeout: ms(5000) });
     await m.keyboard.type('뜬 것');
@@ -2561,7 +2561,7 @@ await step('판 끝에서 이름을 고쳐도 칸이 화면 안에 있다 (KL-27
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const cbox = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const cbox = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   for (const [where, fx, fy] of [['왼쪽 위', 0.02, 0.03], ['오른쪽 아래', 0.97, 0.9]]) {
     await m.mouse.dblclick(cbox.x + cbox.width * fx, cbox.y + cbox.height * fy);
     await m.waitForSelector('.km-inline', { timeout: ms(5000) });
@@ -2633,7 +2633,7 @@ await step('폰의 손잡이가 모두 손가락 규격이다 (44px, KL-271)', a
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const cbox = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const cbox = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.25);
   await m.waitForSelector('.km-inline', { timeout: ms(5000) });
   await m.keyboard.type('손가락');
@@ -2714,11 +2714,11 @@ await step('폰에서 선 뽑는 점이 손가락 규격이다 (KL-271)', async 
   await m.waitForSelector('.ck-node', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const card = await 멎을때까지(m, () => m.locator('.ck-node').first().boundingBox());
+  const card = await untilSettled(m, () => m.locator('.ck-node').first().boundingBox());
   await m.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const spot = await 멎을때까지(m, () => m.locator('.ck-link-handle').first().boundingBox());
+  const spot = await untilSettled(m, () => m.locator('.ck-link-handle').first().boundingBox());
   if (!spot) throw new Error('고른 카드에 선 뽑는 점이 없다');
   if (spot.width < 40 || spot.height < 40) {
     throw new Error(`손가락에 너무 작다: ${Math.round(spot.width)}x${Math.round(spot.height)} (44 규격)`);
@@ -2812,7 +2812,7 @@ await step('큰 판에서도 시점을 옮기는 값이 싸다 (800장, KL-271 X
   });
   if (swap > ms(1500)) throw new Error(`800장에서 시점 전환이 너무 비싸다: ${Math.round(swap)}ms`);
   /* 무엇을 기다리는지 아는 자리다 — **그 말이 나올 때까지** 기다린다(재우기보다 정확하다). */
-  const said = await 될때까지(m, () => [...document.querySelectorAll('.ck-edge-label text')]
+  const said = await untilTrue(m, () => [...document.querySelectorAll('.ck-edge-label text')]
     .some((x) => (x.textContent || '').includes('2부선')), { 최대: 4000 });
   if (!said) throw new Error('시점을 옮겼는데 선의 얼굴이 안 바뀐다(큰 판)');
   await ctx.close();
@@ -3326,18 +3326,18 @@ await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮�
   await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
   await noCovered(m, '서랍');
 
-  await 눌러본다(m, '[data-km="palette-open"]', '등록부 열기');
+  await clickIt(m, '[data-km="palette-open"]', '등록부 열기');
   await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
   await noCovered(m, '팔레트');
   await m.keyboard.press('Escape');
   await m.waitForTimeout(ms(300));
 
-  await 눌러본다(m, '.ck-node', '카드');
+  await clickIt(m, '.ck-node', '카드');
   await m.waitForSelector('[data-km="node-del"]', { timeout: ms(4000) });
-  await 눌러본다(m, '[data-km="node-del"]', '지우기');
+  await clickIt(m, '[data-km="node-del"]', '지우기');
   await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
   await noCovered(m, '되물음');
-  await 눌러본다(m, '[data-km="ask-no"]', '되물음 아니오');
+  await clickIt(m, '[data-km="ask-no"]', '되물음 아니오');
   await ph.close();
 });
 
@@ -3798,8 +3798,8 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
      그 글자는 떨어져 나간 칸으로 들어가고 카드는 이름 없이 남는다. 실제로 CI 판에 「👤겹갑 · 👤」
      이 남아 「겹칠 카드를 못 찾았다」로 죽었다 — 못 만든 게 아니라 **엉뚱한 칸에 적은 것**이다.
      카드 수가 늘고, 그 칸이 **빈 칸**(= 새 카드 것)일 때 적는다. */
-  const 새카드에적기 = async (몇번째, 이름) => {
-    await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, 몇번째, { timeout: ms(4000) });
+  const writeNewCard = async (index, 이름) => {
+    await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, index, { timeout: ms(4000) });
     await page.waitForFunction(() => {
       const el = document.querySelector('[data-km="edit-label"]');
       return !!el && el.isConnected && el.value === '';
@@ -3809,9 +3809,9 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
       .some((el) => (el.textContent || '').includes(n)), 이름, { timeout: ms(4000) });
   };
   await page.mouse.dblclick(dbox.x + dbox.width * 0.3, dbox.y + dbox.height * 0.15);
-  await 새카드에적기(1, '겹갑');
+  await writeNewCard(1, '겹갑');
   await page.mouse.dblclick(dbox.x + dbox.width * 0.62, dbox.y + dbox.height * 0.15);
-  await 새카드에적기(2, '겹을');
+  await writeNewCard(2, '겹을');
 
   const boxOf = (name) => page.evaluate((n) => {
     const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes(n));
@@ -3825,17 +3825,17 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
      그래도 없으면 **판에 뭐가 있는지 같이 적는다** — 이름만 적으면 다음 판도 막막하다. */
   let from = null;
   let to = null;
-  const 기다림끝 = Date.now() + ms(4000);
-  while (Date.now() < 기다림끝) {
+  const waitEnded = Date.now() + ms(4000);
+  while (Date.now() < waitEnded) {
     from = await boxOf('겹갑');
     to = await boxOf('겹을');
     if (from && to) break;
     await page.waitForTimeout(ms(100));
   }
   if (!from || !to) {
-    const 있는것 = await page.evaluate(() => [...document.querySelectorAll('.ck-node')]
+    const present = await page.evaluate(() => [...document.querySelectorAll('.ck-node')]
       .map((el) => (el.textContent || '').trim().slice(0, 12)).slice(0, 8));
-    throw new Error(`겹칠 카드를 못 찾았다 — 판에 있는 것: ${있는것.join(' · ') || '없음'}`);
+    throw new Error(`겹칠 카드를 못 찾았다 — 판에 있는 것: ${present.join(' · ') || '없음'}`);
   }
 
   const edgesBefore = await page.locator('.ck-edge').count();
@@ -5116,7 +5116,7 @@ await step('내보내기와 저장한 보기도 시점을 따른다', async () =
   await m.waitForTimeout(ms(500));
   await m.evaluate(() => document.querySelector('[data-km="view-go"]').click());
   /* 되살린 보기의 시점 이름이 **멎을 때까지** — 재우고 읽으면 되살리는 중의 옛 이름을 읽는다. */
-  const back = await 멎을때까지(m, () => m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim()));
+  const back = await untilSettled(m, () => m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim()));
   if (back !== second) throw new Error(`보기를 되살렸는데 시점이 안 따라왔다 (${back} ≠ ${second})`);
   await ctx.close();
 });
@@ -5192,7 +5192,7 @@ await step('첫 카드·첫 선까지 드는 손 (처음 연 사람 기준)', as
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const box = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const box = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   let acts = 0;
   // ① 빈 곳 두 번 누르기 → 그 자리에서 바로 이름칸
   await m.mouse.dblclick(box.x + box.width * 0.25, box.y + box.height * 0.3);
@@ -5233,7 +5233,7 @@ await step('마우스 없이도 선을 잇는다 (자판·화면낭독기 길)',
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const box = await 멎을때까지(m, () => m.locator('.km-canvas').boundingBox());
+  const box = await untilSettled(m, () => m.locator('.km-canvas').boundingBox());
   const make = async (fx, fy, name) => {
     await m.mouse.dblclick(box.x + box.width * fx, box.y + box.height * fy);
     await m.waitForSelector('.km-inline', { timeout: ms(4000) });
@@ -5456,7 +5456,7 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   await m.locator('[data-km="sheet-grip"]').click();
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const up = await 멎을때까지(m, () => m.locator('.km-side').boundingBox());
+  const up = await untilSettled(m, () => m.locator('.km-side').boundingBox());
   if (!(up.y < down2.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
 
   // ★ 올라온 시트가 **그림을 통째로 덮으면 안 된다.** 시트 높이를 화면(vh) 기준으로 잡았더니
@@ -5502,7 +5502,7 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   await m.touchscreen.tap(nowBox.x + nowBox.width * 0.12, nowBox.y + nowBox.height * 0.12);
   /* 재우지 말고 **자리가 멎을 때까지** 기다린다 — 바쁜 기계에서는 그 사이 배치가 안 끝나
      옛 자리를 재고, 그 좌표로 누르면 엉뚱한 데를 누른다(2026-08-17). */
-  const down3 = await 멎을때까지(m, () => m.locator('.km-side').boundingBox());
+  const down3 = await untilSettled(m, () => m.locator('.km-side').boundingBox());
   if (!(down3.y > up.y + 40)) throw new Error('빈 곳을 눌러도 시트가 안 내려간다');
   await phone.close();
 });

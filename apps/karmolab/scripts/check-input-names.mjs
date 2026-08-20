@@ -69,12 +69,12 @@ const files =
 const stripBlockComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
 const offenders = [];
-let 본칸 = 0;
+let seenCells = 0;
 for (const { name, src: raw } of files) {
   const src = stripBlockComments(raw);
   for (const m of src.matchAll(NEEDS_NAME)) {
     const tag = m[0];
-    본칸 += 1;
+    seenCells += 1;
     if (SKIP_TYPES.test(tag)) continue;
     if (/aria-label=|aria-labelledby=|title="/.test(tag)) continue;
     // placeholder 는 브라우저가 이름이 없을 때 대신 읽어 준다 — 완벽하진 않지만 「편집란」보다는 낫다.
@@ -109,7 +109,7 @@ for (const { name, src: raw } of files) {
    낡거나(도구가 다른 방식으로 칸을 그리게 바뀌면) 걸리는 게 0 개가 되고, 그러면
    「전부 이름을 갖고 있다」를 찍고 초록으로 끝난다 — 실제로는 아무것도 안 본 것이다.
    파일은 읽혔는데 칸이 0 개면 그건 못 돌린 것이다. */
-if (본칸 === 0) {
+if (seenCells === 0) {
   console.error(`[check-input-names] CANNOT-RUN: 파일 ${files.length}개를 읽었는데 입력칸을 한 개도 못 찾았다`);
   console.error('  → 도구가 칸을 그리는 방식이 바뀌었거나 이 검사의 정규식이 낡았다.');
   console.error('  → 0 개는 통과가 아니다 — 이 검사는 39개를 0 으로 만든 뒤 잠근 자리다 (KL-105).');

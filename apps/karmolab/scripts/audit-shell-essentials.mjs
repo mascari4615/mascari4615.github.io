@@ -27,44 +27,44 @@ const appsRoot = path.dirname(appRoot);
  *  ★ `apps/blog/karmolab/**` 는 보지 않는다 — 그건 **배포 때 다시 찍히는 사본**이라
  *  내 컴퓨터에서는 늘 낡아 있다(붙이자마자 그 낡은 사본 때문에 거짓 빨강을 한 번 봤다).
  *  찍히는 장(도구 상세·놀이 장)은 실주소 짝 검사가 본다. 여기서는 **원본이 있는 것만** 본다. */
-function 원본자리(주소) {
-  const 끝 = (p) => (p.endsWith('/') ? `${p}index.html` : p);
-  if (주소.startsWith('/apps/karmolab/')) return path.join(appsRoot, 끝(주소).slice('/apps/'.length));
+function sourceSites(주소) {
+  const done = (p) => (p.endsWith('/') ? `${p}index.html` : p);
+  if (주소.startsWith('/apps/karmolab/')) return path.join(appsRoot, done(주소).slice('/apps/'.length));
   if (주소 === '/karmolab/') return path.join(appRoot, 'index.html');
   /* ★ 찍힌 장(도구 상세·놀이)은 **갓 찍었을 때만** 본다 (2026-08-17). 늘 보면 낡은 사본 때문에
      거짓 빨강이 나고, 아예 안 보면 여섯 가지밖에 못 본다. 껍데기보다 새것이면 그건 지금 것이다. */
   if (주소.startsWith('/karmolab/')) {
-    const 찍힌 = path.join(appsRoot, 'blog', 끝(주소).slice(1));
-    if (!fs.existsSync(찍힌)) return null;
-    const 껍데기 = path.join(appRoot, 'index.html');
-    if (fs.statSync(찍힌).mtimeMs < fs.statSync(껍데기).mtimeMs) return null; // 낡았다 → 건너뜀
-    return 찍힌;
+    const emitted = path.join(appsRoot, 'blog', done(주소).slice(1));
+    if (!fs.existsSync(emitted)) return null;
+    const shell = path.join(appRoot, 'index.html');
+    if (fs.statSync(emitted).mtimeMs < fs.statSync(shell).mtimeMs) return null; // 낡았다 → 건너뜀
+    return emitted;
   }
   return null;
 }
 
-const 빠짐 = [];
-const 건너뜀 = [];
-let 본것 = 0;
+const omitted = [];
+const skipped = [];
+let seen = 0;
 
-for (const [무엇, 어디, 찾을것, 왜] of WANT) {
-  const 자리 = 원본자리(어디);
-  if (!자리 || !fs.existsSync(자리)) { 건너뜀.push(`${무엇} (${어디})`); continue; }
-  const 글 = fs.readFileSync(자리, 'utf8');
-  본것 += 1;
-  if (!찾을것.test(글)) 빠짐.push(`${무엇} 이(가) 원본에 없다 — ${왜} (${어디})`);
+for (const [what, where, toFind, why] of WANT) {
+  const hits = sourceSites(where);
+  if (!hits || !fs.existsSync(hits)) { skipped.push(`${what} (${where})`); continue; }
+  const text = fs.readFileSync(hits, 'utf8');
+  seen += 1;
+  if (!toFind.test(text)) omitted.push(`${what} 이(가) 원본에 없다 — ${why} (${where})`);
 }
 
-if (본것 === 0) {
+if (seen === 0) {
   console.error('[shell-essentials] CANNOT-RUN: 원본을 하나도 못 찾았다 — 경로가 옮겨졌는지 볼 것.');
   console.error('[shell-essentials]   이건 「다 있다」가 아니라 **아무것도 안 봤다**는 뜻이다.');
   process.exit(2);
 }
 
-console.log(`[shell-essentials] 원본에서 ${본것}가지 확인 · 건너뜀 ${건너뜀.length}가지 · 빠진 것 ${빠짐.length}건`);
-for (const s of 건너뜀) console.log(`  · 건너뜀 — ${s}`);
-if (빠짐.length) {
-  for (const m of 빠짐) console.error('  - ' + m);
+console.log(`[shell-essentials] 원본에서 ${seen}가지 확인 · 건너뜀 ${skipped.length}가지 · 빠진 것 ${omitted.length}건`);
+for (const s of skipped) console.log(`  · 건너뜀 — ${s}`);
+if (omitted.length) {
+  for (const m of omitted) console.error('  - ' + m);
   console.error('[shell-essentials] ❌ 밀기 전에 잡았다 — 배포하면 사람이 먼저 본다.');
   process.exit(1);
 }

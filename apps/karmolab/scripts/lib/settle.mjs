@@ -24,25 +24,25 @@
  * 값이 멎을 때까지 기다린다. `읽기` 는 페이지에서 값을 가져오는 함수(비동기 가능).
  * 두 번 연속 같은 값이면 멎은 것으로 보고 그 값을 준다. 끝내 안 멎으면 마지막 값을 준다.
  */
-export async function 멎을때까지(page, 읽기, { 간격 = 120, 최대 = 5000 } = {}) {
-  let 앞 = await 읽기();
-  const 끝 = Date.now() + 최대;
-  while (Date.now() < 끝) {
-    await page.waitForTimeout(간격);   // 재움-의도: 두 번 재서 견주려면 사이에 틈이 있어야 한다
-    const 지금 = await 읽기();
-    if (JSON.stringify(지금) === JSON.stringify(앞)) return 지금;
-    앞 = 지금;
+export async function untilSettled(page, read, { interval = 120, max = 5000 } = {}) {
+  let head = await read();
+  const done = Date.now() + max;
+  while (Date.now() < done) {
+    await page.waitForTimeout(interval);   // 재움-의도: 두 번 재서 견주려면 사이에 틈이 있어야 한다
+    const current = await read();
+    if (JSON.stringify(current) === JSON.stringify(head)) return current;
+    head = current;
   }
-  return 앞;
+  return head;
 }
 
 /**
  * 원하는 상태가 될 때까지 기다린다. 끝내 안 되면 **거짓**을 주고 넘어간다 —
  * 던지지 않는다(그 자리에서 죽으면 무엇이 안 됐는지 못 적는다. 같은 날 세 번 겪었다).
  */
-export async function 될때까지(page, 조건, { 최대 = 5000, 인자 } = {}) {
+export async function untilTrue(page, predicate, { 최대 = 5000, args } = {}) {
   return page
-    .waitForFunction(조건, 인자, { timeout: 최대 })
+    .waitForFunction(predicate, args, { timeout: 최대 })
     .then(() => true)
     .catch(() => false);
 }

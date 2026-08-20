@@ -41,12 +41,12 @@ const fails = [];
 const ok = (cond, say) => { if (!cond) fails.push(say); };
 
 /* KST 자정 = 전날 15:00 UTC. 그 앞뒤 1분을 잡는다. */
-const 자정 = startOfDayKST('2026-08-14');            // 2026-08-13T15:00:00Z
-const 직전 = new Date(자정.getTime() - 60_000);
-const 직후 = new Date(자정.getTime() + 60_000);
+const midnight = startOfDayKST('2026-08-14');            // 2026-08-13T15:00:00Z
+const justBefore = new Date(midnight.getTime() - 60_000);
+const justAfter = new Date(midnight.getTime() + 60_000);
 
-const d1 = dateKST(직전);
-const d2 = dateKST(직후);
+const d1 = dateKST(justBefore);
+const d2 = dateKST(justAfter);
 
 ok(d1 === '2026-08-13', `자정 1분 전이 전날이어야 한다 — 지금 ${d1}`);
 ok(d2 === '2026-08-14', `자정 1분 후가 새 날이어야 한다 — 지금 ${d2}`);
@@ -75,19 +75,19 @@ ok(
 {
   const seeds = [];
   for (let i = 0; i < 30; i++) {
-    const day = new Date(자정.getTime() + i * 86_400_000);
+    const day = new Date(midnight.getTime() + i * 86_400_000);
     seeds.push(seedFor('dailycho', dateKST(day)));
   }
-  const 중복 = seeds.length - new Set(seeds).size;
-  ok(중복 === 0, `30일 중 씨앗이 겹치는 날 ${중복}건`);
+  const duplicate = seeds.length - new Set(seeds).size;
+  ok(duplicate === 0, `30일 중 씨앗이 겹치는 날 ${duplicate}건`);
 }
 
 /* 남은 시간: 자정 직후엔 거의 하루가 남아야 한다 (0 으로 붙어 있으면 카운트다운이 죽는다) */
 {
-  const 남은 = msUntilNextKST(직후);
-  ok(남은 > 23 * 3600_000, `자정 직후 남은 시간이 하루에 가깝지 않다 — ${Math.round(남은 / 60000)}분`);
-  const 남은직전 = msUntilNextKST(직전);
-  ok(남은직전 < 5 * 60_000, `자정 1분 전인데 남은 시간이 ${Math.round(남은직전 / 60000)}분`);
+  const remaining = msUntilNextKST(justAfter);
+  ok(remaining > 23 * 3600_000, `자정 직후 남은 시간이 하루에 가깝지 않다 — ${Math.round(remaining / 60000)}분`);
+  const remainingBefore = msUntilNextKST(justBefore);
+  ok(remainingBefore < 5 * 60_000, `자정 1분 전인데 남은 시간이 ${Math.round(remainingBefore / 60000)}분`);
 }
 
 rmSync(dir, { recursive: true, force: true });

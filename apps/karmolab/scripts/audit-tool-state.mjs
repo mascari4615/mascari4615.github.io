@@ -34,30 +34,30 @@ function git(args) {
   return r.stdout;
 }
 
-const 기록들 = ['data/tools-seen.json', 'data/tools-modified.json'];
+const records = ['data/tools-seen.json', 'data/tools-modified.json'];
 
 /* 추적 안 되는 파일이면 위 이야기가 통째로 성립하지 않는다 — 못 쟀다고 말한다. */
-const tracked = git(['ls-files', '--', ...기록들])
+const tracked = git(['ls-files', '--', ...records])
   .split('\n')
   .map((s) => s.trim())
   .filter((s) => s !== '');
-const 빠진것 = 기록들.filter((f) => tracked.includes(f) === false);
-if (빠진것.length > 0) {
-  console.error(`[audit-tool-state] CANNOT-RUN: git 이 안 담고 있는 기록 — ${빠진것.join(', ')}`);
+const missingOnes = records.filter((f) => tracked.includes(f) === false);
+if (missingOnes.length > 0) {
+  console.error(`[audit-tool-state] CANNOT-RUN: git 이 안 담고 있는 기록 — ${missingOnes.join(', ')}`);
   process.exit(2);
 }
 
-const 더러운것 = git(['status', '--porcelain', '--', ...기록들])
+const dirty = git(['status', '--porcelain', '--', ...records])
   .split('\n')
   .map((s) => s.trim())
   .filter((s) => s !== '');
 
-if (더러운것.length > 0) {
+if (dirty.length > 0) {
   console.error('[audit-tool-state] 도구 기록을 갱신해 놓고 커밋에 안 담았다:');
-  for (const line of 더러운것) console.error(`  ${line}`);
+  for (const line of dirty) console.error(`  ${line}`);
   console.error('  → 이대로 밀면 새 도구에 「새로 나옴」 표가 안 붙고, 사이트맵에 변경일 없이 실린다.');
-  console.error(`  → 커밋에 같이 담아라: ${기록들.map((f) => `apps/karmolab/${f}`).join(' ')}`);
+  console.error(`  → 커밋에 같이 담아라: ${records.map((f) => `apps/karmolab/${f}`).join(' ')}`);
   process.exit(1);
 }
 
-console.log(`[audit-tool-state] 도구 기록 ${기록들.length}개가 커밋과 같다`);
+console.log(`[audit-tool-state] 도구 기록 ${records.length}개가 커밋과 같다`);

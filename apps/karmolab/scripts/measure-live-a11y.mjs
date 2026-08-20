@@ -37,8 +37,8 @@ try {
   process.exit(2);
 }
 
-let 총위반 = 0;
-let 잰장수 = 0;
+let totalViolations = 0;
+let pagesMeasured = 0;
 for (const url of URLS) {
   const ctx = await browser.newContext({ viewport: VIEW });
   const page = await ctx.newPage();
@@ -57,10 +57,10 @@ for (const url of URLS) {
       help: v.help, sample: (v.nodes[0]?.target || []).join(' ') }));
   });
   await ctx.close();
-  잰장수++;
+  pagesMeasured++;
 
   const n = res.reduce((a, v) => a + v.n, 0);
-  총위반 += n;
+  totalViolations += n;
   console.log(`\n${url}  — 어긴 자리 ${n}개 (규칙 ${res.length}종)`);
   for (const v of res.sort((a, b) => b.n - a.n)) {
     console.log(`  ${String(v.n).padStart(3)}개  [${v.impact}] ${v.id} — ${v.help}`);
@@ -69,9 +69,9 @@ for (const url of URLS) {
 }
 await browser.close();
 
-if (잰장수 === 0) {
+if (pagesMeasured === 0) {
   console.log('\n[live-a11y] 못 쟀다 — 한 장도 못 열었다.');
   process.exit(2);
 }
-console.log(`\n[live-a11y] ${잰장수}장 · 어긴 자리 ${총위반}개`);
+console.log(`\n[live-a11y] ${pagesMeasured}장 · 어긴 자리 ${totalViolations}개`);
 console.log('  (0 이 목표다. impact=critical/serious 부터 본다.)');

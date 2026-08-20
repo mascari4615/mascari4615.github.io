@@ -53,15 +53,15 @@ catch {
   process.exit(2);
 }
 
-const 새것 = offenders.filter((f) => base.includes(f) === false);
-if (새것.length > 0) {
-  console.error(`[serve-frontmatter] 앞머리를 안 떼는 시험 서버가 **늘었다** ${새것.length}개:`);
-  for (const f of 새것) console.error(`  - scripts/${f}`);
+const fresh = offenders.filter((f) => base.includes(f) === false);
+if (fresh.length > 0) {
+  console.error(`[serve-frontmatter] 앞머리를 안 떼는 시험 서버가 **늘었다** ${fresh.length}개:`);
+  for (const f of fresh) console.error(`  - scripts/${f}`);
   console.error("  고치기: import { stripFrontMatter } from './lib/serve-html.mjs' 후 .html 을 낼 때 통과시켜라.");
   process.exit(1);
 }
-const 고친것 = base.filter((f) => offenders.includes(f) === false);
-if (고친것.length > 0) {
+const fixed = base.filter((f) => offenders.includes(f) === false);
+if (fixed.length > 0) {
   console.log(`[serve-frontmatter] 줄었다 ${base.length} → ${offenders.length}개 — 기준선을 다시 적어라: npm run audit:serve-fm -- --bless`);
   process.exit(0);
 }

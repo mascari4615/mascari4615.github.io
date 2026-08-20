@@ -36,16 +36,16 @@ try {
   process.exit(1);
 }
 /** 이 규칙 묶음이 그 주소 꼴을 **미리 그리나** — `not` 안에 적힌 것은 빼는 것이니 안 센다. */
-function 덮는가(묶음, 주소꼴) {
-  const 목록 = Array.isArray(묶음?.prerender) ? 묶음.prerender : [];
-  const 판정 = (where) => {
+function covers(bundle, urlPattern) {
+  const list = Array.isArray(bundle?.prerender) ? bundle.prerender : [];
+  const verdictOf = (where) => {
     if (!where || typeof where !== 'object') return false;
-    if (typeof where.href_matches === 'string') return where.href_matches === 주소꼴;
-    if (Array.isArray(where.and)) return where.and.some(판정);
-    if (Array.isArray(where.or)) return where.or.some(판정);
+    if (typeof where.href_matches === 'string') return where.href_matches === urlPattern;
+    if (Array.isArray(where.and)) return where.and.some(verdictOf);
+    if (Array.isArray(where.or)) return where.or.some(verdictOf);
     return false;   // not 안쪽은 「빼는 것」이라 안 센다
   };
-  return 목록.some((r) => 판정(r?.where));
+  return list.some((r) => verdictOf(r?.where));
 }
 
 // 각 판의 도구 목록 주소가 규칙에 적혀 있나. (localizedPath 가 판마다의 앞자리를 안다.)
@@ -56,7 +56,7 @@ for (const l of LOCALES) {
      규칙은 허브를 `not` 안에도 적는다 — 「도구 장은 미리 그리되 허브 자체는 빼라」는 뜻이다.
      그런데 글자만 훑으면 그 `not` 이 「허브 규칙이 있다」로 읽혔다. 실제로 허브 규칙이 통째로
      사라진 판에서 이 검사가 초록이었다. 규칙을 **JSON 으로 펴서** 진짜 대상만 센다. */
-  if (!덮는가(rules, `${hub}*`)) missing.push(`${l.code} → ${hub}* (도구 장)`);
+  if (!covers(rules, `${hub}*`)) missing.push(`${l.code} → ${hub}* (도구 장)`);
 }
 if (missing.length > 0) {
   console.error(`[미리읽기-판 검사] FAIL — 미리읽기 규칙이 없는 말 판 ${missing.length}개:`);

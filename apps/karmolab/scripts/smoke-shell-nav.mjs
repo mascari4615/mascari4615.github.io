@@ -25,8 +25,8 @@ const repoRoot = path.dirname(path.dirname(appRoot));
 /** 지금 남아 있는 인라인 손잡이 수 — 0 이 되면 `script-src` 를 걸 수 있다.
  *  실측(2026-08-17): 14 → 9(붙박이 여섯) → 5(스타일 넉 장) → **0**(첫 화면 큰 단추·빵부스러기 다섯).
  *  이제 0 이 기준이다 — 하나라도 늘면 빨강이고, 그때 `script-src` 가 다시 멀어진다. */
-const 스크립트천장 = 5;
-const 인라인한계 = Number(process.env.SHELL_INLINE_LIMIT || 0);
+const scriptCeiling = 5;
+const inlineLimit = Number(process.env.SHELL_INLINE_LIMIT || 0);
 
 if (!fs.existsSync(path.join(appRoot, 'js/toolbox.js'))) {
   console.log('[shell-nav] 못 돌림 — 아직 안 구웠다 (`node build.mjs` 뒤에 돌려라). 이건 통과가 아니다.');
@@ -61,7 +61,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const 문제 = [];
+const problems = [];
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -73,11 +73,11 @@ try {
      배포가 두 판 섰다 (2026-08-17 실측: f5767691·fbf9e8cd — `smoke-lang-switch` 가 뒤늦게 잡았다).
      지금은 그 규칙이 막힐 이유가 없다: `script-src` 에 지문을 안 적으면 크롬이 키워드를 받아 준다.
      막혔다면 누가 지문을 적었다는 뜻이고, 그건 **미리읽기가 죽었다**는 뜻이다 — 여기서 잡아야 한다. */
-  const 막힌것 = [];
+  const blocked = [];
   page.on('console', (m) => {
     const t = m.text();
     if (!/Content Security Policy|Refused to (execute|load)/i.test(t)) return;
-    막힌것.push(t.slice(0, 140));
+    blocked.push(t.slice(0, 140));
   });
   await page.goto(`${BASE}/apps/karmolab/`, { waitUntil: 'networkidle', timeout: 60000 });
   /* `Toolbox` 는 **맨이름 전역**이다(window 에는 안 달려 있다) — 그래서 window.Toolbox 로 기다리면
@@ -87,14 +87,14 @@ try {
     null, { timeout: 30000 }
   );
 
-  const 표시 = await page.$$eval('[data-goto]', (els) => els.map((e) => e.dataset.goto));
-  if (표시.length === 0) 문제.push('data-goto 자리가 하나도 없다 — 위임이 받을 것이 없다');
+  const mark = await page.$$eval('[data-goto]', (els) => els.map((e) => e.dataset.goto));
+  if (mark.length === 0) problems.push('data-goto 자리가 하나도 없다 — 위임이 받을 것이 없다');
 
   /* 첫 화면 큰 단추(favorites·arcade·docs)는 **자바스크립트가 그린 뒤** 생긴다 —
      붙박이 표시와 같은 위임으로 먹는지 따로 본다(2026-08-17 에 그 넷을 옮겼다). */
-  for (const 곳 of ['community', 'plaza', 'linktree', 'arcade', 'favorites']) {
-    if (!표시.includes(곳)) continue;
-    const 결과 = await page.evaluate((g) => {
+  for (const place of ['community', 'plaza', 'linktree', 'arcade', 'favorites']) {
+    if (!mark.includes(place)) continue;
+    const result = await page.evaluate((g) => {
       Toolbox.switchPage('home');
       document.querySelector(`[data-goto="${g}"]`).click();
       return {
@@ -102,49 +102,49 @@ try {
         보임: [...document.querySelectorAll('[id^="page-"]')]
           .filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id),
       };
-    }, 곳);
-    if (결과.hash !== `#${곳}` || !결과.보임.includes(`page-${곳}`)) {
-      문제.push(`${곳} 로 안 옮겨진다 — 주소 ${결과.hash} · 보이는 장 ${결과.보임.join(',') || '없음'}`);
+    }, place);
+    if (result.hash !== `#${place}` || !result.보임.includes(`page-${place}`)) {
+      problems.push(`${place} 로 안 옮겨진다 — 주소 ${result.hash} · 보이는 장 ${result.보임.join(',') || '없음'}`);
     }
   }
 
-  for (const t of 막힌것) 문제.push('자물쇠가 막았다 — ' + t);
+  for (const t of blocked) problems.push('자물쇠가 막았다 — ' + t);
 
-  const 남은목록 = await page.evaluate(() => [...document.querySelectorAll('*')]
+  const remainingList = await page.evaluate(() => [...document.querySelectorAll('*')]
     .filter((e) => [...e.attributes].some((a) => /^on[a-z]+$/.test(a.name)))
     .map((e) => e.tagName.toLowerCase() + '#' + (e.id || '') + '.' + (e.className || '').toString().slice(0, 24)
       + ' [' + [...e.attributes].filter((a) => /^on[a-z]+$/.test(a.name)).map((a) => a.name).join(',') + ']'));
-  const 남은 = 남은목록.length;
-  if (process.env.SHELL_INLINE_LIST) console.log('[shell-nav] 남은 자리:', JSON.stringify(남은목록));
-  console.log(`[shell-nav] 표시 ${표시.length}개 · 남은 인라인 손잡이 ${남은}개 (한계 ${인라인한계})`);
+  const remaining = remainingList.length;
+  if (process.env.SHELL_INLINE_LIST) console.log('[shell-nav] 남은 자리:', JSON.stringify(remainingList));
+  console.log(`[shell-nav] 표시 ${mark.length}개 · 남은 인라인 손잡이 ${remaining}개 (한계 ${inlineLimit})`);
   /* ★ **손잡이만 세면 반만 본 것이다** (2026-08-17). `script-src` 를 걸려면 인라인 손잡이(on…)
      뿐 아니라 **인라인 <script> 도 0** 이어야 한다 — 지문으로 허락하는 길은 막혀 있다(지문을
      하나라도 적으면 크롬이 `'inline-speculation-rules'` 를 무시해 미리읽기가 죽는다, 실험으로 확인).
      오늘 12 → 5 로 줄였는데, 지키는 자가 없으면 내일 누가 하나 더 넣어도 아무도 모른다.
      지금 수를 천장으로 박는다 — 줄이는 쪽은 언제나 환영이고, 줄면 천장을 조이라고 말한다. */
-  const 셸글 = fs.readFileSync(path.join(appRoot, 'index.html'), 'utf8');
-  const 인라인스크립트 = [...셸글.matchAll(/<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/g)]
+  const shellText = fs.readFileSync(path.join(appRoot, 'index.html'), 'utf8');
+  const inlineScripts = [...shellText.matchAll(/<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/g)]
     .filter((m) => {
       const t = (/type\s*=\s*"([^"]+)"/.exec(m[1] || '') || [])[1] || '';
       return !t || t === 'text/javascript' || t === 'module';
     }).length;
-  console.log(`[shell-nav] 인라인 <script> ${인라인스크립트}개 (천장 ${스크립트천장})`);
-  if (인라인스크립트 > 스크립트천장) {
-    문제.push(`인라인 <script> 가 늘었다 ${인라인스크립트} > ${스크립트천장} — script-src 가 그만큼 멀어진다`);
-  } else if (인라인스크립트 < 스크립트천장) {
-    console.log(`[shell-nav] ${스크립트천장 - 인라인스크립트}개 줄었다 — 이 파일의 \`스크립트천장\` 을 ${인라인스크립트} 로 조여라.`);
+  console.log(`[shell-nav] 인라인 <script> ${inlineScripts}개 (천장 ${scriptCeiling})`);
+  if (inlineScripts > scriptCeiling) {
+    problems.push(`인라인 <script> 가 늘었다 ${inlineScripts} > ${scriptCeiling} — script-src 가 그만큼 멀어진다`);
+  } else if (inlineScripts < scriptCeiling) {
+    console.log(`[shell-nav] ${scriptCeiling - inlineScripts}개 줄었다 — 이 파일의 \`스크립트천장\` 을 ${inlineScripts} 로 조여라.`);
   }
 
-  if (남은 > 인라인한계) {
-    문제.push(`인라인 손잡이가 늘었다 ${남은} > ${인라인한계} — script-src 가 그만큼 멀어진다`);
+  if (remaining > inlineLimit) {
+    problems.push(`인라인 손잡이가 늘었다 ${remaining} > ${inlineLimit} — script-src 가 그만큼 멀어진다`);
   }
 } finally {
   await browser.close();
   server.close();
 }
 
-if (문제.length) {
-  for (const m of 문제) console.error('  - ' + m);
+if (problems.length) {
+  for (const m of problems) console.error('  - ' + m);
   console.error('[shell-nav] ❌ 껍데기 자리 이동이 성하지 않다.');
   process.exit(1);
 }

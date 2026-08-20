@@ -42,9 +42,9 @@ if (folders.length === 0) {
 
 /* 지어지는 목록 = build.mjs 가 쓰는 것과 **같은 함수**로 뽑는다(두 벌이면 갈라진다). */
 const { discoverEntryPoints } = await import('./entry-points.mjs');
-const 엔트리 = discoverEntryPoints(app);
+const entry = discoverEntryPoints(app);
 const ENTRY_SET = new Set(
-  (Array.isArray(엔트리) ? 엔트리 : (엔트리.entryPoints ?? [])).map((p) => String(p).split('\\').join('/')),
+  (Array.isArray(entry) ? entry : (entry.entryPoints ?? [])).map((p) => String(p).split('\\').join('/')),
 );
 if (ENTRY_SET.size === 0) {
   console.error('[orphan-widgets] CANNOT-RUN: 지어지는 목록이 비었다 — entry-points 가 못 돌았다');
@@ -69,34 +69,34 @@ for (const name of folders) {
      그래서 **지어지는 목록**(build 가 실제로 쓰는 entry 집합)에 있는지로 판정한다. */
   /* 담는 폴더(`tools/`·`ref/` 처럼 여러 개를 품는 자리)도 있으므로, 그 폴더 **밑의 무엇이든**
      지어지면 닿는 것으로 본다. 하나도 안 지어지면 그 폴더는 화면에 못 나온다. */
-  const 지어지나 = [...ENTRY_SET].some((e) => e.startsWith(`src/widgets/${name}/`) || e === `src/widgets/${name}.ts`);
-  if (!referenced || !지어지나) orphans.push(name + (referenced && !지어지나 ? ' (이름은 나오는데 **지어지지 않는다**)' : ''));
+  const builds = [...ENTRY_SET].some((e) => e.startsWith(`src/widgets/${name}/`) || e === `src/widgets/${name}.ts`);
+  if (!referenced || !builds) orphans.push(name + (referenced && !builds ? ' (이름은 나오는데 **지어지지 않는다**)' : ''));
 }
 
 /* ★ 톱니 — 지금 안 지어지는 것 셋은 「지을지 지울지」가 사람 결정이라 여기서 못 정한다.
    기준선에 담고 **늘어날 때만** 빨갛다. 갚으면 저절로 줄어든다. 정본 = TASK-KL-319. */
 const BASE_FILE = join(app, 'data/unbuilt-widgets.json');
-const 기준 = new Set(
+const baseline = new Set(
   existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).목록 ?? []) : [],
 );
-const 이름만 = orphans.map((o) => String(o).split(' ')[0]);
-const 늘어난것 = 이름만.filter((n) => !기준.has(n));
-const 갚은것 = [...기준].filter((n) => !이름만.includes(n));
-if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
+const namesOnly = orphans.map((o) => String(o).split(' ')[0]);
+const grown = namesOnly.filter((n) => !baseline.has(n));
+const repaid = [...baseline].filter((n) => !namesOnly.includes(n));
+if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
   writeFileSync(
     BASE_FILE,
-    `${JSON.stringify({ 설명: '아직 안 지어지는 폴더형 위젯 — 늘면 빨강, 지으면(또는 지우면) 저절로 줄어든다', 목록: 이름만, 갱신: new Date().toISOString().slice(0, 10) }, null, 2)}\n`,
+    `${JSON.stringify({ 설명: '아직 안 지어지는 폴더형 위젯 — 늘면 빨강, 지으면(또는 지우면) 저절로 줄어든다', 목록: namesOnly, 갱신: new Date().toISOString().slice(0, 10) }, null, 2)}\n`,
   );
-  if (갚은것.length > 0) console.log(`[orphan-widgets] ${갚은것.length}개 정리됨 — 기준선 ${기준.size} → ${이름만.length}: ${갚은것.join(', ')}`);
+  if (repaid.length > 0) console.log(`[orphan-widgets] ${repaid.length}개 정리됨 — 기준선 ${baseline.size} → ${namesOnly.length}: ${repaid.join(', ')}`);
 }
 
 console.log(`[orphan-widgets] 폴더형 위젯 ${folders.length}개 검사 · 고아 ${orphans.length}개`);
 for (const o of orphans) {
   console.error(`  ✗ src/widgets/${o}/ — 폴더 밖 어디서도 안 부른다. 옮기고 지우지 않았나?`);
 }
-if (늘어난것.length > 0) {
-  console.error(`[orphan-widgets] 새로 생긴 고아 ${늘어난것.length}개 — ${늘어난것.join(', ')}`);
+if (grown.length > 0) {
+  console.error(`[orphan-widgets] 새로 생긴 고아 ${grown.length}개 — ${grown.join(', ')}`);
   process.exit(1);
 }
-if (이름만.length > 0) console.log(`  (위 ${이름만.length}개는 기준선 — TASK-KL-319 에서 지을지 지울지 정한다)`);
+if (namesOnly.length > 0) console.log(`  (위 ${namesOnly.length}개는 기준선 — TASK-KL-319 에서 지을지 지울지 정한다)`);
 process.exit(0);

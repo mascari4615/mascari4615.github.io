@@ -55,7 +55,7 @@ profile.samples.forEach((id, i) => {
   self.set(id, (self.get(id) ?? 0) + (dt[i] ?? 0) / 1000);
 });
 
-const 이름 = (n) => {
+const name = (n) => {
   const f = n.callFrame;
   const file = f.url ? f.url.split('/').slice(-1)[0] : '(인라인)';
   const fn = f.functionName || '(익명)';
@@ -63,17 +63,17 @@ const 이름 = (n) => {
 };
 
 const rows = [...self.entries()]
-  .map(([id, ms]) => [이름(byId.get(id)), ms])
+  .map(([id, ms]) => [name(byId.get(id)), ms])
   .filter(([k]) => !k.startsWith('(program)') && !k.includes('(idle)') && !k.includes('(garbage'));
 
 const merged = new Map();
 for (const [k, ms] of rows) merged.set(k, (merged.get(k) ?? 0) + ms);
 
 const top = [...merged.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15);
-const 총막힘 = longs.reduce((a, b) => a + Math.max(0, b - 50), 0);
+const totalBlocked = longs.reduce((a, b) => a + Math.max(0, b - 50), 0);
 
 console.log(`\n=== ${URL_} ===`);
-console.log(`긴 작업 ${longs.length}개 (${longs.join(', ')}ms) · 막힘 합계 ${총막힘}ms`);
+console.log(`긴 작업 ${longs.length}개 (${longs.join(', ')}ms) · 막힘 합계 ${totalBlocked}ms`);
 console.log('\n주 스레드를 오래 잡은 코드 (자기 시간):');
 for (const [k, ms] of top) console.log(`  ${String(Math.round(ms)).padStart(5)}ms  ${k}`);
 

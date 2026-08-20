@@ -28,7 +28,7 @@ const app = path.resolve(here, '..');
 const repo = path.resolve(app, '..', '..');
 const BASELINE = path.join(app, 'data/unwired-scripts.json');
 
-const 읽기 = (p) => {
+const read = (p) => {
   try {
     return fs.readFileSync(p, 'utf8');
   } catch {
@@ -47,33 +47,33 @@ if (스크립트들.length === 0) {
   process.exit(2);
 }
 
-let 건초 = JSON.stringify(JSON.parse(읽기(path.join(app, 'package.json')) || '{}').scripts ?? {});
+let haystack = JSON.stringify(JSON.parse(read(path.join(app, 'package.json')) || '{}').scripts ?? {});
 /* 별 **제 이름을 제가 적은 것은 「부른다」가 아니다** (2026-08-17 실측). 검사 파일은 머리주석에
    「사용: node scripts/test-meok-ops.mjs」처럼 제 이름을 적어 둔다 — 그 글자까지 한 건초에 넣으면
    아무도 안 부르는 파일이 **스스로를 불러 준 셈**이 된다. 그래서 이 감사는 3개만 세고 있었고
    옆 감사(audit:orphans)는 같은 자리를 10개로 세고 있었다. 수가 둘이면 사람은 둘 다 안 믿는다.
    스크립트 글은 파일별로 따로 들고, 볼 때 **자기 글만 뺀다**(옆 감사가 이미 그렇게 한다). */
-const 남의글 = new Map();
-for (const f of 스크립트들) 남의글.set(f, 읽기(path.join(here, f)));
+const foreignText = new Map();
+for (const f of 스크립트들) foreignText.set(f, read(path.join(here, f)));
 const libDir = path.join(here, 'lib');
-if (fs.existsSync(libDir)) for (const f of fs.readdirSync(libDir)) 건초 += 읽기(path.join(libDir, f));
-건초 += 읽기(path.join(app, 'build.mjs'));
+if (fs.existsSync(libDir)) for (const f of fs.readdirSync(libDir)) haystack += read(path.join(libDir, f));
+haystack += read(path.join(app, 'build.mjs'));
 const wfDir = path.join(repo, '.github', 'workflows');
-if (fs.existsSync(wfDir)) for (const f of fs.readdirSync(wfDir)) 건초 += 읽기(path.join(wfDir, f));
+if (fs.existsSync(wfDir)) for (const f of fs.readdirSync(wfDir)) haystack += read(path.join(wfDir, f));
 
 /* 건초가 package.json 하나뿐이면 읽기가 깨진 것이다 — 그 상태의 「0건」은 통과가 아니다. */
-if (건초.length < 10_000) {
-  console.error(`[unwired] CANNOT-RUN: 찾을 자리를 제대로 못 읽었다 (${건초.length}자)`);
+if (haystack.length < 10_000) {
+  console.error(`[unwired] CANNOT-RUN: 찾을 자리를 제대로 못 읽었다 (${haystack.length}자)`);
   process.exit(2);
 }
 
-const 안불림 = 스크립트들.filter((f) => {
+const neverCalled = 스크립트들.filter((f) => {
   const re = new RegExp(f.replace(/[.]/g, '\.'), 'g');
-  if ((건초.match(re) ?? []).length > 0) return false;
+  if ((haystack.match(re) ?? []).length > 0) return false;
   /* 다른 스크립트가 부르면 불린 것 — 단, **제 파일은 뺀다**(위 § 참고). */
-  for (const [이름, 글] of 남의글) {
-    if (이름 === f) continue;
-    if (글.includes(f)) return false;
+  for (const [name, text] of foreignText) {
+    if (name === f) continue;
+    if (text.includes(f)) return false;
   }
   return true;
 });
@@ -81,36 +81,36 @@ const 안불림 = 스크립트들.filter((f) => {
 /* 별 **왜 안 묶었는지를 기준선이 스스로 적게 한다** (2026-08-17). 이름만 늘어놓은 목록은
    반년 뒤 아무도 못 읽고, 「언젠가 묶자」로 굳는다. 손으로 적은 사유는 다시 쓸 때도 지킨다
    (오늘 옆 감사에서 자동 문구가 실측 사유를 덮어써 재 본 값이 통째로 사라졌다). */
-const 이전 = JSON.parse(읽기(BASELINE) || '{"목록":[]}');
-const 기준 = new Set(이전.목록 ?? []);
-const 이전사유 = 이전.사유 ?? {};
-const 늘어난것 = 안불림.filter((f) => !기준.has(f));
-const 갚은것 = [...기준].filter((f) => !안불림.includes(f));
+const previous = JSON.parse(read(BASELINE) || '{"목록":[]}');
+const baseline = new Set(previous.목록 ?? []);
+const previousReason = previous.사유 ?? {};
+const grown = neverCalled.filter((f) => !baseline.has(f));
+const repaid = [...baseline].filter((f) => !neverCalled.includes(f));
 
-if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
+if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
   fs.writeFileSync(
     BASELINE,
     `${JSON.stringify(
       {
         설명: '부를 자리가 아예 없는 검사 파일 — 늘면 빨강, 연결하면 저절로 줄어든다',
         왜: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
-        목록: 안불림,
-        사유: Object.fromEntries(안불림.map((f) => [f, 이전사유[f] ?? '아직 사유를 안 적었다 — 재 보고 여기 적어라'])),
+        목록: neverCalled,
+        사유: Object.fromEntries(neverCalled.map((f) => [f, previousReason[f] ?? '아직 사유를 안 적었다 — 재 보고 여기 적어라'])),
         갱신: new Date().toISOString().slice(0, 10),
       },
       null,
       2,
     )}\n`,
   );
-  if (갚은것.length > 0) console.log(`[unwired] ${갚은것.length}개를 연결했다 — 기준선을 ${기준.size} → ${안불림.length} 로 조인다: ${갚은것.join(', ')}`);
+  if (repaid.length > 0) console.log(`[unwired] ${repaid.length}개를 연결했다 — 기준선을 ${baseline.size} → ${neverCalled.length} 로 조인다: ${repaid.join(', ')}`);
 }
 
-if (늘어난것.length > 0) {
-  console.error(`[unwired] 부를 자리가 없는 검사 파일이 늘었다 — ${늘어난것.length}개:`);
-  for (const f of 늘어난것) console.error(`  scripts/${f}`);
+if (grown.length > 0) {
+  console.error(`[unwired] 부를 자리가 없는 검사 파일이 늘었다 — ${grown.length}개:`);
+  for (const f of grown) console.error(`  scripts/${f}`);
   console.error('  → package.json 에 이름을 주고 묶음(gates·live-checks·build)에 넣어라.');
   console.error('  → 안 부르는 검사는 없는 검사다. 정말 버릴 거면 파일을 지워라.');
   process.exit(1);
 }
 
-console.log(`[unwired] 스크립트 ${스크립트들.length}개 · 부를 자리 없는 것 ${안불림.length}개 (기준선과 같음 — 늘지 않았다)`);
+console.log(`[unwired] 스크립트 ${스크립트들.length}개 · 부를 자리 없는 것 ${neverCalled.length}개 (기준선과 같음 — 늘지 않았다)`);

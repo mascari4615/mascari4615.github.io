@@ -52,11 +52,11 @@ for (const f of files) {
      이 저장소에는 CSP 를 **설명하는 도구 장**이 있다(`/t/csp/`) — 거기 본문이나 주석에 같은 글자가
      들어가면 실제 `<meta>` 가 없어도 통과한다. 안전 한 줄을 「있다」고 세는 검사가 그러면 안 된다.
      진짜 `<meta http-equiv="Content-Security-Policy" … content="…">` 를 찾아 그 안을 견준다. */
-  const 단것 = [...src.matchAll(/<meta\s+[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi)]
+  const sweet = [...src.matchAll(/<meta\s+[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi)]
     /* 값 안에 홑따옴표가 있다(`'none'`) — **연 따옴표와 같은 것으로 닫히는 데까지** 읽어야 한다.
        `[^"']*` 로 읽으면 `object-src ` 에서 잘려 멀쩡한 장이 「빠졌다」로 잡힌다(방금 6장). */
     .map((m) => (m[0].match(/content=("|')([\s\S]*?)\1/i) || [])[2] || '');
-  if (!단것.some((one) => one.includes(CSP_CONTENT))) {
+  if (!sweet.some((one) => one.includes(CSP_CONTENT))) {
     missing.push(path.relative(targets[0], f).split(path.sep).join('/'));
   }
 }

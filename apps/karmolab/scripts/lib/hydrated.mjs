@@ -28,7 +28,7 @@ export async function waitHydrated(page, selector, opts = {}) {
   const timeout = opts.timeout ?? 30000;
   await page.waitForSelector(selector, { timeout });
 
-  const 손붙음 = await page
+  const handWritten = await page
     .waitForFunction(
       (sel) => {
         const el = document.querySelector(sel);
@@ -42,9 +42,9 @@ export async function waitHydrated(page, selector, opts = {}) {
         if (el.tagName === 'BUTTON') return typeof el.onclick === 'function';
         const page = el.closest('.tool-page') || document.getElementById('tool-pages');
         if (!page) return false;
-        const 단추 = [...page.querySelectorAll('button')];
-        if (!단추.length) return 'no-button';
-        return 단추.some((b) => typeof b.onclick === 'function');
+        const button = [...page.querySelectorAll('button')];
+        if (!button.length) return 'no-button';
+        return button.some((b) => typeof b.onclick === 'function');
       },
       selector,
       { timeout }
@@ -54,14 +54,14 @@ export async function waitHydrated(page, selector, opts = {}) {
 
   /* 단추가 없어 신호를 못 본 화면(그리고 시간이 다 된 경우)은 가라앉기만 기다린다.
      못 기다린 것을 「기다렸다」로 삼키지 않으려고 결과를 돌려준다. */
-  if (손붙음 !== true) await page.waitForTimeout(500);
+  if (handWritten !== true) await page.waitForTimeout(500);
   /* `'no-button'` 은 **기다릴 신호가 없는 화면**이지 못 뜬 화면이 아니다 — 여기서 던지면
      단추 없는 도구를 통째로 못 재게 된다. 던지는 건 시간이 다 된 `false` 뿐이다. */
-  if (손붙음 === false && opts.require) {
+  if (handWritten === false && opts.require) {
     throw new Error(
       `화면이 안 떴다 — \`${selector}\` 에 손이 안 붙었다 (${timeout}ms). ` +
         '도구가 고장 난 것이 아니라 **판이 아직 안 나갔거나 사이트가 느린 것**일 수 있다 — 배포가 끝난 뒤 다시 보라.'
     );
   }
-  return 손붙음 === true;
+  return handWritten === true;
 }

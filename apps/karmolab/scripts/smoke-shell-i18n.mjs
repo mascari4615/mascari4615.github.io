@@ -92,9 +92,9 @@ const found = {};
    떴고 검사는 그걸 **덜 옮긴 글**로 셌다. 그 띠는 버그가 아니다 — `lang-switch.ts` 가
    「안내는 그 언어로 뜬다, 그래야 필요한 사람이 읽는다」로 일부러 그렇게 그린다.
    재현이 틀리면 판정도 틀린다. en 판을 보는 사람은 en 브라우저다. */
-const 브라우저말 = { en: 'en-US', 'en-tool': 'en-US', ja: 'ja-JP', 'ja-tool': 'ja-JP' };
+const consoleText = { en: 'en-US', 'en-tool': 'en-US', ja: 'ja-JP', 'ja-tool': 'ja-JP' };
 for (const [code, page] of PAGES) {
-  const ctx = await browser.newContext({ locale: 브라우저말[code] || 'en-US' });
+  const ctx = await browser.newContext({ locale: consoleText[code] || 'en-US' });
   const tab = await ctx.newPage();
   await tab.goto(`http://127.0.0.1:${PORT}/${page}`, { waitUntil: 'domcontentloaded' });
   /* 이름은 말 묶음이 온 뒤에 정해진다 — 받아오기가 끝날 시간을 준다. */
