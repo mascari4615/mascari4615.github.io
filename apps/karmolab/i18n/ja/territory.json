@@ -9,5 +9,7 @@
   "territory.msg.hint": "色はその地点にいちばん近い店のブランド。ドラッグで移動、ホイールで拡大。",
   "territory.msg.source": "データ",
   "territory.msg.stores": "店",
-  "territory.msg.sample": "サンプル注意 — OSM 登録分のみで実数の約三分の一。街区単位では抜けがある。"
+  "territory.msg.sample": "サンプル注意 — OSM 登録分のみで実数の約三分の一。街区単位では抜けがある。",
+  "territory.msg.districtHint": "区をひとつ指している — あらかじめ測った値。地図から離れると画面基準に戻る。",
+  "territory.msg.boundary": "境界: 韓国統計庁の市郡区(2018)"
 }
