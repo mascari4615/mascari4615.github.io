@@ -152,15 +152,45 @@ async function pollOnce(
   return 'sent';
 }
 
+/**
+ * 보낼 곳이 없다는 사실 자체를 주인에게 알린다. 실패해도 조용히 넘어간다
+ * (알림 실패가 봇을 죽이면 안 된다).
+ */
+async function dmOwner(client: Client, text: string): Promise<void> {
+  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  if (!userId) {
+    console.error('[BrainResurface] ASSISTANT_USER_ID 도 없음 — 알릴 곳이 없다');
+    return;
+  }
+  try {
+    const user = await client.users.fetch(userId);
+    await user.send(text);
+  } catch (e) {
+    console.error('[BrainResurface] 주인 DM 실패:', e instanceof Error ? e.message : e);
+  }
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 
 export function startBrainResurface(client: Client, memoRepoPath: string): void {
   if (timer) return;
 
+  // 보낼 곳이 없으면 **조용히 넘어가지 않는다.** 조용한 skip 이 세 달 동안
+  // 회수 0건을 만든 자리다 — 로그에 한 줄 남기고 아무도 안 봤다 (TASK-KAR-233).
+  // 이제 주인에게 DM 으로 한 번 알린다. 알림은 프로세스당 1회 (반복 X).
+  let warnedNoChannel = false;
+
   const run = async (): Promise<void> => {
     const newsChannelId = channelIdFor('news');
     if (!newsChannelId) {
-      console.log('[BrainResurface] news 채널 ID 없음 — skip');
+      console.error('[BrainResurface] news 채널 ID 없음 — 회수 알림이 아무 데도 안 간다');
+      if (!warnedNoChannel) {
+        warnedNoChannel = true;
+        await dmOwner(
+          client,
+          '외장 뇌 회수 알림이 갈 곳이 없어요. `news` 채널 번호가 안 잡혀서 「이거 기억해?」 를 못 보내는 중.',
+        );
+      }
       return;
     }
     try {
