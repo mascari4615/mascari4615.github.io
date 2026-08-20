@@ -72,6 +72,7 @@ namespace Handheld
         Vector3 _rigHomePos;
         Quaternion _rigHomeRot = Quaternion.identity;
         bool _homeCaptured;
+        bool _recenteredThisTick;
 
         // 인코딩 워커 — 한 장씩만 물린다 (밀리면 그 프레임을 건너뛴다).
         readonly BlockingCollection<EncodeJob> _encodeQueue =
@@ -164,10 +165,12 @@ namespace Handheld
             float dt = (float)Math.Min(now - _lastTickTime, 0.25);   // 에디터가 멈췄다 돌아오면 튀지 않게
             _lastTickTime = now;
 
+            _recenteredThisTick = false;
             if (Application.isPlaying && Input.GetKeyDown(recenterKey)) Recenter();
             if (server.ConsumeRecenterRequest()) Recenter();
 
-            if (server.TryGetPose(out var pose))
+            bool gotPose = server.TryGetPose(out var pose);
+            if (gotPose)
             {
                 _pose = pose;
                 _everGotPose = true;
@@ -177,6 +180,13 @@ namespace Handheld
 
             if (joystickEnabled) ApplyJoystick(server.Joystick, dt);
             if (_everGotPose) ApplyPose(_pose, dt);
+
+            // 기록은 포즈가 들어온 틱에만 — 700Hz 틱을 그대로 적으면 파일만 커진다.
+            if (gotPose && server.Recording)
+            {
+                server.Recorder.Shown(_pose.Seq, _shownPos, _shownRot,
+                    transform.position, transform.eulerAngles.y, server.Joystick, _recenteredThisTick);
+            }
 
             if (streamEnabled && _rt != null && server.Connected
                 && now >= _nextCapture && _encodeBusy == 0)
@@ -214,6 +224,7 @@ namespace Handheld
             _originPos = _pose.Position;
             _originRot = _pose.Rotation;
             _hasOrigin = true;
+            _recenteredThisTick = true;
             _shownValid = false;                 // 보간을 새 기준에서 다시 시작
             ApplyPose(_pose, 0f);
         }

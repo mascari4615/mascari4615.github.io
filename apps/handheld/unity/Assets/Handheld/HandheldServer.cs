@@ -54,6 +54,29 @@ namespace Handheld
 
         readonly ConcurrentQueue<string> _logQueue = new ConcurrentQueue<string>();
 
+        // 포즈 기록 (조종석에서 켠다). 켜져 있을 때만 만들어진다.
+        HandheldLog _recorder;
+        public HandheldLog Recorder => _recorder;
+        public bool Recording => _recorder != null;
+
+        /// <summary>기록 시작 — 프로젝트 옆 HandheldLogs/ 에 CSV 두 개를 연다.</summary>
+        public string StartRecording()
+        {
+            if (_recorder != null) return _recorder.Folder;
+            string folder = Path.Combine(
+                Path.GetDirectoryName(Application.dataPath) ?? ".", "HandheldLogs");
+            _recorder = new HandheldLog(folder);
+            Debug.Log($"[Handheld] 포즈 기록 시작 — {folder}");
+            return folder;
+        }
+
+        public void StopRecording()
+        {
+            var r = _recorder;
+            _recorder = null;
+            r?.Dispose();
+        }
+
         /// <summary>폰이 붙어 있나.</summary>
         public bool Connected => _client != null && !_client.Closed;
 
@@ -117,6 +140,7 @@ namespace Handheld
 
         void OnDisable()
         {
+            StopRecording();
             _running = false;
             try { _listener?.Stop(); } catch { }
             _client?.Close();
@@ -126,6 +150,7 @@ namespace Handheld
 
         void Update()
         {
+            _recorder?.Flush();
             while (_logQueue.TryDequeue(out var line))
                 if (logToConsole) Debug.Log("[Handheld] " + line);
         }
@@ -302,6 +327,9 @@ namespace Handheld
                 };
 
                 lock (_poseLock) { _latestPose = pose; _hasPose = true; }
+
+                _recorder?.Pose(pose.Seq, t, px, py, pz, qx, qy, qz, qw, fov, aspect, f[11],
+                    pose.Position, pose.Rotation);
             }
             catch (Exception e)
             {
