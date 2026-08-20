@@ -131,3 +131,19 @@ apps/karmolab/live-check-red.txt
 
 # 검사 판을 「긴 것부터」 세우려고 지난 판 시간을 적어 두는 자리 — 판마다 바뀌는 캐시라 담지 않는다.
 apps/karmolab/data/gate-times.json
+
+# ── Unity (apps/handheld/unity — TASK-KAR-230) ───────────────────────────────
+apps/handheld/unity/[Ll]ibrary/
+apps/handheld/unity/[Tt]emp/
+apps/handheld/unity/[Oo]bj/
+apps/handheld/unity/[Bb]uild/
+apps/handheld/unity/[Bb]uilds/
+apps/handheld/unity/[Ll]ogs/
+apps/handheld/unity/[Uu]ser[Ss]ettings/
+apps/handheld/unity/[Mm]emoryCaptures/
+apps/handheld/unity/*.csproj
+apps/handheld/unity/*.sln
+# 테스트 씬은 HandheldSetup.BuildScene() 이 코드로 짓는다 (조종석이 없으면 자동으로 짓는다).
+# 바닥 타일 169개가 통째로 직렬화돼 2만 줄이 넘는다 — 파생물이라 담지 않는다.
+apps/handheld/unity/Assets/Scenes/
+apps/handheld/unity/Assets/Scenes.meta
