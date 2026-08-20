@@ -10,7 +10,154 @@ permalink: /karmolab/changes.xml
     <atom:link href="https://blog.mascari4615.com/karmolab/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Wed, 19 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <item>
+      <title>[고침] 즐겨찾기 우클릭 메뉴 글이 열쇠 이름으로 뜰 뻔했다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-920351055</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>즐겨찾기 우클릭 메뉴 글이 열쇠 이름으로 뜰 뻔했다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 앱에 자체 우클릭 메뉴 — devtools 를 되찾고 Inspect 는 감춘다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-b05bb7db3</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>앱에 자체 우클릭 메뉴 — devtools 를 되찾고 Inspect 는 감춘다</description>
+    </item>
+    <item>
+      <title>[고침] 오류 토스트에 로그 복사 버튼이 뜨다 말다 했다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-9ceff9a91</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오류 토스트에 로그 복사 버튼이 뜨다 말다 했다</description>
+    </item>
+    <item>
+      <title>[고침] 빌드가 통째로 서던 것 — 자료 파일이 산출물로 오해받아 빠졌다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-e1d933016</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>빌드가 통째로 서던 것 — 자료 파일이 산출물로 오해받아 빠졌다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 연금복권720+ 를 같이 뽑고, 최신 회차와 자동으로 맞춰 본다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-6e522d2a5</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>연금복권720+ 를 같이 뽑고, 최신 회차와 자동으로 맞춰 본다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 즐겨찾기 기본값에 7곳 넣는다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-eac4d2874</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>즐겨찾기 기본값에 7곳 넣는다</description>
+    </item>
+    <item>
+      <title>[고침] 언어 단추에서 지역 두 글자를 뺀다 — 머리띠는 좁다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d736a6ad4</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>언어 단추에서 지역 두 글자를 뺀다 — 머리띠는 좁다</description>
+    </item>
+    <item>
+      <title>[고침] 머리띠 언어 단추가 「KO KR」 두 글자 덩어리로 보이던 것</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-720c7a627</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>머리띠 언어 단추가 「KO KR」 두 글자 덩어리로 보이던 것</description>
+    </item>
+    <item>
+      <title>[고침] 서버가 빨리 실패하면 오류 안내마저 못 떴다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-93b93f4d8</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>서버가 빨리 실패하면 오류 안내마저 못 떴다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 옆줄을 머리띠와 같은 칸으로 맞춘다 — 갈래 8칸 철거</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-aec8eb802</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>옆줄을 머리띠와 같은 칸으로 맞춘다 — 갈래 8칸 철거</description>
+    </item>
+    <item>
+      <title>[새로 생김] 즐겨찾기에 설치된 프로그램을 담고, 스트림덱처럼 보는 길</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-177fa8e7a</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>즐겨찾기에 설치된 프로그램을 담고, 스트림덱처럼 보는 길</description>
+    </item>
+    <item>
+      <title>[고침] 검사 둘이 재현을 틀리게 하고 있었다 — 브라우저 말 · 재우는 시간</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-83b617535</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>검사 둘이 재현을 틀리게 하고 있었다 — 브라우저 말 · 재우는 시간</description>
+    </item>
+    <item>
+      <title>[빨라짐] 검사 판이 11.8분 → 1.8분 — 같이 돌리고, 벽 하나를 깎는다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-51a6fbd62</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>검사 판이 11.8분 → 1.8분 — 같이 돌리고, 벽 하나를 깎는다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 시계 옆 아이콘에서 봇·서버를 바로 켜고 끈다 — 트레이 빠른 실행</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-826fd7792</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>시계 옆 아이콘에서 봇·서버를 바로 켜고 끈다 — 트레이 빠른 실행</description>
+    </item>
+    <item>
+      <title>[새로 생김] 설치가 「받아서 깔기」도 한다 — 소스 없이 동반자</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-94a9ac197</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>설치가 「받아서 깔기」도 한다 — 소스 없이 동반자</description>
+    </item>
+    <item>
+      <title>[고침] 검사를 다 돌리고 요약 줄에서 죽던 것 — 목록 항목이 객체가 됐다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-9137595ce</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>검사를 다 돌리고 요약 줄에서 죽던 것 — 목록 항목이 객체가 됐다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 머리띠에서 갈래를 걷어내고 검색칸을 올린다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-871c40bb5</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>머리띠에서 갈래를 걷어내고 검색칸을 올린다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 작업 폴더를 기계가 짐작해 채운다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-2d39c1b98</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>작업 폴더를 기계가 짐작해 채운다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 작업 폴더가 없어도 설치 목록은 그대로 보인다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3e478e65c</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>작업 폴더가 없어도 설치 목록은 그대로 보인다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 「작업 폴더」를 환경 설정으로 올린다 — 정본 한 곳</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-e769798ce</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>「작업 폴더」를 환경 설정으로 올린다 — 정본 한 곳</description>
+    </item>
+    <item>
+      <title>[고침] 설치가 저장소 뿌리를 스스로 챙긴다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-049514f9f</guid>
+      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
+      <description>설치가 저장소 뿌리를 스스로 챙긴다</description>
+    </item>
     <item>
       <title>[새로 생김] 설치 목록에 「내 컴퓨터 목소리」를 얹는다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
@@ -73,153 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-17c45e9f4</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>구독 세 개의 남은 할당량을 한 화면에</description>
-    </item>
-    <item>
-      <title>[새로 생김] 데스크톱 앱이 브라우저 로그인을 받아 온다 (RFC 8252)</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-3cf85c562</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>데스크톱 앱이 브라우저 로그인을 받아 온다 (RFC 8252)</description>
-    </item>
-    <item>
-      <title>[새로 생김] 「누가 만들었나요?」를 윗줄에서 빼고 환경 설정 안으로 옮긴다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-7fcffb0b3</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>「누가 만들었나요?」를 윗줄에서 빼고 환경 설정 안으로 옮긴다</description>
-    </item>
-    <item>
-      <title>[고침] 앱에서 디스코드 로그인하면 브라우저만 로그인되던 것</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-51bf5d342</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>앱에서 디스코드 로그인하면 브라우저만 로그인되던 것</description>
-    </item>
-    <item>
-      <title>[고침] 앱 헤더에 붙던 「앱」 배지와 「브라우저」 링크를 없앤다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-556991973</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>앱 헤더에 붙던 「앱」 배지와 「브라우저」 링크를 없앤다</description>
-    </item>
-    <item>
-      <title>[고침] 끊긴 채 열면 「쉬는 것」을 말해 주는 쪽지가 안 떴다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-262e73de5</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>끊긴 채 열면 「쉬는 것」을 말해 주는 쪽지가 안 떴다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 관문에서 못 받은 파일을 센다 — 오늘 404 두 개가 아무 데도 안 걸렸다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-58147dae4</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>관문에서 못 받은 파일을 센다 — 오늘 404 두 개가 아무 데도 안 걸렸다</description>
-    </item>
-    <item>
-      <title>[고침] 부르는 자리가 HTML 만이 아니다 — 소스에 적힌 주소도 본다 (12 → 22건)</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-bca3d6de4</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>부르는 자리가 HTML 만이 아니다 — 소스에 적힌 주소도 본다 (12 → 22건)</description>
-    </item>
-    <item>
-      <title>[고침] 인라인을 밖으로 빼며 두 기능이 조용히 죽어 있었다 — 404 를 실주소에서 잡았다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-51a94eb8a</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>인라인을 밖으로 빼며 두 기능이 조용히 죽어 있었다 — 404 를 실주소에서 잡았다</description>
-    </item>
-    <item>
-      <title>[고침] 방문 기록기를 글자로 찾다가 146장을 「없다」로 잡았다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-b97dc3a1d</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>방문 기록기를 글자로 찾다가 146장을 「없다」로 잡았다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 인라인 &lt;script&gt; 도 천장을 둔다 — 오늘 줄인 7개가 도로 늘지 않게</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-4528ebebb</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>인라인 &lt;script&gt; 도 천장을 둔다 — 오늘 줄인 7개가 도로 늘지 않게</description>
-    </item>
-    <item>
-      <title>[새로 생김] 첫 그림에 정말 필요한 스타일이 얼마인지 재는 자 — 148KB 중 26KB</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-8bf83219b</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>첫 그림에 정말 필요한 스타일이 얼마인지 재는 자 — 148KB 중 26KB</description>
-    </item>
-    <item>
-      <title>[고침] 도구 목록 검사의 「재우고 읽기」 셋을 걷어낸다 — 213 → 212</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-42e6a0e9b</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>도구 목록 검사의 「재우고 읽기」 셋을 걷어낸다 — 213 → 212</description>
-    </item>
-    <item>
-      <title>[고침] 눌러 놓고 「몇 밀리초 재우고 읽기」를 걷어낸다 — 앞 판 빨강과 같은 부류</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-7dee0a8bb</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>눌러 놓고 「몇 밀리초 재우고 읽기」를 걷어낸다 — 앞 판 빨강과 같은 부류</description>
-    </item>
-    <item>
-      <title>[고침] 오락실 자판 검사가 「누른 때」 때문에 빨갰다 — 세 번까지 눌러 본다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-8831da32e</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>오락실 자판 검사가 「누른 때」 때문에 빨갰다 — 세 번까지 눌러 본다</description>
-    </item>
-    <item>
-      <title>[고침] 흥 검사가 모양 붙기 전에 재서 라이브를 세웠다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-5aac0c504</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>흥 검사가 모양 붙기 전에 재서 라이브를 세웠다</description>
-    </item>
-    <item>
-      <title>[고침] 손가락 자가 없는 병을 만들고 있었다 — 문장 안 링크는 기준이 스스로 뺀다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-daf11325c</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>손가락 자가 없는 병을 만들고 있었다 — 문장 안 링크는 기준이 스스로 뺀다</description>
-    </item>
-    <item>
-      <title>[새로 생김] core 가 되짚기 이름의 **열쇠**도 돌려준다 — 순수함을 지키면서 말은 옮긴다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-2f45e5dd8</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>core 가 되짚기 이름의 **열쇠**도 돌려준다 — 순수함을 지키면서 말은 옮긴다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 남은 상태 줄 둘 — 더미 텍스트·되짚기. 이제 이 파일에 남은 것은 하나</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-a1a257fee</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>남은 상태 줄 둘 — 더미 텍스트·되짚기. 이제 이 파일에 남은 것은 하나</description>
-    </item>
-    <item>
-      <title>[고침] 자동 조임이 새로 넣은 톱니 칸을 통째로 날리고 있었다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-6daae7918</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>자동 조임이 새로 넣은 톱니 칸을 통째로 날리고 있었다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 값이 끼는 상태 줄 넷도 세 판으로 — 「6語のうち上位4件を出しました。」</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-53cf7eca1</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>값이 끼는 상태 줄 넷도 세 판으로 — 「6語のうち上位4件を出しました。」</description>
-    </item>
-    <item>
-      <title>[새로 생김] 글 도구 상태 줄 여섯을 세 판으로 — ja 한 화면이 **한국어 0** 이 됐다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-1e61f63c4</guid>
-      <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
-      <description>글 도구 상태 줄 여섯을 세 판으로 — ja 한 화면이 **한국어 0** 이 됐다</description>
     </item>
   </channel>
 </rss>

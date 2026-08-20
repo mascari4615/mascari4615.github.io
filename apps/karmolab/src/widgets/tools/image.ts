@@ -42,6 +42,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       label: t('image.group.hide', undefined, '가리기·지우기'),
       jobs: [
         ['bgremove', t('image.part.bgremove', undefined, '배경 지우기')],
+        ['cleanup', t('image.part.cleanup', undefined, '지우개')],
         ['redact', t('image.part.redact', undefined, '가리개')],
         ['exifclean', t('image.part.exifclean', undefined, '촬영 정보 지우기')]
       ]

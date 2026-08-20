@@ -217,7 +217,7 @@
   "widgets-desc.explainshell.desc": "コマンドラインを貼り付けると各部分の意味を説明します。取り返しのつかない命令には警告が付き、貼り付けた行はブラウザの外に出ません。",
   "widgets-desc.soundscape.desc": "雨・波・焚き火を混ぜて集中用の環境音を作ります。音源をダウンロードせずその場で生成するので、同じ音が繰り返されません。",
   "widgets-desc.codeshot.desc": "コードを貼り付けると構文着色された画像になります。フレームを選べ、ファイルはブラウザの外に出ません。",
-  "widgets-desc.bgremove.desc": "単色や近い色の背景を消して透過PNGにします。写真はブラウザの外に出ません。",
+  "widgets-desc.bgremove.desc": "背景を消して透明 PNG にします — 色で消すか、形を見分けて切り抜きます。写真はブラウザから出ません",
   "widgets-desc.idphoto.desc": "パスポート・身分証・履歴書の規格に合わせて切り取り、背景を変え、印画紙1枚に複数枚並べます。",
   "widgets-desc.docscan.desc": "斜めに撮った書類をまっすぐに直し、スキャンのように整えてPNG・PDFで出力します。写真はブラウザの外に出ません。",
   "widgets-desc.ocr.desc": "画像の中の文字を読み取ります。文字を含むPDFはより正確な道具に回し、モデルは有効にしたときだけ取得します。",
@@ -227,5 +227,6 @@
   "widgets-desc.arcade.desc": "複数のミニゲームを一人でも大勢でも遊べます。足りない席にはボットが座ります。",
   "widgets-desc.askpapers.desc": "問いを投げると論文が答えます。作られた要約ではなく、抄録に実際にある文をそのまま抜き出してリンクと共に表示します。",
   "widgets-desc.isitdown.desc": "サイトが落ちているのか自分の回線の問題なのかを切り分けます。常に生きている場所も同時に測って比べます。",
-  "widgets-desc.my-ai.desc": "自分が使っている AI サブスクの家計簿 — 今は Claude・Codex・Grok の残量。ライブ照会、塞がれたら最終観測値。"
+  "widgets-desc.my-ai.desc": "自分が使っている AI サブスクの家計簿 — 今は Claude・Codex・Grok の残量。ライブ照会、塞がれたら最終観測値。",
+  "widgets-desc.cleanup.desc": "写真の気になる所を塗ると周りの色で覆います。写真はブラウザから出ません"
 }

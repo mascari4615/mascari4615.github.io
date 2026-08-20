@@ -217,7 +217,7 @@
   "widgets-desc.explainshell.desc": "Paste a command line and it explains each piece. Irreversible commands get a warning, and what you paste never leaves your browser.",
   "widgets-desc.soundscape.desc": "Mixes rain, waves and a campfire into background sound for focus. Nothing is downloaded — the sound is generated on the spot, so it never loops the same way.",
   "widgets-desc.codeshot.desc": "Paste code and it becomes a syntax-highlighted image. Pick a frame; the file never leaves your browser.",
-  "widgets-desc.bgremove.desc": "Erases a flat or near-flat background into a transparent PNG. Photos never leave your browser.",
+  "widgets-desc.bgremove.desc": "Removes the background into a transparent PNG — by colour, or by recognising the shape. Your photo never leaves the browser",
   "widgets-desc.idphoto.desc": "Crops to passport, ID card and résumé sizes, changes the background, and lays several copies onto one print sheet.",
   "widgets-desc.docscan.desc": "Straightens a document photographed at an angle and cleans it up like a scan, as PNG or PDF. Photos never leave your browser.",
   "widgets-desc.ocr.desc": "Reads the text inside a picture. PDFs that already hold text are handed to a more accurate tool, and the model is fetched only when you turn it on.",
@@ -227,5 +227,6 @@
   "widgets-desc.arcade.desc": "Play several mini games alone or with others. Bots take the seats nobody fills.",
   "widgets-desc.askpapers.desc": "Ask a question and papers answer. Not an invented summary — it pulls sentences that really are in the abstracts and shows them with links.",
   "widgets-desc.isitdown.desc": "Tells you whether the site is down or your own connection is. It measures always-up sites alongside it for comparison.",
-  "widgets-desc.my-ai.desc": "Housekeeping for the AI subscriptions I use — for now, how much is left on Claude, Codex and Grok. Live when possible, last observed value when not."
+  "widgets-desc.my-ai.desc": "Housekeeping for the AI subscriptions I use — for now, how much is left on Claude, Codex and Grok. Live when possible, last observed value when not.",
+  "widgets-desc.cleanup.desc": "Paint over what bothers you in a photo and it is covered with the surrounding colours. Your photo never leaves the browser"
 }

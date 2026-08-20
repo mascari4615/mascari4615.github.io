@@ -1,0 +1,5 @@
+{
+  "aicutout.err.short": "画像データが足りません",
+  "aicutout.err.mismatch": "マスクと画像の大きさが違います",
+  "aicutout.err.shape": "モデルが返した画像を読み取れませんでした"
+}

@@ -148,7 +148,7 @@
   "widgets-desc.soundscape.desc": "비·파도·모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다",
   "widgets-desc.codeshot.desc": "코드를 붙여넣으면 문법 색칠된 이미지로 만듭니다. 껍데기를 골라 쓰며 파일이 브라우저를 벗어나지 않습니다",
   "widgets-desc.imgresize.desc": "가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다",
-  "widgets-desc.bgremove.desc": "단색이나 비슷한 배경을 지워 투명 PNG 로 만듭니다. 사진이 브라우저를 벗어나지 않습니다",
+  "widgets-desc.bgremove.desc": "배경을 지워 투명 PNG 로 만듭니다 — 색으로 지우거나, 모양을 알아보고 오려냅니다. 사진이 브라우저를 벗어나지 않습니다",
   "widgets-desc.idphoto.desc": "여권·주민증·이력서 규격에 맞춰 자르고, 배경을 바꾸고, 인화지 한 장에 여러 장을 놓아 줍니다",
   "widgets-desc.docscan.desc": "비스듬히 찍은 서류를 반듯하게 펴고 스캔처럼 다듬어 PNG·PDF 로 냅니다. 사진이 브라우저를 벗어나지 않습니다",
   "widgets-desc.ocr.desc": "사진 속 글자를 읽어 냅니다. 글자가 든 PDF 는 더 정확한 도구로 보내 주고, 모형은 켤 때만 받습니다",
@@ -227,5 +227,6 @@
   "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다",
   "widgets-desc.studymap.desc": "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)",
   "widgets-desc.askpapers.desc": "물음을 던지면 논문이 답합니다. 지어낸 요약이 아니라 초록에 실제로 있는 문장을 그대로 뽑아 링크와 함께 보여 줍니다",
-  "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다"
+  "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다",
+  "widgets-desc.cleanup.desc": "사진에서 거슬리는 것을 칠해서 지웁니다 — 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다"
 }

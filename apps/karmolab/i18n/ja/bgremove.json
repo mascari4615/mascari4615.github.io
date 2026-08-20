@@ -14,5 +14,16 @@
   "bgremove.status.nothing": "何も消えていません — しきい値をゆるめるか、背景を押して選んでください",
   "bgremove.status.tooMuch": "{n}% も消えました — ゆるすぎます。値を下げてください",
   "bgremove.status.saved": "透明 PNG で保存しました",
-  "bgremove.note.limits": "単色か近い色の背景だけ消します (証明写真・商品写真・スキャン)。人や物の形は認識しません — それには学習モデルが必要で、このサイトは配布しません。縁からつながった色だけ消すので、服の色が背景と同じでも内側は抜けません。"
+  "bgremove.note.limits": "色モードは単色や近い色の背景だけ消します (証明写真・商品写真・スキャン) — 端からつながった色だけ消すので、内側が背景と同じ色でも抜けません。形を見分けたいときは上の「形で切り抜く」を使ってください — そのときだけモデルを受け取ります。",
+  "bgremove.opt.trim": "余白まで切り取る",
+  "bgremove.ai.title": "形で切り抜く (一度受け取ればあとはすぐ)",
+  "bgremove.ai.person": "人を切り抜く ({mb}MB)",
+  "bgremove.ai.anything": "物や動物も ({mb}MB)",
+  "bgremove.ai.hint": "色ではなく形で切り抜きます。写真は端末から出ません — 受け取るのはモデルだけです。",
+  "bgremove.ai.license": "使うモデル: 人 = {person} / 物 = {anything}。",
+  "bgremove.ai.noncommercial": "物のモデルは非商用ライセンスです — 商用なら人のモデルか色のモードを使ってください。",
+  "bgremove.ai.done": "形で切り抜いて {n}% を残しました",
+  "bgremove.ai.empty": "何も見つかりませんでした — 別のモデルか、色で消してみてください",
+  "bgremove.ai.full": "消えた所がありません — 写真全体が被写体に見えました",
+  "bgremove.ai.backToColor": "色で消す方式に戻りました (形はボタンをもう一度押してください)"
 }

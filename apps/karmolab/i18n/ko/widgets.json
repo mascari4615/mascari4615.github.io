@@ -243,5 +243,6 @@
   "widgets.karmograph.title": "KarmoGraph",
   "widgets.studymap.title": "개발자 스터디 맵",
   "widgets.askpapers.title": "논문에게 묻기",
-  "widgets.isitdown.title": "나만 안 되나?"
+  "widgets.isitdown.title": "나만 안 되나?",
+  "widgets.cleanup.title": "지우개"
 }

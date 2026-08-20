@@ -1,0 +1,5 @@
+{
+  "aicutout.err.short": "The image data is too short",
+  "aicutout.err.mismatch": "The mask and the image are different sizes",
+  "aicutout.err.shape": "Could not read what the model returned"
+}

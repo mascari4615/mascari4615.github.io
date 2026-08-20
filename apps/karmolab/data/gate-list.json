@@ -4,32 +4,114 @@
   "목록": [
     {
       "이름": "test:gamification",
-      "볼것": ["src/widgets/gamification*", "src/widgets/gamification/**", "scripts/test-gamification.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/gamification*",
+        "src/widgets/gamification/**",
+        "scripts/test-gamification.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:planner",
-      "볼것": ["src/widgets/planner/**", "scripts/test-planner-core.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/planner/**",
+        "scripts/test-planner-core.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:meok",
-      "볼것": ["src/widgets/meok/**", "scripts/test-meok-*.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/meok/**",
+        "scripts/test-meok-*.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     "test:meok:screen",
     {
       "이름": "test:karmograph",
-      "볼것": ["src/widgets/karmograph/**", "src/lib/karmograph/**", "scripts/test-karmograph-*.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/karmograph/**",
+        "src/lib/karmograph/**",
+        "scripts/test-karmograph-*.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:karmograph:render",
-      "볼것": ["src/lib/karmograph/render.ts", "src/lib/karmograph/from-mermaid.ts", "src/core/mermaidlite.ts", "src/widgets/docs/**", "js/widgets/docs/*.md", "scripts/test-karmograph-render.mjs", "src/lib/**", "scripts/lib/**", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/lib/karmograph/render.ts",
+        "src/lib/karmograph/from-mermaid.ts",
+        "src/core/mermaidlite.ts",
+        "src/widgets/docs/**",
+        "js/widgets/docs/*.md",
+        "scripts/test-karmograph-render.mjs",
+        "src/lib/**",
+        "scripts/lib/**",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:ink",
-      "볼것": ["src/widgets/ink*", "src/widgets/ink/**", "scripts/test-ink-on.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/ink*",
+        "src/widgets/ink/**",
+        "scripts/test-ink-on.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:radio",
-      "볼것": ["src/widgets/radio*", "src/widgets/radio/**", "scripts/test-radio-core.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/radio*",
+        "src/widgets/radio/**",
+        "scripts/test-radio-core.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     "test:md",
     "test:tools",
@@ -38,11 +120,35 @@
     "test:parity",
     {
       "이름": "test:mesh3d",
-      "볼것": ["src/widgets/mesh3d*", "src/widgets/mesh3d/**", "scripts/smoke-mesh3d.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/mesh3d*",
+        "src/widgets/mesh3d/**",
+        "scripts/smoke-mesh3d.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:pinyin",
-      "볼것": ["src/widgets/charconv*", "src/widgets/charconv/**", "scripts/smoke-charconv-pinyin.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/charconv*",
+        "src/widgets/charconv/**",
+        "scripts/smoke-charconv-pinyin.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     "test:daily",
     "test:daily:rollover",
@@ -66,11 +172,35 @@
     "audit:cache",
     {
       "이름": "test:asciiart:video",
-      "볼것": ["src/widgets/tools/asciiart.ts", "scripts/smoke-asciiart-video.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/widgets/tools/asciiart.ts",
+        "scripts/smoke-asciiart-video.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     {
       "이름": "test:badapple:handoff",
-      "볼것": ["src/badapple/**", "badapple/**", "data/badapple/**", "scripts/smoke-badapple-handoff.mjs", "src/toolbox.ts", "src/widgets-lazy-meta.ts", "src/lib/**", "scripts/lib/**", "index.html", "build.mjs", "package.json", "data/gate-list.json"]
+      "볼것": [
+        "src/badapple/**",
+        "badapple/**",
+        "data/badapple/**",
+        "scripts/smoke-badapple-handoff.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
     },
     "audit:fonts",
     "audit:bg-themes",
@@ -121,6 +251,7 @@
     "test:pwned",
     "test:fhlookup",
     "test:phash",
+    "test:cutout",
     "test:xmlfmt",
     "test:reach",
     "test:ipreview",

@@ -1,0 +1,5 @@
+{
+  "aicutout.err.short": "그림 자료가 모자랍니다",
+  "aicutout.err.mismatch": "가린 자리와 그림 크기가 다릅니다",
+  "aicutout.err.shape": "모델이 낸 그림을 못 알아봤습니다"
+}
