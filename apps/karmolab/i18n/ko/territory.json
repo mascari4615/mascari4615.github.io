@@ -18,5 +18,7 @@
   "territory.msg.electionHint": "구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.",
   "territory.mode.auto": "자동",
   "territory.mode.area": "단색",
-  "territory.msg.wonSido": "시도 몇 곳에서 1등인가"
+  "territory.msg.wonSido": "시도 몇 곳에서 1등인가",
+  "territory.msg.empty": "이 화면엔 가게가 없다",
+  "territory.msg.emptyHint": "가게가 있는 곳으로 끌거나 축소해 보라."
 }
