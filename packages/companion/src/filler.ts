@@ -10,7 +10,7 @@
  */
 
 /** 결마다 다른 뜸. 늘어진 애가 「어, 잠깐만!」 하면 그건 다른 사람이다. */
-const 뜸 = {
+const warm = {
   나른함: ['음…', '으음…', '아…', '흐음…'],
   보통: ['음.', '응…', '그게…', '어…'],
   깨어있음: ['음,', '아 그거,', '잠깐,', '어디 보자,'],
@@ -32,13 +32,13 @@ export interface FillerOptions {
  * 한 번에 하나씩만 만든다 — 뜸이 그 줄에 서면 진짜 대답이 뒤에서 기다린다. 기다림을
  * 메우라고 만든 것이 기다림을 만든다(실측 4~6초). 몇 마디 안 되니 미리 만들어 둔다.
  */
-export function 모든뜸(): readonly string[] {
-  return Object.values(뜸).flat();
+export function allWarm(): readonly string[] {
+  return Object.values(warm).flat();
 }
 
 export function pickFiller(options: FillerOptions = {}): string {
   const energy = options.energy ?? 0.5;
-  const pool = energy < 0.35 ? 뜸.나른함 : energy > 0.75 ? 뜸.깨어있음 : 뜸.보통;
+  const pool = energy < 0.35 ? warm.나른함 : energy > 0.75 ? warm.깨어있음 : warm.보통;
   const roll = options.roll ?? Math.random;
 
   const usable = pool.filter((f) => f !== options.last);

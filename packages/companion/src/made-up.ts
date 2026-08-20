@@ -38,7 +38,7 @@ export function factClaims(said: string): { value: string; what: string }[] {
 }
 
 /** 값에서 숫자만 뽑는다 — 「10시 28분」과 「10시 28분입니다」가 같은 근거를 갖게. */
-const 숫자들 = (text: string): string[] => text.match(/\d+/g) ?? [];
+const numbers = (text: string): string[] => text.match(/\d+/g) ?? [];
 
 /**
  * 이 값이 어딘가에 근거가 있나.
@@ -46,8 +46,8 @@ const 숫자들 = (text: string): string[] => text.match(/\d+/g) ?? [];
  * **찾아본 것**(손이 물어다 준 것)과 **오간 말**(조수님이 알려 준 것) 둘 다 본다 —
  * 조수님이 「3시에 회의야」라고 말해 준 걸 얘가 되뇌는 건 지어낸 게 아니다.
  */
-function 근거있나(value: string, found: readonly string[], recent: readonly MemoryEntry[]): boolean {
-  const number = 숫자들(value).map((n) => n.replace(/^0+(?=\d)/, ''));
+function hasEvidence(value: string, found: readonly string[], recent: readonly MemoryEntry[]): boolean {
+  const number = numbers(value).map((n) => n.replace(/^0+(?=\d)/, ''));
   // **얘가 한 말은 근거가 아니다.**
   //
   // 안 빼면 **제가 지어낸 값을 제가 인용한다** — 라이브에서 실제로 그랬다(53회차: 한 번
@@ -77,7 +77,7 @@ export function madeUpFact(
   recent: readonly MemoryEntry[],
 ): string | null {
   for (const claim of factClaims(said)) {
-    if (근거있나(claim.value, found, recent)) continue;
+    if (hasEvidence(claim.value, found, recent)) continue;
     return `안 보고 ${claim.what}을 지어냈다 (「${claim.value}」)`;
   }
   return null;

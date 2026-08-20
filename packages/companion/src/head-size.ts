@@ -47,16 +47,16 @@ export interface 머리크기옵션 {
  * **이유를 같이 낸다.** 「왜 이 turn 만 느렸지」를 나중에 알 수 없으면, 큰 머리를 쓰는 게
  * 고장으로 보인다(오늘까지 「왜」가 없어서 실험을 다시 돌린 자리가 넷이다).
  */
-export function 어느머리(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; 왜: string } {
-  const 작은머리 = options.작은머리 ?? 'haiku';
-  const 큰머리 = options.큰머리 ?? 'sonnet';
+export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; 왜: string } {
+  const smallHead = options.작은머리 ?? 'haiku';
+  const largeHead = options.큰머리 ?? 'sonnet';
 
   // 위에서부터 본다 — 여러 개가 겹쳐도 이유는 하나만 적는다.
-  if (input.받을자리 === true) return { 머리: 큰머리, 왜: '길게 털어놨거나 감정이 실렸다' };
-  if (input.돌려줄자리 === true) return { 머리: 큰머리, 왜: '대화가 식어 가 공을 돌려줄 자리다' };
-  if (input.자기얘기 === true) return { 머리: 큰머리, 왜: '얘 자신에 대해 물었다' };
-  if (input.옛일있나 === true) return { 머리: 큰머리, 왜: '지난 일이 걸렸다' };
-  return { 머리: 작은머리, 왜: '' };
+  if (input.받을자리 === true) return { 머리: largeHead, 왜: '길게 털어놨거나 감정이 실렸다' };
+  if (input.돌려줄자리 === true) return { 머리: largeHead, 왜: '대화가 식어 가 공을 돌려줄 자리다' };
+  if (input.자기얘기 === true) return { 머리: largeHead, 왜: '얘 자신에 대해 물었다' };
+  if (input.옛일있나 === true) return { 머리: largeHead, 왜: '지난 일이 걸렸다' };
+  return { 머리: smallHead, 왜: '' };
 }
 
 /**
@@ -65,16 +65,16 @@ export function 어느머리(input: 머리고르기입력, options: 머리크기
  * 안 되돌리면 무거운 turn 한 번이 그 뒤 모든 turn 을 느리게 만든다. 조용히 그렇게 되면
  * 「어느 순간부터 느려졌다」로만 보이고 원인을 못 찾는다.
  */
-export function 머리끼우기(
+export function attachHead(
   brain: { currentModel?: () => string; useModel?: (name: string) => void },
   head: string,
   log?: (message: string) => void,
 ): () => void {
-  const 쓰던것 = brain.currentModel?.();
-  if (brain.useModel === undefined || 쓰던것 === undefined || 쓰던것 === head) return () => {};
+  const inUse = brain.currentModel?.();
+  if (brain.useModel === undefined || inUse === undefined || inUse === head) return () => {};
   brain.useModel(head);
   return () => {
-    brain.useModel?.(쓰던것);
-    log?.(`머리를 ${쓰던것} 로 되돌렸다`);
+    brain.useModel?.(inUse);
+    log?.(`머리를 ${inUse} 로 되돌렸다`);
   };
 }

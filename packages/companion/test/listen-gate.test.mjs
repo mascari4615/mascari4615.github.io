@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { 듣는문, 기본값 } from '../assets/listen-gate.js';
-import { 넘길말인가, 안넘긴이유, 말이있던구간인가 } from '../dist/index.js';
+import { shouldSkipText, keepReason, hadSpeech } from '../dist/index.js';
 
 /** 소리를 이만큼 계속 들려준다. 바뀐 순간들을 돌려준다. */
 const 들려주기 = (문, { 크기, 동안, 부터 = 0, 걸음 = 50 }) => {
@@ -91,49 +91,49 @@ test('설정을 바꾸면 그대로 먹는다 — 방마다 시끄러운 정도�
 
 test('빈 글과 한 글자는 안 넘긴다', () => {
   for (const 글 of ['', '   ', '아', '음', '.', null]) {
-    assert.equal(넘길말인가(글), false, `${글} 은 말이 아니다`);
+    assert.equal(shouldSkipText(글), false, `${글} 은 말이 아니다`);
   }
 });
 
 test('같은 글자만 늘어선 건 소리지 말이 아니다', () => {
-  assert.equal(넘길말인가('아아아아'), false);
+  assert.equal(shouldSkipText('아아아아'), false);
 });
 
 test('왜 안 넘겼는지 말할 수 있다 — 조용히 버리면 「왜 대답을 안 하지」가 된다', () => {
-  assert.equal(안넘긴이유('오늘 뭐 했어'), null);
-  assert.match(안넘긴이유(''), /안 들렸다/);
-  assert.match(안넘긴이유('시청해주셔서 감사합니다'), /말로 안 봤다/);
+  assert.equal(keepReason('오늘 뭐 했어'), null);
+  assert.match(keepReason(''), /안 들렸다/);
+  assert.match(keepReason('시청해주셔서 감사합니다'), /말로 안 봤다/);
 });
 
 test('받아쓰기가 조용한 데 붙이는 헛것은 안 넘긴다', () => {
   for (const 글 of ['시청해주셔서 감사합니다', '감사합니다.', 'Thank you.', '구독과 좋아요']) {
-    assert.equal(넘길말인가(글), false, `${글}`);
+    assert.equal(shouldSkipText(글), false, `${글}`);
   }
 });
 
 test('진짜 말은 넘긴다', () => {
   for (const 글 of ['오늘 뭐 했어', '이거 좀 봐줘', '고마워 진짜로']) {
-    assert.equal(넘길말인가(글), true, `${글}`);
+    assert.equal(shouldSkipText(글), true, `${글}`);
   }
 });
 
 // ── 말이 있던 구간인가 (글이 아니라 소리로 막는다) ─────────────────
 
 test('말소리가 거의 없던 구간은 무슨 글이 와도 안 넘긴다 — 조용한 3초에 「안녕하세요」가 나왔다', () => {
-  assert.equal(말이있던구간인가(0), false);
-  assert.equal(말이있던구간인가(150), false);
-  assert.match(안넘긴이유('안녕하세요.', 100), /말소리가 거의 없던/);
+  assert.equal(hadSpeech(0), false);
+  assert.equal(hadSpeech(150), false);
+  assert.match(keepReason('안녕하세요.', 100), /말소리가 거의 없던/);
 });
 
 test('실제로 말한 구간은 통과한다 — 좁게 막지 않으면 불러도 대답을 안 한다', () => {
-  assert.equal(말이있던구간인가(1200), true);
-  assert.equal(안넘긴이유('오늘 뭐 했어', 1200), null);
+  assert.equal(hadSpeech(1200), true);
+  assert.equal(keepReason('오늘 뭐 했어', 1200), null);
 });
 
 test('창이 안 알려 주면 막지 않는다 — 버튼으로 누른 건 사람이 말한다고 알려 준 것이다', () => {
-  assert.equal(말이있던구간인가(null), true);
-  assert.equal(말이있던구간인가(undefined), true);
-  assert.equal(안넘긴이유('오늘 뭐 했어'), null);
+  assert.equal(hadSpeech(null), true);
+  assert.equal(hadSpeech(undefined), true);
+  assert.equal(keepReason('오늘 뭐 했어'), null);
 });
 
 // ── 말 도중에 끊고 들어오기 (76회차) ────────────────────────────────

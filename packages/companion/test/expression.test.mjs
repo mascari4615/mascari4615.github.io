@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Face, expressionFrom, expressionNote, isExpression, stripExpression, 평소 } from '../dist/index.js';
+import { Face, expressionFrom, expressionNote, isExpression, stripExpression, usual } from '../dist/index.js';
 
 const 마음 = (valence, arousal) => ({ valence, arousal });
 
@@ -50,11 +50,11 @@ test('표가 없어도 돌아간다 — 표에만 기대면 두뇌를 갈아 끼
 });
 
 test('웃는 말이면 웃는 얼굴', () => {
-  assert.equal(expressionFrom({ feeling: 평소, text: 'ㅋㅋ 진짜' }), '웃음');
+  assert.equal(expressionFrom({ feeling: usual, text: 'ㅋㅋ 진짜' }), '웃음');
 });
 
 test('놀란 말이면 놀란 얼굴', () => {
-  assert.equal(expressionFrom({ feeling: 평소, text: '어? 그래?' }), '놀람');
+  assert.equal(expressionFrom({ feeling: usual, text: '어? 그래?' }), '놀람');
 });
 
 test('언짢은데 깨어 있으면 뾰족한 얼굴 — 놀란 것과 다르다', () => {
@@ -67,8 +67,8 @@ test('푹 가라앉으면 졸린 얼굴', () => {
 });
 
 test('평온이 기본이다 — 늘 뭔가 짓고 있으면 표정이 아니라 경련이다', () => {
-  assert.equal(expressionFrom({ feeling: 평소 }), '평온');
-  assert.equal(expressionFrom({ feeling: 평소, text: '그냥 하는 말' }), '평온');
+  assert.equal(expressionFrom({ feeling: usual }), '평온');
+  assert.equal(expressionFrom({ feeling: usual, text: '그냥 하는 말' }), '평온');
 });
 
 test('아는 표정만 나온다', () => {

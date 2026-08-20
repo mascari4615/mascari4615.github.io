@@ -10,12 +10,12 @@ import type { Brain, MemoryEntry, ThinkInput } from '../types';
  * 곁에 있는 존재는 **한 군데가 없다고 통째로 죽으면 안 된다.** 쓸 때 불러온다. 없으면
  * 그 두뇌만 못 쓰고, **왜 못 쓰는지 말한다** — 조용히 다른 걸로 넘어가면 「왜 딴 목소리지」가 된다.
  */
-async function 불러오기(): Promise<(env: NodeJS.ProcessEnv, prompt: string, opts: { timeoutMs: number; tag: string }) => Promise<{ text: string }>> {
+async function load(): Promise<(env: NodeJS.ProcessEnv, prompt: string, opts: { timeoutMs: number; tag: string }) => Promise<{ text: string }>> {
   /* 이름을 **변수로 돌려서** 불러온다. 그냥 적으면 타입 검사기가 「이 패키지가 반드시
      있어야 한다」고 못 박아, 없을 때 빌드부터 막힌다 — 없어도 되는 두뇌인데 그러면
      이 자리를 만든 뜻이 없다. */
-  const 어디 = 'karmolab-ai/node';
-  const mod = (await import(어디)) as unknown;
+  const where = 'karmolab-ai/node';
+  const mod = (await import(where)) as unknown;
   return (mod as { generateAssistantText: (env: NodeJS.ProcessEnv, prompt: string, opts: { timeoutMs: number; tag: string }) => Promise<{ text: string }> }).generateAssistantText;
 }
 
@@ -43,7 +43,7 @@ export function assistantBrain(options: AssistantBrainOptions = {}): Brain {
       const prompt = buildPrompt(input);
       let generateAssistantText;
       try {
-        generateAssistantText = await 불러오기();
+        generateAssistantText = await load();
       } catch (e) {
         throw new Error(`이 두뇌는 옆 패키지(karmolab-ai)가 있어야 쓴다 — 지금은 없다: ${(e as Error)?.message ?? e}`);
       }

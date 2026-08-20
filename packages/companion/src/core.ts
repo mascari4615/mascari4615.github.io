@@ -426,12 +426,12 @@ export class Companion {
     // 여기서 막으면 애초에 그 말이 나가지 않는다. 관문이 없으면 그냥 지나간다.
     if (this.options.beforeSpeak !== undefined) {
       try {
-        const 거른것 = await this.options.beforeSpeak(text.trim(), { sensation, input, usedHands: writer, found: input.found ?? [] });
-        if (거른것 === null || 거른것.trim() === '') {
+        const filtered = await this.options.beforeSpeak(text.trim(), { sensation, input, usedHands: writer, found: input.found ?? [] });
+        if (filtered === null || filtered.trim() === '') {
           onCycle?.({ sensation, decision: { respond: false, reason: '입 앞에서 걸렀다' }, utterance: null });
           return;
         }
-        text = 거른것;
+        text = filtered;
       } catch (e) {
         // 관문이 고장 나도 입을 막지는 않는다 — 말 못 하는 것보다 새는 편이 낫다.
         onCycle?.({ sensation, decision, utterance: null, error: asError(e) });

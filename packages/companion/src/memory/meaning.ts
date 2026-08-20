@@ -42,14 +42,14 @@ interface 담긴줄 {
 }
 
 /** 두 벡터가 얼마나 닮았나 (둘 다 길이 1 로 맞춰져 있다고 본다). */
-export function 닮은정도(a: readonly number[], b: readonly number[]): number {
+export function similarity(a: readonly number[], b: readonly number[]): number {
   const n = Math.min(a.length, b.length);
-  let 합 = 0;
-  for (let i = 0; i < n; i += 1) 합 += (a[i] as number) * (b[i] as number);
-  return 합;
+  let sum = 0;
+  for (let i = 0; i < n; i += 1) sum += (a[i] as number) * (b[i] as number);
+  return sum;
 }
 
-export class 뜻기억 {
+export class meaningMemory {
   private readonly 담김: 담긴줄[] = [];
   private readonly 최대: number;
   private readonly 문턱: number;
@@ -142,10 +142,10 @@ export class 뜻기억 {
     const v = await this.options.재기.재기(글);
     if (v === null) return [];
 
-    const 뺄것 = options.뺄것 ?? new Set<string>();
+    const toDrop = options.뺄것 ?? new Set<string>();
     return this.담김
-      .filter((줄) => 뺄것.has(줄.text) === false && 줄.text !== 글)
-      .map((줄) => ({ text: 줄.text, 닮음: 닮은정도(v, 줄.v) }))
+      .filter((줄) => toDrop.has(줄.text) === false && 줄.text !== 글)
+      .map((줄) => ({ text: 줄.text, 닮음: similarity(v, 줄.v) }))
       .filter((r) => r.닮음 >= this.문턱)
       .sort((a, b) => b.닮음 - a.닮음)
       .slice(0, options.몇개 ?? 3);
@@ -159,40 +159,40 @@ export class 뜻기억 {
  * 기다리게 하지 않는다 — 준비될 때까지는 `null` 을 돌려주고, 준비되면 그때부터 잰다.
  * 91회차에서 목소리에 쓴 규율과 같다: 무거운 건 뒤에서 켜고, 그 사이엔 하던 대로 한다.
  */
-export function 작은모델로재기(options: { 모델?: string; log?: (m: string) => void } = {}): 뜻재기 {
-  const 모델 = options.모델 ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
+export function measureWithSmallModel(options: { 모델?: string; log?: (m: string) => void } = {}): 뜻재기 {
+  const model = options.모델 ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
   const log = options.log ?? (() => {});
-  let 준비된것: ((글: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
-  let 준비중 = false;
-  let 못함 = false;
+  let ready: ((글: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
+  let preparing = false;
+  let unavailable = false;
 
-  const 준비 = (): void => {
-    if (준비중 || 못함 || 준비된것 !== null) return;
-    준비중 = true;
+  const prepare = (): void => {
+    if (preparing || unavailable || ready !== null) return;
+    preparing = true;
     const start = Date.now();
     void import('@huggingface/transformers')
-      .then(({ pipeline }) => pipeline('feature-extraction', 모델))
+      .then(({ pipeline }) => pipeline('feature-extraction', model))
       .then((p) => {
-        준비된것 = p as unknown as (글: string, opts: unknown) => Promise<{ data: Float32Array }>;
+        ready = p as unknown as (글: string, opts: unknown) => Promise<{ data: Float32Array }>;
         log(`뜻 재는 자리가 준비됐다 (${Math.round((Date.now() - start) / 1000)}초)`);
       })
       .catch((e) => {
-        못함 = true;
+        unavailable = true;
         log(`뜻을 못 재게 됐다 — 낱말로만 찾는다: ${e instanceof Error ? e.message : String(e)}`);
       })
       .finally(() => {
-        준비중 = false;
+        preparing = false;
       });
   };
 
   return {
     async 재기(글: string): Promise<readonly number[] | null> {
-      if (준비된것 === null) {
-        준비();
+      if (ready === null) {
+        prepare();
         return null;
       }
       try {
-        const out = await 준비된것(글, { pooling: 'mean', normalize: true });
+        const out = await ready(글, { pooling: 'mean', normalize: true });
         return Array.from(out.data);
       } catch (e) {
         log(`뜻을 재다 실패했다: ${e instanceof Error ? e.message : String(e)}`);

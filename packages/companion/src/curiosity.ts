@@ -133,9 +133,9 @@ export function maybeAsk(
  * 안 떼면 같은 말이 「회의가」 「회의를」 「회의는」으로 흩어져 매번 새로 궁금해한다.
  */
 export function stripParticle(word: string): string {
-  const 조사 = ['에서는', '에서도', '으로는', '이라고', '라고', '에서', '으로', '한테', '에게', '까지', '부터',
+  const particle = ['에서는', '에서도', '으로는', '이라고', '라고', '에서', '으로', '한테', '에게', '까지', '부터',
     '이랑', '들이', '들을', '들은', '은', '는', '이', '가', '을', '를', '에', '와', '과', '랑', '도', '만', '의'];
-  for (const j of 조사) {
+  for (const j of particle) {
     if (word.length > j.length + 1 && word.endsWith(j)) return word.slice(0, -j.length);
   }
   return word;

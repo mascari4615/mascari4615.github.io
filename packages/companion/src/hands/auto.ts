@@ -33,7 +33,7 @@ export interface HandHint {
  * 「지금 몇 시」는 시각을 묻는 게 확실하지만 「시간 없어」는 아니다. 넓게 잡으면 잡담마다
  * 손이 돌아 느려지고, 안 물어본 걸 들이밀게 된다.
  */
-export const 기본힌트: readonly HandHint[] = [
+export const defaultHint: readonly HandHint[] = [
   { hand: '시계', when: /(지금 몇 시|몇 시야|몇 시지|몇 시니|시간 좀|지금 시각|오늘 며칠|무슨 요일)/ },
   { hand: '창목록', when: /(무슨 창|어떤 창|창 열려|뭐 열려|뭐 켜|열려 ?있)/ },
   {
@@ -87,7 +87,7 @@ export interface AutoHandsOptions {
 export function pickHand(
   said: string,
   hands: readonly Hand[],
-  hints: readonly HandHint[] = 기본힌트,
+  hints: readonly HandHint[] = defaultHint,
 ): { hand: Hand; argument: string } | null {
   const t = said.trim();
   for (const hint of hints) {
@@ -109,7 +109,7 @@ export async function autoUse(
   hands: readonly Hand[],
   options: AutoHandsOptions = {},
 ): Promise<string[]> {
-  const picked = pickHand(said, hands, options.hints ?? 기본힌트);
+  const picked = pickHand(said, hands, options.hints ?? defaultHint);
   if (picked === null) return [];
 
   try {

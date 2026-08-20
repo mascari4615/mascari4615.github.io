@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { KnownStamps, 갓알게된것, 얼마나오래 } from '../dist/index.js';
+import { KnownStamps, justLearned, howLong } from '../dist/index.js';
 
 const 하루 = 24 * 60 * 60_000;
 
@@ -48,10 +48,10 @@ test('빈 아는 것에도 안 죽는다', () => {
 
 test('얼마나 오래 알았는지 사람 말로', () => {
   const 지금 = 100 * 하루;
-  assert.match(얼마나오래({ 처음: 지금 - 하루 * 30, 마지막: 지금 }, 지금), /오래전부터/);
-  assert.match(얼마나오래({ 처음: 지금 - 하루 * 5, 마지막: 지금 }, 지금), /며칠 전/);
-  assert.match(얼마나오래({ 처음: 지금 - 하루 * 1.5, 마지막: 지금 }, 지금), /어제오늘/);
-  assert.match(얼마나오래({ 처음: 지금 - 1000, 마지막: 지금 }, 지금), /방금/);
+  assert.match(howLong({ 처음: 지금 - 하루 * 30, 마지막: 지금 }, 지금), /오래전부터/);
+  assert.match(howLong({ 처음: 지금 - 하루 * 5, 마지막: 지금 }, 지금), /며칠 전/);
+  assert.match(howLong({ 처음: 지금 - 하루 * 1.5, 마지막: 지금 }, 지금), /어제오늘/);
+  assert.match(howLong({ 처음: 지금 - 1000, 마지막: 지금 }, 지금), /방금/);
 });
 
 // ── 두뇌에 얹는 한 줄 ────────────────────────────────────────────────
@@ -62,7 +62,7 @@ test('오늘 처음 안 것만 짚는다 — 예전부터 알던 척을 막는 �
   s.sync('- 커피를 좋아함');
   지금 += 하루 * 9;
   s.sync('- 커피를 좋아함\n- 오늘 이사했음');
-  const note = 갓알게된것('- 커피를 좋아함\n- 오늘 이사했음', s, 지금);
+  const note = justLearned('- 커피를 좋아함\n- 오늘 이사했음', s, 지금);
   assert.match(note, /오늘 이사했음/);
   assert.equal(note.includes('커피'), false, '오래된 것은 안 얹는다');
   assert.match(note, /예전부터 알던 것처럼 말하지 마라/);
@@ -73,7 +73,7 @@ test('오늘 안 게 없으면 아무 말도 안 얹는다 — 늘 붙으면 재
   const s = new KnownStamps({ now: () => 지금 });
   s.sync('- 커피를 좋아함');
   지금 += 하루 * 3;
-  assert.equal(갓알게된것('- 커피를 좋아함', s, 지금), '');
+  assert.equal(justLearned('- 커피를 좋아함', s, 지금), '');
 });
 
 test('너무 많이 늘어놓지 않는다', () => {
@@ -81,12 +81,12 @@ test('너무 많이 늘어놓지 않는다', () => {
   const s = new KnownStamps({ now: () => 지금 });
   const 여러줄 = Array.from({ length: 8 }, (_, i) => `- ${i}번 알게 됨`).join('\n');
   s.sync(여러줄);
-  assert.equal((갓알게된것(여러줄, s, 지금).match(/번 알게 됨/g) ?? []).length, 3);
+  assert.equal((justLearned(여러줄, s, 지금).match(/번 알게 됨/g) ?? []).length, 3);
 });
 
 test('모르는 줄은 안 짚는다 — 아직 세어 본 적 없는 것을 오늘 것으로 치면 안 된다', () => {
   const s = new KnownStamps({ now: () => 5 * 하루 });
-  assert.equal(갓알게된것('- 처음 보는 줄', s, 5 * 하루), '');
+  assert.equal(justLearned('- 처음 보는 줄', s, 5 * 하루), '');
 });
 
 // ── 껐다 켜기 ───────────────────────────────────────────────────────

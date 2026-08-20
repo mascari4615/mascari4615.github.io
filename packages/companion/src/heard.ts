@@ -14,29 +14,29 @@
  */
 
 /** 받아쓰기가 조용한 데다 자주 붙이는 말들. */
-const 헛것 = [
+const phantom = [
   '감사합니다', '시청해주셔서감사합니다', '구독과좋아요', '구독좋아요',
   '음', '아', '어', '으', '네', '예',
   'thankyou', 'thanksforwatching', 'you', 'bye', 'okay', 'ok',
 ];
 
-const 민말 = (content: string): string => content.replace(/[\s.,!?~…。、·"'’”]/g, '').toLowerCase();
+const pushedText = (content: string): string => content.replace(/[\s.,!?~…。、·"'’”]/g, '').toLowerCase();
 
 /**
  * 이 받아쓴 글을 사람이 한 말로 볼까.
  *
  * 좁게 막는다 — 진짜 한 말을 막으면 「불러도 대답을 안 한다」가 되고, 그게 헛것보다 나쁘다.
  */
-export function 넘길말인가(글: string | null | undefined): boolean {
+export function shouldSkipText(글: string | null | undefined): boolean {
   const text = String(글 ?? '').trim();
   if (text === '') return false;
-  const 민 = 민말(text);
+  const pushed = pushedText(text);
   // 글자 둘 미만은 헛것일 확률이 훨씬 높다. 「응」 「네」 한 마디는 아쉽지만, 아무도
   // 말 안 걸었는데 대꾸하는 쪽이 훨씬 이상하다.
-  if (민.length < 2) return false;
-  if (헛것.includes(민)) return false;
+  if (pushed.length < 2) return false;
+  if (phantom.includes(pushed)) return false;
   // 같은 글자만 늘어선 것(「ㅋㅋㅋ」이 아니라 「아아아아」류)도 소리지 말이 아니다.
-  if (/^(.)\1*$/u.test(민)) return false;
+  if (/^(.)\1*$/u.test(pushed)) return false;
   return true;
 }
 
@@ -56,18 +56,18 @@ export function 넘길말인가(글: string | null | undefined): boolean {
  * 창이 안 알려 주면(버튼으로 누른 경우 등) 막지 않는다 — 그때는 사람이 「지금 말한다」고
  * 알려 준 것이라 지어낼 여지가 훨씬 적다.
  */
-export function 말이있던구간인가(spokenMs: number | null | undefined): boolean {
+export function hadSpeech(spokenMs: number | null | undefined): boolean {
   if (spokenMs === null || spokenMs === undefined || Number.isFinite(spokenMs) === false) return true;
   return spokenMs >= 400;
 }
 
 /** 왜 안 넘겼는지 — 조용히 버리면 「왜 대답을 안 하지」가 된다. */
-export function 안넘긴이유(글: string | null | undefined, 말한ms?: number | null): string | null {
+export function keepReason(글: string | null | undefined, 말한ms?: number | null): string | null {
   const 말 = String(글 ?? '').trim();
   if (말 === '') return '아무 말도 안 들렸다';
-  if (말이있던구간인가(말한ms) === false) {
+  if (hadSpeech(말한ms) === false) {
     return `말소리가 거의 없던 구간이다 (${Math.round(말한ms as number)}ms) — 받아쓰기가 지어낸 「${말.slice(0, 20)}」`;
   }
-  if (넘길말인가(말)) return null;
+  if (shouldSkipText(말)) return null;
   return `말로 안 봤다 — 「${말.slice(0, 30)}」`;
 }

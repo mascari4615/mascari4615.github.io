@@ -89,9 +89,9 @@ export class KnownStamps {
 
   /** 잘못 쌓인 줄을 지운다 — 「아는 것」에서 지울 때 같이 부른다. */
   forget(line: string): boolean {
-    const 지웠나 = this.표.delete(다듬기(line));
-    if (지웠나) this.save();
-    return 지웠나;
+    const wasErased = this.표.delete(다듬기(line));
+    if (wasErased) this.save();
+    return wasErased;
   }
 
   private save(): void {
@@ -106,7 +106,7 @@ export class KnownStamps {
 }
 
 /** 얼마나 오래 알던 것인가 — 사람이 쓰는 말로. */
-export function 얼마나오래(stamp: KnownStamp, now: number): string | null {
+export function howLong(stamp: KnownStamp, now: number): string | null {
   const pastDays = Math.floor((now - stamp.처음) / (24 * 60 * 60_000));
   if (pastDays >= 14) return '오래전부터 알던';
   if (pastDays >= 3) return '며칠 전부터 알던';
@@ -120,13 +120,13 @@ export function 얼마나오래(stamp: KnownStamp, now: number): string | null {
  * 전부에 날짜를 붙이면 재료가 두 배로 불어나고, 재료가 넘치면 정작 중요한 게 밀린다.
  * 사고가 나는 건 한쪽뿐이다 — **방금 안 걸 예전부터 알던 것처럼 말하는 것.** 그것만 막는다.
  */
-export function 갓알게된것(
+export function justLearned(
   known: string | null,
   stamps: KnownStamps,
   now: number,
-   최대 = 3,
+   max = 3,
 ): string {
-  const 갓 = (known ?? '')
+  const just = (known ?? '')
     .split('\n')
     .map((l) => 다듬기(l))
     .filter((l) => l !== '')
@@ -134,10 +134,10 @@ export function 갓알게된것(
       const s = stamps.stampOf(l);
       return s !== null && now - s.처음 < 24 * 60 * 60_000;
     })
-    .slice(0, 최대);
-  if (갓.length === 0) return '';
+    .slice(0, max);
+  if (just.length === 0) return '';
   return (
-    `이건 **오늘 처음 알게 된 것**이다: ${갓.join(' / ')}. ` +
+    `이건 **오늘 처음 알게 된 것**이다: ${just.join(' / ')}. ` +
     '예전부터 알던 것처럼 말하지 마라 — 방금 들은 걸 오래 알던 척하면 오히려 아무것도 ' +
     '기억 못 하는 티가 난다.'
   );

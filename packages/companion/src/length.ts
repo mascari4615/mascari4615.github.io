@@ -46,18 +46,18 @@ const loadedWords = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|�
  *   여느 때**와 견준다(사람마다 말길이가 다르다. 표를 손으로 정하다 오늘만 세 번 당했다).
  * - **감정이 실렸다** — 짧아도 「망했어」는 한마디로 받으면 안 된다.
  */
-export function 받을길이(input: 받을길이입력): string {
+export function acceptLength(input: 받을길이입력): string {
   const justNow = input.방금.trim();
   if (justNow === '') return '';
 
-  const usual = 여느때길이(input.recent);
+  const usual = usualLength(input.recent);
   /* 바닥을 하나 둔다. 말수가 아주 적은 사람이면 여느 때가 서너 자라, 그 두 배인 여덟
      자에도 켜진다 — 여덟 자는 털어놓은 게 아니다. 두 마디쯤(24자)은 돼야 한다. */
-  const 길게털어놨다 = justNow.length >= Math.max(24, usual * 2);
-  const 감정 = loadedWords.test(justNow);
-  if (길게털어놨다 === false && 감정 === false) return '';
+  const toldAtLength = justNow.length >= Math.max(24, usual * 2);
+  const emotion = loadedWords.test(justNow);
+  if (toldAtLength === false && emotion === false) return '';
 
-  const why = 길게털어놨다
+  const why = toldAtLength
     ? '조수님이 여느 때보다 길게 털어놨다'
     : '조수님 말에 감정이 실렸다';
   return (
@@ -72,12 +72,12 @@ export function 받을길이(input: 받을길이입력): string {
  * 딱 잘라 「30자 넘으면 긴 것」으로 하면 말수 적은 사람은 영영 안 걸리고 말 많은 사람은
  * 늘 걸린다. 그 사람 자신과 견준다.
  */
-export function 여느때길이(recent: readonly MemoryEntry[]): number {
+export function usualLength(recent: readonly MemoryEntry[]): number {
   const userText = recent.filter((e) => e.role === 'sensed' && e.channel === 'web').slice(-30, -1);
   if (userText.length < 4) return 0; // 아직 견줄 것이 없으면 길이로는 안 켠다
-  const 길이들 = userText.map((e) => e.text.trim().length).sort((a, b) => a - b);
+  const lengths = userText.map((e) => e.text.trim().length).sort((a, b) => a - b);
   // 평균이 아니라 가운데값 — 한 번 길게 쓴 것이 여느 때를 통째로 끌어올리면 안 된다.
-  return 길이들[Math.floor(길이들.length / 2)] ?? 0;
+  return lengths[Math.floor(lengths.length / 2)] ?? 0;
 }
 
 /**
@@ -86,7 +86,7 @@ export function 여느때길이(recent: readonly MemoryEntry[]): number {
  * 「받아 주라고 시켰다」는 만든 사람 말이고, **실제로 길어졌나**가 결과다. 시켜 놓고 안
  * 세면 재료만 얹고 됐다고 하게 된다(오늘까지 그런 자리를 넷 찾았다).
  */
-export function 짧게받았나(said: string, shouldAccept: boolean, threshold = 12): string | null {
+export function wasShort(said: string, shouldAccept: boolean, threshold = 12): string | null {
   if (shouldAccept === false) return null;
   const 말 = said.trim();
   /* **되묻는 말은 짧아도 끊은 게 아니다.** 라이브에서 이걸 안 갈랐다가 「뭐가 재밌었어?」를

@@ -54,8 +54,8 @@ export interface DiscordBodyOptions {
 export function discordBody(options: DiscordBodyOptions): Body {
   const channel = options.channel ?? 'discord';
   const log = options.log ?? (() => {});
-  const 들을곳 = options.채널들 === undefined ? null : new Set(options.채널들);
-  let 마지막채널: string | null = null;
+  const listenTarget = options.채널들 === undefined ? null : new Set(options.채널들);
+  let lastChannel: string | null = null;
 
   const sense: Sense = {
     name: `${channel}:sense`,
@@ -63,13 +63,13 @@ export function discordBody(options: DiscordBodyOptions): Body {
       options.붙이기.들어올때((말) => {
         // 제 말에 제가 답하면 끝없이 돈다 — 봇 글은 아예 안 듣는다.
         if (말.봇인가) return;
-        if (들을곳 !== null && 들을곳.has(말.채널) === false) return;
+        if (listenTarget !== null && listenTarget.has(말.채널) === false) return;
         const 글 = 말.글.trim();
         if (글 === '') return;
-        마지막채널 = 말.채널;
+        lastChannel = 말.채널;
         emit({ channel, kind: 'text', text: 글, at: Date.now(), 누가: 말.누가 });
       });
-      log(`디스코드 몸이 듣기 시작했다${들을곳 === null ? '' : ` (${[...들을곳].join(', ')})`}`);
+      log(`디스코드 몸이 듣기 시작했다${listenTarget === null ? '' : ` (${[...listenTarget].join(', ')})`}`);
     },
     async stop() {
       await options.붙이기.끊기?.();
@@ -81,18 +81,18 @@ export function discordBody(options: DiscordBodyOptions): Body {
     async speak(utterance: Utterance) {
       const 글 = utterance.text.trim();
       if (글 === '') return;
-      if (마지막채널 === null) {
+      if (lastChannel === null) {
         // 아직 아무 말도 안 들어왔는데 말이 나가려 한다 — 어디로 보낼지 모른다.
         log('어디로 보낼지 몰라서 못 보냈다 (아직 들어온 말이 없다)');
         return;
       }
-      const 방 = options.붙이기.채널잡기(마지막채널);
-      if (방 === null) {
-        log(`채널을 못 잡았다: ${마지막채널}`);
+      const room = options.붙이기.채널잡기(lastChannel);
+      if (room === null) {
+        log(`채널을 못 잡았다: ${lastChannel}`);
         return;
       }
       try {
-        await 방.보내기(글);
+        await room.보내기(글);
       } catch (e) {
         // 한 마디 못 보냈다고 얘가 죽으면 안 된다.
         log(`못 보냈다: ${e instanceof Error ? e.message : String(e)}`);
@@ -117,8 +117,8 @@ export async function discordJs(options: {
   /* 이름을 변수에 담아 부른다 — 이 패키지는 discord.js 를 **필수 의존성으로 안 갖는다.**
      디스코드를 안 쓰는 자리(대부분)에서 그것 때문에 빌드가 막히면 안 된다. 없으면 이
      함수만 실패하고, 몸·코어는 그대로 돈다. */
-  const 라이브러리 = 'discord.js';
-  const { Client, GatewayIntentBits, Partials } = (await import(라이브러리)) as unknown as {
+  const library = 'discord.js';
+  const { Client, GatewayIntentBits, Partials } = (await import(library)) as unknown as {
     Client: new (o: unknown) => {
       on: (e: string, f: (...a: unknown[]) => void) => void;
       login: (t: string) => Promise<unknown>;

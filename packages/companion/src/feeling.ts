@@ -23,7 +23,7 @@ export interface Feeling {
 }
 
 /** 아무 일도 없을 때의 자리. 살짝 처진 쪽이 이 얘의 평소다. */
-export const 평소: Feeling = { valence: 0.05, arousal: -0.1 };
+export const usual: Feeling = { valence: 0.05, arousal: -0.1 };
 
 /** 무슨 일이 마음을 얼마나 미는가. */
 export const events = {
@@ -44,7 +44,7 @@ export const events = {
 
 export type 일 = keyof typeof events;
 
-const 묶기 = (x: number): number => Math.max(-1, Math.min(1, x));
+const group = (x: number): number => Math.max(-1, Math.min(1, x));
 
 export interface FeelingOptions {
   /** 이만큼 지나면 절반쯤 제자리로 돌아온다. */
@@ -59,7 +59,7 @@ export interface FeelingOptions {
  * 물어보든 답이 같아야 하므로, 지난 시간만으로 계산하고 안에서 따로 재지 않는다.
  */
 export class Heart {
-  private feeling: Feeling = { ...평소 };
+  private feeling: Feeling = { ...usual };
   private at: number;
   private readonly halfLife: number;
   private readonly now: () => number;
@@ -71,12 +71,12 @@ export class Heart {
   }
 
   /** 무슨 일이 있었다. */
-  felt(what: 일, 세기 = 1): Feeling {
+  felt(what: 일, count = 1): Feeling {
     const 지금 = this.settle();
-    const 민다 = events[what];
+    const push = events[what];
     this.feeling = {
-      valence: 묶기(지금.valence + 민다.valence * 세기),
-      arousal: 묶기(지금.arousal + 민다.arousal * 세기),
+      valence: group(지금.valence + push.valence * count),
+      arousal: group(지금.arousal + push.arousal * count),
     };
     return { ...this.feeling };
   }
@@ -95,22 +95,22 @@ export class Heart {
   colour(mood: { energy: number; warmth: number }): { energy: number; warmth: number } {
     const 지금 = this.settle();
     return {
-      energy: Math.max(0, Math.min(1, mood.energy + (지금.arousal - 평소.arousal) * 0.25)),
-      warmth: Math.max(0, Math.min(1, mood.warmth + (지금.valence - 평소.valence) * 0.25)),
+      energy: Math.max(0, Math.min(1, mood.energy + (지금.arousal - usual.arousal) * 0.25)),
+      warmth: Math.max(0, Math.min(1, mood.warmth + (지금.valence - usual.valence) * 0.25)),
     };
   }
 
   /** 지난 시간만큼 제자리로 되돌린다. */
   private settle(): Feeling {
     const 지금 = this.now();
-    const 지난 = Math.max(0, 지금 - this.at);
+    const past = Math.max(0, 지금 - this.at);
     this.at = 지금;
-    if (지난 === 0) return { ...this.feeling };
+    if (past === 0) return { ...this.feeling };
 
-    const 남는비율 = Math.pow(0.5, 지난 / this.halfLife);
+    const keepRatio = Math.pow(0.5, past / this.halfLife);
     this.feeling = {
-      valence: 평소.valence + (this.feeling.valence - 평소.valence) * 남는비율,
-      arousal: 평소.arousal + (this.feeling.arousal - 평소.arousal) * 남는비율,
+      valence: usual.valence + (this.feeling.valence - usual.valence) * keepRatio,
+      arousal: usual.arousal + (this.feeling.arousal - usual.arousal) * keepRatio,
     };
     return { ...this.feeling };
   }

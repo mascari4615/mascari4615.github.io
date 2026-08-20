@@ -20,7 +20,7 @@ export interface DriftRules {
   avoid?: readonly RegExp[];
 }
 
-const 기본금지: readonly RegExp[] = [
+const defaultBan: readonly RegExp[] = [
   /* 존댓말 — 곁에 있는 사이에 갑자기 격식이 끼면 그게 표류다.
      **처음엔 몇 개만 적어 놨다가 통째로 놓쳤다**(87회차 실측). 얘가 「…없는 상태예요」
      「답답하신 게 있어요?」라고 말하는데 검사가 조용했다 — 「해요」만 막아 놓으니
@@ -56,7 +56,7 @@ export function checkDrift(said: string, rules: DriftRules = {}): Drift {
 
   if (text.length > maxChars) problems.push(`너무 길다 (${text.length}자)`);
 
-  for (const bad of rules.avoid ?? 기본금지) {
+  for (const bad of rules.avoid ?? defaultBan) {
     if (bad.test(text)) {
       problems.push('말투가 조수 쪽으로 샜다');
       break;
@@ -93,7 +93,7 @@ export function driftWarning(recent: readonly MemoryEntry[], rules: DriftRules =
  * 실측(13→14회차): 개발 얘기를 여섯 번 물었더니 네 번이 「나도 잘 모르는데…」였다. 말투는
  * 인격 그대로였으니 표류 감시엔 안 걸린다. 한 번은 솔직한 거고, 세 번 이어지면 벽이다.
  */
-const 회피표시: readonly RegExp[] = [
+const avoidanceMark: readonly RegExp[] = [
   /(모르|몰라|모르겠)/,
   /^(그렇구나|그렇군|그래\.?$|음\.?$|아\.?$)/,
   /(잘 몰라|잘 모르)/,
@@ -103,7 +103,7 @@ export function avoidanceWarning(recent: readonly MemoryEntry[], howMany = 3): s
   const mine = recent.filter((e) => e.role === 'said').slice(-howMany);
   if (mine.length < 2) return '';
 
-  const dodged = mine.filter((e) => 회피표시.some((p) => p.test(e.text)));
+  const dodged = mine.filter((e) => avoidanceMark.some((p) => p.test(e.text)));
   if (dodged.length < 2) return '';
 
   return (

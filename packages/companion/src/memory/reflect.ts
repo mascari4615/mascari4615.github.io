@@ -37,11 +37,11 @@ export interface 되새김옵션 {
   keep?: number;
   /** 새 사람 말이 이만큼 쌓이면 한 번 되새긴다. */
   마다?: number;
-  물어보기?: (exchange: readonly MemoryEntry[], 이미아는것: readonly string[]) => Promise<readonly 깨달음[] | null>;
+  물어보기?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly 깨달음[] | null>;
   log?: (message: string) => void;
 }
 
-export class 되새김 {
+export class reflection {
   private 목록: 깨달음[] = [];
   private 센말 = 0;
   private readonly options: Required<Pick<되새김옵션, 'keep' | '마다'>> & 되새김옵션;
@@ -151,7 +151,7 @@ function word(text: string): string[] {
  *
  * 늘 붙이면 얘가 사람을 계속 분석하는 꼴이 된다. 그건 곁에 있는 게 아니라 지켜보는 것이다.
  */
-export function 되새김노트(store: 되새김, currentText: string): string {
+export function reflectionNote(store: reflection, currentText: string): string {
   const 지금 = new Set(word(currentText));
   if (지금.size === 0) return '';
   const 걸린것 = store.all

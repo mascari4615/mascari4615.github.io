@@ -1,4 +1,4 @@
-import { 아는말, judge, pickWord, play, startWordChain, type WordChain } from './word-chain';
+import { knownWords, judge, pickWord, play, startWordChain, type WordChain } from './word-chain';
 
 /**
  * 놀이 중 — 대화 한가운데서 놀이가 시작되고 끝나는 자리.
@@ -14,8 +14,8 @@ import { 아는말, judge, pickWord, play, startWordChain, type WordChain } from
  */
 export type PlayReply = { say: string; playing: boolean };
 
-const 하자 = /(끝말잇기|끝말 잇기)/;
-const 그만 = /(그만|관두|안 해|안해|됐어|스톱|stop|졌다|항복)/i;
+const letsDo = /(끝말잇기|끝말 잇기)/;
+const stopIt = /(그만|관두|안 해|안해|됐어|스톱|stop|졌다|항복)/i;
 
 export interface PlayOptions {
   /** 얘가 아는 말. 시험에서 갈아 끼운다. */
@@ -49,7 +49,7 @@ export class Playing {
     const text = said.trim();
 
     if (this.chain === null) {
-      if (하자.test(text) === false) return null;
+      if (letsDo.test(text) === false) return null;
       this.chain = startWordChain();
       // 시작은 얘가 낸다 — 「먼저 해」 하고 미루는 건 같이 노는 게 아니다.
       const firstText = pickWord(this.chain, this.words, this.roll);
@@ -61,7 +61,7 @@ export class Playing {
       return { say: `좋아. ${firstText}.`, playing: true };
     }
 
-    if (그만.test(text)) {
+    if (stopIt.test(text)) {
       const count = this.chain.used.length;
       this.chain = null;
       return { say: count >= 6 ? `…재밌었어. ${count}개나 했네.` : '…응, 그만하자.', playing: false };
@@ -72,22 +72,22 @@ export class Playing {
     // 처음엔 아무 말이나 다 한 수로 받았는데, 실제로 놀다 보니 판을 열어 둔 걸 잊고 딴 말을
     // 하면 「한글로만 해야지. 내가 이겼다」가 튀어나왔다(실측). 끝말잇기 수는 **낱말 하나**지
     // 문장이 아니다. 문장은 대화로 흘려보낸다 — 놀이가 대화를 잡아먹으면 안 된다.
-    if (한수처럼생겼나(text) === false) return null;
+    if (looksLikeMove(text) === false) return null;
 
-    const 한수 = play(this.chain, text, '조수님');
-    if (한수.chain.winner !== null) {
+    const move = play(this.chain, text, '조수님');
+    if (move.chain.winner !== null) {
       this.chain = null;
-      return { say: `${한수.judged.why} 내가 이겼다.`, playing: false };
+      return { say: `${move.judged.why} 내가 이겼다.`, playing: false };
     }
 
-    const 낼말 = pickWord(한수.chain, this.words, this.roll);
-    if (낼말 === null) {
+    const textToSay = pickWord(move.chain, this.words, this.roll);
+    if (textToSay === null) {
       this.chain = null;
       return { say: `…${text[text.length - 1]}… 모르겠어. 내가 졌다.`, playing: false };
     }
 
-    this.chain = play(한수.chain, 낼말, '나').chain;
-    return { say: `${낼말}.`, playing: true };
+    this.chain = play(move.chain, textToSay, '나').chain;
+    return { say: `${textToSay}.`, playing: true };
   }
 
   /** 판을 접는다 (창을 닫거나 할 때). */
@@ -96,7 +96,7 @@ export class Playing {
   }
 
   private get words(): readonly string[] {
-    return this.options.words ?? 아는말;
+    return this.options.words ?? knownWords;
   }
 
   private get roll(): () => number {
@@ -111,7 +111,7 @@ export class Playing {
  * 다만 **틀린 수는 통과시킨다**(영어·한 글자) — 그건 규칙 위반으로 지는 자리지, 대화가
  * 아니다. 안 그러면 규칙이 없는 놀이가 된다.
  */
-export function 한수처럼생겼나(said: string): boolean {
+export function looksLikeMove(said: string): boolean {
   const t = said.trim();
   if (t === '' || /[\s]/.test(t)) return false;
   if (/[?？!！.…,]/.test(t)) return false;
@@ -120,7 +120,7 @@ export function 한수처럼생겼나(said: string): boolean {
 
 /** 이 말이 놀이를 걸어오는 말인가 (놀이 밖에서 미리 보고 싶을 때). */
 export function invitesPlay(said: string): boolean {
-  return 하자.test(said.trim());
+  return letsDo.test(said.trim());
 }
 
 /** 판정만 빌려 쓰고 싶을 때. */

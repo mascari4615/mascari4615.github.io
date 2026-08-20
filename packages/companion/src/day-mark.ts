@@ -49,12 +49,12 @@ export function dayMark(entries: readonly MemoryEntry[], options: DayMarkOptions
   // 오늘 아직 아무 말도 안 나눴고, 전에 만난 적이 있다면 — 오늘 처음이다.
   if (todays.length === 0 && before.length > 0) {
     const lastDay = date(before[before.length - 1]?.at ?? at);
-    const 그날 = before.filter((e) => date(e.at) === lastDay).slice(-2).map((e) => e.text.slice(0, 50));
-    const 며칠 = Math.max(1, Math.round((at - (before[before.length - 1]?.at ?? at)) / 86_400_000));
+    const thatDay = before.filter((e) => date(e.at) === lastDay).slice(-2).map((e) => e.text.slice(0, 50));
+    const daysAgo = Math.max(1, Math.round((at - (before[before.length - 1]?.at ?? at)) / 86_400_000));
     return {
       kind: '첫인사',
       note:
-        `오늘 조수님을 처음 만났다 (${며칠}일 만이다). 마지막으로 나눈 얘기: ${그날.map((t) => `「${t}」`).join(', ')}. ` +
+        `오늘 조수님을 처음 만났다 (${daysAgo}일 만이다). 마지막으로 나눈 얘기: ${thatDay.map((t) => `「${t}」`).join(', ')}. ` +
         '그중 **한 조각만 집어서** 안부를 물어라 — 그게 어제와 오늘을 잇는다. ' +
         '「응」 한 마디로 넘기지 말고, 요약해 늘어놓지도 마라.',
     };
@@ -62,13 +62,13 @@ export function dayMark(entries: readonly MemoryEntry[], options: DayMarkOptions
 
   // 늦은 시간이고 오늘 제법 얘기했다면 — 하루를 닫을 만하다.
   const hour = new Date(at).getHours();
-  const 늦었다 = hour >= closingHour || hour < 4;
-  if (늦었다 && todays.length >= minTurns) {
-    const 오늘거리 = todays.slice(-2).map((e) => e.text.slice(0, 50));
+  const late = hour >= closingHour || hour < 4;
+  if (late && todays.length >= minTurns) {
+    const todayTopic = todays.slice(-2).map((e) => e.text.slice(0, 50));
     return {
       kind: '마무리',
       note:
-        `오늘 하루가 저물었다. 오늘 나눈 얘기: ${오늘거리.map((t) => `「${t}」`).join(', ')}. ` +
+        `오늘 하루가 저물었다. 오늘 나눈 얘기: ${todayTopic.map((t) => `「${t}」`).join(', ')}. ` +
         '오늘 있었던 것 중 **하나만 집어서** 한마디 해라. 정리하거나 훈수 두지 말고, ' +
         '「수고했어」 같은 빈말로 때우지도 마라.',
     };

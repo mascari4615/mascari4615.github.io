@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Heart, splitTone, toneOf, withTone, 기분결, 기분빠르기, 평소 } from '../dist/index.js';
+import { Heart, splitTone, toneOf, withTone, 기분결, 기분빠르기, usual } from '../dist/index.js';
 
 test('평소에는 아무것도 안 얹는다 — 늘 뭔가 얹혀 있으면 그건 결이 아니라 왜곡이다', () => {
-  assert.equal(toneOf(평소), null);
+  assert.equal(toneOf(usual), null);
   assert.equal(toneOf({ valence: 0.1, arousal: -0.2 }), null);
 });
 

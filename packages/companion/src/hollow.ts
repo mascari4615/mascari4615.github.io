@@ -22,14 +22,14 @@ import type { MemoryEntry } from './types';
  */
 
 /** 알맹이가 없는 대꾸 — 호응·머뭇거림뿐. */
-const 텅빈꼴 = /^[…\s.]*(응|어|음|아|오|네|그래|그렇구나|그러게|그치|맞아|알겠|오케이|ㅇㅇ|글쎄|몰라|모르겠)[…\s.!?~]*$/;
+const emptyShape = /^[…\s.]*(응|어|음|아|오|네|그래|그렇구나|그러게|그치|맞아|알겠|오케이|ㅇㅇ|글쎄|몰라|모르겠)[…\s.!?~]*$/;
 
 /** 이 한마디가 텅 비었나. */
 export function isHollow(text: string): boolean {
   const t = text.trim();
   if (t === '') return true;
   // 짧아도 뜻이 있으면 텅 빈 게 아니다 — 「소파…」는 답이다.
-  return 텅빈꼴.test(t);
+  return emptyShape.test(t);
 }
 
 /**
@@ -66,10 +66,10 @@ export function hollowReason(
   if (isHollow(text) === false) return null;
 
   const atLeast = options.atLeast ?? 2;
-  const 이어진것 = hollowStreak(entries) + 1; // 이번 것까지
-  if (이어진것 < atLeast) return null;
+  const joined = hollowStreak(entries) + 1; // 이번 것까지
+  if (joined < atLeast) return null;
 
-  return `${이어진것}번째 알맹이 없는 대꾸다 (「${text.trim()}」)`;
+  return `${joined}번째 알맹이 없는 대꾸다 (「${text.trim()}」)`;
 }
 
 /**

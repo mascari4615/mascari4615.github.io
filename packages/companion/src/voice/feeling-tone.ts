@@ -1,5 +1,5 @@
 import type { Feeling } from '../feeling';
-import { 평소 } from '../feeling';
+import { usual } from '../feeling';
 
 /**
  * 마음이 목소리에 닿는 자리.
@@ -19,8 +19,8 @@ export type Tone = '들뜸' | '처짐' | '뾰족' | '누그러짐';
 
 /** 이 마음이 어느 결인가. 평소 언저리면 null — 아무것도 안 얹는다. */
 export function toneOf(feeling: Feeling): Tone | null {
-  const v = feeling.valence - 평소.valence;
-  const a = feeling.arousal - 평소.arousal;
+  const v = feeling.valence - usual.valence;
+  const a = feeling.arousal - usual.arousal;
   if (Math.abs(v) < 0.2 && Math.abs(a) < 0.25) return null;
 
   if (a >= 0.25) return v < -0.15 ? '뾰족' : '들뜸';

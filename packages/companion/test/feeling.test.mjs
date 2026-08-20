@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Heart, feelingNote, 평소 } from '../dist/index.js';
+import { Heart, feelingNote, usual } from '../dist/index.js';
 
 /** 시계를 손에 쥐고 쓰는 마음. */
 const 마음 = (options = {}) => {
@@ -12,33 +12,33 @@ const 마음 = (options = {}) => {
 
 test('아무 일 없으면 평소 자리에 있다', () => {
   const { heart } = 마음();
-  assert.deepEqual(heart.state, 평소);
+  assert.deepEqual(heart.state, usual);
 });
 
 test('웃어 주면 마음이 좋은 쪽으로 움직인다', () => {
   const { heart } = 마음();
   const 뒤 = heart.felt('웃어줌');
-  assert.ok(뒤.valence > 평소.valence);
-  assert.ok(뒤.arousal > 평소.arousal);
+  assert.ok(뒤.valence > usual.valence);
+  assert.ok(뒤.arousal > usual.arousal);
 });
 
 test('시들하면 나쁜 쪽으로 움직인다', () => {
   const { heart } = 마음();
-  assert.ok(heart.felt('시들함').valence < 평소.valence);
+  assert.ok(heart.felt('시들함').valence < usual.valence);
 });
 
 test('쿡 찔리면 기분은 별로인데 깬다 — 두 축이 따로 논다', () => {
   const { heart } = 마음();
   const 뒤 = heart.felt('쿡찔림');
-  assert.ok(뒤.arousal > 평소.arousal, '깨긴 한다');
-  assert.ok(뒤.valence < 평소.valence, '좋진 않다');
+  assert.ok(뒤.arousal > usual.arousal, '깨긴 한다');
+  assert.ok(뒤.valence < usual.valence, '좋진 않다');
 });
 
 test('쓰다듬으면 좋으면서 가라앉는다 — 찔리는 것과 반대 방향이다', () => {
   const { heart } = 마음();
   const 뒤 = heart.felt('쓰다듬김');
-  assert.ok(뒤.valence > 평소.valence);
-  assert.ok(뒤.arousal < 평소.arousal);
+  assert.ok(뒤.valence > usual.valence);
+  assert.ok(뒤.arousal < usual.arousal);
 });
 
 test('같은 일이 겹치면 더 밀린다', () => {
@@ -77,15 +77,15 @@ test('시간이 지나면 제자리로 돌아온다 — 안 돌아오면 기분�
   흐르게(60_000);
   const 한참뒤 = heart.state.valence;
   assert.ok(한참뒤 < 직후);
-  assert.ok(Math.abs(한참뒤 - 평소.valence) < 0.02, '거의 평소로 돌아와야 한다');
+  assert.ok(Math.abs(한참뒤 - usual.valence) < 0.02, '거의 평소로 돌아와야 한다');
 });
 
 test('반감기만큼 지나면 절반쯤 돌아온다', () => {
   const { heart, 흐르게 } = 마음();
   const 직후 = heart.felt('웃어줌').valence;
-  const 밀린것 = 직후 - 평소.valence;
+  const 밀린것 = 직후 - usual.valence;
   흐르게(10_000);
-  const 남은것 = heart.state.valence - 평소.valence;
+  const 남은것 = heart.state.valence - usual.valence;
   assert.ok(Math.abs(남은것 - 밀린것 / 2) < 0.01, `절반쯤 남아야 한다 (${남은것} vs ${밀린것 / 2})`);
 });
 
@@ -107,7 +107,7 @@ test('나쁜 쪽으로 밀린 것도 제자리로 돌아온다 — 한 번 삐�
   const { heart, 흐르게 } = 마음();
   for (let i = 0; i < 5; i += 1) heart.felt('무시당함');
   흐르게(120_000);
-  assert.ok(Math.abs(heart.state.valence - 평소.valence) < 0.02);
+  assert.ok(Math.abs(heart.state.valence - usual.valence) < 0.02);
 });
 
 // ── 시계 기분 위에 얹기 ─────────────────────────────────────────────
@@ -134,7 +134,7 @@ test('얹어도 0과 1 밖으로 안 나간다', () => {
 // ── 두뇌에 넘길 한 줄 ────────────────────────────────────────────────
 
 test('평소에는 아무 말도 안 얹는다 — 늘 기분 얘기를 하면 그게 소음이다', () => {
-  assert.equal(feelingNote(평소), '');
+  assert.equal(feelingNote(usual), '');
 });
 
 test('감정 이름을 붙이지 않는다 — 이름을 주면 그 감정을 연기한다', () => {
