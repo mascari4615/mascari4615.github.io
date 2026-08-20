@@ -128,9 +128,9 @@ export function tallyReport(tally: Tally): string {
     .map(({ name, m, 지나감 }) => {
       const state = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
       // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
-      const 왜 = m.마지막왜 === undefined ? '' : `
+      const why2 = m.마지막왜 === undefined ? '' : `
 ${' '.repeat(10)}↳ ${m.마지막왜}`;
-      return `${name.padEnd(8)} ${state.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${왜}`;
+      return `${name.padEnd(8)} ${state.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${why2}`;
     })
     .join('\n');
 }

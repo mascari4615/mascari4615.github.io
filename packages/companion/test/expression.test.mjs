@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { Face, expressionFrom, expressionNote, isExpression, stripExpression, usual } from '../dist/index.js';
 
-const 마음 = (valence, arousal) => ({ valence, arousal });
+const mood = (valence, arousal) => ({ valence, arousal });
 
 // ── 표 뽑아내기 ─────────────────────────────────────────────────────
 
@@ -41,12 +41,12 @@ test('아는 표정인지 가릴 수 있다', () => {
 // ── 얼굴 유도 ───────────────────────────────────────────────────────
 
 test('두뇌가 단 표가 가장 세다 — 얘가 스스로 고른 것이니까', () => {
-  assert.equal(expressionFrom({ feeling: 마음(-0.9, -0.9), tagged: '웃음' }), '웃음');
+  assert.equal(expressionFrom({ feeling: mood(-0.9, -0.9), tagged: '웃음' }), '웃음');
 });
 
 test('표가 없어도 돌아간다 — 표에만 기대면 두뇌를 갈아 끼울 때 얼굴이 죽는다', () => {
-  assert.equal(expressionFrom({ feeling: 마음(0.6, 0.1) }), '웃음');
-  assert.equal(expressionFrom({ feeling: 마음(-0.6, 0.1) }), '뾰족');
+  assert.equal(expressionFrom({ feeling: mood(0.6, 0.1) }), '웃음');
+  assert.equal(expressionFrom({ feeling: mood(-0.6, 0.1) }), '뾰족');
 });
 
 test('웃는 말이면 웃는 얼굴', () => {
@@ -58,12 +58,12 @@ test('놀란 말이면 놀란 얼굴', () => {
 });
 
 test('언짢은데 깨어 있으면 뾰족한 얼굴 — 놀란 것과 다르다', () => {
-  assert.equal(expressionFrom({ feeling: 마음(-0.5, 0.5) }), '뾰족');
-  assert.equal(expressionFrom({ feeling: 마음(0.3, 0.5) }), '놀람');
+  assert.equal(expressionFrom({ feeling: mood(-0.5, 0.5) }), '뾰족');
+  assert.equal(expressionFrom({ feeling: mood(0.3, 0.5) }), '놀람');
 });
 
 test('푹 가라앉으면 졸린 얼굴', () => {
-  assert.equal(expressionFrom({ feeling: 마음(0, -0.7) }), '졸림');
+  assert.equal(expressionFrom({ feeling: mood(0, -0.7) }), '졸림');
 });
 
 test('평온이 기본이다 — 늘 뭔가 짓고 있으면 표정이 아니라 경련이다', () => {
@@ -74,7 +74,7 @@ test('평온이 기본이다 — 늘 뭔가 짓고 있으면 표정이 아니라
 test('아는 표정만 나온다', () => {
   for (let v = -1; v <= 1; v += 0.2) {
     for (let a = -1; a <= 1; a += 0.2) {
-      assert.equal(isExpression(expressionFrom({ feeling: 마음(v, a) })), true, `${v},${a} 에서 모르는 표정이 나왔다`);
+      assert.equal(isExpression(expressionFrom({ feeling: mood(v, a) })), true, `${v},${a} 에서 모르는 표정이 나왔다`);
     }
   }
 });
@@ -115,8 +115,8 @@ test('꼭 달라고 시키지 않는다 — 안 달아도 돌아가야 한다', 
 });
 
 test('안내에 적힌 표는 실제로 뽑히는 표와 같다 — 어긋나면 얼굴이 영영 안 바뀐다', () => {
-  const 안내 = expressionNote();
-  for (const m of 안내.matchAll(/\[([^\]]+)\]/g)) {
+  const notice = expressionNote();
+  for (const m of notice.matchAll(/\[([^\]]+)\]/g)) {
     assert.equal(stripExpression(`[${m[1]}] 말`).tagged, m[1], `안내의 [${m[1]}] 이 안 뽑힌다`);
   }
 });

@@ -89,8 +89,8 @@ import { markLive } from './shared/say';
     if (value === null) return `<div class="jt-row" data-path="${esc(path)}">${name}<span class="jt-null">null</span></div>`;
     if (typeof value !== 'object') {
       const kind = typeof value === 'string' ? 'str' : typeof value === 'number' ? 'num' : 'bool';
-      const 글 = typeof value === 'string' ? `"${esc(value)}"` : esc(String(value));
-      return `<div class="jt-row" data-path="${esc(path)}">${name}<span class="jt-${kind}">${글}</span></div>`;
+      const content = typeof value === 'string' ? `"${esc(value)}"` : esc(String(value));
+      return `<div class="jt-row" data-path="${esc(path)}">${name}<span class="jt-${kind}">${content}</span></div>`;
     }
     const arr = Array.isArray(value);
     const entries = arr

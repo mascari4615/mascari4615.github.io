@@ -314,12 +314,12 @@ import { readInvocation } from '../../lib/tool-url';
               out.className = 'tool-status';
               return;
             }
-            const 평 = baseSquareMeters / 3.3057851;
-            const perPyeong = manwon / 평;
+            const pyeong2 = baseSquareMeters / 3.3057851;
+            const perPyeong = manwon / pyeong2;
             const perSquare = manwon / baseSquareMeters;
             const manwonText = (n: number): string =>
               n>= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
-            out.textContent = `${평.toFixed(2)}평 · 평당 ${manwonText(perPyeong)} · ㎡당 ${manwonText(perSquare)}`;
+            out.textContent = `${pyeong2.toFixed(2)}평 · 평당 ${manwonText(perPyeong)} · ㎡당 ${manwonText(perSquare)}`;
             out.className = 'tool-status ok';
           }
 

@@ -3,11 +3,11 @@ import test from 'node:test';
 
 import { nudgeSense, reasonToSpeak } from '../dist/index.js';
 
-const 분 = 60_000;
-const 시간 = 60 * 분;
+const minutes = 60_000;
+const time = 60 * minutes;
 
-const 기본 = {
-  sinceTalkedMs: 30 * 분,
+const base = {
+  sinceTalkedMs: 30 * minutes,
   wondering: null,
   windowTitle: null,
   lastWindowTitle: null,
@@ -15,45 +15,45 @@ const 기본 = {
 };
 
 test('방금까지 얘기하던 참이면 끼어들지 않는다', () => {
-  assert.equal(reasonToSpeak({ ...기본, sinceTalkedMs: 2 * 분 }), null);
+  assert.equal(reasonToSpeak({ ...base, sinceTalkedMs: 2 * minutes }), null);
 });
 
 test('할 말이 없으면 조용하다 — 말 걸려고 말 걸지 않는다', () => {
-  assert.equal(reasonToSpeak(기본), null);
+  assert.equal(reasonToSpeak(base), null);
 });
 
 test('하던 일이 바뀌면 그게 말 걸 이유가 된다', () => {
-  const r = reasonToSpeak({ ...기본, sinceTalkedMs: 25 * 분, windowTitle: '새 창', lastWindowTitle: '옛 창' });
+  const r = reasonToSpeak({ ...base, sinceTalkedMs: 25 * minutes, windowTitle: '새 창', lastWindowTitle: '옛 창' });
   assert.ok(r !== null);
   assert.match(r.why, /새 창/);
 });
 
 test('같은 창을 계속 보고 있으면 말 걸지 않는다', () => {
-  assert.equal(reasonToSpeak({ ...기본, sinceTalkedMs: 25 * 분, windowTitle: '같은 창', lastWindowTitle: '같은 창' }), null);
+  assert.equal(reasonToSpeak({ ...base, sinceTalkedMs: 25 * minutes, windowTitle: '같은 창', lastWindowTitle: '같은 창' }), null);
 });
 
 test('한참 조용하면 담아 둔 궁금증을 꺼낸다', () => {
-  const r = reasonToSpeak({ ...기본, sinceTalkedMs: 50 * 분, wondering: '그 게임 얘기' });
+  const r = reasonToSpeak({ ...base, sinceTalkedMs: 50 * minutes, wondering: '그 게임 얘기' });
   assert.match(r.why, /그 게임 얘기/);
 });
 
 test('궁금증이 있어도 방금 얘기했으면 안 꺼낸다', () => {
-  assert.equal(reasonToSpeak({ ...기본, sinceTalkedMs: 15 * 분, wondering: '그 게임 얘기' }), null);
+  assert.equal(reasonToSpeak({ ...base, sinceTalkedMs: 15 * minutes, wondering: '그 게임 얘기' }), null);
 });
 
 test('새벽까지 안 자면 그건 말 걸 만한 일이다', () => {
-  const r = reasonToSpeak({ ...기본, hour: 3, sinceTalkedMs: 40 * 분 });
+  const r = reasonToSpeak({ ...base, hour: 3, sinceTalkedMs: 40 * minutes });
   assert.match(r.why, /안 자고/);
 });
 
 test('아주 오래 못 봤으면 아는 척 한 번', () => {
-  const r = reasonToSpeak({ ...기본, sinceTalkedMs: 9 * 시간 });
+  const r = reasonToSpeak({ ...base, sinceTalkedMs: 9 * time });
   assert.match(r.why, /오랜만/);
 });
 
 test('한 번에 한 가지 이유만 든다 — 여러 개를 쏟으면 알림이 된다', () => {
   const r = reasonToSpeak({
-    ...기본, hour: 3, sinceTalkedMs: 9 * 시간, wondering: '뭐 하나', windowTitle: '새 창', lastWindowTitle: '옛 창',
+    ...base, hour: 3, sinceTalkedMs: 9 * time, wondering: '뭐 하나', windowTitle: '새 창', lastWindowTitle: '옛 창',
   });
   assert.equal(typeof r.why, 'string');
   assert.equal(r.why.includes('오랜만') && r.why.includes('궁금'), false);

@@ -47,7 +47,7 @@ interface 담긴것 {
 }
 
 /** 지어 온 덩어리에서 쓸 만한 줄만 골라낸다. */
-export function select(raw: string, 최대글자 = 20): string[] {
+export function select(raw: string, maxChars2 = 20): string[] {
   const produced: string[] = [];
   for (const line of raw.split('\n')) {
     // 목록 기호·번호·따옴표는 「말」이 아니라 포장이다. 벗겨서 본다.
@@ -56,9 +56,9 @@ export function select(raw: string, 최대글자 = 20): string[] {
       .replace(/^["'「『]|["'」』]$/g, '')
       .trim();
     if (stripped === '') continue;
-    if (stripped.length > 최대글자) continue;
+    if (stripped.length > maxChars2) continue;
     // 짧은 자리에 존댓말·도우미 말투가 끼면 그게 표류다 (drift 와 같은 잣대).
-    if (checkDrift(stripped, { maxChars: 최대글자 }).drifted) continue;
+    if (checkDrift(stripped, { maxChars: maxChars2 }).drifted) continue;
     if (produced.includes(stripped)) continue;
     produced.push(stripped);
   }
@@ -108,8 +108,8 @@ export class lineStore {
   }
 
   /** 이 갈래에 지금 몇 개 담겨 있나 (지금 인격 것만 센다). */
-  남은수(갈래: string): number {
-    const item = this.담김.get(갈래);
+  남은수(kind2: string): number {
+    const item = this.담김.get(kind2);
     if (item === undefined || item.누구 !== this.지금누구) return 0;
     return item.말들.length;
   }
@@ -118,10 +118,10 @@ export class lineStore {
    * 하나 꺼낸다 — **꺼낸 것은 없어진다.** 담아 둔 것을 다시 쓰면 결국 또 도는 말이 된다.
    * 비었으면 `null` — 부르는 쪽이 손으로 적어 둔 표로 물러선다.
    */
-  꺼내기(갈래: string): string | null {
-    const 것 = this.담김.get(갈래);
-    if (것 === undefined || 것.누구 !== this.지금누구 || 것.말들.length === 0) return null;
-    const text = 것.말들.shift() as string;
+  꺼내기(kind3: string): string | null {
+    const item2 = this.담김.get(kind3);
+    if (item2 === undefined || item2.누구 !== this.지금누구 || item2.말들.length === 0) return null;
+    const text = item2.말들.shift() as string;
     this.쓰기();
     return text;
   }
@@ -132,11 +132,11 @@ export class lineStore {
    *
    * 같은 갈래를 두 번 겹쳐 채우지 않는다(느린 두뇌를 여러 번 부르면 진짜 대답이 밀린다).
    */
-  async 채우기(갈래: string, request: string, goal = this.최대): Promise<number> {
-    if (this.채우는중.has(갈래)) return 0;
-    const now = this.남은수(갈래);
+  async 채우기(kind4: string, request: string, goal = this.최대): Promise<number> {
+    if (this.채우는중.has(kind4)) return 0;
+    const now = this.남은수(kind4);
     if (now >= Math.min(goal, this.최대)) return 0;
-    this.채우는중.add(갈래);
+    this.채우는중.add(kind4);
     try {
       const count = Math.min(goal, this.최대) - now;
       const persona = this.options.인격글?.() ?? null;
@@ -147,7 +147,7 @@ export class lineStore {
           request,
           `${count}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
         ]
-          .filter((줄) => 줄 !== null)
+          .filter((line2) => line2 !== null)
           .join('\n\n')
       );
       if (raw === null) return 0;
@@ -155,27 +155,27 @@ export class lineStore {
       if (toWrite.length === 0) {
         // **뭐가 왔길래 다 걸러졌는지 같이 남긴다.** 「걸러졌다」만 있으면 두뇌가 이상한
         // 건지 거르는 잣대가 빡빡한 건지 못 가른다 — 실제로 첫 판에 그래서 막혔다.
-        this.log(`[대사] ${갈래} — 지어 온 게 다 걸러졌다: ${raw.trim().slice(0, 120).replace(/\n/g, ' / ')}`);
+        this.log(`[대사] ${kind4} — 지어 온 게 다 걸러졌다: ${raw.trim().slice(0, 120).replace(/\n/g, ' / ')}`);
         return 0;
       }
-      const 것 = this.담김.get(갈래);
-      const already = 것 !== undefined && 것.누구 === this.지금누구 ? 것.말들 : [];
-      const merged = [...already, ...toWrite.filter((말) => notStored(already, 말))].slice(0, this.최대);
-      this.담김.set(갈래, { 누구: this.지금누구, 말들: merged });
+      const item3 = this.담김.get(kind4);
+      const already = item3 !== undefined && item3.누구 === this.지금누구 ? item3.말들 : [];
+      const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.최대);
+      this.담김.set(kind4, { 누구: this.지금누구, 말들: merged });
       this.쓰기();
-      this.log(`[대사] ${갈래} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
+      this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
       return toWrite.length;
     } catch (e) {
       // 못 지어도 대꾸는 나간다. 조용히 넘기지 말고 왜 못 지었는지는 남긴다.
-      this.log(`[대사] ${갈래} — 못 지었다: ${(e as Error).message}`);
+      this.log(`[대사] ${kind4} — 못 지었다: ${(e as Error).message}`);
       return 0;
     } finally {
-      this.채우는중.delete(갈래);
+      this.채우는중.delete(kind4);
     }
   }
 }
 
 /** 아직 안 담긴 말인가 (같은 말을 두 벌 담지 않게). */
-function notStored(이미: readonly string[], 말: string): boolean {
-  return 이미.includes(말) === false;
+function notStored(already2: readonly string[], text3: string): boolean {
+  return already2.includes(text3) === false;
 }

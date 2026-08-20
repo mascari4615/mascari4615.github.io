@@ -253,12 +253,12 @@ import { checkPassword, verdict } from '../../lib/pwned';
             /* 세기는 글자 수가 아니라 **고른 가짓수**로 센다 — 조각 하나가 SYLLABLE_SPACE 가지다.
                글자 기준으로 재면 이 방식이 실제보다 약해 보인다(길지만 소문자뿐이라서). */
             const bits = Math.log2(Math.pow(SYLLABLE_SPACE, n) * 100);
-            const 초 = Math.pow(2, bits - 1) / 1e10;
-            const 년 = 초 / 3.15e7;
+            const seconds2 = Math.pow(2, bits - 1) / 1e10;
+            const year2 = seconds2 / 3.15e7;
             const timeText =
-              년> 1e6
-                ? t('passgen.time.eons', { n: (년 / 1e8).toExponential(1) })
-                : humanDuration(초);
+              year2> 1e6
+                ? t('passgen.time.eons', { n: (year2 / 1e8).toExponential(1) })
+                : humanDuration(seconds2);
             stats.innerHTML =
               statCell(t('passgen.stat.strength'), bits>= 80 ? t('passgen.level.veryStrong2') : bits>= 60 ? t('passgen.level.strong2') : bits>= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
               statCell(t('passgen.stat.holdsFor'), timeText) +

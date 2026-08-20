@@ -33,16 +33,16 @@ const TOOLS = ['text', 'uuidgen', 'hashgen', 'asciiart'];
    한 번도 안 돌았다. 내 자리에서는 옛 빌드가 남긴 textdiff.js 때문에 초록으로 보였다(더 나쁘다).
    지어진 메타에서 그 도구가 어느 묶음인지 읽어 그 파일을 본다. */
 const metaPath = path.join(root, 'js/widgets-lazy-meta.js');
-const 메타 = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, 'utf8') : '';
+const meta2 = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, 'utf8') : '';
 const bundle = (id) => {
-  const m = new RegExp('id:"' + id + '",[^}]*?bundle:"([^"]+)"').exec(메타);
+  const m = new RegExp('id:"' + id + '",[^}]*?bundle:"([^"]+)"').exec(meta2);
   return m ? m[1] : id;
 };
 const hits = (name) => ['js/widgets/tools/' + name + '.js', 'js/widgets/' + name + '.js']
   .find((rel) => fs.existsSync(path.join(root, rel))) || null;
 const readSites = (id) => hits(id) || hits(bundle(id));
 {
-  const missing = 메타 ? TOOLS.filter((id) => !readSites(id)) : TOOLS;
+  const missing = meta2 ? TOOLS.filter((id) => !readSites(id)) : TOOLS;
   if (missing.length) {
     console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${missing.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
     process.exit(2);

@@ -3,49 +3,49 @@ import test from 'node:test';
 
 import { acceptLength, usualLength, wasShort } from '../dist/index.js';
 
-const 말 = (text, role = 'sensed') => ({ role, channel: 'web', kind: 'text', text, at: Date.now() });
+const text2 = (text, role = 'sensed') => ({ role, channel: 'web', kind: 'text', text, at: Date.now() });
 /** 말수 적은 사람 — 실측 분포와 비슷하게 잡았다(사람 말 가운데값 7~10자). */
-const 여느때 = ['응', 'ㅇㅇ', '그러게', '오늘 뭐 했어', '그래', '음 그렇구나'].map((t) => 말(t));
+const usual = ['응', 'ㅇㅇ', '그러게', '오늘 뭐 했어', '그래', '음 그렇구나'].map((t) => text2(t));
 
 test('여느 때보다 훨씬 길게 털어놓으면 받아 준다', () => {
-  const r = acceptLength({ 방금: '오늘 회의 세 개 연달아 하고 왔는데 진이 다 빠졌어 근데 하나는 꽤 재밌었어', recent: 여느때 });
+  const r = acceptLength({ 방금: '오늘 회의 세 개 연달아 하고 왔는데 진이 다 빠졌어 근데 하나는 꽤 재밌었어', recent: usual });
   assert.match(r, /한마디로 받지 마라/);
 });
 
 test('짧아도 감정이 실렸으면 받아 준다 — 「망했어」를 한마디로 받으면 안 된다', () => {
-  assert.match(acceptLength({ 방금: '아 진짜 망했어', recent: 여느때 }), /감정이 실렸다/);
+  assert.match(acceptLength({ 방금: '아 진짜 망했어', recent: usual }), /감정이 실렸다/);
 });
 
 test('여느 때 같은 말에는 안 켠다 — 늘 켜면 그냥 「길게 말해라」가 되어 인격을 덮는다', () => {
   for (const t of ['응', '그러게', '오늘 뭐 했어', 'ㅇㅇ']) {
-    assert.equal(acceptLength({ 방금: t, recent: 여느때 }), '', `${t}`);
+    assert.equal(acceptLength({ 방금: t, recent: usual }), '', `${t}`);
   }
 });
 
 test('말길이는 그 사람 자신과 견준다 — 딱 잘라 정하면 말 많은 사람은 늘 걸린다', () => {
-  const 말많은사람 = Array.from({ length: 8 }, () => 말('오늘은 아침부터 이것저것 하느라 정신이 하나도 없었고 회의도 많았어'));
+  const talkativePerson = Array.from({ length: 8 }, () => text2('오늘은 아침부터 이것저것 하느라 정신이 하나도 없었고 회의도 많았어'));
   // 말 많은 사람에게 스무 자는 여느 때보다 짧다 — 켜지면 안 된다
-  assert.equal(acceptLength({ 방금: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: 말많은사람 }), '');
+  assert.equal(acceptLength({ 방금: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: talkativePerson }), '');
   // 같은 말이 말수 적은 사람에게는 긴 말이다
-  assert.notEqual(acceptLength({ 방금: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: 여느때 }), '');
+  assert.notEqual(acceptLength({ 방금: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: usual }), '');
 });
 
 test('여느 때를 모를 만큼 짧은 사이면 견줄 것이 없다고 말한다', () => {
-  assert.equal(usualLength([말('응'), 말('그래')]), 0);
+  assert.equal(usualLength([text2('응'), text2('그래')]), 0);
 });
 
 test('아직 모르는 사이여도 두 마디쯤 되면 받아 준다 — 바닥이 그래서 있다', () => {
-  assert.equal(acceptLength({ 방금: '가'.repeat(12), recent: [말('응')] }), '', '열두 자는 털어놓은 게 아니다');
-  assert.notEqual(acceptLength({ 방금: '가'.repeat(29), recent: [말('응')] }), '');
+  assert.equal(acceptLength({ 방금: '가'.repeat(12), recent: [text2('응')] }), '', '열두 자는 털어놓은 게 아니다');
+  assert.notEqual(acceptLength({ 방금: '가'.repeat(29), recent: [text2('응')] }), '');
 });
 
 test('한 번 길게 쓴 것이 여느 때를 통째로 끌어올리지 않는다', () => {
-  const 섞인것 = [...여느때, 말('가'.repeat(300)), 말('응'), 말('그래')];
-  assert.ok(usualLength(섞인것) < 30, `가운데값이어야 한다 — 지금 ${usualLength(섞인것)}`);
+  const mixed = [...usual, text2('가'.repeat(300)), text2('응'), text2('그래')];
+  assert.ok(usualLength(mixed) < 30, `가운데값이어야 한다 — 지금 ${usualLength(mixed)}`);
 });
 
 test('빈 말에는 아무것도 안 한다', () => {
-  assert.equal(acceptLength({ 방금: '   ', recent: 여느때 }), '');
+  assert.equal(acceptLength({ 방금: '   ', recent: usual }), '');
 });
 
 // ── 재는 자리 ────────────────────────────────────────────────────

@@ -38,19 +38,19 @@ test('어느 머리를 쓸지 밖에서 정할 수 있다 — 사람마다 쓸 �
 // ── 끼웠으면 되돌린다 ─────────────────────────────────────────────
 
 test('큰 머리를 끼우고 되돌린다 — 안 되돌리면 한 turn 이 그 뒤 전부를 느리게 만든다', () => {
-  let 지금 = 'haiku';
-  const brain = { currentModel: () => 지금, useModel: (n) => { 지금 = n; } };
-  const 되돌리기 = attachHead(brain, 'sonnet');
-  assert.equal(지금, 'sonnet');
-  되돌리기();
-  assert.equal(지금, 'haiku');
+  let now = 'haiku';
+  const brain = { currentModel: () => now, useModel: (n) => { now = n; } };
+  const restore = attachHead(brain, 'sonnet');
+  assert.equal(now, 'sonnet');
+  restore();
+  assert.equal(now, 'haiku');
 });
 
 test('이미 그 머리면 아무것도 안 한다', () => {
-  let 부른수 = 0;
-  const brain = { currentModel: () => 'sonnet', useModel: () => { 부른수 += 1; } };
+  let callCount = 0;
+  const brain = { currentModel: () => 'sonnet', useModel: () => { callCount += 1; } };
   attachHead(brain, 'sonnet')();
-  assert.equal(부른수, 0);
+  assert.equal(callCount, 0);
 });
 
 test('머리를 못 바꾸는 두뇌여도 안 깨진다 — 가짜 두뇌로도 돌아가야 한다', () => {

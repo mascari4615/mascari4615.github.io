@@ -21,25 +21,25 @@ const tauriRoot = join(repoRoot, 'apps', 'karmolab-tauri');
 const targetRoot = join(tauriRoot, 'target');
 /* 구운 자리는 릴리스 → 개발 순으로 본다 (`web.ts` 의 ownWindowExe 와 같은 순서).
    여태 개발 자리만 봐서, 릴리스로 구워 두면 창이 있는데도 없다고 했다. */
-const 손으로준exe = process.env.COMPANION_WINDOW_EXE ?? null;
-function 구운창찾기() {
-  if (손으로준exe !== null) return existsSync(손으로준exe) ? 손으로준exe : null;
-  for (const 자리 of ['release', 'debug']) {
-    const exe = join(targetRoot, 자리, 'companion-window.exe');
+const manualExe = process.env.COMPANION_WINDOW_EXE ?? null;
+function findBuiltWindow() {
+  if (manualExe !== null) return existsSync(manualExe) ? manualExe : null;
+  for (const slot of ['release', 'debug']) {
+    const exe = join(targetRoot, slot, 'companion-window.exe');
     if (existsSync(exe)) return exe;
   }
   return null;
 }
 
 const TASK_NAME = 'Companion';
-const 로그자리 = join(homedir(), '.companion', '지킴이.log');
+const logPath = join(homedir(), '.companion', '지킴이.log');
 
 if (process.argv.includes('--install')) {
   installAutoStart();
 } else if (process.argv.includes('--remove')) {
   removeAutoStart();
 } else if (process.argv.includes('--background')) {
-  뒤에서();
+  fromEnd();
 } else {
   supervise();
 }
@@ -55,19 +55,19 @@ if (process.argv.includes('--install')) {
  * (오늘만 해도 흉내 목소리가 `stdio:'ignore'` 라 왜 죽었는지 아무 데도 안 남았다).
  * 그래서 창만 없애고 나가는 말은 전부 로그 파일로 받는다.
  */
-function 뒤에서() {
-  mkdirSync(dirname(로그자리), { recursive: true });
+function fromEnd() {
+  mkdirSync(dirname(logPath), { recursive: true });
   // 이어 붙인다 — 다시 띄울 때마다 지난 판이 사라지면 「어제 왜 죽었나」를 못 본다.
-  const 받개 = openSync(로그자리, 'a');
+  const receiver = openSync(logPath, 'a');
   const child = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
     cwd: root,
     detached: true,
-    stdio: ['ignore', 받개, 받개],
+    stdio: ['ignore', receiver, receiver],
     windowsHide: true,
   });
   child.unref();
   console.log(`지킴이를 뒤에서 띄웠다 (pid ${child.pid}) — 창은 없다.`);
-  console.log(`  하는 말: ${로그자리}`);
+  console.log(`  하는 말: ${logPath}`);
   console.log('  끄려면: node scripts/live.mjs --remove (자동 실행) 또는 작업 관리자에서 node 종료');
 }
 
@@ -83,7 +83,7 @@ function supervise() {
   });
 
   let window = null;
-  const 창띄우기 = (exe) => {
+  const openWindow = (exe) => {
     // 서버가 먼저 서야 창이 붙는다.
     setTimeout(() => {
       window = keepAlive('창', exe, [], { cwd: dirname(exe) }, () => {
@@ -94,12 +94,12 @@ function supervise() {
     }, 3000);
   };
 
-  const 구운것 = 구운창찾기();
-  if (구운것 !== null) {
-    창띄우기(구운것);
-  } else if (손으로준exe !== null) {
-    console.log(`알려준 자리에 창이 없다 (${손으로준exe}) — 브라우저로 연다.`);
-    브라우저로열기();
+  const built = findBuiltWindow();
+  if (built !== null) {
+    openWindow(built);
+  } else if (manualExe !== null) {
+    console.log(`알려준 자리에 창이 없다 (${manualExe}) — 브라우저로 연다.`);
+    openInBrowser();
   } else {
     /* **창이 없으면 스스로 굽는다.**
      *
@@ -121,12 +121,12 @@ function supervise() {
      * 깔 자리는 KarmoLab 데스크톱 앱의 「설치」다.
      *
      * 손을 안 대고 켜자마자 굽길 원하면 COMPANION_AUTOBUILD=1. */
-    브라우저로열기();
+    openInBrowser();
     if (process.env.COMPANION_AUTOBUILD === '1') {
-      굽기().then((exe) => {
+      build().then((exe) => {
         if (exe === null || window !== null) return;
         console.log('창을 다 구웠다 — 붙인다. (다음부터는 바로 이 창으로 뜬다)');
-        창띄우기(exe);
+        openWindow(exe);
       });
     } else {
       console.log('창 프로그램이 없다 — KarmoLab 데스크톱 앱 「설치」에서 「동반자 창」을 깔면 다음부터 그 창으로 뜬다.');
@@ -149,7 +149,7 @@ function supervise() {
  * 굽는 자리를 `--target-dir` 로 못 박는다. 환경에 `CARGO_TARGET_DIR` 이 잡혀 있으면
  * (격리 빌드용 `target-claude` 등) 엉뚱한 데 구워 놓고 「없다」고 하게 된다.
  */
-function 굽기() {
+function build() {
   return new Promise((resolve) => {
     const cargo = process.platform === 'win32' ? 'cargo.exe' : 'cargo';
     console.log('창 프로그램이 없다 — 지금 굽는다. 처음이면 몇 분 걸린다 (그동안은 브라우저 창으로 지낸다).');
@@ -168,16 +168,16 @@ function 굽기() {
         resolve(null);
         return;
       }
-      resolve(구운창찾기());
+      resolve(findBuiltWindow());
     });
   });
 }
 
 /** 창이 없을 때 화면을 여는 유일한 길. 지킴이가 사는 동안 딱 한 번만 연다. */
-let 브라우저열었나 = false;
-function 브라우저로열기() {
-  if (브라우저열었나) return;
-  브라우저열었나 = true;
+let browserOpened = false;
+function openInBrowser() {
+  if (browserOpened) return;
+  browserOpened = true;
   const url = `http://localhost:${process.env.COMPANION_PORT ?? 4620}`;
   // 서버가 서기 전에 열면 빈 화면이 뜬다.
   setTimeout(() => {

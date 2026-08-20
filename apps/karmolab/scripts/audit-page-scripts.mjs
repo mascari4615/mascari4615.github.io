@@ -59,11 +59,11 @@ for (const page of htmlPages()) {
    검사도 전부 초록인데 그 기능만 조용히 죽었다. 이 검사가 태어난 사고(로그인 404)와 같은 꼴이다.
    그러니 소스에 적힌 주소도 같이 본다. 찾을 곳은 「HTML」이 아니라 **그 주소가 적힌 어디든**이다. */
 const sourceUrl = /['"](\/apps\/karmolab\/js\/[^'"]+\.js)['"]/g;
-function sources(dir, out = [], 깊이 = 4) {
+function sources(dir, out = [], depth2 = 4) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name.startsWith('.')) continue;
     const full = path.join(dir, e.name);
-    if (e.isDirectory()) { if (깊이 > 0) sources(full, out, 깊이 - 1); }
+    if (e.isDirectory()) { if (depth2 > 0) sources(full, out, depth2 - 1); }
     else if (/[.](ts|mts|js|mjs)$/.test(e.name)) out.push(full);
   }
   return out;

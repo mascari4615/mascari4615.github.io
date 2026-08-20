@@ -86,19 +86,19 @@ for (let i = 1; i <= ROUNDS; i++) {
      시험이 「못 찾았다」로 빨개졌다(실측). 값을 **소스에서 끌어와** 관계가 저절로 지켜지게 한다. */
   const toWrap = Math.round(longestLimit() * 1.2) + 30000;
   const deadline = Date.now() + WAIT_MS;
-  let 끝났다 = false;
+  let finished2 = false;
   /* ★ **시간 제한이 없는 놀이는 시계를 감아도 안 끝난다** (2026-08-17 실측). 놀이 51개 중
      제한이 박힌 것은 **11개뿐**이고, 나머지 40개는 「다 두면」 끝난다 — 끝나는 데 드는 것은
      시간이 아니라 **누른 횟수**다. 실제로 `fleet`(8×8 판에 서로 배를 맞히는 놀이)이 그렇게 걸렸다:
      제한이 없어 감아도 그대로였고, 손은 700ms 에 한 번이라 60초 예산 안에서 85번밖에 못 눌렀다
      (그중 상당수는 이미 친 칸이라 헛손질이다). 그래서 감을 때마다 **같이 누른다** —
      기다린 시간이 아니라 판이 나아간 만큼 누르게 된다. */
-  for (let wrapped = 0; wrapped < toWrap && !끝났다 && Date.now() < deadline; wrapped += shard) {
+  for (let wrapped = 0; wrapped < toWrap && !finished2 && Date.now() < deadline; wrapped += shard) {
     await p.clock.fastForward(shard);
     // eslint-disable-next-line no-await-in-loop -- 한 조각마다 한 번 (위 주석)
     await clickOnce();
     // eslint-disable-next-line no-await-in-loop -- 한 조각 감고 그때마다 본다(멈춘 시계에서는 이 길뿐)
-    끝났다 = await p.evaluate(() => {
+    finished2 = await p.evaluate(() => {
       const a = document.querySelector('#acAgain');
       return !!(a && a.style.display !== 'none' && window.__arcade?.finished);
     }).catch(() => false);

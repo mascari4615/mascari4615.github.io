@@ -132,12 +132,12 @@ export class Wishes {
   }
 
   private rollOver(): void {
-    const 지금 = (this.options.now ?? (() => Date.now()))();
-    const 오늘 = date(지금);
-    if (this.day === 오늘) return;
+    const now2 = (this.options.now ?? (() => Date.now()))();
+    const today2 = date(now2);
+    if (this.day === today2) return;
 
-    this.day = 오늘;
-    this.오늘시작 = new Date(지금).setHours(0, 0, 0, 0);
+    this.day = today2;
+    this.오늘시작 = new Date(now2).setHours(0, 0, 0, 0);
     this.꺼낸것 = new Set();
 
     const pool = this.options.pool ?? wishable;

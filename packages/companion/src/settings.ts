@@ -127,9 +127,9 @@ export class Settings {
 export function settingsReport(settings: Settings): string {
   return Object.entries(toConfigure)
     .map(([k, spec]) => {
-      const 값 = settings.get(k);
+      const value2 = settings.get(k);
       const range = typeof spec.value === 'number' ? ` (${spec.min}~${spec.max})` : '';
-      return `${k.padEnd(16)} ${String(값).padEnd(6)} — ${spec.what}${range}`;
+      return `${k.padEnd(16)} ${String(value2).padEnd(6)} — ${spec.what}${range}`;
     })
     .join('\n');
 }

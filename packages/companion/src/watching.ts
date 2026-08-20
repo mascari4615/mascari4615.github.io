@@ -86,13 +86,13 @@ export class Watching {
     const window = this.options.flipWindowMs ?? 10 * 60_000;
     const min = this.options.flipsAtLeast ?? 4;
 
-    const 최근 = this.seen.filter((s) => now - s.at <= window);
-    if (최근.length < min) return false;
+    const recent2 = this.seen.filter((s) => now - s.at <= window);
+    if (recent2.length < min) return false;
 
     // 묶는 기준과 세는 기준이 다르면 안 된다 — 여기서도 짧은 이름으로 센다.
-    const variety = new Set(최근.map((s) => shortTitle(s.title))).size;
+    const variety = new Set(recent2.map((s) => shortTitle(s.title))).size;
     // 오간 횟수는 많은데 가짓수는 적다 = 같은 것으로 돌아오고 있다.
-    return variety >= 2 && variety <= Math.ceil(최근.length / 2);
+    return variety >= 2 && variety <= Math.ceil(recent2.length / 2);
   }
 
   /** 최근에 본 것들 (진단용). */
@@ -116,15 +116,15 @@ export function shortTitle(title: string, max = 24): string {
  * 여기서 「물어봐라」까지 시키면 얘가 화면 얘기만 하는 애가 된다.
  */
 export function watchNote(watching: Watching, now: number): string {
-  const 지금것 = watching.now;
-  if (지금것 === null) return '';
+  const current2 = watching.now;
+  if (current2 === null) return '';
 
   if (watching.isFlipping(now)) {
     return `조수님이 몇 군데를 왔다갔다 하고 있다 — 뭘 찾거나 막힌 것 같다. 아는 척은 하지 마라.`;
   }
   if (watching.isStuck(now)) {
     const minutes = Math.round(watching.heldFor(now) / 60_000);
-    return `조수님이 「${shortTitle(지금것.title)}」 를 ${minutes}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
+    return `조수님이 「${shortTitle(current2.title)}」 를 ${minutes}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
   }
   return '';
 }

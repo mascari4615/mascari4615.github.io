@@ -15,8 +15,8 @@
 import { chromium } from 'playwright';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const 장 = process.argv.slice(2).filter((a) => !a.startsWith('-'));
-const IDS = 장.length ? 장 : ['loan', 'charcount', 'jsonfmt', 'qrgen', 'unitconv', 'colorpick'];
+const page2 = process.argv.slice(2).filter((a) => !a.startsWith('-'));
+const IDS = page2.length ? page2 : ['loan', 'charcount', 'jsonfmt', 'qrgen', 'unitconv', 'colorpick'];
 
 const sum = new Map(); // 파일 → { 전체, 조각: Set<범위키>, 바이트: Set<위치> }
 

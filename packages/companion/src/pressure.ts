@@ -67,15 +67,15 @@ export class pendingThoughts {
    * - **실림** = 말했다 → 풀린다.
    * - **꺼짐/빔** = 지금 자리에 없는 얘기다 → 쌓아 두면 엉뚱한 때 튀어나온다. 지운다.
    */
-  적기 = (이름: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
-    if (ok !== '밀림') { this.눌린것.delete(이름); return; }
-    const previous = this.눌린것.get(이름);
-    this.눌린것.set(이름, { 횟수: (previous?.횟수 ?? 0) + 1, 마지막턴: this.턴 });
+  적기 = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
+    if (ok !== '밀림') { this.눌린것.delete(name2); return; }
+    const previous = this.눌린것.get(name2);
+    this.눌린것.set(name2, { 횟수: (previous?.횟수 ?? 0) + 1, 마지막턴: this.턴 });
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */
-  얼마나참았나(이름: string): number {
-    return this.눌린것.get(이름)?.횟수 ?? 0;
+  얼마나참았나(name3: string): number {
+    return this.눌린것.get(name3)?.횟수 ?? 0;
   }
 
   /** 가장 오래 참은 것부터. */
@@ -86,8 +86,8 @@ export class pendingThoughts {
   }
 
   /** 지금 이 재료에 얹어 줄 무게. */
-  더할무게(이름: string): number {
-    const v = this.눌린것.get(이름);
+  더할무게(name4: string): number {
+    const v = this.눌린것.get(name4);
     if (v === undefined) return 0;
     return Math.min(v.횟수 * this.계단, this.상한);
   }

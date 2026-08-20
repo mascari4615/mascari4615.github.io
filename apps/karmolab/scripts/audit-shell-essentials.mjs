@@ -27,14 +27,14 @@ const appsRoot = path.dirname(appRoot);
  *  ★ `apps/blog/karmolab/**` 는 보지 않는다 — 그건 **배포 때 다시 찍히는 사본**이라
  *  내 컴퓨터에서는 늘 낡아 있다(붙이자마자 그 낡은 사본 때문에 거짓 빨강을 한 번 봤다).
  *  찍히는 장(도구 상세·놀이 장)은 실주소 짝 검사가 본다. 여기서는 **원본이 있는 것만** 본다. */
-function sourceSites(주소) {
+function sourceSites(url2) {
   const done = (p) => (p.endsWith('/') ? `${p}index.html` : p);
-  if (주소.startsWith('/apps/karmolab/')) return path.join(appsRoot, done(주소).slice('/apps/'.length));
-  if (주소 === '/karmolab/') return path.join(appRoot, 'index.html');
+  if (url2.startsWith('/apps/karmolab/')) return path.join(appsRoot, done(url2).slice('/apps/'.length));
+  if (url2 === '/karmolab/') return path.join(appRoot, 'index.html');
   /* ★ 찍힌 장(도구 상세·놀이)은 **갓 찍었을 때만** 본다 (2026-08-17). 늘 보면 낡은 사본 때문에
      거짓 빨강이 나고, 아예 안 보면 여섯 가지밖에 못 본다. 껍데기보다 새것이면 그건 지금 것이다. */
-  if (주소.startsWith('/karmolab/')) {
-    const emitted = path.join(appsRoot, 'blog', done(주소).slice(1));
+  if (url2.startsWith('/karmolab/')) {
+    const emitted = path.join(appsRoot, 'blog', done(url2).slice(1));
     if (!fs.existsSync(emitted)) return null;
     const shell = path.join(appRoot, 'index.html');
     if (fs.statSync(emitted).mtimeMs < fs.statSync(shell).mtimeMs) return null; // 낡았다 → 건너뜀

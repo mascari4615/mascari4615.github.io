@@ -184,14 +184,14 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
   const names = () => page.locator('.meok:visible .meok-layer').evaluateAll(
     (rows) => rows.map((r) => r.getAttribute('data-layer') || '')
   );
-  const 전 = await names();
-  if (전.length >= 2 && 전.every(Boolean)) {
+  const before2 = await names();
+  if (before2.length >= 2 && before2.every(Boolean)) {
     await page.locator('.meok:visible .meok-layer').nth(1).focus();
     /* ★ **시간을 박지 말고 「일어났나」를 봐라** (2026-08-17). 눌러 놓고 150ms 재우고 읽으면
        느린 판에서 0 을 읽는다 — 같은 꼴로 오락실 자판 검사가 라이브에서 빨갰다.
        바뀔 때까지 기다리고, 안 바뀌면 그때가 진짜 빨강이다(아래 판정이 그대로 말한다). */
     await page.keyboard.press('ArrowUp');
-    const previousLine = 전.join('|');
+    const previousLine = before2.join('|');
     await page
       .waitForFunction(
         /* 창 안에서 도는 코드다 — `:visible` 은 playwright 만 아는 말이라 여기서 쓰면 통째로 깨진다
@@ -204,7 +204,7 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
       )
       .catch(() => {});
     const after = await names();
-    if (after.join('|') === 전.join('|')) problems.push('화살표로 레이어 순서가 안 바뀐다 (끌기 말고는 길이 없다)');
+    if (after.join('|') === before2.join('|')) problems.push('화살표로 레이어 순서가 안 바뀐다 (끌기 말고는 길이 없다)');
     /* 뒤 검사들이 「몇 번째 줄」로 레이어를 집으므로 **순서를 되돌려 놓는다** —
        안 그러면 다음 검사가 엉뚱한 레이어를 숨기고 「그림이 그대로다」로 죽는다(방금 겪었다). */
     await page.keyboard.press('ArrowDown');
@@ -213,12 +213,12 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
         (want) => [...document.querySelectorAll('.meok .meok-layer')]
           .filter((r) => r.offsetParent !== null)
           .map((r) => r.getAttribute('data-layer') || '').join('|') === want,
-        전.join('|'),
+        before2.join('|'),
         { timeout: 4000 }
       )
       .catch(() => {});
     const reverted = await names();
-    if (reverted.join('|') !== 전.join('|')) problems.push('화살표로 되돌리기가 안 된다 (한 방향만 먹는다)');
+    if (reverted.join('|') !== before2.join('|')) problems.push('화살표로 되돌리기가 안 된다 (한 방향만 먹는다)');
   } else {
     problems.push('레이어 줄에 data-layer 표가 없다 — 키로 옮긴 뒤 초점을 되돌릴 수 없다');
   }

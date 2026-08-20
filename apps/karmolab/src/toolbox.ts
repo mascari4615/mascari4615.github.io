@@ -78,18 +78,18 @@ const Toolbox = (() => {
        나갔다 — 말 묶음에는 en/ja 번역이 멀쩡히 있는데도(`i18n/en/shell.json`).
        글은 머리말에 미리 박혀 온다(`window.__KARMO_I18N`) — 들여올 것 없이 거기서 바로 꺼낸다.
        순서: 지금 언어 → 원본 언어 → 한국어 기본값. */
-    const 말 = (key, 기본값) => {
+    const text2 = (key, defaultValue2) => {
         try {
-            if (typeof t === 'function') return t(key, undefined, 기본값);
+            if (typeof t === 'function') return t(key, undefined, defaultValue2);
         } catch { /* 전역이 없다 — 아래에서 직접 꺼낸다 */ }
         try {
             const barrel = window.__KARMO_I18N || {};
-            const 지금 = window.__KARMO_LOCALE || document.documentElement.lang || 'ko';
-            const 묶음 = key.indexOf('.') < 0 ? 'common' : key.slice(0, key.indexOf('.'));
-            const one = barrel[지금]?.[묶음]?.[key] ?? barrel.ko?.[묶음]?.[key];
+            const now2 = window.__KARMO_LOCALE || document.documentElement.lang || 'ko';
+            const bundle2 = key.indexOf('.') < 0 ? 'common' : key.slice(0, key.indexOf('.'));
+            const one = barrel[now2]?.[bundle2]?.[key] ?? barrel.ko?.[bundle2]?.[key];
             if (typeof one === 'string') return one;
         } catch { /* 통이 아직 없다 */ }
-        return 기본값;
+        return defaultValue2;
     };
     /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
      *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
@@ -773,25 +773,25 @@ const Toolbox = (() => {
      * 옮기는 것 = 사람이 바꾼 입력값·고른 것·켠 것 + 커서가 있던 자리. 기본값 그대로인 칸은
      * 안 옮긴다(그건 사람의 것이 아니라 그 도구의 것이고, 새 화면이 더 맞다). */
     function takeUserState(root) {
-        const 값 = [];
+        const value2 = [];
         let cursor = null;
         root.querySelectorAll('input, textarea, select').forEach(el => {
             if (!el.id) return;
             if (el.type === 'checkbox' || el.type === 'radio') {
-                if (el.checked !== el.defaultChecked) 값.push({ id: el.id, checked: el.checked });
+                if (el.checked !== el.defaultChecked) value2.push({ id: el.id, checked: el.checked });
                 return;
             }
             if (el.type === 'file' || el.type === 'button' || el.type === 'submit') return;
-            const 기본 = el.tagName === 'SELECT'
+            const base2 = el.tagName === 'SELECT'
                 ? [...el.options].find(o => o.defaultSelected)?.value ?? el.options[0]?.value ?? ''
                 : el.defaultValue;
-            if (el.value !== 기본) 값.push({ id: el.id, value: el.value });
+            if (el.value !== base2) value2.push({ id: el.id, value: el.value });
         });
         const active = document.activeElement;
         if (active && active !== document.body && root.contains(active) && active.id) {
             cursor = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
         }
-        return 값.length || cursor ? { 값, 커서: cursor } : null;
+        return value2.length || cursor ? { 값: value2, 커서: cursor } : null;
     }
 
     /* 손이 달리기 전에 눌린 단추 한 번을 대신 눌러 준다 (TASK-KL-135).
@@ -1317,8 +1317,8 @@ const Toolbox = (() => {
                     const indexLink = document.createElement('a');
                     indexLink.className = 'nav-item nav-item-find';
                     indexLink.href = '/karmolab/t/';
-                    indexLink.textContent = 말('shell.nav.toolIndex', '전체 도구 목록 →');
-                    indexLink.title = 말('shell.nav.toolsList', '도구 전체 목록 장 — 128개를 한 장에서 훑습니다');
+                    indexLink.textContent = text2('shell.nav.toolIndex', '전체 도구 목록 →');
+                    indexLink.title = text2('shell.nav.toolsList', '도구 전체 목록 장 — 128개를 한 장에서 훑습니다');
                     foot.appendChild(indexLink);
                     panel.appendChild(foot);
                     return;
@@ -1400,10 +1400,10 @@ const Toolbox = (() => {
             const recent = window.KarmoPalette?.getRecent?.() || [];
             const last = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
             return [
-                { label: 말('shell.nav.mine', '내 것'), tools: pickTools(pins, 12),
-                  empty: 말('shell.nav.mine.empty', '도구 옆 별을 누르면 여기 모입니다') },
-                { label: 말('shell.nav.popular', '많이 쓰는 것'), tools: pickTools(popular, 6) },
-                { label: 말('shell.nav.recent', '최근 본 것'), tools: pickTools([last, ...recent].filter(Boolean), 6) },
+                { label: text2('shell.nav.mine', '내 것'), tools: pickTools(pins, 12),
+                  empty: text2('shell.nav.mine.empty', '도구 옆 별을 누르면 여기 모입니다') },
+                { label: text2('shell.nav.popular', '많이 쓰는 것'), tools: pickTools(popular, 6) },
+                { label: text2('shell.nav.recent', '최근 본 것'), tools: pickTools([last, ...recent].filter(Boolean), 6) },
             ].filter(sec => sec.tools.length || sec.empty);
         };
 
@@ -1432,7 +1432,7 @@ const Toolbox = (() => {
              *      표면을 둘로 늘리면 결과가 두 벌로 갈린다.
              *
              * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/karmolab/t/`). */
-            buildHeaderNavGroup(말('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
+            buildHeaderNavGroup(text2('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
 
             /* ── 검색칸 ── 진짜 input 이다. 흉내만 낸 단추를 두면 폰에서 자판이 안 올라오고,
              * 붙여넣기·자동완성이 죽는다. 대신 결과는 제가 안 그리고 팔레트에 넘긴다. */
@@ -1445,8 +1445,8 @@ const Toolbox = (() => {
             searchInput.type = 'text';
             searchInput.className = 'header-search-input';
             searchInput.autocomplete = 'off';
-            searchInput.placeholder = 말('shell.search.placeholder', '도구 찾기');
-            searchInput.setAttribute('aria-label', 말('shell.search.aria', '도구 찾기'));
+            searchInput.placeholder = text2('shell.search.placeholder', '도구 찾기');
+            searchInput.setAttribute('aria-label', text2('shell.search.aria', '도구 찾기'));
             /* ★ **넘기기 전에 먼저 손을 뗀다** (2026-08-19 버그). 팔레트는 열릴 때 그 순간의
              * 활성 요소를 적어 뒀다가 닫을 때 거기로 초점을 되돌린다(키보드 사용자가 문서
              * 맨 위로 떨어지지 않게). 그 요소가 이 칸이면 — 닫는 순간 이 칸이 초점을 받고,

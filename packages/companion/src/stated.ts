@@ -171,13 +171,13 @@ export function statedNote(facts: readonly Stated[], conflicts: readonly string[
   const toShow = facts.slice(-howMany);
   if (toShow.length === 0) return '';
 
-  const 줄 = toShow.map((f) => `「${f.said.slice(0, 40)}」`).join(', ');
+  const line2 = toShow.map((f) => `「${f.said.slice(0, 40)}」`).join(', ');
   const drift = conflicts.length === 0
     ? ''
     : ` 그런데 어긋나는 게 있다: ${conflicts[0]}. 직접 들은 쪽을 따라라.`;
 
   return (
-    `조수님이 직접 말한 것: ${줄}. ` +
+    `조수님이 직접 말한 것: ${line2}. ` +
     `이건 네가 짐작한 것보다 무겁다 — 짐작과 다르면 이쪽이 맞다.${drift}`
   );
 }

@@ -3,9 +3,9 @@ import test from 'node:test';
 
 import { noticeCuriosity, stripParticle, unusableCuriosity, worthWondering } from '../dist/index.js';
 
-const 담는곳 = () => {
-  const 안 = [];
-  return { 안, wonder: (x) => 안.push(x), next: () => 안[0] ?? null, asked: () => {}, size: () => 안.length };
+const sink = () => {
+  const inside = [];
+  return { 안: inside, wonder: (x) => inside.push(x), next: () => inside[0] ?? null, asked: () => {}, size: () => inside.length };
 };
 
 // ── 조사 떼기 ───────────────────────────────────────────────────────
@@ -63,31 +63,31 @@ test('숫자나 영어는 물어볼 거리가 아니다', () => {
 // ── 실제로 줍기 ─────────────────────────────────────────────────────
 
 test('이름 붙은 것을 줍는다 — 뽑은 개수가 아니라 쓸 만한 개수가 척도다', () => {
-  const 곳 = 담는곳();
-  assert.equal(noticeCuriosity('오늘 회의가 길어서 좀 지쳤어', null, 곳), '회의 — 조수님이 꺼낸 얘기');
+  const place = sink();
+  assert.equal(noticeCuriosity('오늘 회의가 길어서 좀 지쳤어', null, place), '회의 — 조수님이 꺼낸 얘기');
 });
 
 test('물어볼 게 없으면 안 줍는다 — 못 쓸 걸 담느니 안 담는다', () => {
-  assert.equal(noticeCuriosity('무엇을 도와드릴까요', null, 담는곳()), null);
-  assert.equal(noticeCuriosity('오늘 어때?', null, 담는곳()), null);
+  assert.equal(noticeCuriosity('무엇을 도와드릴까요', null, sink()), null);
+  assert.equal(noticeCuriosity('오늘 어때?', null, sink()), null);
 });
 
 test('씨앗은 짧다 — 문장을 통째로 담으면 꺼낼 때 그 문장을 읊는다', () => {
-  const 씨앗 = noticeCuriosity('어제 그 셰이더 결국 못 고쳤어', null, 담는곳());
-  assert.equal(씨앗.includes('어제 그'), false);
-  assert.ok(씨앗.length < 30);
+  const seed = noticeCuriosity('어제 그 셰이더 결국 못 고쳤어', null, sink());
+  assert.equal(seed.includes('어제 그'), false);
+  assert.ok(seed.length < 30);
 });
 
 test('짧은 말에는 궁금할 게 없다', () => {
-  assert.equal(noticeCuriosity('응', null, 담는곳()), null);
+  assert.equal(noticeCuriosity('응', null, sink()), null);
 });
 
 test('이미 아는 얘기는 또 궁금해하지 않는다', () => {
-  assert.equal(noticeCuriosity('오늘 회의가 길었어', '회의를 자주 한다', 담는곳()), null);
+  assert.equal(noticeCuriosity('오늘 회의가 길었어', '회의를 자주 한다', sink()), null);
 });
 
 test('앞에 나온 것부터 줍는다 — 사람은 하고 싶은 말을 앞에 둔다', () => {
-  assert.match(noticeCuriosity('셰이더 때문에 유니티가 자꾸 죽어', null, 담는곳()), /셰이더/);
+  assert.match(noticeCuriosity('셰이더 때문에 유니티가 자꾸 죽어', null, sink()), /셰이더/);
 });
 
 // ── 이미 쌓인 쓰레기 ────────────────────────────────────────────────

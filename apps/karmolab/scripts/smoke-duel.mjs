@@ -39,15 +39,15 @@ let cantRun = '';
 const palette = { 빨강: '#e0483c', 파랑: '#3b74d8', 초록: '#33a06a', 노랑: '#d8a72a', 보라: '#8a5cd0' };
 
 /** 지금 화면의 정답 자리. 못 풀면 -1. */
-function solveInPage(팔레트) {
+function solveInPage(palette2) {
   const order = document.querySelector('#duOrder')?.textContent || '';
   const btns = [...document.querySelectorAll('.du-choice')];
   if (btns.length === 0) return -1;
   const texts = btns.map((b) => b.textContent || '');
 
-  const 색 = order.match(/^(\S+) 색!$/);
-  if (색) {
-    const want = 팔레트[색[1]];
+  const color2 = order.match(/^(\S+) 색!$/);
+  if (color2) {
+    const want = palette2[color2[1]];
     const hex = (rgb) => {
       const m = rgb.match(/\d+/g);
       return m ? '#' + m.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('') : '';
@@ -80,11 +80,11 @@ function solveInPage(팔레트) {
 }
 
 /** solve=true 면 정답을 눌러 이기려 하고, false 면 늘 첫 칸을 눌러 대충 둔다. */
-async function playUntilEnd(page, deadline, solve, 팔레트) {
+async function playUntilEnd(page, deadline, solve, palette3) {
   while (Date.now() < deadline) {
     const over = await page.evaluate(() => /이겼다|졌다|비겼다/.test(document.querySelector('#duOrder')?.textContent || ''));
     if (over) return true;
-    const i = solve ? await page.evaluate(solveInPage, 팔레트) : 0;
+    const i = solve ? await page.evaluate(solveInPage, palette3) : 0;
     if (i >= 0) {
       const btn = page.locator('.du-choice:not([disabled])').nth(i);
       if (await btn.count()) await btn.click({ timeout: 2000 }).catch(() => {});

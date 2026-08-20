@@ -25,14 +25,14 @@ test('좋으면서 가라앉으면 누그러진 결 — 처진 것과 다르다'
 });
 
 test('결은 네 칸뿐이다 — 잘게 나눠 봐야 사람 귀에는 안 들린다', () => {
-  const 나온것 = new Set();
+  const produced = new Set();
   for (let v = -1; v <= 1; v += 0.1) {
     for (let a = -1; a <= 1; a += 0.1) {
       const t = toneOf({ valence: v, arousal: a });
-      if (t !== null) 나온것.add(t);
+      if (t !== null) produced.add(t);
     }
   }
-  assert.deepEqual([...나온것].sort(), ['누그러짐', '뾰족', '들뜸', '처짐'].sort());
+  assert.deepEqual([...produced].sort(), ['누그러짐', '뾰족', '들뜸', '처짐'].sort());
 });
 
 // ── 목소리 이름에 붙이기 ────────────────────────────────────────────
@@ -77,8 +77,8 @@ test('들뜨면 빨라지고 처지면 느려진다', () => {
 
 test('폭이 좁다 — 크게 흔들면 사람 목소리가 아니라 만화 효과음이 된다', () => {
   for (const tone of ['들뜸', '뾰족', '처짐', '누그러짐']) {
-    const 퍼센트 = Number(moodTone[tone].rate.replace('%', ''));
-    assert.ok(Math.abs(퍼센트) <= 20, `${tone} 이 너무 세다 (${퍼센트}%)`);
+    const percent = Number(moodTone[tone].rate.replace('%', ''));
+    assert.ok(Math.abs(percent) <= 20, `${tone} 이 너무 세다 (${percent}%)`);
     assert.ok(Math.abs(moodSpeed[tone] - 1) <= 0.25, `${tone} 늘어짐이 너무 세다`);
   }
 });
@@ -86,14 +86,14 @@ test('폭이 좁다 — 크게 흔들면 사람 목소리가 아니라 만화 �
 // ── 마음과 이어 보기 ────────────────────────────────────────────────
 
 test('실제 마음이 결로 이어진다', () => {
-  let 지금 = 0;
-  const heart = new Heart({ halfLifeMs: 10_000, now: () => 지금 });
+  let now2 = 0;
+  const heart = new Heart({ halfLifeMs: 10_000, now: () => now2 });
   assert.equal(toneOf(heart.state), null, '평소엔 결이 없다');
 
   heart.felt('놀이이김');
   assert.equal(toneOf(heart.state), '들뜸');
 
-  지금 += 300_000;
+  now2 += 300_000;
   assert.equal(toneOf(heart.state), null, '한참 지나면 결도 풀린다');
 });
 

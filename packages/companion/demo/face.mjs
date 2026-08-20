@@ -305,14 +305,14 @@ const memory =
 /* 낱말 표로는 사건을 못 줍는다는 걸 재서 알았다 — 사람 말 197개에 담긴 사건이 **둘**이었다.
    표가 놓친 말은 두뇌에게 물어본다. 다만 **말하는 길에서는 안 부른다**(답이 늦어진다) —
    한 turn 끝나고 따로 부른다. */
-const 그때그일 = new EpisodeStore({
+const episode = new EpisodeStore({
   path: join(home, '그때-그-일.json'),
   물어보기: askEnergy((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[그때] ${m}`); web?.알아챔?.(`기억에 담았다 — ${m}`); },
 });
 
-const 언제알았나 = new KnownStamps({ path: join(home, '아는-것-언제.json') });
-언제알았나.sync(memory.longTerm?.() ?? null);
+const learnedAt = new KnownStamps({ path: join(home, '아는-것-언제.json') });
+learnedAt.sync(memory.longTerm?.() ?? null);
 // 옛 대화를 뒤지는 손은 기억이 선 뒤에야 붙일 수 있다 — 뒤질 대상이 기억이기 때문이다.
 // 두뇌에 넘어가는 건 최근 몇 마디뿐이라, 이게 없으면 「저번에 그거」를 영영 모른다.
 const conversationMemory = memory instanceof DistillingMemory ? memory.inner : memory;
@@ -339,21 +339,21 @@ const tally = new Tally({ path: join(home, '발동-기록.json') });
 /* 밀린 재료는 증발하지 않고 쌓인다 — 다음 turn 에 더 세게 겨룬다 (72회차).
    재료 만드는 자리가 쉰 곳인데 한 turn 에 실리는 건 여섯 줄뿐이라, 무게가 어중간한
    재료는 매 turn 독립 추첨에서 **영영** 안 실렸다. 만들어 놓고 안 붙인 것과 같았다. */
-const 밀린것 = new pendingThoughts();
+const queued = new pendingThoughts();
 /** 되묻기를 입 앞에서 강제할까. 재 보려고 꺼 둘 수 있다. */
-const 되묻기강제 = process.env.COMPANION_TOSSBACK_RETRY !== '0';
+const forceFollowUp = process.env.COMPANION_TOSSBACK_RETRY !== '0';
 /* 자리를 배운다 — 표가 모르는 창은 두뇌에게 물어 적어 둔다(78회차).
    지금 떠 있는 창을 세어 보니 아홉 중 여섯이 「모름」이었다. 표를 늘리는 건 답이 아니다 —
    사람이 쓰는 프로그램은 사람마다 다르다. 같은 창은 한 번만 물어보므로 값이 곧 0 에 준다. */
 /* 되새김 — 오간 말에서 **바로 안 보이는 것**을 스스로 짚는다(79회차).
    여태 기억은 셋 다 「일어난 일」이었다. 그 위에 얹히는 것, 「그래서 뭐가 보이나」가 없었다.
    근거를 못 대는 것은 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다. */
-const 되새긴것 = new reflection({
+const reflected = new reflection({
   path: join(home, '보아-온-것.json'),
   물어보기: askReflection((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
 });
-const 자리앎 = new learnSlot({
+const slotKnowledge = new learnSlot({
   path: join(home, '무슨-자리.json'),
   물어보기: askSlot((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[자리] ${m}`); web?.알아챔?.(m); },
@@ -371,30 +371,30 @@ const quiet = new Quiet({
 });
 // 흔들리는 마음 — 사건이 밀고 시간이 되돌린다.
 const heart = new Heart();
-let 직전에한말 = null;
+let previousUtterance = null;
 /** 큰 머리를 끼웠으면 되돌릴 손. 안 되돌리면 한 turn 이 그 뒤 전부를 느리게 만든다. */
-let 되돌릴머리 = null;
+let headToRestore = null;
 /** 지금이 공을 돌려줄 자리인가 — 재료 쪽과 관문 쪽이 **같은 자리에서** 판단하게. */
-function 공돌려줄자리인가() {
-  const 최근 = conversationMemory.recent(12);
-  const 목록 = Array.isArray(최근) ? 최근 : [];
-  const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  const 이유 = skipReason({ recent: 목록, 방금 });
+function shouldTossBack() {
+  const recent2 = conversationMemory.recent(12);
+  const list2 = Array.isArray(recent2) ? recent2 : [];
+  const justNow = [...list2].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
+  const reason2 = skipReason({ recent: list2, 방금: justNow });
   // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
-  if (이유 !== null) (console.log(`[공] 안 돌려준다 — ${이유}`), web.알아챔(`공은 안 돌려준다 — ${이유}`));
-  return 이유 === null;
+  if (reason2 !== null) (console.log(`[공] 안 돌려준다 — ${reason2}`), web.알아챔(`공은 안 돌려준다 — ${reason2}`));
+  return reason2 === null;
 }
 /** 지금이 받아 줄 자리인가 — 재료 쪽과 관문 쪽이 **같은 자리에서** 판단하게. */
-function 받을자리인가() {
-  const 최근 = conversationMemory.recent(40);
-  const 목록 = Array.isArray(최근) ? 최근 : [];
-  const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  return acceptLength({ 방금, recent: 목록 }) !== '';
+function shouldAccept() {
+  const recent3 = conversationMemory.recent(40);
+  const list3 = Array.isArray(recent3) ? recent3 : [];
+  const justNow2 = [...list3].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
+  return acceptLength({ 방금: justNow2, recent: list3 }) !== '';
 }
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
-const 시작한때 = Date.now();
-let 첫turn인가 = true;
+const startedAt = Date.now();
+let isFirstTurn = true;
 // 바라는 것 — 얘 몫으로 가진 작은 바람. 조르지 않는다.
 const wishes = new Wishes();
 // 자기상 — 얘가 저에 대해 이미 한 말. 조수님에 대해 아는 것과 다른 자리다.
@@ -414,19 +414,19 @@ const selfImage = new SelfImage({
 });
 /* 이웃 저장소에서 오는 것들 — 없으면 **없다고 말한다.** 조용히 빠지면 화면에서는
    「몸이 큐브로 바뀌고 로컬 목소리가 사라진」 것으로만 보이고, 그건 회귀로 읽힌다. */
-function 욘메시() {
-  const 게임 = 이웃('WitchMendokusai', 'Assets');
-  if (게임 === null) {
+function yonMesh() {
+  const game = 이웃('WitchMendokusai', 'Assets');
+  if (game === null) {
     console.log('[몸] 게임 저장소를 이웃에서 못 찾았다 — 3D 몸 없이 큐브로 지낸다');
     return null;
   }
-  return join(게임, 'Assets', '_WitchMendokusai', 'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx');
+  return join(game, 'Assets', '_WitchMendokusai', 'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx');
 }
 
-function 받아쓰기실행파일() {
-  for (const 뿌리 of [join(root, '..', '..'), ...같은저장소사본들(join('apps', 'karmolab-tauri'))]) {
-    for (const 자리 of ['release', 'debug']) {
-      const exe = join(뿌리, 'apps', 'karmolab-tauri', 'target', 자리, 'karmolab-life-ml.exe');
+function sttBinary() {
+  for (const root2 of [join(root, '..', '..'), ...같은저장소사본들(join('apps', 'karmolab-tauri'))]) {
+    for (const slot of ['release', 'debug']) {
+      const exe = join(root2, 'apps', 'karmolab-tauri', 'target', slot, 'karmolab-life-ml.exe');
       if (existsSync(exe)) return exe;
     }
   }
@@ -435,15 +435,15 @@ function 받아쓰기실행파일() {
 }
 
 /** 흉내 낸 목소리 서버(GPT-SoVITS)를 띄운다. 뜨는 데 30초쯤 걸린다 — 기다리지 않는다. */
-let 흉내프로세스 = null;
-let 흉내끄는중 = false;
-const 흉내로그 = join(home, '흉내-목소리.log');
-function 흉내서버띄우기() {
+let stubProcess = null;
+let stubStopping = false;
+const stubLog = join(home, '흉내-목소리.log');
+function startStubServer() {
   const memo = 이웃('memo', join('life', '.models'));
   if (memo === null) throw new Error('memo 저장소를 이웃에서 못 찾았다');
-  const 자리 = join(memo, 'life', '.models', 'gpt-sovits');
-  const 파이썬 = join(자리, '.venv', 'Scripts', 'python.exe');
-  if (existsSync(파이썬) === false) throw new Error(`파이썬을 못 찾았다 (${파이썬})`);
+  const slot2 = join(memo, 'life', '.models', 'gpt-sovits');
+  const python = join(slot2, '.venv', 'Scripts', 'python.exe');
+  if (existsSync(python) === false) throw new Error(`파이썬을 못 찾았다 (${python})`);
   /* **나가는 말을 로그로 받는다.**
    *
    * 여태 `stdio: 'ignore'` 였다. 그래서 이게 죽어도 남는 게 하나도 없었다 — 화면에는
@@ -454,50 +454,50 @@ function 흉내서버띄우기() {
    * 무음 실패는 없는 기능보다 나쁘다. 나가는 말을 파일에 받아 두고, 죽으면 마지막 몇
    * 줄을 그 자리에서 보여 준다 — 로그가 있어도 어디 있는지 모르면 없는 것과 같다. */
   mkdirSync(home, { recursive: true });
-  const 받개 = openSync(흉내로그, 'w');
-  흉내프로세스 = spawn(파이썬, ['api_v2.py', '-a', '127.0.0.1', '-p', '9880'], {
-    cwd: 자리,
+  const receiver = openSync(stubLog, 'w');
+  stubProcess = spawn(python, ['api_v2.py', '-a', '127.0.0.1', '-p', '9880'], {
+    cwd: slot2,
     detached: false,
-    stdio: ['ignore', 받개, 받개],
+    stdio: ['ignore', receiver, receiver],
     // 안 주면 검은 창이 하나 뜬다.
     windowsHide: true,
   });
-  흉내프로세스.on('error', (e) => {
-    흉내프로세스 = null;
+  stubProcess.on('error', (e) => {
+    stubProcess = null;
     console.log(`[목소리] 흉내 서버를 못 띄웠다: ${e.message}`);
   });
-  흉내프로세스.on('exit', (code) => {
-    흉내프로세스 = null;
+  stubProcess.on('exit', (code) => {
+    stubProcess = null;
     // 우리가 끈 것은 사고가 아니다.
-    if (흉내끄는중) { 흉내끄는중 = false; return; }
-    console.log(`[목소리] 흉내 서버가 저 혼자 죽었다 (코드 ${code}) — 남긴 말: ${흉내로그}`);
-    for (const 줄 of 로그꼬리(흉내로그, 8)) console.log(`[목소리]   ${줄}`);
+    if (stubStopping) { stubStopping = false; return; }
+    console.log(`[목소리] 흉내 서버가 저 혼자 죽었다 (코드 ${code}) — 남긴 말: ${stubLog}`);
+    for (const line of logTail(stubLog, 8)) console.log(`[목소리]   ${line}`);
   });
 }
 
 /** 로그 마지막 몇 줄. 죽은 이유는 대개 끝에 있다. */
-function 로그꼬리(경로, 줄수) {
+function logTail(filePath, lineCount) {
   try {
-    return readFileSync(경로, 'utf8').split(/\r?\n/).filter((줄) => 줄.trim() !== '').slice(-줄수);
+    return readFileSync(filePath, 'utf8').split(/\r?\n/).filter((line2) => line2.trim() !== '').slice(-lineCount);
   } catch {
     return [];
   }
 }
 
-function 흉내서버끄기() {
-  if (흉내프로세스 === null) return;
-  흉내끄는중 = true;
-  흉내프로세스.kill();
-  흉내프로세스 = null;
+function stopStubServer() {
+  if (stubProcess === null) return;
+  stubStopping = true;
+  stubProcess.kill();
+  stubProcess = null;
 }
 
-function 흉내참고음성() {
+function stubReferenceAudio() {
   const memo = 이웃('memo', join('life', '.models'));
   if (memo === null) return null;
   return join(memo, 'life', '.models', 'tsukuyomi', 'ref.wav');
 }
 
-function 받아쓰기모델() {
+function sttModel() {
   const memo = 이웃('memo', join('life', '.models'));
   if (memo === null) return null;
   return join(memo, 'life', '.models', 'whisper-small');
@@ -506,7 +506,7 @@ function 받아쓰기모델() {
 /* 뜻으로 찾는 기억 — 낱말이 하나도 안 겹쳐도 옛 말을 부른다.
    모델은 처음 뜰 때 수십 초 걸리므로 **기다리지 않는다**: 준비될 때까지는 낱말 회상만
    나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
-const 뜻 = surface === 'page'
+const meaning = surface === 'page'
   ? { 찾기: async () => [], 담기: async () => {} }
   : new 뜻기억({
     path: join(home, '뜻-색인.json'),
@@ -519,8 +519,8 @@ const touchCount = new TouchCount();
    실측으로 얘가 한 말 320개 중 145개가 글자 그대로 반복이었다. 한가할 때 두뇌가 채워 두고,
    닿았을 때는 꺼내 쓴다(꺼내는 데 걸리는 시간 0). 비면 손으로 적은 표로 그냥 물러선다. */
 /** 빈 자리가 남았을 때 다음 것을 잇는 간격. 첫 판에 스물한 자리를 채우는 속도를 정한다. */
-const 이어채우기간격 = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
-const 대사 = new 대사창고({
+const refillInterval = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
+const line3 = new 대사창고({
   path: join(home, '지어-둔-대꾸.json'),
   누구: () => character?.name ?? null,
   인격글: () => character?.instruction ?? null,
@@ -528,33 +528,33 @@ const 대사 = new 대사창고({
   log: (m) => console.log(m),
 });
 /** 목소리 상태를 곁눈질하는 화면이 읽어 갈 수 있게 밖에 둔다. */
-let 흉내기동 = null;
-let 목소리목록 = [];
+let stubBoot = null;
+let voiceList = [];
 
-const 닿음결 = { 쿡: '쿡 찔렸을 때', 흔듦: '붙잡혀 끌려다닐 때', 쓰다듬: '쓰다듬어질 때' };
-const 단계결 = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
-const 반사상황 = {
+const touchTone = { 쿡: '쿡 찔렸을 때', 흔듦: '붙잡혀 끌려다닐 때', 쓰다듬: '쓰다듬어질 때' };
+const stageTone = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
+const reflexSituation = {
   인사: '조수님이 인사를 건넸을 때 받는 인사',
   작별: '조수님이 자러 가거나 나갈 때 하는 인사',
   고마움: '조수님이 고맙다고 했을 때 하는 대꾸',
   호응: '조수님 말에 짧게 맞장구치는 대꾸',
 };
-const 기운결 = { 처짐: '축 처져서 나른한 결', 보통: '평소 결', 생생: '기운이 도는 결' };
+const energyTone = { 처짐: '축 처져서 나른한 결', 보통: '평소 결', 생생: '기운이 도는 결' };
 
 /** 미리 채워 둘 자리 전부 — 어디에 무슨 말을 지어야 하는지. */
-function 채울자리들() {
-  const 자리 = [];
-  for (const [갈래, 무슨일] of Object.entries(닿음결)) {
-    for (let 단계 = 0; 단계 < 3; 단계 += 1) {
-      자리.push({ 열쇠: touchKind(갈래, 단계), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.` });
+function slotsToFill() {
+  const slot3 = [];
+  for (const [갈래, 무슨일] of Object.entries(touchTone)) {
+    for (let stage = 0; stage < 3; stage += 1) {
+      slot3.push({ 열쇠: touchKind(갈래, stage), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
     }
   }
-  for (const 종류 of 반사종류들()) {
-    for (const [결, 어떤결] of Object.entries(기운결)) {
-      자리.push({ 열쇠: 반사갈래(종류, 결), 부탁: `${반사상황[종류]}. 너답게 짧게. ${어떤결}.` });
+  for (const kind2 of 반사종류들()) {
+    for (const [결, 어떤결] of Object.entries(energyTone)) {
+      slot3.push({ 열쇠: 반사갈래(kind2, 결), 부탁: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
     }
   }
-  return 자리;
+  return slot3;
 }
 
 /**
@@ -564,12 +564,12 @@ function 채울자리들() {
  * 대신 아직 빈 자리가 남아 있으면 다음 것을 곧 잇는다 — 스물한 자리를 긴 간격으로만
  * 돌면 정작 자주 쓰는 자리가 한참 동안 옛 표 그대로다.
  */
-function 대꾸채워두기() {
-  const 빈것 = 채울자리들().filter((자리) => 대사.남은수(자리.열쇠) < 4);
-  const 이번것 = 빈것[0];
-  if (이번것 === undefined) return;
-  void 대사.채우기(이번것.열쇠, 이번것.부탁, 6).catch(() => {});
-  if (빈것.length > 1) setTimeout(대꾸채워두기, 이어채우기간격).unref();
+function prefillReply() {
+  const empty = slotsToFill().filter((slot4) => line3.남은수(slot4.열쇠) < 4);
+  const thisOne = empty[0];
+  if (thisOne === undefined) return;
+  void line3.채우기(thisOne.열쇠, thisOne.부탁, 6).catch(() => {});
+  if (empty.length > 1) setTimeout(prefillReply, refillInterval).unref();
 }
 let lastEnergy = 0.5;
 
@@ -587,12 +587,12 @@ const web = webBody({
   tally: () => {
     /* 「되묻게 했다」는 만든 사람 말이고 **몇 번 중 몇 번인가**가 결과다. 재료만 얹어
        놓고 됐다고 하지 않으려고 같이 센다 — 오늘만 그런 자리를 셋 찾았다. */
-    const 최근 = typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(200) : [];
-    const 되물음 = followUpRatio(Array.isArray(최근) ? 최근 : []);
-    const 줄 = 되물음.전체 === 0
+    const recent4 = typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(200) : [];
+    const followUp = followUpRatio(Array.isArray(recent4) ? recent4 : []);
+    const line4 = followUp.전체 === 0
       ? '되물음 — 잰 말 없음'
-      : `되물음 ${되물음.되물음}/${되물음.전체} (${Math.round((되물음.되물음 / 되물음.전체) * 100)}%)`;
-    return `${줄}
+      : `되물음 ${followUp.되물음}/${followUp.전체} (${Math.round((followUp.되물음 / followUp.전체) * 100)}%)`;
+    return `${line4}
 
 ${tallyReport(tally)}`;
   },
@@ -602,8 +602,8 @@ ${tallyReport(tally)}`;
   상태: () => ({
     인격: character?.name ?? null,
     머리: brain.currentModel ? brain.currentModel() : brain.name,
-    목소리들: 목소리목록,
-    흉내준비: 흉내기동 === null ? null : 흉내기동.준비됐나,
+    목소리들: voiceList,
+    흉내준비: stubBoot === null ? null : stubBoot.준비됐나,
     흉내자동: settings.on('애니목소리자동'),
   }),
   desk: () => ({
@@ -642,15 +642,15 @@ ${tallyReport(tally)}`;
   // 코드가 아니라 사람이 정한다.
   speech: await (async () => {
     if (surface === 'page') {
-      목소리목록 = ['인터넷'];
+      voiceList = ['인터넷'];
       console.log('[목소리] page 는 채팅이 먼저라 인터넷 목소리만 쓴다');
       return edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' });
     }
     /* 로컬 목소리는 메모 저장소 안에 있다. 「여기서 세 겹 위」로 박아 두면 워크트리에서
        띄웠을 때 통째로 사라진다 — 실제로 목록에서 로컬 목소리가 없어졌다(실측). */
-    const memo뿌리 = 이웃('memo', join('life', '.models'));
+    const memoRoot = 이웃('memo', join('life', '.models'));
     const piperRoot = process.env.COMPANION_PIPER_DIR
-      ?? (memo뿌리 === null ? null : join(memo뿌리, 'life', '.models', 'piper'));
+      ?? (memoRoot === null ? null : join(memoRoot, 'life', '.models', 'piper'));
     if (piperRoot === null) console.log('[목소리] 로컬 목소리 자리를 못 찾았다 (memo 저장소가 이웃에 없다) — 인터넷 목소리만 쓴다');
     const local = piperRoot === null ? null : {
       exePath: join(piperRoot, 'piper', 'piper.exe'),
@@ -675,9 +675,9 @@ ${tallyReport(tally)}`;
        이 컴퓨터에서 도는 별도 프로그램이 떠 있을 때만 목록에 나온다. 안 떠 있는데
        목록에만 있으면, 골랐다가 아무 소리도 안 나는 게 제일 나쁘다.
        세우는 법 = `node memo/scripts/setup-cloned-voice.mjs`, 띄우면 목록에 저절로 붙는다. */
-    const 흉내 = clonedSpeech({
+    const stub = clonedSpeech({
       // 참고 음성도 메모 저장소 안에 있다 — 로컬 목소리·몸과 같은 병을 여기서도 끊는다.
-      refAudioPath: process.env.COMPANION_CLONE_REF ?? 흉내참고음성() ?? '',
+      refAudioPath: process.env.COMPANION_CLONE_REF ?? stubReferenceAudio() ?? '',
       refText: process.env.COMPANION_CLONE_REF_TEXT
         ?? 'また、東寺のように、五大明王と呼ばれる、主要な明王の中央に配されることも多い。',
       label: '흉내 낸 목소리',
@@ -688,26 +688,26 @@ ${tallyReport(tally)}`;
     /* **쓸 때 켜고 안 쓰면 끈다** (사용자 결정 2026-08-08: 「부팅 기준이 아니라 쓸 때/안
        쓸 때 기준」). 뜨는 데 30초쯤 걸리므로 기다리지 않는다 — 준비될 때까지는 대타가
        말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
-    흉내기동 = new 수요기동({
+    stubBoot = new 수요기동({
       이름: '흉내 낸 목소리',
-      살았나: () => 흉내.alive(),
-      띄우기: () => 흉내서버띄우기(),
-      끄기: () => 흉내서버끄기(),
+      살았나: () => stub.alive(),
+      띄우기: () => startStubServer(),
+      끄기: () => stopStubServer(),
       쉬면끄기ms: () => Number(settings.get('애니목소리쉬는분')) * 60_000,
       자동인가: () => settings.on('애니목소리자동'),
       log: (m) => console.log(`[목소리] ${m}`),
     });
     // 쉬는지 살피는 자리. 값이 0 이면 아무 일도 안 한다.
-    setInterval(() => void 흉내기동.쉬었으면끄기().catch(() => {}), 60_000).unref();
+    setInterval(() => void stubBoot.쉬었으면끄기().catch(() => {}), 60_000).unref();
 
-    if (흉내참고음성() !== null || process.env.COMPANION_CLONE_REF) {
+    if (stubReferenceAudio() !== null || process.env.COMPANION_CLONE_REF) {
       engines.unshift({
         label: '흉내',
         // 고른 목소리로만 말한다 — 준비될 때까지 기다린다(조수님 결정: 대타 금지).
-        speech: 필요할때({ 진짜: 흉내, 기동: 흉내기동, log: (m) => console.log(`[목소리] ${m}`) }),
+        speech: 필요할때({ 진짜: stub, 기동: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
       });
       console.log(
-        (await 흉내.alive())
+        (await stub.alive())
           ? '[목소리] 흉내 낸 목소리를 기본으로 쓴다 (이미 떠 있다)'
           : '[목소리] 흉내 낸 목소리를 기본으로 쓴다 — 아직 안 떠 있어 첫 마디는 뜰 때까지 기다린다',
       );
@@ -724,8 +724,8 @@ ${tallyReport(tally)}`;
       // 고를 이유가 없었다 — 결은 그때그때 마음에서 나온다.
       speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
     });
-    목소리목록 = engines.map((e) => e.label);
-    console.log(`[목소리] ${목소리목록.join(' + ')}`);
+    voiceList = engines.map((e) => e.label);
+    console.log(`[목소리] ${voiceList.join(' + ')}`);
     return anySpeech(engines);
   })(),
 
@@ -744,7 +744,7 @@ ${tallyReport(tally)}`;
   // 3D 몸 — 게임 저장소 안의 메시를 그 자리에서 읽는다 (복사본 X).
   models: {
     // 몸은 게임 저장소 안에 있다 — 사본을 만들지 않고 그 자리에서 읽는다.
-    '욘': process.env.COMPANION_MODEL_YON ?? 욘메시() ?? '',
+    '욘': process.env.COMPANION_MODEL_YON ?? yonMesh() ?? '',
   },
   // 어떤 머리를 쓸지도 창에서 고른다. 빠른 쪽·깊은 쪽이 필요한 때가 다르다.
   permission: {
@@ -770,8 +770,8 @@ ${tallyReport(tally)}`;
     },
   },
   ears: whisperEars({
-    exePath: process.env.COMPANION_EARS_EXE ?? 받아쓰기실행파일() ?? '',
-    modelDir: process.env.COMPANION_WHISPER_MODEL ?? 받아쓰기모델() ?? '',
+    exePath: process.env.COMPANION_EARS_EXE ?? sttBinary() ?? '',
+    modelDir: process.env.COMPANION_WHISPER_MODEL ?? sttModel() ?? '',
     log: (m) => console.log(`[귀] ${m}`),
   }),
 });
@@ -781,13 +781,13 @@ const bodies = [web];
 /* 관객이 있는 자리 — 토큰을 주면 디스코드에도 몸이 선다(코어는 그대로다).
    **토큰이 없으면 그렇다고 말한다.** 조용히 안 붙으면 「왜 디스코드에서 아무 말도 없지」가
    되고, 오늘 사고 셋이 전부 그 모양이었다. */
-const 디코토큰 = process.env.COMPANION_DISCORD_TOKEN?.trim();
-if (디코토큰) {
+const discordToken = process.env.COMPANION_DISCORD_TOKEN?.trim();
+if (discordToken) {
   try {
-    const 붙이기 = await discordJs({ token: 디코토큰, log: (m) => console.log(`[디코] ${m}`) });
+    const attach = await discordJs({ token: discordToken, log: (m) => console.log(`[디코] ${m}`) });
     bodies.push(
       discordBody({
-        붙이기,
+        붙이기: attach,
         // 여기서만 듣는다. 안 정하면 들어오는 모든 방 — 남의 방에 끼어들지 않게 정해 두는 편이 낫다.
         채널들: process.env.COMPANION_DISCORD_CHANNELS?.split(',').map((x) => x.trim()).filter(Boolean),
         log: (m) => console.log(`[디코] ${m}`),
@@ -821,26 +821,26 @@ if (process.env.COMPANION_NUDGE !== '0') {
         if (quiet.maySpeakFirst === false) return null;
         /* 지금이 어떤 자리인지 보고 입을 연다. 통화 중에 끼어드는 건 그냥 사고다.
            모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
-        const 자리 = maySpeak(lastWindowTitle);
-        if (자리.된다 === false) {
-          console.log(`[먼저] 참았다 — ${자리.왜}`);
+        const slot5 = maySpeak(lastWindowTitle);
+        if (slot5.된다 === false) {
+          console.log(`[먼저] 참았다 — ${slot5.왜}`);
           return null;
         }
         // 하루의 매듭은 다른 어떤 이유보다 먼저다 — 오늘 처음 만난 순간은 한 번뿐이다.
-        const 매듭 = dayMark(typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(4000) : []);
-        if (매듭 !== null) return { why: 매듭.note, key: `${매듭.kind}-${new Date().toDateString()}` };
+        const knot = dayMark(typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(4000) : []);
+        if (knot !== null) return { why: knot.note, key: `${knot.kind}-${new Date().toDateString()}` };
         // 바라는 것은 **다른 이유가 없을 때만**, 하루에 한 번만 슬쩍. 조르면 잔소리가 된다.
-        const 있는이유 = reasonToSpeak({
+        const presentReason = reasonToSpeak({
           sinceTalkedMs: lastSpokenToAt === 0 ? null : Date.now() - lastSpokenToAt,
           wondering: curiosity.next(),
           windowTitle: lastWindowTitle,
           lastWindowTitle: shownWindowTitle,
           hour: new Date().getHours(),
         });
-        if (있는이유 !== null) return 있는이유;
+        if (presentReason !== null) return presentReason;
 
-        const 바람 = wishes.nudge(typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(600) : []);
-        return 바람 === null ? null : { why: `${바람} — 이 마음을 조르지 말고 한 번만 슬쩍 흘려라.`, key: `바람-${new Date().toDateString()}` };
+        const wish2 = wishes.nudge(typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(600) : []);
+        return wish2 === null ? null : { why: `${wish2} — 이 마음을 조르지 말고 한 번만 슬쩍 흘려라.`, key: `바람-${new Date().toDateString()}` };
       },
       log: (m) => console.log(`[먼저] ${m}`),
     }),
@@ -869,16 +869,16 @@ if (screenMs > 0) {
 // 창 쪽에서도 지우고 있었지만, 기억에 남기는 일은 그보다 **먼저** 일어난다. 그래서 실제로
 // 「[처짐] …또 붙들었네.」가 통째로 대화에 저장됐다(실측 31회차). 저장된 표는 다음 번
 // 재료가 되어 얘가 제 표를 흉내 내게 되고, 소리로도 「대괄호 처짐 대괄호」를 읽는다.
-const 표떼기 = (text) => stripExpression(text).text || text;
+const stripMarks = (text) => stripExpression(text).text || text;
 // 이번 turn 에 실제로 쓴 손. core 가 알려 준다.
-let 쓴손 = [];
+let writer = [];
 // 이번에 찾아본 것 — 「안 보고 지어낸 값」을 가리는 데 쓴다.
-let 찾은것 = [];
+let found2 = [];
 
 const mouth = mouthGate({
   // 텅 빈 대꾸도 다시 시킨다 — 짧은 건 인격이지만 **연달아** 알맹이가 없으면 벽이다.
-  alsoRetryWhen: (text) => unbackedClaim(text, 쓴손)
-    ?? madeUpFact(text, 찾은것, conversationMemory.recent(12))
+  alsoRetryWhen: (text) => unbackedClaim(text, writer)
+    ?? madeUpFact(text, found2, conversationMemory.recent(12))
     ?? hollowReason(text, conversationMemory.recent(40))
     /* 공을 안 돌려준 것도 여기서 잡는다. **재료로는 안 밀렸다** — 큰 머리로 바꿔도,
        인격을 빼도 0/3 이었다(실측). 여섯 줄 중 한 줄로는 안 되고, 여기서는 그 한 가지만
@@ -891,10 +891,10 @@ const mouth = mouthGate({
     ?? repliedToInstruction(text)
     /* 되묻기 강제를 껐다 켤 수 있게 둔다 — **이게 얘를 낫게 하는지 재려면 꺼 봐야 한다.**
        87회차에 강제 재시도가 원래 멀쩡하던 답을 무대 뒤 얘기로 바꿔 놓는 걸 두 번 봤다. */
-    ?? (되묻기강제 ? notReturned(text, 공돌려줄자리인가()) : null)
+    ?? (forceFollowUp ? notReturned(text, shouldTossBack()) : null)
     /* 길게 털어놨는데 한마디로 끊은 것도 여기서 잡는다. **시켜 놓고 안 세면 재료만 얹고
        끝난다** — 실측으로 얘 답은 사람이 1자를 쓰든 50자를 쓰든 가운데값 6~7자였다. */
-    ?? wasShort(text, 받을자리인가()),
+    ?? wasShort(text, shouldAccept()),
   /* 아쉬울 뿐인 것과 해로운 것을 가른다. 지어낸 사실·조수 말투는 버리는 게 맞지만,
      짧거나 안 되물은 말은 얼버무림보다 낫다 — 막는 자리가 답을 더 나쁘게 만들면 안 된다. */
   아쉬울뿐인가: (why) => /한마디로 끊었다|되묻지 않았다/.test(why),
@@ -904,7 +904,7 @@ const mouth = mouthGate({
     // **다시 시켰다는 것 자체가 안 보였다.** 걸러진 것만 기록에 남아서, 「다시 시켰는데
     // 또 안 됐다」와 「애초에 안 걸렸다」를 구분할 수가 없었다.
     console.log(`[입] 다시 시킨다 — ${why}`);
-    const 말 = why.includes('무대 뒤') || why.includes('자료처럼')
+    const text2 = why.includes('무대 뒤') || why.includes('자료처럼')
         ? '방금 하려던 말은 **조수님이 아니라 내가 받은 지시문한테 하는 말**이었다. 그 말은 버려라. 무대 뒤 얘기(대화 기록·맥락·뭘 원하는지)는 절대 꺼내지 말고, 조수님한테 사람으로서 한마디 해라. 짧아도 된다.'
       : why.includes('한마디로 끊었다')
         ? '조수님이 길게 털어놨거나 감정을 실어 말했다. **한마디로 끊지 마라** — 되받아 주고 하나는 되물어라. 두세 마디면 된다.'
@@ -913,7 +913,7 @@ const mouth = mouthGate({
       : why.includes('안 보고') ? madeUpRetryNote(why)
       : why.includes('알맹이 없는') ? hollowRetryNote(why)
       : retryNote(why);
-    return brain.ask ? brain.ask(말) : Promise.resolve(null);
+    return brain.ask ? brain.ask(text2) : Promise.resolve(null);
   },
   log: (m) => {
     console.log(`[입] ${m}`);
@@ -934,13 +934,13 @@ const companion = new Companion({
   // 생각 없이 답해도 되는 말은 여기서 끝낸다 — 즉답이고 할당량도 안 먹는다.
   reflex: (sensation) => {
     // 닿은 것은 말이 아니다 — 두뇌를 부르지 않고 그 자리에서 대꾸한다.
-    const 어떻게 = touchKindOf(sensation);
-    if (어떻게 !== null) {
-      const 몇번째 = touchCount.bump(sensation.at);
-      heart.felt(어떻게 === '쓰다듬' ? '쓰다듬김' : 어떻게 === '흔듦' ? '끌려다님' : 몇번째 > 4 ? '자꾸찔림' : '쿡찔림');
-      const 대꾸 = touchReply(어떻게, { times: 몇번째, last: lastTouch, 창고: 대사 });
-      lastTouch = 대꾸;
-      return 대꾸;
+    const how2 = touchKindOf(sensation);
+    if (how2 !== null) {
+      const index = touchCount.bump(sensation.at);
+      heart.felt(how2 === '쓰다듬' ? '쓰다듬김' : how2 === '흔듦' ? '끌려다님' : index > 4 ? '자꾸찔림' : '쿡찔림');
+      const reply = touchReply(how2, { times: index, last: lastTouch, 창고: line3 });
+      lastTouch = reply;
+      return reply;
     }
     if (sensation.channel !== 'web') return null;
     // 조용히 해 달라는 부탁은 그 자리에서 받는다 — 두뇌를 기다리면 그 사이에 또 떠든다.
@@ -948,31 +948,31 @@ const companion = new Companion({
       quiet.resume();
       return '…응, 다시 얘기하자.';
     }
-    const 부탁 = asksForQuiet(sensation.text);
-    if (부탁 !== null) {
-      quiet.hushFor(부탁.ms);
-      return 부탁.says;
+    const request = asksForQuiet(sensation.text);
+    if (request !== null) {
+      quiet.hushFor(request.ms);
+      return request.says;
     }
     // 노는 중에는 두뇌를 안 부른다 — 3초 뒤에 오는 「사과!」는 이미 놀이가 아니다.
-    const 놀이 = playing.hear(sensation.text);
-    if (놀이 !== null) {
-      heart.felt(/내가 이겼다/.test(놀이.say) ? '놀이이김' : /내가 졌다/.test(놀이.say) ? '놀이짐' : '같이놂', 0.6);
-      return 놀이.say;
+    const game2 = playing.hear(sensation.text);
+    if (game2 !== null) {
+      heart.felt(/내가 이겼다/.test(game2.say) ? '놀이이김' : /내가 졌다/.test(game2.say) ? '놀이짐' : '같이놂', 0.6);
+      return game2.say;
     }
-    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex, 창고: 대사 });
+    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex, 창고: line3 });
     if (quick !== null) lastReflex = quick;
     return quick;
   },
   // 입 앞의 관문 — 새는 말은 말하기 전에 잡는다. 기억에 남기기도 전이다.
   beforeSpeak: async (text, ctx) => {
-    if (surface === 'page') return 표떼기(text);
+    if (surface === 'page') return stripMarks(text);
     // 안 한 걸 했다고 말하는 것 — 여기서 잡는다. 손을 실제로 썼는지는 core 만 안다.
-    쓴손 = ctx.usedHands ?? [];
-    찾은것 = ctx.found ?? [];
+    writer = ctx.usedHands ?? [];
+    found2 = ctx.found ?? [];
     // **손도 센다.** 재료만 세고 손은 안 세면 「손을 안 쓴다」가 관찰 두 번짜리 인상으로
     // 남는다(41회차가 그랬다). 어느 손이 죽었는지는 세어 봐야 안다.
-    for (const h of hands) tally.mark(`손:${h.name}`, 쓴손.includes(h.name) ? '실림' : '꺼짐');
-    return 표떼기(await mouth(표떼기(text), ctx) ?? '');
+    for (const h of hands) tally.mark(`손:${h.name}`, writer.includes(h.name) ? '실림' : '꺼짐');
+    return stripMarks(await mouth(stripMarks(text), ctx) ?? '');
   },
   // 답이 늦으면 먼저 뜸을 낸다. 같은 지연도 뜸이 있으면 절반쯤으로 느껴진다.
   filler: () => {
@@ -988,35 +988,35 @@ const companion = new Companion({
   // 두뇌더러 표를 적어 손을 부르라고 하면 인격과 부딪혀 아예 안 쓴다(42회차: 0/10).
   // 그래서 조수님 말을 보고 **우리가** 필요한 손을 미리 쓴다 — 판단을 두뇌에 안 맡긴다.
   recall: async (sensation, recent) => {
-    const 옛것 = canSearch
+    const old = canSearch
       ? recallFrom((word, limit) => conversationMemory.search(word, limit))(sensation, recent)
       : [];
     /* 낱말로 못 찾은 것을 뜻으로 한 번 더 — 「매운 거 싫어」와 「마라탕은 못 먹어」는
        낱말이 하나도 안 겹친다. 둘을 합치되 같은 말은 한 번만. */
     try {
-      const 뜻으로 = await 뜻.찾기(sensation.text, {
+      const byMeaning = await meaning.찾기(sensation.text, {
         몇개: 2,
-        뺄것: new Set([...recent.map((e) => e.text), ...옛것]),
+        뺄것: new Set([...recent.map((e) => e.text), ...old]),
       });
-      for (const r of 뜻으로) {
-        옛것.push(r.text);
+      for (const r of byMeaning) {
+        old.push(r.text);
         console.log(`[뜻] 닮은 옛말 (${r.닮음.toFixed(2)}): ${r.text.slice(0, 40)}`);
       }
     } catch (e) {
       console.error(`[뜻] 찾다 죽었다 — ${e?.message ?? e}`);
     }
-    if (sensation.channel !== 'web') return 옛것;
+    if (sensation.channel !== 'web') return old;
     // **파일로 더한 손의 힌트가 먼저다.** 사람이 「이럴 때 쓰라」고 적어 둔 것이니
     // 우리가 코드에 박아 둔 것보다 앞선다.
-    const 미리쓴것 = await autoUse(sensation.text, hands, {
+    const prewritten = await autoUse(sensation.text, hands, {
       hints: [...파일힌트, ...defaultHint],
       log: (m) => {
         console.log(`[손] ${m}`);
         if (m.includes('못 썼다')) troubles.hit('못함', m);
       },
     });
-    for (const 줄 of 미리쓴것) tally.mark(`손:${줄.split(':')[0]}`, '실림');
-    return [...옛것, ...미리쓴것];
+    for (const line5 of prewritten) tally.mark(`손:${line5.split(':')[0]}`, '실림');
+    return [...old, ...prewritten];
   },
   // 기분 — 시간대·혼자 있던 시간·최근 대화량으로 흐른다. 매번 같은 결로 말하지 않게.
   mood: (recent) => {
@@ -1049,36 +1049,36 @@ const companion = new Companion({
     // 재료를 **다 넣지 않는다.** 열한 줄을 늘 얹었더니 재료가 인격보다 길어졌고(실측 737자
     // vs 610자), 지시가 늘수록 얘가 몸을 사린다(15·23회차). 지금 필요한 것만 예산 안에서
     // 고르고, 중요한 둘을 앞뒤로 놓는다 — 가운데는 흐려진다.
-    const 방금한말 = last?.text ?? '';
-    const 아는사람 = people.known;
+    const justSaid = last?.text ?? '';
+    const knownPerson = people.known;
     // 힘들어 보이면 가벼운 재료를 **한 자리에서** 끈다. 재료마다 따로 붙이면 새것을 넣을
     // 때마다 빠뜨리고, 그게 바로 「길어질수록 안전장치가 흐려지는」 모양이다.
-    const 조심 = readTender(wholeStory);
+    const caution = readTender(wholeStory);
     /* **무거운 자리에서만 큰 머리를 쓴다**(84회차). 같은 말에 작은 머리는 14자, 큰 머리는
        33자에 되묻기까지 나왔다 — 인격 탓도 재료 탓도 아니고 작은 머리가 못 따르는 것이었다.
        그렇다고 늘 큰 머리를 쓰면 첫 소리까지의 시간을 되돌리는 셈이다.
        **먼저 지난 turn 의 것을 되돌린다** — 어디선가 터져서 못 되돌렸어도 여기서 낫는다. */
-    되돌릴머리?.();
-    되돌릴머리 = null;
-    const 고른머리 = whichHead({
-      받을자리: acceptLength({ 방금: 방금한말, recent: wholeStory }) !== '',
-      돌려줄자리: 공돌려줄자리인가(),
-      자기얘기: asksAboutSelf(방금한말),
-      옛일있나: 그때그일.related(방금한말, 2, Date.now()) !== null,
+    headToRestore?.();
+    headToRestore = null;
+    const pickedHead = whichHead({
+      받을자리: acceptLength({ 방금: justSaid, recent: wholeStory }) !== '',
+      돌려줄자리: shouldTossBack(),
+      자기얘기: asksAboutSelf(justSaid),
+      옛일있나: episode.related(justSaid, 2, Date.now()) !== null,
     }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
-    if (고른머리.왜 !== '') {
-      되돌릴머리 = attachHead(brain, 고른머리.머리, (m) => console.log(`[머리] ${m}`));
-      console.log(`[머리] ${고른머리.머리} 로 바꾼다 — ${고른머리.왜}`);
-      web.알아챔(`머리를 크게 쓴다 — ${고른머리.왜}`);
+    if (pickedHead.왜 !== '') {
+      headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
+      console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.왜}`);
+      web.알아챔(`머리를 크게 쓴다 — ${pickedHead.왜}`);
     }
     /* 두뇌에 실제로 뭐가 들어가는지 눈으로 본다 (`COMPANION_SHOW_MATERIAL=1`).
        「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
        발동 기록은 무엇이 실렸는지만 알려 주지 그 글이 어떻게 생겼는지는 안 보여 준다. */
-    const 보여줄까 = process.env.COMPANION_SHOW_MATERIAL === '1';
+    const shouldShow = process.env.COMPANION_SHOW_MATERIAL === '1';
     /* 드물게 켜지는 재료는 켜졌을 때 이겨야 한다(82회차). 얼마나 드문지는 우리가 정하지
        않고 **발동 기록이 이미 센 값**을 쓴다. 밀린 것(72회차)과 겹쳐 얹는다 — 하나는
        「참은 만큼」, 하나는 「드문 만큼」이라 서로 다른 것을 잰다. */
-    const 재료들 = [
+    const materials = [
       /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
          2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
@@ -1087,41 +1087,41 @@ const companion = new Companion({
       // 이어지는 옛 일이 있으면 꺼낸다. 없으면 아무 말도 안 얹는다 — 늘 붙이면
       // 「기억하는 척」이 되고 재료만 먹는다.
       // 여러 마디에 걸쳐야 보이는 것. 지금 얘기와 이어질 때만 나온다.
-      { name: '보아온것', weight: 11, text: reflectionNote(되새긴것, 방금한말) },
+      { name: '보아온것', weight: 11, text: reflectionNote(reflected, justSaid) },
       // 짧은 건 인격이지만 **안 변하는 건 고장이다**(83회차 실측: 사람이 뭘 쓰든 가운데값 7자).
-      { name: '받는길이', weight: 14, text: acceptLength({ 방금: 방금한말, recent: wholeStory }) },
+      { name: '받는길이', weight: 14, text: acceptLength({ 방금: justSaid, recent: wholeStory }) },
       { name: '그때그일', weight: 10, text: (() => {
-        그때그일.learn(recent);
-        return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());
+        episode.learn(recent);
+        return justSaid === '' ? '' : episodeNote(episode, justSaid, Date.now());
       })() },
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
-      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
-      { name: '자리', weight: 11, text: bySlotTone(자리앎.읽기(lastWindowTitle)) },
+      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: justSaid }) },
+      { name: '자리', weight: 11, text: bySlotTone(slotKnowledge.읽기(lastWindowTitle)) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
-        const 아는것 = memory.longTerm?.() ?? null;
-        언제알았나.sync(아는것);
-        return justLearned(아는것, 언제알았나, Date.now());
+        const known2 = memory.longTerm?.() ?? null;
+        learnedAt.sync(known2);
+        return justLearned(known2, learnedAt, Date.now());
       })() },
       // 늘 있어야 하는 것 — 지금 어떤 상태인가.
       // 틀렸다고 하면 그게 가장 먼저다 — 우기는 것보다 나쁜 게 없다.
       { name: '고침', weight: 13, text: (() => {
         // 재시작 직후엔 직전에 한 말이 비어 있다 — 그때는 기억에서 읽는다.
         // 안 그러면 창을 새로 연 뒤 첫 「아니야」가 통째로 무시된다(실측 33회차).
-        const 마지막말 = 직전에한말 ?? [...recent].reverse().find((e) => e.role === 'said');
-        const 고칠것 = findCorrection(방금한말, 마지막말);
-        if (고칠것 === null) return '';
-        const 지운것 = applyCorrection(고칠것, (key) => memory.forgetKnown?.(key) === true);
-        if (지운것.length > 0) console.log(`[고침] 아는 것에서 지웠다: ${지운것.join(', ')}`);
-        return correctionNote(고칠것, 지운것);
+        const lastText = previousUtterance ?? [...recent].reverse().find((e) => e.role === 'said');
+        const toFix = findCorrection(justSaid, lastText);
+        if (toFix === null) return '';
+        const removed = applyCorrection(toFix, (key) => memory.forgetKnown?.(key) === true);
+        if (removed.length > 0) console.log(`[고침] 아는 것에서 지웠다: ${removed.join(', ')}`);
+        return correctionNote(toFix, removed);
       })() },
       // 조용히 있으라는 건 무엇보다 먼저다 — 이걸 놓치면 방해가 된다.
       { name: '조용', text: quietNote(quiet), weight: 12 },
       { name: '보는것', text: watchNote(watching, Date.now()), weight: 6 },
       // 조심할 자리는 **가장 무겁다.** 예산에 밀려 빠지면 아무 소용이 없다.
-      { name: '조심', text: tenderNote(조심), weight: 14 },
+      { name: '조심', text: tenderNote(caution), weight: 14 },
       // 직접 들은 것은 짐작보다 무겁다 — 어긋나면 이쪽을 따르라고 못 박는다.
       { name: '들은것', weight: 11, text: statedNote(
         stated.all,
@@ -1136,39 +1136,39 @@ const companion = new Companion({
       // 말이 서넛도 안 들어 있어, 판단이 서기도 전에 늘 「빔」이 된다(실측 36회차).
       { name: '말버릇', text: rutWarning(wholeStory), weight: 10 },
       // 자기 얘기를 물었을 때만 — 안 물었는데 「전에 이렇게 말했다」를 늘 얹을 이유가 없다.
-      { name: '자기상', text: selfImage.note(), weight: 7, when: asksAboutSelf(방금한말) },
+      { name: '자기상', text: selfImage.note(), weight: 7, when: asksAboutSelf(justSaid) },
       // 그 사람 얘기가 나왔을 때만.
-      { name: '곁의사람', text: peopleNote(아는사람), weight: 6,
-        when: 아는사람.some((p) => 방금한말.includes(p.name.slice(0, 2))) },
+      { name: '곁의사람', text: peopleNote(knownPerson), weight: 6,
+        when: knownPerson.some((p) => justSaid.includes(p.name.slice(0, 2))) },
       // 오늘이 이정표인 날에만. 자랑하지 말라고 못 박아 뒀다.
-      { name: '이정표', text: milestoneNote(wholeStory), weight: 8, when: 조심.soft === false },
+      { name: '이정표', text: milestoneNote(wholeStory), weight: 8, when: caution.soft === false },
       // 처음 만난 때는 **물었을 때만** — 안 물었는데 꺼내면 그것도 자랑이다.
       { name: '처음만남', text: firstMetNote(wholeStory), weight: 7,
-        when: asksAboutFirstMeeting(방금한말) },
+        when: asksAboutFirstMeeting(justSaid) },
       // 재미는 저절로 생기지 않는다 — 놀릴 거리를 준다. 쓸지 말지는 얘가 정한다.
-      { name: '놀리기', text: teaseNote(findTease(방금한말, wholeStory)), weight: 5, when: 조심.soft === false && settings.on('놀리기') },
+      { name: '놀리기', text: teaseNote(findTease(justSaid, wholeStory)), weight: 5, when: caution.soft === false && settings.on('놀리기') },
       // 끊겼다 이어지는 자리 — **첫 turn 에만** 본다. 매번 얹으면 재료 과밀이다.
       // 끊김은 **켜지기 전까지의 기억**으로 잰다.
       //
       // core 는 방금 들어온 말을 기억에 먼저 넣고 이 자리를 부른다. 그래서 통째로 넘기면
       // 「마지막 대화 = 방금」이 되어 **늘 「이어짐」**이 된다 — 실제로 그래서 안 켜졌다
       // (실측 46회차: 문턱을 1초로 낮춰도 빔이었다).
-      { name: '이어짐', weight: 6, text: 첫turn인가
+      { name: '이어짐', weight: 6, text: isFirstTurn
         ? resumeNote(readResume(
-            wholeStory.filter((e) => e.at < 시작한때),
-            시작한때,
+            wholeStory.filter((e) => e.at < startedAt),
+            startedAt,
             { sameBreathMs: Number(process.env.COMPANION_RESUME_MS ?? '180000') },
           ))
         : '' },
       // 자리를 비운 동안 곁에서 본 것 — 돌아온 첫 turn 에만.
       { name: '비운동안', weight: 5, text: (() => {
-        if (첫turn인가 === false) return '';
-        const 끊김 = readResume(wholeStory.filter((e) => e.at < 시작한때), 시작한때);
-        if (끊김.gap === '처음' || 끊김.gap === '이어짐') return '';
-        return whileAwayNote(whileAway(wholeStory, 시작한때 - 끊김.awayMs, 시작한때));
+        if (isFirstTurn === false) return '';
+        const cut = readResume(wholeStory.filter((e) => e.at < startedAt), startedAt);
+        if (cut.gap === '처음' || cut.gap === '이어짐') return '';
+        return whileAwayNote(whileAway(wholeStory, startedAt - cut.awayMs, startedAt));
       })() },
       // 우리끼리 자꾸 나오는 얘기 — 농담으로 만들라고 시키지는 않는다.
-      { name: '단골얘기', text: runningGagNote(recurringThings(wholeStory)), weight: 3, when: 조심.soft === false },
+      { name: '단골얘기', text: runningGagNote(recurringThings(wholeStory)), weight: 3, when: caution.soft === false },
       { name: '사이', text: rapport.note, weight: 4 },
       /* **사람이 실제로 반응한 것.** 가중치가 최하위(3)라 194번 밀리고 13번만 실렸다
          — 발동 기록으로 확인. 그런데 이건 「무슨 말이 통했나」라는, 이 사람한테만
@@ -1176,9 +1176,9 @@ const companion = new Companion({
          내용이 있을 때가 40% 뿐이라(빔 264) 늘 자리를 먹지도 않는다. */
       { name: '통한말', text: landingNote(recent), weight: 12 },
 
-      { name: '궁금', text: maybeAsk(curiosity), weight: 5, when: 조심.soft === false && settings.on('놀리기') },
+      { name: '궁금', text: maybeAsk(curiosity), weight: 5, when: caution.soft === false && settings.on('놀리기') },
       // 대화가 마를 때만 — 잘 굴러가면 끼어들 이유가 없다.
-      { name: '화제', weight: 7, when: 조심.soft === false, text: tangentFor(wholeStory, {
+      { name: '화제', weight: 7, when: caution.soft === false, text: tangentFor(wholeStory, {
         wondering: curiosity.next(),
         sawWindow: lastWindowTitle,
         quietPerson: people.whoToAskAbout(Date.now())?.name ?? null,
@@ -1192,33 +1192,33 @@ const companion = new Companion({
     /* **참기만 하다 끝나면 그건 생각이 아니다**(87회차). 오래 눌린 재료가 있고 대화가
        식어 가면, 곁가지로 얹는 대신 **그걸 화제로 꺼내라**고 시킨다. 좁게 연다 —
        한창일 때 끼어들면 방해고, 물어본 turn 에 딴 얘기를 꺼내면 회피다. */
-    const 꺼낼거리 = {
-      재료: 재료들,
-      얼마나참았나: (n) => 밀린것.얼마나참았나(n),
-      식는중: 공돌려줄자리인가(),
-      물어본turn: isQuestion(방금한말),
+    const topic = {
+      재료: materials,
+      얼마나참았나: (n) => queued.얼마나참았나(n),
+      식는중: shouldTossBack(),
+      물어본turn: isQuestion(justSaid),
     };
-    const 먼저 = topicFirst(꺼낼거리);
-    if (먼저 !== null) {
-      console.log(`[먼저꺼냄] ${먼저.이름} (${먼저.참은수}번 참았다)`);
-      web.알아챔(`먼저 꺼낸다 — ${먼저.이름} (${먼저.참은수}번 참았다)`);
+    const first = topicFirst(topic);
+    if (first !== null) {
+      console.log(`[먼저꺼냄] ${first.이름} (${first.참은수}번 참았다)`);
+      web.알아챔(`먼저 꺼낸다 — ${first.이름} (${first.참은수}번 참았다)`);
       // 다른 무엇보다 앞이다. 곁가지가 아니라 이번 turn 의 화제다.
-      재료들.push({ name: '먼저꺼냄', text: 먼저.말, weight: 40 });
+      materials.push({ name: '먼저꺼냄', text: first.말, weight: 40 });
     } else {
-      const 왜 = topicSkipReason(꺼낼거리);
-      if (왜 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${왜}`);
+      const why2 = topicSkipReason(topic);
+      if (why2 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${why2}`);
     }
-    const 만든것 = composeIngredients(applyRarity(밀린것.덧입히기(재료들), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
+    const made = composeIngredients(applyRarity(queued.덧입히기(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
-    밀린것.다음턴();
-    const 참는것 = 밀린것.요약();
-    if (참는것 !== '') { console.log(`[밀림] ${참는것}`); web.알아챔(`하고 싶었는데 못 한 말 — ${참는것}`); }
-    if (보여줄까) {
+    queued.다음턴();
+    const held = queued.요약();
+    if (held !== '') { console.log(`[밀림] ${held}`); web.알아챔(`하고 싶었는데 못 한 말 — ${held}`); }
+    if (shouldShow) {
       console.log('[재료]');
-      for (const 줄 of 만든것.split('\n')) console.log(`  · ${줄}`);
+      for (const line6 of made.split('\n')) console.log(`  · ${line6}`);
     }
-    return 만든것;
+    return made;
   },
   attention: tactfulAttention({
     // 닿은 것은 나한테 직접 한 짓이다 — 「지금 바쁘신 것 같아 참았다」가 말이 안 된다.
@@ -1231,12 +1231,12 @@ const companion = new Companion({
     if (report.sensation.channel === 'web') {
       lastSpokenToAt = Date.now();
       // 방금 한 말에 조수님이 어떻게 반응했나 — 웃어 준 건 마음에 남아야 한다.
-      const 잰것 = 직전에한말 === null ? null : reactionTo(직전에한말, {
+      const measured = previousUtterance === null ? null : reactionTo(previousUtterance, {
         role: 'sensed', channel: 'web', text: report.sensation.text, at: report.sensation.at,
       });
-      if (잰것 !== null) heart.felt(잰것.landed
-        ? (잰것.why === '웃었다' ? '웃어줌' : 잰것.why === '되물었다' ? '되물음' : '받아줌')
-        : (잰것.why === '한 마디로 넘겼다' ? '시들함' : '무시당함'));
+      if (measured !== null) heart.felt(measured.landed
+        ? (measured.why === '웃었다' ? '웃어줌' : measured.why === '되물었다' ? '되물음' : '받아줌')
+        : (measured.why === '한 마디로 넘겼다' ? '시들함' : '무시당함'));
     }
     if (report.utterance) void Promise.resolve(conversationMemory.recent(40)).then((es) => {
       selfImage.learn(es);
@@ -1247,23 +1247,23 @@ const companion = new Companion({
     //
     // 처음엔 아무 turn 이나 세었더니 화면 곁눈질이 먼저 돌아 첫 turn 을 써 버렸다 —
     // 조수님이 말을 걸기도 전에 끊김 알림이 꺼졌다(실측 45회차: 12분 끊고 켰는데 「빔」).
-    if (report.sensation.channel === 'web') 첫turn인가 = false;
-    if (report.utterance) 직전에한말 = { role: 'said', channel: 'web', text: report.utterance.text, at: report.utterance.at };
+    if (report.sensation.channel === 'web') isFirstTurn = false;
+    if (report.utterance) previousUtterance = { role: 'said', channel: 'web', text: report.utterance.text, at: report.utterance.at };
     // 화면에서 읽은 창 제목을 기억해 둔다 — 바뀌었는지 알아야 말 걸 이유가 생긴다.
     const seen = report.sensation.meta?.windowTitle;
     if (typeof seen === 'string' && seen !== '') {
       /* 창이 바뀐 걸 알아챈 것도 인식이다 — 여태 아무 데도 안 보였다.
          **바뀐 때만** 알린다. 같은 창을 보고 있는 동안 매번 알리면 대화가 덮인다. */
       if (seen !== lastWindowTitle) {
-        const 자리 = 자리앎.읽기(seen);
-        web.알아챔(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${자리 === null ? ' (무슨 자리인지 모르겠다)' : ` (${자리})`}`);
+        const slot6 = slotKnowledge.읽기(seen);
+        web.알아챔(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${slot6 === null ? ' (무슨 자리인지 모르겠다)' : ` (${slot6})`}`);
       }
       lastWindowTitle = seen;
       watching.saw(seen, report.sensation.at);
     }
     // 큰 머리를 끼웠으면 여기서 되돌린다 — 다음 turn 이 이유 없이 느려지면 안 된다.
-    되돌릴머리?.();
-    되돌릴머리 = null;
+    headToRestore?.();
+    headToRestore = null;
     if (report.sensation.channel === 'nudge') shownWindowTitle = lastWindowTitle;
     /* page 채팅은 두뇌를 일·말에만 쓴다. 되새김·자리 배우기는 다음 답을 훔친다. */
     if (surface === 'page') {
@@ -1274,18 +1274,18 @@ const companion = new Companion({
     }
     /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
-    void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
+    void episode.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 오간 말을 뜻 색인에 담는다 — **말이 나간 뒤라** 늦어져도 대화가 안 밀린다.
        이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 거의 안 든다. */
     void Promise.resolve(conversationMemory.recent(40))
-      .then((es) => 뜻.담기(es))
+      .then((es) => meaning.담기(es))
       .catch((e) => console.error(`[뜻] 담다 죽었다 — ${e?.message ?? e}`));
-    void 자리앎.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
+    void slotKnowledge.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는
        영영 「일어난 일」만 안다. 여기는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void Promise.resolve(conversationMemory.recent(60)).then((es) => {
-      if (되새긴것.셈(es) === false) return undefined;
-      return 되새긴것.되새기기(es);
+      if (reflected.셈(es) === false) return undefined;
+      return reflected.되새기기(es);
     }).catch((e) => console.error(`[되새김] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
@@ -1302,9 +1302,9 @@ await companion.start();
    두뇌를 아예 안 부른다(담긴 수만 세고 돌아간다) — 그래서 간격이 짧아도 값이 안 든다.
    너무 길게 잡으면 정작 가장 많이 닿는 자리(계속 찌를 때)가 한참 동안 옛 표 그대로다. */
 if (surface !== 'page') {
-  const 대사간격 = Number(process.env.COMPANION_STOCK_MS ?? '90000');
-  대꾸채워두기();
-  setInterval(대꾸채워두기, 대사간격).unref();
+  const lineInterval = Number(process.env.COMPANION_STOCK_MS ?? '90000');
+  prefillReply();
+  setInterval(prefillReply, lineInterval).unref();
 }
 if (desktop) {
   openPinnedWindow(`http://localhost:${port}/?surface=${surface}`, {

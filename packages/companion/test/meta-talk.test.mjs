@@ -5,17 +5,17 @@ import { repliedToInstruction } from '../dist/index.js';
 
 test('지시문한테 대꾸한 말을 잡는다 — 관문이 물음표만 보고 통과시켰다', () => {
   // 실측: 이 둘이 그대로 나갔다
-  for (const 말 of [
+  for (const text of [
     '대화 앞에서 나온 얘기 중에 구체적으로 뭘 되짚어 달라는 건지 안 보이네—혹시 방금 어떤 대화 내용을 이어가?',
     '지금까지 대화 기록에 실질적인 내용이 없어서, 되물을 만한 방금 나온 얘기가 없는 상태예요',
     '방금 나온 얘기랄 게... 첫 메시지네요',
   ]) {
-    assert.notEqual(repliedToInstruction(말), null, `못 잡았다: ${말.slice(0, 30)}`);
+    assert.notEqual(repliedToInstruction(text), null, `못 잡았다: ${text.slice(0, 30)}`);
   }
 });
 
 test('사람한테 하는 보통 말은 안 잡는다 — 「대화」 「얘기」는 사람도 늘 쓴다', () => {
-  for (const 말 of [
+  for (const text2 of [
     '그 셰이더 진짜 너 미워하나 보다… 오늘은 그냥 놔둬.',
     '아까 그 얘기 더 해봐',
     '어제 대화 재밌었어',
@@ -23,7 +23,7 @@ test('사람한테 하는 보통 말은 안 잡는다 — 「대화」 「얘기
     '뭐가 재밌었는데.',
     '응…',
   ]) {
-    assert.equal(repliedToInstruction(말), null, `헛잡았다: ${말}`);
+    assert.equal(repliedToInstruction(text2), null, `헛잡았다: ${text2}`);
   }
 });
 

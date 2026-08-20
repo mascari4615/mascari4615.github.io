@@ -155,13 +155,13 @@ import { t, loadNamespace } from '../lib/i18n';
             ];
             if (Array.isArray(st.목소리들)) {
               const hasStub = st.목소리들.includes(t('companion.t19'));
-              const 값 =
+              const value2 =
                 hasStub === false
                   ? st.목소리들.join(' + ') || '없음'
                   : st.흉내준비 === true
                     ? `${t('companion.mimicReady')} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`
                     : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`;
-              cell.push({ 이름: t('companion.t22'), 값, 경고: hasStub === false });
+              cell.push({ 이름: t('companion.t22'), 값: value2, 경고: hasStub === false });
             }
             bits.innerHTML = cell
               .map((c) => `<span class="cmp-bit${c.경고 === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
@@ -231,14 +231,14 @@ import { t, loadNamespace } from '../lib/i18n';
           }
 
           async function speak(): Promise<void> {
-            const 말 = input.value.trim();
-            if (말 === '') return;
+            const text2 = input.value.trim();
+            if (text2 === '') return;
             send.disabled = true;
             try {
               const res = await fetch(`${BASE}/say`, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ text: 말 }),
+                body: JSON.stringify({ text: text2 }),
                 signal: AbortSignal.timeout(4000),
               });
               // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 「보냈는데 반응이 없다」가 된다.

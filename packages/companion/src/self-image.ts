@@ -110,10 +110,10 @@ export class SelfImage {
    * 두는 게 아니라 흔들림을 따라가는 것이 된다.
    */
   learn(entries: readonly MemoryEntry[]): number {
-    const already = new Set(this.facts.map((f) => 다듬기(f.asked)));
+    const already = new Set(this.facts.map((f) => trim2(f.asked)));
     let fresh = 0;
     for (const fact of selfMoments(entries)) {
-      const key = 다듬기(fact.asked);
+      const key = trim2(fact.asked);
       if (already.has(key)) continue;
       already.add(key);
       this.facts.push(fact);
@@ -157,4 +157,4 @@ export class SelfImage {
 }
 
 /** 물음을 견주기 좋게 다듬는다 — 「뭐 좋아해?」와 「뭐 좋아해」는 같은 물음이다. */
-const 다듬기 = (text: string): string => text.replace(/[\s?？!.…,]/g, '');
+const trim2 = (text: string): string => text.replace(/[\s?？!.…,]/g, '');

@@ -19,16 +19,16 @@ import type { MemoryEntry } from './types';
 
 /** 이 말이 묻는 말인가. */
 export function isQuestion(text: string): boolean {
-  const 말 = text.trim();
-  if (말 === '') return false;
+  const text2 = text.trim();
+  if (text2 === '') return false;
   /* **물음표 없이 묻는 말이 훨씬 흔하다.** 라이브에서 「뭐가 재밌었는데.」가 묻는 말로
      안 잡혀서 짧다는 이유로 걸러졌다 — 공을 돌려주는 가장 좋은 답이었는데. 한국말은
      끝맺음으로 묻는다. */
-  if (/[?？]\s*$/.test(말)) return true;
-  if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(말)) return true;
+  if (/[?？]\s*$/.test(text2)) return true;
+  if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(text2)) return true;
   // 「~는데」 「~을까」 「~야?」 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
   const questionWord = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
-  return questionWord.test(말) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(말);
+  return questionWord.test(text2) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(text2);
 }
 
 export interface TossBackInput {
@@ -78,16 +78,16 @@ export function skipReason(input: TossBackInput): string | null {
   if (lastCompanionText !== undefined && isQuestion(lastCompanionText.text)) return '방금 되물었다';
 
   // 대화가 식어 가는가 — 최근 말이 그 앞보다 짧아지고 있으면 공이 멈추는 중이다.
-  const 길이 = (es: readonly MemoryEntry[]) =>
+  const length2 = (es: readonly MemoryEntry[]) =>
     es.length === 0 ? 0 : es.reduce((a, e) => a + e.text.trim().length, 0) / es.length;
   // **방금 한 말 하나**를 앞엣것들과 견준다. 최근 두 마디를 묶어 재면 그 안에 든 긴
   // 말이 짧아진 것을 희석해 버린다 — 「28자, 1자」가 평균 14자가 되어 「아직 안 식었다」로
   // 나왔다(실측). 식는다는 건 *방금* 짧아졌다는 뜻이다.
-  const 최근 = 길이(userText.slice(-1));
-  const before = 길이(userText.slice(-4, -1));
-  const cooling = before > 0 ? 최근 < before * 0.8 : 최근 < 12;
+  const recent2 = length2(userText.slice(-1));
+  const before = length2(userText.slice(-4, -1));
+  const cooling = before > 0 ? recent2 < before * 0.8 : recent2 < 12;
   if (cooling === false) {
-    return `아직 안 식었다 (최근 ${Math.round(최근)}자 · 그전 ${Math.round(before)}자)`;
+    return `아직 안 식었다 (최근 ${Math.round(recent2)}자 · 그전 ${Math.round(before)}자)`;
   }
   return null;
 }

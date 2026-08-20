@@ -108,8 +108,8 @@ const unique = [...new Set(hashes)];
 const outside = ['https://gc.zgo.at'];
 const nextValue = `${CSP_CONTENT}; script-src 'self' 'inline-speculation-rules' ${outside.join(' ')} ${unique.join(' ')}`;
 
-const 메타 = /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/;
-const current = 메타.exec(text);
+const meta2 = /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/;
+const current = meta2.exec(text);
 if (!current) {
   console.error('[csp-shell] CANNOT-RUN: 껍데기에서 보안 한 줄을 못 찾았다.');
   process.exit(2);
@@ -125,5 +125,5 @@ if (gatesOnly) {
   process.exit(1);
 }
 
-fs.writeFileSync(screen, text.replace(메타, `<meta http-equiv="Content-Security-Policy" content="${nextValue}">`), 'utf8');
+fs.writeFileSync(screen, text.replace(meta2, `<meta http-equiv="Content-Security-Policy" content="${nextValue}">`), 'utf8');
 console.log(`[csp-shell] 지문 ${unique.length}개를 새로 적었다 (인라인 ${bodies.length}개).`);

@@ -56,10 +56,10 @@ const notPerson = new Set([
 export function peopleIn(text: string): string[] {
   const out: string[] = [];
   for (const m of text.matchAll(namePattern)) {
-    const 이름 = m[1];
-    if (notPerson.has(이름)) continue;
-    if (이름.length < 1) continue;
-    const whole = `${이름}${m[2]}`;
+    const name2 = m[1];
+    if (notPerson.has(name2)) continue;
+    if (name2.length < 1) continue;
+    const whole = `${name2}${m[2]}`;
     if (out.includes(whole) === false) out.push(whole);
   }
   return out;
@@ -114,10 +114,10 @@ export class People {
     for (const e of entries) {
       // **조수님이 한 말만** 본다. 얘가 한 말에서 주우면 제가 지어낸 이름을 제가 배운다.
       if (e.role !== 'sensed' || e.channel === 'screen' || e.channel === 'nudge') continue;
-      for (const 이름 of peopleIn(e.text)) {
-        const existing = this.folks.find((p) => p.name === 이름);
+      for (const name3 of peopleIn(e.text)) {
+        const existing = this.folks.find((p) => p.name === name3);
         if (existing === undefined) {
-          this.folks.push({ name: 이름, times: 1, firstAt: e.at, lastAt: e.at });
+          this.folks.push({ name: name3, times: 1, firstAt: e.at, lastAt: e.at });
           continue;
         }
         // 같은 말 안에서 여러 번 세지 않으려고 시각이 같으면 넘어간다.

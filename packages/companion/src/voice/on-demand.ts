@@ -120,10 +120,10 @@ export class demandBoot {
   /** 뜰 때까지 물어본다. 정해진 시간을 넘기면 실패로 본다 — 영영 「띄우는 중」은 없다. */
   private async 뜰때까지(): Promise<void> {
     const limit = this.options.준비대기ms ?? 180_000;
-    const 간격 = this.options.준비물어보는간격ms ?? 2_000;
+    const interval2 = this.options.준비물어보는간격ms ?? 2_000;
     const start = this.지금;
     for (;;) {
-      await new Promise((r) => setTimeout(r, 간격));
+      await new Promise((r) => setTimeout(r, interval2));
       let isAlive = false;
       try {
         isAlive = await this.options.살았나();
@@ -202,10 +202,10 @@ export function onDemand(options: 필요할때옵션): Speech {
       /* **뜰 때까지 기다린다.** 딴 목소리로 바꾸지 않는다 — 그건 같은 존재가 아니게 된다.
          무한히 기다리지는 않는다: 정해진 시간을 넘기면 포기하고, 그때는 **소리가 없다**
          (조용한 게 딴 사람 목소리보다 낫다). */
-      const 시작 = Date.now();
+      const start2 = Date.now();
       let notified = false;
       while (boot.준비됐나 === false) {
-        if (Date.now() - 시작 >= waitLimit) {
+        if (Date.now() - start2 >= waitLimit) {
           throw new Error(`고른 목소리가 ${Math.round(waitLimit / 1000)}초 안에 준비 안 됐다`);
         }
         if (notified === false) {
@@ -215,7 +215,7 @@ export function onDemand(options: 필요할때옵션): Speech {
         await new Promise((r) => setTimeout(r, 500));
         await boot.써야한다();
       }
-      if (notified) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - 시작) / 1000)}초 기다림)`);
+      if (notified) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - start2) / 1000)}초 기다림)`);
       return real.synthesize(text, voiceId);
     },
   };

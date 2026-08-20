@@ -20,24 +20,24 @@ import { Script } from 'node:vm';
  * .html 안에 있어서 **어떤 게이트도 지나가지 않았다.** 여기서 실제로 파싱해 본다.
  */
 
-const 화면 = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'face.html');
+const screen = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'face.html');
 
 /** 페이지 안의 실행되는 스크립트 토막들 (importmap 은 JSON 이라 뺀다). */
-function 스크립트들(html) {
+function scripts(html) {
   return [...html.matchAll(/<script(?![^>]*importmap)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 }
 
 test('화면 스크립트가 파싱된다 — 한 글자만 깨져도 화면 전체가 죽는다', () => {
-  const html = readFileSync(화면, 'utf8');
-  const 토막 = 스크립트들(html);
-  assert.ok(토막.length > 0, '화면에 스크립트가 있어야 한다');
-  for (const [i, code] of 토막.entries()) {
+  const html = readFileSync(screen, 'utf8');
+  const chunk = scripts(html);
+  assert.ok(chunk.length > 0, '화면에 스크립트가 있어야 한다');
+  for (const [i, code] of chunk.entries()) {
     assert.doesNotThrow(() => new Script(code, { filename: `face.html#${i}` }), `${i}번째 토막`);
   }
 });
 
 test('곁딸린 모듈들도 파싱된다', async () => {
-  const dir = dirname(화면);
+  const dir = dirname(screen);
   for (const name of ['model.js', 'toon.js', 'face-paint.js']) {
     // 모듈은 import/export 를 쓰므로 스크립트로는 못 컴파일한다. 문법만 보고 싶으니
     // 실행 없이 확인할 수 있는 최소한 — 파일을 감싼 함수로 만들어 본다.
@@ -49,8 +49,8 @@ test('곁딸린 모듈들도 파싱된다', async () => {
 });
 
 test('줄바꿈 표시가 진짜 줄바꿈으로 새지 않았다 — 이번 사고의 모양 그대로', () => {
-  const html = readFileSync(화면, 'utf8');
+  const html = readFileSync(screen, 'utf8');
   // 따옴표를 열고 그 줄에서 안 닫은 채 끝나는 자리. 이게 그때 그 모양이다.
-  const 샌곳 = html.split('\n').filter((line) => /\.split\('$/.test(line.trimEnd()));
-  assert.deepEqual(샌곳, []);
+  const leaks = html.split('\n').filter((line) => /\.split\('$/.test(line.trimEnd()));
+  assert.deepEqual(leaks, []);
 });

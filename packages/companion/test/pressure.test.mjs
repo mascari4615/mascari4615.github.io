@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { pendingThoughts, pickIngredients } from '../dist/index.js';
 
-const 재료 = (name, weight, text = '가'.repeat(20)) => ({ name, text, weight });
+const material = (name, weight, text = '가'.repeat(20)) => ({ name, text, weight });
 
 test('한 번도 안 밀렸으면 아무것도 안 얹는다', () => {
   assert.equal(new pendingThoughts().더할무게('되묻기'), 0);
@@ -12,10 +12,10 @@ test('한 번도 안 밀렸으면 아무것도 안 얹는다', () => {
 test('밀릴수록 세진다 — 참으면 더 하고 싶어진다', () => {
   const p = new pendingThoughts({ 계단: 3 });
   p.적기('되묻기', '밀림');
-  const 한번 = p.더할무게('되묻기');
+  const once = p.더할무게('되묻기');
   p.다음턴();
   p.적기('되묻기', '밀림');
-  assert.ok(p.더할무게('되묻기') > 한번, '두 번 밀렸으면 더 세야 한다');
+  assert.ok(p.더할무게('되묻기') > once, '두 번 밀렸으면 더 세야 한다');
 });
 
 test('말하고 나면 풀린다 — 안 그러면 한 번 실린 게 계속 1등이다', () => {
@@ -49,24 +49,24 @@ test('한참 안 밀리면 잊는다 — 지나간 관심이다', () => {
 
 test('참던 재료가 결국 실린다 — 이게 이 자리를 만든 이유다', () => {
   const p = new pendingThoughts({ 계단: 3 });
-  const 목록 = [재료('큰것', 12), 재료('작은것', 5)];
-  const 뽑기 = () => {
-    const 실린것 = pickIngredients(p.덧입히기(목록), { maxChars: 25, maxLines: 1, mark: p.적기 });
+  const list = [material('큰것', 12), material('작은것', 5)];
+  const pick = () => {
+    const loaded = pickIngredients(p.덧입히기(list), { maxChars: 25, maxLines: 1, mark: p.적기 });
     p.다음턴();
-    return 실린것.map((x) => x.name);
+    return loaded.map((x) => x.name);
   };
 
-  assert.deepEqual(뽑기(), ['큰것'], '처음엔 무거운 쪽');
-  const 실린이름들 = [뽑기(), 뽑기(), 뽑기()].flat();
-  assert.ok(실린이름들.includes('작은것'), `밀리기만 하던 재료가 끝내 실려야 한다 — 실제로는 ${실린이름들.join(',')}`);
+  assert.deepEqual(pick(), ['큰것'], '처음엔 무거운 쪽');
+  const loadedNames = [pick(), pick(), pick()].flat();
+  assert.ok(loadedNames.includes('작은것'), `밀리기만 하던 재료가 끝내 실려야 한다 — 실제로는 ${loadedNames.join(',')}`);
 });
 
 test('덧입혀도 원본 무게는 안 바뀐다 — 다음 turn 이 이전 turn 을 물려받으면 안 된다', () => {
   const p = new pendingThoughts();
   p.적기('되묻기', '밀림');
-  const 원본 = [재료('되묻기', 5)];
-  p.덧입히기(원본);
-  assert.equal(원본[0].weight, 5);
+  const source = [material('되묻기', 5)];
+  p.덧입히기(source);
+  assert.equal(source[0].weight, 5);
 });
 
 test('참는 게 있으면 뭐가 얼마나 참는지 말할 수 있다 — 안 보이면 못 고친다', () => {

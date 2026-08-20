@@ -35,7 +35,7 @@
  *    자기를 끊는 얘가 된다. 그때는 못 한다고 **말하고** 안 켠다 — 조용히 망가지지 않게.
  */
 
-export const 기본값 = {
+export const defaultValue = {
   /** 이 크기를 넘으면 말소리로 본다. */
   문턱: 0.045,
   /** 이만큼 이어져야 연다 (ms) — 한 번 튄 잡음으로 열리지 않게. */
@@ -59,9 +59,9 @@ export const 기본값 = {
   못하겠다: 0.14,
 };
 
-export class 듣는문 {
-  constructor(설정 = {}) {
-    this.설정 = { ...기본값, ...설정 };
+export class listenGate {
+  constructor(settings = {}) {
+    this.설정 = { ...defaultValue, ...settings };
     this.열림 = false;
     this.넘기시작 = null; // 소리가 문턱을 넘기 시작한 시각
     this.조용해진때 = null; // 열려 있는 동안 조용해진 시각
@@ -85,22 +85,22 @@ export class 듣는문 {
   }
 
   /** 얘가 말하기 시작했다 / 끝냈다. */
-  입(말하는중, 지금) {
-    if (this.얘가말하는중 === true && 말하는중 === false) this.얘가말끝낸때 = 지금;
-    this.얘가말하는중 = 말하는중;
+  입(speaking, now) {
+    if (this.얘가말하는중 === true && speaking === false) this.얘가말끝낸때 = now;
+    this.얘가말하는중 = speaking;
   }
 
   /** 지금 귀가 막혀 있나 (얘가 말하는 중이거나 그 꼬리). */
-  막힘(지금) {
+  막힘(now2) {
     if (this.얘가말하는중) return true;
     if (this.얘가말끝낸때 === null) return false;
-    return 지금 - this.얘가말끝낸때 < this.설정.꼬리여운;
+    return now2 - this.얘가말끝낸때 < this.설정.꼬리여운;
   }
 
   /**
    * 소리 한 번 잰 값을 넣는다. 문이 바뀌었으면 '열림' 또는 '닫힘', 아니면 null.
    */
-  들었다(크기, 지금) {
+  들었다(size, now3) {
     const s = this.설정;
 
     if (this.얘가말하는중) {
@@ -117,17 +117,17 @@ export class 듣는문 {
          통째로 꺼졌다(창이 실제로 받아 가는 파일로 돌려서 봤다). 그래서 매 번 재는 값을
          **지금 바닥의 1.5 배까지만** 인정한다 — 진짜 시끄러운 방이면 몇 백 ms 안에 거기까지
          차오르고, 잠깐 솟은 사람 목소리는 바닥을 못 옮긴다. */
-      const 인정 = this.메아리잰수 === 0 ? 크기 : Math.min(크기, this.메아리바닥 * 1.5);
-      this.메아리바닥 = this.메아리잰수 === 0 ? 크기 : this.메아리바닥 * 0.98 + 인정 * 0.02;
+      const acknowledge = this.메아리잰수 === 0 ? size : Math.min(size, this.메아리바닥 * 1.5);
+      this.메아리바닥 = this.메아리잰수 === 0 ? size : this.메아리바닥 * 0.98 + acknowledge * 0.02;
       this.메아리잰수 += 1;
 
       // 말하는 동안은 받아쓰기를 안 켠 채로 둔다. 닫혔다는 건 창이 알아야 한다.
-      const 닫혔나 = this.열림 ? this.닫기() : null;
+      const isClosed = this.열림 ? this.닫기() : null;
 
-      if (this.끼어들포기) { this.끼어들기시작 = null; return 닫혔나; }
-      if (크기 < this.끼어들문턱) { this.끼어들기시작 = null; return 닫혔나; }
-      if (this.끼어들기시작 === null) this.끼어들기시작 = 지금;
-      if (지금 - this.끼어들기시작 < s.끼어드는데) return 닫혔나;
+      if (this.끼어들포기) { this.끼어들기시작 = null; return isClosed; }
+      if (size < this.끼어들문턱) { this.끼어들기시작 = null; return isClosed; }
+      if (this.끼어들기시작 === null) this.끼어들기시작 = now3;
+      if (now3 - this.끼어들기시작 < s.끼어드는데) return isClosed;
       // 사람이 말을 끊었다. 여기서 문까지 열지는 않는다 — 창이 입을 닫히고 나면
       // 그 다음 재기부터 평소 규칙으로 열린다.
       this.끼어들기시작 = null;
@@ -135,30 +135,30 @@ export class 듣는문 {
     }
     this.끼어들기시작 = null;
 
-    if (this.막힘(지금)) {
+    if (this.막힘(now3)) {
       this.넘기시작 = null;
       if (this.열림) return this.닫기();
       return null;
     }
 
-    const 소리남 = 크기 >= s.문턱;
+    const sounded = size >= s.문턱;
 
     if (this.열림 === false) {
-      if (소리남 === false) { this.넘기시작 = null; return null; }
-      if (this.넘기시작 === null) this.넘기시작 = 지금;
-      if (지금 - this.넘기시작 < s.열리는데) return null;
+      if (sounded === false) { this.넘기시작 = null; return null; }
+      if (this.넘기시작 === null) this.넘기시작 = now3;
+      if (now3 - this.넘기시작 < s.열리는데) return null;
       this.열림 = true;
-      this.연때 = 지금;
+      this.연때 = now3;
       this.조용해진때 = null;
       this.넘기시작 = null;
       return '열림';
     }
 
     // 열려 있는 동안
-    if (지금 - this.연때 >= s.너무길다) return this.닫기();
-    if (소리남) { this.조용해진때 = null; return null; }
-    if (this.조용해진때 === null) this.조용해진때 = 지금;
-    if (지금 - this.조용해진때 < s.닫히는데) return null;
+    if (now3 - this.연때 >= s.너무길다) return this.닫기();
+    if (sounded) { this.조용해진때 = null; return null; }
+    if (this.조용해진때 === null) this.조용해진때 = now3;
+    if (now3 - this.조용해진때 < s.닫히는데) return null;
     return this.닫기();
   }
 

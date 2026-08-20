@@ -23,17 +23,17 @@ import { tmpdir } from 'node:os';
  *   건드리면 안 된다.
  */
 
-const 뿌리 = join(dirname(fileURLToPath(import.meta.url)), '..');
-const 포트 = 4599;
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const port = 4599;
 
 test('띄우면 말을 건넸을 때 대답한다 — 조각이 다 초록이어도 조립한 게 죽어 있을 수 있다', async (t) => {
-  const 서버 = spawn(process.execPath, [join(뿌리, 'demo', 'face.mjs')], {
-    cwd: 뿌리,
+  const server = spawn(process.execPath, [join(root, 'demo', 'face.mjs')], {
+    cwd: root,
     windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
-      COMPANION_PORT: String(포트),
+      COMPANION_PORT: String(port),
       COMPANION_BRAIN: 'echo',        // 진짜 모델은 안 부른다 — 느리고, 사고 난 자리가 아니다
       COMPANION_DESKTOP: '0',
       COMPANION_OPEN: '0',
@@ -42,49 +42,49 @@ test('띄우면 말을 건넸을 때 대답한다 — 조각이 다 초록이어
       COMPANION_MEMORY_FILE: join(mkdtempSync(join(tmpdir(), 'companion-alive-')), 'conversation.jsonl'),
     },
   });
-  let 뱉은것 = '';
-  서버.stdout.on('data', (d) => { 뱉은것 += d; });
-  서버.stderr.on('data', (d) => { 뱉은것 += d; });
-  let 죽었나 = null;
-  서버.on('exit', (code) => { 죽었나 = code; });
-  t.after(() => 서버.kill());
+  let emitted = '';
+  server.stdout.on('data', (d) => { emitted += d; });
+  server.stderr.on('data', (d) => { emitted += d; });
+  let isDead = null;
+  server.on('exit', (code) => { isDead = code; });
+  t.after(() => server.kill());
 
-  const 잠깐 = (ms) => new Promise((r) => setTimeout(r, ms));
+  const brief = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // **기다리지 말고 물어본다.** 고정 시간만 기다리다 84회차를 통째로 날렸다.
-  let 살았나 = false;
+  let isAlive = false;
   for (let i = 0; i < 60; i += 1) {
-    if (죽었나 !== null) break;
-    try { await fetch(`http://127.0.0.1:${포트}/ears`); 살았나 = true; break; } catch { await 잠깐(500); }
+    if (isDead !== null) break;
+    try { await fetch(`http://127.0.0.1:${port}/ears`); isAlive = true; break; } catch { await brief(500); }
   }
-  assert.ok(살았나, `서버가 안 떴다 (code ${죽었나}). 뱉은 것:\n${뱉은것.slice(-1500)}`);
+  assert.ok(isAlive, `서버가 안 떴다 (code ${isDead}). 뱉은 것:\n${emitted.slice(-1500)}`);
 
-  await fetch(`http://127.0.0.1:${포트}/say`, {
+  await fetch(`http://127.0.0.1:${port}/say`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ text: '오늘 좀 어땠어' }),
   });
 
   // 대답이 나올 때까지 **찾아본다** — 여기서도 고정 시간이 아니라 상태를 본다.
-  let 말했나 = false;
+  let spoke = false;
   for (let i = 0; i < 40; i += 1) {
-    if (/\[말함\]/.test(뱉은것)) { 말했나 = true; break; }
-    await 잠깐(500);
+    if (/\[말함\]/.test(emitted)) { spoke = true; break; }
+    await brief(500);
   }
 
   /* **왜 말을 못 했는지가 여기 그대로 나와야 한다.** 「대답이 없다」만 남으면 85회차처럼
      원인 찾느라 회차를 통째로 쓴다. 서버가 뱉은 걸 붙여서 실패시킨다. */
-  assert.ok(말했나, `말을 걸었는데 대답이 없다. 서버가 뱉은 것:\n${뱉은것.slice(-2000)}`);
+  assert.ok(spoke, `말을 걸었는데 대답이 없다. 서버가 뱉은 것:\n${emitted.slice(-2000)}`);
 });
 
 test('한 turn 도는 동안 조용히 터진 게 없다 — 예외를 삼키면 얘가 굳은 채로 살아 있다', async (t) => {
-  const 서버 = spawn(process.execPath, [join(뿌리, 'demo', 'face.mjs')], {
-    cwd: 뿌리,
+  const server2 = spawn(process.execPath, [join(root, 'demo', 'face.mjs')], {
+    cwd: root,
     windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
-      COMPANION_PORT: String(포트 + 1),
+      COMPANION_PORT: String(port + 1),
       COMPANION_BRAIN: 'echo',
       COMPANION_DESKTOP: '0',
       COMPANION_OPEN: '0',
@@ -93,21 +93,21 @@ test('한 turn 도는 동안 조용히 터진 게 없다 — 예외를 삼키면
       COMPANION_MEMORY_FILE: join(mkdtempSync(join(tmpdir(), 'companion-alive2-')), 'conversation.jsonl'),
     },
   });
-  let 뱉은것 = '';
-  서버.stdout.on('data', (d) => { 뱉은것 += d; });
-  서버.stderr.on('data', (d) => { 뱉은것 += d; });
-  t.after(() => 서버.kill());
-  const 잠깐 = (ms) => new Promise((r) => setTimeout(r, ms));
+  let emitted2 = '';
+  server2.stdout.on('data', (d) => { emitted2 += d; });
+  server2.stderr.on('data', (d) => { emitted2 += d; });
+  t.after(() => server2.kill());
+  const brief2 = (ms) => new Promise((r) => setTimeout(r, ms));
 
   for (let i = 0; i < 60; i += 1) {
-    try { await fetch(`http://127.0.0.1:${포트 + 1}/ears`); break; } catch { await 잠깐(500); }
+    try { await fetch(`http://127.0.0.1:${port + 1}/ears`); break; } catch { await brief2(500); }
   }
-  await fetch(`http://127.0.0.1:${포트 + 1}/say`, {
+  await fetch(`http://127.0.0.1:${port + 1}/say`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: '오늘 좀 어땠어' }),
   });
-  for (let i = 0; i < 30; i += 1) { if (/\[말함\]/.test(뱉은것)) break; await 잠깐(500); }
+  for (let i = 0; i < 30; i += 1) { if (/\[말함\]/.test(emitted2)) break; await brief2(500); }
 
   // 84회차의 그 사고는 이 두 낱말로 기록에 남아 있었다.
-  const 터진것 = 뱉은것.split('\n').filter((l) => /ReferenceError|TypeError|is not a function|before initialization|UnhandledPromiseRejection/.test(l));
-  assert.deepEqual(터진것, [], `한 turn 도는 동안 터진 게 있다:\n${터진것.join('\n')}`);
+  const crashed = emitted2.split('\n').filter((l) => /ReferenceError|TypeError|is not a function|before initialization|UnhandledPromiseRejection/.test(l));
+  assert.deepEqual(crashed, [], `한 turn 도는 동안 터진 게 있다:\n${crashed.join('\n')}`);
 });

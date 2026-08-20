@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { factClaims, madeUpFact, madeUpRetryNote, mouthGate } from '../dist/index.js';
 
-const 말 = (text) => ({ role: 'sensed', channel: 'web', text, at: 1 });
+const text2 = (text) => ({ role: 'sensed', channel: 'web', text, at: 1 });
 
 // ── 구체적 값 가리기 ────────────────────────────────────────────────
 
@@ -34,7 +34,7 @@ test('찾아본 적 없으면 지어낸 것이다', () => {
 });
 
 test('조수님이 알려 준 걸 되뇌는 건 지어낸 게 아니다', () => {
-  assert.equal(madeUpFact('3시 30분에 회의라며', [], [말('오늘 3시 30분에 회의야')]), null);
+  assert.equal(madeUpFact('3시 30분에 회의라며', [], [text2('오늘 3시 30분에 회의야')]), null);
 });
 
 test('숫자가 하나라도 다르면 지어낸 것이다 — 비슷한 값으로 넘어가면 안 된다', () => {
@@ -66,13 +66,13 @@ test('모른다고 해도 된다고 분명히 한다 — 그게 이 문제의 �
 // ── 관문과 이어 보기 ────────────────────────────────────────────────
 
 test('지어낸 값은 관문에서 다시 시킨다', async () => {
-  let 이유 = null;
+  let reason = null;
   const gate = mouthGate({
     alsoRetryWhen: (t) => madeUpFact(t, [], []),
-    retry: async (why) => { 이유 = why; return '몇 시인지는 모르겠어.'; },
+    retry: async (why) => { reason = why; return '몇 시인지는 모르겠어.'; },
   });
   assert.equal(await gate('10시 28분이야'), '몇 시인지는 모르겠어.');
-  assert.match(이유, /안 보고/);
+  assert.match(reason, /안 보고/);
 });
 
 test('근거 있는 값은 그대로 나간다 — 관문은 조용해야 한다', async () => {
@@ -101,8 +101,8 @@ test('그래도 아무 숫자나 시각으로 보지는 않는다', () => {
 });
 
 test('숫자는 붙어 있어야 근거다 — 흔한 숫자가 아무 데나 있어서 통과하면 안 된다', () => {
-  const 흩어진것 = [말('11번 봤어'), 말('27개 있었나')];
-  assert.notEqual(madeUpFact('11시 27분이었어', [], 흩어진것), null, '따로 있으면 근거가 아니다');
+  const scattered = [text2('11번 봤어'), text2('27개 있었나')];
+  assert.notEqual(madeUpFact('11시 27분이었어', [], scattered), null, '따로 있으면 근거가 아니다');
   assert.equal(madeUpFact('11시 27분이었어', ['시계: AM 11:27'], []), null, '붙어 있으면 근거다');
 });
 
@@ -111,10 +111,10 @@ test('앞의 0 은 같은 값으로 본다 — 「09:05」와 「9시 5분」', 
 });
 
 test('얘가 한 말은 근거가 아니다 — 제가 지어낸 값을 제가 인용하면 영영 통과한다', () => {
-  const 제말 = [{ role: 'said', channel: 'web', text: '…11시 27분이었어.', at: 1, via: 'brain' }];
-  assert.notEqual(madeUpFact('11시 27분이었지', [], 제말), null);
+  const ownText = [{ role: 'said', channel: 'web', text: '…11시 27분이었어.', at: 1, via: 'brain' }];
+  assert.notEqual(madeUpFact('11시 27분이었지', [], ownText), null);
 });
 
 test('조수님이 한 말은 여전히 근거다', () => {
-  assert.equal(madeUpFact('11시 27분이었지', [], [말('11시 27분에 시작했어')]), null);
+  assert.equal(madeUpFact('11시 27분이었지', [], [text2('11시 27분에 시작했어')]), null);
 });

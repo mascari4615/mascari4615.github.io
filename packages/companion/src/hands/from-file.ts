@@ -85,10 +85,10 @@ export function readSpec(raw: unknown): HandSpec | null {
 /** 이 경로가 울타리 안인가. */
 export function insideFence(path: string, fence?: string): boolean {
   if (fence === undefined) return true;
-  const 울타리 = resolve(fence);
+  const fence2 = resolve(fence);
   const target = resolve(path);
-  return target === 울타리 || target.startsWith(울타리 + (울타리.endsWith('\\') || 울타리.endsWith('/') ? '' : '\\'))
-    || target.startsWith(`${울타리}/`);
+  return target === fence2 || target.startsWith(fence2 + (fence2.endsWith('\\') || fence2.endsWith('/') ? '' : '\\'))
+    || target.startsWith(`${fence2}/`);
 }
 
 /** 명세 하나를 실제 손으로. 울타리 밖이면 null. */
@@ -187,16 +187,16 @@ function toSkip(spec: HandSpec): ((said: string) => string) | undefined {
 
 /** 부르는 말·군더더기를 걷어낸 나머지 = 찾을 말. 남는 게 없으면 온 말 그대로. */
 export function questionsOnly(said: string, callWords: readonly string[]): string {
-  let 글 = said.trim();
+  let content2 = said.trim();
   for (const w of [...callWords].sort((a, b) => b.length - a.length)) {
-    글 = 글.split(w).join(' ');
+    content2 = content2.split(w).join(' ');
   }
-  글 = 글
+  content2 = content2
     .replace(/(좀|제발|한번|한 번|그거|저거|이거)\s*/g, ' ')
     .replace(/[?？!！.]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  return 글 === '' ? said.trim() : 글;
+  return content2 === '' ? said.trim() : content2;
 }
 
 /**
@@ -208,8 +208,8 @@ export function questionsOnly(said: string, callWords: readonly string[]): strin
 export function loadHands(dir: string, options: FromFileOptions = {}): { hands: Hand[]; hints: { hand: string; when: RegExp }[] } {
   if (existsSync(dir) === false) return { hands: [], hints: [] };
 
-  const 손들: Hand[] = [];
-  const 힌트들: { hand: string; when: RegExp }[] = [];
+  const hands2: Hand[] = [];
+  const hints2: { hand: string; when: RegExp }[] = [];
   const names = new Set<string>();
   for (const file of readdirSync(dir).sort()) {
     if (extname(file) !== '.json') continue;
@@ -236,13 +236,13 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
     const hand = handFrom(spec, options);
     if (hand === null) continue;
     names.add(spec.name);
-    손들.push(hand);
+    hands2.push(hand);
 
     const hint = hintFrom(spec);
-    if (hint !== null) 힌트들.push(hint);
+    if (hint !== null) hints2.push(hint);
     else options.log?.(`「${spec.name}」 은 언제 쓸지를 안 적어서 저절로는 안 쓰인다`);
   }
 
-  if (손들.length > 0) options.log?.(`파일에서 손 ${손들.length}개를 더했다: ${손들.map((h) => h.name).join(', ')}`);
-  return { hands: 손들, hints: 힌트들 };
+  if (hands2.length > 0) options.log?.(`파일에서 손 ${hands2.length}개를 더했다: ${hands2.map((h) => h.name).join(', ')}`);
+  return { hands: hands2, hints: hints2 };
 }

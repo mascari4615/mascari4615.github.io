@@ -63,10 +63,10 @@ const kindTable: readonly 짚기[] = [
 
 /** 이 창 제목이 어떤 자리인가. 모르면 null. */
 export function whichSlot(title: string | null | undefined): 자리 {
-  const 제목 = (title ?? '').toLowerCase().trim();
-  if (제목 === '') return null;
+  const title2 = (title ?? '').toLowerCase().trim();
+  if (title2 === '') return null;
   for (const { 자리: kind, 낱말: word } of kindTable) {
-    if (word.some((n) => 제목.includes(n))) return kind;
+    if (word.some((n) => title2.includes(n))) return kind;
   }
   return null;
 }
@@ -99,8 +99,8 @@ export function slotTone(title: string | null | undefined): string {
  * 배운 자리(78회차)를 쓰려면 이 자리가 있어야 한다 — 배운 값을 다시 제목인 척 넘기면
  * 표에서 못 찾고 조용히 빈 말이 된다.
  */
-export function bySlotTone(자리: 자리): string {
-  switch (자리) {
+export function bySlotTone(slot2: 자리): string {
+  switch (slot2) {
     case '만드는중':
       return '지금 뭔가 만드는 중이다. 짧게, 흐름을 끊지 마라.';
     case '노는중':

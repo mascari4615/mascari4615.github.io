@@ -184,12 +184,12 @@ async function measure(url, scenario) {
     .then(() => true)
     .catch(() => false);
   if (!hasPerf) {
-    const 왜 = await page.evaluate(() => ({
+    const why2 = await page.evaluate(() => ({
       KLPerf: !!window.KLPerf,
       Toolbox: typeof Toolbox !== 'undefined',
     })).catch(() => ({ KLPerf: false, Toolbox: false }));
     cannotRunReason = [
-      `KLPerf ${왜.KLPerf ? '왔다' : '안 왔다'} · Toolbox ${왜.Toolbox ? '떴다' : '안 떴다'}`,
+      `KLPerf ${why2.KLPerf ? '왔다' : '안 왔다'} · Toolbox ${why2.Toolbox ? '떴다' : '안 떴다'}`,
       deadRequests.length ? `못 받은 파일 ${deadRequests.length}개: ${deadRequests.slice(0, 3).join(' · ')}` : '',
       errorText.length ? `스크립트가 터졌다: ${errorText.slice(0, 2).join(' · ')}` : '',
     ].filter(Boolean).join(' | ');
@@ -225,14 +225,14 @@ async function measure(url, scenario) {
   /* 무엇을 눌렀는지 이름을 들고 다닌다 — 「떠났다」만 말하면 다음 사람이 스무 번 눌러 보며 찾는다
      (오늘 실제로 그랬다). 틀 거르개는 **누를 것**을 보고 거르는데, 화면을 떠나게 한 것이
      그 그물을 어떻게 빠져나갔는지는 그 이름이 없으면 영영 모른다. */
-  const 이름 = (el) =>
+  const name2 = (el) =>
     el
       .evaluate((n) => `${n.tagName}${n.id ? '#' + n.id : ''}${n.className ? '.' + String(n.className).split(' ')[0] : ''}`)
       .catch(() => '(사라진 것)');
   for (const target of clickable) {
     if (clickCount >= 4) break;                                    // 네 번이면 가장 굼뜬 조작이 드러난다
     if (await leaving(target).catch(() => true)) continue;
-    const who = await 이름(target);
+    const who = await name2(target);
     await target.click({ timeout: 1500 }).catch(() => {});
     clickCount += 1;
     clicked.push(who);
@@ -295,7 +295,7 @@ let measuredScreens = 0;
    중앙값을 쓰면 0.126 이 되고 세 판 중 하나였던 0.218 은 사라진다. 그런데 사람에게는
    **그 한 판이 그 사람의 경험 전부**다(구글이 현장값 p75 로 보는 것도 같은 뜻).
    그래서 밀림은 **가장 나쁜 판**으로 판정한다. 잡음이 아니라 실제로 일어난 일이다. */
-const 가장나쁜쪽 = new Set(['cls']);
+const worst2 = new Set(['cls']);
 
 /** 항목별 중앙값(밀림은 최댓값). 못 잰 회차가 절반을 넘으면 그 항목은 「못 잼」이다. */
 function median(runs) {
@@ -304,7 +304,7 @@ function median(runs) {
     const values = runs.map((run) => run.verdict[index].value).filter((v) => v != null);
     if (values.length * 2 <= runs.length) return { ...sample, value: null, state: 'unknown' };
     values.sort((a, b) => a - b);
-    const worst = 가장나쁜쪽.has(String(sample.key ?? sample.id ?? '').toLowerCase())
+    const worst = worst2.has(String(sample.key ?? sample.id ?? '').toLowerCase())
       || /밀림|CLS/i.test(String(sample.label ?? ''));
     const value = worst ? values[values.length - 1] : values[Math.floor(values.length / 2)];
     return { ...sample, value, state: value > sample.limit ? 'fail' : 'pass' };

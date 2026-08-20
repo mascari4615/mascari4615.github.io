@@ -36,11 +36,11 @@ writeFileSync(
 
 const servedBuild = 'aaaaaaaa1111111111111111111111111111aaaa';
 let serverProc;
-let 주소;
+let url2;
 
 before(async () => {
   serverProc = spawn(process.execPath, [serverFile], { env: { ...process.env, STAMP_COMMIT: servedBuild } });
-  주소 = await new Promise((r) => serverProc.stdout.on('data', (b) => {
+  url2 = await new Promise((r) => serverProc.stdout.on('data', (b) => {
     const m = /port=(\d+)/.exec(String(b));
     if (m) r(`http://127.0.0.1:${m[1]}`);
   }));
@@ -52,7 +52,7 @@ function run({ sha, verdict }) {
     encoding: 'utf8',
     env: {
       ...process.env,
-      BASE: 주소,
+      BASE: url2,
       GITHUB_SHA: sha,
       RIR_SETTLE_MAX_MS: '400',
       RIR_SETTLE_STABLE_MS: '50',

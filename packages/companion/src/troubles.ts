@@ -89,14 +89,14 @@ export class Troubles {
  * **잦은 것을 위에** 둔다 — 한 번 있었던 일보다 자꾸 나는 일이 고칠 거리다.
  */
 export function troublesReport(troubles: Troubles): string {
-  const 종류 = (['걸림', '못함', '늦음', '죽음'] as TroubleKind[])
+  const kind2 = (['걸림', '못함', '늦음', '죽음'] as TroubleKind[])
     .map((k) => ({ k, n: troubles.count(k) }))
     .filter((x) => x.n > 0)
     .sort((a, b) => b.n - a.n);
 
-  if (종류.length === 0) return '아직 걸린 게 없다.';
+  if (kind2.length === 0) return '아직 걸린 게 없다.';
 
-  const head = 종류.map((x) => `${x.k} ${x.n}번`).join(' · ');
+  const head = kind2.map((x) => `${x.k} ${x.n}번`).join(' · ');
   const slots = [...troubles.all]
     .sort((a, b) => b.at - a.at)
     .map((t) => `  [${t.kind}] ${t.what}`)

@@ -34,109 +34,109 @@ test('빈 말은 끼어들기가 아니다', () => {
 
 // ── 통로와 내용을 둘 다 ─────────────────────────────────────────────
 
-const 감각 = (channel, text) => ({ channel, kind: 'text', text, at: 1 });
+const sense2 = (channel, text) => ({ channel, kind: 'text', text, at: 1 });
 
 test('끊는 통로가 아니면 내용과 상관없이 안 끊는다 — 곁눈질이 말을 끊으면 안 된다', () => {
-  assert.equal(shouldBargeIn(감각('screen', '화면을 봤다. 창은 「유니티」'), ['web']), false);
+  assert.equal(shouldBargeIn(sense2('screen', '화면을 봤다. 창은 「유니티」'), ['web']), false);
 });
 
 test('끊는 통로여도 맞장구면 안 끊는다', () => {
-  assert.equal(shouldBargeIn(감각('web', '응'), ['web']), false);
+  assert.equal(shouldBargeIn(sense2('web', '응'), ['web']), false);
 });
 
 test('끊는 통로에 할 말이면 끊는다', () => {
-  assert.equal(shouldBargeIn(감각('web', '잠깐 아니야'), ['web']), true);
+  assert.equal(shouldBargeIn(sense2('web', '잠깐 아니야'), ['web']), true);
 });
 
 // ── core 와 이어 보기 ───────────────────────────────────────────────
 
-const 느린두뇌 = (ms) => ({
+const slowBrain = (ms) => ({
   name: 'slow',
   async think() { await new Promise((r) => setTimeout(r, ms)); return '길게 하던 말'; },
 });
 
 test('내용을 안 보면 맞장구에도 말이 잘린다 — 지금까지 그랬다', async () => {
-  const 멈춤 = [];
+  const halt = [];
   const companion = new Companion({
     bodies: [{
       name: 'web',
       sense: { name: 's', start() {} },
-      voice: { name: 'v', speak() {}, hush() { 멈춤.push('멈췄다'); } },
+      voice: { name: 'v', speak() {}, hush() { halt.push('멈췄다'); } },
     }],
-    brain: 느린두뇌(120),
+    brain: slowBrain(120),
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
   });
   await companion.start();
-  const 첫말 = companion.feed(감각('web', '오늘 얘기 좀 하자'));
+  const firstText = companion.feed(sense2('web', '오늘 얘기 좀 하자'));
   await new Promise((r) => setTimeout(r, 30));
-  await companion.feed(감각('web', '응'));
-  await 첫말;
-  assert.ok(멈춤.length > 0, '내용을 안 보면 맞장구에도 멈춘다');
+  await companion.feed(sense2('web', '응'));
+  await firstText;
+  assert.ok(halt.length > 0, '내용을 안 보면 맞장구에도 멈춘다');
 });
 
 test('내용을 보면 맞장구에는 안 멈춘다', async () => {
-  const 멈춤 = [];
+  const halt2 = [];
   const companion = new Companion({
     bodies: [{
       name: 'web',
       sense: { name: 's', start() {} },
-      voice: { name: 'v', speak() {}, hush() { 멈춤.push('멈췄다'); } },
+      voice: { name: 'v', speak() {}, hush() { halt2.push('멈췄다'); } },
     }],
-    brain: 느린두뇌(120),
+    brain: slowBrain(120),
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
     urgentWhen: (s) => isRealBargeIn(s.text),
   });
   await companion.start();
-  const 첫말 = companion.feed(감각('web', '오늘 얘기 좀 하자'));
+  const firstText2 = companion.feed(sense2('web', '오늘 얘기 좀 하자'));
   await new Promise((r) => setTimeout(r, 30));
-  await companion.feed(감각('web', '응'));
-  await 첫말;
-  assert.deepEqual(멈춤, [], '맞장구에는 안 멈춰야 한다');
+  await companion.feed(sense2('web', '응'));
+  await firstText2;
+  assert.deepEqual(halt2, [], '맞장구에는 안 멈춰야 한다');
 });
 
 test('진짜 끼어들기에는 여전히 멈춘다', async () => {
-  const 멈춤 = [];
+  const halt3 = [];
   const companion = new Companion({
     bodies: [{
       name: 'web',
       sense: { name: 's', start() {} },
-      voice: { name: 'v', speak() {}, hush() { 멈춤.push('멈췄다'); } },
+      voice: { name: 'v', speak() {}, hush() { halt3.push('멈췄다'); } },
     }],
-    brain: 느린두뇌(120),
+    brain: slowBrain(120),
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
     urgentWhen: (s) => isRealBargeIn(s.text),
   });
   await companion.start();
-  const 첫말 = companion.feed(감각('web', '오늘 얘기 좀 하자'));
+  const firstText3 = companion.feed(sense2('web', '오늘 얘기 좀 하자'));
   await new Promise((r) => setTimeout(r, 30));
-  await companion.feed(감각('web', '잠깐만'));
-  await 첫말;
-  assert.ok(멈춤.length > 0);
+  await companion.feed(sense2('web', '잠깐만'));
+  await firstText3;
+  assert.ok(halt3.length > 0);
 });
 
 test('안 주면 예전 그대로 — 통로만 본다', async () => {
-  const 멈춤 = [];
+  const halt4 = [];
   const companion = new Companion({
     bodies: [{
       name: 'web',
       sense: { name: 's', start() {} },
-      voice: { name: 'v', speak() {}, hush() { 멈춤.push('멈췄다'); } },
+      voice: { name: 'v', speak() {}, hush() { halt4.push('멈췄다'); } },
     }],
-    brain: 느린두뇌(120),
+    brain: slowBrain(120),
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
   });
   await companion.start();
-  const 첫말 = companion.feed(감각('web', '얘기하자'));
+  const firstText4 = companion.feed(sense2('web', '얘기하자'));
   await new Promise((r) => setTimeout(r, 30));
-  await companion.feed(감각('web', 'ㅋㅋ'));
-  await 첫말;
-  assert.ok(멈춤.length > 0);
+  await companion.feed(sense2('web', 'ㅋㅋ'));
+  await firstText4;
+  assert.ok(halt4.length > 0);
 });

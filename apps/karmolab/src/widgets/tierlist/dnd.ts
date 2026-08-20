@@ -238,8 +238,8 @@ interface TlDnDOptions {
             return Array.from(root.querySelectorAll<HTMLElement>('.tl-dropzone:not([data-toc-drop]), .tl-pool'));
         }
         root.addEventListener('keydown', (e: KeyboardEvent) => {
-            const 키 = e.key;
-            if (키 !== 'ArrowLeft' && 키 !== 'ArrowRight' && 키 !== 'ArrowUp' && 키 !== 'ArrowDown') return;
+            const key2 = e.key;
+            if (key2 !== 'ArrowLeft' && key2 !== 'ArrowRight' && key2 !== 'ArrowUp' && key2 !== 'ArrowDown') return;
             const itemEl = (e.target as HTMLElement | null)?.closest<HTMLElement>('.tl-item');
             const itemId = itemEl?.dataset.itemId;
             if (!itemEl || !itemId) return;
@@ -247,18 +247,18 @@ interface TlDnDOptions {
             if (!currentLine) return;
             const line = lines();
             const linePos = line.indexOf(currentLine);
-            const 카드들 = Array.from(currentLine.querySelectorAll<HTMLElement>('.tl-item'));
-            const slot = 카드들.indexOf(itemEl);
+            const cards2 = Array.from(currentLine.querySelectorAll<HTMLElement>('.tl-item'));
+            const slot = cards2.indexOf(itemEl);
             if (slot < 0) return;
             e.preventDefault();
 
-            if (키 === 'ArrowLeft' || 키 === 'ArrowRight') {
+            if (key2 === 'ArrowLeft' || key2 === 'ArrowRight') {
                 /* 제자리에서 한 칸. 오른쪽으로 갈 때 자기 자신이 빠진 뒤 자리라 +2 다. */
-                const destination = 키 === 'ArrowLeft' ? slot - 1 : slot + 2;
-                if (destination < 0 || destination > 카드들.length) return;
+                const destination = key2 === 'ArrowLeft' ? slot - 1 : slot + 2;
+                if (destination < 0 || destination > cards2.length) return;
                 onDrop?.({ itemId, tierId: currentLine.dataset.tierId, insertIdx: destination });
             } else {
-                const next = 키 === 'ArrowUp' ? linePos - 1 : linePos + 1;
+                const next = key2 === 'ArrowUp' ? linePos - 1 : linePos + 1;
                 if (next < 0 || next >= line.length) return;
                 const end = line[next].querySelectorAll('.tl-item').length;
                 onDrop?.({ itemId, tierId: line[next].dataset.tierId, insertIdx: end });

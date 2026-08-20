@@ -32,8 +32,8 @@ export function enableSpeech(content: string): string {
 }
 
 /** 이 말은 소리로 낼 수 있나 — 지우고 나서도 읽을 게 남나. */
-export function worthSpeaking(글: string): boolean {
-  const remaining = enableSpeech(글);
+export function worthSpeaking(content2: string): boolean {
+  const remaining = enableSpeech(content2);
   // 부호만 남은 것은 말이 아니다.
   return /[0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ]/.test(remaining);
 }

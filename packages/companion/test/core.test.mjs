@@ -179,14 +179,14 @@ test('시험이 만든 감각은 기억에 안 담긴다 — 사람 상이 검�
 });
 
 test('줄이 둘이다 — 무거운 일이 도는 중에도 사람 말은 바로 시작한다', async () => {
-  const 나온말 = [];
-  const 몸 = {
+  const producedText = [];
+  const body2 = {
     name: 'web',
     sense: { name: 'web:sense', start() {} },
-    voice: { name: 'web:voice', speak(u) { 나온말.push({ text: u.text, at: Date.now() }); } },
+    voice: { name: 'web:voice', speak(u) { producedText.push({ text: u.text, at: Date.now() }); } },
   };
   const companion = new Companion({
-    bodies: [몸],
+    bodies: [body2],
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
@@ -203,36 +203,36 @@ test('줄이 둘이다 — 무거운 일이 도는 중에도 사람 말은 바�
   });
   await companion.start();
 
-  const 무거운것 = companion.feed({ channel: 'screen', kind: 'text', text: '화면을 봤다', at: Date.now() });
+  const heavy = companion.feed({ channel: 'screen', kind: 'text', text: '화면을 봤다', at: Date.now() });
   await new Promise((r) => setTimeout(r, 50)); // 그 일이 확실히 돌기 시작한 뒤
 
-  const 건넨때 = Date.now();
-  await companion.feed({ channel: 'web', kind: 'text', text: '있어?', at: 건넨때 });
-  const 기다린ms = (나온말.find((m) => m.text.includes('있어?'))?.at ?? 0) - 건넨때;
+  const sentAt = Date.now();
+  await companion.feed({ channel: 'web', kind: 'text', text: '있어?', at: sentAt });
+  const waitedMs = (producedText.find((m) => m.text.includes('있어?'))?.at ?? 0) - sentAt;
 
-  await 무거운것;
+  await heavy;
   await companion.stop();
 
   // 갈라 두기 전에는 무거운 일이 끝날 때까지 통째로 기다렸다(실측 3초 중 2793ms).
-  assert.ok(기다린ms >= 0 && 기다린ms < 150, `사람 말이 ${기다린ms}ms 기다렸다 — 일 줄 뒤에서 밀린 것`);
+  assert.ok(waitedMs >= 0 && waitedMs < 150, `사람 말이 ${waitedMs}ms 기다렸다 — 일 줄 뒤에서 밀린 것`);
 });
 
 test('일 줄은 사람이 말하는 중에는 새 turn 을 안 연다 — 두뇌는 하나다', async () => {
-  const 순서 = [];
-  const 몸 = {
+  const order = [];
+  const body3 = {
     name: 'web',
     sense: { name: 'web:sense', start() {} },
     voice: { name: 'web:voice', speak() {} },
   };
   const companion = new Companion({
-    bodies: [몸],
+    bodies: [body3],
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     interruptChannels: ['web'],
     brain: {
       name: '기록',
       async think(input) {
-        순서.push(input.sensation.channel);
+        order.push(input.sensation.channel);
         await new Promise((r) => setTimeout(r, 30));
         return '음';
       },
@@ -241,13 +241,13 @@ test('일 줄은 사람이 말하는 중에는 새 turn 을 안 연다 — 두�
   await companion.start();
 
   // 일거리 셋을 쌓아 두고 곧바로 말을 건다.
-  const 일들 = [0, 1, 2].map((i) =>
+  const events = [0, 1, 2].map((i) =>
     companion.feed({ channel: 'clock', kind: 'tick', text: `일 ${i}`, at: Date.now() }),
   );
   await companion.feed({ channel: 'web', kind: 'text', text: '있어?', at: Date.now() });
-  await Promise.all(일들);
+  await Promise.all(events);
   await companion.stop();
 
   // 사람 말이 일 셋을 다 기다리지 않았어야 한다 — 맨 뒤면 안 된다.
-  assert.ok(순서.indexOf('web') <= 1, `두뇌를 부른 순서: ${순서.join(' → ')}`);
+  assert.ok(order.indexOf('web') <= 1, `두뇌를 부른 순서: ${order.join(' → ')}`);
 });

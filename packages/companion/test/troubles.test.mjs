@@ -52,16 +52,16 @@ test('잦은 것을 위에 둔다 — 한 번 있었던 일보다 자꾸 나는 
   const t = new Troubles();
   t.hit('못함', '한 번');
   for (let i = 0; i < 5; i += 1) t.hit('걸림', `자주 ${i}`);
-  const 머리 = troublesReport(t).split('\n')[0];
-  assert.ok(머리.indexOf('걸림') < 머리.indexOf('못함'));
+  const head = troublesReport(t).split('\n')[0];
+  assert.ok(head.indexOf('걸림') < head.indexOf('못함'));
 });
 
 test('실제 자리도 같이 보여 준다', () => {
   const t = new Troubles();
   t.hit('걸림', '「무엇을 도와드릴까요」');
-  const 표 = troublesReport(t);
-  assert.match(표, /걸림 1번/);
-  assert.match(표, /도와드릴까요/);
+  const table = troublesReport(t);
+  assert.match(table, /걸림 1번/);
+  assert.match(table, /도와드릴까요/);
 });
 
 test('없는 종류는 표에 안 올린다', () => {
@@ -79,12 +79,12 @@ test('파일에 남겨 두면 껐다 켜도 이어진다 — 며칠 봐야 뭐�
   const dir = mkdtempSync(join(tmpdir(), 'troubles-'));
   const path = join(dir, '잘못.json');
   try {
-    const 처음 = new Troubles({ path });
-    처음.hit('걸림', '말투가 샜다');
-    처음.hit('걸림', '또');
-    const 다시 = new Troubles({ path });
-    assert.equal(다시.count('걸림'), 2);
-    assert.match(다시.all[0].what, /샜다/);
+    const first = new Troubles({ path });
+    first.hit('걸림', '말투가 샜다');
+    first.hit('걸림', '또');
+    const again = new Troubles({ path });
+    assert.equal(again.count('걸림'), 2);
+    assert.match(again.all[0].what, /샜다/);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 

@@ -98,9 +98,9 @@ export function applyCorrection(
  */
 export function correctionNote(correction: Correction, erased: readonly string[] = []): string {
   const cleared = erased.length > 0 ? ` 잘못 알고 있던 것(${erased.join(', ')})은 지웠다.` : '';
-  const 대신 = correction.instead === null ? '' : ` 조수님 말로는 「${correction.instead.slice(0, 40)}」 라고 한다.`;
+  const instead2 = correction.instead === null ? '' : ` 조수님 말로는 「${correction.instead.slice(0, 40)}」 라고 한다.`;
   return (
-    `방금 네가 한 말(「${correction.denied.slice(0, 30)}」)이 틀렸다고 한다.${대신}${cleared} ` +
+    `방금 네가 한 말(「${correction.denied.slice(0, 30)}」)이 틀렸다고 한다.${instead2}${cleared} ` +
     '우기거나 변명하지 마라. 그렇다고 굽신거리지도 마라 — 짧게 받아들이고 넘어가라.'
   );
 }

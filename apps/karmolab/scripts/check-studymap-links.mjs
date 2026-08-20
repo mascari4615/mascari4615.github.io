@@ -97,12 +97,12 @@ process.stdout.write('\n');
    `nts.go.kr` — **한국 정부 사이트**다. 미국 러너에서 안 열린 것이지 링크가 죽은 게 아니다.
    그걸 빨강으로 읽으면 사람은 멀쩡한 링크를 지우거나, 더 나쁘게는 이 검사를 무시한다.
    갈라 적는다: **답이 온 4xx 만 죽은 것**, 아예 못 닿은 것(0)은 **못 잼**(2)이다. */
-const 죽음 = dead.filter((d) => d.status !== 0);
+const dead2 = dead.filter((d) => d.status !== 0);
 const unreachableCount = dead.filter((d) => d.status === 0);
-for (const d of 죽음) console.log(`  ${d.status}  ${d.node} — ${d.label}`);
+for (const d of dead2) console.log(`  ${d.status}  ${d.node} — ${d.label}`);
 for (const d of unreachableCount) console.log(`  못 닿음  ${d.node} — ${d.label}`);
-if (죽음.length > 0) {
-  console.log(`[studymap-links] 죽은 주소 ${죽음.length}개 / 전체 ${targets.length}개`);
+if (dead2.length > 0) {
+  console.log(`[studymap-links] 죽은 주소 ${dead2.length}개 / 전체 ${targets.length}개`);
   process.exit(1);
 }
 if (unreachableCount.length > 0) {

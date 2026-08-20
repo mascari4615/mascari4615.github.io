@@ -88,10 +88,10 @@ export function usualLength(recent: readonly MemoryEntry[]): number {
  */
 export function wasShort(said: string, shouldAccept: boolean, threshold = 12): string | null {
   if (shouldAccept === false) return null;
-  const 말 = said.trim();
+  const text2 = said.trim();
   /* **되묻는 말은 짧아도 끊은 게 아니다.** 라이브에서 이걸 안 갈랐다가 「뭐가 재밌었어?」를
      걸러 버렸다 — 공을 돌려주는 가장 좋은 답이었는데 열한 자라는 이유로 막혔고, 다시
      시킨 것도 안 되자 「…」로 떨어졌다. **막는 자리가 답을 더 나쁘게 만든 것이다.** */
-  if (isQuestion(말)) return null;
-  return 말.length < threshold ? '받아 줄 자리인데 한마디로 끊었다' : null;
+  if (isQuestion(text2)) return null;
+  return text2.length < threshold ? '받아 줄 자리인데 한마디로 끊었다' : null;
 }

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { autoUse, handFrom, hintFrom, insideFence, loadHands, readSpec } from '../dist/index.js';
 
-const 임시 = () => mkdtempSync(join(tmpdir(), 'hands-'));
+const temp = () => mkdtempSync(join(tmpdir(), 'hands-'));
 
 // ── 명세 읽기 ───────────────────────────────────────────────────────
 
@@ -39,57 +39,57 @@ test('울타리를 안 주면 어디든 된다 — 내 컴퓨터다', () => {
 });
 
 test('울타리 안이면 된다', () => {
-  const 집 = 임시();
+  const home = temp();
   try {
-    assert.equal(insideFence(join(집, 'a', 'b.md'), 집), true);
-    assert.equal(insideFence(집, 집), true);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    assert.equal(insideFence(join(home, 'a', 'b.md'), home), true);
+    assert.equal(insideFence(home, home), true);
+  } finally { rmSync(home, { recursive: true, force: true }); }
 });
 
 test('울타리 밖이면 손을 안 만든다', () => {
-  const 집 = 임시();
+  const home2 = temp();
   try {
-    assert.equal(insideFence(join(집, '..', '남의것.md'), 집), false);
+    assert.equal(insideFence(join(home2, '..', '남의것.md'), home2), false);
     const hand = handFrom(
-      { name: 'x', what: 'y', kind: 'read-file', path: join(집, '..', '남의것.md') },
-      { within: 집 },
+      { name: 'x', what: 'y', kind: 'read-file', path: join(home2, '..', '남의것.md') },
+      { within: home2 },
     );
     assert.equal(hand, null);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+  } finally { rmSync(home2, { recursive: true, force: true }); }
 });
 
 // ── 실제로 읽기 ─────────────────────────────────────────────────────
 
 test('파일을 읽어 준다', async () => {
-  const 집 = 임시();
+  const home3 = temp();
   try {
-    const p = join(집, 'todo.md');
+    const p = join(home3, 'todo.md');
     writeFileSync(p, '우유 사기\n셰이더 고치기\n', 'utf8');
     const hand = handFrom({ name: '할일', what: '할 일', kind: 'read-file', path: p });
     assert.match(await hand.run(''), /우유 사기/);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+  } finally { rmSync(home3, { recursive: true, force: true }); }
 });
 
 test('넘긴 말이 있으면 그 줄만 — 큰 파일을 통째로 주면 오히려 방해다', async () => {
-  const 집 = 임시();
+  const home4 = temp();
   try {
-    const p = join(집, 'todo.md');
+    const p = join(home4, 'todo.md');
     writeFileSync(p, '우유 사기\n셰이더 고치기\n', 'utf8');
     const hand = handFrom({ name: '할일', what: '할 일', kind: 'read-file', path: p });
-    const 결과 = await hand.run('셰이더');
-    assert.match(결과, /셰이더/);
-    assert.equal(결과.includes('우유'), false);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    const result = await hand.run('셰이더');
+    assert.match(result, /셰이더/);
+    assert.equal(result.includes('우유'), false);
+  } finally { rmSync(home4, { recursive: true, force: true }); }
 });
 
 test('찾는 게 없으면 통째로 준다 — 빈손보다 낫다', async () => {
-  const 집 = 임시();
+  const home5 = temp();
   try {
-    const p = join(집, 'todo.md');
+    const p = join(home5, 'todo.md');
     writeFileSync(p, '우유 사기\n', 'utf8');
     const hand = handFrom({ name: '할일', what: '할 일', kind: 'read-file', path: p });
     assert.match(await hand.run('없는말'), /우유/);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+  } finally { rmSync(home5, { recursive: true, force: true }); }
 });
 
 test('파일이 없으면 없다고 한다 — 죽지 않는다', async () => {
@@ -98,35 +98,35 @@ test('파일이 없으면 없다고 한다 — 죽지 않는다', async () => {
 });
 
 test('폴더를 읽어 준다', async () => {
-  const 집 = 임시();
+  const home6 = temp();
   try {
-    writeFileSync(join(집, 'a.md'), '', 'utf8');
-    mkdirSync(join(집, '안쪽'));
-    const hand = handFrom({ name: '폴더', what: '폴더', kind: 'read-dir', path: 집 });
-    const 결과 = await hand.run('');
-    assert.match(결과, /a\.md/);
-    assert.match(결과, /안쪽\//, '폴더는 표시가 다르다');
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home6, 'a.md'), '', 'utf8');
+    mkdirSync(join(home6, '안쪽'));
+    const hand = handFrom({ name: '폴더', what: '폴더', kind: 'read-dir', path: home6 });
+    const result2 = await hand.run('');
+    assert.match(result2, /a\.md/);
+    assert.match(result2, /안쪽\//, '폴더는 표시가 다르다');
+  } finally { rmSync(home6, { recursive: true, force: true }); }
 });
 
 test('얼마나 읽을지 정할 수 있다', async () => {
-  const 집 = 임시();
+  const home7 = temp();
   try {
-    for (let i = 0; i < 20; i += 1) writeFileSync(join(집, `${i}.md`), '', 'utf8');
-    const hand = handFrom({ name: '폴더', what: '폴더', kind: 'read-dir', path: 집, limit: 3 });
+    for (let i = 0; i < 20; i += 1) writeFileSync(join(home7, `${i}.md`), '', 'utf8');
+    const hand = handFrom({ name: '폴더', what: '폴더', kind: 'read-dir', path: home7, limit: 3 });
     assert.equal((await hand.run('')).split('\n').length, 3);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+  } finally { rmSync(home7, { recursive: true, force: true }); }
 });
 
 // ── 폴더에서 통째로 읽기 ────────────────────────────────────────────
 
 test('폴더 안의 명세들을 손으로 만든다', () => {
-  const 집 = 임시();
+  const home8 = temp();
   try {
-    writeFileSync(join(집, '1.json'), JSON.stringify({ name: '할일', what: '할 일', kind: 'read-file', path: join(집, 'x.md') }), 'utf8');
-    writeFileSync(join(집, '2.json'), JSON.stringify({ name: '폴더', what: '폴더', kind: 'read-dir', path: 집 }), 'utf8');
-    assert.deepEqual(loadHands(집).hands.map((h) => h.name), ['할일', '폴더']);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home8, '1.json'), JSON.stringify({ name: '할일', what: '할 일', kind: 'read-file', path: join(home8, 'x.md') }), 'utf8');
+    writeFileSync(join(home8, '2.json'), JSON.stringify({ name: '폴더', what: '폴더', kind: 'read-dir', path: home8 }), 'utf8');
+    assert.deepEqual(loadHands(home8).hands.map((h) => h.name), ['할일', '폴더']);
+  } finally { rmSync(home8, { recursive: true, force: true }); }
 });
 
 test('폴더가 없으면 빈손이다 — 죽지 않는다', () => {
@@ -134,42 +134,42 @@ test('폴더가 없으면 빈손이다 — 죽지 않는다', () => {
 });
 
 test('깨진 파일은 왜 빠졌는지 남긴다 — 조용히 사라지면 알 길이 없다', () => {
-  const 집 = 임시();
-  const 남긴것 = [];
+  const home9 = temp();
+  const left = [];
   try {
-    writeFileSync(join(집, '깨진것.json'), '{{{', 'utf8');
-    assert.deepEqual(loadHands(집, { log: (m) => 남긴것.push(m) }).hands, []);
-    assert.equal(남긴것.some((m) => m.includes('깨진것.json')), true);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home9, '깨진것.json'), '{{{', 'utf8');
+    assert.deepEqual(loadHands(home9, { log: (m) => left.push(m) }).hands, []);
+    assert.equal(left.some((m) => m.includes('깨진것.json')), true);
+  } finally { rmSync(home9, { recursive: true, force: true }); }
 });
 
 test('명세가 아닌 것도 왜 빠졌는지 남긴다', () => {
-  const 집 = 임시();
-  const 남긴것 = [];
+  const home10 = temp();
+  const left2 = [];
   try {
-    writeFileSync(join(집, '엉뚱.json'), JSON.stringify({ 아무거나: 1 }), 'utf8');
-    loadHands(집, { log: (m) => 남긴것.push(m) });
-    assert.equal(남긴것.some((m) => m.includes('손 명세로 안 보인다')), true);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home10, '엉뚱.json'), JSON.stringify({ 아무거나: 1 }), 'utf8');
+    loadHands(home10, { log: (m) => left2.push(m) });
+    assert.equal(left2.some((m) => m.includes('손 명세로 안 보인다')), true);
+  } finally { rmSync(home10, { recursive: true, force: true }); }
 });
 
 test('이름이 겹치면 뒤엣것을 버린다 — 두 손이 같은 이름이면 어느 쪽인지 알 수 없다', () => {
-  const 집 = 임시();
-  const 남긴것 = [];
+  const home11 = temp();
+  const left3 = [];
   try {
-    writeFileSync(join(집, '1.json'), JSON.stringify({ name: '같은이름', what: 'a', kind: 'read-dir', path: 집 }), 'utf8');
-    writeFileSync(join(집, '2.json'), JSON.stringify({ name: '같은이름', what: 'b', kind: 'read-dir', path: 집 }), 'utf8');
-    assert.equal(loadHands(집, { log: (m) => 남긴것.push(m) }).hands.length, 1);
-    assert.equal(남긴것.some((m) => m.includes('이름이 겹쳐')), true);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home11, '1.json'), JSON.stringify({ name: '같은이름', what: 'a', kind: 'read-dir', path: home11 }), 'utf8');
+    writeFileSync(join(home11, '2.json'), JSON.stringify({ name: '같은이름', what: 'b', kind: 'read-dir', path: home11 }), 'utf8');
+    assert.equal(loadHands(home11, { log: (m) => left3.push(m) }).hands.length, 1);
+    assert.equal(left3.some((m) => m.includes('이름이 겹쳐')), true);
+  } finally { rmSync(home11, { recursive: true, force: true }); }
 });
 
 test('json 이 아닌 파일은 안 본다', () => {
-  const 집 = 임시();
+  const home12 = temp();
   try {
-    writeFileSync(join(집, '메모.txt'), 'name: 할일', 'utf8');
-    assert.deepEqual(loadHands(집).hands, []);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    writeFileSync(join(home12, '메모.txt'), 'name: 할일', 'utf8');
+    assert.deepEqual(loadHands(home12).hands, []);
+  } finally { rmSync(home12, { recursive: true, force: true }); }
 });
 
 // ── 언제 쓸지 ───────────────────────────────────────────────────────
@@ -184,15 +184,15 @@ test('명세에 언제 쓸지를 적을 수 있다 — 능력만 있고 쓰임�
 });
 
 test('안 적으면 저절로는 안 쓰인다 — 그 사실을 남긴다', () => {
-  const 집 = 임시();
-  const 남긴것 = [];
+  const home13 = temp();
+  const left4 = [];
   try {
-    writeFileSync(join(집, '1.json'), JSON.stringify({ name: '할일', what: '할 일', kind: 'read-dir', path: 집 }), 'utf8');
-    const { hands, hints } = loadHands(집, { log: (m) => 남긴것.push(m) });
+    writeFileSync(join(home13, '1.json'), JSON.stringify({ name: '할일', what: '할 일', kind: 'read-dir', path: home13 }), 'utf8');
+    const { hands, hints } = loadHands(home13, { log: (m) => left4.push(m) });
     assert.equal(hands.length, 1, '손은 만들어진다');
     assert.deepEqual(hints, [], '저절로 쓸 힌트는 없다');
-    assert.equal(남긴것.some((m) => m.includes('언제 쓸지를 안 적어서')), true);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    assert.equal(left4.some((m) => m.includes('언제 쓸지를 안 적어서')), true);
+  } finally { rmSync(home13, { recursive: true, force: true }); }
 });
 
 test('사람이 적은 말에 특수 기호가 있어도 안 터진다', () => {
@@ -206,27 +206,27 @@ test('빈 말은 힌트로 안 센다', () => {
 });
 
 test('힌트로 실제 손이 골라진다', async () => {
-  const 집 = 임시();
+  const home14 = temp();
   try {
-    const p = join(집, 'todo.md');
+    const p = join(home14, 'todo.md');
     writeFileSync(p, '우유 사기\n', 'utf8');
-    writeFileSync(join(집, '1.json'), JSON.stringify({
+    writeFileSync(join(home14, '1.json'), JSON.stringify({
       name: '할일', what: '할 일', kind: 'read-file', path: p, when: ['할 일'],
     }), 'utf8');
-    const { hands, hints } = loadHands(집);
-    const 찾은것 = await autoUse('오늘 할 일 뭐였지', hands, { hints });
-    assert.equal(찾은것.length, 1);
-    assert.match(찾은것[0], /우유 사기/);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+    const { hands, hints } = loadHands(home14);
+    const found = await autoUse('오늘 할 일 뭐였지', hands, { hints });
+    assert.equal(found.length, 1);
+    assert.match(found[0], /우유 사기/);
+  } finally { rmSync(home14, { recursive: true, force: true }); }
 });
 
 test('힌트에 안 걸리면 안 쓴다', async () => {
-  const 집 = 임시();
+  const home15 = temp();
   try {
-    writeFileSync(join(집, '1.json'), JSON.stringify({
-      name: '할일', what: '할 일', kind: 'read-dir', path: 집, when: ['할 일'],
+    writeFileSync(join(home15, '1.json'), JSON.stringify({
+      name: '할일', what: '할 일', kind: 'read-dir', path: home15, when: ['할 일'],
     }), 'utf8');
-    const { hands, hints } = loadHands(집);
+    const { hands, hints } = loadHands(home15);
     assert.deepEqual(await autoUse('오늘 날씨 어때', hands, { hints }), []);
-  } finally { rmSync(집, { recursive: true, force: true }); }
+  } finally { rmSync(home15, { recursive: true, force: true }); }
 });

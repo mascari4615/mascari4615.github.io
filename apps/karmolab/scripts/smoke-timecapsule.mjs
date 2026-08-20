@@ -20,7 +20,7 @@ import { waitHydrated } from './lib/hydrated.mjs';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const TOOL = `${BASE}/karmolab/t/timecapsule/`;
-const 편지 = '먼 날의 너에게 — 이 줄이 그대로 보이면 잠금이 제대로 열린 것이다.';
+const letter2 = '먼 날의 너에게 — 이 줄이 그대로 보이면 잠금이 제대로 열린 것이다.';
 const waited = 210000; // 2분 뒤로 잠그고 넉넉히 기다린다
 
 const failures = [];
@@ -41,18 +41,18 @@ try {
   /* 단추가 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135).
      이 검사가 그 틈에서 두 번 헛돌아 「공개 시계에 못 닿았다」로 끝났다(도구는 멀쩡했다). */
   await waitHydrated(page, '#tcSeal');
-  await page.fill('#tcText', 편지);
+  await page.fill('#tcText', letter2);
   const onOpen = new Date(Date.now() + 120000);
   const p2 = (n) => String(n).padStart(2, '0');
   const value = `${onOpen.getFullYear()}-${p2(onOpen.getMonth() + 1)}-${p2(onOpen.getDate())}T${p2(onOpen.getHours())}:${p2(onOpen.getMinutes())}`;
   await page.fill('#tcWhen', value);
   await page.click('#tcSeal');
 
-  const 잠김 = await page
+  const locked2 = await page
     .waitForSelector('#tcUrl', { timeout: 90000 })
     .then(() => true)
     .catch(() => false);
-  if (!잠김) {
+  if (!locked2) {
     const output = await page.evaluate(() => document.querySelector('#tcStatus')?.textContent || '');
     cantRun = `잠그지 못했다 — 공개 시계에 닿지 못했을 수 있다 (${output.slice(0, 60)})`;
     throw new Error(cantRun);
@@ -122,7 +122,7 @@ try {
     openedText = await page.evaluate(() => document.querySelector('.tc-letter')?.textContent || '');
   }
   check('때가 되면 열림', openedText.includes('먼 날의'), `기다렸는데 안 열렸다 (${Math.round(waited / 1000)}초)`);
-  check('적은 그대로', openedText.trim() === 편지, `나온 글: ${openedText.slice(0, 40)}`);
+  check('적은 그대로', openedText.trim() === letter2, `나온 글: ${openedText.slice(0, 40)}`);
 } catch (e) {
   if (!cantRun) failures.push(`검사가 끝까지 못 갔다: ${e.message}`);
 } finally {

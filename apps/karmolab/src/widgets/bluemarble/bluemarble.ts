@@ -1995,12 +1995,12 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
              실제로 그렇게 올려서 지구본이 한 판 죽었다 — 먼저 밋밋한 이름을 달아 두고 아래에서 바꾼다. */
           canvas.setAttribute('aria-label', '지구본');
           canvas.addEventListener('keydown', (e: KeyboardEvent) => {
-            const 걸음 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
+            const step2 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
             let consumed = true;
-            if (e.key === 'ArrowLeft') camLon -= 걸음;
-            else if (e.key === 'ArrowRight') camLon += 걸음;
-            else if (e.key === 'ArrowUp') camLat = Math.min(85, camLat + 걸음);
-            else if (e.key === 'ArrowDown') camLat = Math.max(-85, camLat - 걸음);
+            if (e.key === 'ArrowLeft') camLon -= step2;
+            else if (e.key === 'ArrowRight') camLon += step2;
+            else if (e.key === 'ArrowUp') camLat = Math.min(85, camLat + step2);
+            else if (e.key === 'ArrowDown') camLat = Math.max(-85, camLat - step2);
             else if (e.key === '+' || e.key === '=') zoom = Math.min(420, zoom * 1.18);
             else if (e.key === '-' || e.key === '_') zoom = Math.max(MIN_ZOOM, zoom * 0.847);
             else if (e.key === 'Home') { camLon = 126; camLat = 20; zoom = 0.4; }

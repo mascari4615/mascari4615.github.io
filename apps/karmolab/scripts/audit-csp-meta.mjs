@@ -35,9 +35,9 @@ function walk(dir, out) {
 /* 폴더를 **여럿** 받는다 — 지어진 사이트에서 우리 앱이 사는 자리가 둘이다
    (`/karmolab/**` 찍힌 장 · `/apps/karmolab/**` 앱 알맹이). */
 const targets = (process.argv.length > 2 ? process.argv.slice(2) : [root]).map((d) => path.resolve(d));
-const 없는것 = targets.filter((d) => fs.existsSync(d) === false);
-if (없는것.length > 0) {
-  console.error(`[csp-meta] CANNOT-RUN: 볼 폴더가 없다 — ${없는것.join(', ')}`);
+const missing2 = targets.filter((d) => fs.existsSync(d) === false);
+if (missing2.length > 0) {
+  console.error(`[csp-meta] CANNOT-RUN: 볼 폴더가 없다 — ${missing2.join(', ')}`);
   process.exit(2);
 }
 const files = [];
