@@ -48,10 +48,10 @@ test('빈 아는 것에도 안 죽는다', () => {
 
 test('얼마나 오래 알았는지 사람 말로', () => {
   const now4 = 100 * day;
-  assert.match(howLong({ 처음: now4 - day * 30, 마지막: now4 }, now4), /오래전부터/);
-  assert.match(howLong({ 처음: now4 - day * 5, 마지막: now4 }, now4), /며칠 전/);
-  assert.match(howLong({ 처음: now4 - day * 1.5, 마지막: now4 }, now4), /어제오늘/);
-  assert.match(howLong({ 처음: now4 - 1000, 마지막: now4 }, now4), /방금/);
+  assert.match(howLong({ 처음: now4 - day * 30, last: now4 }, now4), /오래전부터/);
+  assert.match(howLong({ 처음: now4 - day * 5, last: now4 }, now4), /며칠 전/);
+  assert.match(howLong({ 처음: now4 - day * 1.5, last: now4 }, now4), /어제오늘/);
+  assert.match(howLong({ 처음: now4 - 1000, last: now4 }, now4), /방금/);
 });
 
 // ── 두뇌에 얹는 한 줄 ────────────────────────────────────────────────
