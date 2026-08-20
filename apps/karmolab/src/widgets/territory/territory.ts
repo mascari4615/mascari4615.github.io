@@ -191,6 +191,10 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         <div class="terr-scrim-bottom"></div>
         <div class="terr-bar">
           <div class="terr-tabs" style="display:flex;gap:6px"></div>
+          <div style="display:flex;gap:6px;margin-inline-start:14px">
+            <button type="button" class="terr-chip terr-mode" data-mode="store" aria-pressed="true">${esc(t('territory.mode.store', undefined, '가게 단위'))}</button>
+            <button type="button" class="terr-chip terr-mode" data-mode="district" aria-pressed="false">${esc(t('territory.mode.district', undefined, '구 단위'))}</button>
+          </div>
           <div class="terr-right">
             <button type="button" class="terr-chip terr-dots" aria-pressed="false">${esc(t('territory.label.dots', undefined, '가게 점 보기'))}</button>
             <button type="button" class="terr-chip terr-full" title="${esc(t('territory.label.full', undefined, '전체 화면'))}">⛶</button>
@@ -207,6 +211,26 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     const noteEl = container.querySelector('.terr-note') as HTMLElement;
     const dotsEl = container.querySelector('.terr-dots') as HTMLButtonElement;
     const fullEl = container.querySelector('.terr-full') as HTMLButtonElement;
+
+    /** 보기 방식 — 가게마다 제 땅을 칠하는 얼룩(store), 구를 통째로 1등 색으로 칠하는 개표(district). */
+    let mode: 'store' | 'district' = 'store';
+    const modeEls = Array.from(container.querySelectorAll('.terr-mode')) as HTMLButtonElement[];
+    for (const b of modeEls) {
+      b.onclick = () => {
+        const next = b.dataset.mode === 'district' ? 'district' : 'store';
+        if (next === mode) return;
+        mode = next;
+        for (const x of modeEls) x.setAttribute('aria-pressed', x.dataset.mode === mode ? 'true' : 'false');
+        if (mode === 'store') {
+          raster = null;
+          startJob(map);
+        } else {
+          stopJob();
+        }
+        map.redraw();
+        updateSide();
+      };
+    }
 
     let dotsOn = false;
     dotsEl.onclick = () => {
@@ -549,7 +573,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
     map.addPainter((ctx, m) => {
       const { width, height } = m.size;
-      if (raster !== null && off.width > 0) {
+      if (mode === 'store' && raster !== null && off.width > 0) {
         /* 칠할 때의 두 귀퉁이를 지금 화면에 다시 찍는다 — 그게 얹을 자리와 크기다. */
         const a = m.project(raster.tl.lat, raster.tl.lng);
         const b = m.project(raster.br.lat, raster.br.lng);
@@ -582,6 +606,26 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           }
         }
       };
+      /* ── 개표 칠하기 ──
+         「선거 결과 지도」의 문법을 그대로 쓴다: **1등이 구 전체를 가져가고**, 진하기가 격차다.
+         압도적인 곳은 진하고 접전인 곳은 옅어서, 색만 봐도 「여긴 확실한 CU 땅, 저긴 반반」이 읽힌다.
+         얼룩(가게 단위) 지도는 사실에 가깝지만 전국을 볼 때는 모래알이라 판세가 안 보인다 —
+         두 그림은 서로 다른 질문에 답한다. */
+      if (mode === 'district' && loaded !== null) {
+        for (const d of districts) {
+          if (d.maxLat < b.minLat || d.minLat > b.maxLat || d.maxLng < b.minLng || d.minLng > b.maxLng) continue;
+          const ranked = Object.entries(d.share).sort((x, y) => y[1] - x[1]);
+          const win = ranked[0];
+          if (win === undefined || win[1] <= 0) continue;
+          const margin = (win[1] - (ranked[1]?.[1] ?? 0)) / 100;
+          const rgb = loaded.rgb.get(win[0]);
+          if (rgb === undefined) continue;
+          trace(d);
+          ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.3 + 0.5 * Math.min(1, margin * 2)).toFixed(3) + ')';
+          ctx.fill('evenodd');
+        }
+      }
+
       ctx.lineJoin = 'round';
       ctx.strokeStyle = 'rgba(255,255,255,.3)';
       ctx.lineWidth = 1;
@@ -659,12 +703,26 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       /* 구를 짚고 있으면 **그 구의 미리 잰 값**을 보여 준다 — 화면 기준 수와 달리 어제와 오늘이 같다.
          짚지 않았으면 지금 보이는 만큼을 즉석에서 센다. */
       const d = hovered;
-      const title = d !== null ? d.name : t('territory.msg.owner', undefined, '지금 보이는 땅의 주인');
+      let title = d !== null ? d.name : t('territory.msg.owner', undefined, '지금 보이는 땅의 주인');
       let pctOf: (id: string) => number;
       let countOf: (id: string) => number;
       if (d !== null) {
         pctOf = (id) => d.share[id] ?? 0;
         countOf = (id) => d.stores[id] ?? 0;
+      } else if (mode === 'district' && districts !== null) {
+        /* 개표 모드의 순위표는 「몇 개 구에서 1등을 했나」다 — 선거에서 의석 수를 세는 것과 같다.
+           땅 넓이 %(가게 단위)와는 다른 수라, 같은 자리에 다른 뜻을 넣지 않게 제목도 바꾼다. */
+        const won = new Map<string, number>();
+        let seen = 0;
+        for (const x of districts) {
+          const ranked = Object.entries(x.share).sort((p1, p2) => p2[1] - p1[1]);
+          if (ranked.length === 0 || ranked[0][1] <= 0) continue;
+          seen++;
+          won.set(ranked[0][0], (won.get(ranked[0][0]) ?? 0) + 1);
+        }
+        title = t('territory.msg.wonTitle', undefined, '구 몇 곳에서 1등인가') + ' (' + seen + ')';
+        pctOf = (id) => ((won.get(id) ?? 0) / (seen || 1)) * 100;
+        countOf = (id) => won.get(id) ?? 0;
       } else {
         const rows = share(loaded.grid, map.bounds(), 90, Math.min(20, Math.max(2, map.kmPerPixel() * 40)));
         const byBrand = new Map(rows.map((r) => [r.brand, r]));
@@ -700,7 +758,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         '<div>' +
         (d !== null
           ? esc(t('territory.msg.districtHint', undefined, '구 하나를 짚고 있다 — 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.'))
-          : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
+          : mode === 'district'
+            ? esc(t('territory.msg.electionHint', undefined, '구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.'))
+            : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
         '</div>' +
         '<div style="opacity:.62;font-size:11px;margin-top:2px">' +
         esc(loaded.meta.source) + ' · ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
