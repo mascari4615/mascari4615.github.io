@@ -1,0 +1,12 @@
+{
+  "name": "Mascari4615.KarmoGizmo.Tests.PlayMode",
+  "rootNamespace": "Mascari4615.KarmoGizmo.Tests",
+  "references": [ "Mascari4615.KarmoGizmo", "UnityEngine.TestRunner", "UnityEditor.TestRunner" ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "precompiledReferences": [ "nunit.framework.dll" ],
+  "overrideReferences": true,
+  "autoReferenced": false,
+  "defineConstraints": [ "UNITY_INCLUDE_TESTS" ],
+  "noEngineReferences": false
+}
