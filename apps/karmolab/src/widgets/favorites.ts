@@ -814,7 +814,11 @@ import { t, loadNamespace } from '../lib/i18n';
                      * 「슬래시가 있으면 경로」로 판정하면 스킴이 전부 경로로 잡힌다
                      * (그래서 웹에서 스킴을 못 담던 버그). 스킴 = `이름:` 으로 시작하는 것,
                      * 그 밖에 구분자·확장자가 있는 것만 실행 파일로 본다. */
-                    const schemeMatch = /^([a-z][a-z0-9+.-]*):/i.exec(raw);
+                    /* 스킴 이름은 **두 글자 이상**만 인정한다. 한 글자를 허용하면
+                     * `C:\GoogleDrive\...\ScreenToGif.exe` 의 `C:` 가 스킴으로 잡혀
+                     * 「c://」 라는 열 수 없는 칸이 담긴다 (2026-08-20 제보).
+                     * 윈도우 드라이브 문자와 겹치는 한 글자 스킴은 실제로 쓰이지 않는다. */
+                    const schemeMatch = /^([a-z][a-z0-9+.-]+):/i.exec(raw);
                     const looksPath =
                         !schemeMatch && (/[\\/]/.test(raw) || /\.(exe|cmd|bat|app|sh)$/i.test(raw));
                     /* 웹에서는 실행 파일을 못 켠다 — 담기 전에 막는다. 담아 두고 눌러야
