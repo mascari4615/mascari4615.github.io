@@ -99,7 +99,7 @@ if (막힌주소.length > 0) {
    **받아 본 뒤에야** noindex 를 읽는다 — 같은 날 실측으로 90일 크롤 342건 중 HTML 은 9%뿐인
    새 집에서 그 한 번이 아깝다.
    막는 자리 = `apps/blog/_plugins/sitemap-drop-noindex.rb` (장이 스스로 말하면 명단에서 뺀다). */
-const 지은파일 = (url) => {
+const builtFile = (url) => {
   let p;
   try {
     p = new URL(url).pathname;
@@ -107,20 +107,20 @@ const 지은파일 = (url) => {
     return null;
   }
   const rel = p.replace(/^\//, '');
-  const 후보 = [path.join(siteDir, rel), path.join(siteDir, rel, 'index.html')];
-  return 후보.find((f) => fs.existsSync(f) && fs.statSync(f).isFile()) ?? null;
+  const candidates = [path.join(siteDir, rel), path.join(siteDir, rel, 'index.html')];
+  return candidates.find((f) => fs.existsSync(f) && fs.statSync(f).isFile()) ?? null;
 };
 const ROBOTS_META = /<meta[^>]+name\s*=\s*["']robots["'][^>]*>/i;
-const noindex주소 = blocks.map(loc).filter((url) => {
-  const f = 지은파일(url);
+const noindexUrls = blocks.map(loc).filter((url) => {
+  const f = builtFile(url);
   if (f === null) return false; /* 못 찾은 것은 여기서 따지지 않는다 — 이 검사의 일이 아니다 */
   const m = fs.readFileSync(f, 'utf8').match(ROBOTS_META);
   return m !== null && /noindex/i.test(m[0]);
 });
-if (noindex주소.length > 0) {
-  console.error(`[audit-sitemap-lastmod] noindex 인 주소가 사이트맵에 ${noindex주소.length}개 있다:`);
-  for (const url of noindex주소.slice(0, 10)) console.error(`  ${url}`);
-  if (noindex주소.length > 10) console.error(`  … 그 외 ${noindex주소.length - 10}개`);
+if (noindexUrls.length > 0) {
+  console.error(`[audit-sitemap-lastmod] noindex 인 주소가 사이트맵에 ${noindexUrls.length}개 있다:`);
+  for (const url of noindexUrls.slice(0, 10)) console.error(`  ${url}`);
+  if (noindexUrls.length > 10) console.error(`  … 그 외 ${noindexUrls.length - 10}개`);
   console.error('  → 「색인하지 마라」와 「여기부터 봐 달라」를 같이 말하는 것이다.');
   console.error('  → 장이 맞다면 사이트맵에서 빼고(_plugins/sitemap-drop-noindex.rb), 명단이 맞다면 noindex 를 떼라.');
   process.exit(1);
