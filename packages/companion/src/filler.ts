@@ -11,9 +11,9 @@
 
 /** 결마다 다른 뜸. 늘어진 애가 「어, 잠깐만!」 하면 그건 다른 사람이다. */
 const warm = {
-  나른함: ['음…', '으음…', '아…', '흐음…'],
+  '나른함': ['음…', '으음…', '아…', '흐음…'],
   보통: ['음.', '응…', '그게…', '어…'],
-  깨어있음: ['음,', '아 그거,', '잠깐,', '어디 보자,'],
+  '깨어있음': ['음,', '아 그거,', '잠깐,', '어디 보자,'],
 } as const;
 
 export interface FillerOptions {
@@ -38,7 +38,7 @@ export function allWarm(): readonly string[] {
 
 export function pickFiller(options: FillerOptions = {}): string {
   const energy = options.energy ?? 0.5;
-  const pool = energy < 0.35 ? warm.나른함 : energy > 0.75 ? warm.깨어있음 : warm.보통;
+  const pool = energy < 0.35 ? warm['나른함'] : energy > 0.75 ? warm['깨어있음'] : warm.보통;
   const roll = options.roll ?? Math.random;
 
   const usable = pool.filter((f) => f !== options.last);

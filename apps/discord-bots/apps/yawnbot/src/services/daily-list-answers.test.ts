@@ -16,7 +16,7 @@ describe('DailyListStore', () => {
     store.report('pokemon', 'gen=1', ['리자몽']);
     expect(store.shares('pokemon', 'gen=1').shares).toBeNull();
     for (let i = 1; i < MIN_SAMPLE; i += 1) store.report('pokemon', 'gen=1', ['리자몽']);
-    expect(store.shares('pokemon', 'gen=1').shares).toEqual({ 리자몽: 1 });
+    expect(store.shares('pokemon', 'gen=1').shares).toEqual({ '리자몽': 1 });
   });
 
   it('같은 이름을 두 번 쳐도 한 판은 한 번이다', () => {
@@ -25,15 +25,15 @@ describe('DailyListStore', () => {
     const { people, shares } = store.shares('lol', 'roles=서포터');
     expect(people).toBe(MIN_SAMPLE);
     // 「소라카」와 「 소라카 」는 같은 이름이다(양끝 공백은 사람이 안 세는 차이다).
-    expect(shares?.소라카).toBe(1);
+    expect(shares['소라카']).toBe(1);
   });
 
   it('덜 나온 이름일수록 비율이 낮다', () => {
     const store = tmpStore();
     for (let i = 0; i < 10; i += 1) store.report('genshin', 'element=물', i < 9 ? ['푸리나', '탐닉'] : ['탐닉']);
     const { shares } = store.shares('genshin', 'element=물');
-    expect(shares?.탐닉).toBe(1);
-    expect(shares?.푸리나).toBeCloseTo(0.9);
+    expect(shares['탐닉']).toBe(1);
+    expect(shares['푸리나']).toBeCloseTo(0.9);
   });
 
   it('저장했다 다시 읽어도 셈이 남는다', () => {

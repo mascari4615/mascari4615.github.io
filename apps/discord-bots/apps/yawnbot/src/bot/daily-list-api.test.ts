@@ -52,7 +52,7 @@ describe('전부대기 라우트', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { people: number; shares: Record<string, number> | null };
     expect(body.people).toBe(MIN_SAMPLE);
-    expect(body.shares?.리자몽).toBe(1);
+    expect(body.shares['리자몽']).toBe(1);
   });
 
   it('아직 아무도 안 푼 문제는 비어 있다고 말한다 — 없는 것을 지어내지 않는다', async () => {

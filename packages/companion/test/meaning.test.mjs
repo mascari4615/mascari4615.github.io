@@ -52,7 +52,7 @@ test('아직 준비가 안 됐으면 빈손으로 돌아온다 — 기다리게 
 });
 
 test('짧은 말은 색인에 안 담는다 — 「응」이 아무거나 닮아 보이면 안 된다', async () => {
-  const meaning4 = new 뜻기억({ 재기: fakeMeasure({ ...table2, 응: [1, 0, 0, 0] }) });
+  const meaning4 = new 뜻기억({ 재기: fakeMeasure({ ...table2, '응': [1, 0, 0, 0] }) });
   await meaning4.담기([{ role: 'sensed', channel: 'web', text: '응', at: 1 }]);
   assert.equal(meaning4.담긴수, 0);
 });

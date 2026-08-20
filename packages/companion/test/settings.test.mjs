@@ -48,7 +48,7 @@ test('범위 밖은 묶고 그렇다고 말한다 — 화면 보기를 0.1초로
 
 test('끄는 길은 늘 남아 있다', () => {
   const s = new Settings();
-  s.put({ 화면보기간격초: 0, 먼저말걸기: false, 놀리기: false });
+  s.put({ 화면보기간격초: 0, 먼저말걸기: false, '놀리기': false });
   assert.equal(s.get('화면보기간격초'), 0);
   assert.equal(s.on('먼저말걸기'), false);
   assert.equal(s.on('놀리기'), false);

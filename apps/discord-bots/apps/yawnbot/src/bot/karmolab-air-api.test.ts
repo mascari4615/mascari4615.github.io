@@ -87,7 +87,7 @@ describe('목록 열쇠가 원천마다 다르다', () => {
 
   it('모르는 모양이면 빈 목록 (던지지 않는다 — 겹 하나가 조용히 비는 게 맞다)', () => {
     expect(rowsOf(null)).toHaveLength(0);
-    expect(rowsOf({ 뭔가: 1 })).toHaveLength(0);
+    expect(rowsOf({ '뭔가': 1 })).toHaveLength(0);
     expect(rowsOf('문자열')).toHaveLength(0);
   });
 });

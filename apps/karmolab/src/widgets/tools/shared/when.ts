@@ -23,7 +23,7 @@ export interface WhenParsed {
 
 const DAY = 86400_000;
 const WEEKDAYS: Record<string, number> = {
-  일: 0, 월: 1, 화: 2, 수: 3, 목: 4, 금: 5, 토: 6,
+  일: 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6,
   sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
 };
 
@@ -83,7 +83,7 @@ export function parseWhen(raw: string, now: Date = new Date()): WhenParsed {
 
   /* ③ 오늘·내일 같은 말 */
   const rel: Record<string, number> = {
-    오늘: 0, today: 0, 내일: 1, tomorrow: 1, 모레: 2, 글피: 3, 어제: -1, yesterday: -1, 그저께: -2
+    '오늘': 0, today: 0, '내일': 1, tomorrow: 1, '모레': 2, '글피': 3, '어제': -1, yesterday: -1, '그저께': -2
   };
   for (const [word, off] of Object.entries(rel)) {
     if (src.includes(word)) {

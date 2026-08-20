@@ -228,7 +228,7 @@ export async function handleRps(ctx: BotContext, interaction: ChatInputCommandIn
     return;
   }
 
-  const RPS_EMOJI: Record<string, string> = { 가위: '✌️', 바위: '✊', 보: '🖐️' };
+  const RPS_EMOJI: Record<string, string> = { '가위': '✌️', '바위': '✊', '보': '🖐️' };
   const result =
     r.type === 'win'
       ? gameData.getMessage('RPS_Win', formatMoney(r.payout))
