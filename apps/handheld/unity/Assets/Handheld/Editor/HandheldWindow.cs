@@ -94,6 +94,8 @@ namespace Handheld.EditorTools
             DrawQrSection();
             EditorGUILayout.Space(8);
             DrawRigSection();
+            EditorGUILayout.Space(8);
+            DrawRecordSection();
 
             EditorGUILayout.EndScrollView();
         }
@@ -351,6 +353,36 @@ namespace Handheld.EditorTools
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField(_rig.StatusLine, WrapMini());
         }
+
+        // ── 포즈 기록 ────────────────────────────────────────────────────────────
+        void DrawRecordSection()
+        {
+            Header("포즈 기록");
+            EditorGUILayout.LabelField(
+                "폰 원본 · 좌표변환 후 · 보간 후를 각각 CSV 로 남긴다. 「튄다」가 폰에서 오는지 " +
+                "여기서 생기는지 가르는 데 쓴다.", WrapMini());
+
+            bool on = _server.Recording;
+            bool want = EditorGUILayout.ToggleLeft(
+                on ? $"기록 중 — 포즈 {_server.Recorder.PoseRows}줄 · 화면 {_server.Recorder.ShownRows}줄" : "꺼짐",
+                on, EditorStyles.boldLabel);
+
+            if (want != on)
+            {
+                if (want) _server.StartRecording();
+                else _server.StopRecording();
+            }
+
+            using (new EditorGUI.DisabledScope(_lastLogFolder == null))
+            {
+                if (GUILayout.Button("기록 폴더 열기") && _lastLogFolder != null)
+                    EditorUtility.RevealInFinder(_lastLogFolder);
+            }
+
+            if (on) _lastLogFolder = _server.Recorder.Folder;
+        }
+
+        string _lastLogFolder;
 
         // ── 잡동사니 ─────────────────────────────────────────────────────────────
         static void Header(string title)
