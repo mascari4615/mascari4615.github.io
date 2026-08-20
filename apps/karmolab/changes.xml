@@ -12,6 +12,20 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[빨라짐] 검사 발판을 스스로 알아낸다 — 「왜 이리 오래 걸려」의 근본</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3df7e0680</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>검사 발판을 스스로 알아낸다 — 「왜 이리 오래 걸려」의 근본</description>
+    </item>
+    <item>
+      <title>[새로 생김] 우리 동네 땅 주인이 CU 인지 GS25 인지 지도로 본다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-12f7297fa</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>우리 동네 땅 주인이 CU 인지 GS25 인지 지도로 본다</description>
+    </item>
+    <item>
       <title>[새로 생김] 짧은 영상에서 사람만 남긴다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-22cb182e4</guid>
@@ -206,20 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-f989cf8f6</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>없는 말 묶음을 부르면 게이트가 막는다 + 설치 묶음 3판</description>
-    </item>
-    <item>
-      <title>[새로 생김] 「할당량」을 「내 AI」로 넓히고, Codex 를 실시간으로 본다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-524f5fb8d</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>「할당량」을 「내 AI」로 넓히고, Codex 를 실시간으로 본다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 바뀐 것에 걸리는 검사만 돈다 — gates:changed</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-4fdf872ff</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>바뀐 것에 걸리는 검사만 돈다 — gates:changed</description>
     </item>
   </channel>
 </rss>

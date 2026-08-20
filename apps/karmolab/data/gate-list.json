@@ -325,6 +325,8 @@
     "audit:entry-sources",
     "test:shell-i18n",
     "test:taptarget",
-    "audit:locale-inline"
+    "audit:locale-inline",
+    "audit:i18n-stub",
+    "test:new-tool"
   ]
 }
