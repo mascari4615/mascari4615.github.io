@@ -1,7 +1,7 @@
 # mascari4615.github.io — AI 에이전트 작업 지침
 
 Jekyll 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages `https://mascari4615.github.io`.
-구조: `_posts/` 블로그 / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/`.
+구조: `_posts/` 블로그 / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
 
 ## Post 규칙
 
