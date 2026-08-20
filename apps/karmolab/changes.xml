@@ -12,6 +12,13 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[새로 생김] 새 도구 뼈대를 한 명령으로</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-9e862d63c</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>새 도구 뼈대를 한 명령으로</description>
+    </item>
+    <item>
       <title>[빨라짐] 검사 발판을 스스로 알아낸다 — 「왜 이리 오래 걸려」의 근본</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-3df7e0680</guid>
@@ -213,13 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-403ff1088</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>설치 목록에 「내 컴퓨터 목소리」를 얹는다</description>
-    </item>
-    <item>
-      <title>[고침] 없는 말 묶음을 부르면 게이트가 막는다 + 설치 묶음 3판</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-f989cf8f6</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>없는 말 묶음을 부르면 게이트가 막는다 + 설치 묶음 3판</description>
     </item>
   </channel>
 </rss>

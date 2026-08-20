@@ -1,9 +1,9 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 406,
+    "docs": 407,
     "groups": 7,
-    "shown": 82,
+    "shown": 83,
     "hidden": 0
   },
   "groups": [
@@ -289,7 +289,7 @@
     {
       "status": "seed",
       "label": "씨앗",
-      "count": 10,
+      "count": 11,
       "items": [
         {
           "id": "2026-04-08-content-first-todo",
@@ -361,6 +361,14 @@
           "status": "seed",
           "statusLabel": "씨앗",
           "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-413",
+          "title": "두명이 한바퀴를 못 돈다",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "high",
           "updated": ""
         },
         {
