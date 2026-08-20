@@ -26,7 +26,13 @@ const listPath = path.join(root, 'data/behavior-typing.json');
 const list = JSON.parse(fs.readFileSync(listPath, 'utf8'));
 /* 어떤 도구는 글자만으로 반응하고, 어떤 도구는 「만들기」 같은 버튼을 눌러야 반응한다.
  * 뒤엣것은 따로 적어 둔다 — 파일을 넣어야 하거나 누르면 파일이 내려받아지는 도구는 안 넣는다. */
-const needsButton = new Set(list.needsButton || []);
+/* ★ 누를 버튼을 <b>이름으로 짚을 수 있게</b> 한다 (2026-08-21) — `clickOnly` 와 같은 꼴:
+ *   "lotto" 또는 ["lotto", "번호 뽑기"]. 첫 버튼이 늘 그 도구의 버튼은 아니다.
+ *   실측: `lotto` 가 「뽑기」 묶음의 탭이 되면서 첫 버튼이 <b>「로또 6/45」 탭</b>이 됐다.
+ *   이미 골라진 탭을 누르니 화면이 그대로고, 검사는 「고장」이라 했다 — 도구는 멀쩡했다.
+ *   (같은 함정을 `clickOnly` 는 이미 겪고 이름 지정으로 풀었다. 그 판단을 여기에도 적용한다.) */
+const needsButtonNamed = new Map((list.needsButton || []).map((e) => (Array.isArray(e) ? [e[0], e[1]] : [e, null])));
+const needsButton = new Set(needsButtonNamed.keys());
 /* 그림을 넣어야 반응하는 도구 — 저장소에 둔 작은 표본 그림을 넣어 본다. */
 const needsFile = new Set(list.needsFile || []);
 /* PDF 를 넣어야 반응하는 도구 — 표본 PDF 한 장(535바이트, 「KarmoLab」 한 줄)을 넣어 본다.
@@ -225,6 +231,23 @@ async function checkOne(page, id) {
       failures.push(`${id}: 눌러야 할 버튼이 없다 — 화면이 바뀌었을 수 있다`);
       process.stdout.write('x');
       return;
+    }
+    const named = needsButtonNamed.get(id);
+    if (named) {
+      const ok = await page.evaluate(([toolId, label]) => {
+        const el = document.getElementById('page-' + toolId);
+        const vis = [...el.querySelectorAll('button')].filter((b) => b.getBoundingClientRect().height > 0);
+        const btn = vis.find((b) => b.textContent.trim() === label);
+        if (!btn) return false;
+        el.querySelectorAll('[data-probe-btn]').forEach((b) => b.removeAttribute('data-probe-btn'));
+        btn.setAttribute('data-probe-btn', '1');
+        return true;
+      }, [id, named]);
+      if (!ok) {
+        failures.push(`${id}: 「${named}」 버튼을 못 찾았다 — 이름이 바뀌었거나 화면이 안 그려졌다`);
+        process.stdout.write('x');
+        return;
+      }
     }
     await page.click('[data-probe-btn]');
     await page.waitForTimeout(1000);

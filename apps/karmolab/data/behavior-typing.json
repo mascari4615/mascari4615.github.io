@@ -39,7 +39,7 @@
   "needsButton": [
     "colorconv",
     "textdiff",
-    "lotto",
+    ["lotto", "번호 뽑기"],
     "ladder",
     "pick",
     "json2ts",
