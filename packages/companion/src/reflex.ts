@@ -34,8 +34,8 @@ export function reflexTone(energy: number): '처짐' | '보통' | '생생' {
 }
 
 /** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
-export function reflexKind(종류: string, tone: string): string {
-  return `reflex:${종류}:${tone}`;
+export function reflexKind(kind2: string, tone: string): string {
+  return `reflex:${kind2}:${tone}`;
 }
 
 /** 반사가 다루는 상황들 — 미리 채워 두려면 무엇이 있는지 밖에서 알아야 한다. */
@@ -87,14 +87,14 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   if (hit === undefined) return null;
 
   const energy = options.energy ?? 0.5;
-  const 결 = reflexTone(energy);
+  const tone2 = reflexTone(energy);
 
   // 미리 지어 둔 것이 먼저다. 바로 앞것과 같으면 그건 안 쓴다.
-  const prepared = options.창고?.꺼내기(reflexKind(hit.종류, 결)) ?? null;
+  const prepared = options.창고?.꺼내기(reflexKind(hit.종류, tone2)) ?? null;
   if (prepared !== null && prepared !== options.last) return prepared;
 
   const set = reply[hit.종류] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };
-  const pool = set[결];
+  const pool = set[tone2];
 
   const usable = pool.filter((p) => p !== options.last);
   const choices = usable.length > 0 ? usable : pool;

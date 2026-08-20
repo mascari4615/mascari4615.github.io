@@ -163,11 +163,11 @@ for (const name of commands) {
   }
 }
 
-const 어디 = SHA ? `커밋 ${SHA.slice(0, 8)}` : '작업 폴더';
+const where = SHA ? `커밋 ${SHA.slice(0, 8)}` : '작업 폴더';
 if (problems.length) {
-  console.log(`[acl-impl] ❌ ${어디} — 명령 ${problems.length}개가 반쪽이다 (앱이 통째로 안 굽는다):`);
+  console.log(`[acl-impl] ❌ ${where} — 명령 ${problems.length}개가 반쪽이다 (앱이 통째로 안 굽는다):`);
   for (const p of problems) console.log(`  - ${p}`);
   console.log('  acl.toml 에 이름이 있으면 handler 가 그 이름을 부른다 — 구현·mod·use 셋이 다 있어야 한다.');
   process.exit(1);
 }
-console.log(`[acl-impl] OK — ${어디}: 명령 ${commands.length}개 전부 구현·연결 확인`);
+console.log(`[acl-impl] OK — ${where}: 명령 ${commands.length}개 전부 구현·연결 확인`);

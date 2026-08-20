@@ -29,18 +29,18 @@ test('빈 말은 깨진 게 아니다', () => {
 });
 
 test('쌓인 것 중 깨진 줄만 골라낸다', () => {
-  const 줄들 = [
+  const lines = [
     { text: '오늘 발표 망했어' },
     { text: '���� ����' },
     { text: '내일은 괜찮겠지' },
   ];
-  const 골라낸것 = brokenLines(줄들);
-  assert.equal(골라낸것.length, 1);
-  assert.match(골라낸것[0].text, /�/);
+  const selected = brokenLines(lines);
+  assert.equal(selected.length, 1);
+  assert.match(selected[0].text, /�/);
 });
 
 test('고르기는 지우지 않는다 — 무엇이 지워질지 먼저 볼 수 있어야 한다', () => {
-  const 줄들 = [{ text: '�����' }];
-  brokenLines(줄들);
-  assert.equal(줄들.length, 1);
+  const lines2 = [{ text: '�����' }];
+  brokenLines(lines2);
+  assert.equal(lines2.length, 1);
 });

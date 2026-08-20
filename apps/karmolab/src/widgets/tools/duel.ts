@@ -69,8 +69,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   /** 판을 미리 다 만들어 상대에게 통째로 보낸다 — 양쪽이 각자 뽑으면 다른 문제가 뜬다. */
   function makeRound(i: number): Round {
     const limitMs = LIMIT_START - i * LIMIT_STEP;
-    const 갈래: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
-    const kind: Kind = 갈래[Math.floor(Math.random() * 갈래.length)];
+    const kind2: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
+    const kind: Kind = kind2[Math.floor(Math.random() * kind2.length)];
     if (kind === 'chosung') {
       const [초성, 정답, 미끼] = pick(quizRound());
       const choices = shuffle([정답, ...미끼]);
@@ -88,9 +88,9 @@ import { t, loadNamespace } from '../../lib/i18n';
       const a = Math.floor(Math.random() * 40) + 5;
       const b = Math.floor(Math.random() * 40) + 5;
       const 정답 = a + b;
-      const 후보 = new Set<number>([정답]);
-      while (후보.size < 4) 후보.add(정답 + (Math.floor(Math.random() * 11) - 5) || 정답 + 6);
-      const choices = shuffle([...후보]).map(String);
+      const candidates = new Set<number>([정답]);
+      while (candidates.size < 4) candidates.add(정답 + (Math.floor(Math.random() * 11) - 5) || 정답 + 6);
+      const choices = shuffle([...candidates]).map(String);
       return {
         kind,
         order: t('duel.order.sum', { a, b }),
@@ -101,7 +101,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     if (kind === 'same') {
       // 같은 것: 명령에 뜬 글자와 똑같은 칸 고르기. 미끼는 한 글자만 다르다.
-      const 씨앗 = pick(quizRound())[1];
+      const seed = pick(quizRound())[1];
       const 글자통 = t('duel.letters');
       const 흔들기 = (w: string): string => {
         const i = Math.floor(Math.random() * w.length);
@@ -111,26 +111,26 @@ import { t, loadNamespace } from '../../lib/i18n';
       const 미끼 = new Set<string>();
       let 헛돌이 = 0;
       while (미끼.size < 3 && 헛돌이++ < 40) {
-        const w = 흔들기(씨앗);
-        if (w !== 씨앗) 미끼.add(w);
+        const w = 흔들기(seed);
+        if (w !== seed) 미끼.add(w);
       }
-      const choices = shuffle([씨앗, ...미끼]);
-      return { kind, order: t('duel.order.same', { w: 씨앗 }), choices, answer: choices.indexOf(씨앗), limitMs };
+      const choices = shuffle([seed, ...미끼]);
+      return { kind, order: t('duel.order.same', { w: seed }), choices, answer: choices.indexOf(seed), limitMs };
     }
     if (kind === 'reverse') {
       // 거꾸로: 명령에 뜬 글자를 뒤집은 것 고르기.
-      const 씨앗 = pick(quizRound())[1];
-      const 정답 = [...씨앗].reverse().join('');
+      const seed2 = pick(quizRound())[1];
+      const 정답 = [...seed2].reverse().join('');
       const 미끼 = new Set<string>();
       let 헛돌이 = 0;
       while (미끼.size < 3 && 헛돌이++ < 40) {
-        const w = shuffle([...씨앗]).join('');
+        const w = shuffle([...seed2]).join('');
         if (w !== 정답) 미끼.add(w);
       }
       const choices = shuffle([정답, ...미끼]);
       return {
         kind,
-        order: t('duel.order.reverse', { w: 씨앗 }),
+        order: t('duel.order.reverse', { w: seed2 }),
         choices,
         answer: choices.indexOf(정답),
         limitMs
@@ -140,14 +140,14 @@ import { t, loadNamespace } from '../../lib/i18n';
      * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
     const palette = colorName();
     const 고를색 = pick(palette);
-    const 나머지 = palette.filter((c) => c[0] !== 고를색[0]);
+    const rest = palette.filter((c) => c[0] !== 고를색[0]);
     const 정답자리 = Math.floor(Math.random() * 4);
-    const 글자 = shuffle(나머지);
+    const 글자 = shuffle(rest);
     const choices: string[] = [];
     const tint: string[] = [];
     for (let k = 0; k < 4; k++) {
       choices.push(글자[k % 글자.length][0]);
-      tint.push(k === 정답자리 ? 고를색[1] : pick(나머지)[1]);
+      tint.push(k === 정답자리 ? 고를색[1] : pick(rest)[1]);
     }
     return {
       kind: 'color',
@@ -475,9 +475,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
             say(t('duel.status.searching'));
-            quickMatch(APP_ID, (방, 내가주인) => {
+            quickMatch(APP_ID, (room2, 내가주인) => {
               짝지음 = true;
-              connect(방, 내가주인); // 주인 뽑기·방 이름 계산은 `lib/room.ts` 한 곳에서
+              connect(room2, 내가주인); // 주인 뽑기·방 이름 계산은 `lib/room.ts` 한 곳에서
             });
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {

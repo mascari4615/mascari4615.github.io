@@ -207,33 +207,33 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
           if (loaded) {
             void (async () => {
               try {
-                const 봉인 = new TextDecoder().decode(fromBase64Url(loaded[1]));
-                const 글 = await timelockDecrypt(봉인, clock());
+                const sealed2 = new TextDecoder().decode(fromBase64Url(loaded[1]));
+                const content = await timelockDecrypt(sealed2, clock());
                 out.style.display = '';
-                out.innerHTML = `<div class="tc-letter">${esc(글.toString('utf8'))}</div>`;
+                out.innerHTML = `<div class="tc-letter">${esc(content.toString('utf8'))}</div>`;
                 say(t('timecapsule.say.opened'), 'ok');
                 Toolbox.trackUse?.('open');
               } catch (e) {
-                const 말 = e instanceof Error ? e.message : String(e);
+                const text2 = e instanceof Error ? e.message : String(e);
                 // 아직 때가 아니면 라이브러리가 「몇 회차에 열린다」를 말해 준다 — 그걸 날짜로 바꿔 보여 준다.
-                const m = 말.match(/round\s*(\d+)/i);
+                const m = text2.match(/round\s*(\d+)/i);
                 if (m) {
                   try {
                     const info = await clock().chain().info();
-                    const 열릴때 = (Number(info.genesis_time) + Number(m[1]) * Number(info.period)) * 1000;
+                    const onOpen2 = (Number(info.genesis_time) + Number(m[1]) * Number(info.period)) * 1000;
                     out.style.display = '';
                     out.innerHTML = `<div class="tc-locked">🔒<div class="tc-when">${esc(
                       t('timecapsule.opens.atShort', {
-                        date: fmtDate(열릴때, { dateStyle: 'long', timeStyle: 'short' })
+                        date: fmtDate(onOpen2, { dateStyle: 'long', timeStyle: 'short' })
                       })
-                    )}</div><div class="tc-remain">${remainingText(열릴때 - Date.now())}</div></div>`;
+                    )}</div><div class="tc-remain">${remainingText(onOpen2 - Date.now())}</div></div>`;
                     say(t('timecapsule.say.notYet'));
                     return;
                   } catch {
                     /* 회차를 날짜로 못 바꿔도 아래 안내로 충분하다 */
                   }
                 }
-                say(t('timecapsule.err.open', { msg: 말.slice(0, 80) }), 'error');
+                say(t('timecapsule.err.open', { msg: text2.slice(0, 80) }), 'error');
               }
             })();
           }

@@ -68,19 +68,19 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
   });
   toWrite.sort((a, b) => (b.x.weight - a.x.weight) || (a.i - b.i));
 
-  const 고른것: { x: Ingredient; i: number }[] = [];
+  const picked2: { x: Ingredient; i: number }[] = [];
   let usedChars = 0;
   for (const it of toWrite) {
-    const 길이 = it.x.text.trim().length;
-    if (고른것.length >= maxLines || usedChars + 길이 > maxChars) {
+    const length2 = it.x.text.trim().length;
+    if (picked2.length >= maxLines || usedChars + length2 > maxChars) {
       mark?.(it.x.name, '밀림', `자리가 모자랐다 (무게 ${it.x.weight})${slot}`);
       continue;
     }
-    고른것.push(it);
-    usedChars += 길이;
+    picked2.push(it);
+    usedChars += length2;
     mark?.(it.x.name, '실림', '');
   }
-  return 고른것.map((it) => it.x);
+  return picked2.map((it) => it.x);
 }
 
 /**

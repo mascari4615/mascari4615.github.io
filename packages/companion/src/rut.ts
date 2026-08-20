@@ -82,9 +82,9 @@ export function findRut(entries: readonly MemoryEntry[], options: RutOptions = {
  * 첫머리가 겹치는 건 말투지만, 문장이 통째로 같은 건 **아무 생각 없이 뱉은 것**이다.
  */
 export function findEcho(entries: readonly MemoryEntry[], window = 8): string | null {
-  const 말들 = brainSaid(entries).slice(-window).map((e) => e.text.trim());
+  const texts2 = brainSaid(entries).slice(-window).map((e) => e.text.trim());
   const seen = new Set<string>();
-  for (const t of 말들) {
+  for (const t of texts2) {
     if (t === '') continue;
     if (seen.has(t)) return t;
     seen.add(t);

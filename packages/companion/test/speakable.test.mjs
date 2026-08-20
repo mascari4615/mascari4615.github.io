@@ -23,35 +23,35 @@ test('읽을 게 남는지 가른다', () => {
 });
 
 test('소리로 낼 게 없으면 만들지 않는다 — 빈 소리를 애써 만들지 않는다', async () => {
-  let 불렸나 = false;
-  const 목소리 = anySpeech([
+  let wasCalled = false;
+  const voice = anySpeech([
     {
       label: '가짜',
       speech: {
         name: '가짜',
         contentType: 'audio/wav',
         voices: async () => [{ id: 'v', label: 'v', gender: '?' }],
-        synthesize: async () => { 불렸나 = true; return Buffer.from('x'); },
+        synthesize: async () => { wasCalled = true; return Buffer.from('x'); },
       },
     },
   ]);
-  await assert.rejects(() => 목소리.synthesize('⠂⠄'), /소리로 낼 게 없는/);
-  assert.equal(불렸나, false, '못 읽을 글을 목소리 쪽에 넘겼다');
+  await assert.rejects(() => voice.synthesize('⠂⠄'), /소리로 낼 게 없는/);
+  assert.equal(wasCalled, false, '못 읽을 글을 목소리 쪽에 넘겼다');
 });
 
 test('걸러낸 뒤의 글로 소리를 만든다', async () => {
-  let 받은글 = '';
-  const 목소리 = anySpeech([
+  let receivedText = '';
+  const voice2 = anySpeech([
     {
       label: '가짜',
       speech: {
         name: '가짜',
         contentType: 'audio/wav',
         voices: async () => [{ id: 'v', label: 'v', gender: '?' }],
-        synthesize: async (t) => { 받은글 = t; return Buffer.from('x'); },
+        synthesize: async (t) => { receivedText = t; return Buffer.from('x'); },
       },
     },
   ]);
-  await 목소리.synthesize('⠂ 안녕 ⠄');
-  assert.equal(받은글, '안녕');
+  await voice2.synthesize('⠂ 안녕 ⠄');
+  assert.equal(receivedText, '안녕');
 });

@@ -46,10 +46,10 @@ if (files.length < 50) {
 
 const broken = [];
 for (const f of files) {
-  const 글 = fs.readFileSync(f, 'utf8');
+  const content = fs.readFileSync(f, 'utf8');
   try {
     /* 문법만 본다 — 옮기지도, 이름을 지우지도 않는다(그래야 「안 쓰는 것」이 사라지지 않는다). */
-    esbuild.transformSync(글, { loader: 'js', format: 'esm', sourcefile: f });
+    esbuild.transformSync(content, { loader: 'js', format: 'esm', sourcefile: f });
   } catch (e) {
     const firstLine = (e.errors?.[0] ? `${e.errors[0].text} (${e.errors[0].location?.line}줄)` : String(e.message)).split('\n')[0];
     broken.push(`${path.relative(root, f).split(path.sep).join('/')} — ${firstLine}`);

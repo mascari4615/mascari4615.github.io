@@ -98,8 +98,8 @@ await page.click('#cmpSend');
 await page.waitForFunction((phrase) => (document.getElementById('cmpLog')?.textContent ?? '').includes(phrase), output, {
   timeout: 15000,
 });
-const 기록 = await (await fetch(`${bot}/history`, { signal: AbortSignal.timeout(4000) })).json();
-const botHeard = 기록.some((e) => e.text === output);
+const log2 = await (await fetch(`${bot}/history`, { signal: AbortSignal.timeout(4000) })).json();
+const botHeard = log2.some((e) => e.text === output);
 
 /* **끝나고 자국을 지운다.**
  *

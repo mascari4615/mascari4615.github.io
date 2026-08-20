@@ -26,8 +26,8 @@ test('목록으로 답하면 대화가 아니라 보고서다', () => {
 });
 
 test('너무 길면 샌 것으로 본다', () => {
-  const 길다 = '가'.repeat(200);
-  const drift = checkDrift(길다);
+  const isLong = '가'.repeat(200);
+  const drift = checkDrift(isLong);
   assert.equal(drift.drifted, true);
   assert.match(drift.problems.join(), /너무 길다/);
 });
@@ -75,17 +75,17 @@ test('가장 최근 것 하나만 짚는다 — 잔소리가 길면 그게 또 �
 
 import { avoidanceWarning } from '../dist/index.js';
 
-const 말 = (text, at) => ({ role: 'said', channel: 'web', text, at });
+const text2 = (text, at) => ({ role: 'said', channel: 'web', text, at });
 
 test('한 번 모른다고 한 건 솔직한 것이다 — 짚지 않는다', () => {
-  assert.equal(avoidanceWarning([말('음… 그건 잘 모르겠어', 1), 말('소파에서 잤어', 2)]), '');
+  assert.equal(avoidanceWarning([text2('음… 그건 잘 모르겠어', 1), text2('소파에서 잤어', 2)]), '');
 });
 
 test('연달아 모른다고만 하면 벽이다 — 짚는다', () => {
   const note = avoidanceWarning([
-    말('음… 잘 모르는데', 1),
-    말('그것도 모르겠어…', 2),
-    말('게임은 정말 모르는데', 3),
+    text2('음… 잘 모르는데', 1),
+    text2('그것도 모르겠어…', 2),
+    text2('게임은 정말 모르는데', 3),
   ]);
   assert.match(note, /넘겼다/);
   assert.match(note, /되묻거나/);
@@ -93,18 +93,18 @@ test('연달아 모른다고만 하면 벽이다 — 짚는다', () => {
 
 test('내용이 있으면 짚지 않는다', () => {
   assert.equal(avoidanceWarning([
-    말('소파에서 잤어', 1),
-    말('그 폴더 얘기라면 어제도 했잖아', 2),
-    말('나는 그냥 옆에 있을게', 3),
+    text2('소파에서 잤어', 1),
+    text2('그 폴더 얘기라면 어제도 했잖아', 2),
+    text2('나는 그냥 옆에 있을게', 3),
   ]), '');
 });
 
 test('한 마디밖에 안 했으면 판단하지 않는다', () => {
-  assert.equal(avoidanceWarning([말('모르겠어', 1)]), '');
+  assert.equal(avoidanceWarning([text2('모르겠어', 1)]), '');
 });
 
 test('「그렇구나」 만 하는 것도 회피로 본다', () => {
-  const note = avoidanceWarning([말('그렇구나', 1), 말('그렇군', 2)]);
+  const note = avoidanceWarning([text2('그렇구나', 1), text2('그렇군', 2)]);
   assert.match(note, /넘겼다/);
 });
 
@@ -112,7 +112,7 @@ test('사람이 한 말은 세지 않는다 — 얘가 회피했는지를 보는
   assert.equal(avoidanceWarning([
     { role: 'sensed', channel: 'web', text: '나도 모르겠어', at: 1 },
     { role: 'sensed', channel: 'web', text: '진짜 모르겠다', at: 2 },
-    말('그건 어제 얘기한 거잖아', 3),
+    text2('그건 어제 얘기한 거잖아', 3),
   ]), '');
 });
 
@@ -120,7 +120,7 @@ test('사람이 한 말은 세지 않는다 — 얘가 회피했는지를 보는
 
 test('해요체를 놓치지 않는다 — 「해요」만 막아 놓으니 예요·어요·세요가 다 빠져나갔다', () => {
   // 실측: 라이브에서 얘가 이렇게 말하는데 검사가 조용했다
-  for (const 말 of [
+  for (const text3 of [
     '지금까지 대화 기록에 내용이 없는 상태예요',
     '답답하신 게 있어요?',
     '제가 도와드릴게요',
@@ -129,12 +129,12 @@ test('해요체를 놓치지 않는다 — 「해요」만 막아 놓으니 예�
     '어떤 걸 이어서 얘기하고 싶으셨나요?',
     '어떻게 할까요?',
   ]) {
-    assert.equal(checkDrift(말).drifted, true, `못 잡았다: ${말}`);
+    assert.equal(checkDrift(text3).drifted, true, `못 잡았다: ${text3}`);
   }
 });
 
 test('넓혔어도 얘 결은 안 걸린다 — 반말엔 「요」가 안 붙는다', () => {
-  for (const 말 of ['또야… 오늘따라 걔가 너 싫어하나 보다.', '그거 아직 붙잡고 있어?', '응…', '뭐가 재밌었는데.', '오늘 좀 힘들었겠네', '같이 볼까', '그래.']) {
-    assert.equal(checkDrift(말).drifted, false, `헛잡았다: ${말}`);
+  for (const text4 of ['또야… 오늘따라 걔가 너 싫어하나 보다.', '그거 아직 붙잡고 있어?', '응…', '뭐가 재밌었는데.', '오늘 좀 힘들었겠네', '같이 볼까', '그래.']) {
+    assert.equal(checkDrift(text4).drifted, false, `헛잡았다: ${text4}`);
   }
 });

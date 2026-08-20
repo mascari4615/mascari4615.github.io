@@ -36,13 +36,13 @@ const read = (p) => {
   }
 };
 
-const 스크립트들 = fs
+const scripts2 = fs
   .readdirSync(here)
   .filter((f) => f.endsWith('.mjs'))
   .sort();
 
 /* 파일을 하나도 못 찾으면 「전부 연결돼 있다」가 아니라 못 쟀다 — 자리가 옮겨진 것이다. */
-if (스크립트들.length === 0) {
+if (scripts2.length === 0) {
   console.error(`[unwired] CANNOT-RUN: 볼 스크립트를 한 개도 못 찾았다 — ${here}`);
   process.exit(2);
 }
@@ -54,7 +54,7 @@ let haystack = JSON.stringify(JSON.parse(read(path.join(app, 'package.json')) ||
    옆 감사(audit:orphans)는 같은 자리를 10개로 세고 있었다. 수가 둘이면 사람은 둘 다 안 믿는다.
    스크립트 글은 파일별로 따로 들고, 볼 때 **자기 글만 뺀다**(옆 감사가 이미 그렇게 한다). */
 const foreignText = new Map();
-for (const f of 스크립트들) foreignText.set(f, read(path.join(here, f)));
+for (const f of scripts2) foreignText.set(f, read(path.join(here, f)));
 const libDir = path.join(here, 'lib');
 if (fs.existsSync(libDir)) for (const f of fs.readdirSync(libDir)) haystack += read(path.join(libDir, f));
 haystack += read(path.join(app, 'build.mjs'));
@@ -67,7 +67,7 @@ if (haystack.length < 10_000) {
   process.exit(2);
 }
 
-const neverCalled = 스크립트들.filter((f) => {
+const neverCalled = scripts2.filter((f) => {
   const re = new RegExp(f.replace(/[.]/g, '\.'), 'g');
   if ((haystack.match(re) ?? []).length > 0) return false;
   /* 다른 스크립트가 부르면 불린 것 — 단, **제 파일은 뺀다**(위 § 참고). */
@@ -113,4 +113,4 @@ if (grown.length > 0) {
   process.exit(1);
 }
 
-console.log(`[unwired] 스크립트 ${스크립트들.length}개 · 부를 자리 없는 것 ${neverCalled.length}개 (기준선과 같음 — 늘지 않았다)`);
+console.log(`[unwired] 스크립트 ${scripts2.length}개 · 부를 자리 없는 것 ${neverCalled.length}개 (기준선과 같음 — 늘지 않았다)`);

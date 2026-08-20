@@ -95,7 +95,7 @@ export class meaningMemory {
 
   /** 이미 담긴 말인가. */
   private 있나(text: string): boolean {
-    return this.담김.some((줄) => 줄.text === text);
+    return this.담김.some((line2) => line2.text === text);
   }
 
   /**
@@ -109,12 +109,12 @@ export class meaningMemory {
     let storedCount = 0;
     try {
       for (const e of entries) {
-        const 글 = (e.text ?? '').trim();
+        const content2 = (e.text ?? '').trim();
         // 아주 짧은 말은 뜻이 없다 — 「응」 「뭐」가 색인을 채우면 아무거나 닮아 보인다.
-        if (글.length < 6 || this.있나(글)) continue;
-        const v = await this.options.재기.재기(글);
+        if (content2.length < 6 || this.있나(content2)) continue;
+        const v = await this.options.재기.재기(content2);
         if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
-        this.담김.push({ text: 글, at: e.at, v: [...v] });
+        this.담김.push({ text: content2, at: e.at, v: [...v] });
         storedCount += 1;
       }
       if (this.담김.length > this.최대) this.담김.splice(0, this.담김.length - this.최대);
@@ -137,15 +137,15 @@ export class meaningMemory {
     question: string,
     options: { 몇개?: number; 뺄것?: ReadonlySet<string> } = {},
   ): Promise<{ text: string; 닮음: number }[]> {
-    const 글 = question.trim();
-    if (글.length < 2 || this.담김.length === 0) return [];
-    const v = await this.options.재기.재기(글);
+    const content3 = question.trim();
+    if (content3.length < 2 || this.담김.length === 0) return [];
+    const v = await this.options.재기.재기(content3);
     if (v === null) return [];
 
     const toDrop = options.뺄것 ?? new Set<string>();
     return this.담김
-      .filter((줄) => toDrop.has(줄.text) === false && 줄.text !== 글)
-      .map((줄) => ({ text: 줄.text, 닮음: similarity(v, 줄.v) }))
+      .filter((line3) => toDrop.has(line3.text) === false && line3.text !== content3)
+      .map((line4) => ({ text: line4.text, 닮음: similarity(v, line4.v) }))
       .filter((r) => r.닮음 >= this.문턱)
       .sort((a, b) => b.닮음 - a.닮음)
       .slice(0, options.몇개 ?? 3);
@@ -162,7 +162,7 @@ export class meaningMemory {
 export function measureWithSmallModel(options: { 모델?: string; log?: (m: string) => void } = {}): 뜻재기 {
   const model = options.모델 ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
   const log = options.log ?? (() => {});
-  let ready: ((글: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
+  let ready: ((content4: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
   let preparing = false;
   let unavailable = false;
 
@@ -173,7 +173,7 @@ export function measureWithSmallModel(options: { 모델?: string; log?: (m: stri
     void import('@huggingface/transformers')
       .then(({ pipeline }) => pipeline('feature-extraction', model))
       .then((p) => {
-        ready = p as unknown as (글: string, opts: unknown) => Promise<{ data: Float32Array }>;
+        ready = p as unknown as (content5: string, opts: unknown) => Promise<{ data: Float32Array }>;
         log(`뜻 재는 자리가 준비됐다 (${Math.round((Date.now() - start) / 1000)}초)`);
       })
       .catch((e) => {
@@ -186,13 +186,13 @@ export function measureWithSmallModel(options: { 모델?: string; log?: (m: stri
   };
 
   return {
-    async 재기(글: string): Promise<readonly number[] | null> {
+    async 재기(content6: string): Promise<readonly number[] | null> {
       if (ready === null) {
         prepare();
         return null;
       }
       try {
-        const out = await ready(글, { pooling: 'mean', normalize: true });
+        const out = await ready(content6, { pooling: 'mean', normalize: true });
         return Array.from(out.data);
       } catch (e) {
         log(`뜻을 재다 실패했다: ${e instanceof Error ? e.message : String(e)}`);

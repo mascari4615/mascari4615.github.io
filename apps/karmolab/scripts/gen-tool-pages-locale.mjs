@@ -432,15 +432,15 @@ if (!CHECK) {
   for (const code of targets) {
     for (const id of RETIRED_OPERATION_IDS) {
       if (!fs.existsSync(path.join(srcDir, id, 'index.html'))) continue; /* 한국어 넘김판이 있는 것만 */
-      const 길 = localizedPath(`/karmolab/t/${id}/`, code);
+      const path2 = localizedPath(`/karmolab/t/${id}/`, code);
       const workbench = localizedPath('/karmolab/t/text/', code);
-      const dest = path.join(outRoot, 길.replace(/^\//, ''), 'index.html');
+      const dest = path.join(outRoot, path2.replace(/^\//, ''), 'index.html');
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(
         dest,
         `---
 layout: none
-permalink: ${길}
+permalink: ${path2}
 ---
 ` +
           `<!doctype html><html lang="${code}"><head><meta charset="utf-8">` +

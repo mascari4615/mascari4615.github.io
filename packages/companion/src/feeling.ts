@@ -72,11 +72,11 @@ export class Heart {
 
   /** 무슨 일이 있었다. */
   felt(what: 일, count = 1): Feeling {
-    const 지금 = this.settle();
+    const now2 = this.settle();
     const push = events[what];
     this.feeling = {
-      valence: group(지금.valence + push.valence * count),
-      arousal: group(지금.arousal + push.arousal * count),
+      valence: group(now2.valence + push.valence * count),
+      arousal: group(now2.arousal + push.arousal * count),
     };
     return { ...this.feeling };
   }
@@ -93,18 +93,18 @@ export class Heart {
    * 더하면 아무 일이 없어도 시계 기분이 깎인다(평소가 살짝 처진 쪽이니까) — 시험이 잡았다.
    */
   colour(mood: { energy: number; warmth: number }): { energy: number; warmth: number } {
-    const 지금 = this.settle();
+    const now3 = this.settle();
     return {
-      energy: Math.max(0, Math.min(1, mood.energy + (지금.arousal - usual.arousal) * 0.25)),
-      warmth: Math.max(0, Math.min(1, mood.warmth + (지금.valence - usual.valence) * 0.25)),
+      energy: Math.max(0, Math.min(1, mood.energy + (now3.arousal - usual.arousal) * 0.25)),
+      warmth: Math.max(0, Math.min(1, mood.warmth + (now3.valence - usual.valence) * 0.25)),
     };
   }
 
   /** 지난 시간만큼 제자리로 되돌린다. */
   private settle(): Feeling {
-    const 지금 = this.now();
-    const past = Math.max(0, 지금 - this.at);
-    this.at = 지금;
+    const now4 = this.now();
+    const past = Math.max(0, now4 - this.at);
+    this.at = now4;
     if (past === 0) return { ...this.feeling };
 
     const keepRatio = Math.pow(0.5, past / this.halfLife);
@@ -126,13 +126,13 @@ export function feelingNote(feeling: Feeling): string {
   const calc = Math.abs(feeling.valence) + Math.abs(feeling.arousal);
   if (calc < 0.25) return '';
 
-  const 좋고나쁨 = feeling.valence > 0.2 ? '조금 전 일이 나쁘지 않았다'
+  const valence2 = feeling.valence > 0.2 ? '조금 전 일이 나쁘지 않았다'
     : feeling.valence < -0.2 ? '조금 전 일이 좀 언짢았다'
     : null;
-  const 들뜸처짐 = feeling.arousal > 0.2 ? '아직 좀 들떠 있다'
+  const arousal2 = feeling.arousal > 0.2 ? '아직 좀 들떠 있다'
     : feeling.arousal < -0.35 ? '가라앉아 있다'
     : null;
 
-  const text = [좋고나쁨, 들뜸처짐].filter((x) => x !== null).join('. ');
+  const text = [valence2, arousal2].filter((x) => x !== null).join('. ');
   return text === '' ? '' : `${text}. 그 결이 말투에 묻어나도 된다 — 다만 감정을 설명하지는 마라.`;
 }

@@ -107,7 +107,7 @@ export interface WebBodyOptions {
  * 의존성 0: 기본 http + SSE 만 쓴다.
  */
 /** 창 몸 — 보통 몸에 더해, 알아챈 것을 밖에서 밀어 넣는 자리를 하나 더 갖는다. */
-export type WebBody = Body & { 알아챔: (무엇: string) => void };
+export type WebBody = Body & { 알아챔: (what2: string) => void };
 
 /**
  * 이 기계에서 뜬 창인가 — 곁에서 붙는 다른 화면(KarmoLab 앱)만 들여보낸다.
@@ -172,8 +172,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    *
    * 한 자리에서 둘 다 한다. 따로 부르게 두면 어느 한쪽만 부르는 자리가 반드시 생긴다.
    */
-  function noticed(무엇: string): void {
-    const content = 무엇.trim();
+  function noticed(what3: string): void {
+    const content = what3.trim();
     if (content === '') return;
     log(`[알아챔] ${content}`);
     broadcast({ type: 'notice', text: content });
@@ -194,27 +194,27 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
   /** 어떤 목소리로 뜸을 미리 만들어 뒀나. 목소리를 바꾸면 다시 만들어야 한다. */
   const warmedVoices = new Set<string>();
 
-  async function prewarmVoice(목소리?: string): Promise<void> {
+  async function prewarmVoice(voice2?: string): Promise<void> {
     if (options.speech === undefined) return;
     // **실제로 쓰는 목소리로 만들어야 한다.** 처음엔 「목소리 없음」으로 만들어 뒀는데,
     // 창은 고른 목소리 이름을 붙여 보내므로 담아 둔 것과 열쇠가 안 맞아 **한 번도 안
     // 맞았다**(실측: 그대로 10초). 담아 두기는 열쇠가 어긋나면 조용히 무용지물이 된다.
-    if (warmedVoices.has(목소리 ?? '')) return;
-    warmedVoices.add(목소리 ?? '');
+    if (warmedVoices.has(voice2 ?? '')) return;
+    warmedVoices.add(voice2 ?? '');
     let madeCount = 0;
-    for (const 말 of allWarm()) {
-      const key = `${목소리 ?? ''}|${말}`;
+    for (const text2 of allWarm()) {
+      const key = `${voice2 ?? ''}|${text2}`;
       if (madeAudio.has(key)) continue;
       try {
-        const audio = await options.speech.synthesize(말, 목소리);
+        const audio = await options.speech.synthesize(text2, voice2);
         const perVoice = (options.speech as { contentTypeFor?: (v?: string) => string }).contentTypeFor;
-        madeAudio.set(key, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
+        madeAudio.set(key, { audio, type: perVoice ? perVoice(voice2) : (options.speech.contentType ?? 'audio/mpeg') });
         madeCount += 1;
       } catch {
         // 하나 못 만들어도 나머지는 만든다. 못 만든 건 그때 가서 만들면 된다.
       }
     }
-    if (madeCount > 0) log(`뜸 ${madeCount}개를 미리 만들어 뒀다 (${목소리 ?? '기본 목소리'})`);
+    if (madeCount > 0) log(`뜸 ${madeCount}개를 미리 만들어 뒀다 (${voice2 ?? '기본 목소리'})`);
   }
 
   const sense: Sense = {
@@ -554,13 +554,13 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           // 내기 시작한 때고, 그건 창만 안다(아래 `/played`).
           const startMaking = Date.now();
           // 지금 마음을 목소리 결로 얹는다. 브라우저는 결을 모른다 — 알 필요도 없다.
-          const 목소리 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
+          const voice3 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
 
           // 담아 둔 게 있으면 그대로 낸다. 만드는 줄에 아예 안 선다.
-          const 열쇠 = `${목소리 ?? ''}|${say}`;
-          const stored = say.length <= 30 ? madeAudio.get(열쇠) : undefined;
+          const key2 = `${voice3 ?? ''}|${say}`;
+          const stored = say.length <= 30 ? madeAudio.get(key2) : undefined;
           // 이 목소리로 아직 안 만들어 뒀으면 뒤에서 만들어 둔다 — 다음 뜸부터 즉시 난다.
-          void prewarmVoice(목소리);
+          void prewarmVoice(voice3);
           if (stored !== undefined) {
             res.writeHead(200, { 'content-type': stored.type, 'content-length': stored.audio.length });
             res.end(stored.audio);
@@ -568,18 +568,18 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           }
 
           void options.speech
-            .synthesize(say, 목소리)
+            .synthesize(say, voice3)
             .then((audio) => {
               // **무엇을 만드느라 걸렸는지 같이 남긴다.** 시간만 남기면 「9.2초」를 보고도
               // 길이 탓인지 겹친 탓인지 딴 탓인지 못 가른다 — 실제로 한 회차를 그렇게 썼다.
               log(`소리 만드는 데 ${((Date.now() - startMaking) / 1000).toFixed(1)}초 · ${say.length}자 「${say.slice(0, 24)}」`);
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
-              const type = perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg');
+              const type = perVoice ? perVoice(voice3) : (speech?.contentType ?? 'audio/mpeg');
               if (say.length <= 30) {
                 // 오래된 것부터 버린다 — 최근에 쓴 말이 또 나올 확률이 높다.
                 if (madeAudio.size >= audioCacheMax) madeAudio.delete(madeAudio.keys().next().value as string);
-                madeAudio.set(열쇠, { audio, type });
+                madeAudio.set(key2, { audio, type });
               }
               res.writeHead(200, { 'content-type': type, 'content-length': audio.length });
               res.end(audio);
@@ -654,10 +654,10 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             let text = '';
             let who: string | undefined;
             try {
-              const 온것 = JSON.parse(raw) as { text?: unknown; 누가?: unknown };
-              text = String(온것.text ?? '').trim();
+              const arrived2 = JSON.parse(raw) as { text?: unknown; 누가?: unknown };
+              text = String(arrived2.text ?? '').trim();
               // 여럿이 있는 자리에서는 누가 한 말인지 같이 온다. 단둘이면 안 온다.
-              if (typeof 온것.누가 === 'string' && 온것.누가.trim() !== '') who = 온것.누가.trim().slice(0, 40);
+              if (typeof arrived2.누가 === 'string' && arrived2.누가.trim() !== '') who = arrived2.누가.trim().slice(0, 40);
             } catch {
               text = '';
             }
@@ -710,8 +710,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             });
             return;
           }
-          const 글 = options.settings?.() ?? '설정이 없다.';
-          const body = Buffer.from(글, 'utf8');
+          const content2 = options.settings?.() ?? '설정이 없다.';
+          const body = Buffer.from(content2, 'utf8');
           res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
           res.end(body);
           return;
@@ -719,16 +719,16 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
         // 무엇이 잘못됐나 — 발동 기록의 짝이다.
         if (url === '/troubles') {
-          const 글 = options.troubles?.() ?? '아직 걸린 게 없다.';
-          const body = Buffer.from(글, 'utf8');
+          const content3 = options.troubles?.() ?? '아직 걸린 게 없다.';
+          const body = Buffer.from(content3, 'utf8');
           res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
           res.end(body);
           return;
         }
 
         if (url === '/tally') {
-          const 글 = options.tally?.() ?? '아직 세는 게 없다.';
-          const body = Buffer.from(글, 'utf8');
+          const content4 = options.tally?.() ?? '아직 세는 게 없다.';
+          const body = Buffer.from(content4, 'utf8');
           res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
           res.end(body);
           return;
@@ -760,7 +760,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         // **결까지 붙여서 만들어야 한다.** 요청 쪽은 지금 마음의 결을 붙여 보내므로,
         // 결 없이 만들어 두면 또 열쇠가 어긋난다 — 같은 함정을 두 번 밟았다.
         // 결은 때에 따라 바뀌므로 못 맞힌 것은 첫 요청 때 뒤에서 만들어 둔다.
-        .then((목록) => prewarmVoice(withTone(목록?.[0]?.id, options.tone?.() ?? null)))
+        .then((list2) => prewarmVoice(withTone(list2?.[0]?.id, options.tone?.() ?? null)))
         .catch(() => prewarmVoice());
         if (options.open) openBrowser(url);
       });
@@ -802,12 +802,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
       // 답이 나갔으니 이어 말하기 뭉치는 끝났다.
       backchannel.answered();
       const { text, tagged } = stripExpression(utterance.text);
-      const 얼굴 = face.changeTo(expressionFrom({
+      const face2 = face.changeTo(expressionFrom({
         feeling: options.feeling?.() ?? usual,
         text,
         tagged,
       }));
-      if (얼굴 !== null) broadcast({ type: 'face', expression: 얼굴 });
+      if (face2 !== null) broadcast({ type: 'face', expression: face2 });
       // channel 을 같이 보낸다 — 화면이 「나한테 한 말」과 「혼잣말」을 구분해 그린다.
       broadcast({ type: 'speak', text, at: utterance.at, channel: utterance.channel });
     },

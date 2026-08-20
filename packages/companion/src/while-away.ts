@@ -38,16 +38,16 @@ export function whileAway(
   awaySince: number,
   now: number = Date.now(),
 ): WhileAway {
-  const 본것 = ambientOnly(entries)
+  const seen2 = ambientOnly(entries)
     .filter((e) => e.at >= awaySince && e.at <= now)
     .map((e) => ({ title: windowName(e.text), at: e.at }))
     .filter((x) => x.title !== null) as { title: string; at: number }[];
 
-  if (본것.length === 0) return { awayMs: Math.max(0, now - awaySince), mostSeen: null, switches: 0 };
+  if (seen2.length === 0) return { awayMs: Math.max(0, now - awaySince), mostSeen: null, switches: 0 };
 
   // 같은 것이 이어지면 한 덩어리로 — 몇 번 쳐다봤는지가 아니라 얼마나 떠 있었는지를 센다.
   const chunk: { title: string; from: number; to: number }[] = [];
-  for (const x of 본것) {
+  for (const x of seen2) {
     const end = chunk[chunk.length - 1];
     if (end !== undefined && shortTitle(end.title) === shortTitle(x.title)) end.to = x.at;
     else chunk.push({ title: x.title, from: x.at, to: x.at });

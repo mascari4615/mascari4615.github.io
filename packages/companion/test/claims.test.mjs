@@ -73,13 +73,13 @@ test('손을 쓰라고 시키지 않는다 — 시키면 안 해도 될 일까�
 // ── 관문과 이어 보기 ────────────────────────────────────────────────
 
 test('뒷받침 없는 주장은 관문에서 다시 시킨다', async () => {
-  let 이유 = null;
+  let reason = null;
   const gate = mouthGate({
     alsoRetryWhen: (t) => unbackedClaim(t, []),
-    retry: async (why) => { 이유 = why; return '아직 안 적었어.'; },
+    retry: async (why) => { reason = why; return '아직 안 적었어.'; },
   });
   assert.equal(await gate('그거 적어 뒀어'), '아직 안 적었어.');
-  assert.match(이유, /안 하고/);
+  assert.match(reason, /안 하고/);
 });
 
 test('실제로 한 말은 그대로 나간다', async () => {
@@ -91,52 +91,52 @@ test('실제로 한 말은 그대로 나간다', async () => {
 // ── core 가 쓴 손을 알려 주나 ───────────────────────────────────────
 
 test('core 가 이번에 쓴 손을 관문에 알려 준다 — 표는 그 전에 걷어내지므로 뒤에서는 알 길이 없다', async () => {
-  let 받은손 = null;
+  let receivedHand = null;
   const said = [];
-  const 손 = { name: '적어두기', describe: '적는다', async use() { return null; } };
+  const hand = { name: '적어두기', describe: '적는다', async use() { return null; } };
   const companion = new Companion({
     bodies: [{ name: 'web', sense: { name: 's', start() {} }, voice: { name: 'v', speak(u) { said.push(u.text); } } }],
     brain: { name: 'b', async think() { return '[[적어두기: 우유]] 적어 뒀어'; } },
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
-    hands: [손],
-    beforeSpeak: (text, ctx) => { 받은손 = ctx.usedHands; return text; },
+    hands: [hand],
+    beforeSpeak: (text, ctx) => { receivedHand = ctx.usedHands; return text; },
   });
   await companion.start();
   await companion.feed({ channel: 'web', kind: 'text', text: '우유 적어 둬', at: Date.now() });
 
-  assert.deepEqual([...받은손], ['적어두기']);
+  assert.deepEqual([...receivedHand], ['적어두기']);
   assert.deepEqual(said, ['적어 뒀어']);
 });
 
 test('손을 안 쓰면 빈 채로 알려 준다', async () => {
-  let 받은손 = null;
+  let receivedHand2 = null;
   const companion = new Companion({
     bodies: [{ name: 'web', sense: { name: 's', start() {} }, voice: { name: 'v', speak() {} } }],
     brain: { name: 'b', async think() { return '적어 뒀어'; } },
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
     hands: [{ name: '적어두기', describe: '적는다', async use() { return null; } }],
-    beforeSpeak: (text, ctx) => { 받은손 = ctx.usedHands; return text; },
+    beforeSpeak: (text, ctx) => { receivedHand2 = ctx.usedHands; return text; },
   });
   await companion.start();
   await companion.feed({ channel: 'web', kind: 'text', text: '우유 적어 둬', at: Date.now() });
 
-  assert.deepEqual([...받은손], []);
+  assert.deepEqual([...receivedHand2], []);
 });
 
 test('손이 없어도 관문은 돈다', async () => {
-  let 불렸나 = false;
+  let wasCalled = false;
   const companion = new Companion({
     bodies: [{ name: 'web', sense: { name: 's', start() {} }, voice: { name: 'v', speak() {} } }],
     brain: { name: 'b', async think() { return '그냥 말'; } },
     memory: new InMemoryMemory(),
     attention: alwaysRespond,
-    beforeSpeak: (text, ctx) => { 불렸나 = Array.isArray(ctx.usedHands) || ctx.usedHands !== undefined; return text; },
+    beforeSpeak: (text, ctx) => { wasCalled = Array.isArray(ctx.usedHands) || ctx.usedHands !== undefined; return text; },
   });
   await companion.start();
   await companion.feed({ channel: 'web', kind: 'text', text: '안녕', at: Date.now() });
-  assert.equal(불렸나, true);
+  assert.equal(wasCalled, true);
 });
 
 test('안 했다는 말은 주장이 아니다 — 정직을 벌하면 안 된다', () => {

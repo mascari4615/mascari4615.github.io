@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url';
  */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const 읽기 = (...p) => readFileSync(join(root, ...p), 'utf8');
+const read = (...p) => readFileSync(join(root, ...p), 'utf8');
 
-const web = 읽기('src', 'body', 'web.ts');
-const conf = JSON.parse(읽기('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'tauri.conf.json'));
+const web = read('src', 'body', 'web.ts');
+const conf = JSON.parse(read('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'tauri.conf.json'));
 
 test('제 창이 있으면 그걸 먼저 쓴다', () => {
   assert.match(web, /const own = ownWindowExe\(\)/);
@@ -28,8 +28,8 @@ test('제 창이 있으면 그걸 먼저 쓴다', () => {
 });
 
 test('찾는 프로그램 이름이 저쪽이 굽는 이름과 같다 — 다르면 조용히 브라우저로 돌아간다', () => {
-  const 찾는이름 = /'(companion-window\.exe)'/.exec(web)?.[1];
-  assert.equal(찾는이름, `${conf.productName}.exe`);
+  const wantedName = /'(companion-window\.exe)'/.exec(web)?.[1];
+  assert.equal(wantedName, `${conf.productName}.exe`);
 });
 
 test('구운 것을 먼저, 없으면 개발 산출물 — 나중에 구워도 손 안 대게', () => {
@@ -37,15 +37,15 @@ test('구운 것을 먼저, 없으면 개발 산출물 — 나중에 구워도 �
 });
 
 test('주소와 크기를 저쪽이 읽는 이름으로 넘긴다', () => {
-  const rust = 읽기('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'src', 'main.rs');
-  for (const 이름 of ['COMPANION_URL', 'COMPANION_WIDTH', 'COMPANION_HEIGHT']) {
-    assert.ok(rust.includes(이름), `저쪽이 ${이름} 을 읽어야 한다`);
-    assert.ok(web.includes(이름), `이쪽이 ${이름} 을 넘겨야 한다`);
+  const rust = read('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'src', 'main.rs');
+  for (const name of ['COMPANION_URL', 'COMPANION_WIDTH', 'COMPANION_HEIGHT']) {
+    assert.ok(rust.includes(name), `저쪽이 ${name} 을 읽어야 한다`);
+    assert.ok(web.includes(name), `이쪽이 ${name} 을 넘겨야 한다`);
   }
 });
 
 test('저쪽 창은 창틀이 없고 배경이 뚫린다 — 이게 브라우저 창과 다른 이유다', () => {
-  const rust = 읽기('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'src', 'main.rs');
+  const rust = read('..', '..', 'apps', 'karmolab-tauri', 'src-tauri-companion', 'src', 'main.rs');
   assert.match(rust, /\.decorations\(false\)/);
   assert.match(rust, /\.transparent\(true\)/);
 });

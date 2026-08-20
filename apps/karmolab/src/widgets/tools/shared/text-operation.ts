@@ -13,8 +13,8 @@ import { t } from '../../../lib/i18n';
    ★ **접두를 받는 이유**: 같은 작업대를 개발도구도 쓴다. 그쪽은 제 이름을 이미 `t()` 로 옮겨
    넘겨 준다 — 거기서 또 `text.op.*` 를 찾으면 늘 헛짚는다(없는 열쇠를 매번 뒤진다).
    그래서 **묶음을 볼지 말지는 부르는 쪽이 정한다**. 안 주면 받은 글을 그대로 쓴다. */
-const taskText = (prefix: string | undefined, id: string, 갈래: string, defaultValue: string): string =>
-  (prefix ? t(`${prefix}.${id}.${갈래}`, undefined, defaultValue) : defaultValue);
+const taskText = (prefix: string | undefined, id: string, kind2: string, defaultValue: string): string =>
+  (prefix ? t(`${prefix}.${id}.${kind2}`, undefined, defaultValue) : defaultValue);
 
 export type TextOperationControl =
   | { id: string; label: string; kind: 'checkbox'; initial: boolean }

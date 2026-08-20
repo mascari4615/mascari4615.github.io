@@ -56,13 +56,13 @@ export class learnSlot {
    * **기다리게 하지 않는다.**
    */
   읽기(title: string | null | undefined): 자리 {
-    const 제목 = (title ?? '').trim();
-    if (제목 === '') return null;
-    const table = whichSlot(제목);
+    const title2 = (title ?? '').trim();
+    if (title2 === '') return null;
+    const table = whichSlot(title2);
     if (table !== null) return table;
-    const learning = this.배운것.get(brief(제목));
+    const learning = this.배운것.get(brief(title2));
     if (learning !== undefined) return learning;
-    if (this.물어보기있나) this.물어볼것.add(brief(제목));
+    if (this.물어보기있나) this.물어볼것.add(brief(title2));
     return null;
   }
 
@@ -84,14 +84,14 @@ export class learnSlot {
    * 모른다고 답한 것도 적어 둔다 — 안 적으면 같은 창을 영원히 다시 묻는다.
    */
   async 되새기기(atOnce = 10): Promise<number> {
-    const 물어보기 = this.options.물어보기;
-    if (물어보기 === undefined || this.물어볼것.size === 0) return 0;
+    const ask2 = this.options.물어보기;
+    if (ask2 === undefined || this.물어볼것.size === 0) return 0;
     const bundle = [...this.물어볼것].slice(0, atOnce);
-    for (const 제목 of bundle) this.물어볼것.delete(제목); // 실패해도 무한히 다시 묻지 않는다
+    for (const title3 of bundle) this.물어볼것.delete(title3); // 실패해도 무한히 다시 묻지 않는다
 
     let answer: readonly (자리 | null)[] | null = null;
     try {
-      answer = await 물어보기(bundle);
+      answer = await ask2(bundle);
     } catch (err) {
       this.options.log?.(`자리를 못 물어봤다 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -102,9 +102,9 @@ export class learnSlot {
     }
 
     let learnedCount = 0;
-    bundle.forEach((제목, i) => {
+    bundle.forEach((title4, i) => {
       const z = answer![i];
-      this.배운것.set(제목, z === undefined ? null : z);
+      this.배운것.set(title4, z === undefined ? null : z);
       if (z !== null && z !== undefined) learnedCount += 1;
     });
     this.save();
@@ -130,18 +130,18 @@ export class learnSlot {
  * 자리인데 제목이 다르다. 통째로 열쇠를 삼으면 노래를 바꿀 때마다 새로 물어본다 — 물어보는
  * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 자리)만 남긴다.
  */
-export function brief(제목: string): string {
-  const chunk = 제목.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
-  const after = chunk.length >= 2 ? chunk.slice(-2).join(' - ') : (chunk[0] ?? 제목);
+export function brief(title5: string): string {
+  const chunk = title5.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
+  const after = chunk.length >= 2 ? chunk.slice(-2).join(' - ') : (chunk[0] ?? title5);
   return after.slice(0, 60);
 }
 
 /** 두뇌에게 「이 창은 뭐 하는 자리야?」를 묻는 자리. */
 export function askSlot(ask: (prompt: string) => Promise<string | null>) {
-  return async (제목들: readonly string[]): Promise<readonly (자리 | null)[] | null> => {
-    if (제목들.length === 0) return [];
-    const list = 제목들.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');
-    const 답 = await ask(
+  return async (titles2: readonly string[]): Promise<readonly (자리 | null)[] | null> => {
+    if (titles2.length === 0) return [];
+    const list = titles2.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');
+    const answer2 = await ask(
       '아래는 컴퓨터에 떠 있는 창 제목들이다. 각각이 **그 사람이 지금 뭘 하는 자리**인지 골라라.\n' +
         `${kinds.join(' · ')} · 모름\n\n` +
         '- 통화 = 사람과 통화·회의 중(끼어들면 안 되는 자리)\n' +
@@ -149,14 +149,14 @@ export function askSlot(ask: (prompt: string) => Promise<string | null>) {
         '- 만드는중 = 코드·그림·글을 만드는 중 · 읽는중 = 문서·웹을 읽는 중\n' +
         '- 나를보는중 = 그 사람의 AI 동반자 창\n' +
         '- 시스템 설정창·알림창처럼 「뭘 하는 중」이라 할 수 없으면 모름\n\n' +
-        `한 줄에 하나씩 ${제목들.length}개, 낱말만. 다른 말은 붙이지 마라.\n\n${list}`,
+        `한 줄에 하나씩 ${titles2.length}개, 낱말만. 다른 말은 붙이지 마라.\n\n${list}`,
     );
-    if (답 === null) return null;
-    const line = 답.split('\n').map((x) => x.trim()).filter((x) => x !== '');
+    if (answer2 === null) return null;
+    const line = answer2.split('\n').map((x) => x.trim()).filter((x) => x !== '');
     const picked = line
       .map((x) => kinds.find((z) => x.includes(z)) ?? (x.includes('모름') ? null : undefined))
       .filter((x) => x !== undefined) as (자리 | null)[];
     // 개수가 안 맞으면 통째로 버린다 — 어긋난 채 적으면 엉뚱한 창이 「통화」가 되어 입을 닫는다.
-    return picked.length === 제목들.length ? picked : null;
+    return picked.length === titles2.length ? picked : null;
   };
 }

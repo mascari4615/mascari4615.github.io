@@ -50,18 +50,18 @@ export function sibling(name: string, expected?: string): string | null {
 export function repoCopies(mark: string): string[] {
   const produced: string[] = [];
   const self = thisRepo();
-  let 위 = self;
-  for (let 겹 = 0; 겹 < 4; 겹 += 1) {
-    위 = join(위, '..');
+  let above2 = self;
+  for (let layer2 = 0; layer2 < 4; layer2 += 1) {
+    above2 = join(above2, '..');
     let list: string[];
     try {
-      list = readdirSync(위);
+      list = readdirSync(above2);
     } catch {
       continue;
     }
-    for (const 이름 of list) {
-      const 자리 = join(위, 이름);
-      if (자리 !== self && existsSync(join(자리, mark)) && produced.includes(자리) === false) produced.push(자리);
+    for (const name2 of list) {
+      const slot2 = join(above2, name2);
+      if (slot2 !== self && existsSync(join(slot2, mark)) && produced.includes(slot2) === false) produced.push(slot2);
     }
   }
   return produced;

@@ -18,14 +18,14 @@ import type { Body, Sensation, Sense, Utterance, Voice } from '../types';
  */
 export interface 디스코드채널 {
   /** 이 채널에 한 마디 보낸다. */
-  보내기: (글: string) => Promise<void>;
+  보내기: (content2: string) => Promise<void>;
 }
 
 export interface 디스코드붙이기 {
   /** 사람이 말할 때마다 부른다. 봇 자신의 말은 넘기지 않는다. */
-  들어올때: (listen: (말: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
+  들어올때: (listen: (text2: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
   /** 이 채널을 잡는다. 없으면 null. */
-  채널잡기: (채널: string) => 디스코드채널 | null;
+  채널잡기: (channel2: string) => 디스코드채널 | null;
   /** 끊는다. */
   끊기?: () => void | Promise<void>;
 }
@@ -60,14 +60,14 @@ export function discordBody(options: DiscordBodyOptions): Body {
   const sense: Sense = {
     name: `${channel}:sense`,
     start(emit: (sensation: Sensation) => void) {
-      options.붙이기.들어올때((말) => {
+      options.붙이기.들어올때((text3) => {
         // 제 말에 제가 답하면 끝없이 돈다 — 봇 글은 아예 안 듣는다.
-        if (말.봇인가) return;
-        if (listenTarget !== null && listenTarget.has(말.채널) === false) return;
-        const 글 = 말.글.trim();
-        if (글 === '') return;
-        lastChannel = 말.채널;
-        emit({ channel, kind: 'text', text: 글, at: Date.now(), 누가: 말.누가 });
+        if (text3.봇인가) return;
+        if (listenTarget !== null && listenTarget.has(text3.채널) === false) return;
+        const content3 = text3.글.trim();
+        if (content3 === '') return;
+        lastChannel = text3.채널;
+        emit({ channel, kind: 'text', text: content3, at: Date.now(), 누가: text3.누가 });
       });
       log(`디스코드 몸이 듣기 시작했다${listenTarget === null ? '' : ` (${[...listenTarget].join(', ')})`}`);
     },
@@ -79,8 +79,8 @@ export function discordBody(options: DiscordBodyOptions): Body {
   const voice: Voice = {
     name: `${channel}:voice`,
     async speak(utterance: Utterance) {
-      const 글 = utterance.text.trim();
-      if (글 === '') return;
+      const content4 = utterance.text.trim();
+      if (content4 === '') return;
       if (lastChannel === null) {
         // 아직 아무 말도 안 들어왔는데 말이 나가려 한다 — 어디로 보낼지 모른다.
         log('어디로 보낼지 몰라서 못 보냈다 (아직 들어온 말이 없다)');
@@ -92,7 +92,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
         return;
       }
       try {
-        await room.보내기(글);
+        await room.보내기(content4);
       } catch (e) {
         // 한 마디 못 보냈다고 얘가 죽으면 안 된다.
         log(`못 보냈다: ${e instanceof Error ? e.message : String(e)}`);
@@ -143,14 +143,14 @@ export async function discordJs(options: {
   log('디스코드에 붙었다');
 
   return {
-    들어올때(듣기) {
+    들어올때(listen2) {
       client.on('messageCreate', (...a: unknown[]) => {
         const m = a[0] as {
           content?: string;
           author?: { bot?: boolean; username?: string; displayName?: string };
           channelId?: string;
         };
-        듣기({
+        listen2({
           글: m.content ?? '',
           // 보이는 이름이 있으면 그걸 쓴다 — 대화록에 적힐 이름이다.
           누가: m.author?.displayName ?? m.author?.username ?? '누군가',
@@ -159,10 +159,10 @@ export async function discordJs(options: {
         });
       });
     },
-    채널잡기(채널) {
-      const c = client.channels.cache.get(채널);
+    채널잡기(channel3) {
+      const c = client.channels.cache.get(channel3);
       if (c === undefined || typeof c.send !== 'function') return null;
-      return { 보내기: async (글) => { await c.send?.(글); } };
+      return { 보내기: async (content5) => { await c.send?.(content5); } };
     },
     async 끊기() {
       await client.destroy();

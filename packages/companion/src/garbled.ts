@@ -24,11 +24,11 @@ const garbled = /�/g;
  * 쓴 것일 수 있으니 비율로 본다.
  */
 export function isBroken(text: string): string | null {
-  const 말 = String(text ?? '');
-  if (말.trim() === '') return null;
-  const garbledCount = (말.match(garbled) ?? []).length;
+  const text2 = String(text ?? '');
+  if (text2.trim() === '') return null;
+  const garbledCount = (text2.match(garbled) ?? []).length;
   if (garbledCount === 0) return null;
-  const ratio = garbledCount / 말.length;
+  const ratio = garbledCount / text2.length;
   // 한두 개 섞인 건 그냥 둔다 — 진짜로 그 글자를 붙여 넣었을 수도 있다.
   if (garbledCount < 3 && ratio < 0.2) return null;
   return `글자가 깨져 들어왔다 (${garbledCount}자 뭉개짐 · ${Math.round(ratio * 100)}%)`;

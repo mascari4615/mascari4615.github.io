@@ -28,7 +28,7 @@ const ids = withoutRetired(process.argv.slice(2).length ? process.argv.slice(2) 
    (표시가 `xx..xx..xxx!!xx.!xx.` 처럼 뒤쪽에 몰려 있었다 — 도중에 배포가 끼어든 자국).
    같은 주소를 다시 물어도 소용없다(그 이름은 영영 없다). 그래서 **도장(build.json)** 을
    앞뒤로 읽어 둔다: 도장이 바뀌었으면 사이트가 발밑에서 바뀐 것이므로 **못 쟀다(2)** 로 끝낸다. */
-const 도장 = async () => {
+const stamp2 = async () => {
   try {
     const res = await fetch(`${BASE}/apps/karmolab/build.json`, { cache: 'no-store' });
     return res.ok ? String((await res.json()).stamp || '') : '';
@@ -36,7 +36,7 @@ const 도장 = async () => {
     return '';
   }
 };
-const firstStamp = await 도장();
+const firstStamp = await stamp2();
 
 const browser = await chromium.launch();
 const failures = [];
@@ -365,7 +365,7 @@ if (polishes.length) {
   for (const w of polishes.slice(0, 5)) console.log('  ~ ' + w);
   if (polishes.length > 5) console.log(`  … 외 ${polishes.length - 5}건`);
 }
-const laterStamp = await 도장();
+const laterStamp = await stamp2();
 if (failures.length && firstStamp && laterStamp && firstStamp !== laterStamp) {
   console.log(`[smoke-live-pages] 못 쟀다 — 재는 동안 배포가 갈렸다 (${firstStamp} → ${laterStamp}).`);
   console.log(`  그 사이 열린 화면은 사라진 이름을 부른다. 안 뜬 것 ${failures.length}건은 이 판의 판정으로 안 센다.`);

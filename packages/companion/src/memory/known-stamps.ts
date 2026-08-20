@@ -30,7 +30,7 @@ export interface KnownStampsOptions {
 }
 
 /** 줄 하나를 견주기 좋게 다듬는다 — 앞머리 기호와 공백 차이로 딴 줄이 되지 않게. */
-function 다듬기(line: string): string {
+function trim2(line: string): string {
   return line.replace(/^[\s\-*·•]+/, '').replace(/\s+/g, ' ').trim();
 }
 
@@ -65,7 +65,7 @@ export class KnownStamps {
     // 한 번 빠뜨리는 순간 날짜가 통째로 어긋난다.
     let fresh = false;
     for (const line of (known ?? '').split('\n')) {
-      const key = 다듬기(line);
+      const key = trim2(line);
       if (key === '') continue;
       const existing = this.표.get(key);
       if (existing === undefined) {
@@ -80,7 +80,7 @@ export class KnownStamps {
 
   /** 이 줄을 언제부터 알았나. 모르면 null. */
   stampOf(line: string): KnownStamp | null {
-    return this.표.get(다듬기(line)) ?? null;
+    return this.표.get(trim2(line)) ?? null;
   }
 
   get size(): number {
@@ -89,7 +89,7 @@ export class KnownStamps {
 
   /** 잘못 쌓인 줄을 지운다 — 「아는 것」에서 지울 때 같이 부른다. */
   forget(line: string): boolean {
-    const wasErased = this.표.delete(다듬기(line));
+    const wasErased = this.표.delete(trim2(line));
     if (wasErased) this.save();
     return wasErased;
   }
@@ -128,7 +128,7 @@ export function justLearned(
 ): string {
   const just = (known ?? '')
     .split('\n')
-    .map((l) => 다듬기(l))
+    .map((l) => trim2(l))
     .filter((l) => l !== '')
     .filter((l) => {
       const s = stamps.stampOf(l);

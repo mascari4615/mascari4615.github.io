@@ -119,10 +119,10 @@ test('말끝이 달라도 찾는다 — 「먹는다고」로 「먹어」를 �
 test('방금 한 말이 앞자리를 차지해도 옛 기억이 나온다', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '나 매운 거 못 먹어', at: tenDaysAgo() });
-  const 방금 = { role: 'sensed', channel: 'web', text: '못 먹는다고 한 거 뭐였지?', at: Date.now() };
-  memory.remember(방금);
+  const justNow = { role: 'sensed', channel: 'web', text: '못 먹는다고 한 거 뭐였지?', at: Date.now() };
+  memory.remember(justNow);
 
-  const found = recallFrom((w, l) => memory.search(w, l))({ text: 방금.text }, [방금]);
+  const found = recallFrom((w, l) => memory.search(w, l))({ text: justNow.text }, [justNow]);
   assert.match(found.join(''), /매운 거 못 먹어/, '옛 기억이 나와야 한다');
   assert.equal(found.join('').includes('뭐였지'), false, '방금 한 말은 또 붙이지 않는다');
 });

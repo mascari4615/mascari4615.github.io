@@ -63,8 +63,8 @@ export class reflection {
   }
 
   /** 사람 말이 몇 마디 더 쌓였다. 되새길 때가 됐으면 true. */
-  셈(오간말: readonly MemoryEntry[]): boolean {
-    this.센말 = 오간말.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
+  셈(exchange2: readonly MemoryEntry[]): boolean {
+    this.센말 = exchange2.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
     return this.셀때인가;
   }
 
@@ -78,15 +78,15 @@ export class reflection {
    * 이미 짚은 것은 다시 짚지 않게 넘겨 준다. 안 넘기면 같은 말을 여러 번 적어 놓고
    * 그게 재료 자리를 다 먹는다.
    */
-  async 되새기기(오간말: readonly MemoryEntry[]): Promise<number> {
-    const 물어보기 = this.options.물어보기;
-    if (물어보기 === undefined) return 0;
-    if (오간말.length === 0) return 0;
+  async 되새기기(exchange3: readonly MemoryEntry[]): Promise<number> {
+    const ask2 = this.options.물어보기;
+    if (ask2 === undefined) return 0;
+    if (exchange3.length === 0) return 0;
     this.센말 = 0;
 
     let produced: readonly 깨달음[] | null = null;
     try {
-      produced = await 물어보기(오간말, this.목록.map((x) => x.무엇));
+      produced = await ask2(exchange3, this.목록.map((x) => x.무엇));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -114,8 +114,8 @@ export class reflection {
   }
 
   /** 이미 같은 걸 짚었나 — 글자 그대로가 아니라 **겹치는 낱말**로 본다. */
-  private 있나(무엇: string): boolean {
-    const fresh = new Set(word(무엇));
+  private 있나(what2: string): boolean {
+    const fresh = new Set(word(what2));
     if (fresh.size === 0) return false;
     return this.목록.some((existing) => {
       const overlap = word(existing.무엇).filter((w) => fresh.has(w)).length;
@@ -152,10 +152,10 @@ function word(text: string): string[] {
  * 늘 붙이면 얘가 사람을 계속 분석하는 꼴이 된다. 그건 곁에 있는 게 아니라 지켜보는 것이다.
  */
 export function reflectionNote(store: reflection, currentText: string): string {
-  const 지금 = new Set(word(currentText));
-  if (지금.size === 0) return '';
+  const now2 = new Set(word(currentText));
+  if (now2.size === 0) return '';
   const flagged = store.all
-    .map((x) => ({ x, 겹침: word(x.무엇).filter((w) => 지금.has(w)).length }))
+    .map((x) => ({ x, 겹침: word(x.무엇).filter((w) => now2.has(w)).length }))
     .filter((r) => r.겹침 >= 2)
     .sort((a, b) => b.겹침 - a.겹침 || b.x.at - a.x.at)[0];
   if (flagged === undefined) return '';
@@ -167,14 +167,14 @@ export function reflectionNote(store: reflection, currentText: string): string {
 
 /** 두뇌에게 「바로 안 보이는 것 하나를 짚어라」를 묻는 자리. */
 export function askReflection(ask: (prompt: string) => Promise<string | null>) {
-  return async (오간말: readonly MemoryEntry[], 이미아는것: readonly string[]) => {
-    const conversation = 오간말
+  return async (exchange4: readonly MemoryEntry[], alreadyKnown2: readonly string[]) => {
+    const conversation = exchange4
       .filter((e) => e.channel === 'web')
       .slice(-60)
       .map((e) => `${e.role === 'said' ? '나(동반자)' : '조수님'}: ${e.text.replace(/\s+/g, ' ').slice(0, 120)}`)
       .join('\n');
     if (conversation.trim() === '') return null;
-    const already = 이미아는것.length === 0 ? '' : `이미 짚어 둔 것(다시 짚지 마라):\n${이미아는것.map((x) => `- ${x}`).join('\n')}\n\n`;
+    const already = alreadyKnown2.length === 0 ? '' : `이미 짚어 둔 것(다시 짚지 마라):\n${alreadyKnown2.map((x) => `- ${x}`).join('\n')}\n\n`;
     const answer = await ask(
       `${already}최근에 오간 말:\n${conversation}\n\n` +
         '위를 읽고 **한 마디만 봐서는 안 보이는 것**을 한두 가지 짚어라. 규칙:\n' +
@@ -185,16 +185,16 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
         '- 설명·머리말 없이 그 줄들만. 많아야 두 줄.',
     );
     if (answer === null) return null;
-    const 나온것: 깨달음[] = [];
+    const produced2: 깨달음[] = [];
     for (const line of answer.split('\n')) {
       const [무엇, evidences] = line.split('||');
       if (evidences === undefined) continue;
-      나온것.push({
+      produced2.push({
         무엇: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
         근거: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
         at: Date.now(),
       });
     }
-    return 나온것;
+    return produced2;
   };
 }

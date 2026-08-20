@@ -366,9 +366,9 @@ async function brandBg(page) {
   let initialCount = await markCount();
   for (let i = 0; i < 40; i++) {
     await page.waitForTimeout(150);
-    const 지금 = await markCount();
-    if (지금 === initialCount && i > 0) break;
-    initialCount = 지금;
+    const now2 = await markCount();
+    if (now2 === initialCount && i > 0) break;
+    initialCount = now2;
   }
   await page.click('#pkSample');
   await page.click('#pkSave');

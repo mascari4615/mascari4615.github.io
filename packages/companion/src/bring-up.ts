@@ -26,7 +26,7 @@ export interface 꺼낼까입력 {
   /** 재료들 — 이 중에서 고른다. */
   재료: readonly Ingredient[];
   /** 그 재료가 몇 번이나 밀렸나. */
-  얼마나참았나: (이름: string) => number;
+  얼마나참았나: (name2: string) => number;
   /** 대화가 식어 가는 중인가. */
   식는중: boolean;
   /** 방금 조수님이 물어봤나. */
@@ -66,12 +66,12 @@ export function topicSkipReason(input: 꺼낼까입력): string | null {
 }
 
 function choose(input: 꺼낼까입력): 꺼낼것 | null {
-  const 문턱 = input.문턱 ?? 3;
+  const threshold2 = input.문턱 ?? 3;
   const candidates = input.재료
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')
     .map((x) => ({ x, 참은수: input.얼마나참았나(x.name) }))
-    .filter((r) => r.참은수 >= 문턱)
+    .filter((r) => r.참은수 >= threshold2)
     .sort((a, b) => b.참은수 - a.참은수 || b.x.weight - a.x.weight)[0];
   if (candidates === undefined) return null;
   return {
@@ -92,10 +92,10 @@ function choose(input: 꺼낼까입력): 꺼낼것 | null {
  */
 export function notRaised(said: string, shouldRaise: boolean, clue: readonly string[]): string | null {
   if (shouldRaise === false) return null;
-  const 말 = said.trim();
-  if (말 === '') return '먼저 꺼낼 자리인데 아무 말도 안 했다';
+  const text2 = said.trim();
+  if (text2 === '') return '먼저 꺼낼 자리인데 아무 말도 안 했다';
   const word = clue.flatMap((s) => (s.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
   if (word.length === 0) return null; // 견줄 실마리가 없으면 막지 않는다
-  const spokenWords = new Set((말.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
+  const spokenWords = new Set((text2.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
   return word.some((w) => spokenWords.has(w)) ? null : '먼저 꺼내라고 했는데 그 얘기가 안 나왔다';
 }

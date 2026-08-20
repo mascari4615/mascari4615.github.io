@@ -38,15 +38,15 @@ const loadedWords = [
 
 /** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 말. */
 export function measureEnergy(text: string): number {
-  const 말 = text.trim();
-  if (말.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
+  const text2 = text.trim();
+  if (text2.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
   let score = 0;
-  for (const mark of loadedWords) if (말.includes(mark)) score += 2;
-  score += Math.min(2, (말.match(/[!?]/g) ?? []).length);
+  for (const mark of loadedWords) if (text2.includes(mark)) score += 2;
+  score += Math.min(2, (text2.match(/[!?]/g) ?? []).length);
   // 물음표만 잔뜩인 건 감정이 아니라 질문이다.
-  if (/[?]/.test(말) && score <= 2) score = 0;
+  if (/[?]/.test(text2) && score <= 2) score = 0;
   // 길게 털어놓은 말은 그 자체로 사건일 때가 많다.
-  if (말.length > 40) score += 1;
+  if (text2.length > 40) score += 1;
   return score;
 }
 
@@ -73,9 +73,9 @@ export interface EpisodeStoreOptions {
  * 아니다. 실제 기록을 보니 사람 말 197개 중 113개가 낱말 세 개도 안 됐다.
  */
 function worthAsking(text: string): boolean {
-  const 말 = text.trim();
-  if (말.length < 8) return false;
-  return (말.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).length >= 3;
+  const text3 = text.trim();
+  if (text3.length < 8) return false;
+  return (text3.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).length >= 3;
 }
 
 export class EpisodeStore {
@@ -127,8 +127,8 @@ export class EpisodeStore {
 
   /** 이 말이 이미 사건으로 들어와 있나. */
   private 있나(text: string): boolean {
-    const 말 = text.trim();
-    return this.목록.some((existing) => existing.said === 말);
+    const text4 = text.trim();
+    return this.목록.some((existing) => existing.said === text4);
   }
 
   private 담기(e: Episode): void {
@@ -158,14 +158,14 @@ export class EpisodeStore {
    * 끝난 뒤에 따로 부른다. 실패하면 조용히 넘어가지 않고 적는다.
    */
   async 되새기기(atOnce = 8): Promise<number> {
-    const 물어보기 = this.options.물어보기;
-    if (물어보기 === undefined || this.물어볼것.size === 0) return 0;
+    const ask2 = this.options.물어보기;
+    if (ask2 === undefined || this.물어볼것.size === 0) return 0;
 
     const bundle = [...this.물어볼것.entries()].slice(0, atOnce);
     for (const [말] of bundle) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
     let scores: readonly number[] | null = null;
     try {
-      scores = await 물어보기(bundle.map(([말]) => 말));
+      scores = await ask2(bundle.map(([말]) => 말));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -175,18 +175,18 @@ export class EpisodeStore {
       return 0;
     }
 
-    let 담은수 = 0;
+    let storedCount2 = 0;
     bundle.forEach(([말, at], i) => {
-      const 기운 = Math.round(scores![i]);
-      if (Number.isFinite(기운) === false || 기운 < this.options.문턱 || this.있나(말)) return;
-      this.담기({ said: 말, at, 기운 });
-      담은수 += 1;
+      const energy2 = Math.round(scores![i]);
+      if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.있나(말)) return;
+      this.담기({ said: 말, at, 기운: energy2 });
+      storedCount2 += 1;
     });
-    if (담은수 > 0) {
+    if (storedCount2 > 0) {
       this.정리();
-      this.options.log?.(`${bundle.length}개 중 ${담은수}개를 사건으로 담았다`);
+      this.options.log?.(`${bundle.length}개 중 ${storedCount2}개를 사건으로 담았다`);
     }
-    return 담은수;
+    return storedCount2;
   }
 
   /** 지금 이 말과 이어지는 옛 일. 없으면 null. */
@@ -198,8 +198,8 @@ export class EpisodeStore {
     for (const e of this.목록) {
       const overlap = overlapCount(word, e.said);
       if (overlap < minOverlap) continue;
-      const 점수 = recallScore(e, word.length, overlap, now);
-      if (점수 > topScore) { most = e; topScore = 점수; }
+      const score2 = recallScore(e, word.length, overlap, now);
+      if (score2 > topScore) { most = e; topScore = score2; }
     }
     return most;
   }
@@ -261,8 +261,8 @@ const halfLife = 14;
  * - **큰일이 최근을 이긴다.** 사람은 오래된 큰일을 어제 점심보다 더 잘 꺼낸다. 그래서
  *   최근은 셋 중 가장 약하게만 얹는다 — 비기는 자리를 가르는 정도.
  */
-export function recallScore(e: Episode, currentWordCount: number, 겹침: number, now: number): number {
-  const continued = Math.min(1, 겹침 / Math.max(2, currentWordCount));
+export function recallScore(e: Episode, currentWordCount: number, overlap2: number, now: number): number {
+  const continued = Math.min(1, overlap2 / Math.max(2, currentWordCount));
   const bigEvent = Math.min(1, e.기운 / 6);
   const pastDays = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
   const recent = 0.5 ** (pastDays / halfLife);
@@ -282,14 +282,14 @@ export function recallScore(e: Episode, currentWordCount: number, 겹침: number
  * 큰 손해다. 한 turn 끝나고 따로 부른다.
  */
 export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
-  return async (말들: readonly string[]): Promise<readonly number[] | null> => {
-    if (말들.length === 0) return [];
-    const list = 말들.map((말, i) => `${i + 1}. ${말.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
+  return async (texts2: readonly string[]): Promise<readonly number[] | null> => {
+    if (texts2.length === 0) return [];
+    const list = texts2.map((text5, i) => `${i + 1}. ${text5.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
     const answer = await ask(
       '아래는 사람이 한 말들이다. 각각이 **나중에 다시 꺼낼 만한 일**인지 0~9 로 매겨라.\n' +
         '0 = 그냥 지나가는 말 · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
         '지시·부탁·질문은 사건이 아니다 — 0 이다.\n' +
-        `숫자만 줄바꿈으로 ${말들.length}개, 다른 말은 붙이지 마라.\n\n${list}`,
+        `숫자만 줄바꿈으로 ${texts2.length}개, 다른 말은 붙이지 마라.\n\n${list}`,
     );
     if (answer === null) return null;
     /* **줄마다 마지막 숫자**를 본다. 통째로 숫자를 긁으면 두뇌가 「1. 5」처럼 번호를 붙여
@@ -299,9 +299,9 @@ export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
       .map((line) => (line.match(/\d+/g) ?? []).pop())
       .filter((n): n is string => n !== undefined)
       .map(Number)
-      .slice(0, 말들.length);
+      .slice(0, texts2.length);
     // 개수가 안 맞으면 **억지로 맞추지 않는다** — 어긋난 채 담으면 엉뚱한 말이 큰일이 된다.
-    return number.length === 말들.length ? number : null;
+    return number.length === texts2.length ? number : null;
   };
 }
 
@@ -321,10 +321,10 @@ export function roughlyWhen(at: number, now: number): string {
  * 늘 붙이면 「기억하는 척」이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
  */
 export function episodeNote(store: EpisodeStore, currentText: string, now: number): string {
-  const 그때 = store.related(currentText, 2, now);
-  if (그때 === null) return '';
+  const pastTime2 = store.related(currentText, 2, now);
+  if (pastTime2 === null) return '';
   return (
-    `${roughlyWhen(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +
+    `${roughlyWhen(pastTime2.at, now)} 조수님이 이런 말을 했다: 「${pastTime2.said.slice(0, 60)}」. ` +
     '이어지는 얘기면 그때 일을 아는 티를 내라 — 다만 캐묻지는 마라.'
   );
 }

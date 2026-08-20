@@ -53,9 +53,9 @@ for (const url of URLS) {
     const insideSentence = (e) => e.tagName === 'A' && getComputedStyle(e).display === 'inline';
     const toMeasure = handle.filter((e) => !insideSentence(e));
     const exceptions = handle.filter(insideSentence);
-    const small = (선) => toMeasure.filter((e) => {
+    const small = (line2) => toMeasure.filter((e) => {
       const b = e.getBoundingClientRect();
-      return Math.min(b.width, b.height) < 선;
+      return Math.min(b.width, b.height) < line2;
     });
     const name = (e) => {
       const b = e.getBoundingClientRect();

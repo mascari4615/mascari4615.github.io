@@ -167,8 +167,8 @@ import { markLive } from './shared/say';
             return m ? decodeGhost(m[1]) : null;
           })();
 
-          const 지문 = presets();
-          let target = ghost ? ghost.text : 지문[Math.floor(Math.random() * 지문.length)];
+          const hash2 = presets();
+          let target = ghost ? ghost.text : hash2[Math.floor(Math.random() * hash2.length)];
 
           container.innerHTML = `
             <div class="gt-banner" id="gtBanner" style="${ghost ? '' : 'display:none;'}">
@@ -338,10 +338,10 @@ import { markLive } from './shared/say';
               const gMs = ghostTotalMs();
               const gap = Math.abs(ms - gMs) / 1000;
               const win = ms < gMs;
-              const 말 = { name: esc(ghost.name), sec: gap.toFixed(1) };
+              const text2 = { name: esc(ghost.name), sec: gap.toFixed(1) };
               verdict = `<b class="${win ? 'gt-win' : 'gt-lose'}">${esc(
                 t(win ? 'ghosttype.win' : 'ghosttype.lose')
-              )}</b> — ${t(win ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', 말)}`;
+              )}</b> — ${t(win ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', text2)}`;
             } else {
               verdict = `<b>${esc(t('ghosttype.record'))}</b> — ${esc(t('ghosttype.record.detail'))}`;
             }
@@ -425,7 +425,7 @@ import { markLive } from './shared/say';
           $<HTMLButtonElement>('#gtRestart').onclick = () => reset();
           $<HTMLButtonElement>('#gtNextText').onclick = () => {
             let next = target;
-            while (next === target && 지문.length> 1) next = 지문[Math.floor(Math.random() * 지문.length)];
+            while (next === target && hash2.length> 1) next = hash2[Math.floor(Math.random() * hash2.length)];
             setText(next);
           };
           $<HTMLButtonElement>('#gtOwnToggle').onclick = () => {

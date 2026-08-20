@@ -3,67 +3,67 @@ import test from 'node:test';
 
 import { topicFirst, topicSkipReason, notRaised, pendingThoughts } from '../dist/index.js';
 
-const 재료 = [
+const material = [
   { name: '단골얘기', text: '조수님과 자꾸 나오는 얘기: 「셰이더」(2일에 걸쳐 15번)', weight: 3 },
   { name: '궁금', text: '', weight: 5 },
   { name: '기분', text: '지금 기운이 처져 있다', weight: 12 },
 ];
-const 참은표 = { 단골얘기: 5, 기분: 1 };
-const 기본 = { 재료, 얼마나참았나: (n) => 참은표[n] ?? 0, 식는중: true, 물어본turn: false };
+const heldMark = { 단골얘기: 5, 기분: 1 };
+const base = { 재료: material, 얼마나참았나: (n) => heldMark[n] ?? 0, 식는중: true, 물어본turn: false };
 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
-  const r = topicFirst(기본);
+  const r = topicFirst(base);
   assert.equal(r?.이름, '단골얘기');
   assert.match(r.말, /네가 먼저 꺼내라/);
   assert.match(r.말, /셰이더/, '꺼낼 내용이 같이 넘어가야 한다');
 });
 
 test('한창일 때는 안 꺼낸다 — 끼어드는 건 방해다', () => {
-  assert.equal(topicFirst({ ...기본, 식는중: false }), null);
-  assert.match(topicSkipReason({ ...기본, 식는중: false }), /안 식었다/);
+  assert.equal(topicFirst({ ...base, 식는중: false }), null);
+  assert.match(topicSkipReason({ ...base, 식는중: false }), /안 식었다/);
 });
 
 test('물어본 turn 에는 안 꺼낸다 — 물음을 두고 딴 얘기는 회피다', () => {
-  assert.equal(topicFirst({ ...기본, 물어본turn: true }), null);
-  assert.match(topicSkipReason({ ...기본, 물어본turn: true }), /물어본 turn/);
+  assert.equal(topicFirst({ ...base, 물어본turn: true }), null);
+  assert.match(topicSkipReason({ ...base, 물어본turn: true }), /물어본 turn/);
 });
 
 test('한두 번 밀린 건 안 꺼낸다 — 그냥 아무 말이나 하는 게 된다', () => {
-  const 조금 = { ...기본, 얼마나참았나: () => 1 };
-  assert.equal(topicFirst(조금), null);
-  assert.match(topicSkipReason(조금), /넘게 참은 게 없다 \(가장 오래 참은 게 1번\)/);
+  const few = { ...base, 얼마나참았나: () => 1 };
+  assert.equal(topicFirst(few), null);
+  assert.match(topicSkipReason(few), /넘게 참은 게 없다 \(가장 오래 참은 게 1번\)/);
 });
 
 test('할 말이 없는 재료는 안 꺼낸다 — 빈 걸 꺼내라고 하면 지어낸다', () => {
-  const 빈것만 = { ...기본, 재료: [{ name: '궁금', text: '   ', weight: 5 }], 얼마나참았나: () => 9 };
-  assert.equal(topicFirst(빈것만), null);
+  const emptyOnly = { ...base, 재료: [{ name: '궁금', text: '   ', weight: 5 }], 얼마나참았나: () => 9 };
+  assert.equal(topicFirst(emptyOnly), null);
 });
 
 test('꺼진 재료도 안 꺼낸다 — 지금 자리에 없는 얘기다', () => {
-  const 꺼진것 = { ...기본, 재료: [{ name: '놀리기', text: '놀려라', weight: 5, when: false }], 얼마나참았나: () => 9 };
-  assert.equal(topicFirst(꺼진것), null);
+  const off = { ...base, 재료: [{ name: '놀리기', text: '놀려라', weight: 5, when: false }], 얼마나참았나: () => 9 };
+  assert.equal(topicFirst(off), null);
 });
 
 test('꺼낼 자리면 왜 안 꺼내는지가 없다', () => {
-  assert.equal(topicSkipReason(기본), null);
+  assert.equal(topicSkipReason(base), null);
 });
 
 // ── 밀린 생각과 이어 붙는다 ────────────────────────────────────────
 
 test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는다', () => {
-  const 눌림 = new pendingThoughts();
-  for (let i = 0; i < 4; i += 1) { 눌림.적기('단골얘기', '밀림'); 눌림.다음턴(); }
-  눌림.적기('기분', '실림');
-  const r = topicFirst({ ...기본, 얼마나참았나: (n) => 눌림.얼마나참았나(n) });
+  const pressed = new pendingThoughts();
+  for (let i = 0; i < 4; i += 1) { pressed.적기('단골얘기', '밀림'); pressed.다음턴(); }
+  pressed.적기('기분', '실림');
+  const r = topicFirst({ ...base, 얼마나참았나: (n) => pressed.얼마나참았나(n) });
   assert.equal(r?.이름, '단골얘기');
   assert.equal(r.참은수, 4);
 });
 
 test('말하고 나면 풀려서 또 안 꺼낸다', () => {
-  const 눌림 = new pendingThoughts();
-  for (let i = 0; i < 4; i += 1) { 눌림.적기('단골얘기', '밀림'); 눌림.다음턴(); }
-  눌림.적기('단골얘기', '실림');
-  assert.equal(topicFirst({ ...기본, 얼마나참았나: (n) => 눌림.얼마나참았나(n) }), null);
+  const pressed2 = new pendingThoughts();
+  for (let i = 0; i < 4; i += 1) { pressed2.적기('단골얘기', '밀림'); pressed2.다음턴(); }
+  pressed2.적기('단골얘기', '실림');
+  assert.equal(topicFirst({ ...base, 얼마나참았나: (n) => pressed2.얼마나참았나(n) }), null);
 });
 
 // ── 시킨 게 먹었나 ────────────────────────────────────────────────

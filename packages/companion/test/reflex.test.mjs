@@ -20,9 +20,9 @@ test('길면 반사하지 않는다 — 짧아 보여도 사연이 있을 수 �
 });
 
 test('결에 따라 대꾸가 달라진다', () => {
-  const 처짐 = reflexFor('안녕', { energy: 0.1, roll: () => 0 });
-  const 생생 = reflexFor('안녕', { energy: 0.9, roll: () => 0 });
-  assert.notEqual(처짐, 생생);
+  const droop = reflexFor('안녕', { energy: 0.1, roll: () => 0 });
+  const vivid = reflexFor('안녕', { energy: 0.9, roll: () => 0 });
+  assert.notEqual(droop, vivid);
 });
 
 test('같은 대꾸를 연달아 하지 않는다', () => {

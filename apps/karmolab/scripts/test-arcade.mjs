@@ -401,8 +401,8 @@ console.log('[arcade] 오목 — 차례·보드');
     /* 아직 안 구웠으면 **모른다** — 없는 것을 빨강으로 세면 짓기 전 검사가 늘 빨갛다. */
     console.log('  [-] 조각을 아직 안 구웠다 — 이 항목은 못 쟀다 (npm run build 뒤에 잰다)');
   } else {
-    const 없는것 = cards.filter((c) => !built.includes(c.chunk + '.js')).map((c) => c.id);
-    ok(없는것.length === 0, '게임마다 조각 파일이 하나씩 있다', 없는것.join(', '));
+    const missing2 = cards.filter((c) => !built.includes(c.chunk + '.js')).map((c) => c.id);
+    ok(missing2.length === 0, '게임마다 조각 파일이 하나씩 있다', missing2.join(', '));
 
     /* 돌려 본다. 조각은 창에서 도는 물건이라 창 흉내를 조금 내 준다 — 게임 규칙은 창을
        안 쓰지만 화면 파일은 붙을 자리를 물어볼 수 있다. */

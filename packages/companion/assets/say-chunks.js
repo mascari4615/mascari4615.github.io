@@ -15,52 +15,52 @@
  */
 
 /** 문장이 확실히 끝난 자리. */
-const 끝맺음 = /[.!?…。！？\n]/;
+const closing = /[.!?…。！？\n]/;
 /** 숨을 고르는 자리 — 여기서 끊어도 말이 어색하지 않다. */
-const 쉼 = /[,;·—]/;
+const pause = /[,;·—]/;
 
 /**
  * 아직 안 읽은 부분에서 **지금 읽어도 되는 토막**을 떼어 낸다. 없으면 null.
  *
- * @param {string} 남은것 아직 소리로 안 나간 글자들
- * @param {{끝문턱?: number, 쉼문턱?: number, 남길것?: number}} [옵션]
+ * @param {string} remaining 아직 소리로 안 나간 글자들
+ * @param {{끝문턱?: number, 쉼문턱?: number, 남길것?: number}} [options]
  *   - `끝문턱`: 문장이 끝났을 때 이만큼은 돼야 내보낸다. 「응.」 한 글자씩 나가면 어색하다.
  *   - `쉼문턱`: 쉼표에서 끊을 땐 더 길어야 한다. 짧게 끊으면 뚝뚝 끊겨 들린다.
  *     한국어는 글자가 빽빽해서 10자면 이미 한 마디다 — 영어 기준으로 잡으면 영영 안 끊긴다.
  *   - `남길것`: 끊은 자리 뒤에 이만큼은 남아 있어야 한다. 끝에 다다라서 끊으면 얻는 게 없다.
  */
-export function 읽을토막(남은것, 옵션 = {}) {
+export function chunkToRead(remaining, options = {}) {
   /* **첫 토막은 더 잘게 끊는다.**
      소리를 만드는 시간은 글 길이를 따라간다 — 실측으로 한 토막에 1.4초였고, 그게
      사람이 기다리는 시간의 절반이었다. 첫 토막만 짧으면 첫 소리가 그만큼 앞당겨지고,
      뒤 토막들은 앞 소리가 나가는 동안 만들어지므로 길어도 티가 안 난다.
      너무 짧으면 「어,」 한 마디만 툭 나오고 끊기므로 바닥은 남겨 둔다. */
-  const 첫토막 = 옵션.첫토막 === true;
-  const 끝문턱 = 옵션.끝문턱 ?? (첫토막 ? 4 : 7);
-  const 쉼문턱 = 옵션.쉼문턱 ?? (첫토막 ? 5 : 10);
-  const 남길것 = 옵션.남길것 ?? 0;
-  const 글 = String(남은것 ?? '');
-  if (글.trim() === '') return null;
+  const firstChunk = options.첫토막 === true;
+  const endThreshold = options.끝문턱 ?? (firstChunk ? 4 : 7);
+  const pauseThreshold = options.쉼문턱 ?? (firstChunk ? 5 : 10);
+  const toKeep = options.남길것 ?? 0;
+  const content = String(remaining ?? '');
+  if (content.trim() === '') return null;
 
   // 문장이 끝났으면 그게 가장 자연스럽다 — 먼저 본다.
-  const 끝 = 마지막자리(글, 끝맺음);
-  if (끝 > 0 && 글.slice(0, 끝).trim().length >= 끝문턱) {
-    return { 토막: 글.slice(0, 끝).trim(), 먹은길이: 끝 };
+  const end = lastPos(content, closing);
+  if (end > 0 && content.slice(0, end).trim().length >= endThreshold) {
+    return { 토막: content.slice(0, end).trim(), 먹은길이: end };
   }
 
   // 아직 안 끝났으면 숨 고르는 자리에서 끊는다. **뒤에 글이 더 있을 때만** —
   // 끝에 다다라서 끊으면 어차피 곧 올 문장 끝을 기다리는 것과 다를 게 없다.
-  const 쉼자리 = 마지막자리(글, 쉼);
-  if (쉼자리 > 0 && 글.slice(0, 쉼자리).trim().length >= 쉼문턱 && 글.length - 쉼자리 > 남길것) {
-    return { 토막: 글.slice(0, 쉼자리).trim(), 먹은길이: 쉼자리 };
+  const pausePos = lastPos(content, pause);
+  if (pausePos > 0 && content.slice(0, pausePos).trim().length >= pauseThreshold && content.length - pausePos > toKeep) {
+    return { 토막: content.slice(0, pausePos).trim(), 먹은길이: pausePos };
   }
   return null;
 }
 
 /** 이 표시가 마지막으로 나온 자리 다음 칸. 없으면 0. */
-function 마지막자리(글, 표시) {
-  for (let i = 글.length - 1; i >= 0; i -= 1) {
-    if (표시.test(글[i])) return i + 1;
+function lastPos(content2, mark) {
+  for (let i = content2.length - 1; i >= 0; i -= 1) {
+    if (mark.test(content2[i])) return i + 1;
   }
   return 0;
 }
@@ -76,7 +76,7 @@ function 마지막자리(글, 표시) {
  * 좁게 잡는다. 대괄호 안이 짧은 한글·영문일 때만 표로 본다 — 사람이 쓴 대괄호까지
  * 떼면 하려던 말이 사라진다.
  */
-export function 표정떼기(text) {
+export function stripEmoji(text) {
   return String(text ?? '')
     .replace(/\[[가-힣A-Za-z]{1,8}\]/g, ' ')
     .replace(/\s{2,}/g, ' ')

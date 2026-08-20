@@ -27,8 +27,8 @@ const pushedText = (content: string): string => content.replace(/[\s.,!?~…。�
  *
  * 좁게 막는다 — 진짜 한 말을 막으면 「불러도 대답을 안 한다」가 되고, 그게 헛것보다 나쁘다.
  */
-export function shouldSkipText(글: string | null | undefined): boolean {
-  const text = String(글 ?? '').trim();
+export function shouldSkipText(content2: string | null | undefined): boolean {
+  const text = String(content2 ?? '').trim();
   if (text === '') return false;
   const pushed = pushedText(text);
   // 글자 둘 미만은 헛것일 확률이 훨씬 높다. 「응」 「네」 한 마디는 아쉽지만, 아무도
@@ -62,12 +62,12 @@ export function hadSpeech(spokenMs: number | null | undefined): boolean {
 }
 
 /** 왜 안 넘겼는지 — 조용히 버리면 「왜 대답을 안 하지」가 된다. */
-export function keepReason(글: string | null | undefined, 말한ms?: number | null): string | null {
-  const 말 = String(글 ?? '').trim();
-  if (말 === '') return '아무 말도 안 들렸다';
-  if (hadSpeech(말한ms) === false) {
-    return `말소리가 거의 없던 구간이다 (${Math.round(말한ms as number)}ms) — 받아쓰기가 지어낸 「${말.slice(0, 20)}」`;
+export function keepReason(content3: string | null | undefined, spokenMs2?: number | null): string | null {
+  const text2 = String(content3 ?? '').trim();
+  if (text2 === '') return '아무 말도 안 들렸다';
+  if (hadSpeech(spokenMs2) === false) {
+    return `말소리가 거의 없던 구간이다 (${Math.round(spokenMs2 as number)}ms) — 받아쓰기가 지어낸 「${text2.slice(0, 20)}」`;
   }
-  if (shouldSkipText(말)) return null;
-  return `말로 안 봤다 — 「${말.slice(0, 30)}」`;
+  if (shouldSkipText(text2)) return null;
+  return `말로 안 봤다 — 「${text2.slice(0, 30)}」`;
 }

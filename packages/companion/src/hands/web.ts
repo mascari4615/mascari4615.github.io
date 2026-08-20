@@ -96,17 +96,17 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
   const question = what.trim();
   if (question === '') return '무엇을 찾을지 안 왔다.';
 
-  const 몇개 = options.몇개 ?? 5;
+  const count2 = options.몇개 ?? 5;
   const waited = options.기다림ms ?? 8000;
-  const 가져오기 = options.가져오기 ?? defaultFetch;
+  const fetch2 = options.가져오기 ?? defaultFetch;
   const controller = new AbortController();
   const clock = setTimeout(() => controller.abort(), waited);
   try {
-    const html = await 가져오기(
+    const html = await fetch2(
       `https://html.duckduckgo.com/html/?q=${encodeURIComponent(question)}`,
       controller.signal,
     );
-    const items = extractResults(html, 몇개);
+    const items = extractResults(html, count2);
     if (items.length === 0) {
       options.log?.(`「${question}」 — 찾은 게 없다 (결과를 못 뽑았을 수도)`);
       return `「${question}」 으로는 못 찾았다.`;
@@ -123,16 +123,16 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
 }
 
 /** 주소 하나를 열어 글만 읽어 온다. */
-export async function readIn(주소: string, options: WebSearchOptions & { 몇자?: number } = {}): Promise<string> {
-  const place = 주소.trim();
+export async function readIn(url2: string, options: WebSearchOptions & { 몇자?: number } = {}): Promise<string> {
+  const place = url2.trim();
   if (/^https?:\/\//.test(place) === false) return '주소가 아니다 (http 로 시작해야 한다).';
 
-  const 기다림 = options.기다림ms ?? 8000;
-  const 가져오기 = options.가져오기 ?? defaultFetch;
+  const waited2 = options.기다림ms ?? 8000;
+  const fetch3 = options.가져오기 ?? defaultFetch;
   const controller = new AbortController();
-  const 시계 = setTimeout(() => controller.abort(), 기다림);
+  const clock2 = setTimeout(() => controller.abort(), waited2);
   try {
-    const html = await 가져오기(place, controller.signal);
+    const html = await fetch3(place, controller.signal);
     // 대본·모양자는 글이 아니다 — 걷어내야 읽을 게 남는다.
     const body = html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -140,9 +140,9 @@ export async function readIn(주소: string, options: WebSearchOptions & { 몇�
     const content = textOnly(body).slice(0, options.몇자 ?? 1500);
     return content === '' ? '읽을 게 없다.' : content;
   } catch (e) {
-    const 왜 = e instanceof Error && e.name === 'AbortError' ? `${기다림 / 1000}초 안에 답이 없었다` : String(e);
-    return `못 열었다 (${왜}).`;
+    const why2 = e instanceof Error && e.name === 'AbortError' ? `${waited2 / 1000}초 안에 답이 없었다` : String(e);
+    return `못 열었다 (${why2}).`;
   } finally {
-    clearTimeout(시계);
+    clearTimeout(clock2);
   }
 }

@@ -147,15 +147,15 @@ if (fs.existsSync(serverJsonPath)) {
      같은 꼴을 여기도 남겨 둘 이유가 없다.
      **베낄 수 없는 것**(설명문 길이·대문자 네임스페이스·`mcpName` 불일치)은 그대로 빨강이다 —
      그건 사람이 무엇을 쓸지 정해야 하는 자리다. */
-  const 고친것 = [];
-  if (reg.version !== pkgVersion) { 고친것.push(`version ${reg.version} → ${pkgVersion}`); reg.version = pkgVersion; }
+  const fixed2 = [];
+  if (reg.version !== pkgVersion) { fixed2.push(`version ${reg.version} → ${pkgVersion}`); reg.version = pkgVersion; }
   for (const entry of reg.packages ?? []) {
-    if (entry.version !== pkgVersion) { 고친것.push(`packages[].version ${entry.version} → ${pkgVersion}`); entry.version = pkgVersion; }
-    if (entry.identifier !== pkgName) { 고친것.push(`packages[].identifier ${entry.identifier} → ${pkgName}`); entry.identifier = pkgName; }
+    if (entry.version !== pkgVersion) { fixed2.push(`packages[].version ${entry.version} → ${pkgVersion}`); entry.version = pkgVersion; }
+    if (entry.identifier !== pkgName) { fixed2.push(`packages[].identifier ${entry.identifier} → ${pkgName}`); entry.identifier = pkgName; }
   }
-  if (고친것.length > 0) {
+  if (fixed2.length > 0) {
     fs.writeFileSync(serverJsonPath, JSON.stringify(reg, null, 2) + String.fromCharCode(10));
-    console.log(`[karmolab-mcp] server.json 을 package.json 에 맞췄다: ${고친것.join(' · ')}`);
+    console.log(`[karmolab-mcp] server.json 을 package.json 에 맞췄다: ${fixed2.join(' · ')}`);
   }
   /*
    * 레지스트리는 설명문을 **100자까지만** 받는다 (2026-08-10, 등재가 여기서 422 로 튕겼다).

@@ -70,11 +70,11 @@ for (const file of files) {
   for (const m of src.matchAll(LOADS)) loadedBy.get(g).add(m[1]);
 
   // ① 없는 묶음을 부르나 — 되받을 글이 있든 없든 본다
-  const 본것 = new Set();
+  const seen2 = new Set();
   for (const m of src.matchAll(ANY_T)) {
     const ns = m[1];
-    if (NOT_NS.has(ns) || 본것.has(ns) || nsExists(ns)) continue;
-    본것.add(ns);
+    if (NOT_NS.has(ns) || seen2.has(ns) || nsExists(ns)) continue;
+    seen2.add(ns);
     missingNs.push(`${path.relative(root, file).split(path.sep).join('/')} — '${ns}' 를 쓰는데 i18n/ko/${ns}.json 이 없다`);
   }
 

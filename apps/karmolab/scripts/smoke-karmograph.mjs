@@ -165,7 +165,7 @@ const withLimit = (name, fn) => Promise.race([
  * **어느 손잡이였는지도** 안 나온다(한 걸음에 클릭이 넷이다). 그래서 리눅스에서 재현해 놓고도
  * 다시 좁히는 데 시간을 썼다. 못 누른 사실 자체가 이 검사의 증거이므로 자리와 덮은 놈을 적는다.
  */
-const clickIt = async (p, sel, 왜) => {
+const clickIt = async (p, sel, why2) => {
   try {
     await p.locator(sel).first().click({ timeout: ms(8000) });
   } catch {
@@ -174,14 +174,14 @@ const clickIt = async (p, sel, 왜) => {
       if (!el) return '그런 손잡이가 없다';
       const r = el.getBoundingClientRect();
       const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-      const 이름 = t ? (t.dataset?.km || String(t.className || t.tagName).slice(0, 28)) : '없음';
+      const name2 = t ? (t.dataset?.km || String(t.className || t.tagName).slice(0, 28)) : '없음';
       const tr = t ? t.getBoundingClientRect() : null;
       return `자리 ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}`
-        + ` · 그 자리의 주인 ${이름}`
+        + ` · 그 자리의 주인 ${name2}`
         + (tr ? ` (${Math.round(tr.x)},${Math.round(tr.y)} ${Math.round(tr.width)}x${Math.round(tr.height)})` : '')
         + ` · 화면 ${innerWidth}x${innerHeight}`;
     }, sel);
-    throw new Error(`${왜 || sel} 를 못 눌렀다 — ${inner}`);
+    throw new Error(`${why2 || sel} 를 못 눌렀다 — ${inner}`);
   }
 };
 
@@ -3310,7 +3310,7 @@ await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮�
   try {
     await m.locator('[data-km="more"]').click({ timeout: ms(8000) });
   } catch (e) {
-    const 덮은놈 = await m.evaluate(() => {
+    const overlay2 = await m.evaluate(() => {
       const el = document.querySelector('[data-km="more"]');
       if (!el) return '단추 자체가 없다';
       const r = el.getBoundingClientRect();
@@ -3321,7 +3321,7 @@ await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮�
         + ` · 그 자리의 주인 ${name}`
         + (tr ? ` (${Math.round(tr.x)},${Math.round(tr.y)} ${Math.round(tr.width)}x${Math.round(tr.height)})` : '');
     });
-    throw new Error(`「더 보기」를 못 눌렀다 — ${덮은놈}`);
+    throw new Error(`「더 보기」를 못 눌렀다 — ${overlay2}`);
   }
   await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
   await noCovered(m, '서랍');
@@ -3798,15 +3798,15 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
      그 글자는 떨어져 나간 칸으로 들어가고 카드는 이름 없이 남는다. 실제로 CI 판에 「👤겹갑 · 👤」
      이 남아 「겹칠 카드를 못 찾았다」로 죽었다 — 못 만든 게 아니라 **엉뚱한 칸에 적은 것**이다.
      카드 수가 늘고, 그 칸이 **빈 칸**(= 새 카드 것)일 때 적는다. */
-  const writeNewCard = async (index, 이름) => {
+  const writeNewCard = async (index, name3) => {
     await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, index, { timeout: ms(4000) });
     await page.waitForFunction(() => {
       const el = document.querySelector('[data-km="edit-label"]');
       return !!el && el.isConnected && el.value === '';
     }, null, { timeout: ms(4000) });
-    await page.fill('[data-km="edit-label"]', 이름);
+    await page.fill('[data-km="edit-label"]', name3);
     await page.waitForFunction((n) => [...document.querySelectorAll('.ck-node')]
-      .some((el) => (el.textContent || '').includes(n)), 이름, { timeout: ms(4000) });
+      .some((el) => (el.textContent || '').includes(n)), name3, { timeout: ms(4000) });
   };
   await page.mouse.dblclick(dbox.x + dbox.width * 0.3, dbox.y + dbox.height * 0.15);
   await writeNewCard(1, '겹갑');
