@@ -1,9 +1,9 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 405,
+    "docs": 406,
     "groups": 7,
-    "shown": 81,
+    "shown": 82,
     "hidden": 0
   },
   "groups": [
@@ -289,7 +289,7 @@
     {
       "status": "seed",
       "label": "씨앗",
-      "count": 9,
+      "count": 10,
       "items": [
         {
           "id": "2026-04-08-content-first-todo",
@@ -353,6 +353,14 @@
           "status": "seed",
           "statusLabel": "씨앗",
           "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-412",
+          "title": "unity cli 공식통로 이주",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "normal",
           "updated": ""
         },
         {
