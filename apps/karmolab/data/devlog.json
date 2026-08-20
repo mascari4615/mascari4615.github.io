@@ -2,24 +2,80 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2173,
+    "commits": 2191,
     "days": 11,
     "shown": 60
   },
   "days": [
     {
+      "date": "2026-08-21",
+      "entries": [
+        {
+          "sha": "410fcf12",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "versus",
+          "text": "P2P 호스트를 TcpListener + 직접 악수로 다시 짓는다 — 처음으로 붙는다 (TASK-WM-415)"
+        },
+        {
+          "sha": "d6ca5fc3",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "versus",
+          "text": "수락 루프가 메인 스레드를 기다리다 에디터를 영구 정지시키던 것 (TASK-WM-414)"
+        }
+      ],
+      "quiet": 1,
+      "more": 0
+    },
+    {
       "date": "2026-08-20",
       "entries": [
         {
-          "sha": "fd4e3d25",
+          "sha": "e03db4ed",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "ci",
+          "text": "asmdef 관문이 초록도 빨강도 아닌 <b>취소</b>로 죽었다 — 예산이 일보다 작다"
+        },
+        {
+          "sha": "380647a4",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "ci",
+          "text": "배포가 없는 프로젝트를 굽고 있었다 — csproj 를 .gitignore 가 삼켰다"
+        },
+        {
+          "sha": "f3d563db",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
-          "scope": "idle",
-          "text": "세션이 남기고 간 방치형 화면 작업을 담는다 (TASK-WM-406)"
+          "scope": "tooling",
+          "text": "CoplayDev Unity-MCP 제거 — 공식 Unity CLI 통로로 단일화 (TASK-WM-412)"
+        },
+        {
+          "sha": "1aeaf107",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-413",
+          "text": "솥이 서기도 전에 젓고, 12초에 포기했다 — 둘 다 없앤다"
+        },
+        {
+          "sha": "d80cec02",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-413",
+          "text": "이유를 짐작하지 말고 재게 한다 — 사다리에 「솥」 칸이 없었다"
+        },
+        {
+          "sha": "cc8b940e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-413",
+          "text": "파수꾼이 솥을 짓기도 전에 「남이 가져갔다」며 끝냈다"
         }
       ],
-      "quiet": 0,
-      "more": 0
+      "quiet": 1,
+      "more": 9
     },
     {
       "date": "2026-08-17",
@@ -443,66 +499,10 @@
           "typeLabel": "고친 것",
           "scope": "WM-211",
           "text": "지워진 것을 「없다」고 묻는 방법이 유니티에선 달랐다"
-        },
-        {
-          "sha": "819b7a64",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "러너가 둘일 때 편집 중에는 지우는 대신 알려 준다"
-        },
-        {
-          "sha": "ad5a97eb",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "새 시험 도우미의 짝(.meta)을 빠뜨린 것을 채운다"
         }
       ],
       "quiet": 37,
-      "more": 64
-    },
-    {
-      "date": "2026-08-07",
-      "entries": [
-        {
-          "sha": "efa3d527",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-170",
-          "text": "놀이를 켜면 공방이 도는 게 콘솔에 보인다 — 더미 장사"
-        },
-        {
-          "sha": "e49b9e0a",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-052",
-          "text": "원고에 쓴 이름이 실제 캐릭터에 붙는다 — 말풍선이 말하는 사람 위에 뜬다"
-        },
-        {
-          "sha": "e129fbe3",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-209",
-          "text": "「어디에도 안 놓인 부품」도 센다 — 내가 어제 만든 구멍"
-        },
-        {
-          "sha": "8a4ea0ca",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-052",
-          "text": "원고에 「물건을 준다」를 쓸 수 있다 — 대사 자리에서 보상이 나간다"
-        },
-        {
-          "sha": "a859e575",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-052",
-          "text": "원고에 조건을 쓸 수 있다 — 「처음 만났을 때만」을 글로 적는다"
-        }
-      ],
-      "quiet": 43,
-      "more": 98
+      "more": 66
     }
   ]
 }
