@@ -28,6 +28,7 @@ import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type 
 import { fromTimezone, askPrecise, type Me } from './me';
 import { EarthSound } from './sound';
 import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioState } from './radio';
+import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Plane } from './air';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -43,7 +44,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'radio' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'radio' | 'air' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -51,6 +52,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
     { id: 'sats', earthOnly: true, glyph: '⁘' },
     { id: 'sound', glyph: '♪' },
     { id: 'radio', earthOnly: true, glyph: '⌾' },
+    { id: 'air', earthOnly: true, glyph: '✈' },
     { id: 'sun', glyph: '☀' },
     { id: 'clock', earthOnly: true, glyph: '◷' },
     { id: 'apod', glyph: '✧' },
@@ -75,7 +77,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, radio: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false, together: true }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, radio: false, air: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false, together: true }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -370,6 +372,58 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             live: null as Spot | null,
             since: 0
           };
+
+          /* ── 지금 저 하늘 (TASK-KL-336) ────────────────────────────────
+             라디오와 나란히 선다. 다만 **한 자리씩**이다: 온 지구의 비행기를 주는 데는 없고,
+             원천이 자원봉사 수신기 망이라 「안 보이는 하늘」이 진짜로 있다. 그래서 카메라가
+             보고 있는 자리만 묻고, 그 자리를 벗어나면 다시 묻는다. */
+          const air = {
+            planes: [] as Plane[],
+            /** 지금 들고 있는 것이 어느 자리 하늘인가. 카메라가 그 자리를 벗어나면 다시 묻는다. */
+            at: null as { lat: number; lon: number } | null,
+            /** 마지막으로 물은 때. 같은 자리라도 시간이 지나면 다시 묻는다(비행기는 움직인다). */
+            asked: 0,
+            /** 지금 묻는 중인가. 겹쳐 물으면 한 화면에서 열 번을 부른다. */
+            busy: false,
+            /** 한 번이라도 받아 봤나 — 「아직」과 「없다」를 갈라 말하려고 들고 있는다. */
+            everGot: false,
+            /** 눌러서 고른 한 대. 지구를 돌려도 무엇을 봤는지 안 잃는다. */
+            live: null as Plane | null,
+            since: 0
+          };
+
+          /**
+           * 지금 화면 한가운데 하늘을 받아 온다.
+           *
+           * **실패와 「0대」를 갈라 말한다** — 태평양 한가운데는 진짜로 0대일 수 있고 그건
+           * 고장이 아니다. 여기서 뭉치면 사람은 늘 「고장인가?」를 의심하게 된다.
+           */
+          function refreshAir(force = false): void {
+            if (!prefs.on.air || body !== 'earth') return;
+            /* `camLon` 은 한 바퀴 넘게 쌓일 수 있다(계속 돌리면). ±180 으로 접어야
+               뒷단 눈금 열쇠와 맞는다 — 안 접으면 같은 하늘을 계속 새로 묻는다. */
+            const here = { lat: camLat, lon: ((((camLon + 180) % 360) + 360) % 360) - 180 };
+            const fresh = air.at !== null && sameSky(air.at, here) && performance.now() - air.asked < REFRESH_MS;
+            if (!force && (air.busy || fresh)) return;
+            air.busy = true;
+            air.asked = performance.now();
+            const asking = here;
+            void loadSky(asking.lat, asking.lon, LOOK_NM).then((list) => {
+              air.busy = false;
+              if (!alive || !prefs.on.air) return;
+              if (list === null) {
+                say(t('bluemarble.air.fail'));
+                return;
+              }
+              air.at = asking;
+              air.planes = list;
+              air.everGot = true;
+              /* 고른 기체가 이번 목록에 없으면 놓는다 — 사라진 기체를 계속 가리키면
+                 지구본이 「없는 것을 있다」고 말하게 된다. */
+              if (air.live && !list.some((p) => p.hex === air.live!.hex)) air.live = null;
+              say(list.length ? t('bluemarble.air.ready', { n: list.length }) : t('bluemarble.air.empty'));
+            });
+          }
           /* 소리 내는 요소는 **창문 안에** 붙인다. 떠 있는 객체로 두면 위젯이 닫혀도 남을 수 있고,
              무엇보다 밖에서 「지금 울리고 있나」를 볼 수 없다(검사도 사람도). */
           const makeAudio = (url: string): HTMLAudioElement => {
@@ -782,6 +836,12 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             if (live && prefs.on.launch && !isPast()) drawLaunches();
             if (live && prefs.on.me) drawMe(now);
             if (live && prefs.on.radio) drawRadioRings(now);
+            if (live && prefs.on.air) {
+              /* 카메라가 다른 하늘로 옮겨 갔거나 시간이 지났으면 다시 묻는다. 스스로 목을
+                 조르므로(같은 자리 + REFRESH_MS 안이면 곧장 돌아온다) 매 판 불러도 된다. */
+              refreshAir();
+              drawPlanes(now);
+            }
             c.restore();
 
             /* 소리 기둥과 ISS 는 지구 밖이라 자르기 밖에서 그린다 */
@@ -881,6 +941,57 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
                 c.strokeStyle = `rgba(255,236,190,${(1 - ph) * 0.55})`;
                 c.beginPath();
                 c.arc(p.x, p.y, rr + ph * 26, 0, Math.PI * 2);
+                c.stroke();
+              }
+            }
+            c.restore();
+          }
+
+          /**
+           * 지금 저 하늘 — 비행기 한 대 = 나아가는 쪽을 향한 작은 삼각형 (TASK-KL-336).
+           *
+           * 점으로 찍으면 별·도시·방송국과 구별이 안 된다. **방향이 있는 모양**이라야
+           * 「지나가는 중」으로 읽힌다 — 그게 이 겹이 말하려는 것 전부다.
+           * 방향을 모르는 기체와 땅에 선 기체는 삼각형이 아니라 **작은 네모**다.
+           * 모르는 것을 아는 척(0도=북)하면 온 하늘이 북쪽을 보게 된다.
+           */
+          function drawPlanes(now: number): void {
+            if (!air.planes.length) return;
+            const c = ctx!;
+            c.save();
+            for (const p of air.planes) {
+              const q = project(p.lat, p.lon);
+              if (q.z <= 0.02) continue; // 지구 반대편
+              const lit = air.live !== null && air.live.hex === p.hex;
+              /* 가장자리로 갈수록 옅어진다 — 안 그러면 테두리가 삼각형으로 뒤덮인다 */
+              const a = (lit ? 1 : 0.72) * Math.min(1, q.z * 2.2);
+              c.fillStyle = lit ? `rgba(255,236,190,${a})` : `rgba(214,238,255,${a})`;
+              if (p.onGround || p.trackDeg === null) {
+                const r = p.onGround ? 1.3 : 1.8;
+                c.fillRect(q.x - r, q.y - r, r * 2, r * 2);
+                continue;
+              }
+              /* 높이 나는 기체를 조금 크게 — 지도가 아니라 하늘이라는 걸 크기로도 말한다. */
+              const size = 3.2 + Math.min(2.2, ((p.altFt ?? 0) / 40000) * 2.2);
+              c.save();
+              c.translate(q.x, q.y);
+              /* 화면 위쪽이 북쪽이 아니다(지구가 기울어 보인다). 그래도 이 겹에서 방향은
+                 「어느 쪽으로 간다」는 느낌이면 충분하다 — 정확한 도법 보정은 과하다. */
+              c.rotate((p.trackDeg * Math.PI) / 180);
+              c.beginPath();
+              c.moveTo(0, -size);
+              c.lineTo(size * 0.62, size * 0.8);
+              c.lineTo(0, size * 0.42);
+              c.lineTo(-size * 0.62, size * 0.8);
+              c.closePath();
+              c.fill();
+              c.restore();
+              if (lit) {
+                const ph = ((now - air.since) % 2200) / 2200;
+                c.strokeStyle = `rgba(255,236,190,${(1 - ph) * 0.6})`;
+                c.lineWidth = 1;
+                c.beginPath();
+                c.arc(q.x, q.y, 4 + ph * 22, 0, Math.PI * 2);
                 c.stroke();
               }
             }
@@ -1841,7 +1952,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
           };
           /** 끌지 않고 톡 눌렀을 때만 자리를 고른다 — 지구를 돌리다 손을 떼면 소리가 나면 안 된다. */
           function pickAt(e: PointerEvent): void {
-            if (!prefs.on.radio || !drag || body !== 'earth' || !radio.spots.length) return;
+            if (!drag || body !== 'earth') return;
             if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) return;
             const rect = canvas.getBoundingClientRect();
             const hit = unproject(
@@ -1849,6 +1960,19 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
               (e.clientY - rect.top) * (canvas.height / rect.height) / dpr
             );
             if (!hit) return;
+            /* 하늘 겹이 켜져 있으면 **비행기를 먼저** 본다 — 라디오 고리는 도시 위에 크게
+               있고 비행기는 작아서, 순서가 반대면 비행기를 영영 못 집는다.
+               잡이 범위는 화면 기준이라야 한다: 확대할수록 좁게 집혀야 나란한 둘을 가른다. */
+            if (prefs.on.air && air.planes.length) {
+              const plane = nearestPlane(air.planes, hit.lat, hit.lon, 5 / zoom);
+              if (plane) {
+                air.live = plane;
+                air.since = performance.now();
+                say(planeSay(plane));
+                return;
+              }
+            }
+            if (!prefs.on.radio || !radio.spots.length) return;
             /* 잡이 범위는 화면 기준으로 일정해야 한다 — 확대할수록 좁게 집을 수 있어야
                나란한 도시 둘을 갈라 고를 수 있다. */
             const spot = nearestSpot(radio.spots, hit.lat, hit.lon, 9 / zoom);
@@ -1975,6 +2099,23 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
                     }
                   } else {
                     player.stop();
+                  }
+                }
+                if (l.id === 'air') {
+                  if (turningOn) {
+                    /* 라디오와 같은 이유로 자전을 세운다 — 하늘은 **찍어서 보는** 겹이고,
+                       무엇보다 지구가 계속 돌면 자리가 바뀌어 끝없이 다시 묻게 된다. */
+                    spin = false;
+                    save();
+                    renderChips();
+                    say(t('bluemarble.air.loading'));
+                    refreshAir(true);
+                  } else {
+                    /* 끌 때는 들고 있던 것을 놓는다 — 다시 켰을 때 몇 분 전 하늘을 지금인 양
+                       보여 주면 그건 실시간이 아니라 거짓말이다. */
+                    air.planes = [];
+                    air.at = null;
+                    air.live = null;
                   }
                 }
                 if (l.id === 'sound') {

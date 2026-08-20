@@ -75,5 +75,15 @@
   "bluemarble.radio.on": "{name} · {where} · it is {time} there",
   "bluemarble.radio.dead": "Nobody is on air there right now",
   "bluemarble.intro.title": "BLUE MARBLE",
-  "bluemarble.a11y.globe": "Globe — arrow keys to rotate, +/- to zoom, Home to reset"
+  "bluemarble.a11y.globe": "Globe — arrow keys to rotate, +/- to zoom, Home to reset",
+  "bluemarble.layer.air": "Sky",
+  "bluemarble.air.loading": "Looking at that patch of sky…",
+  "bluemarble.air.ready": "{n} aircraft in this sky right now — tap one to see what it is",
+  "bluemarble.air.empty": "Nothing is being picked up in this sky (there may be none, or nobody listening there)",
+  "bluemarble.air.fail": "Could not fetch the sky",
+  "bluemarble.air.ground": "on the ground",
+  "bluemarble.air.unknownAlt": "altitude unknown",
+  "bluemarble.air.alt": "{km}km up",
+  "bluemarble.air.speed": "{kmh}km/h",
+  "bluemarble.air.hint": "Spin the globe and it looks at that sky instead. Only what volunteer receivers hear shows up, so mid-ocean is empty"
 }
