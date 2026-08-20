@@ -47,7 +47,7 @@ namespace Handheld.Urp
             if (volume == null)
             {
                 // 씬 안의 글로벌 볼륨 중 DepthOfField 를 가진 첫 놈.
-                foreach (var v in FindObjectsByType<Volume>(FindObjectsSortMode.None))
+                foreach (var v in FindObjectsByType<Volume>(FindObjectsInactive.Exclude))
                 {
                     if (v.profile != null && v.profile.TryGet<DepthOfField>(out _)) { volume = v; break; }
                 }
