@@ -58,20 +58,31 @@ export function matches(watch, changed) {
 /**
  * 돌릴 검사를 고른다.
  *
+ * ★ **발판이 안 적혀 있으면 알아내 본다** (TASK-KAR-231). 손으로 적는 설계는 실측으로
+ * 실패했다 — 하루 뒤 11/160 만 적혀 있었고 `--changed` 는 160/160 을 고르는 no-op 이었다.
+ * 알아내는 규칙은 `gate-derive.mjs` 에 있고, **아무 것도 못 알아내면 여전히 돈다.**
+ *
  * @param entries 목록 원본 (문자열 또는 {이름, 볼것})
  * @param changed 앱 뿌리 기준 상대 경로들. `null` 이면 고르지 않는다(전부 돈다).
- * @returns { run: string[], skipped: string[] }
+ * @param derive  발판을 알아내는 함수. 안 주면 안 알아낸다(옛 동작 그대로 — 시험용).
+ * @returns { run: string[], skipped: string[], derived: number }
  */
-export function pick(entries, changed) {
+export function pick(entries, changed, derive = null) {
   const parsed = entries.map(parseEntry).filter((e) => e !== null);
-  if (changed === null) return { run: parsed.map((e) => e.name), skipped: [] };
+  if (changed === null) return { run: parsed.map((e) => e.name), skipped: [], derived: 0 };
 
   const run = [];
   const skipped = [];
+  let derived = 0;
   for (const e of parsed) {
-    // 발판을 안 적은 검사 = 무엇에 걸리는지 모른다 = 돈다.
-    if (e.watch === null || matches(e.watch, changed)) run.push(e.name);
+    let watch = e.watch;
+    if (watch === null && derive !== null) {
+      watch = derive(e.name);
+      if (watch !== null) derived += 1;
+    }
+    // 끝내 발판을 모르는 검사 = 무엇에 걸리는지 모른다 = 돈다.
+    if (watch === null || matches(watch, changed)) run.push(e.name);
     else skipped.push(e.name);
   }
-  return { run, skipped };
+  return { run, skipped, derived };
 }

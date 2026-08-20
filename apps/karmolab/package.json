@@ -53,6 +53,7 @@
     "test:bundles": "node scripts/check-bundles.mjs",
     "audit:shared-bypass": "node scripts/audit-shared-bypass.mjs",
     "audit:gate-list": "node scripts/audit-gate-list.mjs",
+    "test:gate-derive": "node scripts/test-gate-derive.mjs",
     "test:xmlfmt": "node scripts/test-xmlfmt-core.mjs",
     "test:gamification": "node scripts/test-gamification.mjs",
     "test:planner": "node scripts/test-planner-core.mjs",

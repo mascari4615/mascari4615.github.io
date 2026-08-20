@@ -12,6 +12,13 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[새로 생김] 짧은 영상에서 사람만 남긴다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-22cb182e4</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>짧은 영상에서 사람만 남긴다</description>
+    </item>
+    <item>
       <title>[새로 생김] 지구본을 돌리면 그 하늘에 지금 뜬 비행기가 보인다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-e50fb127b</guid>
@@ -213,13 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-4fdf872ff</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>바뀐 것에 걸리는 검사만 돈다 — gates:changed</description>
-    </item>
-    <item>
-      <title>[새로 생김] 부품을 화면에서 깐다 — 설치 위젯</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-1de6df88a</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>부품을 화면에서 깐다 — 설치 위젯</description>
     </item>
   </channel>
 </rss>
