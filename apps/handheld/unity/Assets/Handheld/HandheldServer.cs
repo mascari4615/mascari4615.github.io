@@ -19,6 +19,7 @@ namespace Handheld
         public float FovY;         // 세로 화각 (도)
         public float Aspect;       // 가로/세로
         public bool SixDof;        // WebXR 6DoF 인가 (false = 자이로 3DoF)
+        public float GripRoll;     // 세로 그립이면 90 — 카메라를 그만큼 굴린다
         public int Seq;
     }
 
@@ -341,6 +342,9 @@ namespace Handheld
                 float fov = P(f[9]), aspect = P(f[10]);
                 bool six = f[11] == "6";
 
+                // 13번째 칸 = 그립 롤. 옛 폰 페이지는 안 보내므로 없으면 0.
+                float gripRoll = f.Length > 12 ? P(f[12]) : 0f;
+
                 var pose = new PhonePose
                 {
                     PhoneTime = t,
@@ -349,6 +353,7 @@ namespace Handheld
                     FovY = Mathf.Clamp(fov, 1f, 170f),
                     Aspect = Mathf.Clamp(aspect, 0.2f, 5f),
                     SixDof = six,
+                    GripRoll = Mathf.Clamp(gripRoll, -180f, 180f),
                     Seq = Interlocked.Increment(ref _seq),
                 };
 

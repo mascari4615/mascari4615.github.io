@@ -105,6 +105,7 @@
   </div>
 
   <div id="bar" class="hidden">
+    <button class="ghost" id="btnGrip">그립: 자동</button>
     <button class="ghost" id="btnRecenter">리센터</button>
     <button class="ghost" id="btnStop">끝내기</button>
   </div>
@@ -193,15 +194,27 @@
     vfCtx.fillStyle = '#000';
     vfCtx.fillRect(0, 0, w, h);
 
-    // 방향은 절대 손대지 않는다 — 화면만 돌리면 폰을 오른쪽으로 밀 때 그림이 위로
-    // 가는 거짓 뷰파인더가 된다. 대신 세로로 들면 「돌려서 잡아라」라고 말한다.
-    const s = Math.min(w / bmp.width, h / bmp.height);
+    // 화면만 돌리면 폰을 오른쪽으로 밀 때 그림이 위로 가는 **거짓 뷰파인더**가 된다.
+    // 그래서 자동·가로 그립에서는 절대 안 돌린다. 세로 그립은 다르다 — 카메라 롤을
+    // 90° 같이 돌려 보내므로, 화면도 같이 돌려야 겨냥 방향과 그림이 맞는다.
+    const rotate = grip() === 'portrait' && (bmp.width >= bmp.height) !== (w >= h);
+    const boxW = rotate ? h : w, boxH = rotate ? w : h;
+    const s = Math.min(boxW / bmp.width, boxH / bmp.height);
     const dw = bmp.width * s, dh = bmp.height * s;
-    vfCtx.drawImage(bmp, (w - dw) / 2, (h - dh) / 2, dw, dh);
 
-    // 카메라 워킹 중 롤이 세로를 스쳐 지나가는 건 의도된 동작이다 — 그때 힌트가 튀면
-    // 방해만 된다. **머무를 때만** 띄운다: 어긋남이 이어지면 켜고, 풀리면 즉시 끈다.
-    const mismatched = (bmp.width >= bmp.height) !== (w >= h);
+    vfCtx.save();
+    if (rotate) {
+      vfCtx.translate(w / 2, h / 2);
+      vfCtx.rotate(-Math.PI / 2);
+      vfCtx.translate(-boxW / 2, -boxH / 2);
+    }
+    vfCtx.drawImage(bmp, (boxW - dw) / 2, (boxH - dh) / 2, dw, dh);
+    vfCtx.restore();
+
+    // 안내는 **자동 그립일 때만** 뜻이 있다 — 카메라맨이 세로를 골랐으면 그건 결정이지
+    // 실수가 아니다. 자동일 때도 카메라 워킹 중 롤이 세로를 스쳐 가는 건 의도된 동작이라
+    // **머무를 때만** 띄운다: 어긋남이 이어지면 켜고, 풀리면 즉시 끈다.
+    const mismatched = grip() === 'auto' && (bmp.width >= bmp.height) !== (w >= h);
     if (!mismatched) { turnSince = 0; $('turnHint').classList.add('hidden'); }
     else {
       const now = performance.now();
@@ -214,6 +227,21 @@
       chipFrame.innerHTML = `<b>${bmp.width}×${bmp.height}</b>`;
     }
   }
+  // 그립 = 카메라맨의 몸 편의 (송출 비율은 조종석이 정한다 — 별개다).
+  //   auto      : 폰 방향을 따라간다 (지금 화면 방향 그대로)
+  //   landscape : 눕혀 잡는다 = 롤 0
+  //   portrait  : 세워 잡는다 = 카메라 롤도 90° 돌려 수평을 맞춘다
+  const GRIPS = [
+    { id: 'auto',      label: '자동' },
+    { id: 'landscape', label: '가로' },
+    { id: 'portrait',  label: '세로' },
+  ];
+  let gripIndex = 0;
+  const grip = () => GRIPS[gripIndex].id;
+
+  // 세로 그립일 때만 카메라를 굴린다. 화면도 같이 돌리므로 겨냥 방향과 그림이 일치한다.
+  const gripRoll = () => (grip() === 'portrait' ? 90 : 0);
+
   let frameW = 0, frameH = 0, turnSince = 0;
   const TURN_HINT_DELAY = 2000;   // 이만큼 세로로 머물러야 안내가 뜬다
 
@@ -221,7 +249,7 @@
     if (!ws || ws.readyState !== 1) return;
     if (ws.bufferedAmount > 32 * 1024) return;   // 상행이 막히면 건너뛴다
     const f = n => n.toFixed(5);
-    ws.send(`p|${t.toFixed(1)}|${f(px)}|${f(py)}|${f(pz)}|${f(qx)}|${f(qy)}|${f(qz)}|${f(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}`);
+    ws.send(`p|${t.toFixed(1)}|${f(px)}|${f(py)}|${f(pz)}|${f(qx)}|${f(qy)}|${f(qz)}|${f(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}|${gripRoll()}`);
     txPoses++; seq++;
   }
 
@@ -401,6 +429,12 @@
   }
 
   // ── 진입 ───────────────────────────────────────────────────────────────────
+  $('btnGrip').onclick = () => {
+    gripIndex = (gripIndex + 1) % GRIPS.length;
+    $('btnGrip').textContent = '그립: ' + GRIPS[gripIndex].label;
+    turnSince = 0;
+    $('turnHint').classList.add('hidden');
+  };
   $('btnStop').onclick = stop;
   $('btnRecenter').onclick = () => { if (ws && ws.readyState === 1) ws.send('c|recenter'); };
   $('btnFallback').onclick = () => start3Dof();

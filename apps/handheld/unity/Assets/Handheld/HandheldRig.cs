@@ -290,6 +290,12 @@ namespace Handheld
             Quaternion rot = pose.Rotation;
             Vector3 pos = pose.Position;
 
+            // 세로 그립 — 카메라맨이 폰을 세워 잡았다. 카메라를 그만큼 굴려야 16:9 프레임의
+            // 수평이 세상의 수평과 맞는다. 폰 화면도 같이 돌아가므로 겨냥 방향과 그림은
+            // 어긋나지 않는다 (화면만 돌리면 거짓 뷰파인더가 된다).
+            if (Mathf.Abs(pose.GripRoll) > 0.01f)
+                rot = rot * Quaternion.AngleAxis(pose.GripRoll, Vector3.forward);
+
             if (_hasOrigin)
             {
                 // 원점 회전은 요(yaw)만 뺀다 — 고개 기울인 채 리센터해도 수평이 안 무너진다.
