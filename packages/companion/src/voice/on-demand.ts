@@ -47,7 +47,7 @@ export interface 수요기동옵션 {
 }
 
 export class demandBoot {
-  private 떴나 = false;
+  private appeared = false;
   private 마지막확인 = 0;
   private 띄우는중 = false;
   private 마지막사용 = 0;
@@ -62,7 +62,7 @@ export class demandBoot {
 
   /** 지금 쓸 수 있나 — 마지막으로 확인한 상태 그대로(묻지 않는다). */
   get 준비됐나(): boolean {
-    return this.떴나;
+    return this.appeared;
   }
 
   /** 우리가 켜 둔 것인가 (진단용). */
@@ -83,12 +83,12 @@ export class demandBoot {
     if (this.지금 - this.마지막확인 >= interval) {
       this.마지막확인 = this.지금;
       try {
-        this.떴나 = await this.options.살았나();
+        this.appeared = await this.options.살았나();
       } catch {
-        this.떴나 = false;
+        this.appeared = false;
       }
     }
-    if (this.떴나 || this.띄우는중) return;
+    if (this.appeared || this.띄우는중) return;
     if (this.options.자동인가?.() === false) return;
 
     if (this.지금 - this.실패한때 < (this.options.실패후쉬기ms ?? 60_000)) return;
@@ -131,7 +131,7 @@ export class demandBoot {
         isAlive = false;
       }
       if (isAlive) {
-        this.떴나 = true;
+        this.appeared = true;
         this.options.log?.(`${this.options.이름} 이(가) 준비됐다 (${Math.round((this.지금 - start) / 1000)}초)`);
         return;
       }
@@ -150,7 +150,7 @@ export class demandBoot {
    */
   async 쉬었으면끄기(): Promise<boolean> {
     const whenIdle = this.options.쉬면끄기ms?.() ?? 0;
-    if (whenIdle <= 0 || this.우리가띄웠나 === false || this.떴나 === false) return false;
+    if (whenIdle <= 0 || this.우리가띄웠나 === false || this.appeared === false) return false;
     if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
 
     try {
@@ -160,7 +160,7 @@ export class demandBoot {
       this.options.log?.(`${this.options.이름} 을(를) 못 껐다: ${e instanceof Error ? e.message : String(e)}`);
       return false;
     }
-    this.떴나 = false;
+    this.appeared = false;
     this.우리가띄웠나 = false;
     this.마지막확인 = 0;
     return true;
