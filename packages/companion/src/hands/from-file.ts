@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 
 import type { Hand } from '../hands';
-import { 웹에서찾기, 읽어오기 } from './web';
+import { searchWeb, readIn } from './web';
 
 /**
  * 파일로 손 늘리기 — 코드를 안 고치고 할 수 있는 일을 더한다.
@@ -65,8 +65,8 @@ export function readSpec(raw: unknown): HandSpec | null {
   const kinds = ['read-file', 'read-dir', 'web-search', 'read-web'];
   if (typeof x.kind !== 'string' || kinds.includes(x.kind) === false) return null;
   // 밖을 읽는 손은 읽을 자리가 그때그때 오므로 경로가 필요 없다.
-  const 밖인가 = x.kind === 'web-search' || x.kind === 'read-web';
-  if (밖인가 === false && (typeof x.path !== 'string' || x.path.trim() === '')) return null;
+  const isOutside = x.kind === 'web-search' || x.kind === 'read-web';
+  if (isOutside === false && (typeof x.path !== 'string' || x.path.trim() === '')) return null;
 
   return {
     name: x.name.trim(),
@@ -86,9 +86,9 @@ export function readSpec(raw: unknown): HandSpec | null {
 export function insideFence(path: string, fence?: string): boolean {
   if (fence === undefined) return true;
   const 울타리 = resolve(fence);
-  const 대상 = resolve(path);
-  return 대상 === 울타리 || 대상.startsWith(울타리 + (울타리.endsWith('\\') || 울타리.endsWith('/') ? '' : '\\'))
-    || 대상.startsWith(`${울타리}/`);
+  const target = resolve(path);
+  return target === 울타리 || target.startsWith(울타리 + (울타리.endsWith('\\') || 울타리.endsWith('/') ? '' : '\\'))
+    || target.startsWith(`${울타리}/`);
 }
 
 /** 명세 하나를 실제 손으로. 울타리 밖이면 null. */
@@ -101,8 +101,8 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
       feedsBack: spec.feedsBack,
       run: (argument: string): Promise<string> =>
         spec.kind === 'web-search'
-          ? 웹에서찾기(argument, { 몇개: spec.limit, log: options.log })
-          : 읽어오기(argument, { 몇자: spec.limit, log: options.log }),
+          ? searchWeb(argument, { 몇개: spec.limit, log: options.log })
+          : readIn(argument, { 몇자: spec.limit, log: options.log }),
     };
   }
 
@@ -121,13 +121,13 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
         if (spec.kind === 'read-file') {
           if (existsSync(spec.path) === false) return `${spec.path} 가 없다.`;
           const content = readFileSync(spec.path, 'utf8');
-          const 몇자 = spec.limit ?? 2000;
+          const charCount = spec.limit ?? 2000;
           // 넘긴 말이 있으면 그 말이 든 줄만 — 파일이 크면 통째로 주는 게 오히려 방해다.
           const picked = argument.trim() === ''
             ? content
             : content.split('\n').filter((l) => l.includes(argument.trim())).join('\n');
-          const 낼것 = (picked.trim() === '' ? content : picked).slice(0, 몇자);
-          return 낼것.trim() === '' ? '비어 있다.' : 낼것;
+          const toEmit = (picked.trim() === '' ? content : picked).slice(0, charCount);
+          return toEmit.trim() === '' ? '비어 있다.' : toEmit;
         }
 
         if (existsSync(spec.path) === false) return `${spec.path} 가 없다.`;
@@ -160,8 +160,8 @@ export function hintFrom(
   spec: HandSpec,
 ): { hand: string; when: RegExp; argument?: (said: string) => string } | null {
   if (spec.when === undefined || spec.when.length === 0) return null;
-  const 막은것 = spec.when.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  return { hand: spec.name, when: new RegExp(`(${막은것.join('|')})`), argument: 넘길것(spec) };
+  const blocked = spec.when.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return { hand: spec.name, when: new RegExp(`(${blocked.join('|')})`), argument: toSkip(spec) };
 }
 
 /**
@@ -174,21 +174,21 @@ export function hintFrom(
  * 사람에게 정규식을 적게 하지 않는다(파일로 손을 만드는 취지가 「쉬움」이다). 갈래를 보고
  * 우리가 뽑는다.
  */
-function 넘길것(spec: HandSpec): ((said: string) => string) | undefined {
+function toSkip(spec: HandSpec): ((said: string) => string) | undefined {
   if (spec.kind === 'read-web') {
     return (said) => (/(https?:\/\/[^\s"'<>]+)/.exec(said)?.[1] ?? '').trim();
   }
   if (spec.kind === 'web-search') {
     // 말 자체가 곧 물음이다. 부르는 말과 군더더기만 걷어낸다.
-    return (said) => 물음만(said, spec.when ?? []);
+    return (said) => questionsOnly(said, spec.when ?? []);
   }
   return undefined;
 }
 
 /** 부르는 말·군더더기를 걷어낸 나머지 = 찾을 말. 남는 게 없으면 온 말 그대로. */
-export function 물음만(said: string, 부르는말: readonly string[]): string {
+export function questionsOnly(said: string, callWords: readonly string[]): string {
   let 글 = said.trim();
-  for (const w of [...부르는말].sort((a, b) => b.length - a.length)) {
+  for (const w of [...callWords].sort((a, b) => b.length - a.length)) {
     글 = 글.split(w).join(' ');
   }
   글 = 글

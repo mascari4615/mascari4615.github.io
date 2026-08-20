@@ -31,14 +31,14 @@ export interface Judgement {
   why: string;
 }
 
-const 한글만 = /^[가-힣]+$/;
+const hangulOnly = /^[가-힣]+$/;
 
 /**
  * 두음법칙 — 「라면」의 「라」로 이을 때 「나」로도 이을 수 있다.
  *
  * 이걸 빼면 놀이가 억지스러워진다. 사람은 실제로 이렇게 논다.
  */
-const 두음: Record<string, string> = {
+const initialSound: Record<string, string> = {
   라: '나', 래: '내', 로: '노', 뢰: '뇌', 루: '누', 르: '느', 리: '이',
   랴: '야', 려: '여', 례: '예', 료: '요', 류: '유',
   녀: '여', 뇨: '요', 뉴: '유', 니: '이',
@@ -46,8 +46,8 @@ const 두음: Record<string, string> = {
 
 /** 이 글자로 이을 수 있는 첫 글자들. */
 export function canFollow(letter: string): readonly string[] {
-  const 바뀐것 = 두음[letter];
-  return 바뀐것 === undefined ? [letter] : [letter, 바뀐것];
+  const changed = initialSound[letter];
+  return changed === undefined ? [letter] : [letter, changed];
 }
 
 /** 빈 놀이판. */
@@ -58,7 +58,7 @@ export function startWordChain(): WordChain {
 /** 이 말을 지금 낼 수 있나. */
 export function judge(chain: WordChain, word: string): Judgement {
   const w = word.trim();
-  if (한글만.test(w) === false) return { ok: false, why: '한글로만 해야지.' };
+  if (hangulOnly.test(w) === false) return { ok: false, why: '한글로만 해야지.' };
   if (w.length < 2) return { ok: false, why: '한 글자는 안 돼.' };
   if (chain.used.includes(w)) return { ok: false, why: '그건 아까 나왔잖아.' };
   if (chain.next !== null && canFollow(chain.next).includes(w[0]) === false) {
@@ -99,9 +99,9 @@ export function play(chain: WordChain, word: string, by: '조수님' | '나'): {
  * 흠이 아니다 — 지는 상대라야 이길 맛이 난다.
  */
 export function pickWord(chain: WordChain, words: readonly string[], roll: () => number = Math.random): string | null {
-  const 가능 = words.filter((w) => judge(chain, w).ok);
-  if (가능.length === 0) return null;
-  return 가능[Math.floor(roll() * 가능.length) % 가능.length];
+  const possible = words.filter((w) => judge(chain, w).ok);
+  if (possible.length === 0) return null;
+  return possible[Math.floor(roll() * possible.length) % possible.length];
 }
 
 /**
@@ -111,7 +111,7 @@ export function pickWord(chain: WordChain, words: readonly string[], roll: () =>
  * 아니지만 한 수 만에 끝나면 그건 놀이가 아니라 버튼이다. 흔히 나오는 끝 글자를 메워
  * 몇 수는 주고받게 늘렸다. 여전히 끝은 있다 — 언젠가는 진다.
  */
-export const 아는말: readonly string[] = [
+export const knownWords: readonly string[] = [
   '사과', '과일', '일기', '기차', '차표', '표지', '지도', '도시', '시계', '계단',
   '단추', '추석', '석유', '유리', '리본', '본색', '색종이', '이불', '불꽃', '꽃길',
   '길목', '목소리', '리듬', '성냥', '이야기', '기린', '린스', '스승',

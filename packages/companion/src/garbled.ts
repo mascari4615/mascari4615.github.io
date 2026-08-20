@@ -15,7 +15,7 @@
  */
 
 /** 글자가 깨졌다는 확실한 표시 — 되돌릴 수 없게 뭉개진 자리. */
-const 뭉개짐 = /�/g;
+const garbled = /�/g;
 
 /**
  * 이 말이 깨졌나. 깨졌으면 왜인지, 아니면 null.
@@ -23,15 +23,15 @@ const 뭉개짐 = /�/g;
  * 판단 근거는 **되돌릴 수 없는 글자(U+FFFD)의 비율**이다. 하나쯤은 진짜로 그 글자를
  * 쓴 것일 수 있으니 비율로 본다.
  */
-export function 깨졌나(text: string): string | null {
+export function isBroken(text: string): string | null {
   const 말 = String(text ?? '');
   if (말.trim() === '') return null;
-  const 뭉갠수 = (말.match(뭉개짐) ?? []).length;
-  if (뭉갠수 === 0) return null;
-  const 비율 = 뭉갠수 / 말.length;
+  const garbledCount = (말.match(garbled) ?? []).length;
+  if (garbledCount === 0) return null;
+  const ratio = garbledCount / 말.length;
   // 한두 개 섞인 건 그냥 둔다 — 진짜로 그 글자를 붙여 넣었을 수도 있다.
-  if (뭉갠수 < 3 && 비율 < 0.2) return null;
-  return `글자가 깨져 들어왔다 (${뭉갠수}자 뭉개짐 · ${Math.round(비율 * 100)}%)`;
+  if (garbledCount < 3 && ratio < 0.2) return null;
+  return `글자가 깨져 들어왔다 (${garbledCount}자 뭉개짐 · ${Math.round(ratio * 100)}%)`;
 }
 
 /**
@@ -40,6 +40,6 @@ export function 깨졌나(text: string): string | null {
  * 지우는 건 여기서 안 한다. **무엇을 지울지 고르는 일과 실제로 지우는 일을 나눠 둔다** —
  * 지우기는 되돌릴 수 없어서, 무엇이 지워질지 먼저 볼 수 있어야 한다.
  */
-export function 깨진줄들<T extends { text: string }>(entries: readonly T[]): T[] {
-  return entries.filter((e) => 깨졌나(e.text) !== null);
+export function brokenLines<T extends { text: string }>(entries: readonly T[]): T[] {
+  return entries.filter((e) => isBroken(e.text) !== null);
 }

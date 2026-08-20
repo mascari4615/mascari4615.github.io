@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { EpisodeStore, 기운묻기 } from '../dist/index.js';
+import { EpisodeStore, askEnergy } from '../dist/index.js';
 
 const 말한것 = (text, at = Date.now()) => ({ role: 'sensed', channel: 'web', kind: 'text', text, at });
 
@@ -79,23 +79,23 @@ test('물어보기가 없으면 표만 쓴다 — 아무 데도 안 걸리고 �
 
 test('물음에 말이 번호와 함께 다 들어간다 — 하나라도 빠지면 답이 어긋난다', async () => {
   let 본것 = '';
-  const 물어보기 = 기운묻기(async (p) => { 본것 = p; return '5\n0\n7'; });
+  const 물어보기 = askEnergy(async (p) => { 본것 = p; return '5\n0\n7'; });
   const 점수 = await 물어보기(놓쳤던말);
   for (const 말 of 놓쳤던말) assert.ok(본것.includes(말.slice(0, 10)), `${말} 이 물음에 없다`);
   assert.deepEqual(점수, [5, 0, 7]);
 });
 
 test('두뇌가 말을 섞어 답해도 숫자만 골라낸다', async () => {
-  const 물어보기 = 기운묻기(async () => '1. 5\n2. 0\n3. 7');
+  const 물어보기 = askEnergy(async () => '1. 5\n2. 0\n3. 7');
   assert.deepEqual(await 물어보기(['가나다라', '마바사아', '자차카타']), [5, 0, 7]);
 });
 
 test('두뇌가 개수를 안 맞추면 아무것도 안 돌려준다', async () => {
-  const 물어보기 = 기운묻기(async () => '5');
+  const 물어보기 = askEnergy(async () => '5');
   assert.equal(await 물어보기(놓쳤던말), null);
 });
 
 test('두뇌가 대답을 안 하면 null — 0 점으로 세지 않는다', async () => {
-  const 물어보기 = 기운묻기(async () => null);
+  const 물어보기 = askEnergy(async () => null);
   assert.equal(await 물어보기(놓쳤던말), null);
 });

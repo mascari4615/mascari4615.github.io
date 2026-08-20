@@ -4,24 +4,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { EpisodeStore, episodeNote, 기운재기, 언제쯤 } from '../dist/index.js';
+import { EpisodeStore, episodeNote, measureEnergy, roughlyWhen } from '../dist/index.js';
 
 const 사람 = (text, at = 1, channel = 'web') => ({ role: 'sensed', channel, text, at });
 const 얘 = (text, at = 1) => ({ role: 'said', channel: 'web', text, at });
 const 하루 = 24 * 60 * 60_000;
 
 test('감정이 실린 말은 기운이 있다', () => {
-  assert.ok(기운재기('오늘 발표 진짜 망했어 속상해') > 0);
-  assert.ok(기운재기('드디어 됐다!!') > 0);
+  assert.ok(measureEnergy('오늘 발표 진짜 망했어 속상해') > 0);
+  assert.ok(measureEnergy('드디어 됐다!!') > 0);
 });
 
 test('지나가는 말은 사건이 아니다', () => {
-  assert.equal(기운재기('응'), 0);
-  assert.equal(기운재기('오늘 점심 뭐 먹지'), 0);
+  assert.equal(measureEnergy('응'), 0);
+  assert.equal(measureEnergy('오늘 점심 뭐 먹지'), 0);
 });
 
 test('물음표만 잔뜩인 건 감정이 아니라 질문이다', () => {
-  assert.equal(기운재기('이거 어떻게 하는 거야??'), 0);
+  assert.equal(measureEnergy('이거 어떻게 하는 거야??'), 0);
 });
 
 test('사람이 한 말만 사건으로 센다 — 얘가 흥분한 걸 사람 일로 기억하면 안 된다', () => {
@@ -86,10 +86,10 @@ test('이어지는 게 없으면 아무 말도 안 얹는다', () => {
 
 test('얼마나 지났는지 사람 말로', () => {
   const 지금 = 100 * 하루;
-  assert.equal(언제쯤(지금 - 하루 * 40, 지금), '한참 전에');
-  assert.equal(언제쯤(지금 - 하루 * 9, 지금), '지난주쯤');
-  assert.equal(언제쯤(지금 - 하루, 지금), '어제');
-  assert.equal(언제쯤(지금 - 1000, 지금), '아까');
+  assert.equal(roughlyWhen(지금 - 하루 * 40, 지금), '한참 전에');
+  assert.equal(roughlyWhen(지금 - 하루 * 9, 지금), '지난주쯤');
+  assert.equal(roughlyWhen(지금 - 하루, 지금), '어제');
+  assert.equal(roughlyWhen(지금 - 1000, 지금), '아까');
 });
 
 test('파일에 남겨 두면 껐다 켜도 이어진다', () => {

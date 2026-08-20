@@ -1,5 +1,5 @@
 import type { Feeling } from './feeling';
-import { 평소 } from './feeling';
+import { usual } from './feeling';
 
 /**
  * 표정 신호 — 얼굴이 지금 어떤가.
@@ -20,11 +20,11 @@ import { 평소 } from './feeling';
  */
 export type Expression = '평온' | '웃음' | '놀람' | '뾰족' | '처짐' | '졸림';
 
-const 표정들: readonly Expression[] = ['평온', '웃음', '놀람', '뾰족', '처짐', '졸림'];
+const emojis: readonly Expression[] = ['평온', '웃음', '놀람', '뾰족', '처짐', '졸림'];
 
 /** 아는 표정인가. */
 export function isExpression(x: string): x is Expression {
-  return (표정들 as readonly string[]).includes(x);
+  return (emojis as readonly string[]).includes(x);
 }
 
 /**
@@ -50,7 +50,7 @@ export function stripExpression(said: string): { text: string; tagged: Expressio
 /** 두뇌에 알려 줄 한 줄 — 어떤 표를 쓸 수 있는지. */
 export function expressionNote(): string {
   return (
-    `말 앞에 얼굴을 표로 달 수 있다: ${표정들.map((e) => `[${e}]`).join(' ')}. ` +
+    `말 앞에 얼굴을 표로 달 수 있다: ${emojis.map((e) => `[${e}]`).join(' ')}. ` +
     '꼭 달 필요는 없다 — 안 달면 결에 맞춰 알아서 간다. 표는 맨 앞에 하나만.'
   );
 }
@@ -64,8 +64,8 @@ export interface ExpressionInput {
   tagged?: Expression | null;
 }
 
-const 웃는말 = /(ㅋ|ㅎ|하하)/;
-const 놀란말 = /(어\?|엇|헉|뭐\?|진짜\?)/;
+const laughWords = /(ㅋ|ㅎ|하하)/;
+const surpriseWords = /(어\?|엇|헉|뭐\?|진짜\?)/;
 
 /**
  * 지금 어떤 얼굴인가.
@@ -78,11 +78,11 @@ export function expressionFrom(input: ExpressionInput): Expression {
   if (input.tagged != null) return input.tagged;
 
   const text = (input.text ?? '').trim();
-  if (text !== '' && 웃는말.test(text)) return '웃음';
-  if (text !== '' && 놀란말.test(text)) return '놀람';
+  if (text !== '' && laughWords.test(text)) return '웃음';
+  if (text !== '' && surpriseWords.test(text)) return '놀람';
 
-  const v = input.feeling.valence - 평소.valence;
-  const a = input.feeling.arousal - 평소.arousal;
+  const v = input.feeling.valence - usual.valence;
+  const a = input.feeling.arousal - usual.arousal;
   if (a >= 0.25) return v < -0.15 ? '뾰족' : '놀람';
   if (a <= -0.45) return '졸림';
   if (a <= -0.25) return v > 0.15 ? '평온' : '처짐';

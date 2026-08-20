@@ -71,7 +71,7 @@ export type { ToolMode } from './brain/mode';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
-export { webBody, openPinnedWindow, ownWindowExe, 이기계인가, type WebBodyOptions } from './body/web';
+export { webBody, openPinnedWindow, ownWindowExe, isThisMachine as 이기계인가, type WebBodyOptions } from './body/web';
 export { discordBody, discordJs, type DiscordBodyOptions, type 디스코드붙이기, type 디스코드채널 } from './body/discord';
 
 export { anySpeech } from './voice/any';
@@ -96,7 +96,7 @@ export * from './made-up';
 export * from './milestone';
 export * from './mouth-gate';
 export * from './touch';
-export { 웹에서찾기, 읽어오기, 결과뽑기, 글만, 주소풀기 } from './hands/web';
+export { searchWeb as 웹에서찾기, readIn as 읽어오기, extractResults as 결과뽑기, textOnly as 글만, resolveUrl as 주소풀기 } from './hands/web';
 export { 수요기동, 필요할때, type 수요기동옵션 } from './voice/on-demand';
 export { 이웃, 이저장소, 같은저장소사본들 } from './workspace';
 export { 대사창고, 골라내기, type StockOptions } from './stock';
@@ -127,7 +127,7 @@ export * from './pressure';
 export * from './heard';
 export * from './room-learn';
 export * from './memory/reflect';
-export { 뜻기억, 작은모델로재기, 닮은정도, type 뜻재기, type 뜻기억옵션 } from './memory/meaning';
+export { meaningMemory as 뜻기억, measureWithSmallModel as 작은모델로재기, similarity as 닮은정도, type 뜻재기, type 뜻기억옵션 } from './memory/meaning';
 export * from './rarity';
 export * from './length';
 export * from './head-size';

@@ -69,15 +69,15 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
   toWrite.sort((a, b) => (b.x.weight - a.x.weight) || (a.i - b.i));
 
   const 고른것: { x: Ingredient; i: number }[] = [];
-  let 쓴글자 = 0;
+  let usedChars = 0;
   for (const it of toWrite) {
     const 길이 = it.x.text.trim().length;
-    if (고른것.length >= maxLines || 쓴글자 + 길이 > maxChars) {
+    if (고른것.length >= maxLines || usedChars + 길이 > maxChars) {
       mark?.(it.x.name, '밀림', `자리가 모자랐다 (무게 ${it.x.weight})${slot}`);
       continue;
     }
     고른것.push(it);
-    쓴글자 += 길이;
+    usedChars += 길이;
     mark?.(it.x.name, '실림', '');
   }
   return 고른것.map((it) => it.x);
@@ -91,8 +91,8 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
 export function layOut(picked: readonly Ingredient[]): string[] {
   if (picked.length <= 2) return picked.map((x) => x.text.trim());
 
-  const [firstOne, 둘째, ...rest] = picked;
-  return [firstOne.text.trim(), ...rest.map((x) => x.text.trim()), 둘째.text.trim()];
+  const [firstOne, second, ...rest] = picked;
+  return [firstOne.text.trim(), ...rest.map((x) => x.text.trim()), second.text.trim()];
 }
 
 /** 골라서 늘어놓기까지 한 번에. */

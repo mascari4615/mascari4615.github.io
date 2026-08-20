@@ -26,13 +26,13 @@ export interface Correction {
   instead: string | null;
 }
 
-const 부정 = /(아니야|아니고|아닌데|아니라|틀렸|잘못|그게 아니|안 그래|안그래|내가 언제|그런 적 없|한 적 없|아니거든)/;
-const 맞장구부정 = /^(아니|아니요|아뇨|노)[.…!?\s]*$/;
+const negation = /(아니야|아니고|아닌데|아니라|틀렸|잘못|그게 아니|안 그래|안그래|내가 언제|그런 적 없|한 적 없|아니거든)/;
+const agreementNegation = /^(아니|아니요|아뇨|노)[.…!?\s]*$/;
 
 /** 이 말이 「틀렸다」는 뜻인가. */
 export function deniesSomething(text: string): boolean {
   const t = text.trim();
-  return 부정.test(t) || 맞장구부정.test(t);
+  return negation.test(t) || agreementNegation.test(t);
 }
 
 /**
@@ -47,7 +47,7 @@ export function findCorrection(said: string, lastSaid: MemoryEntry | undefined):
 
   const denied = lastSaid.text.trim();
   // 「아니야, X 야」처럼 대신 알려 준 게 있으면 그것도 들고 간다.
-  const rest = said.replace(부정, '').replace(/^[,\s.…]+/, '').trim();
+  const rest = said.replace(negation, '').replace(/^[,\s.…]+/, '').trim();
 
   // 지울 낱말은 **얘 말과 조수님의 정정문 양쪽**에서 뽑는다.
   //
@@ -65,11 +65,11 @@ function pick(text: string): string[] {
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
     .map((w) => stripParticle(w.trim()))
-    .filter((w) => worthWondering(w) && 나아님.has(w) === false);
+    .filter((w) => worthWondering(w) && notSelf.has(w) === false);
 }
 
 /** 사람을 가리키거나 부정하는 말은 지울 거리가 아니다. */
-const 나아님 = new Set(['조수님', '조수', '아니', '아니야', '진짜', '정말', '이거', '그거']);
+const notSelf = new Set(['조수님', '조수', '아니', '아니야', '진짜', '정말', '이거', '그거']);
 
 /**
  * 아는 것에서 지운다. 몇 줄을 지웠는지 돌려준다.
@@ -97,10 +97,10 @@ export function applyCorrection(
  * 그것도 결이 아니다.
  */
 export function correctionNote(correction: Correction, erased: readonly string[] = []): string {
-  const 지움 = erased.length > 0 ? ` 잘못 알고 있던 것(${erased.join(', ')})은 지웠다.` : '';
+  const cleared = erased.length > 0 ? ` 잘못 알고 있던 것(${erased.join(', ')})은 지웠다.` : '';
   const 대신 = correction.instead === null ? '' : ` 조수님 말로는 「${correction.instead.slice(0, 40)}」 라고 한다.`;
   return (
-    `방금 네가 한 말(「${correction.denied.slice(0, 30)}」)이 틀렸다고 한다.${대신}${지움} ` +
+    `방금 네가 한 말(「${correction.denied.slice(0, 30)}」)이 틀렸다고 한다.${대신}${cleared} ` +
     '우기거나 변명하지 마라. 그렇다고 굽신거리지도 마라 — 짧게 받아들이고 넘어가라.'
   );
 }

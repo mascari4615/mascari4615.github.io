@@ -37,7 +37,7 @@ const loadedWords = [
 ];
 
 /** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 말. */
-export function 기운재기(text: string): number {
+export function measureEnergy(text: string): number {
   const 말 = text.trim();
   if (말.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
   let score = 0;
@@ -72,7 +72,7 @@ export interface EpisodeStoreOptions {
  * 「응」 「ㅇㅇ」 같은 건 물어볼 것도 없고, 얘한테 시키는 말(「짧게 설명해줘」)도 사건이
  * 아니다. 실제 기록을 보니 사람 말 197개 중 113개가 낱말 세 개도 안 됐다.
  */
-function 물어볼만한가(text: string): boolean {
+function worthAsking(text: string): boolean {
   const 말 = text.trim();
   if (말.length < 8) return false;
   return (말.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).length >= 3;
@@ -111,13 +111,13 @@ export class EpisodeStore {
     for (const e of entries) {
       if (e.role !== 'sensed' || e.channel !== 'web') continue;
       if (this.있나(e.text)) continue;
-      const 기운 = 기운재기(e.text);
-      if (기운 < this.options.문턱) {
+      const energy = measureEnergy(e.text);
+      if (energy < this.options.문턱) {
         // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
-        if (물어볼만한가(e.text)) this.물어볼것.set(e.text.trim(), e.at);
+        if (worthAsking(e.text)) this.물어볼것.set(e.text.trim(), e.at);
         continue;
       }
-      this.담기({ said: e.text.trim(), at: e.at, 기운 });
+      this.담기({ said: e.text.trim(), at: e.at, 기운: energy });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
@@ -163,21 +163,21 @@ export class EpisodeStore {
 
     const bundle = [...this.물어볼것.entries()].slice(0, atOnce);
     for (const [말] of bundle) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
-    let 점수들: readonly number[] | null = null;
+    let scores: readonly number[] | null = null;
     try {
-      점수들 = await 물어보기(bundle.map(([말]) => 말));
+      scores = await 물어보기(bundle.map(([말]) => 말));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
     }
-    if (점수들 === null || 점수들.length !== bundle.length) {
-      this.options.log?.(`되새김 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${점수들?.length ?? '없음'}개 왔다`);
+    if (scores === null || scores.length !== bundle.length) {
+      this.options.log?.(`되새김 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${scores?.length ?? '없음'}개 왔다`);
       return 0;
     }
 
     let 담은수 = 0;
     bundle.forEach(([말, at], i) => {
-      const 기운 = Math.round(점수들![i]);
+      const 기운 = Math.round(scores![i]);
       if (Number.isFinite(기운) === false || 기운 < this.options.문턱 || this.있나(말)) return;
       this.담기({ said: 말, at, 기운 });
       담은수 += 1;
@@ -190,16 +190,16 @@ export class EpisodeStore {
   }
 
   /** 지금 이 말과 이어지는 옛 일. 없으면 null. */
-  related(now말: string, 최소겹침 = 2, now = Date.now()): Episode | null {
-    const word = pick(now말);
+  related(nowText: string, minOverlap = 2, now = Date.now()): Episode | null {
+    const word = pick(nowText);
     if (word.length === 0) return null;
     let most = null as Episode | null;
-    let 가장점수 = -1;
+    let topScore = -1;
     for (const e of this.목록) {
-      const overlap = 겹치는수(word, e.said);
-      if (overlap < 최소겹침) continue;
-      const 점수 = 떠오름점수(e, word.length, overlap, now);
-      if (점수 > 가장점수) { most = e; 가장점수 = 점수; }
+      const overlap = overlapCount(word, e.said);
+      if (overlap < minOverlap) continue;
+      const 점수 = recallScore(e, word.length, overlap, now);
+      if (점수 > topScore) { most = e; topScore = 점수; }
     }
     return most;
   }
@@ -238,13 +238,13 @@ function pick(text: string): string[] {
 }
 
 /** 이 옛 일이 지금 말과 몇 낱말이나 겹치나. */
-export function 겹치는수(지금낱말: readonly string[], 그때말: string): number {
-  const 그때 = new Set(pick(그때말));
-  return 지금낱말.filter((w) => 그때.has(w)).length;
+export function overlapCount(currentWords: readonly string[], pastText: string): number {
+  const pastTime = new Set(pick(pastText));
+  return currentWords.filter((w) => pastTime.has(w)).length;
 }
 
 /** 오래된 일이 절반쯤 흐려지는 데 걸리는 날. */
-const 반감기 = 14;
+const halfLife = 14;
 
 /**
  * 어느 옛 일이 지금 떠오르나 — **겹침만으로 고르면 안 된다.**
@@ -261,12 +261,12 @@ const 반감기 = 14;
  * - **큰일이 최근을 이긴다.** 사람은 오래된 큰일을 어제 점심보다 더 잘 꺼낸다. 그래서
  *   최근은 셋 중 가장 약하게만 얹는다 — 비기는 자리를 가르는 정도.
  */
-export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: number, now: number): number {
-  const continued = Math.min(1, 겹침 / Math.max(2, 지금낱말수));
-  const 큰일 = Math.min(1, e.기운 / 6);
+export function recallScore(e: Episode, currentWordCount: number, 겹침: number, now: number): number {
+  const continued = Math.min(1, 겹침 / Math.max(2, currentWordCount));
+  const bigEvent = Math.min(1, e.기운 / 6);
   const pastDays = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
-  const recent = 0.5 ** (pastDays / 반감기);
-  return 0.5 * continued + 0.35 * 큰일 + 0.15 * recent;
+  const recent = 0.5 ** (pastDays / halfLife);
+  return 0.5 * continued + 0.35 * bigEvent + 0.15 * recent;
 }
 
 /**
@@ -281,7 +281,7 @@ export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: num
  * 두뇌가 이미 있으니 물어본다. 다만 **말하는 길에서는 안 부른다** — 답이 늦어지면 그게 더
  * 큰 손해다. 한 turn 끝나고 따로 부른다.
  */
-export function 기운묻기(ask: (prompt: string) => Promise<string | null>) {
+export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
   return async (말들: readonly string[]): Promise<readonly number[] | null> => {
     if (말들.length === 0) return [];
     const list = 말들.map((말, i) => `${i + 1}. ${말.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
@@ -306,7 +306,7 @@ export function 기운묻기(ask: (prompt: string) => Promise<string | null>) {
 }
 
 /** 얼마나 지난 일인지 사람이 쓰는 말로. */
-export function 언제쯤(at: number, now: number): string {
+export function roughlyWhen(at: number, now: number): string {
   const date = Math.floor((now - at) / (24 * 60 * 60_000));
   if (date >= 30) return '한참 전에';
   if (date >= 7) return '지난주쯤';
@@ -324,7 +324,7 @@ export function episodeNote(store: EpisodeStore, currentText: string, now: numbe
   const 그때 = store.related(currentText, 2, now);
   if (그때 === null) return '';
   return (
-    `${언제쯤(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +
+    `${roughlyWhen(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +
     '이어지는 얘기면 그때 일을 아는 티를 내라 — 다만 캐묻지는 마라.'
   );
 }

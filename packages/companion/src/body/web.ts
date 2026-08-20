@@ -3,14 +3,14 @@ import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
 import { touchKindFromWire, touchSensation } from '../touch';
-import { 깨졌나, 깨진줄들 } from '../garbled';
+import { isBroken, brokenLines } from '../garbled';
 import { Backchannel } from '../backchannel';
 import { Face, expressionFrom, stripExpression } from '../expression';
-import { 평소 } from '../feeling';
-import { 모든뜸 } from '../filler';
+import { usual } from '../feeling';
+import { allWarm } from '../filler';
 import { withTone, type Tone } from '../voice/feeling-tone';
 import type { Whisper } from '../sense/whisper';
-import { 안넘긴이유 } from '../heard';
+import { keepReason } from '../heard';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 import { 같은저장소사본들, 이저장소 } from '../workspace';
@@ -115,7 +115,7 @@ export type WebBody = Body & { 알아챔: (무엇: string) => void };
  * 이름으로만 보면 `localhost.evil.com` 이 통과하므로 **주소를 파싱해서** 호스트가 정확히
  * 이 기계인지 본다. 포트는 안 본다(앱마다 다르고, 어차피 이 기계 안이다).
  */
-export function 이기계인가(origin: string): boolean {
+export function isThisMachine(origin: string): boolean {
   // Tauri 앱 창은 이 이름으로 온다 — 실제 서버가 아니라 앱 내부 주소다.
   if (origin === 'tauri://localhost' || origin === 'https://tauri.localhost') return true;
   try {
@@ -146,7 +146,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    * 가르는 선이라고 한다. 우리는 그걸 재지도 않고 있었다 — 못 재는 것은 못 고친다.
    */
   /** 창이 알려 준 제 몸 — 아직 안 알려 줬으면 모른다. */
-  let 창의몸: '3D' | '큐브' | null = null;
+  let windowBody: '3D' | '큐브' | null = null;
   let askedAt: number | null = null;
   const firstSound: number[] = [];
 
@@ -160,8 +160,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    *
    * 짧은 말만 담는다. 긴 대답은 매번 다르므로 담아 봐야 안 맞고 자리만 먹는다.
    */
-  const 만든소리 = new Map<string, { audio: Buffer; type: string }>();
-  const 소리캐시최대 = 60;
+  const madeAudio = new Map<string, { audio: Buffer; type: string }>();
+  const audioCacheMax = 60;
 
   /**
    * 얘가 뭘 알아챘는지 **창에 띄운다** — 그리고 기록에도 남긴다.
@@ -172,7 +172,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    *
    * 한 자리에서 둘 다 한다. 따로 부르게 두면 어느 한쪽만 부르는 자리가 반드시 생긴다.
    */
-  function 알아챔(무엇: string): void {
+  function noticed(무엇: string): void {
     const content = 무엇.trim();
     if (content === '') return;
     log(`[알아챔] ${content}`);
@@ -192,29 +192,29 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
   /** 뜸으로 쓰일 말들을 미리 만들어 담아 둔다. 몇 마디뿐이라 금방 끝난다. */
   /** 어떤 목소리로 뜸을 미리 만들어 뒀나. 목소리를 바꾸면 다시 만들어야 한다. */
-  const 뜸만든목소리 = new Set<string>();
+  const warmedVoices = new Set<string>();
 
-  async function 뜸미리만들기(목소리?: string): Promise<void> {
+  async function prewarmVoice(목소리?: string): Promise<void> {
     if (options.speech === undefined) return;
     // **실제로 쓰는 목소리로 만들어야 한다.** 처음엔 「목소리 없음」으로 만들어 뒀는데,
     // 창은 고른 목소리 이름을 붙여 보내므로 담아 둔 것과 열쇠가 안 맞아 **한 번도 안
     // 맞았다**(실측: 그대로 10초). 담아 두기는 열쇠가 어긋나면 조용히 무용지물이 된다.
-    if (뜸만든목소리.has(목소리 ?? '')) return;
-    뜸만든목소리.add(목소리 ?? '');
-    let 만든수 = 0;
-    for (const 말 of 모든뜸()) {
+    if (warmedVoices.has(목소리 ?? '')) return;
+    warmedVoices.add(목소리 ?? '');
+    let madeCount = 0;
+    for (const 말 of allWarm()) {
       const key = `${목소리 ?? ''}|${말}`;
-      if (만든소리.has(key)) continue;
+      if (madeAudio.has(key)) continue;
       try {
         const audio = await options.speech.synthesize(말, 목소리);
         const perVoice = (options.speech as { contentTypeFor?: (v?: string) => string }).contentTypeFor;
-        만든소리.set(key, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
-        만든수 += 1;
+        madeAudio.set(key, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
+        madeCount += 1;
       } catch {
         // 하나 못 만들어도 나머지는 만든다. 못 만든 건 그때 가서 만들면 된다.
       }
     }
-    if (만든수 > 0) log(`뜸 ${만든수}개를 미리 만들어 뒀다 (${목소리 ?? '기본 목소리'})`);
+    if (madeCount > 0) log(`뜸 ${madeCount}개를 미리 만들어 뒀다 (${목소리 ?? '기본 목소리'})`);
   }
 
   const sense: Sense = {
@@ -228,9 +228,9 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
            그렇다고 아무 곳에나 열면 **인터넷의 어떤 페이지든** 이 대화를 읽고 말을 걸 수
            있다(로컬 서버는 그 페이지에게도 그냥 주소일 뿐이다). 그래서 이 기계에서 뜬
            것만 허용한다 — 열되, 밖으로는 안 연다. */
-        const 부른곳 = req.headers.origin;
-        if (부른곳 !== undefined && 이기계인가(부른곳)) {
-          res.setHeader('access-control-allow-origin', 부른곳);
+        const caller = req.headers.origin;
+        if (caller !== undefined && isThisMachine(caller)) {
+          res.setHeader('access-control-allow-origin', caller);
           res.setHeader('vary', 'origin');
           // 검사 표시 헤더까지 허용 목록에 있어야 한다 — 빠지면 브라우저가 통째로 막는다.
           res.setHeader('access-control-allow-headers', 'content-type, x-companion-test');
@@ -397,8 +397,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           req.on('data', (chunk) => { raw += chunk; if (raw.length > 2000) req.destroy(); });
           req.on('end', () => {
             try {
-              const 온것 = JSON.parse(raw) as { 몸?: unknown };
-              if (온것.몸 === '3D' || 온것.몸 === '큐브') 창의몸 = 온것.몸;
+              const arrived = JSON.parse(raw) as { 몸?: unknown };
+              if (arrived.몸 === '3D' || arrived.몸 === '큐브') windowBody = arrived.몸;
             } catch {
               // 못 읽으면 모르는 채로 둔다
             }
@@ -414,7 +414,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
             창붙음: clients.size,
-            몸: 창의몸,
+            몸: windowBody,
             ...(options.상태?.() ?? {}),
           }));
           return;
@@ -501,18 +501,18 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end(JSON.stringify({ ok: true, text: heard }));
               if (listening) {
-                알아챔('귀를 열었다');
+                noticed('귀를 열었다');
                 broadcast({ type: 'listening' });
               } else {
                 /* 귀를 늘 열어 두면 받아쓰기가 잡음에 그럴듯한 글을 붙인다. 그대로 넘기면
                    아무도 말 안 걸었는데 얘가 혼자 대꾸한다. 거르는 자리는 **여기**다 —
                    글을 두뇌에 넘기는 건 서버라, 창에서 걸러 봐야 이미 늦는다. */
-                const reason = 안넘긴이유(heard, Number.isFinite(spokenMs) ? spokenMs : null);
+                const reason = keepReason(heard, Number.isFinite(spokenMs) ? spokenMs : null);
                 if (reason === null) {
                   broadcast({ type: 'heard', text: heard as string });
                   senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
                 } else {
-                  알아챔(`안 받은 소리 — ${reason}`);
+                  noticed(`안 받은 소리 — ${reason}`);
                 }
               }
             })
@@ -552,18 +552,18 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           // 내는 쪽으로 바꾸자 만드는 데만 2~3초가 걸렸는데 기록은 그대로 0.7초였다 —
           // 지표가 거짓말을 하면 느려진 걸 아무도 모른다. 진짜 첫 소리는 창이 소리를
           // 내기 시작한 때고, 그건 창만 안다(아래 `/played`).
-          const 만들기시작 = Date.now();
+          const startMaking = Date.now();
           // 지금 마음을 목소리 결로 얹는다. 브라우저는 결을 모른다 — 알 필요도 없다.
           const 목소리 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
 
           // 담아 둔 게 있으면 그대로 낸다. 만드는 줄에 아예 안 선다.
           const 열쇠 = `${목소리 ?? ''}|${say}`;
-          const 담긴것 = say.length <= 30 ? 만든소리.get(열쇠) : undefined;
+          const stored = say.length <= 30 ? madeAudio.get(열쇠) : undefined;
           // 이 목소리로 아직 안 만들어 뒀으면 뒤에서 만들어 둔다 — 다음 뜸부터 즉시 난다.
-          void 뜸미리만들기(목소리);
-          if (담긴것 !== undefined) {
-            res.writeHead(200, { 'content-type': 담긴것.type, 'content-length': 담긴것.audio.length });
-            res.end(담긴것.audio);
+          void prewarmVoice(목소리);
+          if (stored !== undefined) {
+            res.writeHead(200, { 'content-type': stored.type, 'content-length': stored.audio.length });
+            res.end(stored.audio);
             return;
           }
 
@@ -572,14 +572,14 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             .then((audio) => {
               // **무엇을 만드느라 걸렸는지 같이 남긴다.** 시간만 남기면 「9.2초」를 보고도
               // 길이 탓인지 겹친 탓인지 딴 탓인지 못 가른다 — 실제로 한 회차를 그렇게 썼다.
-              log(`소리 만드는 데 ${((Date.now() - 만들기시작) / 1000).toFixed(1)}초 · ${say.length}자 「${say.slice(0, 24)}」`);
+              log(`소리 만드는 데 ${((Date.now() - startMaking) / 1000).toFixed(1)}초 · ${say.length}자 「${say.slice(0, 24)}」`);
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
               const type = perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg');
               if (say.length <= 30) {
                 // 오래된 것부터 버린다 — 최근에 쓴 말이 또 나올 확률이 높다.
-                if (만든소리.size >= 소리캐시최대) 만든소리.delete(만든소리.keys().next().value as string);
-                만든소리.set(열쇠, { audio, type });
+                if (madeAudio.size >= audioCacheMax) madeAudio.delete(madeAudio.keys().next().value as string);
+                madeAudio.set(열쇠, { audio, type });
               }
               res.writeHead(200, { 'content-type': type, 'content-length': audio.length });
               res.end(audio);
@@ -612,17 +612,17 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if (url.startsWith('/garbled')) {
           void Promise.resolve(options.history?.() ?? [])
             .then((entries) => {
-              const 깨진것 = 깨진줄들([...entries]);
+              const brokenOnes = brokenLines([...entries]);
               if (req.method !== 'POST') {
                 res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ 깨진줄: 깨진것.length, 보기: 깨진것.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
+                res.end(JSON.stringify({ 깨진줄: brokenOnes.length, 보기: brokenOnes.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
                 return;
               }
-              let 지운수 = 0;
-              for (const e of 깨진것) 지운수 += options.forget?.(e.text, true)?.conversation ?? 0;
-              log(`깨진 줄 ${깨진것.length}개를 걷어냈다 (대화 ${지운수}줄)`);
+              let removedCount = 0;
+              for (const e of brokenOnes) removedCount += options.forget?.(e.text, true)?.conversation ?? 0;
+              log(`깨진 줄 ${brokenOnes.length}개를 걷어냈다 (대화 ${removedCount}줄)`);
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-              res.end(JSON.stringify({ 걷어냄: 깨진것.length, 대화: 지운수 }));
+              res.end(JSON.stringify({ 걷어냄: brokenOnes.length, 대화: removedCount }));
             })
             .catch(() => res.writeHead(500).end());
           return;
@@ -644,7 +644,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if (url === '/say' && req.method === 'POST') {
           /* 검사가 건네는 말은 **기억에 안 남긴다.** 검사가 쌓아 놓은 말이 졸여져서
              사람의 상이 된 적이 있다(실측: 「아는 것」 네 줄이 전부 검사 찌꺼기였다). */
-          const 시험인가 = req.headers['x-companion-test'] === '1';
+          const isTest = req.headers['x-companion-test'] === '1';
           let raw = '';
           req.on('data', (chunk) => {
             raw += chunk;
@@ -652,12 +652,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           });
           req.on('end', () => {
             let text = '';
-            let 누가: string | undefined;
+            let who: string | undefined;
             try {
               const 온것 = JSON.parse(raw) as { text?: unknown; 누가?: unknown };
               text = String(온것.text ?? '').trim();
               // 여럿이 있는 자리에서는 누가 한 말인지 같이 온다. 단둘이면 안 온다.
-              if (typeof 온것.누가 === 'string' && 온것.누가.trim() !== '') 누가 = 온것.누가.trim().slice(0, 40);
+              if (typeof 온것.누가 === 'string' && 온것.누가.trim() !== '') who = 온것.누가.trim().slice(0, 40);
             } catch {
               text = '';
             }
@@ -666,11 +666,11 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
                담긴다 — 사람이 안 한 말이 사람의 기억이 된다. 막을 땐 왜 막았는지
                남긴다. 조용히 버리면 「보냈는데 아무 반응이 없다」가 되고 고장과
                구분이 안 된다. */
-            const 깨짐 = text === '' ? null : 깨졌나(text);
-            if (깨짐 !== null) {
-              log(`받지 않았다 — ${깨짐}: ${text.slice(0, 30)}`);
+            const broken = text === '' ? null : isBroken(text);
+            if (broken !== null) {
+              log(`받지 않았다 — ${broken}: ${text.slice(0, 30)}`);
               res.writeHead(400, { 'content-type': 'application/json; charset=utf-8' });
-              res.end(JSON.stringify({ 안받은이유: 깨짐 }));
+              res.end(JSON.stringify({ 안받은이유: broken }));
               return;
             }
             res.writeHead(text === '' ? 400 : 204).end();
@@ -686,8 +686,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               kind: 'text',
               text,
               at: askedAt,
-              ...(누가 === undefined ? {} : { 누가 }),
-              ...(시험인가 ? { 시험: true } : {}),
+              ...(who === undefined ? {} : { 누가: who }),
+              ...(isTest ? { 시험: true } : {}),
             });
           });
           return;
@@ -736,12 +736,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
         // 브라우저 → 서버: 얘 몸에 닿은 것. 말이 아니라서 통로를 따로 둔다.
         if (url.startsWith('/touch') && req.method === 'POST') {
-          const 시험닿음 = req.headers['x-companion-test'] === '1';
+          const testTouch = req.headers['x-companion-test'] === '1';
           const wire = new URL(url, 'http://x').searchParams.get('kind') ?? 'poke';
           const kind = touchKindFromWire(wire);
           res.writeHead(kind === null ? 400 : 204).end();
           if (kind === null) return;
-          emit(시험닿음 ? { ...touchSensation(kind), 시험: true } : touchSensation(kind));
+          emit(testTouch ? { ...touchSensation(kind), 시험: true } : touchSensation(kind));
           return;
         }
 
@@ -760,8 +760,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         // **결까지 붙여서 만들어야 한다.** 요청 쪽은 지금 마음의 결을 붙여 보내므로,
         // 결 없이 만들어 두면 또 열쇠가 어긋난다 — 같은 함정을 두 번 밟았다.
         // 결은 때에 따라 바뀌므로 못 맞힌 것은 첫 요청 때 뒤에서 만들어 둔다.
-        .then((목록) => 뜸미리만들기(withTone(목록?.[0]?.id, options.tone?.() ?? null)))
-        .catch(() => 뜸미리만들기());
+        .then((목록) => prewarmVoice(withTone(목록?.[0]?.id, options.tone?.() ?? null)))
+        .catch(() => prewarmVoice());
         if (options.open) openBrowser(url);
       });
     },
@@ -803,7 +803,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
       backchannel.answered();
       const { text, tagged } = stripExpression(utterance.text);
       const 얼굴 = face.changeTo(expressionFrom({
-        feeling: options.feeling?.() ?? 평소,
+        feeling: options.feeling?.() ?? usual,
         text,
         tagged,
       }));
@@ -815,7 +815,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
   /* 알아챈 것을 밖에서도 밀어 넣을 수 있게 내준다 — 인식은 여기서만 일어나지 않는다
      (자리 판단·사건 담기·재료 밀림은 전부 바깥에 있다). */
-  return { name: channel, sense, voice, 알아챔 };
+  return { name: channel, sense, voice, 알아챔: noticed };
 }
 
 /**
@@ -900,8 +900,8 @@ export function ownWindowExe(): string | null {
   if (process.platform !== 'win32') return null;
 
   // 밖에서 알려 준 자리가 가장 세다.
-  const 알려준것 = process.env.COMPANION_WINDOW_EXE?.trim();
-  if (알려준것 !== undefined && 알려준것 !== '' && existsSync(알려준것)) return 알려준것;
+  const told = process.env.COMPANION_WINDOW_EXE?.trim();
+  if (told !== undefined && told !== '' && existsSync(told)) return told;
 
   /* **저장소 위치에 묶지 않는다.**
    *
@@ -909,8 +909,8 @@ export function ownWindowExe(): string | null {
    * (워크트리)에서 얘를 띄우면 그 폴더엔 구운 게 없어서, 여태 조용히 옛 창으로 물러섰다 —
    * 그 결과가 분홍 바탕 + 창틀이었다. 창 프로그램은 주소만 보고 붙으므로 **어느 저장소의
    * 것이든 같은 물건**이다. 그러니 이웃 저장소도 본다. */
-  const 후보뿌리 = [이저장소(), ...같은저장소사본들(join('apps', 'karmolab-tauri'))];
-  for (const root of 후보뿌리) {
+  const candidateRoots = [이저장소(), ...같은저장소사본들(join('apps', 'karmolab-tauri'))];
+  for (const root of candidateRoots) {
     for (const slot of ['release', 'debug']) {
       const exe = join(root, 'apps', 'karmolab-tauri', 'target', slot, 'companion-window.exe');
       if (existsSync(exe)) return exe;
@@ -931,7 +931,7 @@ function openOwnWindow(
   // 애초에 자를 테두리를 없앤다. 창은 화면을 다 덮되 **몸과 눌러야 하는 자리 밖은 클릭이
   // 그대로 지나가므로**(창이 스스로 알려 준다) 평소엔 없는 것과 같다. 얘를 끌면 창이 아니라
   // **몸이 화면 안에서** 옮겨 다닌다.
-  const screen = 작업영역();
+  const screen = workspace();
   return import('node:child_process').then(({ spawn }) => {
     try {
       const child = spawn(exe, [], {
@@ -972,7 +972,7 @@ function openOwnWindow(
  *
  * 한 번만 묻는다 — 창을 띄울 때뿐이라 값이 비싸지 않다. 화면이 바뀌면 다시 띄우면 된다.
  */
-function 작업영역(): { width: number; height: number } | null {
+function workspace(): { width: number; height: number } | null {
   if (process.platform !== 'win32') return null;
   try {
     const { execFileSync } = require('node:child_process') as typeof import('node:child_process');

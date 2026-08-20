@@ -22,10 +22,10 @@ import {
   clonedSpeech,
   EpisodeStore,
   episodeNote,
-  되새김,
-  되새김노트,
+  reflection,
+  reflectionNote,
   되새김묻기,
-  기운묻기,
+  askEnergy,
   KnownStamps,
   말걸어도되나,
   bySlotTone,
@@ -38,14 +38,14 @@ import {
   notReturned,
   묻는말인가,
   지시문에대꾸했나,
-  받을길이,
-  먼저꺼낼것,
-  안꺼내는이유,
-  어느머리,
-  머리끼우기,
-  짧게받았나,
+  acceptLength,
+  topicFirst,
+  topicSkipReason,
+  whichHead,
+  attachHead,
+  wasShort,
   되물은비율,
-  갓알게된것,
+  justLearned,
   InMemoryMemory,
   JsonlFileMemory,
   landingNote,
@@ -77,7 +77,7 @@ import {
   asksAboutFirstMeeting,
   autoUse,
   isRealBargeIn,
-  기본힌트,
+  defaultHint,
   loadHands,
   madeUpFact,
   madeUpRetryNote,
@@ -307,7 +307,7 @@ const memory =
    한 turn 끝나고 따로 부른다. */
 const 그때그일 = new EpisodeStore({
   path: join(home, '그때-그-일.json'),
-  물어보기: 기운묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  물어보기: askEnergy((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[그때] ${m}`); web?.알아챔?.(`기억에 담았다 — ${m}`); },
 });
 
@@ -348,7 +348,7 @@ const 되묻기강제 = process.env.COMPANION_TOSSBACK_RETRY !== '0';
 /* 되새김 — 오간 말에서 **바로 안 보이는 것**을 스스로 짚는다(79회차).
    여태 기억은 셋 다 「일어난 일」이었다. 그 위에 얹히는 것, 「그래서 뭐가 보이나」가 없었다.
    근거를 못 대는 것은 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다. */
-const 되새긴것 = new 되새김({
+const 되새긴것 = new reflection({
   path: join(home, '보아-온-것.json'),
   물어보기: 되새김묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
@@ -390,7 +390,7 @@ function 받을자리인가() {
   const 최근 = conversationMemory.recent(40);
   const 목록 = Array.isArray(최근) ? 최근 : [];
   const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  return 받을길이({ 방금, recent: 목록 }) !== '';
+  return acceptLength({ 방금, recent: 목록 }) !== '';
 }
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const 시작한때 = Date.now();
@@ -894,7 +894,7 @@ const mouth = mouthGate({
     ?? (되묻기강제 ? notReturned(text, 공돌려줄자리인가()) : null)
     /* 길게 털어놨는데 한마디로 끊은 것도 여기서 잡는다. **시켜 놓고 안 세면 재료만 얹고
        끝난다** — 실측으로 얘 답은 사람이 1자를 쓰든 50자를 쓰든 가운데값 6~7자였다. */
-    ?? 짧게받았나(text, 받을자리인가()),
+    ?? wasShort(text, 받을자리인가()),
   /* 아쉬울 뿐인 것과 해로운 것을 가른다. 지어낸 사실·조수 말투는 버리는 게 맞지만,
      짧거나 안 되물은 말은 얼버무림보다 낫다 — 막는 자리가 답을 더 나쁘게 만들면 안 된다. */
   아쉬울뿐인가: (why) => /한마디로 끊었다|되묻지 않았다/.test(why),
@@ -1009,7 +1009,7 @@ const companion = new Companion({
     // **파일로 더한 손의 힌트가 먼저다.** 사람이 「이럴 때 쓰라」고 적어 둔 것이니
     // 우리가 코드에 박아 둔 것보다 앞선다.
     const 미리쓴것 = await autoUse(sensation.text, hands, {
-      hints: [...파일힌트, ...기본힌트],
+      hints: [...파일힌트, ...defaultHint],
       log: (m) => {
         console.log(`[손] ${m}`);
         if (m.includes('못 썼다')) troubles.hit('못함', m);
@@ -1060,14 +1060,14 @@ const companion = new Companion({
        **먼저 지난 turn 의 것을 되돌린다** — 어디선가 터져서 못 되돌렸어도 여기서 낫는다. */
     되돌릴머리?.();
     되돌릴머리 = null;
-    const 고른머리 = 어느머리({
-      받을자리: 받을길이({ 방금: 방금한말, recent: wholeStory }) !== '',
+    const 고른머리 = whichHead({
+      받을자리: acceptLength({ 방금: 방금한말, recent: wholeStory }) !== '',
       돌려줄자리: 공돌려줄자리인가(),
       자기얘기: asksAboutSelf(방금한말),
       옛일있나: 그때그일.related(방금한말, 2, Date.now()) !== null,
     }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
     if (고른머리.왜 !== '') {
-      되돌릴머리 = 머리끼우기(brain, 고른머리.머리, (m) => console.log(`[머리] ${m}`));
+      되돌릴머리 = attachHead(brain, 고른머리.머리, (m) => console.log(`[머리] ${m}`));
       console.log(`[머리] ${고른머리.머리} 로 바꾼다 — ${고른머리.왜}`);
       web.알아챔(`머리를 크게 쓴다 — ${고른머리.왜}`);
     }
@@ -1087,9 +1087,9 @@ const companion = new Companion({
       // 이어지는 옛 일이 있으면 꺼낸다. 없으면 아무 말도 안 얹는다 — 늘 붙이면
       // 「기억하는 척」이 되고 재료만 먹는다.
       // 여러 마디에 걸쳐야 보이는 것. 지금 얘기와 이어질 때만 나온다.
-      { name: '보아온것', weight: 11, text: 되새김노트(되새긴것, 방금한말) },
+      { name: '보아온것', weight: 11, text: reflectionNote(되새긴것, 방금한말) },
       // 짧은 건 인격이지만 **안 변하는 건 고장이다**(83회차 실측: 사람이 뭘 쓰든 가운데값 7자).
-      { name: '받는길이', weight: 14, text: 받을길이({ 방금: 방금한말, recent: wholeStory }) },
+      { name: '받는길이', weight: 14, text: acceptLength({ 방금: 방금한말, recent: wholeStory }) },
       { name: '그때그일', weight: 10, text: (() => {
         그때그일.learn(recent);
         return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());
@@ -1103,7 +1103,7 @@ const companion = new Companion({
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
         const 아는것 = memory.longTerm?.() ?? null;
         언제알았나.sync(아는것);
-        return 갓알게된것(아는것, 언제알았나, Date.now());
+        return justLearned(아는것, 언제알았나, Date.now());
       })() },
       // 늘 있어야 하는 것 — 지금 어떤 상태인가.
       // 틀렸다고 하면 그게 가장 먼저다 — 우기는 것보다 나쁜 게 없다.
@@ -1198,14 +1198,14 @@ const companion = new Companion({
       식는중: 공돌려줄자리인가(),
       물어본turn: 묻는말인가(방금한말),
     };
-    const 먼저 = 먼저꺼낼것(꺼낼거리);
+    const 먼저 = topicFirst(꺼낼거리);
     if (먼저 !== null) {
       console.log(`[먼저꺼냄] ${먼저.이름} (${먼저.참은수}번 참았다)`);
       web.알아챔(`먼저 꺼낸다 — ${먼저.이름} (${먼저.참은수}번 참았다)`);
       // 다른 무엇보다 앞이다. 곁가지가 아니라 이번 turn 의 화제다.
       재료들.push({ name: '먼저꺼냄', text: 먼저.말, weight: 40 });
     } else {
-      const 왜 = 안꺼내는이유(꺼낼거리);
+      const 왜 = topicSkipReason(꺼낼거리);
       if (왜 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${왜}`);
     }
     const 만든것 = composeIngredients(드묾덧입히기(밀린것.덧입히기(재료들), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });

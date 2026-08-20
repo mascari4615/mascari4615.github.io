@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Playing, canFollow, invitesPlay, judge, pickWord, play, startWordChain, 아는말, 한수처럼생겼나 } from '../dist/index.js';
+import { Playing, canFollow, invitesPlay, judge, pickWord, play, startWordChain, knownWords, looksLikeMove } from '../dist/index.js';
 
 const 첫째 = () => 0;
 const 판 = (used, next) => ({ used, next, turn: '조수님', winner: null });
@@ -161,8 +161,8 @@ test('놀이가 끝난 뒤 다시 걸면 새 판이 열린다', () => {
 });
 
 test('얘가 아는 말 목록 자체가 규칙을 지킨다 — 사전에 없는 말로 이기면 재미가 없다', () => {
-  assert.equal(new Set(아는말).size, 아는말.length, '같은 말이 두 번 들어 있으면 안 된다');
-  for (const w of 아는말) {
+  assert.equal(new Set(knownWords).size, knownWords.length, '같은 말이 두 번 들어 있으면 안 된다');
+  for (const w of knownWords) {
     assert.equal(judge(startWordChain(), w).ok, true, `「${w}」 는 낼 수 없는 말이다`);
   }
 });
@@ -173,7 +173,7 @@ test('아는 말이 충분해서 몇 수는 주고받는다 — 한 수 만에 �
   let 수 = 0;
   while (p.on && 수 < 12) {
     const 끝 = p.used[p.used.length - 1].slice(-1);
-    const 이을것 = 아는말.find((w) => w[0] === 끝 && p.used.includes(w) === false);
+    const 이을것 = knownWords.find((w) => w[0] === 끝 && p.used.includes(w) === false);
     if (이을것 === undefined) break;
     p.hear(이을것);
     수 += 1;
@@ -195,8 +195,8 @@ test('틀린 수는 그래도 한 수다 — 안 그러면 규칙 없는 놀이�
 });
 
 test('한 수처럼 생겼는지 가릴 수 있다', () => {
-  for (const w of ['과일', 'apple', '가']) assert.equal(한수처럼생겼나(w), true, `${w} 는 한 수다`);
+  for (const w of ['과일', 'apple', '가']) assert.equal(looksLikeMove(w), true, `${w} 는 한 수다`);
   for (const w of ['나 오늘 힘들었어', '뭐해?', '과일.', '아주아주긴낱말이라면']) {
-    assert.equal(한수처럼생겼나(w), false, `${w} 는 한 수가 아니다`);
+    assert.equal(looksLikeMove(w), false, `${w} 는 한 수가 아니다`);
   }
 });

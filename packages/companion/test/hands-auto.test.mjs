@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { pickHand, 기본힌트 } from '../dist/index.js';
+import { pickHand, defaultHint } from '../dist/index.js';
 
 /** 이름만 있는 가짜 손들 — 고르는 규칙만 본다. */
 const 손들 = ['시계', '창목록', '적어둔것보기', '파일찾기', '적어두기', '파일정보']
@@ -39,7 +39,7 @@ test('없는 손은 안 고른다 — 힌트만 있고 손이 없으면 그냥 �
 });
 
 test('힌트가 하나도 없는 손은 자동으로 쓰일 길이 없다 — 이번에 찾은 구멍이다', () => {
-  const 힌트있는손 = new Set(기본힌트.map((h) => h.hand));
+  const 힌트있는손 = new Set(defaultHint.map((h) => h.hand));
   // 「열기」는 되돌리기 어려워 일부러 뺐다. 나머지는 붙어 있어야 한다.
   for (const 이름 of ['시계', '창목록', '적어둔것보기', '파일찾기', '적어두기', '파일정보']) {
     assert.ok(힌트있는손.has(이름), `${이름} 에 힌트가 없다 — 만들어 두고 안 붙인 것과 같다`);

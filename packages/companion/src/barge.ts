@@ -21,7 +21,7 @@ import type { Sensation } from './types';
 const agreement = /^[…\s]*(응|어|음|아|오|네|그래|그치|맞아|맞네|ㅇㅇ|ㅋ+|ㅎ+|하하|그렇구나|그러게|알겠어|오케이|ok)[…\s.!?~ㅋㅎ]*$/i;
 
 /** 하던 말을 멈추라는 뜻이 뚜렷한 말. */
-const 멈춰 = /(잠깐|잠시|아니|그만|스톱|stop|기다려|멈춰|아냐)/i;
+const stop = /(잠깐|잠시|아니|그만|스톱|stop|기다려|멈춰|아냐)/i;
 
 /**
  * 이 말이 **진짜 끼어들기**인가.
@@ -32,7 +32,7 @@ const 멈춰 = /(잠깐|잠시|아니|그만|스톱|stop|기다려|멈춰|아냐
 export function isRealBargeIn(text: string): boolean {
   const t = text.trim();
   if (t === '') return false;
-  if (멈춰.test(t)) return true;
+  if (stop.test(t)) return true;
   return agreement.test(t) === false;
 }
 

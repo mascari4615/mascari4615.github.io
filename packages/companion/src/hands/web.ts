@@ -30,7 +30,7 @@ export interface WebSearchOptions {
   log?: (message: string) => void;
 }
 
-const 기본가져오기 = async (url: string, signal: AbortSignal): Promise<string> => {
+const defaultFetch = async (url: string, signal: AbortSignal): Promise<string> => {
   const res = await fetch(url, {
     signal,
     headers: {
@@ -44,7 +44,7 @@ const 기본가져오기 = async (url: string, signal: AbortSignal): Promise<str
 };
 
 /** 태그를 걷어내고 사람이 읽는 글만 남긴다. */
-export function 글만(html: string): string {
+export function textOnly(html: string): string {
   return html
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
@@ -63,28 +63,28 @@ export function 글만(html: string): string {
  * 남의 화면 생김새에 기대는 일이라 언젠가 어긋난다. 그래서 **못 뽑으면 빈 배열**이고,
  * 부르는 쪽이 「못 찾았다」고 말한다 — 조용히 그럴듯한 걸 지어내는 것보다 낫다.
  */
-export function 결과뽑기(html: string, count = 5): 찾은것[] {
+export function extractResults(html: string, count = 5): 찾은것[] {
   const produced: 찾은것[] = [];
-  const 덩이 = /<a[^>]+class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>([\s\S]{0,600}?)(?=<a[^>]+class="[^"]*result__a|$)/g;
+  const block = /<a[^>]+class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>([\s\S]{0,600}?)(?=<a[^>]+class="[^"]*result__a|$)/g;
   let m: RegExpExecArray | null;
-  while ((m = 덩이.exec(html)) !== null && produced.length < count) {
-    const title = 글만(m[2] ?? '');
+  while ((m = block.exec(html)) !== null && produced.length < count) {
+    const title = textOnly(m[2] ?? '');
     if (title === '') continue;
-    const 요약칸 = /class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/.exec(m[3] ?? '');
+    const snippetCell = /class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/.exec(m[3] ?? '');
     produced.push({
       제목: title,
-      주소: 주소풀기(m[1] ?? ''),
-      요약: 글만(요약칸?.[1] ?? '').slice(0, 200),
+      주소: resolveUrl(m[1] ?? ''),
+      요약: textOnly(snippetCell?.[1] ?? '').slice(0, 200),
     });
   }
   return produced;
 }
 
 /** DuckDuckGo 가 감싸 둔 주소를 원래대로. 못 풀면 온 그대로 둔다. */
-export function 주소풀기(raw: string): string {
+export function resolveUrl(raw: string): string {
   try {
-    const 안쪽 = /[?&]uddg=([^&]+)/.exec(raw);
-    if (안쪽 !== null) return decodeURIComponent(안쪽[1] as string);
+    const inner = /[?&]uddg=([^&]+)/.exec(raw);
+    if (inner !== null) return decodeURIComponent(inner[1] as string);
   } catch {
     // 못 풀면 원래 것을 쓴다
   }
@@ -92,21 +92,21 @@ export function 주소풀기(raw: string): string {
 }
 
 /** 검색해서 사람이 읽는 글로 돌려준다. 못 찾으면 그렇게 말한다. */
-export async function 웹에서찾기(what: string, options: WebSearchOptions = {}): Promise<string> {
+export async function searchWeb(what: string, options: WebSearchOptions = {}): Promise<string> {
   const question = what.trim();
   if (question === '') return '무엇을 찾을지 안 왔다.';
 
   const 몇개 = options.몇개 ?? 5;
   const waited = options.기다림ms ?? 8000;
-  const 가져오기 = options.가져오기 ?? 기본가져오기;
+  const 가져오기 = options.가져오기 ?? defaultFetch;
   const controller = new AbortController();
-  const 시계 = setTimeout(() => controller.abort(), waited);
+  const clock = setTimeout(() => controller.abort(), waited);
   try {
     const html = await 가져오기(
       `https://html.duckduckgo.com/html/?q=${encodeURIComponent(question)}`,
       controller.signal,
     );
-    const items = 결과뽑기(html, 몇개);
+    const items = extractResults(html, 몇개);
     if (items.length === 0) {
       options.log?.(`「${question}」 — 찾은 게 없다 (결과를 못 뽑았을 수도)`);
       return `「${question}」 으로는 못 찾았다.`;
@@ -118,26 +118,26 @@ export async function 웹에서찾기(what: string, options: WebSearchOptions = 
     options.log?.(`「${question}」 — 못 찾았다: ${why}`);
     return `못 찾았다 (${why}).`;
   } finally {
-    clearTimeout(시계);
+    clearTimeout(clock);
   }
 }
 
 /** 주소 하나를 열어 글만 읽어 온다. */
-export async function 읽어오기(주소: string, options: WebSearchOptions & { 몇자?: number } = {}): Promise<string> {
+export async function readIn(주소: string, options: WebSearchOptions & { 몇자?: number } = {}): Promise<string> {
   const place = 주소.trim();
   if (/^https?:\/\//.test(place) === false) return '주소가 아니다 (http 로 시작해야 한다).';
 
   const 기다림 = options.기다림ms ?? 8000;
-  const 가져오기 = options.가져오기 ?? 기본가져오기;
+  const 가져오기 = options.가져오기 ?? defaultFetch;
   const controller = new AbortController();
   const 시계 = setTimeout(() => controller.abort(), 기다림);
   try {
     const html = await 가져오기(place, controller.signal);
     // 대본·모양자는 글이 아니다 — 걷어내야 읽을 게 남는다.
-    const 본문 = html
+    const body = html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ');
-    const content = 글만(본문).slice(0, options.몇자 ?? 1500);
+    const content = textOnly(body).slice(0, options.몇자 ?? 1500);
     return content === '' ? '읽을 게 없다.' : content;
   } catch (e) {
     const 왜 = e instanceof Error && e.name === 'AbortError' ? `${기다림 / 1000}초 안에 답이 없었다` : String(e);

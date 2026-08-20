@@ -23,7 +23,7 @@ export interface ActionClaim {
 }
 
 /** 「했다」는 말과 그때 있어야 할 손. */
-const 주장들: readonly { pattern: RegExp; did: string; needs: readonly string[] }[] = [
+const claims: readonly { pattern: RegExp; did: string; needs: readonly string[] }[] = [
   { pattern: /(적어 ?뒀|적어 ?놨|메모해 ?뒀|메모했|써 ?뒀)/, did: '적어 뒀다', needs: ['적어두기', 'note', '메모'] },
   { pattern: /(찾아 ?봤|찾아 ?뒀|찾았어|검색해 ?봤)/, did: '찾아봤다', needs: ['파일찾기', 'find', '찾기'] },
   { pattern: /(열어 ?뒀|열어 ?놨|열었어)/, did: '열어 뒀다', needs: ['열기', 'open'] },
@@ -31,7 +31,7 @@ const 주장들: readonly { pattern: RegExp; did: string; needs: readonly string
 ];
 
 /** 앞으로 하겠다는 말 — 이건 주장이 아니다. */
-const 하겠다는말 = /(할게|할까|해 ?둘게|해 ?줄까|적어 ?둘게|찾아 ?볼게|열어 ?줄까|해 ?볼게|하려고|해야지)/;
+const willDoText = /(할게|할까|해 ?둘게|해 ?줄까|적어 ?둘게|찾아 ?볼게|열어 ?줄까|해 ?볼게|하려고|해야지)/;
 
 /**
  * **안 했다는 말도 주장이 아니다.**
@@ -40,7 +40,7 @@ const 하겠다는말 = /(할게|할까|해 ?둘게|해 ?줄까|적어 ?둘게|�
  * 잡혔다.** 안 했다고 솔직히 말하는 것을 거짓말이라고 막으면, 그건 정직을 벌하는 것이다.
  */
 // 「못 열어 뒀어」처럼 사이에 띄어쓰기가 들어간다 — 글자만 세면 그걸 놓친다.
-const 안했다는말 = /((안|못)[가-힣\s]{0,5}(뒀|놨|했|봤|었)|아무것도|없어|없네|없는데|아직)/;
+const didNotText = /((안|못)[가-힣\s]{0,5}(뒀|놨|했|봤|었)|아무것도|없어|없네|없는데|아직)/;
 
 /**
  * 이 말이 「했다」고 주장하나. 아니면 null.
@@ -49,10 +49,10 @@ const 안했다는말 = /((안|못)[가-힣\s]{0,5}(뒀|놨|했|봤|었)|아무�
  */
 export function findClaim(said: string): ActionClaim | null {
   const t = said.trim();
-  if (하겠다는말.test(t)) return null;
-  if (안했다는말.test(t)) return null;
+  if (willDoText.test(t)) return null;
+  if (didNotText.test(t)) return null;
 
-  for (const { pattern, did, needs } of 주장들) {
+  for (const { pattern, did, needs } of claims) {
     if (pattern.test(t)) return { did, needs };
   }
   return null;
@@ -68,8 +68,8 @@ export function unbackedClaim(said: string, usedHands: readonly string[]): strin
   const claim = findClaim(said);
   if (claim === null) return null;
 
-  const 썼나 = usedHands.some((h) => claim.needs.some((n) => h.includes(n) || n.includes(h)));
-  if (썼나) return null;
+  const used = usedHands.some((h) => claim.needs.some((n) => h.includes(n) || n.includes(h)));
+  if (used) return null;
 
   return `안 하고 「${claim.did}」고 말했다`;
 }
