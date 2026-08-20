@@ -46,7 +46,7 @@ const perTool = {};
 /* ★ **못 잰 것을 0 으로 세지 않는다** (2026-08-14). 여태 장이 안 열리면 `?` 하나 찍고 넘어갔고,
    위젯이 안 뜨면 「문제 0개」로 셌다. 그러면 **사이트가 통째로 죽은 날 이 검사는 초록**이다 —
    이름 없는 칸 0개, 안 이어진 칸 0개이므로. 재려는 것이 안 온 것과 「없다」는 다르다. */
-const 못잰것 = [];
+const unmeasured = [];
 let unlinked = 0;
 let nameless = 0;
 
@@ -80,7 +80,7 @@ async function auditOne(page, id) {
       return { unlinked: a, nameless: b };
     }, id);
     if (r.missing) {
-      못잰것.push(`${id}: 도구 화면이 안 떴다`);
+      unmeasured.push(`${id}: 도구 화면이 안 떴다`);
       process.stdout.write('?');
       return;
     }
@@ -96,18 +96,18 @@ async function auditOne(page, id) {
    못 잰 것으로 세고 나간다(그러면 아래에서 CANNOT-RUN 이 된다). */
 /* 값은 **실측 위에 여유**를 얹어 정한다: 실사이트 122장이 4레인으로 300초였다(2026-08-14).
    빠듯하게 잡으면 느린 날 멀쩡한 판정이 「못 쟀다」가 된다 — 두 배로 둔다. */
-const 마감 = Date.now() + Number(process.env.LABELS_BUDGET_SEC || 600) * 1000;
+const deadline = Date.now() + Number(process.env.LABELS_BUDGET_SEC || 600) * 1000;
 /* 못 잰 것이 이만큼이면 판정하지 않는다 (아래 판정부와 같은 값 — 한 곳에서 정한다). */
-const 문턱 = Math.max(5, Math.ceil(ids.length * 0.1));
+const threshold = Math.max(5, Math.ceil(ids.length * 0.1));
 const queue = [...ids];
-const 레인 = Promise.all(
+const lane = Promise.all(
   Array.from({ length: Math.min(LANES, queue.length) }, async () => {
     const page = await ctx.newPage();
     while (queue.length) {
       const id = queue.shift();
       if (id === undefined) break;
-      if (Date.now() > 마감) {
-        못잰것.push(`${id}: 시간이 다 됐다 (LABELS_BUDGET_SEC)`);
+      if (Date.now() > deadline) {
+        unmeasured.push(`${id}: 시간이 다 됐다 (LABELS_BUDGET_SEC)`);
         queue.length = 0;
         break;
       }
@@ -116,21 +116,21 @@ const 레인 = Promise.all(
       } catch (e) {
         /* 한 번은 봐준다 — 회선이 잠깐 흔들린 것과 진짜 못 여는 것은 다르다.
            다만 이미 여럿이 안 열렸으면 흔들린 게 아니라 **안 서 있는 것**이다. 그때는 안 봐준다. */
-        let 말 = e;
-        if (못잰것.length < 3) {
+        let output = e;
+        if (unmeasured.length < 3) {
           try {
             await auditOne(page, id);
             continue;
           } catch (e2) {
-            말 = e2;
+            output = e2;
           }
         }
-        못잰것.push(`${id}: ${String(말.message).split(String.fromCharCode(10))[0].slice(0, 60)}`);
+        unmeasured.push(`${id}: ${String(output.message).split(String.fromCharCode(10))[0].slice(0, 60)}`);
         process.stdout.write('?');
         /* ★ **못 잴 게 뻔하면 그만둔다** (2026-08-14). 사이트가 안 서 있으면 122장을 25초씩
            두 번 두드리며 20분을 태운다 — 그 사이 아무도 답을 못 받는다. 문턱을 넘은 순간
            판정은 이미 「못 쟀다」로 정해졌으므로 더 두드릴 이유가 없다. */
-        if (못잰것.length >= 문턱) queue.length = 0;
+        if (unmeasured.length >= threshold) queue.length = 0;
       }
     }
     await page.close().catch(() => {});
@@ -139,8 +139,8 @@ const 레인 = Promise.all(
 /* ★ **기다림은 여기서 끝난다** (2026-08-14 실측). 줄에서 빼는 것을 그만둬도 **이미 열고 있던
    장은 안 멈춘다** — 안 서 있는 사이트에서는 그 하나가 몇 분을 붙잡아 판정이 아예 안 나왔다.
    그래서 판정은 레인을 기다리지 않고 **시각으로 끊는다**. 못 끝낸 것은 못 잰 것이다. */
-await Promise.race([레인, new Promise((r) => setTimeout(r, Math.max(1000, 마감 - Date.now())))]);
-for (const id of queue) 못잰것.push(`${id}: 시간이 다 됐다 (LABELS_BUDGET_SEC)`);
+await Promise.race([lane, new Promise((r) => setTimeout(r, Math.max(1000, deadline - Date.now())))]);
+for (const id of queue) unmeasured.push(`${id}: 시간이 다 됐다 (LABELS_BUDGET_SEC)`);
 queue.length = 0;
 process.stdout.write(String.fromCharCode(10));
 /* ★ **닫는 데도 시간을 준다** (2026-08-14 실측). 사이트가 안 서 있어 재기를 중간에 그만두면
@@ -157,13 +157,13 @@ if (update) {
 /* **잰 것이 너무 적으면 판정하지 않는다.** 여기서 초록·빨강 어느 쪽으로도 적으면 거짓이다 —
    0 은 「이름 없는 칸이 없다」가 아니라 「안 봤다」이기 때문이다. 실측 2026-08-14: 138장 중
    130장이 `?` 였는데 검사는 그대로 판정을 냈다. */
-if (못잰것.length) {
-  console.error(`[audit-input-labels] 못 잰 도구 ${못잰것.length}개 / 전체 ${ids.length}개`);
-  for (const line of 못잰것.slice(0, 8)) console.error('  - ' + line);
-  if (못잰것.length > 8) console.error(`  … 그리고 ${못잰것.length - 8}개 더`);
+if (unmeasured.length) {
+  console.error(`[audit-input-labels] 못 잰 도구 ${unmeasured.length}개 / 전체 ${ids.length}개`);
+  for (const line of unmeasured.slice(0, 8)) console.error('  - ' + line);
+  if (unmeasured.length > 8) console.error(`  … 그리고 ${unmeasured.length - 8}개 더`);
 }
-if (못잰것.length >= 문턱) {
-  console.error(`[audit-input-labels] CANNOT-RUN — ${ids.length}개 중 ${못잰것.length}개를 못 쟀다 (문턱 ${문턱}).`);
+if (unmeasured.length >= threshold) {
+  console.error(`[audit-input-labels] CANNOT-RUN — ${ids.length}개 중 ${unmeasured.length}개를 못 쟀다 (문턱 ${threshold}).`);
   console.error('  못 잰 것은 「이름이 다 붙어 있다」가 아니다 — 판정하지 않고 지나간다.');
   process.exit(2);
 }
@@ -183,5 +183,5 @@ if (problems.length) {
 }
 console.log(
   `[audit-input-labels] 이름 없는 입력칸 0개 · 이어지지 않은 칸 ${unlinked}개 (기준 ${base.unlinked} 이하 유지)` +
-    ` · 잰 도구 ${ids.length - 못잰것.length}/${ids.length}`
+    ` · 잰 도구 ${ids.length - unmeasured.length}/${ids.length}`
 );

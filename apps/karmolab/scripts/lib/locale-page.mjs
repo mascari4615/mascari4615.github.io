@@ -137,12 +137,12 @@ export function toLocalePage(html, { code, bare, site, codes, namespaces = ['sit
     inline[code] = inline[code] || {};
     inline[code][ns] = catalog(code, ns);
     if (code !== DEFAULT_LOCALE) {
-      const 원본 = catalog(DEFAULT_LOCALE, ns) || {};
-      const 내것 = inline[code][ns] || {};
-      const 떨어질것 = Object.fromEntries(Object.entries(원본).filter(([k]) => typeof 내것[k] !== 'string'));
-      if (Object.keys(떨어질것).length > 0) {
+      const source = catalog(DEFAULT_LOCALE, ns) || {};
+      const mine = inline[code][ns] || {};
+      const toDrop = Object.fromEntries(Object.entries(source).filter(([k]) => typeof mine[k] !== 'string'));
+      if (Object.keys(toDrop).length > 0) {
         inline[DEFAULT_LOCALE] = inline[DEFAULT_LOCALE] || {};
-        inline[DEFAULT_LOCALE][ns] = 떨어질것;
+        inline[DEFAULT_LOCALE][ns] = toDrop;
       }
     }
   }

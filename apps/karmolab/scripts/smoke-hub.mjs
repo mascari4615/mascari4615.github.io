@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { withoutRetired } from './lib/retired-operations.mjs';
-import { 멎을때까지 } from './lib/settle.mjs';
+import { untilSettled } from './lib/settle.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -37,15 +37,15 @@ const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 /** 걸러 찾기가 **끝났나** — 보이는 카드 수가 두 번 연속 같으면 끝난 것으로 본다.
     시간을 박으면 느린 판에서 옛 수를 읽는다(`quality.md` § 재우고 읽지 마라). */
-async function 걸러질때까지(page, 최대 = 5000) {
-  const 세기 = () => page.evaluate(() =>
+async function untilFiltered(page, max = 5000) {
+  const count = () => page.evaluate(() =>
     document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length);
-  const 끝 = Date.now() + 최대;
-  let 앞 = -1;
-  while (Date.now() < 끝) {
-    const 지금 = await 세기();
-    if (지금 === 앞) return;
-    앞 = 지금;
+  const done = Date.now() + max;
+  let head = -1;
+  while (Date.now() < done) {
+    const current = await count();
+    if (current === head) return;
+    head = current;
     await page.waitForTimeout(120);
   }
 }
@@ -57,21 +57,21 @@ const problems = [];
    검사도 전부 초록이었다 — 도구 상세 장을 보는 검사는 그 파일을 안 부르고, 관문을 보는 이 검사는
    응답 코드를 안 봤다. 여기서 센다: 관문에서 받다 만 것이 있으면 빨강.
    지문 붙은 이름의 404 는 **배포가 갈리는 순간**일 수 있어 뺀다(옆 검사가 이미 그렇게 다룬다). */
-const 지문붙은 = /\.[0-9a-f]{8,}\.(js|css)$/;
-const 못받음 = [];
+const hashed = /\.[0-9a-f]{8,}\.(js|css)$/;
+const notFetched = [];
 page.on('response', (r) => {
   const u = r.url();
   if (r.status() < 400) return;
   if (/gc\.zgo\.at|goatcounter/.test(u)) return;   // 남의 서버 — 우리가 못 고친다
-  if (지문붙은.test(u.split('?')[0])) return;
-  못받음.push(`${r.status()} ${u.split('/').slice(-2).join('/')}`);
+  if (hashed.test(u.split('?')[0])) return;
+  notFetched.push(`${r.status()} ${u.split('/').slice(-2).join('/')}`);
 });
 const res = await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
 if (res.status() !== 200) problems.push(`목록 페이지가 안 열린다 (http ${res.status()})`);
 
 /* 관문에서 받다 만 것 — 화면이 멀쩡해도 기능이 빠진 것이다. */
 await page.waitForTimeout(2500);   // 재움-의도: 늦게 받는 것들(load 뒤 한가할 때)이 올 시간을 준다
-for (const m of [...new Set(못받음)].slice(0, 5)) problems.push(`관문에서 못 받은 것 — ${m}`);
+for (const m of [...new Set(notFetched)].slice(0, 5)) problems.push(`관문에서 못 받은 것 — ${m}`);
 
 const state = await page.evaluate(() => {
   const links = [...document.querySelectorAll('a[href^="/karmolab/t/"]')];
@@ -105,7 +105,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('PDF');
     /* 재우지 말고 **걸러진 결과가 멎기를** 기다린다 (`lib/settle.mjs`) — 400ms 를 세면
        느린 판에서 거르기 전 숫자를 읽는다. */
-    const narrowed = await 멎을때까지(page, () => page.evaluate(() => ({
+    const narrowed = await untilSettled(page, () => page.evaluate(() => ({
       shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length,
       total: document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length
     })));
@@ -118,7 +118,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
        세는 것은 「영문으로도 찾히나」이지 「카드가 몇 장이냐」가 아니다. */
     for (const [q, least] of [['regex', 2], ['hash', 2], ['timer', 1], ['diff', 1]]) {
       await find.fill(q);
-      const n = await 멎을때까지(page, () => page.evaluate(
+      const n = await untilSettled(page, () => page.evaluate(
         () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
       ));
       if (n < least) problems.push(`영문 이름으로 못 찾는다 (「${q}」 로 ${n}개, 적어도 ${least}개)`);
@@ -126,14 +126,14 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 
     // 갈래 이름으로도 찾힌다 — 사람은 「개발」 처럼 분류 이름을 치기도 한다.
     await find.fill('개발');
-    const byGroup = await 멎을때까지(page, () => page.evaluate(
+    const byGroup = await untilSettled(page, () => page.evaluate(
       () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     ));
     if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (「개발」 로 ${byGroup}개만 남음)`);
     await find.fill('PDF');
     /* ★ 시간을 박지 말고 **걸러진 뒤**를 기다린다 (2026-08-17). 400ms 는 느린 판에서 모자라
        「거른 수와 분류 숫자가 안 맞는다」로 애먼 빨강이 난다(같은 부류로 오늘 라이브가 빨갰다). */
-    await 걸러질때까지(page);
+    await untilFiltered(page);
 
     // 화면에 보이는 카드 수와 분류 옆 숫자의 합은 늘 같아야 한다.
     // 걸러 찾기·분류 숫자·목차가 각각 따로 갱신되므로, 하나만 손보면 조용히 어긋난다.
@@ -164,7 +164,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     /* 초성으로도 찾힌다. 표본은 **지금 카드가 있는 도구**여야 한다 — 예전 표본(글자수 세기)은
        작업대의 조작이 되어 낱개 카드가 없다(그 이름으로는 작업대가 걸린다). */
     await find.fill('ㅌㅅㅌ');
-    const byCho = await 멎을때까지(page, () => page.evaluate(() =>
+    const byCho = await untilSettled(page, () => page.evaluate(() =>
       [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')]
         .filter((c) => c.getBoundingClientRect().height > 0)
         .map((c) => c.querySelector('strong')?.textContent || '')
@@ -173,7 +173,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 
     // 걸러 놓고 엔터를 누르면 맨 앞 도구로 간다.
     await find.fill('글자수');
-    await 걸러질때까지(page);
+    await untilFiltered(page);
     const firstHref = await page.evaluate(() => {
       const c = [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((x) => x.getBoundingClientRect().height > 0)[0];
       return c ? c.getAttribute('href') : null;
@@ -189,13 +189,13 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     find = await page.$('#hubFind');
 
     await find.fill('이런건없다');
-    const emptyShown = await 멎을때까지(page, () => page.evaluate(
+    const emptyShown = await untilSettled(page, () => page.evaluate(
       () => (document.querySelector('.tool-hub-empty')?.getBoundingClientRect().height || 0) > 0
     ));
     if (!emptyShown) problems.push('찾는 것이 없을 때 안내가 안 뜬다');
 
     await find.fill('');
-    const restored = await 멎을때까지(page, () => page.evaluate(
+    const restored = await untilSettled(page, () => page.evaluate(
       () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     ));
     if (restored !== state.cards) problems.push(`비웠는데 목록이 안 돌아온다 (${restored}/${state.cards})`);

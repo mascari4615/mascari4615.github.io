@@ -17,74 +17,74 @@
 import { chromium } from 'playwright';
 
 const BASE = 'https://blog.mascari4615.com/karmolab/';
-const 주소들 = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-const URLS = 주소들.length ? 주소들 : [BASE, `${BASE}t/`, `${BASE}t/loan/`];
-const 폰 = { width: 390, height: 844 };
+const urls = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const URLS = urls.length ? urls : [BASE, `${BASE}t/`, `${BASE}t/loan/`];
+const phone = { width: 390, height: 844 };
 
 const br = await chromium.launch();
-const ctx = await br.newContext({ viewport: 폰, isMobile: true, hasTouch: true });
-const 줄 = [];
-let 열린장 = 0;
+const ctx = await br.newContext({ viewport: phone, isMobile: true, hasTouch: true });
+const line = [];
+let openPages = 0;
 
 for (const url of URLS) {
   const p = await ctx.newPage();
   try {
     await p.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
   } catch {
-    줄.push(`  ${url} — 못 열었다`);
+    line.push(`  ${url} — 못 열었다`);
     await p.close();
     continue;
   }
-  열린장 += 1;
+  openPages += 1;
   const m = await p.evaluate(() => {
-    const 보이나 = (e) => {
+    const isVisible = (e) => {
       const b = e.getBoundingClientRect();
       if (b.width <= 0 || b.height <= 0) return false;
       const s = getComputedStyle(e);
       return s.display !== 'none' && s.visibility !== 'hidden';
     };
-    const 손잡이 = [...document.querySelectorAll('a[href], button, input, select, textarea, [role="button"], [tabindex]')]
-      .filter(보이나);
+    const handle = [...document.querySelectorAll('a[href], button, input, select, textarea, [role="button"], [tabindex]')]
+      .filter(isVisible);
     /* ★ **문장 안 링크는 기준이 스스로 빼 준다** (2026-08-17). WCAG 2.2 AA 2.5.8 에는
        「인라인」 예외가 있다 — 글 안에 있어서 줄 높이에 크기가 매인 링크는 대상이 아니다.
        그걸 안 빼면 이 자가 없는 병을 만든다: 실제로 「높은 쪽 고르기」·「오늘의 문제」 같은
        **문단 속 링크 넷**이 21px 로 잡혀 「기준 위반」처럼 보였다(고치면 줄 모양이 깨진다).
        판별은 기준이 말하는 그대로 — 글 흐름 안에 있는(display:inline) 링크. */
-    const 문장안 = (e) => e.tagName === 'A' && getComputedStyle(e).display === 'inline';
-    const 잴것 = 손잡이.filter((e) => !문장안(e));
-    const 예외 = 손잡이.filter(문장안);
-    const 작은것 = (선) => 잴것.filter((e) => {
+    const insideSentence = (e) => e.tagName === 'A' && getComputedStyle(e).display === 'inline';
+    const toMeasure = handle.filter((e) => !insideSentence(e));
+    const exceptions = handle.filter(insideSentence);
+    const small = (선) => toMeasure.filter((e) => {
       const b = e.getBoundingClientRect();
       return Math.min(b.width, b.height) < 선;
     });
-    const 이름 = (e) => {
+    const name = (e) => {
       const b = e.getBoundingClientRect();
       const t = (e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 12);
       return `${(e.className || e.tagName).toString().split(' ')[0].slice(0, 16)} ${Math.round(b.width)}x${Math.round(b.height)}${t ? ` "${t}"` : ''}`;
     };
     return {
-      전부: 잴것.length,
-      문장안링크: 예외.length,
-      아래24: 작은것(24).length,
-      아래44: 작은것(44).length,
-      보기24: [...new Set(작은것(24).map(이름))].slice(0, 4),
-      보기: [...new Set(작은것(44).map(이름))].slice(0, 3),
+      전부: toMeasure.length,
+      문장안링크: exceptions.length,
+      아래24: small(24).length,
+      아래44: small(44).length,
+      보기24: [...new Set(small(24).map(name))].slice(0, 4),
+      보기: [...new Set(small(44).map(name))].slice(0, 3),
     };
   });
-  줄.push(`  ${url}`);
-    줄.push(`    손잡이 ${m.전부}개(문장 안 링크 ${m.문장안링크}개는 기준 예외라 뺐다) · 24px 미만 ${m.아래24}개 · 44px 미만 ${m.아래44}개`);
+  line.push(`  ${url}`);
+    line.push(`    손잡이 ${m.전부}개(문장 안 링크 ${m.문장안링크}개는 기준 예외라 뺐다) · 24px 미만 ${m.아래24}개 · 44px 미만 ${m.아래44}개`);
   /* ★ 24px 미만을 먼저 보여 준다 — 그게 바깥 기준(WCAG 2.2 AA)이 실제로 요구하는 선이다.
      44px 미만은 「더 크면 좋다」쪽이라 목록이 길어도 사고가 아니다. */
-  for (const b of m.보기24) 줄.push(`      · 24px 미만 — ${b}`);
-  for (const b of m.보기) 줄.push(`      · 44px 미만 — ${b}`);
+  for (const b of m.보기24) line.push(`      · 24px 미만 — ${b}`);
+  for (const b of m.보기) line.push(`      · 44px 미만 — ${b}`);
   await p.close();
 }
 
 await br.close();
 
-if (열린장 === 0) {
+if (openPages === 0) {
   console.error('[tap-size] CANNOT-RUN: 한 장도 못 열었다 — 이건 「다 크다」가 아니라 안 잰 것이다.');
   process.exit(2);
 }
-console.log(`[tap-size] 폰 ${폰.width}x${폰.height} · ${열린장}장`);
-console.log(줄.join('\n'));
+console.log(`[tap-size] 폰 ${phone.width}x${phone.height} · ${openPages}장`);
+console.log(line.join('\n'));

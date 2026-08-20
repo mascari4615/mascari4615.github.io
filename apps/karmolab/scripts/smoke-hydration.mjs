@@ -15,53 +15,53 @@
 import { chromium } from 'playwright';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const 기다림 = 15000;
+const waited = 15000;
 
 /* 갈래를 섞는다 — 계산기·글·그림·파일·놀이. 한 갈래만 보면 그 갈래만 지킨다. */
 /* 표본은 **지금 자기 장이 있는 도구**여야 한다 — `charcount` 는 작업대의 조작이 되어
    낱개 장이 없다(그 주소는 작업대로 간다). 없는 장을 재면 404 를 「죽어 있다」로 읽는다. */
-const 기본 = ['loan', 'timecapsule', 'text', 'qrgen', 'imgresize', 'pdfdiff', 'ghosttype', 'worldclock'];
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : 기본;
+const base = ['loan', 'timecapsule', 'text', 'qrgen', 'imgresize', 'pdfdiff', 'ghosttype', 'worldclock'];
+const ids = process.argv.slice(2).length ? process.argv.slice(2) : base;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-const 죽은것 = [];
-let 미리그림 = 0;
+const deadOnes = [];
+let prerendered = 0;
 
 for (const id of ids) {
   const page = await ctx.newPage();
   try {
     const res = await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     if (res && res.status() !== 200) {
-      죽은것.push(`${id}: http ${res.status()}`);
+      deadOnes.push(`${id}: http ${res.status()}`);
       await page.close();
       continue;
     }
-    if (await page.evaluate(() => document.documentElement.innerHTML.includes('KARMOLAB_PRERENDERED'))) 미리그림++;
+    if (await page.evaluate(() => document.documentElement.innerHTML.includes('KARMOLAB_PRERENDERED'))) prerendered++;
 
-    const 살았나 = await page
+    const isAlive = await page
       .waitForFunction(
         (toolId) => {
           const p = document.getElementById('page-' + toolId);
           if (!p) return false;
-          const 단추 = [...p.querySelectorAll('button')];
-          return 단추.length ? 단추.some((b) => typeof b.onclick === 'function') : null;
+          const button = [...p.querySelectorAll('button')];
+          return button.length ? button.some((b) => typeof b.onclick === 'function') : null;
         },
         id,
-        { timeout: 기다림 }
+        { timeout: waited }
       )
       .then((h) => h.jsonValue())
       .catch(() => false);
 
     /* 단추가 없는 도구는 이 신호로 못 본다 — 「통과」로 세지 않고 그렇게 말한다. */
-    if (살았나 === null) process.stdout.write('-');
-    else if (살았나) process.stdout.write('.');
+    if (isAlive === null) process.stdout.write('-');
+    else if (isAlive) process.stdout.write('.');
     else {
-      죽은것.push(`${id}: ${기다림 / 1000}초가 지나도 단추에 손이 안 달렸다 (미리 그린 그림 그대로)`);
+      deadOnes.push(`${id}: ${waited / 1000}초가 지나도 단추에 손이 안 달렸다 (미리 그린 그림 그대로)`);
       process.stdout.write('x');
     }
   } catch (e) {
-    죽은것.push(`${id}: 여는 중 실패 — ${String(e.message).slice(0, 60)}`);
+    deadOnes.push(`${id}: 여는 중 실패 — ${String(e.message).slice(0, 60)}`);
     process.stdout.write('x');
   }
   await page.close();
@@ -69,9 +69,9 @@ for (const id of ids) {
 process.stdout.write('\n');
 await browser.close();
 
-if (죽은것.length) {
-  console.error(`[smoke-hydration] 보이는데 죽어 있는 도구 ${죽은것.length}건 / ${ids.length}`);
-  죽은것.forEach((f) => console.error('  - ' + f));
+if (deadOnes.length) {
+  console.error(`[smoke-hydration] 보이는데 죽어 있는 도구 ${deadOnes.length}건 / ${ids.length}`);
+  deadOnes.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
-console.log(`[smoke-hydration] 도구 ${ids.length}장 전부 손이 달린다 (그 중 미리 그려 온 것 ${미리그림}장)`);
+console.log(`[smoke-hydration] 도구 ${ids.length}장 전부 손이 달린다 (그 중 미리 그려 온 것 ${prerendered}장)`);

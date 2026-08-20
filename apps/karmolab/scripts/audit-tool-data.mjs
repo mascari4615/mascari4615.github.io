@@ -26,8 +26,8 @@ const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
    넘김판이라 공유 카드도 자리 높이도 안 만든다 — 그런데 여기서 세고 있었다. 초록이었던 건
    **옛 카드 파일이 지워지지 않고 남아 있어서**다(사람은 「138개 다 갖췄다」로 읽는다).
    목록 정본 = `lib/retired-operations.mjs`. */
-const 전체 = Object.keys(read('data/tools-seo.json').tools);
-const tools = withoutRetired(전체);
+const all = Object.keys(read('data/tools-seo.json').tools);
+const tools = withoutRetired(all);
 const aliases = fs.existsSync(path.join(root, 'data/tool-aliases.json')) ? read('data/tool-aliases.json').aliases || {} : {};
 const heights = fs.existsSync(path.join(root, 'data/tool-heights.json')) ? read('data/tool-heights.json') : {};
 
@@ -57,7 +57,7 @@ const widgetIds = (() => {
    (넘김판·건지기 목록이 그걸 쓴다), 알맹이(src/core)도 살아 있다(작업대의 조작이 되었다).
    여기서 빼면 멀쩡한 알맹이 넷이 「명부에 없다」로 잡힌다.
    카드·자리 검사만 지금 도구(tools)로 한다. */
-const known = new Set(전체);
+const known = new Set(all);
 const alive = new Set([...known, ...widgetIds]);
 const stale = [
   ...Object.keys(aliases).filter((id) => !alive.has(id)).map((id) => `이름(${id})`),
@@ -148,9 +148,9 @@ const problems = [];
     /* 건지기 목록에는 **접은 도구도 남긴다** — 그 주소로 오는 사람에게 이름이라도 찾아 주려고
        일부러 남긴 것이다(`gen-tool-pages.mjs` 주석). 그러니 여기 수는 「지금 도구 + 접은 것」이다.
        그걸 모르고 도구 수와만 견주면, 일부러 남긴 것을 「모자란다」고 잡는다. */
-    const 있어야할수 = tools.length + [...RETIRED_OPERATION_IDS].filter((id) => 전체.includes(id)).length;
-    if (rows && rows.length !== 있어야할수) {
-      problems.push(`건지기 목록에 ${rows.length}개뿐 — 도구 ${tools.length} + 접은 것까지 ${있어야할수}개여야 한다`);
+    const expectedCount = tools.length + [...RETIRED_OPERATION_IDS].filter((id) => all.includes(id)).length;
+    if (rows && rows.length !== expectedCount) {
+      problems.push(`건지기 목록에 ${rows.length}개뿐 — 도구 ${tools.length} + 접은 것까지 ${expectedCount}개여야 한다`);
     }
   }
 }
@@ -190,24 +190,24 @@ if (stale.length) problems.push(`없어진 도구의 기록이 남아 있다 ${s
    갚으면 기준선이 저절로 줄어든다(여기서 다시 써 준다). 목록은 늘 그대로 보여 준다 —
    기준선은 「안 보이게 하는 장치」가 아니라 「안 늘게 하는 장치」다. */
 const BASELINE = path.join(root, 'data/tool-data-baseline.json');
-const 기준선 = fs.existsSync(BASELINE)
+const baselineData = fs.existsSync(BASELINE)
   ? JSON.parse(fs.readFileSync(BASELINE, 'utf8'))
   : { 설명: '상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다', 목록: [] };
-const 옛것 = new Set(기준선.목록 || []);
-const 새로늘어난것 = seoOrphans.filter((id) => 옛것.has(id) === false);
-const 갚은것 = [...옛것].filter((id) => seoOrphans.includes(id) === false);
+const old = new Set(baselineData.목록 || []);
+const newlyGrown = seoOrphans.filter((id) => old.has(id) === false);
+const repaid = [...old].filter((id) => seoOrphans.includes(id) === false);
 
 if (seoOrphans.length > 0) {
   console.log(`[audit-tool-data] 상세 페이지 정보가 없는 도구 ${seoOrphans.length}개 — ${seoOrphans.join(', ')}`);
   console.log('  (그 도구는 상세 페이지·주소가 안 생긴다 — `data/tools-seo.json` 에 설명·순서·자주 묻는 것을 적어라)');
 }
-if (갚은것.length > 0 || process.argv.includes('--write-baseline')) {
-  fs.writeFileSync(BASELINE, `${JSON.stringify({ ...기준선, 갱신: new Date().toISOString().slice(0, 10), 목록: seoOrphans }, null, 2)}\n`, 'utf8');
-  if (갚은것.length > 0) console.log(`[audit-tool-data] ${갚은것.length}개를 갚았다 — 기준선을 ${옛것.size} → ${seoOrphans.length} 로 조인다: ${갚은것.join(', ')}`);
+if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
+  fs.writeFileSync(BASELINE, `${JSON.stringify({ ...baselineData, 갱신: new Date().toISOString().slice(0, 10), 목록: seoOrphans }, null, 2)}\n`, 'utf8');
+  if (repaid.length > 0) console.log(`[audit-tool-data] ${repaid.length}개를 갚았다 — 기준선을 ${old.size} → ${seoOrphans.length} 로 조인다: ${repaid.join(', ')}`);
 }
-if (새로늘어난것.length > 0 && process.argv.includes('--write-baseline') === false) {
+if (newlyGrown.length > 0 && process.argv.includes('--write-baseline') === false) {
   problems.push(
-    `상세 페이지 정보 없이 새로 들어온 도구 ${새로늘어난것.length}개 — ${새로늘어난것.join(', ')}` +
+    `상세 페이지 정보 없이 새로 들어온 도구 ${newlyGrown.length}개 — ${newlyGrown.join(', ')}` +
       ' (기준선에 없던 것이다. 도구를 만들면 `data/tools-seo.json` 도 같은 판에 채워라)'
   );
 }

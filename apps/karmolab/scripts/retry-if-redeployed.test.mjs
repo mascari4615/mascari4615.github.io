@@ -18,37 +18,37 @@ import path from 'node:path';
 import os from 'node:os';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const 껍데기 = path.join(here, 'retry-if-redeployed.mjs');
-const 임시 = mkdtempSync(path.join(os.tmpdir(), 'rir-'));
+const shell = path.join(here, 'retry-if-redeployed.mjs');
+const temp = mkdtempSync(path.join(os.tmpdir(), 'rir-'));
 
 /* 시늉 명령은 파일로 둔다 — `node -e "…"` 는 윈도우 shell 을 거치며 괄호에서 깨진다. */
-const 시늉 = path.join(임시, 'exit.js');
-writeFileSync(시늉, 'process.exit(Number(process.env.RIR_TEST_CODE || 0));');
+const stub = path.join(temp, 'exit.js');
+writeFileSync(stub, 'process.exit(Number(process.env.RIR_TEST_CODE || 0));');
 
-const 서버파일 = path.join(임시, 'stamp-server.js');
+const serverFile = path.join(temp, 'stamp-server.js');
 writeFileSync(
-  서버파일,
+  serverFile,
   `const {createServer}=require('http');
    const s=createServer((q,r)=>{r.writeHead(200,{'content-type':'application/json'});
      r.end(JSON.stringify({commit:process.env.STAMP_COMMIT}));});
    s.listen(0,'127.0.0.1',()=>console.log('port='+s.address().port));`
 );
 
-const 서빙판 = 'aaaaaaaa1111111111111111111111111111aaaa';
-let 서버;
+const servedBuild = 'aaaaaaaa1111111111111111111111111111aaaa';
+let serverProc;
 let 주소;
 
 before(async () => {
-  서버 = spawn(process.execPath, [서버파일], { env: { ...process.env, STAMP_COMMIT: 서빙판 } });
-  주소 = await new Promise((r) => 서버.stdout.on('data', (b) => {
+  serverProc = spawn(process.execPath, [serverFile], { env: { ...process.env, STAMP_COMMIT: servedBuild } });
+  주소 = await new Promise((r) => serverProc.stdout.on('data', (b) => {
     const m = /port=(\d+)/.exec(String(b));
     if (m) r(`http://127.0.0.1:${m[1]}`);
   }));
 });
-after(() => 서버.kill());
+after(() => serverProc.kill());
 
-function 돌리기({ sha, 답 }) {
-  const r = spawnSync(process.execPath, [껍데기, process.execPath, 시늉], {
+function run({ sha, verdict }) {
+  const r = spawnSync(process.execPath, [shell, process.execPath, stub], {
     encoding: 'utf8',
     env: {
       ...process.env,
@@ -56,32 +56,32 @@ function 돌리기({ sha, 답 }) {
       GITHUB_SHA: sha,
       RIR_SETTLE_MAX_MS: '400',
       RIR_SETTLE_STABLE_MS: '50',
-      RIR_TEST_CODE: String(답),
+      RIR_TEST_CODE: String(verdict),
     },
   });
   return { code: r.status, out: `${r.stdout}${r.stderr}` };
 }
 
 test('화면이 내 판보다 옛것이면 빨강이 아니라 못 돌림(2)', () => {
-  const { code, out } = 돌리기({ sha: 'bbbbbbbb2222222222222222222222222222bbbb', 답: 1 });
+  const { code, out } = run({ sha: 'bbbbbbbb2222222222222222222222222222bbbb', 답: 1 });
   assert.equal(code, 2, out);
   assert.match(out, /못 돌림/);
   assert.doesNotMatch(out, /진짜 빨강/);
 });
 
 test('화면이 바로 내 판이면 빨강은 빨강 그대로(1)', () => {
-  const { code, out } = 돌리기({ sha: 서빙판, 답: 1 });
+  const { code, out } = run({ sha: servedBuild, 답: 1 });
   assert.equal(code, 1, out);
   assert.match(out, /진짜 빨강/);
 });
 
 test('못 돌림(2)은 옛 판이어도 그대로 2 — 다시 재지 않는다', () => {
-  const { code, out } = 돌리기({ sha: 'eeeeeeee5555555555555555555555555555eeee', 답: 2 });
+  const { code, out } = run({ sha: 'eeeeeeee5555555555555555555555555555eeee', 답: 2 });
   assert.equal(code, 2, out);
   assert.doesNotMatch(out, /다시 잰다/);
 });
 
 test('초록은 옛 판이어도 초록 — 실주소가 성하다는 건 그 자체로 사실이다', () => {
-  const { code, out } = 돌리기({ sha: '999999997777777777777777777777777777aaaa', 답: 0 });
+  const { code, out } = run({ sha: '999999997777777777777777777777777777aaaa', 답: 0 });
   assert.equal(code, 0, out);
 });

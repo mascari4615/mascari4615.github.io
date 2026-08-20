@@ -39,9 +39,9 @@ const ts = require('typescript');
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /* ★ **위젯만 보지 않는다** (2026-08-14). 같은 병은 셸·알맹이 쪽 파일에서도 날 수 있다 —
    거기서 던지면 화면 하나가 아니라 **앱 전체**가 안 뜬다. 재 보니 지금은 0건이라 빚도 안 는다. */
-const 볼곳 = path.join(root, 'src');
+const targets = path.join(root, 'src');
 
-const 파일들 = process.argv.slice(2).filter((a) => !a.startsWith('--')).length
+const files = process.argv.slice(2).filter((a) => !a.startsWith('--')).length
   ? process.argv.slice(2).filter((a) => !a.startsWith('--')).map((p) => path.resolve(p))
   : (function walk(dir, acc = []) {
       for (const name of fs.readdirSync(dir)) {
@@ -50,17 +50,17 @@ const 파일들 = process.argv.slice(2).filter((a) => !a.startsWith('--')).lengt
         else if (name.endsWith('.ts')) acc.push(p);
       }
       return acc;
-    })(볼곳);
+    })(targets);
 
 /** 이 함수가 「만들자마자 도는 것」(IIFE)인가 — 그렇다면 그 몸통도 파일 읽는 순간이다. */
-function 즉시도는함수(node) {
+function eagerCall(node) {
   let p = node.parent;
   while (p && (ts.isParenthesizedExpression(p) || ts.isAsExpression(p))) p = p.parent;
   return !!p && ts.isCallExpression(p) && p.expression === (node.parent === p ? node : p.expression);
 }
 
 /** 이 자리가 파일 읽는 순간에 도는가 (나중에 불리는 함수 안이 아닌가). */
-function 읽는순간인가(node) {
+function isReadTime(node) {
   for (let p = node.parent; p; p = p.parent) {
     if (
       ts.isFunctionDeclaration(p) ||
@@ -71,7 +71,7 @@ function 읽는순간인가(node) {
       ts.isSetAccessor(p)
     ) {
       /* IIFE 몸통은 「나중」이 아니다 — 계속 위로 본다. */
-      if (즉시도는함수(p)) continue;
+      if (eagerCall(p)) continue;
       return false;
     }
   }
@@ -83,11 +83,11 @@ function 읽는순간인가(node) {
    (화면을 실제로 여는 검사)이 이름으로 잡는다 — 잡히면 그때 고치고 이 목록에서 지운다.
    막는 것은 **새로 생기는 자리**다. 오늘 고친 여덟 파일은 목록에 없다(고쳤으니까). */
 const BASELINE = path.join(root, 'data/i18n-eager-baseline.json');
-const 빚 = fs.existsSync(BASELINE) ? new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록) : new Set();
+const debt = fs.existsSync(BASELINE) ? new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록) : new Set();
 const UPDATE = process.argv.includes('--update');
 
-const 문제 = [];
-for (const file of 파일들) {
+const problems = [];
+for (const file of files) {
   const src = fs.readFileSync(file, 'utf8');
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.ES2020, true, ts.ScriptKind.TS);
   (function visit(node) {
@@ -99,10 +99,10 @@ for (const file of 파일들) {
       node.arguments.length >= 1 &&
       ts.isStringLiteral(node.arguments[0]) &&
       /^[a-z0-9-]+\.[^.]/.test(node.arguments[0].text) &&
-      읽는순간인가(node)
+      isReadTime(node)
     ) {
       const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
-      문제.push({
+      problems.push({
         file: path.relative(root, file).split(path.sep).join(String.fromCharCode(47)),
         line: line + 1,
         key: node.arguments[0].text
@@ -112,19 +112,19 @@ for (const file of 파일들) {
   })(sf);
 }
 
-const 표 = (x) => `${x.file} ${x.key}`;
+const table = (x) => `${x.file} ${x.key}`;
 if (UPDATE) {
-  fs.writeFileSync(BASELINE, JSON.stringify({ 목록: 문제.map(표).sort() }, null, 2) + String.fromCharCode(10), 'utf8');
-  console.log(`[i18n-eager] 빚 목록을 ${문제.length}건으로 다시 적었다`);
+  fs.writeFileSync(BASELINE, JSON.stringify({ 목록: problems.map(table).sort() }, null, 2) + String.fromCharCode(10), 'utf8');
+  console.log(`[i18n-eager] 빚 목록을 ${problems.length}건으로 다시 적었다`);
   process.exit(0);
 }
-const 새것 = 문제.filter((x) => !빚.has(표(x)));
-console.log(`[i18n-eager] 소스 ${파일들.length}개 · 읽는 순간 말을 읽는 자리 ${문제.length}건 (빚 ${빚.size}건은 봐준다)`);
+const fresh = problems.filter((x) => !debt.has(table(x)));
+console.log(`[i18n-eager] 소스 ${files.length}개 · 읽는 순간 말을 읽는 자리 ${problems.length}건 (빚 ${debt.size}건은 봐준다)`);
 
-if (새것.length) {
-  console.error(`[i18n-eager] **새로 생긴** 자리 ${새것.length}건 — 그 화면은 통째로 안 올라간다`);
-  for (const x of 새것.slice(0, 20)) console.error(`  - ${x.file}:${x.line}  t('${x.key}')`);
-  if (새것.length > 20) console.error(`  … 그리고 ${새것.length - 20}건 더`);
+if (fresh.length) {
+  console.error(`[i18n-eager] **새로 생긴** 자리 ${fresh.length}건 — 그 화면은 통째로 안 올라간다`);
+  for (const x of fresh.slice(0, 20)) console.error(`  - ${x.file}:${x.line}  t('${x.key}')`);
+  if (fresh.length > 20) console.error(`  … 그리고 ${fresh.length - 20}건 더`);
   console.error("  고치는 법: 표는 **부를 때 만드는 함수**로 (`const list = () => [...]`),");
   console.error("             등록 줄처럼 늦출 수 없는 자리는 되받을 글을 준다 — t('x.y', undefined, '그래프').");
   process.exit(1);

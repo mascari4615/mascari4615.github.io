@@ -10,13 +10,13 @@
  *   node scripts/list-generated.mjs --nightly-scripts   # 굽는 명령, 한 줄에 하나
  *   node scripts/list-generated.mjs --nightly-outputs   # 굽는 파일(저장소 뿌리 기준), 한 줄에 하나
  */
-import { 밤에굽는것 } from './lib/generated-artifacts.mjs';
+import { nightlyBuilds } from './lib/generated-artifacts.mjs';
 
 const what = process.argv[2];
 if (what === '--nightly-scripts') {
-  console.log(밤에굽는것.map((x) => x.npm).join('\n'));
+  console.log(nightlyBuilds.map((x) => x.npm).join('\n'));
 } else if (what === '--nightly-outputs') {
-  console.log(밤에굽는것.flatMap((x) => x.outputs).map((p) => `apps/karmolab/${p}`).join('\n'));
+  console.log(nightlyBuilds.flatMap((x) => x.outputs).map((p) => `apps/karmolab/${p}`).join('\n'));
 } else {
   console.error('사용: node scripts/list-generated.mjs --nightly-scripts | --nightly-outputs');
   process.exit(2);

@@ -70,22 +70,22 @@ check(derivedCount > 80, `발판을 알아낸 검사가 ${derivedCount}개 — �
    유도기가 그걸 이 검사의 발판으로 집어 간다(실측: 이 줄 때문에 자기 자신이 걸렸다).
    검사가 자기 자신을 오염시키는 자리라, 여기만은 일부러 돌아간다. */
 const S = 'sr' + 'c';
-const 함정 = ['package.js' + 'on', `${S}/lib/**`, `${S}/**`];
-let 함정걸림 = [];
+const trap = ['package.js' + 'on', `${S}/lib/**`, `${S}/**`];
+let trapHit = [];
 for (const entry of gates) {
   const name = typeof entry === 'string' ? entry : (entry.이름 ?? entry.name);
   const watch = deriveWatch(name, scripts);
   if (watch === null) continue;
-  for (const bad of 함정) if (watch.includes(bad)) 함정걸림.push(`${name} ← ${bad}`);
+  for (const bad of trap) if (watch.includes(bad)) trapHit.push(`${name} ← ${bad}`);
 }
-eq(함정걸림.length, 0, `알아낸 발판에 「전부 걸리는 자리」가 섞였다: ${함정걸림.slice(0, 3).join(' · ')}`);
+eq(trapHit.length, 0, `알아낸 발판에 「전부 걸리는 자리」가 섞였다: ${trapHit.slice(0, 3).join(' · ')}`);
 
 /* `data/gate-list.json` 은 **정말로 그 파일을 읽는 검사**(`audit:gate-list` 등)에만 들어야 한다.
    모두에게 붙으면(=ALWAYS 에 넣으면) 검사를 하나 다는 작업마다 전부 걸린다 — 그게 함정이었다. */
-const 목록본다 = gates
+const checkList = gates
   .map((e) => (typeof e === 'string' ? e : (e.이름 ?? e.name)))
   .filter((n) => (deriveWatch(n, scripts) ?? []).includes('data/gate-list.json'));
-check(목록본다.length <= 8, `gate-list 를 보는 검사가 ${목록본다.length}개 — 모두에게 붙었으면 함정으로 되돌아간 것이다`);
+check(checkList.length <= 8, `gate-list 를 보는 검사가 ${checkList.length}개 — 모두에게 붙었으면 함정으로 되돌아간 것이다`);
 
 /* 실제로 그렇게 되는지 끝까지 재 본다 — package.json 만 바뀐 판에서 뭔가는 건너뛰어야 한다. */
 const onlyPkg = pick(gates, ['package.json'], (n) => deriveWatch(n, scripts));
@@ -121,20 +121,20 @@ check(pathsInside('/* 설명: `' + S + '/lib/x.ts` */').length === 1, '역따옴
 /* ★ 다만 **글로브가 든 경로는 버린다.** `**` 가 보이는 자리는 거의 다 설명 문장이고,
    그걸 발판으로 삼으면 그 검사가 모든 소스를 보게 된다 = 늘 돈다 = 유도가 무의미해진다.
    (이 판을 짜다 실제로 이 파일이 자기 머리말 한 줄 때문에 그렇게 됐다.) */
-const 글로브든것 = deriveWatch('test:gate-derive', scripts) ?? [];
-check(!글로브든것.some((w) => w.startsWith(S + '/') && w.includes('*')), '설명 문장의 글로브는 발판이 안 된다');
+const globbed = deriveWatch('test:gate-derive', scripts) ?? [];
+check(!globbed.some((w) => w.startsWith(S + '/') && w.includes('*')), '설명 문장의 글로브는 발판이 안 된다');
 
 /* 「모든 소스」는 발판이 아니다 — 넣어도 늘 걸리므로 알아낸 게 없는 것과 같다. */
 check(!(deriveWatch('test:gate-derive', scripts) ?? []).includes(`${S}/**`), '뜻 없는 넓은 발판은 안 넣는다');
 
 // ── ⑥ 그래서 실제로 줄어드나 (줄어야 이 파일이 존재할 이유가 있다) ───────────
 
-const 한도구만 = pick(gates, ['src/widgets/bluemarble/air.ts'], (n) => deriveWatch(n, scripts));
+const singleTool = pick(gates, ['src/widgets/bluemarble/air.ts'], (n) => deriveWatch(n, scripts));
 check(
-  한도구만.run.length < gates.length * 0.7,
-  `한 파일만 고쳤을 때 ${한도구만.run.length}/${gates.length} — 30% 넘게 줄어야 한다`
+  singleTool.run.length < gates.length * 0.7,
+  `한 파일만 고쳤을 때 ${singleTool.run.length}/${gates.length} — 30% 넘게 줄어야 한다`
 );
-check(한도구만.run.includes('test:air'), '그래도 그 파일의 검사는 반드시 돈다');
+check(singleTool.run.includes('test:air'), '그래도 그 파일의 검사는 반드시 돈다');
 
 // ── 마무리 ───────────────────────────────────────────────────────────────────
 process.stdout.write('\n');

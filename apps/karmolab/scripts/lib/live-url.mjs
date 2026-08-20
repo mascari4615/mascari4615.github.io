@@ -10,10 +10,10 @@
  * 규약: `URL` 이 있으면 그 장을 그대로 본다(한 장만 콕 집을 때). 없으면 `BASE` + 길.
  * 실서비스 주소는 **여기 한 곳**에만 적는다.
  */
-export const 기본사이트 = 'https://blog.mascari4615.com';
+export const defaultSite = 'https://blog.mascari4615.com';
 
 /** 이 판이 보는 사이트 (프로토콜+호스트). */
-export const liveBase = () => process.env.BASE || 기본사이트;
+export const liveBase = () => process.env.BASE || defaultSite;
 
 /**
  * 이 판이 열 장.

@@ -150,8 +150,8 @@ function inspect(label, html, expectUrl) {
      이 검사가 146장 전부를 「기록기가 없다」로 잡았다 — 실제로는 멀쩡히 돈다(실주소에서
      count.js 가 200 으로 온다). 찾을 것은 **글자**가 아니라 **그 일을 하는 자리**다:
      인라인으로 있든(옛 모양) 늦게 받는 파일로 있든 둘 중 하나면 실려 있는 것이다. */
-  const 기록기있나 = /gc\.zgo\.at\/count\.js/.test(html) || /js\/boot-late[.\w]*\.js/.test(html);
-  if (!기록기있나) {
+  const hasRecorder = /gc\.zgo\.at\/count\.js/.test(html) || /js\/boot-late[.\w]*\.js/.test(html);
+  if (!hasRecorder) {
     problems.push(`${label}: 방문 기록기가 없다 — 이 페이지로 온 사람이 안 세어진다`);
   }
 
@@ -183,8 +183,8 @@ function inspect(label, html, expectUrl) {
    사람이 이 검사를 안 믿게 된다 — 그게 검사가 죽는 방식이다.
    그래서 5xx·연결 실패는 **두 번 더** 받아 보고, 그래도 안 되면 「못 잼」으로 따로 센다(빨강 X).
    4xx 는 그대로 빨강이다 — 그건 진짜로 없는 장이다. */
-const 못잼 = [];
-async function 받기(url) {
+const couldNotMeasure = [];
+async function fetchAll(url) {
   let last = null;
   for (let n = 0; n < 3; n += 1) {
     try {
@@ -202,9 +202,9 @@ const want = ['SoftwareApplication', 'FAQPage', 'BreadcrumbList'];
 for (let i = 0; i < ids.length; i += 8) {
   await Promise.all(
     ids.slice(i, i + 8).map(async (id) => {
-      const r = await 받기(`${BASE}/karmolab/t/${id}/`);
+      const r = await fetchAll(`${BASE}/karmolab/t/${id}/`);
       if (!r.ok) {
-        if (r.못잼사유) 못잼.push(`${id}: ${r.못잼사유} (세 번 다 안 됐다)`);
+        if (r.못잼사유) couldNotMeasure.push(`${id}: ${r.못잼사유} (세 번 다 안 됐다)`);
         else problems.push(`${id}: http ${r.status}`);
         return;
       }
@@ -257,9 +257,9 @@ for (const [t, who] of titles) if (who.length > 1) problems.push(`제목이 겹�
 for (const [, who] of descs) if (who.length > 1) problems.push(`설명이 겹친다 (${who.join(', ')})`);
 
 /* 못 잰 장은 **따로** 말한다 — 통과에 섞지도, 빨강에 섞지도 않는다. */
-if (못잼.length) {
-  console.log(`[audit-seo-head] 못 잰 장 ${못잼.length}개 (앞단이 흔들렸다 — 통과가 아니다):`);
-  for (const m of 못잼.slice(0, 10)) console.log('  · ' + m);
+if (couldNotMeasure.length) {
+  console.log(`[audit-seo-head] 못 잰 장 ${couldNotMeasure.length}개 (앞단이 흔들렸다 — 통과가 아니다):`);
+  for (const m of couldNotMeasure.slice(0, 10)) console.log('  · ' + m);
 }
 
 if (problems.length) {

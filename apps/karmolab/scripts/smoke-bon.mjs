@@ -6,7 +6,7 @@
  *
  * 사용: node scripts/smoke-bon.mjs [--shot]
  */
-import { 멎을때까지, 될때까지 } from './lib/settle.mjs';
+import { untilSettled, untilTrue } from './lib/settle.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -58,8 +58,8 @@ const check = (label, ok, extra = '') => {
    위젯 매니페스트(`src/widgets-lazy-meta.ts`)에 **등록돼 있지 않다** — `#bon` 을 열어도
    아무것도 안 뜬다. 그때 `.bon-wrap` 을 20초 기다리다 raw TimeoutError 로 터지면
    「이 도구가 깨졌다」로 읽힌다. 실제로는 **못 재는 것**이다 — 그렇게 말한다(rc 2). */
-const 매니페스트 = fs.readFileSync(new URL('../src/widgets-lazy-meta.ts', import.meta.url), 'utf8');
-if (!/id: 'bon'/.test(매니페스트)) {
+const manifest = fs.readFileSync(new URL('../src/widgets-lazy-meta.ts', import.meta.url), 'utf8');
+if (!/id: 'bon'/.test(manifest)) {
   console.log('[smoke-bon] 못 돌림 — 이 도구가 위젯 매니페스트에 없다(등록되면 그때 잰다). 통과가 아니다.');
   await browser.close();
   process.exit(2);
@@ -161,7 +161,7 @@ await page.mouse.down();
 await page.mouse.move(r2.x, r2.y, { steps: 6 });
 await page.mouse.up();
 /* 재우지 말고 **셈이 멎을 때까지** — 바쁜 기계에서는 200ms 안에 겹 셈이 안 붙어 옛 값을 읽는다. */
-const counts = await 멎을때까지(page, () => page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent))));
+const counts = await untilSettled(page, () => page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent))));
 check('새 도형은 고른 겹에 들어간다', counts[0] === 1, JSON.stringify(counts));
 
 // 숨기면 화면에서 사라진다
@@ -183,7 +183,7 @@ check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows(
 // ── 9-slice ───────────────────────────────
 await page.keyboard.press('s');
 /* 선 넷이 **생길 때까지** 기다린다 — 무엇을 기다리는지 아는 자리다. */
-await 될때까지(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { 최대: 3000 });
+await untilTrue(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { 최대: 3000 });
 const sliceLines = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-slice').length);
 check('9-slice 를 켜면 선 넷이 뜬다', (await sliceLines()) === 4, String(await sliceLines()));
 

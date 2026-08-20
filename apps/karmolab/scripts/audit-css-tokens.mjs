@@ -85,16 +85,16 @@ catch {
   process.exit(2);
 }
 
-const 새것 = names.filter((n) => base.includes(n) === false);
-if (새것.length > 0) {
-  console.error(`[css-tokens] **없는 토큰을 부르는 자리가 늘었다** ${새것.length}종:`);
-  for (const n of 새것) console.error(`  - ${n}  ← ${[...new Set(missing.get(n))].slice(0, 2).join(', ')}`);
+const fresh = names.filter((n) => base.includes(n) === false);
+if (fresh.length > 0) {
+  console.error(`[css-tokens] **없는 토큰을 부르는 자리가 늘었다** ${fresh.length}종:`);
+  for (const n of fresh) console.error(`  - ${n}  ← ${[...new Set(missing.get(n))].slice(0, 2).join(', ')}`);
   console.error('  이름을 진짜 토큰으로 고쳐라. 예비값(var(--x, #hex))은 남기지 마라 — 다음에도 조용히 이긴다.');
   console.error('  JS 가 넣는 임시 변수라 정상이면: npm run audit:css-tokens -- --bless');
   process.exit(1);
 }
-const 고친것 = base.filter((n) => names.includes(n) === false);
-if (고친것.length > 0) {
+const fixed = base.filter((n) => names.includes(n) === false);
+if (fixed.length > 0) {
   console.log(`[css-tokens] 줄었다 ${base.length} → ${names.length}종 — 기준선을 다시 적어라: npm run audit:css-tokens -- --bless`);
   process.exit(0);
 }

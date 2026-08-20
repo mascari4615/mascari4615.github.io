@@ -7,12 +7,12 @@ test('손댄 도구만 고른다', () => {
 });
 
 test('여러 도구를 손댔으면 그만큼', () => {
-  const 답 = toolsToOpen([
+  const verdict = toolsToOpen([
     'apps/karmolab/src/widgets/tierlist/dnd.ts',
     'apps/karmolab/src/widgets/tierlist/render.ts',
     'apps/karmolab/src/widgets/tools/docscan.ts',
   ]).sort();
-  assert.deepEqual(답, ['tierlist', 'tools']);
+  assert.deepEqual(verdict, ['tierlist', 'tools']);
 });
 
 test('껍데기를 건드렸으면 전부 본다 — 어느 도구든 죽을 수 있다', () => {

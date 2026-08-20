@@ -433,7 +433,7 @@ if (!CHECK) {
     for (const id of RETIRED_OPERATION_IDS) {
       if (!fs.existsSync(path.join(srcDir, id, 'index.html'))) continue; /* 한국어 넘김판이 있는 것만 */
       const 길 = localizedPath(`/karmolab/t/${id}/`, code);
-      const 작업대 = localizedPath('/karmolab/t/text/', code);
+      const workbench = localizedPath('/karmolab/t/text/', code);
       const dest = path.join(outRoot, 길.replace(/^\//, ''), 'index.html');
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(
@@ -446,13 +446,13 @@ permalink: ${길}
           `<!doctype html><html lang="${code}"><head><meta charset="utf-8">` +
           `<meta name="viewport" content="width=device-width,initial-scale=1">` +
           `<title>${id} — moved into the text tool · KarmoLab</title>` +
-          `<link rel="canonical" href="${SITE}${작업대}">` +
+          `<link rel="canonical" href="${SITE}${workbench}">` +
           `<meta name="robots" content="noindex,follow">` +
-          `<meta http-equiv="refresh" content="0; url=${작업대}#${id}">` +
+          `<meta http-equiv="refresh" content="0; url=${workbench}#${id}">` +
           `<style>body{font:16px/1.7 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}` +
           `a{color:#2563eb}</style></head><body><main>` +
           `<h1>${id}</h1><p>This tool now lives inside the <strong>text tool</strong>.</p>` +
-          `<p><a href="${작업대}#${id}">Open it</a></p></main></body></html>`,
+          `<p><a href="${workbench}#${id}">Open it</a></p></main></body></html>`,
         'utf8'
       );
       made.push(dest);

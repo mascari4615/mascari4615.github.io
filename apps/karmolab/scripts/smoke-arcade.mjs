@@ -30,8 +30,8 @@ import { waitHydrated } from './lib/hydrated.mjs';
    verify 에서 늘 「못 돌림」이었다. 못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고,
    없으면 저장소를 그대로 내어 준다(다른 화면 검사들과 같은 `serveRepo`). */
 /* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
-const 내서버 = await smokeBase();
-const BASE = 내서버.base;
+const server = await smokeBase();
+const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 
 const failures = [];
@@ -182,7 +182,7 @@ if (!cantRun) {
 }
 
 await browser.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 
 if (cantRun) {
   console.log(`[arcade-ui] 못 돌았다 — ${cantRun} (통과 아님)`);

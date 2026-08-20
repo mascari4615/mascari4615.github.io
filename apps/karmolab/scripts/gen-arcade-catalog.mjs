@@ -40,10 +40,10 @@ const rows = [...body.matchAll(/\{\s*def:\s*([\w$]+),\s*view:\s*([\w$]+),/g)].ma
   defVar: m[1],
   viewVar: m[2]
 }));
-const 미아 = rows.filter((r) => !r.defMod || !r.viewMod);
-if (미아.length) {
+const orphans = rows.filter((r) => !r.defMod || !r.viewMod);
+if (orphans.length) {
   console.error('[gen-arcade-catalog] 어느 파일에서 온 건지 못 찾은 줄이 있다:');
-  미아.forEach((r) => console.error(`  - def:${r.defVar} view:${r.viewVar}`));
+  orphans.forEach((r) => console.error(`  - def:${r.defVar} view:${r.viewVar}`));
   process.exit(1);
 }
 
@@ -83,9 +83,9 @@ const meta = CATALOG.map((e, i) => ({
   viewVar: rows[i].viewVar
 }));
 
-const 겹침 = meta.map((m) => m.chunk).filter((c, i, a) => a.indexOf(c) !== i);
-if (겹침.length) {
-  console.error('[gen-arcade-catalog] 조각 이름이 겹친다: ' + [...new Set(겹침)].join(', '));
+const overlap = meta.map((m) => m.chunk).filter((c, i, a) => a.indexOf(c) !== i);
+if (overlap.length) {
+  console.error('[gen-arcade-catalog] 조각 이름이 겹친다: ' + [...new Set(overlap)].join(', '));
   process.exit(1);
 }
 

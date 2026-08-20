@@ -106,13 +106,13 @@ const sample = (() => {
      **도구 장이 없는** 것이 있다(`life` — 말 묶음엔 이름이 있지만 `tools-seo.json` 에 없다).
      그러면 화면에 그 이름이 안 뜨고, 이 검사는 「이름이 안 바뀌었다: null」로 빨개진다 —
      언어 전환은 멀쩡한데. 장이 있는 것만 표본으로 쓴다. */
-  const 장있는것 = JSON.parse(fs.readFileSync(path.join(appRoot, 'data/tools-seo.json'), 'utf8')).tools;
+  const withPage = JSON.parse(fs.readFileSync(path.join(appRoot, 'data/tools-seo.json'), 'utf8')).tools;
   const koNames = names.ko || {};
   for (const key of Object.keys(koNames)) {
     const m = /^widgets\.([a-z0-9-]+)\.title$/.exec(key);
     if (!m) continue;
     const id = m[1];
-    if (!장있는것[id]) continue;
+    if (!withPage[id]) continue;
     if (expected.every((l) => names[l.code] && names[l.code][`widgets.${id}.title`])) return id;
   }
   return 'base64';

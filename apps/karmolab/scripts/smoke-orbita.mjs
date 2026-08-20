@@ -109,28 +109,28 @@ const outer = Math.min(box.width, box.height) * 0.44;
    재우는 시간에 판정을 매달면, 판정이 그 컴퓨터가 얼마나 한가한지를 잰다.
    진짜로 볼 것은 하나다: **찍은 것이 저장본에 늘었나.** 그걸 기다린다.
    안 늘면 예전처럼 빨강이다 — 기다리는 상한(2초)까지 기다렸다가 그대로 센다. */
-const 저장읽기 = () =>
+const readStored = () =>
   page.evaluate(() => JSON.parse(localStorage.getItem('karmolab_orbita_song_v1') || '{"rings":[]}'));
-const 센다 = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
-const 늘때까지 = async (기준) => {
+const countIt = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
+const untilGrown = async (baseline) => {
   await page
     .waitForFunction(
       (n) => {
         const s = JSON.parse(localStorage.getItem('karmolab_orbita_song_v1') || '{"rings":[]}');
         return (s.rings || []).reduce((a, r) => a + (r.slots || []).filter(Boolean).length, 0) > n;
       },
-      기준,
+      baseline,
       { timeout: 2000, polling: 50 }
     )
     .catch(() => null);
 };
 
 await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - outer);
-await 늘때까지(-1); // 저장 자체가 깨어날 때까지 (처음엔 저장본이 아예 없다)
-const before = await 저장읽기();
+await untilGrown(-1); // 저장 자체가 깨어날 때까지 (처음엔 저장본이 아예 없다)
+const before = await readStored();
 await page.mouse.click(box.x + box.width / 2 + outer, box.y + box.height / 2);
-await 늘때까지(센다(before));
-const after = await 저장읽기();
+await untilGrown(countIt(before));
+const after = await readStored();
 const placed = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
 
 /* 눈으로 볼 일이 있을 때만 한 장 남긴다 — 색·글로우는 사람이 봐야 판정된다.

@@ -54,12 +54,12 @@ const MIME = {
  *   「못 돌린 검사 2개」로 남아 있었다). 사람 손으로 `gen:tool-pages` 를 먼저 돌리라는 안내는
  *   기계에게 안 통한다 — 못 돌 이유를 스스로 없앤다. 찍는 데 4초면 된다.
  *   찍는 것도 실패하면 그때는 진짜 「못 잼」이다(기록 파일은 안 건드린다). */
-let 임시장 = null;
+let tempPage = null;
 const SAMPLE_TOOL_PAGE = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
 if (fs.existsSync(SAMPLE_TOOL_PAGE) === false) {
-  임시장 = fs.mkdtempSync(path.join(os.tmpdir(), 'karmolab-a11y-'));
+  tempPage = fs.mkdtempSync(path.join(os.tmpdir(), 'karmolab-a11y-'));
   try {
-    execFileSync(process.execPath, [path.join(root, 'scripts/gen-tool-pages.mjs'), '--out', path.join(임시장, 't')], {
+    execFileSync(process.execPath, [path.join(root, 'scripts/gen-tool-pages.mjs'), '--out', path.join(tempPage, 't')], {
       cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, KARMOLAB_GEN_NO_STATE: '1' },
     });
@@ -69,7 +69,7 @@ if (fs.existsSync(SAMPLE_TOOL_PAGE) === false) {
     console.error('  (구운 것이 없으면 `node build.mjs` 뒤에 다시. 안 재고 통과시키지 않는다.)');
     process.exit(2);
   }
-  if (!fs.existsSync(path.join(임시장, 't/loan/index.html'))) {
+  if (!fs.existsSync(path.join(tempPage, 't/loan/index.html'))) {
     console.error('[smoke-a11y] 못 돌았다 — 찍긴 했는데 표본 장이 없다.');
     process.exit(2);
   }
@@ -85,10 +85,10 @@ const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p.endsWith('/')) p += 'index.html';
   /* 갓 찍은 표본을 쓰는 판이면 그 자리로 보낸다 — 주소는 배포와 같게 둔다. */
-  const file = 임시장 && p.startsWith('/apps/blog/karmolab/t/')
-    ? path.join(임시장, 't', p.slice('/apps/blog/karmolab/t/'.length))
+  const file = tempPage && p.startsWith('/apps/blog/karmolab/t/')
+    ? path.join(tempPage, 't', p.slice('/apps/blog/karmolab/t/'.length))
     : path.join(repoRoot, p);
-  if ((!file.startsWith(repoRoot) && !(임시장 && file.startsWith(임시장))) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+  if ((!file.startsWith(repoRoot) && !(tempPage && file.startsWith(tempPage))) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404); res.end('404'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -141,7 +141,7 @@ for (const theme of THEMES) {
 }
 await browser.close();
 server.close();
-if (임시장) fs.rmSync(임시장, { recursive: true, force: true });
+if (tempPage) fs.rmSync(tempPage, { recursive: true, force: true });
 
 /* ★ 기준선(래칫). 처음 켰더니 36곳이 이미 어겨져 있었다 — 다 고칠 때까지 게이트를 안 켜면
    그 사이에 **새로 생기는 것**도 못 막는다. 그래서 「지금보다 늘면 빨강」으로 켠다.
@@ -166,21 +166,21 @@ catch {
   process.exit(2);
 }
 
-const 늘어난것 = [];
-const 본것 = new Set();
+const grown = [];
+const seen = new Set();
 for (const f of failures) {
   const k = key(f);
-  if (본것.has(k)) continue;
-  본것.add(k);
+  if (seen.has(k)) continue;
+  seen.add(k);
   const before = base[k] || 0;
-  if (now[k] > before) 늘어난것.push({ f, before, after: now[k] });
+  if (now[k] > before) grown.push({ f, before, after: now[k] });
 }
-const 줄어든것 = Object.entries(base).filter(([k, v]) => (now[k] || 0) < v);
+const shrunk = Object.entries(base).filter(([k, v]) => (now[k] || 0) < v);
 
-if (늘어난것.length > 0) {
-  console.error(`\n[smoke-a11y] 접근성 위반이 **늘었다** ${늘어난것.length}건
+if (grown.length > 0) {
+  console.error(`\n[smoke-a11y] 접근성 위반이 **늘었다** ${grown.length}건
 `);
-  for (const { f, before, after } of 늘어난것) {
+  for (const { f, before, after } of grown) {
     console.error(`  ${f.theme.padEnd(5)} ${f.name}  [${f.impact}] ${f.id}  ${before} → ${after}`);
     console.error(`        ${f.help}`);
     console.error(`        예: ${f.sample.slice(0, 90)}`);
@@ -190,10 +190,10 @@ if (늘어난것.length > 0) {
   process.exit(1);
 }
 
-const 총 = Object.values(now).reduce((a, b) => a + b, 0);
-const 기준 = Object.values(base).reduce((a, b) => a + b, 0);
-if (줄어든것.length > 0) {
-  console.log(`[smoke-a11y] 줄었다 ${기준} → ${총}곳 — 기준선을 다시 적어라: npm run test:a11y -- --bless`);
+const total = Object.values(now).reduce((a, b) => a + b, 0);
+const baseline = Object.values(base).reduce((a, b) => a + b, 0);
+if (shrunk.length > 0) {
+  console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳 — 기준선을 다시 적어라: npm run test:a11y -- --bless`);
   process.exit(0);
 }
-console.log(`[smoke-a11y] ${SCREENS.length}장 × ${THEMES.join('/')} — 늘지 않았다 (남은 빚 ${총}곳)`);
+console.log(`[smoke-a11y] ${SCREENS.length}장 × ${THEMES.join('/')} — 늘지 않았다 (남은 빚 ${total}곳)`);

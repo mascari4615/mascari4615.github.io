@@ -40,28 +40,28 @@ if (!fs.existsSync(path.join(root, 'js/widgets/wm/wm.js'))) {
 }
 
 /** 이 세상에 없던 필드·종류. 코드에 이름이 박혀 있으면 이 둘은 화면에 못 나온다. */
-const 새필드 = '발효도';
-const 새값 = '3단계-부글부글';
-const 새종류 = '효모';
-const 새제목 = '시험용 효모 한 덩이';
+const newField = '발효도';
+const nextValue = '3단계-부글부글';
+const newKind = '효모';
+const newTitle = '시험용 효모 한 덩이';
 
 const FAKE = {
   generated: '2026-08-14T00:00:00Z',
   counts: { docs: 1, kinds: 1, privateSkipped: 0 },
-  kinds: [{ id: 새종류, label: 새종류, count: 1 }],
+  kinds: [{ id: newKind, label: newKind, count: 1 }],
   docs: [
     {
       id: 'test-yeast',
-      title: 새제목,
-      kind: 새종류,
-      kindLabel: 새종류,
+      title: newTitle,
+      kind: newKind,
+      kindLabel: newKind,
       summary: '수집기가 모르는 종류·필드를 들고 온 문서',
       source: 'memo/wm/design/test-yeast.md',
       body: '# 시험용 효모 한 덩이\n\n본문이다.',
       // 수집기가 늘 채워 주는 칸(빈 배열이라도)은 그대로 흉내 낸다 — 화면이 `doc.tags.length` 를
       // 그냥 읽기 때문이다. 여기서 빼면 「제품이 틀렸다」가 아니라 **가짜 자료가 틀린 것**이 된다.
       tags: [],
-      fields: { [새필드]: 새값 },
+      fields: { [newField]: nextValue },
     },
   ],
 };
@@ -118,13 +118,13 @@ try {
     if (await tab.count()) await tab.click().catch(() => {});
   }
   // 목록이 그려질 때까지 기다린다 — 자료를 받아 그리는 사이가 있다.
-  await page.waitForFunction((t) => document.body.innerText.includes(t), 새제목, { timeout: 20000 }).catch(() => {});
+  await page.waitForFunction((t) => document.body.innerText.includes(t), newTitle, { timeout: 20000 }).catch(() => {});
 
   const listText = await text();
   /* 위젯이 아예 안 떴으면 그건 「제품이 틀렸다」가 아니라 **못 잰 것**이다 (2026-08-14).
    * 지금 이 자리에서 실제로 그랬다 — 작은 서버로 껍데기만 띄우면 wm 묶음이 안 붙는다.
    * 그 상태를 빨강으로 찍으면 늑대소년이 되고, 초록으로 찍으면 거짓말이 된다. 그래서 exit 2. */
-  if (!listText.includes(새제목) && !/도감|Witch/.test(listText)) {
+  if (!listText.includes(newTitle) && !/도감|Witch/.test(listText)) {
     console.error('[smoke-worldbook] CANNOT-RUN: wm 화면이 안 떴다 (화면 글자 ' + listText.length + '자).');
     console.error('[smoke-worldbook]   껍데기만 띄우는 이 작은 서버로는 wm 묶음이 안 붙는 것으로 보인다.');
     console.error('[smoke-worldbook]   → 붙이는 길을 찾기 전까지 이 검사는 `gates` 에 안 건다(초록도 빨강도 거짓이므로).');
@@ -132,18 +132,18 @@ try {
     server.close();
     process.exit(2);
   }
-  if (!listText.includes(새제목)) problems.push(`처음 보는 종류의 문서가 목록에 없다 — 「${새제목}」`);
-  if (!listText.includes(새종류)) problems.push(`처음 보는 종류 갈래가 안 생겼다 — 「${새종류}」`);
+  if (!listText.includes(newTitle)) problems.push(`처음 보는 종류의 문서가 목록에 없다 — 「${newTitle}」`);
+  if (!listText.includes(newKind)) problems.push(`처음 보는 종류 갈래가 안 생겼다 — 「${newKind}」`);
 
   // 상세로 들어가야 필드가 보인다.
-  const card = page.locator(`text=${새제목}`).first();
+  const card = page.locator(`text=${newTitle}`).first();
   if (await card.count()) {
     await card.click();
     await page.waitForSelector('.wb-detail', { timeout: 10000 }).catch(() => {});
   }
   const detail = await text();
-  if (!detail.includes(새필드)) problems.push(`처음 보는 필드 이름이 상세에 없다 — 「${새필드}」`);
-  if (!detail.includes(새값)) problems.push(`처음 보는 필드 값이 상세에 없다 — 「${새값}」`);
+  if (!detail.includes(newField)) problems.push(`처음 보는 필드 이름이 상세에 없다 — 「${newField}」`);
+  if (!detail.includes(nextValue)) problems.push(`처음 보는 필드 값이 상세에 없다 — 「${nextValue}」`);
 } catch (e) {
   problems.push(`화면을 여는 중 죽었다: ${String(e).split('\n')[0]}`);
 }
@@ -158,4 +158,4 @@ if (problems.length > 0) {
   console.error('      **있는 것을 그리는** 방식이어야 WM 이 흔들려도 웹이 안 깨진다.');
   process.exit(1);
 }
-console.log(`[smoke-worldbook] OK — 처음 보는 종류(${새종류})와 필드(${새필드})가 코드 수정 없이 그대로 나온다`);
+console.log(`[smoke-worldbook] OK — 처음 보는 종류(${newKind})와 필드(${newField})가 코드 수정 없이 그대로 나온다`);

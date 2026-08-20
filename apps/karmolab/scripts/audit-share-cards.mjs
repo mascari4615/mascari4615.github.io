@@ -57,9 +57,9 @@ if (unreachable.length) {
    안 서 있는 주소로 돌리면 122개를 전부 「다음 배포 대기」로 넘기고
    `0개 도구가 저마다 공유 카드를 갖고 있다` 며 **초록**으로 끝났다.
    못 연 것은 「카드가 있다」가 아니다 — 열에 하나를 넘으면 CANNOT-RUN(2). */
-const 문턱 = Math.max(5, Math.ceil(ids.length * 0.1));
-if (unreachable.length >= 문턱) {
-  console.error(`[audit-share-cards] CANNOT-RUN — ${ids.length}개 중 ${unreachable.length}개를 못 열었다 (문턱 ${문턱}).`);
+const threshold = Math.max(5, Math.ceil(ids.length * 0.1));
+if (unreachable.length >= threshold) {
+  console.error(`[audit-share-cards] CANNOT-RUN — ${ids.length}개 중 ${unreachable.length}개를 못 열었다 (문턱 ${threshold}).`);
   console.error('  못 연 것은 「카드가 있다」가 아니다 — 판정하지 않고 지나간다. 주소가 맞는지, 사이트가 서 있는지 보라.');
   process.exit(2);
 }

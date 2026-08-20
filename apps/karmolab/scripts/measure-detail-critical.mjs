@@ -18,7 +18,7 @@ const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const 장 = process.argv.slice(2).filter((a) => !a.startsWith('-'));
 const IDS = 장.length ? 장 : ['loan', 'charcount', 'jsonfmt', 'qrgen', 'unitconv', 'colorpick'];
 
-const 합 = new Map(); // 파일 → { 전체, 조각: Set<범위키>, 바이트: Set<위치> }
+const sum = new Map(); // 파일 → { 전체, 조각: Set<범위키>, 바이트: Set<위치> }
 
 const browser = await chromium.launch();
 for (const id of IDS) {
@@ -29,30 +29,30 @@ for (const id of IDS) {
   await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded' });
   /* 셸이 주소를 한 번 고쳐 잡는 장이 있다 — 그때 이 평가는 날아간다. 날아가면 다시 한 번 센다.
      못 세면 그 장을 조용히 빼지 않고 말한다(빠진 장은 합집합을 **작게** 만들어 잘못 자르게 한다). */
-  const 한숨 = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-  try { await 한숨(); } catch { await page.waitForLoadState('domcontentloaded'); await 한숨(); }
+  const pause = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  try { await pause(); } catch { await page.waitForLoadState('domcontentloaded'); await pause(); }
   const cov = await page.coverage.stopCSSCoverage();
   for (const e of cov) {
-    const 이름 = e.url.split('/').pop().split('?')[0];
-    if (!/^(tools|shell-critical)\./.test(이름)) continue;
-    const 칸 = 합.get(이름) || { 전체: e.text.length, 쓴자리: new Set() };
-    칸.전체 = Math.max(칸.전체, e.text.length);
-    for (const r of e.ranges) for (let i = r.start; i < r.end; i += 1) 칸.쓴자리.add(i);
-    합.set(이름, 칸);
+    const name = e.url.split('/').pop().split('?')[0];
+    if (!/^(tools|shell-critical)\./.test(name)) continue;
+    const cell = sum.get(name) || { 전체: e.text.length, 쓴자리: new Set() };
+    cell.전체 = Math.max(cell.전체, e.text.length);
+    for (const r of e.ranges) for (let i = r.start; i < r.end; i += 1) cell.쓴자리.add(i);
+    sum.set(name, cell);
   }
   await ctx.close();
 }
 await browser.close();
 
-if (합.size === 0) {
+if (sum.size === 0) {
   console.error('[detail-critical] 잰 것이 없다 — 주소·파일 이름을 보라 (통과가 아니다)');
   process.exit(1);
 }
 console.log(`[detail-critical] 장 ${IDS.length}개 · **첫 그림까지** 쓰인 것의 합집합`);
-for (const [이름, 칸] of 합) {
-  const 쓴 = 칸.쓴자리.size;
-  console.log(`  ${이름}  ${(쓴 / 1024).toFixed(1)}KB / ${(칸.전체 / 1024).toFixed(1)}KB  (${((쓴 / 칸.전체) * 100).toFixed(1)}%)`);
+for (const [이름, 칸] of sum) {
+  const used = 칸.쓴자리.size;
+  console.log(`  ${이름}  ${(used / 1024).toFixed(1)}KB / ${(칸.전체 / 1024).toFixed(1)}KB  (${((used / 칸.전체) * 100).toFixed(1)}%)`);
 }
-const 총쓴 = [...합.values()].reduce((s, c) => s + c.쓴자리.size, 0);
-const 총전체 = [...합.values()].reduce((s, c) => s + c.전체, 0);
-console.log(`  합계  ${(총쓴 / 1024).toFixed(1)}KB / ${(총전체 / 1024).toFixed(1)}KB — 자를 수 있는 몫 ${((1 - 총쓴 / 총전체) * 100).toFixed(0)}%`);
+const totalUsed = [...sum.values()].reduce((s, c) => s + c.쓴자리.size, 0);
+const grandTotal = [...sum.values()].reduce((s, c) => s + c.전체, 0);
+console.log(`  합계  ${(totalUsed / 1024).toFixed(1)}KB / ${(grandTotal / 1024).toFixed(1)}KB — 자를 수 있는 몫 ${((1 - totalUsed / grandTotal) * 100).toFixed(0)}%`);

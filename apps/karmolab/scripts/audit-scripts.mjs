@@ -68,8 +68,8 @@ const wfCalled = fs.existsSync(wfPath)
     /* ★ **밀 커밋을 봐야 한다** (2026-08-17). 여기만 `HEAD` 를 봤다 — 그러면 **새 검사 파일의
        첫 커밋**은 영원히 막힌다: 파일은 이 커밋에 들어 있는데 HEAD 에는 아직 없으니까.
        실제로 오늘 그 자물쇠에 걸려 push 가 두 번 튕겼다. 형제 감사들처럼 `KL_PUSH_SHA` 를 쓴다. */
-    const 기준 = process.env.KL_PUSH_SHA || 'HEAD';
-    const out = execFileSync('git', ['ls-tree', '-r', '--name-only', 기준, 'scripts', 'img', 'data'], { cwd: root, encoding: 'utf8' });
+    const baseline = process.env.KL_PUSH_SHA || 'HEAD';
+    const out = execFileSync('git', ['ls-tree', '-r', '--name-only', baseline, 'scripts', 'img', 'data'], { cwd: root, encoding: 'utf8' });
     tracked = new Set(out.split('\n').map((s) => s.trim()).filter(Boolean));
   } catch {
     /* ★ **못 물어본 것은 빨강이 아니다** (2026-08-13). 이 검사는 저장소 밖(밀 커밋을 풀어 놓은
@@ -194,11 +194,11 @@ if (fs.existsSync(wf)) {
  * 규약: 볼 곳은 `lib/live-url.mjs` 의 `livePage(길)` 로 정한다. 실서비스 주소는 거기 한 곳.
  */
 {
-  const 박은주소 = /process\.env\.URL \|\| ['"]https:\/\/blog\.mascari4615\.com/;
+  const hardcodedUrls = /process\.env\.URL \|\| ['"]https:\/\/blog\.mascari4615\.com/;
   for (const file of fs.readdirSync(path.join(root, 'scripts'))) {
     if (!file.endsWith('.mjs')) continue;
     const src = fs.readFileSync(path.join(root, 'scripts', file), 'utf8');
-    if (박은주소.test(src)) {
+    if (hardcodedUrls.test(src)) {
       problems.push(`scripts/${file} 가 볼 곳을 손으로 박았다 — BASE 를 줘도 실서비스를 본다 (lib/live-url.mjs 의 livePage() 를 써라)`);
     }
   }

@@ -32,19 +32,19 @@ const TOOLS = ['text', 'uuidgen', 'hashgen', 'asciiart'];
    그런데 여기서는 <이름>.js 만 찾아 「없다」고 하고 **늘 못 돌림으로 끝났다** — CI 에서 이 검사는
    한 번도 안 돌았다. 내 자리에서는 옛 빌드가 남긴 textdiff.js 때문에 초록으로 보였다(더 나쁘다).
    지어진 메타에서 그 도구가 어느 묶음인지 읽어 그 파일을 본다. */
-const 메타경로 = path.join(root, 'js/widgets-lazy-meta.js');
-const 메타 = fs.existsSync(메타경로) ? fs.readFileSync(메타경로, 'utf8') : '';
-const 묶음 = (id) => {
+const metaPath = path.join(root, 'js/widgets-lazy-meta.js');
+const 메타 = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, 'utf8') : '';
+const bundle = (id) => {
   const m = new RegExp('id:"' + id + '",[^}]*?bundle:"([^"]+)"').exec(메타);
   return m ? m[1] : id;
 };
-const 자리 = (이름) => ['js/widgets/tools/' + 이름 + '.js', 'js/widgets/' + 이름 + '.js']
+const hits = (name) => ['js/widgets/tools/' + name + '.js', 'js/widgets/' + name + '.js']
   .find((rel) => fs.existsSync(path.join(root, rel))) || null;
-const 읽을자리 = (id) => 자리(id) || 자리(묶음(id));
+const readSites = (id) => hits(id) || hits(bundle(id));
 {
-  const 없는것 = 메타 ? TOOLS.filter((id) => !읽을자리(id)) : TOOLS;
-  if (없는것.length) {
-    console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${없는것.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
+  const missing = 메타 ? TOOLS.filter((id) => !readSites(id)) : TOOLS;
+  if (missing.length) {
+    console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${missing.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
     process.exit(2);
   }
 }
@@ -66,7 +66,7 @@ await page.evaluate(() => {
 });
 for (const id of TOOLS) {
   /* 위 고르기와 **같은 규칙**으로 읽는다 — 앞에서만 고치고 여기서 옛 이름을 읽으면 ENOENT 로 죽는다. */
-  await page.addScriptTag({ content: read(읽을자리(id)) });
+  await page.addScriptTag({ content: read(readSites(id)) });
 }
 
 const out = await page.evaluate(async (tools) => {

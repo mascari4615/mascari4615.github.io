@@ -168,11 +168,11 @@ async function measure(url, scenario) {
       });
     }
   }
-  const 죽은요청 = [];
-  const 터진말 = [];
-  page.on('requestfailed', (r) => 죽은요청.push(String(r.url()).split('/').pop()));
-  page.on('response', (r) => { if (r.status() >= 400) 죽은요청.push(`${String(r.url()).split('/').pop()}(${r.status()})`); });
-  page.on('pageerror', (e) => 터진말.push(String(e.message).split('\n')[0].slice(0, 80)));
+  const deadRequests = [];
+  const errorText = [];
+  page.on('requestfailed', (r) => deadRequests.push(String(r.url()).split('/').pop()));
+  page.on('response', (r) => { if (r.status() >= 400) deadRequests.push(`${String(r.url()).split('/').pop()}(${r.status()})`); });
+  page.on('pageerror', (e) => errorText.push(String(e.message).split('\n')[0].slice(0, 80)));
   await page.goto(BASE + url, { waitUntil: 'load' });
   /* ★ **못 돌린 이유를 지어내지 않는다** (2026-08-16, 실측). 여태 여기서 조용히 null 을 주면
      바깥에서 「계측기가 안 실렸다 — 페이지를 다시 찍어라」로 **한 가지 이유만** 적었다.
@@ -188,10 +188,10 @@ async function measure(url, scenario) {
       KLPerf: !!window.KLPerf,
       Toolbox: typeof Toolbox !== 'undefined',
     })).catch(() => ({ KLPerf: false, Toolbox: false }));
-    못돌린이유 = [
+    cannotRunReason = [
       `KLPerf ${왜.KLPerf ? '왔다' : '안 왔다'} · Toolbox ${왜.Toolbox ? '떴다' : '안 떴다'}`,
-      죽은요청.length ? `못 받은 파일 ${죽은요청.length}개: ${죽은요청.slice(0, 3).join(' · ')}` : '',
-      터진말.length ? `스크립트가 터졌다: ${터진말.slice(0, 2).join(' · ')}` : '',
+      deadRequests.length ? `못 받은 파일 ${deadRequests.length}개: ${deadRequests.slice(0, 3).join(' · ')}` : '',
+      errorText.length ? `스크립트가 터졌다: ${errorText.slice(0, 2).join(' · ')}` : '',
     ].filter(Boolean).join(' | ');
     await page.close();
     return null;
@@ -209,19 +209,19 @@ async function measure(url, scenario) {
      둘을 고친다: ① 화면을 떠나는 것은 후보에서 뺀다 ② 그래도 떠나면 **그걸 그대로 말한다**
      (설명 없는 15초 기다림으로 다시 둔갓하지 않게). 도구 자기 입력칸도 후보에 넣는다 —
      도구 장에서 사람이 실제로 만지는 것이 그것이다. */
-  const 재던주소 = page.url();
+  const measuredUrl = page.url();
   const clickable = await page.$$(
     '.landing-cta, .tool-card, header button, nav button, .tab-btn, main input, main select, .tool-card-btn'
   );
   /* 떠나는 것 = **틀(chrome)** 이다 — 머리말·메뉴·생김새·링크. 도구 장에서는 그게 전부
      「앱으로 들어가기」라 하나라도 누르면 재던 화면이 사라진다(설정 단추 → `#settings`).
      재려는 것은 **그 화면 안의 조작**이므로 틀은 통째로 뺀다. */
-  const 떠나는것 = (el) =>
+  const leaving = (el) =>
     el.evaluate((n) => !!n.closest('a[href], header, nav, .breadcrumb, [data-page], [data-goto]'));
-  let 떠났다 = '';
-  let 떠나게한것 = '';
-  let 누른것 = [];
-  let 누른수 = 0;
+  let left = '';
+  let causedLeave = '';
+  let clicked = [];
+  let clickCount = 0;
   /* 무엇을 눌렀는지 이름을 들고 다닌다 — 「떠났다」만 말하면 다음 사람이 스무 번 눌러 보며 찾는다
      (오늘 실제로 그랬다). 틀 거르개는 **누를 것**을 보고 거르는데, 화면을 떠나게 한 것이
      그 그물을 어떻게 빠져나갔는지는 그 이름이 없으면 영영 모른다. */
@@ -230,19 +230,19 @@ async function measure(url, scenario) {
       .evaluate((n) => `${n.tagName}${n.id ? '#' + n.id : ''}${n.className ? '.' + String(n.className).split(' ')[0] : ''}`)
       .catch(() => '(사라진 것)');
   for (const target of clickable) {
-    if (누른수 >= 4) break;                                    // 네 번이면 가장 굼뜬 조작이 드러난다
-    if (await 떠나는것(target).catch(() => true)) continue;
+    if (clickCount >= 4) break;                                    // 네 번이면 가장 굼뜬 조작이 드러난다
+    if (await leaving(target).catch(() => true)) continue;
     const who = await 이름(target);
     await target.click({ timeout: 1500 }).catch(() => {});
-    누른수 += 1;
-    누른것.push(who);
+    clickCount += 1;
+    clicked.push(who);
     await page.waitForTimeout(250);
-    if (page.url() !== 재던주소) { 떠났다 = page.url(); 떠나게한것 = who; break; }
+    if (page.url() !== measuredUrl) { left = page.url(); causedLeave = who; break; }
   }
-  if (떠났다) {
-    못돌린이유 =
-      `누르는 순간 화면을 떠났다 — 마지막에 누른 것 \`${떠나게한것}\` (${재던주소} → ${떠났다})` +
-      ` · 여기까지 누른 것: ${누른것.join(' → ')}` +
+  if (left) {
+    cannotRunReason =
+      `누르는 순간 화면을 떠났다 — 마지막에 누른 것 \`${causedLeave}\` (${measuredUrl} → ${left})` +
+      ` · 여기까지 누른 것: ${clicked.join(' → ')}` +
       ' — 그 화면을 재려면 떠나지 않는 것만 눌러야 한다';
     await page.close();
     return null;
@@ -254,15 +254,15 @@ async function measure(url, scenario) {
      `Cannot read properties of undefined` 로 **검사가 죽었다** — 아래에 이미 「계측기가
      안 실린 화면은 못 돌림」이라는 자리가 있는데, 거기까지 못 가고 터진 것이다.
      기다려 보고, 끝내 없으면 그 자리로 보낸다(null). */
-  const 계측기옴 = await page
+  const meterArrived = await page
     .waitForFunction(() => !!window.KLPerf, null, { timeout: 15000 })
     .then(() => true)
     .catch(() => false);
-  if (!계측기옴) {
-    못돌린이유 = [
+  if (!meterArrived) {
+    cannotRunReason = [
       '두 번째 판에서 KLPerf 가 15초 안에 안 왔다',
-      죽은요청.length ? `못 받은 파일 ${죽은요청.length}개: ${죽은요청.slice(0, 3).join(' · ')}` : '',
-      터진말.length ? `스크립트가 터졌다: ${터진말.slice(0, 2).join(' · ')}` : '',
+      deadRequests.length ? `못 받은 파일 ${deadRequests.length}개: ${deadRequests.slice(0, 3).join(' · ')}` : '',
+      errorText.length ? `스크립트가 터졌다: ${errorText.slice(0, 2).join(' · ')}` : '',
     ].filter(Boolean).join(' | ');
     await page.close();
     return null;
@@ -312,12 +312,12 @@ function median(runs) {
 }
 
 /** 마지막으로 못 돌린 이유 — `measure` 가 채우고 아래 보고가 그대로 쓴다. */
-let 못돌린이유 = '';
+let cannotRunReason = '';
 
 const RUNS = 3;
 
 for (const scenario of SCENARIOS)
-for (const [screen, url, 화면예산 = {}] of TARGETS) {
+for (const [screen, url, screenBudget = {}] of TARGETS) {
   const label = `${screen} · ${scenario.name}`;
   /* 느린 판은 한 회차가 10초를 넘는다 — 세 번은 과하다. 흔들림이 큰 쪽이 빠른 판이므로
      반복은 거기에 준다. */
@@ -334,19 +334,19 @@ for (const [screen, url, 화면예산 = {}] of TARGETS) {
   if (!result) {
     /* 계측기가 안 실린 화면은 「통과」가 아니라 **못 돌림**이다. 도구 장은 배포 때 셸을 복사해
        찍히므로, 셸에 계측기를 넣은 뒤 아직 안 찍힌 판에서는 여기로 온다. */
-    console.log(`[perf-budget]   못 돌림 — ${못돌린이유 || '이유를 못 모았다'}. 통과로 세지 않는다.`);
+    console.log(`[perf-budget]   못 돌림 — ${cannotRunReason || '이유를 못 모았다'}. 통과로 세지 않는다.`);
     continue;
   }
   measuredScreens += 1;
   /* 시간 항목만 이 환경의 배수를 준다. 크기·밀림은 기계가 느리다고 커지지 않는다. */
   const limitSlack = scenario.limitSlack ?? scenario.slack;
   /* 화면마다 셸이 다르면 예산도 다르다 — 같은 자를 대면 엉뚱한 화면이 별을 받는다. */
-  const 예산적용 = result.verdict.map((v) =>
-    화면예산[v.key] != null
-      ? { ...v, limit: 화면예산[v.key], state: v.value == null ? 'unknown' : v.value > 화면예산[v.key] ? 'fail' : 'pass' }
+  const budgetApplied = result.verdict.map((v) =>
+    screenBudget[v.key] != null
+      ? { ...v, limit: screenBudget[v.key], state: v.value == null ? 'unknown' : v.value > screenBudget[v.key] ? 'fail' : 'pass' }
       : v
   );
-  const scaled = 예산적용.map((v) =>
+  const scaled = budgetApplied.map((v) =>
     v.unit === 'ms' && limitSlack !== 1
       ? { ...v, limit: Math.round(v.limit * limitSlack), state: v.value == null ? 'unknown' : v.value > v.limit * limitSlack ? 'fail' : 'pass' }
       : v

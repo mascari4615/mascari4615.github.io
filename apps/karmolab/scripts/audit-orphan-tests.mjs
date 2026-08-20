@@ -191,11 +191,11 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
    고아로 보여 **멀쩡한 커밋이 막힌다**. 오늘 실제로 그렇게 막혔고, 사유도 안 보였다.
    이 파일 위쪽이 스스로 정한 규율(「못 물어보면 모른다 — 모름을 빨강으로 만들지 않는다」)을
    여기서도 지킨다. exit 2 = 「못 돌림」 = `run-gates` 가 빨강으로 안 센다. */
-const 부르는자리 = [path.join(root, '../../scripts/verify.mjs'), path.join(root, '../../.github/workflows')];
-const 없는자리 = 부르는자리.filter((one) => !fs.existsSync(one));
-if (없는자리.length) {
+const callSites = [path.join(root, '../../scripts/verify.mjs'), path.join(root, '../../.github/workflows')];
+const missingSites = callSites.filter((one) => !fs.existsSync(one));
+if (missingSites.length) {
   console.error('[audit-orphan-tests] CANNOT-RUN: 검사를 부르는 자리를 못 본다 —');
-  for (const one of 없는자리) console.error(`  없음: ${path.relative(root, one)}`);
+  for (const one of missingSites) console.error(`  없음: ${path.relative(root, one)}`);
   console.error('  이건 「아무도 안 돌린다」가 아니라 **아무것도 못 봤다**는 뜻이다. 빨강으로 세지 않는다.');
   process.exit(2);
 }
@@ -215,7 +215,7 @@ if (fs.existsSync(wfDir)) {
 }
 
 /** 갈래로 안 잡히는 것은 손으로 적는다 — 실측해 보고 안 것들. */
-const 사유메모 = {
+const reasonNote = {
   'test:garden': '알맹이지만 19초 걸린다 — 게이트 한 판이 그만큼 길어진다 (실측 2026-08-13)',
   'test:studymap': '알맹이지만 24초 걸린다 (실측 2026-08-13)',
   'test:heung': '60초를 넘겨도 안 끝난다 — 멈추는 자리가 있다 (실측 2026-08-13, 그 슬롯 몫)'
@@ -228,7 +228,7 @@ const orphans = all.filter((k) => !covered.has(k)).sort();
  * 왜 못 묶는지를 **기준선이 스스로 적게** 한다 — 이름만 늘어놓은 목록은 반년 뒤 아무도 못 읽는다.
  * 갈래는 검사 파일을 읽어 가른다(브라우저를 쓰나 · 실주소를 보나 · 다른 검사를 부르나).
  */
-function 갈래(name) {
+function branch(name) {
   const file = (scripts[name].match(/scripts\/[\w.-]+\.mjs/) || [])[0];
   let src = '';
   try {
@@ -236,12 +236,12 @@ function 갈래(name) {
   } catch {
     return '알 수 없음 (검사 파일을 못 찾았다)';
   }
-  const 브라우저 = /from ['"]playwright['"]/.test(src);
-  const 실주소 = /blog\.mascari4615\.com|mascari4615\.github\.io|process\.env\.(URL|BASE)/.test(src);
+  const browser = /from ['"]playwright['"]/.test(src);
+  const resolvedUrl = /blog\.mascari4615\.com|mascari4615\.github\.io|process\.env\.(URL|BASE)/.test(src);
   if (/child_process/.test(src) && /npm/.test(src)) return '묶음 — 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다';
-  if (브라우저 && 실주소) return '화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다';
-  if (브라우저) return '화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)';
-  if (실주소) return '실주소 — 배포 상태에 달렸다';
+  if (browser && resolvedUrl) return '화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다';
+  if (browser) return '화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)';
+  if (resolvedUrl) return '실주소 — 배포 상태에 달렸다';
   return '알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라';
 }
 
@@ -249,7 +249,7 @@ function 갈래(name) {
    다시 쓰면서 남은 항목의 사유까지 갈래 기본값으로 갈아 끼웠다 — 「rc 2 로 스스로 못 돌았다고
    끝난다」·「마스코트 rAF 때문에 지금 빨갛다, TASK-KL-318」 같은 **재 본 값**이 「브라우저를 띄워
    무겁다」로 뭉개졌다. 그 문장들이 기준선의 값어치 전부다. 이미 적힌 사유가 있으면 그것을 남긴다. */
-function 기존사유() {
+function existingReason() {
   try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).사유 || {}; } catch { return {}; }
 }
 
@@ -258,23 +258,23 @@ function 기존사유() {
    **이름이 아예 없는 파일**은 이 감사의 눈에 안 보였다 — 아무 데서도 안 불리고,
    실제로 돌려 보니 화면이 안 떠서 **깨진 채로** 있었다(README 에만 쓰는 법이 적혀 있었다).
    「안 도는 검사」의 가장 조용한 얼굴이다. 여기서 같이 센다. */
-const 검사꼴 = /^(smoke|test|audit|check)[-.]|\.test\.mjs$/;
-const 부르는곳 = [pkgText];
+const gatePattern = /^(smoke|test|audit|check)[-.]|\.test\.mjs$/;
+const callers = [pkgText];
 for (const f of fs.readdirSync(path.join(root, 'scripts'))) {
-  if (f.endsWith('.mjs')) 부르는곳.push(fs.readFileSync(path.join(root, 'scripts', f), 'utf8'));
+  if (f.endsWith('.mjs')) callers.push(fs.readFileSync(path.join(root, 'scripts', f), 'utf8'));
 }
 const wf = path.join(root, '../../.github/workflows');
 if (fs.existsSync(wf)) {
-  for (const f of fs.readdirSync(wf)) 부르는곳.push(fs.readFileSync(path.join(wf, f), 'utf8'));
+  for (const f of fs.readdirSync(wf)) callers.push(fs.readFileSync(path.join(wf, f), 'utf8'));
 }
-const 이름없는것 = fs.readdirSync(path.join(root, 'scripts'))
-  .filter((f) => f.endsWith('.mjs') && 검사꼴.test(f))
+const unnamed = fs.readdirSync(path.join(root, 'scripts'))
+  .filter((f) => f.endsWith('.mjs') && gatePattern.test(f))
   .filter((f) => {
-    const 나 = fs.readFileSync(path.join(root, 'scripts', f), 'utf8');
-    return !부르는곳.some((t) => t !== 나 && t.includes(f));
+    const self = fs.readFileSync(path.join(root, 'scripts', f), 'utf8');
+    return !callers.some((t) => t !== self && t.includes(f));
   });
-function 기준선쓰기() {
-  const 이전 = 기존사유();
+function writeBaseline() {
+  const previous = existingReason();
   fs.writeFileSync(
     BASELINE,
     JSON.stringify(
@@ -282,12 +282,12 @@ function 기준선쓰기() {
         설명: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         갱신: new Date().toISOString().slice(0, 10),
         목록: orphans,
-        사유: Object.fromEntries(orphans.map((n) => [n, 이전[n] || 사유메모[n] || 갈래(n)])),
+        사유: Object.fromEntries(orphans.map((n) => [n, previous[n] || reasonNote[n] || branch(n)])),
         /* ★ **새 칸을 안 적으면 자동 조임이 그것을 날린다** (2026-08-17 실측). 어제 넣은
            「이름조차 없는 검사」 칸을 여기서 안 적었더니, `ratchet:tighten` 이 이 파일을
            `--update` 로 다시 써서 그 칸이 통째로 사라졌다 — 그러고는 「새로 생겼다」로 빨개졌다.
            기준선을 쓰는 자리는 **한 곳**이므로, 이 파일이 아는 칸은 전부 여기서 적는다. */
-        이름없는것,
+        unnamed,
         이름없는것_설명: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
       },
       null,
@@ -297,7 +297,7 @@ function 기준선쓰기() {
 }
 
 if (process.argv.includes('--update')) {
-  기준선쓰기();
+  writeBaseline();
   console.log(`[audit-orphan-tests] 기준선 갱신 — ${orphans.length}개`);
   process.exit(0);
 }
@@ -342,28 +342,28 @@ if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
    그래서 여기서 바로 줄인다. 내 자리에서 돌면 파일이 남아 다음 커밋에 실리고,
    CI 에서 돌면 그 판만 초록으로 지나간다(다음 사람이 그 줄어든 값을 올린다). */
 if (fixed.length) {
-  기준선쓰기();
+  writeBaseline();
   console.log(`[audit-orphan-tests] 이제 묶음에 든 것 ${fixed.length}개를 기준선에서 뺐다: ${fixed.join(', ')}`);
   console.log(`  기준선 ${orphans.length}개 — 톱니는 조이는 쪽으로만 돈다(막지 않는다).`);
 }
 console.log(`[audit-orphan-tests] 검사 ${all.length}개 · 묶음 밖 ${orphans.length}개 (기준선과 같음 — 늘지 않았다)`);
 
-const 이름없기준 = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).이름없는것 || []);
-const 새로생긴 = 이름없는것.filter((f) => !이름없기준.has(f));
-console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${이름없는것.length}개 (기준선 ${이름없기준.size})`);
+const unnamedBaseline = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).이름없는것 || []);
+const newlyAdded = unnamed.filter((f) => !unnamedBaseline.has(f));
+console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${unnamed.length}개 (기준선 ${unnamedBaseline.size})`);
 /* ★ **톱니는 조이는 쪽으로만 돈다 — 그러려면 조이라고 말해야 한다** (2026-08-17).
    여기는 늘어난 것만 막고 줄어든 것은 아무 말도 안 했다. 그러면 기준선은 **느슨해진 채로**
    남고, 나중에 다시 늘어도 그 안이라 초록이다. 위 「묶음 밖」 셈에는 이미 그 규칙이 있는데
    (기준선에 있는데 이제 들어간 것은 빼라고 막는다) 이쪽에만 없었다. 같은 규칙을 준다. */
-const 이제이름있는것 = [...이름없기준].filter((f) => !이름없는것.includes(f));
-if (이제이름있는것.length) {
-  console.error(`[audit-orphan-tests] ❌ 기준선에 적힌 ${이제이름있는것.length}개는 이제 이름이 있다 — 기준선에서 빼라(data/orphan-tests.json 의 이름없는것):`);
-  for (const f of 이제이름있는것) console.error('  - ' + f);
+const nowNamed = [...unnamedBaseline].filter((f) => !unnamed.includes(f));
+if (nowNamed.length) {
+  console.error(`[audit-orphan-tests] ❌ 기준선에 적힌 ${nowNamed.length}개는 이제 이름이 있다 — 기준선에서 빼라(data/orphan-tests.json 의 이름없는것):`);
+  for (const f of nowNamed) console.error('  - ' + f);
   process.exit(1);
 }
-if (새로생긴.length) {
+if (newlyAdded.length) {
   console.error('[audit-orphan-tests] ❌ 아무 데서도 안 불리는 검사 파일이 새로 생겼다 — 이름을 주고 묶음에 넣어라:');
-  for (const f of 새로생긴) console.error('  - scripts/' + f);
+  for (const f of newlyAdded) console.error('  - scripts/' + f);
   process.exit(1);
 }
 

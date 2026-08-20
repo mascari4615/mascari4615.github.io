@@ -7,7 +7,7 @@
  *
  * 사용: node scripts/smoke-image-shell.mjs
  */
-import { 멎을때까지, 될때까지 } from './lib/settle.mjs';
+import { untilSettled, untilTrue } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 import { deflateSync } from 'node:zlib';
@@ -96,7 +96,7 @@ await page.waitForSelector('#imZoom img', { timeout: 10000 }).catch(() => {});
 check((await page.locator('#imZoom img').count()) === 1, '누르면 크게 뜬다');
 await page.click('#imZoom');
 /* 재우지 말고 **닫힐 때까지** — 무엇을 기다리는지 아는 자리다(느린 기계에서 200ms 는 모자란다). */
-await 될때까지(page, () => !document.querySelector('#imZoom'), { 최대: 3000 });
+await untilTrue(page, () => !document.querySelector('#imZoom'), { 최대: 3000 });
 check((await page.locator('#imZoom').count()) === 0, '다시 누르면 닫힌다');
 
 /* ④ 할 일을 고르면 그 자리에서 열린다 — 사진은 안 사라진다 */
@@ -150,7 +150,7 @@ check(tags.length === 2 && /전|before/.test(tags[0]), `전·후 표가 붙는�
 const box = await page.locator('#imCmp').boundingBox();
 await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
 /* 잘리는 폭이 **멎을 때까지** — 끌기 반응이 늦으면 옛 폭을 읽는다. */
-const narrow = await 멎을때까지(page, () => page.locator('#imCmpClip').evaluate((e) => e.style.width));
+const narrow = await untilSettled(page, () => page.locator('#imCmpClip').evaluate((e) => e.style.width));
 await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
 await page.waitForTimeout(150);
 const wide = await page.locator('#imCmpClip').evaluate((e) => e.style.width);

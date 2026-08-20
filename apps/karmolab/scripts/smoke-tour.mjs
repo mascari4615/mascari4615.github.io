@@ -13,15 +13,15 @@
  * 통째로 날아가는데, 그건 대회의 결함이 아니라 검사의 결함이다(실측 — 이것 때문에 2판째가
  * 안 넘어가는 것처럼 보였다).
  */
-import { 가장긴제한 } from './lib/arcade-limits.mjs';
+import { longestLimit } from './lib/arcade-limits.mjs';
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **잴 자리는 한 곳에서 정한다** — `lib/smoke-base.mjs` (2026-08-14).
    여기 8813(사람이 켜는 dev 서버)이 박혀 있어, CI 에서는 `ERR_CONNECTION_REFUSED` 로
    죽었다(느린 레인 첫 판 실측). 시키지 않으면 늘 제 서버를 띄운다. */
-const 내서버 = process.env.KL_URL ? null : await smokeBase('KL_URL_BASE');
-const URL = process.env.KL_URL || `${내서버.base}/apps/karmolab/index.html`;
+const server = process.env.KL_URL ? null : await smokeBase('KL_URL_BASE');
+const URL = process.env.KL_URL || `${server.base}/apps/karmolab/index.html`;
 const ROUNDS = 5;
 const fail = [];
 
@@ -48,19 +48,19 @@ await p.click('#acTour');
    「5판이 안 끝났다」로 빨개진다. 실제로 1~4판은 늘 지나가고 **5판에서만** 걸렸다
    (CI·내 자리 둘 다, 뽑힌 놀이는 서로 달랐는데도).
    이 손이 할 일은 **판을 두는 것**이지 대회를 모는 것이 아니다 — 흐름 단추는 검사가 누른다. */
-const 대회를_모는_단추 = '#acAgain, #acSwap, #acReplay, #acStart, #acQuit';
+const tournamentButton = '#acAgain, #acSwap, #acReplay, #acStart, #acQuit';
 /** 열려 있는 단추 하나를 누른다. 부르는 자리가 둘이라 함수로 둔다(둘이 갈리면 안 된다). */
-async function 한번누르기() {
+async function clickOnce() {
   try {
-    await p.evaluate((빼기) => {
+    await p.evaluate((remove) => {
       const b = [...document.querySelectorAll('#acView button:not([disabled])')].filter(
-        (el) => !el.matches(빼기)
+        (el) => !el.matches(remove)
       );
       if (b.length) b[Math.floor(Math.random() * b.length)].click();
-    }, 대회를_모는_단추);
+    }, tournamentButton);
   } catch { /* 창이 닫히는 중 */ }
 }
-const poke = setInterval(한번누르기, 700);
+const poke = setInterval(clickOnce, 700);
 
 /* 한 판을 기다리는 참을성. 주석에 「4분」·「2.5분」이 적혀 있었지만 코드는 60초였다 —
    수를 두 군데 적으면 반드시 갈린다. 여기 한 곳만 둔다(실패 문구도 이 값을 읽는다). */
@@ -79,13 +79,13 @@ for (let i = 1; i <= ROUNDS; i++) {
      ②가 영영 안 온다 — 시계가 멈춰 있으니 그림틀이 돌아도 커널의 시각이 안 는다.
      실제로 그렇게 걸렸다: 윷에서 「말을 다 뺐다」(=이겼다는 말)까지 띄우고 60초를 그냥 서 있었다.
      그러니 **기다리는 동안에도 계속 감는다**. 감는 총량은 그대로(6분), 조각으로 나눌 뿐이다. */
-  const 조각 = 2000;
+  const shard = 2000;
   /* ★ **감는 총량은 손으로 안 적는다** (2026-08-17). 놀이마다 제 시간 제한이 있고 가장 긴 것이
      스도쿠 300초다 — 그보다 적게 감으면 그 놀이가 뽑히는 판은 **무조건 빨강**이다.
      예전엔 '06:00' 이라고 글자로 적어 두고 시험이 그 글자를 찾았는데, 남이 조각내기로 고치자
      시험이 「못 찾았다」로 빨개졌다(실측). 값을 **소스에서 끌어와** 관계가 저절로 지켜지게 한다. */
-  const 감을것 = Math.round(가장긴제한() * 1.2) + 30000;
-  const 마감 = Date.now() + WAIT_MS;
+  const toWrap = Math.round(longestLimit() * 1.2) + 30000;
+  const deadline = Date.now() + WAIT_MS;
   let 끝났다 = false;
   /* ★ **시간 제한이 없는 놀이는 시계를 감아도 안 끝난다** (2026-08-17 실측). 놀이 51개 중
      제한이 박힌 것은 **11개뿐**이고, 나머지 40개는 「다 두면」 끝난다 — 끝나는 데 드는 것은
@@ -93,10 +93,10 @@ for (let i = 1; i <= ROUNDS; i++) {
      제한이 없어 감아도 그대로였고, 손은 700ms 에 한 번이라 60초 예산 안에서 85번밖에 못 눌렀다
      (그중 상당수는 이미 친 칸이라 헛손질이다). 그래서 감을 때마다 **같이 누른다** —
      기다린 시간이 아니라 판이 나아간 만큼 누르게 된다. */
-  for (let 감은 = 0; 감은 < 감을것 && !끝났다 && Date.now() < 마감; 감은 += 조각) {
-    await p.clock.fastForward(조각);
+  for (let wrapped = 0; wrapped < toWrap && !끝났다 && Date.now() < deadline; wrapped += shard) {
+    await p.clock.fastForward(shard);
     // eslint-disable-next-line no-await-in-loop -- 한 조각마다 한 번 (위 주석)
-    await 한번누르기();
+    await clickOnce();
     // eslint-disable-next-line no-await-in-loop -- 한 조각 감고 그때마다 본다(멈춘 시계에서는 이 길뿐)
     끝났다 = await p.evaluate(() => {
       const a = document.querySelector('#acAgain');
@@ -120,7 +120,7 @@ for (let i = 1; i <= ROUNDS; i++) {
        snake·dots·fishing·liars 로 시작, 내 자리는 shellgame 으로 시작). 그러니 그 한 줄로는
        어느 놀이가 안 끝나는지 영영 알 수 없고, 다음 판에서 또 다른 놀이가 걸린다.
        멈춘 놀이의 **이름과 그때 화면이 하던 말**을 들고 나간다 — 한 번만 걸려도 범인이 정해진다. */
-    const 멈춘것 = await p
+    const stopped = await p
       .evaluate(() => ({
         놀이: window.__arcade?.game ?? '(모름)',
         끝났나: !!window.__arcade?.finished,
@@ -138,9 +138,9 @@ for (let i = 1; i <= ROUNDS; i++) {
       }))
       .catch(() => ({ 놀이: '(창이 죽었다)', 끝났나: false, 말: '', 지금: null, 끝날때: null }));
     fail.push(
-      `${i}판이 안 끝났다 — 놀이 「${멈춘것.놀이}」 · 끝남표시 ${멈춘것.끝났나 ? '있음' : '없음'} · 화면: 「${멈춘것.말}」`
-        + ` · 대회 ${멈춘것.대회} · 창 시계 ${멈춘것.지금}ms · 이 판이 끝날 시각 ${멈춘것.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
-        + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(감을것 / 1000)}초 + 누른 횟수 ${Math.round(감을것 / 조각)}회+)`
+      `${i}판이 안 끝났다 — 놀이 「${stopped.놀이}」 · 끝남표시 ${stopped.끝났나 ? '있음' : '없음'} · 화면: 「${stopped.말}」`
+        + ` · 대회 ${stopped.대회} · 창 시계 ${stopped.지금}ms · 이 판이 끝날 시각 ${stopped.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
+        + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(toWrap / 1000)}초 + 누른 횟수 ${Math.round(toWrap / shard)}회+)`
     );
     break;
   }
@@ -175,7 +175,7 @@ clearInterval(poke);
 await new Promise((r) => setTimeout(r, 300));
 await br.close();
 /* 내가 띄운 서버는 내가 닫는다 — 안 닫으면 검사가 끝나고도 프로세스가 안 죽는다(실측). */
-await 내서버?.close?.();
+await server?.close?.();
 
 if (fail.length) {
   console.error('❌ 대회 — ' + fail.join(' / '));

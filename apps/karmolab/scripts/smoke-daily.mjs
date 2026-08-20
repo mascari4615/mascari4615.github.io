@@ -120,13 +120,13 @@ if (choBuilt === false) {
     clone.querySelectorAll('.tool-hint').forEach((el) => el.remove());
     return clone.outerHTML;
   });
-  const 이름표들 = Object.values(catalogs.dailycho)
+  const labels = Object.values(catalogs.dailycho)
     .flatMap((v) => (typeof v === 'string' ? [v] : Object.values(v || {})))
     .filter((v) => typeof v === 'string' && v.length > 0)
     .sort((a, b) => b.length - a.length);
-  let 이름표뺀것 = html;
-  for (const label of 이름표들) 이름표뺀것 = 이름표뺀것.split(label).join('');
-  const leaked = answers.filter((a) => 이름표뺀것.includes(a));
+  let withoutLabels = html;
+  for (const label of labels) withoutLabels = withoutLabels.split(label).join('');
+  const leaked = answers.filter((a) => withoutLabels.includes(a));
   if (leaked.length > 0) fails.push(`답이 화면 안에 들어 있다: ${leaked.join(' · ')}`);
 
   /* 사슬이 이어져 있나 — 답을 넣으면 실제로 맞음이 되는가. */

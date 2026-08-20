@@ -18,27 +18,27 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const 볼것 = path.join(root, 'src', 'toolbox.ts');
+const toCheck = path.join(root, 'src', 'toolbox.ts');
 
-if (!fs.existsSync(볼것)) {
-  console.error(`[셸의 말] 못 봤다 — 셸 파일이 없다: ${볼것} (통과로 안 센다)`);
+if (!fs.existsSync(toCheck)) {
+  console.error(`[셸의 말] 못 봤다 — 셸 파일이 없다: ${toCheck} (통과로 안 센다)`);
   process.exit(2);
 }
 
-const 줄들 = fs.readFileSync(볼것, 'utf8').split(String.fromCharCode(10));
+const lines = fs.readFileSync(toCheck, 'utf8').split(String.fromCharCode(10));
 /* 「앞이 글자·점이 아닌 t(' 열쇠꼴 」 — `말(`·`fmt(`·`.t(` 같은 것과 갈린다. */
-const 바로부름 = /[^A-Za-z0-9_.$]t\(['"][a-z][a-z0-9]*\./;
-const 걸린것 = [];
-줄들.forEach((line, i) => {
+const directCall = /[^A-Za-z0-9_.$]t\(['"][a-z][a-z0-9]*\./;
+const flagged = [];
+lines.forEach((line, i) => {
   if (/^\s*(\*|\/\/|\/\*)/.test(line)) return;   // 주석은 안 센다
-  if (바로부름.test(line)) 걸린것.push(`${i + 1}: ${line.trim().slice(0, 100)}`);
+  if (directCall.test(line)) flagged.push(`${i + 1}: ${line.trim().slice(0, 100)}`);
 });
 
-if (걸린것.length) {
-  console.error(`[셸의 말] FAIL — 말을 t() 로 바로 부르는 자리 ${걸린것.length}곳:`);
-  for (const one of 걸린것.slice(0, 10)) console.error(`  - ${one}`);
+if (flagged.length) {
+  console.error(`[셸의 말] FAIL — 말을 t() 로 바로 부르는 자리 ${flagged.length}곳:`);
+  for (const one of flagged.slice(0, 10)) console.error(`  - ${one}`);
   console.error('  이 파일은 t 를 안 들여온다 — 없으면 첫 화면이 죽고 배포가 선다.');
   console.error("  같은 파일의 말('열쇠', '기본값') 을 써라 (typeof 로 감싸 둔 자리다).");
   process.exit(1);
 }
-console.log(`[셸의 말] 셸이 말을 부르는 자리 전부 말() 을 거친다 — ${줄들.length}줄 확인`);
+console.log(`[셸의 말] 셸이 말을 부르는 자리 전부 말() 을 거친다 — ${lines.length}줄 확인`);

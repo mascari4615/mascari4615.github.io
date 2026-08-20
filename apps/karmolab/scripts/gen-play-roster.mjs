@@ -18,22 +18,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const 정본 = path.join(root, '../play/games.json');
-const 사본 = path.join(root, 'data/games.json');
+const canonical = path.join(root, '../play/games.json');
+const copy = path.join(root, 'data/games.json');
 
-if (!fs.existsSync(정본)) {
+if (!fs.existsSync(canonical)) {
   console.log('[gen-play-roster] CANNOT-RUN — 놀이 명부(apps/play/games.json)가 없다');
   process.exit(2);
 }
 
-const src = JSON.parse(fs.readFileSync(정본, 'utf8'));
+const src = JSON.parse(fs.readFileSync(canonical, 'utf8'));
 const out = {
   $comment: 'apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라 (npm run gen:play-roster).',
   games: src.games || []
 };
-const 글 = JSON.stringify(out, null, 2) + String.fromCharCode(10);
-const 전 = fs.existsSync(사본) ? fs.readFileSync(사본, 'utf8') : '';
-fs.writeFileSync(사본, 글, 'utf8');
+const text = JSON.stringify(out, null, 2) + String.fromCharCode(10);
+const before = fs.existsSync(copy) ? fs.readFileSync(copy, 'utf8') : '';
+fs.writeFileSync(copy, text, 'utf8');
 console.log(
-  `[gen-play-roster] 놀이 ${out.games.length}개 → data/games.json` + (전 === 글 ? ' (그대로)' : ' (바뀌었다)')
+  `[gen-play-roster] 놀이 ${out.games.length}개 → data/games.json` + (before === text ? ' (그대로)' : ' (바뀌었다)')
 );

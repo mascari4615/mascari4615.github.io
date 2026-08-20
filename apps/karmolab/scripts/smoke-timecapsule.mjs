@@ -21,7 +21,7 @@ import { waitHydrated } from './lib/hydrated.mjs';
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const TOOL = `${BASE}/karmolab/t/timecapsule/`;
 const 편지 = '먼 날의 너에게 — 이 줄이 그대로 보이면 잠금이 제대로 열린 것이다.';
-const 기다림 = 210000; // 2분 뒤로 잠그고 넉넉히 기다린다
+const waited = 210000; // 2분 뒤로 잠그고 넉넉히 기다린다
 
 const failures = [];
 const check = (name, cond, detail) => {
@@ -42,10 +42,10 @@ try {
      이 검사가 그 틈에서 두 번 헛돌아 「공개 시계에 못 닿았다」로 끝났다(도구는 멀쩡했다). */
   await waitHydrated(page, '#tcSeal');
   await page.fill('#tcText', 편지);
-  const 열릴때 = new Date(Date.now() + 120000);
+  const onOpen = new Date(Date.now() + 120000);
   const p2 = (n) => String(n).padStart(2, '0');
-  const 값 = `${열릴때.getFullYear()}-${p2(열릴때.getMonth() + 1)}-${p2(열릴때.getDate())}T${p2(열릴때.getHours())}:${p2(열릴때.getMinutes())}`;
-  await page.fill('#tcWhen', 값);
+  const value = `${onOpen.getFullYear()}-${p2(onOpen.getMonth() + 1)}-${p2(onOpen.getDate())}T${p2(onOpen.getHours())}:${p2(onOpen.getMinutes())}`;
+  await page.fill('#tcWhen', value);
   await page.click('#tcSeal');
 
   const 잠김 = await page
@@ -53,8 +53,8 @@ try {
     .then(() => true)
     .catch(() => false);
   if (!잠김) {
-    const 말 = await page.evaluate(() => document.querySelector('#tcStatus')?.textContent || '');
-    cantRun = `잠그지 못했다 — 공개 시계에 닿지 못했을 수 있다 (${말.slice(0, 60)})`;
+    const output = await page.evaluate(() => document.querySelector('#tcStatus')?.textContent || '');
+    cantRun = `잠그지 못했다 — 공개 시계에 닿지 못했을 수 있다 (${output.slice(0, 60)})`;
     throw new Error(cantRun);
   }
   const url = await page.inputValue('#tcUrl');
@@ -69,20 +69,20 @@ try {
   await page.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, {
     timeout: 60000
   });
-  const 잠긴화면 = await page.evaluate(() => ({
+  const lockedScreen = await page.evaluate(() => ({
     status: document.querySelector('#tcStatus')?.textContent || '',
     locked: !!document.querySelector('.tc-locked'),
     when: document.querySelector('.tc-when')?.textContent || '',
     letter: document.querySelector('.tc-letter')?.textContent || ''
   }));
-  check('아직 못 엶', /아직 열 때가 아닙니다/.test(잠긴화면.status), `상태줄: ${잠긴화면.status.slice(0, 60)}`);
-  check('열릴 날짜 안내', 잠긴화면.locked && 잠긴화면.when.length > 0, `자물쇠 ${잠긴화면.locked} · 날짜 "${잠긴화면.when}"`);
-  check('내용은 안 보임', !잠긴화면.letter.includes('먼 날의'), '잠겼는데 편지가 보였다');
+  check('아직 못 엶', /아직 열 때가 아닙니다/.test(lockedScreen.status), `상태줄: ${lockedScreen.status.slice(0, 60)}`);
+  check('열릴 날짜 안내', lockedScreen.locked && lockedScreen.when.length > 0, `자물쇠 ${lockedScreen.locked} · 날짜 "${lockedScreen.when}"`);
+  check('내용은 안 보임', !lockedScreen.letter.includes('먼 날의'), '잠겼는데 편지가 보였다');
 
   // ③ 시계를 앞으로 돌려도 안 열린다 — 여기가 이 도구의 존재 이유다
-  const 미래 = await browser.newContext({ timezoneId: 'UTC' });
-  const 앞선 = await 미래.newPage();
-  await 앞선.addInitScript(`{
+  const future = await browser.newContext({ timezoneId: 'UTC' });
+  const earlier = await future.newPage();
+  await earlier.addInitScript(`{
     const 진짜 = Date.now;
     const 앞으로 = 400 * 24 * 3600 * 1000;
     Date.now = () => 진짜() + 앞으로;
@@ -93,36 +93,36 @@ try {
       static now() { return 진짜() + 앞으로; }
     };
   }`);
-  await 앞선.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
-  await 앞선.waitForSelector('#tcStatus', { timeout: 30000 });
-  await 앞선.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, {
+  await earlier.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
+  await earlier.waitForSelector('#tcStatus', { timeout: 30000 });
+  await earlier.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, {
     timeout: 60000
   });
-  const 속임 = await 앞선.evaluate(() => ({
+  const spoofed = await earlier.evaluate(() => ({
     status: document.querySelector('#tcStatus')?.textContent || '',
     letter: document.querySelector('.tc-letter')?.textContent || ''
   }));
-  check('시계를 돌려도 안 열림', !속임.letter.includes('먼 날의'), `시계를 앞당기니 열렸다: ${속임.letter.slice(0, 40)}`);
+  check('시계를 돌려도 안 열림', !spoofed.letter.includes('먼 날의'), `시계를 앞당기니 열렸다: ${spoofed.letter.slice(0, 40)}`);
   /* 시계를 돌리면 공개 시계에서 「아직 없는 회차」를 달라고 하게 되어, 못 연다는 말 대신
    * 받아오기 실패로 끝날 수도 있다. 어느 쪽이든 **안 열린 것**이 이 검사가 지키려는 성질이다.
    * 문구까지 못 박으면 라이브러리가 말을 바꿀 때마다 빨개진다. */
-  check('시계 속임 · 열렸다고 안 함', !/열렸습니다/.test(속임.status), `상태줄: ${속임.status.slice(0, 60)}`);
-  await 미래.close();
+  check('시계 속임 · 열렸다고 안 함', !/열렸습니다/.test(spoofed.status), `상태줄: ${spoofed.status.slice(0, 60)}`);
+  await future.close();
 
   // ④ 진짜로 그때가 지나면 열린다
-  const 마감 = Date.now() + 기다림;
-  let 열린글 = '';
-  while (Date.now() < 마감 && !열린글) {
+  const deadline = Date.now() + waited;
+  let openedText = '';
+  while (Date.now() < deadline && !openedText) {
     await page.waitForTimeout(15000);
     await page.goto('about:blank');
     await page.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
     await page
       .waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, { timeout: 60000 })
       .catch(() => {});
-    열린글 = await page.evaluate(() => document.querySelector('.tc-letter')?.textContent || '');
+    openedText = await page.evaluate(() => document.querySelector('.tc-letter')?.textContent || '');
   }
-  check('때가 되면 열림', 열린글.includes('먼 날의'), `기다렸는데 안 열렸다 (${Math.round(기다림 / 1000)}초)`);
-  check('적은 그대로', 열린글.trim() === 편지, `나온 글: ${열린글.slice(0, 40)}`);
+  check('때가 되면 열림', openedText.includes('먼 날의'), `기다렸는데 안 열렸다 (${Math.round(waited / 1000)}초)`);
+  check('적은 그대로', openedText.trim() === 편지, `나온 글: ${openedText.slice(0, 40)}`);
 } catch (e) {
   if (!cantRun) failures.push(`검사가 끝까지 못 갔다: ${e.message}`);
 } finally {

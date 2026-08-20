@@ -94,11 +94,11 @@ export function pathsInside(source) {
  * 「모든 소스」와 같은 뜻이라 **아무 정보가 없는** 발판. 이런 것은 알아낸 것으로 안 친다 —
  * 넣어 봐야 그 검사는 늘 돌고, 「발판을 알아냈다」는 숫자만 부풀린다.
  */
-const 뜻없음 = new Set(['src/**', 'src', 'data/**', 'data']);
+const meaningless = new Set(['src/**', 'src', 'data/**', 'data']);
 
 /** 그 경로가 폴더면 `dir/**` 로 넓힌다 — 폴더를 훑는 검사는 그 안 아무 파일에나 걸린다. */
 function widen(rel) {
-  if (뜻없음.has(rel.replace(/\/$/, ''))) return null;
+  if (meaningless.has(rel.replace(/\/$/, ''))) return null;
   /* 글로브는 설명 문장에서 온 것으로 본다 — 위 머리말 ★ 참조. */
   if (rel.includes('*')) return null;
   let stat = null;

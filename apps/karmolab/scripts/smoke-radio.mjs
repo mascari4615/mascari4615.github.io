@@ -110,16 +110,16 @@ await radioChip.click({ force: true });
    우리가 잘못한 것인지도 알 수 없었다(로컬은 초록이라 더 그랬다).
    게다가 이 줄이 기다리는 것은 **바깥 방송 목록**이다 — 그 목록에 못 닿은 것은
    우리 화면이 깨진 것이 아니라 **못 잰 것**(2)이다. 둘을 갈라 말한다. */
-const 켜졌나 = await page
+const isOn = await page
   .waitForFunction(() => /방송 중|못 받았/.test(document.querySelector('.bm-line')?.textContent || ''), undefined, {
     timeout: 15000,
   })
   .then(() => true)
   .catch(() => false);
-if (!켜졌나) {
-  const 지금말 = (await page.locator('.bm-line').textContent().catch(() => '')) || '(빈 줄)';
+if (!isOn) {
+  const currentText = (await page.locator('.bm-line').textContent().catch(() => '')) || '(빈 줄)';
   console.log(`
-[smoke-radio] 못 돌림 — 라디오를 켜도 15초 안에 아무 말이 없다. 화면이 한 말: 「${지금말.trim()}」`);
+[smoke-radio] 못 돌림 — 라디오를 켜도 15초 안에 아무 말이 없다. 화면이 한 말: 「${currentText.trim()}」`);
   console.log('  이 줄은 **바깥 방송 목록**을 기다린다 — 거기 못 닿으면 우리 화면 잘못이 아니다. 통과로 세지 않는다.');
   await browser.close();
   if (frozen) await frozen.close();
@@ -152,12 +152,12 @@ if (process.env.DEBUG) {
    러너에는 그 방송을 받아 올 길이 없다(막힌 출처·코덱·소리 장치). 그러면 `<audio>` 는
    **아무것도 못 받은 채**(readyState 0) 가만히 있는다 — 우리 화면이 고장 난 게 아니다.
    그래서 「하나라도 받아는 왔나」를 먼저 본다: 아무도 못 받았으면 **못 쟀다**로 적는다. */
-const 받아온것 = await page.evaluate(() =>
+const fetched = await page.evaluate(() =>
   [...document.querySelectorAll('audio')].map((a) => ({ ready: a.readyState, err: a.error ? a.error.code : 0 }))
 );
-const 하나라도받음 = 받아온것.some((a) => a.ready > 0);
-if (!autoPlaying && !하나라도받음) {
-  console.log(`  [~] 겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다 — 못 쟀다(이 자리에서 방송을 못 받는다: ${받아온것.length}개 전부 readyState 0)`);
+const gotAny = fetched.some((a) => a.ready > 0);
+if (!autoPlaying && !gotAny) {
+  console.log(`  [~] 겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다 — 못 쟀다(이 자리에서 방송을 못 받는다: ${fetched.length}개 전부 readyState 0)`);
 } else {
   check(autoPlaying, '겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다');
 }

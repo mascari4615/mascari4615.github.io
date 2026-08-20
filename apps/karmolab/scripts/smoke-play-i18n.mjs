@@ -32,18 +32,18 @@ import { chromium } from 'playwright';
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 const games = JSON.parse(fs.readFileSync(path.join(appRoot, '../play/games.json'), 'utf8'));
-const 놀이 = (Array.isArray(games) ? games : games.games || []).map((g) => g.id);
+const game = (Array.isArray(games) ? games : games.games || []).map((g) => g.id);
 /* ★ **놀이만이 아니었다** (2026-08-14, 같은 날 다섯 건 더). 같은 병으로 「반려동물·활동·광장·
    내 정보·상태」가 실서비스에서 죽어 있었다 — 전부 **도구 장이 없는 앱 안 화면**이라
    `test:i18n:runtime`(도구 장만 연다)도 놀이 검사도 안 보던 자리다.
    그래서 대상 = 놀이 ∪ **제 말 묶음을 가진 위젯 전부**. 묶음이 있다는 건 `t()` 를 쓴다는 뜻이고,
    `t()` 를 이르게 부르면 그 화면은 통째로 안 올라간다. */
-const 묶음있는위젯 = fs
+const widgetsWithBundle = fs
   .readdirSync(path.join(appRoot, 'i18n/ko'))
   .filter((f) => f.endsWith('.json'))
   .map((f) => f.replace(/\.json$/, ''))
   .filter((id) => fs.existsSync(path.join(appRoot, `src/widgets/${id}.ts`)));
-const ids = [...new Set([...놀이, ...묶음있는위젯])];
+const ids = [...new Set([...game, ...widgetsWithBundle])];
 
 if (!ids.length) {
   console.log('[play-i18n] CANNOT-RUN — 놀이 목록(apps/play/games.json)이 비었다');
@@ -70,8 +70,8 @@ if (!base) {
 /* 다른 말로 보는 판은 문이 다르다(`/ja/karmolab/`). 통째로 주소를 받는 길을 둔다 —
    `node scripts/smoke-play-i18n.mjs --page https://…/ja/karmolab/` (env `KL_PAGE` 도 된다).
    창 띄우는 명령에 `VAR=값` 을 앞에 붙이는 방식은 윈도우에서 안 통해서 깃발도 같이 둔다. */
-const 깃발 = process.argv.indexOf('--page');
-const 문 = (깃발 >= 0 ? process.argv[깃발 + 1] : '') || process.env.KL_PAGE || `${base}/apps/karmolab/index.html`;
+const flag = process.argv.indexOf('--page');
+const gate = (flag >= 0 ? process.argv[flag + 1] : '') || process.env.KL_PAGE || `${base}/apps/karmolab/index.html`;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -82,14 +82,14 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 await ctx.addInitScript(() => {
   window.__KARMOLAB_DESKTOP__ = true;
 });
-const 빨강 = [];
-const 건너뜀 = [];
+const red = [];
+const skipped = [];
 /* ★ **끝나는 시각을 정해 둔다** (2026-08-14 실측). 화면 57개를 하나씩 여는데 한 장에 40초를
    기다릴 수 있어, 사이트가 느린 판에서는 **50분을 넘긴다** — 실제로 라이브 점검 조각 하나가
    그렇게 멈춰 서서 판정이 아예 안 나왔다(빨강보다 나쁘다: 아무 말도 없다).
    시간이 다 되면 남은 것을 못 잰 것으로 세고 나간다. */
-const 마감 = Date.now() + Number(process.env.PLAY_I18N_BUDGET_SEC || 600) * 1000;
-const 못잼 = [];
+const deadline = Date.now() + Number(process.env.PLAY_I18N_BUDGET_SEC || 600) * 1000;
+const couldNotMeasure = [];
 
 /* ★ **한 판씩 여느라 3분을 썼다** (2026-08-19 실측: 이 검사 하나가 게이트 158개 합계
    707초 중 192초 = 27%). 안을 열어 보니 값이 두 군데였다:
@@ -100,17 +100,17 @@ const 못잼 = [];
         → 몇 장을 동시에 연다. **판정은 안 바꾼다**: 화면마다 제 페이지를 새로 열고
           오류도 그 페이지 것만 담는 것은 그대로다(같이 여는 것뿐이다).
    판정이 한 개라도 달라지면 그건 빨라진 게 아니라 검사를 망가뜨린 것이다. */
-const 동시 = Math.max(1, Number(process.env.PLAY_I18N_JOBS || 6));
+const concurrent = Math.max(1, Number(process.env.PLAY_I18N_JOBS || 6));
 
-async function 화면하나(id) {
+async function onePage(id) {
   const page = await ctx.newPage();
-  const 오류 = [];
-  page.on('pageerror', (e) => 오류.push(String(e.message).slice(0, 120)));
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 120)));
   page.on('console', (m) => {
-    if (m.type() === 'error') 오류.push(m.text().slice(0, 120));
+    if (m.type() === 'error') errors.push(m.text().slice(0, 120));
   });
   try {
-    await page.goto(문, { waitUntil: 'load', timeout: 25000 });
+    await page.goto(gate, { waitUntil: 'load', timeout: 25000 });
     await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
     await page.evaluate((x) => Toolbox.switchPage(x), id);
     /* ★ **판이 뜰 때까지 기다린다 — 정해진 초를 세지 않는다** (2026-08-14).
@@ -133,7 +133,7 @@ async function 화면하나(id) {
         { timeout: 1500, polling: 50 }
       )
       .catch(() => null);
-    const 판 = await page.evaluate((x) => {
+    const locale = await page.evaluate((x) => {
       const el = document.getElementById('page-' + x);
       /* ★ **건너뛰는 까닭을 갈라 적는다** (2026-08-14). 「판이 안 뜬다」를 한 통에 담으면
          정말 죽은 화면이 「원래 화면이 아닌 것」 틈에 섞여 조용히 지나간다. 셋으로 가른다:
@@ -144,55 +144,55 @@ async function 화면하나(id) {
          뜻이 다르다 — 남의 서버에서 목록을 받아 오는 화면(만든 도구)은 정상인데도 그 글자가
          남아 있어 거짓 빨강이 났다. 진짜 죽음은 하나뿐이다: **위젯이 끝내 등록 안 됨.**
          셸도 그때 「이 화면을 못 열었어요」로 바꾼다. 그 사실만 본다. */
-      const 못올라옴 = !!document.querySelector('[data-kl-load-failed="' + x + '"]');
+      const didNotLoad = !!document.querySelector('[data-kl-load-failed="' + x + '"]');
       return {
         있나: !!el,
         글: (el?.textContent || '').trim(),
         위젯: !!meta,
         숨김: !!(meta && meta.hidden),
-        못올라옴
+        didNotLoad
       };
     }, id);
-    const 말오류 = 오류.filter((t) => /\[i18n\]|MissingTranslation|CatalogLoad/.test(t));
-    if (말오류.length) {
-      빨강.push(`${id}: 말 묶음 오류 — ${말오류[0]}`);
-    } else if (!판.있나) {
-      if (판.위젯 && !판.숨김) {
+    const i18nErrors = errors.filter((t) => /\[i18n\]|MissingTranslation|CatalogLoad/.test(t));
+    if (i18nErrors.length) {
+      red.push(`${id}: 말 묶음 오류 — ${i18nErrors[0]}`);
+    } else if (!locale.있나) {
+      if (locale.위젯 && !locale.숨김) {
         /* 목록에 버젓이 있고 숨기지도 않았는데 안 열린다 = 사람이 눌러도 안 열린다. */
-        빨강.push(`${id}: 보이는 화면인데 안 열린다 (판이 안 생겼다)`);
+        red.push(`${id}: 보이는 화면인데 안 열린다 (판이 안 생겼다)`);
       } else {
         /* 앱 안 화면이 아닌 것도 있다(`/daily/` 처럼 제 주소로 사는 것, 다른 화면의 탭으로
            합쳐진 것). 고장이 아니라 **여기서 볼 것이 아니다** — 이름은 적어 둔다. */
-        건너뜀.push(`${id}(${판.위젯 ? '숨김' : '위젯 아님'})`);
+        skipped.push(`${id}(${locale.위젯 ? '숨김' : '위젯 아님'})`);
         process.stdout.write('-');
       }
-    } else if (판.못올라옴 || !판.글) {
+    } else if (locale.못올라옴 || !locale.글) {
       /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
          그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
          못 닿아 한 칸이 「불러오는 중」이다. 그건 고장이 아니라 그 화면의 정상이다). */
-      빨강.push(`${id}: 판이 안 지어졌다 — ${판.못올라옴 ? "셸이 「못 열었어요」로 바꿨다" : "화면이 비어 있다"}`);
+      red.push(`${id}: 판이 안 지어졌다 — ${locale.못올라옴 ? "셸이 「못 열었어요」로 바꿨다" : "화면이 비어 있다"}`);
     } else {
       process.stdout.write('.');
     }
   } catch (e) {
-    빨강.push(`${id}: 못 열었다 — ${String(e.message).split(String.fromCharCode(10))[0].slice(0, 60)}`);
+    red.push(`${id}: 못 열었다 — ${String(e.message).split(String.fromCharCode(10))[0].slice(0, 60)}`);
   }
   await page.close().catch(() => {});
 }
 
 /* 몇 장씩 나눠 연다. 시간이 다 되면 남은 것은 **못 잰 것**으로 센다 — 예전 그대로다
    (못 잰 것을 초록으로 세는 것이 이 저장소에서 제일 비싼 고장이다). */
-const 남은것 = [...ids];
+const left = [...ids];
 await Promise.all(
-  Array.from({ length: Math.min(동시, 남은것.length) }, async () => {
+  Array.from({ length: Math.min(concurrent, left.length) }, async () => {
     for (;;) {
-      const id = 남은것.shift();
+      const id = left.shift();
       if (id === undefined) return;
-      if (Date.now() > 마감) {
-        못잼.push(id);
+      if (Date.now() > deadline) {
+        couldNotMeasure.push(id);
         continue;
       }
-      await 화면하나(id);
+      await onePage(id);
     }
   })
 );
@@ -200,26 +200,26 @@ process.stdout.write(String.fromCharCode(10));
 await browser.close().catch(() => {});
 if (server) server.close();
 
-if (못잼.length) {
-  console.error(`[play-i18n] 시간이 다 돼 못 잰 화면 ${못잼.length}개: ${못잼.slice(0, 10).join(', ')}`);
+if (couldNotMeasure.length) {
+  console.error(`[play-i18n] 시간이 다 돼 못 잰 화면 ${couldNotMeasure.length}개: ${couldNotMeasure.slice(0, 10).join(', ')}`);
   console.error('  못 잰 것은 초록이 아니다 — 판정하지 않는다 (PLAY_I18N_BUDGET_SEC 로 늘릴 수 있다).');
-  if (빨강.length) {
-    console.error(`[play-i18n] 그 전에 잡힌 빨강 ${빨강.length}개:`);
-    빨강.forEach((r) => console.error('  - ' + r));
+  if (red.length) {
+    console.error(`[play-i18n] 그 전에 잡힌 빨강 ${red.length}개:`);
+    red.forEach((r) => console.error('  - ' + r));
     process.exit(1);
   }
   process.exit(2);
 }
-if (건너뜀.length) console.log(`[play-i18n] 앱 안 화면이 아니라 건너뛴 것 ${건너뜀.length}개: ${건너뜀.join(', ')}`);
+if (skipped.length) console.log(`[play-i18n] 앱 안 화면이 아니라 건너뛴 것 ${skipped.length}개: ${skipped.join(', ')}`);
 /* 다 건너뛰었으면 본 것이 없다 — 초록으로 적으면 거짓이다. */
-if (건너뜀.length === ids.length) {
+if (skipped.length === ids.length) {
   console.error('[play-i18n] CANNOT-RUN — 화면을 하나도 못 봤다 (전부 앱 밖 주소였다)');
   process.exit(2);
 }
 
-if (빨강.length) {
-  console.error(`[play-i18n] 화면 ${ids.length}개 중 ${빨강.length}개가 안 지어진다`);
-  빨강.forEach((r) => console.error('  - ' + r));
+if (red.length) {
+  console.error(`[play-i18n] 화면 ${ids.length}개 중 ${red.length}개가 안 지어진다`);
+  red.forEach((r) => console.error('  - ' + r));
   process.exit(1);
 }
-console.log(`[play-i18n] 화면 ${ids.length - 건너뜀.length}개 모두 지어진다 — 말 묶음 오류 0 (건너뜀 ${건너뜀.length})`);
+console.log(`[play-i18n] 화면 ${ids.length - skipped.length}개 모두 지어진다 — 말 묶음 오류 0 (건너뜀 ${skipped.length})`);

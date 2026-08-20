@@ -3855,10 +3855,10 @@ eq(lines[2].forWhom.join(','), '윤,링', '누구 몫인지 읽는다');
 const people = ['윤', '링', '알리사'];
 const shares = dp.balances(people, lines);
 eq(shares.length, 3, '세 사람');
-const 윤 = shares.find((s) => s.name === '윤');
-eq(윤.paid, 30000, '낸 돈');
+const yun = shares.find((s) => s.name === '윤');
+eq(yun.paid, 30000, '낸 돈');
 /* 30000 을 셋이(10000씩) + 12000 을 셋이(4000씩) + 9000 을 둘이(4500씩) */
-eq(윤.owed, 10000 + 4000 + 4500, '내야 할 몫');
+eq(yun.owed, 10000 + 4000 + 4500, '내야 할 몫');
 eq(shares.reduce((sum, s) => sum + s.balance, 0), 0, '모두의 셈을 더하면 0 (돈이 안 새고 안 생긴다)');
 
 const transfers = dp.settle(shares);

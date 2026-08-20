@@ -37,17 +37,17 @@ async function servedCommit() {
 
 /** 판이 잠잠해질 때까지 (같은 커밋이 20초 이어질 때까지, 최대 3분)
  *  두 값은 **시험에서만** 줄인다(RIR_*) — 실전 기본값은 그대로다. */
-const 잠잠최대 = Number(process.env.RIR_SETTLE_MAX_MS || 180000);
-const 잠잠기준 = Number(process.env.RIR_SETTLE_STABLE_MS || 20000);
+const quietMaxMs = Number(process.env.RIR_SETTLE_MAX_MS || 180000);
+const quietThreshold = Number(process.env.RIR_SETTLE_STABLE_MS || 20000);
 async function settle() {
-  const until = Date.now() + 잠잠최대;
+  const until = Date.now() + quietMaxMs;
   let mark = null;
   let since = 0;
   while (Date.now() < until) {
     const now = await servedCommit();
-    if (now && now === mark && Date.now() - since >= 잠잠기준) return;
+    if (now && now === mark && Date.now() - since >= quietThreshold) return;
     if (now && now !== mark) { mark = now; since = Date.now(); }
-    await new Promise((r) => setTimeout(r, Math.min(5000, 잠잠기준)));
+    await new Promise((r) => setTimeout(r, Math.min(5000, quietThreshold)));
   }
 }
 
@@ -59,8 +59,8 @@ function run() {
 odejs
 ode.exe`)가 두 토막으로 갈려
      명령이 아예 안 뜨고, 그게 조용한 「빨강」으로 둔갑한다(2026-08-17 시험이 잡음). */
-  const 껍데기필요 = process.platform === 'win32' && /\.(cmd|bat)$/i.test(bin);
-  return spawnSync(bin, rest, { stdio: 'inherit', shell: 껍데기필요 }).status ?? 1;
+  const needsShell = process.platform === 'win32' && /\.(cmd|bat)$/i.test(bin);
+  return spawnSync(bin, rest, { stdio: 'inherit', shell: needsShell }).status ?? 1;
 }
 
 const before = await servedCommit();
@@ -72,21 +72,21 @@ if (code !== 0 && code !== 2) {
     console.log(`[retry-if-redeployed] 재는 동안 판이 바뀌었다 (${before.slice(0, 8)} → ${after.slice(0, 8)}) — 잠잠해진 뒤 한 번만 다시 잰다`);
     await settle();
     code = run();
-    code = await 옛판이면못돌림(code, (process.env.GITHUB_SHA || '').slice(0, 8));
+    code = await staleRunCannotRun(code, (process.env.GITHUB_SHA || '').slice(0, 8));
   } else {
     /* ★ **「안 바뀌었다」와 「내가 재려던 판이다」는 다른 말이다** (2026-08-14 실측).
        재는 동안 판이 안 바뀌어도, 그 판이 **이 검사가 태어난 커밋보다 옛것**이면 검사는
        옛 화면을 보고 빨개진 것이다(그날 두 검사가 그렇게 빨갰고, 몇 분 뒤 같은 명령이
        실주소에서 그대로 초록이었다). 그러면 「진짜 빨강」이라고 적으면 안 된다 — 한 번 더 잰다. */
-    const 이판 = (process.env.GITHUB_SHA || '').slice(0, 8);
-    if (이판 && before && !before.startsWith(이판)) {
+    const thisRun = (process.env.GITHUB_SHA || '').slice(0, 8);
+    if (thisRun && before && !before.startsWith(thisRun)) {
       console.log(
         `[retry-if-redeployed] 판은 그대로지만 **내가 재려던 판이 아니다** ` +
-          `(서빙 ${before.slice(0, 8)} · 이 검사 ${이판}) — 잠잠해진 뒤 한 번만 다시 잰다`
+          `(서빙 ${before.slice(0, 8)} · 이 검사 ${thisRun}) — 잠잠해진 뒤 한 번만 다시 잰다`
       );
       await settle();
       code = run();
-      code = await 옛판이면못돌림(code, 이판);
+      code = await staleRunCannotRun(code, thisRun);
     } else {
       console.log('[retry-if-redeployed] 판은 그대로였다 — 진짜 빨강이다');
     }
@@ -102,15 +102,15 @@ process.exitCode = code;
  * 그래서 다시 잰 뒤에도 **서빙 판이 내 판이 아니면** 답을 2(못 돌림)로 내린다.
  * 초록은 건드리지 않는다 — 옛 판이어도 「실주소가 성하다」는 그 자체로 사실이다.
  */
-async function 옛판이면못돌림(code, 이판) {
+async function staleRunCannotRun(code, 이판) {
   if (code === 0 || code === 2 || !이판) return code;
-  const 지금 = await servedCommit();
-  if (지금 && 지금.startsWith(이판)) {
+  const current = await servedCommit();
+  if (current && current.startsWith(이판)) {
     console.log('[retry-if-redeployed] 다시 재도 빨갛다 — 진짜 빨강이다');
     return code;
   }
   console.log(
-    `[retry-if-redeployed] 못 돌림 — 화면에 올라간 판(${(지금 || '?').slice(0, 8)})이 ` +
+    `[retry-if-redeployed] 못 돌림 — 화면에 올라간 판(${(current || '?').slice(0, 8)})이 ` +
       `내가 재려던 판(${이판})이 아니다. 내 코드가 없는 화면을 보고 빨개진 것이라 판정하지 않는다.`
   );
   return 2;

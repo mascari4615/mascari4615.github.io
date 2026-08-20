@@ -10,17 +10,17 @@
  *   ③ 엔터가 **진짜로 둔다** (판이 바뀐다)
  *   ④ 키로 놀 수 있는 놀이가 몇 개인가 — 그림판만 쓰는 놀이는 손이 그대로 마우스다
  */
-import { 될때까지, 멎을때까지 } from './lib/settle.mjs';
+import { untilTrue, untilSettled } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** — 사람이 켜는 `npm run dev`(8813)만 보면 CI 에서는
    늘 「못 돌림」이다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-let 내서버 = null;
+let server = null;
 let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
 if (!(await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false))) {
-  내서버 = await serveRepo();
-  BASE = 내서버.base;
+  server = await serveRepo();
+  BASE = server.base;
 }
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
@@ -70,9 +70,9 @@ const openGame = async (id) => {
      손으로 짠 옛 고리에는 `지금 > 0` 이 있었다 — 무대가 잠깐 빈 순간이 두 번 겹치면 공용 자는
      「0 에서 멎었다」로 보고 곧바로 키를 누르고, 그러면 아무 데도 안 간다(지난 판에 고친 그 병).
      그래서 먼저 **뭐라도 그려지기를** 기다리고, 그 다음에 멎기를 기다린다. */
-  const 알맹이수 = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
-  await 될때까지(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { 최대: 5000 });
-  await 멎을때까지(p, 알맹이수, { 간격: 120, 최대: 5000 });
+  const coreCount = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
+  await untilTrue(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { 최대: 5000 });
+  await untilSettled(p, coreCount, { 간격: 120, 최대: 5000 });
 };
 
 if (!cantRun) {
@@ -94,7 +94,7 @@ if (!cantRun) {
 
   await p.keyboard.press('Enter');
   /* 돌이 놓일 때까지 — 무엇을 기다리는지 아는 자리다(재우면 느린 기계에서 빈 칸을 읽는다). */
-  await 될때까지(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { 최대: 3000 });
+  await untilTrue(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { 최대: 3000 });
   const put = await p.evaluate(() => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim());
   check('엔터가 진짜로 둔다', put === '●', `"${put}"`);
 
@@ -110,7 +110,7 @@ if (!cantRun) {
        여기서는 0.5초만 재우고 눌렀는데, `president` 는 그 사이 아직 나눠 주는 중이라
        누를 수 있는 단추가 하나도 없었다 — 그래서 짚은 자리가 0 이고 「키가 안 먹는다」로 빨개졌다.
        놀이가 아니라 **검사가 이른 것**이다. 누를 것이 생길 때까지 기다린다. */
-    await 될때까지(
+    await untilTrue(
       p,
       () => [...document.querySelectorAll('#acView button:not([disabled]),#acView [role="button"]:not([aria-disabled="true"])')]
         .some((e) => e.offsetParent !== null),
@@ -123,7 +123,7 @@ if (!cantRun) {
        그래도 「눌러도 안 된다」를 놓치면 안 되므로 **세 번까지만** 눌러 보고, 그 뒤엔 그대로 빨강이다.
        0.5초 뒤에도 남아 있나(아래)는 그대로 — 그게 이 판정의 알맹이다. */
     let now0 = 0;
-    for (let 시도 = 0; 시도 < 3; 시도 += 1) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       await p.keyboard.press('ArrowRight');
       await p
         .waitForFunction(() => document.querySelectorAll('#acView .ac-key').length === 1, null, { timeout: 4000 })
@@ -197,7 +197,7 @@ if (!cantRun) {
     /* **벽 안쪽에서 재야 한다.** 한 방향으로 계속 밀면 라켓이 벽에 붙어 「시간에 비례」가
        깨진 것처럼 보인다(실측: 22.4 → 10.6 은 라켓이 아니라 벽이 낸 수다).
        그래서 오른쪽으로 잠깐, 왼쪽으로 그 두 배 — 가운데를 오가며 잰다. */
-    const 한판 = async () => {
+    const oneRun = async () => {
       const a0 = await p.evaluate(read);
       await p.keyboard.down('ArrowRight');
       await p.waitForTimeout(150);
@@ -209,12 +209,12 @@ if (!cantRun) {
       const a2 = await untilChanged(read, a1);
       return { at0: a0, at1: a1, short: a1 - a0, long: a1 - a2 };
     };
-    const 비 = await bestOf(한판, (m) => m.short > 1 && m.long > m.short * 1.5 && m.long < m.short * 2.8);
-    const m = 비.last;
+    const ratio = await bestOf(oneRun, (m) => m.short > 1 && m.long > m.short * 1.5 && m.long < m.short * 2.8);
+    const m = ratio.last;
     check(`${id}: 화살표를 누르면 라켓이 옮겨진다`, m.short > 1, `${m.at0?.toFixed?.(1)} → ${m.at1?.toFixed?.(1)}`);
     /* 0.15초 → 0.3초면 옮긴 거리도 두 배. 시간이 아니라 프레임 수로 움직이면 이 비가 깨진다. */
-    check(`${id}: 누른 시간에 비례해 옮겨진다`, 비.hit,
-      `${m.short.toFixed(1)} → ${m.long.toFixed(1)} (${비.tries}판째)`);
+    check(`${id}: 누른 시간에 비례해 옮겨진다`, ratio.hit,
+      `${m.short.toFixed(1)} → ${m.long.toFixed(1)} (${ratio.tries}판째)`);
 
     /* **프레임 수로 움직이는지**는 위로 못 잰다 — 60Hz 로 고정된 화면에서는 프레임 수가
        곧 시간이라 둘이 똑같아 보인다(되돌려 봤더니 안 빨개졌다). 그래서 **프레임률을 실제로
@@ -235,13 +235,13 @@ if (!cantRun) {
       await p.waitForTimeout(150);
       return Math.abs(b - a);
     };
-    const 느림비교 = await bestOf(
+    const slowdownRatio = await bestOf(
       async () => ({ fast: await run(1), slow: await run(8) }),
       (r) => r.slow > r.fast * 0.6,
     );
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-    check(`${id}: 화면이 느려져도 같은 속도다 (프레임 수 X)`, 느림비교.hit,
-      `보통 ${느림비교.last.fast.toFixed(1)} · 8배 느린 화면 ${느림비교.last.slow.toFixed(1)} (${느림비교.tries}판째)`);
+    check(`${id}: 화면이 느려져도 같은 속도다 (프레임 수 X)`, slowdownRatio.hit,
+      `보통 ${slowdownRatio.last.fast.toFixed(1)} · 8배 느린 화면 ${slowdownRatio.last.slow.toFixed(1)} (${slowdownRatio.tries}판째)`);
     /* **마우스가 밀려나지 않았나** (TASK-KL-317). 키를 넣으면서 마우스 길을 끊으면
        고친 게 아니라 바꾼 것이다 — 둘 다 살아야 한다. 판 위를 한 번 지나가 본다. */
     /* 판을 화면 안으로 끌어온 **뒤** 자리를 잰다 — 안 그러면 화면 밖 좌표에 마우스를 두고
@@ -319,7 +319,7 @@ if (!cantRun) {
 }
 
 await br.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 if (cantRun) { console.log(`[arcade-keys] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-keys] 실패 ${fails.length}건`); process.exit(1); }
 console.log('[arcade-keys] 통과 — 마우스 없이 둔다');

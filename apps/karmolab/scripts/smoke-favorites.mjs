@@ -20,8 +20,8 @@ import { smokeBase } from './lib/smoke-base.mjs';
    그런데 아무 데도 안 물려 있어서(고아) **몇 달간 아무도 못 봤다**.
    즐겨찾기 화면은 앱 안에서 `#favorites` 로 연다. 그 자리를 재고, 서버는 내가 띄운다
    (사람의 dev 서버를 몰래 쓰지 않는다 — `lib/smoke-base.mjs`). */
-const 내서버 = process.env.URL ? null : await smokeBase('URL_BASE');
-const URL_TARGET = process.env.URL || `${내서버.base}/apps/karmolab/index.html#favorites`;
+const server = process.env.URL ? null : await smokeBase('URL_BASE');
+const URL_TARGET = process.env.URL || `${server.base}/apps/karmolab/index.html#favorites`;
 const problems = [];
 
 const browser = await chromium.launch();
@@ -66,7 +66,7 @@ const tools3 = await countTools();
 if (tools3 !== 0) problems.push(`× 를 눌렀는데 도구가 ${tools3}개 남아 있다`);
 
 await browser.close();
-if (내서버) await 내서버.close();
+if (server) await server.close();
 
 if (problems.length) {
     console.error('[smoke-favorites] 문제 ' + problems.length + '건');

@@ -54,7 +54,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const 잴것 = [
+const toMeasure = [
   {
     이름: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
     hash: '#karmograph',
@@ -76,7 +76,7 @@ const 잴것 = [
         const r = el.getBoundingClientRect();
         return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) };
       };
-      const 위에누구 = (sel) => {
+      const above = (sel) => {
         const el = document.querySelector(sel);
         if (!el) return '없음';
         const r = el.getBoundingClientRect();
@@ -86,7 +86,7 @@ const 잴것 = [
       return {
         mobileNav: box('.mobile-nav'), times: box('[data-km="times"]'),
         mini: box('[data-km="mini"]'), more: box('[data-km="more"]'),
-        more위: 위에누구('[data-km="more"]'),
+        more위: above('[data-km="more"]'),
         canvasTop: box('.km-canvas')?.y,
       };
     },
@@ -121,15 +121,15 @@ const 잴것 = [
       const label = '지구촌';
       c.save();
       c.font = `900 100px ${FACE}`;
-      const 우리폭 = Math.round(c.measureText(label).width);
+      const ourWidth = Math.round(c.measureText(label).width);
       c.font = '900 100px sans-serif';
-      const 기본폭 = Math.round(c.measureText(label).width);
+      const defaultWidth = Math.round(c.measureText(label).width);
       c.restore();
       return {
         폭퍼센트: max > min ? Math.round(((max - min) / w) * 100) : 0,
         밝은점: lit, 캔버스: `${cv.width}x${cv.height}`, dpr: window.devicePixelRatio,
         우리글꼴: document.fonts.check('900 100px KarmoSans', '지구촌'),
-        '100px폭_우리': 우리폭, '100px폭_기본': 기본폭,
+        '100px폭_우리': ourWidth, '100px폭_기본': defaultWidth,
         세로상한: Math.round(cv.height * 0.34), 원하는폭: Math.round(cv.width * 0.92),
         /* 5px 띠 대신 **글자가 놓인 구역 전체**를 훑으면 글꼴 모양에 안 흔들린다 — 그 값도 같이 잰다. */
         넓게본폭퍼센트: (() => {
@@ -154,19 +154,19 @@ const 잴것 = [
 
 const browser = await chromium.launch();
 console.log(`[linux-repro] ${process.platform} · playwright 컨테이너 안`);
-for (const 것 of 잴것) {
+for (const item of toMeasure) {
   const ctx = await browser.newContext({
-    serviceWorkers: 'block', viewport: 것.뷰포트,
-    ...(것.폰 ? { isMobile: true, hasTouch: true } : {}),
+    serviceWorkers: 'block', viewport: item.뷰포트,
+    ...(item.폰 ? { isMobile: true, hasTouch: true } : {}),
   });
   const p = await ctx.newPage();
   try {
-    await p.goto(`${BASE}/apps/karmolab/index.html${것.hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await 것.준비(p);
-    console.log(`\n── ${것.이름}`);
-    console.log(JSON.stringify(await p.evaluate(것.재기), null, 1));
+    await p.goto(`${BASE}/apps/karmolab/index.html${item.hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await item.준비(p);
+    console.log(`\n── ${item.이름}`);
+    console.log(JSON.stringify(await p.evaluate(item.재기), null, 1));
   } catch (e) {
-    console.log(`\n── ${것.이름}\n  못 쟀다: ${String(e.message).split('\n')[0]}`);
+    console.log(`\n── ${item.이름}\n  못 쟀다: ${String(e.message).split('\n')[0]}`);
   }
   await ctx.close();
 }

@@ -36,7 +36,7 @@ const 도장 = async () => {
     return '';
   }
 };
-const 처음도장 = await 도장();
+const firstStamp = await 도장();
 
 const browser = await chromium.launch();
 const failures = [];
@@ -46,7 +46,7 @@ const failures = [];
    화면과 자산이 서로 다른 판이었던 것뿐이다.
    진짜 「안 지어진 자산」은 **짓는 자리**에서 audit-page-scripts 가 잡는다(그게 그 검사가 생긴 이유다).
    여기서 빨강으로 세면 22판 연속 빨강 같은 게 되고, 늘 빨간 불은 아무도 안 본다. */
-const 지문빠짐 = [];
+const hashMissing = [];
 /** 화면은 떴는데 다듬을 것 — 실패로 세지 않는다(늘 빨간 불은 아무도 안 본다). */
 const polishes = [];
 
@@ -85,12 +85,12 @@ async function checkOne(page, id) {
      그래서 도구 장 **30장이 한꺼번에 빨갛게** 났고(같은 파일 하나), 몇 분 뒤 같은 주소를
      받아 보면 200 이었다. 지문이 붙은 이름(`.<8자리 이상 16진수>.js|css`)의 404 만 한 번 더
      물어본다 — 지문 없는 파일이 없으면 그건 그냥 없는 것이라 곧바로 빨강이다. */
-  const 지문붙은이름 = /\.[0-9a-f]{8,}\.(js|css)$/;
+  const hashedNames = /\.[0-9a-f]{8,}\.(js|css)$/;
   const onResponse = (r) => {
     if (r.status() >= 400 && !/gc\.zgo\.at|goatcounter/.test(r.url())) {
       const short = `${r.status()} ${r.url().split('/').slice(-2).join('/')}`;
-      const 다시물어볼것 = r.status() >= 500 || 지문붙은이름.test(r.url().split('?')[0]);
-      if (다시물어볼것) hiccups.push({ url: r.url(), short });
+      const toRecheck = r.status() >= 500 || hashedNames.test(r.url().split('?')[0]);
+      if (toRecheck) hiccups.push({ url: r.url(), short });
       else missing.push(short);
     }
   };
@@ -293,11 +293,11 @@ async function checkOne(page, id) {
   ;
   if (broken) {
     /* 지문 붙은 파일 하나가 없어서 깨진 것인지 표시해 둔다 — 아래에서 갈래를 가른다. */
-    const 지문만빠짐 =
+    const onlyHashMissing =
       Boolean(state.missing) &&
       /\.[0-9a-f]{8,}\.(js|css)/.test(state.missing) &&
       res.status() === 200 && state.built && state.visible && state.usable && state.reachable;
-    if (지문만빠짐) 지문빠짐.push(state.missing);
+    if (onlyHashMissing) hashMissing.push(state.missing);
     failures.push(detail);
     process.stdout.write('x');
   } else if (polish) {
@@ -365,9 +365,9 @@ if (polishes.length) {
   for (const w of polishes.slice(0, 5)) console.log('  ~ ' + w);
   if (polishes.length > 5) console.log(`  … 외 ${polishes.length - 5}건`);
 }
-const 나중도장 = await 도장();
-if (failures.length && 처음도장 && 나중도장 && 처음도장 !== 나중도장) {
-  console.log(`[smoke-live-pages] 못 쟀다 — 재는 동안 배포가 갈렸다 (${처음도장} → ${나중도장}).`);
+const laterStamp = await 도장();
+if (failures.length && firstStamp && laterStamp && firstStamp !== laterStamp) {
+  console.log(`[smoke-live-pages] 못 쟀다 — 재는 동안 배포가 갈렸다 (${firstStamp} → ${laterStamp}).`);
   console.log(`  그 사이 열린 화면은 사라진 이름을 부른다. 안 뜬 것 ${failures.length}건은 이 판의 판정으로 안 센다.`);
   console.log('  통과로도 세지 않는다 — 다음 판에서 다시 본다.');
   /* 브라우저는 위(318줄)에서 이미 닫았다 — 여기서 또 닫으면 윈도우에서 libuv 가 소리 지르며
@@ -376,9 +376,9 @@ if (failures.length && 처음도장 && 나중도장 && 처음도장 !== 나중�
   process.exitCode = 2;
 }
 /* 깨진 것이 **전부** 「지문 붙은 자산 하나 없음」이면 못 잰 것이다 — 통과로도, 빨강으로도 안 센다. */
-if (failures.length > 0 && 지문빠짐.length === failures.length) {
-  const 이름 = [...new Set(지문빠짐)].join(' , ');
-  console.log(`[smoke-live-pages] 못 쟀다 — 지문 붙은 자산이 아직 안 퍼졌다 (${이름}).`);
+if (failures.length > 0 && hashMissing.length === failures.length) {
+  const name = [...new Set(hashMissing)].join(' , ');
+  console.log(`[smoke-live-pages] 못 쟀다 — 지문 붙은 자산이 아직 안 퍼졌다 (${name}).`);
   console.log(`  그 파일 하나 때문에 ${failures.length}장이 같이 안 떴다. 화면·주소·글은 다 정상이었다.`);
   console.log('  진짜로 안 지어진 자산은 짓는 자리에서 audit-page-scripts 가 잡는다. 다음 판에서 다시 본다.');
   failures.forEach((f) => console.log('  ~ ' + f));
