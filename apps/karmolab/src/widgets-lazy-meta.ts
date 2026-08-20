@@ -1814,7 +1814,7 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.bgremove.title', undefined, "배경 지우기"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.bgremove.desc', undefined, "단색이나 비슷한 배경을 지워 투명 PNG 로 만듭니다. 사진이 브라우저를 벗어나지 않습니다"); },
+    get desc() { return t('widgets-desc.bgremove.desc', undefined, "배경을 지워 투명 PNG 로 만듭니다 — 색으로 지우거나, 모양을 알아보고 오려냅니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/bgremove']
   },
@@ -2513,5 +2513,19 @@ window.KARMOLAB_LAZY_META = [
       '<path d="M8.5 16a5.5 5.5 0 0 1 7 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
       '<path d="M2 9a15 15 0 0 1 20 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/isitdown']
+  },
+
+  /* 지우개 — 칠한 자리를 주변 색으로 덮는다 (흡혈 원장 15). */
+  {
+    id: 'cleanup',
+    get title() { return t('widgets.cleanup.title', undefined, "지우개"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.cleanup.desc', undefined, "사진에서 거슬리는 것을 칠해서 지웁니다 — 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon:
+      '<path d="M8 20H5a1 1 0 0 1-.7-1.7l9-9a2 2 0 0 1 2.8 0l2.6 2.6a2 2 0 0 1 0 2.8L13 20" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>' +
+      '<path d="M8 20h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<path d="M10.5 12.5l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/cleanup']
   }
 ] as KarmoLabLazyWidgetStub[];

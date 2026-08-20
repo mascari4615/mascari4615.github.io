@@ -14,5 +14,16 @@
   "bgremove.status.nothing": "지운 데가 없습니다 — 「비슷함」을 더 느슨하게 하거나 배경을 눌러서 집어 보세요",
   "bgremove.status.tooMuch": "{n}% 나 지웠습니다 — 너무 느슨합니다. 값을 줄여 보세요",
   "bgremove.status.saved": "투명 PNG 로 저장했습니다",
-  "bgremove.note.limits": "단색이나 비슷한 색 배경만 지웁니다 (증명사진·상품 사진·스캔). 사람이나 물체의 모양을 알아보지는 않습니다 — 그건 학습 모형이 필요하고 이 사이트는 그런 것을 받지 않습니다. 가장자리에서 이어진 색만 지우므로, 옷 색이 배경과 같아도 안쪽은 안 뚫립니다."
+  "bgremove.note.limits": "색 겹은 단색이나 비슷한 색 배경만 지웁니다 (증명사진·상품 사진·스캔) — 가장자리에서 이어진 색만 지우므로 옷 색이 배경과 같아도 안쪽은 안 뚫립니다. 모양을 알아봐야 하면 위의 「모양으로 오려내기」를 쓰세요 — 그때만 모델을 받아 옵니다.",
+  "bgremove.opt.trim": "남은 것에 맞춰 여백까지 자르기",
+  "bgremove.ai.title": "모양으로 오려내기 (한 번 받으면 그다음부터 바로)",
+  "bgremove.ai.person": "사람 오려내기 ({mb}MB)",
+  "bgremove.ai.anything": "물건·동물까지 ({mb}MB)",
+  "bgremove.ai.hint": "색이 아니라 모양을 보고 오려냅니다. 사진은 기기 밖으로 안 나갑니다 — 모델만 받아 옵니다.",
+  "bgremove.ai.license": "쓰는 모델: 사람 = {person} / 물건 = {anything}.",
+  "bgremove.ai.noncommercial": "물건 겹은 비상업 라이선스입니다 — 장사에 쓸 그림이면 사람 겹이나 색 겹을 쓰세요.",
+  "bgremove.ai.done": "모양으로 오려내 {n}% 를 남겼습니다",
+  "bgremove.ai.empty": "아무것도 못 찾았습니다 — 다른 겹으로 해 보거나 색으로 지워 보세요",
+  "bgremove.ai.full": "지운 데가 없습니다 — 사진 전체를 물체로 봤습니다",
+  "bgremove.ai.backToColor": "색으로 지우는 방식으로 돌아왔습니다 (모양 겹은 단추를 다시 누르면 됩니다)"
 }

@@ -243,5 +243,6 @@
   "widgets.arcade.title": "Arcade",
   "widgets.askpapers.title": "Ask the papers",
   "widgets.isitdown.title": "Is it down?",
-  "widgets.my-ai.title": "My AI"
+  "widgets.my-ai.title": "My AI",
+  "widgets.cleanup.title": "Eraser"
 }

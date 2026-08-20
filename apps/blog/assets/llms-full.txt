@@ -101,7 +101,7 @@ permalink: /llms-full.txt
 - [livecount](https://blog.mascari4615.com/karmolab/t/livecount/): 초 단위로 올라감 · 달력대로 · 어림 환산
 - [loan](https://blog.mascari4615.com/karmolab/t/loan/): 세 방식 비교 · 거치기간 · 더 갚으면 얼마나 아끼나 · 표 내려받기
 - [logview](https://blog.mascari4615.com/karmolab/t/logview/): ISO · syslog · nginx · JSON 한 줄 · 시간대별 몰림 · 급 필터
-- [lotto](https://blog.mascari4615.com/karmolab/t/lotto/): 최대 20게임 · 고정수 · 제외수 · 홀짝 조건
+- [lotto](https://blog.mascari4615.com/karmolab/t/lotto/): 로또 6/45 · 연금복권720+ · 최신 회차 자동 대조 · 당첨 확률
 - [markdown](https://blog.mascari4615.com/karmolab/t/markdown/): GFM 기준 · 붙여넣을 조각 · 분류별 검색
 - [memo](https://blog.mascari4615.com/karmolab/t/memo/): 여러 장 · 자동 저장 · 이 브라우저 안에만
 - [mermaidlite](https://blog.mascari4615.com/karmolab/t/mermaidlite/): 흐름도 · 표 관계(ER) · SVG 로 내려받기 · 문법 검사
