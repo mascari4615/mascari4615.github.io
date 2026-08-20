@@ -11,5 +11,9 @@
   "territory.msg.stores": "店",
   "territory.msg.sample": "サンプル注意 — OSM 登録分のみで実数の約三分の一。街区単位では抜けがある。",
   "territory.msg.districtHint": "区をひとつ指している — あらかじめ測った値。地図から離れると画面基準に戻る。",
-  "territory.msg.boundary": "境界: 韓国統計庁の市郡区(2018)"
+  "territory.msg.boundary": "境界: 韓国統計庁の市郡区(2018)",
+  "territory.mode.store": "店ごと",
+  "territory.mode.district": "区ごと",
+  "territory.msg.wonTitle": "1位をとった区の数",
+  "territory.msg.electionHint": "区ごとに1位が丸ごと取る。濃いほど差が大きく、淡いと接戦。"
 }
