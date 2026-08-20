@@ -312,6 +312,7 @@
     "printkit": "모눈종이 원고지 오선지 달력 라벨 인쇄 출력 grid paper manuscript staff",
     "protobuf": "프로토버프 protobuf proto 디코드 wire format base64 바이너리",
     "my-ai": "usage limit ratelimit 사용량 남은양 잔량 쿼터 한도 구독 claude codex grok 클로드 코덱스 그록 내ai 할당량 quota",
-    "cleanup": "지우개 물체지우기 잡티제거 워터마크 전깃줄 inpaint cleanup 사진정리"
+    "cleanup": "지우개 물체지우기 잡티제거 워터마크 전깃줄 inpaint cleanup 사진정리",
+    "videobg": "영상배경제거 크로마키없이 unscreen 누끼 영상 투명배경 그린스크린"
   }
 }

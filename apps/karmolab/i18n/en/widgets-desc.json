@@ -228,5 +228,6 @@
   "widgets-desc.askpapers.desc": "Ask a question and papers answer. Not an invented summary — it pulls sentences that really are in the abstracts and shows them with links.",
   "widgets-desc.isitdown.desc": "Tells you whether the site is down or your own connection is. It measures always-up sites alongside it for comparison.",
   "widgets-desc.my-ai.desc": "Housekeeping for the AI subscriptions I use — for now, how much is left on Claude, Codex and Grok. Live when possible, last observed value when not.",
-  "widgets-desc.cleanup.desc": "Paint over what bothers you in a photo and it is covered with the surrounding colours. Your photo never leaves the browser"
+  "widgets-desc.cleanup.desc": "Paint over what bothers you in a photo and it is covered with the surrounding colours. Your photo never leaves the browser",
+  "widgets-desc.videobg.desc": "Keeps only the person or subject in a short video. Your video never leaves the browser"
 }

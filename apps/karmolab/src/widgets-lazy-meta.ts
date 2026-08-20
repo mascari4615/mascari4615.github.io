@@ -2527,5 +2527,19 @@ window.KARMOLAB_LAZY_META = [
       '<path d="M8 20h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
       '<path d="M10.5 12.5l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/cleanup']
+  },
+
+  /* 영상 배경 빼기 — 14 의 바닥을 프레임마다 (흡혈 원장 16). */
+  {
+    id: 'videobg',
+    get title() { return t('widgets.videobg.title', undefined, "영상 배경 빼기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.videobg.desc', undefined, "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon:
+      '<rect x="2.5" y="5" width="19" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>' +
+      '<circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<path d="M7.5 16.5c1.2-2.2 7.8-2.2 9 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/videobg']
   }
 ] as KarmoLabLazyWidgetStub[];

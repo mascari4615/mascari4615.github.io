@@ -31,7 +31,7 @@ await page.waitForSelector('#pfDrop', { timeout: 20000 });
 /* ① 탭 줄이 없다 · 할 일은 격자로 */
 const tabs = await page.locator('.tool-page.active .tool-tabs button, .tool-page.active [role=tab]').count();
 check(tabs <= 1, `할 일이 탭 줄로 늘어서 있으면 안 된다 (지금 ${tabs}개)`);
-check((await page.locator('.pf-job').count()) === 8, '할 일 카드가 여덟');
+check((await page.locator('.pf-job').count()) === 9, '할 일 카드가 아홉 (배경 빼기가 늘었다 — TASK-KL-337)');
 check((await page.locator('.pf-group-label').count()) === 3, '갈래는 셋');
 
 /* ② 영상을 그 자리에서 찍어 넣는다 — 색이 바뀌므로 스트립 장면도 서로 달라야 한다 */
