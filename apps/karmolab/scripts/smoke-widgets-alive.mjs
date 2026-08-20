@@ -22,7 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { stripFrontMatter } from './lib/serve-html.mjs';
-import { 열어볼것 } from './lib/alive-scope.mjs';
+import { toolsToOpen } from './lib/alive-scope.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -77,7 +77,7 @@ function 바뀐파일() {
     return null; // 못 물어봤으면 좁히지 않는다
   }
 }
-const 좁힌것 = 준이름.length ? null : 열어볼것(바뀐파일());
+const 좁힌것 = 준이름.length ? null : toolsToOpen(바뀐파일());
 const 볼것 = 좁힌것 === null ? 전체 : 전체.filter((id) => 좁힌것.includes(id));
 if (좁힌것 !== null) console.log(`[widgets-alive] 이번에 손댄 도구만 본다 — ${볼것.length}개 (전부 = --all)`);
 const ids = 조각 ? 볼것.filter((_, i) => i % 조각.총 === 조각.of - 1) : 볼것;

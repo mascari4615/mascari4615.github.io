@@ -9,24 +9,24 @@
  */
 
 /** 껍데기를 건드렸으면 어느 도구든 죽을 수 있다 — 그때는 전부 본다. */
-const 껍데기 = /apps[/]karmolab[/](index[.]html|src[/]toolbox[.]ts|src[/]lib[/]|src[/]widgets-lazy-meta[.]ts)/;
+const SHELL_PATHS = /apps[/]karmolab[/](index[.]html|src[/]toolbox[.]ts|src[/]lib[/]|src[/]widgets-lazy-meta[.]ts)/;
 
 /**
- * @param {string[]|null} 바뀐파일 - 이번 판에서 바뀐 경로들. null = 못 물어봤다.
+ * @param {string[]|null} changedFiles - 이번 판에서 바뀐 경로들. null = 못 물어봤다.
  * @returns {string[]|null} 열어 볼 도구 이름들. null = 전부 열어야 한다.
  */
-export function 열어볼것(바뀐파일) {
-  if (!Array.isArray(바뀐파일)) return null;          // 못 물어봤으면 좁히지 않는다
-  if (바뀐파일.some((f) => 껍데기.test(f))) return null; // 껍데기가 바뀌었으면 전부
-  const 이름 = new Set();
-  for (const f of 바뀐파일) {
+export function toolsToOpen(changedFiles) {
+  if (!Array.isArray(changedFiles)) return null;          // 못 물어봤으면 좁히지 않는다
+  if (changedFiles.some((f) => SHELL_PATHS.test(f))) return null; // 껍데기가 바뀌었으면 전부
+  const toolNames = new Set();
+  for (const f of changedFiles) {
     const m = /apps[/]karmolab[/]src[/]widgets[/]([a-z0-9-]+)[/]/.exec(String(f));
-    if (m) 이름.add(m[1]);
+    if (m) toolNames.add(m[1]);
   }
-  const 고른것 = [...이름];
+  const picked = [...toolNames];
   /* ★ **아무 신호도 없으면 좁히지 않는다** (2026-08-17). CI 는 갓 꺼낸 체크아웃이라
      `origin/master...HEAD` 가 비어 있다 — 그걸 「손댄 것 0개」로 읽으면 이 검사가 **CI 에서
      한 번도 안 돈다**(못 돌림으로만 끝난다). 빈 신호는 「없다」가 아니라 「모른다」다. */
-  if (고른것.length === 0 && 바뀐파일.length === 0) return null;
-  return 고른것;
+  if (picked.length === 0 && changedFiles.length === 0) return null;
+  return picked;
 }
