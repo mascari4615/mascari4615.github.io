@@ -1633,7 +1633,7 @@ eq(again, 1, '실패 뒤에 다시 부르면 진짜로 다시 받는다');
 eng.resetEngine();
 let odd = null;
 try {
-  await eng.loadEngine(async () => ({ 뭔가: 1 }), HAS_GPU);
+  await eng.loadEngine(async () => ({ '뭔가': 1 }), HAS_GPU);
 } catch (e) {
   odd = e;
 }

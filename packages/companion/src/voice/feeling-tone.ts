@@ -34,10 +34,10 @@ export function toneOf(feeling: Feeling): Tone | null {
  * 폭을 좁게 잡았다. 크게 흔들면 사람 목소리가 아니라 만화 효과음이 된다.
  */
 export const moodTone: Readonly<Record<Tone, { rate: string; pitch: string }>> = {
-  들뜸: { rate: '+12%', pitch: '+12Hz' },
-  뾰족: { rate: '+8%', pitch: '+4Hz' },
+  '들뜸': { rate: '+12%', pitch: '+12Hz' },
+  '뾰족': { rate: '+8%', pitch: '+4Hz' },
   처짐: { rate: '-12%', pitch: '-10Hz' },
-  누그러짐: { rate: '-8%', pitch: '-4Hz' },
+  '누그러짐': { rate: '-8%', pitch: '-4Hz' },
 };
 
 /**
@@ -46,10 +46,10 @@ export const moodTone: Readonly<Record<Tone, { rate: string; pitch: string }>> =
  * 1 보다 크면 느려진다 — 이름과 방향이 반대라 헷갈리기 쉽다.
  */
 export const moodSpeed: Readonly<Record<Tone, number>> = {
-  들뜸: 0.88,
-  뾰족: 0.93,
+  '들뜸': 0.88,
+  '뾰족': 0.93,
   처짐: 1.15,
-  누그러짐: 1.07,
+  '누그러짐': 1.07,
 };
 
 /** 목소리 이름에 결을 붙인다. 결이 없으면 그대로. */

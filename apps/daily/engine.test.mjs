@@ -367,7 +367,7 @@ test('오타와 조건 밖은 다른 말이다', () => {
 
 test('희귀도 점수는 남들이 덜 댄 답에 크게 준다', () => {
   const q = listQuestions(listTopic).find((x) => x.id === 'color=초록');
-  const shares = { 항목0: 0.9, 항목1: 0.05 };
+  const shares = { '항목0': 0.9, '항목1': 0.05 };
   const s = listScore(q, ['항목0', '항목1', '항목19'], shares);
   assert.equal(s.found, 2, '조건 밖 답은 점수에 안 든다');
   assert.equal(s.total, 8);

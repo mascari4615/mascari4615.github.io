@@ -292,7 +292,7 @@ describe('공개 범위 (KL-152 C4)', () => {
   it('모르는 칸은 무시하고, 보낸 칸만 바뀐다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
-    const next = store.setVisibility(account.id, { community: false, 장난: true, badges: 'yes' });
+    const next = store.setVisibility(account.id, { community: false, '장난': true, badges: 'yes' });
     expect(next).toEqual({
       profile: true, achievements: true, badges: true, streaks: true, community: false, activity: true,
       presence: false,
@@ -615,7 +615,7 @@ describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
     expect(store.notifyPrefsOf(me.id)).toEqual({ community: true, follow: true, system: true });
     expect(store.wantsNotification(me.id, 'follow')).toBe(true);
 
-    store.setNotifyPrefs(me.id, { follow: false, 장난: true });
+    store.setNotifyPrefs(me.id, { follow: false, '장난': true });
     expect(store.wantsNotification(me.id, 'follow')).toBe(false);
     // 모르는 출처는 「그 밖」으로 묶인다
     expect(store.wantsNotification(me.id, 'tool')).toBe(true);

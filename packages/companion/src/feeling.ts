@@ -27,19 +27,19 @@ export const usual: Feeling = { valence: 0.05, arousal: -0.1 };
 
 /** 무슨 일이 마음을 얼마나 미는가. */
 export const events = {
-  웃어줌: { valence: 0.35, arousal: 0.3 },
-  받아줌: { valence: 0.2, arousal: 0.15 },
+  '웃어줌': { valence: 0.35, arousal: 0.3 },
+  '받아줌': { valence: 0.2, arousal: 0.15 },
   되물음: { valence: 0.15, arousal: 0.2 },
-  시들함: { valence: -0.2, arousal: -0.15 },
-  무시당함: { valence: -0.25, arousal: -0.2 },
-  쿡찔림: { valence: -0.05, arousal: 0.25 },
-  자꾸찔림: { valence: -0.2, arousal: 0.15 },
-  쓰다듬김: { valence: 0.3, arousal: -0.1 },
-  끌려다님: { valence: -0.1, arousal: 0.3 },
-  놀이이김: { valence: 0.4, arousal: 0.35 },
-  놀이짐: { valence: -0.15, arousal: 0.1 },
-  같이놂: { valence: 0.25, arousal: 0.25 },
-  오래혼자: { valence: -0.1, arousal: -0.25 },
+  '시들함': { valence: -0.2, arousal: -0.15 },
+  '무시당함': { valence: -0.25, arousal: -0.2 },
+  '쿡찔림': { valence: -0.05, arousal: 0.25 },
+  '자꾸찔림': { valence: -0.2, arousal: 0.15 },
+  '쓰다듬김': { valence: 0.3, arousal: -0.1 },
+  '끌려다님': { valence: -0.1, arousal: 0.3 },
+  '놀이이김': { valence: 0.4, arousal: 0.35 },
+  '놀이짐': { valence: -0.15, arousal: 0.1 },
+  '같이놂': { valence: 0.25, arousal: 0.25 },
+  '오래혼자': { valence: -0.1, arousal: -0.25 },
 } as const satisfies Record<string, Feeling>;
 
 export type 일 = keyof typeof events;
