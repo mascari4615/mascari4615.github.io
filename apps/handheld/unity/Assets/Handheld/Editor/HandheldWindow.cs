@@ -99,6 +99,10 @@ namespace Handheld.EditorTools
             EditorGUILayout.Space(8);
             DrawRigSection();
             EditorGUILayout.Space(8);
+            DrawLensSection();
+            EditorGUILayout.Space(8);
+            DrawUrpSection();
+            EditorGUILayout.Space(8);
             DrawRecordSection();
 
             EditorGUILayout.EndScrollView();
@@ -365,6 +369,135 @@ namespace Handheld.EditorTools
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField(_rig.StatusLine, WrapMini());
+        }
+
+        // ── 렌즈 (줌 · 초점) ─────────────────────────────────────────────────────
+        void DrawLensSection()
+        {
+            if (_rig == null) return;
+            Header("렌즈 — 줌 · 초점");
+            EditorGUILayout.LabelField(
+                "줌·초점은 **카메라맨(폰)** 이 잡는다. 여기서는 감독이 한계와 룩을 정하고, " +
+                "필요하면 손으로 뺏어 온다.", WrapMini());
+
+            EditorGUILayout.LabelField(_rig.LensLine, EditorStyles.boldLabel);
+
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                _rig.physicalCamera = EditorGUILayout.Toggle("물리 카메라 (mm·f값)", _rig.physicalCamera);
+                using (new EditorGUI.DisabledScope(!_rig.physicalCamera))
+                    _rig.sensorWidthMm = EditorGUILayout.Slider("센서 가로 mm", _rig.sensorWidthMm, 6f, 70f);
+
+                EditorGUILayout.Space(4);
+                float z = EditorGUILayout.Slider("목표 배율", _rig.ZoomTarget,
+                    Mathf.Min(_rig.zoomMin, _rig.zoomMax), Mathf.Max(_rig.zoomMin, _rig.zoomMax));
+                if (!Mathf.Approximately(z, _rig.ZoomTarget)) _rig.ZoomTarget = z;
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("빠른 배율", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+                    foreach (float preset in new[] { 1f, 2f, 4f, 8f })
+                        if (GUILayout.Button(preset + "×")) _rig.ZoomTarget = preset;
+                }
+
+                _rig.zoomMin = EditorGUILayout.FloatField("배율 최소", _rig.zoomMin);
+                _rig.zoomMax = EditorGUILayout.FloatField("배율 최대", _rig.zoomMax);
+                _rig.zoomRampHalfLife = EditorGUILayout.Slider("줌 반감기 (초)", _rig.zoomRampHalfLife, 0f, 0.6f);
+
+                EditorGUILayout.Space(4);
+                _rig.zoomStabilize = EditorGUILayout.Slider("망원 손떨림 상쇄", _rig.zoomStabilize, 0f, 1f);
+                EditorGUILayout.LabelField(" ",
+                    $"지금 실효 반감기 ≈ {EffectiveHalfLifeMs():0} ms — 배율만큼 늘려 화면에서 " +
+                    "보이는 떨림을 일정하게 둔다", WrapMini());
+                _rig.maxStabilizedHalfLife = EditorGUILayout.Slider(
+                    "그 천장 (초)", _rig.maxStabilizedHalfLife, 0.02f, 1f);
+                _rig.zoomSlowsTurn = EditorGUILayout.Toggle("망원에서 스틱 회전 늦추기", _rig.zoomSlowsTurn);
+
+                EditorGUILayout.Space(6);
+                _rig.focusMode = (HandheldRig.FocusMode)EditorGUILayout.EnumPopup("초점 모드", _rig.focusMode);
+                EditorGUILayout.LabelField(" ", FocusModeNote(_rig.focusMode), WrapMini());
+
+                using (new EditorGUI.DisabledScope(
+                    _rig.focusMode == HandheldRig.FocusMode.AutoCenter ||
+                    _rig.focusMode == HandheldRig.FocusMode.Target))
+                {
+                    _rig.focusDistance = EditorGUILayout.Slider(
+                        "초점 거리 (m)", _rig.focusDistance, _rig.focusMin, Mathf.Min(_rig.focusMax, 60f));
+                }
+
+                if (_rig.focusMode == HandheldRig.FocusMode.Target)
+                    _rig.focusTarget = (Transform)EditorGUILayout.ObjectField(
+                        "따라갈 물건", _rig.focusTarget, typeof(Transform), true);
+
+                _rig.aperture = EditorGUILayout.Slider("조리개 f/", _rig.aperture, 0.7f, 32f);
+                _rig.focusRampHalfLife = EditorGUILayout.Slider(
+                    "랙 포커스 반감기 (초)", _rig.focusRampHalfLife, 0f, 1.5f);
+                _rig.focusMask = LayerMaskField("초점이 잡을 레이어", _rig.focusMask);
+
+                if (check.changed) EditorUtility.SetDirty(_rig);
+            }
+        }
+
+        float EffectiveHalfLifeMs()
+        {
+            if (_rig == null) return 0f;
+            float hl = _rig.smoothingHalfLife;
+            if (_rig.zoomStabilize > 0f)
+                hl = _rig.smoothingHalfLife * Mathf.Lerp(1f, Mathf.Max(0.25f, _rig.Zoom), _rig.zoomStabilize);
+            return Mathf.Clamp(hl, 0.005f, Mathf.Max(_rig.smoothingHalfLife, _rig.maxStabilizedHalfLife)) * 1000f;
+        }
+
+        static string FocusModeNote(HandheldRig.FocusMode m)
+        {
+            switch (m)
+            {
+                case HandheldRig.FocusMode.Manual: return "감독이 정한 거리에 고정 — 폰 탭도 안 먹는다";
+                case HandheldRig.FocusMode.AutoCenter: return "화면 한가운데를 계속 잡는다. 폰에서 탭하면 그 자리로 고정된다";
+                case HandheldRig.FocusMode.Point: return "마지막으로 탭한 자리에 고정 — 「자동」으로 되돌리려면 위에서 바꿔라";
+                case HandheldRig.FocusMode.Target: return "지정한 물건을 계속 잡는다 (아바타 머리 등). 방송에서 제일 안전하다";
+                default: return "";
+            }
+        }
+
+        static LayerMask LayerMaskField(string label, LayerMask mask)
+        {
+            int value = EditorGUILayout.MaskField(label, UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(mask),
+                UnityEditorInternal.InternalEditorUtility.layers);
+            return UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(value);
+        }
+
+        // ── URP (초점 흐림) ──────────────────────────────────────────────────────
+        void DrawUrpSection()
+        {
+            Header("초점 흐림 (URP)");
+            EditorGUILayout.LabelField(
+                "초점 **값**은 파이프라인 없이도 나온다. 실제로 **흐리게 그리는** 건 URP 몫이다.",
+                WrapMini());
+
+            EditorGUILayout.LabelField(HandheldUrpInstaller.StatusLine,
+                HandheldUrpInstaller.UrpActive ? Ok() : EditorStyles.miniLabel);
+
+            using (new EditorGUI.DisabledScope(HandheldUrpInstaller.Installing))
+            {
+                if (!HandheldUrpInstaller.UrpInstalled)
+                {
+                    if (GUILayout.Button("URP 켜기 (설치 + 배선)", GUILayout.Height(26)))
+                        HandheldUrpInstaller.InstallAndWire();
+                    EditorGUILayout.LabelField(
+                        "패키지를 받고 컴파일이 한 번 돌아간다 — 끝나면 알아서 배선까지 한다.",
+                        WrapMini());
+                }
+                else if (!HandheldUrpInstaller.UrpActive)
+                {
+                    if (GUILayout.Button("배선만 다시", GUILayout.Height(26)))
+                        HandheldUrpInstaller.Wire();
+                }
+                else
+                {
+                    if (GUILayout.Button("씬에 초점 흐림 다시 붙이기"))
+                        EditorApplication.ExecuteMenuItem("Handheld/URP/씬에 초점 흐림 붙이기");
+                }
+            }
         }
 
         // ── 포즈 기록 ────────────────────────────────────────────────────────────
