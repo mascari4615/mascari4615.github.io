@@ -1,0 +1,20 @@
+{
+  "name": "com.mascari4615.karmo-gizmo",
+  "version": "0.1.0",
+  "displayName": "Karmo Gizmo",
+  "description": "Runtime transform gizmo for Unity. Move / rotate / scale handles that work in a built player, with every axis of the system pluggable: input, picking, snapping, undo, pivot strategy, rendering and the edit target itself.",
+  "unity": "6000.0",
+  "author": { "name": "Mascari4615", "url": "https://github.com/Mascari4615" },
+  "license": "MIT",
+  "keywords": [ "gizmo", "transform", "handles", "runtime", "editor", "urp", "tools" ],
+  "dependencies": {
+    "com.unity.inputsystem": "1.7.0"
+  },
+  "samples": [
+    {
+      "displayName": "Basic Usage",
+      "description": "A scene with a few cubes, a GizmoController and the default move/rotate/scale tools.",
+      "path": "Samples~/BasicUsage"
+    }
+  ]
+}
