@@ -8,23 +8,23 @@
  */
 
 /** 표에 없는 검사에 매길 무게 — **위쪽 값**(90퍼센타일). 모르는 것은 무겁다고 친다. */
-export function 모르는것무게(잰시간) {
-  const 값들 = Object.values(잰시간).sort((a, b) => a - b);
-  return 값들.length ? 값들[Math.floor(값들.length * 0.9)] : 60;
+export function unknownWeight(measuredSeconds) {
+  const sortedValues = Object.values(measuredSeconds).sort((a, b) => a - b);
+  return sortedValues.length ? sortedValues[Math.floor(sortedValues.length * 0.9)] : 60;
 }
 
 /**
  * 무거운 것부터 가장 한가한 바구니에 담는다(LPT). 바구니마다 `{ 합, 것 }`.
  * `이름` 은 검사에서 이름을 꺼내는 함수 — 검사 모양에 안 묶이게.
  */
-export function 조각내기(검사들, 조각수, 잰시간, 이름 = (c) => c.name) {
-  const 넉넉히 = 모르는것무게(잰시간);
-  const 무게 = (c) => 잰시간[이름(c)] ?? 넉넉히;
-  const 바구니 = Array.from({ length: 조각수 }, () => ({ 합: 0, 것: [] }));
-  for (const c of [...검사들].sort((a, b) => 무게(b) - 무게(a))) {
-    const 한가한곳 = 바구니.reduce((a, b) => (b.합 < a.합 ? b : a));
-    한가한곳.것.push(c);
-    한가한곳.합 += 무게(c);
+export function splitIntoShards(gates, shardCount, measuredSeconds, nameOf = (c) => c.name) {
+  const fallbackWeight = unknownWeight(measuredSeconds);
+  const weightOf = (c) => measuredSeconds[nameOf(c)] ?? fallbackWeight;
+  const buckets = Array.from({ length: shardCount }, () => ({ sum: 0, items: [] }));
+  for (const c of [...gates].sort((a, b) => weightOf(b) - weightOf(a))) {
+    const lightest = buckets.reduce((a, b) => (b.sum < a.sum ? b : a));
+    lightest.items.push(c);
+    lightest.sum += weightOf(c);
   }
-  return 바구니;
+  return buckets;
 }
