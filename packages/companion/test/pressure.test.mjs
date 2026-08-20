@@ -10,7 +10,7 @@ test('한 번도 안 밀렸으면 아무것도 안 얹는다', () => {
 });
 
 test('밀릴수록 세진다 — 참으면 더 하고 싶어진다', () => {
-  const p = new pendingThoughts({ 계단: 3 });
+  const p = new pendingThoughts({ step: 3 });
   p.적기('되묻기', '밀림');
   const once = p.더할무게('되묻기');
   p.다음턴();
@@ -35,7 +35,7 @@ test('꺼진 재료는 안 쌓인다 — 지금 자리에 없는 얘기가 나�
 });
 
 test('아무리 참아도 상한이 있다 — 없으면 오래된 것이 영영 1등이라 새 것이 굶는다', () => {
-  const p = new pendingThoughts({ 계단: 3, 상한: 9 });
+  const p = new pendingThoughts({ step: 3, 상한: 9 });
   for (let i = 0; i < 20; i += 1) { p.적기('되묻기', '밀림'); p.다음턴(); }
   assert.equal(p.더할무게('되묻기'), 9);
 });
@@ -48,7 +48,7 @@ test('한참 안 밀리면 잊는다 — 지나간 관심이다', () => {
 });
 
 test('참던 재료가 결국 실린다 — 이게 이 자리를 만든 이유다', () => {
-  const p = new pendingThoughts({ 계단: 3 });
+  const p = new pendingThoughts({ step: 3 });
   const list = [material('큰것', 12), material('작은것', 5)];
   const pick = () => {
     const loaded = pickIngredients(p.덧입히기(list), { maxChars: 25, maxLines: 1, mark: p.적기 });
