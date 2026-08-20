@@ -24,7 +24,7 @@ import { t, loadNamespace, locale } from './lib/i18n';
    말보다 그림이 앞선다. 그때 `t()` 는 없는 열쇠로 **던지고**, 그 던짐이 catch 안에서 나면
    오류 안내마저 못 그려 화면이 통째로 빈다 (실측: `ko/profile.t35` — 오류 안내 자체가 죽었다).
    그래서 약속을 붙잡아 두고 그리기 전에 기다린다. */
-const 말받기: Promise<void> =
+const receive: Promise<void> =
     typeof document !== 'undefined' ? loadNamespace('profile').catch(() => undefined) : Promise.resolve();
 
 const esc = (v: unknown): string =>
@@ -418,7 +418,7 @@ async function main(): Promise<void> {
 
     /* 아무 글도 꺼내기 전에. 못 받아 왔으면 아래 `t()` 가 열쇠 이름을 던지지만, 그건 이미
        기다린 뒤라 「경주에서 졌다」와 구분된다. */
-    await 말받기;
+    await receive;
 
     const handle = new URLSearchParams(location.search).get('h') ?? '';
     if (!handle) {

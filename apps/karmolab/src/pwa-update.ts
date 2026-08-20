@@ -142,11 +142,11 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
    *
    * 새로고침이 필요한 경우는 **이미 붙어 있던 일꾼이 새 판으로 바뀐** 때뿐이다. 처음 붙는
    * 순간에는 낡은 것이 없으므로 버릴 것도 없다. 그래서 열릴 때 붙어 있었는지를 기억해 둔다. */
-  const 열릴때_붙어있었다 = !!navigator.serviceWorker.controller;
+  const onOpenWasAttached = !!navigator.serviceWorker.controller;
 
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloading) return;
-    if (!열릴때_붙어있었다) return; // 첫 설치가 넘겨받은 것 — 버릴 낡은 화면이 없다
+    if (!onOpenWasAttached) return; // 첫 설치가 넘겨받은 것 — 버릴 낡은 화면이 없다
     reloading = true;
     location.reload();
   });

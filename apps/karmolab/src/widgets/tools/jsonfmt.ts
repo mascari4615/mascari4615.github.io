@@ -85,24 +85,24 @@ import { markLive } from './shared/say';
 
   /** 값 하나를 트리 한 줄로. 접힌 채로 시작하는 것은 큰 JSON 에서 화면이 폭발하기 때문이다. */
   function treeHtml(value: unknown, key: string | null, path: string, depth: number): string {
-    const 이름 = key === null ? '' : `<span class="jt-key">${esc(key)}</span><span class="jt-colon">:</span> `;
-    if (value === null) return `<div class="jt-row" data-path="${esc(path)}">${이름}<span class="jt-null">null</span></div>`;
+    const name = key === null ? '' : `<span class="jt-key">${esc(key)}</span><span class="jt-colon">:</span> `;
+    if (value === null) return `<div class="jt-row" data-path="${esc(path)}">${name}<span class="jt-null">null</span></div>`;
     if (typeof value !== 'object') {
       const kind = typeof value === 'string' ? 'str' : typeof value === 'number' ? 'num' : 'bool';
       const 글 = typeof value === 'string' ? `"${esc(value)}"` : esc(String(value));
-      return `<div class="jt-row" data-path="${esc(path)}">${이름}<span class="jt-${kind}">${글}</span></div>`;
+      return `<div class="jt-row" data-path="${esc(path)}">${name}<span class="jt-${kind}">${글}</span></div>`;
     }
     const arr = Array.isArray(value);
     const entries = arr
       ? (value as unknown[]).map((v, i) => [String(i), v] as const)
       : Object.entries(value as Record<string, unknown>);
-    const 요약 = t(arr ? 'jsonfmt.tree.array' : 'jsonfmt.tree.object', { n: entries.length });
-    const 자식 = entries
+    const summary = t(arr ? 'jsonfmt.tree.array' : 'jsonfmt.tree.object', { n: entries.length });
+    const child = entries
       .map(([k, v]) => treeHtml(v, arr ? `[${k}]` : k, arr ? `${path}[${k}]` : `${path}.${k}`, depth + 1))
       .join('');
     return `<details class="jt-node" data-path="${esc(path)}"${depth < 2 ? ' open' : ''}>
-        <summary class="jt-row">${이름}<span class="jt-brace">${arr ? '[' : '{'}</span><span class="jt-count">${요약}</span><span class="jt-brace">${arr ? ']' : '}'}</span></summary>
-        <div class="jt-children">${자식}</div>
+        <summary class="jt-row">${name}<span class="jt-brace">${arr ? '[' : '{'}</span><span class="jt-count">${summary}</span><span class="jt-brace">${arr ? ']' : '}'}</span></summary>
+        <div class="jt-children">${child}</div>
       </details>`;
   }
 
@@ -233,14 +233,14 @@ import { markLive } from './shared/say';
               repair.style.display = 'none';
               return v;
             } catch (e) {
-              const 고친판 = repairCandidate(raw);
-              if (고친판) {
+              const fixedRun = repairCandidate(raw);
+              if (fixedRun) {
                 repair.innerHTML =
                   `<span>${esc(t('jsonfmt.repair.hint'))}</span>` +
                   `<button class="btn btn-ghost" id="jfFix">${esc(t('jsonfmt.repair.apply'))}</button>`;
                 repair.style.display = '';
                 (repair.querySelector('#jfFix') as HTMLButtonElement).onclick = () => {
-                  input.value = 고친판;
+                  input.value = fixedRun;
                   repair.style.display = 'none';
                   run();
                 };
@@ -288,11 +288,11 @@ import { markLive } from './shared/say';
               el.classList.remove('jt-hit', 'jt-dim');
             });
             if (!q) return;
-            const 맞은것: HTMLElement[] = [];
+            const correct: HTMLElement[] = [];
             tree.querySelectorAll<HTMLElement>('.jt-row').forEach((row) => {
-              if ((row.textContent || '').toLowerCase().includes(q)) 맞은것.push(row);
+              if ((row.textContent || '').toLowerCase().includes(q)) correct.push(row);
             });
-            맞은것.forEach((row) => {
+            correct.forEach((row) => {
               row.classList.add('jt-hit');
               let p: HTMLElement | null = row.parentElement;
               while (p && p !== tree) {
@@ -300,7 +300,7 @@ import { markLive } from './shared/say';
                 p = p.parentElement;
               }
             });
-            setStatus(맞은것.length ? `「${find.value.trim()}」 ${맞은것.length}줄` : `「${find.value.trim()}」 없음`, 맞은것.length ? 'ok' : 'idle');
+            setStatus(correct.length ? `「${find.value.trim()}」 ${correct.length}줄` : `「${find.value.trim()}」 없음`, correct.length ? 'ok' : 'idle');
           }
 
           function run(): void {

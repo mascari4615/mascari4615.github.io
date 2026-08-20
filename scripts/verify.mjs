@@ -16,30 +16,30 @@ import { spawnSync } from 'node:child_process';
    그건 옳다(뒤 단계가 앞 단계 산출물을 쓴다). 그런데 로그에는 「멈췄다」만 있고 **몇 번째에서**
    **멈췄는지**가 없었다. 2번째에서 멈춘 것과 8번째에서 멈춘 것은 남은 값이 전혀 다르다 —
    앞이면 한 판을 통째로 다시 돌려야 하고, 뒤면 거의 다 본 것이다. 숫자를 적어 그 판단을 준다. */
-const 전체단계 = 11;
-let 지금단계 = 0;
+const totalSteps = 11;
+let currentStep = 0;
 
 /* ★ **어디서 오래 걸리는지 아무도 몰랐다** (2026-08-19). 「verify 기네」는 매번 나오는데
    단계별 시간을 안 재니 손대야 할 자리를 짐작으로 골랐다 — 한 번 틀렸다(npm 껍데기가
    범인인 줄 알았으나 재 보니 9%였고, 진짜는 검사 하나가 27%였다).
    그래서 단계마다 시간을 적고 끝에 표로 낸다. 재는 값이 있어야 다음 손댈 곳이 정해진다. */
-const 단계시간 = [];
-function 시간표() {
-  if (단계시간.length === 0) return;
-  const 총 = 단계시간.reduce((n, x) => n + x.sec, 0);
+const stepTimes = [];
+function schedule() {
+  if (stepTimes.length === 0) return;
+  const total = stepTimes.reduce((n, x) => n + x.sec, 0);
   console.log(`
-[verify] ==== 단계별 시간 (합계 ${총}초) ====`);
-  for (const x of [...단계시간].sort((a, b) => b.sec - a.sec)) {
-    console.log(`  ${String(x.sec).padStart(4)}s  ${Math.round((x.sec / Math.max(1, 총)) * 100).toString().padStart(3)}%  ${x.label}`);
+[verify] ==== 단계별 시간 (합계 ${total}초) ====`);
+  for (const x of [...stepTimes].sort((a, b) => b.sec - a.sec)) {
+    console.log(`  ${String(x.sec).padStart(4)}s  ${Math.round((x.sec / Math.max(1, total)) * 100).toString().padStart(3)}%  ${x.label}`);
   }
 }
 
 function run(label, cwd, command) {
-  지금단계 += 1;
-  console.log(`\n[verify] (${지금단계}/${전체단계}) ${label}: ${command} (cwd: ${cwd})`);
-  const 시작 = Date.now();
+  currentStep += 1;
+  console.log(`\n[verify] (${currentStep}/${totalSteps}) ${label}: ${command} (cwd: ${cwd})`);
+  const start = Date.now();
   const r = spawnSync(command, { cwd, stdio: 'inherit', shell: true });
-  단계시간.push({ label, sec: Math.round((Date.now() - 시작) / 1000) });
+  stepTimes.push({ label, sec: Math.round((Date.now() - start) / 1000) });
   /* ★ **2 = 「못 돌렸다」(CANNOT-RUN)** — 이 저장소의 규약이다(`run-gates.mjs`·`run-live-checks.mjs`
      도 그렇게 읽는다). 잴 것이 아직 없거나(봇이 안 떠 있다·장이 안 찍혔다) 이 기계에 없는 것은
      **실패가 아니다.** 여기만 「0이 아니면 실패」로 두었더니, 검사가 정직하게 「못 돌렸다」고
@@ -50,9 +50,9 @@ function run(label, cwd, command) {
   }
   if (r.status !== 0) {
     console.error(`[verify] X ${label} 실패 (exit ${r.status ?? '?'})`);
-    console.error(`[verify] 여기서 멈춘다 — **뒤의 ${전체단계 - 지금단계}단계는 안 돌았다**(${지금단계}/${전체단계}). 이 하나를 고치면 다음 것이 나온다.`);
+    console.error(`[verify] 여기서 멈춘다 — **뒤의 ${totalSteps - currentStep}단계는 안 돌았다**(${currentStep}/${totalSteps}). 이 하나를 고치면 다음 것이 나온다.`);
     console.error('[verify] 한 판에 다 보고 싶으면: cd apps/karmolab && npm run verify:prepush (게이트 열넷을 모아서 낸다)');
-    시간표();
+    schedule();
     process.exit(r.status ?? 1);
   }
 }
@@ -363,6 +363,6 @@ if (spawnSync('typos --version', { shell: true, stdio: 'ignore' }).status === 0)
   console.log('[verify] · 오탈자 — 못 돌림 (typos 가 이 기계에 없다. CI 의 별 step 이 본다)');
 }
 
-시간표();
+schedule();
 console.log('\n[verify] OK — master invariant 통과');
 

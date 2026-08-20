@@ -102,16 +102,16 @@ process.exitCode = code;
  * 그래서 다시 잰 뒤에도 **서빙 판이 내 판이 아니면** 답을 2(못 돌림)로 내린다.
  * 초록은 건드리지 않는다 — 옛 판이어도 「실주소가 성하다」는 그 자체로 사실이다.
  */
-async function staleRunCannotRun(code, 이판) {
-  if (code === 0 || code === 2 || !이판) return code;
+async function staleRunCannotRun(code, thisRound) {
+  if (code === 0 || code === 2 || !thisRound) return code;
   const current = await servedCommit();
-  if (current && current.startsWith(이판)) {
+  if (current && current.startsWith(thisRound)) {
     console.log('[retry-if-redeployed] 다시 재도 빨갛다 — 진짜 빨강이다');
     return code;
   }
   console.log(
     `[retry-if-redeployed] 못 돌림 — 화면에 올라간 판(${(current || '?').slice(0, 8)})이 ` +
-      `내가 재려던 판(${이판})이 아니다. 내 코드가 없는 화면을 보고 빨개진 것이라 판정하지 않는다.`
+      `내가 재려던 판(${thisRound})이 아니다. 내 코드가 없는 화면을 보고 빨개진 것이라 판정하지 않는다.`
   );
   return 2;
 }

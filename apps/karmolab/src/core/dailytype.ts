@@ -12,7 +12,7 @@
  * 둘 중 무엇도 못 믿는다.
  */
 import { dateKST, dayNumber, type Mark, rngFrom, seedFor, shareText, shuffleWith } from './daily';
-import { score, 타건수 } from './hangultype';
+import { score, keystrokes } from './hangultype';
 import type { ToolRunner, ToolSpec } from './types';
 import { TYPE_POOL } from './type-pool.generated';
 
@@ -52,7 +52,7 @@ export interface Puzzle {
 export function puzzleFor(date: string, pool: readonly string[] = TYPE_POOL): Puzzle {
   if (pool.length < LINES_PER_DAY) throw new Error('문장 뭉치가 너무 작습니다');
   const lines = shuffleWith(rngFrom(seedFor(GAME_ID, date)), pool).slice(0, LINES_PER_DAY);
-  return { date, day: dayNumber(date), lines, strokes: lines.reduce((n, s) => n + 타건수(s), 0) };
+  return { date, day: dayNumber(date), lines, strokes: lines.reduce((n, s) => n + keystrokes(s), 0) };
 }
 
 export interface Play {

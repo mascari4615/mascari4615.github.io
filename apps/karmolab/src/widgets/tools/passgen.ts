@@ -255,13 +255,13 @@ import { checkPassword, verdict } from '../../lib/pwned';
             const bits = Math.log2(Math.pow(SYLLABLE_SPACE, n) * 100);
             const 초 = Math.pow(2, bits - 1) / 1e10;
             const 년 = 초 / 3.15e7;
-            const 시간말 =
+            const timeText =
               년> 1e6
                 ? t('passgen.time.eons', { n: (년 / 1e8).toExponential(1) })
                 : humanDuration(초);
             stats.innerHTML =
               statCell(t('passgen.stat.strength'), bits>= 80 ? t('passgen.level.veryStrong2') : bits>= 60 ? t('passgen.level.strong2') : bits>= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
-              statCell(t('passgen.stat.holdsFor'), 시간말) +
+              statCell(t('passgen.stat.holdsFor'), timeText) +
               statCell(t('passgen.stat.space'), `${SYLLABLE_SPACE.toLocaleString(locale())}^${n} × 100`);
             $<HTMLElement>('#pgWordsVal').textContent = t('passgen.label.chunksValue', { n });
             say(t('passgen.status.madeWords'), 'ok');

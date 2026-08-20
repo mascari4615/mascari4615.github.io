@@ -83,11 +83,11 @@ const Toolbox = (() => {
             if (typeof t === 'function') return t(key, undefined, 기본값);
         } catch { /* 전역이 없다 — 아래에서 직접 꺼낸다 */ }
         try {
-            const 통 = window.__KARMO_I18N || {};
+            const barrel = window.__KARMO_I18N || {};
             const 지금 = window.__KARMO_LOCALE || document.documentElement.lang || 'ko';
             const 묶음 = key.indexOf('.') < 0 ? 'common' : key.slice(0, key.indexOf('.'));
-            const 하나 = 통[지금]?.[묶음]?.[key] ?? 통.ko?.[묶음]?.[key];
-            if (typeof 하나 === 'string') return 하나;
+            const one = barrel[지금]?.[묶음]?.[key] ?? barrel.ko?.[묶음]?.[key];
+            if (typeof one === 'string') return one;
         } catch { /* 통이 아직 없다 */ }
         return 기본값;
     };
@@ -751,11 +751,11 @@ const Toolbox = (() => {
         // — 한쪽에만 두면 그 길로 올 때마다 타이머가 쌓인다 (TASK-KL-100).
         disposeTool(pageId);
         const wasActive = old.classList.contains('active');
-        const 손댄것 = takeUserState(old);
+        const touched = takeUserState(old);
         const nu = buildToolPage(tool);
         if (wasActive) nu.classList.add('active');
         old.replaceWith(nu);
-        putUserState(nu, 손댄것);
+        putUserState(nu, touched);
         replayPendingClick(nu);
     }
 
@@ -774,7 +774,7 @@ const Toolbox = (() => {
      * 안 옮긴다(그건 사람의 것이 아니라 그 도구의 것이고, 새 화면이 더 맞다). */
     function takeUserState(root) {
         const 값 = [];
-        let 커서 = null;
+        let cursor = null;
         root.querySelectorAll('input, textarea, select').forEach(el => {
             if (!el.id) return;
             if (el.type === 'checkbox' || el.type === 'radio') {
@@ -789,9 +789,9 @@ const Toolbox = (() => {
         });
         const active = document.activeElement;
         if (active && active !== document.body && root.contains(active) && active.id) {
-            커서 = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
+            cursor = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
         }
-        return 값.length || 커서 ? { 값, 커서 } : null;
+        return 값.length || cursor ? { 값, 커서: cursor } : null;
     }
 
     /* 손이 달리기 전에 눌린 단추 한 번을 대신 눌러 준다 (TASK-KL-135).
@@ -802,11 +802,11 @@ const Toolbox = (() => {
      *
      * 한 번만·10초 안에만. 오래된 것은 사람이 이미 마음을 바꿨다고 본다. */
     function replayPendingClick(root) {
-        const 눌림 = typeof window !== 'undefined' && window.KARMOLAB_PENDING_CLICK;
-        if (!눌림) return;
+        const pressed = typeof window !== 'undefined' && window.KARMOLAB_PENDING_CLICK;
+        if (!pressed) return;
         window.KARMOLAB_PENDING_CLICK = null;
-        if (Date.now() - 눌림.at > 10000) return;
-        const el = root.querySelector('#' + CSS.escape(눌림.id));
+        if (Date.now() - pressed.at > 10000) return;
+        const el = root.querySelector('#' + CSS.escape(pressed.id));
         if (el && typeof el.onclick === 'function') el.click();
     }
 
@@ -1657,11 +1657,11 @@ const Toolbox = (() => {
              (이 줄이 도는 시점이 곧 있다는 뜻) ③ 나중에 생기는 자리도 표시만 달면 된다. */
         document.addEventListener('click', (e) => {
             const el = (e.target as HTMLElement | null)?.closest?.('[data-goto]') as HTMLElement | null;
-            const 갈곳 = el?.dataset?.goto;
-            if (!갈곳) return;
+            const destination = el?.dataset?.goto;
+            if (!destination) return;
             e.preventDefault();
             closeAllHeaderNav();
-            switchPage(갈곳);
+            switchPage(destination);
         });
 
         // 옆줄 바닥의 찾기 — 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
@@ -1791,11 +1791,11 @@ const Toolbox = (() => {
             /* 파일 입력에 값을 넣는 유일한 길이 DataTransfer 다. 넣기만 하면 도구는 모르므로
                사람이 고른 것과 같은 신호를 보낸다. */
             const dt = new DataTransfer();
-            const 여러개 = input.multiple;
-            [...files].slice(0, 여러개 ? files.length : 1).forEach((f) => dt.items.add(f));
+            const many = input.multiple;
+            [...files].slice(0, many ? files.length : 1).forEach((f) => dt.items.add(f));
             input.files = dt.files;
             input.dispatchEvent(new Event('change', { bubbles: true }));
-            showToast(여러개 && files.length > 1 ? `파일 ${files.length}개를 받았어요` : `${files[0].name} 을(를) 받았어요`);
+            showToast(many && files.length > 1 ? `파일 ${files.length}개를 받았어요` : `${files[0].name} 을(를) 받았어요`);
         });
     }
 

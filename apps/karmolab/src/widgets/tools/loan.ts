@@ -123,21 +123,21 @@ import { download } from './shared/image';
             const extra = Math.max(0, parseFloat($<HTMLInputElement>('#loX').value) || 0);
 
             const build = type === 'pp' ? equalPrincipal : type === 'bu' ? bullet : equalPayment;
-            const 기본 = withGrace(P, rate, grace, build(P, rate, months));
+            const base = withGrace(P, rate, grace, build(P, rate, months));
             /* 만기일시는 매달 갚는 원금이 없어서 「더 갚기」의 뜻이 다르다 — 그 방식엔 안 태운다. */
-            const rows = type === 'bu' ? 기본 : withExtra(기본, rate, extra);
+            const rows = type === 'bu' ? base : withExtra(base, rate, extra);
             const totalInterest = rows.reduce((a, r) => a + r.interest, 0);
-            const 원래이자 = 기본.reduce((a, r) => a + r.interest, 0);
-            const 아낀이자 = 원래이자 - totalInterest;
-            const 줄어든달 = 기본.length - rows.length;
+            const originalInterest = base.reduce((a, r) => a + r.interest, 0);
+            const savedInterest = originalInterest - totalInterest;
+            const monthsSaved = base.length - rows.length;
 
             stats.innerHTML =
               statCell(t(type === 'ep' ? 'loan.stat.monthly' : 'loan.stat.firstMonth'), money(rows[0].pay), true) +
               statCell(t('loan.stat.totalInterest'), money(totalInterest)) +
               statCell(t('loan.stat.totalPaid'), money(P + totalInterest)) +
               (grace> 0 ? statCell(t('loan.stat.graceInterest'), money(P * (rate / 100 / 12))) : '') +
-              (아낀이자> 0 ? statCell(t('loan.stat.saved'), money(아낀이자), true) : '') +
-              (줄어든달> 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: 줄어든달 })) : '');
+              (savedInterest> 0 ? statCell(t('loan.stat.saved'), money(savedInterest), true) : '') +
+              (monthsSaved> 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: monthsSaved })) : '');
 
             // 세 방식을 나란히 놓아야 「총이자가 적은 대신 초반이 무겁다」 는 맞바꿈이 보인다
             const alts: Array<[string, Row[]]> = [
@@ -152,9 +152,9 @@ import { download } from './shared/image';
               })
               .join('');
 
-            마지막표 = rows;
-            const show = 전체보기 ? rows : [...rows.slice(0, 12), ...(rows.length> 12 ? [rows[rows.length - 1]] : [])];
-            $<HTMLElement>('#loTableHead').textContent = 전체보기
+            lastMark = rows;
+            const show = showAll ? rows : [...rows.slice(0, 12), ...(rows.length> 12 ? [rows[rows.length - 1]] : [])];
+            $<HTMLElement>('#loTableHead').textContent = showAll
               ? `달별 상환표 — ${rows.length}개월 전부`
               : t('loan.table.head');
             table.innerHTML = show
@@ -176,11 +176,11 @@ import { download } from './shared/image';
             $<HTMLElement>('#loStatus').textContent =
               t('loan.status.ratio', { pct: firstRatio.toFixed(0) }) +
               (grace> 0 ? t('loan.status.grace', { n: grace }) : '') +
-              (아낀이자> 0
+              (savedInterest> 0
                 ? t('loan.status.extra', {
                     extra: money(extra),
-                    months: 줄어든달,
-                    saved: money(아낀이자)
+                    months: monthsSaved,
+                    saved: money(savedInterest)
                   })
                 : '') +
               t('loan.status.note');
@@ -189,22 +189,22 @@ import { download } from './shared/image';
 
           /* 표를 접어 두는 것이 기본이다 — 360개월을 다 펴면 화면이 통째로 표가 된다.
              그래도 「전부 보고 싶다」는 사람이 있어서 한 번 누르면 편다. */
-          let 전체보기 = false;
-          let 마지막표: Row[] = [];
+          let showAll = false;
+          let lastMark: Row[] = [];
 
           $<HTMLButtonElement>('#loAll').onclick = () => {
-            전체보기 = !전체보기;
-            $<HTMLButtonElement>('#loAll').textContent = t(전체보기 ? 'loan.btn.fold' : 'loan.btn.all');
+            showAll = !showAll;
+            $<HTMLButtonElement>('#loAll').textContent = t(showAll ? 'loan.btn.fold' : 'loan.btn.all');
             run();
           };
           /* 표는 옮겨 붙여 쓰는 물건이다 — 엑셀에서 열리는 모양으로 준다.
              한글이 깨지지 않게 앞머리 표식(BOM)을 붙인다. */
           $<HTMLButtonElement>('#loCsv').onclick = () => {
-            if (!마지막표.length) return;
+            if (!lastMark.length) return;
             const BR = String.fromCharCode(10);
             const BOM = String.fromCharCode(0xfeff);
             const head = t('loan.csv.head');
-            const body = 마지막표
+            const body = lastMark
               .map((r) => [r.n, Math.round(r.pay), Math.round(r.principal), Math.round(r.interest), Math.round(r.left)].join(','))
               .join(BR);
             const blob = new Blob([BOM + head + BR + body], { type: 'text/csv;charset=utf-8' });

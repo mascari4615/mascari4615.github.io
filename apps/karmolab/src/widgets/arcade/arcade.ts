@@ -1970,10 +1970,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      *   순간에 다시 잰다.
      */
     const stageEl = $<HTMLElement>('#acStage');
-    const 눕힌좁은화면 = (): boolean => window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
+    const landscapeNarrow = (): boolean => window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
     const fitStage = (): void => {
       if (!stageEl.isConnected) return;
-      if (!눕힌좁은화면() || document.fullscreenElement) {
+      if (!landscapeNarrow() || document.fullscreenElement) {
         stageEl.style.removeProperty('--ac-stage');
         return;
       }
@@ -1981,8 +1981,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 안 보이면 재지 않는다 — 0 을 진짜 위치로 읽으면 위 주석의 그 사고가 난다. */
       if (stageEl.offsetParent === null || box.height === 0) return;
       /* 무대 위가 먹은 세로 = 무대의 화면상 위치. 아래로는 2px 만 남긴다(경계선 반올림 몫). */
-      const 남은세로 = Math.max(120, Math.round(window.innerHeight - box.top - 2));
-      stageEl.style.setProperty('--ac-stage', `min(62vw, ${남은세로}px, 640px)`);
+      const remainingHeight = Math.max(120, Math.round(window.innerHeight - box.top - 2));
+      stageEl.style.setProperty('--ac-stage', `min(62vw, ${remainingHeight}px, 640px)`);
     };
     /* 판이 그려질 때마다 다시 잰다 — 그때가 무대가 확실히 보이는 시점이다. */
     new MutationObserver(() => requestAnimationFrame(fitStage))

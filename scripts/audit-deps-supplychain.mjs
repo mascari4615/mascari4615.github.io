@@ -51,14 +51,14 @@ function scanInstallScripts(ws) {
 }
 
 const found = {};
-const 못잰곳 = [];
+const unmeasured = [];
 for (const ws of WORKSPACES) {
   const r = scanInstallScripts(ws);
-  if (r === null) { 못잰곳.push(ws); continue; }
+  if (r === null) { unmeasured.push(ws); continue; }
   found[ws] = r;
 }
 if (Object.keys(found).length === 0) {
-  console.error(`[deps] 못 쟀다 — 어느 작업 공간에도 node_modules 가 없다 (${못잰곳.join(', ')}).`);
+  console.error(`[deps] 못 쟀다 — 어느 작업 공간에도 node_modules 가 없다 (${unmeasured.join(', ')}).`);
   process.exit(2);
 }
 
@@ -74,14 +74,14 @@ catch {
   allow = {};
 }
 
-const 새것 = [];
+const fresh = [];
 for (const [ws, names] of Object.entries(found)) {
   const ok = allow[ws] ?? [];
-  for (const n of names) if (ok.includes(n) === false) 새것.push(`${ws}: ${n}`);
+  for (const n of names) if (ok.includes(n) === false) fresh.push(`${ws}: ${n}`);
 }
-if (새것.length > 0 && BLESS === false) {
-  console.error(`[deps] **설치만 해도 도는 코드가 늘었다** ${새것.length}개:`);
-  for (const n of 새것) console.error(`  - ${n}`);
+if (fresh.length > 0 && BLESS === false) {
+  console.error(`[deps] **설치만 해도 도는 코드가 늘었다** ${fresh.length}개:`);
+  for (const n of fresh) console.error(`  - ${n}`);
   console.error('  이게 정말 필요한 꾸러미인지 보고, 맞으면: node scripts/audit-deps-supplychain.mjs --bless');
   process.exit(1);
 }
@@ -104,7 +104,7 @@ if (!npmCli) {
   console.error('[deps] 못 쟀다 — npm-cli.js 를 어디서도 못 찾았다 (본 자리: node 옆 · <prefix>/lib · npm_execpath). 통과가 아니다.');
   process.exit(2);
 }
-const 현재취약 = {};
+const currentVulns = {};
 for (const ws of Object.keys(found)) {
   let audit;
   try {
@@ -120,28 +120,28 @@ for (const ws of Object.keys(found)) {
     }
   }
   const v = audit?.metadata?.vulnerabilities ?? {};
-  현재취약[ws] = { high: v.high ?? 0, critical: v.critical ?? 0 };
+  currentVulns[ws] = { high: v.high ?? 0, critical: v.critical ?? 0 };
 }
 
 /* ★ **0 을 당장 요구하지 않는다** (2026-08-16). 켜 보니 yawnbot 쪽에 이미 high 7 · critical 1 이
    있었다 — 대부분 `@discordjs/opus → node-pre-gyp → tar` 한 줄기이고 **고칠 판이 아직 없다**
    (`fixAvailable: false`). 그걸 이유로 게이트를 안 켜면 그 사이 **새로 생기는 것**도 못 막는다.
    지금 수를 기준선으로 적고 **늘면 빨강**. 기준선은 오직 내려가야 한다. */
-const 기준취약 = allow.__vulnerabilities ?? {};
-const 늘어난것 = [];
-for (const [ws, cur] of Object.entries(현재취약)) {
-  const base = 기준취약[ws] ?? { high: 0, critical: 0 };
+const baselineVulns = allow.__vulnerabilities ?? {};
+const grown = [];
+for (const [ws, cur] of Object.entries(currentVulns)) {
+  const base = baselineVulns[ws] ?? { high: 0, critical: 0 };
   if (cur.high > base.high || cur.critical > base.critical) {
-    늘어난것.push(`${ws}: high ${base.high}→${cur.high} · critical ${base.critical}→${cur.critical}`);
+    grown.push(`${ws}: high ${base.high}→${cur.high} · critical ${base.critical}→${cur.critical}`);
   }
 }
-if (늘어난것.length > 0 && BLESS === false) {
+if (grown.length > 0 && BLESS === false) {
   console.error('[deps] prod 의존의 심각한 취약점이 **늘었다**:');
-  for (const l of 늘어난것) console.error(`  - ${l}`);
+  for (const l of grown) console.error(`  - ${l}`);
   console.error('  보기: (해당 폴더에서) npm audit --omit=dev  ·  고치기: npm audit fix');
   process.exit(1);
 }
-const 남은빚 = Object.entries(현재취약)
+const remainingDebt = Object.entries(currentVulns)
   .filter(([, c]) => c.high + c.critical > 0)
   .map(([ws, c]) => `${ws} high ${c.high}/critical ${c.critical}`);
 
@@ -149,13 +149,13 @@ if (BLESS) {
   /* 허용 목록과 취약점 기준선을 **한 파일**에 둔다 — 두 파일이면 한쪽만 갱신된다.
      둘 다 「지금 이 순간」을 적어야 뜻이 맞으므로, 두 검사를 다 돌린 뒤 여기서 쓴다. */
   fs.mkdirSync(path.dirname(ALLOW), { recursive: true });
-  fs.writeFileSync(ALLOW, JSON.stringify({ ...found, __vulnerabilities: 현재취약 }, null, 1) + '\n', 'utf8');
+  fs.writeFileSync(ALLOW, JSON.stringify({ ...found, __vulnerabilities: currentVulns }, null, 1) + '\n', 'utf8');
   const n = Object.values(found).reduce((a, x) => a + x.length, 0);
-  console.log(`[deps] 기준선을 다시 적었다 — 작업 공간 ${Object.keys(found).length}곳 · 설치 스크립트 ${n}개 · 취약점 ${JSON.stringify(현재취약)}`);
+  console.log(`[deps] 기준선을 다시 적었다 — 작업 공간 ${Object.keys(found).length}곳 · 설치 스크립트 ${n}개 · 취약점 ${JSON.stringify(currentVulns)}`);
   process.exit(0);
 }
 
-const 총 = Object.values(found).reduce((a, x) => a + x.length, 0);
-const 안잰말 = 못잰곳.length ? ` · 못 잰 곳 ${못잰곳.join(', ')}(설치 안 됨)` : '';
-const 빚말 = 남은빚.length ? ` · 남은 빚 ${남은빚.join(' / ')}` : ' · prod 취약점 0';
-console.log(`[deps] 작업 공간 ${Object.keys(found).length}곳 · 설치 스크립트 ${총}개(전부 허용됨)${빚말}${안잰말}`);
+const total = Object.values(found).reduce((a, x) => a + x.length, 0);
+const unmeasuredText = unmeasured.length ? ` · 못 잰 곳 ${unmeasured.join(', ')}(설치 안 됨)` : '';
+const debtText = remainingDebt.length ? ` · 남은 빚 ${remainingDebt.join(' / ')}` : ' · prod 취약점 0';
+console.log(`[deps] 작업 공간 ${Object.keys(found).length}곳 · 설치 스크립트 ${total}개(전부 허용됨)${debtText}${unmeasuredText}`);

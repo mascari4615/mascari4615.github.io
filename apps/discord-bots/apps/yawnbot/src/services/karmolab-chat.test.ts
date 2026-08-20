@@ -27,11 +27,11 @@ function makeStore(): KarmolabChatStore {
  * `Date` 만 가짜로 바꾼다. `setTimeout` 은 진짜여야 한다 — 접속 유예(`hereCount`) 시험이
  * 실제 타이머로 기다린다.
  */
-const 오늘 = new Date('2026-08-08T12:00:00Z');
+const today = new Date('2026-08-08T12:00:00Z');
 
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(오늘);
+    vi.setSystemTime(today);
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kl-chat-'));
     statePath = path.join(dir, 'chat-state.json');
 });

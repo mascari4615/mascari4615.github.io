@@ -14,15 +14,15 @@ const idle: (fn: () => void) => void =
   || ((f: () => void) => { setTimeout(f, 200); });
 
 /** 화면이 다 뜨고 한가해진 뒤에. 이미 다 떴으면 바로 한가할 때. */
-function 한가할때(할일: () => void): void {
-  if (document.readyState === 'complete') idle(할일);
-  else addEventListener('load', () => idle(할일));
+function whenIdle(todo: () => void): void {
+  if (document.readyState === 'complete') idle(todo);
+  else addEventListener('load', () => idle(todo));
 }
 
 /* 글꼴은 내용이 아니라 꾸밈이다 — 먼저 오려고 회선을 다투면 정작 글이 늦게 나온다
    (평소처럼 걸었더니 첫 그림 284→760ms, 실측 TASK-KL-128). 그동안은 컴퓨터 글꼴로 보이는데
    폭을 맞춰 뒀으므로(tools.css) 바뀔 때 글이 밀리지 않는다. */
-한가할때(() => {
+whenIdle(() => {
   const l = document.createElement('link');
   l.rel = 'stylesheet';
   l.href = '/apps/karmolab/css/fonts.css';
@@ -47,7 +47,7 @@ addEventListener('load', () => {
    (`scripts/entry-points.mjs`)는 **글자로 적힌 주소**를 찾는다 — 조각난 주소는 안 보인다.
    그래서 `copresence.js`·`alarm-fire.js` 가 빌드에서 빠져 배포에서 404 였다(화면은 멀쩡한데
    그 기능만 조용히 죽는다). 사람이 읽기에도 이쪽이 낫다. */
-한가할때(() => {
+whenIdle(() => {
   [
     '/apps/karmolab/js/lang-switch.js',
     '/apps/karmolab/js/account.js',

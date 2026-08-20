@@ -401,8 +401,8 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
      48장). 찾아온 사람이 자기가 부른 도구 대신 목록을 보는 것은 데려다준 게 아니다.
      묶음이 없으면 주소의 뒷조각을 그대로 본다 — 이 묶음의 할 일 이름일 때만. */
   if (typeof location !== 'undefined') {
-    const 뒷조각 = (location.hash || '').replace(/^#/, '');
-    openIfMine(뒷조각);
+    const tailChunk = (location.hash || '').replace(/^#/, '');
+    openIfMine(tailChunk);
   }
   const onBundleOpen = (e: Event): void => {
     const d = (e as CustomEvent).detail as { tool?: string } | undefined;
