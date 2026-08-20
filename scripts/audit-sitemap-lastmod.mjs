@@ -46,7 +46,7 @@ const loc = (block) => (block.match(/<loc>(.*?)<\/loc>/) ?? [])[1] ?? '(주소 �
    적는다. 실측: `Disallow: /page*` 인데 /page2/ ~ /page10/ 아홉 장이 실려 있었다.
    사이트맵에는 색인시키고 싶은 주소만 넣는다. */
 const robotsPath = path.join(siteDir, 'robots.txt');
-const 막은자리 = fs.existsSync(robotsPath)
+const disallowedPaths = fs.existsSync(robotsPath)
   ? fs
       .readFileSync(robotsPath, 'utf8')
       .split('\n')
@@ -55,37 +55,37 @@ const 막은자리 = fs.existsSync(robotsPath)
       .map((l) => l.replace(/^Disallow:\s*/i, '').trim())
       .filter((v) => v !== '')
   : [];
-const 막혔나 = (url) => {
+const isDisallowed = (url) => {
   let p;
   try {
     p = new URL(url).pathname;
   } catch {
     return false;
   }
-  return 막은자리.some((rule) => (rule.endsWith('*') ? p.startsWith(rule.slice(0, -1)) : p.startsWith(rule)));
+  return disallowedPaths.some((rule) => (rule.endsWith('*') ? p.startsWith(rule.slice(0, -1)) : p.startsWith(rule)));
 };
 
-const 날짜없음 = blocks.filter((b) => b.includes('<lastmod>') === false).map(loc);
+const missingLastmod = blocks.filter((b) => b.includes('<lastmod>') === false).map(loc);
 
 /* 빌드 시각을 그대로 찍으면 안 하느니만 못하다 — 전부 같은 값이면 그건 신호가 아니다.
    (구글은 못 믿을 lastmod 를 무시한다.) 주소가 여럿인데 날짜가 한 종류뿐이면 의심한다. */
-const 날짜들 = new Set(
+const lastmodValues = new Set(
   blocks.map((b) => (b.match(/<lastmod>(.*?)<\/lastmod>/) ?? [])[1]).filter((d) => d !== undefined)
 );
 
-if (날짜없음.length > 0) {
-  console.error(`[audit-sitemap-lastmod] 날짜 없는 주소 ${날짜없음.length}개 / 전체 ${blocks.length}개:`);
-  for (const url of 날짜없음.slice(0, 20)) console.error(`  ${url}`);
-  if (날짜없음.length > 20) console.error(`  … 그 외 ${날짜없음.length - 20}개`);
+if (missingLastmod.length > 0) {
+  console.error(`[audit-sitemap-lastmod] 날짜 없는 주소 ${missingLastmod.length}개 / 전체 ${blocks.length}개:`);
+  for (const url of missingLastmod.slice(0, 20)) console.error(`  ${url}`);
+  if (missingLastmod.length > 20) console.error(`  … 그 외 ${missingLastmod.length - 20}개`);
   console.error('  → 그 주소는 크롤러가 다시 올지 못 정하고, IndexNow 알림에도 안 실린다.');
   console.error('  → 장을 만드는 자리에서 last_modified_at 을 채워라 (apps/blog/_plugins/pages-lastmod-hook.rb 참고).');
   process.exit(1);
 }
 
-const 막힌주소 = blocks.map(loc).filter(막혔나);
-if (막힌주소.length > 0) {
-  console.error(`[audit-sitemap-lastmod] robots.txt 가 막아 둔 주소가 사이트맵에 ${막힌주소.length}개 있다:`);
-  for (const url of 막힌주소.slice(0, 10)) console.error(`  ${url}`);
+const disallowedUrls = blocks.map(loc).filter(isDisallowed);
+if (disallowedUrls.length > 0) {
+  console.error(`[audit-sitemap-lastmod] robots.txt 가 막아 둔 주소가 사이트맵에 ${disallowedUrls.length}개 있다:`);
+  for (const url of disallowedUrls.slice(0, 10)) console.error(`  ${url}`);
   console.error('  → 「오지 마라」와 「여기 있다」를 같이 말하는 것이다. 둘 중 하나를 고쳐라.');
   process.exit(1);
 }
@@ -126,10 +126,10 @@ if (noindexUrls.length > 0) {
   process.exit(1);
 }
 
-if (blocks.length > 1 && 날짜들.size === 1) {
-  console.error(`[audit-sitemap-lastmod] 주소 ${blocks.length}개인데 날짜가 한 종류뿐이다 — ${[...날짜들][0]}`);
+if (blocks.length > 1 && lastmodValues.size === 1) {
+  console.error(`[audit-sitemap-lastmod] 주소 ${blocks.length}개인데 날짜가 한 종류뿐이다 — ${[...lastmodValues][0]}`);
   console.error('  → 빌드 시각을 찍고 있다는 뜻이다. 못 믿을 lastmod 는 무시당하므로 안 하느니만 못하다.');
   process.exit(1);
 }
 
-console.log(`[audit-sitemap-lastmod] 주소 ${blocks.length}개 전부 날짜 있음 · 서로 다른 날짜 ${날짜들.size}종`);
+console.log(`[audit-sitemap-lastmod] 주소 ${blocks.length}개 전부 날짜 있음 · 서로 다른 날짜 ${lastmodValues.size}종`);
