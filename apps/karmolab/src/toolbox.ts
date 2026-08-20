@@ -2332,15 +2332,57 @@ const Toolbox = (() => {
 
     /* ===== Shared Helpers ===== */
 
+    /**
+     * 최근 런타임 오류 링버퍼 — 에러 토스트에 「복사할 것」이 항상 있게.
+     * showToast(.., 'error') 호출 158곳 중 detail 을 넘기는 건 5곳뿐이었다.
+     * 그래서 복사 버튼이 어떤 오류엔 뜨고 어떤 오류엔 안 떴다 — 원인은 호출부가 아니라
+     * 「detail 이 있어야만 버튼」이라는 seam 이다. 여기서 컨텍스트를 스스로 모은다.
+     */
+    const RECENT_ERRORS = [];
+    function pushRecentError(line) {
+        const s = String(line || '').trim();
+        if (!s) return;
+        RECENT_ERRORS.push(new Date().toISOString() + ' ' + s.slice(0, 800));
+        if (RECENT_ERRORS.length > 20) RECENT_ERRORS.shift();
+    }
+    window.addEventListener('error', (ev) => {
+        pushRecentError((ev.message || 'error') + (ev.filename ? ' @ ' + ev.filename + ':' + ev.lineno + ':' + ev.colno : '') + (ev.error?.stack ? '\n' + ev.error.stack : ''));
+    });
+    window.addEventListener('unhandledrejection', (ev) => {
+        const r = ev.reason;
+        pushRecentError('unhandledrejection: ' + (r?.stack || r?.message || String(r)));
+    });
+
+    /** 에러 토스트용 자동 리포트 — 호출부가 detail 을 안 줘도 붙일 컨텍스트를 만든다. */
+    function buildErrorReport(msg, detailText) {
+        const lines = [
+            '[KarmoLab 오류 리포트]',
+            '메시지: ' + msg,
+            '시각: ' + new Date().toISOString(),
+            '도구: ' + (currentPageId || 'home'),
+            'URL: ' + location.href,
+            'UA: ' + navigator.userAgent
+        ];
+        if (detailText) lines.push('', '상세:', detailText);
+        const recent = RECENT_ERRORS.slice(-5);
+        if (recent.length) lines.push('', '최근 런타임 오류 ' + recent.length + '건:', recent.join('\n'));
+        return lines.join('\n');
+    }
+
     function showToast(msg: string, type = 'success', detail?: unknown) {
         const t = document.getElementById('statusToast');
         if (!t) return;
-        const hasDetail = detail !== undefined && detail !== null && detail !== '';
-        const detailText = typeof detail === 'string' ? detail : (detail && detail.message) ? detail.message + (detail.stack ? '\n' + detail.stack : '') : '';
+        const rawDetail = typeof detail === 'string' ? detail : (detail && detail.message) ? detail.message + (detail.stack ? '\n' + detail.stack : '') : '';
+        // 에러는 detail 유무와 무관하게 항상 복사 가능 — 없으면 컨텍스트를 스스로 모아 붙인다.
+        const hasDetail = type === 'error' || (detail !== undefined && detail !== null && detail !== '');
+        const detailText = type === 'error' ? buildErrorReport(msg, rawDetail) : rawDetail;
+        // 리포트를 만든 *뒤* 기록한다 — 자기 자신이 「최근 오류」에 중복으로 실리지 않게.
+        if (type === 'error') pushRecentError(msg + (rawDetail ? ' :: ' + rawDetail : ''));
         if (hasDetail && detailText) {
             t.className = 'status-toast visible has-detail ' + type;
             const fullText = msg + '\n\n' + detailText;
-            t.innerHTML = '<span class="status-toast-msg">' + escapeHtml(msg) + '</span><button type="button" class="status-toast-copy" title="복사">📋</button>';
+            const copyLabel = type === 'error' ? '오류 로그 복사' : '복사';
+            t.innerHTML = '<span class="status-toast-msg">' + escapeHtml(msg) + '</span><button type="button" class="status-toast-copy" title="' + escapeHtml(copyLabel) + '" aria-label="' + escapeHtml(copyLabel) + '">' + (type === 'error' ? '📋 ' + escapeHtml(copyLabel) : '📋') + '</button>';
             t.onclick = null;
             const copyBtn = t.querySelector('.status-toast-copy');
             if (copyBtn) {
@@ -2365,8 +2407,8 @@ const Toolbox = (() => {
                 t.classList.remove('visible');
                 t.onclick = null;
                 t.style.pointerEvents = '';
-            }, 5000);
-            mirrorToastToDesktop(msg, type, detailText);
+            }, type === 'error' ? 8000 : 5000);
+            mirrorToastToDesktop(msg, type, rawDetail);
         } else {
             t.textContent = msg;
             t.className = 'status-toast visible ' + type;
