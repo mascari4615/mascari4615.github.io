@@ -161,16 +161,16 @@ const results = [];
  * 그래서 흘려보내는 것은 그대로 두고(긴 판에서 진행이 보여야 한다), **빨간 검사의 제 말**을
  * 요약 바로 아래에 다시 붙인다. 요약만 떼어 봐도 사유가 같이 온다.
  */
-const 꼬리길이 = 12;
-function 돌린다(gate) {
+const TAIL_LINES = 12;
+function runGate(gate) {
   return new Promise((resolve) => {
-    const 꼬리 = [];
-    const 모은말 = [];
-    const 담기 = (chunk) => {
+    const tailLinesilLinesilLines = [];
+    const collected = [];
+    const collect = (chunk) => {
       for (const line of String(chunk).split(String.fromCharCode(10))) {
         if (!line.trim()) continue;
-        꼬리.push(line.replace(/\s+$/, ''));
-        if (꼬리.length > 꼬리길이) 꼬리.shift();
+        tailLinesilLinesilLines.push(line.replace(/\s+$/, ''));
+        if (tailLinesilLinesilLines.length > TAIL_LINES) tailLinesilLinesilLines.shift();
       }
     };
     /* ★ 인자 배열 대신 **한 줄 명령**으로 넘긴다 — 윈도우의 `npm.cmd` 는 shell 이 있어야
@@ -183,10 +183,10 @@ function 돌린다(gate) {
     /* ★ **같이 도니까 흘려보내면 안 된다** (2026-08-19). 여덟 판이 한 화면에 섞여 찍히면
        어느 검사가 한 말인지 못 가린다 — 사유 없는 빨강과 같아진다. 모았다가 끝날 때
        한 덩이로 낸다(머리글 + 그 검사의 말). */
-    child.stdout.on('data', (c) => { 모은말.push(String(c)); 담기(c); });
-    child.stderr.on('data', (c) => { 모은말.push(String(c)); 담기(c); });
-    child.on('error', (error) => resolve({ status: null, error, 꼬리, 말: 모은말.join('') }));
-    child.on('close', (status) => resolve({ status, error: null, 꼬리, 말: 모은말.join('') }));
+    child.stdout.on('data', (c) => { collected.push(String(c)); collect(c); });
+    child.stderr.on('data', (c) => { collected.push(String(c)); collect(c); });
+    child.on('error', (error) => resolve({ status: null, error, tailLinesilLinesilLines, output: collected.join('') }));
+    child.on('close', (status) => resolve({ status, error: null, tailLinesilLinesilLines, output: collected.join('') }));
   });
 }
 
@@ -201,38 +201,38 @@ function 돌린다(gate) {
 
    그리고 **긴 것부터** 집는다. 짧은 것부터 집으면 끝에 제일 긴 놈만 남아 코어가 또 논다.
    지난 판 시간을 적어 두고 그 순서로 세운다. */
-const 시간표파일 = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data', 'gate-times.json');
-let 지난시간 = {};
-try { 지난시간 = JSON.parse(readFileSync(시간표파일, 'utf8')); } catch { /* 처음이면 없다 */ }
+const timesFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data', 'gate-times.json');
+let previousTimes = {};
+try { previousTimes = JSON.parse(readFileSync(timesFile, 'utf8')); } catch { /* 처음이면 없다 */ }
 
-const 일꾼수 = Math.max(1, Number(process.env.KL_GATE_JOBS || Math.min(8, (os.cpus().length || 4) - 2)));
+const workerCount = Math.max(1, Number(process.env.KL_GATE_JOBS || Math.min(8, (os.cpus().length || 4) - 2)));
 /* 모르는 검사는 **중간쯤**으로 친다 — 맨 앞에 세우면 새 검사 하나가 판을 늘어뜨리고,
    맨 뒤에 세우면 사실 긴 놈이 꼬리에 남는다. */
-const 아는값 = Object.values(지난시간).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
-const 중간값 = 아는값.length ? 아는값[Math.floor(아는값.length / 2)] : 1;
-const 순서 = gates
-  .map((gate, i) => ({ gate, i, 예상: 지난시간[gate] ?? 중간값 }))
-  .sort((a, b) => b.예상 - a.예상);
+const knownTimes = Object.values(previousTimes).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+const medianTime = knownTimes.length ? knownTimes[Math.floor(knownTimes.length / 2)] : 1;
+const ordered = gates
+  .map((gate, i) => ({ gate, i, expectedSec: previousTimes[gate] ?? medianTime }))
+  .sort((a, b) => b.expectedSec - a.expectedSec);
 
-console.log(`[gates] 검사 ${gates.length}개 · 한 번에 ${일꾼수}판씩 (긴 것부터)`);
-const 판시작 = Date.now();
-let 끝난수 = 0;
-const 남은판 = [...순서];
+console.log(`[gates] 검사 ${gates.length}개 · 한 번에 ${workerCount}판씩 (긴 것부터)`);
+const startedAt = Date.now();
+let finishedCount = 0;
+const pending = [...ordered];
 await Promise.all(
-  Array.from({ length: Math.min(일꾼수, 남은판.length) }, async () => {
+  Array.from({ length: Math.min(workerCount, pending.length) }, async () => {
     for (;;) {
-      const 것 = 남은판.shift();
-      if (것 === undefined) return;
+      const nextGate = pending.shift();
+      if (nextGate === undefined) return;
       const started = Date.now();
-      const run = await 돌린다(것.gate);
+      const run = await runGate(nextGate.gate);
       const sec = Math.round((Date.now() - started) / 1000);
       /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
       const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-      results.push({ gate: 것.gate, i: 것.i, sec, how, cantRun: !run.error && run.status === 2, 꼬리: run.꼬리 });
-      끝난수 += 1;
+      results.push({ gate: nextGate.gate, i: nextGate.i, sec, how, cantRun: !run.error && run.status === 2, tailLines: run.꼬리 });
+      finishedCount += 1;
       const mark = run.error ? '·' : run.status === 0 ? '✓' : run.status === 2 ? '·' : '✘';
       console.log(`
-──── ${것.gate} ────  ${mark} ${sec}s  (${끝난수}/${gates.length})`);
+──── ${nextGate.gate} ────  ${mark} ${sec}s  (${finishedCount}/${gates.length})`);
       if (run.말) process.stdout.write(run.말.endsWith(String.fromCharCode(10)) ? run.말 : run.말 + String.fromCharCode(10));
     }
   })
@@ -240,12 +240,12 @@ await Promise.all(
 // 요약은 목록 순서로 — 끝난 순서로 적으면 판마다 줄이 뒤바뀌어 견주기가 어렵다.
 results.sort((a, b) => a.i - b.i);
 console.log(`
-[gates] 판 전체 ${Math.round((Date.now() - 판시작) / 1000)}초 (한 판씩이면 ${results.reduce((n, r) => n + r.sec, 0)}초였다)`);
+[gates] 판 전체 ${Math.round((Date.now() - startedAt) / 1000)}초 (한 판씩이면 ${results.reduce((n, r) => n + r.sec, 0)}초였다)`);
 // 다음 판에 긴 것부터 세우려고 이번 시간을 적어 둔다.
 try {
-  const 다음 = { ...지난시간 };
-  for (const r of results) 다음[r.gate] = r.sec;
-  writeFileSync(시간표파일, JSON.stringify(다음, null, 2) + String.fromCharCode(10));
+  const nextTimes = { ...previousTimes };
+  for (const r of results) nextTimes[r.gate] = r.sec;
+  writeFileSync(timesFile, JSON.stringify(nextTimes, null, 2) + String.fromCharCode(10));
 } catch { /* 못 적어도 판정과는 상관없다 */ }
 
 /* ★ **exit 2 = 「못 돌았다」** — 이 저장소의 약속이고 검사 서른 곳이 이미 그렇게 쓴다.
