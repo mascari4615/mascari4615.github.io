@@ -27,6 +27,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEntry, pick } from './lib/gate-scope.mjs';
+import { deriveWatch } from './lib/gate-derive.mjs';
 
 /* ★ **이름 목록은 파일에 있다** (2026-08-14). 예전에는 `package.json` 의 `gates` 한 줄에
    백스물다섯 개가 늘어서 있었다. 세션 여럿이 같은 줄을 동시에 늘리니 충돌이 잦았고,
@@ -55,6 +56,16 @@ if (fromIdx !== -1) {
  *   ② 바뀐 목록을 못 구하면(git 이 없다·저장소가 아니다) **통짜로 되돌린다.**
  *      「못 봤다」를 「볼 것 없다」로 바꾸는 것이 이 저장소에서 제일 비싼 고장이다.
  */
+/** `package.json` 의 명령표 — 발판을 알아낼 때 「이 검사가 무슨 스크립트를 부르나」의 근거다. */
+function pkgScripts() {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  try {
+    return JSON.parse(readFileSync(path.join(here, '..', 'package.json'), 'utf8')).scripts ?? {};
+  } catch {
+    return {}; // 못 읽으면 아무 것도 못 알아낸다 = 통짜로 돈다 (안전 기본값)
+  }
+}
+
 const changedIdx = args.indexOf('--changed');
 let changed = null;
 let skipped = [];
@@ -64,11 +75,14 @@ if (changedIdx !== -1) {
   if (changed === null) {
     console.log(`[gates] 바뀐 것을 못 구했다 (${base}) — 통짜로 돈다.`);
   } else {
-    const picked = pick(gates, changed);
+    /* 발판이 안 적힌 검사는 **알아내 본다** (KAR-231). 못 알아내면 그대로 돈다. */
+    const scripts = pkgScripts();
+    const picked = pick(gates, changed, (name) => deriveWatch(name, scripts));
     skipped = picked.skipped;
     gates = picked.run;
     console.log(
       `[gates] 바뀐 파일 ${changed.length}개 · 돌릴 검사 ${gates.length}개` +
+        (picked.derived ? ` · 발판을 알아낸 검사 ${picked.derived}개` : '') +
         (skipped.length ? ` · 건너뜀 ${skipped.length}개 (발판이 안 걸린다)` : '')
     );
   }

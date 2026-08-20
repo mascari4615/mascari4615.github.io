@@ -47,6 +47,26 @@ cd apps/karmolab && npm run dev   # http://127.0.0.1:8813/apps/karmolab/index.ht
 찍힌다. 셸 모양이 달라져 생성기가 멈추면 **배포가 통째로 막힌다**(2026-08-07 세 시간 막혔다).
 `npm run verify` 에도 물려 있다.
 
+## 검증 루프 — 작업 중에는 `gates:changed` (KAR-231)
+
+**작업 중에 `npm run build` 를 반복해서 돌리지 마라.** 게이트 통짜는 **한 판 201초**(앞단계
+포함 4~5분)다. 2026-08-19·08-20 두 세션이 연달아 같은 판을 다섯 번 돌렸고, 사람은 그동안
+「왜 이리 오래 걸려」만 물었다.
+
+```bash
+cd apps/karmolab
+npm run gates:changed     # 바뀐 것에 걸리는 검사만 (한 파일이면 160 -> 50~60개)
+npx tsc --noEmit          # 타입은 따로, 몇 초
+npm run build             # push 직전 한 번만 (통짜)
+```
+
+`gates:changed` 는 **발판을 스스로 알아낸다**(`scripts/lib/gate-derive.mjs`) — 검사 스크립트가
+자기 안에 적어 둔 경로 + 이름 규칙으로 실재하는 파일. **아무 것도 못 알아내면 그 검사는 그냥
+돈다**(안전 기본값). push·CI 는 언제나 통짜라, 여기서 잘못 건너뛰어도 배포로는 안 샌다.
+
+새 검사를 달면 `test:gate-derive` 가 「발판이 무의미하게 넓어졌나」를 막는다 — 그 게이트가
+빨개지면 유도가 다시 no-op 이 됐다는 뜻이다(그게 어제 있었던 일이다).
+
 ## master invariant (`npm run verify`)
 
 master 브랜치는 항상:
