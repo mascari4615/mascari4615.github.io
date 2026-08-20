@@ -334,6 +334,101 @@ fn check_blocking(spec: &LaunchSpec) -> bool {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 이미 켜져 있는 앱 = 창을 앞으로 (2026-08-20)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// 「디스코드가 안 열려요」의 진짜 정체. 실측 로그:
+//
+//     Discord 1.0.9254
+//     Quitting secondary instance.
+//
+// 이미 도는 앱에 스킴을 한 번 더 넘기면 **두 번째 인스턴스가 스스로 죽는다.** 기존 창은
+// 뒤에 그대로 살아 있으니 사용자 눈에는 아무 일도 안 일어난 것과 같다. 디스코드만의 일이
+// 아니다 — 단일 인스턴스로 도는 앱은 대부분 이렇게 행동한다.
+//
+// 그래서 런처가 당연히 해야 할 일을 한다: **켜져 있으면 켜지 말고 앞으로 가져온다.**
+// 못 가져오면 원래대로 실행을 시도하므로, 이 길이 실패해도 잃는 것은 없다.
+
+/// 이 exe 로 도는 창이 있으면 앞으로 가져온다. 성공하면 `true`.
+#[cfg(windows)]
+fn focus_running(exe: &Path) -> bool {
+    use windows_sys::Win32::Foundation::{CloseHandle, BOOL, HWND, LPARAM, MAX_PATH};
+    use windows_sys::Win32::System::ProcessStatus::GetModuleFileNameExW;
+    use windows_sys::Win32::System::Threading::{
+        OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        EnumWindows, GetWindowTextLengthW, GetWindowThreadProcessId, IsWindowVisible, SetForegroundWindow,
+        ShowWindow, SW_RESTORE,
+    };
+
+    struct Hunt {
+        /// 소문자로 눕힌 목표 경로. 윈도우 경로는 대소문자를 안 가린다.
+        want: String,
+        found: bool,
+    }
+
+    /// 창 주인의 exe 경로. 못 얻으면 `None` (권한이 더 높은 프로세스 등).
+    unsafe fn exe_of_window(hwnd: HWND) -> Option<String> {
+        let mut pid: u32 = 0;
+        GetWindowThreadProcessId(hwnd, &mut pid);
+        if pid == 0 {
+            return None;
+        }
+        let h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pid);
+        if h.is_null() {
+            return None;
+        }
+        let mut buf = [0u16; MAX_PATH as usize];
+        let n = GetModuleFileNameExW(h, std::ptr::null_mut(), buf.as_mut_ptr(), buf.len() as u32);
+        CloseHandle(h);
+        if n == 0 {
+            return None;
+        }
+        Some(String::from_utf16_lossy(&buf[..n as usize]))
+    }
+
+    unsafe extern "system" fn visit(hwnd: HWND, lp: LPARAM) -> BOOL {
+        let hunt = &mut *(lp as *mut Hunt);
+        /* 보이지 않는 창·제목 없는 창은 건너뛴다. 앱 하나가 숨은 보조 창을 여럿 들고 있는데,
+         * 그중 아무거나 앞으로 끌어올리면 화면에 아무 것도 안 나타난다. */
+        if IsWindowVisible(hwnd) == 0 || GetWindowTextLengthW(hwnd) == 0 {
+            return 1;
+        }
+        let Some(exe) = exe_of_window(hwnd) else { return 1 };
+        if exe.to_lowercase() != hunt.want {
+            return 1;
+        }
+        ShowWindow(hwnd, SW_RESTORE); // 최소화돼 있으면 편다
+        hunt.found = SetForegroundWindow(hwnd) != 0;
+        /* 못 올렸으면 계속 다음 창을 본다 — 같은 앱의 다른 창이 될 수도 있다. */
+        if hunt.found { 0 } else { 1 }
+    }
+
+    let want = exe.to_string_lossy().to_lowercase();
+    if want.is_empty() {
+        return false;
+    }
+    let mut hunt = Hunt { want, found: false };
+    unsafe { EnumWindows(Some(visit), &mut hunt as *mut Hunt as isize) };
+    hunt.found
+}
+
+#[cfg(not(windows))]
+fn focus_running(_exe: &Path) -> bool {
+    false
+}
+
+/// 갈 곳이 안 적힌 맨 스킴인가 (`discord` · `discord://` = 참, `steam://open/main` = 거짓).
+///
+/// 창 올리기를 여기서만 하는 이유: 갈 곳이 적힌 것은 「이 방을 열어라」라는 부탁이라,
+/// 창만 올리면 그 부탁을 버리는 셈이 된다.
+fn is_bare_scheme(raw: &str) -> bool {
+    let s = raw.trim();
+    !s.contains(':') || s.trim_end_matches('/').ends_with(':')
+}
+
 /// 앱 실행. exec 이 있으면 그걸 직접, 없으면 스킴을 OS 에 넘긴다.
 #[tauri::command]
 pub async fn app_launch(spec: LaunchSpec) -> Result<(), String> {
@@ -346,6 +441,11 @@ fn launch_blocking(spec: &LaunchSpec) -> Result<(), String> {
     if let Some(exec) = spec.exec.as_deref().filter(|s| !s.trim().is_empty()) {
         if !exec_exists(exec) {
             return Err(format!("실행 파일을 못 찾았어요: {exec}"));
+        }
+        /* 이미 켜져 있으면 켜지 말고 앞으로. 인자를 준 칸은 예외 —
+         * 「이 파일을 열어라」 같은 부탁이라 창만 올리면 부탁을 버리는 셈이다. */
+        if spec.args.as_ref().map_or(true, |a| a.is_empty()) && focus_running(Path::new(exec)) {
+            return Ok(());
         }
         let mut cmd = std::process::Command::new(exec);
         if let Some(args) = &spec.args {
@@ -362,8 +462,19 @@ fn launch_blocking(spec: &LaunchSpec) -> Result<(), String> {
         if scheme.is_empty() {
             return Err("스킴이 비었어요".into());
         }
-        if reg::protocol_command(&scheme).is_none() && cfg!(windows) {
+        let handler = reg::protocol_command(&scheme);
+        if handler.is_none() && cfg!(windows) {
             return Err(format!("{scheme}:// 를 여는 앱이 이 PC 에 없어요"));
+        }
+        /* 스킴만 넘기면 이미 도는 앱은 「두 번째 인스턴스」로 보고 스스로 죽는다
+         * (디스코드 실측). 경로 없는 맨 스킴일 때만 창 올리기를 먼저 시도한다 —
+         * `steam://open/main` 처럼 갈 곳이 적힌 것은 그 부탁을 그대로 넘겨야 한다. */
+        if is_bare_scheme(raw) {
+            if let Some(exe) = handler.as_deref().and_then(exe_of) {
+                if focus_running(Path::new(&exe)) {
+                    return Ok(());
+                }
+            }
         }
         // 원문에 경로가 붙어 있으면(`steam://open/main`) 그대로 살린다.
         let target = if raw.contains(':') { raw.trim().to_string() } else { format!("{scheme}://") };
@@ -376,6 +487,15 @@ fn launch_blocking(spec: &LaunchSpec) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bare_scheme_is_detected() {
+        assert!(is_bare_scheme("discord"));
+        assert!(is_bare_scheme("discord://"));
+        assert!(is_bare_scheme(" discord:// "));
+        assert!(!is_bare_scheme("steam://open/main"));
+        assert!(!is_bare_scheme("discord://-/channels/@me"));
+    }
 
     #[test]
     fn exe_of_handles_quoted_path_with_spaces() {
