@@ -41,6 +41,23 @@
     display: flex; gap: 10px; justify-content: center; }
   #bar.hidden, #hud.hidden { display: none; }
 
+  /* 가로로 잡으라는 안내 — 세로로 들면 16:9 가 가운데 띠만 된다 */
+  #turnHint { position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; pointer-events: none; }
+  #turnHint.hidden { display: none; }
+  .turnbox { background: rgba(8,12,20,.78); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
+    padding: 20px 24px; text-align: center; max-width: 74%; }
+  .turnbox b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .turnbox small { color: #8c97ad; font-size: 12px; line-height: 1.5; }
+  .turnicon { font-size: 34px; color: #7fd4ff; margin-bottom: 6px;
+    animation: turnspin 2.4s ease-in-out infinite; }
+  @keyframes turnspin {
+    0%, 55%, 100% { transform: rotate(0deg); }
+    75%, 90% { transform: rotate(90deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .turnicon { animation: none; } }
+
   /* 조이스틱 — 화면 아래 양쪽. 누른 자리에 스틱이 생긴다(고정 위치 X). */
   #sticks { position: absolute; inset: 0; touch-action: none; }
   #sticks.hidden { display: none; }
@@ -69,6 +86,15 @@
     <div class="chip" id="chipMode">—</div>
     <div class="chip" id="chipNet">—</div>
     <div class="chip" id="chipPos">—</div>
+    <div class="chip" id="chipFrame">—</div>
+  </div>
+
+  <div id="turnHint" class="hidden">
+    <div class="turnbox">
+      <div class="turnicon">⟳</div>
+      <b>폰을 눕혀서 잡아라</b>
+      <small>방송은 16:9 — 가로로 들어야 화면이 꽉 찬다</small>
+    </div>
   </div>
 
   <div id="sticks" class="hidden">
@@ -99,7 +125,7 @@
 
   const $ = id => document.getElementById(id);
   const vf = $('vf'), vfCtx = vf.getContext('2d', { alpha: false, desynchronized: true });
-  const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos');
+  const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos'), chipFrame = $('chipFrame');
 
   // ── 상태 ───────────────────────────────────────────────────────────────────
   let ws = null, wsReady = false;
@@ -166,16 +192,30 @@
     // 「보이는 것 ≠ 나가는 것」이 된다. 뷰파인더는 송출 프레임과 같아야 한다.
     vfCtx.fillStyle = '#000';
     vfCtx.fillRect(0, 0, w, h);
+
+    // 방향은 절대 손대지 않는다 — 화면만 돌리면 폰을 오른쪽으로 밀 때 그림이 위로
+    // 가는 거짓 뷰파인더가 된다. 대신 세로로 들면 「돌려서 잡아라」라고 말한다.
     const s = Math.min(w / bmp.width, h / bmp.height);
     const dw = bmp.width * s, dh = bmp.height * s;
     vfCtx.drawImage(bmp, (w - dw) / 2, (h - dh) / 2, dw, dh);
 
-    if (frameAspect !== bmp.width / bmp.height) {
-      frameAspect = bmp.width / bmp.height;
-      chipMode.title = `${bmp.width}×${bmp.height}`;
+    // 카메라 워킹 중 롤이 세로를 스쳐 지나가는 건 의도된 동작이다 — 그때 힌트가 튀면
+    // 방해만 된다. **머무를 때만** 띄운다: 어긋남이 이어지면 켜고, 풀리면 즉시 끈다.
+    const mismatched = (bmp.width >= bmp.height) !== (w >= h);
+    if (!mismatched) { turnSince = 0; $('turnHint').classList.add('hidden'); }
+    else {
+      const now = performance.now();
+      if (!turnSince) turnSince = now;
+      if (now - turnSince > TURN_HINT_DELAY) $('turnHint').classList.remove('hidden');
+    }
+
+    if (frameW !== bmp.width || frameH !== bmp.height) {
+      frameW = bmp.width; frameH = bmp.height;
+      chipFrame.innerHTML = `<b>${bmp.width}×${bmp.height}</b>`;
     }
   }
-  let frameAspect = 0;
+  let frameW = 0, frameH = 0, turnSince = 0;
+  const TURN_HINT_DELAY = 2000;   // 이만큼 세로로 머물러야 안내가 뜬다
 
   function sendPose(t, px, py, pz, qx, qy, qz, qw, fovDeg, aspect, dof) {
     if (!ws || ws.readyState !== 1) return;
@@ -335,6 +375,8 @@
     $('hud').classList.add('hidden');
     $('bar').classList.add('hidden');
     $('sticks').classList.add('hidden');
+    $('turnHint').classList.add('hidden');
+    turnSince = 0;
     if (stickTimer !== null) { clearInterval(stickTimer); stickTimer = null; }
     stick.l = [0, 0]; stick.r = [0, 0];
     if (ws && ws.readyState === 1) ws.send('j|0|0|0|0');   // 놓고 나가도 안 밀린다

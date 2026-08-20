@@ -147,3 +147,5 @@ apps/handheld/unity/*.sln
 # 바닥 타일 169개가 통째로 직렬화돼 2만 줄이 넘는다 — 파생물이라 담지 않는다.
 apps/handheld/unity/Assets/Scenes/
 apps/handheld/unity/Assets/Scenes.meta
+# 포즈 기록 — 진단용으로 그때그때 찍는 것이라 저장소에 남기지 않는다.
+apps/handheld/unity/HandheldLogs/
