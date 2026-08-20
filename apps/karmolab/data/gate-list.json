@@ -272,6 +272,7 @@
     "smoke:calcshell",
     "smoke:timeshell",
     "smoke:vidshell",
+    "smoke:newtools",
     "smoke:sndshell",
     "audit:loose",
     "test:audiorate",
