@@ -18,5 +18,7 @@
   "territory.msg.electionHint": "Winner takes the whole district. Deeper color means a wider margin; pale means a close race.",
   "territory.mode.auto": "Auto",
   "territory.mode.area": "Flat",
-  "territory.msg.wonSido": "Provinces won"
+  "territory.msg.wonSido": "Provinces won",
+  "territory.msg.empty": "No stores on this screen",
+  "territory.msg.emptyHint": "Drag toward populated areas, or zoom out."
 }

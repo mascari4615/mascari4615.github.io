@@ -18,5 +18,7 @@
   "territory.msg.electionHint": "区ごとに1位が丸ごと取る。濃いほど差が大きく、淡いと接戦。",
   "territory.mode.auto": "自動",
   "territory.mode.area": "単色",
-  "territory.msg.wonSido": "1位をとった道県の数"
+  "territory.msg.wonSido": "1位をとった道県の数",
+  "territory.msg.empty": "この画面に店がない",
+  "territory.msg.emptyHint": "店のある方へ動かすか、引いて見てください。"
 }

@@ -804,7 +804,21 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       /* 순위표 — 색·이름·점포 수·**땅 넓이 막대**·%. 주인공은 면적이다.
          0% 인 브랜드는 여기 땅이 없다는 뜻이라 흐리게 남겨 둔다(사라지면 순위가 요동친다). */
       const brands = [...loaded.meta.brands].sort((a, b) => pctOf(b.id) - pctOf(a.id));
-      const top = pctOf(brands[0]?.id ?? '') || 1;
+      const top = pctOf(brands[0]?.id ?? '') || 0;
+
+      /* 아무도 땅이 없으면 「전부 0.0%」를 늘어놓지 않는다 — 그건 순위표가 아니라 소음이고,
+         읽는 사람은 「고장났나」로 읽는다. 바다·산으로 나가면 실제로 이렇게 된다. */
+      if (top <= 0) {
+        legendEl.innerHTML =
+          '<div class="terr-name">' + esc(title) + '</div>' +
+          '<div class="terr-row" style="grid-template-columns:1fr;opacity:.7">' +
+          esc(t('territory.msg.empty', undefined, '이 화면엔 가게가 없다')) +
+          '</div>';
+        noteEl.innerHTML =
+          '<div>' + esc(t('territory.msg.emptyHint', undefined, '가게가 있는 곳으로 끌거나 축소해 보라.')) + '</div>';
+        return;
+      }
+
       legendEl.innerHTML =
         '<div class="terr-name">' + esc(title) + '</div>' +
         brands
@@ -816,7 +830,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
               '<i class="terr-sw" style="background:' + esc(brand.color) + '"></i>' +
               '<span>' +
               '<span class="terr-name">' + esc(brand.label) + ' <span style="opacity:.55">' + n.toLocaleString('ko-KR') + '</span></span>' +
-              '<span class="terr-bararea"><i class="terr-fill" style="width:' + ((pct / top) * 100).toFixed(1) + '%;background:' + esc(brand.color) + '"></i></span>' +
+              '<span class="terr-bararea"><i class="terr-fill" style="width:' + ((pct / (top || 1)) * 100).toFixed(1) + '%;background:' + esc(brand.color) + '"></i></span>' +
               '</span>' +
               '<span class="terr-pct">' + pct.toFixed(1) + '%</span>' +
               '</div>'
