@@ -1266,7 +1266,7 @@ a.landing-cta-card:hover { color: inherit; }
 
     flex-shrink: 0; padding: 4px 8px; font-size: 12px; background: color-mix(in srgb, currentColor 12%, transparent);
     border: 1px solid color-mix(in srgb, currentColor 28%, transparent); border-radius: 4px; cursor: pointer;
-    color: inherit; font-family: inherit;
+    color: inherit; font-family: inherit; white-space: nowrap;
 }
 .status-toast-copy:hover { background: color-mix(in srgb, currentColor 22%, transparent); }
 .status-toast-detail {
