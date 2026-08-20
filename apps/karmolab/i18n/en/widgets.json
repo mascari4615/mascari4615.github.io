@@ -245,5 +245,6 @@
   "widgets.isitdown.title": "Is it down?",
   "widgets.my-ai.title": "My AI",
   "widgets.cleanup.title": "Eraser",
-  "widgets.videobg.title": "Video background remover"
+  "widgets.videobg.title": "Video background remover",
+  "widgets.territory.title": "Territory"
 }

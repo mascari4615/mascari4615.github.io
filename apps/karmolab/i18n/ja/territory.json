@@ -1,0 +1,13 @@
+{
+  "territory.industry.convenience": "コンビニ",
+  "territory.industry.cafe": "カフェ",
+  "territory.industry.burger": "ハンバーガー",
+  "territory.tab.map": "地図",
+  "territory.label.dots": "店舗の点を表示",
+  "territory.msg.loading": "データを読み込み中…",
+  "territory.msg.owner": "いま見えている土地の主",
+  "territory.msg.hint": "色はその地点にいちばん近い店のブランド。ドラッグで移動、ホイールで拡大。",
+  "territory.msg.source": "データ",
+  "territory.msg.stores": "店",
+  "territory.msg.sample": "サンプル注意 — OSM 登録分のみで実数の約三分の一。街区単位では抜けがある。"
+}

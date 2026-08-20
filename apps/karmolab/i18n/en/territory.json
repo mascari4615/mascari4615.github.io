@@ -1,0 +1,13 @@
+{
+  "territory.industry.convenience": "Convenience",
+  "territory.industry.cafe": "Cafe",
+  "territory.industry.burger": "Burger",
+  "territory.tab.map": "Map",
+  "territory.label.dots": "Show stores",
+  "territory.msg.loading": "Loading data…",
+  "territory.msg.owner": "Who owns what you see",
+  "territory.msg.hint": "Each spot is colored by its nearest store's brand. Drag to pan, scroll to zoom.",
+  "territory.msg.source": "Source",
+  "territory.msg.stores": " stores",
+  "territory.msg.sample": "Sample only — OSM lists roughly a third of the real stores, so your block may be missing one."
+}

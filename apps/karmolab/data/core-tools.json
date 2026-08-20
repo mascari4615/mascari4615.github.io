@@ -361,6 +361,13 @@
       "convert"
     ]
   },
+  "territory": {
+    "ops": [
+      "brand",
+      "share",
+      "nearest"
+    ]
+  },
   "timecalc": {
     "ops": [
       "shift",
