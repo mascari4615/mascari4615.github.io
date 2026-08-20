@@ -24,13 +24,13 @@ export interface QuietRequest {
  *
  * 「바쁘」만 넣으면 「바빠」를 못 알아듣는 것과 같은 부류다(ㅂ 불규칙). 실제로 둘 다 놓쳤다.
  */
-const 한글숫자: Record<string, number> = {
+const hangulNumber: Record<string, number> = {
   한: 1, 두: 2, 세: 3, 네: 4, 다섯: 5, 여섯: 6, 일곱: 7, 여덟: 8, 아홉: 9, 열: 10,
   십: 10, 이십: 20, 삼십: 30, 사십: 40, 오십: 50,
 };
 // 템플릿 문자열 안에서는 `\d` 가 그냥 `d` 가 된다 — 실제로 이걸로 아무것도 안 맞았다.
-const 시간꼴 = new RegExp(`(\\d+|${Object.keys(한글숫자).join('|')})\\s*(분|시간)`);
-const 조용히 = /(조용히|조용|가만히|말 걸지|말걸지|방해하지|나중에|이따|좀 있다|좀있다|집중|바쁘|바빠|바쁨|정신없)/;
+const timePattern = new RegExp(`(\\d+|${Object.keys(hangulNumber).join('|')})\\s*(분|시간)`);
+const quietly = /(조용히|조용|가만히|말 걸지|말걸지|방해하지|나중에|이따|좀 있다|좀있다|집중|바쁘|바빠|바쁨|정신없)/;
 const again = /(이제 됐|다시 얘기|말해도|돌아왔|끝났|다 했)/;
 
 /**
@@ -40,14 +40,14 @@ const again = /(이제 됐|다시 얘기|말해도|돌아왔|끝났|다 했)/;
  */
 export function asksForQuiet(text: string, defaultMs = 30 * 60_000): QuietRequest | null {
   const t = text.trim();
-  if (조용히.test(t) === false) return null;
+  if (quietly.test(t) === false) return null;
   // 「이제 됐어」류가 섞여 있으면 푸는 쪽이다.
   if (again.test(t)) return null;
 
-  const m = 시간꼴.exec(t);
+  const m = timePattern.exec(t);
   if (m === null) return { ms: defaultMs, says: '…응, 있다가.' };
 
-  const count = 한글숫자[m[1]] ?? Number(m[1]);
+  const count = hangulNumber[m[1]] ?? Number(m[1]);
   const ms = m[2] === '시간' ? count * 3600_000 : count * 60_000;
   return { ms: Math.max(60_000, ms), says: `…응. ${count}${m[2]} 뒤에.` };
 }
@@ -125,9 +125,9 @@ export class Quiet {
 
   /** 남은 시간을 사람 말로. */
   leftSay(): string {
-    const 남음 = this.until - this.now;
-    if (남음 <= 0) return '';
-    const minutes = Math.ceil(남음 / 60_000);
+    const left = this.until - this.now;
+    if (left <= 0) return '';
+    const minutes = Math.ceil(left / 60_000);
     return minutes >= 60 ? `${Math.round(minutes / 60)}시간쯤 더` : `${minutes}분쯤 더`;
   }
 }

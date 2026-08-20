@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { clonedSpeech, 기분빠르기 } from '../dist/index.js';
+import { clonedSpeech, moodSpeed } from '../dist/index.js';
 
 /** 진짜로 안 보내고, 무엇을 보내려 했는지만 가로챈다. */
 function 가로채기() {
@@ -49,7 +49,7 @@ test('모르는 결은 늘 하던 속도 — 엉뚱한 값이 들어와도 안 �
 });
 
 test('네 결이 모두 이어져 있다 — 하나만 빠지면 그 마음만 안 들린다', async () => {
-  for (const 결 of Object.keys(기분빠르기)) {
+  for (const 결 of Object.keys(moodSpeed)) {
     const { 보낸것, 되돌리기 } = 가로채기();
     try {
       await 목소리().synthesize('안녕', `cloned@${결}`);

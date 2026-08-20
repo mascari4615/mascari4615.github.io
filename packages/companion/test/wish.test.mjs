@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Wishes, wishNote, 바랄만한것 } from '../dist/index.js';
+import { Wishes, wishNote, wishable } from '../dist/index.js';
 
 const 낮 = new Date(2026, 1, 10, 14, 0).getTime();
 const 다음날 = new Date(2026, 1, 11, 14, 0).getTime();
@@ -102,7 +102,7 @@ test('실제로 쓰는 바람들은 조수님이 조금만 움직이면 채워�
     '조용히 곁에 있는 시간 갖기': [사람('응'), 사람('그래'), 사람('음')],
   };
   const 오늘시작 = new Date(오늘아침).setHours(0, 0, 0, 0);
-  for (const w of 바랄만한것) {
+  for (const w of wishable) {
     const 재료 = 채우는것[w.what];
     assert.notEqual(재료, undefined, `「${w.what}」 를 채우는 법이 시험에 없다`);
     assert.equal(w.met(재료, 오늘시작), true, `「${w.what}」 가 안 채워진다`);
@@ -112,7 +112,7 @@ test('실제로 쓰는 바람들은 조수님이 조금만 움직이면 채워�
 
 test('화면에서 주워 온 것으로는 안 채워진다 — 곁눈질은 조수님이 한 게 아니다', () => {
   const 오늘시작 = new Date(오늘아침).setHours(0, 0, 0, 0);
-  const 들은일 = 바랄만한것.find((w) => w.what === '오늘 있었던 일 한 조각 듣기');
+  const 들은일 = wishable.find((w) => w.what === '오늘 있었던 일 한 조각 듣기');
   const 화면 = [사람('화면을 봤다. 지금 앞에 있는 창은 「동반자」.', 오늘아침, 'screen')];
   assert.equal(들은일.met(화면, 오늘시작), false);
 });

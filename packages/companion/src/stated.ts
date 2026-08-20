@@ -27,13 +27,13 @@ export interface Stated {
 }
 
 /** 자기 얘기를 꺼내는 말머리. */
-const 나는 = /(^|[\s,.!?])(나는|나도|난|내가|내|나 )/;
+const selfIs = /(^|[\s,.!?])(나는|나도|난|내가|내|나 )/;
 
 /** 사실이랄 만한 것 — 취향·상태·사정. */
 const factShape = /(좋아|싫어|못 해|못해|잘 해|잘해|안 해|알레르기|먹어|안 먹|마셔|안 마셔|살아|일해|다녀|무서워|편해|불편|힘들어하|자주|보통|늘|항상|매일)/;
 
 /** 지나가는 말 — 지금 기분이지 사실이 아니다. */
-const 그때뿐 = /(오늘|지금|방금|아까|어제|이따|내일|잠깐)/;
+const onceOnly = /(오늘|지금|방금|아까|어제|이따|내일|잠깐)/;
 
 /**
  * 묻는 말 — 사실이 아니다.
@@ -41,7 +41,7 @@ const 그때뿐 = /(오늘|지금|방금|아까|어제|이따|내일|잠깐)/;
  * 실측(52회차): 「내가 커피 좋아해 싫어해?」가 사실로 쌓였다. 묻는 말은 **얘한테 답을
  * 구하는 것**이지 자기에 대해 알려 주는 게 아니다. 안 빼면 물어본 것이 그대로 사실이 된다.
  */
-const 묻는말 = /([?？]|좋아해 싫어해|맞아\?|아니야\?|어때\?|일까|을까|ㄹ까)/;
+const questionText = /([?？]|좋아해 싫어해|맞아\?|아니야\?|어때\?|일까|을까|ㄹ까)/;
 
 /**
  * 조수님이 **자기에 대해 대놓고 말한 것**을 뽑는다.
@@ -55,9 +55,9 @@ export function statedFacts(entries: readonly MemoryEntry[]): Stated[] {
     .filter((e) => {
       const t = e.text.trim();
       if (t.length < 5 || t.length > 80) return false;
-      if (그때뿐.test(t)) return false;
-      if (묻는말.test(t)) return false;
-      return 나는.test(t) && factShape.test(t);
+      if (onceOnly.test(t)) return false;
+      if (questionText.test(t)) return false;
+      return selfIs.test(t) && factShape.test(t);
     })
     .map((e) => ({ said: e.text.trim(), at: e.at }));
 }
@@ -138,27 +138,27 @@ export class StatedStore {
 export function findConflicts(facts: readonly Stated[], known: string | null): string[] {
   if (known === null || known.trim() === '') return [];
 
-  const 어긋난것: string[] = [];
+  const mismatched: string[] = [];
   for (const f of facts) {
-    const 좋아함 = /좋아/.test(f.said);
-    const 싫어함 = /싫어|안 좋아/.test(f.said);
-    if (좋아함 === 싫어함) continue; // 둘 다거나 둘 다 아니면 못 가린다
+    const likes = /좋아/.test(f.said);
+    const dislikes = /싫어|안 좋아/.test(f.said);
+    if (likes === dislikes) continue; // 둘 다거나 둘 다 아니면 못 가린다
 
     // 그 말의 알맹이 낱말이 아는 것에도 있고, 거기선 반대로 적혀 있나.
     for (const word of f.said.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)) {
       if (word.length < 2) continue;
       const line = known.split('\n').find((l) => l.includes(word));
       if (line === undefined) continue;
-      const 아는쪽좋아함 = /좋아/.test(line);
-      const 아는쪽싫어함 = /싫어|안 좋아/.test(line);
-      if (아는쪽좋아함 === 아는쪽싫어함) continue;
-      if (좋아함 !== 아는쪽좋아함) {
-        어긋난것.push(`직접 들은 「${f.said}」 와 아는 것의 「${line.trim()}」 가 어긋난다`);
+      const knownLikes = /좋아/.test(line);
+      const knownDislikes = /싫어|안 좋아/.test(line);
+      if (knownLikes === knownDislikes) continue;
+      if (likes !== knownLikes) {
+        mismatched.push(`직접 들은 「${f.said}」 와 아는 것의 「${line.trim()}」 가 어긋난다`);
         break;
       }
     }
   }
-  return 어긋난것;
+  return mismatched;
 }
 
 /**

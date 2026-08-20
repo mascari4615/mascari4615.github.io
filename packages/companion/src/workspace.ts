@@ -18,25 +18,25 @@ import { dirname, join } from 'node:path';
  * 위로 몇 겹 훑어 찾는다. 못 찾으면 `null` — 부르는 쪽이 **그 사실을 말해야 한다.**
  */
 
-const 여기 = dirname(__filename);
+const here = dirname(__filename);
 
 /** 이 패키지가 든 저장소의 뿌리 (`packages/companion` 위 두 겹). */
-export function 이저장소(): string {
-  return join(여기, '..', '..', '..');
+export function thisRepo(): string {
+  return join(here, '..', '..', '..');
 }
 
 /**
  * 작업공간에서 이 이름의 이웃 폴더를 찾는다.
  *
  * @param name 찾을 폴더 이름 (`memo` / `WitchMendokusai` 등)
- * @param 있어야할것 그 안에 반드시 있어야 하는 것 — 이름만 같은 빈 폴더를 집지 않으려고
+ * @param expected 그 안에 반드시 있어야 하는 것 — 이름만 같은 빈 폴더를 집지 않으려고
  */
-export function 이웃(name: string, 있어야할것?: string): string | null {
-  let 위 = 이저장소();
-  for (let 겹 = 0; 겹 < 4; 겹 += 1) {
-    위 = join(위, '..');
-    const slot = join(위, name);
-    if (existsSync(slot) && (있어야할것 === undefined || existsSync(join(slot, 있어야할것)))) return slot;
+export function sibling(name: string, expected?: string): string | null {
+  let above = thisRepo();
+  for (let layer = 0; layer < 4; layer += 1) {
+    above = join(above, '..');
+    const slot = join(above, name);
+    if (existsSync(slot) && (expected === undefined || existsSync(join(slot, expected)))) return slot;
   }
   return null;
 }
@@ -47,10 +47,10 @@ export function 이웃(name: string, 있어야할것?: string): string | null {
  * 워크트리는 `<작업공간>/.lanes/<슬롯>/<저장소>` 처럼 몇 겹 안에 있으므로 위로 훑는다.
  * 구운 실행 파일처럼 **한 벌만 있어도 되는 것**을 찾을 때 쓴다.
  */
-export function 같은저장소사본들(mark: string): string[] {
+export function repoCopies(mark: string): string[] {
   const produced: string[] = [];
-  const 나 = 이저장소();
-  let 위 = 나;
+  const self = thisRepo();
+  let 위 = self;
   for (let 겹 = 0; 겹 < 4; 겹 += 1) {
     위 = join(위, '..');
     let list: string[];
@@ -61,7 +61,7 @@ export function 같은저장소사본들(mark: string): string[] {
     }
     for (const 이름 of list) {
       const 자리 = join(위, 이름);
-      if (자리 !== 나 && existsSync(join(자리, mark)) && produced.includes(자리) === false) produced.push(자리);
+      if (자리 !== self && existsSync(join(자리, mark)) && produced.includes(자리) === false) produced.push(자리);
     }
   }
   return produced;

@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { tossBackNote, 되물은비율, 묻는말인가 } from '../dist/index.js';
+import { tossBackNote, followUpRatio, isQuestion } from '../dist/index.js';
 
 const 사람 = (text) => ({ role: 'sensed', channel: 'web', text, at: 1 });
 const 얘 = (text) => ({ role: 'said', channel: 'web', text, at: 2 });
 
 test('묻는 말을 가린다', () => {
-  assert.equal(묻는말인가('오늘 어땠어?'), true);
-  assert.equal(묻는말인가('그건 뭔데'), true);
-  assert.equal(묻는말인가('그렇구나.'), false);
-  assert.equal(묻는말인가(''), false);
+  assert.equal(isQuestion('오늘 어땠어?'), true);
+  assert.equal(isQuestion('그건 뭔데'), true);
+  assert.equal(isQuestion('그렇구나.'), false);
+  assert.equal(isQuestion(''), false);
 });
 
 // 식어 가는 대화 — 사람 말이 점점 짧아진다.
@@ -61,7 +61,7 @@ test('화면 곁눈질은 대화로 안 센다', () => {
 });
 
 test('몇 번 중 몇 번 되물었는지 센다 — 얹어 놓고 됐다고 하지 않으려고', () => {
-  const r = 되물은비율([얘('그렇구나'), 얘('그래서 어떻게 됐어?'), 사람('응')]);
+  const r = followUpRatio([얘('그렇구나'), 얘('그래서 어떻게 됐어?'), 사람('응')]);
   assert.equal(r.전체, 2);
   assert.equal(r.되물음, 1);
 });

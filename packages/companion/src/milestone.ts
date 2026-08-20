@@ -28,7 +28,7 @@ export interface Together {
 }
 
 const date = (at: number): string => new Date(at).toDateString();
-const 자정 = (at: number): number => new Date(at).setHours(0, 0, 0, 0);
+const midnight = (at: number): number => new Date(at).setHours(0, 0, 0, 0);
 
 /**
  * 함께한 시간을 읽는다.
@@ -41,8 +41,8 @@ export function readTogether(entries: readonly MemoryEntry[], now: number = Date
   if (splitText.length === 0) return { firstAt: null, dayNumber: 0, daysTalked: 0 };
 
   // **가장 이른 것**을 찾는다 — 파일 순서를 믿지 않는다.
-  const firstAt = splitText.reduce((가장이른, e) => Math.min(가장이른, e.at), nowSafe(splitText[0].at));
-  const dayNumber = Math.floor((자정(now) - 자정(firstAt)) / 86_400_000) + 1;
+  const firstAt = splitText.reduce((earliest, e) => Math.min(earliest, e.at), nowSafe(splitText[0].at));
+  const dayNumber = Math.floor((midnight(now) - midnight(firstAt)) / 86_400_000) + 1;
   const daysTalked = new Set(splitText.map((e) => date(e.at))).size;
 
   return { firstAt, dayNumber: Math.max(1, dayNumber), daysTalked };
@@ -51,7 +51,7 @@ export function readTogether(entries: readonly MemoryEntry[], now: number = Date
 const nowSafe = (x: number): number => (Number.isFinite(x) ? x : Number.POSITIVE_INFINITY);
 
 /** 이정표로 칠 날들. 너무 촘촘하면 매주 기념일이 된다. */
-export const 이정표날: readonly number[] = [7, 30, 100, 200, 365, 500, 730, 1000];
+export const milestoneDay: readonly number[] = [7, 30, 100, 200, 365, 500, 730, 1000];
 
 export interface Milestone {
   /** 며칠째인가. */
@@ -69,7 +69,7 @@ export interface Milestone {
 export function milestoneToday(entries: readonly MemoryEntry[], now: number = Date.now()): Milestone | null {
   const { firstAt, dayNumber } = readTogether(entries, now);
   if (firstAt === null) return null;
-  if (이정표날.includes(dayNumber) === false) return null;
+  if (milestoneDay.includes(dayNumber) === false) return null;
 
   const name: Record<number, string> = {
     7: '일주일', 30: '한 달', 100: '백일', 200: '이백일',

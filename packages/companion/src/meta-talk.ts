@@ -18,20 +18,20 @@
  */
 
 /** 대화를 사람이 아니라 **자료**로 가리키는 말투. */
-const 자료로가리킴 = /(대화\s*(기록|내용|앞|이력|맥락|로그)|이전\s*(대화|메시지|맥락)|지금까지\s*(의\s*)?(대화|기록)|첫\s*메시지|메시지에|입력(하신|된))/;
+const citedAsSource = /(대화\s*(기록|내용|앞|이력|맥락|로그)|이전\s*(대화|메시지|맥락)|지금까지\s*(의\s*)?(대화|기록)|첫\s*메시지|메시지에|입력(하신|된))/;
 
 /** 시킨 것을 두고 따지는 말투. */
-const 시킨것따짐 = /(달라는\s*건지|하라는\s*건지|무엇을\s*(원하|말씀)|구체적으로\s*뭘|어떤\s*(대화|내용)을\s*이어|되짚어\s*달라|없는\s*상태)/;
+const instructionCheck = /(달라는\s*건지|하라는\s*건지|무엇을\s*(원하|말씀)|구체적으로\s*뭘|어떤\s*(대화|내용)을\s*이어|되짚어\s*달라|없는\s*상태)/;
 
 /**
  * 이 말이 지시문한테 하는 말인가. 아니면 null.
  *
  * 둘 중 하나만 걸려도 잡는다 — 둘 다 요구하면 실제로 나온 그 말이 안 걸렸다(실측).
  */
-export function 지시문에대꾸했나(said: string): string | null {
+export function repliedToInstruction(said: string): string | null {
   const text = said.trim();
   if (text === '') return null;
-  if (자료로가리킴.test(text)) return '대화를 자료처럼 가리켰다 — 사람한테 하는 말이 아니다';
-  if (시킨것따짐.test(text)) return '시킨 것을 두고 따졌다 — 무대 뒤가 보인다';
+  if (citedAsSource.test(text)) return '대화를 자료처럼 가리켰다 — 사람한테 하는 말이 아니다';
+  if (instructionCheck.test(text)) return '시킨 것을 두고 따졌다 — 무대 뒤가 보인다';
   return null;
 }

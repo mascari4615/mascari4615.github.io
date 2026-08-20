@@ -13,7 +13,7 @@ import type { Whisper } from '../sense/whisper';
 import { keepReason } from '../heard';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
-import { 같은저장소사본들, 이저장소 } from '../workspace';
+import { repoCopies, thisRepo } from '../workspace';
 
 export interface WebBodyOptions {
   channel?: string;
@@ -909,7 +909,7 @@ export function ownWindowExe(): string | null {
    * (워크트리)에서 얘를 띄우면 그 폴더엔 구운 게 없어서, 여태 조용히 옛 창으로 물러섰다 —
    * 그 결과가 분홍 바탕 + 창틀이었다. 창 프로그램은 주소만 보고 붙으므로 **어느 저장소의
    * 것이든 같은 물건**이다. 그러니 이웃 저장소도 본다. */
-  const candidateRoots = [이저장소(), ...같은저장소사본들(join('apps', 'karmolab-tauri'))];
+  const candidateRoots = [thisRepo(), ...repoCopies(join('apps', 'karmolab-tauri'))];
   for (const root of candidateRoots) {
     for (const slot of ['release', 'debug']) {
       const exe = join(root, 'apps', 'karmolab-tauri', 'target', slot, 'companion-window.exe');

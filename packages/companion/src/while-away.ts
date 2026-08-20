@@ -40,31 +40,31 @@ export function whileAway(
 ): WhileAway {
   const 본것 = ambientOnly(entries)
     .filter((e) => e.at >= awaySince && e.at <= now)
-    .map((e) => ({ title: 창이름(e.text), at: e.at }))
+    .map((e) => ({ title: windowName(e.text), at: e.at }))
     .filter((x) => x.title !== null) as { title: string; at: number }[];
 
   if (본것.length === 0) return { awayMs: Math.max(0, now - awaySince), mostSeen: null, switches: 0 };
 
   // 같은 것이 이어지면 한 덩어리로 — 몇 번 쳐다봤는지가 아니라 얼마나 떠 있었는지를 센다.
-  const 덩어리: { title: string; from: number; to: number }[] = [];
+  const chunk: { title: string; from: number; to: number }[] = [];
   for (const x of 본것) {
-    const end = 덩어리[덩어리.length - 1];
+    const end = chunk[chunk.length - 1];
     if (end !== undefined && shortTitle(end.title) === shortTitle(x.title)) end.to = x.at;
-    else 덩어리.push({ title: x.title, from: x.at, to: x.at });
+    else chunk.push({ title: x.title, from: x.at, to: x.at });
   }
 
-  let 가장긴것 = 덩어리[0];
-  for (const d of 덩어리) if (d.to - d.from > 가장긴것.to - 가장긴것.from) 가장긴것 = d;
+  let longest = chunk[0];
+  for (const d of chunk) if (d.to - d.from > longest.to - longest.from) longest = d;
 
   return {
     awayMs: Math.max(0, now - awaySince),
-    mostSeen: shortTitle(가장긴것.title),
-    switches: Math.max(0, 덩어리.length - 1),
+    mostSeen: shortTitle(longest.title),
+    switches: Math.max(0, chunk.length - 1),
   };
 }
 
 /** 곁눈질 기록에서 창 이름을 되읽는다. 아니면 null. */
-function 창이름(text: string): string | null {
+function windowName(text: string): string | null {
   const m = /창은 「(.+?)」/.exec(text);
   return m === null ? null : m[1];
 }
@@ -78,14 +78,14 @@ function 창이름(text: string): string | null {
 export function whileAwayNote(seen: WhileAway, atLeastMs = 30 * 60_000): string {
   if (seen.awayMs < atLeastMs || seen.mostSeen === null) return '';
 
-  const 부산함 = seen.switches >= 8
+  const busyness = seen.switches >= 8
     ? '이것저것 많이 옮겨 다녔다'
     : seen.switches <= 1
       ? '거의 그것만 떠 있었다'
       : '몇 군데 오갔다';
 
   return (
-    `자리를 비운 동안 곁에서 봤다: 대부분 「${seen.mostSeen}」 가 떠 있었고 ${부산함}. ` +
+    `자리를 비운 동안 곁에서 봤다: 대부분 「${seen.mostSeen}」 가 떠 있었고 ${busyness}. ` +
     '지켜봤다는 티는 내지 마라 — 곁에 있었을 뿐이다. 굳이 꺼낼 필요도 없다.'
   );
 }

@@ -7,7 +7,7 @@ import {
   milestoneNote,
   milestoneToday,
   readTogether,
-  이정표날,
+  milestoneDay,
 } from '../dist/index.js';
 
 const 하루 = 86_400_000;
@@ -59,7 +59,7 @@ test('얘가 한 말만 있으면 만난 게 아니다', () => {
 
 test('정해 둔 날에만 이정표가 열린다', () => {
   const 처음 = 날짜(2026, 5, 1);
-  for (const d of 이정표날) {
+  for (const d of milestoneDay) {
     assert.notEqual(milestoneToday([사람(처음)], 처음 + (d - 1) * 하루), null, `${d}일째`);
   }
 });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { topicFirst, topicSkipReason, notRaised, 밀린생각 } from '../dist/index.js';
+import { topicFirst, topicSkipReason, notRaised, pendingThoughts } from '../dist/index.js';
 
 const 재료 = [
   { name: '단골얘기', text: '조수님과 자꾸 나오는 얘기: 「셰이더」(2일에 걸쳐 15번)', weight: 3 },
@@ -51,7 +51,7 @@ test('꺼낼 자리면 왜 안 꺼내는지가 없다', () => {
 // ── 밀린 생각과 이어 붙는다 ────────────────────────────────────────
 
 test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는다', () => {
-  const 눌림 = new 밀린생각();
+  const 눌림 = new pendingThoughts();
   for (let i = 0; i < 4; i += 1) { 눌림.적기('단골얘기', '밀림'); 눌림.다음턴(); }
   눌림.적기('기분', '실림');
   const r = topicFirst({ ...기본, 얼마나참았나: (n) => 눌림.얼마나참았나(n) });
@@ -60,7 +60,7 @@ test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는�
 });
 
 test('말하고 나면 풀려서 또 안 꺼낸다', () => {
-  const 눌림 = new 밀린생각();
+  const 눌림 = new pendingThoughts();
   for (let i = 0; i < 4; i += 1) { 눌림.적기('단골얘기', '밀림'); 눌림.다음턴(); }
   눌림.적기('단골얘기', '실림');
   assert.equal(topicFirst({ ...기본, 얼마나참았나: (n) => 눌림.얼마나참았나(n) }), null);

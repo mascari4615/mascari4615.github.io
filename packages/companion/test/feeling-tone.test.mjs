@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Heart, splitTone, toneOf, withTone, 기분결, 기분빠르기, usual } from '../dist/index.js';
+import { Heart, splitTone, toneOf, withTone, moodTone, moodSpeed, usual } from '../dist/index.js';
 
 test('평소에는 아무것도 안 얹는다 — 늘 뭔가 얹혀 있으면 그건 결이 아니라 왜곡이다', () => {
   assert.equal(toneOf(usual), null);
@@ -63,23 +63,23 @@ test('붙인 결은 다시 가를 수 있다', () => {
 
 test('네 결 모두 흔들 값을 갖는다 — 값이 없는 결이 있으면 그 결은 무음이 된다', () => {
   for (const tone of ['들뜸', '뾰족', '처짐', '누그러짐']) {
-    assert.notEqual(기분결[tone], undefined, `${tone} 의 높낮이가 없다`);
-    assert.notEqual(기분빠르기[tone], undefined, `${tone} 의 늘어짐이 없다`);
+    assert.notEqual(moodTone[tone], undefined, `${tone} 의 높낮이가 없다`);
+    assert.notEqual(moodSpeed[tone], undefined, `${tone} 의 늘어짐이 없다`);
   }
 });
 
 test('들뜨면 빨라지고 처지면 느려진다', () => {
-  assert.ok(기분빠르기['들뜸'] < 1, '1 보다 작아야 빨라진다');
-  assert.ok(기분빠르기['처짐'] > 1, '1 보다 커야 느려진다');
-  assert.match(기분결['들뜸'].rate, /^\+/);
-  assert.match(기분결['처짐'].rate, /^-/);
+  assert.ok(moodSpeed['들뜸'] < 1, '1 보다 작아야 빨라진다');
+  assert.ok(moodSpeed['처짐'] > 1, '1 보다 커야 느려진다');
+  assert.match(moodTone['들뜸'].rate, /^\+/);
+  assert.match(moodTone['처짐'].rate, /^-/);
 });
 
 test('폭이 좁다 — 크게 흔들면 사람 목소리가 아니라 만화 효과음이 된다', () => {
   for (const tone of ['들뜸', '뾰족', '처짐', '누그러짐']) {
-    const 퍼센트 = Number(기분결[tone].rate.replace('%', ''));
+    const 퍼센트 = Number(moodTone[tone].rate.replace('%', ''));
     assert.ok(Math.abs(퍼센트) <= 20, `${tone} 이 너무 세다 (${퍼센트}%)`);
-    assert.ok(Math.abs(기분빠르기[tone] - 1) <= 0.25, `${tone} 늘어짐이 너무 세다`);
+    assert.ok(Math.abs(moodSpeed[tone] - 1) <= 0.25, `${tone} 늘어짐이 너무 세다`);
   }
 });
 

@@ -34,8 +34,8 @@ export interface LandingOptions extends ConversationOptions {
   coldMs?: number;
 }
 
-const 웃음 = /(ㅋ|ㅎ|😂|🤣|ㅠㅋ|하하|ㄲㄲ)/;
-const 시큰둥 = /^(응|어|ㅇㅇ|그래|ok|오케이|넵|음)[.…!?~ ]*$/i;
+const laugh = /(ㅋ|ㅎ|😂|🤣|ㅠㅋ|하하|ㄲㄲ)/;
+const flat = /^(응|어|ㅇㅇ|그래|ok|오케이|넵|음)[.…!?~ ]*$/i;
 
 /**
  * 얘의 한마디와 바로 다음에 온 사람 말을 놓고 잰다.
@@ -53,18 +53,18 @@ export function reactionTo(
 
   const quick = options.quickMs ?? 30_000;
   const cold = options.coldMs ?? 180_000;
-  const 걸린시간 = reply.at - said.at;
+  const elapsedMs = reply.at - said.at;
   const answer = reply.text.trim();
 
-  if (웃음.test(answer)) return { said: said.text, landed: true, why: '웃었다' };
+  if (laugh.test(answer)) return { said: said.text, landed: true, why: '웃었다' };
   // 되물음은 **바로 와야** 되물음이다. 한참 있다 던진 물음은 내 말을 받은 게 아니라
   // 새로 꺼낸 얘기다 (실제 기록에서 이걸 통한 것으로 잘못 세고 있었다).
-  if (answer.endsWith('?') && 걸린시간 < cold) return { said: said.text, landed: true, why: '되물었다' };
-  if (걸린시간 <= quick && answer.length >= 8 && 시큰둥.test(answer) === false) {
+  if (answer.endsWith('?') && elapsedMs < cold) return { said: said.text, landed: true, why: '되물었다' };
+  if (elapsedMs <= quick && answer.length >= 8 && flat.test(answer) === false) {
     return { said: said.text, landed: true, why: '바로 받아서 이어 갔다' };
   }
-  if (시큰둥.test(answer)) return { said: said.text, landed: false, why: '한 마디로 넘겼다' };
-  if (걸린시간 >= cold) return { said: said.text, landed: false, why: '한참 있다 딴 얘기를 했다' };
+  if (flat.test(answer)) return { said: said.text, landed: false, why: '한 마디로 넘겼다' };
+  if (elapsedMs >= cold) return { said: said.text, landed: false, why: '한참 있다 딴 얘기를 했다' };
 
   return null;
 }
@@ -94,14 +94,14 @@ export interface LandingNoteOptions extends LandingOptions {
 export function landingNote(entries: readonly MemoryEntry[], options: LandingNoteOptions = {}): string {
   const howMany = options.howMany ?? 2;
   const all = whatLanded(entries, options);
-  const 통함 = all.filter((l) => l.landed).slice(-howMany);
-  const 식음 = all.filter((l) => l.landed === false).slice(-howMany);
-  if (통함.length === 0 && 식음.length === 0) return '';
+  const ok = all.filter((l) => l.landed).slice(-howMany);
+  const cooled = all.filter((l) => l.landed === false).slice(-howMany);
+  if (ok.length === 0 && cooled.length === 0) return '';
 
-  const 보여주기 = (ls: Landing[]) => ls.map((l) => `「${l.said.slice(0, 30)}」(${l.why})`).join(', ');
+  const show = (ls: Landing[]) => ls.map((l) => `「${l.said.slice(0, 30)}」(${l.why})`).join(', ');
   const parts: string[] = [];
-  if (통함.length > 0) parts.push(`조수님이 받아 준 내 말: ${보여주기(통함)}`);
-  if (식음.length > 0) parts.push(`시들했던 내 말: ${보여주기(식음)}`);
+  if (ok.length > 0) parts.push(`조수님이 받아 준 내 말: ${show(ok)}`);
+  if (cooled.length > 0) parts.push(`시들했던 내 말: ${show(cooled)}`);
 
   return `${parts.join('. ')}. 흉내 내라는 게 아니다 — 어느 쪽이 조수님에게 가 닿는지 알아 두라는 것이다.`;
 }

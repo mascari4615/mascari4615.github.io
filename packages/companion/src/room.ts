@@ -30,7 +30,7 @@ interface 짚기 {
  * 위에서부터 본다 — **끼어들면 안 되는 것이 먼저**다. 통화 중에 게임 창이 같이 떠 있다고
  * 게임으로 세면 그대로 사고다.
  */
-const 갈래표: readonly 짚기[] = [
+const kindTable: readonly 짚기[] = [
   /* **우리 창.** 78회차에 떠 있는 창을 세어 보니 얘는 자기 창조차 「모름」이었다. 그런데
      사람이 얘를 보고 있는 건 아무 자리도 아닌 게 아니라 **말 걸기 가장 좋은 때**다.
      우리가 지은 제목이라 여기는 표가 맞다 — 두뇌한테 물어볼 일이 아니다. */
@@ -62,10 +62,10 @@ const 갈래표: readonly 짚기[] = [
 ];
 
 /** 이 창 제목이 어떤 자리인가. 모르면 null. */
-export function 어떤자리(title: string | null | undefined): 자리 {
+export function whichSlot(title: string | null | undefined): 자리 {
   const 제목 = (title ?? '').toLowerCase().trim();
   if (제목 === '') return null;
-  for (const { 자리: kind, 낱말: word } of 갈래표) {
+  for (const { 자리: kind, 낱말: word } of kindTable) {
     if (word.some((n) => 제목.includes(n))) return kind;
   }
   return null;
@@ -77,8 +77,8 @@ export function 어떤자리(title: string | null | undefined): 자리 {
  * **모르면 말 건다.** 여기서 몸을 사리면 얘는 영영 조용해진다 — 알 수 없는 창이 대부분이고,
  * 조용한 동반자는 없는 동반자다. 확실히 아닐 때만 막는다.
  */
-export function 말걸어도되나(title: string | null | undefined): { 된다: boolean; 왜: string } {
-  const slot = 어떤자리(title);
+export function maySpeak(title: string | null | undefined): { 된다: boolean; 왜: string } {
+  const slot = whichSlot(title);
   if (slot === '통화') return { 된다: false, 왜: '통화 중이다' };
   if (slot === '보는중') return { 된다: false, 왜: '뭔가 보는 중이다' };
   return { 된다: true, 왜: slot === null ? '무슨 자리인지 모르겠다' : `${slot}이라 괜찮다` };
@@ -89,8 +89,8 @@ export function 말걸어도되나(title: string | null | undefined): { 된다: 
  *
  * 만드는 중인 사람에게 긴 얘기를 늘어놓으면, 말 건 것 자체는 괜찮아도 방해가 된다.
  */
-export function 자리결(title: string | null | undefined): string {
-  return bySlotTone(어떤자리(title));
+export function slotTone(title: string | null | undefined): string {
+  return bySlotTone(whichSlot(title));
 }
 
 /**

@@ -97,10 +97,10 @@ export function troublesReport(troubles: Troubles): string {
   if (종류.length === 0) return '아직 걸린 게 없다.';
 
   const head = 종류.map((x) => `${x.k} ${x.n}번`).join(' · ');
-  const 자리들 = [...troubles.all]
+  const slots = [...troubles.all]
     .sort((a, b) => b.at - a.at)
     .map((t) => `  [${t.kind}] ${t.what}`)
     .join('\n');
 
-  return `${head}\n\n최근에 실제로 있었던 일:\n${자리들}`;
+  return `${head}\n\n최근에 실제로 있었던 일:\n${slots}`;
 }

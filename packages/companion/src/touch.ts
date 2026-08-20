@@ -24,19 +24,19 @@ export const TOUCH_CHANNEL = 'touch';
  * 전선 위에서 쓰는 이름. 한글을 주소에 실으면 인코딩 관문마다 깨진다 —
  * 실제로 첫 판이 전부 400 이었다. 사람이 읽는 이름과 전선 이름을 갈라 둔다.
  */
-const 전선이름: Record<string, TouchKind> = { poke: '쿡', drag: '흔듦', pet: '쓰다듬' };
+const surfaceName: Record<string, TouchKind> = { poke: '쿡', drag: '흔듦', pet: '쓰다듬' };
 
 /** 전선에서 온 이름을 결 이름으로. 모르는 이름이면 null — 400 으로 돌려보낸다. */
 export function touchKindFromWire(wire: string): TouchKind | null {
-  return 전선이름[wire] ?? null;
+  return surfaceName[wire] ?? null;
 }
 
 /** 브라우저에서 온 닿음을 감각 하나로 만든다. */
 export function touchSensation(kind: TouchKind, at: number = Date.now()): Sensation {
-  return { channel: TOUCH_CHANNEL, kind: 'text', text: `조수님이 나를 ${말로(kind)}`, at };
+  return { channel: TOUCH_CHANNEL, kind: 'text', text: `조수님이 나를 ${asText(kind)}`, at };
 }
 
-const 말로 = (kind: TouchKind): string =>
+const asText = (kind: TouchKind): string =>
   kind === '쿡' ? '쿡 찔렀다.' : kind === '흔듦' ? '붙잡아 끌고 다녔다.' : '쓰다듬었다.';
 
 /** 이 감각이 닿은 것인가. */
@@ -90,12 +90,12 @@ export interface TouchReplyOptions {
 }
 
 /** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
-export function 닿음갈래(kind: TouchKind, stage: number): string {
+export function touchKind(kind: TouchKind, stage: number): string {
   return `touch:${kind}:${stage}`;
 }
 
 /** 몇 번째 닿음이 어느 결인가 — 처음(0) / 몇 번(1) / 계속(2). */
-export function 닿음단계(times: number): number {
+export function touchStage(times: number): number {
   return times <= 1 ? 0 : times <= 4 ? 1 : 2;
 }
 
@@ -118,37 +118,37 @@ export function 닿음단계(times: number): number {
  * 그래서 **쓴 것을 갈래마다 기억해 두고, 안 쓴 것부터 고른다.** 다 썼으면 비우고 다시
  * 돈다 — 그러면 적어도 한 바퀴는 다른 말이 나온다.
  */
-const 쓴것 = new Map<string, Set<string>>();
+const used = new Map<string, Set<string>>();
 
 /** 시험에서 앞판이 안 새게. */
-export function 대꾸기억지우기(): void {
-  쓴것.clear();
+export function clearReplyMemory(): void {
+  used.clear();
 }
 
 export function touchReply(kind: TouchKind, options: TouchReplyOptions = {}): string {
   const times = Math.max(1, options.times ?? 1);
   const roll = options.roll ?? Math.random;
-  const 단계 = 닿음단계(times);
+  const 단계 = touchStage(times);
 
   // 미리 지어 둔 것이 있으면 그게 먼저다 — 손으로 적은 표는 결국 도는 말이 된다.
   // 바로 앞것과 같은 말이 나오면 그건 안 쓴다(창고 안에서도 겹칠 수 있다).
-  const prepared = options.창고?.꺼내기(닿음갈래(kind, 단계)) ?? null;
+  const prepared = options.창고?.꺼내기(touchKind(kind, 단계)) ?? null;
   if (prepared !== null && prepared !== options.last) return prepared;
 
   const candidates = reply[kind][단계];
 
   const key = `${kind}:${단계}`;
-  const already = 쓴것.get(key) ?? new Set<string>();
-  let 고를것 = candidates.filter((c) => already.has(c) === false && c !== options.last);
-  if (고를것.length === 0) {
+  const already = used.get(key) ?? new Set<string>();
+  let toPick = candidates.filter((c) => already.has(c) === false && c !== options.last);
+  if (toPick.length === 0) {
     // 한 바퀴 다 돌았다. 비우고 다시 — 다만 바로 앞것은 그래도 피한다.
     already.clear();
-    고를것 = candidates.filter((c) => c !== options.last);
-    if (고를것.length === 0) 고를것 = [...candidates];
+    toPick = candidates.filter((c) => c !== options.last);
+    if (toPick.length === 0) toPick = [...candidates];
   }
-  const picked = 고를것[Math.floor(roll() * 고를것.length) % 고를것.length];
+  const picked = toPick[Math.floor(roll() * toPick.length) % toPick.length];
   already.add(picked);
-  쓴것.set(key, already);
+  used.set(key, already);
   return picked;
 }
 

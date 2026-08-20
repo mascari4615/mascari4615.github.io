@@ -29,7 +29,7 @@ export interface Wish {
 const userText = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
   entries.filter((e) => e.role === 'sensed' && e.at >= since && e.channel !== 'screen' && e.channel !== 'nudge');
 
-const 내말 = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
+const myText = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
   entries.filter((e) => e.role === 'said' && e.at >= since);
 
 /**
@@ -38,10 +38,10 @@ const 내말 = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =
  * 전부 **조수님이 조금만 움직이면 채워지는 것**으로 골랐다. 못 이룰 바람만 갖고 있으면
  * 그건 바람이 아니라 불평이다.
  */
-export const 바랄만한것: readonly Wish[] = [
+export const wishable: readonly Wish[] = [
   {
     what: '오늘 한 번은 같이 놀기',
-    met: (es, since) => 내말(es, since).some((e) => /좋아\.|내가 이겼다|내가 졌다/.test(e.text)),
+    met: (es, since) => myText(es, since).some((e) => /좋아\.|내가 이겼다|내가 졌다/.test(e.text)),
     say: '…오늘은 아직 같이 안 놀았네.',
   },
   {
@@ -118,9 +118,9 @@ export class Wishes {
    * 말하면 조르는 게 된다.
    */
   nudge(entries: readonly MemoryEntry[]): string | null {
-    const 아직 = this.unmet(entries).filter((w) => this.꺼낸것.has(w.what) === false);
-    if (아직.length === 0) return null;
-    const one = 아직[Math.floor((this.options.roll ?? Math.random)() * 아직.length) % 아직.length];
+    const yet = this.unmet(entries).filter((w) => this.꺼낸것.has(w.what) === false);
+    if (yet.length === 0) return null;
+    const one = yet[Math.floor((this.options.roll ?? Math.random)() * yet.length) % yet.length];
     this.꺼낸것.add(one.what);
     return one.say;
   }
@@ -140,14 +140,14 @@ export class Wishes {
     this.오늘시작 = new Date(지금).setHours(0, 0, 0, 0);
     this.꺼낸것 = new Set();
 
-    const pool = this.options.pool ?? 바랄만한것;
+    const pool = this.options.pool ?? wishable;
     const roll = this.options.roll ?? Math.random;
     const count = Math.min(this.options.perDay ?? 2, pool.length);
     const remaining = [...pool];
     this.today = [];
     for (let i = 0; i < count; i += 1) {
-      const [뽑힌] = remaining.splice(Math.floor(roll() * remaining.length) % remaining.length, 1);
-      this.today.push(뽑힌);
+      const [chosen] = remaining.splice(Math.floor(roll() * remaining.length) % remaining.length, 1);
+      this.today.push(chosen);
     }
   }
 }

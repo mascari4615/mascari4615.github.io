@@ -55,17 +55,17 @@ export function recurringThings(
   const userText = conversationOnly(entries)
     .filter((e) => e.role === 'sensed' && isTouch(e) === false);
 
-  const 모은것 = new Map<string, { times: number; firstAt: number; lastAt: number; days: Set<string> }>();
+  const gathered = new Map<string, { times: number; firstAt: number; lastAt: number; days: Set<string> }>();
   for (const e of userText) {
-    const 본낱말 = new Set<string>(); // 한 말에서 같은 낱말을 두 번 안 센다
+    const seenWords = new Set<string>(); // 한 말에서 같은 낱말을 두 번 안 센다
     for (const raw of e.text.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)) {
       const w = stripParticle(raw.trim());
-      if (worthWondering(w) === false || 본낱말.has(w)) continue;
-      본낱말.add(w);
+      if (worthWondering(w) === false || seenWords.has(w)) continue;
+      seenWords.add(w);
 
-      const existing = 모은것.get(w);
+      const existing = gathered.get(w);
       if (existing === undefined) {
-        모은것.set(w, { times: 1, firstAt: e.at, lastAt: e.at, days: new Set([date(e.at)]) });
+        gathered.set(w, { times: 1, firstAt: e.at, lastAt: e.at, days: new Set([date(e.at)]) });
       } else {
         existing.times += 1;
         existing.lastAt = Math.max(existing.lastAt, e.at);
@@ -75,7 +75,7 @@ export function recurringThings(
     }
   }
 
-  return [...모은것.entries()]
+  return [...gathered.entries()]
     .filter(([, v]) => v.times >= atLeast && v.days.size >= needDays)
     .map(([what, v]) => ({ what, times: v.times, firstAt: v.firstAt, lastAt: v.lastAt, days: v.days.size }))
     .sort((a, b) => (b.days - a.days) || (b.times - a.times))

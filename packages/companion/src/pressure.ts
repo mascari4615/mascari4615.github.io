@@ -39,7 +39,7 @@ interface 눌림 {
  * 예산 고르는 자리가 **모든 재료가 지나가는 유일한 길목**이라, 거기 달린 표시(실림/밀림/
  * 꺼짐/빔)를 그대로 받아 적으면 따로 배선할 데가 없다.
  */
-export class 밀린생각 {
+export class pendingThoughts {
   private readonly 계단: number;
   private readonly 상한: number;
   private readonly 잊는턴: number;
@@ -67,10 +67,10 @@ export class 밀린생각 {
    * - **실림** = 말했다 → 풀린다.
    * - **꺼짐/빔** = 지금 자리에 없는 얘기다 → 쌓아 두면 엉뚱한 때 튀어나온다. 지운다.
    */
-  적기 = (이름: string, 됨: '실림' | '밀림' | '꺼짐' | '빔'): void => {
-    if (됨 !== '밀림') { this.눌린것.delete(이름); return; }
-    const 이전 = this.눌린것.get(이름);
-    this.눌린것.set(이름, { 횟수: (이전?.횟수 ?? 0) + 1, 마지막턴: this.턴 });
+  적기 = (이름: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
+    if (ok !== '밀림') { this.눌린것.delete(이름); return; }
+    const previous = this.눌린것.get(이름);
+    this.눌린것.set(이름, { 횟수: (previous?.횟수 ?? 0) + 1, 마지막턴: this.턴 });
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */

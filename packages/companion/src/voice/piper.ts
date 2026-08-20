@@ -4,7 +4,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { splitTone, 기분빠르기, type Tone } from './feeling-tone';
+import { splitTone, moodSpeed, type Tone } from './feeling-tone';
 import type { Speech, SpeechVoice } from './edge-tts';
 
 export interface PiperSpeechOptions {
@@ -82,8 +82,8 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
       // 얼마나 벗어나느냐지, 모든 목소리를 같은 속도로 만드는 게 아니다.
       const { name: bare, tone } = voiceId === undefined ? { name: undefined, tone: null } : splitTone(voiceId);
       const base = (bare ? options.lengthScaleFor?.[bare] : undefined) ?? options.lengthScale ?? 1;
-      const 곱 = tone !== null && tone in 기분빠르기 ? 기분빠르기[tone as Tone] : 1;
-      const scale = 곱 === 1 && base === 1 ? undefined : base * 곱;
+      const factor = tone !== null && tone in moodSpeed ? moodSpeed[tone as Tone] : 1;
+      const scale = factor === 1 && base === 1 ? undefined : base * factor;
       if (scale !== undefined) args.push('--length_scale', String(scale));
 
       return new Promise<Buffer>((resolve, reject) => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reflection, reflectionNote, 되새김묻기 } from '../dist/index.js';
+import { reflection, reflectionNote, askReflection } from '../dist/index.js';
 
 const 말 = (text, role = 'sensed', at = Date.now()) => ({ role, channel: 'web', kind: 'text', text, at });
 const 오간말 = [
@@ -86,7 +86,7 @@ test('짚은 게 없으면 빈 말', () => {
 
 test('물음에 오간 말이 들어가고, 이미 짚은 것은 다시 짚지 말라고 한다', async () => {
   let 본것 = '';
-  const 묻기 = 되새김묻기(async (p) => { 본것 = p; return '조수님은 밤에만 막힌 얘기를 한다 || 어제도 새벽까지 했는데'; });
+  const 묻기 = askReflection(async (p) => { 본것 = p; return '조수님은 밤에만 막힌 얘기를 한다 || 어제도 새벽까지 했는데'; });
   const 나온것 = await 묻기(오간말, ['이미 짚어 둔 무언가']);
   assert.ok(본것.includes('셰이더 또 안 되네'), '오간 말이 물음에 없다');
   assert.ok(본것.includes('이미 짚어 둔 무언가'), '이미 짚은 것이 물음에 없다');
@@ -95,12 +95,12 @@ test('물음에 오간 말이 들어가고, 이미 짚은 것은 다시 짚지 �
 });
 
 test('근거 없이 온 줄은 아예 안 만든다', async () => {
-  const 묻기 = 되새김묻기(async () => '조수님은 고양이를 싫어한다');
+  const 묻기 = askReflection(async () => '조수님은 고양이를 싫어한다');
   assert.deepEqual(await 묻기(오간말, []), []);
 });
 
 test('근거 여러 개를 갈라 읽는다', async () => {
-  const 묻기 = 되새김묻기(async () => '- 조수님은 밤에 막힌다 || 어제도 새벽까지 ; 셰이더 또 안 되네');
+  const 묻기 = askReflection(async () => '- 조수님은 밤에 막힌다 || 어제도 새벽까지 ; 셰이더 또 안 되네');
   const r = await 묻기(오간말, []);
   assert.equal(r[0].근거.length, 2);
   assert.equal(r[0].무엇, '조수님은 밤에 막힌다', '앞의 목록 표시는 떼어야 한다');
@@ -108,7 +108,7 @@ test('근거 여러 개를 갈라 읽는다', async () => {
 
 test('오간 말이 없으면 두뇌를 부르지도 않는다', async () => {
   let 불렀나 = false;
-  const 묻기 = 되새김묻기(async () => { 불렀나 = true; return ''; });
+  const 묻기 = askReflection(async () => { 불렀나 = true; return ''; });
   assert.equal(await 묻기([], []), null);
   assert.equal(불렀나, false);
 });

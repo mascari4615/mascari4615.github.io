@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { 대사창고, 골라내기, touchReply, 닿음갈래, 대꾸기억지우기, reflexFor, 반사갈래 } from '../dist/index.js';
+import { 대사창고, 골라내기, touchReply, touchKind, clearReplyMemory, reflexFor, 반사갈래 } from '../dist/index.js';
 
 const 새파일 = () => join(mkdtempSync(join(tmpdir(), 'stock-')), '지은-대사.json');
 
@@ -97,9 +97,9 @@ test('깨진 파일은 없는 셈 친다 — 그것 때문에 못 뜨면 안 된
 });
 
 test('닿음 대꾸가 창고 것을 먼저 쓰고, 비면 손으로 적은 표로 물러선다', async () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   const 창고 = new 대사창고({ 지어오기: async () => '…또야?' });
-  await 창고.채우기(닿음갈래('쿡', 0), '쿡 찔렸을 때');
+  await 창고.채우기(touchKind('쿡', 0), '쿡 찔렸을 때');
   assert.equal(touchReply('쿡', { times: 1, 창고 }), '…또야?');
   // 비었으니 이제 기본 표. (기본 표에 있는 말이어야 한다)
   const 다음 = touchReply('쿡', { times: 1, 창고 });
@@ -107,7 +107,7 @@ test('닿음 대꾸가 창고 것을 먼저 쓰고, 비면 손으로 적은 표�
 });
 
 test('창고를 안 주면 예전과 똑같이 돈다', () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   const 말 = touchReply('쿡', { times: 1 });
   assert.ok(['…어?', '왜.', '응?'].includes(말));
 });

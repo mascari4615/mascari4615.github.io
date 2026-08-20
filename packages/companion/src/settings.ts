@@ -25,7 +25,7 @@ export interface SettingSpec {
 }
 
 /** 손댈 수 있는 것들. 여기 없는 건 설정으로 안 받는다. */
-export const 설정할것: Readonly<Record<string, SettingSpec>> = {
+export const toConfigure: Readonly<Record<string, SettingSpec>> = {
   먼저말걸기: { what: '얘가 먼저 말을 걸어도 되나', value: true },
   먼저말걸기간격초: { what: '먼저 말 걸지 살펴보는 간격', value: 300, min: 60, max: 3600 },
   화면보기간격초: { what: '화면을 곁눈질하는 간격 (0 = 안 봄)', value: 120, min: 0, max: 1800 },
@@ -50,7 +50,7 @@ export class Settings {
   private values: SettingValues = {};
 
   constructor(private readonly options: SettingsOptions = {}) {
-    for (const [k, spec] of Object.entries(설정할것)) this.values[k] = spec.value;
+    for (const [k, spec] of Object.entries(toConfigure)) this.values[k] = spec.value;
 
     const path = options.path;
     if (path !== undefined && existsSync(path)) {
@@ -93,7 +93,7 @@ export class Settings {
 
     const failed: string[] = [];
     for (const [k, raw] of Object.entries(next as Record<string, unknown>)) {
-      const spec = 설정할것[k];
+      const spec = toConfigure[k];
       if (spec === undefined) {
         failed.push(`「${k}」 는 모르는 항목이다`);
         continue;
@@ -105,9 +105,9 @@ export class Settings {
       }
       const n = typeof raw === 'number' ? raw : Number(raw);
       if (Number.isFinite(n) === false) { failed.push(`「${k}」 는 숫자여야 한다`); continue; }
-      const 묶은것 = Math.min(spec.max ?? n, Math.max(spec.min ?? n, Math.round(n)));
-      if (묶은것 !== n) failed.push(`「${k}」 는 ${spec.min}~${spec.max} 안이어야 해서 ${묶은것} 로 뒀다`);
-      this.values[k] = 묶은것;
+      const grouped = Math.min(spec.max ?? n, Math.max(spec.min ?? n, Math.round(n)));
+      if (grouped !== n) failed.push(`「${k}」 는 ${spec.min}~${spec.max} 안이어야 해서 ${grouped} 로 뒀다`);
+      this.values[k] = grouped;
     }
 
     this.save();
@@ -125,11 +125,11 @@ export class Settings {
 
 /** 사람이 읽는 표 — 무엇을 바꿀 수 있는지 그대로 보여 준다. */
 export function settingsReport(settings: Settings): string {
-  return Object.entries(설정할것)
+  return Object.entries(toConfigure)
     .map(([k, spec]) => {
       const 값 = settings.get(k);
-      const 범위 = typeof spec.value === 'number' ? ` (${spec.min}~${spec.max})` : '';
-      return `${k.padEnd(16)} ${String(값).padEnd(6)} — ${spec.what}${범위}`;
+      const range = typeof spec.value === 'number' ? ` (${spec.min}~${spec.max})` : '';
+      return `${k.padEnd(16)} ${String(값).padEnd(6)} — ${spec.what}${range}`;
     })
     .join('\n');
 }

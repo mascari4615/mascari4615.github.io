@@ -24,27 +24,27 @@ import {
   episodeNote,
   reflection,
   reflectionNote,
-  되새김묻기,
+  askReflection,
   askEnergy,
   KnownStamps,
-  말걸어도되나,
+  maySpeak,
   bySlotTone,
-  어떤자리,
-  자리배움,
-  자리묻기,
+  whichSlot,
+  learnSlot,
+  askSlot,
   tossBackNote,
   tossBackRetryNote,
   skipReason,
   notReturned,
-  묻는말인가,
-  지시문에대꾸했나,
+  isQuestion,
+  repliedToInstruction,
   acceptLength,
   topicFirst,
   topicSkipReason,
   whichHead,
   attachHead,
   wasShort,
-  되물은비율,
+  followUpRatio,
   justLearned,
   InMemoryMemory,
   JsonlFileMemory,
@@ -110,8 +110,8 @@ import {
   이웃,
   같은저장소사본들,
   대사창고,
-  닿음갈래,
-  닿음단계,
+  touchKind,
+  touchStage,
   touchKindOf,
   touchReply,
   brainDistiller,
@@ -159,8 +159,8 @@ import {
   readRapport,
   asksAboutSelf,
   composeIngredients,
-  드묾덧입히기,
-  밀린생각,
+  applyRarity,
+  pendingThoughts,
   stripExpression,
   tangentFor,
   rutWarning,
@@ -339,7 +339,7 @@ const tally = new Tally({ path: join(home, '발동-기록.json') });
 /* 밀린 재료는 증발하지 않고 쌓인다 — 다음 turn 에 더 세게 겨룬다 (72회차).
    재료 만드는 자리가 쉰 곳인데 한 turn 에 실리는 건 여섯 줄뿐이라, 무게가 어중간한
    재료는 매 turn 독립 추첨에서 **영영** 안 실렸다. 만들어 놓고 안 붙인 것과 같았다. */
-const 밀린것 = new 밀린생각();
+const 밀린것 = new pendingThoughts();
 /** 되묻기를 입 앞에서 강제할까. 재 보려고 꺼 둘 수 있다. */
 const 되묻기강제 = process.env.COMPANION_TOSSBACK_RETRY !== '0';
 /* 자리를 배운다 — 표가 모르는 창은 두뇌에게 물어 적어 둔다(78회차).
@@ -350,12 +350,12 @@ const 되묻기강제 = process.env.COMPANION_TOSSBACK_RETRY !== '0';
    근거를 못 대는 것은 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다. */
 const 되새긴것 = new reflection({
   path: join(home, '보아-온-것.json'),
-  물어보기: 되새김묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  물어보기: askReflection((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
 });
-const 자리앎 = new 자리배움({
+const 자리앎 = new learnSlot({
   path: join(home, '무슨-자리.json'),
-  물어보기: 자리묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  물어보기: askSlot((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[자리] ${m}`); web?.알아챔?.(m); },
 });
 // 잘못된 것 모으기 — 로그는 아무도 안 본다. 조수님이 볼 수 있어야 고쳐진다.
@@ -546,7 +546,7 @@ function 채울자리들() {
   const 자리 = [];
   for (const [갈래, 무슨일] of Object.entries(닿음결)) {
     for (let 단계 = 0; 단계 < 3; 단계 += 1) {
-      자리.push({ 열쇠: 닿음갈래(갈래, 단계), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.` });
+      자리.push({ 열쇠: touchKind(갈래, 단계), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.` });
     }
   }
   for (const 종류 of 반사종류들()) {
@@ -588,7 +588,7 @@ const web = webBody({
     /* 「되묻게 했다」는 만든 사람 말이고 **몇 번 중 몇 번인가**가 결과다. 재료만 얹어
        놓고 됐다고 하지 않으려고 같이 센다 — 오늘만 그런 자리를 셋 찾았다. */
     const 최근 = typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(200) : [];
-    const 되물음 = 되물은비율(Array.isArray(최근) ? 최근 : []);
+    const 되물음 = followUpRatio(Array.isArray(최근) ? 최근 : []);
     const 줄 = 되물음.전체 === 0
       ? '되물음 — 잰 말 없음'
       : `되물음 ${되물음.되물음}/${되물음.전체} (${Math.round((되물음.되물음 / 되물음.전체) * 100)}%)`;
@@ -821,7 +821,7 @@ if (process.env.COMPANION_NUDGE !== '0') {
         if (quiet.maySpeakFirst === false) return null;
         /* 지금이 어떤 자리인지 보고 입을 연다. 통화 중에 끼어드는 건 그냥 사고다.
            모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
-        const 자리 = 말걸어도되나(lastWindowTitle);
+        const 자리 = maySpeak(lastWindowTitle);
         if (자리.된다 === false) {
           console.log(`[먼저] 참았다 — ${자리.왜}`);
           return null;
@@ -888,7 +888,7 @@ const mouth = mouthGate({
        7번 실렸는데 관문은 0번). 같은 값을 두 곳에서 들고 있으면 반드시 어긋난다. */
     /* 지시문한테 대꾸한 말은 사람한테 하는 말이 아니다. **다시 시킬수록 잘 나온다** —
        다시 시킨다는 게 지시문을 하나 더 얹는 일이기 때문이다. 그래서 여기서 잡는다. */
-    ?? 지시문에대꾸했나(text)
+    ?? repliedToInstruction(text)
     /* 되묻기 강제를 껐다 켤 수 있게 둔다 — **이게 얘를 낫게 하는지 재려면 꺼 봐야 한다.**
        87회차에 강제 재시도가 원래 멀쩡하던 답을 무대 뒤 얘기로 바꿔 놓는 걸 두 번 봤다. */
     ?? (되묻기강제 ? notReturned(text, 공돌려줄자리인가()) : null)
@@ -1196,7 +1196,7 @@ const companion = new Companion({
       재료: 재료들,
       얼마나참았나: (n) => 밀린것.얼마나참았나(n),
       식는중: 공돌려줄자리인가(),
-      물어본turn: 묻는말인가(방금한말),
+      물어본turn: isQuestion(방금한말),
     };
     const 먼저 = topicFirst(꺼낼거리);
     if (먼저 !== null) {
@@ -1208,7 +1208,7 @@ const companion = new Companion({
       const 왜 = topicSkipReason(꺼낼거리);
       if (왜 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${왜}`);
     }
-    const 만든것 = composeIngredients(드묾덧입히기(밀린것.덧입히기(재료들), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
+    const 만든것 = composeIngredients(applyRarity(밀린것.덧입히기(재료들), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     밀린것.다음턴();

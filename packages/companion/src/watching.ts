@@ -67,8 +67,8 @@ export class Watching {
 
   /** 지금 것을 얼마나 붙들고 있나 (밀리초). 없으면 0. */
   heldFor(now: number): number {
-    const 지금것 = this.now;
-    return 지금것 === null ? 0 : Math.max(0, now - 지금것.at);
+    const current = this.now;
+    return current === null ? 0 : Math.max(0, now - current.at);
   }
 
   /** 오래 붙들고 있나. */
@@ -84,15 +84,15 @@ export class Watching {
    */
   isFlipping(now: number): boolean {
     const window = this.options.flipWindowMs ?? 10 * 60_000;
-    const 최소 = this.options.flipsAtLeast ?? 4;
+    const min = this.options.flipsAtLeast ?? 4;
 
     const 최근 = this.seen.filter((s) => now - s.at <= window);
-    if (최근.length < 최소) return false;
+    if (최근.length < min) return false;
 
     // 묶는 기준과 세는 기준이 다르면 안 된다 — 여기서도 짧은 이름으로 센다.
-    const 가짓수 = new Set(최근.map((s) => shortTitle(s.title))).size;
+    const variety = new Set(최근.map((s) => shortTitle(s.title))).size;
     // 오간 횟수는 많은데 가짓수는 적다 = 같은 것으로 돌아오고 있다.
-    return 가짓수 >= 2 && 가짓수 <= Math.ceil(최근.length / 2);
+    return variety >= 2 && variety <= Math.ceil(최근.length / 2);
   }
 
   /** 최근에 본 것들 (진단용). */
@@ -104,8 +104,8 @@ export class Watching {
 /** 창 제목에서 사람이 부를 만한 이름만 남긴다. */
 export function shortTitle(title: string, max = 24): string {
   // 「파일 - 프로그램 - 어쩌고」 꼴이면 맨 앞이 대개 무엇인지를 말한다.
-  const 앞 = title.split(/\s+[-–—|]\s+/)[0].trim();
-  const toWrite = 앞 === '' ? title.trim() : 앞;
+  const head = title.split(/\s+[-–—|]\s+/)[0].trim();
+  const toWrite = head === '' ? title.trim() : head;
   return toWrite.length <= max ? toWrite : `${toWrite.slice(0, max)}…`;
 }
 
