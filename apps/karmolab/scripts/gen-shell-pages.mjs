@@ -104,7 +104,7 @@ function scopeStyles(css, scope) {
 /** 셸이 이미 쓰고 있는 클래스 이름 — 여기 든 이름을 페이지가 또 쓰면 서로 이긴다. */
 const SHELL_CLASSES = (() => {
   const names = new Set();
-  for (const f of ['css/toolbox.css', 'css/tools.css', 'css/randomgen.css']) {
+  for (const f of ['css/toolbox.css', 'css/tools.css', 'css/randomgen.css', 'css/lotto.css']) {
     const p = path.join(root, f);
     if (!fs.existsSync(p)) continue;
     for (const m of fs.readFileSync(p, 'utf8').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)) names.add(m[1]);

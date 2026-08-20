@@ -163,6 +163,14 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
   html = html.replace(RANDOMGEN_CSS, '');
 
+  /* 로또 전용 스타일도 같은 길이다 (2026-08-21) — 로또 한 장에서만 쓰는 `.lt-*` 233줄이
+     `tools.css` 에 있어서 <b>도구 145장 전부</b>가 첫 그림 전에 7KB 를 더 기다렸다.
+     `randomgen.css` 와 같은 자리에 두고, 정적 도구 장에서는 뺀다(그 장에 필요하면 그때 켜진다). */
+  const LOTTO_CSS =
+    '<link rel="stylesheet" href="/apps/karmolab/css/lotto.css" media="print">';
+  if (!html.includes(LOTTO_CSS)) throw new Error('셸에서 로또 스타일 자리를 못 찾음 — index.html 확인');
+  html = html.replace(LOTTO_CSS, '');
+
   /* 앱 첫 화면용 크롤러 안내는 여기서 뺀다 — 정적 페이지에는 이미 자기 설명이 있고,
    * 같은 글이 126장에 똑같이 박히면 페이지끼리 닮아 보여 되레 손해다. */
   {
