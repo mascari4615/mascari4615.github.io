@@ -106,7 +106,18 @@ namespace Handheld.Urp
             }
 
             if (!profile.TryGet<DepthOfField>(out var dof))
-                dof = profile.Add<DepthOfField>(true);
+            {
+                // `profile.Add<T>()` 만으로는 **파일에 안 적힌다** — 오버라이드는 프로파일의
+                // 하위 에셋이라 AddObjectToAsset 을 해 줘야 한다. 안 하면 저장된 파일이
+                // `components: - {fileID: 0}` 이 되고, 에디터를 다시 열면 심도가 사라진다
+                // (2026-08-20 배치 실행으로 실측 — 504바이트짜리 빈 프로파일이 나왔다).
+                dof = ScriptableObject.CreateInstance<DepthOfField>();
+                dof.name = nameof(DepthOfField);
+                dof.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+                AssetDatabase.AddObjectToAsset(dof, profile);
+                profile.components.Add(dof);
+                profile.isDirty = true;
+            }
 
             // 값은 매 프레임 카메라가 밀어 넣는다 — 여기서는 모드만 정해 둔다.
             dof.active = true;
@@ -152,7 +163,7 @@ namespace Handheld.Urp
                 if (c != null) return c;
             }
             if (Camera.main != null) return Camera.main;
-            var all = UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None);
+            var all = UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude);
             return all.Length > 0 ? all[0] : null;
         }
     }
