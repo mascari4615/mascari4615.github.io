@@ -23,42 +23,42 @@ interface 계정상태 { loading?: boolean; account?: { handle?: string } | null
 interface 계정 { subscribe(fn: (s: 계정상태) => void): () => void }
 
 export function onAccountSettled(draw: () => void): () => void {
-  let 그린사람: string | null | undefined;
-  let 풀기: (() => void) | null = null;
-  let 타이머 = 0;
+  let artist: string | null | undefined;
+  let unpack: (() => void) | null = null;
+  let timer = 0;
 
-  const 붙이기 = (account: 계정): void => {
-    풀기 = account.subscribe((state) => {
+  const attach = (account: 계정): void => {
+    unpack = account.subscribe((state) => {
       if (state.loading) return;
       const key = state.account?.handle ?? null;
-      if (그린사람 === key) return;
-      그린사람 = key;
+      if (artist === key) return;
+      artist = key;
       draw();
     });
   };
 
-  const 지금 = (window as unknown as { KarmoAccount?: 계정 }).KarmoAccount;
-  if (지금) {
-    붙이기(지금);
+  const now = (window as unknown as { KarmoAccount?: 계정 }).KarmoAccount;
+  if (now) {
+    attach(now);
   } else {
-    let 남은번 = 50; /* 200ms × 50 = 10초 */
-    타이머 = window.setInterval(() => {
+    let remainingTurns = 50; /* 200ms × 50 = 10초 */
+    timer = window.setInterval(() => {
       const late = (window as unknown as { KarmoAccount?: 계정 }).KarmoAccount;
       if (!late) {
-        if (--남은번 > 0) return;
-        window.clearInterval(타이머);
-        타이머 = 0;
+        if (--remainingTurns > 0) return;
+        window.clearInterval(timer);
+        timer = 0;
         draw(); /* 끝내 안 오면 로그인 없이라도 그린다 */
         return;
       }
-      window.clearInterval(타이머);
-      타이머 = 0;
-      붙이기(late);
+      window.clearInterval(timer);
+      timer = 0;
+      attach(late);
     }, 200);
   }
 
   return () => {
-    if (타이머) window.clearInterval(타이머);
-    풀기?.();
+    if (timer) window.clearInterval(timer);
+    unpack?.();
   };
 }

@@ -13,8 +13,8 @@ import { t } from '../../../lib/i18n';
    ★ **접두를 받는 이유**: 같은 작업대를 개발도구도 쓴다. 그쪽은 제 이름을 이미 `t()` 로 옮겨
    넘겨 준다 — 거기서 또 `text.op.*` 를 찾으면 늘 헛짚는다(없는 열쇠를 매번 뒤진다).
    그래서 **묶음을 볼지 말지는 부르는 쪽이 정한다**. 안 주면 받은 글을 그대로 쓴다. */
-const 작업말 = (접두: string | undefined, id: string, 갈래: string, 기본값: string): string =>
-  (접두 ? t(`${접두}.${id}.${갈래}`, undefined, 기본값) : 기본값);
+const taskText = (prefix: string | undefined, id: string, 갈래: string, defaultValue: string): string =>
+  (prefix ? t(`${prefix}.${id}.${갈래}`, undefined, defaultValue) : defaultValue);
 
 export type TextOperationControl =
   | { id: string; label: string; kind: 'checkbox'; initial: boolean }
@@ -65,7 +65,7 @@ export function mountTextOperation(
   input: string,
   call?: { op: string; args: Record<string, string | number | boolean> } | null,
   /** 말 묶음 접두 (예: `text.op`). 안 주면 받은 글을 그대로 쓴다. */
-  i18n접두?: string
+  i18nPrefix?: string
 ): void {
   const controls = operation.controls || [];
   /* 주소에서 온 값을 **그리기 전에** 반영한다 — 그린 뒤에 넣으면 한 번 헛돌고(빈 결과가 깜빡),
@@ -74,15 +74,15 @@ export function mountTextOperation(
   if (seeded?.input !== undefined) input = seeded.input;
   host.innerHTML = `
     <section class="op-surface" data-operation="${escapeHtml(operation.id)}">
-      <header><h2>${escapeHtml(작업말(i18n접두, operation.id, 'title', operation.title))}</h2><p>${escapeHtml(작업말(i18n접두, operation.id, 'desc', operation.description))}</p></header>
+      <header><h2>${escapeHtml(taskText(i18nPrefix, operation.id, 'title', operation.title))}</h2><p>${escapeHtml(taskText(i18nPrefix, operation.id, 'desc', operation.description))}</p></header>
       <label class="field-label" for="opInput">${escapeHtml(t('text.op.ui.input', undefined, '입력'))}</label>
       <textarea id="opInput" rows="8" spellcheck="false"></textarea>
       <div class="op-controls">${controls.map((control) => {
-        if (control.kind === 'checkbox') return `<label class="tool-chip"><input data-control="${escapeHtml(control.id)}" type="checkbox"${control.initial ? ' checked' : ''}> ${escapeHtml(작업말(i18n접두, operation.id, `ctl.${control.id}`, control.label))}</label>`;
-        if (control.kind === 'select') return `<label class="field-label">${escapeHtml(작업말(i18n접두, operation.id, `ctl.${control.id}`, control.label))}<select data-control="${escapeHtml(control.id)}">${control.options.map((option) => `<option value="${escapeHtml(option.value)}"${option.value === control.initial ? ' selected' : ''}>${escapeHtml(작업말(i18n접두, operation.id, `opt.${option.value}`, option.label))}</option>`).join('')}</select></label>`;
-        if (control.kind === 'text') return `<label class="field-label">${escapeHtml(작업말(i18n접두, operation.id, `ctl.${control.id}`, control.label))}<input data-control="${escapeHtml(control.id)}" type="text" value="${escapeHtml(control.initial)}"${control.placeholder ? ` placeholder="${escapeHtml(control.placeholder)}"` : ''}></label>`;
-        if (control.kind === 'textarea') return `<label class="field-label">${escapeHtml(작업말(i18n접두, operation.id, `ctl.${control.id}`, control.label))}<textarea data-control="${escapeHtml(control.id)}" rows="5"${control.placeholder ? ` placeholder="${escapeHtml(control.placeholder)}"` : ''}>${escapeHtml(control.initial)}</textarea></label>`;
-        return `<label class="field-label">${escapeHtml(작업말(i18n접두, operation.id, `ctl.${control.id}`, control.label))} <output data-output="${escapeHtml(control.id)}">${control.initial}</output><input data-control="${escapeHtml(control.id)}" type="range" min="${control.min}" max="${control.max}" step="${control.step || 1}" value="${control.initial}"></label>`;
+        if (control.kind === 'checkbox') return `<label class="tool-chip"><input data-control="${escapeHtml(control.id)}" type="checkbox"${control.initial ? ' checked' : ''}> ${escapeHtml(taskText(i18nPrefix, operation.id, `ctl.${control.id}`, control.label))}</label>`;
+        if (control.kind === 'select') return `<label class="field-label">${escapeHtml(taskText(i18nPrefix, operation.id, `ctl.${control.id}`, control.label))}<select data-control="${escapeHtml(control.id)}">${control.options.map((option) => `<option value="${escapeHtml(option.value)}"${option.value === control.initial ? ' selected' : ''}>${escapeHtml(taskText(i18nPrefix, operation.id, `opt.${option.value}`, option.label))}</option>`).join('')}</select></label>`;
+        if (control.kind === 'text') return `<label class="field-label">${escapeHtml(taskText(i18nPrefix, operation.id, `ctl.${control.id}`, control.label))}<input data-control="${escapeHtml(control.id)}" type="text" value="${escapeHtml(control.initial)}"${control.placeholder ? ` placeholder="${escapeHtml(control.placeholder)}"` : ''}></label>`;
+        if (control.kind === 'textarea') return `<label class="field-label">${escapeHtml(taskText(i18nPrefix, operation.id, `ctl.${control.id}`, control.label))}<textarea data-control="${escapeHtml(control.id)}" rows="5"${control.placeholder ? ` placeholder="${escapeHtml(control.placeholder)}"` : ''}>${escapeHtml(control.initial)}</textarea></label>`;
+        return `<label class="field-label">${escapeHtml(taskText(i18nPrefix, operation.id, `ctl.${control.id}`, control.label))} <output data-output="${escapeHtml(control.id)}">${control.initial}</output><input data-control="${escapeHtml(control.id)}" type="range" min="${control.min}" max="${control.max}" step="${control.step || 1}" value="${control.initial}"></label>`;
       }).join('')}</div>
       <label class="field-label" for="opResult">${escapeHtml(t('text.op.ui.result', undefined, '결과'))}</label>
       <textarea id="opResult" rows="8" readonly aria-label="결과"></textarea>

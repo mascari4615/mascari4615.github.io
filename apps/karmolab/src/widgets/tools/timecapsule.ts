@@ -44,14 +44,14 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
   }
 
   /** 남은 시간을 사람 말로 — 이름은 **쓸 때** 정한다(말 묶음이 온 뒤라야 그 언어로 나온다). */
-  function 남은말(ms: number): string {
+  function remainingText(ms: number): string {
     if (ms <= 0) return t('timecapsule.left.now');
-    const 분 = Math.floor(ms / 60000);
-    const 시 = Math.floor(분 / 60);
-    const 일 = Math.floor(시 / 24);
-    if (일>= 1) return t('timecapsule.left.days', { n: 일 });
-    if (시>= 1) return t('timecapsule.left.hours', { n: 시 });
-    if (분>= 1) return t('timecapsule.left.minutes', { n: 분 });
+    const minutes = Math.floor(ms / 60000);
+    const hour = Math.floor(minutes / 60);
+    const day = Math.floor(hour / 24);
+    if (day>= 1) return t('timecapsule.left.days', { n: day });
+    if (hour>= 1) return t('timecapsule.left.hours', { n: hour });
+    if (minutes>= 1) return t('timecapsule.left.minutes', { n: minutes });
     return t('timecapsule.left.soon');
   }
 
@@ -83,10 +83,10 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
   function draw(container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: t('timecapsule.mdd') });
 
-          const 실린것 = location.hash.match(/c=([A-Za-z0-9_-]+)/);
+          const loaded = location.hash.match(/c=([A-Za-z0-9_-]+)/);
 
           container.innerHTML = `
-            <div class="tc-make" id="tcMake" style="${실린것 ? 'display:none;' : ''}">
+            <div class="tc-make" id="tcMake" style="${loaded ? 'display:none;' : ''}">
               <div class="field-group">
                 <label class="field-label" for="tcText">${esc(t('timecapsule.label.letter', { max: MAX_LETTER }))}</label>
                 <textarea id="tcText" rows="7" maxlength="${MAX_LETTER}"
@@ -118,7 +118,7 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
             <div class="tc-out" id="tcOut" style="display:none;"></div>
 
             <div class="tool-status" id="tcStatus">${
-              실린것
+              loaded
                 ? esc(t('timecapsule.status.opening'))
                 : esc(t('timecapsule.status.idle'))
             }</div>
@@ -136,53 +136,53 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
           const say = statusLine(status);
 
           let client: ReturnType<typeof mainnetClient> | null = null;
-          const 시계 = (): ReturnType<typeof mainnetClient> => {
+          const clock = (): ReturnType<typeof mainnetClient> => {
             if (!client) client = mainnetClient();
             return client;
           };
 
           /* ── 만들기 ── */
-          function 앞당긴날(일수: number): string {
-            const d = new Date(Date.now() + 일수 * 86400000);
+          function advancedDays(dayCount: number): string {
+            const d = new Date(Date.now() + dayCount * 86400000);
             const p = (n: number): string => String(n).padStart(2, '0');
             return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
           }
 
-          if (!실린것) {
+          if (!loaded) {
             const preset = $<HTMLSelectElement>('#tcPreset');
             const when = $<HTMLInputElement>('#tcWhen');
-            when.value = 앞당긴날(365);
+            when.value = advancedDays(365);
             preset.onchange = () => {
-              if (preset.value) when.value = 앞당긴날(Number(preset.value));
+              if (preset.value) when.value = advancedDays(Number(preset.value));
             };
             when.oninput = () => {
               preset.value = '';
             };
 
             $<HTMLButtonElement>('#tcSeal').onclick = async () => {
-              const 글 = $<HTMLTextAreaElement>('#tcText').value.trim();
-              if (글.length < 2) {
+              const text = $<HTMLTextAreaElement>('#tcText').value.trim();
+              if (text.length < 2) {
                 say(t('timecapsule.err.empty'), 'error');
                 return;
               }
-              const 열릴때 = new Date(when.value).getTime();
-              if (!열릴때 ||열릴때 <= Date.now() + 60000) {
+              const onOpen = new Date(when.value).getTime();
+              if (!onOpen ||onOpen <= Date.now() + 60000) {
                 say(t('timecapsule.err.tooSoon'), 'error');
                 return;
               }
               try {
                 say(t('timecapsule.status.sealing'));
-                const info = await 시계().chain().info();
-                const round = roundAt(열릴때, info);
-                const 봉인 = await timelockEncrypt(round, Buffer.from(글, 'utf8') as never, 시계());
-                const code = toBase64Url(new TextEncoder().encode(봉인));
+                const info = await clock().chain().info();
+                const round = roundAt(onOpen, info);
+                const sealed = await timelockEncrypt(round, Buffer.from(text, 'utf8') as never, clock());
+                const code = toBase64Url(new TextEncoder().encode(sealed));
                 const url = `${location.origin}/karmolab/t/timecapsule/#c=${code}`;
                 out.style.display = '';
                 out.innerHTML = `
                   <div class="tc-when">${esc(
                     t('timecapsule.opens.at', {
-                      date: fmtDate(열릴때, { dateStyle: 'long', timeStyle: 'short' }),
-                      left: 남은말(열릴때 - Date.now())
+                      date: fmtDate(onOpen, { dateStyle: 'long', timeStyle: 'short' }),
+                      left: remainingText(onOpen - Date.now())
                     })
                   )}</div>
                   <div class="tc-share">
@@ -204,11 +204,11 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
           }
 
           /* ── 열기 ── */
-          if (실린것) {
+          if (loaded) {
             void (async () => {
               try {
-                const 봉인 = new TextDecoder().decode(fromBase64Url(실린것[1]));
-                const 글 = await timelockDecrypt(봉인, 시계());
+                const 봉인 = new TextDecoder().decode(fromBase64Url(loaded[1]));
+                const 글 = await timelockDecrypt(봉인, clock());
                 out.style.display = '';
                 out.innerHTML = `<div class="tc-letter">${esc(글.toString('utf8'))}</div>`;
                 say(t('timecapsule.say.opened'), 'ok');
@@ -219,14 +219,14 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
                 const m = 말.match(/round\s*(\d+)/i);
                 if (m) {
                   try {
-                    const info = await 시계().chain().info();
+                    const info = await clock().chain().info();
                     const 열릴때 = (Number(info.genesis_time) + Number(m[1]) * Number(info.period)) * 1000;
                     out.style.display = '';
                     out.innerHTML = `<div class="tc-locked">🔒<div class="tc-when">${esc(
                       t('timecapsule.opens.atShort', {
                         date: fmtDate(열릴때, { dateStyle: 'long', timeStyle: 'short' })
                       })
-                    )}</div><div class="tc-remain">${남은말(열릴때 - Date.now())}</div></div>`;
+                    )}</div><div class="tc-remain">${remainingText(열릴때 - Date.now())}</div></div>`;
                     say(t('timecapsule.say.notYet'));
                     return;
                   } catch {

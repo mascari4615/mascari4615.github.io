@@ -226,13 +226,13 @@ describe('월드컵 집계', () => {
       'visitor-a',
     );
     const rows = s.tally(pack.id);
-    const 라 = rows.find((r) => r.name === '라')!;
-    const 가 = rows.find((r) => r.name === '가')!;
-    expect(라.rate).toBe(1); // 한 번 마주쳐 한 번 이김
-    expect(가.wins).toBe(2);
-    expect(가.seen).toBe(3);
+    const ra = rows.find((r) => r.name === '라')!;
+    const ga = rows.find((r) => r.name === '가')!;
+    expect(ra.rate).toBe(1); // 한 번 마주쳐 한 번 이김
+    expect(ga.wins).toBe(2);
+    expect(ga.seen).toBe(3);
     expect(rows[0].name).toBe('라'); // 승률 우선
-    expect(라.champion).toBe(1);
+    expect(ra.champion).toBe(1);
   });
 
   it('표에 없는 이름·자기 자신과의 대결은 안 센다 (아무나 보낼 수 있는 자리다)', () => {

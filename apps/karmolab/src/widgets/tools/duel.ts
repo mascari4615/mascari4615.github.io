@@ -41,13 +41,13 @@ import { t, loadNamespace } from '../../lib/i18n';
    * 되돌리면 달라지게 골라 둔다(겹치면 답이 둘이 된다).
    * 표를 미리 굳히지 않고 **쓸 때 만든다** — 굳히면 그 시점엔 말 묶음이 아직 안 왔다. */
   const QUIZ_COUNT = 6;
-  const 문제판 = (): Array<[string, string, string[]]> =>
+  const quizRound = (): Array<[string, string, string[]]> =>
     Array.from({ length: QUIZ_COUNT }, (_, i) => [
       t(`duel.quiz.${i}.clue`),
       t(`duel.quiz.${i}.a`),
       t(`duel.quiz.${i}.d`).split(',')
     ]);
-  const 색이름 = (): Array<[string, string]> => [
+  const colorName = (): Array<[string, string]> => [
     [t('duel.color.red'), '#e0483c'],
     [t('duel.color.blue'), '#3b74d8'],
     [t('duel.color.green'), '#33a06a'],
@@ -72,7 +72,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const 갈래: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
     const kind: Kind = 갈래[Math.floor(Math.random() * 갈래.length)];
     if (kind === 'chosung') {
-      const [초성, 정답, 미끼] = pick(문제판());
+      const [초성, 정답, 미끼] = pick(quizRound());
       const choices = shuffle([정답, ...미끼]);
       return { kind, order: 초성, choices, answer: choices.indexOf(정답), limitMs };
     }
@@ -101,7 +101,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     if (kind === 'same') {
       // 같은 것: 명령에 뜬 글자와 똑같은 칸 고르기. 미끼는 한 글자만 다르다.
-      const 씨앗 = pick(문제판())[1];
+      const 씨앗 = pick(quizRound())[1];
       const 글자통 = t('duel.letters');
       const 흔들기 = (w: string): string => {
         const i = Math.floor(Math.random() * w.length);
@@ -119,7 +119,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     if (kind === 'reverse') {
       // 거꾸로: 명령에 뜬 글자를 뒤집은 것 고르기.
-      const 씨앗 = pick(문제판())[1];
+      const 씨앗 = pick(quizRound())[1];
       const 정답 = [...씨앗].reverse().join('');
       const 미끼 = new Set<string>();
       let 헛돌이 = 0;
@@ -138,9 +138,9 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     /* 색깔(스트룹): 「글자 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
      * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
-    const 팔레트 = 색이름();
-    const 고를색 = pick(팔레트);
-    const 나머지 = 팔레트.filter((c) => c[0] !== 고를색[0]);
+    const palette = colorName();
+    const 고를색 = pick(palette);
+    const 나머지 = palette.filter((c) => c[0] !== 고를색[0]);
     const 정답자리 = Math.floor(Math.random() * 4);
     const 글자 = shuffle(나머지);
     const choices: string[] = [];

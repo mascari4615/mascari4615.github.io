@@ -1996,7 +1996,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           canvas.setAttribute('aria-label', '지구본');
           canvas.addEventListener('keydown', (e: KeyboardEvent) => {
             const 걸음 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
-            let 먹었나 = true;
+            let consumed = true;
             if (e.key === 'ArrowLeft') camLon -= 걸음;
             else if (e.key === 'ArrowRight') camLon += 걸음;
             else if (e.key === 'ArrowUp') camLat = Math.min(85, camLat + 걸음);
@@ -2004,8 +2004,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             else if (e.key === '+' || e.key === '=') zoom = Math.min(420, zoom * 1.18);
             else if (e.key === '-' || e.key === '_') zoom = Math.max(MIN_ZOOM, zoom * 0.847);
             else if (e.key === 'Home') { camLon = 126; camLat = 20; zoom = 0.4; }
-            else 먹었나 = false;
-            if (!먹었나) return;
+            else consumed = false;
+            if (!consumed) return;
             e.preventDefault();
             camLon = ((((camLon + 180) % 360) + 360) % 360) - 180;
             idleAt = performance.now();

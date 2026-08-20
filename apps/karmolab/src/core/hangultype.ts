@@ -44,11 +44,11 @@ export const spec: ToolSpec = {
 export const SCREENLESS = true;
 
 /** 한 번에 눌리는 겹모음·겹받침. 표에 없으면 한 번이다. */
-export const 겹모음: Record<string, number> = { ㅘ: 2, ㅙ: 3, ㅚ: 2, ㅝ: 2, ㅞ: 3, ㅟ: 2, ㅢ: 2 };
-export const 겹받침: Record<string, number> = { ㄳ: 2, ㄵ: 2, ㄶ: 2, ㄺ: 2, ㄻ: 2, ㄼ: 2, ㄽ: 2, ㄾ: 2, ㄿ: 2, ㅄ: 2 };
+export const compoundVowel: Record<string, number> = { ㅘ: 2, ㅙ: 3, ㅚ: 2, ㅝ: 2, ㅞ: 3, ㅟ: 2, ㅢ: 2 };
+export const compoundFinal: Record<string, number> = { ㄳ: 2, ㄵ: 2, ㄶ: 2, ㄺ: 2, ㄻ: 2, ㄼ: 2, ㄽ: 2, ㄾ: 2, ㄿ: 2, ㅄ: 2 };
 
-const 중성표 = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
-const 종성표 = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+const medialTable = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+const finalTable = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
 
 /**
  * 그 글을 치려면 몇 번 눌러야 하는가.
@@ -56,17 +56,17 @@ const 종성표 = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆ
  * 된소리(ㄲ)는 시프트를 같이 누르므로 **한 번**으로 센다 — 두 번으로 세면 「빨리」 같은 말이
  * 실제보다 무겁게 나온다. 한글이 아닌 글자(공백·숫자·영문)는 그냥 한 번이다.
  */
-export function 타건수(s: string): number {
+export function keystrokes(s: string): number {
   let n = 0;
   for (const ch of s) {
     const code = ch.charCodeAt(0);
     if (code >= 0xac00 && code <= 0xd7a3) {
       const i = code - 0xac00;
-      const 중성 = 중성표[Math.floor(i / 28) % 21];
-      const 종성 = 종성표[i % 28];
+      const medialJamo = medialTable[Math.floor(i / 28) % 21];
+      const finalJamo = finalTable[i % 28];
       n += 1; // 초성
-      n += 겹모음[중성] || 1;
-      if (종성 !== ' ') n += 겹받침[종성] || 1;
+      n += compoundVowel[medialJamo] || 1;
+      if (finalJamo !== ' ') n += compoundFinal[finalJamo] || 1;
     } else {
       n += 1;
     }
@@ -96,7 +96,7 @@ export function score(text: string, seconds: number, typed?: string): TypeResult
   if (text === '') throw new Error('칠 글이 없습니다');
   if (Number.isFinite(seconds) === false || seconds <= 0) throw new Error('걸린 시간을 0보다 크게 주세요');
 
-  const strokes = 타건수(text);
+  const strokes = keystrokes(text);
   const perMinute = Math.round((strokes / seconds) * 60);
 
   if (typed === undefined) return { strokes, perMinute, accuracy: 100, wrong: 0 };
@@ -113,7 +113,7 @@ export const run: ToolRunner = (op, args) => {
 
   if (op === 'count') {
     if (text === '') throw new Error('셀 글이 없습니다');
-    const strokes = 타건수(text);
+    const strokes = keystrokes(text);
     return [
       `타수: ${strokes}`,
       `글자 수: ${[...text].length}`,

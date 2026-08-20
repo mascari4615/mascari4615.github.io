@@ -362,27 +362,27 @@ async function brandBg(page) {
      **먼저** 선다. 그래서 단추가 보이자마자 세면 0 을 적고, 만든 뒤에는 넷이 다 와서 5 가 된다 —
      `0 → 5` 라 「하나 늘었는가」가 틀리고, 표는 멀쩡히 만들어졌는데 라이브 점검만 빨갰다
      (오늘 CI 실측 그대로). 시간을 세지 말고 **수가 멎을 때까지** 본다: 두 번 연속 같으면 멎은 것이다. */
-  const 표수 = () => page.evaluate(() => document.querySelectorAll('.pk-item').length);
-  let 처음개수 = await 표수();
+  const markCount = () => page.evaluate(() => document.querySelectorAll('.pk-item').length);
+  let initialCount = await markCount();
   for (let i = 0; i < 40; i++) {
     await page.waitForTimeout(150);
-    const 지금 = await 표수();
-    if (지금 === 처음개수 && i > 0) break;
-    처음개수 = 지금;
+    const 지금 = await markCount();
+    if (지금 === initialCount && i > 0) break;
+    initialCount = 지금;
   }
   await page.click('#pkSample');
   await page.click('#pkSave');
   /* 저장도 마찬가지 — 500ms 를 재우지 말고 **하나 늘 때까지** 기다린다.
      끝내 안 늘면 그때가 진짜 빨강이고, 아래 판정이 그대로 말한다. */
   await page
-    .waitForFunction((n) => document.querySelectorAll('.pk-item').length === n + 1, 처음개수, { timeout: 10000 })
+    .waitForFunction((n) => document.querySelectorAll('.pk-item').length === n + 1, initialCount, { timeout: 10000 })
     .catch(() => {});
   const made = await page.evaluate(() => ({
     말: (document.getElementById('pkMsg')?.textContent || '').trim(),
     개수: document.querySelectorAll('.pk-item').length
   }));
-  say(made.개수 === 처음개수 + 1 && /만들었습니다/.test(made.말),
-    `packs: 표가 안 만들어졌다 (${made.말} · 표 ${처음개수}→${made.개수})`);
+  say(made.개수 === initialCount + 1 && /만들었습니다/.test(made.말),
+    `packs: 표가 안 만들어졌다 (${made.말} · 표 ${initialCount}→${made.개수})`);
   await page.click('.pk-item [data-go=twenty]');
   await page.waitForTimeout(1600);
   const mine = await page.evaluate(() => ({

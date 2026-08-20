@@ -249,13 +249,13 @@ import { t, loadNamespace } from '../../lib/i18n';
     canvas.setAttribute('role', 'application');
     canvas.setAttribute('aria-label', t('idphoto.a11y.canvas'));
     canvas.addEventListener('keydown', (event: KeyboardEvent) => {
-      const 걸음 = (event.shiftKey ? 12 : 3) / view;
+      const step = (event.shiftKey ? 12 : 3) / view;
       let dx = 0;
       let dy = 0;
-      if (event.key === 'ArrowLeft') dx = -걸음;
-      else if (event.key === 'ArrowRight') dx = 걸음;
-      else if (event.key === 'ArrowUp') dy = -걸음;
-      else if (event.key === 'ArrowDown') dy = 걸음;
+      if (event.key === 'ArrowLeft') dx = -step;
+      else if (event.key === 'ArrowRight') dx = step;
+      else if (event.key === 'ArrowUp') dy = -step;
+      else if (event.key === 'ArrowDown') dy = step;
       else return;
       event.preventDefault();
       offset.x += dx;

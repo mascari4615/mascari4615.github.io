@@ -24,7 +24,7 @@ export const gameById = (id: string): GameDef<any, any> | undefined => bag()[id]
 /** 이미 받아 둔 게임의 화면. 위와 같다. */
 export const viewById = (id: string): GameView<any, any> | undefined => bag()[id]?.view;
 
-const 오는중 = new Map<string, Promise<boolean>>();
+const incoming = new Map<string, Promise<boolean>>();
 
 /**
  * 그 게임 조각을 받아 둔다. 이미 있으면 바로 끝난다.
@@ -41,26 +41,26 @@ const 오는중 = new Map<string, Promise<boolean>>();
  */
 export function ensureGame(id: string): Promise<boolean> {
   if (bag()[id]) return Promise.resolve(true);
-  const 있는것 = 오는중.get(id);
-  if (있는것) return 있는것;
+  const present = incoming.get(id);
+  if (present) return present;
   const card = cardById(id);
   if (!card) return Promise.resolve(false);
   const p = new Promise<boolean>((resolve) => {
-    const 끝 = (ok: boolean): void => {
-      if (!ok) 오는중.delete(id); /* 다음에 다시 눌러 볼 수 있게 — 회선이 잠깐 죽었을 수 있다 */
+    const end = (ok: boolean): void => {
+      if (!ok) incoming.delete(id); /* 다음에 다시 눌러 볼 수 있게 — 회선이 잠깐 죽었을 수 있다 */
       resolve(ok);
     };
     const s = document.createElement('script');
     s.src = `/apps/karmolab/arcade/games/${card.chunk}.js`;
     s.onload = () => {
-      const 왔나 = !!bag()[id];
-      if (!왔나) console.warn(`[arcade-loader] ${card.chunk}.js 는 떴는데 ${id} 가 자루에 없다`);
-      끝(왔나);
+      const arrived = !!bag()[id];
+      if (!arrived) console.warn(`[arcade-loader] ${card.chunk}.js 는 떴는데 ${id} 가 자루에 없다`);
+      end(arrived);
     };
-    s.onerror = () => 끝(false);
+    s.onerror = () => end(false);
     document.head.appendChild(s);
   });
-  오는중.set(id, p);
+  incoming.set(id, p);
   return p;
 }
 

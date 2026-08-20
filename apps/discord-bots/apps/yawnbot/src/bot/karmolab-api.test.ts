@@ -221,12 +221,12 @@ describe('계정 API — HTTP', () => {
    */
   it('흔적 — 로봇이 연 것은 도구 사용 수에 안 들어간다', async () => {
     const body = JSON.stringify({ toolId: 'jsonfmt' });
-    const 로봇들 = [
+    const bots = [
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/126.0 Safari/537.36',
       'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
       'python-requests/2.31.0',
     ];
-    for (const ua of 로봇들) {
+    for (const ua of bots) {
       const res = await fetch(`${baseUrl}/kl/trace/tool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'User-Agent': ua },

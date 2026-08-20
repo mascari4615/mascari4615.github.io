@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../lib/i18n';
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const BASE = 'http://127.0.0.1:4620';
-  const 안붙는곳 = location.protocol === 'https:' && location.hostname.endsWith('github.io');
+  const unattachable = location.protocol === 'https:' && location.hostname.endsWith('github.io');
 
   type Entry = { role: 'sensed' | 'said'; channel: string; text: string; at: number };
   type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; 최악ms: number | null };
@@ -127,7 +127,7 @@ import { t, loadNamespace } from '../lib/i18n';
           const known = container.querySelector('#cmpKnown') as HTMLElement;
           const bits = container.querySelector('#cmpBits') as HTMLElement;
 
-          function 못붙음(why: string): void {
+          function notAttached(why: string): void {
             dot.className = 'cmp-dot off';
             text.textContent = t('companion.t10');
             sub.textContent = why;
@@ -141,12 +141,12 @@ import { t, loadNamespace } from '../lib/i18n';
            * 것이었다. 로컬 목소리가 목록에서 사라지고, 3D 몸이 큐브로 바뀌고, 창이 옛
            * 방식으로 떴는데 전부 기록에만 남았다. 기록은 아무도 안 본다.
            */
-          function 상태그리기(st: State | null): void {
+          function renderState(st: State | null): void {
             if (st === null) {
               bits.innerHTML = '';
               return;
             }
-            const 칸: { 이름: string; 값: string; 경고?: boolean }[] = [
+            const cell: { 이름: string; 값: string; 경고?: boolean }[] = [
               { 이름: t('companion.t11'), 값: st.창붙음 > 0 ? t('companion.attached', { n: st.창붙음 }) : t('companion.t12'), 경고: st.창붙음 === 0 },
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
               { 이름: t('companion.t13'), 값: st.몸 ?? t('companion.t14'), 경고: st.몸 === t('companion.t15') },
@@ -154,75 +154,75 @@ import { t, loadNamespace } from '../lib/i18n';
               { 이름: t('companion.t18'), 값: st.머리 ?? t('companion.t14') },
             ];
             if (Array.isArray(st.목소리들)) {
-              const 흉내있나 = st.목소리들.includes(t('companion.t19'));
+              const hasStub = st.목소리들.includes(t('companion.t19'));
               const 값 =
-                흉내있나 === false
+                hasStub === false
                   ? st.목소리들.join(' + ') || '없음'
                   : st.흉내준비 === true
                     ? `${t('companion.mimicReady')} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`
                     : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`;
-              칸.push({ 이름: t('companion.t22'), 값, 경고: 흉내있나 === false });
+              cell.push({ 이름: t('companion.t22'), 값, 경고: hasStub === false });
             }
-            bits.innerHTML = 칸
+            bits.innerHTML = cell
               .map((c) => `<span class="cmp-bit${c.경고 === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
               .join('');
           }
 
-          async function 읽기<T>(길: string): Promise<T> {
+          async function read<T>(path: string): Promise<T> {
             // 시간 제한이 없으면 「확인하는 중」에서 영영 멈춘다 — 꺼진 것과 구분이 안 된다.
-            const res = await fetch(`${BASE}${길}`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
+            const res = await fetch(`${BASE}${path}`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return (await res.json()) as T;
           }
 
-          function 대화그리기(entries: readonly Entry[]): void {
-            const 최근 = entries.slice(-40);
-            if (최근.length === 0) {
+          function renderConversation(entries: readonly Entry[]): void {
+            const recent = entries.slice(-40);
+            if (recent.length === 0) {
               log.innerHTML = t('companion.t23');
               return;
             }
-            log.innerHTML = 최근
+            log.innerHTML = recent
               .map((e) => {
-                const 나 = e.role === 'sensed';
-                return `<div class="cmp-line${나 ? ' me' : ''}"><span class="cmp-who">${나 ? t('companion.me') : t('companion.t24')}</span>${esc(e.text)}</div>`;
+                const self = e.role === 'sensed';
+                return `<div class="cmp-line${self ? ' me' : ''}"><span class="cmp-who">${self ? t('companion.me') : t('companion.t24')}</span>${esc(e.text)}</div>`;
               })
               .join('');
             log.scrollTop = log.scrollHeight;
           }
 
-          async function 확인(): Promise<void> {
-            if (안붙는곳) {
-              못붙음(t('companion.t25'));
+          async function confirm(): Promise<void> {
+            if (unattachable) {
+              notAttached(t('companion.t25'));
               return;
             }
             dot.className = 'cmp-dot';
             text.textContent = t('companion.label.cmpText');
             sub.textContent = '';
-            const 시작 = Date.now();
+            const start = Date.now();
             try {
-              await 읽기<{ offline: boolean }>('/ears');
+              await read<{ offline: boolean }>('/ears');
               dot.className = 'cmp-dot on';
               text.textContent = t('companion.t26');
               input.disabled = false;
               send.disabled = false;
               const [stats, hist, kn, st] = await Promise.all([
-                읽기<Stats>('/stats').catch(() => null),
-                읽기<Entry[]>('/history').catch(() => null),
-                읽기<{ known: string | null }>('/known').catch(() => null),
-                읽기<State>('/state').catch(() => null),
+                read<Stats>('/stats').catch(() => null),
+                read<Entry[]>('/history').catch(() => null),
+                read<{ known: string | null }>('/known').catch(() => null),
+                read<State>('/state').catch(() => null),
               ]);
-              상태그리기(st);
-              const 첫소리 =
+              renderState(st);
+              const initialJamo =
                 stats === null || stats.첫소리중앙값ms === null
                   ? t('companion.t27')
                   : t('companion.firstSound', { sec: (stats.첫소리중앙값ms / 1000).toFixed(1), n: stats.샘플수 });
-              sub.textContent = `${Date.now() - 시작}ms · ${첫소리}`;
-              if (hist !== null) 대화그리기(hist);
+              sub.textContent = `${Date.now() - start}ms · ${initialJamo}`;
+              if (hist !== null) renderConversation(hist);
               known.textContent = kn?.known?.trim() || '아직 아는 게 없다.';
             } catch (e) {
               // 브라우저는 「막혔다」와 「안 떠 있다」를 똑같은 오류로 준다 — 아는 척하지 않고
               // 둘 다 말한다. 하나로 단정하면 엉뚱한 데를 뒤지게 된다(실제로 그랬다).
-              못붙음(
+              notAttached(
                 (e as Error).name === 'TimeoutError'
                   ? t('companion.t28')
                   : t('companion.t29')
@@ -230,7 +230,7 @@ import { t, loadNamespace } from '../lib/i18n';
             }
           }
 
-          async function 말걸기(): Promise<void> {
+          async function speak(): Promise<void> {
             const 말 = input.value.trim();
             if (말 === '') return;
             send.disabled = true;
@@ -243,14 +243,14 @@ import { t, loadNamespace } from '../lib/i18n';
               });
               // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 「보냈는데 반응이 없다」가 된다.
               if (res.status === 400) {
-                const 이유 = (await res.json().catch(() => ({}))) as { 안받은이유?: string };
-                Toolbox.showToast?.(`안 받았다 — ${이유.안받은이유 ?? t('companion.t30')}`, 'error', undefined);
+                const reason = (await res.json().catch(() => ({}))) as { 안받은이유?: string };
+                Toolbox.showToast?.(`안 받았다 — ${reason.안받은이유 ?? t('companion.t30')}`, 'error', undefined);
                 return;
               }
               if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
               input.value = '';
               // 답은 저쪽 창에서 만들어진다 — 잠깐 뒤에 다시 읽어야 대화에 잡힌다.
-              window.setTimeout(() => void 확인(), 1200);
+              window.setTimeout(() => void confirm(), 1200);
             } catch (e) {
               Toolbox.showToast?.(`말을 못 걸었다 — ${(e as Error).message}`, 'error', undefined);
             } finally {
@@ -258,12 +258,12 @@ import { t, loadNamespace } from '../lib/i18n';
             }
           }
 
-          again.addEventListener('click', () => void 확인());
-          send.addEventListener('click', () => void 말걸기());
+          again.addEventListener('click', () => void confirm());
+          send.addEventListener('click', () => void speak());
           input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') void 말걸기();
+            if (e.key === 'Enter') void speak();
           });
-          void 확인();
+          void confirm();
                   });
         },
       },

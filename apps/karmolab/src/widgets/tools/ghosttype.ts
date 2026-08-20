@@ -33,23 +33,23 @@ import { markLive } from './shared/say';
   const MAX_GAP = 4000; // 자리를 비운 구간까지 그대로 재생하면 상대는 멈춘 화면을 본다
 
   /* ── 한글 타수 (자소 단위) ────────────────────────────────────────── */
-  const 겹모음: Record<string, number> = { ㅘ: 2, ㅙ: 3, ㅚ: 2, ㅝ: 2, ㅞ: 3, ㅟ: 2, ㅢ: 2 };
-  const 겹받침: Record<string, number> = { ㄳ: 2, ㄵ: 2, ㄶ: 2, ㄺ: 2, ㄻ: 2, ㄼ: 2, ㄽ: 2, ㄾ: 2, ㄿ: 2, ㅄ: 2 };
-  const 중성표 = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
-  const 종성표 = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+  const compoundVowel: Record<string, number> = { ㅘ: 2, ㅙ: 3, ㅚ: 2, ㅝ: 2, ㅞ: 3, ㅟ: 2, ㅢ: 2 };
+  const compoundFinal: Record<string, number> = { ㄳ: 2, ㄵ: 2, ㄶ: 2, ㄺ: 2, ㄻ: 2, ㄼ: 2, ㄽ: 2, ㄾ: 2, ㄿ: 2, ㅄ: 2 };
+  const medialTable = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+  const finalTable = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
 
   /** 그 글을 치려면 몇 번 눌러야 하는가. 된소리(ㄲ)는 시프트 조합이라 한 번으로 센다. */
-  function 타건수(s: string): number {
+  function keystrokes(s: string): number {
     let n = 0;
     for (const ch of s) {
       const code = ch.charCodeAt(0);
       if (code>= 0xac00 && code <= 0xd7a3) {
         const i = code - 0xac00;
-        const 중성 = 중성표[Math.floor(i / 28) % 21];
-        const 종성 = 종성표[i % 28];
+        const medialJamo = medialTable[Math.floor(i / 28) % 21];
+        const finalJamo = finalTable[i % 28];
         n += 1; // 초성
-        n += 겹모음[중성] || 1;
-        if (종성 !== ' ') n += 겹받침[종성] || 1;
+        n += compoundVowel[medialJamo] || 1;
+        if (finalJamo !== ' ') n += compoundFinal[finalJamo] || 1;
       } else {
         n += 1;
       }
@@ -298,12 +298,12 @@ import { markLive } from './shared/say';
             const ms = startedAt ? performance.now() - startedAt : 0;
             const mine = correctPrefix();
             place(meRunner, mine / target.length);
-            meStat.textContent = t('ghosttype.value.cpm', { n: 타수(mine, ms) });
+            meStat.textContent = t('ghosttype.value.cpm', { n: strokeCount(mine, ms) });
             if (racing && ghost) {
               const g = ghostCharsAt(ms);
               place(ghostRunner, g / target.length);
               ghostStat.textContent = startedAt
-                ? t('ghosttype.value.cpm', { n: 타수(Math.floor(g), ms) })
+                ? t('ghosttype.value.cpm', { n: strokeCount(Math.floor(g), ms) })
                 : t('ghosttype.stat.wait');
               paint(Math.min(target.length - 1, Math.floor(g)));
             }
@@ -311,16 +311,16 @@ import { markLive } from './shared/say';
           }
 
           /** 앞에서부터 n 글자를 치는 데 든 타건 수 ÷ 걸린 시간 */
-          function 타수(chars: number, ms: number): number {
+          function strokeCount(chars: number, ms: number): number {
             if (ms <= 0) return 0;
-            return Math.round((타건수(target.slice(0, chars)) / ms) * 60000);
+            return Math.round((keystrokes(target.slice(0, chars)) / ms) * 60000);
           }
 
           function finish(): void {
             done = true;
             cancelAnimationFrame(raf);
             const ms = performance.now() - startedAt;
-            const myCpm = 타수(target.length, ms);
+            const myCpm = strokeCount(target.length, ms);
             const mine: Ghost = {
               text: target,
               name: nameInput.value.trim().slice(0, 12) || t('ghosttype.name.default'),
@@ -337,11 +337,11 @@ import { markLive } from './shared/say';
             if (racing && ghost) {
               const gMs = ghostTotalMs();
               const gap = Math.abs(ms - gMs) / 1000;
-              const 이김 = ms < gMs;
+              const win = ms < gMs;
               const 말 = { name: esc(ghost.name), sec: gap.toFixed(1) };
-              verdict = `<b class="${이김 ? 'gt-win' : 'gt-lose'}">${esc(
-                t(이김 ? 'ghosttype.win' : 'ghosttype.lose')
-              )}</b> — ${t(이김 ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', 말)}`;
+              verdict = `<b class="${win ? 'gt-win' : 'gt-lose'}">${esc(
+                t(win ? 'ghosttype.win' : 'ghosttype.lose')
+              )}</b> — ${t(win ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', 말)}`;
             } else {
               verdict = `<b>${esc(t('ghosttype.record'))}</b> — ${esc(t('ghosttype.record.detail'))}`;
             }
@@ -353,7 +353,7 @@ import { markLive } from './shared/say';
                 t('ghosttype.score', {
                   cpm: t('ghosttype.value.cpm', { n: myCpm }),
                   sec: (ms / 1000).toFixed(1),
-                  keys: 타건수(target)
+                  keys: keystrokes(target)
                 })
               )}</div>
               <div class="gt-share">

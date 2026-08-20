@@ -79,13 +79,13 @@ import { download } from './tools/shared/image';
 
   /// 매핑 테이블을 lowercase 키로 미리 정규화 — Windows가 GetModuleBaseName으로 반환하는
   /// 실행파일명 케이스가 OS·드라이버에 따라 들쑥날쑥(예: explorer.exe vs Explorer.EXE).
-  let 소문자표: Record<string, string> | null = null;
+  let lowerTable: Record<string, string> | null = null;
   const processLabelsLower = (): Record<string, string> => {
-    if (소문자표) return 소문자표;
+    if (lowerTable) return lowerTable;
     const table = processLabels();
     const out: Record<string, string> = {};
     for (const k of Object.keys(table)) out[k.toLowerCase()] = table[k];
-    소문자표 = out;
+    lowerTable = out;
     return out;
   };
 

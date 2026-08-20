@@ -107,7 +107,7 @@ export class DomTilesSurface implements Surface {
 		   그래서 **덮는 넓이를 본다.** 타일이 감싸는 사각형을 충분히 안 덮으면 타일을
 		   버리고 창 전체를 한 칸으로 쓴다 — 그림은 거칠어져도 비어 있지는 않다.
 		   도구가 격자로 깔린 화면은 넉넉히 덮으므로 예전 그대로 타일을 쓴다. */
-		const 창전체로 = (): SurfaceShape => {
+		const fullWindow = (): SurfaceShape => {
 			const viewWidth = Math.max(1, window.innerWidth || 0);
 			const viewHeight = Math.max(1, window.innerHeight || 0);
 			const sub =
@@ -123,7 +123,7 @@ export class DomTilesSurface implements Surface {
 			return this.cachedShape;
 		};
 
-		if (found.length === 0) return 창전체로();
+		if (found.length === 0) return fullWindow();
 
 		// 고른 것들을 감싸는 사각형 안에서, 각 타일이 차지하는 자리를 **칸 단위**로 환산한다.
 		// 그래야 무대에게 「나는 이만한 격자다」 하나로 말할 수 있다.
@@ -146,9 +146,9 @@ export class DomTilesSurface implements Surface {
 
 		/* 덮는 넓이가 너무 적으면 타일로 그릴 수 없다 (위 설명). 1/4 은 잰 값에서 왔다:
 		   깨진 홈이 15%, 도구가 깔린 화면은 60% 넘는다. 그 사이를 가른다. */
-		let 덮은넓이 = 0;
-		for (const item of found) 덮은넓이 += item.rect.width * item.rect.height;
-		if (덮은넓이 / (boundsWidth * boundsHeight) < 0.25) return 창전체로();
+		let coveredArea = 0;
+		for (const item of found) coveredArea += item.rect.width * item.rect.height;
+		if (coveredArea / (boundsWidth * boundsHeight) < 0.25) return fullWindow();
 
 		// 칸 하나를 몇으로 쪼갤지. 안 주면 **놓인 칸 수를 보고 정한다** — 큰 버튼 다섯 개짜리
 		// 화면과 도구 백 개짜리 화면이 비슷한 해상도로 나오게. 고정으로 박으면 한쪽이 반드시 흐리다.

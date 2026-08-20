@@ -308,18 +308,18 @@ import { readInvocation } from '../../lib/tool-url';
             const out = $<HTMLElement>('#ucPriceOut');
             /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
             markLive(out);
-            const 만원 = parseFloat(($<HTMLInputElement>('#ucPrice').value || '').replace(/,/g, ''));
-            if (!isFinite(만원) || 만원 <= 0 || !isFinite(baseSquareMeters) || baseSquareMeters <= 0) {
+            const manwon = parseFloat(($<HTMLInputElement>('#ucPrice').value || '').replace(/,/g, ''));
+            if (!isFinite(manwon) || manwon <= 0 || !isFinite(baseSquareMeters) || baseSquareMeters <= 0) {
               out.textContent = '총액을 넣으면 평당·㎡당 가격이 나옵니다.';
               out.className = 'tool-status';
               return;
             }
             const 평 = baseSquareMeters / 3.3057851;
-            const 평당 = 만원 / 평;
-            const 제곱당 = 만원 / baseSquareMeters;
-            const 만원말 = (n: number): string =>
+            const perPyeong = manwon / 평;
+            const perSquare = manwon / baseSquareMeters;
+            const manwonText = (n: number): string =>
               n>= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
-            out.textContent = `${평.toFixed(2)}평 · 평당 ${만원말(평당)} · ㎡당 ${만원말(제곱당)}`;
+            out.textContent = `${평.toFixed(2)}평 · 평당 ${manwonText(perPyeong)} · ㎡당 ${manwonText(perSquare)}`;
             out.className = 'tool-status ok';
           }
 

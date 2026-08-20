@@ -152,19 +152,19 @@ import { region, isMetric } from '../../lib/region';
             $<HTMLElement>('#bmPin').style.left = pin.toFixed(1) + '%';
 
             /* 「정상까지 몇 kg」 — 실제로 행동을 만드는 한 줄인데 우리에겐 없었다. */
-            const 정상하한 = 18.5 * m * m;
-            const 정상상한 = 23 * m * m;
+            const normalMin = 18.5 * m * m;
+            const normalMax = 23 * m * m;
             /* 무게는 **그 사람이 넣은 단위로** 돌려준다 — 파운드로 넣었는데 「3.2kg 빼세요」는 못 읽는다. */
             const wUnit = t(us ? 'bmi.unit.lb' : 'bmi.unit.kg');
             const showW = (v: number): string => `${(us ? v / 0.45359237 : v).toFixed(1)} ${wUnit}`;
-            const 차이 =
-              kg> 정상상한 ? t('bmi.value.lose', { n: showW(kg - 정상상한) })
-              : kg < 정상하한 ? t('bmi.value.gain', { n: showW(정상하한 - kg) })
+            const diff =
+              kg> normalMax ? t('bmi.value.lose', { n: showW(kg - normalMax) })
+              : kg < normalMin ? t('bmi.value.gain', { n: showW(normalMin - kg) })
               : t('bmi.value.inRange');
 
             const asia = stat(t(region() === 'JP' ? 'bmi.stat.asiaJp' : 'bmi.stat.asia'), classify(bmi, ASIA), asiaFirst());
             const who = stat(t('bmi.stat.who'), classify(bmi, WHO), !asiaFirst());
-            stats.innerHTML = (asiaFirst() ? asia + who : who + asia) + stat(t('bmi.stat.toNormal'), 차이);
+            stats.innerHTML = (asiaFirst() ? asia + who : who + asia) + stat(t('bmi.stat.toNormal'), diff);
 
             // 「정상 범위 몸무게」 는 BMI 자체보다 실제로 궁금해하는 값이다.
             const lo = 18.5 * m * m;
