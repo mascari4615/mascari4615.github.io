@@ -1,7 +1,7 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 11000,
-  "files": 320,
+  "count": 10783,
+  "files": 319,
   "byFile": {
     "apps/daily/engine.test.mjs": 2,
     "apps/discord-bots/apps/yawnbot/src/bot/daily-list-api.test.ts": 1,
@@ -75,8 +75,7 @@
     "apps/karmolab/scripts/ratchet-tighten.mjs": 26,
     "apps/karmolab/scripts/retry-if-redeployed.mjs": 23,
     "apps/karmolab/scripts/retry-if-redeployed.test.mjs": 32,
-    "apps/karmolab/scripts/run-gates.mjs": 69,
-    "apps/karmolab/scripts/run-live-checks.mjs": 95,
+    "apps/karmolab/scripts/run-gates.mjs": 9,
     "apps/karmolab/scripts/smoke-a11y.mjs": 25,
     "apps/karmolab/scripts/smoke-arcade-keys.mjs": 32,
     "apps/karmolab/scripts/smoke-arcade-letter.mjs": 13,
@@ -117,7 +116,7 @@
     "apps/karmolab/scripts/smoke-timecapsule.mjs": 48,
     "apps/karmolab/scripts/smoke-tour.mjs": 52,
     "apps/karmolab/scripts/smoke-widget-i18n.mjs": 2,
-    "apps/karmolab/scripts/smoke-widgets-alive.mjs": 65,
+    "apps/karmolab/scripts/smoke-widgets-alive.mjs": 3,
     "apps/karmolab/scripts/smoke-worldbook-unknown.mjs": 24,
     "apps/karmolab/scripts/smoke-worldcup.mjs": 4,
     "apps/karmolab/scripts/test-arcade.mjs": 21,

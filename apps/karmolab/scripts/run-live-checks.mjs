@@ -39,7 +39,7 @@ const shard = (() => {
   return { idx: Number(m[1]) - 1, of: Number(m[2]) };
 })();
 /** 이 조각이 얼마나 걸릴 거라 봤나 — 끝에서 실제와 견준다. */
-let 예측분 = null;
+let predictedMinutes = null;
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
@@ -49,7 +49,7 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
    검사마다 제 나름의 기다림이 있지만 그걸 다 믿을 수는 없다 — **바깥에 하나 더 둔다.**
    12분을 넘기면 끊고 「걸렸다」로 적는다(2 = 못 돌림). 지금 가장 무거운 검사가 10분이므로
    정상 판은 절대 안 걸린다. 조각 예산이 14분이니 하나가 걸려도 조각은 살아남는다. */
-const 검사한판최대 = Number(process.env.KL_CHECK_TIMEOUT_MS || 12 * 60 * 1000);
+const perCheckTimeoutMs = Number(process.env.KL_CHECK_TIMEOUT_MS || 12 * 60 * 1000);
 
 function run(cmd) {
   const [bin, ...rest] = cmd;
@@ -57,11 +57,11 @@ function run(cmd) {
   const r = spawnSync(exe, rest, {
     stdio: 'inherit',
     shell: process.platform === 'win32',
-    timeout: 검사한판최대,
+    timeout: perCheckTimeoutMs,
     killSignal: 'SIGKILL',
   });
   if (r.error && r.error.code === 'ETIMEDOUT') {
-    console.log(`[verify:live] ⏱ ${Math.round(검사한판최대 / 60000)}분을 넘겨 끊었다 — 이 검사는 걸렸다(못 돌림으로 센다).`);
+    console.log(`[verify:live] ⏱ ${Math.round(perCheckTimeoutMs / 60000)}분을 넘겨 끊었다 — 이 검사는 걸렸다(못 돌림으로 센다).`);
     console.log('  조각 하나를 통째로 잃는 것보다 낫다. 왜 걸렸는지는 바로 위 로그의 마지막 줄을 봐라.');
     return 2;
   }
@@ -87,20 +87,20 @@ if (shard) {
      「23판 연속 0%」의 한 원인이 이것이다 — 빨간 게 아니라 **끝나지를 않았다**.
      실측한 초(`data/live-check-times.json`)를 보고 **무거운 것부터 가장 한가한 조각에** 넣는다.
      처음 보는 검사는 중앙값으로 친다 — 모르는 것을 0 으로 치면 그 조각만 다시 넘친다. */
-  const 잰시간 = (() => {
+  const measuredSeconds = (() => {
     try {
-      return JSON.parse(readFileSync(new URL('../data/live-check-times.json', import.meta.url), 'utf8')).초 || {};
+      return JSON.parse(readFileSync(new URL('../data/live-check-times.json', import.meta.url), 'utf8')).seconds || {};
     } catch {
       return {};
     }
   })();
-  const 바구니 = splitIntoShards(todo, shard.of, 잰시간);
+  const buckets = splitIntoShards(todo, shard.of, measuredSeconds);
   /* 원래 차례를 지킨다 — 무거운 것부터 돌면 사람이 로그에서 길을 잃는다. */
-  const 내것 = new Set(바구니[shard.idx].items);
-  todo = todo.filter((c) => 내것.has(c));
-  예측분 = Math.round(바구니[shard.idx].sum / 60);
+  const myShard = new Set(buckets[shard.idx].items);
+  todo = todo.filter((c) => myShard.has(c));
+  predictedMinutes = Math.round(buckets[shard.idx].sum / 60);
   console.log(
-    `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${예측분}분어치`
+    `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${predictedMinutes}분어치`
   );
 }
 if (!todo.length) {
@@ -142,9 +142,9 @@ if (todo.some((c) => c.needsServer)) {
    아래에서 판을 견줘 놓고 그 결과를 **맨 위 안내에만** 찍었다. 그런데 사람이 읽는 것은
    맨 끝의 빨강 목록이고, 로그가 길어 위쪽은 안 본다 — 오늘만 세 번, 이미 고친 결함을
    다시 쫓아갔다(재던 판이 고침 전이었다). 견준 값을 들고 있다가 빨강 줄 옆에 같이 적는다. */
-let 재던판 = '';
-let 밀린것 = [];
-let 이자리판 = '';
+let runningCheck = '';
+let queuedLines = [];
+let currentLine = '';
 
 const stopServer = () => { if (server) { try { server.kill(); } catch { /* 이미 죽음 */ } server = null; } };
 process.on('exit', stopServer);
@@ -171,8 +171,8 @@ if (todo.some((c) => c.live)) {
          (갈아끼울 자리가 없는 안전장치는 영영 안 검증된 채로 남는다 — commit-isolated 와 같은 규율). */
       const served = String(process.env.LIVE_SERVED_OVERRIDE || (await res.json()).commit || '').slice(0, 8);
       const here = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim().slice(0, 8) || '(모름)';
-      재던판 = served || '(모름)';
-      이자리판 = here;
+      runningCheck = served || '(모름)';
+      currentLine = here;
       console.log(`[verify:live] 지금 재는 판 = ${served} · 이 자리의 판 = ${here}`);
       if (served && here !== '(모름)' && served !== here) {
         const ahead = spawnSync('git', ['merge-base', '--is-ancestor', served, here]);
@@ -182,11 +182,11 @@ if (todo.some((c) => c.live)) {
           /* ★ **무엇이 밀려 있는지까지 적는다** (2026-08-17). 「뒤진 판이다」만으로는 사람이
              결국 로그를 뒤진다 — 오늘 이미 고쳐진 빨강 셋을 다시 진단했다. 밀린 커밋의 제목을
              보여 주면 그 자리에서 「아, 지구본 그거 고쳤네」로 끝난다. */
-          밀린것 = spawnSync('git', ['log', '--oneline', '--no-decorate', '-5', `${served}..${here}`], { encoding: 'utf8' })
+          queuedLines = spawnSync('git', ['log', '--oneline', '--no-decorate', '-5', `${served}..${here}`], { encoding: 'utf8' })
             .stdout?.trim().split(String.fromCharCode(10)).filter(Boolean) ?? [];
-          if (밀린것.length) {
-            console.log(`    아직 안 나간 커밋 ${밀린것.length}개(최대 5개만):`);
-            for (const one of 밀린것) console.log(`      · ${one}`);
+          if (queuedLines.length) {
+            console.log(`    아직 안 나간 커밋 ${queuedLines.length}개(최대 5개만):`);
+            for (const one of queuedLines) console.log(`      · ${one}`);
           }
         }
       }
@@ -218,13 +218,13 @@ for (const name of skipped) console.log(`  · ${name.padEnd(34, ' ')}   못 돌�
    그래서 검사들이 「못 돌렸다」고 말하면서도 **0으로 끝내** 초록으로 세어지고 있었다
    (안 본 것을 봤다고 적는 자리다). 이제 여기서도 갈라 적는다. */
 for (const r of results) {
-  const 표 = r.code === 0 ? '✓' : r.code === 2 ? '·' : '✘';
-  const 꼬리 = r.code === 2 ? '  — 못 돌림 (빨강 아님)' : r.code ? `  — exit ${r.code}` : '';
-  console.log(`  ${표} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${꼬리}`);
+  const mark = r.code === 0 ? '✓' : r.code === 2 ? '·' : '✘';
+  const tail = r.code === 2 ? '  — 못 돌림 (빨강 아님)' : r.code ? `  — exit ${r.code}` : '';
+  console.log(`  ${mark} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${tail}`);
 }
 const red = results.filter((r) => r.code !== 0 && r.code !== 2);
-const 못돌림 = results.filter((r) => r.code === 2);
-if (못돌림.length) console.log(`  ※ 못 돌린 검사 ${못돌림.length}개 — 초록으로 세지 않는다: ${못돌림.map((r) => r.name).join(', ')}`);
+const couldNotRun = results.filter((r) => r.code === 2);
+if (couldNotRun.length) console.log(`  ※ 못 돌린 검사 ${couldNotRun.length}개 — 초록으로 세지 않는다: ${couldNotRun.map((r) => r.name).join(', ')}`);
 
 /* 빨간 검사의 **이름**을 파일과 실행 요약에 남긴다 (2026-08-13).
    경보 이슈에 「로그를 보세요」만 328번 쌓여 있었다 — 무엇이 빨간지 안 적혀 있으면
@@ -238,19 +238,19 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 }
 
 if (red.length) {
-  const 판정보 =
-    재던판 && 이자리판 && 재던판 !== 이자리판
-      ? ` · ⚠ 잰 것은 **실사이트에 올라간 판 ${재던판}** 이고 이 자리는 ${이자리판} 이다 — 이미 고친 것이 여기 뜰 수 있다`
-      : 재던판
-        ? ` · 잰 판 ${재던판}(이 자리와 같다)`
+  const shardNote =
+    runningCheck && currentLine && runningCheck !== currentLine
+      ? ` · ⚠ 잰 것은 **실사이트에 올라간 판 ${runningCheck}** 이고 이 자리는 ${currentLine} 이다 — 이미 고친 것이 여기 뜰 수 있다`
+      : runningCheck
+        ? ` · 잰 판 ${runningCheck}(이 자리와 같다)`
         : '';
-  console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**${판정보}:`);
+  console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**${shardNote}:`);
   for (const r of red) console.error(`  - ${r.name}`);
   /* ★ **먼저 「이미 고쳤나」를 보게 한다** (2026-08-17). 오늘 이미 고쳐진 빨강 셋을 다시 진단했다 —
      밀린 커밋 제목만 보였어도 그 자리에서 끝났을 일이다(그 목록에 「광장 입구 … 지금 표시를 본다」가 있었다). */
-  if (밀린것.length) {
-    console.error(`  아직 안 나간 커밋 ${밀린것.length}개 — 이 중에 답이 있을 수 있다:`);
-    for (const one of 밀린것) console.error(`      · ${one.slice(0, 96)}`);
+  if (queuedLines.length) {
+    console.error(`  아직 안 나간 커밋 ${queuedLines.length}개 — 이 중에 답이 있을 수 있다:`);
+    for (const one of queuedLines) console.error(`      · ${one.slice(0, 96)}`);
   }
   console.error('  위 로그에서 각 검사가 스스로 말한 사유를 봐라. 하나씩 고치고 또 10분 기다리지 마라.');
 }
@@ -265,20 +265,20 @@ if (red.length) {
    빨강이어도 시간은 시간이다 — 값은 남긴다. */
 if (!process.env.CI) {
   try {
-    const 표경로 = new URL('../data/live-check-times.json', import.meta.url);
-    const 표 = JSON.parse(readFileSync(표경로, 'utf8'));
-    표.초 = 표.초 || {};
-    for (const r of results) 표.초[r.name] = r.sec;
+    const timesPath = new URL('../data/live-check-times.json', import.meta.url);
+    const timesTable = JSON.parse(readFileSync(timesPath, 'utf8'));
+    timesTable.seconds = timesTable.seconds || {};
+    for (const r of results) timesTable.seconds[r.name] = r.sec;
     /* ★ **없어진 검사의 시간이 표에 남는다** (2026-08-16, 실측). 표에 61개가 있는데 검사는 60개였다 —
        사라진 이름 하나가 합계를 955초나 부풀리고 있었다(그 수를 보고 조각 여유를 잘못 셌다).
        한 줄로 돌 때(조각 없이)는 목록 전체를 본 것이므로, 그때만 **없는 이름을 턴다.** */
     if (!shard) {
-      const 사는이름 = new Set(CHECKS.map((c) => c.name));
-      for (const 이름 of Object.keys(표.초)) if (!사는이름.has(이름)) delete 표.초[이름];
+      const liveNames = new Set(CHECKS.map((c) => c.name));
+      for (const checkName of Object.keys(timesTable.seconds)) if (!liveNames.has(checkName)) delete timesTable.seconds[checkName];
     }
-    표.잰날 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-    표.초 = Object.fromEntries(Object.entries(표.초).sort((a, b) => b[1] - a[1]));
-    writeFileSync(표경로, `${JSON.stringify(표, null, 2)}
+    timesTable.measuredOn = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    timesTable.seconds = Object.fromEntries(Object.entries(timesTable.seconds).sort((a, b) => b[1] - a[1]));
+    writeFileSync(timesPath, `${JSON.stringify(timesTable, null, 2)}
 `, 'utf8');
     console.log(`[verify:live] 잰 시간 ${results.length}개를 표에 얹었다 — data/live-check-times.json`);
   } catch (error) {
@@ -286,18 +286,18 @@ if (!process.env.CI) {
   }
 }
 
-const 총초 = results.reduce((a, r) => a + r.sec, 0);
-const 지붕분 = Number(process.env.LIVE_CHECK_ROOF_MIN || 40);
-const 총분 = 총초 / 60;
+const totalSeconds = results.reduce((a, r) => a + r.sec, 0);
+const roofMinutes = Number(process.env.LIVE_CHECK_ROOF_MIN || 40);
+const totalMinutes = totalSeconds / 60;
 console.log(`
-[verify:live] 합계 ${총초}초 (${총분.toFixed(1)}분) · 검사 ${results.length}개`);
+[verify:live] 합계 ${totalSeconds}초 (${totalMinutes.toFixed(1)}분) · 검사 ${results.length}개`);
 
 /* ★ **예측이 틀렸으면 그 자리에서 말하게 한다** (2026-08-16, 실측). 조각을 시간으로 가른 첫날,
    2번 조각이 「19분어치」라고 적어 놓고 **40분 제한에 걸려 취소**됐다 — 표에 빠진 검사 하나가
    하필 제일 무거운 것(955초)이라 13초로 쳐졌기 때문이다. 그때 로그에는 예측만 있고 견줄 것이
    없어서, 취소된 뒤에야 사람이 눈으로 찾아야 했다. 예측과 실제를 나란히 적으면 표가 낡은 순간
    **다음 판 로그가 스스로 고발한다**. */
-if (예측분 != null) {
+if (predictedMinutes != null) {
   /* ★ **한 번의 어긋남으로 배수를 만들지 마라** (2026-08-16, 정정).
      3조각 시절 한 조각이 예측 19분 · 실제 40분(취소)이라 「CI 가 1.3~1.7배 느리다」고 적었다.
      그런데 4조각 실측은 **예측 14분 · 실제 14.05분**(1번), **14분 · 12.9분**(4번)이다 —
@@ -305,18 +305,18 @@ if (예측분 != null) {
      그래서 배수를 두지 않는다: 30% 를 넘으면 그대로 의심한다. 다만 크게 넘칠 때는
      「표가 낡았다」보다 **한 검사가 걸렸을 수 있다**는 쪽을 먼저 본다(그게 실제 원인이었다).
      준비(체크아웃·채비)는 실측 54초라 판정에 거의 안 섞인다. */
-  const 어긋남 = 총분 === 0 ? 0 : Math.round(((총분 - 예측분) / Math.max(예측분, 1)) * 100);
-  const 말 =
-    어긋남 >= 100
+  const driftPercent = totalMinutes === 0 ? 0 : Math.round(((totalMinutes - predictedMinutes) / Math.max(predictedMinutes, 1)) * 100);
+  const summaryLine =
+    driftPercent >= 100
       ? ' ← 한 검사가 걸렸을 수 있다(로그에서 마지막 줄을 봐라). 표가 낡았을 수도 있다'
-      : 어긋남 >= 30
+      : driftPercent >= 30
         ? ' ← 표가 낡았다. `data/live-check-times.json` 를 다시 재라'
         : '';
-  console.log(`[verify:live] 예측 ${예측분}분 · 실제 ${총분.toFixed(1)}분(검사만, 준비 단계 별도) (${어긋남 >= 0 ? '+' : ''}${어긋남}%)${말}`);
+  console.log(`[verify:live] 예측 ${predictedMinutes}분 · 실제 ${totalMinutes.toFixed(1)}분(검사만, 준비 단계 별도) (${driftPercent >= 0 ? '+' : ''}${driftPercent}%)${summaryLine}`);
 }
-if (총분 > 지붕분 * 0.6) {
+if (totalMinutes > roofMinutes * 0.6) {
   console.log(
-    `  ⚠ 지붕(${지붕분}분)의 ${Math.round((총분 / 지붕분) * 100)}% 를 썼다 — 여기 검사를 더 넣기 전에` +
+    `  ⚠ 지붕(${roofMinutes}분)의 ${Math.round((totalMinutes / roofMinutes) * 100)}% 를 썼다 — 여기 검사를 더 넣기 전에` +
     ` 제일 무거운 것부터 더 드문 자리로 옮겨라(끊긴 판은 아무것도 못 알려 준다).`
   );
 }
