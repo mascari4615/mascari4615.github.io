@@ -40,7 +40,7 @@ const incomingAudio: readonly string[] = ['응.', '어…', '응?', '그래서?'
 export class Backchannel {
   private 마지막들음 = 0;
   private 이번뭉치 = 0;
-  private 냈나 = false;
+  private emitted = false;
   private 마지막소리: string | null = null;
 
   constructor(private readonly options: BackchannelOptions = {}) {}
@@ -56,15 +56,15 @@ export class Backchannel {
     if (continued === false) {
       // 새 뭉치가 시작됐다.
       this.이번뭉치 = 1;
-      this.냈나 = false;
+      this.emitted = false;
       return null;
     }
 
     this.이번뭉치 += 1;
     // 두 번째 마디부터, 그리고 뭉치당 한 번만.
-    if (this.이번뭉치 < 2 || this.냈나) return null;
+    if (this.이번뭉치 < 2 || this.emitted) return null;
 
-    this.냈나 = true;
+    this.emitted = true;
     const roll = this.options.roll ?? Math.random;
     const candidates = incomingAudio.filter((s) => s !== this.마지막소리);
     const picked = candidates[Math.floor(roll() * candidates.length) % candidates.length];
@@ -79,20 +79,20 @@ export class Backchannel {
    * 따로 표시할 일을 잊지 않는다.
    */
   mayFiller(): boolean {
-    if (this.냈나) return false;
-    this.냈나 = true;
+    if (this.emitted) return false;
+    this.emitted = true;
     return true;
   }
 
   /** 얘가 답했다 — 뭉치가 끝났다. */
   answered(): void {
     this.이번뭉치 = 0;
-    this.냈나 = false;
+    this.emitted = false;
     this.마지막들음 = 0;
   }
 
   /** 지금 뭉치에서 맞장구를 이미 냈나 (진단용). */
   get used(): boolean {
-    return this.냈나;
+    return this.emitted;
   }
 }
