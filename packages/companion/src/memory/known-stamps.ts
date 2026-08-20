@@ -20,7 +20,7 @@ export interface KnownStamp {
   /** 이 줄을 처음 본 때. */
   처음: number;
   /** 마지막으로 본 때. 사라졌다 돌아와도 처음은 안 바뀐다. */
-  마지막: number;
+  last: number;
 }
 
 export interface KnownStampsOptions {
@@ -35,7 +35,7 @@ function trim2(line: string): string {
 }
 
 export class KnownStamps {
-  private readonly 표 = new Map<string, KnownStamp>();
+  private readonly table = new Map<string, KnownStamp>();
   private readonly options: KnownStampsOptions;
 
   constructor(options: KnownStampsOptions = {}) {
@@ -44,7 +44,7 @@ export class KnownStamps {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, KnownStamp>;
         for (const [k, v] of Object.entries(raw)) {
-          if (typeof v?.처음 === 'number' && typeof v?.마지막 === 'number') this.표.set(k, v);
+          if (typeof v?.처음 === 'number' && typeof v?.last === 'number') this.table.set(k, v);
         }
       } catch {
         // 깨진 파일 때문에 기억 전체가 멈추면 안 된다. 날짜는 다시 쌓으면 된다.
@@ -67,12 +67,12 @@ export class KnownStamps {
     for (const line of (known ?? '').split('\n')) {
       const key = trim2(line);
       if (key === '') continue;
-      const existing = this.표.get(key);
+      const existing = this.table.get(key);
       if (existing === undefined) {
-        this.표.set(key, { 처음: now, 마지막: now });
+        this.table.set(key, { 처음: now, last: now });
         fresh = true;
       } else {
-        existing.마지막 = now;
+        existing.last = now;
       }
     }
     if (fresh) this.save();
@@ -80,16 +80,16 @@ export class KnownStamps {
 
   /** 이 줄을 언제부터 알았나. 모르면 null. */
   stampOf(line: string): KnownStamp | null {
-    return this.표.get(trim2(line)) ?? null;
+    return this.table.get(trim2(line)) ?? null;
   }
 
   get size(): number {
-    return this.표.size;
+    return this.table.size;
   }
 
   /** 잘못 쌓인 줄을 지운다 — 「아는 것」에서 지울 때 같이 부른다. */
   forget(line: string): boolean {
-    const wasErased = this.표.delete(trim2(line));
+    const wasErased = this.table.delete(trim2(line));
     if (wasErased) this.save();
     return wasErased;
   }
@@ -98,7 +98,7 @@ export class KnownStamps {
     if (this.options.path === undefined) return;
     try {
       mkdirSync(dirname(this.options.path), { recursive: true });
-      writeFileSync(this.options.path, JSON.stringify(Object.fromEntries(this.표), null, 1), 'utf8');
+      writeFileSync(this.options.path, JSON.stringify(Object.fromEntries(this.table), null, 1), 'utf8');
     } catch {
       // 못 남겨도 이번 판에서는 안다. 다음에 다시 쌓인다.
     }
