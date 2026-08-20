@@ -48,8 +48,8 @@ export function whileAway(
   // 같은 것이 이어지면 한 덩어리로 — 몇 번 쳐다봤는지가 아니라 얼마나 떠 있었는지를 센다.
   const 덩어리: { title: string; from: number; to: number }[] = [];
   for (const x of 본것) {
-    const 끝 = 덩어리[덩어리.length - 1];
-    if (끝 !== undefined && shortTitle(끝.title) === shortTitle(x.title)) 끝.to = x.at;
+    const end = 덩어리[덩어리.length - 1];
+    if (end !== undefined && shortTitle(end.title) === shortTitle(x.title)) end.to = x.at;
     else 덩어리.push({ title: x.title, from: x.at, to: x.at });
   }
 

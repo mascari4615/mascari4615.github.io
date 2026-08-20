@@ -62,8 +62,8 @@ export function readSpec(raw: unknown): HandSpec | null {
   const x = raw as Record<string, unknown>;
   if (typeof x.name !== 'string' || x.name.trim() === '') return null;
   if (typeof x.what !== 'string' || x.what.trim() === '') return null;
-  const 갈래들 = ['read-file', 'read-dir', 'web-search', 'read-web'];
-  if (typeof x.kind !== 'string' || 갈래들.includes(x.kind) === false) return null;
+  const kinds = ['read-file', 'read-dir', 'web-search', 'read-web'];
+  if (typeof x.kind !== 'string' || kinds.includes(x.kind) === false) return null;
   // 밖을 읽는 손은 읽을 자리가 그때그때 오므로 경로가 필요 없다.
   const 밖인가 = x.kind === 'web-search' || x.kind === 'read-web';
   if (밖인가 === false && (typeof x.path !== 'string' || x.path.trim() === '')) return null;
@@ -120,21 +120,21 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
       try {
         if (spec.kind === 'read-file') {
           if (existsSync(spec.path) === false) return `${spec.path} 가 없다.`;
-          const 글 = readFileSync(spec.path, 'utf8');
+          const content = readFileSync(spec.path, 'utf8');
           const 몇자 = spec.limit ?? 2000;
           // 넘긴 말이 있으면 그 말이 든 줄만 — 파일이 크면 통째로 주는 게 오히려 방해다.
-          const 고른것 = argument.trim() === ''
-            ? 글
-            : 글.split('\n').filter((l) => l.includes(argument.trim())).join('\n');
-          const 낼것 = (고른것.trim() === '' ? 글 : 고른것).slice(0, 몇자);
+          const picked = argument.trim() === ''
+            ? content
+            : content.split('\n').filter((l) => l.includes(argument.trim())).join('\n');
+          const 낼것 = (picked.trim() === '' ? content : picked).slice(0, 몇자);
           return 낼것.trim() === '' ? '비어 있다.' : 낼것;
         }
 
         if (existsSync(spec.path) === false) return `${spec.path} 가 없다.`;
-        const 몇개 = spec.limit ?? 40;
-        const 것들 = readdirSync(spec.path)
+        const count = spec.limit ?? 40;
+        const items = readdirSync(spec.path)
           .filter((n) => argument.trim() === '' || n.includes(argument.trim()))
-          .slice(0, 몇개)
+          .slice(0, count)
           .map((n) => {
             try {
               return statSync(join(spec.path, n)).isDirectory() ? `${n}/` : n;
@@ -142,7 +142,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
               return n;
             }
           });
-        return 것들.length === 0 ? '아무것도 없다.' : 것들.join('\n');
+        return items.length === 0 ? '아무것도 없다.' : items.join('\n');
       } catch (e) {
         // 손이 고장 나도 대화는 이어져야 한다.
         return `못 읽었다: ${e instanceof Error ? e.message : String(e)}`;
@@ -210,7 +210,7 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
 
   const 손들: Hand[] = [];
   const 힌트들: { hand: string; when: RegExp }[] = [];
-  const 이름들 = new Set<string>();
+  const names = new Set<string>();
   for (const file of readdirSync(dir).sort()) {
     if (extname(file) !== '.json') continue;
     const path = join(dir, file);
@@ -228,14 +228,14 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
       options.log?.(`${file} 은 손 명세로 안 보인다 (이름·설명·갈래·경로가 있어야 한다)`);
       continue;
     }
-    if (이름들.has(spec.name)) {
+    if (names.has(spec.name)) {
       options.log?.(`${file} 의 「${spec.name}」 은 이름이 겹쳐 건너뛴다`);
       continue;
     }
 
     const hand = handFrom(spec, options);
     if (hand === null) continue;
-    이름들.add(spec.name);
+    names.add(spec.name);
     손들.push(hand);
 
     const hint = hintFrom(spec);

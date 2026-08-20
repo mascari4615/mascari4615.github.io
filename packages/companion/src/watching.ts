@@ -44,18 +44,18 @@ export class Watching {
 
   /** 지금 이 창을 보고 있다. */
   saw(title: string, at: number): void {
-    const 다듬은 = title.trim();
-    if (다듬은 === '') return;
+    const trimmed = title.trim();
+    if (trimmed === '') return;
 
     // **같은 것인지는 짧은 이름으로 본다.**
     //
     // 전체 제목으로 묶으면 유니티에서 씬만 바꿔도(「…- Stage_Home -…」 → 「…- World -…」)
     // 다른 것을 보는 걸로 세어, 같은 걸 두 시간 붙들고 있어도 영영 안 잡힌다(실측 34회차:
     // 실제 기록 308개가 40개로 묶였는데 그중 대부분이 같은 유니티였다).
-    const 마지막 = this.seen[this.seen.length - 1];
-    if (마지막 !== undefined && shortTitle(마지막.title) === shortTitle(다듬은)) return;
+    const last = this.seen[this.seen.length - 1];
+    if (last !== undefined && shortTitle(last.title) === shortTitle(trimmed)) return;
 
-    this.seen.push({ title: 다듬은, at });
+    this.seen.push({ title: trimmed, at });
     const keep = this.options.keep ?? 40;
     if (this.seen.length > keep) this.seen = this.seen.slice(-keep);
   }
@@ -105,8 +105,8 @@ export class Watching {
 export function shortTitle(title: string, max = 24): string {
   // 「파일 - 프로그램 - 어쩌고」 꼴이면 맨 앞이 대개 무엇인지를 말한다.
   const 앞 = title.split(/\s+[-–—|]\s+/)[0].trim();
-  const 쓸것 = 앞 === '' ? title.trim() : 앞;
-  return 쓸것.length <= max ? 쓸것 : `${쓸것.slice(0, max)}…`;
+  const toWrite = 앞 === '' ? title.trim() : 앞;
+  return toWrite.length <= max ? toWrite : `${toWrite.slice(0, max)}…`;
 }
 
 /**
@@ -123,8 +123,8 @@ export function watchNote(watching: Watching, now: number): string {
     return `조수님이 몇 군데를 왔다갔다 하고 있다 — 뭘 찾거나 막힌 것 같다. 아는 척은 하지 마라.`;
   }
   if (watching.isStuck(now)) {
-    const 분 = Math.round(watching.heldFor(now) / 60_000);
-    return `조수님이 「${shortTitle(지금것.title)}」 를 ${분}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
+    const minutes = Math.round(watching.heldFor(now) / 60_000);
+    return `조수님이 「${shortTitle(지금것.title)}」 를 ${minutes}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
   }
   return '';
 }

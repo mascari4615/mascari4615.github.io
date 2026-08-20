@@ -47,20 +47,20 @@ export function findCorrection(said: string, lastSaid: MemoryEntry | undefined):
 
   const denied = lastSaid.text.trim();
   // 「아니야, X 야」처럼 대신 알려 준 게 있으면 그것도 들고 간다.
-  const 나머지 = said.replace(부정, '').replace(/^[,\s.…]+/, '').trim();
+  const rest = said.replace(부정, '').replace(/^[,\s.…]+/, '').trim();
 
   // 지울 낱말은 **얘 말과 조수님의 정정문 양쪽**에서 뽑는다.
   //
   // 처음엔 얘 말에서만 뽑았는데, 얘가 「싫어하잖아…」처럼 짧게 답하면 **지울 낱말이 하나도
   // 안 나온다**(실측 33회차: 받아들이기는 했는데 아는 것은 그대로였다). 무엇에 대한 얘기인지는
   // 조수님이 고쳐 주는 문장에 들어 있다 — 「아니야, 나 커피 진짜 좋아해」의 「커피」.
-  const keys = [...뽑기(denied), ...뽑기(나머지)].filter((w, i, all) => all.indexOf(w) === i);
+  const keys = [...pick(denied), ...pick(rest)].filter((w, i, all) => all.indexOf(w) === i);
 
-  return { denied, keys, instead: 나머지.length >= 2 ? 나머지 : null };
+  return { denied, keys, instead: rest.length >= 2 ? rest : null };
 }
 
 /** 지울 만한 낱말을 뽑는다. 조사를 떼야 「커피를」이 아니라 「커피」로 지운다. */
-function 뽑기(text: string): string[] {
+function pick(text: string): string[] {
   return text
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
@@ -81,12 +81,12 @@ export function applyCorrection(
   forget: (keyword: string) => boolean,
   max = 2,
 ): string[] {
-  const 지운것: string[] = [];
+  const removed: string[] = [];
   for (const key of correction.keys) {
-    if (지운것.length >= max) break;
-    if (forget(key)) 지운것.push(key);
+    if (removed.length >= max) break;
+    if (forget(key)) removed.push(key);
   }
-  return 지운것;
+  return removed;
 }
 
 /**

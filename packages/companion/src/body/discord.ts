@@ -23,7 +23,7 @@ export interface 디스코드채널 {
 
 export interface 디스코드붙이기 {
   /** 사람이 말할 때마다 부른다. 봇 자신의 말은 넘기지 않는다. */
-  들어올때: (듣기: (말: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
+  들어올때: (listen: (말: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
   /** 이 채널을 잡는다. 없으면 null. */
   채널잡기: (채널: string) => 디스코드채널 | null;
   /** 끊는다. */

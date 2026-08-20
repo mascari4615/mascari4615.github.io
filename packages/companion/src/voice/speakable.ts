@@ -21,9 +21,9 @@
  * 제어문자 같은 그림 기호)은 **소리로 읽을 수 없다** — 목소리 만드는 쪽이 못 읽거나
  * 이상하게 읽는다.
  */
-export function 말할수있게(글: string): string {
+export function 말할수있게(content: string): string {
   return (
-    글
+    content
       // 사람이 읽는 것들만 남긴다 (한글 자모 포함 — 「ㅋㅋ」 같은 건 그대로 둔다).
       .replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ\s.,!?…·'"()\-~:;%°]/gu, ' ')
       .replace(/\s+/g, ' ')
@@ -33,7 +33,7 @@ export function 말할수있게(글: string): string {
 
 /** 이 말은 소리로 낼 수 있나 — 지우고 나서도 읽을 게 남나. */
 export function 소리낼만한가(글: string): boolean {
-  const 남은것 = 말할수있게(글);
+  const remaining = 말할수있게(글);
   // 부호만 남은 것은 말이 아니다.
-  return /[0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ]/.test(남은것);
+  return /[0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ]/.test(remaining);
 }

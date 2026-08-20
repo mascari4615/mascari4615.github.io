@@ -29,7 +29,7 @@ export interface BackchannelOptions {
   roll?: () => number;
 }
 
-const 받는소리: readonly string[] = ['응.', '어…', '응?', '그래서?', '…음.'];
+const incomingAudio: readonly string[] = ['응.', '어…', '응?', '그래서?', '…음.'];
 
 /**
  * 이어 치는 말을 지켜보다가 맞장구를 낸다.
@@ -50,10 +50,10 @@ export class Backchannel {
    */
   heard(at: number): string | null {
     const within = this.options.withinMs ?? 2500;
-    const 이어짐 = at - this.마지막들음 <= within;
+    const continued = at - this.마지막들음 <= within;
     this.마지막들음 = at;
 
-    if (이어짐 === false) {
+    if (continued === false) {
       // 새 뭉치가 시작됐다.
       this.이번뭉치 = 1;
       this.냈나 = false;
@@ -66,10 +66,10 @@ export class Backchannel {
 
     this.냈나 = true;
     const roll = this.options.roll ?? Math.random;
-    const 후보 = 받는소리.filter((s) => s !== this.마지막소리);
-    const 고른것 = 후보[Math.floor(roll() * 후보.length) % 후보.length];
-    this.마지막소리 = 고른것;
-    return 고른것;
+    const candidates = incomingAudio.filter((s) => s !== this.마지막소리);
+    const picked = candidates[Math.floor(roll() * candidates.length) % candidates.length];
+    this.마지막소리 = picked;
+    return picked;
   }
 
   /**

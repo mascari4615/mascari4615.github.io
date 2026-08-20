@@ -37,9 +37,9 @@ export function stripExpression(said: string): { text: string; tagged: Expressio
   let tagged: Expression | null = null;
   const text = said
     .replace(/\[([^\]]{1,8})\]/g, (whole, inner: string) => {
-      const 다듬은 = inner.trim();
-      if (isExpression(다듬은) === false) return whole;
-      if (tagged === null) tagged = 다듬은;
+      const trimmed = inner.trim();
+      if (isExpression(trimmed) === false) return whole;
+      if (tagged === null) tagged = trimmed;
       return '';
     })
     .replace(/\s{2,}/g, ' ')

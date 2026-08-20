@@ -50,16 +50,16 @@ export function readResume(
   const sameBreath = options.sameBreathMs ?? 3 * 60_000;
   const longGap = options.longGapMs ?? 6 * 3600_000;
 
-  const 나눈말 = conversationOnly(entries);
-  if (나눈말.length === 0) return { gap: '처음', awayMs: 0, leftHanging: null };
+  const splitText = conversationOnly(entries);
+  if (splitText.length === 0) return { gap: '처음', awayMs: 0, leftHanging: null };
 
-  const 마지막 = 나눈말.reduce((늦은것, e) => Math.max(늦은것, e.at), 0);
-  const awayMs = Math.max(0, now - 마지막);
+  const last = splitText.reduce((늦은것, e) => Math.max(늦은것, e.at), 0);
+  const awayMs = Math.max(0, now - last);
 
   const gap: Gap = awayMs <= sameBreath ? '이어짐' : awayMs >= longGap ? '오래 끊김' : '잠깐 끊김';
 
   // 마지막 말이 얘 것이고 물음이었으면 답을 못 받은 것이다.
-  const 끝말 = 나눈말[나눈말.length - 1];
+  const 끝말 = splitText[splitText.length - 1];
   const 얘가마지막 = 끝말?.role === 'said' && brainSaid([끝말]).length === 1;
   const leftHanging = 얘가마지막 && /[?？]/.test(끝말.text) ? 끝말.text.trim() : null;
 
@@ -68,10 +68,10 @@ export function readResume(
 
 /** 얼마나 됐는지 사람 말로. */
 export function awaySay(ms: number): string {
-  const 분 = Math.round(ms / 60_000);
-  if (분 < 60) return `${Math.max(1, 분)}분`;
-  const 시간 = Math.round(분 / 60);
-  return 시간 < 24 ? `${시간}시간` : `${Math.round(시간 / 24)}일`;
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) return `${Math.max(1, minutes)}분`;
+  const time = Math.round(minutes / 60);
+  return time < 24 ? `${time}시간` : `${Math.round(time / 24)}일`;
 }
 
 /**

@@ -147,7 +147,7 @@ export function recallFrom(
 }
 
 /** 흔한 말은 빼고 뜻이 실린 낱말만 고른다 — 「그거」로 옛 대화를 뒤지면 전부 걸린다. */
-const 흔한말 = new Set([
+const commonWords = new Set([
   '그거', '저거', '이거', '뭐였', '뭐야', '뭐지', '그게', '나는', '내가', '너는', '우리',
   '저번', '예전', '아까', '오늘', '어제', '내일', '지금', '진짜', '정말', '그냥', '조금',
   '해줘', '했었', '있어', '없어', '같아', '한거', '무슨', '어떤', '거야', '거지',
@@ -158,7 +158,7 @@ function pickKeywords(text: string, minLength: number): string[] {
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
     .map((w) => w.trim())
-    .filter((w) => w.length >= minLength && 흔한말.has(w) === false);
+    .filter((w) => w.length >= minLength && commonWords.has(w) === false);
   // 긴 낱말이 대개 더 뜻이 실려 있다.
   return [...new Set(words)].sort((a, b) => b.length - a.length);
 }

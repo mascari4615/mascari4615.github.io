@@ -29,7 +29,7 @@ export interface Episode {
 }
 
 /** 감정이 실렸다는 표시들. */
-const 실린말 = [
+const loadedWords = [
   '진짜', '너무', '완전', '엄청', '개', '미치', '大',
   '속상', '슬프', '슬퍼', '화나', '짜증', '억울', '무섭', '두렵', '싫어', '싫다',
   '기쁘', '행복', '신나', '좋아', '설레', '뿌듯', '고맙', '감동',
@@ -40,14 +40,14 @@ const 실린말 = [
 export function 기운재기(text: string): number {
   const 말 = text.trim();
   if (말.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
-  let 점수 = 0;
-  for (const 표시 of 실린말) if (말.includes(표시)) 점수 += 2;
-  점수 += Math.min(2, (말.match(/[!?]/g) ?? []).length);
+  let score = 0;
+  for (const mark of loadedWords) if (말.includes(mark)) score += 2;
+  score += Math.min(2, (말.match(/[!?]/g) ?? []).length);
   // 물음표만 잔뜩인 건 감정이 아니라 질문이다.
-  if (/[?]/.test(말) && 점수 <= 2) 점수 = 0;
+  if (/[?]/.test(말) && score <= 2) score = 0;
   // 길게 털어놓은 말은 그 자체로 사건일 때가 많다.
-  if (말.length > 40) 점수 += 1;
-  return 점수;
+  if (말.length > 40) score += 1;
+  return score;
 }
 
 export interface EpisodeStoreOptions {
@@ -62,7 +62,7 @@ export interface EpisodeStoreOptions {
    *
    * 없으면 낱말 표만 쓴다 — 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
    */
-  물어보기?: (말들: readonly string[]) => Promise<readonly number[] | null>;
+  물어보기?: (texts: readonly string[]) => Promise<readonly number[] | null>;
   log?: (message: string) => void;
 }
 
@@ -107,7 +107,7 @@ export class EpisodeStore {
    * 기억한다 — 같은 뿌리를 이미 네 번 밟았다(16·23·48·53회차).
    */
   learn(entries: readonly MemoryEntry[]): number {
-    let 담은수 = 0;
+    let storedCount = 0;
     for (const e of entries) {
       if (e.role !== 'sensed' || e.channel !== 'web') continue;
       if (this.있나(e.text)) continue;
@@ -118,17 +118,17 @@ export class EpisodeStore {
         continue;
       }
       this.담기({ said: e.text.trim(), at: e.at, 기운 });
-      담은수 += 1;
+      storedCount += 1;
     }
-    if (담은수 === 0) return 0;
+    if (storedCount === 0) return 0;
     this.정리();
-    return 담은수;
+    return storedCount;
   }
 
   /** 이 말이 이미 사건으로 들어와 있나. */
   private 있나(text: string): boolean {
     const 말 = text.trim();
-    return this.목록.some((있던것) => 있던것.said === 말);
+    return this.목록.some((existing) => existing.said === 말);
   }
 
   private 담기(e: Episode): void {
@@ -157,26 +157,26 @@ export class EpisodeStore {
    * 대답을 기다리느라 답이 늦어지면 안 되므로 **말하는 길에서 부르지 않는다** — 한 turn 이
    * 끝난 뒤에 따로 부른다. 실패하면 조용히 넘어가지 않고 적는다.
    */
-  async 되새기기(한번에 = 8): Promise<number> {
+  async 되새기기(atOnce = 8): Promise<number> {
     const 물어보기 = this.options.물어보기;
     if (물어보기 === undefined || this.물어볼것.size === 0) return 0;
 
-    const 뭉치 = [...this.물어볼것.entries()].slice(0, 한번에);
-    for (const [말] of 뭉치) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
+    const bundle = [...this.물어볼것.entries()].slice(0, atOnce);
+    for (const [말] of bundle) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
     let 점수들: readonly number[] | null = null;
     try {
-      점수들 = await 물어보기(뭉치.map(([말]) => 말));
+      점수들 = await 물어보기(bundle.map(([말]) => 말));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
     }
-    if (점수들 === null || 점수들.length !== 뭉치.length) {
-      this.options.log?.(`되새김 대답이 안 맞는다 — ${뭉치.length}개 물었는데 ${점수들?.length ?? '없음'}개 왔다`);
+    if (점수들 === null || 점수들.length !== bundle.length) {
+      this.options.log?.(`되새김 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${점수들?.length ?? '없음'}개 왔다`);
       return 0;
     }
 
     let 담은수 = 0;
-    뭉치.forEach(([말, at], i) => {
+    bundle.forEach(([말, at], i) => {
       const 기운 = Math.round(점수들![i]);
       if (Number.isFinite(기운) === false || 기운 < this.options.문턱 || this.있나(말)) return;
       this.담기({ said: 말, at, 기운 });
@@ -184,30 +184,30 @@ export class EpisodeStore {
     });
     if (담은수 > 0) {
       this.정리();
-      this.options.log?.(`${뭉치.length}개 중 ${담은수}개를 사건으로 담았다`);
+      this.options.log?.(`${bundle.length}개 중 ${담은수}개를 사건으로 담았다`);
     }
     return 담은수;
   }
 
   /** 지금 이 말과 이어지는 옛 일. 없으면 null. */
   related(now말: string, 최소겹침 = 2, now = Date.now()): Episode | null {
-    const 낱말 = 뽑기(now말);
-    if (낱말.length === 0) return null;
-    let 가장 = null as Episode | null;
+    const word = pick(now말);
+    if (word.length === 0) return null;
+    let most = null as Episode | null;
     let 가장점수 = -1;
     for (const e of this.목록) {
-      const 겹침 = 겹치는수(낱말, e.said);
-      if (겹침 < 최소겹침) continue;
-      const 점수 = 떠오름점수(e, 낱말.length, 겹침, now);
-      if (점수 > 가장점수) { 가장 = e; 가장점수 = 점수; }
+      const overlap = 겹치는수(word, e.said);
+      if (overlap < 최소겹침) continue;
+      const 점수 = 떠오름점수(e, word.length, overlap, now);
+      if (점수 > 가장점수) { most = e; 가장점수 = 점수; }
     }
-    return 가장;
+    return most;
   }
 
-  forget(조각: string): boolean {
-    const 전 = this.목록.length;
-    this.목록 = this.목록.filter((e) => e.said.includes(조각) === false);
-    if (this.목록.length === 전) return false;
+  forget(chunk: string): boolean {
+    const before = this.목록.length;
+    this.목록 = this.목록.filter((e) => e.said.includes(chunk) === false);
+    if (this.목록.length === before) return false;
     this.save();
     return true;
   }
@@ -230,7 +230,7 @@ export class EpisodeStore {
  * 모양을 바꾼다 — 통째로 견주면 같은 일을 얘기하는데도 하나도 안 겹친다(실측). 앞
  * 두 글자는 대개 그대로 남는다. 조사·한 글자 말은 아무 데나 겹치므로 버린다.
  */
-function 뽑기(text: string): string[] {
+function pick(text: string): string[] {
   return (text.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? [])
     .map((w) => w.replace(/(은|는|이|가|을|를|에|의|도|만|로|와|과)$/, ''))
     .filter((w) => w.length >= 2)
@@ -239,7 +239,7 @@ function 뽑기(text: string): string[] {
 
 /** 이 옛 일이 지금 말과 몇 낱말이나 겹치나. */
 export function 겹치는수(지금낱말: readonly string[], 그때말: string): number {
-  const 그때 = new Set(뽑기(그때말));
+  const 그때 = new Set(pick(그때말));
   return 지금낱말.filter((w) => 그때.has(w)).length;
 }
 
@@ -262,11 +262,11 @@ const 반감기 = 14;
  *   최근은 셋 중 가장 약하게만 얹는다 — 비기는 자리를 가르는 정도.
  */
 export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: number, now: number): number {
-  const 이어짐 = Math.min(1, 겹침 / Math.max(2, 지금낱말수));
+  const continued = Math.min(1, 겹침 / Math.max(2, 지금낱말수));
   const 큰일 = Math.min(1, e.기운 / 6);
-  const 지난날 = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
-  const 최근 = 0.5 ** (지난날 / 반감기);
-  return 0.5 * 이어짐 + 0.35 * 큰일 + 0.15 * 최근;
+  const pastDays = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
+  const recent = 0.5 ** (pastDays / 반감기);
+  return 0.5 * continued + 0.35 * 큰일 + 0.15 * recent;
 }
 
 /**
@@ -284,34 +284,34 @@ export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: num
 export function 기운묻기(ask: (prompt: string) => Promise<string | null>) {
   return async (말들: readonly string[]): Promise<readonly number[] | null> => {
     if (말들.length === 0) return [];
-    const 목록 = 말들.map((말, i) => `${i + 1}. ${말.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
-    const 답 = await ask(
+    const list = 말들.map((말, i) => `${i + 1}. ${말.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
+    const answer = await ask(
       '아래는 사람이 한 말들이다. 각각이 **나중에 다시 꺼낼 만한 일**인지 0~9 로 매겨라.\n' +
         '0 = 그냥 지나가는 말 · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
         '지시·부탁·질문은 사건이 아니다 — 0 이다.\n' +
-        `숫자만 줄바꿈으로 ${말들.length}개, 다른 말은 붙이지 마라.\n\n${목록}`,
+        `숫자만 줄바꿈으로 ${말들.length}개, 다른 말은 붙이지 마라.\n\n${list}`,
     );
-    if (답 === null) return null;
+    if (answer === null) return null;
     /* **줄마다 마지막 숫자**를 본다. 통째로 숫자를 긁으면 두뇌가 「1. 5」처럼 번호를 붙여
        답할 때 그 번호까지 점수로 센다 — 세 개 물었는데 [1,5,2] 가 나왔다(실측). */
-    const 숫자 = 답
+    const number = answer
       .split('\n')
-      .map((줄) => (줄.match(/\d+/g) ?? []).pop())
+      .map((line) => (line.match(/\d+/g) ?? []).pop())
       .filter((n): n is string => n !== undefined)
       .map(Number)
       .slice(0, 말들.length);
     // 개수가 안 맞으면 **억지로 맞추지 않는다** — 어긋난 채 담으면 엉뚱한 말이 큰일이 된다.
-    return 숫자.length === 말들.length ? 숫자 : null;
+    return number.length === 말들.length ? number : null;
   };
 }
 
 /** 얼마나 지난 일인지 사람이 쓰는 말로. */
 export function 언제쯤(at: number, now: number): string {
-  const 날 = Math.floor((now - at) / (24 * 60 * 60_000));
-  if (날 >= 30) return '한참 전에';
-  if (날 >= 7) return '지난주쯤';
-  if (날 >= 2) return `${날}일 전에`;
-  if (날 >= 1) return '어제';
+  const date = Math.floor((now - at) / (24 * 60 * 60_000));
+  if (date >= 30) return '한참 전에';
+  if (date >= 7) return '지난주쯤';
+  if (date >= 2) return `${date}일 전에`;
+  if (date >= 1) return '어제';
   return '아까';
 }
 
@@ -320,8 +320,8 @@ export function 언제쯤(at: number, now: number): string {
  *
  * 늘 붙이면 「기억하는 척」이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
  */
-export function episodeNote(store: EpisodeStore, 지금말: string, now: number): string {
-  const 그때 = store.related(지금말, 2, now);
+export function episodeNote(store: EpisodeStore, currentText: string, now: number): string {
+  const 그때 = store.related(currentText, 2, now);
   if (그때 === null) return '';
   return (
     `${언제쯤(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +

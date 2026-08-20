@@ -52,19 +52,19 @@ export class Playing {
       if (하자.test(text) === false) return null;
       this.chain = startWordChain();
       // 시작은 얘가 낸다 — 「먼저 해」 하고 미루는 건 같이 노는 게 아니다.
-      const 첫말 = pickWord(this.chain, this.words, this.roll);
-      if (첫말 === null) {
+      const firstText = pickWord(this.chain, this.words, this.roll);
+      if (firstText === null) {
         this.chain = null;
         return { say: '…아는 말이 없어. 다음에 하자.', playing: false };
       }
-      this.chain = play(this.chain, 첫말, '나').chain;
-      return { say: `좋아. ${첫말}.`, playing: true };
+      this.chain = play(this.chain, firstText, '나').chain;
+      return { say: `좋아. ${firstText}.`, playing: true };
     }
 
     if (그만.test(text)) {
-      const 몇개 = this.chain.used.length;
+      const count = this.chain.used.length;
       this.chain = null;
-      return { say: 몇개 >= 6 ? `…재밌었어. ${몇개}개나 했네.` : '…응, 그만하자.', playing: false };
+      return { say: count >= 6 ? `…재밌었어. ${count}개나 했네.` : '…응, 그만하자.', playing: false };
     }
 
     // 노는 중이어도 **한 수처럼 생긴 말**만 한 수로 받는다.

@@ -20,7 +20,7 @@ const 헛것 = [
   'thankyou', 'thanksforwatching', 'you', 'bye', 'okay', 'ok',
 ];
 
-const 민말 = (글: string): string => 글.replace(/[\s.,!?~…。、·"'’”]/g, '').toLowerCase();
+const 민말 = (content: string): string => content.replace(/[\s.,!?~…。、·"'’”]/g, '').toLowerCase();
 
 /**
  * 이 받아쓴 글을 사람이 한 말로 볼까.
@@ -28,9 +28,9 @@ const 민말 = (글: string): string => 글.replace(/[\s.,!?~…。、·"'’”
  * 좁게 막는다 — 진짜 한 말을 막으면 「불러도 대답을 안 한다」가 되고, 그게 헛것보다 나쁘다.
  */
 export function 넘길말인가(글: string | null | undefined): boolean {
-  const 말 = String(글 ?? '').trim();
-  if (말 === '') return false;
-  const 민 = 민말(말);
+  const text = String(글 ?? '').trim();
+  if (text === '') return false;
+  const 민 = 민말(text);
   // 글자 둘 미만은 헛것일 확률이 훨씬 높다. 「응」 「네」 한 마디는 아쉽지만, 아무도
   // 말 안 걸었는데 대꾸하는 쪽이 훨씬 이상하다.
   if (민.length < 2) return false;
@@ -56,9 +56,9 @@ export function 넘길말인가(글: string | null | undefined): boolean {
  * 창이 안 알려 주면(버튼으로 누른 경우 등) 막지 않는다 — 그때는 사람이 「지금 말한다」고
  * 알려 준 것이라 지어낼 여지가 훨씬 적다.
  */
-export function 말이있던구간인가(말한ms: number | null | undefined): boolean {
-  if (말한ms === null || 말한ms === undefined || Number.isFinite(말한ms) === false) return true;
-  return 말한ms >= 400;
+export function 말이있던구간인가(spokenMs: number | null | undefined): boolean {
+  if (spokenMs === null || spokenMs === undefined || Number.isFinite(spokenMs) === false) return true;
+  return spokenMs >= 400;
 }
 
 /** 왜 안 넘겼는지 — 조용히 버리면 「왜 대답을 안 하지」가 된다. */

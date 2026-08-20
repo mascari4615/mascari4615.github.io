@@ -308,6 +308,6 @@ function buildPrompt(input: ThinkInput, imageInSandbox: string | null, handsNote
 
 function renderEntry(entry: MemoryEntry): string {
   // 누가 한 말인지 알면 그 이름으로 적는다 — 여럿이 있는 자리에서 이름이 없으면 독백이 된다.
-  const 누구 = entry.role === 'said' ? '나' : (entry.누가 ?? `[${entry.channel}]`);
-  return `${누구}: ${entry.text}`;
+  const who = entry.role === 'said' ? '나' : (entry.누가 ?? `[${entry.channel}]`);
+  return `${who}: ${entry.text}`;
 }

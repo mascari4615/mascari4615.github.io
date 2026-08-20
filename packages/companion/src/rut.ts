@@ -62,16 +62,16 @@ export function findRut(entries: readonly MemoryEntry[], options: RutOptions = {
   const window = options.window ?? 8;
   const atLeast = options.atLeast ?? 3;
 
-  const 말들 = brainSaid(entries).slice(-window).map((e) => opener(e.text)).filter((o) => o !== '');
-  if (말들.length < atLeast) return null;
+  const texts = brainSaid(entries).slice(-window).map((e) => opener(e.text)).filter((o) => o !== '');
+  if (texts.length < atLeast) return null;
 
-  const 셈 = new Map<string, number>();
-  for (const o of 말들) 셈.set(o, (셈.get(o) ?? 0) + 1);
+  const calc = new Map<string, number>();
+  for (const o of texts) calc.set(o, (calc.get(o) ?? 0) + 1);
 
   let 최고: Rut | null = null;
-  for (const [o, n] of 셈) {
+  for (const [o, n] of calc) {
     if (n < atLeast) continue;
-    if (최고 === null || n > 최고.times) 최고 = { opener: o, times: n, of: 말들.length };
+    if (최고 === null || n > 최고.times) 최고 = { opener: o, times: n, of: texts.length };
   }
   return 최고;
 }
@@ -83,11 +83,11 @@ export function findRut(entries: readonly MemoryEntry[], options: RutOptions = {
  */
 export function findEcho(entries: readonly MemoryEntry[], window = 8): string | null {
   const 말들 = brainSaid(entries).slice(-window).map((e) => e.text.trim());
-  const 본것 = new Set<string>();
+  const seen = new Set<string>();
   for (const t of 말들) {
     if (t === '') continue;
-    if (본것.has(t)) return t;
-    본것.add(t);
+    if (seen.has(t)) return t;
+    seen.add(t);
   }
   return null;
 }
@@ -99,9 +99,9 @@ export function findEcho(entries: readonly MemoryEntry[], window = 8): string | 
  * 사린다(15회차에서 배웠다). 그래서 평소엔 조용하다.
  */
 export function rutWarning(entries: readonly MemoryEntry[], options: RutOptions = {}): string {
-  const 통째 = findEcho(entries, options.window ?? 8);
-  if (통째 !== null) {
-    return `방금 「${통째.slice(0, 24)}」 를 아까도 똑같이 했다. 같은 문장을 또 뱉지 마라 — 다른 각도로 열어라.`;
+  const whole = findEcho(entries, options.window ?? 8);
+  if (whole !== null) {
+    return `방금 「${whole.slice(0, 24)}」 를 아까도 똑같이 했다. 같은 문장을 또 뱉지 마라 — 다른 각도로 열어라.`;
   }
 
   const rut = findRut(entries, options);

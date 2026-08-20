@@ -95,18 +95,18 @@ export class 밀린생각 {
   /** 재료 목록에 참은 만큼을 얹어 돌려준다. 원본은 안 건드린다. */
   덧입히기(all: readonly Ingredient[]): Ingredient[] {
     return all.map((x) => {
-      const 덧 = this.더할무게(x.name);
-      return 덧 === 0 ? x : { ...x, weight: x.weight + 덧 };
+      const extra = this.더할무게(x.name);
+      return extra === 0 ? x : { ...x, weight: x.weight + extra };
     });
   }
 
   /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
   요약(): string {
-    const 것들 = [...this.눌린것.entries()]
+    const items = [...this.눌린것.entries()]
       .filter(([이름]) => this.더할무게(이름) > 0)
       .sort((a, b) => b[1].횟수 - a[1].횟수)
       .slice(0, 5)
       .map(([이름, v]) => `${이름}+${this.더할무게(이름)}(${v.횟수}번)`);
-    return 것들.join(' · ');
+    return items.join(' · ');
   }
 }

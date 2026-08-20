@@ -24,7 +24,7 @@ import { 어떤자리, type 자리 } from './room';
  * 값이 시간이 갈수록 0 에 수렴한다.
  */
 
-const 갈래들: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드는중', '읽는중', '노는중', '나를보는중'];
+const kinds: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드는중', '읽는중', '노는중', '나를보는중'];
 
 export interface 자리배움옵션 {
   path?: string;
@@ -58,10 +58,10 @@ export class 자리배움 {
   읽기(title: string | null | undefined): 자리 {
     const 제목 = (title ?? '').trim();
     if (제목 === '') return null;
-    const 표 = 어떤자리(제목);
-    if (표 !== null) return 표;
-    const 배움 = this.배운것.get(짧게(제목));
-    if (배움 !== undefined) return 배움;
+    const table = 어떤자리(제목);
+    if (table !== null) return table;
+    const learning = this.배운것.get(짧게(제목));
+    if (learning !== undefined) return learning;
     if (this.물어보기있나) this.물어볼것.add(짧게(제목));
     return null;
   }
@@ -83,32 +83,32 @@ export class 자리배움 {
    *
    * 모른다고 답한 것도 적어 둔다 — 안 적으면 같은 창을 영원히 다시 묻는다.
    */
-  async 되새기기(한번에 = 10): Promise<number> {
+  async 되새기기(atOnce = 10): Promise<number> {
     const 물어보기 = this.options.물어보기;
     if (물어보기 === undefined || this.물어볼것.size === 0) return 0;
-    const 뭉치 = [...this.물어볼것].slice(0, 한번에);
-    for (const 제목 of 뭉치) this.물어볼것.delete(제목); // 실패해도 무한히 다시 묻지 않는다
+    const bundle = [...this.물어볼것].slice(0, atOnce);
+    for (const 제목 of bundle) this.물어볼것.delete(제목); // 실패해도 무한히 다시 묻지 않는다
 
-    let 답: readonly (자리 | null)[] | null = null;
+    let answer: readonly (자리 | null)[] | null = null;
     try {
-      답 = await 물어보기(뭉치);
+      answer = await 물어보기(bundle);
     } catch (err) {
       this.options.log?.(`자리를 못 물어봤다 — ${(err as Error)?.message ?? err}`);
       return 0;
     }
-    if (답 === null || 답.length !== 뭉치.length) {
-      this.options.log?.(`자리 대답이 안 맞는다 — ${뭉치.length}개 물었는데 ${답?.length ?? '없음'}개 왔다`);
+    if (answer === null || answer.length !== bundle.length) {
+      this.options.log?.(`자리 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${answer?.length ?? '없음'}개 왔다`);
       return 0;
     }
 
     let 배운수 = 0;
-    뭉치.forEach((제목, i) => {
-      const z = 답![i];
+    bundle.forEach((제목, i) => {
+      const z = answer![i];
       this.배운것.set(제목, z === undefined ? null : z);
       if (z !== null && z !== undefined) 배운수 += 1;
     });
     this.save();
-    if (배운수 > 0) this.options.log?.(`창 ${뭉치.length}개 중 ${배운수}개가 무슨 자리인지 알았다`);
+    if (배운수 > 0) this.options.log?.(`창 ${bundle.length}개 중 ${배운수}개가 무슨 자리인지 알았다`);
     return 배운수;
   }
 
@@ -131,32 +131,32 @@ export class 자리배움 {
  * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 자리)만 남긴다.
  */
 export function 짧게(제목: string): string {
-  const 조각 = 제목.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
-  const 뒤 = 조각.length >= 2 ? 조각.slice(-2).join(' - ') : (조각[0] ?? 제목);
-  return 뒤.slice(0, 60);
+  const chunk = 제목.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
+  const after = chunk.length >= 2 ? chunk.slice(-2).join(' - ') : (chunk[0] ?? 제목);
+  return after.slice(0, 60);
 }
 
 /** 두뇌에게 「이 창은 뭐 하는 자리야?」를 묻는 자리. */
 export function 자리묻기(ask: (prompt: string) => Promise<string | null>) {
   return async (제목들: readonly string[]): Promise<readonly (자리 | null)[] | null> => {
     if (제목들.length === 0) return [];
-    const 목록 = 제목들.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');
+    const list = 제목들.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');
     const 답 = await ask(
       '아래는 컴퓨터에 떠 있는 창 제목들이다. 각각이 **그 사람이 지금 뭘 하는 자리**인지 골라라.\n' +
-        `${갈래들.join(' · ')} · 모름\n\n` +
+        `${kinds.join(' · ')} · 모름\n\n` +
         '- 통화 = 사람과 통화·회의 중(끼어들면 안 되는 자리)\n' +
         '- 보는중 = 영상·방송을 보는 중 · 노는중 = 게임\n' +
         '- 만드는중 = 코드·그림·글을 만드는 중 · 읽는중 = 문서·웹을 읽는 중\n' +
         '- 나를보는중 = 그 사람의 AI 동반자 창\n' +
         '- 시스템 설정창·알림창처럼 「뭘 하는 중」이라 할 수 없으면 모름\n\n' +
-        `한 줄에 하나씩 ${제목들.length}개, 낱말만. 다른 말은 붙이지 마라.\n\n${목록}`,
+        `한 줄에 하나씩 ${제목들.length}개, 낱말만. 다른 말은 붙이지 마라.\n\n${list}`,
     );
     if (답 === null) return null;
-    const 줄 = 답.split('\n').map((x) => x.trim()).filter((x) => x !== '');
-    const 고른것 = 줄
-      .map((x) => 갈래들.find((z) => x.includes(z)) ?? (x.includes('모름') ? null : undefined))
+    const line = 답.split('\n').map((x) => x.trim()).filter((x) => x !== '');
+    const picked = line
+      .map((x) => kinds.find((z) => x.includes(z)) ?? (x.includes('모름') ? null : undefined))
       .filter((x) => x !== undefined) as (자리 | null)[];
     // 개수가 안 맞으면 통째로 버린다 — 어긋난 채 적으면 엉뚱한 창이 「통화」가 되어 입을 닫는다.
-    return 고른것.length === 제목들.length ? 고른것 : null;
+    return picked.length === 제목들.length ? picked : null;
   };
 }

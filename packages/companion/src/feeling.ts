@@ -26,7 +26,7 @@ export interface Feeling {
 export const 평소: Feeling = { valence: 0.05, arousal: -0.1 };
 
 /** 무슨 일이 마음을 얼마나 미는가. */
-export const 일들 = {
+export const events = {
   웃어줌: { valence: 0.35, arousal: 0.3 },
   받아줌: { valence: 0.2, arousal: 0.15 },
   되물음: { valence: 0.15, arousal: 0.2 },
@@ -42,7 +42,7 @@ export const 일들 = {
   오래혼자: { valence: -0.1, arousal: -0.25 },
 } as const satisfies Record<string, Feeling>;
 
-export type 일 = keyof typeof 일들;
+export type 일 = keyof typeof events;
 
 const 묶기 = (x: number): number => Math.max(-1, Math.min(1, x));
 
@@ -73,7 +73,7 @@ export class Heart {
   /** 무슨 일이 있었다. */
   felt(what: 일, 세기 = 1): Feeling {
     const 지금 = this.settle();
-    const 민다 = 일들[what];
+    const 민다 = events[what];
     this.feeling = {
       valence: 묶기(지금.valence + 민다.valence * 세기),
       arousal: 묶기(지금.arousal + 민다.arousal * 세기),
@@ -123,8 +123,8 @@ export class Heart {
  * 어떻게 말할지는 얘가 정하게 둔다.
  */
 export function feelingNote(feeling: Feeling): string {
-  const 셈 = Math.abs(feeling.valence) + Math.abs(feeling.arousal);
-  if (셈 < 0.25) return '';
+  const calc = Math.abs(feeling.valence) + Math.abs(feeling.arousal);
+  if (calc < 0.25) return '';
 
   const 좋고나쁨 = feeling.valence > 0.2 ? '조금 전 일이 나쁘지 않았다'
     : feeling.valence < -0.2 ? '조금 전 일이 좀 언짢았다'
@@ -133,6 +133,6 @@ export function feelingNote(feeling: Feeling): string {
     : feeling.arousal < -0.35 ? '가라앉아 있다'
     : null;
 
-  const 말 = [좋고나쁨, 들뜸처짐].filter((x) => x !== null).join('. ');
-  return 말 === '' ? '' : `${말}. 그 결이 말투에 묻어나도 된다 — 다만 감정을 설명하지는 마라.`;
+  const text = [좋고나쁨, 들뜸처짐].filter((x) => x !== null).join('. ');
+  return text === '' ? '' : `${text}. 그 결이 말투에 묻어나도 된다 — 다만 감정을 설명하지는 마라.`;
 }

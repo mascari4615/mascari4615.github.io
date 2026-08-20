@@ -53,7 +53,7 @@ export function touchKindOf(sensation: Pick<Sensation, 'channel' | 'text'>): Tou
   return null;
 }
 
-const 대꾸: Record<TouchKind, readonly string[][]> = {
+const reply: Record<TouchKind, readonly string[][]> = {
   // [처음, 몇 번째, 계속]
   쿡: [
     ['…어?', '왜.', '응?'],
@@ -90,8 +90,8 @@ export interface TouchReplyOptions {
 }
 
 /** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
-export function 닿음갈래(kind: TouchKind, 단계: number): string {
-  return `touch:${kind}:${단계}`;
+export function 닿음갈래(kind: TouchKind, stage: number): string {
+  return `touch:${kind}:${stage}`;
 }
 
 /** 몇 번째 닿음이 어느 결인가 — 처음(0) / 몇 번(1) / 계속(2). */
@@ -132,24 +132,24 @@ export function touchReply(kind: TouchKind, options: TouchReplyOptions = {}): st
 
   // 미리 지어 둔 것이 있으면 그게 먼저다 — 손으로 적은 표는 결국 도는 말이 된다.
   // 바로 앞것과 같은 말이 나오면 그건 안 쓴다(창고 안에서도 겹칠 수 있다).
-  const 지어둔것 = options.창고?.꺼내기(닿음갈래(kind, 단계)) ?? null;
-  if (지어둔것 !== null && 지어둔것 !== options.last) return 지어둔것;
+  const prepared = options.창고?.꺼내기(닿음갈래(kind, 단계)) ?? null;
+  if (prepared !== null && prepared !== options.last) return prepared;
 
-  const 후보 = 대꾸[kind][단계];
+  const candidates = reply[kind][단계];
 
-  const 열쇠 = `${kind}:${단계}`;
-  const 이미 = 쓴것.get(열쇠) ?? new Set<string>();
-  let 고를것 = 후보.filter((c) => 이미.has(c) === false && c !== options.last);
+  const key = `${kind}:${단계}`;
+  const already = 쓴것.get(key) ?? new Set<string>();
+  let 고를것 = candidates.filter((c) => already.has(c) === false && c !== options.last);
   if (고를것.length === 0) {
     // 한 바퀴 다 돌았다. 비우고 다시 — 다만 바로 앞것은 그래도 피한다.
-    이미.clear();
-    고를것 = 후보.filter((c) => c !== options.last);
-    if (고를것.length === 0) 고를것 = [...후보];
+    already.clear();
+    고를것 = candidates.filter((c) => c !== options.last);
+    if (고를것.length === 0) 고를것 = [...candidates];
   }
-  const 고른것 = 고를것[Math.floor(roll() * 고를것.length) % 고를것.length];
-  이미.add(고른것);
-  쓴것.set(열쇠, 이미);
-  return 고른것;
+  const picked = 고를것[Math.floor(roll() * 고를것.length) % 고를것.length];
+  already.add(picked);
+  쓴것.set(key, already);
+  return picked;
 }
 
 /**

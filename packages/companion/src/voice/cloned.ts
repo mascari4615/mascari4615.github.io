@@ -58,9 +58,9 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
          어떻든 늘 같은 속도로 말하고, 밤에 누그러뜨리는 것도 안 들린다 — 결을 붙여
          놓고 듣는 쪽이 안 받으면 붙인 적 없는 것과 같다.
          이름 뒤의 `@결` 을 읽는다. 없으면 늘 하던 속도. */
-      const 결 = (voiceId ?? '').split('@')[1] as Tone | undefined;
+      const tone = (voiceId ?? '').split('@')[1] as Tone | undefined;
       // 기분빠르기는 「늘어지는 정도」라 방향이 반대다 — 1.15 는 느리게, 여기선 나눠 준다.
-      const 빠르기 = 결 !== undefined && 결 in 기분빠르기 ? 1 / 기분빠르기[결] : 1.0;
+      const 빠르기 = tone !== undefined && tone in 기분빠르기 ? 1 / 기분빠르기[tone] : 1.0;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {

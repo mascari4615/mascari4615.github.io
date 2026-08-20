@@ -31,7 +31,7 @@ const 한글숫자: Record<string, number> = {
 // 템플릿 문자열 안에서는 `\d` 가 그냥 `d` 가 된다 — 실제로 이걸로 아무것도 안 맞았다.
 const 시간꼴 = new RegExp(`(\\d+|${Object.keys(한글숫자).join('|')})\\s*(분|시간)`);
 const 조용히 = /(조용히|조용|가만히|말 걸지|말걸지|방해하지|나중에|이따|좀 있다|좀있다|집중|바쁘|바빠|바쁨|정신없)/;
-const 다시 = /(이제 됐|다시 얘기|말해도|돌아왔|끝났|다 했)/;
+const again = /(이제 됐|다시 얘기|말해도|돌아왔|끝났|다 했)/;
 
 /**
  * 이 말이 조용히 있으라는 뜻인가. 아니면 null.
@@ -42,19 +42,19 @@ export function asksForQuiet(text: string, defaultMs = 30 * 60_000): QuietReques
   const t = text.trim();
   if (조용히.test(t) === false) return null;
   // 「이제 됐어」류가 섞여 있으면 푸는 쪽이다.
-  if (다시.test(t)) return null;
+  if (again.test(t)) return null;
 
   const m = 시간꼴.exec(t);
   if (m === null) return { ms: defaultMs, says: '…응, 있다가.' };
 
-  const 수 = 한글숫자[m[1]] ?? Number(m[1]);
-  const ms = m[2] === '시간' ? 수 * 3600_000 : 수 * 60_000;
-  return { ms: Math.max(60_000, ms), says: `…응. ${수}${m[2]} 뒤에.` };
+  const count = 한글숫자[m[1]] ?? Number(m[1]);
+  const ms = m[2] === '시간' ? count * 3600_000 : count * 60_000;
+  return { ms: Math.max(60_000, ms), says: `…응. ${count}${m[2]} 뒤에.` };
 }
 
 /** 이 말이 「이제 됐다」는 뜻인가. */
 export function asksToResume(text: string): boolean {
-  return 다시.test(text.trim());
+  return again.test(text.trim());
 }
 
 export interface QuietOptions {
@@ -102,10 +102,10 @@ export class Quiet {
 
   /** 조용한 시간대인가. */
   get inQuietHours(): boolean {
-    const 값 = (x: number | (() => number) | undefined): number | undefined =>
+    const value = (x: number | (() => number) | undefined): number | undefined =>
       typeof x === 'function' ? x() : x;
-    const fromHour = 값(this.options.fromHour);
-    const toHour = 값(this.options.toHour);
+    const fromHour = value(this.options.fromHour);
+    const toHour = value(this.options.toHour);
     if (fromHour === undefined || toHour === undefined || Number.isFinite(fromHour) === false
       || Number.isFinite(toHour) === false) return false;
     const h = new Date(this.now).getHours();
@@ -127,8 +127,8 @@ export class Quiet {
   leftSay(): string {
     const 남음 = this.until - this.now;
     if (남음 <= 0) return '';
-    const 분 = Math.ceil(남음 / 60_000);
-    return 분 >= 60 ? `${Math.round(분 / 60)}시간쯤 더` : `${분}분쯤 더`;
+    const minutes = Math.ceil(남음 / 60_000);
+    return minutes >= 60 ? `${Math.round(minutes / 60)}시간쯤 더` : `${minutes}분쯤 더`;
   }
 }
 

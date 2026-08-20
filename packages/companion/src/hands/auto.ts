@@ -49,11 +49,11 @@ export const 기본힌트: readonly HandHint[] = [
     when: /(적어 ?둬|적어 ?놔|적어 ?줘|메모해|기억해 ?둬|잊지 ?말)/,
     argument: (said) => {
       // 「우유 사기 적어 둬」 → 우유 사기. 시키는 말은 떼어 낸다.
-      const 벗긴것 = said
+      const stripped = said
         .replace(/(적어 ?둬|적어 ?놔|적어 ?줘|메모해 ?줘|메모해|기억해 ?둬|잊지 ?말고?|잊지 ?마)/g, '')
         .replace(/^[\s,.]+|[\s,.]+$/g, '')
         .trim();
-      return 벗긴것;
+      return stripped;
     },
   },
   {
@@ -109,15 +109,15 @@ export async function autoUse(
   hands: readonly Hand[],
   options: AutoHandsOptions = {},
 ): Promise<string[]> {
-  const 고른것 = pickHand(said, hands, options.hints ?? 기본힌트);
-  if (고른것 === null) return [];
+  const picked = pickHand(said, hands, options.hints ?? 기본힌트);
+  if (picked === null) return [];
 
   try {
-    const 찾은것 = await 고른것.hand.run(고른것.argument);
-    options.log?.(`미리 써 뒀다: ${고른것.hand.name}(${고른것.argument || '없음'})`);
-    return [`${고른것.hand.name}: ${찾은것}`];
+    const found = await picked.hand.run(picked.argument);
+    options.log?.(`미리 써 뒀다: ${picked.hand.name}(${picked.argument || '없음'})`);
+    return [`${picked.hand.name}: ${found}`];
   } catch (e) {
-    options.log?.(`${고른것.hand.name} 을 못 썼다: ${e instanceof Error ? e.message : String(e)}`);
+    options.log?.(`${picked.hand.name} 을 못 썼다: ${e instanceof Error ? e.message : String(e)}`);
     return [];
   }
 }

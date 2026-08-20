@@ -38,16 +38,16 @@ export interface 드묾옵션 {
   상한?: number;
 }
 
-const 기본 = { 최소본수: 40, 흔한기준: 0.5, 상한: 12 };
+const base = { 최소본수: 40, 흔한기준: 0.5, 상한: 12 };
 
 /** 이 재료가 켜졌을 때 얼마나 얹어 줄까. */
 export function 드묾가산(m: Marks | undefined, options: 드묾옵션 = {}): number {
-  const { 최소본수, 흔한기준, 상한 } = { ...기본, ...options };
+  const { 최소본수, 흔한기준, 상한 } = { ...base, ...options };
   if (m === undefined) return 0;
-  const 지나감 = m.실림 + m.밀림 + m.꺼짐 + m.빔;
+  const elapsed = m.실림 + m.밀림 + m.꺼짐 + m.빔;
   // 아직 얼마 안 돌았으면 아무 말도 안 한다 — 새 재료가 첫 turn 에 1등이 되면 안 된다.
-  if (지나감 < 최소본수) return 0;
-  const 꺼진비율 = m.꺼짐 / 지나감;
+  if (elapsed < 최소본수) return 0;
+  const 꺼진비율 = m.꺼짐 / elapsed;
   if (꺼진비율 <= 흔한기준) return 0;
   return Math.round((상한 * (꺼진비율 - 흔한기준)) / (1 - 흔한기준));
 }
@@ -65,7 +65,7 @@ export function 드묾덧입히기(
 ): Ingredient[] {
   return all.map((x) => {
     if (x.when === false) return x;
-    const 덧 = 드묾가산(보기(x.name), options);
-    return 덧 === 0 ? x : { ...x, weight: x.weight + 덧 };
+    const extra = 드묾가산(보기(x.name), options);
+    return extra === 0 ? x : { ...x, weight: x.weight + extra };
   });
 }

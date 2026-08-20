@@ -29,7 +29,7 @@ export interface NudgeInput {
   hour: number;
 }
 
-const 시간 = 60 * 60_000;
+const time = 60 * 60_000;
 
 /**
  * 지금 말 걸 이유가 있나.
@@ -63,8 +63,8 @@ export function reasonToSpeak(input: NudgeInput): Reason | null {
   }
 
   // 아주 오래 못 봤으면 그냥 아는 척 한 번.
-  if (alone > 6 * 시간) {
-    return { why: '오랜만이다. 별일 없었는지 짧게 한마디.', key: `오랜만-${Math.floor(Date.now() / (6 * 시간))}` };
+  if (alone > 6 * time) {
+    return { why: '오랜만이다. 별일 없었는지 짧게 한마디.', key: `오랜만-${Math.floor(Date.now() / (6 * time))}` };
   }
 
   return null;

@@ -26,14 +26,14 @@ export interface Tease {
   from: '또 물음' | '잔다더니';
 }
 
-const 힘든말 = /(힘들|지쳤|짜증|화나|우울|속상|안 좋|최악|망했|죽겠)/;
+const hardWords = /(힘들|지쳤|짜증|화나|우울|속상|안 좋|최악|망했|죽겠)/;
 
 /** 지금 놀릴 자리가 아닌가 — 힘들어 보이면 안 놀린다. */
 export function tooSoreToTease(entries: readonly MemoryEntry[], howMany = 3): boolean {
   return conversationOnly(entries)
     .filter((e) => e.role === 'sensed')
     .slice(-howMany)
-    .some((e) => 힘든말.test(e.text));
+    .some((e) => hardWords.test(e.text));
 }
 
 /** 물음에서 알맹이 낱말들을 뽑는다 — 「그 셰이더 어떻게 됐어?」 → 셰이더. */
@@ -62,13 +62,13 @@ export function askedBefore(
   const 지금알맹이 = 알맹이(said);
   if (지금알맹이.length < (options.minWords ?? 1)) return null;
 
-  const 옛것 = conversationOnly(entries)
+  const old = conversationOnly(entries)
     .filter((e) => e.role === 'sensed' && now - e.at <= withinMs && e.text.trim() !== said.trim());
 
-  for (let i = 옛것.length - 1; i >= 0; i -= 1) {
-    const 겹침 = 알맹이(옛것[i].text).filter((w) => 지금알맹이.includes(w));
+  for (let i = old.length - 1; i >= 0; i -= 1) {
+    const overlap = 알맹이(old[i].text).filter((w) => 지금알맹이.includes(w));
     // 알맹이가 **다** 겹쳐야 같은 물음이다. 하나 겹쳤다고 같은 얘기는 아니다.
-    if (겹침.length >= 지금알맹이.length && 겹침.length > 0) return 옛것[i];
+    if (overlap.length >= 지금알맹이.length && overlap.length > 0) return old[i];
   }
   return null;
 }
@@ -87,9 +87,9 @@ export function stayedUp(
   const afterMs = options.afterMs ?? 20 * 60_000;
   const now = options.now ?? Date.now();
 
-  const 사람말 = conversationOnly(entries).filter((e) => e.role === 'sensed');
-  for (let i = 사람말.length - 1; i >= 0; i -= 1) {
-    const e = 사람말[i];
+  const userText = conversationOnly(entries).filter((e) => e.role === 'sensed');
+  for (let i = userText.length - 1; i >= 0; i -= 1) {
+    const e = userText[i];
     if (잔다는말.test(e.text) === false) continue;
     const 지난시간 = now - e.at;
     // 오늘 안에, 그리고 한참 지났을 때만.
@@ -114,8 +114,8 @@ export function findTease(
 
   const 안잠 = stayedUp(entries, { now });
   if (안잠 !== null) {
-    const 분 = Math.round((now - 안잠.at) / 60_000);
-    return { from: '잔다더니', what: `조수님이 ${분}분 전에 「${안잠.text.slice(0, 20)}」 라고 해 놓고 아직 있다` };
+    const minutes = Math.round((now - 안잠.at) / 60_000);
+    return { from: '잔다더니', what: `조수님이 ${minutes}분 전에 「${안잠.text.slice(0, 20)}」 라고 해 놓고 아직 있다` };
   }
 
   return null;

@@ -29,9 +29,9 @@ const 시킨것따짐 = /(달라는\s*건지|하라는\s*건지|무엇을\s*(원
  * 둘 중 하나만 걸려도 잡는다 — 둘 다 요구하면 실제로 나온 그 말이 안 걸렸다(실측).
  */
 export function 지시문에대꾸했나(said: string): string | null {
-  const 말 = said.trim();
-  if (말 === '') return null;
-  if (자료로가리킴.test(말)) return '대화를 자료처럼 가리켰다 — 사람한테 하는 말이 아니다';
-  if (시킨것따짐.test(말)) return '시킨 것을 두고 따졌다 — 무대 뒤가 보인다';
+  const text = said.trim();
+  if (text === '') return null;
+  if (자료로가리킴.test(text)) return '대화를 자료처럼 가리켰다 — 사람한테 하는 말이 아니다';
+  if (시킨것따짐.test(text)) return '시킨 것을 두고 따졌다 — 무대 뒤가 보인다';
   return null;
 }

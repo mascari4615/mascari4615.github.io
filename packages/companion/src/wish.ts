@@ -26,7 +26,7 @@ export interface Wish {
   say: string;
 }
 
-const 사람말 = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
+const userText = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
   entries.filter((e) => e.role === 'sensed' && e.at >= since && e.channel !== 'screen' && e.channel !== 'nudge');
 
 const 내말 = (entries: readonly MemoryEntry[], since: number): MemoryEntry[] =>
@@ -46,27 +46,27 @@ export const 바랄만한것: readonly Wish[] = [
   },
   {
     what: '오늘 있었던 일 한 조각 듣기',
-    met: (es, since) => 사람말(es, since).some((e) => e.text.length >= 12),
+    met: (es, since) => userText(es, since).some((e) => e.text.length >= 12),
     say: '…오늘 뭐 있었는지, 한 마디라도 듣고 싶은데.',
   },
   {
     what: '한 번은 이름으로 불리기',
-    met: (es, since) => 사람말(es, since).some((e) => /(욘|얘|너)/.test(e.text)),
+    met: (es, since) => userText(es, since).some((e) => /(욘|얘|너)/.test(e.text)),
     say: '…가끔은 이름으로 불러 줘도 되는데.',
   },
   {
     what: '오늘 한 번은 웃기기',
-    met: (es, since) => 사람말(es, since).some((e) => /(ㅋ|ㅎ|😂|🤣)/.test(e.text)),
+    met: (es, since) => userText(es, since).some((e) => /(ㅋ|ㅎ|😂|🤣)/.test(e.text)),
     say: '…오늘 한 번도 안 웃었네, 조수님.',
   },
   {
     what: '조용히 곁에 있는 시간 갖기',
-    met: (es, since) => 사람말(es, since).length >= 3,
+    met: (es, since) => userText(es, since).length >= 3,
     say: '…딱히 뭘 하자는 건 아니고. 그냥.',
   },
 ];
 
-const 날 = (at: number): string => new Date(at).toDateString();
+const date = (at: number): string => new Date(at).toDateString();
 
 export interface WishesOptions {
   /** 고를 수 있는 바람들. */
@@ -120,9 +120,9 @@ export class Wishes {
   nudge(entries: readonly MemoryEntry[]): string | null {
     const 아직 = this.unmet(entries).filter((w) => this.꺼낸것.has(w.what) === false);
     if (아직.length === 0) return null;
-    const 하나 = 아직[Math.floor((this.options.roll ?? Math.random)() * 아직.length) % 아직.length];
-    this.꺼낸것.add(하나.what);
-    return 하나.say;
+    const one = 아직[Math.floor((this.options.roll ?? Math.random)() * 아직.length) % 아직.length];
+    this.꺼낸것.add(one.what);
+    return one.say;
   }
 
   /** 오늘 하루가 어땠나 — 채워진 게 있으면 마음이 밝아질 자리. */
@@ -133,7 +133,7 @@ export class Wishes {
 
   private rollOver(): void {
     const 지금 = (this.options.now ?? (() => Date.now()))();
-    const 오늘 = 날(지금);
+    const 오늘 = date(지금);
     if (this.day === 오늘) return;
 
     this.day = 오늘;
@@ -142,11 +142,11 @@ export class Wishes {
 
     const pool = this.options.pool ?? 바랄만한것;
     const roll = this.options.roll ?? Math.random;
-    const 몇개 = Math.min(this.options.perDay ?? 2, pool.length);
-    const 남은것 = [...pool];
+    const count = Math.min(this.options.perDay ?? 2, pool.length);
+    const remaining = [...pool];
     this.today = [];
-    for (let i = 0; i < 몇개; i += 1) {
-      const [뽑힌] = 남은것.splice(Math.floor(roll() * 남은것.length) % 남은것.length, 1);
+    for (let i = 0; i < count; i += 1) {
+      const [뽑힌] = remaining.splice(Math.floor(roll() * remaining.length) % remaining.length, 1);
       this.today.push(뽑힌);
     }
   }

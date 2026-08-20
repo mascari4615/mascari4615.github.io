@@ -54,16 +54,16 @@ export function reactionTo(
   const quick = options.quickMs ?? 30_000;
   const cold = options.coldMs ?? 180_000;
   const 걸린시간 = reply.at - said.at;
-  const 답 = reply.text.trim();
+  const answer = reply.text.trim();
 
-  if (웃음.test(답)) return { said: said.text, landed: true, why: '웃었다' };
+  if (웃음.test(answer)) return { said: said.text, landed: true, why: '웃었다' };
   // 되물음은 **바로 와야** 되물음이다. 한참 있다 던진 물음은 내 말을 받은 게 아니라
   // 새로 꺼낸 얘기다 (실제 기록에서 이걸 통한 것으로 잘못 세고 있었다).
-  if (답.endsWith('?') && 걸린시간 < cold) return { said: said.text, landed: true, why: '되물었다' };
-  if (걸린시간 <= quick && 답.length >= 8 && 시큰둥.test(답) === false) {
+  if (answer.endsWith('?') && 걸린시간 < cold) return { said: said.text, landed: true, why: '되물었다' };
+  if (걸린시간 <= quick && answer.length >= 8 && 시큰둥.test(answer) === false) {
     return { said: said.text, landed: true, why: '바로 받아서 이어 갔다' };
   }
-  if (시큰둥.test(답)) return { said: said.text, landed: false, why: '한 마디로 넘겼다' };
+  if (시큰둥.test(answer)) return { said: said.text, landed: false, why: '한 마디로 넘겼다' };
   if (걸린시간 >= cold) return { said: said.text, landed: false, why: '한참 있다 딴 얘기를 했다' };
 
   return null;
@@ -74,8 +74,8 @@ export function whatLanded(entries: readonly MemoryEntry[], options: LandingOpti
   const talk = conversationOnly(entries, options);
   const out: Landing[] = [];
   for (let i = 0; i < talk.length - 1; i += 1) {
-    const 잰것 = reactionTo(talk[i], talk[i + 1], options);
-    if (잰것 !== null) out.push(잰것);
+    const measured = reactionTo(talk[i], talk[i + 1], options);
+    if (measured !== null) out.push(measured);
   }
   return out;
 }

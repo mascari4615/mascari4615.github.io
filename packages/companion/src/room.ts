@@ -65,8 +65,8 @@ const 갈래표: readonly 짚기[] = [
 export function 어떤자리(title: string | null | undefined): 자리 {
   const 제목 = (title ?? '').toLowerCase().trim();
   if (제목 === '') return null;
-  for (const { 자리: 갈래, 낱말 } of 갈래표) {
-    if (낱말.some((n) => 제목.includes(n))) return 갈래;
+  for (const { 자리: kind, 낱말: word } of 갈래표) {
+    if (word.some((n) => 제목.includes(n))) return kind;
   }
   return null;
 }
@@ -78,10 +78,10 @@ export function 어떤자리(title: string | null | undefined): 자리 {
  * 조용한 동반자는 없는 동반자다. 확실히 아닐 때만 막는다.
  */
 export function 말걸어도되나(title: string | null | undefined): { 된다: boolean; 왜: string } {
-  const 자리 = 어떤자리(title);
-  if (자리 === '통화') return { 된다: false, 왜: '통화 중이다' };
-  if (자리 === '보는중') return { 된다: false, 왜: '뭔가 보는 중이다' };
-  return { 된다: true, 왜: 자리 === null ? '무슨 자리인지 모르겠다' : `${자리}이라 괜찮다` };
+  const slot = 어떤자리(title);
+  if (slot === '통화') return { 된다: false, 왜: '통화 중이다' };
+  if (slot === '보는중') return { 된다: false, 왜: '뭔가 보는 중이다' };
+  return { 된다: true, 왜: slot === null ? '무슨 자리인지 모르겠다' : `${slot}이라 괜찮다` };
 }
 
 /**
@@ -90,7 +90,7 @@ export function 말걸어도되나(title: string | null | undefined): { 된다: 
  * 만드는 중인 사람에게 긴 얘기를 늘어놓으면, 말 건 것 자체는 괜찮아도 방해가 된다.
  */
 export function 자리결(title: string | null | undefined): string {
-  return 자리결로(어떤자리(title));
+  return bySlotTone(어떤자리(title));
 }
 
 /**
@@ -99,7 +99,7 @@ export function 자리결(title: string | null | undefined): string {
  * 배운 자리(78회차)를 쓰려면 이 자리가 있어야 한다 — 배운 값을 다시 제목인 척 넘기면
  * 표에서 못 찾고 조용히 빈 말이 된다.
  */
-export function 자리결로(자리: 자리): string {
+export function bySlotTone(자리: 자리): string {
   switch (자리) {
     case '만드는중':
       return '지금 뭔가 만드는 중이다. 짧게, 흐름을 끊지 마라.';

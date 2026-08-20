@@ -45,7 +45,7 @@ export interface TossBackInput {
  * 대화에서 나와야지, 우리가 정해 주면 그게 설문지다.
  */
 export function tossBackNote(input: TossBackInput): string {
-  return 안하는이유(input) === null ? 돌려주라는말 : '';
+  return skipReason(input) === null ? 돌려주라는말 : '';
 }
 
 const 돌려주라는말 =
@@ -59,17 +59,17 @@ const 돌려주라는말 =
  * 실렸다」까지만 알려 주고, 네 갈래 중 **어디서 빠졌는지**는 안 보여 준다. 그래서 조건이
  * 왜 안 잡혔는지 알아내려고 매번 실험을 다시 돌렸다. 이유를 말하게 하면 한 번에 끝난다.
  */
-export function 안하는이유(input: TossBackInput): string | null {
-  const 대화 = input.recent.filter((e) => e.channel === 'web');
-  const 사람말 = 대화.filter((e) => e.role === 'sensed');
-  const 얘말 = 대화.filter((e) => e.role === 'said');
+export function skipReason(input: TossBackInput): string | null {
+  const conversation = input.recent.filter((e) => e.channel === 'web');
+  const userText = conversation.filter((e) => e.role === 'sensed');
+  const 얘말 = conversation.filter((e) => e.role === 'said');
   /* 아직 말이 몇 마디 안 오갔으면 그냥 둔다 — 처음부터 되물으면 낯설다.
      **얘 말은 하나만 있어도 센다.** 이 판단은 *지금 할 말을 내보내기 직전*에도 도는데,
      그때 그 말은 아직 기억에 없다. 둘을 요구했더니 늘 한 마디씩 모자라서 세 마디를
      주고받아도 영영 안 걸렸다(실측: 「사람 2 · 얘 1」로 계속 빠졌다). 지금 심판받는
      그 말이 곧 두 번째다. */
-  if (사람말.length < 2 || 얘말.length < 1) {
-    return `아직 몇 마디 안 오갔다 (사람 ${사람말.length} · 얘 ${얘말.length})`;
+  if (userText.length < 2 || 얘말.length < 1) {
+    return `아직 몇 마디 안 오갔다 (사람 ${userText.length} · 얘 ${얘말.length})`;
   }
   // 물음에 물음으로 답하는 건 회피다.
   if (묻는말인가(input.방금)) return '조수님이 물어본 turn 이다';
@@ -83,8 +83,8 @@ export function 안하는이유(input: TossBackInput): string | null {
   // **방금 한 말 하나**를 앞엣것들과 견준다. 최근 두 마디를 묶어 재면 그 안에 든 긴
   // 말이 짧아진 것을 희석해 버린다 — 「28자, 1자」가 평균 14자가 되어 「아직 안 식었다」로
   // 나왔다(실측). 식는다는 건 *방금* 짧아졌다는 뜻이다.
-  const 최근 = 길이(사람말.slice(-1));
-  const 그전 = 길이(사람말.slice(-4, -1));
+  const 최근 = 길이(userText.slice(-1));
+  const 그전 = 길이(userText.slice(-4, -1));
   const 식는중 = 그전 > 0 ? 최근 < 그전 * 0.8 : 최근 < 12;
   if (식는중 === false) {
     return `아직 안 식었다 (최근 ${Math.round(최근)}자 · 그전 ${Math.round(그전)}자)`;
@@ -99,8 +99,8 @@ export function 안하는이유(input: TossBackInput): string | null {
  * 재료만 얹어 놓고 됐다고 하게 된다(오늘만 그런 자리를 셋 찾았다).
  */
 export function 되물은비율(said: readonly MemoryEntry[]): { 전체: number; 되물음: number } {
-  const 말들 = said.filter((e) => e.role === 'said');
-  return { 전체: 말들.length, 되물음: 말들.filter((e) => 묻는말인가(e.text)).length };
+  const texts = said.filter((e) => e.role === 'said');
+  return { 전체: texts.length, 되물음: texts.filter((e) => 묻는말인가(e.text)).length };
 }
 
 
@@ -125,7 +125,7 @@ export function tossBackRetryNote(): string {
  *
  * **공을 돌려줄 자리일 때만** 본다 — 아무 때나 되물으라고 하면 취조가 된다.
  */
-export function 안돌려줬나(said: string, 돌려줄자리인가: boolean): string | null {
+export function notReturned(said: string, 돌려줄자리인가: boolean): string | null {
   if (돌려줄자리인가 === false) return null;
   return 묻는말인가(said) ? null : '대화가 식어 가는데 되묻지 않았다';
 }

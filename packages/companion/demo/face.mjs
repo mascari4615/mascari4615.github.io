@@ -28,14 +28,14 @@ import {
   기운묻기,
   KnownStamps,
   말걸어도되나,
-  자리결로,
+  bySlotTone,
   어떤자리,
   자리배움,
   자리묻기,
   tossBackNote,
   tossBackRetryNote,
-  안하는이유,
-  안돌려줬나,
+  skipReason,
+  notReturned,
   묻는말인가,
   지시문에대꾸했나,
   받을길이,
@@ -379,7 +379,7 @@ function 공돌려줄자리인가() {
   const 최근 = conversationMemory.recent(12);
   const 목록 = Array.isArray(최근) ? 최근 : [];
   const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  const 이유 = 안하는이유({ recent: 목록, 방금 });
+  const 이유 = skipReason({ recent: 목록, 방금 });
   // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
   if (이유 !== null) (console.log(`[공] 안 돌려준다 — ${이유}`), web.알아챔(`공은 안 돌려준다 — ${이유}`));
@@ -891,7 +891,7 @@ const mouth = mouthGate({
     ?? 지시문에대꾸했나(text)
     /* 되묻기 강제를 껐다 켤 수 있게 둔다 — **이게 얘를 낫게 하는지 재려면 꺼 봐야 한다.**
        87회차에 강제 재시도가 원래 멀쩡하던 답을 무대 뒤 얘기로 바꿔 놓는 걸 두 번 봤다. */
-    ?? (되묻기강제 ? 안돌려줬나(text, 공돌려줄자리인가()) : null)
+    ?? (되묻기강제 ? notReturned(text, 공돌려줄자리인가()) : null)
     /* 길게 털어놨는데 한마디로 끊은 것도 여기서 잡는다. **시켜 놓고 안 세면 재료만 얹고
        끝난다** — 실측으로 얘 답은 사람이 1자를 쓰든 50자를 쓰든 가운데값 6~7자였다. */
     ?? 짧게받았나(text, 받을자리인가()),
@@ -1097,7 +1097,7 @@ const companion = new Companion({
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
       { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
-      { name: '자리', weight: 11, text: 자리결로(자리앎.읽기(lastWindowTitle)) },
+      { name: '자리', weight: 11, text: bySlotTone(자리앎.읽기(lastWindowTitle)) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.

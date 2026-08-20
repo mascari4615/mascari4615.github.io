@@ -36,7 +36,7 @@ export interface RecurringOptions {
   needDays?: number;
 }
 
-const 날 = (at: number): string => new Date(at).toDateString();
+const date = (at: number): string => new Date(at).toDateString();
 
 /**
  * 자꾸 나오는 얘깃거리를 찾는다.
@@ -52,25 +52,25 @@ export function recurringThings(
   const atLeast = options.atLeast ?? 3;
   const needDays = options.needDays ?? 2;
 
-  const 사람말 = conversationOnly(entries)
+  const userText = conversationOnly(entries)
     .filter((e) => e.role === 'sensed' && isTouch(e) === false);
 
   const 모은것 = new Map<string, { times: number; firstAt: number; lastAt: number; days: Set<string> }>();
-  for (const e of 사람말) {
+  for (const e of userText) {
     const 본낱말 = new Set<string>(); // 한 말에서 같은 낱말을 두 번 안 센다
     for (const raw of e.text.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)) {
       const w = stripParticle(raw.trim());
       if (worthWondering(w) === false || 본낱말.has(w)) continue;
       본낱말.add(w);
 
-      const 있던것 = 모은것.get(w);
-      if (있던것 === undefined) {
-        모은것.set(w, { times: 1, firstAt: e.at, lastAt: e.at, days: new Set([날(e.at)]) });
+      const existing = 모은것.get(w);
+      if (existing === undefined) {
+        모은것.set(w, { times: 1, firstAt: e.at, lastAt: e.at, days: new Set([date(e.at)]) });
       } else {
-        있던것.times += 1;
-        있던것.lastAt = Math.max(있던것.lastAt, e.at);
-        있던것.firstAt = Math.min(있던것.firstAt, e.at);
-        있던것.days.add(날(e.at));
+        existing.times += 1;
+        existing.lastAt = Math.max(existing.lastAt, e.at);
+        existing.firstAt = Math.min(existing.firstAt, e.at);
+        existing.days.add(date(e.at));
       }
     }
   }
@@ -90,9 +90,9 @@ export function recurringThings(
  */
 export function runningGagNote(things: readonly Recurring[]): string {
   if (things.length === 0) return '';
-  const 줄 = things.map((t) => `「${t.what}」(${t.days}일에 걸쳐 ${t.times}번)`).join(', ');
+  const line = things.map((t) => `「${t.what}」(${t.days}일에 걸쳐 ${t.times}번)`).join(', ');
   return (
-    `조수님과 자꾸 나오는 얘기: ${줄}. ` +
+    `조수님과 자꾸 나오는 얘기: ${line}. ` +
     '억지로 농담으로 만들지 마라 — 그냥 우리 사이에 익숙한 얘기라는 것만 알아 둬라.'
   );
 }

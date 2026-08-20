@@ -67,27 +67,27 @@ export function mouthGate(options: MouthGateOptions = {}): MouthGate {
   let stopped = 0;
 
   const gate = async (text: string): Promise<string | null> => {
-    const 첫판 = checkDrift(text, options.rules);
-    const 딴이유 = 첫판.drifted ? null : (options.alsoRetryWhen?.(text) ?? null);
-    if (첫판.drifted === false && 딴이유 === null) return text;
+    const firstRun = checkDrift(text, options.rules);
+    const 딴이유 = firstRun.drifted ? null : (options.alsoRetryWhen?.(text) ?? null);
+    if (firstRun.drifted === false && 딴이유 === null) return text;
 
     stopped += 1;
-    const why = 딴이유 ?? 첫판.problems.join(', ');
+    const why = 딴이유 ?? firstRun.problems.join(', ');
     options.log?.(`입 앞에서 걸렀다 (${why}): 「${text.slice(0, 30)}」`);
 
     if (options.retry !== undefined) {
-      let 다시: string | null = null;
+      let again: string | null = null;
       try {
-        다시 = await options.retry(why);
+        again = await options.retry(why);
       } catch {
-        다시 = null;
+        again = null;
       }
-      const 다시괜찮나 = 다시 !== null && 다시.trim() !== ''
-        && checkDrift(다시, options.rules).drifted === false
-        && (options.alsoRetryWhen?.(다시) ?? null) === null;
+      const 다시괜찮나 = again !== null && again.trim() !== ''
+        && checkDrift(again, options.rules).drifted === false
+        && (options.alsoRetryWhen?.(again) ?? null) === null;
       if (다시괜찮나) {
         options.log?.('다시 시켜서 통과했다');
-        return (다시 as string).trim();
+        return (again as string).trim();
       }
     }
 

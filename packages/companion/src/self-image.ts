@@ -56,17 +56,17 @@ const 알맹이없음 = /^[…\s]*(응|어|음|아|그래|글쎄|몰라|모르�
 export function selfMoments(entries: readonly MemoryEntry[], minLength = 2): SelfFact[] {
   const out: SelfFact[] = [];
   for (let i = 0; i < entries.length - 1; i += 1) {
-    const 물음 = entries[i];
-    const 답 = entries[i + 1];
-    if (물음.role !== 'sensed' || 답.role !== 'said') continue;
-    if (물음.channel === 'screen' || 물음.channel === 'nudge') continue;
-    if (asksAboutSelf(물음.text) === false) continue;
-    const 답한말 = 답.text.trim();
+    const question = entries[i];
+    const answer = entries[i + 1];
+    if (question.role !== 'sensed' || answer.role !== 'said') continue;
+    if (question.channel === 'screen' || question.channel === 'nudge') continue;
+    if (asksAboutSelf(question.text) === false) continue;
+    const 답한말 = answer.text.trim();
     // 그 자리에서 튀어나온 고정 대꾸는 자기를 말한 게 아니다 (23회차의 놀이 잡담 문제).
-    if (답.via === 'reflex') continue;
+    if (answer.via === 'reflex') continue;
     if (답한말.length < minLength) continue;
     if (알맹이없음.test(답한말)) continue;
-    out.push({ asked: 물음.text.trim(), answered: 답한말, at: 답.at });
+    out.push({ asked: question.text.trim(), answered: 답한말, at: answer.at });
   }
   return out;
 }
@@ -110,29 +110,29 @@ export class SelfImage {
    * 두는 게 아니라 흔들림을 따라가는 것이 된다.
    */
   learn(entries: readonly MemoryEntry[]): number {
-    const 이미 = new Set(this.facts.map((f) => 다듬기(f.asked)));
-    let 새것 = 0;
+    const already = new Set(this.facts.map((f) => 다듬기(f.asked)));
+    let fresh = 0;
     for (const fact of selfMoments(entries)) {
-      const 열쇠 = 다듬기(fact.asked);
-      if (이미.has(열쇠)) continue;
-      이미.add(열쇠);
+      const key = 다듬기(fact.asked);
+      if (already.has(key)) continue;
+      already.add(key);
       this.facts.push(fact);
-      새것 += 1;
+      fresh += 1;
     }
-    if (새것 === 0) return 0;
+    if (fresh === 0) return 0;
 
     const keep = this.options.keep ?? 6;
     if (this.facts.length > keep) this.facts = this.facts.slice(-keep);
     this.save();
-    this.options.log?.(`자기상에 ${새것}개 쌓았다 (모두 ${this.facts.length})`);
-    return 새것;
+    this.options.log?.(`자기상에 ${fresh}개 쌓았다 (모두 ${this.facts.length})`);
+    return fresh;
   }
 
   /** 잘못 쌓인 것을 지운다. */
   forget(keyword: string): boolean {
-    const 전 = this.facts.length;
+    const before = this.facts.length;
     this.facts = this.facts.filter((f) => f.answered.includes(keyword) === false && f.asked.includes(keyword) === false);
-    if (this.facts.length === 전) return false;
+    if (this.facts.length === before) return false;
     this.save();
     return true;
   }
@@ -140,9 +140,9 @@ export class SelfImage {
   /** 두뇌에 넘길 한 줄. 없으면 빈 문자열. */
   note(): string {
     if (this.facts.length === 0) return '';
-    const 줄 = this.facts.map((f) => `「${f.asked.slice(0, 24)}」 → 「${f.answered.slice(0, 40)}」`).join(' / ');
+    const line = this.facts.map((f) => `「${f.asked.slice(0, 24)}」 → 「${f.answered.slice(0, 40)}」`).join(' / ');
     return (
-      `전에 나에 대해 이렇게 말했다: ${줄}. ` +
+      `전에 나에 대해 이렇게 말했다: ${line}. ` +
       '오늘 다르게 지어내지 마라 — 같은 걸 물으면 그때와 같은 사람이어야 한다. ' +
       '토씨까지 똑같이 읊으라는 건 아니다.'
     );

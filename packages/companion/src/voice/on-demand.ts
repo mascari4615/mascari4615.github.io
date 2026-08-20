@@ -121,21 +121,21 @@ export class 수요기동 {
   private async 뜰때까지(): Promise<void> {
     const 한계 = this.options.준비대기ms ?? 180_000;
     const 간격 = this.options.준비물어보는간격ms ?? 2_000;
-    const 시작 = this.지금;
+    const start = this.지금;
     for (;;) {
       await new Promise((r) => setTimeout(r, 간격));
-      let 살았나 = false;
+      let isAlive = false;
       try {
-        살았나 = await this.options.살았나();
+        isAlive = await this.options.살았나();
       } catch {
-        살았나 = false;
+        isAlive = false;
       }
-      if (살았나) {
+      if (isAlive) {
         this.떴나 = true;
-        this.options.log?.(`${this.options.이름} 이(가) 준비됐다 (${Math.round((this.지금 - 시작) / 1000)}초)`);
+        this.options.log?.(`${this.options.이름} 이(가) 준비됐다 (${Math.round((this.지금 - start) / 1000)}초)`);
         return;
       }
-      if (this.지금 - 시작 >= 한계) {
+      if (this.지금 - start >= 한계) {
         this.실패한때 = this.지금;
         throw new Error(`${Math.round(한계 / 1000)}초 안에 안 떴다`);
       }
@@ -184,7 +184,7 @@ export interface 필요할때옵션 {
  * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
 export function 필요할때(options: 필요할때옵션): Speech {
-  const { 진짜, 기동 } = options;
+  const { 진짜, 기동: boot } = options;
   const 기다림한계 = options.기다림한계ms ?? 180_000;
 
   return {
@@ -197,14 +197,14 @@ export function 필요할때(options: 필요할때옵션): Speech {
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
-      await 기동.써야한다();
+      await boot.써야한다();
 
       /* **뜰 때까지 기다린다.** 딴 목소리로 바꾸지 않는다 — 그건 같은 존재가 아니게 된다.
          무한히 기다리지는 않는다: 정해진 시간을 넘기면 포기하고, 그때는 **소리가 없다**
          (조용한 게 딴 사람 목소리보다 낫다). */
       const 시작 = Date.now();
       let 알렸나 = false;
-      while (기동.준비됐나 === false) {
+      while (boot.준비됐나 === false) {
         if (Date.now() - 시작 >= 기다림한계) {
           throw new Error(`고른 목소리가 ${Math.round(기다림한계 / 1000)}초 안에 준비 안 됐다`);
         }
@@ -213,7 +213,7 @@ export function 필요할때(options: 필요할때옵션): Speech {
           알렸나 = true;
         }
         await new Promise((r) => setTimeout(r, 500));
-        await 기동.써야한다();
+        await boot.써야한다();
       }
       if (알렸나) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - 시작) / 1000)}초 기다림)`);
       return 진짜.synthesize(text, voiceId);
