@@ -16,7 +16,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { CHECKS, PREP } from './live-checks.mjs';
-import { 조각내기 } from './lib/shard-split.mjs';
+import { splitIntoShards } from './lib/shard-split.mjs';
 
 const argv = process.argv.slice(2);
 const only = (() => {
@@ -94,11 +94,11 @@ if (shard) {
       return {};
     }
   })();
-  const 바구니 = 조각내기(todo, shard.of, 잰시간);
+  const 바구니 = splitIntoShards(todo, shard.of, 잰시간);
   /* 원래 차례를 지킨다 — 무거운 것부터 돌면 사람이 로그에서 길을 잃는다. */
-  const 내것 = new Set(바구니[shard.idx].것);
+  const 내것 = new Set(바구니[shard.idx].items);
   todo = todo.filter((c) => 내것.has(c));
-  예측분 = Math.round(바구니[shard.idx].합 / 60);
+  예측분 = Math.round(바구니[shard.idx].sum / 60);
   console.log(
     `[verify:live] ${shard.idx + 1}/${shard.of} 조각 — 검사 ${todo.length}개 · 잰 시간으로 ${예측분}분어치`
   );
