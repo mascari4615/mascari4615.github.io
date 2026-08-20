@@ -68,8 +68,12 @@ namespace Handheld.EditorTools
         void Tick()
         {
             FindRig();
-            if (!Application.isPlaying && _rig != null && _rig.isActiveAndEnabled)
-                _rig.ManualTick(true);
+            if (!Application.isPlaying)
+            {
+                // 편집 모드에서는 MonoBehaviour.Update 가 규칙적으로 안 돈다 — 여기가 심장이다.
+                if (_server != null && _server.isActiveAndEnabled) _server.Tick();
+                if (_rig != null && _rig.isActiveAndEnabled) _rig.ManualTick(true);
+            }
 
             ReadTunnelLog();
             Repaint();
@@ -315,6 +319,15 @@ namespace Handheld.EditorTools
 
             using (var check = new EditorGUI.ChangeCheckScope())
             {
+                _rig.aspectMode = (HandheldRig.AspectMode)EditorGUILayout.EnumPopup("화면 비율", _rig.aspectMode);
+                if (_rig.aspectMode == HandheldRig.AspectMode.Custom)
+                    _rig.customAspect = EditorGUILayout.FloatField("가로/세로", _rig.customAspect);
+                if (_rig.aspectMode != HandheldRig.AspectMode.PhoneNative)
+                    _rig.fovAxis = (HandheldRig.FovAxis)EditorGUILayout.EnumPopup("화각 기준", _rig.fovAxis);
+                EditorGUILayout.LabelField(" ", "폰 화면엔 레터박스로 뜬다 — 보이는 것 = 나가는 것",
+                    EditorStyles.miniLabel);
+
+                EditorGUILayout.Space(4);
                 _rig.streamFps = EditorGUILayout.IntSlider("뷰파인더 fps", _rig.streamFps, 1, 120);
                 _rig.streamHeight = EditorGUILayout.IntSlider("세로 해상도", _rig.streamHeight, 180, 1440);
                 _rig.jpegQuality = EditorGUILayout.IntSlider("화질", _rig.jpegQuality, 20, 95);

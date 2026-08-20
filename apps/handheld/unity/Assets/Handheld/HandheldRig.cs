@@ -44,6 +44,31 @@ namespace Handheld
         public float turnSpeed = 90f;
         public float riseSpeed = 1.0f;
 
+        [Header("화면 비율")]
+        [Tooltip("방송은 16:9 로 나간다 — 폰 화면 비율을 그대로 쓰면 송출 프레임과 달라진다.")]
+        public AspectMode aspectMode = AspectMode.Fixed16x9;
+
+        [Tooltip("직접 지정할 때의 가로/세로 (예: 16/9 = 1.7778, 세로 방송 = 0.5625).")]
+        public float customAspect = 16f / 9f;
+
+        [Tooltip("비율을 바꿀 때 폰 렌즈의 어느 화각을 지킬까. 세로 유지가 덜 놀랍다.")]
+        public FovAxis fovAxis = FovAxis.KeepVertical;
+
+        public enum AspectMode { PhoneNative, Fixed16x9, Fixed9x16, Custom }
+        public enum FovAxis { KeepVertical, KeepHorizontal }
+
+        /// <summary>지금 렌더할 가로/세로.</summary>
+        public float EffectiveAspect(float phoneAspect)
+        {
+            switch (aspectMode)
+            {
+                case AspectMode.Fixed16x9: return 16f / 9f;
+                case AspectMode.Fixed9x16: return 9f / 16f;
+                case AspectMode.Custom: return Mathf.Clamp(customAspect, 0.2f, 5f);
+                default: return phoneAspect;
+            }
+        }
+
         [Header("뷰파인더 스트림")]
         [Tooltip("폰으로 보낼 그림의 세로 해상도. 가로는 폰 화면 비율로 정해진다.")]
         [Range(180, 1440)] public int streamHeight = 720;
@@ -296,13 +321,31 @@ namespace Handheld
             else
                 transform.SetPositionAndRotation(_shownPos, _shownRot);
 
-            if (pose.FovY > 0f) _cam.fieldOfView = pose.FovY;
+            if (pose.FovY > 0f) _cam.fieldOfView = MapFov(pose.FovY, pose.Aspect);
+        }
+
+        /// <summary>
+        /// 폰이 알려준 화각을 렌더 비율에 맞춰 옮긴다.
+        /// WebXR 은 폰 화면 비율 기준의 **세로** 화각을 준다 — 비율을 바꾸면 그대로 쓸지
+        /// (세로 유지) 가로 화각을 지킬지(가로 유지) 정해야 한다.
+        /// </summary>
+        float MapFov(float phoneFovY, float phoneAspect)
+        {
+            float target = EffectiveAspect(phoneAspect);
+            if (fovAxis == FovAxis.KeepVertical || Mathf.Approximately(target, phoneAspect))
+                return Mathf.Clamp(phoneFovY, 1f, 170f);
+
+            // 가로 화각을 지킨다: 폰의 가로 화각을 구해 목표 비율의 세로 화각으로 되돌린다.
+            float halfV = phoneFovY * 0.5f * Mathf.Deg2Rad;
+            float halfH = Mathf.Atan(Mathf.Tan(halfV) * phoneAspect);
+            float newHalfV = Mathf.Atan(Mathf.Tan(halfH) / Mathf.Max(0.01f, target));
+            return Mathf.Clamp(newHalfV * 2f * Mathf.Rad2Deg, 1f, 170f);
         }
 
         void EnsureRenderTexture(PhonePose pose)
         {
             int h = Mathf.Clamp(streamHeight, 180, 1440);
-            int w = Mathf.Max(2, Mathf.RoundToInt(h * pose.Aspect));
+            int w = Mathf.Max(2, Mathf.RoundToInt(h * EffectiveAspect(pose.Aspect)));
             w -= w & 1;                               // 짝수로
 
             if (_rt != null && _rtW == w && _rtH == h) return;
