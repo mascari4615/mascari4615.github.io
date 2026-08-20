@@ -1081,7 +1081,9 @@ import { t, loadNamespace } from '../lib/i18n';
                 label: t('favorites.tab.main', undefined, '즐겨찾기'),
                 /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
-                    void loadNamespace('favorites').then(function () {
+                    /* 우클릭 메뉴 글도 같이 받는다 — 칸 메뉴 항목(열기·주소 복사·빼기)이
+                     * `ctxmenu` 열쇠를 쓴다. 안 받으면 열쇠 이름이 그대로 뜬다. */
+                    void Promise.all([loadNamespace('favorites'), loadNamespace('ctxmenu')]).then(function () {
                         buildFavorites(container);
                     });
                 }
