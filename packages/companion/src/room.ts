@@ -21,7 +21,7 @@ export type 자리 = '통화' | '보는중' | '만드는중' | '읽는중' | '�
 interface 짚기 {
   자리: Exclude<자리, null>;
   /** 제목에 이게 있으면 그 자리다. */
-  낱말: readonly string[];
+  word: readonly string[];
 }
 
 /**
@@ -34,20 +34,20 @@ const kindTable: readonly 짚기[] = [
   /* **우리 창.** 78회차에 떠 있는 창을 세어 보니 얘는 자기 창조차 「모름」이었다. 그런데
      사람이 얘를 보고 있는 건 아무 자리도 아닌 게 아니라 **말 걸기 가장 좋은 때**다.
      우리가 지은 제목이라 여기는 표가 맞다 — 두뇌한테 물어볼 일이 아니다. */
-  { 자리: '나를보는중', 낱말: ['동반자'] },
+  { 자리: '나를보는중', word: ['동반자'] },
   // 디스코드는 제목이 「#방이름 | 서버이름 - Discord」로 온다(실측). 앞에 붙임표를
   // 요구하면 안 걸린다. 다만 디스코드는 통화만 하는 게 아니라 글도 읽는 자리라,
   // **통화 중일 때만** 막고 싶은데 제목으로는 그걸 못 가른다 — 지금은 통화로 본다.
   // 잘못 막는 쪽이 잘못 끼어드는 쪽보다 낫다.
-  { 자리: '통화', 낱말: ['zoom', 'meet.google', 'microsoft teams', 'webex', '통화 중', 'discord', 'gather'] },
-  { 자리: '보는중', 낱말: ['youtube', 'netflix', 'twitch', 'laftel', 'watcha', 'tving', 'vlc', 'mpv', '- pot'] },
-  { 자리: '노는중', 낱말: ['steam', 'league of legends', 'minecraft', 'valorant', '로스트아크'] },
+  { 자리: '통화', word: ['zoom', 'meet.google', 'microsoft teams', 'webex', '통화 중', 'discord', 'gather'] },
+  { 자리: '보는중', word: ['youtube', 'netflix', 'twitch', 'laftel', 'watcha', 'tving', 'vlc', 'mpv', '- pot'] },
+  { 자리: '노는중', word: ['steam', 'league of legends', 'minecraft', 'valorant', '로스트아크'] },
   {
     자리: '만드는중',
     // **터미널도 만드는 중이다.** 처음엔 편집기 이름만 넣었는데, 실제로 오는 제목은
     // 「claude · resume」 같은 터미널 창이 태반이었다 — 33번 재는 동안 한 번도 안
     // 걸렸다(실측). 이름을 늘리는 게 아니라 *실제로 오는 제목*을 봐야 했다.
-    낱말: [
+    word: [
       'visual studio code', 'vscode', 'intellij', 'rider', 'unity', 'godot', 'blender',
       'photoshop', 'aseprite', 'obsidian', 'figma',
       'claude', 'powershell', 'cmd.exe', 'terminal', 'wsl', 'git bash', 'nvim', 'vim',
@@ -57,7 +57,7 @@ const kindTable: readonly 짚기[] = [
     자리: '읽는중',
     // 브라우저 제목은 「… - 개인 - Microsoft Edge」처럼 사이에 뭐가 낀다. 앞에 붙임표를
     // 요구하면 거의 안 걸린다 — 이름만 본다.
-    낱말: ['chrome', 'edge', 'whale', 'firefox', 'notion', 'stack overflow', 'github'],
+    word: ['chrome', 'edge', 'whale', 'firefox', 'notion', 'stack overflow', 'github'],
   },
 ];
 
@@ -65,7 +65,7 @@ const kindTable: readonly 짚기[] = [
 export function whichSlot(title: string | null | undefined): 자리 {
   const title2 = (title ?? '').toLowerCase().trim();
   if (title2 === '') return null;
-  for (const { 자리: kind, 낱말: word } of kindTable) {
+  for (const { 자리: kind, word: word } of kindTable) {
     if (word.some((n) => title2.includes(n))) return kind;
   }
   return null;
