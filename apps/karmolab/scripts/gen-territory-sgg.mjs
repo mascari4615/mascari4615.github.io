@@ -1,5 +1,5 @@
 /**
- * 시군구별 영토 점유율 — 「우리 구는 누구 땅인가」 (TASK-KL-334)
+ * 행정구역별 영토 점유율 — 시도 17개 · 시군구 250개 — 「우리 구는 누구 땅인가」 (TASK-KL-334)
  *
  * 화면 기준 통계는 「지금 보이는 만큼」이라 어제와 오늘이 다르다. 사람이 진짜 묻는 것은
  * **행정구역** 단위다 — 「강남구는 GS25 땅이고 관악구는 CU 땅」. 그건 화면과 무관한 고정된 답이라
@@ -19,12 +19,17 @@
  *
  * ## 쓰는 법
  *
- *   node scripts/gen-territory-sgg.mjs --geo <시군구.geojson>
+ *   node scripts/gen-territory-sgg.mjs --geo <시군구.geojson> --geo-sido <시도.geojson>
  *
  * 경계 원본 = southkorea-maps (kostat 2018) `skorea-municipalities-2018-geo.json`.
  * 내는 것:
- *   data/territory/sgg.json         단순화한 경계 + 이름·코드 (화면용)
- *   data/territory/sgg-<업종>.json  구별 브랜드 점유율 (미리 잰 값)
+ *   data/territory/sgg.json          단순화한 시군구 경계 + 이름·코드 (화면용)
+ *   data/territory/sgg-<업종>.json   구별 브랜드 점유율 (미리 잰 값)
+ *   data/territory/sido.json         시도 경계 (더 세게 깎는다 — 멀리서만 보므로)
+ *   data/territory/sido-<업종>.json  시도별 점유율
+ *
+ * 왜 두 단계인가: 전국을 볼 때 250개는 이미 모래알이고, 확대하면 17개는 너무 성기다.
+ * 지도는 **보는 거리에 따라 말하는 단위가 달라야** 한다 (원본 conbini 도 도도부현↔셀 두 단계였다).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -169,30 +174,33 @@ if (geoArg < 0) {
 const geo = JSON.parse(fs.readFileSync(process.argv[geoArg + 1], 'utf8'));
 console.log('시군구 ' + geo.features.length + '개 읽음');
 
-/* 화면용 경계 — 한 번만 만든다. */
-const before = JSON.stringify(geo).length;
-const shapes = geo.features.map((f) => ({
-  code: f.properties.code,
-  name: f.properties.name,
-  geometry: simplifyGeom(f.geometry, EPS)
-}));
-const shapePath = path.join(DIR, 'sgg.json');
-fs.writeFileSync(shapePath, JSON.stringify({ eps: EPS, features: shapes }));
-console.log(
-  '경계 ' + (before / 1024 / 1024).toFixed(1) + 'MB → ' + (fs.statSync(shapePath).size / 1024).toFixed(0) + 'KB'
-);
+/** 경계 한 벌을 깎아 화면용으로 낸다. */
+function writeShapes(features, name, eps) {
+  const before = JSON.stringify(features).length;
+  const shapes = features.map((f) => ({
+    code: f.properties.code,
+    name: f.properties.name,
+    geometry: simplifyGeom(f.geometry, eps)
+  }));
+  const p = path.join(DIR, name + '.json');
+  fs.writeFileSync(p, JSON.stringify({ eps, features: shapes }));
+  console.log(
+    name.padEnd(6) + '경계 ' + (before / 1024 / 1024).toFixed(1) + 'MB → ' + (fs.statSync(p).size / 1024).toFixed(0) + 'KB'
+  );
+}
 
-for (const industry of ['convenience', 'cafe', 'burger']) {
+/** 경계 한 벌에 대해 업종별 점유율을 잰다. */
+function measure(features, name, industry, cell) {
   const { meta, grid } = loadStores(industry);
   const rows = [];
-  for (const f of geo.features) {
+  for (const f of features) {
     const box = bboxOf(f.geometry);
     const area = new Map();
     const counts = new Map();
     let total = 0;
-    for (let lat = box.minLat; lat <= box.maxLat; lat += CELL) {
-      const cellKm2 = CELL * KM_PER_DEG * CELL * KM_PER_DEG * Math.cos(rad(lat));
-      for (let lng = box.minLng; lng <= box.maxLng; lng += CELL) {
+    for (let lat = box.minLat; lat <= box.maxLat; lat += cell) {
+      const cellKm2 = cell * KM_PER_DEG * cell * KM_PER_DEG * Math.cos(rad(lat));
+      for (let lng = box.minLng; lng <= box.maxLng; lng += cell) {
         if (!inGeometry(f.geometry, lng, lat)) continue;
         total += cellKm2;
         const owner = nearest(grid, lat, lng, MAX_KM);
@@ -221,23 +229,23 @@ for (const industry of ['convenience', 'cafe', 'burger']) {
       share
     });
   }
-  const out = path.join(DIR, 'sgg-' + industry + '.json');
+  const out = path.join(DIR, name + '-' + industry + '.json');
   fs.writeFileSync(
     out,
     JSON.stringify({
       industry,
       source: meta.source,
       sample: meta.sample,
-      cell: CELL,
+      cell,
       brands: BRANDS[industry].map((b) => ({ id: b.id, label: b.label, color: b.color })),
       rows
     })
   );
   const top = [...rows].sort((a, b) => (b.share[Object.keys(b.share)[0]] ?? 0) - (a.share[Object.keys(a.share)[0]] ?? 0));
   console.log(
-    industry.padEnd(12) +
+    (name + ' ' + industry).padEnd(20) +
       rows.length +
-      '구 · ' +
+      '곳 · ' +
       (fs.statSync(out).size / 1024).toFixed(0) +
       'KB · 예: ' +
       rows
@@ -247,4 +255,18 @@ for (const industry of ['convenience', 'cafe', 'burger']) {
       ' · 가장 확실한 곳: ' +
       (top[0] ? top[0].name + ' ' + Object.keys(top[0].share)[0] + ' ' + Object.values(top[0].share)[0] + '%' : '—')
   );
+}
+
+const INDUSTRIES = ['convenience', 'cafe', 'burger'];
+
+writeShapes(geo.features, 'sgg', EPS);
+for (const industry of INDUSTRIES) measure(geo.features, 'sgg', industry, CELL);
+
+/* 시도 — 멀리서만 보는 단위라 경계를 더 세게 깎고, 격자도 성기게 잡는다(넓이가 250배다). */
+const sidoArg = process.argv.indexOf('--geo-sido');
+if (sidoArg >= 0) {
+  const sido = JSON.parse(fs.readFileSync(process.argv[sidoArg + 1], 'utf8'));
+  console.log('시도 ' + sido.features.length + '개 읽음');
+  writeShapes(sido.features, 'sido', EPS * 3);
+  for (const industry of INDUSTRIES) measure(sido.features, 'sido', industry, CELL * 3);
 }
