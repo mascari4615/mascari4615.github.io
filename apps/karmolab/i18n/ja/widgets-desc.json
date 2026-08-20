@@ -230,5 +230,6 @@
   "widgets-desc.my-ai.desc": "自分が使っている AI サブスクの家計簿 — 今は Claude・Codex・Grok の残量。ライブ照会、塞がれたら最終観測値。",
   "widgets-desc.cleanup.desc": "写真の気になる所を塗ると周りの色で覆います。写真はブラウザから出ません",
   "widgets-desc.videobg.desc": "短い動画から人や被写体だけを残します。動画はブラウザから出ません",
-  "widgets-desc.territory.desc": "この街の主はCUかGS25か — コンビニ・カフェ・ハンバーガーのブランド勢力図"
+  "widgets-desc.territory.desc": "この街の主はCUかGS25か — コンビニ・カフェ・ハンバーガーのブランド勢力図",
+  "widgets-desc.tempmail.desc": "10分だけ生きるメール住所を作って確認メールを受け取ります。住所を知っていても鍵がなければ読めません"
 }

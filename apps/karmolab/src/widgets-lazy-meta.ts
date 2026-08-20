@@ -2553,5 +2553,16 @@ window.KARMOLAB_LAZY_META = [
       '<circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
       '<path d="M7.5 16.5c1.2-2.2 7.8-2.2 9 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/videobg']
+  },
+
+  /* 잠깐 쓰는 메일 */
+  {
+    id: 'tempmail',
+    get title() { return t('widgets.tempmail.title', undefined, "잠깐 쓰는 메일"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.tempmail.desc', undefined, "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"); },
+    layout: 'wide',
+    icon: '<rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/tempmail']
   }
 ] as KarmoLabLazyWidgetStub[];

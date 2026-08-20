@@ -328,6 +328,7 @@
     "test:taptarget",
     "audit:locale-inline",
     "audit:i18n-stub",
-    "test:new-tool"
+    "test:new-tool",
+    "test:tempmail"
   ]
 }

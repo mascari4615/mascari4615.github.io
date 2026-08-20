@@ -253,12 +253,18 @@ jobs:
           # Developer Portal 의 OAuth2 탭 Client Secret. 없으면 로그인 단추가 안 뜨고
           # (`/kl/health` 가 login:disabled), 도구는 지금까지와 똑같이 돈다.
           YB_PROD_DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+          # TASK-KL-339: 잠깐 쓰는 메일. Cloudflare Email Worker 가 편지를 밀어 넣을 때 쓰는
+          # 열쇠 — **Worker 쪽 KL_MAIL_HOOK 과 같은 값**이어야 한다(둘 중 하나만 바꾸면 403).
+          # 없으면 수신 문이 아예 안 열리고, 도구는 화면에 「아직 안 켜졌다」고 말한다.
+          YB_PROD_KL_MAIL_HOOK_TOKEN: ${{ secrets.KL_MAIL_HOOK_TOKEN }}
+          # 편지를 받을 도메인. 대시보드에서 Email Routing 을 켠 그 도메인과 같아야 한다.
+          YB_PROD_KL_MAIL_DOMAIN: ${{ secrets.KL_MAIL_DOMAIN }}
         run: |
           $ErrorActionPreference = 'Stop'
 
           # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT', 'DEVICE_LOG_TOKEN', 'DISCORD_CLIENT_SECRET'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT', 'DEVICE_LOG_TOKEN', 'DISCORD_CLIENT_SECRET', 'KL_MAIL_HOOK_TOKEN', 'KL_MAIL_DOMAIN'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)

@@ -246,5 +246,6 @@
   "widgets.my-ai.title": "My AI",
   "widgets.cleanup.title": "Eraser",
   "widgets.videobg.title": "Video background remover",
-  "widgets.territory.title": "Territory"
+  "widgets.territory.title": "Territory",
+  "widgets.tempmail.title": "Throwaway mail"
 }

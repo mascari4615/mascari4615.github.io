@@ -230,5 +230,6 @@
   "widgets-desc.askpapers.desc": "물음을 던지면 논문이 답합니다. 지어낸 요약이 아니라 초록에 실제로 있는 문장을 그대로 뽑아 링크와 함께 보여 줍니다",
   "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다",
   "widgets-desc.cleanup.desc": "사진에서 거슬리는 것을 칠해서 지웁니다 — 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다",
-  "widgets-desc.videobg.desc": "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다"
+  "widgets-desc.videobg.desc": "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다",
+  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"
 }
