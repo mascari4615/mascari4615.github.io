@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Handheld — 폰이 유니티 카메라가 된다</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #07080b; color: #e9edf5;
+    font: 15px/1.5 -apple-system, "Noto Sans KR", Roboto, sans-serif; overflow: hidden;
+    overscroll-behavior: none; user-select: none; }
+
+  #overlay { position: fixed; inset: 0; }
+  #vf { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+    background: #000; object-fit: cover; }
+
+  /* 시작 화면 */
+  #start { position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px; padding: 28px;
+    background: radial-gradient(120% 80% at 50% 0%, #16203a 0%, #07080b 70%); text-align: center; }
+  #start.gone { display: none; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  h1 small { display: block; margin-top: 6px; font-size: 13px; font-weight: 400; color: #8c97ad; }
+  button { appearance: none; border: 0; border-radius: 999px; padding: 16px 34px;
+    font-size: 17px; font-weight: 700; color: #06121f; background: #7fd4ff; cursor: pointer; }
+  button:disabled { background: #37414f; color: #8c97ad; }
+  button.ghost { background: transparent; color: #b9c4d6; border: 1px solid #2a3345;
+    padding: 10px 18px; font-size: 14px; font-weight: 500; }
+  #modeNote { max-width: 30ch; font-size: 13px; color: #8c97ad; }
+
+  /* 상단 배지 · 하단 바 (AR 중에도 뜬다) */
+  #hud { position: absolute; top: env(safe-area-inset-top, 8px); left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; padding: 8px; pointer-events: none; }
+  .chip { pointer-events: none; background: rgba(8,12,20,.62); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.10); border-radius: 999px;
+    padding: 5px 12px; font-size: 12px; font-variant-numeric: tabular-nums; color: #cfd8e6; }
+  .chip b { color: #7fd4ff; }
+  .chip.bad b { color: #ff8b8b; }
+  #bar { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 10px) + 10px);
+    display: flex; gap: 10px; justify-content: center; }
+  #bar.hidden, #hud.hidden { display: none; }
+
+  /* 조이스틱 — 화면 아래 양쪽. 누른 자리에 스틱이 생긴다(고정 위치 X). */
+  #sticks { position: absolute; inset: 0; touch-action: none; }
+  #sticks.hidden { display: none; }
+  .stickzone { position: absolute; bottom: 0; height: 46%; width: 50%; }
+  #zoneL { left: 0; }
+  #zoneR { right: 0; }
+  .stick { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px;
+    border-radius: 50%; border: 1px solid rgba(255,255,255,.22);
+    background: rgba(8,12,20,.28); backdrop-filter: blur(3px);
+    opacity: 0; transition: opacity .12s; pointer-events: none; }
+  .stick.on { opacity: 1; }
+  .knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px;
+    margin: -26px 0 0 -26px; border-radius: 50%;
+    background: rgba(127,212,255,.5); border: 1px solid rgba(255,255,255,.5); }
+  .stickhint { position: absolute; bottom: 14px; width: 50%; text-align: center;
+    font-size: 11px; color: rgba(207,216,230,.5); pointer-events: none; }
+  .stickhint.l { left: 0; }
+  .stickhint.r { right: 0; }
+</style>
+</head>
+<body>
+<canvas id="gl" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none"></canvas>
+<div id="overlay">
+  <canvas id="vf"></canvas>
+  <div id="hud" class="hidden">
+    <div class="chip" id="chipMode">—</div>
+    <div class="chip" id="chipNet">—</div>
+    <div class="chip" id="chipPos">—</div>
+  </div>
+
+  <div id="sticks" class="hidden">
+    <div class="stickzone" id="zoneL"><div class="stick" id="stickL"><div class="knob"></div></div></div>
+    <div class="stickzone" id="zoneR"><div class="stick" id="stickR"><div class="knob"></div></div></div>
+    <div class="stickhint l">이동</div>
+    <div class="stickhint r">회전 · 높이</div>
+  </div>
+
+  <div id="bar" class="hidden">
+    <button class="ghost" id="btnRecenter">리센터</button>
+    <button class="ghost" id="btnStop">끝내기</button>
+  </div>
+
+  <div id="start">
+    <h1>Handheld
+      <small>폰을 들고 움직이면 유니티 카메라가 그대로 따라온다</small>
+    </h1>
+    <button id="btnStart" disabled>확인 중…</button>
+    <div id="modeNote">…</div>
+    <button class="ghost" id="btnFallback" style="display:none">자이로만으로 시작 (회전만)</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const vf = $('vf'), vfCtx = vf.getContext('2d', { alpha: false, desynchronized: true });
+  const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos');
+
+  // ── 상태 ───────────────────────────────────────────────────────────────────
+  let ws = null, wsReady = false;
+  let mode = null;              // '6dof' | '3dof'
+  let running = false;
+  let seq = 0, rxFrames = 0, rxBytes = 0, txPoses = 0, statAt = performance.now();
+  let pendingBitmap = false;
+
+  // ── 쿼터니언 최소 도구 (three.js 없이) ───────────────────────────────────────
+  const qMul = (a, b) => [
+    a[3]*b[0] + a[0]*b[3] + a[1]*b[2] - a[2]*b[1],
+    a[3]*b[1] - a[0]*b[2] + a[1]*b[3] + a[2]*b[0],
+    a[3]*b[2] + a[0]*b[1] - a[1]*b[0] + a[2]*b[3],
+    a[3]*b[3] - a[0]*b[0] - a[1]*b[1] - a[2]*b[2],
+  ];
+  const qAxis = (x, y, z, angle) => {
+    const h = angle / 2, s = Math.sin(h);
+    return [x*s, y*s, z*s, Math.cos(h)];
+  };
+  // three.js Euler 'YXZ' → quaternion
+  const qEulerYXZ = (x, y, z) => {
+    const c1 = Math.cos(x/2), c2 = Math.cos(y/2), c3 = Math.cos(z/2);
+    const s1 = Math.sin(x/2), s2 = Math.sin(y/2), s3 = Math.sin(z/2);
+    return [
+      s1*c2*c3 + c1*s2*s3,
+      c1*s2*c3 - s1*c2*s3,
+      c1*c2*s3 - s1*s2*c3,
+      c1*c2*c3 + s1*s2*s3,
+    ];
+  };
+
+  // ── 소켓 ───────────────────────────────────────────────────────────────────
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}/ws`);
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = () => { wsReady = true; paint(); };
+    ws.onclose = () => { wsReady = false; paint(); if (running) setTimeout(connect, 800); };
+    ws.onerror = () => { wsReady = false; paint(); };
+    ws.onmessage = ev => {
+      if (typeof ev.data === 'string') {
+        // 유니티가 되보내는 상태:  s|x|y|z|yaw|fps|kb — 지금 씬 어디에 서 있나
+        const f = ev.data.split('|');
+        if (f[0] === 's' && f.length >= 5)
+          chipPos.innerHTML = `<b>${f[1]}</b> ${f[2]} <b>${f[3]}</b> · ${f[4]}°`;
+        return;
+      }
+      rxFrames++; rxBytes += ev.data.byteLength;
+      if (pendingBitmap) return;             // 밀리면 그 장은 버린다 = 지연 누적 X
+      pendingBitmap = true;
+      createImageBitmap(new Blob([ev.data], { type: 'image/jpeg' }))
+        .then(bmp => { drawFrame(bmp); bmp.close(); })
+        .catch(() => {})
+        .finally(() => { pendingBitmap = false; });
+    };
+  }
+
+  function drawFrame(bmp) {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = Math.round(innerWidth * dpr), h = Math.round(innerHeight * dpr);
+    if (vf.width !== w || vf.height !== h) { vf.width = w; vf.height = h; }
+    // 화면을 꽉 채우되 비율 유지 (cover)
+    const s = Math.max(w / bmp.width, h / bmp.height);
+    const dw = bmp.width * s, dh = bmp.height * s;
+    vfCtx.drawImage(bmp, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }
+
+  function sendPose(t, px, py, pz, qx, qy, qz, qw, fovDeg, aspect, dof) {
+    if (!ws || ws.readyState !== 1) return;
+    if (ws.bufferedAmount > 32 * 1024) return;   // 상행이 막히면 건너뛴다
+    const f = n => n.toFixed(5);
+    ws.send(`p|${t.toFixed(1)}|${f(px)}|${f(py)}|${f(pz)}|${f(qx)}|${f(qy)}|${f(qz)}|${f(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}`);
+    txPoses++; seq++;
+  }
+
+  // ── 6DoF: WebXR immersive-ar ───────────────────────────────────────────────
+  let xrSession = null;
+
+  async function startXR() {
+    const gl = $('gl').getContext('webgl', { xrCompatible: true, alpha: true, antialias: false });
+    xrSession = await navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['local'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: $('overlay') },
+    });
+    await gl.makeXRCompatible();
+    xrSession.updateRenderState({ baseLayer: new XRWebGLLayer(xrSession, gl) });
+    const refSpace = await xrSession.requestReferenceSpace('local');
+
+    mode = '6dof';
+    enterRunning();
+
+    xrSession.addEventListener('end', () => { xrSession = null; stop(); });
+
+    const onFrame = (t, frame) => {
+      if (!xrSession) return;
+      xrSession.requestAnimationFrame(onFrame);
+      const pose = frame.getViewerPose(refSpace);
+      if (!pose || !pose.views.length) return;
+      const view = pose.views[0];
+      const p = view.transform.position, o = view.transform.orientation;
+
+      // 투영행렬에서 실제 화각을 뽑는다 = 폰 카메라의 진짜 FOV
+      // 비대칭 절두체일 수 있으므로 위·아래를 따로 재서 더한다
+      const m = view.projectionMatrix;
+      const fovY = (Math.atan((1 + m[9]) / m[5]) + Math.atan((1 - m[9]) / m[5])) * 180 / Math.PI;
+      const vp = xrSession.renderState.baseLayer.getViewport(view);
+      const aspect = vp && vp.height ? vp.width / vp.height : innerWidth / innerHeight;
+
+      sendPose(t, p.x, p.y, p.z, o.x, o.y, o.z, o.w, fovY, aspect, '6');
+      tick();
+    };
+    xrSession.requestAnimationFrame(onFrame);
+  }
+
+  // ── 3DoF 폴백: DeviceOrientation ───────────────────────────────────────────
+  const qFlip = qAxis(1, 0, 0, -Math.PI / 2);   // 「폰을 눕힌 자세」를 정면으로
+  let devQuat = [0, 0, 0, 1], gotOrientation = false;
+
+  function onDeviceOrientation(e) {
+    if (e.alpha === null) return;
+    const d = Math.PI / 180;
+    const orient = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * d;
+    let q = qEulerYXZ(e.beta * d, e.alpha * d, -e.gamma * d);
+    q = qMul(q, qFlip);
+    q = qMul(q, qAxis(0, 0, 1, -orient));
+    devQuat = q;
+    gotOrientation = true;
+  }
+
+  function start3Dof() {
+    mode = '3dof';
+    addEventListener('deviceorientation', onDeviceOrientation, true);
+    enterRunning();
+    const loop = t => {
+      if (!running || mode !== '3dof') return;
+      requestAnimationFrame(loop);
+      if (!gotOrientation) return;
+      const q = devQuat;
+      sendPose(t, 0, 0, 0, q[0], q[1], q[2], q[3], 60, innerWidth / innerHeight, '3');
+      tick();
+    };
+    requestAnimationFrame(loop);
+  }
+
+  // ── 조이스틱 ───────────────────────────────────────────────────────────────
+  // 누른 자리가 곧 스틱의 중심이 된다 — 고정 패드보다 손이 어디에 있든 바로 잡힌다.
+  const stick = { l: [0, 0], r: [0, 0] };
+  let stickDirty = false, stickTimer = null;
+  const RADIUS = 52;                       // 이 거리에서 1.0
+
+  function bindStick(zoneId, ringId, key) {
+    const zone = $(zoneId), ring = $(ringId), knob = ring.firstElementChild;
+    let id = null, ox = 0, oy = 0;
+
+    const set = (x, y) => {
+      stick[key] = [x, y];
+      stickDirty = true;
+      knob.style.transform = `translate(${x * RADIUS}px, ${-y * RADIUS}px)`;
+    };
+
+    zone.addEventListener('pointerdown', e => {
+      if (id !== null) return;
+      id = e.pointerId;
+      zone.setPointerCapture(id);
+      const r = zone.getBoundingClientRect();
+      ox = e.clientX; oy = e.clientY;
+      ring.style.left = (ox - r.left) + 'px';
+      ring.style.top = (oy - r.top) + 'px';
+      ring.classList.add('on');
+      set(0, 0);
+      e.preventDefault();
+    });
+
+    zone.addEventListener('pointermove', e => {
+      if (e.pointerId !== id) return;
+      let dx = (e.clientX - ox) / RADIUS;
+      let dy = (oy - e.clientY) / RADIUS;          // 화면 y 는 아래가 +
+      const len = Math.hypot(dx, dy);
+      if (len > 1) { dx /= len; dy /= len; }       // 원 밖으로 안 나간다
+      set(dx, dy);
+      e.preventDefault();
+    });
+
+    const release = e => {
+      if (e.pointerId !== id) return;
+      id = null;
+      ring.classList.remove('on');
+      set(0, 0);
+    };
+    zone.addEventListener('pointerup', release);
+    zone.addEventListener('pointercancel', release);
+  }
+
+  function sendSticks() {
+    if (!stickDirty) return;
+    if (!ws || ws.readyState !== 1) return;
+    stickDirty = false;
+    const f = n => n.toFixed(3);
+    ws.send(`j|${f(stick.l[0])}|${f(stick.l[1])}|${f(stick.r[0])}|${f(stick.r[1])}`);
+  }
+
+  bindStick('zoneL', 'stickL', 'l');
+  bindStick('zoneR', 'stickR', 'r');
+
+  // ── 공통 ───────────────────────────────────────────────────────────────────
+  function enterRunning() {
+    running = true;
+    $('start').classList.add('gone');
+    $('hud').classList.remove('hidden');
+    $('bar').classList.remove('hidden');
+    $('sticks').classList.remove('hidden');
+    if (stickTimer === null) stickTimer = setInterval(sendSticks, 33);   // 30 Hz
+    if (!ws) connect();
+    paint();
+  }
+
+  function stop() {
+    running = false;
+    removeEventListener('deviceorientation', onDeviceOrientation, true);
+    if (xrSession) { const s = xrSession; xrSession = null; s.end().catch(() => {}); }
+    $('start').classList.remove('gone');
+    $('hud').classList.add('hidden');
+    $('bar').classList.add('hidden');
+    $('sticks').classList.add('hidden');
+    if (stickTimer !== null) { clearInterval(stickTimer); stickTimer = null; }
+    stick.l = [0, 0]; stick.r = [0, 0];
+    if (ws && ws.readyState === 1) ws.send('j|0|0|0|0');   // 놓고 나가도 안 밀린다
+  }
+
+  function tick() {
+    const now = performance.now();
+    if (now - statAt < 500) return;
+    const dt = (now - statAt) / 1000;
+    const fps = rxFrames / dt, kbs = rxBytes / 1024 / dt, hz = txPoses / dt;
+    rxFrames = rxBytes = txPoses = 0; statAt = now;
+    chipNet.className = 'chip' + (wsReady ? '' : ' bad');
+    chipNet.innerHTML = wsReady
+      ? `뷰파인더 <b>${fps.toFixed(0)}</b> fps · ${kbs.toFixed(0)} KB/s · 포즈 <b>${hz.toFixed(0)}</b> Hz`
+      : '<b>끊김</b> — 다시 붙는 중';
+  }
+
+  function paint() {
+    chipMode.innerHTML = mode === '6dof' ? '<b>6DoF</b> WebXR'
+      : mode === '3dof' ? '<b>3DoF</b> 자이로 (회전만)' : '대기';
+    chipNet.className = 'chip' + (wsReady ? '' : ' bad');
+  }
+
+  // ── 진입 ───────────────────────────────────────────────────────────────────
+  $('btnStop').onclick = stop;
+  $('btnRecenter').onclick = () => { if (ws && ws.readyState === 1) ws.send('c|recenter'); };
+  $('btnFallback').onclick = () => start3Dof();
+
+  (async () => {
+    const note = $('modeNote'), btn = $('btnStart');
+    let xrOk = false;
+    try { xrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')); }
+    catch (e) { xrOk = false; }
+
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      note.textContent = 'https 가 아니라 센서를 못 쓴다 — cloudflared 터널 주소로 열어라.';
+      btn.textContent = 'https 필요';
+      return;
+    }
+
+    if (xrOk) {
+      btn.disabled = false;
+      btn.textContent = '시작 (6DoF)';
+      note.textContent = 'ARCore 로 위치까지 따라간다. 시작을 누르면 권한을 묻는다.';
+      $('btnFallback').style.display = '';
+      btn.onclick = () => {
+        btn.disabled = true;
+        startXR().catch(err => {
+          btn.disabled = false;
+          note.textContent = 'WebXR 실패: ' + (err && err.message || err);
+        });
+      };
+    } else {
+      btn.disabled = false;
+      btn.textContent = '시작 (자이로 · 회전만)';
+      note.textContent = 'WebXR(ARCore)이 없다 — 회전만 전달된다. Play 스토어의 「Google Play 서비스 (AR)」를 깔면 6DoF 가 된다.';
+      btn.onclick = () => start3Dof();
+    }
+  })();
+})();
+</script>
+</body>
+</html>
