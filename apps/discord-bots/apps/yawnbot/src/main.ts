@@ -42,6 +42,7 @@ import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
 import { registerSpaceRoutes } from './bot/karmolab-space-api';
 import { registerAirRoutes } from './bot/karmolab-air-api';
+import { registerMailRoutes } from './bot/karmolab-mail-api';
 import { registerNoteRoutes } from './bot/karmolab-note-api';
 import { registerCollectionRoutes } from './bot/karmolab-collection-api';
 import { registerRouteRoutes } from './bot/karmolab-route-api';
@@ -397,6 +398,9 @@ registerSpaceRoutes(app);
 /* 하늘도 같은 이유로 여기를 거친다 — adsb.lol·adsb.fi 는 열쇠는 안 받지만 CORS 헤더가
    없어 브라우저가 직접 못 붙는다 (TASK-KL-336). */
 registerAirRoutes(app);
+/* 잠깐 쓰는 메일 — Cloudflare Email Worker 가 편지를 여기로 민다 (TASK-KL-339).
+   토큰(KL_MAIL_HOOK_TOKEN)이 없으면 수신 문은 아예 안 열린다. */
+registerMailRoutes(app);
 /* 한 번 읽으면 사라지는 쪽지 — 서버가 보는 것은 잠긴 덩어리뿐이다 (TASK-KL-251). */
 registerNoteRoutes(app);
 /* TASK-KL-196 — 도감. 서버는 이미 가진 발자국을 읽기만 한다(새 원장 X). */

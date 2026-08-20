@@ -12,6 +12,20 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[새로 생김] 개표 지도 — 구마다 1등이 통째로 가져간다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3b81f3d2a</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>개표 지도 — 구마다 1등이 통째로 가져간다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 우리 「구」는 누구 땅인가 — 시군구 250개 점유율</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-6ebdba3df</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>우리 「구」는 누구 땅인가 — 시군구 250개 점유율</description>
+    </item>
+    <item>
       <title>[새로 생김] 새 도구 뼈대를 한 명령으로</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-9e862d63c</guid>
@@ -206,20 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-e769798ce</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>「작업 폴더」를 환경 설정으로 올린다 — 정본 한 곳</description>
-    </item>
-    <item>
-      <title>[고침] 설치가 저장소 뿌리를 스스로 챙긴다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-049514f9f</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>설치가 저장소 뿌리를 스스로 챙긴다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 설치 목록에 「내 컴퓨터 목소리」를 얹는다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-403ff1088</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>설치 목록에 「내 컴퓨터 목소리」를 얹는다</description>
     </item>
   </channel>
 </rss>

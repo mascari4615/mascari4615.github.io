@@ -313,6 +313,7 @@
     "protobuf": "프로토버프 protobuf proto 디코드 wire format base64 바이너리",
     "my-ai": "usage limit ratelimit 사용량 남은양 잔량 쿼터 한도 구독 claude codex grok 클로드 코덱스 그록 내ai 할당량 quota",
     "cleanup": "지우개 물체지우기 잡티제거 워터마크 전깃줄 inpaint cleanup 사진정리",
-    "videobg": "영상배경제거 크로마키없이 unscreen 누끼 영상 투명배경 그린스크린"
+    "videobg": "영상배경제거 크로마키없이 unscreen 누끼 영상 투명배경 그린스크린",
+    "tempmail": "임시메일 일회용메일 버리는메일 tempmail 확인코드 인증메일 가입용메일"
   }
 }
