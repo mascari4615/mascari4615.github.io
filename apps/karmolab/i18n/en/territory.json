@@ -12,8 +12,11 @@
   "territory.msg.sample": "Sample only — OSM lists roughly a third of the real stores, so your block may be missing one.",
   "territory.msg.districtHint": "Hovering one district — these numbers are precomputed. Leave the map to go back to the on-screen view.",
   "territory.msg.boundary": "Boundaries: KOSTAT districts (2018)",
-  "territory.mode.store": "By store",
+  "territory.mode.store": "Speckled",
   "territory.mode.district": "By district",
   "territory.msg.wonTitle": "Districts won",
-  "territory.msg.electionHint": "Winner takes the whole district. Deeper color means a wider margin; pale means a close race."
+  "territory.msg.electionHint": "Winner takes the whole district. Deeper color means a wider margin; pale means a close race.",
+  "territory.mode.auto": "Auto",
+  "territory.mode.area": "Flat",
+  "territory.msg.wonSido": "Provinces won"
 }

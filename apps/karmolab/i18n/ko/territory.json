@@ -12,8 +12,11 @@
   "territory.msg.sample": "표본 주의 — OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다.",
   "territory.msg.districtHint": "구 하나를 짚고 있다 — 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.",
   "territory.msg.boundary": "경계: 통계청 시군구(2018)",
-  "territory.mode.store": "가게 단위",
+  "territory.mode.store": "얼룩",
   "territory.mode.district": "구 단위",
   "territory.msg.wonTitle": "구 몇 곳에서 1등인가",
-  "territory.msg.electionHint": "구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다."
+  "territory.msg.electionHint": "구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.",
+  "territory.mode.auto": "자동",
+  "territory.mode.area": "단색",
+  "territory.msg.wonSido": "시도 몇 곳에서 1등인가"
 }

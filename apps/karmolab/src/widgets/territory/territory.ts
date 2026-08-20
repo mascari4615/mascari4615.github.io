@@ -192,8 +192,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         <div class="terr-bar">
           <div class="terr-tabs" style="display:flex;gap:6px"></div>
           <div style="display:flex;gap:6px;margin-inline-start:14px">
-            <button type="button" class="terr-chip terr-mode" data-mode="store" aria-pressed="true">${esc(t('territory.mode.store', undefined, '가게 단위'))}</button>
-            <button type="button" class="terr-chip terr-mode" data-mode="district" aria-pressed="false">${esc(t('territory.mode.district', undefined, '구 단위'))}</button>
+            <button type="button" class="terr-chip terr-mode" data-mode="auto" aria-pressed="true">${esc(t('territory.mode.auto', undefined, '자동'))}</button>
+            <button type="button" class="terr-chip terr-mode" data-mode="area" aria-pressed="false">${esc(t('territory.mode.area', undefined, '단색'))}</button>
+            <button type="button" class="terr-chip terr-mode" data-mode="store" aria-pressed="false">${esc(t('territory.mode.store', undefined, '얼룩'))}</button>
           </div>
           <div class="terr-right">
             <button type="button" class="terr-chip terr-dots" aria-pressed="false">${esc(t('territory.label.dots', undefined, '가게 점 보기'))}</button>
@@ -212,24 +213,58 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     const dotsEl = container.querySelector('.terr-dots') as HTMLButtonElement;
     const fullEl = container.querySelector('.terr-full') as HTMLButtonElement;
 
-    /** 보기 방식 — 가게마다 제 땅을 칠하는 얼룩(store), 구를 통째로 1등 색으로 칠하는 개표(district). */
-    let mode: 'store' | 'district' = 'store';
+    /**
+     * 보기 방식.
+     *
+     * - `auto` — **보는 거리에 따라 말하는 단위가 달라진다.** 전국을 보면 시도 17개, 당겨 오면
+     *   시군구 250개, 더 당기면 가게마다 제 땅을 칠하는 얼룩. 원본(conbini)도 도도부현↔셀
+     *   두 단계였다 — 멀리서 250개는 이미 모래알이고, 가까이서 17개는 아무 말도 안 한다.
+     * - `area` — 늘 단색(1등이 통째로). 판세만 보고 싶을 때.
+     * - `store` — 늘 얼룩. 사실에 가장 가깝다.
+     */
+    type Mode = 'auto' | 'area' | 'store';
+    type Unit = 'sido' | 'sgg' | 'store';
+    let mode: Mode = 'auto';
+
+    /**
+     * 지금 무엇으로 말할 것인가.
+     *
+     * ★ 문턱을 **확대율 숫자가 아니라 「보이는 폭(km)」** 으로 잡는다. 같은 z 라도 4K 모니터는
+     * 전국이 다 보이고 폰은 시 하나만 보인다 — 숫자로 자르면 화면 크기에 따라 말이 달라진다.
+     * 폭으로 자르면 「전국이 보이면 시도, 시 몇 개면 시군구, 동네가 보이면 가게」가 늘 같다.
+     */
+    function unitNow(): Unit {
+      if (mode === 'store') return 'store';
+      const km = map.kmPerPixel() * map.size.width;
+      if (mode === 'area') return km > 320 ? 'sido' : 'sgg';
+      return km > 320 ? 'sido' : km > 45 ? 'sgg' : 'store';
+    }
+
     const modeEls = Array.from(container.querySelectorAll('.terr-mode')) as HTMLButtonElement[];
     for (const b of modeEls) {
       b.onclick = () => {
-        const next = b.dataset.mode === 'district' ? 'district' : 'store';
+        const next = (b.dataset.mode ?? 'auto') as Mode;
         if (next === mode) return;
         mode = next;
         for (const x of modeEls) x.setAttribute('aria-pressed', x.dataset.mode === mode ? 'true' : 'false');
-        if (mode === 'store') {
-          raster = null;
-          startJob(map);
-        } else {
-          stopJob();
-        }
-        map.redraw();
-        updateSide();
+        syncUnit();
       };
+    }
+
+    /** 단위가 바뀌면 필요한 것만 다시 준비한다 — 얼룩은 계산이 있고, 단색은 미리 잰 값이라 공짜다. */
+    let lastUnit: Unit | null = null;
+    function syncUnit(): void {
+      const u = unitNow();
+      if (u === lastUnit) return;
+      lastUnit = u;
+      if (u === 'store') {
+        raster = null;
+        startJob(map);
+      } else {
+        stopJob();
+      }
+      map.redraw();
+      updateSide();
     }
 
     let dotsOn = false;
@@ -304,20 +339,29 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
        「지금 보이는 만큼」이 아니라 **행정구역** 단위로 묻는 것이 사람의 진짜 질문이다 —
        「우리 구는 누구 땅인가」. 그 답은 화면과 무관하게 고정이라 `scripts/gen-territory-sgg.mjs`
        가 미리 재 두었다(방문자 계산 0). 여기서는 받아서 경계를 그리고, 짚은 구를 찾을 뿐이다. */
-    let districts: District[] | null = null;
+    /** 단위별 경계·점유율. `sgg` = 시군구 250, `sido` = 시도 17. */
+    const areas = new Map<string, District[]>();
     let hovered: District | null = null;
     let sggWanted = false;
 
-    async function loadDistricts(industry: Industry): Promise<void> {
+    /** 지금 단위의 구역들 — 얼룩 단위면 없다. */
+    function areasNow(): District[] | null {
+      const u = unitNow();
+      if (u === 'store') return null;
+      return areas.get(u + ':' + current) ?? null;
+    }
+
+    async function loadAreas(level: 'sgg' | 'sido', industry: Industry): Promise<void> {
+      if (areas.has(level + ':' + industry)) return;
       const [shapeRes, shareRes] = await Promise.all([
-        fetch(dataUrl('territory/sgg.json')),
-        fetch(dataUrl('territory/sgg-' + industry + '.json'))
+        fetch(dataUrl('territory/' + level + '.json')),
+        fetch(dataUrl('territory/' + level + '-' + industry + '.json'))
       ]);
       if (!shapeRes.ok || !shareRes.ok) throw new Error('구 자료를 못 받았습니다');
       const shapes = (await shapeRes.json()) as { features: Array<{ code: string; name: string; geometry: { coordinates: number[][][][] } }> };
       const stats = (await shareRes.json()) as { rows: Array<{ code: string; share: Record<string, number>; stores: Record<string, number>; covered: number }> };
       const byCode = new Map(stats.rows.map((r) => [r.code, r]));
-      districts = shapes.features.map((f) => {
+      const list = shapes.features.map((f) => {
         let minLat = Infinity;
         let minLng = Infinity;
         let maxLat = -Infinity;
@@ -346,6 +390,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           covered: st?.covered ?? 0
         };
       });
+      areas.set(level + ':' + industry, list);
     }
 
     /** 광선 교차 — 링 안인가. */
@@ -363,8 +408,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
     /** 이 위경도가 어느 구인가. 상자로 먼저 걸러 250개를 몇 개로 줄인다. */
     function districtAt(lat: number, lng: number): District | null {
-      if (districts === null) return null;
-      for (const d of districts) {
+      const list = areasNow();
+      if (list === null) return null;
+      for (const d of list) {
         if (lat < d.minLat || lat > d.maxLat || lng < d.minLng || lng > d.maxLng) continue;
         for (const poly of d.rings) {
           if (!inRing(poly[0], lng, lat)) continue;
@@ -396,11 +442,12 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       hovered = null;
       /* 구 자료는 곁들이다 — 못 받아도 지도는 그대로 돈다. */
       sggWanted = true;
-      void loadDistricts(industry)
-        .then(() => map.redraw())
-        .catch(() => {
-          districts = null;
-        });
+      void Promise.all([loadAreas('sido', industry), loadAreas('sgg', industry)])
+        .then(() => {
+          lastUnit = null;
+          syncUnit();
+        })
+        .catch(() => undefined);
       /* 통계는 칠하기와 무관하게 바로 낼 수 있다(12ms) — 범례가 빈 채로 기다리지 않게 먼저 채운다. */
       updateSide();
       startJob(map);
@@ -573,7 +620,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
     map.addPainter((ctx, m) => {
       const { width, height } = m.size;
-      if (mode === 'store' && raster !== null && off.width > 0) {
+      if (unitNow() === 'store' && raster !== null && off.width > 0) {
         /* 칠할 때의 두 귀퉁이를 지금 화면에 다시 찍는다 — 그게 얹을 자리와 크기다. */
         const a = m.project(raster.tl.lat, raster.tl.lng);
         const b = m.project(raster.br.lat, raster.br.lng);
@@ -591,7 +638,8 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     /** 구 경계는 **아주 옅게** 깐다 — 영토 색이 주인공이고 이건 그 위의 눈금이다.
         짚은 구만 밝은 테두리 + 살짝 밝힘. */
     function paintDistricts(ctx: CanvasRenderingContext2D, m: GeoMap): void {
-      if (districts === null || !sggWanted) return;
+      const list = areasNow();
+      if (list === null || !sggWanted) return;
       const b = m.bounds();
       const trace = (d: District): void => {
         ctx.beginPath();
@@ -611,8 +659,8 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
          압도적인 곳은 진하고 접전인 곳은 옅어서, 색만 봐도 「여긴 확실한 CU 땅, 저긴 반반」이 읽힌다.
          얼룩(가게 단위) 지도는 사실에 가깝지만 전국을 볼 때는 모래알이라 판세가 안 보인다 —
          두 그림은 서로 다른 질문에 답한다. */
-      if (mode === 'district' && loaded !== null) {
-        for (const d of districts) {
+      if (mode !== 'store' && loaded !== null) {
+        for (const d of list) {
           if (d.maxLat < b.minLat || d.minLat > b.maxLat || d.maxLng < b.minLng || d.minLng > b.maxLng) continue;
           const ranked = Object.entries(d.share).sort((x, y) => y[1] - x[1]);
           const win = ranked[0];
@@ -621,7 +669,12 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           const rgb = loaded.rgb.get(win[0]);
           if (rgb === undefined) continue;
           trace(d);
-          ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.3 + 0.5 * Math.min(1, margin * 2)).toFixed(3) + ')';
+          /* 진하기 = 격차. 다만 **바탕 지도가 비쳐야** 어디인지 읽힌다 — 가까이 볼수록(구 단위)
+             지명이 중요해지므로 한 겹 더 옅게 깐다. */
+          const base = unitNow() === 'sido' ? 0.2 : 0.15;
+          const span = unitNow() === 'sido' ? 0.32 : 0.28;
+          ctx.fillStyle =
+            'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (base + span * Math.min(1, margin * 2)).toFixed(3) + ')';
           ctx.fill('evenodd');
         }
       }
@@ -629,7 +682,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       ctx.lineJoin = 'round';
       ctx.strokeStyle = 'rgba(255,255,255,.3)';
       ctx.lineWidth = 1;
-      for (const d of districts) {
+      for (const d of list) {
         if (d.maxLat < b.minLat || d.minLat > b.maxLat || d.maxLng < b.minLng || d.minLng > b.maxLng) continue;
         if (d === hovered) continue;
         trace(d);
@@ -647,7 +700,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
     /* 마우스가 짚은 구를 따라간다 — 바뀔 때만 다시 그리고 순위표를 갈아 끼운다. */
     map.canvas.addEventListener('pointermove', (e) => {
-      if (districts === null) return;
+      if (areasNow() === null) return;
       const rect = map.canvas.getBoundingClientRect();
       const ll = map.unproject(e.clientX - rect.left, e.clientY - rect.top);
       const found = districtAt(ll.lat, ll.lng);
@@ -689,6 +742,16 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
            범례를 갱신하면 레이아웃이 흔들리고, 그게 크기 알림으로 돌아와 다시 칠하기를 부르고,
            그 끝에서 또 범례를 갱신한다 — 칠하기가 첫 줄에서 영영 못 벗어난다 (2026-08-20 실측:
            위쪽 몇 줄만 칠해진 채 멈춰 있었다). 같은 화면이면 아무것도 하지 않는 것이 답이다. */
+        /* 확대율이 단위 문턱을 넘었으면 말하는 단위부터 갈아 끼운다. */
+        const u = unitNow();
+        if (u !== lastUnit) {
+          syncUnit();
+          return;
+        }
+        if (u !== 'store') {
+          updateSide();
+          return;
+        }
         if (viewKey(map) === lastView) return;
         stopJob();
         updateSide();
@@ -709,18 +772,23 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       if (d !== null) {
         pctOf = (id) => d.share[id] ?? 0;
         countOf = (id) => d.stores[id] ?? 0;
-      } else if (mode === 'district' && districts !== null) {
+      } else if (unitNow() !== 'store' && areasNow() !== null) {
+        const list = areasNow() as District[];
         /* 개표 모드의 순위표는 「몇 개 구에서 1등을 했나」다 — 선거에서 의석 수를 세는 것과 같다.
            땅 넓이 %(가게 단위)와는 다른 수라, 같은 자리에 다른 뜻을 넣지 않게 제목도 바꾼다. */
         const won = new Map<string, number>();
         let seen = 0;
-        for (const x of districts) {
+        for (const x of list) {
           const ranked = Object.entries(x.share).sort((p1, p2) => p2[1] - p1[1]);
           if (ranked.length === 0 || ranked[0][1] <= 0) continue;
           seen++;
           won.set(ranked[0][0], (won.get(ranked[0][0]) ?? 0) + 1);
         }
-        title = t('territory.msg.wonTitle', undefined, '구 몇 곳에서 1등인가') + ' (' + seen + ')';
+        title =
+          (unitNow() === 'sido'
+            ? t('territory.msg.wonSido', undefined, '시도 몇 곳에서 1등인가')
+            : t('territory.msg.wonTitle', undefined, '구 몇 곳에서 1등인가')) +
+          ' (' + seen + ')';
         pctOf = (id) => ((won.get(id) ?? 0) / (seen || 1)) * 100;
         countOf = (id) => won.get(id) ?? 0;
       } else {
@@ -758,7 +826,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         '<div>' +
         (d !== null
           ? esc(t('territory.msg.districtHint', undefined, '구 하나를 짚고 있다 — 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.'))
-          : mode === 'district'
+          : unitNow() !== 'store'
             ? esc(t('territory.msg.electionHint', undefined, '구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.'))
             : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
         '</div>' +
