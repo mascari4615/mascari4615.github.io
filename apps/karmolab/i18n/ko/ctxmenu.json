@@ -1,0 +1,10 @@
+{
+  "ctxmenu.copy": "복사",
+  "ctxmenu.paste": "붙여넣기",
+  "ctxmenu.selectAll": "모두 선택",
+  "ctxmenu.reload": "새로고침",
+  "ctxmenu.open": "열기",
+  "ctxmenu.openNew": "새 창에서 열기",
+  "ctxmenu.copyUrl": "주소 복사",
+  "ctxmenu.removeFav": "즐겨찾기에서 빼기"
+}

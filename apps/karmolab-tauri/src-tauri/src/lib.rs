@@ -795,6 +795,16 @@ fn karmolab_desktop_init_script() -> String {
         r#"";(function(){try{var v=window.__KARMOLAB_VERSION__,seen=null;try{seen=localStorage.getItem('karmolab_app_version_seen');}catch(_){}if(seen===v)return;try{localStorage.setItem('karmolab_app_version_seen',v);}catch(_){}if(document.documentElement){document.documentElement.style.visibility='hidden';}var ps=[];if(typeof caches!=='undefined'&&caches.keys){ps.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}Promise.all(ps).catch(function(){}).then(function(){location.reload();});}catch(_){}})();"#
     );
     let mut script = String::from(base);
+    /* WebView2 기본 우클릭 메뉴를 막는다. 그 메뉴는 복사·붙여넣기·뒤로·「Inspect」가 **한 덩어리**라
+     * 항목만 빼낼 수 없다 (항목 손질은 WebView2 네이티브 API 만 가능 — Tauri 가 안 열어 준다).
+     * 그래서 메뉴 자체를 막고, 대신 앱이 **자기 맥락 메뉴를 그린다** (`karmolab/src/lib/context-menu.ts`).
+     * Discord·VSCode 가 쓰는 길이고, 덕분에 devtools 를 release 에서도 켠 채로 Inspect 만 감출 수 있다.
+     *
+     * 이 자리(초기화 스크립트)에 두는 게 핵심 — **앱 JS 보다 먼저** 걸리므로 화면 코드가 깨져도
+     * Inspect 는 안 열린다. `preventDefault` 는 전파를 막지 않아서 자체 메뉴 listener 는 그대로 받는다. */
+    script.push_str(
+        r#"document.addEventListener('contextmenu',function(e){e.preventDefault();},{capture:!0});"#,
+    );
     if cfg!(debug_assertions) {
         script.push_str(r#"window.__KARMOLAB_DEV_INSTANCE__=!0;"#);
     }

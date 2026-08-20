@@ -10,9 +10,11 @@ name = "karmolab_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-# default = release-safe (devtools off — production WebView2 우클릭 「Inspect」 노출 차단).
-# dev: `tauri dev --features dev-tools` (npm `dev:tauri` script 자동 적용).
-default = []
+# devtools = **release 에서도 켠다** (KL-051 → 2026-08-20 뒤집음). 이유: 이 앱은 본인 PC 전용이고,
+# 릴리스에서 F12 를 못 여는 값이 「우클릭 Inspect 가 안 보인다」보다 훨씬 비쌌다 (버그 하나 볼 때마다
+# Rust 재컴파일 수 분). Inspect 노출은 devtools 를 끄는 대신 **WebView2 기본 우클릭 메뉴 자체를 막고
+# 자체 맥락 메뉴를 그려** 없앤다 (Discord/VSCode 방식) — `karmolab_desktop_init_script()` + `lib/context-menu.ts`.
+default = ["dev-tools"]
 dev-tools = ["tauri/devtools"]
 
 [build-dependencies]

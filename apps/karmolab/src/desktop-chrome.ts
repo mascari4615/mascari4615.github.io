@@ -12,6 +12,8 @@
  * 여기 새 코드를 넣을 때 셸 내부를 더 부르지 마라 — 부르는 순간 도로 셸에 묶인다.
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
+import { installContextMenu } from './lib/context-menu';
+
 (function () {
     const escapeHtml = (s) => Toolbox.escapeHtml(s);
     const isDesktopApp = () => Toolbox.isDesktopApp();
@@ -259,6 +261,9 @@
             setupUpdateBannerListener();
             setupUpdateCompletedToast();
             installWindowControls();
+            /* 앱 전용 우클릭 메뉴. 웹에서는 이 파일 자체를 안 받으므로 여기가 제자리다 —
+             * 브라우저 기본 메뉴를 덮는 것은 데스크톱 앱에서만 정당하다. */
+            installContextMenu();
         }
     };
 })();
