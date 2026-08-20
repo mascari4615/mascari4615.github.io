@@ -31,18 +31,18 @@ export interface Person {
 }
 
 /** 이름 뒤에 붙는 부르는 말. 이게 붙어야 사람으로 본다. */
-const 부름 = '(대리|과장|차장|부장|팀장|사장|선배|후배|선생님|교수님|씨|님|이형|형|누나|언니|오빠|동생)';
+const call = '(대리|과장|차장|부장|팀장|사장|선배|후배|선생님|교수님|씨|님|이형|형|누나|언니|오빠|동생)';
 /**
  * 부름 뒤에 올 수 있는 글자들.
  *
  * 조사를 빠뜨리면 조용히 안 잡힌다 — 처음엔 「민수 씨한테」 「팀장님께」가 통째로 빠졌다.
  * 그렇다고 아무 글자나 허용하면 「씨앗」이 사람이 된다. 그래서 **조사 첫 글자만** 열어 둔다.
  */
-const 뒤에올것 = ['한', '께', '에', '보', '랑', '이', '가', '은', '는', '을', '를', '도', '만', '의', '와', '과', '님', '라', '야', '아', '요', '였'];
-const 이름꼴 = new RegExp(`([가-힣]{1,4})\\s?${부름}(?=[\\s.,!?'"」)]|${뒤에올것.join('|')}|$)`, 'g');
+const next = ['한', '께', '에', '보', '랑', '이', '가', '은', '는', '을', '를', '도', '만', '의', '와', '과', '님', '라', '야', '아', '요', '였'];
+const namePattern = new RegExp(`([가-힣]{1,4})\\s?${call}(?=[\\s.,!?'"」)]|${next.join('|')}|$)`, 'g');
 
 /** 사람 이름이 아닌 게 뻔한 것들 — 이걸 안 막으면 온갖 말이 사람이 된다. */
-const 사람아님 = new Set([
+const notPerson = new Set([
   '조수', '아무', '그', '저', '이', '무슨', '어느', '다른', '옛', '새', '우리',
   '오늘', '내일', '어제', '지금', '방금', '이번', '저번', '다음', '요즘',
 ]);
@@ -55,12 +55,12 @@ const 사람아님 = new Set([
  */
 export function peopleIn(text: string): string[] {
   const out: string[] = [];
-  for (const m of text.matchAll(이름꼴)) {
+  for (const m of text.matchAll(namePattern)) {
     const 이름 = m[1];
-    if (사람아님.has(이름)) continue;
+    if (notPerson.has(이름)) continue;
     if (이름.length < 1) continue;
-    const 통짜 = `${이름}${m[2]}`;
-    if (out.includes(통짜) === false) out.push(통짜);
+    const whole = `${이름}${m[2]}`;
+    if (out.includes(whole) === false) out.push(whole);
   }
   return out;
 }
@@ -110,7 +110,7 @@ export class People {
   /** 오간 말에서 사람을 줍는다. 새로 인정된 사람 수를 돌려준다. */
   learn(entries: readonly MemoryEntry[]): number {
     const need = this.options.needTimes ?? 2;
-    let 새로인정 = 0;
+    let newlyAccepted = 0;
     for (const e of entries) {
       // **조수님이 한 말만** 본다. 얘가 한 말에서 주우면 제가 지어낸 이름을 제가 배운다.
       if (e.role !== 'sensed' || e.channel === 'screen' || e.channel === 'nudge') continue;
@@ -124,7 +124,7 @@ export class People {
         if (existing.lastAt === e.at) continue;
         existing.times += 1;
         existing.lastAt = e.at;
-        if (existing.times === need) 새로인정 += 1;
+        if (existing.times === need) newlyAccepted += 1;
       }
     }
 
@@ -133,8 +133,8 @@ export class People {
       this.folks = [...this.folks].sort((a, b) => b.lastAt - a.lastAt).slice(0, keep);
     }
     this.save();
-    if (새로인정 > 0) this.options.log?.(`곁의 사람 ${새로인정}명을 새로 알았다`);
-    return 새로인정;
+    if (newlyAccepted > 0) this.options.log?.(`곁의 사람 ${newlyAccepted}명을 새로 알았다`);
+    return newlyAccepted;
   }
 
   /** 잘못 주운 사람을 지운다 — 사람이 아닌 게 끼면 얘가 헛소리를 한다. */
@@ -152,10 +152,10 @@ export class People {
    * 방금 나온 사람은 안 고른다. 「아까 그 김 대리는 요즘 어때?」는 이상하다.
    */
   whoToAskAbout(now: number, quietForMs = 7 * 86_400_000): Person | null {
-    const 오래된것 = this.known.filter((p) => now - p.lastAt >= quietForMs);
-    if (오래된것.length === 0) return null;
+    const aged = this.known.filter((p) => now - p.lastAt >= quietForMs);
+    if (aged.length === 0) return null;
     // 가장 오래 안 나온 사람.
-    return [...오래된것].sort((a, b) => a.lastAt - b.lastAt)[0];
+    return [...aged].sort((a, b) => a.lastAt - b.lastAt)[0];
   }
 
   private save(): void {

@@ -1,5 +1,5 @@
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
-import { 기분결, type Tone } from './feeling-tone';
+import { moodTone, type Tone } from './feeling-tone';
 
 /** 목소리 하나. */
 export interface SpeechVoice {
@@ -73,10 +73,10 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
       // `이름@결` 형태면 그 결의 빠르기·높낮이를 쓴다.
       const at = (voiceId ?? '').lastIndexOf('@');
       const name = at < 0 ? (voiceId || defaultVoice) : (voiceId as string).slice(0, at);
-      const 결이름 = at < 0 ? null : (voiceId as string).slice(at + 1);
+      const toneName = at < 0 ? null : (voiceId as string).slice(at + 1);
       // 결은 그때그때 마음에서 온다. 손으로 적어 두는 자리는 없앴다 — 목록만 부풀리고
       // 고를 이유가 없었다.
-      const tone = 결이름 === null ? undefined : 기분결[결이름 as Tone];
+      const tone = toneName === null ? undefined : moodTone[toneName as Tone];
 
       const tts = new MsEdgeTTS();
       await tts.setMetadata(name, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);

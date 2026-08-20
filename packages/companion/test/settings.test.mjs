@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { Quiet, Settings, settingsReport, 설정할것 } from '../dist/index.js';
+import { Quiet, Settings, settingsReport, toConfigure } from '../dist/index.js';
 
 // ── 기본값 ──────────────────────────────────────────────────────────
 
 test('아무것도 없으면 기본값으로 시작한다', () => {
   const s = new Settings();
-  for (const [k, spec] of Object.entries(설정할것)) assert.equal(s.get(k), spec.value, k);
+  for (const [k, spec] of Object.entries(toConfigure)) assert.equal(s.get(k), spec.value, k);
 });
 
 test('초를 밀리초로 바꿔 준다 — 그게 필요한 자리가 많다', () => {
@@ -93,7 +93,7 @@ test('파일이 깨져 있어도 기본값으로 돈다', async () => {
 
 test('무엇을 바꿀 수 있는지 그대로 보여 준다', () => {
   const 표 = settingsReport(new Settings());
-  for (const k of Object.keys(설정할것)) assert.match(표, new RegExp(k));
+  for (const k of Object.keys(toConfigure)) assert.match(표, new RegExp(k));
   assert.match(표, /60~3600/, '범위도 보여 준다');
 });
 

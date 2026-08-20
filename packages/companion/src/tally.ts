@@ -94,12 +94,12 @@ export class Tally {
    * 몇 번은 지나가 봤는데 한 번도 안 실렸으면 그건 죽은 기능이다.
    */
   neverUsed(atLeastSeen = 10): string[] {
-    const 죽은것: string[] = [];
+    const deadOnes: string[] = [];
     for (const [name, m] of this.marks) {
       const elapsed = m.실림 + m.밀림 + m.꺼짐 + m.빔;
-      if (elapsed >= atLeastSeen && m.실림 === 0) 죽은것.push(name);
+      if (elapsed >= atLeastSeen && m.실림 === 0) deadOnes.push(name);
     }
-    return 죽은것.sort();
+    return deadOnes.sort();
   }
 
   /** 지금 바로 남긴다 (끝낼 때). */
@@ -126,11 +126,11 @@ export function tallyReport(tally: Tally): string {
 
   return lines
     .map(({ name, m, 지나감 }) => {
-      const 상태 = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
+      const state = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
       // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
       const 왜 = m.마지막왜 === undefined ? '' : `
 ${' '.repeat(10)}↳ ${m.마지막왜}`;
-      return `${name.padEnd(8)} ${상태.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${왜}`;
+      return `${name.padEnd(8)} ${state.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${왜}`;
     })
     .join('\n');
 }

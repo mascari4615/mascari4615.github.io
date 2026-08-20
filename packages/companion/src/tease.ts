@@ -37,7 +37,7 @@ export function tooSoreToTease(entries: readonly MemoryEntry[], howMany = 3): bo
 }
 
 /** 물음에서 알맹이 낱말들을 뽑는다 — 「그 셰이더 어떻게 됐어?」 → 셰이더. */
-function 알맹이(text: string): string[] {
+function core(text: string): string[] {
   return text
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
@@ -59,21 +59,21 @@ export function askedBefore(
 ): MemoryEntry | null {
   const withinMs = options.withinMs ?? 7 * 86_400_000;
   const now = options.now ?? Date.now();
-  const 지금알맹이 = 알맹이(said);
-  if (지금알맹이.length < (options.minWords ?? 1)) return null;
+  const currentCore = core(said);
+  if (currentCore.length < (options.minWords ?? 1)) return null;
 
   const old = conversationOnly(entries)
     .filter((e) => e.role === 'sensed' && now - e.at <= withinMs && e.text.trim() !== said.trim());
 
   for (let i = old.length - 1; i >= 0; i -= 1) {
-    const overlap = 알맹이(old[i].text).filter((w) => 지금알맹이.includes(w));
+    const overlap = core(old[i].text).filter((w) => currentCore.includes(w));
     // 알맹이가 **다** 겹쳐야 같은 물음이다. 하나 겹쳤다고 같은 얘기는 아니다.
-    if (overlap.length >= 지금알맹이.length && overlap.length > 0) return old[i];
+    if (overlap.length >= currentCore.length && overlap.length > 0) return old[i];
   }
   return null;
 }
 
-const 잔다는말 = /(잘게|자야지|잔다|잠들|이제 자|자러|굿나잇|잘 자)/;
+const sleepText = /(잘게|자야지|잔다|잠들|이제 자|자러|굿나잇|잘 자)/;
 
 /**
  * 잔다고 해 놓고 아직 있나.
@@ -90,10 +90,10 @@ export function stayedUp(
   const userText = conversationOnly(entries).filter((e) => e.role === 'sensed');
   for (let i = userText.length - 1; i >= 0; i -= 1) {
     const e = userText[i];
-    if (잔다는말.test(e.text) === false) continue;
-    const 지난시간 = now - e.at;
+    if (sleepText.test(e.text) === false) continue;
+    const elapsed = now - e.at;
     // 오늘 안에, 그리고 한참 지났을 때만.
-    return 지난시간 >= afterMs && 지난시간 <= 6 * 3600_000 ? e : null;
+    return elapsed >= afterMs && elapsed <= 6 * 3600_000 ? e : null;
   }
   return null;
 }
@@ -106,16 +106,16 @@ export function findTease(
 ): Tease | null {
   if (tooSoreToTease(entries)) return null;
 
-  const 또물음 = askedBefore(said, entries, { now });
-  if (또물음 !== null) {
-    const 언제 = new Date(또물음.at);
-    return { from: '또 물음', what: `조수님이 「${또물음.text.slice(0, 24)}」 를 ${언제.getMonth() + 1}월 ${언제.getDate()}일에도 물었다` };
+  const repeatQuestion = askedBefore(said, entries, { now });
+  if (repeatQuestion !== null) {
+    const when = new Date(repeatQuestion.at);
+    return { from: '또 물음', what: `조수님이 「${repeatQuestion.text.slice(0, 24)}」 를 ${when.getMonth() + 1}월 ${when.getDate()}일에도 물었다` };
   }
 
-  const 안잠 = stayedUp(entries, { now });
-  if (안잠 !== null) {
-    const minutes = Math.round((now - 안잠.at) / 60_000);
-    return { from: '잔다더니', what: `조수님이 ${minutes}분 전에 「${안잠.text.slice(0, 20)}」 라고 해 놓고 아직 있다` };
+  const notAsleep = stayedUp(entries, { now });
+  if (notAsleep !== null) {
+    const minutes = Math.round((now - notAsleep.at) / 60_000);
+    return { from: '잔다더니', what: `조수님이 ${minutes}분 전에 「${notAsleep.text.slice(0, 20)}」 라고 해 놓고 아직 있다` };
   }
 
   return null;

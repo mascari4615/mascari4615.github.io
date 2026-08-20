@@ -18,7 +18,7 @@ import type { MemoryEntry } from './types';
  */
 
 /** 이 말이 묻는 말인가. */
-export function 묻는말인가(text: string): boolean {
+export function isQuestion(text: string): boolean {
   const 말 = text.trim();
   if (말 === '') return false;
   /* **물음표 없이 묻는 말이 훨씬 흔하다.** 라이브에서 「뭐가 재밌었는데.」가 묻는 말로
@@ -27,8 +27,8 @@ export function 묻는말인가(text: string): boolean {
   if (/[?？]\s*$/.test(말)) return true;
   if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(말)) return true;
   // 「~는데」 「~을까」 「~야?」 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
-  const 묻는낱말 = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
-  return 묻는낱말.test(말) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(말);
+  const questionWord = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
+  return questionWord.test(말) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(말);
 }
 
 export interface TossBackInput {
@@ -45,10 +45,10 @@ export interface TossBackInput {
  * 대화에서 나와야지, 우리가 정해 주면 그게 설문지다.
  */
 export function tossBackNote(input: TossBackInput): string {
-  return skipReason(input) === null ? 돌려주라는말 : '';
+  return skipReason(input) === null ? tossBackText : '';
 }
 
-const 돌려주라는말 =
+const tossBackText =
   '대화가 식어 가고 있다. 답만 하지 말고 **공을 돌려줘라** — 방금 나온 얘기에서 ' +
   '한 가지를 골라 되물어라. 새 주제를 꺼내라는 게 아니라, 하던 얘기를 이어 가라는 것이다.';
 
@@ -62,20 +62,20 @@ const 돌려주라는말 =
 export function skipReason(input: TossBackInput): string | null {
   const conversation = input.recent.filter((e) => e.channel === 'web');
   const userText = conversation.filter((e) => e.role === 'sensed');
-  const 얘말 = conversation.filter((e) => e.role === 'said');
+  const companionText = conversation.filter((e) => e.role === 'said');
   /* 아직 말이 몇 마디 안 오갔으면 그냥 둔다 — 처음부터 되물으면 낯설다.
      **얘 말은 하나만 있어도 센다.** 이 판단은 *지금 할 말을 내보내기 직전*에도 도는데,
      그때 그 말은 아직 기억에 없다. 둘을 요구했더니 늘 한 마디씩 모자라서 세 마디를
      주고받아도 영영 안 걸렸다(실측: 「사람 2 · 얘 1」로 계속 빠졌다). 지금 심판받는
      그 말이 곧 두 번째다. */
-  if (userText.length < 2 || 얘말.length < 1) {
-    return `아직 몇 마디 안 오갔다 (사람 ${userText.length} · 얘 ${얘말.length})`;
+  if (userText.length < 2 || companionText.length < 1) {
+    return `아직 몇 마디 안 오갔다 (사람 ${userText.length} · 얘 ${companionText.length})`;
   }
   // 물음에 물음으로 답하는 건 회피다.
-  if (묻는말인가(input.방금)) return '조수님이 물어본 turn 이다';
+  if (isQuestion(input.방금)) return '조수님이 물어본 turn 이다';
   // 방금 되물었으면 또 안 한다. 두 번 이어 물으면 취조다.
-  const 마지막얘말 = 얘말[얘말.length - 1];
-  if (마지막얘말 !== undefined && 묻는말인가(마지막얘말.text)) return '방금 되물었다';
+  const lastCompanionText = companionText[companionText.length - 1];
+  if (lastCompanionText !== undefined && isQuestion(lastCompanionText.text)) return '방금 되물었다';
 
   // 대화가 식어 가는가 — 최근 말이 그 앞보다 짧아지고 있으면 공이 멈추는 중이다.
   const 길이 = (es: readonly MemoryEntry[]) =>
@@ -84,10 +84,10 @@ export function skipReason(input: TossBackInput): string | null {
   // 말이 짧아진 것을 희석해 버린다 — 「28자, 1자」가 평균 14자가 되어 「아직 안 식었다」로
   // 나왔다(실측). 식는다는 건 *방금* 짧아졌다는 뜻이다.
   const 최근 = 길이(userText.slice(-1));
-  const 그전 = 길이(userText.slice(-4, -1));
-  const 식는중 = 그전 > 0 ? 최근 < 그전 * 0.8 : 최근 < 12;
-  if (식는중 === false) {
-    return `아직 안 식었다 (최근 ${Math.round(최근)}자 · 그전 ${Math.round(그전)}자)`;
+  const before = 길이(userText.slice(-4, -1));
+  const cooling = before > 0 ? 최근 < before * 0.8 : 최근 < 12;
+  if (cooling === false) {
+    return `아직 안 식었다 (최근 ${Math.round(최근)}자 · 그전 ${Math.round(before)}자)`;
   }
   return null;
 }
@@ -98,9 +98,9 @@ export function skipReason(input: TossBackInput): string | null {
  * 「되묻게 했다」는 만든 사람 말이고, **몇 번 중 몇 번인가**가 결과다. 이걸 안 세면
  * 재료만 얹어 놓고 됐다고 하게 된다(오늘만 그런 자리를 셋 찾았다).
  */
-export function 되물은비율(said: readonly MemoryEntry[]): { 전체: number; 되물음: number } {
+export function followUpRatio(said: readonly MemoryEntry[]): { 전체: number; 되물음: number } {
   const texts = said.filter((e) => e.role === 'said');
-  return { 전체: texts.length, 되물음: texts.filter((e) => 묻는말인가(e.text)).length };
+  return { 전체: texts.length, 되물음: texts.filter((e) => isQuestion(e.text)).length };
 }
 
 
@@ -125,7 +125,7 @@ export function tossBackRetryNote(): string {
  *
  * **공을 돌려줄 자리일 때만** 본다 — 아무 때나 되물으라고 하면 취조가 된다.
  */
-export function notReturned(said: string, 돌려줄자리인가: boolean): string | null {
-  if (돌려줄자리인가 === false) return null;
-  return 묻는말인가(said) ? null : '대화가 식어 가는데 되묻지 않았다';
+export function notReturned(said: string, shouldToss: boolean): string | null {
+  if (shouldToss === false) return null;
+  return isQuestion(said) ? null : '대화가 식어 가는데 되묻지 않았다';
 }

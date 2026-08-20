@@ -1,5 +1,5 @@
 import type { Speech, SpeechVoice } from './edge-tts';
-import { 기분빠르기, type Tone } from './feeling-tone';
+import { moodSpeed, type Tone } from './feeling-tone';
 
 /**
  * 흉내 낸 목소리 — 참고 음성 몇 초로 그 사람처럼 말하게 한다.
@@ -60,7 +60,7 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
          이름 뒤의 `@결` 을 읽는다. 없으면 늘 하던 속도. */
       const tone = (voiceId ?? '').split('@')[1] as Tone | undefined;
       // 기분빠르기는 「늘어지는 정도」라 방향이 반대다 — 1.15 는 느리게, 여기선 나눠 준다.
-      const 빠르기 = tone !== undefined && tone in 기분빠르기 ? 1 / 기분빠르기[tone] : 1.0;
+      const speed = tone !== undefined && tone in moodSpeed ? 1 / moodSpeed[tone] : 1.0;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
@@ -77,7 +77,7 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
             // 문장을 잘게 쪼개 이어 붙이면 첫 소리가 빨리 나온다.
             text_split_method: 'cut5',
             batch_size: 1,
-            speed_factor: Number(빠르기.toFixed(3)),
+            speed_factor: Number(speed.toFixed(3)),
           }),
           signal: controller.signal,
         });

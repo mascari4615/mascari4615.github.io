@@ -46,7 +46,7 @@ export interface 수요기동옵션 {
   log?: (message: string) => void;
 }
 
-export class 수요기동 {
+export class demandBoot {
   private 떴나 = false;
   private 마지막확인 = 0;
   private 띄우는중 = false;
@@ -79,8 +79,8 @@ export class 수요기동 {
   async 써야한다(): Promise<void> {
     this.마지막사용 = this.지금;
 
-    const 간격 = this.options.물어보는간격ms ?? 5_000;
-    if (this.지금 - this.마지막확인 >= 간격) {
+    const interval = this.options.물어보는간격ms ?? 5_000;
+    if (this.지금 - this.마지막확인 >= interval) {
       this.마지막확인 = this.지금;
       try {
         this.떴나 = await this.options.살았나();
@@ -119,7 +119,7 @@ export class 수요기동 {
 
   /** 뜰 때까지 물어본다. 정해진 시간을 넘기면 실패로 본다 — 영영 「띄우는 중」은 없다. */
   private async 뜰때까지(): Promise<void> {
-    const 한계 = this.options.준비대기ms ?? 180_000;
+    const limit = this.options.준비대기ms ?? 180_000;
     const 간격 = this.options.준비물어보는간격ms ?? 2_000;
     const start = this.지금;
     for (;;) {
@@ -135,9 +135,9 @@ export class 수요기동 {
         this.options.log?.(`${this.options.이름} 이(가) 준비됐다 (${Math.round((this.지금 - start) / 1000)}초)`);
         return;
       }
-      if (this.지금 - start >= 한계) {
+      if (this.지금 - start >= limit) {
         this.실패한때 = this.지금;
-        throw new Error(`${Math.round(한계 / 1000)}초 안에 안 떴다`);
+        throw new Error(`${Math.round(limit / 1000)}초 안에 안 떴다`);
       }
     }
   }
@@ -149,13 +149,13 @@ export class 수요기동 {
    * 게 아니라 남의 것을 끄는 일이다.
    */
   async 쉬었으면끄기(): Promise<boolean> {
-    const 쉬면 = this.options.쉬면끄기ms?.() ?? 0;
-    if (쉬면 <= 0 || this.우리가띄웠나 === false || this.떴나 === false) return false;
-    if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < 쉬면) return false;
+    const whenIdle = this.options.쉬면끄기ms?.() ?? 0;
+    if (whenIdle <= 0 || this.우리가띄웠나 === false || this.떴나 === false) return false;
+    if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
 
     try {
       await this.options.끄기();
-      this.options.log?.(`${this.options.이름} 을(를) 껐다 — ${Math.round(쉬면 / 60_000)}분 넘게 안 썼다`);
+      this.options.log?.(`${this.options.이름} 을(를) 껐다 — ${Math.round(whenIdle / 60_000)}분 넘게 안 썼다`);
     } catch (e) {
       this.options.log?.(`${this.options.이름} 을(를) 못 껐다: ${e instanceof Error ? e.message : String(e)}`);
       return false;
@@ -171,7 +171,7 @@ export interface 필요할때옵션 {
   /** 무거운 진짜 목소리. */
   진짜: Speech;
   /** 켜고 끄는 자리. */
-  기동: 수요기동;
+  기동: demandBoot;
   /** 이만큼 기다려도 안 뜨면 포기한다(그때는 소리가 없다 — 딴 목소리로 바꾸지 않는다). */
   기다림한계ms?: number;
   log?: (message: string) => void;
@@ -183,17 +183,17 @@ export interface 필요할때옵션 {
  * 목록에는 **늘 보인다.** 꺼져 있다고 목록에서 빼면 사람은 그걸 「기능이 사라졌다」로
  * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
-export function 필요할때(options: 필요할때옵션): Speech {
-  const { 진짜, 기동: boot } = options;
-  const 기다림한계 = options.기다림한계ms ?? 180_000;
+export function onDemand(options: 필요할때옵션): Speech {
+  const { 진짜: real, 기동: boot } = options;
+  const waitLimit = options.기다림한계ms ?? 180_000;
 
   return {
-    name: `${진짜.name}(필요할 때)`,
-    contentType: 진짜.contentType,
+    name: `${real.name}(필요할 때)`,
+    contentType: real.contentType,
 
     voices(): Promise<readonly SpeechVoice[]> {
       // 꺼져 있어도 목록은 진짜 쪽 것으로 보여 준다 — 고를 수 있어야 켤 이유도 생긴다.
-      return Promise.resolve(진짜.voices()).catch(() => []);
+      return Promise.resolve(real.voices()).catch(() => []);
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
@@ -203,20 +203,20 @@ export function 필요할때(options: 필요할때옵션): Speech {
          무한히 기다리지는 않는다: 정해진 시간을 넘기면 포기하고, 그때는 **소리가 없다**
          (조용한 게 딴 사람 목소리보다 낫다). */
       const 시작 = Date.now();
-      let 알렸나 = false;
+      let notified = false;
       while (boot.준비됐나 === false) {
-        if (Date.now() - 시작 >= 기다림한계) {
-          throw new Error(`고른 목소리가 ${Math.round(기다림한계 / 1000)}초 안에 준비 안 됐다`);
+        if (Date.now() - 시작 >= waitLimit) {
+          throw new Error(`고른 목소리가 ${Math.round(waitLimit / 1000)}초 안에 준비 안 됐다`);
         }
-        if (알렸나 === false) {
+        if (notified === false) {
           options.log?.('고른 목소리가 아직 안 떴다 — 뜰 때까지 기다린다 (딴 목소리로 안 바꾼다)');
-          알렸나 = true;
+          notified = true;
         }
         await new Promise((r) => setTimeout(r, 500));
         await boot.써야한다();
       }
-      if (알렸나) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - 시작) / 1000)}초 기다림)`);
-      return 진짜.synthesize(text, voiceId);
+      if (notified) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - 시작) / 1000)}초 기다림)`);
+      return real.synthesize(text, voiceId);
     },
   };
 }

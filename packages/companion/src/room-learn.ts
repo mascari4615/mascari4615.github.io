@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-import { 어떤자리, type 자리 } from './room';
+import { whichSlot, type 자리 } from './room';
 
 /**
  * 자리를 **배운다** — 표가 모르는 창은 두뇌에게 물어본다.
@@ -29,11 +29,11 @@ const kinds: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드�
 export interface 자리배움옵션 {
   path?: string;
   /** 두뇌에게 물어보는 자리. 없으면 표만 쓴다. */
-  물어보기?: (제목들: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
+  물어보기?: (titles: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
   log?: (message: string) => void;
 }
 
-export class 자리배움 {
+export class learnSlot {
   private readonly 배운것 = new Map<string, 자리>();
   private readonly 물어볼것 = new Set<string>();
 
@@ -58,11 +58,11 @@ export class 자리배움 {
   읽기(title: string | null | undefined): 자리 {
     const 제목 = (title ?? '').trim();
     if (제목 === '') return null;
-    const table = 어떤자리(제목);
+    const table = whichSlot(제목);
     if (table !== null) return table;
-    const learning = this.배운것.get(짧게(제목));
+    const learning = this.배운것.get(brief(제목));
     if (learning !== undefined) return learning;
-    if (this.물어보기있나) this.물어볼것.add(짧게(제목));
+    if (this.물어보기있나) this.물어볼것.add(brief(제목));
     return null;
   }
 
@@ -101,15 +101,15 @@ export class 자리배움 {
       return 0;
     }
 
-    let 배운수 = 0;
+    let learnedCount = 0;
     bundle.forEach((제목, i) => {
       const z = answer![i];
       this.배운것.set(제목, z === undefined ? null : z);
-      if (z !== null && z !== undefined) 배운수 += 1;
+      if (z !== null && z !== undefined) learnedCount += 1;
     });
     this.save();
-    if (배운수 > 0) this.options.log?.(`창 ${bundle.length}개 중 ${배운수}개가 무슨 자리인지 알았다`);
-    return 배운수;
+    if (learnedCount > 0) this.options.log?.(`창 ${bundle.length}개 중 ${learnedCount}개가 무슨 자리인지 알았다`);
+    return learnedCount;
   }
 
   private save(): void {
@@ -130,14 +130,14 @@ export class 자리배움 {
  * 자리인데 제목이 다르다. 통째로 열쇠를 삼으면 노래를 바꿀 때마다 새로 물어본다 — 물어보는
  * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 자리)만 남긴다.
  */
-export function 짧게(제목: string): string {
+export function brief(제목: string): string {
   const chunk = 제목.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
   const after = chunk.length >= 2 ? chunk.slice(-2).join(' - ') : (chunk[0] ?? 제목);
   return after.slice(0, 60);
 }
 
 /** 두뇌에게 「이 창은 뭐 하는 자리야?」를 묻는 자리. */
-export function 자리묻기(ask: (prompt: string) => Promise<string | null>) {
+export function askSlot(ask: (prompt: string) => Promise<string | null>) {
   return async (제목들: readonly string[]): Promise<readonly (자리 | null)[] | null> => {
     if (제목들.length === 0) return [];
     const list = 제목들.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');

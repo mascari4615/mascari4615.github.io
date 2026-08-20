@@ -28,15 +28,15 @@ export interface SelfFact {
   at: number;
 }
 
-const 나에대한물음 = /(너|네가|넌|욘|당신)/;
-const 물음표 = /[?？]\s*$/;
-const 물음말 = /(뭐|무엇|어때|어떤|좋아하|싫어하|누구|왜|할 줄|할줄|있어|없어|해)/;
+const aboutSelfQuestion = /(너|네가|넌|욘|당신)/;
+const questionMark = /[?？]\s*$/;
+const questionWords = /(뭐|무엇|어때|어떤|좋아하|싫어하|누구|왜|할 줄|할줄|있어|없어|해)/;
 
 /** 이 말이 「얘에 대한 물음」인가. */
 export function asksAboutSelf(text: string): boolean {
   const t = text.trim();
-  if (나에대한물음.test(t) === false) return false;
-  return 물음표.test(t) || 물음말.test(t);
+  if (aboutSelfQuestion.test(t) === false) return false;
+  return questionMark.test(t) || questionWords.test(t);
 }
 
 /**
@@ -46,7 +46,7 @@ export function asksAboutSelf(text: string): boolean {
  * 이 얘는 「소파…」 「이불…」처럼 세 자로 답한다 — 짧은 게 인격이다. 길이로 재면 이
  * 얘한테는 영영 자기상이 안 쌓인다. 그래서 **길이가 아니라 알맹이**로 가른다.
  */
-const 알맹이없음 = /^[…\s]*(응|어|음|아|그래|글쎄|몰라|모르겠어|모르겠는데|모르겠|ㅇㅇ|넵)[…\s.?!]*$/;
+const noCore = /^[…\s]*(응|어|음|아|그래|글쎄|몰라|모르겠어|모르겠는데|모르겠|ㅇㅇ|넵)[…\s.?!]*$/;
 
 /**
  * 오간 말에서 「자기를 말한 자리」를 뽑는다.
@@ -61,12 +61,12 @@ export function selfMoments(entries: readonly MemoryEntry[], minLength = 2): Sel
     if (question.role !== 'sensed' || answer.role !== 'said') continue;
     if (question.channel === 'screen' || question.channel === 'nudge') continue;
     if (asksAboutSelf(question.text) === false) continue;
-    const 답한말 = answer.text.trim();
+    const answeredText = answer.text.trim();
     // 그 자리에서 튀어나온 고정 대꾸는 자기를 말한 게 아니다 (23회차의 놀이 잡담 문제).
     if (answer.via === 'reflex') continue;
-    if (답한말.length < minLength) continue;
-    if (알맹이없음.test(답한말)) continue;
-    out.push({ asked: question.text.trim(), answered: 답한말, at: answer.at });
+    if (answeredText.length < minLength) continue;
+    if (noCore.test(answeredText)) continue;
+    out.push({ asked: question.text.trim(), answered: answeredText, at: answer.at });
   }
   return out;
 }

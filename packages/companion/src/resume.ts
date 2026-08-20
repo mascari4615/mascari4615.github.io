@@ -53,15 +53,15 @@ export function readResume(
   const splitText = conversationOnly(entries);
   if (splitText.length === 0) return { gap: '처음', awayMs: 0, leftHanging: null };
 
-  const last = splitText.reduce((늦은것, e) => Math.max(늦은것, e.at), 0);
+  const last = splitText.reduce((late, e) => Math.max(late, e.at), 0);
   const awayMs = Math.max(0, now - last);
 
   const gap: Gap = awayMs <= sameBreath ? '이어짐' : awayMs >= longGap ? '오래 끊김' : '잠깐 끊김';
 
   // 마지막 말이 얘 것이고 물음이었으면 답을 못 받은 것이다.
-  const 끝말 = splitText[splitText.length - 1];
-  const 얘가마지막 = 끝말?.role === 'said' && brainSaid([끝말]).length === 1;
-  const leftHanging = 얘가마지막 && /[?？]/.test(끝말.text) ? 끝말.text.trim() : null;
+  const endText = splitText[splitText.length - 1];
+  const companionLast = endText?.role === 'said' && brainSaid([endText]).length === 1;
+  const leftHanging = companionLast && /[?？]/.test(endText.text) ? endText.text.trim() : null;
 
   return { gap, awayMs, leftHanging };
 }
@@ -83,12 +83,12 @@ export function awaySay(ms: number): string {
 export function resumeNote(resume: Resume): string {
   if (resume.gap === '처음' || resume.gap === '이어짐') return '';
 
-  const 얼마 = awaySay(resume.awayMs);
-  const 매달린것 = resume.leftHanging === null
+  const amount = awaySay(resume.awayMs);
+  const pending = resume.leftHanging === null
     ? ''
     : ` 게다가 끊기기 전에 네가 「${resume.leftHanging.slice(0, 24)}」 라고 물어 놓고 답을 못 들었다.`;
 
   return resume.gap === '오래 끊김'
-    ? `${얼마} 만에 다시 켜졌다.${매달린것} 아는 척만 하고 넘겨도 된다 — 「돌아왔네」 같은 말은 억지스럽다.`
-    : `${얼마} 끊겼다 이어졌다.${매달린것} 굳이 짚을 필요는 없다.`;
+    ? `${amount} 만에 다시 켜졌다.${pending} 아는 척만 하고 넘겨도 된다 — 「돌아왔네」 같은 말은 억지스럽다.`
+    : `${amount} 끊겼다 이어졌다.${pending} 굳이 짚을 필요는 없다.`;
 }

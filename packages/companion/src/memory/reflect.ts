@@ -154,19 +154,19 @@ function word(text: string): string[] {
 export function reflectionNote(store: reflection, currentText: string): string {
   const 지금 = new Set(word(currentText));
   if (지금.size === 0) return '';
-  const 걸린것 = store.all
+  const flagged = store.all
     .map((x) => ({ x, 겹침: word(x.무엇).filter((w) => 지금.has(w)).length }))
     .filter((r) => r.겹침 >= 2)
     .sort((a, b) => b.겹침 - a.겹침 || b.x.at - a.x.at)[0];
-  if (걸린것 === undefined) return '';
+  if (flagged === undefined) return '';
   return (
-    `여태 보아 온 것 하나: ${걸린것.x.무엇} ` +
+    `여태 보아 온 것 하나: ${flagged.x.무엇} ` +
     '지금 얘기와 이어지면 아는 티를 조금만 내라 — 짚어 주듯 말하지 말고, 캐묻지도 마라.'
   );
 }
 
 /** 두뇌에게 「바로 안 보이는 것 하나를 짚어라」를 묻는 자리. */
-export function 되새김묻기(ask: (prompt: string) => Promise<string | null>) {
+export function askReflection(ask: (prompt: string) => Promise<string | null>) {
   return async (오간말: readonly MemoryEntry[], 이미아는것: readonly string[]) => {
     const conversation = 오간말
       .filter((e) => e.channel === 'web')
@@ -187,11 +187,11 @@ export function 되새김묻기(ask: (prompt: string) => Promise<string | null>)
     if (answer === null) return null;
     const 나온것: 깨달음[] = [];
     for (const line of answer.split('\n')) {
-      const [무엇, 근거들] = line.split('||');
-      if (근거들 === undefined) continue;
+      const [무엇, evidences] = line.split('||');
+      if (evidences === undefined) continue;
       나온것.push({
         무엇: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
-        근거: 근거들.split(';').map((s) => s.trim()).filter((s) => s !== ''),
+        근거: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
         at: Date.now(),
       });
     }

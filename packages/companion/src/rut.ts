@@ -68,12 +68,12 @@ export function findRut(entries: readonly MemoryEntry[], options: RutOptions = {
   const calc = new Map<string, number>();
   for (const o of texts) calc.set(o, (calc.get(o) ?? 0) + 1);
 
-  let 최고: Rut | null = null;
+  let best: Rut | null = null;
   for (const [o, n] of calc) {
     if (n < atLeast) continue;
-    if (최고 === null || n > 최고.times) 최고 = { opener: o, times: n, of: texts.length };
+    if (best === null || n > best.times) best = { opener: o, times: n, of: texts.length };
   }
-  return 최고;
+  return best;
 }
 
 /**

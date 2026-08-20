@@ -58,21 +58,21 @@ export interface MouthGate {
   readonly stopped: () => number;
 }
 
-const 기본때움: readonly string[] = ['…', '…음.', '…아니다.'];
+const defaultFill: readonly string[] = ['…', '…음.', '…아니다.'];
 
 /** 입 앞의 관문을 만든다. */
 export function mouthGate(options: MouthGateOptions = {}): MouthGate {
-  const fallbacks = options.fallbacks ?? 기본때움;
+  const fallbacks = options.fallbacks ?? defaultFill;
   const roll = options.roll ?? Math.random;
   let stopped = 0;
 
   const gate = async (text: string): Promise<string | null> => {
     const firstRun = checkDrift(text, options.rules);
-    const 딴이유 = firstRun.drifted ? null : (options.alsoRetryWhen?.(text) ?? null);
-    if (firstRun.drifted === false && 딴이유 === null) return text;
+    const otherReason = firstRun.drifted ? null : (options.alsoRetryWhen?.(text) ?? null);
+    if (firstRun.drifted === false && otherReason === null) return text;
 
     stopped += 1;
-    const why = 딴이유 ?? firstRun.problems.join(', ');
+    const why = otherReason ?? firstRun.problems.join(', ');
     options.log?.(`입 앞에서 걸렀다 (${why}): 「${text.slice(0, 30)}」`);
 
     if (options.retry !== undefined) {
@@ -82,10 +82,10 @@ export function mouthGate(options: MouthGateOptions = {}): MouthGate {
       } catch {
         again = null;
       }
-      const 다시괜찮나 = again !== null && again.trim() !== ''
+      const isOkAgain = again !== null && again.trim() !== ''
         && checkDrift(again, options.rules).drifted === false
         && (options.alsoRetryWhen?.(again) ?? null) === null;
-      if (다시괜찮나) {
+      if (isOkAgain) {
         options.log?.('다시 시켜서 통과했다');
         return (again as string).trim();
       }

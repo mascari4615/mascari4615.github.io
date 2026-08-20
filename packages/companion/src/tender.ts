@@ -27,7 +27,7 @@ import type { MemoryEntry } from './types';
 const hardWords = /(힘들|지쳤|지친|짜증|화나|화가|우울|속상|서럽|외로|막막|answer 없|답이 없|안 좋|최악|망했|죽겠|눈물|울고|버겁|무섭|불안|괴로)/;
 
 /** 심각한 자리 — 그냥 힘든 것과 다르다. */
-const 무거운말 = /(죽고 싶|살기 싫|사라지고 싶|없어지고 싶|다 끝내|자해)/;
+const heavyText = /(죽고 싶|살기 싫|사라지고 싶|없어지고 싶|다 끝내|자해)/;
 
 export interface Tender {
   /** 지금 조심할 자리인가. */
@@ -46,7 +46,7 @@ export function readTender(entries: readonly MemoryEntry[], howMany = 4): Tender
     .filter((e) => e.role === 'sensed')
     .slice(-howMany);
 
-  const heavy = recent.some((e) => 무거운말.test(e.text));
+  const heavy = recent.some((e) => heavyText.test(e.text));
   return { soft: heavy || recent.some((e) => hardWords.test(e.text)), heavy };
 }
 

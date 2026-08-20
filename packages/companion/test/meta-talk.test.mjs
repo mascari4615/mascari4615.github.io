@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { 지시문에대꾸했나 } from '../dist/index.js';
+import { repliedToInstruction } from '../dist/index.js';
 
 test('지시문한테 대꾸한 말을 잡는다 — 관문이 물음표만 보고 통과시켰다', () => {
   // 실측: 이 둘이 그대로 나갔다
@@ -10,7 +10,7 @@ test('지시문한테 대꾸한 말을 잡는다 — 관문이 물음표만 보�
     '지금까지 대화 기록에 실질적인 내용이 없어서, 되물을 만한 방금 나온 얘기가 없는 상태예요',
     '방금 나온 얘기랄 게... 첫 메시지네요',
   ]) {
-    assert.notEqual(지시문에대꾸했나(말), null, `못 잡았다: ${말.slice(0, 30)}`);
+    assert.notEqual(repliedToInstruction(말), null, `못 잡았다: ${말.slice(0, 30)}`);
   }
 });
 
@@ -23,15 +23,15 @@ test('사람한테 하는 보통 말은 안 잡는다 — 「대화」 「얘기
     '뭐가 재밌었는데.',
     '응…',
   ]) {
-    assert.equal(지시문에대꾸했나(말), null, `헛잡았다: ${말}`);
+    assert.equal(repliedToInstruction(말), null, `헛잡았다: ${말}`);
   }
 });
 
 test('빈 말은 안 잡는다 — 빈 것은 다른 검사가 본다', () => {
-  assert.equal(지시문에대꾸했나('   '), null);
+  assert.equal(repliedToInstruction('   '), null);
 });
 
 test('왜 잡았는지 말한다 — 이유가 없으면 다시 시킬 말을 못 고른다', () => {
-  assert.match(지시문에대꾸했나('지금까지 대화 기록에 없어요'), /자료처럼/);
-  assert.match(지시문에대꾸했나('구체적으로 뭘 원하시는지'), /무대 뒤/);
+  assert.match(repliedToInstruction('지금까지 대화 기록에 없어요'), /자료처럼/);
+  assert.match(repliedToInstruction('구체적으로 뭘 원하시는지'), /무대 뒤/);
 });

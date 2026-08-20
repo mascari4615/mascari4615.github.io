@@ -12,7 +12,7 @@ import {
   touchKindFromWire,
   touchKindOf,
   touchReply,
-  touchSensation, 대꾸기억지우기 } from '../dist/index.js';
+  touchSensation, clearReplyMemory } from '../dist/index.js';
 
 const 첫째 = () => 0;
 
@@ -54,9 +54,9 @@ test('끌고 다니면 어지러워한다', () => {
 });
 
 test('쓰다듬는 것은 찌르는 것과 다르게 받는다', () => {
-  대꾸기억지우기(); // 이 자리는 이제 「최근에 쓴 것」을 들고 있다 — 앞판이 새면 안 된다
+  clearReplyMemory(); // 이 자리는 이제 「최근에 쓴 것」을 들고 있다 — 앞판이 새면 안 된다
   assert.notEqual(touchReply('쓰다듬', { times: 3, roll: 첫째 }), touchReply('쿡', { times: 3, roll: 첫째 }));
-  대꾸기억지우기();
+  clearReplyMemory();
   // 글자를 못 박지 않는다 — 이제 같은 걸 연달아 안 내므로 어느 것이 나올지는 자리 상태에 달렸다.
   assert.ok(['…계속해도 돼.', '…나쁘진 않아.', '…음…'].includes(touchReply('쓰다듬', { times: 3, roll: 첫째 })));
 });
@@ -96,7 +96,7 @@ test('얼마나 지나야 잊을지는 밖에서 정한다', () => {
 // ── 이음매 ──────────────────────────────────────────────────────────
 
 test('닿은 것에는 두뇌를 부르지 않는다 — 2초 뒤 문장은 반응이 아니라 답변이다', async () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   let thought = 0;
   const said = [];
   const 입 = { name: 'v', speak(u) { said.push(u.text); } };
@@ -165,7 +165,7 @@ test('닿은 것에는 눈치를 보지 않는다 — 나를 찔렀는데 바쁘
 // ── 같은 말을 되풀이하지 않는다 (88회차) ──────────────────────────
 
 test('한 바퀴는 다른 말이 나온다 — 바로 앞것만 피하면 둘을 뱅뱅 돈다', () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   // 실측: 오간 말 320개 중 145개가 글자 그대로 반복, 「…계속할 거야?」만 18번이었다
   const 나온것 = [];
   let last;
@@ -174,7 +174,7 @@ test('한 바퀴는 다른 말이 나온다 — 바로 앞것만 피하면 둘�
 });
 
 test('다 쓰면 비우고 다시 돈다 — 말이 떨어져서 멈추면 안 된다', () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   const 나온것 = [];
   let last;
   for (let i = 0; i < 9; i += 1) { last = touchReply('쿡', { times: 9, last, roll: () => 0 }); 나온것.push(last); }
@@ -183,9 +183,9 @@ test('다 쓰면 비우고 다시 돈다 — 말이 떨어져서 멈추면 안 �
 });
 
 test('갈래마다 따로 센다 — 찌른 것과 쓰다듬은 것이 서로 말을 뺏으면 안 된다', () => {
-  대꾸기억지우기();
+  clearReplyMemory();
   const a = touchReply('쿡', { times: 1, roll: () => 0 });
   touchReply('쓰다듬', { times: 1, roll: () => 0 });
-  대꾸기억지우기();
+  clearReplyMemory();
   assert.equal(touchReply('쿡', { times: 1, roll: () => 0 }), a);
 });
