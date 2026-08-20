@@ -158,7 +158,7 @@ export function stripParticle(word: string): string {
  * 못 거르는 것도 있다 — 「만드는」 같은 관형형은 「는」을 떼면 서술어 표시가 사라지는데,
  * 「회의는」도 똑같이 떼야 하므로 규칙으로 가를 수 없다. 흔한 것만 손으로 막아 뒀다.
  */
-export function worthWondering(word: string, skip: ReadonlySet<string> = 흔한말): boolean {
+export function worthWondering(word: string, skip: ReadonlySet<string> = commonWords): boolean {
   const w = stripParticle(word);
   if (w.length < 2 || w.length > 8) return false;
   if (skip.has(w) || skip.has(word)) return false;
@@ -189,7 +189,7 @@ export function noticeCuriosity(
   const sentence = said.trim();
   if (sentence.length < 6) return null; // 「응」 「그래」 같은 건 궁금할 게 없다
 
-  const skip = options.skip ?? 흔한말;
+  const skip = options.skip ?? commonWords;
   const words = sentence
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
@@ -209,7 +209,7 @@ export function noticeCuriosity(
 }
 
 /** 뜻이 옅어 궁금할 거리가 안 되는 말들. */
-const 흔한말 = new Set([
+const commonWords = new Set([
   '그거', '저거', '이거', '뭐야', '뭐지', '그게', '나는', '내가', '너는', '우리', '지금',
   '오늘', '어제', '내일', '진짜', '정말', '그냥', '조금', '해줘', '있어', '없어', '같아',
   '무슨', '어떤', '거야', '거지', '이제', '아직', '많이', '너무', '그리고', '그래서',
@@ -231,7 +231,7 @@ const 흔한말 = new Set([
  * 규칙을 고쳐도 **어제까지 쌓인 쓰레기는 그대로 남는다.** 실측(31회차): 30개가 쌓여 있는데
  * 쓸 만한 게 0개였다. 새 규칙만 넣고 옛것을 안 치우면 얘는 계속 그 쓰레기를 꺼내려 한다.
  */
-export function unusableCuriosity(about: string, skip: ReadonlySet<string> = 흔한말): boolean {
+export function unusableCuriosity(about: string, skip: ReadonlySet<string> = commonWords): boolean {
   // 옛 형식(「조수님이 「…」 라고 했던 것 — X 에 대해 더」)은 통째로 못 쓴다 —
   // 문장을 그대로 물고 있어서 꺼내면 그 문장을 읊는다.
   // 옛 형식은 문장을 통째로 물고 있어 줄바꿈이 섞이면 조각으로 남는다 —

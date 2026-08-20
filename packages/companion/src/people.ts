@@ -115,16 +115,16 @@ export class People {
       // **조수님이 한 말만** 본다. 얘가 한 말에서 주우면 제가 지어낸 이름을 제가 배운다.
       if (e.role !== 'sensed' || e.channel === 'screen' || e.channel === 'nudge') continue;
       for (const 이름 of peopleIn(e.text)) {
-        const 있던것 = this.folks.find((p) => p.name === 이름);
-        if (있던것 === undefined) {
+        const existing = this.folks.find((p) => p.name === 이름);
+        if (existing === undefined) {
           this.folks.push({ name: 이름, times: 1, firstAt: e.at, lastAt: e.at });
           continue;
         }
         // 같은 말 안에서 여러 번 세지 않으려고 시각이 같으면 넘어간다.
-        if (있던것.lastAt === e.at) continue;
-        있던것.times += 1;
-        있던것.lastAt = e.at;
-        if (있던것.times === need) 새로인정 += 1;
+        if (existing.lastAt === e.at) continue;
+        existing.times += 1;
+        existing.lastAt = e.at;
+        if (existing.times === need) 새로인정 += 1;
       }
     }
 
@@ -139,9 +139,9 @@ export class People {
 
   /** 잘못 주운 사람을 지운다 — 사람이 아닌 게 끼면 얘가 헛소리를 한다. */
   forget(name: string): boolean {
-    const 전 = this.folks.length;
+    const before = this.folks.length;
     this.folks = this.folks.filter((p) => p.name !== name);
-    if (this.folks.length === 전) return false;
+    if (this.folks.length === before) return false;
     this.save();
     return true;
   }
@@ -173,10 +173,10 @@ export class People {
  * 이름이 나왔다는 사실만 주고 나머지는 대화에서 알게 둔다.
  */
 export function peopleNote(folks: readonly Person[], howMany = 4): string {
-  const 보일것 = folks.slice(0, howMany);
-  if (보일것.length === 0) return '';
+  const toShow = folks.slice(0, howMany);
+  if (toShow.length === 0) return '';
   return (
-    `조수님이 얘기했던 사람들: ${보일것.map((p) => p.name).join(', ')}. ` +
+    `조수님이 얘기했던 사람들: ${toShow.map((p) => p.name).join(', ')}. ` +
     '누군지 아는 척하지 마라 — 이름이 나왔다는 것만 안다. 다시 나오면 처음 듣는 척은 말고.'
   );
 }

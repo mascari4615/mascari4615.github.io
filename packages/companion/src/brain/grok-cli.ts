@@ -334,6 +334,6 @@ function buildPrompt(input: ThinkInput): string {
 }
 
 function renderEntry(entry: MemoryEntry): string {
-  const 누구 = entry.role === 'said' ? '나' : (entry.누가 ?? `[${entry.channel}]`);
-  return `${누구}: ${entry.text}`;
+  const who = entry.role === 'said' ? '나' : (entry.누가 ?? `[${entry.channel}]`);
+  return `${who}: ${entry.text}`;
 }

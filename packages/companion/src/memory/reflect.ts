@@ -37,7 +37,7 @@ export interface 되새김옵션 {
   keep?: number;
   /** 새 사람 말이 이만큼 쌓이면 한 번 되새긴다. */
   마다?: number;
-  물어보기?: (오간말: readonly MemoryEntry[], 이미아는것: readonly string[]) => Promise<readonly 깨달음[] | null>;
+  물어보기?: (exchange: readonly MemoryEntry[], 이미아는것: readonly string[]) => Promise<readonly 깨달음[] | null>;
   log?: (message: string) => void;
 }
 
@@ -84,49 +84,49 @@ export class 되새김 {
     if (오간말.length === 0) return 0;
     this.센말 = 0;
 
-    let 나온것: readonly 깨달음[] | null = null;
+    let produced: readonly 깨달음[] | null = null;
     try {
-      나온것 = await 물어보기(오간말, this.목록.map((x) => x.무엇));
+      produced = await 물어보기(오간말, this.목록.map((x) => x.무엇));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
     }
-    if (나온것 === null) return 0;
+    if (produced === null) return 0;
 
-    let 담은수 = 0;
-    for (const x of 나온것) {
-      const 무엇 = String(x?.무엇 ?? '').trim();
-      const 근거 = (x?.근거 ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
+    let storedCount = 0;
+    for (const x of produced) {
+      const what = String(x?.무엇 ?? '').trim();
+      const evidence = (x?.근거 ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
       // **근거를 못 대면 버린다.** 되새김은 헛것이 가장 잘 나오는 자리다.
-      if (무엇 === '' || 근거.length === 0) {
-        if (무엇 !== '') this.options.log?.(`근거가 없어 버렸다 — 「${무엇.slice(0, 40)}」`);
+      if (what === '' || evidence.length === 0) {
+        if (what !== '') this.options.log?.(`근거가 없어 버렸다 — 「${what.slice(0, 40)}」`);
         continue;
       }
-      if (this.있나(무엇)) continue;
-      this.목록.push({ 무엇, 근거, at: x?.at ?? Date.now() });
-      담은수 += 1;
+      if (this.있나(what)) continue;
+      this.목록.push({ 무엇: what, 근거: evidence, at: x?.at ?? Date.now() });
+      storedCount += 1;
     }
-    if (담은수 === 0) return 0;
+    if (storedCount === 0) return 0;
     if (this.목록.length > this.options.keep) this.목록 = this.목록.slice(-this.options.keep);
     this.save();
-    this.options.log?.(`${담은수}가지를 새로 짚었다 — ${this.목록.slice(-담은수).map((x) => x.무엇).join(' / ')}`);
-    return 담은수;
+    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.목록.slice(-storedCount).map((x) => x.무엇).join(' / ')}`);
+    return storedCount;
   }
 
   /** 이미 같은 걸 짚었나 — 글자 그대로가 아니라 **겹치는 낱말**로 본다. */
   private 있나(무엇: string): boolean {
-    const 새것 = new Set(낱말(무엇));
-    if (새것.size === 0) return false;
-    return this.목록.some((있던것) => {
-      const 겹침 = 낱말(있던것.무엇).filter((w) => 새것.has(w)).length;
-      return 겹침 >= Math.max(2, Math.floor(새것.size * 0.6));
+    const fresh = new Set(word(무엇));
+    if (fresh.size === 0) return false;
+    return this.목록.some((existing) => {
+      const overlap = word(existing.무엇).filter((w) => fresh.has(w)).length;
+      return overlap >= Math.max(2, Math.floor(fresh.size * 0.6));
     });
   }
 
-  forget(조각: string): boolean {
-    const 전 = this.목록.length;
-    this.목록 = this.목록.filter((x) => x.무엇.includes(조각) === false);
-    if (this.목록.length === 전) return false;
+  forget(chunk: string): boolean {
+    const before = this.목록.length;
+    this.목록 = this.목록.filter((x) => x.무엇.includes(chunk) === false);
+    if (this.목록.length === before) return false;
     this.save();
     return true;
   }
@@ -142,7 +142,7 @@ export class 되새김 {
   }
 }
 
-function 낱말(text: string): string[] {
+function word(text: string): string[] {
   return (text.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2));
 }
 
@@ -151,11 +151,11 @@ function 낱말(text: string): string[] {
  *
  * 늘 붙이면 얘가 사람을 계속 분석하는 꼴이 된다. 그건 곁에 있는 게 아니라 지켜보는 것이다.
  */
-export function 되새김노트(store: 되새김, 지금말: string): string {
-  const 지금 = new Set(낱말(지금말));
+export function 되새김노트(store: 되새김, currentText: string): string {
+  const 지금 = new Set(word(currentText));
   if (지금.size === 0) return '';
   const 걸린것 = store.all
-    .map((x) => ({ x, 겹침: 낱말(x.무엇).filter((w) => 지금.has(w)).length }))
+    .map((x) => ({ x, 겹침: word(x.무엇).filter((w) => 지금.has(w)).length }))
     .filter((r) => r.겹침 >= 2)
     .sort((a, b) => b.겹침 - a.겹침 || b.x.at - a.x.at)[0];
   if (걸린것 === undefined) return '';
@@ -168,15 +168,15 @@ export function 되새김노트(store: 되새김, 지금말: string): string {
 /** 두뇌에게 「바로 안 보이는 것 하나를 짚어라」를 묻는 자리. */
 export function 되새김묻기(ask: (prompt: string) => Promise<string | null>) {
   return async (오간말: readonly MemoryEntry[], 이미아는것: readonly string[]) => {
-    const 대화 = 오간말
+    const conversation = 오간말
       .filter((e) => e.channel === 'web')
       .slice(-60)
       .map((e) => `${e.role === 'said' ? '나(동반자)' : '조수님'}: ${e.text.replace(/\s+/g, ' ').slice(0, 120)}`)
       .join('\n');
-    if (대화.trim() === '') return null;
-    const 이미 = 이미아는것.length === 0 ? '' : `이미 짚어 둔 것(다시 짚지 마라):\n${이미아는것.map((x) => `- ${x}`).join('\n')}\n\n`;
-    const 답 = await ask(
-      `${이미}최근에 오간 말:\n${대화}\n\n` +
+    if (conversation.trim() === '') return null;
+    const already = 이미아는것.length === 0 ? '' : `이미 짚어 둔 것(다시 짚지 마라):\n${이미아는것.map((x) => `- ${x}`).join('\n')}\n\n`;
+    const answer = await ask(
+      `${already}최근에 오간 말:\n${conversation}\n\n` +
         '위를 읽고 **한 마디만 봐서는 안 보이는 것**을 한두 가지 짚어라. 규칙:\n' +
         '- 요약하지 마라. 여러 마디에 걸쳐야 보이는 것만.\n' +
         '- **조수님에 대한 것만.** 「나(동반자)」가 한 말은 단서로만 써라 — 거기 드러난 내 성향을 조수님 것으로 적지 마라.\n' +
@@ -184,10 +184,10 @@ export function 되새김묻기(ask: (prompt: string) => Promise<string | null>)
         '- 각 줄은 `짚은 것 || 근거가 된 말 조각 ; 또 다른 조각` 꼴로. 근거는 위 대화에 실제로 있는 말이어야 한다.\n' +
         '- 설명·머리말 없이 그 줄들만. 많아야 두 줄.',
     );
-    if (답 === null) return null;
+    if (answer === null) return null;
     const 나온것: 깨달음[] = [];
-    for (const 줄 of 답.split('\n')) {
-      const [무엇, 근거들] = 줄.split('||');
+    for (const line of answer.split('\n')) {
+      const [무엇, 근거들] = line.split('||');
       if (근거들 === undefined) continue;
       나온것.push({
         무엇: 무엇.replace(/^[-*\d.\s]+/, '').trim(),

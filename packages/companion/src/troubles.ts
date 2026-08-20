@@ -40,9 +40,9 @@ export class Troubles {
     const path = options.path;
     if (path !== undefined && existsSync(path)) {
       try {
-        const 읽은것 = JSON.parse(readFileSync(path, 'utf8')) as { counts?: Record<string, number>; recent?: Trouble[] };
-        for (const [k, n] of Object.entries(읽은것.counts ?? {})) this.counts.set(k as TroubleKind, n);
-        this.recent = Array.isArray(읽은것.recent) ? 읽은것.recent : [];
+        const read = JSON.parse(readFileSync(path, 'utf8')) as { counts?: Record<string, number>; recent?: Trouble[] };
+        for (const [k, n] of Object.entries(read.counts ?? {})) this.counts.set(k as TroubleKind, n);
+        this.recent = Array.isArray(read.recent) ? read.recent : [];
       } catch {
         this.counts = new Map();
         this.recent = [];
@@ -57,11 +57,11 @@ export class Troubles {
 
     // 종류마다 몇 개씩만 남긴다 — 한 종류가 쏟아지면 다른 종류가 통째로 밀려난다.
     const keep = this.options.keepEach ?? 3;
-    const 남길것: Trouble[] = [];
+    const toKeep: Trouble[] = [];
     for (const k of ['걸림', '못함', '늦음', '죽음'] as TroubleKind[]) {
-      남길것.push(...this.recent.filter((t) => t.kind === k).slice(-keep));
+      toKeep.push(...this.recent.filter((t) => t.kind === k).slice(-keep));
     }
-    this.recent = 남길것.sort((a, b) => a.at - b.at);
+    this.recent = toKeep.sort((a, b) => a.at - b.at);
     this.save();
   }
 
@@ -96,11 +96,11 @@ export function troublesReport(troubles: Troubles): string {
 
   if (종류.length === 0) return '아직 걸린 게 없다.';
 
-  const 머리 = 종류.map((x) => `${x.k} ${x.n}번`).join(' · ');
+  const head = 종류.map((x) => `${x.k} ${x.n}번`).join(' · ');
   const 자리들 = [...troubles.all]
     .sort((a, b) => b.at - a.at)
     .map((t) => `  [${t.kind}] ${t.what}`)
     .join('\n');
 
-  return `${머리}\n\n최근에 실제로 있었던 일:\n${자리들}`;
+  return `${head}\n\n최근에 실제로 있었던 일:\n${자리들}`;
 }

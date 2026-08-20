@@ -24,7 +24,7 @@ import type { MemoryEntry } from './types';
  */
 
 /** 힘들다는 신호. 넓게 잡되 **얘가 한 말은 안 본다** — 제 말에 스스로 반응하면 안 된다. */
-const 힘든말 = /(힘들|지쳤|지친|짜증|화나|화가|우울|속상|서럽|외로|막막|answer 없|답이 없|안 좋|최악|망했|죽겠|눈물|울고|버겁|무섭|불안|괴로)/;
+const hardWords = /(힘들|지쳤|지친|짜증|화나|화가|우울|속상|서럽|외로|막막|answer 없|답이 없|안 좋|최악|망했|죽겠|눈물|울고|버겁|무섭|불안|괴로)/;
 
 /** 심각한 자리 — 그냥 힘든 것과 다르다. */
 const 무거운말 = /(죽고 싶|살기 싫|사라지고 싶|없어지고 싶|다 끝내|자해)/;
@@ -42,12 +42,12 @@ export interface Tender {
  * **조수님이 한 말만** 본다. 얘가 「힘들겠네」라고 한 걸 세면 제 말에 스스로 반응한다.
  */
 export function readTender(entries: readonly MemoryEntry[], howMany = 4): Tender {
-  const 최근 = conversationOnly(entries)
+  const recent = conversationOnly(entries)
     .filter((e) => e.role === 'sensed')
     .slice(-howMany);
 
-  const heavy = 최근.some((e) => 무거운말.test(e.text));
-  return { soft: heavy || 최근.some((e) => 힘든말.test(e.text)), heavy };
+  const heavy = recent.some((e) => 무거운말.test(e.text));
+  return { soft: heavy || recent.some((e) => hardWords.test(e.text)), heavy };
 }
 
 /**
@@ -59,12 +59,12 @@ export function readTender(entries: readonly MemoryEntry[], howMany = 4): Tender
 export function tenderNote(tender: Tender): string {
   if (tender.soft === false) return '';
 
-  const 기본 = (
+  const base = (
     '조수님이 힘들어 보인다. 농담·놀리기·딴 얘기는 지금 하지 마라. ' +
     '고치려 들지도 마라 — 조언이나 「힘내」는 곁에 있는 것과 다른 일이다. 짧게, 곁에 있어라.'
   );
 
   return tender.heavy
-    ? `${기본} 그리고 지금은 가벼운 말로 넘기지 마라. 혼자 두지 말고, 사람한테 말해 보라고 한 번은 말해라.`
-    : 기본;
+    ? `${base} 그리고 지금은 가벼운 말로 넘기지 마라. 혼자 두지 말고, 사람한테 말해 보라고 한 번은 말해라.`
+    : base;
 }

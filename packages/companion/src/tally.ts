@@ -34,7 +34,7 @@ export interface Marks {
   lastAt: number;
 }
 
-const 빈것 = (): Marks => ({ 실림: 0, 밀림: 0, 꺼짐: 0, 빔: 0, lastAt: 0 });
+const empty = (): Marks => ({ 실림: 0, 밀림: 0, 꺼짐: 0, 빔: 0, lastAt: 0 });
 
 export interface TallyOptions {
   /** 어디에 남길지. 없으면 프로세스 안에서만 산다. */
@@ -53,8 +53,8 @@ export class Tally {
     const path = options.path;
     if (path !== undefined && existsSync(path)) {
       try {
-        const 읽은것 = JSON.parse(readFileSync(path, 'utf8')) as Record<string, Marks>;
-        for (const [name, m] of Object.entries(읽은것)) this.marks.set(name, { ...빈것(), ...m });
+        const read = JSON.parse(readFileSync(path, 'utf8')) as Record<string, Marks>;
+        for (const [name, m] of Object.entries(read)) this.marks.set(name, { ...empty(), ...m });
       } catch {
         this.marks = new Map();
       }
@@ -62,12 +62,12 @@ export class Tally {
   }
 
   /** 한 번 세다. */
-  mark(name: string, fate: Fate, 왜?: string): void {
-    const m = this.marks.get(name) ?? 빈것();
+  mark(name: string, fate: Fate, why?: string): void {
+    const m = this.marks.get(name) ?? empty();
     m[fate] += 1;
     // 마지막으로 왜 안 실렸는지. 실린 순간에는 지운다 — 낡은 이유가 남아 헷갈린다.
     if (fate === '실림') delete m.마지막왜;
-    else if (왜 !== undefined && 왜 !== '') m.마지막왜 = 왜;
+    else if (why !== undefined && why !== '') m.마지막왜 = why;
     if (fate === '실림') m.lastAt = (this.options.now ?? (() => Date.now()))();
     this.marks.set(name, m);
 
@@ -80,7 +80,7 @@ export class Tally {
 
   /** 이 이름의 셈. */
   get(name: string): Marks {
-    return { ...(this.marks.get(name) ?? 빈것()) };
+    return { ...(this.marks.get(name) ?? empty()) };
   }
 
   /** 다 본다. */
@@ -96,8 +96,8 @@ export class Tally {
   neverUsed(atLeastSeen = 10): string[] {
     const 죽은것: string[] = [];
     for (const [name, m] of this.marks) {
-      const 지나감 = m.실림 + m.밀림 + m.꺼짐 + m.빔;
-      if (지나감 >= atLeastSeen && m.실림 === 0) 죽은것.push(name);
+      const elapsed = m.실림 + m.밀림 + m.꺼짐 + m.빔;
+      if (elapsed >= atLeastSeen && m.실림 === 0) 죽은것.push(name);
     }
     return 죽은것.sort();
   }
@@ -118,13 +118,13 @@ export class Tally {
  * 표를 봐도 아무것도 안 보인다.
  */
 export function tallyReport(tally: Tally): string {
-  const 줄들 = [...tally.all.entries()]
+  const lines = [...tally.all.entries()]
     .map(([name, m]) => ({ name, m, 지나감: m.실림 + m.밀림 + m.꺼짐 + m.빔 }))
     .sort((a, b) => (a.m.실림 - b.m.실림) || (b.지나감 - a.지나감));
 
-  if (줄들.length === 0) return '아직 센 게 없다.';
+  if (lines.length === 0) return '아직 센 게 없다.';
 
-  return 줄들
+  return lines
     .map(({ name, m, 지나감 }) => {
       const 상태 = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
       // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.

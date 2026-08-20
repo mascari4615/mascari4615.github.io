@@ -173,10 +173,10 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    * 한 자리에서 둘 다 한다. 따로 부르게 두면 어느 한쪽만 부르는 자리가 반드시 생긴다.
    */
   function 알아챔(무엇: string): void {
-    const 글 = 무엇.trim();
-    if (글 === '') return;
-    log(`[알아챔] ${글}`);
-    broadcast({ type: 'notice', text: 글 });
+    const content = 무엇.trim();
+    if (content === '') return;
+    log(`[알아챔] ${content}`);
+    broadcast({ type: 'notice', text: content });
   }
 
   function broadcast(event: Record<string, unknown>): void {
@@ -203,12 +203,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
     뜸만든목소리.add(목소리 ?? '');
     let 만든수 = 0;
     for (const 말 of 모든뜸()) {
-      const 열쇠 = `${목소리 ?? ''}|${말}`;
-      if (만든소리.has(열쇠)) continue;
+      const key = `${목소리 ?? ''}|${말}`;
+      if (만든소리.has(key)) continue;
       try {
         const audio = await options.speech.synthesize(말, 목소리);
         const perVoice = (options.speech as { contentTypeFor?: (v?: string) => string }).contentTypeFor;
-        만든소리.set(열쇠, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
+        만든소리.set(key, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
         만든수 += 1;
       } catch {
         // 하나 못 만들어도 나머지는 만든다. 못 만든 건 그때 가서 만들면 된다.
@@ -486,7 +486,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if ((url.split('?')[0] === '/ears/start' || url.split('?')[0] === '/ears/stop') && req.method === 'POST') {
           /* 창이 잰 **말소리가 있던 시간**. 받아쓰기가 조용한 구간에 그럴듯한 글을 지어내도
              이 값이 작으면 무슨 글이든 안 넘긴다 — 글로 막는 데는 바닥이 있다(실측). */
-          const 말한ms = Number(new URL(url, 'http://x').searchParams.get('말한ms'));
+          const spokenMs = Number(new URL(url, 'http://x').searchParams.get('말한ms'));
           const ears = options.ears;
           if (ears === undefined || ears.available() === false) {
             res.writeHead(404).end();
@@ -507,12 +507,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
                 /* 귀를 늘 열어 두면 받아쓰기가 잡음에 그럴듯한 글을 붙인다. 그대로 넘기면
                    아무도 말 안 걸었는데 얘가 혼자 대꾸한다. 거르는 자리는 **여기**다 —
                    글을 두뇌에 넘기는 건 서버라, 창에서 걸러 봐야 이미 늦는다. */
-                const 이유 = 안넘긴이유(heard, Number.isFinite(말한ms) ? 말한ms : null);
-                if (이유 === null) {
+                const reason = 안넘긴이유(heard, Number.isFinite(spokenMs) ? spokenMs : null);
+                if (reason === null) {
                   broadcast({ type: 'heard', text: heard as string });
                   senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
                 } else {
-                  알아챔(`안 받은 소리 — ${이유}`);
+                  알아챔(`안 받은 소리 — ${reason}`);
                 }
               }
             })
@@ -679,8 +679,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             askedAt = Date.now();
             // 아직 말하는 중이면 짧게 받아 준다 — 벽에 대고 말하는 기분이 안 들게.
             // 맞장구는 말이 아니라서 뜸과 같은 길로 나간다(대화에 안 쌓인다).
-            const 받는소리 = backchannel.heard(askedAt);
-            if (받는소리 !== null) broadcast({ type: 'filler', text: 받는소리, channel });
+            const incomingAudio = backchannel.heard(askedAt);
+            if (incomingAudio !== null) broadcast({ type: 'filler', text: incomingAudio, channel });
             emit({
               channel,
               kind: 'text',
@@ -700,11 +700,11 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             let raw = '';
             req.on('data', (chunk) => { raw += chunk; if (raw.length > 20_000) req.destroy(); });
             req.on('end', () => {
-              let 안된것: string[] = ['설정을 못 읽었다'];
+              let failed: string[] = ['설정을 못 읽었다'];
               try {
-                안된것 = options.putSettings?.(JSON.parse(raw)) ?? ['설정을 받을 자리가 없다'];
+                failed = options.putSettings?.(JSON.parse(raw)) ?? ['설정을 받을 자리가 없다'];
               } catch { /* 위 기본값 그대로 */ }
-              const body = Buffer.from(JSON.stringify({ 안된것 }), 'utf8');
+              const body = Buffer.from(JSON.stringify({ 안된것: failed }), 'utf8');
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-length': body.length });
               res.end(body);
             });
@@ -910,9 +910,9 @@ export function ownWindowExe(): string | null {
    * 그 결과가 분홍 바탕 + 창틀이었다. 창 프로그램은 주소만 보고 붙으므로 **어느 저장소의
    * 것이든 같은 물건**이다. 그러니 이웃 저장소도 본다. */
   const 후보뿌리 = [이저장소(), ...같은저장소사본들(join('apps', 'karmolab-tauri'))];
-  for (const 뿌리 of 후보뿌리) {
-    for (const 자리 of ['release', 'debug']) {
-      const exe = join(뿌리, 'apps', 'karmolab-tauri', 'target', 자리, 'companion-window.exe');
+  for (const root of 후보뿌리) {
+    for (const slot of ['release', 'debug']) {
+      const exe = join(root, 'apps', 'karmolab-tauri', 'target', slot, 'companion-window.exe');
       if (existsSync(exe)) return exe;
     }
   }
@@ -931,7 +931,7 @@ function openOwnWindow(
   // 애초에 자를 테두리를 없앤다. 창은 화면을 다 덮되 **몸과 눌러야 하는 자리 밖은 클릭이
   // 그대로 지나가므로**(창이 스스로 알려 준다) 평소엔 없는 것과 같다. 얘를 끌면 창이 아니라
   // **몸이 화면 안에서** 옮겨 다닌다.
-  const 화면 = 작업영역();
+  const screen = 작업영역();
   return import('node:child_process').then(({ spawn }) => {
     try {
       const child = spawn(exe, [], {
@@ -950,16 +950,16 @@ function openOwnWindow(
           // 브라우저에 넘긴다. 다시 굽지 않아도 되는 자리라 여기서 준다.
           WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--autoplay-policy=no-user-gesture-required',
           // 화면 크기를 못 재면 옛날처럼 작은 창으로 뜬다 — 잘리긴 해도 말은 한다.
-          COMPANION_URL: 화면 === null ? url : `${url}${url.includes('?') ? '&' : '?'}full=1`,
-          COMPANION_WIDTH: String(화면?.width ?? size?.width ?? 420),
-          COMPANION_HEIGHT: String(화면?.height ?? size?.height ?? 640),
+          COMPANION_URL: screen === null ? url : `${url}${url.includes('?') ? '&' : '?'}full=1`,
+          COMPANION_WIDTH: String(screen?.width ?? size?.width ?? 420),
+          COMPANION_HEIGHT: String(screen?.height ?? size?.height ?? 640),
           COMPANION_MARGIN: '0',
         },
       });
       child.unref();
-      return 화면 === null
+      return screen === null
         ? '제 창으로 떴다 (창틀 없음·배경 뚫림 · 화면 크기를 못 재서 작은 창)'
-        : `제 창으로 떴다 (화면 전체 ${화면.width}×${화면.height} · 창틀 없음·배경 뚫림)`;
+        : `제 창으로 떴다 (화면 전체 ${screen.width}×${screen.height} · 창틀 없음·배경 뚫림)`;
     } catch (e) {
       openBrowser(url);
       return `제 창을 못 띄워서 평범한 브라우저로 열었다: ${e instanceof Error ? e.message : String(e)}`;

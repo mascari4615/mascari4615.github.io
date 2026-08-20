@@ -56,31 +56,31 @@ export function 먼저꺼낼것(input: 꺼낼까입력): 꺼낼것 | null {
 export function 안꺼내는이유(input: 꺼낼까입력): string | null {
   if (input.물어본turn) return '조수님이 물어본 turn 이다';
   if (input.식는중 === false) return '아직 대화가 안 식었다';
-  const 고른것 = 고르기(input);
-  if (고른것 === null) {
-    const 문턱 = input.문턱 ?? 3;
-    const 가장 = Math.max(0, ...input.재료.map((x) => input.얼마나참았나(x.name)));
-    return `${문턱}번 넘게 참은 게 없다 (가장 오래 참은 게 ${가장}번)`;
+  const picked = 고르기(input);
+  if (picked === null) {
+    const threshold = input.문턱 ?? 3;
+    const most = Math.max(0, ...input.재료.map((x) => input.얼마나참았나(x.name)));
+    return `${threshold}번 넘게 참은 게 없다 (가장 오래 참은 게 ${most}번)`;
   }
   return null;
 }
 
 function 고르기(input: 꺼낼까입력): 꺼낼것 | null {
   const 문턱 = input.문턱 ?? 3;
-  const 후보 = input.재료
+  const candidates = input.재료
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')
     .map((x) => ({ x, 참은수: input.얼마나참았나(x.name) }))
     .filter((r) => r.참은수 >= 문턱)
     .sort((a, b) => b.참은수 - a.참은수 || b.x.weight - a.x.weight)[0];
-  if (후보 === undefined) return null;
+  if (candidates === undefined) return null;
   return {
-    이름: 후보.x.name,
-    참은수: 후보.참은수,
+    이름: candidates.x.name,
+    참은수: candidates.참은수,
     말:
       '대화가 식어 간다. **네가 먼저 꺼내라** — 아래 것을 지금 화제로 삼아라. ' +
       '조수님이 꺼낸 얘기에 곁가지로 붙이지 말고, 네가 하고 싶어서 꺼내는 것처럼. 짧아도 된다.\n' +
-      후보.x.text.trim(),
+      candidates.x.text.trim(),
   };
 }
 
@@ -94,8 +94,8 @@ export function 안꺼냈나(said: string, 꺼낼자리인가: boolean, 실마�
   if (꺼낼자리인가 === false) return null;
   const 말 = said.trim();
   if (말 === '') return '먼저 꺼낼 자리인데 아무 말도 안 했다';
-  const 낱말 = 실마리.flatMap((s) => (s.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
-  if (낱말.length === 0) return null; // 견줄 실마리가 없으면 막지 않는다
+  const word = 실마리.flatMap((s) => (s.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
+  if (word.length === 0) return null; // 견줄 실마리가 없으면 막지 않는다
   const 말낱말 = new Set((말.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).map((w) => w.slice(0, 2)));
-  return 낱말.some((w) => 말낱말.has(w)) ? null : '먼저 꺼내라고 했는데 그 얘기가 안 나왔다';
+  return word.some((w) => 말낱말.has(w)) ? null : '먼저 꺼내라고 했는데 그 얘기가 안 나왔다';
 }

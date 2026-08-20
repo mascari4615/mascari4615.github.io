@@ -91,28 +91,28 @@ export class Settings {
   put(next: unknown, options: { quiet?: boolean } = {}): string[] {
     if (typeof next !== 'object' || next === null) return ['설정 꼴이 아니다'];
 
-    const 안된것: string[] = [];
+    const failed: string[] = [];
     for (const [k, raw] of Object.entries(next as Record<string, unknown>)) {
       const spec = 설정할것[k];
       if (spec === undefined) {
-        안된것.push(`「${k}」 는 모르는 항목이다`);
+        failed.push(`「${k}」 는 모르는 항목이다`);
         continue;
       }
       if (typeof spec.value === 'boolean') {
-        if (typeof raw !== 'boolean') { 안된것.push(`「${k}」 는 참/거짓이어야 한다`); continue; }
+        if (typeof raw !== 'boolean') { failed.push(`「${k}」 는 참/거짓이어야 한다`); continue; }
         this.values[k] = raw;
         continue;
       }
       const n = typeof raw === 'number' ? raw : Number(raw);
-      if (Number.isFinite(n) === false) { 안된것.push(`「${k}」 는 숫자여야 한다`); continue; }
+      if (Number.isFinite(n) === false) { failed.push(`「${k}」 는 숫자여야 한다`); continue; }
       const 묶은것 = Math.min(spec.max ?? n, Math.max(spec.min ?? n, Math.round(n)));
-      if (묶은것 !== n) 안된것.push(`「${k}」 는 ${spec.min}~${spec.max} 안이어야 해서 ${묶은것} 로 뒀다`);
+      if (묶은것 !== n) failed.push(`「${k}」 는 ${spec.min}~${spec.max} 안이어야 해서 ${묶은것} 로 뒀다`);
       this.values[k] = 묶은것;
     }
 
     this.save();
     if (options.quiet !== true) this.options.log?.(`설정을 바꿨다: ${JSON.stringify(this.values)}`);
-    return 안된것;
+    return failed;
   }
 
   private save(): void {

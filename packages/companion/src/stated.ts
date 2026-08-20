@@ -30,7 +30,7 @@ export interface Stated {
 const 나는 = /(^|[\s,.!?])(나는|나도|난|내가|내|나 )/;
 
 /** 사실이랄 만한 것 — 취향·상태·사정. */
-const 사실꼴 = /(좋아|싫어|못 해|못해|잘 해|잘해|안 해|알레르기|먹어|안 먹|마셔|안 마셔|살아|일해|다녀|무서워|편해|불편|힘들어하|자주|보통|늘|항상|매일)/;
+const factShape = /(좋아|싫어|못 해|못해|잘 해|잘해|안 해|알레르기|먹어|안 먹|마셔|안 마셔|살아|일해|다녀|무서워|편해|불편|힘들어하|자주|보통|늘|항상|매일)/;
 
 /** 지나가는 말 — 지금 기분이지 사실이 아니다. */
 const 그때뿐 = /(오늘|지금|방금|아까|어제|이따|내일|잠깐)/;
@@ -57,7 +57,7 @@ export function statedFacts(entries: readonly MemoryEntry[]): Stated[] {
       if (t.length < 5 || t.length > 80) return false;
       if (그때뿐.test(t)) return false;
       if (묻는말.test(t)) return false;
-      return 나는.test(t) && 사실꼴.test(t);
+      return 나는.test(t) && factShape.test(t);
     })
     .map((e) => ({ said: e.text.trim(), at: e.at }));
 }
@@ -95,28 +95,28 @@ export class StatedStore {
 
   /** 오간 말에서 새로 줍는다. 새로 쌓은 개수를 돌려준다. */
   learn(entries: readonly MemoryEntry[]): number {
-    const 이미 = new Set(this.facts.map((f) => f.said));
-    let 새것 = 0;
+    const already = new Set(this.facts.map((f) => f.said));
+    let fresh = 0;
     for (const f of statedFacts(entries)) {
-      if (이미.has(f.said)) continue;
-      이미.add(f.said);
+      if (already.has(f.said)) continue;
+      already.add(f.said);
       this.facts.push(f);
-      새것 += 1;
+      fresh += 1;
     }
-    if (새것 === 0) return 0;
+    if (fresh === 0) return 0;
 
     const keep = this.options.keep ?? 8;
     if (this.facts.length > keep) this.facts = this.facts.slice(-keep);
     this.save();
-    this.options.log?.(`직접 들은 것 ${새것}개를 쌓았다 (모두 ${this.facts.length})`);
-    return 새것;
+    this.options.log?.(`직접 들은 것 ${fresh}개를 쌓았다 (모두 ${this.facts.length})`);
+    return fresh;
   }
 
   /** 잘못 쌓인 것을 지운다. */
   forget(keyword: string): boolean {
-    const 전 = this.facts.length;
+    const before = this.facts.length;
     this.facts = this.facts.filter((f) => f.said.includes(keyword) === false);
-    if (this.facts.length === 전) return false;
+    if (this.facts.length === before) return false;
     this.save();
     return true;
   }
@@ -145,15 +145,15 @@ export function findConflicts(facts: readonly Stated[], known: string | null): s
     if (좋아함 === 싫어함) continue; // 둘 다거나 둘 다 아니면 못 가린다
 
     // 그 말의 알맹이 낱말이 아는 것에도 있고, 거기선 반대로 적혀 있나.
-    for (const 낱말 of f.said.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)) {
-      if (낱말.length < 2) continue;
-      const 줄 = known.split('\n').find((l) => l.includes(낱말));
-      if (줄 === undefined) continue;
-      const 아는쪽좋아함 = /좋아/.test(줄);
-      const 아는쪽싫어함 = /싫어|안 좋아/.test(줄);
+    for (const word of f.said.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)) {
+      if (word.length < 2) continue;
+      const line = known.split('\n').find((l) => l.includes(word));
+      if (line === undefined) continue;
+      const 아는쪽좋아함 = /좋아/.test(line);
+      const 아는쪽싫어함 = /싫어|안 좋아/.test(line);
       if (아는쪽좋아함 === 아는쪽싫어함) continue;
       if (좋아함 !== 아는쪽좋아함) {
-        어긋난것.push(`직접 들은 「${f.said}」 와 아는 것의 「${줄.trim()}」 가 어긋난다`);
+        어긋난것.push(`직접 들은 「${f.said}」 와 아는 것의 「${line.trim()}」 가 어긋난다`);
         break;
       }
     }
@@ -168,16 +168,16 @@ export function findConflicts(facts: readonly Stated[], known: string | null): s
  * 그 사실까지 알려 준다.
  */
 export function statedNote(facts: readonly Stated[], conflicts: readonly string[] = [], howMany = 3): string {
-  const 보일것 = facts.slice(-howMany);
-  if (보일것.length === 0) return '';
+  const toShow = facts.slice(-howMany);
+  if (toShow.length === 0) return '';
 
-  const 줄 = 보일것.map((f) => `「${f.said.slice(0, 40)}」`).join(', ');
-  const 어긋남 = conflicts.length === 0
+  const 줄 = toShow.map((f) => `「${f.said.slice(0, 40)}」`).join(', ');
+  const drift = conflicts.length === 0
     ? ''
     : ` 그런데 어긋나는 게 있다: ${conflicts[0]}. 직접 들은 쪽을 따라라.`;
 
   return (
     `조수님이 직접 말한 것: ${줄}. ` +
-    `이건 네가 짐작한 것보다 무겁다 — 짐작과 다르면 이쪽이 맞다.${어긋남}`
+    `이건 네가 짐작한 것보다 무겁다 — 짐작과 다르면 이쪽이 맞다.${drift}`
   );
 }

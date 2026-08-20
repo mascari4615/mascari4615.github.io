@@ -36,7 +36,7 @@ export interface 받을길이입력 {
 }
 
 /** 감정이 실렸다는 표시 — 짧아도 받아 줘야 하는 말이 있다. */
-const 실린말 = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|싫어|망했|큰일|힘들|지쳤|지친|외로|허무|미치|버겁|드디어|해냈|됐다|성공|실패|포기|고맙|행복|뿌듯|설레)/;
+const loadedWords = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|싫어|망했|큰일|힘들|지쳤|지친|외로|허무|미치|버겁|드디어|해냈|됐다|성공|실패|포기|고맙|행복|뿌듯|설레)/;
 
 /**
  * 이번엔 받아 줘야 하는 자리인가. 아니면 빈 말.
@@ -47,21 +47,21 @@ const 실린말 = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|싫�
  * - **감정이 실렸다** — 짧아도 「망했어」는 한마디로 받으면 안 된다.
  */
 export function 받을길이(input: 받을길이입력): string {
-  const 방금 = input.방금.trim();
-  if (방금 === '') return '';
+  const justNow = input.방금.trim();
+  if (justNow === '') return '';
 
-  const 여느때 = 여느때길이(input.recent);
+  const usual = 여느때길이(input.recent);
   /* 바닥을 하나 둔다. 말수가 아주 적은 사람이면 여느 때가 서너 자라, 그 두 배인 여덟
      자에도 켜진다 — 여덟 자는 털어놓은 게 아니다. 두 마디쯤(24자)은 돼야 한다. */
-  const 길게털어놨다 = 방금.length >= Math.max(24, 여느때 * 2);
-  const 감정 = 실린말.test(방금);
+  const 길게털어놨다 = justNow.length >= Math.max(24, usual * 2);
+  const 감정 = loadedWords.test(justNow);
   if (길게털어놨다 === false && 감정 === false) return '';
 
-  const 왜 = 길게털어놨다
+  const why = 길게털어놨다
     ? '조수님이 여느 때보다 길게 털어놨다'
     : '조수님 말에 감정이 실렸다';
   return (
-    `${왜}. **한마디로 받지 마라.** 짧게 말하는 건 그대로 두되, 이번엔 두세 마디는 이어라 — ` +
+    `${why}. **한마디로 받지 마라.** 짧게 말하는 건 그대로 두되, 이번엔 두세 마디는 이어라 — ` +
     '되받아 주고, 하나는 되물어라. 늘어놓으라는 게 아니라 한 마디로 끊지 말라는 것이다.'
   );
 }
@@ -73,9 +73,9 @@ export function 받을길이(input: 받을길이입력): string {
  * 늘 걸린다. 그 사람 자신과 견준다.
  */
 export function 여느때길이(recent: readonly MemoryEntry[]): number {
-  const 사람말 = recent.filter((e) => e.role === 'sensed' && e.channel === 'web').slice(-30, -1);
-  if (사람말.length < 4) return 0; // 아직 견줄 것이 없으면 길이로는 안 켠다
-  const 길이들 = 사람말.map((e) => e.text.trim().length).sort((a, b) => a - b);
+  const userText = recent.filter((e) => e.role === 'sensed' && e.channel === 'web').slice(-30, -1);
+  if (userText.length < 4) return 0; // 아직 견줄 것이 없으면 길이로는 안 켠다
+  const 길이들 = userText.map((e) => e.text.trim().length).sort((a, b) => a - b);
   // 평균이 아니라 가운데값 — 한 번 길게 쓴 것이 여느 때를 통째로 끌어올리면 안 된다.
   return 길이들[Math.floor(길이들.length / 2)] ?? 0;
 }
@@ -86,12 +86,12 @@ export function 여느때길이(recent: readonly MemoryEntry[]): number {
  * 「받아 주라고 시켰다」는 만든 사람 말이고, **실제로 길어졌나**가 결과다. 시켜 놓고 안
  * 세면 재료만 얹고 됐다고 하게 된다(오늘까지 그런 자리를 넷 찾았다).
  */
-export function 짧게받았나(said: string, 받을자리인가: boolean, 문턱 = 12): string | null {
-  if (받을자리인가 === false) return null;
+export function 짧게받았나(said: string, shouldAccept: boolean, threshold = 12): string | null {
+  if (shouldAccept === false) return null;
   const 말 = said.trim();
   /* **되묻는 말은 짧아도 끊은 게 아니다.** 라이브에서 이걸 안 갈랐다가 「뭐가 재밌었어?」를
      걸러 버렸다 — 공을 돌려주는 가장 좋은 답이었는데 열한 자라는 이유로 막혔고, 다시
      시킨 것도 안 되자 「…」로 떨어졌다. **막는 자리가 답을 더 나쁘게 만든 것이다.** */
   if (묻는말인가(말)) return null;
-  return 말.length < 문턱 ? '받아 줄 자리인데 한마디로 끊었다' : null;
+  return 말.length < threshold ? '받아 줄 자리인데 한마디로 끊었다' : null;
 }

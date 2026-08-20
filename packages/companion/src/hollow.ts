@@ -39,13 +39,13 @@ export function isHollow(text: string): boolean {
  * 벽으로 오진한다.
  */
 export function hollowStreak(entries: readonly MemoryEntry[]): number {
-  const 말들 = brainSaid(entries);
-  let 셈 = 0;
-  for (let i = 말들.length - 1; i >= 0; i -= 1) {
-    if (isHollow(말들[i].text) === false) break;
-    셈 += 1;
+  const texts = brainSaid(entries);
+  let calc = 0;
+  for (let i = texts.length - 1; i >= 0; i -= 1) {
+    if (isHollow(texts[i].text) === false) break;
+    calc += 1;
   }
-  return 셈;
+  return calc;
 }
 
 export interface HollowOptions {

@@ -63,19 +63,19 @@ export class KnownStamps {
     // **새 줄이 생겼을 때만 파일에 남긴다.** 「마지막 본 날」이 바뀔 때마다 다시 쓰면 이
     // 함수를 매 turn 부를 수 없게 되고, 그러면 갱신 시점을 따로 챙겨야 한다 — 그 챙김을
     // 한 번 빠뜨리는 순간 날짜가 통째로 어긋난다.
-    let 새것 = false;
+    let fresh = false;
     for (const line of (known ?? '').split('\n')) {
       const key = 다듬기(line);
       if (key === '') continue;
-      const 있던것 = this.표.get(key);
-      if (있던것 === undefined) {
+      const existing = this.표.get(key);
+      if (existing === undefined) {
         this.표.set(key, { 처음: now, 마지막: now });
-        새것 = true;
+        fresh = true;
       } else {
-        있던것.마지막 = now;
+        existing.마지막 = now;
       }
     }
-    if (새것) this.save();
+    if (fresh) this.save();
   }
 
   /** 이 줄을 언제부터 알았나. 모르면 null. */
@@ -107,10 +107,10 @@ export class KnownStamps {
 
 /** 얼마나 오래 알던 것인가 — 사람이 쓰는 말로. */
 export function 얼마나오래(stamp: KnownStamp, now: number): string | null {
-  const 지난날 = Math.floor((now - stamp.처음) / (24 * 60 * 60_000));
-  if (지난날 >= 14) return '오래전부터 알던';
-  if (지난날 >= 3) return '며칠 전부터 알던';
-  if (지난날 >= 1) return '어제오늘 알게 된';
+  const pastDays = Math.floor((now - stamp.처음) / (24 * 60 * 60_000));
+  if (pastDays >= 14) return '오래전부터 알던';
+  if (pastDays >= 3) return '며칠 전부터 알던';
+  if (pastDays >= 1) return '어제오늘 알게 된';
   return '방금 알게 된';
 }
 

@@ -48,21 +48,21 @@ interface 담긴것 {
 
 /** 지어 온 덩어리에서 쓸 만한 줄만 골라낸다. */
 export function 골라내기(raw: string, 최대글자 = 20): string[] {
-  const 나온것: string[] = [];
-  for (const 줄 of raw.split('\n')) {
+  const produced: string[] = [];
+  for (const line of raw.split('\n')) {
     // 목록 기호·번호·따옴표는 「말」이 아니라 포장이다. 벗겨서 본다.
-    const 벗긴것 = 줄
+    const stripped = line
       .replace(/^\s*(\d+[.)]|[-*•])\s*/, '')
       .replace(/^["'「『]|["'」』]$/g, '')
       .trim();
-    if (벗긴것 === '') continue;
-    if (벗긴것.length > 최대글자) continue;
+    if (stripped === '') continue;
+    if (stripped.length > 최대글자) continue;
     // 짧은 자리에 존댓말·도우미 말투가 끼면 그게 표류다 (drift 와 같은 잣대).
-    if (checkDrift(벗긴것, { maxChars: 최대글자 }).drifted) continue;
-    if (나온것.includes(벗긴것)) continue;
-    나온것.push(벗긴것);
+    if (checkDrift(stripped, { maxChars: 최대글자 }).drifted) continue;
+    if (produced.includes(stripped)) continue;
+    produced.push(stripped);
   }
-  return 나온것;
+  return produced;
 }
 
 export class 대사창고 {
@@ -88,8 +88,8 @@ export class 대사창고 {
     if (path === undefined || existsSync(path) === false) return;
     try {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, 담긴것>;
-      for (const [갈래, 값] of Object.entries(parsed)) {
-        if (Array.isArray(값?.말들)) this.담김.set(갈래, { 누구: 값.누구 ?? '', 말들: [...값.말들] });
+      for (const [kind, value] of Object.entries(parsed)) {
+        if (Array.isArray(value?.말들)) this.담김.set(kind, { 누구: value.누구 ?? '', 말들: [...value.말들] });
       }
     } catch {
       // 깨진 파일 하나 때문에 얘가 못 뜨면 안 된다 — 없는 셈 치고 다시 채운다.
@@ -121,9 +121,9 @@ export class 대사창고 {
   꺼내기(갈래: string): string | null {
     const 것 = this.담김.get(갈래);
     if (것 === undefined || 것.누구 !== this.지금누구 || 것.말들.length === 0) return null;
-    const 말 = 것.말들.shift() as string;
+    const text = 것.말들.shift() as string;
     this.쓰기();
-    return 말;
+    return text;
   }
 
   /**
@@ -132,39 +132,39 @@ export class 대사창고 {
    *
    * 같은 갈래를 두 번 겹쳐 채우지 않는다(느린 두뇌를 여러 번 부르면 진짜 대답이 밀린다).
    */
-  async 채우기(갈래: string, 부탁: string, 목표 = this.최대): Promise<number> {
+  async 채우기(갈래: string, request: string, 목표 = this.최대): Promise<number> {
     if (this.채우는중.has(갈래)) return 0;
-    const 지금 = this.남은수(갈래);
-    if (지금 >= Math.min(목표, this.최대)) return 0;
+    const now = this.남은수(갈래);
+    if (now >= Math.min(목표, this.최대)) return 0;
     this.채우는중.add(갈래);
     try {
-      const 몇개 = Math.min(목표, this.최대) - 지금;
+      const count = Math.min(목표, this.최대) - now;
       const 인격 = this.options.인격글?.() ?? null;
       const raw = await this.options.지어오기(
         [
           인격 === null ? null : `${인격}\n\n---`,
           인격 === null ? null : '위 인격 그대로, 아래 자리에서 할 말을 지어라.',
-          부탁,
-          `${몇개}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
+          request,
+          `${count}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
         ]
           .filter((줄) => 줄 !== null)
           .join('\n\n')
       );
       if (raw === null) return 0;
-      const 쓸것 = 골라내기(raw, this.최대글자);
-      if (쓸것.length === 0) {
+      const toWrite = 골라내기(raw, this.최대글자);
+      if (toWrite.length === 0) {
         // **뭐가 왔길래 다 걸러졌는지 같이 남긴다.** 「걸러졌다」만 있으면 두뇌가 이상한
         // 건지 거르는 잣대가 빡빡한 건지 못 가른다 — 실제로 첫 판에 그래서 막혔다.
         this.log(`[대사] ${갈래} — 지어 온 게 다 걸러졌다: ${raw.trim().slice(0, 120).replace(/\n/g, ' / ')}`);
         return 0;
       }
       const 것 = this.담김.get(갈래);
-      const 이미 = 것 !== undefined && 것.누구 === this.지금누구 ? 것.말들 : [];
-      const 합친것 = [...이미, ...쓸것.filter((말) => 아직안담김(이미, 말))].slice(0, this.최대);
+      const already = 것 !== undefined && 것.누구 === this.지금누구 ? 것.말들 : [];
+      const 합친것 = [...already, ...toWrite.filter((말) => 아직안담김(already, 말))].slice(0, this.최대);
       this.담김.set(갈래, { 누구: this.지금누구, 말들: 합친것 });
       this.쓰기();
-      this.log(`[대사] ${갈래} — ${쓸것.length}개 담았다 (총 ${합친것.length})`);
-      return 쓸것.length;
+      this.log(`[대사] ${갈래} — ${toWrite.length}개 담았다 (총 ${합친것.length})`);
+      return toWrite.length;
     } catch (e) {
       // 못 지어도 대꾸는 나간다. 조용히 넘기지 말고 왜 못 지었는지는 남긴다.
       this.log(`[대사] ${갈래} — 못 지었다: ${(e as Error).message}`);

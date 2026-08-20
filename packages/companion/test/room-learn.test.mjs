@@ -103,8 +103,8 @@ test('두뇌가 개수를 안 맞추면 아무것도 안 돌려준다', async ()
 });
 
 test('배운 자리를 그대로 한 줄로 풀 수 있다 — 제목인 척 되돌리면 조용히 빈 말이 된다', async () => {
-  const { 자리결로 } = await import('../dist/index.js');
+  const { bySlotTone } = await import('../dist/index.js');
   assert.equal(자리결('노는중'), '', '자리 이름은 창 제목이 아니다');
-  assert.match(자리결로('노는중'), /노는 중/);
-  assert.equal(자리결로(null), '');
+  assert.match(bySlotTone('노는중'), /노는 중/);
+  assert.equal(bySlotTone(null), '');
 });

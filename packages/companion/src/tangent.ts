@@ -40,13 +40,13 @@ export function isDrying(entries: readonly MemoryEntry[], options: DryOptions = 
   const shortAt = options.shortAt ?? 12;
   const atLeast = options.atLeast ?? 3;
 
-  const 말들 = brainSaid(entries).slice(-window);
-  if (말들.length < atLeast) return false;
+  const texts = brainSaid(entries).slice(-window);
+  if (texts.length < atLeast) return false;
 
-  const 되물음 = 말들.some((e) => /[?？]/.test(e.text));
-  if (되물음) return false;
+  const followUp = texts.some((e) => /[?？]/.test(e.text));
+  if (followUp) return false;
 
-  return 말들.every((e) => e.text.trim().length <= shortAt);
+  return texts.every((e) => e.text.trim().length <= shortAt);
 }
 
 export interface TangentSeed {
@@ -74,13 +74,13 @@ export interface TangentSources {
  * 화면에서 본 것은 그 다음, 사람과 바람은 마지막이다(자칫 뜬금없다).
  */
 export function tangentSeed(sources: TangentSources, pickNth = 0): TangentSeed | null {
-  const 후보: TangentSeed[] = [];
-  if (sources.wondering) 후보.push({ from: '궁금한 것', what: sources.wondering });
-  if (sources.sawWindow) 후보.push({ from: '아까 본 것', what: `아까 조수님 화면에 「${sources.sawWindow}」 가 떠 있었다` });
-  if (sources.quietPerson) 후보.push({ from: '곁의 사람', what: `${sources.quietPerson} 얘기가 요즘 안 나온다` });
-  if (sources.wish) 후보.push({ from: '오늘 바람', what: sources.wish });
-  if (후보.length === 0) return null;
-  return 후보[Math.abs(pickNth) % 후보.length];
+  const candidates: TangentSeed[] = [];
+  if (sources.wondering) candidates.push({ from: '궁금한 것', what: sources.wondering });
+  if (sources.sawWindow) candidates.push({ from: '아까 본 것', what: `아까 조수님 화면에 「${sources.sawWindow}」 가 떠 있었다` });
+  if (sources.quietPerson) candidates.push({ from: '곁의 사람', what: `${sources.quietPerson} 얘기가 요즘 안 나온다` });
+  if (sources.wish) candidates.push({ from: '오늘 바람', what: sources.wish });
+  if (candidates.length === 0) return null;
+  return candidates[Math.abs(pickNth) % candidates.length];
 }
 
 /**

@@ -26,7 +26,7 @@ export interface DayMarkOptions extends ConversationOptions {
   minTurnsForClosing?: number;
 }
 
-const 날 = (at: number): string => new Date(at).toDateString();
+const date = (at: number): string => new Date(at).toDateString();
 
 /**
  * 지금이 하루의 매듭인가.
@@ -39,17 +39,17 @@ export function dayMark(entries: readonly MemoryEntry[], options: DayMarkOptions
   const minTurns = options.minTurnsForClosing ?? 4;
 
   const at = now();
-  const today = 날(at);
+  const today = date(at);
   // 화면에서 주워 온 것은 「나눈 얘기」가 아니다. 이걸 안 가르면 첫인사가
   // 「마지막으로 나눈 얘기: 「화면을 봤다. 창은 …」」이 된다 (실측 15회차).
   const fromPerson = conversationOnly(entries, options).filter((e) => e.role === 'sensed');
-  const todays = fromPerson.filter((e) => 날(e.at) === today);
-  const before = fromPerson.filter((e) => 날(e.at) !== today);
+  const todays = fromPerson.filter((e) => date(e.at) === today);
+  const before = fromPerson.filter((e) => date(e.at) !== today);
 
   // 오늘 아직 아무 말도 안 나눴고, 전에 만난 적이 있다면 — 오늘 처음이다.
   if (todays.length === 0 && before.length > 0) {
-    const lastDay = 날(before[before.length - 1]?.at ?? at);
-    const 그날 = before.filter((e) => 날(e.at) === lastDay).slice(-2).map((e) => e.text.slice(0, 50));
+    const lastDay = date(before[before.length - 1]?.at ?? at);
+    const 그날 = before.filter((e) => date(e.at) === lastDay).slice(-2).map((e) => e.text.slice(0, 50));
     const 며칠 = Math.max(1, Math.round((at - (before[before.length - 1]?.at ?? at)) / 86_400_000));
     return {
       kind: '첫인사',

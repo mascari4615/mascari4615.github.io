@@ -67,12 +67,12 @@ export function 어느머리(input: 머리고르기입력, options: 머리크기
  */
 export function 머리끼우기(
   brain: { currentModel?: () => string; useModel?: (name: string) => void },
-  머리: string,
+  head: string,
   log?: (message: string) => void,
 ): () => void {
   const 쓰던것 = brain.currentModel?.();
-  if (brain.useModel === undefined || 쓰던것 === undefined || 쓰던것 === 머리) return () => {};
-  brain.useModel(머리);
+  if (brain.useModel === undefined || 쓰던것 === undefined || 쓰던것 === head) return () => {};
+  brain.useModel(head);
   return () => {
     brain.useModel?.(쓰던것);
     log?.(`머리를 ${쓰던것} 로 되돌렸다`);

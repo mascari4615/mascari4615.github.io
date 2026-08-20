@@ -27,7 +27,7 @@ export interface Together {
   daysTalked: number;
 }
 
-const 날 = (at: number): string => new Date(at).toDateString();
+const date = (at: number): string => new Date(at).toDateString();
 const 자정 = (at: number): number => new Date(at).setHours(0, 0, 0, 0);
 
 /**
@@ -37,13 +37,13 @@ const 자정 = (at: number): number => new Date(at).setHours(0, 0, 0, 0);
  * 다른 관계인데, 하나로 뭉치면 그 차이가 사라진다.
  */
 export function readTogether(entries: readonly MemoryEntry[], now: number = Date.now()): Together {
-  const 나눈말 = conversationOnly(entries).filter((e) => e.role === 'sensed');
-  if (나눈말.length === 0) return { firstAt: null, dayNumber: 0, daysTalked: 0 };
+  const splitText = conversationOnly(entries).filter((e) => e.role === 'sensed');
+  if (splitText.length === 0) return { firstAt: null, dayNumber: 0, daysTalked: 0 };
 
   // **가장 이른 것**을 찾는다 — 파일 순서를 믿지 않는다.
-  const firstAt = 나눈말.reduce((가장이른, e) => Math.min(가장이른, e.at), nowSafe(나눈말[0].at));
+  const firstAt = splitText.reduce((가장이른, e) => Math.min(가장이른, e.at), nowSafe(splitText[0].at));
   const dayNumber = Math.floor((자정(now) - 자정(firstAt)) / 86_400_000) + 1;
-  const daysTalked = new Set(나눈말.map((e) => 날(e.at))).size;
+  const daysTalked = new Set(splitText.map((e) => date(e.at))).size;
 
   return { firstAt, dayNumber: Math.max(1, dayNumber), daysTalked };
 }
@@ -71,11 +71,11 @@ export function milestoneToday(entries: readonly MemoryEntry[], now: number = Da
   if (firstAt === null) return null;
   if (이정표날.includes(dayNumber) === false) return null;
 
-  const 이름: Record<number, string> = {
+  const name: Record<number, string> = {
     7: '일주일', 30: '한 달', 100: '백일', 200: '이백일',
     365: '일 년', 500: '오백일', 730: '이 년', 1000: '천일',
   };
-  return { day: dayNumber, says: 이름[dayNumber] ?? `${dayNumber}일` };
+  return { day: dayNumber, says: name[dayNumber] ?? `${dayNumber}일` };
 }
 
 /**
@@ -84,12 +84,12 @@ export function milestoneToday(entries: readonly MemoryEntry[], now: number = Da
  * 자랑하지 말라고 못 박는다 — 축하 알림처럼 굴면 그건 앱이지 곁에 있는 것이 아니다.
  */
 export function milestoneNote(entries: readonly MemoryEntry[], now: number = Date.now()): string {
-  const 오늘 = milestoneToday(entries, now);
-  if (오늘 === null) return '';
+  const today = milestoneToday(entries, now);
+  if (today === null) return '';
 
   const { daysTalked } = readTogether(entries, now);
   return (
-    `오늘이 조수님과 만난 지 ${오늘.says}째다 (그중 ${daysTalked}일 얘기했다). ` +
+    `오늘이 조수님과 만난 지 ${today.says}째다 (그중 ${daysTalked}일 얘기했다). ` +
     '축하 인사처럼 굴지 마라 — 알고 있다는 티만 슬쩍 내고 넘겨라. 안 어울리면 그냥 넘겨도 된다.'
   );
 }
@@ -102,9 +102,9 @@ export function milestoneNote(entries: readonly MemoryEntry[], now: number = Dat
 export function firstMetNote(entries: readonly MemoryEntry[], now: number = Date.now()): string {
   const { firstAt, dayNumber, daysTalked } = readTogether(entries, now);
   if (firstAt === null) return '';
-  const 날짜 = new Date(firstAt);
+  const dateStr = new Date(firstAt);
   return (
-    `조수님과 처음 얘기한 건 ${날짜.getFullYear()}년 ${날짜.getMonth() + 1}월 ${날짜.getDate()}일이다. ` +
+    `조수님과 처음 얘기한 건 ${dateStr.getFullYear()}년 ${dateStr.getMonth() + 1}월 ${dateStr.getDate()}일이다. ` +
     `오늘이 ${dayNumber}일째고 그중 ${daysTalked}일 얘기했다.`
   );
 }

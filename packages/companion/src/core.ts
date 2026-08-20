@@ -384,11 +384,11 @@ export class Companion {
     //
     // **무슨 손을 썼는지 기억해 둔다.** 입 앞 관문이 「안 한 걸 했다고 말하는지」를 보려면
     // 이걸 알아야 한다 — 표는 여기서 이미 걷어내지므로 뒤에서는 알 길이 없다.
-    const 쓴손: string[] = [];
+    const writer: string[] = [];
     const hands = this.options.hands ?? [];
     if (text !== null && hands.length > 0) {
       const { clean, requests } = findRequests(text);
-      쓴손.push(...requests.map((r) => r.name));
+      writer.push(...requests.map((r) => r.name));
       if (requests.length > 0) {
         const note = (m: string) => onCycle?.({
           sensation, decision: { respond: false, reason: m }, utterance: null,
@@ -426,7 +426,7 @@ export class Companion {
     // 여기서 막으면 애초에 그 말이 나가지 않는다. 관문이 없으면 그냥 지나간다.
     if (this.options.beforeSpeak !== undefined) {
       try {
-        const 거른것 = await this.options.beforeSpeak(text.trim(), { sensation, input, usedHands: 쓴손, found: input.found ?? [] });
+        const 거른것 = await this.options.beforeSpeak(text.trim(), { sensation, input, usedHands: writer, found: input.found ?? [] });
         if (거른것 === null || 거른것.trim() === '') {
           onCycle?.({ sensation, decision: { respond: false, reason: '입 앞에서 걸렀다' }, utterance: null });
           return;

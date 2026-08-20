@@ -21,7 +21,7 @@ import type { MemoryEntry } from '../types';
  */
 export interface 뜻재기 {
   /** 글 하나를 벡터로. 못 재면 null. */
-  재기: (글: string) => Promise<readonly number[] | null>;
+  재기: (content: string) => Promise<readonly number[] | null>;
 }
 
 export interface 뜻기억옵션 {
@@ -73,8 +73,8 @@ export class 뜻기억 {
     try {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as 담긴줄[];
       if (Array.isArray(parsed)) {
-        for (const 줄 of parsed) {
-          if (typeof 줄?.text === 'string' && Array.isArray(줄.v)) this.담김.push(줄);
+        for (const line of parsed) {
+          if (typeof line?.text === 'string' && Array.isArray(line.v)) this.담김.push(line);
         }
       }
     } catch {
@@ -106,7 +106,7 @@ export class 뜻기억 {
   async 담기(entries: readonly MemoryEntry[]): Promise<number> {
     if (this.담는중) return 0;
     this.담는중 = true;
-    let 담은수 = 0;
+    let storedCount = 0;
     try {
       for (const e of entries) {
         const 글 = (e.text ?? '').trim();
@@ -115,17 +115,17 @@ export class 뜻기억 {
         const v = await this.options.재기.재기(글);
         if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
         this.담김.push({ text: 글, at: e.at, v: [...v] });
-        담은수 += 1;
+        storedCount += 1;
       }
       if (this.담김.length > this.최대) this.담김.splice(0, this.담김.length - this.최대);
-      if (담은수 > 0) {
+      if (storedCount > 0) {
         this.쓰기();
-        this.log(`뜻 색인에 ${담은수}줄 담았다 (총 ${this.담김.length})`);
+        this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.담김.length})`);
       }
     } finally {
       this.담는중 = false;
     }
-    return 담은수;
+    return storedCount;
   }
 
   /**
@@ -134,10 +134,10 @@ export class 뜻기억 {
    * 방금 나눈 말은 뺀다 — 두뇌가 이미 보고 있는 걸 또 붙이면 자리만 먹는다.
    */
   async 찾기(
-    물음: string,
+    question: string,
     options: { 몇개?: number; 뺄것?: ReadonlySet<string> } = {},
   ): Promise<{ text: string; 닮음: number }[]> {
-    const 글 = 물음.trim();
+    const 글 = question.trim();
     if (글.length < 2 || this.담김.length === 0) return [];
     const v = await this.options.재기.재기(글);
     if (v === null) return [];
@@ -169,12 +169,12 @@ export function 작은모델로재기(options: { 모델?: string; log?: (m: stri
   const 준비 = (): void => {
     if (준비중 || 못함 || 준비된것 !== null) return;
     준비중 = true;
-    const 시작 = Date.now();
+    const start = Date.now();
     void import('@huggingface/transformers')
       .then(({ pipeline }) => pipeline('feature-extraction', 모델))
       .then((p) => {
         준비된것 = p as unknown as (글: string, opts: unknown) => Promise<{ data: Float32Array }>;
-        log(`뜻 재는 자리가 준비됐다 (${Math.round((Date.now() - 시작) / 1000)}초)`);
+        log(`뜻 재는 자리가 준비됐다 (${Math.round((Date.now() - start) / 1000)}초)`);
       })
       .catch((e) => {
         못함 = true;

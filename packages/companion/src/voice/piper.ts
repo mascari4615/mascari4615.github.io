@@ -81,9 +81,9 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
       // (실측: 없음 99KB vs 처짐 101KB — 1.5% 차이). 결은 그 목소리가 원래 가진 결에서
       // 얼마나 벗어나느냐지, 모든 목소리를 같은 속도로 만드는 게 아니다.
       const { name: bare, tone } = voiceId === undefined ? { name: undefined, tone: null } : splitTone(voiceId);
-      const 바탕 = (bare ? options.lengthScaleFor?.[bare] : undefined) ?? options.lengthScale ?? 1;
+      const base = (bare ? options.lengthScaleFor?.[bare] : undefined) ?? options.lengthScale ?? 1;
       const 곱 = tone !== null && tone in 기분빠르기 ? 기분빠르기[tone as Tone] : 1;
-      const scale = 곱 === 1 && 바탕 === 1 ? undefined : 바탕 * 곱;
+      const scale = 곱 === 1 && base === 1 ? undefined : base * 곱;
       if (scale !== undefined) args.push('--length_scale', String(scale));
 
       return new Promise<Buffer>((resolve, reject) => {
