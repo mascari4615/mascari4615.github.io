@@ -252,6 +252,7 @@
     "test:fhlookup",
     "test:phash",
     "test:cutout",
+    "test:air",
     "test:xmlfmt",
     "test:reach",
     "test:ipreview",

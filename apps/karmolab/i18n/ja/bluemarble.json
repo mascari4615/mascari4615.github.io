@@ -75,5 +75,15 @@
   "bluemarble.radio.on": "{name} · {where} · 現地は{time}",
   "bluemarble.radio.dead": "そこは今どこも放送していません",
   "bluemarble.intro.title": "ブルーマーブル",
-  "bluemarble.a11y.globe": "地球儀 — 矢印キーで回転、+/- で拡大縮小、Home で最初の位置"
+  "bluemarble.a11y.globe": "地球儀 — 矢印キーで回転、+/- で拡大縮小、Home で最初の位置",
+  "bluemarble.layer.air": "空",
+  "bluemarble.air.loading": "その空を見ています…",
+  "bluemarble.air.ready": "今この空に {n}機 — 一つ押すと何かを教えます",
+  "bluemarble.air.empty": "この空では今なにも拾えていません (居ないのかも、誰も聴いていない空なのかも)",
+  "bluemarble.air.fail": "空を受け取れませんでした",
+  "bluemarble.air.ground": "地上に",
+  "bluemarble.air.unknownAlt": "高度不明",
+  "bluemarble.air.alt": "上空 {km}km",
+  "bluemarble.air.speed": "{kmh}km/h",
+  "bluemarble.air.hint": "地球を回すとその空を見直します。ボランティアの受信機が拾ったものだけなので、大洋の真ん中は空です"
 }

@@ -269,6 +269,7 @@
     "test:fhlookup": "node scripts/test-filehash-lookup.mjs",
     "test:phash": "node scripts/test-phash.mjs",
     "test:cutout": "node scripts/test-cutout.mjs",
+    "test:air": "node scripts/test-air.mjs",
     "smoke:pwned": "node scripts/smoke-pwned.mjs",
     "smoke:papermap": "node scripts/smoke-papermap.mjs",
     "smoke:pdfshell": "node scripts/smoke-pdf-shell.mjs",

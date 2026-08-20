@@ -75,5 +75,15 @@
   "bluemarble.radio.on": "{name} · {where} · 그곳은 {time}",
   "bluemarble.radio.dead": "그 자리는 지금 아무도 방송하지 않습니다",
   "bluemarble.intro.title": "블루 마블",
-  "bluemarble.a11y.globe": "지구본 — 화살표로 돌리고, +/- 로 확대·축소, Home 으로 처음 자리"
+  "bluemarble.a11y.globe": "지구본 — 화살표로 돌리고, +/- 로 확대·축소, Home 으로 처음 자리",
+  "bluemarble.layer.air": "하늘",
+  "bluemarble.air.loading": "이 자리 하늘을 보는 중…",
+  "bluemarble.air.ready": "지금 이 하늘에 {n}대 — 하나를 누르면 무엇인지 알려 드립니다",
+  "bluemarble.air.empty": "이 하늘에는 지금 잡히는 게 없습니다 (없는 걸 수도, 아무도 안 듣고 있는 하늘일 수도)",
+  "bluemarble.air.fail": "하늘을 못 받았습니다",
+  "bluemarble.air.ground": "땅에",
+  "bluemarble.air.unknownAlt": "고도 모름",
+  "bluemarble.air.alt": "{km}km 상공",
+  "bluemarble.air.speed": "{kmh}km/h",
+  "bluemarble.air.hint": "지구를 돌리면 그 자리 하늘을 다시 봅니다. 자원봉사 수신기가 받는 것만 보이므로 바다 한가운데는 비어 있습니다"
 }

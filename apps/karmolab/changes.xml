@@ -12,6 +12,27 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Thu, 20 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[새로 생김] 색 말고 모양으로 배경을 뺀다 · 칠하면 지워지는 지우개</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d865506a1</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>색 말고 모양으로 배경을 뺀다 · 칠하면 지워지는 지우개</description>
+    </item>
+    <item>
+      <title>[고침] 문서 12장을 되살린다 — 추적해제가 .md 까지 쓸어 갔다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d2add2aa3</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>문서 12장을 되살린다 — 추적해제가 .md 까지 쓸어 갔다</description>
+    </item>
+    <item>
+      <title>[고침] 실행 파일 경로를 담으면 「c://」 가 되던 것</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3d6e5fe79</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <description>실행 파일 경로를 담으면 「c://」 가 되던 것</description>
+    </item>
+    <item>
       <title>[고침] 즐겨찾기 우클릭 메뉴 글이 열쇠 이름으로 뜰 뻔했다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-920351055</guid>
@@ -199,27 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-8a838fd7e</guid>
       <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
       <description>문서 안 도해를 우리 엔진이 그린다 — vendor 404 소멸</description>
-    </item>
-    <item>
-      <title>[새로 생김] 첫 화면을 고정 한 장으로 — 꾸미기·오늘의 판·실황을 뗀다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-9e2895f91</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>첫 화면을 고정 한 장으로 — 꾸미기·오늘의 판·실황을 뗀다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 할당량 위젯을 검색으로도 찾게 한다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-54fc08627</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>할당량 위젯을 검색으로도 찾게 한다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 구독 세 개의 남은 할당량을 한 화면에</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-17c45e9f4</guid>
-      <pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate>
-      <description>구독 세 개의 남은 할당량을 한 화면에</description>
     </item>
   </channel>
 </rss>
