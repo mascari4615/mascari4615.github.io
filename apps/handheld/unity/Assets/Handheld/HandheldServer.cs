@@ -49,6 +49,11 @@ namespace Handheld
         int _seq;
         int _recenterFlag;
 
+        // 렌즈 요청 — 카메라맨이 폰에서 만지는 것. 값 하나짜리라 lock 대신 통째로 갈아 끼운다.
+        // 리그가 한 틱에 한 번 꺼내 간다 (밀린 요청은 최신 것만 남는다 = 지연 누적 X).
+        volatile object _zoomRequest;      // (object)float, 없으면 null
+        volatile object _focusRequest;     // (object)Vector2 (뷰포트 0..1), 없으면 null
+
         // 조이스틱 — (왼쪽 x, 왼쪽 y, 오른쪽 x, 오른쪽 y), 각 -1..1.
         // 값 하나짜리라 lock 대신 통째로 갈아 끼운다 (읽는 쪽은 항상 한 벌을 본다).
         volatile object _joystick = (object)Vector4.zero;
@@ -110,14 +115,41 @@ namespace Handheld
         /// <summary>폰이 「리센터」를 눌렀으면 true 를 한 번 돌려준다.</summary>
         public bool ConsumeRecenterRequest() => Interlocked.Exchange(ref _recenterFlag, 0) == 1;
 
-        /// <summary>폰 HUD 에 띄울 상태 한 줄. s|x|y|z|yaw|fps|kb|틱Hz|캡처Hz</summary>
-        public void SendStatus(Vector3 pos, float yaw, float fps, int kb, float tickHz, float captureHz)
+        /// <summary>
+        /// 폰이 요청한 목표 배율을 한 번 꺼낸다. 로커를 계속 밀고 있으면 매 틱 최신 값이 나온다.
+        /// </summary>
+        public bool ConsumeZoomRequest(out float zoom)
+        {
+            object v = Interlocked.Exchange(ref _zoomRequest, null);
+            if (v == null) { zoom = 0f; return false; }
+            zoom = (float)v;
+            return true;
+        }
+
+        /// <summary>폰이 탭한 자리(뷰포트 0..1, 아래가 0)를 한 번 꺼낸다 = 탭 포커스.</summary>
+        public bool ConsumeFocusPoint(out Vector2 viewport)
+        {
+            object v = Interlocked.Exchange(ref _focusRequest, null);
+            if (v == null) { viewport = Vector2.zero; return false; }
+            viewport = (Vector2)v;
+            return true;
+        }
+
+        /// <summary>
+        /// 폰 HUD 에 띄울 상태 한 줄.
+        /// s|x|y|z|yaw|fps|kb|틱Hz|캡처Hz|배율|초점거리mm|초점m|초점잡힘
+        ///
+        /// **칸은 뒤에만 붙인다** — 옛 폰 페이지는 앞 칸만 읽고 나머지를 무시하므로 안 깨진다.
+        /// </summary>
+        public void SendStatus(Vector3 pos, float yaw, float fps, int kb, float tickHz, float captureHz,
+                               float zoom, float focalMm, float focusM, bool focusHit)
         {
             var c = _client;
             if (c == null || c.Closed) return;
             c.SendText(string.Format(CultureInfo.InvariantCulture,
-                "s|{0:F2}|{1:F2}|{2:F2}|{3:F0}|{4:F1}|{5}|{6:F1}|{7:F1}",
-                pos.x, pos.y, pos.z, yaw, fps, kb, tickHz, captureHz));
+                "s|{0:F2}|{1:F2}|{2:F2}|{3:F0}|{4:F1}|{5}|{6:F1}|{7:F1}|{8:F2}|{9:F0}|{10:F2}|{11}",
+                pos.x, pos.y, pos.z, yaw, fps, kb, tickHz, captureHz,
+                zoom, focalMm, focusM, focusHit ? 1 : 0));
         }
 
         /// <summary>뷰파인더 JPEG 한 장을 폰으로 보낸다.</summary>
@@ -226,6 +258,8 @@ namespace Handheld
                 var old = _client;
                 _client = conn;
                 _joystick = (object)Vector4.zero;      // 새 폰이 붙으면 이전 스틱 값을 물려받지 않는다
+                _zoomRequest = null;                   // 렌즈 요청도 마찬가지 — 옛 폰의 마지막 배율이 튀면 안 된다
+                _focusRequest = null;
                 old?.Close();
                 Log("폰 붙음");
                 return;
@@ -315,6 +349,35 @@ namespace Handheld
             if (string.IsNullOrEmpty(msg)) return;
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
+
+            // 줌:  z|배율   (로커를 미는 동안 30Hz. 리그가 램프로 이어 준다)
+            if (msg.Length > 2 && msg[0] == 'z' && msg[1] == '|')
+            {
+                try
+                {
+                    float z = P(msg.Substring(2));
+                    // 여기서는 넓게만 막는다 — 실제 한계(zoomMin/Max)는 리그가 안다.
+                    if (!float.IsNaN(z) && !float.IsInfinity(z))
+                        _zoomRequest = (object)Mathf.Clamp(z, 0.05f, 100f);
+                }
+                catch (Exception e) { Log("줌 파싱 실패: " + e.Message); }
+                return;
+            }
+
+            // 탭 포커스:  f|u|v   (뷰포트 0..1, 아래가 0 — 폰이 이미 그렇게 보낸다)
+            if (msg.Length > 2 && msg[0] == 'f' && msg[1] == '|')
+            {
+                var t = msg.Split('|');
+                if (t.Length < 3) return;
+                try
+                {
+                    float u = P(t[1]), v = P(t[2]);
+                    if (float.IsNaN(u) || float.IsNaN(v)) return;
+                    _focusRequest = (object)new Vector2(Mathf.Clamp01(u), Mathf.Clamp01(v));
+                }
+                catch (Exception e) { Log("초점 파싱 실패: " + e.Message); }
+                return;
+            }
 
             // 조이스틱:  j|lx|ly|rx|ry
             if (msg.Length > 2 && msg[0] == 'j' && msg[1] == '|')

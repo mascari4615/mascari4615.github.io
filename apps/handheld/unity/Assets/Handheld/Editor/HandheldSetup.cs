@@ -56,6 +56,11 @@ namespace Handheld.EditorTools
             // ── 무대: 거리감을 눈으로 재는 물건들 ─────────────────────────────────
             BuildStage();
 
+            // URP 가 깔려 있으면 초점 흐림까지 붙여 둔다 — 없으면 조용히 건너뛴다
+            // (리그는 파이프라인 없이도 초점 「값」은 계속 낸다).
+            if (HandheldUrpInstaller.UrpInstalled)
+                EditorApplication.ExecuteMenuItem("Handheld/URP/씬에 초점 흐림 붙이기");
+
             EditorSceneManager.MarkSceneDirty(scene);
             System.IO.Directory.CreateDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -117,10 +122,23 @@ namespace Handheld.EditorTools
 
         static Renderer Renderer(GameObject go) => go.GetComponent<Renderer>();
 
+        /// <summary>
+        /// 지금 파이프라인에 맞는 기본 셰이더. URP 면 URP Lit, 아니면 빌트인 Standard.
+        /// 이걸 안 갈면 URP 로 바꾼 순간 무대가 통째로 분홍이 된다.
+        /// </summary>
+        static Shader LitShader()
+        {
+            var s = Shader.Find("Universal Render Pipeline/Lit");
+            return s != null ? s : Shader.Find("Standard");
+        }
+
         static Material Mat(Color c)
         {
-            var m = new Material(Shader.Find("Standard")) { color = c };
-            m.SetFloat("_Glossiness", 0.15f);
+            var m = new Material(LitShader()) { color = c };
+            // 이름이 파이프라인마다 다르다 — 있는 것만 만진다.
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.15f);
+            if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", 0.15f);
             return m;
         }
 

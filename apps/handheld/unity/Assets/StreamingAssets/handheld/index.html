@@ -123,6 +123,44 @@
     font-size: 11px; color: rgba(207,216,230,.5); pointer-events: none; }
   .stickhint.l { left: 0; }
   .stickhint.r { right: 0; }
+
+  /* 렌즈 판 — 탭 포커스와 핀치를 받는다. 스틱보다 **먼저** 놓여서 겹치는 자리는
+     스틱이 이긴다 (스틱은 아래 모서리, 렌즈는 그 위 전부). */
+  #lens { position: absolute; inset: 0; touch-action: none; }
+  #lens.hidden { display: none; }
+
+  /* 초점 표식 — 탭한 자리에 잠깐 뜬다 */
+  #focusRing { position: absolute; width: 74px; height: 74px; margin: -37px 0 0 -37px;
+    border: 2px solid #7fd4ff; border-radius: 8px; opacity: 0; pointer-events: none;
+    transition: opacity .18s, transform .18s; transform: scale(1.3); }
+  #focusRing.on { opacity: 1; transform: scale(1); }
+  #focusRing.miss { border-color: #ff8b8b; }
+
+  /* 줌 로커 — 캠코더의 W/T 시소. 위를 누르면 당기고 아래를 누르면 넓힌다.
+     **속도** 제어다(누른 세기 = 미는 거리) — 방송 카메라가 그렇게 생겼다. */
+  #rocker { position: absolute; right: calc(env(safe-area-inset-right, 6px) + 8px);
+    top: 50%; transform: translateY(-50%); width: 56px; height: 190px;
+    border-radius: 28px; border: 1px solid rgba(255,255,255,.16);
+    background: rgba(8,12,20,.55); backdrop-filter: blur(8px);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 10px 0; touch-action: none; }
+  #rocker.hidden { display: none; }
+  #rocker .lbl { font-size: 12px; font-weight: 700; color: #b9c4d6; pointer-events: none; }
+  #rocker .fill { position: absolute; left: 3px; right: 3px; border-radius: 24px;
+    background: rgba(127,212,255,.22); pointer-events: none; opacity: 0;
+    top: 50%; height: 0; }
+  #rocker .mid { position: absolute; left: 12px; right: 12px; top: 50%; height: 1px;
+    background: rgba(255,255,255,.18); pointer-events: none; }
+  #btnZoom1 { position: absolute; right: calc(env(safe-area-inset-right, 6px) + 14px);
+    top: calc(50% + 118px); width: 44px; height: 30px; border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(8,12,20,.55);
+    color: #b9c4d6; font-size: 12px; font-weight: 700; padding: 0; }
+  #btnZoom1.hidden { display: none; }
+
+  @media (orientation: landscape) {
+    #rocker { height: 150px; width: 48px; }
+    #btnZoom1 { top: calc(50% + 96px); }
+  }
 </style>
 </head>
 <body>
@@ -133,6 +171,7 @@
     <div class="chip" id="chipMode">—</div>
     <div class="chip" id="chipNet">—</div>
     <div class="chip" id="chipPos">—</div>
+    <div class="chip" id="chipLens">—</div>
     <div class="chip" id="chipFrame">—</div>
     <div class="chip" id="chipOrient">—</div>
   </div>
@@ -146,12 +185,22 @@
     </div>
   </div>
 
+  <div id="lens" class="hidden"><div id="focusRing"></div></div>
+
   <div id="sticks" class="hidden">
     <div class="stickzone" id="zoneL"><div class="stick" id="stickL"><div class="knob"></div></div></div>
     <div class="stickzone" id="zoneR"><div class="stick" id="stickR"><div class="knob"></div></div></div>
     <div class="stickhint l">이동</div>
     <div class="stickhint r">회전 · 높이</div>
   </div>
+
+  <div id="rocker" class="hidden">
+    <div class="fill" id="rockerFill"></div>
+    <div class="mid"></div>
+    <span class="lbl">T</span>
+    <span class="lbl">W</span>
+  </div>
+  <button id="btnZoom1" class="ghost hidden">1×</button>
 
   <div id="bar" class="hidden">
     <button class="ghost" id="btnRecenter">리센터</button>
@@ -187,6 +236,7 @@
   const $ = id => document.getElementById(id);
   const vf = $('vf'), vfCtx = vf.getContext('2d', { alpha: false, desynchronized: true });
   const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos'), chipFrame = $('chipFrame'), chipOrient = $('chipOrient');
+  const chipLens = $('chipLens');
 
   // ── 상태 ───────────────────────────────────────────────────────────────────
   let ws = null, wsReady = false;
@@ -228,10 +278,22 @@
     ws.onerror = () => { wsReady = false; paint(); };
     ws.onmessage = ev => {
       if (typeof ev.data === 'string') {
-        // 유니티가 되보내는 상태:  s|x|y|z|yaw|fps|kb — 지금 씬 어디에 서 있나
+        // 유니티가 되보내는 상태:
+        //   s|x|y|z|yaw|fps|kb|틱Hz|캡처Hz|배율|초점거리mm|초점m|초점잡힘
+        // 뒤 칸은 나중에 붙은 것이라 **길이를 보고** 읽는다 (옛 유니티에 붙어도 안 깨진다).
         const f = ev.data.split('|');
         if (f[0] === 's' && f.length >= 5)
           chipPos.innerHTML = `<b>${f[1]}</b> ${f[2]} <b>${f[3]}</b> · ${f[4]}°`;
+        if (f[0] === 's' && f.length >= 13) {
+          const shown = parseFloat(f[9]);
+          // 유니티가 자른 값이 우리 목표와 크게 다르면(한계에 닿았다) 목표를 되맞춘다 —
+          // 안 그러면 로커를 계속 밀어도 화면은 안 변하는데 숫자만 올라간다.
+          if (isFinite(shown) && Math.abs(Math.log(shown / zoomTarget)) > 0.35) zoomTarget = shown;
+          const hit = f[12] === '1';
+          chipLens.className = 'chip' + (hit ? '' : ' bad');
+          chipLens.innerHTML =
+            `<b>${shown.toFixed(1)}×</b> ${Math.round(parseFloat(f[10]))}mm · 초점 <b>${parseFloat(f[11]).toFixed(1)}</b>m`;
+        }
         return;
       }
       rxFrames++; rxBytes += ev.data.byteLength;
@@ -271,6 +333,11 @@
     vfCtx.drawImage(bmp, (boxW - dw) / 2, (boxH - dh) / 2, dw, dh);
     vfCtx.restore();
 
+    // 탭한 화면 좌표를 **프레임 안 좌표**로 되돌리려면 방금 쓴 변환이 필요하다.
+    // 레터박스 여백과 세로그립 90° 회전을 안 빼면 엉뚱한 데 초점이 잡힌다.
+    lastDraw = { rotate, w, h, boxW, boxH, dw, dh,
+                 ox: (boxW - dw) / 2, oy: (boxH - dh) / 2 };
+
     // 안내는 **자동 그립일 때만** 뜻이 있다 — 카메라맨이 세로를 골랐으면 그건 결정이지
     // 실수가 아니다. 자동일 때도 카메라 워킹 중 롤이 세로를 스쳐 가는 건 의도된 동작이라
     // **머무를 때만** 띄운다: 어긋남이 이어지면 켜고, 풀리면 즉시 끈다.
@@ -298,6 +365,154 @@
 
   let frameW = 0, frameH = 0, turnSince = 0;
   const TURN_HINT_DELAY = 2000;   // 이만큼 세로로 머물러야 안내가 뜬다
+
+  // ── 렌즈 (줌 · 초점) ───────────────────────────────────────────────────────
+  let lastDraw = null;
+  let zoomTarget = 1, zoomRate = 0, zoomSentAt = 0, zoomLast = 1;
+  const ZOOM_MIN = 0.5, ZOOM_MAX = 16;
+  const ZOOM_MAX_RATE = 1.6;          // 로커 끝까지 밀었을 때 초당 e^1.6 ≈ 5배
+
+  function sendZoom(force) {
+    if (!ws || ws.readyState !== 1) return;
+    const now = performance.now();
+    if (!force && now - zoomSentAt < 33) return;         // 30Hz
+    if (!force && Math.abs(zoomTarget - zoomLast) < 0.002) return;
+    zoomSentAt = now; zoomLast = zoomTarget;
+    ws.send(`z|${zoomTarget.toFixed(4)}`);
+  }
+
+  // 로커를 미는 동안 **로그 공간에서** 배율을 굴린다 — 1→2 와 8→16 이 같은 시간이 걸린다.
+  // 선형으로 굴리면 망원에서 가속하는 것처럼 보인다.
+  let zoomLoopAt = 0;
+  function zoomLoop(t) {
+    if (!running) { zoomLoopAt = 0; return; }
+    requestAnimationFrame(zoomLoop);
+    if (!zoomRate) { zoomLoopAt = t; return; }
+    const dt = zoomLoopAt ? Math.min((t - zoomLoopAt) / 1000, 0.1) : 0;
+    zoomLoopAt = t;
+    zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomTarget * Math.exp(zoomRate * dt)));
+    sendZoom(false);
+  }
+
+  function bindRocker() {
+    const el = $('rocker'), fill = $('rockerFill');
+    let id = null;
+
+    const apply = e => {
+      const r = el.getBoundingClientRect();
+      // 가운데가 0, 위가 +(당김), 아래가 −(넓힘). 가운데 12% 는 데드존.
+      let u = ((r.top + r.height / 2) - e.clientY) / (r.height / 2);
+      u = Math.max(-1, Math.min(1, u));
+      const dead = 0.12;
+      const v = Math.abs(u) < dead ? 0 : Math.sign(u) * (Math.abs(u) - dead) / (1 - dead);
+      zoomRate = v * ZOOM_MAX_RATE;
+      fill.style.opacity = v ? '1' : '0';
+      const half = r.height / 2 - 3;
+      fill.style.height = Math.abs(v) * half + 'px';
+      fill.style.top = v > 0 ? (half - Math.abs(v) * half + 3) + 'px' : (half + 3) + 'px';
+    };
+
+    el.addEventListener('pointerdown', e => {
+      if (id !== null) return;
+      id = e.pointerId; el.setPointerCapture(id); apply(e); e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => { if (e.pointerId === id) { apply(e); e.preventDefault(); } });
+    const off = e => {
+      if (e.pointerId !== id) return;
+      id = null; zoomRate = 0; fill.style.opacity = '0'; sendZoom(true);
+    };
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+  }
+  bindRocker();
+
+  $('btnZoom1').onclick = () => { zoomTarget = 1; sendZoom(true); };
+
+  // 화면 좌표 → 프레임 안 뷰포트 좌표(0..1, **아래가 0** = 유니티 규약).
+  // drawFrame 이 쓴 변환을 그대로 되돌린다. 프레임 밖(레터박스)을 찍으면 null.
+  function screenToViewport(clientX, clientY) {
+    if (!lastDraw) return null;
+    const d = lastDraw;
+    const dpr = d.w / innerWidth;
+    let px = clientX * dpr, py = clientY * dpr;
+
+    let bx, by;
+    if (d.rotate) {
+      // 그릴 때: translate(w/2,h/2) → rotate(-90°) → translate(-boxW/2,-boxH/2)
+      const qx = px - d.w / 2, qy = py - d.h / 2;
+      bx = -qy + d.boxW / 2;
+      by = qx + d.boxH / 2;
+    } else { bx = px; by = py; }
+
+    const u = (bx - d.ox) / d.dw;
+    const vTop = (by - d.oy) / d.dh;
+    if (u < 0 || u > 1 || vTop < 0 || vTop > 1) return null;   // 검은 띠를 찍었다
+    return [u, 1 - vTop];
+  }
+
+  function showFocusRing(clientX, clientY, ok) {
+    const ring = $('focusRing');
+    ring.style.left = clientX + 'px';
+    ring.style.top = clientY + 'px';
+    ring.classList.toggle('miss', !ok);
+    ring.classList.remove('on');
+    void ring.offsetWidth;                 // 애니메이션 다시 태우기
+    ring.classList.add('on');
+    clearTimeout(showFocusRing._t);
+    showFocusRing._t = setTimeout(() => ring.classList.remove('on'), 900);
+  }
+
+  // 렌즈 판 — 한 손가락 탭 = 초점, 두 손가락 = 핀치 줌.
+  function bindLens() {
+    const el = $('lens');
+    const pts = new Map();
+    let pinchBase = 0, pinchZoom0 = 1, moved = 0, downAt = 0;
+
+    el.addEventListener('pointerdown', e => {
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 1) { moved = 0; downAt = performance.now(); }
+      if (pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        pinchBase = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1;
+        pinchZoom0 = zoomTarget;
+      }
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointermove', e => {
+      const prev = pts.get(e.pointerId);
+      if (!prev) return;
+      if (pts.size === 1) moved += Math.hypot(e.clientX - prev[0], e.clientY - prev[1]);
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+
+      if (pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinchZoom0 * (d / pinchBase)));
+        sendZoom(false);
+      }
+      e.preventDefault();
+    });
+
+    const up = e => {
+      const wasSingle = pts.size === 1;
+      pts.delete(e.pointerId);
+      if (pts.size < 2) pinchBase = 0;
+      if (pts.size === 0) sendZoom(true);
+
+      // 탭 = 한 손가락 · 거의 안 움직임 · 짧게. 카메라 워킹 중 손이 스치는 걸 초점으로
+      // 오해하면 방송 중에 초점이 튄다.
+      if (!wasSingle || moved > 14 || performance.now() - downAt > 450) return;
+      const vp = screenToViewport(e.clientX, e.clientY);
+      if (!vp) { showFocusRing(e.clientX, e.clientY, false); return; }
+      if (ws && ws.readyState === 1) ws.send(`f|${vp[0].toFixed(4)}|${vp[1].toFixed(4)}`);
+      showFocusRing(e.clientX, e.clientY, true);
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', e => { pts.delete(e.pointerId); });
+  }
+  bindLens();
 
   function sendPose(t, px, py, pz, qx, qy, qz, qw, fovDeg, aspect, dof) {
     if (!ws || ws.readyState !== 1) return;
@@ -447,7 +662,11 @@
     $('hud').classList.remove('hidden');
     $('bar').classList.remove('hidden');
     $('sticks').classList.remove('hidden');
+    $('lens').classList.remove('hidden');
+    $('rocker').classList.remove('hidden');
+    $('btnZoom1').classList.remove('hidden');
     if (stickTimer === null) stickTimer = setInterval(sendSticks, 33);   // 30 Hz
+    if (!zoomLoopAt) requestAnimationFrame(zoomLoop);
     if (!ws) connect();
     paint();
   }
@@ -460,7 +679,11 @@
     $('hud').classList.add('hidden');
     $('bar').classList.add('hidden');
     $('sticks').classList.add('hidden');
+    $('lens').classList.add('hidden');
+    $('rocker').classList.add('hidden');
+    $('btnZoom1').classList.add('hidden');
     $('turnHint').classList.add('hidden');
+    zoomRate = 0; zoomLoopAt = 0;
     turnSince = 0;
     if (stickTimer !== null) { clearInterval(stickTimer); stickTimer = null; }
     stick.l = [0, 0]; stick.r = [0, 0];

@@ -11,6 +11,11 @@ namespace Handheld
     /// 폰 포즈를 카메라에 먹이고, 그 카메라가 본 그림을 폰으로 되쏜다.
     /// 카메라는 rigRoot 기준으로 놓인다 — rigRoot 를 옮기면 「폰이 움직이는 공간」이 통째로 옮겨간다.
     /// 조이스틱은 그 rigRoot 를 민다 = 방 크기를 넘어 걸어다닌다. TASK-KAR-230.
+    ///
+    /// **렌즈는 물리 카메라로 말한다** — 줌 = 초점거리(mm), 초점 = focusDistance(m), 조리개 = f-stop.
+    /// 전부 `Camera` 의 표준 필드라 파이프라인을 안 탄다(빌트인·URP·HDRP 전부 같다). 흐림을 실제로
+    /// 그리는 건 파이프라인 몫이고, 리그는 「어떤 렌즈인가」만 말한다 — 그래서 URP 를 붙이든 빼든
+    /// 이 파일은 안 바뀐다.
     /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(Camera))]
@@ -69,8 +74,70 @@ namespace Handheld
             }
         }
 
+        // ── 렌즈 ─────────────────────────────────────────────────────────────────
+        [Header("렌즈 — 물리 카메라")]
+        [Tooltip("끄면 옛 방식(순수 FOV)으로 돈다. 켜면 focalLength·focusDistance·f-stop 이 실제 값이 된다.")]
+        public bool physicalCamera = true;
+
+        [Tooltip("센서 가로 (mm). 35mm 풀프레임 = 36 — 「50mm 로 가」가 사진기와 같은 뜻이 된다.")]
+        public float sensorWidthMm = 36f;
+
+        [Header("줌 (광학)")]
+        [Tooltip("배율 1 = 폰 렌즈 그대로.")]
+        public float zoomMin = 0.5f;
+        public float zoomMax = 16f;
+
+        [Tooltip("목표 배율까지 가는 반감기. 계단식으로 박으면 화면이 튄다.")]
+        [Range(0f, 0.6f)] public float zoomRampHalfLife = 0.12f;
+
+        [Tooltip("망원일수록 손떨림이 배율만큼 커진다 — 그만큼 보간을 늘려 상쇄한다(디지털 OIS). "
+               + "0 = 안 함, 1 = 배율에 정비례.")]
+        [Range(0f, 1f)] public float zoomStabilize = 1f;
+
+        [Tooltip("아무리 망원이어도 이 이상은 안 늦춘다 — 늦으면 겨냥이 안 된다.")]
+        [Range(0.02f, 1.0f)] public float maxStabilizedHalfLife = 0.35f;
+
+        [Tooltip("망원에서 스틱 회전 속도를 배율만큼 줄인다. 안 줄이면 조준 자체가 불가능하다.")]
+        public bool zoomSlowsTurn = true;
+
+        [Header("초점")]
+        public FocusMode focusMode = FocusMode.AutoCenter;
+
+        [Tooltip("초점 거리 (m). 탭 포커스로 맞추면 이 값이 그 거리로 바뀐다.")]
+        public float focusDistance = 3f;
+
+        [Tooltip("조리개 (f-stop). 작을수록 얕고 크게 흐려진다 — 이건 감독이 정하는 룩이다.")]
+        [Range(0.7f, 32f)] public float aperture = 2.8f;
+
+        [Tooltip("초점이 옮겨가는 반감기 = 랙 포커스 속도. 0 이면 즉시(기계적으로 불가능한 느낌).")]
+        [Range(0f, 1.5f)] public float focusRampHalfLife = 0.25f;
+
+        [Tooltip("초점을 잡을 때 때릴 레이어. 배경만 잡히면 여기서 걸러라.")]
+        public LayerMask focusMask = ~0;
+
+        public float focusMin = 0.1f;
+        public float focusMax = 200f;
+
+        [Tooltip("Target 모드일 때 따라갈 물건 (아바타 머리 등).")]
+        public Transform focusTarget;
+
+        [Tooltip("자동 초점을 초당 몇 번 다시 잴까. 매 틱(700Hz) 레이캐스트는 낭비다.")]
+        [Range(1, 60)] public int autoFocusHz = 12;
+
+        public enum FocusMode
+        {
+            /// <summary>조종석이 정한 거리에 고정.</summary>
+            Manual,
+            /// <summary>화면 한가운데를 계속 잡는다 (기본).</summary>
+            AutoCenter,
+            /// <summary>폰에서 탭한 자리를 한 번 잡고 고정 (탭 포커스).</summary>
+            Point,
+            /// <summary>지정한 Transform 을 계속 잡는다.</summary>
+            Target,
+        }
+
         [Header("뷰파인더 스트림")]
-        [Tooltip("폰으로 보낼 그림의 세로 해상도. 가로는 폰 화면 비율로 정해진다.")]
+        [Tooltip("폰으로 보낼 그림의 세로 해상도. 가로는 송출 비율로 정해진다.")]
         [Range(180, 1440)] public int streamHeight = 720;
         [Range(1, 120)] public int streamFps = 60;
         [Range(20, 95)] public int jpegQuality = 62;
@@ -99,6 +166,12 @@ namespace Handheld
         bool _homeCaptured;
         bool _recenteredThisTick;
 
+        // 렌즈 상태 — 목표와 「실제로 그리는 값」을 나눈다. 사이는 램프가 잇는다.
+        float _zoomTarget = 1f, _zoomShown = 1f;
+        float _focusTargetDist = 3f, _focusShownDist = 3f;
+        bool _focusHit = true;           // 마지막 초점 시도가 뭔가를 맞췄나 (폰 HUD 로 보낸다)
+        double _nextAutoFocus;
+
         // 인코딩 워커 — 한 장씩만 물린다 (밀리면 그 프레임을 건너뛴다).
         readonly BlockingCollection<EncodeJob> _encodeQueue =
             new BlockingCollection<EncodeJob>(new ConcurrentQueue<EncodeJob>(), 1);
@@ -121,16 +194,45 @@ namespace Handheld
             public bool Flip;
         }
 
-        /// <summary>조종석 창에 띄우는 한 줄.</summary>
+        // ── 렌즈 바깥 손잡이 ─────────────────────────────────────────────────────
+
+        /// <summary>지금 실제로 그리는 배율 (램프가 끝난 값이 아니라 지금 값).</summary>
+        public float Zoom => _zoomShown;
+
+        /// <summary>카메라맨·감독이 요청한 목표 배율.</summary>
+        public float ZoomTarget
+        {
+            get => _zoomTarget;
+            set => _zoomTarget = Mathf.Clamp(value, Mathf.Min(zoomMin, zoomMax), Mathf.Max(zoomMin, zoomMax));
+        }
+
+        /// <summary>지금 초점이 맞아 있는 거리 (m).</summary>
+        public float FocusShown => _focusShownDist;
+
+        /// <summary>마지막 초점 시도가 뭔가를 맞췄나. 허공을 탭하면 false.</summary>
+        public bool FocusHit => _focusHit;
+
+        /// <summary>지금 렌즈의 초점거리 (mm). 물리 카메라가 꺼져 있으면 0.</summary>
+        public float FocalLengthMm =>
+            _cam != null && _cam.usePhysicalProperties ? _cam.focalLength : 0f;
+
+        /// <summary>조종석 창에 띄우는 전송 상태 한 줄.</summary>
         public string StatusLine =>
             _rt == null ? "아직 폰이 안 붙었다"
-            : $"{_rtW}×{_rtH} · {_fpsShown:0.0} fps · {_lastKb} KB · 포즈 {_poseHzShown:0} Hz · 틱 {_tickHzShown:0} Hz · 캡처요청 {_captureHzShown:0} Hz · fov {_cam.fieldOfView:0.0}°";
+            : $"{_rtW}×{_rtH} · {_fpsShown:0.0} fps · {_lastKb} KB · 포즈 {_poseHzShown:0} Hz · 틱 {_tickHzShown:0} Hz · 캡처요청 {_captureHzShown:0} Hz";
+
+        /// <summary>조종석 창에 띄우는 렌즈 한 줄.</summary>
+        public string LensLine =>
+            _cam == null ? "—"
+            : $"{_zoomShown:0.0}× · {(FocalLengthMm > 0f ? $"{FocalLengthMm:0}mm" : $"fov {_cam.fieldOfView:0.0}°")}"
+              + $" · 초점 {_focusShownDist:0.00}m{(_focusHit ? "" : " (못 잡음)")} · f/{aperture:0.0}";
 
         void Awake()
         {
             _cam = GetComponent<Camera>();
             if (server == null) server = FindAnyObjectByType<HandheldServer>();
             if (rigRoot == null) rigRoot = transform.parent;
+            _focusTargetDist = _focusShownDist = Mathf.Clamp(focusDistance, focusMin, focusMax);
             CaptureHome();
         }
 
@@ -194,6 +296,10 @@ namespace Handheld
             if (Application.isPlaying && Input.GetKeyDown(recenterKey)) Recenter();
             if (server.ConsumeRecenterRequest()) Recenter();
 
+            // 폰이 보낸 렌즈 요청 — 줌은 목표만 바꾸고(램프가 잇는다), 탭 포커스는 그 자리를 한 번 잰다.
+            if (server.ConsumeZoomRequest(out float z)) ZoomTarget = z;
+            if (server.ConsumeFocusPoint(out Vector2 vp)) FocusAtViewport(vp);
+
             bool gotPose = server.TryGetPose(out var pose);
             if (gotPose)
             {
@@ -204,6 +310,10 @@ namespace Handheld
             }
 
             if (joystickEnabled) ApplyJoystick(server.Joystick, dt);
+
+            UpdateZoom(dt);
+            UpdateFocus(dt, now);
+
             if (_everGotPose) ApplyPose(_pose, dt);
 
             // 기록은 포즈가 들어온 틱에만 — 700Hz 틱을 그대로 적으면 파일만 커진다.
@@ -235,10 +345,11 @@ namespace Handheld
                 _captureCount = 0;
                 _statWindowStart = now;
 
-                // 폰 HUD 로 되돌려 준다 — 카메라맨이 자기가 어디 서 있는지 봐야 한다.
+                // 폰 HUD 로 되돌려 준다 — 카메라맨이 자기가 어디 서 있고 어떤 렌즈인지 봐야 한다.
                 Vector3 p = transform.position;
                 server.SendStatus(p, transform.eulerAngles.y, _fpsShown, _lastKb,
-                    _tickHzShown, _captureHzShown);
+                    _tickHzShown, _captureHzShown,
+                    _zoomShown, FocalLengthMm, _focusShownDist, _focusHit);
             }
         }
 
@@ -261,6 +372,121 @@ namespace Handheld
             rigRoot.SetPositionAndRotation(_rigHomePos, _rigHomeRot);
         }
 
+        // ── 줌 ───────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 목표 배율까지 **로그 공간**에서 따라간다 — 1→2 와 8→16 이 같은 시간이 걸린다.
+        /// 선형으로 이으면 망원 구간에서 가속하는 것처럼 보인다(같은 Δ배율이 만드는 화각 변화가 다르다).
+        /// </summary>
+        void UpdateZoom(float dt)
+        {
+            float lo = Mathf.Min(zoomMin, zoomMax), hi = Mathf.Max(zoomMin, zoomMax);
+            float target = Mathf.Clamp(_zoomTarget, lo, hi);
+            _zoomShown = Mathf.Clamp(_zoomShown, lo, hi);
+
+            if (dt <= 0f || zoomRampHalfLife <= 0.001f) { _zoomShown = target; return; }
+
+            float k = 1f - Mathf.Pow(0.5f, dt / zoomRampHalfLife);
+            _zoomShown = Mathf.Exp(Mathf.Lerp(Mathf.Log(_zoomShown), Mathf.Log(target), k));
+            if (Mathf.Abs(_zoomShown - target) < 0.0005f) _zoomShown = target;
+        }
+
+        /// <summary>화각에 배율을 먹인다. **tan 을 나눠야** 진짜 광학 줌이다 (각도를 나누면 틀린다).</summary>
+        static float ZoomFov(float fovYDeg, float zoom)
+        {
+            float half = fovYDeg * 0.5f * Mathf.Deg2Rad;
+            float z = Mathf.Max(0.0001f, zoom);
+            return Mathf.Clamp(2f * Mathf.Atan(Mathf.Tan(half) / z) * Mathf.Rad2Deg, 0.1f, 170f);
+        }
+
+        // ── 초점 ─────────────────────────────────────────────────────────────────
+
+        /// <summary>폰이 탭한 자리(뷰포트 0..1, 아래가 0)에 초점을 맞춘다.</summary>
+        public void FocusAtViewport(Vector2 viewport)
+        {
+            if (TryFocusRaycast(viewport, out float d))
+            {
+                focusDistance = d;
+                _focusTargetDist = d;
+                _focusHit = true;
+                // 탭했다는 건 「여기에 두라」는 뜻이다 — 자동이 곧바로 되돌리면 안 된다.
+                if (focusMode == FocusMode.AutoCenter) focusMode = FocusMode.Point;
+            }
+            else
+            {
+                // 허공을 탭했다. 초점은 안 건드리고 「못 잡았다」만 알린다.
+                _focusHit = false;
+            }
+        }
+
+        void UpdateFocus(float dt, double now)
+        {
+            switch (focusMode)
+            {
+                case FocusMode.Manual:
+                    _focusTargetDist = focusDistance;
+                    _focusHit = true;
+                    break;
+
+                case FocusMode.AutoCenter:
+                    if (now >= _nextAutoFocus)
+                    {
+                        _nextAutoFocus = now + 1.0 / Mathf.Max(1, autoFocusHz);
+                        if (TryFocusRaycast(new Vector2(0.5f, 0.5f), out float d))
+                        {
+                            _focusTargetDist = d;
+                            focusDistance = d;
+                            _focusHit = true;
+                        }
+                        else _focusHit = false;   // 하늘을 보고 있다 — 마지막 거리를 지킨다
+                    }
+                    break;
+
+                case FocusMode.Point:
+                    _focusTargetDist = focusDistance;
+                    break;
+
+                case FocusMode.Target:
+                    if (focusTarget != null)
+                    {
+                        // 초점면까지의 거리 = 광축에 **투영한** 거리다. 직선 거리를 쓰면
+                        // 피사체가 화면 가장자리로 갈수록 초점이 뒤로 밀린다.
+                        float proj = Vector3.Dot(focusTarget.position - transform.position, transform.forward);
+                        if (proj > 0f) { _focusTargetDist = proj; focusDistance = proj; _focusHit = true; }
+                        else _focusHit = false;   // 등 뒤에 있다
+                    }
+                    else _focusHit = false;
+                    break;
+            }
+
+            float target = Mathf.Clamp(_focusTargetDist, focusMin, focusMax);
+            _focusShownDist = Mathf.Clamp(_focusShownDist, focusMin, focusMax);
+
+            if (dt <= 0f || focusRampHalfLife <= 0.001f) { _focusShownDist = target; return; }
+
+            // **디옵터(1/거리) 공간에서 잇는다** — 실제 포커스 링이 그렇게 돈다. 거리로 이으면
+            // 가까운 쪽에서 순간이동하고 먼 쪽에서 한없이 기어간다.
+            float k = 1f - Mathf.Pow(0.5f, dt / focusRampHalfLife);
+            float d0 = 1f / Mathf.Max(1e-4f, _focusShownDist);
+            float d1 = 1f / Mathf.Max(1e-4f, target);
+            _focusShownDist = 1f / Mathf.Max(1e-4f, Mathf.Lerp(d0, d1, k));
+        }
+
+        bool TryFocusRaycast(Vector2 viewport, out float dist)
+        {
+            dist = 0f;
+            if (_cam == null) return false;
+
+            Ray ray = _cam.ViewportPointToRay(new Vector3(viewport.x, viewport.y, 0f));
+            if (!Physics.Raycast(ray, out RaycastHit hit, focusMax, focusMask, QueryTriggerInteraction.Ignore))
+                return false;
+
+            dist = Vector3.Dot(hit.point - transform.position, transform.forward);
+            if (dist <= 0f) return false;
+            dist = Mathf.Clamp(dist, focusMin, focusMax);
+            return true;
+        }
+
         // ── 조이스틱 ─────────────────────────────────────────────────────────────
         void ApplyJoystick(Vector4 stick, float dt)
         {
@@ -276,8 +502,15 @@ namespace Handheld
             rigRoot.position += (fwd * stick.y + right * stick.x) * moveSpeed * dt;
 
             // 오른쪽 스틱 x = 제자리 회전. 카메라가 선 자리를 축으로 돌아야 「내가 도는」 느낌이 난다.
+            //
+            // **망원에서는 같은 각속도가 화면에서 배율만큼 빨라진다** — 10배 줌에 90°/s 면
+            // 피사체가 눈 깜짝할 사이 화면 밖으로 나간다. 그래서 배율로 나눈다.
             if (Mathf.Abs(stick.z) > 1e-4f)
-                rigRoot.RotateAround(transform.position, Vector3.up, stick.z * turnSpeed * dt);
+            {
+                float turn = turnSpeed;
+                if (zoomSlowsTurn) turn /= Mathf.Max(1f, _zoomShown);
+                rigRoot.RotateAround(transform.position, Vector3.up, stick.z * turn * dt);
+            }
 
             // 오른쪽 스틱 y = 승강 (크레인)
             if (Mathf.Abs(stick.w) > 1e-4f)
@@ -311,7 +544,7 @@ namespace Handheld
             // t 초 뒤 남는 비율 = 0.5^(t / halfLife). dt 가 튀어도 결과가 안 튄다.
             if (smoothing && _shownValid && dt > 0f)
             {
-                float k = 1f - Mathf.Pow(0.5f, dt / Mathf.Max(0.001f, smoothingHalfLife));
+                float k = 1f - Mathf.Pow(0.5f, dt / EffectiveHalfLife());
                 _shownPos = Vector3.Lerp(_shownPos, targetPos, k);
                 _shownRot = Quaternion.Slerp(_shownRot, rot, k);
             }
@@ -327,7 +560,23 @@ namespace Handheld
             else
                 transform.SetPositionAndRotation(_shownPos, _shownRot);
 
-            if (pose.FovY > 0f) _cam.fieldOfView = MapFov(pose.FovY, pose.Aspect);
+            if (pose.FovY > 0f) ApplyLens(MapFov(pose.FovY, pose.Aspect), EffectiveAspect(pose.Aspect));
+        }
+
+        /// <summary>
+        /// 지금 배율에서 써야 할 보간 반감기.
+        ///
+        /// 각도 오차 1° 는 화면에서 **배율만큼** 커진다 — 1배에서 안 보이던 손떨림이 10배에서는
+        /// 화면을 흔든다. 그래서 반감기를 배율에 비례시켜 「화면에서 보이는 떨림」을 일정하게
+        /// 유지한다 (렌즈 손떨림 보정이 망원에서 더 세게 도는 것과 같은 이유).
+        /// 다만 무한정 늘리면 겨냥이 안 되므로 천장을 둔다.
+        /// </summary>
+        float EffectiveHalfLife()
+        {
+            float hl = smoothingHalfLife;
+            if (zoomStabilize > 0f)
+                hl = smoothingHalfLife * Mathf.Lerp(1f, Mathf.Max(0.25f, _zoomShown), zoomStabilize);
+            return Mathf.Clamp(hl, 0.005f, Mathf.Max(smoothingHalfLife, maxStabilizedHalfLife));
         }
 
         /// <summary>
@@ -346,6 +595,36 @@ namespace Handheld
             float halfH = Mathf.Atan(Mathf.Tan(halfV) * phoneAspect);
             float newHalfV = Mathf.Atan(Mathf.Tan(halfH) / Mathf.Max(0.01f, target));
             return Mathf.Clamp(newHalfV * 2f * Mathf.Rad2Deg, 1f, 170f);
+        }
+
+        /// <summary>
+        /// 화각·초점·조리개를 카메라에 박는다.
+        ///
+        /// 물리 모드에서는 `fieldOfView` 를 넣으면 유니티가 센서 크기로부터 `focalLength`(mm)를
+        /// 되계산한다 — mm 를 우리가 따로 안 구해도 맞는 값이 나온다. 센서 비율을 렌더 비율과
+        /// **똑같이** 맞춰 두면 게이트 핏이 무엇이든 결과가 같아 놀랄 일이 없다.
+        /// </summary>
+        void ApplyLens(float baseFovY, float renderAspect)
+        {
+            float fovY = ZoomFov(baseFovY, _zoomShown);
+
+            if (!physicalCamera)
+            {
+                if (_cam.usePhysicalProperties) _cam.usePhysicalProperties = false;
+                _cam.fieldOfView = fovY;
+                return;
+            }
+
+            _cam.usePhysicalProperties = true;
+            _cam.gateFit = Camera.GateFitMode.None;
+
+            float w = Mathf.Max(1f, sensorWidthMm);
+            var sensor = new Vector2(w, w / Mathf.Max(0.01f, renderAspect));
+            if ((_cam.sensorSize - sensor).sqrMagnitude > 1e-6f) _cam.sensorSize = sensor;
+
+            _cam.fieldOfView = fovY;                     // → focalLength 가 따라 잡힌다
+            _cam.focusDistance = _focusShownDist;
+            _cam.aperture = Mathf.Clamp(aperture, 0.7f, 32f);
         }
 
         void EnsureRenderTexture(PhonePose pose)
@@ -463,10 +742,11 @@ namespace Handheld
 
             var style = new GUIStyle(GUI.skin.label) { fontSize = 14, richText = true };
             style.normal.textColor = Color.white;
-            GUI.Box(new Rect(8, 6, 580, 68), GUIContent.none);
+            GUI.Box(new Rect(8, 6, 580, 88), GUIContent.none);
             GUI.Label(new Rect(14, 8, 740, 22), $"<b>{state}</b>", style);
             GUI.Label(new Rect(14, 28, 740, 22), StatusLine, style);
-            GUI.Label(new Rect(14, 48, 740, 22),
+            GUI.Label(new Rect(14, 48, 740, 22), LensLine, style);
+            GUI.Label(new Rect(14, 68, 740, 22),
                 $"pos {transform.position.ToString("F2")} · [{recenterKey}] 리센터", style);
         }
     }
