@@ -214,6 +214,29 @@ export function trimBox(
   return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
 }
 
+/**
+ * 영상 한 토막을 **몇 판 돌리게 되나** (원장 16 / `videobg`).
+ *
+ * 한 장에 모델을 한 번 돌린다 — 그러니 이 숫자가 곧 기다리는 시간이다. 그래서 두 가지를 한다:
+ * **누르기 전에 보여 줄 수 있게 순수 함수로 두고**, 상한을 넘기지 않는다.
+ * 상한이 없으면 3분짜리를 넣은 사람이 브라우저를 잃는다 — 그건 「느리다」가 아니라 「망가졌다」다.
+ *
+ * 남은 길이보다 길게 달라고 해도 남은 만큼만 준다. 그리고 **최소 한 장**은 준다 — 0장을
+ * 돌려주면 부르는 쪽이 빈 결과를 「됐다」로 보고 저장까지 해 버린다.
+ */
+export function planFrames(
+  secondsLeft: number,
+  wantSeconds: number,
+  fps: number,
+  max = 150
+): { count: number; seconds: number } {
+  const left = Math.max(0, secondsLeft);
+  const want = Math.max(0, Math.min(wantSeconds, left));
+  const rate = Math.max(1, fps);
+  const count = Math.max(1, Math.min(max, Math.round(want * rate)));
+  return { count, seconds: count / rate };
+}
+
 export interface CutoutOptions {
   /** 0~100. 모델 받기·처리 진행률. */
   onProgress?: (pct: number) => void;

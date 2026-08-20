@@ -244,5 +244,6 @@
   "widgets.askpapers.title": "Ask the papers",
   "widgets.isitdown.title": "Is it down?",
   "widgets.my-ai.title": "My AI",
-  "widgets.cleanup.title": "Eraser"
+  "widgets.cleanup.title": "Eraser",
+  "widgets.videobg.title": "Video background remover"
 }

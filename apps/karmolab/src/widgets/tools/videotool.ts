@@ -33,7 +33,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         ['video2gif', t('videotool.part.video2gif', undefined, 'GIF 만들기')],
         ['video2img', t('videotool.part.video2img', undefined, '사진 뽑기')],
         ['video2audio', t('videotool.part.video2audio', undefined, '소리 추출')],
-        ['subtitle', t('videotool.part.subtitle', undefined, '자막')]
+        ['subtitle', t('videotool.part.subtitle', undefined, '자막')],
+        ['videobg', t('videotool.part.videobg', undefined, '배경 빼기')]
       ]
     },
     {
