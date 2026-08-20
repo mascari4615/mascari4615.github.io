@@ -552,9 +552,12 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         cols,
         rows,
         step,
-        /* 「주인 없음」선 — 넓게 볼수록 멀리까지 봐 주되 20km 에서 끊는다.
-           20km 밖 가게를 「이 땅의 주인」이라 부르는 건 어차피 거짓말이고, 이 값이 곧 걸리는 시간이다. */
-        maxKm: Math.min(20, Math.max(2, m.kmPerPixel() * step * 6)),
+        /* 「주인 없음」선 — **보이는 폭에 맞춘다.**
+           칸 간격(step)에 맞췄더니 확대할수록 선이 좁아져(2km) 시골에서는 화면이 통째로 비었다
+           (2026-08-20 실측: 강화 교동면에서 색이 하나도 안 남았다 — 가게가 2km 밖이라서).
+           보고 있는 폭의 60% 까지는 「그 땅의 주인」이라 부를 만하다. 20km 에서 끊는 것은 그대로 —
+           그 밖 가게를 주인이라 하는 건 어차피 거짓말이고, 이 값이 곧 걸리는 시간이다. */
+        maxKm: Math.min(20, Math.max(2, m.kmPerPixel() * m.size.width * 0.6)),
         tl: m.unproject(-padX, -padY),
         br: m.unproject(width + padX, height + padY),
         at: (x, y) => m.unproject(x, y),
