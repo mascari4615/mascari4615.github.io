@@ -41,7 +41,7 @@ export class Backchannel {
   private lastHeard = 0;
   private thisBatch = 0;
   private emitted = false;
-  private 마지막소리: string | null = null;
+  private lastSound: string | null = null;
 
   constructor(private readonly options: BackchannelOptions = {}) {}
 
@@ -66,9 +66,9 @@ export class Backchannel {
 
     this.emitted = true;
     const roll = this.options.roll ?? Math.random;
-    const candidates = incomingAudio.filter((s) => s !== this.마지막소리);
+    const candidates = incomingAudio.filter((s) => s !== this.lastSound);
     const picked = candidates[Math.floor(roll() * candidates.length) % candidates.length];
-    this.마지막소리 = picked;
+    this.lastSound = picked;
     return picked;
   }
 

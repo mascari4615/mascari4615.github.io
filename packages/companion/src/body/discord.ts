@@ -27,7 +27,7 @@ export interface 디스코드붙이기 {
   /** 이 채널을 잡는다. 없으면 null. */
   pickChannel: (channel2: string) => 디스코드채널 | null;
   /** 끊는다. */
-  끊기?: () => void | Promise<void>;
+  cut?: () => void | Promise<void>;
 }
 
 export interface DiscordBodyOptions {
@@ -72,7 +72,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
       log(`디스코드 몸이 듣기 시작했다${listenTarget === null ? '' : ` (${[...listenTarget].join(', ')})`}`);
     },
     async stop() {
-      await options.attach.끊기?.();
+      await options.attach.cut?.();
     },
   };
 
@@ -164,7 +164,7 @@ export async function discordJs(options: {
       if (c === undefined || typeof c.send !== 'function') return null;
       return { send: async (content5) => { await c.send?.(content5); } };
     },
-    async 끊기() {
+    async cut() {
       await client.destroy();
     },
   };

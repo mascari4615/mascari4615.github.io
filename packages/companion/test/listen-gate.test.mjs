@@ -190,7 +190,7 @@ test('메아리가 너무 크면 끼어들기를 포기한다 — 켜면 자기�
 });
 
 test('끼어들기를 꺼 두면 아무리 크게 말해도 안 끊는다', () => {
-  const gate16 = new listenGate({ 끼어들기: false });
+  const gate16 = new listenGate({ barge: false });
   gate16.입(true, 0);
   const happened7 = speakAndPlay(gate16, 0.9, 3000);
   assert.deepEqual(happened7, []);
@@ -214,7 +214,7 @@ test('사람이 끼어든 소리를 메아리로 배우지 않는다 — 배우�
 });
 
 test('메아리가 내내 큰 방에서는 사람 목소리도 그만큼 커야 한다 — 안 그러면 자기를 끊는다', () => {
-  const gate19 = new listenGate({ 못하겠다: 1 }); // 포기 말고 문턱으로만 막는지 본다
+  const gate19 = new listenGate({ cannotDo: 1 }); // 포기 말고 문턱으로만 막는지 본다
   gate19.입(true, 0);
   speakAndPlay(gate19, 0.3, 5000);
   assert.ok(gate19.끼어들문턱 > 0.3, `메아리 0.3 인 방에서 문턱이 ${gate19.끼어들문턱} 이면 제 소리에 끊긴다`);

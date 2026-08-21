@@ -121,7 +121,7 @@ export class EpisodeStore {
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
-    this.정리();
+    this.tidy();
     return storedCount;
   }
 
@@ -135,7 +135,7 @@ export class EpisodeStore {
     this.목록.push(e);
   }
 
-  private 정리(): void {
+  private tidy(): void {
     // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
     // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
     if (this.목록.length > this.options.keep) {
@@ -183,7 +183,7 @@ export class EpisodeStore {
       storedCount2 += 1;
     });
     if (storedCount2 > 0) {
-      this.정리();
+      this.tidy();
       this.options.log?.(`${bundle.length}개 중 ${storedCount2}개를 사건으로 담았다`);
     }
     return storedCount2;

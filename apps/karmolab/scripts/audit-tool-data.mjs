@@ -33,9 +33,9 @@ const heights = fs.existsSync(path.join(root, 'data/tool-heights.json')) ? read(
 
 /** 알맹이는 있는데 상세 페이지 정보(tools-seo)가 없는 도구 — 아래에서 **래칫**으로 본다. */
 let seoOrphans = [];
-const missing = { 카드: [], slot: [], 이름: [] };
+const missing = { card: [], slot: [], 이름: [] };
 for (const id of tools) {
-  if (!fs.existsSync(path.join(root, `img/og/${id}.jpg`))) missing['카드'].push(id);
+  if (!fs.existsSync(path.join(root, `img/og/${id}.jpg`))) missing['card'].push(id);
   const h = heights[id];
   if (!h?.narrow || !h?.wide) missing['slot'].push(id);
   if (!aliases[id]) missing['이름'].push(id);

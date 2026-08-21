@@ -88,8 +88,8 @@ export interface WishesOptions {
 export class Wishes {
   private day: string | null = null;
   private today: Wish[] = [];
-  private 꺼낸것 = new Set<string>();
-  private 오늘시작 = 0;
+  private raised = new Set<string>();
+  private todayStart = 0;
 
   constructor(private readonly options: WishesOptions = {}) {}
 
@@ -102,13 +102,13 @@ export class Wishes {
   /** 아직 안 채워진 것들. */
   unmet(entries: readonly MemoryEntry[]): readonly Wish[] {
     this.rollOver();
-    return this.today.filter((w) => w.met(entries, this.오늘시작) === false);
+    return this.today.filter((w) => w.met(entries, this.todayStart) === false);
   }
 
   /** 오늘 채워진 것들. */
   metToday(entries: readonly MemoryEntry[]): readonly Wish[] {
     this.rollOver();
-    return this.today.filter((w) => w.met(entries, this.오늘시작));
+    return this.today.filter((w) => w.met(entries, this.todayStart));
   }
 
   /**
@@ -118,10 +118,10 @@ export class Wishes {
    * 말하면 조르는 게 된다.
    */
   nudge(entries: readonly MemoryEntry[]): string | null {
-    const yet = this.unmet(entries).filter((w) => this.꺼낸것.has(w.what) === false);
+    const yet = this.unmet(entries).filter((w) => this.raised.has(w.what) === false);
     if (yet.length === 0) return null;
     const one = yet[Math.floor((this.options.roll ?? Math.random)() * yet.length) % yet.length];
-    this.꺼낸것.add(one.what);
+    this.raised.add(one.what);
     return one.say;
   }
 
@@ -137,8 +137,8 @@ export class Wishes {
     if (this.day === today2) return;
 
     this.day = today2;
-    this.오늘시작 = new Date(now2).setHours(0, 0, 0, 0);
-    this.꺼낸것 = new Set();
+    this.todayStart = new Date(now2).setHours(0, 0, 0, 0);
+    this.raised = new Set();
 
     const pool = this.options.pool ?? wishable;
     const roll = this.options.roll ?? Math.random;

@@ -18,7 +18,7 @@ export function playLimits(dir = playground) {
   for (const f of readdirSync(dir)) {
     if (!f.endsWith('.ts') || f.endsWith('-view.ts')) continue;
     const m = /const LIMIT_MS = (\d+)/.exec(readFileSync(join(dir, f), 'utf8'));
-    if (m) out.push({ 이름: f.replace(/\.ts$/, ''), 제한: Number(m[1]) });
+    if (m) out.push({ 이름: f.replace(/\.ts$/, ''), limit: Number(m[1]) });
   }
   return out;
 }

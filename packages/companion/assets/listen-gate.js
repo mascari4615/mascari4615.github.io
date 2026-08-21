@@ -48,7 +48,7 @@ export const defaultValue = {
   너무길다: 20000,
 
   /** 말 도중에 끊고 들어오는 걸 받나. */
-  끼어들기: true,
+  barge: true,
   /** 메아리 바닥의 몇 배를 넘어야 사람 목소리로 보나. */
   메아리배수: 1.8,
   /** 끼어들기로 보는 최소 문턱 — 메아리가 거의 없어도 이보다 낮게는 안 내려간다. */
@@ -56,7 +56,7 @@ export const defaultValue = {
   /** 이만큼 이어져야 끊는다 (ms) — 잠깐 튄 소리로는 안 끊는다. */
   끼어드는데: 400,
   /** 메아리 바닥이 이보다 크면 끼어들기를 포기한다 — 켜면 자기를 끊는다. */
-  못하겠다: 0.14,
+  cannotDo: 0.14,
 };
 
 export class listenGate {
@@ -81,7 +81,7 @@ export class listenGate {
 
   /** 소리 지우기가 안 먹어서 끼어들기를 포기해야 하나. */
   get 끼어들포기() {
-    return this.설정.끼어들기 === false || this.메아리바닥 >= this.설정.못하겠다;
+    return this.설정.barge === false || this.메아리바닥 >= this.설정.cannotDo;
   }
 
   /** 얘가 말하기 시작했다 / 끝냈다. */

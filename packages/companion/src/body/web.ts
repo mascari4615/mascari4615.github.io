@@ -615,7 +615,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               const brokenOnes = brokenLines([...entries]);
               if (req.method !== 'POST') {
                 res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ 깨진줄: brokenOnes.length, 보기: brokenOnes.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
+                res.end(JSON.stringify({ 깨진줄: brokenOnes.length, sample: brokenOnes.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
                 return;
               }
               let removedCount = 0;

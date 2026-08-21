@@ -30,7 +30,7 @@ export interface 밀린생각옵션 {
 
 interface 눌림 {
   횟수: number;
-  마지막턴: number;
+  lastTurn: number;
 }
 
 /**
@@ -56,7 +56,7 @@ export class pendingThoughts {
   다음턴(): void {
     this.턴 += 1;
     for (const [이름, v] of [...this.눌린것]) {
-      if (this.턴 - v.마지막턴 >= this.forgetTurn) this.눌린것.delete(이름);
+      if (this.턴 - v.lastTurn >= this.forgetTurn) this.눌린것.delete(이름);
     }
   }
 
@@ -70,7 +70,7 @@ export class pendingThoughts {
   적기 = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
     if (ok !== '밀림') { this.눌린것.delete(name2); return; }
     const previous = this.눌린것.get(name2);
-    this.눌린것.set(name2, { 횟수: (previous?.횟수 ?? 0) + 1, 마지막턴: this.턴 });
+    this.눌린것.set(name2, { 횟수: (previous?.횟수 ?? 0) + 1, lastTurn: this.턴 });
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */

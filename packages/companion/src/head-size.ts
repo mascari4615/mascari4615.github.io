@@ -36,7 +36,7 @@ export interface 머리고르기입력 {
 
 export interface 머리크기옵션 {
   /** 평소에 쓸 머리. */
-  작은머리?: string;
+  smallHead?: string;
   /** 무거운 자리에 쓸 머리. */
   largeHead?: string;
 }
@@ -48,7 +48,7 @@ export interface 머리크기옵션 {
  * 고장으로 보인다(오늘까지 「왜」가 없어서 실험을 다시 돌린 자리가 넷이다).
  */
 export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; why: string } {
-  const smallHead = options.작은머리 ?? 'haiku';
+  const smallHead = options.smallHead ?? 'haiku';
   const largeHead = options.largeHead ?? 'sonnet';
 
   // 위에서부터 본다 — 여러 개가 겹쳐도 이유는 하나만 적는다.

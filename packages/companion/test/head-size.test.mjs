@@ -32,7 +32,7 @@ test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이
 
 test('어느 머리를 쓸지 밖에서 정할 수 있다 — 사람마다 쓸 수 있는 머리가 다르다', () => {
   assert.equal(whichHead({ acceptSlot: true }, { largeHead: 'opus' }).머리, 'opus');
-  assert.equal(whichHead({}, { 작은머리: 'sonnet' }).머리, 'sonnet');
+  assert.equal(whichHead({}, { smallHead: 'sonnet' }).머리, 'sonnet');
 });
 
 // ── 끼웠으면 되돌린다 ─────────────────────────────────────────────

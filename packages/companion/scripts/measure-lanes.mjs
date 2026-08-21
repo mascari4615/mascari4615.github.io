@@ -63,10 +63,10 @@ const measure = async () => {
   await companion.stop();
 
   const reply = producedText.find((m) => m.text.includes('있어?'));
-  return { 기다린ms: reply === undefined ? null : reply.at - sentAt, 나온말: producedText.map((m) => m.text) };
+  return { waitedMs: reply === undefined ? null : reply.at - sentAt, 나온말: producedText.map((m) => m.text) };
 };
 
 const r = await measure();
 console.log(`[계통] 무거운 일 ${heavyWorkMs}ms 가 도는 중에 말을 걸었다`);
-console.log(`[계통] 대답까지 ${r.기다린ms === null ? '(대답 없음)' : `${r.기다린ms}ms`}`);
+console.log(`[계통] 대답까지 ${r.waitedMs === null ? '(대답 없음)' : `${r.waitedMs}ms`}`);
 console.log(`[계통] 나온 말 순서: ${r.나온말.join(' → ')}`);

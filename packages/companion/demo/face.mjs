@@ -546,12 +546,12 @@ function slotsToFill() {
   const slot3 = [];
   for (const [갈래, 무슨일] of Object.entries(touchTone)) {
     for (let stage = 0; stage < 3; stage += 1) {
-      slot3.push({ key: touchKind(갈래, stage), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
+      slot3.push({ key: touchKind(갈래, stage), request: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
     }
   }
   for (const kind2 of 반사종류들()) {
     for (const [결, 어떤결] of Object.entries(energyTone)) {
-      slot3.push({ key: 반사갈래(kind2, 결), 부탁: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
+      slot3.push({ key: 반사갈래(kind2, 결), request: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
     }
   }
   return slot3;
@@ -568,7 +568,7 @@ function prefillReply() {
   const empty = slotsToFill().filter((slot4) => line3.remaining(slot4.key) < 4);
   const thisOne = empty[0];
   if (thisOne === undefined) return;
-  void line3.채우기(thisOne.key, thisOne.부탁, 6).catch(() => {});
+  void line3.채우기(thisOne.key, thisOne.request, 6).catch(() => {});
   if (empty.length > 1) setTimeout(prefillReply, refillInterval).unref();
 }
 let lastEnergy = 0.5;
