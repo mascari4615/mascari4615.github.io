@@ -1,26 +1,6 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 32,
-  "files": 19,
-  "byFile": {
-    "apps/karmolab/scripts/audit-gate-list.mjs": 1,
-    "apps/karmolab/scripts/audit-i18n-eager-call.mjs": 1,
-    "apps/karmolab/scripts/audit-i18n-namespace-load.mjs": 1,
-    "apps/karmolab/scripts/audit-loose-checks.mjs": 1,
-    "apps/karmolab/scripts/audit-orphan-tests.mjs": 6,
-    "apps/karmolab/scripts/audit-seo-head.mjs": 2,
-    "apps/karmolab/scripts/lib/gate-scope.mjs": 1,
-    "apps/karmolab/scripts/linux-repro.mjs": 1,
-    "apps/karmolab/scripts/smoke-play-i18n.mjs": 1,
-    "apps/karmolab/scripts/test-arcade.mjs": 1,
-    "apps/karmolab/scripts/test-core.mjs": 1,
-    "apps/karmolab/scripts/test-gate-derive.mjs": 1,
-    "apps/karmolab/scripts/test-karmograph-core.mjs": 4,
-    "apps/karmolab/src/toolbox.ts": 1,
-    "apps/karmolab/src/widgets/tools/duel.ts": 4,
-    "packages/companion/assets/say-chunks.js": 1,
-    "packages/companion/src/feeling.ts": 2,
-    "packages/companion/test/bring-up.test.mjs": 1,
-    "packages/companion/test/rarity.test.mjs": 1
-  }
+  "count": 0,
+  "files": 0,
+  "byFile": {}
 }

@@ -157,7 +157,7 @@ async function onePage(id) {
     if (i18nErrors.length) {
       red.push(`${id}: 말 묶음 오류 — ${i18nErrors[0]}`);
     } else if (!locale.has) {
-      if (locale.widget && !locale.숨김) {
+      if (locale.widget && !locale.hidden) {
         /* 목록에 버젓이 있고 숨기지도 않았는데 안 열린다 = 사람이 눌러도 안 열린다. */
         red.push(`${id}: 보이는 화면인데 안 열린다 (판이 안 생겼다)`);
       } else {

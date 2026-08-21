@@ -195,7 +195,7 @@ const M = await loadModules();
   const { jsonCanvas, mermaid } = M;
   const spec = specOf({
     nodes: [
-      nodeOf('a', { label: '욘', fields: { 출신: '마계' }, tags: ['주인공'], doc: '마도서를 든다' }),
+      nodeOf('a', { label: '욘', fields: { '출신': '마계' }, tags: ['주인공'], doc: '마도서를 든다' }),
       nodeOf('b', { label: '링' }),
     ],
     edges: [{ id: 'e1', from: 'a', to: 'b', kind: 'rel', label: '부하' }],
@@ -208,7 +208,7 @@ const M = await loadModules();
   const back = jsonCanvas.fromJsonCanvas(canvas, specOf({ _edge_kinds: { rel: {} } }));
   eq(back.nodes.length, 2, '되읽으면 개수가 같다');
   eq(back.nodes[0].label, '욘', '첫 줄이 이름으로 돌아온다');
-  eq(back.nodes[0].fields?.출신, '마계', '칸이 되살아난다');
+  eq(back.nodes[0].fields?.['출신'], '마계', '칸이 되살아난다');
   check((back.nodes[0].tags ?? []).includes('주인공'), '꼬리표가 되살아난다');
   eq(back.edges.length, 1, '선도 돌아온다');
 
@@ -363,7 +363,7 @@ const M = await loadModules();
 {
   const { decor } = M;
   const flags = { sizeByDegree: false, colorByTag: true, colorByField: '진영' };
-  const node = nodeOf('a', { tags: ['주인공'], fields: { 진영: '마왕성' } });
+  const node = nodeOf('a', { tags: ['주인공'], fields: { '진영': '마왕성' } });
   const kindColor = () => '#kind';
   const ruled = decor.nodeColor(node, [{ id: 'r', on: 'field', key: '진영', value: '마왕성', color: '#rule' }], flags, kindColor);
   eq(ruled, '#rule', '규칙이 가장 세다');
@@ -384,7 +384,7 @@ const M = await loadModules();
 {
   const { filter } = M;
   const base = { nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '' };
-  const nodes = [nodeOf('a', { tags: ['주인공'] }), nodeOf('b', { fields: { 출신: '마계' } }), nodeOf('c')];
+  const nodes = [nodeOf('a', { tags: ['주인공'] }), nodeOf('b', { fields: { '출신': '마계' } }), nodeOf('c')];
   const edges = [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }];
   const refOf = (r) => r.split(':')[0];
   eq(filter.visibleNodes(nodes, edges, base, refOf).length, 3, '아무것도 안 끄면 다 남는다');

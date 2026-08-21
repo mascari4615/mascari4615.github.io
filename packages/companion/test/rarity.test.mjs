@@ -43,7 +43,7 @@ test('원본 무게는 안 바뀐다 — 다음 turn 이 이전 turn 을 물려�
 });
 
 test('드물게 켜진 재료가 늘 있던 재료를 이긴다 — 이게 이 자리를 만든 이유다', () => {
-  const scoreTable = { 자기상: calc(0, 3, 610, 0), mood: calc(500, 20, 0, 0) };
+  const scoreTable = { '자기상': calc(0, 3, 610, 0), mood: calc(500, 20, 0, 0) };
   const list = [
     { name: '기분', text: '가'.repeat(25), weight: 12 },
     { name: '자기상', text: '나'.repeat(25), weight: 7 },

@@ -67,7 +67,7 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
    돌리면 그 게임만 조용히 「보통」이 된다 — 틀린 태그는 없는 태그보다 나쁘다. */
 {
   const measured = new Set(
-    JSON.parse(readFileSync('data/arcade-balance.json', 'utf8')).게임.map((r) => r.id)
+    JSON.parse(readFileSync('data/arcade-balance.json', 'utf8')).game.map((r) => r.id)
   );
   const missing = GAMES.map((g) => g.id).filter((id) => !measured.has(id));
   ok(missing.length === 0, '모든 게임이 저울에 재여 있다 (npm run bench:arcade)', missing.join(', '));
