@@ -20,19 +20,36 @@ if (statSync(arg).isDirectory()) {
 } else posePath = arg;
 const shownPath = join(dirname(posePath), basename(posePath).replace(/^pose-/, 'shown-'));
 
-const readCsv = p => {
+// ★ 성한 줄만 쓴다 (2026-08-21). 기록을 닫기 전에 프로세스가 죽으면 **마지막 줄이 반쪽**으로
+//   남는다. 그 한 줄의 NaN 이 Math.max 를 통째로 NaN 으로 만들고, NaN 비교는 전부 false 라
+//   「튐 0회」로 읽힌다 — 조용히 틀리는 부류다. 실측으로 그 일이 났다.
+//   버린 줄 수는 **반드시 찍는다**. 말 없이 버리면 그게 다음 함정이 된다.
+const readCsv = (p, label) => {
   const lines = readFileSync(p, 'utf8').trim().split(/\r?\n/);
   const head = lines[0].split(',');
-  return lines.slice(1).map(l => {
-    const c = l.split(','), o = {};
-    head.forEach((h, i) => { const v = c[i]; o[h] = /^-?[\d.]+$/.test(v) ? +v : v; });
-    return o;
-  });
+  const rows = [];
+  let dropped = 0;
+  for (const l of lines.slice(1)) {
+    const c = l.split(',');
+    if (c.length !== head.length) { dropped++; continue; }        // 잘린 줄
+    const o = {};
+    let ok = true;
+    head.forEach((h, i) => {
+      const v = c[i];
+      if (v === '' || v === undefined) { o[h] = null; return; }   // 빈칸은 「모름」
+      o[h] = /^-?[\d.]+$/.test(v) ? +v : v;
+      if (typeof o[h] === 'number' && !Number.isFinite(o[h])) ok = false;
+    });
+    if (!ok) { dropped++; continue; }
+    rows.push(o);
+  }
+  if (dropped) console.log(`  ⚠ ${label}: 성하지 않은 줄 ${dropped}개를 버렸다 (잘렸거나 숫자가 아니다)`);
+  return rows;
 };
 
-const pose = readCsv(posePath);
+const pose = readCsv(posePath, 'pose');
 let shown = [];
-try { shown = readCsv(shownPath); } catch { }
+try { shown = readCsv(shownPath, 'shown'); } catch { }
 
 console.log(`포즈 ${pose.length}줄 · 화면 ${shown.length}줄 — ${basename(posePath)}`);
 if (pose.length < 20) { console.error('❌ 표본이 너무 적다 (20줄 미만) — 더 길게 기록해라'); process.exit(2); }
@@ -58,13 +75,33 @@ const dAngle = (a, b) => { let d = a - b; while (d > 180) d -= 360; while (d < -
 const pct = (arr, p) => { const s = [...arr].sort((a,b)=>a-b); return s[Math.min(s.length-1, Math.floor(s.length*p))]; };
 
 // ── 단계별 각속도 ────────────────────────────────────────────────────────────
+// ★ 「튄다」= **바로 직전 흐름과의 불연속**이다 (2026-08-21 다시 세움).
+//   전역 중앙값 대비로 재면 「폰이 얼마나 가만히 있었나」가 판정을 지배한다 — 실측:
+//     8350줄(대부분 정지): 중앙값 0.07도/초 -> 문턱 1.4 -> 튐 956회(손떨림까지 셌다)
+//     1008줄(계속 움직임): 중앙값 37도/초  -> 문턱 742 -> 튐 0회(진짜 튐도 놓쳤다)
+//   같은 기계·같은 현상인데 정반대다. 그래서 **주변(±window) 중앙값**과 견준다.
+//
+//   바닥도 깐다. 주변이 완전히 정지면 주변 중앙값이 0 이 되어 아무 흔들림이나 배수를 넘는다.
+//   절대 문턱은 원칙적으로 금지지만, domain-wm § 관문 2 는 「(c) 사람이 느끼는 선」을
+//   예외로 둔다. 뷰파인더에서 **한 프레임에 2° 이상 튀면 눈에 보인다** — 그 선을 쓴다.
+const VISIBLE_STEP_DEG = 2;      // 한 프레임에 이만큼 뛰면 사람이 알아본다
+const LOCAL_WINDOW = 30;         // 주변 ±30 표본 (60Hz 면 약 ±0.5초)
+
+function localMedian(arr, i, w) {
+  const a = arr.slice(Math.max(0, i - w), Math.min(arr.length, i + w + 1)).filter(Number.isFinite);
+  if (!a.length) return 0;
+  a.sort((x, y) => x - y);
+  return a[Math.floor(a.length / 2)];
+}
+
 function stage(rows, name, qk, pk, tk = 't_ms') {
-  const out = { name, rate: [], yawRate: [], gap: [], samples: rows.length };
+  const out = { name, rate: [], step: [], yawRate: [], gap: [], samples: rows.length };
   for (let i = 1; i < rows.length; i++) {
     const dt = (rows[i][tk] - rows[i-1][tk]) / 1000;
     if (dt <= 0 || dt > 0.5) continue;
     const qa = qk.map(k => rows[i-1][k]), qb = qk.map(k => rows[i][k]);
     out.rate.push(qAngle(qa, qb) / dt);
+    out.step.push(qAngle(qa, qb));   // 한 걸음 각도 — 사람 눈에 보이는 건 이것이다
     out.yawRate.push(Math.abs(dAngle(qToYawPitch(qNorm(qb)).yaw, qToYawPitch(qNorm(qa)).yaw)) / dt);
     if (pk) {
       const pa = pk.map(k => rows[i-1][k]), pb = pk.map(k => rows[i][k]);
@@ -90,13 +127,26 @@ for (const s of [raw, conv, shw].filter(Boolean)) {
 }
 
 // ── 튐 판정 — 중앙값 대비 몇 배인가 (절대 ms/도 문턱을 안 쓴다) ──────────────
-console.log('\n── 튐 (중앙값 대비 20배 넘는 순간) ────────────────────────');
+// ── 튐 판정 — 주변 흐름과의 불연속 ──────────────────────────────────────────
+// ★ 전역 중앙값 대비는 **폰이 얼마나 가만히 있었나**에 지배된다 (2026-08-21 실측):
+//     8350줄(대부분 정지): 중앙값 0.07도/초 -> 문턱 1.4 -> 튐 956회 (손떨림까지 셌다)
+//     1008줄(계속 움직임): 중앙값 37도/초  -> 문턱 742 -> 튐 0회 (진짜 튐도 놓쳤다)
+//   같은 기계·같은 현상인데 정반대다. 그래서 **주변(±window) 중앙값**과 견준다 —
+//   「튄다」는 전역 평균과의 차가 아니라 **바로 직전 흐름과의 불연속**이기 때문이다.
+console.log('\n── 튐 (주변 흐름 대비 불연속 · 사람이 보는 크기) ──────────');
+console.log(`   기준: 주변 ±${LOCAL_WINDOW}표본 중앙값의 8배 초과 **이면서** 한 걸음 ${VISIBLE_STEP_DEG}° 이상`);
 let verdict = [];
 for (const s of [raw, conv, shw].filter(Boolean)) {
-  const med = pct(s.rate, .5) || 1e-6;
-  const spikes = s.rate.filter(v => v > med * 20);
-  const worst = Math.max(...s.rate) / med;
-  console.log(`${s.name.padEnd(22)} ${String(spikes.length).padStart(4)}회 / ${s.rate.length}표본 · 최악 ${worst.toFixed(0)}배`);
+  const spikes = [];
+  for (let i = 0; i < s.rate.length; i++) {
+    const v = s.rate[i], step = s.step[i];
+    if (!Number.isFinite(v) || !Number.isFinite(step)) continue;
+    if (step < VISIBLE_STEP_DEG) continue;              // 사람이 못 보는 크기는 튐이 아니다
+    const lm = localMedian(s.rate, i, LOCAL_WINDOW);
+    if (v > Math.max(lm * 8, 1e-6)) spikes.push(step);
+  }
+  const worst = spikes.length ? Math.max(...spikes) : 0;
+  console.log(`${s.name.padEnd(22)} ${String(spikes.length).padStart(4)}회 / ${s.rate.length}표본 · 가장 큰 걸음 ${worst.toFixed(1)}°`);
   verdict.push({ name: s.name, spikes: spikes.length, ratio: worst });
 }
 
