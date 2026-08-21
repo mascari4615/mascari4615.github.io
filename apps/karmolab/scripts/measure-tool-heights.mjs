@@ -83,7 +83,14 @@ async function measure(ctx, id, key, attempt = 1) {
         document.head.appendChild(s);
       });
     });
-    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'networkidle', timeout: 30000 });
+    /* ⚠ `networkidle` 로 기다리지 않는다 (2026-08-21). 이 창은 실시간 채널
+       (`/kl/presence` · `/kl/chat/stream` 등)을 계속 열어 두므로 <b>회선이 조용해지는 순간이
+       안 온다</b> — 러너가 조금만 느려도 30초를 다 쓰고 죽는다(실측: `draw(wide)` 가 3번 다 그랬다).
+       재는 것은 <b>높이</b>다. 필요한 것은 「문서가 섰고 글꼴이 왔다」뿐이고, 그 둘은 아래에서
+       따로 기다린다(`document.fonts.ready`). 회선이 조용한지는 높이와 상관이 없다. */
+    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    /* 도구 자리가 그려질 때까지 — 초를 세지 않고 <b>생겼나</b>를 본다. */
+    await page.waitForSelector('#tool-pages', { timeout: 20000 }).catch(() => null);
     // 글꼴이 늦게 오면 높이가 달라진다 — 다 온 뒤에 잰다.
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(500);
