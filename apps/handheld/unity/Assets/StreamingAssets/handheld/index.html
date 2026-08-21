@@ -635,18 +635,56 @@
   const f5 = n => n.toFixed(5);
 
   // ── 6DoF: WebXR immersive-ar ───────────────────────────────────────────────
-  let xrSession = null;
+  let xrSession = null, xrWay = '';
 
   async function startXR() {
     const gl = $('gl').getContext('webgl', { xrCompatible: true, alpha: true, antialias: false });
-    xrSession = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['local'],
-      optionalFeatures: ['dom-overlay'],
-      domOverlay: { root: $('overlay') },
-    });
+    // ★ **덜 요구하는 쪽으로 차례로 물어본다** (2026-08-21).
+    //   "The specified session configuration is not supported" 는 **어느 기능이** 막혔는지
+    //   안 말한다. 한 벌만 던지고 실패하면 거기서 끝이라, 기기가 뭘 줄 수 있는지 영영 모른다.
+    //   그래서 요구를 하나씩 덜어 가며 묻고, **어디서 붙었는지를 화면에 남긴다.**
+    //   dom-overlay 가 없으면 우리 UI 가 AR 화면 위에 안 뜨지만 **포즈는 그대로 온다** —
+    //   손카메라의 본체는 포즈이므로, 못 쓰는 것보다 낫다.
+    const CONFIGS = [
+      { name: 'local + dom-overlay', opts: {
+          requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'],
+          domOverlay: { root: $('overlay') } } },
+      { name: 'local (오버레이 없이)', opts: { requiredFeatures: ['local'] } },
+      { name: 'viewer', opts: { requiredFeatures: ['viewer'] } },
+      { name: '요구 없음', opts: {} },
+    ];
+
+    const tried = [];
+    let used = null;
+    for (const c of CONFIGS) {
+      try {
+        xrSession = await navigator.xr.requestSession('immersive-ar', c.opts);
+        used = c.name;
+        break;
+      } catch (e) {
+        tried.push(`${c.name}: ${e && e.name ? e.name : ''} ${e && e.message ? e.message : e}`);
+      }
+    }
+    if (!xrSession) {
+      // 전부 실패 — 무엇을 물었고 각각 뭐라 했는지를 그대로 남긴다. 추측하지 않는다.
+      const err = new Error('AR 세션을 못 열었다:\n' + tried.join('\n'));
+      err.tried = tried;
+      throw err;
+    }
+    xrWay = used;
+
     await gl.makeXRCompatible();
     xrSession.updateRenderState({ baseLayer: new XRWebGLLayer(xrSession, gl) });
-    const refSpace = await xrSession.requestReferenceSpace('local');
+
+    // 기준 공간도 같은 방식 — local 이 안 되면 덜 요구하는 쪽으로.
+    // (local 이 없으면 위치가 안 오고 회전만 온다 = 3DoF 와 같아진다. 그것도 화면에 적는다.)
+    let refSpace = null, spaceName = null;
+    for (const nm of ['local', 'local-floor', 'viewer']) {
+      try { refSpace = await xrSession.requestReferenceSpace(nm); spaceName = nm; break; }
+      catch (e) { tried.push(`refSpace ${nm}: ${e && e.message ? e.message : e}`); }
+    }
+    if (!refSpace) throw new Error('기준 공간을 못 얻었다:\n' + tried.join('\n'));
+    xrWay += ' · ' + spaceName;
 
     mode = '6dof';
     enterRunning();
@@ -854,7 +892,7 @@
   addEventListener('resize', paintOrientNote);
 
   function paint() {
-    chipMode.innerHTML = mode === '6dof' ? '<b>6DoF</b> WebXR'
+    chipMode.innerHTML = mode === '6dof' ? `<b>6DoF</b> ${xrWay || 'WebXR'}`
       : mode === '3dof' ? '<b>3DoF</b> 자이로 (회전만)' : '대기';
     chipNet.className = 'chip' + (wsReady ? '' : ' bad');
   }
@@ -896,7 +934,13 @@
         btn.disabled = true;
         startXR().catch(err => {
           btn.disabled = false;
-          note.textContent = 'WebXR 실패: ' + (err && err.message || err);
+          // 여러 줄로 보여 준다 — 어느 설정이 왜 거부됐는지가 그 안에 있다.
+          note.style.whiteSpace = 'pre-wrap';
+          note.style.textAlign = 'left';
+          note.style.maxWidth = '90vw';
+          note.textContent = 'WebXR 실패\n' + (err && err.message || err)
+            + '\n\nARCore(Google Play 서비스 (AR))가 최신인지, 다른 앱이 카메라를 잡고 있지 않은지 보라.';
+          $('btnFallback').style.display = '';
         });
       };
     } else {
