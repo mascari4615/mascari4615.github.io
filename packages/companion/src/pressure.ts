@@ -29,7 +29,7 @@ export interface 밀린생각옵션 {
 }
 
 interface 눌림 {
-  횟수: number;
+  count: number;
   lastTurn: number;
 }
 
@@ -70,26 +70,26 @@ export class pendingThoughts {
   write = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
     if (ok !== '밀림') { this.눌린것.delete(name2); return; }
     const previous = this.눌린것.get(name2);
-    this.눌린것.set(name2, { 횟수: (previous?.횟수 ?? 0) + 1, lastTurn: this.턴 });
+    this.눌린것.set(name2, { count: (previous?.count ?? 0) + 1, lastTurn: this.턴 });
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */
   얼마나참았나(name3: string): number {
-    return this.눌린것.get(name3)?.횟수 ?? 0;
+    return this.눌린것.get(name3)?.count ?? 0;
   }
 
   /** 가장 오래 참은 것부터. */
-  heldOrder(): { 이름: string; 횟수: number }[] {
+  heldOrder(): { 이름: string; count: number }[] {
     return [...this.눌린것.entries()]
-      .map(([이름, v]) => ({ 이름, 횟수: v.횟수 }))
-      .sort((a, b) => b.횟수 - a.횟수);
+      .map(([이름, v]) => ({ 이름, count: v.count }))
+      .sort((a, b) => b.count - a.count);
   }
 
   /** 지금 이 재료에 얹어 줄 무게. */
   addedWeight(name4: string): number {
     const v = this.눌린것.get(name4);
     if (v === undefined) return 0;
-    return Math.min(v.횟수 * this.step, this.cap);
+    return Math.min(v.count * this.step, this.cap);
   }
 
   /** 재료 목록에 참은 만큼을 얹어 돌려준다. 원본은 안 건드린다. */
@@ -104,9 +104,9 @@ export class pendingThoughts {
   summary(): string {
     const items = [...this.눌린것.entries()]
       .filter(([이름]) => this.addedWeight(이름) > 0)
-      .sort((a, b) => b[1].횟수 - a[1].횟수)
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([이름, v]) => `${이름}+${this.addedWeight(이름)}(${v.횟수}번)`);
+      .map(([이름, v]) => `${이름}+${this.addedWeight(이름)}(${v.count}번)`);
     return items.join(' · ');
   }
 }
