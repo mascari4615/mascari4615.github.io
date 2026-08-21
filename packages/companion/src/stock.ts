@@ -96,7 +96,7 @@ export class lineStore {
     }
   }
 
-  private 쓰기(): void {
+  private write(): void {
     const path = this.options.path;
     if (path === undefined) return;
     try {
@@ -122,7 +122,7 @@ export class lineStore {
     const item2 = this.stored.get(kind3);
     if (item2 === undefined || item2.whom !== this.지금누구 || item2.말들.length === 0) return null;
     const text = item2.말들.shift() as string;
-    this.쓰기();
+    this.write();
     return text;
   }
 
@@ -162,7 +162,7 @@ export class lineStore {
       const already = item3 !== undefined && item3.whom === this.지금누구 ? item3.말들 : [];
       const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.max);
       this.stored.set(kind4, { whom: this.지금누구, 말들: merged });
-      this.쓰기();
+      this.write();
       this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
       return toWrite.length;
     } catch (e) {

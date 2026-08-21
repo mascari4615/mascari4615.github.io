@@ -82,7 +82,7 @@ export class meaningMemory {
     }
   }
 
-  private 쓰기(): void {
+  private write(): void {
     const path = this.options.path;
     if (path === undefined) return;
     try {
@@ -119,7 +119,7 @@ export class meaningMemory {
       }
       if (this.stored.length > this.max) this.stored.splice(0, this.stored.length - this.max);
       if (storedCount > 0) {
-        this.쓰기();
+        this.write();
         this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.stored.length})`);
       }
     } finally {

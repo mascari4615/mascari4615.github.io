@@ -603,8 +603,8 @@ ${tallyReport(tally)}`;
     persona: character?.name ?? null,
     head: brain.currentModel ? brain.currentModel() : brain.name,
     voices: voiceList,
-    흉내준비: stubBoot === null ? null : stubBoot.준비됐나,
-    흉내자동: settings.on('애니목소리자동'),
+    stubPrepare: stubBoot === null ? null : stubBoot.준비됐나,
+    stubAuto: settings.on('애니목소리자동'),
   }),
   desk: () => ({
     brain: brain.name,

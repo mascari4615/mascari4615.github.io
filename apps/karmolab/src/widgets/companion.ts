@@ -30,8 +30,8 @@ import { t, loadNamespace } from '../lib/i18n';
     persona?: string | null;
     head?: string | null;
     voices?: string[];
-    흉내준비?: boolean | null;
-    흉내자동?: boolean;
+    stubPrepare?: boolean | null;
+    stubAuto?: boolean;
   };
 
   function injectStyles(): void {
@@ -158,9 +158,9 @@ import { t, loadNamespace } from '../lib/i18n';
               const value2 =
                 hasStub === false
                   ? st.voices.join(' + ') || '없음'
-                  : st.흉내준비 === true
+                  : st.stubPrepare === true
                     ? `${t('companion.mimicReady')} + ${st.voices.filter((v) => v !== t('companion.t19')).join(' + ')}`
-                    : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.voices.filter((v) => v !== t('companion.t19')).join(' + ')}`;
+                    : `${t('companion.mimicState', { state: st.stubAuto === false ? t('companion.t20') : t('companion.t21') })} + ${st.voices.filter((v) => v !== t('companion.t19')).join(' + ')}`;
               cell.push({ 이름: t('companion.t22'), value: value2, warn: hasStub === false });
             }
             bits.innerHTML = cell

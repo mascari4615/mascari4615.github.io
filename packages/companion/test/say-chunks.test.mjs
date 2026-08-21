@@ -5,13 +5,13 @@ import { chunkToRead } from '../assets/say-chunks.js';
 
 test('문장이 끝나면 그 문장을 내보낸다', () => {
   const r = chunkToRead('안녕, 오늘 어땠어? 나는');
-  assert.equal(r.토막, '안녕, 오늘 어땠어?');
+  assert.equal(r.chunk, '안녕, 오늘 어땠어?');
 });
 
 test('아직 문장이 안 끝나도 쉼표에서 먼저 내보낸다 — 첫 소리를 앞당기는 게 목적이다', () => {
   const r = chunkToRead('어 그거 나도 봤는데, 진짜 웃기더라');
   assert.notEqual(r, null);
-  assert.equal(r.토막, '어 그거 나도 봤는데,');
+  assert.equal(r.chunk, '어 그거 나도 봤는데,');
 });
 
 test('짧은 쉼표에서는 안 끊는다 — 뚝뚝 끊겨 들린다', () => {
@@ -28,7 +28,7 @@ test('쉼표 뒤에 남은 게 없으면 안 끊는다 — 어차피 곧 올 문
 
 test('여러 문장이 한꺼번에 오면 마지막 끝까지 한 번에 먹는다', () => {
   const r = chunkToRead('그래. 나도 그랬어! 근데');
-  assert.equal(r.토막, '그래. 나도 그랬어!');
+  assert.equal(r.chunk, '그래. 나도 그랬어!');
 });
 
 test('먹은 길이만큼 정확히 나아간다 — 어긋나면 같은 말을 두 번 읽는다', () => {
@@ -36,12 +36,12 @@ test('먹은 길이만큼 정확히 나아간다 — 어긋나면 같은 말을 
   // 쉼표 끊기가 아예 안 일어난다 — 실제로는 쉼표까지만 와 있을 때 한 번 끊긴다.
   const prefixPart = '어 그거 나도 봤는데, 진짜';
   const firstOne = chunkToRead(prefixPart);
-  assert.equal(firstOne.토막, '어 그거 나도 봤는데,');
+  assert.equal(firstOne.chunk, '어 그거 나도 봤는데,');
 
   const all = '어 그거 나도 봤는데, 진짜 웃기더라.';
-  const remaining = all.slice(firstOne.먹은길이);
+  const remaining = all.slice(firstOne.consumedLength);
   assert.equal(remaining.trim(), '진짜 웃기더라.');
-  assert.equal(chunkToRead(remaining).토막, '진짜 웃기더라.');
+  assert.equal(chunkToRead(remaining).chunk, '진짜 웃기더라.');
 });
 
 test('빈 글은 아무것도 안 내보낸다', () => {
@@ -56,7 +56,7 @@ test('문턱을 조절할 수 있다 — 목소리가 느리면 더 잘게 끊�
 
 test('말줄임표도 문장 끝으로 본다 — 얘가 자주 쓴다', () => {
   const r = chunkToRead('그게 말이야… 사실은');
-  assert.equal(r.토막, '그게 말이야…');
+  assert.equal(r.chunk, '그게 말이야…');
 });
 
 // ── 첫 토막은 더 잘게 ────────────────────────────────────────────────
@@ -66,7 +66,7 @@ test('첫 토막은 더 잘게 끊는다 — 첫 소리까지가 그만큼 앞�
   assert.equal(chunkToRead(content), null, '평소 문턱으론 아직 안 끊긴다');
   const r = chunkToRead(content, { 첫토막: true });
   assert.notEqual(r, null);
-  assert.equal(r.토막, '어 그래,');
+  assert.equal(r.chunk, '어 그래,');
 });
 
 test('그래도 바닥은 있다 — 「어,」 한 마디만 툭 나오고 끊기면 안 된다', () => {
@@ -76,7 +76,7 @@ test('그래도 바닥은 있다 — 「어,」 한 마디만 툭 나오고 끊�
 test('첫 토막 뒤로는 평소 문턱으로 돌아간다', () => {
   const content2 = '어 그래, 나도 그거 봤어';
   const firstOne2 = chunkToRead(content2, { 첫토막: true });
-  assert.equal(chunkToRead(content2.slice(firstOne2.먹은길이)), null, '뒤 토막은 더 기다린다');
+  assert.equal(chunkToRead(content2.slice(firstOne2.consumedLength)), null, '뒤 토막은 더 기다린다');
 });
 
 // ── 얼굴 표 떼기 ─────────────────────────────────────────────────────
