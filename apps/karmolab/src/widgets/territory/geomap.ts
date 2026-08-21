@@ -318,8 +318,10 @@ export class GeoMap {
    */
   private drawTiles(ctx: CanvasRenderingContext2D): void {
     const tz = Math.max(0, Math.min(19, Math.round(this.zoom)));
-    const baseZ = Math.max(0, this.opts.minZoom - 2);
-    if (baseZ < tz) this.drawLevel(ctx, baseZ, false);
+    /* ⚠ **밑바탕 층은 뺐다** (사용자 제보 2026-08-21: 「지역 글씨 엄청 크게 잠깐 보이는 문제도
+       생겼는데」). 성긴 층(4층)을 화면 가득 늘여 깔면 그 타일에 <b>박혀 있는 지명</b>도 여덟 배로
+       늘어난다 — 구멍은 줄었지만 더 이상한 것이 생겼다. 늘리는 배수가 크면 메우기가 아니라 흠이다.
+       그래서 메우기는 <b>가까운 층 두 단까지만</b> 한다(아래 `ancestorTile`). */
     this.drawLevel(ctx, tz, true);
   }
 
@@ -404,7 +406,10 @@ export class GeoMap {
    *   덩달아 요청해 남의 서버를 두 배로 때린다 — 메우는 것은 <b>이미 가진 것으로만</b> 한다.
    */
   private ancestorTile(tz: number, tx: number, ty: number): { img: CanvasImageSource; sx: number; sy: number; size: number } | null {
-    for (let k = 1; k <= 5; k++) {
+    /* ⚠ **두 단까지만** (2026-08-21). 다섯 단까지 올라가 봤더니 32배로 늘어난 타일이 깔려
+       그 안의 지명이 화면을 덮었다("지역 글씨 엄청 크게 잠깐 보이는"). 네 배까지는 흐릿한
+       바탕으로 읽히지만 그 위로는 <b>다른 그림</b>이 된다. 못 메우면 못 메우는 대로 둔다. */
+    for (let k = 1; k <= 2; k++) {
       const pz = tz - k;
       if (pz < 0) break;
       const img = this.tiles.get(`${pz}/${tx >> k}/${ty >> k}`);
