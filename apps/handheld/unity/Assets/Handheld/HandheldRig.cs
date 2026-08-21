@@ -196,11 +196,56 @@ namespace Handheld
 
         // ── 렌즈 바깥 손잡이 ─────────────────────────────────────────────────────
 
-        /// <summary>
-        /// 뷰파인더가 그려지는 RenderTexture. WebRTC 영상 트랙이 **이것을 그대로** 싣는다 —
-        /// 캡처 경로를 두 벌 두면 16:9 고정·해상도 손잡이가 갈라진다.
-        /// </summary>
+        /// <summary>뷰파인더가 그려지는 RenderTexture (RGBA — 리드백·JPEG 이 읽는다).</summary>
         public RenderTexture ViewfinderTexture => _rt;
+
+        RenderTexture _rtcRt;
+        bool _rtcWanted;
+
+        /// <summary>
+        /// WebRTC 영상 트랙이 실을 텍스처 (BGRA).
+        ///
+        /// **왜 따로 두나** — 두 소비자가 서로 못 받는 포맷을 요구한다:
+        ///   WebRTC 트랙   : `B8G8R8A8_SRGB` 만 (다른 걸 주면 ArgumentException)
+        ///   AsyncGPUReadback : 이 플랫폼에서 그 포맷을 못 읽는다 (ReadPixels 미지원)
+        /// 하나를 맞추면 다른 하나가 깨진다 — 실제로 번갈아 깨졌다. 그래서 소비자마다
+        /// 제 포맷을 준다. 그림은 하나(_rt)에서 오고, 여기로는 Blit 한 벌만 더 한다
+        /// (GPU 안에서 끝나므로 리드백처럼 파이프라인을 세우지 않는다).
+        /// 캡처 규칙(16:9 고정·해상도 손잡이)은 여전히 한 곳에만 있다.
+        /// </summary>
+        public RenderTexture WebRtcTexture()
+        {
+            _rtcWanted = true;
+            EnsureRtcTexture();
+            return _rtcRt;
+        }
+
+        /// <summary>WebRTC 가 끝났다 — 텍스처를 놓는다.</summary>
+        public void ReleaseWebRtcTexture()
+        {
+            _rtcWanted = false;
+            if (_rtcRt == null) return;
+            _rtcRt.Release();
+            if (Application.isPlaying) Destroy(_rtcRt); else DestroyImmediate(_rtcRt);
+            _rtcRt = null;
+        }
+
+        void EnsureRtcTexture()
+        {
+            if (!_rtcWanted || _rt == null) return;
+            if (_rtcRt != null && _rtcRt.width == _rt.width && _rtcRt.height == _rt.height) return;
+            if (_rtcRt != null)
+            {
+                _rtcRt.Release();
+                if (Application.isPlaying) Destroy(_rtcRt); else DestroyImmediate(_rtcRt);
+            }
+            _rtcRt = new RenderTexture(_rt.width, _rt.height, 0, GraphicsFormat.B8G8R8A8_SRGB)
+            {
+                name = "HandheldViewfinderBGRA",
+                filterMode = FilterMode.Bilinear,
+            };
+            _rtcRt.Create();
+        }
 
         /// <summary>지금 실제로 그리는 배율 (램프가 끝난 값이 아니라 지금 값).</summary>
         public float Zoom => _zoomShown;
@@ -280,6 +325,7 @@ namespace Handheld
             try { _encodeQueue.CompleteAdding(); } catch { }
             if (_cam != null) _cam.targetTexture = null;
             if (_rt != null) { _rt.Release(); DestroyRt(); }
+            ReleaseWebRtcTexture();
         }
 
         void DestroyRt()
@@ -364,6 +410,13 @@ namespace Handheld
                 _captureCount++;
                 if (renderManually) _cam.Render();
                 RequestFrame();
+            }
+
+            // WebRTC 가 쓰고 있으면 그 텍스처로 한 벌 옮긴다 (GPU 복사).
+            if (_rtcWanted && _rt != null)
+            {
+                EnsureRtcTexture();
+                if (_rtcRt != null) Graphics.Blit(_rt, _rtcRt);
             }
 
             double win = now - _statWindowStart;
@@ -675,13 +728,12 @@ namespace Handheld
             _cam.targetTexture = null;
             if (_rt != null) { _rt.Release(); DestroyRt(); }
 
-            // ★ **B8G8R8A8 이어야 한다** (2026-08-21 실측). WebRTC 영상 트랙이 이 텍스처를
-            //   그대로 싣는데, `R8G8B8A8_SRGB` 를 주면 거부한다:
-            //     "This graphics format R8G8B8A8_SRGB is not supported for streaming,
-            //      please use supportedFormat: B8G8R8A8_SRGB"
-            //   그 예외가 Answer() 안에서 터져 **영상 트랙이 안 붙었다**.
-            //   JPEG 경로는 영향 없다 — 리드백이 `TextureFormat.RGBA32` 로 변환해 받는다.
-            _rt = new RenderTexture(w, h, 24, GraphicsFormat.B8G8R8A8_SRGB)
+            // 뷰파인더 RT 는 **리드백이 읽을 수 있는 포맷**이어야 한다.
+            // BGRA 로 바꿔 봤더니 이번엔 리드백이 거부했다:
+            //   "'B8G8R8A8_SRGB' doesn't support ReadPixels usage on this platform"
+            // WebRTC 는 BGRA 만 받으므로 **한 텍스처로 둘을 맞출 수 없다** —
+            // 그쪽은 아래 `WebRtcTexture` 가 Blit 로 따로 만들어 준다.
+            _rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
             {
                 name = "HandheldViewfinder",
                 antiAliasing = 1,

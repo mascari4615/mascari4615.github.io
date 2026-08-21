@@ -38,6 +38,10 @@ namespace Handheld
         [Header("디버그")]
         public bool logToConsole = true;
 
+        [Tooltip("폰이 붙으면 포즈 기록을 자동으로 시작한다. **직렬화되므로 Play 진입·도메인 " +
+                 "리로드를 넘어 살아남는다** — 「기록 켜라」와 「Play 눌러라」가 부딪히지 않게.")]
+        public bool autoRecord;
+
         TcpListener _listener;
         Thread _acceptThread;
         volatile bool _running;
@@ -258,9 +262,15 @@ namespace Handheld
             _recorder?.Flush();
 
             // 기록 조작도 메인 스레드에서 — 파일을 여닫는 일이라 수신 스레드에서 하면 안 된다.
+            // ★ 켜기 = **autoRecord 를 세우는 것**이다 (2026-08-21).
+            //   예전엔 그 자리에서 StartRecording 만 했더니, Play 에 들어가는 순간
+            //   도메인 리로드로 기록이 꺼졌다 — 「기록 켜라」와 「Play 눌러라」가 부딪혔다.
+            //   직렬화 필드는 리로드를 넘어 살아남으므로 여기서 다시 켜진다.
             int rec = Interlocked.Exchange(ref _recRequest, 0);
-            if (rec == 1) StartRecording();
-            else if (rec == 2) StopRecording();
+            if (rec == 1) autoRecord = true;
+            else if (rec == 2) { autoRecord = false; StopRecording(); }
+
+            if (autoRecord && Connected && !Recording) StartRecording();
 
             // 진단 문자열은 **메인 스레드에서만** 만들 수 있다 (리그가 Transform 을 읽는다).
             double now = Application.isPlaying
@@ -378,7 +388,9 @@ namespace Handheld
             {
                 _recRequest = path.EndsWith("on") ? 1 : 2;   // 실제 조작은 틱(메인 스레드)에서
                 WriteResponse(stream, "200 OK", "text/plain; charset=utf-8",
-                    Encoding.UTF8.GetBytes(path.EndsWith("on") ? "기록 켠다" : "기록 끈다"));
+                    Encoding.UTF8.GetBytes(path.EndsWith("on")
+                        ? "기록 켠다 (폰이 붙을 때마다 자동 · Play 를 넘어 유지)"
+                        : "기록 끈다"));
                 return;
             }
 
@@ -428,6 +440,7 @@ namespace Handheld
             var j = (Vector4)_joystick;
             sb.AppendFormat(c, "\"stick\":\"{0:F2},{1:F2},{2:F2},{3:F2}\",", j.x, j.y, j.z, j.w);
             sb.AppendFormat(c, "\"recording\":{0},", Recording ? 1 : 0);
+            sb.AppendFormat(c, "\"autoRecord\":{0},", autoRecord ? 1 : 0);
             sb.AppendFormat(c, "\"phone\":\"{0}\",", (_phoneDiag ?? "").Replace("\"", "'"));
 
             var w = webrtc;
