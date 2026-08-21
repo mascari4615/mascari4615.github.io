@@ -1231,6 +1231,15 @@ const companion = new Companion({
     awayAfterMs: Number(process.env.COMPANION_AWAY_MS ?? '900000'),
   }),
   onCycle: (report) => {
+    /* **두뇌가 터진 turn 을 사람 눈앞에 띄운다.**
+       사연은 원래도 남고 있었다 — 아래쪽에서 `[에러]` 로 찍고 잘못된 것 원장에도 담는다.
+       그런데 그 둘 다 **사람이 안 보는 자리**다. `COMPANION_BRAIN=assistant` 로 띄우면 얘는
+       매번 침묵했고, 창에는 아무 것도 안 떴다 — 밖에서는 그냥 「가끔 말을 안 한다」였다.
+       실제 사연은 「.env 에 GEMINI_API_KEY 가 필요합니다」였다(103회차 실측).
+       못 하는 건 못 한다고 해야 곁에 있는 것이다. */
+    if (report.error) {
+      web?.noticed?.(`말을 못 만들었다 — ${(report.error.message ?? String(report.error)).slice(0, 200).trim()}`);
+    }
     if (report.sensation.channel === 'web') {
       lastSpokenToAt = Date.now();
       // 방금 한 말에 조수님이 어떻게 반응했나 — 웃어 준 건 마음에 남아야 한다.
