@@ -31,7 +31,7 @@ export interface 수요기동옵션 {
   /** 끈다. */
   stop: () => void | Promise<void>;
   /** 이만큼 안 쓰면 끈다 (0 = 안 끔). */
-  쉬면끄기ms?: () => number;
+  stopIfIdleMs?: () => number;
   /** 자동으로 켜도 되나. 거짓이면 손으로 띄운 것만 쓴다. */
   isAuto?: () => boolean;
   /** 살았나를 이 간격보다 자주 묻지 않는다 — 매 발화마다 물으면 그게 지연이 된다. */
@@ -149,7 +149,7 @@ export class demandBoot {
    * 게 아니라 남의 것을 끄는 일이다.
    */
   async stopIfIdle(): Promise<boolean> {
-    const whenIdle = this.options.쉬면끄기ms?.() ?? 0;
+    const whenIdle = this.options.stopIfIdleMs?.() ?? 0;
     if (whenIdle <= 0 || this.weOpenedIt === false || this.appeared === false) return false;
     if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
 

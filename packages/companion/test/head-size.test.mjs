@@ -20,7 +20,7 @@ test('공을 돌려줄 자리도 큰 머리 — 되묻기가 안 되던 것도 �
 });
 
 test('얘 자신을 물었을 때와 옛일이 걸렸을 때도 큰 머리', () => {
-  assert.equal(whichHead({ 자기얘기: true }).머리, 'sonnet');
+  assert.equal(whichHead({ selfTalk: true }).머리, 'sonnet');
   assert.equal(whichHead({ hasPastEvent: true }).머리, 'sonnet');
 });
 
@@ -31,7 +31,7 @@ test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이
 });
 
 test('어느 머리를 쓸지 밖에서 정할 수 있다 — 사람마다 쓸 수 있는 머리가 다르다', () => {
-  assert.equal(whichHead({ acceptSlot: true }, { 큰머리: 'opus' }).머리, 'opus');
+  assert.equal(whichHead({ acceptSlot: true }, { largeHead: 'opus' }).머리, 'opus');
   assert.equal(whichHead({}, { 작은머리: 'sonnet' }).머리, 'sonnet');
 });
 

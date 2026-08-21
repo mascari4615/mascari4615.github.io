@@ -154,7 +154,7 @@ test('반사 아닌 말은 창고가 있어도 반사하지 않는다', async ()
 test('인격을 주면 그 글이 부탁에 실린다 — 안 실으면 맨 두뇌가 짓는다 (89회차 실측)', async () => {
   let receivedRequest = '';
   const store13 = new 대사창고({
-    인격글: () => '너는 욘. 늘 나른하고 반말만 쓴다.',
+    personaText: () => '너는 욘. 늘 나른하고 반말만 쓴다.',
     지어오기: async (prompt) => {
       receivedRequest = prompt;
       return '어, 왔어';

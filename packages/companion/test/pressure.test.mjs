@@ -51,7 +51,7 @@ test('참던 재료가 결국 실린다 — 이게 이 자리를 만든 이유�
   const p = new pendingThoughts({ step: 3 });
   const list = [material('큰것', 12), material('작은것', 5)];
   const pick = () => {
-    const loaded = pickIngredients(p.덧입히기(list), { maxChars: 25, maxLines: 1, mark: p.적기 });
+    const loaded = pickIngredients(p.overlay(list), { maxChars: 25, maxLines: 1, mark: p.적기 });
     p.다음턴();
     return loaded.map((x) => x.name);
   };
@@ -65,7 +65,7 @@ test('덧입혀도 원본 무게는 안 바뀐다 — 다음 turn 이 이전 tur
   const p = new pendingThoughts();
   p.적기('되묻기', '밀림');
   const source = [material('되묻기', 5)];
-  p.덧입히기(source);
+  p.overlay(source);
   assert.equal(source[0].weight, 5);
 });
 

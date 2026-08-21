@@ -523,7 +523,7 @@ const refillInterval = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
 const line3 = new 대사창고({
   path: join(home, '지어-둔-대꾸.json'),
   whom: () => character?.name ?? null,
-  인격글: () => character?.instruction ?? null,
+  personaText: () => character?.instruction ?? null,
   지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
   log: (m) => console.log(m),
 });
@@ -546,12 +546,12 @@ function slotsToFill() {
   const slot3 = [];
   for (const [갈래, 무슨일] of Object.entries(touchTone)) {
     for (let stage = 0; stage < 3; stage += 1) {
-      slot3.push({ 열쇠: touchKind(갈래, stage), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
+      slot3.push({ key: touchKind(갈래, stage), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
     }
   }
   for (const kind2 of 반사종류들()) {
     for (const [결, 어떤결] of Object.entries(energyTone)) {
-      slot3.push({ 열쇠: 반사갈래(kind2, 결), 부탁: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
+      slot3.push({ key: 반사갈래(kind2, 결), 부탁: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
     }
   }
   return slot3;
@@ -565,10 +565,10 @@ function slotsToFill() {
  * 돌면 정작 자주 쓰는 자리가 한참 동안 옛 표 그대로다.
  */
 function prefillReply() {
-  const empty = slotsToFill().filter((slot4) => line3.remaining(slot4.열쇠) < 4);
+  const empty = slotsToFill().filter((slot4) => line3.remaining(slot4.key) < 4);
   const thisOne = empty[0];
   if (thisOne === undefined) return;
-  void line3.채우기(thisOne.열쇠, thisOne.부탁, 6).catch(() => {});
+  void line3.채우기(thisOne.key, thisOne.부탁, 6).catch(() => {});
   if (empty.length > 1) setTimeout(prefillReply, refillInterval).unref();
 }
 let lastEnergy = 0.5;
@@ -693,7 +693,7 @@ ${tallyReport(tally)}`;
       살았나: () => stub.alive(),
       show: () => startStubServer(),
       stop: () => stopStubServer(),
-      쉬면끄기ms: () => Number(settings.get('애니목소리쉬는분')) * 60_000,
+      stopIfIdleMs: () => Number(settings.get('애니목소리쉬는분')) * 60_000,
       isAuto: () => settings.on('애니목소리자동'),
       log: (m) => console.log(`[목소리] ${m}`),
     });
@@ -996,7 +996,7 @@ const companion = new Companion({
     try {
       const byMeaning = await meaning.find(sensation.text, {
         count: 2,
-        뺄것: new Set([...recent.map((e) => e.text), ...old]),
+        toDrop: new Set([...recent.map((e) => e.text), ...old]),
       });
       for (const r of byMeaning) {
         old.push(r.text);
@@ -1063,9 +1063,9 @@ const companion = new Companion({
     const pickedHead = whichHead({
       acceptSlot: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
       tossSlot: shouldTossBack(),
-      자기얘기: asksAboutSelf(justSaid),
+      selfTalk: asksAboutSelf(justSaid),
       hasPastEvent: episode.related(justSaid, 2, Date.now()) !== null,
-    }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
+    }, { largeHead: settings.get('큰머리') ?? 'sonnet' });
     if (pickedHead.why !== '') {
       headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
       console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.why}`);
@@ -1208,7 +1208,7 @@ const companion = new Companion({
       const why2 = topicSkipReason(topic);
       if (why2 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${why2}`);
     }
-    const made = composeIngredients(applyRarity(queued.덧입히기(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
+    const made = composeIngredients(applyRarity(queued.overlay(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     queued.다음턴();

@@ -93,7 +93,7 @@ export class pendingThoughts {
   }
 
   /** 재료 목록에 참은 만큼을 얹어 돌려준다. 원본은 안 건드린다. */
-  덧입히기(all: readonly Ingredient[]): Ingredient[] {
+  overlay(all: readonly Ingredient[]): Ingredient[] {
     return all.map((x) => {
       const extra = this.addedWeight(x.name);
       return extra === 0 ? x : { ...x, weight: x.weight + extra };

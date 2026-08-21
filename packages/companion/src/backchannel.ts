@@ -38,7 +38,7 @@ const incomingAudio: readonly string[] = ['응.', '어…', '응?', '그래서?'
  * 것으로 보고 다음 뭉치를 새로 센다.
  */
 export class Backchannel {
-  private 마지막들음 = 0;
+  private lastHeard = 0;
   private thisBatch = 0;
   private emitted = false;
   private 마지막소리: string | null = null;
@@ -50,8 +50,8 @@ export class Backchannel {
    */
   heard(at: number): string | null {
     const within = this.options.withinMs ?? 2500;
-    const continued = at - this.마지막들음 <= within;
-    this.마지막들음 = at;
+    const continued = at - this.lastHeard <= within;
+    this.lastHeard = at;
 
     if (continued === false) {
       // 새 뭉치가 시작됐다.
@@ -88,7 +88,7 @@ export class Backchannel {
   answered(): void {
     this.thisBatch = 0;
     this.emitted = false;
-    this.마지막들음 = 0;
+    this.lastHeard = 0;
   }
 
   /** 지금 뭉치에서 맞장구를 이미 냈나 (진단용). */

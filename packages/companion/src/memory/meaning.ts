@@ -54,7 +54,7 @@ export class meaningMemory {
   private readonly max: number;
   private readonly 문턱: number;
   private readonly log: (message: string) => void;
-  private 담는중 = false;
+  private storing = false;
 
   constructor(private readonly options: 뜻기억옵션) {
     this.max = options.max ?? 2000;
@@ -104,8 +104,8 @@ export class meaningMemory {
    * 이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 안 든다.
    */
   async store(entries: readonly MemoryEntry[]): Promise<number> {
-    if (this.담는중) return 0;
-    this.담는중 = true;
+    if (this.storing) return 0;
+    this.storing = true;
     let storedCount = 0;
     try {
       for (const e of entries) {
@@ -123,7 +123,7 @@ export class meaningMemory {
         this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.담김.length})`);
       }
     } finally {
-      this.담는중 = false;
+      this.storing = false;
     }
     return storedCount;
   }
@@ -135,14 +135,14 @@ export class meaningMemory {
    */
   async find(
     question: string,
-    options: { count?: number; 뺄것?: ReadonlySet<string> } = {},
+    options: { count?: number; toDrop?: ReadonlySet<string> } = {},
   ): Promise<{ text: string; similar: number }[]> {
     const content3 = question.trim();
     if (content3.length < 2 || this.담김.length === 0) return [];
     const v = await this.options.measure.measure(content3);
     if (v === null) return [];
 
-    const toDrop = options.뺄것 ?? new Set<string>();
+    const toDrop = options.toDrop ?? new Set<string>();
     return this.담김
       .filter((line3) => toDrop.has(line3.text) === false && line3.text !== content3)
       .map((line4) => ({ text: line4.text, similar: similarity(v, line4.v) }))
