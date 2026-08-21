@@ -334,6 +334,11 @@ namespace Handheld
                 EnsureRenderTexture(pose);
             }
 
+            // ★ 폰을 기다리지 않고 미리 세운다 (2026-08-21). WebRTC 제안이 첫 포즈보다 먼저
+            //   오는데, 그때 RT 가 없으면 영상 트랙을 못 붙인다(재협상은 훨씬 비싸다).
+            //   송출 비율은 조종석이 정하므로(기본 16:9) 폰 값을 안 기다려도 된다.
+            if (_rt == null) EnsureRenderTexture(_pose);
+
             if (joystickEnabled) ApplyJoystick(server.Joystick, dt);
 
             UpdateZoom(dt);
@@ -654,8 +659,11 @@ namespace Handheld
 
         void EnsureRenderTexture(PhonePose pose)
         {
+            // 아직 폰이 비율을 안 알려줬으면 16:9 로 친다 — 고정 모드에서는 어차피 안 쓰이고,
+            // 폰 비율 모드라도 첫 포즈가 오면 그때 다시 만든다(크기가 바뀌면 새로 만든다).
+            float phoneAspect = pose.Aspect > 0.01f ? pose.Aspect : 16f / 9f;
             int h = Mathf.Clamp(streamHeight, 180, 1440);
-            int w = Mathf.Max(2, Mathf.RoundToInt(h * EffectiveAspect(pose.Aspect)));
+            int w = Mathf.Max(2, Mathf.RoundToInt(h * EffectiveAspect(phoneAspect)));
             w -= w & 1;                               // 짝수로
 
             if (_rt != null && _rtW == w && _rtH == h) return;
