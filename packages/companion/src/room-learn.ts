@@ -55,7 +55,7 @@ export class learnSlot {
    * 우리가 안다). 둘 다 모르면 물어볼 것으로 담아 두고 지금은 모른다고 한다 —
    * **기다리게 하지 않는다.**
    */
-  읽기(title: string | null | undefined): 자리 {
+  read(title: string | null | undefined): 자리 {
     const title2 = (title ?? '').trim();
     if (title2 === '') return null;
     const table = whichSlot(title2);

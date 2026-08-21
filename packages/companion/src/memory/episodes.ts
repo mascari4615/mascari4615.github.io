@@ -25,7 +25,7 @@ export interface Episode {
   said: string;
   at: number;
   /** 얼마나 감정이 실렸나. 자리가 모자랄 때 무엇을 버릴지 정한다. */
-  기운: number;
+  energy: number;
 }
 
 /** 감정이 실렸다는 표시들. */
@@ -117,7 +117,7 @@ export class EpisodeStore {
         if (worthAsking(e.text)) this.toAsk.set(e.text.trim(), e.at);
         continue;
       }
-      this.store({ said: e.text.trim(), at: e.at, 기운: energy });
+      this.store({ said: e.text.trim(), at: e.at, energy: energy });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
@@ -139,7 +139,7 @@ export class EpisodeStore {
     // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
     // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
     if (this.list.length > this.options.keep) {
-      this.list.sort((a, b) => b.기운 - a.기운 || b.at - a.at);
+      this.list.sort((a, b) => b.energy - a.energy || b.at - a.at);
       this.list = this.list.slice(0, this.options.keep);
     }
     this.list.sort((a, b) => a.at - b.at);
@@ -179,7 +179,7 @@ export class EpisodeStore {
     bundle.forEach(([말, at], i) => {
       const energy2 = Math.round(scores![i]);
       if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.있나(말)) return;
-      this.store({ said: 말, at, 기운: energy2 });
+      this.store({ said: 말, at, energy: energy2 });
       storedCount2 += 1;
     });
     if (storedCount2 > 0) {
@@ -263,7 +263,7 @@ const halfLife = 14;
  */
 export function recallScore(e: Episode, currentWordCount: number, overlap2: number, now: number): number {
   const continued = Math.min(1, overlap2 / Math.max(2, currentWordCount));
-  const bigEvent = Math.min(1, e.기운 / 6);
+  const bigEvent = Math.min(1, e.energy / 6);
   const pastDays = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
   const recent = 0.5 ** (pastDays / halfLife);
   return 0.5 * continued + 0.35 * bigEvent + 0.15 * recent;

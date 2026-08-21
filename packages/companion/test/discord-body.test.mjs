@@ -10,7 +10,7 @@ const attachFake = () => {
   const sent = [];
   let listen = null;
   return {
-    보낸것: sent,
+    sent: sent,
     말시키기: (text2) => listen?.(text2),
     attach: {
       onEnter: (f) => { listen = f; },
@@ -52,7 +52,7 @@ test('말이 그 방으로 돌아간다', async () => {
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
-  assert.deepEqual(g.보낸것, [{ 채널: '방1', 글: '(대답) 안녕' }]);
+  assert.deepEqual(g.sent, [{ 채널: '방1', 글: '(대답) 안녕' }]);
 });
 
 test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 데 대고 말하면 안 된다', async () => {
@@ -65,7 +65,7 @@ test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 �
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
-  assert.deepEqual(g.보낸것.map((x) => x.채널), ['방1', '방2']);
+  assert.deepEqual(g.sent.map((x) => x.채널), ['방1', '방2']);
 });
 
 test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => {
@@ -110,7 +110,7 @@ test('방을 못 잡아도 얘는 안 죽는다', async () => {
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
-  assert.equal(g.보낸것.length, 0);
+  assert.equal(g.sent.length, 0);
   assert.ok(leftText.some((m) => m.includes('못 잡았다')), `남긴 말: ${leftText.join(' / ')}`);
 });
 
@@ -139,7 +139,7 @@ test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 �
   await companion.stop();
 
   // 각자 제 몸으로 답이 나갔다.
-  assert.deepEqual(g.보낸것.map((x) => x.글), ['(대답) 다들 안녕']);
+  assert.deepEqual(g.sent.map((x) => x.글), ['(대답) 다들 안녕']);
   assert.deepEqual(webText, ['(대답) 나도 있어']);
   // 기억은 하나다 — 누가 어디서 한 말인지 함께.
   assert.deepEqual(

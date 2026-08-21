@@ -76,14 +76,14 @@ export class lineStore {
     this.max = options.max ?? 12;
     this.maxChars = options.maxChars ?? 20;
     this.log = options.log ?? (() => {});
-    this.읽기();
+    this.read();
   }
 
   private get 지금누구(): string {
     return this.options.whom?.() ?? '';
   }
 
-  private 읽기(): void {
+  private read(): void {
     const path = this.options.path;
     if (path === undefined || existsSync(path) === false) return;
     try {

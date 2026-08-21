@@ -1097,7 +1097,7 @@ const companion = new Companion({
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
       { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, justNow: justSaid }) },
-      { name: '자리', weight: 11, text: bySlotTone(slotKnowledge.읽기(lastWindowTitle)) },
+      { name: '자리', weight: 11, text: bySlotTone(slotKnowledge.read(lastWindowTitle)) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
@@ -1208,7 +1208,7 @@ const companion = new Companion({
       const why2 = topicSkipReason(topic);
       if (why2 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${why2}`);
     }
-    const made = composeIngredients(applyRarity(queued.overlay(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
+    const made = composeIngredients(applyRarity(queued.overlay(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.write(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     queued.다음턴();
@@ -1255,7 +1255,7 @@ const companion = new Companion({
       /* 창이 바뀐 걸 알아챈 것도 인식이다 — 여태 아무 데도 안 보였다.
          **바뀐 때만** 알린다. 같은 창을 보고 있는 동안 매번 알리면 대화가 덮인다. */
       if (seen !== lastWindowTitle) {
-        const slot6 = slotKnowledge.읽기(seen);
+        const slot6 = slotKnowledge.read(seen);
         web.noticed(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${slot6 === null ? ' (무슨 자리인지 모르겠다)' : ` (${slot6})`}`);
       }
       lastWindowTitle = seen;

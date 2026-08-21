@@ -67,7 +67,7 @@ export class pendingThoughts {
    * - **실림** = 말했다 → 풀린다.
    * - **꺼짐/빔** = 지금 자리에 없는 얘기다 → 쌓아 두면 엉뚱한 때 튀어나온다. 지운다.
    */
-  적기 = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
+  write = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
     if (ok !== '밀림') { this.눌린것.delete(name2); return; }
     const previous = this.눌린것.get(name2);
     this.눌린것.set(name2, { 횟수: (previous?.횟수 ?? 0) + 1, lastTurn: this.턴 });

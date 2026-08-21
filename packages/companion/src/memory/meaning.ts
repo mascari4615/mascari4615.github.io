@@ -60,14 +60,14 @@ export class meaningMemory {
     this.max = options.max ?? 2000;
     this.문턱 = options.문턱 ?? 0.5;
     this.log = options.log ?? (() => {});
-    this.읽기();
+    this.read();
   }
 
   get 담긴수(): number {
     return this.stored.length;
   }
 
-  private 읽기(): void {
+  private read(): void {
     const path = this.options.path;
     if (path === undefined || existsSync(path) === false) return;
     try {
