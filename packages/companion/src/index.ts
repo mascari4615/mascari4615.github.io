@@ -37,6 +37,7 @@ export {
   type Hand,
   type HandRequest,
 } from './hands';
+export { pressHand, parsePress, readPressed, type PressOptions } from './hands/press';
 
 export { screenSense, type ScreenSenseOptions } from './sense/screen';
 export { whisperEars, type Whisper, type WhisperOptions } from './sense/whisper';
