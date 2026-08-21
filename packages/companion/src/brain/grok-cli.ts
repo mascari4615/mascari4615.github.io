@@ -330,10 +330,10 @@ function buildSystem(input: ThinkInput, handsNote?: string, alwaysNote?: string)
 function buildPrompt(input: ThinkInput): string {
   const history = input.recent.slice(0, -1).map(renderEntry).join('\n');
   const past = history === '' ? '' : `지금까지 오간 말:\n${history}\n\n`;
-  return `${past}방금 ${input.sensation.누가 ?? `[${input.sensation.channel}]`} 에게서 들어온 것:\n${input.sensation.text}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
+  return `${past}방금 ${input.sensation.who ?? `[${input.sensation.channel}]`} 에게서 들어온 것:\n${input.sensation.text}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
 }
 
 function renderEntry(entry: MemoryEntry): string {
-  const who = entry.role === 'said' ? '나' : (entry.누가 ?? `[${entry.channel}]`);
+  const who = entry.role === 'said' ? '나' : (entry.who ?? `[${entry.channel}]`);
   return `${who}: ${entry.text}`;
 }
