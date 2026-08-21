@@ -68,7 +68,7 @@ for (const url of URLS) {
       아래24: small(24).length,
       아래44: small(44).length,
       보기24: [...new Set(small(24).map(name))].slice(0, 4),
-      보기: [...new Set(small(44).map(name))].slice(0, 3),
+      sample: [...new Set(small(44).map(name))].slice(0, 3),
     };
   });
   line.push(`  ${url}`);

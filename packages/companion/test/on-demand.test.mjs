@@ -31,7 +31,7 @@ const run = (settings = {}) => {
     flowing: (ms) => {
       now2 += ms;
     },
-    켜두기: () => {
+    keepOn: () => {
       alive = true;
     },
     살았나: () => alive,
@@ -53,7 +53,7 @@ test('쓸 때 켠다 — 그리고 기다리지 않는다', async () => {
 
 test('이미 떠 있으면 또 안 띄운다', async () => {
   const t = run();
-  t.켜두기();
+  t.keepOn();
   await t.기동.써야한다();
   await waited();
   assert.equal(t.events.includes('띄움'), false);
@@ -69,7 +69,7 @@ test('자동을 꺼 두면 손으로 띄운 것만 쓴다', async () => {
 });
 
 test('한동안 안 쓰면 끈다', async () => {
-  const t = run({ 쉬면: 30 * 60_000 });
+  const t = run({ whenIdle: 30 * 60_000 });
   await t.기동.써야한다();
   await waited();
   await t.기동.써야한다();
@@ -84,8 +84,8 @@ test('한동안 안 쓰면 끈다', async () => {
 });
 
 test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
-  const t = run({ 쉬면: 1000 });
-  t.켜두기();
+  const t = run({ whenIdle: 1000 });
+  t.keepOn();
   await t.기동.써야한다();
   await waited();
   t.flowing(10 * 60_000);
@@ -94,7 +94,7 @@ test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
 });
 
 test('0 으로 두면 영영 안 끈다', async () => {
-  const t = run({ 쉬면: 0 });
+  const t = run({ whenIdle: 0 });
   await t.기동.써야한다();
   await waited();
   t.flowing(100 * 60_000);
@@ -126,7 +126,7 @@ test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리�
 
 test('떠 있는데 실패하면 그 실패가 그대로 드러난다 — 몰래 딴 목소리로 안 바꾼다', async () => {
   const t = run();
-  t.켜두기();
+  t.keepOn();
   const voice3 = 필요할때({ real: fakeVoice('흉내', true), 기동: t.기동 });
   await assert.rejects(() => voice3.synthesize('안녕'), /죽었다/);
 });
@@ -159,8 +159,8 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
     },
     isAuto: () => true,
     물어보는간격ms: 0,
-    준비물어보는간격ms: 20,
-    준비대기ms: 400,
+    prepareAskIntervalMs: 20,
+    prepareWaitMs: 400,
     실패후쉬기ms: 10_000,
     log: () => {},
   });

@@ -58,9 +58,9 @@ const toMeasure = [
   {
     이름: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
     hash: '#karmograph',
-    뷰포트: { width: 390, height: 844 },
+    viewport: { width: 390, height: 844 },
     폰: true,
-    준비: async (p) => {
+    prepare: async (p) => {
       await p.waitForSelector('.km-canvas', { timeout: 20000 });
       await p.waitForTimeout(1200);
       const b = await p.locator('.km-canvas').boundingBox();
@@ -94,8 +94,8 @@ const toMeasure = [
   {
     이름: 'bluemarble — 제목이 화면 폭의 몇 %',
     hash: '#bluemarble',
-    뷰포트: { width: 1280, height: 900 },
-    준비: async (p) => {
+    viewport: { width: 1280, height: 900 },
+    prepare: async (p) => {
       await p.waitForSelector('.bm-canvas', { timeout: 20000 });
       await p.evaluate(() => document.fonts.ready).catch(() => null);
       await p.waitForTimeout(2400);
@@ -156,13 +156,13 @@ const browser = await chromium.launch();
 console.log(`[linux-repro] ${process.platform} · playwright 컨테이너 안`);
 for (const item of toMeasure) {
   const ctx = await browser.newContext({
-    serviceWorkers: 'block', viewport: item.뷰포트,
+    serviceWorkers: 'block', viewport: item.viewport,
     ...(item.폰 ? { isMobile: true, hasTouch: true } : {}),
   });
   const p = await ctx.newPage();
   try {
     await p.goto(`${BASE}/apps/karmolab/index.html${item.hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await item.준비(p);
+    await item.prepare(p);
     console.log(`\n── ${item.이름}`);
     console.log(JSON.stringify(await p.evaluate(item.measure), null, 1));
   } catch (e) {

@@ -37,9 +37,9 @@ export interface 수요기동옵션 {
   /** 살았나를 이 간격보다 자주 묻지 않는다 — 매 발화마다 물으면 그게 지연이 된다. */
   물어보는간격ms?: number;
   /** 띄운 뒤 이 시간 안에 안 뜨면 실패로 본다. */
-  준비대기ms?: number;
+  prepareWaitMs?: number;
   /** 뜰 때까지 물어보는 간격. */
-  준비물어보는간격ms?: number;
+  prepareAskIntervalMs?: number;
   /** 못 띄운 뒤 이만큼은 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다. */
   실패후쉬기ms?: number;
   지금?: () => number;
@@ -119,8 +119,8 @@ export class demandBoot {
 
   /** 뜰 때까지 물어본다. 정해진 시간을 넘기면 실패로 본다 — 영영 「띄우는 중」은 없다. */
   private async 뜰때까지(): Promise<void> {
-    const limit = this.options.준비대기ms ?? 180_000;
-    const interval2 = this.options.준비물어보는간격ms ?? 2_000;
+    const limit = this.options.prepareWaitMs ?? 180_000;
+    const interval2 = this.options.prepareAskIntervalMs ?? 2_000;
     const start = this.지금;
     for (;;) {
       await new Promise((r) => setTimeout(r, interval2));

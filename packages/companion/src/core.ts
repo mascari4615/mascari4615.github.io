@@ -218,7 +218,7 @@ export class Companion {
         void this.pump();
       } else {
         this.workLines.push(item);
-        void this.일펌프();
+        void this.workPump();
       }
     });
   }
@@ -237,7 +237,7 @@ export class Companion {
     } finally {
       this.working = false;
       // 말이 끝났으니 미뤄 둔 일이 있으면 이어서.
-      void this.일펌프();
+      void this.workPump();
     }
   }
 
@@ -248,7 +248,7 @@ export class Companion {
    * 밀린다. 이미 돌고 있는 일은 못 끊지만(찍고 옮기는 중이면 어차피 끊을 게 없다),
    * 사람 말은 그걸 **기다리지 않고** 제 줄에서 바로 시작한다.
    */
-  private async 일펌프(): Promise<void> {
+  private async workPump(): Promise<void> {
     if (this.workBusy) return;
     this.workBusy = true;
     try {

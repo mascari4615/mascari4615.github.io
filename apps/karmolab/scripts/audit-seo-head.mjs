@@ -194,7 +194,7 @@ async function fetchAll(url) {
     } catch (e) { last = String(e.message).slice(0, 60); }
     await new Promise((z) => setTimeout(z, 400 * (n + 1)));
   }
-  return { ok: false, status: 0, 못잼사유: last };
+  return { ok: false, status: 0, cannotMeasureReason: last };
 }
 
 const want = ['SoftwareApplication', 'FAQPage', 'BreadcrumbList'];

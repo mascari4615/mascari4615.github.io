@@ -102,7 +102,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
       run: (argument: string): Promise<string> =>
         spec.kind === 'web-search'
           ? searchWeb(argument, { count: spec.limit, log: options.log })
-          : readIn(argument, { 몇자: spec.limit, log: options.log }),
+          : readIn(argument, { charCount: spec.limit, log: options.log }),
     };
   }
 

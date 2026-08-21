@@ -123,7 +123,7 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
 }
 
 /** 주소 하나를 열어 글만 읽어 온다. */
-export async function readIn(url2: string, options: WebSearchOptions & { 몇자?: number } = {}): Promise<string> {
+export async function readIn(url2: string, options: WebSearchOptions & { charCount?: number } = {}): Promise<string> {
   const place = url2.trim();
   if (/^https?:\/\//.test(place) === false) return '주소가 아니다 (http 로 시작해야 한다).';
 
@@ -137,7 +137,7 @@ export async function readIn(url2: string, options: WebSearchOptions & { 몇자?
     const body = html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ');
-    const content = textOnly(body).slice(0, options.몇자 ?? 1500);
+    const content = textOnly(body).slice(0, options.charCount ?? 1500);
     return content === '' ? '읽을 게 없다.' : content;
   } catch (e) {
     const why2 = e instanceof Error && e.name === 'AbortError' ? `${waited2 / 1000}초 안에 답이 없었다` : String(e);

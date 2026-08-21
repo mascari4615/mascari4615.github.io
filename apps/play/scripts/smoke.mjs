@@ -341,7 +341,7 @@ async function brandBg(page) {
   const next = await page.evaluate(() => ({
     question: (document.getElementById('twQ')?.textContent || '').trim(),
     candidates: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
-    센수: (document.getElementById('twCount')?.textContent || '').trim()
+    counted: (document.getElementById('twCount')?.textContent || '').trim()
   }));
   say(next.후보 > 0 && next.후보 < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.후보})`);
   say(next.질문 !== first.질문, 'twenty: 같은 질문을 또 묻는다');
@@ -386,7 +386,7 @@ async function brandBg(page) {
   await page.click('.pk-item [data-go=twenty]');
   await page.waitForTimeout(1600);
   const mine = await page.evaluate(() => ({
-    고른칩: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
+    pickedChip: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
     question: (document.getElementById('twQ')?.textContent || '').trim()
   }));
   say(/우리 집 동물/.test(mine.고른칩), `packs: 내 표로 안 넘어간다 (${mine.고른칩})`);
