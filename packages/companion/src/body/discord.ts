@@ -16,23 +16,23 @@ import type { Body, Sensation, Sense, Utterance, Voice } from '../types';
  * 그건 「접속이 되나」와 「몸이 제대로 붙나」를 영영 못 가른다는 뜻이다. 그래서 붙는 물건은
  * 갈아끼우는 자리로 두고, 가짜로 전 경로를 시험한다.
  */
-export interface 디스코드채널 {
+export interface DiscordChannel {
   /** 이 채널에 한 마디 보낸다. */
   send: (content2: string) => Promise<void>;
 }
 
-export interface 디스코드붙이기 {
+export interface DiscordAttach {
   /** 사람이 말할 때마다 부른다. 봇 자신의 말은 넘기지 않는다. */
   onEnter: (listen: (text2: { content: string; who: string; channel: string; isBot: boolean }) => void) => void;
   /** 이 채널을 잡는다. 없으면 null. */
-  pickChannel: (channel2: string) => 디스코드채널 | null;
+  pickChannel: (channel2: string) => DiscordChannel | null;
   /** 끊는다. */
   cut?: () => void | Promise<void>;
 }
 
 export interface DiscordBodyOptions {
   /** 붙는 물건. 밖에서 준다 — 토큰이 없는 자리에서도 몸을 시험할 수 있게. */
-  attach: 디스코드붙이기;
+  attach: DiscordAttach;
   /**
    * 여기서만 듣는다. 안 주면 들어오는 모든 채널.
    *
@@ -112,7 +112,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
 export async function discordJs(options: {
   token: string;
   log?: (message: string) => void;
-}): Promise<디스코드붙이기> {
+}): Promise<DiscordAttach> {
   const log = options.log ?? (() => {});
   /* 이름을 변수에 담아 부른다 — 이 패키지는 discord.js 를 **필수 의존성으로 안 갖는다.**
      디스코드를 안 쓰는 자리(대부분)에서 그것 때문에 빌드가 막히면 안 된다. 없으면 이

@@ -19,15 +19,15 @@ import type { MemoryEntry } from '../types';
  *   turn 은 낱말 회상만 쓰고 넘어간다 — 첫 소리까지가 이 프로젝트의 핵심 지표다(7·65회차).
  * - **없어도 굴러간다.** 모델을 못 불러오면 뜻 회상만 빠지고 나머지는 그대로다.
  */
-export interface 뜻재기 {
+export interface MeaningMeasure {
   /** 글 하나를 벡터로. 못 재면 null. */
   measure: (content: string) => Promise<readonly number[] | null>;
 }
 
-export interface 뜻기억옵션 {
+export interface MeaningMemoryOptions {
   /** 색인을 담아 둘 파일. 없으면 이 프로세스에서만 산다. */
   path?: string;
-  measure: 뜻재기;
+  measure: MeaningMeasure;
   /** 몇 개까지 담아 둘지. 오래된 것부터 빠진다. */
   max?: number;
   /** 이보다 안 닮았으면 안 꺼낸다. 낮추면 엉뚱한 게 딸려 온다. */
@@ -56,7 +56,7 @@ export class meaningMemory {
   private readonly log: (message: string) => void;
   private storing = false;
 
-  constructor(private readonly options: 뜻기억옵션) {
+  constructor(private readonly options: MeaningMemoryOptions) {
     this.max = options.max ?? 2000;
     this.threshold = options.threshold ?? 0.5;
     this.log = options.log ?? (() => {});
@@ -159,7 +159,7 @@ export class meaningMemory {
  * 기다리게 하지 않는다 — 준비될 때까지는 `null` 을 돌려주고, 준비되면 그때부터 잰다.
  * 91회차에서 목소리에 쓴 규율과 같다: 무거운 건 뒤에서 켜고, 그 사이엔 하던 대로 한다.
  */
-export function measureWithSmallModel(options: { model?: string; log?: (m: string) => void } = {}): 뜻재기 {
+export function measureWithSmallModel(options: { model?: string; log?: (m: string) => void } = {}): MeaningMeasure {
   const model = options.model ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
   const log = options.log ?? (() => {});
   let ready: ((content4: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
