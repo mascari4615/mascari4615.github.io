@@ -795,7 +795,7 @@
     append('나', message, 'me');
     setState('thinking', '생각하는 중…');
     try {
-      /* **거절을 조용히 삼키면 안 된다.** 서버는 깨진 글을 400 + `안받은이유` 로
+      /* **거절을 조용히 삼키면 안 된다.** 서버는 깨진 글을 400 + `notAcceptedReason` 로
          돌려보내는데 여기서 답을 아예 안 봤다 — 화면에는 내 말풍선이 멀쩡히 뜨고
          얘는 영영 대답을 안 한다. 「못 알아듣는 것 같다」의 정체가 이것이다. */
       const res = await fetch('/say', {
@@ -807,7 +807,7 @@
         let 이유 = `서버가 안 받았다 (${res.status})`;
         try {
           const 온것 = await res.json();
-          if (온것?.안받은이유) 이유 = `안 받았다 — ${온것.안받은이유}`;
+          if (온것?.notAcceptedReason) 이유 = `안 받았다 — ${온것.notAcceptedReason}`;
         } catch { /* 본문이 없으면 상태 숫자만으로도 충분하다 */ }
         안됐다(`보낸 말이 ${이유}`);
         setState('', 이유);

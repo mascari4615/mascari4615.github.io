@@ -23,7 +23,7 @@ import { t, loadNamespace } from '../lib/i18n';
   const unattachable = location.protocol === 'https:' && location.hostname.endsWith('github.io');
 
   type Entry = { role: 'sensed' | 'said'; channel: string; text: string; at: number };
-  type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; worstMs: number | null };
+  type Stats = { sampleCount: number; firstSoundMedianMs: number | null; worstMs: number | null };
   type State = {
     windowAttached: number;
     body: '3D' | '큐브' | null;
@@ -213,9 +213,9 @@ import { t, loadNamespace } from '../lib/i18n';
               ]);
               renderState(st);
               const initialJamo =
-                stats === null || stats.첫소리중앙값ms === null
+                stats === null || stats.firstSoundMedianMs === null
                   ? t('companion.t27')
-                  : t('companion.firstSound', { sec: (stats.첫소리중앙값ms / 1000).toFixed(1), n: stats.샘플수 });
+                  : t('companion.firstSound', { sec: (stats.firstSoundMedianMs / 1000).toFixed(1), n: stats.sampleCount });
               sub.textContent = `${Date.now() - start}ms · ${initialJamo}`;
               if (hist !== null) renderConversation(hist);
               known.textContent = kn?.known?.trim() || '아직 아는 게 없다.';
@@ -243,8 +243,8 @@ import { t, loadNamespace } from '../lib/i18n';
               });
               // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 「보냈는데 반응이 없다」가 된다.
               if (res.status === 400) {
-                const reason = (await res.json().catch(() => ({}))) as { 안받은이유?: string };
-                Toolbox.showToast?.(`안 받았다 — ${reason.안받은이유 ?? t('companion.t30')}`, 'error', undefined);
+                const reason = (await res.json().catch(() => ({}))) as { notAcceptedReason?: string };
+                Toolbox.showToast?.(`안 받았다 — ${reason.notAcceptedReason ?? t('companion.t30')}`, 'error', undefined);
                 return;
               }
               if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
