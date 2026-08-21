@@ -196,6 +196,12 @@ namespace Handheld
 
         // ── 렌즈 바깥 손잡이 ─────────────────────────────────────────────────────
 
+        /// <summary>
+        /// 뷰파인더가 그려지는 RenderTexture. WebRTC 영상 트랙이 **이것을 그대로** 싣는다 —
+        /// 캡처 경로를 두 벌 두면 16:9 고정·해상도 손잡이가 갈라진다.
+        /// </summary>
+        public RenderTexture ViewfinderTexture => _rt;
+
         /// <summary>지금 실제로 그리는 배율 (램프가 끝난 값이 아니라 지금 값).</summary>
         public float Zoom => _zoomShown;
 

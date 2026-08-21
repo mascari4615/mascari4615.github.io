@@ -101,6 +101,8 @@ namespace Handheld.EditorTools
             EditorGUILayout.Space(8);
             DrawLensSection();
             EditorGUILayout.Space(8);
+            DrawTransportSection();
+            EditorGUILayout.Space(8);
             DrawUrpSection();
             EditorGUILayout.Space(8);
             DrawRecordSection();
@@ -464,6 +466,42 @@ namespace Handheld.EditorTools
             int value = EditorGUILayout.MaskField(label, UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(mask),
                 UnityEditorInternal.InternalEditorUtility.layers);
             return UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(value);
+        }
+
+        // ── 전송 (WebRTC ↔ MJPEG) ───────────────────────────────────────────────
+        void DrawTransportSection()
+        {
+            var rtc = _server != null ? _server.webrtc : null;
+            Header("전송");
+            EditorGUILayout.LabelField(
+                "WebRTC 는 **더 좋은 길**이고 MJPEG 은 **늘 있는 길**이다. 안 붙으면 조용히 " +
+                "MJPEG 으로 떨어진다 — 방송 중에 길이 하나뿐이면 그게 막힐 때 방송이 멈춘다.",
+                WrapMini());
+
+            if (rtc == null)
+            {
+                EditorGUILayout.LabelField("WebRTC 컴포넌트 없음 — MJPEG 만", EditorStyles.miniLabel);
+                return;
+            }
+
+            EditorGUILayout.LabelField(rtc.StatusLine,
+                rtc.Connected ? Ok() : EditorStyles.miniLabel);
+
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                rtc.enableWebRtc = EditorGUILayout.Toggle("WebRTC 쓰기", rtc.enableWebRtc);
+                rtc.maxBitrateKbps = EditorGUILayout.IntSlider(
+                    "영상 상한 (kbps)", rtc.maxBitrateKbps, 200, 20000);
+                EditorGUILayout.LabelField(" ",
+                    "방송 업링크를 얼마나 내줄지가 이 값이다 — OBS 송출이 같은 회선을 쓴다.",
+                    WrapMini());
+                if (check.changed) EditorUtility.SetDirty(rtc);
+            }
+
+            if (!Application.isPlaying)
+                EditorGUILayout.HelpBox(
+                    "영상 트랙은 Play 모드에서만 흐른다 (WebRTC 가 프레임 끝 신호를 기다린다). " +
+                    "지금은 포즈 데이터채널만 살고 영상은 MJPEG 이 나른다.", MessageType.Info);
         }
 
         // ── URP (초점 흐림) ──────────────────────────────────────────────────────

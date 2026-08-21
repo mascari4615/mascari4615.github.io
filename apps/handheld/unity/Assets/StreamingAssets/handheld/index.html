@@ -15,6 +15,13 @@
   #vf { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
     background: #000; object-fit: cover; }
 
+  /* WebRTC 영상. 붙기 전에는 숨어 있고, 붙으면 캔버스(MJPEG) 위를 덮는다.
+     레터박스(contain) 는 캔버스와 같은 규칙 — 「보이는 것 = 나가는 것」. */
+  #rtcv { position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; background: #000; display: none; }
+  #rtcv.on { display: block; }
+  #rtcv.rot { transform: rotate(-90deg); }
+
   /* 시작 화면 */
   #start { position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 18px; padding: 28px;
@@ -167,9 +174,11 @@
 <canvas id="gl" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none"></canvas>
 <div id="overlay">
   <canvas id="vf"></canvas>
+  <video id="rtcv" autoplay playsinline muted></video>
   <div id="hud" class="hidden">
     <div class="chip" id="chipMode">—</div>
     <div class="chip" id="chipNet">—</div>
+    <div class="chip" id="chipWay">MJPEG</div>
     <div class="chip" id="chipPos">—</div>
     <div class="chip" id="chipLens">—</div>
     <div class="chip" id="chipFrame">—</div>
@@ -236,7 +245,7 @@
   const $ = id => document.getElementById(id);
   const vf = $('vf'), vfCtx = vf.getContext('2d', { alpha: false, desynchronized: true });
   const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos'), chipFrame = $('chipFrame'), chipOrient = $('chipOrient');
-  const chipLens = $('chipLens');
+  const chipLens = $('chipLens'), chipWay = $('chipWay');
 
   // ── 상태 ───────────────────────────────────────────────────────────────────
   let ws = null, wsReady = false;
@@ -273,14 +282,16 @@
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${proto}//${location.host}/ws`);
     ws.binaryType = 'arraybuffer';
-    ws.onopen = () => { wsReady = true; paint(); };
-    ws.onclose = () => { wsReady = false; paint(); if (running) setTimeout(connect, 800); };
+    ws.onopen = () => { wsReady = true; paint(); if (running) startRtc(); };
+    ws.onclose = () => { wsReady = false; stopRtc(); paint(); if (running) setTimeout(connect, 800); };
     ws.onerror = () => { wsReady = false; paint(); };
     ws.onmessage = ev => {
       if (typeof ev.data === 'string') {
         // 왕복 재기 — 받은 눈금을 **그대로** 되돌린다. 폰이 아무 계산도 안 하므로
         // 두 시계를 맞출 필요가 없다(유니티가 같은 시계로 두 번 잰다).
         if (ev.data.charCodeAt(0) === 107 && ev.data[1] === '|') { ws.send(ev.data); return; }
+        // WebRTC 시그널링
+        if (ev.data.charCodeAt(0) === 119 && ev.data[1] === '|') { onRtcSignal(ev.data); return; }
 
         // 유니티가 되보내는 상태:
         //   s|x|y|z|yaw|fps|kb|틱Hz|캡처Hz|배율|초점거리mm|초점m|초점잡힘
@@ -301,6 +312,9 @@
         return;
       }
       rxFrames++; rxBytes += ev.data.byteLength;
+      // WebRTC 영상이 붙었으면 JPEG 은 그리지 않는다 — 디코드 비용이 그대로 폰 CPU 다.
+      // (유니티가 아직 보내고 있어도 여기서 끊는다. 끊김 대비로 경로는 살아 있다.)
+      if (rtcVideo) return;
       if (pendingBitmap) return;             // 밀리면 그 장은 버린다 = 지연 누적 X
       pendingBitmap = true;
       createImageBitmap(new Blob([ev.data], { type: 'image/jpeg' }))
@@ -518,13 +532,107 @@
   }
   bindLens();
 
+  // ── WebRTC ─────────────────────────────────────────────────────────────────
+  // 영상 = H.264 트랙(하드웨어 디코드) · 포즈 = DataChannel.
+  // **MJPEG 은 안 지운다.** 안 붙거나 끊기면 그리로 돌아간다 — 방송 중에 길이 하나뿐이면
+  // 그 길이 막힐 때 방송이 멈춘다.
+  let pc = null, poseCh = null, rtcVideo = false;
+
+  const usingRtc = () => poseCh && poseCh.readyState === 'open';
+
+  function paintWay() {
+    const v = rtcVideo ? 'WebRTC' : (usingRtc() ? 'WebRTC(포즈만)' : 'MJPEG');
+    chipWay.className = 'chip' + (rtcVideo ? '' : ' bad');
+    chipWay.innerHTML = `<b>${v}</b>`;
+  }
+
+  async function startRtc() {
+    if (pc || !ws || ws.readyState !== 1) return;
+    try {
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+
+      // 포즈는 **늦으면 버린다** — 재전송을 기다리면 그건 정보가 아니라 지연이다.
+      // (유니티 쪽 큐 넷이 이미 같은 정신으로 서 있다.)
+      poseCh = pc.createDataChannel('pose', { ordered: false, maxRetransmits: 0 });
+      poseCh.onopen = () => { paintWay(); };
+      poseCh.onclose = () => { paintWay(); };
+
+      pc.ontrack = (e) => {
+        const v = $('rtcv');
+        if (v.srcObject !== e.streams[0]) v.srcObject = e.streams[0];
+        v.classList.add('on');
+        rtcVideo = true;
+        paintWay();
+      };
+      pc.onicecandidate = (e) => {
+        if (e.candidate && ws && ws.readyState === 1) {
+          const c = e.candidate;
+          ws.send(`w|ice|${c.candidate}|${c.sdpMid}|${c.sdpMLineIndex}`);
+        }
+      };
+      pc.onconnectionstatechange = () => {
+        if (!pc) return;
+        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') stopRtc();
+      };
+
+      // 영상을 **받기만** 한다 (폰 카메라는 안 보낸다 — AR 이 쓰고 있다).
+      pc.addTransceiver('video', { direction: 'recvonly' });
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      ws.send('w|offer|' + offer.sdp);
+    } catch (e) {
+      stopRtc();
+    }
+  }
+
+  function stopRtc() {
+    rtcVideo = false;
+    const v = $('rtcv');
+    v.classList.remove('on');
+    v.srcObject = null;
+    try { poseCh && poseCh.close(); } catch (e) {}
+    try { pc && pc.close(); } catch (e) {}
+    poseCh = null; pc = null;
+    paintWay();                       // MJPEG 으로 돌아간다
+  }
+
+  async function onRtcSignal(line) {
+    if (!pc) return;
+    if (line.startsWith('w|answer|')) {
+      await pc.setRemoteDescription({ type: 'answer', sdp: line.slice('w|answer|'.length) });
+      return;
+    }
+    if (line.startsWith('w|ice|')) {
+      const t = line.split('|');
+      if (t.length < 5) return;
+      try {
+        await pc.addIceCandidate({ candidate: t[2], sdpMid: t[3], sdpMLineIndex: +t[4] });
+      } catch (e) {}
+    }
+  }
+
   function sendPose(t, px, py, pz, qx, qy, qz, qw, fovDeg, aspect, dof) {
+    const line = `p|${t.toFixed(1)}|${f5(px)}|${f5(py)}|${f5(pz)}|${f5(qx)}|${f5(qy)}|${f5(qz)}|${f5(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}|${gripRoll()}`;
+
+    // 데이터채널이 열려 있으면 그리로. 규약은 **똑같다** — 길이 둘이어도 문법은 하나다.
+    if (usingRtc()) {
+      // 밀려 있으면 건너뛴다(WS 의 bufferedAmount 게이트와 같은 규칙).
+      if (poseCh.bufferedAmount > 32 * 1024) return;
+      poseCh.send(line);
+      txPoses++; seq++;
+      return;
+    }
+
     if (!ws || ws.readyState !== 1) return;
     if (ws.bufferedAmount > 32 * 1024) return;   // 상행이 막히면 건너뛴다
-    const f = n => n.toFixed(5);
-    ws.send(`p|${t.toFixed(1)}|${f(px)}|${f(py)}|${f(pz)}|${f(qx)}|${f(qy)}|${f(qz)}|${f(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}|${gripRoll()}`);
+    ws.send(line);
     txPoses++; seq++;
   }
+
+  const f5 = n => n.toFixed(5);
 
   // ── 6DoF: WebXR immersive-ar ───────────────────────────────────────────────
   let xrSession = null;
@@ -671,8 +779,9 @@
     $('btnZoom1').classList.remove('hidden');
     if (stickTimer === null) stickTimer = setInterval(sendSticks, 33);   // 30 Hz
     if (!zoomLoopAt) requestAnimationFrame(zoomLoop);
-    if (!ws) connect();
+    if (!ws) connect(); else startRtc();
     paint();
+    paintWay();
   }
 
   function stop() {
@@ -691,7 +800,8 @@
     turnSince = 0;
     if (stickTimer !== null) { clearInterval(stickTimer); stickTimer = null; }
     stick.l = [0, 0]; stick.r = [0, 0];
-    if (ws && ws.readyState === 1) ws.send('j|0|0|0|0');   // 놓고 나가도 안 밀린다
+    if (ws && ws.readyState === 1) { ws.send('j|0|0|0|0'); ws.send('w|bye'); }   // 놓고 나가도 안 밀린다
+    stopRtc();
   }
 
   function tick() {
