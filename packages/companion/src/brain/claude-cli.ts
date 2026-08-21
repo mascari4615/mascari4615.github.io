@@ -3,6 +3,7 @@ import { copyFileSync, existsSync, mkdtempSync, readFileSync, writeFileSync } fr
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { promptParts } from '../prompt-parts';
 import type { Brain, MemoryEntry, ThinkInput } from '../types';
 
 /** 대화 밖에서 두뇌를 한 번 쓰고 싶을 때 (예: 기억 졸이기). */
@@ -205,7 +206,9 @@ function run(
     if (onDelta) args.push('--output-format', 'stream-json', '--verbose', '--include-partial-messages');
 
     if (process.env.COMPANION_TIME === '1') {
-      process.stderr.write(`[두뇌인자] ${JSON.stringify(args)} · 시스템 ${systemPrompt?.length ?? 0}자 · 본문 ${prompt.length}자 · cwd ${cwd}
+      /* 본문은 stdin 으로 가서 인자에 안 들어간다 — 그래서 무엇이 실렸는지 밖에서 볼 수가
+         없었다(133회차에 그걸로 측정을 한 번 놓쳤다). 조각 이름만 한 줄로 곁들인다. */
+      process.stderr.write(`[두뇌인자] ${JSON.stringify(args)} · 시스템 ${systemPrompt?.length ?? 0}자 · 본문 ${prompt.length}자 [${promptParts(prompt)}] · cwd ${cwd}
 `);
     }
     const startedAt = Date.now();
