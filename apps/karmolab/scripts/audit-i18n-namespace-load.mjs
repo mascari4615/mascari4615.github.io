@@ -120,7 +120,7 @@ if (process.argv.includes('--update')) {
   console.log(`[i18n-load] 기준선 갱신 — ${found.length}개`);
   process.exit(0);
 }
-const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록 : [];
+const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')).list : [];
 const added = bad.filter((b) => !base.includes(keyOf(b)));
 const fixed = base.filter((k) => !found.includes(k));
 if (fixed.length && !added.length) {

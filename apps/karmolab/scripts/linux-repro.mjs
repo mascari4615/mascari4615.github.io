@@ -86,7 +86,7 @@ const toMeasure = [
       return {
         mobileNav: box('.mobile-nav'), times: box('[data-km="times"]'),
         mini: box('[data-km="mini"]'), more: box('[data-km="more"]'),
-        more위: above('[data-km="more"]'),
+        moreTop: above('[data-km="more"]'),
         canvasTop: box('.km-canvas')?.y,
       };
     },

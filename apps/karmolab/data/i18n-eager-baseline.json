@@ -1,5 +1,5 @@
 {
-  "목록": [
+  "list": [
     "src/widgets/chat.ts chat.aria.panel",
     "src/widgets/chat.ts chat.close",
     "src/widgets/chat.ts chat.dock",

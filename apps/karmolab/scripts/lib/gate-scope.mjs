@@ -20,7 +20,7 @@ export function parseEntry(entry) {
   if (typeof entry === 'string') return { name: entry, watch: null };
   const name = entry?.name ?? entry?.name;
   if (typeof name !== 'string' || name === '') return null;
-  const watch = entry.볼것 ?? entry.watch ?? null;
+  const watch = entry.watch ?? null;
   return { name, watch: Array.isArray(watch) && watch.length > 0 ? watch : null };
 }
 

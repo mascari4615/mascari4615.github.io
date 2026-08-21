@@ -310,13 +310,13 @@ import { t, loadNamespace } from '../../lib/i18n';
             /* 유령과 놀 때는 상대의 손을 여기서 흉내 낸다. 사람처럼 가끔 틀리고, 가끔 늦는다 —
              * 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
             clearTimeout(유령손);
-            if (유령) {
-              const 걸림 = 500 + Math.random() * Math.max(400, r.limitMs - 700);
-              const 맞힘 = Math.random() < 0.72;
+            if (ghost) {
+              const caught = 500 + Math.random() * Math.max(400, r.limitMs - 700);
+              const hit = Math.random() < 0.72;
               유령손 = window.setTimeout(() => {
-                foeResult = { ok: 맞힘, ms: 걸림 };
+                foeResult = { ok: hit, ms: caught };
                 if (myResult) settle();
-              }, 걸림);
+              }, caught);
             }
           }
 
@@ -468,26 +468,26 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 「아무나랑」 — 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
            * 대기방에서 그대로 놀면 나중에 온 사람들에게까지 판이 새어 나간다. 방 이름을 두 사람의
            * 번호로 만들면 양쪽이 따로 계산해도 같은 이름이 나온다(주고받을 필요가 없다). */
-          let 유령 = false;
+          let ghost = false;
           let 유령손 = 0;
-          let 짝지음 = false;
+          let paired = false;
           function 아무나랑(): void {
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
             say(t('duel.status.searching'));
             quickMatch(APP_ID, (room2, 내가주인) => {
-              짝지음 = true;
+              paired = true;
               connect(room2, 내가주인); // 주인 뽑기·방 이름 계산은 `lib/room.ts` 한 곳에서
             });
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {
-              if (!짝지음) say(t('duel.status.lonely'));
+              if (!paired) say(t('duel.status.lonely'));
             }, 45000);
           }
 
           /** 아무도 없을 때 — 유령이 대신 달린다. 혼자 온 사람이 그냥 나가지 않게. */
           function 유령과(): void {
-            유령 = true;
+            ghost = true;
             host = true;
             foe = t('duel.who.ghost');
             $<HTMLElement>('#duFoeName').textContent = foe;
