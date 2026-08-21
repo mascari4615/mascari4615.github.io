@@ -166,7 +166,10 @@ async function onePage(id) {
         skipped.push(`${id}(${locale.widget ? '숨김' : 'widget 아님'})`);
         process.stdout.write('-');
       }
-    } else if (locale.didNotLoad || !locale.text) {
+    /* ⚠ 만드는 쪽은 `content`, 읽는 쪽은 `text` 였다 (2026-08-21 고침). 없는 필드라 늘 참 —
+       59개 중 48개가 「화면이 비어 있다」로 빨갰는데 실제로는 멀쩡히 떠 있었다(글 212자 확인).
+       한 커밋(`6b1113723`) 안에서 `글` 을 한쪽은 `content`, 다른 쪽은 `text` 로 바꾼 탓이다. */
+    } else if (locale.didNotLoad || !locale.content) {
       /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
          그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
          못 닿아 한 칸이 「불러오는 중」이다. 그건 고장이 아니라 그 화면의 정상이다). */
