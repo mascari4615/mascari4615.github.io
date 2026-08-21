@@ -49,6 +49,16 @@ namespace Handheld
         int _seq;
         int _recenterFlag;
 
+        // 왕복 시간(RTT) — 「튐이 망 탓인가」를 가르는 데 쓴다.
+        // 1초에 한 번 우리 시계 눈금을 보내고, 폰이 **그대로 되돌려** 주면 그 차가 왕복이다.
+        // 폰 시계와 우리 시계를 맞출 필요가 없다 — 같은 시계로 두 번 재기 때문이다.
+        readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+        long _pingSentAt = -1;
+        volatile float _rttMs = -1f;
+
+        /// <summary>마지막으로 잰 왕복 시간(ms). 아직 못 쟀으면 음수.</summary>
+        public float RttMs => _rttMs;
+
         // 렌즈 요청 — 카메라맨이 폰에서 만지는 것. 값 하나짜리라 lock 대신 통째로 갈아 끼운다.
         // 리그가 한 틱에 한 번 꺼내 간다 (밀린 요청은 최신 것만 남는다 = 지연 누적 X).
         volatile object _zoomRequest;      // (object)float, 없으면 null
@@ -150,6 +160,15 @@ namespace Handheld
                 "s|{0:F2}|{1:F2}|{2:F2}|{3:F0}|{4:F1}|{5}|{6:F1}|{7:F1}|{8:F2}|{9:F0}|{10:F2}|{11}",
                 pos.x, pos.y, pos.z, yaw, fps, kb, tickHz, captureHz,
                 zoom, focalMm, focusM, focusHit ? 1 : 0));
+
+            // 상태와 같은 박자로 왕복을 잰다 (1초에 한 번이면 충분하다 — 지터는 gap 이 잡는다).
+            // 앞 ping 의 답이 아직 안 왔으면 새로 안 보낸다: 답 없는 ping 을 쌓으면
+            // 어느 것의 답인지 알 수 없어 왕복이 거짓이 된다.
+            if (_pingSentAt < 0)
+            {
+                _pingSentAt = _clock.ElapsedMilliseconds;
+                c.SendText("k|" + _pingSentAt.ToString(CultureInfo.InvariantCulture));
+            }
         }
 
         /// <summary>뷰파인더 JPEG 한 장을 폰으로 보낸다.</summary>
@@ -260,6 +279,8 @@ namespace Handheld
                 _joystick = (object)Vector4.zero;      // 새 폰이 붙으면 이전 스틱 값을 물려받지 않는다
                 _zoomRequest = null;                   // 렌즈 요청도 마찬가지 — 옛 폰의 마지막 배율이 튀면 안 된다
                 _focusRequest = null;
+                _pingSentAt = -1;                      // 답을 못 받은 ping 을 새 폰에 물려주지 않는다
+                _rttMs = -1f;
                 old?.Close();
                 Log("폰 붙음");
                 return;
@@ -350,6 +371,23 @@ namespace Handheld
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
 
+            // 왕복 답장:  k|<보낼 때 찍은 눈금>  — 폰은 받은 것을 그대로 되돌린다.
+            if (msg.Length > 2 && msg[0] == 'k' && msg[1] == '|')
+            {
+                try
+                {
+                    long sent = long.Parse(msg.Substring(2), CultureInfo.InvariantCulture);
+                    // 우리가 보낸 그 ping 의 답일 때만 센다 (옛 답·장난 값 방어).
+                    if (sent == _pingSentAt)
+                    {
+                        _rttMs = _clock.ElapsedMilliseconds - sent;
+                        _pingSentAt = -1;               // 다음 ping 을 보낼 수 있게 푼다
+                    }
+                }
+                catch (Exception e) { Log("왕복 파싱 실패: " + e.Message); }
+                return;
+            }
+
             // 줌:  z|배율   (로커를 미는 동안 30Hz. 리그가 램프로 이어 준다)
             if (msg.Length > 2 && msg[0] == 'z' && msg[1] == '|')
             {
@@ -423,7 +461,7 @@ namespace Handheld
                 lock (_poseLock) { _latestPose = pose; _hasPose = true; }
 
                 _recorder?.Pose(pose.Seq, t, px, py, pz, qx, qy, qz, qw, fov, aspect, f[11],
-                    pose.Position, pose.Rotation);
+                    pose.Position, pose.Rotation, _rttMs);
             }
             catch (Exception e)
             {
