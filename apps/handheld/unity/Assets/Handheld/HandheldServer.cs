@@ -102,6 +102,11 @@ namespace Handheld
         public bool Connected => _client != null && !_client.Closed;
 
         volatile string _phoneDiag = "";
+
+        // ★ 「폰이 안 보냈다」와 「보냈는데 우리가 못 알아듣는다」는 완전히 다른 고장인데,
+        //   지금까지는 둘 다 「포즈 0」으로만 보였다. 들어온 줄 수와 마지막 줄을 남긴다.
+        int _rxLines;
+        volatile string _lastLine = "";
         volatile string _diagCache = "{}";
         double _nextDiagBake;
 
@@ -312,6 +317,8 @@ namespace Handheld
                 _joystick = (object)Vector4.zero;      // 새 폰이 붙으면 이전 스틱 값을 물려받지 않는다
                 _zoomRequest = null;                   // 렌즈 요청도 마찬가지 — 옛 폰의 마지막 배율이 튀면 안 된다
                 _focusRequest = null;
+                _rxLines = 0;
+                _lastLine = "";
                 _pingSentAt = -1;                      // 답을 못 받은 ping 을 새 폰에 물려주지 않는다
                 _rttMs = -1f;
                 old?.Close();
@@ -387,6 +394,9 @@ namespace Handheld
             var sb = new StringBuilder("{");
             sb.AppendFormat(c, "\"connected\":{0},", Connected ? 1 : 0);
             sb.AppendFormat(c, "\"poseSeq\":{0},", _seq);
+            sb.AppendFormat(c, "\"rxLines\":{0},", _rxLines);
+            sb.AppendFormat(c, "\"lastLine\":\"{0}\",",
+                (_lastLine ?? "").Replace("\\", "/").Replace("\"", "'"));
             sb.AppendFormat(c, "\"rttMs\":{0:F0},", _rttMs);
             var j = (Vector4)_joystick;
             sb.AppendFormat(c, "\"stick\":\"{0:F2},{1:F2},{2:F2},{3:F2}\",", j.x, j.y, j.z, j.w);
@@ -437,6 +447,9 @@ namespace Handheld
         void OnPhoneMessage(string msg)
         {
             if (string.IsNullOrEmpty(msg)) return;
+
+            Interlocked.Increment(ref _rxLines);
+            _lastLine = msg.Length > 90 ? msg.Substring(0, 90) : msg;
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
 
