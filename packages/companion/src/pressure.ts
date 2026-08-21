@@ -86,7 +86,7 @@ export class pendingThoughts {
   }
 
   /** 지금 이 재료에 얹어 줄 무게. */
-  더할무게(name4: string): number {
+  addedWeight(name4: string): number {
     const v = this.눌린것.get(name4);
     if (v === undefined) return 0;
     return Math.min(v.횟수 * this.step, this.상한);
@@ -95,7 +95,7 @@ export class pendingThoughts {
   /** 재료 목록에 참은 만큼을 얹어 돌려준다. 원본은 안 건드린다. */
   덧입히기(all: readonly Ingredient[]): Ingredient[] {
     return all.map((x) => {
-      const extra = this.더할무게(x.name);
+      const extra = this.addedWeight(x.name);
       return extra === 0 ? x : { ...x, weight: x.weight + extra };
     });
   }
@@ -103,10 +103,10 @@ export class pendingThoughts {
   /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
   요약(): string {
     const items = [...this.눌린것.entries()]
-      .filter(([이름]) => this.더할무게(이름) > 0)
+      .filter(([이름]) => this.addedWeight(이름) > 0)
       .sort((a, b) => b[1].횟수 - a[1].횟수)
       .slice(0, 5)
-      .map(([이름, v]) => `${이름}+${this.더할무게(이름)}(${v.횟수}번)`);
+      .map(([이름, v]) => `${이름}+${this.addedWeight(이름)}(${v.횟수}번)`);
     return items.join(' · ');
   }
 }

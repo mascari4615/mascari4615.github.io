@@ -52,7 +52,7 @@ test('푸는 말이 섞이면 조용히 하라는 뜻이 아니다', () => {
 const make = (options = {}) => {
   let now2 = new Date(2026, 1, 10, 14, 0).getTime();
   const q = new Quiet({ now: () => now2, ...options });
-  return { q, 흐르게: (ms) => { now2 += ms; }, 시각: (h) => { now2 = new Date(2026, 1, 10, h, 0).getTime(); } };
+  return { q, flow: (ms) => { now2 += ms; }, 시각: (h) => { now2 = new Date(2026, 1, 10, h, 0).getTime(); } };
 };
 
 test('평소에는 먼저 말을 걸어도 된다', () => {
@@ -67,7 +67,7 @@ test('부탁받으면 먼저 안 건다', () => {
 });
 
 test('시간이 지나면 저절로 풀린다 — 영영 입 다물지 않는다', () => {
-  const { q, 흐르게 } = make();
+  const { q, flow: 흐르게 } = make();
   q.hushFor(30 * minutes);
   흐르게(31 * minutes);
   assert.equal(q.maySpeakFirst, true);

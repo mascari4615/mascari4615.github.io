@@ -81,7 +81,7 @@ function worthAsking(text: string): boolean {
 export class EpisodeStore {
   private 목록: Episode[] = [];
   /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (말 → 그때 시각). */
-  private readonly 물어볼것 = new Map<string, number>();
+  private readonly toAsk = new Map<string, number>();
   private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | '문턱'>> & EpisodeStoreOptions;
 
   constructor(options: EpisodeStoreOptions = {}) {
@@ -114,7 +114,7 @@ export class EpisodeStore {
       const energy = measureEnergy(e.text);
       if (energy < this.options.문턱) {
         // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
-        if (worthAsking(e.text)) this.물어볼것.set(e.text.trim(), e.at);
+        if (worthAsking(e.text)) this.toAsk.set(e.text.trim(), e.at);
         continue;
       }
       this.store({ said: e.text.trim(), at: e.at, 기운: energy });
@@ -148,7 +148,7 @@ export class EpisodeStore {
 
   /** 두뇌에게 물어볼 것이 몇 개 밀려 있나. */
   get 밀린것(): number {
-    return this.물어볼것.size;
+    return this.toAsk.size;
   }
 
   /**
@@ -159,10 +159,10 @@ export class EpisodeStore {
    */
   async reflect(atOnce = 8): Promise<number> {
     const ask2 = this.options.ask;
-    if (ask2 === undefined || this.물어볼것.size === 0) return 0;
+    if (ask2 === undefined || this.toAsk.size === 0) return 0;
 
-    const bundle = [...this.물어볼것.entries()].slice(0, atOnce);
-    for (const [말] of bundle) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
+    const bundle = [...this.toAsk.entries()].slice(0, atOnce);
+    for (const [말] of bundle) this.toAsk.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
     let scores: readonly number[] | null = null;
     try {
       scores = await ask2(bundle.map(([말]) => 말));

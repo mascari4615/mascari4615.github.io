@@ -11,19 +11,19 @@ const playBack = (gate, { 크기, 동안, 부터 = 0, 걸음 = 50 }) => {
     const r = gate.들었다(크기, t);
     if (r !== null) happened.push({ what: r, 때: t });
   }
-  return { 일어난것: happened, 끝난때: 부터 + 동안 };
+  return { happened: happened, 끝난때: 부터 + 동안 };
 };
 
 const loud = defaultValue.문턱 + 0.03;
 const quiet = 0.005;
 
 test('조용하면 안 열린다', () => {
-  const { 일어난것 } = playBack(new listenGate(), { 크기: quiet, 동안: 5000 });
+  const { happened: 일어난것 } = playBack(new listenGate(), { 크기: quiet, 동안: 5000 });
   assert.deepEqual(일어난것, []);
 });
 
 test('말소리가 이어지면 열린다', () => {
-  const { 일어난것 } = playBack(new listenGate(), { 크기: loud, 동안: 2000 });
+  const { happened: 일어난것 } = playBack(new listenGate(), { 크기: loud, 동안: 2000 });
   assert.equal(일어난것[0]?.what, '열림');
 });
 
@@ -46,14 +46,14 @@ test('말 중간에 숨 쉬어도 안 닫힌다', () => {
 test('말이 끝나고 조용하면 닫힌다', () => {
   const gate4 = new listenGate();
   playBack(gate4, { 크기: loud, 동안: 600 });
-  const { 일어난것 } = playBack(gate4, { 크기: quiet, 동안: 2000, 부터: 600 });
+  const { happened: 일어난것 } = playBack(gate4, { 크기: quiet, 동안: 2000, 부터: 600 });
   assert.equal(일어난것.at(-1)?.what, '닫힘');
 });
 
 test('얘가 말하는 동안은 안 열린다 — 제 목소리를 제가 받아쓰면 혼자 떠든다', () => {
   const gate5 = new listenGate();
   gate5.입(true, 0);
-  const { 일어난것 } = playBack(gate5, { 크기: loud, 동안: 3000 });
+  const { happened: 일어난것 } = playBack(gate5, { 크기: loud, 동안: 3000 });
   assert.deepEqual(일어난것, []);
 });
 
@@ -77,7 +77,7 @@ test('얘가 말을 마쳐도 꼬리 여운 동안은 안 연다 — 스피커 �
 
 test('켜 둔 TV 에 영영 매달리지 않는다 — 너무 길면 그냥 닫는다', () => {
   const gate8 = new listenGate();
-  const { 일어난것 } = playBack(gate8, { 크기: loud, 동안: 25000, 걸음: 100 });
+  const { happened: 일어난것 } = playBack(gate8, { 크기: loud, 동안: 25000, 걸음: 100 });
   assert.equal(일어난것.filter((x) => x.what === '닫힘').length >= 1, true);
 });
 

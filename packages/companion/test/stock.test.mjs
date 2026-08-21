@@ -82,7 +82,7 @@ test('껐다 켜도 담아 둔 게 남는다', async () => {
 
 test('인격이 바뀌면 앞 인격이 지은 말은 안 쓴다', async () => {
   let who = '욘';
-  const store6 = new 대사창고({ 누구: () => who, 지어오기: async () => '…또야?' });
+  const store6 = new 대사창고({ whom: () => who, 지어오기: async () => '…또야?' });
   await store6.채우기('갈래', '아무거나');
   who = '무명';
   assert.equal(store6.남은수('갈래'), 0);

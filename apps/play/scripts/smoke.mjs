@@ -327,7 +327,7 @@ async function brandBg(page) {
   await page.goto(`${BASE}/karmolab/#twenty`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1600);
   const first = await page.evaluate(() => ({
-    질문: (document.getElementById('twQ')?.textContent || '').trim(),
+    question: (document.getElementById('twQ')?.textContent || '').trim(),
     후보: (document.getElementById('twLeft')?.textContent || '').trim(),
     단추: document.querySelectorAll('#twRow [data-say]').length
   }));
@@ -339,7 +339,7 @@ async function brandBg(page) {
   await page.click('#twRow [data-say=yes]');
   await page.waitForTimeout(600);
   const next = await page.evaluate(() => ({
-    질문: (document.getElementById('twQ')?.textContent || '').trim(),
+    question: (document.getElementById('twQ')?.textContent || '').trim(),
     후보: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
     센수: (document.getElementById('twCount')?.textContent || '').trim()
   }));
@@ -387,7 +387,7 @@ async function brandBg(page) {
   await page.waitForTimeout(1600);
   const mine = await page.evaluate(() => ({
     고른칩: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
-    질문: (document.getElementById('twQ')?.textContent || '').trim()
+    question: (document.getElementById('twQ')?.textContent || '').trim()
   }));
   say(/우리 집 동물/.test(mine.고른칩), `packs: 내 표로 안 넘어간다 (${mine.고른칩})`);
   say(mine.질문.length > 4 && !/불러오는|못 불러/.test(mine.질문), `packs: 내 표로 질문이 안 나온다 (${mine.질문})`);

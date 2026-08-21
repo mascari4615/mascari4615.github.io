@@ -56,7 +56,7 @@ test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는�
   pressed.적기('기분', '실림');
   const r = topicFirst({ ...base, 얼마나참았나: (n) => pressed.얼마나참았나(n) });
   assert.equal(r?.이름, '단골얘기');
-  assert.equal(r.참은수, 4);
+  assert.equal(r.heldCount, 4);
 });
 
 test('말하고 나면 풀려서 또 안 꺼낸다', () => {

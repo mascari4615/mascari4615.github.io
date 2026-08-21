@@ -7,7 +7,7 @@ import { Heart, feelingNote, usual } from '../dist/index.js';
 const mood = (options = {}) => {
   let now2 = 0;
   const heart = new Heart({ halfLifeMs: 10_000, now: () => now2, ...options });
-  return { heart, 흐르게: (ms) => { now2 += ms; } };
+  return { heart, flow: (ms) => { now2 += ms; } };
 };
 
 test('아무 일 없으면 평소 자리에 있다', () => {
@@ -71,7 +71,7 @@ test('아무리 나쁜 일이 쌓여도 바닥은 있다', () => {
 // ── 되돌아오기 ──────────────────────────────────────────────────────
 
 test('시간이 지나면 제자리로 돌아온다 — 안 돌아오면 기분이 아니라 고장이다', () => {
-  const { heart, 흐르게 } = mood();
+  const { heart, flow: 흐르게 } = mood();
   heart.felt('웃어줌');
   const justAfter = heart.state.valence;
   흐르게(60_000);
@@ -81,7 +81,7 @@ test('시간이 지나면 제자리로 돌아온다 — 안 돌아오면 기분�
 });
 
 test('반감기만큼 지나면 절반쯤 돌아온다', () => {
-  const { heart, 흐르게 } = mood();
+  const { heart, flow: 흐르게 } = mood();
   const justAfter2 = heart.felt('웃어줌').valence;
   const queued = justAfter2 - usual.valence;
   흐르게(10_000);
@@ -93,7 +93,7 @@ test('되돌아오는 빠르기는 밖에서 정한다', () => {
   const fast = mood({ halfLifeMs: 1000 });
   const slow = mood({ halfLifeMs: 100_000 });
   fast.heart.felt('웃어줌'); slow.heart.felt('웃어줌');
-  fast.흐르게(5000); slow.흐르게(5000);
+  fast.flow(5000); slow.flow(5000);
   assert.ok(fast.heart.state.valence < slow.heart.state.valence);
 });
 
@@ -104,7 +104,7 @@ test('물어보는 것만으로 마음이 달라지지 않는다', () => {
 });
 
 test('나쁜 쪽으로 밀린 것도 제자리로 돌아온다 — 한 번 삐치면 영영 삐치는 건 고장이다', () => {
-  const { heart, 흐르게 } = mood();
+  const { heart, flow: 흐르게 } = mood();
   for (let i = 0; i < 5; i += 1) heart.felt('무시당함');
   흐르게(120_000);
   assert.ok(Math.abs(heart.state.valence - usual.valence) < 0.02);

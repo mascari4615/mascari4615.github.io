@@ -80,7 +80,7 @@ test('창 검사 — 실패는 빨갛게, 알아챔은 말 방에도, 설정창�
 
     await t.test('알아챈 것이 말 방(page)에도 뜬다 — 여기서 통째로 빠져 있었다', async () => {
       const page = await openWindow('?surface=page');
-      body.알아챔('기억에 담았다 — 검사');
+      body.noticed('기억에 담았다 — 검사');
       await page.waitForSelector('.line.notice', { timeout: 5000 });
       const content = await page.locator('.line.notice .what').last().innerText();
       assert.match(content, /기억에 담았다/, `알아챈 것이 말 방 대화창에 안 뜬다: ${content}`);

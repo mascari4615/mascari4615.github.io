@@ -25,7 +25,7 @@ export interface StockOptions {
   /** 두뇌에게 지어 달라고 하는 자리. null = 못 지었다. */
   지어오기: (prompt: string) => Promise<string | null>;
   /** 지금 누구인가 — 인격이 바뀌면 앞 인격이 지은 말은 안 쓴다. */
-  누구?: () => string | null;
+  whom?: () => string | null;
   /**
    * 누구로서 짓나 — 인격 글 그대로.
    *
@@ -42,7 +42,7 @@ export interface StockOptions {
 }
 
 interface 담긴것 {
-  누구: string;
+  whom: string;
   말들: string[];
 }
 
@@ -80,7 +80,7 @@ export class lineStore {
   }
 
   private get 지금누구(): string {
-    return this.options.누구?.() ?? '';
+    return this.options.whom?.() ?? '';
   }
 
   private 읽기(): void {
@@ -89,7 +89,7 @@ export class lineStore {
     try {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, 담긴것>;
       for (const [kind, value] of Object.entries(parsed)) {
-        if (Array.isArray(value?.말들)) this.담김.set(kind, { 누구: value.누구 ?? '', 말들: [...value.말들] });
+        if (Array.isArray(value?.말들)) this.담김.set(kind, { whom: value.whom ?? '', 말들: [...value.말들] });
       }
     } catch {
       // 깨진 파일 하나 때문에 얘가 못 뜨면 안 된다 — 없는 셈 치고 다시 채운다.
@@ -110,7 +110,7 @@ export class lineStore {
   /** 이 갈래에 지금 몇 개 담겨 있나 (지금 인격 것만 센다). */
   남은수(kind2: string): number {
     const item = this.담김.get(kind2);
-    if (item === undefined || item.누구 !== this.지금누구) return 0;
+    if (item === undefined || item.whom !== this.지금누구) return 0;
     return item.말들.length;
   }
 
@@ -120,7 +120,7 @@ export class lineStore {
    */
   raise(kind3: string): string | null {
     const item2 = this.담김.get(kind3);
-    if (item2 === undefined || item2.누구 !== this.지금누구 || item2.말들.length === 0) return null;
+    if (item2 === undefined || item2.whom !== this.지금누구 || item2.말들.length === 0) return null;
     const text = item2.말들.shift() as string;
     this.쓰기();
     return text;
@@ -159,9 +159,9 @@ export class lineStore {
         return 0;
       }
       const item3 = this.담김.get(kind4);
-      const already = item3 !== undefined && item3.누구 === this.지금누구 ? item3.말들 : [];
+      const already = item3 !== undefined && item3.whom === this.지금누구 ? item3.말들 : [];
       const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.max);
-      this.담김.set(kind4, { 누구: this.지금누구, 말들: merged });
+      this.담김.set(kind4, { whom: this.지금누구, 말들: merged });
       this.쓰기();
       this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
       return toWrite.length;
