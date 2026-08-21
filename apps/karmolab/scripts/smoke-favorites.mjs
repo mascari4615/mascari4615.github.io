@@ -42,11 +42,20 @@ if (tools0 !== 0) problems.push(`아무것도 안 담았는데 도구가 ${tools
 if (sites0 === 0) problems.push('사이트 즐겨찾기까지 같이 사라졌다');
 
 // ② 담기
-await page.click('#fav-add-open');
+/* ⚠ <b>여는 길이 바뀌었다</b> (2026-08-21 고침). `177fa8e7a`(KL-327, 스트림덱처럼 보는 길)가
+   화면을 새로 짜면서 「담기」 단추(`#fav-add-open`)를 없앴다 — 지금은 <b>빈 칸을 누르면</b>
+   그 자리에 담으라고 추가창이 열린다(`[data-add-slot]`). 검사만 옛 단추를 30초 기다리다 죽었다.
+   (`#fav-add-btn` 은 추가창 <b>안의 저장 단추</b>라 닫혀 있을 때는 안 보인다 — 그걸로 바꾸면
+   「보이지 않음」으로 또 30초를 기다린다. 실제로 한 번 그렇게 헛짚었다.) */
+await page.locator('[data-add-slot]').first().click();
+await page.waitForSelector('#fav-add-modal.open', { timeout: 5000 });
 await page.click('.fav-kind-btn[data-kind="tool"]');
-await page.waitForSelector('.fav-tool-row', { timeout: 5000 });
-const pickedId = await page.locator('.fav-tool-row').first().getAttribute('data-pick');
-await page.locator('.fav-tool-row').first().click();
+/* ⚠ `.fav-tool-row` 는 <b>도구와 앱이 함께 쓴다</b> (2026-08-21 실측: 215개가 잡히고
+   첫 것이 앱 `Discord` 였다). 도구는 `data-pick`, 설치된 앱은 `data-app-pick` 이다.
+   좁히지 않으면 앱을 담아 놓고 「도구를 담았는데 화면엔 0개」로 갈린다. */
+await page.waitForSelector('.fav-tool-row[data-pick]', { timeout: 5000 });
+const pickedId = await page.locator('.fav-tool-row[data-pick]').first().getAttribute('data-pick');
+await page.locator('.fav-tool-row[data-pick]').first().click();
 await page.waitForTimeout(200);
 const tools1 = await countTools();
 if (tools1 !== 1) problems.push(`도구 하나를 담았는데 화면엔 ${tools1}개다`);
