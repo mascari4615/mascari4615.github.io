@@ -3,6 +3,7 @@
     "rootNamespace": "Handheld.Tests",
     "references": [
         "Karmo.Handheld.Core",
+        "Karmo.Handheld",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
