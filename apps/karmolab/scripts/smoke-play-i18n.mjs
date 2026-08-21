@@ -2,10 +2,10 @@
 /**
  * **앱 안 화면이 실제로 지어지나** (2026-08-14, 실서비스 고장 일곱 건에서 나옴)
  *
- * 왜 있나: 「높은 쪽 고르기」가 실서비스에서 **죽어 있었다** — 열면 「장비 꺼내는 중이에요…」
+ * 왜 has: 「높은 쪽 고르기」가 실서비스에서 **죽어 있었다** — 열면 「장비 꺼내는 중이에요…」
  * 에서 영영 안 넘어갔다. 까닭은 한 줄이었다: 게임 표를 파일 맨 위에서
  * `title: t('higher.t04')` 로 만들었는데, 그 자리는 **파일이 읽히는 순간**이라 아직
- * `loadNamespace('higher')` 전이다. 되받을 글 없는 `t()` 는 그때 **던진다** — 위젯이 통째로
+ * `loadNamespace('higher')` 전이다. 되받을 text 없는 `t()` 는 그때 **던진다** — 위젯이 통째로
  * 안 올라가고, 화면에는 오류도 안 뜬다.
  *
  * 왜 기존 검사가 못 잡았나:
@@ -36,7 +36,7 @@ const game = (Array.isArray(games) ? games : games.games || []).map((g) => g.id)
 /* ★ **놀이만이 아니었다** (2026-08-14, 같은 날 다섯 건 더). 같은 병으로 「반려동물·활동·광장·
    내 정보·상태」가 실서비스에서 죽어 있었다 — 전부 **도구 장이 없는 앱 안 화면**이라
    `test:i18n:runtime`(도구 장만 연다)도 놀이 검사도 안 보던 자리다.
-   그래서 대상 = 놀이 ∪ **제 말 묶음을 가진 위젯 전부**. 묶음이 있다는 건 `t()` 를 쓴다는 뜻이고,
+   그래서 대상 = 놀이 ∪ **제 말 묶음을 가진 widget 전부**. 묶음이 있다는 건 `t()` 를 쓴다는 뜻이고,
    `t()` 를 이르게 부르면 그 화면은 통째로 안 올라간다. */
 const widgetsWithBundle = fs
   .readdirSync(path.join(appRoot, 'i18n/ko'))
@@ -137,7 +137,7 @@ async function onePage(id) {
       const el = document.getElementById('page-' + x);
       /* ★ **건너뛰는 까닭을 갈라 적는다** (2026-08-14). 「판이 안 뜬다」를 한 통에 담으면
          정말 죽은 화면이 「원래 화면이 아닌 것」 틈에 섞여 조용히 지나간다. 셋으로 가른다:
-         ① 애초에 위젯이 아닌 이름(말 묶음만 있는 것) ② 숨긴 위젯(다른 화면의 탭으로 합쳐진 것)
+         ① 애초에 위젯이 아닌 이름(말 묶음만 있는 것) ② 숨긴 widget(다른 화면의 탭으로 합쳐진 것)
          ③ **보이는 위젯인데 안 열린다** — 이건 고장이다. */
       const meta = (window.KARMOLAB_LAZY_META || []).find((m) => m && m.id === x);
       /* ★ **글자로 「멎었다」를 판정하지 않는다** (2026-08-14 실측). 「불러오는 중」은 화면마다
@@ -156,21 +156,21 @@ async function onePage(id) {
     const i18nErrors = errors.filter((t) => /\[i18n\]|MissingTranslation|CatalogLoad/.test(t));
     if (i18nErrors.length) {
       red.push(`${id}: 말 묶음 오류 — ${i18nErrors[0]}`);
-    } else if (!locale.있나) {
-      if (locale.위젯 && !locale.숨김) {
+    } else if (!locale.has) {
+      if (locale.widget && !locale.숨김) {
         /* 목록에 버젓이 있고 숨기지도 않았는데 안 열린다 = 사람이 눌러도 안 열린다. */
         red.push(`${id}: 보이는 화면인데 안 열린다 (판이 안 생겼다)`);
       } else {
         /* 앱 안 화면이 아닌 것도 있다(`/daily/` 처럼 제 주소로 사는 것, 다른 화면의 탭으로
            합쳐진 것). 고장이 아니라 **여기서 볼 것이 아니다** — 이름은 적어 둔다. */
-        skipped.push(`${id}(${locale.위젯 ? '숨김' : '위젯 아님'})`);
+        skipped.push(`${id}(${locale.widget ? '숨김' : 'widget 아님'})`);
         process.stdout.write('-');
       }
-    } else if (locale.못올라옴 || !locale.글) {
+    } else if (locale.didNotLoad || !locale.text) {
       /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
          그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
          못 닿아 한 칸이 「불러오는 중」이다. 그건 고장이 아니라 그 화면의 정상이다). */
-      red.push(`${id}: 판이 안 지어졌다 — ${locale.못올라옴 ? "셸이 「못 열었어요」로 바꿨다" : "화면이 비어 있다"}`);
+      red.push(`${id}: 판이 안 지어졌다 — ${locale.didNotLoad ? "셸이 「못 열었어요」로 바꿨다" : "화면이 비어 있다"}`);
     } else {
       process.stdout.write('.');
     }

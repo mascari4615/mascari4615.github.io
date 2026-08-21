@@ -46,7 +46,7 @@ for (const id of SAMPLE) {
   await page.waitForTimeout(1200);
   const cov = await page.coverage.stopCSSCoverage();
 
-  /* ★ **브라우저에게 직접 묻는다** (2026-08-17). 여태는 「막나」를 우리가 추론했다 —
+  /* ★ **브라우저에게 직접 묻는다** (2026-08-17). 여태는 「blocks」를 우리가 추론했다 —
      media 값과 표식(`onload` → `data-deferred`)으로. 그 추론이 두 번 거짓 빨강을 냈다
      (표식 글자를 CSP 때문에 걷어냈을 때 · 표를 다는 코드가 아직 배포 전이었을 때).
      크롬은 그 답을 이미 갖고 있다: 자원 기록의 `renderBlockingStatus`.
@@ -55,7 +55,7 @@ for (const id of SAMPLE) {
     performance.getEntriesByType('resource')
       .filter((e) => typeof e.renderBlockingStatus === 'string')
       .map((e) => ({ url: e.name, blocks: e.renderBlockingStatus })));
-  const measuredBlocking = measured.filter((e) => e.막나 === 'blocking').map((e) => e.url);
+  const measuredBlocking = measured.filter((e) => e.blocks === 'blocking').map((e) => e.url);
 
   /* 옛 추론 — 잰 값이 아예 안 나오는 판에서만 쓴다. */
   const inferredBlocking = await page.evaluate(() =>
@@ -112,7 +112,7 @@ if (!seen.length) {
 const grown = [];
 const shrunk = [];
 for (const [id, value] of Object.entries(totalBytes)) {
-  const before = totalBytesBaseline.목록?.[id];
+  const before = totalBytesBaseline.list?.[id];
   if (typeof before !== 'number') { grown.push(`${id} — 기준선에 없다(${(value / 1024).toFixed(0)}KB) · --bless 로 적어라`); continue; }
   if (value > before + 2048) grown.push(`${id} — 첫 그림에 기다리는 스타일이 ${(before / 1024).toFixed(0)}KB → ${(value / 1024).toFixed(0)}KB 로 늘었다`);
   else if (value < before - 2048) shrunk.push(`${id} ${(before / 1024).toFixed(0)}→${(value / 1024).toFixed(0)}KB`);

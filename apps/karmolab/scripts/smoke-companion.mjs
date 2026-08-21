@@ -70,7 +70,7 @@ try {
   }));
   await browser.close();
   server.close();
-  console.error(`[smoke-companion] X  봇은 떠 있는데 위젯이 못 붙었다 — 화면: "${screenSaid.윗줄} · ${screenSaid.아랫줄}"`);
+  console.error(`[smoke-companion] X  봇은 떠 있는데 위젯이 못 붙었다 — 화면: "${screenSaid.upperLine} · ${screenSaid.lowerLine}"`);
   console.error(`[smoke-companion]    창에서 터진 것: ${errors.length === 0 ? '없음' : errors.join(' / ')}`);
   console.error('[smoke-companion]    의심 자리 = 붙는 주소(포트) · 봇이 이 기계 창에 문을 여는가(CORS)');
   process.exit(1);
@@ -116,17 +116,17 @@ await browser.close();
 server.close();
 
 const mask = [];
-if (state.칸열림 === false) mask.push('붙었다면서 말 걸기 칸이 잠겨 있다');
+if (state.cellOpen === false) mask.push('붙었다면서 말 걸기 칸이 잠겨 있다');
 if (botHeard === false) mask.push('화면엔 떴는데 봇 기록엔 그 말이 없다');
 if (wasCleared === false) mask.push('검사 자국이 사람의 기억에 남았다 — 그게 졸여져 사람의 상이 된다');
 if (errors.length > 0) mask.push(`창에서 터진 게 있다: ${errors.join(' / ')}`);
-// 「곁에 있다」만 보고 끝내면, 몸이 큐브로 물러서거나 목소리가 빠진 걸 화면이 여전히 못 잡는다.
+// 「beside 있다」만 보고 끝내면, 몸이 큐브로 물러서거나 목소리가 빠진 걸 화면이 여전히 못 잡는다.
 if (cell.length === 0) mask.push('창·몸·목소리 칸이 하나도 안 떴다');
 for (const expected of ['창', '몸', '목소리']) {
   if (cell.some((c) => c.startsWith(expected)) === false) mask.push(`「${expected}」 칸이 없다`);
 }
 
-console.log(`[smoke-companion] ${state.곁에} · ${state.아래}`);
+console.log(`[smoke-companion] ${state.beside} · ${state.below}`);
 console.log(
   `[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${botHeard ? 'O' : 'X'} · 자국 지움 ${wasCleared ? 'O' : 'X'}` +
     (cleared ? ` (대화 ${cleared.conversation}줄)` : ''),

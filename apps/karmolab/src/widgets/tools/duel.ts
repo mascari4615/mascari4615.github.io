@@ -3,7 +3,7 @@
  *
  * 레퍼런스에서 가져온 것 (2026-08-07 조사):
  *  - **와리오웨어**의 마이크로게임 — 「한 단어 명령 + 3~5초 + 즉시 판정」, 그리고 갈수록 짧아지는
- *    제한 시간. 설명을 읽을 틈이 없어야 재밌다. 명령은 한 단어, 고르는 곳은 늘 같은 자리에 넷.
+ *    limit 시간. 설명을 읽을 틈이 없어야 재밌다. 명령은 한 단어, 고르는 곳은 늘 같은 자리에 넷.
  *  - **브라우저 파티게임**(GameBuddies·게이밍카우치 류) — 가입 없이 **링크/방 코드**로 30초 안에
  *    시작하고, 판이 끝나도 **방을 안 닫는다**(다시 붙는 마찰이 0이어야 한 판 더 한다).
  *  - 다만 그것들은 전부 **여럿이서, 자기 서버로** 돈다. 몇 초짜리 마이크로게임 1:1 은 못 찾았고,
@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   const ROUNDS = 5;
-  const LIMIT_START = 4000; // 첫 판 제한 (레퍼런스: 3~5초)
+  const LIMIT_START = 4000; // 첫 판 limit (레퍼런스: 3~5초)
   const LIMIT_STEP = 400; // 판마다 이만큼 짧아진다 — 마지막은 2.4초
   const APP_ID = 'karmolab-duel';
 
@@ -37,7 +37,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /* 문제는 **말 묶음이 들고 있다.** 초성 놀이는 한글에만 있는 놀이라, 말만 갈아끼우면
    * 다른 언어에선 놀이가 성립하지 않는다. 그래서 언어마다 *같은 규칙의 그 나라 놀이*를
-   * 적어 둔다 — en = 모음 뺀 글자, ja = ローマ字の子音. 미끼는 첫 글자만 같고 실마리로
+   * 적어 둔다 — en = 모음 뺀 glyph, ja = ローマ字の子音. 미끼는 첫 글자만 같고 실마리로
    * 되돌리면 달라지게 골라 둔다(겹치면 답이 둘이 된다).
    * 표를 미리 굳히지 않고 **쓸 때 만든다** — 굳히면 그 시점엔 말 묶음이 아직 안 왔다. */
   const QUIZ_COUNT = 6;
@@ -136,17 +136,17 @@ import { t, loadNamespace } from '../../lib/i18n';
         limitMs
       };
     }
-    /* 색깔(스트룹): 「글자 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
+    /* 색깔(스트룹): 「glyph 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
      * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
     const palette = colorName();
     const 고를색 = pick(palette);
     const rest = palette.filter((c) => c[0] !== 고를색[0]);
     const 정답자리 = Math.floor(Math.random() * 4);
-    const 글자 = shuffle(rest);
+    const glyph = shuffle(rest);
     const choices: string[] = [];
     const tint: string[] = [];
     for (let k = 0; k < 4; k++) {
-      choices.push(글자[k % 글자.length][0]);
+      choices.push(glyph[k % glyph.length][0]);
       tint.push(k === 정답자리 ? 고를색[1] : pick(rest)[1]);
     }
     return {
@@ -232,7 +232,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#duStatus');
           const nameInput = $<HTMLInputElement>('#duName');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+          /* state 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
           const say = statusLine(status);
 

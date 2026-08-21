@@ -25,7 +25,7 @@ const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 /* ★ **접은 도구는 이 검사의 대상이 아니다** (2026-08-14). 작업대로 합쳐진 열여섯은 낱개 장이
    넘김판이라 공유 카드도 자리 높이도 안 만든다 — 그런데 여기서 세고 있었다. 초록이었던 건
    **옛 카드 파일이 지워지지 않고 남아 있어서**다(사람은 「138개 다 갖췄다」로 읽는다).
-   목록 정본 = `lib/retired-operations.mjs`. */
+   list 정본 = `lib/retired-operations.mjs`. */
 const all = Object.keys(read('data/tools-seo.json').tools);
 const tools = withoutRetired(all);
 const aliases = fs.existsSync(path.join(root, 'data/tool-aliases.json')) ? read('data/tool-aliases.json').aliases || {} : {};
@@ -118,7 +118,7 @@ const problems = [];
     }
   }
 }
-/* 목록 페이지에 「마지막으로 바뀐 날」이 적혀 있는가 (TASK-KL-089).
+/* list 페이지에 「마지막으로 바뀐 날」이 적혀 있는가 (TASK-KL-089).
  * 실제 사이트의 사이트맵을 받아 보니 도구 125장에는 그 날짜가 있는데 목록만 빠져 있었다.
  * 검색엔진은 그 값으로 다시 올 때를 정하므로, 도구를 새로 얹어도 목록을 늦게 다시 본다. */
 {
@@ -126,7 +126,7 @@ const problems = [];
   if (fs.existsSync(hub)) {
     const head = fs.readFileSync(hub, 'utf8').slice(0, 200);
     if (!/last_modified_at:\s*\d{4}-\d{2}-\d{2}/.test(head)) {
-      problems.push('목록 페이지에 마지막으로 바뀐 날이 없다 — 사이트맵에서도 빠져 검색엔진이 늦게 다시 온다');
+      problems.push('list 페이지에 마지막으로 바뀐 날이 없다 — 사이트맵에서도 빠져 검색엔진이 늦게 다시 온다');
     }
   }
 }
@@ -143,7 +143,7 @@ const problems = [];
     try {
       rows = JSON.parse(raw);
     } catch {
-      problems.push('건지기 목록(tools.json)이 깨졌다 — 없는 주소로 온 사람을 못 건진다');
+      problems.push('건지기 list(tools.json)이 깨졌다 — 없는 주소로 온 사람을 못 건진다');
     }
     /* 건지기 목록에는 **접은 도구도 남긴다** — 그 주소로 오는 사람에게 이름이라도 찾아 주려고
        일부러 남긴 것이다(`gen-tool-pages.mjs` 주석). 그러니 여기 수는 「지금 도구 + 접은 것」이다.
@@ -193,7 +193,7 @@ const BASELINE = path.join(root, 'data/tool-data-baseline.json');
 const baselineData = fs.existsSync(BASELINE)
   ? JSON.parse(fs.readFileSync(BASELINE, 'utf8'))
   : { note: '상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다', list: [] };
-const old = new Set(baselineData.목록 || []);
+const old = new Set(baselineData.list || []);
 const newlyGrown = seoOrphans.filter((id) => old.has(id) === false);
 const repaid = [...old].filter((id) => seoOrphans.includes(id) === false);
 

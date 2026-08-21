@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
      날것 그대로 보냈다 — 그래서 Jekyll 앞머리(`---` 세 줄)가 **글자로** 먼저 나가고, 파서는
      거기서 `<body>` 를 열어 버린다. 그러면 뒤따르는 `<meta>` 가 전부 머리 밖으로 밀려
      브라우저가 「CSP 가 head 밖에서 왔다 — 무시한다」고 말한다. 우리 화면 잘못이 아니라
-     **검사가 만든 상태**다(다른 검사들은 이미 `stripJekyll` 을 쓴다). 같은 것을 쓴다. */
+     **검사가 만든 state**다(다른 검사들은 이미 `stripJekyll` 을 쓴다). 같은 것을 쓴다. */
   if (path.extname(file) === '.html') {
     res.end(stripJekyll(fs.readFileSync(file, 'utf8')));
     return;
@@ -111,11 +111,11 @@ if (!played) {
     return { webm: v.canPlayType('video/webm'), state: document.getElementById('baStatus')?.textContent ?? '' };
   });
   if (!canPlay.webm) {
-    console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (상태: ${canPlay.상태})`);
+    console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (state: ${canPlay.state})`);
     await browser.close();
     process.exit(2); /* 2 = 못 돌림. 이 저장소 규약 */
   }
-  console.error(`[smoke-badapple] 60초 안에 재생이 안 시작됐다 (상태: ${canPlay.상태})`);
+  console.error(`[smoke-badapple] 60초 안에 재생이 안 시작됐다 (state: ${canPlay.state})`);
   await browser.close();
   process.exit(1);
 }
