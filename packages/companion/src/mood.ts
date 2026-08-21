@@ -1,3 +1,4 @@
+import { isHollow } from './hollow';
 import type { MemoryEntry } from './types';
 
 /**
@@ -133,6 +134,12 @@ export function recallFrom(
           if (taken >= perKeyword) break;
           // 방금 나눈 말은 이미 두뇌가 보고 있다 — 또 붙이면 자리만 먹는다.
           if (recentTexts.has(hit.text) || seen.has(hit.text)) continue;
+          /* **다시 볼 값어치가 없는 제 말은 자리를 먹지 못하게 한다.**
+             재료는 여덟 줄뿐이라 「내가: …아니다.」 한 줄이 들어가면 진짜 옛 기억 하나가
+             밀려난다(106회차 실측: 여덟 중 셋이 제 말, 그중 둘이 알맹이 없음. 64회차에
+             겪은 「값진 재료가 먼저 밀린다」와 같은 모양이다).
+             사람 말은 짧아도 남긴다 — 사람이 한 말은 짧아도 사실이다. */
+          if (hit.role === 'said' && isHollow(hit.text)) continue;
           seen.add(hit.text);
           taken += 1;
           lines.push(
