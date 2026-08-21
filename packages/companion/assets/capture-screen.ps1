@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 public class CompanionDpi {
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [DllImport("user32.dll")] public static extern int GetSystemMetrics(int i);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 }
 '@
 try {
@@ -37,18 +38,41 @@ try {
 
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 
-# SM_CXSCREEN / SM_CYSCREEN, asked after the call above, are real pixels.
-$width = [CompanionDpi]::GetSystemMetrics(0)
-$height = [CompanionDpi]::GetSystemMetrics(1)
-if ($width -le 0 -or $height -le 0) {
-  $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-  $width = $bounds.Width
-  $height = $bounds.Height
+# Shoot the monitor the FOREGROUND WINDOW is on, not the primary one.
+#
+# The text below is read from the foreground window. If the picture is always
+# taken at the primary monitor's origin, then on a multi-monitor desk the two
+# describe DIFFERENT SCREENS -- and the reader gets them as one scene.
+#
+# Measured 2026-08-21 (138th round): the foreground window sat at
+# (326,-1080,1920,1032) -- a negative y, i.e. the monitor ABOVE the primary --
+# while CopyFromScreen(0, 0, ...) handed back 1568x882 of the primary. The text
+# listed 120 elements of a browser the picture did not contain a single pixel of.
+# That is the other half of "there is only a small F up there" (98th round).
+$bounds = $null
+try {
+  $bounds = [System.Windows.Forms.Screen]::FromHandle([CompanionDpi]::GetForegroundWindow()).Bounds
+} catch {
+  $bounds = $null
 }
+if ($null -eq $bounds -or $bounds.Width -le 0 -or $bounds.Height -le 0) {
+  # SM_CXSCREEN / SM_CYSCREEN, asked after the DPI call above, are real pixels.
+  $primaryWidth = [CompanionDpi]::GetSystemMetrics(0)
+  $primaryHeight = [CompanionDpi]::GetSystemMetrics(1)
+  if ($primaryWidth -le 0 -or $primaryHeight -le 0) {
+    $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+  } else {
+    $bounds = New-Object System.Drawing.Rectangle 0, 0, $primaryWidth, $primaryHeight
+  }
+}
+$originX = $bounds.X
+$originY = $bounds.Y
+$width = $bounds.Width
+$height = $bounds.Height
 
 $full = New-Object System.Drawing.Bitmap $width, $height
 $graphics = [System.Drawing.Graphics]::FromImage($full)
-$graphics.CopyFromScreen(0, 0, 0, 0, $full.Size)
+$graphics.CopyFromScreen($originX, $originY, 0, 0, $full.Size)
 $graphics.Dispose()
 
 # Shrink before saving: a full 4K frame is slow to move around and the reader
@@ -66,6 +90,12 @@ if ($full.Width -gt $MaxWidth) {
 
 $full.Save($OutPath, [System.Drawing.Imaging.ImageFormat]::Png)
 $full.Dispose()
+
+# Say WHERE this was shot and how big that area was. Without it nobody can put
+# the text's coordinates back onto the picture -- and nobody can check that the
+# two are even the same screen.
+Write-Output ("ORIGIN=" + $originX + "," + $originY)
+Write-Output ("AREA=" + $width + "," + $height)
 
 $title = ''
 try {
