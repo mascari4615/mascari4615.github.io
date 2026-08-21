@@ -236,6 +236,31 @@ namespace Handheld.Tests
         }
 
         [Test]
+        public void 폰이_알린_원점_재설정은_공백이_없어도_흡수한다()
+        {
+            // WebXR 의 `reset` 은 재정위의 **정답 통보**다 — 공백도 없고 속도도 사람 범위면
+            // 우리 그물(공백·속도)에는 안 걸린다. 통보가 있으면 그것으로 잡아야 한다.
+            var st = new TrackingStabilizer();
+            double t = 1000;
+            st.Stabilize(t, Vector3.zero, Quaternion.identity, out Vector3 before, out _);
+
+            st.NotifyReset("시험");
+            t += 33;                                    // 정상 간격 · 사람이 낼 수 있는 이동
+            st.Stabilize(t, new Vector3(0.05f, 0f, 0f), Quaternion.Euler(0f, 3f, 0f),
+                out Vector3 after, out _);
+
+            Assert.AreEqual(1, st.ReanchorCount, "통보를 무시했다");
+            Assert.Less(Vector3.Distance(before, after), 1e-3f, "통보를 받고도 카메라가 움직였다");
+
+            // 통보는 한 번만 듣는다 — 계속 물고 있으면 그 뒤로 카메라가 얼어붙는다.
+            t += 33;
+            st.Stabilize(t, new Vector3(0.10f, 0f, 0f), Quaternion.Euler(0f, 6f, 0f),
+                out Vector3 moved, out _);
+            Assert.AreEqual(1, st.ReanchorCount);
+            Assert.Greater(Vector3.Distance(moved, after), 0.01f, "통보 뒤 움직임이 죽었다");
+        }
+
+        [Test]
         public void 평범한_움직임은_손대지_않는다()
         {
             // 30Hz 로 1m 를 부드럽게 걸으며 90° 도는 합성 자료. 안정기가 끼어들면 안 된다.

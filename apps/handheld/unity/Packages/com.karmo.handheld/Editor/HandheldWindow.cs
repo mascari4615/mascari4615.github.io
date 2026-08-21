@@ -91,25 +91,87 @@ namespace Handheld.EditorTools
                 return;
             }
 
-            DrawHeartbeatSection();
-            EditorGUILayout.Space(8);
-            DrawServerSection();
-            EditorGUILayout.Space(8);
-            DrawTunnelSection();
-            EditorGUILayout.Space(8);
-            DrawQrSection();
-            EditorGUILayout.Space(8);
-            DrawRigSection();
-            EditorGUILayout.Space(8);
-            DrawLensSection();
-            EditorGUILayout.Space(8);
-            DrawTransportSection();
-            EditorGUILayout.Space(8);
-            DrawUrpSection();
-            EditorGUILayout.Space(8);
-            DrawRecordSection();
+            // 첫 화면에는 **상태와 QR 만**. 손잡이는 구획으로 접어 둔다 — 아홉 구획이
+            // 한꺼번에 펼쳐져 있으면 정작 방송 직전에 볼 것(붙었나·튀나)이 안 보인다.
+            DrawSummary();
+            EditorGUILayout.Space(6);
+
+            bool phoneHere = _server.Connected;
+            if (!phoneHere) DrawQrSection();          // 폰이 붙으면 QR 은 자리만 차지한다
+            else Fold("qr", "QR · 주소", DrawQrSection, false);
+
+            EditorGUILayout.Space(4);
+            Fold("setup", "띄우기", () =>
+            {
+                DrawHeartbeatSection();
+                EditorGUILayout.Space(8);
+                DrawServerSection();
+                EditorGUILayout.Space(8);
+                DrawTunnelSection();
+            }, !phoneHere);
+
+            Fold("camera", "카메라", () =>
+            {
+                DrawRigSection();
+                EditorGUILayout.Space(8);
+                DrawLensSection();
+            }, phoneHere);
+
+            Fold("transport", "전송", DrawTransportSection, false);
+            Fold("record", "기록", DrawRecordSection, false);
+            Fold("urp", "흐림 (URP)", DrawUrpSection, false);
 
             EditorGUILayout.EndScrollView();
+        }
+
+        // ── 한눈에 ───────────────────────────────────────────────────────────────
+        void DrawSummary()
+        {
+            var box = new GUIStyle(EditorStyles.helpBox) { padding = new RectOffset(8, 8, 6, 6) };
+            using (new EditorGUILayout.VerticalScope(box))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    Dot(_server.Running, _server.Running ? $"서버 {_server.port}" : "서버 꺼짐");
+                    Dot(!string.IsNullOrEmpty(_tunnelUrl), "터널");
+                    Dot(_server.Connected, _server.Connected ? "폰" : "폰 없음");
+                    GUILayout.FlexibleSpace();
+                    if (_server.ReanchorCount > 0)
+                        GUILayout.Label($"재정위 {_server.ReanchorCount}", Warn());
+                }
+
+                if (_server.Connected && _rig != null)
+                    GUILayout.Label(_rig.StatusLine, WrapMini());
+                if (_server.Connected && !string.IsNullOrEmpty(_server.PhoneTrack) && _server.PhoneTrack != "ok")
+                    GUILayout.Label("폰 추적: " + _server.PhoneTrack, Warn());
+            }
+        }
+
+        static void Dot(bool on, string label)
+        {
+            GUILayout.Label((on ? "● " : "○ ") + label, on ? Ok() : EditorStyles.miniLabel,
+                GUILayout.ExpandWidth(false));
+        }
+
+        /// <summary>접히는 구획. 열고 닫은 상태는 창을 닫아도 남는다.</summary>
+        void Fold(string key, string title, System.Action body, bool defaultOpen)
+        {
+            string pref = "Handheld.Cockpit." + key;
+            bool open = EditorPrefs.GetBool(pref, defaultOpen);
+            bool now = EditorGUILayout.Foldout(open, title, true, EditorStyles.foldoutHeader);
+            if (now != open) EditorPrefs.SetBool(pref, now);
+            if (!now) return;
+
+            using (new EditorGUI.IndentLevelScope())
+                body();
+            EditorGUILayout.Space(6);
+        }
+
+        static GUIStyle Warn()
+        {
+            var s = new GUIStyle(EditorStyles.miniLabel);
+            s.normal.textColor = new Color(0.95f, 0.62f, 0.35f);
+            return s;
         }
 
         // ── 심장 ─────────────────────────────────────────────────────────────────

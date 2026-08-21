@@ -68,6 +68,12 @@ namespace Handheld
         /// 위치·요는 안정기가 이미 이어 붙였고, 남은 기울기(피치·롤)를 리그가 밀어 넣는다.
         /// </summary>
         public bool ConsumeReanchored() => _stabilizer.ConsumeReanchored();
+
+        /// <summary>듣는 중인가 (포트가 열려 있나).</summary>
+        public bool Running => _running;
+
+        /// <summary>폰이 보고한 추적 상태 — ok / weak / lost / hidden / 3dof.</summary>
+        public string PhoneTrack => _phoneTrack;
         bool _hasPose;
         int _seq;
         int _recenterFlag;
@@ -131,6 +137,7 @@ namespace Handheld
         int _rxLines;
         volatile string _lastLine = "";
         volatile string _diagCache = "{}";
+        volatile string _phoneTrack = "?";        // 폰이 보고한 추적 상태
         int _recRequest;                                     // 0 없음 · 1 켜기 · 2 끄기
         double _nextDiagBake;
 
@@ -478,6 +485,7 @@ namespace Handheld
 
             // 추적이 몇 번 끊겼나 — 잦으면 폰 쪽 문제다(빛·질감 없는 벽·앱 전환).
             // 방송 전에 이 수가 0 에 가까운지 보고 나간다.
+            sb.AppendFormat(c, "\"track\":\"{0}\",", _phoneTrack ?? "?");
             sb.AppendFormat(c, "\"reanchor\":{0},", _stabilizer.ReanchorCount);
             sb.AppendFormat(c, "\"reanchorWhy\":\"{0}\",", (_stabilizer.LastReason ?? "").Replace("\"", "'"));
 
@@ -516,6 +524,16 @@ namespace Handheld
             _lastLine = msg.Length > 90 ? msg.Substring(0, 90) : msg;
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
+
+            // 추적 상태:  t|상태|재정위횟수|이번에재정위했나
+            // 마지막 칸이 1 이면 폰의 WebXR 이 원점 재설정을 통보한 것이다 = 확정 재정위.
+            if (msg.Length > 2 && msg[0] == 't' && msg[1] == '|')
+            {
+                var t = msg.Split('|');
+                _phoneTrack = t.Length > 1 ? t[1] : "?";
+                if (t.Length > 3 && t[3] == "1") _stabilizer.NotifyReset("폰이 원점 재설정을 알렸다");
+                return;
+            }
 
             // 폰 자기 진단:  d|모드|AR설정|그립|방향|각도|화면크기|전송|프레임크기
             if (msg.Length > 2 && msg[0] == 'd' && msg[1] == '|')
