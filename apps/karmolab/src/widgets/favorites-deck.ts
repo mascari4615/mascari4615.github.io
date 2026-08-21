@@ -29,7 +29,7 @@ const SLOTS = 12;
  *   크기   슬라이더 — 어느 조합에서도 그대로 유지
  * 예전엔 이 셋이 「보기 3개」로 뭉쳐 있어서, 크게 보려면 살결까지 따라 바뀌었다.
  */
-export type FavSkin = 'plain' | 'glow' | 'glass';
+export type FavSkin = 'plain' | 'glow' | 'glass' | 'sign';
 export type FavLayout = 'list' | 'deck';
 const SKIN_KEY = 'toolbox_fav_skin';
 const LAYOUT_KEY = 'toolbox_fav_layout';
@@ -38,7 +38,7 @@ const LEGACY_VIEW_KEY = 'toolbox_fav_view';
 
 /* 「납작」은 뺐다 — 덱 배치에서 「기존」과 눈에 띄는 차이가 없었다(둘 다 카드 얼굴).
    축이 하나 줄어 고르는 비용도 준다 (사용자 결정 2026-08-19). */
-export const SKINS: FavSkin[] = ['plain', 'glow', 'glass'];
+export const SKINS: FavSkin[] = ['plain', 'glow', 'glass', 'sign'];
 
 /** 옛 설정(icon/card/deck)을 새 세 축으로 한 번 옮긴다. */
 function migrate(): void {
@@ -550,9 +550,219 @@ export const DECK_CSS = `
         background:#e4e1ef; box-shadow:inset 0 3px 8px rgba(26,26,31,0.18);
     }
 
+
+    /* ── 살결 ③「간판」 — 밤의 편의점 미니 간판 자석 (TASK-KL-344).
+       스트림덱이 「기기」라면 간판은 「물건」이다: 어두운 프레임 안에 유백 확산판이
+       박혀 있고, 담긴 것은 켜져 있고 빈 칸은 꺼져 있다.
+
+       손잡이는 셋뿐이다 — 규칙을 두 벌로 안 적으려고 이렇게 짰다:
+         --fk-lit   0=꺼짐 1=켜짐   (담김/빈칸/예열이 전부 이걸 움직인다)
+         --fk-emit  빛이 보이나     (라이트 테마에서 0 — 낮엔 LED 가 안 보인다)
+         --fk-sun   해가 있나       (라이트 테마에서 1 — 대신 진짜 그림자가 진다)
+
+       **라이트 테마에서 빛을 안 끄면 거짓말이 된다.** 낮에 형광 간판이 번쩍이는
+       화면은 현실에 없는 그림이고 눈이 바로 알아챈다. 그래서 낮에는 번짐이 0 이 되고
+       확산판은 그냥 흰 아크릴이 된다 — 글자는 그대로 읽히니 정보는 안 죽는다.
+       켜졌는지는 오른쪽 아래 전원 표시등 하나로만 안다(실물이 그렇다). */
+    .skin-sign .fav-layout, .fav-layout.skin-sign { --fk-emit:1; --fk-sun:0; }
+    [data-theme="light"] .fav-layout.skin-sign, [data-theme="light"] .skin-sign .fav-layout { --fk-emit:0; --fk-sun:1; }
+
+    .skin-sign .fav-key {
+        pointer-events:auto; --tint:200; --sat:48%; --lum:86%; --skew:0deg; --fk-lit:1;
+        --lcd:7px;   /* 확산판이 파인 깊이 = 간판 두께 */
+        --r:4px;
+        transform:rotate(var(--skew));
+    }
+    /* 손이 닿으면 **한 단 더 솟는다** — 두께가 늘어나면서 옆면이 넓어진다.
+       위치를 옮기는 대신 두께를 바꾸는 쪽이 「물건」으로 읽힌다. */
+    .skin-sign .fav-key.hot { --lcd:10px; }
+    /* 유리 캡만 버린다 — 간판엔 유리가 없다. **우물(fk-wall·fk-base)은 쓴다**:
+       확산판은 프레임 **안쪽으로 파여** 있고, 그 깊이가 곧 간판의 두께다.
+       스트림덱(KL-327)이 이미 이 기법으로 도는 것을 확인했다 — 새 길이 아니다. */
+    .skin-sign .fk-gw, .skin-sign .fk-glass { display:none; }
+
+    /* 색온도 — **hue 만 돌리면 전부 같은 흰색이 된다**(2026-08-21 제보: 「빛 색이 틀렸다」).
+       실물 형광등은 청백 6500K ~ 전구색 3000K 사이에 흩어져 있고, 그 색이 **면에 남는다**.
+       그래서 채도(--sat)·면 밝기(--lum)·자석이 삐뚠 각도(--skew)까지 같이 돌린다.
+       개체차가 있어야 「진짜 물건 여러 개」로 읽힌다. */
+    .skin-sign .fav-item-wrap:nth-child(6n+1) .fav-key { --tint:188; --sat:46%; --lum:86%; --skew:-0.8deg; }
+    .skin-sign .fav-item-wrap:nth-child(6n+2) .fav-key { --tint:38;  --sat:62%; --lum:84%; --skew: 0.6deg; }
+    .skin-sign .fav-item-wrap:nth-child(6n+3) .fav-key { --tint:206; --sat:52%; --lum:88%; --skew: 1.1deg; }
+    .skin-sign .fav-item-wrap:nth-child(6n+4) .fav-key { --tint:26;  --sat:54%; --lum:82%; --skew:-0.4deg; }
+    .skin-sign .fav-item-wrap:nth-child(6n+5) .fav-key { --tint:158; --sat:40%; --lum:87%; --skew: 0.9deg; }
+    .skin-sign .fav-item-wrap:nth-child(6n+6) .fav-key { --tint:48;  --sat:58%; --lum:85%; --skew:-1.0deg; }
+
+    /* ── 몸통 (ABS) ────────────────────────────────────────────
+       테두리(fk-base)가 확산판보다 **앞으로** 나와 있어야 판이 파여 보인다.
+       그림자는 여기 붙인다 — 낮엔 해가 만든 것, 밤엔 바닥에 깔린 것. */
+    .skin-sign .fk-base {
+        /* **배경을 주면 안 된다** — 배경은 테두리 안쪽까지 칠해서 확산판을 통째로 덮는다
+           (2026-08-21 실측: 간판이 전부 회색 판이 됐다). 칠하는 것은 테두리뿐이다. */
+        display:block; inset:-7px; background:none;
+        border:7px solid #2b2d33; border-radius:calc(var(--r) + 7px);
+        transform:translateZ(var(--lcd));
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.12),
+            calc(7px * var(--fk-sun)) calc(10px * var(--fk-sun)) calc(16px * var(--fk-sun)) rgba(74,66,52,calc(0.34 * var(--fk-sun))),
+            0 calc(14px * var(--fk-emit)) calc(22px * var(--fk-emit)) -10px rgba(0,0,0,0.85);
+    }
+    [data-theme="light"] .skin-sign .fk-base {
+        border-color:#b6bac1;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.75),
+            7px 10px 16px rgba(74,66,52,0.30);
+    }
+    /* 우물 벽 = 간판 옆면. 밝기 차는 **색으로** 낸다 — filter 를 쓰면 면마다 렌더
+       서피스가 생겨 preserve-3d 가 접힌다 (KL-327 에서 밟은 함정 ①). */
+    .skin-sign .fk-w-t { background:#101216; }
+    .skin-sign .fk-w-b { background:#2c2f36; }
+    .skin-sign .fk-w-l, .skin-sign .fk-w-r { background:#1c1e23; }
+    [data-theme="light"] .skin-sign .fk-w-t { background:#9aa0a8; }
+    [data-theme="light"] .skin-sign .fk-w-b { background:#cfd3d8; }
+    [data-theme="light"] .skin-sign .fk-w-l,
+    [data-theme="light"] .skin-sign .fk-w-r { background:#b3b8bf; }
+    /* 벽에 번지는 빛 — **물건 바깥**이다. 안에 box-shadow 로 넣으면 벽에 안 번진다.
+       낮에는 --fk-emit 이 0 이라 아예 안 생긴다. */
+    .skin-sign .fav-key::after {
+        content:''; position:absolute; inset:-26px; z-index:-1; border-radius:50%; pointer-events:none;
+        transform:translateZ(-1px);
+        background:radial-gradient(closest-side,
+            hsl(var(--tint) 72% 58% / calc(0.46 * var(--fk-lit) * var(--fk-emit))), transparent 72%);
+        filter:blur(11px);
+        transition:background 400ms ease;
+    }
+
+    /* 확산판 — 면 전체가 고르게 뜬다. 테두리에서 나오면 그건 네온이다. */
+    .skin-sign .fk-face {
+        inset:0; border-radius:var(--r); z-index:1; transform:none;
+        background:
+            /* LED 두 알이 박힌 자리 — 그 위만 하얗게 날아가고, 나머지 면엔 색이 남는다.
+               실물 사진이 정확히 이렇다: 중앙 흰색, 가장자리 색. 면 전체를 흰색으로
+               칠하면 「밝은 타일」이 되지 「켜진 간판」이 안 된다. */
+            radial-gradient(58% 42% at 32% 26%, rgba(255,255,255,calc(0.10 + 0.72 * var(--fk-lit) * var(--fk-emit))), transparent 68%),
+            radial-gradient(58% 42% at 72% 78%, rgba(255,255,255,calc(0.08 + 0.60 * var(--fk-lit) * var(--fk-emit))), transparent 66%),
+            hsl(var(--tint) calc(var(--sat) * var(--fk-emit)) calc(var(--lum) + 7% * var(--fk-sun)));
+        box-shadow:
+            inset 0 0 0 1px hsl(var(--tint) 30% 100% / 0.85),   /* 아크릴 모서리 */
+            /* 형광등 튜브의 **양 끝은 어둡다** — 오래된 등의 그을음. 이게 없으면 면이 균일해서 렌더로 읽힌다. */
+            inset 13px 0 18px -13px hsl(var(--tint) 55% 26% / calc(0.34 * var(--fk-emit) + 0.10)),
+            inset -13px 0 18px -13px hsl(var(--tint) 55% 26% / calc(0.34 * var(--fk-emit) + 0.10)),
+            inset 0 -3px 7px hsl(var(--tint) 42% 40% / calc(0.4 * var(--fk-emit) + 0.12)),
+            0 0 12px hsl(var(--tint) 70% 66% / calc(0.46 * var(--fk-lit) * var(--fk-emit))),
+            0 0 46px hsl(var(--tint) 70% 58% / calc(0.30 * var(--fk-lit) * var(--fk-emit)));
+        filter:
+            brightness(calc(1 - var(--fk-emit) * (0.70 - 0.70 * var(--fk-lit))))
+            saturate(calc(1 - var(--fk-emit) * (0.55 - 0.55 * var(--fk-lit))));
+        transition:filter 400ms ease, box-shadow 400ms ease, transform 130ms ease;
+    }
+    /* 그림·글자는 확산판 **뒤에서 비치는 잉크**다 — 흰 글자를 얹으면 안 읽힌다. */
+    .skin-sign .fk-art svg { stroke:hsl(var(--tint) calc(40% * var(--fk-emit) + 10%) 26%); }
+    .skin-sign .fk-art img { width:44%; height:44%; }
+    .skin-sign .fk-cap {
+        /* 오른쪽에 자리를 비운다 — 전원 표시등이 이름 꼬리를 덮고 있었다. */
+        padding:14px 13px 5px 6px;
+        color:hsl(var(--tint) calc(46% * var(--fk-emit) + 12%) 21%);
+        text-shadow:none; background:none; font-weight:700;
+    }
+    /* ── 아크릴 표면 — 「너무 깨끗하다」의 처방 (2026-08-21 제보) ──────────────
+       CSS 로 만든 빛이 렌더처럼 읽히는 진짜 이유는 색이 아니라 **균일함**이다.
+       실물 사진에는 늘 넷이 같이 있다: ① 비스듬한 표면 반사 ② 모서리에 낀 때
+       ③ 확산판 안쪽 얼룩 ④ 필름 그레인. 넷 다 빛보다 **약해야** 한다 —
+       세게 넣으면 이번엔 「더러운 렌더」가 된다.
+
+       DOM 은 안 늘린다 — 스트림덱의 LCD 결 층(fk-lcd)을 이 살결에서 표면으로 다시 쓴다. */
+    .skin-sign .fk-lcd {
+        display:block; inset:0; z-index:3; opacity:1; border-radius:var(--r);
+        background:
+            /* ① 표면 반사 — 위에서 비스듬히 들어온 빛. 낮엔 해라서 더 세다. */
+            linear-gradient(146deg,
+                rgba(255,255,255,calc(0.30 + 0.26 * var(--fk-sun))) 0%,
+                rgba(255,255,255,calc(0.10 + 0.10 * var(--fk-sun))) 15%,
+                rgba(255,255,255,0) 32%),
+            /* ② 모서리 때 — 손이 닿는 자리 */
+            radial-gradient(150% 130% at 50% 46%, transparent 52%, rgba(58,46,30,0.26) 100%),
+            /* ③ 확산판 안쪽 얼룩 두 점 */
+            radial-gradient(52% 38% at 20% 76%, rgba(120,98,64,0.13), transparent 62%),
+            radial-gradient(40% 30% at 82% 22%, rgba(90,110,130,0.11), transparent 60%),
+            /* ④ 그레인 — 파일 0. 인라인 SVG 잡음이다. */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+        background-size:auto, auto, auto, auto, 90px 90px;
+        mix-blend-mode:normal;   /* 섞기는 안 쓴다 — 3D 면마다 배경을 되읽어 프레임이 늘어진다 */
+        pointer-events:none;
+    }
+    /* 그레인만 따로 약하게 — 위 배경 묶음의 마지막 겹이다. 통째로 opacity 를 내리면
+       반사까지 같이 죽어서, 잡음은 이 층을 한 겹 더 얹어 조절한다. */
+    .skin-sign .fk-face { isolation:isolate; }
+
+    /* 전원 표시등 — 낮에 「켜져 있음」을 아는 유일한 단서. */
+    .skin-sign .fk-face::after {
+        content:''; position:absolute; right:5px; bottom:4px; width:4px; height:4px; border-radius:50%;
+        background:color-mix(in srgb, #7dff9a calc(100% * var(--fk-lit)), #6e737a);
+        box-shadow:0 0 6px rgba(125,255,154,calc(0.9 * var(--fk-lit) * var(--fk-emit)));
+        transition:400ms ease;
+    }
+    .skin-sign .fav-key.hot { --fk-lit:1; }
+    .skin-sign .fav-key.hot .fk-face { transform:translateY(-3px); }
+    .skin-sign .fav-key:active .fk-face { transform:translateY(0); }
+
+    /* 빈 칸 = **불 꺼진 간판**. 프레임만 보이고, 손이 닿으면 형광등처럼 예열된다.
+       이게 살결이 데코가 아닌 이유다 — 빛이 「담겼나」라는 사실을 나른다. */
+    .skin-sign .fav-key-empty { --fk-lit:0; }
+    .skin-sign .fav-key-empty .fk-face { box-shadow:inset 0 0 0 1px hsl(var(--tint) 20% 100% / 0.5); }
+    .skin-sign .fav-key-empty .fk-plus { color:hsl(var(--tint) 20% 34%); }
+    .skin-sign .fav-key-empty:hover, .skin-sign .fav-key-empty:focus-visible {
+        animation:fk-sign-warmup 600ms ease forwards;
+    }
+    @keyframes fk-sign-warmup {
+        0%   { --fk-lit:0; }
+        18%  { --fk-lit:0.85; }
+        26%  { --fk-lit:0.05; }
+        46%  { --fk-lit:1; }
+        58%  { --fk-lit:0.35; }
+        100% { --fk-lit:1; }
+    }
+
+    /* 라이트 테마에서 탭 줄이 시커멨다 — 방(껍데기)이 밝아졌는데 홈은 스트림덱 값을
+       그대로 쓰고 있었다. 밝은 살결 둘과 같은 취급으로 옮긴다. */
+    [data-theme="light"] .skin-sign .fav-deck-tablist {
+        background:var(--bg-tertiary);
+        box-shadow:inset 0 2px 4px rgba(0,0,0,0.18), inset 0 -1px 0 rgba(255,255,255,0.05);
+    }
+    [data-theme="light"] .skin-sign .fav-deck-tab {
+        color:var(--text-secondary); border-color:var(--border);
+        background:var(--bg-secondary);
+        box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.18);
+    }
+    [data-theme="light"] .skin-sign .fav-deck-tab.on {
+        color:var(--accent); background:var(--accent-subtle); border-color:var(--accent);
+        box-shadow:inset 0 2px 3px rgba(0,0,0,0.12);
+    }
+
+    /* 판(껍데기)도 방이 된다 — 덱 배치에서만. 목록 배치는 판이 없다. */
+    .skin-sign .fav-deck {
+        background:
+            radial-gradient(140% 90% at 50% -16%, rgba(120,132,150,calc(0.13 * var(--fk-emit))) 0%, transparent 62%),
+            repeating-radial-gradient(circle at 9px 9px, #08090b 0 1.5px, transparent 1.6px 3px),
+            linear-gradient(#15171b, #0d0e11);
+        background-size:auto, 18px 18px, auto;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 30px 60px -24px rgba(0,0,0,0.7);
+        color:#e7ebf1;
+    }
+    [data-theme="light"] .skin-sign .fav-deck {
+        background:
+            radial-gradient(150% 80% at 18% -14%, rgba(255,244,214,0.55) 0%, transparent 62%),
+            repeating-radial-gradient(circle at 9px 9px, #c4bfb5 0 1.5px, transparent 1.6px 3px),
+            linear-gradient(#e8e5df, #dbd7cf);
+        background-size:auto, 18px 18px, auto;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 18px 34px -22px rgba(74,66,52,0.5);
+        color:#2a2d32;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .fav-deck { transition:none; }
         .fav-key .fk-face { transition:none; }
+        /* 움직임을 줄인 사람에게 깜빡임은 그냥 「켜짐」이다 — 정보는 표시등이 나른다. */
+        .skin-sign .fav-key-empty:hover, .skin-sign .fav-key-empty:focus-visible { animation:none; --fk-lit:1; }
     }
 `;
 
@@ -569,7 +779,10 @@ export function registerDeckProps(): void {
         { name: '--cap', syntax: '<length>', initialValue: '12px' },
         { name: '--lcd', syntax: '<length>', initialValue: '22px' },
         { name: '--fk-lift', syntax: '<length>', initialValue: '0px' },
-        { name: '--fk-s', syntax: '<number>', initialValue: '1' }
+        { name: '--fk-s', syntax: '<number>', initialValue: '1' },
+        /* 간판 살결의 손잡이. 켬·꺼짐·예열이 전부 이 하나를 탄다 —
+           등록 안 하면 0↔1 이 한 프레임에 튀어 형광등 예열이 안 보인다. */
+        { name: '--fk-lit', syntax: '<number>', initialValue: '1' }
     ];
     props.forEach((p) => {
         try { api.registerProperty!({ ...p, inherits: true }); } catch (_) { /* 이미 등록됨 */ }

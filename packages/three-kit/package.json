@@ -1,0 +1,16 @@
+{
+  "name": "three-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "three.js 한 벌 — 버전 한 곳, 렌더러 기본값 한 곳, GPU 없는 기계 가드 한 곳 (TASK-KL-345)",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./three": "./vendor/three.module.min.js",
+    "./vendor/*": "./vendor/*"
+  },
+  "threeVersion": "0.169.0",
+  "scripts": {
+    "test": "node --test \"test/*.mjs\""
+  }
+}
