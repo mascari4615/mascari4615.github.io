@@ -105,6 +105,8 @@ export class GeoMap {
   private height = 0;
   private frame = 0;
   private resizeTimer = 0;
+  /** 자판 미끄러짐을 멈추는 손잡이 — `destroy()` 가 부른다(안 멈추면 사라진 지도를 계속 민다). */
+  private stopGlide: () => void = () => {};
   private dead = false;
 
   constructor(host: HTMLElement, options: GeoMapOptions = {}) {
@@ -243,6 +245,7 @@ export class GeoMap {
 
   destroy(): void {
     this.dead = true;
+    this.stopGlide();
     if (this.frame !== 0) cancelAnimationFrame(this.frame);
     if (this.resizeTimer !== 0) clearTimeout(this.resizeTimer);
     this.ro.disconnect();
@@ -392,23 +395,62 @@ export class GeoMap {
     el.tabIndex = 0;
     el.setAttribute('role', 'application');
     el.setAttribute('aria-label', '영토 지도 — 화살표로 옮기고 +/- 로 확대');
+    /* ★ **누른 동안 미끄러진다** (사용자 결정 2026-08-21: 「뚝뚝 끊겨 움직이는 것보다 부드럽게」).
+     * 처음엔 한 번 누를 때마다 화면의 1/6 씩 <b>건너뛰게</b> 했다. 그러면 보던 자리가
+     * 어디로 갔는지 <b>눈이 못 따라간다</b> — 끌 때는 손이 이어져 있어 그런 일이 없다.
+     *
+     * ⚠ 이 지도의 규율은 <b>「놀고 있을 때는 아무것도 안 한다」</b>(파일 맨 위 주석)다.
+     *   그래서 고리는 <b>키를 누르는 동안만</b> 돌고 다 떼면 그 자리에서 멈춘다.
+     *   창을 벗어나도(`blur`) 눌린 채로 남지 않게 비운다 — 안 그러면 영영 미끄러진다.
+     * ⚠ 자판 자동 반복(`e.repeat`)은 안 쓴다 — 반복 속도가 기계 설정마다 달라 같은 조작이
+     *   다르게 느껴진다. 시각으로 직접 굴려야 어디서나 같다. */
+    const held = new Set<string>();
+    let glide = 0;
+    let last = 0;
+    const PAN_PER_SEC = 0.9;   /* 1초에 화면 높이의 90% — 끌 때의 손 속도에 맞춘 값 */
+    const ZOOM_PER_SEC = 1.6;  /* 1초에 확대 1.6단 */
+
+    const step = (now: number): void => {
+      if (this.dead || held.size === 0) { glide = 0; return; }
+      const dt = Math.min(0.05, (now - last) / 1000);   /* 탭이 쉬었다 오면 한 번에 튀지 않게 */
+      last = now;
+      const r = el.getBoundingClientRect();
+      const fast = held.has('Shift') ? 2 : 1;
+      const dx = ((held.has('ArrowRight') ? 1 : 0) - (held.has('ArrowLeft') ? 1 : 0)) * r.width * PAN_PER_SEC * dt * fast;
+      const dy = ((held.has('ArrowDown') ? 1 : 0) - (held.has('ArrowUp') ? 1 : 0)) * r.height * PAN_PER_SEC * dt * fast;
+      if (dx !== 0 || dy !== 0) this.panBy(dx, dy);
+      const dz = ((held.has('+') || held.has('=') ? 1 : 0) - (held.has('-') || held.has('_') ? 1 : 0)) * ZOOM_PER_SEC * dt * fast;
+      if (dz !== 0) this.zoomAround({ x: r.width / 2, y: r.height / 2 }, dz);
+      glide = requestAnimationFrame(step);
+    };
+    const start = (): void => {
+      if (glide !== 0) return;
+      last = performance.now();
+      glide = requestAnimationFrame(step);
+    };
+    const stop = (): void => {
+      if (glide !== 0) cancelAnimationFrame(glide);
+      glide = 0;
+      held.clear();
+    };
+    this.stopGlide = stop;
+
+    const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'];
     el.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const r = el.getBoundingClientRect();
-      const step = e.shiftKey ? 0.5 : 1 / 6;
-      const dx = { ArrowLeft: -r.width * step, ArrowRight: r.width * step }[e.key] ?? 0;
-      const dy = { ArrowUp: -r.height * step, ArrowDown: r.height * step }[e.key] ?? 0;
-      if (dx !== 0 || dy !== 0) {
-        e.preventDefault();
-        this.panBy(dx, dy);
-        return;
-      }
-      const zoom = { '+': 1, '=': 1, '-': -1, _: -1 }[e.key] ?? 0;
-      if (zoom !== 0) {
-        e.preventDefault();
-        this.zoomAround({ x: r.width / 2, y: r.height / 2 }, zoom);
-      }
+      if (!KEYS.includes(e.key)) return;
+      e.preventDefault();
+      if (e.repeat) return;
+      held.add(e.key);
+      if (e.shiftKey) held.add('Shift');
+      start();
     });
+    el.addEventListener('keyup', (e) => {
+      held.delete(e.key);
+      if (e.key === 'Shift') held.delete('Shift');
+      if (held.size === 0) stop();
+    });
+    el.addEventListener('blur', stop);
   }
 
   private bindPointer(): void {
