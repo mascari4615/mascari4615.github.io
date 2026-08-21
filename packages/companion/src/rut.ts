@@ -1,3 +1,4 @@
+import { fromFakeBrain } from './what-landed';
 import type { MemoryEntry } from './types';
 
 /**
@@ -19,7 +20,9 @@ import type { MemoryEntry } from './types';
 
 /** 두뇌가 지은 말만 남긴다. 어디서 왔는지 모르는 옛 기록은 안 센다. */
 export function brainSaid(entries: readonly MemoryEntry[]): MemoryEntry[] {
-  return entries.filter((e) => e.role === 'said' && e.via === 'brain');
+  /* 가짜 두뇌(echo)가 되울린 것은 얘 말버릇이 아니다 — 143회차에 그것 때문에
+     「최근 8마디 중 3번을 (echo)… 로 시작했다. 말투가 굳었다」가 떴다. */
+  return entries.filter((e) => e.role === 'said' && e.via === 'brain' && !fromFakeBrain(e.text));
 }
 
 /**
