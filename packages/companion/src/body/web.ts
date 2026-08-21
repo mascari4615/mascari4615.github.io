@@ -654,10 +654,10 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             let text = '';
             let who: string | undefined;
             try {
-              const arrived2 = JSON.parse(raw) as { text?: unknown; 누가?: unknown };
+              const arrived2 = JSON.parse(raw) as { text?: unknown; who?: unknown };
               text = String(arrived2.text ?? '').trim();
               // 여럿이 있는 자리에서는 누가 한 말인지 같이 온다. 단둘이면 안 온다.
-              if (typeof arrived2.누가 === 'string' && arrived2.누가.trim() !== '') who = arrived2.누가.trim().slice(0, 40);
+              if (typeof arrived2.who === 'string' && arrived2.who.trim() !== '') who = arrived2.who.trim().slice(0, 40);
             } catch {
               text = '';
             }
@@ -686,7 +686,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               kind: 'text',
               text,
               at: askedAt,
-              ...(who === undefined ? {} : { 누가: who }),
+              ...(who === undefined ? {} : { who: who }),
               ...(isTest ? { test: true } : {}),
             });
           });

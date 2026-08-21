@@ -43,7 +43,7 @@ export interface Sensation {
    *
    * 안 주면 없는 채로 둔다 — 곁에 단둘이면 이름이 필요 없다.
    */
-  누가?: string;
+  who?: string;
 }
 
 /** 동반자가 내보내는 말 한 마디. */
@@ -72,7 +72,7 @@ export interface MemoryEntry {
   text: string;
   at: number;
   /** 누가 한 말인가. 없으면 곁의 그 사람(단둘인 자리). */
-  누가?: string;
+  who?: string;
 }
 
 /** 감각 기관. start 로 시작하고, 느낄 때마다 emit 을 부른다. */
