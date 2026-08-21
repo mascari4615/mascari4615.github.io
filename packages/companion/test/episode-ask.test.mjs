@@ -24,7 +24,7 @@ test('두뇌가 높게 매기면 사건이 된다 — 표가 놓친 걸 건진�
   s.learn(missedText.map((t) => spoken(t)));
   assert.equal(await s.reflect(), 3);
   assert.equal(s.all.length, 3);
-  assert.equal(s.all[0].기운, 6);
+  assert.equal(s.all[0].energy, 6);
 });
 
 test('두뇌가 낮게 매기면 안 담는다 — 아무 말이나 사건이 되면 다음 달에 점심 얘기가 나온다', async () => {
