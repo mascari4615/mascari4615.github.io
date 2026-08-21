@@ -65,8 +65,8 @@ try {
   });
 } catch {
   const screenSaid = await page.evaluate(() => ({
-    윗줄: document.getElementById('cmpText')?.textContent ?? '',
-    아랫줄: document.getElementById('cmpSub')?.textContent ?? '',
+    upperLine: document.getElementById('cmpText')?.textContent ?? '',
+    lowerLine: document.getElementById('cmpSub')?.textContent ?? '',
   }));
   await browser.close();
   server.close();
@@ -76,9 +76,9 @@ try {
   process.exit(1);
 }
 const state = await page.evaluate(() => ({
-  곁에: document.getElementById('cmpText')?.textContent ?? '',
-  아래: document.getElementById('cmpSub')?.textContent ?? '',
-  칸열림: document.getElementById('cmpInput')?.disabled === false,
+  beside: document.getElementById('cmpText')?.textContent ?? '',
+  below: document.getElementById('cmpSub')?.textContent ?? '',
+  cellOpen: document.getElementById('cmpInput')?.disabled === false,
 }));
 
 // ②-0 창·몸·목소리가 화면에 뜨나 — 오늘 사고 셋이 전부 「조용히 빠짐」이었다.

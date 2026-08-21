@@ -39,22 +39,22 @@ export const defaultValue = {
   /** 이 크기를 넘으면 말소리로 본다. */
   문턱: 0.045,
   /** 이만큼 이어져야 연다 (ms) — 한 번 튄 잡음으로 열리지 않게. */
-  열리는데: 250,
+  toOpen: 250,
   /** 조용해진 뒤 이만큼 기다렸다 닫는다 (ms) — 숨 쉬는 자리에서 안 끊기게. */
-  닫히는데: 900,
+  toClose: 900,
   /** 얘가 말을 마친 뒤 이만큼 더 닫아 둔다 (ms) — 제 목소리 꼬리를 안 듣게. */
-  꼬리여운: 600,
+  tailFade: 600,
   /** 이보다 오래 열려 있으면 그냥 닫는다 (ms) — 켜 놓은 TV 에 영영 매달리지 않게. */
-  너무길다: 20000,
+  tooLong: 20000,
 
   /** 말 도중에 끊고 들어오는 걸 받나. */
   barge: true,
   /** 메아리 바닥의 몇 배를 넘어야 사람 목소리로 보나. */
-  메아리배수: 1.8,
+  echoFactor: 1.8,
   /** 끼어들기로 보는 최소 문턱 — 메아리가 거의 없어도 이보다 낮게는 안 내려간다. */
-  끼어들바닥: 0.08,
+  bargeFloor: 0.08,
   /** 이만큼 이어져야 끊는다 (ms) — 잠깐 튄 소리로는 안 끊는다. */
-  끼어드는데: 400,
+  toBarge: 400,
   /** 메아리 바닥이 이보다 크면 끼어들기를 포기한다 — 켜면 자기를 끊는다. */
   cannotDo: 0.14,
 };
@@ -76,7 +76,7 @@ export class listenGate {
 
   /** 지금 메아리 바닥으로 보아 끼어들기를 받을 수 있나. */
   get 끼어들문턱() {
-    return Math.max(this.설정.끼어들바닥, this.메아리바닥 * this.설정.메아리배수);
+    return Math.max(this.설정.bargeFloor, this.메아리바닥 * this.설정.echoFactor);
   }
 
   /** 소리 지우기가 안 먹어서 끼어들기를 포기해야 하나. */
@@ -91,10 +91,10 @@ export class listenGate {
   }
 
   /** 지금 귀가 막혀 있나 (얘가 말하는 중이거나 그 꼬리). */
-  막힘(now2) {
+  blocked(now2) {
     if (this.얘가말하는중) return true;
     if (this.얘가말끝낸때 === null) return false;
-    return now2 - this.얘가말끝낸때 < this.설정.꼬리여운;
+    return now2 - this.얘가말끝낸때 < this.설정.tailFade;
   }
 
   /**
@@ -127,7 +127,7 @@ export class listenGate {
       if (this.끼어들포기) { this.끼어들기시작 = null; return isClosed; }
       if (size < this.끼어들문턱) { this.끼어들기시작 = null; return isClosed; }
       if (this.끼어들기시작 === null) this.끼어들기시작 = now3;
-      if (now3 - this.끼어들기시작 < s.끼어드는데) return isClosed;
+      if (now3 - this.끼어들기시작 < s.toBarge) return isClosed;
       // 사람이 말을 끊었다. 여기서 문까지 열지는 않는다 — 창이 입을 닫히고 나면
       // 그 다음 재기부터 평소 규칙으로 열린다.
       this.끼어들기시작 = null;
@@ -135,7 +135,7 @@ export class listenGate {
     }
     this.끼어들기시작 = null;
 
-    if (this.막힘(now3)) {
+    if (this.blocked(now3)) {
       this.넘기시작 = null;
       if (this.열림) return this.close();
       return null;
@@ -146,7 +146,7 @@ export class listenGate {
     if (this.열림 === false) {
       if (sounded === false) { this.넘기시작 = null; return null; }
       if (this.넘기시작 === null) this.넘기시작 = now3;
-      if (now3 - this.넘기시작 < s.열리는데) return null;
+      if (now3 - this.넘기시작 < s.toOpen) return null;
       this.열림 = true;
       this.연때 = now3;
       this.조용해진때 = null;
@@ -155,10 +155,10 @@ export class listenGate {
     }
 
     // 열려 있는 동안
-    if (now3 - this.연때 >= s.너무길다) return this.close();
+    if (now3 - this.연때 >= s.tooLong) return this.close();
     if (sounded) { this.조용해진때 = null; return null; }
     if (this.조용해진때 === null) this.조용해진때 = now3;
-    if (now3 - this.조용해진때 < s.닫히는데) return null;
+    if (now3 - this.조용해진때 < s.toClose) return null;
     return this.close();
   }
 

@@ -54,7 +54,7 @@ for (const id of SAMPLE) {
   const measured = await page.evaluate(() =>
     performance.getEntriesByType('resource')
       .filter((e) => typeof e.renderBlockingStatus === 'string')
-      .map((e) => ({ url: e.name, 막나: e.renderBlockingStatus })));
+      .map((e) => ({ url: e.name, blocks: e.renderBlockingStatus })));
   const measuredBlocking = measured.filter((e) => e.막나 === 'blocking').map((e) => e.url);
 
   /* 옛 추론 — 잰 값이 아예 안 나오는 판에서만 쓴다. */

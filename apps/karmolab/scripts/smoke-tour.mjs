@@ -134,7 +134,7 @@ for (let i = 1; i <= ROUNDS; i++) {
         /* ★ **대회가 아직 서 있나** (2026-08-17). CI 가 남긴 줄은 「화면: 1 / 1 판」이었는데
            내 자리에서 같은 자리는 「5/5판」이다 — 그렇다면 그 판은 대회가 **닫힌 뒤**였다는 뜻이다
            (누가 흐름 단추를 눌렀거나 대회가 먼저 끝났거나). 그 둘은 고치는 곳이 다르므로 갈라야 한다. */
-        대회: window.__arcade?.tour ? `${window.__arcade.tour.at + 1}/${window.__arcade.tour.games?.length ?? '?'}판` : '없음(대회가 닫혔다)',
+        tournament: window.__arcade?.tour ? `${window.__arcade.tour.at + 1}/${window.__arcade.tour.games?.length ?? '?'}판` : '없음(대회가 닫혔다)',
       }))
       .catch(() => ({ 놀이: '(창이 죽었다)', 끝났나: false, 말: '', 지금: null, 끝날때: null }));
     fail.push(

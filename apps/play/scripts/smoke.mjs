@@ -154,9 +154,9 @@ async function brandBg(page) {
     const vals = [...document.querySelectorAll('.hi-vl')].map((v) => v.textContent);
     return {
       카드수: c.length,
-      나란히: c.length === 2 ? Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 5 : false,
+      sideBySide: c.length === 2 ? Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 5 : false,
       오른값가림: vals[1] === '?',
-      다시숨김: (document.getElementById('hiAgain')?.offsetHeight || 0) === 0,
+      hideAgain: (document.getElementById('hiAgain')?.offsetHeight || 0) === 0,
       판칩: document.querySelectorAll('.hi-chips button').length
     };
   });
@@ -167,7 +167,7 @@ async function brandBg(page) {
   say(r.판칩 >= 2, `higher: 고를 판이 ${r.판칩}개뿐이다`);
   await page.click('.hi-side');
   await page.waitForTimeout(700);
-  const after = await page.evaluate(() => ({ 값공개: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', 말: (document.getElementById('hiMsg')?.textContent || '').trim() }));
+  const after = await page.evaluate(() => ({ revealValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', 말: (document.getElementById('hiMsg')?.textContent || '').trim() }));
   say(after.값공개 && after.말.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
 
   /* 이 놀이의 문법 자체 — 이긴 쪽이 자리에 남아야 방금 본 값과 계속 견줄 수 있다.
@@ -181,7 +181,7 @@ async function brandBg(page) {
     await page.waitForTimeout(1400);
     const stay = await page.evaluate(() => ({
       왼쪽: (document.querySelector('#hiA .hi-nm')?.textContent || ''),
-      왼쪽값보임: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
+      leftValueVisible: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
       오른값가림: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
     }));
     say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
@@ -254,7 +254,7 @@ async function brandBg(page) {
     say(!brandQ || frame.바탕 === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandQ})`);
     say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
   }
-  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), 도구단추: !!document.getElementById('qsTool') }));
+  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), toolButton: !!document.getElementById('qsTool') }));
   say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
   say(q.도구단추, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
   const head = await page.evaluate(() => ({
@@ -269,7 +269,7 @@ async function brandBg(page) {
   await page.waitForTimeout(2000);
   const tool = await page.evaluate(() => {
     const s = document.getElementById('qsSlot');
-    return { 펴짐: !!s && !s.hidden, 알맹이: (s?.querySelectorAll('input, select, textarea').length || 0) };
+    return { expanded: !!s && !s.hidden, core: (s?.querySelectorAll('input, select, textarea').length || 0) };
   });
   say(tool.펴짐 && tool.알맹이 > 0, 'quest: 도구가 그 자리에서 안 펴진다 — 답을 얻으러 화면을 떠나야 한다');
 
@@ -300,7 +300,7 @@ async function brandBg(page) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
     const esc = await page.evaluate(() => ({
-      닫힘: document.querySelector('.browse').hidden,
+      closed: document.querySelector('.browse').hidden,
       focus: document.activeElement.className
     }));
     say(esc.닫힘 && /browse-open/.test(esc.초점), 'daily: 훑어보기를 Esc 로 못 빠져나온다 — 키보드로는 갇힌다');

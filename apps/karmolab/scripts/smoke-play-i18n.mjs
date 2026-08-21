@@ -149,7 +149,7 @@ async function onePage(id) {
         있나: !!el,
         글: (el?.textContent || '').trim(),
         위젯: !!meta,
-        숨김: !!(meta && meta.hidden),
+        hidden: !!(meta && meta.hidden),
         didNotLoad
       };
     }, id);

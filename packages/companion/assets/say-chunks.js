@@ -23,7 +23,7 @@ const pause = /[,;·—]/;
  * 아직 안 읽은 부분에서 **지금 읽어도 되는 토막**을 떼어 낸다. 없으면 null.
  *
  * @param {string} remaining 아직 소리로 안 나간 글자들
- * @param {{끝문턱?: number, 쉼문턱?: number, 남길것?: number}} [options]
+ * @param {{끝문턱?: number, pauseThreshold?: number, toKeep?: number}} [options]
  *   - `끝문턱`: 문장이 끝났을 때 이만큼은 돼야 내보낸다. 「응.」 한 글자씩 나가면 어색하다.
  *   - `쉼문턱`: 쉼표에서 끊을 땐 더 길어야 한다. 짧게 끊으면 뚝뚝 끊겨 들린다.
  *     한국어는 글자가 빽빽해서 10자면 이미 한 마디다 — 영어 기준으로 잡으면 영영 안 끊긴다.
@@ -37,8 +37,8 @@ export function chunkToRead(remaining, options = {}) {
      너무 짧으면 「어,」 한 마디만 툭 나오고 끊기므로 바닥은 남겨 둔다. */
   const firstChunk = options.첫토막 === true;
   const endThreshold = options.끝문턱 ?? (firstChunk ? 4 : 7);
-  const pauseThreshold = options.쉼문턱 ?? (firstChunk ? 5 : 10);
-  const toKeep = options.남길것 ?? 0;
+  const pauseThreshold = options.pauseThreshold ?? (firstChunk ? 5 : 10);
+  const toKeep = options.toKeep ?? 0;
   const content = String(remaining ?? '');
   if (content.trim() === '') return null;
 

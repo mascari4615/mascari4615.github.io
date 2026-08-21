@@ -79,16 +79,16 @@ for (const g of GAMES) {
     id: g.id,
     kind: kindOf(g.id),
     seats: n,
-    판수: argN,
+    roundCount: argN,
     자리승률: share,
     /** 공평한 몫에서 가장 많이 벗어난 자리의 벗어난 폭 (0 = 완전 대칭) */
     기울기: +Math.max(...share.map((s) => Math.abs(s - fair))).toFixed(3),
-    무승부율: +(draws / argN).toFixed(3),
+    drawRate: +(draws / argN).toFixed(3),
     /* 씨앗을 바꿔도 판이 하나뿐이면 봇끼리는 **늘 같은 판**이다. 그런 판의 「기울기」는
        200판을 잰 것이 아니라 1판을 200번 적은 것이라 수로 믿으면 안 된다. */
     한판뿐: seen.size === 1,
     평균초: +(msSum / argN / 1000).toFixed(1),
-    점수폭: +(gapSum / argN).toFixed(2),
+    scoreSpread: +(gapSum / argN).toFixed(2),
     안끝남: stuck
   });
   process.stderr.write('.');
@@ -99,15 +99,15 @@ rows.sort((a, b) => b.기울기 - a.기울기);
 const pad = (s, w) => String(s).padEnd(w);
 console.log(pad('게임', 14) + pad('갈래', 8) + pad('자리', 5) + pad('기울기', 8) + pad('무승부', 8) + pad('평균초', 8) + '점수폭');
 for (const r of rows) {
-  console.log(pad(r.id, 14) + pad(r.kind, 8) + pad(r.seats, 5) + pad(r.기울기, 8) + pad(r.무승부율, 8) + pad(r.평균초, 8) + r.점수폭);
+  console.log(pad(r.id, 14) + pad(r.kind, 8) + pad(r.seats, 5) + pad(r.기울기, 8) + pad(r.drawRate, 8) + pad(r.평균초, 8) + r.scoreSpread);
 }
 
 const doc = {
   note: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade',
   잰날: new Date().toISOString().slice(0, 10),
-  판수: argN,
-  걸린초: +((Date.now() - t0) / 1000).toFixed(1),
+  roundCount: argN,
+  elapsedSec: +((Date.now() - t0) / 1000).toFixed(1),
   게임: rows.sort((a, b) => a.id.localeCompare(b.id))
 };
 writeFileSync(OUT, JSON.stringify(doc, null, 2) + '\n');
-console.log(`\n[bench] ${GAMES.length}개 × ${argN}판 = ${GAMES.length * argN}판 · ${doc.걸린초}초 → ${OUT}`);
+console.log(`\n[bench] ${GAMES.length}개 × ${argN}판 = ${GAMES.length * argN}판 · ${doc.elapsedSec}초 → ${OUT}`);
