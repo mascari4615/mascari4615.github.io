@@ -17,6 +17,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Write machine-readable lines as UTF-8 BYTES, straight to stdout.
+#
+# Setting [Console]::OutputEncoding is not enough: when PowerShell 5.1 hands a
+# native pipe to the caller, the console code page wins. Measured 2026-08-21
+# (142nd round) -- a window titled "선생님들 iwara 상황이 이상합니다" arrived as
+#   ... bcb1 bbfd b4d4 b5e9 ...
+# which is CP949, not UTF-8, so every Korean character became a replacement
+# mark. The companion decides what you are doing from the window title, so a
+# mangled title makes the whole guess nonsense -- and that nonsense gets
+# remembered. (99th round fixed the READING side with CharSet.Unicode; this is
+# the WRITING side, which was still broken.)
+function Send-Line([string]$line) {
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($line + [Environment]::NewLine)
+  $stdout = [Console]::OpenStandardOutput()
+  $stdout.Write($bytes, 0, $bytes.Length)
+  $stdout.Flush()
+}
+
+
 # Declare DPI awareness BEFORE asking how big the screen is.
 #
 # Without this, Windows lies to us: on a 1920x1080 screen at 175% scaling it
@@ -98,8 +117,8 @@ $full.Dispose()
 # Say WHERE this was shot and how big that area was. Without it nobody can put
 # the text's coordinates back onto the picture -- and nobody can check that the
 # two are even the same screen.
-Write-Output ("ORIGIN=" + $originX + "," + $originY)
-Write-Output ("AREA=" + $width + "," + $height)
+Send-Line ("ORIGIN=" + $originX + "," + $originY)
+Send-Line ("AREA=" + $width + "," + $height)
 
 $title = ''
 try {
@@ -216,6 +235,6 @@ try {
 
 # Machine-readable lines for the caller. One line each, TREE is compact JSON.
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Write-Output ("TITLE=" + $title)
-Write-Output ("TREE=" + $tree)
-Write-Output ("READ=" + $readRoot + "," + $readRaw + "," + $readNamed + "," + $readOnscreen)
+Send-Line ("TITLE=" + $title)
+Send-Line ("TREE=" + $tree)
+Send-Line ("READ=" + $readRoot + "," + $readRaw + "," + $readNamed + "," + $readOnscreen)

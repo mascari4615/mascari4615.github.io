@@ -24,6 +24,25 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Write machine-readable lines as UTF-8 BYTES, straight to stdout.
+#
+# Setting [Console]::OutputEncoding is not enough: when PowerShell 5.1 hands a
+# native pipe to the caller, the console code page wins. Measured 2026-08-21
+# (142nd round) -- a window titled "선생님들 iwara 상황이 이상합니다" arrived as
+#   ... bcb1 bbfd b4d4 b5e9 ...
+# which is CP949, not UTF-8, so every Korean character became a replacement
+# mark. The companion decides what you are doing from the window title, so a
+# mangled title makes the whole guess nonsense -- and that nonsense gets
+# remembered. (99th round fixed the READING side with CharSet.Unicode; this is
+# the WRITING side, which was still broken.)
+function Send-Line([string]$line) {
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($line + [Environment]::NewLine)
+  $stdout = [Console]::OpenStandardOutput()
+  $stdout.Write($bytes, 0, $bytes.Length)
+  $stdout.Flush()
+}
+
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 Add-Type -Namespace Win32Press -Name Native -MemberDefinition @'
 [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
@@ -32,7 +51,7 @@ Add-Type -Namespace Win32Press -Name Native -MemberDefinition @'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $root = [System.Windows.Automation.AutomationElement]::FromHandle([Win32Press.Native]::GetForegroundWindow())
-if ($null -eq $root) { Write-Output 'PRESS=no-window'; exit 1 }
+if ($null -eq $root) { Send-Line 'PRESS=no-window'; exit 1 }
 
 $found = $root.FindAll(
   [System.Windows.Automation.TreeScope]::Descendants,
@@ -51,12 +70,12 @@ foreach ($node in $found) {
   if ($index -eq $Number) { $target = $node; $targetName = $now.Name; break }
 }
 
-if ($null -eq $target) { Write-Output "PRESS=no-element number=$Number seen=$index"; exit 1 }
+if ($null -eq $target) { Send-Line "PRESS=no-element number=$Number seen=$index"; exit 1 }
 
 if ($ExpectName -ne '' -and $targetName -ne $ExpectName) {
   # The screen moved between looking and pressing. Pressing anyway is how an
   # agent closes the wrong tab.
-  Write-Output ("PRESS=moved expected=" + $ExpectName + " found=" + $targetName)
+  Send-Line ("PRESS=moved expected=" + $ExpectName + " found=" + $targetName)
   exit 1
 }
 
@@ -102,10 +121,10 @@ if ($how -ne '') {
   # Give the window a moment to react, then look again.
   Start-Sleep -Milliseconds 600
   $after = Get-WindowShape $root
-  Write-Output ("PRESS=ok how=" + $how + " name=" + $targetName +
+  Send-Line ("PRESS=ok how=" + $how + " name=" + $targetName +
     " was=" + $before.name + " now=" + $after.name +
     " count=" + $before.count + ">" + $after.count)
 } else {
-  Write-Output ("PRESS=cannot name=" + $targetName + " patterns=" + ($patterns -join ','))
+  Send-Line ("PRESS=cannot name=" + $targetName + " patterns=" + ($patterns -join ','))
   exit 1
 }
