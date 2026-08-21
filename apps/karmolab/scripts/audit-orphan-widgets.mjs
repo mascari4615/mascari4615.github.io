@@ -77,7 +77,11 @@ for (const name of folders) {
    기준선에 담고 **늘어날 때만** 빨갛다. 갚으면 저절로 줄어든다. 정본 = TASK-KL-319. */
 const BASE_FILE = join(app, 'data/unbuilt-widgets.json');
 const baseline = new Set(
-  existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).list ?? []) : [],
+  existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).목록
+    /* ⚠ 자료의 키는 `목록` 이다 (`data/unbuilt-widgets.json`). 2026-08-21 영문화가 읽는 쪽만
+       `.list` 로 바꿔, 이미 적어 둔 셋(agent-team·bon·foundry)을 <b>「새로 생긴 고아」</b>로 다시 짚었다.
+       자료는 그대로인데 읽는 쪽만 바뀐 것 — `run-gates` 와 같은 부류다. 영문 키도 받아 준다. */
+    ?? JSON.parse(readFileSync(BASE_FILE, 'utf8')).list ?? []) : [],
 );
 const namesOnly = orphans.map((o) => String(o).split(' ')[0]);
 const grown = namesOnly.filter((n) => !baseline.has(n));
