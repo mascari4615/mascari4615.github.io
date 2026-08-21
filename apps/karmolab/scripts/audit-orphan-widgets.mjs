@@ -40,7 +40,7 @@ if (folders.length === 0) {
   process.exit(1);
 }
 
-/* 지어지는 목록 = build.mjs 가 쓰는 것과 **같은 함수**로 뽑는다(두 벌이면 갈라진다). */
+/* 지어지는 list = build.mjs 가 쓰는 것과 **같은 함수**로 뽑는다(두 벌이면 갈라진다). */
 const { discoverEntryPoints } = await import('./entry-points.mjs');
 const entry = discoverEntryPoints(app);
 const ENTRY_SET = new Set(
@@ -66,7 +66,7 @@ for (const name of folders) {
      `src/widgets/foundry/` 가 통과했다 — 같은 이름의 **다른 파일**(`src/lib/foundry.ts`)이
      있었기 때문이다. 정작 그 위젯은 등록도 빌드도 안 돼 있어서 `#foundry` 를 열면 아무것도
      안 뜬다(smoke-foundry 가 20초 기다리다 죽는다). 전 게이트는 초록이었다.
-     그래서 **지어지는 목록**(build 가 실제로 쓰는 entry 집합)에 있는지로 판정한다. */
+     그래서 **지어지는 list**(build 가 실제로 쓰는 entry 집합)에 있는지로 판정한다. */
   /* 담는 폴더(`tools/`·`ref/` 처럼 여러 개를 품는 자리)도 있으므로, 그 폴더 **밑의 무엇이든**
      지어지면 닿는 것으로 본다. 하나도 안 지어지면 그 폴더는 화면에 못 나온다. */
   const builds = [...ENTRY_SET].some((e) => e.startsWith(`src/widgets/${name}/`) || e === `src/widgets/${name}.ts`);
@@ -77,7 +77,7 @@ for (const name of folders) {
    기준선에 담고 **늘어날 때만** 빨갛다. 갚으면 저절로 줄어든다. 정본 = TASK-KL-319. */
 const BASE_FILE = join(app, 'data/unbuilt-widgets.json');
 const baseline = new Set(
-  existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).목록 ?? []) : [],
+  existsSync(BASE_FILE) ? (JSON.parse(readFileSync(BASE_FILE, 'utf8')).list ?? []) : [],
 );
 const namesOnly = orphans.map((o) => String(o).split(' ')[0]);
 const grown = namesOnly.filter((n) => !baseline.has(n));

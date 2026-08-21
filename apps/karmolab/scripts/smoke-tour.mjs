@@ -1,9 +1,9 @@
 /**
- * 대회 다섯 판을 **끝까지 실제로 돌려 본다** (TASK-KL-264 E3)
+ * tournament 다섯 판을 **끝까지 실제로 돌려 본다** (TASK-KL-264 E3)
  *
  * 셈법(등수 점수·동점 처리)은 `_tourtest` 가 창 없이 잰다. 여기서 재는 것은 그것이 아니라
  * **판이 이어지는가**다 — 한 판이 끝나면 다음 판으로 넘어가고, 같은 사람들이 계속 앉아 있고,
- * 점수가 쌓이고, 다섯 판째에 단추가 「대회 끝」이 되는가.
+ * 점수가 쌓이고, 다섯 판째에 단추가 「tournament 끝」이 되는가.
  *
  * 사람 대신 **아무 단추나 누르는 손**을 쓴다. 잘 두는 손이 아니어도 된다 — 재는 것은 승부가
  * 아니라 이어짐이다. 다만 15퍼즐처럼 아무렇게나 눌러서는 안 끝나는 판이 있어 제한시간까지
@@ -42,7 +42,7 @@ await p.click('#acTour');
 
 /* 사람 손 대신. 700ms 마다 열려 있는 단추 하나를 누른다.
    ★ **대회를 모는 단추는 안 만진다** (2026-08-16, 실측). 이 손은 아무 단추나 눌렀는데,
-   거기에는 `#acAgain` 도 들어 있었다. 마지막 판에서 그 단추는 「대회 끝」이고, 누르면
+   거기에는 `#acAgain` 도 들어 있었다. 마지막 판에서 그 단추는 「tournament 끝」이고, 누르면
    `tour = null` 로 대회를 닫고 로비로 나간다(`arcade.ts` 의 `againBtn.onclick`).
    그러면 검사가 기다리는 `__arcade.finished` 는 **영영 안 온다** — 4분을 기다리다
    「5판이 안 끝났다」로 빨개진다. 실제로 1~4판은 늘 지나가고 **5판에서만** 걸렸다
@@ -87,9 +87,9 @@ for (let i = 1; i <= ROUNDS; i++) {
   const toWrap = Math.round(longestLimit() * 1.2) + 30000;
   const deadline = Date.now() + WAIT_MS;
   let finished2 = false;
-  /* ★ **시간 제한이 없는 놀이는 시계를 감아도 안 끝난다** (2026-08-17 실측). 놀이 51개 중
+  /* ★ **시간 제한이 없는 놀이는 시계를 감아도 안 끝난다** (2026-08-17 실측). game 51개 중
      제한이 박힌 것은 **11개뿐**이고, 나머지 40개는 「다 두면」 끝난다 — 끝나는 데 드는 것은
-     시간이 아니라 **누른 횟수**다. 실제로 `fleet`(8×8 판에 서로 배를 맞히는 놀이)이 그렇게 걸렸다:
+     시간이 아니라 **누른 횟수**다. 실제로 `fleet`(8×8 판에 서로 배를 맞히는 game)이 그렇게 걸렸다:
      제한이 없어 감아도 그대로였고, 손은 700ms 에 한 번이라 60초 예산 안에서 85번밖에 못 눌렀다
      (그중 상당수는 이미 친 칸이라 헛손질이다). 그래서 감을 때마다 **같이 누른다** —
      기다린 시간이 아니라 판이 나아간 만큼 누르게 된다. */
@@ -138,8 +138,8 @@ for (let i = 1; i <= ROUNDS; i++) {
       }))
       .catch(() => ({ game2: '(창이 죽었다)', isDone: false, text: '', now: null, onEnd: null }));
     fail.push(
-      `${i}판이 안 끝났다 — 놀이 「${stopped.놀이}」 · 끝남표시 ${stopped.끝났나 ? '있음' : '없음'} · 화면: 「${stopped.text}」`
-        + ` · 대회 ${stopped.대회} · 창 시계 ${stopped.now}ms · 이 판이 끝날 시각 ${stopped.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
+      `${i}판이 안 끝났다 — game 「${stopped.game}」 · 끝남표시 ${stopped.isDone ? '있음' : '없음'} · 화면: 「${stopped.text}」`
+        + ` · tournament ${stopped.tournament} · 창 시계 ${stopped.now}ms · 이 판이 끝날 시각 ${stopped.onEnd ?? '(그 놀이는 시간 제한이 없다)'}`
         + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(toWrap / 1000)}초 + 누른 횟수 ${Math.round(toWrap / shard)}회+)`
     );
     break;
@@ -158,8 +158,8 @@ for (let i = 1; i <= ROUNDS; i++) {
   const sum = [...st.status.matchAll(/(\d+)(?:\s|$)/g)].reduce((a, m) => a + Number(m[1]), 0);
   if (sum <= prevSum) fail.push(`${i}판에서 점수가 안 늘었다 (${prevSum} → ${sum})`);
   prevSum = sum;
-  if (i < ROUNDS && st.again.includes('끝')) fail.push(`${i}판인데 단추가 벌써 「대회 끝」이다`);
-  if (i === ROUNDS && !st.again.includes('끝')) fail.push(`마지막 판인데 단추가 「대회 끝」이 아니다: ${st.again}`);
+  if (i < ROUNDS && st.again.includes('끝')) fail.push(`${i}판인데 단추가 벌써 「tournament 끝」이다`);
+  if (i === ROUNDS && !st.again.includes('끝')) fail.push(`마지막 판인데 단추가 「tournament 끝」이 아니다: ${st.again}`);
 
   if (i < ROUNDS) {
     await p.click('#acAgain');
@@ -178,7 +178,7 @@ await br.close();
 await server?.close?.();
 
 if (fail.length) {
-  console.error('❌ 대회 — ' + fail.join(' / '));
+  console.error('❌ tournament — ' + fail.join(' / '));
   process.exit(1);
 }
-console.log(`✅ 대회 ${ROUNDS}판 이어짐 — ${seen.join(' → ')}`);
+console.log(`✅ tournament ${ROUNDS}판 이어짐 — ${seen.join(' → ')}`);

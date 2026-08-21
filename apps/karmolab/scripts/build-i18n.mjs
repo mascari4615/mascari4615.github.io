@@ -15,7 +15,7 @@
  * 그래서 번역할 때 본 **원문의 지문**을 `i18n/.lock.json` 에 남기고, 원문이 바뀌면 그 열쇠를 세운다.
  *
  * 사용:
- *   node scripts/build-i18n.mjs            내보내기 + 상태 표시
+ *   node scripts/build-i18n.mjs            내보내기 + state 표시
  *   node scripts/build-i18n.mjs --check    아무것도 안 쓰고 검사만 (빌드 게이트)
  *   node scripts/build-i18n.mjs --seal     지금 번역이 원문과 맞다고 도장 (원문 지문 갱신)
  */
@@ -201,7 +201,7 @@ if (fs.existsSync(seoPath)) {
 
 /* ── ①-c 위젯 이름·설명도 등록 파일에서 뽑는다 ─────────
  *
- * 옆줄·목록·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
+ * 옆줄·list·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
  * 제일 눈에 띈다. 정본은 `src/widgets-lazy-meta.ts` — 여기서도 적지 않고 뽑는다.
  *
  * 이름(`widgets`)과 한 줄 설명(`widgets-desc`)을 **다른 묶음으로** 나눈 이유: 이름은 165개로 짧아
@@ -266,7 +266,7 @@ function readLocale(code) {
 const byLocale = Object.fromEntries(ALL_LOCALES.map((l) => [l.code, readLocale(l.code)]));
 const source = byLocale[SOURCE_LOCALE];
 
-/* ── ③ 상태 재기 ────────────────────────────────────── */
+/* ── ③ state 재기 ────────────────────────────────────── */
 
 const lock = fs.existsSync(LOCK_PATH) ? JSON.parse(fs.readFileSync(LOCK_PATH, 'utf8')) : {};
 const report = [];
@@ -405,7 +405,7 @@ if (CHECK && regionDrift) {
     fs.writeFileSync(baselinePath, JSON.stringify({ list: current }, null, 2) + String.fromCharCode(10), 'utf8');
     console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(current));
   } else if (CHECK && fs.existsSync(baselinePath)) {
-    const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')).목록 || {};
+    const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')).list || {};
     const grown = Object.entries(current).filter(([c, n]) => n > (baseline[c] ?? 0));
     if (grown.length) {
       console.error('[i18n] 빠진 번역이 늘었다 — 새로 만든 것에 en/ja 를 같이 넣어라:');
@@ -417,7 +417,7 @@ if (CHECK && regionDrift) {
 }
 
 if (bad) {
-  console.error('[i18n] 낡거나 남는 번역이 있다 — 위 목록 처리 후 다시');
+  console.error('[i18n] 낡거나 남는 번역이 있다 — 위 list 처리 후 다시');
   process.exit(1);
 }
 

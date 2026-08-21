@@ -125,12 +125,12 @@ export function tallyReport(tally: Tally): string {
   if (lines.length === 0) return '아직 센 게 없다.';
 
   return lines
-    .map(({ name, m, elapsed: 지나감 }) => {
+    .map(({ name, m, elapsed: elapsed }) => {
       const state = m.loaded === 0 ? '● 한 번도 안 실림' : `실림 ${m.loaded}`;
       // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
       const why2 = m.lastWhy === undefined ? '' : `
 ${' '.repeat(10)}↳ ${m.lastWhy}`;
-      return `${name.padEnd(8)} ${state.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.queued} · 꺼짐 ${m.off} · 빔 ${m.blank})${why2}`;
+      return `${name.padEnd(8)} ${state.padEnd(16)} (elapsed ${elapsed} · 밀림 ${m.queued} · 꺼짐 ${m.off} · 빔 ${m.blank})${why2}`;
     })
     .join('\n');
 }

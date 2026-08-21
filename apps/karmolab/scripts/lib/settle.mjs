@@ -40,9 +40,9 @@ export async function untilSettled(page, read, { interval = 120, max = 5000 } = 
  * 원하는 상태가 될 때까지 기다린다. 끝내 안 되면 **거짓**을 주고 넘어간다 —
  * 던지지 않는다(그 자리에서 죽으면 무엇이 안 됐는지 못 적는다. 같은 날 세 번 겪었다).
  */
-export async function untilTrue(page, predicate, { 최대 = 5000, args } = {}) {
+export async function untilTrue(page, predicate, { max = 5000, args } = {}) {
   return page
-    .waitForFunction(predicate, args, { timeout: 최대 })
+    .waitForFunction(predicate, args, { timeout: max })
     .then(() => true)
     .catch(() => false);
 }

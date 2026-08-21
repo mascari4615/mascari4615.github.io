@@ -28,7 +28,7 @@ export interface PendingThoughtOptions {
   forgetTurn?: number;
 }
 
-interface 눌림 {
+interface pressed {
   count: number;
   lastTurn: number;
 }
@@ -43,7 +43,7 @@ export class pendingThoughts {
   private readonly step: number;
   private readonly cap: number;
   private readonly forgetTurn: number;
-  private readonly pressed = new Map<string, 눌림>();
+  private readonly pressed = new Map<string, pressed>();
   private turn = 0;
 
   constructor(options: PendingThoughtOptions = {}) {

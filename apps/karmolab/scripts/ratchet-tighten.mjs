@@ -11,7 +11,7 @@
  * 나빠지는 방향이면 되돌린다 — `--update` 는 「지금 값을 적는다」라서, 회귀 상태에서 부르면
  * 기준선이 **느슨해진다**(그러면 자동화가 톱니를 부수는 셈이다).
  *
- * 판정: 기준선 안의 모든 숫자와 목록 길이가 **하나도 안 늘었으면** 조인 것이다.
+ * 판정: 기준선 안의 모든 숫자와 list 길이가 **하나도 안 늘었으면** 조인 것이다.
  *
  * 사용:
  *   node scripts/ratchet-tighten.mjs           # 조여 보고 결과만 알림 (파일은 남는다)
@@ -40,7 +40,7 @@ const ratchet = [
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const readRaw = (rel) => (fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : null);
 
-/** 숫자·목록 길이만 모은다 — 날짜(`at`·`갱신`)는 값이 아니라 도장이라 뺀다. */
+/** 숫자·list 길이만 모은다 — 날짜(`at`·`갱신`)는 값이 아니라 도장이라 뺀다. */
 function values(node, prefix = '', out = {}) {
   if (Array.isArray(node)) {
     out[prefix + '[]'] = node.length;
@@ -102,7 +102,7 @@ if (dead.length) {
 
 for (const t of tighten) console.log(`[ratchet] 조였다 — ${t.what} (${t.file})`);
 for (const t of loose) {
-  console.log(`[ratchet] 그대로 뒀다 — ${t.what} 이(가) 늘었다: ${t.나빠진곳.slice(0, 4).join(', ')}`);
+  console.log(`[ratchet] 그대로 뒀다 — ${t.what} 이(가) 늘었다: ${t.regressed.slice(0, 4).join(', ')}`);
   console.log(`          늘어난 것은 자동으로 눈감아 주지 않는다 — 그건 검사(${t.npm})가 빨갛게 말한다.`);
 }
 /* 아무 일 없어도 한 줄 — 「조용함」이 정상인지 안 돈 것인지 구분되게. */

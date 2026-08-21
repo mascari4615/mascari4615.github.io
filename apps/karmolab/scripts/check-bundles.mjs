@@ -1,8 +1,8 @@
 /**
  * 묶음 위젯 정합 검사 (TASK-KL-088)
  *
- * 여러 도구를 탭으로 묶은 위젯은 손으로 두 곳을 맞춰야 한다 — 탭 목록(부분 id)과
- * 불러올 스크립트 목록. 하나라도 빠지면 **화면이 조용히 빈다** (탭은 보이는데 내용이 없다).
+ * 여러 도구를 탭으로 묶은 위젯은 손으로 두 곳을 맞춰야 한다 — 탭 list(부분 id)과
+ * 불러올 스크립트 list. 하나라도 빠지면 **화면이 조용히 빈다** (탭은 보이는데 내용이 없다).
  * 조용한 실패라 사람 눈으로는 늦게 발견되므로 빌드에서 막는다.
  *
  * 검사:
@@ -90,7 +90,7 @@ for (const file of bundleFiles) {
       seenPart[part] = bundleId;
     }
   }
-  // 묶음 자신의 스크립트도 목록 끝에 있어야 로드된다.
+  // 묶음 자신의 스크립트도 list 끝에 있어야 로드된다.
   if (!declared.includes(file.replace('src/widgets/', '').replace('.ts', ''))) {
     failures.push(`${bundleId}: 자기 스크립트가 lazyScriptPaths 에 없다`);
   }
@@ -125,7 +125,7 @@ console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(se
      말만 하고 안 막는다. ①은 그대로 빨강이다 — 그건 갑을 사람이 없는 빚이다. */
   let unused = new Set();
   try {
-    unused = new Set(JSON.parse(read('data/tool-data-baseline.json')).목록 || []);
+    unused = new Set(JSON.parse(read('data/tool-data-baseline.json')).list || []);
   } catch {
     /* 기준선이 없으면 전부 ① 로 본다 — 없는 것을 있다고 치는 쪽이 위험하다. */
   }

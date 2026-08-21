@@ -18,7 +18,7 @@
 /** 지금 뭘 하는 중인가. */
 export type slot = '통화' | '보는중' | '만드는중' | '읽는중' | '노는중' | '나를보는중' | null;
 
-interface 짚기 {
+interface point {
   slot: Exclude<slot, null>;
   /** 제목에 이게 있으면 그 자리다. */
   word: readonly string[];
@@ -30,7 +30,7 @@ interface 짚기 {
  * 위에서부터 본다 — **끼어들면 안 되는 것이 먼저**다. 통화 중에 게임 창이 같이 떠 있다고
  * 게임으로 세면 그대로 사고다.
  */
-const kindTable: readonly 짚기[] = [
+const kindTable: readonly point[] = [
   /* **우리 창.** 78회차에 떠 있는 창을 세어 보니 얘는 자기 창조차 「모름」이었다. 그런데
      사람이 얘를 보고 있는 건 아무 자리도 아닌 게 아니라 **말 걸기 가장 좋은 때**다.
      우리가 지은 제목이라 여기는 표가 맞다 — 두뇌한테 물어볼 일이 아니다. */

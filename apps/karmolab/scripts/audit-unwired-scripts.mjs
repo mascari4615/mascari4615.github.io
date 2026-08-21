@@ -81,9 +81,9 @@ const neverCalled = scripts2.filter((f) => {
 /* 별 **왜 안 묶었는지를 기준선이 스스로 적게 한다** (2026-08-17). 이름만 늘어놓은 목록은
    반년 뒤 아무도 못 읽고, 「언젠가 묶자」로 굳는다. 손으로 적은 사유는 다시 쓸 때도 지킨다
    (오늘 옆 감사에서 자동 문구가 실측 사유를 덮어써 재 본 값이 통째로 사라졌다). */
-const previous = JSON.parse(read(BASELINE) || '{"목록":[]}');
-const baseline = new Set(previous.목록 ?? []);
-const previousReason = previous.사유 ?? {};
+const previous = JSON.parse(read(BASELINE) || '{"list":[]}');
+const baseline = new Set(previous.list ?? []);
+const previousReason = previous.reason ?? {};
 const grown = neverCalled.filter((f) => !baseline.has(f));
 const repaid = [...baseline].filter((f) => !neverCalled.includes(f));
 
