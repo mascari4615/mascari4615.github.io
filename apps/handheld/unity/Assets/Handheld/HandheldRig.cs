@@ -671,7 +671,13 @@ namespace Handheld
             _cam.targetTexture = null;
             if (_rt != null) { _rt.Release(); DestroyRt(); }
 
-            _rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+            // ★ **B8G8R8A8 이어야 한다** (2026-08-21 실측). WebRTC 영상 트랙이 이 텍스처를
+            //   그대로 싣는데, `R8G8B8A8_SRGB` 를 주면 거부한다:
+            //     "This graphics format R8G8B8A8_SRGB is not supported for streaming,
+            //      please use supportedFormat: B8G8R8A8_SRGB"
+            //   그 예외가 Answer() 안에서 터져 **영상 트랙이 안 붙었다**.
+            //   JPEG 경로는 영향 없다 — 리드백이 `TextureFormat.RGBA32` 로 변환해 받는다.
+            _rt = new RenderTexture(w, h, 24, GraphicsFormat.B8G8R8A8_SRGB)
             {
                 name = "HandheldViewfinder",
                 antiAliasing = 1,
