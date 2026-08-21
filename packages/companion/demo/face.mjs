@@ -107,9 +107,9 @@ import {
   TouchCount,
   demandBoot,
   onDemand,
-  이웃,
-  같은저장소사본들,
-  대사창고,
+  sibling,
+  repoCopies,
+  lineStore,
   touchKind,
   touchStage,
   touchKindOf,
@@ -149,8 +149,8 @@ import {
   readMood,
   pickFiller,
   reflexFor,
-  반사갈래,
-  반사종류들,
+  reflexKind,
+  reflexKinds,
   driftWarning,
   dayMark,
   avoidanceWarning,
@@ -165,8 +165,8 @@ import {
   tangentFor,
   rutWarning,
   recallFrom,
-  뜻기억,
-  작은모델로재기,
+  meaningMemory,
+  measureWithSmallModel,
   openPinnedWindow,
   screenSense,
   webBody,
@@ -412,10 +412,10 @@ const selfImage = new SelfImage({
   path: join(home, '나에-대해-한-말.json'),
   log: (m) => console.log(`[자기상] ${m}`),
 });
-/* 이웃 저장소에서 오는 것들 — 없으면 **없다고 말한다.** 조용히 빠지면 화면에서는
+/* sibling 저장소에서 오는 것들 — 없으면 **없다고 말한다.** 조용히 빠지면 화면에서는
    「몸이 큐브로 바뀌고 로컬 목소리가 사라진」 것으로만 보이고, 그건 회귀로 읽힌다. */
 function yonMesh() {
-  const game = 이웃('WitchMendokusai', 'Assets');
+  const game = sibling('WitchMendokusai', 'Assets');
   if (game === null) {
     console.log('[몸] 게임 저장소를 이웃에서 못 찾았다 — 3D 몸 없이 큐브로 지낸다');
     return null;
@@ -424,7 +424,7 @@ function yonMesh() {
 }
 
 function sttBinary() {
-  for (const root2 of [join(root, '..', '..'), ...같은저장소사본들(join('apps', 'karmolab-tauri'))]) {
+  for (const root2 of [join(root, '..', '..'), ...repoCopies(join('apps', 'karmolab-tauri'))]) {
     for (const slot of ['release', 'debug']) {
       const exe = join(root2, 'apps', 'karmolab-tauri', 'target', slot, 'karmolab-life-ml.exe');
       if (existsSync(exe)) return exe;
@@ -439,7 +439,7 @@ let stubProcess = null;
 let stubStopping = false;
 const stubLog = join(home, '흉내-목소리.log');
 function startStubServer() {
-  const memo = 이웃('memo', join('life', '.models'));
+  const memo = sibling('memo', join('life', '.models'));
   if (memo === null) throw new Error('memo 저장소를 이웃에서 못 찾았다');
   const slot2 = join(memo, 'life', '.models', 'gpt-sovits');
   const python = join(slot2, '.venv', 'Scripts', 'python.exe');
@@ -492,13 +492,13 @@ function stopStubServer() {
 }
 
 function stubReferenceAudio() {
-  const memo = 이웃('memo', join('life', '.models'));
+  const memo = sibling('memo', join('life', '.models'));
   if (memo === null) return null;
   return join(memo, 'life', '.models', 'tsukuyomi', 'ref.wav');
 }
 
 function sttModel() {
-  const memo = 이웃('memo', join('life', '.models'));
+  const memo = sibling('memo', join('life', '.models'));
   if (memo === null) return null;
   return join(memo, 'life', '.models', 'whisper-small');
 }
@@ -508,9 +508,9 @@ function sttModel() {
    나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
 const meaning = surface === 'page'
   ? { find: async () => [], store: async () => {} }
-  : new 뜻기억({
+  : new meaningMemory({
     path: join(home, '뜻-색인.json'),
-    measure: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
+    measure: measureWithSmallModel({ log: (m) => console.log(`[뜻] ${m}`) }),
     log: (m) => console.log(`[뜻] ${m}`),
   });
 
@@ -520,7 +520,7 @@ const touchCount = new TouchCount();
    닿았을 때는 꺼내 쓴다(꺼내는 데 걸리는 시간 0). 비면 손으로 적은 표로 그냥 물러선다. */
 /** 빈 자리가 남았을 때 다음 것을 잇는 간격. 첫 판에 스물한 자리를 채우는 속도를 정한다. */
 const refillInterval = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
-const line3 = new 대사창고({
+const line3 = new lineStore({
   path: join(home, '지어-둔-대꾸.json'),
   whom: () => character?.name ?? null,
   personaText: () => character?.instruction ?? null,
@@ -549,9 +549,9 @@ function slotsToFill() {
       slot3.push({ key: touchKind(갈래, stage), request: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
     }
   }
-  for (const kind2 of 반사종류들()) {
+  for (const kind2 of reflexKinds()) {
     for (const [결, 어떤결] of Object.entries(energyTone)) {
-      slot3.push({ key: 반사갈래(kind2, 결), request: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
+      slot3.push({ key: reflexKind(kind2, 결), request: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
     }
   }
   return slot3;
@@ -648,7 +648,7 @@ ${tallyReport(tally)}`;
     }
     /* 로컬 목소리는 메모 저장소 안에 있다. 「여기서 세 겹 위」로 박아 두면 워크트리에서
        띄웠을 때 통째로 사라진다 — 실제로 목록에서 로컬 목소리가 없어졌다(실측). */
-    const memoRoot = 이웃('memo', join('life', '.models'));
+    const memoRoot = sibling('memo', join('life', '.models'));
     const piperRoot = process.env.COMPANION_PIPER_DIR
       ?? (memoRoot === null ? null : join(memoRoot, 'life', '.models', 'piper'));
     if (piperRoot === null) console.log('[목소리] 로컬 목소리 자리를 못 찾았다 (memo 저장소가 이웃에 없다) — 인터넷 목소리만 쓴다');
