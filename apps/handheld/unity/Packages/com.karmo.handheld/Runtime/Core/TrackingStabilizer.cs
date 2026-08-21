@@ -47,6 +47,15 @@ namespace Handheld
         /// <summary>집어 가기 전까지 서 있는 깃발.</summary>
         public bool JustReanchored { get; private set; }
 
+        /// <summary>
+        /// 밖에서 온 **확정 통보** — 다음 표본에서 무조건 좌표계를 다시 맞춘다.
+        /// 폰의 WebXR 기준 공간이 `reset` 을 쏘면 그게 재정위의 정답이다. 공백·속도
+        /// 판정은 그 통보를 못 받는 경우(화면이 꺼져 rAF 가 멈춘 사이)를 위한 그물로 남는다.
+        /// </summary>
+        public void NotifyReset(string why = "폰이 원점 재설정을 알렸다") => _pendingReset = why;
+
+        string _pendingReset;
+
         // 지금까지 쌓인 좌표계 보정 — 결과 = Ry(-_yaw) * (원본 - _offset)
         Vector3 _offset;
         float _yaw;
@@ -64,6 +73,7 @@ namespace Handheld
             _yaw = 0f;
             _has = false;
             JustReanchored = false;
+            _pendingReset = null;
             LastReason = "";
         }
 
@@ -110,6 +120,13 @@ namespace Handheld
         /// <summary>불연속이면 사유 문자열, 아니면 null.</summary>
         string Discontinuity(double phoneTimeMs, Vector3 rawPos, Quaternion rawRot)
         {
+            if (_pendingReset != null)
+            {
+                string why = _pendingReset;
+                _pendingReset = null;
+                return why;
+            }
+
             double gap = phoneTimeMs - _prevPhoneTime;
 
             // 폰 시각이 멈췄거나 뒤로 갔다 = 세션이 다시 시작됐다.

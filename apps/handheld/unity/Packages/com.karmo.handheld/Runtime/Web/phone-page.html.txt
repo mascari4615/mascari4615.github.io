@@ -58,7 +58,25 @@
   .chip.bad b { color: #ff8b8b; }
   #bar { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 10px) + 10px);
     display: flex; gap: 10px; justify-content: center; }
-  #bar.hidden, #hud.hidden { display: none; }
+  #bar.hidden, #hud.hidden, #hudMin.hidden { display: none; }
+  #hud.folded { display: none; }
+
+  /* 촬영 중 상시 표시 — 아래 한 줄. 그림을 안 가리는 자리다. */
+  #hudMin { position: absolute; left: 0; right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 10px) + 52px);
+    display: flex; gap: 14px; justify-content: center; align-items: center;
+    pointer-events: none; font-size: 12px; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: .02em;
+    color: rgba(226,233,244,.95);
+    text-shadow: 0 1px 2px rgba(0,0,0,.9), 0 0 6px rgba(0,0,0,.75); }
+  #hudMin b { color: #7fd4ff; font-weight: 700; }
+  #minTrack.ok { color: rgba(130,220,150,.95); }
+  #minTrack.bad { color: #ff9b9b; }
+  #hudMore { pointer-events: auto; -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; padding: 0; border-radius: 50%;
+    background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22);
+    color: rgba(226,233,244,.9); font-size: 11px; font-weight: 700;
+    font-family: inherit; line-height: 1; cursor: pointer; }
 
   /* 가로로 들면 하단 바가 스틱 구역과 겹친다 — 버튼을 오른쪽 위로 올리고
      스틱 구역을 낮춰 엄지가 닿는 아래 모서리에 둔다. */
@@ -83,6 +101,7 @@
       top: calc(env(safe-area-inset-top, 8px) + 8px); bottom: auto;
       flex-direction: column; align-items: flex-end; gap: 8px; }
     #hud { max-width: 46vw; }
+    #hudMin { bottom: calc(env(safe-area-inset-bottom, 8px) + 10px); }
     .stickzone { height: 62%; width: 38%; }
     .stickhint { width: 38%; bottom: calc(env(safe-area-inset-bottom, 8px) + 8px); }
     .stickhint.r { right: 0; }
@@ -181,7 +200,17 @@
 <div id="overlay">
   <canvas id="vf"></canvas>
   <video id="rtcv" autoplay playsinline muted></video>
-  <div id="hud" class="hidden">
+  <!-- 촬영 중에는 최소만 아래 한 줄. 나머지는 「i」로 펼친다 —
+       뷰파인더를 가리는 것이 방송에서 제일 큰 손해다. -->
+  <div id="hudMin" class="hidden">
+    <span id="minLens">1.0×</span>
+    <span id="minTrack">●</span>
+    <span id="minNet">—</span>
+    <button id="hudMore" type="button" aria-label="자세히">i</button>
+  </div>
+
+  <div id="hud" class="hidden folded">
+    <div class="chip" id="chipTrack">—</div>
     <div class="chip" id="chipMode">—</div>
     <div class="chip" id="chipNet">—</div>
     <div class="chip" id="chipWay">MJPEG</div>
@@ -251,7 +280,48 @@
   const $ = id => document.getElementById(id);
   const vf = $('vf'), vfCtx = vf.getContext('2d', { alpha: false, desynchronized: true });
   const chipMode = $('chipMode'), chipNet = $('chipNet'), chipPos = $('chipPos'), chipFrame = $('chipFrame'), chipOrient = $('chipOrient');
-  const chipLens = $('chipLens'), chipWay = $('chipWay');
+  const chipLens = $('chipLens'), chipWay = $('chipWay'), chipTrack = $('chipTrack');
+  const minLens = $('minLens'), minTrack = $('minTrack'), minNet = $('minNet');
+
+  // 자세히 = 접었다 폈다. 화면 탭은 초점을 잡는 손짓이라 버튼으로만 받는다.
+  $('hudMore').addEventListener('click', e => {
+    e.stopPropagation();
+    $('hud').classList.toggle('folded');
+  });
+
+  // ── 추적 상태 ──────────────────────────────────────────────────────────
+  // 유니티는 공백·속도로 재정위를 **추론**하지만, WebXR 은 정답을 통보한다:
+  // 기준 공간의 `reset` = 원점이 다시 잡혔다. 화면이 꺼진 동안엔 그 이벤트를 받을
+  // rAF 자체가 안 도니 둘 다 필요하다. 카메라맨이 봐야 렌즈를 특징 많은 쪽으로 돌린다.
+  let track = 'ok';            // ok | weak | lost | hidden | 3dof
+  let trackResets = 0, trackSent = '', trackSentAt = 0;
+
+  const TRACK_LABEL = {
+    ok:     ['● 추적 양호', 0],
+    weak:   ['▲ 추적 불안 — 위치가 추정값', 1],
+    lost:   ['■ 추적 끊김 — 밝은 쪽·무늬 있는 곳으로', 1],
+    hidden: ['■ 화면이 꺼졌다 — 켜 두세요', 1],
+    '3dof': ['● 3DoF (회전만)', 0],
+  };
+
+  function setTrack(v) { if (v !== track) { track = v; paintTrack(); sendTrack(); } }
+
+  function paintTrack() {
+    const [label, bad] = TRACK_LABEL[track] || [track, 1];
+    chipTrack.className = 'chip' + (bad ? ' bad' : '');
+    chipTrack.innerHTML = trackResets ? `<b>${label}</b> · 재정위 ${trackResets}회` : `<b>${label}</b>`;
+    minTrack.className = bad ? 'bad' : 'ok';
+    minTrack.textContent = label.slice(0, 1) + (trackResets ? ` ${trackResets}` : '');
+  }
+
+  // 유니티로: t|상태|재정위횟수|이번에재정위했나
+  function sendTrack(reset) {
+    if (!ws || ws.readyState !== 1) return;
+    const line = ['t', track, trackResets, reset ? 1 : 0].join('|');
+    if (!reset && line === trackSent && performance.now() - trackSentAt < 3000) return;
+    trackSent = line; trackSentAt = performance.now();
+    ws.send(line);
+  }
 
   // ── 상태 ───────────────────────────────────────────────────────────────────
   let ws = null, wsReady = false;
@@ -314,6 +384,7 @@
           chipLens.className = 'chip' + (hit ? '' : ' bad');
           chipLens.innerHTML =
             `<b>${shown.toFixed(1)}×</b> ${Math.round(parseFloat(f[10]))}mm · 초점 <b>${parseFloat(f[11]).toFixed(1)}</b>m`;
+          minLens.innerHTML = `<b>${shown.toFixed(1)}×</b> ${Math.round(parseFloat(f[10]))}mm`;
         }
         return;
       }
@@ -744,6 +815,15 @@
     if (!refSpace) throw new Error('기준 공간을 못 얻었다:\n' + tried.join('\n'));
     xrWay += ' · ' + spaceName;
 
+    // 원점이 다시 잡혔다는 **플랫폼의 정답 통보**. 유니티는 이걸 확정 재정위로 쓴다
+    // (공백·속도 판정은 이 이벤트를 못 받는 경우를 위한 그물로 남는다).
+    if (refSpace.addEventListener)
+      refSpace.addEventListener('reset', () => { trackResets++; paintTrack(); sendTrack(true); });
+
+    // 화면을 안 보고 있으면 rAF 가 멈춘다 — 우리 공백의 대부분이 이것이다.
+    xrSession.addEventListener('visibilitychange', () =>
+      setTrack(xrSession && xrSession.visibilityState === 'visible' ? 'ok' : 'hidden'));
+
     mode = '6dof';
     enterRunning();
 
@@ -757,7 +837,9 @@
       try {
       step.frame++;
       const pose = frame.getViewerPose(refSpace);
-      if (!pose || !pose.views.length) { step.skip = 'no-viewerpose'; return; }
+      if (!pose || !pose.views.length) { step.skip = 'no-viewerpose'; setTrack('lost'); return; }
+      // emulatedPosition = 위치가 실측이 아니라 추정 — 6DoF 인 척하는 3DoF 구간이다.
+      setTrack(pose.emulatedPosition ? 'weak' : 'ok');
       const view = pose.views[0];
       const p = view.transform.position, o = view.transform.orientation;
 
@@ -792,6 +874,7 @@
 
   function start3Dof() {
     mode = '3dof';
+    setTrack('3dof');
     addEventListener('deviceorientation', onDeviceOrientation, true);
     enterRunning();
     const loop = t => {
@@ -872,7 +955,10 @@
     if (innerWidth >= innerHeight) gripChoice = 'landscape';
     running = true;
     $('start').classList.add('gone');
+    $('hudMin').classList.remove('hidden');
     $('hud').classList.remove('hidden');
+    $('hud').classList.add('folded');
+    paintTrack();
     $('bar').classList.remove('hidden');
     $('sticks').classList.remove('hidden');
     $('lens').classList.remove('hidden');
@@ -898,6 +984,7 @@
     const way = rtcVideo ? 'webrtc' : (usingRtc() ? 'webrtc-pose' : 'mjpeg');
     // 칸에 | 가 들어가면 규약이 깨진다 — 안전한 글자만 보낸다.
     const safe = v => String(v).replace(/[|]/g, '/');
+    sendTrack();
     ws.send(['d', safe(mode || '-'), safe(xrWay || '-'), safe(gripChoice),
              safe(o), safe(a), `${innerWidth}x${innerHeight}`, safe(way),
              safe(frameW + 'x' + frameH),
@@ -910,6 +997,7 @@
     removeEventListener('deviceorientation', onDeviceOrientation, true);
     if (xrSession) { const s = xrSession; xrSession = null; s.end().catch(() => {}); }
     $('start').classList.remove('gone');
+    $('hudMin').classList.add('hidden');
     $('hud').classList.add('hidden');
     $('bar').classList.add('hidden');
     $('sticks').classList.add('hidden');
@@ -935,6 +1023,7 @@
     chipNet.innerHTML = wsReady
       ? `뷰파인더 <b>${fps.toFixed(0)}</b> fps · ${kbs.toFixed(0)} KB/s · 포즈 <b>${hz.toFixed(0)}</b> Hz`
       : '<b>끊김</b> — 다시 붙는 중';
+    minNet.innerHTML = wsReady ? `<b>${fps.toFixed(0)}</b> fps` : '<b>끊김</b>';
   }
 
   // 화면이 도는지 재서 보여준다 — AR 세션은 회전을 잠글 수 있어서, 기기 자동회전을
