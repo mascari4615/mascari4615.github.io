@@ -13,7 +13,7 @@ const base = { material: material, heldFor: (n) => heldMark[n] ?? 0, cooling: tr
 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
   const r = topicFirst(base);
-  assert.equal(r?.이름, '단골얘기');
+  assert.equal(r?.name, '단골얘기');
   assert.match(r.text, /네가 먼저 꺼내라/);
   assert.match(r.text, /셰이더/, '꺼낼 내용이 같이 넘어가야 한다');
 });
@@ -55,7 +55,7 @@ test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는�
   for (let i = 0; i < 4; i += 1) { pressed.write('단골얘기', 'queued'); pressed.다음턴(); }
   pressed.write('기분', 'loaded');
   const r = topicFirst({ ...base, heldFor: (n) => pressed.heldFor(n) });
-  assert.equal(r?.이름, '단골얘기');
+  assert.equal(r?.name, '단골얘기');
   assert.equal(r.heldCount, 4);
 });
 

@@ -61,7 +61,7 @@ export function findClaim(said: string): ActionClaim | null {
 /**
  * 주장은 했는데 손을 안 썼나. 그렇다면 왜인지 돌려준다.
  *
- * 손 이름은 인격·설정마다 다를 수 있어 **몇 가지 이름을 다 본다** — 이름 하나만 보면
+ * 손 이름은 인격·설정마다 다를 수 있어 **몇 가지 이름을 다 본다** — name 하나만 보면
  * 이름을 바꾸는 순간 검사가 조용히 죽는다.
  */
 export function unbackedClaim(said: string, usedHands: readonly string[]): string | null {

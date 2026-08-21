@@ -9,7 +9,7 @@ const run = (settings = {}) => {
   let now2 = 1_000_000;
   let alive = false;
   const boot = new demandBoot({
-    이름: '흉내 낸 목소리',
+    name: '흉내 낸 목소리',
     isAlive: async () => alive,
     show: () => {
       events.push('띄움');
@@ -148,7 +148,7 @@ const slowRun = ({ toAppear = 200, neverAppears = false } = {}) => {
   const events2 = [];
   let shownAt = null;
   const boot2 = new demandBoot({
-    이름: '느린 것',
+    name: '느린 것',
     isAlive: async () => neverAppears === false && shownAt !== null && Date.now() - shownAt >= toAppear,
     show: () => {
       events2.push('띄움');

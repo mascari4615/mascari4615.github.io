@@ -58,7 +58,7 @@ export function withTone(voiceId: string | undefined, tone: Tone | null): string
   return voiceId.includes('@') ? voiceId : `${voiceId}@${tone}`;
 }
 
-/** `이름@결` 을 가른다. 결이 없으면 결 자리는 null. */
+/** `name@결` 을 가른다. 결이 없으면 결 자리는 null. */
 export function splitTone(voiceId: string): { name: string; tone: string | null } {
   const at = voiceId.lastIndexOf('@');
   return at < 0 ? { name: voiceId, tone: null } : { name: voiceId.slice(0, at), tone: voiceId.slice(at + 1) };

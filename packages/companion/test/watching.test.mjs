@@ -96,7 +96,7 @@ test('오래전 일은 왔다갔다로 안 센다', () => {
   assert.equal(w.isFlipping(60 * minutes), false);
 });
 
-// ── 이름 다듬기 ─────────────────────────────────────────────────────
+// ── name 다듬기 ─────────────────────────────────────────────────────
 
 test('창 제목에서 부를 만한 이름만 남긴다', () => {
   assert.equal(shortTitle('WitchMendokusai - Stage_Home - Unity 6000'), 'WitchMendokusai');

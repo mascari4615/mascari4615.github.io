@@ -120,7 +120,7 @@ export interface Body {
  * 비워두면 아무도 아닌 채로 답한다. 파일 하나 갈아끼우면 다른 사람이 된다.
  */
 export interface Character {
-  /** 화면에 표시할 이름. */
+  /** 화면에 표시할 name. */
   name: string;
   /** 두뇌에 그대로 넘어가는 지침 본문. */
   instruction: string;

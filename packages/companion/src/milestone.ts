@@ -56,7 +56,7 @@ export const milestoneDay: readonly number[] = [7, 30, 100, 200, 365, 500, 730, 
 export interface Milestone {
   /** 며칠째인가. */
   day: number;
-  /** 사람이 읽는 이름. */
+  /** 사람이 읽는 name. */
   says: string;
 }
 

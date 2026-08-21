@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
  *
  * 얘가 쓰는 무거운 것들은 이 저장소 안에 없다. 3D 몸은 게임 저장소에, 로컬 목소리와
  * 받아쓰기 모델은 메모 저장소에, 창 프로그램은 구운 자리에 있다. 여태 그 자리를
- * 「여기서 세 겹 위의 <이름>」으로 박아 뒀는데, 세션이 자기 작업 폴더(워크트리)에서
+ * 「여기서 세 겹 위의 <name>」으로 박아 뒀는데, 세션이 자기 작업 폴더(워크트리)에서
  * 얘를 띄우면 그 위엔 이웃이 없다.
  *
  * 그래서 실제로 이런 일이 났다(사용자 실측 2026-08-08): **로컬 목소리가 목록에서 통째로
@@ -28,7 +28,7 @@ export function thisRepo(): string {
 /**
  * 작업공간에서 이 이름의 이웃 폴더를 찾는다.
  *
- * @param name 찾을 폴더 이름 (`memo` / `WitchMendokusai` 등)
+ * @param name 찾을 폴더 name (`memo` / `WitchMendokusai` 등)
  * @param expected 그 안에 반드시 있어야 하는 것 — 이름만 같은 빈 폴더를 집지 않으려고
  */
 export function sibling(name: string, expected?: string): string | null {

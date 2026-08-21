@@ -21,7 +21,7 @@ function tempTree() {
   return root;
 }
 
-test('파일찾기는 이름 조각으로 아래 폴더까지 뒤진다', async () => {
+test('파일찾기는 name 조각으로 아래 폴더까지 뒤진다', async () => {
   const root = tempTree();
   const found = await findFileHand([root]).run('영수증');
   assert.match(found, /영수증-2026\.txt/);

@@ -7,7 +7,7 @@ const text2 = (text) => ({ role: 'sensed', channel: 'web', text, at: 1 });
 
 // ── 구체적 값 가리기 ────────────────────────────────────────────────
 
-test('시각·날짜·파일 이름·개수를 구체적 값으로 본다', () => {
+test('시각·날짜·파일 name·개수를 구체적 값으로 본다', () => {
   assert.equal(factClaims('10시 28분이야').length, 1);
   assert.equal(factClaims('8월 7일에 했잖아').length, 1);
   assert.equal(factClaims('회의록.md 에 있어').length, 1);

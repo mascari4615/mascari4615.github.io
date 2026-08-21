@@ -141,7 +141,7 @@ test('감정 이름을 붙이지 않는다 — 이름을 주면 그 감정을 �
   const note = feelingNote({ valence: 0.6, arousal: 0.5 });
   assert.notEqual(note, '');
   for (const name of ['기쁨', '슬픔', '분노', '행복', '우울']) {
-    assert.equal(note.includes(name), false, `${name} 이라고 이름 붙이면 안 된다`);
+    assert.equal(note.includes(name), false, `${name} 이라고 name 붙이면 안 된다`);
   }
   assert.match(note, /감정을 설명하지는 마라/);
 });

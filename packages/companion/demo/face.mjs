@@ -689,7 +689,7 @@ ${tallyReport(tally)}`;
        쓸 때 기준」). 뜨는 데 30초쯤 걸리므로 기다리지 않는다 — 준비될 때까지는 대타가
        말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
     stubBoot = new demandBoot({
-      이름: '흉내 낸 목소리',
+      name: '흉내 낸 목소리',
       isAlive: () => stub.alive(),
       show: () => startStubServer(),
       stop: () => stopStubServer(),
@@ -1200,8 +1200,8 @@ const companion = new Companion({
     };
     const first = topicFirst(topic);
     if (first !== null) {
-      console.log(`[먼저꺼냄] ${first.이름} (${first.heldCount}번 참았다)`);
-      web.noticed(`먼저 꺼낸다 — ${first.이름} (${first.heldCount}번 참았다)`);
+      console.log(`[먼저꺼냄] ${first.name} (${first.heldCount}번 참았다)`);
+      web.noticed(`먼저 꺼낸다 — ${first.name} (${first.heldCount}번 참았다)`);
       // 다른 무엇보다 앞이다. 곁가지가 아니라 이번 turn 의 화제다.
       materials.push({ name: '먼저꺼냄', text: first.text, weight: 40 });
     } else {

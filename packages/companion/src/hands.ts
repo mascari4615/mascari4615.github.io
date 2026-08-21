@@ -12,7 +12,7 @@ import { dirname } from 'node:path';
  * 둘 다 되돌릴 수 있거나 흔적만 남기는 일이다.
  */
 export interface Hand {
-  /** 두뇌가 부를 이름. */
+  /** 두뇌가 부를 name. */
   readonly name: string;
   /**
    * 이 손의 결과를 두뇌에게 되돌려 한 번 더 생각하게 할까.

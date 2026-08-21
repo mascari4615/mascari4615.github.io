@@ -22,7 +22,7 @@ const plant = (...items) => {
 
 test('겹침이 같으면 큰일이 이긴다 — 여태는 목록에서 먼저 만난 것(=가장 오래된 것)이 이겼다', () => {
   const s = plant(
-    { said: '셰이더 파일 이름 바꿨어', at: now - 10 * date, energy: 3 },
+    { said: '셰이더 파일 name 바꿨어', at: now - 10 * date, energy: 3 },
     { said: '셰이더 진짜 망했어 너무 속상해', at: now - 9 * date, energy: 8 },
   );
   assert.match(s.related('셰이더 어떻게 됐어', 1, now).said, /망했어/);

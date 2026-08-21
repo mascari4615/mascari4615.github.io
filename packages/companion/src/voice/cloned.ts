@@ -31,7 +31,7 @@ export interface ClonedSpeechOptions {
   refLang?: string;
   /** 만들어 낼 말. 기본은 한국어. */
   lang?: string;
-  /** 사람에게 보일 이름. */
+  /** 사람에게 보일 name. */
   label?: string;
   /** 얼마나 기다려 줄까. 첫 소리가 늦으면 대화가 아니다. */
   timeoutMs?: number;
@@ -57,7 +57,7 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
          이 목소리는 높낮이를 못 바꾸지만 빠르기는 바꿀 수 있다. 결을 무시하면 마음이
          어떻든 늘 같은 속도로 말하고, 밤에 누그러뜨리는 것도 안 들린다 — 결을 붙여
          놓고 듣는 쪽이 안 받으면 붙인 적 없는 것과 같다.
-         이름 뒤의 `@결` 을 읽는다. 없으면 늘 하던 속도. */
+         name 뒤의 `@결` 을 읽는다. 없으면 늘 하던 속도. */
       const tone = (voiceId ?? '').split('@')[1] as Tone | undefined;
       // 기분빠르기는 「늘어지는 정도」라 방향이 반대다 — 1.15 는 느리게, 여기선 나눠 준다.
       const speed = tone !== undefined && tone in moodSpeed ? 1 / moodSpeed[tone] : 1.0;
