@@ -15,7 +15,7 @@ const attachFake = () => {
     attach: {
       onEnter: (f) => { listen = f; },
       pickChannel: (channel2) =>
-        channel2 === '없는방' ? null : { send: async (content) => { sent.push({ 채널: channel2, 글: content }); } },
+        channel2 === '없는방' ? null : { send: async (content) => { sent.push({ channel: channel2, content: content }); } },
     },
   };
 };
@@ -34,7 +34,7 @@ test('디스코드에서 온 말이 누가 했는지와 함께 들어온다', as
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.prompt({ 글: '안녕', who: '민수', 채널: '방1', isBot: false });
+  g.prompt({ content: '안녕', who: '민수', channel: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -48,31 +48,31 @@ test('말이 그 방으로 돌아간다', async () => {
   const g = attachFake();
   const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.prompt({ 글: '안녕', who: '민수', 채널: '방1', isBot: false });
+  g.prompt({ content: '안녕', who: '민수', channel: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
-  assert.deepEqual(g.sent, [{ 채널: '방1', 글: '(대답) 안녕' }]);
+  assert.deepEqual(g.sent, [{ channel: '방1', content: '(대답) 안녕' }]);
 });
 
 test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 데 대고 말하면 안 된다', async () => {
   const g = attachFake();
   const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.prompt({ 글: '여기', who: '민수', 채널: '방1', isBot: false });
+  g.prompt({ content: '여기', who: '민수', channel: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
-  g.prompt({ 글: '이쪽', who: '지훈', 채널: '방2', isBot: false });
+  g.prompt({ content: '이쪽', who: '지훈', channel: '방2', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
-  assert.deepEqual(g.sent.map((x) => x.채널), ['방1', '방2']);
+  assert.deepEqual(g.sent.map((x) => x.channel), ['방1', '방2']);
 });
 
 test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => {
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.prompt({ 글: '내가 한 말', who: '욘', 채널: '방1', isBot: true });
+  g.prompt({ content: '내가 한 말', who: '욘', channel: '방1', isBot: true });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -83,7 +83,7 @@ test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 �
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, channels: ['방1'] }));
   await companion.start();
-  g.prompt({ 글: '여기서 하는 얘기', who: '남', 채널: '방9', isBot: false });
+  g.prompt({ content: '여기서 하는 얘기', who: '남', channel: '방9', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -94,7 +94,7 @@ test('빈 말은 흘린다', async () => {
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.prompt({ 글: '   ', who: '민수', 채널: '방1', isBot: false });
+  g.prompt({ content: '   ', who: '민수', channel: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -106,7 +106,7 @@ test('방을 못 잡아도 얘는 안 죽는다', async () => {
   const leftText = [];
   const { companion } = makeCompanion(discordBody({ attach: g.attach, log: (m) => leftText.push(m) }));
   await companion.start();
-  g.prompt({ 글: '안녕', who: '민수', 채널: '없는방', isBot: false });
+  g.prompt({ content: '안녕', who: '민수', channel: '없는방', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -132,14 +132,14 @@ test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 �
   await companion.start();
 
   // 관객 쪽에서 한 마디
-  g.prompt({ 글: '다들 안녕', who: '민수', 채널: '방1', isBot: false });
+  g.prompt({ content: '다들 안녕', who: '민수', channel: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   // 곁에서 한 마디
   await companion.feed({ channel: 'web', kind: 'text', text: '나도 있어', at: Date.now() });
   await companion.stop();
 
   // 각자 제 몸으로 답이 나갔다.
-  assert.deepEqual(g.sent.map((x) => x.글), ['(대답) 다들 안녕']);
+  assert.deepEqual(g.sent.map((x) => x.content), ['(대답) 다들 안녕']);
   assert.deepEqual(webText, ['(대답) 나도 있어']);
   // 기억은 하나다 — 누가 어디서 한 말인지 함께.
   assert.deepEqual(
