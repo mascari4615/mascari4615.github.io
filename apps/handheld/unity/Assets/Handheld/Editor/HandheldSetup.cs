@@ -36,6 +36,7 @@ namespace Handheld.EditorTools
             // ── 서버 ─────────────────────────────────────────────────────────────
             var serverGo = new GameObject("HandheldServer");
             var server = serverGo.AddComponent<HandheldServer>();
+            server.autoRecord = true;      // 「튄다」는 드물다 — 늘 켜 둔다 (CSV 두 줄, 값이 싸다)
 
             // WebRTC 는 서버 옆에 둔다 — 시그널링이 같은 WS 를 타므로 짝이다.
             // 없어도 MJPEG 으로 다 돌아간다(폴백이 본체가 아니라 본체가 늘 있는 길이다).
