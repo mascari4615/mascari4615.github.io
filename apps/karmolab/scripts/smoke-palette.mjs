@@ -120,11 +120,11 @@ for (const must of ['즐겨찾기', '도구 목록', '문서']) {
 /* 위아래 순서는 화면 주인이 정한다 (카드가 먼저인 지금 배치 = KL-129, 사용자 요청).
  * 검사가 지킬 것은 순서가 아니라 **둘 다 살아 있는가** 다 — 한쪽이 사라지면 그건 사고다. */
 const bothThere = await page.evaluate(() => ({
-  입력: !!document.querySelector('.landing-palette .kp-input'),
-  카드: document.querySelectorAll('.landing-cta-card').length,
+  input: !!document.querySelector('.landing-palette .kp-input'),
+  card: document.querySelectorAll('.landing-cta-card').length,
 }));
-if (!bothThere.입력) problems.push('첫 화면에서 찾는 입력이 사라졌다');
-if (!bothThere.카드) problems.push('첫 화면에서 갈 곳 카드가 사라졌다');
+if (!bothThere.input) problems.push('첫 화면에서 찾는 입력이 사라졌다');
+if (!bothThere.card) problems.push('첫 화면에서 갈 곳 카드가 사라졌다');
 
 /* ── ①-b 입력칸이 상자 안에 또 네모를 그리지 않는다 ─────────
  * 이 파일 뒤쪽의 공통 입력칸 규칙(`input[type=text]`)이 힘이 세서, 클래스 하나로는
@@ -324,7 +324,12 @@ if (chipsAfterUse.length) {
      「보이지 않음」으로 30초를 기다리다 죽는다. */
   await page.locator('.kp-inline .kp-input').click();
   await page.waitForTimeout(200);
-  await page.locator('.kp-inline .kp-browse-chip').first().click();
+  /* ⚠ <b>맨 앞 칩은 갈래가 아니다</b> (2026-08-21 실측). 08-19 `871c40bb5`(KL-332, 사용자 결정)로
+     「전체 도구 목록 →」 링크(`.kp-browse-chip--index`, `<a href>`)가 맨 앞에 왔다.
+     `.first()` 는 그것을 눌러 <b>딴 장으로 이동</b>했고, 그래서 팔레트가 통째로 사라진 뒤
+     「창이 안 뜬다 · 0줄뿐이다 · 부모 밑에 안 붙었다 · 돌아갈 길이 없다」가 <b>한꺼번에</b> 났다.
+     제품이 아니라 <b>누르는 자리가 틀렸다</b> — 이 파일이 08-16 에 겪은 것과 같은 부류다. */
+  await page.locator('.kp-inline .kp-browse-chip:not(.kp-browse-chip--index)').first().click();
   await page.waitForTimeout(600);
 
   const opened = await page.$$eval('.kp-overlay .kp-row', (els) => els.length);
