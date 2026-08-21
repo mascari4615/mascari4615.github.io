@@ -26,5 +26,5 @@ test('감는 양 계산이 가장 긴 놀이를 덮는다', () => {
 
 test('둘러보기가 그 값을 손으로 안 적고 끌어다 쓴다', () => {
   const body = readFileSync(join(scripts, 'smoke-tour.mjs'), 'utf8');
-  assert.match(body, /가장긴제한\(\)/, '둘러보기가 놀이 제한을 안 끌어다 쓴다 — 손으로 적으면 또 갈린다');
+  assert.match(body, /longestLimit\(\)/, '둘러보기가 놀이 제한을 안 끌어다 쓴다 — 손으로 적으면 또 갈린다');
 });
