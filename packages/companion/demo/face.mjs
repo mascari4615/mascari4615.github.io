@@ -135,6 +135,7 @@ import {
   noticeCuriosity,
   findFileHand,
   openHand,
+  pressHand,
   windowsHand,
   clockHand,
   readNotesHand,
@@ -219,6 +220,9 @@ const hands = [
   windowsHand(),
   fileInfoHand(),
   openHand(),
+  /* 화면에서 본 것을 실제로 누른다 (121회차). 되돌릴 수 없는 손이라 사람 확인을 지난다 —
+     번호는 화면 목록의 [번호] 그대로다. */
+  pressHand(),
   remindHand((afterMs, what) => {
     setTimeout(() => {
       companion.feed({ channel: 'web', kind: 'text', text: `(알림) 아까 알려달라고 한 것: ${what}`, at: Date.now() });
