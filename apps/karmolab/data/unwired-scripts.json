@@ -6,6 +6,8 @@
     "gen-paleo.mjs",
     "gen-passkey-fixture.mjs",
     "gen-pinyin-table.mjs",
+    "gen-territory-data.mjs",
+    "gen-territory-sgg.mjs",
     "i18n-widgetize.mjs",
     "profile-blocking.mjs",
     "shoot-mobile.mjs",
@@ -25,7 +27,9 @@
     "smoke-companion.mjs": "봇이 떠 있어야 뜻이 있다 — 없으면 스스로 건너뛴다. 라이브 자리 몫.",
     "smoke-foundry.mjs": "서버 없을 때의 선반 화면을 본다. 브라우저를 띄운다 — 묶기 전에 시간을 재라.",
     "smoke-wrong-kind.mjs": "재 보니 2분 05초. 기다리는 자리(#pfDropHint)가 아직 안 지어져 여덟 판 모두 빨갛다(TASK-KL-320). 짓고 나서 묶는다.",
-    "test-videosum.mjs": "영상 요약 검사 — 이름이 없어 안 돈다(무거울 수 있어 시간부터 재야 한다)."
+    "test-videosum.mjs": "영상 요약 검사 — 이름이 없어 안 돈다(무거울 수 있어 시간부터 재야 한다).",
+    "gen-territory-data.mjs": "전국 점포 위치를 OSM 에서 한 번 받아 굳히는 생성기 — 분기에 한 번 바뀐다. 방문자가 열 때마다 남의 서버를 때리지 않으려고 미리 받아 둔다 (TASK-KL-334).",
+    "gen-territory-sgg.mjs": "행정구역(시도 17 · 시군구 250)별 점유율을 미리 재 두는 생성기 — 화면과 무관한 고정된 답이라 한 번 굽는다 (TASK-KL-334)."
   },
-  "updated": "2026-08-17"
+  "updated": "2026-08-21"
 }
