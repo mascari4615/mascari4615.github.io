@@ -24,7 +24,15 @@ import { chromium } from 'playwright';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
-const PORT = Number(process.env.PORT || 4547);
+/* ★ **붙박이 자리는 남의 서버를 보게 만든다** (2026-08-21, 기전까지 재서 확인).
+   `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 잡고 있어도
+   <b>부딪히지 않고 성공한다</b>. 그리고 `localhost`/`127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
+   오류도 안 나고 로그도 안 남는다. 실측(작은 판으로 재현):
+       ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 로 물으니 「먼저 잡은 쪽」
+   ⚠ 이 검사는 <b>문제 0건이 곧 합격</b>이라, 남의 화면을 보고도 초록이 된다.
+      같은 병으로 `smoke-shell-i18n` 이 실제로 남의 저장소를 보며 「정상」이라 답해 왔다.
+   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+const PORT = Number(process.env.PORT || 0);
 const THEMES = (process.env.THEMES || 'light,dark').split(',');
 const AXE = path.join(root, 'node_modules', 'axe-core', 'axe.min.js');
 
@@ -101,6 +109,7 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(PORT, r));
+const PORT_IN_USE = server.address().port;
 
 let browser;
 try {
@@ -117,7 +126,21 @@ for (const theme of THEMES) {
   const page = await ctx.newPage();
   await page.addInitScript((t) => { try { localStorage.setItem('toolbox_theme', t); } catch { /* 사생활 모드 */ } }, theme);
   for (const [name, url] of SCREENS) {
-    await page.goto(`http://localhost:${PORT}${url}`, { waitUntil: 'load' });
+    const res = await page.goto(`http://localhost:${PORT_IN_USE}${url}`, { waitUntil: 'load' });
+    /* ★ **여기서 「문제 0건」은 「안 봤다」일 수 있다** (2026-08-21).
+     * 이 검사의 합격 조건이 <b>문제 0건</b>이라, 장이 안 열려 화면이 비면 그대로 초록이 된다.
+     * 실측으로 밟았다 — 남이 같은 자리 번호를 잡고 있을 때 <b>남의 서버를 보고도 초록</b>이었다
+     * (`listen(포트)` 는 IPv6 로 잡혀 IPv4 를 남이 쥐고 있어도 안 부딪힌다).
+     * 그래서 잰 것이 있는지부터 본다 — 없으면 초록·빨강 어느 쪽으로도 적지 않는다. */
+    const bodyLen = await page.evaluate(() => (document.body?.innerText || '').trim().length);
+    /* ⚠ `res` 가 <b>null 일 수 있다</b> — 해시(`#id`)만 바뀌는 이동은 새 응답이 없다.
+     *   처음엔 `!res` 를 실패로 셌다가 멀쩡한 판이 「못 돌림」이 됐다(실측 글 808자).
+     *   응답이 <b>있는데</b> 200 이 아닐 때만 실패로 세고, 나머지는 글자 수로 본다. */
+    if ((res && res.status() !== 200) || bodyLen < 200) {
+      console.error(`[smoke-a11y] CANNOT-RUN: 장을 못 열었다 (http ${res && res.status()} · 글 ${bodyLen}자).`);
+      console.error('  이건 「문제 없음」이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
+      process.exit(2);
+    }
     await page.waitForTimeout(1800);   // 늦게 오는 조각까지 붙은 뒤에 본다
     await page.addScriptTag({ content: axeSource });
     const violations = await page.evaluate(async () => {
