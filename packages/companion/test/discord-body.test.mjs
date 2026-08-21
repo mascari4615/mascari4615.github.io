@@ -12,7 +12,7 @@ const attachFake = () => {
   return {
     보낸것: sent,
     말시키기: (text2) => listen?.(text2),
-    붙이기: {
+    attach: {
       들어올때: (f) => { listen = f; },
       채널잡기: (channel2) =>
         channel2 === '없는방' ? null : { 보내기: async (content) => { sent.push({ 채널: channel2, 글: content }); } },
@@ -32,7 +32,7 @@ const makeCompanion = (body, memory = new InMemoryMemory()) => ({
 
 test('디스코드에서 온 말이 누가 했는지와 함께 들어온다', async () => {
   const g = attachFake();
-  const { companion, memory } = makeCompanion(discordBody({ 붙이기: g.붙이기 }));
+  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
   g.말시키기({ 글: '안녕', 누가: '민수', 채널: '방1', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -46,7 +46,7 @@ test('디스코드에서 온 말이 누가 했는지와 함께 들어온다', as
 
 test('말이 그 방으로 돌아간다', async () => {
   const g = attachFake();
-  const { companion } = makeCompanion(discordBody({ 붙이기: g.붙이기 }));
+  const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
   g.말시키기({ 글: '안녕', 누가: '민수', 채널: '방1', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -57,7 +57,7 @@ test('말이 그 방으로 돌아간다', async () => {
 
 test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 데 대고 말하면 안 된다', async () => {
   const g = attachFake();
-  const { companion } = makeCompanion(discordBody({ 붙이기: g.붙이기 }));
+  const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
   g.말시키기({ 글: '여기', 누가: '민수', 채널: '방1', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -70,7 +70,7 @@ test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 �
 
 test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => {
   const g = attachFake();
-  const { companion, memory } = makeCompanion(discordBody({ 붙이기: g.붙이기 }));
+  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
   g.말시키기({ 글: '내가 한 말', 누가: '욘', 채널: '방1', 봇인가: true });
   await new Promise((r) => setTimeout(r, 60));
@@ -81,7 +81,7 @@ test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => 
 
 test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 된다', async () => {
   const g = attachFake();
-  const { companion, memory } = makeCompanion(discordBody({ 붙이기: g.붙이기, 채널들: ['방1'] }));
+  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, 채널들: ['방1'] }));
   await companion.start();
   g.말시키기({ 글: '여기서 하는 얘기', 누가: '남', 채널: '방9', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -92,7 +92,7 @@ test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 �
 
 test('빈 말은 흘린다', async () => {
   const g = attachFake();
-  const { companion, memory } = makeCompanion(discordBody({ 붙이기: g.붙이기 }));
+  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
   g.말시키기({ 글: '   ', 누가: '민수', 채널: '방1', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -104,7 +104,7 @@ test('빈 말은 흘린다', async () => {
 test('방을 못 잡아도 얘는 안 죽는다', async () => {
   const g = attachFake();
   const leftText = [];
-  const { companion } = makeCompanion(discordBody({ 붙이기: g.붙이기, log: (m) => leftText.push(m) }));
+  const { companion } = makeCompanion(discordBody({ attach: g.attach, log: (m) => leftText.push(m) }));
   await companion.start();
   g.말시키기({ 글: '안녕', 누가: '민수', 채널: '없는방', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));
@@ -124,7 +124,7 @@ test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 �
   };
   const memory = new InMemoryMemory();
   const companion = new Companion({
-    bodies: [webBody, discordBody({ 붙이기: g.붙이기 })],
+    bodies: [webBody, discordBody({ attach: g.attach })],
     memory,
     attention: alwaysRespond,
     brain: { name: 'echo', async think(input) { return `(대답) ${input.sensation.text}`; } },

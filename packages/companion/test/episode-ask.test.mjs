@@ -13,29 +13,29 @@ const missedText = [
 ];
 
 test('낱말 표가 못 잡은 말은 버리지 않고 물어볼 것으로 쌓아 둔다', () => {
-  const s = new EpisodeStore({ 물어보기: async () => null });
+  const s = new EpisodeStore({ ask: async () => null });
   s.learn(missedText.map((t) => spoken(t)));
   assert.equal(s.all.length, 0, '표로는 하나도 안 담긴다 — 이게 지금 상태다');
   assert.equal(s.밀린것, missedText.length);
 });
 
 test('두뇌가 높게 매기면 사건이 된다 — 표가 놓친 걸 건진다', async () => {
-  const s = new EpisodeStore({ 물어보기: async (texts) => texts.map(() => 6) });
+  const s = new EpisodeStore({ ask: async (texts) => texts.map(() => 6) });
   s.learn(missedText.map((t) => spoken(t)));
-  assert.equal(await s.되새기기(), 3);
+  assert.equal(await s.reflect(), 3);
   assert.equal(s.all.length, 3);
   assert.equal(s.all[0].기운, 6);
 });
 
 test('두뇌가 낮게 매기면 안 담는다 — 아무 말이나 사건이 되면 다음 달에 점심 얘기가 나온다', async () => {
-  const s = new EpisodeStore({ 물어보기: async (texts2) => texts2.map(() => 0) });
+  const s = new EpisodeStore({ ask: async (texts2) => texts2.map(() => 0) });
   s.learn(missedText.map((t) => spoken(t)));
-  await s.되새기기();
+  await s.reflect();
   assert.equal(s.all.length, 0);
 });
 
 test('짧은 말은 물어보지도 않는다 — 아무거나 물으면 그게 값이다', () => {
-  const s = new EpisodeStore({ 물어보기: async () => null });
+  const s = new EpisodeStore({ ask: async () => null });
   s.learn([spoken('응'), spoken('ㅇㅇ'), spoken('그러게 뭐')]);
   assert.equal(s.밀린것, 0);
 });
@@ -43,36 +43,36 @@ test('짧은 말은 물어보지도 않는다 — 아무거나 물으면 그게 
 test('두뇌가 죽어도 대화는 안 멈춘다 — 그리고 조용히 삼키지 않는다', async () => {
   const written = [];
   const s = new EpisodeStore({
-    물어보기: async () => { throw new Error('두뇌 없음'); },
+    ask: async () => { throw new Error('두뇌 없음'); },
     log: (m) => written.push(m),
   });
   s.learn(missedText.map((t) => spoken(t)));
-  assert.equal(await s.되새기기(), 0);
+  assert.equal(await s.reflect(), 0);
   assert.match(written.join(' '), /실패/);
 });
 
 test('개수가 안 맞는 대답은 안 쓴다 — 어긋난 채 담으면 엉뚱한 말이 큰일이 된다', async () => {
   const written2 = [];
-  const s = new EpisodeStore({ 물어보기: async () => [9], log: (m) => written2.push(m) });
+  const s = new EpisodeStore({ ask: async () => [9], log: (m) => written2.push(m) });
   s.learn(missedText.map((t) => spoken(t)));
-  assert.equal(await s.되새기기(), 0);
+  assert.equal(await s.reflect(), 0);
   assert.equal(s.all.length, 0);
   assert.match(written2.join(' '), /안 맞는다/);
 });
 
 test('한 번 물어본 것은 다시 안 묻는다 — 실패해도 무한히 되묻지 않는다', async () => {
   let callCount = 0;
-  const s = new EpisodeStore({ 물어보기: async () => { callCount += 1; return null; } });
+  const s = new EpisodeStore({ ask: async () => { callCount += 1; return null; } });
   s.learn(missedText.map((t) => spoken(t)));
-  await s.되새기기();
-  await s.되새기기();
+  await s.reflect();
+  await s.reflect();
   assert.equal(callCount, 1, `두 번째엔 물어볼 게 없어야 한다 — 실제로 ${callCount}번 불렀다`);
 });
 
 test('물어보기가 없으면 표만 쓴다 — 아무 데도 안 걸리고 그냥 돈다', async () => {
   const s = new EpisodeStore();
   s.learn(missedText.map((t) => spoken(t)));
-  assert.equal(await s.되새기기(), 0);
+  assert.equal(await s.reflect(), 0);
 });
 
 // ── 두뇌에게 실제로 넘어가는 물음 ──────────────────────────────────

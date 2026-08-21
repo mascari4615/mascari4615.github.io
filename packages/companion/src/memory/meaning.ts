@@ -21,15 +21,15 @@ import type { MemoryEntry } from '../types';
  */
 export interface 뜻재기 {
   /** 글 하나를 벡터로. 못 재면 null. */
-  재기: (content: string) => Promise<readonly number[] | null>;
+  measure: (content: string) => Promise<readonly number[] | null>;
 }
 
 export interface 뜻기억옵션 {
   /** 색인을 담아 둘 파일. 없으면 이 프로세스에서만 산다. */
   path?: string;
-  재기: 뜻재기;
+  measure: 뜻재기;
   /** 몇 개까지 담아 둘지. 오래된 것부터 빠진다. */
-  최대?: number;
+  max?: number;
   /** 이보다 안 닮았으면 안 꺼낸다. 낮추면 엉뚱한 게 딸려 온다. */
   문턱?: number;
   log?: (message: string) => void;
@@ -51,13 +51,13 @@ export function similarity(a: readonly number[], b: readonly number[]): number {
 
 export class meaningMemory {
   private readonly 담김: 담긴줄[] = [];
-  private readonly 최대: number;
+  private readonly max: number;
   private readonly 문턱: number;
   private readonly log: (message: string) => void;
   private 담는중 = false;
 
   constructor(private readonly options: 뜻기억옵션) {
-    this.최대 = options.최대 ?? 2000;
+    this.max = options.max ?? 2000;
     this.문턱 = options.문턱 ?? 0.5;
     this.log = options.log ?? (() => {});
     this.읽기();
@@ -112,12 +112,12 @@ export class meaningMemory {
         const content2 = (e.text ?? '').trim();
         // 아주 짧은 말은 뜻이 없다 — 「응」 「뭐」가 색인을 채우면 아무거나 닮아 보인다.
         if (content2.length < 6 || this.있나(content2)) continue;
-        const v = await this.options.재기.재기(content2);
+        const v = await this.options.measure.measure(content2);
         if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
         this.담김.push({ text: content2, at: e.at, v: [...v] });
         storedCount += 1;
       }
-      if (this.담김.length > this.최대) this.담김.splice(0, this.담김.length - this.최대);
+      if (this.담김.length > this.max) this.담김.splice(0, this.담김.length - this.max);
       if (storedCount > 0) {
         this.쓰기();
         this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.담김.length})`);
@@ -139,7 +139,7 @@ export class meaningMemory {
   ): Promise<{ text: string; 닮음: number }[]> {
     const content3 = question.trim();
     if (content3.length < 2 || this.담김.length === 0) return [];
-    const v = await this.options.재기.재기(content3);
+    const v = await this.options.measure.measure(content3);
     if (v === null) return [];
 
     const toDrop = options.뺄것 ?? new Set<string>();
@@ -186,7 +186,7 @@ export function measureWithSmallModel(options: { 모델?: string; log?: (m: stri
   };
 
   return {
-    async 재기(content6: string): Promise<readonly number[] | null> {
+    async measure(content6: string): Promise<readonly number[] | null> {
       if (ready === null) {
         prepare();
         return null;

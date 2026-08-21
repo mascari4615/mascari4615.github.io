@@ -33,7 +33,7 @@ catch (error) {
    위젯 스타일이 안 붙어 `block` 이 읽혔다 — 화면이 깨진 게 아니라 **아직 안 꾸며진 것**이다
    (라이브 점검 조각 하나가 그렇게 섰다). 시간을 재우지 말고 **모양이 붙기를** 기다린다.
    끝내 안 붙으면 아래 판정이 그대로 빨갛게 말한다 — 진짜 회귀는 그대로 잡힌다. */
-await untilTrue(page, () => getComputedStyle(document.querySelector('.hu-work')).display === 'grid', { 최대: 5000 });
+await untilTrue(page, () => getComputedStyle(document.querySelector('.hu-work')).display === 'grid', { max: 5000 });
 const problems=[];
 const initial=await page.evaluate(()=>({tracks:document.querySelectorAll('.hu-track-row').length,clips:document.querySelectorAll('.hu-clip').length,notes:document.querySelectorAll('.hu-note').length,layout:getComputedStyle(document.querySelector('.hu-work')).display}));
 /* 우클릭은 드래그/브라우저 메뉴로 새지 않고 위젯 메뉴만 열어야 한다. */
@@ -58,12 +58,12 @@ const bandTop=Math.min(...multiClipBoxes.map((box)=>box.top))+3;
 const bandBottom=Math.max(...multiClipBoxes.map((box)=>box.bottom))-3;
 await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();
 /* 재우지 말고 **골라질 때까지** — 바쁜 기계에서는 80ms 안에 표시가 안 붙어 0 으로 읽힌다. */
-await untilTrue(page,()=>document.querySelectorAll('.hu-lane[data-kind=midi] .hu-clip.is-selected').length>0,{최대:3000});
+await untilTrue(page,()=>document.querySelectorAll('.hu-lane[data-kind=midi] .hu-clip.is-selected').length>0,{max:3000});
 const boxSelected=await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip.is-selected').count();
 /* 클립 소리 끄기 — 트랙 전체를 끄지 않고 한 부분만 빼 본다. */
 await page.keyboard.press('m');
 /* 소리 끄기 표시가 붙을 때까지 — 무엇을 기다리는지 아는 자리다. */
-await untilTrue(page,()=>document.querySelectorAll('.hu-clip.is-muted').length>0,{최대:3000});
+await untilTrue(page,()=>document.querySelectorAll('.hu-clip.is-muted').length>0,{max:3000});
 const mutedCount=await page.locator('.hu-clip.is-muted').count();
 await page.waitForTimeout(400);
 const mutedSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+track.clips.filter((clip)=>clip.mute).length,0):-1;});

@@ -71,8 +71,8 @@ const openGame = async (id) => {
      「0 에서 멎었다」로 보고 곧바로 키를 누르고, 그러면 아무 데도 안 간다(지난 판에 고친 그 병).
      그래서 먼저 **뭐라도 그려지기를** 기다리고, 그 다음에 멎기를 기다린다. */
   const coreCount = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
-  await untilTrue(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { 최대: 5000 });
-  await untilSettled(p, coreCount, { 간격: 120, 최대: 5000 });
+  await untilTrue(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { max: 5000 });
+  await untilSettled(p, coreCount, { 간격: 120, max: 5000 });
 };
 
 if (!cantRun) {
@@ -94,7 +94,7 @@ if (!cantRun) {
 
   await p.keyboard.press('Enter');
   /* 돌이 놓일 때까지 — 무엇을 기다리는지 아는 자리다(재우면 느린 기계에서 빈 칸을 읽는다). */
-  await untilTrue(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { 최대: 3000 });
+  await untilTrue(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { max: 3000 });
   const put = await p.evaluate(() => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim());
   check('엔터가 진짜로 둔다', put === '●', `"${put}"`);
 
@@ -114,7 +114,7 @@ if (!cantRun) {
       p,
       () => [...document.querySelectorAll('#acView button:not([disabled]),#acView [role="button"]:not([aria-disabled="true"])')]
         .some((e) => e.offsetParent !== null),
-      { 최대: 8000 }
+      { max: 8000 }
     );
     /* ★ **한 번 눌러 안 되면 두 번 더 눌러 본다** (2026-08-17, CI 빨강 · 여기선 초록).
        `president` 는 나눠 주는 그림이 끝나며 무대를 다시 그리는데, 그 찰나에 눌린 키는 **삼켜진다**.

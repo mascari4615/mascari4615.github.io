@@ -96,7 +96,7 @@ await page.waitForSelector('#imZoom img', { timeout: 10000 }).catch(() => {});
 check((await page.locator('#imZoom img').count()) === 1, '누르면 크게 뜬다');
 await page.click('#imZoom');
 /* 재우지 말고 **닫힐 때까지** — 무엇을 기다리는지 아는 자리다(느린 기계에서 200ms 는 모자란다). */
-await untilTrue(page, () => !document.querySelector('#imZoom'), { 최대: 3000 });
+await untilTrue(page, () => !document.querySelector('#imZoom'), { max: 3000 });
 check((await page.locator('#imZoom').count()) === 0, '다시 누르면 닫힌다');
 
 /* ④ 할 일을 고르면 그 자리에서 열린다 — 사진은 안 사라진다 */

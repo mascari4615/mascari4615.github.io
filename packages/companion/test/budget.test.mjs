@@ -107,7 +107,7 @@ test('안 실린 이유를 같이 알려 준다 — 「안 실렸다」만 남�
       { name: '큰것', text: '가'.repeat(30), weight: 9 },
       { name: '밀린것', text: '나'.repeat(30), weight: 1 },
     ],
-    { maxChars: 30, maxLines: 1, 자리: '「너 뭐 좋아해?」', mark: (name, fate, why) => remaining.push([name, fate, why]) },
+    { maxChars: 30, maxLines: 1, slot: '「너 뭐 좋아해?」', mark: (name, fate, why) => remaining.push([name, fate, why]) },
   );
   const reason = Object.fromEntries(remaining.map(([n, , w]) => [n, w]));
   assert.match(reason['꺼진것'], /조건이 안 켜졌다/);
@@ -119,7 +119,7 @@ test('안 실린 이유를 같이 알려 준다 — 「안 실렸다」만 남�
 test('이유에 그 turn 이 뭐였는지 붙는다 — 없으면 어느 순간이었는지 되짚을 수가 없다', () => {
   const remaining2 = [];
   pickIngredients([{ name: '꺼진것', text: '가', weight: 1, when: false }], {
-    자리: '「너 뭐 좋아해?」',
+    slot: '「너 뭐 좋아해?」',
     mark: (name, fate, why2) => remaining2.push(why2),
   });
   assert.match(remaining2[0], /너 뭐 좋아해/);

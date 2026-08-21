@@ -62,7 +62,7 @@ export interface EpisodeStoreOptions {
    *
    * 없으면 낱말 표만 쓴다 — 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
    */
-  물어보기?: (texts: readonly string[]) => Promise<readonly number[] | null>;
+  ask?: (texts: readonly string[]) => Promise<readonly number[] | null>;
   log?: (message: string) => void;
 }
 
@@ -157,8 +157,8 @@ export class EpisodeStore {
    * 대답을 기다리느라 답이 늦어지면 안 되므로 **말하는 길에서 부르지 않는다** — 한 turn 이
    * 끝난 뒤에 따로 부른다. 실패하면 조용히 넘어가지 않고 적는다.
    */
-  async 되새기기(atOnce = 8): Promise<number> {
-    const ask2 = this.options.물어보기;
+  async reflect(atOnce = 8): Promise<number> {
+    const ask2 = this.options.ask;
     if (ask2 === undefined || this.물어볼것.size === 0) return 0;
 
     const bundle = [...this.물어볼것.entries()].slice(0, atOnce);

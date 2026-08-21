@@ -82,7 +82,7 @@ async function askTool(toolId, fills) {
          페이지가 죽었나 (실측 2026-08-13, 세 판 연속 같은 자리). */
       const why = await page.evaluate((id) => ({
         셸: typeof Toolbox !== 'undefined',
-        자리: !!document.getElementById(`page-${id}`),
+        slot: !!document.getElementById(`page-${id}`),
         본문: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
       }), toolId).catch(() => null);
       throw new Error(`${toolId}: ${String(error.message).slice(0, 60)} — ${JSON.stringify(why)}`);

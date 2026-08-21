@@ -29,7 +29,7 @@ const kinds: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드�
 export interface 자리배움옵션 {
   path?: string;
   /** 두뇌에게 물어보는 자리. 없으면 표만 쓴다. */
-  물어보기?: (titles: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
+  ask?: (titles: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
   log?: (message: string) => void;
 }
 
@@ -67,7 +67,7 @@ export class learnSlot {
   }
 
   private get 물어보기있나(): boolean {
-    return this.options.물어보기 !== undefined;
+    return this.options.ask !== undefined;
   }
 
   get 밀린것(): number {
@@ -83,8 +83,8 @@ export class learnSlot {
    *
    * 모른다고 답한 것도 적어 둔다 — 안 적으면 같은 창을 영원히 다시 묻는다.
    */
-  async 되새기기(atOnce = 10): Promise<number> {
-    const ask2 = this.options.물어보기;
+  async reflect(atOnce = 10): Promise<number> {
+    const ask2 = this.options.ask;
     if (ask2 === undefined || this.물어볼것.size === 0) return 0;
     const bundle = [...this.물어볼것].slice(0, atOnce);
     for (const title3 of bundle) this.물어볼것.delete(title3); // 실패해도 무한히 다시 묻지 않는다
