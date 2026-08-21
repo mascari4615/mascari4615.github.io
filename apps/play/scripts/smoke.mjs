@@ -180,7 +180,7 @@ async function brandBg(page) {
     });
     await page.waitForTimeout(1400);
     const stay = await page.evaluate(() => ({
-      왼쪽: (document.querySelector('#hiA .hi-nm')?.textContent || ''),
+      left: (document.querySelector('#hiA .hi-nm')?.textContent || ''),
       leftValueVisible: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
       hideRightValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
     }));
@@ -254,11 +254,11 @@ async function brandBg(page) {
     say(!brandQ || frame.바탕 === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandQ})`);
     say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
   }
-  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), toolButton: !!document.getElementById('qsTool') }));
+  const q = await page.evaluate(() => ({ problem: document.getElementById('qsQ').textContent.trim(), toolButton: !!document.getElementById('qsTool') }));
   say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
   say(q.도구단추, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
   const head = await page.evaluate(() => ({
-    회차: document.getElementById('qsDay').textContent,
+    round: document.getElementById('qsDay').textContent,
     focus: document.activeElement?.id
   }));
   say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
@@ -287,7 +287,7 @@ async function brandBg(page) {
   await page.goto(`${BASE}/daily/pokemon/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   await common(page, 'daily', '하나 맞히기');
-  const r = await page.evaluate(() => ({ 칸: !!document.querySelector('.guessbar input'), 훑기: !!document.querySelector('.browse-open') }));
+  const r = await page.evaluate(() => ({ cell: !!document.querySelector('.guessbar input'), scan: !!document.querySelector('.browse-open') }));
   say(r.칸, 'daily: 답을 칠 칸이 없다');
   say(r.훑기, 'daily: 이름이 기억 안 날 때 훑어볼 길이 없다');
   if (r.훑기) {
@@ -329,7 +329,7 @@ async function brandBg(page) {
   const first = await page.evaluate(() => ({
     question: (document.getElementById('twQ')?.textContent || '').trim(),
     candidates: (document.getElementById('twLeft')?.textContent || '').trim(),
-    단추: document.querySelectorAll('#twRow [data-say]').length
+    button: document.querySelectorAll('#twRow [data-say]').length
   }));
   say(first.질문.length > 4 && !/불러오는|못 불러/.test(first.질문), `twenty: 첫 질문이 안 떴다 (${first.질문.slice(0, 20)})`);
   say(first.단추 === 3, `twenty: 대답 단추가 ${first.단추}개다 — 예·아니오·모르겠어요 셋이어야 한다`);

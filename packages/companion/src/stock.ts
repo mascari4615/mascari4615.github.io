@@ -67,7 +67,7 @@ export function select(raw: string, maxChars2 = 20): string[] {
 
 export class lineStore {
   private readonly stored = new Map<string, 담긴것>();
-  private readonly 채우는중 = new Set<string>();
+  private readonly filling = new Set<string>();
   private readonly max: number;
   private readonly maxChars: number;
   private readonly log: (message: string) => void;
@@ -133,10 +133,10 @@ export class lineStore {
    * 같은 갈래를 두 번 겹쳐 채우지 않는다(느린 두뇌를 여러 번 부르면 진짜 대답이 밀린다).
    */
   async fill(kind4: string, request: string, goal = this.max): Promise<number> {
-    if (this.채우는중.has(kind4)) return 0;
+    if (this.filling.has(kind4)) return 0;
     const now = this.remaining(kind4);
     if (now >= Math.min(goal, this.max)) return 0;
-    this.채우는중.add(kind4);
+    this.filling.add(kind4);
     try {
       const count = Math.min(goal, this.max) - now;
       const persona = this.options.personaText?.() ?? null;
@@ -170,7 +170,7 @@ export class lineStore {
       this.log(`[대사] ${kind4} — 못 지었다: ${(e as Error).message}`);
       return 0;
     } finally {
-      this.채우는중.delete(kind4);
+      this.filling.delete(kind4);
     }
   }
 }

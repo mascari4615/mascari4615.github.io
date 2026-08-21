@@ -43,8 +43,8 @@ export class pendingThoughts {
   private readonly step: number;
   private readonly cap: number;
   private readonly forgetTurn: number;
-  private readonly 눌린것 = new Map<string, 눌림>();
-  private 턴 = 0;
+  private readonly pressed = new Map<string, 눌림>();
+  private turn = 0;
 
   constructor(options: 밀린생각옵션 = {}) {
     this.step = options.step ?? 3;
@@ -54,9 +54,9 @@ export class pendingThoughts {
 
   /** 한 turn 이 끝났다. 다음 겨룸으로 넘어간다. */
   다음턴(): void {
-    this.턴 += 1;
-    for (const [이름, v] of [...this.눌린것]) {
-      if (this.턴 - v.lastTurn >= this.forgetTurn) this.눌린것.delete(이름);
+    this.turn += 1;
+    for (const [이름, v] of [...this.pressed]) {
+      if (this.turn - v.lastTurn >= this.forgetTurn) this.pressed.delete(이름);
     }
   }
 
@@ -68,26 +68,26 @@ export class pendingThoughts {
    * - **꺼짐/빔** = 지금 자리에 없는 얘기다 → 쌓아 두면 엉뚱한 때 튀어나온다. 지운다.
    */
   write = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
-    if (ok !== '밀림') { this.눌린것.delete(name2); return; }
-    const previous = this.눌린것.get(name2);
-    this.눌린것.set(name2, { count: (previous?.count ?? 0) + 1, lastTurn: this.턴 });
+    if (ok !== '밀림') { this.pressed.delete(name2); return; }
+    const previous = this.pressed.get(name2);
+    this.pressed.set(name2, { count: (previous?.count ?? 0) + 1, lastTurn: this.turn });
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */
   heldFor(name3: string): number {
-    return this.눌린것.get(name3)?.count ?? 0;
+    return this.pressed.get(name3)?.count ?? 0;
   }
 
   /** 가장 오래 참은 것부터. */
   heldOrder(): { 이름: string; count: number }[] {
-    return [...this.눌린것.entries()]
+    return [...this.pressed.entries()]
       .map(([이름, v]) => ({ 이름, count: v.count }))
       .sort((a, b) => b.count - a.count);
   }
 
   /** 지금 이 재료에 얹어 줄 무게. */
   addedWeight(name4: string): number {
-    const v = this.눌린것.get(name4);
+    const v = this.pressed.get(name4);
     if (v === undefined) return 0;
     return Math.min(v.count * this.step, this.cap);
   }
@@ -102,7 +102,7 @@ export class pendingThoughts {
 
   /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
   summary(): string {
-    const items = [...this.눌린것.entries()]
+    const items = [...this.pressed.entries()]
       .filter(([이름]) => this.addedWeight(이름) > 0)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
