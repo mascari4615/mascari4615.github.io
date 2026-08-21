@@ -600,5 +600,10 @@
   "howto.protobuf.0": "protobuf の塊を base64 か hex で貼る",
   "howto.protobuf.1": "スキーマ無しのワイヤ形式で解けた結果を見る",
   "howto.protobuf.2": ".proto があれば一緒に入れて名前と型を付ける",
-  "howto.protobuf.3": "どの番号が何かを確認する"
+  "howto.protobuf.3": "どの番号が何かを確認する",
+  "howto.territory.0": "業種を選ぶ — コンビニ・カフェ・ハンバーガー",
+  "howto.territory.1": "ドラッグで移動、ホイールやピンチで拡大（キーボードは矢印で移動、+/- で拡大）",
+  "howto.territory.2": "「いま見えている土地の主」で画面内の面積シェアを確認",
+  "howto.territory.3": "「区単位」に切り替えると市区町村ごとの首位ブランドで塗ります",
+  "howto.territory.4": "「店の点を表示」を入れると塗りの上に実際の店舗位置が重なります"
 }

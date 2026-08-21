@@ -322,5 +322,7 @@
   "tools.printkit.description": "모눈종이·원고지·오선지·달력·라벨을 mm 로 그려 인쇄용으로 만듭니다. 종이 크기와 여백을 알고 그리니 어느 프린터에서도 자리가 맞습니다.",
   "tools.printkit.lead": "모눈 · 원고지 · 오선지 · 달력 · 라벨 · mm 기준 · SVG/PDF",
   "tools.protobuf.description": "protobuf 바이너리를 눈으로 볼 수 있게 풀어 줍니다. 스키마가 없어도 「번호 3번, 문자열, 길이 12」까지는 늘 알 수 있고, .proto 를 주면 이름을 붙입니다.",
-  "tools.protobuf.lead": "스키마 없이도 읽기 · .proto 주면 이름 붙이기 · base64/hex 입력"
+  "tools.protobuf.lead": "스키마 없이도 읽기 · .proto 주면 이름 붙이기 · base64/hex 입력",
+  "tools.territory.description": "편의점·카페·햄버거 브랜드의 점포 위치로 지도를 칠해, 어느 구역이 어느 브랜드에 가까운지 면적으로 보여줍니다.",
+  "tools.territory.lead": "화면 픽셀마다 가장 가까운 가게를 찾아 그 브랜드 색으로 칠합니다 · 면적 점유율 · 시도·시군구별 1등"
 }

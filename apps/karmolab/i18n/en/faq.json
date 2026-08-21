@@ -1154,5 +1154,13 @@
   "faq.protobuf.1.q": "What changes if I supply a .proto?",
   "faq.protobuf.1.a": "Field numbers gain names and types, so the output reads like a sentence.",
   "faq.protobuf.2.q": "Is the blob uploaded anywhere?",
-  "faq.protobuf.2.a": "No. Even a value scraped out of a log never leaves your browser."
+  "faq.protobuf.2.a": "No. Even a value scraped out of a log never leaves your browser.",
+  "faq.territory.0.q": "Is the share based on revenue or store count?",
+  "faq.territory.0.a": "Neither — it is based on **area**. For each point on the map we find the nearest store and count which brand it belongs to, then report the share of ground covered. A brand with few but widely spread stores can still hold a large area.",
+  "faq.territory.1.q": "Why does the number change when I move the map?",
+  "faq.territory.1.a": "“Who owns this ground” counts only what is currently on screen. Panning or zooming changes the sample, so the number changes with it. For a fixed answer, switch to “By district” — precomputed over 17 provinces and 250 districts.",
+  "faq.territory.2.q": "How current is the store data?",
+  "faq.territory.2.a": "Store locations come from OpenStreetMap, downloaded ahead of time. It is not live — it is refreshed quarterly, and stores missing from OpenStreetMap are not included. District boundaries follow Statistics Korea (2018).",
+  "faq.territory.3.q": "Is my location or activity sent anywhere?",
+  "faq.territory.3.a": "Nothing is sent. The store data is downloaded once, and all calculation and drawing happen inside your browser. Only the map tiles are fetched from OpenStreetMap."
 }

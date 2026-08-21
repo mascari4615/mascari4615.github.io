@@ -322,5 +322,7 @@
   "tools.printkit.description": "方眼紙・原稿用紙・五線譜・カレンダー・ラベルをミリで描いて印刷用にします。用紙と余白を分かって描くのでどのプリンタでも位置が合います。",
   "tools.printkit.lead": "方眼 · 原稿用紙 · 五線譜 · カレンダー · ラベル · mm 基準 · SVG/PDF",
   "tools.protobuf.description": "protobuf のバイナリを目で見える形にします。スキーマがなくても「3番・文字列・長さ12」までは分かり、.proto を渡すと名前が付きます。",
-  "tools.protobuf.lead": "スキーマ無しでも読める · .proto で名前付け · base64/hex 入力"
+  "tools.protobuf.lead": "スキーマ無しでも読める · .proto で名前付け · base64/hex 入力",
+  "tools.territory.description": "コンビニ・カフェ・ハンバーガー各ブランドの店舗位置で地図を塗り、どの区域がどのブランドに近いかを面積で示します。",
+  "tools.territory.lead": "画面の各点を最も近い店のブランド色で塗ります · 面積シェア · 都道府県・市区町村ごとの首位"
 }

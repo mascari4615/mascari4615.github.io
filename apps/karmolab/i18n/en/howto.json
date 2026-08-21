@@ -600,5 +600,10 @@
   "howto.protobuf.0": "Paste the protobuf blob as base64 or hex",
   "howto.protobuf.1": "Read the wire-format breakdown with no schema needed",
   "howto.protobuf.2": "Add a .proto to attach names and types",
-  "howto.protobuf.3": "Check which field number is which"
+  "howto.protobuf.3": "Check which field number is which",
+  "howto.territory.0": "Pick a category — convenience stores, cafes, or burgers",
+  "howto.territory.1": "Drag to move, wheel or pinch to zoom (keyboard: arrows to move, +/- to zoom)",
+  "howto.territory.2": "Read the area share for the current view under “Who owns this ground”",
+  "howto.territory.3": "Switch to “By district” to color each district by its leading brand",
+  "howto.territory.4": "Turn on “Show store dots” to see the actual store locations over the colors"
 }
