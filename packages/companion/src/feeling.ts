@@ -42,7 +42,7 @@ export const events = {
   '오래혼자': { valence: -0.1, arousal: -0.25 },
 } as const satisfies Record<string, Feeling>;
 
-export type 일 = keyof typeof events;
+export type EventName = keyof typeof events;
 
 const group = (x: number): number => Math.max(-1, Math.min(1, x));
 
@@ -71,7 +71,7 @@ export class Heart {
   }
 
   /** 무슨 일이 있었다. */
-  felt(what: 일, count = 1): Feeling {
+  felt(what: EventName, count = 1): Feeling {
     const now2 = this.settle();
     const push = events[what];
     this.feeling = {

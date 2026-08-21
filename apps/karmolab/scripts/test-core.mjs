@@ -2361,7 +2361,7 @@ eq(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), JSON.string
 check(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })) !== JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 8 })), '씨앗이 다르면 다르다');
 
 /* 나라마다 다른 이름 — 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다 */
-check(/[가-힣]/.test(String(mock.generate('이름:name', { count: 1, seed: 3, locale: 'ko' })[0].이름)), 'ko 는 한글 이름');
+check(/[가-힣]/.test(String(mock.generate('이름:name', { count: 1, seed: 3, locale: 'ko' })[0]['이름'])), 'ko 는 한글 이름');
 check(/^[A-Za-z ]+$/.test(String(mock.generate('name:name', { count: 1, seed: 3, locale: 'en' })[0].name)), 'en 은 영문 이름');
 
 const mockCsv = mock.emit(mock.generate('이름:name\n메모:lorem(3)', { count: 2, seed: 5 }), 'csv');

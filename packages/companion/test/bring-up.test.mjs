@@ -8,7 +8,7 @@ const material = [
   { name: '궁금', text: '', weight: 5 },
   { name: '기분', text: '지금 기운이 처져 있다', weight: 12 },
 ];
-const heldMark = { 단골얘기: 5, mood: 1 };
+const heldMark = { '단골얘기': 5, mood: 1 };
 const base = { material: material, heldFor: (n) => heldMark[n] ?? 0, cooling: true, askedTurn: false };
 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
