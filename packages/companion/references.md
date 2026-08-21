@@ -29,6 +29,29 @@
 - **할 수 있는 것**: (→ TASK-XXX 로 팠으면 번호)
 -->
 
+### 2026-08-21 · 「자막 제공 및 광고를 포함하고 있습니다」에는 이름이 있다
+
+- **본 것**: 받아쓰기 쪽 2026 지형을 보다 우리 증상의 이름을 찾았다 — **whisper 는 조용할 때
+  지어낸다**(silence hallucination). 자막 데이터로 배워서 무음 구간에 자막 상투구를 뱉는
+  것이고, 스트리밍을 원래 못 한다는 것도 같이 꼽힌다. 대안 숫자: **Voxtral Transcribe 2**
+  (Mistral, 2026-02, **4B · Apache 2.0 · 스트리밍 native**) FLEURS 평균 **WER 5.9%** vs
+  whisper large-v3 **7.4%** — 다만 **13개 언어만**. 속도는 **NVIDIA Parakeet TDT 1.1B** 가
+  RTFx 2,000 대. 말 끝 판정을 **모델 안에 넣은** 것도 나왔다(Deepgram Flux — 바깥 VAD 를
+  안 쓴다). 실시간 최상단은 AssemblyAI Universal-3.5 Pro Realtime — WER **3.40%** ·
+  최종 조각까지 **p50 약 110ms**.
+  [열린 STT 벤치 2026](https://northflank.com/blog/best-open-source-speech-to-text-stt-model-in-2026-benchmarks) ·
+  [Voxtral vs Whisper](https://weesperneonflow.ai/en/blog/2026-03-31-voxtral-whisper-open-source-speech-models-comparison-2026/) ·
+  [whisper 대안 정리](https://www.assemblyai.com/blog/whisper-alternatives)
+- **우리와 다른 점**: 우리는 whisper 를 쓴다(`sense/whisper.ts`). 그래서 기억에
+  **「자막 제공 및 자막 제공 및 광고를 포함하고 있습니다.」가 5건** 남아 있다(107회차 실측).
+  대조표의 「실시간 음성 = 갭 없음」은 기능 얘기고, **환청을 거르는 자리는 없다.**
+  61회차에 「깨진 글은 기억이 되면 안 된다」를 세웠는데 그건 **깨진 글자**를 보는 것이라
+  멀쩡한 문장 모양의 환청은 그대로 지나간다.
+- **할 수 있는 것**: 모델을 바꾸는 건 사용자 영역(디스크·시간)이지만, **거르는 것은 지금
+  우리 코드로 된다.** 받아쓰기 결과가 사람 말로 담기기 **전에** 자막 상투구를 걷어낸다 —
+  61회차 지킴이 옆자리다. 111회차에 배운 대로 사전을 두 벌 만들지 말고 한 자리에.
+  → 판 TASK: **TASK-KAR-240**
+
 ### 2026-08-21 · 상주시킬 만한 작은 머리 — 숫자로 고른다
 
 - **본 것**: 로컬 소형(1B~4B)의 2026 지형. **Qwen 3.5 4B** = 내려받기 **3.4GB**, 맥락 **256K**,
