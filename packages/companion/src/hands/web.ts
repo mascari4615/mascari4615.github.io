@@ -14,7 +14,7 @@
  */
 
 /** 검색 결과 한 줄. */
-export interface 찾은것 {
+export interface SearchHit {
   title: string;
   url: string;
   summary: string;
@@ -63,8 +63,8 @@ export function textOnly(html: string): string {
  * 남의 화면 생김새에 기대는 일이라 언젠가 어긋난다. 그래서 **못 뽑으면 빈 배열**이고,
  * 부르는 쪽이 「못 찾았다」고 말한다 — 조용히 그럴듯한 걸 지어내는 것보다 낫다.
  */
-export function extractResults(html: string, count = 5): 찾은것[] {
-  const produced: 찾은것[] = [];
+export function extractResults(html: string, count = 5): SearchHit[] {
+  const produced: SearchHit[] = [];
   const block = /<a[^>]+class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>([\s\S]{0,600}?)(?=<a[^>]+class="[^"]*result__a|$)/g;
   let m: RegExpExecArray | null;
   while ((m = block.exec(html)) !== null && produced.length < count) {

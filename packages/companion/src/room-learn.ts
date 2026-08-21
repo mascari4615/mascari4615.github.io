@@ -26,7 +26,7 @@ import { whichSlot, type 자리 } from './room';
 
 const kinds: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드는중', '읽는중', '노는중', '나를보는중'];
 
-export interface 자리배움옵션 {
+export interface SlotLearnOptions {
   path?: string;
   /** 두뇌에게 물어보는 자리. 없으면 표만 쓴다. */
   ask?: (titles: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
@@ -37,7 +37,7 @@ export class learnSlot {
   private readonly learned = new Map<string, 자리>();
   private readonly toAsk = new Set<string>();
 
-  constructor(private readonly options: 자리배움옵션 = {}) {
+  constructor(private readonly options: SlotLearnOptions = {}) {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, 자리>;

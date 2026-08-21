@@ -28,7 +28,7 @@ import type { MemoryEntry } from './types';
  * 좁게 켠다. 늘 켜면 그냥 「길게 말해라」가 되어 인격을 덮는다 — 그건 이미 두 번 실패한 길이다.
  */
 
-export interface 받을길이입력 {
+export interface AcceptLengthInput {
   /** 방금 조수님이 한 말. */
   justNow: string;
   /** 최근 오간 말 (오래된 것부터). */
@@ -46,7 +46,7 @@ const loadedWords = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|�
  *   여느 때**와 견준다(사람마다 말길이가 다르다. 표를 손으로 정하다 오늘만 세 번 당했다).
  * - **감정이 실렸다** — 짧아도 「망했어」는 한마디로 받으면 안 된다.
  */
-export function acceptLength(input: 받을길이입력): string {
+export function acceptLength(input: AcceptLengthInput): string {
   const justNow = input.justNow.trim();
   if (justNow === '') return '';
 

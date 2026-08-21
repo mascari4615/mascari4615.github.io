@@ -23,7 +23,7 @@ import type { MemoryEntry } from '../types';
  * 조수님 것으로 적는 사고를 이미 네 번 밟았다).
  */
 
-export interface 깨달음 {
+export interface Insight {
   /** 짚어 낸 것. */
   what: string;
   /** 어디서 봤나 — 근거로 삼은 말 조각들. */
@@ -31,26 +31,26 @@ export interface 깨달음 {
   at: number;
 }
 
-export interface 되새김옵션 {
+export interface ReflectOptions {
   path?: string;
   /** 몇 개까지 들고 있을까. */
   keep?: number;
   /** 새 사람 말이 이만큼 쌓이면 한 번 되새긴다. */
   마다?: number;
-  ask?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly 깨달음[] | null>;
+  ask?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly Insight[] | null>;
   log?: (message: string) => void;
 }
 
 export class reflection {
-  private list: 깨달음[] = [];
+  private list: Insight[] = [];
   private countedText = 0;
-  private readonly options: Required<Pick<되새김옵션, 'keep' | '마다'>> & 되새김옵션;
+  private readonly options: Required<Pick<ReflectOptions, 'keep' | '마다'>> & ReflectOptions;
 
-  constructor(options: 되새김옵션 = {}) {
+  constructor(options: ReflectOptions = {}) {
     this.options = { keep: 12, 마다: 12, ...options };
     if (options.path !== undefined && existsSync(options.path)) {
       try {
-        const raw = JSON.parse(readFileSync(options.path, 'utf8')) as 깨달음[];
+        const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Insight[];
         if (Array.isArray(raw)) this.list = raw.filter((x) => typeof x?.what === 'string');
       } catch {
         // 깨진 파일 때문에 대화가 멈추면 안 된다.
@@ -58,7 +58,7 @@ export class reflection {
     }
   }
 
-  get all(): readonly 깨달음[] {
+  get all(): readonly Insight[] {
     return this.list;
   }
 
@@ -84,7 +84,7 @@ export class reflection {
     if (exchange3.length === 0) return 0;
     this.countedText = 0;
 
-    let produced: readonly 깨달음[] | null = null;
+    let produced: readonly Insight[] | null = null;
     try {
       produced = await ask2(exchange3, this.list.map((x) => x.what));
     } catch (err) {
@@ -185,7 +185,7 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
         '- 설명·머리말 없이 그 줄들만. 많아야 두 줄.',
     );
     if (answer === null) return null;
-    const produced2: 깨달음[] = [];
+    const produced2: Insight[] = [];
     for (const line of answer.split('\n')) {
       const [무엇, evidences] = line.split('||');
       if (evidences === undefined) continue;
