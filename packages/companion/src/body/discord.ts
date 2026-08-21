@@ -32,7 +32,7 @@ export interface 디스코드붙이기 {
 
 export interface DiscordBodyOptions {
   /** 붙는 물건. 밖에서 준다 — 토큰이 없는 자리에서도 몸을 시험할 수 있게. */
-  붙이기: 디스코드붙이기;
+  attach: 디스코드붙이기;
   /**
    * 여기서만 듣는다. 안 주면 들어오는 모든 채널.
    *
@@ -60,7 +60,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
   const sense: Sense = {
     name: `${channel}:sense`,
     start(emit: (sensation: Sensation) => void) {
-      options.붙이기.들어올때((text3) => {
+      options.attach.들어올때((text3) => {
         // 제 말에 제가 답하면 끝없이 돈다 — 봇 글은 아예 안 듣는다.
         if (text3.봇인가) return;
         if (listenTarget !== null && listenTarget.has(text3.채널) === false) return;
@@ -72,7 +72,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
       log(`디스코드 몸이 듣기 시작했다${listenTarget === null ? '' : ` (${[...listenTarget].join(', ')})`}`);
     },
     async stop() {
-      await options.붙이기.끊기?.();
+      await options.attach.끊기?.();
     },
   };
 
@@ -86,7 +86,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
         log('어디로 보낼지 몰라서 못 보냈다 (아직 들어온 말이 없다)');
         return;
       }
-      const room = options.붙이기.채널잡기(lastChannel);
+      const room = options.attach.채널잡기(lastChannel);
       if (room === null) {
         log(`채널을 못 잡았다: ${lastChannel}`);
         return;

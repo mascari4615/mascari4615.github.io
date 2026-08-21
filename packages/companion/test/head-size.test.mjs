@@ -6,13 +6,13 @@ import { whichHead, attachHead } from '../dist/index.js';
 test('평소에는 작은 머리 — 곁에 있는 존재는 빨라야 한다', () => {
   const r = whichHead({});
   assert.equal(r.머리, 'haiku');
-  assert.equal(r.왜, '');
+  assert.equal(r.why, '');
 });
 
 test('길게 털어놨으면 큰 머리 — 작은 머리는 실측에서 14자, 큰 머리는 33자였다', () => {
   const r = whichHead({ 받을자리: true });
   assert.equal(r.머리, 'sonnet');
-  assert.match(r.왜, /길게 털어놨/);
+  assert.match(r.why, /길게 털어놨/);
 });
 
 test('공을 돌려줄 자리도 큰 머리 — 되묻기가 안 되던 것도 같은 자리였다', () => {
@@ -26,8 +26,8 @@ test('얘 자신을 물었을 때와 옛일이 걸렸을 때도 큰 머리', () 
 
 test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이 못 읽힌다', () => {
   const r = whichHead({ 받을자리: true, 돌려줄자리: true, 옛일있나: true });
-  assert.match(r.왜, /길게 털어놨/);
-  assert.equal(r.왜.includes('식어'), false);
+  assert.match(r.why, /길게 털어놨/);
+  assert.equal(r.why.includes('식어'), false);
 });
 
 test('어느 머리를 쓸지 밖에서 정할 수 있다 — 사람마다 쓸 수 있는 머리가 다르다', () => {

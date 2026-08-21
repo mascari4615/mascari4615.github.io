@@ -30,7 +30,7 @@ import type { MemoryEntry } from './types';
 
 export interface 받을길이입력 {
   /** 방금 조수님이 한 말. */
-  방금: string;
+  justNow: string;
   /** 최근 오간 말 (오래된 것부터). */
   recent: readonly MemoryEntry[];
 }
@@ -47,7 +47,7 @@ const loadedWords = /(속상|슬프|슬퍼|화나|짜증|억울|무섭|두렵|�
  * - **감정이 실렸다** — 짧아도 「망했어」는 한마디로 받으면 안 된다.
  */
 export function acceptLength(input: 받을길이입력): string {
-  const justNow = input.방금.trim();
+  const justNow = input.justNow.trim();
   if (justNow === '') return '';
 
   const usual = usualLength(input.recent);

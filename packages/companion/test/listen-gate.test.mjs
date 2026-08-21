@@ -9,7 +9,7 @@ const playBack = (gate, { 크기, 동안, 부터 = 0, 걸음 = 50 }) => {
   const happened = [];
   for (let t = 부터; t < 부터 + 동안; t += 걸음) {
     const r = gate.들었다(크기, t);
-    if (r !== null) happened.push({ 무엇: r, 때: t });
+    if (r !== null) happened.push({ what: r, 때: t });
   }
   return { 일어난것: happened, 끝난때: 부터 + 동안 };
 };
@@ -24,7 +24,7 @@ test('조용하면 안 열린다', () => {
 
 test('말소리가 이어지면 열린다', () => {
   const { 일어난것 } = playBack(new listenGate(), { 크기: loud, 동안: 2000 });
-  assert.equal(일어난것[0]?.무엇, '열림');
+  assert.equal(일어난것[0]?.what, '열림');
 });
 
 test('한 번 튄 잡음으로는 안 열린다 — 키보드 소리마다 열리면 못 쓴다', () => {
@@ -47,7 +47,7 @@ test('말이 끝나고 조용하면 닫힌다', () => {
   const gate4 = new listenGate();
   playBack(gate4, { 크기: loud, 동안: 600 });
   const { 일어난것 } = playBack(gate4, { 크기: quiet, 동안: 2000, 부터: 600 });
-  assert.equal(일어난것.at(-1)?.무엇, '닫힘');
+  assert.equal(일어난것.at(-1)?.what, '닫힘');
 });
 
 test('얘가 말하는 동안은 안 열린다 — 제 목소리를 제가 받아쓰면 혼자 떠든다', () => {
@@ -78,7 +78,7 @@ test('얘가 말을 마쳐도 꼬리 여운 동안은 안 연다 — 스피커 �
 test('켜 둔 TV 에 영영 매달리지 않는다 — 너무 길면 그냥 닫는다', () => {
   const gate8 = new listenGate();
   const { 일어난것 } = playBack(gate8, { 크기: loud, 동안: 25000, 걸음: 100 });
-  assert.equal(일어난것.filter((x) => x.무엇 === '닫힘').length >= 1, true);
+  assert.equal(일어난것.filter((x) => x.what === '닫힘').length >= 1, true);
 });
 
 test('설정을 바꾸면 그대로 먹는다 — 방마다 시끄러운 정도가 다르다', () => {
@@ -143,7 +143,7 @@ const speakAndPlay = (gate10, size, during, since = 0, step = 50) => {
   const happened2 = [];
   for (let t = since; t < since + during; t += step) {
     const r = gate10.들었다(size, t);
-    if (r !== null) happened2.push({ 무엇: r, 때: t });
+    if (r !== null) happened2.push({ what: r, 때: t });
   }
   return happened2;
 };
@@ -152,7 +152,7 @@ test('메아리만 들어올 때는 안 끊는다 — 안 그러면 한 마디�
   const gate11 = new listenGate();
   gate11.입(true, 0);
   const happened3 = speakAndPlay(gate11, 0.05, 5000); // 스피커 소리가 마이크로 돌아온 크기
-  assert.deepEqual(happened3.filter((x) => x.무엇 === '끼어듦'), []);
+  assert.deepEqual(happened3.filter((x) => x.what === '끼어듦'), []);
 });
 
 test('메아리보다 훨씬 큰 소리가 이어지면 끊는다 — 사람 목소리다', () => {
@@ -160,7 +160,7 @@ test('메아리보다 훨씬 큰 소리가 이어지면 끊는다 — 사람 목
   gate12.입(true, 0);
   speakAndPlay(gate12, 0.04, 2000); // 메아리 바닥을 먼저 배운다
   const happened4 = speakAndPlay(gate12, 0.4, 1500, 2000);
-  assert.equal(happened4.some((x) => x.무엇 === '끼어듦'), true);
+  assert.equal(happened4.some((x) => x.what === '끼어듦'), true);
 });
 
 test('잠깐 튄 소리로는 안 끊는다', () => {
@@ -186,7 +186,7 @@ test('메아리가 너무 크면 끼어들기를 포기한다 — 켜면 자기�
   speakAndPlay(gate15, 0.3, 1000); // 소리 지우기가 전혀 안 먹는 방
   assert.equal(gate15.끼어들포기, true);
   const happened6 = speakAndPlay(gate15, 0.9, 3000, 1000);
-  assert.deepEqual(happened6.filter((x) => x.무엇 === '끼어듦'), []);
+  assert.deepEqual(happened6.filter((x) => x.what === '끼어듦'), []);
 });
 
 test('끼어들기를 꺼 두면 아무리 크게 말해도 안 끊는다', () => {
@@ -230,7 +230,7 @@ test('한 번 끼어들었다고 끼어들기가 꺼지지 않는다 — 사람 
   gate20.입(false, 3800); gate20.입(true, 6000);
   speakAndPlay(gate20, 0.045, 1000, 6000);
   const again = speakAndPlay(gate20, 0.45, 800, 7000);
-  assert.equal(again.some((x) => x.무엇 === '끼어듦'), true, '두 번째 끼어들기가 안 먹는다');
+  assert.equal(again.some((x) => x.what === '끼어듦'), true, '두 번째 끼어들기가 안 먹는다');
 });
 
 test('진짜 시끄러운 방이면 바닥이 곧 차올라 포기한다 — 억지로 켜면 자기를 끊는다', () => {

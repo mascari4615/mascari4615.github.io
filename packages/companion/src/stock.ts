@@ -35,7 +35,7 @@ export interface StockOptions {
    */
   인격글?: () => string | null;
   /** 한 갈래에 담아 둘 최대 개수. */
-  최대?: number;
+  max?: number;
   /** 이 길이를 넘으면 대꾸가 아니라 설명이다. */
   최대글자?: number;
   log?: (message: string) => void;
@@ -68,12 +68,12 @@ export function select(raw: string, maxChars2 = 20): string[] {
 export class lineStore {
   private readonly 담김 = new Map<string, 담긴것>();
   private readonly 채우는중 = new Set<string>();
-  private readonly 최대: number;
+  private readonly max: number;
   private readonly 최대글자: number;
   private readonly log: (message: string) => void;
 
   constructor(private readonly options: StockOptions) {
-    this.최대 = options.최대 ?? 12;
+    this.max = options.max ?? 12;
     this.최대글자 = options.최대글자 ?? 20;
     this.log = options.log ?? (() => {});
     this.읽기();
@@ -132,13 +132,13 @@ export class lineStore {
    *
    * 같은 갈래를 두 번 겹쳐 채우지 않는다(느린 두뇌를 여러 번 부르면 진짜 대답이 밀린다).
    */
-  async 채우기(kind4: string, request: string, goal = this.최대): Promise<number> {
+  async 채우기(kind4: string, request: string, goal = this.max): Promise<number> {
     if (this.채우는중.has(kind4)) return 0;
     const now = this.남은수(kind4);
-    if (now >= Math.min(goal, this.최대)) return 0;
+    if (now >= Math.min(goal, this.max)) return 0;
     this.채우는중.add(kind4);
     try {
-      const count = Math.min(goal, this.최대) - now;
+      const count = Math.min(goal, this.max) - now;
       const persona = this.options.인격글?.() ?? null;
       const raw = await this.options.지어오기(
         [
@@ -160,7 +160,7 @@ export class lineStore {
       }
       const item3 = this.담김.get(kind4);
       const already = item3 !== undefined && item3.누구 === this.지금누구 ? item3.말들 : [];
-      const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.최대);
+      const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.max);
       this.담김.set(kind4, { 누구: this.지금누구, 말들: merged });
       this.쓰기();
       this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);

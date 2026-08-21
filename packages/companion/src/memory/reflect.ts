@@ -25,7 +25,7 @@ import type { MemoryEntry } from '../types';
 
 export interface 깨달음 {
   /** 짚어 낸 것. */
-  무엇: string;
+  what: string;
   /** 어디서 봤나 — 근거로 삼은 말 조각들. */
   근거: readonly string[];
   at: number;
@@ -37,7 +37,7 @@ export interface 되새김옵션 {
   keep?: number;
   /** 새 사람 말이 이만큼 쌓이면 한 번 되새긴다. */
   마다?: number;
-  물어보기?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly 깨달음[] | null>;
+  ask?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly 깨달음[] | null>;
   log?: (message: string) => void;
 }
 
@@ -51,7 +51,7 @@ export class reflection {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as 깨달음[];
-        if (Array.isArray(raw)) this.목록 = raw.filter((x) => typeof x?.무엇 === 'string');
+        if (Array.isArray(raw)) this.목록 = raw.filter((x) => typeof x?.what === 'string');
       } catch {
         // 깨진 파일 때문에 대화가 멈추면 안 된다.
       }
@@ -69,7 +69,7 @@ export class reflection {
   }
 
   get 셀때인가(): boolean {
-    return this.options.물어보기 !== undefined && this.센말 >= this.options.마다;
+    return this.options.ask !== undefined && this.센말 >= this.options.마다;
   }
 
   /**
@@ -78,15 +78,15 @@ export class reflection {
    * 이미 짚은 것은 다시 짚지 않게 넘겨 준다. 안 넘기면 같은 말을 여러 번 적어 놓고
    * 그게 재료 자리를 다 먹는다.
    */
-  async 되새기기(exchange3: readonly MemoryEntry[]): Promise<number> {
-    const ask2 = this.options.물어보기;
+  async reflect(exchange3: readonly MemoryEntry[]): Promise<number> {
+    const ask2 = this.options.ask;
     if (ask2 === undefined) return 0;
     if (exchange3.length === 0) return 0;
     this.센말 = 0;
 
     let produced: readonly 깨달음[] | null = null;
     try {
-      produced = await ask2(exchange3, this.목록.map((x) => x.무엇));
+      produced = await ask2(exchange3, this.목록.map((x) => x.what));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -95,7 +95,7 @@ export class reflection {
 
     let storedCount = 0;
     for (const x of produced) {
-      const what = String(x?.무엇 ?? '').trim();
+      const what = String(x?.what ?? '').trim();
       const evidence = (x?.근거 ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
       // **근거를 못 대면 버린다.** 되새김은 헛것이 가장 잘 나오는 자리다.
       if (what === '' || evidence.length === 0) {
@@ -103,13 +103,13 @@ export class reflection {
         continue;
       }
       if (this.있나(what)) continue;
-      this.목록.push({ 무엇: what, 근거: evidence, at: x?.at ?? Date.now() });
+      this.목록.push({ what: what, 근거: evidence, at: x?.at ?? Date.now() });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
     if (this.목록.length > this.options.keep) this.목록 = this.목록.slice(-this.options.keep);
     this.save();
-    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.목록.slice(-storedCount).map((x) => x.무엇).join(' / ')}`);
+    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.목록.slice(-storedCount).map((x) => x.what).join(' / ')}`);
     return storedCount;
   }
 
@@ -118,14 +118,14 @@ export class reflection {
     const fresh = new Set(word(what2));
     if (fresh.size === 0) return false;
     return this.목록.some((existing) => {
-      const overlap = word(existing.무엇).filter((w) => fresh.has(w)).length;
+      const overlap = word(existing.what).filter((w) => fresh.has(w)).length;
       return overlap >= Math.max(2, Math.floor(fresh.size * 0.6));
     });
   }
 
   forget(chunk: string): boolean {
     const before = this.목록.length;
-    this.목록 = this.목록.filter((x) => x.무엇.includes(chunk) === false);
+    this.목록 = this.목록.filter((x) => x.what.includes(chunk) === false);
     if (this.목록.length === before) return false;
     this.save();
     return true;
@@ -155,12 +155,12 @@ export function reflectionNote(store: reflection, currentText: string): string {
   const now2 = new Set(word(currentText));
   if (now2.size === 0) return '';
   const flagged = store.all
-    .map((x) => ({ x, 겹침: word(x.무엇).filter((w) => now2.has(w)).length }))
+    .map((x) => ({ x, 겹침: word(x.what).filter((w) => now2.has(w)).length }))
     .filter((r) => r.겹침 >= 2)
     .sort((a, b) => b.겹침 - a.겹침 || b.x.at - a.x.at)[0];
   if (flagged === undefined) return '';
   return (
-    `여태 보아 온 것 하나: ${flagged.x.무엇} ` +
+    `여태 보아 온 것 하나: ${flagged.x.what} ` +
     '지금 얘기와 이어지면 아는 티를 조금만 내라 — 짚어 주듯 말하지 말고, 캐묻지도 마라.'
   );
 }
@@ -190,7 +190,7 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
       const [무엇, evidences] = line.split('||');
       if (evidences === undefined) continue;
       produced2.push({
-        무엇: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
+        what: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
         근거: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
         at: Date.now(),
       });

@@ -21,26 +21,26 @@ const coolingTalk = [
 ];
 
 test('대화가 식어 가면 공을 돌려주라고 한다', () => {
-  const note = tossBackNote({ recent: coolingTalk, 방금: '응' });
+  const note = tossBackNote({ recent: coolingTalk, justNow: '응' });
   assert.match(note, /공을 돌려줘라/);
   assert.match(note, /하던 얘기를 이어 가라/);
 });
 
 test('새 주제를 꺼내라는 게 아니다 — 그건 딴소리다', () => {
-  assert.match(tossBackNote({ recent: coolingTalk, 방금: '응' }), /새 주제를 꺼내라는 게 아니라/);
+  assert.match(tossBackNote({ recent: coolingTalk, justNow: '응' }), /새 주제를 꺼내라는 게 아니라/);
 });
 
 test('물음에 물음으로 답하지 않는다 — 그건 회피다', () => {
-  assert.equal(tossBackNote({ recent: coolingTalk, 방금: '너는 어떻게 생각해?' }), '');
+  assert.equal(tossBackNote({ recent: coolingTalk, justNow: '너는 어떻게 생각해?' }), '');
 });
 
 test('방금 되물었으면 또 안 묻는다 — 두 번 이어 물으면 취조다', () => {
   const justAsked = [...coolingTalk.slice(0, -1), companion('그래서 어떻게 됐어?')];
-  assert.equal(tossBackNote({ recent: justAsked, 방금: '응' }), '');
+  assert.equal(tossBackNote({ recent: justAsked, justNow: '응' }), '');
 });
 
 test('말이 몇 마디 안 오갔으면 그냥 둔다 — 처음부터 되물으면 낯설다', () => {
-  assert.equal(tossBackNote({ recent: [person('안녕'), companion('응')], 방금: '안녕' }), '');
+  assert.equal(tossBackNote({ recent: [person('안녕'), companion('응')], justNow: '안녕' }), '');
 });
 
 test('대화가 살아 있으면 안 얹는다 — 매번 되물으면 취조다', () => {
@@ -49,7 +49,7 @@ test('대화가 살아 있으면 안 얹는다 — 매번 되물으면 취조다
     person('발표가 있었는데 준비한 만큼 안 나왔어'), companion('아쉽겠다'),
     person('그래도 다음엔 더 잘할 수 있을 것 같아서 괜찮아'), companion('그런 마음이면 됐지'),
   ];
-  assert.equal(tossBackNote({ recent: liveTalk, 방금: '그래도 다음엔 더 잘할 수 있을 것 같아서 괜찮아' }), '');
+  assert.equal(tossBackNote({ recent: liveTalk, justNow: '그래도 다음엔 더 잘할 수 있을 것 같아서 괜찮아' }), '');
 });
 
 test('화면 곁눈질은 대화로 안 센다', () => {
@@ -57,7 +57,7 @@ test('화면 곁눈질은 대화로 안 센다', () => {
     { role: 'sensed', channel: 'screen', text: '화면을 봤다', at: 1 },
     { role: 'said', channel: 'screen', text: '뭐 보는 중이네', at: 2 },
   ];
-  assert.equal(tossBackNote({ recent: screenMixed, 방금: '응' }), '');
+  assert.equal(tossBackNote({ recent: screenMixed, justNow: '응' }), '');
 });
 
 test('몇 번 중 몇 번 되물었는지 센다 — 얹어 놓고 됐다고 하지 않으려고', () => {
@@ -90,14 +90,14 @@ test('다시 시킬 땐 그 한 가지만 말한다 — 재료로는 묻혔다',
 
 test('안 하는 이유를 갈래마다 다르게 말한다 — 「빔」만 보이면 못 고친다', async () => {
   const { skipReason } = await import('../dist/index.js');
-  assert.match(skipReason({ recent: [person('안녕'), companion('응')], 방금: '안녕' }), /몇 마디 안 오갔다/);
-  assert.match(skipReason({ recent: coolingTalk, 방금: '너는?' }), /물어본 turn/);
-  assert.match(skipReason({ recent: [...coolingTalk.slice(0, -1), companion('어떻게 됐어?')], 방금: '응' }), /방금 되물었다/);
+  assert.match(skipReason({ recent: [person('안녕'), companion('응')], justNow: '안녕' }), /몇 마디 안 오갔다/);
+  assert.match(skipReason({ recent: coolingTalk, justNow: '너는?' }), /물어본 turn/);
+  assert.match(skipReason({ recent: [...coolingTalk.slice(0, -1), companion('어떻게 됐어?')], justNow: '응' }), /방금 되물었다/);
 });
 
 test('돌려줄 자리면 이유가 없다', async () => {
   const { skipReason } = await import('../dist/index.js');
-  assert.equal(skipReason({ recent: coolingTalk, 방금: '응' }), null);
+  assert.equal(skipReason({ recent: coolingTalk, justNow: '응' }), null);
 });
 
 test('이유에 숫자가 들어간다 — 「안 식었다」만으로는 얼마나 모자란지 모른다', async () => {
@@ -107,7 +107,7 @@ test('이유에 숫자가 들어간다 — 「안 식었다」만으로는 얼�
     person('발표가 있었는데 준비한 만큼 안 나왔어'), companion('아쉽겠다'),
     person('그래도 다음엔 더 잘할 수 있을 것 같아서 괜찮아'), companion('그런 마음이면 됐지'),
   ];
-  assert.match(skipReason({ recent: live, 방금: '그래도 다음엔 괜찮아' }), /\d+자/);
+  assert.match(skipReason({ recent: live, justNow: '그래도 다음엔 괜찮아' }), /\d+자/);
 });
 
 test('얘 말이 하나만 있어도 센다 — 판단하는 그 순간 지금 할 말은 아직 기억에 없다', async () => {
@@ -116,5 +116,5 @@ test('얘 말이 하나만 있어도 센다 — 판단하는 그 순간 지금 �
     person('오늘 회사에서 발표를 했는데 준비를 많이 했거든'), companion('오'),
     person('응'),
   ];
-  assert.equal(skipReason({ recent: oneShort, 방금: '응' }), null);
+  assert.equal(skipReason({ recent: oneShort, justNow: '응' }), null);
 });

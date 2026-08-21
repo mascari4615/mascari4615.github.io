@@ -47,16 +47,16 @@ export interface 머리크기옵션 {
  * **이유를 같이 낸다.** 「왜 이 turn 만 느렸지」를 나중에 알 수 없으면, 큰 머리를 쓰는 게
  * 고장으로 보인다(오늘까지 「왜」가 없어서 실험을 다시 돌린 자리가 넷이다).
  */
-export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; 왜: string } {
+export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; why: string } {
   const smallHead = options.작은머리 ?? 'haiku';
   const largeHead = options.큰머리 ?? 'sonnet';
 
   // 위에서부터 본다 — 여러 개가 겹쳐도 이유는 하나만 적는다.
-  if (input.받을자리 === true) return { 머리: largeHead, 왜: '길게 털어놨거나 감정이 실렸다' };
-  if (input.돌려줄자리 === true) return { 머리: largeHead, 왜: '대화가 식어 가 공을 돌려줄 자리다' };
-  if (input.자기얘기 === true) return { 머리: largeHead, 왜: '얘 자신에 대해 물었다' };
-  if (input.옛일있나 === true) return { 머리: largeHead, 왜: '지난 일이 걸렸다' };
-  return { 머리: smallHead, 왜: '' };
+  if (input.받을자리 === true) return { 머리: largeHead, why: '길게 털어놨거나 감정이 실렸다' };
+  if (input.돌려줄자리 === true) return { 머리: largeHead, why: '대화가 식어 가 공을 돌려줄 자리다' };
+  if (input.자기얘기 === true) return { 머리: largeHead, why: '얘 자신에 대해 물었다' };
+  if (input.옛일있나 === true) return { 머리: largeHead, why: '지난 일이 걸렸다' };
+  return { 머리: smallHead, why: '' };
 }
 
 /**

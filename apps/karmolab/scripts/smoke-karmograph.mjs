@@ -2813,7 +2813,7 @@ await step('큰 판에서도 시점을 옮기는 값이 싸다 (800장, KL-271 X
   if (swap > ms(1500)) throw new Error(`800장에서 시점 전환이 너무 비싸다: ${Math.round(swap)}ms`);
   /* 무엇을 기다리는지 아는 자리다 — **그 말이 나올 때까지** 기다린다(재우기보다 정확하다). */
   const said = await untilTrue(m, () => [...document.querySelectorAll('.ck-edge-label text')]
-    .some((x) => (x.textContent || '').includes('2부선')), { 최대: 4000 });
+    .some((x) => (x.textContent || '').includes('2부선')), { max: 4000 });
   if (!said) throw new Error('시점을 옮겼는데 선의 얼굴이 안 바뀐다(큰 판)');
   await ctx.close();
 });

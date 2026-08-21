@@ -307,7 +307,7 @@ const memory =
    한 turn 끝나고 따로 부른다. */
 const episode = new EpisodeStore({
   path: join(home, '그때-그-일.json'),
-  물어보기: askEnergy((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  ask: askEnergy((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[그때] ${m}`); web?.알아챔?.(`기억에 담았다 — ${m}`); },
 });
 
@@ -350,12 +350,12 @@ const forceFollowUp = process.env.COMPANION_TOSSBACK_RETRY !== '0';
    근거를 못 대는 것은 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다. */
 const reflected = new reflection({
   path: join(home, '보아-온-것.json'),
-  물어보기: askReflection((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  ask: askReflection((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
 });
 const slotKnowledge = new learnSlot({
   path: join(home, '무슨-자리.json'),
-  물어보기: askSlot((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  ask: askSlot((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
   log: (m) => { console.log(`[자리] ${m}`); web?.알아챔?.(m); },
 });
 // 잘못된 것 모으기 — 로그는 아무도 안 본다. 조수님이 볼 수 있어야 고쳐진다.
@@ -379,7 +379,7 @@ function shouldTossBack() {
   const recent2 = conversationMemory.recent(12);
   const list2 = Array.isArray(recent2) ? recent2 : [];
   const justNow = [...list2].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  const reason2 = skipReason({ recent: list2, 방금: justNow });
+  const reason2 = skipReason({ recent: list2, justNow: justNow });
   // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
   if (reason2 !== null) (console.log(`[공] 안 돌려준다 — ${reason2}`), web.알아챔(`공은 안 돌려준다 — ${reason2}`));
@@ -390,7 +390,7 @@ function shouldAccept() {
   const recent3 = conversationMemory.recent(40);
   const list3 = Array.isArray(recent3) ? recent3 : [];
   const justNow2 = [...list3].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  return acceptLength({ 방금: justNow2, recent: list3 }) !== '';
+  return acceptLength({ justNow: justNow2, recent: list3 }) !== '';
 }
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const startedAt = Date.now();
@@ -510,7 +510,7 @@ const meaning = surface === 'page'
   ? { 찾기: async () => [], 담기: async () => {} }
   : new 뜻기억({
     path: join(home, '뜻-색인.json'),
-    재기: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
+    measure: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
     log: (m) => console.log(`[뜻] ${m}`),
   });
 
@@ -787,7 +787,7 @@ if (discordToken) {
     const attach = await discordJs({ token: discordToken, log: (m) => console.log(`[디코] ${m}`) });
     bodies.push(
       discordBody({
-        붙이기: attach,
+        attach: attach,
         // 여기서만 듣는다. 안 정하면 들어오는 모든 방 — 남의 방에 끼어들지 않게 정해 두는 편이 낫다.
         채널들: process.env.COMPANION_DISCORD_CHANNELS?.split(',').map((x) => x.trim()).filter(Boolean),
         log: (m) => console.log(`[디코] ${m}`),
@@ -823,7 +823,7 @@ if (process.env.COMPANION_NUDGE !== '0') {
            모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
         const slot5 = maySpeak(lastWindowTitle);
         if (slot5.된다 === false) {
-          console.log(`[먼저] 참았다 — ${slot5.왜}`);
+          console.log(`[먼저] 참았다 — ${slot5.why}`);
           return null;
         }
         // 하루의 매듭은 다른 어떤 이유보다 먼저다 — 오늘 처음 만난 순간은 한 번뿐이다.
@@ -1061,15 +1061,15 @@ const companion = new Companion({
     headToRestore?.();
     headToRestore = null;
     const pickedHead = whichHead({
-      받을자리: acceptLength({ 방금: justSaid, recent: wholeStory }) !== '',
+      받을자리: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
       돌려줄자리: shouldTossBack(),
       자기얘기: asksAboutSelf(justSaid),
       옛일있나: episode.related(justSaid, 2, Date.now()) !== null,
     }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
-    if (pickedHead.왜 !== '') {
+    if (pickedHead.why !== '') {
       headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
-      console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.왜}`);
-      web.알아챔(`머리를 크게 쓴다 — ${pickedHead.왜}`);
+      console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.why}`);
+      web.알아챔(`머리를 크게 쓴다 — ${pickedHead.why}`);
     }
     /* 두뇌에 실제로 뭐가 들어가는지 눈으로 본다 (`COMPANION_SHOW_MATERIAL=1`).
        「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
@@ -1089,14 +1089,14 @@ const companion = new Companion({
       // 여러 마디에 걸쳐야 보이는 것. 지금 얘기와 이어질 때만 나온다.
       { name: '보아온것', weight: 11, text: reflectionNote(reflected, justSaid) },
       // 짧은 건 인격이지만 **안 변하는 건 고장이다**(83회차 실측: 사람이 뭘 쓰든 가운데값 7자).
-      { name: '받는길이', weight: 14, text: acceptLength({ 방금: justSaid, recent: wholeStory }) },
+      { name: '받는길이', weight: 14, text: acceptLength({ justNow: justSaid, recent: wholeStory }) },
       { name: '그때그일', weight: 10, text: (() => {
         episode.learn(recent);
         return justSaid === '' ? '' : episodeNote(episode, justSaid, Date.now());
       })() },
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
-      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: justSaid }) },
+      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, justNow: justSaid }) },
       { name: '자리', weight: 11, text: bySlotTone(slotKnowledge.읽기(lastWindowTitle)) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
@@ -1208,7 +1208,7 @@ const companion = new Companion({
       const why2 = topicSkipReason(topic);
       if (why2 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${why2}`);
     }
-    const made = composeIngredients(applyRarity(queued.덧입히기(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
+    const made = composeIngredients(applyRarity(queued.덧입히기(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     queued.다음턴();
@@ -1274,18 +1274,18 @@ const companion = new Companion({
     }
     /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
-    void episode.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
+    void episode.reflect().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 오간 말을 뜻 색인에 담는다 — **말이 나간 뒤라** 늦어져도 대화가 안 밀린다.
        이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 거의 안 든다. */
     void Promise.resolve(conversationMemory.recent(40))
       .then((es) => meaning.담기(es))
       .catch((e) => console.error(`[뜻] 담다 죽었다 — ${e?.message ?? e}`));
-    void slotKnowledge.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
+    void slotKnowledge.reflect().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는
        영영 「일어난 일」만 안다. 여기는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void Promise.resolve(conversationMemory.recent(60)).then((es) => {
       if (reflected.셈(es) === false) return undefined;
-      return reflected.되새기기(es);
+      return reflected.reflect(es);
     }).catch((e) => console.error(`[되새김] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);

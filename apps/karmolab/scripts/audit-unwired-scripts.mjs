@@ -93,7 +93,7 @@ if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
     `${JSON.stringify(
       {
         설명: '부를 자리가 아예 없는 검사 파일 — 늘면 빨강, 연결하면 저절로 줄어든다',
-        왜: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
+        why: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
         목록: neverCalled,
         사유: Object.fromEntries(neverCalled.map((f) => [f, previousReason[f] ?? '아직 사유를 안 적었다 — 재 보고 여기 적어라'])),
         갱신: new Date().toISOString().slice(0, 10),

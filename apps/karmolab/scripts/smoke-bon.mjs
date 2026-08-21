@@ -183,7 +183,7 @@ check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows(
 // ── 9-slice ───────────────────────────────
 await page.keyboard.press('s');
 /* 선 넷이 **생길 때까지** 기다린다 — 무엇을 기다리는지 아는 자리다. */
-await untilTrue(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { 최대: 3000 });
+await untilTrue(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { max: 3000 });
 const sliceLines = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-slice').length);
 check('9-slice 를 켜면 선 넷이 뜬다', (await sliceLines()) === 4, String(await sliceLines()));
 

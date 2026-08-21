@@ -42,7 +42,7 @@ export interface BudgetOptions {
    */
   mark?: (name: string, fate: '실림' | '밀림' | '꺼짐' | '빔', why?: string) => void;
   /** 이번 turn 이 무엇이었나 — 안 실린 이유를 나중에 되짚을 때 이게 있어야 한다. */
-  자리?: string;
+  slot?: string;
 }
 
 /**
@@ -56,7 +56,7 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
   const maxLines = options.maxLines ?? 5;
 
   const mark = options.mark;
-  const slot = options.자리 === undefined ? '' : ` · ${options.자리.slice(0, 40)}`;
+  const slot = options.slot === undefined ? '' : ` · ${options.slot.slice(0, 40)}`;
   const toWrite: { x: Ingredient; i: number }[] = [];
   all.forEach((x, i) => {
     /* **「안 실렸다」만 남기면 못 고친다.** 오늘 한 재료가 600턴 넘게 안 실린 걸 찾아

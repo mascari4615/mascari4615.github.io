@@ -35,7 +35,7 @@ export interface TossBackInput {
   /** 최근 오간 말 (오래된 것부터). */
   recent: readonly MemoryEntry[];
   /** 방금 조수님이 한 말. */
-  방금: string;
+  justNow: string;
 }
 
 /**
@@ -72,7 +72,7 @@ export function skipReason(input: TossBackInput): string | null {
     return `아직 몇 마디 안 오갔다 (사람 ${userText.length} · 얘 ${companionText.length})`;
   }
   // 물음에 물음으로 답하는 건 회피다.
-  if (isQuestion(input.방금)) return '조수님이 물어본 turn 이다';
+  if (isQuestion(input.justNow)) return '조수님이 물어본 turn 이다';
   // 방금 되물었으면 또 안 한다. 두 번 이어 물으면 취조다.
   const lastCompanionText = companionText[companionText.length - 1];
   if (lastCompanionText !== undefined && isQuestion(lastCompanionText.text)) return '방금 되물었다';

@@ -69,7 +69,7 @@ const toMeasure = [
       await p.evaluate(() => document.querySelector('[data-km="time-add"]')?.click());
       await p.waitForTimeout(900);
     },
-    재기: () => {
+    measure: () => {
       const box = (sel) => {
         const el = document.querySelector(sel);
         if (!el) return null;
@@ -100,7 +100,7 @@ const toMeasure = [
       await p.evaluate(() => document.fonts.ready).catch(() => null);
       await p.waitForTimeout(2400);
     },
-    재기: () => {
+    measure: () => {
       const cv = document.querySelector('.bm-canvas');
       const c = cv.getContext('2d', { willReadFrequently: true });
       const w = cv.width;
@@ -164,7 +164,7 @@ for (const item of toMeasure) {
     await p.goto(`${BASE}/apps/karmolab/index.html${item.hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await item.준비(p);
     console.log(`\n── ${item.이름}`);
-    console.log(JSON.stringify(await p.evaluate(item.재기), null, 1));
+    console.log(JSON.stringify(await p.evaluate(item.measure), null, 1));
   } catch (e) {
     console.log(`\n── ${item.이름}\n  못 쟀다: ${String(e.message).split('\n')[0]}`);
   }
