@@ -45,6 +45,7 @@ export { pressHand, parsePress, readPressed, type PressOptions } from './hands/p
 
 export {
   describeScreen,
+  dropSwallowed,
   pickWorthShowing,
   screenSense,
   type ScreenReading,

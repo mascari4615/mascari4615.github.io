@@ -219,6 +219,53 @@ function onTheShot(elements: readonly ScreenElement[], originX: number, originY:
 }
 
 /**
+ * **더 큰 것이 이미 말한 것은 두 번 안 적는다** (TASK-KAR-248).
+ *
+ * A11y-Compressor(ACL 2026)는 접근성 나무를 압축해 토큰을 원래의 22% 로 줄이면서 OSWorld
+ * 성공률을 +5.1%p 올렸다. 그 세 단계 중 하나가 「중복 지우기」다. 그래서 **먼저 쟀다**
+ * (141회차): 판박이 중복(갈래+자리+이름이 같은 것)은 msedge 0% · Discord 3% 였다 —
+ * **그 가설은 기각됐다.** 22% 는 남의 숫자다.
+ *
+ * 다시 재서 나온 것이 **감싸인 잉여**다. 더 큰 것이 같은 이름을 이미 말하고 있는 작은 것
+ * (버튼 안의 글자 같은 것):
+ *
+ *   msedge   화면 안 184 · 지울 수 있는 것   7 (4%)  · 글자수 98%
+ *   Discord  화면 안 599 · 지울 수 있는 것 123 (21%) · 글자수 84%
+ *
+ * **만질 수 있는 것은 안 지운다.** 감싸여 있어도 누를 수 있으면 그건 새 정보다. 실측에서
+ * 만질 수 있는 것 292개는 지우기 전후로 그대로 292개였다.
+ */
+export function dropSwallowed(elements: readonly ScreenElement[]): readonly ScreenElement[] {
+  const swallowed = new Set<ScreenElement>();
+  for (const small of elements) {
+    /* 만질 수 있으면 남긴다 — 누를 수 있다는 것 자체가 정보다. */
+    if (small.p !== undefined && small.p.length > 0) continue;
+    if (small.n === '') continue;
+    if (small.r.length < 4 || small.r[2] <= 0 || small.r[3] <= 0) continue;
+    for (const wide of elements) {
+      if (wide === small) continue;
+      if (!holds(wide.r, small.r)) continue;
+      if (wide.n === small.n || wide.n.includes(small.n)) {
+        swallowed.add(small);
+        break;
+      }
+    }
+  }
+  if (swallowed.size === 0) return elements;
+  return elements.filter((one) => !swallowed.has(one));
+}
+
+/** 바깥 네모가 안쪽 네모를 온전히 품는가. */
+function holds(outer: readonly number[], inner: readonly number[]): boolean {
+  if (outer.length < 4 || inner.length < 4) return false;
+  if (outer[2] <= 0 || outer[3] <= 0) return false;
+  return inner[0] >= outer[0]
+    && inner[1] >= outer[1]
+    && inner[0] + inner[2] <= outer[0] + outer[2]
+    && inner[1] + inner[3] <= outer[1] + outer[3];
+}
+
+/**
  * 목록에 몇 줄까지 낼까. 창에서 **가져오는** 상한(600)과 다르다 — 가져온 뒤 값어치로 고른다.
  */
 const SHOW_AT_MOST = 120;
@@ -333,7 +380,11 @@ function capture(outPath: string): Promise<Screenshot> {
         const placed = shot === undefined || shot === null
           ? elements
           : onTheShot(elements, Number(shot[1]), Number(shot[2]));
-        resolve({ title, elements: pickWorthShowing(placed, SHOW_AT_MOST), reading });
+        resolve({
+          title,
+          elements: pickWorthShowing(dropSwallowed(placed), SHOW_AT_MOST),
+          reading,
+        });
       },
     );
   });
