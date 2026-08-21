@@ -323,13 +323,42 @@ export class GeoMap {
         /* 경도는 한 바퀴 돈다 — 날짜변경선을 넘어도 타일이 있다. */
         const wrapped = ((tx % n) + n) % n;
         const img = this.tile(tz, wrapped, ty);
-        if (img === null) continue;
         const sx = (tx * TILE - left) * scale;
         const sy = (ty * TILE - top) * scale;
         /* 0.5px 겹쳐 그린다 — 소수 확대율에서 타일 사이에 실금이 보인다. */
-        ctx.drawImage(img, sx, sy, drawn + 0.5, drawn + 0.5);
+        if (img !== null) {
+          ctx.drawImage(img, sx, sy, drawn + 0.5, drawn + 0.5);
+          continue;
+        }
+        /* ★ **안 온 칸은 비워 두지 않는다** (사용자 제보 2026-08-21: 「확대하려고 하면 깜빡깜빡」).
+         * 확대율이 정수 층을 넘으면 `tz` 가 통째로 바뀌는데, 그 층 타일은 <b>아직 하나도 없다</b>.
+         * 예전엔 그때 `continue` 해서 <b>화면 전체가 바탕색</b>이 됐다가 타일이 도착하면 다시 찼다 —
+         * 그 한두 프레임이 「깜빡」이다. 이미 가진 <b>윗 층</b>을 잘라 늘려 메우면 흐릿할 뿐 안 끊긴다.
+         * 지도 보는 프로그램들이 다 쓰는 방식이고, 새 타일이 오면 그 위에 또렷하게 덮인다. */
+        const up = this.ancestorTile(tz, wrapped, ty);
+        if (up !== null) ctx.drawImage(up.img, up.sx, up.sy, up.size, up.size, sx, sy, drawn + 0.5, drawn + 0.5);
       }
     }
+  }
+
+  /**
+   * 안 온 칸을 대신할 **이미 가진 윗 층** 조각. 없으면 `null`.
+   *
+   * 윗 층 한 칸은 아랫 층 `2^k × 2^k` 칸을 덮는다 — 그 중 내 자리에 해당하는 네모만 잘라 쓴다.
+   * ⚠ 여기서는 <b>새로 받아오지 않는다</b>(`tiles.get` 만 본다). 받아오면 확대할 때마다 윗 층까지
+   *   덩달아 요청해 남의 서버를 두 배로 때린다 — 메우는 것은 <b>이미 가진 것으로만</b> 한다.
+   */
+  private ancestorTile(tz: number, tx: number, ty: number): { img: CanvasImageSource; sx: number; sy: number; size: number } | null {
+    for (let k = 1; k <= 5; k++) {
+      const pz = tz - k;
+      if (pz < 0) break;
+      const img = this.tiles.get(`${pz}/${tx >> k}/${ty >> k}`);
+      if (img === null || img === undefined) continue;
+      const span = 1 << k;              /* 윗 층 한 칸이 덮는 아랫 층 칸 수 */
+      const size = TILE / span;         /* 잘라 쓸 네모의 한 변 */
+      return { img, sx: (tx % span) * size, sy: (ty % span) * size, size };
+    }
+    return null;
   }
 
   /**
