@@ -82,6 +82,29 @@ for (const row of said) {
   }
 }
 
+/* **같은 말을 또 하나.**
+   붙잡는 힘의 첫째가 「예측 못 하는데 재미있는 반응」이다(CHI 2026 팬덤 연구, 원장 2026-08-21).
+   그런데 우리는 지킴이를 붙일수록 답이 안전해지고, 안전한 답은 예측 가능해진다.
+   89회차에 이걸 실측한 적이 있다 — 얘 말 320개 중 **145개가 글자 그대로 반복**이었고,
+   그래서 미리 지어 둔 대꾸 창고를 만들었다. 그 뒤로 다시 안 쟀다. */
+/* 닿음(창을 붙잡아 끄는 것)에 대한 대꾸는 **일부러 고정 대꾸**다 — 그건 반복이 아니라
+   설계다. 섞어서 세면 값이 부풀려진다(126회차에 실제로 그랬다). */
+const chatty = said.filter((r) => r.channel !== 'touch');
+const seen = new Map();
+let repeated = 0;
+const openers = new Map();
+for (const row of chatty) {
+  const text = String(row.text).trim();
+  const count = (seen.get(text) ?? 0) + 1;
+  if (count > 1) repeated += 1;
+  seen.set(text, count);
+  /* 말을 여는 세 낱말 — 통째로 같지 않아도 **같은 식으로 시작하면** 사람은 반복으로 느낀다
+     (`avoidRepeats` 가 그걸 막으려고 있다). */
+  const head = text.split(/\s+/).slice(0, 3).join(' ');
+  if (head !== '') openers.set(head, (openers.get(head) ?? 0) + 1);
+}
+const topOpeners = [...openers.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+
 const pct = (n) => `${((n / said.length) * 100).toFixed(1)}%`;
 console.log(`[인격] 잰 말 ${said.length}마디 (${path})`);
 console.log(`[인격] 평균 길이        ${(chars / said.length).toFixed(1)}자   (카드: 한두 문장)`);
@@ -90,6 +113,9 @@ console.log(`[인격] 이모지           ${emojiCount}마디 ${pct(emojiCount)}
 console.log(`[인격] 밖에서 온 말투   ${outsideCount}마디 ${pct(outsideCount)}   (영어 도우미 상투구)`);
 console.log(`[인격] 말끝 늘어짐(…)   ${trailingCount}마디 ${pct(trailingCount)}   (카드: 자주 섞는다. 높을수록 욘답다)`);
 console.log(`[인격] 120자 넘김       ${longCount}마디 ${pct(longCount)}   (카드: 길면 그건 네가 아니다)`);
+const pctChatty = (n) => (chatty.length === 0 ? '—' : `${((n / chatty.length) * 100).toFixed(1)}%`);
+console.log(`[인격] 글자 그대로 반복 ${repeated}/${chatty.length}마디 ${pctChatty(repeated)}   (닿음 대꾸 제외 · 89회차: 320 중 145 = 45.3%)`);
+console.log(`[인격] 자주 여는 말     ${topOpeners.map(([head, n]) => `「${head}…」x${n}`).join(' · ')}`);
 if (worst.length > 0) {
   console.log(`[인격] 어긋난 것 ${worst.length}건 중 앞 5건:`);
   for (const line of worst.slice(0, 5)) console.log(`  - ${line}`);
