@@ -122,6 +122,7 @@ namespace Handheld
             _pump = null;
             try { _poseChannel?.Close(); } catch { }
             try { _videoTrack?.Dispose(); } catch { }
+            try { if (rig != null) rig.ReleaseWebRtcTexture(); } catch { }
             try { _pc?.Close(); _pc?.Dispose(); } catch { }
             _poseChannel = null;
             _videoTrack = null;
@@ -198,7 +199,8 @@ namespace Handheld
             if (Application.isPlaying)
             {
                 if (rig == null) rig = GetComponent<HandheldRig>() ?? FindAnyObjectByType<HandheldRig>();
-                RenderTexture source = rig != null ? rig.ViewfinderTexture : null;
+                // 뷰파인더 그림을 BGRA 로 한 벌 받아 온다 (포맷이 서로 안 맞아 갈라 둔 것).
+                RenderTexture source = rig != null ? rig.WebRtcTexture() : null;
                 if (source != null)
                 {
                     _videoTrack = new VideoStreamTrack(source);
