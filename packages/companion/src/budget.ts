@@ -40,7 +40,7 @@ export interface BudgetOptions {
    *
    * 고르는 자리가 **모든 재료가 지나가는 유일한 길목**이라, 여기 한 번 달면 전부 덮인다.
    */
-  mark?: (name: string, fate: '실림' | '밀림' | '꺼짐' | '빔', why?: string) => void;
+  mark?: (name: string, fate: 'loaded' | 'queued' | 'off' | 'blank', why?: string) => void;
   /** 이번 turn 이 무엇이었나 — 안 실린 이유를 나중에 되짚을 때 이게 있어야 한다. */
   slot?: string;
 }
@@ -62,8 +62,8 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
     /* **「안 실렸다」만 남기면 못 고친다.** 오늘 한 재료가 600턴 넘게 안 실린 걸 찾아
        놓고도, 조건이 안 켜진 건지 만들 게 없었던 건지를 알아내려고 실험을 네 번 돌렸다
        (71회차에 되묻기로 똑같이 당했다). 갈래마다 이유를 같이 남긴다. */
-    if (x.when === false) { mark?.(x.name, '꺼짐', `조건이 안 켜졌다${slot}`); return; }
-    if (x.text.trim() === '') { mark?.(x.name, '빔', `만들 게 없었다${slot}`); return; }
+    if (x.when === false) { mark?.(x.name, 'off', `조건이 안 켜졌다${slot}`); return; }
+    if (x.text.trim() === '') { mark?.(x.name, 'blank', `만들 게 없었다${slot}`); return; }
     toWrite.push({ x, i });
   });
   toWrite.sort((a, b) => (b.x.weight - a.x.weight) || (a.i - b.i));
@@ -73,12 +73,12 @@ export function pickIngredients(all: readonly Ingredient[], options: BudgetOptio
   for (const it of toWrite) {
     const length2 = it.x.text.trim().length;
     if (picked2.length >= maxLines || usedChars + length2 > maxChars) {
-      mark?.(it.x.name, '밀림', `자리가 모자랐다 (무게 ${it.x.weight})${slot}`);
+      mark?.(it.x.name, 'queued', `자리가 모자랐다 (무게 ${it.x.weight})${slot}`);
       continue;
     }
     picked2.push(it);
     usedChars += length2;
-    mark?.(it.x.name, '실림', '');
+    mark?.(it.x.name, 'loaded', '');
   }
   return picked2.map((it) => it.x);
 }

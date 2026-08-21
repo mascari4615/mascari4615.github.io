@@ -77,7 +77,7 @@ test('껐다 켜도 담아 둔 게 남는다', async () => {
   const nextRun = new 대사창고({ path, fetchBuilt: async () => '안 불러야 한다' });
   assert.equal(nextRun.raise('갈래'), '하나');
   // 꺼낸 것은 파일에서도 빠져야 한다 — 안 그러면 다음에 켤 때 같은 말이 또 나온다.
-  assert.equal(JSON.parse(readFileSync(path, 'utf8'))['갈래'].말들.includes('하나'), false);
+  assert.equal(JSON.parse(readFileSync(path, 'utf8'))['갈래'].lines.includes('하나'), false);
 });
 
 test('인격이 바뀌면 앞 인격이 지은 말은 안 쓴다', async () => {

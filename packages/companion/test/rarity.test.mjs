@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { rarityBonus, applyRarity, pickIngredients } from '../dist/index.js';
 
-const calc = (loadedFlag, queuedFlag, offFlag, emptyFlag) => ({ 실림: loadedFlag, 밀림: queuedFlag, 꺼짐: offFlag, 빔: emptyFlag });
+const calc = (loadedFlag, queuedFlag, offFlag, emptyFlag) => ({ loaded: loadedFlag, queued: queuedFlag, off: offFlag, blank: emptyFlag });
 
 test('거의 늘 꺼져 있던 재료는 켜졌을 때 크게 세진다 — 그 순간에 딱 맞는 말이다', () => {
   // 실측: 자기상 (지나감 613 · 밀림 3 · 꺼짐 610 · 빔 0)
