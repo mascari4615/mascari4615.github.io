@@ -20,6 +20,7 @@ IMG-LOAD	src/widgets/imageconvert/core.ts	예외: objectUrl 을 호출자에게 
 IMG-LOAD	src/widgets/imageconvert/widget.ts	예외: 결과 크기만 재려고 만드는 임시 Image (주소는 미리보기 것을 재사용) — 2026-08-14 확인
 IMG-LOAD	src/widgets/imageedit.ts
 IMG-LOAD	src/widgets/karmograph/karmograph.ts
+IMG-LOAD	src/widgets/territory/geomap.ts	예외: 지도 타일은 **문자열 주소**라 거둘 objectURL 이 없다(공용의 값어치가 여기엔 안 걸린다). 게다가 타일을 캔버스에 구우므로 crossOrigin="anonymous" 가 필수인데 공용은 그 손잡이가 없다 — 그냥 옮기면 캔버스가 오염돼 굽기가 죽는다 (2026-08-21)
 IMG-LOAD	src/widgets/tierlist/storage.ts
 IMG-LOAD	src/widgets/tools/bgremove.ts
 IMG-LOAD	src/widgets/tools/docscan.ts
