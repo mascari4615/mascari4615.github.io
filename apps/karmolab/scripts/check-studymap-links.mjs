@@ -97,8 +97,12 @@ process.stdout.write('\n');
    `nts.go.kr` — **한국 정부 사이트**다. 미국 러너에서 안 열린 것이지 링크가 죽은 게 아니다.
    그걸 빨강으로 읽으면 사람은 멀쩡한 링크를 지우거나, 더 나쁘게는 이 검사를 무시한다.
    갈라 적는다: **답이 온 4xx 만 죽은 것**, 아예 못 닿은 것(0)은 **못 잼**(2)이다. */
-const dead2 = dead.filter((d) => d.status !== 0);
-const unreachableCount = dead.filter((d) => d.status === 0);
+/* ★ **5xx 도 「죽었다」가 아니다** (2026-08-21 실측: `tosdr.org` 가 503 을 냈다).
+   위 규율을 그대로 잇는다 — 4xx 는 <b>그 주소가 없다</b>는 상대의 답이고,
+   5xx 는 <b>상대가 지금 아프다</b>는 답이다. 아픈 것을 죽었다고 적으면 사람이 멀쩡한 링크를
+   지운다(위 정부 사이트 사고와 같은 모양이다). 5xx 는 못 잼(2)으로 넘긴다. */
+const dead2 = dead.filter((d) => d.status !== 0 && d.status < 500);
+const unreachableCount = dead.filter((d) => d.status === 0 || d.status >= 500);
 for (const d of dead2) console.log(`  ${d.status}  ${d.node} — ${d.label}`);
 for (const d of unreachableCount) console.log(`  못 닿음  ${d.node} — ${d.label}`);
 if (dead2.length > 0) {
