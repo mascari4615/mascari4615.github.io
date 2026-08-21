@@ -16,10 +16,10 @@
  */
 
 /** 지금 뭘 하는 중인가. */
-export type 자리 = '통화' | '보는중' | '만드는중' | '읽는중' | '노는중' | '나를보는중' | null;
+export type slot = '통화' | '보는중' | '만드는중' | '읽는중' | '노는중' | '나를보는중' | null;
 
 interface 짚기 {
-  slot: Exclude<자리, null>;
+  slot: Exclude<slot, null>;
   /** 제목에 이게 있으면 그 자리다. */
   word: readonly string[];
 }
@@ -46,7 +46,7 @@ const kindTable: readonly 짚기[] = [
     slot: '만드는중',
     // **터미널도 만드는 중이다.** 처음엔 편집기 이름만 넣었는데, 실제로 오는 제목은
     // 「claude · resume」 같은 터미널 창이 태반이었다 — 33번 재는 동안 한 번도 안
-    // 걸렸다(실측). 이름을 늘리는 게 아니라 *실제로 오는 제목*을 봐야 했다.
+    // 걸렸다(실측). 이름을 늘리는 게 아니라 *실제로 오는 title*을 봐야 했다.
     word: [
       'visual studio code', 'vscode', 'intellij', 'rider', 'unity', 'godot', 'blender',
       'photoshop', 'aseprite', 'obsidian', 'figma',
@@ -62,7 +62,7 @@ const kindTable: readonly 짚기[] = [
 ];
 
 /** 이 창 제목이 어떤 자리인가. 모르면 null. */
-export function whichSlot(title: string | null | undefined): 자리 {
+export function whichSlot(title: string | null | undefined): slot {
   const title2 = (title ?? '').toLowerCase().trim();
   if (title2 === '') return null;
   for (const { slot: kind, word: word } of kindTable) {
@@ -94,12 +94,12 @@ export function slotTone(title: string | null | undefined): string {
 }
 
 /**
- * **이미 아는 자리**에 대한 한 줄. 제목을 다시 풀지 않는다.
+ * **이미 아는 slot**에 대한 한 줄. 제목을 다시 풀지 않는다.
  *
- * 배운 자리(78회차)를 쓰려면 이 자리가 있어야 한다 — 배운 값을 다시 제목인 척 넘기면
+ * 배운 slot(78회차)를 쓰려면 이 자리가 있어야 한다 — 배운 값을 다시 제목인 척 넘기면
  * 표에서 못 찾고 조용히 빈 말이 된다.
  */
-export function bySlotTone(slot2: 자리): string {
+export function bySlotTone(slot2: slot): string {
   switch (slot2) {
     case '만드는중':
       return '지금 뭔가 만드는 중이다. 짧게, 흐름을 끊지 마라.';

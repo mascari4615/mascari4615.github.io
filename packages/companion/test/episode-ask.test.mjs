@@ -16,7 +16,7 @@ test('낱말 표가 못 잡은 말은 버리지 않고 물어볼 것으로 쌓�
   const s = new EpisodeStore({ ask: async () => null });
   s.learn(missedText.map((t) => spoken(t)));
   assert.equal(s.all.length, 0, '표로는 하나도 안 담긴다 — 이게 지금 상태다');
-  assert.equal(s.밀린것, missedText.length);
+  assert.equal(s.pending, missedText.length);
 });
 
 test('두뇌가 높게 매기면 사건이 된다 — 표가 놓친 걸 건진다', async () => {
@@ -37,7 +37,7 @@ test('두뇌가 낮게 매기면 안 담는다 — 아무 말이나 사건이 �
 test('짧은 말은 물어보지도 않는다 — 아무거나 물으면 그게 값이다', () => {
   const s = new EpisodeStore({ ask: async () => null });
   s.learn([spoken('응'), spoken('ㅇㅇ'), spoken('그러게 뭐')]);
-  assert.equal(s.밀린것, 0);
+  assert.equal(s.pending, 0);
 });
 
 test('두뇌가 죽어도 대화는 안 멈춘다 — 그리고 조용히 삼키지 않는다', async () => {
