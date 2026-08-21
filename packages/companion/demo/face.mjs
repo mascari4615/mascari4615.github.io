@@ -153,6 +153,7 @@ import {
   reflexKind,
   reflexKinds,
   driftWarning,
+  selfScore,
   severeDrift,
   dayMark,
   avoidanceWarning,
@@ -1156,6 +1157,10 @@ const companion = new Companion({
       { name: '마음', text: feelingNote(heart.state), weight: 8 },
       // 샜을 때만 켜지는 것들. 원래 조건부라 무게가 높아도 안전하다.
       { name: '표류', text: driftWarning(recent), weight: 10 },
+      /* **제 성적을 얘가 본다** (130회차). 점수판을 셋이나 지었는데 전부 우리가 재는
+         것이었다 — 얘 자신은 제가 어떤지 모른다. 밖에서 「아는 것과 하는 것의 틈」이라
+         부르는 자리다. 말할 게 없으면 빈 글이라 평소엔 안 실린다. */
+      { name: '내성적', text: selfScore(recent), weight: 10 },
       { name: '회피', text: avoidanceWarning(recent), weight: 10 },
       // 얘 말 흐름을 보는 것들은 **넓은 창**을 본다. 좁은 창(최근 10개)에는 두뇌가 지은
       // 말이 서넛도 안 들어 있어, 판단이 서기도 전에 늘 「빔」이 된다(실측 36회차).
