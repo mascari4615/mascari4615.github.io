@@ -600,9 +600,9 @@ ${tallyReport(tally)}`;
   /* 곁눈질하는 화면(KarmoLab 위젯)이 읽어 갈 것들. 오늘 사고 셋이 전부 「조용히 빠짐」
      이었다 — 기록에만 남는 상태는 아무도 안 본다. */
   state: () => ({
-    인격: character?.name ?? null,
+    persona: character?.name ?? null,
     head: brain.currentModel ? brain.currentModel() : brain.name,
-    목소리들: voiceList,
+    voices: voiceList,
     흉내준비: stubBoot === null ? null : stubBoot.준비됐나,
     흉내자동: settings.on('애니목소리자동'),
   }),

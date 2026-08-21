@@ -96,7 +96,7 @@ try {
     const tool = document.getElementById('page-' + toolId) || document.getElementById('tool-pages');
     const a = s.querySelector('a');
     return {
-      개수: slots.length,
+      count: slots.length,
       belowTool: tool ? s.getBoundingClientRect().top > tool.getBoundingClientRect().top : false,
       insideDescBlock: !!s.closest('.tool-seo'),
       reveal: (s.querySelector('.tool-sponsor-label')?.textContent || '').trim(),

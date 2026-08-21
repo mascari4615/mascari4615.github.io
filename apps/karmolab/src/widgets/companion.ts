@@ -27,9 +27,9 @@ import { t, loadNamespace } from '../lib/i18n';
   type State = {
     windowAttached: number;
     body: '3D' | '큐브' | null;
-    인격?: string | null;
+    persona?: string | null;
     head?: string | null;
-    목소리들?: string[];
+    voices?: string[];
     흉내준비?: boolean | null;
     흉내자동?: boolean;
   };
@@ -150,17 +150,17 @@ import { t, loadNamespace } from '../lib/i18n';
               { 이름: t('companion.t11'), value: st.windowAttached > 0 ? t('companion.attached', { n: st.windowAttached }) : t('companion.t12'), warn: st.windowAttached === 0 },
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
               { 이름: t('companion.t13'), value: st.body ?? t('companion.t14'), warn: st.body === t('companion.t15') },
-              { 이름: t('companion.t16'), value: st.인격 ?? t('companion.t17') },
+              { 이름: t('companion.t16'), value: st.persona ?? t('companion.t17') },
               { 이름: t('companion.t18'), value: st.head ?? t('companion.t14') },
             ];
-            if (Array.isArray(st.목소리들)) {
-              const hasStub = st.목소리들.includes(t('companion.t19'));
+            if (Array.isArray(st.voices)) {
+              const hasStub = st.voices.includes(t('companion.t19'));
               const value2 =
                 hasStub === false
-                  ? st.목소리들.join(' + ') || '없음'
+                  ? st.voices.join(' + ') || '없음'
                   : st.흉내준비 === true
-                    ? `${t('companion.mimicReady')} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`
-                    : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`;
+                    ? `${t('companion.mimicReady')} + ${st.voices.filter((v) => v !== t('companion.t19')).join(' + ')}`
+                    : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.voices.filter((v) => v !== t('companion.t19')).join(' + ')}`;
               cell.push({ 이름: t('companion.t22'), value: value2, warn: hasStub === false });
             }
             bits.innerHTML = cell
