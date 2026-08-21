@@ -38,9 +38,10 @@ namespace Handheld
         [Header("디버그")]
         public bool logToConsole = true;
 
-        [Tooltip("폰이 붙으면 포즈 기록을 자동으로 시작한다. **직렬화되므로 Play 진입·도메인 " +
-                 "리로드를 넘어 살아남는다** — 「기록 켜라」와 「Play 눌러라」가 부딪히지 않게.")]
-        public bool autoRecord;
+        [Tooltip("폰이 붙으면 포즈 기록을 자동으로 시작한다. **기본 켜짐** — 「튄다」는 드물게 " +
+                 "나는데, 그 순간에 마침 켜 뒀기를 바라는 설계는 계속 진다(실제로 세 번 놓쳤다). " +
+                 "CSV 두 줄뿐이라 늘 켜 두는 값이 싸다. 끄려면 조종석이나 /rec/off.")]
+        public bool autoRecord = true;
 
         TcpListener _listener;
         Thread _acceptThread;
