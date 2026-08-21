@@ -133,7 +133,6 @@ import {
   wonderHand,
   maybeAsk,
   noticeCuriosity,
-  needsPermission,
   findFileHand,
   openHand,
   windowsHand,
@@ -219,7 +218,7 @@ const hands = [
   findFileHand(),
   windowsHand(),
   fileInfoHand(),
-  needsPermission(openHand(), askFirst),
+  openHand(),
   remindHand((afterMs, what) => {
     setTimeout(() => {
       companion.feed({ channel: 'web', kind: 'text', text: `(알림) 아까 알려달라고 한 것: ${what}`, at: Date.now() });
@@ -987,6 +986,11 @@ const companion = new Companion({
   //
   // 두뇌더러 표를 적어 손을 부르라고 하면 인격과 부딪혀 아예 안 쓴다(42회차: 0/10).
   // 그래서 조수님 말을 보고 **우리가** 필요한 손을 미리 쓴다 — 판단을 두뇌에 안 맡긴다.
+  /* 되돌릴 수 없는 손은 여기서 묻는다 — 손마다 감싸지 않고 한 자리에서.
+     30초 안에 대답이 없으면 「아니오」다(askFirst 가 그렇게 만들어져 있다). */
+  askBeforeRisky: {
+    allow: (hand, request) => askFirst.confirm(`${hand.name}: ${request.argument}`),
+  },
   // 눈은 매 turn 뜬다 — 「화면에 뭐 보여?」에 창 제목으로 답하던 자리(99회차 라이브).
   // 묵었으면 눈이 알아서 다시 찍는다.
   seeing: eye === null ? undefined : () => eye.seeing(),
