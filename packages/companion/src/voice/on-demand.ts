@@ -42,7 +42,7 @@ export interface 수요기동옵션 {
   prepareAskIntervalMs?: number;
   /** 못 띄운 뒤 이만큼은 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다. */
   restAfterFailMs?: number;
-  지금?: () => number;
+  now?: () => number;
   log?: (message: string) => void;
 }
 
@@ -57,7 +57,7 @@ export class demandBoot {
   constructor(private readonly options: 수요기동옵션) {}
 
   private get 지금(): number {
-    return this.options.지금?.() ?? Date.now();
+    return this.options.now?.() ?? Date.now();
   }
 
   /** 지금 쓸 수 있나 — 마지막으로 확인한 상태 그대로(묻지 않는다). */
@@ -171,7 +171,7 @@ export interface 필요할때옵션 {
   /** 무거운 진짜 목소리. */
   real: Speech;
   /** 켜고 끄는 자리. */
-  기동: demandBoot;
+  boot: demandBoot;
   /** 이만큼 기다려도 안 뜨면 포기한다(그때는 소리가 없다 — 딴 목소리로 바꾸지 않는다). */
   waitLimitMs?: number;
   log?: (message: string) => void;
@@ -184,7 +184,7 @@ export interface 필요할때옵션 {
  * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
 export function onDemand(options: 필요할때옵션): Speech {
-  const { real: real, 기동: boot } = options;
+  const { real: real, boot: boot } = options;
   const waitLimit = options.waitLimitMs ?? 180_000;
 
   return {

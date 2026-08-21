@@ -114,7 +114,7 @@ for (const file of files) {
 
 const table = (x) => `${x.file} ${x.key}`;
 if (UPDATE) {
-  fs.writeFileSync(BASELINE, JSON.stringify({ 목록: problems.map(table).sort() }, null, 2) + String.fromCharCode(10), 'utf8');
+  fs.writeFileSync(BASELINE, JSON.stringify({ list: problems.map(table).sort() }, null, 2) + String.fromCharCode(10), 'utf8');
   console.log(`[i18n-eager] 빚 목록을 ${problems.length}건으로 다시 적었다`);
   process.exit(0);
 }

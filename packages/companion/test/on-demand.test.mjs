@@ -22,11 +22,11 @@ const run = (settings = {}) => {
     stopIfIdleMs: () => settings.쉬면 ?? 30 * 60_000,
     isAuto: () => settings.자동 ?? true,
     물어보는간격ms: 0,
-    지금: () => now2,
+    now: () => now2,
     log: (m) => events.push(`말: ${m}`),
   });
   return {
-    기동: boot,
+    boot: boot,
     events: events,
     flowing: (ms) => {
       now2 += ms;
@@ -42,63 +42,63 @@ const waited = () => new Promise((r) => setImmediate(r));
 
 test('쓸 때 켠다 — 그리고 기다리지 않는다', async () => {
   const t = run();
-  assert.equal(t.기동.준비됐나, false);
-  await t.기동.써야한다();
+  assert.equal(t.boot.준비됐나, false);
+  await t.boot.써야한다();
   // 띄우기는 뒤에서 돈다. 부르는 쪽은 이미 반환됐다.
   await waited();
   assert.ok(t.events.includes('띄움'), '안 띄웠다');
-  await t.기동.써야한다();
-  assert.equal(t.기동.준비됐나, true, '띄운 뒤에는 쓸 수 있어야 한다');
+  await t.boot.써야한다();
+  assert.equal(t.boot.준비됐나, true, '띄운 뒤에는 쓸 수 있어야 한다');
 });
 
 test('이미 떠 있으면 또 안 띄운다', async () => {
   const t = run();
   t.keepOn();
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await waited();
   assert.equal(t.events.includes('띄움'), false);
-  assert.equal(t.기동.준비됐나, true);
+  assert.equal(t.boot.준비됐나, true);
 });
 
 test('자동을 꺼 두면 손으로 띄운 것만 쓴다', async () => {
   const t = run({ 자동: false });
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await waited();
   assert.equal(t.events.includes('띄움'), false);
-  assert.equal(t.기동.준비됐나, false);
+  assert.equal(t.boot.준비됐나, false);
 });
 
 test('한동안 안 쓰면 끈다', async () => {
   const t = run({ whenIdle: 30 * 60_000 });
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await waited();
-  await t.기동.써야한다();
+  await t.boot.써야한다();
 
   t.flowing(29 * 60_000);
-  assert.equal(await t.기동.stopIfIdle(), false, '아직 쉬는 시간이 안 됐다');
+  assert.equal(await t.boot.stopIfIdle(), false, '아직 쉬는 시간이 안 됐다');
 
   t.flowing(2 * 60_000);
-  assert.equal(await t.기동.stopIfIdle(), true);
+  assert.equal(await t.boot.stopIfIdle(), true);
   assert.equal(t.살았나(), false);
-  assert.equal(t.기동.준비됐나, false);
+  assert.equal(t.boot.준비됐나, false);
 });
 
 test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
   const t = run({ whenIdle: 1000 });
   t.keepOn();
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await waited();
   t.flowing(10 * 60_000);
-  assert.equal(await t.기동.stopIfIdle(), false, '남이 띄운 것을 껐다');
+  assert.equal(await t.boot.stopIfIdle(), false, '남이 띄운 것을 껐다');
   assert.equal(t.살았나(), true);
 });
 
 test('0 으로 두면 영영 안 끈다', async () => {
   const t = run({ whenIdle: 0 });
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await waited();
   t.flowing(100 * 60_000);
-  assert.equal(await t.기동.stopIfIdle(), false);
+  assert.equal(await t.boot.stopIfIdle(), false);
 });
 
 const fakeVoice = (name2, failure = false) => ({
@@ -113,27 +113,27 @@ const fakeVoice = (name2, failure = false) => ({
 
 test('준비될 때까지 기다렸다 **고른 목소리로** 말한다 — 딴 목소리로 안 바꾼다', async () => {
   const t = run();
-  const voice = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동 });
+  const voice = 필요할때({ real: fakeVoice('흉내'), boot: t.boot });
   // 아직 안 떴지만, 뒤에서 떠서 결국 그 목소리로 나온다.
   assert.equal((await voice.synthesize('안녕')).toString(), '흉내');
 });
 
 test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리보다 낫다', async () => {
   const t = run({ 자동: false }); // 자동 기동 꺼 두면 영영 안 뜬다
-  const voice2 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동, waitLimitMs: 300 });
+  const voice2 = 필요할때({ real: fakeVoice('흉내'), boot: t.boot, waitLimitMs: 300 });
   await assert.rejects(() => voice2.synthesize('안녕'), /준비 안 됐다/);
 });
 
 test('떠 있는데 실패하면 그 실패가 그대로 드러난다 — 몰래 딴 목소리로 안 바꾼다', async () => {
   const t = run();
   t.keepOn();
-  const voice3 = 필요할때({ real: fakeVoice('흉내', true), 기동: t.기동 });
+  const voice3 = 필요할때({ real: fakeVoice('흉내', true), boot: t.boot });
   await assert.rejects(() => voice3.synthesize('안녕'), /죽었다/);
 });
 
 test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기능이 없어진 줄 안다', async () => {
   const t = run();
-  const voice4 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동 });
+  const voice4 = 필요할때({ real: fakeVoice('흉내'), boot: t.boot });
   const list = await voice4.voices();
   assert.equal(list.length, 1);
   assert.equal(list[0].id, '흉내-1');
@@ -164,28 +164,28 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
     restAfterFailMs: 10_000,
     log: () => {},
   });
-  return { 기동: boot2, events: events2 };
+  return { boot: boot2, events: events2 };
 };
 
 test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄워 프로세스 38개)', async () => {
   const t = slowRun({ toAppear: 200 });
   for (let i = 0; i < 10; i += 1) {
-    await t.기동.써야한다();
+    await t.boot.써야한다();
     await new Promise((r) => setTimeout(r, 20));
   }
   assert.equal(t.events.filter((x) => x === '띄움').length, 1, `${t.events.length}번 띄웠다`);
   await new Promise((r) => setTimeout(r, 250));
-  await t.기동.써야한다();
-  assert.equal(t.기동.준비됐나, true, '뜬 뒤에는 쓸 수 있어야 한다');
+  await t.boot.써야한다();
+  assert.equal(t.boot.준비됐나, true, '뜬 뒤에는 쓸 수 있어야 한다');
 });
 
 test('영영 안 뜨면 포기하고, 한동안 다시 안 띄운다', async () => {
   const t = slowRun({ neverAppears: true });
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await new Promise((r) => setTimeout(r, 600));
   assert.equal(t.events.filter((x) => x === '띄움').length, 1);
   // 실패 직후에는 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다.
-  await t.기동.써야한다();
+  await t.boot.써야한다();
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(t.events.filter((x) => x === '띄움').length, 1, '실패하자마자 또 띄웠다');
 });

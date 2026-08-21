@@ -39,7 +39,7 @@ export interface 꺼낼것 {
   이름: string;
   heldCount: number;
   /** 두뇌에 얹을 한 줄. */
-  말: string;
+  text: string;
 }
 
 /** 지금 먼저 꺼낼 것이 있나. 없으면 null. */
@@ -77,7 +77,7 @@ function choose(input: 꺼낼까입력): 꺼낼것 | null {
   return {
     이름: candidates.x.name,
     heldCount: candidates.heldCount,
-    말:
+    text:
       '대화가 식어 간다. **네가 먼저 꺼내라** — 아래 것을 지금 화제로 삼아라. ' +
       '조수님이 꺼낸 얘기에 곁가지로 붙이지 말고, 네가 하고 싶어서 꺼내는 것처럼. 짧아도 된다.\n' +
       candidates.x.text.trim(),

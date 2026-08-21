@@ -67,7 +67,7 @@ if (packCount > 0) {
     const why = await page.evaluate(() => ({
       고른표: document.querySelector('#wcPacks button[aria-pressed="true"]')?.textContent?.trim().slice(0, 20)
         || document.querySelector('#wcPacks button')?.textContent?.trim().slice(0, 20),
-      말: (document.getElementById('wcPackMsg')?.textContent || '').trim().slice(0, 60),
+      text: (document.getElementById('wcPackMsg')?.textContent || '').trim().slice(0, 60),
       라운드: [...document.querySelectorAll('#wcRounds button')].map((b) => b.textContent.trim()).join(','),
       시작막힘: document.getElementById('wcStart')?.hasAttribute('disabled')
     })).catch(() => null);
