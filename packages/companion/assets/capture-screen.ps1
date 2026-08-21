@@ -6,9 +6,13 @@ param(
   # The reader shrinks anything wider than ~1568px anyway, so carrying more
   # pixels than that costs time and buys nothing.
   [int]$MaxWidth = 1568,
-  # A whole tree can be thousands of nodes. The reader needs the shape of the
-  # window, not an inventory of it.
-  [int]$MaxElements = 120
+  # How many to CARRY BACK -- not how many the reader is shown. The picking is
+  # done on the other side, by worth rather than by tree order (140th round:
+  # Discord had 292 touchable things and only 59 made the list, because the cut
+  # was "first 120 in tree order" and tree order puts the window frame first).
+  # This has to match press-element.ps1's -MaxElements: the numbers come from
+  # walking the window, and pressing walks it again to find the same one.
+  [int]$MaxElements = 600
 )
 
 $ErrorActionPreference = 'Stop'

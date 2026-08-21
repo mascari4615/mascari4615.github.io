@@ -61,7 +61,9 @@ test('상한에 잘렸으면 잘렸다고 말한다 — 목록이 전부인 줄 
     reading: { root: true, raw: 777, named: 510, onscreen: 233 },
   });
   assert.match(said, /233/, `화면 안에 몇 개였는지 안 말한다: ${said}`);
-  assert.match(said, /더|잘렸|일부/, `잘렸다는 말이 없다: ${said}`);
+  assert.match(said, /더 있다/, `잘렸다는 말이 없다: ${said}`);
+  /* 「앞의 120개」라고 하면 거짓말이다 — 140회차부터 값어치로 고른다. */
+  assert.doesNotMatch(said, /앞의/, `앞에서 자른 것처럼 말한다: ${said}`);
 });
 
 test('다 담겼으면 잘렸다는 말을 안 한다 — 없는 걱정을 만들지 않는다', () => {

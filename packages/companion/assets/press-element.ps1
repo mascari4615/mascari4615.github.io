@@ -18,7 +18,9 @@ param(
   # What the reader thought it was pressing. If the tree moved under us, the
   # name will not line up and we stop instead of pressing the wrong thing.
   [string]$ExpectName = '',
-  [int]$MaxElements = 120
+  # Must match capture-screen.ps1 -- the numbers come from walking the window in
+  # this exact order, so a different cap points at a different thing.
+  [int]$MaxElements = 600
 )
 
 $ErrorActionPreference = 'Stop'
