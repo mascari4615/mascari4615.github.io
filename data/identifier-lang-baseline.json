@@ -1,6 +1,6 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 2340,
+  "count": 2324,
   "files": 131,
   "byFile": {
     "apps/karmolab/scripts/audit-blocking-css.mjs": 7,
@@ -91,7 +91,7 @@
     "packages/companion/src/rarity.ts": 17,
     "packages/companion/src/reflex.ts": 35,
     "packages/companion/src/room-learn.ts": 34,
-    "packages/companion/src/room.ts": 30,
+    "packages/companion/src/room.ts": 22,
     "packages/companion/src/settings.ts": 7,
     "packages/companion/src/stock.ts": 64,
     "packages/companion/src/tally.ts": 34,
@@ -99,7 +99,7 @@
     "packages/companion/src/touch.ts": 4,
     "packages/companion/src/types.ts": 3,
     "packages/companion/src/voice/feeling-tone.ts": 2,
-    "packages/companion/src/voice/on-demand.ts": 87,
+    "packages/companion/src/voice/on-demand.ts": 79,
     "packages/companion/src/wish.ts": 8,
     "packages/companion/test/bring-up.test.mjs": 30,
     "packages/companion/test/budget.test.mjs": 2,
