@@ -118,7 +118,7 @@ for (const [id, value] of Object.entries(totalBytes)) {
   else if (value < before - 2048) shrunk.push(`${id} ${(before / 1024).toFixed(0)}→${(value / 1024).toFixed(0)}KB`);
 }
 if (process.argv.includes('--bless')) {
-  fs.writeFileSync(BASELINE_TOTAL, JSON.stringify({ 설명: '도구 장이 첫 그림 전에 기다리는 스타일 바이트 — 늘면 빨강 (TASK-KL-323 이 줄인다)', 갱신: new Date().toISOString().slice(0, 10), 목록: totalBytes }, null, 2) + String.fromCharCode(10));
+  fs.writeFileSync(BASELINE_TOTAL, JSON.stringify({ note: '도구 장이 첫 그림 전에 기다리는 스타일 바이트 — 늘면 빨강 (TASK-KL-323 이 줄인다)', 갱신: new Date().toISOString().slice(0, 10), 목록: totalBytes }, null, 2) + String.fromCharCode(10));
   console.log(`[audit-blocking-css] 총량 기준선을 적었다 — ${Object.entries(totalBytes).map(([k, v]) => `${k} ${(v / 1024).toFixed(0)}KB`).join(' · ')}`);
 }
 if (shrunk.length) console.log('[audit-blocking-css] 줄었다 — ' + shrunk.join(' · ') + ' · --bless 로 기준선을 조여라');

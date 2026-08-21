@@ -26,7 +26,7 @@ import { t, loadNamespace } from '../lib/i18n';
   type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; 최악ms: number | null };
   type State = {
     창붙음: number;
-    몸: '3D' | '큐브' | null;
+    body: '3D' | '큐브' | null;
     인격?: string | null;
     머리?: string | null;
     목소리들?: string[];
@@ -149,7 +149,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const cell: { 이름: string; 값: string; 경고?: boolean }[] = [
               { 이름: t('companion.t11'), 값: st.창붙음 > 0 ? t('companion.attached', { n: st.창붙음 }) : t('companion.t12'), 경고: st.창붙음 === 0 },
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
-              { 이름: t('companion.t13'), 값: st.몸 ?? t('companion.t14'), 경고: st.몸 === t('companion.t15') },
+              { 이름: t('companion.t13'), 값: st.body ?? t('companion.t14'), 경고: st.body === t('companion.t15') },
               { 이름: t('companion.t16'), 값: st.인격 ?? t('companion.t17') },
               { 이름: t('companion.t18'), 값: st.머리 ?? t('companion.t14') },
             ];

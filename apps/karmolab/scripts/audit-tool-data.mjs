@@ -192,7 +192,7 @@ if (stale.length) problems.push(`없어진 도구의 기록이 남아 있다 ${s
 const BASELINE = path.join(root, 'data/tool-data-baseline.json');
 const baselineData = fs.existsSync(BASELINE)
   ? JSON.parse(fs.readFileSync(BASELINE, 'utf8'))
-  : { 설명: '상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다', 목록: [] };
+  : { note: '상세 페이지 정보가 아직 없는 도구 — 늘면 빨강, 갚으면 저절로 줄어든다', 목록: [] };
 const old = new Set(baselineData.목록 || []);
 const newlyGrown = seoOrphans.filter((id) => old.has(id) === false);
 const repaid = [...old].filter((id) => seoOrphans.includes(id) === false);

@@ -35,7 +35,7 @@ test('꺼진 재료는 안 쌓인다 — 지금 자리에 없는 얘기가 나�
 });
 
 test('아무리 참아도 상한이 있다 — 없으면 오래된 것이 영영 1등이라 새 것이 굶는다', () => {
-  const p = new pendingThoughts({ step: 3, 상한: 9 });
+  const p = new pendingThoughts({ step: 3, cap: 9 });
   for (let i = 0; i < 20; i += 1) { p.적기('되묻기', '밀림'); p.다음턴(); }
   assert.equal(p.addedWeight('되묻기'), 9);
 });

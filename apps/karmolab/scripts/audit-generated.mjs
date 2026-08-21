@@ -61,9 +61,9 @@ const dead = [];
 for (const item of generated) {
   /* **잴 수 없는 것은 안 잰다** — 다시 구우면 늘 다른 것(시각·최근 N일)을 게이트에 걸면
      영원히 빨갛다. 그건 밤이 굽는다. 그래도 한 줄 남긴다 — 「안 본다」가 보여야 한다. */
-  if (item.무거움) {
+  if (item.weight) {
     /* 굽는 값이 큰 것은 감사기가 안 굽는다 — 대신 누가 보는지 적어 둔다(안 보는 것과 구분). */
-    console.log(`[audit-generated] ${item.outputs.join(', ')} — 여기서 안 굽는다 (${item.무거움})`);
+    console.log(`[audit-generated] ${item.outputs.join(', ')} — 여기서 안 굽는다 (${item.weight})`);
     continue;
   }
   if (item.못잼) {
@@ -139,4 +139,4 @@ if (reallyStale.length) {
 }
 
 /* 초록도 한 줄 남긴다 — 「아무 말 없음」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[audit-generated] 파생물 ${generated.filter((x) => !x.못잼 && !x.무거움).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);
+console.log(`[audit-generated] 파생물 ${generated.filter((x) => !x.못잼 && !x.weight).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);

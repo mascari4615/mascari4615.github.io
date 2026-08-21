@@ -35,14 +35,14 @@ export interface 드묾옵션 {
   /** 이 비율보다 자주 켜지면 안 밀어준다. */
   흔한기준?: number;
   /** 가장 드물 때 얹어 줄 무게. */
-  상한?: number;
+  cap?: number;
 }
 
-const base = { 최소본수: 40, 흔한기준: 0.5, 상한: 12 };
+const base = { 최소본수: 40, 흔한기준: 0.5, cap: 12 };
 
 /** 이 재료가 켜졌을 때 얼마나 얹어 줄까. */
 export function rarityBonus(m: Marks | undefined, options: 드묾옵션 = {}): number {
-  const { 최소본수: minSeen, 흔한기준: commonThreshold, 상한: cap } = { ...base, ...options };
+  const { 최소본수: minSeen, 흔한기준: commonThreshold, cap: cap } = { ...base, ...options };
   if (m === undefined) return 0;
   const elapsed = m.실림 + m.밀림 + m.꺼짐 + m.빔;
   // 아직 얼마 안 돌았으면 아무 말도 안 한다 — 새 재료가 첫 turn 에 1등이 되면 안 된다.

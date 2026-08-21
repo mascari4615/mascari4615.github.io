@@ -103,7 +103,7 @@ for (const r of rows) {
 }
 
 const doc = {
-  설명: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade',
+  note: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade',
   잰날: new Date().toISOString().slice(0, 10),
   판수: argN,
   걸린초: +((Date.now() - t0) / 1000).toFixed(1),

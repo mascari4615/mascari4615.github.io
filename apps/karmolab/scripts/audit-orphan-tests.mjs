@@ -279,7 +279,7 @@ function writeBaseline() {
     BASELINE,
     JSON.stringify(
       {
-        설명: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
+        note: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         갱신: new Date().toISOString().slice(0, 10),
         목록: orphans,
         사유: Object.fromEntries(orphans.map((n) => [n, previous[n] || reasonNote[n] || branch(n)])),
