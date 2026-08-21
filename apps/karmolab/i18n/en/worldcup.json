@@ -41,6 +41,7 @@
   "worldcup.t32": "Making the picture…",
   "worldcup.roundOf": "round of {n}",
   "worldcup.pastChampions": "Past winners ({n})",
+  "worldcup.todayPick": "Today’s bracket — {title}",
   "worldcup.championIs": "{name} takes it!",
   "worldcup.seen": "met {n} times",
   "worldcup.wonCount": "{n} wins",
