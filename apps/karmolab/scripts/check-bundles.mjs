@@ -40,59 +40,73 @@ function parseManifest() {
   return out;
 }
 
-/** 묶음 위젯 소스에서 [부분 id, 라벨] 목록을 읽는다. */
-function parseBundle(file) {
-  const src = read(file);
-  const partsRaw = src.match(/const (?:PARTS|TABS): Array<\[string, string\]> = \[([\s\S]*?)\n  \];/)?.[1];
-  if (!partsRaw) return null;
-  return [...partsRaw.matchAll(/\['([^']+)', '[^']*'\]/g)].map((m) => m[1]);
+/* ★ **부분 목록은 이제 명부에 산다** (2026-08-21, 실측).
+ * 여긴 위젯 소스에서 `const PARTS: Array<[string, string]> = […]` 를 읽었다.
+ * 그런데 그 꼴로 적는 파일이 저장소에 **한 개도 없다** — 껍데기가 `materialShell` 로 바뀌면서
+ * 부분은 명부의 `bundle: '<묶음>'` 로 적히게 됐다(예: `image` 묶음 = 명부 11항목, 탭은 1개).
+ * 그래서 이 검사는 「묶음 0개 · 부분 0개 정합 OK」를 찍으며 <b>아무것도 안 재고 초록</b>이었다.
+ * 0을 재고 낸 초록은 초록이 아니다. 부분의 출처를 지금 진실인 명부로 되돌린다. */
+function bundlesFromManifest(manifest) {
+  const byBundle = {};
+  for (const [id, meta] of Object.entries(manifest)) {
+    if (!meta.bundle) continue;
+    (byBundle[meta.bundle] ||= []).push(id);
+  }
+  return byBundle;
+}
+
+/** 묶음 id → 그 위젯 파일의 스크립트 이름(`tools/pdf` 꼴). 없으면 null. */
+function widgetFileOf(id) {
+  for (const dir of ['tools', 'ref', '']) {
+    const rel = dir ? `src/widgets/${dir}/${id}.ts` : `src/widgets/${id}.ts`;
+    if (fs.existsSync(path.join(root, rel))) return rel.replace('src/widgets/', '').replace('.ts', '');
+  }
+  return null;
 }
 
 const manifest = parseManifest();
-const bundleFiles = fs
-  .readdirSync(path.join(root, 'src/widgets/tools'))
-  .map((f) => `src/widgets/tools/${f}`)
-  .concat(fs.readdirSync(path.join(root, 'src/widgets/ref')).map((f) => `src/widgets/ref/${f}`))
-  .filter((f) => f.endsWith('.ts'));
 
 const failures = [];
 const seenPart = {};
 let bundleCount = 0;
 
-for (const file of bundleFiles) {
-  const parts = parseBundle(file);
-  if (!parts || parts.length < 2) continue; // 묶음이 아니다
-  const bundleId = path.basename(file, '.ts');
-  if (!manifest[bundleId]) continue; // 매니페스트에 없는 파일 (부분 위젯 등)
+const byBundle = bundlesFromManifest(manifest);
+/* 잴 것이 없으면 초록이 아니라 못 돌림이다 — 0을 「이상 없음」으로 적으면 거짓이다. */
+if (Object.keys(byBundle).length === 0) {
+  console.error('[check-bundles] CANNOT-RUN: 명부에 `bundle:` 을 단 항목이 하나도 없다 — 이름이 바뀌었는지 확인할 것.');
+  process.exit(2);
+}
+
+for (const [bundleId, parts] of Object.entries(byBundle)) {
+  if (!manifest[bundleId]) {
+    failures.push(`'${bundleId}' 를 가리키는 부분이 ${parts.length}개인데 그 묶음이 명부에 없다 — 눌러도 갈 곳이 없다`);
+    continue;
+  }
   bundleCount++;
   const declared = manifest[bundleId].paths;
 
   for (const part of parts) {
-    if (!manifest[part]) {
-      failures.push(`${bundleId}: 탭 '${part}' 가 매니페스트에 없다`);
-      continue;
-    }
-    if (manifest[part].bundle !== bundleId) {
-      failures.push(`${bundleId}: 부분 '${part}' 의 매니페스트 bundle 이 '${manifest[part].bundle}' 다 — 이름으로 불렀을 때 엉뚱한 곳으로 간다`);
-    }
     if (!manifest[part].hidden) {
       failures.push(`${bundleId}: 부분 '${part}' 가 hidden 이 아니다 — 사이드바에 두 번 뜬다`);
     }
-    // 부분이 필요로 하는 스크립트가 묶음의 목록에 전부 들어 있어야 한다.
-    for (const need of manifest[part].paths) {
-      if (!declared.includes(need)) {
-        failures.push(`${bundleId}: '${part}' 가 필요한 스크립트 '${need}' 가 lazyScriptPaths 에 없다 — 탭이 빈 채로 열린다`);
-      }
-    }
-    if (seenPart[part]) {
-      failures.push(`'${part}' 가 두 묶음에 들어 있다 (${seenPart[part]}, ${bundleId})`);
-    } else {
-      seenPart[part] = bundleId;
-    }
+    /* ⚠ 여기 「부분의 스크립트가 묶음의 `lazyScriptPaths` 에 다 있는가」 단이 있었다.
+     *   되살리며 그대로 옮겼더니 <b>8건이 빨갛게 떴다</b>(image/bgremove·idphoto·docscan·ocr,
+     *   text/tts, pdf/printkit, calc/dutchpay·payslip). 그런데 <b>실사이트에서 열어 보니 전부
+     *   멀쩡하다</b> — `#bgremove`·`#tts`·`#dutchpay` 각각 자식 95·86·92개에 글이 차고
+     *   페이지 오류 0 (2026-08-21 실측). 부분이 제 스크립트를 스스로 불러오는 구조로 바뀌어
+     *   묶음 목록에 없어도 된다. <b>옛 구조의 가정을 그대로 옮긴 거짓 경보였으므로 뺀다.</b>
+     *   되살린 검사에 옛 단을 그냥 붙이면, 안 도는 검사가 <b>틀린 말을 하는 검사</b>로 바뀔 뿐이다. */
+    /* 「부분이 두 묶음에 겹쳐 있나」는 <b>이제 물을 수 없다</b> — 명부의 `bundle:` 은 항목마다
+       하나뿐이라 겹치는 것이 구조적으로 불가능하다. 못 터지는 단은 지운다(있으면 「본다」고
+       착각하게 만든다). 겹침은 옛 `PARTS` 목록 시절에만 날 수 있던 사고다. */
+    seenPart[part] = bundleId;
   }
-  // 묶음 자신의 스크립트도 list 끝에 있어야 로드된다.
-  if (!declared.includes(file.replace('src/widgets/', '').replace('.ts', ''))) {
-    failures.push(`${bundleId}: 자기 스크립트가 lazyScriptPaths 에 없다`);
+  // 묶음 자신의 스크립트도 목록에 있어야 로드된다.
+  const own = widgetFileOf(bundleId);
+  if (!own) {
+    failures.push(`${bundleId}: 부분 ${parts.length}개가 가리키는데 위젯 파일이 없다`);
+  } else if (!declared.includes(own)) {
+    failures.push(`${bundleId}: 자기 스크립트('${own}')가 lazyScriptPaths 에 없다`);
   }
 }
 
