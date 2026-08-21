@@ -49,10 +49,10 @@ export interface 수요기동옵션 {
 export class demandBoot {
   private appeared = false;
   private lastCheck = 0;
-  private 띄우는중 = false;
-  private 마지막사용 = 0;
+  private showing = false;
+  private lastUsed = 0;
   private weOpenedIt = false;
-  private 실패한때 = 0;
+  private failedAt = 0;
 
   constructor(private readonly options: 수요기동옵션) {}
 
@@ -77,7 +77,7 @@ export class demandBoot {
    * 때까지 기다렸다 그 목소리로 말한다.
    */
   async mustWrite(): Promise<void> {
-    this.마지막사용 = this.지금;
+    this.lastUsed = this.지금;
 
     const interval = this.options.askIntervalMs ?? 5_000;
     if (this.지금 - this.lastCheck >= interval) {
@@ -88,12 +88,12 @@ export class demandBoot {
         this.appeared = false;
       }
     }
-    if (this.appeared || this.띄우는중) return;
+    if (this.appeared || this.showing) return;
     if (this.options.isAuto?.() === false) return;
 
-    if (this.지금 - this.실패한때 < (this.options.restAfterFailMs ?? 60_000)) return;
+    if (this.지금 - this.failedAt < (this.options.restAfterFailMs ?? 60_000)) return;
 
-    this.띄우는중 = true;
+    this.showing = true;
     this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
     void Promise.resolve()
       .then(() => this.options.show())
@@ -105,20 +105,20 @@ export class demandBoot {
          * 뿐이고, 이 프로그램은 **뜨는 데 30초**가 걸린다. 그 사이 들어온 말마다 「아직 안
          * 떴네」 하고 또 띄웠다 — 실측으로 **25번 띄워 파이썬 프로세스가 38개**까지 갔다.
          * 컴퓨터가 앓는다. 준비될 때까지는 다시 안 띄운다. */
-        return this.뜰때까지();
+        return this.untilAppear();
       })
       .catch((e) => {
-        this.실패한때 = this.지금;
+        this.failedAt = this.지금;
         this.options.log?.(`${this.options.이름} 을(를) 못 띄웠다: ${e instanceof Error ? e.message : String(e)}`);
       })
       .finally(() => {
-        this.띄우는중 = false;
+        this.showing = false;
         this.lastCheck = 0;
       });
   }
 
   /** 뜰 때까지 물어본다. 정해진 시간을 넘기면 실패로 본다 — 영영 「띄우는 중」은 없다. */
-  private async 뜰때까지(): Promise<void> {
+  private async untilAppear(): Promise<void> {
     const limit = this.options.prepareWaitMs ?? 180_000;
     const interval2 = this.options.prepareAskIntervalMs ?? 2_000;
     const start = this.지금;
@@ -136,7 +136,7 @@ export class demandBoot {
         return;
       }
       if (this.지금 - start >= limit) {
-        this.실패한때 = this.지금;
+        this.failedAt = this.지금;
         throw new Error(`${Math.round(limit / 1000)}초 안에 안 떴다`);
       }
     }
@@ -151,7 +151,7 @@ export class demandBoot {
   async stopIfIdle(): Promise<boolean> {
     const whenIdle = this.options.stopIfIdleMs?.() ?? 0;
     if (whenIdle <= 0 || this.weOpenedIt === false || this.appeared === false) return false;
-    if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
+    if (this.lastUsed === 0 || this.지금 - this.lastUsed < whenIdle) return false;
 
     try {
       await this.options.stop();
