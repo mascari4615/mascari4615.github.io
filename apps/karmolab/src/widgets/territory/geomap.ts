@@ -302,8 +302,29 @@ export class GeoMap {
     this.drawAttribution(ctx);
   }
 
+  /**
+   * **밑바탕 한 겹** — 늘 깔려 있어 구멍이 안 생긴다 (사용자 제보 2026-08-21:
+   * 「가장자리 아니여도 중앙이든 어디든 칸 비었다가 보이는」).
+   *
+   * 윗 층·아랫 층으로 메우기는 <b>그 칸을 전에 본 적이 있을 때만</b> 통한다. 처음 보는 땅으로
+   * 옮기면 대신 그릴 것이 <b>하나도 없다</b>(실측: 옮긴 뒤 축소하니 빈 칸 132개, 메운 칸 0개).
+   * 그래서 가장 성긴 층 한 겹을 먼저 깔고 그 위에 또렷한 층을 얹는다.
+   *
+   * ⚠ 층 번호를 두 번 잘못 잡았다 — 재서 알았다:
+   *   `tz - 1` : 축소할 때마다 밑바탕도 <b>같이 처음 보는 층</b>이 된다 → 켜나 끄나 합 29 로 동일
+   *   `minZoom`: 축소해서 <b>닿는 층이 바로 그 층</b>이라 또 겹친다 → 합 24
+   *   `minZoom - 2`: 어디로 가든 밑에 깔린다 → <b>합 3</b> (끔은 31)
+   * 4층이면 나라 하나가 몇 장뿐이라 값도 싸고, <b>첫 화면을 그릴 때 이미 받아 둔다</b>.
+   */
   private drawTiles(ctx: CanvasRenderingContext2D): void {
     const tz = Math.max(0, Math.min(19, Math.round(this.zoom)));
+    const baseZ = Math.max(0, this.opts.minZoom - 2);
+    if (baseZ < tz) this.drawLevel(ctx, baseZ, false);
+    this.drawLevel(ctx, tz, true);
+  }
+
+  /** 한 층을 화면에 깐다. `fill` 이면 안 온 칸을 위·아래 층으로 메우고 둘레도 미리 받는다. */
+  private drawLevel(ctx: CanvasRenderingContext2D, tz: number, fill: boolean): void {
     const scale = Math.pow(2, this.zoom - tz);
     const drawn = TILE * scale;
     const c = projectWorld(this.center.lat, this.center.lng, tz);
@@ -322,7 +343,7 @@ export class GeoMap {
      * 없어 윗 층으로도 아랫 층으로도 못 메운다 — 가장자리만 비는 이유다.
      * 그래서 화면 둘레 한 칸을 <b>그리진 않고 받아만</b> 둔다. 들어올 때는 이미 손에 있다.
      * ⚠ 한 칸까지만이다. 두 칸이면 요청이 배로 늘어 남의 서버(OSM)를 그만큼 더 때린다. */
-    for (let ty = y0 - 1; ty <= y1 + 1; ty++) {
+    if (fill) for (let ty = y0 - 1; ty <= y1 + 1; ty++) {
       if (ty < 0 || ty >= n) continue;
       for (let tx = x0 - 1; tx <= x1 + 1; tx++) {
         if (ty >= y0 && ty <= y1 && tx >= x0 && tx <= x1) continue;   /* 화면 안은 아래에서 그린다 */
@@ -347,6 +368,7 @@ export class GeoMap {
          * 예전엔 그때 `continue` 해서 <b>화면 전체가 바탕색</b>이 됐다가 타일이 도착하면 다시 찼다 —
          * 그 한두 프레임이 「깜빡」이다. 이미 가진 <b>윗 층</b>을 잘라 늘려 메우면 흐릿할 뿐 안 끊긴다.
          * 지도 보는 프로그램들이 다 쓰는 방식이고, 새 타일이 오면 그 위에 또렷하게 덮인다. */
+        if (!fill) continue;   /* 밑바탕 층은 있는 것만 깐다 — 메우기는 또렷한 층의 몫 */
         const up = this.ancestorTile(tz, wrapped, ty);
         if (up !== null) {
           ctx.drawImage(up.img, up.sx, up.sy, up.size, up.size, sx, sy, drawn + 0.5, drawn + 0.5);
