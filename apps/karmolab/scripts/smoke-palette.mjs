@@ -120,8 +120,8 @@ for (const must of ['즐겨찾기', '도구 목록', '문서']) {
 /* 위아래 순서는 화면 주인이 정한다 (카드가 먼저인 지금 배치 = KL-129, 사용자 요청).
  * 검사가 지킬 것은 순서가 아니라 **둘 다 살아 있는가** 다 — 한쪽이 사라지면 그건 사고다. */
 const bothThere = await page.evaluate(() => ({
-  input: !!document.querySelector('.landing-palette .kp-input'),
-  card: document.querySelectorAll('.landing-cta-card').length,
+  입력: !!document.querySelector('.landing-palette .kp-input'),
+  카드: document.querySelectorAll('.landing-cta-card').length,
 }));
 if (!bothThere.입력) problems.push('첫 화면에서 찾는 입력이 사라졌다');
 if (!bothThere.카드) problems.push('첫 화면에서 갈 곳 카드가 사라졌다');
