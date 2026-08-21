@@ -240,8 +240,12 @@ namespace Handheld.EditorTools
 
         static string FindCloudflared()
         {
+            // ★ 관리자 권한 없이 받아 둔 자리도 본다 (2026-08-21). winget 이 없는 계정에서는
+            //   `Program Files` 에 못 쓴다 — 그때는 사용자 폴더에 exe 하나만 놓으면 된다.
+            string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             string[] candidates =
             {
+                Path.Combine(localApp, "cloudflared", "cloudflared.exe"),
                 @"C:\Program Files (x86)\cloudflared\cloudflared.exe",
                 @"C:\Program Files\cloudflared\cloudflared.exe",
                 "/usr/local/bin/cloudflared",
