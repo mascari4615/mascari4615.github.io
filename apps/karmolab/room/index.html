@@ -1,5 +1,8 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
+<!-- 나가는 화면마다 박아야 하는 보안 한 줄. GitHub Pages 는 헤더를 못 붙여서
+     이 meta 가 유일한 자리다. 문구 정본 = scripts/lib/head-security.mjs (audit:csp-meta). -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>간판 방 — 구운 빛</title>
 <style>
