@@ -19,7 +19,7 @@ const SHORT = 30;
 const MID = 90;
 
 const SECONDS: Record<string, number> = Object.fromEntries(
-  (balance.게임 as Array<{ id: string; 평균초: number }>).map((g) => [g.id, g.평균초])
+  (balance.game as Array<{ id: string; avgSeconds: number }>).map((g) => [g.id, g.avgSeconds])
 );
 
 /** 잰 적 없는 게임은 「보통」으로 둔다 — 없는 수를 0으로 치면 새 게임이 늘 「짧다」가 된다. */

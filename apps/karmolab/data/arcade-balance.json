@@ -1,859 +1,859 @@
 {
-  "설명": "봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade",
-  "잰날": "2026-08-13",
-  "판수": 200,
-  "걸린초": 23.9,
-  "게임": [
+  "note": "봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade",
+  "measuredOn": "2026-08-13",
+  "roundCount": 200,
+  "elapsedSec": 23.9,
+  "game": [
     {
       "id": "airhockey",
       "kind": "quick",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.155,
         0.195
       ],
-      "기울기": 0.345,
-      "무승부율": 0.65,
-      "한판뿐": false,
-      "평균초": 150.9,
-      "점수폭": 0.35,
-      "안끝남": 0
+      "slope": 0.345,
+      "drawRate": 0.65,
+      "singleRound": false,
+      "avgSeconds": 150.9,
+      "scoreSpread": 0.35,
+      "unfinished": 0
     },
     {
       "id": "auction",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.318,
         0.313,
         0.36
       ],
-      "기울기": 0.027,
-      "무승부율": 0.01,
-      "한판뿐": false,
-      "평균초": 41.4,
-      "점수폭": 6.36,
-      "안끝남": 0
+      "slope": 0.027,
+      "drawRate": 0.01,
+      "singleRound": false,
+      "avgSeconds": 41.4,
+      "scoreSpread": 6.36,
+      "unfinished": 0
     },
     {
       "id": "blackjack",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.268,
         0.265,
         0.217
       ],
-      "기울기": 0.116,
-      "무승부율": 0.25,
-      "한판뿐": false,
-      "평균초": 9.7,
-      "점수폭": 0.94,
-      "안끝남": 0
+      "slope": 0.116,
+      "drawRate": 0.25,
+      "singleRound": false,
+      "avgSeconds": 9.7,
+      "scoreSpread": 0.94,
+      "unfinished": 0
     },
     {
       "id": "bowling",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.295,
         0.36,
         0.325
       ],
-      "기울기": 0.038,
-      "무승부율": 0.02,
-      "한판뿐": false,
-      "평균초": 23.7,
-      "점수폭": 4.19,
-      "안끝남": 0
+      "slope": 0.038,
+      "drawRate": 0.02,
+      "singleRound": false,
+      "avgSeconds": 23.7,
+      "scoreSpread": 4.19,
+      "unfinished": 0
     },
     {
       "id": "capturego",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.45,
         0.55
       ],
-      "기울기": 0.05,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 46.2,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.05,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 46.2,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "checkers",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.29,
         0.27
       ],
-      "기울기": 0.23,
-      "무승부율": 0.44,
-      "한판뿐": false,
-      "평균초": 86.3,
-      "점수폭": 0.56,
-      "안끝남": 0
+      "slope": 0.23,
+      "drawRate": 0.44,
+      "singleRound": false,
+      "avgSeconds": 86.3,
+      "scoreSpread": 0.56,
+      "unfinished": 0
     },
     {
       "id": "curling",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.45,
         0.315,
         0.235
       ],
-      "기울기": 0.117,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 19.1,
-      "점수폭": 1.3,
-      "안끝남": 0
+      "slope": 0.117,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 19.1,
+      "scoreSpread": 1.3,
+      "unfinished": 0
     },
     {
       "id": "darts",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.36,
         0.32,
         0.32
       ],
-      "기울기": 0.027,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 31.8,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.027,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 31.8,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "derby",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.065,
         0.015,
         0.035
       ],
-      "기울기": 0.318,
-      "무승부율": 0.885,
-      "한판뿐": false,
-      "평균초": 26.5,
-      "점수폭": 19.42,
-      "안끝남": 0
+      "slope": 0.318,
+      "drawRate": 0.885,
+      "singleRound": false,
+      "avgSeconds": 26.5,
+      "scoreSpread": 19.42,
+      "unfinished": 0
     },
     {
       "id": "dominoes",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.4,
         0.32,
         0.28
       ],
-      "기울기": 0.067,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 24.6,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.067,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 24.6,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "dots",
       "kind": "board",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.367,
         0.292,
         0.34
       ],
-      "기울기": 0.041,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 33.1,
-      "점수폭": 6.49,
-      "안끝남": 0
+      "slope": 0.041,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 33.1,
+      "scoreSpread": 6.49,
+      "unfinished": 0
     },
     {
       "id": "fishing",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.335,
         0.315,
         0.35
       ],
-      "기울기": 0.018,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 22.4,
-      "점수폭": 38.65,
-      "안끝남": 0
+      "slope": 0.018,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 22.4,
+      "scoreSpread": 38.65,
+      "unfinished": 0
     },
     {
       "id": "fleet",
       "kind": "board",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.315,
         0.355,
         0.33
       ],
-      "기울기": 0.022,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 87,
-      "점수폭": 4.42,
-      "안끝남": 0
+      "slope": 0.022,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 87,
+      "scoreSpread": 4.42,
+      "unfinished": 0
     },
     {
       "id": "four",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         1,
         0
       ],
-      "기울기": 0.5,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 15.3,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.5,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 15.3,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "foxhounds",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         1,
         0
       ],
-      "기울기": 0.5,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 15,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.5,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 15,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "gomoku",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         1,
         0
       ],
-      "기울기": 0.5,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 24.1,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.5,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 24.1,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "hanafuda",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.237,
         0.302,
         0.425
       ],
-      "기울기": 0.096,
-      "무승부율": 0.035,
-      "한판뿐": false,
-      "평균초": 19.1,
-      "점수폭": 6.12,
-      "안끝남": 0
+      "slope": 0.096,
+      "drawRate": 0.035,
+      "singleRound": false,
+      "avgSeconds": 19.1,
+      "scoreSpread": 6.12,
+      "unfinished": 0
     },
     {
       "id": "highlow",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.34,
         0.292,
         0.307
       ],
-      "기울기": 0.041,
-      "무승부율": 0.06,
-      "한판뿐": false,
-      "평균초": 26.9,
-      "점수폭": 11.4,
-      "안끝남": 0
+      "slope": 0.041,
+      "drawRate": 0.06,
+      "singleRound": false,
+      "avgSeconds": 26.9,
+      "scoreSpread": 11.4,
+      "unfinished": 0
     },
     {
       "id": "hitblow",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.335,
         0.23,
         0.435
       ],
-      "기울기": 0.103,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 8.8,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.103,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 8.8,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "jegi",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.347,
         0.313,
         0.275
       ],
-      "기울기": 0.058,
-      "무승부율": 0.065,
-      "한판뿐": false,
-      "평균초": 61,
-      "점수폭": 1.87,
-      "안끝남": 0
+      "slope": 0.058,
+      "drawRate": 0.065,
+      "singleRound": false,
+      "avgSeconds": 61,
+      "scoreSpread": 1.87,
+      "unfinished": 0
     },
     {
       "id": "lanterns",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0,
         0,
         0
       ],
-      "기울기": 0.333,
-      "무승부율": 1,
-      "한판뿐": false,
-      "평균초": 27.6,
-      "점수폭": 0,
-      "안끝남": 0
+      "slope": 0.333,
+      "drawRate": 1,
+      "singleRound": false,
+      "avgSeconds": 27.6,
+      "scoreSpread": 0,
+      "unfinished": 0
     },
     {
       "id": "liars",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.355,
         0.335,
         0.31
       ],
-      "기울기": 0.023,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 84.4,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.023,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 84.4,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "lineup",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.32,
         0.318,
         0.302
       ],
-      "기울기": 0.031,
-      "무승부율": 0.06,
-      "한판뿐": false,
-      "평균초": 18.1,
-      "점수폭": 2.81,
-      "안끝남": 0
+      "slope": 0.031,
+      "drawRate": 0.06,
+      "singleRound": false,
+      "avgSeconds": 18.1,
+      "scoreSpread": 2.81,
+      "unfinished": 0
     },
     {
       "id": "mancala",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.825,
         0.14
       ],
-      "기울기": 0.36,
-      "무승부율": 0.035,
-      "한판뿐": false,
-      "평균초": 28.6,
-      "점수폭": 0.96,
-      "안끝남": 0
+      "slope": 0.36,
+      "drawRate": 0.035,
+      "singleRound": false,
+      "avgSeconds": 28.6,
+      "scoreSpread": 0.96,
+      "unfinished": 0
     },
     {
       "id": "memory",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.37,
         0.383,
         0.247
       ],
-      "기울기": 0.086,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 41.4,
-      "점수폭": 3.96,
-      "안끝남": 0
+      "slope": 0.086,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 41.4,
+      "scoreSpread": 3.96,
+      "unfinished": 0
     },
     {
       "id": "minesweeper",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.352,
         0.333,
         0.3
       ],
-      "기울기": 0.033,
-      "무승부율": 0.015,
-      "한판뿐": false,
-      "평균초": 6.7,
-      "점수폭": 30.63,
-      "안끝남": 0
+      "slope": 0.033,
+      "drawRate": 0.015,
+      "singleRound": false,
+      "avgSeconds": 6.7,
+      "scoreSpread": 30.63,
+      "unfinished": 0
     },
     {
       "id": "minishogi",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         1,
         0
       ],
-      "기울기": 0.5,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 3.8,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.5,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 3.8,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "nim",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.44,
         0.56
       ],
-      "기울기": 0.06,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 8.4,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.06,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 8.4,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "nunchi",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.29,
         0.26,
         0.285
       ],
-      "기울기": 0.073,
-      "무승부율": 0.165,
-      "한판뿐": false,
-      "평균초": 2.4,
-      "점수폭": 0.83,
-      "안끝남": 0
+      "slope": 0.073,
+      "drawRate": 0.165,
+      "singleRound": false,
+      "avgSeconds": 2.4,
+      "scoreSpread": 0.83,
+      "unfinished": 0
     },
     {
       "id": "onestroke",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.34,
         0.31,
         0.3
       ],
-      "기울기": 0.033,
-      "무승부율": 0.05,
-      "한판뿐": false,
-      "평균초": 118.8,
-      "점수폭": 3.64,
-      "안끝남": 0
+      "slope": 0.033,
+      "drawRate": 0.05,
+      "singleRound": false,
+      "avgSeconds": 118.8,
+      "scoreSpread": 3.64,
+      "unfinished": 0
     },
     {
       "id": "pong",
       "kind": "quick",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.515,
         0.485
       ],
-      "기울기": 0.015,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 43.8,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.015,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 43.8,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "pool",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.45,
         0.31,
         0.235
       ],
-      "기울기": 0.117,
-      "무승부율": 0.005,
-      "한판뿐": false,
-      "평균초": 42.8,
-      "점수폭": 1.28,
-      "안끝남": 0
+      "slope": 0.117,
+      "drawRate": 0.005,
+      "singleRound": false,
+      "avgSeconds": 42.8,
+      "scoreSpread": 1.28,
+      "unfinished": 0
     },
     {
       "id": "president",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.36,
         0.37,
         0.27
       ],
-      "기울기": 0.063,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 51.3,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.063,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 51.3,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "reflex",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.307,
         0.385,
         0.307
       ],
-      "기울기": 0.052,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 15,
-      "점수폭": 2.1,
-      "안끝남": 0
+      "slope": 0.052,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 15,
+      "scoreSpread": 2.1,
+      "unfinished": 0
     },
     {
       "id": "reversi",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         1,
         0
       ],
-      "기울기": 0.5,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 58.2,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.5,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 58.2,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "rps",
       "kind": "quick",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.275,
         0.38
       ],
-      "기울기": 0.225,
-      "무승부율": 0.345,
-      "한판뿐": false,
-      "평균초": 17.3,
-      "점수폭": 0.66,
-      "안끝남": 0
+      "slope": 0.225,
+      "drawRate": 0.345,
+      "singleRound": false,
+      "avgSeconds": 17.3,
+      "scoreSpread": 0.66,
+      "unfinished": 0
     },
     {
       "id": "shellgame",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.313,
         0.328,
         0.28
       ],
-      "기울기": 0.053,
-      "무승부율": 0.08,
-      "한판뿐": false,
-      "평균초": 32.5,
-      "점수폭": 1.53,
-      "안끝남": 0
+      "slope": 0.053,
+      "drawRate": 0.08,
+      "singleRound": false,
+      "avgSeconds": 32.5,
+      "scoreSpread": 1.53,
+      "unfinished": 0
     },
     {
       "id": "simon",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0,
         0,
         0
       ],
-      "기울기": 0.333,
-      "무승부율": 1,
-      "한판뿐": false,
-      "평균초": 18.3,
-      "점수폭": 0,
-      "안끝남": 0
+      "slope": 0.333,
+      "drawRate": 1,
+      "singleRound": false,
+      "avgSeconds": 18.3,
+      "scoreSpread": 0,
+      "unfinished": 0
     },
     {
       "id": "slide",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.297,
         0.307,
         0.365
       ],
-      "기울기": 0.036,
-      "무승부율": 0.03,
-      "한판뿐": false,
-      "평균초": 180.9,
-      "점수폭": 0.97,
-      "안끝남": 0
+      "slope": 0.036,
+      "drawRate": 0.03,
+      "singleRound": false,
+      "avgSeconds": 180.9,
+      "scoreSpread": 0.97,
+      "unfinished": 0
     },
     {
       "id": "snake",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.282,
         0.223,
         0.195
       ],
-      "기울기": 0.138,
-      "무승부율": 0.3,
-      "한판뿐": false,
-      "평균초": 9.5,
-      "점수폭": 1.17,
-      "안끝남": 0
+      "slope": 0.138,
+      "drawRate": 0.3,
+      "singleRound": false,
+      "avgSeconds": 9.5,
+      "scoreSpread": 1.17,
+      "unfinished": 0
     },
     {
       "id": "speed",
       "kind": "quick",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.545,
         0.455
       ],
-      "기울기": 0.045,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 37,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.045,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 37,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "sudoku",
       "kind": "puzzle",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.32,
         0.273,
         0.393
       ],
-      "기울기": 0.06,
-      "무승부율": 0.015,
-      "한판뿐": false,
-      "평균초": 245.1,
-      "점수폭": 3.88,
-      "안끝남": 0
+      "slope": 0.06,
+      "drawRate": 0.015,
+      "singleRound": false,
+      "avgSeconds": 245.1,
+      "scoreSpread": 3.88,
+      "unfinished": 0
     },
     {
       "id": "tanks",
       "kind": "sport",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.52,
         0.48
       ],
-      "기울기": 0.02,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 36.3,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.02,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 36.3,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "tug",
       "kind": "quick",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.485,
         0.3
       ],
-      "기울기": 0.2,
-      "무승부율": 0.215,
-      "한판뿐": false,
-      "평균초": 46,
-      "점수폭": 0.79,
-      "안끝남": 0
+      "slope": 0.2,
+      "drawRate": 0.215,
+      "singleRound": false,
+      "avgSeconds": 46,
+      "scoreSpread": 0.79,
+      "unfinished": 0
     },
     {
       "id": "tuho",
       "kind": "sport",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.25,
         0.223,
         0.247
       ],
-      "기울기": 0.11,
-      "무승부율": 0.28,
-      "한판뿐": false,
-      "평균초": 30.4,
-      "점수폭": 1.78,
-      "안끝남": 0
+      "slope": 0.11,
+      "drawRate": 0.28,
+      "singleRound": false,
+      "avgSeconds": 30.4,
+      "scoreSpread": 1.78,
+      "unfinished": 0
     },
     {
       "id": "twenty",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.357,
         0.378,
         0.265
       ],
-      "기울기": 0.068,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 46.5,
-      "점수폭": 1.38,
-      "안끝남": 0
+      "slope": 0.068,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 46.5,
+      "scoreSpread": 1.38,
+      "unfinished": 0
     },
     {
       "id": "ultimate",
       "kind": "board",
       "seats": 2,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.28,
         0.52
       ],
-      "기울기": 0.22,
-      "무승부율": 0.2,
-      "한판뿐": false,
-      "평균초": 44.3,
-      "점수폭": 0.8,
-      "안끝남": 0
+      "slope": 0.22,
+      "drawRate": 0.2,
+      "singleRound": false,
+      "avgSeconds": 44.3,
+      "scoreSpread": 0.8,
+      "unfinished": 0
     },
     {
       "id": "whack",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.352,
         0.357,
         0.28
       ],
-      "기울기": 0.053,
-      "무승부율": 0.01,
-      "한판뿐": false,
-      "평균초": 18.3,
-      "점수폭": 5.32,
-      "안끝남": 0
+      "slope": 0.053,
+      "drawRate": 0.01,
+      "singleRound": false,
+      "avgSeconds": 18.3,
+      "scoreSpread": 5.32,
+      "unfinished": 0
     },
     {
       "id": "wordchain",
       "kind": "quick",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.275,
         0.315,
         0.41
       ],
-      "기울기": 0.077,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 52.9,
-      "점수폭": 1,
-      "안끝남": 0
+      "slope": 0.077,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 52.9,
+      "scoreSpread": 1,
+      "unfinished": 0
     },
     {
       "id": "yacht",
       "kind": "card",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.33,
         0.325,
         0.34
       ],
-      "기울기": 0.008,
-      "무승부율": 0.005,
-      "한판뿐": false,
-      "평균초": 126.2,
-      "점수폭": 53.87,
-      "안끝남": 0
+      "slope": 0.008,
+      "drawRate": 0.005,
+      "singleRound": false,
+      "avgSeconds": 126.2,
+      "scoreSpread": 53.87,
+      "unfinished": 0
     },
     {
       "id": "yut",
       "kind": "board",
       "seats": 3,
-      "판수": 200,
-      "자리승률": [
+      "roundCount": 200,
+      "seatWinRate": [
         0.325,
         0.365,
         0.31
       ],
-      "기울기": 0.032,
-      "무승부율": 0,
-      "한판뿐": false,
-      "평균초": 69.8,
-      "점수폭": 1.37,
-      "안끝남": 0
+      "slope": 0.032,
+      "drawRate": 0,
+      "singleRound": false,
+      "avgSeconds": 69.8,
+      "scoreSpread": 1.37,
+      "unfinished": 0
     }
   ]
 }

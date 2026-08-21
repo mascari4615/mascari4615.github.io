@@ -33,7 +33,7 @@ await build({ entryPoints: ['src/widgets/arcade/index.ts'], bundle: true, format
 const { Match, GAMES, partySize } = await import(pathToFileURL(out).href);
 
 const table = JSON.parse(readFileSync('data/arcade-balance.json', 'utf8'));
-const said = Object.fromEntries(table.게임.map((g) => [g.id, g.평균초]));
+const said = Object.fromEntries(table.game.map((g) => [g.id, g.avgSeconds]));
 
 let bad = 0;
 const drifted = [];
