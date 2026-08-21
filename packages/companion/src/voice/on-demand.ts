@@ -148,7 +148,7 @@ export class demandBoot {
    * **우리가 띄운 것만 끈다.** 사람이 다른 데 쓰려고 손으로 띄워 둔 걸 끄면, 그건 도와주는
    * 게 아니라 남의 것을 끄는 일이다.
    */
-  async 쉬었으면끄기(): Promise<boolean> {
+  async stopIfIdle(): Promise<boolean> {
     const whenIdle = this.options.쉬면끄기ms?.() ?? 0;
     if (whenIdle <= 0 || this.우리가띄웠나 === false || this.appeared === false) return false;
     if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
@@ -169,7 +169,7 @@ export class demandBoot {
 
 export interface 필요할때옵션 {
   /** 무거운 진짜 목소리. */
-  진짜: Speech;
+  real: Speech;
   /** 켜고 끄는 자리. */
   기동: demandBoot;
   /** 이만큼 기다려도 안 뜨면 포기한다(그때는 소리가 없다 — 딴 목소리로 바꾸지 않는다). */
@@ -184,7 +184,7 @@ export interface 필요할때옵션 {
  * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
 export function onDemand(options: 필요할때옵션): Speech {
-  const { 진짜: real, 기동: boot } = options;
+  const { real: real, 기동: boot } = options;
   const waitLimit = options.기다림한계ms ?? 180_000;
 
   return {

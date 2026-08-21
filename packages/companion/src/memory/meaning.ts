@@ -135,8 +135,8 @@ export class meaningMemory {
    */
   async find(
     question: string,
-    options: { 몇개?: number; 뺄것?: ReadonlySet<string> } = {},
-  ): Promise<{ text: string; 닮음: number }[]> {
+    options: { count?: number; 뺄것?: ReadonlySet<string> } = {},
+  ): Promise<{ text: string; similar: number }[]> {
     const content3 = question.trim();
     if (content3.length < 2 || this.담김.length === 0) return [];
     const v = await this.options.measure.measure(content3);
@@ -145,10 +145,10 @@ export class meaningMemory {
     const toDrop = options.뺄것 ?? new Set<string>();
     return this.담김
       .filter((line3) => toDrop.has(line3.text) === false && line3.text !== content3)
-      .map((line4) => ({ text: line4.text, 닮음: similarity(v, line4.v) }))
-      .filter((r) => r.닮음 >= this.문턱)
-      .sort((a, b) => b.닮음 - a.닮음)
-      .slice(0, options.몇개 ?? 3);
+      .map((line4) => ({ text: line4.text, similar: similarity(v, line4.v) }))
+      .filter((r) => r.similar >= this.문턱)
+      .sort((a, b) => b.similar - a.similar)
+      .slice(0, options.count ?? 3);
   }
 }
 

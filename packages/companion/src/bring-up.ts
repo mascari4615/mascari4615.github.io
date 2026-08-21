@@ -24,11 +24,11 @@ import type { Ingredient } from './budget';
 
 export interface 꺼낼까입력 {
   /** 재료들 — 이 중에서 고른다. */
-  재료: readonly Ingredient[];
+  material: readonly Ingredient[];
   /** 그 재료가 몇 번이나 밀렸나. */
   얼마나참았나: (name2: string) => number;
   /** 대화가 식어 가는 중인가. */
-  식는중: boolean;
+  cooling: boolean;
   /** 방금 조수님이 물어봤나. */
   물어본turn: boolean;
   /** 이 횟수 넘게 참은 것만 꺼낸다. */
@@ -55,11 +55,11 @@ export function topicFirst(input: 꺼낼까입력): 꺼낼것 | null {
  */
 export function topicSkipReason(input: 꺼낼까입력): string | null {
   if (input.물어본turn) return '조수님이 물어본 turn 이다';
-  if (input.식는중 === false) return '아직 대화가 안 식었다';
+  if (input.cooling === false) return '아직 대화가 안 식었다';
   const picked = choose(input);
   if (picked === null) {
     const threshold = input.문턱 ?? 3;
-    const most = Math.max(0, ...input.재료.map((x) => input.얼마나참았나(x.name)));
+    const most = Math.max(0, ...input.material.map((x) => input.얼마나참았나(x.name)));
     return `${threshold}번 넘게 참은 게 없다 (가장 오래 참은 게 ${most}번)`;
   }
   return null;
@@ -67,7 +67,7 @@ export function topicSkipReason(input: 꺼낼까입력): string | null {
 
 function choose(input: 꺼낼까입력): 꺼낼것 | null {
   const threshold2 = input.문턱 ?? 3;
-  const candidates = input.재료
+  const candidates = input.material
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')
     .map((x) => ({ x, heldCount: input.얼마나참았나(x.name) }))

@@ -108,7 +108,7 @@ export class lineStore {
   }
 
   /** 이 갈래에 지금 몇 개 담겨 있나 (지금 인격 것만 센다). */
-  남은수(kind2: string): number {
+  remaining(kind2: string): number {
     const item = this.담김.get(kind2);
     if (item === undefined || item.whom !== this.지금누구) return 0;
     return item.말들.length;
@@ -134,7 +134,7 @@ export class lineStore {
    */
   async 채우기(kind4: string, request: string, goal = this.max): Promise<number> {
     if (this.채우는중.has(kind4)) return 0;
-    const now = this.남은수(kind4);
+    const now = this.remaining(kind4);
     if (now >= Math.min(goal, this.max)) return 0;
     this.채우는중.add(kind4);
     try {

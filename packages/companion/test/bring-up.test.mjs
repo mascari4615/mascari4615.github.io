@@ -9,7 +9,7 @@ const material = [
   { name: '기분', text: '지금 기운이 처져 있다', weight: 12 },
 ];
 const heldMark = { 단골얘기: 5, 기분: 1 };
-const base = { 재료: material, 얼마나참았나: (n) => heldMark[n] ?? 0, 식는중: true, 물어본turn: false };
+const base = { material: material, 얼마나참았나: (n) => heldMark[n] ?? 0, cooling: true, 물어본turn: false };
 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
   const r = topicFirst(base);
@@ -19,8 +19,8 @@ test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그�
 });
 
 test('한창일 때는 안 꺼낸다 — 끼어드는 건 방해다', () => {
-  assert.equal(topicFirst({ ...base, 식는중: false }), null);
-  assert.match(topicSkipReason({ ...base, 식는중: false }), /안 식었다/);
+  assert.equal(topicFirst({ ...base, cooling: false }), null);
+  assert.match(topicSkipReason({ ...base, cooling: false }), /안 식었다/);
 });
 
 test('물어본 turn 에는 안 꺼낸다 — 물음을 두고 딴 얘기는 회피다', () => {
@@ -35,12 +35,12 @@ test('한두 번 밀린 건 안 꺼낸다 — 그냥 아무 말이나 하는 게
 });
 
 test('할 말이 없는 재료는 안 꺼낸다 — 빈 걸 꺼내라고 하면 지어낸다', () => {
-  const emptyOnly = { ...base, 재료: [{ name: '궁금', text: '   ', weight: 5 }], 얼마나참았나: () => 9 };
+  const emptyOnly = { ...base, material: [{ name: '궁금', text: '   ', weight: 5 }], 얼마나참았나: () => 9 };
   assert.equal(topicFirst(emptyOnly), null);
 });
 
 test('꺼진 재료도 안 꺼낸다 — 지금 자리에 없는 얘기다', () => {
-  const off = { ...base, 재료: [{ name: '놀리기', text: '놀려라', weight: 5, when: false }], 얼마나참았나: () => 9 };
+  const off = { ...base, material: [{ name: '놀리기', text: '놀려라', weight: 5, when: false }], 얼마나참았나: () => 9 };
   assert.equal(topicFirst(off), null);
 });
 

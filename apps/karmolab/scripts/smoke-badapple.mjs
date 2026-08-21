@@ -108,7 +108,7 @@ const played = await page
 if (!played) {
   const canPlay = await page.evaluate(() => {
     const v = document.createElement('video');
-    return { webm: v.canPlayType('video/webm'), 상태: document.getElementById('baStatus')?.textContent ?? '' };
+    return { webm: v.canPlayType('video/webm'), state: document.getElementById('baStatus')?.textContent ?? '' };
   });
   if (!canPlay.webm) {
     console.log(`[smoke-badapple] 못 돌았다 — 이 브라우저가 webm 을 못 튼다 (상태: ${canPlay.상태})`);

@@ -22,7 +22,7 @@ export interface 찾은것 {
 
 export interface WebSearchOptions {
   /** 몇 개까지. */
-  몇개?: number;
+  count?: number;
   /** 이 시간 안에 못 받으면 포기 — 곁에 있는 존재가 검색 때문에 굳으면 안 된다. */
   기다림ms?: number;
   /** 시험에서 갈아끼운다. */
@@ -96,7 +96,7 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
   const question = what.trim();
   if (question === '') return '무엇을 찾을지 안 왔다.';
 
-  const count2 = options.몇개 ?? 5;
+  const count2 = options.count ?? 5;
   const waited = options.기다림ms ?? 8000;
   const fetch2 = options.가져오기 ?? defaultFetch;
   const controller = new AbortController();

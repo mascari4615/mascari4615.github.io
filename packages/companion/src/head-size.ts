@@ -25,7 +25,7 @@
 
 export interface 머리고르기입력 {
   /** 받아 줄 자리인가 (길게 털어놨거나 감정이 실렸다). */
-  받을자리?: boolean;
+  acceptSlot?: boolean;
   /** 공을 돌려줄 자리인가 (대화가 식어 간다). */
   돌려줄자리?: boolean;
   /** 지난 일이 걸렸나. */
@@ -52,7 +52,7 @@ export function whichHead(input: 머리고르기입력, options: 머리크기옵
   const largeHead = options.큰머리 ?? 'sonnet';
 
   // 위에서부터 본다 — 여러 개가 겹쳐도 이유는 하나만 적는다.
-  if (input.받을자리 === true) return { 머리: largeHead, why: '길게 털어놨거나 감정이 실렸다' };
+  if (input.acceptSlot === true) return { 머리: largeHead, why: '길게 털어놨거나 감정이 실렸다' };
   if (input.돌려줄자리 === true) return { 머리: largeHead, why: '대화가 식어 가 공을 돌려줄 자리다' };
   if (input.자기얘기 === true) return { 머리: largeHead, why: '얘 자신에 대해 물었다' };
   if (input.옛일있나 === true) return { 머리: largeHead, why: '지난 일이 걸렸다' };

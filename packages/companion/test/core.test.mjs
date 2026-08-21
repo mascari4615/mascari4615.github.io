@@ -168,7 +168,7 @@ test('시험이 만든 감각은 기억에 안 담긴다 — 사람 상이 검�
   const companion = new Companion({ bodies: [body], brain: echoBrain, memory, attention: alwaysRespond });
   await companion.start();
 
-  await companion.feed({ ...sensation('스모크 12345'), 시험: true });
+  await companion.feed({ ...sensation('스모크 12345'), test: true });
   // 처리는 그대로 한다 — 검사가 진짜 길을 안 밟으면 검사가 아니다.
   assert.deepEqual(spoken, ['(echo) 스모크 12345']);
   // 다만 기억에는 없어야 한다.

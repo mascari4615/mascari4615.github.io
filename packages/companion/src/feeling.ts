@@ -29,7 +29,7 @@ export const usual: Feeling = { valence: 0.05, arousal: -0.1 };
 export const events = {
   '웃어줌': { valence: 0.35, arousal: 0.3 },
   '받아줌': { valence: 0.2, arousal: 0.15 },
-  되물음: { valence: 0.15, arousal: 0.2 },
+  followUp: { valence: 0.15, arousal: 0.2 },
   '시들함': { valence: -0.2, arousal: -0.15 },
   '무시당함': { valence: -0.25, arousal: -0.2 },
   '쿡찔림': { valence: -0.05, arousal: 0.25 },
