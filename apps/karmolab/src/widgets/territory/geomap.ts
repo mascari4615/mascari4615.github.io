@@ -135,6 +135,7 @@ export class GeoMap {
     this.ctx = ctx;
 
     this.bindPointer();
+    this.bindKeys();
     /* ★ 크기 알림은 **모아서** 받는다. 셸이 인트로를 접거나 스크롤막대가 나타났다 사라지면
        이 알림이 프레임마다 쏟아지고, 한 번마다 화면을 다시 그리면 브라우저가 통째로 멎는다
        (2026-08-20 실측: 영토 계산을 완전히 꺼도 멎었다 — 범인은 여기였다).
@@ -374,6 +375,41 @@ export class GeoMap {
   /* ── 손가락·마우스 ──
      끌기와 두 손가락 확대를 같은 자리에서 다룬다. 포인터 이벤트 하나면 마우스·터치·펜이
      같은 길로 들어온다 — 터치 이벤트를 따로 안 짜도 된다. */
+
+  /* ── 자판으로도 지도를 움직인다 (화살표 옮기기 · +/- 확대) ────────────────
+   *
+   * 끌기·집기만 있으면 <b>손을 못 쓰는 사람에게 이 지도는 한 자리에 굳어 있다</b> —
+   * 처음 보이는 화면 말고는 아무 데도 못 간다. `audit:mouse-only` 가 그래서 이 파일을 짚는다.
+   *
+   * ⚠ 그 감사는 <b>글자만 본다</b>(`keydown` 한 줄이면 통과한다). 그러니 아무 손잡이나 달면
+   *   초록은 되지만 지도는 그대로다 — 그건 가짜 초록이다. 손이 쓰는 것과 <b>같은 `panBy`·
+   *   `zoomAround`</b> 를 부른다. 자판으로 간 결과가 끌어서 간 결과와 글자 그대로 같다.
+   *
+   * 한 걸음은 화면의 <b>1/6</b>(Shift 면 1/2) — 박아 둔 px 은 큰 화면에서 안 움직이고 폰에서 튄다.
+   * 확대는 끌기와 같은 단위(`zoomAround` 의 1 = 한 단)이고, 가운데를 축으로 잡는다. */
+  private bindKeys(): void {
+    const el = this.canvas;
+    el.tabIndex = 0;
+    el.setAttribute('role', 'application');
+    el.setAttribute('aria-label', '영토 지도 — 화살표로 옮기고 +/- 로 확대');
+    el.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const r = el.getBoundingClientRect();
+      const step = e.shiftKey ? 0.5 : 1 / 6;
+      const dx = { ArrowLeft: -r.width * step, ArrowRight: r.width * step }[e.key] ?? 0;
+      const dy = { ArrowUp: -r.height * step, ArrowDown: r.height * step }[e.key] ?? 0;
+      if (dx !== 0 || dy !== 0) {
+        e.preventDefault();
+        this.panBy(dx, dy);
+        return;
+      }
+      const zoom = { '+': 1, '=': 1, '-': -1, _: -1 }[e.key] ?? 0;
+      if (zoom !== 0) {
+        e.preventDefault();
+        this.zoomAround({ x: r.width / 2, y: r.height / 2 }, zoom);
+      }
+    });
+  }
 
   private bindPointer(): void {
     const active = new Map<number, Point>();
