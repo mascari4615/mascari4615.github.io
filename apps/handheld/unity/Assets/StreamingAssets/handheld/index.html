@@ -544,6 +544,15 @@
   // 그 길이 막힐 때 방송이 멈춘다.
   let pc = null, poseCh = null, rtcVideo = false, rtcWatch = 0;
 
+  // WebRTC <video> 회전 — 캔버스와 같은 규칙(세로 그립 + 가로 그림 + 세로 화면).
+  function applyVideoRotation() {
+    const v = $('rtcv');
+    const land = v.videoWidth >= v.videoHeight;
+    const screenLand = innerWidth >= innerHeight;
+    v.classList.toggle('rot', gripChoice === 'portrait' && land !== screenLand);
+  }
+  addEventListener('resize', () => { if (rtcVideo) applyVideoRotation(); });
+
   // 영상만 내린다 (데이터채널은 그대로) — MJPEG 이 다시 그리기 시작한다.
   function hideRtcVideo() {
     const v = $('rtcv');
@@ -584,7 +593,14 @@
         //   MJPEG 도 안 그려서 화면이 통째로 검어진다. 실제로 그렇게 됐다.
         //   그래서 **videoWidth 가 잡힐 때만** 띄운다.
         const show = () => {
-          if (v.videoWidth > 0 && !rtcVideo) { v.classList.add('on'); rtcVideo = true; paintWay(); }
+          if (v.videoWidth > 0 && !rtcVideo) {
+            v.classList.add('on');
+            // ★ 캔버스(MJPEG)와 **같은 규칙**으로 돌린다. 규칙이 하나면 두 경로가 안 갈린다.
+            //   이 클래스는 정의만 돼 있고 붙이는 곳이 없었다 — 그래서 WebRTC 로 보면
+            //   세로 그립인데 그림이 안 돌아 옆으로 누웠다.
+            applyVideoRotation();
+            rtcVideo = true; paintWay();
+          }
         };
         v.onloadedmetadata = show;
         v.onresize = show;

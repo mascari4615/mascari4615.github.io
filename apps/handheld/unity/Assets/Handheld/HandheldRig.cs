@@ -236,13 +236,17 @@ namespace Handheld
                 + "\"kb\":{4},\"rt\":\"{5}x{6}\",\"zoom\":{7:F2},\"focalMm\":{8:F0},"
                 + "\"focus\":{9:F2},\"focusHit\":{10},\"everGotPose\":{11},\"sixDof\":{12},"
                 + "\"gripRoll\":{13:F0},\"phoneAspect\":{14:F3},\"camPos\":\"{15:F2},{16:F2},{17:F2}\","
-                + "\"camYaw\":{18:F1}",
+                + "\"camYaw\":{18:F1},\"camRoll\":{19:F1},\"camPitch\":{20:F1}",
                 _fpsShown, _poseHzShown, _tickHzShown, _captureHzShown,
                 _lastKb, _rtW, _rtH, _zoomShown, FocalLengthMm,
                 _focusShownDist, _focusHit ? 1 : 0, _everGotPose ? 1 : 0, _pose.SixDof ? 1 : 0,
                 _pose.GripRoll, _pose.Aspect,
                 transform.position.x, transform.position.y, transform.position.z,
-                transform.eulerAngles.y);
+                transform.eulerAngles.y,
+                // 롤을 그대로 적는다 — 「세로 그립인데 그림이 옆으로 눕는다」가
+                // 카메라가 안 굴러서인지 화면 쪽 문제인지를 이 값 하나가 가른다.
+                Mathf.DeltaAngle(0f, transform.eulerAngles.z),
+                Mathf.DeltaAngle(0f, transform.eulerAngles.x));
         }
 
         /// <summary>조종석 창에 띄우는 렌즈 한 줄.</summary>
