@@ -144,6 +144,9 @@ apps/handheld/unity/[Mm]emoryCaptures/
 apps/handheld/unity/*.csproj
 apps/handheld/unity/.vscode/
 apps/handheld/unity/*.sln
+# 헤드리스 시험 결과 — 돌릴 때마다 새로 나오는 판이라 담지 않는다.
+apps/handheld/unity/TestResults.xml
+apps/handheld/unity/HandheldLogs/
 # 테스트 씬은 HandheldSetup.BuildScene() 이 코드로 짓는다 (조종석이 없으면 자동으로 짓는다).
 # 바닥 타일 169개가 통째로 직렬화돼 2만 줄이 넘는다 — 파생물이라 담지 않는다.
 apps/handheld/unity/Assets/Scenes/

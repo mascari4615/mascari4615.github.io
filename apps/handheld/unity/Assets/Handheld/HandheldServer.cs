@@ -50,6 +50,20 @@ namespace Handheld
         WsConnection _client;
         readonly object _poseLock = new object();
         PhonePose _latestPose;
+
+        // 폰이 보낸 좌표에서 추적 불연속(ARCore 재정위)을 걷어낸다 — 이유는 그 파일에.
+        // 수신 스레드 하나에서만 만지므로 잠금이 필요 없다.
+        readonly TrackingStabilizer _stabilizer = new TrackingStabilizer();
+
+        /// <summary>좌표계를 다시 맞춘 횟수 / 마지막 사유 — 진단에 띄운다.</summary>
+        public int ReanchorCount => _stabilizer.ReanchorCount;
+        public string LastReanchorReason => _stabilizer.LastReason;
+
+        /// <summary>
+        /// 방금 좌표계가 바뀌었나 — 리그가 틱마다 한 번 집어 간다.
+        /// 위치·요는 안정기가 이미 이어 붙였고, 남은 기울기(피치·롤)를 리그가 밀어 넣는다.
+        /// </summary>
+        public bool ConsumeReanchored() => _stabilizer.ConsumeReanchored();
         bool _hasPose;
         int _seq;
         int _recenterFlag;
@@ -349,6 +363,7 @@ namespace Handheld
                 _lastLine = "";
                 _pingSentAt = -1;                      // 답을 못 받은 ping 을 새 폰에 물려주지 않는다
                 _rttMs = -1f;
+                _stabilizer.Reset();                   // 새 폰 = 새 좌표계. 옛 보정을 물려받으면 처음부터 어긋난다
                 old?.Close();
                 Log("폰 붙음");
                 return;
@@ -443,6 +458,11 @@ namespace Handheld
             sb.AppendFormat(c, "\"recording\":{0},", Recording ? 1 : 0);
             sb.AppendFormat(c, "\"autoRecord\":{0},", autoRecord ? 1 : 0);
             sb.AppendFormat(c, "\"phone\":\"{0}\",", (_phoneDiag ?? "").Replace("\"", "'"));
+
+            // 추적이 몇 번 끊겼나 — 잦으면 폰 쪽 문제다(빛·질감 없는 벽·앱 전환).
+            // 방송 전에 이 수가 0 에 가까운지 보고 나간다.
+            sb.AppendFormat(c, "\"reanchor\":{0},", _stabilizer.ReanchorCount);
+            sb.AppendFormat(c, "\"reanchorWhy\":\"{0}\",", (_stabilizer.LastReason ?? "").Replace("\"", "'"));
 
             var w = webrtc;
             sb.AppendFormat(c, "\"rtc\":\"{0}\",", w == null ? "없음" : w.StatusLine.Replace("\"", "'"));
@@ -585,11 +605,18 @@ namespace Handheld
                 // 13번째 칸 = 그립 롤. 옛 폰 페이지는 안 보내므로 없으면 0.
                 float gripRoll = f.Length > 12 ? P(f[12]) : 0f;
 
+                // 폰 좌표(RH, -Z 앞) → 유니티(LH, +Z 앞) 로 옮긴 뒤, **추적이 끊긴 자리를
+                // 좌표계 변경으로 흡수한다**. 여기서 하는 이유: 이 뒤의 모든 것(리센터·보간·
+                // 기록의 conv 칸)이 이어진 좌표를 보게 하려면 입구가 유일한 자리다.
+                _stabilizer.Stabilize(t,
+                    new Vector3(px, py, -pz), new Quaternion(-qx, -qy, qz, qw),
+                    out Vector3 stablePos, out Quaternion stableRot);
+
                 var pose = new PhonePose
                 {
                     PhoneTime = t,
-                    Position = new Vector3(px, py, -pz),
-                    Rotation = new Quaternion(-qx, -qy, qz, qw),
+                    Position = stablePos,
+                    Rotation = stableRot,
                     FovY = Mathf.Clamp(fov, 1f, 170f),
                     Aspect = Mathf.Clamp(aspect, 0.2f, 5f),
                     SixDof = six,
