@@ -101,6 +101,25 @@ namespace Handheld
         /// <summary>폰이 붙어 있나.</summary>
         public bool Connected => _client != null && !_client.Closed;
 
+        [Header("WebRTC")]
+        [Tooltip("있으면 시그널링(w|...)을 그리로 넘긴다. 없으면 MJPEG 만 쓴다.")]
+        public HandheldWebRtc webrtc;
+
+        /// <summary>
+        /// 폰으로 텍스트 한 줄. 시그널링이 이 통로를 쓴다 — 상태 줄과 같은 소켓이다.
+        /// </summary>
+        public void SendText(string line)
+        {
+            var c = _client;
+            if (c != null && !c.Closed) c.SendText(line);
+        }
+
+        /// <summary>
+        /// 폰이 보낸 한 줄을 처리한다. **WS 든 DataChannel 이든 같은 파서**를 탄다 —
+        /// 길을 둘로 두면 규약이 반드시 갈라진다.
+        /// </summary>
+        public void OnPhoneText(string msg) => OnPhoneMessage(msg);
+
         /// <summary>새 포즈가 들어와 있으면 true 와 함께 꺼내 준다.</summary>
         public bool TryGetPose(out PhonePose pose)
         {
@@ -224,6 +243,8 @@ namespace Handheld
         {
             ReleaseSticksIfDisconnected();
             _recorder?.Flush();
+            if (webrtc == null) webrtc = GetComponent<HandheldWebRtc>();
+            if (webrtc != null && webrtc.isActiveAndEnabled) webrtc.Tick();
         }
 
         void AcceptLoop()
@@ -370,6 +391,15 @@ namespace Handheld
             if (string.IsNullOrEmpty(msg)) return;
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
+
+            // WebRTC 시그널링:  w|offer|… · w|ice|… · w|bye
+            // 여기는 수신 스레드다 — 넘기기만 하고 처리는 틱에서 한다.
+            if (msg.Length > 2 && msg[0] == 'w' && msg[1] == '|')
+            {
+                var rtc = webrtc;
+                if (rtc != null) rtc.EnqueueSignal(msg);
+                return;
+            }
 
             // 왕복 답장:  k|<보낼 때 찍은 눈금>  — 폰은 받은 것을 그대로 되돌린다.
             if (msg.Length > 2 && msg[0] == 'k' && msg[1] == '|')

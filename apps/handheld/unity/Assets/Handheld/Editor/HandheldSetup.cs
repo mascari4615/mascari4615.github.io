@@ -37,6 +37,12 @@ namespace Handheld.EditorTools
             var serverGo = new GameObject("HandheldServer");
             var server = serverGo.AddComponent<HandheldServer>();
 
+            // WebRTC 는 서버 옆에 둔다 — 시그널링이 같은 WS 를 타므로 짝이다.
+            // 없어도 MJPEG 으로 다 돌아간다(폴백이 본체가 아니라 본체가 늘 있는 길이다).
+            var rtc = serverGo.AddComponent<HandheldWebRtc>();
+            rtc.server = server;
+            server.webrtc = rtc;
+
             // ── 리그 (원점) + 카메라 ──────────────────────────────────────────────
             var root = new GameObject("HandheldRoot");
             root.transform.position = new Vector3(0f, 1.4f, -3f); // 사람 눈높이, 무대에서 3m 뒤
@@ -52,6 +58,7 @@ namespace Handheld.EditorTools
             var rig = camGo.AddComponent<HandheldRig>();
             rig.server = server;
             rig.rigRoot = root.transform;
+            rtc.rig = rig;
 
             // ── 무대: 거리감을 눈으로 재는 물건들 ─────────────────────────────────
             BuildStage();
