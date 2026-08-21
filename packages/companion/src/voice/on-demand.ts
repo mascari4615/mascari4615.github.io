@@ -21,7 +21,7 @@ import type { Speech, SpeechVoice } from './edge-tts';
  *
  * - **끄는 길이 늘 있다.** 설정으로 자동 기동을 끄면 손으로 띄운 것만 쓴다.
  */
-export interface 수요기동옵션 {
+export interface DemandBootOptions {
   /** 사람이 읽는 이름. */
   이름: string;
   /** 지금 떠 있나. */
@@ -54,19 +54,19 @@ export class demandBoot {
   private weOpenedIt = false;
   private failedAt = 0;
 
-  constructor(private readonly options: 수요기동옵션) {}
+  constructor(private readonly options: DemandBootOptions) {}
 
   private get 지금(): number {
     return this.options.now?.() ?? Date.now();
   }
 
   /** 지금 쓸 수 있나 — 마지막으로 확인한 상태 그대로(묻지 않는다). */
-  get 준비됐나(): boolean {
+  get isReady(): boolean {
     return this.appeared;
   }
 
   /** 우리가 켜 둔 것인가 (진단용). */
-  get 우리것인가(): boolean {
+  get isOurs(): boolean {
     return this.weOpenedIt;
   }
 
@@ -167,7 +167,7 @@ export class demandBoot {
   }
 }
 
-export interface 필요할때옵션 {
+export interface OnDemandOptions {
   /** 무거운 진짜 목소리. */
   real: Speech;
   /** 켜고 끄는 자리. */
@@ -183,7 +183,7 @@ export interface 필요할때옵션 {
  * 목록에는 **늘 보인다.** 꺼져 있다고 목록에서 빼면 사람은 그걸 「기능이 사라졌다」로
  * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
-export function onDemand(options: 필요할때옵션): Speech {
+export function onDemand(options: OnDemandOptions): Speech {
   const { real: real, boot: boot } = options;
   const waitLimit = options.waitLimitMs ?? 180_000;
 
@@ -204,7 +204,7 @@ export function onDemand(options: 필요할때옵션): Speech {
          (조용한 게 딴 사람 목소리보다 낫다). */
       const start2 = Date.now();
       let notified = false;
-      while (boot.준비됐나 === false) {
+      while (boot.isReady === false) {
         if (Date.now() - start2 >= waitLimit) {
           throw new Error(`고른 목소리가 ${Math.round(waitLimit / 1000)}초 안에 준비 안 됐다`);
         }
