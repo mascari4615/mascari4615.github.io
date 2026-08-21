@@ -15,6 +15,24 @@ import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 import { repoCopies, thisRepo } from '../workspace';
 
+/**
+ * 창이 서버에게 붙여 보내는 **이름들** — 한 곳에서 정한다.
+ *
+ * 136회차에 창과 모듈이 서로 다른 이름을 믿고 있어서 마이크 문이 통째로 안 섰다.
+ * 밖에서는 그걸 「경계에 사는 버그」라 부른다 — 두 쪽이 공유한다고 **믿는** 약속 안에 살고,
+ * 컴파일러는 그 경계를 못 넘는다.
+ *
+ * 창↔서버 사이도 같은 경계다(`/ears/stop?말한ms=…&크기=…`). 한쪽에서 이름을 바꾸면
+ * **조용히** 값이 사라진다 — 오류도 안 난다. 그래서 여기 한 곳에 적고, 검사가 창이 그
+ * 목록 밖 이름을 쓰는지 본다(`test/ask-keys.test.mjs`).
+ */
+export const askKeys = {
+  /** 말소리가 난 시간(ms). */
+  spokenMs: '말한ms',
+  /** 그 구간의 평균 소리 크기(0~1). */
+  loudness: '크기',
+} as const;
+
 export interface WebBodyOptions {
   channel?: string;
   port?: number;
@@ -495,10 +513,10 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           /* 창이 잰 **말소리가 있던 시간**. 받아쓰기가 조용한 구간에 그럴듯한 글을 지어내도
              이 값이 작으면 무슨 글이든 안 넘긴다 — 글로 막는 데는 바닥이 있다(실측). */
           const asked = new URL(url, 'http://x').searchParams;
-          const spokenMs = Number(asked.get('말한ms'));
+          const spokenMs = Number(asked.get(askKeys.spokenMs));
           /* 말소리가 난 동안의 평균 크기 — 창만 알고 버리던 값이다(135회차).
              절대 크기는 기계마다 다르므로 여기서 판단하지 않고 그대로 실어 보낸다. */
-          const loudness = Number(asked.get('크기'));
+          const loudness = Number(asked.get(askKeys.loudness));
           const ears = options.ears;
           if (ears === undefined || ears.available() === false) {
             res.writeHead(404).end();

@@ -75,7 +75,7 @@ export type { ToolMode } from './brain/mode';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
-export { webBody, openPinnedWindow, ownWindowExe, isThisMachine, type WebBodyOptions } from './body/web';
+export { askKeys, webBody, openPinnedWindow, ownWindowExe, isThisMachine, type WebBodyOptions } from './body/web';
 export { discordBody, discordJs, type DiscordBodyOptions, type DiscordAttach, type DiscordChannel } from './body/discord';
 
 export { anySpeech } from './voice/any';
