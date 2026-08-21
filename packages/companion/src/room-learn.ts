@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-import { whichSlot, type 자리 } from './room';
+import { whichSlot, type slot } from './room';
 
 /**
  * 자리를 **배운다** — 표가 모르는 창은 두뇌에게 물어본다.
@@ -24,24 +24,24 @@ import { whichSlot, type 자리 } from './room';
  * 값이 시간이 갈수록 0 에 수렴한다.
  */
 
-const kinds: readonly Exclude<자리, null>[] = ['통화', '보는중', '만드는중', '읽는중', '노는중', '나를보는중'];
+const kinds: readonly Exclude<slot, null>[] = ['통화', '보는중', '만드는중', '읽는중', '노는중', '나를보는중'];
 
 export interface SlotLearnOptions {
   path?: string;
-  /** 두뇌에게 물어보는 자리. 없으면 표만 쓴다. */
-  ask?: (titles: readonly string[]) => Promise<readonly (자리 | null)[] | null>;
+  /** 두뇌에게 물어보는 slot. 없으면 표만 쓴다. */
+  ask?: (titles: readonly string[]) => Promise<readonly (slot | null)[] | null>;
   log?: (message: string) => void;
 }
 
 export class learnSlot {
-  private readonly learned = new Map<string, 자리>();
+  private readonly learned = new Map<string, slot>();
   private readonly toAsk = new Set<string>();
 
   constructor(private readonly options: SlotLearnOptions = {}) {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
-        const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, 자리>;
-        for (const [제목, z] of Object.entries(raw ?? {})) this.learned.set(제목, z);
+        const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, slot>;
+        for (const [title, z] of Object.entries(raw ?? {})) this.learned.set(title, z);
       } catch {
         // 깨진 파일 때문에 상황 파악이 멈추면 안 된다.
       }
@@ -55,26 +55,26 @@ export class learnSlot {
    * 우리가 안다). 둘 다 모르면 물어볼 것으로 담아 두고 지금은 모른다고 한다 —
    * **기다리게 하지 않는다.**
    */
-  read(title: string | null | undefined): 자리 {
+  read(title: string | null | undefined): slot {
     const title2 = (title ?? '').trim();
     if (title2 === '') return null;
     const table = whichSlot(title2);
     if (table !== null) return table;
     const learning = this.learned.get(brief(title2));
     if (learning !== undefined) return learning;
-    if (this.물어보기있나) this.toAsk.add(brief(title2));
+    if (this.hasAsk) this.toAsk.add(brief(title2));
     return null;
   }
 
-  private get 물어보기있나(): boolean {
+  private get hasAsk(): boolean {
     return this.options.ask !== undefined;
   }
 
-  get 밀린것(): number {
+  get pending(): number {
     return this.toAsk.size;
   }
 
-  get 아는수(): number {
+  get knownCount(): number {
     return this.learned.size;
   }
 
@@ -89,7 +89,7 @@ export class learnSlot {
     const bundle = [...this.toAsk].slice(0, atOnce);
     for (const title3 of bundle) this.toAsk.delete(title3); // 실패해도 무한히 다시 묻지 않는다
 
-    let answer: readonly (자리 | null)[] | null = null;
+    let answer: readonly (slot | null)[] | null = null;
     try {
       answer = await ask2(bundle);
     } catch (err) {
@@ -97,7 +97,7 @@ export class learnSlot {
       return 0;
     }
     if (answer === null || answer.length !== bundle.length) {
-      this.options.log?.(`자리 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${answer?.length ?? '없음'}개 왔다`);
+      this.options.log?.(`slot 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${answer?.length ?? '없음'}개 왔다`);
       return 0;
     }
 
@@ -128,7 +128,7 @@ export class learnSlot {
  *
  * 「Bad Taste ft. Kasane Teto | YouTube Music …」과 「다른 노래 | YouTube Music …」은 같은
  * 자리인데 제목이 다르다. 통째로 열쇠를 삼으면 노래를 바꿀 때마다 새로 물어본다 — 물어보는
- * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 자리)만 남긴다.
+ * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 slot)만 남긴다.
  */
 export function brief(title5: string): string {
   const chunk = title5.split(/\s[|–—-]\s/).map((x) => x.trim()).filter((x) => x !== '');
@@ -136,15 +136,15 @@ export function brief(title5: string): string {
   return after.slice(0, 60);
 }
 
-/** 두뇌에게 「이 창은 뭐 하는 자리야?」를 묻는 자리. */
+/** 두뇌에게 「이 창은 뭐 하는 자리야?」를 묻는 slot. */
 export function askSlot(ask: (prompt: string) => Promise<string | null>) {
-  return async (titles2: readonly string[]): Promise<readonly (자리 | null)[] | null> => {
+  return async (titles2: readonly string[]): Promise<readonly (slot | null)[] | null> => {
     if (titles2.length === 0) return [];
     const list = titles2.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 80)}`).join('\n');
     const answer2 = await ask(
-      '아래는 컴퓨터에 떠 있는 창 제목들이다. 각각이 **그 사람이 지금 뭘 하는 자리**인지 골라라.\n' +
+      '아래는 컴퓨터에 떠 있는 창 제목들이다. 각각이 **그 사람이 지금 뭘 하는 slot**인지 골라라.\n' +
         `${kinds.join(' · ')} · 모름\n\n` +
-        '- 통화 = 사람과 통화·회의 중(끼어들면 안 되는 자리)\n' +
+        '- 통화 = 사람과 통화·회의 중(끼어들면 안 되는 slot)\n' +
         '- 보는중 = 영상·방송을 보는 중 · 노는중 = 게임\n' +
         '- 만드는중 = 코드·그림·글을 만드는 중 · 읽는중 = 문서·웹을 읽는 중\n' +
         '- 나를보는중 = 그 사람의 AI 동반자 창\n' +
@@ -155,7 +155,7 @@ export function askSlot(ask: (prompt: string) => Promise<string | null>) {
     const line = answer2.split('\n').map((x) => x.trim()).filter((x) => x !== '');
     const picked = line
       .map((x) => kinds.find((z) => x.includes(z)) ?? (x.includes('모름') ? null : undefined))
-      .filter((x) => x !== undefined) as (자리 | null)[];
+      .filter((x) => x !== undefined) as (slot | null)[];
     // 개수가 안 맞으면 통째로 버린다 — 어긋난 채 적으면 엉뚱한 창이 「통화」가 되어 입을 닫는다.
     return picked.length === titles2.length ? picked : null;
   };

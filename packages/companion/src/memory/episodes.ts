@@ -147,7 +147,7 @@ export class EpisodeStore {
   }
 
   /** 두뇌에게 물어볼 것이 몇 개 밀려 있나. */
-  get 밀린것(): number {
+  get pending(): number {
     return this.toAsk.size;
   }
 

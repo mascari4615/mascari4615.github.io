@@ -9,7 +9,7 @@ const unknownWindow = ['설정', 'NVIDIA GeForce Overlay', 'Windows 입력 환�
 test('표가 아는 창은 안 물어본다 — 물어보는 값이 헛되이 든다', () => {
   const learning = new learnSlot({ ask: async () => null });
   assert.equal(learning.read('claude · resume'), '만드는중');
-  assert.equal(learning.밀린것, 0);
+  assert.equal(learning.pending, 0);
 });
 
 test('얘는 자기 창을 알아본다 — 그건 말 걸기 가장 좋은 때다', () => {
@@ -20,13 +20,13 @@ test('얘는 자기 창을 알아본다 — 그건 말 걸기 가장 좋은 때�
 test('표가 모르는 창은 물어볼 것으로 담는다 — 모른다고 버리면 영영 모른다', () => {
   const learning2 = new learnSlot({ ask: async () => null });
   for (const t of unknownWindow) assert.equal(learning2.read(t), null);
-  assert.equal(learning2.밀린것, unknownWindow.length);
+  assert.equal(learning2.pending, unknownWindow.length);
 });
 
 test('물어보기가 없으면 담지도 않는다 — 아무도 안 볼 목록을 키우지 않는다', () => {
   const learning3 = new learnSlot();
   learning3.read('NVIDIA GeForce Overlay');
-  assert.equal(learning3.밀린것, 0);
+  assert.equal(learning3.pending, 0);
 });
 
 test('한 번 배우면 그 뒤로는 표처럼 쓴다', async () => {
@@ -34,7 +34,7 @@ test('한 번 배우면 그 뒤로는 표처럼 쓴다', async () => {
   learning4.read('Overwatch');
   assert.equal(await learning4.reflect(), 1);
   assert.equal(learning4.read('Overwatch'), '노는중');
-  assert.equal(learning4.밀린것, 0, '배운 걸 또 물으면 안 된다');
+  assert.equal(learning4.pending, 0, '배운 걸 또 물으면 안 된다');
 });
 
 test('모른다고 답한 것도 적어 둔다 — 안 적으면 같은 창을 영원히 다시 묻는다', async () => {
@@ -58,7 +58,7 @@ test('개수가 안 맞는 대답은 통째로 버린다 — 어긋나면 엉뚱
   const learning7 = new learnSlot({ ask: async () => ['노는중'], log: (m) => written.push(m) });
   for (const t of unknownWindow) learning7.read(t);
   assert.equal(await learning7.reflect(), 0);
-  assert.equal(learning7.아는수, 0);
+  assert.equal(learning7.knownCount, 0);
   assert.match(written.join(' '), /안 맞는다/);
 });
 
@@ -104,7 +104,7 @@ test('두뇌가 개수를 안 맞추면 아무것도 안 돌려준다', async ()
 
 test('배운 자리를 그대로 한 줄로 풀 수 있다 — 제목인 척 되돌리면 조용히 빈 말이 된다', async () => {
   const { bySlotTone } = await import('../dist/index.js');
-  assert.equal(slotTone('노는중'), '', '자리 이름은 창 제목이 아니다');
+  assert.equal(slotTone('노는중'), '', 'slot 이름은 창 제목이 아니다');
   assert.match(bySlotTone('노는중'), /노는 중/);
   assert.equal(bySlotTone(null), '');
 });
