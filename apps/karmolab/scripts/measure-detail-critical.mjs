@@ -49,9 +49,9 @@ if (sum.size === 0) {
   process.exit(1);
 }
 console.log(`[detail-critical] 장 ${IDS.length}개 · **첫 그림까지** 쓰인 것의 합집합`);
-for (const [이름, cell] of sum) {
+for (const [name, cell] of sum) {
   const used = cell.usedSlot.size;
-  console.log(`  ${이름}  ${(used / 1024).toFixed(1)}KB / ${(cell.all / 1024).toFixed(1)}KB  (${((used / cell.all) * 100).toFixed(1)}%)`);
+  console.log(`  ${name}  ${(used / 1024).toFixed(1)}KB / ${(cell.all / 1024).toFixed(1)}KB  (${((used / cell.all) * 100).toFixed(1)}%)`);
 }
 const totalUsed = [...sum.values()].reduce((s, c) => s + c.usedSlot.size, 0);
 const grandTotal = [...sum.values()].reduce((s, c) => s + c.all, 0);

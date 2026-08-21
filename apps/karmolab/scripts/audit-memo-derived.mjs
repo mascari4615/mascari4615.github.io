@@ -63,17 +63,17 @@ if (generator.length === 0) {
 
 const previous = generator.map(([, , out]) => hash(out));
 
-for (const [이름, file] of generator) {
+for (const [name, file] of generator) {
   const build = spawnSync(process.execPath, [file], { cwd: root, encoding: 'utf8' });
   if (build.status !== 0) {
-    console.error(`[memo 산출물] FAIL — ${이름} 굽다가 죽었다 (${file}):`);
+    console.error(`[memo 산출물] FAIL — ${name} 굽다가 죽었다 (${file}):`);
     console.error((build.stderr || build.stdout || '').trim().split(String.fromCharCode(10)).slice(-4).join(String.fromCharCode(10)));
     process.exit(1);
   }
 }
 
 const differing = generator
-  .map(([이름, , out], i) => (hash(out) === previous[i] ? null : `${이름} (${out})`))
+  .map(([name, , out], i) => (hash(out) === previous[i] ? null : `${name} (${out})`))
   .filter(Boolean);
 
 if (differing.length) {

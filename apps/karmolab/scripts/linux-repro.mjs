@@ -56,7 +56,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 
 const toMeasure = [
   {
-    이름: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
+    name: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
     hash: '#karmograph',
     viewport: { width: 390, height: 844 },
     phone: true,
@@ -92,7 +92,7 @@ const toMeasure = [
     },
   },
   {
-    이름: 'bluemarble — 제목이 화면 폭의 몇 %',
+    name: 'bluemarble — 제목이 화면 폭의 몇 %',
     hash: '#bluemarble',
     viewport: { width: 1280, height: 900 },
     prepare: async (p) => {
@@ -163,10 +163,10 @@ for (const item of toMeasure) {
   try {
     await p.goto(`${BASE}/apps/karmolab/index.html${item.hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await item.prepare(p);
-    console.log(`\n── ${item.이름}`);
+    console.log(`\n── ${item.name}`);
     console.log(JSON.stringify(await p.evaluate(item.measure), null, 1));
   } catch (e) {
-    console.log(`\n── ${item.이름}\n  못 쟀다: ${String(e.message).split('\n')[0]}`);
+    console.log(`\n── ${item.name}\n  못 쟀다: ${String(e.message).split('\n')[0]}`);
   }
   await ctx.close();
 }
