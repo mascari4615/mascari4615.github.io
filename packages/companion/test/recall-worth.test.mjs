@@ -49,3 +49,21 @@ test('사람이 한 말은 짧아도 남긴다 — 사람 말은 짧아도 사�
   assert.equal(rows.length, 1);
   assert.match(rows[0], /조수님이/);
 });
+
+// 우리가 넣은 지시문이 「조수님이 한 말」로 회상돼 나왔다.
+//
+// 107회차에 기억 파일을 세어 보니 `nudge` 채널로 담긴 줄이 7개고, 그 본문이 우리가 얘한테
+// 넣는 지시문 그대로였다 — 「…그중 **한 조각만 집어서** 안부를 물어라」. 게다가 그 안에
+// 받아쓰기 환청(「자막 제공 및 광고를 포함하고 있습니다」)까지 인용돼 있었다.
+//
+// 곁의 채널(screen·nudge·idle·clock)을 빼는 것은 이미 여러 곳이 하고 있다
+// (people·self-image·wish). 회상만 안 하고 있었다 — 그래서 정본을 여기서도 쓴다.
+test('곁의 채널(우리가 넣은 신호)은 회상 재료가 되지 않는다', () => {
+  const rows = rowsFrom([
+    { role: 'sensed', channel: 'nudge', text: '마라탕 얘기가 나왔다. 그중 한 조각만 집어서 안부를 물어라', at: Date.now() },
+    { role: 'sensed', channel: 'screen', text: '화면을 봤다. 지금 앞에 있는 창은 「마라탕」.', at: Date.now() },
+    { role: 'sensed', channel: 'web', text: '마라탕은 진짜 못 먹겠더라', at: Date.now() },
+  ]);
+  assert.equal(rows.length, 1, `곁의 채널이 남았다: ${JSON.stringify(rows)}`);
+  assert.match(rows[0], /못 먹겠더라/);
+});

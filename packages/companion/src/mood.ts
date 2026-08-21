@@ -1,3 +1,4 @@
+import { AMBIENT_CHANNELS } from './conversation';
 import { isHollow } from './hollow';
 import type { MemoryEntry } from './types';
 
@@ -140,6 +141,13 @@ export function recallFrom(
              겪은 「값진 재료가 먼저 밀린다」와 같은 모양이다).
              사람 말은 짧아도 남긴다 — 사람이 한 말은 짧아도 사실이다. */
           if (hit.role === 'said' && isHollow(hit.text)) continue;
+          /* **곁의 통로(우리가 넣은 신호)는 나눈 말이 아니다.**
+             107회차에 기억을 세어 보니 `nudge` 로 담긴 줄 일곱이 전부 우리가 얘한테 넣는
+             지시문이었다 — 「…그중 한 조각만 집어서 안부를 물어라」. 그게 「조수님이:」로
+             회상돼 두뇌 앞에 놓였고, 안에는 받아쓰기 환청까지 인용돼 있었다.
+             곁의 통로를 빼는 일은 이미 people·self-image·wish 가 한다. 여기만 안 하고
+             있었다 — 사전을 새로 적지 않고 그 **정본**(AMBIENT_CHANNELS)을 쓴다. */
+          if (AMBIENT_CHANNELS.includes(hit.channel)) continue;
           seen.add(hit.text);
           taken += 1;
           lines.push(
