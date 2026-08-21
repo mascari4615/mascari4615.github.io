@@ -133,7 +133,7 @@ export class meaningMemory {
    *
    * 방금 나눈 말은 뺀다 — 두뇌가 이미 보고 있는 걸 또 붙이면 자리만 먹는다.
    */
-  async 찾기(
+  async find(
     question: string,
     options: { 몇개?: number; 뺄것?: ReadonlySet<string> } = {},
   ): Promise<{ text: string; 닮음: number }[]> {

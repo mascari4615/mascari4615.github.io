@@ -101,7 +101,7 @@ export class pendingThoughts {
   }
 
   /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
-  요약(): string {
+  summary(): string {
     const items = [...this.눌린것.entries()]
       .filter(([이름]) => this.addedWeight(이름) > 0)
       .sort((a, b) => b[1].횟수 - a[1].횟수)

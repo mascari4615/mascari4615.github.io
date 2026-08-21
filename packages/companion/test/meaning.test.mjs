@@ -34,7 +34,7 @@ test('낱말이 하나도 안 겹쳐도 뜻으로 찾는다', async () => {
     { role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 },
     { role: 'sensed', channel: 'web', text: '오늘 날씨 좋다', at: 2 },
   ]);
-  const produced = await meaning.찾기('저번에 못 먹는다고 한 게 뭐였지');
+  const produced = await meaning.find('저번에 못 먹는다고 한 게 뭐였지');
   assert.equal(produced.length, 1, `나온 것: ${JSON.stringify(produced)}`);
   assert.equal(produced[0].text, '마라탕은 매워서 못 먹어');
 });
@@ -42,13 +42,13 @@ test('낱말이 하나도 안 겹쳐도 뜻으로 찾는다', async () => {
 test('안 닮은 건 안 꺼낸다 — 문턱 아래는 버린다', async () => {
   const meaning2 = new 뜻기억({ measure: fakeMeasure(table2), 문턱: 0.9 });
   await meaning2.store([{ role: 'sensed', channel: 'web', text: '오늘 날씨 좋다', at: 1 }]);
-  assert.deepEqual(await meaning2.찾기('매운 음식 싫어함'), []);
+  assert.deepEqual(await meaning2.find('매운 음식 싫어함'), []);
 });
 
 test('아직 준비가 안 됐으면 빈손으로 돌아온다 — 기다리게 하지 않는다', async () => {
   const meaning3 = new 뜻기억({ measure: { measure: async () => null } });
   assert.equal(await meaning3.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]), 0);
-  assert.deepEqual(await meaning3.찾기('아무거나 물어봄'), []);
+  assert.deepEqual(await meaning3.find('아무거나 물어봄'), []);
 });
 
 test('짧은 말은 색인에 안 담는다 — 「응」이 아무거나 닮아 보이면 안 된다', async () => {
@@ -68,7 +68,7 @@ test('같은 말은 두 번 안 담는다', async () => {
 test('방금 나눈 말은 빼고 준다 — 두뇌가 이미 보고 있다', async () => {
   const meaning6 = new 뜻기억({ measure: fakeMeasure(table2), 문턱: 0.5 });
   await meaning6.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]);
-  const produced2 = await meaning6.찾기('저번에 못 먹는다고 한 게 뭐였지', { 뺄것: new Set(['마라탕은 매워서 못 먹어']) });
+  const produced2 = await meaning6.find('저번에 못 먹는다고 한 게 뭐였지', { 뺄것: new Set(['마라탕은 매워서 못 먹어']) });
   assert.deepEqual(produced2, []);
 });
 
@@ -78,7 +78,7 @@ test('껐다 켜도 색인이 남는다', async () => {
   await firstRun.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]);
   const nextRun = new 뜻기억({ path, measure: fakeMeasure(table2), 문턱: 0.5 });
   assert.equal(nextRun.담긴수, 1);
-  const produced3 = await nextRun.찾기('저번에 못 먹는다고 한 게 뭐였지');
+  const produced3 = await nextRun.find('저번에 못 먹는다고 한 게 뭐였지');
   assert.equal(produced3[0]?.text, '마라탕은 매워서 못 먹어');
   assert.ok(readFileSync(path, 'utf8').includes('마라탕'));
 });
