@@ -600,5 +600,10 @@
   "howto.protobuf.0": "base64 나 hex 로 된 protobuf 덩이를 붙여넣기",
   "howto.protobuf.1": "스키마 없이 선 형식(wire format)으로 풀린 결과 보기",
   "howto.protobuf.2": ".proto 가 있으면 같이 넣어 이름·타입 붙이기",
-  "howto.protobuf.3": "어느 번호가 무엇인지 확인하기"
+  "howto.protobuf.3": "어느 번호가 무엇인지 확인하기",
+  "howto.territory.0": "업종 고르기 — 편의점 · 카페 · 햄버거",
+  "howto.territory.1": "지도를 끌어 옮기고 휠·집기로 확대 (자판은 화살표로 옮기고 +/- 로 확대)",
+  "howto.territory.2": "「지금 보이는 땅의 주인」에서 화면 안 면적 점유율 확인",
+  "howto.territory.3": "「구 단위」로 바꾸면 시군구마다 1등 브랜드를 칠합니다",
+  "howto.territory.4": "「가게 점 보기」를 켜면 칠한 색 위에 실제 점포 위치가 함께 보입니다"
 }

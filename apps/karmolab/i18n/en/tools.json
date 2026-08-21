@@ -322,5 +322,7 @@
   "tools.printkit.description": "Draws graph paper, manuscript paper, staves, calendars and labels in millimetres, so the printout lines up on any printer.",
   "tools.printkit.lead": "Grid · manuscript · staves · calendar · labels · millimetre-accurate · SVG/PDF",
   "tools.protobuf.description": "Unpacks a protobuf blob so you can see it. Without a schema you still get \"field 3, string, length 12\"; give it a .proto and the numbers get names.",
-  "tools.protobuf.lead": "Readable without a schema · names from .proto · base64 or hex in"
+  "tools.protobuf.lead": "Readable without a schema · names from .proto · base64 or hex in",
+  "tools.territory.description": "Colors the map by the nearest convenience store, cafe, or burger chain, showing which brand owns which ground by area.",
+  "tools.territory.lead": "Each pixel is painted the color of its nearest store · area share · top brand per province and district"
 }
