@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2191,
+    "commits": 2192,
     "days": 11,
     "shown": 60
   },
@@ -10,6 +10,13 @@
     {
       "date": "2026-08-21",
       "entries": [
+        {
+          "sha": "ad58d6a7",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "tests",
+          "text": "저장소 뿌리를 에디터 설치 폴더에서 찾고 있었다 — 실패 5건이 한 원인 (TASK-WM-416)"
+        },
         {
           "sha": "410fcf12",
           "type": "feat",
@@ -492,17 +499,10 @@
           "typeLabel": "고친 것",
           "scope": "WM-212",
           "text": "창 묶음이 자기 창을 「깨어나자마자」 찾던 것을 「다 깨어난 뒤」로 옮긴다"
-        },
-        {
-          "sha": "8d0fbc77",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-211",
-          "text": "지워진 것을 「없다」고 묻는 방법이 유니티에선 달랐다"
         }
       ],
       "quiet": 37,
-      "more": 66
+      "more": 67
     }
   ]
 }
