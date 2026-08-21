@@ -99,18 +99,18 @@ async function measure(ctx, id, key, attempt = 1) {
        늦게 오는 조각(그림·글꼴·실시간 값)이 높이를 조금씩 밀기 때문이다.
        그래서 <b>같은 값이 두 번 연달아</b> 나올 때까지 다시 재고, 끝내 안 가라앉으면
        <b>가장 큰 값</b>을 쓴다 — 자리는 넉넉히 비워 두는 쪽이 안전하다(밀리는 것보다 낫다). */
-    const 잰값 = async () =>
+    const readHeight = async () =>
       page.evaluate(() => Math.round(document.getElementById('tool-pages')?.getBoundingClientRect().height || 0));
-    let h = await 잰값();
-    let 최대 = h;
+    let h = await readHeight();
+    let tallest = h;
     for (let i = 0; i < 6; i++) {
       await page.waitForTimeout(250);
-      const 다음 = await 잰값();
-      if (다음 > 최대) 최대 = 다음;
-      if (다음 === h) break;
-      h = 다음;
+      const next = await readHeight();
+      if (next > tallest) tallest = next;
+      if (next === h) break;
+      h = next;
     }
-    h = 최대;
+    h = tallest;
     if (!h) throw new Error('도구 자리를 못 찾았다');
     out[id] = { ...(out[id] || {}), [key]: h };
   } catch (e) {
