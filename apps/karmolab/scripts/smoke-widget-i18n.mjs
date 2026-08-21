@@ -40,7 +40,14 @@ const HANGUL_OK = new Set(['hangulkey', 'jamo', 'numword', 'morse', 'bizno']);
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
-const PORT = 8833;
+/* ★ **붙박이 자리는 남의 서버를 보게 만든다** (2026-08-21, 기전까지 재서 확인).
+   `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
+   <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
+   작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+const PORT = Number(process.env.PORT || 0);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
 /** 말 묶음이 있는 도구 = 이 검사의 대상. */
@@ -93,6 +100,7 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(PORT, r));
+const PORT_IN_USE = server.address().port;
 
 const browser = await launchOrSkip('widget-i18n');
 if (!browser) process.exit(0);
@@ -132,7 +140,7 @@ for (const { code, id, page } of targets) {
     runtimeI18nErrors.push(text);
   });
   const rel = path.relative(path.join(appRoot, '..', '..'), page).split(path.sep).join('/');
-  await tab.goto(`http://127.0.0.1:${PORT}/${rel}`, { waitUntil: 'domcontentloaded' });
+  await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${rel}`, { waitUntil: 'domcontentloaded' });
 
   /* 도구가 제 화면을 그릴 때까지 기다린다 — 미리 그려 둔 그림이 아니라 **스크립트가 그린 것**을
      봐야 한다. 재는 말은 **첫 화면에 바로 나오는 것**으로 고른다: 처음에는 「읽고 나야 나오는 글」로
