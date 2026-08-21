@@ -76,7 +76,7 @@ export class demandBoot {
    * 이 함수는 안 기다린다(띄우기만 건다). 기다리는 건 말하는 쪽이다 — 고른 목소리가 뜰
    * 때까지 기다렸다 그 목소리로 말한다.
    */
-  async 써야한다(): Promise<void> {
+  async mustWrite(): Promise<void> {
     this.마지막사용 = this.지금;
 
     const interval = this.options.물어보는간격ms ?? 5_000;
@@ -197,7 +197,7 @@ export function onDemand(options: 필요할때옵션): Speech {
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
-      await boot.써야한다();
+      await boot.mustWrite();
 
       /* **뜰 때까지 기다린다.** 딴 목소리로 바꾸지 않는다 — 그건 같은 존재가 아니게 된다.
          무한히 기다리지는 않는다: 정해진 시간을 넘기면 포기하고, 그때는 **소리가 없다**
@@ -213,7 +213,7 @@ export function onDemand(options: 필요할때옵션): Speech {
           notified = true;
         }
         await new Promise((r) => setTimeout(r, 500));
-        await boot.써야한다();
+        await boot.mustWrite();
       }
       if (notified) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - start2) / 1000)}초 기다림)`);
       return real.synthesize(text, voiceId);
