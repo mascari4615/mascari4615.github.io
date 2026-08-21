@@ -947,7 +947,8 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 .header-btn.lang-btn svg { opacity: .85; }
 .lang-btn-code {
-    font-size: 11px; font-weight: 700; letter-spacing: .06em; line-height: 1;
+
+    font-size: 12px; font-weight: 700; letter-spacing: .06em; line-height: 1;
     color: var(--text-primary);
 }
 .theme-toggle .theme-icon { color: inherit; }
