@@ -34,8 +34,10 @@
   <h1>간판 방 · 구운 빛</h1>
   <p><b>실시간 빛 0개.</b> 방의 그림자·반사광은 Blender 에서 구워 텍스처에 박혀 있다 —
      GPU 가 있든 없든 <b>같은 그림</b>이다.<br>
-     <b>드래그</b> 둘러보기 · <b>휠</b> 커서 쪽으로 · <b>우클릭 드래그</b> 밀기<br><b>WASD</b> 걷기 · <b>Q/E</b> 오르내리기 · <b>Shift</b> 빠르게 · <b>더블클릭</b> 그곳 보기 · <b>Space</b> 제자리<br>간판 <b>드래그</b> 옮기기(격자 스냅) · <b>클릭</b> 껐다 켜기</p>
-  <div class="row">간판 밝기 <output id="o-emis"></output><input id="emis" type="range" min="0" max="4" step="0.1" value="1.6"></div>
+     <b>드래그</b> 고개 돌리기 · <b>WASD</b> 걷기 · <b>휠</b> 앞뒤로 · <b>Q/E</b> 오르내리기 · <b>Shift</b> 빠르게<br>
+     <b>더블클릭</b> 그곳 보기 · <b>Space</b> 제자리 · <b>V</b> 궤도 보기로<br>
+     간판 <b>드래그</b> 옮기기(격자 스냅) · <b>클릭</b> 껐다 켜기<br><span id="mode"></span></p>
+  <div class="row">간판 밝기 <output id="o-emis"></output><input id="emis" type="range" min="0" max="2.5" step="0.05" value="0.85"></div>
   <div class="row">노출 <output id="o-exp"></output><input id="exp" type="range" min="0.3" max="2.5" step="0.05" value="1.15"></div>
   <button class="btn" id="reset">간판 자리 초기화</button>
 </div>
@@ -45,12 +47,21 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { createRenderer, loop, gpuNote } from 'three-kit';
 
 /* 치수는 굽는 스크립트(tools/room-bake/room.py)와 **한 벌**이다. */
 const ROOM = { w:4.0, h:2.7, d:3.4 };
 const PEG  = { w:1.20, h:0.80, y:1.62, pitch:0.025, t:0.012 };
-const SIGN_DEPTH = 0.028;
+/* ── 배지 껍데기 규격 (tools/room-bake/badge.py 에서 정지 컷으로 확정) ──────────
+   전부 **높이 대비 비율**이다 — 크기가 달라도 같은 물건으로 보이게 하는 것이 핵심.
+   앞 판은 두께가 높이의 12% 에 모서리도 각져서 「흰 라벨 카드」로 보였다. */
+const BADGE = {
+  depth: 0.45,    /* 두께 / 높이 — 45% 는 되어야 「상자」로 읽힌다 */
+  bezel: 0.055,   /* 틀 두께 / 높이 */
+  proud: 0.12,    /* 확산판이 틀보다 튀어나온 정도 / 두께 — 0.5mm 로 스티커와 갈린다 */
+  round: 0.10     /* 모서리 둥글기 / 높이 — 각지면 곧바로 「코드로 만든 것」이 된다 */
+};
 const pegZ  = -ROOM.d/2 + PEG.t;
 const PEG_X0 = -PEG.w/2, PEG_Y1 = PEG.y + PEG.h/2;
 const COLS = Math.round(PEG.w/PEG.pitch), ROWS = Math.round(PEG.h/PEG.pitch);
@@ -62,29 +73,35 @@ scene.background = new THREE.Color(0x0a0806);
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 60);
 camera.position.set(0.72, 1.42, 1.15);
+/* ── 카메라 ──────────────────────────────────
+   **궤도(OrbitControls)는 물체를 밖에서 볼 때 쓰는 것**이다. 방 **안**에 서서 쓰면
+   내 머리가 도는 게 아니라 방이 나를 중심으로 휘둘려 멀미가 난다
+   (2026-08-21 제보: 「조작이 너무 이상해」). 그래서 기본은 **1인칭**이다 —
+   드래그 = 고개 돌리기, WASD = 걷기. 궤도는 「물건 하나를 뜯어볼 때」만 켠다. */
 const controls = new OrbitControls(camera, cv);
-controls.target.set(-0.05, 1.5, -ROOM.d/2 + 0.1);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
-controls.minDistance = 0.5; controls.maxDistance = 6.0;
-controls.maxPolarAngle = Math.PI*0.88;
-controls.rotateSpeed = 0.55;          /* 기본값은 방 안에서 너무 빨라 멀미가 난다 */
-controls.zoomSpeed = 0.8;
-controls.zoomToCursor = true;         /* 보고 있는 곳으로 다가간다 — 방 안에서 이게 제일 크다 */
-controls.screenSpacePanning = true;   /* 밀면 화면 그대로 밀린다 */
-controls.panSpeed = 0.7;
+controls.minDistance = 0.35; controls.maxDistance = 5.0;
+controls.maxPolarAngle = Math.PI * 0.9;
+controls.rotateSpeed = 0.5; controls.zoomToCursor = true; controls.screenSpacePanning = true;
+controls.enabled = false;
 
-/* ── 걸어 다니기 ─────────────────────────────────────────────────
-   방 안이라 궤도만으로는 답답하다. WASD 로 시선 방향을 따라 걷고 Q/E 로 오르내린다.
-   카메라와 **바라보는 점을 함께** 옮긴다 — 하나만 옮기면 시선이 홱 돌아간다. */
+const HOME = { pos: [0.72, 1.42, 1.15], look: [-0.05, 1.5, -ROOM.d/2 + 0.1] };
+const look = new THREE.Euler(0, 0, 0, 'YXZ');   /* 고개 = yaw(Y) 먼저, pitch(X) 다음 */
+let mode = 'fp';
+
+/* ── 걷기 ─────────────────────────────────────────────────────────
+   WASD 로 **시선 방향**을 따라 걷는다(고개를 돌린 쪽이 앞이다). Q/E 오르내리기, Shift 빠르게. */
 const KEY = new Set();
+const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _m = new THREE.Vector3();
+const UP = new THREE.Vector3(0, 1, 0);
 addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   KEY.add(e.key.toLowerCase());
   if (e.key === ' ') { e.preventDefault(); home(); }
+  if (e.key.toLowerCase() === 'v') setMode(mode === 'fp' ? 'orbit' : 'fp');
 });
 addEventListener('keyup', e => KEY.delete(e.key.toLowerCase()));
-const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _m = new THREE.Vector3();
-const UP = new THREE.Vector3(0, 1, 0);
+
 function walk(dt) {
   if (!KEY.size) return;
   const speed = (KEY.has('shift') ? 2.6 : 1.1) * dt;
@@ -99,9 +116,11 @@ function walk(dt) {
   if (KEY.has('q')) _m.sub(UP);
   if (!_m.lengthSq()) return;
   _m.normalize().multiplyScalar(speed);
-  camera.position.add(_m); controls.target.add(_m);
+  camera.position.add(_m);
+  if (mode === 'orbit') controls.target.add(_m);   /* 궤도일 때만 중심도 따라간다 */
   clampInRoom();
 }
+
 /* 벽을 뚫고 나가지 않는다 — 나가면 방이 뒤집혀 보이고 돌아올 길을 잃는다 */
 function clampInRoom() {
   const m = 0.25;
@@ -109,10 +128,57 @@ function clampInRoom() {
   camera.position.z = Math.min(ROOM.d/2 - m, Math.max(-ROOM.d/2 + m, camera.position.z));
   camera.position.y = Math.min(ROOM.h - m, Math.max(0.35, camera.position.y));
 }
+
 function home() {
-  camera.position.set(0.72, 1.42, 1.15);
-  controls.target.set(-0.05, 1.5, -ROOM.d/2 + 0.1);
+  camera.position.set(HOME.pos[0], HOME.pos[1], HOME.pos[2]);
+  camera.lookAt(new THREE.Vector3(HOME.look[0], HOME.look[1], HOME.look[2]));
+  look.setFromQuaternion(camera.quaternion);
+  controls.target.set(HOME.look[0], HOME.look[1], HOME.look[2]);
 }
+
+/* 고개 돌리기 — 마우스를 오른쪽으로 밀면 시야가 오른쪽으로 돌다(FPS 관례). */
+let looking = null;
+cv.addEventListener('pointerdown', e => {
+  if (mode !== 'fp' || held) return;
+  looking = { x: e.clientX, y: e.clientY };
+  cv.setPointerCapture(e.pointerId); cv.classList.add('grabbing');
+});
+cv.addEventListener('pointermove', e => {
+  if (!looking || held) return;
+  const dx = e.clientX - looking.x, dy = e.clientY - looking.y;
+  looking.x = e.clientX; looking.y = e.clientY;
+  look.y -= dx * 0.0026;
+  look.x -= dy * 0.0026;
+  const lim = Math.PI / 2 - 0.05;
+  look.x = Math.max(-lim, Math.min(lim, look.x));
+  camera.quaternion.setFromEuler(look);
+});
+addEventListener('pointerup', () => { looking = null; if (!held) cv.classList.remove('grabbing'); });
+
+/* 휠 = 앞뒤로 걷기. 1인칭에서 「확대」는 뜻이 없다 — 다가가야 커진다. */
+cv.addEventListener('wheel', e => {
+  if (mode !== 'fp') return;
+  e.preventDefault();
+  camera.getWorldDirection(_f);
+  camera.position.addScaledVector(_f, -e.deltaY * 0.0016);
+  clampInRoom();
+}, { passive: false });
+
+/* 보기 바꾸기 — 궤도로 갈 때는 지금 보는 앞 1.4m 를 중심으로 잡는다.
+   안 그러면 화면이 혝 튕다(중심이 어디인지 사람이 모른다). */
+function setMode(next) {
+  mode = next;
+  controls.enabled = (mode === 'orbit');
+  if (mode === 'orbit') {
+    camera.getWorldDirection(_f);
+    controls.target.copy(camera.position).addScaledVector(_f, 1.4);
+  } else {
+    look.setFromQuaternion(camera.quaternion);
+  }
+  const el = document.getElementById('mode');
+  if (el) el.textContent = mode === 'fp' ? '보기: 1인칭 (V=궤도)' : '보기: 궤도 (V=1인칭)';
+}
+
 
 /* ── 구운 방 ──────────────────────────────────────────────────────
    빛을 **하나도 안 만든다**. 구운 그림이 곧 빛이다 → MeshBasicMaterial.
@@ -130,6 +196,7 @@ new GLTFLoader().load('room.glb', (gltf) => {
      화면은 새까맣다 (2026-08-21 실측: 방이 안 보인 진짜 원인). 반 바퀴 돌려 맞춘다. */
   gltf.scene.rotation.y = Math.PI;
   scene.add(gltf.scene);
+  makeRoomEnv();
   document.getElementById('foot').textContent =
     '구운 빛 · 실시간 광원 0개 · 방 4.0×2.7×3.4 m' + (gpuNote() ? ' · ' + gpuNote() : '');
 }, undefined, (e) => {
@@ -160,80 +227,259 @@ new GLTFLoader().load('room.glb', (gltf) => {
 }
 
 /* ── 간판 (여기만 실시간) ── */
-function faceTex(label, tint, mark){
-  const W=512, H=Math.round(512*0.34);
-  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
-  const grd=x.createLinearGradient(0,0,W,H);
-  grd.addColorStop(0,`hsl(${tint} 22% 96%)`); grd.addColorStop(.5,`hsl(${tint} 26% 90%)`);
-  grd.addColorStop(1,`hsl(${tint} 24% 93%)`);
-  x.fillStyle=grd; x.fillRect(0,0,W,H);
-  const ed=x.createLinearGradient(0,0,W,0);
-  ed.addColorStop(0,`hsla(${tint},40%,40%,.35)`); ed.addColorStop(.14,'transparent');
-  ed.addColorStop(.86,'transparent'); ed.addColorStop(1,`hsla(${tint},40%,40%,.35)`);
-  x.fillStyle=ed; x.fillRect(0,0,W,H);
-  x.fillStyle=mark; const s=H*0.34; x.fillRect(W*0.10, H/2-s/2, s, s);
-  x.fillStyle=`hsl(${tint} 40% 20%)`;
-  x.font=`900 ${Math.round(H*0.44)}px "Zen Kaku Gothic New","IBM Plex Sans KR",sans-serif`;
-  x.textBaseline='middle'; x.fillText(label, W*0.10+s+W*0.045, H*0.54);
-  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+/* 간판 얼굴 — **간판 비율 그대로** 굽는다.
+   앞 판은 512×174 한 판을 크기가 제각각인 간판에 씌워 글자·아이콘이 찌그러졌다
+   (2026-08-21 제보). 크기가 다른 건 좋지만 **글자가 늘어나면 안 된다**.
+   그래서 칸 수(cw:ch)로 캔버스 비율을 정하고, 글자·아이콘은 **높이 기준**으로 잰다. */
+/* ── 방의 빛을 간판에 옮겨 담는다 (환경맵) ──────────────────────────
+   간판을 MeshBasicMaterial 로 두면 **방의 빛 속에 있지 않다** — 꺼진 간판이
+   「어두운 스티커」로 보이고, 켜진 간판은 허공에 뜬 emission 덩어리로 보인다
+   (2026-08-21 제보: 「자연스러운 느낌이 안 난다」).
+   그렇다고 실시간 광원을 켤 수는 없다(GPU 없는 기계에서 창이 멎는다).
+
+   그래서 **구운 방을 딱 한 번 찍는다**. 타공판 앞에 큐브 카메라를 세우고 한 프레임
+   찍으면, 그 방의 따뜻한 스탠드와 차가운 창이 그대로 담긴다. 그걸 환경 조명으로 쓰면
+   간판은 **그 방의 빛을 받는 플라스틱**이 된다 — 매 프레임 값은 0 이다(한 번만 찍으니까). */
+let roomEnv = null;
+function makeRoomEnv() {
+  const rt = new THREE.WebGLCubeRenderTarget(soft ? 32 : 128, { type: THREE.HalfFloatType });
+  const cam = new THREE.CubeCamera(0.05, 12, rt);
+  cam.position.set(0, PEG.y, pegZ + 0.35);
+  scene.add(cam);
+  signs.forEach(o => o.mesh.visible = false);      /* 자기 자신을 찍으면 안 된다 */
+  cam.update(renderer, scene);
+  signs.forEach(o => o.mesh.visible = true);
+  scene.remove(cam);
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  try {
+    roomEnv = pmrem.fromCubemap(rt.texture).texture;
+    scene.environment = roomEnv;                   /* 등록하면 Standard 재질이 알아서 받는다 */
+  } catch (_) {
+    scene.environment = rt.texture;                /* 못 만들면 찍은 걸 그대로 쓴다 */
+  }
+  pmrem.dispose();
+  /* 진단 창구 — 「환경맵이 정말 붙었나」를 눈이 아니라 값으로 본다 */
+  window.__env = { environment: !!scene.environment, kind: scene.environment && scene.environment.constructor.name };
+  window.__scene = scene; window.__signs = signs;
 }
+
+/* ── 간판만 비추는 빛 둘 ─────────────────────────────────────────
+   환경맵만으로는 안 됐다 — 값으로 확인했다: `scene.environment` 는 붙었고 세기를
+   1.0 → 3.4 로 올려도 **화면이 한 픽셀도 안 바뀌었다**. 소프트웨어 렌더에서
+   PMREM 이 사실상 검게 나온 것이다. 눈으로 「좀 밝아졌나?」 하지 말고 값으로 볼 것.
+
+   그래서 빛 둘을 진짜로 켠다. **방은 MeshBasic(빛 무시)이라 이 빛을 안 받는다** —
+   받는 것은 간판 열몇 개뿐이고, 그림자도 안 만든다. 소프트웨어에서도 값이 거의 0 이다.
+   구운 방과 색을 맞춘다: 스탠드(따뜻함) + 창(차가움). */
+const signLamp = new THREE.PointLight(0xffc79a, 3.2, 3.0, 2);
+signLamp.position.set(-0.42, 1.15, -ROOM.d/2 + 0.55);   /* 책상 스탠드 자리(웹 좌표) */
+scene.add(signLamp);
+const signFill = new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1e, 1.1);
+scene.add(signFill);
+
+/* ── 배지 얼굴 ────────────────────────────────────────────────────
+   **면 전체가 색을 띤다.** 흰 바탕에 작은 색 사각형은 「라벨 카드」로 보인다 —
+   레퍼런스(편의점 간판 자석)는 판 자체가 파랑·초록·빨강이고 글자가 흰색으로 뚫려 있다.
+   여기서 색을 정하는 것은 배지 하나하나이고, 껍데기 규격(BADGE)은 전부 같다.
+
+   빛이 구워진 방이라 재질 반응이 없다 → 아래 것들을 **그려 넣어야** 한다:
+     ① LED 두 알 자리   ② 아크릴 모서리   ③ 튜브 끝 그을음
+     ④ 모서리 때·그레인 ⑤ 전원 표시등 */
+function faceTex(label, brand, aspect){
+  const H = 256, W = Math.max(96, Math.round(H * aspect));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const [r0, g0, b0] = brand;
+
+  x.fillStyle = `rgb(${r0},${g0},${b0})`;
+  x.fillRect(0, 0, W, H);
+
+  /* ① LED 두 알 — 흰빛을 얹어 색을 **띄운다**(덮지 않는다) */
+  for (const [cx, cy, rad, a] of [[0.34, 0.32, 0.70, 0.42], [0.70, 0.72, 0.60, 0.30]]) {
+    const g = x.createRadialGradient(W*cx, H*cy, 0, W*cx, H*cy, H*rad*1.3);
+    g.addColorStop(0, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.5, `rgba(255,255,255,${a*0.35})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+  }
+
+  /* ③ 튜브 양 끝 그을음 — 브랜드 색의 어두운 쪽으로 */
+  const dark = `rgba(${Math.round(r0*0.35)},${Math.round(g0*0.35)},${Math.round(b0*0.35)},`;
+  const ed = x.createLinearGradient(0, 0, W, 0);
+  ed.addColorStop(0, dark + '.55)'); ed.addColorStop(0.16, dark + '0)');
+  ed.addColorStop(0.84, dark + '0)'); ed.addColorStop(1, dark + '.55)');
+  x.fillStyle = ed; x.fillRect(0, 0, W, H);
+  const lip = x.createLinearGradient(0, H, 0, H*0.80);
+  lip.addColorStop(0, dark + '.45)'); lip.addColorStop(1, dark + '0)');
+  x.fillStyle = lip; x.fillRect(0, 0, W, H);
+
+  /* 글자는 **흰색으로 뚫는다** — 색판 위의 흰 글자가 이 물건의 문법이다.
+     글자는 줄이기만 한다(늘리면 그게 찌그러짐). */
+  const pad = H*0.13;
+  let size = Math.round(H*0.40);
+  const font = (n) => `900 ${n}px "Zen Kaku Gothic New","IBM Plex Sans KR",sans-serif`;
+  x.textBaseline = 'middle'; x.textAlign = 'center';
+  x.font = font(size);
+  while (x.measureText(label).width > W - pad*2 && size > 8) { size -= 2; x.font = font(size); }
+  x.fillStyle = 'rgba(255,255,255,.96)';
+  x.fillText(label, W/2, H*0.53);
+
+  /* ④ 모서리 때 */
+  const gr = x.createRadialGradient(W/2, H/2, Math.min(W,H)*0.30, W/2, H/2, Math.max(W,H)*0.62);
+  gr.addColorStop(0, 'rgba(20,14,8,0)'); gr.addColorStop(1, 'rgba(20,14,8,.30)');
+  x.fillStyle = gr; x.fillRect(0, 0, W, H);
+
+  /* ② 아크릴 모서리 — 두께가 있다는 유일한 단서 */
+  x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 3;
+  x.strokeRect(1.5, 1.5, W-3, H-3);
+
+  /* ⑤ 전원 표시등 */
+  x.fillStyle = 'rgba(190,255,205,.9)';
+  x.beginPath(); x.arc(W - H*0.09, H - H*0.11, H*0.022, 0, 7); x.fill();
+
+  /* ④ 그레인 — 완벽하면 가짜로 보인다 */
+  const im = x.getImageData(0, 0, W, H), d = im.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 14;
+    d[i] += n; d[i+1] += n; d[i+2] += n;
+  }
+  x.putImageData(im, 0, 0);
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+
+/* 프레임(ABS) 도 그려 넣는다 — 단색 상자는 3D 에서 종이로 보인다.
+   위는 빛을 받고 아래는 그늘진다. 이 한 장을 여섯 면이 나눠 쓴다. */
+function frameTex(){
+  const W = 64, H = 64;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#5a534c'); g.addColorStop(0.35, '#332d29');
+  g.addColorStop(1, '#16120f');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  const im = x.getImageData(0, 0, W, H), d = im.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 14;
+    d[i] += n; d[i+1] += n; d[i+2] += n;
+  }
+  x.putImageData(im, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+/* 배지마다 **면 전체 색**. 틀 색은 FRAME_TONES 가 따로 돌린다.
+   레퍼런스의 힘은 「흰 바탕 + 작은 마크」가 아니라 **색판 + 흰 글자**에서 온다. */
 const SIGNS=[
-  {t:'즐겨찾기', tint:188, cw:9,  ch:3, cx:1,  cy:1,  mark:'#2f7d4f'},
-  {t:'도구 160', tint:38,  cw:8,  ch:3, cx:11, cy:1,  mark:'#e06a2b'},
-  {t:'오락실',   tint:2,   cw:7,  ch:3, cx:20, cy:1,  mark:'#c1332f'},
-  {t:'커뮤니티', tint:206, cw:8,  ch:3, cx:1,  cy:6,  mark:'#3f7fb5', off:true},
-  {t:'관측실',   tint:264, cw:7,  ch:3, cx:10, cy:6,  mark:'#6a5fa8', off:true},
-  {t:'멍',       tint:158, cw:4,  ch:3, cx:18, cy:6,  mark:'#4f9e6f'},
-  {t:'KarmoLab', tint:48,  cw:14, ch:5, cx:1,  cy:11, mark:'#d8a54a'},
-  {t:'욘봇',     tint:196, cw:6,  ch:5, cx:16, cy:11, mark:'#7aa7c7'},
-  {t:'블로그',   tint:210, cw:8,  ch:3, cx:1,  cy:19, mark:'#5a86ab'},
-  {t:'서버',     tint:26,  cw:6,  ch:3, cx:10, cy:19, mark:'#b5673f'},
-  {t:'위치',     tint:340, cw:6,  ch:3, cx:17, cy:19, mark:'#b05070', off:true}
+  {t:'즐겨찾기', brand:[  8, 62,168], cw:9,  ch:3, cx:1,  cy:1 },
+  {t:'도구 160', brand:[214, 96, 24], cw:8,  ch:3, cx:11, cy:1 },
+  {t:'오락실',   brand:[178, 26, 26], cw:7,  ch:3, cx:20, cy:1 },
+  {t:'커뮤니티', brand:[ 32, 96,150], cw:8,  ch:3, cx:1,  cy:6, off:true},
+  {t:'관측실',   brand:[ 76, 58,140], cw:7,  ch:3, cx:10, cy:6, off:true},
+  {t:'멍',       brand:[ 26,118, 66], cw:4,  ch:3, cx:18, cy:6 },
+  {t:'KarmoLab', brand:[224,178, 52], cw:14, ch:5, cx:1,  cy:11},
+  {t:'욘봇',     brand:[ 44,132,176], cw:6,  ch:5, cx:16, cy:11},
+  {t:'블로그',   brand:[ 40, 88,140], cw:8,  ch:3, cx:1,  cy:19},
+  {t:'서버',     brand:[160, 78, 40], cw:6,  ch:3, cx:10, cy:19},
+  {t:'위치',     brand:[152, 46, 88], cw:6,  ch:3, cx:17, cy:19, off:true}
 ];
-const SAVE='roombake_pos_v1';
+const SAVE='roombake_pos_v2';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(SAVE)||'{}'); }catch(_){}
 
 const emisEl=document.getElementById('emis'), expEl=document.getElementById('exp');
-const frameMat = new THREE.MeshBasicMaterial({ color:0x211c18 });   /* 틀도 빛 없이 */
+/* 틀 = 방의 빛을 받는 플라스틱. **배지마다 색이 다르다** — 하나로 통일하면
+   세트가 아니라 「같은 파일 복사」로 보인다 (정지 컷에서 확인). */
+const FRAME_TONES = [0x0d0d0f, 0xdedcd8, 0x0d0d0f, 0x6b6e73, 0x1a1a1d];
+const frameMats = FRAME_TONES.map(c => new THREE.MeshStandardMaterial({
+  map: frameTex(), color: c, roughness: 0.45, metalness: 0.10, envMapIntensity: 2.2
+}));
 const signs=[];
 function placeAt(o){
   const w=o.cw*PEG.pitch, h=o.ch*PEG.pitch;
-  o.mesh.position.set(PEG_X0 + o.cx*PEG.pitch + w/2, PEG_Y1 - o.cy*PEG.pitch - h/2, pegZ + SIGN_DEPTH/2);
+  o.mesh.position.set(PEG_X0 + o.cx*PEG.pitch + w/2, PEG_Y1 - o.cy*PEG.pitch - h/2,
+                      pegZ + (o.depth || h*BADGE.depth)/2);
 }
-for(const s of SIGNS){
+for(const [i, s] of SIGNS.entries()){
   const st=saved[s.t];
   const o={...s, cx: st?st[0]:s.cx, cy: st?st[1]:s.cy, lit: st?!st[2]:!s.off};
-  const w=o.cw*PEG.pitch, h=o.ch*PEG.pitch, tex=faceTex(o.t,o.tint,o.mark);
-  /* 켜진 간판만 「스스로 빛나는 면」이다 — 구운 방 위에 이것만 실시간으로 얹힌다. */
-  const face=new THREE.MeshBasicMaterial({ map:tex, toneMapped:true });
-  face.color.setScalar(o.lit ? +emisEl.value : 0.16);
-  const box=new THREE.Mesh(new THREE.BoxGeometry(w-0.005,h-0.005,SIGN_DEPTH),
-    [frameMat,frameMat,frameMat,frameMat,face,frameMat]);
-  const shell=new THREE.Mesh(new THREE.BoxGeometry(w,h,SIGN_DEPTH*0.9), frameMat);
-  shell.position.z=-0.002; box.add(shell);
-  o.mesh=box; o.face=face; box.userData.sign=o;
+  const w=o.cw*PEG.pitch, h=o.ch*PEG.pitch;
+  const d = h * BADGE.depth;                       /* 두께는 **높이**를 따라간다 */
+  const bz = h * BADGE.bezel;
+  const r  = h * BADGE.round;
+  const tex=faceTex(o.t, o.brand, o.cw/o.ch);
+  const face=new THREE.MeshStandardMaterial({
+    map: tex, emissiveMap: tex, emissive: 0xffffff,
+    emissiveIntensity: o.lit ? +emisEl.value : 0,
+    roughness: 0.32, metalness: 0.0, envMapIntensity: 3.4
+  });
+  const frameMat = frameMats[i % frameMats.length];
+
+  /* 틀 — 모서리가 둥근 상자. 각진 상자는 3D 에서 곧바로 「코드로 만든 것」으로 읽힌다. */
+  const box = new THREE.Mesh(
+    new RoundedBoxGeometry(w, h, d, 3, Math.min(r, d * 0.45)), frameMat);
+
+  /* 확산판 — 틀보다 **살짝 튀어나온다**. 같은 높이면 스티커, 0.5mm 나오면 박힌 아크릴. */
+  const pd = d * BADGE.proud * 2;
+  const panel = new THREE.Mesh(
+    new RoundedBoxGeometry(w - bz*2, h - bz*2, pd, 3, Math.min(r*0.6, pd*0.45)), face);
+  panel.position.z = d/2 + pd/2 - 0.0006;
+  box.add(panel);
+
+  box.rotation.z = ((o.t.length * 37) % 5 - 2) * 0.004;   /* 자석은 삐뚤게 붙는다 */
+  o.mesh=box; o.face=face; o.depth=d; box.userData.sign=o;
   placeAt(o); scene.add(box); signs.push(o);
 }
+
+/* ── 간판이 판에 드리우는 그림자 ────────────────────────────────
+   방의 빛은 구워져 있어 **나중에 붙인 물건은 그림자를 못 만든다** — 그래서 간판이
+   판 위에 떠 보였다 (2026-08-21 제보: 「그림자도 없네」).
+   그림자 맵을 켜면 GPU 없는 기계에서 창이 멎는다(이 방식을 고른 이유가 그거다).
+   그래서 **곱하기 한 겹**으로 직접 그린다 — 켜졌든 꺼졌든 물건이니 늘 있다.
+   빛은 책상 스탠드(오른쪽 아래)에서 오므로 그림자는 **왼쪽 위로** 짧게 눕는다. */
+const shadowTex = (() => {
+  const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, S, S);
+  const r = g.createRadialGradient(S/2, S/2, S*0.16, S/2, S/2, S/2);
+  r.addColorStop(0, 'rgba(30,20,10,.78)');
+  r.addColorStop(0.55, 'rgba(30,20,10,.38)');
+  r.addColorStop(1, 'rgba(40,28,16,0)');
+  g.fillStyle = r; g.fillRect(0, 0, S, S);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+for (const o of signs) {
+  const w = o.cw*PEG.pitch, h = o.ch*PEG.pitch;
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(w*1.45, h*1.75),
+    new THREE.MeshBasicMaterial({ map: shadowTex, blending: THREE.MultiplyBlending,
+      transparent: true, depthWrite: false }));
+  sh.position.set(-w*0.07, -h*0.14, -o.depth/2 + 0.0014);
+  sh.renderOrder = -1;
+  o.mesh.add(sh);
+}
+
 /* 켜진 간판이 판에 흘리는 빛.
    앞 판은 **흰 뭉게구름**이었다 (2026-08-21 제보: 「빛 효과가 어색하다」). 실물의 번짐은
    ① 간판 색을 띠고 ② 간판 모양을 따라 **옆으로 넓고 위아래로 좁다** ③ 아주 약하다.
    원형 흰 덩어리는 그래서 가짜로 보인다. 셋 다 고친다. */
-function glowTexFor(tint){
+function glowTexFor(brand){
+  const [r0,g0,b0]=brand;
   const c=document.createElement('canvas'); c.width=c.height=128;
   const g=c.getContext('2d');
   const r=g.createRadialGradient(64,64,0,64,64,64);
-  r.addColorStop(0,   `hsla(${tint},60%,72%,.55)`);
-  r.addColorStop(0.45,`hsla(${tint},60%,66%,.18)`);
-  r.addColorStop(1,   `hsla(${tint},60%,60%,0)`);
+  r.addColorStop(0,   `rgba(${r0},${g0},${b0},.55)`);
+  r.addColorStop(0.45,`rgba(${r0},${g0},${b0},.18)`);
+  r.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
   g.fillStyle=r; g.fillRect(0,0,128,128);
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
 }
 for(const o of signs){
   const w=o.cw*PEG.pitch, h=o.ch*PEG.pitch;
   const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*1.55, h*1.9),
-    new THREE.MeshBasicMaterial({ map:glowTexFor(o.tint), transparent:true,
+    new THREE.MeshBasicMaterial({ map:glowTexFor(o.brand), transparent:true,
       blending:THREE.AdditiveBlending, depthWrite:false, opacity:o.lit?0.34:0 }));
-  glow.position.z = -SIGN_DEPTH/2 + 0.004;
+  glow.position.z = -o.depth/2 + 0.004;
   o.mesh.add(glow); o.glow=glow;
 }
 
@@ -256,10 +502,10 @@ cv.addEventListener('pointerdown', e=>{
   toPtr(e); ray.setFromCamera(ptr,camera);
   const hit=ray.intersectObjects(signs.map(s=>s.mesh), true)[0]; if(!hit) return;
   let m=hit.object; while(m && !m.userData.sign) m=m.parent; if(!m) return;
-  held=m.userData.sign; moved=0; controls.enabled=false;
+  held=m.userData.sign; moved=0; controls.enabled=false; looking=null;
   held.from=[held.cx,held.cy];
   const c=cellsAt(); held.grab=[c.x-held.cx, c.y-held.cy];
-  held.mesh.position.z = pegZ + SIGN_DEPTH/2 + 0.05;
+  held.mesh.position.z = pegZ + held.depth/2 + 0.05;
   ghost.visible=true; cv.classList.add('grabbing');
 });
 cv.addEventListener('pointermove', e=>{
@@ -281,15 +527,18 @@ cv.addEventListener('pointermove', e=>{
 cv.addEventListener('dblclick', e => {
   toPtr(e); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(scene.children, true)[0];
-  if (hit) controls.target.copy(hit.point);
+  if (!hit) return;
+  if (mode === 'orbit') { controls.target.copy(hit.point); return; }
+  camera.lookAt(hit.point);
+  look.setFromQuaternion(camera.quaternion);
 });
 
 addEventListener('pointerup', ()=>{
   if(!held) return;
-  const o=held; held=null; controls.enabled=true; ghost.visible=false; cv.classList.remove('grabbing');
+  const o=held; held=null; controls.enabled=(mode==='orbit'); ghost.visible=false; cv.classList.remove('grabbing');
   if(moved<0.6){
     o.lit=!o.lit;
-    o.face.color.setScalar(o.lit ? +emisEl.value : 0.16);
+    o.face.emissiveIntensity = o.lit ? +emisEl.value : 0;
     o.glow.material.opacity = o.lit ? 0.34 : 0;
   } else if(ok){ o.cx=tgt[0]; o.cy=tgt[1]; }
   placeAt(o);
@@ -302,7 +551,7 @@ function hud(){
   document.getElementById('o-emis').textContent=emisEl.value;
   document.getElementById('o-exp').textContent=expEl.value;
 }
-emisEl.oninput=()=>{ signs.forEach(s=>s.face.color.setScalar(s.lit?+emisEl.value:0.16)); hud(); };
+emisEl.oninput=()=>{ signs.forEach(s=>s.face.emissiveIntensity = s.lit ? +emisEl.value : 0); hud(); };
 expEl.oninput=()=>{ renderer.toneMappingExposure=+expEl.value; hud(); };
 document.getElementById('reset').onclick=()=>{ try{localStorage.removeItem(SAVE);}catch(_){} location.reload(); };
 hud();
@@ -312,12 +561,15 @@ function resize(){
   renderer.setSize(innerWidth, innerHeight);
 }
 addEventListener('resize', resize); resize();
+home();
+setMode('fp');
+
 let _last = 0;
 loop((t) => {
   const dt = Math.min(0.05, (t - _last) / 1000) || 0;
   _last = t;
   walk(dt);
-  controls.update();
+  if (mode === 'orbit') controls.update();
   renderer.render(scene, camera);
 }, { soft });
 </script>
