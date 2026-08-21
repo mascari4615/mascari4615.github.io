@@ -27,7 +27,7 @@ const pushedText = (content: string): string => content.replace(/[\s.,!?~…。�
  *
  * 좁게 막는다 — 진짜 한 말을 막으면 「불러도 대답을 안 한다」가 되고, 그게 헛것보다 나쁘다.
  */
-export function shouldSkipText(content2: string | null | undefined): boolean {
+export function looksLikeSpeech(content2: string | null | undefined): boolean {
   const text = String(content2 ?? '').trim();
   if (text === '') return false;
   const pushed = pushedText(text);
@@ -37,7 +37,40 @@ export function shouldSkipText(content2: string | null | undefined): boolean {
   if (phantom.includes(pushed)) return false;
   // 같은 글자만 늘어선 것(「ㅋㅋㅋ」이 아니라 「아아아아」류)도 소리지 말이 아니다.
   if (/^(.)\1*$/u.test(pushed)) return false;
+  /* **지어낸 글은 같은 구절을 되풀이한다.**
+     기억에 남아 있던 「자막 제공 및 **자막 제공 및** 광고를 포함하고 있습니다.」가 그 모양이다
+     (107회차 실측 5건). 목록에 그 문장을 더할 수도 있지만 74회차에 이미 배웠다 —
+     목록에 하나를 더하면 다음엔 다른 게 나온다. 그래서 낱말이 아니라 **모양**을 본다. */
+  if (repeatsItself(text)) return false;
   return true;
+}
+
+/** 옛 이름. 뜻이 거꾸로 읽혀서 바꿨다 — `shouldSkip` 인데 true 가 「받는다」였다. */
+export const shouldSkipText = looksLikeSpeech;
+
+/**
+ * 같은 조각이 되풀이되나.
+ *
+ * 낱말 하나가 아니라 **이어진 조각**(1~4낱말)을 본다 — 지어낸 글은 대개 구절째 반복된다.
+ * 낱말 하나가 되풀이되는 건 사람도 한다(「진짜 진짜」 「아니 아니」). 그래서 한 낱말은
+ * **세 번**부터, 이어진 구절은 **두 번**부터 잡는다 — 사람이 같은 구절을 통째로 두 번
+ * 말하는 일은 드물고, 지어낸 글은 그게 특징이다.
+ */
+function repeatsItself(text: string): boolean {
+  const words = text.split(/\s+/).filter((w) => w !== '');
+  /* 아주 짧은 말은 그냥 둔다 — 「진짜 진짜 힘들었어」까지 막으면 사람 말이 사라진다. */
+  if (words.length < 4) return false;
+  for (let size = 1; size <= 4; size += 1) {
+    const enough = size === 1 ? 3 : 2;
+    const seen = new Map<string, number>();
+    for (let i = 0; i + size <= words.length; i += 1) {
+      const chunk = words.slice(i, i + size).join(' ');
+      const next = (seen.get(chunk) ?? 0) + 1;
+      if (next >= enough) return true;
+      seen.set(chunk, next);
+    }
+  }
+  return false;
 }
 
 
@@ -68,6 +101,6 @@ export function keepReason(content3: string | null | undefined, spokenMs2?: numb
   if (hadSpeech(spokenMs2) === false) {
     return `말소리가 거의 없던 구간이다 (${Math.round(spokenMs2 as number)}ms) — 받아쓰기가 지어낸 「${text2.slice(0, 20)}」`;
   }
-  if (shouldSkipText(text2)) return null;
+  if (looksLikeSpeech(text2)) return null;
   return `말로 안 봤다 — 「${text2.slice(0, 30)}」`;
 }
