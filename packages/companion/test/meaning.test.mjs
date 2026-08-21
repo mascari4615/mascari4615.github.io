@@ -68,7 +68,7 @@ test('같은 말은 두 번 안 담는다', async () => {
 test('방금 나눈 말은 빼고 준다 — 두뇌가 이미 보고 있다', async () => {
   const meaning6 = new 뜻기억({ measure: fakeMeasure(table2), 문턱: 0.5 });
   await meaning6.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]);
-  const produced2 = await meaning6.find('저번에 못 먹는다고 한 게 뭐였지', { 뺄것: new Set(['마라탕은 매워서 못 먹어']) });
+  const produced2 = await meaning6.find('저번에 못 먹는다고 한 게 뭐였지', { toDrop: new Set(['마라탕은 매워서 못 먹어']) });
   assert.deepEqual(produced2, []);
 });
 

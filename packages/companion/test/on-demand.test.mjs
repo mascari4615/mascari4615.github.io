@@ -19,7 +19,7 @@ const run = (settings = {}) => {
       events.push('끔');
       alive = false;
     },
-    쉬면끄기ms: () => settings.쉬면 ?? 30 * 60_000,
+    stopIfIdleMs: () => settings.쉬면 ?? 30 * 60_000,
     isAuto: () => settings.자동 ?? true,
     물어보는간격ms: 0,
     지금: () => now2,

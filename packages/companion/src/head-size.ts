@@ -31,14 +31,14 @@ export interface 머리고르기입력 {
   /** 지난 일이 걸렸나. */
   hasPastEvent?: boolean;
   /** 조수님이 얘 자신에 대해 물었나. */
-  자기얘기?: boolean;
+  selfTalk?: boolean;
 }
 
 export interface 머리크기옵션 {
   /** 평소에 쓸 머리. */
   작은머리?: string;
   /** 무거운 자리에 쓸 머리. */
-  큰머리?: string;
+  largeHead?: string;
 }
 
 /**
@@ -49,12 +49,12 @@ export interface 머리크기옵션 {
  */
 export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { 머리: string; why: string } {
   const smallHead = options.작은머리 ?? 'haiku';
-  const largeHead = options.큰머리 ?? 'sonnet';
+  const largeHead = options.largeHead ?? 'sonnet';
 
   // 위에서부터 본다 — 여러 개가 겹쳐도 이유는 하나만 적는다.
   if (input.acceptSlot === true) return { 머리: largeHead, why: '길게 털어놨거나 감정이 실렸다' };
   if (input.tossSlot === true) return { 머리: largeHead, why: '대화가 식어 가 공을 돌려줄 자리다' };
-  if (input.자기얘기 === true) return { 머리: largeHead, why: '얘 자신에 대해 물었다' };
+  if (input.selfTalk === true) return { 머리: largeHead, why: '얘 자신에 대해 물었다' };
   if (input.hasPastEvent === true) return { 머리: largeHead, why: '지난 일이 걸렸다' };
   return { 머리: smallHead, why: '' };
 }

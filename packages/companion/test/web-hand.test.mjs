@@ -46,7 +46,7 @@ test('저쪽이 죽어도 얘는 안 죽는다', async () => {
 
 test('오래 걸리면 포기한다 — 검색 때문에 곁의 존재가 굳으면 안 된다', async () => {
   const content4 = await 웹에서찾기('느린것', {
-    기다림ms: 60,
+    waitMs: 60,
     가져오기: (url, signal) =>
       new Promise((_, reject) => {
         signal.addEventListener('abort', () => {

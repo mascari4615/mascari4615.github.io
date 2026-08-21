@@ -33,7 +33,7 @@ export interface StockOptions {
    * 반갑습니다 / 뵙게 되어 좋습니다」가 왔고 전부 걸러졌다. 짓는 자리에 인격이 안 실리면
    * 걸러 내는 잣대가 아무리 좋아도 담을 게 안 남는다.
    */
-  인격글?: () => string | null;
+  personaText?: () => string | null;
   /** 한 갈래에 담아 둘 최대 개수. */
   max?: number;
   /** 이 길이를 넘으면 대꾸가 아니라 설명이다. */
@@ -139,7 +139,7 @@ export class lineStore {
     this.채우는중.add(kind4);
     try {
       const count = Math.min(goal, this.max) - now;
-      const persona = this.options.인격글?.() ?? null;
+      const persona = this.options.personaText?.() ?? null;
       const raw = await this.options.지어오기(
         [
           persona === null ? null : `${persona}\n\n---`,

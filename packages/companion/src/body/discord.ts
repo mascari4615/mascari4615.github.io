@@ -18,14 +18,14 @@ import type { Body, Sensation, Sense, Utterance, Voice } from '../types';
  */
 export interface 디스코드채널 {
   /** 이 채널에 한 마디 보낸다. */
-  보내기: (content2: string) => Promise<void>;
+  send: (content2: string) => Promise<void>;
 }
 
 export interface 디스코드붙이기 {
   /** 사람이 말할 때마다 부른다. 봇 자신의 말은 넘기지 않는다. */
-  들어올때: (listen: (text2: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
+  onEnter: (listen: (text2: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
   /** 이 채널을 잡는다. 없으면 null. */
-  채널잡기: (channel2: string) => 디스코드채널 | null;
+  pickChannel: (channel2: string) => 디스코드채널 | null;
   /** 끊는다. */
   끊기?: () => void | Promise<void>;
 }
@@ -60,7 +60,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
   const sense: Sense = {
     name: `${channel}:sense`,
     start(emit: (sensation: Sensation) => void) {
-      options.attach.들어올때((text3) => {
+      options.attach.onEnter((text3) => {
         // 제 말에 제가 답하면 끝없이 돈다 — 봇 글은 아예 안 듣는다.
         if (text3.봇인가) return;
         if (listenTarget !== null && listenTarget.has(text3.채널) === false) return;
@@ -86,13 +86,13 @@ export function discordBody(options: DiscordBodyOptions): Body {
         log('어디로 보낼지 몰라서 못 보냈다 (아직 들어온 말이 없다)');
         return;
       }
-      const room = options.attach.채널잡기(lastChannel);
+      const room = options.attach.pickChannel(lastChannel);
       if (room === null) {
         log(`채널을 못 잡았다: ${lastChannel}`);
         return;
       }
       try {
-        await room.보내기(content4);
+        await room.send(content4);
       } catch (e) {
         // 한 마디 못 보냈다고 얘가 죽으면 안 된다.
         log(`못 보냈다: ${e instanceof Error ? e.message : String(e)}`);
@@ -143,7 +143,7 @@ export async function discordJs(options: {
   log('디스코드에 붙었다');
 
   return {
-    들어올때(listen2) {
+    onEnter(listen2) {
       client.on('messageCreate', (...a: unknown[]) => {
         const m = a[0] as {
           content?: string;
@@ -159,10 +159,10 @@ export async function discordJs(options: {
         });
       });
     },
-    채널잡기(channel3) {
+    pickChannel(channel3) {
       const c = client.channels.cache.get(channel3);
       if (c === undefined || typeof c.send !== 'function') return null;
-      return { 보내기: async (content5) => { await c.send?.(content5); } };
+      return { send: async (content5) => { await c.send?.(content5); } };
     },
     async 끊기() {
       await client.destroy();

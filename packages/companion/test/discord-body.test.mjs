@@ -13,9 +13,9 @@ const attachFake = () => {
     보낸것: sent,
     말시키기: (text2) => listen?.(text2),
     attach: {
-      들어올때: (f) => { listen = f; },
-      채널잡기: (channel2) =>
-        channel2 === '없는방' ? null : { 보내기: async (content) => { sent.push({ 채널: channel2, 글: content }); } },
+      onEnter: (f) => { listen = f; },
+      pickChannel: (channel2) =>
+        channel2 === '없는방' ? null : { send: async (content) => { sent.push({ 채널: channel2, 글: content }); } },
     },
   };
 };
