@@ -25,7 +25,7 @@ export interface 밀린생각옵션 {
   /** 아무리 밀려도 이 이상은 안 세진다. 안 그러면 오래된 것이 영영 1등이라 새 것이 굶는다. */
   cap?: number;
   /** 이만큼 지나도록 다시 안 밀리면 잊는다 — 지나간 관심이다. */
-  잊는턴?: number;
+  forgetTurn?: number;
 }
 
 interface 눌림 {
@@ -42,21 +42,21 @@ interface 눌림 {
 export class pendingThoughts {
   private readonly step: number;
   private readonly cap: number;
-  private readonly 잊는턴: number;
+  private readonly forgetTurn: number;
   private readonly 눌린것 = new Map<string, 눌림>();
   private 턴 = 0;
 
   constructor(options: 밀린생각옵션 = {}) {
     this.step = options.step ?? 3;
     this.cap = options.cap ?? 9;
-    this.잊는턴 = options.잊는턴 ?? 8;
+    this.forgetTurn = options.forgetTurn ?? 8;
   }
 
   /** 한 turn 이 끝났다. 다음 겨룸으로 넘어간다. */
   다음턴(): void {
     this.턴 += 1;
     for (const [이름, v] of [...this.눌린것]) {
-      if (this.턴 - v.마지막턴 >= this.잊는턴) this.눌린것.delete(이름);
+      if (this.턴 - v.마지막턴 >= this.forgetTurn) this.눌린것.delete(이름);
     }
   }
 

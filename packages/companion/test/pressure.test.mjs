@@ -41,7 +41,7 @@ test('아무리 참아도 상한이 있다 — 없으면 오래된 것이 영영
 });
 
 test('한참 안 밀리면 잊는다 — 지나간 관심이다', () => {
-  const p = new pendingThoughts({ 잊는턴: 3 });
+  const p = new pendingThoughts({ forgetTurn: 3 });
   p.적기('궁금증', '밀림');
   for (let i = 0; i < 4; i += 1) p.다음턴();
   assert.equal(p.addedWeight('궁금증'), 0);

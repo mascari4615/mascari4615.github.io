@@ -27,13 +27,13 @@ export interface 수요기동옵션 {
   /** 지금 떠 있나. */
   살았나: () => Promise<boolean>;
   /** 띄운다. 오래 걸려도 된다 — 기다리지 않는다. */
-  띄우기: () => void | Promise<void>;
+  show: () => void | Promise<void>;
   /** 끈다. */
-  끄기: () => void | Promise<void>;
+  stop: () => void | Promise<void>;
   /** 이만큼 안 쓰면 끈다 (0 = 안 끔). */
   쉬면끄기ms?: () => number;
   /** 자동으로 켜도 되나. 거짓이면 손으로 띄운 것만 쓴다. */
-  자동인가?: () => boolean;
+  isAuto?: () => boolean;
   /** 살았나를 이 간격보다 자주 묻지 않는다 — 매 발화마다 물으면 그게 지연이 된다. */
   물어보는간격ms?: number;
   /** 띄운 뒤 이 시간 안에 안 뜨면 실패로 본다. */
@@ -89,14 +89,14 @@ export class demandBoot {
       }
     }
     if (this.appeared || this.띄우는중) return;
-    if (this.options.자동인가?.() === false) return;
+    if (this.options.isAuto?.() === false) return;
 
     if (this.지금 - this.실패한때 < (this.options.실패후쉬기ms ?? 60_000)) return;
 
     this.띄우는중 = true;
     this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
     void Promise.resolve()
-      .then(() => this.options.띄우기())
+      .then(() => this.options.show())
       .then(() => {
         this.우리가띄웠나 = true;
         /* **뜰 때까지 기다렸다가 「띄우는 중」을 푼다.**
@@ -154,7 +154,7 @@ export class demandBoot {
     if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
 
     try {
-      await this.options.끄기();
+      await this.options.stop();
       this.options.log?.(`${this.options.이름} 을(를) 껐다 — ${Math.round(whenIdle / 60_000)}분 넘게 안 썼다`);
     } catch (e) {
       this.options.log?.(`${this.options.이름} 을(를) 못 껐다: ${e instanceof Error ? e.message : String(e)}`);

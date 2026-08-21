@@ -16,7 +16,7 @@ test('길게 털어놨으면 큰 머리 — 작은 머리는 실측에서 14자,
 });
 
 test('공을 돌려줄 자리도 큰 머리 — 되묻기가 안 되던 것도 같은 자리였다', () => {
-  assert.equal(whichHead({ 돌려줄자리: true }).머리, 'sonnet');
+  assert.equal(whichHead({ tossSlot: true }).머리, 'sonnet');
 });
 
 test('얘 자신을 물었을 때와 옛일이 걸렸을 때도 큰 머리', () => {
@@ -25,7 +25,7 @@ test('얘 자신을 물었을 때와 옛일이 걸렸을 때도 큰 머리', () 
 });
 
 test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이 못 읽힌다', () => {
-  const r = whichHead({ acceptSlot: true, 돌려줄자리: true, 옛일있나: true });
+  const r = whichHead({ acceptSlot: true, tossSlot: true, 옛일있나: true });
   assert.match(r.why, /길게 털어놨/);
   assert.equal(r.why.includes('식어'), false);
 });

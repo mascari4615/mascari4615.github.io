@@ -34,14 +34,14 @@ export interface 자리배움옵션 {
 }
 
 export class learnSlot {
-  private readonly 배운것 = new Map<string, 자리>();
+  private readonly learned = new Map<string, 자리>();
   private readonly toAsk = new Set<string>();
 
   constructor(private readonly options: 자리배움옵션 = {}) {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, 자리>;
-        for (const [제목, z] of Object.entries(raw ?? {})) this.배운것.set(제목, z);
+        for (const [제목, z] of Object.entries(raw ?? {})) this.learned.set(제목, z);
       } catch {
         // 깨진 파일 때문에 상황 파악이 멈추면 안 된다.
       }
@@ -60,7 +60,7 @@ export class learnSlot {
     if (title2 === '') return null;
     const table = whichSlot(title2);
     if (table !== null) return table;
-    const learning = this.배운것.get(brief(title2));
+    const learning = this.learned.get(brief(title2));
     if (learning !== undefined) return learning;
     if (this.물어보기있나) this.toAsk.add(brief(title2));
     return null;
@@ -75,7 +75,7 @@ export class learnSlot {
   }
 
   get 아는수(): number {
-    return this.배운것.size;
+    return this.learned.size;
   }
 
   /**
@@ -104,7 +104,7 @@ export class learnSlot {
     let learnedCount = 0;
     bundle.forEach((title4, i) => {
       const z = answer![i];
-      this.배운것.set(title4, z === undefined ? null : z);
+      this.learned.set(title4, z === undefined ? null : z);
       if (z !== null && z !== undefined) learnedCount += 1;
     });
     this.save();
@@ -116,7 +116,7 @@ export class learnSlot {
     if (this.options.path === undefined) return;
     try {
       mkdirSync(dirname(this.options.path), { recursive: true });
-      writeFileSync(this.options.path, JSON.stringify(Object.fromEntries(this.배운것), null, 1), 'utf8');
+      writeFileSync(this.options.path, JSON.stringify(Object.fromEntries(this.learned), null, 1), 'utf8');
     } catch {
       // 못 남겨도 이번 판에서는 안다.
     }

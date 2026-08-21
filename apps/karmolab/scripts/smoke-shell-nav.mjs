@@ -99,7 +99,7 @@ try {
       document.querySelector(`[data-goto="${g}"]`).click();
       return {
         hash: location.hash,
-        보임: [...document.querySelectorAll('[id^="page-"]')]
+        visible: [...document.querySelectorAll('[id^="page-"]')]
           .filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id),
       };
     }, place);

@@ -81,7 +81,7 @@ test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => 
 
 test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 된다', async () => {
   const g = attachFake();
-  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, 채널들: ['방1'] }));
+  const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, channels: ['방1'] }));
   await companion.start();
   g.말시키기({ 글: '여기서 하는 얘기', 누가: '남', 채널: '방9', 봇인가: false });
   await new Promise((r) => setTimeout(r, 60));

@@ -691,10 +691,10 @@ ${tallyReport(tally)}`;
     stubBoot = new 수요기동({
       이름: '흉내 낸 목소리',
       살았나: () => stub.alive(),
-      띄우기: () => startStubServer(),
-      끄기: () => stopStubServer(),
+      show: () => startStubServer(),
+      stop: () => stopStubServer(),
       쉬면끄기ms: () => Number(settings.get('애니목소리쉬는분')) * 60_000,
-      자동인가: () => settings.on('애니목소리자동'),
+      isAuto: () => settings.on('애니목소리자동'),
       log: (m) => console.log(`[목소리] ${m}`),
     });
     // 쉬는지 살피는 자리. 값이 0 이면 아무 일도 안 한다.
@@ -789,7 +789,7 @@ if (discordToken) {
       discordBody({
         attach: attach,
         // 여기서만 듣는다. 안 정하면 들어오는 모든 방 — 남의 방에 끼어들지 않게 정해 두는 편이 낫다.
-        채널들: process.env.COMPANION_DISCORD_CHANNELS?.split(',').map((x) => x.trim()).filter(Boolean),
+        channels: process.env.COMPANION_DISCORD_CHANNELS?.split(',').map((x) => x.trim()).filter(Boolean),
         log: (m) => console.log(`[디코] ${m}`),
       }),
     );
@@ -897,7 +897,7 @@ const mouth = mouthGate({
     ?? wasShort(text, shouldAccept()),
   /* 아쉬울 뿐인 것과 해로운 것을 가른다. 지어낸 사실·조수 말투는 버리는 게 맞지만,
      짧거나 안 되물은 말은 얼버무림보다 낫다 — 막는 자리가 답을 더 나쁘게 만들면 안 된다. */
-  아쉬울뿐인가: (why) => /한마디로 끊었다|되묻지 않았다/.test(why),
+  isMerelyRegret: (why) => /한마디로 끊었다|되묻지 않았다/.test(why),
   // 왜 다시 시키는지에 따라 시키는 말이 다르다 — 「결에서 벗어났다」와 「알맹이가 없다」는
   // 고칠 데가 다르다.
   retry: (why) => {
@@ -1062,7 +1062,7 @@ const companion = new Companion({
     headToRestore = null;
     const pickedHead = whichHead({
       acceptSlot: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
-      돌려줄자리: shouldTossBack(),
+      tossSlot: shouldTossBack(),
       자기얘기: asksAboutSelf(justSaid),
       옛일있나: episode.related(justSaid, 2, Date.now()) !== null,
     }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
@@ -1196,7 +1196,7 @@ const companion = new Companion({
       material: materials,
       얼마나참았나: (n) => queued.얼마나참았나(n),
       cooling: shouldTossBack(),
-      물어본turn: isQuestion(justSaid),
+      askedTurn: isQuestion(justSaid),
     };
     const first = topicFirst(topic);
     if (first !== null) {

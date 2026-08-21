@@ -259,7 +259,7 @@ async function brandBg(page) {
   say(q.도구단추, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
   const head = await page.evaluate(() => ({
     회차: document.getElementById('qsDay').textContent,
-    초점: document.activeElement?.id
+    focus: document.activeElement?.id
   }));
   say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
   say(head.초점 === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
@@ -301,7 +301,7 @@ async function brandBg(page) {
     await page.waitForTimeout(300);
     const esc = await page.evaluate(() => ({
       닫힘: document.querySelector('.browse').hidden,
-      초점: document.activeElement.className
+      focus: document.activeElement.className
     }));
     say(esc.닫힘 && /browse-open/.test(esc.초점), 'daily: 훑어보기를 Esc 로 못 빠져나온다 — 키보드로는 갇힌다');
   }
