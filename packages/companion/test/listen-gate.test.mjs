@@ -77,7 +77,7 @@ test('얘가 말을 마쳐도 꼬리 여운 동안은 안 연다 — 스피커 �
 
 test('켜 둔 TV 에 영영 매달리지 않는다 — 너무 길면 그냥 닫는다', () => {
   const gate8 = new listenGate();
-  const { happened: 일어난것 } = playBack(gate8, { 크기: loud, 동안: 25000, 걸음: 100 });
+  const { happened: 일어난것 } = playBack(gate8, { 크기: loud, 동안: 25000, step: 100 });
   assert.equal(일어난것.filter((x) => x.what === '닫힘').length >= 1, true);
 });
 

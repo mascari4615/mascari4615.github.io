@@ -120,7 +120,7 @@ test('준비될 때까지 기다렸다 **고른 목소리로** 말한다 — 딴
 
 test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리보다 낫다', async () => {
   const t = run({ 자동: false }); // 자동 기동 꺼 두면 영영 안 뜬다
-  const voice2 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동, 기다림한계ms: 300 });
+  const voice2 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동, waitLimitMs: 300 });
   await assert.rejects(() => voice2.synthesize('안녕'), /준비 안 됐다/);
 });
 
@@ -161,14 +161,14 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
     물어보는간격ms: 0,
     prepareAskIntervalMs: 20,
     prepareWaitMs: 400,
-    실패후쉬기ms: 10_000,
+    restAfterFailMs: 10_000,
     log: () => {},
   });
   return { 기동: boot2, events: events2 };
 };
 
 test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄워 프로세스 38개)', async () => {
-  const t = slowRun({ 뜨는데: 200 });
+  const t = slowRun({ toAppear: 200 });
   for (let i = 0; i < 10; i += 1) {
     await t.기동.써야한다();
     await new Promise((r) => setTimeout(r, 20));
@@ -180,7 +180,7 @@ test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄
 });
 
 test('영영 안 뜨면 포기하고, 한동안 다시 안 띄운다', async () => {
-  const t = slowRun({ 절대안뜸: true });
+  const t = slowRun({ neverAppears: true });
   await t.기동.써야한다();
   await new Promise((r) => setTimeout(r, 600));
   assert.equal(t.events.filter((x) => x === '띄움').length, 1);

@@ -1,6 +1,6 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 1604,
+  "count": 1595,
   "files": 115,
   "byFile": {
     "apps/karmolab/scripts/audit-blocking-css.mjs": 6,
@@ -91,7 +91,7 @@
     "packages/companion/src/touch.ts": 2,
     "packages/companion/src/types.ts": 2,
     "packages/companion/src/voice/feeling-tone.ts": 2,
-    "packages/companion/src/voice/on-demand.ts": 59,
+    "packages/companion/src/voice/on-demand.ts": 55,
     "packages/companion/test/bring-up.test.mjs": 20,
     "packages/companion/test/cloned-tone.test.mjs": 22,
     "packages/companion/test/curiosity-quality.test.mjs": 1,
@@ -101,9 +101,9 @@
     "packages/companion/test/feeling.test.mjs": 6,
     "packages/companion/test/hands-from-file.test.mjs": 1,
     "packages/companion/test/head-size.test.mjs": 7,
-    "packages/companion/test/listen-gate.test.mjs": 101,
+    "packages/companion/test/listen-gate.test.mjs": 100,
     "packages/companion/test/meaning.test.mjs": 21,
-    "packages/companion/test/on-demand.test.mjs": 80,
+    "packages/companion/test/on-demand.test.mjs": 76,
     "packages/companion/test/pressure.test.mjs": 16,
     "packages/companion/test/quiet.test.mjs": 18,
     "packages/companion/test/rarity.test.mjs": 6,
