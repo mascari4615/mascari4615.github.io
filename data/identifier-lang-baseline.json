@@ -1,6 +1,6 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 1925,
+  "count": 1909,
   "files": 121,
   "byFile": {
     "apps/karmolab/scripts/audit-blocking-css.mjs": 6,
@@ -61,7 +61,7 @@
     "apps/play/scripts/smoke.mjs": 108,
     "packages/companion/assets/listen-gate.js": 93,
     "packages/companion/assets/say-chunks.js": 8,
-    "packages/companion/demo/face.mjs": 100,
+    "packages/companion/demo/face.mjs": 97,
     "packages/companion/scripts/live.mjs": 4,
     "packages/companion/scripts/measure-lanes.mjs": 5,
     "packages/companion/src/backchannel.ts": 12,
@@ -74,15 +74,15 @@
     "packages/companion/src/feeling.ts": 3,
     "packages/companion/src/filler.ts": 2,
     "packages/companion/src/hands/from-file.ts": 2,
-    "packages/companion/src/hands/web.ts": 22,
+    "packages/companion/src/hands/web.ts": 19,
     "packages/companion/src/head-size.ts": 22,
     "packages/companion/src/index.ts": 26,
     "packages/companion/src/length.ts": 2,
     "packages/companion/src/memory/episodes.ts": 40,
-    "packages/companion/src/memory/meaning.ts": 48,
+    "packages/companion/src/memory/meaning.ts": 47,
     "packages/companion/src/memory/reflect.ts": 44,
     "packages/companion/src/mouth-gate.ts": 2,
-    "packages/companion/src/pressure.ts": 55,
+    "packages/companion/src/pressure.ts": 54,
     "packages/companion/src/rarity.ts": 14,
     "packages/companion/src/reflex.ts": 33,
     "packages/companion/src/room-learn.ts": 24,
@@ -107,10 +107,10 @@
     "packages/companion/test/hands-from-file.test.mjs": 1,
     "packages/companion/test/head-size.test.mjs": 17,
     "packages/companion/test/listen-gate.test.mjs": 103,
-    "packages/companion/test/meaning.test.mjs": 27,
+    "packages/companion/test/meaning.test.mjs": 22,
     "packages/companion/test/mouth-gate.test.mjs": 2,
     "packages/companion/test/on-demand.test.mjs": 109,
-    "packages/companion/test/pressure.test.mjs": 21,
+    "packages/companion/test/pressure.test.mjs": 19,
     "packages/companion/test/quiet.test.mjs": 18,
     "packages/companion/test/rarity.test.mjs": 6,
     "packages/companion/test/reflect.test.mjs": 7,
@@ -123,6 +123,6 @@
     "packages/companion/test/stock.test.mjs": 71,
     "packages/companion/test/tally.test.mjs": 9,
     "packages/companion/test/toss-back.test.mjs": 2,
-    "packages/companion/test/web-hand.test.mjs": 25
+    "packages/companion/test/web-hand.test.mjs": 24
   }
 }

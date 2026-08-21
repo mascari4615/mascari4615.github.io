@@ -19,7 +19,7 @@ test('결과를 뽑고, 감싸 둔 주소를 원래대로 푼다', () => {
   assert.equal(items.length, 2);
   assert.equal(items[0].제목, '다람쥐 - 위키백과');
   assert.equal(items[0].주소, 'https://ko.wikipedia.org/wiki/다람쥐');
-  assert.match(items[0].요약, /설치류/);
+  assert.match(items[0].summary, /설치류/);
   assert.equal(items[1].주소, 'https://example.com/acorn');
 });
 

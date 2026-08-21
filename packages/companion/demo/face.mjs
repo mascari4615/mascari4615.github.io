@@ -507,7 +507,7 @@ function sttModel() {
    모델은 처음 뜰 때 수십 초 걸리므로 **기다리지 않는다**: 준비될 때까지는 낱말 회상만
    나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
 const meaning = surface === 'page'
-  ? { 찾기: async () => [], store: async () => {} }
+  ? { find: async () => [], store: async () => {} }
   : new 뜻기억({
     path: join(home, '뜻-색인.json'),
     measure: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
@@ -994,7 +994,7 @@ const companion = new Companion({
     /* 낱말로 못 찾은 것을 뜻으로 한 번 더 — 「매운 거 싫어」와 「마라탕은 못 먹어」는
        낱말이 하나도 안 겹친다. 둘을 합치되 같은 말은 한 번만. */
     try {
-      const byMeaning = await meaning.찾기(sensation.text, {
+      const byMeaning = await meaning.find(sensation.text, {
         몇개: 2,
         뺄것: new Set([...recent.map((e) => e.text), ...old]),
       });
@@ -1212,7 +1212,7 @@ const companion = new Companion({
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     queued.다음턴();
-    const held = queued.요약();
+    const held = queued.summary();
     if (held !== '') { console.log(`[밀림] ${held}`); web.noticed(`하고 싶었는데 못 한 말 — ${held}`); }
     if (shouldShow) {
       console.log('[재료]');

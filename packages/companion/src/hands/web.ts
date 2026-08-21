@@ -17,7 +17,7 @@
 export interface 찾은것 {
   제목: string;
   주소: string;
-  요약: string;
+  summary: string;
 }
 
 export interface WebSearchOptions {
@@ -74,7 +74,7 @@ export function extractResults(html: string, count = 5): 찾은것[] {
     produced.push({
       제목: title,
       주소: resolveUrl(m[1] ?? ''),
-      요약: textOnly(snippetCell?.[1] ?? '').slice(0, 200),
+      summary: textOnly(snippetCell?.[1] ?? '').slice(0, 200),
     });
   }
   return produced;
@@ -112,7 +112,7 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
       return `「${question}」 으로는 못 찾았다.`;
     }
     options.log?.(`「${question}」 — ${items.length}개 찾았다`);
-    return items.map((r, i) => `${i + 1}. ${r.제목}\n   ${r.요약}\n   ${r.주소}`).join('\n');
+    return items.map((r, i) => `${i + 1}. ${r.제목}\n   ${r.summary}\n   ${r.주소}`).join('\n');
   } catch (e) {
     const why = e instanceof Error && e.name === 'AbortError' ? `${waited / 1000}초 안에 답이 없었다` : String(e);
     options.log?.(`「${question}」 — 못 찾았다: ${why}`);

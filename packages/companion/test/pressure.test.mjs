@@ -71,7 +71,7 @@ test('덧입혀도 원본 무게는 안 바뀐다 — 다음 turn 이 이전 tur
 
 test('참는 게 있으면 뭐가 얼마나 참는지 말할 수 있다 — 안 보이면 못 고친다', () => {
   const p = new pendingThoughts();
-  assert.equal(p.요약(), '');
+  assert.equal(p.summary(), '');
   p.적기('되묻기', '밀림');
-  assert.match(p.요약(), /되묻기/);
+  assert.match(p.summary(), /되묻기/);
 });
