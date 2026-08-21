@@ -100,15 +100,15 @@ async function common(page, id, label) {
       link: [...(st ? st.querySelectorAll('a') : [])].length
     };
   });
-  say(r.줄 > 0 && r.줄 <= 44, `${id}: 놀이 전환 줄이 한 줄이 아니다 (${r.줄}px) — 화면 위를 먹는다`);
-  say(r.지금.includes(label), `${id}: 지금 놀이 표시가 「${r.지금}」 — 「${label}」 이어야 한다`);
-  say(r.링크 >= 2, `${id}: 다른 놀이로 가는 길이 ${r.링크}개뿐이다`);
+  say(r.line > 0 && r.line <= 44, `${id}: 놀이 전환 줄이 한 줄이 아니다 (${r.line}px) — 화면 위를 먹는다`);
+  say(r.now.includes(label), `${id}: 지금 놀이 표시가 「${r.now}」 — 「${label}」 이어야 한다`);
+  say(r.link >= 2, `${id}: 다른 놀이로 가는 길이 ${r.link}개뿐이다`);
   /* KarmoLab 값 — 바탕 #0e0d14, 브랜드 #a99bf5.
    * 바탕은 body 가 아니라 **문서 뿌리**가 칠한다: 앱이 화면에 딱 붙는 깔개를 따로 두면서
    * body 는 투명이 됐다(폰 주소창이 접힐 때 검은 띠가 나던 것을 고치며 그렇게 됐다). */
   const brand = await brandBg(page);
-  say(!brand || r.바탕 === brand, `${id}: 바탕색이 KarmoLab 값이 아니다 (${r.바탕} · 선언된 값 ${brand})`);
-  say(r.켜진칩 === 'rgb(169, 155, 245)', `${id}: 켜진 칩이 브랜드색이 아니다 (${r.켜진칩})`);
+  say(!brand || r.base === brand, `${id}: 바탕색이 KarmoLab 값이 아니다 (${r.base} · 선언된 값 ${brand})`);
+  say(r.activeChip === 'rgb(169, 155, 245)', `${id}: 켜진 칩이 브랜드색이 아니다 (${r.activeChip})`);
 }
 
 
@@ -144,10 +144,10 @@ async function brandBg(page) {
       base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       titleCard: !!document.querySelector('#page-higher .tool-hero')
     }));
-    say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
+    say(frame.header, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
     const brandH = await brandBg(page);
-    say(!brandH || frame.바탕 === brandH, `higher: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandH})`);
-    say(!frame.제목카드, 'higher: 도구 제목 카드가 딸려 왔다 — 놀이가 글에 파묻힌다');
+    say(!brandH || frame.base === brandH, `higher: 바탕색이 KarmoLab 값이 아니다 (${frame.base} · 선언된 값 ${brandH})`);
+    say(!frame.titleCard, 'higher: 도구 제목 카드가 딸려 왔다 — 놀이가 글에 파묻힌다');
   }
   const r = await page.evaluate(() => {
     const c = [...document.querySelectorAll('.hi-side')];
@@ -160,19 +160,19 @@ async function brandBg(page) {
       roundChip: document.querySelectorAll('.hi-chips button').length
     };
   });
-  say(r.카드수 === 2, `higher: 고를 카드가 ${r.카드수}장이다`);
-  say(r.나란히, 'higher: 카드가 나란하지 않고 세로로 쌓였다 — 견주는 놀이가 안 된다');
-  say(r.오른값가림, 'higher: 새로 온 쪽의 값이 미리 보인다 — 답이 새어 놀이가 성립하지 않는다');
-  say(r.다시숨김, 'higher: 끝나지도 않았는데 「다시」가 떠 있다');
-  say(r.판칩 >= 2, `higher: 고를 판이 ${r.판칩}개뿐이다`);
+  say(r.cardCount === 2, `higher: 고를 카드가 ${r.cardCount}장이다`);
+  say(r.sideBySide, 'higher: 카드가 나란하지 않고 세로로 쌓였다 — 견주는 놀이가 안 된다');
+  say(r.hideRightValue, 'higher: 새로 온 쪽의 값이 미리 보인다 — 답이 새어 놀이가 성립하지 않는다');
+  say(r.hideAgain, 'higher: 끝나지도 않았는데 「다시」가 떠 있다');
+  say(r.roundChip >= 2, `higher: 고를 판이 ${r.roundChip}개뿐이다`);
   await page.click('.hi-side');
   await page.waitForTimeout(700);
   const after = await page.evaluate(() => ({ revealValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', text: (document.getElementById('hiMsg')?.textContent || '').trim() }));
-  say(after.값공개 && after.말.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
+  say(after.revealValue && after.text.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
 
   /* 이 놀이의 문법 자체 — 이긴 쪽이 자리에 남아야 방금 본 값과 계속 견줄 수 있다.
    * 매판 둘 다 새로 뽑히면 판이 끊겨서 다른 놀이가 된다. */
-  if (/맞았|신기록/.test(after.말)) {
+  if (/맞았|신기록/.test(after.text)) {
     const winner = await page.evaluate(() => {
       const v = [...document.querySelectorAll('.hi-vl')].map((x) => parseFloat(String(x.textContent).replace(/[^0-9.-]/g, '')));
       const n = [...document.querySelectorAll('.hi-nm')].map((x) => x.textContent);
@@ -184,8 +184,8 @@ async function brandBg(page) {
       leftValueVisible: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
       hideRightValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
     }));
-    say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
-    say(stay.왼쪽값보임 && stay.오른값가림, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
+    say(stay.left === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.left}) — 견주는 맛이 사라진다`);
+    say(stay.leftValueVisible && stay.hideRightValue, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
   }
 
   /* 아래 둘은 **이겼든 졌든 돌아야 한다** (TASK-KL-089).
@@ -249,20 +249,20 @@ async function brandBg(page) {
       base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       titleCard: !!document.querySelector('#page-quest .tool-hero')
     }));
-    say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
+    say(frame.header, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
     const brandQ = await brandBg(page);
-    say(!brandQ || frame.바탕 === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandQ})`);
-    say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
+    say(!brandQ || frame.base === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.base} · 선언된 값 ${brandQ})`);
+    say(!frame.titleCard, 'quest: 도구 제목 카드가 딸려 왔다');
   }
   const q = await page.evaluate(() => ({ problem: document.getElementById('qsQ').textContent.trim(), toolButton: !!document.getElementById('qsTool') }));
-  say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
-  say(q.도구단추, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
+  say(q.problem.length > 5 && !/불러오는|못 불러/.test(q.problem), `quest: 오늘 문제가 안 떴다 (${q.problem.slice(0, 20)})`);
+  say(q.toolButton, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
   const head = await page.evaluate(() => ({
     round: document.getElementById('qsDay').textContent,
     focus: document.activeElement?.id
   }));
-  say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
-  say(head.초점 === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
+  say(/#\d+/.test(head.round), `quest: 몇 번째 문제인지가 없다 (${head.round}) — 남과 견줄 수가 없다`);
+  say(head.focus === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.focus}) — 매일 한 번씩 더 눌러야 한다`);
 
   // 도구는 딴 페이지가 아니라 **문제 밑에서** 펴져야 한다 — 그게 이 놀이의 약속이다.
   await page.click('#qsTool');
@@ -271,7 +271,7 @@ async function brandBg(page) {
     const s = document.getElementById('qsSlot');
     return { expanded: !!s && !s.hidden, core: (s?.querySelectorAll('input, select, textarea').length || 0) };
   });
-  say(tool.펴짐 && tool.알맹이 > 0, 'quest: 도구가 그 자리에서 안 펴진다 — 답을 얻으러 화면을 떠나야 한다');
+  say(tool.expanded && tool.core > 0, 'quest: 도구가 그 자리에서 안 펴진다 — 답을 얻으러 화면을 떠나야 한다');
 
   await page.fill('#qsAns', '틀린답');
   await page.click('#qsForm button[type=submit]');
@@ -288,9 +288,9 @@ async function brandBg(page) {
   await page.waitForTimeout(1200);
   await common(page, 'daily', '하나 맞히기');
   const r = await page.evaluate(() => ({ cell: !!document.querySelector('.guessbar input'), scan: !!document.querySelector('.browse-open') }));
-  say(r.칸, 'daily: 답을 칠 칸이 없다');
-  say(r.훑기, 'daily: 이름이 기억 안 날 때 훑어볼 길이 없다');
-  if (r.훑기) {
+  say(r.cell, 'daily: 답을 칠 칸이 없다');
+  say(r.scan, 'daily: 이름이 기억 안 날 때 훑어볼 길이 없다');
+  if (r.scan) {
     await page.click('.browse-open');
     await page.waitForTimeout(600);
     const n = await page.evaluate(() => document.querySelectorAll('.browse-grid button').length);
@@ -303,7 +303,7 @@ async function brandBg(page) {
       closed: document.querySelector('.browse').hidden,
       focus: document.activeElement.className
     }));
-    say(esc.닫힘 && /browse-open/.test(esc.초점), 'daily: 훑어보기를 Esc 로 못 빠져나온다 — 키보드로는 갇힌다');
+    say(esc.closed && /browse-open/.test(esc.focus), 'daily: 훑어보기를 Esc 로 못 빠져나온다 — 키보드로는 갇힌다');
   }
   // 한 번 두면 「지금까지 좁혀진 것」이 떠야 한다 — 줄마다 흩어진 정보를 매번 다시 읽지 않게.
   await page.fill('.guessbar input', '이상해씨');
@@ -331,11 +331,11 @@ async function brandBg(page) {
     candidates: (document.getElementById('twLeft')?.textContent || '').trim(),
     button: document.querySelectorAll('#twRow [data-say]').length
   }));
-  say(first.질문.length > 4 && !/불러오는|못 불러/.test(first.질문), `twenty: 첫 질문이 안 떴다 (${first.질문.slice(0, 20)})`);
-  say(first.단추 === 3, `twenty: 대답 단추가 ${first.단추}개다 — 예·아니오·모르겠어요 셋이어야 한다`);
-  say(/\d/.test(first.후보), `twenty: 남은 후보 수가 안 보인다 (${first.후보})`);
+  say(first.question.length > 4 && !/불러오는|못 불러/.test(first.question), `twenty: 첫 질문이 안 떴다 (${first.question.slice(0, 20)})`);
+  say(first.button === 3, `twenty: 대답 단추가 ${first.button}개다 — 예·아니오·모르겠어요 셋이어야 한다`);
+  say(/\d/.test(first.candidates), `twenty: 남은 후보 수가 안 보인다 (${first.candidates})`);
   // 대답하면 후보가 실제로 줄어야 한다 — 안 줄면 묻기만 하고 아무 일도 안 하는 놀이다.
-  const before = Number(first.후보.replace(/\D+/g, ''));
+  const before = Number(first.candidates.replace(/\D+/g, ''));
   await page.click('#twRow [data-say=yes]');
   await page.waitForTimeout(600);
   const next = await page.evaluate(() => ({
@@ -343,9 +343,9 @@ async function brandBg(page) {
     candidates: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
     counted: (document.getElementById('twCount')?.textContent || '').trim()
   }));
-  say(next.후보 > 0 && next.후보 < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.후보})`);
-  say(next.질문 !== first.질문, 'twenty: 같은 질문을 또 묻는다');
-  say(/2/.test(next.센수), `twenty: 몇 번째 질문인지가 안 올라간다 (${next.센수})`);
+  say(next.candidates > 0 && next.candidates < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.candidates})`);
+  say(next.question !== first.question, 'twenty: 같은 질문을 또 묻는다');
+  say(/2/.test(next.counted), `twenty: 몇 번째 질문인지가 안 올라간다 (${next.counted})`);
 
   // 내 표 — UGC 가 이 놀이들의 재료다. 만들고 곧바로 놀이 목록에 서는지까지 본다.
   await page.goto(`${BASE}/karmolab/#packs`, { waitUntil: 'networkidle' });
@@ -381,16 +381,16 @@ async function brandBg(page) {
     text: (document.getElementById('pkMsg')?.textContent || '').trim(),
     count: document.querySelectorAll('.pk-item').length
   }));
-  say(made.개수 === initialCount + 1 && /만들었습니다/.test(made.말),
-    `packs: 표가 안 만들어졌다 (${made.말} · 표 ${initialCount}→${made.개수})`);
+  say(made.count === initialCount + 1 && /만들었습니다/.test(made.text),
+    `packs: 표가 안 만들어졌다 (${made.text} · 표 ${initialCount}→${made.count})`);
   await page.click('.pk-item [data-go=twenty]');
   await page.waitForTimeout(1600);
   const mine = await page.evaluate(() => ({
     pickedChip: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
     question: (document.getElementById('twQ')?.textContent || '').trim()
   }));
-  say(/우리 집 동물/.test(mine.고른칩), `packs: 내 표로 안 넘어간다 (${mine.고른칩})`);
-  say(mine.질문.length > 4 && !/불러오는|못 불러/.test(mine.질문), `packs: 내 표로 질문이 안 나온다 (${mine.질문})`);
+  say(/우리 집 동물/.test(mine.pickedChip), `packs: 내 표로 안 넘어간다 (${mine.pickedChip})`);
+  say(mine.question.length > 4 && !/불러오는|못 불러/.test(mine.question), `packs: 내 표로 질문이 안 나온다 (${mine.question})`);
   await page.close();
 }
 
