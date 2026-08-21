@@ -129,23 +129,32 @@ const picked = await home.evaluate(async () => {
   // 덮는 층이 **색으로** 칠해졌나. 회색만 나오면 세 채널이 거의 같다 — 그걸 「색이 없다」로 본다.
   // (화면 글자색 하나로 통째 칠하던 예전 동작이 그대로면 여기서 0 이 나온다.)
   let colored = 0;
+  /* ★ **빈 층과 회색 층을 가른다** (2026-08-21). 예전에는 `colored` 하나만 세어서,
+     아무것도 안 그려진 층과 회색으로 그려진 층이 <b>같은 빨강</b>으로 나왔다.
+     둘은 고칠 곳이 다르다 — 빈 층은 타일이 그림을 안 덮는 것(dom-tiles), 회색 층은
+     색 평면이 안 실린 것(format/스튜디오). 2026-08-19 에 「증상 없는 고장」으로 한 번
+     겪고도 문구가 「회색으로만 칠해진다」라 엉뚱한 데를 보게 만들었다. */
+  let opaque = 0;
   const layer = document.querySelector('canvas[aria-hidden="true"]');
   if (layer) {
     const lctx = layer.getContext('2d', { willReadFrequently: true });
     for (let i = 0; i < 12 && colored === 0; i++) {
       const px = lctx.getImageData(0, 0, layer.width, layer.height).data;
+      let seenOpaque = 0;
       for (let p = 0; p < px.length; p += 4 * 53) {
         if (px[p + 3] < 40) continue;
+        seenOpaque += 1;
         const r = px[p];
         const g = px[p + 1];
         const b = px[p + 2];
         if (Math.max(r, g, b) - Math.min(r, g, b) > 30) colored += 1;
       }
+      if (seenOpaque > opaque) opaque = seenOpaque;
       await sleep(140);
     }
   }
 
-  return { titles: new Set(seen).size, storedBytes, leftover, colored, hasLayer: Boolean(layer) };
+  return { titles: new Set(seen).size, storedBytes, leftover, colored, opaque, hasLayer: Boolean(layer) };
 });
 
 await browser.close();
@@ -159,7 +168,9 @@ if (picked.storedBytes <= 0) fail.push('구웠는데 저장 자리에 아무것�
 if (picked.leftover > 0) fail.push('옛 자리(localStorage)에 사본이 남았다 — 어느 쪽이 최신인지 알 수 없게 된다');
 if (picked.titles < 2) fail.push(`홈에서 재생이 안 돈다 (탭 제목이 ${picked.titles}가지)`);
 if (!picked.hasLayer) fail.push('홈에 덮는 층이 안 생겼다');
-if (picked.colored === 0) fail.push('색까지 담아 구웠는데 홈 액정이 회색으로만 칠해진다');
+/* 층은 섰는데 <b>한 칸도 안 그려졌다</b> = 회색 문제가 아니다. 이 둘을 갈라 말한다. */
+if (picked.opaque === 0) fail.push('덮는 층은 섰는데 <b>아무것도 안 그려진다</b> (안 투명한 칸 0개) — 타일이 그림을 못 덮는 쪽을 봐라 (dom-tiles)');
+else if (picked.colored === 0) fail.push(`색까지 담아 구웠는데 홈 액정이 회색으로만 칠해진다 (그려진 칸 ${picked.opaque}개, 색 있는 칸 0개)`);
 if (errors.length) fail.push(`화면에서 오류가 났다: ${errors.slice(0, 2).join(' | ')}`);
 
 console.log('[badapple-handoff]', JSON.stringify({ baked, ...picked }));
