@@ -95,7 +95,7 @@ async function common(page, id, label) {
     return {
       줄: st ? Math.round(st.getBoundingClientRect().height) : 0,
       now: now ? now.textContent.trim() : '',
-      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
+      base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       켜진칩: now ? getComputedStyle(now).color : '',
       링크: [...(st ? st.querySelectorAll('a') : [])].length
     };
@@ -141,7 +141,7 @@ async function brandBg(page) {
   {
     const frame = await page.evaluate(() => ({
       헤더: !!document.querySelector('.app-header, header'),
-      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
+      base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       제목카드: !!document.querySelector('#page-higher .tool-hero')
     }));
     say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
@@ -246,7 +246,7 @@ async function brandBg(page) {
   {
     const frame = await page.evaluate(() => ({
       헤더: !!document.querySelector('.app-header, header'),
-      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
+      base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       제목카드: !!document.querySelector('#page-quest .tool-hero')
     }));
     say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
@@ -379,7 +379,7 @@ async function brandBg(page) {
     .catch(() => {});
   const made = await page.evaluate(() => ({
     text: (document.getElementById('pkMsg')?.textContent || '').trim(),
-    개수: document.querySelectorAll('.pk-item').length
+    count: document.querySelectorAll('.pk-item').length
   }));
   say(made.개수 === initialCount + 1 && /만들었습니다/.test(made.말),
     `packs: 표가 안 만들어졌다 (${made.말} · 표 ${initialCount}→${made.개수})`);

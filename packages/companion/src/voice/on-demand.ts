@@ -35,7 +35,7 @@ export interface 수요기동옵션 {
   /** 자동으로 켜도 되나. 거짓이면 손으로 띄운 것만 쓴다. */
   isAuto?: () => boolean;
   /** 살았나를 이 간격보다 자주 묻지 않는다 — 매 발화마다 물으면 그게 지연이 된다. */
-  물어보는간격ms?: number;
+  askIntervalMs?: number;
   /** 띄운 뒤 이 시간 안에 안 뜨면 실패로 본다. */
   prepareWaitMs?: number;
   /** 뜰 때까지 물어보는 간격. */
@@ -79,7 +79,7 @@ export class demandBoot {
   async mustWrite(): Promise<void> {
     this.마지막사용 = this.지금;
 
-    const interval = this.options.물어보는간격ms ?? 5_000;
+    const interval = this.options.askIntervalMs ?? 5_000;
     if (this.지금 - this.마지막확인 >= interval) {
       this.마지막확인 = this.지금;
       try {

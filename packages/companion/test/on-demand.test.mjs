@@ -21,7 +21,7 @@ const run = (settings = {}) => {
     },
     stopIfIdleMs: () => settings.쉬면 ?? 30 * 60_000,
     isAuto: () => settings.자동 ?? true,
-    물어보는간격ms: 0,
+    askIntervalMs: 0,
     now: () => now2,
     log: (m) => events.push(`말: ${m}`),
   });
@@ -158,7 +158,7 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
       shownAt = null;
     },
     isAuto: () => true,
-    물어보는간격ms: 0,
+    askIntervalMs: 0,
     prepareAskIntervalMs: 20,
     prepareWaitMs: 400,
     restAfterFailMs: 10_000,
