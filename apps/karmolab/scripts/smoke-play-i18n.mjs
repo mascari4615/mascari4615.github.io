@@ -147,7 +147,7 @@ async function onePage(id) {
       const didNotLoad = !!document.querySelector('[data-kl-load-failed="' + x + '"]');
       return {
         has: !!el,
-        글: (el?.textContent || '').trim(),
+        content: (el?.textContent || '').trim(),
         widget: !!meta,
         hidden: !!(meta && meta.hidden),
         didNotLoad
