@@ -129,7 +129,7 @@ try {
       .then((h) => h.jsonValue())
       .catch(() => null);
     if (!verdict) { couldNotMeasure.push(`${id}: 20초 안에 아무것도 안 그려졌다`); continue; }
-    if (verdict.죽음) dead.push(`${id}: ${verdict.말}`);
+    if (verdict.죽음) dead.push(`${id}: ${verdict.text}`);
   }
 } finally {
   await browser.close();

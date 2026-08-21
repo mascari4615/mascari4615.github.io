@@ -1,7 +1,7 @@
 {
   "note": "한글 식별자 개수 — 늘면 빨강. 줄었으면 --update 로 낮춰라. 목표는 0.",
-  "count": 733,
-  "files": 87,
+  "count": 658,
+  "files": 86,
   "byFile": {
     "apps/karmolab/scripts/audit-blocking-css.mjs": 2,
     "apps/karmolab/scripts/audit-gate-list.mjs": 2,
@@ -33,8 +33,8 @@
     "apps/karmolab/scripts/smoke-palette.mjs": 2,
     "apps/karmolab/scripts/smoke-play-i18n.mjs": 7,
     "apps/karmolab/scripts/smoke-shell-nav.mjs": 2,
-    "apps/karmolab/scripts/smoke-tour.mjs": 6,
-    "apps/karmolab/scripts/smoke-widgets-alive.mjs": 2,
+    "apps/karmolab/scripts/smoke-tour.mjs": 4,
+    "apps/karmolab/scripts/smoke-widgets-alive.mjs": 1,
     "apps/karmolab/scripts/smoke-worldcup.mjs": 1,
     "apps/karmolab/scripts/test-arcade.mjs": 1,
     "apps/karmolab/scripts/test-balance-drift.mjs": 2,
@@ -46,7 +46,6 @@
     "apps/karmolab/src/widgets/arcade/length.ts": 3,
     "apps/karmolab/src/widgets/companion.ts": 14,
     "apps/karmolab/src/widgets/tools/duel.ts": 6,
-    "apps/play/scripts/smoke.mjs": 72,
     "packages/companion/assets/say-chunks.js": 2,
     "packages/companion/demo/face.mjs": 44,
     "packages/companion/scripts/live.mjs": 4,

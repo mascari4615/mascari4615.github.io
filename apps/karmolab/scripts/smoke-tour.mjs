@@ -138,8 +138,8 @@ for (let i = 1; i <= ROUNDS; i++) {
       }))
       .catch(() => ({ game2: '(창이 죽었다)', isDone: false, text: '', now: null, onEnd: null }));
     fail.push(
-      `${i}판이 안 끝났다 — 놀이 「${stopped.놀이}」 · 끝남표시 ${stopped.끝났나 ? '있음' : '없음'} · 화면: 「${stopped.말}」`
-        + ` · 대회 ${stopped.대회} · 창 시계 ${stopped.지금}ms · 이 판이 끝날 시각 ${stopped.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
+      `${i}판이 안 끝났다 — 놀이 「${stopped.놀이}」 · 끝남표시 ${stopped.끝났나 ? '있음' : '없음'} · 화면: 「${stopped.text}」`
+        + ` · 대회 ${stopped.대회} · 창 시계 ${stopped.now}ms · 이 판이 끝날 시각 ${stopped.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`
         + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(toWrap / 1000)}초 + 누른 횟수 ${Math.round(toWrap / shard)}회+)`
     );
     break;
