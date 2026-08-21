@@ -9,7 +9,7 @@
  *
  * 재는 것 넷 (봇은 자리마다 **같은** 함수다 — 그래서 자리별 차이가 곧 판의 기울기다):
  *  ① **자리 편향** — 1번 자리 승률이 공평한 몫(1/자리수)에서 얼마나 벗어나나
- *  ② **무승부율** — 봇끼리 늘 비기면 그 판은 사람에게도 밋밋하다
+ *  ② **drawRate** — 봇끼리 늘 비기면 그 판은 사람에게도 밋밋하다
  *  ③ **판 길이** — 진짜 몇 초짜리 놀이인가 (로비에 「30초/3분」을 적으려면 이 수가 있어야 한다)
  *  ④ **점수 폭** — 1등과 꼴찌가 얼마나 벌어지나 (0이면 이겨도 이긴 것 같지 않다)
  *
@@ -84,10 +84,10 @@ for (const g of GAMES) {
     /** 공평한 몫에서 가장 많이 벗어난 자리의 벗어난 폭 (0 = 완전 대칭) */
     slope: +Math.max(...share.map((s) => Math.abs(s - fair))).toFixed(3),
     drawRate: +(draws / argN).toFixed(3),
-    /* 씨앗을 바꿔도 판이 하나뿐이면 봇끼리는 **늘 같은 판**이다. 그런 판의 「기울기」는
+    /* 씨앗을 바꿔도 판이 하나뿐이면 봇끼리는 **늘 같은 판**이다. 그런 판의 「slope」는
        200판을 잰 것이 아니라 1판을 200번 적은 것이라 수로 믿으면 안 된다. */
     singleRound: seen.size === 1,
-    평균초: +(msSum / argN / 1000).toFixed(1),
+    avgSeconds: +(msSum / argN / 1000).toFixed(1),
     scoreSpread: +(gapSum / argN).toFixed(2),
     unfinished: stuck
   });
@@ -97,13 +97,13 @@ process.stderr.write('\n');
 
 rows.sort((a, b) => b.slope - a.slope);
 const pad = (s, w) => String(s).padEnd(w);
-console.log(pad('게임', 14) + pad('갈래', 8) + pad('자리', 5) + pad('기울기', 8) + pad('무승부', 8) + pad('평균초', 8) + '점수폭');
+console.log(pad('game', 14) + pad('갈래', 8) + pad('자리', 5) + pad('slope', 8) + pad('무승부', 8) + pad('avgSeconds', 8) + 'scoreSpread');
 for (const r of rows) {
-  console.log(pad(r.id, 14) + pad(r.kind, 8) + pad(r.seats, 5) + pad(r.slope, 8) + pad(r.drawRate, 8) + pad(r.평균초, 8) + r.scoreSpread);
+  console.log(pad(r.id, 14) + pad(r.kind, 8) + pad(r.seats, 5) + pad(r.slope, 8) + pad(r.drawRate, 8) + pad(r.avgSeconds, 8) + r.scoreSpread);
 }
 
 const doc = {
-  note: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade',
+  note: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·drawRate·판 길이. 다시 재기: npm run bench:arcade',
   measuredOn: new Date().toISOString().slice(0, 10),
   roundCount: argN,
   elapsedSec: +((Date.now() - t0) / 1000).toFixed(1),

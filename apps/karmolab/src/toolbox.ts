@@ -821,12 +821,12 @@ const Toolbox = (() => {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         });
-        if (state.커서) {
-            const el = root.querySelector('#' + CSS.escape(state.커서.id));
+        if (state.cursor) {
+            const el = root.querySelector('#' + CSS.escape(state.cursor.id));
             if (el && typeof el.focus === 'function') {
                 el.focus();
-                if (state.커서.start != null && typeof el.setSelectionRange === 'function') {
-                    try { el.setSelectionRange(state.커서.start, state.커서.end); } catch (_) { /* 커서를 못 두는 칸도 있다 */ }
+                if (state.cursor.start != null && typeof el.setSelectionRange === 'function') {
+                    try { el.setSelectionRange(state.cursor.start, state.cursor.end); } catch (_) { /* 커서를 못 두는 칸도 있다 */ }
                 }
             }
         }
