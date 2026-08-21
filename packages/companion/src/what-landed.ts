@@ -70,8 +70,26 @@ export function reactionTo(
 }
 
 /** 오간 말을 훑어 통한 것과 식은 것을 가려낸다. 오래된 것이 앞. */
+/**
+ * **가짜 두뇌가 한 말인가** (TASK-KAR-201).
+ *
+ * `echoBrain` 은 LLM 없이 코어가 도는지 보려고 만든 가짜 두뇌다 — 방금 들은 감각을
+ * 「(echo) …」 로 그대로 돌려준다. 그런데 그 되울림이 **얘가 한 말로 기억에 남았다.**
+ * 143회차에 세어 보니 **4516줄 중 128줄**이었고, 세 군데를 오염시키고 있었다:
+ *
+ *   ① 「조수님이 받아 준 내 말」 — 통한 말 본보기가 가짜 두뇌 것이다
+ *   ② 「말투가 굳었다」 판정 — 가짜 두뇌의 접두사를 얘 말버릇으로 오인한다
+ *   ③ 그 문장이 화면 감각을 그대로 옮긴 것이라 「창은 「Fa」」 같은 토막이 남는다 —
+ *      98회차의 「⠂ F만 띄워져 있네」와 같은 모양이다
+ */
+export function fromFakeBrain(text: string): boolean {
+  return /^\(echo\)\s+\S/.test(text.trim());
+}
+
 export function whatLanded(entries: readonly MemoryEntry[], options: LandingOptions = {}): Landing[] {
-  const talk = conversationOnly(entries, options);
+  /* 가짜 두뇌가 한 말은 얘 말이 아니다 — 이미 남은 128줄도 여기서 걸러진다. */
+  const talk = conversationOnly(entries, options)
+    .filter((one) => !(one.role === 'said' && fromFakeBrain(one.text)));
   const out: Landing[] = [];
   for (let i = 0; i < talk.length - 1; i += 1) {
     const measured = reactionTo(talk[i], talk[i + 1], options);
