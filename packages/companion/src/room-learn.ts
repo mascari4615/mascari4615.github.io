@@ -35,7 +35,7 @@ export interface 자리배움옵션 {
 
 export class learnSlot {
   private readonly 배운것 = new Map<string, 자리>();
-  private readonly 물어볼것 = new Set<string>();
+  private readonly toAsk = new Set<string>();
 
   constructor(private readonly options: 자리배움옵션 = {}) {
     if (options.path !== undefined && existsSync(options.path)) {
@@ -62,7 +62,7 @@ export class learnSlot {
     if (table !== null) return table;
     const learning = this.배운것.get(brief(title2));
     if (learning !== undefined) return learning;
-    if (this.물어보기있나) this.물어볼것.add(brief(title2));
+    if (this.물어보기있나) this.toAsk.add(brief(title2));
     return null;
   }
 
@@ -71,7 +71,7 @@ export class learnSlot {
   }
 
   get 밀린것(): number {
-    return this.물어볼것.size;
+    return this.toAsk.size;
   }
 
   get 아는수(): number {
@@ -85,9 +85,9 @@ export class learnSlot {
    */
   async reflect(atOnce = 10): Promise<number> {
     const ask2 = this.options.ask;
-    if (ask2 === undefined || this.물어볼것.size === 0) return 0;
-    const bundle = [...this.물어볼것].slice(0, atOnce);
-    for (const title3 of bundle) this.물어볼것.delete(title3); // 실패해도 무한히 다시 묻지 않는다
+    if (ask2 === undefined || this.toAsk.size === 0) return 0;
+    const bundle = [...this.toAsk].slice(0, atOnce);
+    for (const title3 of bundle) this.toAsk.delete(title3); // 실패해도 무한히 다시 묻지 않는다
 
     let answer: readonly (자리 | null)[] | null = null;
     try {

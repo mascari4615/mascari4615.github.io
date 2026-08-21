@@ -37,7 +37,7 @@ export interface 꺼낼까입력 {
 
 export interface 꺼낼것 {
   이름: string;
-  참은수: number;
+  heldCount: number;
   /** 두뇌에 얹을 한 줄. */
   말: string;
 }
@@ -70,13 +70,13 @@ function choose(input: 꺼낼까입력): 꺼낼것 | null {
   const candidates = input.재료
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')
-    .map((x) => ({ x, 참은수: input.얼마나참았나(x.name) }))
-    .filter((r) => r.참은수 >= threshold2)
-    .sort((a, b) => b.참은수 - a.참은수 || b.x.weight - a.x.weight)[0];
+    .map((x) => ({ x, heldCount: input.얼마나참았나(x.name) }))
+    .filter((r) => r.heldCount >= threshold2)
+    .sort((a, b) => b.heldCount - a.heldCount || b.x.weight - a.x.weight)[0];
   if (candidates === undefined) return null;
   return {
     이름: candidates.x.name,
-    참은수: candidates.참은수,
+    heldCount: candidates.heldCount,
     말:
       '대화가 식어 간다. **네가 먼저 꺼내라** — 아래 것을 지금 화제로 삼아라. ' +
       '조수님이 꺼낸 얘기에 곁가지로 붙이지 말고, 네가 하고 싶어서 꺼내는 것처럼. 짧아도 된다.\n' +

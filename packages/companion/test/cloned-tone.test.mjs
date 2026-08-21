@@ -11,13 +11,13 @@ function intercept() {
     sent.push(JSON.parse(init.body));
     return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
   };
-  return { 보낸것: sent, 되돌리기: () => { globalThis.fetch = original; } };
+  return { 보낸것: sent, restore: () => { globalThis.fetch = original; } };
 }
 
 const voice = () => clonedSpeech({ refAudioPath: 'ref.wav', refText: '참고' });
 
 test('결이 없으면 늘 하던 속도', async () => {
-  const { 보낸것, 되돌리기 } = intercept();
+  const { 보낸것, restore: 되돌리기 } = intercept();
   try {
     await voice().synthesize('안녕');
     assert.equal(보낸것[0].speed_factor, 1);
@@ -25,7 +25,7 @@ test('결이 없으면 늘 하던 속도', async () => {
 });
 
 test('처진 결은 느리게 — 결을 붙여 놓고 안 받으면 붙인 적 없는 것과 같다', async () => {
-  const { 보낸것, 되돌리기 } = intercept();
+  const { 보낸것, restore: 되돌리기 } = intercept();
   try {
     await voice().synthesize('안녕', 'cloned@처짐');
     assert.ok(보낸것[0].speed_factor < 1, `느려야 하는데 ${보낸것[0].speed_factor}`);
@@ -33,7 +33,7 @@ test('처진 결은 느리게 — 결을 붙여 놓고 안 받으면 붙인 적 
 });
 
 test('들뜬 결은 빠르게', async () => {
-  const { 보낸것, 되돌리기 } = intercept();
+  const { 보낸것, restore: 되돌리기 } = intercept();
   try {
     await voice().synthesize('안녕', 'cloned@들뜸');
     assert.ok(보낸것[0].speed_factor > 1);
@@ -41,7 +41,7 @@ test('들뜬 결은 빠르게', async () => {
 });
 
 test('모르는 결은 늘 하던 속도 — 엉뚱한 값이 들어와도 안 튄다', async () => {
-  const { 보낸것, 되돌리기 } = intercept();
+  const { 보낸것, restore: 되돌리기 } = intercept();
   try {
     await voice().synthesize('안녕', 'cloned@없는결');
     assert.equal(보낸것[0].speed_factor, 1);
@@ -50,7 +50,7 @@ test('모르는 결은 늘 하던 속도 — 엉뚱한 값이 들어와도 안 �
 
 test('네 결이 모두 이어져 있다 — 하나만 빠지면 그 마음만 안 들린다', async () => {
   for (const tone of Object.keys(moodSpeed)) {
-    const { 보낸것, 되돌리기 } = intercept();
+    const { 보낸것, restore: 되돌리기 } = intercept();
     try {
       await voice().synthesize('안녕', `cloned@${tone}`);
       assert.notEqual(보낸것[0].speed_factor, 1, `${tone} 이 안 이어졌다`);

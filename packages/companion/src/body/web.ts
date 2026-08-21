@@ -107,7 +107,7 @@ export interface WebBodyOptions {
  * 의존성 0: 기본 http + SSE 만 쓴다.
  */
 /** 창 몸 — 보통 몸에 더해, 알아챈 것을 밖에서 밀어 넣는 자리를 하나 더 갖는다. */
-export type WebBody = Body & { 알아챔: (what2: string) => void };
+export type WebBody = Body & { noticed: (what2: string) => void };
 
 /**
  * 이 기계에서 뜬 창인가 — 곁에서 붙는 다른 화면(KarmoLab 앱)만 들여보낸다.
@@ -815,7 +815,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
   /* 알아챈 것을 밖에서도 밀어 넣을 수 있게 내준다 — 인식은 여기서만 일어나지 않는다
      (자리 판단·사건 담기·재료 밀림은 전부 바깥에 있다). */
-  return { name: channel, sense, voice, 알아챔: noticed };
+  return { name: channel, sense, voice, noticed: noticed };
 }
 
 /**

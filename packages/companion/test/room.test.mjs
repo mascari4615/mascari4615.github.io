@@ -25,26 +25,26 @@ test('끼어들면 안 되는 것이 먼저다 — 통화 중에 뜬 게임 창�
 
 test('통화 중에는 먼저 말 안 건다', () => {
   const r = maySpeak('Zoom Meeting');
-  assert.equal(r.된다, false);
+  assert.equal(r.ok, false);
   assert.match(r.why, /통화/);
 });
 
 test('뭔가 보는 중에도 먼저 말 안 건다', () => {
-  assert.equal(maySpeak('영화 - Netflix').된다, false);
+  assert.equal(maySpeak('영화 - Netflix').ok, false);
 });
 
 test('만드는 중에는 말 걸어도 된다 — 곁에 있는 존재는 조용하기만 하면 안 된다', () => {
-  assert.equal(maySpeak('main.ts - Visual Studio Code').된다, true);
+  assert.equal(maySpeak('main.ts - Visual Studio Code').ok, true);
 });
 
 test('모르면 말 건다 — 몸 사리면 영영 조용해진다', () => {
   const r = maySpeak('알 수 없는 창');
-  assert.equal(r.된다, true);
+  assert.equal(r.ok, true);
   assert.match(r.why, /모르겠다/);
 });
 
 test('창 제목이 없어도 말 건다 — 화면을 못 봤다고 입을 닫으면 안 된다', () => {
-  assert.equal(maySpeak(null).된다, true);
+  assert.equal(maySpeak(null).ok, true);
 });
 
 // ── 자리에 맞는 결 ──────────────────────────────────────────────────

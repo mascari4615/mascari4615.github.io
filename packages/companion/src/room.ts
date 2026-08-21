@@ -77,11 +77,11 @@ export function whichSlot(title: string | null | undefined): 자리 {
  * **모르면 말 건다.** 여기서 몸을 사리면 얘는 영영 조용해진다 — 알 수 없는 창이 대부분이고,
  * 조용한 동반자는 없는 동반자다. 확실히 아닐 때만 막는다.
  */
-export function maySpeak(title: string | null | undefined): { 된다: boolean; why: string } {
+export function maySpeak(title: string | null | undefined): { ok: boolean; why: string } {
   const slot = whichSlot(title);
-  if (slot === '통화') return { 된다: false, why: '통화 중이다' };
-  if (slot === '보는중') return { 된다: false, why: '뭔가 보는 중이다' };
-  return { 된다: true, why: slot === null ? '무슨 자리인지 모르겠다' : `${slot}이라 괜찮다` };
+  if (slot === '통화') return { ok: false, why: '통화 중이다' };
+  if (slot === '보는중') return { ok: false, why: '뭔가 보는 중이다' };
+  return { ok: true, why: slot === null ? '무슨 자리인지 모르겠다' : `${slot}이라 괜찮다` };
 }
 
 /**

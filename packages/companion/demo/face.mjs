@@ -308,7 +308,7 @@ const memory =
 const episode = new EpisodeStore({
   path: join(home, '그때-그-일.json'),
   ask: askEnergy((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
-  log: (m) => { console.log(`[그때] ${m}`); web?.알아챔?.(`기억에 담았다 — ${m}`); },
+  log: (m) => { console.log(`[그때] ${m}`); web?.noticed?.(`기억에 담았다 — ${m}`); },
 });
 
 const learnedAt = new KnownStamps({ path: join(home, '아는-것-언제.json') });
@@ -351,12 +351,12 @@ const forceFollowUp = process.env.COMPANION_TOSSBACK_RETRY !== '0';
 const reflected = new reflection({
   path: join(home, '보아-온-것.json'),
   ask: askReflection((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
-  log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
+  log: (m) => { console.log(`[되새김] ${m}`); web?.noticed?.(`되새겼다 — ${m}`); },
 });
 const slotKnowledge = new learnSlot({
   path: join(home, '무슨-자리.json'),
   ask: askSlot((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
-  log: (m) => { console.log(`[자리] ${m}`); web?.알아챔?.(m); },
+  log: (m) => { console.log(`[자리] ${m}`); web?.noticed?.(m); },
 });
 // 잘못된 것 모으기 — 로그는 아무도 안 본다. 조수님이 볼 수 있어야 고쳐진다.
 const troubles = new Troubles({ path: join(home, '잘못된-것.json') });
@@ -382,7 +382,7 @@ function shouldTossBack() {
   const reason2 = skipReason({ recent: list2, justNow: justNow });
   // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
-  if (reason2 !== null) (console.log(`[공] 안 돌려준다 — ${reason2}`), web.알아챔(`공은 안 돌려준다 — ${reason2}`));
+  if (reason2 !== null) (console.log(`[공] 안 돌려준다 — ${reason2}`), web.noticed(`공은 안 돌려준다 — ${reason2}`));
   return reason2 === null;
 }
 /** 지금이 받아 줄 자리인가 — 재료 쪽과 관문 쪽이 **같은 자리에서** 판단하게. */
@@ -522,7 +522,7 @@ const touchCount = new TouchCount();
 const refillInterval = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
 const line3 = new 대사창고({
   path: join(home, '지어-둔-대꾸.json'),
-  누구: () => character?.name ?? null,
+  whom: () => character?.name ?? null,
   인격글: () => character?.instruction ?? null,
   지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
   log: (m) => console.log(m),
@@ -822,7 +822,7 @@ if (process.env.COMPANION_NUDGE !== '0') {
         /* 지금이 어떤 자리인지 보고 입을 연다. 통화 중에 끼어드는 건 그냥 사고다.
            모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
         const slot5 = maySpeak(lastWindowTitle);
-        if (slot5.된다 === false) {
+        if (slot5.ok === false) {
           console.log(`[먼저] 참았다 — ${slot5.why}`);
           return null;
         }
@@ -1069,7 +1069,7 @@ const companion = new Companion({
     if (pickedHead.why !== '') {
       headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
       console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.why}`);
-      web.알아챔(`머리를 크게 쓴다 — ${pickedHead.why}`);
+      web.noticed(`머리를 크게 쓴다 — ${pickedHead.why}`);
     }
     /* 두뇌에 실제로 뭐가 들어가는지 눈으로 본다 (`COMPANION_SHOW_MATERIAL=1`).
        「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
@@ -1200,8 +1200,8 @@ const companion = new Companion({
     };
     const first = topicFirst(topic);
     if (first !== null) {
-      console.log(`[먼저꺼냄] ${first.이름} (${first.참은수}번 참았다)`);
-      web.알아챔(`먼저 꺼낸다 — ${first.이름} (${first.참은수}번 참았다)`);
+      console.log(`[먼저꺼냄] ${first.이름} (${first.heldCount}번 참았다)`);
+      web.noticed(`먼저 꺼낸다 — ${first.이름} (${first.heldCount}번 참았다)`);
       // 다른 무엇보다 앞이다. 곁가지가 아니라 이번 turn 의 화제다.
       materials.push({ name: '먼저꺼냄', text: first.말, weight: 40 });
     } else {
@@ -1213,7 +1213,7 @@ const companion = new Companion({
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     queued.다음턴();
     const held = queued.요약();
-    if (held !== '') { console.log(`[밀림] ${held}`); web.알아챔(`하고 싶었는데 못 한 말 — ${held}`); }
+    if (held !== '') { console.log(`[밀림] ${held}`); web.noticed(`하고 싶었는데 못 한 말 — ${held}`); }
     if (shouldShow) {
       console.log('[재료]');
       for (const line6 of made.split('\n')) console.log(`  · ${line6}`);
@@ -1256,7 +1256,7 @@ const companion = new Companion({
          **바뀐 때만** 알린다. 같은 창을 보고 있는 동안 매번 알리면 대화가 덮인다. */
       if (seen !== lastWindowTitle) {
         const slot6 = slotKnowledge.읽기(seen);
-        web.알아챔(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${slot6 === null ? ' (무슨 자리인지 모르겠다)' : ` (${slot6})`}`);
+        web.noticed(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${slot6 === null ? ' (무슨 자리인지 모르겠다)' : ` (${slot6})`}`);
       }
       lastWindowTitle = seen;
       watching.saw(seen, report.sensation.at);
