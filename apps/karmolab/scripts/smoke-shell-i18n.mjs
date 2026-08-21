@@ -96,9 +96,21 @@ const consoleText = { en: 'en-US', 'en-tool': 'en-US', ja: 'ja-JP', 'ja-tool': '
 for (const [code, page] of PAGES) {
   const ctx = await browser.newContext({ locale: consoleText[code] || 'en-US' });
   const tab = await ctx.newPage();
-  await tab.goto(`http://127.0.0.1:${PORT}/${page}`, { waitUntil: 'domcontentloaded' });
+  const res = await tab.goto(`http://127.0.0.1:${PORT}/${page}`, { waitUntil: 'domcontentloaded' });
   /* 이름은 말 묶음이 온 뒤에 정해진다 — 받아오기가 끝날 시간을 준다. */
   await tab.waitForTimeout(3500);
+  /* ★ **여기서 0 은 「없다」가 아니라 「안 봤다」일 수 있다** (2026-08-21).
+   * 이 검사의 통과 조건이 <b>「보이는 한글 0개」</b>다. 그래서 장이 404 라 화면이 비면
+   * 0개가 나오고 <b>그대로 초록</b>이 된다 — 아무것도 안 보고 정상이라 적는 것이다.
+   * 오늘 옆 검사(`play-smoke`)가 딱 그 꼴로 없는 파일을 보고 있었다. 그쪽은 「카드가 0장」
+   * 같은 단이 있어 빨개졌지만, 여기는 <b>0이 곧 합격</b>이라 영영 안 들킨다.
+   * 그래서 잰 것이 있는지부터 본다 — 없으면 초록·빨강 어느 쪽으로도 적지 않는다. */
+  const bodyLen = await tab.evaluate(() => (document.body?.innerText || '').trim().length);
+  if (!res || res.status() !== 200 || bodyLen < 200) {
+    console.error(`[shell-i18n] CANNOT-RUN: ${page} 를 못 열었다 (http ${res && res.status()} · 글 ${bodyLen}자).`);
+    console.error('  이건 「한글이 안 샌다」가 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
+    process.exit(2);
+  }
   found[code] = (await visibleKorean(tab)).sort();
   await tab.close();
   await ctx.close();
