@@ -850,10 +850,29 @@
     if (!ws) connect(); else startRtc();
     paint();
     paintWay();
+    // 폰이 자기 상태를 서버에 알린다 — 유니티 콘솔은 밖에서 못 읽고 조종석은 사람 눈에만
+    // 보이므로, /diag 로 **양쪽**을 한 자리에서 보려면 폰 쪽 사실도 올라가야 한다.
+    sendDiag();
+    if (diagTimer === null) diagTimer = setInterval(sendDiag, 5000);
+  }
+
+  let diagTimer = null;
+
+  function sendDiag() {
+    if (!ws || ws.readyState !== 1) return;
+    const o = (screen.orientation && screen.orientation.type) || '?';
+    const a = (screen.orientation && screen.orientation.angle);
+    const way = rtcVideo ? 'webrtc' : (usingRtc() ? 'webrtc-pose' : 'mjpeg');
+    // 칸에 | 가 들어가면 규약이 깨진다 — 안전한 글자만 보낸다.
+    const safe = v => String(v).replace(/[|]/g, '/');
+    ws.send(['d', safe(mode || '-'), safe(xrWay || '-'), safe(gripChoice),
+             safe(o), safe(a), `${innerWidth}x${innerHeight}`, safe(way),
+             safe(frameW + 'x' + frameH)].join('|'));
   }
 
   function stop() {
     running = false;
+    if (diagTimer !== null) { clearInterval(diagTimer); diagTimer = null; }
     removeEventListener('deviceorientation', onDeviceOrientation, true);
     if (xrSession) { const s = xrSession; xrSession = null; s.end().catch(() => {}); }
     $('start').classList.remove('gone');

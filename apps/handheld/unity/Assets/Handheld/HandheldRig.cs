@@ -227,6 +227,24 @@ namespace Handheld
             _rt == null ? "아직 폰이 안 붙었다"
             : $"{_rtW}×{_rtH} · {_fpsShown:0.0} fps · {_lastKb} KB · 포즈 {_poseHzShown:0} Hz · 틱 {_tickHzShown:0} Hz · 캡처요청 {_captureHzShown:0} Hz";
 
+        /// <summary>진단 창구(/diag)가 읽는 수치 한 벌. 사람 눈이 아니라 기계가 읽는다.</summary>
+        public string DiagJson()
+        {
+            var c = System.Globalization.CultureInfo.InvariantCulture;
+            return string.Format(c,
+                "\"fps\":{0:F1},\"poseHz\":{1:F1},\"tickHz\":{2:F1},\"captureHz\":{3:F1},"
+                + "\"kb\":{4},\"rt\":\"{5}x{6}\",\"zoom\":{7:F2},\"focalMm\":{8:F0},"
+                + "\"focus\":{9:F2},\"focusHit\":{10},\"everGotPose\":{11},\"sixDof\":{12},"
+                + "\"gripRoll\":{13:F0},\"phoneAspect\":{14:F3},\"camPos\":\"{15:F2},{16:F2},{17:F2}\","
+                + "\"camYaw\":{18:F1}",
+                _fpsShown, _poseHzShown, _tickHzShown, _captureHzShown,
+                _lastKb, _rtW, _rtH, _zoomShown, FocalLengthMm,
+                _focusShownDist, _focusHit ? 1 : 0, _everGotPose ? 1 : 0, _pose.SixDof ? 1 : 0,
+                _pose.GripRoll, _pose.Aspect,
+                transform.position.x, transform.position.y, transform.position.z,
+                transform.eulerAngles.y);
+        }
+
         /// <summary>조종석 창에 띄우는 렌즈 한 줄.</summary>
         public string LensLine =>
             _cam == null ? "—"
@@ -291,6 +309,7 @@ namespace Handheld
         public void ManualTick(bool renderManually)
         {
             if (server == null) { server = FindAnyObjectByType<HandheldServer>(); if (server == null) return; }
+            if (server.rig != this) server.rig = this;      // 진단 창구가 이 수치를 읽는다
             if (_cam == null) _cam = GetComponent<Camera>();
 
             double now = Now;
