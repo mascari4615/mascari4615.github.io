@@ -273,6 +273,9 @@ namespace Handheld
         /// <summary>마지막 초점 시도가 뭔가를 맞췄나. 허공을 탭하면 false.</summary>
         public bool FocusHit => _focusHit;
 
+        /// <summary>지금 카메라의 세로 화각 (도). 밖으로 자세를 내보낼 때 이 값을 쓴다.</summary>
+        public float FovY => _cam != null ? _cam.fieldOfView : 0f;
+
         /// <summary>지금 렌즈의 초점거리 (mm). 물리 카메라가 꺼져 있으면 0.</summary>
         public float FocalLengthMm =>
             _cam != null && _cam.usePhysicalProperties ? _cam.focalLength : 0f;
