@@ -1,0 +1,14 @@
+{
+    "name": "Karmo.Handheld.Editor",
+    "rootNamespace": "Handheld.EditorTools",
+    "references": [ "Karmo.Handheld", "Karmo.Handheld.Core" ],
+    "includePlatforms": [ "Editor" ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

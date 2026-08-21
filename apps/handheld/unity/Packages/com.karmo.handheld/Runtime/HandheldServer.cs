@@ -35,6 +35,10 @@ namespace Handheld
         [Tooltip("http://localhost:<port>/ 로 폰 페이지가 뜬다. cloudflared 로 이 포트를 https 로 노출한다.")]
         public int port = 8842;
 
+        [Tooltip("폰이 여는 페이지. 패키지 안 Runtime/Web/phone-page.html.txt 다. " +
+                 "에디터에서는 비워 두면 알아서 찾는다 — 빌드에는 반드시 박혀 있어야 한다.")]
+        public TextAsset phonePage;
+
         [Header("디버그")]
         public bool logToConsole = true;
 
@@ -421,28 +425,41 @@ namespace Handheld
                 return;
             }
 
-            if (path == "/") path = "/index.html";
-            string root = Path.Combine(Application.streamingAssetsPath, "handheld");
-            string full = Path.GetFullPath(Path.Combine(root, path.TrimStart('/')));
-
-            // 경로 탈출 차단
-            if (!full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase) || !File.Exists(full))
+            // 폰 페이지는 패키지 안에 든 한 장뿐이다. 디스크를 뒤지지 않으므로
+            // 경로 탈출 방어도, MIME 표도, StreamingAssets 도 필요 없다.
+            if (path == "/" || path == "/index.html")
             {
-                WriteResponse(stream, "404 Not Found", "text/plain; charset=utf-8", Encoding.UTF8.GetBytes("없다: " + path));
+                var page = PhonePageHtml;
+                if (page == null)
+                {
+                    WriteResponse(stream, "500 Internal Server Error", "text/plain; charset=utf-8",
+                        Encoding.UTF8.GetBytes("폰 페이지를 못 찾았다 — HandheldServer 의 phonePage 칸을 채워라"));
+                    return;
+                }
+                WriteResponse(stream, "200 OK", "text/html; charset=utf-8", Encoding.UTF8.GetBytes(page));
                 return;
             }
 
-            byte[] body;
-            try { body = File.ReadAllBytes(full); }
-            catch (Exception e)
-            {
-                WriteResponse(stream, "500 Internal Server Error", "text/plain; charset=utf-8", Encoding.UTF8.GetBytes(e.Message));
-                return;
-            }
-            WriteResponse(stream, "200 OK", MimeOf(full), body);
+            WriteResponse(stream, "404 Not Found", "text/plain; charset=utf-8",
+                Encoding.UTF8.GetBytes("없다: " + path));
         }
 
         /// <summary>지금 상태 한 벌 (JSON). 사람 눈이 아니라 기계가 읽는다.</summary>
+        const string PhonePagePath = "Packages/com.karmo.handheld/Runtime/Web/phone-page.html.txt";
+
+        /// <summary>폰에 내려보낼 페이지. 없으면 에디터에서 한 번 찾아 채운다.</summary>
+        string PhonePageHtml
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (phonePage == null)
+                    phonePage = UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset>(PhonePagePath);
+#endif
+                return phonePage != null ? phonePage.text : null;
+            }
+        }
+
         string DiagJson()
         {
             var c = CultureInfo.InvariantCulture;
@@ -472,20 +489,6 @@ namespace Handheld
             if (r != null) sb.Append(r.DiagJson());
             sb.Append("}}");
             return sb.ToString();
-        }
-
-        static string MimeOf(string p)
-        {
-            switch (Path.GetExtension(p).ToLowerInvariant())
-            {
-                case ".html": return "text/html; charset=utf-8";
-                case ".js": return "application/javascript; charset=utf-8";
-                case ".css": return "text/css; charset=utf-8";
-                case ".json": return "application/json; charset=utf-8";
-                case ".png": return "image/png";
-                case ".svg": return "image/svg+xml";
-                default: return "application/octet-stream";
-            }
         }
 
         static void WriteResponse(NetworkStream stream, string status, string mime, byte[] body)

@@ -1,0 +1,16 @@
+{
+  "name": "com.karmo.handheld",
+  "version": "0.1.0",
+  "displayName": "Karmo Handheld Camera",
+  "description": "폰을 손카메라로 쓰는 가상 카메라. WebXR 로 자세를 받아 유니티 카메라를 몰고, 뷰파인더를 폰으로 되쏜다. 앱 설치 없이 브라우저만 있으면 된다.",
+  "unity": "6000.0",
+  "keywords": ["camera", "virtual-camera", "webxr", "vtuber", "live-capture"],
+  "author": { "name": "Mascari4615" },
+  "dependencies": {
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.physics": "1.0.0"
+  },
+  "samples": []
+}

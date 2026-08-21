@@ -1,7 +1,7 @@
 {
-    "name": "Handheld.Core",
+    "name": "Karmo.Handheld",
     "rootNamespace": "Handheld",
-    "references": [],
+    "references": [ "Karmo.Handheld.Core", "Unity.WebRTC" ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
