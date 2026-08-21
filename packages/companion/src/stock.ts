@@ -23,7 +23,7 @@ export interface StockOptions {
   /** 담아 둘 파일. 없으면 이 프로세스에서만 산다. */
   path?: string;
   /** 두뇌에게 지어 달라고 하는 자리. null = 못 지었다. */
-  지어오기: (prompt: string) => Promise<string | null>;
+  fetchBuilt: (prompt: string) => Promise<string | null>;
   /** 지금 누구인가 — 인격이 바뀌면 앞 인격이 지은 말은 안 쓴다. */
   whom?: () => string | null;
   /**
@@ -66,7 +66,7 @@ export function select(raw: string, maxChars2 = 20): string[] {
 }
 
 export class lineStore {
-  private readonly 담김 = new Map<string, 담긴것>();
+  private readonly stored = new Map<string, 담긴것>();
   private readonly 채우는중 = new Set<string>();
   private readonly max: number;
   private readonly maxChars: number;
@@ -89,7 +89,7 @@ export class lineStore {
     try {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, 담긴것>;
       for (const [kind, value] of Object.entries(parsed)) {
-        if (Array.isArray(value?.말들)) this.담김.set(kind, { whom: value.whom ?? '', 말들: [...value.말들] });
+        if (Array.isArray(value?.말들)) this.stored.set(kind, { whom: value.whom ?? '', 말들: [...value.말들] });
       }
     } catch {
       // 깨진 파일 하나 때문에 얘가 못 뜨면 안 된다 — 없는 셈 치고 다시 채운다.
@@ -101,7 +101,7 @@ export class lineStore {
     if (path === undefined) return;
     try {
       mkdirSync(dirname(path), { recursive: true });
-      writeFileSync(path, JSON.stringify(Object.fromEntries(this.담김), null, 2), 'utf8');
+      writeFileSync(path, JSON.stringify(Object.fromEntries(this.stored), null, 2), 'utf8');
     } catch {
       // 못 남겨도 이번 판은 멀쩡하다. 다음에 다시 지으면 된다.
     }
@@ -109,7 +109,7 @@ export class lineStore {
 
   /** 이 갈래에 지금 몇 개 담겨 있나 (지금 인격 것만 센다). */
   remaining(kind2: string): number {
-    const item = this.담김.get(kind2);
+    const item = this.stored.get(kind2);
     if (item === undefined || item.whom !== this.지금누구) return 0;
     return item.말들.length;
   }
@@ -119,7 +119,7 @@ export class lineStore {
    * 비었으면 `null` — 부르는 쪽이 손으로 적어 둔 표로 물러선다.
    */
   raise(kind3: string): string | null {
-    const item2 = this.담김.get(kind3);
+    const item2 = this.stored.get(kind3);
     if (item2 === undefined || item2.whom !== this.지금누구 || item2.말들.length === 0) return null;
     const text = item2.말들.shift() as string;
     this.쓰기();
@@ -132,7 +132,7 @@ export class lineStore {
    *
    * 같은 갈래를 두 번 겹쳐 채우지 않는다(느린 두뇌를 여러 번 부르면 진짜 대답이 밀린다).
    */
-  async 채우기(kind4: string, request: string, goal = this.max): Promise<number> {
+  async fill(kind4: string, request: string, goal = this.max): Promise<number> {
     if (this.채우는중.has(kind4)) return 0;
     const now = this.remaining(kind4);
     if (now >= Math.min(goal, this.max)) return 0;
@@ -140,7 +140,7 @@ export class lineStore {
     try {
       const count = Math.min(goal, this.max) - now;
       const persona = this.options.personaText?.() ?? null;
-      const raw = await this.options.지어오기(
+      const raw = await this.options.fetchBuilt(
         [
           persona === null ? null : `${persona}\n\n---`,
           persona === null ? null : '위 인격 그대로, 아래 자리에서 할 말을 지어라.',
@@ -158,10 +158,10 @@ export class lineStore {
         this.log(`[대사] ${kind4} — 지어 온 게 다 걸러졌다: ${raw.trim().slice(0, 120).replace(/\n/g, ' / ')}`);
         return 0;
       }
-      const item3 = this.담김.get(kind4);
+      const item3 = this.stored.get(kind4);
       const already = item3 !== undefined && item3.whom === this.지금누구 ? item3.말들 : [];
       const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.max);
-      this.담김.set(kind4, { whom: this.지금누구, 말들: merged });
+      this.stored.set(kind4, { whom: this.지금누구, 말들: merged });
       this.쓰기();
       this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
       return toWrite.length;

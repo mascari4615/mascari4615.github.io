@@ -123,7 +123,7 @@ try {
         const box = document.getElementById(`page-${wid}`)
           || [...document.querySelectorAll('[id^="page-"]')].find((e) => getComputedStyle(e).display !== 'none');
         if (!box) return false;
-        if (box.querySelector('.karmolab-build-error')) return { dead: true, 말: box.querySelector('.karmolab-build-error').textContent.trim().slice(0, 60) };
+        if (box.querySelector('.karmolab-build-error')) return { dead: true, text: box.querySelector('.karmolab-build-error').textContent.trim().slice(0, 60) };
         return box.textContent.trim().length > 0 || box.querySelector('canvas, input, button, svg') ? { dead: false } : false;
       }, id, { timeout: 20000 })
       .then((h) => h.jsonValue())

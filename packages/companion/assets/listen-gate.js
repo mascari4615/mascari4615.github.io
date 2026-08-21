@@ -85,7 +85,7 @@ export class listenGate {
   }
 
   /** 얘가 말하기 시작했다 / 끝냈다. */
-  입(speaking, now) {
+  mouth(speaking, now) {
     if (this.얘가말하는중 === true && speaking === false) this.얘가말끝낸때 = now;
     this.얘가말하는중 = speaking;
   }

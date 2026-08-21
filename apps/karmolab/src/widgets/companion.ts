@@ -28,7 +28,7 @@ import { t, loadNamespace } from '../lib/i18n';
     windowAttached: number;
     body: '3D' | '큐브' | null;
     인격?: string | null;
-    머리?: string | null;
+    head?: string | null;
     목소리들?: string[];
     흉내준비?: boolean | null;
     흉내자동?: boolean;
@@ -151,7 +151,7 @@ import { t, loadNamespace } from '../lib/i18n';
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
               { 이름: t('companion.t13'), 값: st.body ?? t('companion.t14'), warn: st.body === t('companion.t15') },
               { 이름: t('companion.t16'), 값: st.인격 ?? t('companion.t17') },
-              { 이름: t('companion.t18'), 값: st.머리 ?? t('companion.t14') },
+              { 이름: t('companion.t18'), 값: st.head ?? t('companion.t14') },
             ];
             if (Array.isArray(st.목소리들)) {
               const hasStub = st.목소리들.includes(t('companion.t19'));

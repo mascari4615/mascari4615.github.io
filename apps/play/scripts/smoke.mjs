@@ -94,7 +94,7 @@ async function common(page, id, label) {
     const css = getComputedStyle(document.documentElement);
     return {
       줄: st ? Math.round(st.getBoundingClientRect().height) : 0,
-      지금: now ? now.textContent.trim() : '',
+      now: now ? now.textContent.trim() : '',
       바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       켜진칩: now ? getComputedStyle(now).color : '',
       링크: [...(st ? st.querySelectorAll('a') : [])].length
@@ -167,7 +167,7 @@ async function brandBg(page) {
   say(r.판칩 >= 2, `higher: 고를 판이 ${r.판칩}개뿐이다`);
   await page.click('.hi-side');
   await page.waitForTimeout(700);
-  const after = await page.evaluate(() => ({ revealValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', 말: (document.getElementById('hiMsg')?.textContent || '').trim() }));
+  const after = await page.evaluate(() => ({ revealValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', text: (document.getElementById('hiMsg')?.textContent || '').trim() }));
   say(after.값공개 && after.말.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
 
   /* 이 놀이의 문법 자체 — 이긴 쪽이 자리에 남아야 방금 본 값과 계속 견줄 수 있다.
@@ -378,7 +378,7 @@ async function brandBg(page) {
     .waitForFunction((n) => document.querySelectorAll('.pk-item').length === n + 1, initialCount, { timeout: 10000 })
     .catch(() => {});
   const made = await page.evaluate(() => ({
-    말: (document.getElementById('pkMsg')?.textContent || '').trim(),
+    text: (document.getElementById('pkMsg')?.textContent || '').trim(),
     개수: document.querySelectorAll('.pk-item').length
   }));
   say(made.개수 === initialCount + 1 && /만들었습니다/.test(made.말),

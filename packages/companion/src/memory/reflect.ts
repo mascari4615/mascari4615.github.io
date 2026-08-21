@@ -42,7 +42,7 @@ export interface 되새김옵션 {
 }
 
 export class reflection {
-  private 목록: 깨달음[] = [];
+  private list: 깨달음[] = [];
   private 센말 = 0;
   private readonly options: Required<Pick<되새김옵션, 'keep' | '마다'>> & 되새김옵션;
 
@@ -51,7 +51,7 @@ export class reflection {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as 깨달음[];
-        if (Array.isArray(raw)) this.목록 = raw.filter((x) => typeof x?.what === 'string');
+        if (Array.isArray(raw)) this.list = raw.filter((x) => typeof x?.what === 'string');
       } catch {
         // 깨진 파일 때문에 대화가 멈추면 안 된다.
       }
@@ -59,7 +59,7 @@ export class reflection {
   }
 
   get all(): readonly 깨달음[] {
-    return this.목록;
+    return this.list;
   }
 
   /** 사람 말이 몇 마디 더 쌓였다. 되새길 때가 됐으면 true. */
@@ -86,7 +86,7 @@ export class reflection {
 
     let produced: readonly 깨달음[] | null = null;
     try {
-      produced = await ask2(exchange3, this.목록.map((x) => x.what));
+      produced = await ask2(exchange3, this.list.map((x) => x.what));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -103,13 +103,13 @@ export class reflection {
         continue;
       }
       if (this.있나(what)) continue;
-      this.목록.push({ what: what, evidence: evidence, at: x?.at ?? Date.now() });
+      this.list.push({ what: what, evidence: evidence, at: x?.at ?? Date.now() });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
-    if (this.목록.length > this.options.keep) this.목록 = this.목록.slice(-this.options.keep);
+    if (this.list.length > this.options.keep) this.list = this.list.slice(-this.options.keep);
     this.save();
-    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.목록.slice(-storedCount).map((x) => x.what).join(' / ')}`);
+    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.list.slice(-storedCount).map((x) => x.what).join(' / ')}`);
     return storedCount;
   }
 
@@ -117,16 +117,16 @@ export class reflection {
   private 있나(what2: string): boolean {
     const fresh = new Set(word(what2));
     if (fresh.size === 0) return false;
-    return this.목록.some((existing) => {
+    return this.list.some((existing) => {
       const overlap = word(existing.what).filter((w) => fresh.has(w)).length;
       return overlap >= Math.max(2, Math.floor(fresh.size * 0.6));
     });
   }
 
   forget(chunk: string): boolean {
-    const before = this.목록.length;
-    this.목록 = this.목록.filter((x) => x.what.includes(chunk) === false);
-    if (this.목록.length === before) return false;
+    const before = this.list.length;
+    this.list = this.list.filter((x) => x.what.includes(chunk) === false);
+    if (this.list.length === before) return false;
     this.save();
     return true;
   }
@@ -135,7 +135,7 @@ export class reflection {
     if (this.options.path === undefined) return;
     try {
       mkdirSync(dirname(this.options.path), { recursive: true });
-      writeFileSync(this.options.path, JSON.stringify(this.목록, null, 1), 'utf8');
+      writeFileSync(this.options.path, JSON.stringify(this.list, null, 1), 'utf8');
     } catch {
       // 못 남겨도 이번 판에서는 안다.
     }

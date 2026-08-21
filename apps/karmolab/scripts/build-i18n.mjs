@@ -402,7 +402,7 @@ if (CHECK && regionDrift) {
   const baselinePath = path.join(APP_ROOT, 'data/i18n-missing-baseline.json');
   const current = Object.fromEntries(report.map((r) => [r.code, r.missing.length]));
   if (process.argv.includes('--baseline')) {
-    fs.writeFileSync(baselinePath, JSON.stringify({ 목록: current }, null, 2) + String.fromCharCode(10), 'utf8');
+    fs.writeFileSync(baselinePath, JSON.stringify({ list: current }, null, 2) + String.fromCharCode(10), 'utf8');
     console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(current));
   } else if (CHECK && fs.existsSync(baselinePath)) {
     const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')).목록 || {};

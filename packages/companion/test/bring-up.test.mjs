@@ -14,8 +14,8 @@ const base = { material: material, 얼마나참았나: (n) => heldMark[n] ?? 0, 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
   const r = topicFirst(base);
   assert.equal(r?.이름, '단골얘기');
-  assert.match(r.말, /네가 먼저 꺼내라/);
-  assert.match(r.말, /셰이더/, '꺼낼 내용이 같이 넘어가야 한다');
+  assert.match(r.text, /네가 먼저 꺼내라/);
+  assert.match(r.text, /셰이더/, '꺼낼 내용이 같이 넘어가야 한다');
 });
 
 test('한창일 때는 안 꺼낸다 — 끼어드는 건 방해다', () => {

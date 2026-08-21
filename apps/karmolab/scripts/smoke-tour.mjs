@@ -124,19 +124,19 @@ for (let i = 1; i <= ROUNDS; i++) {
       .evaluate(() => ({
         놀이: window.__arcade?.game ?? '(모름)',
         끝났나: !!window.__arcade?.finished,
-        말: (document.querySelector('#acStatus')?.textContent || '').slice(0, 60),
+        text: (document.querySelector('#acStatus')?.textContent || '').slice(0, 60),
         /* ★ **시계가 갔는지부터 봐야 한다** (2026-08-17). 이 검사는 6분을 감아 「어떤 놀이든 제
            시간 제한에 닿는다」고 가정한다. 그런데 놀이마다 제한이 25초~300초로 다르고, 판이
            스스로 끝나는 것은 그 놀이의 `tick` 이 **불려야** 일어난다. 안 끝났을 때 그 둘을 모르면
            「누가 범인인가」에서 또 추측이 시작된다 — 감긴 시각과 끝날 시각을 같이 들고 나간다. */
-        지금: Math.round(performance.now()),
+        now: Math.round(performance.now()),
         끝날때: window.__arcade?.endsAt ?? null,
         /* ★ **대회가 아직 서 있나** (2026-08-17). CI 가 남긴 줄은 「화면: 1 / 1 판」이었는데
            내 자리에서 같은 자리는 「5/5판」이다 — 그렇다면 그 판은 대회가 **닫힌 뒤**였다는 뜻이다
            (누가 흐름 단추를 눌렀거나 대회가 먼저 끝났거나). 그 둘은 고치는 곳이 다르므로 갈라야 한다. */
         tournament: window.__arcade?.tour ? `${window.__arcade.tour.at + 1}/${window.__arcade.tour.games?.length ?? '?'}판` : '없음(대회가 닫혔다)',
       }))
-      .catch(() => ({ 놀이: '(창이 죽었다)', 끝났나: false, 말: '', 지금: null, 끝날때: null }));
+      .catch(() => ({ 놀이: '(창이 죽었다)', 끝났나: false, text: '', now: null, 끝날때: null }));
     fail.push(
       `${i}판이 안 끝났다 — 놀이 「${stopped.놀이}」 · 끝남표시 ${stopped.끝났나 ? '있음' : '없음'} · 화면: 「${stopped.말}」`
         + ` · 대회 ${stopped.대회} · 창 시계 ${stopped.지금}ms · 이 판이 끝날 시각 ${stopped.끝날때 ?? '(그 놀이는 시간 제한이 없다)'}`

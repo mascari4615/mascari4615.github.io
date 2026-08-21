@@ -116,7 +116,7 @@ const BASELINE = path.join(root, 'data/i18n-namespace-load.json');
 const keyOf = (line) => line.split(' — ')[0] + ' :: ' + (line.match(/'([a-z0-9-]+)'/i) || [])[1];
 const found = bad.map(keyOf);
 if (process.argv.includes('--update')) {
-  fs.writeFileSync(BASELINE, JSON.stringify({ note: '아직 안 고친 자리 — 새로 생기는 것만 막는다', 목록: found.sort() }, null, 2) + String.fromCharCode(10));
+  fs.writeFileSync(BASELINE, JSON.stringify({ note: '아직 안 고친 자리 — 새로 생기는 것만 막는다', list: found.sort() }, null, 2) + String.fromCharCode(10));
   console.log(`[i18n-load] 기준선 갱신 — ${found.length}개`);
   process.exit(0);
 }

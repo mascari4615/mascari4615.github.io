@@ -5,23 +5,23 @@ import { whichHead, attachHead } from '../dist/index.js';
 
 test('평소에는 작은 머리 — 곁에 있는 존재는 빨라야 한다', () => {
   const r = whichHead({});
-  assert.equal(r.머리, 'haiku');
+  assert.equal(r.head, 'haiku');
   assert.equal(r.why, '');
 });
 
 test('길게 털어놨으면 큰 머리 — 작은 머리는 실측에서 14자, 큰 머리는 33자였다', () => {
   const r = whichHead({ acceptSlot: true });
-  assert.equal(r.머리, 'sonnet');
+  assert.equal(r.head, 'sonnet');
   assert.match(r.why, /길게 털어놨/);
 });
 
 test('공을 돌려줄 자리도 큰 머리 — 되묻기가 안 되던 것도 같은 자리였다', () => {
-  assert.equal(whichHead({ tossSlot: true }).머리, 'sonnet');
+  assert.equal(whichHead({ tossSlot: true }).head, 'sonnet');
 });
 
 test('얘 자신을 물었을 때와 옛일이 걸렸을 때도 큰 머리', () => {
-  assert.equal(whichHead({ selfTalk: true }).머리, 'sonnet');
-  assert.equal(whichHead({ hasPastEvent: true }).머리, 'sonnet');
+  assert.equal(whichHead({ selfTalk: true }).head, 'sonnet');
+  assert.equal(whichHead({ hasPastEvent: true }).head, 'sonnet');
 });
 
 test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이 못 읽힌다', () => {
@@ -31,8 +31,8 @@ test('여러 개가 겹쳐도 이유는 하나만 — 여러 줄이면 기록이
 });
 
 test('어느 머리를 쓸지 밖에서 정할 수 있다 — 사람마다 쓸 수 있는 머리가 다르다', () => {
-  assert.equal(whichHead({ acceptSlot: true }, { largeHead: 'opus' }).머리, 'opus');
-  assert.equal(whichHead({}, { smallHead: 'sonnet' }).머리, 'sonnet');
+  assert.equal(whichHead({ acceptSlot: true }, { largeHead: 'opus' }).head, 'opus');
+  assert.equal(whichHead({}, { smallHead: 'sonnet' }).head, 'sonnet');
 });
 
 // ── 끼웠으면 되돌린다 ─────────────────────────────────────────────

@@ -79,7 +79,7 @@ function worthAsking(text: string): boolean {
 }
 
 export class EpisodeStore {
-  private 목록: Episode[] = [];
+  private list: Episode[] = [];
   /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (말 → 그때 시각). */
   private readonly toAsk = new Map<string, number>();
   private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | '문턱'>> & EpisodeStoreOptions;
@@ -89,7 +89,7 @@ export class EpisodeStore {
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Episode[];
-        if (Array.isArray(raw)) this.목록 = raw.filter((e) => typeof e?.said === 'string');
+        if (Array.isArray(raw)) this.list = raw.filter((e) => typeof e?.said === 'string');
       } catch {
         // 깨진 파일 때문에 대화가 멈추면 안 된다.
       }
@@ -97,7 +97,7 @@ export class EpisodeStore {
   }
 
   get all(): readonly Episode[] {
-    return this.목록;
+    return this.list;
   }
 
   /**
@@ -128,21 +128,21 @@ export class EpisodeStore {
   /** 이 말이 이미 사건으로 들어와 있나. */
   private 있나(text: string): boolean {
     const text4 = text.trim();
-    return this.목록.some((existing) => existing.said === text4);
+    return this.list.some((existing) => existing.said === text4);
   }
 
   private store(e: Episode): void {
-    this.목록.push(e);
+    this.list.push(e);
   }
 
   private tidy(): void {
     // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
     // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
-    if (this.목록.length > this.options.keep) {
-      this.목록.sort((a, b) => b.기운 - a.기운 || b.at - a.at);
-      this.목록 = this.목록.slice(0, this.options.keep);
+    if (this.list.length > this.options.keep) {
+      this.list.sort((a, b) => b.기운 - a.기운 || b.at - a.at);
+      this.list = this.list.slice(0, this.options.keep);
     }
-    this.목록.sort((a, b) => a.at - b.at);
+    this.list.sort((a, b) => a.at - b.at);
     this.save();
   }
 
@@ -195,7 +195,7 @@ export class EpisodeStore {
     if (word.length === 0) return null;
     let most = null as Episode | null;
     let topScore = -1;
-    for (const e of this.목록) {
+    for (const e of this.list) {
       const overlap = overlapCount(word, e.said);
       if (overlap < minOverlap) continue;
       const score2 = recallScore(e, word.length, overlap, now);
@@ -205,9 +205,9 @@ export class EpisodeStore {
   }
 
   forget(chunk: string): boolean {
-    const before = this.목록.length;
-    this.목록 = this.목록.filter((e) => e.said.includes(chunk) === false);
-    if (this.목록.length === before) return false;
+    const before = this.list.length;
+    this.list = this.list.filter((e) => e.said.includes(chunk) === false);
+    if (this.list.length === before) return false;
     this.save();
     return true;
   }
@@ -216,7 +216,7 @@ export class EpisodeStore {
     if (this.options.path === undefined) return;
     try {
       mkdirSync(dirname(this.options.path), { recursive: true });
-      writeFileSync(this.options.path, JSON.stringify(this.목록, null, 1), 'utf8');
+      writeFileSync(this.options.path, JSON.stringify(this.list, null, 1), 'utf8');
     } catch {
       // 못 남겨도 이번 판에서는 안다.
     }

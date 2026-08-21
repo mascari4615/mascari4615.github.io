@@ -50,7 +50,7 @@ export function similarity(a: readonly number[], b: readonly number[]): number {
 }
 
 export class meaningMemory {
-  private readonly 담김: 담긴줄[] = [];
+  private readonly stored: 담긴줄[] = [];
   private readonly max: number;
   private readonly 문턱: number;
   private readonly log: (message: string) => void;
@@ -64,7 +64,7 @@ export class meaningMemory {
   }
 
   get 담긴수(): number {
-    return this.담김.length;
+    return this.stored.length;
   }
 
   private 읽기(): void {
@@ -74,7 +74,7 @@ export class meaningMemory {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as 담긴줄[];
       if (Array.isArray(parsed)) {
         for (const line of parsed) {
-          if (typeof line?.text === 'string' && Array.isArray(line.v)) this.담김.push(line);
+          if (typeof line?.text === 'string' && Array.isArray(line.v)) this.stored.push(line);
         }
       }
     } catch {
@@ -87,7 +87,7 @@ export class meaningMemory {
     if (path === undefined) return;
     try {
       mkdirSync(dirname(path), { recursive: true });
-      writeFileSync(path, JSON.stringify(this.담김), 'utf8');
+      writeFileSync(path, JSON.stringify(this.stored), 'utf8');
     } catch {
       // 못 남겨도 이번 판은 멀쩡하다.
     }
@@ -95,7 +95,7 @@ export class meaningMemory {
 
   /** 이미 담긴 말인가. */
   private 있나(text: string): boolean {
-    return this.담김.some((line2) => line2.text === text);
+    return this.stored.some((line2) => line2.text === text);
   }
 
   /**
@@ -114,13 +114,13 @@ export class meaningMemory {
         if (content2.length < 6 || this.있나(content2)) continue;
         const v = await this.options.measure.measure(content2);
         if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
-        this.담김.push({ text: content2, at: e.at, v: [...v] });
+        this.stored.push({ text: content2, at: e.at, v: [...v] });
         storedCount += 1;
       }
-      if (this.담김.length > this.max) this.담김.splice(0, this.담김.length - this.max);
+      if (this.stored.length > this.max) this.stored.splice(0, this.stored.length - this.max);
       if (storedCount > 0) {
         this.쓰기();
-        this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.담김.length})`);
+        this.log(`뜻 색인에 ${storedCount}줄 담았다 (총 ${this.stored.length})`);
       }
     } finally {
       this.storing = false;
@@ -138,12 +138,12 @@ export class meaningMemory {
     options: { count?: number; toDrop?: ReadonlySet<string> } = {},
   ): Promise<{ text: string; similar: number }[]> {
     const content3 = question.trim();
-    if (content3.length < 2 || this.담김.length === 0) return [];
+    if (content3.length < 2 || this.stored.length === 0) return [];
     const v = await this.options.measure.measure(content3);
     if (v === null) return [];
 
     const toDrop = options.toDrop ?? new Set<string>();
-    return this.담김
+    return this.stored
       .filter((line3) => toDrop.has(line3.text) === false && line3.text !== content3)
       .map((line4) => ({ text: line4.text, similar: similarity(v, line4.v) }))
       .filter((r) => r.similar >= this.문턱)

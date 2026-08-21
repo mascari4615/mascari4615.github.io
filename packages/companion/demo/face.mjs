@@ -524,7 +524,7 @@ const line3 = new 대사창고({
   path: join(home, '지어-둔-대꾸.json'),
   whom: () => character?.name ?? null,
   personaText: () => character?.instruction ?? null,
-  지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
+  fetchBuilt: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
   log: (m) => console.log(m),
 });
 /** 목소리 상태를 곁눈질하는 화면이 읽어 갈 수 있게 밖에 둔다. */
@@ -568,7 +568,7 @@ function prefillReply() {
   const empty = slotsToFill().filter((slot4) => line3.remaining(slot4.key) < 4);
   const thisOne = empty[0];
   if (thisOne === undefined) return;
-  void line3.채우기(thisOne.key, thisOne.request, 6).catch(() => {});
+  void line3.fill(thisOne.key, thisOne.request, 6).catch(() => {});
   if (empty.length > 1) setTimeout(prefillReply, refillInterval).unref();
 }
 let lastEnergy = 0.5;
@@ -601,7 +601,7 @@ ${tallyReport(tally)}`;
      이었다 — 기록에만 남는 상태는 아무도 안 본다. */
   state: () => ({
     인격: character?.name ?? null,
-    머리: brain.currentModel ? brain.currentModel() : brain.name,
+    head: brain.currentModel ? brain.currentModel() : brain.name,
     목소리들: voiceList,
     흉내준비: stubBoot === null ? null : stubBoot.준비됐나,
     흉내자동: settings.on('애니목소리자동'),
@@ -704,7 +704,7 @@ ${tallyReport(tally)}`;
       engines.unshift({
         label: '흉내',
         // 고른 목소리로만 말한다 — 준비될 때까지 기다린다(조수님 결정: 대타 금지).
-        speech: 필요할때({ real: stub, 기동: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
+        speech: 필요할때({ real: stub, boot: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
       });
       console.log(
         (await stub.alive())
@@ -1067,8 +1067,8 @@ const companion = new Companion({
       hasPastEvent: episode.related(justSaid, 2, Date.now()) !== null,
     }, { largeHead: settings.get('큰머리') ?? 'sonnet' });
     if (pickedHead.why !== '') {
-      headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
-      console.log(`[머리] ${pickedHead.머리} 로 바꾼다 — ${pickedHead.why}`);
+      headToRestore = attachHead(brain, pickedHead.head, (m) => console.log(`[머리] ${m}`));
+      console.log(`[머리] ${pickedHead.head} 로 바꾼다 — ${pickedHead.why}`);
       web.noticed(`머리를 크게 쓴다 — ${pickedHead.why}`);
     }
     /* 두뇌에 실제로 뭐가 들어가는지 눈으로 본다 (`COMPANION_SHOW_MATERIAL=1`).
@@ -1203,7 +1203,7 @@ const companion = new Companion({
       console.log(`[먼저꺼냄] ${first.이름} (${first.heldCount}번 참았다)`);
       web.noticed(`먼저 꺼낸다 — ${first.이름} (${first.heldCount}번 참았다)`);
       // 다른 무엇보다 앞이다. 곁가지가 아니라 이번 turn 의 화제다.
-      materials.push({ name: '먼저꺼냄', text: first.말, weight: 40 });
+      materials.push({ name: '먼저꺼냄', text: first.text, weight: 40 });
     } else {
       const why2 = topicSkipReason(topic);
       if (why2 !== null && process.env.COMPANION_SHOW_MATERIAL === '1') console.log(`[먼저꺼냄] 안 꺼낸다 — ${why2}`);

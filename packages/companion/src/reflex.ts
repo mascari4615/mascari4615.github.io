@@ -68,11 +68,11 @@ const reply: Record<string, { 처짐: readonly string[]; 보통: readonly string
 };
 
 /** 딱 이 말들만 반사한다. 조금이라도 넓히면 얘가 성의 없어진다. */
-const rule: readonly { 종류: keyof typeof reply; 말: RegExp }[] = [
-  { 종류: '인사', 말: /^(안녕|하이|안뇽|왔어|나 왔어|안녕\?|여보세요)[!?.…\s]*$/ },
-  { 종류: '작별', 말: /^(잘\s?자|잘자|바이|굿나잇|자러\s?간다|나중에\s?봐|이따\s?봐|갔다\s?올게|다녀올게)[!?.…\s]*$/ },
-  { 종류: '고마움', 말: /^(고마워|고맙다|감사|땡큐|ㄱㅅ|고마웡)[!?.…\s]*$/ },
-  { 종류: '호응', 말: /^(응|ㅇㅇ|그래|ok|오케이|알겠어|넵|넹|ㅋㅋ+|ㅎㅎ+)[!?.…\s]*$/i },
+const rule: readonly { 종류: keyof typeof reply; text: RegExp }[] = [
+  { 종류: '인사', text: /^(안녕|하이|안뇽|왔어|나 왔어|안녕\?|여보세요)[!?.…\s]*$/ },
+  { 종류: '작별', text: /^(잘\s?자|잘자|바이|굿나잇|자러\s?간다|나중에\s?봐|이따\s?봐|갔다\s?올게|다녀올게)[!?.…\s]*$/ },
+  { 종류: '고마움', text: /^(고마워|고맙다|감사|땡큐|ㄱㅅ|고마웡)[!?.…\s]*$/ },
+  { 종류: '호응', text: /^(응|ㅇㅇ|그래|ok|오케이|알겠어|넵|넹|ㅋㅋ+|ㅎㅎ+)[!?.…\s]*$/i },
 ];
 
 /**
@@ -83,7 +83,7 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   // 길면 사연이 있는 말이다. 반사로 때우지 않는다.
   if (text.length === 0 || text.length > 12) return null;
 
-  const hit = rule.find((r) => r.말.test(text));
+  const hit = rule.find((r) => r.text.test(text));
   if (hit === undefined) return null;
 
   const energy = options.energy ?? 0.5;
