@@ -20,7 +20,14 @@ import { catalog } from './lib/locales.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
-const PORT = 8834;
+/* ★ **붙박이 자리는 남의 서버를 보게 만든다** (2026-08-21, 기전까지 재서 확인).
+   `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
+   <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
+   작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+const PORT = Number(process.env.PORT || 0);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
 /** 지역이 정하는 항목 한 개를 골라 그것만 본다 — 「보인다/안 보인다」가 뚜렷한 줄. */
@@ -50,6 +57,7 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(PORT, r));
+const PORT_IN_USE = server.address().port;
 
 const browser = await launchOrSkip('region');
 if (!browser) process.exit(0);
@@ -67,7 +75,7 @@ for (const c of CASES) {
   }, c.region);
 
   const tab = await ctx.newPage();
-  await tab.goto(`http://127.0.0.1:${PORT}/${c.page}`, { waitUntil: 'domcontentloaded' });
+  await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${c.page}`, { waitUntil: 'domcontentloaded' });
 
   const label = catalog(c.locale, 'birth')['birth.row.school'];
 
@@ -139,7 +147,7 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
       }
     }, c.region);
     const tab = await ctx.newPage();
-    await tab.goto(`http://127.0.0.1:${PORT}/${wdPage}`, { waitUntil: 'domcontentloaded' });
+    await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${wdPage}`, { waitUntil: 'domcontentloaded' });
 
     /* 「두 날짜 사이」로 바꾸고 그 나라 공휴일이 든 주를 넣는다. 값을 넣는 것으로는 도구가
        안 움직이므로(사람이 친 것만 듣는다) 바뀌었다고 알려 준다. */
@@ -200,7 +208,7 @@ if (fs.existsSync(path.join(repoRoot, bmiPage))) {
       }
     }, c.region);
     const tab = await ctx.newPage();
-    await tab.goto(`http://127.0.0.1:${PORT}/${bmiPage}`, { waitUntil: 'domcontentloaded' });
+    await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${bmiPage}`, { waitUntil: 'domcontentloaded' });
     const label = await tab
       .waitForFunction(() => {
         const el = document.querySelector('#tool-pages .tool-sublabel');
@@ -236,7 +244,7 @@ if (fs.existsSync(path.join(repoRoot, ucPage))) {
       }
     }, c.region);
     const tab = await ctx.newPage();
-    await tab.goto(`http://127.0.0.1:${PORT}/${ucPage}`, { waitUntil: 'domcontentloaded' });
+    await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${ucPage}`, { waitUntil: 'domcontentloaded' });
     const picked = await tab
       .waitForFunction(
         () => {
@@ -272,7 +280,7 @@ if (fs.existsSync(path.join(repoRoot, pacePage))) {
       }
     }, c.region);
     const tab = await ctx.newPage();
-    await tab.goto(`http://127.0.0.1:${PORT}/${pacePage}`, { waitUntil: 'domcontentloaded' });
+    await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${pacePage}`, { waitUntil: 'domcontentloaded' });
     const label = await tab
       .waitForFunction(() => {
         const el = document.querySelector('#tool-pages .tool-sublabel');

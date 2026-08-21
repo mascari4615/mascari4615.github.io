@@ -23,7 +23,14 @@ import { LOCALES as ENABLED_LOCALES, catalog } from './lib/locales.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
-const PORT = 8829;
+/* ★ **붙박이 자리는 남의 서버를 보게 만든다** (2026-08-21, 기전까지 재서 확인).
+   `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
+   <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
+   작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+const PORT = Number(process.env.PORT || 0);
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
@@ -49,6 +56,7 @@ const server = http.createServer((req, res) => {
 });
 
 await new Promise((r) => server.listen(PORT, r));
+const PORT_IN_USE = server.address().port;
 
 const browser = await launchOrSkip('lang-switch');
 if (!browser) process.exit(0);
@@ -60,7 +68,7 @@ page.on('console', (m) => {
 });
 
 const fail = [];
-const base = `http://127.0.0.1:${PORT}/apps/karmolab/index.html`;
+const base = `http://127.0.0.1:${PORT_IN_USE}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!document.getElementById('langBtn'), undefined, { timeout: 5000 });
 
@@ -148,7 +156,7 @@ if (real.length) fail.push('콘솔 오류: ' + real.slice(0, 3).join(' | '));
 for (const l of expected) {
   if (!l.prefix) continue;
   const tab = await browser.newPage();
-  await tab.goto(`http://127.0.0.1:${PORT}/apps/blog${l.prefix}/karmolab/index.html`, {
+  await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/apps/blog${l.prefix}/karmolab/index.html`, {
     waitUntil: 'domcontentloaded'
   });
   await tab.evaluate((id) => { window.__KL_LANG_SAMPLE = id; }, sample);
