@@ -848,18 +848,18 @@ if (process.env.COMPANION_NUDGE !== '0') {
   });
 }
 
+// 눈. 스스로 보기도 하고(감각), 물으면 지금 보이는 것을 내주기도 한다(99회차 이후).
+let eye = null;
 if (screenMs > 0) {
   // 화면을 보는 눈도 같은 방식으로 붙는다 — 눈은 여기, 입은 웹 창.
-  bodies.push({
-    name: 'screen',
-    sense: screenSense({
-      everyMs: screenMs,
-      // 사람이 방금 말을 걸었으면 이번 차례는 건너뛴다 — 화면 보기가 대답을 늦춘다.
-      okToLook: () => Date.now() - lastSpokenToAt > 30_000,
-      log: (m) => console.log(m),
-    }),
-    voice: web.voice,
+  eye = screenSense({
+    everyMs: screenMs,
+    // 사람이 방금 말을 걸었으면 이번 차례는 건너뛴다 — 화면 보기가 대답을 늦춘다.
+    okToLook: () => Date.now() - lastSpokenToAt > 30_000,
+    freshMs: Number(process.env.COMPANION_SEEING_FRESH_MS ?? '20000'),
+    log: (m) => console.log(m),
   });
+  bodies.push({ name: 'screen', sense: eye, voice: web.voice });
 }
 
 // 입 앞의 관문. 새면 한 번만 다시 시키고, 그래도 새면 짧게 넘긴다 —
@@ -987,6 +987,9 @@ const companion = new Companion({
   //
   // 두뇌더러 표를 적어 손을 부르라고 하면 인격과 부딪혀 아예 안 쓴다(42회차: 0/10).
   // 그래서 조수님 말을 보고 **우리가** 필요한 손을 미리 쓴다 — 판단을 두뇌에 안 맡긴다.
+  // 눈은 매 turn 뜬다 — 「화면에 뭐 보여?」에 창 제목으로 답하던 자리(99회차 라이브).
+  // 묵었으면 눈이 알아서 다시 찍는다.
+  seeing: eye === null ? undefined : () => eye.seeing(),
   recall: async (sensation, recent) => {
     const old = canSearch
       ? recallFrom((word, limit) => conversationMemory.search(word, limit))(sensation, recent)

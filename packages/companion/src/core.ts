@@ -76,6 +76,13 @@ export interface CompanionOptions {
     recent: readonly MemoryEntry[],
   ) => readonly string[] | Promise<readonly string[]>;
   /**
+   * 지금 눈에 보이는 것을 내주는 자리 — 매 turn 한 번 물어 두뇌 앞에 놓는다.
+   *
+   * 코어는 그림이 어디서 오는지 모른다(화면일 수도, 카메라일 수도). 없으면 없는 채로 간다.
+   * 오래 걸리면 대답이 그만큼 늦으므로, 내주는 쪽이 「묵었으면 새로 찍는다」까지 책임진다.
+   */
+  seeing?: () => string | null | Promise<string | null>;
+  /**
    * 답이 늦어질 때 낼 뜸을 골라 준다. 없으면 뜸을 안 낸다.
    *
    * 답을 빠르게 만드는 건 우리 손 밖이었다. 비어 있는 시간을 죽어 있지 않게 하는 건
@@ -290,6 +297,8 @@ export class Companion {
       character: this.options.character,
       mood: this.options.mood?.(recent),
       found: await this.options.recall?.(sensation, recent),
+      // 눈은 매 turn 뜬다 — 물어본 그 순간에 감겨 있으면 창 제목으로 답하게 된다.
+      seeing: (await this.options.seeing?.()) ?? null,
     };
 
     let decision;
