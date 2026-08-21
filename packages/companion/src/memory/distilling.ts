@@ -2,6 +2,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import { conversationOnly } from '../conversation';
+
+/** 줄 나누기·잇기에 쓰는 것 — 정규식을 코드 곳곳에 흩지 않는다. */
+const SPLIT_LINES = /\r?\n/;
+const NEWLINE = '\n';
 import { onlyKnowledge } from './known-clean';
 import type { Memory, MemoryEntry } from '../types';
 
@@ -33,6 +37,14 @@ export interface DistillingMemoryOptions {
   lookBack?: number;
   /** 「아는 것」을 남길 파일. 없으면 프로세스 안에서만 산다. */
   notePath?: string;
+  /**
+   * 사람이 「이건 잊어」 라고 한 줄들을 적어 두는 자리.
+   *
+   * 지우기만 해서는 안 지워진다 — 그 얘기가 대화 기록에는 남아 있어서, 다음 번 졸일 때
+   * 두뇌가 같은 줄을 **그대로 다시 적는다**(114회차 실측). 몇 번을 지워도 또 그 소리를 하면
+   * 그건 기억이 아니라 고집이다. 없으면 자리만 안 남고 동작은 같다(그 세션 안에서는 기억한다).
+   */
+  forgottenPath?: string;
   log?: (message: string) => void;
 }
 
@@ -47,6 +59,8 @@ export class DistillingMemory implements Memory {
   private sinceLast = 0;
   private known: string;
   private working = false;
+  /** 사람이 지운 줄들 — 다시 담기지 않게. */
+  private readonly forgotten = new Set<string>();
 
   /** 안에 든 진짜 기억. 옛 대화를 뒤지려면 이쪽을 봐야 한다. */
   get inner(): Memory {
@@ -60,6 +74,12 @@ export class DistillingMemory implements Memory {
     this.known = options.notePath && existsSync(options.notePath)
       ? onlyKnowledge(readFileSync(options.notePath, 'utf8'))
       : '';
+    if (options.forgottenPath && existsSync(options.forgottenPath)) {
+      for (const line of readFileSync(options.forgottenPath, 'utf8').split(SPLIT_LINES)) {
+        const trimmed = line.trim();
+        if (trimmed !== '') this.forgotten.add(trimmed);
+      }
+    }
   }
 
   async remember(entry: MemoryEntry): Promise<void> {
@@ -92,6 +112,14 @@ export class DistillingMemory implements Memory {
     const kept = lines.filter((l) => l.trim() !== needle && l.includes(needle) === false);
     if (kept.length === lines.length) return false;
     this.known = kept.join('\n').trim();
+    /* **지운 줄을 적어 둔다.** 안 적으면 다음 번 졸이기가 그대로 되살린다 — 그 얘기는
+       대화 기록에 남아 있고, 두뇌는 그걸 다시 읽는다(114회차 실측). 몇 번을 지워도 또
+       그 소리를 하면 그건 기억이 아니라 고집이다. */
+    this.forgotten.add(needle);
+    if (this.options.forgottenPath) {
+      mkdirSync(dirname(this.options.forgottenPath), { recursive: true });
+      writeFileSync(this.options.forgottenPath, `${[...this.forgotten].join('\n')}\n`, 'utf8');
+    }
     if (this.options.notePath) {
       mkdirSync(dirname(this.options.notePath), { recursive: true });
       writeFileSync(this.options.notePath, `${this.known}\n`, 'utf8');
@@ -117,7 +145,13 @@ export class DistillingMemory implements Memory {
          상황극으로 보여서 …추출하기 어렵습니다」였다. 졸이는 프롬프트가 이미 그러지 말라고
          적어 두는데도 그랬다 — 말로 시킨 것은 안 지켜진다. 남는 게 없으면 **덮어쓰지 않는다**:
          오염된 새 글보다 낡은 앎이 낫다. */
-      const next = onlyKnowledge(raw);
+      /* **사람이 지운 줄은 다시 담지 않는다.** 지운 얘기는 대화 기록에 그대로 남아 있어서,
+         두뇌는 다음 번에도 같은 줄을 적어 온다. 여기서 걸러야 지운 것이 지워진 채로 남는다. */
+      const next = onlyKnowledge(raw)
+        .split(SPLIT_LINES)
+        .filter((line) => this.forgotten.has(line.trim()) === false)
+        .join(NEWLINE)
+        .trim();
       if (next === '') {
         if (raw !== '') this.options.log?.(`졸인 것이 앎이 아니라 안 담았다 (${raw.length}자)`);
         return;

@@ -294,6 +294,9 @@ const memory =
         distill: brainDistiller((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
         every: Number(process.env.COMPANION_DISTILL_EVERY ?? '24'),
         notePath: knownPath,
+        /* 조수님이 「이건 잊어」 한 줄들. 안 적어 두면 다음 번 졸이기가 그대로 되살린다 —
+           그 얘기는 대화 기록에 남아 있으니까(114회차). */
+        forgottenPath: join(home, '잊은-것.md'),
         log: (m) => console.log(`[기억] ${m}`),
       });
 
