@@ -41,7 +41,7 @@ export interface 수요기동옵션 {
   /** 뜰 때까지 물어보는 간격. */
   prepareAskIntervalMs?: number;
   /** 못 띄운 뒤 이만큼은 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다. */
-  실패후쉬기ms?: number;
+  restAfterFailMs?: number;
   지금?: () => number;
   log?: (message: string) => void;
 }
@@ -91,7 +91,7 @@ export class demandBoot {
     if (this.appeared || this.띄우는중) return;
     if (this.options.isAuto?.() === false) return;
 
-    if (this.지금 - this.실패한때 < (this.options.실패후쉬기ms ?? 60_000)) return;
+    if (this.지금 - this.실패한때 < (this.options.restAfterFailMs ?? 60_000)) return;
 
     this.띄우는중 = true;
     this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
@@ -173,7 +173,7 @@ export interface 필요할때옵션 {
   /** 켜고 끄는 자리. */
   기동: demandBoot;
   /** 이만큼 기다려도 안 뜨면 포기한다(그때는 소리가 없다 — 딴 목소리로 바꾸지 않는다). */
-  기다림한계ms?: number;
+  waitLimitMs?: number;
   log?: (message: string) => void;
 }
 
@@ -185,7 +185,7 @@ export interface 필요할때옵션 {
  */
 export function onDemand(options: 필요할때옵션): Speech {
   const { real: real, 기동: boot } = options;
-  const waitLimit = options.기다림한계ms ?? 180_000;
+  const waitLimit = options.waitLimitMs ?? 180_000;
 
   return {
     name: `${real.name}(필요할 때)`,
