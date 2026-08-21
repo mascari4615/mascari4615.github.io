@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import { conversationOnly } from '../conversation';
+import { onlyKnowledge } from './known-clean';
 import type { Memory, MemoryEntry } from '../types';
 
 /** 밀려난 대화를 받아 「아는 것」을 새로 써서 돌려준다. */
@@ -54,8 +55,10 @@ export class DistillingMemory implements Memory {
 
   constructor(options: DistillingMemoryOptions) {
     this.options = { every: 30, batch: 40, ...options };
+    /* 이미 굳어 버린 오염은 **읽을 때도** 걷어낸다 — 안 그러면 고친 뒤에도 옛 파일이
+       그대로 실려 나가고, 「고쳤는데 왜 그대로냐」가 된다. */
     this.known = options.notePath && existsSync(options.notePath)
-      ? readFileSync(options.notePath, 'utf8').trim()
+      ? onlyKnowledge(readFileSync(options.notePath, 'utf8'))
       : '';
   }
 
@@ -108,8 +111,17 @@ export class DistillingMemory implements Memory {
       const window = await this.options.inner.recent(this.options.lookBack ?? this.options.batch * 8);
       const fading = pick(window).slice(-this.options.batch);
       if (fading.length === 0) return;
-      const next = (await this.options.distill({ known: this.known, fading })).trim();
-      if (next === '') return;
+      const raw = (await this.options.distill({ known: this.known, fading })).trim();
+      /* **앎이 아닌 줄은 굳기 전에 걷어낸다.**
+         103회차에 「아는 것」이 통째로 「아직 아는 것이 없습니다 / 이 대화는 창작물이나
+         상황극으로 보여서 …추출하기 어렵습니다」였다. 졸이는 프롬프트가 이미 그러지 말라고
+         적어 두는데도 그랬다 — 말로 시킨 것은 안 지켜진다. 남는 게 없으면 **덮어쓰지 않는다**:
+         오염된 새 글보다 낡은 앎이 낫다. */
+      const next = onlyKnowledge(raw);
+      if (next === '') {
+        if (raw !== '') this.options.log?.(`졸인 것이 앎이 아니라 안 담았다 (${raw.length}자)`);
+        return;
+      }
       this.known = next;
       if (this.options.notePath) {
         mkdirSync(dirname(this.options.notePath), { recursive: true });

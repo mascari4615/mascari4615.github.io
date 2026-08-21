@@ -51,6 +51,7 @@ export {
   type Distiller,
   type DistillingMemoryOptions,
 } from './memory/distilling';
+export { onlyKnowledge, notKnowledge } from './memory/known-clean';
 
 export { alwaysRespond, neverRespond, cooldownAttention, type CooldownOptions } from './attention/index';
 export { tactfulAttention, windowsIdleMs, type TactOptions } from './attention/tact';
