@@ -6,7 +6,9 @@
 <title>Handheld — 폰이 유니티 카메라가 된다</title>
 <style>
   :root { color-scheme: dark; }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; -moz-user-select: none; user-select: none;
+    -webkit-touch-callout: none; }
   html, body { margin: 0; height: 100%; background: #07080b; color: #e9edf5;
     font: 15px/1.5 -apple-system, "Noto Sans KR", Roboto, sans-serif; overflow: hidden;
     overscroll-behavior: none; user-select: none; }
@@ -42,12 +44,17 @@
     border: 1px solid rgba(255,180,90,.28); }
 
   /* 상단 배지 · 하단 바 (AR 중에도 뜬다) */
-  #hud { position: absolute; top: env(safe-area-inset-top, 8px); left: 0; right: 0;
-    display: flex; gap: 8px; justify-content: center; padding: 8px; pointer-events: none; }
-  .chip { pointer-events: none; background: rgba(8,12,20,.62); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,.10); border-radius: 999px;
-    padding: 5px 12px; font-size: 12px; font-variant-numeric: tabular-nums; color: #cfd8e6; }
-  .chip b { color: #7fd4ff; }
+  #hud { position: absolute; top: calc(env(safe-area-inset-top, 6px) + 4px);
+    left: calc(env(safe-area-inset-left, 6px) + 8px); right: auto;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    padding: 0; pointer-events: none; max-width: 78vw; }
+  /* 상자 없음 — 글자만. 그림자로 읽히게 한다(밝은 그림 위에서도 보이고 어두운 그림을 안 가린다). */
+  .chip { pointer-events: none; background: none; border: 0; border-radius: 0; padding: 0;
+    font-size: 11px; line-height: 1.35; font-variant-numeric: tabular-nums;
+    color: rgba(207,216,230,.92); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 100%;
+    text-shadow: 0 1px 2px rgba(0,0,0,.9), 0 0 6px rgba(0,0,0,.7); }
+  .chip b { color: #7fd4ff; font-weight: 700; }
   .chip.bad b { color: #ff8b8b; }
   #bar { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 10px) + 10px);
     display: flex; gap: 10px; justify-content: center; }
@@ -75,8 +82,7 @@
     #bar { left: auto; right: calc(env(safe-area-inset-right, 8px) + 10px);
       top: calc(env(safe-area-inset-top, 8px) + 8px); bottom: auto;
       flex-direction: column; align-items: flex-end; gap: 8px; }
-    #hud { justify-content: flex-start;
-      padding-left: calc(env(safe-area-inset-left, 8px) + 10px); flex-wrap: wrap; }
+    #hud { max-width: 46vw; }
     .stickzone { height: 62%; width: 38%; }
     .stickhint { width: 38%; bottom: calc(env(safe-area-inset-bottom, 8px) + 8px); }
     .stickhint.r { right: 0; }
