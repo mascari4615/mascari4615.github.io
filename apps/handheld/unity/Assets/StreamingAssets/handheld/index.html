@@ -278,6 +278,10 @@
     ws.onerror = () => { wsReady = false; paint(); };
     ws.onmessage = ev => {
       if (typeof ev.data === 'string') {
+        // 왕복 재기 — 받은 눈금을 **그대로** 되돌린다. 폰이 아무 계산도 안 하므로
+        // 두 시계를 맞출 필요가 없다(유니티가 같은 시계로 두 번 잰다).
+        if (ev.data.charCodeAt(0) === 107 && ev.data[1] === '|') { ws.send(ev.data); return; }
+
         // 유니티가 되보내는 상태:
         //   s|x|y|z|yaw|fps|kb|틱Hz|캡처Hz|배율|초점거리mm|초점m|초점잡힘
         // 뒤 칸은 나중에 붙은 것이라 **길이를 보고** 읽는다 (옛 유니티에 붙어도 안 깨진다).

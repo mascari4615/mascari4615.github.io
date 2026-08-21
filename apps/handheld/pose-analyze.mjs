@@ -145,6 +145,100 @@ if (shown.length) {
   }
 }
 
+// ── 망 지터: 튐이 「늦게 도착한 순간」과 겹치나 ─────────────────────────────
+// 이게 WebRTC 로 갈지 말지를 가른다. 포즈와 뷰파인더가 WS 하나를 같이 타므로,
+// 영상이 업링크를 채우는 순간 포즈가 그 뒤에 줄 선다는 가설이 있다.
+// 재는 법: jitter_ms = (우리 시계 도착 간격) - (폰 시계 송신 간격).
+//   두 시계의 원점·걸음이 달라도 *간격끼리* 빼면 그 차이는 사라진다.
+//   폰이 균일하게 보냈는데 도착이 들쭉날쭉하면 여기에만 남는다.
+{
+  const hasJitter = pose.length && pose[0].jitter_ms !== undefined;
+  console.log('\n── 망 지터 (도착 간격 - 폰 송신 간격) ─────────────────────');
+  if (!hasJitter) {
+    console.log('  → CANNOT-RUN: 이 기록에 jitter_ms 칸이 없다 (옛 판으로 찍은 로그다).');
+  } else {
+    const j = pose.map(r => r.jitter_ms).filter(v => typeof v === 'number' && Number.isFinite(v));
+    if (j.length < 20) {
+      console.log(`  → CANNOT-RUN: 잴 줄이 ${j.length}개뿐이다 (20 이상 필요).`);
+    } else {
+      const absJ = j.map(Math.abs);
+      const med = pct(absJ, .5) || 1e-6;
+      const p95 = pct(absJ, .95);
+      const rtt = pose.map(r => r.rtt_ms).filter(v => typeof v === 'number' && Number.isFinite(v));
+      console.log(`표본 ${j.length} · 지터 중앙값 ${med.toFixed(1)}ms · p95 ${p95.toFixed(1)}ms`
+        + (rtt.length ? ` · RTT 중앙값 ${pct(rtt, .5).toFixed(0)}ms (표본 ${rtt.length})` : ' · RTT 못 쟀다'));
+
+      // 「늦게 온 순간」 = 지터가 중앙값의 여러 배. 절대 ms 문턱은 쓰지 않는다(기계를 탄다).
+      // 대조가 있나부터 본다. 두 가지가 판정을 못 하게 만든다:
+      //   ⓐ 지터가 아예 없다 → 잴 것이 없다
+      //   ⓑ 통째로 늦다 → **중앙값도 같이 올라가** 아무것도 문턱을 못 넘는다.
+      //      그러면 「늦음 0회」로 읽히는데 사실은 「고르게 늦다」다.
+      // 절대 ms 는 안 쓴다. ⓑ 는 퍼짐(p95/중앙값)으로 가른다 — 고르면 1 에 가깝다.
+      //
+      // 문턱도 중앙값 하나에만 기대지 않는다. 대부분이 깨끗하면 중앙값이 0 이 되어
+      // `중앙값×8` 이 0 이 되고, 그러면 아주 작은 흔들림까지 「늦음」이 된다.
+      // 그래서 위쪽 꼬리(p95)의 절반도 같이 문턱으로 쓴다 — 둘 중 큰 것.
+      // ★ 꼬리는 p95 가 아니라 **최댓값**으로 본다 (2026-08-21, 합성 로그로 확인).
+      //   우리가 찾는 튐은 드물다 — 400줄에 7번이면 1.75% 라 p95 는 아직 0 이다.
+      //   p95 로 문턱을 세우면 「지터가 아예 없다」로 읽혀 판정 자체가 사라진다.
+      //   최댓값은 이상치 하나에 흔들리지만, 아래 「5회 이상」 조건이 그걸 받친다.
+      const maxJ = Math.max(...absJ);
+      const spread = med > 0 ? maxJ / med : Infinity;
+      const lateCut = Math.max(med * 8, maxJ * 0.5);
+
+      const lateIdx = new Set();
+      pose.forEach((r) => { if (Math.abs(r.jitter_ms) > lateCut) lateIdx.add(r.seq); });
+      const base = lateIdx.size / j.length;
+
+      if (maxJ === 0) {
+        console.log('  → CANNOT-RUN: 이 기록엔 지터가 아예 없다 (최대 0ms). 잴 것이 없다.');
+      } else if (spread < 2) {
+        console.log(`  → CANNOT-RUN: 지터에 대조가 없다 (최대/중앙값 = ${spread.toFixed(1)}).`
+          + ' 고르게 늦은 기록이라 「이 순간만 늦었다」를 가릴 수 없다.');
+      } else if (lateIdx.size < 5) {
+        console.log(`  → CANNOT-RUN: 늦게 온 순간이 ${lateIdx.size}회뿐이라 상관을 못 믿는다 (5회 이상 필요).`);
+      } else if (base > 0.9) {
+        console.log(`  → CANNOT-RUN: 대조군이 없다 (${(base*100).toFixed(0)}% 가 이미 「늦음」).`
+          + ' 망이 통째로 나쁜 기록이라 이 잣대로는 못 가른다.');
+      } else if (!shown.length) {
+        console.log(`늦게 온 순간 ${lateIdx.size}회 (전체의 ${(base*100).toFixed(0)}%)`);
+        console.log('  → shown 로그가 없어 튐과의 상관은 못 본다.');
+      } else {
+        // shown 에서 튄 순간을 같은 방식(중앙값 대비)으로 뽑고, 그 seq 가 「늦게 온」 seq 와 겹치나 본다.
+        // ★ 각속도(°/s)가 아니라 **한 걸음의 각도(°)** 로 센다 (2026-08-21).
+        //   늦게 온 순간은 dt 가 커지므로 속도로 재면 분모가 커져 값이 눌린다 —
+        //   하필 우리가 찾는 「늦으면서 튄 순간」이 스스로 숨는다. 합성 로그로 확인:
+        //   답을 아는 「망탓」 벌이 속도 기준에서는 튐 0회로 나왔다.
+        //   사람 눈에 보이는 것도 속도가 아니라 **한 프레임에 얼마나 뛰었나** 다.
+        const step = [];
+        for (let i = 1; i < shown.length; i++) {
+          const dt = (shown[i].t_ms - shown[i-1].t_ms) / 1000;
+          if (dt <= 0 || dt > 0.5) continue;
+          const qa = qNorm(['shown_qx','shown_qy','shown_qz','shown_qw'].map(k => shown[i-1][k]));
+          const qb = qNorm(['shown_qx','shown_qy','shown_qz','shown_qw'].map(k => shown[i][k]));
+          step.push({ seq: shown[i].seq, v: qAngle(qa, qb) });
+        }
+        const rmed = pct(step.map(r => r.v), .5) || 1e-6;
+        const spikes = step.filter(r => r.v > rmed * 20);
+        if (spikes.length < 5) {
+          console.log(`늦게 온 순간 ${lateIdx.size}회 (전체의 ${(base*100).toFixed(0)}%)`);
+          console.log(`  → CANNOT-RUN: 튄 순간이 ${spikes.length}회뿐이라 상관을 못 믿는다 (5회 이상 필요).`);
+        } else {
+          const hit = spikes.filter(sp => lateIdx.has(sp.seq)).length;
+          const share = hit / spikes.length;
+          console.log(`늦게 온 순간 ${lateIdx.size}회 (전체의 ${(base*100).toFixed(0)}%)`);
+          console.log(`튄 순간 ${spikes.length}회 중 ${hit}회가 늦게 온 순간과 겹친다 (${(share*100).toFixed(0)}%)`);
+          console.log(`대조: 아무 순간이나 늦을 확률은 ${(base*100).toFixed(0)}%`);
+          if (share > base * 2)
+            console.log('  → 튐이 늦게 온 순간에 몰린다 = **망 탓 지지**. 다음 = WebRTC 로 포즈를 영상과 분리.');
+          else
+            console.log('  → 겹치지 않는다 = 망 탓 기각. 튐의 원인은 다른 데 있다(위 단계별 판정을 봐라).');
+        }
+      }
+    }
+  }
+}
+
 // ── 자발 이동: 스틱 0 · 폰 정지인데 카메라가 움직이나 ───────────────────────
 if (shown.length) {
   const still = [];

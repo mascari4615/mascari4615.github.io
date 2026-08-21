@@ -43,7 +43,8 @@ namespace Handheld
 
             _poseWriter = new StreamWriter(_poseePath, false, new UTF8Encoding(false));
             _poseWriter.WriteLine("t_ms,seq,phone_t,raw_px,raw_py,raw_pz,raw_qx,raw_qy,raw_qz,raw_qw,fov,aspect,dof," +
-                                  "conv_px,conv_py,conv_pz,conv_qx,conv_qy,conv_qz,conv_qw");
+                                  "conv_px,conv_py,conv_pz,conv_qx,conv_qy,conv_qz,conv_qw," +
+                                  "gap_ms,phone_gap_ms,jitter_ms,rtt_ms");
             _shownWriter = new StreamWriter(_shownPath, false, new UTF8Encoding(false));
             _shownWriter.WriteLine("t_ms,seq,shown_px,shown_py,shown_pz,shown_qx,shown_qy,shown_qz,shown_qw," +
                                    "cam_x,cam_y,cam_z,cam_yaw,stick_lx,stick_ly,stick_rx,stick_ry,recentered");
@@ -51,21 +52,47 @@ namespace Handheld
 
         double NowMs => (DateTime.UtcNow - _t0).TotalMilliseconds;
 
+        // 앞 줄과의 간격을 재려고 마지막 값을 들고 있는다.
+        // Pose() 는 수신 스레드 **하나**에서만 불리므로 잠금이 필요 없다.
+        double _lastArrivalMs = -1, _lastPhoneMs = -1;
+
         static string F(float v) => v.ToString("F6", CultureInfo.InvariantCulture);
 
         /// <summary>수신 스레드에서 호출 — 폰 원본과 변환 결과를 한 줄로.</summary>
         public void Pose(int seq, double phoneTime,
                          float rx, float ry, float rz, float rqx, float rqy, float rqz, float rqw,
                          float fov, float aspect, string dof,
-                         Vector3 conv, Quaternion convRot)
+                         Vector3 conv, Quaternion convRot, float rttMs)
         {
             if (_disposed) return;
+
+            double now = NowMs;
+
+            // **두 시계를 빼서 비교한다.** 폰 시계와 우리 시계는 원점도 걸음도 다르지만,
+            // 각자의 *간격* 을 빼면 그 차이는 사라지고 「망이 만든 변동」만 남는다.
+            // 첫 줄은 앞 줄이 없으므로 빈칸 — 0 을 적으면 「지터 0」으로 읽힌다.
+            string gap = "", phoneGap = "", jitter = "";
+            if (_lastArrivalMs >= 0)
+            {
+                double g = now - _lastArrivalMs;
+                double pg = phoneTime - _lastPhoneMs;
+                gap = g.ToString("F2", CultureInfo.InvariantCulture);
+                phoneGap = pg.ToString("F2", CultureInfo.InvariantCulture);
+                jitter = (g - pg).ToString("F2", CultureInfo.InvariantCulture);
+            }
+            _lastArrivalMs = now;
+            _lastPhoneMs = phoneTime;
+
+            // rtt 는 아직 한 번도 못 쟀으면 빈칸 (음수를 적으면 수치로 읽힌다)
+            string rtt = rttMs >= 0f ? F(rttMs) : "";
+
             _poseRows.Enqueue(string.Join(",",
-                NowMs.ToString("F2", CultureInfo.InvariantCulture), seq.ToString(),
+                now.ToString("F2", CultureInfo.InvariantCulture), seq.ToString(),
                 phoneTime.ToString("F1", CultureInfo.InvariantCulture),
                 F(rx), F(ry), F(rz), F(rqx), F(rqy), F(rqz), F(rqw),
                 F(fov), F(aspect), dof,
-                F(conv.x), F(conv.y), F(conv.z), F(convRot.x), F(convRot.y), F(convRot.z), F(convRot.w)));
+                F(conv.x), F(conv.y), F(conv.z), F(convRot.x), F(convRot.y), F(convRot.z), F(convRot.w),
+                gap, phoneGap, jitter, rtt));
         }
 
         /// <summary>메인(틱) 쪽에서 호출 — 보간·리센터를 먹인 결과.</summary>
