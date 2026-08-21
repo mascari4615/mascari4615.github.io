@@ -1,4 +1,5 @@
 import type { MemoryEntry } from './types';
+import { TOUCH_CHANNEL } from './touch';
 
 /**
  * 나눈 말과 곁에서 본 것을 가른다.
@@ -23,7 +24,17 @@ import type { MemoryEntry } from './types';
  */
 
 /** 사람이 건넨 게 아니라 얘가 혼자 주워 온 통로. */
-export const AMBIENT_CHANNELS: readonly string[] = ['screen', 'nudge', 'idle', 'clock'];
+/*
+ * **통로 이름을 손으로 두 번 적지 않는다.**
+ *
+ * 이 목록은 원래 네 개(screen·nudge·idle·clock)를 손으로 적어 뒀고, 그 뒤에 붙은 몸
+ * (닿음)이 안 들어갔다. 그래서 「조수님이 나를 붙잡아 끌고 다녔다.」가 **사람이 건넨 말**로
+ * 취급돼 회상에도, 「마지막으로 나눈 얘기」에도 실렸다(111회차 실측 12건).
+ * 107회차에 잡은 nudge 오염 안에 인용돼 있던 그 문장이 바로 이것이다 — 두 결함이 한 뿌리였다.
+ *
+ * 몸을 늘릴 때마다 이 목록은 낡는다. 그러니 몸이 쓰는 상수를 여기서 **가져다 쓴다.**
+ */
+export const AMBIENT_CHANNELS: readonly string[] = ['screen', 'nudge', 'idle', 'clock', TOUCH_CHANNEL];
 
 export interface ConversationOptions {
   /** 곁에서 본 것으로 칠 통로. 몸을 새로 붙이면 여기 더한다. */
