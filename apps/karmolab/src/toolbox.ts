@@ -2220,8 +2220,13 @@ const Toolbox = (() => {
         if (tool.noHero !== true) {
             const hero = document.createElement('div');
             hero.className = 'tool-page-hero';
+            /* ⚠ 제목이 없으면 <b>줄째 뺀다</b> (2026-08-21, TASK-KL-342).
+               예전에는 값이 없어도 그대로 찍어 실사이트에 `<h1>undefined</h1>` 가 박혔고,
+               사람 눈에 「undefined지금까지 44번 열렸어요」로 떴다. 바로 아랫줄 `desc` 는
+               이미 없으면 빼는데 제목만 안 그랬다 — 짝이 안 맞았다.
+               (그 장이 왜 제목을 잃었는지는 KL-342 가 따로 본다. 여기서는 <b>사람 눈에 안 보이게</b> 한다.) */
             hero.innerHTML =
-                `<h1 class="tool-page-hero-title">${tool.title}</h1>` +
+                (tool.title ? `<h1 class="tool-page-hero-title">${tool.title}</h1>` : '') +
                 (tool.desc ? `<p class="tool-page-hero-desc">${tool.desc}</p>` : '') +
                 `<p class="tool-page-hero-count" data-count-for="${escapeHtml(tool.id)}"></p>`;
             div.appendChild(hero);
