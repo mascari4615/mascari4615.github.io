@@ -349,9 +349,34 @@ if (chipsAfterUse.length) {
   await page.waitForTimeout(200);
 }
 
-/* ── ⑪ 헤더에 상시 검색창이 없다 (사용자 거부 항목) ────────── */
+/* ── ⑪ 머리띠 검색칸은 **하나**이고, 치는 순간 팔레트로 넘긴다 (TASK-KL-332) ──
+ *
+ * ⚠ 이 검사는 2026-08-07 에 **정반대**였다 — 「헤더에 상시 검색창이 0개일 것(사용자 거부
+ * 항목)」. 그런데 08-19 에 사용자가 그 결정을 직접 뒤집었다:
+ *   「아카라이브 처럼 아예 검색창을 위에 두는 느낌이면 어때?」
+ * 제품은 그날 바뀌었는데(`871c40bb`) **검사만 옛 결정을 12일 더 지켰다** — 그래서
+ * 「명령 팔레트가 실제로 여닫히는지」가 내내 빨갰다. 팔레트는 멀쩡히 여닫히는데도.
+ * 오늘 이 저장소에서 같은 모양을 열 번 넘게 만났다: **제품보다 검사가 더 자주 낡는다.**
+ *
+ * 그리고 정작 KL-332 의 핵심은 **아무도 안 보고 있었다.** 그 칸은 제 목록을 안 그린다 —
+ * 한 글자만 쳐도 팔레트로 넘겨 **표면을 하나로 유지**하는 것이 전부다. 그게 깨지면
+ * 목록이 두 벌이 되는데, 옛 검사(개수 세기)로는 절대 안 잡힌다. 그래서 넘김을 직접 친다. */
 const headerInputs = await page.$$eval('.header-bar input, .sidebar input', (els) => els.length);
-if (headerInputs > 0) problems.push(`헤더/사이드바에 상시 입력칸이 ${headerInputs}개 생겼다 — 두지 않기로 한 것이다`);
+if (headerInputs === 0) problems.push('머리띠에 검색칸이 없다 — 08-19 에 올리기로 한 것이다 (KL-332)');
+else if (headerInputs > 1) problems.push(`머리띠/옆줄 입력칸이 ${headerInputs}개다 — 검색칸은 하나여야 표면이 하나로 남는다`);
+else {
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  await page.fill('.header-search-input', 'pdf');
+  await page.waitForTimeout(400);
+  const kpValue = await page.$eval('.kp-overlay .kp-input', (el) => el.value).catch(() => null);
+  if (kpValue === null) problems.push('머리띠 검색칸에 쳤는데 팔레트가 안 뜬다 — 넘기기가 끊겼다');
+  else if (kpValue !== 'pdf') problems.push(`팔레트가 「${kpValue}」를 받았다 — 친 글자(pdf)를 그대로 이어받아야 한다`);
+  const headerValue = await page.$eval('.header-search-input', (el) => el.value);
+  if (headerValue) problems.push(`넘긴 뒤에도 머리띠 칸에 「${headerValue}」가 남아 있다 — 목록이 두 벌로 보인다`);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+}
 
 /* ── ⑫ 도구 화면은 팔레트를 **안 싣고** 뜬다. 그런데 눌러서 열린다 (TASK-KL-128 ①-b) ──
  *
