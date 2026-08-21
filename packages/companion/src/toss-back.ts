@@ -98,9 +98,9 @@ export function skipReason(input: TossBackInput): string | null {
  * 「되묻게 했다」는 만든 사람 말이고, **몇 번 중 몇 번인가**가 결과다. 이걸 안 세면
  * 재료만 얹어 놓고 됐다고 하게 된다(오늘만 그런 자리를 셋 찾았다).
  */
-export function followUpRatio(said: readonly MemoryEntry[]): { 전체: number; 되물음: number } {
+export function followUpRatio(said: readonly MemoryEntry[]): { 전체: number; followUp: number } {
   const texts = said.filter((e) => e.role === 'said');
-  return { 전체: texts.length, 되물음: texts.filter((e) => isQuestion(e.text)).length };
+  return { 전체: texts.length, followUp: texts.filter((e) => isQuestion(e.text)).length };
 }
 
 

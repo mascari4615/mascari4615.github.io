@@ -73,7 +73,7 @@ export interface WebBodyOptions {
    *
    * 목소리가 무엇인지·흉내가 준비됐는지처럼 **몸이 모르는 것**을 부르는 쪽이 채운다.
    */
-  상태?: () => Record<string, unknown>;
+  state?: () => Record<string, unknown>;
   /** 어떤 머리를 쓸 수 있는지 + 지금 무엇인지 + 바꾸기. */
   /** 되돌리기 어려운 일을 하기 전에 화면에 물어보는 자리. */
   permission?: {
@@ -415,7 +415,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           res.end(JSON.stringify({
             창붙음: clients.size,
             body: windowBody,
-            ...(options.상태?.() ?? {}),
+            ...(options.state?.() ?? {}),
           }));
           return;
         }
@@ -687,7 +687,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               text,
               at: askedAt,
               ...(who === undefined ? {} : { 누가: who }),
-              ...(isTest ? { 시험: true } : {}),
+              ...(isTest ? { test: true } : {}),
             });
           });
           return;
@@ -741,7 +741,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           const kind = touchKindFromWire(wire);
           res.writeHead(kind === null ? 400 : 204).end();
           if (kind === null) return;
-          emit(testTouch ? { ...touchSensation(kind), 시험: true } : touchSensation(kind));
+          emit(testTouch ? { ...touchSensation(kind), test: true } : touchSensation(kind));
           return;
         }
 

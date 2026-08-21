@@ -565,7 +565,7 @@ function slotsToFill() {
  * 돌면 정작 자주 쓰는 자리가 한참 동안 옛 표 그대로다.
  */
 function prefillReply() {
-  const empty = slotsToFill().filter((slot4) => line3.남은수(slot4.열쇠) < 4);
+  const empty = slotsToFill().filter((slot4) => line3.remaining(slot4.열쇠) < 4);
   const thisOne = empty[0];
   if (thisOne === undefined) return;
   void line3.채우기(thisOne.열쇠, thisOne.부탁, 6).catch(() => {});
@@ -591,7 +591,7 @@ const web = webBody({
     const followUp = followUpRatio(Array.isArray(recent4) ? recent4 : []);
     const line4 = followUp.전체 === 0
       ? '되물음 — 잰 말 없음'
-      : `되물음 ${followUp.되물음}/${followUp.전체} (${Math.round((followUp.되물음 / followUp.전체) * 100)}%)`;
+      : `되물음 ${followUp.followUp}/${followUp.전체} (${Math.round((followUp.followUp / followUp.전체) * 100)}%)`;
     return `${line4}
 
 ${tallyReport(tally)}`;
@@ -599,7 +599,7 @@ ${tallyReport(tally)}`;
   troubles: () => troublesReport(troubles),
   /* 곁눈질하는 화면(KarmoLab 위젯)이 읽어 갈 것들. 오늘 사고 셋이 전부 「조용히 빠짐」
      이었다 — 기록에만 남는 상태는 아무도 안 본다. */
-  상태: () => ({
+  state: () => ({
     인격: character?.name ?? null,
     머리: brain.currentModel ? brain.currentModel() : brain.name,
     목소리들: voiceList,
@@ -704,7 +704,7 @@ ${tallyReport(tally)}`;
       engines.unshift({
         label: '흉내',
         // 고른 목소리로만 말한다 — 준비될 때까지 기다린다(조수님 결정: 대타 금지).
-        speech: 필요할때({ 진짜: stub, 기동: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
+        speech: 필요할때({ real: stub, 기동: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
       });
       console.log(
         (await stub.alive())
@@ -995,7 +995,7 @@ const companion = new Companion({
        낱말이 하나도 안 겹친다. 둘을 합치되 같은 말은 한 번만. */
     try {
       const byMeaning = await meaning.find(sensation.text, {
-        몇개: 2,
+        count: 2,
         뺄것: new Set([...recent.map((e) => e.text), ...old]),
       });
       for (const r of byMeaning) {
@@ -1061,7 +1061,7 @@ const companion = new Companion({
     headToRestore?.();
     headToRestore = null;
     const pickedHead = whichHead({
-      받을자리: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
+      acceptSlot: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
       돌려줄자리: shouldTossBack(),
       자기얘기: asksAboutSelf(justSaid),
       옛일있나: episode.related(justSaid, 2, Date.now()) !== null,
@@ -1193,9 +1193,9 @@ const companion = new Companion({
        식어 가면, 곁가지로 얹는 대신 **그걸 화제로 꺼내라**고 시킨다. 좁게 연다 —
        한창일 때 끼어들면 방해고, 물어본 turn 에 딴 얘기를 꺼내면 회피다. */
     const topic = {
-      재료: materials,
+      material: materials,
       얼마나참았나: (n) => queued.얼마나참았나(n),
-      식는중: shouldTossBack(),
+      cooling: shouldTossBack(),
       물어본turn: isQuestion(justSaid),
     };
     const first = topicFirst(topic);

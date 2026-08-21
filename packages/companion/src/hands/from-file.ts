@@ -101,7 +101,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
       feedsBack: spec.feedsBack,
       run: (argument: string): Promise<string> =>
         spec.kind === 'web-search'
-          ? searchWeb(argument, { 몇개: spec.limit, log: options.log })
+          ? searchWeb(argument, { count: spec.limit, log: options.log })
           : readIn(argument, { 몇자: spec.limit, log: options.log }),
     };
   }

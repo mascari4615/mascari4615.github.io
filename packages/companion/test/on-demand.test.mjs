@@ -75,10 +75,10 @@ test('한동안 안 쓰면 끈다', async () => {
   await t.기동.써야한다();
 
   t.흐르기(29 * 60_000);
-  assert.equal(await t.기동.쉬었으면끄기(), false, '아직 쉬는 시간이 안 됐다');
+  assert.equal(await t.기동.stopIfIdle(), false, '아직 쉬는 시간이 안 됐다');
 
   t.흐르기(2 * 60_000);
-  assert.equal(await t.기동.쉬었으면끄기(), true);
+  assert.equal(await t.기동.stopIfIdle(), true);
   assert.equal(t.살았나(), false);
   assert.equal(t.기동.준비됐나, false);
 });
@@ -89,7 +89,7 @@ test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
   await t.기동.써야한다();
   await waited();
   t.흐르기(10 * 60_000);
-  assert.equal(await t.기동.쉬었으면끄기(), false, '남이 띄운 것을 껐다');
+  assert.equal(await t.기동.stopIfIdle(), false, '남이 띄운 것을 껐다');
   assert.equal(t.살았나(), true);
 });
 
@@ -98,7 +98,7 @@ test('0 으로 두면 영영 안 끈다', async () => {
   await t.기동.써야한다();
   await waited();
   t.흐르기(100 * 60_000);
-  assert.equal(await t.기동.쉬었으면끄기(), false);
+  assert.equal(await t.기동.stopIfIdle(), false);
 });
 
 const fakeVoice = (name2, failure = false) => ({
@@ -113,27 +113,27 @@ const fakeVoice = (name2, failure = false) => ({
 
 test('준비될 때까지 기다렸다 **고른 목소리로** 말한다 — 딴 목소리로 안 바꾼다', async () => {
   const t = run();
-  const voice = 필요할때({ 진짜: fakeVoice('흉내'), 기동: t.기동 });
+  const voice = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동 });
   // 아직 안 떴지만, 뒤에서 떠서 결국 그 목소리로 나온다.
   assert.equal((await voice.synthesize('안녕')).toString(), '흉내');
 });
 
 test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리보다 낫다', async () => {
   const t = run({ 자동: false }); // 자동 기동 꺼 두면 영영 안 뜬다
-  const voice2 = 필요할때({ 진짜: fakeVoice('흉내'), 기동: t.기동, 기다림한계ms: 300 });
+  const voice2 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동, 기다림한계ms: 300 });
   await assert.rejects(() => voice2.synthesize('안녕'), /준비 안 됐다/);
 });
 
 test('떠 있는데 실패하면 그 실패가 그대로 드러난다 — 몰래 딴 목소리로 안 바꾼다', async () => {
   const t = run();
   t.켜두기();
-  const voice3 = 필요할때({ 진짜: fakeVoice('흉내', true), 기동: t.기동 });
+  const voice3 = 필요할때({ real: fakeVoice('흉내', true), 기동: t.기동 });
   await assert.rejects(() => voice3.synthesize('안녕'), /죽었다/);
 });
 
 test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기능이 없어진 줄 안다', async () => {
   const t = run();
-  const voice4 = 필요할때({ 진짜: fakeVoice('흉내'), 기동: t.기동 });
+  const voice4 = 필요할때({ real: fakeVoice('흉내'), 기동: t.기동 });
   const list = await voice4.voices();
   assert.equal(list.length, 1);
   assert.equal(list[0].id, '흉내-1');

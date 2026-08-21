@@ -10,7 +10,7 @@ const newFile = () => join(mkdtempSync(join(tmpdir(), 'stock-')), '지은-대사
 
 test('한가할 때 채워 두면 그걸 꺼내 쓴다', async () => {
   const store = new 대사창고({ 지어오기: async () => '…또야?\n…손 치워.\n…그만해.' });
-  assert.equal(store.남은수('touch:쿡:1'), 0);
+  assert.equal(store.remaining('touch:쿡:1'), 0);
   const storedCount = await store.채우기('touch:쿡:1', '쿡 찔렸을 때 대꾸');
   assert.equal(storedCount, 3);
   assert.equal(store.raise('touch:쿡:1'), '…또야?');
@@ -85,7 +85,7 @@ test('인격이 바뀌면 앞 인격이 지은 말은 안 쓴다', async () => {
   const store6 = new 대사창고({ whom: () => who, 지어오기: async () => '…또야?' });
   await store6.채우기('갈래', '아무거나');
   who = '무명';
-  assert.equal(store6.남은수('갈래'), 0);
+  assert.equal(store6.remaining('갈래'), 0);
   assert.equal(store6.raise('갈래'), null);
 });
 
@@ -93,7 +93,7 @@ test('깨진 파일은 없는 셈 친다 — 그것 때문에 못 뜨면 안 된
   const path = newFile();
   writeFileSync(path, '{{{ 깨짐', 'utf8');
   const store7 = new 대사창고({ path, 지어오기: async () => null });
-  assert.equal(store7.남은수('갈래'), 0);
+  assert.equal(store7.remaining('갈래'), 0);
 });
 
 test('닿음 대꾸가 창고 것을 먼저 쓰고, 비면 손으로 적은 표로 물러선다', async () => {
@@ -142,7 +142,7 @@ test('결이 다르면 그 자리 것을 안 꺼낸다 — 늘어진 애가 생�
   const text2 = reflexFor('안녕', { energy: 0.9, 창고: store11 });
   assert.notEqual(text2, '…어… 왔네');
   assert.ok(['오, 왔네!', '어 안녕.', '왔구나.'].includes(text2), `생생 표에서 나와야 하는데 "${text2}"`);
-  assert.equal(store11.남은수(반사갈래('인사', '처짐')), 1);
+  assert.equal(store11.remaining(반사갈래('인사', '처짐')), 1);
 });
 
 test('반사 아닌 말은 창고가 있어도 반사하지 않는다', async () => {
