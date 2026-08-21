@@ -14,29 +14,14 @@ import type { Hand } from '../hands';
  * 화면이고, 여기서는 「물어봐야 한다」는 표시만 붙인다.
  */
 
-export interface AskFirst {
-  /** 사람에게 물어보고 답을 기다린다. 승낙이면 true. */
-  confirm(what: string): Promise<boolean>;
-}
-
-/** 되돌리기 어려운 손을 감싼다 — 승낙 없이는 아무 일도 일어나지 않는다. */
-export function needsPermission(hand: Hand, gate: AskFirst): Hand {
-  return {
-    name: hand.name,
-    what: hand.what,
-    needs: hand.needs,
-    /* 이 손은 **제 안에서** 이미 묻는다. 그래서 코어의 관문은 지나가도 된다 —
-       두 번 물으면 사람이 확인 자체를 흘려보낸다.
-       (이 래핑은 손을 만들 때 사람이 **기억해서** 감싸야 한다. 잊으면 조용히 열린다.
-        그래서 코어 쪽 관문은 반대로 「표시 안 하면 닫힌다」로 뒀다 — 기본값의 방향이 다르다.) */
-    undoable: true,
-    async run(argument: string): Promise<string> {
-      const allowed = await gate.confirm(`${hand.name}: ${argument}`);
-      if (allowed === false) return `${hand.name} 은(는) 하지 않았다 — 조수님이 아니라고 했다`;
-      return hand.run(argument);
-    },
-  };
-}
+/*
+ * 되돌릴 수 없는 손을 감싸던 `needsPermission` 은 여기서 사라졌다 (109회차).
+ *
+ * 그건 손을 만들 때 사람이 **기억해서** 감싸는 방식이었다 — 잊으면 조용히 열린다.
+ * 지금은 손이 `undoable: false` 라고 **표시만** 하고, 묻는 일은 코어의 관문
+ * (`CompanionOptions.askBeforeRisky`)이 한 자리에서 한다. 확인 자리가 둘이면
+ * 하나만 고쳐지고 다른 하나가 조용히 낡는다.
+ */
 
 /** 파일 찾기 — name 조각으로 내 폴더들을 뒤진다. 읽기만 하므로 물어볼 것도 없다. */
 export function findFileHand(roots?: readonly string[]): Hand {

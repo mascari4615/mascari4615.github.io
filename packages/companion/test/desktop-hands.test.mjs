@@ -8,7 +8,7 @@ import {
   clockHand,
   fileInfoHand,
   findFileHand,
-  needsPermission,
+  useHands,
   openHand,
   readNotesHand,
 } from '../dist/index.js';
@@ -57,30 +57,34 @@ test('시계는 지금 날짜를 돌려준다', async () => {
   assert.match(now, new RegExp(String(new Date().getFullYear())));
 });
 
-test('승낙이 필요한 손은 물어보고, 아니라고 하면 아무 일도 안 한다', async () => {
-  let ran = false;
-  const risky = { name: '열기', what: '', needs: '', async run() { ran = true; return '했다'; } };
-  const guarded = needsPermission(risky, { async confirm() { return false; } });
-
-  const said = await guarded.run('무언가');
-  assert.equal(ran, false);
-  assert.match(said, /하지 않았다/);
-});
-
-test('승낙하면 그때 실제로 한다', async () => {
-  let ran = false;
-  const risky = { name: '열기', what: '', needs: '', async run() { ran = true; return '했다'; } };
-  const guarded = needsPermission(risky, { async confirm() { return true; } });
-
-  assert.equal(await guarded.run('무언가'), '했다');
-  assert.equal(ran, true);
+test('열기는 되돌릴 수 없는 손으로 표시돼 있다 — 표시가 관문을 세운다', () => {
+  assert.equal(openHand().undoable, false);
 });
 
 test('물어볼 때 무엇을 하려는지 그대로 보여준다', async () => {
   let asked = '';
-  const guarded = needsPermission(openHand(), {
-    async confirm(what) { asked = what; return false; },
+  await useHands([openHand()], [{ name: '열기', argument: 'C:/어딘가/파일.txt' }], undefined, {
+    async allow(hand, request) { asked = `${hand.name}: ${request.argument}`; return false; },
   });
-  await guarded.run('C:/어딘가/파일.txt');
   assert.match(asked, /열기: C:\/어딘가\/파일\.txt/);
+});
+
+test('아니라고 하면 아무 일도 안 한다', async () => {
+  let ran = false;
+  const risky = { name: '열기', what: '', needs: '', undoable: false, async run() { ran = true; return '했다'; } };
+  const done = await useHands([risky], [{ name: '열기', argument: '무언가' }], undefined, {
+    async allow() { return false; },
+  });
+  assert.equal(ran, false);
+  assert.deepEqual(done, []);
+});
+
+test('승낙하면 그때 실제로 한다', async () => {
+  let ran = false;
+  const risky = { name: '열기', what: '', needs: '', undoable: false, async run() { ran = true; return '했다'; } };
+  const done = await useHands([risky], [{ name: '열기', argument: '무언가' }], undefined, {
+    async allow() { return true; },
+  });
+  assert.equal(ran, true);
+  assert.deepEqual(done, ['했다']);
 });

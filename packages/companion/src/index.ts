@@ -20,14 +20,12 @@ export { readRapport, type Rapport, type RapportOptions } from './rapport';
 export { fileCuriosity, wonderHand, maybeAsk, noticeCuriosity, stripParticle, worthWondering, unusableCuriosity, type Curiosity } from './curiosity';
 export { readMood, avoidRepeats, recallFrom, type Mood, type MoodInput } from './mood';
 export {
-  needsPermission,
   findFileHand,
   openHand,
   windowsHand,
   clockHand,
   readNotesHand,
   fileInfoHand,
-  type AskFirst,
 } from './hands/desktop';
 export {
   describeHands,
