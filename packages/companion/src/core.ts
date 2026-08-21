@@ -143,8 +143,8 @@ export class Companion {
    * 일 줄은 **말 줄이 비어 있을 때만 새 turn 을 연다** — 둘이 동시에 두뇌를 부르면 자원이
    * 겹치고, 무엇보다 사람 말이 또 밀린다.
    */
-  private 일줄: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
-  private 일바쁨 = false;
+  private workLines: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
+  private workBusy = false;
   private running = false;
   /** 지금 처리 중인 바퀴. 끊겼으면 그 결과를 내보내지 않는다. */
   private inFlight: { cancelled: boolean } | null = null;
@@ -174,7 +174,7 @@ export class Companion {
 
   /** 처리 중인 감각이 모두 끝날 때까지 대기 (테스트·데모 종료용). */
   async drain(): Promise<void> {
-    while (this.working || this.waiting.length > 0 || this.일바쁨 || this.일줄.length > 0) {
+    while (this.working || this.waiting.length > 0 || this.workBusy || this.workLines.length > 0) {
       await new Promise((r) => setTimeout(r, 5));
     }
   }
@@ -217,7 +217,7 @@ export class Companion {
         this.waiting.push(item);
         void this.pump();
       } else {
-        this.일줄.push(item);
+        this.workLines.push(item);
         void this.일펌프();
       }
     });
@@ -249,18 +249,18 @@ export class Companion {
    * 사람 말은 그걸 **기다리지 않고** 제 줄에서 바로 시작한다.
    */
   private async 일펌프(): Promise<void> {
-    if (this.일바쁨) return;
-    this.일바쁨 = true;
+    if (this.workBusy) return;
+    this.workBusy = true;
     try {
-      while (this.일줄.length > 0) {
+      while (this.workLines.length > 0) {
         if (this.working || this.waiting.length > 0) break; // 사람이 말하는 중 — 양보한다
-        const next = this.일줄.shift();
+        const next = this.workLines.shift();
         if (next === undefined) break;
         await this.cycle(next.body, next.sensation);
         next.done();
       }
     } finally {
-      this.일바쁨 = false;
+      this.workBusy = false;
     }
   }
 

@@ -29,7 +29,7 @@ export interface 머리고르기입력 {
   /** 공을 돌려줄 자리인가 (대화가 식어 간다). */
   tossSlot?: boolean;
   /** 지난 일이 걸렸나. */
-  옛일있나?: boolean;
+  hasPastEvent?: boolean;
   /** 조수님이 얘 자신에 대해 물었나. */
   자기얘기?: boolean;
 }
@@ -55,7 +55,7 @@ export function whichHead(input: 머리고르기입력, options: 머리크기옵
   if (input.acceptSlot === true) return { 머리: largeHead, why: '길게 털어놨거나 감정이 실렸다' };
   if (input.tossSlot === true) return { 머리: largeHead, why: '대화가 식어 가 공을 돌려줄 자리다' };
   if (input.자기얘기 === true) return { 머리: largeHead, why: '얘 자신에 대해 물었다' };
-  if (input.옛일있나 === true) return { 머리: largeHead, why: '지난 일이 걸렸다' };
+  if (input.hasPastEvent === true) return { 머리: largeHead, why: '지난 일이 걸렸다' };
   return { 머리: smallHead, why: '' };
 }
 

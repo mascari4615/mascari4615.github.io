@@ -58,13 +58,13 @@ test('물어보기가 없으면 아무 일도 안 한다 — 아무 데도 안 �
 
 test('말이 얼마쯤 쌓여야 되새긴다 — 매 turn 되새기면 그게 값이다', () => {
   const r = new reflection({ 마다: 3, ask: async () => [] });
-  assert.equal(r.셈([text2('하나')]), false);
-  assert.equal(r.셈([text2('하나'), text2('둘'), text2('셋')]), true);
+  assert.equal(r.calc([text2('하나')]), false);
+  assert.equal(r.calc([text2('하나'), text2('둘'), text2('셋')]), true);
 });
 
 test('되새기고 나면 다시 쌓일 때까지 안 한다', async () => {
   const r = new reflection({ 마다: 3, ask: async () => [] });
-  r.셈([text2('하나'), text2('둘'), text2('셋')]);
+  r.calc([text2('하나'), text2('둘'), text2('셋')]);
   await r.reflect(exchange);
   assert.equal(r.셀때인가, false);
 });
