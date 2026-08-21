@@ -25,7 +25,7 @@ export interface ReflexOptions {
    * 여기도 후보가 셋뿐이라 결국 도는 말이 된다 — 실제 기록에서 「응.」 8번, 「뭐.」 8번.
    * 닿음 대꾸와 같은 자리를 쓴다(`stock.ts`). 비면 아래 표로 그냥 물러선다.
    */
-  창고?: { raise: (kind: string) => string | null };
+  store?: { raise: (kind: string) => string | null };
 }
 
 /** 지금 기운이 어느 결인가 — 처짐 / 보통 / 생생. */
@@ -90,7 +90,7 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   const tone2 = reflexTone(energy);
 
   // 미리 지어 둔 것이 먼저다. 바로 앞것과 같으면 그건 안 쓴다.
-  const prepared = options.창고?.raise(reflexKind(hit.종류, tone2)) ?? null;
+  const prepared = options.store?.raise(reflexKind(hit.종류, tone2)) ?? null;
   if (prepared !== null && prepared !== options.last) return prepared;
 
   const set = reply[hit.종류] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };

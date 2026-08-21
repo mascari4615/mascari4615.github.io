@@ -938,7 +938,7 @@ const companion = new Companion({
     if (how2 !== null) {
       const index = touchCount.bump(sensation.at);
       heart.felt(how2 === '쓰다듬' ? '쓰다듬김' : how2 === '흔듦' ? '끌려다님' : index > 4 ? '자꾸찔림' : '쿡찔림');
-      const reply = touchReply(how2, { times: index, last: lastTouch, 창고: line3 });
+      const reply = touchReply(how2, { times: index, last: lastTouch, store: line3 });
       lastTouch = reply;
       return reply;
     }
@@ -959,7 +959,7 @@ const companion = new Companion({
       heart.felt(/내가 이겼다/.test(game2.say) ? '놀이이김' : /내가 졌다/.test(game2.say) ? '놀이짐' : '같이놂', 0.6);
       return game2.say;
     }
-    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex, 창고: line3 });
+    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex, store: line3 });
     if (quick !== null) lastReflex = quick;
     return quick;
   },
@@ -1194,7 +1194,7 @@ const companion = new Companion({
        한창일 때 끼어들면 방해고, 물어본 turn 에 딴 얘기를 꺼내면 회피다. */
     const topic = {
       material: materials,
-      얼마나참았나: (n) => queued.얼마나참았나(n),
+      heldFor: (n) => queued.heldFor(n),
       cooling: shouldTossBack(),
       askedTurn: isQuestion(justSaid),
     };

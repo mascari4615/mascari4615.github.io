@@ -791,7 +791,7 @@ const Toolbox = (() => {
         if (active && active !== document.body && root.contains(active) && active.id) {
             cursor = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
         }
-        return value2.length || cursor ? { 값: value2, cursor: cursor } : null;
+        return value2.length || cursor ? { value: value2, cursor: cursor } : null;
     }
 
     /* 손이 달리기 전에 눌린 단추 한 번을 대신 눌러 준다 (TASK-KL-135).
