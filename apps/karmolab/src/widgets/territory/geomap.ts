@@ -69,8 +69,6 @@ export interface GeoMapOptions {
 
 const TILE = 256;
 const MAX_TILE_CACHE = 400;
-/** 갓 온 타일이 스며드는 시간(ms). 짧으면 툭 나타나고, 길면 흐릿한 채로 오래 남는다. */
-const FADE_MS = 180;
 
 /** 위경도 → 세계 픽셀 (확대율 z). */
 function projectWorld(lat: number, lng: number, z: number): Point {
@@ -99,8 +97,6 @@ export class GeoMap {
   private readonly viewListeners: Array<(map: GeoMap) => void> = [];
   /** 받아서 **한 번 손본 뒤** 담아 두는 타일. 값이 `null` 이면 아직 오는 중이거나 실패다. */
   private readonly tiles = new Map<string, CanvasImageSource | null>();
-  /** 타일이 도착한 시각 — 갓 온 것은 스며들게 그린다(툭 나타나는 것이 「깜빡」이다). */
-  private readonly tileAt = new Map<string, number>();
   /** 직전 확대율 — 확대/축소 <b>가는 쪽</b>의 층을 미리 받아 두려고 본다. */
   private lastZoom = 0;
   private readonly ro: ResizeObserver;
@@ -362,8 +358,9 @@ export class GeoMap {
 
   /** 한 층을 화면에 깐다. `fill` 이면 안 온 칸을 위·아래 층으로 메우고 둘레도 미리 받는다. */
   private drawLevel(ctx: CanvasRenderingContext2D, tz: number, fill: boolean): void {
-    const now = performance.now();
-    let fading = false;
+    /* ⚠ 여기에 「스며들기(fade)」를 넣었다가 뺐다 (2026-08-21). 반투명하게 나타나는 타일이
+       가리기는커녕 <b>더 눈에 띄었다</b>. 덮개를 두 번 만들어 두 번 되돌린 자리다 —
+       성긴 밑바탕(지명이 여덟 배)과 이 스며들기. 다시 넣지 말 것. */
     const scale = Math.pow(2, this.zoom - tz);
     const drawn = TILE * scale;
     const c = projectWorld(this.center.lat, this.center.lng, tz);
@@ -398,24 +395,14 @@ export class GeoMap {
         const sx = (tx * TILE - left) * scale;
         const sy = (ty * TILE - top) * scale;
         /* 0.5px 겹쳐 그린다 — 소수 확대율에서 타일 사이에 실금이 보인다. */
+        /* ⚠ **스며들기·자리표는 뺐다** (사용자 제보 2026-08-21: 「오히려 확대할때 그런게 보여서
+           더 악화됐는데요」). 반투명하게 스며드는 타일과 옅은 네모는 <b>없던 것을 눈에 보이게</b>
+           만들었다 — 가리려던 순간을 오히려 드러낸 셈이다. 이 자리에서 두 번 그렇게 했다
+           (성긴 밑바탕 → 지명이 여덟 배, 스며들기 → 확대가 더 나빠짐).
+           <b>덜 그리는 쪽이 낫다</b>: 있는 것은 또렷하게 그대로, 없는 것은 근처 층으로만 메운다. */
         if (img !== null) {
-          /* ★ **뿌리 ②: 툭 나타나는 것이 「깜빡」이다.** 갓 온 타일은 0.18초에 걸쳐 스며든다 —
-             그동안 밑에 깔린 자리표·메운 그림이 비쳐 갈아 끼우는 순간이 눈에 안 걸린다.
-             다 스밀 때까지 다음 판을 잡아 둔다(안 그러면 흐린 채로 멈춘다). */
-          const age = now - (this.tileAt.get(`${tz}/${wrapped}/${ty}`) ?? 0);
-          if (age < FADE_MS) {
-            ctx.globalAlpha = Math.max(0.05, age / FADE_MS);
-            fading = true;
-          }
           ctx.drawImage(img, sx, sy, drawn + 0.5, drawn + 0.5);
-          ctx.globalAlpha = 1;
           continue;
-        }
-        /* 안 온 칸은 **검정이 아니라 옅은 자리표**로 둔다 — 「없다」가 아니라 「오는 중」으로 읽힌다.
-           메울 그림이 있으면 아래에서 그 위에 얹는다. */
-        if (fill) {
-          ctx.fillStyle = 'rgba(255,255,255,0.035)';
-          ctx.fillRect(sx, sy, drawn + 0.5, drawn + 0.5);
         }
         /* ★ **안 온 칸은 비워 두지 않는다** (사용자 제보 2026-08-21: 「확대하려고 하면 깜빡깜빡」).
          * 확대율이 정수 층을 넘으면 `tz` 가 통째로 바뀌는데, 그 층 타일은 <b>아직 하나도 없다</b>.
@@ -448,8 +435,6 @@ export class GeoMap {
         }
       }
     }
-    /* 아직 스며드는 중이면 다음 판을 잡아 둔다 — 멈추면 흐린 채로 남는다. */
-    if (fading) this.redraw();
   }
 
   /**
@@ -497,9 +482,7 @@ export class GeoMap {
     img.decoding = 'async';
     img.onload = () => {
       this.tiles.set(key, this.bake(img));
-      /* 언제 왔는지 적어 둔다 — 갓 온 타일은 스며들게 그린다(`FADE_MS`).
-         툭 나타나면 그게 「깜빡」으로 읽힌다. */
-      this.tileAt.set(key, performance.now());
+      /* 도착 시각을 적어 두고 스며들게 그려 봤지만 되돌렸다 — `drawLevel` 위 주석 참고. */
       this.redraw();
     };
     img.onerror = () => this.redraw();
