@@ -204,7 +204,7 @@ for (let i = 0; i < ids.length; i += 8) {
     ids.slice(i, i + 8).map(async (id) => {
       const r = await fetchAll(`${BASE}/karmolab/t/${id}/`);
       if (!r.ok) {
-        if (r.못잼사유) couldNotMeasure.push(`${id}: ${r.못잼사유} (세 번 다 안 됐다)`);
+        if (r.cannotMeasureReason) couldNotMeasure.push(`${id}: ${r.cannotMeasureReason} (세 번 다 안 됐다)`);
         else problems.push(`${id}: http ${r.status}`);
         return;
       }

@@ -35,7 +35,7 @@ const pkg = JSON.parse(readFileSync(PKG, 'utf8'));
 const raw = JSON.parse(readFileSync(LIST, 'utf8'));
 /* 한 줄은 name 문자열이거나 `{name, 볼것}` 이다 (TASK-KL-331 — 발판을 적으면 `--changed` 가
    그 검사를 건너뛸 수 있다). 여기서 보는 것은 여전히 **name**이다. */
-const entries = raw.목록 ?? raw.list ?? raw;
+const entries = raw.list ?? raw;
 const names = Array.isArray(entries)
   ? entries.map((e) => (typeof e === 'string' ? e : e?.name ?? e?.name)).filter((n) => typeof n === 'string')
   : entries;

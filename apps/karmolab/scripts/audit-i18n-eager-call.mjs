@@ -83,7 +83,7 @@ function isReadTime(node) {
    (화면을 실제로 여는 검사)이 이름으로 잡는다 — 잡히면 그때 고치고 이 목록에서 지운다.
    막는 것은 **새로 생기는 자리**다. 오늘 고친 여덟 파일은 목록에 없다(고쳤으니까). */
 const BASELINE = path.join(root, 'data/i18n-eager-baseline.json');
-const debt = fs.existsSync(BASELINE) ? new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록) : new Set();
+const debt = fs.existsSync(BASELINE) ? new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).list) : new Set();
 const UPDATE = process.argv.includes('--update');
 
 const problems = [];

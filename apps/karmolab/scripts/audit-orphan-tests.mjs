@@ -67,8 +67,8 @@ function expand(name, depth = 0) {
       /* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331 — 발판을 적으면
          `gates:changed` 가 그 검사를 건너뛸 수 있다). 문자열로만 읽으면 발판을 적은
          검사들이 통째로 「아무도 안 돌린다」로 뒤집힌다 — 실측으로 열 개가 그랬다. */
-      for (const entry of raw.목록 ?? raw.list ?? []) {
-        const n = typeof entry === 'string' ? entry : entry?.이름 ?? entry?.name;
+      for (const entry of raw.list ?? []) {
+        const n = typeof entry === 'string' ? entry : entry?.name;
         if (typeof n !== 'string') continue;
         covered.add(n);
         expand(n, depth + 1);
@@ -250,7 +250,7 @@ function branch(name) {
    끝난다」·「마스코트 rAF 때문에 지금 빨갛다, TASK-KL-318」 같은 **재 본 값**이 「브라우저를 띄워
    무겁다」로 뭉개졌다. 그 문장들이 기준선의 값어치 전부다. 이미 적힌 사유가 있으면 그것을 남긴다. */
 function existingReason() {
-  try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).사유 || {}; } catch { return {}; }
+  try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).reason || {}; } catch { return {}; }
 }
 
 /* ── ★ **이름조차 없는 검사** (2026-08-17 실측) ───────────────────────────────
@@ -288,7 +288,7 @@ function writeBaseline() {
            `--update` 로 다시 써서 그 칸이 통째로 사라졌다 — 그러고는 「새로 생겼다」로 빨개졌다.
            기준선을 쓰는 자리는 **한 곳**이므로, 이 파일이 아는 칸은 전부 여기서 적는다. */
         unnamed,
-        이름없는것_설명: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
+        unnamedNote: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
       },
       null,
       2
@@ -302,7 +302,7 @@ if (process.argv.includes('--update')) {
   process.exit(0);
 }
 
-const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록;
+const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).list;
 const added = orphans.filter((k) => !base.includes(k));
 const fixed = base.filter((k) => !orphans.includes(k));
 
@@ -348,7 +348,7 @@ if (fixed.length) {
 }
 console.log(`[audit-orphan-tests] 검사 ${all.length}개 · 묶음 밖 ${orphans.length}개 (기준선과 같음 — 늘지 않았다)`);
 
-const unnamedBaseline = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).이름없는것 || []);
+const unnamedBaseline = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).unnamed || []);
 const newlyAdded = unnamed.filter((f) => !unnamedBaseline.has(f));
 console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${unnamed.length}개 (기준선 ${unnamedBaseline.size})`);
 /* ★ **톱니는 조이는 쪽으로만 돈다 — 그러려면 조이라고 말해야 한다** (2026-08-17).

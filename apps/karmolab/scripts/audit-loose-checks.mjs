@@ -121,7 +121,7 @@ if (process.argv.includes('--update')) {
   process.exit(0);
 }
 
-const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).목록;
+const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).list;
 /** 줄 번호는 남의 편집으로 밀린다 — 파일 단위로 견준다(그래야 오탐으로 안 막힌다). */
 const fileOf = (s) => s.split(':')[0];
 const baseFiles = new Set(base.map(fileOf));

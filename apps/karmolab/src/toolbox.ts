@@ -812,7 +812,7 @@ const Toolbox = (() => {
 
     function putUserState(root, state) {
         if (!state) return;
-        state.값.forEach(v => {
+        state.value.forEach(v => {
             const el = root.querySelector('#' + CSS.escape(v.id));
             if (!el) return;
             if ('checked' in v) el.checked = v.checked;
@@ -1041,7 +1041,7 @@ const Toolbox = (() => {
      * 여태 앱에만 `앱 v0.1.55` 배지가 있었고 웹에는 아무 표식이 없어서, 배포하고 열어 봐도
      * 새 판인지 옛 판인지 눈으로 알 길이 없었다.
      *
-     * 표식은 **번들에 구워 박은 값**을 쓴다 (`build.mjs` 의 define). `build.json` 을 받아
+     * 표식은 **번들에 구워 박은 value**을 쓴다 (`build.mjs` 의 define). `build.json` 을 받아
      * 보여 주는 방식은 「서버에 있는 판」을 말할 뿐, 지금 브라우저가 실행 중인 코드가 그것이라는
      * 보장이 없다 — 캐시·서비스 워커가 옛 묶음을 주면 표식만 새것으로 보이는 거짓말이 된다.
      *

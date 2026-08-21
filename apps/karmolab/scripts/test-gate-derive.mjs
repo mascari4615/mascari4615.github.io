@@ -14,7 +14,7 @@ import { matches, pick } from './lib/gate-scope.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const scripts = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).scripts;
-const gates = JSON.parse(readFileSync(path.join(root, 'data', 'gate-list.json'), 'utf8')).목록;
+const gates = JSON.parse(readFileSync(path.join(root, 'data', 'gate-list.json'), 'utf8')).list;
 
 const failures = [];
 const check = (ok, why) => {

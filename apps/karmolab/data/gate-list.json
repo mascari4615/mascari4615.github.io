@@ -1,10 +1,10 @@
 {
-  "설명": "묶음(gates)에서 도는 검사 이름 — 한 줄에 하나. 여기가 정본이다 (package.json 이 아니다). 한 줄은 이름 문자열이거나 {이름, 볼것:[glob…]} 이다. 볼것을 적으면 `npm run gates:changed` 가 그 발판이 안 바뀐 판에서 그 검사를 건너뛴다 (TASK-KL-331). 안 적으면 언제나 돈다 — 안전 기본값이다. push·CI 는 볼것과 무관하게 통짜로 돈다.",
-  "왜": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
-  "목록": [
+  "note": "묶음(gates)에서 도는 검사 이름 — 한 줄에 하나. 여기가 정본이다 (package.json 이 아니다). 한 줄은 이름 문자열이거나 {이름, 볼것:[glob…]} 이다. 볼것을 적으면 `npm run gates:changed` 가 그 발판이 안 바뀐 판에서 그 검사를 건너뛴다 (TASK-KL-331). 안 적으면 언제나 돈다 — 안전 기본값이다. push·CI 는 볼것과 무관하게 통짜로 돈다.",
+  "why": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
+  "list": [
     {
-      "이름": "test:gamification",
-      "볼것": [
+      "name": "test:gamification",
+      "watch": [
         "src/widgets/gamification*",
         "src/widgets/gamification/**",
         "scripts/test-gamification.mjs",
@@ -19,8 +19,8 @@
       ]
     },
     {
-      "이름": "test:planner",
-      "볼것": [
+      "name": "test:planner",
+      "watch": [
         "src/widgets/planner/**",
         "scripts/test-planner-core.mjs",
         "src/toolbox.ts",
@@ -34,8 +34,8 @@
       ]
     },
     {
-      "이름": "test:meok",
-      "볼것": [
+      "name": "test:meok",
+      "watch": [
         "src/widgets/meok/**",
         "scripts/test-meok-*.mjs",
         "src/toolbox.ts",
@@ -50,8 +50,8 @@
     },
     "test:meok:screen",
     {
-      "이름": "test:karmograph",
-      "볼것": [
+      "name": "test:karmograph",
+      "watch": [
         "src/widgets/karmograph/**",
         "src/lib/karmograph/**",
         "scripts/test-karmograph-*.mjs",
@@ -66,8 +66,8 @@
       ]
     },
     {
-      "이름": "test:karmograph:render",
-      "볼것": [
+      "name": "test:karmograph:render",
+      "watch": [
         "src/lib/karmograph/render.ts",
         "src/lib/karmograph/from-mermaid.ts",
         "src/core/mermaidlite.ts",
@@ -82,8 +82,8 @@
       ]
     },
     {
-      "이름": "test:ink",
-      "볼것": [
+      "name": "test:ink",
+      "watch": [
         "src/widgets/ink*",
         "src/widgets/ink/**",
         "scripts/test-ink-on.mjs",
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "이름": "test:radio",
-      "볼것": [
+      "name": "test:radio",
+      "watch": [
         "src/widgets/radio*",
         "src/widgets/radio/**",
         "scripts/test-radio-core.mjs",
@@ -119,8 +119,8 @@
     "test:tool-url",
     "test:parity",
     {
-      "이름": "test:mesh3d",
-      "볼것": [
+      "name": "test:mesh3d",
+      "watch": [
         "src/widgets/mesh3d*",
         "src/widgets/mesh3d/**",
         "scripts/smoke-mesh3d.mjs",
@@ -135,8 +135,8 @@
       ]
     },
     {
-      "이름": "test:pinyin",
-      "볼것": [
+      "name": "test:pinyin",
+      "watch": [
         "src/widgets/charconv*",
         "src/widgets/charconv/**",
         "scripts/smoke-charconv-pinyin.mjs",
@@ -172,8 +172,8 @@
     "test:names",
     "audit:cache",
     {
-      "이름": "test:asciiart:video",
-      "볼것": [
+      "name": "test:asciiart:video",
+      "watch": [
         "src/widgets/tools/asciiart.ts",
         "scripts/smoke-asciiart-video.mjs",
         "src/toolbox.ts",
@@ -187,8 +187,8 @@
       ]
     },
     {
-      "이름": "test:badapple:handoff",
-      "볼것": [
+      "name": "test:badapple:handoff",
+      "watch": [
         "src/badapple/**",
         "badapple/**",
         "data/badapple/**",
