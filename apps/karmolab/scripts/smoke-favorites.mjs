@@ -68,6 +68,37 @@ await page.waitForSelector('.fav-layout', { timeout: 15000 });
 const tools2 = await countTools();
 if (tools2 !== 1) problems.push(`새로고침하니 담아 둔 도구가 ${tools2}개로 바뀐다`);
 
+/* ⑤ **자판으로도 자리가 바뀌는가** (2026-08-21)
+ *
+ * 끌기는 08-19 에 들어갔는데 자판 길이 없어 `audit:mouse-only` 가 이 파일을 짚었다.
+ * ⚠ 그 감사는 **글자만 본다** — 아무 `keydown` 이나 달아도 초록이 된다. 그러니 초록의
+ *   뜻을 여기서 만든다: 실제로 눌러서 **자리표가 바뀌는 것**을 본다. 안 그러면 자판 길이
+ *   죽어도 감사는 계속 초록이고, 손 못 쓰는 사람에게는 그 기능이 없는 것과 같다. */
+await page.evaluate(() => localStorage.setItem('toolbox_fav_layout', 'deck'));
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.fav-deck-grid', { timeout: 15000 });
+const keysNow = () => page.$$eval('.fav-deck-grid .fav-item-wrap', (els) => els.map((e) => e.dataset.key || null));
+const before = await keysNow();
+const firstKey = before.find(Boolean);
+if (!firstKey) problems.push('덱에 자리 잡은 칸이 하나도 없다 — 자판 길을 잴 수가 없다');
+else {
+    const at = before.indexOf(firstKey);
+    await page.locator(`.fav-item-wrap[data-key="${firstKey}"] .fav-key`).focus();
+    await page.keyboard.press('Control+ArrowRight');
+    await page.waitForTimeout(250);
+    const after = await keysNow();
+    if (after[at + 1] !== firstKey) {
+        problems.push(`Ctrl+→ 를 눌렀는데 칸이 안 옮겨졌다 — ${at}번에 「${before[at]}」, ${at + 1}번에 「${after[at + 1]}」`);
+    }
+    if (after[at] !== before[at + 1]) problems.push('옆 칸이 빈 자리로 옮겨오지 않았다 — 맞바꿈이 아니라 덮어쓰기다');
+    /* 연달아 누르는 것이 이 조작의 전부다 — 한 번 누르고 초점이 날아가면 두 번째가 안 먹는다. */
+    const focused = await page.evaluate(() => document.activeElement?.closest('.fav-item-wrap')?.dataset.key || null);
+    if (focused !== firstKey) problems.push(`자리를 바꾼 뒤 초점을 잃었다 (지금 「${focused}」) — 연달아 못 누른다`);
+}
+await page.evaluate(() => localStorage.setItem('toolbox_fav_layout', 'list'));
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.fav-layout', { timeout: 15000 });
+
 // ④ 빼기
 await page.locator(`.fav-item-wrap:has(.fav-item[data-tool-id="${pickedId}"]) .fav-remove`).click({ force: true });
 await page.waitForTimeout(200);
