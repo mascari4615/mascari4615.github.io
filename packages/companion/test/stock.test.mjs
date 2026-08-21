@@ -100,9 +100,9 @@ test('닿음 대꾸가 창고 것을 먼저 쓰고, 비면 손으로 적은 표�
   clearReplyMemory();
   const store8 = new 대사창고({ fetchBuilt: async () => '…또야?' });
   await store8.fill(touchKind('쿡', 0), '쿡 찔렸을 때');
-  assert.equal(touchReply('쿡', { times: 1, 창고: store8 }), '…또야?');
+  assert.equal(touchReply('쿡', { times: 1, store: store8 }), '…또야?');
   // 비었으니 이제 기본 표. (기본 표에 있는 말이어야 한다)
-  const next = touchReply('쿡', { times: 1, 창고: store8 });
+  const next = touchReply('쿡', { times: 1, store: store8 });
   assert.ok(['…어?', '왜.', '응?'].includes(next), `기본 표에서 나와야 하는데 "${next}"`);
 });
 
@@ -130,8 +130,8 @@ test('반말 대꾸는 그 잣대에 안 걸린다', () => {
 test('반사도 미리 지어 둔 것을 먼저 쓰고, 비면 손으로 적은 표로 물러선다', async () => {
   const store10 = new 대사창고({ fetchBuilt: async () => '어, 왔어' });
   await store10.fill(반사갈래('인사', '보통'), '인사 받는 말');
-  assert.equal(reflexFor('안녕', { energy: 0.5, 창고: store10 }), '어, 왔어');
-  const next2 = reflexFor('안녕', { energy: 0.5, 창고: store10 });
+  assert.equal(reflexFor('안녕', { energy: 0.5, store: store10 }), '어, 왔어');
+  const next2 = reflexFor('안녕', { energy: 0.5, store: store10 });
   assert.ok(['응, 왔네.', '어, 안녕.', '왔어?'].includes(next2), `기본 표에서 나와야 하는데 "${next2}"`);
 });
 
@@ -139,7 +139,7 @@ test('결이 다르면 그 자리 것을 안 꺼낸다 — 늘어진 애가 생�
   const store11 = new 대사창고({ fetchBuilt: async () => '…어… 왔네' });
   await store11.fill(반사갈래('인사', '처짐'), '나른할 때 인사');
   // 기운이 생생한데 처짐 자리 것이 나오면 안 된다 — 기본 표(생생)에서 나와야 한다.
-  const text2 = reflexFor('안녕', { energy: 0.9, 창고: store11 });
+  const text2 = reflexFor('안녕', { energy: 0.9, store: store11 });
   assert.notEqual(text2, '…어… 왔네');
   assert.ok(['오, 왔네!', '어 안녕.', '왔구나.'].includes(text2), `생생 표에서 나와야 하는데 "${text2}"`);
   assert.equal(store11.remaining(반사갈래('인사', '처짐')), 1);
@@ -148,7 +148,7 @@ test('결이 다르면 그 자리 것을 안 꺼낸다 — 늘어진 애가 생�
 test('반사 아닌 말은 창고가 있어도 반사하지 않는다', async () => {
   const store12 = new 대사창고({ fetchBuilt: async () => '아무 말' });
   await store12.fill(반사갈래('인사', '보통'), '인사');
-  assert.equal(reflexFor('오늘 회의가 진짜 길었어', { energy: 0.5, 창고: store12 }), null);
+  assert.equal(reflexFor('오늘 회의가 진짜 길었어', { energy: 0.5, store: store12 }), null);
 });
 
 test('인격을 주면 그 글이 부탁에 실린다 — 안 실으면 맨 두뇌가 짓는다 (89회차 실측)', async () => {

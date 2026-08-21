@@ -74,7 +74,7 @@ export class pendingThoughts {
   };
 
   /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */
-  얼마나참았나(name3: string): number {
+  heldFor(name3: string): number {
     return this.눌린것.get(name3)?.count ?? 0;
   }
 

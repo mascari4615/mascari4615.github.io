@@ -23,7 +23,7 @@ export interface 디스코드채널 {
 
 export interface 디스코드붙이기 {
   /** 사람이 말할 때마다 부른다. 봇 자신의 말은 넘기지 않는다. */
-  onEnter: (listen: (text2: { 글: string; 누가: string; 채널: string; 봇인가: boolean }) => void) => void;
+  onEnter: (listen: (text2: { 글: string; 누가: string; 채널: string; isBot: boolean }) => void) => void;
   /** 이 채널을 잡는다. 없으면 null. */
   pickChannel: (channel2: string) => 디스코드채널 | null;
   /** 끊는다. */
@@ -62,7 +62,7 @@ export function discordBody(options: DiscordBodyOptions): Body {
     start(emit: (sensation: Sensation) => void) {
       options.attach.onEnter((text3) => {
         // 제 말에 제가 답하면 끝없이 돈다 — 봇 글은 아예 안 듣는다.
-        if (text3.봇인가) return;
+        if (text3.isBot) return;
         if (listenTarget !== null && listenTarget.has(text3.채널) === false) return;
         const content3 = text3.글.trim();
         if (content3 === '') return;
@@ -155,7 +155,7 @@ export async function discordJs(options: {
           // 보이는 이름이 있으면 그걸 쓴다 — 대화록에 적힐 이름이다.
           누가: m.author?.displayName ?? m.author?.username ?? '누군가',
           채널: m.channelId ?? '',
-          봇인가: m.author?.bot === true,
+          isBot: m.author?.bot === true,
         });
       });
     },
