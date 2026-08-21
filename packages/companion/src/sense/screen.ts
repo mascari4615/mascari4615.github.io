@@ -34,6 +34,14 @@ export interface ScreenSenseOptions {
 
 /** 창 안에서 글자로 읽어 낸 것 하나 — 갈래(k) · 적힌 말(n) · 자리(r = x,y,w,h). */
 export interface ScreenElement {
+  /**
+   * 이 요소를 가리키는 **번호**.
+   *
+   * 이름은 안 겹치지 않는다 — 창 하나에 이름 있는 것 19개인데 고유 이름은 12개고 그중
+   * 「탭 닫기」가 넷이었다(120회차 실측). 「탭 닫기 눌러」로는 어느 것인지 못 집는다.
+   * 밖에서는 그림에 번호를 얹어 푸는데(Set-of-Mark), 우리는 글 목록이라 목록이 번호를 든다.
+   */
+  i?: number;
   k: string;
   n: string;
   r: readonly number[];
@@ -177,7 +185,8 @@ function describe(taken: Screenshot): string {
   const rows = taken.elements
     .map((e) => {
       const acts = e.p && e.p.length > 0 ? ` — 할 수 있는 것: ${e.p.join(', ')}` : '';
-      return `- ${e.k} 「${e.n}」 (${e.r.join(',')})${acts}`;
+      const no = typeof e.i === 'number' ? `[${e.i}] ` : '';
+      return `- ${no}${e.k} 「${e.n}」 (${e.r.join(',')})${acts}`;
     })
     .join('\n');
   return `${head} 안에서 읽은 것 ${taken.elements.length}개:

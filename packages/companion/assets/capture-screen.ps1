@@ -136,7 +136,15 @@ try {
         $short = $pattern.ProgrammaticName.Replace('PatternIdentifiers.Pattern', '')
         if ($wanted -contains $short) { [void]$acts.Add($short) }
       }
+      # A number the reader can point at.
+      #
+      # Names are not unique: measured 2026-08-21, one window had 19 named
+      # elements but only 12 distinct names -- four of them called "close tab".
+      # Telling the reader "press close tab" is not enough to find the thing
+      # again. Agents elsewhere solve this by painting numbers on the screenshot
+      # (set-of-mark); we hand back a list, so the list carries the numbers.
       [void]$rows.Add([pscustomobject]@{
+        i = $rows.Count + 1
         k = $now.ControlType.ProgrammaticName.Replace('ControlType.', '')
         n = $name.Substring(0, [Math]::Min(120, $name.Length))
         r = $nums
