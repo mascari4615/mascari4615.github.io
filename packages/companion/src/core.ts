@@ -81,7 +81,7 @@ export interface CompanionOptions {
    * 코어는 그림이 어디서 오는지 모른다(화면일 수도, 카메라일 수도). 없으면 없는 채로 간다.
    * 오래 걸리면 대답이 그만큼 늦으므로, 내주는 쪽이 「묵었으면 새로 찍는다」까지 책임진다.
    */
-  seeing?: () => string | null | Promise<string | null>;
+  seeing?: () => { imagePath: string; text: string } | null | Promise<{ imagePath: string; text: string } | null>;
   /**
    * 답이 늦어질 때 낼 뜸을 골라 준다. 없으면 뜸을 안 낸다.
    *

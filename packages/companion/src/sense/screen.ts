@@ -28,8 +28,32 @@ export interface ScreenSenseOptions {
   log?: (message: string) => void;
   /** 시간을 어디서 읽나 — 검사에서 시계를 손에 쥐려고 연다. */
   now?: () => number;
-  /** 실제로 찍는 일. 검사에서 갈아끼운다. 돌려주는 값은 지금 앞에 있는 창 제목. */
-  capture?: (outPath: string) => Promise<string>;
+  /** 실제로 찍는 일. 검사에서 갈아끼운다. 돌려주는 값은 창 이름 + 창 안에서 읽은 것들. */
+  capture?: (outPath: string) => Promise<Screenshot>;
+}
+
+/** 창 안에서 글자로 읽어 낸 것 하나 — 갈래(k) · 적힌 말(n) · 자리(r = x,y,w,h). */
+export interface ScreenElement {
+  k: string;
+  n: string;
+  r: readonly number[];
+}
+
+/** 한 번 볼 때 들어오는 것 — 그림은 파일로, 글자는 여기로. */
+export interface Screenshot {
+  title: string;
+  elements: readonly ScreenElement[];
+}
+
+/**
+ * 지금 눈에 보이는 것 — **그림 한 장이 아니다.**
+ *
+ * 그림만 보는 건 같은 자리에서 늘 무너진다(작은 글자). 그래서 창을 글자로도 읽어
+ * 나란히 준다 — 밖에서도 이게 2026 의 합의다(접근성 트리 + 그림).
+ */
+export interface Seeing {
+  imagePath: string;
+  text: string;
 }
 
 /**
@@ -40,10 +64,10 @@ export interface ScreenSenseOptions {
  * 만든다 — 코어가 매 turn 여기에 묻는다.
  */
 export interface ScreenEye extends Sense {
-  /** 지금 보이는 그림의 자리. 묵었으면 새로 찍고 준다. 한 번도 못 찍었으면 null. */
-  seeing(): Promise<string | null>;
+  /** 지금 보이는 것(그림 + 읽은 글자). 묵었으면 새로 찍고 준다. 못 찍었으면 null. */
+  seeing(): Promise<Seeing | null>;
   /** 지금 당장 한 번 찍는다. */
-  lookNow(): Promise<string | null>;
+  lookNow(): Promise<Screenshot | null>;
 }
 
 /**
@@ -68,15 +92,18 @@ export function screenSense(options: ScreenSenseOptions = { everyMs: 90_000 }): 
   /** 마지막으로 실제로 찍힌 시각. 0 = 한 번도 못 찍었다. */
   let shotAt = 0;
   /** 찍는 중이면 그 일을 같이 기다린다 — 두 번 찍지 않는다. */
-  let shooting: Promise<string | null> | null = null;
+  let shooting: Promise<Screenshot | null> | null = null;
+  /** 마지막으로 읽어 낸 것 — 「지금 보이는 것」을 물으면 이걸 글로 편다. */
+  let last: Screenshot | null = null;
 
-  async function shot(): Promise<string | null> {
+  async function shot(): Promise<Screenshot | null> {
     if (shooting !== null) return shooting;
     shooting = (async () => {
       try {
-        const title = await shoot(shotPath);
+        const taken = await shoot(shotPath);
         shotAt = now();
-        return title;
+        last = taken;
+        return taken;
       } catch (e) {
         log(`화면을 못 봤다: ${e instanceof Error ? e.message : String(e)}`);
         return null;
@@ -93,14 +120,14 @@ export function screenSense(options: ScreenSenseOptions = { everyMs: 90_000 }): 
     if (options.okToLook?.() === false) return;
     busy = true;
     try {
-      const title = await shot();
-      if (title === null) return;
+      const taken = await shot();
+      if (taken === null) return;
       emit({
         channel,
         kind: 'screen',
-        text: title === '' ? '화면을 봤다.' : `화면을 봤다. 지금 앞에 있는 창은 「${title}」.`,
+        text: taken.title === '' ? '화면을 봤다.' : `화면을 봤다. 지금 앞에 있는 창은 「${taken.title}」.`,
         at: Date.now(),
-        meta: { imagePath: shotPath, windowTitle: title },
+        meta: { imagePath: shotPath, windowTitle: taken.title, screenText: describe(taken) },
       });
     } finally {
       busy = false;
@@ -123,15 +150,31 @@ export function screenSense(options: ScreenSenseOptions = { everyMs: 90_000 }): 
     },
     async seeing() {
       const fresh = shotAt !== 0 && now() - shotAt <= freshMs;
-      if (fresh) return shotPath;
-      const title = await shot();
-      return title === null && shotAt === 0 ? null : shotPath;
+      if (fresh === false) await shot();
+      if (shotAt === 0 || last === null) return null;
+      return { imagePath: shotPath, text: describe(last) };
     },
   };
 }
 
-/** 찍고 나서 지금 앞에 있는 창 제목을 돌려준다. */
-function capture(outPath: string): Promise<string> {
+/**
+ * 읽어 낸 것을 두뇌가 읽을 글로 편다.
+ *
+ * 표를 그대로 넘기지 않는다 — 두뇌가 보는 건 결국 글이고, 자리(좌표)까지 같이 적어 둬야
+ * 나중에 **누를 것**을 고를 수 있다.
+ */
+function describe(taken: Screenshot): string {
+  const head = taken.title === '' ? '지금 앞에 있는 창' : `지금 앞에 있는 창 「${taken.title}」`;
+  if (taken.elements.length === 0) return `${head} — 창 안에서 글자로 읽어 낸 것은 없다.`;
+  const rows = taken.elements
+    .map((e) => `- ${e.k} 「${e.n}」 (${e.r.join(',')})`)
+    .join('\n');
+  return `${head} 안에서 읽은 것 ${taken.elements.length}개:
+${rows}`;
+}
+
+/** 찍고 나서 창 이름과 창 안에서 읽은 것들을 돌려준다. */
+function capture(outPath: string): Promise<Screenshot> {
   const script = join(dirname(__filename), '..', '..', 'assets', 'capture-screen.ps1');
   return new Promise((resolve, reject) => {
     execFile(
@@ -143,8 +186,17 @@ function capture(outPath: string): Promise<string> {
           reject(new Error((stderr || error.message).slice(0, 300)));
           return;
         }
-        const match = /TITLE=(.*)/.exec(stdout);
-        resolve((match?.[1] ?? '').trim());
+        const title = /TITLE=(.*)/.exec(stdout)?.[1]?.trim() ?? '';
+        let elements: ScreenElement[] = [];
+        try {
+          const raw = /^TREE=(.*)$/m.exec(stdout)?.[1] ?? '[]';
+          const parsed: unknown = JSON.parse(raw);
+          /* 글자를 못 읽어도 그림은 나간다 — 한쪽이 없다고 눈이 감기면 안 된다. */
+          if (Array.isArray(parsed)) elements = parsed as ScreenElement[];
+        } catch {
+          elements = [];
+        }
+        resolve({ title, elements });
       },
     );
   });

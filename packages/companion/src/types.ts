@@ -160,7 +160,7 @@ export interface ThinkInput {
    * 옛 대화를 매번 자동으로 붙이는 것과 같은 이유로, 눈에 보이는 것도 매 turn 붙인다 —
    * 볼지 말지를 두뇌 판단에 맡기지 않는다.
    */
-  seeing?: string | null;
+  seeing?: { imagePath: string; text: string } | null;
 }
 
 /** 두뇌. null 을 돌려주면 「할 말 없음」 = 침묵. */

@@ -36,11 +36,12 @@ test('사람 말 turn 에도 지금 보이는 그림이 두뇌 앞에 놓인다'
     brain: brainThatRecords(seen),
     memory: bareMemory(),
     attention: { async shouldRespond() { return { respond: true, reason: '검사' }; } },
-    seeing: () => 'C:/tmp/now.png',
+    seeing: () => ({ imagePath: 'C:/tmp/now.png', text: '지금 앞에 있는 창 「무슨 창」' }),
   });
   await companion.feed({ channel: 'text', text: '화면에 뭐 보여?', at: Date.now(), test: true });
   assert.equal(seen.length, 1);
-  assert.equal(seen[0].seeing, 'C:/tmp/now.png', '그림 없이 물으면 창 제목만 보고 답하게 된다');
+  assert.equal(seen[0].seeing.imagePath, 'C:/tmp/now.png', '그림 없이 물으면 창 제목만 보고 답하게 된다');
+  assert.match(seen[0].seeing.text, /무슨 창/, '글자로 읽은 것도 같이 간다');
 });
 
 test('눈이 없으면 없는 채로 간다 — 없는 그림을 지어내지 않는다', async () => {
@@ -61,7 +62,7 @@ test('눈은 오래된 그림을 그대로 내주지 않는다 — 묵으면 다
     everyMs: 3_600_000,
     freshMs: 5_000,
     now: () => now,
-    capture: async () => { shots += 1; return `창${shots}`; },
+    capture: async () => { shots += 1; return { title: `창${shots}`, elements: [] }; },
   });
   const first = await eye.seeing();
   assert.ok(first, '물었는데 눈이 감겨 있으면 뜬다 — 아직 못 찍었다고 빈손으로 답하지 않는다');

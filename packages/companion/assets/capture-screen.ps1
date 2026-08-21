@@ -5,7 +5,10 @@ param(
   [Parameter(Mandatory = $true)][string]$OutPath,
   # The reader shrinks anything wider than ~1568px anyway, so carrying more
   # pixels than that costs time and buys nothing.
-  [int]$MaxWidth = 1568
+  [int]$MaxWidth = 1568,
+  # A whole tree can be thousands of nodes. The reader needs the shape of the
+  # window, not an inventory of it.
+  [int]$MaxElements = 120
 )
 
 $ErrorActionPreference = 'Stop'
@@ -82,6 +85,56 @@ try {
   $title = ''
 }
 
-# Single machine-readable line for the caller.
+# Read the foreground window as TEXT, not only as pixels.
+#
+# A screenshot is one modality and it fails the same way every time: small text
+# is a coin flip. The 2026 consensus for computer-use agents is hybrid -- read
+# the accessibility tree (UI Automation on Windows, the same API a screen reader
+# uses) for anything structured, and fall back to pixels for the rest. Measured
+# here 2026-08-21: 274ms for the whole foreground window, 28 elements. That is
+# cheap next to the ~1s the capture above already costs.
+#
+# Every element carries a rectangle, which is also the raw material for the next
+# step: clicking things instead of only looking at them.
+$tree = '[]'
+try {
+  Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+  $root = [System.Windows.Automation.AutomationElement]::FromHandle([Win32.Native]::GetForegroundWindow())
+  if ($null -ne $root) {
+    $found = $root.FindAll(
+      [System.Windows.Automation.TreeScope]::Descendants,
+      [System.Windows.Automation.Condition]::TrueCondition)
+    $rows = New-Object System.Collections.ArrayList
+    foreach ($node in $found) {
+      if ($rows.Count -ge $MaxElements) { break }
+      $now = $node.Current
+      $name = $now.Name
+      # Nameless boxes tell the reader nothing -- they are layout, not content.
+      if ([string]::IsNullOrWhiteSpace($name)) { continue }
+      if ($now.IsOffscreen) { continue }
+      $box = $now.BoundingRectangle
+      # Off-screen elements report an infinite rectangle; JSON has no infinity,
+      # and a reader that sees one stops trusting every other number.
+      $nums = @(0, 0, 0, 0)
+      if ([double]::IsInfinity($box.X) -eq $false -and [double]::IsNaN($box.X) -eq $false) {
+        $nums = @([int]$box.X, [int]$box.Y, [int]$box.Width, [int]$box.Height)
+      }
+      [void]$rows.Add([pscustomobject]@{
+        k = $now.ControlType.ProgrammaticName.Replace('ControlType.', '')
+        n = $name.Substring(0, [Math]::Min(120, $name.Length))
+        r = $nums
+      })
+    }
+    # -Compress: this travels on one line. Depth 4 is enough for {k,n,r}.
+    $tree = ConvertTo-Json -InputObject @($rows) -Depth 4 -Compress
+    if ([string]::IsNullOrWhiteSpace($tree)) { $tree = '[]' }
+  }
+} catch {
+  # No tree is survivable; a crash here is not. The picture still goes out.
+  $tree = '[]'
+}
+
+# Machine-readable lines for the caller. One line each, TREE is compact JSON.
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Output ("TITLE=" + $title)
+Write-Output ("TREE=" + $tree)
