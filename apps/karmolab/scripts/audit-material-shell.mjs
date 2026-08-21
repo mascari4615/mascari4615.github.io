@@ -72,7 +72,12 @@ if (shellUsers.length === 0) {
 }
 
 const gateNames = JSON.parse(readFileSync(GATE_LIST, 'utf8'));
-const gateEntries = Array.isArray(gateNames) ? gateNames : gateNames['목록'] || gateNames.gates || [];
+/* ⚠ 여기는 `gateNames['목록']` 을 봤다. 그 파일이 영문 키(`list`)로 옮겨간 뒤로 이 줄은
+   늘 빈 배열을 집었고, 그래서 이 검사가 **CANNOT-RUN 으로 조용히 빠져 있었다** —
+   빨강도 초록도 아니라 아무도 안 봤다. 자료를 옮길 때 **읽는 쪽을 다 안 고친** 것이다.
+   같은 파일을 읽는 다섯 곳(`audit-gate-list`·`audit-orphan-tests`·`gate-derive`·
+   `new-tool-plan`·`test-gate-derive`)은 이미 `list` 를 본다 — 여기 하나만 남아 있었다. */
+const gateEntries = Array.isArray(gateNames) ? gateNames : gateNames.list || [];
 /* 한 줄은 name 문자열이거나 `{name, 볼것}` 이다 (TASK-KL-331). 객체를 안 펴면 아래
    `filter(정규식)` 이 조용히 빠뜨리고, 그러면 이 검사가 「형식을 확인할 것」으로
    뒤집힌다 — 발판을 적는 순간 터지는 지뢰라 미리 편다. */
