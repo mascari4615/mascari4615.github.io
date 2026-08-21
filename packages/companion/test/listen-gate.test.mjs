@@ -9,7 +9,7 @@ const playBack = (gate, { 크기, 동안, 부터 = 0, 걸음 = 50 }) => {
   const happened = [];
   for (let t = 부터; t < 부터 + 동안; t += 걸음) {
     const r = gate.들었다(크기, t);
-    if (r !== null) happened.push({ what: r, 때: t });
+    if (r !== null) happened.push({ what: r, at: t });
   }
   return { happened: happened, 끝난때: 부터 + 동안 };
 };
@@ -143,7 +143,7 @@ const speakAndPlay = (gate10, size, during, since = 0, step = 50) => {
   const happened2 = [];
   for (let t = since; t < since + during; t += step) {
     const r = gate10.들었다(size, t);
-    if (r !== null) happened2.push({ what: r, 때: t });
+    if (r !== null) happened2.push({ what: r, at: t });
   }
   return happened2;
 };

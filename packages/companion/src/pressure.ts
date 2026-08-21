@@ -79,7 +79,7 @@ export class pendingThoughts {
   }
 
   /** 가장 오래 참은 것부터. */
-  참은순서(): { 이름: string; 횟수: number }[] {
+  heldOrder(): { 이름: string; 횟수: number }[] {
     return [...this.눌린것.entries()]
       .map(([이름, v]) => ({ 이름, 횟수: v.횟수 }))
       .sort((a, b) => b.횟수 - a.횟수);

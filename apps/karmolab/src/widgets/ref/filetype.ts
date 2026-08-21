@@ -10,7 +10,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   /** [확장자, 이름, 설명·여는 방법] */
   /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const ft = (): Record<string, Array<[string, string, string]>> => ({
-    이미지: [
+    image: [
       ['.jpg', t('filetype.t01'), t('filetype.t02')],
       ['.png', t('filetype.t03'), t('filetype.t04')],
       ['.webp', 'WebP', t('filetype.t05')],
@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       ['.raw / .cr2 / .nef', t('filetype.t15'), t('filetype.t16')],
       ['.ico', t('filetype.t17'), t('filetype.t18')]
     ],
-    문서: [
+    document: [
       ['.pdf', t('filetype.t19'), t('filetype.t20')],
       ['.docx', t('filetype.t21'), t('filetype.t22')],
       ['.hwp / .hwpx', t('filetype.t23'), t('filetype.t24')],
@@ -71,7 +71,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       ['.tmp', t('filetype.t94'), t('filetype.t95')],
       ['.lnk', t('filetype.t96'), t('filetype.t97')]
     ],
-    글꼴: [
+    font: [
       ['.ttf', t('filetype.t98'), t('filetype.t99')],
       ['.otf', t('filetype.t100'), t('filetype.t101')],
       ['.woff2', t('filetype.t102'), t('filetype.t103')]

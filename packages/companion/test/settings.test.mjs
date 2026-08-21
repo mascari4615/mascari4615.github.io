@@ -28,7 +28,7 @@ test('아는 항목은 바뀐다', () => {
 
 test('모르는 항목은 안 받고 왜인지 말한다 — 조용히 무시하면 왜 안 바뀌는지 모른다', () => {
   const s = new Settings();
-  const failed = s.put({ 아무거나: 1 });
+  const failed = s.put({ any: 1 });
   assert.equal(failed.length, 1);
   assert.match(failed[0], /모르는 항목/);
 });

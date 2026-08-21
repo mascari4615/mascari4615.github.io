@@ -72,7 +72,7 @@ const openGame = async (id) => {
      그래서 먼저 **뭐라도 그려지기를** 기다리고, 그 다음에 멎기를 기다린다. */
   const coreCount = () => p.evaluate(() => document.querySelector('#acView')?.querySelectorAll('*').length ?? 0);
   await untilTrue(p, () => (document.querySelector('#acView')?.querySelectorAll('*').length ?? 0) > 0, { max: 5000 });
-  await untilSettled(p, coreCount, { 간격: 120, max: 5000 });
+  await untilSettled(p, coreCount, { interval: 120, max: 5000 });
 };
 
 if (!cantRun) {

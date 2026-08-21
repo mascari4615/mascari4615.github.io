@@ -615,14 +615,14 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               const brokenOnes = brokenLines([...entries]);
               if (req.method !== 'POST') {
                 res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ 깨진줄: brokenOnes.length, sample: brokenOnes.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
+                res.end(JSON.stringify({ brokenLine: brokenOnes.length, sample: brokenOnes.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
                 return;
               }
               let removedCount = 0;
               for (const e of brokenOnes) removedCount += options.forget?.(e.text, true)?.conversation ?? 0;
               log(`깨진 줄 ${brokenOnes.length}개를 걷어냈다 (대화 ${removedCount}줄)`);
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-              res.end(JSON.stringify({ 걷어냄: brokenOnes.length, 대화: removedCount }));
+              res.end(JSON.stringify({ stripped: brokenOnes.length, conversation: removedCount }));
             })
             .catch(() => res.writeHead(500).end());
           return;
@@ -704,7 +704,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
               try {
                 failed = options.putSettings?.(JSON.parse(raw)) ?? ['설정을 받을 자리가 없다'];
               } catch { /* 위 기본값 그대로 */ }
-              const body = Buffer.from(JSON.stringify({ 안된것: failed }), 'utf8');
+              const body = Buffer.from(JSON.stringify({ failed: failed }), 'utf8');
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-length': body.length });
               res.end(body);
             });
