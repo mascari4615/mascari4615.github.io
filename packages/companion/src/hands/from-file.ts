@@ -225,7 +225,7 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
 
     const spec = readSpec(raw);
     if (spec === null) {
-      options.log?.(`${file} 은 손 명세로 안 보인다 (이름·설명·갈래·경로가 있어야 한다)`);
+      options.log?.(`${file} 은 손 명세로 안 보인다 (name·설명·갈래·경로가 있어야 한다)`);
       continue;
     }
     if (names.has(spec.name)) {

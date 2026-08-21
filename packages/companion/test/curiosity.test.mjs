@@ -43,8 +43,8 @@ test('물어본 것은 다시 안 묻는다', () => {
 
 test('껐다 켜도 궁금증은 남는다 — 어제 궁금했던 걸 오늘 묻는다', () => {
   const path = join(mkdtempSync(join(tmpdir(), 'companion-wonder-')), '궁금한-것.md');
-  fileCuriosity(path).wonder('그 고양이 이름');
-  assert.equal(fileCuriosity(path).next(), '그 고양이 이름');
+  fileCuriosity(path).wonder('그 고양이 name');
+  assert.equal(fileCuriosity(path).next(), '그 고양이 name');
 });
 
 test('사람이 열어 봐도 읽히는 형태로 남는다', () => {

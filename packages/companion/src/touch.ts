@@ -21,7 +21,7 @@ export type TouchKind = '쿡' | '흔듦' | '쓰다듬';
 export const TOUCH_CHANNEL = 'touch';
 
 /**
- * 전선 위에서 쓰는 이름. 한글을 주소에 실으면 인코딩 관문마다 깨진다 —
+ * 전선 위에서 쓰는 name. 한글을 주소에 실으면 인코딩 관문마다 깨진다 —
  * 실제로 첫 판이 전부 400 이었다. 사람이 읽는 이름과 전선 이름을 갈라 둔다.
  */
 const surfaceName: Record<string, TouchKind> = { poke: '쿡', drag: '흔듦', pet: '쓰다듬' };
@@ -89,7 +89,7 @@ export interface TouchReplyOptions {
   store?: { raise: (kind2: string) => string | null };
 }
 
-/** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
+/** 창고에서 이 자리를 부르는 name. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
 export function touchKind(kind: TouchKind, stage: number): string {
   return `touch:${kind}:${stage}`;
 }

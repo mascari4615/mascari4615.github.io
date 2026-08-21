@@ -36,7 +36,7 @@ export interface TopicInput {
 }
 
 export interface TopicPick {
-  이름: string;
+  name: string;
   heldCount: number;
   /** 두뇌에 얹을 한 줄. */
   text: string;
@@ -75,7 +75,7 @@ function choose(input: TopicInput): TopicPick | null {
     .sort((a, b) => b.heldCount - a.heldCount || b.x.weight - a.x.weight)[0];
   if (candidates === undefined) return null;
   return {
-    이름: candidates.x.name,
+    name: candidates.x.name,
     heldCount: candidates.heldCount,
     text:
       '대화가 식어 간다. **네가 먼저 꺼내라** — 아래 것을 지금 화제로 삼아라. ' +

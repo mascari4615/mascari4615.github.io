@@ -23,7 +23,7 @@ const factShape: readonly { pattern: RegExp; what: string }[] = [
   // 「11시 쯤이었나…」가 그대로 새어 나갔다(실측 53회차).
   { pattern: /\d{1,2}\s*시(\s*\d{1,2}\s*분)?/, what: '시각' },
   { pattern: /\d{1,2}\s*월\s*\d{1,2}\s*일/, what: '날짜' },
-  { pattern: /[\w가-힣-]+\.(md|json|ts|js|txt|png|jpg|cs|unity)/i, what: '파일 이름' },
+  { pattern: /[\w가-힣-]+\.(md|json|ts|js|txt|png|jpg|cs|unity)/i, what: '파일 name' },
   { pattern: /\d+\s*(개|번째|줄|바이트|메가|기가)/, what: '개수' },
 ];
 

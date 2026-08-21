@@ -60,10 +60,10 @@ const BONE_PAIRS = {
 };
 
 /**
- * 기분 → 빌려온 동작 이름.
+ * 기분 → 빌려온 동작 name.
  *
  * 묶음에는 46편이 들어 있지만 여기 적은 것만 굽는다. 굽는 값이 창을 열 때 한 번씩
- * 드는 비용이라, 안 쓸 동작까지 굽지 않는다. 다른 편을 보려면 `?clip=<이름>`.
+ * 드는 비용이라, 안 쓸 동작까지 굽지 않는다. 다른 편을 보려면 `?clip=<name>`.
  */
 const MOOD_CLIPS = {
   idle: 'Idle_Loop',
@@ -279,7 +279,7 @@ export async function mountModel(canvas, modelName, onFail) {
   // 그래서 조종용 뼈를 돌리면 화면에서는 아무 일도 안 일어난다(그렇게 만들어 놨었다).
   //
   // 이름이 여러 개 겹치면 **맨 위 토막**을 쓴다. 아래 토막을 돌리면 팔은 그대로 있고
-  // 손끝만 까딱한다. 그리고 이 파일에는 점이 들어간 이름(`DEF-upper_arm.L`)이 없다 —
+  // 손끝만 까딱한다. 그리고 이 파일에는 점이 들어간 name(`DEF-upper_arm.L`)이 없다 —
   // 불러오면서 점이 지워져 `DEF-upper_armL` 이 된다. 점을 넣어 찾으면 조용히 못 찾는다.
   const byName = new Map();
   model.traverse((node) => {

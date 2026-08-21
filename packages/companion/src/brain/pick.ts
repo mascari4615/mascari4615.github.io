@@ -11,7 +11,7 @@ export type { ToolMode } from './mode';
 /**
  * 창이 두뇌를 고르는 자리.
  *
- * 백엔드를 파일마다 if 로 늘리지 않는다. 새 CLI 는 여기 case 하나 + `brain/<이름>.ts`.
+ * 백엔드를 파일마다 if 로 늘리지 않는다. 새 CLI 는 여기 case 하나 + `brain/<name>.ts`.
  * 그록만의 합치기가 아니다.
  */
 

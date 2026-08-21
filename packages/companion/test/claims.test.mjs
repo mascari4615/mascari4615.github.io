@@ -57,7 +57,7 @@ test('아무 주장도 없으면 조용하다', () => {
   assert.equal(unbackedClaim('오늘 회의 길었네', []), null);
 });
 
-test('손 이름이 조금 달라도 알아본다 — 이름 하나만 보면 이름 바꾸는 순간 검사가 죽는다', () => {
+test('손 이름이 조금 달라도 알아본다 — name 하나만 보면 name 바꾸는 순간 검사가 죽는다', () => {
   assert.equal(unbackedClaim('찾아봤어', ['파일찾기']), null);
   assert.equal(unbackedClaim('알려 줄게 이따', ['알려주기']), null);
 });

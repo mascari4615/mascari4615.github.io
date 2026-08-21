@@ -14,7 +14,7 @@ import type { Speech, SpeechVoice } from './edge-tts';
 export function anySpeech(engines: readonly { label: string; speech: Speech }[]): Speech & {
   contentTypeFor(voiceId?: string): string;
 } {
-  // 어느 목소리가 어느 엔진 것인지 — 화면은 이름 하나만 돌려주므로 여기서 되짚는다.
+  // 어느 목소리가 어느 엔진 것인지 — 화면은 name 하나만 돌려주므로 여기서 되짚는다.
   const owner = new Map<string, Speech>();
   let cached: SpeechVoice[] | null = null;
 

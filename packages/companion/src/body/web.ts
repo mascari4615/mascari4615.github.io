@@ -64,7 +64,7 @@ export interface WebBodyOptions {
     switchTo: (name: string) => boolean;
   };
   /**
-   * 몸으로 쓸 3D 모델. `{ 이름: 파일경로 }` — 창이 `/model/<이름>` 으로 받아 간다.
+   * 몸으로 쓸 3D 모델. `{ name: 파일경로 }` — 창이 `/model/<name>` 으로 받아 간다.
    * 모델 파일이 게임 저장소 안에 있으므로, 복사해 두 벌로 만들지 않고 그 자리에서 읽는다.
    */
   models?: Readonly<Record<string, string>>;

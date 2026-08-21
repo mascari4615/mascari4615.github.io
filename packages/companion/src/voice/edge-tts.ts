@@ -70,7 +70,7 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
-      // `이름@결` 형태면 그 결의 빠르기·높낮이를 쓴다.
+      // `name@결` 형태면 그 결의 빠르기·높낮이를 쓴다.
       const at = (voiceId ?? '').lastIndexOf('@');
       const name = at < 0 ? (voiceId || defaultVoice) : (voiceId as string).slice(0, at);
       const toneName = at < 0 ? null : (voiceId as string).slice(at + 1);

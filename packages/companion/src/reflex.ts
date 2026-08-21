@@ -33,7 +33,7 @@ export function reflexTone(energy: number): 'droop' | 'normal' | 'vivid' {
   return energy < 0.35 ? 'droop' : energy > 0.75 ? 'vivid' : 'normal';
 }
 
-/** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
+/** 창고에서 이 자리를 부르는 name. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
 export function reflexKind(kind2: string, tone: string): string {
   return `reflex:${kind2}:${tone}`;
 }

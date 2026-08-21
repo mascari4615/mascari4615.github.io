@@ -10,9 +10,9 @@ import type { Speech, SpeechVoice } from './edge-tts';
 export interface PiperSpeechOptions {
   /** 목소리를 만드는 실행 파일. */
   exePath: string;
-  /** `{ 보여줄 이름: 모델 파일 }`. */
+  /** `{ 보여줄 name: 모델 파일 }`. */
   voices: Readonly<Record<string, string>>;
-  /** 기본 목소리 이름. */
+  /** 기본 목소리 name. */
   defaultVoice?: string;
   /** 말 길이 배수. 1보다 크면 느긋해진다. */
   lengthScale?: number;
@@ -38,7 +38,7 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
   const scratch = mkdtempSync(join(tmpdir(), 'companion-voice-'));
 
   function modelFor(voiceId?: string): string | null {
-    // `이름@결` 이면 결을 떼고 모델을 찾는다 — 안 그러면 결이 붙는 순간 목소리가 사라진다.
+    // `name@결` 이면 결을 떼고 모델을 찾는다 — 안 그러면 결이 붙는 순간 목소리가 사라진다.
     const bare = voiceId === undefined ? undefined : splitTone(voiceId).name;
     const wanted = bare && options.voices[bare] ? bare : fallback;
     const model = options.voices[wanted];

@@ -55,8 +55,8 @@ export class pendingThoughts {
   /** 한 turn 이 끝났다. 다음 겨룸으로 넘어간다. */
   다음턴(): void {
     this.turn += 1;
-    for (const [이름, v] of [...this.pressed]) {
-      if (this.turn - v.lastTurn >= this.forgetTurn) this.pressed.delete(이름);
+    for (const [name, v] of [...this.pressed]) {
+      if (this.turn - v.lastTurn >= this.forgetTurn) this.pressed.delete(name);
     }
   }
 
@@ -79,9 +79,9 @@ export class pendingThoughts {
   }
 
   /** 가장 오래 참은 것부터. */
-  heldOrder(): { 이름: string; count: number }[] {
+  heldOrder(): { name: string; count: number }[] {
     return [...this.pressed.entries()]
-      .map(([이름, v]) => ({ 이름, count: v.count }))
+      .map(([name, v]) => ({ name, count: v.count }))
       .sort((a, b) => b.count - a.count);
   }
 
@@ -103,10 +103,10 @@ export class pendingThoughts {
   /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
   summary(): string {
     const items = [...this.pressed.entries()]
-      .filter(([이름]) => this.addedWeight(이름) > 0)
+      .filter(([name]) => this.addedWeight(name) > 0)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([이름, v]) => `${이름}+${this.addedWeight(이름)}(${v.count}번)`);
+      .map(([name, v]) => `${name}+${this.addedWeight(name)}(${v.count}번)`);
     return items.join(' · ');
   }
 }

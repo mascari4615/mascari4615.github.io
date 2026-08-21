@@ -22,9 +22,9 @@ import type { Speech, SpeechVoice } from './edge-tts';
  * - **끄는 길이 늘 있다.** 설정으로 자동 기동을 끄면 손으로 띄운 것만 쓴다.
  */
 export interface DemandBootOptions {
-  /** 사람이 읽는 이름. */
-  이름: string;
-  /** 지금 떠 있나. */
+  /** 사람이 읽는 name. */
+  name: string;
+  /** now 떠 있나. */
   isAlive: () => Promise<boolean>;
   /** 띄운다. 오래 걸려도 된다 — 기다리지 않는다. */
   show: () => void | Promise<void>;
@@ -56,11 +56,11 @@ export class demandBoot {
 
   constructor(private readonly options: DemandBootOptions) {}
 
-  private get 지금(): number {
+  private get now(): number {
     return this.options.now?.() ?? Date.now();
   }
 
-  /** 지금 쓸 수 있나 — 마지막으로 확인한 상태 그대로(묻지 않는다). */
+  /** now 쓸 수 있나 — 마지막으로 확인한 상태 그대로(묻지 않는다). */
   get isReady(): boolean {
     return this.appeared;
   }
@@ -71,17 +71,17 @@ export class demandBoot {
   }
 
   /**
-   * 지금 필요하다 — 안 떠 있으면 **뒤에서** 띄우기 시작한다.
+   * now 필요하다 — 안 떠 있으면 **뒤에서** 띄우기 시작한다.
    *
    * 이 함수는 안 기다린다(띄우기만 건다). 기다리는 건 말하는 쪽이다 — 고른 목소리가 뜰
    * 때까지 기다렸다 그 목소리로 말한다.
    */
   async mustWrite(): Promise<void> {
-    this.lastUsed = this.지금;
+    this.lastUsed = this.now;
 
     const interval = this.options.askIntervalMs ?? 5_000;
-    if (this.지금 - this.lastCheck >= interval) {
-      this.lastCheck = this.지금;
+    if (this.now - this.lastCheck >= interval) {
+      this.lastCheck = this.now;
       try {
         this.appeared = await this.options.isAlive();
       } catch {
@@ -91,10 +91,10 @@ export class demandBoot {
     if (this.appeared || this.showing) return;
     if (this.options.isAuto?.() === false) return;
 
-    if (this.지금 - this.failedAt < (this.options.restAfterFailMs ?? 60_000)) return;
+    if (this.now - this.failedAt < (this.options.restAfterFailMs ?? 60_000)) return;
 
     this.showing = true;
-    this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
+    this.options.log?.(`${this.options.name} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
     void Promise.resolve()
       .then(() => this.options.show())
       .then(() => {
@@ -108,8 +108,8 @@ export class demandBoot {
         return this.untilAppear();
       })
       .catch((e) => {
-        this.failedAt = this.지금;
-        this.options.log?.(`${this.options.이름} 을(를) 못 띄웠다: ${e instanceof Error ? e.message : String(e)}`);
+        this.failedAt = this.now;
+        this.options.log?.(`${this.options.name} 을(를) 못 띄웠다: ${e instanceof Error ? e.message : String(e)}`);
       })
       .finally(() => {
         this.showing = false;
@@ -121,7 +121,7 @@ export class demandBoot {
   private async untilAppear(): Promise<void> {
     const limit = this.options.prepareWaitMs ?? 180_000;
     const interval2 = this.options.prepareAskIntervalMs ?? 2_000;
-    const start = this.지금;
+    const start = this.now;
     for (;;) {
       await new Promise((r) => setTimeout(r, interval2));
       let isAlive = false;
@@ -132,11 +132,11 @@ export class demandBoot {
       }
       if (isAlive) {
         this.appeared = true;
-        this.options.log?.(`${this.options.이름} 이(가) 준비됐다 (${Math.round((this.지금 - start) / 1000)}초)`);
+        this.options.log?.(`${this.options.name} 이(가) 준비됐다 (${Math.round((this.now - start) / 1000)}초)`);
         return;
       }
-      if (this.지금 - start >= limit) {
-        this.failedAt = this.지금;
+      if (this.now - start >= limit) {
+        this.failedAt = this.now;
         throw new Error(`${Math.round(limit / 1000)}초 안에 안 떴다`);
       }
     }
@@ -151,13 +151,13 @@ export class demandBoot {
   async stopIfIdle(): Promise<boolean> {
     const whenIdle = this.options.stopIfIdleMs?.() ?? 0;
     if (whenIdle <= 0 || this.weOpenedIt === false || this.appeared === false) return false;
-    if (this.lastUsed === 0 || this.지금 - this.lastUsed < whenIdle) return false;
+    if (this.lastUsed === 0 || this.now - this.lastUsed < whenIdle) return false;
 
     try {
       await this.options.stop();
-      this.options.log?.(`${this.options.이름} 을(를) 껐다 — ${Math.round(whenIdle / 60_000)}분 넘게 안 썼다`);
+      this.options.log?.(`${this.options.name} 을(를) 껐다 — ${Math.round(whenIdle / 60_000)}분 넘게 안 썼다`);
     } catch (e) {
-      this.options.log?.(`${this.options.이름} 을(를) 못 껐다: ${e instanceof Error ? e.message : String(e)}`);
+      this.options.log?.(`${this.options.name} 을(를) 못 껐다: ${e instanceof Error ? e.message : String(e)}`);
       return false;
     }
     this.appeared = false;

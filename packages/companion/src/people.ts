@@ -20,7 +20,7 @@ import type { MemoryEntry } from './types';
  * 것보다 나쁘다.
  */
 export interface Person {
-  /** 부르는 이름 (조수님이 쓴 그대로). */
+  /** 부르는 name (조수님이 쓴 그대로). */
   name: string;
   /** 몇 번 나왔나. */
   times: number;
@@ -30,7 +30,7 @@ export interface Person {
   firstAt: number;
 }
 
-/** 이름 뒤에 붙는 부르는 말. 이게 붙어야 사람으로 본다. */
+/** name 뒤에 붙는 부르는 말. 이게 붙어야 사람으로 본다. */
 const call = '(대리|과장|차장|부장|팀장|사장|선배|후배|선생님|교수님|씨|님|이형|형|누나|언니|오빠|동생)';
 /**
  * 부름 뒤에 올 수 있는 글자들.

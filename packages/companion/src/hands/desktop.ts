@@ -33,7 +33,7 @@ export function needsPermission(hand: Hand, gate: AskFirst): Hand {
   };
 }
 
-/** 파일 찾기 — 이름 조각으로 내 폴더들을 뒤진다. 읽기만 하므로 물어볼 것도 없다. */
+/** 파일 찾기 — name 조각으로 내 폴더들을 뒤진다. 읽기만 하므로 물어볼 것도 없다. */
 export function findFileHand(roots?: readonly string[]): Hand {
   const places = roots ?? [
     join(homedir(), 'Desktop'),
@@ -43,7 +43,7 @@ export function findFileHand(roots?: readonly string[]): Hand {
   return {
     name: '파일찾기',
     what: '이 사람 폴더에서 이름에 그 말이 든 파일을 찾는다',
-    needs: '찾을 이름 조각',
+    needs: '찾을 name 조각',
     async run(argument: string): Promise<string> {
       const needle = argument.trim().toLowerCase();
       if (needle === '') throw new Error('무엇을 찾을지 안 알려줬다');

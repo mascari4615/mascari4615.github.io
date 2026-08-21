@@ -41,7 +41,7 @@ test('결을 목소리 이름에 붙인다', () => {
   assert.equal(withTone('ko-KR-SunHiNeural', '들뜸'), 'ko-KR-SunHiNeural@들뜸');
 });
 
-test('결이 없으면 이름 그대로다', () => {
+test('결이 없으면 name 그대로다', () => {
   assert.equal(withTone('ko-KR-SunHiNeural', null), 'ko-KR-SunHiNeural');
 });
 
