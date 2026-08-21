@@ -181,11 +181,11 @@ function openInBrowser() {
   const url = `http://localhost:${process.env.COMPANION_PORT ?? 4620}`;
   // 서버가 서기 전에 열면 빈 화면이 뜬다.
   setTimeout(() => {
-    const [명령, 인자] = process.platform === 'win32'
+    const [command, args] = process.platform === 'win32'
       ? ['cmd', ['/c', 'start', '', url]]
       : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
     try {
-      spawn(명령, 인자, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      spawn(command, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
       console.log(`화면을 브라우저로 열었다 — ${url}`);
     } catch {
       console.log(`화면은 브라우저로 열면 된다 — ${url}`);

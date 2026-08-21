@@ -35,7 +35,7 @@ export interface MeaningMemoryOptions {
   log?: (message: string) => void;
 }
 
-interface 담긴줄 {
+interface storedLines {
   text: string;
   at: number;
   v: number[];
@@ -50,7 +50,7 @@ export function similarity(a: readonly number[], b: readonly number[]): number {
 }
 
 export class meaningMemory {
-  private readonly stored: 담긴줄[] = [];
+  private readonly stored: storedLines[] = [];
   private readonly max: number;
   private readonly threshold: number;
   private readonly log: (message: string) => void;
@@ -63,7 +63,7 @@ export class meaningMemory {
     this.read();
   }
 
-  get 담긴수(): number {
+  get storedCount(): number {
     return this.stored.length;
   }
 
@@ -71,7 +71,7 @@ export class meaningMemory {
     const path = this.options.path;
     if (path === undefined || existsSync(path) === false) return;
     try {
-      const parsed = JSON.parse(readFileSync(path, 'utf8')) as 담긴줄[];
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as storedLines[];
       if (Array.isArray(parsed)) {
         for (const line of parsed) {
           if (typeof line?.text === 'string' && Array.isArray(line.v)) this.stored.push(line);

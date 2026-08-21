@@ -54,7 +54,7 @@ test('아직 준비가 안 됐으면 빈손으로 돌아온다 — 기다리게 
 test('짧은 말은 색인에 안 담는다 — 「응」이 아무거나 닮아 보이면 안 된다', async () => {
   const meaning4 = new meaningMemory({ measure: fakeMeasure({ ...table2, '응': [1, 0, 0, 0] }) });
   await meaning4.store([{ role: 'sensed', channel: 'web', text: '응', at: 1 }]);
-  assert.equal(meaning4.담긴수, 0);
+  assert.equal(meaning4.storedCount, 0);
 });
 
 test('같은 말은 두 번 안 담는다', async () => {
@@ -62,7 +62,7 @@ test('같은 말은 두 번 안 담는다', async () => {
   const line = [{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }];
   await meaning5.store(line);
   await meaning5.store(line);
-  assert.equal(meaning5.담긴수, 1);
+  assert.equal(meaning5.storedCount, 1);
 });
 
 test('방금 나눈 말은 빼고 준다 — 두뇌가 이미 보고 있다', async () => {
@@ -77,7 +77,7 @@ test('껐다 켜도 색인이 남는다', async () => {
   const firstRun = new meaningMemory({ path, measure: fakeMeasure(table2) });
   await firstRun.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]);
   const nextRun = new meaningMemory({ path, measure: fakeMeasure(table2), threshold: 0.5 });
-  assert.equal(nextRun.담긴수, 1);
+  assert.equal(nextRun.storedCount, 1);
   const produced3 = await nextRun.find('저번에 못 먹는다고 한 게 뭐였지');
   assert.equal(produced3[0]?.text, '마라탕은 매워서 못 먹어');
   assert.ok(readFileSync(path, 'utf8').includes('마라탕'));
@@ -93,7 +93,7 @@ test('오래되면 앞에서부터 빠진다', async () => {
   }
   const meaning7 = new meaningMemory({ measure: fakeMeasure(many), max: 3 });
   await meaning7.store(lines);
-  assert.equal(meaning7.담긴수, 3);
+  assert.equal(meaning7.storedCount, 3);
 });
 
 test('닮은정도는 같은 것끼리 1 에 가깝다', () => {

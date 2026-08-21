@@ -51,22 +51,22 @@ test('두뇌가 죽어도 대화는 안 멈춘다 — 그리고 조용히 삼키
 test('물어보기가 없으면 아무 일도 안 한다 — 아무 데도 안 걸리고 그냥 돈다', async () => {
   const r = new reflection();
   assert.equal(await r.reflect(exchange), 0);
-  assert.equal(r.셀때인가, false);
+  assert.equal(r.isCountTime, false);
 });
 
 // ── 언제 되새기나 ────────────────────────────────────────────────
 
 test('말이 얼마쯤 쌓여야 되새긴다 — 매 turn 되새기면 그게 값이다', () => {
-  const r = new reflection({ 마다: 3, ask: async () => [] });
+  const r = new reflection({ every: 3, ask: async () => [] });
   assert.equal(r.calc([text2('하나')]), false);
   assert.equal(r.calc([text2('하나'), text2('둘'), text2('셋')]), true);
 });
 
 test('되새기고 나면 다시 쌓일 때까지 안 한다', async () => {
-  const r = new reflection({ 마다: 3, ask: async () => [] });
+  const r = new reflection({ every: 3, ask: async () => [] });
   r.calc([text2('하나'), text2('둘'), text2('셋')]);
   await r.reflect(exchange);
-  assert.equal(r.셀때인가, false);
+  assert.equal(r.isCountTime, false);
 });
 
 // ── 두뇌에 얹을 한 줄 ─────────────────────────────────────────────
