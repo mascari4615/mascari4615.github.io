@@ -27,10 +27,11 @@ import { fileURLToPath } from 'node:url';
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 const BASELINE = path.join(appRoot, 'i18n/.shell-baseline.json');
-/* 자리 번호를 환경변수로 열어 둔다 — 세션마다 자기 책상에서 이 검사를 돌리면 8842 한 자리에
-   전부 부딪힌다(실제로 부딪혔다: EADDRINUSE 로 검사가 죽었다. `dev.mjs` 가 같은 이유로
-   `PORT` 를 읽는다). 기본값은 그대로라 아무도 안 적으면 예전과 똑같이 돈다. */
-const PORT = Number(process.env.PORT || 8842);
+/* 자리 번호는 <b>운영체제에게 받는다</b>(0 = 빈 자리 아무거나). 아래 `listen` 주석 참고.
+   ⚠ 예전엔 기본값이 8842 였고, 부딪히면 사람이 `PORT` 를 적어 피하라고 열어 뒀다. 그런데
+   부딪힘은 EADDRINUSE 로 죽는 것만이 아니었다 — <b>먼저 잡은 남의 서버에 그냥 물어보는</b>
+   조용한 갈래가 있었다(2026-08-21 실측). 사람이 매번 안 적어도 되게 기본을 바꾼다. */
+const PORT = Number(process.env.PORT || 0);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 const BLESS = process.argv.includes('--bless');
 
@@ -56,7 +57,15 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
   fs.createReadStream(file).pipe(res);
 });
+/* ★ **붙박이 자리 번호는 남의 서버에 물어보게 만든다** (2026-08-21, 실측).
+ * 기본값 8842 로 띄우는데, 여러 책상이 동시에 검사를 돌리면 그 자리를 <b>먼저 잡은 쪽이 이긴다</b>.
+ * 그러면 내 브라우저는 <b>남의 저장소</b>를 보고, 내 장은 404 로 돌아온다.
+ * 실측: `netstat` 에 8842 를 다른 프로세스가 잡고 있었고, 그 자리에 내 장을 물으니 404 였다.
+ * ⚠ 그런데 이 검사의 통과 조건은 「보이는 한글 0개」다 — 남의 404 화면에도 한글이 0개다.
+ *   그래서 <b>남의 서버를 보고도 「정상」이라 답해 왔다.</b> (오늘 바닥을 넣고서야 드러났다.)
+ * 0 번을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. `PORT` 를 적으면 그 자리를 쓴다. */
 await new Promise((r) => server.listen(PORT, r));
+const PORT_IN_USE = server.address().port;
 
 const browser = await launchOrSkip('shell-i18n');
 if (!browser) process.exit(0);
@@ -96,7 +105,7 @@ const consoleText = { en: 'en-US', 'en-tool': 'en-US', ja: 'ja-JP', 'ja-tool': '
 for (const [code, page] of PAGES) {
   const ctx = await browser.newContext({ locale: consoleText[code] || 'en-US' });
   const tab = await ctx.newPage();
-  const res = await tab.goto(`http://127.0.0.1:${PORT}/${page}`, { waitUntil: 'domcontentloaded' });
+  const res = await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${page}`, { waitUntil: 'domcontentloaded' });
   /* 이름은 말 묶음이 온 뒤에 정해진다 — 받아오기가 끝날 시간을 준다. */
   await tab.waitForTimeout(3500);
   /* ★ **여기서 0 은 「없다」가 아니라 「안 봤다」일 수 있다** (2026-08-21).
