@@ -64,17 +64,17 @@ namespace Handheld.EditorTools
             if (_rig == null) _rig = FindAnyObjectByType<HandheldRig>();
         }
 
-        /// <summary>편집 모드에서도 리그가 돌게 한다 — Play 없이 폰이 붙어 움직인다.</summary>
+        /// <summary>
+        /// 이 창은 **보여 주기만** 한다. 리그를 돌리는 심장은 `HandheldEditorDriver` 다.
+        ///
+        /// 별 예전엔 여기가 심장이었다 (2026-08-21 옮김). 창은 닫힌다 — 레이아웃 변경·
+        ///   도메인 리로드·실수로 닫기. 그러면 서버는 살아서 폰 접속까지 받는데 아무것도
+        ///   안 보내고, 폰 화면은 그냥 검다. 실제로 URP 리임포트 뒤 그 일이 났다
+        ///   (WS 는 열리는데 JPEG 0장 · 상태 줄 0줄).
+        /// </summary>
         void Tick()
         {
             FindRig();
-            if (!Application.isPlaying)
-            {
-                // 편집 모드에서는 MonoBehaviour.Update 가 규칙적으로 안 돈다 — 여기가 심장이다.
-                if (_server != null && _server.isActiveAndEnabled) _server.Tick();
-                if (_rig != null && _rig.isActiveAndEnabled) _rig.ManualTick(true);
-            }
-
             ReadTunnelLog();
             Repaint();
         }
@@ -91,6 +91,8 @@ namespace Handheld.EditorTools
                 return;
             }
 
+            DrawHeartbeatSection();
+            EditorGUILayout.Space(8);
             DrawServerSection();
             EditorGUILayout.Space(8);
             DrawTunnelSection();
@@ -108,6 +110,22 @@ namespace Handheld.EditorTools
             DrawRecordSection();
 
             EditorGUILayout.EndScrollView();
+        }
+
+        // ── 심장 ─────────────────────────────────────────────────────────────────
+        void DrawHeartbeatSection()
+        {
+            if (Application.isPlaying) return;      // Play 중엔 Update 가 돈다
+            if (HandheldEditorDriver.HasServer && HandheldEditorDriver.HasRig) return;
+
+            Header("심장");
+            EditorGUILayout.HelpBox(
+                "편집 모드 구동기가 씬에서 " +
+                (HandheldEditorDriver.HasServer ? "" : "HandheldServer ") +
+                (HandheldEditorDriver.HasRig ? "" : "HandheldRig ") +
+                "를 못 찾았다 — 그러면 폰에 아무것도 안 간다(화면이 검다).\n" +
+                "「테스트 씬 만들기」로 씬을 짓거나, 그 컴포넌트가 켜져 있는지 봐라.",
+                MessageType.Warning);
         }
 
         // ── 서버 ─────────────────────────────────────────────────────────────────
