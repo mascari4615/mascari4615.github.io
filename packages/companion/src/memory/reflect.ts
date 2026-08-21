@@ -36,7 +36,7 @@ export interface ReflectOptions {
   /** 몇 개까지 들고 있을까. */
   keep?: number;
   /** 새 사람 말이 이만큼 쌓이면 한 번 되새긴다. */
-  마다?: number;
+  every?: number;
   ask?: (exchange: readonly MemoryEntry[], alreadyKnown: readonly string[]) => Promise<readonly Insight[] | null>;
   log?: (message: string) => void;
 }
@@ -44,10 +44,10 @@ export interface ReflectOptions {
 export class reflection {
   private list: Insight[] = [];
   private countedText = 0;
-  private readonly options: Required<Pick<ReflectOptions, 'keep' | '마다'>> & ReflectOptions;
+  private readonly options: Required<Pick<ReflectOptions, 'keep' | 'every'>> & ReflectOptions;
 
   constructor(options: ReflectOptions = {}) {
-    this.options = { keep: 12, 마다: 12, ...options };
+    this.options = { keep: 12, every: 12, ...options };
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Insight[];
@@ -65,11 +65,11 @@ export class reflection {
   /** 사람 말이 몇 마디 더 쌓였다. 되새길 때가 됐으면 true. */
   calc(exchange2: readonly MemoryEntry[]): boolean {
     this.countedText = exchange2.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
-    return this.셀때인가;
+    return this.isCountTime;
   }
 
-  get 셀때인가(): boolean {
-    return this.options.ask !== undefined && this.countedText >= this.options.마다;
+  get isCountTime(): boolean {
+    return this.options.ask !== undefined && this.countedText >= this.options.every;
   }
 
   /**
@@ -187,10 +187,10 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
     if (answer === null) return null;
     const produced2: Insight[] = [];
     for (const line of answer.split('\n')) {
-      const [무엇, evidences] = line.split('||');
+      const [what, evidences] = line.split('||');
       if (evidences === undefined) continue;
       produced2.push({
-        what: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
+        what: what.replace(/^[-*\d.\s]+/, '').trim(),
         evidence: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
         at: Date.now(),
       });
