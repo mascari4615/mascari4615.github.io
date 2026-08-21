@@ -11,19 +11,19 @@ test('아무것도 없으면 기본값으로 시작한다', () => {
 });
 
 test('초를 밀리초로 바꿔 준다 — 그게 필요한 자리가 많다', () => {
-  assert.equal(new Settings().ms('먼저말걸기간격초'), 300_000);
+  assert.equal(new Settings().ms('speakFirstIntervalSec'), 300_000);
 });
 
 test('참/거짓을 물어볼 수 있다', () => {
-  assert.equal(new Settings().on('먼저말걸기'), true);
+  assert.equal(new Settings().on('speakFirst'), true);
 });
 
 // ── 바꾸기 ──────────────────────────────────────────────────────────
 
 test('아는 항목은 바뀐다', () => {
   const s = new Settings();
-  assert.deepEqual(s.put({ 먼저말걸기: false }), []);
-  assert.equal(s.on('먼저말걸기'), false);
+  assert.deepEqual(s.put({ speakFirst: false }), []);
+  assert.equal(s.on('speakFirst'), false);
 });
 
 test('모르는 항목은 안 받고 왜인지 말한다 — 조용히 무시하면 왜 안 바뀌는지 모른다', () => {
@@ -35,22 +35,22 @@ test('모르는 항목은 안 받고 왜인지 말한다 — 조용히 무시하
 
 test('꼴이 다르면 안 받는다', () => {
   const s = new Settings();
-  assert.match(s.put({ 먼저말걸기: 3 })[0], /참\/거짓/);
-  assert.match(s.put({ 화면보기간격초: '아무말' })[0], /숫자/);
+  assert.match(s.put({ speakFirst: 3 })[0], /참\/거짓/);
+  assert.match(s.put({ screenLookIntervalSec: '아무말' })[0], /숫자/);
 });
 
 test('범위 밖은 묶고 그렇다고 말한다 — 화면 보기를 0.1초로 두면 컴퓨터가 앓는다', () => {
   const s = new Settings();
-  const failed2 = s.put({ 먼저말걸기간격초: 1 });
-  assert.equal(s.get('먼저말걸기간격초'), 60);
+  const failed2 = s.put({ speakFirstIntervalSec: 1 });
+  assert.equal(s.get('speakFirstIntervalSec'), 60);
   assert.match(failed2[0], /60~3600/);
 });
 
 test('끄는 길은 늘 남아 있다', () => {
   const s = new Settings();
-  s.put({ 화면보기간격초: 0, 먼저말걸기: false, '놀리기': false });
-  assert.equal(s.get('화면보기간격초'), 0);
-  assert.equal(s.on('먼저말걸기'), false);
+  s.put({ screenLookIntervalSec: 0, speakFirst: false, '놀리기': false });
+  assert.equal(s.get('screenLookIntervalSec'), 0);
+  assert.equal(s.on('speakFirst'), false);
   assert.equal(s.on('놀리기'), false);
 });
 
@@ -67,10 +67,10 @@ test('파일이 정본이다 — 창을 새로 열어도 그대로다', async ()
   const dir = mkdtempSync(join(tmpdir(), 'settings-'));
   const path = join(dir, '설정.json');
   try {
-    new Settings({ path }).put({ 먼저말걸기: false, 화면보기간격초: 600 });
+    new Settings({ path }).put({ speakFirst: false, screenLookIntervalSec: 600 });
     const again = new Settings({ path });
-    assert.equal(again.on('먼저말걸기'), false);
-    assert.equal(again.get('화면보기간격초'), 600);
+    assert.equal(again.on('speakFirst'), false);
+    assert.equal(again.get('screenLookIntervalSec'), 600);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -84,7 +84,7 @@ test('파일이 깨져 있어도 기본값으로 돈다', async () => {
   try {
     writeFileSync(path, '깨진 것', 'utf8');
     const s = new Settings({ path, log: (m) => left.push(m) });
-    assert.equal(s.on('먼저말걸기'), true);
+    assert.equal(s.on('speakFirst'), true);
     assert.equal(left.some((m) => m.includes('못 읽었다')), true);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
@@ -104,12 +104,12 @@ test('조용한 시간대를 바꾸면 재시작 없이 먹는다 — 고정 숫
   let now2 = new Date(2026, 1, 10, 14, 0).getTime();
   const quiet = new Quiet({
     now: () => now2,
-    fromHour: () => Number(s.get('조용한시간시작')),
-    toHour: () => Number(s.get('조용한시간끝')),
+    fromHour: () => Number(s.get('quietHourStart')),
+    toHour: () => Number(s.get('quietHourEnd')),
   });
   assert.equal(quiet.inQuietHours, false, '낮 두 시는 조용한 시간이 아니다');
 
-  s.put({ 조용한시간시작: 13, 조용한시간끝: 18 });
+  s.put({ quietHourStart: 13, quietHourEnd: 18 });
   assert.equal(quiet.inQuietHours, true, '바꾸자마자 먹어야 한다');
 });
 

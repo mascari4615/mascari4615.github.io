@@ -64,37 +64,37 @@ test('말줄임표도 문장 끝으로 본다 — 얘가 자주 쓴다', () => {
 test('첫 토막은 더 잘게 끊는다 — 첫 소리까지가 그만큼 앞당겨진다', () => {
   const content = '어 그래, 나도 그거 봤어';
   assert.equal(chunkToRead(content), null, '평소 문턱으론 아직 안 끊긴다');
-  const r = chunkToRead(content, { 첫토막: true });
+  const r = chunkToRead(content, { firstChunk: true });
   assert.notEqual(r, null);
   assert.equal(r.chunk, '어 그래,');
 });
 
 test('그래도 바닥은 있다 — 「어,」 한 마디만 툭 나오고 끊기면 안 된다', () => {
-  assert.equal(chunkToRead('어, 그러니까 말이야', { 첫토막: true }), null);
+  assert.equal(chunkToRead('어, 그러니까 말이야', { firstChunk: true }), null);
 });
 
 test('첫 토막 뒤로는 평소 문턱으로 돌아간다', () => {
   const content2 = '어 그래, 나도 그거 봤어';
-  const firstOne2 = chunkToRead(content2, { 첫토막: true });
+  const firstOne2 = chunkToRead(content2, { firstChunk: true });
   assert.equal(chunkToRead(content2.slice(firstOne2.consumedLength)), null, '뒤 토막은 더 기다린다');
 });
 
 // ── 얼굴 표 떼기 ─────────────────────────────────────────────────────
 
 test('얼굴 표는 소리로 읽지 않는다 — 「대괄호 졸림 대괄호」를 읽고 있었다', async () => {
-  const { stripEmoji: 표정떼기 } = await import('../assets/say-chunks.js');
-  assert.equal(표정떼기('[졸림] …졸려…'), '…졸려…');
-  assert.equal(표정떼기('음, [놀람] 그게 진짜야?'), '음, 그게 진짜야?');
+  const { stripEmoji: stripEmoji } = await import('../assets/say-chunks.js');
+  assert.equal(stripEmoji('[졸림] …졸려…'), '…졸려…');
+  assert.equal(stripEmoji('음, [놀람] 그게 진짜야?'), '음, 그게 진짜야?');
 });
 
 test('사람이 쓴 대괄호는 안 뗀다 — 하려던 말이 사라지면 안 된다', async () => {
-  const { stripEmoji: 표정떼기 } = await import('../assets/say-chunks.js');
-  assert.equal(표정떼기('[중요한 회의 자료] 이거 봐'), '[중요한 회의 자료] 이거 봐');
-  assert.equal(표정떼기('배열은 [1, 2, 3] 이야'), '배열은 [1, 2, 3] 이야');
+  const { stripEmoji: stripEmoji } = await import('../assets/say-chunks.js');
+  assert.equal(stripEmoji('[중요한 회의 자료] 이거 봐'), '[중요한 회의 자료] 이거 봐');
+  assert.equal(stripEmoji('배열은 [1, 2, 3] 이야'), '배열은 [1, 2, 3] 이야');
 });
 
 test('표가 없으면 그대로 둔다', async () => {
-  const { stripEmoji: 표정떼기 } = await import('../assets/say-chunks.js');
-  assert.equal(표정떼기('그냥 평범한 말'), '그냥 평범한 말');
-  assert.equal(표정떼기(''), '');
+  const { stripEmoji: stripEmoji } = await import('../assets/say-chunks.js');
+  assert.equal(stripEmoji('그냥 평범한 말'), '그냥 평범한 말');
+  assert.equal(stripEmoji(''), '');
 });

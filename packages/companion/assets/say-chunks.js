@@ -35,7 +35,7 @@ export function chunkToRead(remaining, options = {}) {
      사람이 기다리는 시간의 절반이었다. 첫 토막만 짧으면 첫 소리가 그만큼 앞당겨지고,
      뒤 토막들은 앞 소리가 나가는 동안 만들어지므로 길어도 티가 안 난다.
      너무 짧으면 「어,」 한 마디만 툭 나오고 끊기므로 바닥은 남겨 둔다. */
-  const firstChunk = options.첫토막 === true;
+  const firstChunk = options.firstChunk === true;
   const endThreshold = options.끝문턱 ?? (firstChunk ? 4 : 7);
   const pauseThreshold = options.pauseThreshold ?? (firstChunk ? 5 : 10);
   const toKeep = options.toKeep ?? 0;

@@ -52,7 +52,7 @@ test('꺼낼 자리면 왜 안 꺼내는지가 없다', () => {
 
 test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는다', () => {
   const pressed = new pendingThoughts();
-  for (let i = 0; i < 4; i += 1) { pressed.write('단골얘기', 'queued'); pressed.다음턴(); }
+  for (let i = 0; i < 4; i += 1) { pressed.write('단골얘기', 'queued'); pressed.nextTurn(); }
   pressed.write('기분', 'loaded');
   const r = topicFirst({ ...base, heldFor: (n) => pressed.heldFor(n) });
   assert.equal(r?.name, '단골얘기');
@@ -61,7 +61,7 @@ test('실제로 밀린 것을 세어 꺼낸다 — 표를 따로 들지 않는�
 
 test('말하고 나면 풀려서 또 안 꺼낸다', () => {
   const pressed2 = new pendingThoughts();
-  for (let i = 0; i < 4; i += 1) { pressed2.write('단골얘기', 'queued'); pressed2.다음턴(); }
+  for (let i = 0; i < 4; i += 1) { pressed2.write('단골얘기', 'queued'); pressed2.nextTurn(); }
   pressed2.write('단골얘기', 'loaded');
   assert.equal(topicFirst({ ...base, heldFor: (n) => pressed2.heldFor(n) }), null);
 });
