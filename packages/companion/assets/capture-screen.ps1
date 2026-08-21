@@ -127,23 +127,43 @@ try {
 # Every element carries a rectangle, which is also the raw material for the next
 # step: clicking things instead of only looking at them.
 $tree = '[]'
+# Why the list looks the way it does.
+#
+# "Read nothing" has FOUR causes -- never got the window, the tree is empty,
+# everything was nameless, everything was offscreen -- and collapsing them into
+# one sentence makes the reader hear "the screen is blank" every time. Measured
+# 2026-08-21 across every running window: Discord 532/445/350, msedge
+# 777/510/233, Unity 9/9/9, WindowsTerminal 28/19/18, NVIDIA Overlay 0,
+# TextInputHost 0. Note msedge: 233 onscreen against a cap of 120 -- half the
+# window is dropped and the list still claims to be the whole thing.
+$readRoot = 'no'
+$readRaw = 0
+$readNamed = 0
+$readOnscreen = 0
 try {
   Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
   $root = [System.Windows.Automation.AutomationElement]::FromHandle([Win32.Native]::GetForegroundWindow())
   if ($null -ne $root) {
+    $readRoot = 'yes'
     $found = $root.FindAll(
       [System.Windows.Automation.TreeScope]::Descendants,
       [System.Windows.Automation.Condition]::TrueCondition)
     # Actions worth telling the reader about. Everything else is plumbing.
     $wanted = @('Invoke', 'Toggle', 'SelectionItem', 'ExpandCollapse', 'Value')
     $rows = New-Object System.Collections.ArrayList
+    $readRaw = $found.Count
+    # Walk the WHOLE tree even after the cap -- the counts are the point.
+    # Stopping at 120 would report "120 of 120" and hide that half the window
+    # never made it into the list.
     foreach ($node in $found) {
-      if ($rows.Count -ge $MaxElements) { break }
       $now = $node.Current
       $name = $now.Name
       # Nameless boxes tell the reader nothing -- they are layout, not content.
       if ([string]::IsNullOrWhiteSpace($name)) { continue }
+      $readNamed++
       if ($now.IsOffscreen) { continue }
+      $readOnscreen++
+      if ($rows.Count -ge $MaxElements) { continue }
       $box = $now.BoundingRectangle
       # Off-screen elements report an infinite rectangle; JSON has no infinity,
       # and a reader that sees one stops trusting every other number.
@@ -194,3 +214,4 @@ try {
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Output ("TITLE=" + $title)
 Write-Output ("TREE=" + $tree)
+Write-Output ("READ=" + $readRoot + "," + $readRaw + "," + $readNamed + "," + $readOnscreen)
