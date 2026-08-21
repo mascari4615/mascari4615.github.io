@@ -15,7 +15,7 @@ import { usual } from '../feeling';
  * 바뀌면 그게 더 이상하다. 그리고 **평소에는 아무것도 안 건드린다** — 늘 뭔가 얹혀 있으면
  * 그건 결이 아니라 왜곡이다.
  */
-export type Tone = '들뜸' | '처짐' | '뾰족' | '누그러짐';
+export type Tone = '들뜸' | 'droop' | '뾰족' | '누그러짐';
 
 /** 이 마음이 어느 결인가. 평소 언저리면 null — 아무것도 안 얹는다. */
 export function toneOf(feeling: Feeling): Tone | null {
@@ -24,7 +24,7 @@ export function toneOf(feeling: Feeling): Tone | null {
   if (Math.abs(v) < 0.2 && Math.abs(a) < 0.25) return null;
 
   if (a >= 0.25) return v < -0.15 ? '뾰족' : '들뜸';
-  if (a <= -0.25) return v > 0.15 ? '누그러짐' : '처짐';
+  if (a <= -0.25) return v > 0.15 ? '누그러짐' : 'droop';
   return v > 0 ? '누그러짐' : '뾰족';
 }
 
@@ -36,7 +36,7 @@ export function toneOf(feeling: Feeling): Tone | null {
 export const moodTone: Readonly<Record<Tone, { rate: string; pitch: string }>> = {
   '들뜸': { rate: '+12%', pitch: '+12Hz' },
   '뾰족': { rate: '+8%', pitch: '+4Hz' },
-  처짐: { rate: '-12%', pitch: '-10Hz' },
+  droop: { rate: '-12%', pitch: '-10Hz' },
   '누그러짐': { rate: '-8%', pitch: '-4Hz' },
 };
 
@@ -48,7 +48,7 @@ export const moodTone: Readonly<Record<Tone, { rate: string; pitch: string }>> =
 export const moodSpeed: Readonly<Record<Tone, number>> = {
   '들뜸': 0.88,
   '뾰족': 0.93,
-  처짐: 1.15,
+  droop: 1.15,
   '누그러짐': 1.07,
 };
 

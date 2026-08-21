@@ -26,7 +26,7 @@ test('모르는 표는 말의 일부다 — 함부로 지우면 대사가 사라
 });
 
 test('표가 둘이면 앞의 것만 쓴다 — 얼굴은 하나다', () => {
-  assert.equal(stripExpression('[웃음] 아 [처짐] 근데').tagged, '웃음');
+  assert.equal(stripExpression('[웃음] 아 [droop] 근데').tagged, '웃음');
 });
 
 test('표를 지우고 남은 빈틈을 정리한다', () => {
@@ -105,7 +105,7 @@ test('말이 끝나면 평온으로 돌아간다 — 표정이 남아 굳지 않
 
 test('쓸 수 있는 표를 알려 준다', () => {
   const note = expressionNote();
-  for (const e of ['평온', '웃음', '놀람', '뾰족', '처짐', '졸림']) {
+  for (const e of ['평온', '웃음', '놀람', '뾰족', 'droop', '졸림']) {
     assert.match(note, new RegExp(`\\[${e}\\]`), `${e} 가 안내에 없다`);
   }
 });
