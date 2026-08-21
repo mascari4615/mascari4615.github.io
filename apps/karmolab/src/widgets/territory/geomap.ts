@@ -336,7 +336,28 @@ export class GeoMap {
          * 그 한두 프레임이 「깜빡」이다. 이미 가진 <b>윗 층</b>을 잘라 늘려 메우면 흐릿할 뿐 안 끊긴다.
          * 지도 보는 프로그램들이 다 쓰는 방식이고, 새 타일이 오면 그 위에 또렷하게 덮인다. */
         const up = this.ancestorTile(tz, wrapped, ty);
-        if (up !== null) ctx.drawImage(up.img, up.sx, up.sy, up.size, up.size, sx, sy, drawn + 0.5, drawn + 0.5);
+        if (up !== null) {
+          ctx.drawImage(up.img, up.sx, up.sy, up.size, up.size, sx, sy, drawn + 0.5, drawn + 0.5);
+          continue;
+        }
+        /* ★ **축소는 반대쪽에서 메운다** (사용자 제보 2026-08-21: 「축소할때는 여전히 같은 문제」).
+         * 확대할 때는 위에서 내려온 층(`ancestorTile`)이 이미 있지만, 축소하면 새 층이 <b>더 위</b>라
+         * 가진 것이 하나도 없다 — 대신 방금까지 보던 <b>아랫 층</b>이 손에 있다.
+         * 아랫 층 네 칸(또는 열여섯 칸)을 제자리에 줄여 그려 메운다. 한두 칸만 있어도 그만큼 덜 빈다. */
+        for (let k = 1; k <= 2; k++) {
+          const span = 1 << k;
+          const part = (drawn + 0.5) / span;
+          let any = false;
+          for (let iy = 0; iy < span; iy++) {
+            for (let ix = 0; ix < span; ix++) {
+              const kid = this.tiles.get(`${tz + k}/${wrapped * span + ix}/${ty * span + iy}`);
+              if (kid === null || kid === undefined) continue;
+              ctx.drawImage(kid, sx + ix * part, sy + iy * part, part + 0.5, part + 0.5);
+              any = true;
+            }
+          }
+          if (any) break;
+        }
       }
     }
   }
