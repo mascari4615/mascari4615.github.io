@@ -3,16 +3,49 @@
 # characters break under the console codepage used here.
 param(
   [Parameter(Mandatory = $true)][string]$OutPath,
-  [int]$MaxWidth = 1280
+  # The reader shrinks anything wider than ~1568px anyway, so carrying more
+  # pixels than that costs time and buys nothing.
+  [int]$MaxWidth = 1568
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Declare DPI awareness BEFORE asking how big the screen is.
+#
+# Without this, Windows lies to us: on a 1920x1080 screen at 175% scaling it
+# reports 1097x617, and CopyFromScreen then hands back a blurred-down frame of
+# that size -- a third of the real pixels. Window text turns to mush, and the
+# companion reads mush: the live session where it said "only a small F is up
+# there" was looking at a 1097px grab of a 1920px screen. Measured 2026-08-21.
+$dpi = @'
+using System;
+using System.Runtime.InteropServices;
+public class CompanionDpi {
+  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll")] public static extern int GetSystemMetrics(int i);
+}
+'@
+try {
+  Add-Type -TypeDefinition $dpi
+  [void][CompanionDpi]::SetProcessDPIAware()
+} catch {
+  # Already aware (or too old to say so) -- keep going with whatever we get.
+}
+
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 
-$bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-$full = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+# SM_CXSCREEN / SM_CYSCREEN, asked after the call above, are real pixels.
+$width = [CompanionDpi]::GetSystemMetrics(0)
+$height = [CompanionDpi]::GetSystemMetrics(1)
+if ($width -le 0 -or $height -le 0) {
+  $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+  $width = $bounds.Width
+  $height = $bounds.Height
+}
+
+$full = New-Object System.Drawing.Bitmap $width, $height
 $graphics = [System.Drawing.Graphics]::FromImage($full)
-$graphics.CopyFromScreen($bounds.X, $bounds.Y, 0, 0, $full.Size)
+$graphics.CopyFromScreen(0, 0, 0, 0, $full.Size)
 $graphics.Dispose()
 
 # Shrink before saving: a full 4K frame is slow to move around and the reader
