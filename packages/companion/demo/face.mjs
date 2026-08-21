@@ -576,6 +576,8 @@ let lastEnergy = 0.5;
 let lastSpokenToAt = 0;
 
 const web = webBody({
+  // 안 받은 소리도 센다 — 창에 띄우기만 하면 창을 안 볼 때 사라진다 (35회차).
+  mark: (name, fate, why) => tally.mark(name, fate, why),
   // 마음이 목소리에 닿는 자리. 처지면 느리고 낮게, 들뜨면 빠르고 높게.
   /* 밤엔 목소리도 밤답게.
      결은 지금까지 **기분에서만** 왔다. 그런데 사람은 기분과 상관없이 밤엔 낮춰 말한다.

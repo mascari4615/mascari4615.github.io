@@ -35,6 +35,14 @@ export interface WebBodyOptions {
    * 굳은 것을 평생 안고 간다.
    */
   forget?: (what: string, alsoConversation: boolean) => { known: boolean; conversation: number };
+  /**
+   * 무슨 일이 얼마나 일어났는지 세는 자리.
+   *
+   * **거르기만 하고 세지 않으면 「도는지 모름」이 된다**(35회차에 그 값을 치렀다).
+   * 지금까지 안 받은 소리는 창에 한 줄 띄우고 끝이었다 — 창을 안 보고 있으면 사라진다.
+   * 얼마나 자주 지어내는지 알아야 목록을 손댈지, 모델을 바꿀지 판단할 수 있다.
+   */
+  mark?: (name: string, fate: 'loaded' | 'off', why?: string) => void;
   /** 목소리를 만들어 주는 쪽. 없으면 브라우저 내장 목소리로 말한다. */
   speech?: Speech;
   /**
@@ -509,9 +517,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
                    글을 두뇌에 넘기는 건 서버라, 창에서 걸러 봐야 이미 늦는다. */
                 const reason = keepReason(heard, Number.isFinite(spokenMs) ? spokenMs : null);
                 if (reason === null) {
+                  options.mark?.('귀:받음', 'loaded');
                   broadcast({ type: 'heard', text: heard as string });
                   senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
                 } else {
+                  // 창에 띄우고 **세기도** 한다 — 창을 안 보고 있으면 띄운 건 사라진다.
+                  options.mark?.('귀:안받음', 'off', reason);
                   noticed(`안 받은 소리 — ${reason}`);
                 }
               }
