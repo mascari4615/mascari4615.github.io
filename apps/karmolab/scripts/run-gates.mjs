@@ -6,7 +6,7 @@
  * 배포가 또 죽고, 다음 것을 알고… 를 여섯 번 했다. 여섯 시간이 그렇게 갔다.
  *
  *   `&&` 사슬:  A 빨강 → 끝.        아는 것 1개 / 판당
- *   이 스크립트: 전부 돌림 → 목록.   아는 것 전부 / 판당
+ *   이 스크립트: 전부 돌림 → list.   아는 것 전부 / 판당
  *
  * ## 왜 그냥 `--continue-on-error` 가 아닌가
  *
@@ -40,7 +40,7 @@ if (fromIdx !== -1) {
   const file = args[fromIdx + 1];
   const here = path.dirname(fileURLToPath(import.meta.url));
   const raw = JSON.parse(readFileSync(path.join(here, '..', file), 'utf8'));
-  gates = raw.목록 ?? raw.list ?? raw;
+  gates = raw.list ?? raw.list ?? raw;
   if (!Array.isArray(gates)) {
     console.error(`[gates] ${file} 안에서 이름 목록을 못 찾았다`);
     process.exit(2);
@@ -158,7 +158,7 @@ const results = [];
  * 사유는 그 위로 흘러가 버린다. 오늘 실제로 그 자리에 걸렸다: push 가 `audit:orphans` 로
  * 막혔는데 **왜 막혔는지 한 줄도 안 나왔다**. 사유 없는 빨강은 게이트가 아니라 벽이다.
  *
- * 그래서 흘려보내는 것은 그대로 두고(긴 판에서 진행이 보여야 한다), **빨간 검사의 제 말**을
+ * 그래서 흘려보내는 것은 그대로 두고(긴 판에서 진행이 보여야 한다), **빨간 검사의 제 output**을
  * 요약 바로 아래에 다시 붙인다. 요약만 떼어 봐도 사유가 같이 온다.
  */
 const TAIL_LINES = 12;
@@ -175,14 +175,14 @@ function runGate(gate) {
     };
     /* ★ 인자 배열 대신 **한 줄 명령**으로 넘긴다 — 윈도우의 `npm.cmd` 는 shell 이 있어야
        돌고(없으면 EINVAL), shell 에 인자 배열을 같이 주면 Node 가 매 판 DEP0190 경고를 찍는다.
-       그 경고가 꼬리 열두 줄을 채우면 검사의 제 말이 또 밀려난다. 이름은 우리 목록에서만 온다. */
+       그 경고가 tail 열두 줄을 채우면 검사의 제 말이 또 밀려난다. 이름은 우리 목록에서만 온다. */
     const child = spawn(`${npm} run --silent ${gate}`, {
       stdio: ['inherit', 'pipe', 'pipe'],
       shell: true
     });
     /* ★ **같이 도니까 흘려보내면 안 된다** (2026-08-19). 여덟 판이 한 화면에 섞여 찍히면
        어느 검사가 한 말인지 못 가린다 — 사유 없는 빨강과 같아진다. 모았다가 끝날 때
-       한 덩이로 낸다(머리글 + 그 검사의 말). */
+       한 덩이로 낸다(머리글 + 그 검사의 output). */
     child.stdout.on('data', (c) => { collected.push(String(c)); collect(c); });
     child.stderr.on('data', (c) => { collected.push(String(c)); collect(c); });
     child.on('error', (error) => resolve({ status: null, error, tailLinesilLinesilLines, output: collected.join('') }));
@@ -228,16 +228,16 @@ await Promise.all(
       const sec = Math.round((Date.now() - started) / 1000);
       /* 죽은 방식도 구분해 남긴다 — 「빨강」과 「아예 못 돌았다」는 손 갈 데가 다르다. */
       const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-      results.push({ gate: nextGate.gate, i: nextGate.i, sec, how, cantRun: !run.error && run.status === 2, tailLines: run.꼬리 });
+      results.push({ gate: nextGate.gate, i: nextGate.i, sec, how, cantRun: !run.error && run.status === 2, tailLines: run.tail });
       finishedCount += 1;
       const mark = run.error ? '·' : run.status === 0 ? '✓' : run.status === 2 ? '·' : '✘';
       console.log(`
 ──── ${nextGate.gate} ────  ${mark} ${sec}s  (${finishedCount}/${gates.length})`);
-      if (run.말) process.stdout.write(run.말.endsWith(String.fromCharCode(10)) ? run.말 : run.말 + String.fromCharCode(10));
+      if (run.output) process.stdout.write(run.output.endsWith(String.fromCharCode(10)) ? run.output : run.output + String.fromCharCode(10));
     }
   })
 );
-// 요약은 목록 순서로 — 끝난 순서로 적으면 판마다 줄이 뒤바뀌어 견주기가 어렵다.
+// 요약은 list 순서로 — 끝난 순서로 적으면 판마다 줄이 뒤바뀌어 견주기가 어렵다.
 results.sort((a, b) => a.i - b.i);
 console.log(`
 [gates] 판 전체 ${Math.round((Date.now() - startedAt) / 1000)}초 (한 판씩이면 ${results.reduce((n, r) => n + r.sec, 0)}초였다)`);
@@ -299,8 +299,8 @@ for (const r of bad) console.error(`  - ${r.gate} (${r.how})`);
    거짓말이 된다(2026-08-15: push 가 사유 한 줄 없이 막혔다). 빨간 것의 제 말을 여기 다시 적는다. */
 for (const r of bad) {
   console.error(`${String.fromCharCode(10)}  ── ${r.gate} 가 스스로 말한 것 ──`);
-  if (!r.꼬리 || r.꼬리.length === 0) console.error('    (아무 말도 안 하고 죽었다 — 그 자체가 고칠 자리다)');
-  else for (const line of r.꼬리) console.error(`    ${line}`);
+  if (!r.tail || r.tail.length === 0) console.error('    (아무 말도 안 하고 죽었다 — 그 자체가 고칠 자리다)');
+  else for (const line of r.tail) console.error(`    ${line}`);
 }
 console.error(`${String.fromCharCode(10)}  하나씩 고치고 또 10분 기다리지 마라.`);
 process.exit(1);
