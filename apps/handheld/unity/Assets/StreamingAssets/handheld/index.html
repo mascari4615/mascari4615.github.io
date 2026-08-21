@@ -644,22 +644,28 @@
     }
   }
 
+  // 포즈가 어디서 멎는지 세는 발자국. 「안 온다」만으론 XR 루프가 안 도는 건지,
+  // 돌지만 자세를 못 얻는 건지, 얻었는데 못 보내는 건지 가를 수 없다.
+  const step = { frame: 0, pose: 0, sent: 0, skip: '' };
+
   function sendPose(t, px, py, pz, qx, qy, qz, qw, fovDeg, aspect, dof) {
+    step.pose++;
     const line = `p|${t.toFixed(1)}|${f5(px)}|${f5(py)}|${f5(pz)}|${f5(qx)}|${f5(qy)}|${f5(qz)}|${f5(qw)}|${fovDeg.toFixed(2)}|${aspect.toFixed(4)}|${dof}|${gripRoll()}`;
 
     // 데이터채널이 열려 있으면 그리로. 규약은 **똑같다** — 길이 둘이어도 문법은 하나다.
     if (usingRtc()) {
       // 밀려 있으면 건너뛴다(WS 의 bufferedAmount 게이트와 같은 규칙).
-      if (poseCh.bufferedAmount > 32 * 1024) return;
+      if (poseCh.bufferedAmount > 32 * 1024) { step.skip = 'dc-buf'; return; }
       poseCh.send(line);
-      txPoses++; seq++;
+      step.sent++; txPoses++; seq++;
       return;
     }
 
-    if (!ws || ws.readyState !== 1) return;
-    if (ws.bufferedAmount > 32 * 1024) return;   // 상행이 막히면 건너뛴다
+    if (!ws) { step.skip = 'no-ws'; return; }
+    if (ws.readyState !== 1) { step.skip = 'ws-state' + ws.readyState; return; }
+    if (ws.bufferedAmount > 32 * 1024) { step.skip = 'ws-buf'; return; }
     ws.send(line);
-    txPoses++; seq++;
+    step.sent++; txPoses++; seq++;
   }
 
   const f5 = n => n.toFixed(5);
@@ -723,9 +729,13 @@
 
     const onFrame = (t, frame) => {
       if (!xrSession) return;
+      // ★ 다음 프레임 예약을 **맨 먼저** 한다. 아래에서 던지면 루프가 그대로 끊기는데,
+      //   그러면 「포즈가 안 온다」로만 보이고 원인이 안 남는다.
       xrSession.requestAnimationFrame(onFrame);
+      try {
+      step.frame++;
       const pose = frame.getViewerPose(refSpace);
-      if (!pose || !pose.views.length) return;
+      if (!pose || !pose.views.length) { step.skip = 'no-viewerpose'; return; }
       const view = pose.views[0];
       const p = view.transform.position, o = view.transform.orientation;
 
@@ -738,6 +748,7 @@
 
       sendPose(t, p.x, p.y, p.z, o.x, o.y, o.z, o.w, fovY, aspect, '6');
       tick();
+      } catch (e) { step.skip = 'frame-err ' + (e && e.message ? e.message : e); }
     };
     xrSession.requestAnimationFrame(onFrame);
   }
@@ -867,7 +878,8 @@
     const safe = v => String(v).replace(/[|]/g, '/');
     ws.send(['d', safe(mode || '-'), safe(xrWay || '-'), safe(gripChoice),
              safe(o), safe(a), `${innerWidth}x${innerHeight}`, safe(way),
-             safe(frameW + 'x' + frameH)].join('|'));
+             safe(frameW + 'x' + frameH),
+             `f${step.frame}/p${step.pose}/s${step.sent}`, safe(step.skip || '-')].join('|'));
   }
 
   function stop() {
