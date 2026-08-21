@@ -81,7 +81,7 @@ async function askTool(toolId, fills) {
          그러니 **무엇이 안 왔는지** 화면에 물어 남긴다: 셸이 섰나 · 그 도구 자리가 생겼나 ·
          페이지가 죽었나 (실측 2026-08-13, 세 판 연속 같은 자리). */
       const why = await page.evaluate((id) => ({
-        셸: typeof Toolbox !== 'undefined',
+        shell: typeof Toolbox !== 'undefined',
         slot: !!document.getElementById(`page-${id}`),
         본문: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
       }), toolId).catch(() => null);

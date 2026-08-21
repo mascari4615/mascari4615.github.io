@@ -93,7 +93,7 @@ if (!ourFonts) {
         return `${cv.width}x${cv.height}`;
       })(),
       fonts: [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family + '/' + f.weight).slice(0, 6),
-      제목글꼴: getComputedStyle(document.querySelector('.bm-canvas')).fontFamily,
+      titleFont: getComputedStyle(document.querySelector('.bm-canvas')).fontFamily,
     }));
     console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개 · 띠 폭 ${title.w}px · ${JSON.stringify(details)}`);
   }

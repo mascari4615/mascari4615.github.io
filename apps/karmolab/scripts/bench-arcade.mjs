@@ -80,16 +80,16 @@ for (const g of GAMES) {
     kind: kindOf(g.id),
     seats: n,
     roundCount: argN,
-    자리승률: share,
+    seatWinRate: share,
     /** 공평한 몫에서 가장 많이 벗어난 자리의 벗어난 폭 (0 = 완전 대칭) */
     기울기: +Math.max(...share.map((s) => Math.abs(s - fair))).toFixed(3),
     drawRate: +(draws / argN).toFixed(3),
     /* 씨앗을 바꿔도 판이 하나뿐이면 봇끼리는 **늘 같은 판**이다. 그런 판의 「기울기」는
        200판을 잰 것이 아니라 1판을 200번 적은 것이라 수로 믿으면 안 된다. */
-    한판뿐: seen.size === 1,
+    singleRound: seen.size === 1,
     평균초: +(msSum / argN / 1000).toFixed(1),
     scoreSpread: +(gapSum / argN).toFixed(2),
-    안끝남: stuck
+    unfinished: stuck
   });
   process.stderr.write('.');
 }
@@ -104,7 +104,7 @@ for (const r of rows) {
 
 const doc = {
   note: '봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade',
-  잰날: new Date().toISOString().slice(0, 10),
+  measuredOn: new Date().toISOString().slice(0, 10),
   roundCount: argN,
   elapsedSec: +((Date.now() - t0) / 1000).toFixed(1),
   게임: rows.sort((a, b) => a.id.localeCompare(b.id))

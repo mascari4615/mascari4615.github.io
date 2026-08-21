@@ -44,7 +44,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       ['Home / End', t('shortcut.t43'), t('shortcut.t44')],
       [t('shortcut.t45'), t('shortcut.t46'), t('shortcut.t47')]
     ],
-    브라우저: [
+    browser: [
       ['Ctrl / Cmd + T', t('shortcut.t48'), ''],
       ['Ctrl / Cmd + Shift + T', t('shortcut.t49'), t('shortcut.t50')],
       ['Ctrl / Cmd + W', t('shortcut.t51'), ''],
@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       ['F2', t('shortcut.t76'), t('shortcut.t77')],
       [t('shortcut.t78'), t('shortcut.t79'), '']
     ],
-    한글입력: [
+    hangulInput: [
       [t('shortcut.t80'), t('shortcut.t81'), t('shortcut.t82')],
       ['Shift + Space', t('shortcut.t83'), t('shortcut.t84')],
       [t('shortcut.t85'), t('shortcut.t86'), t('shortcut.t87')],

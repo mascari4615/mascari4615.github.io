@@ -56,7 +56,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       [String.raw`\1`, t('regexref.t59'), String.raw`(\w)\1 은 같은 글자가 겹친 곳`],
       ['$1', t('regexref.t60'), t('regexref.t61')]
     ],
-    플래그: [
+    flag: [
       ['g', t('regexref.t62'), t('regexref.t63')],
       ['i', t('regexref.t64'), ''],
       ['m', t('regexref.t65'), t('regexref.t66')],

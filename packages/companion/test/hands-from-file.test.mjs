@@ -147,7 +147,7 @@ test('명세가 아닌 것도 왜 빠졌는지 남긴다', () => {
   const home10 = temp();
   const left2 = [];
   try {
-    writeFileSync(join(home10, '엉뚱.json'), JSON.stringify({ 아무거나: 1 }), 'utf8');
+    writeFileSync(join(home10, '엉뚱.json'), JSON.stringify({ any: 1 }), 'utf8');
     loadHands(home10, { log: (m) => left2.push(m) });
     assert.equal(left2.some((m) => m.includes('손 명세로 안 보인다')), true);
   } finally { rmSync(home10, { recursive: true, force: true }); }

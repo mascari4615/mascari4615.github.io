@@ -126,13 +126,13 @@ const toMeasure = [
       const defaultWidth = Math.round(c.measureText(label).width);
       c.restore();
       return {
-        폭퍼센트: max > min ? Math.round(((max - min) / w) * 100) : 0,
-        밝은점: lit, 캔버스: `${cv.width}x${cv.height}`, dpr: window.devicePixelRatio,
-        우리글꼴: document.fonts.check('900 100px KarmoSans', '지구촌'),
+        widthPercent: max > min ? Math.round(((max - min) / w) * 100) : 0,
+        brightSpot: lit, canvas: `${cv.width}x${cv.height}`, dpr: window.devicePixelRatio,
+        ourFont: document.fonts.check('900 100px KarmoSans', '지구촌'),
         '100px폭_우리': ourWidth, '100px폭_기본': defaultWidth,
-        세로상한: Math.round(cv.height * 0.34), 원하는폭: Math.round(cv.width * 0.92),
+        maxHeight: Math.round(cv.height * 0.34), wantedWidth: Math.round(cv.width * 0.92),
         /* 5px 띠 대신 **글자가 놓인 구역 전체**를 훑으면 글꼴 모양에 안 흔들린다 — 그 값도 같이 잰다. */
-        넓게본폭퍼센트: (() => {
+        wideWidthPercent: (() => {
           const top = Math.round(cv.height * 0.30);
           const hgt = Math.round(cv.height * 0.40);
           const d = c.getImageData(0, top, w, hgt).data;
