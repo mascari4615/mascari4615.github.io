@@ -40,7 +40,11 @@ if (fromIdx !== -1) {
   const file = args[fromIdx + 1];
   const here = path.dirname(fileURLToPath(import.meta.url));
   const raw = JSON.parse(readFileSync(path.join(here, '..', file), 'utf8'));
-  gates = raw.list ?? raw.list ?? raw;
+  /* ⚠ 자료의 키는 `목록` 이다 (`data/gate-list.json`). 2026-08-21 영문화가
+     `raw.목록 ?? raw.list` 의 <b>앞쪽을 지워</b> 둘 다 `raw.list` 가 됐고,
+     그때부터 「이름 목록을 못 찾았다」로 exit 2 였다 — 자료는 그대로인데 읽는 쪽만 바뀐 것이다
+     (`test-core` 와 같은 부류). 자료 키를 바꾸는 건 별건이라 여기서는 <b>읽는 쪽</b>을 맞춘다. */
+  gates = raw.목록 ?? raw.list ?? raw;
   if (!Array.isArray(gates)) {
     console.error(`[gates] ${file} 안에서 이름 목록을 못 찾았다`);
     process.exit(2);
