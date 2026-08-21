@@ -18,7 +18,7 @@ import { dirname } from 'node:path';
 
 export interface KnownStamp {
   /** 이 줄을 처음 본 때. */
-  처음: number;
+  first: number;
   /** 마지막으로 본 때. 사라졌다 돌아와도 처음은 안 바뀐다. */
   last: number;
 }
@@ -44,7 +44,7 @@ export class KnownStamps {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Record<string, KnownStamp>;
         for (const [k, v] of Object.entries(raw)) {
-          if (typeof v?.처음 === 'number' && typeof v?.last === 'number') this.table.set(k, v);
+          if (typeof v?.first === 'number' && typeof v?.last === 'number') this.table.set(k, v);
         }
       } catch {
         // 깨진 파일 때문에 기억 전체가 멈추면 안 된다. 날짜는 다시 쌓으면 된다.
@@ -69,7 +69,7 @@ export class KnownStamps {
       if (key === '') continue;
       const existing = this.table.get(key);
       if (existing === undefined) {
-        this.table.set(key, { 처음: now, last: now });
+        this.table.set(key, { first: now, last: now });
         fresh = true;
       } else {
         existing.last = now;
@@ -107,7 +107,7 @@ export class KnownStamps {
 
 /** 얼마나 오래 알던 것인가 — 사람이 쓰는 말로. */
 export function howLong(stamp: KnownStamp, now: number): string | null {
-  const pastDays = Math.floor((now - stamp.처음) / (24 * 60 * 60_000));
+  const pastDays = Math.floor((now - stamp.first) / (24 * 60 * 60_000));
   if (pastDays >= 14) return '오래전부터 알던';
   if (pastDays >= 3) return '며칠 전부터 알던';
   if (pastDays >= 1) return '어제오늘 알게 된';
@@ -132,7 +132,7 @@ export function justLearned(
     .filter((l) => l !== '')
     .filter((l) => {
       const s = stamps.stampOf(l);
-      return s !== null && now - s.처음 < 24 * 60 * 60_000;
+      return s !== null && now - s.first < 24 * 60 * 60_000;
     })
     .slice(0, max);
   if (just.length === 0) return '';

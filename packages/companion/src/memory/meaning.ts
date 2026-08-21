@@ -103,7 +103,7 @@ export class meaningMemory {
    *
    * 이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 안 든다.
    */
-  async 담기(entries: readonly MemoryEntry[]): Promise<number> {
+  async store(entries: readonly MemoryEntry[]): Promise<number> {
     if (this.담는중) return 0;
     this.담는중 = true;
     let storedCount = 0;
