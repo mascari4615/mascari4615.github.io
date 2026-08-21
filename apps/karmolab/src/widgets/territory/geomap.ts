@@ -243,6 +243,16 @@ export class GeoMap {
     });
   }
 
+  /** 이미 프레임 안에 있을 때 쓴다 — 미루면 <b>한 박자 늦어 절반만 그려진다</b>(아래 실측). */
+  private drawNow(): void {
+    if (this.dead) return;
+    if (this.frame !== 0) {
+      cancelAnimationFrame(this.frame);
+      this.frame = 0;
+    }
+    this.draw();
+  }
+
   destroy(): void {
     this.dead = true;
     this.stopGlide();
@@ -421,6 +431,12 @@ export class GeoMap {
       if (dx !== 0 || dy !== 0) this.panBy(dx, dy);
       const dz = ((held.has('+') || held.has('=') ? 1 : 0) - (held.has('-') || held.has('_') ? 1 : 0)) * ZOOM_PER_SEC * dt * fast;
       if (dz !== 0) this.zoomAround({ x: r.width / 2, y: r.height / 2 }, dz);
+      /* ★ **여기서는 미루면 안 된다** (2026-08-21 실측). `panBy` 는 평소처럼 다음 프레임에
+         그리도록 예약하는데, 우리는 <b>이미 그 프레임 안</b>이다. 그러면 그리기가 한 박자씩
+         밀려 <b>두 프레임에 한 번만</b> 그려진다 — 화면은 60fps 인데 지도는 30fps 다.
+         잰 값: 화면 프레임 간격 17ms 인데 그려진 간격은 32ms(43판 중 18판이 33ms 초과).
+         사용자가 「뚝뚝 끊긴다」고 한 것이 이것이다. 예약을 걷고 지금 그린다. */
+      this.drawNow();
       glide = requestAnimationFrame(step);
     };
     const start = (): void => {
