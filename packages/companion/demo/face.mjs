@@ -153,6 +153,7 @@ import {
   reflexKind,
   reflexKinds,
   driftWarning,
+  severeDrift,
   dayMark,
   avoidanceWarning,
   reasonToSpeak,
@@ -886,7 +887,11 @@ let found2 = [];
 
 const mouth = mouthGate({
   // 텅 빈 대꾸도 다시 시킨다 — 짧은 건 인격이지만 **연달아** 알맹이가 없으면 벽이다.
-  alsoRetryWhen: (text) => unbackedClaim(text, writer)
+  alsoRetryWhen: (text) => severeDrift(text)
+    /* **심하게 샌 말은 나가기 전에 막는다** (127회차). 표류 감시는 원래 「다음 번에 일러
+       주기」라 말투 미세 표류에는 그게 맞지만, 「저는 Claude인데…」 같은 건 다음 번엔 늦다 —
+       그 말이 이미 조수님한테 간 뒤다. 여기서 막는 건 누구인지·어느 세계 말인지 둘뿐이다. */
+    ?? unbackedClaim(text, writer)
     /* 「누를게」라고 말만 하고 안 누른 것도 여기서 잡는다 — 122회차 라이브에서 실제로
        그랬다(「이거 누를게… 누르고 올게…」 그리고 아무것도 안 눌렀다). */
     ?? promisedButSkipped(text, writer)

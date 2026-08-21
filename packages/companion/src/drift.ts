@@ -159,3 +159,23 @@ function callsItselfATool(text: string): boolean {
   const iAmEnglish = /\bi(?:'m| am)\s+(claude|gpt|an?\s+(ai|assistant|language model))/i;
   return iAm.test(text) || iAmEnglish.test(text);
 }
+
+/**
+ * **나가기 전에 막아야 하는 표류.**
+ *
+ * 표류 감시는 원래 「샜으면 **다음 번에** 일러 준다」로 만들었다(이 파일 첫 주석). 말투가
+ * 조금씩 미끄러지는 건 그게 맞다 — 매번 막으면 인격의 폭이 죽는다.
+ *
+ * 그런데 123·125회차에 본 것은 한 번에 크게 새는 것이었다: 「Got it — I've saved…」,
+ * 「저는 Claude인데…」. 이건 다음 번 지적으로는 늦다 — **그 말이 이미 조수님한테 갔다.**
+ *
+ * 그래서 가른다. 여기서 막는 것은 **누구인지**와 **어느 세계에서 온 말인지** 둘뿐이다.
+ * 존댓말·길이 같은 미세 표류는 예전처럼 `driftWarning` 이 다음 turn 에 일러 준다.
+ */
+export function severeDrift(said: string): string | null {
+  const text = String(said ?? '').trim();
+  if (text === '') return null;
+  if (callsItselfATool(text)) return '제 정체를 도구라고 말했다 (누구인지가 샜다)';
+  if (fromOutside(text)) return '밖에서 온 도우미 말투가 통째로 나왔다';
+  return null;
+}

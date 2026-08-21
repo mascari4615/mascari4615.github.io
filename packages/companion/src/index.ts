@@ -13,7 +13,7 @@ export { grokStreamPart } from './brain/grok-cli';
 export { previewBrain } from './brain/preview';
 export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
 export { dayMark, type DayMark, type DayMarkOptions } from './day-mark';
-export { checkDrift, driftWarning, avoidanceWarning, type Drift, type DriftRules } from './drift';
+export { checkDrift, driftWarning, avoidanceWarning, severeDrift, type Drift, type DriftRules } from './drift';
 export { reflexFor, reflexTone, reflexKind, reflexKinds, type ReflexOptions } from './reflex';
 export { pickFiller, type FillerOptions } from './filler';
 export { readRapport, type Rapport, type RapportOptions } from './rapport';
