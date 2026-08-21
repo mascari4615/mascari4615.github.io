@@ -11,7 +11,7 @@ const attachFake = () => {
   let listen = null;
   return {
     sent: sent,
-    말시키기: (text2) => listen?.(text2),
+    prompt: (text2) => listen?.(text2),
     attach: {
       onEnter: (f) => { listen = f; },
       pickChannel: (channel2) =>
@@ -34,7 +34,7 @@ test('디스코드에서 온 말이 누가 했는지와 함께 들어온다', as
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.말시키기({ 글: '안녕', 누가: '민수', 채널: '방1', isBot: false });
+  g.prompt({ 글: '안녕', 누가: '민수', 채널: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -48,7 +48,7 @@ test('말이 그 방으로 돌아간다', async () => {
   const g = attachFake();
   const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.말시키기({ 글: '안녕', 누가: '민수', 채널: '방1', isBot: false });
+  g.prompt({ 글: '안녕', 누가: '민수', 채널: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -59,9 +59,9 @@ test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 �
   const g = attachFake();
   const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.말시키기({ 글: '여기', 누가: '민수', 채널: '방1', isBot: false });
+  g.prompt({ 글: '여기', 누가: '민수', 채널: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
-  g.말시키기({ 글: '이쪽', 누가: '지훈', 채널: '방2', isBot: false });
+  g.prompt({ 글: '이쪽', 누가: '지훈', 채널: '방2', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -72,7 +72,7 @@ test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => 
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.말시키기({ 글: '내가 한 말', 누가: '욘', 채널: '방1', isBot: true });
+  g.prompt({ 글: '내가 한 말', 누가: '욘', 채널: '방1', isBot: true });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -83,7 +83,7 @@ test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 �
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, channels: ['방1'] }));
   await companion.start();
-  g.말시키기({ 글: '여기서 하는 얘기', 누가: '남', 채널: '방9', isBot: false });
+  g.prompt({ 글: '여기서 하는 얘기', 누가: '남', 채널: '방9', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -94,7 +94,7 @@ test('빈 말은 흘린다', async () => {
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
-  g.말시키기({ 글: '   ', 누가: '민수', 채널: '방1', isBot: false });
+  g.prompt({ 글: '   ', 누가: '민수', 채널: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -106,7 +106,7 @@ test('방을 못 잡아도 얘는 안 죽는다', async () => {
   const leftText = [];
   const { companion } = makeCompanion(discordBody({ attach: g.attach, log: (m) => leftText.push(m) }));
   await companion.start();
-  g.말시키기({ 글: '안녕', 누가: '민수', 채널: '없는방', isBot: false });
+  g.prompt({ 글: '안녕', 누가: '민수', 채널: '없는방', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   await companion.stop();
 
@@ -132,7 +132,7 @@ test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 �
   await companion.start();
 
   // 관객 쪽에서 한 마디
-  g.말시키기({ 글: '다들 안녕', 누가: '민수', 채널: '방1', isBot: false });
+  g.prompt({ 글: '다들 안녕', 누가: '민수', 채널: '방1', isBot: false });
   await new Promise((r) => setTimeout(r, 60));
   // 곁에서 한 마디
   await companion.feed({ channel: 'web', kind: 'text', text: '나도 있어', at: Date.now() });

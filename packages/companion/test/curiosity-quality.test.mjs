@@ -5,7 +5,7 @@ import { noticeCuriosity, stripParticle, unusableCuriosity, worthWondering } fro
 
 const sink = () => {
   const inside = [];
-  return { 안: inside, wonder: (x) => inside.push(x), next: () => inside[0] ?? null, asked: () => {}, size: () => inside.length };
+  return { inside: inside, wonder: (x) => inside.push(x), next: () => inside[0] ?? null, asked: () => {}, size: () => inside.length };
 };
 
 // ── 조사 떼기 ───────────────────────────────────────────────────────

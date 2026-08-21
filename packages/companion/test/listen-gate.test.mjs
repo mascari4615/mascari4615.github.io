@@ -11,7 +11,7 @@ const playBack = (gate, { 크기, 동안, 부터 = 0, 걸음 = 50 }) => {
     const r = gate.들었다(크기, t);
     if (r !== null) happened.push({ what: r, at: t });
   }
-  return { happened: happened, 끝난때: 부터 + 동안 };
+  return { happened: happened, finishedAt: 부터 + 동안 };
 };
 
 const loud = defaultValue.문턱 + 0.03;
