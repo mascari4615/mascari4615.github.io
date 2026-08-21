@@ -38,6 +38,22 @@ const MARK = '<!-- KARMOLAB_HOME_PRERENDERED -->';
 /** 지금 값이 들어가는 칸 — 자리만 두고 속은 비운다. */
 const LIVE_BLOCKS = ['#homePulse', '.landing-pulse'];
 
+/* ★ **없으면 우리가 깐다** (2026-08-21, 실측).
+ * 여긴 「없으면 건너뜀」이었다. 그런데 이 파일을 만드는 곳은 <b>배포 워크플로 한 줄뿐</b>이다
+ * (`pages-deploy.yml` — `cp apps/karmolab/index.html apps/blog/karmolab/index.html`).
+ * 그래서 로컬에서도, `verify` 에서도 <b>영영 안 만들어지고</b> 이 단계가 늘 건너뛰었다.
+ * 그 여파로 뒤의 `audit:prerender-home` 이 매 판 「못 돌림」으로 물러났다 —
+ * <b>첫 화면이 미리 그려진 뒤에도 성한지를 보라고 만든 검사가 배포 때 말고는 한 번도 안 돈 것</b>.
+ * verify 는 이미 이 단계를 부르고 있었지만, 깔 것이 없어서 그 뜻이 죽어 있었다.
+ * 복사는 순수한 파생(원본 → 산출물)이라 여기서 해도 배포와 같은 결과다. */
+if (!fs.existsSync(FILE)) {
+  const src = path.join(root, 'index.html');
+  if (fs.existsSync(src)) {
+    fs.mkdirSync(path.dirname(FILE), { recursive: true });
+    fs.copyFileSync(src, FILE);
+    console.log('[prerender-home] 셸 사본이 없어 원본에서 깔았다 (배포는 제 손으로 깐다)');
+  }
+}
 if (!fs.existsSync(FILE)) {
   console.log('[prerender-home] 찍힌 첫 화면이 없다 — 건너뜀 (배포가 만들고 나서 돈다)');
   process.exit(0);
