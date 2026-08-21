@@ -837,31 +837,71 @@ export function wireDeck(container: HTMLElement, onSlotsChanged: () => void = ()
         deck.querySelectorAll('.drop-here').forEach((n) => n.classList.remove('drop-here'));
         cell.classList.add('drop-here');
     };
+    /* ★ **맞바꿈은 한 곳에만 적는다** — 손(끌기)과 자판이 같은 함수를 부른다.
+     * 두 벌로 적으면 한쪽만 고쳐져 「마우스로는 되는데 자판으로는 딴 자리로 간다」가 된다. */
+    const swapCells = (grid: HTMLElement, from: number, to: number): boolean => {
+        const cells = [...grid.querySelectorAll<HTMLElement>('.fav-item-wrap')];
+        if (from < 0 || to < 0 || from >= cells.length || to >= cells.length || from === to) return false;
+        /* 지금 화면 순서를 자리표로 굳힌 뒤 두 자리를 맞바꾼다. */
+        const order = cells.map((c) => c.dataset.key || null);
+        const tmp = order[to]; order[to] = order[from]; order[from] = tmp;
+        const map = loadSlots();
+        map[grid.dataset.group || ''] = order;
+        saveSlots(map);
+        onSlotsChanged();
+        return true;
+    };
     const onDrop = (e: DragEvent): void => {
         if (!dragKey) return;
         const cell = (e.target as HTMLElement).closest<HTMLElement>('.fav-item-wrap');
         const grid = (e.target as HTMLElement).closest<HTMLElement>('.fav-deck-grid');
         if (!cell || !grid) return;
         e.preventDefault();
-        const group = grid.dataset.group || '';
         const cells = [...grid.querySelectorAll<HTMLElement>('.fav-item-wrap')];
-        const to = cells.indexOf(cell);
-        const from = cells.findIndex((c) => c.dataset.key === dragKey);
-        if (to < 0 || from < 0 || to === from) return;
+        swapCells(grid, cells.findIndex((c) => c.dataset.key === dragKey), cells.indexOf(cell));
+    };
 
-        /* 지금 화면 순서를 자리표로 굳힌 뒤 두 자리를 맞바꾼다. */
-        const order = cells.map((c) => c.dataset.key || null);
-        const tmp = order[to]; order[to] = order[from]; order[from] = tmp;
-        const map = loadSlots();
-        map[group] = order;
-        saveSlots(map);
-        onSlotsChanged();
+    /* ── 자판으로도 자리를 바꾼다 (Ctrl/⌘ + 화살표 · Home · End) ────────────
+     *
+     * 08-19 에 끌기를 넣으면서 **자판 길을 안 냈다**. 끌기만 있는 자리는 손이 못 쓰는 사람에게
+     * 그 기능이 **아예 없는 것**과 같다 — `audit:mouse-only` 가 그래서 이 파일을 짚는다.
+     *
+     * ⚠ 그 검사는 글자만 본다(`keydown` 한 줄이면 통과한다). 아무 `keydown` 이나 달면
+     *   초록은 되지만 **자리는 안 바뀐다** — 그건 가짜 초록이다. 그래서 끌기와 **같은
+     *   `swapCells`** 를 부른다. 자판으로 옮긴 결과가 손으로 옮긴 결과와 글자 그대로 같다.
+     *
+     * 덧쇠를 왜 Ctrl/⌘ 로 잡았나: 맨 화살표는 화면 넘기기고, Alt+← 는 윈도우에서 **뒤로 가기**다.
+     * Ctrl+화살표는 초점이 링크에 있을 때 하는 일이 없어 뺏을 것이 없다.
+     * 위아래는 한 줄에 몇 칸인지를 **재서** 넘긴다 — 칸 수는 화면 폭 따라 바뀌므로 박아 두면 틀린다. */
+    const onKeyDown = (e: KeyboardEvent): void => {
+        if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+        const cell = (e.target as HTMLElement).closest<HTMLElement>('.fav-item-wrap[data-key]');
+        const grid = (e.target as HTMLElement).closest<HTMLElement>('.fav-deck-grid');
+        if (!cell || !grid) return;
+        const cells = [...grid.querySelectorAll<HTMLElement>('.fav-item-wrap')];
+        const from = cells.indexOf(cell);
+        if (from < 0) return;
+        /* 한 줄에 몇 칸인가 = 첫 칸과 같은 높이에 선 칸의 수 */
+        const top0 = cells[0]?.offsetTop ?? 0;
+        const perRow = Math.max(1, cells.filter((c) => c.offsetTop === top0).length);
+        const to = { ArrowLeft: from - 1, ArrowRight: from + 1, ArrowUp: from - perRow, ArrowDown: from + perRow, Home: 0, End: cells.length - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        const key = cell.dataset.key;
+        if (!swapCells(grid, from, to)) return;
+        /* 자리를 바꾸면 판을 다시 그린다 — 초점이 문서 맨 위로 떨어지면 다음 한 번을 더 못 누른다.
+           옮긴 그 칸을 도로 잡아 준다(연달아 누르는 것이 이 조작의 전부다).
+           ⚠ **`deck` 이 아니라 `container` 에서 찾는다.** 다시 그리면 `[data-deck]` 이 통째로
+              갈리므로, 이 닫힘이 쥔 `deck` 은 **떨어져 나간 옛 노드**다. 거기서 찾은 칸에
+              초점을 주면 문서 밖이라 초점이 `body` 로 떨어진다 — 실측으로 밟았다(2026-08-21). */
+        if (key) container.querySelector<HTMLElement>(`.fav-item-wrap[data-key="${CSS.escape(key)}"] .fav-key`)?.focus();
     };
     const onDragEnd = (): void => {
         dragKey = null;
         dropAt = Date.now();
         deck.querySelectorAll('.dragging, .drop-here').forEach((n) => n.classList.remove('dragging', 'drop-here'));
     };
+    deck.addEventListener('keydown', onKeyDown);
     deck.addEventListener('dragstart', onDragStart);
     deck.addEventListener('dragover', onDragOver);
     deck.addEventListener('drop', onDrop);
@@ -869,6 +909,7 @@ export function wireDeck(container: HTMLElement, onSlotsChanged: () => void = ()
 
     return () => {
         deck.removeEventListener('click', onClick);
+        deck.removeEventListener('keydown', onKeyDown);
         deck.removeEventListener('dragstart', onDragStart);
         deck.removeEventListener('dragover', onDragOver);
         deck.removeEventListener('drop', onDrop);
