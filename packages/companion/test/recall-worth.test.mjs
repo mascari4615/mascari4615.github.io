@@ -21,7 +21,9 @@ import { recallFrom } from '../dist/index.js';
    라이브에서 실제로 그렇게 들어갔다. 여기서는 그 최악을 그대로 흉내 낸다. */
 function rowsFrom(entries) {
   const search = () => entries;
-  return recallFrom(search)({ text: '마라탕 얘기' }, []);
+  /* 110회차부터 회상은 기본이 「사람이 한 말」이다. 여기서는 얘 말까지 뒤지는 자리를
+     재는 것이라 그 물음 모양을 쓴다. */
+  return recallFrom(search)({ text: '마라탕 얘기할 때 너 뭐랬지' }, []);
 }
 
 test('알맹이 없는 제 말은 재료에 안 들어간다', () => {

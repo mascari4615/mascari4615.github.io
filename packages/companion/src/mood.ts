@@ -119,6 +119,15 @@ export function recallFrom(
 
   return (sensation, recent) => {
     const recentTexts = new Set(recent.map((e) => e.text));
+    /* **옛 기억을 뒤지는 목적은 거의 언제나 사람이 한 말을 찾는 것이다.**
+       106회차에 「알맹이 없는 제 말」을 빼려고 입 앞 지킴이(isHollow)를 빌려 썼는데,
+       세어 보니 새고 있었다 — 얘 말 579 중 12자 이하가 373(64%)인데 지킴이가 잡는 건 46,
+       놓친 종류가 182 였다(「…또 돌리네…」 「파일을 못 찾겠는데…」 「자고 싶어…」).
+       사전을 늘려서 될 일이 아니다. **짧은 게 이 얘의 인격**이라 넓게 자르면 인격을 죽인다.
+       애초에 두 판정이 다른 것이었다 — 입 앞 관문은 「지금 이 말이 성의 없나」고,
+       회상은 「나중에 다시 볼 값어치가 있나」다. 그래서 사전이 아니라 **구조**로 가른다:
+       얘가 한 말은 사람이 그걸 **콕 집어 물을 때만** 뒤진다. */
+    const wantsMyWords = askingAboutMyWords.test(sensation.text);
     const words = pickKeywords(sensation.text, minLength).slice(0, maxKeywords);
     const lines: string[] = [];
     const seen = new Set<string>();
@@ -140,7 +149,7 @@ export function recallFrom(
              밀려난다(106회차 실측: 여덟 중 셋이 제 말, 그중 둘이 알맹이 없음. 64회차에
              겪은 「값진 재료가 먼저 밀린다」와 같은 모양이다).
              사람 말은 짧아도 남긴다 — 사람이 한 말은 짧아도 사실이다. */
-          if (hit.role === 'said' && isHollow(hit.text)) continue;
+          if (hit.role === 'said' && (wantsMyWords === false || isHollow(hit.text))) continue;
           /* **곁의 통로(우리가 넣은 신호)는 나눈 말이 아니다.**
              107회차에 기억을 세어 보니 `nudge` 로 담긴 줄 일곱이 전부 우리가 얘한테 넣는
              지시문이었다 — 「…그중 한 조각만 집어서 안부를 물어라」. 그게 「조수님이:」로
@@ -160,6 +169,14 @@ export function recallFrom(
     return lines.slice(0, 8);
   };
 }
+
+/**
+ * 「네가 뭐랬지」처럼 **얘가 한 말**을 콕 집어 묻는 말투.
+ *
+ * 좁게 잡는다 — 여기 안 걸리면 사람 말만 뒤지므로, 넓게 잡으면 얘 혼잣말이 다시 재료
+ * 자리를 먹는다.
+ */
+const askingAboutMyWords = /(네가|니가|너|당신이|얘가|내가)\s*.{0,10}(뭐랬|뭐라고|그랬|말했|했잖|얘기했)/;
 
 /** 흔한 말은 빼고 뜻이 실린 낱말만 고른다 — 「그거」로 옛 대화를 뒤지면 전부 걸린다. */
 const commonWords = new Set([
