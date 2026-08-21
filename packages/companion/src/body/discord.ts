@@ -39,7 +39,7 @@ export interface DiscordBodyOptions {
    * 아무 데나 듣게 두면 남의 방에서 갑자기 끼어든다 — 관객이 있는 자리일수록 **어디서
    * 듣는지**가 분명해야 한다.
    */
-  채널들?: readonly string[];
+  channels?: readonly string[];
   /** 이 통로 이름으로 감각이 들어온다. */
   channel?: string;
   log?: (message: string) => void;
@@ -54,7 +54,7 @@ export interface DiscordBodyOptions {
 export function discordBody(options: DiscordBodyOptions): Body {
   const channel = options.channel ?? 'discord';
   const log = options.log ?? (() => {});
-  const listenTarget = options.채널들 === undefined ? null : new Set(options.채널들);
+  const listenTarget = options.channels === undefined ? null : new Set(options.channels);
   let lastChannel: string | null = null;
 
   const sense: Sense = {

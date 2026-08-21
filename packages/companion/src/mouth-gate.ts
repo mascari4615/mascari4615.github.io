@@ -44,7 +44,7 @@ export interface MouthGateOptions {
    * 맞다 — 그 말을 들려주는 것보다 「…」가 낫다. 그런데 **아쉬운 것**(짧다·안 되물었다)은
    * 아니다. 아쉬운 말이라도 얼버무림보다는 낫다.
    */
-  아쉬울뿐인가?: (why: string) => boolean;
+  isMerelyRegret?: (why: string) => boolean;
   /** 끝내 안 되면 낼 소리. 결에 맞는 짧은 말. */
   fallbacks?: readonly string[];
   /** 고르는 손. 시험에서 고정한다. */
@@ -93,7 +93,7 @@ export function mouthGate(options: MouthGateOptions = {}): MouthGate {
 
     /* 아쉬울 뿐인 이유였으면 **원래 말을 그대로 낸다.** 막는 자리가 답을 더 나쁘게
        만들면 안 된다 — 그건 안 막느니만 못하다. */
-    if (options.아쉬울뿐인가?.(why) === true) {
+    if (options.isMerelyRegret?.(why) === true) {
       options.log?.('다시 시켜도 안 됐지만, 원래 말이 얼버무림보다는 낫다');
       return text;
     }

@@ -37,7 +37,7 @@ export interface StockOptions {
   /** 한 갈래에 담아 둘 최대 개수. */
   max?: number;
   /** 이 길이를 넘으면 대꾸가 아니라 설명이다. */
-  최대글자?: number;
+  maxChars?: number;
   log?: (message: string) => void;
 }
 
@@ -69,12 +69,12 @@ export class lineStore {
   private readonly 담김 = new Map<string, 담긴것>();
   private readonly 채우는중 = new Set<string>();
   private readonly max: number;
-  private readonly 최대글자: number;
+  private readonly maxChars: number;
   private readonly log: (message: string) => void;
 
   constructor(private readonly options: StockOptions) {
     this.max = options.max ?? 12;
-    this.최대글자 = options.최대글자 ?? 20;
+    this.maxChars = options.maxChars ?? 20;
     this.log = options.log ?? (() => {});
     this.읽기();
   }
@@ -145,13 +145,13 @@ export class lineStore {
           persona === null ? null : `${persona}\n\n---`,
           persona === null ? null : '위 인격 그대로, 아래 자리에서 할 말을 지어라.',
           request,
-          `${count}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
+          `${count}개만, 한 줄에 하나씩. ${this.maxChars}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
         ]
           .filter((line2) => line2 !== null)
           .join('\n\n')
       );
       if (raw === null) return 0;
-      const toWrite = select(raw, this.최대글자);
+      const toWrite = select(raw, this.maxChars);
       if (toWrite.length === 0) {
         // **뭐가 왔길래 다 걸러졌는지 같이 남긴다.** 「걸러졌다」만 있으면 두뇌가 이상한
         // 건지 거르는 잣대가 빡빡한 건지 못 가른다 — 실제로 첫 판에 그래서 막혔다.

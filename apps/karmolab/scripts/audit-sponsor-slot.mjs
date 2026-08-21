@@ -102,7 +102,7 @@ try {
       밝힘: (s.querySelector('.tool-sponsor-label')?.textContent || '').trim(),
       rel: a ? a.getAttribute('rel') || '' : null,
       넘침: s.scrollWidth > s.clientWidth + 2,
-      보임: s.getBoundingClientRect().height > 0
+      visible: s.getBoundingClientRect().height > 0
     };
   }, SAMPLE);
 

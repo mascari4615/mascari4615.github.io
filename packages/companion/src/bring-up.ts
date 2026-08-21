@@ -30,7 +30,7 @@ export interface 꺼낼까입력 {
   /** 대화가 식어 가는 중인가. */
   cooling: boolean;
   /** 방금 조수님이 물어봤나. */
-  물어본turn: boolean;
+  askedTurn: boolean;
   /** 이 횟수 넘게 참은 것만 꺼낸다. */
   문턱?: number;
 }
@@ -54,7 +54,7 @@ export function topicFirst(input: 꺼낼까입력): 꺼낼것 | null {
  * 처음부터 이유를 말하게 만든다.
  */
 export function topicSkipReason(input: 꺼낼까입력): string | null {
-  if (input.물어본turn) return '조수님이 물어본 turn 이다';
+  if (input.askedTurn) return '조수님이 물어본 turn 이다';
   if (input.cooling === false) return '아직 대화가 안 식었다';
   const picked = choose(input);
   if (picked === null) {

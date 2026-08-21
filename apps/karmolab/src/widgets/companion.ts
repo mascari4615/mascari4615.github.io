@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../lib/i18n';
   type Entry = { role: 'sensed' | 'said'; channel: string; text: string; at: number };
   type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; 최악ms: number | null };
   type State = {
-    창붙음: number;
+    windowAttached: number;
     body: '3D' | '큐브' | null;
     인격?: string | null;
     머리?: string | null;
@@ -146,10 +146,10 @@ import { t, loadNamespace } from '../lib/i18n';
               bits.innerHTML = '';
               return;
             }
-            const cell: { 이름: string; 값: string; 경고?: boolean }[] = [
-              { 이름: t('companion.t11'), 값: st.창붙음 > 0 ? t('companion.attached', { n: st.창붙음 }) : t('companion.t12'), 경고: st.창붙음 === 0 },
+            const cell: { 이름: string; 값: string; warn?: boolean }[] = [
+              { 이름: t('companion.t11'), 값: st.windowAttached > 0 ? t('companion.attached', { n: st.windowAttached }) : t('companion.t12'), warn: st.windowAttached === 0 },
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
-              { 이름: t('companion.t13'), 값: st.body ?? t('companion.t14'), 경고: st.body === t('companion.t15') },
+              { 이름: t('companion.t13'), 값: st.body ?? t('companion.t14'), warn: st.body === t('companion.t15') },
               { 이름: t('companion.t16'), 값: st.인격 ?? t('companion.t17') },
               { 이름: t('companion.t18'), 값: st.머리 ?? t('companion.t14') },
             ];
@@ -161,10 +161,10 @@ import { t, loadNamespace } from '../lib/i18n';
                   : st.흉내준비 === true
                     ? `${t('companion.mimicReady')} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`
                     : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`;
-              cell.push({ 이름: t('companion.t22'), 값: value2, 경고: hasStub === false });
+              cell.push({ 이름: t('companion.t22'), 값: value2, warn: hasStub === false });
             }
             bits.innerHTML = cell
-              .map((c) => `<span class="cmp-bit${c.경고 === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
+              .map((c) => `<span class="cmp-bit${c.warn === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
               .join('');
           }
 

@@ -122,7 +122,7 @@ export class listenGate {
       this.메아리잰수 += 1;
 
       // 말하는 동안은 받아쓰기를 안 켠 채로 둔다. 닫혔다는 건 창이 알아야 한다.
-      const isClosed = this.열림 ? this.닫기() : null;
+      const isClosed = this.열림 ? this.close() : null;
 
       if (this.끼어들포기) { this.끼어들기시작 = null; return isClosed; }
       if (size < this.끼어들문턱) { this.끼어들기시작 = null; return isClosed; }
@@ -137,7 +137,7 @@ export class listenGate {
 
     if (this.막힘(now3)) {
       this.넘기시작 = null;
-      if (this.열림) return this.닫기();
+      if (this.열림) return this.close();
       return null;
     }
 
@@ -155,14 +155,14 @@ export class listenGate {
     }
 
     // 열려 있는 동안
-    if (now3 - this.연때 >= s.너무길다) return this.닫기();
+    if (now3 - this.연때 >= s.너무길다) return this.close();
     if (sounded) { this.조용해진때 = null; return null; }
     if (this.조용해진때 === null) this.조용해진때 = now3;
     if (now3 - this.조용해진때 < s.닫히는데) return null;
-    return this.닫기();
+    return this.close();
   }
 
-  닫기() {
+  close() {
     if (this.열림 === false) return null;
     this.열림 = false;
     this.연때 = null;

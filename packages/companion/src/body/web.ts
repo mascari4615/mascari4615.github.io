@@ -413,7 +413,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if (url === '/state') {
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
-            창붙음: clients.size,
+            windowAttached: clients.size,
             body: windowBody,
             ...(options.state?.() ?? {}),
           }));

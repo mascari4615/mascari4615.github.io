@@ -11,16 +11,16 @@ const run = (settings = {}) => {
   const boot = new 수요기동({
     이름: '흉내 낸 목소리',
     살았나: async () => alive,
-    띄우기: () => {
+    show: () => {
       events.push('띄움');
       alive = true;
     },
-    끄기: () => {
+    stop: () => {
       events.push('끔');
       alive = false;
     },
     쉬면끄기ms: () => settings.쉬면 ?? 30 * 60_000,
-    자동인가: () => settings.자동 ?? true,
+    isAuto: () => settings.자동 ?? true,
     물어보는간격ms: 0,
     지금: () => now2,
     log: (m) => events.push(`말: ${m}`),
@@ -150,14 +150,14 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
   const boot2 = new 수요기동({
     이름: '느린 것',
     살았나: async () => 절대안뜸 === false && shownAt !== null && Date.now() - shownAt >= 뜨는데,
-    띄우기: () => {
+    show: () => {
       events2.push('띄움');
       shownAt = Date.now();
     },
-    끄기: () => {
+    stop: () => {
       shownAt = null;
     },
-    자동인가: () => true,
+    isAuto: () => true,
     물어보는간격ms: 0,
     준비물어보는간격ms: 20,
     준비대기ms: 400,

@@ -9,7 +9,7 @@ const material = [
   { name: '기분', text: '지금 기운이 처져 있다', weight: 12 },
 ];
 const heldMark = { 단골얘기: 5, 기분: 1 };
-const base = { material: material, 얼마나참았나: (n) => heldMark[n] ?? 0, cooling: true, 물어본turn: false };
+const base = { material: material, 얼마나참았나: (n) => heldMark[n] ?? 0, cooling: true, askedTurn: false };
 
 test('오래 참은 것을 먼저 꺼낸다 — 참기만 하다 끝나면 그건 생각이 아니다', () => {
   const r = topicFirst(base);
@@ -24,8 +24,8 @@ test('한창일 때는 안 꺼낸다 — 끼어드는 건 방해다', () => {
 });
 
 test('물어본 turn 에는 안 꺼낸다 — 물음을 두고 딴 얘기는 회피다', () => {
-  assert.equal(topicFirst({ ...base, 물어본turn: true }), null);
-  assert.match(topicSkipReason({ ...base, 물어본turn: true }), /물어본 turn/);
+  assert.equal(topicFirst({ ...base, askedTurn: true }), null);
+  assert.match(topicSkipReason({ ...base, askedTurn: true }), /물어본 turn/);
 });
 
 test('한두 번 밀린 건 안 꺼낸다 — 그냥 아무 말이나 하는 게 된다', () => {

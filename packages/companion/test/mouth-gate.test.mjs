@@ -187,7 +187,7 @@ test('아쉬울 뿐인 이유로 걸린 말은 버리지 않는다 — 막는 �
   const written = [];
   const gate = mouthGate({
     alsoRetryWhen: (t) => (t.length < 12 ? '받아 줄 자리인데 한마디로 끊었다' : null),
-    아쉬울뿐인가: (why) => why.includes('한마디로 끊었다'),
+    isMerelyRegret: (why) => why.includes('한마디로 끊었다'),
     retry: async () => '응',            // 다시 시켜도 여전히 짧다
     fallbacks: ['…'],
     log: (m) => written.push(m),
@@ -200,7 +200,7 @@ test('아쉬울 뿐인 이유로 걸린 말은 버리지 않는다 — 막는 �
 test('해로운 이유는 그대로 버린다 — 지어낸 말을 들려주느니 「…」가 낫다', async () => {
   const gate = mouthGate({
     alsoRetryWhen: (t) => (t.includes('지어냄') ? '안 보고 지어냈다' : null),
-    아쉬울뿐인가: (why) => why.includes('한마디로 끊었다'),
+    isMerelyRegret: (why) => why.includes('한마디로 끊었다'),
     retry: async () => '또 지어냄',
     fallbacks: ['…'],
   });
