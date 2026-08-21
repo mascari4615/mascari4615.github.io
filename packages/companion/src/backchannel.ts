@@ -39,7 +39,7 @@ const incomingAudio: readonly string[] = ['응.', '어…', '응?', '그래서?'
  */
 export class Backchannel {
   private 마지막들음 = 0;
-  private 이번뭉치 = 0;
+  private thisBatch = 0;
   private emitted = false;
   private 마지막소리: string | null = null;
 
@@ -55,14 +55,14 @@ export class Backchannel {
 
     if (continued === false) {
       // 새 뭉치가 시작됐다.
-      this.이번뭉치 = 1;
+      this.thisBatch = 1;
       this.emitted = false;
       return null;
     }
 
-    this.이번뭉치 += 1;
+    this.thisBatch += 1;
     // 두 번째 마디부터, 그리고 뭉치당 한 번만.
-    if (this.이번뭉치 < 2 || this.emitted) return null;
+    if (this.thisBatch < 2 || this.emitted) return null;
 
     this.emitted = true;
     const roll = this.options.roll ?? Math.random;
@@ -86,7 +86,7 @@ export class Backchannel {
 
   /** 얘가 답했다 — 뭉치가 끝났다. */
   answered(): void {
-    this.이번뭉치 = 0;
+    this.thisBatch = 0;
     this.emitted = false;
     this.마지막들음 = 0;
   }

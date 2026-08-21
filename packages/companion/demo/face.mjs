@@ -1064,7 +1064,7 @@ const companion = new Companion({
       acceptSlot: acceptLength({ justNow: justSaid, recent: wholeStory }) !== '',
       tossSlot: shouldTossBack(),
       자기얘기: asksAboutSelf(justSaid),
-      옛일있나: episode.related(justSaid, 2, Date.now()) !== null,
+      hasPastEvent: episode.related(justSaid, 2, Date.now()) !== null,
     }, { 큰머리: settings.get('큰머리') ?? 'sonnet' });
     if (pickedHead.why !== '') {
       headToRestore = attachHead(brain, pickedHead.머리, (m) => console.log(`[머리] ${m}`));
@@ -1284,7 +1284,7 @@ const companion = new Companion({
     /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는
        영영 「일어난 일」만 안다. 여기는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void Promise.resolve(conversationMemory.recent(60)).then((es) => {
-      if (reflected.셈(es) === false) return undefined;
+      if (reflected.calc(es) === false) return undefined;
       return reflected.reflect(es);
     }).catch((e) => console.error(`[되새김] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }

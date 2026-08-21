@@ -63,7 +63,7 @@ export class reflection {
   }
 
   /** 사람 말이 몇 마디 더 쌓였다. 되새길 때가 됐으면 true. */
-  셈(exchange2: readonly MemoryEntry[]): boolean {
+  calc(exchange2: readonly MemoryEntry[]): boolean {
     this.센말 = exchange2.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
     return this.셀때인가;
   }

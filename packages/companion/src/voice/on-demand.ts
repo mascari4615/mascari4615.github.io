@@ -51,7 +51,7 @@ export class demandBoot {
   private 마지막확인 = 0;
   private 띄우는중 = false;
   private 마지막사용 = 0;
-  private 우리가띄웠나 = false;
+  private weOpenedIt = false;
   private 실패한때 = 0;
 
   constructor(private readonly options: 수요기동옵션) {}
@@ -67,7 +67,7 @@ export class demandBoot {
 
   /** 우리가 켜 둔 것인가 (진단용). */
   get 우리것인가(): boolean {
-    return this.우리가띄웠나;
+    return this.weOpenedIt;
   }
 
   /**
@@ -98,7 +98,7 @@ export class demandBoot {
     void Promise.resolve()
       .then(() => this.options.show())
       .then(() => {
-        this.우리가띄웠나 = true;
+        this.weOpenedIt = true;
         /* **뜰 때까지 기다렸다가 「띄우는 중」을 푼다.**
          *
          * 처음엔 `띄우기()` 가 반환되면 곧바로 풀었다. 그런데 그건 「프로그램을 시작시켰다」일
@@ -150,7 +150,7 @@ export class demandBoot {
    */
   async stopIfIdle(): Promise<boolean> {
     const whenIdle = this.options.쉬면끄기ms?.() ?? 0;
-    if (whenIdle <= 0 || this.우리가띄웠나 === false || this.appeared === false) return false;
+    if (whenIdle <= 0 || this.weOpenedIt === false || this.appeared === false) return false;
     if (this.마지막사용 === 0 || this.지금 - this.마지막사용 < whenIdle) return false;
 
     try {
@@ -161,7 +161,7 @@ export class demandBoot {
       return false;
     }
     this.appeared = false;
-    this.우리가띄웠나 = false;
+    this.weOpenedIt = false;
     this.마지막확인 = 0;
     return true;
   }

@@ -28,7 +28,7 @@ const run = (settings = {}) => {
   return {
     기동: boot,
     events: events,
-    흐르기: (ms) => {
+    flowing: (ms) => {
       now2 += ms;
     },
     켜두기: () => {
@@ -74,10 +74,10 @@ test('한동안 안 쓰면 끈다', async () => {
   await waited();
   await t.기동.써야한다();
 
-  t.흐르기(29 * 60_000);
+  t.flowing(29 * 60_000);
   assert.equal(await t.기동.stopIfIdle(), false, '아직 쉬는 시간이 안 됐다');
 
-  t.흐르기(2 * 60_000);
+  t.flowing(2 * 60_000);
   assert.equal(await t.기동.stopIfIdle(), true);
   assert.equal(t.살았나(), false);
   assert.equal(t.기동.준비됐나, false);
@@ -88,7 +88,7 @@ test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
   t.켜두기();
   await t.기동.써야한다();
   await waited();
-  t.흐르기(10 * 60_000);
+  t.flowing(10 * 60_000);
   assert.equal(await t.기동.stopIfIdle(), false, '남이 띄운 것을 껐다');
   assert.equal(t.살았나(), true);
 });
@@ -97,7 +97,7 @@ test('0 으로 두면 영영 안 끈다', async () => {
   const t = run({ 쉬면: 0 });
   await t.기동.써야한다();
   await waited();
-  t.흐르기(100 * 60_000);
+  t.flowing(100 * 60_000);
   assert.equal(await t.기동.stopIfIdle(), false);
 });
 
