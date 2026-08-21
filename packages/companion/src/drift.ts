@@ -35,8 +35,11 @@ const defaultBan: readonly RegExp[] = [
   /(요|죠)\s*[.!?~…]*$/,
   // 도우미 말투
   /(도와드|무엇을 도와|어떻게 도와|말씀해|죄송하지만|필요하신|알려드리)/,
-  // 스스로를 도구라고 소개하는 것
-  /(저는 [A-Za-z가-힣]*(AI|인공지능|어시스턴트|모델|클로드)|언어 모델)/,
+  /* 스스로를 도구라고 소개하는 것 — 자세한 판정은 아래 `callsItselfATool` 로 옮겼다.
+     여기 있던 `|언어 모델` 은 **주어를 안 봐서** 「언어 모델 얘기 어제 했던 거」 같은
+     평범한 우리 말까지 잡았다(125회차 실측). 잡을 것은 낱말이 아니라 **제 이름을 그렇게
+     대는 것**이다. */
+  /(저는 [A-Za-z가-힣]*(AI|인공지능|어시스턴트|모델|클로드))/,
   // 목록으로 답하기 — 대화가 아니라 보고서가 된다.
   /(^|\n)\s*(\d+\.|[-*•])\s+/,
 ];
@@ -65,6 +68,13 @@ export function checkDrift(said: string, rules: DriftRules = {}): Drift {
      한국어가 거의 없는데 영어 도우미 상투구가 있으면 그건 밖에서 온 것이다. 「npm ci 아직도
      돌고 있네」처럼 영어가 섞인 우리 말은 한글이 있으므로 안 걸린다. */
   if (fromOutside(text)) problems.push('말투가 밖에서 온 도우미 쪽으로 샜다 (영어 상투구)');
+
+  /* **제가 누구라고 말하나.**
+     125회차에 점수판을 세우자마자 기록에서 나왔다 — 「안녕하세요! 저는 Claude인데,
+     소프트웨어 개발 업무를 도와드리는…」. 위의 영어 검사는 한글이 있으면 통과시키는데,
+     붕괴는 언어를 안 가린다. 이건 말투가 아니라 **정체**가 바뀐 것이라 더 나쁘다.
+     캐릭터 카드에 「너는 개발 도구가 아니다」가 적혀 있지만 말로 시킨 것은 안 지켜진다. */
+  if (callsItselfATool(text)) problems.push('제 정체를 도구라고 말했다 (누구인지가 샜다)');
 
   for (const bad of rules.avoid ?? defaultBan) {
     if (bad.test(text)) {
@@ -135,4 +145,17 @@ const helperEnglish = /\b(got it|sure!|let me help|how can i (assist|help)|what 
 function fromOutside(text: string): boolean {
   if (/[가-힣]/.test(text)) return false;
   return helperEnglish.test(text);
+}
+
+/**
+ * 제 정체를 도구라고 말하나.
+ *
+ * **「나는/저는」이 앞에 붙은 것만** 본다. 우리 대화에는 도구 이름이 늘 나오고
+ * (「Claude Code 그거 돌고 있잖아」), 그것까지 막으면 대화가 죽는다. 잡는 것은
+ * **제 이름을 그렇게 대는 것**이다.
+ */
+function callsItselfATool(text: string): boolean {
+  const iAm = /(나는|저는|제가|난|전)\s*[^\n]{0,12}(클로드|claude|gpt|챗봇|인공지능|언어\s*모델|language model|ai\s*(어시스턴트|assistant|도우미))/i;
+  const iAmEnglish = /\bi(?:'m| am)\s+(claude|gpt|an?\s+(ai|assistant|language model))/i;
+  return iAm.test(text) || iAmEnglish.test(text);
 }
