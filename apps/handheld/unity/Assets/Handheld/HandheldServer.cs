@@ -108,6 +108,7 @@ namespace Handheld
         int _rxLines;
         volatile string _lastLine = "";
         volatile string _diagCache = "{}";
+        int _recRequest;                                     // 0 없음 · 1 켜기 · 2 끄기
         double _nextDiagBake;
 
         /// <summary>진단이 읽을 리그. 리그가 틱마다 자기를 꽂는다.</summary>
@@ -256,6 +257,11 @@ namespace Handheld
             ReleaseSticksIfDisconnected();
             _recorder?.Flush();
 
+            // 기록 조작도 메인 스레드에서 — 파일을 여닫는 일이라 수신 스레드에서 하면 안 된다.
+            int rec = Interlocked.Exchange(ref _recRequest, 0);
+            if (rec == 1) StartRecording();
+            else if (rec == 2) StopRecording();
+
             // 진단 문자열은 **메인 스레드에서만** 만들 수 있다 (리그가 Transform 을 읽는다).
             double now = Application.isPlaying
                 ? Time.unscaledTimeAsDouble : UnityEngine.Time.realtimeSinceStartupAsDouble;
@@ -366,6 +372,16 @@ namespace Handheld
         {
             // ★ 진단 창구 — 폰이 붙어 있는 채로도 밖에서 상태를 읽는다 (TASK-KAR-245).
             //   WS 를 하나 더 붙여 재면 **폰이 끊긴다**(서버는 한 대만 받는다). HTTP 는 무관하다.
+            // 포즈 기록 켜고 끄기 — 「튄다」가 났을 때 밖에서 바로 켤 수 있어야 한다.
+            // 조종석 창에만 있으면 증상이 난 순간에 사람이 그 앞에 없으면 못 잰다.
+            if (path == "/rec/on" || path == "/rec/off")
+            {
+                _recRequest = path.EndsWith("on") ? 1 : 2;   // 실제 조작은 틱(메인 스레드)에서
+                WriteResponse(stream, "200 OK", "text/plain; charset=utf-8",
+                    Encoding.UTF8.GetBytes(path.EndsWith("on") ? "기록 켠다" : "기록 끈다"));
+                return;
+            }
+
             if (path == "/diag")
             {
                 // ★ **여기는 수신 스레드다.** `transform.position` 같은 유니티 API 를 여기서
