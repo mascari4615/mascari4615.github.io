@@ -82,6 +82,7 @@ import {
   madeUpFact,
   madeUpRetryNote,
   unbackedClaim,
+  promisedButSkipped,
   claimRetryNote,
   hollowReason,
   hollowRetryNote,
@@ -886,6 +887,9 @@ let found2 = [];
 const mouth = mouthGate({
   // 텅 빈 대꾸도 다시 시킨다 — 짧은 건 인격이지만 **연달아** 알맹이가 없으면 벽이다.
   alsoRetryWhen: (text) => unbackedClaim(text, writer)
+    /* 「누를게」라고 말만 하고 안 누른 것도 여기서 잡는다 — 122회차 라이브에서 실제로
+       그랬다(「이거 누를게… 누르고 올게…」 그리고 아무것도 안 눌렀다). */
+    ?? promisedButSkipped(text, writer)
     ?? madeUpFact(text, found2, conversationMemory.recent(12))
     ?? hollowReason(text, conversationMemory.recent(40))
     /* 공을 안 돌려준 것도 여기서 잡는다. **재료로는 안 밀렸다** — 큰 머리로 바꿔도,

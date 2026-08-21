@@ -92,3 +92,27 @@ export function claimRetryNote(why: string): string {
     '못 하는 걸 못 한다고 하는 건 흠이 아니다.'
   );
 }
+
+/**
+ * **「누를게」라고 말만 하는 것.**
+ *
+ * 122회차 라이브에서 「화면에서 아무거나 하나 눌러봐」에 이렇게 답했다 —
+ * 「아, 이거 누를게. 응, 최근 활동 정리 탭 누르고 올게…」. **그리고 아무것도 안 눌렀다.**
+ * 손 표시(`[[누르기: 3]]`)를 안 적었기 때문이다. 42회차에 같은 것을 겪었다(0/10).
+ *
+ * 위의 `unbackedClaim` 은 「했다」는 거짓말을 잡는다. 이건 반대다 — **「할게」라고 하고 안
+ * 하는 것**. 41회차에 「약속을 막으면 안 된다」고 정했으므로 넓게 잡으면 안 된다.
+ * 그래서 **지금 이 turn 에 해야 하는 일**(누르기)에만 좁게 건다. 「적어둘게」 같은 진짜
+ * 약속은 그대로 둔다 — 그건 나중에 해도 되는 일이다.
+ */
+const willPress = /(누를게|누를께|눌러 ?볼게|눌러 ?줄게|누르고 ?올게|눌러 ?놓을게|눌러야지)/;
+const wontPress = /((못|안)\s*누|누르지 ?않)/;
+
+export function promisedButSkipped(said: string, usedHands: readonly string[]): string | null {
+  const text = String(said ?? '').trim();
+  if (text === '') return null;
+  if (wontPress.test(text)) return null;
+  if (willPress.test(text) === false) return null;
+  if (usedHands.some((h) => h.includes('누르기'))) return null;
+  return '누르겠다고 말했는데 안 눌렀다';
+}
