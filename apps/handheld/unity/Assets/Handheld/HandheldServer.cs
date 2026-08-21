@@ -101,6 +101,11 @@ namespace Handheld
         /// <summary>폰이 붙어 있나.</summary>
         public bool Connected => _client != null && !_client.Closed;
 
+        volatile string _phoneDiag = "";
+
+        /// <summary>진단이 읽을 리그. 리그가 틱마다 자기를 꽂는다.</summary>
+        public HandheldRig rig;
+
         [Header("WebRTC")]
         [Tooltip("있으면 시그널링(w|...)을 그리로 넘긴다. 없으면 MJPEG 만 쓴다.")]
         public HandheldWebRtc webrtc;
@@ -334,6 +339,15 @@ namespace Handheld
         // ── 정적 파일 ────────────────────────────────────────────────────────────
         void ServeStatic(NetworkStream stream, string path)
         {
+            // ★ 진단 창구 — 폰이 붙어 있는 채로도 밖에서 상태를 읽는다 (TASK-KAR-245).
+            //   WS 를 하나 더 붙여 재면 **폰이 끊긴다**(서버는 한 대만 받는다). HTTP 는 무관하다.
+            if (path == "/diag")
+            {
+                WriteResponse(stream, "200 OK", "application/json; charset=utf-8",
+                    Encoding.UTF8.GetBytes(DiagJson()));
+                return;
+            }
+
             if (path == "/") path = "/index.html";
             string root = Path.Combine(Application.streamingAssetsPath, "handheld");
             string full = Path.GetFullPath(Path.Combine(root, path.TrimStart('/')));
@@ -353,6 +367,29 @@ namespace Handheld
                 return;
             }
             WriteResponse(stream, "200 OK", MimeOf(full), body);
+        }
+
+        /// <summary>지금 상태 한 벌 (JSON). 사람 눈이 아니라 기계가 읽는다.</summary>
+        string DiagJson()
+        {
+            var c = CultureInfo.InvariantCulture;
+            var sb = new StringBuilder("{");
+            sb.AppendFormat(c, "\"connected\":{0},", Connected ? 1 : 0);
+            sb.AppendFormat(c, "\"poseSeq\":{0},", _seq);
+            sb.AppendFormat(c, "\"rttMs\":{0:F0},", _rttMs);
+            var j = (Vector4)_joystick;
+            sb.AppendFormat(c, "\"stick\":\"{0:F2},{1:F2},{2:F2},{3:F2}\",", j.x, j.y, j.z, j.w);
+            sb.AppendFormat(c, "\"recording\":{0},", Recording ? 1 : 0);
+            sb.AppendFormat(c, "\"phone\":\"{0}\",", (_phoneDiag ?? "").Replace("\"", "'"));
+
+            var w = webrtc;
+            sb.AppendFormat(c, "\"rtc\":\"{0}\",", w == null ? "없음" : w.StatusLine.Replace("\"", "'"));
+
+            var r = rig;
+            sb.Append("\"rig\":{");
+            if (r != null) sb.Append(r.DiagJson());
+            sb.Append("}}");
+            return sb.ToString();
         }
 
         static string MimeOf(string p)
@@ -391,6 +428,13 @@ namespace Handheld
             if (string.IsNullOrEmpty(msg)) return;
 
             if (msg == "c|recenter") { Interlocked.Exchange(ref _recenterFlag, 1); return; }
+
+            // 폰 자기 진단:  d|모드|AR설정|그립|방향|각도|화면크기|전송|프레임크기
+            if (msg.Length > 2 && msg[0] == 'd' && msg[1] == '|')
+            {
+                _phoneDiag = msg.Substring(2);
+                return;
+            }
 
             // WebRTC 시그널링:  w|offer|… · w|ice|… · w|bye
             // 여기는 수신 스레드다 — 넘기기만 하고 처리는 틱에서 한다.
