@@ -275,7 +275,7 @@ export const DECK_CSS = `
     }
     .fav-key .fk-face {
         position:absolute; inset:0; overflow:hidden; border-radius:4px;
-        background:var(--fk-face, #14151d);
+        background:#14151d;
         transform:translateZ(var(--fk-lift, 0px)) scale(calc(1.03 * var(--fk-s, 1)));
         transition:filter 140ms ease, transform 110ms ease;
         box-shadow:
@@ -517,7 +517,7 @@ export const DECK_CSS = `
     }
     /* 화면 = 밝은 LCD */
     [data-theme="light"] .skin-glass .fk-face {
-        background:var(--fk-face, #f4f2fa);
+        background:#f4f2fa;
         box-shadow:
             inset 0 18px 22px -18px rgba(26,26,31,0.35),
             inset 0 0 18px rgba(26,26,31,0.10),
