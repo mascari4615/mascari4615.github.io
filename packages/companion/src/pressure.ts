@@ -53,7 +53,7 @@ export class pendingThoughts {
   }
 
   /** 한 turn 이 끝났다. 다음 겨룸으로 넘어간다. */
-  다음턴(): void {
+  nextTurn(): void {
     this.turn += 1;
     for (const [name, v] of [...this.pressed]) {
       if (this.turn - v.lastTurn >= this.forgetTurn) this.pressed.delete(name);

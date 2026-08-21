@@ -26,11 +26,11 @@ export interface SettingSpec {
 
 /** 손댈 수 있는 것들. 여기 없는 건 설정으로 안 받는다. */
 export const toConfigure: Readonly<Record<string, SettingSpec>> = {
-  먼저말걸기: { what: '얘가 먼저 말을 걸어도 되나', value: true },
-  먼저말걸기간격초: { what: '먼저 말 걸지 살펴보는 간격', value: 300, min: 60, max: 3600 },
-  화면보기간격초: { what: '화면을 곁눈질하는 간격 (0 = 안 봄)', value: 120, min: 0, max: 1800 },
-  조용한시간시작: { what: '이 시각부터 조용 (시)', value: 23, min: 0, max: 23 },
-  조용한시간끝: { what: '이 시각까지 조용 (시)', value: 7, min: 0, max: 23 },
+  speakFirst: { what: '얘가 먼저 말을 걸어도 되나', value: true },
+  speakFirstIntervalSec: { what: '먼저 말 걸지 살펴보는 간격', value: 300, min: 60, max: 3600 },
+  screenLookIntervalSec: { what: '화면을 곁눈질하는 간격 (0 = 안 봄)', value: 120, min: 0, max: 1800 },
+  quietHourStart: { what: '이 시각부터 조용 (시)', value: 23, min: 0, max: 23 },
+  quietHourEnd: { what: '이 시각까지 조용 (시)', value: 7, min: 0, max: 23 },
   '놀리기': { what: '가끔 놀려도 되나', value: true },
   /* 흉내 낸 목소리(무거운 프로그램)를 **쓸 때 켜고 안 쓰면 끈다.**
      끄는 길을 남긴다 — 자동을 꺼 두면 손으로 띄운 것만 쓴다. */

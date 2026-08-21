@@ -207,11 +207,11 @@ const askFirst = {
 // 궁금한 것 — 지금 묻기엔 눈치 없는 것을 담아 뒀다가 조용할 때 하나씩 꺼낸다.
 const curiosity = fileCuriosity(join(home, '궁금한-것.md'));
 
-// 파일로 더한 손 — 코드를 안 고치고 늘린다. 정해진 갈래(읽기)만 되고 아무거나 실행 못 한다.
-const { hands: 파일손, hints: 파일힌트 } = loadHands(join(home, 'hands'), { log: (m) => console.log(`[손] ${m}`) });
+// 파일로 더한 손 — 코드를 안 고치고 늘린다. 정해진 kind(읽기)만 되고 아무거나 실행 못 한다.
+const { hands: fileHand, hints: fileHint } = loadHands(join(home, 'hands'), { log: (m) => console.log(`[손] ${m}`) });
 
 const hands = [
-  ...파일손,
+  ...fileHand,
   noteHand(notePath),
   wonderHand(curiosity),
   readNotesHand(notePath),
@@ -366,8 +366,8 @@ const settings = new Settings({ path: join(home, '설정.json'), log: (m) => con
 const watching = new Watching();
 const quiet = new Quiet({
   // 설정이 정본이다 — 창에서 바꾸면 재시작 없이 먹는다.
-  fromHour: () => Number(settings.get('조용한시간시작')),
-  toHour: () => Number(settings.get('조용한시간끝')),
+  fromHour: () => Number(settings.get('quietHourStart')),
+  toHour: () => Number(settings.get('quietHourEnd')),
 });
 // 흔들리는 마음 — 사건이 밀고 시간이 되돌린다.
 const heart = new Heart();
@@ -380,7 +380,7 @@ function shouldTossBack() {
   const list2 = Array.isArray(recent2) ? recent2 : [];
   const justNow = [...list2].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
   const reason2 = skipReason({ recent: list2, justNow: justNow });
-  // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
+  // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 kind 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
   if (reason2 !== null) (console.log(`[공] 안 돌려준다 — ${reason2}`), web.noticed(`공은 안 돌려준다 — ${reason2}`));
   return reason2 === null;
@@ -532,26 +532,26 @@ let stubBoot = null;
 let voiceList = [];
 
 const touchTone = { '쿡': '쿡 찔렸을 때', '흔듦': '붙잡혀 끌려다닐 때', '쓰다듬': '쓰다듬어질 때' };
-const stageTone = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
+const stageTone = ['처음 그랬을 때 — 조금 놀란 tone', '몇 번째라 익숙해진 tone', '계속 그래서 시들해진 tone'];
 const reflexSituation = {
   '인사': '조수님이 인사를 건넸을 때 받는 인사',
   '작별': '조수님이 자러 가거나 나갈 때 하는 인사',
   '고마움': '조수님이 고맙다고 했을 때 하는 대꾸',
   '호응': '조수님 말에 짧게 맞장구치는 대꾸',
 };
-const energyTone = { droop: '축 처져서 나른한 결', normal: '평소 결', vivid: '기운이 도는 결' };
+const energyTone = { droop: '축 처져서 나른한 tone', normal: '평소 tone', vivid: '기운이 도는 tone' };
 
 /** 미리 채워 둘 자리 전부 — 어디에 무슨 말을 지어야 하는지. */
 function slotsToFill() {
   const slot3 = [];
-  for (const [갈래, 무슨일] of Object.entries(touchTone)) {
+  for (const [kind, whatHappened] of Object.entries(touchTone)) {
     for (let stage = 0; stage < 3; stage += 1) {
-      slot3.push({ key: touchKind(갈래, stage), request: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
+      slot3.push({ key: touchKind(kind, stage), request: `너를 조수님이 ${whatHappened}, 너답게 툭 던지는 짧은 혼잣말. ${stageTone[stage]}.` });
     }
   }
   for (const kind2 of reflexKinds()) {
-    for (const [결, 어떤결] of Object.entries(energyTone)) {
-      slot3.push({ key: reflexKind(kind2, 결), request: `${reflexSituation[kind2]}. 너답게 짧게. ${어떤결}.` });
+    for (const [tone, whichTone] of Object.entries(energyTone)) {
+      slot3.push({ key: reflexKind(kind2, tone), request: `${reflexSituation[kind2]}. 너답게 짧게. ${whichTone}.` });
     }
   }
   return slot3;
@@ -581,7 +581,7 @@ const web = webBody({
   /* 밤엔 목소리도 밤답게.
      결은 지금까지 **기분에서만** 왔다. 그런데 사람은 기분과 상관없이 밤엔 낮춰 말한다.
      조용한 시간엔 마음이 어떻든 누그러진 결로 말한다 — 「조용히 있어 달라」고 부탁받은
-     동안도 마찬가지다. 결 자체는 이미 있던 것을 쓴다(밤 전용 결을 새로 만들면 칸만 는다). */
+     동안도 마찬가지다. tone 자체는 이미 있던 것을 쓴다(밤 전용 결을 새로 만들면 칸만 는다). */
   tone: () => (quiet.inQuietHours || quiet.hushed ? '누그러짐' : toneOf(heart.state)),
   // 만든 게 실제로 도는지 볼 수 있게. /tally 로 연다.
   tally: () => {
@@ -698,7 +698,7 @@ ${tallyReport(tally)}`;
       log: (m) => console.log(`[목소리] ${m}`),
     });
     // 쉬는지 살피는 자리. 값이 0 이면 아무 일도 안 한다.
-    setInterval(() => void stubBoot.쉬었으면끄기().catch(() => {}), 60_000).unref();
+    setInterval(() => void stubBoot.stopIfIdle().catch(() => {}), 60_000).unref();
 
     if (stubReferenceAudio() !== null || process.env.COMPANION_CLONE_REF) {
       engines.unshift({
@@ -720,7 +720,7 @@ ${tallyReport(tally)}`;
 
     engines.push({
       label: '인터넷',
-      // 손으로 적어 둔 결(「밝게」·「나른하게」)은 걷어냈다. 목록만 네 배로 부풀리고
+      // 손으로 적어 둔 tone(「밝게」·「나른하게」)은 걷어냈다. 목록만 네 배로 부풀리고
       // 고를 이유가 없었다 — 결은 그때그때 마음에서 나온다.
       speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
     });
@@ -817,7 +817,7 @@ if (process.env.COMPANION_NUDGE !== '0') {
       everyMs: Number(process.env.COMPANION_NUDGE_MS ?? '300000'),
       reason: () => {
         // 조용히 있으라고 했으면 먼저 걸지 않는다. 물으면 답하는 건 그대로다.
-        if (settings.on('먼저말걸기') === false) return null;
+        if (settings.on('speakFirst') === false) return null;
         if (quiet.maySpeakFirst === false) return null;
         /* 지금이 어떤 자리인지 보고 입을 연다. 통화 중에 끼어드는 건 그냥 사고다.
            모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
@@ -1000,7 +1000,7 @@ const companion = new Companion({
       });
       for (const r of byMeaning) {
         old.push(r.text);
-        console.log(`[뜻] 닮은 옛말 (${r.닮음.toFixed(2)}): ${r.text.slice(0, 40)}`);
+        console.log(`[뜻] 닮은 옛말 (${r.similar.toFixed(2)}): ${r.text.slice(0, 40)}`);
       }
     } catch (e) {
       console.error(`[뜻] 찾다 죽었다 — ${e?.message ?? e}`);
@@ -1009,7 +1009,7 @@ const companion = new Companion({
     // **파일로 더한 손의 힌트가 먼저다.** 사람이 「이럴 때 쓰라」고 적어 둔 것이니
     // 우리가 코드에 박아 둔 것보다 앞선다.
     const prewritten = await autoUse(sensation.text, hands, {
-      hints: [...파일힌트, ...defaultHint],
+      hints: [...fileHint, ...defaultHint],
       log: (m) => {
         console.log(`[손] ${m}`);
         if (m.includes('못 썼다')) troubles.hit('못함', m);
@@ -1211,7 +1211,7 @@ const companion = new Companion({
     const made = composeIngredients(applyRarity(queued.overlay(materials), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, slot: `「${justSaid.slice(0, 24)}」`, mark: (name, fate, why3) => { tally.mark(name, fate, why3); queued.write(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
-    queued.다음턴();
+    queued.nextTurn();
     const held = queued.summary();
     if (held !== '') { console.log(`[밀림] ${held}`); web.noticed(`하고 싶었는데 못 한 말 — ${held}`); }
     if (shouldShow) {

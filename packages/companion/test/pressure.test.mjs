@@ -13,7 +13,7 @@ test('밀릴수록 세진다 — 참으면 더 하고 싶어진다', () => {
   const p = new pendingThoughts({ step: 3 });
   p.write('되묻기', 'queued');
   const once = p.addedWeight('되묻기');
-  p.다음턴();
+  p.nextTurn();
   p.write('되묻기', 'queued');
   assert.ok(p.addedWeight('되묻기') > once, '두 번 밀렸으면 더 세야 한다');
 });
@@ -21,7 +21,7 @@ test('밀릴수록 세진다 — 참으면 더 하고 싶어진다', () => {
 test('말하고 나면 풀린다 — 안 그러면 한 번 실린 게 계속 1등이다', () => {
   const p = new pendingThoughts();
   p.write('되묻기', 'queued');
-  p.다음턴();
+  p.nextTurn();
   p.write('되묻기', 'loaded');
   assert.equal(p.addedWeight('되묻기'), 0);
 });
@@ -36,14 +36,14 @@ test('꺼진 재료는 안 쌓인다 — 지금 자리에 없는 얘기가 나�
 
 test('아무리 참아도 상한이 있다 — 없으면 오래된 것이 영영 1등이라 새 것이 굶는다', () => {
   const p = new pendingThoughts({ step: 3, cap: 9 });
-  for (let i = 0; i < 20; i += 1) { p.write('되묻기', 'queued'); p.다음턴(); }
+  for (let i = 0; i < 20; i += 1) { p.write('되묻기', 'queued'); p.nextTurn(); }
   assert.equal(p.addedWeight('되묻기'), 9);
 });
 
 test('한참 안 밀리면 잊는다 — 지나간 관심이다', () => {
   const p = new pendingThoughts({ forgetTurn: 3 });
   p.write('궁금증', 'queued');
-  for (let i = 0; i < 4; i += 1) p.다음턴();
+  for (let i = 0; i < 4; i += 1) p.nextTurn();
   assert.equal(p.addedWeight('궁금증'), 0);
 });
 
@@ -52,7 +52,7 @@ test('참던 재료가 결국 실린다 — 이게 이 자리를 만든 이유�
   const list = [material('큰것', 12), material('작은것', 5)];
   const pick = () => {
     const loaded = pickIngredients(p.overlay(list), { maxChars: 25, maxLines: 1, mark: p.write });
-    p.다음턴();
+    p.nextTurn();
     return loaded.map((x) => x.name);
   };
 
