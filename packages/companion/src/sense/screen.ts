@@ -37,6 +37,14 @@ export interface ScreenElement {
   k: string;
   n: string;
   r: readonly number[];
+  /**
+   * 이 요소에 **할 수 있는 일** — Invoke(누르기) · Toggle · SelectionItem · … 없으면 빈 목록.
+   *
+   * 읽는 것이 절반이면 나머지 절반은 만지는 것이다. 윈도우에서 만지는 길은 좌표 클릭이
+   * 아니라 **컨트롤이 이미 내놓은 동작을 부르는 것**이고(TASK-KAR-241), 그러려면 두뇌가
+   * 「이건 누를 수 있다」를 볼 수 있어야 한다.
+   */
+  p?: readonly string[];
 }
 
 /** 한 번 볼 때 들어오는 것 — 그림은 파일로, 글자는 여기로. */
@@ -167,7 +175,10 @@ function describe(taken: Screenshot): string {
   const head = taken.title === '' ? '지금 앞에 있는 창' : `지금 앞에 있는 창 「${taken.title}」`;
   if (taken.elements.length === 0) return `${head} — 창 안에서 글자로 읽어 낸 것은 없다.`;
   const rows = taken.elements
-    .map((e) => `- ${e.k} 「${e.n}」 (${e.r.join(',')})`)
+    .map((e) => {
+      const acts = e.p && e.p.length > 0 ? ` — 할 수 있는 것: ${e.p.join(', ')}` : '';
+      return `- ${e.k} 「${e.n}」 (${e.r.join(',')})${acts}`;
+    })
     .join('\n');
   return `${head} 안에서 읽은 것 ${taken.elements.length}개:
 ${rows}`;
