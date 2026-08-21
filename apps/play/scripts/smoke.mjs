@@ -31,8 +31,16 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 function resolve(url) {
   const u = decodeURIComponent(url.split('?')[0]);
   if (u === '/karmolab/play/base.css') return path.join(here, 'base.css');
-  // 놀이 하나가 앱 안으로 들어갔다 — 앱 껍데기와 그 짐도 내줘야 한다.
-  if (u === '/karmolab/' || u === '/karmolab/index.html') return path.join(APPS, 'blog/karmolab/index.html');
+  /* 놀이 하나가 앱 안으로 들어갔다 — 앱 껍데기와 그 짐도 내줘야 한다.
+   *
+   * ⚠ 여기는 `blog/karmolab/index.html` 을 가리키고 있었다. 그 자리는 **배포 산출물**이라
+   *   저장소에 그 파일이 없다 — 그래서 이 검사는 404 를 받고 **빈 화면**을 재고 있었다
+   *   (「앱 틀 밖에 있다」·「고를 카드가 0장」·「고를 판이 0개」… 다섯이 한꺼번에 빨갛다).
+   *   제품은 멀쩡했다: 같은 검사를 `BASE=실사이트` 로 돌리면 초록이고, 실사이트 화면에는
+   *   카드 2·칩 3이 그대로 있다(2026-08-21 실측). **검사만 없는 파일을 보고 있었다.**
+   *   원본은 `apps/karmolab/index.html` 이고, 그 안의 짐은 전부 `/apps/karmolab/…` 라
+   *   바로 아랫줄이 이미 내주고 있다. */
+  if (u === '/karmolab/' || u === '/karmolab/index.html') return path.join(APPS, 'karmolab/index.html');
   if (u.startsWith('/apps/karmolab/')) return path.join(APPS, 'karmolab', u.slice('/apps/karmolab/'.length));
   if (u.startsWith('/karmolab/play')) return path.join(here, 'index.html');
   for (const [prefix, dir] of [['/karmolab/higher', 'higher'], ['/karmolab/quest', 'quest']]) {
@@ -76,6 +84,25 @@ const say = (ok, what) => {
     if (process.env.LOUD) console.error('\n  ! ' + what);
   }
 };
+
+/* ★ **터져도 여태 모은 것은 말하고 죽는다** (2026-08-21).
+ * 이 검사는 실패를 `failures` 에 모아 **맨 끝에서** 낸다. 그래서 중간에 무엇이 터지면
+ * 이미 잡아 둔 것이 통째로 사라지고 화면에는 날 스택만 남았다 — 실제로 다섯 건을
+ * 잡아 놓고도 `page.click: Timeout … waiting for locator('.hi-side')` 한 줄만 보였다.
+ * 「무엇이 틀렸나」를 보려고 `LOUD=1` 을 알아야 하는 검사는, 그걸 모르는 사람에게는
+ * 아무 말도 안 하는 검사다. 모은 것을 먼저 말하고 그 다음에 터진 자리를 말한다. */
+const report = () => {
+  if (!failures.length) return;
+  console.error(`[play-smoke] 놀이가 성하지 않다 ${failures.length}건`);
+  failures.forEach((f) => console.error('  - ' + f));
+};
+process.on('uncaughtException', (e) => {
+  process.stdout.write('\n');
+  report();
+  console.error('[play-smoke] 그리고 여기서 터졌다 — ' + (e && e.message ? e.message.split('\n')[0] : e));
+  console.error('  터진 자리보다 **위 목록이 먼저다** — 대개 그 다섯이 원인이고 이건 결과다.');
+  process.exit(1);
+});
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -399,8 +426,7 @@ if (!LIVE) server.close();
 process.stdout.write('\n');
 
 if (failures.length) {
-  console.error(`[play-smoke] 놀이가 성하지 않다 ${failures.length}건`);
-  failures.forEach((f) => console.error('  - ' + f));
+  report();
   process.exit(1);
 }
 console.log('[play-smoke] 놀이 다섯 — 전환 줄·색·놀이 규칙·내 표까지 전부 성하다');
