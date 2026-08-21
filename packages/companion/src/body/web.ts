@@ -494,7 +494,11 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if ((url.split('?')[0] === '/ears/start' || url.split('?')[0] === '/ears/stop') && req.method === 'POST') {
           /* 창이 잰 **말소리가 있던 시간**. 받아쓰기가 조용한 구간에 그럴듯한 글을 지어내도
              이 값이 작으면 무슨 글이든 안 넘긴다 — 글로 막는 데는 바닥이 있다(실측). */
-          const spokenMs = Number(new URL(url, 'http://x').searchParams.get('말한ms'));
+          const asked = new URL(url, 'http://x').searchParams;
+          const spokenMs = Number(asked.get('말한ms'));
+          /* 말소리가 난 동안의 평균 크기 — 창만 알고 버리던 값이다(135회차).
+             절대 크기는 기계마다 다르므로 여기서 판단하지 않고 그대로 실어 보낸다. */
+          const loudness = Number(asked.get('크기'));
           const ears = options.ears;
           if (ears === undefined || ears.available() === false) {
             res.writeHead(404).end();
@@ -519,7 +523,16 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
                 if (reason === null) {
                   options.mark?.('귀:받음', 'loaded');
                   broadcast({ type: 'heard', text: heard as string });
-                  senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
+                  senseEmit?.({
+                    channel,
+                    kind: 'text',
+                    text: (heard as string).trim(),
+                    at: Date.now(),
+                    meta: {
+                      spokenMs: Number.isFinite(spokenMs) ? spokenMs : null,
+                      loudness: Number.isFinite(loudness) ? loudness : null,
+                    },
+                  });
                 } else {
                   // 창에 띄우고 **세기도** 한다 — 창을 안 보고 있으면 띄운 건 사라진다.
                   options.mark?.('귀:안받음', 'off', reason);

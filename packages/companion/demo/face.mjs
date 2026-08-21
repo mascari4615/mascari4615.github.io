@@ -154,6 +154,8 @@ import {
   reflexKinds,
   driftWarning,
   selfScore,
+  voiceShape,
+  usualVoice,
   severeDrift,
   dayMark,
   avoidanceWarning,
@@ -581,6 +583,19 @@ function prefillReply() {
   if (empty.length > 1) setTimeout(prefillReply, refillInterval).unref();
 }
 let lastEnergy = 0.5;
+
+/* 마이크로 들어온 판들의 결(길이·크기). **평소**를 알아야 「평소보다」를 말할 수 있다 —
+   절대 크기는 마이크·방·기계마다 다르다(135회차). 최근 것만 들고 있으면 된다. */
+const heardShapes = [];
+/* 방금 들어온 판의 결. 재료를 만드는 자리는 감각을 직접 못 보므로 여기 담아 둔다 —
+   **담는 자리(재료 만들기 직전)와 읽는 자리가 같은 turn 안에서 앞뒤로 붙어 있다.**
+   70회차에 「같은 값을 두 곳에서 들고 있으면 어긋난다」를 겪었기에, 담는 자리를 하나로 못 박는다. */
+let lastHeardShape = null;
+function rememberShape(meta) {
+  if (typeof meta?.spokenMs !== 'number') return;
+  heardShapes.push({ spokenMs: meta.spokenMs, loudness: typeof meta.loudness === 'number' ? meta.loudness : null });
+  if (heardShapes.length > 20) heardShapes.shift();
+}
 
 // 사람이 마지막으로 말을 건 시각. 화면 보기가 그 위로 끼어들지 않게 쓰인다.
 let lastSpokenToAt = 0;
@@ -1014,6 +1029,13 @@ const companion = new Companion({
   // 묵었으면 눈이 알아서 다시 찍는다.
   seeing: eye === null ? undefined : () => eye.seeing(),
   recall: async (sensation, recent) => {
+    /* 이 판의 목소리 결을 여기서 잡는다 — recall 은 두뇌를 부르기 **전**이라 재료보다 앞선다. */
+    lastHeardShape = typeof sensation.meta?.spokenMs === 'number'
+      ? {
+        spokenMs: sensation.meta.spokenMs,
+        loudness: typeof sensation.meta.loudness === 'number' ? sensation.meta.loudness : null,
+      }
+      : null;
     const old = canSearch
       ? recallFrom((word, limit) => conversationMemory.search(word, limit))(sensation, recent)
       : [];
@@ -1161,6 +1183,9 @@ const companion = new Companion({
          것이었다 — 얘 자신은 제가 어떤지 모른다. 밖에서 「아는 것과 하는 것의 틈」이라
          부르는 자리다. 말할 게 없으면 빈 글이라 평소엔 안 실린다. */
       { name: '내성적', text: selfScore(recent), weight: 10 },
+      /* 목소리의 결 — 창이 재고 버리던 값을 살린다(135회차). 마이크를 안 쓴 판이나
+         평소와 비슷한 판에서는 빈 글이라 안 실린다. */
+      { name: '목소리결', text: voiceShape(lastHeardShape, usualVoice(heardShapes)), weight: 9 },
       { name: '회피', text: avoidanceWarning(recent), weight: 10 },
       // 얘 말 흐름을 보는 것들은 **넓은 창**을 본다. 좁은 창(최근 10개)에는 두뇌가 지은
       // 말이 서넛도 안 들어 있어, 판단이 서기도 전에 늘 「빔」이 된다(실측 36회차).
@@ -1269,6 +1294,8 @@ const companion = new Companion({
     }
     if (report.sensation.channel === 'web') {
       lastSpokenToAt = Date.now();
+      /* 이번 판의 목소리 결을 평소값에 보탠다 — 다음 판이 「평소보다」를 말할 수 있게. */
+      rememberShape(report.sensation.meta);
       // 방금 한 말에 조수님이 어떻게 반응했나 — 웃어 준 건 마음에 남아야 한다.
       const measured = previousUtterance === null ? null : reactionTo(previousUtterance, {
         role: 'sensed', channel: 'web', text: report.sensation.text, at: report.sensation.at,

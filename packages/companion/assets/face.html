@@ -1004,6 +1004,11 @@
   let 문 = null;
   let 소리재기 = null;
   let 말한ms = 0;
+  /* 말소리가 난 동안의 **크기 합** — 서버가 「평소보다 크게/조용히」를 알려면 이게 있어야
+     한다(135회차). 여태 창만 알고 버리던 값이다. 절대 크기는 기계마다 다르므로 서버가
+     평소값과 견준다. */
+  let 크기합 = 0;
+  let 크기샘 = 0;
 
   /** 얘가 말하는 중인지 문에 알려 준다 — 제 목소리를 제가 받아쓰면 혼자 떠든다. */
   function 입알림(말하는중) {
@@ -1077,9 +1082,9 @@
       const 지금 = performance.now();
       // 문이 열린 동안 **말소리가 실제로 난 시간**을 센다. 서버는 이 값으로 받아쓰기가
       // 지어낸 글을 막는다 — 글자만 보고는 못 막는다(조용한 3초에 「안녕하세요」가 나왔다).
-      if (문.열림 && 크기 >= (문.설정?.문턱 ?? 0.045)) 말한ms += 50;
+      if (문.열림 && 크기 >= (문.설정?.문턱 ?? 0.045)) { 말한ms += 50; 크기합 += 크기; 크기샘 += 1; }
       const 바뀜 = 문.들었다(크기, 지금);
-      if (바뀜 === '열림') { 말한ms = 0; void 저절로듣기(true); }
+      if (바뀜 === '열림') { 말한ms = 0; 크기합 = 0; 크기샘 = 0; void 저절로듣기(true); }
       else if (바뀜 === '닫힘') { void 저절로듣기(false); }
       else if (바뀜 === '끼어듦') {
         /* 사람이 하던 말을 끊었다. **곧바로 입을 닫는다** — 여기서 늦으면 「말했는데도
@@ -1110,7 +1115,10 @@
     mic.classList.toggle('listening', 시작);
     setState(시작 ? 'listening' : 'thinking', 시작 ? '듣는 중' : '받아적는 중…');
     try {
-      const 어디 = 시작 ? '/ears/start' : `/ears/stop?${encodeURIComponent('말한ms')}=${Math.round(말한ms)}`;
+      const 크기평균 = 크기샘 > 0 ? 크기합 / 크기샘 : 0;
+      const 어디 = 시작
+        ? '/ears/start'
+        : `/ears/stop?${encodeURIComponent('말한ms')}=${Math.round(말한ms)}&${encodeURIComponent('크기')}=${크기평균.toFixed(4)}`;
       const res = await fetch(어디, { method: 'POST' });
       if (res.ok === false) throw new Error('실패');
       if (시작 === false) await res.json();
