@@ -100,7 +100,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
     think(input: ThinkInput): Promise<string | null> {
       // 그림이 딸려 왔으면 샌드박스 안으로 들여놓는다 — 두뇌가 볼 수 있는 곳은 여기뿐이다.
       let localImage: string | null = null;
-      const source = typeof input.sensation.meta?.imagePath === 'string' ? input.sensation.meta.imagePath : null;
+      const source = pickImage(input);
       if (source !== null) {
         try {
           localImage = join(sandbox, 'now.png');
@@ -113,7 +113,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
-      const source = typeof input.sensation.meta?.imagePath === 'string' ? input.sensation.meta.imagePath : null;
+      const source = pickImage(input);
       if (source !== null) {
         try {
           localImage = join(sandbox, 'now.png');
@@ -125,6 +125,18 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
       return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking);
     },
   };
+}
+
+/**
+ * 이 turn 에 두뇌가 볼 그림.
+ *
+ * 감각이 들고 온 그림(`meta.imagePath`)보다 **지금 눈에 보이는 것**(`seeing`)이 먼저다 —
+ * 사람이 말을 건 turn 에는 감각 쪽 그림이 아예 없기 때문이다(99회차).
+ */
+function pickImage(input: ThinkInput): string | null {
+  if (typeof input.seeing === 'string' && input.seeing !== '') return input.seeing;
+  const fromSense = input.sensation.meta?.imagePath;
+  return typeof fromSense === 'string' ? fromSense : null;
 }
 
 /**
