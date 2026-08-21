@@ -52,8 +52,19 @@ namespace Handheld.EditorTools
                 if (_rig == null) _rig = Object.FindAnyObjectByType<HandheldRig>();
             }
 
-            if (_server != null && _server.isActiveAndEnabled) _server.Tick();
-            if (_rig != null && _rig.isActiveAndEnabled) _rig.ManualTick(true);
+            // ★ 따로 감싼다 (2026-08-21). 예전엔 한 줄로 이어 불렀는데, 서버 쪽에서 던지자
+            //   **리그가 통째로 안 돌았다** — 프레임 0장, 화면 검정. 진단도 「포즈 0」으로만
+            //   보여서 원인이 옆 동네인 줄 몰랐다. 하나가 죽어도 나머지는 뛰어야 한다.
+            if (_server != null && _server.isActiveAndEnabled)
+            {
+                try { _server.Tick(); }
+                catch (System.Exception e) { Debug.LogWarning("[Handheld] 서버 틱 실패: " + e.Message); }
+            }
+            if (_rig != null && _rig.isActiveAndEnabled)
+            {
+                try { _rig.ManualTick(true); }
+                catch (System.Exception e) { Debug.LogWarning("[Handheld] 리그 틱 실패: " + e.Message); }
+            }
         }
     }
 }

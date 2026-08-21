@@ -261,7 +261,18 @@ namespace Handheld
                 ? Time.unscaledTimeAsDouble : UnityEngine.Time.realtimeSinceStartupAsDouble;
             if (now >= _nextDiagBake) { _nextDiagBake = now + 0.2; _diagCache = DiagJson(); }
             if (webrtc == null) webrtc = GetComponent<HandheldWebRtc>();
-            if (webrtc != null && webrtc.isActiveAndEnabled) webrtc.Tick();
+            // ★ 여기서 던지면 **부르는 쪽의 나머지가 통째로 건너뛴다.** 실제로 그 일이 났다 —
+            //   WebRTC 예외가 리그의 틱을 먹어서 프레임이 한 장도 안 나갔다(화면이 검었다).
+            //   한 곳의 고장이 옆을 죽이면 안 된다.
+            if (webrtc != null && webrtc.isActiveAndEnabled)
+            {
+                try { webrtc.Tick(); }
+                catch (Exception e)
+                {
+                    HandheldWebRtc.LastError = "tick: " + e.GetType().Name + " " + e.Message;
+                    Log("WebRTC 틱 실패(무시하고 계속): " + e.Message);
+                }
+            }
         }
 
         void AcceptLoop()
