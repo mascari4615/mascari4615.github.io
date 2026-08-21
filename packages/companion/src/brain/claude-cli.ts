@@ -134,9 +134,20 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
  * 사람이 말을 건 turn 에는 감각 쪽 그림이 아예 없기 때문이다(99회차).
  */
 function pickImage(input: ThinkInput): string | null {
-  if (typeof input.seeing === 'string' && input.seeing !== '') return input.seeing;
+  if (input.seeing && input.seeing.imagePath !== '') return input.seeing.imagePath;
   const fromSense = input.sensation.meta?.imagePath;
   return typeof fromSense === 'string' ? fromSense : null;
+}
+
+/**
+ * 그림 옆에 놓는 **글자로 읽은 화면**.
+ *
+ * 눈이 준 것이 먼저고, 없으면 화면 감각이 들고 온 것을 쓴다 — `pickImage` 와 같은 순서다.
+ */
+function readScreen(input: ThinkInput): string | null {
+  if (input.seeing && input.seeing.text.trim() !== '') return input.seeing.text.trim();
+  const fromSense = input.sensation.meta?.screenText;
+  return typeof fromSense === 'string' && fromSense.trim() !== '' ? fromSense.trim() : null;
 }
 
 /**
@@ -315,7 +326,11 @@ function buildPrompt(input: ThinkInput, imageInSandbox: string | null, handsNote
     imageInSandbox === null
       ? ''
       : `\n\n지금 이 사람 화면을 찍은 그림이 now.png 에 있다. 먼저 읽어서 보고 말해라. 화면 설명을 늘어놓지 말고, 본 것에 대해 한 마디만.`;
-  return `${head}${past}방금 ${input.sensation.who ?? `[${input.sensation.channel}]`} 에게서 들어온 것:\n${input.sensation.text}${look}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
+  /* 그림은 작은 글자에서 무너진다 — 창을 글자로 읽은 것도 나란히 준다(TASK-KAR-235).
+     그림과 어긋나면 글자 쪽이 맞다: 그건 창이 스스로 밝힌 것이라 흐릿할 수가 없다. */
+  const read = readScreen(input);
+  const reading = read === null ? '' : `\n\n화면을 글자로도 읽었다 (그림과 다르면 이쪽이 맞다):\n${read}`;
+  return `${head}${past}방금 ${input.sensation.who ?? `[${input.sensation.channel}]`} 에게서 들어온 것:\n${input.sensation.text}${look}${reading}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
 }
 
 function renderEntry(entry: MemoryEntry): string {
