@@ -1123,7 +1123,10 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 .header-btn.lang-btn svg { opacity: .85; }
 .lang-btn-code {
-    font-size: 11px; font-weight: 700; letter-spacing: .06em; line-height: 1;
+    /* 12px 이 이 사이트의 폰 가독 바닥이다 — `smoke-hub` 가 관문에서 그 아래를 잡는다.
+       08-20 에 「KO KR」을 한 글자 묶음으로 고치며 11px 로 내려갔다가 걸렸다.
+       통은 `width:auto; min-width:36px` 이라 글자가 커져도 따라 늘어난다. */
+    font-size: 12px; font-weight: 700; letter-spacing: .06em; line-height: 1;
     color: var(--text-primary);
 }
 .theme-toggle .theme-icon { color: inherit; }
