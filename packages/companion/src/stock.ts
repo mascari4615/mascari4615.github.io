@@ -118,7 +118,7 @@ export class lineStore {
    * 하나 꺼낸다 — **꺼낸 것은 없어진다.** 담아 둔 것을 다시 쓰면 결국 또 도는 말이 된다.
    * 비었으면 `null` — 부르는 쪽이 손으로 적어 둔 표로 물러선다.
    */
-  꺼내기(kind3: string): string | null {
+  raise(kind3: string): string | null {
     const item2 = this.담김.get(kind3);
     if (item2 === undefined || item2.누구 !== this.지금누구 || item2.말들.length === 0) return null;
     const text = item2.말들.shift() as string;

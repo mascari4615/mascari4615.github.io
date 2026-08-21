@@ -12,11 +12,11 @@ test('새 줄은 그때부터, 있던 줄은 처음 본 날을 지킨다', () =>
   let now2 = 1_000_000;
   const s = new KnownStamps({ now: () => now2 });
   s.sync('- 커피를 좋아함');
-  const first = s.stampOf('커피를 좋아함').처음;
+  const first = s.stampOf('커피를 좋아함').first;
   now2 += day * 5;
   s.sync('- 커피를 좋아함\n- 매운 걸 못 먹음');
-  assert.equal(s.stampOf('커피를 좋아함').처음, first, '있던 줄의 처음은 안 바뀐다');
-  assert.equal(s.stampOf('매운 걸 못 먹음').처음, now2);
+  assert.equal(s.stampOf('커피를 좋아함').first, first, '있던 줄의 처음은 안 바뀐다');
+  assert.equal(s.stampOf('매운 걸 못 먹음').first, now2);
 });
 
 test('앞머리 기호나 공백이 달라도 같은 줄로 본다', () => {
@@ -29,12 +29,12 @@ test('사라졌다 돌아와도 처음 본 날을 잃지 않는다 — 몇 주 �
   let now3 = 1_000;
   const s = new KnownStamps({ now: () => now3 });
   s.sync('- 커피를 좋아함');
-  const first2 = s.stampOf('커피를 좋아함').처음;
+  const first2 = s.stampOf('커피를 좋아함').first;
   now3 += day * 10;
   s.sync('- 매운 걸 못 먹음'); // 졸이는 쪽이 한 번 빠뜨렸다
   now3 += day;
   s.sync('- 커피를 좋아함');
-  assert.equal(s.stampOf('커피를 좋아함').처음, first2);
+  assert.equal(s.stampOf('커피를 좋아함').first, first2);
 });
 
 test('빈 아는 것에도 안 죽는다', () => {
@@ -48,10 +48,10 @@ test('빈 아는 것에도 안 죽는다', () => {
 
 test('얼마나 오래 알았는지 사람 말로', () => {
   const now4 = 100 * day;
-  assert.match(howLong({ 처음: now4 - day * 30, last: now4 }, now4), /오래전부터/);
-  assert.match(howLong({ 처음: now4 - day * 5, last: now4 }, now4), /며칠 전/);
-  assert.match(howLong({ 처음: now4 - day * 1.5, last: now4 }, now4), /어제오늘/);
-  assert.match(howLong({ 처음: now4 - 1000, last: now4 }, now4), /방금/);
+  assert.match(howLong({ first: now4 - day * 30, last: now4 }, now4), /오래전부터/);
+  assert.match(howLong({ first: now4 - day * 5, last: now4 }, now4), /며칠 전/);
+  assert.match(howLong({ first: now4 - day * 1.5, last: now4 }, now4), /어제오늘/);
+  assert.match(howLong({ first: now4 - 1000, last: now4 }, now4), /방금/);
 });
 
 // ── 두뇌에 얹는 한 줄 ────────────────────────────────────────────────
@@ -97,7 +97,7 @@ test('파일에 남겨 두면 껐다 켜도 이어진다', () => {
   try {
     new KnownStamps({ path, now: () => 777 }).sync('- 커피를 좋아함');
     const again = new KnownStamps({ path, now: () => 999 });
-    assert.equal(again.stampOf('커피를 좋아함').처음, 777);
+    assert.equal(again.stampOf('커피를 좋아함').first, 777);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 

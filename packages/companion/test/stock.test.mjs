@@ -13,15 +13,15 @@ test('한가할 때 채워 두면 그걸 꺼내 쓴다', async () => {
   assert.equal(store.남은수('touch:쿡:1'), 0);
   const storedCount = await store.채우기('touch:쿡:1', '쿡 찔렸을 때 대꾸');
   assert.equal(storedCount, 3);
-  assert.equal(store.꺼내기('touch:쿡:1'), '…또야?');
+  assert.equal(store.raise('touch:쿡:1'), '…또야?');
 });
 
 test('꺼낸 것은 없어진다 — 담아 둔 걸 다시 쓰면 또 도는 말이 된다', async () => {
   const store2 = new 대사창고({ 지어오기: async () => '하나\n둘' });
   await store2.채우기('갈래', '아무거나');
-  assert.equal(store2.꺼내기('갈래'), '하나');
-  assert.equal(store2.꺼내기('갈래'), '둘');
-  assert.equal(store2.꺼내기('갈래'), null);
+  assert.equal(store2.raise('갈래'), '하나');
+  assert.equal(store2.raise('갈래'), '둘');
+  assert.equal(store2.raise('갈래'), null);
 });
 
 test('지어 온 것 중 설명·존댓말·긴 말은 안 담는다', async () => {
@@ -37,13 +37,13 @@ test('지어 온 것 중 설명·존댓말·긴 말은 안 담는다', async () 
   });
   const storedCount2 = await store3.채우기('갈래', '아무거나');
   assert.equal(storedCount2, 3);
-  assert.deepEqual([store3.꺼내기('갈래'), store3.꺼내기('갈래'), store3.꺼내기('갈래')], ['…또야?', '…손 치워.', '…그만.']);
+  assert.deepEqual([store3.raise('갈래'), store3.raise('갈래'), store3.raise('갈래')], ['…또야?', '…손 치워.', '…그만.']);
 });
 
 test('쓸 게 하나도 안 남으면 아무것도 안 담는다', async () => {
   const store4 = new 대사창고({ 지어오기: async () => '무엇을 도와드릴까요?\n필요하신 게 있으면 말씀해 주세요' });
   assert.equal(await store4.채우기('갈래', '아무거나'), 0);
-  assert.equal(store4.꺼내기('갈래'), null);
+  assert.equal(store4.raise('갈래'), null);
 });
 
 test('두뇌가 못 지어도(널·예외) 얘는 안 죽는다', async () => {
@@ -75,7 +75,7 @@ test('껐다 켜도 담아 둔 게 남는다', async () => {
   const firstRun = new 대사창고({ path, 지어오기: async () => '하나\n둘' });
   await firstRun.채우기('갈래', '아무거나');
   const nextRun = new 대사창고({ path, 지어오기: async () => '안 불러야 한다' });
-  assert.equal(nextRun.꺼내기('갈래'), '하나');
+  assert.equal(nextRun.raise('갈래'), '하나');
   // 꺼낸 것은 파일에서도 빠져야 한다 — 안 그러면 다음에 켤 때 같은 말이 또 나온다.
   assert.equal(JSON.parse(readFileSync(path, 'utf8'))['갈래'].말들.includes('하나'), false);
 });
@@ -86,7 +86,7 @@ test('인격이 바뀌면 앞 인격이 지은 말은 안 쓴다', async () => {
   await store6.채우기('갈래', '아무거나');
   who = '무명';
   assert.equal(store6.남은수('갈래'), 0);
-  assert.equal(store6.꺼내기('갈래'), null);
+  assert.equal(store6.raise('갈래'), null);
 });
 
 test('깨진 파일은 없는 셈 친다 — 그것 때문에 못 뜨면 안 된다', () => {

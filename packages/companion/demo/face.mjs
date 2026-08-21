@@ -507,7 +507,7 @@ function sttModel() {
    모델은 처음 뜰 때 수십 초 걸리므로 **기다리지 않는다**: 준비될 때까지는 낱말 회상만
    나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
 const meaning = surface === 'page'
-  ? { 찾기: async () => [], 담기: async () => {} }
+  ? { 찾기: async () => [], store: async () => {} }
   : new 뜻기억({
     path: join(home, '뜻-색인.json'),
     measure: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
@@ -1278,7 +1278,7 @@ const companion = new Companion({
     /* 오간 말을 뜻 색인에 담는다 — **말이 나간 뒤라** 늦어져도 대화가 안 밀린다.
        이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 거의 안 든다. */
     void Promise.resolve(conversationMemory.recent(40))
-      .then((es) => meaning.담기(es))
+      .then((es) => meaning.store(es))
       .catch((e) => console.error(`[뜻] 담다 죽었다 — ${e?.message ?? e}`));
     void slotKnowledge.reflect().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는

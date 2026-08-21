@@ -117,7 +117,7 @@ export class EpisodeStore {
         if (worthAsking(e.text)) this.물어볼것.set(e.text.trim(), e.at);
         continue;
       }
-      this.담기({ said: e.text.trim(), at: e.at, 기운: energy });
+      this.store({ said: e.text.trim(), at: e.at, 기운: energy });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
@@ -131,7 +131,7 @@ export class EpisodeStore {
     return this.목록.some((existing) => existing.said === text4);
   }
 
-  private 담기(e: Episode): void {
+  private store(e: Episode): void {
     this.목록.push(e);
   }
 
@@ -179,7 +179,7 @@ export class EpisodeStore {
     bundle.forEach(([말, at], i) => {
       const energy2 = Math.round(scores![i]);
       if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.있나(말)) return;
-      this.담기({ said: 말, at, 기운: energy2 });
+      this.store({ said: 말, at, 기운: energy2 });
       storedCount2 += 1;
     });
     if (storedCount2 > 0) {
