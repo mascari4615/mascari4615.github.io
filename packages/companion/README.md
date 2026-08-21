@@ -99,6 +99,9 @@ npm run page:preview   # 가짜 미리보기
 
 ## 레퍼런스
 
+살아 있는 원장 = [`references.md`](references.md) (밖에서 배운 것 · 10분 루프가 채운다).
+
+
 - [AIRI](https://github.com/moeru-ai/airi) — 코어 하나에 몸이 플러그인으로 붙는 구조
 - [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) — 설정만 고쳐 부품 교체
 - 뉴로사마 — 말 끊기 · 먼저 말하기 · 오래 가는 기억 · 손을 상시로 씀
