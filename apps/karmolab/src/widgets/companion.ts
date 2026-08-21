@@ -23,7 +23,7 @@ import { t, loadNamespace } from '../lib/i18n';
   const unattachable = location.protocol === 'https:' && location.hostname.endsWith('github.io');
 
   type Entry = { role: 'sensed' | 'said'; channel: string; text: string; at: number };
-  type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; 최악ms: number | null };
+  type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; worstMs: number | null };
   type State = {
     windowAttached: number;
     body: '3D' | '큐브' | null;

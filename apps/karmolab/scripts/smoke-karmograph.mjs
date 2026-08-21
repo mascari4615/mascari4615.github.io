@@ -1894,7 +1894,7 @@ const RICH_SPEC = {
   _meta: { time: 't2' },
   groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
   nodes: [
-    { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { 고향: '북' } },
+    { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { hometown: '북' } },
     { id: 'n2', label: '나', kind: 'character', x: 200, y: 120, w: 160, h: 44 },
   ],
   edges: [{
@@ -3013,7 +3013,7 @@ await step('백업 → 복원에서 **아무것도 안 빠진다** (KL-271)', as
     _meta: { time: 't2' },
     groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
     nodes: [
-      { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { 고향: '북' } },
+      { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { hometown: '북' } },
       { id: 'n2', label: '나', kind: 'character', x: 200, y: 120, w: 160, h: 44 },
     ],
     edges: [{ id: 'e1', from: 'n1', to: 'n2', label: '친구', kind: 'default', at: { t2: { label: '라이벌' } } }],

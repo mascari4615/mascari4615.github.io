@@ -91,17 +91,17 @@ try {
 
   const seen = await page.evaluate((toolId) => {
     const slots = [...document.querySelectorAll('.tool-sponsor')];
-    if (!slots.length) return { 없음: true };
+    if (!slots.length) return { none: true };
     const s = slots[0];
     const tool = document.getElementById('page-' + toolId) || document.getElementById('tool-pages');
     const a = s.querySelector('a');
     return {
       개수: slots.length,
-      도구보다아래: tool ? s.getBoundingClientRect().top > tool.getBoundingClientRect().top : false,
-      설명블록안: !!s.closest('.tool-seo'),
-      밝힘: (s.querySelector('.tool-sponsor-label')?.textContent || '').trim(),
+      belowTool: tool ? s.getBoundingClientRect().top > tool.getBoundingClientRect().top : false,
+      insideDescBlock: !!s.closest('.tool-seo'),
+      reveal: (s.querySelector('.tool-sponsor-label')?.textContent || '').trim(),
       rel: a ? a.getAttribute('rel') || '' : null,
-      넘침: s.scrollWidth > s.clientWidth + 2,
+      overflow: s.scrollWidth > s.clientWidth + 2,
       visible: s.getBoundingClientRect().height > 0
     };
   }, SAMPLE);

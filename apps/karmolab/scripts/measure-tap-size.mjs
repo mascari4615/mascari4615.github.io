@@ -63,8 +63,8 @@ for (const url of URLS) {
       return `${(e.className || e.tagName).toString().split(' ')[0].slice(0, 16)} ${Math.round(b.width)}x${Math.round(b.height)}${t ? ` "${t}"` : ''}`;
     };
     return {
-      전부: toMeasure.length,
-      문장안링크: exceptions.length,
+      all: toMeasure.length,
+      inlineLink: exceptions.length,
       아래24: small(24).length,
       아래44: small(44).length,
       보기24: [...new Set(small(24).map(name))].slice(0, 4),

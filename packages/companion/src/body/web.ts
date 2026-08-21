@@ -453,7 +453,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           const middle = sorted.length === 0 ? null : sorted[Math.floor(sorted.length / 2)];
           const worst = sorted.length === 0 ? null : sorted[sorted.length - 1];
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ 샘플수: sorted.length, 첫소리중앙값ms: middle, 최악ms: worst }));
+          res.end(JSON.stringify({ 샘플수: sorted.length, 첫소리중앙값ms: middle, worstMs: worst }));
           return;
         }
 

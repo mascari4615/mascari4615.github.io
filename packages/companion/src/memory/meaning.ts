@@ -159,8 +159,8 @@ export class meaningMemory {
  * 기다리게 하지 않는다 — 준비될 때까지는 `null` 을 돌려주고, 준비되면 그때부터 잰다.
  * 91회차에서 목소리에 쓴 규율과 같다: 무거운 건 뒤에서 켜고, 그 사이엔 하던 대로 한다.
  */
-export function measureWithSmallModel(options: { 모델?: string; log?: (m: string) => void } = {}): 뜻재기 {
-  const model = options.모델 ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
+export function measureWithSmallModel(options: { model?: string; log?: (m: string) => void } = {}): 뜻재기 {
+  const model = options.model ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
   const log = options.log ?? (() => {});
   let ready: ((content4: string, opts: unknown) => Promise<{ data: Float32Array }>) | null = null;
   let preparing = false;

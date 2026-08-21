@@ -59,7 +59,7 @@ const toMeasure = [
     이름: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
     hash: '#karmograph',
     viewport: { width: 390, height: 844 },
-    폰: true,
+    phone: true,
     prepare: async (p) => {
       await p.waitForSelector('.km-canvas', { timeout: 20000 });
       await p.waitForTimeout(1200);
@@ -157,7 +157,7 @@ console.log(`[linux-repro] ${process.platform} · playwright 컨테이너 안`);
 for (const item of toMeasure) {
   const ctx = await browser.newContext({
     serviceWorkers: 'block', viewport: item.viewport,
-    ...(item.폰 ? { isMobile: true, hasTouch: true } : {}),
+    ...(item.phone ? { isMobile: true, hasTouch: true } : {}),
   });
   const p = await ctx.newPage();
   try {

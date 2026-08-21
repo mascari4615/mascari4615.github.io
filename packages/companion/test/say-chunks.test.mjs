@@ -23,7 +23,7 @@ test('짧은 문장 하나만 있으면 더 기다린다', () => {
 });
 
 test('쉼표 뒤에 남은 게 없으면 안 끊는다 — 어차피 곧 올 문장 끝과 다를 게 없다', () => {
-  assert.equal(chunkToRead('어 그거 나도 봤는데,', { 남길것: 2 }), null);
+  assert.equal(chunkToRead('어 그거 나도 봤는데,', { toKeep: 2 }), null);
 });
 
 test('여러 문장이 한꺼번에 오면 마지막 끝까지 한 번에 먹는다', () => {
@@ -51,7 +51,7 @@ test('빈 글은 아무것도 안 내보낸다', () => {
 });
 
 test('문턱을 조절할 수 있다 — 목소리가 느리면 더 잘게 끊는 게 낫다', () => {
-  assert.notEqual(chunkToRead('응, 그러니까', { 쉼문턱: 2 }), null);
+  assert.notEqual(chunkToRead('응, 그러니까', { pauseThreshold: 2 }), null);
 });
 
 test('말줄임표도 문장 끝으로 본다 — 얘가 자주 쓴다', () => {
