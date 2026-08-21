@@ -32,7 +32,7 @@ export interface 꺼낼까입력 {
   /** 방금 조수님이 물어봤나. */
   askedTurn: boolean;
   /** 이 횟수 넘게 참은 것만 꺼낸다. */
-  문턱?: number;
+  threshold3?: number;
 }
 
 export interface 꺼낼것 {
@@ -58,7 +58,7 @@ export function topicSkipReason(input: 꺼낼까입력): string | null {
   if (input.cooling === false) return '아직 대화가 안 식었다';
   const picked = choose(input);
   if (picked === null) {
-    const threshold = input.문턱 ?? 3;
+    const threshold = input.threshold3 ?? 3;
     const most = Math.max(0, ...input.material.map((x) => input.heldFor(x.name)));
     return `${threshold}번 넘게 참은 게 없다 (가장 오래 참은 게 ${most}번)`;
   }
@@ -66,7 +66,7 @@ export function topicSkipReason(input: 꺼낼까입력): string | null {
 }
 
 function choose(input: 꺼낼까입력): 꺼낼것 | null {
-  const threshold2 = input.문턱 ?? 3;
+  const threshold2 = input.threshold3 ?? 3;
   const candidates = input.material
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')

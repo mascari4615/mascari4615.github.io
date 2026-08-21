@@ -31,7 +31,7 @@ export interface 뜻기억옵션 {
   /** 몇 개까지 담아 둘지. 오래된 것부터 빠진다. */
   max?: number;
   /** 이보다 안 닮았으면 안 꺼낸다. 낮추면 엉뚱한 게 딸려 온다. */
-  문턱?: number;
+  threshold?: number;
   log?: (message: string) => void;
 }
 
@@ -52,13 +52,13 @@ export function similarity(a: readonly number[], b: readonly number[]): number {
 export class meaningMemory {
   private readonly stored: 담긴줄[] = [];
   private readonly max: number;
-  private readonly 문턱: number;
+  private readonly threshold: number;
   private readonly log: (message: string) => void;
   private storing = false;
 
   constructor(private readonly options: 뜻기억옵션) {
     this.max = options.max ?? 2000;
-    this.문턱 = options.문턱 ?? 0.5;
+    this.threshold = options.threshold ?? 0.5;
     this.log = options.log ?? (() => {});
     this.read();
   }
@@ -146,7 +146,7 @@ export class meaningMemory {
     return this.stored
       .filter((line3) => toDrop.has(line3.text) === false && line3.text !== content3)
       .map((line4) => ({ text: line4.text, similar: similarity(v, line4.v) }))
-      .filter((r) => r.similar >= this.문턱)
+      .filter((r) => r.similar >= this.threshold)
       .sort((a, b) => b.similar - a.similar)
       .slice(0, options.count ?? 3);
   }

@@ -37,7 +37,7 @@
 
 export const defaultValue = {
   /** 이 크기를 넘으면 말소리로 본다. */
-  문턱: 0.045,
+  threshold: 0.045,
   /** 이만큼 이어져야 연다 (ms) — 한 번 튄 잡음으로 열리지 않게. */
   toOpen: 250,
   /** 조용해진 뒤 이만큼 기다렸다 닫는다 (ms) — 숨 쉬는 자리에서 안 끊기게. */
@@ -61,49 +61,49 @@ export const defaultValue = {
 
 export class listenGate {
   constructor(settings = {}) {
-    this.설정 = { ...defaultValue, ...settings };
-    this.열림 = false;
-    this.넘기시작 = null; // 소리가 문턱을 넘기 시작한 시각
-    this.조용해진때 = null; // 열려 있는 동안 조용해진 시각
-    this.연때 = null;
-    this.얘가말끝낸때 = null;
-    this.얘가말하는중 = false;
+    this.options = { ...defaultValue, ...settings };
+    this.open = false;
+    this.skipStartedAt = null; // 소리가 문턱을 넘기 시작한 시각
+    this.quietSince = null; // 열려 있는 동안 조용해진 시각
+    this.openedAt = null;
+    this.companionEndedAt = null;
+    this.companionSpeaking = false;
     /** 얘가 말하는 동안 마이크로 돌아오는 소리의 크기 = 메아리 바닥. */
-    this.메아리바닥 = 0;
-    this.메아리잰수 = 0;
-    this.끼어들기시작 = null;
+    this.echoFloor = 0;
+    this.echoSamples = 0;
+    this.bargeStartedAt = null;
   }
 
   /** 지금 메아리 바닥으로 보아 끼어들기를 받을 수 있나. */
-  get 끼어들문턱() {
-    return Math.max(this.설정.bargeFloor, this.메아리바닥 * this.설정.echoFactor);
+  get bargeThreshold() {
+    return Math.max(this.options.bargeFloor, this.echoFloor * this.options.echoFactor);
   }
 
   /** 소리 지우기가 안 먹어서 끼어들기를 포기해야 하나. */
-  get 끼어들포기() {
-    return this.설정.barge === false || this.메아리바닥 >= this.설정.cannotDo;
+  get bargeGiveUpMs() {
+    return this.options.barge === false || this.echoFloor >= this.options.cannotDo;
   }
 
   /** 얘가 말하기 시작했다 / 끝냈다. */
   mouth(speaking, now) {
-    if (this.얘가말하는중 === true && speaking === false) this.얘가말끝낸때 = now;
-    this.얘가말하는중 = speaking;
+    if (this.companionSpeaking === true && speaking === false) this.companionEndedAt = now;
+    this.companionSpeaking = speaking;
   }
 
   /** 지금 귀가 막혀 있나 (얘가 말하는 중이거나 그 꼬리). */
   blocked(now2) {
-    if (this.얘가말하는중) return true;
-    if (this.얘가말끝낸때 === null) return false;
-    return now2 - this.얘가말끝낸때 < this.설정.tailFade;
+    if (this.companionSpeaking) return true;
+    if (this.companionEndedAt === null) return false;
+    return now2 - this.companionEndedAt < this.options.tailFade;
   }
 
   /**
    * 소리 한 번 잰 값을 넣는다. 문이 바뀌었으면 '열림' 또는 '닫힘', 아니면 null.
    */
-  들었다(size, now3) {
-    const s = this.설정;
+  heard(size, now3) {
+    const s = this.options;
 
-    if (this.얘가말하는중) {
+    if (this.companionSpeaking) {
       /* 얘가 말하는 동안 들어오는 소리 = 메아리. **재서 배운다** — 방마다 스피커마다
          다르므로 정해 두면 어디선가 반드시 틀린다.
 
@@ -117,57 +117,57 @@ export class listenGate {
          통째로 꺼졌다(창이 실제로 받아 가는 파일로 돌려서 봤다). 그래서 매 번 재는 값을
          **지금 바닥의 1.5 배까지만** 인정한다 — 진짜 시끄러운 방이면 몇 백 ms 안에 거기까지
          차오르고, 잠깐 솟은 사람 목소리는 바닥을 못 옮긴다. */
-      const acknowledge = this.메아리잰수 === 0 ? size : Math.min(size, this.메아리바닥 * 1.5);
-      this.메아리바닥 = this.메아리잰수 === 0 ? size : this.메아리바닥 * 0.98 + acknowledge * 0.02;
-      this.메아리잰수 += 1;
+      const acknowledge = this.echoSamples === 0 ? size : Math.min(size, this.echoFloor * 1.5);
+      this.echoFloor = this.echoSamples === 0 ? size : this.echoFloor * 0.98 + acknowledge * 0.02;
+      this.echoSamples += 1;
 
       // 말하는 동안은 받아쓰기를 안 켠 채로 둔다. 닫혔다는 건 창이 알아야 한다.
-      const isClosed = this.열림 ? this.close() : null;
+      const isClosed = this.open ? this.close() : null;
 
-      if (this.끼어들포기) { this.끼어들기시작 = null; return isClosed; }
-      if (size < this.끼어들문턱) { this.끼어들기시작 = null; return isClosed; }
-      if (this.끼어들기시작 === null) this.끼어들기시작 = now3;
-      if (now3 - this.끼어들기시작 < s.toBarge) return isClosed;
+      if (this.bargeGiveUpMs) { this.bargeStartedAt = null; return isClosed; }
+      if (size < this.bargeThreshold) { this.bargeStartedAt = null; return isClosed; }
+      if (this.bargeStartedAt === null) this.bargeStartedAt = now3;
+      if (now3 - this.bargeStartedAt < s.toBarge) return isClosed;
       // 사람이 말을 끊었다. 여기서 문까지 열지는 않는다 — 창이 입을 닫히고 나면
       // 그 다음 재기부터 평소 규칙으로 열린다.
-      this.끼어들기시작 = null;
+      this.bargeStartedAt = null;
       return '끼어듦';
     }
-    this.끼어들기시작 = null;
+    this.bargeStartedAt = null;
 
     if (this.blocked(now3)) {
-      this.넘기시작 = null;
-      if (this.열림) return this.close();
+      this.skipStartedAt = null;
+      if (this.open) return this.close();
       return null;
     }
 
-    const sounded = size >= s.문턱;
+    const sounded = size >= s.threshold;
 
-    if (this.열림 === false) {
-      if (sounded === false) { this.넘기시작 = null; return null; }
-      if (this.넘기시작 === null) this.넘기시작 = now3;
-      if (now3 - this.넘기시작 < s.toOpen) return null;
-      this.열림 = true;
-      this.연때 = now3;
-      this.조용해진때 = null;
-      this.넘기시작 = null;
+    if (this.open === false) {
+      if (sounded === false) { this.skipStartedAt = null; return null; }
+      if (this.skipStartedAt === null) this.skipStartedAt = now3;
+      if (now3 - this.skipStartedAt < s.toOpen) return null;
+      this.open = true;
+      this.openedAt = now3;
+      this.quietSince = null;
+      this.skipStartedAt = null;
       return '열림';
     }
 
     // 열려 있는 동안
-    if (now3 - this.연때 >= s.tooLong) return this.close();
-    if (sounded) { this.조용해진때 = null; return null; }
-    if (this.조용해진때 === null) this.조용해진때 = now3;
-    if (now3 - this.조용해진때 < s.toClose) return null;
+    if (now3 - this.openedAt >= s.tooLong) return this.close();
+    if (sounded) { this.quietSince = null; return null; }
+    if (this.quietSince === null) this.quietSince = now3;
+    if (now3 - this.quietSince < s.toClose) return null;
     return this.close();
   }
 
   close() {
-    if (this.열림 === false) return null;
-    this.열림 = false;
-    this.연때 = null;
-    this.조용해진때 = null;
-    this.넘기시작 = null;
+    if (this.open === false) return null;
+    this.open = false;
+    this.openedAt = null;
+    this.quietSince = null;
+    this.skipStartedAt = null;
     return '닫힘';
   }
 }
