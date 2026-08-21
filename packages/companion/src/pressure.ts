@@ -23,7 +23,7 @@ export interface 밀린생각옵션 {
   /** 한 번 밀릴 때마다 얼마나 세지나. */
   step?: number;
   /** 아무리 밀려도 이 이상은 안 세진다. 안 그러면 오래된 것이 영영 1등이라 새 것이 굶는다. */
-  상한?: number;
+  cap?: number;
   /** 이만큼 지나도록 다시 안 밀리면 잊는다 — 지나간 관심이다. */
   잊는턴?: number;
 }
@@ -41,14 +41,14 @@ interface 눌림 {
  */
 export class pendingThoughts {
   private readonly step: number;
-  private readonly 상한: number;
+  private readonly cap: number;
   private readonly 잊는턴: number;
   private readonly 눌린것 = new Map<string, 눌림>();
   private 턴 = 0;
 
   constructor(options: 밀린생각옵션 = {}) {
     this.step = options.step ?? 3;
-    this.상한 = options.상한 ?? 9;
+    this.cap = options.cap ?? 9;
     this.잊는턴 = options.잊는턴 ?? 8;
   }
 
@@ -89,7 +89,7 @@ export class pendingThoughts {
   addedWeight(name4: string): number {
     const v = this.눌린것.get(name4);
     if (v === undefined) return 0;
-    return Math.min(v.횟수 * this.step, this.상한);
+    return Math.min(v.횟수 * this.step, this.cap);
   }
 
   /** 재료 목록에 참은 만큼을 얹어 돌려준다. 원본은 안 건드린다. */

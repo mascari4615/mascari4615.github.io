@@ -85,7 +85,7 @@ const repaid = [...baseline].filter((n) => !namesOnly.includes(n));
 if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
   writeFileSync(
     BASE_FILE,
-    `${JSON.stringify({ 설명: '아직 안 지어지는 폴더형 위젯 — 늘면 빨강, 지으면(또는 지우면) 저절로 줄어든다', 목록: namesOnly, 갱신: new Date().toISOString().slice(0, 10) }, null, 2)}\n`,
+    `${JSON.stringify({ note: '아직 안 지어지는 폴더형 위젯 — 늘면 빨강, 지으면(또는 지우면) 저절로 줄어든다', 목록: namesOnly, 갱신: new Date().toISOString().slice(0, 10) }, null, 2)}\n`,
   );
   if (repaid.length > 0) console.log(`[orphan-widgets] ${repaid.length}개 정리됨 — 기준선 ${baseline.size} → ${namesOnly.length}: ${repaid.join(', ')}`);
 }

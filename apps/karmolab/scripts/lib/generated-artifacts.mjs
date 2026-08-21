@@ -79,13 +79,13 @@ export const generated = [
     why: '링크를 공유할 때 나가는 그림 — 낡으면 지금과 다른 문구가 붙는다',
     /* 굽는 데 그림 185장을 그린다(몇 분). 감사기가 매번 굽게 두면 아무도 안 돌린다 —
        대신 **전용 검사**가 있다: `audit:cards:fresh`(그리지 않고 문구만 견준다). */
-    무거움: 'audit:cards:fresh 가 대신 본다'
+    weight: 'audit:cards:fresh 가 대신 본다'
   },
   {
     npm: 'gen:llms',
     outputs: ['../blog/assets/llms.txt', '../blog/assets/llms-full.txt'],
     why: '크롤러·모델이 읽는 소개 목록 — 낡으면 없는 도구를 알려 준다',
-    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
+    weight: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
     npm: 'gen:play-roster',
@@ -102,13 +102,13 @@ export const generated = [
        맞았고, 실제로 verify 가 세 판 연속 빨갔다. 생성기 머릿말은 이미 「build 사슬에서
        자동」이라 적어 있었는데 그게 **거짓말**이었다 — 사슬에 넣어 참으로 만들었다.
        다른 자리: 밤에 굽는 것(worldcup)보다 낛다 — 배포마다 굽으니 서비스본은 항상 새것이다. */
-    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
+    weight: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
     npm: 'gen:word-pool',
     outputs: ['src/core/word-pool.generated.ts'],
     why: '낱말 놀이의 낱말 — 위와 같은 이유',
-    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
+    weight: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
     npm: 'gen:han-table',
@@ -116,7 +116,7 @@ export const generated = [
     why: '한자 표 — 소스가 바뀌면 같이 바뀌어야 한다',
     /* 사람이 받아서 푼 자료 폴더를 인자로 줘야 돈다 — 감사기가 혼자서는 못 굽는다.
        그래서 여기서는 안 굽고, 사실만 적어 둔다(안 보는 것과 구분되게). */
-    무거움: '사람이 받아 푼 자료 폴더가 있어야 돈다 (node scripts/gen-han-table.mjs <폴더>)'
+    weight: '사람이 받아 푼 자료 폴더가 있어야 돈다 (node scripts/gen-han-table.mjs <폴더>)'
   },
   {
     npm: 'gen:core-tools',

@@ -11,18 +11,18 @@ const exchange = [
   text2('밤에만 그 얘기를 하네', 'said'),
 ];
 
-const pointed = (what, evidence = ['셰이더 또 안 되네 진짜']) => ({ what: what, 근거: evidence, at: Date.now() });
+const pointed = (what, evidence = ['셰이더 또 안 되네 진짜']) => ({ what: what, evidence: evidence, at: Date.now() });
 
 test('짚은 것을 근거와 함께 담는다', async () => {
   const r = new reflection({ ask: async () => [pointed('조수님은 막힌 얘기를 밤에만 꺼낸다')] });
   assert.equal(await r.reflect(exchange), 1);
   assert.equal(r.all[0].what, '조수님은 막힌 얘기를 밤에만 꺼낸다');
-  assert.equal(r.all[0].근거.length, 1);
+  assert.equal(r.all[0].evidence.length, 1);
 });
 
 test('근거를 못 대면 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다', async () => {
   const written = [];
-  const r = new reflection({ ask: async () => [{ what: '조수님은 사실 고양이를 싫어한다', 근거: [] }], log: (m) => written.push(m) });
+  const r = new reflection({ ask: async () => [{ what: '조수님은 사실 고양이를 싫어한다', evidence: [] }], log: (m) => written.push(m) });
   assert.equal(await r.reflect(exchange), 0);
   assert.equal(r.all.length, 0);
   assert.match(written.join(' '), /근거가 없어 버렸다/);
@@ -91,7 +91,7 @@ test('물음에 오간 말이 들어가고, 이미 짚은 것은 다시 짚지 �
   assert.ok(seen.includes('셰이더 또 안 되네'), '오간 말이 물음에 없다');
   assert.ok(seen.includes('이미 짚어 둔 무언가'), '이미 짚은 것이 물음에 없다');
   assert.equal(produced[0].what, '조수님은 밤에만 막힌 얘기를 한다');
-  assert.deepEqual(produced[0].근거, ['어제도 새벽까지 했는데']);
+  assert.deepEqual(produced[0].evidence, ['어제도 새벽까지 했는데']);
 });
 
 test('근거 없이 온 줄은 아예 안 만든다', async () => {
@@ -102,7 +102,7 @@ test('근거 없이 온 줄은 아예 안 만든다', async () => {
 test('근거 여러 개를 갈라 읽는다', async () => {
   const ask3 = askReflection(async () => '- 조수님은 밤에 막힌다 || 어제도 새벽까지 ; 셰이더 또 안 되네');
   const r = await ask3(exchange, []);
-  assert.equal(r[0].근거.length, 2);
+  assert.equal(r[0].evidence.length, 2);
   assert.equal(r[0].what, '조수님은 밤에 막힌다', '앞의 목록 표시는 떼어야 한다');
 });
 

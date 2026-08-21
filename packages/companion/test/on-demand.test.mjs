@@ -27,7 +27,7 @@ const run = (settings = {}) => {
   });
   return {
     기동: boot,
-    일어난일: events,
+    events: events,
     흐르기: (ms) => {
       now2 += ms;
     },
@@ -46,7 +46,7 @@ test('쓸 때 켠다 — 그리고 기다리지 않는다', async () => {
   await t.기동.써야한다();
   // 띄우기는 뒤에서 돈다. 부르는 쪽은 이미 반환됐다.
   await waited();
-  assert.ok(t.일어난일.includes('띄움'), '안 띄웠다');
+  assert.ok(t.events.includes('띄움'), '안 띄웠다');
   await t.기동.써야한다();
   assert.equal(t.기동.준비됐나, true, '띄운 뒤에는 쓸 수 있어야 한다');
 });
@@ -56,7 +56,7 @@ test('이미 떠 있으면 또 안 띄운다', async () => {
   t.켜두기();
   await t.기동.써야한다();
   await waited();
-  assert.equal(t.일어난일.includes('띄움'), false);
+  assert.equal(t.events.includes('띄움'), false);
   assert.equal(t.기동.준비됐나, true);
 });
 
@@ -64,7 +64,7 @@ test('자동을 꺼 두면 손으로 띄운 것만 쓴다', async () => {
   const t = run({ 자동: false });
   await t.기동.써야한다();
   await waited();
-  assert.equal(t.일어난일.includes('띄움'), false);
+  assert.equal(t.events.includes('띄움'), false);
   assert.equal(t.기동.준비됐나, false);
 });
 
@@ -164,7 +164,7 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
     실패후쉬기ms: 10_000,
     log: () => {},
   });
-  return { 기동: boot2, 일어난일: events2 };
+  return { 기동: boot2, events: events2 };
 };
 
 test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄워 프로세스 38개)', async () => {
@@ -173,7 +173,7 @@ test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄
     await t.기동.써야한다();
     await new Promise((r) => setTimeout(r, 20));
   }
-  assert.equal(t.일어난일.filter((x) => x === '띄움').length, 1, `${t.일어난일.length}번 띄웠다`);
+  assert.equal(t.events.filter((x) => x === '띄움').length, 1, `${t.events.length}번 띄웠다`);
   await new Promise((r) => setTimeout(r, 250));
   await t.기동.써야한다();
   assert.equal(t.기동.준비됐나, true, '뜬 뒤에는 쓸 수 있어야 한다');
@@ -183,9 +183,9 @@ test('영영 안 뜨면 포기하고, 한동안 다시 안 띄운다', async () 
   const t = slowRun({ 절대안뜸: true });
   await t.기동.써야한다();
   await new Promise((r) => setTimeout(r, 600));
-  assert.equal(t.일어난일.filter((x) => x === '띄움').length, 1);
+  assert.equal(t.events.filter((x) => x === '띄움').length, 1);
   // 실패 직후에는 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다.
   await t.기동.써야한다();
   await new Promise((r) => setTimeout(r, 50));
-  assert.equal(t.일어난일.filter((x) => x === '띄움').length, 1, '실패하자마자 또 띄웠다');
+  assert.equal(t.events.filter((x) => x === '띄움').length, 1, '실패하자마자 또 띄웠다');
 });

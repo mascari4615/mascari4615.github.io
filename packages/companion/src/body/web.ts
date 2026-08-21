@@ -397,8 +397,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           req.on('data', (chunk) => { raw += chunk; if (raw.length > 2000) req.destroy(); });
           req.on('end', () => {
             try {
-              const arrived = JSON.parse(raw) as { 몸?: unknown };
-              if (arrived.몸 === '3D' || arrived.몸 === '큐브') windowBody = arrived.몸;
+              const arrived = JSON.parse(raw) as { body?: unknown };
+              if (arrived.body === '3D' || arrived.body === '큐브') windowBody = arrived.body;
             } catch {
               // 못 읽으면 모르는 채로 둔다
             }
@@ -414,7 +414,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
             창붙음: clients.size,
-            몸: windowBody,
+            body: windowBody,
             ...(options.상태?.() ?? {}),
           }));
           return;

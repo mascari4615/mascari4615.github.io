@@ -27,7 +27,7 @@ export interface 깨달음 {
   /** 짚어 낸 것. */
   what: string;
   /** 어디서 봤나 — 근거로 삼은 말 조각들. */
-  근거: readonly string[];
+  evidence: readonly string[];
   at: number;
 }
 
@@ -96,14 +96,14 @@ export class reflection {
     let storedCount = 0;
     for (const x of produced) {
       const what = String(x?.what ?? '').trim();
-      const evidence = (x?.근거 ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
+      const evidence = (x?.evidence ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
       // **근거를 못 대면 버린다.** 되새김은 헛것이 가장 잘 나오는 자리다.
       if (what === '' || evidence.length === 0) {
         if (what !== '') this.options.log?.(`근거가 없어 버렸다 — 「${what.slice(0, 40)}」`);
         continue;
       }
       if (this.있나(what)) continue;
-      this.목록.push({ what: what, 근거: evidence, at: x?.at ?? Date.now() });
+      this.목록.push({ what: what, evidence: evidence, at: x?.at ?? Date.now() });
       storedCount += 1;
     }
     if (storedCount === 0) return 0;
@@ -191,7 +191,7 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
       if (evidences === undefined) continue;
       produced2.push({
         what: 무엇.replace(/^[-*\d.\s]+/, '').trim(),
-        근거: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
+        evidence: evidences.split(';').map((s) => s.trim()).filter((s) => s !== ''),
         at: Date.now(),
       });
     }

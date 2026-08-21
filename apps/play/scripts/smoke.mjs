@@ -328,7 +328,7 @@ async function brandBg(page) {
   await page.waitForTimeout(1600);
   const first = await page.evaluate(() => ({
     question: (document.getElementById('twQ')?.textContent || '').trim(),
-    후보: (document.getElementById('twLeft')?.textContent || '').trim(),
+    candidates: (document.getElementById('twLeft')?.textContent || '').trim(),
     단추: document.querySelectorAll('#twRow [data-say]').length
   }));
   say(first.질문.length > 4 && !/불러오는|못 불러/.test(first.질문), `twenty: 첫 질문이 안 떴다 (${first.질문.slice(0, 20)})`);
@@ -340,7 +340,7 @@ async function brandBg(page) {
   await page.waitForTimeout(600);
   const next = await page.evaluate(() => ({
     question: (document.getElementById('twQ')?.textContent || '').trim(),
-    후보: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
+    candidates: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
     센수: (document.getElementById('twCount')?.textContent || '').trim()
   }));
   say(next.후보 > 0 && next.후보 < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.후보})`);
