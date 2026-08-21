@@ -73,6 +73,28 @@
   103회차에 그 두뇌가 키가 없어 침묵하던 것을 살리는 것이 첫 걸음이고, 그 다음은 재기다
   (5회 평균 TTFT 를 CLI 10.7초와 나란히).
 
+### 2026-08-21 · 누를 때는 **좌표가 아니라 그 단추한테 말한다**
+
+- **본 것**: 윈도우에서 무언가를 누르는 길이 둘이다. ① **SendInput** — 마우스·키보드 흐름에
+  가짜 입력을 끼워 넣는다. 화면 좌표가 필요하고, 다른 스레드가 입력을 막고 있으면 **0을
+  돌려주며 그냥 실패**한다. Node 쪽 바인딩은 있지만 아직 **키 조합에 버그가 남은 「작업 중」**
+  이다. ② **UI Automation 의 Invoke 패턴** — 마우스 포인터를 안 쓰고 **컨트롤이 스스로 내놓은
+  동작을 부른다**(윈도우 내부 메시지). 그래서 **창 위치·DPI 배율이 달라도 그대로 먹고**,
+  대개 더 빠르다. Invoke 말고도 Toggle·Select·Expand 같은 패턴이 각각 있다.
+  [Invoke 패턴 문서](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/invoke-a-control-using-ui-automation) ·
+  [패턴 개요](https://learn.microsoft.com/en-us/windows/apps/dev-tools/winapp-cli/ui-automation) ·
+  [SendInput 문서](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+- **우리와 다른 점**: 대조표의 「화면 = 조작 X」가 아직 그대로다. 다만 104회차에 UI Automation
+  으로 창 안을 읽으면서 **요소마다 좌표까지** 받아 뒀는데, 그 좌표를 쓰려면 ①번 길이 된다 —
+  DPI 에 휘둘리고(99회차에 정확히 그 문제로 화면을 3분의 1만 찍고 있었다) 조용히 실패한다.
+  **이미 트리를 들고 있으므로 ②번 길이 우리에게 더 가깝다.** 우리가 이미 지나온 자리라
+  새로 배울 것도 적다.
+- **할 수 있는 것**: 누르기를 붙일 때 `assets/capture-screen.ps1` 이 쓰는 그 트리에서
+  **요소를 집어 Invoke** 한다 — 좌표로 클릭하지 않는다. `TREE=` 줄에 지금은 이름·갈래·자리만
+  싣는데, **무슨 동작을 지원하는지**(Invoke/Toggle/…)를 한 칸 더 실으면 「누를 수 있는 것」이
+  두뇌 눈에 바로 보인다. 그리고 그 손은 되돌릴 수 없으니 **TASK-KAR-239 관문**을 그대로 탄다.
+  → 판 TASK: **TASK-KAR-241**
+
 ### 2026-08-21 · 조작을 붙이기 **전에** 세우는 것 — 되돌릴 수 있나
 
 - **본 것**: 화면을 만지는 에이전트에서 2026 의 표준은 「똑똑하게 판단하기」가 아니라
