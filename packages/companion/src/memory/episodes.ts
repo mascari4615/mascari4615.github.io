@@ -56,7 +56,7 @@ export interface EpisodeStoreOptions {
   /** 몇 개까지 들고 있을까. */
   keep?: number;
   /** 이 점수 아래는 사건으로 안 센다. */
-  문턱?: number;
+  threshold?: number;
   /**
    * 낱말 표가 놓친 말을 **두뇌에게 물어본다.** 0~9 를 말 개수만큼 돌려줘야 한다.
    *
@@ -82,10 +82,10 @@ export class EpisodeStore {
   private list: Episode[] = [];
   /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (말 → 그때 시각). */
   private readonly toAsk = new Map<string, number>();
-  private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | '문턱'>> & EpisodeStoreOptions;
+  private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | 'threshold'>> & EpisodeStoreOptions;
 
   constructor(options: EpisodeStoreOptions = {}) {
-    this.options = { keep: 40, 문턱: 3, ...options };
+    this.options = { keep: 40, threshold: 3, ...options };
     if (options.path !== undefined && existsSync(options.path)) {
       try {
         const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Episode[];
@@ -112,7 +112,7 @@ export class EpisodeStore {
       if (e.role !== 'sensed' || e.channel !== 'web') continue;
       if (this.has(e.text)) continue;
       const energy = measureEnergy(e.text);
-      if (energy < this.options.문턱) {
+      if (energy < this.options.threshold) {
         // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
         if (worthAsking(e.text)) this.toAsk.set(e.text.trim(), e.at);
         continue;
@@ -178,7 +178,7 @@ export class EpisodeStore {
     let storedCount2 = 0;
     bundle.forEach(([말, at], i) => {
       const energy2 = Math.round(scores![i]);
-      if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.has(말)) return;
+      if (Number.isFinite(energy2) === false || energy2 < this.options.threshold || this.has(말)) return;
       this.store({ said: 말, at, energy: energy2 });
       storedCount2 += 1;
     });
