@@ -56,6 +56,16 @@ export function checkDrift(said: string, rules: DriftRules = {}): Drift {
 
   if (text.length > maxChars) problems.push(`너무 길다 (${text.length}자)`);
 
+  /* **밖에서 온 말투.**
+     123회차 라이브에서 최종 답이 「Got it — I've saved that guidance to memory. What can I
+     help you with?」였다. 우리 인격은 한국어 반말인데 영어 도우미 문구가 통째로 나왔다.
+     밖에서는 이걸 persona drift 라 부르고 「어시스턴트 축」이라는 방향까지 짚어 뒀다.
+
+     낱말 사전을 넓히지 않는다(106·110회차: 사전은 계속 샌다). 대신 **다른 언어**를 본다 —
+     한국어가 거의 없는데 영어 도우미 상투구가 있으면 그건 밖에서 온 것이다. 「npm ci 아직도
+     돌고 있네」처럼 영어가 섞인 우리 말은 한글이 있으므로 안 걸린다. */
+  if (fromOutside(text)) problems.push('말투가 밖에서 온 도우미 쪽으로 샜다 (영어 상투구)');
+
   for (const bad of rules.avoid ?? defaultBan) {
     if (bad.test(text)) {
       problems.push('말투가 조수 쪽으로 샜다');
@@ -111,4 +121,18 @@ export function avoidanceWarning(recent: readonly MemoryEntry[], howMany = 3): s
     '한 번은 솔직한 거지만 이어지면 벽이다. 모르면 모르는 대로 ' +
     '되묻거나, 곁에서 본 것만이라도 말하거나, 딴 얘기로 이어라.'
   );
+}
+
+/** 영어 도우미가 늘 쓰는 말. 우리 인격은 이런 말을 쓸 일이 없다. */
+const helperEnglish = /\b(got it|sure!|let me help|how can i (assist|help)|what can i help|i(?:'m| am) sorry,? but|as an ai|i(?:'ve| have) (saved|noted|updated)|i understand\.)/i;
+
+/**
+ * 이 말이 밖에서 온 것인가.
+ *
+ * 한글이 한 글자라도 섞여 있으면 우리 말로 본다 — 우리 대화에는 영어 낱말이 늘 섞이고
+ * (`npm ci`, `GPT-SoVITS`), 그것까지 막으면 대화가 죽는다.
+ */
+function fromOutside(text: string): boolean {
+  if (/[가-힣]/.test(text)) return false;
+  return helperEnglish.test(text);
 }
