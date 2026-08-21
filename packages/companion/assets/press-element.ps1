@@ -58,6 +58,25 @@ if ($ExpectName -ne '' -and $targetName -ne $ExpectName) {
   exit 1
 }
 
+# What the window looked like BEFORE. "Pressed" and "it worked" are not the
+# same statement -- saying only the first is how an agent reports success for
+# something that did nothing. Cheap version of what the field calls a
+# post-condition: window name plus how many named things are on screen.
+function Get-WindowShape($element) {
+  $name = $element.Current.Name
+  $count = 0
+  try {
+    $kids = $element.FindAll(
+      [System.Windows.Automation.TreeScope]::Descendants,
+      [System.Windows.Automation.Condition]::TrueCondition)
+    foreach ($kid in $kids) {
+      if ([string]::IsNullOrWhiteSpace($kid.Current.Name) -eq $false) { $count++ }
+    }
+  } catch { $count = -1 }
+  return @{ name = $name; count = $count }
+}
+$before = Get-WindowShape $root
+
 $patterns = @()
 foreach ($p in $target.GetSupportedPatterns()) {
   $patterns += $p.ProgrammaticName.Replace('PatternIdentifiers.Pattern', '')
@@ -66,15 +85,24 @@ foreach ($p in $target.GetSupportedPatterns()) {
 # Invoke first; a checkbox-like thing exposes Toggle instead; a list row exposes
 # SelectionItem. Anything else, we say we cannot press it -- there is no
 # coordinate fallback on purpose (see TASK-KAR-241).
+$how = ''
 if ($patterns -contains 'Invoke') {
   $target.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
-  Write-Output ("PRESS=ok how=Invoke name=" + $targetName)
+  $how = 'Invoke'
 } elseif ($patterns -contains 'Toggle') {
   $target.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle()
-  Write-Output ("PRESS=ok how=Toggle name=" + $targetName)
+  $how = 'Toggle'
 } elseif ($patterns -contains 'SelectionItem') {
   $target.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
-  Write-Output ("PRESS=ok how=Select name=" + $targetName)
+  $how = 'Select'
+}
+if ($how -ne '') {
+  # Give the window a moment to react, then look again.
+  Start-Sleep -Milliseconds 600
+  $after = Get-WindowShape $root
+  Write-Output ("PRESS=ok how=" + $how + " name=" + $targetName +
+    " was=" + $before.name + " now=" + $after.name +
+    " count=" + $before.count + ">" + $after.count)
 } else {
   Write-Output ("PRESS=cannot name=" + $targetName + " patterns=" + ($patterns -join ','))
   exit 1
