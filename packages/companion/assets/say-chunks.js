@@ -45,14 +45,14 @@ export function chunkToRead(remaining, options = {}) {
   // 문장이 끝났으면 그게 가장 자연스럽다 — 먼저 본다.
   const end = lastPos(content, closing);
   if (end > 0 && content.slice(0, end).trim().length >= endThreshold) {
-    return { 토막: content.slice(0, end).trim(), 먹은길이: end };
+    return { chunk: content.slice(0, end).trim(), consumedLength: end };
   }
 
   // 아직 안 끝났으면 숨 고르는 자리에서 끊는다. **뒤에 글이 더 있을 때만** —
   // 끝에 다다라서 끊으면 어차피 곧 올 문장 끝을 기다리는 것과 다를 게 없다.
   const pausePos = lastPos(content, pause);
   if (pausePos > 0 && content.slice(0, pausePos).trim().length >= pauseThreshold && content.length - pausePos > toKeep) {
-    return { 토막: content.slice(0, pausePos).trim(), 먹은길이: pausePos };
+    return { chunk: content.slice(0, pausePos).trim(), consumedLength: pausePos };
   }
   return null;
 }

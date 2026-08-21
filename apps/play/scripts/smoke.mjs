@@ -140,9 +140,9 @@ async function brandBg(page) {
    * 앱 틀(헤더·브랜드색) 안에 들어 있는지로 본다. */
   {
     const frame = await page.evaluate(() => ({
-      헤더: !!document.querySelector('.app-header, header'),
+      header: !!document.querySelector('.app-header, header'),
       base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
-      제목카드: !!document.querySelector('#page-higher .tool-hero')
+      titleCard: !!document.querySelector('#page-higher .tool-hero')
     }));
     say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
     const brandH = await brandBg(page);
@@ -155,7 +155,7 @@ async function brandBg(page) {
     return {
       카드수: c.length,
       sideBySide: c.length === 2 ? Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 5 : false,
-      오른값가림: vals[1] === '?',
+      hideRightValue: vals[1] === '?',
       hideAgain: (document.getElementById('hiAgain')?.offsetHeight || 0) === 0,
       판칩: document.querySelectorAll('.hi-chips button').length
     };
@@ -182,7 +182,7 @@ async function brandBg(page) {
     const stay = await page.evaluate(() => ({
       왼쪽: (document.querySelector('#hiA .hi-nm')?.textContent || ''),
       leftValueVisible: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
-      오른값가림: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
+      hideRightValue: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
     }));
     say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
     say(stay.왼쪽값보임 && stay.오른값가림, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
@@ -245,9 +245,9 @@ async function brandBg(page) {
   await page.waitForTimeout(1000);
   {
     const frame = await page.evaluate(() => ({
-      헤더: !!document.querySelector('.app-header, header'),
+      header: !!document.querySelector('.app-header, header'),
       base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
-      제목카드: !!document.querySelector('#page-quest .tool-hero')
+      titleCard: !!document.querySelector('#page-quest .tool-hero')
     }));
     say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
     const brandQ = await brandBg(page);
