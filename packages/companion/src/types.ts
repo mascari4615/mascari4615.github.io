@@ -161,6 +161,8 @@ export interface ThinkInput {
    * 볼지 말지를 두뇌 판단에 맡기지 않는다.
    */
   seeing?: { imagePath: string; text: string } | null;
+  /** 이 한 판의 이름 — 두뇌 쪽 로그도 같은 실에 꿴다. */
+  turn?: string;
 }
 
 /** 두뇌. null 을 돌려주면 「할 말 없음」 = 침묵. */
@@ -219,6 +221,13 @@ export interface Attention {
 
 /** 코어가 한 바퀴 돌 때마다 밖으로 알리는 신호 (로그·시각화·테스트용). */
 export interface CycleReport {
+  /**
+   * 이 한 판의 이름 — 흩어진 로그를 묶는 실.
+   *
+   * 121·123회차에 「손이 막혔는데 사람에겐 침묵」을 좇을 때 로그를 눈으로 이어 붙였다.
+   * 판이 겹치면(화면 곁눈질이 사람 말 뒤에 끼면) 어느 줄이 어느 판인지 못 가른다.
+   */
+  turn?: string;
   sensation: Sensation;
   decision: AttentionDecision;
   /** 두뇌가 침묵했거나 attention 이 막았으면 null. */

@@ -110,7 +110,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking);
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking, input.turn);
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
@@ -123,7 +123,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking);
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking, input.turn);
     },
   };
 }
@@ -192,6 +192,8 @@ function run(
   configDir?: string,
   systemPrompt?: string,
   running?: Set<{ kill: () => void }>,
+  /** 이 한 판의 이름 — 흩어진 로그를 묶는 실(134회차). */
+  turn?: string,
 ): Promise<string | null> {
   return new Promise((resolve, reject) => {
     // 그림을 읽어야 할 때만 파일 접근을 연다. 그마저도 빈 임시 폴더 안이다.
@@ -208,7 +210,7 @@ function run(
     if (process.env.COMPANION_TIME === '1') {
       /* 본문은 stdin 으로 가서 인자에 안 들어간다 — 그래서 무엇이 실렸는지 밖에서 볼 수가
          없었다(133회차에 그걸로 측정을 한 번 놓쳤다). 조각 이름만 한 줄로 곁들인다. */
-      process.stderr.write(`[두뇌인자] ${JSON.stringify(args)} · 시스템 ${systemPrompt?.length ?? 0}자 · 본문 ${prompt.length}자 [${promptParts(prompt)}] · cwd ${cwd}
+      process.stderr.write(`${turn ? `<${turn}> ` : ''}[두뇌인자] ${JSON.stringify(args)} · 시스템 ${systemPrompt?.length ?? 0}자 · 본문 ${prompt.length}자 [${promptParts(prompt)}] · cwd ${cwd}
 `);
     }
     const startedAt = Date.now();
@@ -278,7 +280,7 @@ function run(
       {
         const since = (at: number | null) => (at === null ? '-' : `${at - startedAt}ms`);
         process.stderr.write(
-          `[두뇌] 켜짐 ${since(readyAt)} · 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms` +
+          `${turn ? `<${turn}> ` : ''}[두뇌] 켜짐 ${since(readyAt)} · 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms` +
             ` · 재료 ${prompt.length}자 · 답 ${(onDelta ? streamed : stdout).length}자
 `,
         );
