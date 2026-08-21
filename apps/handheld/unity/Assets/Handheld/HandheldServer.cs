@@ -102,6 +102,8 @@ namespace Handheld
         public bool Connected => _client != null && !_client.Closed;
 
         volatile string _phoneDiag = "";
+        volatile string _diagCache = "{}";
+        double _nextDiagBake;
 
         /// <summary>진단이 읽을 리그. 리그가 틱마다 자기를 꽂는다.</summary>
         public HandheldRig rig;
@@ -248,6 +250,11 @@ namespace Handheld
         {
             ReleaseSticksIfDisconnected();
             _recorder?.Flush();
+
+            // 진단 문자열은 **메인 스레드에서만** 만들 수 있다 (리그가 Transform 을 읽는다).
+            double now = Application.isPlaying
+                ? Time.unscaledTimeAsDouble : UnityEngine.Time.realtimeSinceStartupAsDouble;
+            if (now >= _nextDiagBake) { _nextDiagBake = now + 0.2; _diagCache = DiagJson(); }
             if (webrtc == null) webrtc = GetComponent<HandheldWebRtc>();
             if (webrtc != null && webrtc.isActiveAndEnabled) webrtc.Tick();
         }
@@ -343,8 +350,12 @@ namespace Handheld
             //   WS 를 하나 더 붙여 재면 **폰이 끊긴다**(서버는 한 대만 받는다). HTTP 는 무관하다.
             if (path == "/diag")
             {
+                // ★ **여기는 수신 스레드다.** `transform.position` 같은 유니티 API 를 여기서
+                //   만지면 예외가 나고, 그 예외는 위에서 잡혀 **응답 없이 연결이 끊긴다** —
+                //   밖에서는 「연결이 닫혔다」로만 보인다(2026-08-21 실측).
+                //   그래서 진단 문자열은 틱(메인 스레드)에서 미리 구워 두고 여기선 그걸 낸다.
                 WriteResponse(stream, "200 OK", "application/json; charset=utf-8",
-                    Encoding.UTF8.GetBytes(DiagJson()));
+                    Encoding.UTF8.GetBytes(_diagCache ?? "{}"));
                 return;
             }
 
