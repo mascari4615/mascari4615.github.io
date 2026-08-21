@@ -97,7 +97,7 @@ export * from './milestone';
 export * from './mouth-gate';
 export * from './touch';
 export { searchWeb as 웹에서찾기, readIn as 읽어오기, extractResults as 결과뽑기, textOnly as 글만, resolveUrl as 주소풀기 } from './hands/web';
-export { demandBoot as 수요기동, onDemand as 필요할때, type 수요기동옵션 } from './voice/on-demand';
+export { demandBoot, onDemand, type DemandBootOptions } from './voice/on-demand';
 export { sibling as 이웃, thisRepo as 이저장소, repoCopies as 같은저장소사본들 } from './workspace';
 export { lineStore as 대사창고, select as 골라내기, type StockOptions } from './stock';
 export * from './people';

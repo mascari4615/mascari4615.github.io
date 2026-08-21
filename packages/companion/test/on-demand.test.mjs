@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { 수요기동, 필요할때 } from '../dist/index.js';
+import { demandBoot, onDemand } from '../dist/index.js';
 
 /** 시계를 손에 쥔다 — 「몇 분 안 썼나」가 이 기능의 전부라 진짜 시간에 맡길 수 없다. */
 const run = (settings = {}) => {
   const events = [];
   let now2 = 1_000_000;
   let alive = false;
-  const boot = new 수요기동({
+  const boot = new demandBoot({
     이름: '흉내 낸 목소리',
     isAlive: async () => alive,
     show: () => {
@@ -19,8 +19,8 @@ const run = (settings = {}) => {
       events.push('끔');
       alive = false;
     },
-    stopIfIdleMs: () => settings.쉬면 ?? 30 * 60_000,
-    isAuto: () => settings.자동 ?? true,
+    stopIfIdleMs: () => settings.whenIdle ?? 30 * 60_000,
+    isAuto: () => settings.autoStart ?? true,
     askIntervalMs: 0,
     now: () => now2,
     log: (m) => events.push(`말: ${m}`),
@@ -42,13 +42,13 @@ const waited = () => new Promise((r) => setImmediate(r));
 
 test('쓸 때 켠다 — 그리고 기다리지 않는다', async () => {
   const t = run();
-  assert.equal(t.boot.준비됐나, false);
+  assert.equal(t.boot.isReady, false);
   await t.boot.mustWrite();
   // 띄우기는 뒤에서 돈다. 부르는 쪽은 이미 반환됐다.
   await waited();
   assert.ok(t.events.includes('띄움'), '안 띄웠다');
   await t.boot.mustWrite();
-  assert.equal(t.boot.준비됐나, true, '띄운 뒤에는 쓸 수 있어야 한다');
+  assert.equal(t.boot.isReady, true, '띄운 뒤에는 쓸 수 있어야 한다');
 });
 
 test('이미 떠 있으면 또 안 띄운다', async () => {
@@ -57,15 +57,15 @@ test('이미 떠 있으면 또 안 띄운다', async () => {
   await t.boot.mustWrite();
   await waited();
   assert.equal(t.events.includes('띄움'), false);
-  assert.equal(t.boot.준비됐나, true);
+  assert.equal(t.boot.isReady, true);
 });
 
 test('자동을 꺼 두면 손으로 띄운 것만 쓴다', async () => {
-  const t = run({ 자동: false });
+  const t = run({ autoStart: false });
   await t.boot.mustWrite();
   await waited();
   assert.equal(t.events.includes('띄움'), false);
-  assert.equal(t.boot.준비됐나, false);
+  assert.equal(t.boot.isReady, false);
 });
 
 test('한동안 안 쓰면 끈다', async () => {
@@ -80,7 +80,7 @@ test('한동안 안 쓰면 끈다', async () => {
   t.flowing(2 * 60_000);
   assert.equal(await t.boot.stopIfIdle(), true);
   assert.equal(t.isAlive(), false);
-  assert.equal(t.boot.준비됐나, false);
+  assert.equal(t.boot.isReady, false);
 });
 
 test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
@@ -113,27 +113,27 @@ const fakeVoice = (name2, failure = false) => ({
 
 test('준비될 때까지 기다렸다 **고른 목소리로** 말한다 — 딴 목소리로 안 바꾼다', async () => {
   const t = run();
-  const voice = 필요할때({ real: fakeVoice('흉내'), boot: t.boot });
+  const voice = onDemand({ real: fakeVoice('흉내'), boot: t.boot });
   // 아직 안 떴지만, 뒤에서 떠서 결국 그 목소리로 나온다.
   assert.equal((await voice.synthesize('안녕')).toString(), '흉내');
 });
 
 test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리보다 낫다', async () => {
-  const t = run({ 자동: false }); // 자동 기동 꺼 두면 영영 안 뜬다
-  const voice2 = 필요할때({ real: fakeVoice('흉내'), boot: t.boot, waitLimitMs: 300 });
+  const t = run({ autoStart: false }); // autoStart 기동 꺼 두면 영영 안 뜬다
+  const voice2 = onDemand({ real: fakeVoice('흉내'), boot: t.boot, waitLimitMs: 300 });
   await assert.rejects(() => voice2.synthesize('안녕'), /준비 안 됐다/);
 });
 
 test('떠 있는데 실패하면 그 실패가 그대로 드러난다 — 몰래 딴 목소리로 안 바꾼다', async () => {
   const t = run();
   t.keepOn();
-  const voice3 = 필요할때({ real: fakeVoice('흉내', true), boot: t.boot });
+  const voice3 = onDemand({ real: fakeVoice('흉내', true), boot: t.boot });
   await assert.rejects(() => voice3.synthesize('안녕'), /죽었다/);
 });
 
 test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기능이 없어진 줄 안다', async () => {
   const t = run();
-  const voice4 = 필요할때({ real: fakeVoice('흉내'), boot: t.boot });
+  const voice4 = onDemand({ real: fakeVoice('흉내'), boot: t.boot });
   const list = await voice4.voices();
   assert.equal(list.length, 1);
   assert.equal(list[0].id, '흉내-1');
@@ -143,13 +143,13 @@ test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기
    전부 초록이었는데, 진짜 서버는 뜨는 데 30초가 걸린다. 그 사이 말이 올 때마다 다시
    띄워서 파이썬 프로세스가 38개까지 갔다. 느리게 뜨는 판을 시험이 흉내 내야 한다. */
 
-/** 부른 뒤 `뜨는데` 만큼 지나야 살아나는 판. */
-const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
+/** 부른 뒤 `toAppear` 만큼 지나야 살아나는 판. */
+const slowRun = ({ toAppear = 200, neverAppears = false } = {}) => {
   const events2 = [];
   let shownAt = null;
-  const boot2 = new 수요기동({
+  const boot2 = new demandBoot({
     이름: '느린 것',
-    isAlive: async () => 절대안뜸 === false && shownAt !== null && Date.now() - shownAt >= 뜨는데,
+    isAlive: async () => neverAppears === false && shownAt !== null && Date.now() - shownAt >= toAppear,
     show: () => {
       events2.push('띄움');
       shownAt = Date.now();
@@ -176,7 +176,7 @@ test('느리게 뜨는 것은 **한 번만** 띄운다 (실제 사고: 25번 띄
   assert.equal(t.events.filter((x) => x === '띄움').length, 1, `${t.events.length}번 띄웠다`);
   await new Promise((r) => setTimeout(r, 250));
   await t.boot.mustWrite();
-  assert.equal(t.boot.준비됐나, true, '뜬 뒤에는 쓸 수 있어야 한다');
+  assert.equal(t.boot.isReady, true, '뜬 뒤에는 쓸 수 있어야 한다');
 });
 
 test('영영 안 뜨면 포기하고, 한동안 다시 안 띄운다', async () => {

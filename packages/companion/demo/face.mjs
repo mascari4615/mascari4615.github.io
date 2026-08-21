@@ -105,8 +105,8 @@ import {
   retryNote,
   TOUCH_CHANNEL,
   TouchCount,
-  수요기동,
-  필요할때,
+  demandBoot,
+  onDemand,
   이웃,
   같은저장소사본들,
   대사창고,
@@ -603,7 +603,7 @@ ${tallyReport(tally)}`;
     persona: character?.name ?? null,
     head: brain.currentModel ? brain.currentModel() : brain.name,
     voices: voiceList,
-    stubPrepare: stubBoot === null ? null : stubBoot.준비됐나,
+    stubPrepare: stubBoot === null ? null : stubBoot.isReady,
     stubAuto: settings.on('애니목소리자동'),
   }),
   desk: () => ({
@@ -688,7 +688,7 @@ ${tallyReport(tally)}`;
     /* **쓸 때 켜고 안 쓰면 끈다** (사용자 결정 2026-08-08: 「부팅 기준이 아니라 쓸 때/안
        쓸 때 기준」). 뜨는 데 30초쯤 걸리므로 기다리지 않는다 — 준비될 때까지는 대타가
        말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
-    stubBoot = new 수요기동({
+    stubBoot = new demandBoot({
       이름: '흉내 낸 목소리',
       isAlive: () => stub.alive(),
       show: () => startStubServer(),
@@ -704,7 +704,7 @@ ${tallyReport(tally)}`;
       engines.unshift({
         label: '흉내',
         // 고른 목소리로만 말한다 — 준비될 때까지 기다린다(조수님 결정: 대타 금지).
-        speech: 필요할때({ real: stub, boot: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
+        speech: onDemand({ real: stub, boot: stubBoot, log: (m) => console.log(`[목소리] ${m}`) }),
       });
       console.log(
         (await stub.alive())
