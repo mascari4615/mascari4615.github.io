@@ -58,7 +58,13 @@ namespace Handheld
             !enableWebRtc ? "꺼짐 — MJPEG 만"
             : _pc == null ? "대기 (폰이 열자고 해야 시작한다)"
             : $"{_pc.ConnectionState} · 포즈채널 {(PoseChannelOpen ? "열림" : "닫힘")}"
-              + $" · 영상 {(_videoTrack != null ? "붙음" : "없음")}";
+              + $" · 영상 {(_videoTrack != null ? "붙음" : "없음")}"
+              + (string.IsNullOrEmpty(LastError) ? "" : " · 마지막오류 " + LastError);
+
+        // ★ 3.0.0 에는 `WebRTC.Initialize()` 가 없다 — 컴파일러가 알려 줬다.
+        //   「초기화를 안 불러서 던진다」는 내 짐작이 틀렸다는 뜻이다.
+        //   그래서 짐작으로 고치지 않고, **마지막 예외를 밖에서 읽게** 남긴다(/diag).
+        public static string LastError = "";
 
         void OnDisable() => Close();
 
@@ -85,15 +91,29 @@ namespace Handheld
         {
             if (!enableWebRtc) return;
 
+            // ★ **편집 모드에서는 아예 안 돈다** (2026-08-21 실측으로 정함).
+            //   영상 트랙이 Play 를 요구하므로 편집 모드에서 얻는 건 데이터채널뿐인데,
+            //   그 이득은 작다(TCP 는 전이중이라 포즈가 영상 뒤에 안 선다).
+            //   반면 편집 모드에서 이걸 돌리다 던지면 **리그까지 같이 죽었다** —
+            //   실제로 그래서 화면이 검었다. 편집 모드는 알던 길(MJPEG+WS)로 둔다.
+            if (!Application.isPlaying) return;
+
+
+
             string msg = null;
             for (;;)
             {
                 lock (_signalLock) { if (_signals.Count == 0) break; msg = _signals.Dequeue(); }
                 try { HandleSignal(msg); }
-                catch (Exception e) { Debug.LogWarning("[Handheld] 시그널 처리 실패: " + e.Message); }
+                catch (Exception e)
+                {
+                    LastError = "signal: " + e.GetType().Name + " " + e.Message;
+                    Debug.LogWarning("[Handheld] 시그널 처리 실패: " + e.Message);
+                }
             }
 
-            WebRTC.ExecutePendingTasks(2);
+            try { WebRTC.ExecutePendingTasks(2); }
+            catch (Exception e) { LastError = "pump: " + e.GetType().Name + " " + e.Message; }
         }
 
         public void Close()
