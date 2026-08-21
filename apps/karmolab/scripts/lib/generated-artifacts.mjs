@@ -57,7 +57,7 @@ export const generated = [
     outputs: ['data/devlog.json'],
     why: '「지금 뭘 만들고 있나」 자리 — 낡으면 며칠 전 소식이 걸린다',
     nightly: true,
-    못잼: '최근 120일 커밋이라 다시 구우면 늘 다르다'
+    couldNotMeasure: '최근 120일 커밋이라 다시 구우면 늘 다르다'
   },
   {
     npm: 'gen:worldcup-tools',

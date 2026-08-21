@@ -148,7 +148,7 @@ async function onePage(id) {
       return {
         has: !!el,
         글: (el?.textContent || '').trim(),
-        위젯: !!meta,
+        widget: !!meta,
         hidden: !!(meta && meta.hidden),
         didNotLoad
       };

@@ -93,11 +93,11 @@ async function common(page, id, label) {
     const now = document.querySelector('.play-strip-now');
     const css = getComputedStyle(document.documentElement);
     return {
-      줄: st ? Math.round(st.getBoundingClientRect().height) : 0,
+      line: st ? Math.round(st.getBoundingClientRect().height) : 0,
       now: now ? now.textContent.trim() : '',
       base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
-      켜진칩: now ? getComputedStyle(now).color : '',
-      링크: [...(st ? st.querySelectorAll('a') : [])].length
+      activeChip: now ? getComputedStyle(now).color : '',
+      link: [...(st ? st.querySelectorAll('a') : [])].length
     };
   });
   say(r.줄 > 0 && r.줄 <= 44, `${id}: 놀이 전환 줄이 한 줄이 아니다 (${r.줄}px) — 화면 위를 먹는다`);
@@ -153,11 +153,11 @@ async function brandBg(page) {
     const c = [...document.querySelectorAll('.hi-side')];
     const vals = [...document.querySelectorAll('.hi-vl')].map((v) => v.textContent);
     return {
-      카드수: c.length,
+      cardCount: c.length,
       sideBySide: c.length === 2 ? Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 5 : false,
       hideRightValue: vals[1] === '?',
       hideAgain: (document.getElementById('hiAgain')?.offsetHeight || 0) === 0,
-      판칩: document.querySelectorAll('.hi-chips button').length
+      roundChip: document.querySelectorAll('.hi-chips button').length
     };
   });
   say(r.카드수 === 2, `higher: 고를 카드가 ${r.카드수}장이다`);

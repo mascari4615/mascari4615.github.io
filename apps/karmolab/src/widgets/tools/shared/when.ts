@@ -23,7 +23,7 @@ export interface WhenParsed {
 
 const DAY = 86400_000;
 const WEEKDAYS: Record<string, number> = {
-  일: 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6,
+  work: 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6,
   sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
 };
 

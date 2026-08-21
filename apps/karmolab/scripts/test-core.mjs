@@ -1236,7 +1236,7 @@ eq(back.args.urlSafe, true, '링크 왕복 — 켬');
 
 let threw = false;
 try {
-  url.buildToolUrl(b64.spec, 'encode', { 없는칸: 1 });
+  url.buildToolUrl(b64.spec, 'encode', { missingCell: 1 });
 } catch {
   threw = true;
 }
