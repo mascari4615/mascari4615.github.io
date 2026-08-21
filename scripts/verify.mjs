@@ -176,6 +176,15 @@ run('apps/karmolab build', 'apps/karmolab', 'npm run build');
    46초를 더 쓰고 절반을 되찾는다(전체 15분 기준 +5%). */
 run('apps/karmolab 도구 장 찍기 (성능 게이트가 볼 것)', 'apps/karmolab', 'npm run gen:tool-pages');
 
+/* ★ **한국어 장을 다시 찍었으면 짝도 다시 찍는다** (2026-08-21, 실측).
+   윗줄이 도구 장 145개를 다시 찍는데, 그 짝인 en/ja 장 292개는 안 찍었다. 그런데
+   `build` 안의 `gates` 는 <b>윗줄보다 먼저</b> 돈다 — 그래서 verify 한 판은 초록으로 끝나고,
+   <b>그 다음</b> `gates` 에서 `test:i18n:pair` 가 빨개진다(「안 찍힌 장 146개」). 실제로
+   그렇게 밟았다. 검사가 낡은 게 아니라 <b>verify 가 낡은 상태를 남기고 끝난 것</b>이다.
+   `verify:deploy` 도, `pages-deploy.yml` 도, `sync:tools` 도 전부 이 둘을 붙여서 부른다 —
+   `verify` 에만 빠져 있었다. 1초 남짓이고, 안 붙이면 다음 사람이 남의 빨강을 물려받는다. */
+run('apps/karmolab 도구 장 짝 찍기 (en/ja)', 'apps/karmolab', 'npm run gen:tool-pages-locale');
+
 /* ★ **첫 화면 미리 그리기도 CI 에는 없다** (2026-08-16, 실측). `apps/blog/karmolab/` 은
    `.gitignore` 에 걸린 **빌드 산출물**이라 CI 체크아웃에는 아예 없다. 그래서 `audit:prerender-home`
    이 매 판 「찍힌 첫 화면이 없다 — 못 돌림」으로 빠졌다: 첫 화면이 **미리 그려진 뒤에도 성한지**를
