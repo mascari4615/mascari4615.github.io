@@ -55,10 +55,33 @@ export interface ScreenElement {
   p?: readonly string[];
 }
 
+/**
+ * 나무를 읽으면서 **세어 본 것** — 목록이 왜 이 모양인지 말하려면 이게 있어야 한다.
+ *
+ * 139회차 실측(돌아가던 창 전부): Discord 532/445/350 · msedge 777/510/**233** ·
+ * Unity 9/9/9 (아홉 개뿐이다) · WindowsTerminal 28/19/18 · NVIDIA Overlay **0** · TextInputHost **0**.
+ *
+ * 0 의 까닭이 넷인데(창을 못 잡음 / 나무가 빔 / 다 이름 없음 / 다 화면 밖) 한 줄로 뭉개면
+ * 두뇌는 전부 「화면이 비었다」로 읽는다. 그리고 상한은 120 인데 msedge 는 화면 안에만
+ * 233개다 — **절반을 버리고도 목록은 그게 전부인 척한다.**
+ */
+export interface ScreenReading {
+  /** 창을 잡았나. false 면 그 뒤 숫자는 뜻이 없다. */
+  root: boolean;
+  /** 나무 전체 마디 수. */
+  raw?: number;
+  /** 그중 이름이 있는 것. */
+  named?: number;
+  /** 그중 화면 안에 있는 것. */
+  onscreen?: number;
+}
+
 /** 한 번 볼 때 들어오는 것 — 그림은 파일로, 글자는 여기로. */
 export interface Screenshot {
   title: string;
   elements: readonly ScreenElement[];
+  /** 나무를 읽으면서 세어 본 것. 옛 판·검사에서는 없을 수 있다. */
+  reading?: ScreenReading;
 }
 
 /**
@@ -195,9 +218,23 @@ function onTheShot(elements: readonly ScreenElement[], originX: number, originY:
   });
 }
 
-function describe(taken: Screenshot): string {
+/**
+ * 목록이 **무엇인지** 말한다 — 없는 것과 못 읽은 것과 잘린 것은 다른 말이다 (TASK-KAR-246).
+ */
+export function describeScreen(taken: Screenshot): string {
   const head = taken.title === '' ? '지금 앞에 있는 창' : `지금 앞에 있는 창 「${taken.title}」`;
-  if (taken.elements.length === 0) return `${head} — 창 안에서 글자로 읽어 낸 것은 없다.`;
+  const read = taken.reading;
+
+  if (taken.elements.length === 0) {
+    if (read !== undefined && read.root === false) {
+      return `${head} — 이 창은 글로 못 읽는다 (창을 잡지 못했다). 화면이 빈 것이 아니다 — 그림을 봐라.`;
+    }
+    if (read !== undefined && typeof read.raw === 'number' && read.raw > 0) {
+      return `${head} — 이 창은 글로 못 읽는다. 안에 ${read.raw}개가 있는데 이름이 붙어 있으면서 화면 안에 있는 것이 하나도 없다. 화면이 빈 것이 아니다 — 그림을 봐라.`;
+    }
+    return `${head} — 창 안에서 글자로 읽어 낸 것은 없다.`;
+  }
+
   const rows = taken.elements
     .map((e) => {
       const acts = e.p && e.p.length > 0 ? ` — 할 수 있는 것: ${e.p.join(', ')}` : '';
@@ -205,9 +242,18 @@ function describe(taken: Screenshot): string {
       return `- ${no}${e.k} 「${e.n}」 (${e.r.join(',')})${acts}`;
     })
     .join('\n');
-  return `${head} 안에서 읽은 것 ${taken.elements.length}개:
+
+  /* 상한에 잘렸으면 잘렸다고 말한다. 안 말하면 두뇌는 이 목록이 전부인 줄 안다. */
+  const onscreen = read?.onscreen;
+  const cut = typeof onscreen === 'number' && onscreen > taken.elements.length
+    ? ` (화면 안에 ${onscreen}개가 있는데 앞의 ${taken.elements.length}개만 적었다 — 더 있다)`
+    : '';
+
+  return `${head} 안에서 읽은 것 ${taken.elements.length}개${cut}:
 ${rows}`;
 }
+
+const describe = describeScreen;
 
 /** 찍고 나서 창 이름과 창 안에서 읽은 것들을 돌려준다. */
 function capture(outPath: string): Promise<Screenshot> {
@@ -233,9 +279,19 @@ function capture(outPath: string): Promise<Screenshot> {
           elements = [];
         }
         const shot = /^ORIGIN=(-?\d+),(-?\d+)$/m.exec(stdout);
-        resolve(shot === undefined || shot === null
-          ? { title, elements }
-          : { title, elements: onTheShot(elements, Number(shot[1]), Number(shot[2])) });
+        const counted = /^READ=(\w+),(\d+),(\d+),(\d+)$/m.exec(stdout);
+        const reading: ScreenReading | undefined = counted === null
+          ? undefined
+          : {
+            root: counted[1] === 'yes',
+            raw: Number(counted[2]),
+            named: Number(counted[3]),
+            onscreen: Number(counted[4]),
+          };
+        const placed = shot === undefined || shot === null
+          ? elements
+          : onTheShot(elements, Number(shot[1]), Number(shot[2]));
+        resolve({ title, elements: placed, reading });
       },
     );
   });

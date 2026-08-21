@@ -43,7 +43,13 @@ export {
 export { promisedButSkipped } from './claims';
 export { pressHand, parsePress, readPressed, type PressOptions } from './hands/press';
 
-export { screenSense, type ScreenSenseOptions } from './sense/screen';
+export {
+  describeScreen,
+  screenSense,
+  type ScreenReading,
+  type ScreenSenseOptions,
+  type Screenshot,
+} from './sense/screen';
 export { whisperEars, type Whisper, type WhisperOptions } from './sense/whisper';
 
 export { InMemoryMemory } from './memory/in-memory';
