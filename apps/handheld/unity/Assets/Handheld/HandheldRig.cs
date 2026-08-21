@@ -42,6 +42,13 @@ namespace Handheld
         [Tooltip("목표까지 남은 거리가 절반이 되는 데 걸리는 시간. 클수록 부드럽고 그만큼 늦다.")]
         [Range(0.005f, 0.25f)] public float smoothingHalfLife = 0.045f;
 
+        [Tooltip("추적이 끊겼다 이어진 직후, 남은 기울기를 밀어 넣는 동안 쓰는 반감기. " +
+                 "평소보다 길어야 한 프레임에 안 꺾인다 (실측: 3초 공백 뒤 74°).")]
+        [Range(0.05f, 0.6f)] public float reanchorEaseHalfLife = 0.25f;
+
+        [Tooltip("그 부드러움이 평소로 돌아오기까지의 시간.")]
+        [Range(0.1f, 2f)] public float reanchorEaseSeconds = 0.8f;
+
         [Header("조이스틱")]
         [Tooltip("폰 화면의 스틱으로 rigRoot 를 민다 — 방 크기를 넘어 이동한다.")]
         public bool joystickEnabled = true;
@@ -152,6 +159,9 @@ namespace Handheld
         int _rtW, _rtH;
 
         bool _hasOrigin;
+        // 재정위 직후 기울기를 밀어 넣는 동안만 1 → 0 으로 내려간다.
+        float _reanchorEase;
+
         Vector3 _originPos;
         Quaternion _originRot = Quaternion.identity;
 
@@ -388,6 +398,11 @@ namespace Handheld
             //   오는데, 그때 RT 가 없으면 영상 트랙을 못 붙인다(재협상은 훨씬 비싸다).
             //   송출 비율은 조종석이 정하므로(기본 16:9) 폰 값을 안 기다려도 된다.
             if (_rt == null) EnsureRenderTexture(_pose);
+
+            // 좌표계가 다시 맞춰졌으면 잠깐 부드럽게 — 남은 기울기를 한 프레임에 안 꺾는다.
+            if (server.ConsumeReanchored()) _reanchorEase = 1f;
+            if (_reanchorEase > 0f && reanchorEaseSeconds > 0f)
+                _reanchorEase = Mathf.Max(0f, _reanchorEase - dt / reanchorEaseSeconds);
 
             if (joystickEnabled) ApplyJoystick(server.Joystick, dt);
 
@@ -661,6 +676,15 @@ namespace Handheld
         float EffectiveHalfLife()
         {
             float hl = smoothingHalfLife;
+
+            // ★ 추적이 끊겼다 이어진 직후에는 잠깐 더 길게 (2026-08-21).
+            //   안정기가 위치·요는 이어 붙였지만 **기울기(피치·롤)는 일부러 안 붙인다** —
+            //   중력 기준의 참값이라 억지로 맞추면 수평이 영구히 기운다. 실측에서 3초 공백
+            //   뒤에 74° 굴러 있었다. 평소 반감기(45ms)로는 그게 첫 프레임에 29° 나가서
+            //   화면이 꺾인다. 여기서 반감기를 늘려 **참값으로 가되 한 프레임에 안 가게** 한다.
+            //   완충이 아니다 — 목표는 바꾸지 않고 도달 속도만 늦춘다.
+            if (_reanchorEase > 0f)
+                hl = Mathf.Max(hl, Mathf.Lerp(smoothingHalfLife, reanchorEaseHalfLife, _reanchorEase));
             if (zoomStabilize > 0f)
                 hl = smoothingHalfLife * Mathf.Lerp(1f, Mathf.Max(0.25f, _zoomShown), zoomStabilize);
             return Mathf.Clamp(hl, 0.005f, Mathf.Max(smoothingHalfLife, maxStabilizedHalfLife));

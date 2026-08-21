@@ -13,10 +13,11 @@ namespace Handheld
     ///
     /// 세 지점을 같은 순번(seq)으로 묶어 적는다:
     ///   raw    = 폰이 보낸 줄 그대로 (WebXR 원본, 우리가 손대기 전)
-    ///   conv   = Unity 좌표계로 옮긴 뒤 (부호만 바뀐 순수 변환)
+    ///   conv   = Unity 좌표계로 옮기고 **추적 불연속을 걷어낸 뒤** (TrackingStabilizer)
     ///   shown  = 리센터·보간까지 먹인 뒤 (실제로 카메라가 선 자리)
     ///
     /// raw 에서 이미 튀면 ARCore/폰, shown 에서만 튀면 우리 코드다.
+    /// raw 는 튀는데 conv 는 안 튀면 = 재정위를 안정기가 제대로 흡수한 것이다.
     /// 쓰기는 파일 스레드에서만 한다 — 소켓·메인 스레드를 막지 않는다.
     /// </summary>
     public sealed class HandheldLog : IDisposable
