@@ -4,7 +4,7 @@
  * 도구가 늘 때마다 세 가지가 따라와야 한다. 안 채우면 그 도구만 조용히 손해를 본다.
  *   - 공유 카드     없으면 링크를 공유했을 때 그 도구만 공용 그림이 나간다
  *   - 자리 높이     없으면 어림값으로 비우므로 밀림이 조금 남는다
- *   - 달리 부르는 이름  없으면 영문으로 찾는 사람에게 안 걸린다
+ *   - 달리 부르는 name  없으면 영문으로 찾는 사람에게 안 걸린다
  *
  * 이걸 보는 검사는 이미 있지만 전부 **서버를 띄우고 브라우저를 열어야** 해서 몇 분이 걸리고,
  * 배포가 끝난 뒤에야 돈다. 이 검사는 파일만 읽으므로 어디서든 즉시 돈다 — 도구를 더한 사람이
@@ -33,19 +33,19 @@ const heights = fs.existsSync(path.join(root, 'data/tool-heights.json')) ? read(
 
 /** 알맹이는 있는데 상세 페이지 정보(tools-seo)가 없는 도구 — 아래에서 **래칫**으로 본다. */
 let seoOrphans = [];
-const missing = { card: [], slot: [], 이름: [] };
+const missing = { card: [], slot: [], name: [] };
 for (const id of tools) {
   if (!fs.existsSync(path.join(root, `img/og/${id}.jpg`))) missing['card'].push(id);
   const h = heights[id];
   if (!h?.narrow || !h?.wide) missing['slot'].push(id);
-  if (!aliases[id]) missing['이름'].push(id);
+  if (!aliases[id]) missing['name'].push(id);
 }
 
 /* 반대 방향도 본다 — 없어진 도구의 기록이 남아 있으면 쓰레기가 쌓이고,
  * 「몇 개 채워졌나」 같은 숫자가 조용히 틀어진다. */
 /* ★ **찾는 이름은 도구 페이지가 있는 것에만 붙는 게 아니다** (2026-08-12).
  *   여기서 「없어진 도구」를 `tools-seo.json`(= 페이지가 있는 도구)만으로 판정했더니,
- *   페이지 없이 화면으로만 사는 것들(perf·plaza·docs·localai·randomgen…)에 붙은 이름 48건이
+ *   페이지 없이 화면으로만 사는 것들(perf·plaza·docs·localai·randomgen…)에 붙은 name 48건이
  *   통째로 「쓰레기」로 잡혔다 — 정작 그 이름들은 팔레트가 쓰는 **살아 있는 데이터**다.
  *   그 빨강 때문에 진짜 쓰레기(존재하지 않는 id)가 묻혔다. 기준을 **등록된 위젯 전부**로 넓힌다. */
 const widgetIds = (() => {
@@ -60,7 +60,7 @@ const widgetIds = (() => {
 const known = new Set(all);
 const alive = new Set([...known, ...widgetIds]);
 const stale = [
-  ...Object.keys(aliases).filter((id) => !alive.has(id)).map((id) => `이름(${id})`),
+  ...Object.keys(aliases).filter((id) => !alive.has(id)).map((id) => `name(${id})`),
   ...Object.keys(heights).filter((id) => !alive.has(id)).map((id) => `자리(${id})`)
 ];
 
@@ -158,7 +158,7 @@ const problems = [];
 /* ★ **자리표시자가 남아 있는가** (TASK-KL-311).
  *
  * `npm run new:tool` 이 새 도구의 여섯 자리를 한 번에 만든다 — 그중 사람이 정해야 하는 글
- * (상세 페이지 설명·달리 부르는 이름)은 `TODO:` 로 채워 둔다. 빈 칸으로 두면 다른 검사가
+ * (상세 페이지 설명·달리 부르는 name)은 `TODO:` 로 채워 둔다. 빈 칸으로 두면 다른 검사가
  * 「없다」고 세우겠지만, 채워는 두고 안 고치면 **아무 데서도 안 걸린 채 검색 결과에 그대로
  * 나간다** — 자리표시자가 사람 눈에 닿는 것이 빈 칸보다 나쁘다. 그래서 여기서 센다. */
 {
@@ -167,7 +167,7 @@ const problems = [];
     if (JSON.stringify(entry).includes('TODO:')) todo.push(`설명(${id})`);
   }
   for (const [id, words] of Object.entries(aliases)) {
-    if (String(words).includes('TODO:')) todo.push(`이름(${id})`);
+    if (String(words).includes('TODO:')) todo.push(`name(${id})`);
   }
   if (todo.length) {
     problems.push(

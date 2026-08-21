@@ -18,7 +18,7 @@
 /** 목록 한 줄을 { name, watch } 로 편다. 문자열이면 「언제나 돈다」다. */
 export function parseEntry(entry) {
   if (typeof entry === 'string') return { name: entry, watch: null };
-  const name = entry?.이름 ?? entry?.name;
+  const name = entry?.name ?? entry?.name;
   if (typeof name !== 'string' || name === '') return null;
   const watch = entry.볼것 ?? entry.watch ?? null;
   return { name, watch: Array.isArray(watch) && watch.length > 0 ? watch : null };
@@ -62,7 +62,7 @@ export function matches(watch, changed) {
  * 실패했다 — 하루 뒤 11/160 만 적혀 있었고 `--changed` 는 160/160 을 고르는 no-op 이었다.
  * 알아내는 규칙은 `gate-derive.mjs` 에 있고, **아무 것도 못 알아내면 여전히 돈다.**
  *
- * @param entries 목록 원본 (문자열 또는 {이름, 볼것})
+ * @param entries 목록 원본 (문자열 또는 {name, 볼것})
  * @param changed 앱 뿌리 기준 상대 경로들. `null` 이면 고르지 않는다(전부 돈다).
  * @param derive  발판을 알아내는 함수. 안 주면 안 알아낸다(옛 동작 그대로 — 시험용).
  * @returns { run: string[], skipped: string[], derived: number }

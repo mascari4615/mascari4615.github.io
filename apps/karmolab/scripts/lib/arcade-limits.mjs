@@ -12,13 +12,13 @@ import { fileURLToPath } from 'node:url';
 
 const playground = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'src/widgets/arcade/games');
 
-/** @returns {{이름: string, 제한: number}[]} 제한이 박힌 놀이들 */
+/** @returns {{name: string, 제한: number}[]} 제한이 박힌 놀이들 */
 export function playLimits(dir = playground) {
   const out = [];
   for (const f of readdirSync(dir)) {
     if (!f.endsWith('.ts') || f.endsWith('-view.ts')) continue;
     const m = /const LIMIT_MS = (\d+)/.exec(readFileSync(join(dir, f), 'utf8'));
-    if (m) out.push({ 이름: f.replace(/\.ts$/, ''), limit: Number(m[1]) });
+    if (m) out.push({ name: f.replace(/\.ts$/, ''), limit: Number(m[1]) });
   }
   return out;
 }

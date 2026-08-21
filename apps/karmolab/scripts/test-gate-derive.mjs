@@ -48,7 +48,7 @@ eq(deriveWatch('test:cutout', scripts, () => '// 아무 경로도 없다'), null
 let derivedCount = 0;
 let selfMiss = 0;
 for (const entry of gates) {
-  const name = typeof entry === 'string' ? entry : (entry.이름 ?? entry.name);
+  const name = typeof entry === 'string' ? entry : (entry.name ?? entry.name);
   const watch = deriveWatch(name, scripts);
   if (watch === null) continue;
   derivedCount += 1;
@@ -73,7 +73,7 @@ const S = 'sr' + 'c';
 const trap = ['package.js' + 'on', `${S}/lib/**`, `${S}/**`];
 let trapHit = [];
 for (const entry of gates) {
-  const name = typeof entry === 'string' ? entry : (entry.이름 ?? entry.name);
+  const name = typeof entry === 'string' ? entry : (entry.name ?? entry.name);
   const watch = deriveWatch(name, scripts);
   if (watch === null) continue;
   for (const bad of trap) if (watch.includes(bad)) trapHit.push(`${name} ← ${bad}`);
@@ -83,7 +83,7 @@ eq(trapHit.length, 0, `알아낸 발판에 「전부 걸리는 자리」가 섞�
 /* `data/gate-list.json` 은 **정말로 그 파일을 읽는 검사**(`audit:gate-list` 등)에만 들어야 한다.
    모두에게 붙으면(=ALWAYS 에 넣으면) 검사를 하나 다는 작업마다 전부 걸린다 — 그게 함정이었다. */
 const checkList = gates
-  .map((e) => (typeof e === 'string' ? e : (e.이름 ?? e.name)))
+  .map((e) => (typeof e === 'string' ? e : (e.name ?? e.name)))
   .filter((n) => (deriveWatch(n, scripts) ?? []).includes('data/gate-list.json'));
 check(checkList.length <= 8, `gate-list 를 보는 검사가 ${checkList.length}개 — 모두에게 붙었으면 함정으로 되돌아간 것이다`);
 
@@ -107,7 +107,7 @@ check(shared !== null && matches(shared, ['src/widgets/tools/아무거나.ts']),
 
 // ── ⑤ 조각들 ────────────────────────────────────────────────────────────────
 
-eq(tailOf('test:xmlfmt'), 'xmlfmt', '이름 뒤쪽을 뗀다');
+eq(tailOf('test:xmlfmt'), 'xmlfmt', 'name 뒤쪽을 뗀다');
 eq(tailOf('typecheck'), '', '갈래가 없으면 빈 문자열');
 eq(tailOf('test:i18n:pages'), 'pages', '갈래가 여럿이면 마지막 칸');
 eq(scriptOf('test:cutout', scripts), 'scripts/test-cutout.mjs', '부르는 스크립트를 집는다');
