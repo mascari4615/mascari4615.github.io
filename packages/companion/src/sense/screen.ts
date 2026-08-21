@@ -219,6 +219,48 @@ function onTheShot(elements: readonly ScreenElement[], originX: number, originY:
 }
 
 /**
+ * 목록에 몇 줄까지 낼까. 창에서 **가져오는** 상한(600)과 다르다 — 가져온 뒤 값어치로 고른다.
+ */
+const SHOW_AT_MOST = 120;
+
+/**
+ * 목록에 **무엇을 넣을까** — 자르는 기준이 「나무 순서」였다 (TASK-KAR-246).
+ *
+ * 140회차 실측(화면 안에 있는 것만): Discord 599개 중 만질 수 있는 것 292개인데 목록에
+ * 든 것은 **59개**였다 — **80%가 밀려났다.** msedge 는 135 중 100. 까닭은 나무 순서로
+ * 앞에서 잘랐기 때문이다. 나무 순서는 창틀·툴바가 먼저고 내용이 뒤다. 게다가 만질 수 없는
+ * Text 가 자리를 잡아먹는다(Discord 에서 버려진 479개 중 Text 가 203개).
+ *
+ * 뉴로 대조표에서 우리 갭은 전부 **행동** 쪽이다. 누를 수 있는 것이 목록에 없으면 두뇌는
+ * 그것이 **있는 줄도 모른다.**
+ *
+ * **번호는 안 바꾼다.** 번호는 창을 걷는 순서가 매기고, 누르는 쪽이 같은 순서로 다시 걸어
+ * 찾는다. 목록에서 빠졌다고 다시 매기면 엉뚱한 것을 누른다.
+ */
+export function pickWorthShowing(
+  elements: readonly ScreenElement[],
+  max: number,
+): readonly ScreenElement[] {
+  if (elements.length <= max) return elements;
+  const canTouch = new Set<ScreenElement>();
+  for (const one of elements) {
+    if (canTouch.size >= max) break;
+    if (one.p !== undefined && one.p.length > 0) canTouch.add(one);
+  }
+  /* 남는 자리에 읽을 거리. 만질 것만 있으면 무슨 창인지 모른다. */
+  let room = max - canTouch.size;
+  const keep = new Set(canTouch);
+  for (const one of elements) {
+    if (room <= 0) break;
+    if (keep.has(one)) continue;
+    keep.add(one);
+    room -= 1;
+  }
+  /* 걷던 순서로 되돌린다 — 목록은 화면 위에서 아래로 읽혀야 한다. */
+  return elements.filter((one) => keep.has(one));
+}
+
+/**
  * 목록이 **무엇인지** 말한다 — 없는 것과 못 읽은 것과 잘린 것은 다른 말이다 (TASK-KAR-246).
  */
 export function describeScreen(taken: Screenshot): string {
@@ -246,7 +288,7 @@ export function describeScreen(taken: Screenshot): string {
   /* 상한에 잘렸으면 잘렸다고 말한다. 안 말하면 두뇌는 이 목록이 전부인 줄 안다. */
   const onscreen = read?.onscreen;
   const cut = typeof onscreen === 'number' && onscreen > taken.elements.length
-    ? ` (화면 안에 ${onscreen}개가 있는데 앞의 ${taken.elements.length}개만 적었다 — 더 있다)`
+    ? ` (화면 안에 ${onscreen}개가 있는데 그중 ${taken.elements.length}개를 골라 적었다 — 만질 수 있는 것 먼저다. 더 있다)`
     : '';
 
   return `${head} 안에서 읽은 것 ${taken.elements.length}개${cut}:
@@ -291,7 +333,7 @@ function capture(outPath: string): Promise<Screenshot> {
         const placed = shot === undefined || shot === null
           ? elements
           : onTheShot(elements, Number(shot[1]), Number(shot[2]));
-        resolve({ title, elements: placed, reading });
+        resolve({ title, elements: pickWorthShowing(placed, SHOW_AT_MOST), reading });
       },
     );
   });
