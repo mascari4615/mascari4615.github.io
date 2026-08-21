@@ -25,6 +25,11 @@ export function needsPermission(hand: Hand, gate: AskFirst): Hand {
     name: hand.name,
     what: hand.what,
     needs: hand.needs,
+    /* 이 손은 **제 안에서** 이미 묻는다. 그래서 코어의 관문은 지나가도 된다 —
+       두 번 물으면 사람이 확인 자체를 흘려보낸다.
+       (이 래핑은 손을 만들 때 사람이 **기억해서** 감싸야 한다. 잊으면 조용히 열린다.
+        그래서 코어 쪽 관문은 반대로 「표시 안 하면 닫힌다」로 뒀다 — 기본값의 방향이 다르다.) */
+    undoable: true,
     async run(argument: string): Promise<string> {
       const allowed = await gate.confirm(`${hand.name}: ${argument}`);
       if (allowed === false) return `${hand.name} 은(는) 하지 않았다 — 조수님이 아니라고 했다`;
@@ -42,6 +47,8 @@ export function findFileHand(roots?: readonly string[]): Hand {
   ];
   return {
     name: '파일찾기',
+    /* 이름만 훑는다 */
+    undoable: true,
     what: '이 사람 폴더에서 이름에 그 말이 든 파일을 찾는다',
     needs: '찾을 name 조각',
     async run(argument: string): Promise<string> {
@@ -81,6 +88,8 @@ export function findFileHand(roots?: readonly string[]): Hand {
 export function openHand(): Hand {
   return {
     name: '열기',
+    /* **남의 프로그램을 실제로 띄운다.** 뜬 창은 우리가 못 닫는다 */
+    undoable: false,
     what: '파일·폴더·웹주소를 연다',
     needs: '열 것 (경로 또는 주소)',
     async run(argument: string): Promise<string> {
@@ -104,6 +113,8 @@ export function openHand(): Hand {
 export function windowsHand(): Hand {
   return {
     name: '창목록',
+    /* 보기만 한다 */
+    undoable: true,
     what: '지금 열려 있는 창들을 본다',
     needs: '(없음)',
     async run(): Promise<string> {
@@ -128,6 +139,8 @@ export function windowsHand(): Hand {
 export function clockHand(): Hand {
   return {
     name: '시계',
+    /* 보기만 한다 */
+    undoable: true,
     what: '지금 시각과 날짜를 본다',
     needs: '(없음)',
     async run(): Promise<string> {
@@ -141,6 +154,8 @@ export function clockHand(): Hand {
 export function readNotesHand(path: string): Hand {
   return {
     name: '적어둔것보기',
+    /* 읽기만 한다 */
+    undoable: true,
     what: '전에 적어 둔 것들을 읽는다',
     needs: '(없음)',
     async run(): Promise<string> {
@@ -158,6 +173,8 @@ export function readNotesHand(path: string): Hand {
 export function fileInfoHand(): Hand {
   return {
     name: '파일정보',
+    /* 읽기만 한다 */
+    undoable: true,
     what: '파일이 언제 바뀌었고 얼마나 큰지 본다',
     needs: '파일 경로',
     async run(argument: string): Promise<string> {

@@ -1,4 +1,4 @@
-import { findRequests, useHands, type Hand } from './hands';
+import { findRequests, useHands, type Hand, type HandGate } from './hands';
 import type {
   Attention,
   Body,
@@ -82,6 +82,13 @@ export interface CompanionOptions {
    * 오래 걸리면 대답이 그만큼 늦으므로, 내주는 쪽이 「묵었으면 새로 찍는다」까지 책임진다.
    */
   seeing?: () => { imagePath: string; text: string } | null | Promise<{ imagePath: string; text: string } | null>;
+  /**
+   * 되돌릴 수 없는 손을 쓰기 전에 사람에게 묻는 자리.
+   *
+   * 없으면 그런 손은 **안 쓴다** — 모르면 안전 쪽으로. 되돌릴 수 있는 손(읽기·찾기)은
+   * 여기까지 오지 않는다(다 물으면 아무도 안 읽는다).
+   */
+  askBeforeRisky?: HandGate;
   /**
    * 답이 늦어질 때 낼 뜸을 골라 준다. 없으면 뜸을 안 낸다.
    *
@@ -405,10 +412,10 @@ export class Companion {
         // 찾아온 것을 보고 다시 답해야 하는 손이 섞였는지 본다.
         const feedback = requests.filter((r) => hands.find((h) => h.name === r.name)?.feedsBack === true);
         if (feedback.length > 0) {
-          const found = await useHands(hands, feedback, note);
+          const found = await useHands(hands, feedback, note, this.options.askBeforeRisky);
           // 나머지(하고 끝나는 일)는 뒤에서 처리한다.
           const rest = requests.filter((r) => feedback.includes(r) === false);
-          if (rest.length > 0) void useHands(hands, rest, note);
+          if (rest.length > 0) void useHands(hands, rest, note, this.options.askBeforeRisky);
           try {
             // 한 번만 더 생각한다. 더 돌리면 스스로에게 되묻는 굴레에 빠진다.
             const again = await brain.think({ ...input, found });
@@ -418,7 +425,7 @@ export class Companion {
             return;
           }
         } else {
-          void useHands(hands, requests, note);
+          void useHands(hands, requests, note, this.options.askBeforeRisky);
           text = clean;
         }
       }
