@@ -13,7 +13,14 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $cf = (Get-Command cloudflared -ErrorAction SilentlyContinue).Source
-if (-not $cf) { $cf = 'C:\Program Files (x86)\cloudflared\cloudflared.exe' }
+# 관리자 권한 없이 받아 둔 자리 -> Program Files 순으로 본다 (winget 없는 계정 대비).
+if (-not $cf) {
+    foreach ($c in @("$env:LOCALAPPDATA\cloudflared\cloudflared.exe",
+                     'C:\Program Files (x86)\cloudflared\cloudflared.exe',
+                     'C:\Program Files\cloudflared\cloudflared.exe')) {
+        if (Test-Path $c) { $cf = $c; break }
+    }
+}
 if (-not (Test-Path $cf)) {
     Write-Error "cloudflared 를 못 찾았다. winget install --id Cloudflare.cloudflared"
     exit 1
