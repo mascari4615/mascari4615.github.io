@@ -43,7 +43,7 @@ export interface 되새김옵션 {
 
 export class reflection {
   private list: 깨달음[] = [];
-  private 센말 = 0;
+  private countedText = 0;
   private readonly options: Required<Pick<되새김옵션, 'keep' | '마다'>> & 되새김옵션;
 
   constructor(options: 되새김옵션 = {}) {
@@ -64,12 +64,12 @@ export class reflection {
 
   /** 사람 말이 몇 마디 더 쌓였다. 되새길 때가 됐으면 true. */
   calc(exchange2: readonly MemoryEntry[]): boolean {
-    this.센말 = exchange2.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
+    this.countedText = exchange2.filter((e) => e.role === 'sensed' && e.channel === 'web').length;
     return this.셀때인가;
   }
 
   get 셀때인가(): boolean {
-    return this.options.ask !== undefined && this.센말 >= this.options.마다;
+    return this.options.ask !== undefined && this.countedText >= this.options.마다;
   }
 
   /**
@@ -82,7 +82,7 @@ export class reflection {
     const ask2 = this.options.ask;
     if (ask2 === undefined) return 0;
     if (exchange3.length === 0) return 0;
-    this.센말 = 0;
+    this.countedText = 0;
 
     let produced: readonly 깨달음[] | null = null;
     try {
@@ -155,9 +155,9 @@ export function reflectionNote(store: reflection, currentText: string): string {
   const now2 = new Set(word(currentText));
   if (now2.size === 0) return '';
   const flagged = store.all
-    .map((x) => ({ x, 겹침: word(x.what).filter((w) => now2.has(w)).length }))
-    .filter((r) => r.겹침 >= 2)
-    .sort((a, b) => b.겹침 - a.겹침 || b.x.at - a.x.at)[0];
+    .map((x) => ({ x, overlap: word(x.what).filter((w) => now2.has(w)).length }))
+    .filter((r) => r.overlap >= 2)
+    .sort((a, b) => b.overlap - a.overlap || b.x.at - a.x.at)[0];
   if (flagged === undefined) return '';
   return (
     `여태 보아 온 것 하나: ${flagged.x.what} ` +

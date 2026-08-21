@@ -48,7 +48,7 @@ export interface 수요기동옵션 {
 
 export class demandBoot {
   private appeared = false;
-  private 마지막확인 = 0;
+  private lastCheck = 0;
   private 띄우는중 = false;
   private 마지막사용 = 0;
   private weOpenedIt = false;
@@ -80,8 +80,8 @@ export class demandBoot {
     this.마지막사용 = this.지금;
 
     const interval = this.options.askIntervalMs ?? 5_000;
-    if (this.지금 - this.마지막확인 >= interval) {
-      this.마지막확인 = this.지금;
+    if (this.지금 - this.lastCheck >= interval) {
+      this.lastCheck = this.지금;
       try {
         this.appeared = await this.options.isAlive();
       } catch {
@@ -113,7 +113,7 @@ export class demandBoot {
       })
       .finally(() => {
         this.띄우는중 = false;
-        this.마지막확인 = 0;
+        this.lastCheck = 0;
       });
   }
 
@@ -162,7 +162,7 @@ export class demandBoot {
     }
     this.appeared = false;
     this.weOpenedIt = false;
-    this.마지막확인 = 0;
+    this.lastCheck = 0;
     return true;
   }
 }

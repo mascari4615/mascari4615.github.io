@@ -25,7 +25,7 @@ export type Fate = '실림' | '밀림' | '꺼짐' | '빔';
 
 export interface Marks {
   /** 마지막으로 안 실렸을 때 왜 안 실렸나. 실리면 지워진다. */
-  마지막왜?: string;
+  lastWhy?: string;
   실림: number;
   밀림: number;
   꺼짐: number;
@@ -66,8 +66,8 @@ export class Tally {
     const m = this.marks.get(name) ?? empty();
     m[fate] += 1;
     // 마지막으로 왜 안 실렸는지. 실린 순간에는 지운다 — 낡은 이유가 남아 헷갈린다.
-    if (fate === '실림') delete m.마지막왜;
-    else if (why !== undefined && why !== '') m.마지막왜 = why;
+    if (fate === '실림') delete m.lastWhy;
+    else if (why !== undefined && why !== '') m.lastWhy = why;
     if (fate === '실림') m.lastAt = (this.options.now ?? (() => Date.now()))();
     this.marks.set(name, m);
 
@@ -119,17 +119,17 @@ export class Tally {
  */
 export function tallyReport(tally: Tally): string {
   const lines = [...tally.all.entries()]
-    .map(([name, m]) => ({ name, m, 지나감: m.실림 + m.밀림 + m.꺼짐 + m.빔 }))
-    .sort((a, b) => (a.m.실림 - b.m.실림) || (b.지나감 - a.지나감));
+    .map(([name, m]) => ({ name, m, elapsed: m.실림 + m.밀림 + m.꺼짐 + m.빔 }))
+    .sort((a, b) => (a.m.실림 - b.m.실림) || (b.elapsed - a.elapsed));
 
   if (lines.length === 0) return '아직 센 게 없다.';
 
   return lines
-    .map(({ name, m, 지나감 }) => {
+    .map(({ name, m, elapsed: 지나감 }) => {
       const state = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
       // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
-      const why2 = m.마지막왜 === undefined ? '' : `
-${' '.repeat(10)}↳ ${m.마지막왜}`;
+      const why2 = m.lastWhy === undefined ? '' : `
+${' '.repeat(10)}↳ ${m.lastWhy}`;
       return `${name.padEnd(8)} ${state.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${why2}`;
     })
     .join('\n');
