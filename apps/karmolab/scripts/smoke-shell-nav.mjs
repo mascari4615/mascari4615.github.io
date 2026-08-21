@@ -103,8 +103,8 @@ try {
           .filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id),
       };
     }, place);
-    if (result.hash !== `#${place}` || !result.보임.includes(`page-${place}`)) {
-      problems.push(`${place} 로 안 옮겨진다 — 주소 ${result.hash} · 보이는 장 ${result.보임.join(',') || '없음'}`);
+    if (result.hash !== `#${place}` || !result.visible.includes(`page-${place}`)) {
+      problems.push(`${place} 로 안 옮겨진다 — 주소 ${result.hash} · 보이는 장 ${result.visible.join(',') || '없음'}`);
     }
   }
 

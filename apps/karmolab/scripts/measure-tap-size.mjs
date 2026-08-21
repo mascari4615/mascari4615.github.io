@@ -65,18 +65,18 @@ for (const url of URLS) {
     return {
       all: toMeasure.length,
       inlineLink: exceptions.length,
-      아래24: small(24).length,
-      아래44: small(44).length,
-      보기24: [...new Set(small(24).map(name))].slice(0, 4),
+      below24: small(24).length,
+      below44: small(44).length,
+      view24: [...new Set(small(24).map(name))].slice(0, 4),
       sample: [...new Set(small(44).map(name))].slice(0, 3),
     };
   });
   line.push(`  ${url}`);
-    line.push(`    손잡이 ${m.전부}개(문장 안 링크 ${m.문장안링크}개는 기준 예외라 뺐다) · 24px 미만 ${m.아래24}개 · 44px 미만 ${m.아래44}개`);
+    line.push(`    손잡이 ${m.all}개(문장 안 링크 ${m.inlineLink}개는 기준 예외라 뺐다) · 24px 미만 ${m.below24}개 · 44px 미만 ${m.below44}개`);
   /* ★ 24px 미만을 먼저 보여 준다 — 그게 바깥 기준(WCAG 2.2 AA)이 실제로 요구하는 선이다.
      44px 미만은 「더 크면 좋다」쪽이라 목록이 길어도 사고가 아니다. */
-  for (const b of m.보기24) line.push(`      · 24px 미만 — ${b}`);
-  for (const b of m.보기) line.push(`      · 44px 미만 — ${b}`);
+  for (const b of m.view24) line.push(`      · 24px 미만 — ${b}`);
+  for (const b of m.view) line.push(`      · 44px 미만 — ${b}`);
   await p.close();
 }
 

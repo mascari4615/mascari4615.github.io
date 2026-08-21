@@ -106,15 +106,15 @@ try {
     };
   }, SAMPLE);
 
-  if (seen.없음) problems.push('가짜 자리를 켰는데 화면에 안 뜬다 — 자리 자체가 죽었다');
+  if (seen.none) problems.push('가짜 자리를 켰는데 화면에 안 뜬다 — 자리 자체가 죽었다');
   else {
-    if (seen.개수 !== 1) problems.push(`한 장에 ${seen.개수}개가 떴다 — 하나여야 한다`);
-    if (!seen.도구보다아래) problems.push('도구 본체 위에 떴다 — 도구를 쓰러 온 사람을 가린다');
-    if (!seen.설명블록안) problems.push('설명 블록 밖에 떴다 — 다 쓰고 읽는 자리에만 놓기로 했다');
-    if (!seen.밝힘) problems.push('후원·광고임을 밝히는 글이 없다');
+    if (seen.count !== 1) problems.push(`한 장에 ${seen.count}개가 떴다 — 하나여야 한다`);
+    if (!seen.belowTool) problems.push('도구 본체 위에 떴다 — 도구를 쓰러 온 사람을 가린다');
+    if (!seen.insideDescBlock) problems.push('설명 블록 밖에 떴다 — 다 쓰고 읽는 자리에만 놓기로 했다');
+    if (!seen.reveal) problems.push('후원·광고임을 밝히는 글이 없다');
     if (seen.rel !== null && !/sponsored/.test(seen.rel)) problems.push(`바깥 링크에 sponsored 표시가 없다 (rel="${seen.rel}")`);
-    if (seen.넘침) problems.push('좁은 화면에서 옆으로 넘친다');
-    if (!seen.보임) problems.push('자리가 만들어졌는데 보이지 않는다');
+    if (seen.overflow) problems.push('좁은 화면에서 옆으로 넘친다');
+    if (!seen.visible) problems.push('자리가 만들어졌는데 보이지 않는다');
   }
 } finally {
   if (browser) await browser.close();
@@ -127,4 +127,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[audit-sponsor-slot] 후원 자리 — 도구 아래·설명 안·한 장에 하나·밝힘·sponsored·안 넘침 전부 OK');
+console.log('[audit-sponsor-slot] 후원 자리 — 도구 아래·설명 안·한 장에 하나·reveal·sponsored·안 overflow 전부 OK');

@@ -21,7 +21,7 @@ import type { MemoryEntry } from '../types';
  */
 
 export interface Episode {
-  /** 그때 한 말, 그대로. */
+  /** 그때 한 text, 그대로. */
   said: string;
   at: number;
   /** 얼마나 감정이 실렸나. 자리가 모자랄 때 무엇을 버릴지 정한다. */
@@ -36,7 +36,7 @@ const loadedWords = [
   '망했', '망함', '큰일', '드디어', '해냈', '됐다', '성공', '실패', '포기',
 ];
 
-/** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 말. */
+/** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 text. */
 export function measureEnergy(text: string): number {
   const text2 = text.trim();
   if (text2.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
@@ -58,7 +58,7 @@ export interface EpisodeStoreOptions {
   /** 이 점수 아래는 사건으로 안 센다. */
   threshold?: number;
   /**
-   * 낱말 표가 놓친 말을 **두뇌에게 물어본다.** 0~9 를 말 개수만큼 돌려줘야 한다.
+   * 낱말 표가 놓친 말을 **두뇌에게 물어본다.** 0~9 를 text 개수만큼 돌려줘야 한다.
    *
    * 없으면 낱말 표만 쓴다 — 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
    */
@@ -69,8 +69,8 @@ export interface EpisodeStoreOptions {
 /**
  * 두뇌에게 물어볼 만한 말인가 — **아무거나 물으면 그게 값이다.**
  *
- * 「응」 「ㅇㅇ」 같은 건 물어볼 것도 없고, 얘한테 시키는 말(「짧게 설명해줘」)도 사건이
- * 아니다. 실제 기록을 보니 사람 말 197개 중 113개가 낱말 세 개도 안 됐다.
+ * 「응」 「ㅇㅇ」 같은 건 물어볼 것도 없고, 얘한테 시키는 text(「짧게 설명해줘」)도 사건이
+ * 아니다. 실제 기록을 보니 사람 text 197개 중 113개가 낱말 세 개도 안 됐다.
  */
 function worthAsking(text: string): boolean {
   const text3 = text.trim();
@@ -80,7 +80,7 @@ function worthAsking(text: string): boolean {
 
 export class EpisodeStore {
   private list: Episode[] = [];
-  /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (말 → 그때 시각). */
+  /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (text → 그때 시각). */
   private readonly toAsk = new Map<string, number>();
   private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | 'threshold'>> & EpisodeStoreOptions;
 
@@ -162,10 +162,10 @@ export class EpisodeStore {
     if (ask2 === undefined || this.toAsk.size === 0) return 0;
 
     const bundle = [...this.toAsk.entries()].slice(0, atOnce);
-    for (const [말] of bundle) this.toAsk.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
+    for (const [text] of bundle) this.toAsk.delete(text); // 실패해도 같은 걸 무한히 다시 묻지 않는다
     let scores: readonly number[] | null = null;
     try {
-      scores = await ask2(bundle.map(([말]) => 말));
+      scores = await ask2(bundle.map(([text]) => text));
     } catch (err) {
       this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
       return 0;
@@ -176,10 +176,10 @@ export class EpisodeStore {
     }
 
     let storedCount2 = 0;
-    bundle.forEach(([말, at], i) => {
+    bundle.forEach(([text, at], i) => {
       const energy2 = Math.round(scores![i]);
-      if (Number.isFinite(energy2) === false || energy2 < this.options.threshold || this.has(말)) return;
-      this.store({ said: 말, at, energy: energy2 });
+      if (Number.isFinite(energy2) === false || energy2 < this.options.threshold || this.has(text)) return;
+      this.store({ said: text, at, energy: energy2 });
       storedCount2 += 1;
     });
     if (storedCount2 > 0) {
@@ -272,7 +272,7 @@ export function recallScore(e: Episode, currentWordCount: number, overlap2: numb
 /**
  * 두뇌에게 「이거 기억할 만한 일이야?」를 묻는 자리.
  *
- * **낱말 표로는 안 된다는 걸 재서 알았다.** 실제 기록에서 사람 말 197개가 오갔는데 사건으로
+ * **낱말 표로는 안 된다는 걸 재서 알았다.** 실제 기록에서 사람 text 197개가 오갔는데 사건으로
  * 담긴 건 **둘**이었다. 「오늘 회의가 길어서 좀 지쳤어」 「엄마랑 좀 다퉜어」 「발표 준비
  * 하나도 못 했는데 내일이야」 — 전부 0점이었다. 표에 든 낱말이 하나도 안 들어 있어서다.
  * 표를 늘려도 다음 말에서 또 놓친다. 사람 말은 표에 안 담긴다.
@@ -287,7 +287,7 @@ export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
     const list = texts2.map((text5, i) => `${i + 1}. ${text5.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
     const answer = await ask(
       '아래는 사람이 한 말들이다. 각각이 **나중에 다시 꺼낼 만한 일**인지 0~9 로 매겨라.\n' +
-        '0 = 그냥 지나가는 말 · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
+        '0 = 그냥 지나가는 text · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
         '지시·부탁·질문은 사건이 아니다 — 0 이다.\n' +
         `숫자만 줄바꿈으로 ${texts2.length}개, 다른 말은 붙이지 마라.\n\n${list}`,
     );
