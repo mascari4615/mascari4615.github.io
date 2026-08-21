@@ -94,7 +94,23 @@ async function measure(ctx, id, key, attempt = 1) {
     // 글꼴이 늦게 오면 높이가 달라진다 — 다 온 뒤에 잰다.
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(500);
-    const h = await page.evaluate(() => Math.round(document.getElementById('tool-pages')?.getBoundingClientRect().height || 0));
+    /* ★ **높이가 가라앉을 때까지 잰다** (2026-08-21). 한 번 찍으면 판마다 값이 달라진다 —
+       같은 장을 네 번 재니 1573 · 1587 · 1587 · 1587 이었다(허용 24px 인데 14px 흔들린다).
+       늦게 오는 조각(그림·글꼴·실시간 값)이 높이를 조금씩 밀기 때문이다.
+       그래서 <b>같은 값이 두 번 연달아</b> 나올 때까지 다시 재고, 끝내 안 가라앉으면
+       <b>가장 큰 값</b>을 쓴다 — 자리는 넉넉히 비워 두는 쪽이 안전하다(밀리는 것보다 낫다). */
+    const 잰값 = async () =>
+      page.evaluate(() => Math.round(document.getElementById('tool-pages')?.getBoundingClientRect().height || 0));
+    let h = await 잰값();
+    let 최대 = h;
+    for (let i = 0; i < 6; i++) {
+      await page.waitForTimeout(250);
+      const 다음 = await 잰값();
+      if (다음 > 최대) 최대 = 다음;
+      if (다음 === h) break;
+      h = 다음;
+    }
+    h = 최대;
     if (!h) throw new Error('도구 자리를 못 찾았다');
     out[id] = { ...(out[id] || {}), [key]: h };
   } catch (e) {
