@@ -22,7 +22,7 @@ import type { Ingredient } from './budget';
  * - **할 말이 실제로 있는 것만.** 빈 재료를 꺼내라고 하면 얘는 지어낸다.
  */
 
-export interface 꺼낼까입력 {
+export interface TopicInput {
   /** 재료들 — 이 중에서 고른다. */
   material: readonly Ingredient[];
   /** 그 재료가 몇 번이나 밀렸나. */
@@ -35,7 +35,7 @@ export interface 꺼낼까입력 {
   threshold3?: number;
 }
 
-export interface 꺼낼것 {
+export interface TopicPick {
   이름: string;
   heldCount: number;
   /** 두뇌에 얹을 한 줄. */
@@ -43,7 +43,7 @@ export interface 꺼낼것 {
 }
 
 /** 지금 먼저 꺼낼 것이 있나. 없으면 null. */
-export function topicFirst(input: 꺼낼까입력): 꺼낼것 | null {
+export function topicFirst(input: TopicInput): TopicPick | null {
   return topicSkipReason(input) === null ? choose(input) : null;
 }
 
@@ -53,7 +53,7 @@ export function topicFirst(input: 꺼낼까입력): 꺼낼것 | null {
  * **「안 꺼냈다」만 남기면 못 고친다.** 오늘까지 같은 벽에 네 번 부딪혔다(71·81·82회차).
  * 처음부터 이유를 말하게 만든다.
  */
-export function topicSkipReason(input: 꺼낼까입력): string | null {
+export function topicSkipReason(input: TopicInput): string | null {
   if (input.askedTurn) return '조수님이 물어본 turn 이다';
   if (input.cooling === false) return '아직 대화가 안 식었다';
   const picked = choose(input);
@@ -65,7 +65,7 @@ export function topicSkipReason(input: 꺼낼까입력): string | null {
   return null;
 }
 
-function choose(input: 꺼낼까입력): 꺼낼것 | null {
+function choose(input: TopicInput): TopicPick | null {
   const threshold2 = input.threshold3 ?? 3;
   const candidates = input.material
     // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.

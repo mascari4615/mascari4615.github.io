@@ -29,7 +29,7 @@ import type { Marks } from './tally';
  * 빈 것이다. 그걸 드묾으로 세면 늘 빈 재료가 가장 세진다.
  */
 
-export interface 드묾옵션 {
+export interface RarityOptions {
   /** 이만큼은 지나가 봐야 드문지 아닌지 말할 수 있다. */
   minSeen?: number;
   /** 이 비율보다 자주 켜지면 안 밀어준다. */
@@ -41,7 +41,7 @@ export interface 드묾옵션 {
 const base = { minSeen: 40, commonThreshold: 0.5, cap: 12 };
 
 /** 이 재료가 켜졌을 때 얼마나 얹어 줄까. */
-export function rarityBonus(m: Marks | undefined, options: 드묾옵션 = {}): number {
+export function rarityBonus(m: Marks | undefined, options: RarityOptions = {}): number {
   const { minSeen: minSeen, commonThreshold: commonThreshold, cap: cap } = { ...base, ...options };
   if (m === undefined) return 0;
   const elapsed = m.loaded + m.queued + m.off + m.blank;
@@ -61,7 +61,7 @@ export function rarityBonus(m: Marks | undefined, options: 드묾옵션 = {}): n
 export function applyRarity(
   all: readonly Ingredient[],
    sample: (name: string) => Marks | undefined,
-  options: 드묾옵션 = {},
+  options: RarityOptions = {},
 ): Ingredient[] {
   return all.map((x) => {
     if (x.when === false) return x;

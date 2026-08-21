@@ -23,7 +23,7 @@
  * 돌려줄 자리거나, 옛일이 걸렸거나.
  */
 
-export interface 머리고르기입력 {
+export interface HeadPickInput {
   /** 받아 줄 자리인가 (길게 털어놨거나 감정이 실렸다). */
   acceptSlot?: boolean;
   /** 공을 돌려줄 자리인가 (대화가 식어 간다). */
@@ -34,7 +34,7 @@ export interface 머리고르기입력 {
   selfTalk?: boolean;
 }
 
-export interface 머리크기옵션 {
+export interface HeadSizeOptions {
   /** 평소에 쓸 머리. */
   smallHead?: string;
   /** 무거운 자리에 쓸 머리. */
@@ -47,7 +47,7 @@ export interface 머리크기옵션 {
  * **이유를 같이 낸다.** 「왜 이 turn 만 느렸지」를 나중에 알 수 없으면, 큰 머리를 쓰는 게
  * 고장으로 보인다(오늘까지 「왜」가 없어서 실험을 다시 돌린 자리가 넷이다).
  */
-export function whichHead(input: 머리고르기입력, options: 머리크기옵션 = {}): { head: string; why: string } {
+export function whichHead(input: HeadPickInput, options: HeadSizeOptions = {}): { head: string; why: string } {
   const smallHead = options.smallHead ?? 'haiku';
   const largeHead = options.largeHead ?? 'sonnet';
 

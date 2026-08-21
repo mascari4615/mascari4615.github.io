@@ -19,7 +19,7 @@ import type { Ingredient } from './budget';
  * 자리**다.
  */
 
-export interface 밀린생각옵션 {
+export interface PendingThoughtOptions {
   /** 한 번 밀릴 때마다 얼마나 세지나. */
   step?: number;
   /** 아무리 밀려도 이 이상은 안 세진다. 안 그러면 오래된 것이 영영 1등이라 새 것이 굶는다. */
@@ -46,7 +46,7 @@ export class pendingThoughts {
   private readonly pressed = new Map<string, 눌림>();
   private turn = 0;
 
-  constructor(options: 밀린생각옵션 = {}) {
+  constructor(options: PendingThoughtOptions = {}) {
     this.step = options.step ?? 3;
     this.cap = options.cap ?? 9;
     this.forgetTurn = options.forgetTurn ?? 8;
