@@ -27,7 +27,7 @@ test('결이 없으면 늘 하던 속도', async () => {
 test('처진 결은 느리게 — 결을 붙여 놓고 안 받으면 붙인 적 없는 것과 같다', async () => {
   const { sent: 보낸것, restore: 되돌리기 } = intercept();
   try {
-    await voice().synthesize('안녕', 'cloned@처짐');
+    await voice().synthesize('안녕', 'cloned@droop');
     assert.ok(보낸것[0].speed_factor < 1, `느려야 하는데 ${보낸것[0].speed_factor}`);
   } finally { 되돌리기(); }
 });

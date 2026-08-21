@@ -539,7 +539,7 @@ const reflexSituation = {
   '고마움': '조수님이 고맙다고 했을 때 하는 대꾸',
   '호응': '조수님 말에 짧게 맞장구치는 대꾸',
 };
-const energyTone = { 처짐: '축 처져서 나른한 결', 보통: '평소 결', 생생: '기운이 도는 결' };
+const energyTone = { droop: '축 처져서 나른한 결', normal: '평소 결', vivid: '기운이 도는 결' };
 
 /** 미리 채워 둘 자리 전부 — 어디에 무슨 말을 지어야 하는지. */
 function slotsToFill() {
@@ -658,10 +658,10 @@ ${tallyReport(tally)}`;
       // 하나뿐이라 고를 게 없던 것을, 결이 다른 셋으로 갈라 둔다.
       voices: {
         '느긋한': join(piperRoot, 'ko-espeak.onnx'),
-        '보통': join(piperRoot, 'ko-espeak.onnx'),
+        'normal': join(piperRoot, 'ko-espeak.onnx'),
         '또렷한': join(piperRoot, 'ko-espeak.onnx'),
       },
-      lengthScaleFor: { '느긋한': 1.22, '보통': 1.05, '또렷한': 0.92 },
+      lengthScaleFor: { '느긋한': 1.22, 'normal': 1.05, '또렷한': 0.92 },
       log: (m) => console.log(`[목소리] ${m}`),
     };
     const engines = [];
@@ -864,11 +864,11 @@ if (screenMs > 0) {
 
 // 입 앞의 관문. 새면 한 번만 다시 시키고, 그래도 새면 짧게 넘긴다 —
 // 새는 말을 하느니 「…」 한 글자가 낫다. 다만 입을 다물지는 않는다(침묵은 고장처럼 보인다).
-// 얼굴 표(`[처짐]`)는 **기억에 남기기 전에** 지워야 한다.
+// 얼굴 표(`[droop]`)는 **기억에 남기기 전에** 지워야 한다.
 //
 // 창 쪽에서도 지우고 있었지만, 기억에 남기는 일은 그보다 **먼저** 일어난다. 그래서 실제로
-// 「[처짐] …또 붙들었네.」가 통째로 대화에 저장됐다(실측 31회차). 저장된 표는 다음 번
-// 재료가 되어 얘가 제 표를 흉내 내게 되고, 소리로도 「대괄호 처짐 대괄호」를 읽는다.
+// 「[droop] …또 붙들었네.」가 통째로 대화에 저장됐다(실측 31회차). 저장된 표는 다음 번
+// 재료가 되어 얘가 제 표를 흉내 내게 되고, 소리로도 「대괄호 droop 대괄호」를 읽는다.
 const stripMarks = (text) => stripExpression(text).text || text;
 // 이번 turn 에 실제로 쓴 손. core 가 알려 준다.
 let writer = [];

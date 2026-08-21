@@ -18,9 +18,9 @@ import { usual } from './feeling';
  * 두뇌가 표를 안 달아도 돌아가야 한다. 표에만 기대면 두뇌를 갈아 끼우는 순간 얼굴이 죽는다.
  * 그래서 **마음에서 저절로 유도**하고, 표가 있으면 그게 이긴다.
  */
-export type Expression = '평온' | '웃음' | '놀람' | '뾰족' | '처짐' | '졸림';
+export type Expression = '평온' | '웃음' | '놀람' | '뾰족' | 'droop' | '졸림';
 
-const emojis: readonly Expression[] = ['평온', '웃음', '놀람', '뾰족', '처짐', '졸림'];
+const emojis: readonly Expression[] = ['평온', '웃음', '놀람', '뾰족', 'droop', '졸림'];
 
 /** 아는 표정인가. */
 export function isExpression(x: string): x is Expression {
@@ -85,7 +85,7 @@ export function expressionFrom(input: ExpressionInput): Expression {
   const a = input.feeling.arousal - usual.arousal;
   if (a >= 0.25) return v < -0.15 ? '뾰족' : '놀람';
   if (a <= -0.45) return '졸림';
-  if (a <= -0.25) return v > 0.15 ? '평온' : '처짐';
+  if (a <= -0.25) return v > 0.15 ? '평온' : 'droop';
   if (v >= 0.3) return '웃음';
   if (v <= -0.3) return '뾰족';
   return '평온';

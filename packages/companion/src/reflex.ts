@@ -14,7 +14,7 @@
  */
 
 export interface ReflexOptions {
-  /** 0(축 처짐) ~ 1(생생함). */
+  /** 0(축 droop) ~ 1(생생함). */
   energy?: number;
   /** 직전에 반사로 한 말 — 같은 걸 연달아 하지 않게. */
   last?: string | null;
@@ -28,9 +28,9 @@ export interface ReflexOptions {
   store?: { raise: (kind: string) => string | null };
 }
 
-/** 지금 기운이 어느 결인가 — 처짐 / 보통 / 생생. */
-export function reflexTone(energy: number): '처짐' | '보통' | '생생' {
-  return energy < 0.35 ? '처짐' : energy > 0.75 ? '생생' : '보통';
+/** 지금 기운이 어느 결인가 — droop / normal / vivid. */
+export function reflexTone(energy: number): 'droop' | 'normal' | 'vivid' {
+  return energy < 0.35 ? 'droop' : energy > 0.75 ? 'vivid' : 'normal';
 }
 
 /** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
@@ -44,26 +44,26 @@ export function reflexKinds(): readonly string[] {
 }
 
 /** 상황마다, 결마다 다른 대꾸. */
-const reply: Record<string, { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] }> = {
+const reply: Record<string, { droop: readonly string[]; normal: readonly string[]; vivid: readonly string[] }> = {
   '인사': {
-    처짐: ['…응, 왔어.', '어… 왔네.', '음… 안녕.'],
-    보통: ['응, 왔네.', '어, 안녕.', '왔어?'],
-    생생: ['오, 왔네!', '어 안녕.', '왔구나.'],
+    droop: ['…응, 왔어.', '어… 왔네.', '음… 안녕.'],
+    normal: ['응, 왔네.', '어, 안녕.', '왔어?'],
+    vivid: ['오, 왔네!', '어 안녕.', '왔구나.'],
   },
   '작별': {
-    처짐: ['응… 잘 가.', '어… 나중에.', '음… 잘 자.'],
-    보통: ['응, 잘 가.', '어, 나중에 봐.', '잘 자.'],
-    생생: ['그래, 잘 가.', '응 나중에!', '잘 자, 조수님.'],
+    droop: ['응… 잘 가.', '어… 나중에.', '음… 잘 자.'],
+    normal: ['응, 잘 가.', '어, 나중에 봐.', '잘 자.'],
+    vivid: ['그래, 잘 가.', '응 나중에!', '잘 자, 조수님.'],
   },
   '고마움': {
-    처짐: ['…응.', '뭘.', '음… 됐어.'],
-    보통: ['응, 뭘.', '별거 아냐.', '됐어.'],
-    생생: ['응! 뭘 이런 걸로.', '별거 아니야.', '그래그래.'],
+    droop: ['…응.', '뭘.', '음… 됐어.'],
+    normal: ['응, 뭘.', '별거 아냐.', '됐어.'],
+    vivid: ['응! 뭘 이런 걸로.', '별거 아니야.', '그래그래.'],
   },
   '호응': {
-    처짐: ['응…', '음…', '그래…'],
-    보통: ['응.', '그래.', '음.'],
-    생생: ['응응.', '그래그래.', '오케이.'],
+    droop: ['응…', '음…', '그래…'],
+    normal: ['응.', '그래.', '음.'],
+    vivid: ['응응.', '그래그래.', '오케이.'],
   },
 };
 
@@ -93,7 +93,7 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   const prepared = options.store?.raise(reflexKind(hit.kind, tone2)) ?? null;
   if (prepared !== null && prepared !== options.last) return prepared;
 
-  const set = reply[hit.kind] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };
+  const set = reply[hit.kind] as { droop: readonly string[]; normal: readonly string[]; vivid: readonly string[] };
   const pool = set[tone2];
 
   const usable = pool.filter((p) => p !== options.last);
