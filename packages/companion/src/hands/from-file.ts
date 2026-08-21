@@ -24,6 +24,9 @@ import { searchWeb, readIn } from './web';
    보내거나 바꾸지 않는다. 「이 명령을 실행해라」 갈래를 안 두는 원칙은 그대로다. */
 export type HandKind = 'read-file' | 'read-dir' | 'web-search' | 'read-web';
 
+/** 지금 파일로 만들 수 있는 손은 **전부 읽기**다 — 그래서 기본은 「되돌릴 수 있다」. */
+const readOnlyKinds: readonly HandKind[] = ['read-file', 'read-dir', 'web-search', 'read-web'];
+
 export interface HandSpec {
   name: string;
   /** 무슨 일인지 — 그대로 두뇌에 간다. */
@@ -31,6 +34,11 @@ export interface HandSpec {
   /** 무엇을 넘겨야 하는지. */
   needs?: string;
   kind: HandKind;
+  /**
+   * 되돌릴 수 있나. 안 적으면 **갈래로 정한다** — 읽기·찾기는 되돌릴 수 있고,
+   * 그 밖은 못 되돌리는 것으로 친다(모르면 안전 쪽).
+   */
+  undoable?: boolean;
   /** 읽을 파일이나 폴더. */
   path: string;
   /** 찾아온 것을 보고 다시 생각해야 하나. 읽는 손은 대개 그렇다. */
@@ -73,6 +81,7 @@ export function readSpec(raw: unknown): HandSpec | null {
     what: x.what.trim(),
     needs: typeof x.needs === 'string' ? x.needs : '(없어도 된다)',
     kind: x.kind as HandKind,
+    undoable: typeof x.undoable === 'boolean' ? x.undoable : readOnlyKinds.includes(x.kind as HandKind),
     path: typeof x.path === 'string' ? x.path.trim() : '',
     feedsBack: x.feedsBack !== false,
     limit: typeof x.limit === 'number' && x.limit > 0 ? x.limit : undefined,
@@ -99,6 +108,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
       what: spec.what,
       needs: spec.needs ?? '(없어도 된다)',
       feedsBack: spec.feedsBack,
+      undoable: spec.undoable,
       run: (argument: string): Promise<string> =>
         spec.kind === 'web-search'
           ? searchWeb(argument, { count: spec.limit, log: options.log })
@@ -116,6 +126,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
     what: spec.what,
     needs: spec.needs ?? '(없어도 된다)',
     feedsBack: spec.feedsBack,
+    undoable: spec.undoable,
     async run(argument: string): Promise<string> {
       try {
         if (spec.kind === 'read-file') {

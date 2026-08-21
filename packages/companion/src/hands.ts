@@ -21,6 +21,18 @@ export interface Hand {
    * 답할 수 있다. 되돌려주지 않으면 얘는 찾아놓고도 모른 채로 답한다.
    */
   readonly feedsBack?: boolean;
+  /**
+   * 이 손이 한 일을 **되돌릴 수 있나.**
+   *
+   * 밖에서도 화면을 만지는 물건의 기준은 하나다 — 되돌릴 수 있나. 되돌릴 수 있는 것
+   * (읽기·찾기)은 안 묻는다. **다 물으면 아무도 안 읽는다.** 못 되돌리는 것(지우기·보내기·
+   * 남의 프로그램 열기)만 사람에게 묻는다. 판단을 두뇌에 맡기지 않고 규칙으로 잠근다
+   * (42회차: 말로 시킨 것은 안 지켜진다).
+   *
+   * **안 적으면 「못 되돌린다」로 친다.** 손을 새로 만든 사람이 표시를 잊었을 때 조용히
+   * 위험한 쪽으로 열리면 안 된다.
+   */
+  readonly undoable?: boolean;
   /** 무슨 일인지 — 이 설명이 그대로 두뇌에 전달된다. */
   readonly what: string;
   /** 무엇을 넘겨야 하는지. */
@@ -71,10 +83,16 @@ export function describeHands(hands: readonly Hand[]): string {
 }
 
 /** 표시된 일들을 실제로 한다. 하나가 실패해도 나머지는 한다. */
+export interface HandGate {
+  /** 못 되돌리는 손을 쓰기 전에 묻는 자리. true 면 쓴다. */
+  allow(hand: Hand, request: HandRequest): Promise<boolean>;
+}
+
 export async function useHands(
   hands: readonly Hand[],
   requests: readonly HandRequest[],
   log?: (message: string) => void,
+  gate?: HandGate,
 ): Promise<string[]> {
   const done: string[] = [];
   for (const request of requests) {
@@ -82,6 +100,25 @@ export async function useHands(
     if (hand === undefined) {
       log?.(`그런 손은 없다: ${request.name}`);
       continue;
+    }
+    /* 못 되돌리는 손은 사람 확인 전에는 안 쓴다.
+       물어볼 자리가 아예 없으면 **안 쓴다** — 모르면 안전 쪽으로. */
+    if (hand.undoable !== true) {
+      if (gate === undefined) {
+        log?.(`${hand.name} 은 되돌릴 수 없어 물어봐야 하는데, 물어볼 자리가 없다 — 안 했다`);
+        continue;
+      }
+      let allowed = false;
+      try {
+        allowed = await gate.allow(hand, request);
+      } catch (e) {
+        log?.(`${hand.name} 을 물어보다 실패했다: ${e instanceof Error ? e.message : String(e)}`);
+        continue;
+      }
+      if (allowed === false) {
+        log?.(`${hand.name} 은 조수님이 안 된다고 해서 안 했다`);
+        continue;
+      }
     }
     try {
       done.push(await hand.run(request.argument));
@@ -96,6 +133,8 @@ export async function useHands(
 export function noteHand(path: string): Hand {
   return {
     name: '적어두기',
+    /* 우리 파일에 한 줄 쌓을 뿐이라 지우면 그만이다 */
+    undoable: true,
     what: '이 사람이 나중에 다시 봐야 할 것을 적어 둔다',
     needs: '적을 내용',
     async run(argument: string): Promise<string> {
@@ -111,6 +150,8 @@ export function noteHand(path: string): Hand {
 export function remindHand(schedule: (afterMs: number, text: string) => void): Hand {
   return {
     name: '알려주기',
+    /* 나중에 말을 거는 것뿐 — 밖을 안 만진다 */
+    undoable: true,
     what: '얼마 뒤에 다시 말을 걸어 알려준다',
     needs: '분 단위 시간 | 알릴 내용',
     async run(argument: string): Promise<string> {
@@ -139,6 +180,8 @@ export function recallHand(
 ): Hand {
   return {
     name: '기억찾기',
+    /* 읽기만 한다 */
+    undoable: true,
     feedsBack: true,
     what: '예전에 나눈 말 중에서 그 낱말이 든 것을 찾는다',
     needs: '찾을 낱말',

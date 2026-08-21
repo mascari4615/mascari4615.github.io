@@ -49,8 +49,8 @@ test('알려주기에 엉뚱한 걸 주면 조용히 넘어가지 않는다', as
 
 test('없는 손을 부르거나 하나가 실패해도 나머지는 한다', async () => {
   const done = [];
-  const good = { name: '되는손', what: '', needs: '', async run(a) { done.push(a); return 'ok'; } };
-  const bad = { name: '터지는손', what: '', needs: '', async run() { throw new Error('터짐'); } };
+  const good = { name: '되는손', what: '', needs: '', undoable: true, async run(a) { done.push(a); return 'ok'; } };
+  const bad = { name: '터지는손', what: '', needs: '', undoable: true, async run() { throw new Error('터짐'); } };
   const results = await useHands([good, bad], [
     { name: '없는손', argument: 'x' },
     { name: '터지는손', argument: 'y' },
@@ -68,7 +68,7 @@ test('할 수 있는 일 안내에는 부르는 법이 들어간다', () => {
 test('코어를 지나면 손 표시는 사람에게 안 보이고 일은 실제로 된다', async () => {
   const spoken = [];
   const used = [];
-  const hand = { name: '적어두기', what: '', needs: '', async run(a) { used.push(a); return 'ok'; } };
+  const hand = { name: '적어두기', what: '', needs: '', undoable: true, async run(a) { used.push(a); return 'ok'; } };
   const brain = { name: 'b', async think() { return '알겠다. [[적어두기: 우유]] 이따 보자.'; } };
   const body = {
     name: 'test',
