@@ -172,7 +172,7 @@ const M = await loadModules();
   check(time.get('b').x < time.get('a').x, '연표는 작은 값이 왼쪽');
   check(!time.has('c'), '시점이 없는 것은 안 옮긴다');
   eq(tidy.bestTimeField([{ fields: { 첫등장: '3화' } }, { fields: { 첫등장: '9화' } }]), '첫등장', '숫자가 많은 칸이 시간축');
-  eq(tidy.bestTimeField([{ fields: { 메모: '3' } }]), null, '한 곳뿐이면 축이 아니다');
+  eq(tidy.bestTimeField([{ fields: { memo: '3' } }]), null, '한 곳뿐이면 축이 아니다');
 
   // 멱등 — 이미 안 겹치는 배치에서는 아무것도 안 바뀌어야 한다.
   const spread = [{ id: 'a', x: 0, y: 0, w: 50, h: 20 }, { id: 'b', x: 400, y: 400, w: 50, h: 20 }];

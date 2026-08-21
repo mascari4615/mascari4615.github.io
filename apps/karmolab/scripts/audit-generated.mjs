@@ -66,8 +66,8 @@ for (const item of generated) {
     console.log(`[audit-generated] ${item.outputs.join(', ')} — 여기서 안 굽는다 (${item.weight})`);
     continue;
   }
-  if (item.못잼) {
-    console.log(`[audit-generated] ${item.outputs.join(', ')} — 못 잰다(${item.못잼}) · 새벽 refresh-generated 가 굽는다`);
+  if (item.couldNotMeasure) {
+    console.log(`[audit-generated] ${item.outputs.join(', ')} — 못 잰다(${item.couldNotMeasure}) · 새벽 refresh-generated 가 굽는다`);
     continue;
   }
   /* 되돌릴 수 있게 먼저 담아 둔다 — git 에 기대지 않는다(이 트리는 여러 세션이 함께 쓴다). */
@@ -139,4 +139,4 @@ if (reallyStale.length) {
 }
 
 /* 초록도 한 줄 남긴다 — 「아무 말 없음」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[audit-generated] 파생물 ${generated.filter((x) => !x.못잼 && !x.weight).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);
+console.log(`[audit-generated] 파생물 ${generated.filter((x) => !x.couldNotMeasure && !x.weight).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);

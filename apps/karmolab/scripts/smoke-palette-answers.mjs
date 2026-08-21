@@ -83,7 +83,7 @@ async function askTool(toolId, fills) {
       const why = await page.evaluate((id) => ({
         shell: typeof Toolbox !== 'undefined',
         slot: !!document.getElementById(`page-${id}`),
-        본문: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
+        body: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
       }), toolId).catch(() => null);
       throw new Error(`${toolId}: ${String(error.message).slice(0, 60)} — ${JSON.stringify(why)}`);
     });

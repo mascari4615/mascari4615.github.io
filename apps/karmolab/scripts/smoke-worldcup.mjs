@@ -68,8 +68,8 @@ if (packCount > 0) {
       고른표: document.querySelector('#wcPacks button[aria-pressed="true"]')?.textContent?.trim().slice(0, 20)
         || document.querySelector('#wcPacks button')?.textContent?.trim().slice(0, 20),
       text: (document.getElementById('wcPackMsg')?.textContent || '').trim().slice(0, 60),
-      라운드: [...document.querySelectorAll('#wcRounds button')].map((b) => b.textContent.trim()).join(','),
-      시작막힘: document.getElementById('wcStart')?.hasAttribute('disabled')
+      round: [...document.querySelectorAll('#wcRounds button')].map((b) => b.textContent.trim()).join(','),
+      startBlocked: document.getElementById('wcStart')?.hasAttribute('disabled')
     })).catch(() => null);
     problems.push(`시작을 눌렀는데 판이 안 열린다 — ${JSON.stringify(why)}`);
   });
