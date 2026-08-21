@@ -26,7 +26,7 @@ export interface WebSearchOptions {
   /** 이 시간 안에 못 받으면 포기 — 곁에 있는 존재가 검색 때문에 굳으면 안 된다. */
   waitMs?: number;
   /** 시험에서 갈아끼운다. */
-  가져오기?: (url: string, signal: AbortSignal) => Promise<string>;
+  fetch?: (url: string, signal: AbortSignal) => Promise<string>;
   log?: (message: string) => void;
 }
 
@@ -98,7 +98,7 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
 
   const count2 = options.count ?? 5;
   const waited = options.waitMs ?? 8000;
-  const fetch2 = options.가져오기 ?? defaultFetch;
+  const fetch2 = options.fetch ?? defaultFetch;
   const controller = new AbortController();
   const clock = setTimeout(() => controller.abort(), waited);
   try {
@@ -128,7 +128,7 @@ export async function readIn(url2: string, options: WebSearchOptions & { charCou
   if (/^https?:\/\//.test(place) === false) return '주소가 아니다 (http 로 시작해야 한다).';
 
   const waited2 = options.waitMs ?? 8000;
-  const fetch3 = options.가져오기 ?? defaultFetch;
+  const fetch3 = options.fetch ?? defaultFetch;
   const controller = new AbortController();
   const clock2 = setTimeout(() => controller.abort(), waited2);
   try {

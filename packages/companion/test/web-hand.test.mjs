@@ -24,19 +24,19 @@ test('결과를 뽑고, 감싸 둔 주소를 원래대로 푼다', () => {
 });
 
 test('찾아서 사람이 읽는 글로 준다', async () => {
-  const content = await 웹에서찾기('다람쥐', { 가져오기: async () => fakeResult });
+  const content = await 웹에서찾기('다람쥐', { fetch: async () => fakeResult });
   assert.match(content, /다람쥐 - 위키백과/);
   assert.match(content, /https:\/\/ko\.wikipedia\.org/);
 });
 
 test('못 찾으면 못 찾았다고 한다 — 지어내는 것보다 낫다', async () => {
-  const content2 = await 웹에서찾기('없는것', { 가져오기: async () => '<html>아무것도 없음</html>' });
+  const content2 = await 웹에서찾기('없는것', { fetch: async () => '<html>아무것도 없음</html>' });
   assert.match(content2, /못 찾았다/);
 });
 
 test('저쪽이 죽어도 얘는 안 죽는다', async () => {
   const content3 = await 웹에서찾기('아무거나', {
-    가져오기: async () => {
+    fetch: async () => {
       throw new Error('HTTP 503');
     },
   });
@@ -47,7 +47,7 @@ test('저쪽이 죽어도 얘는 안 죽는다', async () => {
 test('오래 걸리면 포기한다 — 검색 때문에 곁의 존재가 굳으면 안 된다', async () => {
   const content4 = await 웹에서찾기('느린것', {
     waitMs: 60,
-    가져오기: (url, signal) =>
+    fetch: (url, signal) =>
       new Promise((_, reject) => {
         signal.addEventListener('abort', () => {
           const e = new Error('abort');
@@ -63,7 +63,7 @@ test('오래 걸리면 포기한다 — 검색 때문에 곁의 존재가 굳으
 test('빈 물음은 밖에 안 나간다', async () => {
   let called = false;
   const content5 = await 웹에서찾기('   ', {
-    가져오기: async () => {
+    fetch: async () => {
       called = true;
       return '';
     },
@@ -74,7 +74,7 @@ test('빈 물음은 밖에 안 나간다', async () => {
 
 test('페이지를 열면 대본·모양자를 걷어내고 글만 준다', async () => {
   const content6 = await 읽어오기('https://example.com', {
-    가져오기: async () => '<html><script>var x=1;</script><style>a{}</style><p>도토리는 맛있다</p></html>',
+    fetch: async () => '<html><script>var x=1;</script><style>a{}</style><p>도토리는 맛있다</p></html>',
   });
   assert.equal(content6, '도토리는 맛있다');
 });

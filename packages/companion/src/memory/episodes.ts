@@ -110,7 +110,7 @@ export class EpisodeStore {
     let storedCount = 0;
     for (const e of entries) {
       if (e.role !== 'sensed' || e.channel !== 'web') continue;
-      if (this.있나(e.text)) continue;
+      if (this.has(e.text)) continue;
       const energy = measureEnergy(e.text);
       if (energy < this.options.문턱) {
         // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
@@ -126,7 +126,7 @@ export class EpisodeStore {
   }
 
   /** 이 말이 이미 사건으로 들어와 있나. */
-  private 있나(text: string): boolean {
+  private has(text: string): boolean {
     const text4 = text.trim();
     return this.list.some((existing) => existing.said === text4);
   }
@@ -178,7 +178,7 @@ export class EpisodeStore {
     let storedCount2 = 0;
     bundle.forEach(([말, at], i) => {
       const energy2 = Math.round(scores![i]);
-      if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.있나(말)) return;
+      if (Number.isFinite(energy2) === false || energy2 < this.options.문턱 || this.has(말)) return;
       this.store({ said: 말, at, energy: energy2 });
       storedCount2 += 1;
     });

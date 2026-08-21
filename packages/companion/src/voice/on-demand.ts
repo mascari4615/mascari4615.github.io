@@ -25,7 +25,7 @@ export interface 수요기동옵션 {
   /** 사람이 읽는 이름. */
   이름: string;
   /** 지금 떠 있나. */
-  살았나: () => Promise<boolean>;
+  isAlive: () => Promise<boolean>;
   /** 띄운다. 오래 걸려도 된다 — 기다리지 않는다. */
   show: () => void | Promise<void>;
   /** 끈다. */
@@ -83,7 +83,7 @@ export class demandBoot {
     if (this.지금 - this.마지막확인 >= interval) {
       this.마지막확인 = this.지금;
       try {
-        this.appeared = await this.options.살았나();
+        this.appeared = await this.options.isAlive();
       } catch {
         this.appeared = false;
       }
@@ -126,7 +126,7 @@ export class demandBoot {
       await new Promise((r) => setTimeout(r, interval2));
       let isAlive = false;
       try {
-        isAlive = await this.options.살았나();
+        isAlive = await this.options.isAlive();
       } catch {
         isAlive = false;
       }

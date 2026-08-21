@@ -35,7 +35,7 @@ for (const id of IDS) {
   for (const e of cov) {
     const name = e.url.split('/').pop().split('?')[0];
     if (!/^(tools|shell-critical)\./.test(name)) continue;
-    const cell = sum.get(name) || { 전체: e.text.length, 쓴자리: new Set() };
+    const cell = sum.get(name) || { all: e.text.length, 쓴자리: new Set() };
     cell.전체 = Math.max(cell.전체, e.text.length);
     for (const r of e.ranges) for (let i = r.start; i < r.end; i += 1) cell.쓴자리.add(i);
     sum.set(name, cell);

@@ -589,9 +589,9 @@ const web = webBody({
        놓고 됐다고 하지 않으려고 같이 센다 — 오늘만 그런 자리를 셋 찾았다. */
     const recent4 = typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(200) : [];
     const followUp = followUpRatio(Array.isArray(recent4) ? recent4 : []);
-    const line4 = followUp.전체 === 0
+    const line4 = followUp.all === 0
       ? '되물음 — 잰 말 없음'
-      : `되물음 ${followUp.followUp}/${followUp.전체} (${Math.round((followUp.followUp / followUp.전체) * 100)}%)`;
+      : `되물음 ${followUp.followUp}/${followUp.all} (${Math.round((followUp.followUp / followUp.all) * 100)}%)`;
     return `${line4}
 
 ${tallyReport(tally)}`;
@@ -690,7 +690,7 @@ ${tallyReport(tally)}`;
        말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
     stubBoot = new 수요기동({
       이름: '흉내 낸 목소리',
-      살았나: () => stub.alive(),
+      isAlive: () => stub.alive(),
       show: () => startStubServer(),
       stop: () => stopStubServer(),
       stopIfIdleMs: () => Number(settings.get('애니목소리쉬는분')) * 60_000,

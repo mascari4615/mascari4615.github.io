@@ -280,7 +280,7 @@ function writeBaseline() {
     JSON.stringify(
       {
         note: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
-        갱신: new Date().toISOString().slice(0, 10),
+        updated: new Date().toISOString().slice(0, 10),
         list: orphans,
         사유: Object.fromEntries(orphans.map((n) => [n, previous[n] || reasonNote[n] || branch(n)])),
         /* ★ **새 칸을 안 적으면 자동 조임이 그것을 날린다** (2026-08-17 실측). 어제 넣은

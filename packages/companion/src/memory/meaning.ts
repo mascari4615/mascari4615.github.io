@@ -94,7 +94,7 @@ export class meaningMemory {
   }
 
   /** 이미 담긴 말인가. */
-  private 있나(text: string): boolean {
+  private has(text: string): boolean {
     return this.stored.some((line2) => line2.text === text);
   }
 
@@ -111,7 +111,7 @@ export class meaningMemory {
       for (const e of entries) {
         const content2 = (e.text ?? '').trim();
         // 아주 짧은 말은 뜻이 없다 — 「응」 「뭐」가 색인을 채우면 아무거나 닮아 보인다.
-        if (content2.length < 6 || this.있나(content2)) continue;
+        if (content2.length < 6 || this.has(content2)) continue;
         const v = await this.options.measure.measure(content2);
         if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
         this.stored.push({ text: content2, at: e.at, v: [...v] });

@@ -110,7 +110,7 @@ if (process.argv.includes('--update')) {
     JSON.stringify(
       {
         note: '통과 조건에 「또는」이 든 검사 — 줄기만 한다. 느슨한 쪽이 늘 이긴다 (audit-loose-checks.mjs)',
-        갱신: new Date().toISOString().slice(0, 10),
+        updated: new Date().toISOString().slice(0, 10),
         list: found
       },
       null,
