@@ -7,22 +7,13 @@ using UnityEngine;
 namespace Handheld
 {
     /// <summary>
-    /// 폰과의 WebRTC 연결 한 벌. TASK-KAR-245.
+    /// 폰과의 WebRTC 연결 한 벌 — 영상은 H.264 트랙, 포즈는 DataChannel.
     ///
-    /// **왜 WebRTC 인가** (2026-08-21 정정된 근거):
-    ///   ① 뷰파인더 MJPEG 이 862KB/s ≈ 7Mbps 의 PC **업링크**를 먹는다 — OBS 송출이 같은
-    ///      회선을 쓴다. H.264 델타 압축이면 1/8 로 준다.
-    ///   ② 폰이 초당 30~60장을 JPEG 디코드하느라 CPU 를 WebXR rAF 와 나눠 쓴다 =
-    ///      **포즈 생성 자체가 늦어진다.** 하드웨어 H.264 디코드는 그 비용이 거의 0.
-    ///   (예전에 적었던 「영상이 포즈를 막는다」는 **틀렸다** — TCP 는 전이중이고 둘은
-    ///    방향이 반대다. 그 문장에 기대지 마라.)
+    /// **MJPEG 을 지우지 않는다.** 영상 트랙은 Play 를 요구하는데 이 리그는 Play 없이도
+    /// 쓰는 물건이다. WebRTC 가 *더 좋은 길*, MJPEG 이 *늘 있는 길* — 안 붙으면 조용히
+    /// 그리로 떨어진다. 시그널링은 이미 있는 WS 를 쓴다(`w|...`).
     ///
-    /// **MJPEG 을 지우지 않는다.** 이 리그는 Play 없이도 쓰는 물건인데 영상 트랙은 Play 를
-    /// 요구한다(`WebRTC.Update()` 가 `WaitForEndOfFrame` 을 기다린다). 그래서 WebRTC 는
-    /// *더 좋은 길*이고 MJPEG 은 *늘 있는 길*이다 — 안 붙으면 조용히 그리로 떨어진다.
-    /// 방송 중에 길이 하나뿐이면 그 길이 막힐 때 방송이 멈춘다.
-    ///
-    /// 시그널링은 **이미 있는 WS** 를 쓴다(`w|...`). 서버를 하나 더 세우지 않는다.
+    /// 근거와 실측: `Documentation~/transport.md`.
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Handheld/Handheld WebRTC")]

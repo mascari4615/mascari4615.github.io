@@ -8,16 +8,11 @@ using UnityEngine;
 namespace Handheld
 {
     /// <summary>
-    /// 포즈를 단계별로 CSV 에 적는다 — 「좌우 회전이 튄다 / 저 혼자 움직인다」가
-    /// **폰에서 오는지 유니티에서 생기는지**를 가르려고 있다. TASK-KAR-230.
+    /// 포즈를 단계별로 CSV 에 적는다 — 튐이 **폰에서 오는지 우리 코드에서 생기는지**를
+    /// 가르려고 있다. 같은 순번(seq)으로 세 지점을 묶는다:
+    ///   raw = 폰 원본 · conv = 좌표 변환 + 추적 안정기 뒤 · shown = 리센터·보간 뒤
     ///
-    /// 세 지점을 같은 순번(seq)으로 묶어 적는다:
-    ///   raw    = 폰이 보낸 줄 그대로 (WebXR 원본, 우리가 손대기 전)
-    ///   conv   = Unity 좌표계로 옮기고 **추적 불연속을 걷어낸 뒤** (TrackingStabilizer)
-    ///   shown  = 리센터·보간까지 먹인 뒤 (실제로 카메라가 선 자리)
-    ///
-    /// raw 에서 이미 튀면 ARCore/폰, shown 에서만 튀면 우리 코드다.
-    /// raw 는 튀는데 conv 는 안 튀면 = 재정위를 안정기가 제대로 흡수한 것이다.
+    /// 읽는 법과 판정기는 `Documentation~/measuring.md`.
     /// 쓰기는 파일 스레드에서만 한다 — 소켓·메인 스레드를 막지 않는다.
     /// </summary>
     public sealed class HandheldLog : IDisposable

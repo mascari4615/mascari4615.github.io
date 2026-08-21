@@ -1,5 +1,5 @@
 {
-    "name": "Handheld.Urp",
+    "name": "Karmo.Handheld.Urp",
     "rootNamespace": "Handheld.Urp",
     "references": [
         "Unity.RenderPipelines.Universal.Runtime",

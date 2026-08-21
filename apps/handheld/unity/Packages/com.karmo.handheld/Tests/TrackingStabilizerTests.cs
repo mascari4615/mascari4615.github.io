@@ -7,17 +7,14 @@ using UnityEngine;
 namespace Handheld.Tests
 {
     /// <summary>
-    /// **실제로 사고가 난 기록**을 그대로 흘려 넣는다. 합성 자료로는 이 사건을 못 만든다 —
-    /// 재정위가 언제 어떤 모양으로 오는지는 ARCore 만 안다. 세 기록은 2026-08-21 에
-    /// 폰에서 받은 것이고, 각각 다른 얼굴의 같은 사건을 담고 있다:
+    /// **실제로 사고가 난 기록**을 그대로 흘려 넣는다 — 합성으로는 이 사건을 못 만든다.
     ///   reloc-teleport-3m   공백 439ms 뒤 3.17m · 요 110°
-    ///   reloc-spin-132deg   공백 1840ms 뒤 1.27m · 요 -132°   (+ 2963ms 뒤 롤 -75°)
-    ///   reloc-clock-back    공백 15646ms · **폰 시각이 뒤로 갔다** (세션 재시작)
+    ///   reloc-spin-132deg   공백 1840ms 뒤 1.27m · 요 -132°  (+ 2963ms 뒤 롤 -75°)
+    ///   reloc-clock-back    공백 15646ms · 폰 시각이 뒤로 갔다 (세션 재시작)
     ///
-    /// 판정은 둘이다. ① 어느 걸음도 **사람이 낼 수 없는 속도**를 내지 않는다.
-    /// ② 추적이 끊긴 자리(공백·시각 역행)에서는 **카메라가 멈춰 있다** — 사고의 본체가
-    /// 거기였다. ②가 없으면 ①만으로는 못 잡는다: 3초 공백이면 5m/s 한도가 15m 가 되어
-    /// 3m 순간이동도 통과해 버린다.
+    /// 판정 둘: ① 어느 걸음도 사람이 낼 수 없는 속도를 내지 않는다 ② 추적이 끊긴
+    /// 자리에서는 멈춰 있다. ②가 없으면 3초 공백에서 한도가 15m 가 되어 다 통과한다.
+    /// 배경: `Documentation~/tracking.md`.
     /// </summary>
     public class TrackingStabilizerTests
     {
@@ -52,8 +49,9 @@ namespace Handheld.Tests
             public Quaternion Rot;
         }
 
+        // 패키지 안의 자리. 유니티가 "Packages/<이름>/..." 을 실제 경로로 풀어 준다.
         static string FixturePath(string name) =>
-            Path.Combine(Application.dataPath, "Handheld", "Tests", "Fixtures", name);
+            Path.GetFullPath("Packages/com.karmo.handheld/Tests/Fixtures/" + name);
 
         /// <summary>
         /// 성한 줄만 읽는다. 기록을 닫기 전에 프로세스가 죽으면 마지막 줄이 반쪽으로
