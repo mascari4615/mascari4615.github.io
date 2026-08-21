@@ -43,7 +43,7 @@ export interface StockOptions {
 
 interface 담긴것 {
   whom: string;
-  말들: string[];
+  lines: string[];
 }
 
 /** 지어 온 덩어리에서 쓸 만한 줄만 골라낸다. */
@@ -89,7 +89,7 @@ export class lineStore {
     try {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, 담긴것>;
       for (const [kind, value] of Object.entries(parsed)) {
-        if (Array.isArray(value?.말들)) this.stored.set(kind, { whom: value.whom ?? '', 말들: [...value.말들] });
+        if (Array.isArray(value?.lines)) this.stored.set(kind, { whom: value.whom ?? '', lines: [...value.lines] });
       }
     } catch {
       // 깨진 파일 하나 때문에 얘가 못 뜨면 안 된다 — 없는 셈 치고 다시 채운다.
@@ -111,7 +111,7 @@ export class lineStore {
   remaining(kind2: string): number {
     const item = this.stored.get(kind2);
     if (item === undefined || item.whom !== this.지금누구) return 0;
-    return item.말들.length;
+    return item.lines.length;
   }
 
   /**
@@ -120,8 +120,8 @@ export class lineStore {
    */
   raise(kind3: string): string | null {
     const item2 = this.stored.get(kind3);
-    if (item2 === undefined || item2.whom !== this.지금누구 || item2.말들.length === 0) return null;
-    const text = item2.말들.shift() as string;
+    if (item2 === undefined || item2.whom !== this.지금누구 || item2.lines.length === 0) return null;
+    const text = item2.lines.shift() as string;
     this.write();
     return text;
   }
@@ -159,9 +159,9 @@ export class lineStore {
         return 0;
       }
       const item3 = this.stored.get(kind4);
-      const already = item3 !== undefined && item3.whom === this.지금누구 ? item3.말들 : [];
+      const already = item3 !== undefined && item3.whom === this.지금누구 ? item3.lines : [];
       const merged = [...already, ...toWrite.filter((text2) => notStored(already, text2))].slice(0, this.max);
-      this.stored.set(kind4, { whom: this.지금누구, 말들: merged });
+      this.stored.set(kind4, { whom: this.지금누구, lines: merged });
       this.write();
       this.log(`[대사] ${kind4} — ${toWrite.length}개 담았다 (총 ${merged.length})`);
       return toWrite.length;

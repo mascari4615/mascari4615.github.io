@@ -44,10 +44,10 @@ const base = { minSeen: 40, commonThreshold: 0.5, cap: 12 };
 export function rarityBonus(m: Marks | undefined, options: 드묾옵션 = {}): number {
   const { minSeen: minSeen, commonThreshold: commonThreshold, cap: cap } = { ...base, ...options };
   if (m === undefined) return 0;
-  const elapsed = m.실림 + m.밀림 + m.꺼짐 + m.빔;
+  const elapsed = m.loaded + m.queued + m.off + m.blank;
   // 아직 얼마 안 돌았으면 아무 말도 안 한다 — 새 재료가 첫 turn 에 1등이 되면 안 된다.
   if (elapsed < minSeen) return 0;
-  const offRatio = m.꺼짐 / elapsed;
+  const offRatio = m.off / elapsed;
   if (offRatio <= commonThreshold) return 0;
   return Math.round((cap * (offRatio - commonThreshold)) / (1 - commonThreshold));
 }

@@ -971,7 +971,7 @@ const companion = new Companion({
     found2 = ctx.found ?? [];
     // **손도 센다.** 재료만 세고 손은 안 세면 「손을 안 쓴다」가 관찰 두 번짜리 인상으로
     // 남는다(41회차가 그랬다). 어느 손이 죽었는지는 세어 봐야 안다.
-    for (const h of hands) tally.mark(`손:${h.name}`, writer.includes(h.name) ? '실림' : '꺼짐');
+    for (const h of hands) tally.mark(`손:${h.name}`, writer.includes(h.name) ? 'loaded' : 'off');
     return stripMarks(await mouth(stripMarks(text), ctx) ?? '');
   },
   // 답이 늦으면 먼저 뜸을 낸다. 같은 지연도 뜸이 있으면 절반쯤으로 느껴진다.
@@ -1015,7 +1015,7 @@ const companion = new Companion({
         if (m.includes('못 썼다')) troubles.hit('못함', m);
       },
     });
-    for (const line5 of prewritten) tally.mark(`손:${line5.split(':')[0]}`, '실림');
+    for (const line5 of prewritten) tally.mark(`손:${line5.split(':')[0]}`, 'loaded');
     return [...old, ...prewritten];
   },
   // 기분 — 시간대·혼자 있던 시간·최근 대화량으로 흐른다. 매번 같은 결로 말하지 않게.

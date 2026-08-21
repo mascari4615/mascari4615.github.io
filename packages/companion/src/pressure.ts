@@ -67,8 +67,8 @@ export class pendingThoughts {
    * - **실림** = 말했다 → 풀린다.
    * - **꺼짐/빔** = 지금 자리에 없는 얘기다 → 쌓아 두면 엉뚱한 때 튀어나온다. 지운다.
    */
-  write = (name2: string, ok: '실림' | '밀림' | '꺼짐' | '빔'): void => {
-    if (ok !== '밀림') { this.pressed.delete(name2); return; }
+  write = (name2: string, ok: 'loaded' | 'queued' | 'off' | 'blank'): void => {
+    if (ok !== 'queued') { this.pressed.delete(name2); return; }
     const previous = this.pressed.get(name2);
     this.pressed.set(name2, { count: (previous?.count ?? 0) + 1, lastTurn: this.turn });
   };
