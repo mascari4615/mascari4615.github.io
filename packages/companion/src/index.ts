@@ -14,6 +14,7 @@ export { previewBrain } from './brain/preview';
 export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
 export { dayMark, type DayMark, type DayMarkOptions } from './day-mark';
 export { promptParts } from './prompt-parts';
+export { voiceShape, usualVoice, type VoiceShape, type VoiceShapeOptions } from './voice-shape';
 export { selfScore, type SelfScoreOptions } from './self-score';
 export { checkDrift, driftWarning, avoidanceWarning, severeDrift, type Drift, type DriftRules } from './drift';
 export { reflexFor, reflexTone, reflexKind, reflexKinds, type ReflexOptions } from './reflex';
