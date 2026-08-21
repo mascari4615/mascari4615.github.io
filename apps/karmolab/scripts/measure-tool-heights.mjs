@@ -49,7 +49,19 @@ if (!hubRes.ok) {
   process.exit(1);
 }
 const ids = [...new Set([...(await hubRes.text()).matchAll(/\/karmolab\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
-const todo = force || check ? ids : ids.filter((id) => !prev[id]);
+/* ★ **한 도구만 다시 재는 길** (2026-08-21). 흔들리는 도구 하나를 다시 잠그려고 290장을
+   전부 재고 있었다(한 판 2분+). 그동안 다른 289개도 같이 다시 쓰이므로 <b>안 건드려도 될
+   값이 흔들릴 위험</b>까지 얹힌다. `out = { ...prev }` 라 고른 것만 갱신해도 나머지는 그대로다.
+   씀: `npm run measure:heights -- --force --only ghosttype` */
+const only = (() => {
+  const i = process.argv.indexOf('--only');
+  return i >= 0 ? process.argv[i + 1] : null;
+})();
+if (only && !ids.includes(only)) {
+  console.error(`[measure-heights] 그런 도구가 목록에 없다 — ${only}`);
+  process.exit(2);
+}
+const todo = only ? [only] : force || check ? ids : ids.filter((id) => !prev[id]);
 
 if (!todo.length) {
   console.log(`[measure-heights] 최신 상태 — ${ids.length}개 모두 기록에 있다 (다시 재려면 --force)`);
