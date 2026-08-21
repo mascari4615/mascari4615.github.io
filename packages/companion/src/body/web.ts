@@ -453,7 +453,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           const middle = sorted.length === 0 ? null : sorted[Math.floor(sorted.length / 2)];
           const worst = sorted.length === 0 ? null : sorted[sorted.length - 1];
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ 샘플수: sorted.length, 첫소리중앙값ms: middle, worstMs: worst }));
+          res.end(JSON.stringify({ sampleCount: sorted.length, firstSoundMedianMs: middle, worstMs: worst }));
           return;
         }
 
@@ -670,7 +670,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             if (broken !== null) {
               log(`받지 않았다 — ${broken}: ${text.slice(0, 30)}`);
               res.writeHead(400, { 'content-type': 'application/json; charset=utf-8' });
-              res.end(JSON.stringify({ 안받은이유: broken }));
+              res.end(JSON.stringify({ notAcceptedReason: broken }));
               return;
             }
             res.writeHead(text === '' ? 400 : 204).end();
@@ -959,7 +959,7 @@ function openOwnWindow(
       child.unref();
       return screen === null
         ? '제 창으로 떴다 (창틀 없음·배경 뚫림 · 화면 크기를 못 재서 작은 창)'
-        : `제 창으로 떴다 (화면 전체 ${screen.width}×${screen.height} · 창틀 없음·배경 뚫림)`;
+        : `제 창으로 떴다 (화면 all ${screen.width}×${screen.height} · 창틀 없음·배경 뚫림)`;
     } catch (e) {
       openBrowser(url);
       return `제 창을 못 띄워서 평범한 브라우저로 열었다: ${e instanceof Error ? e.message : String(e)}`;

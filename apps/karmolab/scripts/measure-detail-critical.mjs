@@ -18,7 +18,7 @@ const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const page2 = process.argv.slice(2).filter((a) => !a.startsWith('-'));
 const IDS = page2.length ? page2 : ['loan', 'charcount', 'jsonfmt', 'qrgen', 'unitconv', 'colorpick'];
 
-const sum = new Map(); // 파일 → { 전체, 조각: Set<범위키>, 바이트: Set<위치> }
+const sum = new Map(); // 파일 → { all, 조각: Set<범위키>, 바이트: Set<위치> }
 
 const browser = await chromium.launch();
 for (const id of IDS) {
@@ -36,8 +36,8 @@ for (const id of IDS) {
     const name = e.url.split('/').pop().split('?')[0];
     if (!/^(tools|shell-critical)\./.test(name)) continue;
     const cell = sum.get(name) || { all: e.text.length, usedSlot: new Set() };
-    cell.전체 = Math.max(cell.전체, e.text.length);
-    for (const r of e.ranges) for (let i = r.start; i < r.end; i += 1) cell.쓴자리.add(i);
+    cell.all = Math.max(cell.all, e.text.length);
+    for (const r of e.ranges) for (let i = r.start; i < r.end; i += 1) cell.usedSlot.add(i);
     sum.set(name, cell);
   }
   await ctx.close();
@@ -49,10 +49,10 @@ if (sum.size === 0) {
   process.exit(1);
 }
 console.log(`[detail-critical] 장 ${IDS.length}개 · **첫 그림까지** 쓰인 것의 합집합`);
-for (const [이름, 칸] of sum) {
-  const used = 칸.쓴자리.size;
-  console.log(`  ${이름}  ${(used / 1024).toFixed(1)}KB / ${(칸.전체 / 1024).toFixed(1)}KB  (${((used / 칸.전체) * 100).toFixed(1)}%)`);
+for (const [이름, cell] of sum) {
+  const used = cell.usedSlot.size;
+  console.log(`  ${이름}  ${(used / 1024).toFixed(1)}KB / ${(cell.all / 1024).toFixed(1)}KB  (${((used / cell.all) * 100).toFixed(1)}%)`);
 }
-const totalUsed = [...sum.values()].reduce((s, c) => s + c.쓴자리.size, 0);
-const grandTotal = [...sum.values()].reduce((s, c) => s + c.전체, 0);
+const totalUsed = [...sum.values()].reduce((s, c) => s + c.usedSlot.size, 0);
+const grandTotal = [...sum.values()].reduce((s, c) => s + c.all, 0);
 console.log(`  합계  ${(totalUsed / 1024).toFixed(1)}KB / ${(grandTotal / 1024).toFixed(1)}KB — 자를 수 있는 몫 ${((1 - totalUsed / grandTotal) * 100).toFixed(0)}%`);
