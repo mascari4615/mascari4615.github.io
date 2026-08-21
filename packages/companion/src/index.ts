@@ -37,6 +37,7 @@ export {
   type Hand,
   type HandRequest,
 } from './hands';
+export { promisedButSkipped } from './claims';
 export { pressHand, parsePress, readPressed, type PressOptions } from './hands/press';
 
 export { screenSense, type ScreenSenseOptions } from './sense/screen';
