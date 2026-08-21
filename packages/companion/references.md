@@ -29,6 +29,31 @@
 - **할 수 있는 것**: (→ TASK-XXX 로 팠으면 번호)
 -->
 
+### 2026-08-21 · 화면을 「그림만」 보는 건 이제 옛 방식 — 하이브리드 인식 (접근성 트리 + 그림)
+
+- **본 것**: 2026 현재 컴퓨터 조작 에이전트의 합의는 **하이브리드**다 — 구조가 있는 것은
+  접근성 트리(윈도우 = UI Automation, 화면 낭독기가 쓰는 그 API)로 읽고, 캔버스·그림처럼
+  구조가 없는 것만 그림으로 본다. 숫자로도 갈린다: Browser-Use(하이브리드) WebVoyager
+  **89.1%** vs Agent-E(접근성만) **73.1%**. 그림만 쓰는 쪽은 「작은 글자를 못 읽는다」가
+  고질이라 CogAgent 는 입력 해상도를 **1120x1120** 까지 올려서 버틴다. 열린 물건 중
+  GUI-Owl/Mobile-Agent-v3 는 OSWorld **37.7%** · AndroidWorld **73.3%** (코드·가중치 공개).
+  사람은 OSWorld 에서 72.4%, 그림만 보는 초기 에이전트는 12% 대였다.
+  흔한 구현은 트리를 훑어 **조작 가능한 것마다 번호를 붙인 그림**(Set-of-Marks)을 만들고,
+  좌표 대신 그 번호로 누른다(pywinauto 로 트리 추출).
+  [Zylos 2026 정리](https://zylos.ai/research/2026-02-08-computer-use-gui-agents/) ·
+  [OSWorld-G](https://osworld-grounding.github.io/) ·
+  [열린 구현 훑기](https://fazm.ai/blog/best-open-source-computer-use-agent-windows-2026)
+- **우리와 다른 점**: 우리 눈은 **그림 한 장뿐**이다(`sense/screen.ts` → `capture-screen.ps1`).
+  글자로 오는 건 창 제목 하나(`TITLE=`). 대조표의 「화면 = 보기만, 조작 X」가 여기서 온다.
+  좌표를 줄 수 있는 구조가 없으니 조작으로 넘어갈 길도 지금은 없다.
+  99회차에 그림을 1097px → 1568px 로 키웠지만, 그건 **같은 방식을 더 크게** 한 것이다.
+- **할 수 있는 것**: `capture-screen.ps1` 이 이미 `user32.dll` 을 부르고 있다 — 같은 자리에
+  UIAutomation(`System.Windows.Automation`)으로 **전면 창의 요소 트리**(이름·종류·좌표)를
+  뽑아 `TITLE=` 옆에 한 줄로 같이 내보낸다. `screenSense` 는 그걸 `meta.uiTree` 로 싣고,
+  `ThinkInput.seeing` 과 나란히 두뇌 앞에 놓는다(99회차에 낸 자리를 그대로 쓴다).
+  이게 서면 (1) 작은 글자를 그림으로 못 읽어도 **글자로** 읽고, (2) 요소마다 좌표가 생겨
+  다음 단계인 **조작**의 재료가 된다. → 판 TASK: **TASK-KAR-235**
+
 ### 씨앗 (아직 안 판 것들 — 여기서 시작)
 
 - [AIRI](https://github.com/moeru-ai/airi) — 코어 하나에 몸이 플러그인. 우리 구조의 원형
