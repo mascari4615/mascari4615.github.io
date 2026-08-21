@@ -76,7 +76,9 @@ test('아니라고 하면 아무 일도 안 한다', async () => {
     async allow() { return false; },
   });
   assert.equal(ran, false);
-  assert.deepEqual(done, []);
+  /* 123회차부터 **못 한 것도 결과로 돌아온다** — 빈손이면 두뇌가 막힌 줄도 모른다. */
+  assert.equal(done.length, 1);
+  assert.match(done[0], /안 된다고 해서 안 했다/);
 });
 
 test('승낙하면 그때 실제로 한다', async () => {

@@ -56,8 +56,12 @@ test('없는 손을 부르거나 하나가 실패해도 나머지는 한다', as
     { name: '터지는손', argument: 'y' },
     { name: '되는손', argument: 'z' },
   ]);
-  assert.deepEqual(done, ['z']);
-  assert.deepEqual(results, ['ok']);
+  assert.deepEqual(done, ['z'], '터진 손 뒤에도 나머지는 돈다');
+  /* 없는 손·터진 손도 「못 했다」로 돌아온다(123회차) — 빈손이면 두뇌가 막힌 줄도 모른다. */
+  assert.equal(results.length, 3);
+  assert.ok(results.includes('ok'));
+  assert.ok(results.some((line) => /없는손/.test(line)));
+  assert.ok(results.some((line) => /터지는손/.test(line)));
 });
 
 test('할 수 있는 일 안내에는 부르는 법이 들어간다', () => {

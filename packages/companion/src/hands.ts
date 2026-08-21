@@ -99,6 +99,10 @@ export async function useHands(
     const hand = hands.find((h) => h.name === request.name);
     if (hand === undefined) {
       log?.(`그런 손은 없다: ${request.name}`);
+      /* **못 한 것도 결과다.** 빈손으로 돌아가면 두뇌는 막힌 줄도 모르고, 그러면 얘는
+         「못 했어」라고 말할 수가 없다 — 사람 눈에는 그냥 침묵이다(121회차 라이브).
+         조용히 안 하는 것과 못 한다고 말하는 것은 다르다. */
+      done.push(`${request.name}: 그런 손이 없어서 못 했다.`);
       continue;
     }
     /* 못 되돌리는 손은 사람 확인 전에는 안 쓴다.
@@ -106,6 +110,7 @@ export async function useHands(
     if (hand.undoable !== true) {
       if (gate === undefined) {
         log?.(`${hand.name} 은 되돌릴 수 없어 물어봐야 하는데, 물어볼 자리가 없다 — 안 했다`);
+        done.push(`${hand.name}: 되돌릴 수 없는 일이라 물어봐야 하는데 물어볼 자리가 없어서 못 했다.`);
         continue;
       }
       let allowed = false;
@@ -117,13 +122,16 @@ export async function useHands(
       }
       if (allowed === false) {
         log?.(`${hand.name} 은 조수님이 안 된다고 해서 안 했다`);
+        done.push(`${hand.name}: 조수님이 안 된다고 해서 안 했다.`);
         continue;
       }
     }
     try {
       done.push(await hand.run(request.argument));
     } catch (e) {
-      log?.(`${hand.name} 하다 실패했다: ${e instanceof Error ? e.message : String(e)}`);
+      const why = e instanceof Error ? e.message : String(e);
+      log?.(`${hand.name} 하다 실패했다: ${why}`);
+      done.push(`${hand.name}: 하다 실패했다 — ${why.slice(0, 120)}`);
     }
   }
   return done;
