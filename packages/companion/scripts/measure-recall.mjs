@@ -10,9 +10,11 @@
  * 물음」이고, 물음에는 **옛말의 낱말이 되도록 안 겹치게** 넣었다. 낱말이 겹치면 낱말 회상만으로
  * 맞으니 잰 값이 부풀려진다.
  *
- * 쓰는 법: node scripts/measure-recall.mjs
+ * 쓰는 법:
+ *   node scripts/measure-recall.mjs            낱말 회상만 (빠르다)
+ *   node scripts/measure-recall.mjs --meaning  뜻 색인까지 (모델을 띄우느라 수십 초)
  */
-import { recallFrom } from '../dist/index.js';
+import { recallFrom, meaningMemory, measureWithSmallModel } from '../dist/index.js';
 
 /** [옛말(조수님), 나중 물음, 겹치는 낱말이 있나] */
 const pairs = [
@@ -60,8 +62,48 @@ for (const [old, question, overlaps] of pairs) {
   }
 }
 
+/* 뜻 회상까지 재려면 모델을 띄워야 한다 — 수십 초 걸리므로 물어볼 때만 켠다.
+   94회차에 넣은 그 장치가 「낱말이 안 겹치는」 자리를 얼마나 메우는지가 이 판의 핵심이다. */
+const withMeaning = process.argv.includes('--meaning');
+let meaningHit = 0;
+/** 낱말로도 뜻으로도 못 찾은 물음 — 둘을 합쳐야 진짜 체감이다. */
+const stillMissing = [];
+const meaningFound = [];
+if (withMeaning) {
+  const meaning = new meaningMemory({
+    measure: measureWithSmallModel({ log: (m) => console.log(`[뜻] ${m}`) }),
+    log: (m) => console.log(`[뜻] ${m}`),
+  });
+  /* **점수판은 기다린다.** 뜻 재는 자리는 「기다리게 하지 않는다」가 설계라(94회차)
+     준비 전에는 조용히 아무것도 안 담는다. 대화에서는 그게 맞지만 재는 자리에서는
+     안 기다리면 **0점이 나오고 그걸 실력으로 착각한다** (116회차에 실제로 그랬다). */
+  const until = Date.now() + 180_000;
+  let stored = 0;
+  while (stored === 0 && Date.now() < until) {
+    stored = await meaning.store(rows);
+    if (stored === 0) await new Promise((done) => setTimeout(done, 2000));
+  }
+  console.log(`[뜻] 담긴 줄 ${stored}`);
+  for (const [old, question, overlaps] of pairs) {
+    if (overlaps !== false) continue;
+    const found2 = await meaning.find(question, { count: 3, toDrop: new Set() });
+    const ok2 = found2.some((row) => row.text.includes(old));
+    if (ok2) { meaningHit += 1; meaningFound.push(question); }
+  }
+}
+
 const pct = (n, d) => (d === 0 ? '—' : `${Math.round((n / d) * 100)}%`);
 console.log(`[회상] 전체 ${hit}/${pairs.length} (${pct(hit, pairs.length)})`);
 console.log(`[회상] 낱말이 안 겹치는 것만 ${hitWhenNoOverlap}/${noOverlap} (${pct(hitWhenNoOverlap, noOverlap)})`);
 if (misses.length > 0) console.log(`[회상] 못 찾은 물음:\n${misses.map((m) => `  - ${m}`).join('\n')}`);
-console.log('[회상] 뜻 색인(임베딩)은 이 판에 안 들어 있다 — 낱말 회상만 잰 값이다.');
+if (withMeaning) {
+  console.log(`[회상] 뜻으로 찾기 — 낱말이 안 겹치는 것 ${meaningHit}/${noOverlap} (${pct(meaningHit, noOverlap)})`);
+  /* 둘 중 하나라도 찾으면 사람은 「기억한다」고 느낀다 — 그게 체감치다. */
+  const both = new Set([...meaningFound, ...pairs.filter(([, q, o]) => o === false && misses.includes(q) === false).map(([, q]) => q)]);
+  console.log(`[회상] 낱말·뜻 **합쳐서** — 낱말이 안 겹치는 것 ${both.size}/${noOverlap} (${pct(both.size, noOverlap)})`);
+  const left = pairs.filter(([, q, o]) => o === false && both.has(q) === false).map(([, q]) => q);
+  if (left.length > 0) console.log(`[회상] 둘 다 못 찾은 것:
+${left.map((m) => `  - ${m}`).join('\n')}`);
+} else {
+  console.log('[회상] 뜻 색인은 안 켰다 — 낱말 회상만 잰 값이다 (--meaning 으로 켠다).');
+}
