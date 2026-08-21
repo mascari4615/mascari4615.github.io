@@ -138,7 +138,15 @@ const picked = await home.evaluate(async () => {
   const layer = document.querySelector('canvas[aria-hidden="true"]');
   if (layer) {
     const lctx = layer.getContext('2d', { willReadFrequently: true });
-    for (let i = 0; i < 12 && colored === 0; i++) {
+    /* ★ **칠하기가 끝난 뒤에 읽는다** (2026-08-21, 원인 확정 = TASK-KL-341).
+       `paint()` 는 매 프레임 `clearRect` 로 지우고 다시 칠한다. 초당 15장이라 그 틈이 늘
+       열려 있고, 140ms 마다 읽으면 <b>매번 같은 틈</b>에 걸린다. 실측: 그리는 쪽에서
+       `fillRect` 직후에 재면 불투명 2434 픽셀인데, 여기서 재면 0 이었다.
+       제품은 멀쩡했고 <b>읽는 순간이 틀렸다</b>.
+       그래서 ① 그리기가 끝나기를 기다리고(rAF 두 번 = 다음 프레임이 그려진 뒤)
+       ② 판 수를 늘려 ③ <b>가장 많이 칠해진 판</b>으로 본다(한 판만 보면 또 틈에 걸린다). */
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const px = lctx.getImageData(0, 0, layer.width, layer.height).data;
       let seenOpaque = 0;
       for (let p = 0; p < px.length; p += 4 * 53) {
@@ -150,7 +158,7 @@ const picked = await home.evaluate(async () => {
         if (Math.max(r, g, b) - Math.min(r, g, b) > 30) colored += 1;
       }
       if (seenOpaque > opaque) opaque = seenOpaque;
-      await sleep(140);
+      if (colored > 0 && opaque > 0) break;
     }
   }
 
