@@ -42,6 +42,7 @@
   "worldcup.t32": "그림 만드는 중…",
   "worldcup.roundOf": "{n}강",
   "worldcup.pastChampions": "지난 우승자들 ({n})",
+  "worldcup.todayPick": "오늘의 월드컵 — {title}",
   "worldcup.championIs": "{name} 이(가) 우승이네요!",
   "worldcup.seen": "{n}번 마주침",
   "worldcup.wonCount": "우승 {n}",

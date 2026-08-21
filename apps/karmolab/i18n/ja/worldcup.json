@@ -41,6 +41,7 @@
   "worldcup.t32": "画像を作成中…",
   "worldcup.roundOf": "{n}回戦",
   "worldcup.pastChampions": "これまでの優勝者 ({n})",
+  "worldcup.todayPick": "今日のトーナメント — {title}",
   "worldcup.championIs": "{name} が優勝ですね!",
   "worldcup.seen": "{n}回対戦",
   "worldcup.wonCount": "優勝 {n}",
