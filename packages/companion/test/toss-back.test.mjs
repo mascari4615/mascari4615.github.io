@@ -62,7 +62,7 @@ test('화면 곁눈질은 대화로 안 센다', () => {
 
 test('몇 번 중 몇 번 되물었는지 센다 — 얹어 놓고 됐다고 하지 않으려고', () => {
   const r = followUpRatio([companion('그렇구나'), companion('그래서 어떻게 됐어?'), person('응')]);
-  assert.equal(r.전체, 2);
+  assert.equal(r.all, 2);
   assert.equal(r.followUp, 1);
 });
 

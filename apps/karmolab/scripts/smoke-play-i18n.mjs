@@ -146,7 +146,7 @@ async function onePage(id) {
          셸도 그때 「이 화면을 못 열었어요」로 바꾼다. 그 사실만 본다. */
       const didNotLoad = !!document.querySelector('[data-kl-load-failed="' + x + '"]');
       return {
-        있나: !!el,
+        has: !!el,
         글: (el?.textContent || '').trim(),
         위젯: !!meta,
         hidden: !!(meta && meta.hidden),

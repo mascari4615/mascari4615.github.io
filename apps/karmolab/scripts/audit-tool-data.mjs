@@ -202,7 +202,7 @@ if (seoOrphans.length > 0) {
   console.log('  (그 도구는 상세 페이지·주소가 안 생긴다 — `data/tools-seo.json` 에 설명·순서·자주 묻는 것을 적어라)');
 }
 if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
-  fs.writeFileSync(BASELINE, `${JSON.stringify({ ...baselineData, 갱신: new Date().toISOString().slice(0, 10), list: seoOrphans }, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(BASELINE, `${JSON.stringify({ ...baselineData, updated: new Date().toISOString().slice(0, 10), list: seoOrphans }, null, 2)}\n`, 'utf8');
   if (repaid.length > 0) console.log(`[audit-tool-data] ${repaid.length}개를 갚았다 — 기준선을 ${old.size} → ${seoOrphans.length} 로 조인다: ${repaid.join(', ')}`);
 }
 if (newlyGrown.length > 0 && process.argv.includes('--write-baseline') === false) {

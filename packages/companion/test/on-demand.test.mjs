@@ -10,7 +10,7 @@ const run = (settings = {}) => {
   let alive = false;
   const boot = new 수요기동({
     이름: '흉내 낸 목소리',
-    살았나: async () => alive,
+    isAlive: async () => alive,
     show: () => {
       events.push('띄움');
       alive = true;
@@ -34,7 +34,7 @@ const run = (settings = {}) => {
     keepOn: () => {
       alive = true;
     },
-    살았나: () => alive,
+    isAlive: () => alive,
   };
 };
 
@@ -79,7 +79,7 @@ test('한동안 안 쓰면 끈다', async () => {
 
   t.flowing(2 * 60_000);
   assert.equal(await t.boot.stopIfIdle(), true);
-  assert.equal(t.살았나(), false);
+  assert.equal(t.isAlive(), false);
   assert.equal(t.boot.준비됐나, false);
 });
 
@@ -90,7 +90,7 @@ test('사람이 손으로 띄워 둔 것은 안 끈다', async () => {
   await waited();
   t.flowing(10 * 60_000);
   assert.equal(await t.boot.stopIfIdle(), false, '남이 띄운 것을 껐다');
-  assert.equal(t.살았나(), true);
+  assert.equal(t.isAlive(), true);
 });
 
 test('0 으로 두면 영영 안 끈다', async () => {
@@ -149,7 +149,7 @@ const slowRun = ({ 뜨는데 = 200, 절대안뜸 = false } = {}) => {
   let shownAt = null;
   const boot2 = new 수요기동({
     이름: '느린 것',
-    살았나: async () => 절대안뜸 === false && shownAt !== null && Date.now() - shownAt >= 뜨는데,
+    isAlive: async () => 절대안뜸 === false && shownAt !== null && Date.now() - shownAt >= 뜨는데,
     show: () => {
       events2.push('띄움');
       shownAt = Date.now();

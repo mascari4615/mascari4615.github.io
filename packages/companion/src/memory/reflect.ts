@@ -102,7 +102,7 @@ export class reflection {
         if (what !== '') this.options.log?.(`근거가 없어 버렸다 — 「${what.slice(0, 40)}」`);
         continue;
       }
-      if (this.있나(what)) continue;
+      if (this.has(what)) continue;
       this.list.push({ what: what, evidence: evidence, at: x?.at ?? Date.now() });
       storedCount += 1;
     }
@@ -114,7 +114,7 @@ export class reflection {
   }
 
   /** 이미 같은 걸 짚었나 — 글자 그대로가 아니라 **겹치는 낱말**로 본다. */
-  private 있나(what2: string): boolean {
+  private has(what2: string): boolean {
     const fresh = new Set(word(what2));
     if (fresh.size === 0) return false;
     return this.list.some((existing) => {

@@ -27,9 +27,9 @@ const reported = /손으로 고치지 마라|자동 생성|AUTO-GENERATED|autoge
 
 /** 목록에 없어도 되는 자리 — **왜인지 적는다**. */
 const excluded = [
-  { 규칙: /\.[0-9a-f]{8}\.(css|js)$/, why: '해시 붙은 사본 — 정본 파일이 이미 목록에 있고 이건 그 사본이다' },
-  { 규칙: /^data\/lessons\/[a-z]{2}\//, why: '강의 본문 — 사람이 쓴 글을 담는 자리고, 색인(index.json)만 굽는다' },
-  { 규칙: /^css\/fonts\.css$/, why: '글꼴 표 — scripts/gen-fonts.py 가 굽는다. 파이썬 + 원본 글꼴 파일이 있어야 해서 감사기가 다시 구울 수 없다(재현 불가라 목록에 넣으면 늘 「낡음」으로 잡힌다)' },
+  { rule: /\.[0-9a-f]{8}\.(css|js)$/, why: '해시 붙은 사본 — 정본 파일이 이미 목록에 있고 이건 그 사본이다' },
+  { rule: /^data\/lessons\/[a-z]{2}\//, why: '강의 본문 — 사람이 쓴 글을 담는 자리고, 색인(index.json)만 굽는다' },
+  { rule: /^css\/fonts\.css$/, why: '글꼴 표 — scripts/gen-fonts.py 가 굽는다. 파이썬 + 원본 글꼴 파일이 있어야 해서 감사기가 다시 구울 수 없다(재현 불가라 목록에 넣으면 늘 「낡음」으로 잡힌다)' },
 ];
 
 let files = [];
@@ -57,7 +57,7 @@ const missingOnes = [];
 for (const full of files) {
   const rel = path.relative(root, full).replace(/\\/g, '/');
   if (declared.has(rel)) continue;
-  if (excluded.some((x) => x.규칙.test(rel))) continue;
+  if (excluded.some((x) => x.rule.test(rel))) continue;
   /* 폴더째 적어 둔 것도 있다(`img/og`). 그 아래면 적힌 것으로 본다. */
   if ([...declared].some((one) => rel.startsWith(`${one}/`))) continue;
   let head;

@@ -68,11 +68,11 @@ const reply: Record<string, { 처짐: readonly string[]; 보통: readonly string
 };
 
 /** 딱 이 말들만 반사한다. 조금이라도 넓히면 얘가 성의 없어진다. */
-const rule: readonly { 종류: keyof typeof reply; text: RegExp }[] = [
-  { 종류: '인사', text: /^(안녕|하이|안뇽|왔어|나 왔어|안녕\?|여보세요)[!?.…\s]*$/ },
-  { 종류: '작별', text: /^(잘\s?자|잘자|바이|굿나잇|자러\s?간다|나중에\s?봐|이따\s?봐|갔다\s?올게|다녀올게)[!?.…\s]*$/ },
-  { 종류: '고마움', text: /^(고마워|고맙다|감사|땡큐|ㄱㅅ|고마웡)[!?.…\s]*$/ },
-  { 종류: '호응', text: /^(응|ㅇㅇ|그래|ok|오케이|알겠어|넵|넹|ㅋㅋ+|ㅎㅎ+)[!?.…\s]*$/i },
+const rule: readonly { kind: keyof typeof reply; text: RegExp }[] = [
+  { kind: '인사', text: /^(안녕|하이|안뇽|왔어|나 왔어|안녕\?|여보세요)[!?.…\s]*$/ },
+  { kind: '작별', text: /^(잘\s?자|잘자|바이|굿나잇|자러\s?간다|나중에\s?봐|이따\s?봐|갔다\s?올게|다녀올게)[!?.…\s]*$/ },
+  { kind: '고마움', text: /^(고마워|고맙다|감사|땡큐|ㄱㅅ|고마웡)[!?.…\s]*$/ },
+  { kind: '호응', text: /^(응|ㅇㅇ|그래|ok|오케이|알겠어|넵|넹|ㅋㅋ+|ㅎㅎ+)[!?.…\s]*$/i },
 ];
 
 /**
@@ -90,10 +90,10 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   const tone2 = reflexTone(energy);
 
   // 미리 지어 둔 것이 먼저다. 바로 앞것과 같으면 그건 안 쓴다.
-  const prepared = options.store?.raise(reflexKind(hit.종류, tone2)) ?? null;
+  const prepared = options.store?.raise(reflexKind(hit.kind, tone2)) ?? null;
   if (prepared !== null && prepared !== options.last) return prepared;
 
-  const set = reply[hit.종류] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };
+  const set = reply[hit.kind] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };
   const pool = set[tone2];
 
   const usable = pool.filter((p) => p !== options.last);

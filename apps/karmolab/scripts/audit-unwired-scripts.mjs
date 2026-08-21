@@ -96,7 +96,7 @@ if (repaid.length > 0 || process.argv.includes('--write-baseline')) {
         why: 'npm 항목이 없으면 audit-orphan-tests 의 눈 밖이다. 로그인이 죽은 사고에서 만든 검사가 그렇게 살아 있었다 (2026-08-16).',
         list: neverCalled,
         사유: Object.fromEntries(neverCalled.map((f) => [f, previousReason[f] ?? '아직 사유를 안 적었다 — 재 보고 여기 적어라'])),
-        갱신: new Date().toISOString().slice(0, 10),
+        updated: new Date().toISOString().slice(0, 10),
       },
       null,
       2,

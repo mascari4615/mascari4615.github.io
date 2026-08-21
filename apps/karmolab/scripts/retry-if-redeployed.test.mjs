@@ -63,25 +63,25 @@ function run({ sha, verdict }) {
 }
 
 test('화면이 내 판보다 옛것이면 빨강이 아니라 못 돌림(2)', () => {
-  const { code, out } = run({ sha: 'bbbbbbbb2222222222222222222222222222bbbb', 답: 1 });
+  const { code, out } = run({ sha: 'bbbbbbbb2222222222222222222222222222bbbb', answer: 1 });
   assert.equal(code, 2, out);
   assert.match(out, /못 돌림/);
   assert.doesNotMatch(out, /진짜 빨강/);
 });
 
 test('화면이 바로 내 판이면 빨강은 빨강 그대로(1)', () => {
-  const { code, out } = run({ sha: servedBuild, 답: 1 });
+  const { code, out } = run({ sha: servedBuild, answer: 1 });
   assert.equal(code, 1, out);
   assert.match(out, /진짜 빨강/);
 });
 
 test('못 돌림(2)은 옛 판이어도 그대로 2 — 다시 재지 않는다', () => {
-  const { code, out } = run({ sha: 'eeeeeeee5555555555555555555555555555eeee', 답: 2 });
+  const { code, out } = run({ sha: 'eeeeeeee5555555555555555555555555555eeee', answer: 2 });
   assert.equal(code, 2, out);
   assert.doesNotMatch(out, /다시 잰다/);
 });
 
 test('초록은 옛 판이어도 초록 — 실주소가 성하다는 건 그 자체로 사실이다', () => {
-  const { code, out } = run({ sha: '999999997777777777777777777777777777aaaa', 답: 0 });
+  const { code, out } = run({ sha: '999999997777777777777777777777777777aaaa', answer: 0 });
   assert.equal(code, 0, out);
 });
