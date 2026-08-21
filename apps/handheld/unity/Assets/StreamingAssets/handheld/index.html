@@ -536,7 +536,15 @@
   // 영상 = H.264 트랙(하드웨어 디코드) · 포즈 = DataChannel.
   // **MJPEG 은 안 지운다.** 안 붙거나 끊기면 그리로 돌아간다 — 방송 중에 길이 하나뿐이면
   // 그 길이 막힐 때 방송이 멈춘다.
-  let pc = null, poseCh = null, rtcVideo = false;
+  let pc = null, poseCh = null, rtcVideo = false, rtcWatch = 0;
+
+  // 영상만 내린다 (데이터채널은 그대로) — MJPEG 이 다시 그리기 시작한다.
+  function hideRtcVideo() {
+    const v = $('rtcv');
+    v.classList.remove('on');
+    rtcVideo = false;
+    paintWay();
+  }
 
   const usingRtc = () => poseCh && poseCh.readyState === 'open';
 
@@ -561,10 +569,31 @@
 
       pc.ontrack = (e) => {
         const v = $('rtcv');
-        if (v.srcObject !== e.streams[0]) v.srcObject = e.streams[0];
-        v.classList.add('on');
-        rtcVideo = true;
-        paintWay();
+        if (e.streams && e.streams[0] && v.srcObject !== e.streams[0]) v.srcObject = e.streams[0];
+
+        // ★ **트랙이 왔다 != 그림이 왔다** (2026-08-21 실측으로 고침).
+        //   우리가 recvonly 자리를 만들어 두면, 유니티가 영상 트랙을 안 붙였을 때도
+        //   브라우저는 ontrack 을 띄운다 — 프레임이 영영 안 오는 빈 트랙이다.
+        //   그걸 믿고 <video> 를 띄우면 검은 판이 뷰파인더를 덮고, rtcVideo 를 켠 탓에
+        //   MJPEG 도 안 그려서 화면이 통째로 검어진다. 실제로 그렇게 됐다.
+        //   그래서 **videoWidth 가 잡힐 때만** 띄운다.
+        const show = () => {
+          if (v.videoWidth > 0 && !rtcVideo) { v.classList.add('on'); rtcVideo = true; paintWay(); }
+        };
+        v.onloadedmetadata = show;
+        v.onresize = show;
+        v.onplaying = show;
+        show();
+
+        // 그림이 안 오면 되돌린다 — 「붙었다」고 믿고 기다리는 검은 화면보다 MJPEG 이 낫다.
+        clearTimeout(rtcWatch);
+        rtcWatch = setTimeout(() => { if (v.videoWidth === 0) hideRtcVideo(); }, 4000);
+
+        const t = e.track;
+        if (t) {
+          t.onended = hideRtcVideo;
+          t.onmute = hideRtcVideo;
+        }
       };
       pc.onicecandidate = (e) => {
         if (e.candidate && ws && ws.readyState === 1) {
@@ -589,6 +618,7 @@
   }
 
   function stopRtc() {
+    clearTimeout(rtcWatch);
     rtcVideo = false;
     const v = $('rtcv');
     v.classList.remove('on');
