@@ -1326,9 +1326,12 @@ const companion = new Companion({
       if (reflected.calc(es) === false) return undefined;
       return reflected.reflect(es);
     }).catch((e) => console.error(`[되새김] 되새기다 죽었다 — ${e?.message ?? e}`));
-    if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
-    else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
-    else console.log(`[참음] ${report.decision.reason}`);
+    /* 판 이름을 앞에 단다 — 흩어진 줄(손·두뇌·입)을 한 판으로 읽으려고(134회차).
+       121·123회차에 이걸 눈으로 이어 붙였다. */
+    const mark = report.turn ? `<${report.turn}> ` : '';
+    if (report.error) { console.error(`${mark}[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
+    else if (report.utterance) console.log(`${mark}[말함] ${report.utterance.text.slice(0, 60)}`);
+    else console.log(`${mark}[참음] ${report.decision.reason}`);
     if (process.env.COMPANION_HEART === '1') {
       const f = heart.state;
       console.log(`[마음] 좋음 ${f.valence.toFixed(2)} / 들뜸 ${f.arousal.toFixed(2)}`);

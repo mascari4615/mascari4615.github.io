@@ -143,6 +143,8 @@ export class Companion {
    * 있으면 내 말이 그 뒤에서 기다렸다(실측: 첫 소리까지 35초). 곁에 있는 사람이 딴 일
    * 하느라 내 말을 못 듣는 건 곁에 있는 게 아니다.
    */
+  /** 판을 몇 번 돌았나 — 판 이름의 씨앗. */
+  private turns = 0;
   private waiting: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
   private working = false;
   /**
@@ -279,7 +281,13 @@ export class Companion {
   }
 
   private async cycle(body: Body | null, sensation: Sensation): Promise<void> {
-    const { brain, memory, attention, onCycle } = this.options;
+    const { brain, memory, attention } = this.options;
+    /* **한 판에 이름을 하나.** 흩어진 로그(손·두뇌·입·말함)를 이 실로 꿴다.
+       짧게 — 로그 앞에 붙는 것이라 길면 줄을 덮는다. */
+    const turn = (this.turns += 1).toString(36).padStart(3, '0').slice(-4);
+    const onCycle = this.options.onCycle === undefined
+      ? undefined
+      : (report: CycleReport) => this.options.onCycle?.({ turn, ...report });
     const recallSize = this.options.recallSize ?? 10;
 
     /* 시험이 만든 감각은 기억에 안 담는다 — 사람의 상이 검사 찌꺼기로 만들어지면 안 된다.
@@ -306,6 +314,7 @@ export class Companion {
       found: await this.options.recall?.(sensation, recent),
       // 눈은 매 turn 뜬다 — 물어본 그 순간에 감겨 있으면 창 제목으로 답하게 된다.
       seeing: (await this.options.seeing?.()) ?? null,
+      turn,
     };
 
     let decision;
