@@ -247,16 +247,16 @@ check(bz.checkCorp('123456789012' + String(corpExpect)).ok === true, '법인번�
 check(bz.run('check', { number: '123-45-6789' + String(bizExpect) }).includes('Check digit: valid'), 'run 이 사람 말로 답한다');
 check(bz.run('check', { number: '1234567890' }).includes('National Tax Service'), '형식 경계를 반드시 말한다');
 
-// ── ②-5 birth 알맹이 (한국 나이 3종 — 쓰는 곳마다 답이 다르다) ───────────────
+// ── ②-5 birth 알맹이 (한국 age 3종 — 쓰는 곳마다 답이 다르다) ───────────────
 const bi = await load('src/core/birth.ts');
 const TODAY = new Date(2026, 7, 9); // 2026-08-09
 
 eq(bi.spec.id, 'birth', 'birth spec.id');
 const info = bi.birthInfo('1990-05-05', TODAY);
-eq(info.age, 36, '만 나이 (생일 지남)');
-eq(info.yearAge, 36, '연 나이');
-eq(info.koreanAge, 37, '세는 나이');
-eq(bi.birthInfo('1990-12-25', TODAY).age, 35, '만 나이 (생일 아직 — 하나 뺀다)');
+eq(info.age, 36, '만 age (생일 지남)');
+eq(info.yearAge, 36, '연 age');
+eq(info.koreanAge, 37, '세는 age');
+eq(bi.birthInfo('1990-12-25', TODAY).age, 35, '만 age (생일 아직 — 하나 뺀다)');
 eq(bi.birthInfo('1990-08-09', TODAY).age, 36, '생일 당일은 이미 지난 것으로 센다');
 eq(bi.birthInfo('1990-08-09', TODAY).untilNext, 0, '생일 당일은 0일 남음');
 eq(bi.birthInfo('1990-08-10', TODAY).untilNext, 1, '내일 생일');
@@ -274,8 +274,8 @@ eq(bi.gemKo(5), '에메랄드', '탄생석 month → 한국어');
 eq(bi.birthInfo('1990-02-30', TODAY), null, '없는 날짜는 null (Date 가 3월로 넘기는 것을 막는다)');
 eq(bi.birthInfo('2030-01-01', TODAY), null, '미래 생일은 null');
 eq(bi.birthInfo('1990/05/05', TODAY), null, '형식이 다르면 null');
-check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 나이: 36세'), 'run 이 세 나이를 함께 낸다');
-check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 나이: 37세'), '세는 나이도 함께');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 age: 36세'), 'run 이 세 나이를 함께 낸다');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 age: 37세'), '세는 나이도 함께');
 
 // ── ②-6 jamo 알맹이 (한글 — 우리 말고 아무도 안 하는 것) ─────────────────────
 const jm = await load('src/core/jamo.ts');
@@ -1819,19 +1819,19 @@ const ht = await load('src/core/hangultype.ts');
 eq(ht.spec.id, 'hangultype', 'hangultype spec.id');
 
 /* 글자 하나가 자소 둘~넷이다 — 이걸 안 세면 한타가 영타의 절반으로 나온다. */
-eq(ht.타건수('가'), 2, '가 = 초성+중성');
-eq(ht.타건수('강'), 3, '강 = 받침까지');
-eq(ht.타건수('값'), 4, '값 = 겹받침(ㅄ)이라 넷');
-eq(ht.타건수('왔'), 4, '왔 = 초성1 + 겹모음ㅘ2 + ㅆ1 (된소리는 시프트라 한 번)');
-eq(ht.타건수('a'), 1, '영문은 한 번');
-eq(ht.타건수(' '), 1, '공백도 한 번');
-eq(ht.타건수('가a 강'), 2 + 1 + 1 + 3, '섞여도 더한다');
+eq(ht.keystrokes('가'), 2, '가 = 초성+중성');
+eq(ht.keystrokes('강'), 3, '강 = 받침까지');
+eq(ht.keystrokes('값'), 4, '값 = 겹받침(ㅄ)이라 넷');
+eq(ht.keystrokes('왔'), 4, '왔 = 초성1 + 겹모음ㅘ2 + ㅆ1 (된소리는 시프트라 한 번)');
+eq(ht.keystrokes('a'), 1, '영문은 한 번');
+eq(ht.keystrokes(' '), 1, '공백도 한 번');
+eq(ht.keystrokes('가a 강'), 2 + 1 + 1 + 3, '섞여도 더한다');
 
 /* 된소리는 시프트 조합이라 한 번 — 두 번으로 세면 「빨리」가 실제보다 무거워진다. */
-eq(ht.타건수('까'), 2, 'ㄲ 은 한 번');
+eq(ht.keystrokes('까'), 2, 'ㄲ 은 한 번');
 
 const r1 = ht.score('안녕하세요', 5);
-eq(r1.strokes, ht.타건수('안녕하세요'), '타수는 같은 셈을 쓴다');
+eq(r1.strokes, ht.keystrokes('안녕하세요'), '타수는 같은 셈을 쓴다');
 eq(r1.perMinute, Math.round((r1.strokes / 5) * 60), '타/분');
 eq(r1.accuracy, 100, '친 글을 안 주면 견줄 것이 없다');
 
@@ -2350,10 +2350,10 @@ const mockRows = mock.generate(mockSchema, { count: 20, locale: 'ko', seed: 42 }
 eq(mockRows.length, 20, '스무 줄');
 eq(mockRows[0].id, 1, 'id 는 1부터');
 eq(mockRows[19].id, 20, 'id 는 끝까지 이어진다');
-check(mockRows.every((row) => row.나이 >= 20 && row.나이 <= 40), '숫자는 정한 범위 안');
-check(mockRows.every((row) => ['a', 'b', 'c'].includes(row.등급)), '고른 값 중에서만');
-check(mockRows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.가입일) && row.가입일 >= '2024-01-01' && row.가입일 <= '2024-12-31'), '날짜도 범위 안');
-check(mockRows.every((row) => /@/.test(row.메일)), '메일에는 골뱅이가 있다');
+check(mockRows.every((row) => row.age >= 20 && row.age <= 40), '숫자는 정한 범위 안');
+check(mockRows.every((row) => ['a', 'b', 'c'].includes(row.grade)), '고른 값 중에서만');
+check(mockRows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.joinedAt) && row.joinedAt >= '2024-01-01' && row.joinedAt <= '2024-12-31'), '날짜도 범위 안');
+check(mockRows.every((row) => /@/.test(row.mail)), '메일에는 골뱅이가 있다');
 check(new Set(mockRows.map((row) => row.이름)).size > 5, `이름이 「홍길동1·2」로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.이름).join(',')}`);
 
 /* 같은 씨앗이면 같은 줄 — 시험이 매번 달라지면 아무것도 못 잠근다 */
@@ -2396,7 +2396,7 @@ eq(JSON.stringify(jqOne('.users | map(.name) | join("·")')), '["윤·링·알�
 eq(JSON.stringify(jqOne('.users | sort_by(.age) | .[0].name')), '["링"]', 'sort_by');
 eq(JSON.stringify(jqOne('.users | max_by(.age) | .name')), '["알리사"]', 'max_by');
 eq(JSON.stringify(jqOne('.meta | keys')), '["count"]'.replace('"count"', '["count"]'), 'keys');
-eq(JSON.stringify(jqOne('.users[1] | {name, 나이: .age}')), '[{"name":"링","나이":17}]', '물체를 새로 짓는다');
+eq(JSON.stringify(jqOne('.users[1] | {name, age: .age}')), '[{"name":"링","age":17}]', '물체를 새로 짓는다');
 eq(JSON.stringify(jqOne('.users[0].tags[0], .users[1].tags[0]')), '["a","b"]', '쉼표로 둘 다');
 eq(JSON.stringify(jqOne('.users[0] | has("name")')), '[true]', 'has');
 eq(JSON.stringify(jqOne('.users | map(.tags) | flatten | unique')), '[["a","b","c"]]', 'flatten·unique');

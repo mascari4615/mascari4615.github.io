@@ -71,20 +71,20 @@ test('아무리 나쁜 일이 쌓여도 바닥은 있다', () => {
 // ── 되돌아오기 ──────────────────────────────────────────────────────
 
 test('시간이 지나면 제자리로 돌아온다 — 안 돌아오면 기분이 아니라 고장이다', () => {
-  const { heart, flow: 흐르게 } = mood();
+  const { heart, flow: flow } = mood();
   heart.felt('웃어줌');
   const justAfter = heart.state.valence;
-  흐르게(60_000);
+  flow(60_000);
   const longAfter = heart.state.valence;
   assert.ok(longAfter < justAfter);
   assert.ok(Math.abs(longAfter - usual.valence) < 0.02, '거의 평소로 돌아와야 한다');
 });
 
 test('반감기만큼 지나면 절반쯤 돌아온다', () => {
-  const { heart, flow: 흐르게 } = mood();
+  const { heart, flow: flow } = mood();
   const justAfter2 = heart.felt('웃어줌').valence;
   const queued = justAfter2 - usual.valence;
-  흐르게(10_000);
+  flow(10_000);
   const remaining = heart.state.valence - usual.valence;
   assert.ok(Math.abs(remaining - queued / 2) < 0.01, `절반쯤 남아야 한다 (${remaining} vs ${queued / 2})`);
 });
@@ -104,9 +104,9 @@ test('물어보는 것만으로 마음이 달라지지 않는다', () => {
 });
 
 test('나쁜 쪽으로 밀린 것도 제자리로 돌아온다 — 한 번 삐치면 영영 삐치는 건 고장이다', () => {
-  const { heart, flow: 흐르게 } = mood();
+  const { heart, flow: flow } = mood();
   for (let i = 0; i < 5; i += 1) heart.felt('무시당함');
-  흐르게(120_000);
+  flow(120_000);
   assert.ok(Math.abs(heart.state.valence - usual.valence) < 0.02);
 });
 

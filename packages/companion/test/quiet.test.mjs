@@ -67,9 +67,9 @@ test('부탁받으면 먼저 안 건다', () => {
 });
 
 test('시간이 지나면 저절로 풀린다 — 영영 입 다물지 않는다', () => {
-  const { q, flow: 흐르게 } = make();
+  const { q, flow: flow } = make();
   q.hushFor(30 * minutes);
-  흐르게(31 * minutes);
+  flow(31 * minutes);
   assert.equal(q.maySpeakFirst, true);
 });
 
@@ -99,29 +99,29 @@ test('남은 시간을 사람 말로 알려 준다', () => {
 // ── 조용한 시간대 ───────────────────────────────────────────────────
 
 test('밤에는 먼저 안 건다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(2);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(2);
   assert.equal(q.inQuietHours, true);
   assert.equal(q.maySpeakFirst, false);
 });
 
 test('낮에는 괜찮다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(14);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(14);
   assert.equal(q.inQuietHours, false);
 });
 
 test('밤을 넘어가는 구간도 제대로 본다 — 23시도 2시도 밤이다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(23);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(23);
   assert.equal(q.inQuietHours, true);
-  시각(22);
+  at(22);
   assert.equal(q.inQuietHours, false);
 });
 
 test('한마디로 밤을 없앨 수는 없다 — 「이제 됐어」는 부탁만 푼다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(2);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(2);
   q.hushFor(30 * minutes);
   q.resume();
   assert.equal(q.hushed, false, '부탁은 풀렸다');
@@ -129,8 +129,8 @@ test('한마디로 밤을 없앨 수는 없다 — 「이제 됐어」는 부탁
 });
 
 test('시간대를 안 정하면 시간대 규칙은 없다', () => {
-  const { q, at: 시각 } = make();
-  시각(3);
+  const { q, at: at } = make();
+  at(3);
   assert.equal(q.inQuietHours, false);
 });
 
@@ -149,16 +149,16 @@ test('조용 중이면 답은 하되 짧게 — 벙어리가 되라는 게 아�
 });
 
 test('밤과 부탁을 다르게 말한다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(2);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(2);
   assert.match(quietNote(q), /밤이라 먼저 말 걸지 않는다/);
   q.hushFor(30 * minutes);
   assert.match(quietNote(q), /조수님이 조용히 있으라고/);
 });
 
 test('그냥 밤일 때는 짧게 답하라고 시키지 않는다 — 그러면 대화가 통째로 죽는다', () => {
-  const { q, at: 시각 } = make({ fromHour: 23, toHour: 7 });
-  시각(2);
+  const { q, at: at } = make({ fromHour: 23, toHour: 7 });
+  at(2);
   const text4 = quietNote(q);
   assert.equal(text4.includes('아주 짧게'), false);
   assert.match(text4, /평소처럼 제대로 답하라/);
