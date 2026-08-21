@@ -153,3 +153,8 @@ apps/handheld/unity/Assets/Scenes/
 apps/handheld/unity/Assets/Scenes.meta
 # 포즈 기록 — 진단용으로 그때그때 찍는 것이라 저장소에 남기지 않는다.
 apps/handheld/unity/HandheldLogs/
+
+# 유니티 패키지의 `Documentation~` 는 편집기 백업이 아니라 **정식 폴더**다
+# (끝의 ~ = 「임포터는 보지 마라」 표시). 위의 `*~` 가 통째로 삼키므로 예외를 판다.
+!**/Documentation~/
+!**/Documentation~/**
