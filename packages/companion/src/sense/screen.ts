@@ -179,6 +179,22 @@ export function screenSense(options: ScreenSenseOptions = { everyMs: 90_000 }): 
  * 표를 그대로 넘기지 않는다 — 두뇌가 보는 건 결국 글이고, 자리(좌표)까지 같이 적어 둬야
  * 나중에 **누를 것**을 고를 수 있다.
  */
+/**
+ * 글의 좌표를 **찍은 자리 기준**으로 옮긴다.
+ *
+ * 모니터가 여럿이면 창 좌표가 음수로 난다 — 138회차 실측은 `y=-1080` 이었다.
+ * 그 수를 그대로 주면 두뇌는 그림 어디인지 못 얻는다. 찍은 자리의 왼윗위를 0,0 으로 둔다.
+ */
+function onTheShot(elements: readonly ScreenElement[], originX: number, originY: number): ScreenElement[] {
+  if (originX === 0 && originY === 0) return elements as ScreenElement[];
+  return elements.map((one) => {
+    if (one.r.length < 2) return one;
+    /* 자리를 아예 못 잰 것은 0,0,0,0 으로 접혀 있다(104회차). 그걸 옮기면 없던 자리가 생긴다. */
+    if (one.r.every((n) => n === 0)) return one;
+    return { ...one, r: [one.r[0] - originX, one.r[1] - originY, ...one.r.slice(2)] };
+  });
+}
+
 function describe(taken: Screenshot): string {
   const head = taken.title === '' ? '지금 앞에 있는 창' : `지금 앞에 있는 창 「${taken.title}」`;
   if (taken.elements.length === 0) return `${head} — 창 안에서 글자로 읽어 낸 것은 없다.`;
@@ -216,7 +232,10 @@ function capture(outPath: string): Promise<Screenshot> {
         } catch {
           elements = [];
         }
-        resolve({ title, elements });
+        const shot = /^ORIGIN=(-?\d+),(-?\d+)$/m.exec(stdout);
+        resolve(shot === undefined || shot === null
+          ? { title, elements }
+          : { title, elements: onTheShot(elements, Number(shot[1]), Number(shot[2])) });
       },
     );
   });
