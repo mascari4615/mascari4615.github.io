@@ -61,10 +61,25 @@ export function parsePress(argument: string): { number: number; expectName: stri
  */
 export function readPressed(said: string): string {
   const line = String(said ?? '').trim();
-  const ok = /PRESS=ok\s+how=(\S+)\s+name=(.*)$/m.exec(line);
+  const ok = /PRESS=ok\s+how=(\S+)\s+name=(.*?)(?:\s+was=(.*?)\s+now=(.*?)\s+count=(\d+)>(\d+))?$/m.exec(line);
   if (ok !== null) {
     const how = ok[1] === 'Toggle' ? '켜고 껐다' : ok[1] === 'Select' ? '골랐다' : '눌렀다';
-    return `「${(ok[2] ?? '').trim()}」 를 ${how}.`;
+    const head = `「${(ok[2] ?? '').trim()}」 를 ${how}.`;
+    /* **「눌렀다」와 「됐다」는 다른 말이다.**
+       누르기 전후로 창 이름과 요소 수를 견줘, 무엇이 달라졌는지 같이 말한다. 안 달라졌으면
+       그것도 말한다 — 눌렀다고만 하면 안 한 걸 했다고 하는 셈이다(40회차 관문의 결).
+       옛 형식(사후 조건 없음)도 그대로 받는다. */
+    if (ok[3] === undefined) return head;
+    const was = (ok[3] ?? '').trim();
+    const now = (ok[4] ?? '').trim();
+    const before = Number(ok[5]);
+    const after = Number(ok[6]);
+    const changes: string[] = [];
+    if (was !== now) changes.push(`창 이름이 「${was}」 에서 「${now}」 로 바뀌었다`);
+    if (before !== after) changes.push(`화면에 보이는 것이 ${before}개에서 ${after}개가 됐다`);
+    return changes.length === 0
+      ? `${head} 그런데 화면은 그대로다 — 달라진 게 없다.`
+      : `${head} ${changes.join(', ')}.`;
   }
   const moved = /PRESS=moved\s+expected=(.*?)\s+found=(.*)$/m.exec(line);
   if (moved !== null) {
