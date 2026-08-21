@@ -198,7 +198,11 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           </div>
           <div class="terr-right">
             <button type="button" class="terr-chip terr-dots" aria-pressed="false">${esc(t('territory.label.dots', undefined, '가게 점 보기'))}</button>
-            <button type="button" class="terr-chip terr-full" title="${esc(t('territory.label.full', undefined, '전체 화면'))}">⛶</button>
+            <!-- ★ 글자(⛶)로 그리지 않는다 (사용자 제보 2026-08-21: 「뭘 누르라는건지 문자가 깨져서
+                 안보이는데」). 그 기호는 흔한 글꼴에 없어 두부 네모로 뜬다 — 재 봤다: 이 기계의
+                 Arial 에서 그 기호의 폭이 「없는 글자」와 똑같았다(= 대체 글리프). 그러면 무슨
+                 단추인지 알 길이 없다. 그림(svg)은 글꼴을 안 탄다. 이름은 aria-label 로 말한다. -->
+            <button type="button" class="terr-chip terr-full" title="${esc(t('territory.label.full', undefined, '전체 화면'))}" aria-label="${esc(t('territory.label.full', undefined, '전체 화면'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           </div>
         </div>
         <div class="terr-legend"></div>

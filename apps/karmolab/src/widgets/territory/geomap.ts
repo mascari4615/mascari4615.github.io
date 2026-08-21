@@ -317,6 +317,18 @@ export class GeoMap {
     const y1 = Math.floor((top + this.height / scale) / TILE);
 
     ctx.imageSmoothingEnabled = true;
+    /* ★ **가장자리는 미리 받아 둔다** (사용자 제보 2026-08-21: 「축소할 때 로딩안됐던 가장자리들이
+     * 깜빡깜빡」). 축소하면 <b>화면 밖에 있던 땅이 안으로 들어온다</b>. 그 칸은 아직 한 번도 받은 적이
+     * 없어 윗 층으로도 아랫 층으로도 못 메운다 — 가장자리만 비는 이유다.
+     * 그래서 화면 둘레 한 칸을 <b>그리진 않고 받아만</b> 둔다. 들어올 때는 이미 손에 있다.
+     * ⚠ 한 칸까지만이다. 두 칸이면 요청이 배로 늘어 남의 서버(OSM)를 그만큼 더 때린다. */
+    for (let ty = y0 - 1; ty <= y1 + 1; ty++) {
+      if (ty < 0 || ty >= n) continue;
+      for (let tx = x0 - 1; tx <= x1 + 1; tx++) {
+        if (ty >= y0 && ty <= y1 && tx >= x0 && tx <= x1) continue;   /* 화면 안은 아래에서 그린다 */
+        this.tile(tz, ((tx % n) + n) % n, ty);
+      }
+    }
     for (let ty = y0; ty <= y1; ty++) {
       if (ty < 0 || ty >= n) continue;
       for (let tx = x0; tx <= x1; tx++) {
