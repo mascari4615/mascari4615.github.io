@@ -274,8 +274,8 @@ eq(bi.gemKo(5), '에메랄드', '탄생석 month → 한국어');
 eq(bi.birthInfo('1990-02-30', TODAY), null, '없는 날짜는 null (Date 가 3월로 넘기는 것을 막는다)');
 eq(bi.birthInfo('2030-01-01', TODAY), null, '미래 생일은 null');
 eq(bi.birthInfo('1990/05/05', TODAY), null, '형식이 다르면 null');
-check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 age: 36세'), 'run 이 세 나이를 함께 낸다');
-check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 age: 37세'), '세는 나이도 함께');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 나이: 36세'), 'run 이 세 나이를 함께 낸다');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 나이: 37세'), '세는 나이도 함께');
 
 // ── ②-6 jamo 알맹이 (한글 — 우리 말고 아무도 안 하는 것) ─────────────────────
 const jm = await load('src/core/jamo.ts');
@@ -2340,7 +2340,7 @@ eq(ux.report('안녕하세요'), '수상한 글자가 없습니다.', '없으면
 // ── 가짜 데이터 (TASK-KL-316) ───────────────────────────────────────────────
 const mock = await load('src/core/mockdata.ts');
 
-const mockSchema = 'id:id\n이름:name\n메일:email\n나이:int(20,40)\n등급:enum(a|b|c)\n가입일:date(2024-01-01,2024-12-31)';
+const mockSchema = 'id:id\nname:name\nmail:email\nage:int(20,40)\ngrade:enum(a|b|c)\njoinedAt:date(2024-01-01,2024-12-31)';
 const mockFields = mock.parseSchema(mockSchema);
 eq(mockFields.length, 6, '스키마 여섯 칸');
 eq(mockFields[3].type, 'int', '괄호 붙은 종류를 읽는다');
@@ -2354,7 +2354,7 @@ check(mockRows.every((row) => row.age >= 20 && row.age <= 40), '숫자는 정한
 check(mockRows.every((row) => ['a', 'b', 'c'].includes(row.grade)), '고른 값 중에서만');
 check(mockRows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.joinedAt) && row.joinedAt >= '2024-01-01' && row.joinedAt <= '2024-12-31'), '날짜도 범위 안');
 check(mockRows.every((row) => /@/.test(row.mail)), '메일에는 골뱅이가 있다');
-check(new Set(mockRows.map((row) => row.이름)).size > 5, `이름이 「홍길동1·2」로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.이름).join(',')}`);
+check(new Set(mockRows.map((row) => row.name)).size > 5, `이름이 「홍길동1·2」로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.name).join(',')}`);
 
 /* 같은 씨앗이면 같은 줄 — 시험이 매번 달라지면 아무것도 못 잠근다 */
 eq(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), '씨앗이 같으면 같다');
