@@ -18,6 +18,15 @@ const SRC = path.join(APP_ROOT, 'src/widgets-lazy-meta.ts');
 /** 따옴표 안의 글에서 이스케이프를 되돌린다 (`\'` → `'`). */
 const unesc = (s) => s.replace(/\\(['\\])/g, '$1');
 
+/** 한 줄짜리 등록에서도 표식을 뽑는다 — 놀이 위젯 20개가 그 모양이다. */
+function oneLineFlags(entry, line) {
+  if (/\bhidden:\s*true/.test(line)) entry.hidden = true;
+  if (/\bdesktopOnly:\s*true/.test(line)) entry.desktopOnly = true;
+  if (/\bnoPage:\s*true/.test(line)) entry.noPage = true;
+  const cat = /\bcategory:\s*'([a-z]+)'/.exec(line);
+  if (cat) entry.category = cat[1];
+}
+
 /**
  * `{ id, title, desc }` 목록. 등록 파일의 모양이 바뀌면 뽑히는 수가 줄어드는데,
  * 그건 `build-i18n.mjs` 가 「갑자기 확 줄었다」로 잡는다(조용히 비는 것이 제일 나쁘다).
@@ -36,6 +45,7 @@ export function widgetMeta() {
       out[cur] = { title: unesc(one[2]) };
       const d = /\bdesc:\s*'((?:[^'\\]|\\.)*)'/.exec(line);
       if (d) out[cur].desc = unesc(d[1]);
+      oneLineFlags(out[cur], line);
       continue;
     }
     const oneGetter = /\bid:\s*'([^']+)'[^\n]*?\bget title\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
@@ -44,6 +54,7 @@ export function widgetMeta() {
       out[cur] = { title: unesc(oneGetter[2].replace(/\\"/g, '"')) };
       const d = /\bget desc\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
       if (d) out[cur].desc = unesc(d[1].replace(/\\"/g, '"'));
+      oneLineFlags(out[cur], line);
       continue;
     }
     let m = /^\s*id:\s*'([^']+)',/.exec(line);
@@ -53,6 +64,14 @@ export function widgetMeta() {
       continue;
     }
     if (!cur) continue;
+    /* 표식 세 가지도 같이 뽑는다 (TASK-KL-348). 「이 도구에 상세 페이지가 있어야 하나」를
+       판정하려면 이름·설명만으로는 모자란다 — 숨긴 화면(설정·상태)은 페이지가 없어야 맞고,
+       데스크톱 전용은 **있어야** 맞다(앱 안 도구 목록이 이 표를 읽는다). */
+    if (/^\s*hidden:\s*true/.test(line)) { out[cur].hidden = true; continue; }
+    if (/^\s*desktopOnly:\s*true/.test(line)) { out[cur].desktopOnly = true; continue; }
+    if (/^\s*noPage:\s*true/.test(line)) { out[cur].noPage = true; continue; }
+    m = /^\s*category:\s*'([a-z]+)'/.exec(line);
+    if (m) { out[cur].category = m[1]; continue; }
     /* 이름·설명은 **읽는 순간에 정해지는 getter** 로 바뀌었다 (KL-203: 도구 목록도 그 언어로).
        그 안의 기본값(한국어)이 곧 원본이다 —
        `get title() { return t('widgets.x.title', undefined, "한국어"); },`

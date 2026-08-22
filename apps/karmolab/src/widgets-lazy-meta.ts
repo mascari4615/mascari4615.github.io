@@ -19,6 +19,7 @@ if (typeof document !== 'undefined') {
 window.KARMOLAB_LAZY_META = [
   {
     id: 'life',
+    noPage: true,
     get title() { return t('widgets.life.title', undefined, "Life 채널"); },
     category: 'tool',
     get desc() { return t('widgets-desc.life.desc', undefined, "화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제."); },
@@ -40,6 +41,7 @@ window.KARMOLAB_LAZY_META = [
      * 실행은 모래상자 안에서만 일어난다(우리 출처를 안 준다). 숨기지 않는다:
      * 이 화면 자체가 「여기 있는 것이 전부 우리가 만든 것은 아니다」라는 선언이다. */
     id: 'usertool',
+    noPage: true,
     get title() { return t('widgets.usertool.title', undefined, "만든 도구"); },
     category: 'tool',
     get desc() { return t('widgets-desc.usertool.desc', undefined, "사람들이 만들어 올린 도구 — 상자 안에서만 돕니다"); },
@@ -51,6 +53,7 @@ window.KARMOLAB_LAZY_META = [
     /* 도구 흐름 (TASK-KL-181) — 도구를 이어 붙여 내 순서를 만들어 둔다.
      * 숨기지 않는다: 이 화면 자체가 「도구가 서로 만난다」는 이 사이트의 주장이다. */
     id: 'flow',
+    noPage: true,
     get title() { return t('widgets.flow.title', undefined, "흐름"); },
     category: 'tool',
     get desc() { return t('widgets-desc.flow.desc', undefined, "도구를 이어 붙여 내 순서를 만들고 저장합니다"); },
@@ -96,6 +99,7 @@ window.KARMOLAB_LAZY_META = [
        첫 화면에서 77KB 를 받고 한 번도 안 그렸다 — 계기판의 「받았는데 안 쓴 코드」가 잡았다.
        느린 회선에서 그 77KB 는 곧 몇 백 ms 다. 눌렀을 때 받는다(chat 이 먼저 간 길). */
     id: 'community',
+    noPage: true,
     get title() { return t('widgets.community.title', undefined, "커뮤니티"); },
     category: 'tool',
     get desc() { return t('widgets-desc.community.desc', undefined, "자유 · 질문 · 자랑 · 도구 요청 — 도구를 쓰는 사람들이 모이는 자리"); },
@@ -108,6 +112,7 @@ window.KARMOLAB_LAZY_META = [
     /* 광장도 부팅에서 뺐다 (TASK-KL-204, 근거 = KL-201 계기판) — 첫 화면에서 23KB 를 받고
        한 번도 안 그렸다. 들어오는 길은 전부 `switchPage('plaza')` 라 지연 등록으로 그대로 열린다. */
     id: 'plaza',
+    noPage: true,
     get title() { return t('widgets.plaza.title', undefined, "광장"); },
     category: 'tool',
     get desc() { return t('widgets-desc.plaza.desc', undefined, "이 사이트의 숫자를 전부 공개하는 자리 — 방문 · 도구 · 커뮤니티, 전부 실측"); },
@@ -120,6 +125,7 @@ window.KARMOLAB_LAZY_META = [
        받고 한 번도 안 그렸다. **갈래를 빈 값으로 둔다** — 셸이 갈래 없는 도구를 따로 모아
        그리므로(`toolbox.ts` 의 「갈래 없음」 묶음) 목록에 보이는 자리는 지금과 똑같다. */
     id: 'favorites',
+    noPage: true,
     get title() { return t('widgets.favorites.title', undefined, "즐겨찾기"); },
     category: '',
     get desc() { return t('widgets-desc.favorites.desc', undefined, "자주 가는 사이트와 도구를 모아 빠르게 접속합니다"); },
@@ -130,6 +136,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'linktree',
+    noPage: true,
     get title() { return t('widgets.linktree.title', undefined, "링크"); },
     category: '',
     get desc() { return t('widgets-desc.linktree.desc', undefined, "개발자 연락처 & 링크 모음"); },
@@ -142,6 +149,7 @@ window.KARMOLAB_LAZY_META = [
        사람까지 받고 있었다**(첫 화면에서 12KB, 한 번도 안 그린다).
        `desktopOnly` 지연 위젯 선례 = 서버 모니터. */
     id: 'devtools',
+    noPage: true,
     get title() { return t('widgets.devtools.title', undefined, "디버그"); },
     category: 'tool',
     desktopOnly: true,
@@ -164,6 +172,7 @@ window.KARMOLAB_LAZY_META = [
   {
     /* 부품 설치 (TASK-KL-330) — 데스크톱에서만. 웹으로 오는 사람에겐 깔 대상이 없다. */
     id: 'install',
+    noPage: true,
     get title() { return t('widgets.install.title', undefined, "설치"); },
     category: 'tool',
     desktopOnly: true,
@@ -174,6 +183,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'servermonitor',
+    noPage: true,
     get title() { return t('widgets.servermonitor.title', undefined, "서버 모니터"); },
     category: 'tool',
     desktopOnly: true,
@@ -184,6 +194,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'activity',
+    noPage: true,
     get title() { return t('widgets.activity.title', undefined, "활동 기록"); },
     category: 'lab',
     desktopOnly: true,
@@ -209,6 +220,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'wm',
+    noPage: true,
     get title() { return t('widgets.wm.title', undefined, "Witch-Mendokusai"); },
     category: 'tool',
     get desc() { return t('widgets-desc.wm.desc', undefined, "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중"); },
@@ -220,6 +232,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'docs',
+    noPage: true,
     get title() { return t('widgets.docs.title', undefined, "문서"); },
     category: 'tool',
     get desc() { return t('widgets-desc.docs.desc', undefined, "KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차"); },
@@ -722,6 +735,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'cockpit',
+    noPage: true,
     get title() { return t('widgets.cockpit.title', undefined, "Cockpit"); },
     category: 'lab',
     desktopOnly: true,
@@ -2454,6 +2468,7 @@ window.KARMOLAB_LAZY_META = [
   /* 도감 (TASK-KL-196) — 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
   {
     id: 'collection',
+    noPage: true,
     get title() { return t('widgets.collection.title', undefined, "도감"); },
     category: 'tool',
     get desc() { return t('widgets-desc.collection.desc', undefined, "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나"); },

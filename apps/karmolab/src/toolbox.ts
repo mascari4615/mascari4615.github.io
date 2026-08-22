@@ -1694,7 +1694,8 @@ const Toolbox = (() => {
             if (id === 'home' || SYSTEM_PAGES.has(id)) return true;
             const t = tools.find(x => x.id === id);
             if (!t) return false;
-            if (isDesktopOnlyTool(t) && !isDesktopApp()) return false;
+            /* 데스크톱 전용도 **제 주소로 들어오는 것**은 유효하다 (KL-348) — 브라우저에서는
+               「앱에서만 됩니다」를 그린다(ensureToolPage). 홈으로 바꿔치우지 않는다. */
             return true;
         };
         /* TASK-KL-129: 본문이 **이미 HTML 에 박혀 있는** 페이지(도구 목록 등).
@@ -2017,12 +2018,11 @@ const Toolbox = (() => {
             return;
         }
         const base = location.pathname + (location.search || '');
-        const denied = tools.find(t => t.id === pageId);
-        if (denied && isDesktopOnlyTool(denied) && !isDesktopApp()) {
-            history.replaceState({ pageId: 'home' }, '', base + '#home');
-            pageId = 'home';
-            pushHistory = false;
-        }
+        /* ★ **데스크톱 전용 도구의 주소는 홈으로 튕기지 않는다** (2026-08-22, TASK-KL-348).
+           여태 여기서 홈으로 돌려세웠다. 그런데 그 도구들도 상세 페이지 주소를 갖는다
+           (`/karmolab/t/my-ai/`) — 검색으로 들어온 사람은 **왜 홈이 떴는지 모른 채** 떠났다.
+           목록·찾기창에서는 이미 빠져 있으므로 여기로 오는 길은 사실상 「주소를 직접 안 것」뿐이다.
+           그 사람에게 필요한 건 홈이 아니라 「앱에서만 됩니다」 한 줄이다(아래 ensureToolPage). */
         const urlWithHash = base + '#' + pageId;
         if (pushHistory) {
             history.pushState({ pageId }, '', urlWithHash);
@@ -2204,8 +2204,25 @@ const Toolbox = (() => {
         const existing = document.getElementById('page-' + pageId);
         if (existing) return existing;
         const tool = tools.find(t => t.id === pageId);
-        if (!tool || !tool.tabs) return null;
-        if (isDesktopOnlyTool(tool) && !isDesktopApp()) return null;
+        if (!tool) return null;
+        /* 브라우저에서 연 데스크톱 전용 도구 — 빈 화면 대신 **왜 안 되는지**를 그린다 (KL-348).
+           알맹이(tabs)가 아직 없어도 그린다: 그 도구의 번들은 여기서 영영 안 불린다. */
+        if (isDesktopOnlyTool(tool) && !isDesktopApp()) {
+            const only = document.createElement('div');
+            only.className = 'tool-page layout-form';
+            only.id = 'page-' + tool.id;
+            only.innerHTML =
+                `<div class="tool-page-hero">` +
+                (tool.title ? `<h1 class="tool-page-hero-title">${escapeHtml(tool.title)}</h1>` : '') +
+                (tool.desc ? `<p class="tool-page-hero-desc">${escapeHtml(tool.desc)}</p>` : '') +
+                `</div>` +
+                `<p class="tool-desktop-only-note">${escapeHtml(
+                    text2('shell.desktop_only_note', '이 도구는 데스크톱 앱에서만 동작합니다 — 이 컴퓨터에 있는 것을 읽어야 하기 때문입니다. 아래 설명은 브라우저에서도 그대로 읽을 수 있습니다.')
+                )}</p>`;
+            host.appendChild(only);
+            return only;
+        }
+        if (!tool.tabs) return null;
         const built = buildToolPage(tool);
         host.appendChild(built);
         return built;

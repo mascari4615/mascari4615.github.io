@@ -1888,6 +1888,19 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
+/* 브라우저에서 연 데스크톱 전용 도구 (TASK-KL-348) — 빈 자리 대신 이 한 줄이 선다.
+   경고가 아니라 안내다: 아래 설명은 그대로 읽히므로 색을 세게 쓰지 않는다. */
+.tool-desktop-only-note {
+    margin: var(--space-md) 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
 /* 도구를 다 쓴 사람에게 다음 자리 (TASK-KL-098). 도구 상세는 검색으로 들어오는 정문인데
    거기서 사이트의 나머지로 가는 길이 하나도 없었다. 맨 아래에만 둔다 — 위는 도구의 자리다. */
 .tool-page-next { margin: var(--space-xl) 0 var(--space-md); padding-top: var(--space-md);

@@ -56,6 +56,19 @@ export interface KarmoLabLazyWidgetStub {
    * **기본은 끔** — 대부분의 도구에서는 군더더기다. 다 쓰고 나가는 흐름이 자연스러운 위젯만 켠다.
    */
   nextLinks?: boolean;
+  /**
+   * 이 화면은 **상세 페이지가 없어야 맞다** (TASK-KL-348).
+   *
+   * 도구 목록·주소(`/karmolab/t/<id>/`)는 `data/tools-seo.json` 이 만든다. 「거기 없는 위젯」을
+   * 검사가 전부 빨강으로 세우면, 설정·즐겨찾기·설치처럼 **원래 페이지가 없어야 맞는 화면**
+   * 열몇 개가 같이 걸려 아무도 못 고치는 빨간불이 된다(2026-08-10 에 그렇게 써 보고 되돌렸다).
+   * 그때는 「알맹이(src/core) 가 있나」로 갈랐는데, 그 그물은 알맹이 없는 위젯(my-ai·terminal…)을
+   * 통째로 놓쳤다 — 만들어 놓고 **문이 안 생긴 채** 배포됐다.
+   *
+   * 그래서 예외를 **위젯이 스스로 밝힌다.** 여기 `true` 면 페이지가 없어도 정상, 안 적었으면
+   * `tools-seo.json` 에 자리가 있어야 한다(`npm run audit:tool-data`).
+   */
+  noPage?: boolean;
 }
 
 export interface KarmoLabImageBatchRecipe {

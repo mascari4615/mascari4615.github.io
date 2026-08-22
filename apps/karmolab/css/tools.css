@@ -1136,6 +1136,21 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     vertical-align: middle;
 }
 
+/* 데스크톱 앱에서만 도는 도구 표 (TASK-KL-348) — 앱에서만 보이는 카드다.
+   「새로 나옴」과 같은 자리·같은 크기, 색만 조용하게 둔다(자랑이 아니라 조건이다). */
+.tool-hub-desktop {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-2xs);
+    font-style: normal;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
 /* 분류마다 몇 개인지 (TASK-KL-089) — 훑을 때 크기를 가늠하게 */
 .tool-hub-count {
     margin-left: 8px;

@@ -1292,6 +1292,17 @@ a.landing-cta-card:hover { color: inherit; }
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
 
+.tool-desktop-only-note {
+    margin: var(--space-md) 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
 .tool-page-next { margin: var(--space-xl) 0 var(--space-md); padding-top: var(--space-md);
     border-top: 1px solid var(--border); }
 .tool-page-next-head { font-size: 11px; font-weight: 700; color: var(--text-tertiary); margin-bottom: 10px; }

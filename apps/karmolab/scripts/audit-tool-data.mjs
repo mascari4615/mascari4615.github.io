@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withoutRetired, RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
+import { widgetMeta } from './lib/widgets-meta.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
@@ -74,26 +75,29 @@ const problems = [];
  * 아예 안 생긴다 — 위젯은 있고 **들어갈 문이 없는** 상태다. 빌드도 타입 검사도 전부 초록이라
  * 아무 데서도 안 걸린다. `chain` 을 그렇게 내보냈다가 다음 회차에 발견했다.
  *
- * 기준을 「등록된 위젯 전부」로 잡으면 안 된다 — settings·status 처럼 **페이지가 없어야 맞는**
- * 화면이 32개 걸려서 아무도 못 고치는 빨간불이 된다(실제로 그렇게 써 보고 되돌렸다).
- * 알맹이 유무가 정확한 신호다.
+ * 그때는 「등록된 위젯 전부」로 잡으면 안 된다고 적었다 — settings·status 처럼 **페이지가 없어야
+ * 맞는** 화면이 32개 걸려서 아무도 못 고치는 빨간불이 됐기 때문이다. 그래서 알맹이 유무로 갈랐다.
+ * **그 판단은 2026-08-22 에 뒤집혔다** (아래) — 예외를 위젯이 스스로 밝히게 하면(`noPage`)
+ * 그 빨간불 없이 명부 전부를 볼 수 있다. 문제는 「기준이 넓은 것」이 아니라 「예외를 적을 자리가
+ * 없던 것」이었다.
+ */
+/* ★ **그물을 알맹이(src/core)에서 등록 명부로 바꾼다** (2026-08-22, TASK-KL-348).
+ *
+ * 여태 기준은 「`src/core/<id>.ts` 가 있나」였다. 그건 **알맹이가 없는 위젯을 통째로 놓친다** —
+ * 화면과 바깥 창구로만 사는 것들(my-ai·terminal·claude-env·alarm…)이 그렇다. 실측: 알맹이 85 vs
+ * 등록 위젯 229. `my-ai` 는 만들어 배포까지 나갔는데 **도구 목록에 한 번도 안 떴다**. 찾기창에만
+ * 걸려서(그건 다른 명부를 본다) 「검색에선 되는데 목록엔 없다」로 보였다.
+ *
+ * 새 기준: **등록된 위젯 전부**. 예외는 위젯이 스스로 `noPage: true` 로 밝힌다(설정·즐겨찾기·
+ * 설치처럼 페이지가 없어야 맞는 화면). 숨긴 것(`hidden`)과 접은 것(`retired-operations`)도 뺀다.
+ * 예외를 여기 목록으로 두지 않는 이유 = 그러면 이 파일이 두 번째 명부가 되어 또 갈라진다.
  */
 {
-  const coreDir = path.join(root, 'src/core');
-  if (fs.existsSync(coreDir)) {
-    const withCore = fs
-      .readdirSync(coreDir)
-      .filter((f) => f.endsWith('.ts'))
-      .filter((f) => /export const spec/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')))
-      /* 스스로 「화면 없음」이라 밝힌 것은 뺀다 — 예외의 이유는 그 파일 안에 적혀 있다. */
-      .filter((f) => /export const SCREENLESS/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')) === false)
-      .map((f) => path.basename(f, '.ts'));
-    /* ★ **접은 도구는 페이지가 없어야 맞다** (2026-08-16). 알맹이 파일은 남아 있어도
-       그 도구는 다른 도구 안의 「할 일」로 흡수됐다 — 주소를 다시 만들면 오히려 갈라진다.
-       실측: 32개라던 목록에 접은 것 5개(configconv·jqplay·prettyall·sqlfmt·xmlfmt)가 섞여 있었다.
-       접은 목록의 정본은 `lib/retired-operations.mjs` 한 곳이다 — 여기에 다시 적지 않는다. */
-    seoOrphans = withoutRetired(withCore.filter((id) => known.has(id) === false));
-  }
+  const meta = widgetMeta();
+  const candidates = Object.keys(meta).filter(
+    (id) => !meta[id].hidden && !meta[id].noPage && !known.has(id)
+  );
+  seoOrphans = withoutRetired(candidates);
 }
 
 
