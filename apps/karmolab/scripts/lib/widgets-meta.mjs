@@ -64,7 +64,7 @@ export function widgetMeta() {
       continue;
     }
     if (!cur) continue;
-    /* 표식 세 가지도 같이 뽑는다 (TASK-KL-348). 「이 도구에 상세 페이지가 있어야 하나」를
+    /* 표식 세 가지도 같이 뽑는다 (TASK-KL-349). 「이 도구에 상세 페이지가 있어야 하나」를
        판정하려면 이름·설명만으로는 모자란다 — 숨긴 화면(설정·상태)은 페이지가 없어야 맞고,
        데스크톱 전용은 **있어야** 맞다(앱 안 도구 목록이 이 표를 읽는다). */
     if (/^\s*hidden:\s*true/.test(line)) { out[cur].hidden = true; continue; }

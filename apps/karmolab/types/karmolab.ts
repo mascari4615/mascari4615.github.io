@@ -57,7 +57,7 @@ export interface KarmoLabLazyWidgetStub {
    */
   nextLinks?: boolean;
   /**
-   * 이 화면은 **상세 페이지가 없어야 맞다** (TASK-KL-348).
+   * 이 화면은 **상세 페이지가 없어야 맞다** (TASK-KL-349).
    *
    * 도구 목록·주소(`/karmolab/t/<id>/`)는 `data/tools-seo.json` 이 만든다. 「거기 없는 위젯」을
    * 검사가 전부 빨강으로 세우면, 설정·즐겨찾기·설치처럼 **원래 페이지가 없어야 맞는 화면**
