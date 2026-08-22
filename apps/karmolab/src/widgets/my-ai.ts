@@ -1,8 +1,7 @@
 /**
  * 내 AI — 구독 살림 한 화면. TASK-KL-248.
  *
- * 지금은 남은 할당량 카드가 전부지만, 이 위젯은 「내가 쓰는 AI 에 대한 것」을
- * 담는 자리다 (요금제·비용·세션·버전 등이 뒤에 붙을 수 있다). 그래서 화면은
+ * 남은 할당량, 개발 환경, 에이전트 운영, 공급자 연결을 한곳에 둔다. 그래서 화면은
  * 벤더 목록을 스스로 들고 있지 않고, 백엔드가 돌려주는 카드를 그대로 그린다 —
  * 새 구독을 붙일 때 고칠 곳이 두 벌로 갈라지지 않게.
  *
@@ -50,6 +49,30 @@ import { t, loadNamespace } from '../lib/i18n';
 
   /** 라이브 카드만 의미가 있는 주기 — 스냅샷은 다시 읽어도 그대로다. */
   const AUTO_REFRESH_MS = 60_000;
+
+  type MyAiPanels = {
+    claudeEnvironment?: (container: HTMLElement) => void;
+    operations?: (container: HTMLElement) => void;
+  };
+
+  type EnvironmentVendorState = {
+    vendor: 'claude' | 'codex' | 'grok';
+    status: 'applied' | 'partial' | 'missing' | 'unknown';
+    reason: string;
+    evidence: string[];
+  };
+
+  type EnvironmentFeature = {
+    id: string;
+    label: string;
+    description: string;
+    vendors: EnvironmentVendorState[];
+  };
+
+  type EnvironmentAudit = { checked_at: number; features: EnvironmentFeature[] };
+
+  const panels = (): MyAiPanels =>
+    (window as unknown as { MyAiPanels?: MyAiPanels }).MyAiPanels ?? {};
 
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -234,7 +257,7 @@ import { t, loadNamespace } from '../lib/i18n';
       </section>`;
   }
 
-  function build(container: HTMLElement): void {
+  function buildQuota(container: HTMLElement): void {
     Mdd.injectCSS(
       'my-ai',
       `
@@ -375,23 +398,146 @@ import { t, loadNamespace } from '../lib/i18n';
     });
   }
 
+  function buildEnvironment(container: HTMLElement): void {
+    Mdd.injectCSS('my-ai-environment', `
+      .myai-environment-audit { margin-bottom: 28px; }
+      .myai-env-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:12px; }
+      .myai-env-head h3, .myai-connections h3 { margin:0 0 5px; }
+      .myai-env-head p { margin:0; color:var(--text-secondary); font-size:var(--font-size-sm); }
+      .myai-env-head > span { color:var(--text-tertiary); font-size:var(--font-size-xs); white-space:nowrap; }
+      .myai-env-scroll { overflow-x:auto; }
+      .myai-env-table { width:100%; border-collapse:collapse; min-width:680px; }
+      .myai-env-table th, .myai-env-table td { padding:11px 12px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+      .myai-env-table thead th { color:var(--text-secondary); font-size:var(--font-size-xs); }
+      .myai-env-table tbody th { width:24%; }
+      .myai-env-table strong, .myai-env-table small { display:block; }
+      .myai-env-table small { margin-top:4px; color:var(--text-tertiary); font-size:var(--font-size-2xs); line-height:1.35; }
+      .myai-env-state { display:inline-block; border:1px solid var(--border); border-radius:999px; padding:2px 7px; font-size:var(--font-size-2xs); }
+      .myai-env-state--applied { color:var(--success); border-color:var(--success); }
+      .myai-env-state--partial { color:var(--warning); border-color:var(--warning); }
+      .myai-env-state--missing { color:var(--error); border-color:var(--error); }
+      .myai-environment-controls { border-top:1px solid var(--border); padding-top:24px; }
+      .agent-team-mode-nav { display:flex; gap:8px; margin-bottom:14px; }
+    `);
+    const audit = document.createElement('section');
+    audit.className = 'myai-environment-audit';
+    audit.textContent = t('my-ai.environment_loading', undefined, '환경을 검사하는 중…');
+    const controls = document.createElement('section');
+    controls.className = 'myai-environment-controls';
+    container.append(audit, controls);
+
+    void invoke<EnvironmentAudit>('ai_environment_audit')
+      .then((result) => {
+        const vendors = ['claude', 'codex', 'grok'] as const;
+        const statusLabel = (status: EnvironmentVendorState['status']): string => {
+          if (status === 'applied') return t('my-ai.status.applied', undefined, '적용');
+          if (status === 'partial') return t('my-ai.status.partial', undefined, '일부');
+          if (status === 'missing') return t('my-ai.status.missing', undefined, '미적용');
+          return t('my-ai.status.unknown', undefined, '확인 필요');
+        };
+        const rows = result.features.map((feature) => {
+          const cells = vendors.map((vendor) => {
+            const found = feature.vendors.find((item) => item.vendor === vendor);
+            if (!found) return '<td>—</td>';
+            const evidence = found.evidence.map(esc).join('\n');
+            return `<td>
+              <span class="myai-env-state myai-env-state--${found.status}">${esc(statusLabel(found.status))}</span>
+              <small title="${evidence}">${esc(found.reason)}</small>
+            </td>`;
+          }).join('');
+          return `<tr><th scope="row"><strong>${esc(feature.label)}</strong><small>${esc(feature.description)}</small></th>${cells}</tr>`;
+        }).join('');
+        audit.innerHTML = `
+          <div class="myai-env-head">
+            <div><h3>${esc(t('my-ai.environment_title', undefined, 'AI 개발환경'))}</h3>
+            <p>${esc(t('my-ai.environment_desc', undefined, '이 컴퓨터의 실제 배포 경로를 검사한 결과다. 상태에 마우스를 올리면 근거 경로를 볼 수 있다.'))}</p></div>
+            <span>${esc(ago(result.checked_at))}</span>
+          </div>
+          <div class="myai-env-scroll"><table class="myai-env-table">
+            <thead><tr><th>${esc(t('my-ai.environment_feature', undefined, '기능'))}</th><th>Claude</th><th>Codex</th><th>Grok</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div>`;
+      })
+      .catch((error: unknown) => {
+        audit.textContent = error instanceof Error ? error.message : String(error);
+      });
+
+    void loadNamespace('claude-env').then(() => {
+      const render = panels().claudeEnvironment;
+      if (!render) {
+        controls.textContent = t('my-ai.panel_missing', undefined, '환경 설정 패널을 불러오지 못했다.');
+        return;
+      }
+      render(controls);
+    });
+  }
+
+  function buildOperations(container: HTMLElement): void {
+    void loadNamespace('agent-team').then(() => {
+      const render = panels().operations;
+      if (!render) {
+        container.textContent = t('my-ai.panel_missing', undefined, '운영 패널을 불러오지 못했다.');
+        return;
+      }
+      render(container);
+    });
+  }
+
+  function buildConnections(container: HTMLElement): void {
+    container.textContent = t('my-ai.loading_connections', undefined, '공급자 연결을 읽는 중…');
+    void Promise.all([
+      Toolbox.ensureScript?.('root/gemini') ?? Promise.resolve(),
+      loadNamespace('gemini')
+    ]).then(() => {
+      const api = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('myai') : null;
+      if (!api) {
+        container.textContent = t('my-ai.connections_unavailable', undefined, '공급자 연결 설정을 불러오지 못했다.');
+        return;
+      }
+      container.innerHTML = `
+        <section class="myai-connections">
+          <h3>${esc(t('my-ai.connections_title', undefined, 'Gemini · Vertex 연결'))}</h3>
+          <p class="myai-note">${esc(t('my-ai.connections_desc', undefined, 'AI 기능이 사용할 공급자 키를 이 브라우저에 저장한다.'))}</p>
+          ${api.html}
+        </section>`;
+      api.init(container);
+    }).catch((error: unknown) => {
+      container.textContent = error instanceof Error ? error.message : String(error);
+    });
+  }
+
   Toolbox.register({
     id: 'my-ai',
     title: t('widgets.my-ai.title', undefined, '내 AI'),
     category: 'tool',
     desktopOnly: true,
-    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI 구독 살림 — 남은 할당량부터'),
+    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독·환경·운영·연결을 한곳에서'),
     layout: 'form',
     icon: '<path d="M4 19a8 8 0 1116 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 19l4.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
     tabs: [
       {
         id: 'quota-main',
-        label: t('my-ai.tab.panel', undefined, '남은 양'),
+        label: t('my-ai.tab.panel', undefined, '현황'),
         build: function (container: HTMLElement): void {
           void loadNamespace('my-ai').then(function () {
-            build(container);
+            buildQuota(container);
           });
         }
+      },
+      {
+        id: 'my-ai-environment',
+        label: t('my-ai.tab.environment', undefined, '환경'),
+        build: buildEnvironment
+      },
+      {
+        id: 'my-ai-operations',
+        label: t('my-ai.tab.operations', undefined, '운영'),
+        build: buildOperations
+      },
+      {
+        id: 'my-ai-connections',
+        label: t('my-ai.tab.connections', undefined, '연결'),
+        build: buildConnections
       }
     ]
   });
