@@ -8,6 +8,7 @@
  * Chirpy DOM 에 얽힌 임시 패치가 되므로, 본문 앱 내 렌더는 컷오버 뒤에 승격한다.
  */
 import { t } from '../lib/i18n';
+import { activateYoutubeCards } from '../lib/markdown/render';
 
 interface PostRow {
     slug: string;
@@ -35,6 +36,23 @@ Mdd.injectCSS(
     .cb-blog-meta { display:block; font-size:13px; color:var(--text-tertiary); margin-top:2px; }
     .cb-blog-excerpt { display:block; font-size:14px; color:var(--text-secondary); margin-top:4px; }
     .cb-blog-note { color:var(--text-tertiary); font-size:14px; padding:16px 2px; }
+    .cb-blog-back { background:none; border:1px solid var(--bg-tertiary); border-radius:8px;
+        color:var(--text-secondary); padding:4px 12px; cursor:pointer; margin:0 0 12px; }
+    .cb-blog-article { max-width:760px; line-height:1.75; }
+    .cb-blog-article h1 { font-size:26px; }
+    .cb-blog-article img { max-width:100%; height:auto; border-radius:8px; }
+    .cb-blog-article pre { background:var(--bg-secondary); border:1px solid var(--bg-tertiary);
+        border-radius:8px; padding:14px; overflow-x:auto; font-size:14px; }
+    .cb-blog-article blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--bg-tertiary); color:var(--text-secondary); }
+    .cb-blog-article table { border-collapse:collapse; display:block; overflow-x:auto; }
+    .cb-blog-article th, .cb-blog-article td { border:1px solid var(--bg-tertiary); padding:6px 12px; }
+    .cb-blog-article .md-callout { border-left-color:var(--accent); background:var(--bg-secondary); border-radius:0 8px 8px 0; }
+    .cb-blog-article .md-callout-tag { font-weight:600; color:var(--accent); margin:10px 0 2px; }
+    .cb-blog-article .md-yt { position:relative; display:block; max-width:560px; margin:16px 0; }
+    .cb-blog-article .md-yt img { width:100%; border-radius:12px; display:block; }
+    .cb-blog-article .md-yt-play { position:absolute; inset:0; display:flex; align-items:center;
+        justify-content:center; font-size:44px; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.7); }
+    .cb-blog-article .md-yt-frame { width:100%; max-width:560px; aspect-ratio:16/9; border:0; border-radius:12px; margin:16px 0; }
 `
 );
 
@@ -54,6 +72,57 @@ export function buildBlogTab(container: HTMLElement): void {
                 '글 색인을 못 받았다 — 잠시 뒤 다시 열어 보라.'
             )}</p>`;
         });
+}
+
+/** 글 한 편을 탭 안에서 — 정적 장(`/posts/<slug>/`)을 받아 본문만 뽑아 그린다. */
+async function openInTab(container: HTMLElement, posts: PostRow[], slug: string): Promise<void> {
+    const staticUrl = `/posts/${encodeURIComponent(slug)}/`;
+    let article: { title: string; meta: string; body: string };
+    try {
+        const response = await fetch(staticUrl);
+        if (response.ok === false) throw new Error(`http ${response.status}`);
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const body = doc.querySelector('.post-body');
+        const title = doc.querySelector('h1');
+        if (!body || !title) throw new Error('post-body 없음');
+        article = {
+            title: title.textContent ?? slug,
+            meta: doc.querySelector('.post-meta')?.textContent ?? '',
+            body: body.innerHTML,
+        };
+    } catch {
+        location.href = staticUrl; // 못 받으면(개발 서버·회선) 정적 장으로 — 막다른 길은 없다
+        return;
+    }
+
+    container.innerHTML = '';
+    const back = document.createElement('button');
+    back.className = 'cb-blog-back';
+    back.textContent = t('community.blog.back', undefined, '◂ 글 목록');
+    back.addEventListener('click', () => render(container, posts));
+
+    const wrap = document.createElement('article');
+    wrap.className = 'cb-blog-article';
+    const heading = document.createElement('h1');
+    heading.textContent = article.title;
+    const meta = document.createElement('p');
+    meta.className = 'cb-blog-meta';
+    meta.textContent = article.meta;
+    const body = document.createElement('div');
+    // 내 정적 장에서 온 내 마크업이다 (trust self 렌더 산출) — 그대로 꽂는다.
+    body.innerHTML = article.body;
+    activateYoutubeCards(body);
+
+    const permalink = document.createElement('p');
+    permalink.innerHTML = `<a href="${staticUrl}" target="_blank" rel="noopener">↗ ${t(
+        'community.blog.open-static',
+        undefined,
+        '글 페이지에서 보기 (댓글)'
+    )}</a>`;
+
+    wrap.append(heading, meta, body, permalink);
+    container.append(back, wrap);
+    container.scrollIntoView({ block: 'start' });
 }
 
 function render(container: HTMLElement, posts: PostRow[]): void {
@@ -89,6 +158,12 @@ function render(container: HTMLElement, posts: PostRow[]): void {
         (li.querySelector('.cb-blog-title') as HTMLElement).textContent = post.title;
         const excerptEl = li.querySelector('.cb-blog-excerpt');
         if (excerptEl) excerptEl.textContent = post.excerpt;
+        // 탭 안에서 바로 읽는다 (change.blog-finish ⑤) — 컷오버 뒤라 정적 장도 우리 마크업이다.
+        // 못 받으면(개발 서버 등) 막지 않고 정적 장으로 보낸다.
+        li.querySelector('a')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            void openInTab(container, posts, post.slug);
+        });
         list.appendChild(li);
         rows.push({
             el: li,

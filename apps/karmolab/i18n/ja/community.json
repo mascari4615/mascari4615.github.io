@@ -196,5 +196,7 @@
   "community.tab.blog": "記事",
   "community.blog.loading": "記事一覧を読み込み中…",
   "community.blog.offline": "記事の索引を取得できなかった — 少し後で開き直してほしい。",
-  "community.blog.search": "タイトル・カテゴリを検索"
+  "community.blog.search": "タイトル・カテゴリを検索",
+  "community.blog.back": "◂ 記事一覧",
+  "community.blog.open-static": "記事ページで見る（コメント）"
 }
