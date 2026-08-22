@@ -14,6 +14,9 @@ export function deniedPaths(configText) {
 }
 
 export function assertDenied(configText, base) {
+  /* 사이트 서비스워커 자체가 없으면 (Chirpy 철거 — change.blog-cutover) 담을 캐시도 없다.
+     pwa 설정 블록의 존재 = 서비스워커의 존재. 없으면 이 가드는 지킬 것이 없다. */
+  if (/^pwa:/m.test(String(configText)) === false) return;
   const denied = deniedPaths(configText);
   if (denied.includes(base)) return;
   throw new Error(
