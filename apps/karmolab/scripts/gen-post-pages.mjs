@@ -103,6 +103,24 @@ function addHeadingIds(html) {
 const marked = loadMarked();
 const { renderMarkdown } = await loadMarkdownLib();
 
+// 수식 — `$$…$$` 는 빌드 때 KaTeX 로 굳힌다 (change.blog-finish ④). 클라이언트 JS 0,
+// 수식 있는 장만 katex.min.css 한 장 (self-host `/assets/katex/`). 실측 사용 4파일.
+const katex = (await import('katex')).default;
+function renderMath(md) {
+    if (md.includes('$$') === false) return { md, hasMath: false };
+    let hasMath = false;
+    const out = md.replace(/\$\$([\s\S]+?)\$\$/g, (whole, tex) => {
+        hasMath = true;
+        try {
+            return katex.renderToString(tex.trim(), { displayMode: true, throwOnError: true });
+        } catch (error) {
+            console.warn(`[gen-post-pages] 수식 못 굳힘 (${error.message.split('\n')[0]}) — 원문 유지`);
+            return whole;
+        }
+    });
+    return { md: out, hasMath };
+}
+
 const posts = walk(CONTENT)
     .map(parsePost)
     .filter(Boolean)
@@ -135,18 +153,21 @@ fs.mkdirSync(OUT, { recursive: true });
 
 let maxExternal = 0;
 for (const post of posts) {
-    const rendered = applyCdn(renderMarkdown(post.body, { trust: 'self', marked }));
+    const math = renderMath(post.body);
+    const rendered = applyCdn(renderMarkdown(math.md, { trust: 'self', marked }));
     const { html, toc } = addHeadingIds(rendered);
     const { prev, next } = neighborOf(post);
     const page = postPage(post, html, {
         toc,
         prev: prev && { slug: prev.slug, title: prev.title },
         next: next && { slug: next.slug, title: next.title },
+        mathCss: math.hasMath,
     });
 
     // 무게 게이트 — 이 장이 바깥에서 받는 것(스크립트·스타일 링크) 수. 앱 셸로 회귀하면 여기가 선다.
+    // 수식 장은 katex.min.css 한 장을 더 받는다 — 그 장만 +1 허용.
     const external = (page.match(/<script[^>]+src=|<link[^>]+rel="stylesheet"/g) ?? []).length;
-    maxExternal = Math.max(maxExternal, external);
+    maxExternal = Math.max(maxExternal, external - (math.hasMath ? 1 : 0));
 
     const dest = path.join(OUT, 'posts', post.slug, 'index.html');
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -184,6 +205,33 @@ fs.writeFileSync(path.join(OUT, 'posts', 'index.html'), listPage(index));
 fs.writeFileSync(path.join(OUT, 'index.html'), listPage(index, { permalink: '/', canonical: '/posts/' }));
 fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
 fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
+
+// 글 그래프 — 글 사이 링크를 판으로 (change.blog-finish ②, 옛 build-post-graph.cjs 승계).
+// 공개 글만 싣는다 (hidden 열거 방지 — 목록·색인과 같은 규율). postgraph 위젯이 읽는다.
+{
+    const slugSet = new Set(visible.map((p) => p.slug));
+    const links = [];
+    for (const post of visible) {
+        const targets = new Set(
+            [...post.body.matchAll(/\]\(\/posts\/([^/)#?]+)\/?[^)]*\)/g)].map((m) => m[1]).filter((s) => slugSet.has(s) && s !== post.slug)
+        );
+        for (const target of targets) links.push({ source: post.slug, target, kind: 'link' });
+    }
+    const graph = {
+        version: 1,
+        nodes: visible.map((p) => ({
+            id: p.slug,
+            label: p.title,
+            href: `/posts/${p.slug}/`,
+            ...(p.categories[0] ? { group: p.categories[0] } : {}),
+        })),
+        links,
+    };
+    const graphDest = path.join(APP_ROOT, '..', 'blog', 'assets', 'js', 'data', 'post-graph.json');
+    fs.mkdirSync(path.dirname(graphDest), { recursive: true });
+    fs.writeFileSync(graphDest, JSON.stringify(graph));
+    console.log(`[gen-post-pages] 글 그래프 — 마디 ${graph.nodes.length} · 간선 ${links.length}`);
+}
 
 // 소개 — 원문 = content/about.md (Chirpy _tabs/about.md 승계본, git 추적).
 const aboutSrc = path.join(APP_ROOT, 'content', 'about.md');
