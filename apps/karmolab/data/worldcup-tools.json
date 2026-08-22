@@ -1149,6 +1149,20 @@
       "v": {
         "cat": "도구"
       }
+    },
+    {
+      "n": "내 AI",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/my-ai.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "내 글 지형도",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/memo-atlas.jpg",
+      "v": {
+        "cat": "도구"
+      }
     }
   ]
 }
