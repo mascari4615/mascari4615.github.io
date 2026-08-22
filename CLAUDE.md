@@ -1,7 +1,8 @@
 # mascari4615.github.io — AI 에이전트 작업 지침
 
-Jekyll 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages `https://mascari4615.github.io`.
-구조: `_posts/` 블로그 / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
+Jekyll 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages, 도메인 `https://blog.mascari4615.com` (CNAME).
+구조: `apps/blog/` 블로그 (글 원본 = `apps/blog/_posts/` — 루트 `_site`·`Gemfile.lock` 은 untracked 잔재) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
+**블로그 → KarmoLab 이관 진행 중** (TASK-KL-351, memo): Phase 2 까지 완료 — 글 변환기(`convert:posts`)·공용 렌더러(`src/lib/markdown/`)·`/posts/` 목록·커뮤니티 「글」 탭. Chirpy/Jekyll 철거 = Phase 3.
 
 ## Post 규칙
 
