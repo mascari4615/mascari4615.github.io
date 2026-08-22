@@ -12,6 +12,11 @@ extend-exclude = [
   # 공유 카드 이미지 목록 — 값이 전부 내용 해시(16진수)라 영어 단어로 오독된다
   "apps/karmolab/img/og/manifest.json",
 
+  # 지어낸 지도 자료 — 값이 지어낸 이름·좌표·해시 조각이라 영어 낱말로 오독된다
+  # (`ede` → edge, `abd` → and 처럼). 사람이 읽는 글이 아니라 자들이 쓰는 가짜 자료다.
+  "apps/karmolab/data/memo-atlas-fake.json",
+  "apps/karmolab/data/memo-atlas-fake-cache.json",
+
   # ★ **강의 자료 전체를 뺀다** (2026-08-13). 강의는 사람이 읽는 교재라 **일부러 틀린 낱말**과
   # 제품 이름·화면 인용이 계속 들어온다. 하루에만 셋이 master 를 세웠다 —
   #   vim 의 `(D)elete` 물음 · 디자인 서비스 `Canva` · 타이포스쿼팅 예시 `lodahs`·`reqeusts`.
@@ -310,3 +315,6 @@ Wrold = "Wrold"
 Wrtie = "Wrtie"
 # === 2026-08-17: 달력 코드가 낸 것 (verify 를 21판째 세우고 있었다) ===
 dows = "dows"            # day-of-week 의 복수 — FullCalendar 도 쓰는 달력 용어 (does/down 아님)
+# === 2026-08-22: 유니티가 파일에 박아 둔 이름 (사람이 못 고친다) ===
+Abberation = "Abberation"   # DefaultVolumeProfile.asset 의 직렬화 열쇠 — 고치면 설정이 끊긴다
+OIS = "OIS"                 # optical image stabilization — 손떨림 보정 약자

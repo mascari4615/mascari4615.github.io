@@ -114,12 +114,12 @@ function stage(rows, name, qk, pk, tk = 't_ms') {
 
 const raw   = stage(pose, 'raw   (폰 원본)',      ['raw_qx','raw_qy','raw_qz','raw_qw'],    ['raw_px','raw_py','raw_pz']);
 const conv  = stage(pose, 'conv  (좌표변환 후)',  ['conv_qx','conv_qy','conv_qz','conv_qw'],['conv_px','conv_py','conv_pz']);
-const shw   = shown.length ? stage(shown, 'shown (보간·리센터 후)',
+const shownStage   = shown.length ? stage(shown, 'shown (보간·리센터 후)',
                 ['shown_qx','shown_qy','shown_qz','shown_qw'], ['shown_px','shown_py','shown_pz']) : null;
 
 console.log('\n── 각속도 (도/초) ─────────────────────────────────────────');
 console.log('단계                     중앙값   p95     p99     최대     ┃ 요만');
-for (const s of [raw, conv, shw].filter(Boolean)) {
+for (const s of [raw, conv, shownStage].filter(Boolean)) {
   const r = s.rate, y = s.yawRate;
   console.log(`${s.name.padEnd(22)} ${pct(r,.5).toFixed(1).padStart(7)} ${pct(r,.95).toFixed(1).padStart(7)} ` +
               `${pct(r,.99).toFixed(1).padStart(7)} ${Math.max(...r).toFixed(1).padStart(8)}  ┃ ` +
@@ -136,7 +136,7 @@ for (const s of [raw, conv, shw].filter(Boolean)) {
 console.log('\n── 튐 (주변 흐름 대비 불연속 · 사람이 보는 크기) ──────────');
 console.log(`   기준: 주변 ±${LOCAL_WINDOW}표본 중앙값의 8배 초과 **이면서** 한 걸음 ${VISIBLE_STEP_DEG}° 이상`);
 let verdict = [];
-for (const s of [raw, conv, shw].filter(Boolean)) {
+for (const s of [raw, conv, shownStage].filter(Boolean)) {
   const spikes = [];
   for (let i = 0; i < s.rate.length; i++) {
     const v = s.rate[i], step = s.step[i];

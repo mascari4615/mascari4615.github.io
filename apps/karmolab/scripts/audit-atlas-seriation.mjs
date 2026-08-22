@@ -61,9 +61,9 @@ if (!rnd) bad.push('마구 정렬이 표에 없다 — 바닥이 없으면 「�
 else if (Math.abs(rnd.ar - 0.5) > 0.05) {
   bad.push(`마구 정렬의 어긋남이 ${rnd.ar} 다 — 아무 순서나면 0.5 에 붙어야 한다(셈이 틀렸다)`);
 }
-const fied = S.ours.find((r) => r.way === 'fiedler');
-if (!fied) bad.push('피들러 정렬이 표에 없다');
-else if (!(fied.ar < 0.5)) bad.push(`피들러가 아무 순서(0.5)보다 못하다 (${fied.ar})`);
+const fiedler = S.ours.find((r) => r.way === 'fiedler');
+if (!fiedler) bad.push('피들러 정렬이 표에 없다');
+else if (!(fiedler.ar < 0.5)) bad.push(`피들러가 아무 순서(0.5)보다 못하다 (${fiedler.ar})`);
 /* 잣대 셋을 다 싣고 있나 — 진 잣대(2-sum)도 남긴다. */
 for (const r of S.ours) {
   if (r.twoSum == null || r.profile == null || r.ar == null) bad.push(`「${r.way}」 에 빠진 잣대가 있다`);
