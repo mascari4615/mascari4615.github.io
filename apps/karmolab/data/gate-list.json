@@ -342,6 +342,730 @@
     "audit:locale-inline",
     "audit:i18n-stub",
     "test:new-tool",
-    "test:tempmail"
+    "test:tempmail",
+    {
+      "name": "audit:atlas-fresh",
+      "watch": [
+        "scripts/audit-memo-atlas-fresh.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "src/widgets/memo-atlas.ts",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-meaning",
+      "watch": [
+        "scripts/audit-atlas-meaning.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-lane-bias",
+      "watch": [
+        "scripts/audit-atlas-lane-bias.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-trust",
+      "watch": [
+        "scripts/audit-atlas-trust.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "data/atlas-trust-baseline.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-compare",
+      "watch": [
+        "scripts/audit-atlas-compare.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-names",
+      "watch": [
+        "scripts/audit-atlas-names.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-lonely",
+      "watch": [
+        "scripts/audit-atlas-lonely.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-touch",
+      "watch": [
+        "scripts/audit-atlas-touch.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-howto",
+      "watch": [
+        "scripts/audit-atlas-howto.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-remember",
+      "watch": [
+        "scripts/audit-atlas-remember.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-keyboard",
+      "watch": [
+        "scripts/audit-atlas-keyboard.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-colors",
+      "watch": [
+        "scripts/audit-atlas-colors.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-draw",
+      "watch": [
+        "scripts/audit-atlas-draw-budget.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-control",
+      "watch": [
+        "scripts/audit-atlas-control.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-minimap",
+      "watch": [
+        "scripts/audit-atlas-minimap.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-mix",
+      "watch": [
+        "scripts/audit-atlas-mix.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton",
+      "watch": [
+        "scripts/audit-atlas-skeleton-stable.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-cluster-real",
+      "watch": [
+        "scripts/audit-atlas-cluster-real.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dbcv",
+      "watch": [
+        "scripts/audit-atlas-dbcv.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dense",
+      "watch": [
+        "scripts/audit-atlas-dense.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-name-fit",
+      "watch": [
+        "scripts/audit-atlas-name-fit.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-edges",
+      "watch": [
+        "scripts/audit-atlas-edges.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-twins",
+      "watch": [
+        "scripts/audit-atlas-twins.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-ego",
+      "watch": [
+        "scripts/audit-atlas-ego.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-diff",
+      "watch": [
+        "scripts/audit-atlas-diff.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-trail",
+      "watch": [
+        "scripts/audit-atlas-trail.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-umap",
+      "watch": [
+        "scripts/audit-atlas-umap.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-h0",
+      "watch": [
+        "scripts/audit-atlas-h0.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton-conf",
+      "watch": [
+        "scripts/audit-atlas-skeleton-confidence.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton-draw",
+      "watch": [
+        "scripts/audit-atlas-skeleton-drawing.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-tower",
+      "watch": [
+        "scripts/audit-atlas-mapper-tower.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-intrusion",
+      "watch": [
+        "scripts/audit-atlas-intrusion.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-phone",
+      "watch": [
+        "scripts/audit-atlas-phone.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-external",
+      "watch": [
+        "scripts/audit-atlas-external.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoom",
+      "watch": [
+        "scripts/audit-atlas-zoom.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-prox",
+      "watch": [
+        "scripts/audit-atlas-prox.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-loops",
+      "watch": [
+        "scripts/audit-atlas-loops.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-hops",
+      "watch": [
+        "scripts/audit-atlas-hops.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-warp",
+      "watch": [
+        "scripts/audit-atlas-warp.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoo",
+      "watch": [
+        "scripts/audit-atlas-zoo.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-taskdoi",
+      "watch": [
+        "scripts/audit-atlas-taskdoi.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-revisit",
+      "watch": [
+        "scripts/audit-atlas-revisit.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-suggest",
+      "watch": [
+        "scripts/audit-atlas-suggest.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-novelty",
+      "watch": [
+        "scripts/audit-atlas-novelty.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-share",
+      "watch": [
+        "scripts/audit-atlas-share.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-leak",
+      "watch": [
+        "scripts/audit-atlas-leak.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-seriation",
+      "watch": [
+        "scripts/audit-atlas-seriation.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-delta",
+      "watch": [
+        "scripts/audit-atlas-delta.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-idim",
+      "watch": [
+        "scripts/audit-atlas-idim.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-init",
+      "watch": [
+        "scripts/audit-atlas-init.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-wobble",
+      "watch": [
+        "scripts/audit-atlas-wobble.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-doi",
+      "watch": [
+        "scripts/audit-atlas-doi.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dip",
+      "watch": [
+        "scripts/audit-atlas-dip.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-label-flicker",
+      "watch": [
+        "scripts/audit-atlas-label-flicker.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-terrain",
+      "watch": [
+        "scripts/audit-atlas-terrain.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-hub",
+      "watch": [
+        "scripts/audit-atlas-hub.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-channels",
+      "watch": [
+        "scripts/audit-atlas-channels.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-a11y",
+      "watch": [
+        "scripts/audit-atlas-a11y.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "smoke:atlas-shell",
+      "watch": [
+        "scripts/smoke-atlas-shell.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "src/toolbox.ts",
+        "i18n",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-honesty",
+      "watch": [
+        "scripts/audit-atlas-honesty.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-near",
+      "watch": [
+        "scripts/audit-atlas-near.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-find",
+      "watch": [
+        "scripts/audit-atlas-find.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoom-names",
+      "watch": [
+        "scripts/audit-atlas-zoom-names.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-gates-bite",
+      "watch": [
+        "scripts/audit-atlas-gates-bite.mjs",
+        "scripts/audit-atlas-trust.mjs",
+        "scripts/audit-atlas-lane-bias.mjs",
+        "scripts/audit-memo-atlas-fresh.mjs",
+        "scripts/audit-atlas-zoom-names.mjs",
+        "scripts/audit-atlas-near.mjs",
+        "scripts/audit-atlas-honesty.mjs",
+        "scripts/audit-atlas-skeleton-stable.mjs",
+        "scripts/audit-atlas-mix.mjs",
+        "scripts/audit-atlas-lonely.mjs",
+        "scripts/audit-atlas-names.mjs",
+        "scripts/audit-atlas-compare.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    }
   ]
 }
