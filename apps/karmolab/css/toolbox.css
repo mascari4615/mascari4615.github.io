@@ -1888,7 +1888,7 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
-/* 브라우저에서 연 데스크톱 전용 도구 (TASK-KL-348) — 빈 자리 대신 이 한 줄이 선다.
+/* 브라우저에서 연 데스크톱 전용 도구 (TASK-KL-349) — 빈 자리 대신 이 한 줄이 선다.
    경고가 아니라 안내다: 아래 설명은 그대로 읽히므로 색을 세게 쓰지 않는다. */
 .tool-desktop-only-note {
     margin: var(--space-md) 0;
