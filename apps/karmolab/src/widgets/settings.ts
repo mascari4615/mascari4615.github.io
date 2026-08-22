@@ -59,12 +59,14 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     }
 
     async function renderDisplay(container: HTMLElement): Promise<void> {
-        // KL-054: prism = eager 제거 → 설정 진입 시 로드.
+        // KL-054: gemini/prism = eager 제거 → 설정 진입 시 로드.
         try {
+            await Toolbox.ensureScript?.('root/gemini');
             await Toolbox.ensureScript?.('vendor/prism.min');
         } catch (_) {
             /* typeof 가드가 부재 시 안전 폴백 */
         }
+        await loadNamespace('gemini');
 
         const theme = Toolbox.getTheme?.() ?? 'dark';
         const prismTheme = Toolbox.getPrismTheme?.() ?? '';
@@ -72,6 +74,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
         const bgThemes = Toolbox.getBgThemes?.() ?? [];
         const navLayout = Toolbox.getNavLayout?.() ?? 'header';
+        const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
 
         container.innerHTML = `
             <div class="settings-layout">
@@ -130,6 +133,10 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                         ${esc(t('settings.t03'))}
                     </p>
                 </div>
+                <div class="settings-section">
+                    <h3>🔑 API</h3>
+                    ${apiUI.html}
+                </div>
             </div>`;
 
         container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
@@ -176,6 +183,10 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
         if (previewCode && typeof Prism !== 'undefined') Prism.highlightElement(previewCode);
+
+        if (typeof Gemini !== 'undefined') {
+            Gemini.buildApiKeyUI('set').init(container);
+        }
 
     }
 
