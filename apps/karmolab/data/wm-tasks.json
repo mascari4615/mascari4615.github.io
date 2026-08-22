@@ -1,9 +1,9 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 407,
+    "docs": 410,
     "groups": 7,
-    "shown": 83,
+    "shown": 80,
     "hidden": 0
   },
   "groups": [
@@ -289,7 +289,7 @@
     {
       "status": "seed",
       "label": "씨앗",
-      "count": 11,
+      "count": 9,
       "items": [
         {
           "id": "2026-04-08-content-first-todo",
@@ -356,22 +356,6 @@
           "updated": ""
         },
         {
-          "id": "TASK-WM-412",
-          "title": "unity cli 공식통로 이주",
-          "status": "seed",
-          "statusLabel": "씨앗",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-413",
-          "title": "두명이 한바퀴를 못 돈다",
-          "status": "seed",
-          "statusLabel": "씨앗",
-          "priority": "high",
-          "updated": ""
-        },
-        {
           "id": "test-checklist",
           "title": "WM 통합 테스트 체크리스트",
           "status": "seed",
@@ -431,8 +415,48 @@
     {
       "status": "done",
       "label": "끝남",
-      "count": 323,
+      "count": 329,
       "items": [
+        {
+          "id": "TASK-WM-416",
+          "title": "테스트 저장소뿌리 오탐",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-415",
+          "title": "versus 웹소켓 호스트 tcp로 다시",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-414",
+          "title": "editmode 스위트 완주불가",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-413",
+          "title": "두명이 한바퀴를 못 돈다",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-412",
+          "title": "unity cli 공식통로 이주",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "normal",
+          "updated": ""
+        },
         {
           "id": "TASK-WM-404",
           "title": "때리기 공평 빨강걷기 재시도",
@@ -484,46 +508,6 @@
         {
           "id": "TASK-WM-398",
           "title": "몰린 칸을 쪼갠다",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-397",
-          "title": "몰린 칸에서 옆사람이 얼어붙는다",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-396",
-          "title": "칸 크기를 재서 고른다",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "high",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-395",
-          "title": "창 쪽 깜빡임",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-394",
-          "title": "끝자락 깜빡임",
-          "status": "done",
-          "statusLabel": "끝남",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-393",
-          "title": "브라우저 관문 이 기계에서도",
           "status": "done",
           "statusLabel": "끝남",
           "priority": "high",
@@ -637,7 +621,7 @@
     {
       "status": "unit_verified",
       "label": "unit_verified",
-      "count": 6,
+      "count": 5,
       "items": [
         {
           "id": "TASK-WM-029-B",
@@ -669,14 +653,6 @@
           "status": "unit_verified",
           "statusLabel": "unit_verified",
           "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-211",
-          "title": "초기화순서 게이트가 눈을 뜨게 한다",
-          "status": "unit_verified",
-          "statusLabel": "unit_verified",
-          "priority": "high",
           "updated": ""
         },
         {

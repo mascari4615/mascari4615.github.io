@@ -1162,5 +1162,15 @@
   "faq.territory.2.q": "How current is the store data?",
   "faq.territory.2.a": "Store locations come from OpenStreetMap, downloaded ahead of time. It is not live — it is refreshed quarterly, and stores missing from OpenStreetMap are not included. District boundaries follow Statistics Korea (2018).",
   "faq.territory.3.q": "Is my location or activity sent anywhere?",
-  "faq.territory.3.a": "Nothing is sent. The store data is downloaded once, and all calculation and drawing happen inside your browser. Only the map tiles are fetched from OpenStreetMap."
+  "faq.territory.3.a": "Nothing is sent. The store data is downloaded once, and all calculation and drawing happen inside your browser. Only the map tiles are fetched from OpenStreetMap.",
+  "faq.my-ai.0.q": "Why is it not shown in the browser?",
+  "faq.my-ai.0.a": "The remaining amount can only be asked for with the sign-in details stored on this computer. A browser cannot read those files, and each vendor blocks its lookup endpoint from being called by a website. So it runs in the desktop app only.",
+  "faq.my-ai.1.q": "Where does my account information go?",
+  "faq.my-ai.1.a": "Nowhere. The sign-in details are read on this computer and sent straight to each vendor. Nothing passes through our server and nothing is kept.",
+  "faq.my-ai.2.q": "Can other people use it?",
+  "faq.my-ai.2.a": "Yes. There is no fixed owner — it shows whatever is left on the account signed in on the computer running the app.",
+  "faq.my-ai.3.q": "What does it mean when it is not \"Live\"?",
+  "faq.my-ai.3.a": "It means asking just now failed, so it shows the value left in the logs the last time you used that tool. If you have used it since, the real number is lower. The observation time is shown alongside.",
+  "faq.my-ai.4.q": "It says my sign-in has expired.",
+  "faq.my-ai.4.a": "Run that CLI once in a terminal and the token refreshes. Then press \"Refresh\"."
 }
