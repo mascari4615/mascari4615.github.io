@@ -125,7 +125,9 @@ namespace Handheld
         public float focusDistance = 3f;
 
         [Tooltip("조리개 (f-stop). 작을수록 얕고 크게 흐려진다 — 이건 감독이 정하는 룩이다.")]
-        [Range(0.7f, 32f)] public float aperture = 2.8f;
+        // 아래를 f/1 에서 끊는다 — 받아 쓰는 쪽이 대개 f/1~f/32 로 자른다.
+        // 더 열어 봐야 그쪽에서 조용히 잘려 흐림이 안 따라온다.
+        [Range(1f, 32f)] public float aperture = 2.8f;
 
         [Tooltip("초점이 옮겨가는 반감기 = 랙 포커스 속도. 0 이면 즉시(기계적으로 불가능한 느낌).")]
         [Range(0f, 1.5f)] public float focusRampHalfLife = 0.25f;
@@ -186,6 +188,9 @@ namespace Handheld
 
         AxisLock _axisLock;
         bool _panWas, _tiltWas, _rollWas;
+
+        ContinuousEuler _euler;
+        HandheldCameraFrame _frame;
 
         Vector3 _originPos;
         Quaternion _originRot = Quaternion.identity;
@@ -576,6 +581,7 @@ namespace Handheld
             _recenteredThisTick = true;
             _shownValid = false;                 // 보간을 새 기준에서 다시 시작
             _panWas = _tiltWas = _rollWas = false;   // 잠금 기준도 여기서 다시 잡는다
+            _euler.Reset();                          // 이어 붙일 근거가 사라졌다
             ApplyPose(_pose, 0f);
         }
 
@@ -778,7 +784,36 @@ namespace Handheld
             else
                 transform.SetPositionAndRotation(_shownPos, outRot);
 
+            PublishFrame();
+
             if (pose.FovY > 0f) ApplyLens(MapFov(pose.FovY, pose.Aspect), EffectiveAspect(pose.Aspect));
+        }
+
+        /// <summary>지금 카메라 상태 한 벌 — 호스트 앱에 넘기는 창구.</summary>
+        public HandheldCameraFrame CameraFrame => _frame;
+
+        /// <summary>
+        /// 상태가 새로 나올 때마다 부른다. 받는 쪽은 이것만 붙이면 카메라를 몰 수 있다 —
+        /// 우리 내부를 안 들여다봐도 된다.
+        /// </summary>
+        public event System.Action<HandheldCameraFrame> CameraFrameUpdated;
+
+        void PublishFrame()
+        {
+            _frame.Position = transform.position;
+            _frame.Rotation = transform.rotation;
+            // 감기지 않는 오일러 — 오일러로 들고 보간하는 쪽이 반대로 돌지 않게.
+            _frame.EulerContinuous = _euler.Advance(transform.rotation.eulerAngles);
+            _frame.FovY = FovY;
+            _frame.Zoom = _zoomShown;
+            _frame.FocalLengthMm = FocalLengthMm;
+            _frame.FocusDistanceM = _focusShownDist;
+            _frame.Aperture = aperture;
+            _frame.SensorWidthMm = sensorWidthMm;
+            _frame.AutoFocus = focusMode != FocusMode.Manual;
+            _frame.Live = _everGotPose && server != null && server.Connected;
+
+            CameraFrameUpdated?.Invoke(_frame);
         }
 
         /// <summary>

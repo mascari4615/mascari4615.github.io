@@ -493,6 +493,9 @@ namespace Handheld
             sb.AppendFormat(c, "\"rtc\":\"{0}\",", w == null ? "없음" : w.StatusLine.Replace("\"", "'"));
 
             var r = rig;
+            // 렌즈가 흔한 범위를 벗어나면 받는 쪽에서 조용히 잘린다 — 미리 띄운다.
+            string lensWarn = r != null ? r.CameraFrame.LensOutOfRange() : "";
+            sb.AppendFormat(c, "\"lensWarn\":\"{0}\",", lensWarn);
             sb.Append("\"rig\":{");
             if (r != null) sb.Append(r.DiagJson());
             sb.Append("}}");
