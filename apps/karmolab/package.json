@@ -32,6 +32,7 @@
     "gen:feeds": "node scripts/gen-feeds.mjs",
     "gen:llms": "node scripts/gen-llms-txt.mjs",
     "gen:tool-md": "node scripts/gen-tool-md.mjs",
+    "convert:posts": "node scripts/convert-blog-posts.mjs",
     "test:platform": "node scripts/smoke-platform-pages.mjs",
     "build:i18n": "node scripts/build-i18n.mjs",
     "test:i18n": "node scripts/build-i18n.mjs --check",
