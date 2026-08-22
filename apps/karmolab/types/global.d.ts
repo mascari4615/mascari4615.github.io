@@ -200,6 +200,7 @@ declare global {
           options?: Record<string, unknown>
         ) => Promise<string[]>;
         getApiKey: (id?: string | null) => string;
+        getVertexApiKey: () => string;
         requireApiKey: () => string | null;
         fetchWithRetry: (url: string, body: unknown, options?: RequestInit) => Promise<Response>;
         /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */

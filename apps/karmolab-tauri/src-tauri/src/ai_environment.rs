@@ -166,6 +166,15 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         .as_secs();
     Ok(EnvironmentAudit {
         checked_at,
-        features: vec![instructions, skills, hooks, commands, memory, mcp, permissions],
+        features: vec![instructions, skills, hooks, commands, memory, mcp, permissions, EnvironmentFeature {
+            id: "automation",
+            label: "자동화",
+            description: "사용자 호출 없이 예약·반복 실행되는 AI 작업",
+            vendors: vec![
+                state("claude", false, false, "Claude 예약 자동화 배포 계약 없음", vec![claude.join("automations")]),
+                state("codex", has_entries(&codex.join("automations")), false, "Codex automations 저장소", vec![codex.join("automations")]),
+                state("grok", false, false, "Grok 예약 자동화 배포 계약 없음", vec![grok.join("automations")]),
+            ],
+        }],
     })
 }

@@ -52,7 +52,6 @@ import { t, loadNamespace } from '../lib/i18n';
 
   type MyAiPanels = {
     claudeEnvironment?: (container: HTMLElement) => void;
-    operations?: (container: HTMLElement) => void;
   };
 
   type EnvironmentVendorState = {
@@ -417,7 +416,10 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-env-state--partial { color:var(--warning); border-color:var(--warning); }
       .myai-env-state--missing { color:var(--error); border-color:var(--error); }
       .myai-environment-controls { border-top:1px solid var(--border); padding-top:24px; }
-      .agent-team-mode-nav { display:flex; gap:8px; margin-bottom:14px; }
+      .myai-connection-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:16px 0; }
+      .myai-connection-card { border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; background:var(--bg-tertiary); }
+      .myai-connection-card strong, .myai-connection-card small { display:block; }
+      .myai-connection-card small { color:var(--text-tertiary); margin-top:5px; }
     `);
     const audit = document.createElement('section');
     audit.className = 'myai-environment-audit';
@@ -472,35 +474,35 @@ import { t, loadNamespace } from '../lib/i18n';
     });
   }
 
-  function buildOperations(container: HTMLElement): void {
-    void loadNamespace('agent-team').then(() => {
-      const render = panels().operations;
-      if (!render) {
-        container.textContent = t('my-ai.panel_missing', undefined, '운영 패널을 불러오지 못했다.');
-        return;
-      }
-      render(container);
-    });
-  }
-
   function buildConnections(container: HTMLElement): void {
     container.textContent = t('my-ai.loading_connections', undefined, '공급자 연결을 읽는 중…');
     void Promise.all([
       Toolbox.ensureScript?.('root/gemini') ?? Promise.resolve(),
       loadNamespace('gemini')
     ]).then(() => {
-      const api = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('myai') : null;
-      if (!api) {
+      if (typeof Gemini === 'undefined') {
         container.textContent = t('my-ai.connections_unavailable', undefined, '공급자 연결 설정을 불러오지 못했다.');
         return;
       }
+      const geminiReady = Boolean(Gemini.getApiKey());
+      const vertexReady = Boolean(Gemini.getVertexApiKey());
+      const state = (ready: boolean): string => ready
+        ? t('my-ai.connection.ready', undefined, '연결됨')
+        : t('my-ai.connection.missing', undefined, '설정 필요');
       container.innerHTML = `
         <section class="myai-connections">
-          <h3>${esc(t('my-ai.connections_title', undefined, 'Gemini · Vertex 연결'))}</h3>
-          <p class="myai-note">${esc(t('my-ai.connections_desc', undefined, 'AI 기능이 사용할 공급자 키를 이 브라우저에 저장한다.'))}</p>
-          ${api.html}
+          <h3>${esc(t('my-ai.connections_title', undefined, '공유 AI 연결 상태'))}</h3>
+          <p class="myai-note">${esc(t('my-ai.connections_desc', undefined, '여러 위젯이 함께 쓰는 API 키는 환경 설정에서 관리한다. 여기서는 연결 여부만 보여준다.'))}</p>
+          <div class="myai-connection-grid">
+            <div class="myai-connection-card"><strong>Gemini AI Studio</strong><span class="myai-env-state myai-env-state--${geminiReady ? 'applied' : 'missing'}">${esc(state(geminiReady))}</span><small>${esc(t('my-ai.connection.gemini_consumers', undefined, '채팅·텍스트·이미지 기능에서 공유'))}</small></div>
+            <div class="myai-connection-card"><strong>Google Vertex AI</strong><span class="myai-env-state myai-env-state--${vertexReady ? 'applied' : 'missing'}">${esc(state(vertexReady))}</span><small>${esc(t('my-ai.connection.vertex_consumers', undefined, 'Vertex 텍스트·이미지 기능에서 공유'))}</small></div>
+          </div>
+          <button type="button" class="btn btn-primary" data-open-api-settings>${esc(t('my-ai.connection.manage', undefined, '환경 설정에서 API 관리'))}</button>
         </section>`;
-      api.init(container);
+      container.querySelector<HTMLButtonElement>('[data-open-api-settings]')?.addEventListener('click', () => {
+        Toolbox.switchPage('settings');
+        window.setTimeout(() => { Toolbox.switchTab?.('settings-display'); }, 150);
+      });
     }).catch((error: unknown) => {
       container.textContent = error instanceof Error ? error.message : String(error);
     });
@@ -511,7 +513,7 @@ import { t, loadNamespace } from '../lib/i18n';
     title: t('widgets.my-ai.title', undefined, '내 AI'),
     category: 'tool',
     desktopOnly: true,
-    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독·환경·운영·연결을 한곳에서'),
+    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독·환경·연결 상태를 한곳에서'),
     layout: 'form',
     icon: '<path d="M4 19a8 8 0 1116 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 19l4.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
     tabs: [
@@ -528,11 +530,6 @@ import { t, loadNamespace } from '../lib/i18n';
         id: 'my-ai-environment',
         label: t('my-ai.tab.environment', undefined, '환경'),
         build: buildEnvironment
-      },
-      {
-        id: 'my-ai-operations',
-        label: t('my-ai.tab.operations', undefined, '운영'),
-        build: buildOperations
       },
       {
         id: 'my-ai-connections',
