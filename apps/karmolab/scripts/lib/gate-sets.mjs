@@ -11,6 +11,9 @@
 
 /** push 전 3초 검사 — 내 작업 폴더에서 돈다 */
 export const PREPUSH = [
+  /* 0.5초 — 마크다운 렌더러의 user 신뢰가 뚫리면 커뮤니티에 남의 스크립트가 실린다.
+     이 모듈엔 후처리 새니타이저가 없다 — 이 시험이 곧 방어선이다 (TASK-KL-354). */
+  'test:markdown',
   'test:ink',
   'audit:jpegbg',
   'audit:hidden',

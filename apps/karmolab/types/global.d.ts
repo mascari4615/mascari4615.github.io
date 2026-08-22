@@ -159,7 +159,14 @@ declare global {
   } | undefined;
 
   /** 페이지 스크립트로 주입된 marked / Prism */
-  var marked: { parse: (src: string) => string; setOptions: (opts: Record<string, unknown>) => void } | undefined;
+  var marked:
+    | {
+        parse: (src: string) => string;
+        setOptions: (opts: Record<string, unknown>) => void;
+        /** v14 — 전역을 안 더럽히는 인스턴스 문. `lib/markdown/render` 가 쓴다. */
+        Marked: new () => { parse(markdown: string): string; use(options: unknown): void };
+      }
+    | undefined;
   var Prism: { highlightElement: (el: Element) => void } | undefined;
 
   /**
