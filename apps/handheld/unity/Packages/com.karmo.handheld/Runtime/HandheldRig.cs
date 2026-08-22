@@ -144,6 +144,12 @@ namespace Handheld
         }
 
         [Header("뷰파인더 스트림")]
+
+        [Tooltip("이 카메라를 화면에 그대로 두고, 숨은 사본으로 뷰파인더를 뜬다. " +
+                 "이미 돌고 있는 앱의 방송 카메라에 붙일 때 켠다 — 안 켜면 그 카메라가 " +
+                 "RenderTexture 로 끌려가 화면에서 사라진다. 값: 720p 한 번 더 그린다.")]
+        public bool keepScreenOutput;
+
         [Tooltip("폰으로 보낼 그림의 세로 해상도. 가로는 송출 비율로 정해진다.")]
         [Range(180, 1440)] public int streamHeight = 720;
         [Range(1, 120)] public int streamFps = 60;
@@ -208,6 +214,20 @@ namespace Handheld
 
         /// <summary>뷰파인더가 그려지는 RenderTexture (RGBA — 리드백·JPEG 이 읽는다).</summary>
         public RenderTexture ViewfinderTexture => _rt;
+
+        /// <summary>
+        /// 뷰파인더 RT(와 필요하면 거울 카메라)를 지금 세운다.
+        /// 폰을 안 기다린다 — WebRTC 제안이 첫 포즈보다 먼저 와도 영상 트랙이 붙어야 한다.
+        /// </summary>
+        public void PrepareViewfinder()
+        {
+            if (_cam == null) _cam = GetComponent<Camera>();
+            if (_cam == null) return;
+            EnsureRenderTexture(_pose);
+        }
+
+        /// <summary>거울 모드일 때 실제로 그리는 사본 카메라. 아니면 null.</summary>
+        public Camera MirrorCamera => _mirror;
 
         RenderTexture _rtcRt;
         bool _rtcWanted;
@@ -339,6 +359,58 @@ namespace Handheld
             if (_cam != null) _cam.targetTexture = null;
             if (_rt != null) { _rt.Release(); DestroyRt(); }
             ReleaseWebRtcTexture();
+            DestroyMirror();
+        }
+
+        Camera _mirror;
+
+        /// <summary>
+        /// 뷰파인더를 실제로 그리는 카메라. 보통은 이 오브젝트의 카메라지만,
+        /// <see cref="keepScreenOutput"/> 이면 숨은 사본이다.
+        /// </summary>
+        Camera ViewCam => _mirror != null ? _mirror : _cam;
+
+        /// <summary>
+        /// 거울 카메라를 세우거나 치운다.
+        ///
+        /// 남의 앱 카메라에 이 리그를 붙이면 `targetTexture` 를 가져가는 순간 그 카메라가
+        /// 화면에서 사라진다 — 방송 앱에서는 그게 사고다. 그래서 원본은 건드리지 않고
+        /// **사본을 하나 만들어 그쪽만 RT 에 그린다**. 사본은 꺼 둔 채 우리가 직접
+        /// `Render()` 를 부르므로, 파이프라인이 알아서 두 번 그리는 일은 없다.
+        ///
+        /// 값: 뷰파인더 해상도(기본 720p)로 한 번 더 그린다. 외부 패키지(Spout·NDI)를
+        /// 안 쓰고 한 프로세스 안에서 끝내는 값이다.
+        /// </summary>
+        void EnsureMirror()
+        {
+            if (!keepScreenOutput) { DestroyMirror(); return; }
+            if (_mirror != null) return;
+
+            var mirrorGo = new GameObject("HandheldViewfinderCamera")
+            {
+                hideFlags = HideFlags.HideAndDontSave,      // 씬에 저장되면 안 된다
+            };
+            mirrorGo.transform.SetParent(transform, false);
+            _mirror = mirrorGo.AddComponent<Camera>();
+            _mirror.enabled = false;                        // 우리가 부를 때만 그린다
+        }
+
+        void DestroyMirror()
+        {
+            if (_mirror == null) return;
+            var go = _mirror.gameObject;
+            _mirror = null;
+            if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
+        }
+
+        /// <summary>원본 카메라의 설정을 사본에 옮긴다. 그릴 자리(RT)만 우리 것으로 되돌린다.</summary>
+        void SyncMirror()
+        {
+            if (_mirror == null || _cam == null) return;
+            _mirror.CopyFrom(_cam);                          // 화각·클리핑·컬링·물리렌즈까지
+            _mirror.enabled = false;                         // CopyFrom 이 enabled 도 옮긴다
+            _mirror.targetTexture = _rt;
+            if (_rtH > 0) _mirror.aspect = (float)_rtW / _rtH;
         }
 
         void DestroyRt()
@@ -400,7 +472,7 @@ namespace Handheld
             // ★ 폰을 기다리지 않고 미리 세운다 (2026-08-21). WebRTC 제안이 첫 포즈보다 먼저
             //   오는데, 그때 RT 가 없으면 영상 트랙을 못 붙인다(재협상은 훨씬 비싸다).
             //   송출 비율은 조종석이 정하므로(기본 16:9) 폰 값을 안 기다려도 된다.
-            if (_rt == null) EnsureRenderTexture(_pose);
+            if (_rt == null) PrepareViewfinder();
 
             // 좌표계가 다시 맞춰졌으면 잠깐 부드럽게 — 남은 기울기를 한 프레임에 안 꺾는다.
             if (server.ConsumeReanchored()) _reanchorEase = 1f;
@@ -426,7 +498,10 @@ namespace Handheld
             {
                 _nextCapture = now + 1.0 / Mathf.Max(1, streamFps);
                 _captureCount++;
-                if (renderManually) _cam.Render();
+                // 거울은 꺼 둔 카메라라 **언제나 우리가 그려야** 한다.
+                // 원본만 쓸 때는 편집 모드에서만 손으로 그린다(Play 에서는 엔진이 그린다).
+                if (_mirror != null) { SyncMirror(); _mirror.Render(); }
+                else if (renderManually) _cam.Render();
                 RequestFrame();
             }
 
@@ -752,6 +827,8 @@ namespace Handheld
 
             if (_rt != null && _rtW == w && _rtH == h) return;
 
+            EnsureMirror();
+            if (_mirror != null) _mirror.targetTexture = null;
             _cam.targetTexture = null;
             if (_rt != null) { _rt.Release(); DestroyRt(); }
 
@@ -769,8 +846,16 @@ namespace Handheld
             _rt.Create();
             _rtW = w; _rtH = h;
 
-            _cam.targetTexture = _rt;
-            _cam.aspect = (float)w / h;
+            if (_mirror != null)
+            {
+                // 원본은 화면에 그대로 둔다 — 사본만 RT 를 받는다.
+                SyncMirror();
+            }
+            else
+            {
+                _cam.targetTexture = _rt;
+                _cam.aspect = (float)w / h;
+            }
         }
 
         void RequestFrame()

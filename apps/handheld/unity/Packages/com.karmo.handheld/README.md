@@ -38,17 +38,21 @@
 | [protocol.md](Documentation~/protocol.md) | 폰 ⇄ 유니티 전선 규약 |
 | [framing.md](Documentation~/framing.md) | 화면 비율 — 보이는 것 = 나가는 것 |
 | [transport.md](Documentation~/transport.md) | WebRTC 와 MJPEG |
-| [vmc.md](Documentation~/vmc.md) | **밖으로 내보내기** — VMC Protocol (다른 프로세스·다른 PC) |
+| [embedding.md](Documentation~/embedding.md) | **그 앱 안에서 돌리기** — 외부 전송이 필요 없는 길 |
+| [vmc.md](Documentation~/vmc.md) | 밖으로 내보내기 — VMC Protocol (프로세스가 갈릴 때만) |
 | [measuring.md](Documentation~/measuring.md) | 튐·표류를 잴 때 (포즈 기록과 판정기) |
 
 ## 다른 앱에 꽂을 때
 
-손카메라가 **다른 프로세스나 다른 PC** 에서 돌면 `VmcCameraSender` / `VmcCameraReceiver`
-한 쌍으로 잇는다 (VMC Protocol · OSC/UDP). 같은 프로세스면 리그가 카메라를 직접 몰므로
-필요 없다. → [vmc.md](Documentation~/vmc.md)
+**대개 외부 전송이 필요 없다.** 그림을 그리는 앱이 유니티면 이 패키지를 **그 앱 안에**
+넣어라 — 방송 카메라에 `HandheldRig` 를 붙이고 `keepScreenOutput` 을 켜면 한 프로세스에서
+끝난다. → [embedding.md](Documentation~/embedding.md)
+
+프로세스가 갈릴 때만 `VmcCameraSender` / `VmcCameraReceiver` 한 쌍으로 잇는다
+(VMC Protocol · OSC/UDP). → [vmc.md](Documentation~/vmc.md)
 
 ## 아직 없는 것
 
-- **화면 되받기** — 받는 쪽이 그린 그림을 폰으로 되돌리는 길 (Spout2 / NDI)
+- **프로세스가 갈렸을 때의 화면 되받기** (Spout2 / NDI) — 같은 앱 안이면 이미 된다
 - 축 잠금 (Tilt / Pan / Roll)
 - 인증 — 지금은 링크를 아는 사람이면 누구나 붙는다
