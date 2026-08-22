@@ -115,13 +115,14 @@ namespace Handheld
             if (!sendLensExtras || rig == null) return;
 
             // 곁가지: 표준이 안 나르는 렌즈 값. 주소를 모르면 그냥 버려진다.
+            var f = rig.CameraFrame;
             Send(_osc.Begin("/karmo/Ext/Lens", "sfffff")
                 .String(cameraName)
-                .Float(rig.Zoom)
-                .Float(rig.FocalLengthMm)
-                .Float(rig.FocusShown)
-                .Float(rig.aperture)
-                .Float(rig.sensorWidthMm));
+                .Float(f.Zoom)
+                .Float(f.FocalLengthMm)
+                .Float(f.FocusDistanceM)
+                .Float(f.Aperture)
+                .Float(f.SensorWidthMm));
         }
 
         void Send(OscWriter w)

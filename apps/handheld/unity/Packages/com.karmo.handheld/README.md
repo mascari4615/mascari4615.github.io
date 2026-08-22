@@ -39,7 +39,8 @@
 | [protocol.md](Documentation~/protocol.md) | 폰 ⇄ 유니티 전선 규약 |
 | [framing.md](Documentation~/framing.md) | 화면 비율 — 보이는 것 = 나가는 것 |
 | [transport.md](Documentation~/transport.md) | WebRTC 와 MJPEG |
-| [embedding.md](Documentation~/embedding.md) | **그 앱 안에서 돌리기** — 외부 전송이 필요 없는 길 |
+| [hosting.md](Documentation~/hosting.md) | **호스트 앱에 카메라 넘기기** — 창구 하나와 함정 셋 |
+| [embedding.md](Documentation~/embedding.md) | 그 앱 안에서 돌리기 — 외부 전송이 필요 없는 길 |
 | [vmc.md](Documentation~/vmc.md) | 밖으로 내보내기 — VMC Protocol (프로세스가 갈릴 때만) |
 | [axis-lock.md](Documentation~/axis-lock.md) | 축 잠금 — 삼각대 손잡이를 조이듯 |
 | [measuring.md](Documentation~/measuring.md) | 튐·표류를 잴 때 (포즈 기록과 판정기) |
@@ -49,6 +50,15 @@
 **대개 외부 전송이 필요 없다.** 그림을 그리는 앱이 유니티면 이 패키지를 **그 앱 안에**
 넣어라 — 방송 카메라에 `HandheldRig` 를 붙이고 `keepScreenOutput` 을 켜면 한 프로세스에서
 끝난다. → [embedding.md](Documentation~/embedding.md)
+
+카메라를 자기 방식으로 들고 있는 앱이면 상태 한 벌만 받아 가면 된다:
+
+```csharp
+rig.CameraFrameUpdated += f => { myCamera.position = f.Position; myCamera.rotation = f.Rotation; myCamera.fov = f.FovY; };
+```
+
+받는 쪽이 흔히 밟는 함정(감기는 오일러 · 잘리는 렌즈 값 · 자동 초점)은
+→ [hosting.md](Documentation~/hosting.md)
 
 프로세스가 갈릴 때만 `VmcCameraSender` / `VmcCameraReceiver` 한 쌍으로 잇는다
 (VMC Protocol · OSC/UDP). → [vmc.md](Documentation~/vmc.md)

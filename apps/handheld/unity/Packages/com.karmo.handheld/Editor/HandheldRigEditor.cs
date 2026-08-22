@@ -85,6 +85,12 @@ namespace Handheld.EditorTools
                 if (connected)
                     GUILayout.Label(rig.StatusLine, EditorStyles.miniLabel);
 
+                // 받아 쓰는 쪽이 대개 좁게 자른다 — 벗어나면 거기서 조용히 잘린다.
+                string warn = rig.CameraFrame.LensOutOfRange();
+                if (warn.Length > 0)
+                    EditorGUILayout.HelpBox(warn + " 값이 흔한 범위 밖이다 — 받는 쪽에서 잘릴 수 있다.",
+                        MessageType.Warning);
+
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("조종석", EditorStyles.miniButtonLeft))
