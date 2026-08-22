@@ -32,7 +32,6 @@
     "gen:feeds": "node scripts/gen-feeds.mjs",
     "gen:llms": "node scripts/gen-llms-txt.mjs",
     "gen:tool-md": "node scripts/gen-tool-md.mjs",
-    "convert:posts": "node scripts/convert-blog-posts.mjs",
     "gen:post-pages": "node scripts/gen-post-pages.mjs",
     "test:markdown": "node scripts/test-markdown-render.mjs",
     "test:platform": "node scripts/smoke-platform-pages.mjs",

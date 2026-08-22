@@ -1,30 +1,29 @@
 # mascari4615.github.io — AI 에이전트 작업 지침
 
-Jekyll 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages, 도메인 `https://blog.mascari4615.com` (CNAME).
-구조: `apps/blog/` 블로그 (글 원본 = `apps/blog/_posts/` — 루트 `_site`·`Gemfile.lock` 은 untracked 잔재) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
-**블로그 → KarmoLab 이관 진행 중** (TASK-KL-351, memo): Phase 2 까지 완료 — 글 변환기(`convert:posts`)·공용 렌더러(`src/lib/markdown/`)·`/posts/` 목록·커뮤니티 「글」 탭. Chirpy/Jekyll 철거 = Phase 3.
+블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages, 도메인 `https://blog.mascari4615.com` (CNAME).
+구조: `apps/blog/` = 사이트 껍데기 (Jekyll = 얇은 조립기 — permalink·sitemap·정적 복사만, Chirpy 는 철거됨) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
+**블로그 = KarmoLab 파이프** (change.blog-cutover, memo): 글 정본 = `apps/karmolab/content/{posts,drafts}/` · 렌더 = `src/lib/markdown/` · 장 생성 = `scripts/gen-post-pages.mjs` (`/`·`/posts/<slug>/`·`/about/`·`/feed.xml`). 앱 안 읽기 = 커뮤니티 위젯 「글」 탭.
 
-## Post 규칙
+## Post 규칙 (글 원본 = `apps/karmolab/content/posts/`)
 
-**파일명**: `YYYY-MM-DD-slug-name.md` (kebab-case). 드래프트 = `slug-name-DRAFT.md`.
+**파일명**: `YYYY-MM-DD-slug-name.md` (kebab-case, slug = URL). 드래프트 = `content/drafts/`.
 
-**Front matter 필수**: `title` / `description` / `categories` / `tags` / `date: YYYY-MM-DD. HH:MM` (마침표+공백 주의).
+**Front matter**: `title` / `description` / `categories: [..]` / `tags: [..]` / `date: ISO8601(+09:00)` / `image` / `hidden`.
 
-**`last_modified_at`**: 내용 변경 시만 갱신 (오타·포맷 변경 X). 이전 날짜는 주석으로 보존.
+**`last_modified_at`**: 내용 변경 시만 갱신 (오타·포맷 변경 X). 이력은 git 이 정본.
 
 **글쓰기 스타일**: 절제 (중복·자명한 내용 제거). 머리말(목적·방향) / 꼬리말(선택) / 메모(참고·키워드·도토리·기록).
 
-**`hidden: true`**: 목록에서 숨김, URL 직접 접근은 가능.
+**`hidden: true`**: 목록·색인·피드에서 제외, URL 직접 접근만.
 
-**`assets/js/dist/` 편집 금지** — `_javascript/` 소스 편집 후 `npm run build:js`.
+**문법**: 표준 마크다운 + 우리 확장 (유튜브 URL 단독 줄 = 카드 · ` ```mermaid ` = KarmoGraph · `> [!NOTE]` callout). Liquid/Kramdown 문법 금지 — 렌더러가 모른다.
 
 ## 빌드 / 검증
 
 ```bash
-npm run verify        # master invariant 단일 게이트 (push 전 필수)
-npm run build         # CSS purge + JS bundle
-npm run build:graph   # 포스트 그래프 데이터
-bundle exec jekyll serve --draft  # 로컬 미리보기
+npm run verify                              # master invariant 단일 게이트 (push 전 필수)
+cd apps/karmolab && npm run gen:post-pages  # 블로그 장 재생성 (content/pages/ 검증 산출)
+cd apps/blog && bundle exec jekyll b        # 사이트 조립 (Ruby — 로컬 확인용)
 ```
 
 ## KarmoLab 화면 작업 = `npm run dev` (배포 기다리지 마라, KL-100)
@@ -74,7 +73,6 @@ master 브랜치는 항상:
 - `apps/karmolab` build (typecheck 포함) 통과
 - `packages/karmolab-ai` build 통과
 - `apps/karmolab-tauri/src-tauri` cargo check 통과 + ACL audit (`acl.toml ⟷ #[command] ⟷ caps` cross-check)
-- `apps/blog` lint:js + lint:scss 통과
 - typos check 통과
 
 verify fail 시 SLO: 1시간 내 revert. pre-push hook 이 자동 호출, CI post-push audit 도 발동.
