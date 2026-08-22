@@ -14,6 +14,7 @@
   "widgets-desc.localai.desc": "번역·요약을 서버 없이 이 기기 안에서 — 글이 밖으로 안 나갑니다 (크롬 계열 최신판)",
   "widgets-desc.install.desc": "동반자 창 같은 부품을 이 컴퓨터에 깐다 (데스크톱 앱 전용)",
   "widgets-desc.servermonitor.desc": "로컬 URL·프로세스·.env (데스크톱)",
+  "widgets-desc.memo-atlas.desc": "내가 쓴 글이 어디에 쏠려 있는지 한 장으로",
   "widgets-desc.activity.desc": "내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)",
   "widgets-desc.quest-log.desc": "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도",
   "widgets-desc.wm.desc": "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중",

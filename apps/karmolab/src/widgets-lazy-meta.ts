@@ -194,6 +194,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['servermonitor']
   },
   {
+    /* 내 글 지형도 (TASK-KAR-233) — 목록으로 보면 안 보던 걸 또 안 본다.
+       자리·덩어리·이름은 미리 구워 둔다(scripts/build-memo-atlas.mjs). */
+    id: 'memo-atlas',
+    get title() { return t('widgets.memo-atlas.title', undefined, "내 글 지형도"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.memo-atlas.desc', undefined, "내가 쓴 글이 어디에 쏠려 있는지 한 장으로"); },
+    icon: '<circle cx="7" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="6" r="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="17" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 8.6l5.4-2M15.4 8.4l1.2 5M14.6 16.9l-6.2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
+    lazyScriptPaths: ['memo-atlas']
+  },
+  {
     id: 'activity',
     noPage: true,
     get title() { return t('widgets.activity.title', undefined, "활동 기록"); },
