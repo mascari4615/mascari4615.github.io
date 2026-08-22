@@ -129,6 +129,10 @@ test('서비스워커 캐시에서 빠져 있어야 빌드가 지나간다', asy
 
 test('진짜 설정 파일에도 우리 주소가 들어 있다', async () => {
   // 글로만 시험하면 진짜 파일 모양이 바뀌었을 때 검사가 헛돈다 — 진짜 파일로도 한 번 본다.
+  // 파일 자체가 없으면(Chirpy·Jekyll 철거 — change.blog-cutover) 서비스워커도 없다 — 지킬 것이 없다.
+  const { existsSync } = await import('node:fs');
+  const conf = join(app, '../blog/_config.yml');
+  if (existsSync(conf) === false) return;
   const { assertDenied } = await import('./lib-pwa-deny.mjs');
-  assertDenied(readFileSync(join(app, '../blog/_config.yml'), 'utf8'), '/daily');
+  assertDenied(readFileSync(conf, 'utf8'), '/daily');
 });
