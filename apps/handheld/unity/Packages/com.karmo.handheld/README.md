@@ -40,6 +40,7 @@
 | [transport.md](Documentation~/transport.md) | WebRTC 와 MJPEG |
 | [embedding.md](Documentation~/embedding.md) | **그 앱 안에서 돌리기** — 외부 전송이 필요 없는 길 |
 | [vmc.md](Documentation~/vmc.md) | 밖으로 내보내기 — VMC Protocol (프로세스가 갈릴 때만) |
+| [axis-lock.md](Documentation~/axis-lock.md) | 축 잠금 — 삼각대 손잡이를 조이듯 |
 | [measuring.md](Documentation~/measuring.md) | 튐·표류를 잴 때 (포즈 기록과 판정기) |
 
 ## 다른 앱에 꽂을 때
@@ -53,6 +54,5 @@
 
 ## 아직 없는 것
 
-- **프로세스가 갈렸을 때의 화면 되받기** (Spout2 / NDI) — 같은 앱 안이면 이미 된다
-- 축 잠금 (Tilt / Pan / Roll)
 - 인증 — 지금은 링크를 아는 사람이면 누구나 붙는다
+- 실제 앱에 붙여 본 기록 — 컴파일과 단위 시험까지만 확인했다

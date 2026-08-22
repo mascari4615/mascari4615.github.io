@@ -1,0 +1,16 @@
+{
+    "name": "Karmo.Handheld.Spout",
+    "rootNamespace": "Handheld",
+    "references": [ "Karmo.Handheld", "Klak.Spout.Runtime" ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [ "KARMO_SPOUT" ],
+    "versionDefines": [
+        { "name": "jp.keijiro.klak.spout", "expression": "2.0.0", "define": "KARMO_SPOUT" }
+    ],
+    "noEngineReferences": false
+}
