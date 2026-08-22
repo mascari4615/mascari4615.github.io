@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postPage, listPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { postPage, listPage, aboutPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONTENT = path.join(APP_ROOT, 'content', 'posts');
@@ -178,10 +178,23 @@ const index = visible
 // data/ 판 = 서빙본 (rsync 로 /apps/karmolab/data/ 에 실린다). 커밋 X — 배포마다 새로 (gitignore).
 fs.writeFileSync(path.join(APP_ROOT, 'data', 'posts-index.json'), JSON.stringify(index, null, 1));
 
-// 목록 장 + 피드 — 목록 장은 배포에서 apps/blog/posts/index.html 로 복사된다 (Chirpy 는
-// /posts/ 인덱스를 안 만들어 충돌 0). 피드는 컷오버(Phase 3) 전까지 검증 산출물.
+// 목록 = `/posts/`(canonical 본체) + `/`(홈 — 사용자 확정: 목록이 곧 홈. canonical 은 /posts/
+// 로 몰아 중복 색인을 막는다) · 피드 · 소개 · 404 (change.blog-cutover).
 fs.writeFileSync(path.join(OUT, 'posts', 'index.html'), listPage(index));
+fs.writeFileSync(path.join(OUT, 'index.html'), listPage(index, { permalink: '/', canonical: '/posts/' }));
 fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
+fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
+
+// 소개 — 원문 = content/about.md (Chirpy _tabs/about.md 승계본, git 추적).
+const aboutSrc = path.join(APP_ROOT, 'content', 'about.md');
+if (fs.existsSync(aboutSrc)) {
+    const raw = fs.readFileSync(aboutSrc, 'utf8');
+    const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
+    const lastmod = m ? (/last_modified_at:\s*(\S+)/.exec(m[1])?.[1] ?? null) : null;
+    const body = applyCdn(renderMarkdown(m ? raw.slice(m[0].length) : raw, { trust: 'self', marked }));
+    fs.mkdirSync(path.join(OUT, 'about'), { recursive: true });
+    fs.writeFileSync(path.join(OUT, 'about', 'index.html'), aboutPage(body, lastmod));
+}
 
 if (maxExternal > 2) {
     console.error(`[gen-post-pages] ✗ 장당 바깥 리소스 ${maxExternal}개 — 경량 셸 계약(≤2)을 깼다`);

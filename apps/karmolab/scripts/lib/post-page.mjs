@@ -29,6 +29,15 @@ export function applyCdn(html) {
     return html.replace(/(src|href)="(\/assets\/img\/[^"]+)"/g, (_m, attr, p) => `${attr}="${CDN}${p}"`);
 }
 
+/**
+ * 옛 Chirpy Service Worker 회수 (컷오버 — change.blog-cutover).
+ * Chirpy PWA SW 가 scope '/' 로 `/`·`/posts/*` HTML 을 cache-first 로 붙들고 있었다 —
+ * 파일(/sw.min.js)이 사라져도 기존 방문자에겐 옛 SW 가 남아 새 장 대신 옛 껍데기를 내민다.
+ * scope 가 '/' 인 등록만 해제한다 — KarmoLab SW(/karmolab/·/apps/karmolab/)는 안 건드린다
+ * (선례 = `src/pwa-update.ts` 의 scope 선별 해제).
+ */
+const SW_KILL = `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){try{if(new URL(r.scope).pathname==='/')r.unregister()}catch(e){}})}).catch(function(){})}`;
+
 /** 관측실 톤 최소 스타일 — 글이 읽히는 데 필요한 만큼만. */
 const CSS = `
 :root{color-scheme:dark;--bg-void:#0f1016;--bg-primary:#171821;--bg-secondary:#1d1e28;--bg-tertiary:#292a36;
@@ -71,7 +80,7 @@ h1{font-size:30px;line-height:1.3;margin:0 0 24px}
  * 거르기(칩·검색)는 인라인 몇 줄 — 바깥 리소스는 여전히 GoatCounter 하나다.
  * @param {Array<{slug:string,title:string,date:string,categories:string[],excerpt:string}>} posts 공개 글, 최신순
  */
-export function listPage(posts) {
+export function listPage(posts, { permalink = '/posts/', canonical = '/posts/' } = {}) {
     const cats = [...new Set(posts.map((p) => p.categories[0]).filter(Boolean))];
     // 사이트맵 lastmod — 비면 배포가 선다 (audit-sitemap-lastmod exit 1). 가장 최근 글의 시각.
     const lastmod = posts.map((p) => p.lastmod ?? p.date).sort().at(-1) ?? '';
@@ -90,7 +99,7 @@ export function listPage(posts) {
 
     return `---
 layout: none
-permalink: /posts/
+permalink: ${permalink}
 ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <!doctype html>
 <html lang="ko">
@@ -99,7 +108,7 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>글 | KarmoDDrine</title>
     <meta name="description" content="KarmoDDrine 블로그 — 컴퓨터·작업물·수필 ${posts.length}편">
-    <link rel="canonical" href="${SITE}/posts/">
+    <link rel="canonical" href="${SITE}${canonical}">
     ${CSP_META}
     <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
     <link rel="alternate" type="application/rss+xml" title="KarmoDDrine" href="/feed.xml">
@@ -159,9 +168,88 @@ ${rows}
             });
         });
         document.getElementById('q').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();apply()});
+        ${SW_KILL}
     })();
     </script>
     <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
+`;
+}
+
+/** `/about/` — 소개 한 장 (컷오버: Chirpy _tabs/about.md 승계). 본문은 렌더된 HTML 로 받는다. */
+export function aboutPage(bodyHtml, lastmod) {
+    return `---
+layout: none
+permalink: /about/
+${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>소개 | KarmoDDrine</title>
+    <meta name="description" content="카모뜨린 KarmoDDrine — 유니티 게임 개발·VRChat 콘텐츠 제작">
+    <link rel="canonical" href="${SITE}/about/">
+    ${CSP_META}
+    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
+    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+    <style>${CSS}</style>
+</head>
+<body class="post-page">
+    <header class="post-top">
+        <a href="/karmolab/">◂ KarmoLab</a>
+        <a href="/posts/">글</a>
+        <span class="spacer"></span>
+        <button id="themeToggle" aria-label="테마 전환">◐</button>
+    </header>
+    <main>
+        <article class="post-body">
+${bodyHtml}
+        </article>
+    </main>
+    <script>
+    (function(){
+        document.getElementById('themeToggle').addEventListener('click',function(){
+            var light=document.documentElement.dataset.theme==='light';
+            if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme='light';
+            try{localStorage.setItem('toolbox_theme',light?'dark':'light')}catch(e){}
+        });
+        ${SW_KILL}
+    })();
+    </script>
+    <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
+`;
+}
+
+/** `/404.html` — Chirpy 404(layout: page 의존) 대체. GitHub Pages 가 이 이름을 그대로 쓴다. */
+export function notFoundPage() {
+    return `---
+layout: none
+permalink: /404.html
+sitemap: false
+---
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 | KarmoDDrine</title>
+    <meta name="robots" content="noindex">
+    ${CSP_META}
+    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
+    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+    <style>${CSS}</style>
+</head>
+<body class="post-page">
+    <main style="text-align:center;padding-top:80px">
+        <h1>여기엔 아무것도 없다</h1>
+        <p style="color:var(--text-secondary)">주소가 바뀌었거나, 처음부터 없던 곳이다.</p>
+        <p><a href="/">글 목록</a> · <a href="/karmolab/">KarmoLab</a></p>
+    </main>
+    <script>${SW_KILL}</script>
 </body>
 </html>
 `;
@@ -303,6 +391,7 @@ ${bodyHtml}
         if('IntersectionObserver' in window){
             new IntersectionObserver(function(es,ob){es.forEach(function(x){if(x.isIntersecting){ob.disconnect();mount()}})},{rootMargin:'600px'}).observe(slot);
         }else mount();
+        ${SW_KILL}
     })();
     </script>
     <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

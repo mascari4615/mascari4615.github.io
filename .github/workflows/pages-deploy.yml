@@ -78,7 +78,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          submodules: true
+          # submodules 는 컷오버로 끝 — 유일 서브모듈이 chirpy-static-assets(assets/lib) 였다.
 
       - name: Setup Pages
         id: pages
@@ -96,19 +96,11 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: apps/blog/package-lock.json
+          cache-dependency-path: apps/karmolab/package-lock.json
 
-      - name: Install blog dependencies
-        working-directory: apps/blog
-        run: npm ci
-
-      - name: Build theme assets (CSS and JS)
-        working-directory: apps/blog
-        run: npm run build
-
-      - name: Build post graph data
-        working-directory: apps/blog
-        run: npm run build:graph
+      # Chirpy 테마 빌드(npm ci·build·build:graph)는 컷오버로 제거 (change.blog-cutover).
+      # 글 렌더 = 아래 gen-post-pages · post graph = 추적된 스냅샷(assets/js/data/post-graph.json,
+      # postgraph 위젯이 읽음 — 재생성 경로는 graph 이식 Change 에서 재설계).
 
       # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
       #   karmolab-ai · badapple · karmolab-mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
@@ -199,19 +191,21 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:tool-pages
 
-      # TASK-KL-355 (블로그 이관 Phase 2): 블로그 글 색인·목록 장.
-      #  - convert:posts → gen:post-pages 가 `data/posts-index.json`(공개 글만)을 새로 굽고,
-      #    그 파일은 아래 rsync 로 `/apps/karmolab/data/` 에 실려 커뮤니티 「글」 탭이 읽는다.
-      #  - 목록 장(/posts/)만 Jekyll 로 복사한다 — Chirpy 는 /posts/ 인덱스를 안 만들어 충돌 0.
-      #    글 상세 장은 아직 안 복사한다: Jekyll 이 같은 주소(/posts/<slug>/)를 굽는 동안
-      #    두 벌이 서로를 덮는다 — 컷오버(Phase 3)에서 Jekyll 몫을 빼며 같이 바꾼다.
-      - name: Generate KarmoLab blog post index and list page
+      # 블로그 = KarmoLab 파이프 산출 (change.blog-cutover — Chirpy 철거 완료).
+      # 글 정본 = apps/karmolab/content/{posts,drafts,about.md} (git). gen-post-pages 가
+      # 상세 328장 + `/`·`/posts/` 목록 + `/about/` + `/feed.xml` + `/404.html` 을 굽고,
+      # 여기서 apps/blog 로 복사하면 Jekyll 이 front matter(permalink·lastmod)만 처리해 싣는다.
+      # `data/posts-index.json`(공개 글만)은 아래 rsync 로 실려 커뮤니티 「글」 탭이 읽는다.
+      - name: Generate blog pages (posts, home, about, feed)
         working-directory: apps/karmolab
         run: |
-          npm run convert:posts
           npm run gen:post-pages
-          mkdir -p ../blog/posts
-          cp content/pages/posts/index.html ../blog/posts/index.html
+          rm -rf ../blog/posts ../blog/about
+          cp -r content/pages/posts ../blog/posts
+          cp -r content/pages/about ../blog/about
+          cp content/pages/index.html ../blog/index.html
+          cp content/pages/feed.xml ../blog/feed.xml
+          cp content/pages/404.html ../blog/404.html
 
       # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다 — 스크립트 없이도 도구가 보인다.
       # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄우고, 그 화면을 열 브라우저를 받는다.
@@ -346,12 +340,11 @@ jobs:
         # ⚠ **자리 순서**가 중요하다 (2026-08-16 실측): 앱 알맹이는 바로 위 「Merge KarmoLab output」
         #   단계에서 _site 로 들어온다. 그 앞에 두었더니 `_site/apps/karmolab` 이 없어 exit 2 로 죽었다.
         #   그래서 합친 **뒤**에 선다.
-        # ⚠ 사이트 **전체**를 주면 안 된다 — 블로그 글 680장에는 이 meta 가 없어서 배포가 통째로 선다
-        #   (2026-08-16, 넣기 전에 지어진 사이트로 재 보고 잡았다). 블로그에도 붙일지는 따로 정할 일이다.
-        #   여기서는 **우리 앱이 사는 두 자리**만 본다.
+        # 컷오버(change.blog-cutover) 뒤 블로그 글 장도 우리가 찍는다 — CSP meta 가 박혀 나가므로
+        #   `/posts` 도 감시 대상에 넣는다 (옛 Chirpy 680장 예외는 끝났다).
         run: |
           SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
-          node apps/karmolab/scripts/audit-csp-meta.mjs "$SITE/karmolab" "$SITE/apps/karmolab"
+          node apps/karmolab/scripts/audit-csp-meta.mjs "$SITE/karmolab" "$SITE/apps/karmolab" "$SITE/posts"
 
       - name: 미리 그린 첫 화면이 나갈 파일에 남아 있나
         run: |

@@ -327,15 +327,8 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('App origin audit', '.', 'node scripts/app-origin-audit.mjs');
 }
 
-// 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
-//    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면
-//    개발 흐름 깨짐. CI 는 verify.yml 의 'Install blog deps' step 이 보장.
-if (existsSync('apps/blog/node_modules')) {
-  run('apps/blog lint:js', 'apps/blog', 'npm run lint:js');
-  run('apps/blog lint:scss', 'apps/blog', 'npm run lint:scss');
-} else {
-  console.log('[verify] ! apps/blog/node_modules 없음 — lint skip (정합: cd apps/blog && npm ci)');
-}
+// 4. apps/blog lint 는 컷오버로 소멸 (change.blog-cutover) — 테마 SCSS/TS 가 없다.
+//    블로그 글 파이프의 게이트는 apps/karmolab 쪽 (test:markdown 등, gate-list.json).
 
 // 5.5. packages/companion — build + 단위 (TASK-KAR-201). 동반자 코어는 어떤 앱도
 //      import 하지 않으므로, 관문에 안 걸어두면 깨져도 아무 빌드가 빨개지지 않는다

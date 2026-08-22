@@ -577,16 +577,8 @@ permalink: /karmolab/
     <!-- 아이콘·설명은 첫 그림 뒤에 따라온다 — 위 `widgets-index.js`(가벼운 목록) 다음에
          전체를 받아 `Toolbox.upgradeMeta()` 로 제자리에 꽂는다. 이미 그려진 아이콘 자리는
          비어 있으므로 DOM 을 다시 그리지 않는다(화면이 안 흔들린다). -->
-    {% if jekyll.environment == 'production' and site.pwa.enabled and site.pwa.cache.enabled %}
-    <!-- Chirpy SW는 루트(/sw.min.js)에 있으나 layout:none 페이지는 app.min.js를 쓰지 않아 등록되지 않았음 → 방문 시 동일 출처·허용 URL을 런타임 캐시(오프라인/앱용). -->
-    <script>
-    if ('serviceWorker' in navigator) {
-      /* ★ 리퀴드 표현식을 인라인 스크립트 안에 쓰지 않는다 (2026-08-17). 지킴이가 **소스의 지문**을
-         적는데, 리퀴드는 나갈 때 값이 바뀐다 — 그러면 지문이 안 맞아 이 줄이 통째로 막힌다.
-         이 저장소는 baseurl 이 비어 있어 결과가 늘 `/sw.min.js` 다(_config.yml 확인). */
-      navigator.serviceWorker.register('/sw.min.js').catch(function () {});
-    }
-    </script>
-    {% endif %}
+    <!-- Chirpy SW(/sw.min.js) 등록은 컷오버로 제거 (change.blog-cutover) — 그 파일 자체가
+         테마와 함께 사라졌고, 옛 등록의 회수는 /·/posts/* 경량 장의 킬스위치가 맡는다
+         (scope '/' 만 해제 — /karmolab/ SW 는 pwa-update.ts 가 따로 관리). -->
 </body>
 </html>

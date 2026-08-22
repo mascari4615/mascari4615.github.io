@@ -67,15 +67,18 @@ apps/blog/karmolab/
 apps/blog/en/
 apps/blog/ja/
 
-# 블로그 글 표준 md 판 — `convert:posts` 가 `apps/blog/_posts`(정본) 에서 매번 새로 찍는다
-# (TASK-KL-353). Jekyll 철거(이관 Phase 3) 때 이 폴더가 정본으로 승격되며 그때 이 줄을 지우고
-# 변환기를 없앤다 — 그 전에 커밋하면 글이 두 벌이 되어 조용히 갈라진다.
-apps/karmolab/content/
+# 블로그 글 정본 = `apps/karmolab/content/{posts,drafts,about.md}` (git 추적 — 컷오버로 승격,
+# change.blog-cutover). `content/pages/` 만 산출물이다: `gen:post-pages` 가 검증용으로 찍는 자리.
+apps/karmolab/content/pages/
 
-# 블로그 글 색인·목록 장 — `gen:post-pages` 가 배포마다 새로 (TASK-KL-355). 색인은 rsync 로
-# /apps/karmolab/data/ 에 실려 커뮤니티 「글」 탭이 읽고, 목록 장은 /posts/ 로 복사된다.
+# 블로그 정적 장 산출물 — `gen:post-pages` 가 배포마다 새로 찍어 apps/blog 로 복사된다
+# (change.blog-cutover). 색인은 rsync 로 /apps/karmolab/data/ 에 실려 커뮤니티 「글」 탭이 읽는다.
 apps/karmolab/data/posts-index.json
 apps/blog/posts/
+apps/blog/feed.xml
+apps/blog/index.html
+apps/blog/about/
+apps/blog/404.html
 
 # 「오늘의 하나 맞히기」 — 배포 시 apps/daily/dist/ 가 복사되는 자리 (TASK-KAR-202)
 apps/blog/daily/
