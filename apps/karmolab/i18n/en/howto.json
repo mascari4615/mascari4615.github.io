@@ -605,5 +605,10 @@
   "howto.territory.1": "Drag to move, wheel or pinch to zoom (keyboard: arrows to move, +/- to zoom)",
   "howto.territory.2": "Read the area share for the current view under “Who owns this ground”",
   "howto.territory.3": "Switch to “By district” to color each district by its leading brand",
-  "howto.territory.4": "Turn on “Show store dots” to see the actual store locations over the colors"
+  "howto.territory.4": "Turn on “Show store dots” to see the actual store locations over the colors",
+  "howto.my-ai.0": "Open \"My AI\" in the desktop app (it does not appear in the browser)",
+  "howto.my-ai.1": "It finds the CLIs you are signed in to on this computer",
+  "howto.my-ai.2": "Read the remaining share and the time until reset for each subscription",
+  "howto.my-ai.3": "Press \"Refresh\" to ask again",
+  "howto.my-ai.4": "Without the \"Live\" mark the number is a last observed value, not the value right now"
 }

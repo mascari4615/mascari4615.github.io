@@ -324,5 +324,7 @@
   "tools.protobuf.description": "Unpacks a protobuf blob so you can see it. Without a schema you still get \"field 3, string, length 12\"; give it a .proto and the numbers get names.",
   "tools.protobuf.lead": "Readable without a schema · names from .proto · base64 or hex in",
   "tools.territory.description": "Colors the map by the nearest convenience store, cafe, or burger chain, showing which brand owns which ground by area.",
-  "tools.territory.lead": "Each pixel is painted the color of its nearest store · area share · top brand per province and district"
+  "tools.territory.lead": "Each pixel is painted the color of its nearest store · area share · top brand per province and district",
+  "tools.my-ai.description": "See how much is left on your Claude, Codex and Grok subscriptions in one place. It asks live, and when that is blocked it shows what was left the last time you used that tool.",
+  "tools.my-ai.lead": "Left per subscription · time until reset · last observed value when blocked"
 }

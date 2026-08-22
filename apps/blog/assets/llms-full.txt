@@ -4,7 +4,7 @@ permalink: /llms-full.txt
 
 # KarmoLab
 
-> 브라우저에서 바로 쓰는 도구 145개와 놀이. 설치·로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환·계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
+> 브라우저에서 바로 쓰는 도구 147개와 놀이. 설치·로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환·계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
 
 한국어가 기본입니다. 한국 규칙(만 나이 3종·사업자등록번호 검증숫자·대체공휴일·한글 자모·한영타)을 정확히 다루는 것이 이 사이트의 강점입니다.
 
@@ -23,7 +23,7 @@ permalink: /llms-full.txt
   `[{"tool":"base64","op":"encode","args":{"text":"안녕"}},{"tool":"hashgen","op":"text","args":{"text":"$1","algo":"SHA256"}}]`
   해시처럼 **지어내면 안 되는 값**은 이렇게 부르는 편이 안전합니다. 중간에 글자가 바뀔 자리가 없습니다.
 
-## 도구 145개
+## 도구 147개
 
 - [apitest](https://blog.mascari4615.com/karmolab/t/apitest/): 연산 목록 · 예시 요청 만들기 · 예시 답 만들기 · 목 서버에 붙일 표
 - [arcade](https://blog.mascari4615.com/karmolab/t/arcade/): 미니게임 아홉 가지 · 혼자도 여럿도 · 빈 자리는 봇이 · 방을 서버에 두지 않음
@@ -109,6 +109,7 @@ permalink: /llms-full.txt
 - [mockdata](https://blog.mascari4615.com/karmolab/t/mockdata/): 스키마 한 줄씩 · 씨앗 고정 · ko/en/ja · JSON·CSV·SQL
 - [moon](https://blog.mascari4615.com/karmolab/t/moon/): 오늘의 달 모양 · 위상 이름
 - [morse](https://blog.mascari4615.com/karmolab/t/morse/): 양방향 변환 · 한글 모스 · 소리·불빛 재생
+- [my-ai](https://blog.mascari4615.com/karmolab/t/my-ai/): 구독별 남은 양 · 리셋까지 남은 시간 · 막히면 마지막 관측값
 - [nettool](https://blog.mascari4615.com/karmolab/t/nettool/): CIDR 계산 · 대역 겹침 · 호스트 수 · 포트 사전
 - [numword](https://blog.mascari4615.com/karmolab/t/numword/): 한글 읽기 · 숫자 되돌리기 · 금액 문구
 - [ocr](https://blog.mascari4615.com/karmolab/t/ocr/): 갈래 가르기 · 펴고 다듬기 · 글자 뽑기 · 필요할 때만 모형
@@ -149,6 +150,7 @@ permalink: /llms-full.txt
 - [studymap](https://blog.mascari4615.com/karmolab/t/studymap/): 41갈래 311칸 · 칸마다 강의 · 확인 문제 · 진도 저장
 - [subtitle](https://blog.mascari4615.com/karmolab/t/subtitle/): 시간 밀기 · 프레임 수 차이 보정 · SRT↔VTT · 첫 줄·끝 줄 대조 · 업로드 없음
 - [tableconv](https://blog.mascari4615.com/karmolab/t/tableconv/): 엑셀 붙여넣기 인식 · 마크다운 세로줄 정렬 · CSV·JSON 변환 · 칸 어긋남 경고
+- [territory](https://blog.mascari4615.com/karmolab/t/territory/): 화면 픽셀마다 가장 가까운 가게를 찾아 그 브랜드 색으로 칠합니다 · 면적 점유율 · 시도·시군구별 1등
 - [text](https://blog.mascari4615.com/karmolab/t/text/): 글자수 · 정리 · 비교 · 표기법 · 한영타
 - [time](https://blog.mascari4615.com/karmolab/t/time/): 날짜 · D-Day · 타이머 · 세계 시차
 - [timecalc](https://blog.mascari4615.com/karmolab/t/timecalc/): 시각 더하기·빼기 · 근무시간 합계 · 소수 시간
