@@ -32,7 +32,6 @@
   "widgets.planner.title": "プランナー",
   "widgets.cockpit.title": "Cockpit",
   "widgets.terminal.title": "PowerShell ターミナル",
-  "widgets.claude-env.title": "Claude 環境",
   "widgets.alarm.title": "アラーム",
   "widgets.text.title": "テキストツール",
   "widgets.lorem.title": "ダミーテキスト生成（Lorem ipsum）",

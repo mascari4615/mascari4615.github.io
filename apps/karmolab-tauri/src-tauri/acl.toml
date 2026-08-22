@@ -179,6 +179,12 @@ description = "AI 구독 할당량 위젯 (TASK-KL-248) — 읽기 전용: Claud
 commands = ["ai_quota_all"]
 
 [[group]]
+name = "ai-environment"
+identifier = "allow-ai-environment"
+description = "내 AI 개발환경 감사 (TASK-KL-348) — 비밀값을 읽지 않고 Claude/Codex/Grok의 지침·스킬·훅·커맨드·메모리·MCP·권한 배선만 검사."
+commands = ["ai_environment_audit"]
+
+[[group]]
 name = "parts"
 identifier = "allow-parts"
 description = "동반자 꾸러미를 릴리스에서 받아 앱 데이터 폴더에 푼다 (TASK-KAR-227) — 주소는 밖에서 안 받고 부품 이름만 받는다. 저장소 없이 깔 수 있게 하는 유일한 길."
