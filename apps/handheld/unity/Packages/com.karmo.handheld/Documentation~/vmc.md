@@ -54,11 +54,21 @@
 조용히 버리고 자세를 안 바꾼다. 수신 루프가 예외로 죽으면 방송이 멈추기 때문이다.
 그 네 가지는 전부 시험에 박혀 있다(`Tests/OscRoundTripTests.cs`).
 
+## 어디까지 확인했나
+
+**소켓을 실제로 열고 값이 건너가는 것까지** 봤다 (`PlayTests/VmcLoopbackTests.cs`).
+인코더·디코더 단위 시험이 다 초록이어도 배선이 어긋나면(포트·이름·주기·스레드) 전선에는
+아무것도 안 온다 — 그건 단위 시험이 못 잡는 자리라 Play 모드로 따로 잰다.
+
+```
+Unity.exe -batchmode -nographics -projectPath <프로젝트>   -runTests -testPlatform PlayMode -testFilter Karmo.Handheld.PlayTests   -testResults PlayResults.xml
+```
+
+한 프로세스 안의 되돌림이라 **「다른 PC 에서도 된다」의 증거는 아니다.** 규약과 배선이
+맞다는 것까지만 닫힌다.
+
 ## 아직 안 한 것
 
-- **그림 되받기.** 받는 쪽이 그린 화면을 폰 뷰파인더로 되돌리는 길이 아직 없다.
-  같은 PC 면 Spout2(GPU 공유, CPU 부하 0), PC 가 갈리면 NDI 가 답이다 —
-  둘 다 외부 패키지(KlakSpout / KlakNDI)를 요구하므로 URP 흐림처럼 **옵션 어셈블리**로
-  가둬야 한다. 붙여서 재 보기 전엔 「된다」고 적지 말 것.
 - 실제 앱(VSeeFace 등)이 `/VMC/Ext/Cam` 을 **수신**하는지는 앱마다 다르다. 규격은
   양방향이지만 구현이 다 따라간다는 보장이 없다.
+- 그림 되받기(Spout2 / NDI)는 컴파일과 배선까지만 확인했다 — `embedding.md` § 참조.

@@ -27,7 +27,8 @@
 | `Runtime/Urp` | URP 가 있을 때만 컴파일되는 흐림(피사계 심도) |
 | `Runtime/Web` | 폰이 여는 페이지 한 장 |
 | `Editor` | 조종석 창 · 씬 빌더 · 심장(에디트 모드 틱) |
-| `Tests` | 실기록으로 도는 회귀 시험 |
+| `Tests` | 실기록으로 도는 회귀 시험 (EditMode) |
+| `PlayTests` | 소켓을 실제로 열어 보는 시험 (PlayMode) |
 
 ## 문서
 
