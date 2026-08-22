@@ -50,6 +50,7 @@
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
     "audit:footer": "node scripts/audit-tool-footer.mjs",
+    "audit:privacy": "node scripts/audit-tool-privacy.mjs",
     "check:live-version": "node scripts/check-live-version.mjs",
     "test:bundles": "node scripts/check-bundles.mjs",
     "audit:shared-bypass": "node scripts/audit-shared-bypass.mjs",

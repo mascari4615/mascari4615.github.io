@@ -18,5 +18,7 @@
   "site.nav.search": "찾기",
   "site.lang.switch": "언어",
   "site.lang.current": "지금 언어: {name}",
-  "site.noscript.intro": "브라우저 안에서 바로 쓰는 도구 모음입니다. 파일은 이 기기 밖으로 나가지 않습니다."
+  "site.noscript.intro": "브라우저 안에서 바로 쓰는 도구 모음입니다. 파일은 이 기기 밖으로 나가지 않습니다.",
+  "site.madewith": "AI 와 함께 만듭니다.",
+  "site.madewith.src": "소스 보기"
 }

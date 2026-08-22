@@ -206,6 +206,7 @@
     "audit:fonts",
     "audit:bg-themes",
     "audit:footer",
+    "audit:privacy",
     "test:cotext",
     "test:apicache",
     "test:contract",

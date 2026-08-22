@@ -537,13 +537,47 @@ body.tool-detail .tool-head p {
 }
 .tool-seo-crumb a { color: var(--text-tertiary); text-decoration: none; }
 .tool-seo-crumb a:hover { color: var(--accent); }
+/* 「내가 넣은 것이 이 기기를 떠나는가」 (TASK-KL-351).
+   예전에는 이 자리에 한 문장이 **모든 도구에 똑같이** 붙어 「어디에도 전송되지 않습니다」라고
+   했다. 그림을 Google 로 보내는 도구에도 같은 문장이 붙어 있었다 — 안심시키는 자리가 틀리면
+   나머지 글까지 못 믿을 글이 된다. 그래서 도구마다 다르게, 그리고 눈에 띄게 적는다. */
+.tool-privacy {
+    margin-top: 36px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--text-tertiary);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--bg-secondary);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+.tool-privacy p { margin: 0; }
+.tool-privacy-detail, .tool-privacy-to { margin-top: 6px; }
+.tool-privacy-to { color: var(--text-tertiary); }
+.tool-privacy-badge {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+/* 나가는 것과 안 나가는 것은 **색으로도** 갈린다 — 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
+   색만으로는 못 가르는 사람이 있으므로 배지 글자가 늘 같은 뜻을 이고 간다(색은 거들 뿐). */
+.tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success, #3fa66a); }
+.tool-privacy[data-where="ours"] { border-left-color: var(--accent); }
+.tool-privacy[data-where="third-party"],
+.tool-privacy[data-where="yours"],
+.tool-privacy[data-where="ai"] { border-left-color: var(--warning, #d99a2b); }
+
 .tool-seo-note {
-    margin-top: 40px;
+    margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
     font-size: var(--font-size-xs);
-    /* 입력이 기기를 벗어나지 않는다는 안내다. 가장 흐린 색으로는 대비가 2.7 이라 잘 안 읽혀
-       정작 읽혀야 할 문장이 묻힌다(TASK-KL-089). */
     color: var(--text-secondary);
     line-height: 1.7;
 }
