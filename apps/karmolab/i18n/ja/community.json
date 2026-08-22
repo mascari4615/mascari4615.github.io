@@ -192,5 +192,9 @@
   "community.imageAlt": "画像",
   "community.unit.votes": "票 {n}",
   "community.unit.likes": "いいね {n}",
-  "community.tab.main": "コミュニティ"
+  "community.tab.main": "コミュニティ",
+  "community.tab.blog": "記事",
+  "community.blog.loading": "記事一覧を読み込み中…",
+  "community.blog.offline": "記事の索引を取得できなかった — 少し後で開き直してほしい。",
+  "community.blog.search": "タイトル・カテゴリを検索"
 }
