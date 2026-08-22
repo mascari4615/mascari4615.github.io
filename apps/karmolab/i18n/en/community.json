@@ -196,5 +196,7 @@
   "community.tab.blog": "Posts",
   "community.blog.loading": "Loading posts…",
   "community.blog.offline": "Could not load the post index — try again shortly.",
-  "community.blog.search": "Search title · category"
+  "community.blog.search": "Search title · category",
+  "community.blog.back": "◂ All posts",
+  "community.blog.open-static": "Open post page (comments)"
 }

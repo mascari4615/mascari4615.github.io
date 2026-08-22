@@ -78,6 +78,7 @@ apps/blog/posts/
 apps/blog/feed.xml
 apps/blog/index.html
 apps/blog/about/
+apps/blog/works/
 apps/blog/404.html
 apps/blog/assets/js/data/post-graph.json
 

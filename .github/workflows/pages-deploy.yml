@@ -195,9 +195,10 @@ jobs:
         working-directory: apps/karmolab
         run: |
           npm run gen:post-pages
-          rm -rf ../blog/posts ../blog/about
+          rm -rf ../blog/posts ../blog/about ../blog/works
           cp -r content/pages/posts ../blog/posts
           cp -r content/pages/about ../blog/about
+          cp -r content/pages/works ../blog/works
           cp content/pages/index.html ../blog/index.html
           cp content/pages/feed.xml ../blog/feed.xml
           cp content/pages/404.html ../blog/404.html

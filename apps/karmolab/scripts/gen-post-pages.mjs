@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postPage, listPage, aboutPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { postPage, listPage, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONTENT = path.join(APP_ROOT, 'content', 'posts');
@@ -231,6 +231,51 @@ fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
     fs.mkdirSync(path.dirname(graphDest), { recursive: true });
     fs.writeFileSync(graphDest, JSON.stringify(graph));
     console.log(`[gen-post-pages] 글 그래프 — 마디 ${graph.nodes.length} · 간선 ${links.length}`);
+}
+
+// 작업물 — 전시 목록 정본 = apps/blog/_data/works.yml (큐레이션 순서 그대로, change.blog-finish ③).
+// hidden 글도 목록에 있으면 의도된 전시다. 글이 아예 없으면(초안 등) 카드를 못 만들어 뺀다.
+{
+    const worksSrc = path.join(APP_ROOT, '..', 'blog', '_data', 'works.yml');
+    if (fs.existsSync(worksSrc)) {
+        const bySlug = new Map(posts.map((p) => [p.slug, p]));
+        // 줄 단위로 읽는다 — 항목마다 키 순서·빈 값 모양이 조금씩 달라 한 방 정규식이 흘린다 (실측 1건).
+        const entries = [];
+        for (const line of fs.readFileSync(worksSrc, 'utf8').split(/\r?\n/)) {
+            const url = /^-\s*url:\s*\/posts\/([^/\s]+)/.exec(line);
+            if (url) {
+                entries.push({ slug: url[1], tags: '', date: '' });
+                continue;
+            }
+            const last = entries[entries.length - 1];
+            if (!last) continue;
+            const tags = /^\s+tags:\s*\[([^\]]*)\]/.exec(line);
+            if (tags) last.tags = tags[1];
+            const date = /^\s+date:\s*(.*)$/.exec(line);
+            if (date) last.date = date[1];
+        }
+        const skipped = [];
+        const works = entries
+            .map(({ slug, tags, date }) => {
+                const post = bySlug.get(slug);
+                if (!post) {
+                    skipped.push(slug);
+                    return null;
+                }
+                return {
+                    slug,
+                    title: post.title,
+                    image: post.image,
+                    date: date.replace(/["']/g, '').trim(),
+                    tags: tags.split(',').map((s) => s.trim()).filter(Boolean),
+                };
+            })
+            .filter(Boolean);
+        const worksLastmod = works.length ? posts.filter((p) => works.some((w) => w.slug === p.slug)).map((p) => p.lastmod ?? p.date).sort().at(-1) : null;
+        fs.mkdirSync(path.join(OUT, 'works'), { recursive: true });
+        fs.writeFileSync(path.join(OUT, 'works', 'index.html'), worksPage(works, worksLastmod));
+        console.log(`[gen-post-pages] 작업물 ${works.length}건${skipped.length ? ` (글 없어 뺀 것 ${skipped.length}: ${skipped.join(' ')})` : ''}`);
+    }
 }
 
 // 소개 — 원문 = content/about.md (Chirpy _tabs/about.md 승계본, git 추적).

@@ -130,6 +130,8 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <body class="post-page">
     <header class="post-top">
         <a href="/karmolab/">◂ KarmoLab</a>
+        <a href="/works/">작업물</a>
+        <a href="/about/">소개</a>
         <span class="spacer"></span>
         <button id="themeToggle" aria-label="테마 전환">◐</button>
     </header>
@@ -168,6 +170,79 @@ ${rows}
             });
         });
         document.getElementById('q').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();apply()});
+        ${SW_KILL}
+    })();
+    </script>
+    <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
+`;
+}
+
+/**
+ * `/works/` — 작업물 전시 (change.blog-finish ③, Chirpy works 레이아웃 승계).
+ * 항목 = `_data/works.yml` (전시 목록이 정본 — hidden 글도 여기 있으면 의도된 전시다).
+ * @param {Array<{slug:string,title:string,image:string,date:string,tags:string[]}>} works 큐레이션 순서 그대로
+ */
+export function worksPage(works, lastmod) {
+    const cards = works
+        .map((w) => {
+            const img = w.image ? (w.image.startsWith('/') ? `${CDN}${w.image}` : w.image) : '';
+            return (
+                `<li><a href="/posts/${esc(w.slug)}/">` +
+                (img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="ph"></span>') +
+                `<span class="t">${esc(w.title)}</span>` +
+                `<span class="m">${esc(w.date ?? '')}${w.tags.length ? ` · ${w.tags.map(esc).join(', ')}` : ''}</span>` +
+                `</a></li>`
+            );
+        })
+        .join('\n');
+    return `---
+layout: none
+permalink: /works/
+${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>작업물 | KarmoDDrine</title>
+    <meta name="description" content="카모뜨린의 작업물 ${works.length}건 — 게임·VRChat 콘텐츠·도구">
+    <link rel="canonical" href="${SITE}/works/">
+    ${CSP_META}
+    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
+    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+    <style>${CSS}
+.works-grid{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.works-grid a{display:block;color:inherit;text-decoration:none;background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:12px;overflow:hidden}
+.works-grid a:hover .t{color:var(--accent)}
+.works-grid img,.works-grid .ph{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--bg-tertiary)}
+.works-grid .t{display:block;font-weight:600;padding:10px 12px 2px}
+.works-grid .m{display:block;font-size:13px;color:var(--text-tertiary);padding:0 12px 12px}
+</style>
+</head>
+<body class="post-page">
+    <header class="post-top">
+        <a href="/karmolab/">◂ KarmoLab</a>
+        <a href="/posts/">글</a>
+        <a href="/works/">작업물</a>
+        <a href="/about/">소개</a>
+        <span class="spacer"></span>
+        <button id="themeToggle" aria-label="테마 전환">◐</button>
+    </header>
+    <main style="max-width:960px">
+        <h1>작업물 <small style="color:var(--text-tertiary);font-size:16px">${works.length}건</small></h1>
+        <ul class="works-grid">
+${cards}
+        </ul>
+    </main>
+    <script>
+    (function(){
+        document.getElementById('themeToggle').addEventListener('click',function(){
+            var light=document.documentElement.dataset.theme==='light';
+            if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme='light';
+            try{localStorage.setItem('toolbox_theme',light?'dark':'light')}catch(e){}
+        });
         ${SW_KILL}
     })();
     </script>

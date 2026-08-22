@@ -196,5 +196,7 @@
   "community.tab.blog": "글",
   "community.blog.loading": "글 목록을 불러오는 중…",
   "community.blog.offline": "글 색인을 못 받았다 — 잠시 뒤 다시 열어 보라.",
-  "community.blog.search": "제목·카테고리 찾기"
+  "community.blog.search": "제목·카테고리 찾기",
+  "community.blog.back": "◂ 글 목록",
+  "community.blog.open-static": "글 페이지에서 보기 (댓글)"
 }
