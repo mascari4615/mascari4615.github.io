@@ -126,6 +126,30 @@ if (noindexUrls.length > 0) {
   process.exit(1);
 }
 
+/* ★ **좁히기가 너무 좁아지지 않았나** (TASK-KL-350, 2026-08-22).
+   `_plugins/sitemap-focus.rb` 가 명단에서 언어 판과 얇은 도구 장을 뺀다. 그 규칙이 어긋나면
+   (tools-seo.json 모양이 바뀌거나 주소 규칙이 넓게 잡히면) **명단이 조용히 반토막 난다** —
+   빌드도 배포도 초록이고, 검색에서 사라진 것은 몇 주 뒤에나 안다. 그래서 바닥을 잰다.
+   숫자는 문턱이 아니라 **바닥**이다 — 정상값(간판 1 · 도구 52)과 한참 떨어뜨려 잡았다. */
+const paths = blocks.map(loc).map((u) => {
+  try {
+    return new URL(u).pathname;
+  } catch {
+    return '';
+  }
+});
+const FOCUS_FLOOR = [
+  ['/karmolab/ 간판', paths.filter((p) => p === '/karmolab/').length, 1],
+  ['/karmolab/t/ 도구 장', paths.filter((p) => /^\/karmolab\/t\/[^/]+\/$/.test(p)).length, 20]
+];
+const focusBroken = FOCUS_FLOOR.filter(([, got, floor]) => got < floor);
+if (focusBroken.length > 0) {
+  console.error('[audit-sitemap-lastmod] 사이트맵 좁히기가 너무 좁다 — 핵심 장이 명단에서 빠졌다:');
+  for (const [label, got, floor] of focusBroken) console.error(`  ${label}: ${got}장 (바닥 ${floor})`);
+  console.error('  → apps/blog/_plugins/sitemap-focus.rb 의 규칙을 봐라 (tools-seo.json 모양이 바뀌었을 수 있다).');
+  process.exit(1);
+}
+
 if (blocks.length > 1 && lastmodValues.size === 1) {
   console.error(`[audit-sitemap-lastmod] 주소 ${blocks.length}개인데 날짜가 한 종류뿐이다 — ${[...lastmodValues][0]}`);
   console.error('  → 빌드 시각을 찍고 있다는 뜻이다. 못 믿을 lastmod 는 무시당하므로 안 하느니만 못하다.');
