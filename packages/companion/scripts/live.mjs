@@ -73,8 +73,27 @@ function fromEnd() {
 
 // ── 지킴이 ────────────────────────────────────────────────────────────────
 
+/**
+ * 띄우기 전에 굽는다. dist 는 git 에 안 올라가므로, src 만 새로 받은 컴퓨터에서는
+ * demo 의 import 목록과 구운 결과가 어긋나 동반자가 뜨자마자 죽는다 — 지킴이는 그걸
+ * 60초 간격으로 영영 되풀이한다(2026-08-22 실측: `acceptLength` 없음, 부팅마다 재발).
+ * 굽기 실패가 곧 동반자 죽음은 아니다 — 있는 dist 로라도 띄워 본다.
+ */
+function freshen() {
+  try {
+    execFileSync(
+      process.execPath,
+      [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '-p', 'tsconfig.json'],
+      { cwd: root, stdio: 'inherit' },
+    );
+  } catch {
+    console.log('굽기가 실패했다 — 있는 dist 로 띄워 본다.');
+  }
+}
+
 function supervise() {
   console.log('지킴이 시작 — 동반자를 계속 살려둔다. 멈추려면 Ctrl+C.');
+  freshen();
   const face = keepAlive('동반자', process.execPath, [join(root, 'demo', 'face.mjs')], {
     cwd: root,
     // 창은 아래에서 따로 띄운다. 브라우저는 열지 않는다 — 안 그러면 되살아날 때마다
