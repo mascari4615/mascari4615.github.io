@@ -128,8 +128,24 @@ const untilGrown = async (baseline) => {
 await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - outer);
 await untilGrown(-1); // 저장 자체가 깨어날 때까지 (처음엔 저장본이 아예 없다)
 const before = await readStored();
-await page.mouse.click(box.x + box.width / 2 + outer, box.y + box.height / 2);
-await untilGrown(countIt(before));
+/* ★ **한 자리만 찍고 「안 찍혔다」라 하면 안 된다** (2026-08-22 실측).
+   줄은 **돌고 있다** — 찍히는 칸은 `ringPhase(r, songTime)` 로 정해지므로, 같은 픽셀을 눌러도
+   **언제 눌렀느냐**에 따라 다른 칸이 걸린다. 그리고 이미 음이 있는 칸을 누르면 그건 **고치기**라
+   개수가 안 는다. 그래서 CI 에서는 12→12 로 빨갛고 단독으로는 초록이었다(오늘 스무 판).
+   판정은 그대로다 — **찍은 것이 저장본에 늘었나.** 대신 **빈 칸을 만날 때까지 둘레를 돌며**
+   눌러 본다. 운을 판정에서 뺀다. 한 바퀴를 다 눌러도 안 늘면 그건 진짜 빨강이다. */
+const TRIES = 12;
+let tries = 0;
+for (let i = 0; i < TRIES; i += 1) {
+  const th = (i / TRIES) * 2 * Math.PI;
+  tries = i + 1;
+  await page.mouse.click(
+    box.x + box.width / 2 + Math.sin(th) * outer,
+    box.y + box.height / 2 - Math.cos(th) * outer,
+  );
+  await untilGrown(countIt(before));
+  if (countIt(await readStored()) > countIt(before)) break;
+}
 const after = await readStored();
 const placed = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
 
@@ -154,11 +170,11 @@ if (seen.rings !== 4) problems.push(`궤도 줄이 ${seen.rings}개 (4 이어야
 if (seen.swatches < 3) problems.push(`색 팔레트가 ${seen.swatches}개`);
 if (seen.lit < 50) problems.push(`캔버스가 비어 있다 (칠해진 표본 ${seen.lit})`);
 if (seen.stopLabel.indexOf('STOP') < 0) problems.push(`PLAY 버튼이 안 바뀌었다 (${seen.stopLabel})`);
-if (placed(after) !== placed(before) + 1) problems.push(`클릭이 안 찍혔다 (${placed(before)} → ${placed(after)})`);
+if (!(placed(after) > placed(before))) problems.push(`둘레 ${TRIES}자리를 다 눌러도 안 찍혔다 (${placed(before)} → ${placed(after)})`);
 if (stopped.after !== stopped.before) problems.push(`STOP 후에도 음이 예약된다 (+${stopped.after - stopped.before})`);
 if (errors.length) problems.push(`오류 ${errors.length}건: ${errors.slice(0, 3).join(' | ')}`);
 
-console.log(`[smoke-orbita] 신스 ${seen.osc}음 · MIDI note-on ${seen.noteOn} · 칠해진 표본 ${seen.lit} · 찍기 ${placed(before)}→${placed(after)}`);
+console.log(`[smoke-orbita] 신스 ${seen.osc}음 · MIDI note-on ${seen.noteOn} · 칠해진 표본 ${seen.lit} · 찍기 ${placed(before)}→${placed(after)} (빈 칸 찾기 ${tries}번째)`);
 if (problems.length) {
   console.error('[smoke-orbita] ✗\n  - ' + problems.join('\n  - '));
   process.exit(1);
