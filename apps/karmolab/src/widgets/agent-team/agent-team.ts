@@ -10,7 +10,7 @@
  * Phase 3 (KAR-116-B, KAR-112 흡수) = agent-driven Canvas 패널.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
-import { t, locale } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
@@ -772,5 +772,7 @@ import { intervalWhileVisible } from '../../lib/tick';
     MyAiPanels?: { operations?: (container: HTMLElement) => void };
   };
   panels.MyAiPanels ??= {};
-  panels.MyAiPanels.operations = buildOperations;
+  panels.MyAiPanels.operations = (container) => {
+    void loadNamespace('agent-team').then(() => buildOperations(container));
+  };
 })();

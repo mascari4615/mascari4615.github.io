@@ -16,7 +16,7 @@
  *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
  */
 import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
-import { t } from '../lib/i18n';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
   'use strict';
@@ -502,5 +502,7 @@ import { t } from '../lib/i18n';
     MyAiPanels?: { claudeEnvironment?: (container: HTMLElement) => void };
   };
   panels.MyAiPanels ??= {};
-  panels.MyAiPanels.claudeEnvironment = build;
+  panels.MyAiPanels.claudeEnvironment = (container) => {
+    void loadNamespace('claude-env').then(() => build(container));
+  };
 })();
