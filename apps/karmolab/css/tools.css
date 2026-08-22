@@ -537,7 +537,7 @@ body.tool-detail .tool-head p {
 }
 .tool-seo-crumb a { color: var(--text-tertiary); text-decoration: none; }
 .tool-seo-crumb a:hover { color: var(--accent); }
-/* 「내가 넣은 것이 이 기기를 떠나는가」 (TASK-KL-351).
+/* 「내가 넣은 것이 이 기기를 떠나는가」 (TASK-KL-352).
    예전에는 이 자리에 한 문장이 **모든 도구에 똑같이** 붙어 「어디에도 전송되지 않습니다」라고
    했다. 그림을 Google 로 보내는 도구에도 같은 문장이 붙어 있었다 — 안심시키는 자리가 틀리면
    나머지 글까지 못 믿을 글이 된다. 그래서 도구마다 다르게, 그리고 눈에 띄게 적는다. */

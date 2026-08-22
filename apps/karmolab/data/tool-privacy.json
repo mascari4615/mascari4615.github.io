@@ -1,5 +1,5 @@
 {
-  "$comment": "도구마다 「내가 넣은 것이 이 기기를 떠나는가」. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다 — 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-351)",
+  "$comment": "도구마다 「내가 넣은 것이 이 기기를 떠나는가」. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다 — 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-352)",
   "default": "local",
   "labels": {
     "local": "기기 안에서만",

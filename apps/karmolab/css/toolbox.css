@@ -1197,7 +1197,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 .breadcrumb-link:hover { color: var(--accent); }
 .breadcrumb-current { color: var(--text-secondary); font-weight: 600; }
 
-/* 「내가 넣은 것이 어디로 가나」 배지 (TASK-KL-351) — 도구를 여는 자리에 바로 붙는다.
+/* 「내가 넣은 것이 어디로 가나」 배지 (TASK-KL-352) — 도구를 여는 자리에 바로 붙는다.
    상세 장 바닥까지 내려가는 사람은 적고, 대부분은 여기서 바로 쓰기 시작한다.
    색만으로 안 가른다 — 글자가 늘 같은 뜻을 이고 간다(색맹·흑백 인쇄). */
 .tool-privacy-chip {
@@ -3597,7 +3597,7 @@ html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content:has(.t
     margin-left: 0;
 }
 
-/* 「AI 와 함께 만들었고 소스는 열려 있다」 (TASK-KL-351) — 첫 화면 맨 아래 한 줄.
+/* 「AI 와 함께 만들었고 소스는 열려 있다」 (TASK-KL-352) — 첫 화면 맨 아래 한 줄.
    자랑도 변명도 아니라 사실 고지라, 가장 작고 가장 아래다. */
 .landing-madewith {
     margin: 28px auto 0;
