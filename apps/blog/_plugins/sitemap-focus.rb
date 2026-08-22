@@ -36,6 +36,39 @@ FOCUS_MIN_SEO_CHARS = 700
 
 FOCUS_DROP_LOCALE = %r{\A/(en|ja)/}.freeze
 FOCUS_TOOL_URL = %r{\A/karmolab/t/([^/]+)/?\z}.freeze
+FOCUS_CANONICAL = %r{<link[^>]+rel=["']canonical["'][^>]+href=["'][^"']*/karmolab/t/([^/"']+)/}i.freeze
+FOCUS_NOINDEX = %r{<meta[^>]+name\s*=\s*["']robots["'][^>]*noindex}i.freeze
+
+# ★ **여럿이 정본으로 가리키는 장은 얇을 수 없다** (2026-08-22, 문턱을 세우자마자 밟았다).
+#
+# 글 도구 열일곱을 「글 작업대」(`/karmolab/t/text/`) 하나로 합치면서 옛 주소는 `noindex` +
+# `canonical` 넘김 장으로 남겼다. 그런데 **소개글은 옛 이름 쪽에 남았다** — `charcount` 1464자
+# (우리가 가진 검색량 제일 큰 말이다), `textdiff` 946자 … 열일곱 건 합쳐 10,966자.
+# 정작 그 일을 실제로 하는 `text` 의 항목은 497자다.
+#
+# 그래서 위 문턱이 **작업대를 유배시켰다**. 「얇은 장을 뺀다」는 규칙이 하필 열일곱 도구의
+# 목적지를 뺀 것이다. 글자 수는 「스스로 할 말이 있나」의 대리 지표인데, 합쳐진 장에서는
+# 그 대리가 깨진다 — 할 말은 많고, 적힌 자리가 옛 이름일 뿐이다.
+#
+# 더 정직한 신호가 이미 페이지 안에 있다: **몇 장이 나를 canonical 로 가리키나.**
+# 하나라도 가리키면 그 장은 낱장이 아니라 **모이는 자리**다. 문턱을 면제한다.
+# (소개글을 `text` 로 옮기는 일은 별건이다 — 그건 사람이 읽을 글의 문제고, 여기는 명단의 문제다.)
+def focus_hub_ids(site)
+  hubs = Set.new
+  site.pages.each do |page|
+    body = page.content.to_s
+    next unless body =~ FOCUS_NOINDEX
+
+    m = body.match(FOCUS_CANONICAL)
+    next if m.nil?
+
+    from = page.url.to_s.match(FOCUS_TOOL_URL)
+    next if from && from[1] == m[1] # 자기 자신을 가리키는 것은 넘김이 아니다
+
+    hubs << m[1]
+  end
+  hubs
+end
 
 # `tools-seo.json` 은 karmolab 쪽에 있다 (Jekyll 원본은 apps/blog). 없으면 **아무것도 안 뺀다** —
 # 명단이 조용히 반토막 나는 것보다 넓은 채로 남는 편이 낫다.
@@ -61,6 +94,15 @@ Jekyll::Hooks.register :site, :pre_render do |site|
   # 그건 어제까지의 상태이고, 사이트가 안 나가는 것보다 낫다.
   begin
   thin_ids = focus_thin_tool_ids(site)
+  hub_ids = focus_hub_ids(site)
+  unless thin_ids.nil? || hub_ids.empty?
+    exempt = thin_ids & hub_ids
+    thin_ids -= hub_ids
+    unless exempt.empty?
+      Jekyll.logger.info '[sitemap-focus]',
+                         "모이는 자리라 문턱 면제 — #{exempt.to_a.sort.join(' ')} (넘김 장이 정본으로 가리킨다)"
+    end
+  end
   dropped_locale = 0
   dropped_tool = 0
 
