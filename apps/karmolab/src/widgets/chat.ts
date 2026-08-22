@@ -9,7 +9,10 @@
  * 대화가 흘러야 하므로 줄 밀도가 곧 쓸모다. 이름은 **각자 색으로** 칠해 누가 말하는지 색으로 먼저
  * 읽히게 하고, 같은 사람이 연달아 말하면 이름을 안 되풀이한다.
  *
- * 왜 왼쪽 아래인가: 마스코트가 오른쪽 아래에 산다(`mdd.ts`, z-index 900). 겹치면 둘 다 죽는다.
+ * 왜 헤더인가 (2026-08-22, 사용자 요청): 예전엔 왼쪽 아래 붙박이였다. 접어 둬도 단추가 본문 위에
+ * 떠 있어 **도구 화면 왼쪽 구석을 늘 가렸고**, 펴면 화면 절반이 덮였다. 이제 단추는 헤더 안
+ * (`#headerChat`, 종·계정 옆)에 살고 판은 그 단추 아래로 내려온다 — 접혀 있으면 본문 점유가 0이다.
+ * 마스코트(`mdd.ts`, 오른쪽 아래 z-index 900)와도 이제 안 겹친다.
  *
  * 연결은 SSE 하나 (`/kl/chat/stream`). 끊기면 브라우저가 알아서 다시 붙고, 그래도 안 되면
  * 잠깐씩 되물어보는 길(`/kl/chat/recent`)로 내려간다. 서버가 아예 없으면 **채팅만 조용히 사라진다** —
@@ -128,9 +131,18 @@ void (async function (): Promise<void> {
     Mdd.injectCSS(
         'kl-chat',
         `
-        .klchat { position:fixed; left:16px; bottom:16px; z-index:940; display:flex; flex-direction:column; align-items:flex-start; gap:10px; font-family:var(--font-sans,'Inter',sans-serif); }
-        .klchat-dock { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.85)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:var(--text-primary,#e4eaf6); border-radius:var(--radius-md,8px); font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 6px 20px var(--vignette,rgba(0,0,0,0.35)); transition:transform .12s ease, border-color .12s ease; }
-        .klchat-dock:hover { transform:translateY(-1px); border-color:var(--border-hover,rgba(0,229,255,0.3)); }
+        /* 판은 헤더(52px) 바로 아래 오른쪽에 매단다. 단추는 이 상자 밖 — 헤더 안에 산다. */
+        .klchat { position:fixed; top:58px; right:12px; z-index:940; display:flex; flex-direction:column; align-items:flex-end; gap:10px; font-family:var(--font-sans,'Inter',sans-serif); pointer-events:none; }
+        .klchat > * { pointer-events:auto; }
+        /* 헤더가 없는 화면에서는 옛 자리로 돌아간다 — 단추가 갈 곳이 없으면 이 상자가 데리고 있다. */
+        .klchat.loose { top:auto; right:auto; left:16px; bottom:16px; align-items:flex-start; }
+        .header-chat { display:flex; align-items:center; position:relative; }
+        .header-chat:empty { display:none; }
+        /* 헤더 캡슐 — 계정 단추(.header-account-btn)와 같은 몸피여야 한 줄로 읽힌다. */
+        .klchat-dock { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 11px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:transparent; color:var(--text-secondary,#9aa7bd); border-radius:999px; font-size:var(--font-size-xs,12px); font-weight:600; font-family:inherit; white-space:nowrap; cursor:pointer; transition:color .12s ease, border-color .12s ease, background .12s ease; }
+        .klchat-dock:hover { color:var(--text-primary,#e4eaf6); border-color:var(--accent,#00e5ff); }
+        .klchat-dock[aria-expanded="true"] { color:var(--accent,#00e5ff); border-color:var(--accent,#00e5ff); background:var(--accent-dim,rgba(0,229,255,0.12)); }
+        .klchat.loose .klchat-dock { height:auto; padding:9px 14px; border-radius:var(--radius-md,8px); background:var(--glass-strong,rgba(8,16,30,0.85)); color:var(--text-primary,#e4eaf6); font-size:13px; }
         .klchat-dot { width:7px; height:7px; border-radius:50%; background:var(--text-tertiary,#6b7688); flex:none; }
         .klchat-dot { position:relative; }
         /* 맥박은 **평소에 안 돈다** (TASK-KL-128 25 → 2026-08-08 재측정으로 정정).
@@ -148,7 +160,7 @@ void (async function (): Promise<void> {
           background:rgba(95,211,178,0.5); animation:klchat-pulse .9s ease-out 1; }
         @keyframes klchat-pulse { 0%{transform:scale(1);opacity:.5;} 70%{transform:scale(3);opacity:0;} 100%{transform:scale(1);opacity:0;} }
         .klchat-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:#ef8b8b; color:#1a1016; font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
-        .klchat-panel { width:min(340px,calc(100vw - 32px)); height:min(460px,calc(100vh - 120px)); display:none; flex-direction:column; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.92)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:var(--radius-md,8px); overflow:hidden; box-shadow:0 12px 40px var(--vignette,rgba(0,0,0,0.45)); }
+        .klchat-panel { width:min(340px,calc(100vw - 32px)); height:min(460px,calc(100vh - 88px)); display:none; flex-direction:column; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.92)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:var(--radius-md,8px); overflow:hidden; box-shadow:0 12px 40px var(--vignette,rgba(0,0,0,0.45)); }
         .klchat.open .klchat-panel { display:flex; }
         .klchat-head { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border,rgba(255,255,255,0.08)); font-size:12px; color:var(--text-secondary,#9aa7bd); }
         .klchat-head b { color:var(--text-primary,#e4eaf6); font-size:13px; }
@@ -183,8 +195,13 @@ void (async function (): Promise<void> {
         .klchat-status { font-size:11px; color:var(--text-tertiary,#6b7688); min-height:14px; }
         .klchat-status.warn { color:#ef8b8b; }
         .klchat-alone { border:none; color:var(--text-secondary,#9aa7bd); }
+        @media (max-width:900px) {
+            /* 좁아지면 글자를 접고 점만 남긴다 — 헤더는 도구 링크부터 사라지는 자리다. */
+            .klchat-dock-label { display:none; }
+            .klchat-dock { padding:0 9px; }
+        }
         @media (max-width:640px) {
-            .klchat { left:12px; right:12px; bottom:12px; }
+            .klchat { top:56px; left:8px; right:8px; align-items:stretch; }
             /* 폰에서는 **화면에 실제로 보이는 높이**(dvh)로 잡는다. vh 는 주소창·키보드가
                올라와도 안 줄어서, 키보드가 뜨면 입력칸이 화면 밖으로 밀려난다.
                dvh 를 모르는 브라우저를 위해 vh 를 먼저 적어 둔다(뒤가 이긴다). */
@@ -208,8 +225,8 @@ void (async function (): Promise<void> {
        첫 화면 밀림 0.178 중 0.174 가 이것 하나였다(실측). 뜨는 자리만 인라인으로 박아 두면
        스타일이 늦게 와도 아무것도 안 밀린다. 나머지 생김새는 그대로 그 CSS 가 맡는다. */
     root.style.position = 'fixed';
-    root.style.left = '16px';
-    root.style.bottom = '16px';
+    root.style.top = '58px';
+    root.style.right = '12px';
     root.style.zIndex = '940';
     /* ★ **자리뿐 아니라 「접혀 있음」도 인라인으로 박는다** (2026-08-17, 도구 장 실측).
        위에서 자리를 못 박아 첫 화면 밀림은 잡혔는데, **도구 상세 장**에서는 아직 0.0929 가
@@ -239,20 +256,45 @@ void (async function (): Promise<void> {
                 <div class="klchat-status" id="klChatStatus"></div>
             </div>
         </div>
-        <button type="button" class="klchat-dock" id="klChatDock">
-            <span class="klchat-dot" id="klChatDockDot"></span>
-            <span>${t('chat.dock')}</span>
-            <span id="klChatDockCount" style="color:var(--text-tertiary,#6b7688);font-weight:600"></span>
-            <span class="klchat-badge" id="klChatUnread" style="display:none">0</span>
-        </button>
     `;
     document.body.appendChild(root);
 
+    /* 단추는 **헤더 안**에 산다 (2026-08-22). 종(`#headerBell`)·계정 캡슐과 한 줄이다.
+       헤더가 없는 화면이면 갈 곳이 없으므로 이 상자가 도로 데리고 있고, 상자는 옛 자리
+       (왼쪽 아래)로 돌아간다 — 채팅이 통째로 사라지느니 예전처럼이라도 떠 있는 게 낫다. */
+    const dock = document.createElement('button');
+    dock.type = 'button';
+    dock.className = 'klchat-dock';
+    dock.id = 'klChatDock';
+    dock.setAttribute('aria-expanded', 'false');
+    /* 좁은 화면에서는 글자를 접어 점만 남긴다 — 그러면 **이름이 없는 단추**가 된다.
+       읽어 주는 기계에게는 접힌 글자가 안 보이므로 이름을 따로 붙여 둔다. */
+    dock.setAttribute('aria-label', t('chat.dock'));
+    dock.title = t('chat.dock');
+    dock.innerHTML = `
+        <span class="klchat-dot" id="klChatDockDot"></span>
+        <span class="klchat-dock-label">${t('chat.dock')}</span>
+        <span id="klChatDockCount" style="color:var(--text-tertiary,#6b7688);font-weight:600"></span>
+        <span class="klchat-badge" id="klChatUnread" style="display:none">0</span>
+    `;
+    const dockHost = document.getElementById('headerChat');
+    if (dockHost) {
+        dockHost.innerHTML = ''; // 핫 교체로 두 번 돌면 단추가 둘이 된다
+        dockHost.appendChild(dock);
+    } else {
+        root.classList.add('loose');
+        root.style.top = 'auto';
+        root.style.right = 'auto';
+        root.style.left = '16px';
+        root.style.bottom = '16px';
+        root.appendChild(dock);
+    }
+
     const el = {
-        dock: root.querySelector('#klChatDock') as HTMLButtonElement,
-        dockDot: root.querySelector('#klChatDockDot') as HTMLElement,
-        dockCount: root.querySelector('#klChatDockCount') as HTMLElement,
-        unread: root.querySelector('#klChatUnread') as HTMLElement,
+        dock,
+        dockDot: dock.querySelector('#klChatDockDot') as HTMLElement,
+        dockCount: dock.querySelector('#klChatDockCount') as HTMLElement,
+        unread: dock.querySelector('#klChatUnread') as HTMLElement,
         close: root.querySelector('#klChatClose') as HTMLButtonElement,
         dot: root.querySelector('#klChatDot') as HTMLElement,
         here: root.querySelector('#klChatHere') as HTMLElement,
@@ -407,6 +449,7 @@ void (async function (): Promise<void> {
            한 번 치우면 그다음부터는 `.klchat.open` 규칙이 맡는다. */
         const panelEl = root.querySelector('.klchat-panel');
         if (panelEl instanceof HTMLElement && panelEl.style.display) panelEl.style.removeProperty('display');
+        el.dock.setAttribute('aria-expanded', open ? 'true' : 'false');
         setPref(OPEN_KEY, open ? '1' : '0');
         if (open) {
             markSeen();
@@ -658,11 +701,11 @@ void (async function (): Promise<void> {
         if (isOpen() && atBottom()) markSeen();
     };
 
-    /* 폰에서 칸을 누르면 키보드가 올라오며 창을 덮는다 — 브라우저가 알아서 밀어 주지 않는다.
-     * 키보드가 자리를 잡을 틈을 준 뒤 이 창을 보이는 자리로 끌어온다 (TASK-KL-157). */
+    /* 예전에는 폰에서 칸을 누르면 키보드가 창을 덮어, 창을 보이는 자리로 끌어와야 했다
+     * (TASK-KL-157). 판이 화면 **위쪽**에 고정된 지금은 키보드가 덮지 못한다 —
+     * 끌어오는 대신 마지막 줄만 보이게 해 둔다. */
     el.input.onfocus = () => {
         setTimeout(() => {
-            root.scrollIntoView({ block: 'end', behavior: 'smooth' });
             el.log.scrollTop = el.log.scrollHeight;
         }, 250);
     };
