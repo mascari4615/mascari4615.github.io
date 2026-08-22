@@ -99,6 +99,7 @@ window.KARMOLAB_LAZY_META = [
        첫 화면에서 77KB 를 받고 한 번도 안 그렸다 — 계기판의 「받았는데 안 쓴 코드」가 잡았다.
        느린 회선에서 그 77KB 는 곧 몇 백 ms 다. 눌렀을 때 받는다(chat 이 먼저 간 길). */
     id: 'community',
+    // marked 를 먼저 — 렌더러가 공용(lib/markdown)으로 바뀌며 커뮤니티도 marked 를 쓴다 (KL-354).
     noPage: true,
     get title() { return t('widgets.community.title', undefined, "커뮤니티"); },
     category: 'tool',
@@ -106,7 +107,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     noHero: true,
     icon: '<path d="M4 5.5h16v10H9l-4 3.5v-3.5H4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M8 9.5h8M8 12h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['community']
+    lazyScriptPaths: ['vendor/marked.min', 'community']
   },
   {
     /* 광장도 부팅에서 뺐다 (TASK-KL-204, 근거 = KL-201 계기판) — 첫 화면에서 23KB 를 받고

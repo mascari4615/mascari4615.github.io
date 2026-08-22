@@ -14,6 +14,7 @@ import {
 } from '../../lib/doc-view';
 import { specFromMermaid } from '../../lib/karmograph/from-mermaid';
 import { renderGraphSvg } from '../../lib/karmograph/render';
+import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/render';
 
 (function (): void {
   /**
@@ -31,41 +32,8 @@ import { renderGraphSvg } from '../../lib/karmograph/render';
    *
    * 편집기(`canvas.ts` 257KB)는 안 부른다. 문서에 필요한 건 그림 한 장이지 끌고 고치는 판이 아니다.
    */
-  let markedMermaidRegistered = false;
-
-  /** marked 기본 코드 블록(HTML 이스케이프)을 거치지 않고 ```mermaid 원문을 div 에 넣음 */
-  function registerMarkedMermaid(): void {
-    if (markedMermaidRegistered) return;
-    markedMermaidRegistered = true;
-    const mk = typeof marked !== 'undefined' ? (marked as { use?: (opts: unknown) => void }) : null;
-    if (!mk || typeof mk.use !== 'function') return;
-    mk.use({
-      extensions: [
-        {
-          name: 'mermaid',
-          level: 'block',
-          start(src: string) {
-            const m = /^```mermaid[ \t]*(?:\r?\n|$)/m.exec(src);
-            return m ? m.index : undefined;
-          },
-          tokenizer(src: string) {
-            const r = /^```mermaid[ \t]*\r?\n([\s\S]*?)\r?\n```/;
-            const m = r.exec(src);
-            if (!m) return undefined;
-            return {
-              type: 'mermaid',
-              raw: m[0],
-              text: m[1].replace(/\r\n/g, '\n').trim(),
-            };
-          },
-          renderer(token: { text: string }) {
-            const safe = token.text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-            return '<div class="mermaid">' + safe + '</div>\n';
-          },
-        },
-      ],
-    });
-  }
+  /* ```mermaid → div 는 이제 공용 렌더러(`lib/markdown/render`)의 확장이다 (TASK-KL-354) —
+     여기 있던 marked.use 전역 등록을 걷어냈다. 그리는 일(karmograph)은 여전히 이 위젯 몫. */
 
   /** 펜스가 marked 확장을 타지 않았을 때(구버전 등) 대비 */
   function replaceMermaidCodeBlocksFallback(body: HTMLElement): number {
@@ -398,9 +366,8 @@ import { renderGraphSvg } from '../../lib/karmograph/render';
       return;
     }
 
-    registerMarkedMermaid();
-    marked.setOptions({ breaks: true, gfm: true });
-    body.innerHTML = marked.parse(md);
+    // 공용 렌더러 한 벌 (TASK-KL-354) — 내 문서라 trust self, 전 기능.
+    body.innerHTML = renderMarkdownShared(md, { trust: 'self', marked, breaks: true });
 
     const layout = document.createElement('div');
     layout.className = 'docs-md-layout';

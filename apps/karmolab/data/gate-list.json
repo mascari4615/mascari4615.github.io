@@ -3,6 +3,18 @@
   "why": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
   "list": [
     {
+      "name": "test:markdown",
+      "watch": [
+        "src/lib/markdown/**",
+        "src/widgets/community-markdown.ts",
+        "scripts/test-markdown-render.mjs",
+        "scripts/lib/markdown-node.mjs",
+        "js/vendor/marked.min.js",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "test:gamification",
       "watch": [
         "src/widgets/gamification*",

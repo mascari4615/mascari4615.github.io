@@ -1,173 +1,30 @@
 /**
- * 커뮤니티 글의 간단 서식 (TASK-KL-098).
+ * 커뮤니티 글의 서식 — 공용 렌더러의 **user 신뢰 어댑터** (TASK-KL-098 → KL-354).
  *
- * 왜 직접 짜나: 남의 마크다운 라이브러리를 붙이면 **그 결과를 화면에 그대로 꽂아야** 하는데,
- * 그러면 남이 쓴 글에 스크립트를 심을 길이 열린다. 여기서는 **먼저 전부 escape 하고**,
- * 그다음 우리가 아는 몇 가지 기호만 태그로 바꾼다. 그래서 원문에 무엇이 들어와도 안전하다.
- * 라이브러리도 안 늘어난다 (이 앱은 도구마다 무게를 재고 있다).
+ * 원래 여기 자작 escape 파서가 있었다 (표·이미지 없음). 렌더러가 세 벌로 갈라지는 것을 막으려
+ * `lib/markdown/render` 한 벌로 모았다 — 커뮤니티는 그 덕에 표·이미지·callout 도 그려진다.
+ * 안전은 그대로다: user 신뢰는 원문 HTML 을 전부 글자로 escape 하고 `javascript:`·`data:`
+ * 주소를 만들지 않는다 (지키는 시험 = `npm run test:markdown`).
  *
- * 지원하는 것만 지원한다 — 커뮤니티 글에 실제로 쓰는 것들:
- *   # 제목 · **굵게** · *기울임* · `코드` · ```묶음 코드``` · > 인용 · - 목록 · 1. 번호 · [글자](주소) · ---
- * 표·이미지·HTML 은 일부러 뺐다. 필요해지면 그때 하나씩 연다.
+ * marked(vendor)는 커뮤니티 위젯의 lazyScriptPaths 가 먼저 싣는다. 혹시 못 실렸으면
+ * escape 한 글자만 보여 준다 — 서식이 없는 것이 스크립트가 사는 것보다 낫다.
  */
+import { renderMarkdown as renderShared, escapeHtml as escapeShared } from '../lib/markdown/render';
 
-/** 화면에 넣기 전 반드시 거친다. 이 함수가 첫 번째이자 마지막 방어선이다. */
-export function escapeHtml(value: unknown): string {
-    return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
-
-/** 링크 주소로 허용할 것 — `javascript:` 같은 것을 막는다. */
-function safeHref(raw: string): string | null {
-    const url = raw.trim();
-    // http(s) 만. `javascript:` · `data:` 는 여기서 걸러진다 — 그게 이 함수의 전부다.
-    if (/^https?:\/\//i.test(url)) return url;
-    // 우리 사이트 안쪽 주소도 허용 (도구·글 링크를 붙이는 일이 잦다).
-    if (/^\/[^/]/.test(url)) return url;
-    return null;
-}
-
-/** 한 줄 안의 서식. 들어오는 값은 **이미 escape 된 것**이어야 한다. */
-function inline(text: string): string {
-    let out = text;
-
-    // 코드가 가장 강하다 — 코드 안의 별표는 굵게가 아니다. 먼저 빼 두었다가 마지막에 되돌린다.
-    const codes: string[] = [];
-    out = out.replace(/`([^`]+)`/g, (_, code: string) => {
-        codes.push(code);
-        return `\0CODE${codes.length - 1}\0`;
-    });
-
-    // 그림이 링크보다 먼저다 — `![...](...)` 의 `[...]` 부분이 링크로 먼저 잡히면 안 된다.
-    out = out.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (whole, alt: string, href: string) => {
-        const url = safeHref(href.replace(/&amp;/g, '&'));
-        if (!url) return whole;
-        // 크기를 화면에 맞추고, 늦게 받아도 글이 안 밀리게 미리 자리를 잡는다.
-        return `<img src="${escapeHtml(url)}" alt="${alt}" loading="lazy">`;
-    });
-
-    out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (whole, label: string, href: string) => {
-        const url = safeHref(href.replace(/&amp;/g, '&'));
-        if (!url) return whole;
-        // 밖으로 나가는 링크는 새 창으로, 그리고 우리 쪽 정보를 안 넘긴다.
-        const external = /^https?:/i.test(url);
-        return `<a href="${escapeHtml(url)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${label}</a>`;
-    });
-
-    out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    out = out.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-    out = out.replace(/~~([^~]+)~~/g, '<del>$1</del>');
-
-    return out.replace(/\0CODE(\d+)\0/g, (_, index: string) => `<code>${codes[Number(index)]}</code>`);
-}
+export const escapeHtml = escapeShared;
 
 /** 글 한 편을 화면에 넣을 수 있는 HTML 로. */
 export function renderMarkdown(source: string): string {
-    const lines = escapeHtml(source).split('\n');
-    const out: string[] = [];
-
-    let inCode = false;
-    let codeBuffer: string[] = [];
-    let listType: 'ul' | 'ol' | null = null;
-    let quote: string[] = [];
-    let paragraph: string[] = [];
-
-    const closeList = (): void => {
-        if (listType) {
-            out.push(`</${listType}>`);
-            listType = null;
-        }
-    };
-    const closeQuote = (): void => {
-        if (quote.length) {
-            out.push(`<blockquote>${inline(quote.join('<br>'))}</blockquote>`);
-            quote = [];
-        }
-    };
-    const closeParagraph = (): void => {
-        if (paragraph.length) {
-            out.push(`<p>${inline(paragraph.join('<br>'))}</p>`);
-            paragraph = [];
-        }
-    };
-    const closeAll = (): void => {
-        closeParagraph();
-        closeQuote();
-        closeList();
-    };
-
-    for (const line of lines) {
-        if (/^```/.test(line.trim())) {
-            if (inCode) {
-                out.push(`<pre><code>${codeBuffer.join('\n')}</code></pre>`);
-                codeBuffer = [];
-                inCode = false;
-            } else {
-                closeAll();
-                inCode = true;
-            }
-            continue;
-        }
-        if (inCode) {
-            codeBuffer.push(line);
-            continue;
-        }
-
-        if (line.trim() === '') {
-            closeAll();
-            continue;
-        }
-
-        const heading = /^(#{1,3})\s+(.*)$/.exec(line);
-        if (heading) {
-            closeAll();
-            const level = heading[1].length + 2; // h3~h5 — 화면의 큰제목과 안 부딪히게
-            out.push(`<h${level}>${inline(heading[2])}</h${level}>`);
-            continue;
-        }
-
-        if (/^(-{3,}|\*{3,})$/.test(line.trim())) {
-            closeAll();
-            out.push('<hr>');
-            continue;
-        }
-
-        // 먼저 전부 escape 하므로 이 자리의 인용 기호는 이미 `&gt;` 다.
-        // (원문 `>` 를 찾으면 영원히 안 걸린다 — 시험이 이걸 잡았다.)
-        const quoted = /^&gt;\s?(.*)$/.exec(line);
-        if (quoted) {
-            closeParagraph();
-            closeList();
-            quote.push(quoted[1]);
-            continue;
-        }
-        closeQuote();
-
-        const bullet = /^[-*]\s+(.*)$/.exec(line);
-        const numbered = /^\d+\.\s+(.*)$/.exec(line);
-        if (bullet || numbered) {
-            closeParagraph();
-            const wanted: 'ul' | 'ol' = bullet ? 'ul' : 'ol';
-            if (listType !== wanted) {
-                closeList();
-                out.push(`<${wanted}>`);
-                listType = wanted;
-            }
-            out.push(`<li>${inline((bullet ?? numbered)![1])}</li>`);
-            continue;
-        }
-        closeList();
-
-        paragraph.push(line);
+    if (typeof marked === 'undefined' || typeof marked.Marked !== 'function') {
+        // marked 가 안 실린 화면 — 서식 없이, 그러나 안전하게.
+        return `<p>${escapeHtml(source).replace(/\n/g, '<br>')}</p>`;
     }
-
-    if (inCode && codeBuffer.length) out.push(`<pre><code>${codeBuffer.join('\n')}</code></pre>`);
-    closeAll();
-
-    return out.join('');
+    const html = renderShared(source, { trust: 'user', marked, breaks: true });
+    // 화면의 큰제목과 안 부딪히게 글 안 제목은 h3~h5 로 내린다 (자작 파서 시절 규칙 유지).
+    return html
+        .replace(/<(\/?)h3>/g, '<$1h5>')
+        .replace(/<(\/?)h2>/g, '<$1h4>')
+        .replace(/<(\/?)h1>/g, '<$1h3>');
 }
 
 /** 목록에 쓸 한 줄 미리보기 — 서식 기호는 걷어내고 글만 남긴다. */

@@ -15,6 +15,12 @@ import os from 'os';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
+/* 렌더러가 공용(lib/markdown + marked)으로 바뀌었다 (TASK-KL-354) — 브라우저에선 위젯이
+   vendor/marked.min 을 먼저 싣는다. 여기서도 같은 상태를 만들어 **실제 경로**를 시험한다.
+   (marked 없는 화면의 폴백 = escape 만 — 그 가지는 아래 폴백 § 가 따로 본다.) */
+const { loadMarked } = await import(pathToFileURL(path.join(root, 'scripts/lib/markdown-node.mjs')).href);
+globalThis.marked = loadMarked();
+
 // TS 를 그 자리에서 한 번 굽는다 — 위젯 번들은 iife 라 밖에서 못 부른다.
 const tmp = path.join(os.tmpdir(), `kl-md-${Date.now()}.mjs`);
 await esbuild.build({
@@ -62,11 +68,12 @@ check('코드 안의 별표는 굵게가 아니다', renderMarkdown('`**x**`').i
 check('바깥 링크는 새 창', renderMarkdown('[집](https://example.com)').includes('rel="noopener noreferrer"'));
 check('우리 주소는 같은 창', !renderMarkdown('[도구](/karmolab/t/qrgen/)').includes('target="_blank"'));
 check('제목', renderMarkdown('## 제목').includes('<h4>제목</h4>'));
-check('인용', renderMarkdown('> 인용문').includes('<blockquote>인용문</blockquote>'));
-check('목록', renderMarkdown('- 하나\n- 둘').includes('<ul><li>하나</li><li>둘</li></ul>'));
-check('번호 목록', renderMarkdown('1. 하나\n2. 둘').includes('<ol><li>하나</li>'));
+/* 표기는 marked 관용(태그 사이 줄바꿈·<p> 감싸기)을 허용하되, 구조는 그대로 요구한다. */
+check('인용', /<blockquote>[\s\S]*인용문[\s\S]*<\/blockquote>/.test(renderMarkdown('> 인용문')));
+check('목록', /<ul>\s*<li>하나<\/li>\s*<li>둘<\/li>\s*<\/ul>/.test(renderMarkdown('- 하나\n- 둘')));
+check('번호 목록', /<ol>\s*<li>하나<\/li>/.test(renderMarkdown('1. 하나\n2. 둘')));
 check('가로줄', renderMarkdown('---').includes('<hr>'));
-check('묶음 코드', renderMarkdown('```\nline\n```').includes('<pre><code>line</code></pre>'));
+check('묶음 코드', /<pre><code>line\s*<\/code><\/pre>/.test(renderMarkdown('```\nline\n```')));
 check('묶음 코드 안은 서식 안 먹는다', renderMarkdown('```\n**x**\n```').includes('**x**'));
 check('빈 줄이 문단을 가른다', (renderMarkdown('가\n\n나').match(/<p>/g) || []).length === 2);
 check('한 줄 바꿈은 줄바꿈', renderMarkdown('가\n나').includes('가<br>나'));
