@@ -73,6 +73,8 @@ h1{font-size:30px;line-height:1.3;margin:0 0 24px}
  */
 export function listPage(posts) {
     const cats = [...new Set(posts.map((p) => p.categories[0]).filter(Boolean))];
+    // 사이트맵 lastmod — 비면 배포가 선다 (audit-sitemap-lastmod exit 1). 가장 최근 글의 시각.
+    const lastmod = posts.map((p) => p.lastmod ?? p.date).sort().at(-1) ?? '';
     const rows = posts
         .map((p) => {
             const cat = p.categories.join(' › ');
@@ -89,7 +91,7 @@ export function listPage(posts) {
     return `---
 layout: none
 permalink: /posts/
----
+${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <!doctype html>
 <html lang="ko">
 <head>
