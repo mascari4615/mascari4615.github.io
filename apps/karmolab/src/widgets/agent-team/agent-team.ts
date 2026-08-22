@@ -10,7 +10,7 @@
  * Phase 3 (KAR-116-B, KAR-112 흡수) = agent-driven Canvas 패널.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
-import { t, loadNamespace, locale } from '../../lib/i18n';
+import { t, locale } from '../../lib/i18n';
 import { intervalWhileVisible } from '../../lib/tick';
 
 (function (): void {
@@ -742,35 +742,35 @@ import { intervalWhileVisible } from '../../lib/tick';
     Toolbox.onDispose?.(intervalWhileVisible(() => void load(), REFRESH_INTERVAL_MS));
   }
 
-  Toolbox.register({
-    ...Toolbox.getLazyWidgetPublicMeta?.('agent-team'),
-    id: 'agent-team',
-    title: t('widgets.agent-team.title', undefined, "에이전트 팀"),
-    category: 'lab',
-    desktopOnly: true,
-    desc: t('widgets-desc.agent-team.desc', undefined, "KAR-018 에이전트 팀 운영 콘솔 (v1 PoC: roster + objectives + 활성 세션 read-only)"),
-    layout: 'full',
-    icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
-    tabs: [
-      {
-        id: 'agent-team-main',
-        label: t('agent-team.tab.main', undefined, '팀 / 콘솔'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
-        build: function (container: HTMLElement): void {
-          void loadNamespace('agent-team').then(function () {
-            build(container);
-          });
-        }
-      },
-      {
-        id: 'agent-team-canvas',
-        label: t('agent-team.tab.canvas', undefined, '🎴 카드 피드'),
-        build: function (container: HTMLElement): void {
-          void loadNamespace('agent-team').then(function () {
-            buildCanvas(container);
-          });
-        }
-      }
-    ]
-  });
+  function buildOperations(container: HTMLElement): void {
+    const nav = document.createElement('div');
+    nav.className = 'agent-team-mode-nav';
+    const body = document.createElement('div');
+    const modes = [
+      { label: t('agent-team.tab.main', undefined, '팀 / 콘솔'), render: build },
+      { label: t('agent-team.tab.canvas', undefined, '카드 피드'), render: buildCanvas }
+    ];
+    for (const [index, mode] of modes.entries()) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `btn btn-sm ${index === 0 ? 'btn-primary' : 'btn-secondary'}`;
+      button.textContent = mode.label;
+      button.addEventListener('click', () => {
+        nav.querySelectorAll('button').forEach((item) => {
+          item.className = `btn btn-sm ${item === button ? 'btn-primary' : 'btn-secondary'}`;
+        });
+        body.innerHTML = '';
+        mode.render(body);
+      });
+      nav.appendChild(button);
+    }
+    container.append(nav, body);
+    modes[0].render(body);
+  }
+
+  const panels = window as unknown as {
+    MyAiPanels?: { operations?: (container: HTMLElement) => void };
+  };
+  panels.MyAiPanels ??= {};
+  panels.MyAiPanels.operations = buildOperations;
 })();

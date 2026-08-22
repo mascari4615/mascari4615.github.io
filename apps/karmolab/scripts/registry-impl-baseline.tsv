@@ -1,16 +1,13 @@
 # registry-impl 기준선 — 명부와 구현이 아직 안 맞는 자리. 여기 없는 새 것만 막는다.
 # 이으면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 갱신: node scripts/audit-registry-impl.mjs --write-baseline
-NO-REGISTER	encdetective	-
 NO-REGISTER	img2pdf	-
 NO-REGISTER	localai	-
 NO-REGISTER	meong	-
 NO-REGISTER	pdfcrop	-
 NO-REGISTER	pdfpagenum	-
 NO-REGISTER	perf	-
-NO-REGISTER	unicodex	-
 NO-REGISTER	ziptool	-
-NOT-IN-META	agent-team	-
 NOT-IN-META	bon	-
 NOT-IN-META	companion	-
 NOT-IN-META	foundry	-

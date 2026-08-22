@@ -16,7 +16,7 @@
  *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
  */
 import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
-import { t, loadNamespace } from '../lib/i18n';
+import { t } from '../lib/i18n';
 
 (function (): void {
   'use strict';
@@ -498,25 +498,9 @@ import { t, loadNamespace } from '../lib/i18n';
     loadConfig();
   }
 
-  Toolbox.register({
-    id: 'claude-env',
-    title: t('widgets.claude-env.title', undefined, "Claude 환경"),
-    category: 'tool',
-    desktopOnly: true,
-    desc: t('widgets-desc.claude-env.desc', undefined, "Claude Code Stop/Notification hook 사운드 알림 GUI (memo/dotfiles 정본 편집 + sync; v1 Step 2/3)"),
-    layout: 'form',
-    icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
-    tabs: [
-      {
-        id: 'claude-env-main',
-        label: t('claude-env.tab.panel', undefined, '패널5'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
-        build: function (container: HTMLElement): void {
-          void loadNamespace('claude-env').then(function () {
-            build(container);
-          });
-        }
-      }
-    ]
-  });
+  const panels = window as unknown as {
+    MyAiPanels?: { claudeEnvironment?: (container: HTMLElement) => void };
+  };
+  panels.MyAiPanels ??= {};
+  panels.MyAiPanels.claudeEnvironment = build;
 })();
