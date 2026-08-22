@@ -1,5 +1,6 @@
 mod activity;
 mod ai_quota;
+mod ai_environment;
 mod app_launcher;
 mod adventure;
 mod agent_team;
@@ -37,6 +38,7 @@ use agent_team::{
     agent_team_run_cadence_tick_prod,
 };
 use ai_quota::ai_quota_all;
+use ai_environment::ai_environment_audit;
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };

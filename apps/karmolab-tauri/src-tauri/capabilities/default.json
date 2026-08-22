@@ -39,6 +39,7 @@
     "allow-agent-team",
     "allow-cockpit",
     "allow-ai-quota",
+    "allow-ai-environment",
     "allow-parts",
     "allow-app-launcher",
     "dialog:allow-open",

@@ -1,0 +1,180 @@
+//! 내 AI 개발환경 감사 — TASK-KL-348 / TASK-KAR-251.
+//!
+//! 비밀값은 읽지 않는다. 파일·디렉터리와 안전한 설정 표식의 존재만 판정한다.
+
+use serde::Serialize;
+use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[derive(Serialize)]
+pub struct VendorState {
+    vendor: &'static str,
+    status: &'static str,
+    reason: String,
+    evidence: Vec<String>,
+}
+
+#[derive(Serialize)]
+pub struct EnvironmentFeature {
+    id: &'static str,
+    label: &'static str,
+    description: &'static str,
+    vendors: Vec<VendorState>,
+}
+
+#[derive(Serialize)]
+pub struct EnvironmentAudit {
+    checked_at: u64,
+    features: Vec<EnvironmentFeature>,
+}
+
+fn exists(path: &Path) -> bool {
+    path.exists()
+}
+
+fn has_entries(path: &Path) -> bool {
+    std::fs::read_dir(path)
+        .map(|mut entries| entries.next().is_some())
+        .unwrap_or(false)
+}
+
+fn contains(path: &Path, needle: &str) -> bool {
+    std::fs::read_to_string(path)
+        .map(|text| text.contains(needle))
+        .unwrap_or(false)
+}
+
+fn state(
+    vendor: &'static str,
+    applied: bool,
+    partial: bool,
+    reason: impl Into<String>,
+    evidence: Vec<PathBuf>,
+) -> VendorState {
+    VendorState {
+        vendor,
+        status: if partial { "partial" } else if applied { "applied" } else { "missing" },
+        reason: reason.into(),
+        evidence: evidence
+            .into_iter()
+            .map(|path| path.display().to_string())
+            .collect(),
+    }
+}
+
+#[tauri::command]
+pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
+    let home = PathBuf::from(
+        std::env::var("USERPROFILE").map_err(|_| "USERPROFILE 환경 변수가 없다".to_string())?,
+    );
+    let umbrella = home.join("repos").join("karmoddrine");
+    let root_agents = umbrella.join("AGENTS.md");
+    let root_claude = umbrella.join("CLAUDE.md");
+    let claude = home.join(".claude");
+    let codex = home.join(".codex");
+    let agents = home.join(".agents");
+    let grok = home.join(".grok");
+    let claude_settings = claude.join("settings.json");
+    let codex_config = codex.join("config.toml");
+    let grok_hooks = grok.join("hooks").join("karmoddrine.json");
+
+    let instructions = EnvironmentFeature {
+        id: "instructions",
+        label: "지침",
+        description: "저장소와 사용자 범위의 지속 규칙",
+        vendors: vec![
+            state("claude", exists(&root_claude), false, "CLAUDE.md 진입 문서", vec![root_claude.clone()]),
+            state("codex", exists(&root_agents), false, "AGENTS.md 진입 문서", vec![root_agents.clone()]),
+            state("grok", exists(&root_agents) && exists(&root_claude), false, "AGENTS.md와 CLAUDE.md를 함께 로드", vec![root_agents.clone(), root_claude.clone()]),
+        ],
+    };
+
+    let claude_skills = claude.join("skills");
+    let codex_skills = agents.join("skills");
+    let skills = EnvironmentFeature {
+        id: "skills",
+        label: "스킬",
+        description: "반복 작업을 위한 SKILL.md 워크플로",
+        vendors: vec![
+            state("claude", has_entries(&claude_skills), false, "Claude 사용자 스킬", vec![claude_skills.clone()]),
+            state("codex", has_entries(&codex_skills), false, "Codex 사용자 스킬 검색 경로", vec![codex_skills.clone()]),
+            state("grok", has_entries(&claude_skills), true, "Claude 호환 스킬 스캔에 의존", vec![claude_skills.clone()]),
+        ],
+    };
+
+    let claude_hooks = claude.join("hooks");
+    let codex_hooks = codex.join("hooks.json");
+    let hooks = EnvironmentFeature {
+        id: "hooks",
+        label: "훅",
+        description: "세션·프롬프트·도구 호출 전후의 기계적 집행",
+        vendors: vec![
+            state("claude", has_entries(&claude_hooks) && contains(&claude_settings, "\"hooks\""), false, "Claude hooks와 settings 배선", vec![claude_hooks.clone(), claude_settings.clone()]),
+            state("codex", exists(&codex_hooks) || contains(&codex_config, "[hooks]"), false, "Codex hooks.json 또는 config.toml hooks", vec![codex_hooks.clone(), codex_config.clone()]),
+            state("grok", exists(&grok_hooks), false, "Grok vendor-wrap 훅 등록", vec![grok_hooks.clone()]),
+        ],
+    };
+
+    let claude_commands = claude.join("commands");
+    let commands = EnvironmentFeature {
+        id: "commands",
+        label: "커맨드",
+        description: "사용자가 직접 부르는 반복 명령과 프롬프트",
+        vendors: vec![
+            state("claude", has_entries(&claude_commands), false, "Claude slash commands", vec![claude_commands.clone()]),
+            state("codex", false, false, "Claude command를 Codex skill로 가져온 흔적 없음", vec![codex_skills.clone()]),
+            state("grok", has_entries(&claude_commands), true, "Claude 호환 command 스캔에 의존", vec![claude_commands.clone()]),
+        ],
+    };
+
+    let memory = EnvironmentFeature {
+        id: "memory",
+        label: "메모리",
+        description: "세션을 넘어 유지되는 개인화와 작업 기억",
+        vendors: vec![
+            state("claude", exists(&claude.join("projects")), false, "Claude project memory", vec![claude.join("projects")]),
+            state("codex", exists(&codex.join("memories")), false, "Codex memory store", vec![codex.join("memories")]),
+            state("grok", exists(&grok.join("last-session-start.md")), true, "SessionStart 파일 기반 기억만 확인", vec![grok.join("last-session-start.md")]),
+        ],
+    };
+
+    let mcp = EnvironmentFeature {
+        id: "mcp",
+        label: "MCP · 도구",
+        description: "외부 앱과 로컬 도구 연결",
+        vendors: vec![
+            state("claude", contains(&claude_settings, "mcp"), true, "Claude settings의 MCP 표식", vec![claude_settings.clone()]),
+            state("codex", contains(&codex_config, "[mcp_servers."), false, "Codex MCP 서버 설정", vec![codex_config.clone()]),
+            state("grok", contains(&grok.join("settings.json"), "mcp"), true, "Grok MCP 설정 표식", vec![grok.join("settings.json")]),
+        ],
+    };
+
+    let permissions = EnvironmentFeature {
+        id: "permissions",
+        label: "권한 · 샌드박스",
+        description: "파일·명령·네트워크 허용 범위",
+        vendors: vec![
+            state("claude", contains(&claude_settings, "permissions"), false, "Claude permissions 설정", vec![claude_settings]),
+            state("codex", exists(&codex_config), false, "Codex config와 프로젝트 trust", vec![codex_config]),
+            state("grok", exists(&grok.join("settings.json")), true, "Grok 설정 존재만 확인", vec![grok.join("settings.json")]),
+        ],
+    };
+
+    let checked_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_secs();
+    Ok(EnvironmentAudit {
+        checked_at,
+        features: vec![instructions, skills, hooks, commands, memory, mcp, permissions, EnvironmentFeature {
+            id: "automation",
+            label: "자동화",
+            description: "사용자 호출 없이 예약·반복 실행되는 AI 작업",
+            vendors: vec![
+                state("claude", false, false, "Claude 예약 자동화 배포 계약 없음", vec![claude.join("automations")]),
+                state("codex", has_entries(&codex.join("automations")), false, "Codex automations 저장소", vec![codex.join("automations")]),
+                state("grok", false, false, "Grok 예약 자동화 배포 계약 없음", vec![grok.join("automations")]),
+            ],
+        }],
+    })
+}

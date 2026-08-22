@@ -67,7 +67,6 @@
   "widgets.cockpit.title": "Cockpit",
   "widgets.terminal.title": "PowerShell 터미널",
   "widgets.my-ai.title": "내 AI",
-  "widgets.claude-env.title": "Claude 환경",
   "widgets.alarm.title": "알람",
   "widgets.slug.title": "슬러그 만들기",
   "widgets.caseconv.title": "표기법 변환",
