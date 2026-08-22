@@ -66,6 +66,128 @@ h1{font-size:30px;line-height:1.3;margin:0 0 24px}
 `;
 
 /**
+ * `/posts/` 목록 한 장 (TASK-KL-355 — Phase 2). 같은 경량 셸 톤.
+ * 공개 글이 78장이라 페이지네이션이 필요 없다 (카테고리/태그 아카이브 대신 목록+거르기 — 확정 결정).
+ * 거르기(칩·검색)는 인라인 몇 줄 — 바깥 리소스는 여전히 GoatCounter 하나다.
+ * @param {Array<{slug:string,title:string,date:string,categories:string[],excerpt:string}>} posts 공개 글, 최신순
+ */
+export function listPage(posts) {
+    const cats = [...new Set(posts.map((p) => p.categories[0]).filter(Boolean))];
+    const rows = posts
+        .map((p) => {
+            const cat = p.categories.join(' › ');
+            return (
+                `<li data-cat="${esc(p.categories[0] ?? '')}" data-text="${esc(`${p.title} ${cat}`.toLowerCase())}">` +
+                `<a href="/posts/${esc(p.slug)}/"><span class="t">${esc(p.title)}</span>` +
+                `<span class="m">${esc(cat)} · <time datetime="${esc(p.date)}">${p.date.slice(0, 10)}</time></span>` +
+                (p.excerpt ? `<span class="x">${esc(p.excerpt)}</span>` : '') +
+                `</a></li>`
+            );
+        })
+        .join('\n');
+
+    return `---
+layout: none
+permalink: /posts/
+---
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>글 | KarmoDDrine</title>
+    <meta name="description" content="KarmoDDrine 블로그 — 컴퓨터·작업물·수필 ${posts.length}편">
+    <link rel="canonical" href="${SITE}/posts/">
+    ${CSP_META}
+    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
+    <link rel="alternate" type="application/rss+xml" title="KarmoDDrine" href="/feed.xml">
+    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+    <style>${CSS}
+.list-filter{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.list-filter input{flex:1;min-width:160px;background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:8px;color:var(--text-primary);padding:8px 12px}
+.chip{background:none;border:1px solid var(--bg-tertiary);border-radius:999px;color:var(--text-secondary);padding:4px 12px;cursor:pointer;font-size:13px}
+.chip.on{border-color:var(--accent);color:var(--accent)}
+.post-list{list-style:none;margin:0;padding:0}
+.post-list li{border-bottom:1px solid var(--bg-tertiary)}
+.post-list a{display:block;padding:14px 2px;color:inherit;text-decoration:none}
+.post-list a:hover .t{color:var(--accent)}
+.post-list .t{display:block;font-weight:600}
+.post-list .m{display:block;font-size:13px;color:var(--text-tertiary);margin-top:2px}
+.post-list .x{display:block;font-size:14px;color:var(--text-secondary);margin-top:4px}
+</style>
+</head>
+<body class="post-page">
+    <header class="post-top">
+        <a href="/karmolab/">◂ KarmoLab</a>
+        <span class="spacer"></span>
+        <button id="themeToggle" aria-label="테마 전환">◐</button>
+    </header>
+    <main>
+        <h1>글 <small style="color:var(--text-tertiary);font-size:16px">${posts.length}편</small></h1>
+        <div class="list-filter">
+            <input id="q" type="search" placeholder="제목·카테고리 찾기" aria-label="글 찾기">
+            ${cats.map((c) => `<button class="chip" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}
+        </div>
+        <ul class="post-list" id="list">
+${rows}
+        </ul>
+    </main>
+    <script>
+    (function(){
+        document.getElementById('themeToggle').addEventListener('click',function(){
+            var light=document.documentElement.dataset.theme==='light';
+            if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme='light';
+            try{localStorage.setItem('toolbox_theme',light?'dark':'light')}catch(e){}
+        });
+        var cat='',q='';
+        var rows=[].slice.call(document.querySelectorAll('#list li'));
+        function apply(){
+            rows.forEach(function(r){
+                var okCat=!cat||r.dataset.cat===cat;
+                var okQ=!q||r.dataset.text.indexOf(q)>=0;
+                r.style.display=okCat&&okQ?'':'none';
+            });
+        }
+        [].slice.call(document.querySelectorAll('.chip')).forEach(function(ch){
+            ch.addEventListener('click',function(){
+                var on=ch.classList.contains('on');
+                document.querySelectorAll('.chip.on').forEach(function(x){x.classList.remove('on')});
+                cat=on?'':ch.dataset.cat;if(!on)ch.classList.add('on');
+                apply();
+            });
+        });
+        document.getElementById('q').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();apply()});
+    })();
+    </script>
+    <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
+`;
+}
+
+/** RSS 2.0 — `gen-feeds.mjs`(changes.xml) 손조립 패턴 승계. 컷오버 때 /feed.xml 자리로 간다. */
+export function feedXml(posts) {
+    const items = posts
+        .slice(0, 20)
+        .map((p) => {
+            const url = `${SITE}/posts/${p.slug}/`;
+            return (
+                `  <item>\n    <title>${esc(p.title)}</title>\n    <link>${esc(url)}</link>\n` +
+                `    <guid isPermaLink="true">${esc(url)}</guid>\n` +
+                `    <pubDate>${new Date(p.date).toUTCString()}</pubDate>\n` +
+                (p.excerpt ? `    <description>${esc(p.excerpt)}</description>\n` : '') +
+                `  </item>`
+            );
+        })
+        .join('\n');
+    return (
+        `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>\n` +
+        `  <title>KarmoDDrine</title>\n  <link>${SITE}/posts/</link>\n` +
+        `  <description>삶을 섞고 술을 바꿀 시간</description>\n  <language>ko</language>\n${items}\n</channel></rss>\n`
+    );
+}
+
+/**
  * 글 한 장을 통짜 HTML 로.
  * @param {{slug:string,title:string,description:string,date:string,lastmod:string|null,
  *          categories:string[],tags:string[],image:string,hidden:boolean}} meta

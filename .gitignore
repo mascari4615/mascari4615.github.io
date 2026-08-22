@@ -72,6 +72,11 @@ apps/blog/ja/
 # 변환기를 없앤다 — 그 전에 커밋하면 글이 두 벌이 되어 조용히 갈라진다.
 apps/karmolab/content/
 
+# 블로그 글 색인·목록 장 — `gen:post-pages` 가 배포마다 새로 (TASK-KL-355). 색인은 rsync 로
+# /apps/karmolab/data/ 에 실려 커뮤니티 「글」 탭이 읽고, 목록 장은 /posts/ 로 복사된다.
+apps/karmolab/data/posts-index.json
+apps/blog/posts/
+
 # 「오늘의 하나 맞히기」 — 배포 시 apps/daily/dist/ 가 복사되는 자리 (TASK-KAR-202)
 apps/blog/daily/
 apps/daily/dist/

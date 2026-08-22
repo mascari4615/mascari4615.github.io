@@ -19,6 +19,7 @@
  * 뒤로 가기로 목록↔글을 오간다.
  */
 import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
+import { buildBlogTab } from './community-blog';
 import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
@@ -2103,6 +2104,16 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 build: function (container: HTMLElement): void {
                     void loadNamespace('community').then(function () {
                         build(container);
+                    });
+                },
+            },
+            {
+                /* 「글」 = 블로그 (TASK-KL-355). 읽는 면은 여기, 저장소는 git — KL-351 확정. */
+                id: 'community-blog',
+                label: t('community.tab.blog', undefined, '글'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('community').then(function () {
+                        buildBlogTab(container);
                     });
                 },
             },

@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postPage, applyCdn } from './lib/post-page.mjs';
+import { postPage, listPage, feedXml, applyCdn } from './lib/post-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONTENT = path.join(APP_ROOT, 'content', 'posts');
@@ -153,8 +153,9 @@ for (const post of posts) {
     fs.writeFileSync(dest, page);
 }
 
-// 색인 — 목록·검색·피드·커뮤니티 위젯 블로그 탭(Phase 2)의 원료.
-const index = posts
+// 색인 — 목록 장·피드·커뮤니티 위젯 「글」 탭의 원료. **공개 글만** 싣는다:
+// hidden 은 「URL 을 아는 사람만」이 결정인데(KL-351), 색인에 열거하면 그 결정이 무너진다.
+const index = visible
     .slice()
     .reverse()
     .map((p) => ({
@@ -165,7 +166,6 @@ const index = posts
         categories: p.categories,
         tags: p.tags,
         image: p.image,
-        hidden: p.hidden,
         excerpt: p.body
             .replace(/```[\s\S]*?```/g, ' ')
             .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
@@ -175,7 +175,13 @@ const index = posts
             .trim()
             .slice(0, 160),
     }));
-fs.writeFileSync(path.join(APP_ROOT, 'content', 'posts-index.json'), JSON.stringify(index, null, 1));
+// data/ 판 = 서빙본 (rsync 로 /apps/karmolab/data/ 에 실린다). 커밋 X — 배포마다 새로 (gitignore).
+fs.writeFileSync(path.join(APP_ROOT, 'data', 'posts-index.json'), JSON.stringify(index, null, 1));
+
+// 목록 장 + 피드 — 목록 장은 배포에서 apps/blog/posts/index.html 로 복사된다 (Chirpy 는
+// /posts/ 인덱스를 안 만들어 충돌 0). 피드는 컷오버(Phase 3) 전까지 검증 산출물.
+fs.writeFileSync(path.join(OUT, 'posts', 'index.html'), listPage(index));
+fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
 
 if (maxExternal > 2) {
     console.error(`[gen-post-pages] ✗ 장당 바깥 리소스 ${maxExternal}개 — 경량 셸 계약(≤2)을 깼다`);
@@ -183,5 +189,5 @@ if (maxExternal > 2) {
 }
 console.log(
     `[gen-post-pages] ${posts.length}장 (숨김 ${posts.length - visible.length}) → ${path.relative(APP_ROOT, OUT)} · ` +
-        `색인 content/posts-index.json · 장당 바깥 리소스 최대 ${maxExternal}`
+        `색인 data/posts-index.json ${index.length}건(공개만) · 목록/피드 · 장당 바깥 리소스 최대 ${maxExternal}`
 );

@@ -199,6 +199,20 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:tool-pages
 
+      # TASK-KL-355 (블로그 이관 Phase 2): 블로그 글 색인·목록 장.
+      #  - convert:posts → gen:post-pages 가 `data/posts-index.json`(공개 글만)을 새로 굽고,
+      #    그 파일은 아래 rsync 로 `/apps/karmolab/data/` 에 실려 커뮤니티 「글」 탭이 읽는다.
+      #  - 목록 장(/posts/)만 Jekyll 로 복사한다 — Chirpy 는 /posts/ 인덱스를 안 만들어 충돌 0.
+      #    글 상세 장은 아직 안 복사한다: Jekyll 이 같은 주소(/posts/<slug>/)를 굽는 동안
+      #    두 벌이 서로를 덮는다 — 컷오버(Phase 3)에서 Jekyll 몫을 빼며 같이 바꾼다.
+      - name: Generate KarmoLab blog post index and list page
+        working-directory: apps/karmolab
+        run: |
+          npm run convert:posts
+          npm run gen:post-pages
+          mkdir -p ../blog/posts
+          cp content/pages/posts/index.html ../blog/posts/index.html
+
       # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다 — 스크립트 없이도 도구가 보인다.
       # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄우고, 그 화면을 열 브라우저를 받는다.
       #
