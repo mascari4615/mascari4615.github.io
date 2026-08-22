@@ -18,5 +18,7 @@
   "site.nav.search": "さがす",
   "site.lang.switch": "言語",
   "site.lang.current": "現在の言語: {name}",
-  "site.noscript.intro": "ブラウザの中でそのまま動く道具集です。ファイルはこの端末から出ません。"
+  "site.noscript.intro": "ブラウザの中でそのまま動く道具集です。ファイルはこの端末から出ません。",
+  "site.madewith": "AI と一緒に作っています。",
+  "site.madewith.src": "ソースを見る"
 }

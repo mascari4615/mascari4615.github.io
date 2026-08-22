@@ -2131,7 +2131,52 @@ const Toolbox = (() => {
             } else if (breadcrumb) {
                 breadcrumb.innerHTML = `<button class="breadcrumb-link" data-goto="home">KarmoLab</button>`;
             }
+            markPrivacy(pageId, breadcrumb);
         }
+    }
+
+    /* 「이 도구가 내가 넣은 것을 어디로 보내나」 — 도구를 여는 자리에서 (TASK-KL-351).
+     *
+     * 도구 상세 장(`/karmolab/t/`)에는 이 말이 적혀 있었지만 **거기서 쓰는 사람은 적다** —
+     * 대부분 이 셸에서 바로 연다. 그런데 셸에는 아무 말도 없었고, 상세 장에 있던 그 한 줄은
+     * 129장 전부에 똑같이 「어디에도 전송되지 않습니다」였다(그림을 Google 로 보내는 도구에도).
+     *
+     * 판정 정본 = `data/tool-privacy.json`, 참인지 재는 곳 = `scripts/audit-tool-privacy.mjs`.
+     * 여기서는 **읽어서 보여 주기만** 한다 — 셸이 뜻을 새로 지으면 두 벌이 되어 갈라진다. */
+    let privacyOnce = null;
+    function privacyTable() {
+        if (!privacyOnce) {
+            /* 스크립트 자리 = `…/apps/karmolab/js/widgets/` → 두 칸 올라가야 `…/apps/karmolab/data/` 다
+               (Tauri 에서도 같은 출처로 풀리게 되짚는다 — `bluemarble` 이 쓰는 방식과 같다). */
+            const url = new URL('../../data/tool-privacy.json', getWidgetScriptBase()).href;
+            privacyOnce = fetch(url, { cache: 'force-cache' })
+                .then((r) => (r.ok ? r.json() : null))
+                /* 못 받아 왔다고 도구를 못 쓰게 할 이유는 없다. 다만 **모르면 아무 말도 안 한다** —
+                   여기서 「기기 안에서만」으로 넘겨짚으면 그게 곧 거짓말이 된다. */
+                .catch(() => null);
+        }
+        return privacyOnce;
+    }
+
+    function markPrivacy(pageId, host) {
+        if (!host) return;
+        host.querySelector('.tool-privacy-chip')?.remove();
+        void privacyTable().then((p) => {
+            if (!p) return;
+            const verdict = p.tools?.[pageId];
+            const where = verdict?.where || p.default;
+            const label = p.labels?.[where];
+            if (!label) return;
+            /* 셸이 다른 도구로 넘어간 뒤에 답이 오면 엉뚱한 자리에 붙는다 — 지금 화면인지 다시 본다. */
+            const nowHost = document.getElementById('breadcrumb');
+            if (!nowHost || nowHost !== host) return;
+            const chip = document.createElement('span');
+            chip.className = 'tool-privacy-chip';
+            chip.dataset.where = where;
+            chip.textContent = label;
+            chip.title = verdict?.sends || p.notes?.[where] || '';
+            host.appendChild(chip);
+        });
     }
 
     /* 결과를 그림으로 (TASK-KL-196 F) — 계산기 마흔 몇 개가 **같은 모양**으로 답을 그린다

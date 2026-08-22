@@ -43,6 +43,8 @@ const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 
 
 const shell = loadShell(root);
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
+/* 도구마다 「넣은 것이 이 기기를 떠나는가」 — 판정 정본 (TASK-KL-351). */
+const privacy = JSON.parse(fs.readFileSync(path.join(root, 'data/tool-privacy.json'), 'utf8'));
 
 /* 준비물은 **한 장도 쓰기 전에** 다 확인한다.
  * 예전에는 sw.js 확인이 맨 끝에 있어, 페이지 121장을 다 써 놓고 나서야 멈췄다 —
@@ -487,6 +489,34 @@ function edgeBlock(id) {
 `;
 }
 
+/**
+ * 「내가 넣은 것이 이 기기를 떠나는가」 — 도구마다 다르게 (TASK-KL-351).
+ *
+ * 여기 있던 한 줄은 **129장 전부에 똑같이** 「입력한 내용은 브라우저 안에서만 처리되며
+ * 어디에도 저장·전송되지 않습니다」 였다. 그런데 같은 문장이 붙은 장 중에는 그림을 Google
+ * Gemini 로 보내는 것(`imageedit`), 사람이 적은 주소로 요청을 실제로 쏘는 것(`apitest`),
+ * 점수를 서버에 남기는 것(`arcade`) 이 있었다 — 안심시키는 문장이 사실이 아닌 자리가 있었다.
+ *
+ * 판정은 `data/tool-privacy.json`, 참인지 재는 곳은 `scripts/audit-tool-privacy.mjs`.
+ * 코드가 바깥을 부르기 시작하면 그 검사가 막고 여기 적으라고 말한다.
+ */
+function privacyNote(id) {
+  const v = privacy.tools[id];
+  const where = v?.where || privacy.default;
+  const label = privacy.labels[where] || privacy.labels.local;
+  const lead = privacy.notes[where] || privacy.notes.local;
+  const detail = v?.sends ? `\n          <p class="tool-privacy-detail">${esc(v.sends)}</p>` : '';
+  const to = v?.to?.length
+    ? `\n          <p class="tool-privacy-to">가는 곳 — ${esc(v.to.join(' · '))}</p>`
+    : '';
+  /* **`<section>` 을 쓰면 안 된다.** 언어 판 생성기가 `<section class="tool-seo">` 부터
+     처음 만나는 `</section>` 까지를 그 언어 것으로 갈아 끼우는데, 안에 `<section>` 이 하나
+     들어가는 순간 그 닫는 표가 먼저 걸려 **한국어 꼬리가 영어 장에 그대로 남았다**(실측). */
+  return `        <div class="tool-privacy" role="note" data-where="${esc(where)}" aria-label="이 도구가 다루는 정보">
+          <p class="tool-privacy-lead"><span class="tool-privacy-badge">${esc(label)}</span> ${esc(lead)}</p>${detail}${to}
+        </div>`;
+}
+
 function seoBlock(id) {
   const t = seo[id];
   const related = t.related.filter((id) => !RETIRED_OPERATION_IDS.has(id) && Boolean(widgetById[id]) && Boolean(seo[id]))
@@ -531,9 +561,10 @@ function seoBlock(id) {
           <button type="submit">찾기</button>
         </form>
 ${kinBlock(id)}${sponsorBlock(id)}
+${privacyNote(id)}
         <p class="tool-seo-note">
-          입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.
           <a href="${BASE_PATH}/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
+          · AI 와 함께 만들었습니다. <a href="https://github.com/Mascari4615/Mascari4615.github.io">소스 보기</a>
         </p>
       </section>`;
 }

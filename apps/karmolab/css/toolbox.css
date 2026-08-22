@@ -1197,6 +1197,29 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 .breadcrumb-link:hover { color: var(--accent); }
 .breadcrumb-current { color: var(--text-secondary); font-weight: 600; }
 
+/* 「내가 넣은 것이 어디로 가나」 배지 (TASK-KL-351) — 도구를 여는 자리에 바로 붙는다.
+   상세 장 바닥까지 내려가는 사람은 적고, 대부분은 여기서 바로 쓰기 시작한다.
+   색만으로 안 가른다 — 글자가 늘 같은 뜻을 이고 간다(색맹·흑백 인쇄). */
+.tool-privacy-chip {
+    margin-left: 10px;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: help;
+}
+.tool-privacy-chip[data-where="local"],
+.tool-privacy-chip[data-where="assets"] { border-color: var(--success, #3fa66a); }
+.tool-privacy-chip[data-where="ours"] { border-color: var(--accent); }
+.tool-privacy-chip[data-where="third-party"],
+.tool-privacy-chip[data-where="yours"],
+.tool-privacy-chip[data-where="ai"] { border-color: var(--warning, #d99a2b); color: var(--text-primary); }
+
+
 /* ═══════════════════════════════════════
    MAIN CONTENT
    ═══════════════════════════════════════ */
@@ -3573,3 +3596,15 @@ html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content,
 html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content:has(.tool-page.layout-full.active) {
     margin-left: 0;
 }
+
+/* 「AI 와 함께 만들었고 소스는 열려 있다」 (TASK-KL-351) — 첫 화면 맨 아래 한 줄.
+   자랑도 변명도 아니라 사실 고지라, 가장 작고 가장 아래다. */
+.landing-madewith {
+    margin: 28px auto 0;
+    max-width: 640px;
+    text-align: center;
+    font-size: var(--font-size-2xs, 11px);
+    line-height: 1.7;
+    color: var(--text-tertiary);
+}
+.landing-madewith a { color: var(--text-secondary); }

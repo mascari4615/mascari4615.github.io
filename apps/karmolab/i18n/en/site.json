@@ -18,5 +18,7 @@
   "site.nav.search": "Search",
   "site.lang.switch": "Language",
   "site.lang.current": "Current language: {name}",
-  "site.noscript.intro": "A set of tools that run straight in your browser. Your files never leave this device."
+  "site.noscript.intro": "A set of tools that run straight in your browser. Your files never leave this device.",
+  "site.madewith": "Built with AI.",
+  "site.madewith.src": "View source"
 }

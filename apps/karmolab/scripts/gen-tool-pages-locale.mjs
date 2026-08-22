@@ -53,6 +53,31 @@ const outRoot = path.resolve(root, arg('--out', '../blog'));
  * (겉 장 `locale-page.mjs` 는 이미 이 규칙이다 — 같은 규칙이 두 생성기에 따로 살아 있었다.)
  */
 const SKELETON = ['toolpage'];
+
+/* 「내가 넣은 것이 이 기기를 떠나는가」 — 판정은 한국어 장과 **같은 파일**에서 읽는다
+ * (`data/tool-privacy.json`, TASK-KL-351). 여기서 뜻을 새로 지으면 두 벌이 되어 갈라진다.
+ *
+ * 갈래 이름과 안내 문장은 말 묶음에서 옮겨 오고, 도구마다 다른 상세(`sends`)는 한국어뿐이라
+ * **다른 언어 장에서는 안 찍는다** — 옮기지 않은 한국어를 그대로 박아 두는 것보다,
+ * 갈래와 가는 곳(주소는 어차피 만국 공통)까지만 정확히 말하는 편이 낫다. */
+const privacy = JSON.parse(fs.readFileSync(path.join(root, 'data/tool-privacy.json'), 'utf8'));
+
+function privacyNote(id, code) {
+  const verdict = privacy.tools[id];
+  const where = verdict?.where || privacy.default;
+  const label = tr(code, `toolpage.privacy.label.${where}`);
+  const note = tr(code, `toolpage.privacy.note.${where}`);
+  const to = verdict?.to?.length
+    ? `
+          <p class="tool-privacy-to">${esc(tr(code, 'toolpage.privacy.to'))} — ${esc(verdict.to.join(' · '))}</p>`
+    : '';
+  /* 한국어 장과 같은 이유로 `<div>` 다 — 여기서 `<section>` 을 쓰면 이 생성기가 스스로
+     끊어 읽는 자리를 하나 더 만든다. */
+  return `        <div class="tool-privacy" role="note" data-where="${esc(where)}">
+          <p class="tool-privacy-lead"><span class="tool-privacy-badge">${esc(label)}</span> ${esc(note)}</p>${to}
+        </div>`;
+}
+
 const ITEMS = ['widgets', 'tools'];
 
 const esc = (s) =>
@@ -213,10 +238,14 @@ ${howto}${faq}
           ${related}
         </div>
 
+${privacyNote(id, code)}
         <p class="tool-seo-note">
           ${esc(tr(code, 'toolpage.note.privacy'))}
           <a href="${hub}">${esc(tr(code, 'toolpage.nav.allTools'))}</a> · <a href="${home}">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">${esc(
     tr(code, 'toolpage.nav.maker')
+  )}</a>
+          · ${esc(tr(code, 'toolpage.note.ai'))} <a href="https://github.com/Mascari4615/Mascari4615.github.io">${esc(
+    tr(code, 'toolpage.note.src')
   )}</a>
         </p>
       </section>`;
