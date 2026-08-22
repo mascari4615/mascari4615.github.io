@@ -5,8 +5,17 @@
   "protobufjs",
   "sharp"
  ],
+ "apps/discord-bots": [
+  "esbuild",
+  "ffmpeg-static",
+  "youtube-dl-exec"
+ ],
  "__vulnerabilities": {
   "apps/karmolab": {
+   "high": 0,
+   "critical": 0
+  },
+  "apps/discord-bots": {
    "high": 0,
    "critical": 0
   }
