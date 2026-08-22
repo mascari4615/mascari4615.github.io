@@ -13,12 +13,6 @@
             "url": "http://127.0.0.1:4620/ears"
         },
         {
-            "id": "jekyll",
-            "title": "Jekyll Blog",
-            "subtitle": "블로그 로컬",
-            "url": "http://127.0.0.1:4000/"
-        },
-        {
             "id": "karmolab-devmode",
             "title": "KarmoLab Dev",
             "subtitle": "트레이 메뉴에서 켜기 (prod 앱 WebView → 로컬 dev 웹)",
@@ -53,25 +47,6 @@
     ],
     "_schema": "devProfiles: npm 스크립트는 {app,script[,deployScript]} 참조 (program/args/cwd 손기재 X — package.json rename 자동 추종, scripts/servermonitor-config-audit.mjs 가 verify 게이트에서 실재 검증). npm 스크립트가 아닌 경우만 raw {cwd,program,args}. 정본 설명 = TASK-KL-066 / Rust DevProfile::resolve / TS resolveProfile.",
     "devProfiles": [
-        {
-            "id": "jekyll",
-            "label": "Jekyll 블로그",
-            "cwd": ".",
-            "program": "bundle",
-            "args": [
-                "exec",
-                "jekyll",
-                "serve",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "4000",
-                "--livereload",
-                "--incremental"
-            ],
-            "healthUrl": "http://127.0.0.1:4000/",
-            "npmInstall": false
-        },
         {
             "id": "yawnbot-tunnel",
             "label": "YawnBot (dev)",
