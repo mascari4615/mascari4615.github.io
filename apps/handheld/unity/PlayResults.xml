@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.5640792">
+  <test-suite type="TestSuite" id="1009" name="Handheld" fullname="Handheld" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.564079" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1004" name="Karmo.Handheld.PlayTests.dll" fullname="C:/Users/masca/repos/karmoddrine/.lanes/43a9420f/Mascari4615.github.io/apps/handheld/unity/Library/ScriptAssemblies/Karmo.Handheld.PlayTests.dll" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.557459" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="189504" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1005" name="Handheld" fullname="Handheld" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.556807" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1006" name="Tests" fullname="Handheld.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.556483" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="VmcLoopbackTests" fullname="Handheld.Tests.VmcLoopbackTests" classname="Handheld.Tests.VmcLoopbackTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.555373" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1003" name="다른_이름으로_오면_안_따라간다" fullname="Handheld.Tests.VmcLoopbackTests.다른_이름으로_오면_안_따라간다" methodname="다른_이름으로_오면_안_따라간다" classname="Handheld.Tests.VmcLoopbackTests" runstate="Runnable" seed="778547302" result="Passed" start-time="2026-08-22 01:08:25Z" end-time="2026-08-22 01:08:26Z" duration="1.522215" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="자세가_전선을_건너_그대로_도착한다" fullname="Handheld.Tests.VmcLoopbackTests.자세가_전선을_건너_그대로_도착한다" methodname="자세가_전선을_건너_그대로_도착한다" classname="Handheld.Tests.VmcLoopbackTests" runstate="Runnable" seed="603509921" result="Passed" start-time="2026-08-22 01:08:26Z" end-time="2026-08-22 01:08:26Z" duration="0.021820" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/masca/AppData/LocalLow/Mascari4615/Handheld\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

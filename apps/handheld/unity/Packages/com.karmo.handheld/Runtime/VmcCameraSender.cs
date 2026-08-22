@@ -17,8 +17,12 @@ namespace Handheld
     [AddComponentMenu("Handheld/VMC Camera Sender")]
     public sealed class VmcCameraSender : MonoBehaviour
     {
-        [Tooltip("보낼 카메라. 비우면 씬에서 리그를 찾는다.")]
+        [Tooltip("손카메라 리그. 있으면 렌즈 값(초점거리·초점·조리개)까지 같이 보낸다.")]
         public HandheldRig rig;
+
+        [Tooltip("리그 없이 아무 카메라나 실어 보낼 때. 리그가 있으면 무시된다. " +
+                 "비우면 이 오브젝트의 Camera 를 쓴다.")]
+        public Camera sourceCamera;
 
         [Tooltip("받는 쪽(Marionette) 주소. 같은 PC 면 127.0.0.1.")]
         public string host = "127.0.0.1";
@@ -49,7 +53,11 @@ namespace Handheld
 
         void OnEnable()
         {
-            if (rig == null) rig = FindAnyObjectByType<HandheldRig>();
+            if (rig == null && sourceCamera == null)
+            {
+                sourceCamera = GetComponent<Camera>();
+                if (sourceCamera == null) rig = FindAnyObjectByType<HandheldRig>();
+            }
             _t0 = Time.realtimeSinceStartup;
             Open();
         }
@@ -78,9 +86,15 @@ namespace Handheld
             _udp = null;
         }
 
+        /// <summary>자세를 실어 보낼 대상. 리그가 우선이고, 없으면 그냥 카메라.</summary>
+        Transform Source => rig != null ? rig.transform : (sourceCamera != null ? sourceCamera.transform : null);
+
+        float SourceFovY => rig != null ? rig.FovY : (sourceCamera != null ? sourceCamera.fieldOfView : 0f);
+
         void Update()
         {
-            if (_udp == null || rig == null) return;
+            var src = Source;
+            if (_udp == null || src == null) return;
 
             float now = Time.realtimeSinceStartup;
             if (now < _nextSend) return;
@@ -89,16 +103,16 @@ namespace Handheld
             // 하트비트 — 받는 쪽이 「아직 살아 있나」를 이걸로 본다.
             Send(_osc.Begin("/VMC/Ext/T", "f").Float(now - _t0));
 
-            var t = rig.transform;
-            Vector3 p = t.position;
-            Quaternion q = t.rotation;
+            Vector3 p = src.position;
+            Quaternion q = src.rotation;
             Send(_osc.Begin("/VMC/Ext/Cam", "sffffffff")
                 .String(cameraName)
                 .Float(p.x).Float(p.y).Float(p.z)
                 .Float(q.x).Float(q.y).Float(q.z).Float(q.w)
-                .Float(rig.FovY));
+                .Float(SourceFovY));
 
-            if (!sendLensExtras) return;
+            // 곁가지는 리그가 있을 때만 — 그냥 카메라에는 실을 렌즈 값이 없다.
+            if (!sendLensExtras || rig == null) return;
 
             // 곁가지: 표준이 안 나르는 렌즈 값. 주소를 모르면 그냥 버려진다.
             Send(_osc.Begin("/karmo/Ext/Lens", "sfffff")
