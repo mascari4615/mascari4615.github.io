@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url';
 import { stripHtml, STRIP_CSS } from '../../play/scripts/strip.mjs';
 import { kstDayNumber, EPOCH_DAY_NUMBER, hasListMode, hasGridMode } from '../engine.mjs';
 import { modesOf, pastRow } from '../past-row.mjs';
-import { assertDenied } from './lib-pwa-deny.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
@@ -106,19 +105,8 @@ function checkBlogCollision() {
 }
 checkBlogCollision();
 
-/**
- * 블로그 루트의 서비스워커는 **cache-first** 다 — 한 번 담아 둔 주소는 새로 안 받아 온다.
- * 우리 페이지가 거기 걸리면 **어제 문제가 계속 나온다.** 매일 바뀌는 물건에서 이건 치명적이고,
- * 화면은 멀쩡해 보이므로 아무도 못 알아챈다 (KarmoLab 이 실제로 이걸로 배포가 고착됐었다).
- *
- * 지금은 제대로 빠져 있다. 빠져 있는 지금 잠근다 — 나중에 누가 지우면 여기서 막힌다.
- */
-function checkPwaCache() {
-  const conf = join(app, '../blog/_config.yml');
-  if (!existsSync(conf)) return;
-  assertDenied(readFileSync(conf, 'utf8'), BASE);
-}
-checkPwaCache();
+/* 루트 서비스워커 캐시 가드는 자기소멸했다 (change.blog-finish) — 지키던 대상(Chirpy PWA SW,
+   apps/blog/_config.yml)이 컷오버로 사라졌다. 사이트 SW 가 다시 생기면 그 설계의 계약으로 새로 세운다. */
 
 /**
  * 허브 카드에 쓸 이름·한 줄 (판 종류별).
