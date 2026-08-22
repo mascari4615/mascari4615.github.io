@@ -300,7 +300,7 @@ if (!chromium || !fs.existsSync(BUNDLE) || !st) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   await browser.close();
   const said = st.clear ? text.includes(String(st.pieces)) && /조각/.test(text) : /또렷이 안 갈린|한 덩어리로 이어/.test(text);

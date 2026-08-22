@@ -35,10 +35,21 @@ function findMemo(start) {
     if (up === cur) break;
     cur = up;
   }
-  throw new Error('memo 를 못 찾았다 (INDEX.md 기준). MEMO_PATH 로 알려줘라.');
+  return null;
 }
+/**
+ * ★ **못 찾았다고 여기서 죽으면 안 된다.** 이 파일은 굽기만 하는 게 아니라 **자들이 함수를
+ * 꺼내 쓰려고 import** 한다(예: audit-memo-atlas-fresh). 예전엔 여기서 throw 했는데,
+ * memo 가 옆에 없는 곳(마스터 워크트리·CI)에서는 **import 만 해도 죽어서** 자가
+ * 「아무 말도 안 하고 죽었다」가 됐다. 굽지 않는 쪽은 memo 가 없어도 살아 있어야 한다.
+ */
 const MEMO = findMemo(KARMOLAB);
-const UMBRELLA_ROOT = path.dirname(MEMO);
+const UMBRELLA_ROOT = MEMO ? path.dirname(MEMO) : path.resolve(KARMOLAB, '..', '..', '..');
+/** 실제로 구울 때만 부른다 — 여기서 없으면 그때 죽는 게 맞다. */
+function requireMemo() {
+  if (!MEMO) throw new Error('memo 를 못 찾았다 (INDEX.md 기준). MEMO_PATH 로 알려줘라.');
+  return MEMO;
+}
 const OUT = path.join(KARMOLAB, 'data', 'memo-atlas.json');
 const CACHE = path.join(KARMOLAB, 'data', '.memo-atlas-cache.json');
 
@@ -1349,7 +1360,7 @@ function seriateTable(n, dist, near, scale, extra = {}) {
   const rnd = () => { st = (st * 1664525 + 1013904223) >>> 0; return st / 4294967296; };
   const rand = Array.from({ length: n }, (_, i) => i);
   for (let i = n - 1; i > 0; i -= 1) { const j = Math.floor(rnd() * (i + 1)); [rand[i], rand[j]] = [rand[j], rand[i]]; }
-  const orders = { 마구: rand, 피들러: fiedlerOrder(n, near), ...extra };
+  const orders = { random: rand, fiedler: fiedlerOrder(n, near), ...extra };
   /* anti-Robinson 은 작은 표본에서만 — 고르게 솎아 쓴다. */
   const step = Math.max(1, Math.floor(n / SER_AR_N));
   const get = { get: (a, b) => dist[a * n + b] };
@@ -1472,13 +1483,13 @@ function seriationOf(vectors, dist, n, coords, seed = 88) {
    */
   const pick = (rows, way) => rows.find((r) => r.way === way);
   const gainOf = (rows) => {
-    const b = rows.filter((r) => r.way !== '마구').sort((x, y) => x.ar - y.ar)[0];
+    const b = rows.filter((r) => r.way !== 'random').sort((x, y) => x.ar - y.ar)[0];
     return { best: b, gain: b ? (0.5 - b.ar) / 0.5 : 0 };
   };
   const go = gainOf(ours); const gs = gainOf(shufRows); const gc = gainOf(calRows);
   const best = go.best; const gain = go.gain;
   const shufGain = gs.gain; const calGain = gc.gain;
-  const randOurs = pick(ours, '마구');
+  const randOurs = pick(ours, 'random');
   const twoSumGain = randOurs && best ? 1 - best.twoSum / Math.max(1e-12, randOurs.twoSum) : 0;
 
   /**
@@ -7025,6 +7036,7 @@ async function nameClusters(groups) {
 export { collect, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
 
 async function main() {
+  requireMemo();   // 굽기는 memo 가 있어야 한다 — 없으면 여기서 분명히 죽는다
   const limit = Number(opt('--limit', '0')) || 0;
   // 기본 = 스스로 고르기. `--clusters N` 을 주면 그 수로 박는다.
   const k = Number(opt('--clusters', '0')) || 0;
@@ -7610,8 +7622,8 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
        통째로 들어 있다. 공개 레포에 담기면 그 목차를 공개하는 셈이다(실제로 그랬다).
        무시 목록은 사람이 잊으면 끝이지만 이 줄은 파일이 스스로 들고 다닌다.
        담는 쪽에서 이 줄을 보고 막는다: scripts/audit-private-origin.mjs */
-    출신: 'private:memo',
-    담지말것: '이 파일은 공개 레포에 커밋하지 않는다',
+    origin: 'private:memo',
+    doNotCommit: '이 파일은 공개 레포에 커밋하지 않는다',
     builtFrom: 'memo',
     count: docs.length,
     embedded: coords ? coords.size : 0,

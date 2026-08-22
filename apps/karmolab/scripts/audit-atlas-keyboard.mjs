@@ -19,6 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
@@ -59,7 +60,7 @@ await page.evaluate(() => {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
 });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 const bad = [];
 const state = () => page.evaluate(() => window.__atlasControl.state());
@@ -81,7 +82,7 @@ console.log(`[keyboard] 밀기·당기기·처음으로 → ${bad.length ? '문�
 
 /* ② 글 고르기 — Enter 로 고르면 **잡히기까지** 해야 한다(닮은 글 줄은 잡힌 글에만 그린다). */
 await page.keyboard.press('Enter');
-await page.waitForTimeout(120);
+await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
 const picked = await page.evaluate(() => ({
   card: !document.querySelector('#host .atlas-card')?.hidden,
   title: document.querySelector('#host .atlas-card-title')?.textContent || '',
@@ -101,13 +102,13 @@ else {
   });
   if (!first) bad.push('표 안 단추에 초점이 안 간다');
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(120);
+  await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   await page.evaluate(() => {
     const b = document.querySelectorAll('#host .atlas-canvas [data-goto-cluster]');
     b[1].focus();
   });
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(150);
+  await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const vs = await page.evaluate(() => {
     const el = document.querySelector('#host .atlas-vs');
     return el && !el.hidden ? el.querySelector('h4')?.textContent || '' : null;

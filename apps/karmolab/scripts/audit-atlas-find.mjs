@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ATLAS = atlasPath(path.join(root, 'scripts'));
 if (!fs.existsSync(ATLAS) || !fs.existsSync(path.join(root, 'js/widgets/memo-atlas.js'))) {
@@ -41,7 +42,7 @@ await page.evaluate(() => { const h = document.createElement('div'); h.id = 'hos
          `render(h)` 를 직접 불렀는데, 그 바람에 위젯이 셸이 안 읽는 모양으로 등록해도
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h); });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 // 1) 찾기 — 있는 말은 걸려야 하고, 없는 말은 0 이어야 한다
 let foundSome = false;
@@ -52,7 +53,7 @@ const sample = (parsed.docs.find((d) => d.title && d.title.length > 4) || {}).ti
 const word = sample.split(/[\s—·]+/).filter((w) => w.length >= 2)[0] || sample.slice(0, 4);
 for (const q of [word, '없을말zzq9']) {
   await page.fill('#host .atlas-find', q);
-  await page.waitForTimeout(220);
+  await untilSettled(page, () => page.evaluate(() => window.__atlasFound ?? null));
   const r = await page.evaluate(() => ({ found: window.__atlasFound, visible: window.__atlasVisible, scale: window.__atlasScale, say: document.querySelector('#host .atlas-count')?.textContent }));
   console.log(`  찾기 "${q}" → 걸린 글 ${r.found} · 화면 속 점 ${r.visible} · 배율 ${Number(r.scale).toFixed(2)}`);
   if (q === word && r.found > 0 && r.visible > 0) foundSome = true;
@@ -67,6 +68,8 @@ const cv = await page.$('#host .atlas-canvas'); const b = await cv.boundingBox()
 let near = null;
 for (let i = 0; i < 60 && !near; i += 1) {
   await page.mouse.click(b.x + 50 + i * 19, b.y + 90 + (i % 13) * 41);
+  /* 재움-의도: 여기 재움은 값을 기다리는 게 아니라 **찍어 보는 간격**이다 —
+     맞는 자리를 찾을 때까지 예순 번 다른 곳을 눌러 본다(멎기를 기다릴 값이 없다). */
   await page.waitForTimeout(35);
   near = await page.evaluate(() => {
     const el = document.querySelector('#host .atlas-near');
@@ -79,7 +82,7 @@ console.log(near ? `  점 누름 → 「${near.title}」 · 닮은 글 ${near.n}
 if (near) {
   const before = await page.evaluate(() => document.querySelector('#host .atlas-card-title')?.textContent);
   await page.click('#host .atlas-near [data-goto]');
-  await page.waitForTimeout(250);
+  await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const after = await page.evaluate(() => ({ t: document.querySelector('#host .atlas-card-title')?.textContent, s: window.__atlasScale }));
   console.log(`  닮은 글 누름 → 「${before}」 → 「${after.t}」 · 배율 ${Number(after.s).toFixed(2)}`);
   moved = before !== after.t;

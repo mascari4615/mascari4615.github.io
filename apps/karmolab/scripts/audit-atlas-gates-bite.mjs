@@ -626,7 +626,7 @@ const BITES = [
 
   ['마구 정렬이 이미 좋다고 적는다', (a) => {
     /* 아무 순서나 놓으면 어긋남이 0.5 여야 한다 — 아니면 셈이 틀린 것이다. */
-    if (a.seriation) { const r = a.seriation.ours.find((x) => x.way === '마구'); if (r) r.ar = 0.1; }
+    if (a.seriation) { const r = a.seriation.ours.find((x) => x.way === 'random'); if (r) r.ar = 0.1; }
   }, 'audit-atlas-seriation.mjs'],
 
   ['나무 같은 정도를 지운다', (a) => {

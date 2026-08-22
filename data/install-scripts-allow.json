@@ -1,18 +1,12 @@
 {
  "apps/karmolab": [
-  "esbuild"
- ],
- "apps/discord-bots": [
   "esbuild",
-  "ffmpeg-static",
-  "youtube-dl-exec"
+  "onnxruntime-node",
+  "protobufjs",
+  "sharp"
  ],
  "__vulnerabilities": {
   "apps/karmolab": {
-   "high": 0,
-   "critical": 0
-  },
-  "apps/discord-bots": {
    "high": 0,
    "critical": 0
   }

@@ -169,7 +169,7 @@ for (let b = 0; b < 8; b += 1) {
 const links = nodes.slice(1).map((_, i) => [i, i + 1, 3]);
 
 const out = {
-  가짜: '이 파일은 지어낸 지도다 — 진짜 글은 한 줄도 없다. 자들이 CI 에서도 돌게 하려고 둔다.',
+  fakeNote: '이 파일은 지어낸 지도다 — 진짜 글은 한 줄도 없다. 자들이 CI 에서도 돌게 하려고 둔다.',
   builtFrom: 'fake',
   count: docs.length,
   embedded: docs.length,

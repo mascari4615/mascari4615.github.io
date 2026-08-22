@@ -19,6 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -96,7 +97,7 @@ if (!chromium) {
       document.body.appendChild(h);
       window.__reg['memo-atlas'].tabs[0].build(h);
     });
-    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
     await page.click('#host [data-more]');
     await page.click('#host [data-layout="skeleton"]');
     await page.waitForTimeout(150);
@@ -119,9 +120,10 @@ if (!chromium) {
   if (before?.ms !== WANT_MS) bad.push(`한 판 ${before?.ms}ms 다 (${WANT_MS}ms 여야 한다)`);
 
   await page.click('#host [data-hops]');
-  await page.waitForTimeout(120);
+  await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const f0 = await page.evaluate(() => window.__atlasHops.frame);
   const ink0 = await shot(page);
+  /* 재움-의도: 흐르는 판이 **쌓이라고** 두는 시간이다 — 멎기를 기다리면 잴 것이 없어진다. */
   await page.waitForTimeout(WANT_MS * 3 + 120);
   const f1 = await page.evaluate(() => window.__atlasHops.frame);
   const ink1 = await shot(page);
@@ -133,6 +135,7 @@ if (!chromium) {
   /* ③ 끄면 멈춘다. */
   await page.click('#host [data-hops]');
   const g0 = await page.evaluate(() => window.__atlasHops.frame);
+  /* 재움-의도: 껐는데도 판이 느는지 보려고 **일부러 흘려보낸다.** */
   await page.waitForTimeout(WANT_MS * 3);
   const g1 = await page.evaluate(() => window.__atlasHops.frame);
   console.log(`  ③ 끄고 ${WANT_MS * 3}ms — 판 ${g0} → ${g1}`);
@@ -142,9 +145,10 @@ if (!chromium) {
   /* ⑤ 움직임을 싫어하는 설정 — 안 돌리고 늘어놓는다. */
   const quiet = await open(true);
   await quiet.click('#host [data-hops]');
-  await quiet.waitForTimeout(120);
+  await untilSettled(quiet, () => quiet.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const q0 = await quiet.evaluate(() => window.__atlasHops);
   const qi0 = await shot(quiet);
+  /* 재움-의도: 조용한 판에서도 판이 느는지 보려고 흘려보낸다. */
   await quiet.waitForTimeout(WANT_MS * 3);
   const q1 = await quiet.evaluate(() => window.__atlasHops.frame);
   const text = await quiet.evaluate(() => document.querySelector('#host')?.textContent || '');

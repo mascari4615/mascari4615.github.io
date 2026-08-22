@@ -28,6 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -226,9 +227,9 @@ if (!fs.existsSync(ATLAS)) {
         document.body.appendChild(h);
         window.__reg['memo-atlas'].tabs[0].build(h);
       });
-      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
       await page.click('#host [data-layout="skeleton"]');
-      await page.waitForTimeout(250);
+      await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
       const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
       await browser.close();
       const lo = tw.counts[0].bins; const hi = tw.counts[tw.counts.length - 1].bins;

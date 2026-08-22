@@ -1,372 +1,378 @@
 {
- "$comment": "도구마다 「내가 넣은 것이 이 기기를 떠나는가」. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다 — 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-352)",
- "default": "local",
- "labels": {
-  "local": "기기 안에서만",
-  "assets": "기기 안에서만 (자료 내려받음)",
-  "ours": "우리 서버로 감",
-  "third-party": "바깥 서비스로 감",
-  "ai": "AI 로 감",
-  "yours": "당신이 정한 주소로 감"
- },
- "notes": {
-  "local": "넣은 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.",
-  "assets": "넣은 내용은 브라우저 안에서만 처리됩니다. 처음 열 때 계산에 쓸 자료·모형만 내려받습니다.",
-  "ours": "일부 기능이 KarmoLab 서버와 주고받습니다 — 아래에 무엇이 가는지 적어 두었습니다.",
-  "third-party": "일부 기능이 바깥 서비스로 나갑니다 — 아래에 어디로 무엇이 가는지 적어 두었습니다.",
-  "ai": "AI 기능을 쓰면 넣은 내용이 AI 제공자에게 전송됩니다 — 아래를 확인하세요.",
-  "yours": "당신이 적은 주소로 요청이 실제로 나갑니다 — 그 주소의 주인에게 내용이 전달됩니다."
- },
- "tools": {
-  "imageedit": {
-   "where": "ai",
-   "sends": "「AI」 갈래를 쓸 때만 그림이 Google Gemini 로 전송됩니다. 자르기·크기·필터 등 나머지 편집은 전부 브라우저 안에서 끝납니다.",
-   "to": [
-    "generativelanguage.googleapis.com (Google)"
-   ]
+  "$comment": "도구마다 「내가 넣은 것이 이 기기를 떠나는가」. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다 — 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-352)",
+  "default": "local",
+  "labels": {
+    "local": "기기 안에서만",
+    "assets": "기기 안에서만 (자료 내려받음)",
+    "ours": "우리 서버로 감",
+    "third-party": "바깥 서비스로 감",
+    "ai": "AI 로 감",
+    "yours": "당신이 정한 주소로 감"
   },
-  "image": {
-   "where": "ai",
-   "sends": "AI 갈래(생성·편집)를 쓸 때만 그림·글이 밖으로 나갑니다. 그 밖의 편집은 브라우저 안에서 끝납니다.",
-   "to": [
-    "generativelanguage.googleapis.com (Google)",
-    "laptop.mascari4615.com (내 컴퓨터 — Foundry)"
-   ]
+  "notes": {
+    "local": "넣은 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.",
+    "assets": "넣은 내용은 브라우저 안에서만 처리됩니다. 처음 열 때 계산에 쓸 자료·모형만 내려받습니다.",
+    "ours": "일부 기능이 KarmoLab 서버와 주고받습니다 — 아래에 무엇이 가는지 적어 두었습니다.",
+    "third-party": "일부 기능이 바깥 서비스로 나갑니다 — 아래에 어디로 무엇이 가는지 적어 두었습니다.",
+    "ai": "AI 기능을 쓰면 넣은 내용이 AI 제공자에게 전송됩니다 — 아래를 확인하세요.",
+    "yours": "당신이 적은 주소로 요청이 실제로 나갑니다 — 그 주소의 주인에게 내용이 전달됩니다."
   },
-  "imagegen": {
-   "where": "ai",
-   "sends": "적은 글(프롬프트)이 고른 AI 제공자로 전송됩니다.",
-   "to": [
-    "pixai.art",
-    "tensor.art",
-    "novelai.net"
-   ]
-  },
-  "chatbot": {
-   "where": "ai",
-   "sends": "주고받는 대화가 고른 AI 제공자로 전송됩니다.",
-   "to": [
-    "Google Gemini 등 설정에서 고른 곳"
-   ]
-  },
-  "my-ai": {
-   "where": "ai",
-   "sends": "여기서 시험 삼아 보낸 글이 고른 AI 제공자로 전송됩니다. 열쇠(API key)는 이 기기에만 저장됩니다.",
-   "to": [
-    "설정에서 고른 AI 제공자"
-   ]
-  },
-  "settings": {
-   "where": "ai",
-   "sends": "AI 관련 설정을 시험할 때만 밖으로 나갑니다. 설정값 자체는 이 기기에 남습니다.",
-   "to": [
-    "설정에서 고른 AI 제공자"
-   ]
-  },
-  "apitest": {
-   "where": "yours",
-   "sends": "적은 주소·헤더·본문 그대로 브라우저가 요청을 보냅니다. 우리 서버를 거치지 않습니다.",
-   "to": [
-    "당신이 적은 주소"
-   ]
-  },
-  "devtool": {
-   "where": "yours",
-   "sends": "요청 시험 갈래에서만, 적은 주소로 실제 요청이 나갑니다. 나머지 갈래는 브라우저 안에서 끝납니다.",
-   "to": [
-    "당신이 적은 주소"
-   ]
-  },
-  "curlkit": {
-   "where": "yours",
-   "sends": "「보내 보기」를 눌렀을 때만 적은 주소로 요청이 나갑니다. 변환만 할 때는 아무것도 안 나갑니다.",
-   "to": [
-    "당신이 적은 주소"
-   ]
-  },
-  "isitdown": {
-   "where": "third-party",
-   "sends": "확인하려는 주소로 브라우저가 직접 두드립니다. 그 주소의 서버에 접속 기록이 남습니다.",
-   "to": [
-    "당신이 적은 주소"
-   ]
-  },
-  "arcade": {
-   "where": "ours",
-   "sends": "점수·기록이 KarmoLab 서버에 남습니다 (순위표용).",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "quest": {
-   "where": "ours",
-   "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "twenty": {
-   "where": "ours",
-   "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "higher": {
-   "where": "ours",
-   "sends": "점수·오늘 기록이 KarmoLab 서버에 남습니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "worldcup": {
-   "where": "ours",
-   "sends": "남이 만든 묶음을 받아 오고, 고른 결과를 서버에 남깁니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "packs": {
-   "where": "ours",
-   "sends": "만든 묶음을 올리면 KarmoLab 서버에 저장되어 남도 볼 수 있습니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "burnnote": {
-   "where": "ours",
-   "sends": "적은 쪽지가 KarmoLab 서버에 저장됐다가 한 번 읽히면 지워집니다. 서버로 보내지는 것이 이 도구의 목적입니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "tempmail": {
-   "where": "ours",
-   "sends": "임시 편지함과 받은 메일이 KarmoLab 중계 서버를 거칩니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "user": {
-   "where": "ours",
-   "sends": "계정·활동 기록을 KarmoLab 서버와 주고받습니다.",
-   "to": [
-    "blog.mascari4615.com"
-   ]
-  },
-  "status": {
-   "where": "ours",
-   "sends": "서버가 살아 있는지 물어볼 뿐, 넣는 내용이 없습니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "perf": {
-   "where": "ours",
-   "sends": "어떤 도구가 얼마나 쓰였는지 집계를 받아 옵니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "laptop": {
-   "where": "ours",
-   "sends": "내 노트북 상태를 물어봅니다 (주인 전용).",
-   "to": [
-    "laptop.mascari4615.com"
-   ]
-  },
-  "meok": {
-   "where": "ours",
-   "sends": "고른 것이 내 컴퓨터의 Foundry 로 전달됩니다.",
-   "to": [
-    "laptop.mascari4615.com"
-   ]
-  },
-  "adventure": {
-   "where": "third-party",
-   "sends": "설정한 위키 주소에서 자료를 받아 옵니다.",
-   "to": [
-    "당신이 정한 위키 주소"
-   ]
-  },
-  "planner": {
-   "where": "third-party",
-   "sends": "로그인하면 Google 캘린더·할 일과 직접 주고받습니다. 우리 서버를 거치지 않습니다.",
-   "to": [
-    "googleapis.com (Google)"
-   ]
-  },
-  "papermap": {
-   "where": "third-party",
-   "sends": "검색어가 OpenAlex 로 전송됩니다 (논문 데이터베이스).",
-   "to": [
-    "api.openalex.org"
-   ]
-  },
-  "askpapers": {
-   "where": "third-party",
-   "sends": "검색어가 OpenAlex 로 전송됩니다. AI 요약을 켜면 논문 초록도 AI 로 갑니다.",
-   "to": [
-    "api.openalex.org",
-    "설정에서 고른 AI 제공자"
-   ]
-  },
-  "bluemarble": {
-   "where": "third-party",
-   "sends": "지구·우주 자료를 공개 API 에서 받아 옵니다. 보내는 입력은 없습니다.",
-   "to": [
-    "nasa.gov",
-    "usgs.gov",
-    "noaa.gov",
-    "wheretheiss.at"
-   ]
-  },
-  "territory": {
-   "where": "third-party",
-   "sends": "지도 타일을 OpenStreetMap 에서 받아 옵니다. 보는 위치가 그쪽 서버에 요청으로 남습니다.",
-   "to": [
-    "tile.openstreetmap.org"
-   ]
-  },
-  "draw": {
-   "where": "third-party",
-   "sends": "당첨 번호를 동행복권에서 받아 옵니다. 보내는 입력은 없습니다.",
-   "to": [
-    "dhlottery.co.kr"
-   ]
-  },
-  "lotto": {
-   "where": "third-party",
-   "sends": "당첨 번호를 동행복권에서 받아 옵니다. 고른 번호는 이 기기에만 남습니다.",
-   "to": [
-    "dhlottery.co.kr"
-   ]
-  },
-  "heung": {
-   "where": "local",
-   "whyLocal": "`fetch` 가 보이지만 받는 곳이 `data:` 주소다 — 브라우저가 자기 메모리에서 읽는다. 밖으로 나가는 것이 아니다.",
-   "sends": "고른 파일은 브라우저 안에서만 다뤄집니다."
-  },
-  "ocr": {
-   "where": "assets",
-   "sends": "글자 읽기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다 (크기는 켜기 전에 알려 줍니다).",
-   "to": [
-    "cdn.jsdelivr.net (모형 파일)"
-   ]
-  },
-  "bgremove": {
-   "where": "assets",
-   "sends": "배경 지우기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 그림은 안 나갑니다.",
-   "to": [
-    "cdn.jsdelivr.net (모형 파일)"
-   ]
-  },
-  "videobg": {
-   "where": "assets",
-   "sends": "영상 처리는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 영상은 안 나갑니다.",
-   "to": [
-    "cdn.jsdelivr.net (모형 파일)"
-   ]
-  },
-  "voicerec": {
-   "where": "assets",
-   "sends": "받아쓰기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 목소리는 안 나갑니다.",
-   "to": [
-    "cdn.jsdelivr.net (모형 파일)"
-   ]
-  },
-  "sound": {
-   "where": "assets",
-   "sends": "소리 처리는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다.",
-   "to": [
-    "cdn.jsdelivr.net (모형 파일)"
-   ]
-  },
-  "charconv": {
-   "where": "assets",
-   "sends": "변환은 브라우저 안에서 합니다. 병음 표(자료 파일) 하나를 내려받습니다."
-  },
-  "crypto": {
-   "where": "assets",
-   "sends": "계산은 브라우저 안에서 합니다. 수식 표시용 설정 파일만 내려받습니다."
-  },
-  "studymap": {
-   "where": "assets",
-   "sends": "학습 자료를 우리 사이트에서 내려받습니다. 넣은 내용은 안 나갑니다."
-  },
-  "usertool": {
-   "where": "ours",
-   "sends": "남이 올린 도구 목록·실행 횟수·신고가 KarmoLab 서버를 거칩니다. 도구 자체는 모래상자 안에서 돕니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "flow": {
-   "where": "ours",
-   "sends": "만든 흐름과 실행 기록이 KarmoLab 서버에 저장됩니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "community": {
-   "where": "ours",
-   "sends": "적은 글·댓글이 KarmoLab 서버에 저장되어 남에게 보입니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "plaza": {
-   "where": "ours",
-   "sends": "광장에 남기는 것이 KarmoLab 서버에 저장되어 남에게 보입니다.",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "collection": {
-   "where": "ours",
-   "sends": "모은 것 목록을 KarmoLab 서버에서 받아 옵니다 (로그인한 사람만).",
-   "to": [
-    "yawnbot.mascari4615.com"
-   ]
-  },
-  "install": {
-   "where": "assets",
-   "sends": "설치할 수 있는 것 목록만 우리 사이트에서 받아 옵니다."
-  },
-  "servermonitor": {
-   "where": "third-party",
-   "sends": "등록한 주소가 살아 있는지 브라우저가 직접 두드립니다. 그 서버에 접속 기록이 남습니다.",
-   "to": [
-    "당신이 등록한 주소"
-   ]
-  },
-  "wm": {
-   "where": "ours",
-   "sends": "게임 소식·기록을 KarmoLab 서버와 GitHub 공개 자료에서 받아 옵니다.",
-   "to": [
-    "yawnbot.mascari4615.com",
-    "github.com"
-   ]
-  },
-  "docs": {
-   "where": "third-party",
-   "sends": "문서 원문을 GitHub 공개 저장소에서 받아 옵니다. 보내는 입력은 없습니다.",
-   "to": [
-    "raw.githubusercontent.com"
-   ]
-  },
-  "passgen": {
-   "where": "third-party",
-   "sends": "「유출 확인」을 누를 때만, 비밀번호의 SHA-1 해시 **앞 다섯 글자**가 Have I Been Pwned 로 갑니다. 비밀번호 자체와 나머지 해시는 안 나가고 대조는 이 브라우저에서 합니다. 누르지 않으면 아무것도 안 나갑니다.",
-   "to": [
-    "api.pwnedpasswords.com"
-   ]
-  },
-  "postgraph": {
-   "where": "local",
-   "whyLocal": "fetch 는 우리 정적 파일(post-graph.json) 한 장뿐 — 남의 서버로 가는 것이 없다. 그리기는 전부 브라우저 안.",
-   "sends": "아무것도 안 보냅니다.",
-   "to": []
+  "tools": {
+    "adventure": {
+      "where": "third-party",
+      "sends": "설정한 위키 주소에서 자료를 받아 옵니다.",
+      "to": [
+        "당신이 정한 위키 주소"
+      ]
+    },
+    "apitest": {
+      "where": "yours",
+      "sends": "적은 주소·헤더·본문 그대로 브라우저가 요청을 보냅니다. 우리 서버를 거치지 않습니다.",
+      "to": [
+        "당신이 적은 주소"
+      ]
+    },
+    "arcade": {
+      "where": "ours",
+      "sends": "점수·기록이 KarmoLab 서버에 남습니다 (순위표용).",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "askpapers": {
+      "where": "third-party",
+      "sends": "검색어가 OpenAlex 로 전송됩니다. AI 요약을 켜면 논문 초록도 AI 로 갑니다.",
+      "to": [
+        "api.openalex.org",
+        "설정에서 고른 AI 제공자"
+      ]
+    },
+    "bgremove": {
+      "where": "assets",
+      "sends": "배경 지우기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 그림은 안 나갑니다.",
+      "to": [
+        "cdn.jsdelivr.net (모형 파일)"
+      ]
+    },
+    "bluemarble": {
+      "where": "third-party",
+      "sends": "지구·우주 자료를 공개 API 에서 받아 옵니다. 보내는 입력은 없습니다.",
+      "to": [
+        "nasa.gov",
+        "usgs.gov",
+        "noaa.gov",
+        "wheretheiss.at"
+      ]
+    },
+    "burnnote": {
+      "where": "ours",
+      "sends": "적은 쪽지가 KarmoLab 서버에 저장됐다가 한 번 읽히면 지워집니다. 서버로 보내지는 것이 이 도구의 목적입니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "charconv": {
+      "where": "assets",
+      "sends": "변환은 브라우저 안에서 합니다. 병음 표(자료 파일) 하나를 내려받습니다."
+    },
+    "chatbot": {
+      "where": "ai",
+      "sends": "주고받는 대화가 고른 AI 제공자로 전송됩니다.",
+      "to": [
+        "Google Gemini 등 설정에서 고른 곳"
+      ]
+    },
+    "collection": {
+      "where": "ours",
+      "sends": "모은 것 목록을 KarmoLab 서버에서 받아 옵니다 (로그인한 사람만).",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "community": {
+      "where": "ours",
+      "sends": "적은 글·댓글이 KarmoLab 서버에 저장되어 남에게 보입니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "crypto": {
+      "where": "assets",
+      "sends": "계산은 브라우저 안에서 합니다. 수식 표시용 설정 파일만 내려받습니다."
+    },
+    "curlkit": {
+      "where": "yours",
+      "sends": "「보내 보기」를 눌렀을 때만 적은 주소로 요청이 나갑니다. 변환만 할 때는 아무것도 안 나갑니다.",
+      "to": [
+        "당신이 적은 주소"
+      ]
+    },
+    "devtool": {
+      "where": "yours",
+      "sends": "요청 시험 갈래에서만, 적은 주소로 실제 요청이 나갑니다. 나머지 갈래는 브라우저 안에서 끝납니다.",
+      "to": [
+        "당신이 적은 주소"
+      ]
+    },
+    "docs": {
+      "where": "third-party",
+      "sends": "문서 원문을 GitHub 공개 저장소에서 받아 옵니다. 보내는 입력은 없습니다.",
+      "to": [
+        "raw.githubusercontent.com"
+      ]
+    },
+    "draw": {
+      "where": "third-party",
+      "sends": "당첨 번호를 동행복권에서 받아 옵니다. 보내는 입력은 없습니다.",
+      "to": [
+        "dhlottery.co.kr"
+      ]
+    },
+    "flow": {
+      "where": "ours",
+      "sends": "만든 흐름과 실행 기록이 KarmoLab 서버에 저장됩니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "heung": {
+      "where": "local",
+      "whyLocal": "`fetch` 가 보이지만 받는 곳이 `data:` 주소다 — 브라우저가 자기 메모리에서 읽는다. 밖으로 나가는 것이 아니다.",
+      "sends": "고른 파일은 브라우저 안에서만 다뤄집니다."
+    },
+    "higher": {
+      "where": "ours",
+      "sends": "점수·오늘 기록이 KarmoLab 서버에 남습니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "image": {
+      "where": "ai",
+      "sends": "AI 갈래(생성·편집)를 쓸 때만 그림·글이 밖으로 나갑니다. 그 밖의 편집은 브라우저 안에서 끝납니다.",
+      "to": [
+        "generativelanguage.googleapis.com (Google)",
+        "laptop.mascari4615.com (내 컴퓨터 — Foundry)"
+      ]
+    },
+    "imageedit": {
+      "where": "ai",
+      "sends": "「AI」 갈래를 쓸 때만 그림이 Google Gemini 로 전송됩니다. 자르기·크기·필터 등 나머지 편집은 전부 브라우저 안에서 끝납니다.",
+      "to": [
+        "generativelanguage.googleapis.com (Google)"
+      ]
+    },
+    "imagegen": {
+      "where": "ai",
+      "sends": "적은 글(프롬프트)이 고른 AI 제공자로 전송됩니다.",
+      "to": [
+        "pixai.art",
+        "tensor.art",
+        "novelai.net"
+      ]
+    },
+    "install": {
+      "where": "assets",
+      "sends": "설치할 수 있는 것 목록만 우리 사이트에서 받아 옵니다."
+    },
+    "isitdown": {
+      "where": "third-party",
+      "sends": "확인하려는 주소로 브라우저가 직접 두드립니다. 그 주소의 서버에 접속 기록이 남습니다.",
+      "to": [
+        "당신이 적은 주소"
+      ]
+    },
+    "laptop": {
+      "where": "ours",
+      "sends": "내 노트북 상태를 물어봅니다 (주인 전용).",
+      "to": [
+        "laptop.mascari4615.com"
+      ]
+    },
+    "lotto": {
+      "where": "third-party",
+      "sends": "당첨 번호를 동행복권에서 받아 옵니다. 고른 번호는 이 기기에만 남습니다.",
+      "to": [
+        "dhlottery.co.kr"
+      ]
+    },
+    "memo-atlas": {
+      "where": "local",
+      "whyLocal": "코드에 github.com 이 있지만 **부르는 게 아니라 링크 주소**다 — 고른 글의 원문으로 넘어가는 단추를 만들 때만 쓰인다(사용자가 눌러야 이동한다). 임베딩·자리잡기·그리기는 전부 브라우저 안에서 끝나고, 지도 파일도 이 기기에서만 읽는다.",
+      "sends": "아무것도 안 보낸다.",
+      "to": []
+    },
+    "meok": {
+      "where": "ours",
+      "sends": "고른 것이 내 컴퓨터의 Foundry 로 전달됩니다.",
+      "to": [
+        "laptop.mascari4615.com"
+      ]
+    },
+    "my-ai": {
+      "where": "ai",
+      "sends": "여기서 시험 삼아 보낸 글이 고른 AI 제공자로 전송됩니다. 열쇠(API key)는 이 기기에만 저장됩니다.",
+      "to": [
+        "설정에서 고른 AI 제공자"
+      ]
+    },
+    "ocr": {
+      "where": "assets",
+      "sends": "글자 읽기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다 (크기는 켜기 전에 알려 줍니다).",
+      "to": [
+        "cdn.jsdelivr.net (모형 파일)"
+      ]
+    },
+    "packs": {
+      "where": "ours",
+      "sends": "만든 묶음을 올리면 KarmoLab 서버에 저장되어 남도 볼 수 있습니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "papermap": {
+      "where": "third-party",
+      "sends": "검색어가 OpenAlex 로 전송됩니다 (논문 데이터베이스).",
+      "to": [
+        "api.openalex.org"
+      ]
+    },
+    "passgen": {
+      "where": "third-party",
+      "sends": "「유출 확인」을 누를 때만, 비밀번호의 SHA-1 해시 **앞 다섯 글자**가 Have I Been Pwned 로 갑니다. 비밀번호 자체와 나머지 해시는 안 나가고 대조는 이 브라우저에서 합니다. 누르지 않으면 아무것도 안 나갑니다.",
+      "to": [
+        "api.pwnedpasswords.com"
+      ]
+    },
+    "perf": {
+      "where": "ours",
+      "sends": "어떤 도구가 얼마나 쓰였는지 집계를 받아 옵니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "planner": {
+      "where": "third-party",
+      "sends": "로그인하면 Google 캘린더·할 일과 직접 주고받습니다. 우리 서버를 거치지 않습니다.",
+      "to": [
+        "googleapis.com (Google)"
+      ]
+    },
+    "plaza": {
+      "where": "ours",
+      "sends": "광장에 남기는 것이 KarmoLab 서버에 저장되어 남에게 보입니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "postgraph": {
+      "where": "local",
+      "whyLocal": "fetch 는 우리 정적 파일(post-graph.json) 한 장뿐 — 남의 서버로 가는 것이 없다. 그리기는 전부 브라우저 안.",
+      "sends": "아무것도 안 보냅니다.",
+      "to": []
+    },
+    "quest": {
+      "where": "ours",
+      "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "servermonitor": {
+      "where": "third-party",
+      "sends": "등록한 주소가 살아 있는지 브라우저가 직접 두드립니다. 그 서버에 접속 기록이 남습니다.",
+      "to": [
+        "당신이 등록한 주소"
+      ]
+    },
+    "settings": {
+      "where": "ai",
+      "sends": "AI 관련 설정을 시험할 때만 밖으로 나갑니다. 설정값 자체는 이 기기에 남습니다.",
+      "to": [
+        "설정에서 고른 AI 제공자"
+      ]
+    },
+    "sound": {
+      "where": "assets",
+      "sends": "소리 처리는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다.",
+      "to": [
+        "cdn.jsdelivr.net (모형 파일)"
+      ]
+    },
+    "status": {
+      "where": "ours",
+      "sends": "서버가 살아 있는지 물어볼 뿐, 넣는 내용이 없습니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "studymap": {
+      "where": "assets",
+      "sends": "학습 자료를 우리 사이트에서 내려받습니다. 넣은 내용은 안 나갑니다."
+    },
+    "tempmail": {
+      "where": "ours",
+      "sends": "임시 편지함과 받은 메일이 KarmoLab 중계 서버를 거칩니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "territory": {
+      "where": "third-party",
+      "sends": "지도 타일을 OpenStreetMap 에서 받아 옵니다. 보는 위치가 그쪽 서버에 요청으로 남습니다.",
+      "to": [
+        "tile.openstreetmap.org"
+      ]
+    },
+    "twenty": {
+      "where": "ours",
+      "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "user": {
+      "where": "ours",
+      "sends": "계정·활동 기록을 KarmoLab 서버와 주고받습니다.",
+      "to": [
+        "blog.mascari4615.com"
+      ]
+    },
+    "usertool": {
+      "where": "ours",
+      "sends": "남이 올린 도구 목록·실행 횟수·신고가 KarmoLab 서버를 거칩니다. 도구 자체는 모래상자 안에서 돕니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    },
+    "videobg": {
+      "where": "assets",
+      "sends": "영상 처리는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 영상은 안 나갑니다.",
+      "to": [
+        "cdn.jsdelivr.net (모형 파일)"
+      ]
+    },
+    "voicerec": {
+      "where": "assets",
+      "sends": "받아쓰기는 이 기기에서 돕니다. 켤 때 모형 파일을 한 번 내려받습니다. 목소리는 안 나갑니다.",
+      "to": [
+        "cdn.jsdelivr.net (모형 파일)"
+      ]
+    },
+    "wm": {
+      "where": "ours",
+      "sends": "게임 소식·기록을 KarmoLab 서버와 GitHub 공개 자료에서 받아 옵니다.",
+      "to": [
+        "yawnbot.mascari4615.com",
+        "github.com"
+      ]
+    },
+    "worldcup": {
+      "where": "ours",
+      "sends": "남이 만든 묶음을 받아 오고, 고른 결과를 서버에 남깁니다.",
+      "to": [
+        "yawnbot.mascari4615.com"
+      ]
+    }
   }
- }
 }

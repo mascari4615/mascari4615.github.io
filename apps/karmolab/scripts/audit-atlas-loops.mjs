@@ -21,6 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -135,10 +136,10 @@ if (!fs.existsSync(ATLAS)) {
         document.body.appendChild(h);
         window.__reg['memo-atlas'].tabs[0].build(h);
       });
-      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
       await page.click('#host [data-more]');
       await page.click('#host [data-layout="skeleton"]');
-      await page.waitForTimeout(200);
+      await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
       const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
       const saysN = text.includes(`${h1.rank}개`) && text.includes(`마디 ${h1.shortest}개를 돈다`);
       const saysRand = h1.rand ? text.includes(`${h1.rand.rank}개`) : true;
@@ -148,7 +149,7 @@ if (!fs.existsSync(ATLAS)) {
 
       /* 켜면 실제로 그리나 — 화면 픽셀이 아니라 그린 개수를 낸다. */
       await page.click('#host [data-loop]');
-      await page.waitForTimeout(200);
+      await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
       const drawn = await page.evaluate(() => window.__atlasLoopsDrawn);
       console.log(`  ② 켜면 그리나 — 굵게 그린 고리 ${drawn}개`);
       if (!(drawn > 0)) bad.push('고리를 켰는데 아무것도 안 그린다');

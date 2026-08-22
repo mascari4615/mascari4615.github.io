@@ -42,7 +42,6 @@
     "charmap": "character map unicode 유니코드",
     "chatbot": "챗봇 대화 말동무 이야기 AI채팅 chat gpt",
     "checklist": "checklist todo 할일",
-    "claude-env": "클로드 환경 알림 소리 설정 claude",
     "cleanup": "지우개 물체지우기 잡티제거 워터마크 전깃줄 inpaint cleanup 사진정리",
     "cockpit": "조종석 대시보드 한눈에 cockpit",
     "codegraph": "의존성 import graph 호출관계 코드구조 dependency",
@@ -160,6 +159,7 @@
     "lotto": "lotto lottery 로또",
     "markdown": "markdown md cheatsheet 마크다운",
     "memo": "memo note scratchpad 메모 일기 노트 적기 끄적",
+    "memo-atlas": "지형도 내 글 지도 글 지형 쏠림 묻힌 글 글 지도 writing atlas memo map",
     "meok": [
       "animation",
       "ditherdeck",

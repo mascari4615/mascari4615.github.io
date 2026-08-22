@@ -23,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -66,7 +67,7 @@ async function open(origin) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   /* 「더 보기」 안에 있는 단추다 — 열어야 누를 수 있다(사람도 그렇게 쓴다). */
   await page.click('#host [data-more]');
   await page.waitForTimeout(80);
@@ -84,7 +85,7 @@ const phoneState = (page) => page.evaluate(() => window.__atlasPhone);
   const page = await open('http://atlas.test/');
   const secure = await page.evaluate(() => window.isSecureContext);
   await page.click('#host [data-phone]');
-  await page.waitForTimeout(120);
+  await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const st = await phoneState(page);
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   const saysHttps = /HTTPS/.test(text);
@@ -146,7 +147,8 @@ const phoneState = (page) => page.evaluate(() => window.__atlasPhone);
   if (jump > 0.5) bad.push(`다시 잡을 때 ${jump.toFixed(0)}px 튄다 — 편한 자세에서 못 잡는다`);
   await page.dispatchEvent('#host [data-grab]', 'pointerup');
 
-  /* ⑤ 한동안 안 쓰면 저절로 꺼진다. */
+  /* ⑤ 한동안 안 쓰면 저절로 꺼진다.
+     재움-의도: **아무것도 안 하는 시간 자체가 조건**이다 — 기다릴 값이 없다. */
   await page.waitForTimeout(700);
   st = await phoneState(page);
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');

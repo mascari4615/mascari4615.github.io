@@ -139,7 +139,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   const saysRank = text.includes(`${Math.round(at(S.real, 10) * 100)}%`);
   const saysRand = text.includes(`${S.rand.map}`);

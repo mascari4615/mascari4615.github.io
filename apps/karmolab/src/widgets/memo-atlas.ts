@@ -1781,7 +1781,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
           + ` 그게 바탕값이고, 한 줄로 세울 수 있는 지어낸 자료는 ${Math.round(sr0.calGain * 100)}%.`
           + ` ${sr0.worth ? '그래서 **만들었다** — 「행렬」 단추.' : '그래서 **안 만들었다**.'}`
           + ` 우리 지도의 x축도 거의 그만큼 좋은 정렬이다`
-          + ` (어긋남 ${sr0.ours.find((r) => r.way === '우리 지도 x축')?.ar} vs 피들러 ${sr0.ours.find((r) => r.way === '피들러')?.ar}`
+          + ` (어긋남 ${sr0.ours.find((r) => r.way === '우리 지도 x축')?.ar} vs 피들러 ${sr0.ours.find((r) => r.way === 'fiedler')?.ar}`
           + ` · 아무 순서나 놓으면 ${sr0.chance})`]);
       }
       const dl = atlas?.delta;
@@ -3664,11 +3664,23 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
           countEl.innerHTML = '<b>' + esc(`흔든 ${n}판을 한눈에 늘어놨어요 (움직임을 줄이는 설정이라 안 돌립니다)`) + '</b>';
         } else {
           hopFrame = 0;
-          hopTimer = setInterval(() => {
-            hopFrame = (hopFrame + 1) % n;
-            publishHops();
-            draw();
-          }, HOP_MS);
+          /* **탭이 숨으면 멈춘다.** 안 보이는 화면을 계속 다시 그리면 배터리만 태운다 —
+             돌아오면 그 자리에서 다시 돈다(판 번호는 그대로 두니 이어 보인다). */
+          const spin = (): void => {
+            if (hopTimer) { clearInterval(hopTimer); hopTimer = null; }
+            if (!hopsOn || document.hidden) return;
+            hopTimer = setInterval(() => {
+              hopFrame = (hopFrame + 1) % n;
+              publishHops();
+              draw();
+            }, HOP_MS);
+          };
+          document.addEventListener('visibilitychange', spin);
+          (window as unknown as { Toolbox?: { onDispose?: (fn: () => void) => void } }).Toolbox?.onDispose?.(() => {
+            document.removeEventListener('visibilitychange', spin);
+            if (hopTimer) { clearInterval(hopTimer); hopTimer = null; }
+          });
+          spin();
           countEl.innerHTML = '<b>' + esc(`흔든 ${n}판을 한 판 ${HOP_MS}ms 로 돌립니다 — 판마다 얼마나 달라지는지 보세요`) + '</b>';
         }
       } else {
@@ -3872,14 +3884,20 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
    * 전부 초록이었다 — 흉내가 진짜보다 살아 있으면 초록은 「흉내에서만 된다」는 뜻이다.
    * 그래서 맨바깥 이름을 **먼저** 보고, 없으면 window 를 본다(재는 판을 위해 남겨 둔다).
    */
-  const w = window as unknown as { Toolbox?: { register: (m: unknown) => void } };
-  const box = (typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : w.Toolbox;
+  const w = window as unknown as {
+    Toolbox?: { register: (m: unknown) => void; getLazyWidgetPublicMeta?: (id: string) => object };
+  };
+  const box = ((typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : w.Toolbox) as typeof w.Toolbox;
   if (box) {
+    /* **이름·설명·아이콘은 여기서 또 적지 않는다.** 정본은 `widgets-lazy-meta.ts` 한 곳이고
+       (도구 목록·찾기창·첫 화면이 거기서 읽는다) 여기서 따로 적으면 두 곳이 어긋난다.
+       가져오는 자리가 없으면(재는 판) 예전 값으로 버틴다. */
+    const meta = box.getLazyWidgetPublicMeta
+      ? box.getLazyWidgetPublicMeta('memo-atlas')
+      : { title: '내 글 지형도', category: 'lab', desc: '내가 쓴 글이 어디에 쏠려 있는지 한 장으로' };
     box.register({
       id: 'memo-atlas',
-      title: '내 글 지형도',
-      category: 'lab',
-      desc: '내가 쓴 글이 어디에 쏠려 있는지 한 장으로',
+      ...meta,
       /* **셸은 `tabs[].build` 로만 그린다.** `render` 를 건네고 있었는데 셸에 그런 자리는
          없다 — 등록은 되는데 화면은 영영 「장비 꺼내는 중이에요…」였다. 우리 자들은
          `render` 를 직접 불러서 재느라 이걸 못 봤다(가짜 셸의 두 번째 구멍). */

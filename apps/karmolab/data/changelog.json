@@ -2,12 +2,124 @@
   "generatedAt": "2026-08-22",
   "entries": [
     {
-      "sha": "74b156a40",
+      "sha": "9b0f61b93",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "내 글 지형도를 master 로 들인다"
+    },
+    {
+      "sha": "895241669",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "/works/ 전시 장 + 앱 「글」 탭 안 읽기 (change.blog-finish ③⑤)"
+    },
+    {
+      "sha": "0859d2421",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "수식 = 빌드타임 KaTeX · 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)"
+    },
+    {
+      "sha": "0e8eecdf2",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "사이트 조립 Jekyll → Node — 이 저장소에서 Ruby 소멸 (change.blog-finish ①)"
+    },
+    {
+      "sha": "0919e7f8f",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "블로그 컷오버 — Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)"
+    },
+    {
+      "sha": "f3d6c00d4",
+      "date": "2026-08-22",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "/posts/ 목록 장에 last_modified_at — 없으면 사이트맵 감사가 배포를 세운다"
+    },
+    {
+      "sha": "fed375694",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "커뮤니티 「글」 탭 + /posts/ 목록 장 + 피드 + 배포 결선"
+    },
+    {
+      "sha": "dc8c44560",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "공용 마크다운 렌더러 + 블로그 글 정적 장 생성기"
+    },
+    {
+      "sha": "b0242bc8d",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "블로그 글 표준 md 변환기 — Jekyll 방언을 걷어낸다"
+    },
+    {
+      "sha": "803030bc3",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "도구 장 147장이 하던 같은 약속을 도구별 사실로 바꾼다"
+    },
+    {
+      "sha": "0e0c992c7",
+      "date": "2026-08-22",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "붙박이 포트 하나가 남아 검사가 남의 서버를 읽었다 + TASK 번호 KL-348 → KL-349"
+    },
+    {
+      "sha": "d794f8760",
       "date": "2026-08-22",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
       "text": "도구 명부가 두 벌이라 문 없는 도구가 샜다 — 그물을 명부 기준으로"
+    },
+    {
+      "sha": "aa3fb8052",
+      "date": "2026-08-22",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "통합 패널이 번역 묶음을 직접 연다"
+    },
+    {
+      "sha": "2076cbfc5",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "AI 환경과 운영 도구를 한곳에 합친다"
+    },
+    {
+      "sha": "7111fb978",
+      "date": "2026-08-22",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "채팅을 헤더로 올린다 — 왼쪽 아래에서 화면을 가리던 것을 없앴다"
     },
     {
       "sha": "560ba202e",
@@ -528,118 +640,6 @@
       "label": "고침",
       "tone": "fix",
       "text": "즐겨찾기 우클릭 메뉴 글이 열쇠 이름으로 뜰 뻔했다"
-    },
-    {
-      "sha": "b05bb7db3",
-      "date": "2026-08-20",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "앱에 자체 우클릭 메뉴 — devtools 를 되찾고 Inspect 는 감춘다"
-    },
-    {
-      "sha": "9ceff9a91",
-      "date": "2026-08-20",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "오류 토스트에 로그 복사 버튼이 뜨다 말다 했다"
-    },
-    {
-      "sha": "e1d933016",
-      "date": "2026-08-20",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "빌드가 통째로 서던 것 — 자료 파일이 산출물로 오해받아 빠졌다"
-    },
-    {
-      "sha": "6e522d2a5",
-      "date": "2026-08-20",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "연금복권720+ 를 같이 뽑고, 최신 회차와 자동으로 맞춰 본다"
-    },
-    {
-      "sha": "eac4d2874",
-      "date": "2026-08-20",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "즐겨찾기 기본값에 7곳 넣는다"
-    },
-    {
-      "sha": "d736a6ad4",
-      "date": "2026-08-20",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "언어 단추에서 지역 두 글자를 뺀다 — 머리띠는 좁다"
-    },
-    {
-      "sha": "720c7a627",
-      "date": "2026-08-20",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "머리띠 언어 단추가 「KO KR」 두 글자 덩어리로 보이던 것"
-    },
-    {
-      "sha": "93b93f4d8",
-      "date": "2026-08-20",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "서버가 빨리 실패하면 오류 안내마저 못 떴다"
-    },
-    {
-      "sha": "aec8eb802",
-      "date": "2026-08-20",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "옆줄을 머리띠와 같은 칸으로 맞춘다 — 갈래 8칸 철거"
-    },
-    {
-      "sha": "177fa8e7a",
-      "date": "2026-08-19",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "즐겨찾기에 설치된 프로그램을 담고, 스트림덱처럼 보는 길"
-    },
-    {
-      "sha": "83b617535",
-      "date": "2026-08-19",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "검사 둘이 재현을 틀리게 하고 있었다 — 브라우저 말 · 재우는 시간"
-    },
-    {
-      "sha": "51a6fbd62",
-      "date": "2026-08-19",
-      "kind": "perf",
-      "label": "빨라짐",
-      "tone": "perf",
-      "text": "검사 판이 11.8분 → 1.8분 — 같이 돌리고, 벽 하나를 깎는다"
-    },
-    {
-      "sha": "826fd7792",
-      "date": "2026-08-19",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "시계 옆 아이콘에서 봇·서버를 바로 켜고 끈다 — 트레이 빠른 실행"
-    },
-    {
-      "sha": "94a9ac197",
-      "date": "2026-08-19",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "설치가 「받아서 깔기」도 한다 — 소스 없이 동반자"
     }
   ]
 }

@@ -20,11 +20,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { atlasPath } from './lib/atlas-file.mjs';
+import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
+/* ★ **가짜 지도로는 이 자를 못 댄다.** 조용히 통과시키지 않고 **왜 안 도는지 말한다** —
+   건너뛴 검사는 통과한 검사가 아니다. 진짜로 구운 뒤 `npm run atlas` 에서 돈다. */
+if (isFake(ATLAS)) { console.log('[zoom] 가짜 지도다 — 당겼을 때 뜻이 바뀌는지는 진짜 굽기에서만 잰다'); process.exit(0); }
+
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 if (!fs.existsSync(ATLAS)) {
   console.log('[zoom] 지도가 없다 — 검사 건너뜀');
@@ -93,12 +98,12 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   await page.waitForTimeout(300);
 
   const at = async (scale) => {
     await page.evaluate((s) => { const c = window.__atlasControl; c.reset(); c.zoom(s, 600, 380); c.draw(); }, scale);
-    await page.waitForTimeout(90);
+    await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
     return page.evaluate(() => ({
       scale: window.__atlasControl.state().scale,
       cover: window.__atlasNameCover,

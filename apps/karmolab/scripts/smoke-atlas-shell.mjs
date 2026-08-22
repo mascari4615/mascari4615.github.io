@@ -22,9 +22,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { stripFrontMatter } from './lib/serve-html.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
 const KARMOLAB = path.resolve(HERE, '..');
+/* ★ **진짜 지도가 없으면 못 댄다.** 이 자는 셸이 `data/memo-atlas.json` 을 실제로 받아
+   그리는지를 본다 — 가짜 지도는 그 경로로 안 들어간다. 조용히 통과시키지 않고 말한다. */
+if (!fs.existsSync(path.join(HERE, '..', 'data', 'memo-atlas.json'))) {
+  console.log('[atlas-shell] 진짜 지도가 없다 — 셸에서 뜨는지는 구운 뒤에만 잰다. 건너뜀');
+  process.exit(0);
+}
+
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
 if (!fs.existsSync(path.join(KARMOLAB, 'js/widgets/memo-atlas.js'))) {
@@ -37,6 +45,12 @@ const server = http.createServer((req, res) => {
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
   if (!fs.existsSync(file)) return res.writeHead(404).end('nope');
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+  /* ★ **앞머리(front matter)를 떼고 낸다.** 실제 사이트는 Jekyll 이 떼고 내보내는데,
+     여기서 그대로 내면 `---` 로 시작하는 글이 브라우저에 문서가 아닌 것으로 읽혀
+     셸이 안 뜬다 — 그러면 「진짜 셸에서 안 뜬다」가 자료 탓인지 셸 탓인지 못 가른다. */
+  if (path.extname(file) === '.html') {
+    return res.end(stripFrontMatter(fs.readFileSync(file, 'utf8')));
+  }
   return fs.createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(0, r));

@@ -232,7 +232,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
     });
-    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
     /* **화면 전체를 훑지 않는다** — 「덩어리」는 다른 뜻으로도 화면에 놓인다(H0 줄 등).
        이 낱말을 만드는 자리는 하나뿐이니(groupWord) 그게 찍히는 **배치 단추**를 보고,
        엇갈림은 읽는 법 띠에서 본다. */
@@ -241,19 +241,19 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
       howto: document.querySelector('#host .atlas-howto')?.textContent || '',
     }));
     await page.close();
-    return { 구획: out.word === '구획', 덩어리: out.word === '덩어리', 엇갈림: out.howto.includes('엇갈림'), word: out.word };
+    return { zone: out.word === '구획', blob: out.word === '덩어리', mixed: out.howto.includes('엇갈림'), word: out.word };
   }
   const both = await screenWith(0.02, -0.3);     // 둘 다 「무리 아니다」
   const real = await screenWith(0.62, 0.8);      // 둘 다 「무리다」
   const split = await screenWith(0.02, 0.8);     // 엇갈림
   await browser.close();
-  const say = (r) => `${r.구획 ? '「구획」' : ''}${r.덩어리 ? '「덩어리」' : ''}${r.엇갈림 ? '+엇갈림' : ''}`;
+  const say = (r) => `${r.zone ? '「구획」' : ''}${r.blob ? '「덩어리」' : ''}${r.mixed ? '+엇갈림' : ''}`;
   console.log(`  ④ 둘 다 낮음 → ${say(both)} · 둘 다 높음 → ${say(real)} · 엇갈림 → ${say(split)}`);
-  if (!both.구획 || both.덩어리) bad.push('자 둘 다 「무리 아니다」인데 화면이 「구획」이라 안 한다');
-  if (!real.덩어리 || real.구획) bad.push('자 둘 다 「무리다」인데 화면이 「덩어리」라 안 한다');
-  if (!split.덩어리 || split.구획) bad.push('자가 엇갈리는데 화면이 한쪽만 골라 「구획」이라 한다');
-  if (!split.엇갈림) bad.push('자가 엇갈리는데 화면이 그 사실을 안 적는다');
-  if (both.엇갈림 || real.엇갈림) bad.push('자가 안 엇갈리는데 화면이 엇갈린다고 적는다');
+  if (!both.zone || both.blob) bad.push('자 둘 다 「무리 아니다」인데 화면이 「구획」이라 안 한다');
+  if (!real.blob || real.zone) bad.push('자 둘 다 「무리다」인데 화면이 「덩어리」라 안 한다');
+  if (!split.blob || split.zone) bad.push('자가 엇갈리는데 화면이 한쪽만 골라 「구획」이라 한다');
+  if (!split.mixed) bad.push('자가 엇갈리는데 화면이 그 사실을 안 적는다');
+  if (both.mixed || real.mixed) bad.push('자가 안 엇갈리는데 화면이 엇갈린다고 적는다');
 }
 
 if (bad.length) {

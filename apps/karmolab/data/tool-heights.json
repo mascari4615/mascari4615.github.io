@@ -351,6 +351,10 @@
     "narrow": 532,
     "wide": 524
   },
+  "memo-atlas": {
+    "narrow": 760,
+    "wide": 1043
+  },
   "mermaidlite": {
     "narrow": 1220,
     "wide": 889

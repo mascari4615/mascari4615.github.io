@@ -17,6 +17,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
@@ -57,7 +58,7 @@ await page.evaluate(() => {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
 });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 const bad = [];
 const has = await page.evaluate(() => !!window.__atlasControl);
@@ -87,8 +88,7 @@ const box = await (await page.$('#host .atlas-canvas')).boundingBox();
 await page.evaluate(() => { window.__atlasControl.reset(); window.__atlasControl.draw(); });
 await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 await page.mouse.wheel(0, -240);
-await page.waitForTimeout(80);
-const byMouse = await page.evaluate(() => window.__atlasControl.state());
+const byMouse = await untilSettled(page, () => page.evaluate(() => window.__atlasControl.state()));
 const byDoor = await page.evaluate(() => {
   const c = window.__atlasControl;
   c.reset();

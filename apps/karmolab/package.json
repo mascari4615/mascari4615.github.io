@@ -162,6 +162,7 @@
     "check:live-tools": "node scripts/check-live-tools.mjs",
     "check:live-version": "node scripts/check-live-version.mjs",
     "dev": "node scripts/dev.mjs",
+    "fake:atlas": "node scripts/make-fake-atlas.mjs",
     "gates": "node scripts/run-gates.mjs --from data/gate-list.json",
     "gates:changed": "node scripts/run-gates.mjs --from data/gate-list.json --changed",
     "gen:arcade-catalog": "node scripts/gen-arcade-catalog.mjs",

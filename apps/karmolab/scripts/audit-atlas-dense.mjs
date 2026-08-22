@@ -23,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -255,10 +256,10 @@ if (!chromium || !fs.existsSync(BUNDLE) || !dn) {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
     });
-    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
     await page.click('#host [data-more]');
     await page.click('#host [data-dense]');
-    await page.waitForTimeout(150);
+    await untilSettled(page, () => page.evaluate(() => document.querySelector('#host .atlas-count')?.textContent || ''));
     const out = await page.evaluate(() => ({
       text: document.querySelector('#host .atlas-count')?.textContent || '',
       on: window.__atlasDenseOn === true,

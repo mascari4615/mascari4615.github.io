@@ -26,6 +26,10 @@ import { atlasPath, isFake } from './lib/atlas-file.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
+/* ★ **가짜 지도로는 이 자를 못 댄다.** 조용히 통과시키지 않고 **왜 안 도는지 말한다** —
+   건너뛴 검사는 통과한 검사가 아니다. 진짜로 구운 뒤 `npm run atlas` 에서 돈다. */
+if (isFake(ATLAS)) { console.log('[cluster-real] 가짜 지도다 — 무리라 부르는 근거는 진짜 굽기에서만 잰다'); process.exit(0); }
+
 const CACHE = path.join(KARMOLAB, 'data', '.memo-atlas-cache.json');
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 
@@ -257,23 +261,23 @@ if (!chromium) {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
     });
-    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+    await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
     /* **화면 전체를 훑지 않는다** — 「덩어리」라는 말은 다른 뜻으로도 화면에 놓인다
        (H0 줄의 「한 덩어리로 이어져 있다」에 걸려 성한 화면이 빨개졌다).
        이 낱말을 만드는 자리는 하나뿐이니(groupWord) 그게 찍히는 **배치 단추**를 본다. */
     const word = await page.evaluate(() => (document.querySelector('#host [data-layout="cluster"]')?.textContent || '').trim());
     await page.close();
-    return { 덩어리: word === '덩어리', 구획: word === '구획', word };
+    return { blob: word === '덩어리', zone: word === '구획', word };
   }
 
   const low = await wordsWith(0.02);          // 무리랄 게 없는 층
   const high = await wordsWith(0.62);         // 누가 봐도 무리인 층
   await browser.close();
-  console.log(`  ③ 실루엣 0.02 → ${low.구획 ? '「구획」' : ''}${low.덩어리 ? '「덩어리」' : ''}`
-    + ` · 0.62 → ${high.구획 ? '「구획」' : ''}${high.덩어리 ? '「덩어리」' : ''}`);
-  if (!low.구획) bad.push('무리랄 게 없는 층(0.02)인데 화면이 「구획」이라 안 한다');
-  if (low.덩어리) bad.push('무리랄 게 없는 층(0.02)인데 화면이 아직 「덩어리」라 부른다');
-  if (!high.덩어리) bad.push('누가 봐도 무리인 층(0.62)인데 화면이 「덩어리」라 안 한다');
+  console.log(`  ③ 실루엣 0.02 → ${low.zone ? '「구획」' : ''}${low.blob ? '「덩어리」' : ''}`
+    + ` · 0.62 → ${high.zone ? '「구획」' : ''}${high.blob ? '「덩어리」' : ''}`);
+  if (!low.zone) bad.push('무리랄 게 없는 층(0.02)인데 화면이 「구획」이라 안 한다');
+  if (low.blob) bad.push('무리랄 게 없는 층(0.02)인데 화면이 아직 「덩어리」라 부른다');
+  if (!high.blob) bad.push('누가 봐도 무리인 층(0.62)인데 화면이 「덩어리」라 안 한다');
 }
 
 // ── **왜 안 갈리는지를 요인 이름으로 말하나** (Sedlmair 2012) ──────────
@@ -343,11 +347,11 @@ function whyOf(assign, pts) {
      대개 무리 안 요인의 변덕에서 나온다(가로 의존). 그러니 걸 것은 「수가 안 섞인다」가 아니라
      **「판정이 흔든 요인을 제대로 부르나」**다. */
   const verdict = (w) => (w.std < 1 ? '겹침' : (w.elong > 2.2 ? '늘어짐' : (w.outlier > 0.06 ? '이상치' : (w.std < 2 ? '가까움' : '뚜렷하지 않음'))));
-  const got = { 가깝게: verdict(c1), 늘리기: verdict(c2), 이상치: verdict(c3) };
-  console.log(`     판정 — 가깝게만 「${got.가깝게}」 · 늘리기만 「${got.늘리기}」 · 이상치만 「${got.이상치}」`);
-  if (!['겹침', '가까움'].includes(got.가깝게)) bad.push(`무리를 가깝게 했는데 까닭을 「${got.가깝게}」 라 한다`);
-  if (got.늘리기 !== '늘어짐') bad.push(`무리를 늘렸는데 까닭을 「${got.늘리기}」 라 한다`);
-  if (!['이상치', '겹침'].includes(got.이상치)) bad.push(`이상치를 뿌렸는데 까닭을 「${got.이상치}」 라 한다`);
+  const got = { near: verdict(c1), elong: verdict(c2), outlier: verdict(c3) };
+  console.log(`     판정 — 가깝게만 「${got.near}」 · 늘리기만 「${got.elong}」 · 이상치만 「${got.outlier}」`);
+  if (!['겹침', '가까움'].includes(got.near)) bad.push(`무리를 가깝게 했는데 까닭을 「${got.near}」 라 한다`);
+  if (got.elong !== '늘어짐') bad.push(`무리를 늘렸는데 까닭을 「${got.elong}」 라 한다`);
+  if (!['이상치', '겹침'].includes(got.outlier)) bad.push(`이상치를 뿌렸는데 까닭을 「${got.outlier}」 라 한다`);
 }
 
 /* 실린 값 — 층마다 까닭이 있고, 그 까닭이 수와 맞나. */

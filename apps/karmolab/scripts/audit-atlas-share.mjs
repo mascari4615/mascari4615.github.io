@@ -107,7 +107,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   const saysCurve = text.includes(`${Math.round(S.rows[0].attack * 100)}%`)
     && text.includes(`${Math.round(last.attack * 100)}%`);

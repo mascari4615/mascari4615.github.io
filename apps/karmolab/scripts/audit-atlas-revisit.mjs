@@ -101,7 +101,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   const saysOld = /묵힌 글은 정말로 안 본다/.test(text);
   const saysStrict = text.includes(`${Math.round(at(R.strict) * 100)}%`);

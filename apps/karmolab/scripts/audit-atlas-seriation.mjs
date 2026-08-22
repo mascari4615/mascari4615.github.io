@@ -30,6 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -55,12 +56,12 @@ console.log(`  ④ 판정 — ${S.worth ? '**행렬로 그릴 값이 있다**' :
 
 /* ① 정렬을 여럿 재고, **마구 정렬**이 표에 있어야 한다 — 없으면 견줄 바닥이 없다. */
 if (!(S.ours.length >= 3)) bad.push(`정렬을 ${S.ours.length}가지만 쟀다 — 견줄 것이 없다`);
-const rnd = S.ours.find((r) => r.way === '마구');
+const rnd = S.ours.find((r) => r.way === 'random');
 if (!rnd) bad.push('마구 정렬이 표에 없다 — 바닥이 없으면 「좋다」가 뜻이 없다');
 else if (Math.abs(rnd.ar - 0.5) > 0.05) {
   bad.push(`마구 정렬의 어긋남이 ${rnd.ar} 다 — 아무 순서나면 0.5 에 붙어야 한다(셈이 틀렸다)`);
 }
-const fied = S.ours.find((r) => r.way === '피들러');
+const fied = S.ours.find((r) => r.way === 'fiedler');
 if (!fied) bad.push('피들러 정렬이 표에 없다');
 else if (!(fied.ar < 0.5)) bad.push(`피들러가 아무 순서(0.5)보다 못하다 (${fied.ar})`);
 /* 잣대 셋을 다 싣고 있나 — 진 잣대(2-sum)도 남긴다. */
@@ -121,7 +122,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
   const saysGain = text.includes(`${Math.round(S.gain * 100)}%`);
   const saysShuf = text.includes(`${Math.round(S.shufGain * 100)}%`);
@@ -134,7 +135,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
   if (S.worth) {
     await page.click('#host [data-more]');
     await page.click('#host [data-matrix]');
-    await page.waitForTimeout(250);
+    await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
     const info = await page.evaluate(() => window.__atlasMatrix);
     console.log(`  ④ 켜면 — 줄·칸 ${info?.n}개 · 칠한 칸 ${info?.painted}개 · 한 칸 ${info?.cell}px · 정렬 「${info?.order}」`);
     if (!info?.on) bad.push('행렬을 켰는데 안 켜진다');

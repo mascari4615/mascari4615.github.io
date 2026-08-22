@@ -26,6 +26,10 @@ import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ATLAS = atlasPath(HERE);
+/* ★ **가짜 지도로는 이 자를 못 댄다.** 조용히 통과시키지 않고 **왜 안 도는지 말한다** —
+   건너뛴 검사는 통과한 검사가 아니다. 진짜로 구운 뒤 `npm run atlas` 에서 돈다. */
+if (isFake(ATLAS)) { console.log('[name-fit] 가짜 지도다 — 이름이 그 무리 것인지는 진짜 굽기에서만 잰다'); process.exit(0); }
+
 if (!fs.existsSync(ATLAS)) {
   console.log('[name-fit] 지도가 없다 — 검사 건너뜀');
   process.exit(0);

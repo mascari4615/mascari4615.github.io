@@ -63,7 +63,7 @@ await page.evaluate(() => {
   document.body.appendChild(h);
   window.__reg['memo-atlas'].tabs[0].build(h);
 });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 /** 정해진 길을 프레임마다 훑는다. 씨앗 없는 무작위 X — 같은 길이어야 견줄 수 있다. */
 const sweep = (kind) => page.evaluate((k) => {

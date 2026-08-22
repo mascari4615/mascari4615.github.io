@@ -17,6 +17,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -58,7 +59,7 @@ async function open(rootFont) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   return page;
 }
 
@@ -66,7 +67,7 @@ async function open(rootFont) {
 const page = await open(null);
 /* 배율을 올리면 이름표·칸 이름까지 그려진다 — 작은 글자는 거기서 나온다. */
 await page.evaluate(() => { window.__atlasControl?.zoom(6, 600, 380); window.__atlasControl?.draw(); });
-await page.waitForTimeout(200);
+await untilSettled(page, () => page.evaluate(() => window.__atlasFonts || []));
 const fonts = await page.evaluate(() => window.__atlasFonts || []);
 console.log(`  ① 캔버스가 쓴 글자 크기: ${fonts.join(' · ')}px (바닥 ${MIN_PX})`);
 if (!fonts.length) bad.push('캔버스가 쓴 글자 크기를 못 읽었다 (__atlasFonts)');
@@ -93,7 +94,7 @@ console.log(`  ② 대괄호 세 번 → 고른 글 ${uniq.length}가지: ${uniq
 if (uniq.length < 3) bad.push(`자판으로 글에서 글로 못 옮겨 다닌다 (세 번 눌러 ${uniq.length}가지) — 마우스 없이는 옆 글로 갈 길이 없다`);
 /* 되돌아가기도 되는지 — 한 방향만 되면 반쪽이다. */
 await page.keyboard.press('[');
-await page.waitForTimeout(140);
+await untilSettled(page, () => page.evaluate(() => document.querySelector('#host .atlas-card-title')?.getAttribute('data-doc-id') || ''));
 const back = await page.evaluate(() => {
   const el = document.querySelector('#host .atlas-card-title');
   return el ? (el.getAttribute('data-doc-id') || el.textContent || '') : '';
@@ -105,7 +106,7 @@ await page.close();
 // ── ③ 사용자 글자 크기 존중 ──────────────────────────────────────────
 const big = await open('32px');
 await big.evaluate(() => { window.__atlasControl?.zoom(6, 600, 380); window.__atlasControl?.draw(); });
-await big.waitForTimeout(200);
+await untilSettled(big, () => big.evaluate(() => window.__atlasFonts || []));
 const bigFonts = await big.evaluate(() => window.__atlasFonts || []);
 await big.close();
 const grew = bigFonts.length && fonts.length && Math.max(...bigFonts) > Math.max(...fonts) * 1.5;

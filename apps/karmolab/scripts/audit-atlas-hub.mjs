@@ -167,7 +167,7 @@ if (!fs.existsSync(ATLAS)) {
         document.body.appendChild(h);
         window.__reg['memo-atlas'].tabs[0].build(h);
       });
-      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+      await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
       const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
       await browser.close();
       /* 화면은 **한 줄만** 적어도 된다 — 어느 k 든 그 수가 있으면 통과. */

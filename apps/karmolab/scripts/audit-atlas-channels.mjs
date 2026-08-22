@@ -21,6 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -64,9 +65,9 @@ async function look(mutate) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   await page.click('#host [data-layout="lane"]');
-  await page.waitForTimeout(200);
+  await untilSettled(page, () => page.evaluate(() => window.__atlasBudget));
   const out = await page.evaluate(() => ({
     budget: window.__atlasBudget,
     howto: document.querySelector('#host .atlas-howto')?.textContent || '',

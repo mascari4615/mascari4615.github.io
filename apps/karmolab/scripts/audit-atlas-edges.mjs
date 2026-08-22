@@ -23,11 +23,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { atlasPath } from './lib/atlas-file.mjs';
+import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
+/* ★ **가짜 지도로는 이 자를 못 댄다.** 조용히 통과시키지 않고 **왜 안 도는지 말한다** —
+   건너뛴 검사는 통과한 검사가 아니다. 진짜로 구운 뒤 `npm run atlas` 에서 돈다. */
+if (isFake(ATLAS)) { console.log('[edges] 가짜 지도다 — 이음선은 진짜 굽기에서만 잰다'); process.exit(0); }
+
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 
 if (!fs.existsSync(ATLAS) || !fs.existsSync(BUNDLE)) {
@@ -83,7 +87,7 @@ async function measure(times, ignoreKnock = false) {
     document.body.appendChild(h);
     window.__reg['memo-atlas'].tabs[0].build(h);
   });
-  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+  await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
   const got = await page.evaluate(({ nearPx, seeAt, ignoreKnock }) => {
     const segs = window.__atlasEdgeSegs || [];

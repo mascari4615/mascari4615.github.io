@@ -19,6 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
@@ -71,7 +72,7 @@ async function openWidget() {
 
 const bad = [];
 const first = await openWidget();
-await first.waitForTimeout(400);
+await untilSettled(first, () => first.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
 const empty = await first.evaluate(() => !!document.querySelector('#host .atlas-pick'));
 console.log(`[remember] 지도 없이 열면 → ${empty ? '「내 지도 불러오기」 단추가 뜬다' : '아무 말도 없다(고장)'}`);
 if (!empty) bad.push('지도가 없을 때 불러오기 단추가 안 뜬다');
@@ -80,8 +81,8 @@ if (!empty) bad.push('지도가 없을 때 불러오기 단추가 안 뜬다');
 const chooser = first.waitForEvent('filechooser');
 await first.click('#host .atlas-pick');
 await (await chooser).setFiles(ATLAS);
-await first.waitForFunction(() => !!window.__atlasPlaced, { timeout: 20000 }).catch(() => {});
-await first.waitForFunction(() => (document.querySelector('#host .atlas-kept')?.textContent || '').length > 0, { timeout: 5000 }).catch(() => {});
+await first.waitForFunction(() => !!window.__atlasPlaced, undefined, { timeout: 20000 }).catch(() => {});
+await first.waitForFunction(() => (document.querySelector('#host .atlas-kept')?.textContent || '').length > 0, undefined, { timeout: 5000 }).catch(() => {});
 const shown = await first.evaluate(() => ({
   dots: (window.__atlasPlaced || []).length,
   kept: document.querySelector('#host .atlas-kept')?.textContent || '',
@@ -93,9 +94,9 @@ if (!shown.kept) bad.push('기억해 뒀다는 말도, 지워질 수 있다는 �
 /* 새 판을 연다 — 기억이 진짜 남았나. */
 await first.close();
 const second = await openWidget();
-await second.waitForFunction(() => !!window.__atlasPlaced, { timeout: 20000 }).catch(() => {});
+await second.waitForFunction(() => !!window.__atlasPlaced, undefined, { timeout: 20000 }).catch(() => {});
 /* 화면 말은 저장소에 물어본 뒤에 뜬다 — 바로 읽으면 아직 비어 있다(그렇게 한 번 헛읽었다). */
-await second.waitForFunction(() => (document.querySelector('#host .atlas-kept')?.textContent || '').length > 0, { timeout: 5000 }).catch(() => {});
+await second.waitForFunction(() => (document.querySelector('#host .atlas-kept')?.textContent || '').length > 0, undefined, { timeout: 5000 }).catch(() => {});
 const again = await second.evaluate(() => ({
   dots: (window.__atlasPlaced || []).length,
   kept: document.querySelector('#host .atlas-kept')?.textContent || '',

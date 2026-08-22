@@ -25,6 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath } from './lib/atlas-file.mjs';
 
+import { untilSettled } from './lib/settle.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
@@ -65,7 +66,7 @@ await page.evaluate(() => {
   document.body.appendChild(h);
   window.__reg['memo-atlas'].tabs[0].build(h);
 });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 // ── ④ 눈금 — **지어낸 자료**를 화면과 **같은 코드**에 먹인다 ────────────────
 const cal = await page.evaluate(() => {
@@ -130,7 +131,7 @@ const off = await page.evaluate(() => window.__atlasTerrain);
 if (off && off.on) bad.push('켜지도 않았는데 지형이 켜져 있다');
 
 await page.click('#host [data-terrain]');
-await page.waitForTimeout(250);
+await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
 const after = await look();
 const info = await page.evaluate(() => window.__atlasTerrain);
 console.log(`  ① 켜면 — 봉우리 ${info?.peaks}개 · 등고선 선분 ${info?.lines}개 (${info?.bands}겹)`

@@ -60,7 +60,7 @@ await page.evaluate(() => {
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
 });
-await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), { timeout: 30000 });
+await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
 
 /* **시간을 재는 자는 기계가 바쁘면 거짓말한다.** 자 스물다섯을 줄줄이 돌리는 판에서
    이 자가 혼자 빨개졌다 — 따로 돌리면 중간 4.1ms, 판 안에서는 7.2~9.8ms.
