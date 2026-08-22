@@ -294,6 +294,7 @@
   // 기준 공간의 `reset` = 원점이 다시 잡혔다. 화면이 꺼진 동안엔 그 이벤트를 받을
   // rAF 자체가 안 도니 둘 다 필요하다. 카메라맨이 봐야 렌즈를 특징 많은 쪽으로 돌린다.
   let track = 'ok';            // ok | weak | lost | hidden | 3dof
+  let wasEmulated = false, frozenPos = null;
   let trackResets = 0, trackSent = '', trackSentAt = 0;
 
   const TRACK_LABEL = {
@@ -306,10 +307,43 @@
 
   function setTrack(v) { if (v !== track) { track = v; paintTrack(); sendTrack(); } }
 
+  // ── 화면 꺼짐 방지 ──────────────────────────────────────────────────────
+  // 우리 공백(=재정위)의 최대 원인이 **화면이 꺼져 rAF 가 멎는 것**이다. 실측 공백이
+  // 439ms~15.6초였고 그 뒤 첫 프레임마다 좌표가 튀었다. 여기서 근원을 막는다.
+  // 잠금은 화면을 안 보면 저절로 풀리므로 돌아올 때마다 다시 잡는다.
+  let wakeLock = null;
+
+  async function keepAwake() {
+    if (!('wakeLock' in navigator)) { wakeAwake = false; return; }
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeAwake = true;
+      wakeLock.addEventListener('release', () => { wakeAwake = false; wakeLock = null; });
+    } catch (e) {
+      wakeAwake = false;                       // 배터리 절약 모드 등에서 거절된다
+      step.skip = 'wakelock ' + (e && e.message ? e.message : e);
+    }
+    paintTrack();
+  }
+
+  let wakeAwake = false;
+
+  function dropAwake() {
+    const w = wakeLock; wakeLock = null; wakeAwake = false;
+    if (w) w.release().catch(() => {});
+  }
+
+  // 탭이 돌아오면 잠금이 풀려 있다 — 다시 잡는다.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && running && !wakeLock) keepAwake();
+  });
+
   function paintTrack() {
     const [label, bad] = TRACK_LABEL[track] || [track, 1];
     chipTrack.className = 'chip' + (bad ? ' bad' : '');
-    chipTrack.innerHTML = trackResets ? `<b>${label}</b> · 재정위 ${trackResets}회` : `<b>${label}</b>`;
+    const awake = wakeAwake ? '' : ' · ⚠ 화면 꺼짐 방지 안 됨';
+    chipTrack.innerHTML =
+      (trackResets ? `<b>${label}</b> · 재정위 ${trackResets}회` : `<b>${label}</b>`) + awake;
     minTrack.className = bad ? 'bad' : 'ok';
     minTrack.textContent = label.slice(0, 1) + (trackResets ? ` ${trackResets}` : '');
   }
@@ -824,6 +858,16 @@
     xrSession.addEventListener('visibilitychange', () =>
       setTrack(xrSession && xrSession.visibilityState === 'visible' ? 'ok' : 'hidden'));
 
+    // 포즈는 rAF 마다 하나다 — 프레임률이 곧 포즈율이다. 기기가 더 줄 수 있으면 받는다.
+    try {
+      const rates = xrSession.supportedFrameRates;
+      if (rates && rates.length && xrSession.updateTargetFrameRate) {
+        const best = Math.max.apply(null, Array.from(rates));
+        xrSession.updateTargetFrameRate(best).catch(() => {});
+        xrWay += ' · ' + best + 'Hz';
+      }
+    } catch (e) { /* 기기가 안 받아 주면 그냥 기본값으로 돈다 */ }
+
     mode = '6dof';
     enterRunning();
 
@@ -838,10 +882,22 @@
       step.frame++;
       const pose = frame.getViewerPose(refSpace);
       if (!pose || !pose.views.length) { step.skip = 'no-viewerpose'; setTrack('lost'); return; }
-      // emulatedPosition = 위치가 실측이 아니라 추정 — 6DoF 인 척하는 3DoF 구간이다.
-      setTrack(pose.emulatedPosition ? 'weak' : 'ok');
+
+      // emulatedPosition = 위치가 실측이 아니라 **추정**이다. 스펙이 말하길 이 구간에는
+      // 세상이 따라 끌려오고(world drags along), 추적이 돌아오는 첫 프레임에 위치가
+      // **홱 뛴다**. 그래서 ① 추정 구간에는 마지막 실측 위치를 얼려 보내고
+      // ② 돌아오는 순간을 재정위로 통보한다(유니티가 그 계단을 흡수한다).
+      const emulated = !!pose.emulatedPosition;
+      if (emulated !== wasEmulated) {
+        if (wasEmulated) { trackResets++; paintTrack(); sendTrack(true); }   // 추정 -> 실측
+        wasEmulated = emulated;
+      }
+      setTrack(emulated ? 'weak' : 'ok');
       const view = pose.views[0];
-      const p = view.transform.position, o = view.transform.orientation;
+      const o = view.transform.orientation;
+      let p = view.transform.position;
+      if (emulated) p = frozenPos || p;         // 추정 구간 = 얼린 자리
+      else frozenPos = { x: p.x, y: p.y, z: p.z };
 
       // 투영행렬에서 실제 화각을 뽑는다 = 폰 카메라의 진짜 FOV
       // 비대칭 절두체일 수 있으므로 위·아래를 따로 재서 더한다
@@ -955,6 +1011,7 @@
     if (innerWidth >= innerHeight) gripChoice = 'landscape';
     running = true;
     $('start').classList.add('gone');
+    keepAwake();
     $('hudMin').classList.remove('hidden');
     $('hud').classList.remove('hidden');
     $('hud').classList.add('folded');
@@ -997,6 +1054,7 @@
     removeEventListener('deviceorientation', onDeviceOrientation, true);
     if (xrSession) { const s = xrSession; xrSession = null; s.end().catch(() => {}); }
     $('start').classList.remove('gone');
+    dropAwake();
     $('hudMin').classList.add('hidden');
     $('hud').classList.add('hidden');
     $('bar').classList.add('hidden');
