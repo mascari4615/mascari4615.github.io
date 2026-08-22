@@ -12,6 +12,20 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Sat, 22 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[고침] 오타 자가 잡은 것들 — 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-5f3639253</guid>
+      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오타 자가 잡은 것들 — 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다</description>
+    </item>
+    <item>
+      <title>[고침] 지형도를 master 환경에 맞춘다 — 자 열 개를 초록으로</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-2dda06d26</guid>
+      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
+      <description>지형도를 master 환경에 맞춘다 — 자 열 개를 초록으로</description>
+    </item>
+    <item>
       <title>[새로 생김] 내 글 지형도를 master 로 들인다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
       <guid isPermaLink="false">karmolab-change-9b0f61b93</guid>
@@ -206,20 +220,6 @@ permalink: /karmolab/changes.xml
       <guid isPermaLink="false">karmolab-change-9e2d012e7</guid>
       <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
       <description>붙박이 자리 번호를 쓰던 검사 넷 — 남의 서버를 보고 거짓 빨강을 냈다</description>
-    </item>
-    <item>
-      <title>[고침] 접근성·대비 검사가 「문제 0건」을 아무것도 안 보고도 말할 수 있었다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-873de3be6</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>접근성·대비 검사가 「문제 0건」을 아무것도 안 보고도 말할 수 있었다</description>
-    </item>
-    <item>
-      <title>[고침] 셸 다국어 검사가 남의 서버에 물어보고 「정상」이라 답해 왔다</title>
-      <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-8345cdf11</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>셸 다국어 검사가 남의 서버에 물어보고 「정상」이라 답해 왔다</description>
     </item>
   </channel>
 </rss>
