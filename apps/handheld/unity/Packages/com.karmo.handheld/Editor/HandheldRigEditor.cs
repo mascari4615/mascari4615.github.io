@@ -17,6 +17,7 @@ namespace Handheld.EditorTools
         static readonly string[] Screen = { "aspectMode", "customAspect", "streamHeight", "streamFps" };
         static readonly string[] Lens = { "zoomMin", "zoomMax", "focusMode", "focusDistance", "focusTarget", "aperture" };
         static readonly string[] Shake = { "smoothingHalfLife" };
+        static readonly string[] Locks = { "lockPan", "lockTilt", "lockRoll" };
         static readonly string[] Wiring = { "server", "rigRoot" };
 
         // 상황에 따라 뜻이 없어지는 칸 — 조건이 안 맞으면 아예 안 그린다.
@@ -53,6 +54,7 @@ namespace Handheld.EditorTools
             Section("화면", Screen, rig);
             Section("렌즈", Lens, rig);
             Section("흔들림", Shake, rig);
+            Section("축 잠금", Locks, rig);
 
             EditorGUILayout.Space(4);
             DrawRest(rig);

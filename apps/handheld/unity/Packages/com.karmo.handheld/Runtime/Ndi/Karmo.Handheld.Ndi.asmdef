@@ -1,0 +1,16 @@
+{
+    "name": "Karmo.Handheld.Ndi",
+    "rootNamespace": "Handheld",
+    "references": [ "Karmo.Handheld", "Klak.Ndi.Runtime" ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [ "KARMO_NDI" ],
+    "versionDefines": [
+        { "name": "jp.keijiro.klak.ndi", "expression": "2.0.0", "define": "KARMO_NDI" }
+    ],
+    "noEngineReferences": false
+}

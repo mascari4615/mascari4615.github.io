@@ -49,6 +49,17 @@ namespace Handheld
         [Tooltip("그 부드러움이 평소로 돌아오기까지의 시간.")]
         [Range(0.1f, 2f)] public float reanchorEaseSeconds = 0.8f;
 
+        [Header("축 잠금 — 삼각대 손잡이를 조이듯")]
+
+        [Tooltip("좌우로 안 돈다 (달리·트랙 흉내).")]
+        public bool lockPan;
+
+        [Tooltip("상하로 안 돈다 (수평 이동 흉내).")]
+        public bool lockTilt;
+
+        [Tooltip("굴림을 막는다 = 지평선이 안 눕는다. 손이 기울어도 수평이 유지된다.")]
+        public bool lockRoll;
+
         [Header("조이스틱")]
         [Tooltip("폰 화면의 스틱으로 rigRoot 를 민다 — 방 크기를 넘어 이동한다.")]
         public bool joystickEnabled = true;
@@ -145,6 +156,11 @@ namespace Handheld
 
         [Header("뷰파인더 스트림")]
 
+        [Tooltip("폰에 보낼 그림을 **밖에서** 받는다 (다른 프로세스가 그린 화면 — Spout·NDI 등). " +
+                 "넣으면 이 카메라는 안 그리고 이 텍스처를 옮겨 보낸다. 자세는 그대로 나가므로 " +
+                 "포즈는 VMC 로 내보내고 그림만 되받는 배치에 쓴다.")]
+        public RenderTexture externalViewfinder;
+
         [Tooltip("이 카메라를 화면에 그대로 두고, 숨은 사본으로 뷰파인더를 뜬다. " +
                  "이미 돌고 있는 앱의 방송 카메라에 붙일 때 켠다 — 안 켜면 그 카메라가 " +
                  "RenderTexture 로 끌려가 화면에서 사라진다. 값: 720p 한 번 더 그린다.")]
@@ -167,6 +183,9 @@ namespace Handheld
         bool _hasOrigin;
         // 재정위 직후 기울기를 밀어 넣는 동안만 1 → 0 으로 내려간다.
         float _reanchorEase;
+
+        AxisLock _axisLock;
+        bool _panWas, _tiltWas, _rollWas;
 
         Vector3 _originPos;
         Quaternion _originRot = Quaternion.identity;
@@ -383,7 +402,8 @@ namespace Handheld
         /// </summary>
         void EnsureMirror()
         {
-            if (!keepScreenOutput) { DestroyMirror(); return; }
+            // 그림이 밖에서 오면 우리는 아무것도 안 그린다 — 사본도 필요 없다.
+            if (!keepScreenOutput || externalViewfinder != null) { DestroyMirror(); return; }
             if (_mirror != null) return;
 
             var mirrorGo = new GameObject("HandheldViewfinderCamera")
@@ -498,10 +518,23 @@ namespace Handheld
             {
                 _nextCapture = now + 1.0 / Mathf.Max(1, streamFps);
                 _captureCount++;
-                // 거울은 꺼 둔 카메라라 **언제나 우리가 그려야** 한다.
-                // 원본만 쓸 때는 편집 모드에서만 손으로 그린다(Play 에서는 엔진이 그린다).
-                if (_mirror != null) { SyncMirror(); _mirror.Render(); }
-                else if (renderManually) _cam.Render();
+
+                if (externalViewfinder != null)
+                {
+                    // 그림이 밖에서 온다 — 우리는 안 그리고 받아 온 것을 뷰파인더 크기로 옮긴다.
+                    Graphics.Blit(externalViewfinder, _rt);
+                }
+                else if (_mirror != null)
+                {
+                    // 거울은 꺼 둔 카메라라 **언제나 우리가 그려야** 한다.
+                    SyncMirror();
+                    _mirror.Render();
+                }
+                else if (renderManually)
+                {
+                    // 원본만 쓸 때는 편집 모드에서만 손으로 그린다 (Play 에서는 엔진이 그린다).
+                    _cam.Render();
+                }
                 RequestFrame();
             }
 
@@ -542,6 +575,7 @@ namespace Handheld
             _hasOrigin = true;
             _recenteredThisTick = true;
             _shownValid = false;                 // 보간을 새 기준에서 다시 시작
+            _panWas = _tiltWas = _rollWas = false;   // 잠금 기준도 여기서 다시 잡는다
             ApplyPose(_pose, 0f);
         }
 
@@ -735,12 +769,33 @@ namespace Handheld
                 _shownValid = true;
             }
 
+            // ★ 잠금은 **보간 뒤**에 건다. 앞에 걸면 보간이 잠긴 축으로 도로 흘러 들어가
+            //   「잠갔는데 조금씩 돈다」가 된다 — 방송에서 제일 짜증나는 종류다.
+            Quaternion outRot = ApplyAxisLock(_shownRot);
+
             if (rigRoot != null)
-                transform.SetPositionAndRotation(rigRoot.TransformPoint(_shownPos), rigRoot.rotation * _shownRot);
+                transform.SetPositionAndRotation(rigRoot.TransformPoint(_shownPos), rigRoot.rotation * outRot);
             else
-                transform.SetPositionAndRotation(_shownPos, _shownRot);
+                transform.SetPositionAndRotation(_shownPos, outRot);
 
             if (pose.FovY > 0f) ApplyLens(MapFov(pose.FovY, pose.Aspect), EffectiveAspect(pose.Aspect));
+        }
+
+        /// <summary>
+        /// 잠긴 축을 붙들어 둔 값으로 갈아 끼운다.
+        /// 스위치를 **켜는 순간**의 자세를 기준으로 삼는다 — 안 그러면 옛날 어딘가로 홱 돈다.
+        /// </summary>
+        Quaternion ApplyAxisLock(Quaternion rot)
+        {
+            bool changed = lockPan != _panWas || lockTilt != _tiltWas || lockRoll != _rollWas;
+            _panWas = lockPan; _tiltWas = lockTilt; _rollWas = lockRoll;
+
+            _axisLock.lockPan = lockPan;
+            _axisLock.lockTilt = lockTilt;
+            _axisLock.lockRoll = lockRoll;
+            if (changed) _axisLock.Hold(rot);
+
+            return _axisLock.Apply(rot);
         }
 
         /// <summary>
@@ -846,7 +901,12 @@ namespace Handheld
             _rt.Create();
             _rtW = w; _rtH = h;
 
-            if (_mirror != null)
+            if (externalViewfinder != null)
+            {
+                // 밖에서 오는 그림을 옮겨 담을 뿐이다 — 어떤 카메라도 RT 를 안 가져간다.
+                _cam.targetTexture = null;
+            }
+            else if (_mirror != null)
             {
                 // 원본은 화면에 그대로 둔다 — 사본만 RT 를 받는다.
                 SyncMirror();

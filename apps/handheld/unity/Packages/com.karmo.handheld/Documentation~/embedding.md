@@ -18,8 +18,10 @@ VMC 도 Spout 도 NDI 도 **프로세스가 갈릴 때만** 필요하다. 안 �
 | 배치 | 포즈 | 그림 |
 | --- | --- | --- |
 | **같은 앱 안** ★ | 직결 (리그가 카메라를 직접 몬다) | 직결 (`keepScreenOutput`) |
-| 다른 프로세스 · 같은 PC | VMC/OSC | Spout2 (아직 없음) |
-| 다른 PC | VMC/OSC | NDI (아직 없음) |
+| 다른 프로세스 · 같은 PC | VMC/OSC | Spout2 (`SpoutViewfinderSource`) |
+| 다른 PC | VMC/OSC | NDI (`NdiViewfinderSource`) |
+
+프로세스가 갈렸을 때 그림을 되받는 법은 아래 § 를 봐라.
 
 ## 붙이는 법 — 두 걸음
 
@@ -42,3 +44,30 @@ VMC 도 Spout 도 NDI 도 **프로세스가 갈릴 때만** 필요하다. 안 �
 **한계**: `Camera.CopyFrom` 은 URP 의 추가 카메라 설정(`UniversalAdditionalCameraData`)까지는
 안 옮긴다. 사본의 후처리 설정이 원본과 다르게 보이면 그쪽을 손으로 맞춰야 한다.
 붙여서 재 보기 전엔 「똑같이 보인다」고 적지 말 것.
+
+## 프로세스가 갈렸을 때 — 그림 되받기
+
+리그에 `externalViewfinder`(RenderTexture)를 물리면 **이 카메라는 안 그리고** 그 텍스처를
+폰으로 보낸다. 자세는 그대로 나가므로 「포즈는 VMC 로 내보내고 그림만 되받는」 배치가 된다.
+
+그 텍스처를 채워 주는 어댑터가 둘 있다:
+
+| 컴포넌트 | 길 | 조건 |
+| --- | --- | --- |
+| `SpoutViewfinderSource` | Spout2 (GPU 공유) | **같은 PC**. CPU 부하 사실상 0 · D3D11/12 만 |
+| `NdiViewfinderSource` | NDI | 네트워크를 넘어간다. CPU·메모리·대역을 쓴다 |
+
+**둘 다 옵션이다.** 각각 제 어셈블리에 갇혀 있고(`Karmo.Handheld.Spout` /
+`Karmo.Handheld.Ndi`), KlakSpout·KlakNDI 가 설치돼 있을 때만 컴파일된다. 없으면 어셈블리째
+빠지고 나머지는 그대로 돈다 — URP 흐림과 같은 방식이다. **이 패키지는 그 둘에 의존하지
+않는다** (시험용 프로젝트가 컴파일을 확인하려고 받아 둘 뿐이다).
+
+넣는 법:
+
+```json
+"scopedRegistries": [{ "name": "Keijiro", "url": "https://registry.npmjs.com", "scopes": ["jp.keijiro"] }],
+"dependencies": { "jp.keijiro.klak.spout": "2.0.4", "jp.keijiro.klak.ndi": "2.1.4" }
+```
+
+**확인한 데까지만**: 두 어댑터는 컴파일과 배선(받은 텍스처를 리그에 물리는 것)까지만
+확인했다. 실제로 다른 프로세스와 그림을 주고받아 본 적은 없다.
