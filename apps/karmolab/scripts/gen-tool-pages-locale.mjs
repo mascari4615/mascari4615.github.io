@@ -55,7 +55,7 @@ const outRoot = path.resolve(root, arg('--out', '../blog'));
 const SKELETON = ['toolpage'];
 
 /* 「내가 넣은 것이 이 기기를 떠나는가」 — 판정은 한국어 장과 **같은 파일**에서 읽는다
- * (`data/tool-privacy.json`, TASK-KL-351). 여기서 뜻을 새로 지으면 두 벌이 되어 갈라진다.
+ * (`data/tool-privacy.json`, TASK-KL-352). 여기서 뜻을 새로 지으면 두 벌이 되어 갈라진다.
  *
  * 갈래 이름과 안내 문장은 말 묶음에서 옮겨 오고, 도구마다 다른 상세(`sends`)는 한국어뿐이라
  * **다른 언어 장에서는 안 찍는다** — 옮기지 않은 한국어를 그대로 박아 두는 것보다,

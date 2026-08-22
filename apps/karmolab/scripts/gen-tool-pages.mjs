@@ -43,7 +43,7 @@ const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 
 
 const shell = loadShell(root);
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-/* 도구마다 「넣은 것이 이 기기를 떠나는가」 — 판정 정본 (TASK-KL-351). */
+/* 도구마다 「넣은 것이 이 기기를 떠나는가」 — 판정 정본 (TASK-KL-352). */
 const privacy = JSON.parse(fs.readFileSync(path.join(root, 'data/tool-privacy.json'), 'utf8'));
 
 /* 준비물은 **한 장도 쓰기 전에** 다 확인한다.
@@ -490,7 +490,7 @@ function edgeBlock(id) {
 }
 
 /**
- * 「내가 넣은 것이 이 기기를 떠나는가」 — 도구마다 다르게 (TASK-KL-351).
+ * 「내가 넣은 것이 이 기기를 떠나는가」 — 도구마다 다르게 (TASK-KL-352).
  *
  * 여기 있던 한 줄은 **129장 전부에 똑같이** 「입력한 내용은 브라우저 안에서만 처리되며
  * 어디에도 저장·전송되지 않습니다」 였다. 그런데 같은 문장이 붙은 장 중에는 그림을 Google
