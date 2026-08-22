@@ -54,5 +54,6 @@
   "shell.search.aria": "道具を探す",
   "shell.nav.toolIndex": "道具の全一覧 →",
   "shell.sidebar.links": "リンク · お問い合わせ",
-  "shell.sidebar.linksTitle": "連絡先とリンク"
+  "shell.sidebar.linksTitle": "連絡先とリンク",
+  "shell.desktop_only_note": "このツールはデスクトップアプリでのみ動作します — このパソコンの中身を読む必要があるためです。以下の説明はブラウザでもそのまま読めます。"
 }

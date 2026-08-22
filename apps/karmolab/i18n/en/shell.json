@@ -54,5 +54,6 @@
   "shell.search.aria": "Find a tool",
   "shell.nav.toolIndex": "All tools →",
   "shell.sidebar.links": "Links · contact",
-  "shell.sidebar.linksTitle": "Contact and links"
+  "shell.sidebar.linksTitle": "Contact and links",
+  "shell.desktop_only_note": "This tool only runs in the desktop app — it has to read what is on this computer. The notes below are readable in the browser all the same."
 }

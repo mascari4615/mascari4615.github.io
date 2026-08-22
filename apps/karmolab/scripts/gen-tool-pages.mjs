@@ -842,10 +842,13 @@ function anchorOf(g) {
 }
 
 function buildHub() {
+  /* 데스크톱 앱에서만 도는 도구는 표를 달아 둔다 (TASK-KL-348). 목록에서 아예 빼면 **앱에서도**
+     안 보이고(이 장은 한 번 찍어 둘로 쓴다), 그냥 두면 브라우저에서 눌러도 못 쓰는 카드가 된다.
+     그래서 여기서는 표만 달고, 브라우저에서 걷어 내는 일은 아래 조각이 한다. */
   const card = (id) =>
-    `        <a class="tool-hub-card"${ALIASES[id] ? ` data-alias="${esc(ALIASES[id])}"` : ''} href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}${
+    `        <a class="tool-hub-card"${widgetById[id]?.desktopOnly ? ' data-desktop-only="1"' : ''}${ALIASES[id] ? ` data-alias="${esc(ALIASES[id])}"` : ''} href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}${
       isNew(id) ? '<em class="tool-hub-new">새로 나옴</em>' : ''
-    }</strong><span title="${esc(seo[id].lead)}">${esc(seo[id].lead)}</span></a>`;
+    }${widgetById[id]?.desktopOnly ? '<em class="tool-hub-desktop">앱 전용</em>' : ''}</strong><span title="${esc(seo[id].lead)}">${esc(seo[id].lead)}</span></a>`;
   // 목록이 모바일에서 열두 화면을 넘는다. 분류로 바로 뛸 수 있게 표식을 달고 위에 목차를 놓는다.
   // 순수 링크라 스크립트가 없어도 그대로 동작한다.
   const groupList = groupIds();
@@ -975,6 +978,33 @@ ${cards}
         각 도구의 계산은 브라우저 안에서만 이뤄지며 입력한 내용은 저장·전송되지 않습니다.
         <a href="/karmolab/">KarmoLab 전체 보기</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
       </p>
+    <script data-hub-desktop>
+    (function () {
+      /* 데스크톱 앱 전용 도구는 **앱에서만** 목록에 둔다 (TASK-KL-348).
+         브라우저에서는 눌러도 못 쓰는 카드라 걷어 내고, 그만큼 숫자도 다시 센다.
+         걷어 내는 쪽으로 만든 이유: 이 장은 배포 때 한 번 찍어 앱과 웹이 같이 쓴다 —
+         찍을 때 빼 버리면 앱에서도 영영 안 보인다(그래서 my-ai 가 목록에 없었다). */
+      if (window.__KARMOLAB_DESKTOP__) return;
+      var only = [].slice.call(document.querySelectorAll('.tool-hub-card[data-desktop-only]'));
+      if (!only.length) return;
+      only.forEach(function (c) { c.remove(); });
+      [].slice.call(document.querySelectorAll('.tool-hub-grid')).forEach(function (g) {
+        if (g.closest('.tool-hub-mine')) return; // 「내가 쓰는 것」은 나중에 스크립트가 채운다
+        var n = g.querySelectorAll('.tool-hub-card').length;
+        var title = g.previousElementSibling;
+        var count = title && title.classList.contains('tool-hub-group') ? title.querySelector('.tool-hub-count') : null;
+        if (count) { count.setAttribute('data-total', String(n)); count.textContent = String(n); }
+        if (n === 0 && title && title.classList.contains('tool-hub-group')) {
+          var toc = title.id && document.querySelector('.tool-hub-toc a[href="#' + title.id + '"]');
+          if (toc) toc.remove(); // 빈 묶음으로 가는 길은 남기지 않는다
+          title.remove();
+          g.remove();
+        }
+      });
+      var h1 = document.querySelector('.tool-hub h1');
+      if (h1) h1.textContent = '도구 ' + document.querySelectorAll('.tool-hub-card').length + '가지';
+    })();
+    </script>
     <script data-hub-find>
     (function () {
       var box = document.querySelector('.tool-hub-find');
