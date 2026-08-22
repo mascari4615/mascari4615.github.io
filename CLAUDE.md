@@ -23,7 +23,7 @@
 ```bash
 npm run verify                              # master invariant 단일 게이트 (push 전 필수)
 cd apps/karmolab && npm run gen:post-pages  # 블로그 장 재생성 (content/pages/ 검증 산출)
-cd apps/blog && bundle exec jekyll b        # 사이트 조립 (Ruby — 로컬 확인용)
+node apps/karmolab/scripts/assemble-site.mjs --site apps/blog --out apps/blog/_site  # 사이트 조립 (Ruby 0)
 ```
 
 ## KarmoLab 화면 작업 = `npm run dev` (배포 기다리지 마라, KL-100)
@@ -98,7 +98,7 @@ pub async fn cmd(params) -> Result<T, String> {
 새 봇·로컬 서버·dev runner 추가 시 **반드시 `apps/karmolab/data/servermonitor-config.json` `devProfiles` 에 등록** — 사용자가 터미널 명령 외울 필요 없게.
 
 **npm-script 형식 (선호)**: `{ id, label, app, script, deployScript?, healthUrl? }` — `program/args` 손기재 금지.
-**raw (예외)**: `{ id, label, cwd, program, args }` — `bundle exec jekyll` 같이 npm script 아닌 경우만.
+**raw (예외)**: `{ id, label, cwd, program, args }` — npm script 아닌 실행체만.
 
 stale 자동 차단: `servermonitor-config-audit.mjs` 가 `npm run verify` 에서 script 실재 cross-check.
 
