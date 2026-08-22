@@ -79,6 +79,7 @@ apps/blog/feed.xml
 apps/blog/index.html
 apps/blog/about/
 apps/blog/404.html
+apps/blog/assets/js/data/post-graph.json
 
 # 「오늘의 하나 맞히기」 — 배포 시 apps/daily/dist/ 가 복사되는 자리 (TASK-KAR-202)
 apps/blog/daily/

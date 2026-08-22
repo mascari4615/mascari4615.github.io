@@ -282,7 +282,7 @@ export function feedXml(posts) {
  * @param {{slug:string,title:string,description:string,date:string,lastmod:string|null,
  *          categories:string[],tags:string[],image:string,hidden:boolean}} meta
  * @param {string} bodyHtml  렌더된 본문 (heading id 포함)
- * @param {{toc:string, prev:{slug:string,title:string}|null, next:{slug:string,title:string}|null}} nav
+ * @param {{toc:string, prev:{slug:string,title:string}|null, next:{slug:string,title:string}|null, mathCss?:boolean}} nav
  */
 export function postPage(meta, bodyHtml, nav) {
     const url = `${SITE}/posts/${meta.slug}/`;
@@ -324,7 +324,7 @@ ${meta.lastmod ? `last_modified_at: ${meta.lastmod}\n` : ''}---
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
     <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
-    <script type="application/ld+json">${jsonLd(ld)}</script>
+    ${nav.mathCss ? '<link rel="stylesheet" href="/assets/katex/katex.min.css">\n    ' : ''}<script type="application/ld+json">${jsonLd(ld)}</script>
     <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
     <style>${CSS}</style>
 </head>
