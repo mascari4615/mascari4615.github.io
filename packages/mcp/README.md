@@ -1,12 +1,16 @@
-# karmolab-mcp
+# @karmo/mcp
 
 **The MCP server for things LLMs quietly get wrong** — exact hashes, real randomness, and Korean rules
+
+> **Renaming in progress.** On npm the published name is still `karmolab-mcp` (0.2.0).
+> `@karmo/mcp` lands with the next publish; the old name will be deprecated then, not before.
+> Until then `npx -y karmolab-mcp` is the one that resolves.
 (three different "ages", business-registration checksums, substitute holidays, Hangul keyboard mapping).
 
 **Local-first.** 141 tools. Everything runs locally; nothing is sent anywhere.
 
 ```bash
-claude mcp add karmolab -- npx -y karmolab-mcp
+claude mcp add karmolab -- npx -y @karmo/mcp
 ```
 
 > 🇰🇷 한국어 설명은 아래 [한국어](#한국어) 절에 있습니다.
@@ -49,15 +53,15 @@ exists — the failure it prevents — not just what it does.
 
 ```bash
 # Claude Code
-claude mcp add karmolab -- npx -y karmolab-mcp
+claude mcp add karmolab -- npx -y @karmo/mcp
 
 # or point any MCP client at the binary
-npx -y karmolab-mcp
+npx -y @karmo/mcp
 ```
 
 Requires Node 20+. Speaks MCP over stdio (newline-delimited JSON-RPC 2.0).
 
-Listed in the official MCP Registry as **`io.github.mascari4615/karmolab-mcp`** — clients that
+Listed in the official MCP Registry as **`io.github.mascari4615/karmo-mcp`** — clients that
 resolve registry names can install it from there. Published from CI with npm Trusted Publishing,
 so every release carries a signed provenance attestation you can verify:
 
@@ -69,7 +73,7 @@ npm audit signatures   # after installing
 
 ```bash
 git clone https://github.com/mascari4615/mascari4615.github.io
-cd mascari4615.github.io/packages/karmolab-mcp
+cd mascari4615.github.io/packages/mcp
 node build.mjs                       # writes dist/ — needs esbuild from apps/karmolab
 claude mcp add --scope local karmolab -- node "$PWD/src/server.mjs"
 ```

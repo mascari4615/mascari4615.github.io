@@ -1,7 +1,7 @@
 name: KarmoLab 짓기 전 채비
 description: >
   KarmoLab 을 지으려면 늘 같은 것이 먼저 있어야 한다 — 의존 설치와 공용 꾸러미 두 개(@karmo/ai ·
-  badapple)의 dist, 그리고 build 사슬이 무는 karmolab-mcp 의존. 이 목록이 워크플로 네 곳에 각각
+  badapple)의 dist, 그리고 build 사슬이 무는 @karmo/mcp 의존. 이 목록이 워크플로 네 곳에 각각
   손으로 적혀 있었고, 한 곳만 고친 값이 실제 사고였다 — badapple 단계가 라이브 점검에만 빠져
   **25판 연속 죽었다**(그 주석이 karmolab-live-check.yml 에 남아 있었다). 채비는 한 곳에 둔다.
 
@@ -25,7 +25,7 @@ runs:
         cache-dependency-path: |
           apps/karmolab/package-lock.json
           packages/ai/package-lock.json
-          packages/karmolab-mcp/package-lock.json
+          packages/mcp/package-lock.json
 
     - name: 의존 설치 (karmolab)
       shell: bash
@@ -61,9 +61,9 @@ runs:
           packages/ai/node_modules
           packages/badapple/dist
           packages/badapple/node_modules
-          packages/karmolab-mcp/dist
-          packages/karmolab-mcp/node_modules
-        key: pkgdist-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('packages/ai/src/**', 'packages/ai/package-lock.json', 'packages/badapple/src/**', 'packages/badapple/package-lock.json', 'packages/karmolab-mcp/src/**', 'packages/karmolab-mcp/package-lock.json') }}
+          packages/mcp/dist
+          packages/mcp/node_modules
+        key: pkgdist-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('packages/ai/src/**', 'packages/ai/package-lock.json', 'packages/badapple/src/**', 'packages/badapple/package-lock.json', 'packages/mcp/src/**', 'packages/mcp/package-lock.json') }}
 
     # 앱이 타입으로 무는 공용 꾸러미들 — **지어야 형태가 생긴다**. 새 체크아웃엔 dist 가 없어서
     # 안 지으면 typecheck 이 「모듈을 못 찾겠다」로 서고, 그 뒤 검사들은 없는 기준과 대조한다.
@@ -78,10 +78,10 @@ runs:
 
     # build 사슬 안의 test:mcp 가 이 꾸러미의 의존(pdf-lib)을 여기서 찾는다.
     # 짓기까지 해 둔다 — karmolab build 가 이 dist 를 불러오는 자리가 있다.
-    - name: karmolab-mcp 의존 설치·짓기
+    - name: @karmo/mcp 의존 설치·짓기
       if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
-      run: cd packages/karmolab-mcp && npm ci --no-audit --no-fund && npm run build
+      run: cd packages/mcp && npm ci --no-audit --no-fund && npm run build
 
     # 브라우저 내려받기는 매 실행 50초가 넘는다(2026-08-07 실측 54초). 잠금파일이 같으면 같은 판이라 캐시로 건너뛴다.
     - name: 브라우저 캐시

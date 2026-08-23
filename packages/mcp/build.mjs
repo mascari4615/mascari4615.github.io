@@ -28,13 +28,13 @@ let esbuild;
 try {
   esbuild = await import(pathToFileURL(requireFromApp.resolve('esbuild')).href);
 } catch {
-  console.error('[karmolab-mcp] esbuild 를 못 찾았다 — `cd apps/karmolab && npm install` 먼저');
+  console.error('[@karmo/mcp] esbuild 를 못 찾았다 — `cd apps/karmolab && npm install` 먼저');
   process.exit(1);
 }
 const outDir = path.join(here, 'dist');
 
 if (fs.existsSync(coreDir) === false) {
-  console.error(`[karmolab-mcp] 알맹이 폴더가 없다: ${coreDir}`);
+  console.error(`[@karmo/mcp] 알맹이 폴더가 없다: ${coreDir}`);
   process.exit(1);
 }
 
@@ -49,7 +49,7 @@ const entries = fs
   .map((f) => path.join(coreDir, f));
 
 if (entries.length === 0) {
-  console.error('[karmolab-mcp] spec 을 내놓는 알맹이가 하나도 없다 — 빌드할 게 없다');
+  console.error('[@karmo/mcp] spec 을 내놓는 알맹이가 하나도 없다 — 빌드할 게 없다');
   process.exit(1);
 }
 
@@ -71,7 +71,7 @@ await esbuild.build({
  */
 const pinyinSrc = path.join(here, '../../apps/karmolab/data/han-pinyin.json');
 if (fs.existsSync(pinyinSrc) === false) {
-  console.error('[karmolab-mcp] 소리 표가 없다: apps/karmolab/data/han-pinyin.json');
+  console.error('[@karmo/mcp] 소리 표가 없다: apps/karmolab/data/han-pinyin.json');
   process.exit(1);
 }
 fs.copyFileSync(pinyinSrc, path.join(outDir, 'han-pinyin.json'));
@@ -108,7 +108,7 @@ const claimed = [...readme.matchAll(/(\d+)\s*tools|## Tools \((\d+)\)|도구 (\d
 );
 const wrong = claimed.filter((n) => n !== opCount);
 if (claimed.length === 0) {
-  console.error('[karmolab-mcp] README 에 도구 개수가 안 적혀 있다 — 세는 자리를 잃었다');
+  console.error('[@karmo/mcp] README 에 도구 개수가 안 적혀 있다 — 세는 자리를 잃었다');
   process.exit(1);
 }
 if (wrong.length > 0) {
@@ -124,7 +124,7 @@ if (wrong.length > 0) {
     .replace(/도구 \d+개/g, `도구 ${opCount}개`);
   fs.writeFileSync(readmePath, fixed);
   console.log(
-    `[karmolab-mcp] README 의 도구 개수를 맞췄다: ${claimed.join('·')} → ${opCount} (세는 자리가 정본이다)`
+    `[@karmo/mcp] README 의 도구 개수를 맞췄다: ${claimed.join('·')} → ${opCount} (세는 자리가 정본이다)`
   );
 }
 
@@ -155,7 +155,7 @@ if (fs.existsSync(serverJsonPath)) {
   }
   if (fixed2.length > 0) {
     fs.writeFileSync(serverJsonPath, JSON.stringify(reg, null, 2) + String.fromCharCode(10));
-    console.log(`[karmolab-mcp] server.json 을 package.json 에 맞췄다: ${fixed2.join(' · ')}`);
+    console.log(`[@karmo/mcp] server.json 을 package.json 에 맞췄다: ${fixed2.join(' · ')}`);
   }
   /*
    * 레지스트리는 설명문을 **100자까지만** 받는다 (2026-08-10, 등재가 여기서 422 로 튕겼다).
@@ -196,9 +196,9 @@ if (fs.existsSync(serverJsonPath)) {
   }
 
   if (mismatches.length > 0) {
-    console.error(`[karmolab-mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(' · ')}`);
+    console.error(`[@karmo/mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(' · ')}`);
     process.exit(1);
   }
 }
 
-console.log(`[karmolab-mcp] 알맹이 ${manifest.length}개 · 도구 ${opCount}개 찍음: ${manifest.join(' · ')}`);
+console.log(`[@karmo/mcp] 알맹이 ${manifest.length}개 · 도구 ${opCount}개 찍음: ${manifest.join(' · ')}`);

@@ -98,7 +98,7 @@ jobs:
       # postgraph 위젯이 읽음 — 재생성 경로는 graph 이식 Change 에서 재설계).
 
       # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
-      #   @karmo/ai · badapple · karmolab-mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
+      #   @karmo/ai · badapple · @karmo/mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
       #   mcp 설치가 이 배포 잡에만 빠져 **7월 중순부터 배포가 계속 섰고**(실주소 28일 정체),
       #   badapple 이 라이브 점검에만 빠져 25판 연속 죽었다. 목록이 하나면 그 사고가 안 난다.
       #   (badapple 은 이제 잠금 파일이 있어 `npm ci` 로 지어진다 — 옛 주석의 전제는 끝났다.)

@@ -19,7 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const pkgDir = path.resolve(root, '../../packages/karmolab-mcp');
+const pkgDir = path.resolve(root, '../../packages/mcp');
 
 const failures = [];
 const check = (ok, why) => {
@@ -109,9 +109,9 @@ try {
    * --prefer-offline: 캐시를 먼저 뒤져보되, 없으면 인터넷에서 몰래 빨리 받아와 설치한다. 그건 「망이 안 됐다」라는 실패 자리 자체가 사라지게 한다.
    */
   runNpm(['install', q('./' + tgz), '--prefer-offline', '--no-audit', '--no-fund'], work);
-  const installed = path.join(work, 'node_modules', 'karmolab-mcp', 'src', 'server.mjs');
+  const installed = path.join(work, 'node_modules', '@karmo', 'mcp', 'src', 'server.mjs');
   check(fs.existsSync(installed), '설치본에 server.mjs 가 없다');
-  const distDir = path.join(work, 'node_modules', 'karmolab-mcp', 'dist');
+  const distDir = path.join(work, 'node_modules', '@karmo', 'mcp', 'dist');
   check(fs.existsSync(distDir), '설치본에 dist 가 없다 — files 목록에서 빠졌을 수 있다');
   const cores = fs.existsSync(distDir) ? fs.readdirSync(distDir).filter((f) => f.endsWith('.mjs')).length : 0;
   const sourceCores = fs
@@ -126,7 +126,7 @@ try {
    * 발행 뒤에나 드러나는 것들을 **여기서** 잡는다 (14-mcp-launch-kit § 7 을 손 확인에서 게이트로).
    * 셋 다 우리 저장소에서는 멀쩡히 보이고, tarball 에서만 빠진다 — 그래서 눈으로는 절대 안 걸린다.
    */
-  const inPkg = (...seg) => path.join(work, 'node_modules', 'karmolab-mcp', ...seg);
+  const inPkg = (...seg) => path.join(work, 'node_modules', '@karmo', 'mcp', ...seg);
 
   // ⓐ 라이선스 — 없으면 발행물이 「저작권 불명」이 된다. `files` 에서 빠지면 조용히 사라진다.
   check(fs.existsSync(inPkg('LICENSE')), '설치본에 LICENSE 가 없다 — package.json 의 files 에서 빠졌다');
@@ -138,7 +138,7 @@ try {
   );
 
   /*
-   * ⓐ-2 **`npx karmolab-mcp` 가 실제로 되는가.**
+   * ⓐ-2 **`npx @karmo/mcp` 가 실제로 되는가.**
    * README 의 첫 설치 줄이 그것인데, 여기서는 여태 `node .../src/server.mjs` 를 직접 띄워
    * 보고 있었다 — 즉 **README 가 시키는 길은 한 번도 안 재 봤다.** 실제로 npm 이
    * 「bin 항목이 잘못돼 지웠다」고 경고한 적이 있다(경로 앞의 `./`). 그러면 설치는 되는데
@@ -147,8 +147,8 @@ try {
   const binDir = path.join(work, 'node_modules', '.bin');
   const binNames = fs.existsSync(binDir) ? fs.readdirSync(binDir) : [];
   check(
-    binNames.some((f) => f.startsWith('karmolab-mcp')),
-    `설치본에 karmolab-mcp 명령이 안 생겼다 — package.json 의 bin 을 보라 (지금: ${binNames.join(' ') || '없음'})`
+    binNames.some((f) => f.startsWith('karmo-mcp')),
+    `설치본에 karmo-mcp 명령이 안 생겼다 — package.json 의 bin 을 보라 (지금: ${binNames.join(' ') || '없음'})`
   );
 
   // ⓑ README — npm 페이지에 뜨는 그 글이다. 없으면 빈 페이지로 발행된다.
@@ -173,13 +173,13 @@ try {
   /*
    * ③ 설치된 것만으로 띄워서 실제로 물어본다.
    *
-   * ★ **README 가 시키는 길로 띄운다.** 첫 줄이 `npx -y karmolab-mcp` 이므로, 여기서도
-   * 설치본이 만들어 준 **명령**(`node_modules/.bin/karmolab-mcp`)을 실행한다.
+   * ★ **README 가 시키는 길로 띄운다.** 첫 줄이 `npx -y @karmo/mcp` 이므로, 여기서도
+   * 설치본이 만들어 준 **명령**(`node_modules/.bin/karmo-mcp`)을 실행한다.
    * 예전에는 `node .../src/server.mjs` 를 직접 띄웠다 — 그건 `bin` 항목을 안 지나므로,
    * `bin` 이 통째로 지워져도 초록이었다(실제로 그런 상태로 발행될 뻔했다, 2026-08-10).
    * 명령이 없으면 위 ⓐ-2 가 이미 빨갛고, 여기서는 파일을 직접 띄워 나머지라도 재 본다.
    */
-  const binPath = path.join(work, 'node_modules', '.bin', isWin ? 'karmolab-mcp.cmd' : 'karmolab-mcp');
+  const binPath = path.join(work, 'node_modules', '.bin', isWin ? 'karmo-mcp.cmd' : 'karmo-mcp');
   viaBin = fs.existsSync(binPath);
   child = viaBin
     ? spawn(binPath, [], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, shell: isWin })
@@ -234,5 +234,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `[smoke-mcp-install] 빈 폴더에 설치 → ${viaBin ? '설치본이 만든 명령(karmolab-mcp)' : '파일 직접'} 으로 서버가 뜨고 값이 맞다`
+  `[smoke-mcp-install] 빈 폴더에 설치 → ${viaBin ? '설치본이 만든 명령(karmo-mcp)' : '파일 직접'} 으로 서버가 뜨고 값이 맞다`
 );

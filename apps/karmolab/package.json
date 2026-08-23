@@ -341,7 +341,7 @@
     "test:mail": "node scripts/test-mail.mjs",
     "test:markdown": "node scripts/test-markdown-render.mjs",
     "test:mascot": "node scripts/smoke-mascot.mjs",
-    "test:mcp": "node ../../packages/karmolab-mcp/build.mjs && node scripts/smoke-mcp.mjs",
+    "test:mcp": "node ../../packages/mcp/build.mjs && node scripts/smoke-mcp.mjs",
     "test:mcp:install": "node scripts/smoke-mcp-install.mjs",
     "test:md": "node scripts/test-community-markdown.mjs",
     "test:meok": "node scripts/test-meok-doc.mjs && node scripts/test-meok-brush.mjs && node scripts/test-meok-selection.mjs && node scripts/test-meok-ops.mjs && node scripts/test-meok-storage.mjs",

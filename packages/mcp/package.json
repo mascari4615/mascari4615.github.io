@@ -1,5 +1,5 @@
 {
-  "name": "karmolab-mcp",
+  "name": "@karmo/mcp",
   "version": "0.2.0",
   "type": "module",
   "description": "MCP server for the things LLMs get wrong: exact hashes, real randomness, Korean rules, and local file tools.",
@@ -21,13 +21,13 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mascari4615/mascari4615.github.io.git",
-    "directory": "packages/karmolab-mcp"
+    "directory": "packages/mcp"
   },
   "bugs": {
     "url": "https://github.com/mascari4615/mascari4615.github.io/issues"
   },
   "bin": {
-    "karmolab-mcp": "src/server.mjs"
+    "karmo-mcp": "src/server.mjs"
   },
   "files": [
     "src",
@@ -43,7 +43,7 @@
     "test": "node ../../apps/karmolab/scripts/smoke-mcp.mjs",
     "prepublishOnly": "node build.mjs && node ../../apps/karmolab/scripts/smoke-mcp.mjs"
   },
-  "mcpName": "io.github.mascari4615/karmolab-mcp",
+  "mcpName": "io.github.mascari4615/karmo-mcp",
   "dependencies": {
     "jszip": "^3.10.1",
     "pdf-lib": "^1.17.1",

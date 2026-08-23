@@ -100,7 +100,7 @@ jobs:
           cache-dependency-path: |
             apps/karmolab/package-lock.json
             packages/ai/package-lock.json
-            packages/karmolab-mcp/package-lock.json
+            packages/mcp/package-lock.json
 
       # 이번 판이 Rust 쪽을 건드렸나 — **서버에 물어본다**. 체크아웃이 얕아서
       # `git diff` 로는 옛 커밋이 없어 늘 「모른다」가 된다(그러면 늘 재게 되어 뜻이 없다).

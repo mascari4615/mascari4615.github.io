@@ -21,7 +21,7 @@ import { chromium } from 'playwright';
 
 const NL = String.fromCharCode(10);
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const distDir = path.join(appRoot, '../../packages/karmolab-mcp/dist');
+const distDir = path.join(appRoot, '../../packages/mcp/dist');
 
 const NEEDED = ['js/widgets/tools/dailycho.js', 'js/widgets/tools/dailytype.js'];
 const missing = NEEDED.filter((rel) => fs.existsSync(path.join(appRoot, rel)) === false);

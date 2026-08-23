@@ -11,5 +11,5 @@ startCommand:
     properties: {}
     additionalProperties: false
   commandFunction: |-
-    () => ({ command: 'npx', args: ['-y', 'karmolab-mcp'] })
+    () => ({ command: 'npx', args: ['-y', '@karmo/mcp'] })
   exampleConfig: {}

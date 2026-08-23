@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * karmolab-mcp — KarmoLab 도구를 AI 에이전트가 부를 수 있게 (TASK-KL-205 / S1 P3)
+ * @karmo/mcp — KarmoLab 도구를 AI 에이전트가 부를 수 있게 (TASK-KL-205 / S1 P3)
  *
  * 왜 있나: LLM 은 해시를 **지어낸다**. 만나이·대체공휴일·시간대 전환처럼 규칙이 복잡한 것도
  * 자신 있게 틀린다. 우리 도구는 그걸 정확히 하는 코드를 이미 갖고 있는데, 그동안 **화면으로만**
@@ -13,7 +13,7 @@
  * `spec` 에서 이름·설명·입력 모양을 뽑는다. 알맹이가 늘면 여기 손 안 대도 도구가 는다.
  *
  * 쓰는 법 (Claude Code 등):
- *   claude mcp add karmolab -- npx -y karmolab-mcp
+ *   claude mcp add karmolab -- npx -y @karmo/mcp
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -32,7 +32,7 @@ const PROTOCOL = '2025-06-18';
 const VERSION = '0.1.0';
 
 if (fs.existsSync(path.join(distDir, 'manifest.json')) === false) {
-  process.stderr.write('[karmolab-mcp] dist 가 없다 — 먼저 `npm run build` 를 돌려라\n');
+  process.stderr.write('[@karmo/mcp] dist 가 없다 — 먼저 `npm run build` 를 돌려라\n');
   process.exit(1);
 }
 
@@ -54,7 +54,7 @@ const registry = new Map();
 for (const base of toolFiles) {
   const mod = await import(pathToFileURL(path.join(distDir, `${base}.mjs`)).href);
   if (mod.spec === undefined || typeof mod.run !== 'function') {
-    process.stderr.write(`[karmolab-mcp] ${base} 에 spec 또는 run 이 없다 — 건너뛴다\n`);
+    process.stderr.write(`[@karmo/mcp] ${base} 에 spec 또는 run 이 없다 — 건너뛴다\n`);
     continue;
   }
   for (const [op, opSpec] of Object.entries(mod.spec.ops)) {
@@ -63,7 +63,7 @@ for (const base of toolFiles) {
 }
 
 if (registry.size === 0) {
-  process.stderr.write('[karmolab-mcp] 올릴 도구가 하나도 없다\n');
+  process.stderr.write('[@karmo/mcp] 올릴 도구가 하나도 없다\n');
   process.exit(1);
 }
 
@@ -289,7 +289,7 @@ rl.on('line', async (line) => {
     msg = JSON.parse(text);
   } catch {
     // id 를 모르면 답할 자리도 없다. 조용히 죽지 않게 stderr 로 남긴다.
-    process.stderr.write('[karmolab-mcp] JSON 이 아닌 줄이 왔다\n');
+    process.stderr.write('[@karmo/mcp] JSON 이 아닌 줄이 왔다\n');
     return;
   }
 

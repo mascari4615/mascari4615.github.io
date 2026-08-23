@@ -13,11 +13,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
-const requireMcp = createRequire(new URL('../../../packages/karmolab-mcp/package.json', import.meta.url));
+const requireMcp = createRequire(new URL('../../../packages/mcp/package.json', import.meta.url));
 const { PDFDocument, StandardFonts } = requireMcp('pdf-lib');
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const serverPath = path.resolve(root, '../../packages/karmolab-mcp/src/server.mjs');
+const serverPath = path.resolve(root, '../../packages/mcp/src/server.mjs');
 
 const failures = [];
 const check = (okv, why) => {
