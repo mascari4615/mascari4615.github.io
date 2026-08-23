@@ -190,6 +190,13 @@ jobs:
       #   빨개져도 사이트는 나간다(배포 길목이 아니다). 그런데 값은 **매 push** 5분이었고,
       #   그 5분이 판정 도착을 늦춰 오늘 오전 내내 아무 판정도 못 봤다.
       #   시계(nightwatch)·PR·수동에서는 그대로 돈다 — 한 시간 안에 반드시 한 번 걸린다.
+      # ★ js/·css/ 산출물은 git 추적 밖이다 (TASK-KL-333) — 생 체크아웃에선 셸이 안 떠서
+      #   대비 훑기가 CANNOT-RUN 으로 죽는다 (2026-08-23, 스케줄 3연속 빨강의 원인).
+      #   화면을 여는 검사 앞에서는 먼저 굽는다.
+      - name: Bake shell artifacts (js/css/i18n)
+        if: ${{ github.event_name != 'push' }}
+        run: cd apps/karmolab && npm run build:i18n && node build.mjs && npm run build:css
+
       - name: Contrast sweep (light/dark)
         if: ${{ github.event_name != 'push' }}
         run: cd apps/karmolab && npm run test:contrast

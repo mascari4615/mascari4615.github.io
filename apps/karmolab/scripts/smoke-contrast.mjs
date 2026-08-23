@@ -149,12 +149,16 @@ for (const theme of THEMES) {
      * 실측으로 밟았다 — 남이 같은 자리 번호를 잡고 있을 때 <b>남의 서버를 보고도 초록</b>이었다
      * (`listen(포트)` 는 IPv6 로 잡혀 IPv4 를 남이 쥐고 있어도 안 부딪힌다).
      * 그래서 잰 것이 있는지부터 본다 — 없으면 초록·빨강 어느 쪽으로도 적지 않는다. */
-    const bodyLen = await page.evaluate(() => (document.body?.innerText || '').trim().length);
     /* ⚠ `res` 가 <b>null 일 수 있다</b> — 해시(`#id`)만 바뀌는 이동은 새 응답이 없다.
      *   처음엔 `!res` 를 실패로 셌다가 멀쩡한 판이 「못 돌림」이 됐다(실측 글 808자).
-     *   응답이 <b>있는데</b> 200 이 아닐 때만 실패로 세고, 나머지는 글자 수로 본다. */
-    if ((res && res.status() !== 200) || bodyLen < 200) {
-      console.error(`[smoke-contrast] CANNOT-RUN: 장을 못 열었다 (http ${res && res.status()} · 글 ${bodyLen}자).`);
+     *   응답이 <b>있는데</b> 200 이 아닐 때만 실패로 센다.
+     * ⚠ 「부팅했나」는 글자 수로 재면 안 된다 (2026-08-23 실측): flow 처럼 서버(집 노트북)에
+     *   못 닿으면 대체 문구만 남아 128자다 — 화면은 멀쩡히 떠 있다. 대신 **JS 가 채우는
+     *   셸 표식**(#header-nav 의 카테고리 버튼)을 본다. js/ 산출물이 없어 셸이 통째로 안 뜨면
+     *   저 nav 는 빈 채로 남는다 — 그때가 진짜 「아무것도 안 봤다」다. */
+    const navChildren = await page.evaluate(() => document.querySelector('#header-nav')?.children.length || 0);
+    if ((res && res.status() !== 200) || navChildren === 0) {
+      console.error(`[smoke-contrast] CANNOT-RUN: #${id} 장을 못 열었다 (http ${res && res.status()} · 셸 nav ${navChildren}개).`);
       console.error('  이건 「문제 없음」이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
       process.exit(2);
     }
