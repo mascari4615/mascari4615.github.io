@@ -1,4 +1,4 @@
-# three-kit — three.js 한 벌
+# @karmo/three — three.js 한 벌
 
 > 정본. **three.js 를 쓰는 곳은 전부 여기를 거친다.**
 > 만든 이유 = 2026-08-21 실측: 이미 세 곳이 three 를 쓰는데 **판이 갈려 있었다** —
@@ -11,7 +11,7 @@
 ③ **GPU 없는 기계 가드** ④ 방 조명 한 벌 ⑤ 가짜 접지 그림자 ⑥ 캔버스 텍스처 헬퍼.
 
 **없다** — 엔진 래핑, 씬 그래프 추상화, 컴포넌트 체계. three 를 가리지 않는다.
-`import * as THREE from 'three-kit/three'` 로 원본을 그대로 쓴다.
+`import * as THREE from 'karmo-three/three'` 로 원본을 그대로 쓴다.
 
 ## 왜 GPU 가드가 여기 있나 (제일 중요한 한 가지)
 
@@ -25,8 +25,8 @@
 ## 쓰는 법
 
 ```js
-import * as THREE from 'three-kit/three';
-import { createRenderer, gpuTier, roomLight, contactShadow, canvasTex } from 'three-kit';
+import * as THREE from 'karmo-three/three';
+import { createRenderer, gpuTier, roomLight, contactShadow, canvasTex } from '@karmo/three';
 
 const { renderer, soft } = createRenderer(canvas);   // soft = GPU 없이 그리는 중
 roomLight(scene, { warm: 0xffb673, soft });

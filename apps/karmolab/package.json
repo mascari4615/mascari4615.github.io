@@ -281,7 +281,7 @@
     "test:copyable": "node scripts/test-copyable.mjs",
     "test:core": "node scripts/test-core.mjs",
     "test:meaning": "node ../../packages/meaning/test/parity.mjs",
-    "test:three": "node --test ../../packages/three-kit/test/*.mjs",
+    "test:three": "node --test ../../packages/three/test/*.mjs",
     "test:pose": "node --test ../../packages/pose/test/*.mjs",
     "fetch:hand": "node scripts/fetch-hand.mjs",
     "gen:related": "node scripts/gen-related-posts.mjs",

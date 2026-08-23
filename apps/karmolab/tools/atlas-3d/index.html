@@ -55,20 +55,20 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "/packages/three-kit/vendor/three.module.min.js",
-    "three-kit/": "/packages/three-kit/src/",
-    "karmo-pose/": "/packages/pose/src/"
+    "three": "/packages/three/vendor/three.module.min.js",
+    "@karmo/three/": "/packages/three/src/",
+    "@karmo/pose/": "/packages/pose/src/"
   }
 }
 </script>
 
 <script type="module">
 import * as THREE from 'three';
-import { createOrbit } from 'three-kit/orbit.mjs';
-import { createPointCloud, rgb255, pixelScale } from 'three-kit/points.mjs';
-import { pointerSource, mergeSources } from 'karmo-pose/source.mjs';
-import { createGestures } from 'karmo-pose/gesture.mjs';
-import { createHandSource } from 'karmo-pose/hand.mjs';
+import { createOrbit } from '@karmo/three/orbit.mjs';
+import { createPointCloud, rgb255, pixelScale } from '@karmo/three/points.mjs';
+import { pointerSource, mergeSources } from '@karmo/pose/source.mjs';
+import { createGestures } from '@karmo/pose/gesture.mjs';
+import { createHandSource } from '@karmo/pose/hand.mjs';
 
 /* 색은 2D 판과 **같은 여덟 색**(Wong) — 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
 const COLORS = [
