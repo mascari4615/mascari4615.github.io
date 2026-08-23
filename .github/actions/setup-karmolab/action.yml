@@ -78,7 +78,10 @@ runs:
 
     # build 사슬 안의 test:mcp 가 이 꾸러미의 의존(pdf-lib)을 여기서 찾는다.
     # 짓기까지 해 둔다 — karmolab build 가 이 dist 를 불러오는 자리가 있다.
-    - name: @karmo/mcp 의존 설치·짓기
+    # ⚠ 따옴표를 벗기지 마라 — `@` 는 YAML 이 **값의 첫 글자로 못 받는** 예약문자다.
+    #   이름 이관(karmolab-mcp → @karmo/mcp)이 이 자리를 맨몸 `@…` 로 만들면서 이 파일이
+    #   통째로 파싱 불가가 됐고, verify 가 **채비 단계에서 즉시 죽었다** — 검사는 한 개도 안 돌았다.
+    - name: '@karmo/mcp 의존 설치·짓기'
       if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
       run: cd packages/mcp && npm ci --no-audit --no-fund && npm run build
