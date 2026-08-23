@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 글 지형도 — 돌려 보기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<!--
+  **지형도를 돌려 보는 장** (change.motion-3d-cores 2단계).
+
+  왜 위젯 안이 아니라 별도 장인가:
+  - three.js 는 600KB 다. 지형도 위젯 번들에 넣으면 **안 켜는 사람도 받는다**
+    (도구 하나 때문에 라이브러리를 들이지 않는다는 mesh3d 의 결정과 같은 자리).
+  - 그래서 이 저장소가 이미 쓰는 관례를 따른다: **importmap + 받아 둔 벤더**
+    (`tools/timeto-3d/viewer/index.html` 이 같은 모양).
+  - 2D 판이 정본이다. 자 예순 개는 그대로 2D 를 잰다 — 이 장은 **보는 방법 하나**를 더한 것.
+
+  자료는 **이 기계 밖으로 안 나간다** — 로컬 서버가 주는 `data/memo-atlas.json` 을 그대로 읽는다.
+  (그 파일은 gitignore 이고 배포에 안 실린다. 배포된 주소로 열면 「지도가 없다」가 뜬다.)
+-->
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0d10; color: #e6e8ea; font: 13px/1.5 system-ui, sans-serif; }
+  canvas { display: block; }
+  .hud { position: fixed; left: 12px; top: 12px; max-width: 420px; pointer-events: none; }
+  .hud b { color: #fff; }
+  .warn { margin-top: 8px; opacity: .72; font-size: 12px; }
+  .miss { padding: 24px; max-width: 640px; }
+  .miss code { background: #1b1f24; padding: 2px 5px; border-radius: 4px; }
+  .legend { position: fixed; right: 12px; top: 12px; text-align: right; opacity: .8; font-size: 12px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+</style>
+</head>
+<body>
+<div class="hud" id="hud">지도를 읽는 중…</div>
+<div class="legend" id="legend"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/packages/three-kit/vendor/three.module.min.js",
+    "three-kit/": "/packages/three-kit/src/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { createOrbit } from 'three-kit/orbit.mjs';
+import { createPointCloud, rgb255, pixelScale } from 'three-kit/points.mjs';
+
+/* 색은 2D 판과 **같은 여덟 색**(Wong) — 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
+const COLORS = [
+  [230, 159, 0], [86, 180, 233], [0, 158, 115], [240, 228, 66],
+  [0, 114, 178], [213, 94, 0], [204, 121, 167], [140, 140, 140],
+];
+
+const hud = document.getElementById('hud');
+
+let atlas;
+try {
+  const res = await fetch('../../data/memo-atlas.json');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  atlas = await res.json();
+} catch (e) {
+  document.body.innerHTML = `<div class="miss"><h1>지도가 없다</h1>
+    <p>이 장은 <b>이 기계에서 구운 지도</b>를 읽는다 — 배포본에는 그 파일이 없다(그래야 목차가 안 샌다).</p>
+    <p>구우려면: <code>cd apps/karmolab &amp;&amp; node scripts/build-memo-atlas.mjs</code></p>
+    <p style="opacity:.6">(${String(e.message)})</p></div>`;
+  throw e;
+}
+
+const docs = atlas.docs.filter((d) => Array.isArray(d.xy));
+if (!docs.length) { hud.textContent = '자리 잡힌 글이 없다 — 임베딩 없이 구웠나?'; }
+
+/* 0~1 로 편다 (2D 판의 `unit()` 과 같은 손). */
+const xs = docs.map((d) => d.xy[0]); const ys = docs.map((d) => d.xy[1]);
+const x0 = Math.min(...xs); const x1 = Math.max(...xs);
+const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+const ux = (v) => (v - x0) / ((x1 - x0) || 1);
+const uy = (v) => (v - y0) / ((y1 - y0) || 1);
+
+/**
+ * **높이 = 몰린 정도.** 2D 판의 「지형」이 등고선으로 말하던 것을 여기서는 진짜 높이로 세운다.
+ * 격자에 세고 두 번 뭉갠다(가우시안 비슷하게) — 봉우리 자리가 2D 등고선과 같아야 한다.
+ */
+const SIDE = 64;
+const field = new Float32Array(SIDE * SIDE);
+for (const d of docs) {
+  const gx = Math.min(SIDE - 1, Math.floor(ux(d.xy[0]) * SIDE));
+  const gy = Math.min(SIDE - 1, Math.floor(uy(d.xy[1]) * SIDE));
+  field[gy * SIDE + gx] += 1;
+}
+function blur(src) {
+  const out = new Float32Array(src.length);
+  for (let y = 0; y < SIDE; y += 1) {
+    for (let x = 0; x < SIDE; x += 1) {
+      let s = 0; let n = 0;
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          const nx = x + dx; const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= SIDE || ny >= SIDE) continue;
+          s += src[ny * SIDE + nx]; n += 1;
+        }
+      }
+      out[y * SIDE + x] = s / n;
+    }
+  }
+  return out;
+}
+const smooth = blur(blur(field));
+const peak = Math.max(...smooth) || 1;
+const heightAt = (u, v) => {
+  const gx = Math.min(SIDE - 1, Math.floor(u * SIDE));
+  const gy = Math.min(SIDE - 1, Math.floor(v * SIDE));
+  return smooth[gy * SIDE + gx] / peak;
+};
+
+const HEIGHT = 0.35;   // 지형 과장 — 1 이면 절벽, 0 이면 평면. 눈으로 골랐다(값이지 결함이 아니다).
+const lanes = [...new Set(docs.map((d) => d.lane))].sort();
+const laneColor = (lane) => rgb255(...COLORS[lanes.indexOf(lane) % COLORS.length]);
+
+const list = docs.map((d) => {
+  const u = ux(d.xy[0]); const v = uy(d.xy[1]);
+  return {
+    xyz: [(u - 0.5) * 2, heightAt(u, v) * HEIGHT, (v - 0.5) * 2],
+    rgb: laneColor(d.lane),
+    /* 크기 = 글 길이(로그) — 2D 판과 같은 규칙. 단위는 **세상 크기**(지도 한 변이 2).
+       화면 화소로 바꾸는 일은 `pixelScale()` 이 한다. */
+    size: (2 + Math.log10(1 + (d.bytes || 0)) * 1.1) * 0.0022,
+  };
+});
+
+const canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0d10);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
+
+const cloud = createPointCloud(THREE, list);
+scene.add(cloud.points);
+
+/* 바닥 격자 — 없으면 「돌고 있다」가 안 읽힌다(점만 있으면 회전이 안 보인다). */
+const grid = new THREE.GridHelper(2.4, 12, 0x2a3038, 0x181c22);
+grid.position.y = -0.02;
+scene.add(grid);
+
+const orbit = createOrbit({ distance: 3.2, pitch: 0.55, minDistance: 0.6, maxDistance: 12 });
+orbit.attach(canvas);
+
+function resize() {
+  const w = innerWidth; const h = innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  /* 점 크기는 **세상 크기**로 적고 화면 화소 환산은 여기서 넣는다 — 창이 바뀌면 같이 바뀐다. */
+  cloud.setScale(pixelScale(h * renderer.getPixelRatio(), camera.fov));
+}
+addEventListener('resize', resize);
+resize();
+
+let last = performance.now();
+let frames = 0;
+function tick(t) {
+  requestAnimationFrame(tick);
+  const dt = Math.min(0.1, (t - last) / 1000); last = t;
+  orbit.update(dt).apply(camera);
+  renderer.render(scene, camera);
+  frames += 1;
+}
+requestAnimationFrame(tick);
+
+/* 화면이 **제 한계를 말한다** — 2D 판과 같은 규율. 안 적으면 그림이 사실처럼 읽힌다. */
+const leak = atlas.leak ? `제목을 가려도 갈래가 ${Math.round(atlas.leak.rate * 100)}% 드러난다` : null;
+hud.innerHTML = `<b>${docs.length}편</b> · 갈래 ${lanes.length} · 높이 = 몰린 정도`
+  + `<div class="warn">끌면 돌고, 굴리면 당기고, shift+끌면 민다.</div>`
+  + `<div class="warn">⚠ 자리는 2차원으로 접은 것이라 <b>찢김이 있다</b>(고유차원 ~18).`
+  + ` 높이는 <b>밀도</b>지 중요도가 아니다.${leak ? ` 이 자료는 비공개다 — ${leak}.` : ''}</div>`;
+document.getElementById('legend').innerHTML = lanes
+  .map((l, i) => `<div><i style="background:rgb(${COLORS[i % COLORS.length].join(',')})"></i>${l}</div>`)
+  .join('');
+/**
+ * 자가 쓰는 손 — **한 번 그리고 그 자리에서 화소를 센다.**
+ * 밖에서 `getContext` 를 새로 부르면 컨텍스트가 어긋나고, 그린 뒤 다음 틱에 읽으면
+ * 그림판이 이미 비워져 있어 **늘 0** 이 나온다(그래서 「검은 화면」으로 잘못 읽힌다).
+ */
+window.__atlas3d = {
+  docs: docs.length,
+  lanes: lanes.length,
+  orbit,
+  peak,
+  /** 몇 판이나 그렸나 — 자가 **첫 판이 그려진 뒤에** 재게 한다(셰이더 링크는 조금 늦는다). */
+  frames: () => frames,
+  lit() {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const w = renderer.domElement.width; const h = renderer.domElement.height;
+    const px = new Uint8Array(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let n = 0;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i] > 40 || px[i + 1] > 40 || px[i + 2] > 40) n += 1;
+    }
+    return { lit: n, of: w * h };
+  },
+};
+</script>
+</body>
+</html>

@@ -7,4 +7,6 @@ export * from './renderer.mjs';
 export * from './light.mjs';
 export * from './fake-shadow.mjs';
 export * from './tex.mjs';
+export * from './orbit.mjs';
+export * from './points.mjs';
 export const THREE_VERSION = '0.169.0';

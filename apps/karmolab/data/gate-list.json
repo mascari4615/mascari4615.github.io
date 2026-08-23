@@ -364,6 +364,28 @@
       ]
     },
     {
+      "name": "test:three",
+      "watch": [
+        "../../packages/three-kit/src/orbit.mjs",
+        "../../packages/three-kit/src/points.mjs",
+        "../../packages/three-kit/src/index.mjs",
+        "../../packages/three-kit/test/orbit-points-test.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "smoke:atlas-3d",
+      "watch": [
+        "tools/atlas-3d/index.html",
+        "scripts/smoke-atlas-3d.mjs",
+        "../../packages/three-kit/src/orbit.mjs",
+        "../../packages/three-kit/src/points.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "test:meaning",
       "watch": [
         "../../packages/meaning/src/embed.mjs",
