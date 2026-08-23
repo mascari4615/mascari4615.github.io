@@ -375,6 +375,17 @@
       ]
     },
     {
+      "name": "test:related",
+      "watch": [
+        "scripts/gen-related-posts.mjs",
+        "scripts/test-related.mjs",
+        "../../packages/meaning/src/embed.mjs",
+        "../../packages/meaning/src/near.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "test:pose",
       "watch": [
         "../../packages/pose/src/source.mjs",

@@ -284,6 +284,8 @@
     "test:three": "node --test ../../packages/three-kit/test/*.mjs",
     "test:pose": "node --test ../../packages/pose/test/*.mjs",
     "fetch:hand": "node scripts/fetch-hand.mjs",
+    "gen:related": "node scripts/gen-related-posts.mjs",
+    "test:related": "node scripts/test-related.mjs",
     "smoke:atlas-3d": "node scripts/smoke-atlas-3d.mjs",
     "test:corecount": "node scripts/test-core-charcount.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",
