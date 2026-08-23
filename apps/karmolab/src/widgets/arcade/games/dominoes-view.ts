@@ -6,9 +6,15 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { diePip } from '../die';
 import { canPlace, type DominoesState, type DominoesAction, type Tile } from './dominoes';
 
-const pip = (t: Tile): string => '<span class="ac-dm">' + t[0] + '<i></i>' + t[1] + '</span>';
+/**
+ * 타일 하나 — 눈은 **점으로 찍는다**(주사위와 같은 부품). 숫자 「3」과 「5」로 적으면
+ * 도미노가 아니라 표가 된다. 가운데 홈이 두 눈을 가른다.
+ */
+const pip = (t: Tile): string =>
+  '<span class="ac-dm">' + diePip(t[0]) + '<i></i>' + diePip(t[1]) + '</span>';
 
 export const dominoesView: GameView<DominoesState, DominoesAction> = {
   id: 'dominoes',

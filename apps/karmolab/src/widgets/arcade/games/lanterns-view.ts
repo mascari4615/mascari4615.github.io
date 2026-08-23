@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { cardBack, cardMark } from '../card';
 import type { LanternsState, LanternsAction } from './lanterns';
 
 const HUE = ['#ef4444', '#22c55e', '#3b82f6'];
@@ -60,12 +61,13 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
           const cards = (s.hands[i] ?? [])
             .map((c, j) => {
               const told = s.told[i]?.[j];
-              const mark = told && (told.color || told.rank) ? '<i>·</i>' : '';
-              return (
-                '<button class="ac-hbc" data-o="' + i + '" data-j="' + j +
-                '" style="border-color:' + HUE[c.color] + ';color:' + HUE[c.color] + '">' +
-                MARK[c.color] + c.rank + mark + '</button>'
-              );
+              return cardMark(MARK[c.color] + c.rank, {
+                can: myTurn && s.hints > 0,
+                hue: HUE[c.color],
+                /* 이미 일러 준 패에는 표를 남긴다 — 같은 말을 두 번 하지 않게. */
+                note: told && (told.color || told.rank) ? '•' : undefined,
+                data: { o: i, j }
+              });
             })
             .join('');
           return '<div class="ac-hbrow"><small>' + seat.name + '</small><div>' + cards + '</div></div>';
@@ -77,25 +79,26 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
         (s.hands[mySeat] ?? [])
           .map((_, j) => {
             const told = s.told[mySeat]?.[j];
-            const face = told && told.rank ? '?' : '·';
-            return (
-              '<button class="ac-hbc ac-back' + (j === picked ? ' ac-pick' : '') +
-              '" data-i="' + j + '">' + face + '</button>'
-            );
+            /* 내 패는 언제나 뒷면 — 들은 것이 있는지는 읽어 주는 이름으로만 갈린다. */
+            return cardBack({
+              can: myTurn,
+              pick: j === picked,
+              data: { i: j },
+              label: told && told.rank ? '들은 것이 있는 내 패' : '내 패'
+            });
           })
           .join('') +
         '</div>';
 
-      mineEl.querySelectorAll<HTMLButtonElement>('.ac-hbc').forEach((b) => {
-        b.disabled = !myTurn;
+      /* 누를 수 있는지는 종이를 만들 때 정해졌다(`can`) — 여기서는 무슨 일이 일어나는지만. */
+      mineEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         b.onclick = () => {
           const i = Number(b.dataset.i);
           picked = picked === i ? -1 : i;
         };
       });
 
-      othersEl.querySelectorAll<HTMLButtonElement>('.ac-hbc').forEach((b) => {
-        b.disabled = !myTurn || s.hints <= 0;
+      othersEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         b.onclick = () => {
           const o = Number(b.dataset.o);
           const j = Number(b.dataset.j);

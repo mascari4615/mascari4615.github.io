@@ -186,6 +186,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-pc .ac-pcc.ac-br{left:auto;top:auto;right:7px;bottom:5px;transform:rotate(180deg)}',
       '.ac-root .ac-pc .ac-pcs{display:block;font-size:13px}',
       '.ac-root .ac-pc .ac-pcm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:36px;line-height:1}',
+      /* 곁말 — 화투의 달 수, 「몇 장 겹쳐 들었나」. 가운데 글자 밑 제 줄에 작게. */
+      '.ac-root .ac-pc .ac-pcn{position:absolute;left:0;right:0;bottom:6px;font-size:11px;font-weight:600;opacity:.72}',
+      /* 패 고유의 색 — 글자가 물들고 안쪽에 그 색 테가 한 겹 돈다(종이는 흰 채로). */
+      '.ac-root .ac-pc[style*="--hue"]{color:var(--hue);box-shadow:var(--ac-card-sh),inset 0 0 0 2px var(--hue)}',
+      /* 집은 패의 금테는 제 색 테보다 위다 — 안 그러면 「지금 고른 것」이 안 보인다. */
+      '.ac-root .ac-pc.ac-pick[style*="--hue"]{box-shadow:0 14px 22px rgba(10,40,30,.38),inset 0 0 0 2px #ffd66b}',
       '.ac-root #acLobby{background:radial-gradient(ellipse 120% 90% at 50% 18%,#f2f1e8 0%,#e9e8de 60%,#dedcd0 100%);border-radius:18px;padding:20px 28px 28px;color:#3c3a30;' +
       '--text-primary:#3c3a30;--text-secondary:#8b897b;--text-tertiary:#a5a396;--bg-primary:#fdfcf7;--bg-secondary:#f4f3ea;--bg-tertiary:#e4e2d6;--bg-hover:#efeee4;--border:rgba(60,58,48,.16);--border-hover:rgba(60,58,48,.3);' +
       '--accent:#3c3a30;--accent-fg:#fdfcf7;--accent-hover:#55523f;--accent-dim:rgba(60,58,48,.08);--accent-subtle:rgba(60,58,48,.05);--accent-glow:rgba(60,58,48,.18)}',
@@ -317,12 +323,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-disc.ac-p2{background:#eab308;border-color:#eab308}',
       '.ac-disc.ac-last{box-shadow:0 0 0 2px var(--accent)}',
       '.ac-four.ac-waiting{opacity:.75}',
-      '.ac-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:100%;margin:var(--space-lg) auto}',
+      /* 열여섯 장이 **한눈에** 들어와야 하는 판이다 — 폭 상한이 없으면 무대가 넓어질수록
+         카드가 커져 세로로 화면을 뚫는다(실측: 4행 900px+). */
+      '.ac-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:min(100%,calc(58vh * .75));margin:var(--space-lg) auto}',
       '.ac-mem.ac-waiting{opacity:.75}',
-      '.ac-card2{aspect-ratio:3/4;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);color:inherit;font-size:min(7vw,26px);cursor:pointer}',
-      '.ac-card2:disabled{cursor:default}',
-      '.ac-card2.ac-open{border-color:var(--accent)}',
-      '.ac-card2.ac-gone{opacity:.35}',
+      /* 격자에 맞춰 늘어나는 종이 — 여기서는 칸이 폭을 정한다(고정 치수를 덮는다). */
+      '.ac-root .ac-mem .ac-pc{width:100%;height:auto;aspect-ratio:3/4}',
+      '.ac-root .ac-mem .ac-pc .ac-pcm{font-size:min(7vw,30px)}',
+      /* 짝지어 걷어낸 것 — 자리는 남기되 물러난다. */
+      '.ac-root .ac-mem .ac-pc.ac-gone{opacity:.32;box-shadow:none}',
       '.ac-hb{max-width:100%;margin:var(--space-lg) auto}',
       '.ac-hblist{list-style:none;padding:0;margin:0 0 10px;max-height:230px;overflow:auto;display:flex;flex-direction:column;gap:4px}',
       '.ac-hblist li{display:flex;justify-content:space-between;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-variant-numeric:tabular-nums}',
@@ -448,12 +457,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-prpick{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:var(--space-lg);min-height:1px}',
       '.ac-dmwrap{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
       '.ac-dmline{display:flex;gap:3px;overflow-x:auto;padding:8px 4px;min-height:52px;align-items:center;justify-content:flex-start;border:1px solid var(--border);border-radius:8px;color:var(--text-secondary)}',
-      '.ac-dm{display:inline-flex;flex-direction:column;align-items:center;gap:1px;min-width:22px;padding:3px 4px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);font-size:12px;font-weight:700;color:inherit}',
-      '.ac-dm i{display:block;width:14px;height:1px;background:var(--border)}',
-      '.ac-dmhand{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}',
-      '.ac-dmt{padding:2px;border:1px solid var(--border);border-radius:6px;background:none;cursor:default;opacity:.5}',
-      '.ac-dmt.ac-can{opacity:1;border-color:var(--accent);cursor:pointer}',
-      '.ac-dmt.ac-pick{outline:2px solid var(--accent);outline-offset:2px}',
+      /* 타일 — 상아 한 조각에 홈이 하나. 눈은 주사위와 같은 점 부품이라 제 배경을 버린다. */
+      '.ac-root .ac-dm{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:5px 4px;border-radius:5px;' +
+      'background:linear-gradient(160deg,#fffdf8,#e9e2d2);box-shadow:0 3px 6px rgba(84,56,22,.26),inset 0 -2px 4px rgba(140,124,98,.26)}',
+      '.ac-root .ac-dm i{display:block;width:100%;height:2px;border-radius:1px;background:rgba(84,56,22,.26)}',
+      '.ac-root .ac-dm .ac-die{--ac-die:24px;background:none;box-shadow:none;padding:0}',
+      '.ac-dmhand{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}',
+      /* 못 내는 타일도 타일이다 — 흐려지는 것은 눈(잉크)뿐. */
+      '.ac-root .ac-dmt{padding:0;border:0;border-radius:7px;background:none;cursor:default}',
+      '.ac-root .ac-dmt:disabled .ac-die i.ac-on{background:#8a8071}',
+      '.ac-root .ac-dmt.ac-can{cursor:pointer}',
+      '.ac-root .ac-dmt.ac-can:hover{transform:translateY(-4px)}',
+      '.ac-root .ac-dmt.ac-pick .ac-dm{box-shadow:0 8px 14px rgba(84,56,22,.34),inset 0 0 0 2px #e8c15a}',
       '.ac-dmbar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}',
       '.ac-cl{max-width:100%;margin:var(--space-lg) auto}',
       '.ac-cl canvas{width:100%;display:block;border:1px solid var(--border);border-radius:8px;background:#eef4fb}',
@@ -505,12 +520,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-hbmeta{margin:8px 0 var(--space-lg);font-size:var(--font-size-xs);color:var(--text-secondary)}',
       '.ac-hbrow,.ac-hbmine{margin-bottom:var(--space-lg)}',
       '.ac-hbrow small,.ac-hbmine small{display:block;font-size:var(--font-size-xs);color:var(--text-secondary);margin-bottom:4px}',
-      '.ac-hbrow>div,.ac-hbmine>div{display:flex;gap:5px;justify-content:center}',
-      '.ac-hbc{position:relative;width:34px;height:46px;border:2px solid var(--border);border-radius:6px;background:var(--bg-primary);font-size:17px;font-weight:700;padding:0;cursor:pointer}',
-      '.ac-hbc:disabled{cursor:default;opacity:.75}',
-      '.ac-hbc.ac-back{background:color-mix(in srgb,var(--accent) 20%,var(--bg-primary));color:var(--text-secondary)}',
-      '.ac-hbc.ac-pick{outline:2px solid var(--accent);outline-offset:2px}',
-      '.ac-hbc i{position:absolute;right:2px;top:0;font-size:11px;font-style:normal}',
+      /* 손패가 여럿 늘어서는 판이라 종이를 작게 쓴다 — 종이 자체는 공용 부품(.ac-pc). */
+      '.ac-hbrow>div,.ac-hbmine>div{display:flex;gap:5px;justify-content:center;--ac-card-w:44px;--ac-card-h:62px;--ac-card-r:6px}',
+      '.ac-root .ac-hb2 .ac-pc .ac-pcm{font-size:19px}',
       '.ac-hbact{display:flex;gap:6px;justify-content:center;min-height:32px;align-items:center}',
       '.ac-wc{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
       '.ac-wcchain{display:flex;gap:6px;align-items:center;justify-content:flex-start;overflow-x:auto;padding:8px;border:1px solid var(--border);border-radius:8px;min-height:42px;font-size:var(--font-size-md)}',

@@ -30,6 +30,11 @@ export interface CardOpts {
   data?: Record<string, string | number>;
   /** 부채꼴에서 기울이기 */
   tilt?: number;
+  /**
+   * 이 패 고유의 색 — 화투 열두 달, 등불 세 빛깔처럼 **색이 곧 규칙**인 판.
+   * 글자와 안쪽 테가 함께 물든다(판마다 인라인 `color`·`border-color` 를 따로 적던 것).
+   */
+  hue?: string;
 }
 
 const attrs = (o: CardOpts): string => {
@@ -38,7 +43,10 @@ const attrs = (o: CardOpts): string => {
     .join('');
   const cls =
     'ac-pc' + (o.can ? ' ac-can' : '') + (o.pick ? ' ac-pick' : '') + (o.dim ? ' ac-dim' : '');
-  const style = o.tilt ? ' style="transform:rotate(' + o.tilt + 'deg)"' : '';
+  const css =
+    (o.tilt ? 'transform:rotate(' + o.tilt + 'deg);' : '') +
+    (o.hue ? '--hue:' + esc(o.hue) + ';' : '');
+  const style = css ? ' style="' + css + '"' : '';
   const label = o.label ? ' aria-label="' + esc(o.label) + '"' : '';
   return ' class="' + cls + '"' + style + label + d + (o.can ? '' : ' disabled');
 };

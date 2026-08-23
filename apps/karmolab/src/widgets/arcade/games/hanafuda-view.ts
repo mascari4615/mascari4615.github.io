@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { cardMark } from '../card';
 import type { HanafudaState, HanafudaAction } from './hanafuda';
 
 /** 달마다 다른 꽃 — 그림 없이 글자와 색만으로 열둘을 구분한다. */
@@ -31,9 +32,14 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
     const who = el.querySelector('#acHfWho') as HTMLElement;
     let picked = -1;
 
-    const card = (m: number, cls: string, data: string): string =>
-      '<button class="ac-hfc' + cls + '" ' + data + ' style="border-color:' + HUE[m] +
-      ';color:' + HUE[m] + '">' + FLOWER[m] + '<i>' + (m + 1) + '</i></button>';
+    /* 종이는 공용 부품이 정한다 — 여기서는 **무엇이 적혀 있는지**(꽃·달·색)만 준다. */
+    const card = (m: number, o: { can?: boolean; pick?: boolean; data: Record<string, number> }): string =>
+      cardMark(FLOWER[m], {
+        ...o,
+        hue: HUE[m],
+        note: String(m + 1),
+        label: FLOWER[m] + ' ' + (m + 1)
+      });
 
     return (v, mySeat) => {
       const s = v.state;
@@ -47,11 +53,10 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       (el.querySelector('#acHfMl') as HTMLElement).textContent = t('arcade.hana.mine');
 
       floorEl.innerHTML = s.floor
-        .map((m, i) => card(m, m === wanted ? ' ac-can' : '', 'data-f="' + i + '"'))
+        .map((m, i) => card(m, { can: myTurn && m === wanted, data: { f: i } }))
         .join('');
-      floorEl.querySelectorAll<HTMLButtonElement>('.ac-hfc').forEach((b) => {
+      floorEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         const i = Number(b.dataset.f);
-        b.disabled = !myTurn || s.floor[i] !== wanted;
         b.onclick = () => {
           act({ hand: picked, floor: i });
           picked = -1;
@@ -59,11 +64,10 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       });
 
       handEl.innerHTML = hand
-        .map((m, i) => card(m, i === picked ? ' ac-pick' : '', 'data-h="' + i + '"'))
+        .map((m, i) => card(m, { can: myTurn, pick: i === picked, data: { h: i } }))
         .join('');
-      handEl.querySelectorAll<HTMLButtonElement>('.ac-hfc').forEach((b) => {
+      handEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         const i = Number(b.dataset.h);
-        b.disabled = !myTurn;
         b.onclick = () => {
           picked = picked === i ? -1 : i;
           /* 짝이 하나뿐이면 두 번 누르게 하지 않는다. */
