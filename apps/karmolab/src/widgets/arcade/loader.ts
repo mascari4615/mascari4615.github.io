@@ -93,6 +93,9 @@ export function ensureView3d(id: string): Promise<boolean> {
       resolve(ok);
     };
     const s = document.createElement('script');
+    /* 입체 조각은 **ESM** 이다 — 받아 둔 three 를 주소로 부르므로(`build.mjs` § 입체 화면).
+       평범한 `<script>` 로 붙이면 `import` 에서 통째로 죽는다. */
+    s.type = 'module';
     s.src = `/apps/karmolab/arcade/games3d/${card.chunk}.js`;
     s.onload = () => end(!!bag3d()[id]);
     s.onerror = () => end(false);

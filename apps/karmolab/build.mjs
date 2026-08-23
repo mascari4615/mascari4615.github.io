@@ -340,7 +340,11 @@ for (const rel of entryPoints) {
       outfile: join(root, `arcade/games3d/${g.chunk}.js`),
       ...FULL_MINIFY,
       bundle: true,
-      format: 'iife',
+      /* ★ 입체 조각만 **ESM** 이다 — 받아 둔 three 를 주소로 부르기 위해서다(`three-vendor.d.ts`).
+         three 를 조각 안에 눌러 담지 않는다: 600KB 를 판마다 다시 받게 되고, 다른 3D 화면
+         (`room/`·`tools/atlas-3d/`)이 쓰는 같은 파일과 캐시도 못 나눈다. */
+      external: ['/packages/three-kit/vendor/three.module.min.js'],
+      format: 'esm',
       platform: 'browser',
       target: ['es2020'],
       logLevel: 'silent'

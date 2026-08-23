@@ -263,12 +263,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-choice.ac-wrong{border-color:#ef4444;opacity:.5}',
       '.ac-bar{height:5px;border-radius:3px;background:var(--border);margin:var(--space-lg) auto 0;max-width:100%;overflow:hidden}',
       '.ac-fill{height:100%;background:var(--accent);width:100%}',
-      /* 오목판 = 나무. 글자 돌(●○)은 판정·읽기용으로 두고 투명 처리 — 보이는 돌은 ::after 가 재질로 그린다. */
-      '.ac-board{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;max-width:100%;margin:var(--space-lg) auto;aspect-ratio:1;background:var(--ac-wood);padding:10px;box-sizing:border-box;border-radius:10px;box-shadow:0 14px 26px rgba(84,56,22,.28),inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
+      /**
+       * 오목판 = 나무. 글자 돌(●○)은 판정·읽기용으로 두고 투명 처리 — 보이는 돌은 ::after 가 그린다.
+       *
+       * ★ **알은 줄이 만나는 점에 놓인다.** 칸 안에 두면 그건 오목이 아니다(사용자 지적).
+       * 칸을 그리는 격자는 그대로 두되, 칸의 **테두리를 줄로** 삼고 돌을 칸의 **좌상단 모서리**로
+       * 옮긴다(`::after` 의 자리). 마지막 줄·열의 점을 위해 판에 한 칸만큼 여백을 준다.
+       */
+      '.ac-board{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;max-width:100%;margin:var(--space-lg) auto;aspect-ratio:1;background:var(--ac-wood);padding:calc(50% / var(--n) + 8px);box-sizing:border-box;border-radius:10px;box-shadow:0 14px 26px rgba(84,56,22,.28),inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
       '.ac-board.ac-waiting{opacity:.85}',
-      '.ac-cell{aspect-ratio:1;border:1px solid var(--ac-wood-line);background:transparent;color:transparent;border-radius:0;font-size:min(4vw,20px);line-height:1;padding:0;cursor:pointer;position:relative}',
+      '.ac-cell{aspect-ratio:1;border:0;border-top:1px solid var(--ac-wood-line);border-left:1px solid var(--ac-wood-line);background:transparent;color:transparent;border-radius:0;font-size:min(4vw,20px);line-height:1;padding:0;cursor:pointer;position:relative}',
       '.ac-cell:disabled{cursor:default}',
-      '.ac-cell.ac-s1::after,.ac-cell.ac-s2::after{content:"";position:absolute;inset:10%;border-radius:50%;box-shadow:var(--ac-sh-rest)}',
+      /* 돌은 칸의 **좌상단 모서리**(=줄이 만나는 점)에 얹힌다. 칸 한가운데가 아니다. */
+      '.ac-cell.ac-s1::after,.ac-cell.ac-s2::after{content:"";position:absolute;left:0;top:0;width:80%;height:80%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:var(--ac-sh-rest)}',
       '.ac-cell.ac-s1::after{background:var(--ac-stone-b)}',
       '.ac-cell.ac-s2::after{background:var(--ac-stone-w)}',
       '.ac-cell.ac-last.ac-s1::after,.ac-cell.ac-last.ac-s2::after{outline:2px solid rgba(226,80,60,.9);outline-offset:1px}',
@@ -280,7 +287,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 돌은 판 위로 `translateZ` 만큼 떠 있어 그림자가 판에 진다.
        */
       /* 입체 판일 때는 무대 판때기를 걷는다 — 눕힌 판보다 **앞에** 떠서 위쪽을 가린다(실측). */
-      '.ac-stage:has(.ac-b3){background:none}',
+      '.ac-stage:has(.ac-b3),.ac-stage:has(.ac-t3){background:none}',
+      /* 진짜 3D 무대(three) — 제 자리를 정사각으로 다 쓴다. 크기는 무대 계약이 정한다. */
+      '.ac-t3{width:100%;aspect-ratio:1;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden}',
+      '.ac-t3.ac-waiting{opacity:.92}',
       '.ac-b3{perspective:1400px;perspective-origin:50% 42%;max-width:100%;margin:var(--space-lg) auto;padding:6% 0 9%}',
       '.ac-b3tilt{position:relative;transform-style:preserve-3d;transform:rotateX(52deg) rotateZ(-1deg);transition:transform var(--transition-slow)}',
       '.ac-b3:hover .ac-b3tilt{transform:rotateX(46deg) rotateZ(-1deg)}',
@@ -314,7 +324,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 화점 — 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2·6 교차, 4,4). */
       /* 화점 — **자리는 판이 정한다**(`board3d.ts` 의 `star`). 여기 칸 번호를 박으면
          칸 수가 다른 판에 엉뚱한 점이 찍힌다(8칸 판에서 실측). 2D 오목판만 아직 번호로 찍는다. */
-      '.ac-cell::before,.ac-c3::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
+      /* 화점도 같은 점(좌상단 모서리)에 찍는다 — 돌과 어긋나면 판이 틀린 것으로 보인다. */
+      '.ac-cell::before{content:"";position:absolute;left:0;top:0;width:0;height:0}',
+      '.ac-c3::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
       '.ac-board .ac-cell:nth-child(21)::before,.ac-board .ac-cell:nth-child(25)::before,' +
       '.ac-board .ac-cell:nth-child(41)::before,' +
       '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before,' +

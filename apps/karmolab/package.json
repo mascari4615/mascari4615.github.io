@@ -448,6 +448,7 @@
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",
     "@mozilla/readability": "^0.6.0",
+    "@types/three": "^0.169.0",
     "axe-core": "^4.13.0",
     "esbuild": "^0.25.0",
     "jsdom": "^29.1.1",
