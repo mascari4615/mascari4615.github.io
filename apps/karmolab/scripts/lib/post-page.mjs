@@ -69,6 +69,22 @@ h1{font-size:30px;line-height:1.3;margin:0 0 24px}
 .md-yt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.7)}
 .md-yt-frame{width:100%;max-width:560px;aspect-ratio:16/9;border:0;border-radius:12px;margin:16px 0}
 .post-adjacent{display:flex;justify-content:space-between;gap:16px;margin:48px 0 8px;padding-top:16px;border-top:1px solid var(--bg-tertiary);font-size:14px}
+/* ★ 글 장도 **게시판 안**처럼 보인다 (change.board-unify ②, 사용자 확정: 「기존 게시판 글
+   그대로 들어가는 것처럼 보이되 주소만 다르게」). 커뮤니티 위젯의 c-wrap·c-gal-head 를
+   같은 규격으로 옮겨 왔다 — 목록에서 글로 들어와도 판을 떠난 느낌이 없어야 한다. */
+.board-wrap{width:100%;max-width:940px;margin:0 auto;padding:20px 22px 26px;
+  background:color-mix(in srgb,var(--bg-primary) 62%,transparent);
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  border:1px solid var(--bg-tertiary);border-radius:14px}
+@supports not (backdrop-filter:blur(1px)){.board-wrap{background:var(--bg-primary)}}
+@media(max-width:620px){.board-wrap{padding:14px 12px 20px;border-radius:0;border-left:0;border-right:0}}
+.board-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--text-tertiary)}
+.board-head .back{font-size:13px;color:var(--text-secondary)}
+.board-head strong{font-size:15px;color:var(--text-primary)}
+.board-post{border-bottom:1px solid var(--bg-tertiary);padding-bottom:8px;margin-bottom:20px}
+/* 본문은 읽기 폭을 지킨다 — 판은 940 이어도 글줄이 940 이면 눈이 줄을 잃는다. */
+.board-wrap .post-body,.board-wrap .post-adjacent,.board-wrap #comments{max-width:760px}
+body.post-page main{max-width:none;padding:8px 20px 64px}
 .post-toc{position:fixed;top:80px;left:calc(50% + 420px);width:220px;font-size:13px;line-height:1.6}
 .post-toc a{display:block;color:var(--text-tertiary);padding:2px 0}.post-toc a.h3{padding-left:14px}
 @media(max-width:1260px){.post-toc{display:none}}
@@ -405,17 +421,23 @@ ${meta.lastmod ? `last_modified_at: ${meta.lastmod}\n` : ''}---
 </head>
 <body class="post-page">
     <header class="post-top">
-        <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/posts/">글</a>
+        <a href="/karmolab/?board=blog#community">◂ 커뮤니티</a>
         <span class="spacer"></span>
         <button id="themeToggle" aria-label="테마 전환">◐</button>
     </header>
     <main>
+      <div class="board-wrap">
+        <div class="board-head">
+            <a class="back" href="/karmolab/?board=blog#community">◂ 목록</a>
+            <strong>글</strong>
+        </div>
         <article>
-            <p class="post-meta">${meta.categories.map(esc).join(' › ')} · <time datetime="${esc(meta.date)}">${dateHuman}</time>${
+            <div class="board-post">
+                <h1>${esc(meta.title)}</h1>
+                <p class="post-meta">${meta.categories.map(esc).join(' › ')} · <time datetime="${esc(meta.date)}">${dateHuman}</time>${
         meta.lastmod ? ` <span title="마지막 수정">(수정 ${meta.lastmod.slice(0, 10)})</span>` : ''
     }</p>
-            <h1>${esc(meta.title)}</h1>
+            </div>
             <div class="post-body">
 ${bodyHtml}
             </div>
@@ -425,6 +447,7 @@ ${bodyHtml}
             </nav>
             <div id="comments"></div>
         </article>
+      </div>
         ${nav.toc ? `<aside class="post-toc" aria-label="목차">${nav.toc}</aside>` : ''}
     </main>
     <script>
