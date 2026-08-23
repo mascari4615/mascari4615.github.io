@@ -364,12 +364,12 @@
       ]
     },
     {
-      "name": "test:three",
+      "name": "test:3d",
       "watch": [
-        "../../packages/three/src/orbit.mjs",
-        "../../packages/three/src/points.mjs",
-        "../../packages/three/src/index.mjs",
-        "../../packages/three/test/orbit-points-test.mjs",
+        "../../packages/3d/src/orbit.mjs",
+        "../../packages/3d/src/points.mjs",
+        "../../packages/3d/src/index.mjs",
+        "../../packages/3d/test/orbit-points-test.mjs",
         "package.json",
         "data/gate-list.json"
       ]
@@ -404,8 +404,8 @@
         "scripts/smoke-atlas-3d.mjs",
         "../../packages/pose/src/source.mjs",
         "../../packages/pose/src/gesture.mjs",
-        "../../packages/three/src/orbit.mjs",
-        "../../packages/three/src/points.mjs",
+        "../../packages/3d/src/orbit.mjs",
+        "../../packages/3d/src/points.mjs",
         "package.json",
         "data/gate-list.json"
       ]

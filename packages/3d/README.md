@@ -1,4 +1,4 @@
-# @karmo/three — three.js 한 벌
+# @karmo/3d — three.js 한 벌
 
 > 정본. **three.js 를 쓰는 곳은 전부 여기를 거친다.**
 > 만든 이유 = 2026-08-21 실측: 이미 세 곳이 three 를 쓰는데 **판이 갈려 있었다** —
@@ -26,7 +26,7 @@
 
 ```js
 import * as THREE from 'karmo-three/three';
-import { createRenderer, gpuTier, roomLight, contactShadow, canvasTex } from '@karmo/three';
+import { createRenderer, gpuTier, roomLight, contactShadow, canvasTex } from '@karmo/3d';
 
 const { renderer, soft } = createRenderer(canvas);   // soft = GPU 없이 그리는 중
 roomLight(scene, { warm: 0xffb673, soft });

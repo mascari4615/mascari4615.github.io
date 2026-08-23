@@ -66,7 +66,7 @@ void main() {
 
 /**
  * 점 구름 하나. 돌려주는 것 = `{ points, geometry, material, update(list), dispose() }`.
- * @param {object} THREE `three-kit/three` 에서 받은 원본
+ * @param {object} THREE `@karmo/3d/three` 에서 받은 원본
  */
 export function createPointCloud(THREE, list, opts = {}) {
   const packed = packPoints(list, opts);

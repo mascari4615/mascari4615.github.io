@@ -1,5 +1,5 @@
 /**
- * @karmo/three — three.js 를 쓰는 곳이 전부 거치는 한 곳.
+ * @karmo/3d — three.js 를 쓰는 곳이 전부 거치는 한 곳.
  * 원본은 안 가린다: `import * as THREE from 'karmo-three/three'`.
  */
 export * from './gpu.mjs';

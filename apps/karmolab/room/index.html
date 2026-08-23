@@ -25,9 +25,9 @@
 </style>
 <script type="importmap">
 {"imports":{
-  "three":"/packages/three-kit/vendor/three.module.min.js",
-  "three/addons/":"/packages/three-kit/vendor/jsm/",
-  "three-kit":"/packages/three-kit/src/index.mjs"
+  "three":"/packages/3d/vendor/three.module.min.js",
+  "three/addons/":"/packages/3d/vendor/jsm/",
+  "@karmo/3d":"/packages/3d/src/index.mjs"
 }}
 </script>
 </head>
@@ -51,7 +51,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { createRenderer, loop, gpuNote } from 'three-kit';
+import { createRenderer, loop, gpuNote } from '@karmo/3d';
 
 /* 치수는 굽는 스크립트(tools/room-bake/room.py)와 **한 벌**이다. */
 const ROOM = { w:4.0, h:2.7, d:3.4 };

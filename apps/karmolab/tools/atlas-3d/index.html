@@ -55,8 +55,8 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "/packages/three/vendor/three.module.min.js",
-    "@karmo/three/": "/packages/three/src/",
+    "three": "/packages/3d/vendor/three.module.min.js",
+    "@karmo/3d/": "/packages/3d/src/",
     "@karmo/pose/": "/packages/pose/src/"
   }
 }
@@ -64,8 +64,8 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { createOrbit } from '@karmo/three/orbit.mjs';
-import { createPointCloud, rgb255, pixelScale } from '@karmo/three/points.mjs';
+import { createOrbit } from '@karmo/3d/orbit.mjs';
+import { createPointCloud, rgb255, pixelScale } from '@karmo/3d/points.mjs';
 import { pointerSource, mergeSources } from '@karmo/pose/source.mjs';
 import { createGestures } from '@karmo/pose/gesture.mjs';
 import { createHandSource } from '@karmo/pose/hand.mjs';
