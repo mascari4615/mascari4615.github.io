@@ -149,6 +149,8 @@ if (!withFit.length) {
   const body = new Map(docs.map((d) => [d.id, `${d.title} ${d.text}`]));
   const textsOf = (docs) => docs.map((d) => body.get(d.id)).filter(Boolean);
 
+  /* 층 합산 판정용 — 표본이 작아 혼자서는 검정력이 없는 층이 여기로 미뤄진다. */
+  const pooled = { better: 0, judged: 0, defer: [] };
   levels.forEach((lv, li) => {
     const f = lv.fit;
     if (!f || !f.judged) return;
@@ -200,9 +202,19 @@ if (!withFit.length) {
     const p = binomP(f.better, f.judged);
     console.log(`  ② 층 ${lv.k} — 찍기(50%)에 대고 재면 p ${p.toFixed(4)}`
       + ` (${f.better}/${f.judged} · 0.05 밑이면 우연이 아니다)`);
+    /**
+     * ★ 같은 병의 반대쪽 끝 — 층에 이름이 6개뿐이면 p<0.05 는 **6/6(무결점)만** 통과한다
+     * (5/6 의 최선이 p 0.109). 그건 「찍기를 이긴다」가 아니라 「한 번도 틀리지 마라」다.
+     * 코퍼스가 1918→749 로 줄며 실제로 걸렸다. 하나 틀려도 p<0.05 가 **수학적으로 불가능한
+     * 층**(judged ≤ 7)은 층 혼자 판정하지 않고 **전 층 합산 이항검정**으로 미룬다 —
+     * 방향(>50%)은 층에서 확인하고, 우연 여부는 표본이 서는 자리에서 묻는다.
+     */
     if (p >= 0.05) {
-      bad.push(`층 ${lv.k} — 이름이 제 무리에 더 맞는 것이 ${f.better}/${f.judged} 라 **찍기와 못 가른다** (p ${p.toFixed(3)})`);
+      const powerless = binomP(f.judged - 1, f.judged) >= 0.05;
+      if (powerless && rate > 0.5) pooled.defer.push({ k: lv.k, better: f.better, judged: f.judged, p });
+      else bad.push(`층 ${lv.k} — 이름이 제 무리에 더 맞는 것이 ${f.better}/${f.judged} 라 **찍기와 못 가른다** (p ${p.toFixed(3)})`);
     }
+    pooled.better += f.better; pooled.judged += f.judged;
     if (!judged) {
       bad.push(`층 ${lv.k} — 실린 값을 하나도 다시 못 쟀다 (재료가 안 맞는다)`);
     } else {
@@ -210,6 +222,26 @@ if (!withFit.length) {
       if (gap > 0.05) bad.push(`층 ${lv.k} — 실린 값과 다시 잰 값이 ${gap.toFixed(3)} 벌어진다`);
     }
   });
+  /* 미뤄진 층의 합산 판정 — 모든 층을 합친 이항검정이 서면 그 층도 우연이 아니라고 본다. */
+  if (pooled.defer.length) {
+    const binomP = (k, n) => {
+      if (!n) return 1;
+      let acc = 0; let c = 1;
+      for (let i = 0; i <= n; i += 1) {
+        if (i >= k) acc += c;
+        c = (c * (n - i)) / (i + 1);
+      }
+      return acc / 2 ** n;
+    };
+    const p = binomP(pooled.better, pooled.judged);
+    console.log(`  ② 합산 — 층 ${pooled.defer.map((d) => d.k).join(',')} 는 표본이 작아(하나 틀려도 p≥0.05)`
+      + ` 전 층 합산으로 판정: ${pooled.better}/${pooled.judged} · p ${p.toFixed(6)}`);
+    if (p >= 0.05) {
+      for (const d of pooled.defer) {
+        bad.push(`층 ${d.k} — ${d.better}/${d.judged} 이고 합산(${pooled.better}/${pooled.judged}, p ${p.toFixed(3)})도 못 가른다`);
+      }
+    }
+  }
 
   /* ④ **이름을 옆 무리 것으로 바꿔치면 떨어져야 한다.** 안 떨어지면 이 자는 이름을 안 보고 있다.
      견줌이 공평하도록 대표어에서 **두 이름의 말을 다 뺀다**(자기 이름이 대표어에 들어 있으면

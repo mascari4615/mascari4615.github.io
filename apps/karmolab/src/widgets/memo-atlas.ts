@@ -97,7 +97,9 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
   type Doi = { used: boolean; why: string; S: number; k: number; alpha: number; hopCost: number;
     recall: number; zero: number; cosine: number; rand: number; want: number; missed: number;
     inner: boolean; flat: boolean; pick: number; test: number; margin: number;
-    sweep: Array<{ alpha: number; recall: number }> };
+    sweep: Array<{ alpha: number; recall: number }>;
+    /* 자료 미달로 못 잰 판 — 이때는 위 수들이 없다. */
+    tooFew?: { focuses: number; pick: number; test: number; needPick: number; needTest: number } };
   /** **씨앗 떨림** — 같은 손잡이로 씨앗만 바꿔 여러 판 구웠을 때 자리가 얼마나 달라지나. */
   type Wobble = { m: number; n: number; med: number; p90: number; nullMed: number; nullP90: number;
     ratio: number; single: number; splitGap: number; keep: number; keepP10: number; nullKeep: number;
@@ -139,7 +141,10 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     shuffled: { lift: number };
     lanes: Array<{ lane: string; all: number; recent: number; lift: number }> };
   /** **이어야 할 둘** — 뜻으로 가까운데 사람 링크가 없는 쌍. 시간으로 잘라 평가한다. */
-  type Suggest = { skipped?: string; pairs: number; test: number; known: number; pool: number;
+  type Suggest = { skipped?: string;
+    /* 자료 미달로 못 잰 판 — 이때는 아래 수들이 없다. */
+    tooFew?: { pairs: number; test: number; known: number; need: number };
+    pairs: number; test: number; known: number; pool: number;
     pairsAll: number; max: number; useful: boolean; cutMonths: string[];
     real: { map: number; p: Array<{ k: number; rate: number }> };
     rand: { map: number; p: Array<{ k: number; rate: number }> };
@@ -1706,7 +1711,13 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       }
       /* **이어야 할 둘** — 「찾았다」가 아니라 **이만큼 중 몇 등**으로 말한다. */
       const sg = atlas?.suggest;
-      if (sg && !sg.skipped) {
+      if (sg && sg.tooFew) {
+        out.push(['재지 못한 것: 이어야 할 둘',
+          `사람이 쓴 링크가 모자라 **시간 절단 평가를 못 했다** — 숨길 링크 ${sg.tooFew.test}개`
+          + ` · 근거 링크 ${sg.tooFew.known}개 (둘 다 ${sg.tooFew.need}개 초과 필요).`
+          + ` 글끼리 링크를 더 이으면 저절로 다시 잰다`]);
+      }
+      if (sg && !sg.skipped && !sg.tooFew) {
         const at = (k: number): number => Math.round((sg.real.p.find((x) => x.k === k)?.rate ?? 0) * 100);
         const rat = (k: number): number => Math.round((sg.rand.p.find((x) => x.k === k)?.rate ?? 0) * 100);
         out.push([sg.useful ? '이어야 할 둘' : '재 보고 **안 내놓는 것**: 이어야 할 둘,',
@@ -1812,7 +1823,12 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       /* ★ **진 것도 적는다.** 관심도(DOI)를 재 봤고 **졌다** — 표를 지우면 다음 사람이
          같은 것을 또 해 본다. 이 프로젝트에서 PaCMAP·MMR 도 같은 자리에 있다. */
       const dd = atlas?.doi;
-      if (dd) {
+      if (dd && dd.tooFew) {
+        out.push(['재지 못한 것: 관심도',
+          `2홉 밖 정답을 가진 초점이 ${dd.tooFew.focuses}개뿐이라 **못 쟀다**`
+          + ` (고르기 ${dd.tooFew.pick}/${dd.tooFew.needPick} · 판정 ${dd.tooFew.test}/${dd.tooFew.needTest})`]);
+      }
+      if (dd && !dd.tooFew) {
         out.push([dd.used ? '무엇을 남길까 (관심도)' : '재 보고 **안 쓴 것**: 관심도',
           `초점에서 **2홉 밖**에 있는 「사람이 손으로 쓴 링크」를 예산 ${dd.S}개 안에서 얼마나 건지나 —`
           + ` 관심도 ${Math.round(dd.recall * 100)}% · 확산 없이 ${Math.round(dd.zero * 100)}%`
@@ -3396,8 +3412,11 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       if (atlas) {
         const st = atlas.lonelyStat;
         const cnt = st ? st.marked : atlas.docs.filter((x) => x.lonely).length;
+        const folded = (st as unknown as { folded?: { overlapBuried: number; marked: number } } | null)?.folded;
         countEl.innerHTML = lonelyOn
-          ? '<b>' + esc('어디에도 안 붙는 글 ' + cnt + '개 — 새 씨앗이거나 잘못 쓴 글이다') + '</b>'
+          ? '<b>' + esc(folded
+            ? `이 판에선 접었다 — 「묻힌 글」과 ${folded.overlapBuried}/${folded.marked} 겹쳐 새 렌즈가 아니었다`
+            : '어디에도 안 붙는 글 ' + cnt + '개 — 새 씨앗이거나 잘못 쓴 글이다') + '</b>'
           : '';
         if (!lonelyOn) mount(atlas);
       }

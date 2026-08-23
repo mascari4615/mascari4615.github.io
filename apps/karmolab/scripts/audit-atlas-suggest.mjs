@@ -59,6 +59,18 @@ if (S.skipped) {
   console.log('  링크에 달이 붙어야 시간으로 자를 수 있다. 생일을 임베딩보다 먼저 채우는지 봐라.');
   process.exit(1);
 }
+/* 자료 미달 선언 — 굽는 쪽이 같은 문턱(50)으로 재지 않기로 한 것. 수가 정말 문턱 아래인지만
+   확인하고 CANNOT-RUN 으로 나간다. 통과가 아니다 — 링크가 다시 쌓이면 저절로 다시 잰다. */
+if (S.tooFew) {
+  const F = S.tooFew;
+  if (F.test > F.need && F.known > F.need) {
+    console.log(`[suggest] **미달이라 적었는데 수는 문턱 위다** (숨길 ${F.test} · 근거 ${F.known} · 문턱 ${F.need})`);
+    process.exit(1);
+  }
+  console.log(`[suggest] CANNOT-RUN — 링크가 모자라 시간 절단 평가를 못 한다`
+    + ` (숨길 ${F.test} · 근거 ${F.known} · 둘 다 ${F.need} 초과 필요 · 이음 전체 ${F.pairs})`);
+  process.exit(2);
+}
 
 const at = (o, k) => (o.p.find((x) => x.k === k) || {}).rate ?? 0;
 console.log(`  ① 시간 절단 — 사람 링크 ${S.pairs}개 중 최근 ${S.cutMonths.join(',')} 의 ${S.test}개를 숨기고`

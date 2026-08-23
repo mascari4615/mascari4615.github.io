@@ -37,19 +37,6 @@ function findMemo(start) {
   }
   return null;
 }
-/**
- * ★ **못 찾았다고 여기서 죽으면 안 된다.** 이 파일은 굽기만 하는 게 아니라 **자들이 함수를
- * 꺼내 쓰려고 import** 한다(예: audit-memo-atlas-fresh). 예전엔 여기서 throw 했는데,
- * memo 가 옆에 없는 곳(마스터 워크트리·CI)에서는 **import 만 해도 죽어서** 자가
- * 「아무 말도 안 하고 죽었다」가 됐다. 굽지 않는 쪽은 memo 가 없어도 살아 있어야 한다.
- */
-const MEMO = findMemo(KARMOLAB);
-const UMBRELLA_ROOT = MEMO ? path.dirname(MEMO) : path.resolve(KARMOLAB, '..', '..', '..');
-/** 실제로 구울 때만 부른다 — 여기서 없으면 그때 죽는 게 맞다. */
-function requireMemo() {
-  if (!MEMO) throw new Error('memo 를 못 찾았다 (INDEX.md 기준). MEMO_PATH 로 알려줘라.');
-  return MEMO;
-}
 const OUT = path.join(KARMOLAB, 'data', 'memo-atlas.json');
 const CACHE = path.join(KARMOLAB, 'data', '.memo-atlas-cache.json');
 
@@ -57,18 +44,102 @@ const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);
 const opt = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
 
-/** 지도에 올릴 갈래. 여기 없는 폴더는 안 본다 — 지도가 아니라 목록이 된다. */
-const LANES = [
-  { dir: 'tasks', lane: 'karmoddrine' },
-  { dir: 'wm/tasks', lane: 'WM' },
-  { dir: 'projects/karmolab/tasks', lane: 'KarmoLab' },
-  { dir: 'projects/yawnbot/tasks', lane: '욘봇' },
-  { dir: 'life/tasks', lane: '인생' },
-  { dir: 'rules', lane: '룰' },
-  { dir: 'brain', lane: '외장뇌' },
-  { dir: 'notes', lane: '노트' },
-  { dir: 'systems', lane: '시스템' },
-];
+// ── 소스 — 지도에 올릴 뿌리들 ─────────────────────────────────────────
+// memo 전용이 아니다. 소스 = { root, name, prefix, laneBy, exclude, laneAlias, xBookmarks }.
+// 해석 순서: `--sources <file>` → `data/atlas.sources.json`(gitignore) → 기본(memo 자동 발견).
+// `--root <path>` 는 일회성 소스를 덧붙인다. 폴더 화이트리스트는 안 쓴다 — 2026-08 memo
+// 개편 때 화이트리스트 9칸 중 6칸이 조용히 죽어 지도가 1,918편 → 34편이 될 뻔했다.
+// 담는 쪽 = 자동 발견 − 제외 목록, 그리고 아래 drift gate 가 급감을 소리 내어 막는다.
+
+/** 기본 제외 — 비밀 그릇과 기계 산출물. 글 폴더는 늘리지 말고 여기서만 뺀다. */
+const SOURCE_EXCLUDE = ['.git', '.github', '.claude', 'node_modules', 'private', 'vault', 'dotfiles', 'scripts'];
+
+/** memo 의 낯익은 갈래 이름 — 폴더명 그대로면 낯선 것만 골라 한글을 입힌다. */
+const MEMO_LANE_ALIAS = {
+  rules: '룰', notes: '노트', systems: '시스템', wm: 'WM', life: '인생',
+  'projects/karmolab': 'KarmoLab', 'projects/yawnbot': '욘봇',
+};
+
+/**
+ * ★ **못 찾았다고 여기서 죽으면 안 된다.** 이 파일은 굽기만 하는 게 아니라 **자들이 함수를
+ * 꺼내 쓰려고 import** 한다(예: audit-memo-atlas-fresh). memo 가 옆에 없는 곳(마스터
+ * 워크트리·CI)에서 import 만 해도 죽으면 자가 「아무 말도 안 하고 죽었다」가 된다.
+ * 그래서 소스 해석 실패는 여기 담아 두고, 실제로 구울 때(requireSources) 소리 내어 죽는다.
+ */
+let SOURCES_ERROR = null;
+
+function normalizeSource(s, baseDir) {
+  const root = path.isAbsolute(s.root) ? s.root : path.resolve(baseDir, s.root);
+  const name = s.name || path.basename(root);
+  return {
+    root,
+    name,
+    /* memo 는 접두사 없음 — id 가 repo 상대경로 그대로라야 git 지도·캐시·TASK 링크가 이어진다. */
+    prefix: s.prefix != null ? s.prefix : (name === 'memo' ? '' : `${name}/`),
+    laneBy: s.laneBy || 'top',           // 'top' = 최상위 폴더가 갈래 · 'name' = 소스 하나가 갈래 하나
+    exclude: [...new Set([...(s.exclude || []), '.git', '.github', 'node_modules'])],
+    laneAlias: s.laneAlias || {},
+    xBookmarks: s.xBookmarks || null,    // 소스 root 기준 상대경로 (X 북마크 json)
+    /* 글로 칠 확장자. 기본 = 마크다운. `.txt` 같은 평문은 그대로 먹는다 —
+       pdf·html 은 본문 추출이 따로 필요해서 여기 못 적는다 (적으면 껍데기가 지도에 오른다). */
+    exts: Array.isArray(s.exts) && s.exts.length ? s.exts : ['.md'],
+    optional: !!s.optional,              // true = 없어도 안 죽는다 (기계마다 있고 없는 소스)
+  };
+}
+
+function defaultSources() {
+  const memo = findMemo(KARMOLAB);
+  if (!memo) return [];
+  return [normalizeSource({
+    root: memo, name: 'memo', exclude: SOURCE_EXCLUDE, laneAlias: MEMO_LANE_ALIAS,
+    xBookmarks: 'brain/x-bookmarks.json',
+  }, KARMOLAB)];
+}
+
+function loadSources() {
+  let sources = [];
+  try {
+    const cfgPath = opt('--sources', null)
+      || (fs.existsSync(path.join(KARMOLAB, 'data', 'atlas.sources.json'))
+        ? path.join(KARMOLAB, 'data', 'atlas.sources.json') : null);
+    if (cfgPath) {
+      /* BOM 관용 — Windows 도구가 UTF-8 에 BOM 을 붙여 저장하는 일이 흔하다. */
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8').replace(/^﻿/, ''));
+      sources = (cfg.sources || []).map((s) => normalizeSource(s, path.dirname(cfgPath)));
+    } else {
+      sources = defaultSources();
+    }
+    argv.forEach((a, i) => { if (a === '--root' && argv[i + 1]) sources.push(normalizeSource({ root: argv[i + 1] }, process.cwd())); });
+  } catch (e) {
+    SOURCES_ERROR = e;                   // 삼키지 않는다 — 구울 때 이 오류로 죽는다
+  }
+  return sources;
+}
+
+const SOURCES = loadSources();
+
+/** 실제로 구울 때만 부른다 — config 오류·없는 root 는 무음 0편 대신 여기서 분명히 죽는다. */
+function requireSources() {
+  if (SOURCES_ERROR) throw new Error(`소스 정의를 못 읽었다: ${SOURCES_ERROR.message}`);
+  if (!SOURCES.length) throw new Error('소스가 없다 — memo 자동 발견 실패 · config(--sources / data/atlas.sources.json)도 없다.');
+  const missing = SOURCES.filter((s) => !s.optional && !fs.existsSync(s.root));
+  if (missing.length) throw new Error(`소스 root 가 없다: ${missing.map((s) => `${s.name}(${s.root})`).join(' · ')}`);
+  return SOURCES;
+}
+
+/** git 이 있는 소스만 — 생일·손댄 날·편집 자취는 git 에서 나온다. worktree 의 `.git` 파일도 통과. */
+function gitSources() {
+  return SOURCES.filter((s) => fs.existsSync(path.join(s.root, '.git')));
+}
+
+/** 소스마다 git 지도를 재서 **id 접두사를 붙여** 한 그릇에 합친다. */
+function mergedGitMap(fn) {
+  const map = new Map();
+  for (const src of gitSources()) {
+    for (const [k, v] of fn(src.root)) map.set(`${src.prefix}${k}`, v);
+  }
+  return map;
+}
 
 /**
  * 글 파일을 모은다.
@@ -79,7 +150,7 @@ const LANES = [
  * 밀리는 게 아니라 **손잡이가 통째로 갈릴 수 있다.** 비결정성은 스택 전체에서 잡거나
  * 아예 안 잡는 것만 못하다(Zhuang 외, MLSys 2022 — 도구발 흔들림이 씨앗발과 같은 크기였다).
  */
-function walk(dir, depth = 0) {
+function walk(dir, depth = 0, exts = ['.md']) {
   if (depth > 3 || !fs.existsSync(dir)) return [];
   const out = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -87,8 +158,8 @@ function walk(dir, depth = 0) {
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   for (const e of entries) {
     const p = path.join(dir, e.name);
-    if (e.isDirectory()) { out.push(...walk(p, depth + 1)); continue; }
-    if (e.isFile() && e.name.endsWith('.md') && e.name !== 'README.md') out.push(p);
+    if (e.isDirectory()) { out.push(...walk(p, depth + 1, exts)); continue; }
+    if (e.isFile() && exts.some((x) => e.name.endsWith(x)) && e.name !== 'README.md') out.push(p);
   }
   return out;
 }
@@ -157,12 +228,11 @@ ${got.body}`.slice(0, 1800);
  * 이 지도의 목적은 「내가 쓴 것」과 「바깥에서 주운 것」을 **한 지도에** 놓고
  * 겹치는 자리를 보는 것이다. 확장이 내려 준 파일을 여기서 읽어 합친다.
  *
- * 파일 자리: memo/brain/x-bookmarks.json (없으면 그냥 지나간다)
+ * 파일 자리 = 소스 정의의 `xBookmarks` (없으면 그냥 지나간다)
  * 갈래 이름 = 「북마크」 — 갈래가 다르면 모양이 달라지므로 지도에서 바로 갈린다.
  */
-function collectBookmarks(memoDir) {
-  const file = path.join(memoDir, 'brain', 'x-bookmarks.json');
-  if (!fs.existsSync(file)) return [];
+function collectBookmarks(file) {
+  if (!file || !fs.existsSync(file)) return [];
   let raw;
   try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return []; }
   const items = raw.items || [];
@@ -189,6 +259,11 @@ function collectBookmarks(memoDir) {
   return docs;
 }
 
+/** 소스마다 제 북마크 파일을 붓는다 — 자리는 소스 정의가 안다. */
+function collectBookmarksAll() {
+  return SOURCES.flatMap((src) => (src.xBookmarks ? collectBookmarks(path.join(src.root, src.xBookmarks)) : []));
+}
+
 /**
  * **블로그 글도 같은 판에 놓는다** (사용자 요청, 2026-08-21).
  *
@@ -202,10 +277,12 @@ function collectBookmarks(memoDir) {
  * `.gitignore` 이고 커밋되는 건 지어낸 가짜뿐이다(`audit-private-origin` 이 지킨다).
  */
 function collectBlog() {
-  const root = path.resolve(KARMOLAB, '..', 'blog', '_posts');
-  if (!fs.existsSync(root)) return [];
+  /* 글 정본이 옮겨 다녔다: Chirpy `apps/blog/_posts` → cutover 후 `content/{posts,drafts}`.
+     옛 자리는 사라졌는데 여기가 그대로면 **블로그 갈래가 조용히 0편**이 된다 — 실제로 그랬다. */
+  const roots = [path.join(KARMOLAB, 'content', 'posts'), path.join(KARMOLAB, 'content', 'drafts')]
+    .filter((r) => fs.existsSync(r));
   const docs = [];
-  for (const file of walk(root)) {
+  for (const { root, file } of roots.flatMap((r) => walk(r).map((f) => ({ root: r, file: f })))) {
     if (!file.endsWith('.md')) continue;
     const raw = fs.readFileSync(file, 'utf8');
     const text = gist(raw);
@@ -219,11 +296,11 @@ function collectBlog() {
        01~12 만 생일로 친다(안 걸렀더니 시간 축 맨 앞에 유령 달 둘이 섰다). */
     const dated = /(\d{4})-(0[1-9]|1[0-2])-\d{2}/.exec(rel) || /(\d{4})-(0[1-9]|1[0-2])-\d{2}/.exec(String(meta.date || ''));
     docs.push({
-      id: `blog/${rel}`,
+      id: `blog/${path.basename(root)}/${rel}`,
       born: dated ? `${dated[1]}-${dated[2]}` : null,
       lane: '블로그',
       title: meta.title ? String(meta.title).replace(/^["']|["']$/g, '') : title(raw, file),
-      status: /DRAFT/i.test(rel) ? 'draft' : '',
+      status: path.basename(root) === 'drafts' || /DRAFT/i.test(rel) ? 'draft' : '',
       done: false,
       bytes: raw.length,
       text,
@@ -248,24 +325,40 @@ function collectBlog() {
 
 function collect() {
   const docs = [];
-  for (const { dir, lane } of LANES) {
-    for (const file of walk(path.join(MEMO, dir))) {
-      const raw = fs.readFileSync(file, 'utf8');
-      const rel = path.relative(MEMO, file).split(path.sep).join('/');
-      const meta = frontmatter(raw);
-      const text = gist(raw);
-      if (text.length < 40) continue;               // 껍데기는 지도에 안 올린다
-      docs.push({
-        id: rel,
-        lane,
-        title: title(raw, file),
-        status: meta.status || '',
-        done: /\/done\//.test(rel) || meta.status === 'done' || meta.status === 'sealed',
-        bytes: raw.length,
-        text,
-        hash: crypto.createHash('sha1').update(text).digest('hex').slice(0, 12),
-      });
+  for (const src of SOURCES) {
+    if (!fs.existsSync(src.root)) continue;         // requireSources 가 이미 판정 — 여기 오면 optional
+    let n = 0;
+    /* 화이트리스트가 아니라 **자동 발견 − 제외** — 소스 안에 폴더가 새로 생기면 저절로 든다. */
+    const tops = fs.readdirSync(src.root, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !src.exclude.includes(e.name))
+      .map((e) => e.name)
+      .sort();
+    for (const top of tops) {
+      for (const file of walk(path.join(src.root, top), 0, src.exts)) {
+        const raw = fs.readFileSync(file, 'utf8');
+        const rel = path.relative(src.root, file).split(path.sep).join('/');
+        const meta = frontmatter(raw);
+        const text = gist(raw);
+        if (text.length < 40) continue;             // 껍데기는 지도에 안 올린다
+        const seg = rel.split('/');
+        const lane = src.laneBy === 'name' ? src.name
+          : (src.laneAlias[`${seg[0]}/${seg[1]}`] || src.laneAlias[seg[0]] || seg[0]);
+        docs.push({
+          id: `${src.prefix}${rel}`,
+          lane,
+          title: title(raw, file),
+          status: meta.status || '',
+          done: /\/done\//.test(rel) || meta.status === 'done' || meta.status === 'sealed',
+          bytes: raw.length,
+          text,
+          hash: crypto.createHash('sha1').update(text).digest('hex').slice(0, 12),
+        });
+        n += 1;
+      }
     }
+    /* 소스를 적어 놓고 0편이면 그건 「글이 없다」가 아니라 **정의가 낡았다**는 신호다. */
+    if (!n && !src.optional) throw new Error(`소스 ${src.name}(${src.root})에서 글 0편 — 제외 목록이 다 먹었거나 구조가 바뀌었다.`);
+    console.log(`[atlas] 소스 ${src.name} — 글 ${n}편 (갈래 후보 ${tops.length}개)`);
   }
   docs.push(...collectBlog());
   return docs;
@@ -776,6 +869,11 @@ function linkSuggest(ok, dist, n, edges, okAt, seed = 1234) {
     if (t && recent.has(t)) test.push([x, y]);
     else known.add(key(x, y));
   }
+  /* ★ 사전 문턱 (자와 같은 수 50) — 미달이면 재지 않고 「자료가 모자란다」로 적는다.
+     작은 표본으로 낸 등수·MAP 은 소음이다. 코퍼스가 1918 → 749(링크 877 → 52)로 줄며 실제로 미달했다. */
+  if (!(test.length > 50 && known.size > 50)) {
+    return { tooFew: { pairs: pairs.length, test: test.length, known: known.size, need: 50 } };
+  }
 
   /** 한 글의 후보 — 뜻으로 가까운 차례, 단 **이미 이어진 쌍은 뺀다**. */
   const candOf = (i, rank) => {
@@ -1082,6 +1180,9 @@ function shareGrid(docs, seed = 909) {
   const rows = [];
   for (const k of SHARE_KS) {
     const g = pickGrid(u, n, k);
+    /* k 가 글 수를 넘으면 어떤 격자도 못 선다 (칸 0) — 그 행은 잰 것이 아니라 0 을 적은 것이다.
+       싣으면 「공격 0% < 우연」이라는 깨진 수가 표에 남는다. 표본이 1918 → 749 로 줄며 실제로 났다. */
+    if (!g.cells) continue;
     const side = g.side;
     const cellOf = (i) => (u[i]
       ? Math.min(side - 1, Math.floor(u[i][0] * side)) * side + Math.min(side - 1, Math.floor(u[i][1] * side))
@@ -3371,6 +3472,16 @@ function interactions(memoDir) {
   return events;                 // 최신이 앞
 }
 
+/** 소스마다 편집 자취를 뽑아 **id 접두사를 붙여** 합친다. 소비처 약속 = 최신이 앞. */
+function mergedInteractions() {
+  const events = [];
+  for (const src of gitSources()) {
+    for (const e of interactions(src.root)) events.push({ ts: e.ts, files: e.files.map((f) => `${src.prefix}${f}`) });
+  }
+  events.sort((a, b) => b.ts - a.ts);
+  return events;
+}
+
 /**
  * **상호작용 DOI 로 「곧 다시 손댈 글」을 짚어 본다.**
  * 지난 바퀴에 이 과제에서 0% 가 나왔다 — 그걸 정면으로 다시 친다.
@@ -3569,8 +3680,8 @@ function revisitCheck(docs, touched, novelty, seed = 77) {
   };
 }
 
-function markBuried(docs, edges, memoDir) {
-  const touched = lastTouched(memoDir);
+function markBuried(docs, edges) {
+  const touched = mergedGitMap(lastTouched);
   const links = new Array(docs.length).fill(0);
   for (const [a, b] of edges) { links[a] += 1; links[b] += 1; }
   const now = Math.floor(Date.now() / 1000);
@@ -3607,11 +3718,14 @@ let edgeFrom = new Map();
 function findEdges(docs) {
   const byTask = new Map();     // 일감 번호 → 글 번호
   const byName = new Map();     // 파일 이름(확장자 뺀 것) → 글 번호
+  const byId = new Map();       // id(상대경로) → 글 번호 — 마크다운 상대링크가 이걸로 맞는다
+  const dupName = new Set();    // 같은 파일 이름이 여럿 — 이름만으로는 못 잇는다 (오연결 방지)
   docs.forEach((d, i) => {
     const m = d.id.match(/TASK-[A-Z]+-\d+(?:-[A-Z])?/);
     if (m && !byTask.has(m[0])) byTask.set(m[0], i);
     const base = d.id.split('/').pop().replace(/\.md$/, '');
-    if (!byName.has(base)) byName.set(base, i);
+    if (byName.has(base)) dupName.add(base); else byName.set(base, i);
+    byId.set(d.id, i);
   });
 
   const seen = new Set();
@@ -3622,6 +3736,10 @@ function findEdges(docs) {
   edgeFrom = new Map();
   const taskPat = /TASK-[A-Z]+-\d+/g;
   const wikiPat = /\[\[([^\]|]+)/g;
+  /* ★ **마크다운 상대링크가 지금 정본의 링크 체계다.** 2026-08 memo 개편 후 TASK 문서가
+     사라지고 글끼리는 `[이름](../systems/x.md)` 로 잇는다 — 이걸 못 읽으면 사람 링크가
+     0개가 되고, 그 위에 선 자들(이어야 할 둘·DOI·제안)이 통째로 죽는다(실제로 그랬다). */
+  const mdPat = /\]\(([^)#?\s]+\.md)\)?/g;
   docs.forEach((d, i) => {
     const hits = new Set();
     for (const m of d.text.matchAll(taskPat)) {
@@ -3630,6 +3748,15 @@ function findEdges(docs) {
     }
     for (const m of d.text.matchAll(wikiPat)) {
       const t = byName.get(m[1].trim());
+      if (t !== undefined) hits.add(t);
+    }
+    for (const m of d.text.matchAll(mdPat)) {
+      const target = m[1];
+      if (/^[a-z]+:/i.test(target)) continue;      // http(s) 등 바깥 주소는 사람 링크가 아니다
+      const baseDir = d.id.split('/').slice(0, -1).join('/');
+      const resolved = path.posix.normalize(baseDir ? `${baseDir}/${target}` : target);
+      const base = target.split('/').pop().replace(/\.md$/, '');
+      const t = byId.get(resolved) ?? (dupName.has(base) ? undefined : byName.get(base));
       if (t !== undefined) hits.add(t);
     }
     for (const j of hits) {
@@ -5296,6 +5423,15 @@ function lonelyPerDoc(ok, docs) {
   for (const i of top) console.log(`[atlas]     ${lof[i].toFixed(2)} ${cand[i].d.lane} · ${cand[i].d.title.slice(0, 40)}`);
   /* 시간 기준(묻힌 글)과 얼마나 겹치나 — 겹치면 새 렌즈가 아니다. 굽는 자리에서 알려 준다. */
   const both = cand.filter((o, i) => lof[i] >= cut && o.d.buried).length;
+  /* ★ 겹침이 1/3 을 넘으면 **렌즈를 접는다** (자와 같은 문턱) — 묻힌 글을 다시 비추는
+     단추는 단추만 하나 는 것이다. 표시를 지우고 접었다는 사실과 수를 남긴다.
+     코퍼스 개편(1918→749·링크 877→52)으로 「부르는 글 없음」이 흔해지자 실제로 넘었다. */
+  if (marked && both / marked > 1 / 3) {
+    for (const o of cand) if (o.d.lonely) delete o.d.lonely;
+    console.log(`[atlas]   혼자 있는 글 렌즈 **접음** — 묻힌 글과 ${both}/${marked} 겹침 (문턱 1/3)`);
+    return { marked: 0, folded: { marked, overlapBuried: both, share: Number((both / marked).toFixed(2)) },
+      cut: Number(cut.toFixed(2)), candidates: n, overlapBuried: both, k: K, minBytes: LONELY_MIN_BYTES };
+  }
   return { marked, cut: Number(cut.toFixed(2)), candidates: n, overlapBuried: both, k: K, minBytes: LONELY_MIN_BYTES };
 }
 
@@ -6332,6 +6468,11 @@ function doiEval(docs, ok, dist, n, edges, okAt, seed = 233) {
 
   const pickSet = focuses.slice(0, DOI_PICK);
   const testSet = focuses.slice(DOI_PICK);
+  /* ★ 사전 문턱 (자와 같은 수: 고르기 20 · 판정 40) — 미달이면 재지 않는다.
+     판정 표본이 얇으면 대조군(다시 잇기)과 진짜가 안 갈린다 — 실제로 12.5% vs 11.8% 가 났다. */
+  if (!(pickSet.length >= 20 && testSet.length >= 40)) {
+    return { tooFew: { focuses: focuses.length, pick: pickSet.length, test: testSet.length, needPick: 20, needTest: 40 } };
+  }
   /* ① α·홉 벌점을 **앞 30개로만 고르고** 뒤 70개로만 보고한다. */
   const grid = [];
   for (const hp of DOI_HOPS) {
@@ -7036,18 +7177,31 @@ async function nameClusters(groups) {
 export { collect, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
 
 async function main() {
-  requireMemo();   // 굽기는 memo 가 있어야 한다 — 없으면 여기서 분명히 죽는다
+  requireSources();   // 굽기는 소스가 있어야 한다 — config 오류·없는 root 는 여기서 분명히 죽는다
   const limit = Number(opt('--limit', '0')) || 0;
   // 기본 = 스스로 고르기. `--clusters N` 을 주면 그 수로 박는다.
   const k = Number(opt('--clusters', '0')) || 0;
-  loadEnvFile(path.join(UMBRELLA_ROOT, 'Mascari4615.github.io', '.env.txt'));
+  const memoSrc = SOURCES.find((s) => s.name === 'memo');
+  if (memoSrc) loadEnvFile(path.join(path.dirname(memoSrc.root), 'Mascari4615.github.io', '.env.txt'));
   loadEnvFile(path.resolve(KARMOLAB, '../../.env.txt'));
 
-  let docs = collect().concat(collectBookmarks(MEMO));
+  let docs = collect().concat(collectBookmarksAll());
   attachLinkBodies(docs);
   docs.sort((a, b) => a.id.localeCompare(b.id));
   if (limit) docs = docs.slice(0, limit);
   console.log(`[atlas] 글 ${docs.length}개 · 갈래 ${new Set(docs.map((d) => d.lane)).size}개`);
+
+  /* ★ drift gate — 지난 판보다 30% 넘게 줄면 죽는다. 폴더 개편이 소스 정의를 비껴가면
+     지도는 **조용히** 쪼그라든다(2026-08 개편 때 1,918편 → 34편이 될 뻔했다).
+     일부러 줄인 거면 `--shrink-ok` 로 지나간다. `--limit` 는 맛보기라 재지 않는다. */
+  if (!limit && !flag('--shrink-ok')) {
+    let prevCount = 0;
+    try { prevCount = JSON.parse(fs.readFileSync(OUT, 'utf8')).count || 0; } catch { /* 첫 굽기 */ }
+    if (prevCount >= 100 && docs.length < prevCount * 0.7) {
+      throw new Error(`글 ${prevCount} → ${docs.length}편 (${Math.round((1 - docs.length / prevCount) * 100)}% 감소)`
+        + ' — 소스 정의가 낡았을 가능성이 크다. 의도한 축소면 --shrink-ok.');
+    }
+  }
 
   let mixStat = null;    // 갈래가 만나는 자리 요약 (iLISI)
   let twinStat = null;   // 겹치는 글(쌍둥이) 요약 — 문턱·곡선·잡힌 수
@@ -7085,7 +7239,7 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
    * 자들에겐 **블로그 글만 생일이 있었고**, 「이어야 할 둘」을 시간으로 자르려 했을 때
    * 링크의 달이 **0가지**로 나왔다. 생일 채우기는 임베딩과 아무 상관이 없으니 앞으로 옮긴다.
    */
-  const born = birthdays(MEMO);
+  const born = mergedGitMap(birthdays);
   let withBorn = 0;
   for (const d of docs) {
     /* 글이 자기 생일을 아는 경우(블로그 앞머리)는 그걸 그대로 쓴다 — git 은 memo 것만 안다. */
@@ -7227,6 +7381,9 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
           sugOut = linkSuggest(ok, distOnce(), ok.length, findEdges(docs), okAt);
           if (sugOut.skipped) {
             console.log(`[atlas]   이어야 할 둘 — ${sugOut.skipped}`);
+          } else if (sugOut.tooFew) {
+            const F = sugOut.tooFew;
+            console.log(`[atlas]   이어야 할 둘 — **자료 미달로 못 잰다** (숨길 링크 ${F.test}개 · 근거 링크 ${F.known}개 · 문턱 ${F.need} 초과)`);
           } else {
             console.log(`[atlas]   이어야 할 둘 — 사람 링크 ${sugOut.pairs}개 중 최근 ${sugOut.cutMonths.join(',')} 의`
               + ` ${sugOut.test}개를 숨기고 나머지 ${sugOut.known}개만 보고 후보를 냈다`
@@ -7295,15 +7452,20 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
            초점에서 **2홉 이상** 떨어진 「사람이 손으로 쓴 링크」를 얼마나 건지나. */
         try {
           doiOut = doiEval(docs, ok, distOnce(), ok.length, findEdges(docs), okAt);
-          console.log(`[atlas]   관심도 — α ${doiOut.alpha} (앞 ${doiOut.pick}개로 고르고 뒤 ${doiOut.test}개로 잼)`
-            + ` · 2홉 밖 정답 ${doiOut.want}개 중 **되찾음 ${(doiOut.recall * 100).toFixed(1)}%**`
-            + ` [확산 없이 ${(doiOut.zero * 100).toFixed(1)}% · 가까운 60개 ${(doiOut.cosine * 100).toFixed(1)}%`
-            + ` · 링크를 마구 다시 이으면 ${(doiOut.rand * 100).toFixed(1)}%]`);
-          console.log(`[atlas]     → **${doiOut.used ? '쓴다' : '안 쓴다'}** — ${doiOut.why}`);
-          console.log(`[atlas]     스윕 ${doiOut.sweep.map((r) => `${r.alpha}:${(r.recall * 100).toFixed(0)}`).join(' ')}`
-            + ` — 안쪽 최대 ${doiOut.inner ? '있다' : '**없다**'} · 놓친 것 ${doiOut.missed}개`
-            + ` · 홉 벌점 ${doiOut.hopCost}(격자 ${doiOut.grid}칸) · 숨은 이웃 수 오차 ${doiOut.hiddenErr} · 확장 top-3 적중 ${doiOut.top3} (아무 방향 ${doiOut.top3Rand})`
-            + ` · ${doiOut.ms}ms`);
+          if (doiOut.tooFew) {
+            const F = doiOut.tooFew;
+            console.log(`[atlas]   관심도 — **자료 미달로 못 잰다** (초점 ${F.focuses}개 → 고르기 ${F.pick}/${F.needPick} · 판정 ${F.test}/${F.needTest})`);
+          } else {
+            console.log(`[atlas]   관심도 — α ${doiOut.alpha} (앞 ${doiOut.pick}개로 고르고 뒤 ${doiOut.test}개로 잼)`
+              + ` · 2홉 밖 정답 ${doiOut.want}개 중 **되찾음 ${(doiOut.recall * 100).toFixed(1)}%**`
+              + ` [확산 없이 ${(doiOut.zero * 100).toFixed(1)}% · 가까운 60개 ${(doiOut.cosine * 100).toFixed(1)}%`
+              + ` · 링크를 마구 다시 이으면 ${(doiOut.rand * 100).toFixed(1)}%]`);
+            console.log(`[atlas]     → **${doiOut.used ? '쓴다' : '안 쓴다'}** — ${doiOut.why}`);
+            console.log(`[atlas]     스윕 ${doiOut.sweep.map((r) => `${r.alpha}:${(r.recall * 100).toFixed(0)}`).join(' ')}`
+              + ` — 안쪽 최대 ${doiOut.inner ? '있다' : '**없다**'} · 놓친 것 ${doiOut.missed}개`
+              + ` · 홉 벌점 ${doiOut.hopCost}(격자 ${doiOut.grid}칸) · 숨은 이웃 수 오차 ${doiOut.hiddenErr} · 확장 top-3 적중 ${doiOut.top3} (아무 방향 ${doiOut.top3Rand})`
+              + ` · ${doiOut.ms}ms`);
+          }
         } catch (e) {
           console.warn(`[atlas]   관심도를 못 쟀다: ${e.message}`);
         }
@@ -7605,7 +7767,7 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
   /* **공개 위험** — 제목을 가려도 이웃이 갈래를 말해 주나. 이웃 목록이 다 채워진 뒤에 잰다. */
   const edges = findEdges(docs);
   console.log(`[atlas] 서로 부르는 짝 ${edges.length}개`);
-  const buriedCount = markBuried(docs, edges, MEMO);
+  const buriedCount = markBuried(docs, edges);
   /* **묻힌 글 표시가 끝난 뒤에** 잰다 — 그래야 「시간 기준과 얼마나 겹치나」를 셀 수 있다. */
   if (okVecs) lonelyStat = lonelyPerDoc(okVecs, docs);
   const skeleton = coords ? buildSkeleton(docs, coords) : null;
@@ -7624,7 +7786,7 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
        담는 쪽에서 이 줄을 보고 막는다: scripts/audit-private-origin.mjs */
     origin: 'private:memo',
     doNotCommit: '이 파일은 공개 레포에 커밋하지 않는다',
-    builtFrom: 'memo',
+    builtFrom: SOURCES.map((s) => s.name).join('+') || 'memo',
     count: docs.length,
     embedded: coords ? coords.size : 0,
     model: usedTier,
@@ -7728,10 +7890,10 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
   try {
     /* ★ `out` 리터럴에 `revisit: revisitOut` 을 적었더니 **null 을 먼저 붙잡아** 안 들어갔다.
        리터럴은 그 순간의 값을 담는다 — 나중에 대입해도 소용없다. 그래서 `out.revisit` 에 직접 넣는다. */
-    out.revisit = revisitCheck(out.docs, lastTouched(MEMO), out.novelty);
+    out.revisit = revisitCheck(out.docs, mergedGitMap(lastTouched), out.novelty);
     /* **상호작용 DOI** — 지난 바퀴에 0% 였던 그 과제를 정면으로 다시 친다. */
     try {
-      out.taskDoi = doiRevisit(out.docs, interactions(MEMO), out.novelty);
+      out.taskDoi = doiRevisit(out.docs, mergedInteractions(), out.novelty);
       const D = out.taskDoi;
       if (D.skipped) console.log(`[atlas] 지금 손대는 것 주변 — ${D.skipped}`);
       else {

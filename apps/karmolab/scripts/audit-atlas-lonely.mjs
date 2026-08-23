@@ -35,6 +35,21 @@ if (!st) {
   console.log('[lonely] 요약이 안 실려 있다 — 굽는 쪽에서 안 돌았나');
   process.exit(1);
 }
+/* 렌즈 접음 — 굽는 쪽이 「묻힌 글과 겹친다」(문턱 1/3)로 표시를 거둔 상태. 그게 바로
+   이 자가 요구하는 대응이다. 수가 정말 문턱 위인지, 표시가 정말 걷혔는지만 확인한다. */
+if (st.folded) {
+  const F = st.folded;
+  if (!(F.marked > 0 && F.overlapBuried / F.marked > 1 / 3)) {
+    console.log(`[lonely] **접었다는데 수는 문턱 아래다** (겹침 ${F.overlapBuried}/${F.marked})`);
+    process.exit(1);
+  }
+  if (lonely.length) {
+    console.log(`[lonely] **접었다면서 표시가 ${lonely.length}개 남아 있다**`);
+    process.exit(1);
+  }
+  console.log(`[lonely] 렌즈 접음 — 묻힌 글과 ${F.overlapBuried}/${F.marked} 겹쳐 새 렌즈가 아니었다 (표시 0개)`);
+  process.exit(0);
+}
 console.log(`[lonely] 혼자 있는 글 ${lonely.length}개 (후보 ${st.candidates} · 문턱 ${st.cut} · 이웃 ${st.k})`);
 if (!lonely.length) {
   console.log('[lonely] **하나도 안 뽑혔다** — 단추를 켜도 아무것도 안 나온다');

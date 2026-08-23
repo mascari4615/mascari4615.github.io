@@ -178,3 +178,12 @@ apps/handheld/unity/HandheldLogs/
 # (끝의 ~ = 「임포터는 보지 마라」 표시). 위의 `*~` 가 통째로 삼키므로 예외를 판다.
 !**/Documentation~/
 !**/Documentation~/**
+
+# ── 지형도(atlas) — 비공개 지식베이스 파생물 ─────────────────────────────────
+# 좌표·이웃만으로도 갈래 복원 72.5% — 제목을 가려도 안 지켜진다(bookmark-terrain 실측).
+# audit-private-origin 게이트가 이중으로 막지만, 여기서도 명시로 못 들어가게 한다.
+# atlas.sources.json 은 소스(비공개 폴더 경로) 정의라 같이 뺀다.
+apps/karmolab/data/memo-atlas.json
+apps/karmolab/data/.memo-atlas-*.json
+apps/karmolab/data/.link-bodies.json
+apps/karmolab/data/atlas.sources.json

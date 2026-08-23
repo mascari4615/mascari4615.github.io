@@ -45,6 +45,18 @@ if (!d) {
   console.log('[doi] **무엇을 남길지 재 본 표가 없다** (doi) — 「전부 그리고 흐리게」가 아직 안 쟨 상수다');
   process.exit(1);
 }
+/* 자료 미달 선언 — 굽는 쪽이 같은 문턱(고르기 20·판정 40)으로 재지 않기로 한 것.
+   수가 정말 문턱 아래인지만 확인하고 CANNOT-RUN 으로 나간다. 통과가 아니다. */
+if (d.tooFew) {
+  const F = d.tooFew;
+  if (F.pick >= F.needPick && F.test >= F.needTest) {
+    console.log(`[doi] **미달이라 적었는데 수는 문턱 위다** (고르기 ${F.pick}/${F.needPick} · 판정 ${F.test}/${F.needTest})`);
+    process.exit(1);
+  }
+  console.log(`[doi] CANNOT-RUN — 2홉 밖 정답을 가진 초점이 모자라 못 잰다`
+    + ` (초점 ${F.focuses}개 → 고르기 ${F.pick}/${F.needPick} · 판정 ${F.test}/${F.needTest})`);
+  process.exit(2);
+}
 
 console.log(`  ① 회수 — α ${d.alpha} · 홉 벌점 ${d.hopCost} (앞 ${d.pick}개로 고르고 뒤 ${d.test}개로 잼)`
   + ` · 2홉 밖 정답 ${d.want}개 중 관심도 ${(d.recall * 100).toFixed(1)}%`
