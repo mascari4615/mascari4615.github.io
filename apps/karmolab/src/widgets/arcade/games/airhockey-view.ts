@@ -7,6 +7,7 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { keyDrive } from '../key-drive';
+import { ice, orb, woodRail } from '../paint';
 import { W, H, PUCK_R, PADDLE_R, GOAL_W, type AirState, type AirAction } from './airhockey';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6'];
@@ -14,8 +15,10 @@ const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 export const airhockeyView: GameView<AirState, AirAction> = {
   id: 'airhockey',
   mount(el, act) {
-    el.innerHTML = '<div class="ac-ah"><canvas id="acAhCv"></canvas></div>';
+    el.innerHTML =
+      '<div class="ac-ah"><div class="ac-plscore" id="acAhScore"></div><canvas id="acAhCv"></canvas></div>';
     const cv = el.querySelector('#acAhCv') as HTMLCanvasElement;
+    const scoreEl = el.querySelector('#acAhScore') as HTMLElement;
 
     /** 프레임당 하나만 보낸다 — 손가락은 1초에 수백 번 움직인다. */
     let pending: { x: number; y: number } | null = null;
@@ -75,11 +78,12 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
 
-      c.fillStyle = '#0e7490';
-      c.fillRect(0, 0, W, H);
-      c.strokeStyle = 'rgba(255,255,255,.5)';
+      /* 얼음판 — 공용 붓(`paint.ts`). 평평한 청록 하나면 판이 종이가 된다. */
+      ice(c, W, H);
+      woodRail(c, W, H, 2.6);
+      c.strokeStyle = 'rgba(40,80,120,.35)';
       c.lineWidth = 0.6;
-      c.beginPath(); c.moveTo(0, H / 2); c.lineTo(W, H / 2); c.stroke();
+      c.beginPath(); c.moveTo(2, H / 2); c.lineTo(W - 2, H / 2); c.stroke();
       c.beginPath(); c.arc(W / 2, H / 2, 12, 0, Math.PI * 2); c.stroke();
 
       /* 골대 */
@@ -93,26 +97,25 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       }
 
       s.paddles.forEach((p, i) => {
-        c.beginPath();
-        c.arc(p.x, p.y, PADDLE_R, 0, Math.PI * 2);
-        c.fillStyle = SEAT_COLOR[i];
-        c.fill();
+        /* 손잡이는 **얼음 위에 놓인 알**이다(`orb`) — 그림자와 빛이 한 규칙. */
+        orb(c, p.x, p.y, PADDLE_R, SEAT_COLOR[i]);
         if (i === mySeat) {
-          c.lineWidth = 1;
-          c.strokeStyle = '#fff';
-          c.stroke();
+          c.beginPath();
+          c.arc(p.x, p.y, PADDLE_R * 0.42, 0, Math.PI * 2);
+          c.fillStyle = 'rgba(255,255,255,.9)';
+          c.fill();
         }
       });
 
-      c.beginPath();
-      c.arc(s.puck.x, s.puck.y, PUCK_R, 0, Math.PI * 2);
-      c.fillStyle = '#0f172a';
-      c.fill();
+      /* 퍽은 검은 고무 — 빛을 조금만 받는다. */
+      orb(c, s.puck.x, s.puck.y, PUCK_R, '#2b3446', '#7c8798');
 
-      c.fillStyle = 'rgba(255,255,255,.9)';
-      c.font = 'bold 9px sans-serif';
-      c.fillText(String(s.score[1]), 3, 12);
-      c.fillText(String(s.score[0]), 3, H - 5);
+      /* 점수는 판 밖 알약으로 — 캔버스 안 글자는 무대가 커져도 안 커진다. */
+      scoreEl.innerHTML = v.seats
+        .map((seat, i) =>
+          '<span class="ac-plc' + (i === mySeat ? ' ac-me' : '') + '" style="--c:' + SEAT_COLOR[i] + '">' +
+          seat.name + ' <b>' + (s.score[i] ?? 0) + '</b></span>')
+        .join('');
     };
   }
 };

@@ -10,6 +10,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { ice, orb } from '../paint';
 import { W, H, TEE, HOUSE_R, R, type CurlingState, type CurlingAction } from './curling';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
@@ -51,9 +52,8 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       c.setTransform(k, 0, 0, k, 0, 0);
       c.clearRect(0, 0, W, H);
 
-      /* 얼음 */
-      c.fillStyle = '#eef4fb';
-      c.fillRect(0, 0, W, H);
+      /* 얼음 — 공용 붓(`paint.ts`). 평평한 한 색이면 종이가 된다. */
+      ice(c, W, H);
 
       /* 하우스 — 바깥부터 안쪽으로 */
       const rings: Array<[number, string]> = [
@@ -89,18 +89,16 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       }
 
       for (const st of s.stones) {
-        c.beginPath();
-        c.arc(st.x, st.y, R, 0, Math.PI * 2);
-        c.fillStyle = SEAT_COLOR[st.seat % SEAT_COLOR.length];
-        c.fill();
-        c.lineWidth = 0.8;
-        c.strokeStyle = 'rgba(15,23,42,.55)';
-        c.stroke();
+        /* 돌은 얼음 위에 **놓인 것**이다 — 그림자와 빛을 같이 그린다(`orb`). */
+        orb(c, st.x, st.y, R, SEAT_COLOR[st.seat % SEAT_COLOR.length]);
         /* 손잡이 — 어느 쪽 돌인지 겹쳐도 보이게 */
         c.beginPath();
-        c.arc(st.x, st.y, R * 0.38, 0, Math.PI * 2);
-        c.fillStyle = 'rgba(255,255,255,.85)';
+        c.arc(st.x, st.y, R * 0.34, 0, Math.PI * 2);
+        c.fillStyle = 'rgba(252,250,246,.92)';
         c.fill();
+        c.lineWidth = 0.4;
+        c.strokeStyle = 'rgba(15,23,42,.3)';
+        c.stroke();
       }
 
       aimL.textContent = t('arcade.curling.aim');
