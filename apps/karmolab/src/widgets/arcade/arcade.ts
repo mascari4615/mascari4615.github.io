@@ -126,8 +126,33 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-sh-rest:0 3px 5px rgba(60,40,16,.4);' +
       '--ac-sh-lift:0 14px 22px rgba(20,24,20,.35);' +
       '--ac-stone-b:radial-gradient(circle at 34% 28%,#6e6a66 0%,#262422 42%,#100f0e 100%);' +
-      '--ac-stone-w:radial-gradient(circle at 34% 28%,#ffffff 0%,#f3efe6 45%,#cfc7b8 100%)' +
+      '--ac-stone-w:radial-gradient(circle at 34% 28%,#ffffff 0%,#f3efe6 45%,#cfc7b8 100%);' +
+      /* 카드 한 벌 — 같은 카드가 판마다 7가지 치수였다(64×88·64×90·52×72·44×62·38×52·34×48·34×46).
+         종이는 한 종류다: 치수·모서리·뒷면을 여기서 한 번 정하고 열여섯 판이 같이 쓴다. */
+      '--ac-card-w:64px;--ac-card-h:90px;--ac-card-r:9px;' +
+      '--ac-card-face:linear-gradient(168deg,#ffffff 0%,#fbf8f2 62%,#f0ebe0 100%);' +
+      '--ac-card-back:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 4px,rgba(255,255,255,0) 4px 8px),linear-gradient(150deg,#2f6f5e 0%,#245647 100%);' +
+      '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
+      '--ac-red:#c62f36;--ac-black:#23201c' +
       '}',
+      /* 카드 부품 — 앞면/뒷면/낼 수 있음/집은 것. 판마다 `.ac-card2`(짝 맞추기)처럼 제 이름이
+         있던 것을 이 한 벌로 모은다. 크기가 다를 이유가 있는 판만 --ac-card-w 를 덮어쓴다. */
+      '.ac-root .ac-pc{position:relative;width:var(--ac-card-w);height:var(--ac-card-h);border:0;border-radius:var(--ac-card-r);background:var(--ac-card-face);box-shadow:var(--ac-card-sh);color:var(--ac-black);font-weight:700;padding:0;cursor:default;transition:transform var(--transition-fast)}',
+      '.ac-root .ac-pc.ac-red{color:var(--ac-red)}',
+      '.ac-root .ac-pc.ac-back{background:var(--ac-card-back);color:transparent}',
+      '.ac-root .ac-pc.ac-can{cursor:pointer}',
+      '.ac-root .ac-pc.ac-can:hover{transform:translateY(-6px)}',
+      '.ac-root .ac-pc.ac-pick{transform:translateY(-10px);box-shadow:0 14px 22px rgba(10,40,30,.38),inset 0 0 0 2px #ffd66b}',
+      /* 못 내는 카드도 **종이는 종이다** — 투명하게 만들면 펠트가 비쳐 카드가 사라진다(실측).
+         흐린 것은 글자다: 종이는 그대로 두고 잉크만 옅게. */
+      '.ac-root .ac-pc:disabled{cursor:default}',
+      '.ac-root .ac-pc.ac-dim{color:#9a958c}',
+      '.ac-root .ac-pc.ac-dim .ac-pcm{opacity:.55}',
+      /* 모서리 두 곳 + 가운데 큰 무늬 — 진짜 카드의 읽는 법이다. */
+      '.ac-root .ac-pc .ac-pcc{position:absolute;left:7px;top:5px;font-size:15px;line-height:1.05;text-align:center}',
+      '.ac-root .ac-pc .ac-pcc.ac-br{left:auto;top:auto;right:7px;bottom:5px;transform:rotate(180deg)}',
+      '.ac-root .ac-pc .ac-pcs{display:block;font-size:13px}',
+      '.ac-root .ac-pc .ac-pcm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:36px;line-height:1}',
       '.ac-root #acLobby{background:radial-gradient(ellipse 120% 90% at 50% 18%,#f2f1e8 0%,#e9e8de 60%,#dedcd0 100%);border-radius:18px;padding:20px 28px 28px;color:#3c3a30;' +
       '--text-primary:#3c3a30;--text-secondary:#8b897b;--text-tertiary:#a5a396;--bg-primary:#fdfcf7;--bg-secondary:#f4f3ea;--bg-tertiary:#e4e2d6;--bg-hover:#efeee4;--border:rgba(60,58,48,.16);--border-hover:rgba(60,58,48,.3);' +
       '--accent:#3c3a30;--accent-fg:#fdfcf7;--accent-hover:#55523f;--accent-dim:rgba(60,58,48,.08);--accent-subtle:rgba(60,58,48,.05);--accent-glow:rgba(60,58,48,.18)}',
@@ -371,9 +396,21 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-bjc{width:44px;height:62px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);display:grid;place-items:center;font-size:20px;font-weight:700}',
       '.ac-bjc.ac-back{background:color-mix(in srgb,var(--accent) 22%,var(--bg-primary));color:var(--text-secondary)}',
       '.ac-bjbar{display:flex;gap:8px;justify-content:center}',
-      '.ac-pr{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
-      '.ac-prpile{min-height:70px;display:flex;gap:6px;justify-content:center;align-items:center;color:var(--text-secondary)}',
-      '.ac-prhand{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}',
+      /* 카드 판은 **펠트 위**에서 논다 — 판마다 다른 바닥을 쓰면 열여섯 판이 열여섯 방이 된다. */
+      '.ac-root .ac-pr{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
+      '.ac-root .ac-pr small{color:rgba(234,242,238,.7)}',
+      /* 바닥에 깔린 짝 — 살짝 겹쳐 던져 놓은 모양(카드마다 tilt). */
+      '.ac-prpile{min-height:104px;display:flex;gap:0;justify-content:center;align-items:center}',
+      '.ac-prpile .ac-pc{margin-left:-22px}',
+      '.ac-prpile .ac-pc:first-child{margin-left:0}',
+      /* 내 손패 — 겹쳐 쥔다. 낼 수 있는 것만 떠오른다(`.ac-can:hover`). */
+      '.ac-prhand{display:flex;gap:0;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0;padding-top:12px}',
+      /* 겹침은 카드 폭의 1/6 만 — 절반을 겹치면 끗수가 가려져 무엇을 드는지 안 보인다(실측). */
+      '.ac-prhand .ac-pc{margin-left:calc(var(--ac-card-w) / -6)}',
+      '.ac-prhand .ac-pc:first-child{margin-left:0}',
+      /* 손패의 「몇 장」은 카드 아래쪽에 작게 — 가운데 큰 글자와 겹치면 둘 다 안 읽힌다. */
+      '.ac-prhand .ac-pcm{font-size:30px;top:42%}',
+      '.ac-prhand .ac-pcn{position:absolute;left:0;right:0;bottom:8px;font-size:12px;color:#7d776d}',
       '.ac-prc{position:relative;width:44px;height:62px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-secondary);display:inline-grid;place-items:center;font-size:19px;font-weight:700;padding:0}',
       '.ac-prc.ac-can{color:inherit;border-color:var(--accent);cursor:pointer}',
       '.ac-prc:disabled{opacity:.45;cursor:default}',

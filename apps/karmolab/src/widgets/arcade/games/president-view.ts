@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { cardMark } from '../card';
 import { options, power, type PresidentState, type PresidentAction } from './president';
 
 const label = (r: number): string =>
@@ -34,8 +35,11 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
       const hand = s.hands[mySeat] ?? [];
       const opts = myTurn ? options(s, mySeat) : [];
 
+      /* 카드는 공용 한 벌(`card.ts`)로 그린다 — 이 판만의 치수·모양을 따로 두지 않는다. */
       pileEl.innerHTML = s.pile
-        ? Array.from({ length: s.pile.count }, () => '<span class="ac-prc">' + label(s.pile!.rank) + '</span>').join('')
+        ? Array.from({ length: s.pile.count }, (_, i) =>
+            cardMark(label(s.pile!.rank), { tilt: (i - (s.pile!.count - 1) / 2) * 7 })
+          ).join('')
         : '<small>' + t('arcade.president.empty') + '</small>';
 
       const ranks = [...new Set(hand)].sort((a, b) => power(a) - power(b));
@@ -43,14 +47,18 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
         .map((r) => {
           const n = hand.filter((c) => c === r).length;
           const can = opts.some((o) => o.rank === r);
-          return (
-            '<button class="ac-prc ac-prpickable' + (can ? ' ac-can' : '') + (r === picked ? ' ac-pick' : '') +
-            '" data-r="' + r + '"' + (can ? '' : ' disabled') + '>' + label(r) +
-            (n > 1 ? '<i>×' + n + '</i>' : '') + '</button>'
-          );
+          /* 같은 수가 여러 장이면 장수를 **아래 제 줄**에 적는다 — 끗수와 겹치면 둘 다 안 읽힌다. */
+          return cardMark(label(r), {
+            can,
+            pick: r === picked,
+            dim: !can,
+            note: n > 1 ? '×' + n : undefined,
+            label: label(r) + (n > 1 ? ' ' + n + '장' : ''),
+            data: { r }
+          });
         })
         .join('');
-      handEl.querySelectorAll<HTMLButtonElement>('.ac-prpickable').forEach((b) => {
+      handEl.querySelectorAll<HTMLButtonElement>('.ac-pc[data-r]').forEach((b) => {
         b.onclick = () => {
           const r = Number(b.dataset.r);
           picked = picked === r ? -1 : r;
