@@ -41,7 +41,8 @@ const open = async () => {
 
 let cantRun = '';
 const host = await open();
-await host.waitForSelector('[data-host="reflex"]', { timeout: 20000 });
+await host.waitForSelector('[data-obj="reflex"]', { timeout: 20000 });
+await host.click('[data-obj="reflex"]');
 await host.click('[data-host="reflex"]');
 const link = await host.locator('#acUrl').inputValue();
 check('초대 링크가 생겼다', /\?r=/.test(link), link);
@@ -84,6 +85,7 @@ if (!cantRun) {
   check('손님에게 「고르는 중」이 뜬다', told, await guest.locator('#acOverHead').textContent());
 
   /* 다른 게임을 고른다 — 링크를 다시 안 보냈는데 손님이 따라와야 한다. */
+  await host.click('[data-obj="nunchi"]');
   await host.click('[data-host="nunchi"]');
   const swapped = await guest
     .waitForFunction(() => window.__arcade?.game === 'nunchi', null, { timeout: 60000 })
@@ -104,6 +106,7 @@ if (!cantRun) {
   await watcher.goto(link, { waitUntil: 'domcontentloaded', timeout: 20000 });
   await watcher.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   await host.waitForTimeout(5000);
+  await host.click('[data-obj="gomoku"]');
   await host.click('[data-host="gomoku"]');
   const saw = await watcher
     .waitForFunction(() => window.__arcade?.game === 'gomoku', null, { timeout: 60000 })

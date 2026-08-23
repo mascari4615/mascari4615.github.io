@@ -47,13 +47,15 @@ const openGame = async (id) => {
     const over = document.querySelector('#acOver');
     if (over && over.style.display !== 'none') document.querySelector('#acQuit')?.click();
   });
-  /* 로비는 여섯 개만 내놓는다(pick6) — 나머지는 **찾아서** 연다. 사람이 하는 것과 같은 길이다. */
   /* 로비가 돌아올 때까지 기다린다 — 판을 끝내고 나오는 길은 놀이마다 몇 백 ms 씩 다르다. */
   await p.waitForSelector('#acFind', { state: 'visible', timeout: 20000 });
-  if (!(await p.isVisible(`[data-solo="${id}"]`).catch(() => false))) {
+  if (!(await p.isVisible(`[data-obj="${id}"]`).catch(() => false))) {
     await p.fill('#acFind', id);
-    /* 재우지 않는다 — 바로 아래에서 그 단추가 보일 때까지 기다린다(같은 일을 두 번 하지 않는다). */
+    /* 재우지 않는다 — 바로 아래에서 그 물건이 보일 때까지 기다린다(같은 일을 두 번 하지 않는다). */
   }
+  /* 진열장의 물건을 집으면 시작 단추가 뜬다 — 사람이 가는 길 그대로 두 번 누른다. */
+  await p.waitForSelector(`[data-obj="${id}"]`, { state: 'visible', timeout: 20000 });
+  await p.click(`[data-obj="${id}"]`);
   await p.waitForSelector(`[data-solo="${id}"]`, { state: 'visible', timeout: 20000 });
   await p.click(`[data-solo="${id}"]`);
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
@@ -78,7 +80,7 @@ const openGame = async (id) => {
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-solo="gomoku"]', { timeout: 30000 });
+  await p.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
 
   await openGame('gomoku');
   check('판이 서면 무대에 초점이 온다', (await p.evaluate(() => document.activeElement?.id)) === 'acStage');
@@ -137,7 +139,7 @@ if (!cantRun) {
     const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     check(`${id}: 짚은 자리가 다시 그려도 남는다`, now0 === 1 && later === 1, `직후 ${now0} · 0.5초 뒤 ${later}`);
     await p.click('#acQuit');
-    await p.waitForSelector('[data-solo]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: 10000 });
   }
 
   /* ── 한붓그리기: 그림판인데도 키로 긋는다 (TASK-KL-317) ──────────────
@@ -159,7 +161,7 @@ if (!cantRun) {
   check('한붓그리기: 첫 수 뒤엔 붓 끝에 닿는 선만 남는다', opens2 > 0 && opens2 <= 4, `${opens} → ${opens2}개`);
   check('한붓그리기: 엔터가 진짜로 한 획 긋는다', after === before + 1, `${before} → ${after}`);
   await p.click('#acQuit');
-  await p.waitForSelector('[data-solo]', { timeout: 10000 });
+  await p.waitForSelector('[data-obj]', { timeout: 10000 });
 
   /* ── 탁구·에어하키: 그림판이라도 키로 (TASK-KL-317) ────────────────
      여기서 재는 것 = ① 화살표를 누르고 있으면 **라켓이 실제로 옮겨진다**
@@ -269,7 +271,7 @@ if (!cantRun) {
    *
    * 그래서 이제 **눌러 보고 판이 바뀌는지**로 잰다. 그게 애초에 알고 싶던 것이다.
    */
-  const ids = await p.$$eval('[data-solo]', (bs) => bs.map((b) => b.dataset.solo));
+  const ids = await p.$$eval('[data-obj]', (bs) => bs.map((b) => b.dataset.obj));
   let keyable = 0;
   const mouseOnly = [];
   for (const id of ids) {
@@ -290,7 +292,7 @@ if (!cantRun) {
     if (before !== after || cursor > 0) keyable += 1;
     else mouseOnly.push(id);
     await p.click('#acQuit');
-    await p.waitForSelector('[data-solo]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: 10000 });
   }
   /**
    * **이 수로는 게이트를 안 건다.** 「키로 놀 수 있나」를 한 순간에 재려고 세 번 시도했고

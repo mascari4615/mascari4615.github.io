@@ -41,7 +41,7 @@ const open = async () => {
   await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-solo="gomoku"]', { timeout: 30000 });
+  await p.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
   return p;
 };
 
@@ -49,6 +49,7 @@ let host;
 if (!cantRun) {
   host = await open();
   /* 「같이」(비공개)로 먼저 연다 — 이건 목록에 뜨면 안 된다. */
+  await host.click('[data-obj="gomoku"]');
   await host.click('[data-host="gomoku"]');
   await host.waitForSelector('#acCode', { timeout: 20000 });
   const quiet = await host.locator('#acCode').textContent();
@@ -56,9 +57,10 @@ if (!cantRun) {
   const after = await (await fetch(API)).json();
   check('「같이」로 연 방은 목록에 안 뜬다', !after.rooms.some((r) => r.code === quiet), quiet || '');
   await host.click('#acWaitQuit');
-  await host.waitForSelector('[data-solo]', { timeout: 10000 });
+  await host.waitForSelector('[data-obj]', { timeout: 10000 });
 
   /* 이제 「같이 찾기」(공개) */
+  await host.click('[data-obj="gomoku"]');
   await host.click('[data-find="gomoku"]');
   await host.waitForSelector('#acCode', { timeout: 20000 });
   const code = (await host.locator('#acCode').textContent())?.trim() ?? '';

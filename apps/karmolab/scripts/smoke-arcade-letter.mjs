@@ -60,12 +60,13 @@ let a;
 try {
   a = await open(PAGE);
   await a.evaluate(() => Toolbox.switchPage('arcade'));
-  await a.waitForSelector('[data-letter="gomoku"]', { timeout: 30000 });
+  await a.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
 } catch (e) {
   cantRun = `오락실이 안 떴다 — ${e.message.slice(0, 60)}`;
 }
 
 if (!cantRun) {
+  await a.click('[data-obj="gomoku"]');
   await a.click('[data-letter="gomoku"]');
   await a.waitForSelector('.ac-cell', { timeout: 45000 });
   check('편지 줄이 뜬다', await a.locator('#acLetter').isVisible());

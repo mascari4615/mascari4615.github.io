@@ -38,7 +38,8 @@ try {
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-solo="reflex"]', { timeout: 60000 });
+  await p.waitForSelector('[data-obj="reflex"]', { timeout: 60000 });
+  await p.click('[data-obj="reflex"]');
   await p.click('[data-solo="reflex"]');
   await p.waitForSelector('.ac-choice', { timeout: 45000 });
   /* 시작 3초 덮개가 걷힌 뒤에 눌러야 한다 — 덮개 위를 누르면 아무 데도 안 닿는다. */

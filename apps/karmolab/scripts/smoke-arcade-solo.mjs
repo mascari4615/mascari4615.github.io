@@ -81,7 +81,7 @@ if (server) await server.close();
 
   await page.fill('#acFind', '스무고개');
   await page.waitForTimeout(300);
-  const hits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-card b', (n) =>
+  const hits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-obj b', (n) =>
     n.map((x) => x.textContent.trim())
   );
   check('찾기가 방 게임과 혼자 놀이를 함께 잡는다', hits.length >= 2, hits.join(' / '));

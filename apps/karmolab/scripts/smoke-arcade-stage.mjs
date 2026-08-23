@@ -38,12 +38,13 @@ try {
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-solo]', { timeout: 30000 });
-  const ids = await p.$$eval('[data-solo]', (bs) => bs.map((b) => b.dataset.solo));
+  await p.waitForSelector('[data-obj]', { timeout: 30000 });
+  const ids = await p.$$eval('[data-obj]', (bs) => bs.map((b) => b.dataset.obj));
 
   const widths = new Map();
   const thin = [];
   for (const id of ids) {
+    await p.click(`[data-obj="${id}"]`);
     await p.click(`[data-solo="${id}"]`);
     await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 }).catch(() => {});
     await p.waitForTimeout(120);
@@ -57,7 +58,7 @@ if (!cantRun) {
     /* 절반은 써야 「무대에 담겼다」고 할 수 있다. 무너지면 한 자릿수 px 이 된다. */
     if (seen.widest < seen.stage * 0.5) thin.push(`${id}(${seen.widest}px)`);
     await p.click('#acQuit');
-    await p.waitForSelector('[data-solo]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: 10000 });
   }
 
   check(`무대 폭이 ${ids.length}판 내내 같다`, widths.size === 1,
@@ -65,6 +66,7 @@ if (!cantRun) {
   check('판이 무대를 채운다 (폭 0 으로 안 무너진다)', thin.length === 0, thin.slice(0, 6).join(' '));
 
   /* 풀스크린은 무대만 커진다 — 그 안의 것이 같이 커져야 뜻이 있다. */
+  await p.click('[data-obj="gomoku"]');
   await p.click('[data-solo="gomoku"]');
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
   const small = await p.evaluate(() => Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width));
@@ -105,7 +107,8 @@ if (!cantRun) {
     await q.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await q.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
     await q.evaluate(() => Toolbox.switchPage('arcade'));
-    await q.waitForSelector('[data-solo="gomoku"]', { timeout: 20000 });
+    await q.waitForSelector('[data-obj="gomoku"]', { timeout: 20000 });
+    await q.click('[data-obj="gomoku"]');
     await q.click('[data-solo="gomoku"]');
     await q.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
     await q.waitForTimeout(200);

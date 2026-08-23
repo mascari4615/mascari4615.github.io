@@ -25,7 +25,7 @@ import { CARDS, cardById } from './catalog-meta.generated';
 import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
-import { iconOf, kindOf, KINDS, type Kind } from './meta';
+import { iconOf, kindOf } from './meta';
 import { viewById } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
@@ -41,7 +41,7 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
-import { pick6, matches, SLOTS } from './pick6';
+import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
 import { record, type Tape } from './replay';
@@ -103,45 +103,64 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     el.id = 'ac-style';
     el.textContent = [
       /**
-       * ── 오락실 스킨 (change.arcade-redesign) ──
+       * ── 오락실 로비 = 진열장 (change.arcade-redesign) ──
        *
-       * 조이콘 한 쌍이 곧 문법: **혼자 = 파랑 · 같이 = 빨강**. 카드마다 이 두 색이 반복되어
-       * 색만 보고도 무엇이 열리는지 안다.
+       * 로비만 테마와 무관하게 **따뜻한 상아색 탁자**다. 어두운 방에서도 진열장에는 불이
+       * 켜져 있는 것 — 그게 이 방의 정체성이다. 판(무대) 화면은 테마를 그대로 따른다.
        *
-       * `--accent` 를 스킨 파랑으로 재정의한다 — 51개 게임 화면의 강조·하이라이트가 토큰
-       * 경유로 한 번에 따라오고, 이 클래스 밖(다른 위젯)은 그대로다.
-       * 빨강을 accent 로 안 쓰는 이유: 게임들이 오답·지뢰에 #ef4444 를 쓴다 — 겹치면
-       * 「네 차례」 강조가 경고로 읽힌다.
+       * 안쪽 요소(찾기·오늘의 세 판·혼자 놀이·표)는 전부 토큰을 쓰므로, 여기서 토큰만
+       * 상아 팔레트로 덮으면 로비 전체가 한 번에 따라온다. 다크에서 밝은 글자가 상아 위에
+       * 얹히는 사고를 토큰 층에서 막는다.
        */
-      '.ac-root{--ac-blue:#3ecfe8;--ac-red:#ff5a68;--ac-ink:#101018;--accent:var(--ac-blue);--accent-fg:var(--ac-ink);--accent-hover:#6fdcf0;--accent-dim:rgba(62,207,232,.13);--accent-subtle:rgba(62,207,232,.07);--accent-glow:rgba(62,207,232,.22);--ac-card:var(--bg-secondary)}',
-      '[data-theme="light"] .ac-root{--ac-blue:#007e9c;--ac-red:#d92638;--ac-ink:#ffffff;--accent-hover:#00647d;--accent-dim:rgba(0,126,156,.10);--accent-subtle:rgba(0,126,156,.06);--accent-glow:rgba(0,126,156,.2);--ac-card:#ffffff}',
-      '.ac-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:var(--space-md) 0}',
+      '.ac-root #acLobby{background:radial-gradient(ellipse 120% 90% at 50% 18%,#f2f1e8 0%,#e9e8de 60%,#dedcd0 100%);border-radius:18px;padding:20px 28px 28px;color:#3c3a30;' +
+      '--text-primary:#3c3a30;--text-secondary:#8b897b;--text-tertiary:#a5a396;--bg-primary:#fdfcf7;--bg-secondary:#f4f3ea;--bg-tertiary:#e4e2d6;--bg-hover:#efeee4;--border:rgba(60,58,48,.16);--border-hover:rgba(60,58,48,.3);' +
+      '--accent:#3c3a30;--accent-fg:#fdfcf7;--accent-hover:#55523f;--accent-dim:rgba(60,58,48,.08);--accent-subtle:rgba(60,58,48,.05);--accent-glow:rgba(60,58,48,.18)}',
+      '.ac-root #acLobby .btn-primary{background:#3c3a30;background-image:none;color:#fdfcf7;border-color:transparent}',
+      '.ac-root #acLobby .btn-primary:hover{background:#55523f;background-image:none}',
+      '.ac-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 var(--space-md)}',
+      '.ac-brand{font-size:15px;font-weight:900;letter-spacing:3px;color:#8b897b}',
+      '.ac-sub{font-size:12px;color:#a5a396}',
       '.ac-top .ac-find{flex:1;min-width:180px;margin:0}',
       '.ac-namechip{display:flex;align-items:center;gap:6px;font-size:var(--font-size-xs);color:var(--text-secondary);white-space:nowrap}',
-      '.ac-namechip input{width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--bg-secondary);color:var(--text-primary)}',
-      '.ac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:var(--space-md) 0 var(--space-lg)}',
-      '.ac-card{text-align:left;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--ac-card);display:flex;flex-direction:column;gap:6px;color:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform var(--transition-fast),box-shadow var(--transition-fast),border-color var(--transition-fast)}',
-      '.ac-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 18px var(--accent-subtle)}',
-      '.ac-card b{font-size:var(--font-size-md);font-weight:800}',
-      '.ac-emoji{width:44px;height:44px;font-size:24px;line-height:1;display:grid;place-items:center;border-radius:14px;background:var(--accent-dim)}',
-      '.ac-card small{color:var(--text-secondary);font-size:var(--font-size-xs)}',
-      '.ac-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:auto}',
-      /* 주 단추는 딱 둘 — 혼자(파랑)/같이(빨강). 곁가지는 `.ac-more` 딴 줄. */
-      /* margin 을 통째로 박는다 — `.ac-go` 는 따내기 바둑판 이름이기도 해서 그쪽의
-         `margin:… auto` 가 새어 들어오면 좌우 auto 마진이 단추 줄을 쪼그라뜨린다(실측 72px). */
-      '.ac-card .ac-go,.ac-solocard .ac-go{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 0;width:100%;max-width:none}',
-      '.ac-solocard .ac-go{grid-template-columns:1fr}',
-      '.ac-card .ac-go button,.ac-solocard .ac-go button{padding:9px 4px;font-size:var(--font-size-xs);font-weight:700;border-radius:12px;border:0;background:var(--ac-blue);color:var(--ac-ink);cursor:pointer;white-space:nowrap;transition:filter var(--transition-fast),transform var(--transition-fast)}',
-      '.ac-card .ac-go button:hover,.ac-solocard .ac-go button:hover{filter:brightness(1.08);transform:translateY(-1px)}',
-      '.ac-card .ac-go button[data-host],.ac-card .ac-go button[data-pickhost]{background:var(--ac-red)}',
-      '.ac-more{display:flex;gap:6px;flex-wrap:wrap}',
-      '.ac-more:empty{display:none}',
-      '.ac-more button{padding:4px 10px;font-size:var(--font-size-2xs);border-radius:999px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;white-space:nowrap}',
-      '.ac-more button:hover{border-color:var(--accent);color:var(--text-primary)}',
-      /* 셸의 라벤더 그라데이션 단추도 오락실 안에서는 빨강 — 톤이 하나여야 스킨이다. */
-      '.ac-root .btn-primary{background:var(--ac-red);background-image:none;color:var(--ac-ink);border-color:transparent}',
-      '.ac-root .btn-primary:hover{background:var(--ac-red);background-image:none;filter:brightness(1.08)}',
-      '@media (prefers-reduced-motion:reduce){.ac-card,.ac-todaycard,.ac-card .ac-go button,.ac-solocard .ac-go button{transition:none}.ac-introicon{animation:none}}',
+      '.ac-namechip input{width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--bg-primary);color:var(--text-primary)}',
+      /* ── 진열장 — 물건은 끝을 맞춰(align-items:end) 같은 바닥에 선다. */
+      '.ac-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:30px 8px;align-items:end;justify-items:center;margin:30px auto var(--space-lg);max-width:1060px;min-height:180px}',
+      '.ac-obj{position:relative;background:none;border:0;padding:0;line-height:1;cursor:pointer;transition:transform var(--transition-fast)}',
+      '.ac-obj:hover,.ac-obj:focus-visible{transform:translateY(-4px) scale(1.1);z-index:2}',
+      '.ac-obj:focus-visible{outline:none}',
+      /* 바닥 반사는 얼굴에만 건다 — 단추째 걸면 이름표까지 물에 비친다. */
+      '.ac-objface{display:block;filter:drop-shadow(0 3px 4px rgba(60,58,48,.18));-webkit-box-reflect:below -8px linear-gradient(transparent 58%,rgba(0,0,0,.16))}',
+      '.ac-objtag{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);display:none;white-space:nowrap;filter:drop-shadow(0 2px 5px rgba(60,58,48,.25));z-index:3;font-family:var(--font-sans)}',
+      '.ac-obj:hover .ac-objtag,.ac-obj:focus-visible .ac-objtag{display:flex}',
+      '.ac-objtag i{font-style:normal;background:#3c3a30;color:#fdfcf7;font-size:11px;font-weight:700;padding:4px 7px;border-radius:6px 0 0 6px;display:flex;align-items:center}',
+      '.ac-objtag b{background:#fdfcf7;color:#3c3a30;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:0 6px 6px 0}',
+      /* ── 집은 물건 — 탁자 가운데로. */
+      '#acDetail{position:relative;padding:6px 0 20px}',
+      '.ac-back{background:none;border:0;padding:4px 0;font-size:14px;font-weight:700;color:#8b897b;cursor:pointer}',
+      '.ac-back:hover{color:#3c3a30}',
+      '.ac-dwrap{display:flex;align-items:center;justify-content:center;gap:64px;padding:34px 10px;flex-wrap:wrap}',
+      '.ac-dface{font-size:140px;line-height:1;filter:drop-shadow(0 10px 14px rgba(60,58,48,.25));-webkit-box-reflect:below -16px linear-gradient(transparent 60%,rgba(0,0,0,.14))}',
+      '.ac-dinfo{max-width:400px}',
+      '.ac-dinfo h3{display:flex;align-items:center;gap:10px;font-size:32px;font-weight:900;margin:0}',
+      '.ac-dinfo h3 i{font-style:normal;background:#3c3a30;color:#fdfcf7;font-size:13px;font-weight:900;padding:5px 9px;border-radius:6px}',
+      '.ac-dinfo p{font-size:var(--font-size-sm);color:#6d6b5d;line-height:1.7;margin:10px 0 0}',
+      '.ac-dmeta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}',
+      '.ac-dmeta span{background:#fdfcf7;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;color:#5b5949;box-shadow:0 1px 3px rgba(60,58,48,.12)}',
+      '#acDetail .ac-go{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}',
+      '#acDetail .ac-go button{border:0;border-radius:999px;padding:13px 30px;font-size:15px;font-weight:900;cursor:pointer;white-space:nowrap}',
+      '#acDetail .ac-go button[data-solo]{background:#3c3a30;color:#fdfcf7;box-shadow:0 4px 10px rgba(60,58,48,.28)}',
+      '#acDetail .ac-go button[data-host]{background:#fdfcf7;color:#3c3a30;box-shadow:0 2px 6px rgba(60,58,48,.15)}',
+      '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
+      '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
+      '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:12.5px;color:#8b897b;text-decoration:underline;cursor:pointer}',
+      '#acDetail .ac-more button:hover{color:#3c3a30}',
+      /* ── 진열장 아래 딸린 것들(혼자 놀이·표)은 낮은 흰 받침으로. */
+      '.ac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:var(--space-md) 0 var(--space-lg)}',
+      '.ac-emoji{font-size:26px;line-height:1}',
+      '.ac-solocard .ac-go{display:grid;grid-template-columns:1fr;margin:6px 0 0;width:100%;max-width:none}',
+      '.ac-solocard .ac-go button{padding:9px 4px;font-size:var(--font-size-xs);font-weight:700;border-radius:999px;border:0;background:#3c3a30;color:#fdfcf7;cursor:pointer;white-space:nowrap}',
+      '.ac-foot{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:var(--space-lg);flex-wrap:wrap}',
+      '@media (prefers-reduced-motion:reduce){.ac-obj,.ac-todaycard,.ac-solocard{transition:none}.ac-introicon{animation:none}}',
       /**
        * 무대 크기 — **이 한 줄이 51개 화면의 크기를 정한다** (TASK-KL-314).
        *
@@ -172,7 +191,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-cell:disabled{cursor:default}',
       '.ac-cell.ac-last{border-color:var(--accent)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
-      '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--ac-card);font-size:var(--font-size-xs);font-weight:600}',
+      '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',
       '.ac-seat.ac-me{border-color:var(--accent);background:var(--accent-dim)}',
       '.ac-seat b{font-size:var(--font-size-md)}',
       '.ac-four{position:relative;max-width:100%;margin:var(--space-lg) auto}',
@@ -573,11 +592,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-today{margin:var(--space-md) 0}',
       '.ac-todaystrip{display:flex;gap:8px;flex-wrap:wrap;align-items:center}',
       /* 오늘의 세 판 = 빨강 초대장 — 로비에서 제일 먼저 눈이 가는 자리. */
-      '.ac-todaycard{display:flex;align-items:center;gap:8px;padding:12px 16px;border:2px solid var(--ac-red);border-radius:14px;background:var(--ac-card);font-size:var(--font-size-sm);font-weight:700;color:inherit;cursor:pointer;transition:transform var(--transition-fast),box-shadow var(--transition-fast)}',
+      '.ac-todaycard{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:999px;background:var(--bg-primary);font-size:var(--font-size-sm);font-weight:700;color:inherit;cursor:pointer;box-shadow:0 1px 3px rgba(60,58,48,.1);transition:transform var(--transition-fast),box-shadow var(--transition-fast)}',
       '.ac-todaycard:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.08)}',
       '.ac-todaycard span{font-size:24px}',
       '.ac-todaycard.ac-done{opacity:.5;border-color:var(--border);font-weight:400}',
-      '.ac-tourbtn{align-self:center}',
+      '.ac-tourbtn{align-self:center;width:auto;flex:0 0 auto;border-radius:999px;padding:10px 22px;font-weight:900}',
       '.ac-seat.ac-watch{border-color:var(--accent);color:var(--accent)}',
       '.ac-seat.ac-team0{border-color:#6aa9ff}',
       '.ac-seat.ac-team1{border-color:#ff7a7a}',
@@ -700,7 +719,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-share input{flex:1;min-width:0}',
       /* 혼자 놀이 카드 (TASK-KL-313) — 방 게임과 같은 틀을 쓰되 **링크**라 밑줄을 지운다. */
       /* 생김새는 방 게임 카드와 같게 — 세는 이름만 다르다. */
-      '.ac-solocard{text-align:left;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--ac-card);display:flex;flex-direction:column;gap:6px;color:inherit;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform var(--transition-fast),box-shadow var(--transition-fast),border-color var(--transition-fast)}',
+      '.ac-solocard{text-align:left;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;gap:6px;color:inherit;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform var(--transition-fast),box-shadow var(--transition-fast),border-color var(--transition-fast)}',
       '.ac-solocard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 18px var(--accent-subtle)}',
       '.ac-solocard b{font-size:var(--font-size-md);font-weight:800}',
       '.ac-solo-tag{background:var(--bg-tertiary)}',
@@ -718,33 +737,41 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     container.classList.add('ac-root');
     if (typeof Mdd !== 'undefined') Mdd?.linePreset?.('tool_run', { msg: t('arcade.mdd') });
 
+    /* 로비 = **진열장**. 카드도 테두리도 없다 — 따뜻한 상아색 탁자 위에 게임이 물건처럼
+       놓이고, 올리면 이름표가 서고, 누르면 그 물건이 가운데로 온다(#acDetail). */
     container.innerHTML =
       '<div id="acLobby">' +
-      '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
-      /* 찾기와 이름을 한 줄에 — 로비 세로 스택을 한 칸이라도 줄인다. */
       '<div class="ac-top">' +
+      '<span class="ac-brand">' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</span>' +
+      '<span class="ac-sub">' + esc(t('arcade.lobby.hint')) + '</span>' +
       '<input type="search" id="acFind" class="ac-find" placeholder="' + esc(t('arcade.find.hint')) +
       '" aria-label="' + esc(t('arcade.find.hint')) + '">' +
       '<label class="ac-namechip">' + esc(t('arcade.label.name')) +
       '<input type="text" id="acName" maxlength="12" placeholder="' + esc(t('arcade.name.default')) +
       '" aria-label="' + esc(t('arcade.aria.name')) + '"></label>' +
       '</div>' +
+      /* 진열장과 그 딸린 것들 — 물건을 집으면(#acDetail) 통째로 접힌다. */
+      '<div id="acShelfAll">' +
       '<div class="ac-room" id="acRoom" style="display:none"></div>' +
       '<div id="acOpen"></div>' +
       '<div class="ac-today" id="acToday"></div>' +
       '<div id="acPicks"></div>' +
-      '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
-      ['mild', 'normal', 'spicy']
-        .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
-        .join('') +
-      '<small>' + esc(t('arcade.level.note')) + '</small></div>' +
-      '<div id="acGames"></div>' +
+      '<div id="acGames" class="ac-shelf"></div>' +
       /* 혼자 놀이 — 오락실이 놀이의 **유일한 문**이 되는 자리 (TASK-KL-313).
          방 게임 뒤에 둔다: 여기는 오락실이고, 혼자 놀이는 각자 제 페이지로 나가는 손님이다. */
       '<div id="acSolo"></div>' +
       /* 놀이의 재료 = 표. 만드는 문이 놀이터에만 있어서, 오락실로 들어온 사람은 우물을
          파 놓고도 못 들어갔다 (TASK-KL-313 — 놀이터에서 옮겨 온 자리). */
       '<div id="acPacks"></div>' +
+      '<div class="ac-foot">' +
+      '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
+      ['mild', 'normal', 'spicy']
+        .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
+        .join('') +
+      '<small>' + esc(t('arcade.level.note')) + '</small></div>' +
+      '</div>' +
+      '</div>' +
+      '<div id="acDetail" style="display:none"></div>' +
       '</div>' +
       '<div id="acWait" style="display:none">' +
       '<div class="ac-code" id="acCode"></div>' +
@@ -812,6 +839,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lobby.style.display = which === 'lobby' ? '' : 'none';
       wait.style.display = which === 'wait' ? '' : 'none';
       play.style.display = which === 'play' ? '' : 'none';
+      /* 판에서 로비로 돌아오면 진열장부터 — 집었던 물건 화면에 걸려 있으면 길을 잃는다. */
+      if (which === 'lobby') closeDetail();
       /* 판이 도는 동안임을 뿌리에 남긴다 — 좁게 눕힌 화면에서 셸 메뉴 띠를 접는 데 쓴다.
          (아래 `--ac-playing` 규칙 · 그 이유는 거기 적어 뒀다) */
       document.documentElement.classList.toggle('ac-playing', which === 'play');
@@ -819,50 +848,74 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /* ── 로비 ──────────────────────────────────────────────────────
      *
-     * **갈래로 묶어 보여 준다.** 스물이 넘으면 나열은 목록이 아니라 벽이 된다.
-     * 갈래가 비어 있으면 제목 자체를 안 그린다 — 「없음」이 적힌 칸은 자리만 먹는다. */
-    /**
-     * 카드 하나. `pick` 이면 **다른 표를 쓴다** — 추천 여섯은 아래 51개와 같은 카드라
-     * 같은 표를 쓰면 「게임 몇 종인가」를 세는 자리가 여섯만큼 샌다(오늘의 셋에서 이미 겪었다:
-     * 51종이 54종이 됐다). 세는 자리는 하나여야 한다.
-     */
-    const cardOf = (g: (typeof CARDS)[number], pick = false): string => {
-      const solo = pick ? 'data-pick' : 'data-solo';
-      const host = pick ? 'data-pickhost' : 'data-host';
-      const [min, max] = g.seats;
-      /* 곁가지 단추(편지·편·같이 찾기)는 **딴 줄**에 작게 — 주 단추 줄에 다섯을 넣으면
-         160px 안에서 한 단추가 20px 이 되어 한글이 한 글자씩 세로로 꺾였다(실측 버그). */
-      const more =
-        /* **차례 놀이만** 편지로 둘 수 있다. 실시간 놀이를 편지로 두면 상대가 링크를 여는
-           순간에 이미 판이 끝나 있다 — 그건 놀이가 아니라 결과 통보다. */
-        (!g.realtime && g.seats[0] === 2
-          ? '<button ' + (pick ? 'data-pickletter' : 'data-letter') + '="' + g.id + '">' + esc(t('arcade.btn.letter')) + '</button>'
-          : '') +
-        /* **넷부터 편이 선다.** 둘·셋은 나눠 봐야 한 편에 하나씩이라 개인전과 같다. */
-        (isTeamy(g.seats[1])
-          ? '<button ' + (pick ? 'data-pickteam' : 'data-team') + '="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
-          : '') +
-        /* 「같이」는 그대로 비공개(링크 아는 사람만), 이건 목록에 올린다 — 단추로 가른다. */
-        '<button ' + (pick ? 'data-pickfind' : 'data-find') + '="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>';
+     * **진열장의 물건 하나.** 카드가 아니라 물건이다 — 이름은 올렸을 때만 이름표로 선다.
+     * 크기는 id 에서 결정적으로 뽑는다: 진열장이 자를 대고 그린 듯 균일하면 물건이 아니라
+     * 아이콘 표가 된다. 이름표의 번호 = 명부 순서 (사람이 「몇 번」으로 부를 수 있게). */
+    const objOf = (g: (typeof CARDS)[number], i: number): string => {
+      const sizes = [40, 46, 52, 58];
+      const size = sizes[(g.id.charCodeAt(0) + g.id.length) % sizes.length];
       return (
-        '<div class="ac-card"><span class="ac-emoji">' + iconOf(g.id) + '</span>' +
-        '<b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
-        '<small>' + esc(t('arcade.game.' + g.id + '.desc')) + '</small>' +
-        '<span class="ac-meta">' +
-        '<span class="ac-len">' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</span>' +
-        /* 길이는 손으로 안 적는다 — 저울이 잰 수에서 나온다(`length.ts`). */
-        '<span class="ac-len ac-' + lengthOf(g.id) + '" title="' +
-        esc(secondsOf(g.id) === null ? '' : t('arcade.len.secs', { n: String(Math.round(secondsOf(g.id) as number)) })) +
-        '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
-        (bestOf(g.id) ? '<span class="ac-best">🏅 ' + esc(t('arcade.best.card', { n: String(bestOf(g.id)?.score ?? 0) })) + '</span>' : '') +
-        '</span>' +
-        '<span class="ac-go">' +
-        '<button ' + solo + '="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
-        '<button ' + host + '="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
-        '</span>' +
-        '<span class="ac-more">' + more + '</span></div>'
+        '<button class="ac-obj" data-obj="' + g.id + '" aria-label="' + esc(t('arcade.game.' + g.id + '.name')) + '">' +
+        '<span class="ac-objtag"><i>' + (i + 1) + '</i><b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b></span>' +
+        '<span class="ac-objface" style="font-size:' + size + 'px">' + iconOf(g.id) + '</span>' +
+        '</button>'
       );
     };
+
+    /**
+     * 물건을 집으면 — 진열장이 접히고 그 물건이 탁자 가운데로 온다.
+     * 시작 단추의 data-* 는 카드 시절 그대로다(`wireCards`·화면 검사가 같은 이름을 본다).
+     */
+    function openDetail(id: string): void {
+      const g = CARDS.find((x) => x.id === id);
+      if (!g) return;
+      const [min, max] = g.seats;
+      /* **차례 놀이만** 편지로 둘 수 있다. 실시간 놀이를 편지로 두면 상대가 링크를 여는
+         순간에 이미 판이 끝나 있다 — 그건 놀이가 아니라 결과 통보다.
+         **넷부터 편이 선다.** 둘·셋은 나눠 봐야 한 편에 하나씩이라 개인전과 같다. */
+      const more =
+        (!g.realtime && g.seats[0] === 2
+          ? '<button data-letter="' + g.id + '">' + esc(t('arcade.btn.letter')) + '</button>'
+          : '') +
+        (isTeamy(g.seats[1])
+          ? '<button data-team="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
+          : '') +
+        '<button data-find="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>';
+      const d = $<HTMLElement>('#acDetail');
+      d.innerHTML =
+        '<button class="ac-back" id="acBack">‹ ' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</button>' +
+        '<div class="ac-dwrap">' +
+        '<div class="ac-dface">' + iconOf(g.id) + '</div>' +
+        '<div class="ac-dinfo">' +
+        '<h3><i>' + (CARDS.indexOf(g) + 1) + '</i>' + esc(t('arcade.game.' + g.id + '.name')) + '</h3>' +
+        '<p>' + esc(t('arcade.game.' + g.id + '.desc')) + '</p>' +
+        '<div class="ac-dmeta">' +
+        '<span>' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</span>' +
+        /* 길이는 손으로 안 적는다 — 저울이 잰 수에서 나온다(`length.ts`). */
+        '<span title="' +
+        esc(secondsOf(g.id) === null ? '' : t('arcade.len.secs', { n: String(Math.round(secondsOf(g.id) as number)) })) +
+        '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
+        (bestOf(g.id) ? '<span>🏅 ' + esc(t('arcade.best.card', { n: String(bestOf(g.id)?.score ?? 0) })) + '</span>' : '') +
+        '</div>' +
+        '<div class="ac-go">' +
+        '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
+        '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
+        '</div>' +
+        '<div class="ac-more">' + more + '</div>' +
+        '</div></div>';
+      $<HTMLElement>('#acShelfAll').style.display = 'none';
+      d.style.display = '';
+      wireCards();
+      const back = container.querySelector<HTMLButtonElement>('#acBack');
+      if (back) back.onclick = closeDetail;
+    }
+
+    function closeDetail(): void {
+      const d = $<HTMLElement>('#acDetail');
+      d.style.display = 'none';
+      d.innerHTML = '';
+      $<HTMLElement>('#acShelfAll').style.display = '';
+    }
 
     /* 오늘의 세 판 — 51개 앞에서 「뭘 하지」를 대신 정해 준다 (TASK-KL-264). */
     const picks = todayPicks(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
@@ -919,6 +972,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           };
         });
       };
+      on('data-obj', 'obj', openDetail);
       on('data-solo', 'solo', startSolo);
       on('data-pick', 'pick', startSolo);
       on('data-host', 'host', openRoom);
@@ -974,39 +1028,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       });
     };
 
+    /* 추천 칸은 접었다 — 진열장은 전부를 한눈에 놓으므로 「여섯 개 골라 주기」가 할 일이 없다. */
     const paintPicks = (): void => {
-      const box = $<HTMLElement>('#acPicks');
-      if (findEl.value.trim()) { box.innerHTML = ''; return; }
-      const ids = pick6(
-        CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id), length: lengthOf(g.id) })),
-        readPlays()
-      );
-      box.innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.pick.title')) + ' <i>' + SLOTS + '</i></h3>' +
-        '<div class="ac-grid">' +
-        ids.map((id) => cardOf(CARDS.find((g) => g.id === id)!, true)).join('') +
-        '</div>';
-      wireCards();
+      $<HTMLElement>('#acPicks').innerHTML = '';
     };
 
+    /* 진열장 — 갈래 제목 없이 전부 한 탁자에. 찾는 중에는 걸리는 물건만 남긴다. */
     const paintGames = (): void => {
       const q = findEl.value;
       const box = $<HTMLElement>('#acGames');
-      if (q.trim()) {
-        const mine = CARDS.filter((g) => matches(hayOf(g.id), q));
-        box.innerHTML = mine.length
-          ? '<div class="ac-grid">' + mine.map((g) => cardOf(g)).join('') + '</div>'
-          : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
-      } else {
-        box.innerHTML = KINDS.map((kind: Kind) => {
-          const mine = CARDS.filter((g) => kindOf(g.id) === kind);
-          if (!mine.length) return '';
-          return (
-            '<h3 class="ac-kind">' + esc(t('arcade.kind.' + kind)) + ' <i>' + mine.length + '</i></h3>' +
-            '<div class="ac-grid">' + mine.map((g) => cardOf(g)).join('') + '</div>'
-          );
-        }).join('');
-      }
+      const mine = q.trim() ? CARDS.filter((g) => matches(hayOf(g.id), q)) : CARDS;
+      box.innerHTML = mine.length
+        ? mine.map((g) => objOf(g, CARDS.indexOf(g))).join('')
+        : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
       wireCards();
     };
 

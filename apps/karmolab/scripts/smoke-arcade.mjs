@@ -64,7 +64,7 @@ if (!cantRun) {
   await page.evaluate(() => Toolbox.switchPage('arcade'));
 
   try {
-    await waitHydrated(page, '[data-solo="reflex"]', { timeout: 30000 });
+    await waitHydrated(page, '[data-obj="reflex"]', { timeout: 30000 });
   } catch (e) {
     cantRun = `오락실 화면이 안 떴다 — ${e.message}`;
   }
@@ -73,20 +73,21 @@ if (!cantRun) {
 let ids = [];
 if (!cantRun) {
   console.log('[arcade-ui] 로비');
-  const cards = await page.locator('.ac-card').count();
-  check('실험 카드가 뜬다', cards >= 2, `${cards}장`);
-  /* 추천 여섯은 51개와 **다른 표**를 쓴다(`data-pick`) — 「몇 종인가」를 세는 자리가 새지
-     않게. 여기서 보는 것은 종 수가 아니라 「카드마다 두 길이 다 있나」이므로 둘 다 센다. */
-  const soloBtns = await page.locator('[data-solo], [data-pick]').count();
-  const hostBtns = await page.locator('[data-host], [data-pickhost]').count();
-  check('혼자·같이 두 길이 다 있다', soloBtns === cards && hostBtns === cards, `카드 ${cards} · 혼자 ${soloBtns} · 같이 ${hostBtns}`);
+  /* 로비 = 진열장. 카드 대신 물건(`data-obj`)이 서고, 시작 단추는 물건을 집은 화면에 뜬다. */
+  const objs = await page.locator('[data-obj]').count();
+  check('진열장에 물건이 선다', objs >= 2, `${objs}개`);
 
   /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 —
    * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
-   * 깊은 검사(시계·판정)는 아래에서 두 게임만 본다. 여기서는 「뜨고, 자리가 차고, 뭔가 그려졌나」. */
+   * 깊은 검사(시계·판정)는 아래에서 두 게임만 본다. 여기서는 「뜨고, 자리가 차고, 뭔가 그려졌나」.
+   * 「혼자·같이 두 길」도 여기서 같이 본다 — 집은 화면마다 두 단추가 있어야 한다. */
   console.log('[arcade-ui] 모든 게임 — 열어 보기');
-  ids = await page.$$eval('[data-solo]', (bs) => bs.map((b) => b.dataset.solo));
+  ids = await page.$$eval('[data-obj]', (bs) => bs.map((b) => b.dataset.obj));
+  const noHost = [];
   for (const id of ids) {
+    await page.click(`[data-obj="${id}"]`);
+    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 10000 });
+    if ((await page.locator(`[data-host="${id}"]`).count()) !== 1) noHost.push(id);
     await page.click(`[data-solo="${id}"]`);
     try {
       await page.waitForFunction(
@@ -111,10 +112,12 @@ if (!cantRun) {
       check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, false, e.message.slice(0, 70));
     }
     await page.click('#acQuit');
-    await page.waitForSelector('[data-solo]', { timeout: 10000 });
+    await page.waitForSelector('[data-obj]', { timeout: 10000 });
   }
+  check('혼자·같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
 
   console.log('[arcade-ui] 반응 측정 — 혼자');
+  await page.click('[data-obj="reflex"]');
   await page.click('[data-solo="reflex"]');
   await page.waitForSelector('.ac-choice', { timeout: 10000 });
   const seats = await page.locator('.ac-seat').allTextContents();
@@ -150,7 +153,8 @@ if (!cantRun) {
 
   console.log('[arcade-ui] 오목 — 혼자');
   await page.click('#acQuit');
-  await page.waitForSelector('[data-solo="gomoku"]', { timeout: 10000 });
+  await page.waitForSelector('[data-obj="gomoku"]', { timeout: 10000 });
+  await page.click('[data-obj="gomoku"]');
   await page.click('[data-solo="gomoku"]');
   await page.waitForSelector('.ac-cell', { timeout: 10000 });
   check('아홉 칸 판이 뜬다', (await page.locator('.ac-cell').count()) === 81);

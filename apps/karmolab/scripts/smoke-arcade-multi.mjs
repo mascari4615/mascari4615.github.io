@@ -66,8 +66,9 @@ async function openArcade(hash = '') {
  */
 async function openRoom(gameId) {
   const host = await openArcade();
-  await waitHydrated(host, `[data-host="${gameId}"]`, { timeout: 30000 });
+  await waitHydrated(host, `[data-obj="${gameId}"]`, { timeout: 30000 });
   await host.fill('#acName', '주인');
+  await host.click(`[data-obj="${gameId}"]`);
   await host.click(`[data-host="${gameId}"]`);
   await host.waitForSelector('#acCode', { timeout: 10000 });
   const code = (await host.locator('#acCode').textContent())?.trim() || '';

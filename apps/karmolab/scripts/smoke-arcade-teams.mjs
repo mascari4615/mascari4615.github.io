@@ -34,11 +34,11 @@ try {
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  await p.waitForSelector('[data-team]', { timeout: 60000 });
-  const many = await p.locator('[data-team]').count();
-  check('편 갈라 되는 놀이가 여럿이다', many >= 10, `${many}개`);
-
-  const id = await p.locator('[data-team]').first().getAttribute('data-team');
+  /* 진열장에는 단추가 없다 — 물건을 집어야 「편 갈라」가 선다. 넷 이상 앉는 놀이로 확인한다. */
+  await p.waitForSelector('[data-obj="reflex"]', { timeout: 60000 });
+  await p.click('[data-obj="reflex"]');
+  await p.waitForSelector('[data-team="reflex"]', { timeout: 60000 });
+  const id = 'reflex';
   await p.click(`[data-team="${id}"]`);
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 45000 });
   await p.waitForTimeout(800);
