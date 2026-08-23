@@ -135,6 +135,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
       '--ac-red:#c62f36;--ac-black:#23201c' +
       '}',
+      /* 펠트 판 위의 단추 — 셸의 라벤더 그라데이션이 초록 위에 그대로 뜨면 남의 옷이다.
+         금빛 하나로 통일한다(카드 놀이의 칩 색). */
+      '.ac-root .ac-pr .btn-primary,.ac-root .ac-bj .btn-primary,.ac-root .ac-sp .btn-primary{background:#ffd66b;background-image:none;color:#23201c;border-color:transparent;font-weight:900}',
+      '.ac-root .ac-pr .btn-ghost,.ac-root .ac-bj .btn-ghost,.ac-root .ac-sp .btn-ghost{color:#eaf2ee;border-color:rgba(234,242,238,.4)}',
       /* 카드 부품 — 앞면/뒷면/낼 수 있음/집은 것. 판마다 `.ac-card2`(짝 맞추기)처럼 제 이름이
          있던 것을 이 한 벌로 모은다. 크기가 다를 이유가 있는 판만 --ac-card-w 를 덮어쓴다. */
       '.ac-root .ac-pc{position:relative;width:var(--ac-card-w);height:var(--ac-card-h);border:0;border-radius:var(--ac-card-r);background:var(--ac-card-face);box-shadow:var(--ac-card-sh);color:var(--ac-black);font-weight:700;padding:0;cursor:default;transition:transform var(--transition-fast)}',
@@ -340,6 +344,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-box.ac-p3{background:color-mix(in srgb,#22c55e 40%,transparent)}',
       '.ac-box.ac-p4{background:color-mix(in srgb,#eab308 40%,transparent)}',
       '.ac-dots.ac-waiting{opacity:.8}',
+      /* 스피드도 펠트 위. 가운데 두 자리는 크게, 남의 패는 작게 겹쳐. */
+      '.ac-root .ac-sp{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
+      '.ac-root .ac-spfoe{display:flex;gap:0;justify-content:center;align-items:center;--ac-card-w:34px;--ac-card-h:48px;--ac-card-r:5px}',
+      '.ac-root .ac-spfoe .ac-pc{margin-left:-18px}',
+      '.ac-root .ac-spfoe .ac-pc:first-child{margin-left:0}',
+      '.ac-root .ac-spfoe b{margin-left:10px;font-size:var(--font-size-sm)}',
+      '.ac-root .ac-sphand{display:flex;gap:0;justify-content:center;flex-wrap:wrap;padding-top:12px}',
+      '.ac-root .ac-sphand .ac-pc{margin-left:calc(var(--ac-card-w) / -6)}',
+      '.ac-root .ac-sphand .ac-pc:first-child{margin-left:0}',
       '.ac-sp{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
       '.ac-spfoe{color:var(--text-secondary);font-size:var(--font-size-sm);letter-spacing:2px;min-height:1.4em}',
       '.ac-spcenter{display:flex;gap:14px;justify-content:center;margin:var(--space-lg) 0}',
@@ -389,7 +402,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ckc.ac-can i{width:28%;background:var(--accent);opacity:.6}',
       '.ac-ckc.ac-last{outline:1px dashed var(--accent);outline-offset:-3px}',
       '.ac-ckc:not(:disabled){cursor:pointer}',
-      '.ac-bj{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
+      /* 블랙잭도 펠트 위 — 카드 판은 한 방을 쓴다. */
+      '.ac-root .ac-bj{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
+      '.ac-root .ac-bj small{color:rgba(234,242,238,.72)}',
+      '.ac-root .ac-bjrow>div{gap:0}',
+      '.ac-root .ac-bjrow .ac-pc{margin-left:calc(var(--ac-card-w) / -5)}',
+      '.ac-root .ac-bjrow .ac-pc:first-child{margin-left:0}',
       '.ac-bjrow{margin:var(--space-lg) 0}',
       '.ac-bjrow small{display:block;color:var(--text-secondary);font-size:var(--font-size-xs);margin-bottom:6px}',
       '.ac-bjrow>div{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}',

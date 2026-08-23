@@ -6,12 +6,14 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { cardBack, cardMark } from '../card';
 import { total, type BlackjackState, type BlackjackAction } from './blackjack';
 
 const label = (c: number): string =>
   c === 1 ? 'A' : c === 11 ? 'J' : c === 12 ? 'Q' : c === 13 ? 'K' : String(c);
 
-const card = (c: number): string => '<span class="ac-bjc">' + label(c) + '</span>';
+/* 카드는 공용 한 벌(`card.ts`)로 — 이 판만의 치수를 따로 두지 않는다. */
+const card = (c: number): string => cardMark(label(c));
 
 export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
   id: 'blackjack',
@@ -41,7 +43,7 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
         dealerEl.innerHTML = s.dealer.map(card).join('');
         dLabel.textContent = t('arcade.blackjack.dealer', { n: String(total(s.dealer)) });
       } else {
-        dealerEl.innerHTML = card(s.up) + '<span class="ac-bjc ac-back">?</span>';
+        dealerEl.innerHTML = card(s.up) + cardBack({ label: t('arcade.blackjack.dealerHidden') });
         dLabel.textContent = t('arcade.blackjack.dealerHidden');
       }
 

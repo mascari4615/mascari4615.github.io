@@ -8,6 +8,7 @@
  * 양쪽 다 낼 수 있을 때만 고르게 한다(그런 경우는 드물다).
  */
 import type { GameView } from '../views';
+import { cardBack, cardMark } from '../card';
 import { near, type SpeedState, type SpeedAction } from './speed';
 
 const label = (n: number): string => (n === 1 ? 'A' : n === 11 ? 'J' : n === 12 ? 'Q' : n === 13 ? 'K' : String(n));
@@ -32,13 +33,15 @@ export const speedView: GameView<SpeedState, SpeedAction> = {
       const mine = s.hands[mySeat] ?? [];
       const other = 1 - mySeat;
 
-      foe.textContent = '🂠'.repeat(Math.min(7, (s.hands[other] ?? []).length)) +
-        '  ' + (s.decks[other]?.length ?? 0);
+      /* 남의 패 = 뒷면 카드 줄. 글자(🂠)로 그리면 글꼴 따라 크기가 널뛴다. */
+      foe.innerHTML =
+        Array.from({ length: Math.min(7, (s.hands[other] ?? []).length) }, () => cardBack()).join('') +
+        '<b>' + (s.decks[other]?.length ?? 0) + '</b>';
 
       center.innerHTML = s.center
-        .map((c, p) => '<button class="ac-spc" data-p="' + p + '">' + label(c) + '</button>')
+        .map((c, p) => cardMark(label(c), { data: { p } }))
         .join('');
-      center.querySelectorAll<HTMLButtonElement>('.ac-spc').forEach((b) => {
+      center.querySelectorAll<HTMLButtonElement>('.ac-pc[data-p]').forEach((b) => {
         const p = Number(b.dataset.p);
         b.classList.toggle('ac-can', picking >= 0 && near(mine[picking], s.center[p]));
         b.disabled = picking < 0 || !near(mine[picking], s.center[p]);
@@ -51,13 +54,10 @@ export const speedView: GameView<SpeedState, SpeedAction> = {
       hand.innerHTML = mine
         .map((c, i) => {
           const ok = s.center.some((p) => near(c, p));
-          return (
-            '<button class="ac-spcard' + (ok ? ' ac-can' : '') + (i === picking ? ' ac-pick' : '') +
-            '" data-i="' + i + '"' + (ok ? '' : ' disabled') + '>' + label(c) + '</button>'
-          );
+          return cardMark(label(c), { can: ok, dim: !ok, pick: i === picking, data: { i } });
         })
         .join('');
-      hand.querySelectorAll<HTMLButtonElement>('.ac-spcard').forEach((b) => {
+      hand.querySelectorAll<HTMLButtonElement>('.ac-pc[data-i]').forEach((b) => {
         b.onclick = () => {
           const i = Number(b.dataset.i);
           const fits = [0, 1].filter((p) => near(mine[i], s.center[p]));
