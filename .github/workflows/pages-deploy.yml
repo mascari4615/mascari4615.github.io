@@ -322,6 +322,13 @@ jobs:
           mkdir -p apps/blog/_site/apps/karmolab
           rsync -a --exclude 'node_modules' apps/karmolab/ apps/blog/_site/apps/karmolab/
 
+      # room(간판 방) 이 /packages/three-kit/** 를 import map 으로 부른다 (KL-345).
+      # 안 실으면 페이지는 뜨는데 3D 만 영원히 「불러오는 중」 — 2026-08-23 라이브에서 실측.
+      - name: Merge three-kit to site
+        run: |
+          mkdir -p apps/blog/_site/packages/three-kit
+          rsync -a --exclude 'node_modules' --exclude 'test' packages/three-kit/ apps/blog/_site/packages/three-kit/
+
       # **나갈 파일에 실제로 남아 있나** (TASK-KL-201, 2026-08-10).
       #
       # 미리 그린 첫 화면은 `apps/blog/karmolab/index.html` 에 박히는데, 그 파일은 앞뒤로 여러

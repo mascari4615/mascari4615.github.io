@@ -1,6 +1,10 @@
 # ── Jekyll / Ruby ────────────────────────────────────────────────────────────
 .bundle
 vendor/
+# three-kit 의 vendor 는 배포에 실려야 한다 — three.js 한 벌을 저장소가 든다 (KL-345).
+# 전역 vendor/ 제외 안의 재포함은 폴더부터 살려야 파일 줄이 듣는다.
+!packages/three-kit/vendor/
+!packages/three-kit/vendor/**
 Gemfile.lock
 *.gem
 _site/
