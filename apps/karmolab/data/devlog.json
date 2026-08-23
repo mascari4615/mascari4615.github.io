@@ -2,11 +2,60 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2193,
+    "commits": 2172,
     "days": 11,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-08-23",
+      "entries": [
+        {
+          "sha": "8721cfd1",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "실조사 P0 3건 — 머리 위 체력바·웨이브 무리·코스트 속도 (TASK-WM-406)"
+        },
+        {
+          "sha": "57fe3cae",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "부대 전투 — 적 반격·쓰러짐·부활·실패·반복 + 창 3종 (V2, TASK-WM-406)"
+        },
+        {
+          "sha": "75e9ea55",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "무대가 나아간다 — 웨이브 줄 + 보스 + 가챠 인형만 선다 (V2, TASK-WM-406)"
+        },
+        {
+          "sha": "d914288a",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "V2 작전 씬 — 쿼터뷰 무대 + 카드 HUD (concept-v2 2A, TASK-WM-406)"
+        },
+        {
+          "sha": "e4233b56",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "카드·코스트 코어 — V2 개입층 1단계 (concept-v2, TASK-WM-406)"
+        },
+        {
+          "sha": "4d512a4f",
+          "type": "perf",
+          "typeLabel": "빨라진 것",
+          "scope": "ci",
+          "text": "web-live 8샤드에 playwright 캐시 (change.dev-loop-speedup)"
+        }
+      ],
+      "quiet": 0,
+      "more": 1
+    },
     {
       "date": "2026-08-21",
       "entries": [
@@ -450,59 +499,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "WM-218",
           "text": "계정 로그인이 설정 없이 바로 동작 + 웹 창에 코드 입력"
-        },
-        {
-          "sha": "d6555a4f",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-218",
-          "text": "게임 창도 KL 연결 코드를 낸다 (화면은 아직 없음)"
-        },
-        {
-          "sha": "81a58452",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-218",
-          "text": "게임 창을 위한 KL 연결 코드 길 (쿠키는 도메인이 달라 못 읽는다)"
-        },
-        {
-          "sha": "f39fc6d3",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-218",
-          "text": "창이 KL 세션을 싣고, 밀려나면 그렇게 말한다"
         }
       ],
       "quiet": 17,
-      "more": 97
-    },
-    {
-      "date": "2026-08-08",
-      "entries": [
-        {
-          "sha": "7b96796e",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-212",
-          "text": "위험 13건을 「왜 안전한지」가 적힌 5곳으로 줄인다"
-        },
-        {
-          "sha": "473c7d9b",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-212",
-          "text": "검사기가 「깨어나자마자 부르는 메서드」까지 한 단계 따라간다"
-        },
-        {
-          "sha": "4f528e1e",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-212",
-          "text": "창 묶음이 자기 창을 「깨어나자마자」 찾던 것을 「다 깨어난 뒤」로 옮긴다"
-        }
-      ],
-      "quiet": 37,
-      "more": 67
+      "more": 100
     }
   ]
 }
