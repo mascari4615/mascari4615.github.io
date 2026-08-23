@@ -4409,7 +4409,15 @@ function nameFit(groups, names, words) {
        뜻이라, 「제 무리가 더 낫다/아니다」를 말할 근거가 없다. 통과로도 실패로도 세지 않는다.
        (이걸 실패로 세면 잴 수 없는 것을 벌주는 자가 된다.) */
     if (own === -1 && other === -1) { own = null; other = null; }
-    out.push({ name: names[i], own: own == null ? null : Number(own.toFixed(4)), other: other == null ? null : Number(other.toFixed(4)) });
+    out.push({
+      name: names[i],
+      own: own == null ? null : Number(own.toFixed(4)),
+      other: other == null ? null : Number(other.toFixed(4)),
+      /* ★ **뽑은 글을 싣는다** (실루엣의 `silOn` 과 같은 관례). 남의 무리는 표본이라
+         자가 제 나름대로 다시 뽑으면 **다른 표본을 견주게** 된다 — 실측으로 남의 무리 값이
+         0.842 vs 0.476 로 갈렸고, 그건 자료가 아니라 뽑기가 만든 차이였다(2026-08-23). */
+      otherIds: sample.map((d) => d.id),
+    });
   }
   const real = out.filter((x) => x && x.own != null);
   const better = real.filter((x) => x.other == null || x.own > x.other).length;

@@ -159,7 +159,12 @@ if (!withFit.length) {
       const c = Array.isArray(d.levels) ? d.levels[li] : null;
       if (c != null && c >= 0 && c < lv.k) groups[c].push(d);
     }
-    let same = 0; let judged = 0; let gap = 0;
+    /* ★ **비긴 것을 어긋남으로 세지 않는다** (2026-08-23). 제 무리와 남의 무리 값이 거의 같으면
+       (여기선 0.01 안) 어느 쪽이 높다는 말 자체가 뜻이 없다 — 뽑는 표본이 한 편만 달라도 뒤집힌다.
+       실제로 층 30 에서 값 차이 0.005 짜리 하나가 뒤집혀 「자료를 안 따른다」로 빨개졌다.
+       비긴 것은 **비겼다고 세고**, 판정이 갈리는 것만 어긋남으로 센다. */
+    const TIE = 0.01;
+    let same = 0; let judged = 0; let gap = 0; let ties = 0;
     f.names.forEach((one, ci) => {
       if (!one || one.own == null || one.other == null) return;
       const nameWords = wordsIn(one.name);
@@ -169,20 +174,35 @@ if (!withFit.length) {
       /* **남의 무리를 굽는 쪽과 같은 차례로 뽑는다.** 처음엔 지도 순서대로 뽑았더니
          고르는 글이 달라져 아슬아슬한 이름 둘의 판정이 뒤집혔다(값 차이는 0.000).
          자료가 아니라 **뽑는 차례**가 만든 차이였다 — 규칙을 같게 두고 셈만 따로 한다. */
+      /* ★ **남의 무리는 지도가 실어 보낸 그 글로** 잰다 (`otherIds`). 자가 제 나름대로 다시
+         뽑으면 자료가 아니라 **뽑기가 만든 차이**를 재게 된다 — 실측으로 남의 무리 값이
+         0.842 vs 0.476 로 갈렸다(2026-08-23). 실루엣이 `silOn` 을 싣는 것과 같은 까닭.
+         옛 지도(그 목록이 없는 판)는 예전처럼 스스로 뽑되, 그렇게 잰 것은 판정에서 뺀다. */
       const rest = groups.filter((_, j) => j !== ci).flat();
-      const step = Math.max(1, Math.floor(rest.length / mine.length));
-      const theirs = textsOf(rest.filter((_, k) => k % step === 0).slice(0, groups[ci].length));
+      const byId2 = new Map(rest.map((d) => [d.id, d]));
+      const listed = Array.isArray(one.otherIds) && one.otherIds.length
+        ? one.otherIds.map((id) => byId2.get(id)).filter(Boolean)
+        : null;
+      const step = Math.max(1, Math.floor(rest.length / groups[ci].length));
+      const theirs = textsOf(listed || rest.filter((_, k) => k % step === 0).slice(0, groups[ci].length));
       if (theirs.length < 3) return;
       const a = fitOf(mine, nameWords, topWords);
       const b = fitOf(theirs, nameWords, topWords);
       if (a == null || b == null) return;
+      gap = Math.max(gap, Math.abs(a - one.own), listed ? Math.abs(b - one.other) : 0);
+      /* 목록 없는 옛 지도는 남의 무리를 스스로 뽑은 것이라 판정을 견줄 수 없다 — 세지 않는다. */
+      if (!listed) { ties += 1; return; }
+      if (Math.abs(a - b) < TIE || Math.abs(one.own - one.other) < TIE) { ties += 1; return; }
       judged += 1;
-      gap = Math.max(gap, Math.abs(a - one.own));
       if ((a > b) === (one.own > one.other)) same += 1;
+      else console.log(`     ↳ 층 ${lv.k} 「${one.name}」 — 실린 값 ${one.own.toFixed(3)}/${one.other.toFixed(3)}`
+        + ` · 다시 재니 ${a.toFixed(3)}/${b.toFixed(3)}`);
     });
     const rate = f.better / f.judged;
     console.log(`  ② 층 ${lv.k} — 제 무리에서 더 높은 이름 ${f.better}/${f.judged} (${Math.round(rate * 100)}%)`
-      + ` · 평균 ${f.mean}` + (judged ? ` · 다시 재도 같은 판정 ${same}/${judged} (값 차이 최대 ${gap.toFixed(3)})` : ' · **다시 못 쟀다**'));
+      + ` · 평균 ${f.mean}`
+      + (judged ? ` · 다시 재도 같은 판정 ${same}/${judged} (값 차이 최대 ${gap.toFixed(3)}`
+        + `${ties ? ` · 비긴 것 ${ties}개는 뺐다` : ''})` : ` · **다시 못 쟀다**${ties ? ` (전부 비겼다 ${ties}개)` : ''}`));
     /**
      * ★ 문턱 0.8 은 **박아 둔 상수**였다. 층 14 는 이름이 열넷뿐이라 한 개가 7%다 —
      * 11/14(78.6%)가 12/14(85.7%)로 바뀌는 것이 「근거가 선다/안 선다」를 갈랐고,

@@ -375,10 +375,24 @@
       ]
     },
     {
+      "name": "test:pose",
+      "watch": [
+        "../../packages/pose/src/source.mjs",
+        "../../packages/pose/src/gesture.mjs",
+        "../../packages/pose/src/hand.mjs",
+        "../../packages/pose/src/index.mjs",
+        "../../packages/pose/test/pose-test.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "smoke:atlas-3d",
       "watch": [
         "tools/atlas-3d/index.html",
         "scripts/smoke-atlas-3d.mjs",
+        "../../packages/pose/src/source.mjs",
+        "../../packages/pose/src/gesture.mjs",
         "../../packages/three-kit/src/orbit.mjs",
         "../../packages/three-kit/src/points.mjs",
         "package.json",

@@ -5,6 +5,8 @@
 <title>내 글 지형도 — 돌려 보기</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<!-- 보안 한 줄은 손으로 적지 않는다 — 정본은 `scripts/lib/head-security.mjs` 의 CSP_META 다. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <!--
   **지형도를 돌려 보는 장** (change.motion-3d-cores 2단계).
 
@@ -39,7 +41,8 @@
 {
   "imports": {
     "three": "/packages/three-kit/vendor/three.module.min.js",
-    "three-kit/": "/packages/three-kit/src/"
+    "three-kit/": "/packages/three-kit/src/",
+    "karmo-pose/": "/packages/pose/src/"
   }
 }
 </script>
@@ -48,6 +51,8 @@
 import * as THREE from 'three';
 import { createOrbit } from 'three-kit/orbit.mjs';
 import { createPointCloud, rgb255, pixelScale } from 'three-kit/points.mjs';
+import { pointerSource, mergeSources } from 'karmo-pose/source.mjs';
+import { createGestures } from 'karmo-pose/gesture.mjs';
 
 /* 색은 2D 판과 **같은 여덟 색**(Wong) — 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
 const COLORS = [
@@ -148,7 +153,24 @@ grid.position.y = -0.02;
 scene.add(grid);
 
 const orbit = createOrbit({ distance: 3.2, pitch: 0.55, minDistance: 0.6, maxDistance: 12 });
-orbit.attach(canvas);
+
+/**
+ * **조작은 KarmoPose 를 거친다** — 지금은 마우스뿐이지만, 손·폰을 붙일 때 이 아래는 안 바뀐다.
+ * (손은 무겁고 팔이 지치므로 **켜는 것**이다. 안 켜면 무게 0 · 카메라 0.)
+ */
+const pose = mergeSources([pointerSource(canvas)]).start();
+const gestures = createGestures({ size: () => [canvas.clientWidth, canvas.clientHeight] });
+gestures.attach(pose);
+gestures.on('drag', (dx, dy, f) => {
+  /* 손은 **연속 조작**에만 쓴다 — 고르기는 마우스·자판 몫(실측: 손으로 고르면 처리량 절반·틀림 4배). */
+  if (f.kind === 'pointer' && f.buttons && shiftDown) orbit.pan(dx, dy);
+  else orbit.rotate(dx, dy);
+});
+let shiftDown = false;
+addEventListener('keydown', (e) => { if (e.key === 'Shift') shiftDown = true; });
+addEventListener('keyup', (e) => { if (e.key === 'Shift') shiftDown = false; });
+/* 당기기는 아직 굴림쇠 몫 — 손에서는 「두 손가락 사이」가 그 자리를 맡는다(붙이면 여기만 는다). */
+canvas.addEventListener('wheel', (e) => { orbit.zoom(e.deltaY); if (e.cancelable) e.preventDefault(); }, { passive: false });
 
 function resize() {
   const w = innerWidth; const h = innerHeight;
@@ -191,6 +213,9 @@ window.__atlas3d = {
   lanes: lanes.length,
   orbit,
   peak,
+  /* 조작이 **정말 KarmoPose 를 거치는가**를 자가 잴 수 있게 — 판을 직접 먹여 보게 연다. */
+  pose,
+  gestures,
   /** 몇 판이나 그렸나 — 자가 **첫 판이 그려진 뒤에** 재게 한다(셰이더 링크는 조금 늦는다). */
   frames: () => frames,
   lit() {

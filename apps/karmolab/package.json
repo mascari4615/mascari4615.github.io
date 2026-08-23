@@ -282,6 +282,7 @@
     "test:core": "node scripts/test-core.mjs",
     "test:meaning": "node ../../packages/meaning/test/parity.mjs",
     "test:three": "node --test ../../packages/three-kit/test/*.mjs",
+    "test:pose": "node --test ../../packages/pose/test/*.mjs",
     "smoke:atlas-3d": "node scripts/smoke-atlas-3d.mjs",
     "test:corecount": "node scripts/test-core-charcount.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",

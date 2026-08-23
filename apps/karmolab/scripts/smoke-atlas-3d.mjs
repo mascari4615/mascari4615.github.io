@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
+import { stripFrontMatter } from './lib/serve-html.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
@@ -43,8 +44,11 @@ const server = http.createServer((req, res) => {
   if (!full.startsWith(REPO) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
     res.writeHead(404); res.end('no'); return;
   }
-  res.writeHead(200, { 'content-type': TYPES[path.extname(full)] || 'application/octet-stream' });
-  res.end(fs.readFileSync(full));
+  const ext = path.extname(full);
+  res.writeHead(200, { 'content-type': TYPES[ext] || 'application/octet-stream' });
+  /* 배포와 **같은 모양**으로 준다 — Jekyll 앞머리는 떼고 낸다. 안 떼면 브라우저가 그 줄을
+     본문으로 읽고 `<head>` 를 닫아 버려, 시험만 빨개지고 배포는 멀쩡한 헛수고가 난다. */
+  res.end(ext === '.html' ? stripFrontMatter(fs.readFileSync(full, 'utf8')) : fs.readFileSync(full));
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -100,7 +104,22 @@ if (!got) {
   console.log(`  ③ 돌린 뒤 화면이 ${same ? '**그대로다**' : '달라졌다'}`);
   if (same) bad.push('돌렸는데 화면이 그대로다 — 궤도가 카메라에 안 붙었다');
 
-  /* ④ 제 한계를 말하나. */
+  /* ④ **조작이 KarmoPose 를 거치나** — 궤도를 직접 부르는 게 아니라 판(frame)을 먹여서 본다.
+     안 거치면 그 꾸러미는 이름만 있는 죽은 인터페이스다. */
+  const moved = await page.evaluate(() => {
+    const g = window.__atlas3d;
+    const before = g.orbit.state.want.yaw;
+    const f = (x, grip) => ({ t: performance.now(), ok: true, kind: 'pointer', point: [x, 0.5], depth: 0.5, grip, buttons: grip, raw: null });
+    g.gestures.push(f(0.5, 1));      // 쥐고
+    g.gestures.push(f(0.7, 1));      // 끌고
+    g.gestures.push(f(0.7, 0));      // 놓는다
+    return { before, after: g.orbit.state.want.yaw };
+  });
+  const turned = Math.abs(moved.after - moved.before);
+  console.log(`  ④ 포즈 판을 먹이니 방위가 ${turned.toFixed(3)} 만큼 돌았다`);
+  if (!(turned > 0.01)) bad.push('포즈 판을 먹여도 안 돌아간다 — 조작이 KarmoPose 를 안 거친다');
+
+  /* ⑤ 제 한계를 말하나. */
   const text = await page.evaluate(() => document.body.innerText);
   for (const [what, re] of [['찢김', /찢김/], ['밀도', /밀도/], ['조작법', /끌면 돌고/]]) {
     if (!re.test(text)) bad.push(`화면이 **${what}**을 안 적는다`);

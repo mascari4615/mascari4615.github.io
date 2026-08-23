@@ -37,9 +37,42 @@ if (rate < COVER) {
 }
 
 const near = docs.map((d) => new Set(d.near || []));
+
+/**
+ * ★ **링크가 없어도 잴 수 있는 것 — 맞이웃(mutual) 비율.**
+ *
+ * 뜻으로 뽑은 이웃은 서로를 부르는 일이 많다(A 의 이웃에 B 가 있으면 B 의 이웃에도 A 가 자주 있다).
+ * 아무거나 채운 목록은 그 성질이 없다 — 우연 수준은 k/n 이다(여기선 8/756 ≒ 1%).
+ *
+ * 왜 넣었나: 사람이 쓴 링크가 52개로 줄자 아래 검사가 통째로 **건너뛰어졌고**, 그 상태에서
+ * 이웃 목록을 난수로 갈아 끼워도 자가 초록이었다(2026-08-23 물기 시험에서 잡혔다).
+ * 건너뛴 검사는 통과한 검사가 아니다 — 링크가 없으면 이 잣대로 대신 문다.
+ */
+const k = Math.max(1, Math.round(withNear.reduce((s, d) => s + d.near.length, 0) / withNear.length));
+let mutual = 0; let pairs = 0;
+docs.forEach((d, i) => {
+  for (const j of d.near || []) {
+    if (j == null || j < 0 || j >= docs.length || j === i) continue;
+    pairs += 1;
+    if (near[j]?.has(i)) mutual += 1;
+  }
+});
+const mutualRate = pairs ? mutual / pairs : 0;
+const mutualChance = docs.length > 1 ? k / (docs.length - 1) : 0;
+console.log(`[near] 맞이웃 ${(mutualRate * 100).toFixed(1)}% (아무거나 채우면 ${(mutualChance * 100).toFixed(2)}%)`);
+const MUTUAL_TIMES = 5;
+if (!(mutualRate > mutualChance * MUTUAL_TIMES)) {
+  console.log('[near] **이웃 목록이 아무거나에 가깝다** — 서로를 부르는 일이 우연 수준이다');
+  console.log(`  맞이웃 ${(mutualRate * 100).toFixed(1)}% vs 우연 ${(mutualChance * 100).toFixed(2)}% (${MUTUAL_TIMES}배는 넘어야 한다)`);
+  process.exit(1);
+}
+
 const edges = atlas.edges || [];
 if (edges.length < 50) {
-  console.log('[near] 서로 부르는 짝이 너무 적다 — 견줄 잣대가 없어 건너뜀');
+  /* 링크 잣대는 못 돌리지만 **맞이웃은 실제로 쟀다** — 그래서 CANNOT-RUN 이 아니라 통과다.
+     대신 못 돈 칸을 소리 내어 적는다(조용히 넘어가면 「다 쟀다」로 읽힌다). */
+  console.log(`[near] 서로 부르는 짝이 ${edges.length}개뿐 — **링크 잣대는 이 판에서 못 돌렸다**`);
+  console.log('  (맞이웃으로는 쟀다. 글끼리 링크가 50개를 넘으면 링크 잣대도 다시 돈다)');
   process.exit(0);
 }
 
