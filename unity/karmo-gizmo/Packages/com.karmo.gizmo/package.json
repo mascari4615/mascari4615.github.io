@@ -1,5 +1,5 @@
 {
-  "name": "com.mascari4615.karmo-gizmo",
+  "name": "com.karmo.gizmo",
   "version": "0.1.0",
   "displayName": "Karmo Gizmo",
   "description": "Runtime transform gizmo for Unity. Move / rotate / scale handles that work in a built player, with every axis of the system pluggable: input, picking, snapping, undo, pivot strategy, rendering and the edit target itself.",

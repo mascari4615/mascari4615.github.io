@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.mascari4615.karmo-gizmo": {
-      "version": "file:com.mascari4615.karmo-gizmo",
+    "com.karmo.gizmo": {
+      "version": "file:com.karmo.gizmo",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
