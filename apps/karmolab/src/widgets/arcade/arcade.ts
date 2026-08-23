@@ -26,7 +26,7 @@ import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
-import { viewById } from './loader';
+import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { buzz } from '../../lib/haptic';
@@ -215,11 +215,46 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-cell.ac-s2::after{background:var(--ac-stone-w)}',
       '.ac-cell.ac-last.ac-s1::after,.ac-cell.ac-last.ac-s2::after{outline:2px solid rgba(226,80,60,.9);outline-offset:1px}',
       '.ac-cell:not(:disabled):hover{background:rgba(30,26,20,.12)}',
+      /**
+       * ── 입체 판 (표현 = 3D) ──
+       * 같은 규칙을 눕혀 놓은 판 위에 그린다. WebGL 없이 CSS 원근만 쓴다 —
+       * 칸이 여전히 `<button>` 이라 자판 조작·읽는 기계가 그대로 산다.
+       * 돌은 판 위로 `translateZ` 만큼 떠 있어 그림자가 판에 진다.
+       */
+      /* 입체 판일 때는 무대 판때기를 걷는다 — 눕힌 판보다 **앞에** 떠서 위쪽을 가린다(실측). */
+      '.ac-stage:has(.ac-b3){background:none}',
+      '.ac-b3{perspective:1400px;perspective-origin:50% 42%;max-width:100%;margin:var(--space-lg) auto;padding:6% 0 9%}',
+      '.ac-b3tilt{position:relative;transform-style:preserve-3d;transform:rotateX(52deg) rotateZ(-1deg);transition:transform var(--transition-slow)}',
+      '.ac-b3:hover .ac-b3tilt{transform:rotateX(46deg) rotateZ(-1deg)}',
+      /* 판의 두께 — 옆면이 보여야 바닥에 놓인 것으로 읽힌다. */
+      '.ac-b3edge{position:absolute;inset:-10px;border-radius:12px;background:linear-gradient(180deg,#b9832f,#7d5416);transform:translateZ(-16px);box-shadow:0 40px 50px rgba(40,26,8,.45)}',
+      /* 판 면도 3D 문맥을 이어야 한다 — 여기서 끊기면 안의 돌이 판과 함께 눕는다(실측). */
+      '.ac-b3face{position:relative;transform-style:preserve-3d;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;aspect-ratio:1;background:var(--ac-wood);padding:10px;box-sizing:border-box;border-radius:8px;box-shadow:inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
+      '.ac-b3face.ac-waiting{opacity:.9}',
+      '.ac-c3{position:relative;aspect-ratio:1;border:1px solid var(--ac-wood-line);background:transparent;padding:0;cursor:pointer;transform-style:preserve-3d}',
+      '.ac-c3:disabled{cursor:default}',
+      '.ac-c3 i{position:absolute;inset:12%;border-radius:50%;display:block;opacity:0;transform:translateZ(0)}',
+      /**
+       * 돌 = 판에서 떠오른 볼록한 알. 위에서 오는 빛을 좌상단에 받는다.
+       *
+       * ★ 판을 눕힌 각(52도)을 **되돌려 세운다**(rotateX(-52deg)). 안 세우면 돌이 판과 같이
+       *   눕어 타원 전병이 된다(실측 — 첫 판이 그랬다). 세워 두면 어느 각에서도 동그란 알이다.
+       *   `translateZ` 는 세우기 **뒤에** 곱해야 판 위로 떠오른다 — 순서를 바꾸면 옆으로 민다.
+       */
+      '.ac-c3.ac-s1 i,.ac-c3.ac-s2 i{opacity:1;transform:translateZ(11px) rotateX(-52deg);box-shadow:0 9px 10px rgba(40,26,8,.45)}',
+      '.ac-c3.ac-s1 i{background:var(--ac-stone-b)}',
+      '.ac-c3.ac-s2 i{background:var(--ac-stone-w)}',
+      '.ac-c3.ac-last i{outline:2px solid rgba(226,80,60,.95);outline-offset:1px}',
+      '.ac-c3:not(:disabled):hover{background:rgba(30,26,20,.14)}',
+      '@media (prefers-reduced-motion:reduce){.ac-b3tilt,.ac-b3:hover .ac-b3tilt{transition:none}}',
       /* 화점 — 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2·6 교차, 4,4). */
-      '.ac-cell::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
+      '.ac-cell::before,.ac-c3::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
       '.ac-board .ac-cell:nth-child(21)::before,.ac-board .ac-cell:nth-child(25)::before,' +
       '.ac-board .ac-cell:nth-child(41)::before,' +
-      '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before' +
+      '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before,' +
+      '.ac-b3face .ac-c3:nth-child(21)::before,.ac-b3face .ac-c3:nth-child(25)::before,' +
+      '.ac-b3face .ac-c3:nth-child(41)::before,' +
+      '.ac-b3face .ac-c3:nth-child(57)::before,.ac-b3face .ac-c3:nth-child(61)::before' +
       '{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(92,61,24,.8)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
       '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',
@@ -868,6 +903,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
       '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
       '<button class="btn btn-ghost" id="acFull" title="' + esc(t('arcade.btn.full')) + '">⛶</button>' +
+      /* 표현 고르기 — 규칙은 그대로, 보는 법만 바뀐다. 입체 화면이 있는 판에서만 뜬다. */
+      '<button class="btn btn-ghost" id="acDim" style="display:none" aria-pressed="false" title="' +
+      esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
@@ -1557,14 +1595,57 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ev.preventDefault();
     });
 
+    /**
+     * 그리는 법을 고른다 — **규칙은 그대로, 표현만 바뀐다** (`views.ts` 의 좁은 구멍).
+     *
+     * 입체 화면이 있는 판에서 3D 를 골랐고 그 조각이 이미 와 있으면 그것으로, 아니면 2D 로.
+     * 「아직 안 왔다」는 조용히 2D 다 — 표현 하나 못 받았다고 판이 안 서면 안 된다.
+     */
+    function viewFor(id: string): ReturnType<typeof viewById> {
+      if (dim() === '3d' && cardById(id)?.d3) {
+        const v3 = view3dById(id);
+        if (v3) return v3;
+      }
+      return viewById(id);
+    }
+
     function mountView(id: string): void {
-      const gv = viewById(id);
+      const gv = viewFor(id);
       viewEl.innerHTML = '';
       render = gv ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다 — 판은 커널이 들고 있어서
          화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
       if (!gv) void ensureGame(id).then(() => { if (gameId === id && !render) mountView(id); });
+      /* 3D 로 보기로 했는데 그 표현이 아직 없으면 받아 두고 **그때 갈아 끼운다**.
+         지금은 2D 가 이미 서 있으므로 사람은 끊김을 안 본다. */
+      else if (dim() === '3d' && cardById(id)?.d3 && !view3dById(id)) {
+        /* 다시 그리라고 부르지 않는다 — 시계가 매 tick 그린다(`paint`). 붙이기만 하면 다음 칸에 찬다. */
+        void ensureView3d(id).then((ok) => {
+          if (ok && gameId === id && dim() === '3d') mountView(id);
+        });
+      }
+      paintDim(id);
+    }
+
+    /** 지금 표현 — 사람이 고른 것이 브라우저에 남는다. */
+    function dim(): '2d' | '3d' {
+      try {
+        return localStorage.getItem('karmolab.arcade.dim') === '3d' ? '3d' : '2d';
+      } catch {
+        return '2d';
+      }
+    }
+
+    /** 이 판에 입체 화면이 있을 때만 단추가 선다 — 없는 판에 죽은 단추를 두지 않는다. */
+    function paintDim(id: string): void {
+      const btn = container.querySelector<HTMLButtonElement>('#acDim');
+      if (!btn) return;
+      const has = !!cardById(id)?.d3;
+      btn.style.display = has ? '' : 'none';
+      const on3d = dim() === '3d';
+      btn.textContent = on3d ? '3D' : '2D';
+      btn.setAttribute('aria-pressed', String(on3d));
     }
 
     function sendAct(a: unknown): void {
@@ -2141,6 +2222,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (document.fullscreenElement === stage) stage.appendChild(controls);
       else controlsHome?.appendChild(controls);
     });
+
+    /* 표현 갈아 끼우기 — 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
+    $<HTMLButtonElement>('#acDim').onclick = (): void => {
+      const next = dim() === '3d' ? '2d' : '3d';
+      try {
+        localStorage.setItem('karmolab.arcade.dim', next);
+      } catch {
+        /* 못 적어도 이 판에서는 바뀐다 */
+      }
+      if (gameId) mountView(gameId);
+    };
 
     $<HTMLButtonElement>('#acFull').onclick = (): void => {
       const stage = $<HTMLElement>('#acStage');

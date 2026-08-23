@@ -15,7 +15,7 @@
  *
  * 사용: node scripts/gen-arcade-catalog.mjs
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -71,6 +71,10 @@ if (!Array.isArray(CATALOG) || CATALOG.length !== rows.length) {
   process.exit(1);
 }
 
+/* 이 판에 **입체 화면**이 있나 = `games/<조각>-view3d.ts` 가 실재하나.
+   명부에 손으로 적지 않는다 — 파일을 만들면 그날 켜지고, 지우면 그날 꺼진다. */
+const has3d = (chunk) => existsSync(join(root, 'src/widgets/arcade/games', `${chunk}-view3d.ts`));
+
 const meta = CATALOG.map((e, i) => ({
   id: e.def.id,
   icon: e.icon,
@@ -80,7 +84,8 @@ const meta = CATALOG.map((e, i) => ({
   chunk: rows[i].defMod,
   view: rows[i].viewMod,
   defVar: rows[i].defVar,
-  viewVar: rows[i].viewVar
+  viewVar: rows[i].viewVar,
+  d3: has3d(rows[i].defMod)
 }));
 
 const overlap = meta.map((m) => m.chunk).filter((c, i, a) => a.indexOf(c) !== i);
@@ -95,7 +100,8 @@ const lines = meta
   .map(
     (m) =>
       `  { id: ${q(m.id)}, icon: ${q(m.icon)}, kind: ${q(m.kind)}` +
-      `, seats: [${m.seats[0]}, ${m.seats[1]}], realtime: ${m.realtime}, chunk: ${q(m.chunk)} }`
+      `, seats: [${m.seats[0]}, ${m.seats[1]}], realtime: ${m.realtime}, chunk: ${q(m.chunk)}` +
+      (m.d3 ? ', d3: true' : '') + ` }`
   )
   .join(',' + NL);
 
@@ -115,6 +121,8 @@ const ts =
   `  realtime: boolean;` + NL +
   `  /** 이 게임 조각 파일 이름 — \`arcade/games/<chunk>.js\` */` + NL +
   `  chunk: string;` + NL +
+  `  /** 입체 화면이 있나 (\`games/<chunk>-view3d.ts\` 실재) — 있으면 2D/3D 를 사람이 고른다 */` + NL +
+  `  d3?: boolean;` + NL +
   `}` + NL + NL +
   `export const CARDS: GameCard[] = [` + NL +
   lines + NL +
@@ -125,7 +133,7 @@ writeFileSync(join(root, 'src/widgets/arcade/catalog-meta.generated.ts'), '/*' +
 /* 조각 굽기가 읽는 표 — 이름 → 규칙 파일 · 화면 파일 */
 writeFileSync(
   join(root, 'src/widgets/arcade/chunks.generated.json'),
-  JSON.stringify(meta.map((m) => ({ id: m.id, chunk: m.chunk, view: m.view, defVar: m.defVar, viewVar: m.viewVar })), null, 2) + NL,
+  JSON.stringify(meta.map((m) => ({ id: m.id, chunk: m.chunk, view: m.view, defVar: m.defVar, viewVar: m.viewVar, d3: m.d3 })), null, 2) + NL,
   'utf8'
 );
 console.log(`[gen-arcade-catalog] 명패 ${meta.length}개 → catalog-meta.generated.ts · 조각 표 ${meta.length}개`);

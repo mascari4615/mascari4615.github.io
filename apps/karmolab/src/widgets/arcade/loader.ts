@@ -67,3 +67,37 @@ export function ensureGame(id: string): Promise<boolean> {
 /** 여러 판을 한꺼번에 (대회는 다섯 판을 미리 안다). */
 export const ensureGames = (ids: string[]): Promise<boolean[]> =>
   Promise.all([...new Set(ids)].map(ensureGame));
+
+/* ── 입체 화면 (같은 규칙, 다른 표현) ─────────────────────────────
+ *
+ * 규칙은 위 자루에 이미 있다. 여기서 받는 것은 **그리는 법 하나**뿐이라
+ * 2D 로 노는 사람은 이 파일을 영영 안 받는다.
+ * 없으면 `undefined` — 부르는 쪽이 조용히 2D 로 돌아간다(못 받았다고 판이 안 서면 안 된다).
+ */
+const bag3d = (): Record<string, GameView<any, any> | undefined> =>
+  ((window as unknown as { __ARCADE_VIEWS3D?: Record<string, GameView<any, any>> }).__ARCADE_VIEWS3D ??= {});
+
+export const view3dById = (id: string): GameView<any, any> | undefined => bag3d()[id];
+
+const incoming3d = new Map<string, Promise<boolean>>();
+
+export function ensureView3d(id: string): Promise<boolean> {
+  if (bag3d()[id]) return Promise.resolve(true);
+  const card = cardById(id);
+  if (!card?.d3) return Promise.resolve(false);
+  const present = incoming3d.get(id);
+  if (present) return present;
+  const p = new Promise<boolean>((resolve) => {
+    const end = (ok: boolean): void => {
+      if (!ok) incoming3d.delete(id);
+      resolve(ok);
+    };
+    const s = document.createElement('script');
+    s.src = `/apps/karmolab/arcade/games3d/${card.chunk}.js`;
+    s.onload = () => end(!!bag3d()[id]);
+    s.onerror = () => end(false);
+    document.head.appendChild(s);
+  });
+  incoming3d.set(id, p);
+  return p;
+}

@@ -13,6 +13,8 @@ export interface GameCard {
   realtime: boolean;
   /** 이 게임 조각 파일 이름 — `arcade/games/<chunk>.js` */
   chunk: string;
+  /** 입체 화면이 있나 (`games/<chunk>-view3d.ts` 실재) — 있으면 2D/3D 를 사람이 고른다 */
+  d3?: boolean;
 }
 
 export const CARDS: GameCard[] = [
@@ -34,7 +36,7 @@ export const CARDS: GameCard[] = [
   { id: 'twenty', icon: '❓', kind: 'quick', seats: [2, 4], realtime: false, chunk: 'twenty' },
   { id: 'snake', icon: '🐍', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'snake' },
   { id: 'shellgame', icon: '🥄', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'shell' },
-  { id: 'gomoku', icon: '⚫', kind: 'board', seats: [2, 2], realtime: false, chunk: 'gomoku' },
+  { id: 'gomoku', icon: '⚫', kind: 'board', seats: [2, 2], realtime: false, chunk: 'gomoku', d3: true },
   { id: 'four', icon: '🔴', kind: 'board', seats: [2, 2], realtime: false, chunk: 'four' },
   { id: 'reversi', icon: '⚪', kind: 'board', seats: [2, 2], realtime: false, chunk: 'reversi' },
   { id: 'dots', icon: '⬜', kind: 'board', seats: [2, 4], realtime: false, chunk: 'dots' },

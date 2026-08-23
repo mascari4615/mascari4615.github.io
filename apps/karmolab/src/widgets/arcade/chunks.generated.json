@@ -4,356 +4,407 @@
     "chunk": "reflex",
     "view": "reflex-view",
     "defVar": "reflex",
-    "viewVar": "reflexView"
+    "viewVar": "reflexView",
+    "d3": false
   },
   {
     "id": "speed",
     "chunk": "speed",
     "view": "speed-view",
     "defVar": "speed",
-    "viewVar": "speedView"
+    "viewVar": "speedView",
+    "d3": false
   },
   {
     "id": "airhockey",
     "chunk": "airhockey",
     "view": "airhockey-view",
     "defVar": "airhockey",
-    "viewVar": "airhockeyView"
+    "viewVar": "airhockeyView",
+    "d3": false
   },
   {
     "id": "pong",
     "chunk": "pong",
     "view": "pong-view",
     "defVar": "pong",
-    "viewVar": "pongView"
+    "viewVar": "pongView",
+    "d3": false
   },
   {
     "id": "whack",
     "chunk": "whack",
     "view": "whack-view",
     "defVar": "whack",
-    "viewVar": "whackView"
+    "viewVar": "whackView",
+    "d3": false
   },
   {
     "id": "tug",
     "chunk": "tug",
     "view": "tug-view",
     "defVar": "tug",
-    "viewVar": "tugView"
+    "viewVar": "tugView",
+    "d3": false
   },
   {
     "id": "rps",
     "chunk": "rps",
     "view": "rps-view",
     "defVar": "rps",
-    "viewVar": "rpsView"
+    "viewVar": "rpsView",
+    "d3": false
   },
   {
     "id": "tuho",
     "chunk": "tuho",
     "view": "tuho-view",
     "defVar": "tuho",
-    "viewVar": "tuhoView"
+    "viewVar": "tuhoView",
+    "d3": false
   },
   {
     "id": "yut",
     "chunk": "yut",
     "view": "yut-view",
     "defVar": "yut",
-    "viewVar": "yutView"
+    "viewVar": "yutView",
+    "d3": false
   },
   {
     "id": "fleet",
     "chunk": "fleet",
     "view": "fleet-view",
     "defVar": "fleet",
-    "viewVar": "fleetView"
+    "viewVar": "fleetView",
+    "d3": false
   },
   {
     "id": "auction",
     "chunk": "auction",
     "view": "auction-view",
     "defVar": "auction",
-    "viewVar": "auctionView"
+    "viewVar": "auctionView",
+    "d3": false
   },
   {
     "id": "jegi",
     "chunk": "jegi",
     "view": "jegi-view",
     "defVar": "jegi",
-    "viewVar": "jegiView"
+    "viewVar": "jegiView",
+    "d3": false
   },
   {
     "id": "nunchi",
     "chunk": "nunchi",
     "view": "nunchi-view",
     "defVar": "nunchi",
-    "viewVar": "nunchiView"
+    "viewVar": "nunchiView",
+    "d3": false
   },
   {
     "id": "wordchain",
     "chunk": "wordchain",
     "view": "wordchain-view",
     "defVar": "wordchain",
-    "viewVar": "wordchainView"
+    "viewVar": "wordchainView",
+    "d3": false
   },
   {
     "id": "lineup",
     "chunk": "lineup",
     "view": "lineup-view",
     "defVar": "lineup",
-    "viewVar": "lineupView"
+    "viewVar": "lineupView",
+    "d3": false
   },
   {
     "id": "twenty",
     "chunk": "twenty",
     "view": "twenty-view",
     "defVar": "twenty",
-    "viewVar": "twentyView"
+    "viewVar": "twentyView",
+    "d3": false
   },
   {
     "id": "snake",
     "chunk": "snake",
     "view": "snake-view",
     "defVar": "snake",
-    "viewVar": "snakeView"
+    "viewVar": "snakeView",
+    "d3": false
   },
   {
     "id": "shellgame",
     "chunk": "shell",
     "view": "shell-view",
     "defVar": "shellgame",
-    "viewVar": "shellgameView"
+    "viewVar": "shellgameView",
+    "d3": false
   },
   {
     "id": "gomoku",
     "chunk": "gomoku",
     "view": "gomoku-view",
     "defVar": "gomoku",
-    "viewVar": "gomokuView"
+    "viewVar": "gomokuView",
+    "d3": true
   },
   {
     "id": "four",
     "chunk": "four",
     "view": "four-view",
     "defVar": "four",
-    "viewVar": "fourView"
+    "viewVar": "fourView",
+    "d3": false
   },
   {
     "id": "reversi",
     "chunk": "reversi",
     "view": "reversi-view",
     "defVar": "reversi",
-    "viewVar": "reversiView"
+    "viewVar": "reversiView",
+    "d3": false
   },
   {
     "id": "dots",
     "chunk": "dots",
     "view": "dots-view",
     "defVar": "dots",
-    "viewVar": "dotsView"
+    "viewVar": "dotsView",
+    "d3": false
   },
   {
     "id": "ultimate",
     "chunk": "ultimate",
     "view": "ultimate-view",
     "defVar": "ultimate",
-    "viewVar": "ultimateView"
+    "viewVar": "ultimateView",
+    "d3": false
   },
   {
     "id": "checkers",
     "chunk": "checkers",
     "view": "checkers-view",
     "defVar": "checkers",
-    "viewVar": "checkersView"
+    "viewVar": "checkersView",
+    "d3": false
   },
   {
     "id": "nim",
     "chunk": "nim",
     "view": "nim-view",
     "defVar": "nim",
-    "viewVar": "nimView"
+    "viewVar": "nimView",
+    "d3": false
   },
   {
     "id": "minishogi",
     "chunk": "minishogi",
     "view": "minishogi-view",
     "defVar": "minishogi",
-    "viewVar": "minishogiView"
+    "viewVar": "minishogiView",
+    "d3": false
   },
   {
     "id": "mancala",
     "chunk": "mancala",
     "view": "mancala-view",
     "defVar": "mancala",
-    "viewVar": "mancalaView"
+    "viewVar": "mancalaView",
+    "d3": false
   },
   {
     "id": "foxhounds",
     "chunk": "foxhounds",
     "view": "foxhounds-view",
     "defVar": "foxhounds",
-    "viewVar": "foxhoundsView"
+    "viewVar": "foxhoundsView",
+    "d3": false
   },
   {
     "id": "capturego",
     "chunk": "capturego",
     "view": "capturego-view",
     "defVar": "capturego",
-    "viewVar": "capturegoView"
+    "viewVar": "capturegoView",
+    "d3": false
   },
   {
     "id": "blackjack",
     "chunk": "blackjack",
     "view": "blackjack-view",
     "defVar": "blackjack",
-    "viewVar": "blackjackView"
+    "viewVar": "blackjackView",
+    "d3": false
   },
   {
     "id": "president",
     "chunk": "president",
     "view": "president-view",
     "defVar": "president",
-    "viewVar": "presidentView"
+    "viewVar": "presidentView",
+    "d3": false
   },
   {
     "id": "dominoes",
     "chunk": "dominoes",
     "view": "dominoes-view",
     "defVar": "dominoes",
-    "viewVar": "dominoesView"
+    "viewVar": "dominoesView",
+    "d3": false
   },
   {
     "id": "yacht",
     "chunk": "yacht",
     "view": "yacht-view",
     "defVar": "yacht",
-    "viewVar": "yachtView"
+    "viewVar": "yachtView",
+    "d3": false
   },
   {
     "id": "highlow",
     "chunk": "highlow",
     "view": "highlow-view",
     "defVar": "highlow",
-    "viewVar": "highlowView"
+    "viewVar": "highlowView",
+    "d3": false
   },
   {
     "id": "lanterns",
     "chunk": "lanterns",
     "view": "lanterns-view",
     "defVar": "lanterns",
-    "viewVar": "lanternsView"
+    "viewVar": "lanternsView",
+    "d3": false
   },
   {
     "id": "liars",
     "chunk": "liars",
     "view": "liars-view",
     "defVar": "liars",
-    "viewVar": "liarsView"
+    "viewVar": "liarsView",
+    "d3": false
   },
   {
     "id": "hanafuda",
     "chunk": "hanafuda",
     "view": "hanafuda-view",
     "defVar": "hanafuda",
-    "viewVar": "hanafudaView"
+    "viewVar": "hanafudaView",
+    "d3": false
   },
   {
     "id": "derby",
     "chunk": "derby",
     "view": "derby-view",
     "defVar": "derby",
-    "viewVar": "derbyView"
+    "viewVar": "derbyView",
+    "d3": false
   },
   {
     "id": "curling",
     "chunk": "curling",
     "view": "curling-view",
     "defVar": "curling",
-    "viewVar": "curlingView"
+    "viewVar": "curlingView",
+    "d3": false
   },
   {
     "id": "bowling",
     "chunk": "bowling",
     "view": "bowling-view",
     "defVar": "bowling",
-    "viewVar": "bowlingView"
+    "viewVar": "bowlingView",
+    "d3": false
   },
   {
     "id": "pool",
     "chunk": "pool",
     "view": "pool-view",
     "defVar": "pool",
-    "viewVar": "poolView"
+    "viewVar": "poolView",
+    "d3": false
   },
   {
     "id": "darts",
     "chunk": "darts",
     "view": "darts-view",
     "defVar": "darts",
-    "viewVar": "dartsView"
+    "viewVar": "dartsView",
+    "d3": false
   },
   {
     "id": "fishing",
     "chunk": "fishing",
     "view": "fishing-view",
     "defVar": "fishing",
-    "viewVar": "fishingView"
+    "viewVar": "fishingView",
+    "d3": false
   },
   {
     "id": "tanks",
     "chunk": "tanks",
     "view": "tanks-view",
     "defVar": "tanks",
-    "viewVar": "tanksView"
+    "viewVar": "tanksView",
+    "d3": false
   },
   {
     "id": "memory",
     "chunk": "memory",
     "view": "memory-view",
     "defVar": "memory",
-    "viewVar": "memoryView"
+    "viewVar": "memoryView",
+    "d3": false
   },
   {
     "id": "hitblow",
     "chunk": "hitblow",
     "view": "hitblow-view",
     "defVar": "hitblow",
-    "viewVar": "hitblowView"
+    "viewVar": "hitblowView",
+    "d3": false
   },
   {
     "id": "slide",
     "chunk": "slide",
     "view": "slide-view",
     "defVar": "slide",
-    "viewVar": "slideView"
+    "viewVar": "slideView",
+    "d3": false
   },
   {
     "id": "minesweeper",
     "chunk": "minesweeper",
     "view": "minesweeper-view",
     "defVar": "minesweeper",
-    "viewVar": "minesweeperView"
+    "viewVar": "minesweeperView",
+    "d3": false
   },
   {
     "id": "onestroke",
     "chunk": "onestroke",
     "view": "onestroke-view",
     "defVar": "onestroke",
-    "viewVar": "onestrokeView"
+    "viewVar": "onestrokeView",
+    "d3": false
   },
   {
     "id": "simon",
     "chunk": "simon",
     "view": "simon-view",
     "defVar": "simon",
-    "viewVar": "simonView"
+    "viewVar": "simonView",
+    "d3": false
   },
   {
     "id": "sudoku",
     "chunk": "sudoku",
     "view": "sudoku-view",
     "defVar": "sudoku",
-    "viewVar": "sudokuView"
+    "viewVar": "sudokuView",
+    "d3": false
   }
 ]

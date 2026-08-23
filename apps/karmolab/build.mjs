@@ -317,6 +317,36 @@ for (const rel of entryPoints) {
     });
   }
   if (table.length) console.log(`[build] 오락실 게임 ${table.length}판 → arcade/games/*.js (누를 때 하나만 받는다)`);
+
+  /*
+   * ★ **입체 화면은 따로 굽는다** — 같은 규칙, 다른 표현.
+   *
+   * 규칙(`def`)은 이미 위 조각에 들어 있다. 여기서 굽는 것은 **그리는 법 하나**뿐이라,
+   * 2D 로 노는 사람은 이 파일을 영영 안 받는다(3D 로 바꿀 때만 받아 온다).
+   * 명부는 `chunks.generated.json` 의 `d3` — 그 값은 `<chunk>-view3d.ts` 실재 여부다.
+   */
+  const table3d = table.filter((g) => g.d3);
+  for (const g of table3d) {
+    await esbuild.build({
+      stdin: {
+        contents:
+          `import { view3d } from './src/widgets/arcade/games/${g.chunk}-view3d';\n` +
+          `const w = window;\n` +
+          `w.__ARCADE_VIEWS3D = w.__ARCADE_VIEWS3D || {};\n` +
+          `w.__ARCADE_VIEWS3D[${JSON.stringify(g.id)}] = view3d;\n`,
+        resolveDir: root,
+        loader: 'ts'
+      },
+      outfile: join(root, `arcade/games3d/${g.chunk}.js`),
+      ...FULL_MINIFY,
+      bundle: true,
+      format: 'iife',
+      platform: 'browser',
+      target: ['es2020'],
+      logLevel: 'silent'
+    });
+  }
+  if (table3d.length) console.log(`[build] 입체 화면 ${table3d.length}판 → arcade/games3d/*.js (3D 로 볼 때만 받는다)`);
 }
 
 const worldEntryPoints = [
