@@ -6,7 +6,7 @@
  * 잠금. 이 테스트가 깨지면 = 누군가 발굴에 쓰기/세션/권한스킵을 다시 열었음.
  */
 import { describe, it, expect } from 'vitest';
-import { buildDiscoveryArgs } from 'karmolab-ai/node';
+import { buildDiscoveryArgs } from '@karmo/ai/node';
 
 describe('buildDiscoveryArgs — 비-agentic 하드 보장', () => {
   const args = buildDiscoveryArgs();

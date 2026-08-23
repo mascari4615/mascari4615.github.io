@@ -7,7 +7,7 @@
  *     image-log.jsonl   — 생성/히트 로그 (JSON Lines)
  *     {id}.png          — 실제 이미지 파일
  *
- * 유사도: Gemini 임베딩 코사인 유사도 (karmolab-ai generateEmbedding)
+ * 유사도: Gemini 임베딩 코사인 유사도 (@karmo/ai generateEmbedding)
  *   KARMOLAB_AI_SURFACE=vertex → Vertex text-embedding-004
  *   기본 → AI Studio gemini-embedding-001
  * 캐시 최대: MAX_CACHE_ENTRIES개, 초과 시 hitCount 낮은 것 삭제
@@ -15,7 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { generateEmbedding } from 'karmolab-ai/node';
+import { generateEmbedding } from '@karmo/ai/node';
 
 const MAX_CACHE_ENTRIES = 50;
 const DEFAULT_COSINE_THRESHOLD = 0.75;

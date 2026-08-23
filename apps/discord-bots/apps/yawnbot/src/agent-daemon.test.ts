@@ -11,7 +11,7 @@ import {
 } from './agent-daemon.js';
 import { publishBusEvent, readRecentBusEvents } from './services/agent-bus.js';
 import type { CoreDef } from './services/agent-core.js';
-import type { GenerativeTextClient } from 'karmolab-ai/node';
+import type { GenerativeTextClient } from '@karmo/ai/node';
 
 function fakeCore(id: string, overrides: Partial<CoreDef> = {}): CoreDef {
   return {

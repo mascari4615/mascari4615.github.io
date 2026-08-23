@@ -14,7 +14,7 @@ import type { MoodService } from '../../services/mood-service';
 import type { RelationshipService } from '../../services/relationship-service';
 import type { NewsService } from '../../services/news-service';
 import type { AnniversaryService } from '../../services/anniversary-service';
-import type { GenerativeTextClient } from 'karmolab-ai/node';
+import type { GenerativeTextClient } from '@karmo/ai/node';
 
 export interface BotContext {
   client: Client;

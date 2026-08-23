@@ -11,7 +11,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Message } from 'discord.js';
-import { generateAssistantText } from 'karmolab-ai/node';
+import { generateAssistantText } from '@karmo/ai/node';
 import { commitAndPushMemoFile } from '../services/memo-push.js';
 
 // `뇌: 내용` `뇌:내용` `뇌 : 내용` `뇌：내용` `뇌 내용` 전부 매칭.

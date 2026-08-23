@@ -1,7 +1,7 @@
 # mascari4615.github.io — AI 에이전트 작업 지침
 
 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages, 도메인 `https://blog.mascari4615.com` (CNAME).
-구조: `apps/blog/` = 사이트 껍데기 (Jekyll = 얇은 조립기 — permalink·sitemap·정적 복사만, Chirpy 는 철거됨) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/` / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
+구조: `apps/blog/` = 사이트 껍데기 (Jekyll = 얇은 조립기 — permalink·sitemap·정적 복사만, Chirpy 는 철거됨) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/ai/`(`@karmo/ai`) / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
 **블로그 = KarmoLab 파이프** (change.blog-cutover, memo): 글 정본 = `apps/karmolab/content/{posts,drafts}/` · 렌더 = `src/lib/markdown/` · 장 생성 = `scripts/gen-post-pages.mjs` (`/`·`/posts/<slug>/`·`/about/`·`/feed.xml`). 앱 안 읽기 = 커뮤니티 위젯 「글」 탭.
 
 ## Post 규칙 (글 원본 = `apps/karmolab/content/posts/`)
@@ -71,7 +71,7 @@ npm run build             # push 직전 한 번만 (통짜)
 
 master 브랜치는 항상:
 - `apps/karmolab` build (typecheck 포함) 통과
-- `packages/karmolab-ai` build 통과
+- `packages/ai`(`@karmo/ai`) build 통과
 - `apps/karmolab-tauri/src-tauri` cargo check 통과 + ACL audit (`acl.toml ⟷ #[command] ⟷ caps` cross-check)
 - typos check 통과
 

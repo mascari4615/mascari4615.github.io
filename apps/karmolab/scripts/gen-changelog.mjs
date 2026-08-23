@@ -23,7 +23,7 @@ const root = path.resolve(here, '..');
 const OUT = path.join(root, 'data/changelog.json');
 
 /** 이 폴더들이 바뀐 커밋만 — 블로그 글이나 게임 커밋은 KarmoLab 의 변경이 아니다. */
-const WATCH = ['apps/karmolab', 'apps/discord-bots/apps/yawnbot', 'packages/karmolab-ai'];
+const WATCH = ['apps/karmolab', 'apps/discord-bots/apps/yawnbot', 'packages/ai'];
 
 /** 몇 개까지 실을지. 넘치면 읽는 사람이 최근 것을 못 찾는다. */
 const LIMIT = 80;

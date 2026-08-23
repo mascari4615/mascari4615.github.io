@@ -134,6 +134,6 @@ export function openRouterConfigFromEnv(env: NodeJS.ProcessEnv): OpenAiCompatOpt
     defaultModel:
       env.OPENROUTER_MODEL?.trim() || 'anthropic/claude-3.5-sonnet',
     httpReferer: env.OPENROUTER_HTTP_REFERER?.trim() || 'https://github.com/Mascari4615',
-    appTitle: env.OPENROUTER_APP_TITLE?.trim() || 'karmolab-ai',
+    appTitle: env.OPENROUTER_APP_TITLE?.trim() || '@karmo/ai',
   };
 }

@@ -10,8 +10,8 @@
  * 자기 파일에 사는 이유는 우물·오늘의 판과 같다(`karmolab-api.ts` 통짜 덮어쓰기 사고).
  */
 import type { Application, Request, Response } from 'express';
-import type { GenerativeTextClient } from 'karmolab-ai/node';
-import { tryCreateGenerativeTextFromEnv } from 'karmolab-ai/node';
+import type { GenerativeTextClient } from '@karmo/ai/node';
+import { tryCreateGenerativeTextFromEnv } from '@karmo/ai/node';
 import {
   MAX_QUERY,
   RouteMemory,

@@ -32,7 +32,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const { applyYawnbotDotenvLayers } = require('./load-dotenv-layers.cjs');
 applyYawnbotDotenvLayers(path.join(__dirname, '..'));
-const { tryCreateGenerativeTextFromEnv, generativeEnvHint } = require('karmolab-ai/node');
+const { tryCreateGenerativeTextFromEnv, generativeEnvHint } = require('@karmo/ai/node');
 
 const DEFAULT_EXPORT_DIR = path.join(os.homedir(), 'Documents', '카카오톡 받은 파일');
 const WATCH_DIR = process.env.KAKAO_EXPORT_WATCH_DIR?.trim() || DEFAULT_EXPORT_DIR;

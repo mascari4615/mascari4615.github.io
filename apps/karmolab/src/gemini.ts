@@ -13,7 +13,7 @@
  * - 이미지: https://ai.google.dev/gemini-api/docs/image-generation
  * - Imagen: https://ai.google.dev/gemini-api/docs/imagen
  *
- * 모델·URL·Vertex 기본값 SSOT: packages/karmolab-ai (KarmoLabAI — AI Studio + Vertex)
+ * 모델·URL·Vertex 기본값 SSOT: packages/ai (KarmoLabAI — AI Studio + Vertex)
  */
 import {
   MODEL_CATALOG as MODELS,
@@ -29,7 +29,7 @@ import {
   DOC_URL_AI_STUDIO_API_KEY,
   DOC_URL_VERTEX_API_KEYS,
   type ModelProvider,
-} from 'karmolab-ai';
+} from '@karmo/ai';
 import { t, loadNamespace } from './lib/i18n';
 
 /* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
@@ -299,7 +299,7 @@ const Gemini = (() => {
         return key;
     }
 
-    /* ===== 기본 모델 (catalog: karmolab-ai) ===== */
+    /* ===== 기본 모델 (catalog: @karmo/ai) ===== */
     function getDefaultModel(provider: ModelProvider = 'gemini'): string {
         return getDefaultModelId(provider);
     }

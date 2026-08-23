@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * `packages/karmolab-ai/.env` (공통 AI 키)을 `process.env` 에 주입.
+ * `packages/ai/.env` (공통 AI 키)을 `process.env` 에 주입.
  *
  * - 이미 설정된 OS 환경 변수는 덮어쓰지 않음.
  * - 앱별 `.env` 는 이 함수 호출 **이후** 에 로드하면 공통 값을 오버라이드할 수 있음.
@@ -12,12 +12,12 @@ import * as path from 'path';
  *
  * 사용 예:
  * ```ts
- * import { loadKarmoLabAIEnv } from 'karmolab-ai/node';
+ * import { loadKarmoLabAIEnv } from '@karmo/ai/node';
  * loadKarmoLabAIEnv(); // 앱 진입점 최상단에서 호출
  * ```
  */
 export function loadKarmoLabAIEnv(): void {
-  // dist/node/env.js 기준으로 두 단계 위 = packages/karmolab-ai/
+  // dist/node/env.js 기준으로 두 단계 위 = packages/ai/
   const pkgRoot = path.join(__dirname, '..', '..');
   parseDotenvFile(path.join(pkgRoot, '.env'), false);
 }

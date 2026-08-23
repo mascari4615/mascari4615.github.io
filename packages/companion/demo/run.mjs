@@ -7,7 +7,7 @@
  *   COMPANION_CLOCK_MS=<숫자>        시계 몸을 붙인다 (스스로 혼잣말)
  *   COMPANION_COOLDOWN_MS=<숫자>     혼잣말 쿨다운 (기본 30000)
  *   COMPANION_MEMORY_FILE=<경로>     기억을 파일로 (끄면 프로세스 메모리)
- *   ASSISTANT_AI_PROVIDER=...        어느 LLM 인지는 karmolab-ai 가 정한다
+ *   ASSISTANT_AI_PROVIDER=...        어느 LLM 인지는 @karmo/ai 가 정한다
  */
 import {
   Companion,

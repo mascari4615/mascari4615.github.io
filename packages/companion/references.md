@@ -200,7 +200,7 @@
   그 재료가 그대로 쓰인다.
 - **할 수 있는 것**: **TASK-KAR-237** 의 「사용자 결정 자리」에 이 숫자를 그대로 올린다 —
   받는 것(3.4GB) · 기대 속도(180~290 tok/s) · VRAM 기준(6GB 이하면 4B). 우리 쪽 코드는
-  이미 자리가 있다(`brain/assistant.ts` → `karmolab-ai` provider 라우터에 `ollama` 포함).
+  이미 자리가 있다(`brain/assistant.ts` → `@karmo/ai` provider 라우터에 `ollama` 포함).
   103회차에 그 두뇌가 키가 없어 침묵하던 것을 살리는 것이 첫 걸음이고, 그 다음은 재기다
   (5회 평균 TTFT 를 CLI 10.7초와 나란히).
 
@@ -689,7 +689,7 @@
   그림을 붙이든 안 붙이든 차이가 없었다(A/B 2판: 그림 9.5·14.2초 / 그림 없이 13.3·9.1초).
   즉 늦는 건 haiku 도, 재료 크기도, 100회차의 그림도 아니고 **매 turn 새 프로세스를 띄워
   왕복하는 구조** 자체다.
-- **할 수 있는 것**: 자리는 **이미 있고 죽어 있다.** `brain/assistant.ts` 가 `karmolab-ai` 의
+- **할 수 있는 것**: 자리는 **이미 있고 죽어 있다.** `brain/assistant.ts` 가 `@karmo/ai` 의
   provider 라우터로 위임하고, 그 목록에 `ollama` 가 들어 있다(`ASSISTANT_AI_PROVIDER`).
   지금 `COMPANION_BRAIN=assistant` 로 띄우면 **대답이 없다** — 먼저 이걸 살리고, 상주 서버
   (llama.cpp/ollama)에 물린 다음 TTFT 를 5회 평균으로 재서 CLI 10.7초와 나란히 놓는다.

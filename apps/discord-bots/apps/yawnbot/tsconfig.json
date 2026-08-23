@@ -6,7 +6,7 @@
     "declaration": false,
     "baseUrl": ".",
     "paths": {
-      "karmolab-ai/node": ["../../../../packages/karmolab-ai/dist/node"]
+      "@karmo/ai/node": ["../../../../packages/ai/dist/node"]
     }
   },
   "include": ["src/**/*.ts", "cli/**/*.ts"],

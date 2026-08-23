@@ -9,7 +9,7 @@
  */
 import type { Client } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
-import { generateBlobTextFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateBlobTextFromEnvWithOptions } from '@karmo/ai/node';
 import { channelIdFor } from './channel-provision';
 
 export interface GitHubCommit {

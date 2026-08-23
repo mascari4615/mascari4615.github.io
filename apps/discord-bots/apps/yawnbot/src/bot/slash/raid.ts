@@ -1,7 +1,7 @@
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { formatMoney } from '../../services/gamedata';
-import { generateImageFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateImageFromEnvWithOptions } from '@karmo/ai/node';
 import type { BotContext } from './bot-context';
 
 export async function handleRaidInfo(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {

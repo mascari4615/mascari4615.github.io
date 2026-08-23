@@ -6,7 +6,7 @@
   "type": "module",
   "dependencies": {
     "badapple": "file:../../packages/badapple",
-    "karmolab-ai": "file:../../packages/karmolab-ai",
+    "@karmo/ai": "file:../../packages/ai",
     "qrcode-generator": "^1.4.4",
     "tlock-js": "^0.9.0",
     "trystero": "^0.25.3"

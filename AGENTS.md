@@ -33,7 +33,7 @@ generated from that shell at deploy time, and a shape change there can stop depl
 
 - Site source: `_posts/`, `_tabs/`, `_layouts/`, `_includes/`, `_sass/`, `_javascript/`
 - KarmoLab source: `apps/karmolab/src/`
-- Shared AI utilities: `packages/karmolab-ai/`
+- Shared AI utilities: `packages/ai/`
 - CI workflows: `.github/workflows/`
 
 ## Common Commands
@@ -61,14 +61,14 @@ npm run build
 ### Shared AI Package
 
 ```bash
-cd packages/karmolab-ai
+cd packages/ai
 npm ci
 npm run build
 ```
 
 ## AI-Related Change Checklist
 
-When editing AI-related paths (for example `apps/karmolab/src/gemini.ts`, chatbot widgets, or `packages/karmolab-ai/`):
+When editing AI-related paths (for example `apps/karmolab/src/gemini.ts`, chatbot widgets, or `packages/ai/`):
 
 1. Run type checks for affected app/package.
 2. Run build for affected app/package.

@@ -30,7 +30,7 @@ TASK-KAR-201. **여기엔 캐릭터가 없다.** 욘도, 말투도, 이름도 �
 | --- | --- | --- |
 | `Sense` | 느낌 → 코어로 | 창 입력 · 화면 보기 · 받아쓰기 · 시계 · 닿음 · 디스코드 |
 | `Attention` | 「지금 말 걸어도 되나」 (두뇌 부르기 **전**) | always · never · cooldown · 눈치(`attention/tact`) |
-| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo · claude-cli(격리) · assistant(`karmolab-ai` 위임) |
+| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo · claude-cli(격리) · assistant(`@karmo/ai` 위임) |
 | `Memory` | 느낀 것·말한 것 + 오래 남는 앎 | 메모리 · 파일 · 졸이는 기억 · 뜻 색인 |
 | `Voice` | 말 → 밖으로 | 흉내(GPT-SoVITS) · 내 컴퓨터(piper) · 인터넷(edge) |
 | `Character` | 누구인가 | `characters/*.md` (기본 `무명` = 이름 없음, 말버릇만) |

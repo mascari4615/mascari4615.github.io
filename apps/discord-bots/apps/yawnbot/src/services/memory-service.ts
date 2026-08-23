@@ -18,7 +18,7 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { generateAssistantText } from 'karmolab-ai/node';
+import { generateAssistantText } from '@karmo/ai/node';
 
 export interface ConversationEntry {
   timestamp: string;

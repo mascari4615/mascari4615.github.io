@@ -454,7 +454,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
             }
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             try {
-              const { generateAssistantText } = await import('karmolab-ai/node');
+              const { generateAssistantText } = await import('@karmo/ai/node');
               const currentUserMd = memory.getUserMd();
               const { text: updatedUserMd } = await generateAssistantText(
                 process.env,

@@ -2,12 +2,12 @@
  * governance — 에이전트 거버넌스 코어 (KAR-018-D slice-1, parent ④).
  *
  * 그릴-락:
- *  D-1 토폴로지 = substrate-순수 모듈 (dispatcher.ts 형제, Discord/karmolab-ai 0).
+ *  D-1 토폴로지 = substrate-순수 모듈 (dispatcher.ts 형제, Discord/@karmo/ai 0).
  *  D-2 예산    = tier3 작업단위당 bounded reserve, 보수 ceiling+ENV override,
  *               verdict ladder allow/narrow/escalate/stop (보수적 dual-start).
  *  D-4 드리프트 = objectives.md ④ anchor 3-판정 순수함수 (단일 출처 cite).
  *
- * 본 모듈 = *순수 정책 로직*만 (Discord/프로세스/karmolab-ai 의존 0).
+ * 본 모듈 = *순수 정책 로직*만 (Discord/프로세스/@karmo/ai 의존 0).
  * team-room.reserveBudget · agent-cadence.deps.reserve = 얇은 어댑터로 위임(slice-2).
  * trace jsonl · #team-bus 게시 · pending-approval 영속 = slice-2/3 어댑터가 소비.
  */

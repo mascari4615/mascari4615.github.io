@@ -1,12 +1,12 @@
 /**
  * 모험 장면 이미지 생성 — KL-032 η 단계.
  *
- * Vertex Imagen 4 직접 호출 (브라우저 fetch). karmolab-ai REST URL 빌더 사용.
+ * Vertex Imagen 4 직접 호출 (브라우저 fetch). @karmo/ai REST URL 빌더 사용.
  * 사용자 prefer: adv_vertex_api_key / adv_vertex_project_id / adv_vertex_location (settings.ts 와 공유).
  *
  * imagegen 위젯의 Gemini.callVertexGeminiImage 패턴 흡수했지만 의존 분리 — adventure 한정 단순 호출.
  */
-import { buildVertexPublisherModelUrl, DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
+import { buildVertexPublisherModelUrl, DEFAULT_VERTEX_LOCATION } from '@karmo/ai';
 import { t, loadNamespace } from '../../lib/i18n';
 
 interface ToolboxLike {

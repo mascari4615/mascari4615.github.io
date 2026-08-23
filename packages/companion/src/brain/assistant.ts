@@ -14,7 +14,7 @@ async function load(): Promise<(env: NodeJS.ProcessEnv, prompt: string, opts: { 
   /* 이름을 **변수로 돌려서** 불러온다. 그냥 적으면 타입 검사기가 「이 패키지가 반드시
      있어야 한다」고 못 박아, 없을 때 빌드부터 막힌다 — 없어도 되는 두뇌인데 그러면
      이 자리를 만든 뜻이 없다. */
-  const where = 'karmolab-ai/node';
+  const where = '@karmo/ai/node';
   const mod = (await import(where)) as unknown;
   return (mod as { generateAssistantText: (env: NodeJS.ProcessEnv, prompt: string, opts: { timeoutMs: number; tag: string }) => Promise<{ text: string }> }).generateAssistantText;
 }
@@ -30,7 +30,7 @@ export interface AssistantBrainOptions {
 }
 
 /**
- * 진짜 두뇌 — 이미 있는 `karmolab-ai` 의 provider 라우터에 위임한다.
+ * 진짜 두뇌 — 이미 있는 `@karmo/ai` 의 provider 라우터에 위임한다.
  *
  * 여기엔 인격이 없다. 넘기는 것은 「최근에 오간 말 + 방금 느낀 것」 뿐이다.
  * 캐릭터·말투를 넣는 자리는 아직 만들지 않았다 (다음 회차 결정 사항).
@@ -45,7 +45,7 @@ export function assistantBrain(options: AssistantBrainOptions = {}): Brain {
       try {
         generateAssistantText = await load();
       } catch (e) {
-        throw new Error(`이 두뇌는 옆 패키지(karmolab-ai)가 있어야 쓴다 — 지금은 없다: ${(e as Error)?.message ?? e}`);
+        throw new Error(`이 두뇌는 옆 패키지(@karmo/ai)가 있어야 쓴다 — 지금은 없다: ${(e as Error)?.message ?? e}`);
       }
       const { text } = await generateAssistantText(env, prompt, {
         timeoutMs: options.timeoutMs ?? 60_000,

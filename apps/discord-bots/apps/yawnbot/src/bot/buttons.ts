@@ -5,7 +5,7 @@ import { tryHandleMusicQueueButton } from './slash/music';
 import type { BotContext } from './slash/bot-context';
 import { MOOD_REACTION_MAP, type MoodReactionEmoji } from './assistant-handler';
 import { handleGalleryButton } from './slash/gallery';
-import { generateImageFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateImageFromEnvWithOptions } from '@karmo/ai/node';
 
 export async function handleButtonInteraction(ctx: BotContext, interaction: ButtonInteraction): Promise<void> {
   if (!interaction.isButton()) return;

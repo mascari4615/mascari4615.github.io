@@ -14,7 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import type { MessageReaction, PartialMessageReaction, User, PartialUser, TextChannel, DMChannel } from 'discord.js';
 import { AttachmentBuilder } from 'discord.js';
-import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateAssistantText, generateImageFromEnvWithOptions } from '@karmo/ai/node';
 import { CharacterService } from '../services/character-service';
 import type { BotContext } from './slash/bot-context';
 import { skipTrack, shuffleWaitingQueue, pauseToggleMusic } from './music-player';

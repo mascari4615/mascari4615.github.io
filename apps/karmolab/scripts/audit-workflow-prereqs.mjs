@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // audit-workflow-prereqs.mjs — 「이 앱을 짓는 워크플로는 전제도 같이 갖췄나」를 본다.
 //
-// ★ 왜 (2026-08-10 실측): `apps/karmolab` 은 `packages/badapple` 과 `packages/karmolab-ai` 를
+// ★ 왜 (2026-08-10 실측): `apps/karmolab` 은 `packages/badapple` 과 `packages/ai` 를
 //   `file:` 로 물고 있고, 그 꾸러미들은 **타입을 지어야 생긴다**(새 체크아웃엔 dist 가 없다).
 //   `verify.yml` 은 2026-08-08 에 그 사실을 알고 badapple 짓기 단계를 넣었다.
 //   그런데 `karmolab-live-check.yml` 에는 **안 들어왔다.** 결과:
@@ -13,7 +13,7 @@
 // 판정 하나: 이 앱을 짓는 워크플로마다, 필수 꾸러미 자리에서 도는 단계
 //   (`working-directory: <그 자리>`)가 있는가.
 //   ★ 명령 모양으로 보면 안 된다 — badapple 은 잠금 파일이 없어 `npx tsc` 로 짓고
-//     karmolab-ai 는 `npm run build` 로 짓는다. 명령을 특정했더니 초판이 pages-deploy 를
+//     @karmo/ai 는 `npm run build` 로 짓는다. 명령을 특정했더니 초판이 pages-deploy 를
 //     헛경보로 찍었다. 틀린 경고가 하나 섞이면 목록 전체가 안 읽힌다.
 //   ★ `working-directory` 로 보면 「짓는가」와 「자기 자리를 적었는가」가 한 번에 지켜진다.
 //     `cd packages/...` 만 쓰면 job 기본 자리(`apps/karmolab`)에 끌려가 엉뚱한 폴더를 본다 —

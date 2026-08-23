@@ -8,8 +8,8 @@
  */
 import fs from 'fs';
 import { Message, DMChannel, TextChannel, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
-import type { ChatContent } from 'karmolab-ai/node';
+import { generateAssistantText, generateImageFromEnvWithOptions } from '@karmo/ai/node';
+import type { ChatContent } from '@karmo/ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
 import { CharacterService, type CharacterCard } from '../services/character-service';
 import {

@@ -45,9 +45,9 @@ jobs:
           cache: npm
           cache-dependency-path: packages/companion/package-lock.json
 
-      # 이 꾸러미는 옆 꾸러미(`karmolab-ai`)를 file: 로 가리킨다 — 그것부터 있어야 깔린다.
+      # 이 꾸러미는 옆 꾸러미(`@karmo/ai`)를 file: 로 가리킨다 — 그것부터 있어야 깔린다.
       - name: 옆 꾸러미부터
-        run: cd packages/karmolab-ai && npm ci && npm run build
+        run: cd packages/ai && npm ci && npm run build
 
       - name: 깔기
         run: cd packages/companion && npm ci

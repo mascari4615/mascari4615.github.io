@@ -11,7 +11,7 @@ import path from 'path';
 import https from 'https';
 import type { Client, DMChannel } from 'discord.js';
 import { AttachmentBuilder } from 'discord.js';
-import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateAssistantText, generateImageFromEnvWithOptions } from '@karmo/ai/node';
 import type { CharacterService, CharacterCard } from '../services/character-service';
 import { CharacterService as CSHelper } from '../services/character-service';
 import type { MemoryService } from '../services/memory-service';

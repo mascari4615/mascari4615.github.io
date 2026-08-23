@@ -6,7 +6,7 @@
       "docId": "docs-intro",
       "heading": "문서",
       "title": "문서",
-      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 「가이드」 , 개발자용 KarmoLabAI karmolab-ai 패키지·Node 서브패스 정리는 「KarmoLabAI」 탭이에요 - Jekyll·npm·KarmoLab·Tauri· apps/ 등 레포 전체에서 쓰는 터미널 명령은 「프로젝트 명령」 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 Jekyll·봇 등을 끄고 켜는 로컬 데브 러너 는 「데스크톱·로컬」 탭 local-dev-runner.md 에 정리했",
+      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 「가이드」 , 개발자용 KarmoLabAI @karmo/ai 패키지·Node 서브패스 정리는 「KarmoLabAI」 탭이에요 - Jekyll·npm·KarmoLab·Tauri· apps/ 등 레포 전체에서 쓰는 터미널 명령은 「프로젝트 명령」 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 Jekyll·봇 등을 끄고 켜는 로컬 데브 러너 는 「데스크톱·로컬」 탭 local-dev-runner.md 에 정리했",
       "aliases": "intro"
     },
     {
@@ -182,7 +182,7 @@
       "docId": "docs-guide",
       "heading": "AI 기능",
       "title": "AI 기능",
-      "description": "1. Google AI Studio 에서 API 키 발급 2. 내 정보 → 설정 에서 Gemini AI Studio 프로필·키 입력 여러 프로필·활성 프로필 전환 가능 3. 이미지 생성·챗봇 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 Vertex AI API 키·GCP 프로젝트 ID·리전 도 채웁니다 4. 저장 후 AI 도구 사용 가능 API 키·Vertex 설정은 브라우저 localStorage 에만 저장돼요. 개발자용으로 모델 ID·REST URL 등을 레포 한곳에서 맞추는 karmolab-ai 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포함됩니다.",
+      "description": "1. Google AI Studio 에서 API 키 발급 2. 내 정보 → 설정 에서 Gemini AI Studio 프로필·키 입력 여러 프로필·활성 프로필 전환 가능 3. 이미지 생성·챗봇 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 Vertex AI API 키·GCP 프로젝트 ID·리전 도 채웁니다 4. 저장 후 AI 도구 사용 가능 API 키·Vertex 설정은 브라우저 localStorage 에만 저장돼요. 개발자용으로 모델 ID·REST URL 등을 레포 한곳에서 맞추는 @karmo/ai 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포함됩니다.",
       "aliases": "guide"
     },
     {
@@ -204,9 +204,9 @@
     {
       "id": "docs-karmolab-ai:0",
       "docId": "docs-karmolab-ai",
-      "heading": "KarmoLabAI (karmolab-ai) 사용 가이드",
-      "title": "KarmoLabAI (karmolab-ai) 사용 가이드",
-      "description": "원본 경로: 레포 루트 packages/karmolab-ai/ — npm 패키지 이름 karmolab-ai 역할: Google AI Studio Generative Language API 와 Vertex AI 를 함께 쓸 때, 모델 ID·REST URL·문서 링크·기본값을 한곳 SSOT 에서 맞춥니다. 루트 엔트리 . 는 fetch ·API 키·DOM을 넣지 않습니다. Node에서는 서브패스 karmolab-ai/node 로 AI Studio SDK 또는 Vertex REST fetch , 브라우저 gemini.ts 와 동일 엔드포인트 텍스트 호출을 맞출 수 있습니다",
+      "heading": "KarmoLabAI (@karmo/ai) 사용 가이드",
+      "title": "KarmoLabAI (@karmo/ai) 사용 가이드",
+      "description": "원본 경로: 레포 루트 packages/ai/ — npm 패키지 이름 @karmo/ai 역할: Google AI Studio Generative Language API 와 Vertex AI 를 함께 쓸 때, 모델 ID·REST URL·문서 링크·기본값을 한곳 SSOT 에서 맞춥니다. 루트 엔트리 . 는 fetch ·API 키·DOM을 넣지 않습니다. Node에서는 서브패스 @karmo/ai/node 로 AI Studio SDK 또는 Vertex REST fetch , 브라우저 gemini.ts 와 동일 엔드포인트 텍스트 호출을 맞출 수 있습니다",
       "aliases": "karmolab ai"
     },
     {
@@ -222,7 +222,7 @@
       "docId": "docs-karmolab-ai",
       "heading": "소비자 (요약)",
       "title": "소비자 (요약)",
-      "description": "구역 역할 ------ ------ KarmoLab gemini.ts 가 karmolab-ai 를 import해 URL·모델을 맞추고, fetch ·UI·키는 여기서 yawnbot /ai 등 tryCreateGenerativeTextFromEnv → generateFromPrompt surface는 .env 의 KARMOLAB AI SURFACE 등 카카오 PC보내기 kakao-export.mjs 도 동일 클라이언트로 요약 AI Studio 또는 Vertex",
+      "description": "구역 역할 ------ ------ KarmoLab gemini.ts 가 @karmo/ai 를 import해 URL·모델을 맞추고, fetch ·UI·키는 여기서 yawnbot /ai 등 tryCreateGenerativeTextFromEnv → generateFromPrompt surface는 .env 의 KARMOLAB AI SURFACE 등 카카오 PC보내기 kakao-export.mjs 도 동일 클라이언트로 요약 AI Studio 또는 Vertex",
       "aliases": "karmolab ai"
     },
     {
@@ -246,7 +246,7 @@
       "docId": "docs-karmolab-ai",
       "heading": "KarmoLab(브라우저)에서",
       "title": "KarmoLab(브라우저)에서",
-      "description": "- apps/karmolab/src/gemini.ts 가 karmolab-ai 를 import합니다. - 빌드 apps/karmolab 에서 npm run build 시 esbuild 가 의존성을 묶어 js/gemini.js 로 보냅니다. - 페이지 스크립트에서는 전역 Gemini 객체로 기능을 씁니다. 예: - AI Studio: callText , callChat , callChatStream , callGeminiImage , callImagen - Vertex: callVertexText , callVertexChat , callVertexChatStream ",
+      "description": "- apps/karmolab/src/gemini.ts 가 @karmo/ai 를 import합니다. - 빌드 apps/karmolab 에서 npm run build 시 esbuild 가 의존성을 묶어 js/gemini.js 로 보냅니다. - 페이지 스크립트에서는 전역 Gemini 객체로 기능을 씁니다. 예: - AI Studio: callText , callChat , callChatStream , callGeminiImage , callImagen - Vertex: callVertexText , callVertexChat , callVertexChatStream ",
       "aliases": "karmolab ai"
     },
     {
@@ -254,7 +254,7 @@
       "docId": "docs-karmolab-ai",
       "heading": "챗봇 위젯 (런타임 AI Studio / Vertex)",
       "title": "챗봇 위젯 (런타임 AI Studio / Vertex)",
-      "description": "- 모델 cbModelSelect : karmolab-ai 의 MODEL CATALOG.gemini 와 동일 목록. 선택 값은 Toolbox 프리픽 cb model 에 저장됩니다. - API cbApiSurfaceSelect : Google AI Studio ↔ Vertex AI . 저장 키 cb api surface , 값은 UI상 studio \\ vertex 이며, 패키지 타입 GoogleGenerativeSurface 의 aiStudio \\ vertex 와 대응합니다. 매핑·헬퍼: apps/karmolab/src/widgets/chatbot/api-surface",
+      "description": "- 모델 cbModelSelect : @karmo/ai 의 MODEL CATALOG.gemini 와 동일 목록. 선택 값은 Toolbox 프리픽 cb model 에 저장됩니다. - API cbApiSurfaceSelect : Google AI Studio ↔ Vertex AI . 저장 키 cb api surface , 값은 UI상 studio \\ vertex 이며, 패키지 타입 GoogleGenerativeSurface 의 aiStudio \\ vertex 와 대응합니다. 매핑·헬퍼: apps/karmolab/src/widgets/chatbot/api-surface",
       "aliases": "karmolab ai"
     },
     {
@@ -262,7 +262,7 @@
       "docId": "docs-karmolab-ai",
       "heading": "Node(욘봇·스크립트)에서",
       "title": "Node(욘봇·스크립트)에서",
-      "description": "- apps/discord-bots/apps/yawnbot 에 karmolab-ai 가 file:../../../../packages/karmolab-ai 로 연결되어 있습니다. - 루트에서 봇 빌드할 때 packages/karmolab-ai 가 먼저 tsc 됩니다 apps/discord-bots 의 npm run build / build:yawnbot . - 엔트리 분리: 루트 karmolab-ai 는 계약 URL·카탈로그 만, karmolab-ai/node 에서 AI Studio SDK 또는 Vertex REST 텍스트 호출을 제공합니다. peerDependenc",
+      "description": "- apps/discord-bots/apps/yawnbot 에 @karmo/ai 가 file:../../../../packages/ai 로 연결되어 있습니다. - 루트에서 봇 빌드할 때 packages/ai 가 먼저 tsc 됩니다 apps/discord-bots 의 npm run build / build:yawnbot . - 엔트리 분리: 루트 @karmo/ai 는 계약 URL·카탈로그 만, @karmo/ai/node 에서 AI Studio SDK 또는 Vertex REST 텍스트 호출을 제공합니다. peerDependenc",
       "aliases": "karmolab ai"
     },
     {
@@ -286,7 +286,7 @@
       "docId": "docs-karmolab-ai",
       "heading": "모델 목록을 바꿀 때",
       "title": "모델 목록을 바꿀 때",
-      "description": "1. packages/karmolab-ai/src/index.ts 의 MODEL CATALOG / isDefault 만 수정 2. packages/karmolab-ai 에서 npm run build 3. KarmoLab·욘봇 쪽을 각각 다시 빌드 브라우저와 봇이 같은 ID 문자열을 쓰게 유지할 수 있습니다. ---",
+      "description": "1. packages/ai/src/index.ts 의 MODEL CATALOG / isDefault 만 수정 2. packages/ai 에서 npm run build 3. KarmoLab·욘봇 쪽을 각각 다시 빌드 브라우저와 봇이 같은 ID 문자열을 쓰게 유지할 수 있습니다. ---",
       "aliases": "karmolab ai"
     },
     {
@@ -430,7 +430,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "구현된 기능 요약",
       "title": "구현된 기능 요약",
-      "description": "운영·디버깅용으로 이미 들어가 있는 동작 만 짧게 묶었습니다. 세부 env·명령은 README가 기준입니다. - /yawn : 채널 최근 메시지 맥락 YAWN CONTEXT MESSAGES , 시스템 프롬프트 YAWN SYSTEM PROMPT , 질문·전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 yawn 콘솔 로그. 선택 슬래시 옵션 api 기본·AI Studio·Vertex , model 모델 ID — karmolab-ai/node 의 generateBlobTextFromEnvWithOptions . 명령 등록 갱신 후 npm run deploy:",
+      "description": "운영·디버깅용으로 이미 들어가 있는 동작 만 짧게 묶었습니다. 세부 env·명령은 README가 기준입니다. - /yawn : 채널 최근 메시지 맥락 YAWN CONTEXT MESSAGES , 시스템 프롬프트 YAWN SYSTEM PROMPT , 질문·전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 yawn 콘솔 로그. 선택 슬래시 옵션 api 기본·AI Studio·Vertex , model 모델 ID — @karmo/ai/node 의 generateBlobTextFromEnvWithOptions . 명령 등록 갱신 후 npm run deploy:",
       "aliases": "discord yawnbot"
     },
     {

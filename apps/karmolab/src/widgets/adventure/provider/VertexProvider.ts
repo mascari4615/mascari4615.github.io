@@ -1,4 +1,4 @@
-import { buildVertexPublisherModelUrl, DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
+import { buildVertexPublisherModelUrl, DEFAULT_VERTEX_LOCATION } from '@karmo/ai';
 import type {
   AdventureProvider,
   AdventureCompletionRequest,

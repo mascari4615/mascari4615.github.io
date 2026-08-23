@@ -6,7 +6,7 @@
  * (2) 외부 dashboard / SIEM 로 라우팅 가능 (custom recorder 주입)
  * (3) 회귀 (예: systemInstruction 분리가 implicit cache hit 늘었나) 측정 게이트
  *
- * 정본: TASK-KAR-145 (karmolab-ai cost optimization, 2026-05-23).
+ * 정본: TASK-KAR-145 (@karmo/ai cost optimization, 2026-05-23).
  *
  * **확장**: 다른 provider (OpenAI, Anthropic, Ollama 등) 추가 시 동일 `GenerationUsage`
  * 스키마로 normalize 해서 recordUsage 호출 → 단일 telemetry pipe.
@@ -54,7 +54,7 @@ export type UsageRecorder = (usage: GenerationUsage, meta: UsageMeta) => void;
 const NOOP: UsageRecorder = () => {};
 
 /**
- * 기본 recorder — `KARMOLAB_AI_USAGE_LOG=1` 일 때만 `[karmolab-ai/usage] {...}`
+ * 기본 recorder — `KARMOLAB_AI_USAGE_LOG=1` 일 때만 `[@karmo/ai/usage] {...}`
  * JSON 한 줄을 `console.log` 로 emit. 그 외 noop.
  *
  * yawnbot · KarmoLab · 다른 consumer 가 자기 telemetry 파이프로 흘릴 거면
@@ -68,7 +68,7 @@ function defaultRecorder(usage: GenerationUsage, meta: UsageMeta): void {
   if (!enabled) return;
   try {
     const line = JSON.stringify({ ...meta, usage });
-    console.log(`[karmolab-ai/usage] ${line}`);
+    console.log(`[@karmo/ai/usage] ${line}`);
   } catch {
     /* JSON 직렬화 실패 = silent (telemetry 가 핵심 경로 막지 X) */
   }

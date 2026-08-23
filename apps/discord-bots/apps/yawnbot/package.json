@@ -25,7 +25,7 @@
     "check:notify": "node scripts/check-notify-gate.mjs"
   },
   "dependencies": {
-    "karmolab-ai": "file:../../../../packages/karmolab-ai",
+    "@karmo/ai": "file:../../../../packages/ai",
     "@discord-bots/common": "*",
     "@discordjs/voice": "^0.19.2",
     "@google/generative-ai": "^0.21.0",

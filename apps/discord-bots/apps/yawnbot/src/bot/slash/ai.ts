@@ -12,7 +12,7 @@ import {
   generateBlobTextFromEnvWithOptions,
   parseGenerativeSurfaceFromEnv,
   type GenerativeSurfaceOverride,
-} from 'karmolab-ai/node';
+} from '@karmo/ai/node';
 import { discordAnswerCursorQuestion, getCursorMaxPromptChars, runCursorLocalRunner } from '../cursor-local';
 import { resolveCursorRepoDirForSlash } from '../../paths';
 import type { BotContext } from './bot-context';

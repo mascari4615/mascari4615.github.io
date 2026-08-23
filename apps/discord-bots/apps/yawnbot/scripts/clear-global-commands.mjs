@@ -10,7 +10,7 @@ import { REST, Routes } from 'discord.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nodeRequire = createRequire(import.meta.url);
-const { loadKarmoLabAIEnv } = nodeRequire('karmolab-ai/node');
+const { loadKarmoLabAIEnv } = nodeRequire('@karmo/ai/node');
 const { applyYawnbotDotenvLayers } = nodeRequire(path.join(__dirname, 'load-dotenv-layers.cjs'));
 
 loadKarmoLabAIEnv();

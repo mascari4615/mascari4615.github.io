@@ -1,4 +1,4 @@
-import { DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
+import { DEFAULT_VERTEX_LOCATION } from '@karmo/ai';
 import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface';
 import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
 import { t, loadNamespace } from '../../lib/i18n';

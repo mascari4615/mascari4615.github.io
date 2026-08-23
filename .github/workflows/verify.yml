@@ -99,7 +99,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             apps/karmolab/package-lock.json
-            packages/karmolab-ai/package-lock.json
+            packages/ai/package-lock.json
             packages/karmolab-mcp/package-lock.json
 
       # 이번 판이 Rust 쪽을 건드렸나 — **서버에 물어본다**. 체크아웃이 얕아서

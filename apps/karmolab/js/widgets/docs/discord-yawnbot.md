@@ -109,7 +109,7 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결·재생 �
 
 운영·디버깅용으로 **이미 들어가 있는 동작**만 짧게 묶었습니다. 세부 env·명령은 README가 기준입니다.
 
-- **`/yawn`**: 채널 최근 메시지 맥락(`YAWN_CONTEXT_MESSAGES`), 시스템 프롬프트(`YAWN_SYSTEM_PROMPT`), 질문·전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 `[yawn]` 콘솔 로그. **선택 슬래시 옵션** `api`(기본·AI Studio·Vertex), `model`(모델 ID) — `karmolab-ai/node`의 `generateBlobTextFromEnvWithOptions`. 명령 등록 갱신 후 **`npm run deploy:yawnbot`** 필요.
+- **`/yawn`**: 채널 최근 메시지 맥락(`YAWN_CONTEXT_MESSAGES`), 시스템 프롬프트(`YAWN_SYSTEM_PROMPT`), 질문·전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 `[yawn]` 콘솔 로그. **선택 슬래시 옵션** `api`(기본·AI Studio·Vertex), `model`(모델 ID) — `@karmo/ai/node`의 `generateBlobTextFromEnvWithOptions`. 명령 등록 갱신 후 **`npm run deploy:yawnbot`** 필요.
 - **슬래시 가드·로그**: 허용 길드·채널 ID(`YAWNBOT_ALLOWED_*`), 선택적 사용 로그(`YAWNBOT_SLASH_USAGE_LOG`).
 - **도움말·로컬라이즈**: `/도움말` 선택적 `주제`(개요·음악·게임·기타)로 ephemeral 안내; 등록 명령·옵션에 **en-US** 설명·이름 로컬라이즈(`deploy-commands.ts` — 배포 후 반영).
 - **`/music`**: 지금 재생 임베드(경과·길이·주기 갱신, env로 끄기/주기 조절), 플레이리스트를 큐에 넣을 때 **n/N** 진행 표시, `shuffle` / `loop` / `remove`, `queue` 페이지·버튼, 긴 플레이리스트 한 줄 요약, 실패 시 텍스트 채널 알림·쿨다운, 응답 공개/ephemeral 정책.
@@ -129,7 +129,7 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결·재생 �
 - [ ] **데이터** — `gamedata.json` 백업·git 추적·민감 필드 운영 정책
 - [ ] **남용 방지** — 게임/도박 등 서버별 쿨다운·관리자 예외
 - [ ] **`/yawn`** — 민감 주제·빈 입력 등 거절 문구 통일
-- [ ] **AI** — `maxOutputTokens` 등을 env로 (`karmolab-ai` 연동 검토)
+- [ ] **AI** — `maxOutputTokens` 등을 env로 (`@karmo/ai` 연동 검토)
 - [ ] **운영** — 로그 접두·심각도·인터랙션 id 일부 규칙
 - [ ] **테스트** — URL 정규화·가드 파싱·에러 메시지 매핑 등 단위 테스트
 - [ ] **CI** — `yawnbot` `npm run build`

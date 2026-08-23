@@ -11,8 +11,8 @@ import { Client, GatewayIntentBits, Partials, TextChannel, type Embed, type Mess
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
 import { destroyAllVoiceConnections } from './bot/voice-connection';
 import { destroyAllMusicPlayers, setMusicDiscordClient, setMusicPlayFailureReporter } from './bot/music-player';
-import type { GenerativeTextClient } from 'karmolab-ai/node';
-import { tryCreateGenerativeTextFromEnv } from 'karmolab-ai/node';
+import type { GenerativeTextClient } from '@karmo/ai/node';
+import { tryCreateGenerativeTextFromEnv } from '@karmo/ai/node';
 
 import { GameDataService } from './services/gamedata';
 import { EnhancementService } from './services/enhancement';

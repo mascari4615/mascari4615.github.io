@@ -25,7 +25,7 @@ export function saveImageLog(
   }
 }
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { generateImageFromEnvWithOptions } from 'karmolab-ai/node';
+import { generateImageFromEnvWithOptions } from '@karmo/ai/node';
 import type { CharacterCard } from '../../services/character-service';
 import type { BotContext } from './bot-context';
 

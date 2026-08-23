@@ -1,8 +1,8 @@
 /**
- * 챗봇 UI의 API 표면(`studio` | `vertex`)과 `karmolab-ai`의 `GoogleGenerativeSurface` 정렬.
+ * 챗봇 UI의 API 표면(`studio` | `vertex`)과 `@karmo/ai`의 `GoogleGenerativeSurface` 정렬.
  * 저장 키·옵션 value는 HTML/Toolbox 프리픽과 동일하게 유지합니다.
  */
-import type { GoogleGenerativeSurface } from 'karmolab-ai';
+import type { GoogleGenerativeSurface } from '@karmo/ai';
 
 export const CB_API_SURFACE_PREF_KEY = 'cb_api_surface';
 

@@ -20,13 +20,13 @@
  * env:
  *  - LAPTOP_AGENT_BUS_ROOT (default = ~/.karmoddrine/agent-bus)
  *  - LAPTOP_MEMO_ROOT (default = ./memo)
- *  - KARMOLAB_AI_SURFACE 등 karmolab-ai tryCreateGenerativeTextFromEnv 정합
+ *  - KARMOLAB_AI_SURFACE 등 @karmo/ai tryCreateGenerativeTextFromEnv 정합
  *  - AGENT_DAEMON_RATE_PER_5MIN (default 2)
  *  - AGENT_DAEMON_CONTEXT_MINUTES (default 5)
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { tryCreateGenerativeTextFromEnv, type GenerativeTextClient } from 'karmolab-ai/node';
+import { tryCreateGenerativeTextFromEnv, type GenerativeTextClient } from '@karmo/ai/node';
 import { loadCoreDef, type CoreDef } from './services/agent-core.js';
 import {
   publishBusEvent,

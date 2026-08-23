@@ -34,7 +34,7 @@ const ASSET_SKIP = new Set(['anim']);
  * 부르는데 그건 이 목록에 없었다(2026-08-19 실측). 사람이 「무엇이 무엇을 부르나」를
  * 손으로 세면 반드시 하나 빠지고, 빠진 것은 **남의 컴퓨터에서만** 드러난다.
  */
-const ROOT_DEPS = ['fflate', 'msedge-tts', 'karmolab-ai', 'ws'];
+const ROOT_DEPS = ['fflate', 'msedge-tts', '@karmo/ai', 'ws'];
 
 /** 안 넣을 것 — 선택물(있으면 좋고 없어도 도는 것)과 개발용. */
 const OPTIONAL = new Set(['@huggingface/transformers', 'three', 'onnxruntime-node', 'onnxruntime-web', 'sharp', '@img']);
@@ -96,7 +96,7 @@ for (const name of readdirSync(join(root, 'assets'), { withFileTypes: true })) {
   cpSync(join(root, 'assets', name.name), join(out, 'assets', name.name), { recursive: true });
 }
 
-/* 꾸러미는 **중첩 사본 없이** 얹는다. 실측에서 `karmolab-ai` 가 25.5MB 였는데 제 코드는
+/* 꾸러미는 **중첩 사본 없이** 얹는다. 실측에서 `@karmo/ai` 가 25.5MB 였는데 제 코드는
    0.2MB 였다 — 나머지는 제 안에 또 담긴 사본이었다. 그걸 그대로 복사하면 없어도 되는
    19MB(sharp)까지 따라온다. */
 const nm = join(out, 'node_modules');

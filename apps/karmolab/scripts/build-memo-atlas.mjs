@@ -461,7 +461,7 @@ async function embedAll(docs) {
     return out.vectors;
   }
 
-  const { generateEmbedding } = await import('karmolab-ai/node');
+  const { generateEmbedding } = await import('@karmo/ai/node');
   let done = 0;
   let quotaHits = 0;
   const CONCURRENCY = 4;
@@ -7186,7 +7186,7 @@ async function nameClusters(groups) {
     if (cache[key]) { names[i] = cache[key]; continue; }
     if (quotaDone) continue;
     try {
-      if (!ai) ({ generateAssistantText: ai } = await import('karmolab-ai/node'));
+      if (!ai) ({ generateAssistantText: ai } = await import('@karmo/ai/node'));
       const sample = titles.slice(0, 18).map((t) => `- ${t}`).join('\n');
       const { text } = await ai(process.env,
         '다음 글 제목들이 한 덩어리로 묶였다. 이 덩어리를 부를 이름을 지어라.\n'
