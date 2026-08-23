@@ -215,6 +215,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-cell.ac-s2::after{background:var(--ac-stone-w)}',
       '.ac-cell.ac-last.ac-s1::after,.ac-cell.ac-last.ac-s2::after{outline:2px solid rgba(226,80,60,.9);outline-offset:1px}',
       '.ac-cell:not(:disabled):hover{background:rgba(30,26,20,.12)}',
+      /* 화점 — 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2·6 교차, 4,4). */
+      '.ac-cell::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
+      '.ac-board .ac-cell:nth-child(21)::before,.ac-board .ac-cell:nth-child(25)::before,' +
+      '.ac-board .ac-cell:nth-child(41)::before,' +
+      '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before' +
+      '{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(92,61,24,.8)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
       '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',
       '.ac-seat.ac-me{border-color:var(--accent);background:var(--accent-dim)}',
@@ -674,6 +680,32 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          **폭 0 으로 무너진다**(실측: 오목 칸이 2px 이 됐다. 51종 화면검사는 「떴다」만 보므로
          초록이었다 — 크기를 안 재는 검사는 이런 것을 못 잡는다). 세로만 가운데, 가로는 채운다. */
       '.ac-stage{position:relative;width:100%;max-width:var(--ac-stage);margin:0 auto;min-height:min(62vh,var(--ac-stage));display:grid;align-items:center;justify-items:stretch}',
+      /**
+       * ── 넓은 화면: 판을 키우고 곁을 옆에 세운다 (사용자 요구 — 「화면 전체·반응형」) ──
+       *
+       * 640px 상한은 폰 기준으로 정해진 수였다. 데스크톱에서는 판이 화면의 3분의 1만 쓰고
+       * 나머지가 빈 벽이 된다(실측: 1920 화면에서 무대 640 · 좌우 여백 각 640).
+       * 눕힌 폰에 쓰던 2열 배치를 **넓은 화면 전체**로 올린다 — 세로가 넉넉할 때만 걸어
+       * 노트북 짧은 세로에서 판이 밀리는 일은 없게 한다.
+       *
+       * `--ac-stage` 는 여기서만 커진다: 세로 몫(72vh)·가로 몫(56vw)·상한(900px) 중 최솟값.
+       * 곁줄(자리·상태·단추)은 오른쪽 한 칸에 세로로 쌓는다.
+       */
+      '@media (min-width:1000px) and (min-height:700px){',
+      '  #acPlay{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,290px);grid-template-rows:auto auto 1fr auto;gap:var(--space-sm) var(--space-xl);align-items:start}',
+      '  #acStage{grid-column:1;grid-row:1/5;--ac-stage:min(56vw,72vh,900px);align-self:center}',
+      /* 곁줄은 **한 장의 종이**로 묶는다 — 넓은 화면에서 흩어 놓으면 허공에 뜬 글자가 된다. */
+      '  #acSeats{grid-column:2;grid-row:1;flex-direction:column;align-items:stretch;gap:6px;justify-content:flex-start;margin:0;background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:14px}',
+      '  #acSeats .ac-seat{justify-content:flex-start;background:none;border:0;padding:2px 0}',
+      '  #acSeats .ac-seat.ac-me{background:none;border:0;font-weight:900}',
+      '  #acStatus{grid-column:2;grid-row:2;text-align:left;padding:0 14px}',
+      '  .ac-controls{grid-column:2;grid-row:4;flex-wrap:wrap;align-self:end;margin:0}',
+      '  .ac-letter{grid-column:2;grid-row:3;align-self:start}',
+      '}',
+      /* 아주 넓은 화면(와이드·4K)은 세로가 먼저 동난다 — 가로 몫을 더 열어 세로를 다 쓴다. */
+      '@media (min-width:1600px) and (min-height:900px){',
+      '  #acStage{--ac-stage:min(62vw,78vh,1100px)}',
+      '}',
       /* 풀스크린이면 무대가 화면이 된다 — 안에 있는 51개가 그대로 커진다. */
       /**
        * **폰을 눕히면 판을 옆으로 세운다** (TASK-KL-314).
