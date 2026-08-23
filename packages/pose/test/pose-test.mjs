@@ -135,3 +135,30 @@ test('소스 합치기 — 먼저 말한 쪽이 주인, 조용하면 넘어간�
   b.emit({ ...emptyFrame('pointer', 1000), ok: true, point: [0, 0] }); // 손이 조용한 지 오래 → 넘어간다
   assert.deepEqual(seen, ['hand', 'pointer']);
 });
+
+test('소스를 나중에 더할 수 있다 — 손은 켤 때 붙는다', () => {
+  const mk = (kind) => {
+    const set = new Set();
+    let started = false;
+    return {
+      kind,
+      get started() { return started; },
+      onFrame: (fn) => (set.add(fn), () => set.delete(fn)),
+      emit: (f) => set.forEach((fn) => fn(f)),
+      start() { started = true; },
+      stop() { started = false; },
+    };
+  };
+  const mouse = mk('pointer');
+  const m = mergeSources([mouse]).start();
+  const seen = [];
+  m.onFrame((f) => seen.push(f.kind));
+  const hand = mk('hand');
+  m.add(hand);
+  assert.equal(hand.started, true, '더한 소스를 안 켰다');
+  assert.equal(m.sources.length, 2);
+  hand.emit({ ...emptyFrame('hand', 5000), ok: true, point: [0, 0] });
+  assert.deepEqual(seen, ['hand'], '더한 소스의 말이 안 들어온다');
+  m.stop();
+  assert.equal(hand.started, false, '멈출 때 더한 소스를 안 껐다');
+});

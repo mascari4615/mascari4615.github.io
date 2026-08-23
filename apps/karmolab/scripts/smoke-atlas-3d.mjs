@@ -37,7 +37,12 @@ try { ({ chromium } = await import('playwright')); } catch {
 }
 
 /* 저장소를 그대로 주는 작은 서버 — importmap 이 `/packages/...` 를 부르므로 뿌리가 저장소여야 한다. */
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json' };
+/* `.wasm` 은 타입을 제대로 줘야 한다 — 아니면 브라우저가 흘려 컴파일을 포기하고 느린 길로 샌다
+   (실측: 「Incorrect response MIME type」 뒤에 ArrayBuffer 로 되돌아간다). */
+const TYPES = {
+  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
+  '.json': 'application/json', '.wasm': 'application/wasm', '.task': 'application/octet-stream',
+};
 const server = http.createServer((req, res) => {
   const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
   const full = path.join(REPO, rel);
@@ -54,11 +59,20 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 const bad = [];
-const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({
+  args: [
+    '--use-gl=swiftshader', '--enable-unsafe-swiftshader',
+    /* 카메라가 없는 기계에서도 손 경로가 켜지는지 보려면 **가짜 카메라**가 필요하다. */
+    '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
+  ],
+});
 const page = await (await browser.newContext({ viewport: { width: 900, height: 640 } })).newPage();
 const errors = [];
+/* 손 인식 연장은 **알림을 error 자리로 뱉는다**(TensorFlow 계열 관례) — 그건 사고가 아니다.
+   여기서 거르지 않으면 「INFO: …」 한 줄에 자가 빨개진다(2026-08-23 실측). */
+const NOISE = /^INFO:|XNNPACK|Created TensorFlow|GL Driver Message|Context (Lost|Restored)/;
 page.on('pageerror', (e) => errors.push(String(e.message)));
-page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+page.on('console', (m) => { if (m.type() === 'error' && !NOISE.test(m.text())) errors.push(m.text()); });
 
 await page.goto(`${base}/apps/karmolab/tools/atlas-3d/index.html`);
 await page.waitForFunction(() => window.__atlas3d || document.querySelector('.miss'), undefined, { timeout: 30000 })
@@ -119,7 +133,29 @@ if (!got) {
   console.log(`  ④ 포즈 판을 먹이니 방위가 ${turned.toFixed(3)} 만큼 돌았다`);
   if (!(turned > 0.01)) bad.push('포즈 판을 먹여도 안 돌아간다 — 조작이 KarmoPose 를 안 거친다');
 
-  /* ⑤ 제 한계를 말하나. */
+  /* ⑤ **손 조작 단추** — 연장이 있으면 진짜로 켜지나, 없으면 그렇게 말하나.
+     (카메라는 headless 에 없으니 가짜 카메라로 띄운다 — 켜지는 길이 살아 있는지만 본다.) */
+  const hasHand = fs.existsSync(path.join(KARMOLAB, '.handsrc', 'hand_landmarker.task'));
+  await page.evaluate(() => document.getElementById('handBtn').click());
+  await page.waitForFunction(() => {
+    const say = document.getElementById('handSay').textContent;
+    return window.__atlas3d.handOn() || say.includes('못 켰다');
+  }, undefined, { timeout: 60000 }).catch(() => {});
+  const hand = await page.evaluate(() => ({
+    on: window.__atlas3d.handOn(),
+    say: document.getElementById('handSay').textContent.slice(0, 90),
+    sources: window.__atlas3d.pose.sources.map((s) => s.kind),
+  }));
+  console.log(`  ⑤ 손 조작 — 연장 ${hasHand ? '있음' : '없음'} · 켜짐 ${hand.on} · 소스 [${hand.sources}]`);
+  console.log(`     ↳ 「${hand.say}」`);
+  if (!hasHand && hand.on) bad.push('연장이 없는데 켜졌다고 한다');
+  if (!hasHand && !/못 켰다|fetch:hand/.test(hand.say)) bad.push('연장이 없는데 왜 안 되는지 안 적는다');
+  if (hasHand && !hand.sources.includes('hand')) bad.push('연장이 있는데 손 소스가 안 붙었다');
+  if (hasHand && !hand.on && !/카메라|Permission|getUserMedia|not/i.test(hand.say)) {
+    bad.push(`연장이 있는데 못 켜고 까닭도 안 적는다: ${hand.say}`);
+  }
+
+  /* ⑥ 제 한계를 말하나. */
   const text = await page.evaluate(() => document.body.innerText);
   for (const [what, re] of [['찢김', /찢김/], ['밀도', /밀도/], ['조작법', /끌면 돌고/]]) {
     if (!re.test(text)) bad.push(`화면이 **${what}**을 안 적는다`);

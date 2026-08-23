@@ -31,11 +31,26 @@
   .miss code { background: #1b1f24; padding: 2px 5px; border-radius: 4px; }
   .legend { position: fixed; right: 12px; top: 12px; text-align: right; opacity: .8; font-size: 12px; }
   .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+  .hand { position: fixed; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: flex-end; }
+  .hand button { background: #1b1f24; color: #e6e8ea; border: 1px solid #2a3038; border-radius: 6px;
+    padding: 6px 10px; font: inherit; cursor: pointer; }
+  .hand button.on { background: #2a3038; border-color: #4a5560; }
+  .hand video { width: 132px; border-radius: 6px; transform: scaleX(-1); background: #000; }
+  .hand .say { max-width: 300px; opacity: .75; font-size: 12px; }
 </style>
 </head>
 <body>
 <div class="hud" id="hud">지도를 읽는 중…</div>
 <div class="legend" id="legend"></div>
+<!--
+  손 조작은 **켜는 것**이다 (연장 19MB · 켤 때만 받는다 · 안 켜면 카메라 0).
+  자세: 허공에 팔을 들지 말고 **책상에 팔을 얹고 손가락만** — 그 자세가 오래 간다.
+-->
+<div class="hand">
+  <button id="handBtn" type="button">손으로 조작</button>
+  <video id="cam" playsinline muted hidden></video>
+  <div class="say" id="handSay"></div>
+</div>
 
 <script type="importmap">
 {
@@ -53,6 +68,7 @@ import { createOrbit } from 'three-kit/orbit.mjs';
 import { createPointCloud, rgb255, pixelScale } from 'three-kit/points.mjs';
 import { pointerSource, mergeSources } from 'karmo-pose/source.mjs';
 import { createGestures } from 'karmo-pose/gesture.mjs';
+import { createHandSource } from 'karmo-pose/hand.mjs';
 
 /* 색은 2D 판과 **같은 여덟 색**(Wong) — 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
 const COLORS = [
@@ -158,7 +174,9 @@ const orbit = createOrbit({ distance: 3.2, pitch: 0.55, minDistance: 0.6, maxDis
  * **조작은 KarmoPose 를 거친다** — 지금은 마우스뿐이지만, 손·폰을 붙일 때 이 아래는 안 바뀐다.
  * (손은 무겁고 팔이 지치므로 **켜는 것**이다. 안 켜면 무게 0 · 카메라 0.)
  */
-const pose = mergeSources([pointerSource(canvas)]).start();
+const mouse = pointerSource(canvas);
+const sources = [mouse];
+const pose = mergeSources(sources).start();
 const gestures = createGestures({ size: () => [canvas.clientWidth, canvas.clientHeight] });
 gestures.attach(pose);
 gestures.on('drag', (dx, dy, f) => {
@@ -171,6 +189,57 @@ addEventListener('keydown', (e) => { if (e.key === 'Shift') shiftDown = true; })
 addEventListener('keyup', (e) => { if (e.key === 'Shift') shiftDown = false; });
 /* 당기기는 아직 굴림쇠 몫 — 손에서는 「두 손가락 사이」가 그 자리를 맡는다(붙이면 여기만 는다). */
 canvas.addEventListener('wheel', (e) => { orbit.zoom(e.deltaY); if (e.cancelable) e.preventDefault(); }, { passive: false });
+
+/**
+ * **손 조작 — 켜는 것.**
+ *
+ * 연장(19MB)은 저장소에 없다. `npm run fetch:hand` 로 이 기계에 받아 둔 것을 **켤 때** 불러온다.
+ * 안 받았으면 그렇게 적고 아무 일도 안 한다(조용히 안 되는 것이 제일 나쁘다).
+ */
+const handBtn = document.getElementById('handBtn');
+const handSay = document.getElementById('handSay');
+const cam = document.getElementById('cam');
+const VENDOR = '/apps/karmolab/.handsrc';
+let handSource = null;
+let handOn = false;
+
+async function makeLandmarker() {
+  const vision = await import(`${VENDOR}/vision_bundle.mjs`);
+  const files = await vision.FilesetResolver.forVisionTasks(VENDOR);
+  return vision.HandLandmarker.createFromOptions(files, {
+    baseOptions: { modelAssetPath: `${VENDOR}/hand_landmarker.task` },
+    numHands: 1,
+    runningMode: 'VIDEO',
+  });
+}
+
+handBtn.addEventListener('click', async () => {
+  if (handOn) {
+    handSource?.stop();
+    cam.hidden = true; handOn = false;
+    handBtn.classList.remove('on');
+    handSay.textContent = '껐다 — 카메라도 껐다.';
+    return;
+  }
+  handBtn.disabled = true;
+  handSay.textContent = '연장을 불러오는 중… (처음 한 번 19MB)';
+  try {
+    handSource = createHandSource({ video: cam, createLandmarker: makeLandmarker });
+    pose.add(handSource, { start: false });
+    await handSource.start();
+    cam.hidden = false; handOn = true;
+    handBtn.classList.add('on');
+    /* ⚠ **자세를 먼저 말한다** — 허공에 팔을 들면 곧 지친다(실측된 제약). */
+    handSay.innerHTML = '<b>책상에 팔을 얹고 손가락만</b> 쓰세요.'
+      + ' 엄지와 검지를 붙이면 <b>쥔 것</b>, 붙인 채 움직이면 지도가 돕니다.'
+      + ' 손은 <b>돌리기·밀기</b>에만 씁니다 — 고르기는 마우스가 낫습니다(실측).';
+  } catch (e) {
+    handSay.innerHTML = `<b>손 조작을 못 켰다</b> — ${String(e.message).slice(0, 80)}`
+      + '<br>연장이 없으면: <code>npm run fetch:hand</code>';
+  } finally {
+    handBtn.disabled = false;
+  }
+});
 
 function resize() {
   const w = innerWidth; const h = innerHeight;
@@ -216,6 +285,8 @@ window.__atlas3d = {
   /* 조작이 **정말 KarmoPose 를 거치는가**를 자가 잴 수 있게 — 판을 직접 먹여 보게 연다. */
   pose,
   gestures,
+  handOn: () => handOn,
+  handBtn,
   /** 몇 판이나 그렸나 — 자가 **첫 판이 그려진 뒤에** 재게 한다(셰이더 링크는 조금 늦는다). */
   frames: () => frames,
   lit() {

@@ -46,12 +46,24 @@ export function mergeSources(sources, { idleMs = 700 } = {}) {
     for (const fn of listeners) fn(last);
   };
 
+  const live = [...sources];
   return {
     get owner() { return owner; },
     get last() { return last; },
+    get sources() { return [...live]; },
     onFrame(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+    /**
+     * **나중에 소스를 더한다** — 손은 켤 때 붙는다(무거워서 처음부터 안 켠다).
+     * 이미 돌고 있으면 붙이자마자 듣기 시작한다.
+     */
+    add(source, { start = true } = {}) {
+      live.push(source);
+      offs.push(source.onFrame(push));
+      if (start) source.start?.();
+      return source;
+    },
     start() {
-      for (const s of sources) {
+      for (const s of live) {
         offs.push(s.onFrame(push));
         s.start?.();
       }
@@ -59,7 +71,7 @@ export function mergeSources(sources, { idleMs = 700 } = {}) {
     },
     stop() {
       for (const off of offs.splice(0)) off?.();
-      for (const s of sources) s.stop?.();
+      for (const s of live) s.stop?.();
       owner = null;
       return this;
     },

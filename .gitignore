@@ -58,6 +58,10 @@ apps/karmolab/arcade/games/*.js
 apps/karmolab/arcade/games3d/*.js
 apps/karmolab/sw.js
 
+# 손 인식 연장 (change.motion-3d-cores) — wasm 12MB + 손 모델 7MB. `npm run fetch:hand` 로 받는다.
+# 글꼴 원본과 같은 규칙: **큰 원본은 받아 오고 저장소엔 안 담는다**. 안 받으면 손 조작만 안 켜진다.
+apps/karmolab/.handsrc/
+
 # 글꼴 원본 (TASK-KL-128) — 34MB 짜리 통짜 글꼴이다. `scripts/gen-fonts.py` 가 필요할 때 받아 온다.
 # 잘라 낸 결과(apps/karmolab/fonts/*.woff2)는 배포에 나가야 하므로 **저장소에 담는다**.
 apps/karmolab/.fontsrc/
