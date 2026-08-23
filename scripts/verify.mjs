@@ -109,16 +109,19 @@ run('공급망 (설치 스크립트·취약점)', '.', 'node scripts/audit-deps-
    앞자리에 두는 이유: 몇 초면 끝나고, 빌드보다 먼저 알려 주는 편이 고치기 싸다. */
 run('식별자는 영문 (래칫)', '.', 'node scripts/audit-identifier-lang.mjs');
 
-// 1. packages/karmolab-ai — build *먼저* (apps/karmolab 의 의존성, dist 가
+// 1. packages/ai (`@karmo/ai`) — build *먼저* (apps/karmolab 의 의존성, dist 가
 //    있어야 import 해소). 이전 ai-quality.yml shared-ai-package-build 흡수.
 //    TASK-KAR-MASTER-RED (5/19~ 6+연속 RED 진단): 순서가 거꾸로면 apps/karmolab
-//    build 가 karmolab-ai/dist 부재로 "Could not resolve" RED. workspace
-//    hoist 환경에서 packages/karmolab-ai/node_modules 가 별도로 안 만들어질
+//    build 가 ai/dist 부재로 "Could not resolve" RED. workspace
+//    hoist 환경에서 packages/ai/node_modules 가 별도로 안 만들어질
 //    수 있어 guard 는 dist 부재 체크로 변경(silent skip 차단).
-if (!existsSync('packages/karmolab-ai/dist')) {
-  run('packages/karmolab-ai build', 'packages/karmolab-ai', 'npm run build');
+// ★ **경로는 이름 이관을 따라간다** (2026-08-23). `karmolab-ai` → `ai` 이관에서 여기가
+//   안 따라와, 없는 폴더를 부르며 verify 가 4초 만에 죽었다 — 검사 여덟이 통째로 안 돌았다.
+//   내 기계에는 옛 폴더가 잔재로 남아 초록이라 안 보였다(추적 파일 0 = git 엔 없다).
+if (!existsSync('packages/ai/dist')) {
+  run('packages/ai build', 'packages/ai', 'npm run build');
 } else {
-  console.log('[verify] ! packages/karmolab-ai/dist 존재 — build skip (이미 빌드됨)');
+  console.log('[verify] ! packages/ai/dist 존재 — build skip (이미 빌드됨)');
 }
 
 // 1.5. apps/discord-bots/apps/yawnbot — **karmolab build 보다 먼저** (2026-08-16).
