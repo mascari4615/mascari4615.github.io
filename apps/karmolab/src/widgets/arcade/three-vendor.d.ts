@@ -7,6 +7,6 @@
  *
  * 타입은 `@types/three`(devDependency — 받는 것에는 안 들어간다)에서 그대로 빌려 온다.
  */
-declare module '/packages/three-kit/vendor/three.module.min.js' {
+declare module '/packages/3d/vendor/three.module.min.js' {
   export * from 'three';
 }

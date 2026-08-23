@@ -23,12 +23,13 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   Raycaster,
+  RingGeometry,
   Scene,
   SphereGeometry,
   SRGBColorSpace,
   Vector2,
   WebGLRenderer
-} from '/packages/three-kit/vendor/three.module.min.js';
+} from '/packages/3d/vendor/three.module.min.js';
 import { stoneTexture, woodTexture } from './texture';
 
 /** 판 위 한 알. 색은 자리 번호(1·2…)가 정한다. */
@@ -41,6 +42,8 @@ export interface Stone {
   last?: boolean;
   /** 왕관 (체커) */
   king?: boolean;
+  /** 집어 든 말 — 금빛 고리 (체커) */
+  pick?: boolean;
 }
 
 export interface Board3dOpts {
@@ -245,6 +248,13 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   mark.visible = false;
   scene.add(mark);
 
+  /* 집어 든 말 — 금빛 고리 하나를 옮겨 쓴다(체커). */
+  const pickMat = new MeshStandardMaterial({ color: 0xe8c15a, roughness: 0.4, metalness: 0.3 });
+  const pickRing = new Mesh(new RingGeometry(CELL * 0.44, CELL * 0.52, 24), pickMat);
+  pickRing.rotation.x = -Math.PI / 2;
+  pickRing.visible = false;
+  scene.add(pickRing);
+
   /* 둘 수 있는 자리 — 옅은 판 조각. 눌러도 되는 곳을 판 위에서 보여 준다. */
   const hintMat = new MeshStandardMaterial({ color: 0x2a2620, roughness: 1, transparent: true, opacity: 0.22 });
   const hints: Mesh[] = [];
@@ -310,15 +320,21 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       pool.forEach((m) => { m.visible = false; });
       hints.forEach((m) => { m.visible = false; });
       mark.visible = false;
+      pickRing.visible = false;
       stones.forEach((st, k) => {
         const m = stoneOf(k);
         m.material = matFor(st.who);
         m.position.set(cx(st.cell), boardTop + CELL * 0.19, cz(st.cell));
-        m.scale.set(1, st.king ? 0.9 : 0.46, 1);
+        /* 왕은 **한 장 더 얹은 것**이라 두 배 두껍다. */
+        m.scale.set(1, st.king ? 0.92 : 0.46, 1);
         m.visible = true;
         if (st.last) {
           mark.position.set(cx(st.cell), boardTop + 0.004, cz(st.cell));
           mark.visible = true;
+        }
+        if (st.pick) {
+          pickRing.position.set(cx(st.cell), boardTop + 0.005, cz(st.cell));
+          pickRing.visible = true;
         }
       });
       (hint?.can ?? []).forEach((cell, k) => {
@@ -337,7 +353,9 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
         const m = o as Mesh;
         if (m.geometry) m.geometry.dispose();
       });
-      [...mats.values(), wood, side, ink, dot, darkMat, markMat, hintMat].forEach((mm) => mm.dispose());
+      [...mats.values(), wood, side, ink, dot, darkMat, markMat, hintMat, pickMat].forEach((mm) => mm.dispose());
+      woodMap.dispose();
+      sideMap.dispose();
       renderer.dispose();
       canvas.remove();
     }

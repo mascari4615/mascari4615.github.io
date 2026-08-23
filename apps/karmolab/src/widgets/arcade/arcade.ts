@@ -282,47 +282,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-cell:not(:disabled):hover{background:rgba(30,26,20,.12)}',
       /**
        * ── 입체 판 (표현 = 3D) ──
-       * 같은 규칙을 눕혀 놓은 판 위에 그린다. WebGL 없이 CSS 원근만 쓴다 —
-       * 칸이 여전히 `<button>` 이라 자판 조작·읽는 기계가 그대로 산다.
-       * 돌은 판 위로 `translateZ` 만큼 떠 있어 그림자가 판에 진다.
+       * 무대는 `three-board.ts` 가 짓는다(받아 둔 three). 여기서는 **자리만** 내준다 —
+       * 판때기를 걷고, 정사각 한 칸을 준다. 크기는 무대 계약(`--ac-stage`)이 정한다.
+       *
+       * CSS 원근으로 세우던 판(`board3d.ts`)은 폐기했다: 돌이 눕고, 두께가 가짜였고,
+       * 무늬를 입힐 수 없었다. 같은 구멍(`views.ts`)이라 규칙은 한 줄도 안 바뀌었다.
        */
-      /* 입체 판일 때는 무대 판때기를 걷는다 — 눕힌 판보다 **앞에** 떠서 위쪽을 가린다(실측). */
-      '.ac-stage:has(.ac-b3),.ac-stage:has(.ac-t3){background:none}',
-      /* 진짜 3D 무대(three) — 제 자리를 정사각으로 다 쓴다. 크기는 무대 계약이 정한다. */
+      '.ac-stage:has(.ac-t3){background:none}',
       '.ac-t3{width:100%;aspect-ratio:1;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden}',
       '.ac-t3.ac-waiting{opacity:.92}',
-      '.ac-b3{perspective:1400px;perspective-origin:50% 42%;max-width:100%;margin:var(--space-lg) auto;padding:6% 0 9%}',
-      '.ac-b3tilt{position:relative;transform-style:preserve-3d;transform:rotateX(52deg) rotateZ(-1deg);transition:transform var(--transition-slow)}',
-      '.ac-b3:hover .ac-b3tilt{transform:rotateX(46deg) rotateZ(-1deg)}',
-      /* 판의 두께 — 옆면이 보여야 바닥에 놓인 것으로 읽힌다. */
-      '.ac-b3edge{position:absolute;inset:-10px;border-radius:12px;background:linear-gradient(180deg,#b9832f,#7d5416);transform:translateZ(-16px);box-shadow:0 40px 50px rgba(40,26,8,.45)}',
-      /* 판 면도 3D 문맥을 이어야 한다 — 여기서 끊기면 안의 돌이 판과 함께 눕는다(실측). */
-      '.ac-b3face{position:relative;transform-style:preserve-3d;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;aspect-ratio:1;background:var(--ac-wood);padding:10px;box-sizing:border-box;border-radius:8px;box-shadow:inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
-      '.ac-b3face.ac-waiting{opacity:.9}',
-      '.ac-c3{position:relative;aspect-ratio:1;border:1px solid var(--ac-wood-line);background:transparent;padding:0;cursor:pointer;transform-style:preserve-3d}',
-      '.ac-c3:disabled{cursor:default}',
-      '.ac-c3 i{position:absolute;inset:12%;border-radius:50%;display:block;opacity:0;transform:translateZ(0)}',
-      /**
-       * 돌 = 판에서 떠오른 볼록한 알. 위에서 오는 빛을 좌상단에 받는다.
-       *
-       * ★ 판을 눕힌 각(52도)을 **되돌려 세운다**(rotateX(-52deg)). 안 세우면 돌이 판과 같이
-       *   눕어 타원 전병이 된다(실측 — 첫 판이 그랬다). 세워 두면 어느 각에서도 동그란 알이다.
-       *   `translateZ` 는 세우기 **뒤에** 곱해야 판 위로 떠오른다 — 순서를 바꾸면 옆으로 민다.
-       */
-      '.ac-c3.ac-s1 i,.ac-c3.ac-s2 i{opacity:1;transform:translateZ(11px) rotateX(-52deg);box-shadow:0 9px 10px rgba(40,26,8,.45)}',
-      '.ac-c3.ac-s1 i{background:var(--ac-stone-b)}',
-      '.ac-c3.ac-s2 i{background:var(--ac-stone-w)}',
-      '.ac-c3.ac-last i{outline:2px solid rgba(226,80,60,.95);outline-offset:1px}',
-      '.ac-c3:not(:disabled):hover{background:rgba(30,26,20,.14)}',
-      /* 둘 수 있는 자리 — 아직 알이 아니라 **놓일 자리**라, 작고 반투명하게 판에 붙어 있다. */
-      '.ac-c3.ac-can i{opacity:.45;inset:34%;background:rgba(30,26,20,.5);transform:translateZ(2px) rotateX(-52deg)}',
-      /* 체커: 어두운 칸 · 왕관 · 집어 든 말 */
-      '.ac-c3.ac-dark{background:rgba(92,61,24,.22)}',
-      '.ac-c3.ac-king i{box-shadow:0 9px 10px rgba(40,26,8,.45),inset 0 0 0 3px #e8c15a}',
-      '.ac-c3.ac-pick i{outline:2px solid rgba(232,193,90,.95);outline-offset:2px}',
-      '@media (prefers-reduced-motion:reduce){.ac-b3tilt,.ac-b3:hover .ac-b3tilt{transition:none}}',
       /* 화점 — 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2·6 교차, 4,4). */
-      /* 화점 — **자리는 판이 정한다**(`board3d.ts` 의 `star`). 여기 칸 번호를 박으면
+      /* 화점 — **자리는 판이 정한다**(`three-board.ts` 의 `star`). 여기 칸 번호를 박으면
          칸 수가 다른 판에 엉뚱한 점이 찍힌다(8칸 판에서 실측). 2D 오목판만 아직 번호로 찍는다. */
       /* 화점도 같은 점(좌상단 모서리)에 찍는다 — 돌과 어긋나면 판이 틀린 것으로 보인다. */
       '.ac-cell::before{content:"";position:absolute;left:0;top:0;width:0;height:0}',

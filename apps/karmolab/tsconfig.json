@@ -14,7 +14,7 @@
       /* 받아 둔 three 를 **주소로** 부르는 자리(`arcade/three-board.ts`)에 타입을 대 준다.
          받는 것에는 안 들어간다 — 조각이 이 주소를 그대로 부르고(`build.mjs` external),
          타입만 `@types/three`(devDependency)에서 빌려 온다. */
-      "/packages/three-kit/vendor/three.module.min.js": ["./node_modules/@types/three/src/Three.d.ts"]
+      "/packages/3d/vendor/three.module.min.js": ["./node_modules/@types/three/src/Three.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "types/**/*.ts", "types/**/*.d.ts"],
