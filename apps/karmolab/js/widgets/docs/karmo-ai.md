@@ -19,7 +19,7 @@ KarmoLab 브라우저 앱과 yawnbot·`kakao-export.mjs` 등 Node 쪽은 **같�
 | 구역 | 역할 |
 |------|------|
 | KarmoLab | `gemini.ts`가 `@karmo/ai`를 import해 URL·모델을 맞추고, `fetch`·UI·키는 여기서 |
-| yawnbot `/ai` 등 | `tryCreateGenerativeTextFromEnv()` → `generateFromPrompt` (surface는 `.env`의 `KARMOLAB_AI_SURFACE` 등) |
+| yawnbot `/ai` 등 | `tryCreateGenerativeTextFromEnv()` → `generateFromPrompt` (surface는 `.env`의 `KARMO_AI_SURFACE` 등) |
 | 카카오 PC보내기 | `kakao-export.mjs`도 동일 클라이언트로 요약 (AI Studio 또는 Vertex) |
 
 ```mermaid
@@ -92,7 +92,7 @@ flowchart TB
 - **엔트리 분리:** 루트 `@karmo/ai`는 계약(URL·카탈로그)만, **`@karmo/ai/node`** 에서 AI Studio(SDK) 또는 Vertex(REST) 텍스트 호출을 제공합니다. (`peerDependencies`: `@google/generative-ai` — AI Studio 경로에만 사용)
 - **호출 표면 전환 (`.env`):**
   - **기본 AI Studio:** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
-  - **Vertex:** `KARMOLAB_AI_SURFACE=vertex` (또는 `GEMINI_SURFACE=vertex`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택  
+  - **Vertex:** `KARMO_AI_SURFACE=vertex` (또는 `GEMINI_SURFACE=vertex`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택  
   - env 키 이름 참고: 루트 패키지 `ENV_GOOGLE_AI`
 - **욘봇 `/yawn`:** 슬래시 옵션 `api`·`model`로 **이번 호출만** Studio/Vertex·모델 ID를 고를 수 있음(각 API에 맞는 키는 `.env`에 미리 있어야 함). 구현은 `generateBlobTextFromEnvWithOptions` (`@karmo/ai/node`).
 - **`@karmo/ai/node` API (요약):**

@@ -20,7 +20,7 @@
  * env:
  *  - LAPTOP_AGENT_BUS_ROOT (default = ~/.karmoddrine/agent-bus)
  *  - LAPTOP_MEMO_ROOT (default = ./memo)
- *  - KARMOLAB_AI_SURFACE 등 @karmo/ai tryCreateGenerativeTextFromEnv 정합
+ *  - KARMO_AI_SURFACE 등 @karmo/ai tryCreateGenerativeTextFromEnv 정합
  *  - AGENT_DAEMON_RATE_PER_5MIN (default 2)
  *  - AGENT_DAEMON_CONTEXT_MINUTES (default 5)
  */
@@ -386,7 +386,7 @@ async function main(): Promise<void> {
 
   const llm = tryCreateGenerativeTextFromEnv();
   if (!llm) {
-    console.error('[agent-daemon] LLM 초기화 실패 (KARMOLAB_AI_SURFACE / API 키 확인).');
+    console.error('[agent-daemon] LLM 초기화 실패 (KARMO_AI_SURFACE / API 키 확인).');
     process.exit(4);
   }
 

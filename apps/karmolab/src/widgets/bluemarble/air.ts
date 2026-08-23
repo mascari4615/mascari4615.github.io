@@ -21,7 +21,7 @@ import { t } from '../../lib/i18n';
 
 const RELAY = 'https://yawnbot.mascari4615.com/kl/air';
 
-/** 뒷단이 펴서 주는 모양 그대로. (`karmolab-air-api.ts` 의 `Plane` 과 한 벌이다) */
+/** 뒷단이 펴서 주는 모양 그대로. (`karmo-air-api.ts` 의 `Plane` 과 한 벌이다) */
 export interface Plane {
   hex: string;
   label: string;

@@ -112,7 +112,7 @@ AI 직접 조작 = `127.0.0.1:8766` HTTP (`localdev-http.json` 에서 토큰·�
 
 ## AI (Vertex / Claude)
 
-Vertex AI 선호 (credits 보유) — `KARMOLAB_AI_SURFACE=vertex` default. AI Studio = fallback only.
+Vertex AI 선호 (credits 보유) — `KARMO_AI_SURFACE=vertex` default. AI Studio = fallback only.
 예외: 무한 텍스트 어드벤처 (KL-032) = Claude Max OAuth default, Vertex 토글 선택 가능.
 
 ## Git Workflow

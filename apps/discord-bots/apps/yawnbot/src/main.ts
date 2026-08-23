@@ -41,7 +41,7 @@ import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
 import { registerSpaceRoutes } from './bot/karmolab-space-api';
-import { registerAirRoutes } from './bot/karmolab-air-api';
+import { registerAirRoutes } from './bot/karmo-air-api';
 import { registerMailRoutes } from './bot/karmolab-mail-api';
 import { registerNoteRoutes } from './bot/karmolab-note-api';
 import { registerCollectionRoutes } from './bot/karmolab-collection-api';

@@ -5,7 +5,7 @@ name: verify
 # branch protection 의 required status check 로 `verify (master invariant)` 등록 필요 (사용자 GitHub UI 액션).
 #
 # 폐기 흡수:
-#   - ai-quality.yml (karmolab-ai-surface, shared-ai-package-build → verify build)
+#   - ai-quality.yml (karmo-ai-surface, shared-ai-package-build → verify build)
 #   - code-quality.yml (typos → 본 워크플로 step, 빈 lint 잡 → verify lint)
 #   - karmolab-ts.yml (typecheck → verify build 가 포함)
 #   - karmolab-tauri.yml (cargo check → verify cargo check)

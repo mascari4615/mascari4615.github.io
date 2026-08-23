@@ -78,7 +78,7 @@ export type GenerativeTextClient = {
 export type GenerativeSurfaceOverride = 'inherit' | 'aiStudio' | 'vertex';
 /**
  * 시스템+맥락+질문을 한 문자열로 묶어 보낼 때(AI Studio `generateContent` / Vertex `generateContent` REST).
- * `surface: inherit` 이면 `KARMOLAB_AI_SURFACE` 등과 동일 규칙.
+ * `surface: inherit` 이면 `KARMO_AI_SURFACE` 등과 동일 규칙.
  *
  * **TASK-KAR-145 확장**: `tier`/`tag`/`onUsage`/`systemInstruction` 추가.
  * - `tier`: lite/standard/pro 라벨 — `getGeminiModelIdForTier` 로 해소.
@@ -105,7 +105,7 @@ export declare function generateBlobTextFromEnvWithOptions(env: NodeJS.ProcessEn
  * `.env` 기준으로 호출 가능한 텍스트 클라이언트를 만듦. 자격이 없으면 `null`.
  *
  * - **AI Studio (기본):** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
- * - **Vertex:** `KARMOLAB_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
+ * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
  *
  * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정 — 호출별 가변 케이스는
  * `generateBlobTextFromEnvWithOptions` 직접 사용.

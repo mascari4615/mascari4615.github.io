@@ -30,8 +30,8 @@ export declare const ENV_GOOGLE_AI: {
     /** AI Studio 스타일 API 키 (욘봇·카카오 스크립트 등) */
     readonly apiKey: "GEMINI_API_KEY";
     readonly modelOverride: "GEMINI_MODEL";
-    /** `aiStudio`(기본) 또는 `vertex` — `KARMOLAB_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
-    readonly surfacePrimary: "KARMOLAB_AI_SURFACE";
+    /** `aiStudio`(기본) 또는 `vertex` — `KARMO_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
+    readonly surfacePrimary: "KARMO_AI_SURFACE";
     readonly surfaceAlt: "GEMINI_SURFACE";
     readonly vertexApiKey: "VERTEX_API_KEY";
     readonly vertexProjectId: "VERTEX_PROJECT_ID";

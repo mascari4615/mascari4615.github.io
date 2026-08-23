@@ -5,7 +5,7 @@
  * 응답에서 눈으로 본 것이고, 그래서 아래 표본은 지어낸 게 아니라 그날 받은 줄이다.
  */
 import { describe, expect, it } from 'vitest';
-import { gridKey, rowsOf, toPlane, toPlanes } from './karmolab-air-api';
+import { gridKey, rowsOf, toPlane, toPlanes } from './karmo-air-api';
 
 /* 2026-08-20 서울 상공에서 실제로 받은 줄들 */
 const FLYING = {

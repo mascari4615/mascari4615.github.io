@@ -270,9 +270,9 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         .addStringOption((opt) =>
           opt
             .setName('api')
-            .setDescription('호출 API (비우면 .env의 KARMOLAB_AI_SURFACE 등 기본)')
+            .setDescription('호출 API (비우면 .env의 KARMO_AI_SURFACE 등 기본)')
             .setDescriptionLocalizations(
-              enUS('API surface (default: .env KARMOLAB_AI_SURFACE / GEMINI_SURFACE)'),
+              enUS('API surface (default: .env KARMO_AI_SURFACE / GEMINI_SURFACE)'),
             )
             .addChoices(
               { name: '기본 (.env)', name_localizations: enUS('Default (.env)'), value: 'inherit' },

@@ -159,7 +159,7 @@ if (yawnbotReady) {
 }
 
 // 2. apps/karmolab — build (typecheck 포함). karmolab-ai/dist 를 import.
-//    이전 karmolab-ts.yml + ai-quality.yml karmolab-ai-surface 흡수.
+//    이전 karmolab-ts.yml + ai-quality.yml karmo-ai-surface 흡수.
 requireDeps('apps/karmolab');
 run('apps/karmolab build', 'apps/karmolab', 'npm run build');
 

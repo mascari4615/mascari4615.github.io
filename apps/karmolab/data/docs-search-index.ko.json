@@ -202,104 +202,104 @@
       "aliases": "guide"
     },
     {
-      "id": "docs-karmolab-ai:0",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:0",
+      "docId": "docs-karmo-ai",
       "heading": "KarmoLabAI (@karmo/ai) 사용 가이드",
       "title": "KarmoLabAI (@karmo/ai) 사용 가이드",
       "description": "원본 경로: 레포 루트 packages/ai/ — npm 패키지 이름 @karmo/ai 역할: Google AI Studio Generative Language API 와 Vertex AI 를 함께 쓸 때, 모델 ID·REST URL·문서 링크·기본값을 한곳 SSOT 에서 맞춥니다. 루트 엔트리 . 는 fetch ·API 키·DOM을 넣지 않습니다. Node에서는 서브패스 @karmo/ai/node 로 AI Studio SDK 또는 Vertex REST fetch , 브라우저 gemini.ts 와 동일 엔드포인트 텍스트 호출을 맞출 수 있습니다. ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:1",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:1",
+      "docId": "docs-karmo-ai",
       "heading": "왜 패키지로 나눴나",
       "title": "왜 패키지로 나눴나",
       "description": "KarmoLab 브라우저 앱과 yawnbot· kakao-export.mjs 등 Node 쪽은 같은 모델 ID·프로바이더 규칙 을 쓰지만, 호출 코드를 한 파일 로 합치기는 어렵습니다. - 브라우저: CORS, fetch , localStorage, UI와 결합된 apps/karmolab/src/gemini.ts 가 실제 REST 호출을 담당합니다. - Node: .env 와 @google/generative-ai 같은 SDK가 자연스럽습니다. 그래서 DOM·네트워크·키 저장 없이 모델 카탈로그·기본 ID·AI Studio/Vertex URL 조립만 packages/",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:2",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:2",
+      "docId": "docs-karmo-ai",
       "heading": "소비자 (요약)",
       "title": "소비자 (요약)",
       "description": "구역 역할 ------ ------ KarmoLab gemini.ts 가 @karmo/ai 를 import해 URL·모델을 맞추고, fetch ·UI·키는 여기서 yawnbot /ai 등 tryCreateGenerativeTextFromEnv → generateFromPrompt surface는 .env 의 KARMOLAB AI SURFACE 등 카카오 PC보내기 kakao-export.mjs 도 동일 클라이언트로 요약 AI Studio 또는 Vertex",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:3",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:3",
+      "docId": "docs-karmo-ai",
       "heading": "구현·유지보수 체크리스트",
       "title": "구현·유지보수 체크리스트",
       "description": "- MODEL CATALOG / 기본 모델을 바꾼 뒤 패키지·KarmoLab·봇을 각각 빌드했는지 - 선택 Node에서 Vertex를 쓸 때 KarmoLab과 동일 REST를 맞출지, @google-cloud/vertexai ·ADC를 쓸지 결정을 문서에 남겼는지 - 챗봇 cb model / cb api surface · api-surface.ts ·캐릭터 이미지 Vertex 분기를 바꾼 뒤 이 절과 맞는지 확인 ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:4",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:4",
+      "docId": "docs-karmo-ai",
       "heading": "무엇이 들어 있나",
       "title": "무엇이 들어 있나",
       "description": "구분 설명 ------ ------ 모델 카탈로그 텍스트 Gemini gemini , 이미지용 Nano Banana geminiImage , Imagen imagen 목록과 표시 이름 기본 모델 ID DEFAULT TEXT MODEL ID — 텍스트용 기본 API 모델 ID gemini-2.5-flash 등, 카탈로그와 동기 AI Studio URL buildAiStudioGenerateContentUrl , buildAiStudioStreamGenerateContentUrl , buildAiStudioPredictUrl Vertex URL buildVertexPub",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:5",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:5",
+      "docId": "docs-karmo-ai",
       "heading": "KarmoLab(브라우저)에서",
       "title": "KarmoLab(브라우저)에서",
       "description": "- apps/karmolab/src/gemini.ts 가 @karmo/ai 를 import합니다. - 빌드 apps/karmolab 에서 npm run build 시 esbuild 가 의존성을 묶어 js/gemini.js 로 보냅니다. - 페이지 스크립트에서는 전역 Gemini 객체로 기능을 씁니다. 예: - AI Studio: callText , callChat , callChatStream , callGeminiImage , callImagen - Vertex: callVertexText , callVertexChat , callVertexChatStream , ",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:6",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:6",
+      "docId": "docs-karmo-ai",
       "heading": "챗봇 위젯 (런타임 AI Studio / Vertex)",
       "title": "챗봇 위젯 (런타임 AI Studio / Vertex)",
       "description": "- 모델 cbModelSelect : @karmo/ai 의 MODEL CATALOG.gemini 와 동일 목록. 선택 값은 Toolbox 프리픽 cb model 에 저장됩니다. - API cbApiSurfaceSelect : Google AI Studio ↔ Vertex AI . 저장 키 cb api surface , 값은 UI상 studio \\ vertex 이며, 패키지 타입 GoogleGenerativeSurface 의 aiStudio \\ vertex 와 대응합니다. 매핑·헬퍼: apps/karmolab/src/widgets/chatbot/api-surface.t",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:7",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:7",
+      "docId": "docs-karmo-ai",
       "heading": "Node(욘봇·스크립트)에서",
       "title": "Node(욘봇·스크립트)에서",
       "description": "- apps/discord-bots/apps/yawnbot 에 @karmo/ai 가 file:../../../../packages/ai 로 연결되어 있습니다. - 루트에서 봇 빌드할 때 packages/ai 가 먼저 tsc 됩니다 apps/discord-bots 의 npm run build / build:yawnbot . - 엔트리 분리: 루트 @karmo/ai 는 계약 URL·카탈로그 만, @karmo/ai/node 에서 AI Studio SDK 또는 Vertex REST 텍스트 호출을 제공합니다. peerDependencies : @google/generative",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:8",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:8",
+      "docId": "docs-karmo-ai",
       "heading": "레포에서 타입체크(기여 시)",
       "title": "레포에서 타입체크(기여 시)",
       "description": "- KarmoLab 위젯 소스 apps/karmolab/src/widgets/ .ts 는 전역 Gemini · Toolbox 등을 apps/karmolab/types/global.d.ts 에 선언해 두고, CI에서 npm run typecheck 로 검사합니다. ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:9",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:9",
+      "docId": "docs-karmo-ai",
       "heading": "로컬에서 패키지 빌드",
       "title": "로컬에서 패키지 빌드",
       "description": "KarmoLab 전체 JS: ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:10",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:10",
+      "docId": "docs-karmo-ai",
       "heading": "모델 목록을 바꿀 때",
       "title": "모델 목록을 바꿀 때",
       "description": "1. packages/ai/src/index.ts 의 MODEL CATALOG / isDefault 만 수정 2. packages/ai 에서 npm run build 3. KarmoLab·욘봇 쪽을 각각 다시 빌드 브라우저와 봇이 같은 ID 문자열을 쓰게 유지할 수 있습니다. ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:11",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:11",
+      "docId": "docs-karmo-ai",
       "heading": "관련 문서",
       "title": "관련 문서",
       "description": "- 사용자 가이드 탭: API 키 입력 위치 등 기본 사용법 - google api setup for planner.md google api setup for planner.md : 플래너용 Google API 설정 메모 - 로드맵 탭: roadmap.md roadmap.md ---",
       "aliases": "karmolab ai"
     },
     {
-      "id": "docs-karmolab-ai:12",
-      "docId": "docs-karmolab-ai",
+      "id": "docs-karmo-ai:12",
+      "docId": "docs-karmo-ai",
       "heading": "참고 링크",
       "title": "참고 링크",
       "description": "- Google AI Studio API 키 - Vertex AI — API 키 - Vertex AI REST 참고",

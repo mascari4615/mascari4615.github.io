@@ -485,7 +485,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     { id: 'docs-intro', label: t('docs.t16'), source: { kind: 'local', path: 'intro.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t17') },
     { id: 'docs-roadmap', label: t('docs.t18'), source: { kind: 'local', path: 'roadmap.md' }, mddPreset: 'daily_start', mddMsg: t('docs.t19') },
     { id: 'docs-guide', label: t('docs.t20'), source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t21') },
-    { id: 'docs-karmolab-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmolab-ai.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t22') },
+    { id: 'docs-karmo-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmo-ai.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t22') },
     { id: 'docs-discord-yawnbot', label: t('docs.t23'), source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t24') },
     { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t25') },
     { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t26') },

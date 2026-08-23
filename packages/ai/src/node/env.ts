@@ -8,7 +8,7 @@ import * as path from 'path';
  * - 앱별 `.env` 는 이 함수 호출 **이후** 에 로드하면 공통 값을 오버라이드할 수 있음.
  *
  * 관리 대상: `GEMINI_API_KEY`, `VERTEX_API_KEY`, `VERTEX_PROJECT_ID`,
- *            `VERTEX_LOCATION`, `KARMOLAB_AI_SURFACE` 등 AI 자격증명.
+ *            `VERTEX_LOCATION`, `KARMO_AI_SURFACE` 등 AI 자격증명.
  *
  * 사용 예:
  * ```ts

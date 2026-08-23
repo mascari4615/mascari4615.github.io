@@ -8,7 +8,7 @@
  *     {id}.png          — 실제 이미지 파일
  *
  * 유사도: Gemini 임베딩 코사인 유사도 (@karmo/ai generateEmbedding)
- *   KARMOLAB_AI_SURFACE=vertex → Vertex text-embedding-004
+ *   KARMO_AI_SURFACE=vertex → Vertex text-embedding-004
  *   기본 → AI Studio gemini-embedding-001
  * 캐시 최대: MAX_CACHE_ENTRIES개, 초과 시 hitCount 낮은 것 삭제
  */

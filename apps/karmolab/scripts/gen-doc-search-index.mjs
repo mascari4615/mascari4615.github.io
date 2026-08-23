@@ -6,7 +6,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const docsDir = path.join(root, 'js', 'widgets', 'docs');
 const ids = {
   'intro.md': 'docs-intro', 'roadmap.md': 'docs-roadmap', 'guide.md': 'docs-guide',
-  'karmolab-ai.md': 'docs-karmolab-ai', 'discord-yawnbot.md': 'docs-discord-yawnbot',
+  'karmo-ai.md': 'docs-karmo-ai', 'discord-yawnbot.md': 'docs-discord-yawnbot',
   'project-commands-guide.md': 'docs-project-commands', 'laptop.md': 'docs-laptop',
   'local-dev-runner.md': 'docs-local-dev', 'servermonitor-deploy-log-stream.md': 'docs-servermonitor-deploy-log-design',
 };

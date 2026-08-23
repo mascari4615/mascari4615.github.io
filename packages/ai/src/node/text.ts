@@ -172,8 +172,21 @@ export async function generateVertexText(opts: {
 }
 
 function readSurfaceRaw(env: NodeJS.ProcessEnv): string {
+  /**
+   * 옛 이름(`KARMOLAB_AI_SURFACE`)은 **안 받는다** — 둘 다 받아 주면 이관이 영영 안 끝난다.
+   *
+   * 다만 **조용히 기본값으로 떨어지지도 않는다.** 옛 이름만 있는 기계는 설정이 깨진 것이므로
+   * 여기서 소리 내어 죽인다. 안 그러면 그 기계는 Vertex 로 간다고 믿으면서 AI Studio 로 돌고,
+   * 아무 빨강도 안 뜬다. 고치는 법은 한 줄이고 그 줄을 오류가 직접 말해 준다.
+   */
+  if (env.KARMOLAB_AI_SURFACE?.trim() && !env.KARMO_AI_SURFACE?.trim()) {
+    throw new Error(
+      '.env 가 옛 이름을 쓰고 있다: KARMOLAB_AI_SURFACE → KARMO_AI_SURFACE 로 바꿔라'
+      + ` (지금 값: ${env.KARMOLAB_AI_SURFACE.trim()})`,
+    );
+  }
   return (
-    env.KARMOLAB_AI_SURFACE?.trim() ||
+    env.KARMO_AI_SURFACE?.trim() ||
     env.GEMINI_SURFACE?.trim() ||
     env.GOOGLE_GEN_SURFACE?.trim() ||
     ''
@@ -200,7 +213,7 @@ export type GenerativeSurfaceOverride = 'inherit' | 'aiStudio' | 'vertex';
 
 /**
  * 시스템+맥락+질문을 한 문자열로 묶어 보낼 때(AI Studio `generateContent` / Vertex `generateContent` REST).
- * `surface: inherit` 이면 `KARMOLAB_AI_SURFACE` 등과 동일 규칙.
+ * `surface: inherit` 이면 `KARMO_AI_SURFACE` 등과 동일 규칙.
  *
  * **TASK-KAR-145 확장**: `tier`/`tag`/`onUsage`/`systemInstruction` 추가.
  * - `tier`: lite/standard/pro 라벨 — `getGeminiModelIdForTier` 로 해소.
@@ -280,7 +293,7 @@ export async function generateBlobTextFromEnvWithOptions(
  * `.env` 기준으로 호출 가능한 텍스트 클라이언트를 만듦. 자격이 없으면 `null`.
  *
  * - **AI Studio (기본):** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
- * - **Vertex:** `KARMOLAB_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
+ * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
  *
  * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정 — 호출별 가변 케이스는
  * `generateBlobTextFromEnvWithOptions` 직접 사용.
@@ -335,5 +348,5 @@ export function generativeEnvHint(env: NodeJS.ProcessEnv = process.env): string 
   if (parseGenerativeSurfaceFromEnv(env) === 'vertex') {
     return 'Vertex 모드: .env에 VERTEX_API_KEY, VERTEX_PROJECT_ID 가 필요합니다. (선택: VERTEX_LOCATION, GEMINI_MODEL)';
   }
-  return 'AI Studio 모드: .env에 GEMINI_API_KEY 가 필요합니다. (선택: GEMINI_MODEL, 또는 KARMOLAB_AI_SURFACE=vertex 로 전환)';
+  return 'AI Studio 모드: .env에 GEMINI_API_KEY 가 필요합니다. (선택: GEMINI_MODEL, 또는 KARMO_AI_SURFACE=vertex 로 전환)';
 }
