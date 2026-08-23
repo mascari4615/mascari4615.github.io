@@ -263,7 +263,7 @@
     "test:badapple:home": "node scripts/smoke-badapple-home.mjs",
     "test:badapple:load": "node scripts/smoke-badapple-load.mjs",
     "test:barcode": "node scripts/test-barcode.mjs",
-    "test:behavior": "npm run test:gif && npm run test:video && npm run test:trim && npm run test:voice && npm run test:pdfc && npm run test:level && npm run test:v2i && npm run test:mp3 && npm run test:p2t && npm run test:exif && npm run test:fsplit && npm run test:psign && npm run test:qr && npm run test:imerge && npm run test:favicon && npm run test:pass && npm run test:grad && npm run test:paste && npm run test:table && npm run test:workdays && npm run test:redact && npm run test:pdfredact && npm run test:aspeed && npm run test:vrot && npm run test:pnum && npm run test:pcrop && npm run test:iresize && npm run test:afade && npm run test:sub && npm run test:ics && npm run test:barcode",
+    "test:behavior": "node scripts/run-gates.mjs test:gif test:video test:trim test:voice test:pdfc test:level test:v2i test:mp3 test:p2t test:exif test:fsplit test:psign test:qr test:imerge test:favicon test:pass test:grad test:paste test:table test:workdays test:redact test:pdfredact test:aspeed test:vrot test:pnum test:pcrop test:iresize test:afade test:sub test:ics test:barcode",
     "test:bundles": "node scripts/check-bundles.mjs",
     "test:burnnote": "node scripts/test-burnnote-core.mjs",
     "test:calc": "node scripts/test-calc.mjs",

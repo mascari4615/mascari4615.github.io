@@ -15,6 +15,22 @@ name: verify
 on:
   push:
     branches: [master, main]
+    # ★ verify 가 **아예 안 읽는** 경로는 push 판을 안 만든다 (change.dev-loop-speedup, 2026-08-23).
+    #   최근 200커밋 실측: companion 단독 74 · handheld 단독 27 — 절반이 15.8분짜리 full verify 를
+    #   헛돌렸다. 근거(경로별):
+    #   - packages/companion: verify.mjs 는 node_modules 있을 때만 도는데 CI 채비가 안 깐다(주석
+    #     그대로 skip) — 판정은 `companion.yml` 이 낸다. karmolab 은 이 꾸러미를 import 하지 않는다
+    #     (관제 위젯은 HTTP 로만 본다 — src 전수 grep 실측).
+    #   - apps/handheld · unity/: verify.mjs 어디에도 없다 (grep 실측).
+    #   typos 훑기만 이 판들을 놓치는데, 시계(nightwatch) 판이 매시간 전체를 돌므로 늦어도
+    #   한 시간 안에 잡힌다. 여기 늘릴 때는 「verify.mjs 가 그 경로를 읽나」부터 grep 으로 재라.
+    paths-ignore:
+      - 'packages/companion/**'
+      - 'apps/handheld/**'
+      - 'unity/**'
+      - '.vscode/**'
+      - '.cursor/**'
+      - '.devcontainer/**'
   # 응급 manual trigger — KL-029 (PAT) 미해결 / Auto Merge 우회 등으로 master push
   # event 미발동 시점에 사용자/자동화가 master 검증 강제 호출 (`gh workflow run verify.yml --ref master`).
   # KL-029 해결 후엔 push trigger 정상 작동 → 본 trigger 는 응급 가치만 남음.
