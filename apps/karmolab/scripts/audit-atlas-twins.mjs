@@ -83,8 +83,15 @@ if (isFake(ATLAS)) {
   const cut = (t) => String(t).slice(0, 1200);
   /* 사본 = 문장 몇 개를 덜어낸 같은 글. 「옮겨 적으며 조금 고친 글」을 흉내 낸다. */
   const copyOf = (t) => cut(t).split(/(?<=[.!?。])\s+/).filter((_, i) => i % 10 !== 3).join(' ');
-  const A = await embedLocal(pick.map((d) => cut(d.text)));
-  const B = await embedLocal(pick.map((d) => copyOf(d.text)));
+  /* ★ **문턱과 같은 공간에서 재야 한다.** 문턱은 「쏠림을 뺀」 판에서 골랐는데 여기서는
+     원 벡터로 쟀다 — 원 벡터 쪽 닮음이 통째로 부풀어 있어(모두가 한 방향으로 쏠려 있다)
+     남남끼리도 0.9 를 넘긴다. 2026-08-23 실측: 같은 자료에서 원 벡터 0.911 vs 뺀 공간 0.753.
+     지도가 실어 보낸 평균(`space.bias`)으로 새로 잰 벡터를 그 자리로 옮긴 뒤 견준다. */
+  const { toBiasedSpace } = await import('@karmo/meaning');
+  const bias = atlas.space?.bias || null;
+  if (!bias) console.log('  ⚠ 지도에 공간(space.bias)이 없다 — 원 벡터로 잰다(문턱과 다른 공간일 수 있다)');
+  const A = toBiasedSpace(await embedLocal(pick.map((d) => cut(d.text))), bias);
+  const B = toBiasedSpace(await embedLocal(pick.map((d) => copyOf(d.text))), bias);
   const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
   const same = pick.map((_, i) => dot(A[i], B[i]));
   const diff = [];

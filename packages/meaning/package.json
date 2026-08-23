@@ -1,0 +1,20 @@
+{
+  "name": "@karmo/meaning",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KarmoMeaning — 글의 뜻을 숫자로 재고(로컬 임베딩), 쏠림을 빼고, 뜻으로 가까운 것을 찾는다. 열쇠도 하루치도 없다.",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "@huggingface/transformers": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "@huggingface/transformers": { "optional": true }
+  }
+}

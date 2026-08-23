@@ -364,6 +364,18 @@
       ]
     },
     {
+      "name": "test:meaning",
+      "watch": [
+        "../../packages/meaning/src/embed.mjs",
+        "../../packages/meaning/src/bias.mjs",
+        "../../packages/meaning/src/near.mjs",
+        "../../packages/meaning/src/index.mjs",
+        "../../packages/meaning/test/parity.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "audit:atlas-lane-bias",
       "watch": [
         "scripts/audit-atlas-lane-bias.mjs",

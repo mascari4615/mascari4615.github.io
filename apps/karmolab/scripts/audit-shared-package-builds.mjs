@@ -23,7 +23,16 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 /** `"badapple": "file:../../packages/badapple"` → `badapple`. */
 const shared = Object.entries(pkg.dependencies || {})
   .filter(([, spec]) => typeof spec === 'string' && spec.startsWith('file:../../packages/'))
-  .map(([name, spec]) => ({ name, dir: spec.slice('file:'.length).replace(/^\.\.\/\.\.\//, '') }));
+  .map(([name, spec]) => ({ name, dir: spec.slice('file:'.length).replace(/^\.\.\/\.\.\//, '') }))
+  /* ★ **지을 것이 있는 꾸러미만** 본다. 소스가 그대로 도는 꾸러미(`.mjs` 그대로, dist 없음)는
+     지을 단계가 있을 이유가 없다 — 그런데도 「짓는 단계가 없다」고 하면 워크플로에 **아무 일도
+     안 하는 줄**을 넣게 된다. 판정 기준은 그 꾸러미의 `build` 스크립트 유무다 (2026-08-23,
+     `@karmo/meaning` 이 처음으로 그런 꾸러미가 됐다). */
+  .filter(({ dir }) => {
+    const manifest = path.join(repoRoot, dir, 'package.json');
+    if (!fs.existsSync(manifest)) return true;   // 없으면 다른 검사가 잡는다 — 여기선 눈감지 않는다
+    try { return !!JSON.parse(fs.readFileSync(manifest, 'utf8')).scripts?.build; } catch { return true; }
+  });
 
 /** 앱을 **짓는** 워크플로. 여기 빠지면 그 판이 통째로 선다. */
 const WORKFLOWS = [

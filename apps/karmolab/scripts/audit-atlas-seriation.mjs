@@ -71,16 +71,20 @@ for (const r of S.ours) {
 if (S.twoSumGain == null) bad.push('2-sum 으로 잰 값이 안 실려 있다 — 왜 잣대를 갈아탔는지 알 수 없다');
 
 /* ★ ②③ **대조군이 이 자의 심장** — 섞은 자료에서도 얻는 것이 있다는 걸 적어야 한다. */
+/* ★ **음수는 고장이 아니다** (2026-08-23 정정). 전에는 「섞은 자료에서도 2% 는 얻는다」를 요구했는데,
+   구조 없는 자료에서 정렬이 아무 순서보다 **못할** 수도 있다(실측 −5.3%) — 그건 대조군이 죽은 게
+   아니라 **살아서 그렇게 답한 것**이다. 죽은 대조군의 표시는 **정확히 0**(안 돌았거나 우리 값을
+   그대로 베낀 것)이다. 대신 음수일 때 「두 배」 문턱이 저절로 참이 되는 구멍은 아래 ④에서 막는다. */
 if (S.shufGain == null) bad.push('섞은 자료에서 얻는 것이 안 실려 있다 — 무늬가 알고리즘의 산물인지 못 가른다');
-else if (!(S.shufGain > 0.02)) {
-  bad.push(`섞은 자료에서 얻는 것이 ${S.shufGain} 다 — 정렬은 아무 자료에서도 얼마쯤 얻는다(0 이면 대조군이 안 돈 것)`);
-}
+else if (S.shufGain === 0) bad.push('섞은 자료에서 얻는 것이 정확히 0 이다 — 대조군이 안 돌았는지 봐라');
+else if (S.shufGain === S.gain) bad.push('섞은 자료와 우리 값이 똑같다 — 대조군이 우리 값을 베꼈다');
 if (!(S.calGain > S.shufGain)) {
   bad.push(`한 줄로 세울 수 있는 자료(${S.calGain})가 섞은 자료(${S.shufGain})보다 못하다 — 눈금이 틀렸다`);
 }
 
 /* ④ 판정이 수와 맞나 — 이겼는데 안 그리거나, 졌는데 그리면 빨강. */
-const should = S.gain > S.shufGain * 2 && S.gain > S.calGain * 0.5;
+/* 음수 대조군이 「두 배」를 거저 통과시키지 않게 **절대 바닥(2%)** 을 같이 깐다 (굽는 쪽과 같은 식). */
+const should = S.gain > Math.max(0.02, S.shufGain * 2) && S.gain > S.calGain * 0.5;
 if (S.worth !== should) {
   bad.push(`「${S.worth ? '값이 있다' : '볼 게 없다'}」고 적혀 있는데 수는 반대다`
     + ` (우리 ${S.gain} · 섞은 자료 ${S.shufGain} · 눈금 ${S.calGain})`);

@@ -18,6 +18,13 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {
+  LOCAL_MODEL as MEANING_MODEL,
+  embedTexts as meaningEmbedTexts,
+  embedAll as meaningEmbedAll,
+  removeSharedBias as meaningRemoveBias,
+  nearest as meaningNearest,
+} from '@karmo/meaning';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
@@ -392,44 +399,18 @@ function collect() {
    ⚠ 그래도 남은 사실: **이 모델은 동음이의를 못 가른다**(낱말만 겹침 0.624 > 같은 뜻 0.537).
    e5-small 은 그걸 바로 세우니, 언젠가 그게 더 아파지면 그때 다시 꺼낸다.
    ⚠ E5 계열을 다시 시험하면 **앞말(passage:)** 을 반드시 붙여라 — 안 붙이면 순서가 도로 뒤집혔다. */
-const LOCAL_MODEL = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
-const LOCAL_CHUNK = 900;        // 글자 기준. 토막 하나가 모델 한 입.
-const LOCAL_MAX_CHUNKS = 4;     // 앞 네 토막이면 그 글의 정체는 잡힌다.
+/* ★ **뜻 재기는 이제 KarmoMeaning 이 한다** (`@karmo/meaning`) — 이 스크립트 안에 갇혀 있으면
+   북마크 분류·글 추천 같은 다음 쓰임이 같은 코드를 또 짓는다. 여기 남는 것은 **지도 고유**의
+   일뿐이다: 무엇을 모으고(collect) 어떻게 그리나(layout). 모델·토막·곳간 열쇠 규칙은 꾸러미 정본. */
+const LOCAL_MODEL = MEANING_MODEL;
 
-function chunk(text) {
-  const out = [];
-  for (let i = 0; i < text.length && out.length < LOCAL_MAX_CHUNKS; i += LOCAL_CHUNK) {
-    out.push(text.slice(i, i + LOCAL_CHUNK));
-  }
-  return out.length ? out : [text];
-}
+/* 재는 연장은 **여기서 건넨다** — 꾸러미는 `file:` 링크 너머라 이 앱의 `node_modules` 를 못 본다. */
+const loadRunner = () => import('@huggingface/transformers');
+const onModelLoad = () => console.log('[atlas] 이 기계에서 도는 모델을 준비한다 (처음 한 번은 내려받는다)');
 
-let localExtractor = null;
-async function getLocalExtractor() {
-  if (localExtractor) return localExtractor;
-  const { pipeline } = await import('@huggingface/transformers');
-  console.log('[atlas] 이 기계에서 도는 모델을 준비한다 (처음 한 번은 내려받는다)');
-  localExtractor = await pipeline('feature-extraction', LOCAL_MODEL);
-  return localExtractor;
-}
-
-/** 토막마다 재고 평균 낸 뒤 길이를 1로 맞춘다 (각도만 남긴다). */
+/** 자들이 꺼내 쓰는 입구 — 안은 꾸러미가 한다 (`audit-atlas-meaning` · `audit-atlas-twins`). */
 async function embedLocal(texts) {
-  const ex = await getLocalExtractor();
-  const out = [];
-  for (const text of texts) {
-    const parts = chunk(text);
-    const res = await ex(parts, { pooling: 'mean', normalize: true });
-    const rows = res.tolist();
-    const dim = rows[0].length;
-    const acc = new Array(dim).fill(0);
-    for (const r of rows) for (let i = 0; i < dim; i += 1) acc[i] += r[i];
-    let norm = 0;
-    for (let i = 0; i < dim; i += 1) { acc[i] /= rows.length; norm += acc[i] * acc[i]; }
-    norm = Math.sqrt(norm) || 1;
-    out.push(acc.map((v) => Number((v / norm).toFixed(6))));
-  }
-  return out;
+  return meaningEmbedTexts(texts, { onLoad: onModelLoad, loadRunner });
 }
 
 function loadCache() {
@@ -463,20 +444,21 @@ async function embedAll(docs) {
   if (!todo.length) return docs.map((d) => cache[keyOf(d)] || null);
 
   if (!useApi) {
+    /* 재는 일은 **KarmoMeaning** 이 한다. 여기 남는 것은 지도 쪽 사정뿐 —
+       무엇을 먹일까(제목 + 몸통)와 곳간 파일을 어디에 쓰나. */
     const t0 = Date.now();
-    const BATCH = 16;
-    for (let i = 0; i < todo.length; i += BATCH) {
-      const slice = todo.slice(i, i + BATCH);
-      const vecs = await embedLocal(slice.map((d) => `${d.title}\n\n${d.text}`));
-      slice.forEach((d, j) => { cache[keyOf(d)] = vecs[j]; });
-      if ((i / BATCH) % 8 === 0) {
-        console.log(`[atlas]   ${Math.min(i + BATCH, todo.length)}/${todo.length}`);
-        fs.writeFileSync(CACHE, JSON.stringify(cache));
-      }
-    }
-    fs.writeFileSync(CACHE, JSON.stringify(cache));
-    console.log(`[atlas] 이 기계에서 ${todo.length}개 재는 데 ${((Date.now() - t0) / 1000).toFixed(1)}초`);
-    return docs.map((d) => cache[keyOf(d)] || null);
+    const out = await meaningEmbedAll(
+      docs.map((d) => ({ id: d.id, hash: d.hash, text: `${d.title}\n\n${d.text}` })),
+      {
+        cache,
+        loadRunner,
+        onLoad: onModelLoad,
+        onProgress: (done, all) => console.log(`[atlas]   ${done}/${all}`),
+        onFlush: (c) => fs.writeFileSync(CACHE, JSON.stringify(c)),
+      },
+    );
+    console.log(`[atlas] 이 기계에서 ${out.todo}개 재는 데 ${((Date.now() - t0) / 1000).toFixed(1)}초`);
+    return out.vectors;
   }
 
   const { generateEmbedding } = await import('karmolab-ai/node');
@@ -526,21 +508,16 @@ async function embedAll(docs) {
  * 짧은 글끼리 더 닮는 성질이 완전히 없어지진 않는다. 그래서 넣고 끝내지 않고
  * 자 셋(정직도·출신 쏠림·뜻 순서)으로 전후를 잰다. `--no-center` 로 끌 수 있다.
  */
+/* **지도는 제 공간을 들고 다닌다.** 뺀 평균을 산출물에 실어야, 나중에 새로 잰 벡터를
+   같은 자리로 옮겨 견줄 수 있다 — 안 실었더니 자가 원 벡터로 재고 문턱은 뺀 공간 것이라
+   서로 다른 공간을 견주고 있었다(2026-08-23, twins 오탐 2쌍의 진짜 원인). */
+let biasMean = null;
 function removeSharedBias(vectors) {
-  const ok = vectors.filter(Boolean);
-  if (ok.length < 20) return vectors;
-  const dim = ok[0].length;
-  const mean = new Float64Array(dim);
-  for (const v of ok) for (let i = 0; i < dim; i += 1) mean[i] += v[i] / ok.length;
-  const before = Math.sqrt(mean.reduce((s, x) => s + x * x, 0));
-  const out = vectors.map((v) => {
-    if (!v) return v;
-    const w = v.map((x, i) => x - mean[i]);
-    const n = Math.sqrt(w.reduce((s, x) => s + x * x, 0)) || 1;
-    return w.map((x) => Number((x / n).toFixed(6)));
-  });
-  console.log(`[atlas] 모두가 공유하던 쏠림을 뺐다 (평균 벡터 길이 ${before.toFixed(3)} → 0 쪽으로)`);
-  return out;
+  const got = meaningRemoveBias(vectors);
+  if (!got.applied) return got.vectors;
+  biasMean = got.mean;
+  console.log(`[atlas] 모두가 공유하던 쏠림을 뺐다 (평균 벡터 길이 ${got.before.toFixed(3)} → 0 쪽으로)`);
+  return got.vectors;
 }
 
 // ── 자리 잡기 ──────────────────────────────────────────────────────────
@@ -1597,7 +1574,10 @@ function seriationOf(vectors, dist, n, coords, seed = 88) {
    * **판정** — 정렬로 얻는 것이 **섞은 자료에서 얻는 것보다 뚜렷이 커야** 행렬을 그릴 값이 있다.
    * 문턱은 눈금(블록이 뚜렷한 자료)에서 얻는 것의 절반 — 손으로 안 고른다.
    */
-  const worth = gain > shufGain * 2 && gain > calGain * 0.5;
+  /* ★ **대조군이 음수로 내려갈 수 있다** — 구조 없는 자료에서는 정렬이 아무 순서보다 **못할** 수도
+     있다(2026-08-23 실측: 섞은 자료 −5.3%). 그때 「대조군의 두 배」는 저절로 참이 되어 문턱이
+     사라진다. 그래서 **절대 바닥(2%)** 을 같이 깐다 — 음수 대조군이 판정을 거저 통과시키지 않게. */
+  const worth = gain > Math.max(0.02, shufGain * 2) && gain > calGain * 0.5;
   /**
    * **그릴 값이 있으면 전체 순서를 낸다** — 솎은 표본이 아니라 글 전부.
    * 화면은 이 순서로 **이웃 그래프 행렬**을 그린다(닮음 행렬은 너무 무거워 못 싣는다).
@@ -4289,18 +4269,53 @@ function topWordsByGroup(groups, k = 10) {
   const total = tf.map((c) => [...c.values()].reduce((a, b) => a + b, 0) || 1);
   const inHowMany = new Map();
   tf.forEach((c) => { for (const w of c.keys()) inHowMany.set(w, (inHowMany.get(w) || 0) + 1); });
-  return tf.map((c, gi) => [...c.entries()]
-    .filter(([, cnt]) => cnt >= 2)
-    .filter(([w]) => (inHowMany.get(w) || 0) <= Math.max(2, Math.floor(n * 0.5)))
-    .map(([w, cnt]) => [w, (cnt / total[gi]) * Math.log(n / (inHowMany.get(w) || 1))])
-    .sort((a, b) => b[1] - a[1])
-    /* 겹치는 말은 하나만 — 「근본 코어」·「다음 근본」·「다음 근본 코어」가 다 뜨면
-       여섯 자리를 한 말이 차지한다. 긴 쪽이 더 많이 말해 주므로 먼저 온 것을 남긴다. */
-    .reduce((acc, [w]) => {
-      if (!acc.some((x) => x.includes(w) || w.includes(x))) acc.push(w);
-      return acc;
-    }, [])
-    .slice(0, k));
+  /**
+   * ★ **「이쪽만 쓰는 말」은 재서 거른다** (2026-08-23).
+   *
+   * 전에는 c-TF-IDF 점수와 「절반 넘는 덩어리에 나오면 버린다」만으로 골랐다. 그건 **덩어리 수**를
+   * 셀 뿐 **얼마나 자주 나오는지**를 안 본다 — 그래서 화면의 견주기 칸에 「이쪽만 쓴다」고 올려
+   * 놓은 말이 저쪽 글에서 오히려 더 자주 나오는 일이 생겼다(실측: "Programming" 이쪽 18% vs
+   * 저쪽 36%). 그건 견준 게 아니라 이름 두 개를 늘어놓은 것이다.
+   *
+   * 그래서 **자와 같은 기준으로** 뽑는 자리에서 미리 거른다: 제 덩어리에서 글 한 편당 나오는
+   * 비율이 **다른 어느 덩어리보다도 두 배 이상** 높아야 남긴다. 셈이 비싸므로 점수 순으로
+   * 훑다가 k 개가 차면 멈춘다.
+   */
+  const WORD_TIMES = 2;
+  const texts = groups.map((docs) => docs.map((d) => `${d.title}\n${d.text}`));
+  const rateIn = (gi, w) => {
+    const list = texts[gi];
+    if (!list.length) return 0;
+    let hit = 0;
+    for (const t of list) if (t.includes(w)) hit += 1;
+    return hit / list.length;
+  };
+  const standsOut = (gi, w) => {
+    const mine = rateIn(gi, w);
+    if (mine <= 0) return false;
+    for (let o = 0; o < n; o += 1) {
+      if (o === gi) continue;
+      if (rateIn(o, w) * WORD_TIMES > mine) return false;
+    }
+    return true;
+  };
+  return tf.map((c, gi) => {
+    const ranked = [...c.entries()]
+      .filter(([, cnt]) => cnt >= 2)
+      .filter(([w]) => (inHowMany.get(w) || 0) <= Math.max(2, Math.floor(n * 0.5)))
+      .map(([w, cnt]) => [w, (cnt / total[gi]) * Math.log(n / (inHowMany.get(w) || 1))])
+      .sort((a, b) => b[1] - a[1]);
+    const out = [];
+    for (const [w] of ranked) {
+      if (out.length >= k) break;
+      /* 겹치는 말은 하나만 — 「근본 코어」·「다음 근본」·「다음 근본 코어」가 다 뜨면
+         여섯 자리를 한 말이 차지한다. 긴 쪽이 더 많이 말해 주므로 먼저 온 것을 남긴다. */
+      if (out.some((x) => x.includes(w) || w.includes(x))) continue;
+      if (!standsOut(gi, w)) continue;
+      out.push(w);
+    }
+    return out;
+  });
 }
 
 /**
@@ -5237,36 +5252,16 @@ function pickCoarse(vecs, fine, sizes, fallback = 6, candidates = [4, 5, 6, 7, 8
 function nearestByMeaning(ok, docs, k = 8) {
   const n = ok.length;
   if (n < 2) return;
-  const dim = ok[0].v.length;
-  /* 한 줄로 늘어놓은 배열에 담는다 — 중첩 배열로 두면 읽는 데만 몇 배 걸린다. */
-  const M = new Float32Array(n * dim);
-  for (let i = 0; i < n; i += 1) {
-    const v = ok[i].v;
-    let s = 0;
-    for (let j = 0; j < dim; j += 1) s += v[j] * v[j];
-    s = Math.sqrt(s) || 1;
-    for (let j = 0; j < dim; j += 1) M[i * dim + j] = v[j] / s;
-  }
-  const at = new Map(docs.map((d, i) => [d.id, i]));
   const t0 = Date.now();
+  /* 셈은 **KarmoMeaning** 이 한다 — 번호로 답한다. 여기서 그 번호를 **글 목록의 자리**로
+     옮겨 붙인다(지도는 ok 번호가 아니라 docs 번호로 그린다). */
+  const { idx, sim } = meaningNearest(ok.map((o) => o.v), k);
+  const at = new Map(docs.map((d, i) => [d.id, i]));
   for (let i = 0; i < n; i += 1) {
-    /* 상위 k 개만 남긴다. 전부 정렬하면 n log n 이 n 번 돌아 몇 배 느려진다. */
-    const bs = new Float64Array(k).fill(-2);
-    const bi = new Int32Array(k).fill(-1);
-    for (let j = 0; j < n; j += 1) {
-      if (j === i) continue;
-      let dot = 0;
-      const a = i * dim; const b = j * dim;
-      for (let t = 0; t < dim; t += 1) dot += M[a + t] * M[b + t];
-      if (dot <= bs[k - 1]) continue;
-      let p = k - 1;
-      while (p > 0 && bs[p - 1] < dot) { bs[p] = bs[p - 1]; bi[p] = bi[p - 1]; p -= 1; }
-      bs[p] = dot; bi[p] = j;
-    }
-    ok[i].d.near = [...bi].filter((x) => x >= 0).map((x) => at.get(ok[x].d.id)).filter((x) => x != null);
+    ok[i].d.near = idx[i].map((x) => at.get(ok[x].d.id)).filter((x) => x != null);
     /* 가장 닮은 하나의 **닮은 정도**도 챙긴다 — 겹치는 글(쌍둥이)을 이걸로 찾는다. */
-    ok[i].topSim = bs[0];
-    ok[i].topIdx = bi[0];
+    ok[i].topSim = sim[i].length ? sim[i][0] : -2;
+    ok[i].topIdx = idx[i].length ? idx[i][0] : -1;
   }
   console.log(`[atlas] 닮은 글 ${k}개씩 · ${((Date.now() - t0) / 1000).toFixed(1)}초`);
 }
@@ -5305,6 +5300,34 @@ function twinsOf(ok, docs) {
     chosen = curve[i].t;
     prevGrow = Math.max(1, grow);
   }
+  /**
+   * ★ **바닥을 재서 깐다** — 곡선이 평평하면 위 규칙은 끝값(0.9)까지 걸어 내려간다.
+   * 그 자리가 **남남끼리도 닿는 높이**면 겹침이 아닌 것을 겹침이라 하게 된다.
+   * 그래서 아무 쌍이나 뽑아 **남남의 최고 닮음**을 재고, 문턱은 그보다 위에서만 고른다.
+   * (실측 2026-08-23: 글이 749→757 로 늘자 남남 최고가 0.883 → 0.911 로 올라 0.9 를 넘겼다.
+   *  코드는 그대로였는데 자료가 움직여 오탐 2쌍이 생겼다 — 박은 값이 아니라 재는 값이어야 한다.)
+   */
+  let st = 20260823;
+  const rnd = () => { st = (st * 1664525 + 1013904223) >>> 0; return st / 4294967296; };
+  const dot = (a, b) => {
+    let s = 0;
+    for (let t = 0; t < a.length; t += 1) s += a[t] * b[t];
+    return s;
+  };
+  let strangers = -1;
+  const TRIES = 2000;
+  for (let t = 0; t < TRIES && ok.length > 2; t += 1) {
+    const i = Math.floor(rnd() * ok.length);
+    const j = Math.floor(rnd() * ok.length);
+    if (i === j) continue;
+    /* 진짜 겹침 쌍은 「남남」이 아니다 — 표본에서 뺀다. */
+    if (ok[i].topIdx === j || ok[j].topIdx === i) continue;
+    const s = dot(ok[i].v, ok[j].v);
+    if (s > strangers) strangers = s;
+  }
+  const floorAt = strangers > 0 ? Math.ceil((strangers + 0.005) * 200) / 200 : null;
+  const raised = floorAt != null && chosen < floorAt;
+  if (raised) chosen = Number(floorAt.toFixed(3));
   /* 이어진 것끼리 한 무리로 묶고(초안↔발행↔재발행) **가장 긴 글을 대표**로 둔다. */
   const parent = new Array(ok.length).fill(-1);
   const find = (x) => { while (parent[x] >= 0) x = parent[x]; return x; };
@@ -5333,9 +5356,17 @@ function twinsOf(ok, docs) {
       marked += 1;
     }
   }
-  const stat = { at: chosen, pairs: all.filter(([, , s]) => s >= chosen).length, marked, groups: [...groups.values()].filter((g) => g.length >= 2).length, curve };
+  const stat = {
+    at: chosen, pairs: all.filter(([, , s]) => s >= chosen).length, marked,
+    groups: [...groups.values()].filter((g) => g.length >= 2).length, curve,
+    /* 남남 최고 닮음(잰 바닥)과 그 바닥이 문턱을 밀어 올렸나 — 화면·자가 그대로 읽는다. */
+    strangers: strangers > 0 ? Number(strangers.toFixed(4)) : null, floorAt, raised, strangerTries: TRIES,
+  };
   console.log(`[atlas] 겹침 곡선 ` + curve.filter((_, i) => i % 4 === 0).map((c) => `${c.t}:${c.n}`).join(' '));
-  console.log(`[atlas] 겹치는 글 — 문턱 ${chosen} (곡선에서 터지기 직전) · 쌍 ${stat.pairs}개 · 무리 ${stat.groups}개 · 대표 아닌 글 ${marked}개`);
+  console.log(`[atlas] 겹치는 글 — 문턱 ${chosen}`
+    + (raised ? ` (**남남 최고 ${stat.strangers} 이 곡선 값보다 높아 밀어 올렸다**)` : ' (곡선에서 터지기 직전)')
+    + ` · 남남 최고 ${stat.strangers} (아무 쌍 ${TRIES}번)`
+    + ` · 쌍 ${stat.pairs}개 · 무리 ${stat.groups}개 · 대표 아닌 글 ${marked}개`);
   return stat;
 }
 
@@ -7787,6 +7818,9 @@ let serOut = null;     // 어긋남 요약 — 찢김·거짓 이웃 (CheckViz)
     origin: 'private:memo',
     doNotCommit: '이 파일은 공개 레포에 커밋하지 않는다',
     builtFrom: SOURCES.map((s) => s.name).join('+') || 'memo',
+    /* 이 지도가 사는 **공간** — 어느 모델로 재고 어떤 쏠림을 뺐나. 나중에 잰 벡터를
+       `toBiasedSpace(v, space.bias)` 로 옮겨야 여기 실린 문턱과 견줄 수 있다. */
+    space: { model: usedTier, bias: biasMean },
     count: docs.length,
     embedded: coords ? coords.size : 0,
     model: usedTier,
