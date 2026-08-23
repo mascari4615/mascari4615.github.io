@@ -18,7 +18,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postPage, listPage, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { postBody, postHead, listPage, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { loadShell, shellCommon, replaceMeta, asStaticPage, esc as shellEsc } from './lib/shell-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONTENT = path.join(APP_ROOT, 'content', 'posts');
@@ -148,6 +149,10 @@ const neighborOf = (post) => {
     return { prev: timeline[at - 1] ?? null, next: timeline[at + 1] ?? null };
 };
 
+/* 앱 셸 한 벌 — 글 장 전부가 이 셸을 지난다 (도구 상세 장과 같은 길). */
+const SHELL = loadShell(APP_ROOT);
+const SITE = 'https://blog.mascari4615.com';
+
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -157,11 +162,27 @@ for (const post of posts) {
     const rendered = applyCdn(renderMarkdown(math.md, { trust: 'self', marked }));
     const { html, toc } = addHeadingIds(rendered);
     const { prev, next } = neighborOf(post);
-    const page = postPage(post, html, {
-        toc,
-        prev: prev && { slug: prev.slug, title: prev.title },
-        next: next && { slug: next.slug, title: next.title },
-        mathCss: math.hasMath,
+    /* ★ 글 장도 **앱 셸**로 찍는다 (change.board-unify ②, 사용자 확정 2026-08-23).
+       경량 셸은 「같은 곳인데 다른 집」이었다 — 머리띠도 검색도 내 정보도 없으니 커뮤니티 글과
+       한눈에 달라 보였다. 도구 상세 장이 이미 가는 길(shell-page.mjs, KL-129)로 합류한다.
+       대가(장당 바깥 리소스 2→13)는 그 결정의 값이다 — 아래 무게 게이트도 같이 옮겼다. */
+    const permalink = `/posts/${post.slug}/`;
+    let page = shellCommon(SHELL, { permalink, lastModified: post.lastmod ?? post.date, bootPaths: [] });
+    page = page.replace(/<title>[\s\S]*?<\/title>/, `<title>${shellEsc(post.title)} | KarmoDDrine</title>`);
+    if (post.description) {
+        page = replaceMeta(page, 'name', 'description', post.description);
+        page = replaceMeta(page, 'property', 'og:description', post.description);
+    }
+    page = replaceMeta(page, 'property', 'og:title', post.title);
+    page = replaceMeta(page, 'property', 'og:url', `${SITE}${permalink}`);
+    page = asStaticPage(page, {
+        kind: 'post',
+        bodyHtml: postBody(post, html, {
+            toc,
+            prev: prev && { slug: prev.slug, title: prev.title },
+            next: next && { slug: next.slug, title: next.title },
+        }),
+        head: postHead(post, { mathCss: math.hasMath }),
     });
 
     // 무게 게이트 — 이 장이 바깥에서 받는 것(스크립트·스타일 링크) 수. 앱 셸로 회귀하면 여기가 선다.
@@ -289,8 +310,11 @@ if (fs.existsSync(aboutSrc)) {
     fs.writeFileSync(path.join(OUT, 'about', 'index.html'), aboutPage(body, lastmod));
 }
 
-if (maxExternal > 2) {
-    console.error(`[gen-post-pages] ✗ 장당 바깥 리소스 ${maxExternal}개 — 경량 셸 계약(≤2)을 깼다`);
+/* 무게 계약이 바뀌었다 (change.board-unify ②) — 경량 셸(≤2)에서 앱 셸로 옮겼으므로
+   여기 문턱도 같이 옮긴다. 그냥 지우지는 않는다: 문턱이 없으면 다음에 누가 무엇을 더 실어도
+   아무도 모른다. 도구 상세 장과 같은 자리(≤16)에서 다시 잰다. */
+if (maxExternal > 16) {
+    console.error(`[gen-post-pages] ✗ 장당 바깥 리소스 ${maxExternal}개 — 앱 셸 계약(≤16)을 깼다`);
     process.exit(1);
 }
 console.log(

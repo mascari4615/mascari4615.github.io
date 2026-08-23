@@ -375,12 +375,47 @@ export function feedXml(posts) {
  * @param {string} bodyHtml  렌더된 본문 (heading id 포함)
  * @param {{toc:string, prev:{slug:string,title:string}|null, next:{slug:string,title:string}|null, mathCss?:boolean}} nav
  */
-export function postPage(meta, bodyHtml, nav) {
+export function postBody(meta, bodyHtml, nav) {
+    const dateHuman = meta.date.slice(0, 10);
+    /* 커뮤니티 글 상세와 **같은 클래스**를 쓴다 (change.board-unify ②, 사용자 확정 2026-08-23:
+       「겉모습이 같으면 된다 — 기능은 달라도」). 규칙은 `css/community.css` 한 곳이 정본이고
+       앱과 이 장이 그 파일을 각자 링크한다 — 여기에 스타일을 적으면 두 집이 갈라진다.
+       안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험).
+       답글 자리는 ③에서 커뮤니티 댓글로 진짜 붙는다 — 지금은 giscus 가 산다. */
+    return `<div class="c-wrap">
+    <div class="c-crumb"><a class="c-linkbtn" href="/karmolab/?board=blog#community">← 글</a></div>
+    <article class="c-post">
+        <h2 class="c-post-title">${esc(meta.title)}</h2>
+        <div class="c-post-meta"><span>${meta.categories.map(esc).join(' › ')}</span>
+            <span class="c-dot"><time datetime="${esc(meta.date)}">${dateHuman}</time></span>${
+                meta.lastmod ? `<span class="c-dot">수정 ${meta.lastmod.slice(0, 10)}</span>` : ''
+            }</div>
+        <div class="c-post-body md">
+${bodyHtml}
+        </div>
+        <nav class="post-adjacent">
+            <span>${nav.prev ? `◂ <a href="/posts/${esc(nav.prev.slug)}/">${esc(nav.prev.title)}</a>` : ''}</span>
+            <span>${nav.next ? `<a href="/posts/${esc(nav.next.slug)}/">${esc(nav.next.title)}</a> ▸` : ''}</span>
+        </nav>
+    </article>
+    <h3 class="c-section">답글</h3>
+    <div id="comments"></div>
+</div>${nav.toc ? `<aside class="post-toc" aria-label="목차">${nav.toc}</aside>` : ''}`;
+}
+
+/** 글 장에만 필요한 몇 줄 — 목차·앞뒤 글. 커뮤니티에 없는 조각이라 여기 둔다(겹치지 않는다). */
+export const POST_EXTRA_CSS = `<style>
+.post-adjacent{display:flex;justify-content:space-between;gap:16px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--border);font-size:var(--font-size-xs)}
+.post-toc{position:fixed;top:110px;left:calc(50% + 500px);width:200px;font-size:13px;line-height:1.6}
+.post-toc a{display:block;color:var(--text-tertiary);padding:2px 0}.post-toc a.h3{padding-left:14px}
+@media(max-width:1400px){.post-toc{display:none}}
+</style>`;
+
+/** 글 장 머리에 들어가는 것 — 구조화 데이터·giscus·계수기. 셸이 나머지를 다 준다. */
+export function postHead(meta, { mathCss = false } = {}) {
     const url = `${SITE}/posts/${meta.slug}/`;
     const image = meta.image ? (meta.image.startsWith('/') ? `${CDN}${meta.image}` : meta.image) : '';
     const description = (meta.description || '').slice(0, 160);
-    const dateHuman = meta.date.slice(0, 10);
-
     const ld = {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
@@ -393,107 +428,11 @@ export function postPage(meta, bodyHtml, nav) {
         mainEntityOfPage: url,
         inLanguage: 'ko',
     };
-
-    return `---
-layout: none
-permalink: /posts/${meta.slug}/
-${meta.lastmod ? `last_modified_at: ${meta.lastmod}\n` : ''}---
-<!doctype html>
-<html lang="ko">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${esc(meta.title)} | KarmoDDrine</title>
-    ${description ? `<meta name="description" content="${esc(description)}">` : ''}
+    /* 겉모습 정본 한 곳을 **링크**한다 — 규칙을 여기 베끼지 않는다 (사용자 확정 2026-08-23:
+       「한쪽에서 SSOT 되는 구조여야 한다」). 앱은 위젯이 같은 파일을 붙인다. */
+    return `<link rel="stylesheet" href="/apps/karmolab/css/community.css">
     <link rel="canonical" href="${esc(url)}">
-    ${CSP_META}
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="${esc(meta.title)}">
-    ${description ? `<meta property="og:description" content="${esc(description)}">` : ''}
-    <meta property="og:url" content="${esc(url)}">
-    ${image ? `<meta property="og:image" content="${esc(image)}">` : ''}
-    <meta property="og:locale" content="ko_KR">
-    <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
-    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
-    ${nav.mathCss ? '<link rel="stylesheet" href="/assets/katex/katex.min.css">\n    ' : ''}<script type="application/ld+json">${jsonLd(ld)}</script>
-    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
-    <style>${CSS}</style>
-</head>
-<body class="post-page">
-    <header class="post-top">
-        <a href="/karmolab/?board=blog#community">◂ 커뮤니티</a>
-        <span class="spacer"></span>
-        <button id="themeToggle" aria-label="테마 전환">◐</button>
-    </header>
-    <main>
-      <div class="board-wrap">
-        <div class="board-head">
-            <a class="back" href="/karmolab/?board=blog#community">◂ 목록</a>
-            <strong>글</strong>
-        </div>
-        <article>
-            <div class="board-post">
-                <h1>${esc(meta.title)}</h1>
-                <p class="post-meta">${meta.categories.map(esc).join(' › ')} · <time datetime="${esc(meta.date)}">${dateHuman}</time>${
-        meta.lastmod ? ` <span title="마지막 수정">(수정 ${meta.lastmod.slice(0, 10)})</span>` : ''
-    }</p>
-            </div>
-            <div class="post-body">
-${bodyHtml}
-            </div>
-            <nav class="post-adjacent">
-                <span>${nav.prev ? `◂ <a href="/posts/${esc(nav.prev.slug)}/">${esc(nav.prev.title)}</a>` : ''}</span>
-                <span>${nav.next ? `<a href="/posts/${esc(nav.next.slug)}/">${esc(nav.next.title)}</a> ▸` : ''}</span>
-            </nav>
-            <div id="comments"></div>
-        </article>
-      </div>
-        ${nav.toc ? `<aside class="post-toc" aria-label="목차">${nav.toc}</aside>` : ''}
-    </main>
-    <script>
-    (function(){
-        /* 테마 전환 — 앱과 같은 키를 쓴다. */
-        document.getElementById('themeToggle').addEventListener('click',function(){
-            var light=document.documentElement.dataset.theme==='light';
-            if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme='light';
-            try{localStorage.setItem('toolbox_theme',light?'dark':'light')}catch(e){}
-        });
-        /* 유튜브 카드 — 누르면 그 자리에서 재생 (lib/markdown activateYoutubeCards 와 같은 규칙). */
-        document.querySelectorAll('a.md-yt[data-yt]').forEach(function(card){
-            card.addEventListener('click',function(e){
-                e.preventDefault();
-                var id=card.getAttribute('data-yt');
-                if(!/^[A-Za-z0-9_-]{6,}$/.test(id))return;
-                var f=document.createElement('iframe');
-                f.className='md-yt-frame';
-                f.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1';
-                f.allow='autoplay; encrypted-media; picture-in-picture';
-                f.allowFullscreen=true;f.title='YouTube 영상';
-                card.replaceWith(f);
-            });
-        });
-        /* giscus — 댓글 자리가 화면에 닿을 때만 싣는다 (Chirpy 설정 승계 — 댓글 이력 보존). */
-        var slot=document.getElementById('comments');
-        var seen=false;
-        function mount(){
-            if(seen)return;seen=true;
-            var s=document.createElement('script');
-            s.src='https://giscus.app/client.js';s.async=true;s.crossOrigin='anonymous';
-            var cfg={'data-repo':'mascari4615/blog-comments','data-repo-id':'MDEwOlJlcG9zaXRvcnk0MDA0Mzg3MjE=',
-                'data-category':'Announcements','data-category-id':'DIC_kwDOF941wc4CbVSv','data-mapping':'pathname',
-                'data-strict':'0','data-reactions-enabled':'1','data-input-position':'bottom',
-                'data-theme':'preferred_color_scheme','data-lang':'ko'};
-            for(var k in cfg)s.setAttribute(k,cfg[k]);
-            slot.appendChild(s);
-        }
-        if('IntersectionObserver' in window){
-            new IntersectionObserver(function(es,ob){es.forEach(function(x){if(x.isIntersecting){ob.disconnect();mount()}})},{rootMargin:'600px'}).observe(slot);
-        }else mount();
-        ${SW_KILL}
-    })();
-    </script>
-    <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-</body>
-</html>
-`;
+    ${image ? `<meta property="og:image" content="${esc(image)}">\n    ` : ''}<meta property="og:type" content="article">
+    ${mathCss ? '<link rel="stylesheet" href="/assets/katex/katex.min.css">\n    ' : ''}<script type="application/ld+json">${jsonLd(ld)}</script>
+    ${POST_EXTRA_CSS}`;
 }
