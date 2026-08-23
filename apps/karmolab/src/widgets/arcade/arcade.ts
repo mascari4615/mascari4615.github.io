@@ -112,6 +112,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 상아 팔레트로 덮으면 로비 전체가 한 번에 따라온다. 다크에서 밝은 글자가 상아 위에
        * 얹히는 사고를 토큰 층에서 막는다.
        */
+      /**
+       * ── 무대 어휘 (단계 3) — 판은 재질로 만든다 ──
+       * 51판이 각자 색을 정하는 대신 여기 있는 재질·그림자만 조립한다.
+       * 나무 = 판놀이, 펠트 = 카드·당구, 종이 = 점수표. 조각(돌·공)은 좌상단 하이라이트
+       * + 바닥 그림자 한 규칙.
+       */
+      '.ac-root{' +
+      '--ac-wood:repeating-linear-gradient(93deg,rgba(150,105,55,.13) 0 2px,rgba(150,105,55,0) 2px 9px),repeating-linear-gradient(88deg,rgba(110,72,32,.09) 0 1px,rgba(110,72,32,0) 1px 23px),linear-gradient(160deg,#e8bd7f 0%,#dfae6c 45%,#cf9a55 100%);' +
+      '--ac-wood-line:rgba(92,61,24,.5);' +
+      '--ac-felt:repeating-linear-gradient(74deg,rgba(0,0,0,.045) 0 2px,rgba(0,0,0,0) 2px 5px),linear-gradient(180deg,#17694f 0%,#125540 55%,#0d422f 100%);' +
+      '--ac-paper:linear-gradient(168deg,#ffffff 0%,#fbf8f2 62%,#f0ebe0 100%);' +
+      '--ac-sh-rest:0 3px 5px rgba(60,40,16,.4);' +
+      '--ac-sh-lift:0 14px 22px rgba(20,24,20,.35);' +
+      '--ac-stone-b:radial-gradient(circle at 34% 28%,#6e6a66 0%,#262422 42%,#100f0e 100%);' +
+      '--ac-stone-w:radial-gradient(circle at 34% 28%,#ffffff 0%,#f3efe6 45%,#cfc7b8 100%)' +
+      '}',
       '.ac-root #acLobby{background:radial-gradient(ellipse 120% 90% at 50% 18%,#f2f1e8 0%,#e9e8de 60%,#dedcd0 100%);border-radius:18px;padding:20px 28px 28px;color:#3c3a30;' +
       '--text-primary:#3c3a30;--text-secondary:#8b897b;--text-tertiary:#a5a396;--bg-primary:#fdfcf7;--bg-secondary:#f4f3ea;--bg-tertiary:#e4e2d6;--bg-hover:#efeee4;--border:rgba(60,58,48,.16);--border-hover:rgba(60,58,48,.3);' +
       '--accent:#3c3a30;--accent-fg:#fdfcf7;--accent-hover:#55523f;--accent-dim:rgba(60,58,48,.08);--accent-subtle:rgba(60,58,48,.05);--accent-glow:rgba(60,58,48,.18)}',
@@ -124,16 +140,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-namechip{display:flex;align-items:center;gap:6px;font-size:var(--font-size-xs);color:var(--text-secondary);white-space:nowrap}',
       '.ac-namechip input{width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--bg-primary);color:var(--text-primary)}',
       /* ── 진열장 — 물건은 끝을 맞춰(align-items:end) 같은 바닥에 선다. */
-      '.ac-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:30px 8px;align-items:end;justify-items:center;margin:30px auto var(--space-lg);max-width:1060px;min-height:180px}',
-      '.ac-obj{position:relative;background:none;border:0;padding:0;line-height:1;cursor:pointer;transition:transform var(--transition-fast)}',
-      '.ac-obj:hover,.ac-obj:focus-visible{transform:translateY(-4px) scale(1.1);z-index:2}',
+      '.ac-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:22px 8px;align-items:end;justify-items:center;margin:26px auto var(--space-md);max-width:1060px;min-height:180px}',
+      '.ac-obj{position:relative;display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;line-height:1;cursor:pointer;transition:transform var(--transition-fast)}',
+      '.ac-obj:hover,.ac-obj:focus-visible{transform:translateY(-3px);z-index:2}',
       '.ac-obj:focus-visible{outline:none}',
-      /* 바닥 반사는 얼굴에만 건다 — 단추째 걸면 이름표까지 물에 비친다. */
+      /* 바닥 반사는 얼굴에만 — 이름까지 물에 비치면 안 된다. 이름은 반사 아래 값표처럼. */
       '.ac-objface{display:block;filter:drop-shadow(0 3px 4px rgba(60,58,48,.18));-webkit-box-reflect:below -8px linear-gradient(transparent 58%,rgba(0,0,0,.16))}',
-      '.ac-objtag{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);display:none;white-space:nowrap;filter:drop-shadow(0 2px 5px rgba(60,58,48,.25));z-index:3;font-family:var(--font-sans)}',
-      '.ac-obj:hover .ac-objtag,.ac-obj:focus-visible .ac-objtag{display:flex}',
-      '.ac-objtag i{font-style:normal;background:#3c3a30;color:#fdfcf7;font-size:11px;font-weight:700;padding:4px 7px;border-radius:6px 0 0 6px;display:flex;align-items:center}',
-      '.ac-objtag b{background:#fdfcf7;color:#3c3a30;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:0 6px 6px 0}',
+      '.ac-objname{margin-top:16px;font-size:11.5px;font-weight:700;color:#8b897b;font-family:var(--font-sans);line-height:1.3;text-align:center;max-width:96px;word-break:keep-all}',
+      '.ac-obj:hover .ac-objname,.ac-obj:focus-visible .ac-objname{color:#3c3a30}',
       /* ── 집은 물건 — 탁자 가운데로. */
       '#acDetail{position:relative;padding:6px 0 20px}',
       '.ac-back{background:none;border:0;padding:4px 0;font-size:14px;font-weight:700;color:#8b897b;cursor:pointer}',
@@ -157,8 +171,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* ── 진열장 아래 딸린 것들(혼자 놀이·표)은 낮은 흰 받침으로. */
       '.ac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:var(--space-md) 0 var(--space-lg)}',
       '.ac-emoji{font-size:26px;line-height:1}',
-      '.ac-solocard .ac-go{display:grid;grid-template-columns:1fr;margin:6px 0 0;width:100%;max-width:none}',
-      '.ac-solocard .ac-go button{padding:9px 4px;font-size:var(--font-size-xs);font-weight:700;border-radius:999px;border:0;background:#3c3a30;color:#fdfcf7;cursor:pointer;white-space:nowrap}',
       '.ac-foot{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:var(--space-lg);flex-wrap:wrap}',
       '@media (prefers-reduced-motion:reduce){.ac-obj,.ac-todaycard,.ac-solocard{transition:none}.ac-introicon{animation:none}}',
       /**
@@ -175,8 +187,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 더 키우고 싶으면 풀스크린이 그 자리다 — 거기서는 단추가 아예 없다.
        */
       ':root{--ac-stage:min(94vw,58vh,640px)}',
-      /* 무대에 옅은 파랑 판때기 — 게임이 노는 자리가 로비와 구별된다 (크기 계약은 아래 § 그대로). */
+      /* 무대에 옅은 판때기 — 게임이 노는 자리가 로비와 구별된다 (크기 계약은 아래 § 그대로). */
       '.ac-stage{text-align:center;padding:var(--space-lg) 0;background:color-mix(in srgb,var(--accent) 4%,var(--bg-primary));border-radius:20px}',
+      /* ★ 세로로 긴 캔버스 판의 **세로 상한** (실측: 컬링 1900px · 당구 1393px 가 1274px
+         화면을 뚫었다). 캔버스에 직접 걸면 안 된다 — 그리기 코드가 래퍼의 clientWidth 로
+         해상도를 정하므로(위 view 들), **래퍼 폭**을 판 비율(W/H)만큼 좁혀 준다.
+         62vh × (W/H) = 세로가 62vh 를 넘지 않는 폭. 눕힘·전체화면에서도 vh 라 같이 준다. */
+      '.ac-root .ac-cl{max-width:min(100%,calc(62vh*.385))}' /* 컬링 100:260 */,
+      '.ac-root .ac-pl{max-width:min(100%,calc(62vh*.556))}' /* 당구 100:180 */,
+      '.ac-root .ac-ah{max-width:min(100%,calc(62vh*.572))}' /* 에어하키 80:140 */,
+      '.ac-root .ac-pg{max-width:min(100%,calc(62vh*.667))}' /* 핑퐁 80:120 */,
       '.ac-order{font-size:clamp(22px,5vw,34px);font-weight:700;min-height:1.4em}',
       '.ac-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:100%;margin:var(--space-lg) auto 0}',
       '.ac-choice{padding:16px 8px;font-size:var(--font-size-lg);font-weight:700;border-radius:10px;border:1px solid var(--border);background:var(--bg-primary);color:inherit;cursor:pointer}',
@@ -185,11 +205,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-choice.ac-wrong{border-color:#ef4444;opacity:.5}',
       '.ac-bar{height:5px;border-radius:3px;background:var(--border);margin:var(--space-lg) auto 0;max-width:100%;overflow:hidden}',
       '.ac-fill{height:100%;background:var(--accent);width:100%}',
-      '.ac-board{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px;max-width:100%;margin:var(--space-lg) auto;aspect-ratio:1}',
-      '.ac-board.ac-waiting{opacity:.7}',
-      '.ac-cell{aspect-ratio:1;border:1px solid var(--border);background:var(--bg-primary);color:inherit;border-radius:4px;font-size:min(4vw,20px);line-height:1;padding:0;cursor:pointer}',
+      /* 오목판 = 나무. 글자 돌(●○)은 판정·읽기용으로 두고 투명 처리 — 보이는 돌은 ::after 가 재질로 그린다. */
+      '.ac-board{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;max-width:100%;margin:var(--space-lg) auto;aspect-ratio:1;background:var(--ac-wood);padding:10px;box-sizing:border-box;border-radius:10px;box-shadow:0 14px 26px rgba(84,56,22,.28),inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
+      '.ac-board.ac-waiting{opacity:.85}',
+      '.ac-cell{aspect-ratio:1;border:1px solid var(--ac-wood-line);background:transparent;color:transparent;border-radius:0;font-size:min(4vw,20px);line-height:1;padding:0;cursor:pointer;position:relative}',
       '.ac-cell:disabled{cursor:default}',
-      '.ac-cell.ac-last{border-color:var(--accent)}',
+      '.ac-cell.ac-s1::after,.ac-cell.ac-s2::after{content:"";position:absolute;inset:10%;border-radius:50%;box-shadow:var(--ac-sh-rest)}',
+      '.ac-cell.ac-s1::after{background:var(--ac-stone-b)}',
+      '.ac-cell.ac-s2::after{background:var(--ac-stone-w)}',
+      '.ac-cell.ac-last.ac-s1::after,.ac-cell.ac-last.ac-s2::after{outline:2px solid rgba(226,80,60,.9);outline-offset:1px}',
+      '.ac-cell:not(:disabled):hover{background:rgba(30,26,20,.12)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
       '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',
       '.ac-seat.ac-me{border-color:var(--accent);background:var(--accent-dim)}',
@@ -719,10 +744,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-share input{flex:1;min-width:0}',
       /* 혼자 놀이 카드 (TASK-KL-313) — 방 게임과 같은 틀을 쓰되 **링크**라 밑줄을 지운다. */
       /* 생김새는 방 게임 카드와 같게 — 세는 이름만 다르다. */
-      '.ac-solocard{text-align:left;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;gap:6px;color:inherit;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform var(--transition-fast),box-shadow var(--transition-fast),border-color var(--transition-fast)}',
-      '.ac-solocard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 18px var(--accent-subtle)}',
-      '.ac-solocard b{font-size:var(--font-size-md);font-weight:800}',
-      '.ac-solo-tag{background:var(--bg-tertiary)}',
+      /* 혼자 놀이 = 같은 진열장의 물건. 링크라는 것만 다르다. */
+      '.ac-solocard{display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;color:inherit;text-decoration:none;transition:transform var(--transition-fast)}',
+      '.ac-solocard:hover{transform:translateY(-3px)}',
+      '.ac-solocard:hover .ac-objname{color:#3c3a30}',
       '.ac-solocourse{margin:0 0 6px;font-size:var(--font-size-xs);color:var(--text-secondary)}',
       '.ac-packrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--space-lg)}'
     ].join('\n');
@@ -851,13 +876,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * **진열장의 물건 하나.** 카드가 아니라 물건이다 — 이름은 올렸을 때만 이름표로 선다.
      * 크기는 id 에서 결정적으로 뽑는다: 진열장이 자를 대고 그린 듯 균일하면 물건이 아니라
      * 아이콘 표가 된다. 이름표의 번호 = 명부 순서 (사람이 「몇 번」으로 부를 수 있게). */
-    const objOf = (g: (typeof CARDS)[number], i: number): string => {
+    const objOf = (g: (typeof CARDS)[number]): string => {
       const sizes = [40, 46, 52, 58];
       const size = sizes[(g.id.charCodeAt(0) + g.id.length) % sizes.length];
+      /* 이름은 **상시** 보인다 — 그림만으로는 무슨 놀이인지 모른다(사용자 실측 피드백).
+         물건 밑의 작은 값표처럼, 진열장 감은 지키고 접근성만 얹는다. */
       return (
-        '<button class="ac-obj" data-obj="' + g.id + '" aria-label="' + esc(t('arcade.game.' + g.id + '.name')) + '">' +
-        '<span class="ac-objtag"><i>' + (i + 1) + '</i><b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b></span>' +
+        '<button class="ac-obj" data-obj="' + g.id + '">' +
         '<span class="ac-objface" style="font-size:' + size + 'px">' + iconOf(g.id) + '</span>' +
+        '<b class="ac-objname">' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
         '</button>'
       );
     };
@@ -1039,7 +1066,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const box = $<HTMLElement>('#acGames');
       const mine = q.trim() ? CARDS.filter((g) => matches(hayOf(g.id), q)) : CARDS;
       box.innerHTML = mine.length
-        ? mine.map((g) => objOf(g, CARDS.indexOf(g))).join('')
+        ? mine.map((g) => objOf(g)).join('')
         : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
       wireCards();
     };
@@ -1055,14 +1082,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let solo: SoloPlay[] = [];
 
     const soloCard = (g: SoloPlay): string =>
-      /* `ac-card` 를 같이 쓰지 않는다 — 그 이름이 곧 「방 게임 몇 종인가」를 세는 자리다
-         (추천 여섯에서 이미 겪었다: 51종이 54종이 됐다). 생김새만 같은 규칙으로 물려받는다. */
+      /* `data-obj` 를 같이 쓰지 않는다 — 그 이름이 곧 「방 게임 몇 종인가」를 세는 자리다
+         (추천 여섯에서 이미 겪었다: 51종이 54종이 됐다). 생김새만 진열장 물건과 같다 —
+         혼자 놀이를 따로 분류할 이유가 없다는 피드백대로 같은 선반에 이어 놓는다. */
       '<a class="ac-solocard" href="' + esc(g.url) + '" data-solo-go="' + esc(g.id) + '">' +
-      '<span class="ac-emoji">' + esc(g.emoji || '🎲') + '</span>' +
-      '<b>' + esc(g.title) + '</b>' +
-      '<small>' + esc(g.lead || '') + '</small>' +
-      '<span class="ac-len ac-solo-tag">' + esc(t('arcade.solo.alone')) + '</span>' +
-      '<span class="ac-go"><button type="button">' + esc(t('arcade.solo.go')) + '</button></span>' +
+      '<span class="ac-objface" style="font-size:44px">' + esc(g.emoji || '🎲') + '</span>' +
+      '<b class="ac-objname">' + esc(g.title) + '</b>' +
       '</a>';
 
     const paintSolo = (): void => {
@@ -1086,10 +1111,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             : esc(t('arcade.solo.allDone', { n: String(courseRun(true)) }))) +
           '</p>';
 
+      /* 갈래 제목 없이 같은 진열장이 이어진다 — 방 게임과 혼자 놀이를 사람이 구분할 이유가 없다.
+         코스 줄은 선반 뒤에 — 두 선반 사이에 끼면 끊어 읽힌다. */
       box.innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.solo.title')) + ' <i>' + mine.length + '</i></h3>' +
-        head +
-        '<div class="ac-grid">' + mine.map(soloCard).join('') + '</div>';
+        '<div class="ac-shelf">' + mine.map(soloCard).join('') + '</div>' +
+        head;
 
       /* 앱 안의 놀이는 새 페이지를 받을 이유가 없다 — 그 자리에서 화면만 바꾼다.
          밖에 있는 것(`/daily/`)은 진짜 링크 그대로 둔다(새 창·복사가 살아 있어야 한다). */

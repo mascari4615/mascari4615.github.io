@@ -24,6 +24,9 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
         const who = s.board[i];
         const mark = who === 1 ? '●' : who === 2 ? '○' : '';
         if (b.textContent !== mark) b.textContent = mark;
+        /* 글자 돌은 판정·읽기용으로 남기고, 보이는 돌은 CSS 가 재질로 그린다. */
+        b.classList.toggle('ac-s1', who === 1);
+        b.classList.toggle('ac-s2', who === 2);
         b.disabled = !myTurn || who !== 0;
         b.classList.toggle('ac-last', i === s.last);
       });
