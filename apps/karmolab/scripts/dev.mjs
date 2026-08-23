@@ -120,6 +120,12 @@ function resolveFile(rel) {
     path.join(REPO, 'apps', noLab),          // 딴 앱 (/karmolab/higher/ → apps/higher/)
     path.join(REPO, 'apps', rel),            // 딴 앱을 제 이름으로 (/daily/ → apps/daily/)
     ...(dist ? [dist] : []),                 // 구워 두는 앱 (/daily/ → apps/daily/dist/)
+    /* ★ 글 장도 본다 — `/posts/<slug>/` 는 `gen:post-pages` 가 굽는다(배포 때 조립기가 실어 나른다).
+       개발 서버는 그 자리를 안 봐서 **글이 통째로 404** 였다 — 게시판에서 글을 눌러도 아무 데도
+       못 갔다(2026-08-23 실측). 한 번 구워 두면 판→글 왕복을 로컬에서 그대로 밟는다.
+       맨 뒤에 둔다 — 옛 사본이 새 코드를 가리면 안 된다. */
+    path.join(here, 'content/pages', rel),
+    path.join(REPO, 'apps/blog/_site', rel),
   ];
   for (const f of candidates) {
     if (!f.startsWith(REPO)) continue;

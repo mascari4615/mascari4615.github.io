@@ -98,6 +98,23 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 /**
+ * 세션마다 다른 포트로 뜨는 **레인 개발 서버**(`session-lane.ps1 -WithServer`)도 받는다.
+ *
+ * 레인은 8813 이 물려 있으면 8820·8821… 로 올라간다. 목록에 8813 만 있으니 레인에서는
+ * 커뮤니티가 통째로 「서버에 못 닿았어요」였다 — 봇은 멀쩡한데 브라우저가 요청을 버린 것이다
+ * (2026-08-23 실측). 포트를 하나씩 적어 두는 길은 다음 레인에서 또 막히므로 대역으로 연다.
+ * 여는 것은 **루프백 8800~8899 뿐** — 남의 기계에서는 닿지 않는 자리다.
+ */
+function isLoopbackDevOrigin(origin: string): boolean {
+  const m = /^http:\/\/(127\.0\.0\.1|localhost):(\d{4})$/.exec(origin);
+  return m ? Number(m[2]) >= 8800 && Number(m[2]) <= 8899 : false;
+}
+
+function isAllowedOrigin(origin: string): boolean {
+  return ALLOWED_ORIGINS.has(origin) || isLoopbackDevOrigin(origin);
+}
+
+/**
  * 데스크톱 앱이 되돌아오는 자리 — **그 기계 안(loopback)** 에서만 (RFC 8252).
  *
  * 앱은 로그인을 자기 창(웹뷰)에서 돌리지 않는다. 그러면 사람이 앱 창 안에서 디스코드
@@ -121,7 +138,7 @@ function safeReturnUrl(raw: unknown): string {
   if (!value) return fallback;
   try {
     const url = new URL(value);
-    if (ALLOWED_ORIGINS.has(url.origin) || isDesktopReturn(url)) return url.toString();
+    if (isAllowedOrigin(url.origin) || isDesktopReturn(url)) return url.toString();
     return fallback;
   } catch {
     return fallback;
@@ -353,7 +370,7 @@ export function registerKarmolabApi(
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
   app.use('/kl', (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
-    if (typeof origin === 'string' && ALLOWED_ORIGINS.has(origin)) {
+    if (typeof origin === 'string' && isAllowedOrigin(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -3233,7 +3250,7 @@ export function registerKarmolabApi(
       return;
     }
     const origin = req.headers.origin;
-    if (typeof origin === 'string' && ALLOWED_ORIGINS.has(origin)) {
+    if (typeof origin === 'string' && isAllowedOrigin(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
