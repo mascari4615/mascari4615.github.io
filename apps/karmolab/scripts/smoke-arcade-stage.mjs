@@ -50,13 +50,18 @@ if (!cantRun) {
     await p.waitForTimeout(120);
     const seen = await p.evaluate(() => {
       const stage = document.querySelector('#acStage').getBoundingClientRect();
-      /* 판에서 제일 넓은 것 — 무대를 얼마나 쓰고 있나. */
-      const kids = [...document.querySelectorAll('#acView *')].map((e) => e.getBoundingClientRect().width);
-      return { stage: Math.round(stage.width), widest: Math.round(Math.max(0, ...kids)) };
+      /* 판에서 제일 넓은/높은 것 — 무대를 얼마나 쓰고 있나. */
+      const rects = [...document.querySelectorAll('#acView *')].map((e) => e.getBoundingClientRect());
+      return {
+        stage: Math.round(stage.width),
+        widest: Math.round(Math.max(0, ...rects.map((r) => r.width))),
+        tallest: Math.round(Math.max(0, ...rects.map((r) => r.height)))
+      };
     });
     widths.set(seen.stage, (widths.get(seen.stage) || 0) + 1);
-    /* 절반은 써야 「무대에 담겼다」고 할 수 있다. 무너지면 한 자릿수 px 이 된다. */
-    if (seen.widest < seen.stage * 0.5) thin.push(`${id}(${seen.widest}px)`);
+    /* 가로든 세로든 절반은 써야 「무대에 담겼다」고 할 수 있다. 무너지면 한 자릿수 px 이 된다.
+       세로로 긴 판(컬링·당구)은 화면에 넣느라 폭을 일부러 좁힌다 — 그건 세로가 대신 채운다. */
+    if (seen.widest < seen.stage * 0.5 && seen.tallest < seen.stage * 0.5) thin.push(`${id}(${seen.widest}×${seen.tallest}px)`);
     await p.click('#acQuit');
     await p.waitForSelector('[data-obj]', { timeout: 10000 });
   }
