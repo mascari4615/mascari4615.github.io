@@ -54,6 +54,8 @@ apps/karmolab/core/*.js
 # 오락실이 누를 때 받는 게임 조각들 — `build.mjs` 가 찍는다 (TASK-KL-242, 2026-08-14).
 # 게임 하나가 파일 하나라 쉰한 개가 생긴다. 소스는 `src/widgets/arcade/games/*.ts` 다.
 apps/karmolab/arcade/games/*.js
+# 같은 조각의 **입체 표현** — 3D 로 볼 때만 받는다. 소스는 `games/*-view3d.ts`.
+apps/karmolab/arcade/games3d/*.js
 apps/karmolab/sw.js
 
 # 글꼴 원본 (TASK-KL-128) — 34MB 짜리 통짜 글꼴이다. `scripts/gen-fonts.py` 가 필요할 때 받아 온다.
