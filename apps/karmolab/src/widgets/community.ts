@@ -153,10 +153,20 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     Mdd.injectCSS('community', `
+        /* ★ 목록이 길면 **셸이 스크롤을 맡는다** (2026-08-23 실측: 글 78줄 = 3,057px 이 815px
+           칸에 갇혀 아예 안 내려갔다). \`layout:'full'\` 은 캔버스형 위젯(그래프·스튜디오)이
+           스스로 스크롤을 쥐라고 만든 계약인데, 커뮤니티는 **글을 읽는 판**이라 그 계약이
+           안 맞는다. 넓게 쓰는 것만 취하고 스크롤은 셸에 돌려준다 — 이 위젯이 열렸을 때만. */
+        .main-content:has(> #tool-pages > #page-community.active) { overflow-y:auto !important; }
+
         /* 커뮤니티는 **글을 읽는 곳**이다. 넓은 화면에는 판이 없어 관측실 무늬가 글 뒤로 그대로
            비쳤다 — 예쁘지만 안 읽힌다. 그렇다고 불투명한 상자를 얹으면 이 사이트 같지가 않다.
            그래서 유리처럼 깐다: 무늬는 흐릿하게 남고 글은 또렷하다. */
-        .c-wrap { display:flex; flex-direction:column; position:relative;
+        /* ★ 너비는 **글자 수가 아니라 규격**이 정한다 (2026-08-23 실측: 462px 로 쪼그라들어
+           목록이 제목 길이에 따라 좌우로 흔들렸다). 세로 flex 안에서는 상자가 내용만큼만
+           줄어들어서(shrink-to-fit) 최대너비만으로는 940px 를 못 채운다 — width:100% 를
+           같이 적어야 「최대 940, 좁으면 화면만큼」이 성립한다. */
+        .c-wrap { display:flex; flex-direction:column; position:relative; width:100%;
             max-width:940px; margin:0 auto; padding:20px 22px 26px;
             background:color-mix(in srgb, var(--bg-primary) 62%, transparent);
             backdrop-filter:blur(14px) saturate(1.15); -webkit-backdrop-filter:blur(14px) saturate(1.15);

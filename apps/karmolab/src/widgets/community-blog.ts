@@ -56,10 +56,10 @@ Mdd.injectCSS(
     .cb-blog-chip { background:none; border:1px solid var(--bg-tertiary); border-radius:999px;
         color:var(--text-secondary); padding:4px 12px; cursor:pointer; font-size:13px; }
     .cb-blog-chip.on { border-color:var(--accent); color:var(--accent); }
-    /* 목록 골격은 커뮤니티의 c-table 을 그대로 입는다 — 판마다 목록이 다르면 게시판이 아니다. */
-    .cb-blog-title a { color:inherit; text-decoration:none; display:block; }
-    .cb-blog-title a:hover { color:var(--accent); }
-    .cb-blog-cat { color:var(--text-tertiary); font-size:11px; margin-left:8px; }
+    /* 목록 골격은 커뮤니티의 c-table·c-num·c-td-title 을 **그대로** 입는다 —
+       판마다 줄 모양이 다르면 게시판이 아니다. 여기서 새로 정하는 것은 분류 꼬리표 하나뿐.
+       (제목 칸이 자기 규격을 안 쓰면 표가 글자 수만큼 좌우로 흔들린다 — 2026-08-23 실측) */
+    .cb-cat { flex:0 0 auto; color:var(--text-tertiary); font-size:11px; }
 `
 );
 
@@ -81,9 +81,9 @@ export function buildBlogBoardBody(container: HTMLElement, posts: BlogPostRow[])
     const table = document.createElement('table');
     table.className = 'c-table';
     table.innerHTML = `<thead><tr>
-            <th>${esc(t('community.blog.th-num', undefined, '번호'))}</th>
+            <th class="c-num">${esc(t('community.blog.th-num', undefined, '번호'))}</th>
             <th class="c-th-title">${esc(t('community.blog.th-title', undefined, '제목'))}</th>
-            <th>${esc(t('community.blog.th-date', undefined, '날짜'))}</th>
+            <th class="c-when">${esc(t('community.blog.th-date', undefined, '날짜'))}</th>
         </tr></thead>`;
     const tbody = document.createElement('tbody');
     table.appendChild(tbody);
@@ -96,14 +96,12 @@ export function buildBlogBoardBody(container: HTMLElement, posts: BlogPostRow[])
         const tr = document.createElement('tr');
         const categoryPath = post.categories.join(' › ');
         tr.innerHTML =
-            `<td style="text-align:center; color:var(--text-tertiary)">${posts.length - i}</td>` +
-            `<td class="cb-blog-title"><a href="/posts/${encodeURIComponent(post.slug)}/">` +
-            `<span></span><span class="cb-blog-cat">${esc(categoryPath)}</span></a></td>` +
-            `<td style="text-align:center; color:var(--text-tertiary)"><time datetime="${esc(post.date)}">${esc(
-                post.date.slice(0, 10)
-            )}</time></td>`;
+            `<td class="c-num">${posts.length - i}</td>` +
+            `<td class="c-td-title"><a class="c-title-btn" href="/posts/${encodeURIComponent(post.slug)}/">` +
+            `<span class="t"></span><span class="cb-cat">${esc(categoryPath)}</span></a></td>` +
+            `<td class="c-when"><time datetime="${esc(post.date)}">${esc(post.date.slice(0, 10))}</time></td>`;
         // 제목은 textContent 로 — 색인은 내 글이지만, 넣는 길을 하나로 굳혀 두면 실수가 없다.
-        (tr.querySelector('.cb-blog-title span') as HTMLElement).textContent = post.title;
+        (tr.querySelector('.c-title-btn .t') as HTMLElement).textContent = post.title;
         if (post.excerpt) tr.querySelector('a')?.setAttribute('title', post.excerpt);
         tbody.appendChild(tr);
         rows.push({ el: tr, category: post.categories[0] ?? '', text: `${post.title} ${categoryPath}`.toLowerCase() });
