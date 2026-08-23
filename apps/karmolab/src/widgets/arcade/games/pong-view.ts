@@ -8,14 +8,17 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { W, H, PAD, type PongState, type PongAction } from './pong';
 import { keyDrive } from '../key-drive';
+import { felt, orb, woodRail } from '../paint';
 
 const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 
 export const pongView: GameView<PongState, PongAction> = {
   id: 'pong',
   mount(el, act) {
-    el.innerHTML = '<div class="ac-pg"><canvas id="acPgCv"></canvas></div>';
+    el.innerHTML =
+      '<div class="ac-pg"><div class="ac-plscore" id="acPgScore"></div><canvas id="acPgCv"></canvas></div>';
     const cv = el.querySelector('#acPgCv') as HTMLCanvasElement;
+    const scoreEl = el.querySelector('#acPgScore') as HTMLElement;
 
     let pending: number | null = null;
     const toX = (e: PointerEvent): number => {
@@ -72,34 +75,43 @@ export const pongView: GameView<PongState, PongAction> = {
       if (!c) return;
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
-      c.fillStyle = '#0f172a';
-      c.fillRect(0, 0, W, H);
-      c.strokeStyle = 'rgba(255,255,255,.25)';
-      c.setLineDash([2, 3]);
-      c.lineWidth = 0.5;
+      /* 탁구대 — 파란 천에 흰 선, 둘레는 나무. 검정 사각형 하나면 판이 아니라 배경이다. */
+      felt(c, W, H, 'blue');
+      woodRail(c, W, H, 2.2);
+      c.strokeStyle = 'rgba(255,255,255,.85)';
+      c.lineWidth = 0.55;
       c.beginPath();
-      c.moveTo(0, H / 2);
-      c.lineTo(W, H / 2);
+      c.moveTo(2, H / 2);
+      c.lineTo(W - 2, H / 2);
       c.stroke();
-      c.setLineDash([]);
+      c.strokeStyle = 'rgba(255,255,255,.35)';
+      c.beginPath();
+      c.moveTo(W / 2, 2);
+      c.lineTo(W / 2, H - 2);
+      c.stroke();
 
       const fy = (y: number): number => (flip ? H - y : y);
 
       [0, 1].forEach((i) => {
+        /* 라켓 — 판 위에 놓인 것이라 아래에 그림자가 깔린다. */
         const y = i === 0 ? H - 4 : 4;
+        c.fillStyle = 'rgba(0,0,0,.28)';
+        c.fillRect(s.pad[i] - PAD / 2 + 0.5, fy(y) - 0.4, PAD, 2);
         c.fillStyle = SEAT_COLOR[i];
         c.fillRect(s.pad[i] - PAD / 2, fy(y) - 1, PAD, 2);
+        c.fillStyle = 'rgba(255,255,255,.4)';
+        c.fillRect(s.pad[i] - PAD / 2, fy(y) - 1, PAD, 0.6);
       });
 
-      c.fillStyle = '#f8fafc';
-      c.beginPath();
-      c.arc(s.ball.x, fy(s.ball.y), 1.6, 0, Math.PI * 2);
-      c.fill();
+      /* 공 = 구슬(`orb`) — 판마다 같은 규칙. */
+      orb(c, s.ball.x, fy(s.ball.y), 1.7, '#f4efe4');
 
-      c.fillStyle = 'rgba(255,255,255,.9)';
-      c.font = 'bold 7px sans-serif';
-      c.fillText(String(s.score[mySeat]), 3, H - 8);
-      c.fillText(String(s.score[1 - mySeat]), 3, 12);
+      /* 점수는 판 밖 알약 — 캔버스 안 7px 글자는 무대가 커져도 안 커진다. */
+      scoreEl.innerHTML = v.seats
+        .map((seat, i) =>
+          '<span class="ac-plc' + (i === mySeat ? ' ac-me' : '') + '" style="--c:' + SEAT_COLOR[i] + '">' +
+          seat.name + ' <b>' + (s.score[i] ?? 0) + '</b></span>')
+        .join('');
     };
   }
 };
