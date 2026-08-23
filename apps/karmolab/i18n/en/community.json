@@ -194,9 +194,10 @@
   "community.unit.likes": "{n} likes",
   "community.tab.main": "Community",
   "community.tab.blog": "Posts",
-  "community.blog.loading": "Loading posts…",
   "community.blog.offline": "Could not load the post index — try again shortly.",
   "community.blog.search": "Search title · category",
-  "community.blog.back": "◂ All posts",
-  "community.blog.open-static": "Open post page (comments)"
+  "community.blog.board-desc": "The owner's posts — list here, read on the post page",
+  "community.blog.th-num": "No.",
+  "community.blog.th-title": "Title",
+  "community.blog.th-date": "Date"
 }

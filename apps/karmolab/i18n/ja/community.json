@@ -194,9 +194,10 @@
   "community.unit.likes": "いいね {n}",
   "community.tab.main": "コミュニティ",
   "community.tab.blog": "記事",
-  "community.blog.loading": "記事一覧を読み込み中…",
   "community.blog.offline": "記事の索引を取得できなかった — 少し後で開き直してほしい。",
   "community.blog.search": "タイトル・カテゴリを検索",
-  "community.blog.back": "◂ 記事一覧",
-  "community.blog.open-static": "記事ページで見る（コメント）"
+  "community.blog.board-desc": "管理人の記事 — 一覧はここ、本文は記事ページで",
+  "community.blog.th-num": "番号",
+  "community.blog.th-title": "タイトル",
+  "community.blog.th-date": "日付"
 }

@@ -19,7 +19,7 @@
  * 뒤로 가기로 목록↔글을 오간다.
  */
 import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
-import { buildBlogTab } from './community-blog';
+import { loadPostsIndex, blogBoardSummary, buildBlogBoardBody, type BlogBoardSummary } from './community-blog';
 import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
@@ -684,8 +684,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     let host: HTMLElement | null = null;
     let boards: Board[] = [];
+    /** 「글」 판(블로그) 요약 — 서버 판이 아니라 git 색인이 정본이다 (change.board-unify ①). */
+    let blogSummary: BlogBoardSummary | null = null;
     /** 글쓰기 칸을 펼쳐 두었나 — 다시 그려도 접히지 않게 밖에 둔다. */
     let writerOpen = false;
+
+    /** 블로그 판의 고정 id — 서버 갤러리 id 와 충돌하지 않는 예약어. */
+    const BLOG_BOARD_ID = 'blog';
+    const blogLabel = (): string => t('community.tab.blog', undefined, '글');
 
     /**
      * 채팅에서 줄을 옮겨 오면 **글쓰기 칸이 펴진 채로** 도착해야 한다 (TASK-KL-157).
@@ -801,6 +807,22 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /** 아직 아무 글도 없는 판을 펴 두었나 (TASK-KL-161). */
     let emptyBoardsOpen = false;
+
+    /** 홈의 「글」 판 카드 — 다른 갤러리 카드와 같은 옷, 데이터만 git 색인 (색인을 못 받았으면 자리를 안 만든다). */
+    function blogHomeCard(): string {
+        if (!blogSummary) return '';
+        return `<div class="c-gal-wrap">
+            <button type="button" class="c-gal" data-gal="${BLOG_BOARD_ID}">
+                <span class="c-gal-name"><b>${esc(blogLabel())}</b><em>${blogSummary.count}</em></span>
+                <span class="c-gal-desc">${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))}</span>
+                <span class="c-gal-last ${blogSummary.lastTitle ? '' : 'c-gal-quiet'}">${
+                    blogSummary.lastTitle
+                        ? `${esc(plainPreview(blogSummary.lastTitle, 28))} · ${relativeTime(blogSummary.lastAt ?? '')}`
+                        : t('community.t104')
+                }</span>
+            </button>
+        </div>`;
+    }
 
     function renderGalleryHome(): void {
         if (!host) return;
@@ -934,7 +956,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 boardsMeta.signedIn && !galleryFormOpen ? t('community.t113') : '<span></span>'
             }</div>
             ${maker}
-            <div class="c-galleries">${cards}</div>
+            <div class="c-galleries">${blogHomeCard()}${cards}</div>
         </div>`;
 
         wireSignIn();
@@ -1068,7 +1090,13 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     function renderBoards(active: string): string {
         // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다 — 둘 다 동그란 칩이라 똑같아 보인다.
-        return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${boards
+        /* 「글」(블로그) 판은 서버 목록에 없는 붙박이다 — 데이터가 git 색인이라 서버가 모른다.
+           칩 줄에서는 다른 판과 똑같이 선다 (겉보기엔 다 게시판, change.board-unify ①). */
+        const blogChip = `<button type="button" class="c-board" data-board="${BLOG_BOARD_ID}" data-on="${active === BLOG_BOARD_ID ? '1' : '0'}"
+                    title="${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))}">${esc(blogLabel())}${
+                        blogSummary ? `<span class="c-board-count">${blogSummary.count}</span>` : ''
+                    }</button>`;
+        return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${blogChip}${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
@@ -1767,6 +1795,48 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         return out;
     }
 
+    /**
+     * 「글」 판 화면 — 다른 판과 같은 머리·칩 줄·표 골격, 다만 글쓰기 칸이 없다
+     * (이 판의 글쓰기 = git 커밋). 줄을 누르면 정적 장으로 간다 (change.board-unify ①).
+     */
+    async function renderBlogBoard(): Promise<void> {
+        if (!host) return;
+        /* 다른 판 칩도 같이 세우고 싶을 뿐이다 — 못 받으면 「글」 칩만 선다 (막지 않는다). */
+        if (boards.length === 0) {
+            const raw = (await api('/kl/boards')) as BoardsResponse | null;
+            if (raw?.boards) {
+                boards = raw.boards;
+                boardsMeta = { signedIn: raw.signedIn, labelMaxLength: raw.labelMaxLength, descMaxLength: raw.descMaxLength };
+            }
+        }
+        const posts = await loadPostsIndex();
+        if (!posts) {
+            host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.blog.offline', undefined, '글 색인을 못 받았다 — 잠시 뒤 다시 열어 보라.'))}</div>`;
+            wireFailure();
+            return;
+        }
+        blogSummary = blogBoardSummary(posts);
+
+        host.innerHTML = `<div class="c-wrap">
+            <div class="c-gal-head">
+                <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
+                <h2>${esc(blogLabel())}</h2>
+                <p>${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))} · 글 ${posts.length}</p>
+            </div>
+            ${renderBoards(BLOG_BOARD_ID)}
+            <div data-blog-body></div>
+        </div>`;
+
+        buildBlogBoardBody(host.querySelector('[data-blog-body]') as HTMLElement, posts);
+        host.querySelector('[data-board-home]')?.addEventListener('click', () => go({ board: null, p: null, page: null, q: null }));
+        host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
+            b.addEventListener('click', () => {
+                writerOpen = false;
+                go({ board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null), sort: null, p: null, page: null, q: null, tag: null });
+            }),
+        );
+    }
+
     function renderDetail(data: DetailResponse): void {
         if (!host) return;
         const post = data.post;
@@ -2014,6 +2084,13 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         takeWriterHandoff();
         if (host.childElementCount === 0) host.innerHTML = t('community.t187');
 
+        /* 「글」 판은 **서버보다 먼저** 갈라진다 — 데이터가 git 색인이라 봇이 꺼져 있어도
+           이 판만은 열린다 (change.board-unify ①: fail-open, 서버 죽어도 글은 읽힌다). */
+        if (param('board') === BLOG_BOARD_ID) {
+            await renderBlogBoard();
+            return;
+        }
+
         if (boards.length === 0) {
             const raw = (await api('/kl/boards')) as BoardsResponse | null;
             if (!raw?.boards) {
@@ -2038,13 +2115,16 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
         if (!param('board')) {
-            const [freshHome, best, recent, mod] = await Promise.all([
+            const [freshHome, best, recent, mod, blogPosts] = await Promise.all([
                 api('/kl/boards') as Promise<BoardsResponse | null>,
                 api('/kl/recent?kind=best&limit=6') as Promise<{ posts?: Post[] } | null>,
                 api('/kl/recent?limit=6') as Promise<{ posts?: Post[] } | null>,
                 // 주인이 아니면 403 이 오고 `null` 이 된다 — 그대로 빈 신고함이 된다.
                 api('/kl/reports') as Promise<{ reports?: OpenReport[] } | null>,
+                // 「글」 판 요약 — 색인을 못 받아도 홈은 산다 (카드만 안 선다).
+                loadPostsIndex(),
             ]);
+            if (blogPosts) blogSummary = blogBoardSummary(blogPosts);
             reports = mod?.reports ?? [];
             bestFeed = best?.posts ?? [];
             recentFeed = recent?.posts ?? [];
@@ -2094,6 +2174,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /* 메타(이름·분류·아이콘)는 `widgets-lazy-meta.ts` 한 곳에 산다 — 여기서 또 적으면
        목록에 뜨는 이름과 열었을 때 이름이 갈라진다. 넓게 쓰고 제목 카드는 안 그린다(noHero). */
+    /* 「글」은 더 이상 별도 탭이 아니다 — 판 목록의 한 판이다 (change.board-unify ①,
+       사용자 확정: 「겉보기엔 다 게시판, 블로그만 예외 처리」). 탭이 하나면 탭 줄은 안 그려진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('community'),
         tabs: [
@@ -2104,16 +2186,6 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 build: function (container: HTMLElement): void {
                     void loadNamespace('community').then(function () {
                         build(container);
-                    });
-                },
-            },
-            {
-                /* 「글」 = 블로그 (TASK-KL-355). 읽는 면은 여기, 저장소는 git — KL-351 확정. */
-                id: 'community-blog',
-                label: t('community.tab.blog', undefined, '글'),
-                build: function (container: HTMLElement): void {
-                    void loadNamespace('community').then(function () {
-                        buildBlogTab(container);
                     });
                 },
             },
