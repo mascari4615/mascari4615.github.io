@@ -198,6 +198,14 @@ const bestSpread = Math.min(...grid.map((g) => g.spread));
 const mine = shakeOf(sk.params.bins, sk.params.overlap);
 if (!mine) { console.log('[skeleton] 실린 손잡이로는 마디가 하나도 안 나온다'); process.exit(1); }
 
+/* ★ 실린 손잡이는 **쓸어 본 그리드 안**이어야 한다 — 밖이면 잰 값이 아니라 박은 값이다.
+   「안정」만으로는 못 잡는다: 구간을 3 으로 밀면 다 한 조각으로 뭉쳐 폭 0 = **1위**가 된다
+   (749편 판에서 실측 — 퇴화가 최고 안정으로 읽힌다). 안정은 그리드 안에서만 견준다. */
+if (!BINS.includes(sk.params.bins)) {
+  console.log(`[skeleton] **실린 구간 ${sk.params.bins} 이 쓸어 본 그리드(${BINS[0]}~${BINS[BINS.length - 1]}) 밖이다** — 잰 값이 아니다`);
+  process.exit(1);
+}
+
 const rank = grid.filter((g) => g.spread < mine.spread || (g.spread === mine.spread && g.off < mine.off)).length + 1;
 console.log(`[skeleton] 실린 손잡이 구간 ${sk.params.bins} · 겹침 ${sk.params.overlap} · 마디 ${sk.nodes.length}`);
 console.log(`[skeleton] 흔들면 조각 ${mine.low}~${mine.high} (폭 ${mine.spread} · 달라짐 ${(mine.off * 100).toFixed(0)}%) · 그리드 ${grid.length}자리 중 ${rank}위`);

@@ -198,9 +198,18 @@ const bad = [];
 if (!(ten.overplot > one.overplot + 0.01) && !(ten.falseNear > one.falseNear + 0.01)) {
   bad.push('선을 열 배로 늘려도 두 수가 안 오른다 — 이 자는 선을 안 보고 있다');
 }
-if (one.segs < 100) bad.push(`선이 ${one.segs}개뿐 — 화면이 이음을 안 그리고 있다`);
-if (raw.falseNear < 0.05) {
+/* ★ 「선이 100개 미만」은 그리기 고장 검사였는데, 코퍼스가 줄어 이음 자체가 52개가 되자
+   (1918편·877이음 → 749편·52이음) 헛빨강이 됐다 — 고장은 **지도의 이음 수보다 덜 그릴 때**다. */
+const edgeCount = Array.isArray(atlas.edges) ? atlas.edges.length : 0;
+if (one.segs < Math.min(100, edgeCount)) {
+  bad.push(`선이 ${one.segs}개뿐 (지도의 이음 ${edgeCount}개) — 화면이 이음을 안 그리고 있다`);
+}
+/* 도려내기 감지력(끄면 거짓 이웃이 5% 는 나와야)은 선이 넉넉할 때만 잴 수 있다 —
+   선 52개로는 점이 선 위에 얹힐 일이 드물어 낮은 수가 정상이다. */
+if (one.segs >= 100 && raw.falseNear < 0.05) {
   bad.push(`도려내기를 꺼도 거짓 이웃이 ${pct(raw.falseNear)} — 이 수는 아무것도 안 재고 있다`);
+} else if (one.segs < 100) {
+  console.log(`  (이음 ${one.segs}개뿐 — 도려내기 감지력 검사는 소재가 없어 못 잰다)`);
 }
 if (one.overplot > OVERPLOT_LINE) {
   bad.push(`겹쳐 그림 ${pct(one.overplot)} — 이제 이음 묶기(FDEB)나 솎기를 꺼낼 때다.`

@@ -561,6 +561,10 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
        색   = 어느 덩어리        크기 = 글 길이
        모양 = 어느 갈래에서 왔나  테두리 = 묻혔나
      갈래를 색으로 또 칠하지 않는 이유가 이것이다. */
+  /* ★ **갈래마다 명시 등재한다.** 색은 자리 순서(i%8)라 여덟 건너 같은 색이 돌아온다 —
+     같은 색 갈래끼리는 여기서 모양을 갈라 (색,모양) 짝을 다르게 만든다. 새 갈래가 생겨
+     여기 없으면 동그라미로 떨어져 짝이 겹치고, 채널 예산 자가 빨개진다 — 그게 신호다
+     (memo 개편으로 갈래가 11→19 가 되며 실제로 그랬다). */
   const LANE_SHAPE: Record<string, number> = {
     WM: 3,            // 게임 = 세모
     KarmoLab: 4,      // 랩 = 네모
@@ -571,6 +575,12 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     '노트': 0,
     '시스템': 4,
     '인생': 3,
+    '블로그': 0,
+    assistant: 0, learning: 3, stuff: 4,       // 같은 색(0번) 세 갈래
+    career: 4,                                  // 노트(0)·WM(3) 과 같은 색
+    changes: 0, projects: 4,
+    characters: 0, design: 0, hobby: 3,
+    'laptop-ops': 0, skills: 3,
   };
 
   /** 꼭짓점 수가 0 이면 동그라미, 아니면 그 수만큼의 각진 도형. */

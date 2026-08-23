@@ -124,10 +124,16 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
       if (!(sw[i] > sw[i - 1])) bad.push(`문턱이 층을 따라 안 커진다 (${sw[i - 1]} → ${sw[i]})`);
       if (sw[i] <= 0.4 || sw[i] >= 8) bad.push(`층 ${atlas.levels[i].k} 문턱이 ${sw[i]} 다 — 그 층은 영영 안 뜨거나 늘 뜬다`);
     }
-    /* 문턱이 **잰 값**인지: 바로 아래는 예산을 넘고, 바로 위는 예산 이하여야 한다. */
+    /* 문턱이 **잰 값**인지: 바로 아래는 예산을 넘고, 바로 위는 예산 이하여야 한다.
+       ★ 탐침 ±0.15 는 계기 해상도지 잣대가 아니다 — 두 문턱이 그보다 좁게 붙으면
+       (749편 판에서 3.49·3.58, 간격 0.09) 탐침이 옆 층을 밟아 헛빨강이 난다.
+       탐침은 이웃 문턱까지 거리의 절반까지 줄인다 — 「바로 아래·바로 위」라는 질문 그대로다. */
     for (let i = 1; i < sw.length; i += 1) {
-      const below = await at(Math.max(0.45, sw[i] - 0.15));
-      const above = await at(sw[i] + 0.15);
+      const gapLo = sw[i] - sw[i - 1];
+      const gapHi = i + 1 < sw.length ? sw[i + 1] - sw[i] : Infinity;
+      const eps = Math.max(0.02, Math.min(0.15, gapLo / 2, gapHi / 2));
+      const below = await at(Math.max(0.45, sw[i] - eps));
+      const above = await at(sw[i] + eps);
       console.log(`     층 ${atlas.levels[i].k} 문턱 ${sw[i]} — 아래(${below.scale.toFixed(2)}) 「${below.say}」`
         + ` · 위(${above.scale.toFixed(2)}) 「${above.say}」`);
       const wantBelow = `지금 층 ${atlas.levels[i - 1].k}`;

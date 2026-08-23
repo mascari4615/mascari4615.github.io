@@ -496,16 +496,10 @@ const BITES = [
     if (a.coarse) a.coarse.clear = !a.coarse.clear;
   }, 'audit-atlas-cluster-real.mjs'],
 
-  ['점을 다섯 배로 늘린다', (a) => {
-    /* 글이 늘어난 날을 흉내 낸다 — 그리기 예산 자가 그때를 짚어 줘야 한다.
-       자리 번호(near·levels)는 안 건드린다. 그리기 값만 보는 자라 그것으로 충분하다. */
-    const base = a.docs.slice(0, 1500);
-    for (let k = 0; k < 4; k += 1) {
-      for (const d of base) a.docs.push({ ...d, id: `dup${k}/${d.id}` });
-    }
-    a.count = a.docs.length;
-    a.embedded = a.docs.length;
-  }, 'audit-atlas-draw-budget.mjs'],
+  /* ⚠ draw-budget 은 여기서 안 문다. 그 자는 **저장된 주장이 없는 순수 실측형**(벽시계 p90)이라
+     지도를 비틀어 거짓을 심을 자리가 없고, 「점을 늘리면 넘친다」는 기계 성능 명제라 빠른
+     기계에선 8000점도 예산 안 = 초록이 옳은 답이다 (2026-08-23 데스크톱 실측 — 5배·8000점
+     둘 다 안 넘쳤다). 실측형 자는 제 측정이 곧 검사다 — 조작 시험의 대상이 아니다. */
 
   ['잣대 중복 표를 지운다', (a) => {
     delete a.zoo;
@@ -540,8 +534,10 @@ const BITES = [
 
   ['같은 때 신호를 예측인 척한다', (a) => {
     /* ★ 이 자의 심장 — 이웃이 같은 시기에 움직인 걸로 80% 를 맞히는 건 예측이 아니라 번짐이다.
-       그걸 앞 때 성적 자리에 놓으면 「일깨움에 쓸 만하다」로 뒤집힌다. */
-    if (a.revisit) a.revisit.strict = a.revisit.ours;
+       그걸 앞 때 성적 자리에 놓으면 「일깨움에 쓸 만하다」로 뒤집힌다.
+       ⚠ 판정·화면은 상위 K[0] 를 읽는다 — 거기서 두 값이 같은 판(749편 판에서 0%↔0%)이면
+       바꿔치기가 아무 데도 안 보이므로 물 것이 없다. 그땐 안 바꿔 no-op 판별에 걸리게 둔다. */
+    if (a.revisit && a.revisit.strict.hits[0].rate !== a.revisit.ours.hits[0].rate) a.revisit.strict = a.revisit.ours;
   }, 'audit-atlas-revisit.mjs'],
 
   ['나이별 재방문율을 지운다', (a) => {
@@ -735,10 +731,11 @@ if (fs.existsSync(SAFE)) {
   fs.unlinkSync(SAFE);
 }
 
+/* exit 0 = 초록 · 2 = CANNOT-RUN(자료 미달 — 빨강 아님) · 그 외 = 빨강. */
 function runGate(file, atlasFile = null) {
   const env = atlasFile ? { ...process.env, ATLAS_FILE: atlasFile } : process.env;
   const r = spawnSync(process.execPath, [path.join(HERE, file)], { encoding: 'utf8', env });
-  return r.status !== 0;   // 빨개졌나
+  return r.status;
 }
 
 /**
@@ -772,26 +769,46 @@ function restore() {
    **망가뜨리기 전에** 끝낸다. 여기서 죽어도 지도는 손 안 댄 상태다. */
 const gates = [...new Set(BITES.map(([, , g]) => g))];
 const pre = await runMany(gates.map((gate) => async () => [gate, runGate(gate)]));
-const broken = pre.filter(([, red]) => red);
+const broken = pre.filter(([, st]) => st !== 0 && st !== 2);
 if (broken.length) {
   for (const [gate] of broken) console.log(`[gates-bite] ${gate} 가 성한 지도에서도 빨갛다 — 무는 게 아니라 고장이다`);
   process.exit(1);
+}
+/* CANNOT-RUN 인 자는 판정부에 못 들어가므로 그 자를 무는 시험도 이 판에선 못 돈다.
+   조용히 줄이지 않는다 — 몇 개를 왜 못 돌리는지 적는다. 자료가 다시 서면 저절로 돌아온다. */
+const cannotRun = new Set(pre.filter(([, st]) => st === 2).map(([g]) => g));
+const RUNNABLE = BITES.filter(([, , g]) => !cannotRun.has(g));
+for (const g of cannotRun) {
+  const n = BITES.filter(([, , gg]) => gg === g).length;
+  console.log(`[gates-bite] ${g} 는 지금 CANNOT-RUN (자료 미달) — 무는 시험 ${n}개를 이 판에선 못 돌린다`);
 }
 
 /* 사본을 담을 자리. 진짜 지도는 이제 **안 건드린다** — 그래서 살림 사본도 필요 없다. */
 const TMP = path.join(HERE, '..', 'data', '.bite');
 fs.mkdirSync(TMP, { recursive: true });
 try {
-  const runs = await runMany(BITES.map(([label, bite, gate], i) => async () => {
+  /* no-op 망가뜨림 판별용 — 지도 상태에 따라 망가뜨림이 아무것도 안 바꿀 수 있다
+     (렌즈가 접혀 표시가 이미 0개인데 「표시를 지운다」 · 두 값이 이미 같은데 「맞바꾼다」).
+     그건 자의 구멍이 아니라 시험이 무효인 것이다 — 조용히 세지 말고 따로 적는다. */
+  const canon = JSON.stringify(JSON.parse(original));
+  const runs = await runMany(RUNNABLE.map(([label, bite, gate], i) => async () => {
     const a = JSON.parse(original);
     bite(a);
+    const mutated = JSON.stringify(a);
+    if (mutated === canon) return [gate, label, null];
     const file = path.join(TMP, `m${i}.json`);
-    fs.writeFileSync(file, JSON.stringify(a));
-    const bit = runGate(gate, file);
+    fs.writeFileSync(file, mutated);
+    /* 망가뜨렸을 때 0(초록)만 「못 잡았다」 — 1(빨강)은 물론 2(CANNOT-RUN)로 밀려나도
+       그 표는 화면에 안 실리므로 잡은 것으로 친다. */
+    const bit = runGate(gate, file) !== 0;
     fs.unlinkSync(file);
     return [gate, label, bit];
   }));
   for (const [gate, label, bit] of runs) {
+    if (bit === null) {
+      console.log(`  △ ${label} → 지도 상태상 아무것도 안 바꾼다 — 이 판에선 못 물린다 (${path.basename(gate)})`);
+      continue;
+    }
     results.push([gate, label, bit]);
     console.log(`  ${bit ? '○' : '×'} ${label} → ${path.basename(gate)} ${bit ? '가 잡았다' : '가 못 잡았다'}`);
   }
