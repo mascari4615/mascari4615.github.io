@@ -246,15 +246,21 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-c3.ac-s2 i{background:var(--ac-stone-w)}',
       '.ac-c3.ac-last i{outline:2px solid rgba(226,80,60,.95);outline-offset:1px}',
       '.ac-c3:not(:disabled):hover{background:rgba(30,26,20,.14)}',
+      /* 둘 수 있는 자리 — 아직 알이 아니라 **놓일 자리**라, 작고 반투명하게 판에 붙어 있다. */
+      '.ac-c3.ac-can i{opacity:.45;inset:34%;background:rgba(30,26,20,.5);transform:translateZ(2px) rotateX(-52deg)}',
+      /* 체커: 어두운 칸 · 왕관 · 집어 든 말 */
+      '.ac-c3.ac-dark{background:rgba(92,61,24,.22)}',
+      '.ac-c3.ac-king i{box-shadow:0 9px 10px rgba(40,26,8,.45),inset 0 0 0 3px #e8c15a}',
+      '.ac-c3.ac-pick i{outline:2px solid rgba(232,193,90,.95);outline-offset:2px}',
       '@media (prefers-reduced-motion:reduce){.ac-b3tilt,.ac-b3:hover .ac-b3tilt{transition:none}}',
       /* 화점 — 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2·6 교차, 4,4). */
+      /* 화점 — **자리는 판이 정한다**(`board3d.ts` 의 `star`). 여기 칸 번호를 박으면
+         칸 수가 다른 판에 엉뚱한 점이 찍힌다(8칸 판에서 실측). 2D 오목판만 아직 번호로 찍는다. */
       '.ac-cell::before,.ac-c3::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
       '.ac-board .ac-cell:nth-child(21)::before,.ac-board .ac-cell:nth-child(25)::before,' +
       '.ac-board .ac-cell:nth-child(41)::before,' +
       '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before,' +
-      '.ac-b3face .ac-c3:nth-child(21)::before,.ac-b3face .ac-c3:nth-child(25)::before,' +
-      '.ac-b3face .ac-c3:nth-child(41)::before,' +
-      '.ac-b3face .ac-c3:nth-child(57)::before,.ac-b3face .ac-c3:nth-child(61)::before' +
+      '.ac-c3.ac-star::before' +
       '{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(92,61,24,.8)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
       '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',

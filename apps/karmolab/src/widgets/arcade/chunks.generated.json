@@ -165,7 +165,7 @@
     "view": "reversi-view",
     "defVar": "reversi",
     "viewVar": "reversiView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "dots",
@@ -189,7 +189,7 @@
     "view": "checkers-view",
     "defVar": "checkers",
     "viewVar": "checkersView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "nim",
@@ -229,7 +229,7 @@
     "view": "capturego-view",
     "defVar": "capturego",
     "viewVar": "capturegoView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "blackjack",
