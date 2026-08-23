@@ -145,7 +145,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-plc b{color:var(--text-primary)}',
       /* 조작 막대 — 셸의 라벤더 대신 판의 색(당구=천의 금빛). 미끄럼 손잡이도 같이. */
       '.ac-root .ac-clbar input[type=range]{accent-color:#e8c15a}',
-      '.ac-root .ac-pl .btn-primary,.ac-root .ac-cl .btn-primary{background:#e8c15a;background-image:none;color:#2b2721;border-color:transparent;font-weight:900}',
+      '.ac-root .ac-pl .btn-primary,.ac-root .ac-cl .btn-primary,.ac-root .ac-tk .btn-primary,.ac-root .ac-sn .btn-primary,.ac-root .ac-dt .btn-primary,.ac-root .ac-fi .btn-primary{background:#e8c15a;background-image:none;color:#2b2721;border-color:transparent;font-weight:900}',
       /* 주사위 — 눈을 **점으로** 찍는다. `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(실측). */
       /* 크기는 **한 곳에서** 정한다(`--ac-die`). vw 로 뒀더니 무대가 아니라 창을 기준으로
          커져 눈이 잘리고 판을 넘쳤다(실측: 2552px 창에서 주사위 하나가 350px). */
@@ -469,7 +469,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-pl{max-width:100%;margin:var(--space-lg) auto}',
       '.ac-pl canvas{width:100%;display:block;border-radius:8px}',
       '.ac-dt{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
-      '.ac-dt canvas{width:100%;max-width:100%;display:block;margin:0 auto}',
+      /* 과녁은 **동그라미**다 — 폭만 늘어나면 타원이 되고 바깥 숫자가 화면 밖으로 밀린다. */
+      '.ac-dt canvas{width:100%;max-width:min(100%,62vh);aspect-ratio:1;height:auto;display:block;margin:0 auto}',
       '.ac-dtleft{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}',
       '.ac-dts{padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:var(--font-size-xs)}',
       '.ac-dts.ac-me{border-color:var(--accent)}',

@@ -64,11 +64,17 @@ export function woodRail(c: Ctx, w: number, h: number, thick = 3.4): void {
  * 구슬·돌 — **떠 있는 알**로 그린다: 바닥 그림자 · 좌상단에서 오는 빛 · 하이라이트 한 점.
  * 평평한 원으로 칠하면 판 위에 스티커를 붙인 그림이 된다.
  */
-export function orb(c: Ctx, x: number, y: number, r: number, color: string, light = '#ffffff'): void {
-  c.beginPath();
-  c.ellipse(x + r * 0.25, y + r * 0.4, r * 0.95, r * 0.62, 0, 0, Math.PI * 2);
-  c.fillStyle = 'rgba(0,0,0,.26)';
-  c.fill();
+export function orb(
+  c: Ctx, x: number, y: number, r: number, color: string, light = '#ffffff', shadow = true
+): void {
+  /* 그림자는 **옆에서 볼 때만** 뜻이 있다. 위에서 내려다보는 판(뱀)에서는 옆으로 깔린
+     타원이 알을 납작하게 눌러 놓은 것처럼 읽힌다 — 그런 판은 `shadow=false`. */
+  if (shadow) {
+    c.beginPath();
+    c.ellipse(x + r * 0.25, y + r * 0.4, r * 0.95, r * 0.62, 0, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(0,0,0,.26)';
+    c.fill();
+  }
 
   const g = c.createRadialGradient(x - r * 0.34, y - r * 0.38, r * 0.12, x, y, r);
   g.addColorStop(0, light);
