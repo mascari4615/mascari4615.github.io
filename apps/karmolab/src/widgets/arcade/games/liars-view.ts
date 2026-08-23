@@ -6,9 +6,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { die, diePip } from '../die';
 import type { LiarsState, LiarsAction } from './liars';
 
-const PIP = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
 export const liarsView: GameView<LiarsState, LiarsAction> = {
   id: 'liars',
@@ -30,12 +30,13 @@ export const liarsView: GameView<LiarsState, LiarsAction> = {
       const myTurn = s.showAt === 0 && s.alive[mySeat] && s.turn === mySeat && !v.finished;
 
       bidEl.innerHTML = s.bid
-        ? t('arcade.liars.bid', { n: String(s.bid.count), f: PIP[s.bid.face] })
+        ? t('arcade.liars.bid', { n: String(s.bid.count), f: diePip(s.bid.face) })
         : '<small>' + t('arcade.liars.nobid') + '</small>';
 
       diceEl.innerHTML =
         '<small>' + t('arcade.liars.mine') + '</small><div>' +
-        (s.dice[mySeat] ?? []).map((d) => '<span class="ac-lid">' + PIP[d] + '</span>').join('') +
+        /* 내 주사위 — 점으로 그린다(`die.ts`). 굴리는 것이 아니라 보는 것이라 단추가 아니다. */
+        (s.dice[mySeat] ?? []).map((d) => die(d)).join('') +
         '</div>';
 
       whoEl.innerHTML = v.seats
@@ -65,7 +66,7 @@ export const liarsView: GameView<LiarsState, LiarsAction> = {
         '<div class="ac-liopts">' +
         opts.slice(0, 10)
           .map((o) => '<button class="ac-liopt" data-f="' + o.face + '" data-c="' + o.count + '">' +
-            o.count + '×' + PIP[o.face] + '</button>')
+            o.count + '×' + diePip(o.face) + '</button>')
           .join('') +
         '</div>' +
         (base ? '<button class="btn btn-primary" id="acLiCall">' + t('arcade.liars.call') + '</button>' : '');

@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { cardBack, cardMark } from '../card';
 import type { HighLowState, HighLowAction } from './highlow';
 
 const label = (c: number): string =>
@@ -16,8 +17,8 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
   mount(el, act) {
     el.innerHTML =
       '<div class="ac-hl">' +
-      '<div class="ac-hlcards"><span class="ac-hlc" id="acHlCur"></span>' +
-      '<span class="ac-hlc ac-hlnext" id="acHlNext"></span></div>' +
+      /* 카드 두 장은 공용 한 벌(`card.ts`)이 그린다 — 이 판만의 64×90 을 따로 두지 않는다. */
+      '<div class="ac-hlcards"><span id="acHlCur"></span><span id="acHlNext"></span></div>' +
       '<div class="ac-hlpot" id="acHlPot"></div>' +
       '<div class="ac-hlbar">' +
       '<button class="btn btn-primary" id="acHlUp"></button>' +
@@ -40,9 +41,10 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
       const s = v.state;
       const myTurn = s.turn === mySeat && (s.left[mySeat] ?? 0) > 0 && !v.finished;
 
-      cur.textContent = label(s.card);
-      nxt.textContent = s.shown ? label(s.shown) : '?';
-      nxt.className = 'ac-hlc ac-hlnext' + (s.last === 1 ? ' ac-ok' : s.last === -1 ? ' ac-no' : '');
+      cur.innerHTML = cardMark(label(s.card));
+      /* 아직 안 뒤집힌 다음 장은 **뒷면**이다 — 물음표를 적는 것보다 카드답다. */
+      nxt.innerHTML = s.shown ? cardMark(label(s.shown)) : cardBack();
+      nxt.className = 'ac-hlnext' + (s.last === 1 ? ' ac-ok' : s.last === -1 ? ' ac-no' : '');
 
       pot.innerHTML = s.pot
         ? t('arcade.highlow.pot', { n: String(s.pot) })

@@ -6,9 +6,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { die } from '../die';
 import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
 
-const PIP = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
 export const yachtView: GameView<YachtState, YachtAction> = {
   id: 'yacht',
@@ -31,11 +31,12 @@ export const yachtView: GameView<YachtState, YachtAction> = {
       const myTurn = s.turn === mySeat;
       const mine = s.sheet[mySeat];
 
+      /* 눈은 점으로 그린다 — `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(`die.ts`). */
+      const canKeep = myTurn && s.rolled < 3;
       diceEl.innerHTML = s.dice
-        .map((d, i) => '<button class="ac-ycd' + (s.keep[i] ? ' ac-keep' : '') + '" data-i="' + i + '">' + PIP[d] + '</button>')
+        .map((d, i) => die(d, { keep: s.keep[i], can: canKeep, data: { i }, label: String(d) }))
         .join('');
-      diceEl.querySelectorAll<HTMLButtonElement>('.ac-ycd').forEach((b) => {
-        b.disabled = !myTurn || s.rolled >= 3;
+      diceEl.querySelectorAll<HTMLButtonElement>('.ac-die[data-i]').forEach((b) => {
         b.onclick = () => act({ kind: 'keep', index: Number(b.dataset.i) });
       });
 

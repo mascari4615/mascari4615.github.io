@@ -135,6 +135,24 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
       '--ac-red:#c62f36;--ac-black:#23201c' +
       '}',
+      /* 주사위 — 눈을 **점으로** 찍는다. `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(실측). */
+      /* 크기는 **한 곳에서** 정한다(`--ac-die`). vw 로 뒀더니 무대가 아니라 창을 기준으로
+         커져 눈이 잘리고 판을 넘쳤다(실측: 2552px 창에서 주사위 하나가 350px). */
+      '.ac-root{--ac-die:52px}',
+      /* ★ **안쪽 여백을 %로 주면 안 된다** — 백분율 padding 은 제 크기가 아니라 **부모 폭**을
+         기준으로 푼다. 부모가 684px 이라 `padding:14%` 가 한쪽 95px 이 되어, 52px 로 못 박은
+         주사위가 191px 로 부풀었다(실측). 제 크기에 맞추려면 `calc(var(--ac-die) * …)`. */
+      '.ac-root .ac-die{display:inline-grid;grid-template-columns:repeat(3,1fr);' +
+      'gap:calc(var(--ac-die) * .1);' +
+      'width:var(--ac-die);min-width:var(--ac-die);max-width:var(--ac-die);' +
+      'height:var(--ac-die);min-height:var(--ac-die);max-height:var(--ac-die);' +
+      'flex:0 0 auto;padding:calc(var(--ac-die) * .14);box-sizing:border-box;border:0;border-radius:calc(var(--ac-die) * .22);background:linear-gradient(160deg,#fffdf8,#e6dfd0);box-shadow:0 4px 8px rgba(84,56,22,.28),inset 0 -3px 5px rgba(140,124,98,.3);cursor:default}',
+      '.ac-root .ac-die i{display:block;border-radius:50%;background:transparent;aspect-ratio:1}',
+      '.ac-root .ac-die i.ac-on{background:#2b2721}',
+      '.ac-root .ac-die.ac-can{cursor:pointer}',
+      /* 남겨 둔 주사위 = 옆으로 빼 둔 것. 금테로 「이건 안 굴린다」를 말한다. */
+      '.ac-root .ac-die.ac-keep{box-shadow:0 2px 4px rgba(84,56,22,.3),inset 0 0 0 3px #e8c15a;transform:translateY(4px)}',
+      '.ac-root .ac-die.ac-mini{--ac-die:20px;vertical-align:-4px;box-shadow:0 1px 2px rgba(84,56,22,.3)}',
       /* 펠트 판 위의 단추 — 셸의 라벤더 그라데이션이 초록 위에 그대로 뜨면 남의 옷이다.
          금빛 하나로 통일한다(카드 놀이의 칩 색). */
       '.ac-root .ac-pr .btn-primary,.ac-root .ac-bj .btn-primary,.ac-root .ac-sp .btn-primary{background:#ffd66b;background-image:none;color:#23201c;border-color:transparent;font-weight:900}',
@@ -377,7 +395,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-utown{position:absolute;inset:0;display:grid;place-items:center;font-size:min(9vw,44px);pointer-events:none}',
       '.ac-utsmall.ac-took .ac-utcell{opacity:.25}',
       '.ac-yc{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
-      '.ac-ycdice{display:flex;gap:8px;justify-content:center}',
+      '.ac-ycdice{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
       '.ac-ycd{width:52px;height:52px;font-size:34px;line-height:1;border-radius:10px;border:2px solid var(--border);background:var(--bg-primary);color:inherit;padding:0;cursor:pointer}',
       '.ac-ycd.ac-keep{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--bg-primary))}',
       '.ac-ycd:disabled{cursor:default;opacity:.7}',
@@ -466,6 +484,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ah canvas{width:100%;display:block;border-radius:8px;touch-action:none;cursor:none}',
       '.ac-kind{margin:var(--space-xl) 0 10px;font-size:var(--font-size-md);color:var(--text-primary);font-weight:800;display:flex;align-items:center;gap:8px}',
       '.ac-kind i{font-style:normal;font-size:var(--font-size-2xs);font-weight:700;color:var(--accent);background:var(--accent-dim);border-radius:999px;padding:2px 8px}',
+      /* 하이로우도 펠트 위. 맞았나 틀렸나는 **카드 테두리**로 — 판을 물들이면 다음 장이 안 보인다. */
+      '.ac-root .ac-hl{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
+      '.ac-root .ac-hlnext.ac-ok .ac-pc{box-shadow:var(--ac-card-sh),0 0 0 3px #6fd08a}',
+      '.ac-root .ac-hlnext.ac-no .ac-pc{box-shadow:var(--ac-card-sh),0 0 0 3px #e2503c}',
+      '.ac-root .ac-hlpot{color:#ffd66b}',
+      '.ac-root .ac-hl .btn-primary{background:#ffd66b;background-image:none;color:#23201c;border-color:transparent;font-weight:900}',
+      '.ac-root .ac-hl .btn-ghost{color:#eaf2ee;border-color:rgba(234,242,238,.4)}',
       '.ac-hl{max-width:100%;margin:var(--space-lg) auto;text-align:center}',
       '.ac-hlcards{display:flex;gap:12px;justify-content:center}',
       '.ac-hlc{width:64px;height:90px;border-radius:10px;border:1px solid var(--border);background:var(--bg-primary);display:grid;place-items:center;font-size:30px;font-weight:700}',
