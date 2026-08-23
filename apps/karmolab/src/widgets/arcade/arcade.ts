@@ -135,6 +135,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
       '--ac-red:#c62f36;--ac-black:#23201c' +
       '}',
+      /* ── 캔버스 판의 곁것들 (점수줄·조작 막대) ──
+       * 판 안에 글자를 그리면 판마다 제 글꼴이 되고 무대가 커져도 안 따라 커진다.
+       * 글자는 전부 판 **밖**에서, 여기 한 벌로. */
+      '.ac-root .ac-plscore{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:var(--space-sm)}',
+      '.ac-root .ac-plc{display:inline-flex;align-items:center;gap:6px;font-size:var(--font-size-xs);font-weight:700;color:var(--text-secondary);background:var(--bg-secondary);border-radius:999px;padding:5px 12px}',
+      '.ac-root .ac-plc::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c)}',
+      '.ac-root .ac-plc.ac-me{color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--border-hover)}',
+      '.ac-root .ac-plc b{color:var(--text-primary)}',
+      /* 조작 막대 — 셸의 라벤더 대신 판의 색(당구=천의 금빛). 미끄럼 손잡이도 같이. */
+      '.ac-root .ac-clbar input[type=range]{accent-color:#e8c15a}',
+      '.ac-root .ac-pl .btn-primary,.ac-root .ac-cl .btn-primary{background:#e8c15a;background-image:none;color:#2b2721;border-color:transparent;font-weight:900}',
       /* 주사위 — 눈을 **점으로** 찍는다. `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(실측). */
       /* 크기는 **한 곳에서** 정한다(`--ac-die`). vw 로 뒀더니 무대가 아니라 창을 기준으로
          커져 눈이 잘리고 판을 넘쳤다(실측: 2552px 창에서 주사위 하나가 350px). */
