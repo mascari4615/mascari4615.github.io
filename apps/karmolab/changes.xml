@@ -10,216 +10,216 @@ permalink: /karmolab/changes.xml
     <atom:link href="https://blog.mascari4615.com/karmolab/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Sat, 22 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 24 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
-      <title>[고침] 오타 자가 잡은 것들 — 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다</title>
+      <title>[새로 생김] 블로그 글에 커뮤니티 답글을 붙인다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-5f3639253</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>오타 자가 잡은 것들 — 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다</description>
+      <guid isPermaLink="false">karmolab-change-38ae118073</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>블로그 글에 커뮤니티 답글을 붙인다</description>
     </item>
     <item>
-      <title>[고침] 지형도를 master 환경에 맞춘다 — 자 열 개를 초록으로</title>
+      <title>[새로 생김] 패·타일 4종을 공용 종이로 - 판마다 제 카드를 그리던 것 폐기</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-2dda06d26</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>지형도를 master 환경에 맞춘다 — 자 열 개를 초록으로</description>
+      <guid isPermaLink="false">karmolab-change-3d8cf50bc8</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>패·타일 4종을 공용 종이로 - 판마다 제 카드를 그리던 것 폐기</description>
     </item>
     <item>
-      <title>[새로 생김] 내 글 지형도를 master 로 들인다</title>
+      <title>[새로 생김] 글 장이 커뮤니티 글과 같은 집이 된다 — 앱 셸 + 겉모습 SSOT (change.board-unify ②)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-9b0f61b93</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>내 글 지형도를 master 로 들인다</description>
+      <guid isPermaLink="false">karmolab-change-e82f19cbdf</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>글 장이 커뮤니티 글과 같은 집이 된다 — 앱 셸 + 겉모습 SSOT (change.board-unify ②)</description>
     </item>
     <item>
-      <title>[새로 생김] /works/ 전시 장 + 앱 「글」 탭 안 읽기 (change.blog-finish ③⑤)</title>
+      <title>[새로 생김] 캔버스 판 4종 재질 - 평평한 한 색 칠하기 폐기</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-895241669</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>/works/ 전시 장 + 앱 「글」 탭 안 읽기 (change.blog-finish ③⑤)</description>
+      <guid isPermaLink="false">karmolab-change-4d0f6a481a</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>캔버스 판 4종 재질 - 평평한 한 색 칠하기 폐기</description>
     </item>
     <item>
-      <title>[새로 생김] 수식 = 빌드타임 KaTeX · 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)</title>
+      <title>[새로 생김] 판 놀이 4종을 three 무대로 — CSS 원근 층 폐기</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-0859d2421</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>수식 = 빌드타임 KaTeX · 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)</description>
+      <guid isPermaLink="false">karmolab-change-75b7d6f7f2</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>판 놀이 4종을 three 무대로 — CSS 원근 층 폐기</description>
     </item>
     <item>
-      <title>[새로 생김] 사이트 조립 Jekyll → Node — 이 저장소에서 Ruby 소멸 (change.blog-finish ①)</title>
+      <title>[새로 생김] 오목 입체 화면을 three 로 · 알은 교차점에 · 결 무늬는 코드로 굽는다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-0e8eecdf2</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>사이트 조립 Jekyll → Node — 이 저장소에서 Ruby 소멸 (change.blog-finish ①)</description>
+      <guid isPermaLink="false">karmolab-change-bbd88630b3</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오목 입체 화면을 three 로 · 알은 교차점에 · 결 무늬는 코드로 굽는다</description>
     </item>
     <item>
-      <title>[새로 생김] 블로그 컷오버 — Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)</title>
+      <title>[새로 생김] 글 장이 게시판 안처럼 보인다 — 판 프레임·목록 복귀 (change.board-unify ②)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-0919e7f8f</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>블로그 컷오버 — Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)</description>
+      <guid isPermaLink="false">karmolab-change-97f33d9db7</guid>
+      <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+      <description>글 장이 게시판 안처럼 보인다 — 판 프레임·목록 복귀 (change.board-unify ②)</description>
     </item>
     <item>
-      <title>[고침] /posts/ 목록 장에 last_modified_at — 없으면 사이트맵 감사가 배포를 세운다</title>
+      <title>[고침] 레인에서 글이 안 열리고 커뮤니티가 죽어 있던 두 가지 (change.board-unify ①)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-f3d6c00d4</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>/posts/ 목록 장에 last_modified_at — 없으면 사이트맵 감사가 배포를 세운다</description>
+      <guid isPermaLink="false">karmolab-change-3c171c3109</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>레인에서 글이 안 열리고 커뮤니티가 죽어 있던 두 가지 (change.board-unify ①)</description>
     </item>
     <item>
-      <title>[새로 생김] 커뮤니티 「글」 탭 + /posts/ 목록 장 + 피드 + 배포 결선</title>
+      <title>[새로 생김] 핑퐁도 공용 붓으로 — 탁구대·라켓 그림자·구슬 공</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-fed375694</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>커뮤니티 「글」 탭 + /posts/ 목록 장 + 피드 + 배포 결선</description>
+      <guid isPermaLink="false">karmolab-change-797df3c5d7</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>핑퐁도 공용 붓으로 — 탁구대·라켓 그림자·구슬 공</description>
     </item>
     <item>
-      <title>[새로 생김] 공용 마크다운 렌더러 + 블로그 글 정적 장 생성기</title>
+      <title>[새로 생김] 캔버스 재질 붓 하나로 — 당구·컬링·에어하키 (캔버스 계열 2·3호)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-dc8c44560</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>공용 마크다운 렌더러 + 블로그 글 정적 장 생성기</description>
+      <guid isPermaLink="false">karmolab-change-22a5023c44</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>캔버스 재질 붓 하나로 — 당구·컬링·에어하키 (캔버스 계열 2·3호)</description>
     </item>
     <item>
-      <title>[새로 생김] 블로그 글 표준 md 변환기 — Jekyll 방언을 걷어낸다</title>
+      <title>[새로 생김] 「비슷한 글」 — KarmoMeaning 의 두 번째 사용처 (change.motion-3d-cores 5단계)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-b0242bc8d</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>블로그 글 표준 md 변환기 — Jekyll 방언을 걷어낸다</description>
+      <guid isPermaLink="false">karmolab-change-cfe84128ae</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>「비슷한 글」 — KarmoMeaning 의 두 번째 사용처 (change.motion-3d-cores 5단계)</description>
     </item>
     <item>
-      <title>[새로 생김] 도구 장 147장이 하던 같은 약속을 도구별 사실로 바꾼다</title>
+      <title>[고침] 게시판이 흔들리고 안 내려가던 것 — 폭 규격·스크롤 주인·제목 칸 (change.board-unify ①)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-803030bc3</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>도구 장 147장이 하던 같은 약속을 도구별 사실로 바꾼다</description>
+      <guid isPermaLink="false">karmolab-change-92d7820f54</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>게시판이 흔들리고 안 내려가던 것 — 폭 규격·스크롤 주인·제목 칸 (change.board-unify ①)</description>
     </item>
     <item>
-      <title>[고침] 붙박이 포트 하나가 남아 검사가 남의 서버를 읽었다 + TASK 번호 KL-348 → KL-349</title>
+      <title>[새로 생김] 당구에 재질 — 천·쿠션·구슬 (캔버스 계열 1호)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-0e0c992c7</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>붙박이 포트 하나가 남아 검사가 남의 서버를 읽었다 + TASK 번호 KL-348 → KL-349</description>
+      <guid isPermaLink="false">karmolab-change-90202a3fca</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>당구에 재질 — 천·쿠션·구슬 (캔버스 계열 1호)</description>
     </item>
     <item>
-      <title>[고침] 도구 명부가 두 벌이라 문 없는 도구가 샜다 — 그물을 명부 기준으로</title>
+      <title>[고침] 주사위 눈이 두부(네모)로 나오던 것 — 점으로 그린다 + 하이로우 펠트</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-d794f8760</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>도구 명부가 두 벌이라 문 없는 도구가 샜다 — 그물을 명부 기준으로</description>
+      <guid isPermaLink="false">karmolab-change-48d1b7d59e</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>주사위 눈이 두부(네모)로 나오던 것 — 점으로 그린다 + 하이로우 펠트</description>
     </item>
     <item>
-      <title>[고침] 통합 패널이 번역 묶음을 직접 연다</title>
+      <title>[새로 생김] 3D 지형도를 손으로 — 합류 (change.motion-3d-cores 4단계)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-aa3fb8052</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>통합 패널이 번역 묶음을 직접 연다</description>
+      <guid isPermaLink="false">karmolab-change-59700d3cab</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>3D 지형도를 손으로 — 합류 (change.motion-3d-cores 4단계)</description>
     </item>
     <item>
-      <title>[새로 생김] AI 환경과 운영 도구를 한곳에 합친다</title>
+      <title>[새로 생김] 블랙잭·스피드도 펠트 위 공용 카드로 (카드 계열 2·3호)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-2076cbfc5</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>AI 환경과 운영 도구를 한곳에 합친다</description>
+      <guid isPermaLink="false">karmolab-change-bb3664f98b</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>블랙잭·스피드도 펠트 위 공용 카드로 (카드 계열 2·3호)</description>
     </item>
     <item>
-      <title>[새로 생김] 채팅을 헤더로 올린다 — 왼쪽 아래에서 화면을 가리던 것을 없앴다</title>
+      <title>[새로 생김] KarmoPose — 손·폰·마우스를 한 그릇으로 (change.motion-3d-cores 3단계)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-7111fb978</guid>
-      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
-      <description>채팅을 헤더로 올린다 — 왼쪽 아래에서 화면을 가리던 것을 없앴다</description>
+      <guid isPermaLink="false">karmolab-change-867324a9e8</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>KarmoPose — 손·폰·마우스를 한 그릇으로 (change.motion-3d-cores 3단계)</description>
     </item>
     <item>
-      <title>[고침] 5xx 를 「링크가 죽었다」로 셌다 — 상대가 아픈 것이다</title>
+      <title>[새로 생김] 궤도 카메라·점 구름 + 지형도 돌려 보기 장 (change.motion-3d-cores 2단계)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-560ba202e</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>5xx 를 「링크가 죽었다」로 셌다 — 상대가 아픈 것이다</description>
+      <guid isPermaLink="false">karmolab-change-1a170e2528</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>궤도 카메라·점 구름 + 지형도 돌려 보기 장 (change.motion-3d-cores 2단계)</description>
     </item>
     <item>
-      <title>[고침] 영토 글의 관련 링크가 장 없는 도구를 가리켰다</title>
+      <title>[새로 생김] 카드 한 벌 부품 + 대부호를 펠트 위로 (카드 계열 1호)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-e5e7f392e</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>영토 글의 관련 링크가 장 없는 도구를 가리켰다</description>
+      <guid isPermaLink="false">karmolab-change-b8a067722d</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>카드 한 벌 부품 + 대부호를 펠트 위로 (카드 계열 1호)</description>
     </item>
     <item>
-      <title>[고침] 지도 깜빡임의 뿌리 둘을 고친다 — 미리 받기 + 스며들기</title>
+      <title>[새로 생김] 입체 판 부품 하나로 판 놀이 4종 3D (오목·오델로·체커·따내기 바둑)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-ac230583a</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>지도 깜빡임의 뿌리 둘을 고친다 — 미리 받기 + 스며들기</description>
+      <guid isPermaLink="false">karmolab-change-7481af5cbe</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>입체 판 부품 하나로 판 놀이 4종 3D (오목·오델로·체커·따내기 바둑)</description>
     </item>
     <item>
-      <title>[고침] 지도에 밑바탕 한 겹을 깐다 — 어디서든 칸이 비지 않게</title>
+      <title>[새로 생김] 표현을 규칙에서 떼어낸다 — 2D/3D 를 사람이 고른다 (오목 3D 1호)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-44ccb18f7</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>지도에 밑바탕 한 겹을 깐다 — 어디서든 칸이 비지 않게</description>
+      <guid isPermaLink="false">karmolab-change-f45be7d58e</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>표현을 규칙에서 떼어낸다 — 2D/3D 를 사람이 고른다 (오목 3D 1호)</description>
     </item>
     <item>
-      <title>[고침] 전체화면 단추가 두부 네모로 떴고, 축소 때 가장자리가 비었다</title>
+      <title>[새로 생김] KarmoMeaning — 뜻 재기를 굽기에서 꺼내 재사용 코어로 (change.motion-3d-cores)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-73d675949</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>전체화면 단추가 두부 네모로 떴고, 축소 때 가장자리가 비었다</description>
+      <guid isPermaLink="false">karmolab-change-d848e7519e</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>KarmoMeaning — 뜻 재기를 굽기에서 꺼내 재사용 코어로 (change.motion-3d-cores)</description>
     </item>
     <item>
-      <title>[고침] 축소할 때도 깜빡였다 — 아랫 층으로 메운다</title>
+      <title>[새로 생김] 블로그가 게시판의 한 판이 된다 — 「글」 탭 폐지, 판 목록 합류 (change.board-unify ①)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-dc3fbbd58</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>축소할 때도 깜빡였다 — 아랫 층으로 메운다</description>
+      <guid isPermaLink="false">karmolab-change-cf4a142cee</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>블로그가 게시판의 한 판이 된다 — 「글」 탭 폐지, 판 목록 합류 (change.board-unify ①)</description>
     </item>
     <item>
-      <title>[고침] 확대할 때 지도가 깜빡였다 — 안 온 칸을 윗 층으로 메운다</title>
+      <title>[새로 생김] 무대를 화면 크기에 맞춰 키운다 — 넓은 화면 2열 + 오목 화점</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-ed7b5e326</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>확대할 때 지도가 깜빡였다 — 안 온 칸을 윗 층으로 메운다</description>
+      <guid isPermaLink="false">karmolab-change-f72f0a6ccc</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>무대를 화면 크기에 맞춰 키운다 — 넓은 화면 2열 + 오목 화점</description>
     </item>
     <item>
-      <title>[고침] 지도가 화면의 절반 속도로만 그려졌다 — 30fps → 55fps</title>
+      <title>[새로 생김] 무대 어휘 1벌 + 오목 나무판 + 캔버스 세로 상한 + 진열장 이름 상시 (change.arcade-redesign)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-5e8f2dd27</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>지도가 화면의 절반 속도로만 그려졌다 — 30fps → 55fps</description>
+      <guid isPermaLink="false">karmolab-change-30e405c15c</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>무대 어휘 1벌 + 오목 나무판 + 캔버스 세로 상한 + 진열장 이름 상시 (change.arcade-redesign)</description>
     </item>
     <item>
-      <title>[고침] 영토 글을 넣고 en/ja 를 안 넣었다 — 빠진 번역 15줄 채움</title>
+      <title>[고침] 줄어든 코퍼스에서 자 스스로가 낡은 곳 수선 (change.atlas-sources)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-29c5bc760</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>영토 글을 넣고 en/ja 를 안 넣었다 — 빠진 번역 15줄 채움</description>
+      <guid isPermaLink="false">karmolab-change-ebd7a92b3d</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>줄어든 코퍼스에서 자 스스로가 낡은 곳 수선 (change.atlas-sources)</description>
     </item>
     <item>
-      <title>[고침] 지도 자판 조작이 뚝뚝 끊겼다 — 누른 동안 미끄러지게</title>
+      <title>[새로 생김] 지형도 굽기 소스 일반화 — 화이트리스트 폐기 (change.atlas-sources)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-398c411e7</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>지도 자판 조작이 뚝뚝 끊겼다 — 누른 동안 미끄러지게</description>
+      <guid isPermaLink="false">karmolab-change-191fa670aa</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>지형도 굽기 소스 일반화 — 화이트리스트 폐기 (change.atlas-sources)</description>
     </item>
     <item>
-      <title>[새로 생김] 영토 도구의 상세 페이지 글·공유 카드·자리 높이를 채운다</title>
+      <title>[새로 생김] 로비를 카드판에서 오브제 진열장으로 재설계 (change.arcade-redesign)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-c1e447709</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>영토 도구의 상세 페이지 글·공유 카드·자리 높이를 채운다</description>
+      <guid isPermaLink="false">karmolab-change-f9f0708c64</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>로비를 카드판에서 오브제 진열장으로 재설계 (change.arcade-redesign)</description>
     </item>
     <item>
-      <title>[새로 생김] 영토 지도를 자판으로도 움직인다</title>
+      <title>[빨라짐] verify 헛기동 절반 제거 + test:behavior 병렬화 (change.dev-loop-speedup)</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-f48e2b75c</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>영토 지도를 자판으로도 움직인다</description>
+      <guid isPermaLink="false">karmolab-change-c038fb444a</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>verify 헛기동 절반 제거 + test:behavior 병렬화 (change.dev-loop-speedup)</description>
     </item>
     <item>
-      <title>[고침] 붙박이 자리 번호를 쓰던 검사 넷 — 남의 서버를 보고 거짓 빨강을 냈다</title>
+      <title>[고침] 대비 훑기 3연속 빨강 — 생 체크아웃엔 js/ 산출물이 없어 셸이 안 떴다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-9e2d012e7</guid>
-      <pubDate>Fri, 21 Aug 2026 00:00:00 GMT</pubDate>
-      <description>붙박이 자리 번호를 쓰던 검사 넷 — 남의 서버를 보고 거짓 빨강을 냈다</description>
+      <guid isPermaLink="false">karmolab-change-d0a73d298e</guid>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
+      <description>대비 훑기 3연속 빨강 — 생 체크아웃엔 js/ 산출물이 없어 셸이 안 떴다</description>
     </item>
   </channel>
 </rss>

@@ -135,7 +135,7 @@ function reasonOf(run) {
  * 창 안의 **옛** 성공이었고 사이트는 몇 시간째 옛 판에 멈춰 있었다.
  * 배포가 성공했나가 아니라 **올린 것이 사람 화면에 있나**가 물어야 할 것이다.
  */
-function liveLag(repoDefaultBranch = 'origin/master') {
+function liveLag(repoDefaultBranch = 'origin/main') {
   let liveSha = null;
   try {
     const raw = execFileSync('curl', ['-s', '-m', '20', 'https://blog.mascari4615.com/apps/karmolab/build.json'], {
@@ -146,7 +146,7 @@ function liveLag(repoDefaultBranch = 'origin/master') {
     return { err: '실사이트 판을 못 읽었다' };
   }
   try {
-    execFileSync('git', ['fetch', 'origin', 'master'], { stdio: 'ignore' });
+    execFileSync('git', ['fetch', 'origin', 'main'], { stdio: 'ignore' });
     const behind = execFileSync('git', ['rev-list', '--count', `${liveSha}..${repoDefaultBranch}`], {
       encoding: 'utf8',
     }).trim();

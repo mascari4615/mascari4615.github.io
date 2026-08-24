@@ -186,9 +186,9 @@ if (fs.existsSync(metaPath)) {
   const brokenAtOrigin = new Set();
   try {
     const at = new Set(
-      git(['ls-tree', '-r', '--name-only', 'origin/master', 'scripts']).split('\n').map((l) => l.trim()).filter(Boolean)
+      git(['ls-tree', '-r', '--name-only', 'origin/main', 'scripts']).split('\n').map((l) => l.trim()).filter(Boolean)
     );
-    const pkg = JSON.parse(git(['show', 'origin/master:./package.json']));
+    const pkg = JSON.parse(git(['show', 'origin/main:./package.json']));
     for (const line of Object.values(pkg.scripts || {}))
       for (const m of String(line).matchAll(/node\s+(scripts\/[\w.-]+\.(?:mjs|js))/g))
         if (at.size > 20 && !at.has(m[1])) brokenAtOrigin.add(m[1]);

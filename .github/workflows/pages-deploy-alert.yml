@@ -18,7 +18,7 @@ on:
   workflow_run:
     # ★ **verify 도 여기서 본다** (2026-08-16). 여태 이 알림은 배포만 봤는데,
     #   2026-08-16 09:23~10:22 에 verify 가 **15판 연속 빨강**이었고 아무 데도 안 울렸다.
-    #   verify 는 master 불변식 단일 게이트다 — 그게 빨간 채로 한 시간을 가면
+    #   verify 는 main 불변식 단일 게이트다 — 그게 빨간 채로 한 시간을 가면
     #   그 사이 밀린 커밋 전부가 검증 안 된 것이다. 배포보다 조용히 위험하다.
     workflows: ['Build and Deploy', 'verify']
     types: [completed]
@@ -171,7 +171,7 @@ jobs:
           # 무엇이 죽었는지에 따라 말이 달라야 한다 — 「사이트가 옛 판본 그대로다」는
           # 배포에만 맞는 말이고, verify 가 빨간 것은 「이 커밋이 검증 안 됐다」는 뜻이다.
           if [ "$WF" = "verify" ]; then
-            HEAD_TITLE="master 불변식(verify)이 빨갛다"
+            HEAD_TITLE="main 불변식(verify)이 빨갛다"
             TAIL="고칠 때까지 이 커밋과 그 뒤 커밋들은 검증 안 된 상태다."
           else
             HEAD_TITLE="블로그·KarmoLab 배포가 죽었다"

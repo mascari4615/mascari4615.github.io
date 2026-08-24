@@ -56,7 +56,7 @@ for (const [what, where, re, hurt] of WANT) {
 if (problems.length) {
   console.error(`[audit-live-essentials] 실제 사이트에서 빠진 것 ${problems.length}건 / ${WANT.length}`);
   problems.forEach((p) => console.error('  - ' + p));
-  console.error('  → 내 컴퓨터 파일과 원격을 견줘 봐라: `git diff origin/master -- <파일>`. 갈래가 다시 쓰이며 되돌아간 적이 있다.');
+  console.error('  → 내 컴퓨터 파일과 원격을 견줘 봐라: `git diff origin/main -- <파일>`. 갈래가 다시 쓰이며 되돌아간 적이 있다.');
   process.exit(1);
 }
 console.log(`[audit-live-essentials] 실제 사이트에 ${notes.length}가지 다 있다 — 마크업뿐 아니라 그 모양을 만드는 스타일까지`);

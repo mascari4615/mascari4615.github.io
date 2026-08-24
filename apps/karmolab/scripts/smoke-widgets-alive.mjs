@@ -65,10 +65,10 @@ if (allTools.length < 10 && !givenNames.length) {
 function changedFiles() {
   if (argv.includes('--all')) return null;
   try {
-    /* ★ 신호를 **세 곳**에서 모은다 (2026-08-17). CI 는 갓 꺼낸 체크아웃이라 `origin/master...HEAD`
+    /* ★ 신호를 **세 곳**에서 모은다 (2026-08-17). CI 는 갓 꺼낸 체크아웃이라 `origin/main...HEAD`
        가 비고, 그것만 보면 「손댄 것 0개」로 읽혀 이 검사가 CI 에서 234개를 매번 다 열거나
        아예 안 돈다. **이 커밋이 무엇을 바꿨나**(HEAD~1..HEAD)가 CI 에서 가장 정직한 신호다. */
-    const branchDiff = execFileSync('git', ['diff', '--name-only', 'origin/master...HEAD'], { cwd: repoRoot, encoding: 'utf8' });
+    const branchDiff = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], { cwd: repoRoot, encoding: 'utf8' });
     const headDiff = execFileSync('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' });
     const workingTree = execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
     const combined = (branchDiff.trim() ? branchDiff : headDiff) + workingTree;

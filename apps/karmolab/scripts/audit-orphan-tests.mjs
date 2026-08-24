@@ -317,7 +317,7 @@ function worktreeDiffersFromOrigin() {
   try {
     const env = { ...process.env };
     for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) delete env[k];
-    const out = execFileSync('git', ['diff', '--name-only', 'origin/master', '--', 'package.json'], {
+    const out = execFileSync('git', ['diff', '--name-only', 'origin/main', '--', 'package.json'], {
       cwd: root, env, encoding: 'utf8'
     });
     return out.trim().length > 0;
@@ -331,7 +331,7 @@ function worktreeDiffersFromOrigin() {
    그 말을 믿고 기준선을 줄이면 CI 가 커밋 기준으로 다시 빨개진다(오늘 실측, 여러 판). */
 if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
   console.log('[audit-orphan-tests] ⚠ 작업 폴더의 package.json 이 origin 과 다르다 — 남의 미커밋이 섞였을 수 있다.');
-  console.log('  커밋 기준으로 보려면: KL_PUSH_SHA=origin/master npm run audit:orphans');
+  console.log('  커밋 기준으로 보려면: KL_PUSH_SHA=origin/main npm run audit:orphans');
 }
 
 /* ★ **조인 쪽은 사람을 부르지 않는다 — 스스로 줄이고 지나간다** (2026-08-14).
@@ -366,4 +366,3 @@ if (newlyAdded.length) {
   for (const f of newlyAdded) console.error('  - scripts/' + f);
   process.exit(1);
 }
-

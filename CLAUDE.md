@@ -21,7 +21,7 @@
 ## 빌드 / 검증
 
 ```bash
-npm run verify                              # master invariant 단일 게이트 (push 전 필수)
+npm run verify                              # main invariant 단일 게이트 (push 전 필수)
 cd apps/karmolab && npm run gen:post-pages  # 블로그 장 재생성 (content/pages/ 검증 산출)
 node apps/karmolab/scripts/assemble-site.mjs --site apps/blog --out apps/blog/_site  # 사이트 조립 (Ruby 0)
 ```
@@ -67,9 +67,9 @@ npm run build             # push 직전 한 번만 (통짜)
 새 검사를 달면 `test:gate-derive` 가 「발판이 무의미하게 넓어졌나」를 막는다 — 그 게이트가
 빨개지면 유도가 다시 no-op 이 됐다는 뜻이다(그게 어제 있었던 일이다).
 
-## master invariant (`npm run verify`)
+## main invariant (`npm run verify`)
 
-master 브랜치는 항상:
+main 브랜치는 항상:
 - `apps/karmolab` build (typecheck 포함) 통과
 - `packages/ai`(`@karmo/ai`) build 통과
 - `apps/karmolab-tauri/src-tauri` cargo check 통과 + ACL audit (`acl.toml ⟷ #[command] ⟷ caps` cross-check)
@@ -117,7 +117,7 @@ Vertex AI 선호 (credits 보유) — `KARMO_AI_SURFACE=vertex` default. AI Stud
 
 ## Git Workflow
 
-정본 = `memo/rules/git.md`. master 직접 push default, force push 절대 금지.
+정본 = `memo/rules/git.md`. main 직접 push default, force push 절대 금지.
 PR 생성 케이스: autopilot Draft PR / CodeRabbit 리뷰 / 다른 세션 충돌 회피 worktree / 외부 협업.
 Commit = Conventional Commits (`feat:`/`fix:`/`chore:` 등), pre-commit hook 강제.
 

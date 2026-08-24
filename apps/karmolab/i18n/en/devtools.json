@@ -20,7 +20,7 @@
   "devtools.t21": "Release workflow",
   "devtools.t22": "none (keep the version — overwrite the same tag)",
   "devtools.t23": "Run the workflow",
-  "devtools.t24": "Running it calls the GitHub Actions workflow_dispatch. With bump≠none the workflow pushes a version bump commit straight to master.",
+  "devtools.t24": "Running it calls the GitHub Actions workflow_dispatch. With bump≠none the workflow pushes a version bump commit straight to main.",
   "devtools.t25": "The release run failed",
   "devtools.t26": "Not a deployed, user-facing feature — a set of things for checking the desktop shell and its wiring.",
   "devtools.releaseNote": "Installed version: <code>{version}</code><br>Runs the <code>KarmoLab Tauri Release</code> workflow remotely through the GitHub CLI (<code>gh</code>). This PC needs <code>gh auth login</code> done.",

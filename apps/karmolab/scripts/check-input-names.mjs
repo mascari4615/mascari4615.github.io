@@ -129,7 +129,7 @@ if (offenders.length) {
     try {
       const rel = path.join(dir, file);
       const mine = fs.readFileSync(rel, 'utf8');
-      const theirs = execFileSync('git', ['show', `origin/master:./${path.relative(root, rel).split(path.sep).join('/')}`],
+      const theirs = execFileSync('git', ['show', `origin/main:./${path.relative(root, rel).split(path.sep).join('/')}`],
         { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
       if (mine !== theirs) stale.add(file);
     } catch { /* 물어볼 수 없으면 아무 말도 안 한다 */ }

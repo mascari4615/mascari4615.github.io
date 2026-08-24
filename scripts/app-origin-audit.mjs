@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// KarmoLab Tauri "앱 origin" 정합 + liveness 게이트 — master invariant.
+// KarmoLab Tauri "앱 origin" 정합 + liveness 게이트 — main invariant.
 //
 // 정본 = `apps/karmolab-tauri/src-tauri/tauri.release.conf.json` 의
 // build.frontendDist (= prod 앱이 로드하는 곳, 단일 선언적 진실).
@@ -13,7 +13,7 @@
 //     stub 로딩 + 새 host 미-allowlist → 빈화면. 실제 이번 사고.
 //
 // 둘 다 사람이 "전부 바꿨겠지" 믿으면 또 샌다 → 기계가 매 push 검증.
-// 호출: scripts/verify.mjs (master invariant) + npm run acl-audit 류.
+// 호출: scripts/verify.mjs (main invariant) + npm run acl-audit 류.
 
 import { readFileSync } from 'node:fs';
 

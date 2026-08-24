@@ -16,7 +16,7 @@
  *   예) node scripts/bake-clean.mjs gen:og
  *       node scripts/bake-clean.mjs gen:llms gen:worldcup-tools
  *
- * 하는 일: origin/master 얕은 사본 → `node_modules` 를 이 자리 것으로 이어 붙임 →
+ * 하는 일: origin/main 얕은 사본 → `node_modules` 를 이 자리 것으로 이어 붙임 →
  *          (필요하면) 짓기 → 준 스크립트 실행 → **바뀐 산출물만** 이 작업 폴더로 옮겨 놓고 이름을 적는다.
  *          이 작업 폴더의 다른 파일은 건드리지 않는다.
  *

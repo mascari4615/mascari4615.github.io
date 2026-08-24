@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// master invariant 게이트 — 단일 진실.
+// main invariant 게이트 — 단일 진실.
 // 호출처: `npm run verify` / `.github/workflows/verify.yml`.
 //   ※ 예전엔 여기에 `.husky/pre-push` 도 적혀 있었다. **거짓이었다** — husky 는 설치돼
 //     있지도 않고(`prepare` 스크립트·의존성 없음), 이 저장소의 `core.hooksPath` 는
@@ -43,7 +43,7 @@ function run(label, cwd, command) {
   /* ★ **2 = 「못 돌렸다」(CANNOT-RUN)** — 이 저장소의 규약이다(`run-gates.mjs`·`run-live-checks.mjs`
      도 그렇게 읽는다). 잴 것이 아직 없거나(봇이 안 떠 있다·장이 안 찍혔다) 이 기계에 없는 것은
      **실패가 아니다.** 여기만 「0이 아니면 실패」로 두었더니, 검사가 정직하게 「못 돌렸다」고
-     말한 순간 master 가 빨개졌다(2026-08-14, `smoke-companion`). 못 돈 것은 못 돌았다고 적고 지나간다. */
+     말한 순간 main 이 빨개졌다(2026-08-14, `smoke-companion`). 못 돈 것은 못 돌았다고 적고 지나간다. */
   if (r.status === 2) {
     console.log(`[verify] · ${label} — 못 돌림 (빨강 아님)`);
     return;
@@ -64,11 +64,11 @@ function requireDeps(sub) {
   }
 }
 
-console.log('[verify] master invariant 게이트 시작');
+console.log('[verify] main invariant 게이트 시작');
 
 /* 게이트인 척하는 폴더를 막는다 (2026-08-13 시스템 리뷰).
 
-   `.husky/pre-push` 는 「master 에 타입 오류 직접 push」 사고를 막으려고 만든 것인데,
+   `.husky/pre-push` 는 「main 에 타입 오류 직접 push」 사고를 막으려고 만든 것인데,
    husky 가 설치된 적이 없어 **한 번도 안 돌았다**. 그런데 파일이 거기 있으니 사람도
    문서도 「게이트가 있다」고 믿었다. 검사기가 게이트에 안 걸려 있으면 없는 것과 같다
    (memo/rules/quality.md). 없는 것보다 나쁘다 — 있다고 믿게 만드니까.
@@ -131,7 +131,7 @@ if (!existsSync('packages/ai/dist')) {
 //    「못 돌았다(CANNOT-RUN)」라고 정직하게 말하고 있었기 때문에 빨강도 아니었고,
 //    그래서 아무도 안 봤다. 정직한 침묵도 몇 달 쌓이면 없는 검사와 같다.
 //    고치는 자리는 시험이 아니라 **순서**다.
-// 5. apps/discord-bots/apps/yawnbot — build (tsc 타입체크). yawnbot 이 master
+// 5. apps/discord-bots/apps/yawnbot — build (tsc 타입체크). yawnbot 이 main
 //    invariant 밖이라 타입 깨는 PR 이 verify green 으로 통과 → prod 배포(deploy-
 //    discord-bots) 가 build red 로 며칠 막혀도 안 보이던 사고(2026-06-07: GitHubCommit
 //    중복 정의 + isTextBased send 가드, KL-091/096 머지가 노출) 재발 기계 차단.
@@ -237,7 +237,7 @@ run('도구 페이지 최신 여부', 'apps/karmolab', 'node scripts/audit-tool-
 //      tauri.conf.json `externalBin: ["binaries/karmolab-life-ml"]` 은 sidecar 를
 //      host target-triple suffix 로 resolve 한다. tauri-build(build.rs) 가
 //      *cargo check 단계에서도* 그 경로 존재를 검증 → Linux CI 엔 Linux triple
-//      바이너리가 없어 "resource path ... doesn't exist" 로 master invariant 가
+//      바이너리가 없어 "resource path ... doesn't exist" 로 main invariant 가
 //      2일간 red (KL-052-B2-1 1fd31c61 이 externalBin 추가 시 Windows .exe 만 커밋).
 //      워크스페이스 설계 의도 = "verify 는 무거운 ML sidecar 를 빌드 X (src-tauri
 //      member 만 check)". 그 의도 유지하면서 externalBin 존재 검증만 통과시키려면
@@ -304,7 +304,7 @@ if (tauriTouched && existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
 
 // 3.5. Tauri ACL audit — acl.toml 단일정본 ⟷ #[command] ⟷ caps 정합 (KL-040, KL-063).
 //      KL-035 사고 원인(삭제 fn 잔재 permissions) 재발 방지. 정본 스크립트 =
-//      scripts/tauri-acl-audit.mjs (`npm run acl-audit` 와 동일). master invariant
+//      scripts/tauri-acl-audit.mjs (`npm run acl-audit` 와 동일). main invariant
 //      필수 게이트 — 무조건 실행 (KL-063: 옛 코드가 부재 경로 existsSync 가드로
 //      이 게이트를 verify 에서 영구 skip 시키던 잠복 결함 수정).
 if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
@@ -369,5 +369,4 @@ if (spawnSync('typos --version', { shell: true, stdio: 'ignore' }).status === 0)
 }
 
 schedule();
-console.log('\n[verify] OK — master invariant 통과');
-
+console.log('\n[verify] OK — main invariant 통과');

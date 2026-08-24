@@ -15,7 +15,7 @@ name: "동반자 꾸러미 (packages/companion)"
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       - 'packages/companion/**'
       - '.github/workflows/companion.yml'

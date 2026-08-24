@@ -1,12 +1,12 @@
 name: Deploy Discord Bots (yawnbot)
 
 # TASK-YB-002-C — yawnbot prod 자동 deploy.
-# master push 시 self-hosted runner (노트북) 가 build + .env 주입 + nssm restart.
+# main push 시 self-hosted runner (노트북) 가 build + .env 주입 + nssm restart.
 # pull_request_target 절대 사용 X (포크 PR RCE 경로).
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       - 'apps/discord-bots/apps/yawnbot/**'
       - 'apps/discord-bots/apps/agent-orchestrator/**'
@@ -108,7 +108,7 @@ jobs:
       YAWNBOT_DIR: 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io\apps\discord-bots\apps\yawnbot'
 
     steps:
-      - name: Sync to origin/master (force)
+      - name: Sync to origin/main (force)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.REPO_DIR }}
         run: |
@@ -116,12 +116,12 @@ jobs:
           # LocalSystem (NSSM runner) 가 사용자 masca 의 폴더 git 소유권 인식 못 함 — safe.directory 등록 (idempotent)
           $repoUnix = '${{ env.REPO_DIR }}' -replace '\\', '/'
           & git config --global --add safe.directory $repoUnix 2>&1 | Out-Null
-          & git switch master 2>&1 | Out-Null
+          & git switch main 2>&1 | Out-Null
           # NSSM prod 폴더는 deploy 전용 (사용자 작업 영역 X — 작업은 .worktrees/* 에서). dirty state 는 항상 잔재 (line ending 변환 / 이전 deploy 잔재 / 잘못 복사 등) — 강제 동기화로 폐기.
           # git pull --ff-only 는 working tree dirty 면 fail (yawnbot-defaults.txt CRLF 변환 사고 2026-05-09).
-          & git fetch origin master 2>&1
+          & git fetch origin main 2>&1
           if ($LASTEXITCODE -ne 0) { throw "git fetch failed (exit $LASTEXITCODE)" }
-          & git reset --hard origin/master 2>&1
+          & git reset --hard origin/main 2>&1
           if ($LASTEXITCODE -ne 0) { throw "git reset --hard failed (exit $LASTEXITCODE)" }
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD

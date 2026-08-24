@@ -17,7 +17,7 @@ function at(minAgo: number): string {
 }
 
 describe('evaluateFreshness — 사이트 파일이 진실', () => {
-  it('사이트 = master 끝이면 아무리 오래돼도 신선하다 (아무도 안 민 것뿐)', () => {
+  it('사이트 = main 끝이면 아무리 오래돼도 신선하다 (아무도 안 민 것뿐)', () => {
     const v = evaluateFreshness({
       site: { commit: HEAD, builtAt: at(3 * 24 * 60) },
       headSha: HEAD,
@@ -63,7 +63,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
     expect(v.reason).toContain('503');
   });
 
-  it('master 끝을 못 물어봤으면 판단을 미룬다 — GitHub 흔들림으로 우릴 깨우지 않는다', () => {
+  it('main 끝을 못 물어봤으면 판단을 미룬다 — GitHub 흔들림으로 우릴 깨우지 않는다', () => {
     const v = evaluateFreshness({
       site: { commit: OLD, builtAt: at(21 * 60) },
       headSha: null,
@@ -167,8 +167,8 @@ describe('runFreshnessTick — 실제 물어보기', () => {
 });
 
 describe('nextDelayMin — 판이 갈린 동안만 촘촘히 (Datadog adaptive polling)', () => {
-  it('사이트 = master 끝이면 느슨하게', () => {
-    expect(nextDelayMin({ state: 'fresh', reason: '사이트 = master 끝 abc', ageMin: 5 }, 10, 3)).toBe(10);
+  it('사이트 = main 끝이면 느슨하게', () => {
+    expect(nextDelayMin({ state: 'fresh', reason: '사이트 = main 끝 abc', ageMin: 5 }, 10, 3)).toBe(10);
   });
   it('올라가는 중이면 촘촘히 — 초록 전환을 10분 늦게 알 이유가 없다', () => {
     expect(nextDelayMin({ state: 'fresh', reason: '올라가는 중 — …', ageMin: 5 }, 10, 3)).toBe(3);

@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - master
     # allow-list: pages-deploy 가 실제 빌드 입력으로 쓰는 dir 만 트리거.
     # 새 sub-app / root 파일 추가돼도 기본 미트리거 (default safe).
     # 의존 누락 발견 시 본 목록 갱신 (TASK-KL-057).
@@ -119,7 +118,7 @@ jobs:
         # ★ **배포는 찍어 올리는 일이다** (2026-08-12). 여기서 `npm run build` 를 부르면
         #   28단계 중 16단계가 검사다 — 브라우저까지 깔아 도구 시험을 돌린다. 그래서
         #   ① 배포가 오래 걸리고 ② 검사 하나가 빨개지면 **고친 화면이 사람에게 안 나간다**.
-        #   검증은 `verify` 가 같은 커밋에서 이미 전부 돌린다(그쪽이 master invariant 정본).
+        #   검증은 `verify` 가 같은 커밋에서 이미 전부 돌린다(그쪽이 main invariant 정본).
         #   배포는 산출물만 찍는다 — 브라우저도 필요 없다.
         # `npm ci` 는 위 채비 action 이 이미 했다 — 여기서 또 부르면 같은 설치를 두 번 한다.
         run: npm run build:artifacts
@@ -395,7 +394,7 @@ jobs:
         id: freshness
         # 이 게이트는 두 번 틀렸다. 기록해 둔다 (2026-08-07 실측).
         #
-        # ① 「내가 master 의 끝인가」 — 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
+        # ① 「내가 main 의 끝인가」 — 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
         #    물러난다. 그 새 커밋의 판도 도착할 때쯤엔 또 끝이 아니다. 아무도 배포 안 하는데
         #    다섯 판 연속 초록이었다.
         # ② 「나보다 새 판이 돌고 있는가」 — 같은 이유로 굶는다. 돌고 있는 판도 자기 차례엔
@@ -407,7 +406,7 @@ jobs:
         run: |
           MINE=${{ github.run_number }}
           REPO=${{ github.repository }}
-          NEWER=$(gh api "repos/$REPO/actions/workflows/pages-deploy.yml/runs?branch=master&status=completed&per_page=30"             --jq "[.workflow_runs[] | select(.run_number > $MINE) | .id] | .[]")
+          NEWER=$(gh api "repos/$REPO/actions/workflows/pages-deploy.yml/runs?branch=main&status=completed&per_page=30"             --jq "[.workflow_runs[] | select(.run_number > $MINE) | .id] | .[]")
           DEPLOYED=0
           for id in $NEWER; do
             OK=$(gh api "repos/$REPO/actions/runs/$id/jobs"               --jq '[.jobs[] | select(.name == "deploy") | .steps[] | select(.name | startswith("Deploy")) | select(.conclusion == "success")] | length')

@@ -10,7 +10,7 @@
 //!   `#[tauri::command]` 매크로는 원본 `pub fn` 을 그대로 남기므로 seam 신설
 //!   불요 — 기존 함수 무수정(회귀 0).
 //! - **ACL 무영향**: HTTP 라우트는 `#[tauri::command]` 아님 → `acl.toml`
-//!   codegen/audit 무관 (master invariant 신규 command 0 유지).
+//!   codegen/audit 무관 (main invariant 신규 command 0 유지).
 //! - **보안**: `127.0.0.1` only bind + `Authorization: Bearer <token>` (토큰은
 //!   app_local_data_dir `localdev-http.json` 자동 생성).
 

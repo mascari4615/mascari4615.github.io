@@ -216,8 +216,8 @@ import { t, loadNamespace } from '../lib/i18n';
     const refIn = document.createElement('input');
     refIn.type = 'text';
     refIn.className = 'devtools-input';
-    refIn.value = 'master';
-    refIn.placeholder = 'master';
+    refIn.value = 'main';
+    refIn.placeholder = 'main';
     refIn.disabled = !isApp;
 
     const bumpRow = document.createElement('div');
@@ -261,7 +261,7 @@ import { t, loadNamespace } from '../lib/i18n';
       : t('devtools.t19');
 
     btn.addEventListener('click', function () {
-      const selectedRef = (refIn.value || '').trim() || 'master';
+      const selectedRef = (refIn.value || '').trim() || 'main';
       const selectedBump = bumpSel.value || 'patch';
       status.className = 'devtools-log';
       status.textContent = t('devtools.requesting', { ref: selectedRef, bump: selectedBump });

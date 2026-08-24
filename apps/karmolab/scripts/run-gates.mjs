@@ -73,7 +73,7 @@ const changedIdx = args.indexOf('--changed');
 let changed = null;
 let skipped = [];
 if (changedIdx !== -1) {
-  const base = args[changedIdx + 1] && !args[changedIdx + 1].startsWith('--') ? args[changedIdx + 1] : 'origin/master';
+  const base = args[changedIdx + 1] && !args[changedIdx + 1].startsWith('--') ? args[changedIdx + 1] : 'origin/main';
   changed = changedFiles(base);
   if (changed === null) {
     console.log(`[gates] 바뀐 것을 못 구했다 (${base}) — 통짜로 돈다.`);

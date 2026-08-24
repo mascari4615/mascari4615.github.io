@@ -5,8 +5,8 @@ KarmoLab **문서** 위젯 **「Discord·욘봇」** 탭 — 음성·DAVE 참고
 | 무엇 | 어디 |
 |------|------|
 | **이 탭** | **음성·DAVE** · **기능 요약** · **TODO** · **향후 검토** · **아이디어 구상** |
-| **슬래시·`.env`·사용자 안내** | 레포 [yawnbot README.md](https://github.com/mascari4615/mascari4615.github.io/blob/master/apps/discord-bots/apps/yawnbot/README.md) |
-| **워크스페이스 빌드·`npm run`** | 문서 위젯 **「discord-bots · README」** 탭 또는 [discord-bots/README.md](https://github.com/mascari4615/mascari4615.github.io/blob/master/apps/discord-bots/README.md) |
+| **슬래시·`.env`·사용자 안내** | 레포 [yawnbot README.md](https://github.com/mascari4615/mascari4615.github.io/blob/main/apps/discord-bots/apps/yawnbot/README.md) |
+| **워크스페이스 빌드·`npm run`** | 문서 위젯 **「discord-bots · README」** 탭 또는 [discord-bots/README.md](https://github.com/mascari4615/mascari4615.github.io/blob/main/apps/discord-bots/README.md) |
 
 레포: [`apps/discord-bots/apps/yawnbot/`](https://github.com/mascari4615/mascari4615.github.io/tree/master/apps/discord-bots/apps/yawnbot)
 
@@ -101,7 +101,7 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결·재생 �
 | `VOICE_DEBUG` | `1`이면 `@discordjs/voice` 네트워킹 디버그·상태 로그. **토큰·키·IP 등 민감 정보가 섞일 수 있어** 상시 켜두지 말 것. |
 | `DISCORD_VOICE_DAVE` | **기본값: DAVE 사용(켬).** 끄려면 `0` / `false` / `off` / `no`. 예전에 4017이 났던 채널은 DAVE가 꺼져 있으면 다시 실패합니다. |
 
-자세한 명령·경로는 레포 [yawnbot README.md](https://github.com/mascari4615/mascari4615.github.io/blob/master/apps/discord-bots/apps/yawnbot/README.md)를 참고하세요.
+자세한 명령·경로는 레포 [yawnbot README.md](https://github.com/mascari4615/mascari4615.github.io/blob/main/apps/discord-bots/apps/yawnbot/README.md)를 참고하세요.
 
 ---
 
@@ -181,5 +181,5 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결·재생 �
 
 - [Discord — Voice Close Event Codes](https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice-voice-close-event-codes)
 - [discord.js — 이슈 #11419 (DAVE 관련 논의 예시)](https://github.com/discordjs/discord.js/issues/11419)
-- 워크스페이스: [`apps/discord-bots/README.md`](https://github.com/mascari4615/mascari4615.github.io/blob/master/apps/discord-bots/README.md)
-- 봇 README: [`apps/discord-bots/apps/yawnbot/README.md`](https://github.com/mascari4615/mascari4615.github.io/blob/master/apps/discord-bots/apps/yawnbot/README.md)
+- 워크스페이스: [`apps/discord-bots/README.md`](https://github.com/mascari4615/mascari4615.github.io/blob/main/apps/discord-bots/README.md)
+- 봇 README: [`apps/discord-bots/apps/yawnbot/README.md`](https://github.com/mascari4615/mascari4615.github.io/blob/main/apps/discord-bots/apps/yawnbot/README.md)

@@ -9,7 +9,7 @@
   "docs.t08": "<nav class=\"docs-toc-listnav\" aria-label=\"目次\">",
   "docs.t09": "<p class=\"docs-body\" style=\"color:var(--text-secondary)\">GitHub から文書を読み込み中…</p>",
   "docs.t10": "> **原典:** `",
-  "docs.t11": "*文書を読み込めませんでした。ネットワーク・ブランチ(`master`)・`window.KARMOLAB_DOCS_RAW_BASE` を確認してからタブを開き直してください。*",
+  "docs.t11": "*文書を読み込めませんでした。ネットワーク・ブランチ(`main`)・`window.KARMOLAB_DOCS_RAW_BASE` を確認してからタブを開き直してください。*",
   "docs.t12": "<p class=\"docs-body\" style=\"color:var(--error)\">marked.js の読み込みに失敗しました。再読み込みしてください。</p>",
   "docs.t13": "文書の目次",
   "docs.t14": "[docs mermaid] window.mermaid API なし",

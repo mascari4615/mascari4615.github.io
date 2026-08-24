@@ -150,7 +150,7 @@ export function makeThreadRouter(
       const wantName = taskId.slice(0, 100);
       // ── TASK-KAR-018-THR root fix: 생성 전 *기존 스레드 이름검색* ──
       // 근본 진단(코드실증): taskThreads 는 in-memory Map → prod 봇은
-      // master push 마다 nssm restart(1h~5 deploy 실측) → 맵 소실 →
+      // main push 마다 nssm restart(1h~5 deploy 실측) → 맵 소실 →
       // 같은 TASK 다음 메시지에 무조건 ch.threads.create = 중복 스레드
       // + 옛 스레드(맥락·사용자 미응답) 고아 → OneDay 아카이브 = KAR-
       // 018-LT D2「누적 0」를 재기동 churn 이 적극 파괴. 맵 miss 시

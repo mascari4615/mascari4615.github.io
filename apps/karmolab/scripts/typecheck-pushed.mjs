@@ -47,7 +47,7 @@ try {
 /* 이 커밋이 karmolab 의 타입 있는 파일을 하나도 안 건드렸으면 잴 것이 없다 (대부분의 push) */
 let touched = '';
 try {
-  touched = git(['diff', '--name-only', `origin/master..${sha}`, '--', 'apps/karmolab']).trim();
+  touched = git(['diff', '--name-only', `origin/main..${sha}`, '--', 'apps/karmolab']).trim();
 } catch { /* origin 을 모르면 그냥 잰다 */ }
 if (touched && !/\.ts(\r?\n|$)/.test(touched + '\n')) {
   console.log('[typecheck-pushed] karmolab 타입 파일은 안 건드렸다 — 건너뛴다');
@@ -123,16 +123,16 @@ try {
   if (fast.status !== 0) failed.push(['빠른 게이트', `${fast.stdout || ''}${fast.stderr || ''}`.trim()]);
 
   /* ★ **원래도 빨갰나** (2026-08-13). 여기서 빨강이 나도 그게 **이 push 탓**이 아닐 수 있다 —
-     남이 올린 미완성이 이미 master 를 빨갛게 해 둔 상태면, 내가 뭘 밀든 같은 빨강이 난다.
+     남이 올린 미완성이 이미 main 을 빨갛게 해 둔 상태면, 내가 뭘 밀든 같은 빨강이 난다.
      그걸 막으면 고치러 가는 길까지 막힌다(오늘 실측: 글 도구 17개 명부 누락으로 전 세션 빨강).
-     그래서 같은 검사를 **origin/master 에서도** 한 번 돌려, 거기서도 빨간 것은 그냥 알린다. */
+     그래서 같은 검사를 **origin/main 에서도** 한 번 돌려, 거기서도 빨간 것은 그냥 알린다. */
   if (failed.length) {
     let baseRed = null;
     try {
       const baseDir = join(tmp, 'base');
       mkdirSync(baseDir, { recursive: true });
       const t2 = spawnSync('tar', ['-x', '-C', baseDir], {
-        input: execFileSync('git', ['archive', 'origin/master', 'apps/karmolab', 'packages', '.github'], {
+        input: execFileSync('git', ['archive', 'origin/main', 'apps/karmolab', 'packages', '.github'], {
           cwd: repoRoot, env, maxBuffer: 512 * 1024 * 1024, encoding: 'buffer'
         }),
         env, encoding: 'buffer'
@@ -147,7 +147,7 @@ try {
       }
     } catch { /* 못 재면 모른다 — 아래에서 「모름」으로 둔다 */ }
     if (baseRed === true) {
-      console.error(`[typecheck-pushed] ⚠ ${sha.slice(0, 8)} 에서 빨강이 나지만 **origin/master 도 같은 자리에서 빨갛다**.`);
+      console.error(`[typecheck-pushed] ⚠ ${sha.slice(0, 8)} 에서 빨강이 나지만 **origin/main 도 같은 자리에서 빨갛다**.`);
       console.error('  내 push 가 만든 것이 아니다 — 막지 않는다. 올린 세션에 알려라.');
       for (const [what, out] of failed) {
         console.error(`  [${what}]`);

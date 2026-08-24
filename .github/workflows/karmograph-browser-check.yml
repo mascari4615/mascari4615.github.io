@@ -21,7 +21,7 @@ on:
   #   안 났다** — 초록도 빨강도 아닌 것은 신호가 아니다. 시계로 돌려서 반드시 끝나게 한다.
   #   (검사 자체를 고칠 때는 아래 push 트리거가 그 판을 바로 돌려 준다.)
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - apps/karmolab/scripts/smoke-karmograph.mjs
       - .github/workflows/karmograph-browser-check.yml

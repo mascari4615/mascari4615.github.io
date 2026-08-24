@@ -8,10 +8,10 @@ concurrency:
   group: karmolab-tauri-release
   cancel-in-progress: false
 
-# 근본 (TASK-KL-064): 프론트(pages-deploy)는 master push 마다 자동 배포되나
+# 근본 (TASK-KL-064): 프론트(pages-deploy)는 main push 마다 자동 배포되나
 # Tauri 바이너리는 옛날엔 manual/tag 만 → 새 #[tauri::command] 가 프론트에만
 # 깔리고 앱엔 없어 "Command not found" 스큐 (alarm_list 사고). 이제 backend
-# contract (src-tauri/**, package.json) 가 master 에 push 되면 자동 patch
+# contract (src-tauri/**, package.json) 가 main 에 push 되면 자동 patch
 # bump + build + release → 앱 auto-updater 가 받음. 프론트 자동배포와 대칭.
 # 루프 가드: bump 스텝의 커밋 메시지에 [skip ci] (아래 line) → 그 version-bump
 # push 는 paths 매칭돼도 GitHub Actions 가 run 자체를 skip. workflow_dispatch
@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       bumpType:
-        description: 'Version bump (실행 전에 tauri.conf.json·Cargo.toml·package.json·Cargo.lock 동시 패치 후 master에 푸시)'
+        description: 'Version bump (실행 전에 tauri.conf.json·Cargo.toml·package.json·Cargo.lock 동시 패치 후 main에 푸시)'
         required: false
         default: 'none'
         type: choice
@@ -34,7 +34,7 @@ on:
           - minor
           - major
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       # Tauri 앱 디렉토리 전체 = 바이너리 빌드 계약 (src-tauri 코드/ACL +
       # scripts/build-sidecar.mjs 같은 빌드 파이프라인 + package.json).
@@ -86,9 +86,9 @@ jobs:
         if: steps.contract.outputs.changed == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none'))
         shell: bash
         # KL-064 race-safe: concurrency 가 run 을 직렬화해도 늦은 run 의
-        # checkout 이 master 보다 뒤 → 옛 코드는 `git push HEAD:master` 가
+        # checkout 이 main 보다 뒤 → 옛 코드는 `git push HEAD:main` 이
         # non-fast-forward 거부로 실패(멀티세션 monorepo+bump 자체 push).
-        # → 매 시도 *최신 origin/master 로 reset → 그 위에서 버전 재계산
+        # → 매 시도 *최신 origin/main 으로 reset → 그 위에서 버전 재계산
         # (버전 충돌도 방지) → commit → push*, 거부 시 재시도.
         run: |
           set -e
@@ -103,8 +103,8 @@ jobs:
           T=apps/karmolab-tauri
           PUSHED=
           for attempt in 1 2 3 4 5 6; do
-            git fetch origin master
-            git reset --hard origin/master
+            git fetch origin main
+            git reset --hard origin/main
             CURRENT=$(node -p "require('./$T/src-tauri/tauri.conf.json').version")
             IFS='.' read -r MA MI PA <<< "$CURRENT"
             case "$BUMP" in
@@ -134,7 +134,7 @@ jobs:
             "
             git add "$T/package.json" "$T/src-tauri/Cargo.toml" "$T/Cargo.lock" "$T/src-tauri/tauri.conf.json"
             git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
-            if git push origin HEAD:master; then PUSHED=1; break; fi
+            if git push origin HEAD:main; then PUSHED=1; break; fi
             echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
             sleep $((attempt * 3))
           done
@@ -316,13 +316,13 @@ jobs:
           T=apps/karmolab-tauri
           PUSHED=
           for attempt in 1 2 3 4 5 6; do
-            git fetch origin master
-            git reset --hard origin/master
+            git fetch origin main
+            git reset --hard origin/main
             echo "${{ steps.contract.outputs.now }}" > "$T/.release-contract"
             git add "$T/.release-contract"
             if git diff --cached --quiet; then echo "이미 같은 값 — 적을 것 없음"; PUSHED=1; break; fi
             git commit -m "chore(karmolab-tauri): 이번 판 계약 해시 기록 [skip ci]"
-            if git push origin HEAD:master; then PUSHED=1; break; fi
+            if git push origin HEAD:main; then PUSHED=1; break; fi
             echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
             sleep $((attempt * 3))
           done

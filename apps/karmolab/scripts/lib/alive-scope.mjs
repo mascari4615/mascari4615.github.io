@@ -25,7 +25,7 @@ export function toolsToOpen(changedFiles) {
   }
   const picked = [...toolNames];
   /* ★ **아무 신호도 없으면 좁히지 않는다** (2026-08-17). CI 는 갓 꺼낸 체크아웃이라
-     `origin/master...HEAD` 가 비어 있다 — 그걸 「손댄 것 0개」로 읽으면 이 검사가 **CI 에서
+     `origin/main...HEAD` 가 비어 있다 — 그걸 「손댄 것 0개」로 읽으면 이 검사가 **CI 에서
      한 번도 안 돈다**(못 돌림으로만 끝난다). 빈 신호는 「없다」가 아니라 「모른다」다. */
   if (picked.length === 0 && changedFiles.length === 0) return null;
   return picked;

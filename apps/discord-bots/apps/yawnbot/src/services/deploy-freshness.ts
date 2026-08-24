@@ -19,7 +19,7 @@
  *
  * ## 무엇을 「낡음」이라 하나
  *
- *   낡음 = (사이트 커밋 ≠ master 끝) **그리고** (사이트가 구워진 지 N분 초과)
+ *   낡음 = (사이트 커밋 ≠ main 끝) **그리고** (사이트가 구워진 지 N분 초과)
  *
  * 두 조건을 **함께** 봐야 하는 이유:
  *  - 커밋만 보면 — 배포는 몇 분 걸린다. 방금 민 것은 아직 안 올라간 게 정상인데 매번 빨개진다.
@@ -51,7 +51,7 @@ export interface FreshnessInput {
   site: SiteBuild | null;
   /** 못 받은 사유 (site 가 null 일 때). */
   unreachableReason?: string;
-  /** master 끝 커밋 sha. 못 받았으면 null — 그때는 판단을 미룬다(남의 고장으로 우릴 깨우지 않는다). */
+  /** main 끝 커밋 sha. 못 받았으면 null — 그때는 판단을 미룬다(남의 고장으로 우릴 깨우지 않는다). */
   headSha: string | null;
   now: Date;
   /** 이 시간을 넘게 안 올라갔으면 낡음. */
@@ -66,7 +66,7 @@ export interface FreshnessVerdict {
   ageMin: number | null;
 }
 
-/** 사이트가 스스로 밝힌 판 vs master 끝 — 둘을 견줘 한 줄로 답한다. */
+/** 사이트가 스스로 밝힌 판 vs main 끝 — 둘을 견줘 한 줄로 답한다. */
 export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
   const { site, headSha, now, staleAfterMin } = input;
 
@@ -91,13 +91,13 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     };
   }
 
-  /* master 끝을 못 물어봤으면 판단하지 않는다. GitHub 이 흔들릴 때 「사이트가 낡았다」고
+  /* main 끝을 못 물어봤으면 판단하지 않는다. GitHub 이 흔들릴 때 「사이트가 낡았다」고
      외치면 애먼 데를 파게 된다 — 모르는 것은 모른다고 두는 편이 낫다. */
   if (!headSha) {
     return {
       state: 'fresh',
       ageMin,
-      reason: `master 끝을 못 물어봐 판단을 미룬다 (사이트 판 ${short(site.commit)} · ${humanAge(ageMin)} 전)`,
+      reason: `main 끝을 못 물어봐 판단을 미룬다 (사이트 판 ${short(site.commit)} · ${humanAge(ageMin)} 전)`,
     };
   }
 
@@ -106,7 +106,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     return {
       state: 'fresh',
       ageMin,
-      reason: `사이트 = master 끝 ${short(headSha)} (${humanAge(ageMin)} 전에 올라감)`,
+      reason: `사이트 = main 끝 ${short(headSha)} (${humanAge(ageMin)} 전에 올라감)`,
     };
   }
 
@@ -114,7 +114,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     return {
       state: 'fresh',
       ageMin,
-      reason: `올라가는 중 — 사이트 ${short(site.commit)} / master ${short(headSha)} (${humanAge(ageMin)} 전 판, 아직 ${staleAfterMin}분 안)`,
+      reason: `올라가는 중 — 사이트 ${short(site.commit)} / main ${short(headSha)} (${humanAge(ageMin)} 전 판, 아직 ${staleAfterMin}분 안)`,
     };
   }
 
@@ -122,7 +122,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     state: 'stale',
     ageMin,
     reason:
-      `사이트가 ${humanAge(ageMin)}째 옛 판이다 — 사이트 ${short(site.commit)} / master ${short(headSha)}. ` +
+      `사이트가 ${humanAge(ageMin)}째 옛 판이다 — 사이트 ${short(site.commit)} / main ${short(headSha)}. ` +
       `배포 실행이 초록이어도 올라간 것은 없다.`,
   };
 }
@@ -191,7 +191,7 @@ export interface DeployFreshnessDeps {
   repo?: string;
   /** 배포 워크플로 파일 이름 — 「왜 안 올라갔나」를 물을 때 쓴다. */
   workflow?: string;
-  /** master 끝을 물을 때 쓸 토큰 (없으면 익명 — 시간당 60회라 10분 간격이면 충분하다). */
+  /** main 끝을 물을 때 쓸 토큰 (없으면 익명 — 시간당 60회라 10분 간격이면 충분하다). */
   token?: string;
   /** 확인 간격(분). 기본 10, 최소 2. */
   intervalMin?: number;
@@ -333,14 +333,14 @@ export async function runFreshnessTick(
     };
     if (deps.token) ghHeaders.Authorization = `Bearer ${deps.token}`;
     const body = (await getJson(
-      `https://api.github.com/repos/${deps.repo}/commits/master`,
+      `https://api.github.com/repos/${deps.repo}/commits/main`,
       fetchImpl,
       timeoutMs,
       ghHeaders,
     )) as { sha?: string };
     if (body && typeof body.sha === 'string') headSha = body.sha;
   } catch (err) {
-    logger.warn(`[DeployFreshness] master 끝을 못 물어봤다 — ${String(err).slice(0, 100)}`);
+    logger.warn(`[DeployFreshness] main 끝을 못 물어봤다 — ${String(err).slice(0, 100)}`);
   }
 
   const verdict = evaluateFreshness({

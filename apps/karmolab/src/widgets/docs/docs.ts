@@ -161,7 +161,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
 
   /**
    * GitHub `raw.githubusercontent.com` 등 — 레포 루트 기준 상대 경로 Markdown.
-   * 기본: 이 사이트 레포 `master`. 포크·다른 브랜치는 `window.KARMOLAB_DOCS_RAW_BASE`로 덮어쓰기
+   * 기본: 이 사이트 레포 `main`. 포크·다른 브랜치는 `window.KARMOLAB_DOCS_RAW_BASE`로 덮어쓰기
    * (끝에 `/` 포함한 전체 prefix, 예: https://raw.githubusercontent.com/you/repo/main/)
    */
   function getDocsRepoRawBase(): string {
@@ -170,7 +170,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     if (custom) {
       return custom.replace(/\/?$/, '/');
     }
-    return 'https://raw.githubusercontent.com/mascari4615/mascari4615.github.io/master/';
+    return 'https://raw.githubusercontent.com/mascari4615/mascari4615.github.io/main/';
   }
 
   function normalizeRepoDocPath(path: string): string {
@@ -336,7 +336,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
         const banner =
           t('docs.t10') +
           repoRelativePath +
-          '` — GitHub **raw** (`master` 기본). `window.KARMOLAB_DOCS_RAW_BASE` 에 끝이 `/`인 URL을 넣으면 다른 브랜치·포크를 볼 수 있어요.\n\n---\n\n';
+          '` — GitHub **raw** (`main` 기본). `window.KARMOLAB_DOCS_RAW_BASE` 에 끝이 `/`인 URL을 넣으면 다른 브랜치·포크를 볼 수 있어요.\n\n---\n\n';
         renderMarkdown(container, banner + md);
       })
       .catch(function () {

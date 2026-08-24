@@ -13,7 +13,7 @@ name: "daily 브라우저 검사"
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - apps/daily/**
       - .github/workflows/daily-browser-check.yml
