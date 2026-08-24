@@ -7,6 +7,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { pieceMarkup } from '../piece';
 import { HOME, OUT, type YutState, type YutAction } from './yut';
 
 /** 나온 수의 이름 — 도개걸윷모 */
@@ -60,15 +61,18 @@ export const yutView: GameView<YutState, YutAction> = {
       const mine = s.turn === mySeat && s.won === -1 && !v.finished;
 
       /* 칸마다 누구 말이 서 있나 */
-      const on: Record<number, number[]> = {};
-      s.pos.forEach((row, seat) => row.forEach((p) => {
-        if (p >= 0 && p < OUT) (on[p] ??= []).push(seat);
+      const on: Record<number, Array<{ seat: number; piece: number }>> = {};
+      s.pos.forEach((row, seat) => row.forEach((p, piece) => {
+        if (p >= 0 && p < OUT) (on[p] ??= []).push({ seat, piece });
       }));
       nodes.forEach((el2) => {
         const n = Number(el2.dataset.n);
         /* 한가운데는 두 길이 같은 자리라 둘 다 본다. */
         const here = [...(on[n] ?? []), ...(n === 22 ? on[29] ?? [] : [])];
-        el2.innerHTML = here.map((seat) => '<i class="ac-yup ac-p' + seat + '"></i>').join('');
+        el2.innerHTML = here.map(({ seat, piece }) => pieceMarkup({
+          shape: 'pawn', owner: seat, mark: String(piece + 1), compact: true,
+          label: t('arcade.yut.piece', { n: String(piece + 1) })
+        })).join('');
       });
 
       ctl.innerHTML =
@@ -98,7 +102,7 @@ export const yutView: GameView<YutState, YutAction> = {
       who.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + (i === s.turn ? ' ac-now' : '') + '">' +
-          '<i class="ac-yup ac-p' + i + '"></i> ' + seat.name +
+          pieceMarkup({ shape: 'pawn', owner: i, compact: true }) + ' ' + seat.name +
           ' <b>' + s.pos[i].filter((p) => p >= OUT).length + '</b>/2</span>')
         .join('');
     };

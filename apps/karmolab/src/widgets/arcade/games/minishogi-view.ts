@@ -5,6 +5,7 @@
  * 놀 수 있으면 그건 오락실이 아니다. 손에 든 말도 고르면 놓을 수 있는 칸이 밝아진다.
  */
 import type { GameView } from '../views';
+import { pieceMarkup } from '../piece';
 import { N, reach, KING, GOLD, SILVER, ROOK, BISHOP, PAWN, type ShogiState, type ShogiAction } from './minishogi';
 
 const GLYPH: Record<number, string> = {
@@ -43,10 +44,10 @@ export const minishogiView: GameView<ShogiState, ShogiAction> = {
       cells.forEach((b, i) => {
         const p = s.board[i];
         const owner = p === 0 ? -1 : p > 0 ? 0 : 1;
-        b.textContent = p ? GLYPH[Math.abs(p)] ?? '?' : '';
+        const mark = GLYPH[Math.abs(p)] ?? '?';
+        b.innerHTML = p ? pieceMarkup({ shape: 'tile', owner, mark, flipped: owner === 1, label: mark }) : '';
         b.className =
-          'ac-sgc' + (owner === 1 ? ' ac-flip' : '') + (owner >= 0 ? ' ac-p' + owner : '') +
-          (i === pickFrom ? ' ac-pick' : '') + (targets.includes(i) ? ' ac-can' : '') +
+          'ac-sgc' + (i === pickFrom ? ' ac-pick' : '') + (targets.includes(i) ? ' ac-can' : '') +
           (i === s.last ? ' ac-last' : '');
         b.disabled = !myTurn;
         b.onclick = () => {
@@ -66,7 +67,11 @@ export const minishogiView: GameView<ShogiState, ShogiAction> = {
         const hand = s.hand[seat] ?? [];
         box.innerHTML = hand
           .map((k, j) => '<button class="ac-sgh' + (seat === mySeat && pickHand === k ? ' ac-pick' : '') +
-            '" data-k="' + k + '" data-j="' + j + '">' + (GLYPH[k] ?? '?') + '</button>')
+            '" data-k="' + k + '" data-j="' + j + '">' +
+            pieceMarkup({
+              shape: 'tile', owner: seat, mark: GLYPH[k] ?? '?', compact: true,
+              flipped: seat !== mySeat, label: GLYPH[k] ?? '?'
+            }) + '</button>')
           .join('');
         box.querySelectorAll<HTMLButtonElement>('.ac-sgh').forEach((b) => {
           b.disabled = !myTurn || seat !== mySeat;

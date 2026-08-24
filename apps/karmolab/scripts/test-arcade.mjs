@@ -33,6 +33,20 @@ const ok = (cond, name, detail = '') => {
   else { console.log(`  [X] ${name}${detail ? ' — ' + detail : ''}`); fails++; }
 };
 
+console.log('[arcade] 판 위 말 — 네 판이 같은 표현 부품을 쓴다');
+{
+  const piecePath = 'src/widgets/arcade/piece.ts';
+  const views = ['minishogi', 'yut', 'foxhounds', 'checkers'];
+  ok(existsSync(piecePath), '공용 piece.ts 가 있다');
+  const missing = views.filter((id) => {
+    const src = readFileSync(`src/widgets/arcade/games/${id}-view.ts`, 'utf8');
+    return !src.includes("from '../piece'") || !src.includes('pieceMarkup(');
+  });
+  ok(missing.length === 0, '말 계열 네 판이 공용 부품을 쓴다', missing.join(', '));
+  const fox = readFileSync('src/widgets/arcade/games/foxhounds-view.ts', 'utf8');
+  ok(!/[🦊🐶]/u.test(fox), '여우와 사냥개 판에 운영체제 이모지가 남지 않는다');
+}
+
 /** 판을 끝까지 민다. 사람 자리는 `play` 가 대신 둔다(없으면 아무도 안 둔다). */
 function run(game, seed, seats, play, maxMs = 200000) {
   const m = new Match(game, seed, seats);

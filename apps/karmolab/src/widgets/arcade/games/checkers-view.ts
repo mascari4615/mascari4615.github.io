@@ -5,6 +5,7 @@
  * 고른 뒤 갈 수 있는 곳을 점으로 보여 준다 — 대각선만 간다는 걸 말로 안 적어도 알게 된다.
  */
 import type { GameView } from '../views';
+import { pieceMarkup } from '../piece';
 import { N, movesFrom, type CheckersState, type CheckersAction } from './checkers';
 
 const owner = (v: number): number => (v === 0 ? -1 : v === 1 || v === 3 ? 0 : 1);
@@ -16,7 +17,7 @@ export const checkersView: GameView<CheckersState, CheckersAction> = {
     const grid = el.querySelector('#acCk') as HTMLElement;
     grid.innerHTML = Array.from({ length: N * N }, (_, i) => {
       const dark = ((i % N) + Math.floor(i / N)) % 2 === 1;
-      return '<button class="ac-ckc' + (dark ? ' ac-dark' : '') + '" data-c="' + i + '"><i></i></button>';
+      return '<button class="ac-ckc' + (dark ? ' ac-dark' : '') + '" data-c="' + i + '"></button>';
     }).join('');
     const cells = Array.from(grid.querySelectorAll<HTMLButtonElement>('.ac-ckc'));
     let pick = -1;
@@ -34,9 +35,11 @@ export const checkersView: GameView<CheckersState, CheckersAction> = {
         const val = s.board[i];
         const who = owner(val);
         const king = val >= 3;
+        btn.innerHTML = who >= 0
+          ? pieceMarkup({ shape: 'disc', owner: who, mark: king ? '◆' : '', king })
+          : '';
         btn.className =
           'ac-ckc' + (((i % N) + Math.floor(i / N)) % 2 === 1 ? ' ac-dark' : '') +
-          (who >= 0 ? ' ac-p' + (who + 1) : '') + (king ? ' ac-king' : '') +
           (i === pick ? ' ac-pick' : '') + (targets.includes(i) ? ' ac-can' : '') +
           (i === s.last ? ' ac-last' : '');
         btn.disabled = !myTurn || (who !== mySeat && !targets.includes(i));

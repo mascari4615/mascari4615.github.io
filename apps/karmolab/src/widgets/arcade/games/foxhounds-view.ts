@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { pieceMarkup } from '../piece';
 import { N, moves, type FoxState, type FoxAction } from './foxhounds';
 
 export const foxhoundsView: GameView<FoxState, FoxAction> = {
@@ -36,7 +37,9 @@ export const foxhoundsView: GameView<FoxState, FoxAction> = {
       cells.forEach((b, i) => {
         const isFox = s.fox === i;
         const isHound = s.hounds.includes(i);
-        b.textContent = isFox ? '🦊' : isHound ? '🐶' : '';
+        b.innerHTML = isFox
+          ? pieceMarkup({ shape: 'pawn', owner: 0, mark: '狐' })
+          : isHound ? pieceMarkup({ shape: 'pawn', owner: 1, mark: '犬' }) : '';
         const mine = (mySeat === 0 && isFox) || (mySeat === 1 && isHound);
         b.className =
           'ac-fxc' + (((i % N) + Math.floor(i / N)) % 2 === 1 ? ' ac-dark' : '') +
