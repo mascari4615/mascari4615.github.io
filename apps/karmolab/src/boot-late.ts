@@ -59,6 +59,28 @@ whenIdle(() => {
   });
 });
 
+/* 정적 블로그 글에서만 댓글 조각을 받는다 (change.board-unify ③).
+   댓글도 커뮤니티와 같은 markdown 렌더러를 쓰므로 marked를 먼저 준비한다. 못 받아도 댓글
+   번들은 안전한 plain-text fallback으로 산다. 주소를 통째로 적어야 entry-points가 실제 js를
+   만든다. 다른 KarmoLab 화면은 `[data-blog-comments]`가 없으므로 요청 0건이다. */
+whenIdle(() => {
+  if (!document.querySelector('[data-blog-comments]')) return;
+  const loadComments = () => {
+    const comments = document.createElement('script');
+    comments.src = '/apps/karmolab/js/blog-comments.js';
+    document.head.appendChild(comments);
+  };
+  if (typeof marked !== 'undefined') {
+    loadComments();
+    return;
+  }
+  const markdown = document.createElement('script');
+  markdown.src = '/apps/karmolab/js/vendor/marked.min.js';
+  markdown.addEventListener('load', loadComments, { once: true });
+  markdown.addEventListener('error', loadComments, { once: true });
+  document.head.appendChild(markdown);
+});
+
 /* 알람 발화 모드 (TASK-KL-064) — Rust 스케줄러가 띄우는 창이 `#alarm-fire` 로 이 장을 연다.
    대시보드 부팅 대신 가벼운 풀스크린 알람만 올린다(`widgets-loader.js` 도 같은 해시로 일찍 나간다). */
 if (location.hash === '#alarm-fire') {

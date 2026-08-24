@@ -349,6 +349,69 @@ describe('계정 API — HTTP', () => {
     expect(denied.status).toBe(401);
   });
 
+  it('블로그 답글 — 빈 묶음은 200이고 익명 첫 답글이 커뮤니티 글 목록을 오염시키지 않는다', async () => {
+    const empty = await fetch(`${baseUrl}/kl/blog/unity-optimization/comments`);
+    expect(empty.status).toBe(200);
+    expect((await empty.json()) as { replies: unknown[] }).toMatchObject({ replies: [] });
+
+    const posted = await fetch(`${baseUrl}/kl/blog/unity-optimization/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': HUMAN_UA },
+      body: JSON.stringify({ title: 'Unity Optimization', text: '도움이 됐어요', anon: true }),
+    });
+    expect(posted.status).toBe(200);
+
+    const thread = (await (await fetch(`${baseUrl}/kl/blog/unity-optimization/comments`)).json()) as {
+      replies: Array<{ text: string; anon: { name: string } | null }>;
+    };
+    expect(thread.replies).toHaveLength(1);
+    expect(thread.replies[0].text).toBe('도움이 됐어요');
+    expect(thread.replies[0].anon?.name).toBeTruthy();
+
+    const reopened = new KarmolabTraceStore(path.join(tmpDir, 'traces.json'));
+    expect(reopened.publicBlogThread('unity-optimization', null)?.replies[0].text).toBe('도움이 됐어요');
+
+    const community = (await (await fetch(`${baseUrl}/kl/posts?board=free`)).json()) as { posts: unknown[] };
+    expect(community.posts).toHaveLength(0);
+  });
+
+  it('블로그 답글 — 대댓글·좋아요·삭제가 게시판 답글과 같은 권한으로 돈다', async () => {
+    const me = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: me.cookie };
+    const top = await fetch(`${baseUrl}/kl/blog/a-post/comments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '한 글', text: '첫 답글', anon: false }),
+    });
+    expect(await top.json()).toEqual({ ok: true });
+    const topThread = (await (await fetch(`${baseUrl}/kl/blog/a-post/comments`, { headers })).json()) as {
+      replies: Array<{ id: string }>;
+    };
+    const topId = topThread.replies[0].id;
+    const child = await fetch(`${baseUrl}/kl/blog/a-post/comments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '한 글', text: '이어지는 말', parentId: topId, anon: false }),
+    });
+    expect(child.status).toBe(200);
+
+    expect((await fetch(`${baseUrl}/kl/blog/a-post/comments/${topId}/like`, { method: 'POST' })).status).toBe(401);
+    const liked = await fetch(`${baseUrl}/kl/blog/a-post/comments/${topId}/like`, { method: 'POST', headers });
+    expect(await liked.json()).toEqual({ liked: true });
+
+    const beforeDelete = (await (await fetch(`${baseUrl}/kl/blog/a-post/comments`, { headers })).json()) as {
+      replies: Array<{ id: string; parentId: string | null; likes: number; likedByMe: boolean }>;
+    };
+    expect(beforeDelete.replies).toHaveLength(2);
+    expect(beforeDelete.replies.find((reply) => reply.id === topId)).toMatchObject({ likes: 1, likedByMe: true });
+    expect(beforeDelete.replies.find((reply) => reply.parentId === topId)).toBeTruthy();
+
+    const removed = await fetch(`${baseUrl}/kl/blog/a-post/comments/${topId}`, { method: 'DELETE', headers });
+    expect(removed.status).toBe(200);
+    const afterDelete = (await (await fetch(`${baseUrl}/kl/blog/a-post/comments`)).json()) as { replies: unknown[] };
+    expect(afterDelete.replies).toHaveLength(0);
+  });
+
   it('글판 — 빈 글·너무 긴 글은 안 들어간다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };

@@ -155,6 +155,19 @@ export interface PostReply {
   likerAccountIds: string[];
 }
 
+/**
+ * git 글 한 장에 붙는 댓글 묶음.
+ *
+ * 블로그 글을 `Post` 로 속이지 않는다. 그렇게 넣으면 커뮤니티 최근글·검색·조회수에 본문 없는
+ * 가짜 글이 끼어든다. 글 본문과 목록의 정본은 끝까지 git이고, 서버는 slug에 딸린 답글만 가진다.
+ */
+export interface BlogThread {
+  slug: string;
+  /** 알림과 관리 화면에서 어느 글인지 말할 때 쓰는 표제. 본문 정본은 아니다. */
+  title: string;
+  replies: PostReply[];
+}
+
 export interface Post {
   id: string;
   board: BoardId;
@@ -277,6 +290,8 @@ interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
   posts: Post[];
+  /** 정적 블로그 글의 댓글. 글 자체는 git이라 여기에 복제하지 않는다. */
+  blogThreads: BlogThread[];
   galleries: Gallery[];
   reports: Report[];
   visits: VisitTrace;
@@ -440,6 +455,21 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
   };
 }
 
+function migrateBlogThread(raw: Partial<BlogThread>): BlogThread | null {
+  const slug = typeof raw.slug === 'string' ? raw.slug.trim() : '';
+  if (!slug) return null;
+  return {
+    slug,
+    title: typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim().slice(0, 160) : slug,
+    replies: (raw.replies ?? []).map((r) => ({
+      ...r,
+      parentId: r.parentId ?? null,
+      anon: r.anon ?? null,
+      likerAccountIds: r.likerAccountIds ?? [],
+    })),
+  };
+}
+
 /**
  * 번호가 없던 옛 글에 번호를 매긴다 (갤러리마다 1부터, 오래된 글이 1번).
  *
@@ -511,6 +541,7 @@ export class KarmolabTraceStore {
           version: 1,
           tools: parsed.tools ?? {},
           posts: numberOldPosts((parsed.posts ?? []).map(migratePost)),
+          blogThreads: (parsed.blogThreads ?? []).map(migrateBlogThread).filter((x): x is BlogThread => x !== null),
           galleries: withSeeds(parsed.galleries ?? []),
           reports: parsed.reports ?? [],
           visits: emptyVisits(parsed.visits),
@@ -525,6 +556,7 @@ export class KarmolabTraceStore {
       version: 1,
       tools: {},
       posts: [],
+      blogThreads: [],
       galleries: withSeeds([]),
       reports: [],
       visits: emptyVisits(),
@@ -1026,6 +1058,97 @@ export class KarmolabTraceStore {
     return reply;
   }
 
+  /** 블로그 글의 댓글 묶음. 아직 아무 말도 없으면 원장에 빈 줄을 만들지 않는다. */
+  publicBlogThread(slug: string, viewerAccountId: string | null): { slug: string; title: string; replies: PublicReply[] } | null {
+    const thread = this.state.blogThreads.find((x) => x.slug === slug);
+    if (!thread) return null;
+    return {
+      slug: thread.slug,
+      title: thread.title,
+      replies: thread.replies.map((reply) => this.toPublicReply(reply, viewerAccountId)),
+    };
+  }
+
+  /** 첫 답글이 붙는 순간에만 묶음을 만든다. 표제가 바뀌면 다음 쓰기 때 최신값으로 따라간다. */
+  private ensureBlogThread(slug: string, title: string): BlogThread {
+    const cleanTitle = title.trim().slice(0, 160) || slug;
+    const found = this.state.blogThreads.find((x) => x.slug === slug);
+    if (found) {
+      if (found.title !== cleanTitle) {
+        found.title = cleanTitle;
+        this.markDirty();
+      }
+      return found;
+    }
+    const thread: BlogThread = { slug, title: cleanTitle, replies: [] };
+    this.state.blogThreads.push(thread);
+    this.markDirty();
+    return thread;
+  }
+
+  /** 정적 글에 답글을 단다. 대댓글은 커뮤니티와 똑같이 한 단만 접는다. */
+  addBlogReply(
+    slug: string,
+    title: string,
+    input: {
+      text: string;
+      accountId: string;
+      handle: string;
+      byOwner: boolean;
+      parentId?: string | null;
+      anon?: AnonFace | null;
+    },
+    now: Date = new Date(),
+  ): PostReply {
+    const thread = this.ensureBlogThread(slug, title);
+    let parentId: string | null = null;
+    if (input.parentId) {
+      const parent = thread.replies.find((reply) => reply.id === input.parentId);
+      if (parent) parentId = parent.parentId ?? parent.id;
+    }
+    const reply: PostReply = {
+      id: crypto.randomUUID(),
+      text: input.text,
+      authorHandle: input.anon ? '' : input.handle,
+      authorAccountId: input.accountId,
+      anon: input.anon ?? null,
+      createdAt: now.toISOString(),
+      byOwner: input.anon ? false : input.byOwner,
+      parentId,
+      likerAccountIds: [],
+    };
+    thread.replies.push(reply);
+    this.markDirty();
+    return reply;
+  }
+
+  toggleBlogReplyLike(slug: string, replyId: string, accountId: string): boolean | null {
+    const reply = this.state.blogThreads.find((x) => x.slug === slug)?.replies.find((x) => x.id === replyId);
+    if (!reply) return null;
+    const index = reply.likerAccountIds.indexOf(accountId);
+    if (index >= 0) reply.likerAccountIds.splice(index, 1);
+    else reply.likerAccountIds.push(accountId);
+    this.markDirty();
+    return index < 0;
+  }
+
+  blogReplyAuthorAccountId(slug: string, replyId: string): string | null {
+    return this.state.blogThreads.find((x) => x.slug === slug)?.replies.find((x) => x.id === replyId)?.authorAccountId ?? null;
+  }
+
+  /** 블로그 답글도 본인이나 주인만 지운다. 달린 대댓글은 같이 사라진다. */
+  deleteBlogReply(slug: string, replyId: string, accountId: string, isOwner: boolean): boolean {
+    const thread = this.state.blogThreads.find((x) => x.slug === slug);
+    const reply = thread?.replies.find((x) => x.id === replyId);
+    if (!thread || !reply) return false;
+    if (!isOwner && reply.authorAccountId !== accountId) return false;
+    thread.replies = thread.replies.filter((x) => x.id !== replyId && x.parentId !== replyId);
+    // 빈 묶음은 버린다. 글 정본이 아니므로 빈 껍데기를 보관할 이유가 없다.
+    if (thread.replies.length === 0) this.state.blogThreads = this.state.blogThreads.filter((x) => x !== thread);
+    this.markDirty();
+    return true;
+  }
+
   /** 쓴 사람 본인이나 주인만 지운다. */
   deletePost(postId: string, accountId: string, isOwner: boolean): boolean {
     const index = this.state.posts.findIndex((p) => p.id === postId);
@@ -1071,6 +1194,20 @@ export class KarmolabTraceStore {
         reply.likerAccountIds = reply.likerAccountIds.filter((id) => id !== accountId);
       }
       if (votesBefore !== post.voterAccountIds.length || likesBefore !== post.likerAccountIds.length) changed = true;
+      if (changed) touched += 1;
+    }
+    for (const thread of this.state.blogThreads) {
+      let changed = false;
+      for (const reply of thread.replies) {
+        if (reply.authorAccountId === accountId) {
+          reply.authorAccountId = '';
+          reply.authorHandle = DELETED_HANDLE;
+          changed = true;
+        }
+        const before = reply.likerAccountIds.length;
+        reply.likerAccountIds = reply.likerAccountIds.filter((id) => id !== accountId);
+        if (before !== reply.likerAccountIds.length) changed = true;
+      }
       if (changed) touched += 1;
     }
     // 신고도 함께 지운다 — 신고한 사람이 없어졌는데 신고만 남으면 아무도 확인할 수 없다.
@@ -1164,6 +1301,20 @@ export class KarmolabTraceStore {
       .trim();
   }
 
+  private toPublicReply(reply: PostReply, viewerAccountId: string | null): PublicReply {
+    return {
+      id: reply.id,
+      text: reply.text,
+      authorHandle: reply.authorHandle,
+      anon: reply.anon,
+      createdAt: reply.createdAt,
+      byOwner: reply.byOwner,
+      parentId: reply.parentId,
+      likes: reply.likerAccountIds.length,
+      likedByMe: viewerAccountId ? reply.likerAccountIds.includes(viewerAccountId) : false,
+    };
+  }
+
   private toPublic(post: Post, viewerAccountId: string | null): PublicPost {
     return {
       id: post.id,
@@ -1188,17 +1339,7 @@ export class KarmolabTraceStore {
       statusNote: post.statusNote,
       statusAt: post.statusAt,
       statusBy: post.statusBy,
-      replies: post.replies.map((r) => ({
-        id: r.id,
-        text: r.text,
-        authorHandle: r.authorHandle,
-        anon: r.anon,
-        createdAt: r.createdAt,
-        byOwner: r.byOwner,
-        parentId: r.parentId,
-        likes: r.likerAccountIds.length,
-        likedByMe: viewerAccountId ? r.likerAccountIds.includes(viewerAccountId) : false,
-      })),
+      replies: post.replies.map((reply) => this.toPublicReply(reply, viewerAccountId)),
       votedByMe: viewerAccountId ? post.voterAccountIds.includes(viewerAccountId) : false,
       likedByMe: viewerAccountId ? post.likerAccountIds.includes(viewerAccountId) : false,
       mine: viewerAccountId !== null && post.authorAccountId === viewerAccountId,

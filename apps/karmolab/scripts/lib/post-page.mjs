@@ -1,16 +1,8 @@
 /**
- * 블로그 글 한 장의 **경량 셸** (TASK-KL-354 — 이관 Phase 1).
+ * 블로그 글 한 장의 내용 조각 (TASK-KL-354, change.board-unify ②③).
  *
- * 앱 셸(`shell-page.mjs`, 장당 리소스 13개)을 안 쓴다 — 글 장은 색인과 독자가 본진이라
- * 무게가 곧 크롤 예산이다 (TASK-KL-349: 크롤의 59% 가 JS 로 샜다). 이 장이 싣는 바깥 리소스는
- * 딱 둘: GoatCounter(계수)와 giscus(댓글, 스크롤이 닿을 때만). 스타일은 Observatory 토큰
- * 부분집합을 머리에 인라인 — CSS 파일 요청도 없다.
- *
- * 값의 출처:
- *  - 색 토큰 = `css/toolbox.css` :root / [data-theme="light"] (정본에서 베낀 부분집합 —
- *    바꿀 땐 toolbox.css 먼저, 여기는 따라 적는다)
- *  - 테마 저장 키 = `toolbox_theme` (앱과 같은 키 — 앱에서 고른 테마가 글 장에도 이어진다)
- *  - giscus = `apps/blog/_config.yml` comments.giscus (Chirpy 에서 승계, 댓글 이력 보존)
+ * 바깥 셸은 `shell-page.mjs`, 게시판 모양은 `css/community.css` 한 곳이 맡는다. 답글은
+ * `blog-comments.ts`가 yawnbot 커뮤니티 원장에 붙이며, 실패해도 이 정적 본문은 그대로 산다.
  */
 import { CSP_META } from './head-security.mjs';
 
@@ -380,8 +372,7 @@ export function postBody(meta, bodyHtml, nav) {
     /* 커뮤니티 글 상세와 **같은 클래스**를 쓴다 (change.board-unify ②, 사용자 확정 2026-08-23:
        「겉모습이 같으면 된다 — 기능은 달라도」). 규칙은 `css/community.css` 한 곳이 정본이고
        앱과 이 장이 그 파일을 각자 링크한다 — 여기에 스타일을 적으면 두 집이 갈라진다.
-       안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험).
-       답글 자리는 ③에서 커뮤니티 댓글로 진짜 붙는다 — 지금은 giscus 가 산다. */
+       안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험). */
     return `<div class="c-wrap">
     <div class="c-crumb"><a class="c-linkbtn" href="/karmolab/?board=blog#community">← 글</a></div>
     <article class="c-post">
@@ -399,7 +390,9 @@ ${bodyHtml}
         </nav>
     </article>
     <h3 class="c-section">답글</h3>
-    <div id="comments"></div>
+    <div id="comments" data-blog-comments data-slug="${esc(meta.slug)}" data-title="${esc(meta.title)}">
+        <div class="c-empty">답글을 불러오는 중…</div>
+    </div>
 </div>${nav.toc ? `<aside class="post-toc" aria-label="목차">${nav.toc}</aside>` : ''}`;
 }
 
@@ -411,7 +404,7 @@ export const POST_EXTRA_CSS = `<style>
 @media(max-width:1400px){.post-toc{display:none}}
 </style>`;
 
-/** 글 장 머리에 들어가는 것 — 구조화 데이터·giscus·계수기. 셸이 나머지를 다 준다. */
+/** 글 장 머리에 들어가는 것 — 구조화 데이터·게시판 시트. 셸이 나머지를 다 준다. */
 export function postHead(meta, { mathCss = false } = {}) {
     const url = `${SITE}/posts/${meta.slug}/`;
     const image = meta.image ? (meta.image.startsWith('/') ? `${CDN}${meta.image}` : meta.image) : '';

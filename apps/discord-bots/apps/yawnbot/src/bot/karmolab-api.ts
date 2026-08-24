@@ -114,6 +114,12 @@ function isAllowedOrigin(origin: string): boolean {
   return ALLOWED_ORIGINS.has(origin) || isLoopbackDevOrigin(origin);
 }
 
+/** 정적 글 주소의 마지막 조각. 파일명과 같은 범위만 받아 댓글 원장에 임의 열쇠가 쌓이지 않게 한다. */
+function blogSlug(raw: unknown): string | null {
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  return /^[a-z0-9](?:[a-z0-9-]{0,198}[a-z0-9])?$/.test(value) ? value : null;
+}
+
 /**
  * 데스크톱 앱이 되돌아오는 자리 — **그 기계 안(loopback)** 에서만 (RFC 8252).
  *
@@ -2364,6 +2370,137 @@ export function registerKarmolabApi(
         ? traces.bestPosts(limit, account?.id ?? null)
         : traces.recentPosts(limit, account?.id ?? null);
     res.json({ posts });
+  });
+
+  /**
+   * 정적 블로그 글의 답글. 글 본문·목록은 git이고 서버에는 slug별 답글만 둔다.
+   * 묶음이 아직 없으면 404가 아니라 빈 목록 — 댓글 0개는 오류가 아니다.
+   */
+  app.get('/kl/blog/:slug/comments', (req: Request, res: Response) => {
+    const slug = blogSlug(req.params.slug);
+    if (!slug) {
+      res.status(400).json({ error: 'bad_slug' });
+      return;
+    }
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const thread = traces.publicBlogThread(slug, account?.id ?? null);
+    res.json({
+      slug,
+      replies: thread?.replies ?? [],
+      signedIn: Boolean(account),
+      isAdmin: isAdminAccount(account),
+      myHandle: account?.handle ?? null,
+      myAnon: anonFaceFor(req),
+      replyMaxLength: REPLY_MAX_LEN,
+    });
+  });
+
+  app.post('/kl/blog/:slug/comments', (req: Request, res: Response) => {
+    const slug = blogSlug(req.params.slug);
+    if (!slug) {
+      res.status(400).json({ error: 'bad_slug' });
+      return;
+    }
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const body = req.body ?? {};
+    const writer = writerFor(req, account, body.anon === true);
+    if (writer.error) {
+      res.status(writer.status).json({ error: writer.error });
+      return;
+    }
+    const text = String(body.text ?? '').trim();
+    if (text.length < 1 || text.length > REPLY_MAX_LEN) {
+      res.status(400).json({ error: 'bad_text', maxLength: REPLY_MAX_LEN });
+      return;
+    }
+    const title = String(body.title ?? '').trim().slice(0, 160) || slug;
+    const parentId = typeof body.parentId === 'string' ? body.parentId : null;
+    const parentAuthorId = parentId ? traces.blogReplyAuthorAccountId(slug, parentId) : null;
+    traces.addBlogReply(slug, title, {
+      text,
+      accountId: writer.accountId,
+      handle: writer.handle,
+      byOwner: isAdminAccount(account),
+      parentId,
+      anon: writer.anon,
+    });
+    traces.flush();
+
+    const actorLabel = writer.anon ? writer.anon.name : `@${writer.handle}`;
+    const url = `/posts/${encodeURIComponent(slug)}/#comments`;
+    // 글쓴이는 사이트 주인이다. 기존 ADMIN_IDS를 그대로 써서 별도 소유자 설정을 만들지 않는다.
+    for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
+      const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
+      if (!admin) continue;
+      notifyIfWanted({
+        accountId: admin.id,
+        actorAccountId: writer.accountId,
+        source: 'community',
+        title: '내 글에 답글이 달렸어요',
+        body: `${title} — ${actorLabel}`,
+        url,
+        groupKey: `blog-reply:${slug}`,
+      });
+    }
+    if (parentAuthorId) {
+      notifyIfWanted({
+        accountId: parentAuthorId,
+        actorAccountId: writer.accountId,
+        source: 'community',
+        title: '내 답글에 답글이 달렸어요',
+        body: `${actorLabel}: ${text.slice(0, 40)}`,
+        url,
+        groupKey: `blog-reply-reply:${slug}:${parentId}`,
+      });
+    }
+    notes.flush();
+    // 저장형에는 authorAccountId·likerAccountIds가 있다. 공개 응답에 내부 원장을 싣지 않는다.
+    res.json({ ok: true });
+  });
+
+  app.post('/kl/blog/:slug/comments/:replyId/like', (req: Request, res: Response) => {
+    const slug = blogSlug(req.params.slug);
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!slug) {
+      res.status(400).json({ error: 'bad_slug' });
+      return;
+    }
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const liked = traces.toggleBlogReplyLike(slug, String(req.params.replyId ?? ''), account.id);
+    if (liked === null) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ liked });
+  });
+
+  app.delete('/kl/blog/:slug/comments/:replyId', (req: Request, res: Response) => {
+    const slug = blogSlug(req.params.slug);
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!slug) {
+      res.status(400).json({ error: 'bad_slug' });
+      return;
+    }
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const removed = traces.deleteBlogReply(
+      slug,
+      String(req.params.replyId ?? ''),
+      account.id,
+      isAdminAccount(account),
+    );
+    if (!removed) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
   });
 
   /**

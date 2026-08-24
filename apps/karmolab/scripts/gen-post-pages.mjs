@@ -2,8 +2,8 @@
  * 블로그 글 정적 장 찍기 (TASK-KL-354 — 이관 Phase 1).
  *
  * `content/posts/**`(표준 md — `convert:posts` 산출)를 읽어 `/posts/<slug>/` 한 장씩 찍는다.
- * 렌더러 = `src/lib/markdown/render.ts` **한 벌** (위젯과 같은 문). 셸 = `lib/post-page.mjs`
- * 경량 장 — 바깥 리소스 2개(GoatCounter·giscus lazy), 앱 셸 13개와 비교하면 크롤 예산 방어다.
+ * 렌더러 = `src/lib/markdown/render.ts` **한 벌** (위젯과 같은 문). 셸 = `lib/shell-page.mjs`,
+ * 글 조각 = `lib/post-page.mjs`, 답글 = `src/blog-comments.ts`(본문을 막지 않는 지연 조각).
  *
  * URL 은 Chirpy 와 **글자 그대로 같다**: `/posts/<파일명 slug>/`. 색인된 글이 전부 이 형식이라
  * (TASK-KL-349 — 색인 3장 전부 옛 글) 한 글자도 못 바꾼다. slug 충돌은 여기서 배포 전에 세운다.
@@ -184,6 +184,12 @@ for (const post of posts) {
         }),
         head: postHead(post, { mathCss: math.hasMath }),
     });
+
+    // 글 장 하나라도 댓글 표식을 잃거나 옛 giscus가 돌아오면 배포 전에 세운다.
+    const commentMarker = `data-blog-comments data-slug="${shellEsc(post.slug)}"`;
+    if (!page.includes(commentMarker) || /giscus/i.test(page)) {
+        throw new Error(`[gen-post-pages] ${post.slug}: KarmoLab 답글 배선이 빠졌거나 giscus가 돌아왔다`);
+    }
 
     // 무게 게이트 — 이 장이 바깥에서 받는 것(스크립트·스타일 링크) 수. 앱 셸로 회귀하면 여기가 선다.
     // 수식 장은 katex.min.css 한 장을 더 받는다 — 그 장만 +1 허용.
