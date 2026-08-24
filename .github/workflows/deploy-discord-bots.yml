@@ -340,6 +340,21 @@ jobs:
           $failed = $null
           & npm install --prefer-offline --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { $failed = 'npm install failed' }
+
+          # === 곁 꾸러미의 연장도 챙긴다 (2026-08-24, prod 30분 정지) ===
+          # `build:yawnbot` 은 `npm --prefix ../../packages/ai run build` 를 부르는데, 그 폴더는
+          # 이 워크스페이스 **밖**이라 위 `npm install` 이 손대지 않는다. 여태 안 터진 건 노트북에
+          # 옛 `node_modules` 가 남아 있었기 때문 — 이름 이관(`karmolab-ai` → `@karmo/ai`)으로
+          # 폴더가 새로 생기자 `@types/node` 가 없어 `TS2688` 로 빌드가 죽었다.
+          # 짓기 전에 그 폴더의 의존을 보장한다. 있으면 npm 이 알아서 빨리 끝낸다.
+          if (-not $failed) {
+            $aiDir = Join-Path $PWD '..\..\packages\ai'
+            if (Test-Path $aiDir) {
+              & npm --prefix $aiDir install --prefer-offline --no-audit --no-fund
+              if ($LASTEXITCODE -ne 0) { $failed = 'packages/ai install failed' }
+            }
+          }
+
           if (-not $failed) {
             & npm run build:yawnbot
             if ($LASTEXITCODE -ne 0) { $failed = 'build:yawnbot failed' }
@@ -347,16 +362,22 @@ jobs:
 
           if ($failed) {
             # 되돌린다. 새 기능은 안 나가지만 **봇은 산다** — 죽은 봇보다 어제 봇이 낫다.
+            #
+            # ★ 단, 「산다」를 **말로 하지 않는다** (2026-08-24, prod 30분 정지).
+            #   되돌리는 것은 `dist` 뿐인데 `node_modules` 는 이미 새 판이다. 이름 이관 때
+            #   옛 dist 가 사라진 꾸러미(`karmolab-ai/node`)를 불러 기동 즉시 MODULE_NOT_FOUND,
+            #   nssm 이 PAUSED 로 남겼다 — 그런데 이 자리는 「bot keeps running」이라 적고 있었다.
+            #   되돌린 판이 **실제로 뜨는지**는 아래 재기동·health step 이 판정한다.
             if (Test-Path $lastGood) {
               if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force -ErrorAction SilentlyContinue }
               Copy-Item $lastGood $distDir -Recurse -Force
-              Write-Output "::warning title=deploy-failed-rolled-back::$failed - bot keeps running on the previous build."
+              Write-Output "::warning title=deploy-failed-rolled-back::$failed - restored previous dist. NOTE: node_modules are already updated, so the old build may not boot - check the health step."
               # 그림글자는 **한 칸짜리만** 쓴다. 두 칸을 차지하는 것(되돌림·경보 그림)을 넣었더니
               # 러너가 이 파일을 옛 글자표로 읽으면서 문자열이 중간에 끊겨, 이 step 이
               # 통째로 파서 오류로 죽었다(2026-08-08 두 판 연속). 안전망이 자기 문법으로 죽으면
               # 아무도 안 지킨다. ⚠ 는 한 칸이라 안전하다.
               # 문자열은 영문으로 — 한글이 들어가면 러너가 옛 글자표로 읽다 따옴표를 먹는다(실측).
-              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "ROLLED BACK: $failed - restored dist.last-good, bot kept alive. New changes did NOT ship."
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "ROLLED BACK: $failed - restored dist.last-good. New changes did NOT ship. Old build runs against NEW node_modules - if the health step is silent, the bot is down and needs a manual rebuild."
             } else {
               Write-Output "::warning title=deploy-failed-no-rollback::$failed"
             }
@@ -529,6 +550,12 @@ jobs:
           if ($ok) {
             Write-Host "[KL-190] bot is alive (/kl/health 200)"
           } else {
-            Write-Output "::warning title=bot-not-answering::service started but /kl/health does not answer - see C:\nssm-logs\yawnbot-prod\stderr.log"
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'WARN: bot does not answer - service started but /kl/health silent'
+            # ★ 여기서 초록으로 끝내지 않는다 (2026-08-24, prod 30분 정지).
+            #   여태 이 자리는 `::warning` 만 찍고 step 을 성공으로 끝냈다. 그래서 봇이 죽은
+            #   배포가 **초록으로 지나갔고**, 사람이 502 를 볼 때까지 아무도 몰랐다.
+            #   30초(5초 x 6) 를 기다려도 안 뜨면 그것은 「느린 것」이 아니라 「안 뜨는 것」이다.
+            #   빨강이어야 「배포 빨강 알림」이 울린다.
+            Write-Output "::error title=bot-not-answering::service started but /kl/health does not answer after 30s - see C:\nssm-logs\yawnbot-prod\stderr.log"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'FAIL: bot does not answer - service started but /kl/health silent after 30s. Bot is DOWN.'
+            throw 'bot does not answer /kl/health after deploy'
           }
