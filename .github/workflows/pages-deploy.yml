@@ -324,10 +324,13 @@ jobs:
 
       # room(간판 방) 이 /packages/three-kit/** 를 import map 으로 부른다 (KL-345).
       # 안 실으면 페이지는 뜨는데 3D 만 영원히 「불러오는 중」 — 2026-08-23 라이브에서 실측.
-      - name: Merge three-kit to site
+      # 이름이 `three-kit` → `3d` 로 바뀌었다 (@karmo/* 이관). 여기가 안 따라와서 배포가
+      # rsync exit 23 으로 죽었다 — 없는 폴더를 옮기려 했다(2026-08-24 실측).
+      # 폴더 이름을 다시 바꾸면 여기도 같이 고쳐야 한다: room 화면이 이 경로를 import map 으로 부른다.
+      - name: Merge 3d kit to site
         run: |
-          mkdir -p apps/blog/_site/packages/three-kit
-          rsync -a --exclude 'node_modules' --exclude 'test' packages/three-kit/ apps/blog/_site/packages/three-kit/
+          mkdir -p apps/blog/_site/packages/3d
+          rsync -a --exclude 'node_modules' --exclude 'test' packages/3d/ apps/blog/_site/packages/3d/
 
       # **나갈 파일에 실제로 남아 있나** (TASK-KL-201, 2026-08-10).
       #
