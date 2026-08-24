@@ -21,10 +21,21 @@ const blogRoot = path.join(repoRoot, 'apps/blog');
 
 const roster = JSON.parse(fs.readFileSync(path.join(repoRoot, 'apps/play/games.json'), 'utf8')).games;
 
-/* 장이 아직 안 찍혔으면 「못 돌렸다」다 — 빌드 전에 부르면 전부 빨개진다. */
-if (fs.existsSync(path.join(blogRoot, 'karmolab/t')) === false) {
-  console.log('[play-urls] CANNOT-RUN(건너뜀) — 도구 장이 아직 안 찍혔다. `npm run gen:tool-pages` 뒤에 돌려라.');
-  process.exit(0);
+/*
+ * 놀이 판을 찍는 쪽(`apps/play/scripts/build.mjs`)은 주소마다 **그걸 내주는 파일**을 WHERE 에
+ * 적어 두라고 요구하고, 안 적혀 있으면 멈춘다. 그 멈춤이 배포에서 처음 보이면 이미 늦다 —
+ * 실측으로 배포 세 판이 그렇게 빨갰다(2026-08-10). 그래서 여기서 같은 것을 먼저 묻는다.
+ */
+const hubBuild = fs.readFileSync(path.join(repoRoot, 'apps/play/scripts/build.mjs'), 'utf8');
+
+/*
+ * 장이 아직 안 찍혔으면 **장이 있는지**만 못 묻는다 — 그 부분만 건너뛴다.
+ * 통째로 건너뛰면 아래 WHERE 검사까지 같이 죽어서, 정작 배포를 세우는 것을 못 잡는다
+ * (실측: 그렇게 만들어 놨다가 배포 세 판을 빨갛게 냈다)。
+ */
+const pagesReady = fs.existsSync(path.join(blogRoot, 'karmolab/t'));
+if (pagesReady === false) {
+  console.log('[play-urls] 도구 장이 아직 안 찍혔다 — 장이 있는지는 건너뛰고 WHERE 만 본다.');
 }
 
 /*
@@ -52,6 +63,10 @@ walk(blogRoot, 0);
 
 const problems = [];
 for (const g of roster) {
+  if (hubBuild.includes(`'${g.url}'`) === false) {
+    problems.push(`${g.id}: 놀이 판 생성기의 WHERE 에 「${g.url}」 가 없다 — 배포가 여기서 멈춘다`);
+  }
+
   /* `#` 뒤는 화면 안에서 여는 이름이라 파일이 아니다 — 앞의 장만 본다. */
   const url = String(g.url ?? '').split('#')[0];
   if (url === '') {
@@ -62,6 +77,7 @@ for (const g of roster) {
     problems.push(`${g.id}: 주소가 /로 시작하지 않는다 (${g.url})`);
     continue;
   }
+  if (pagesReady === false) continue; // 여기부터는 찍힌 장이 있어야 물을 수 있다
   if (declared.has(url)) continue; // 앞머리로 선언된 장
 
   /*

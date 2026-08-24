@@ -41,7 +41,16 @@ try {
 const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
-await page.evaluate(() => {
+/*
+ * 말 묶음을 미리 박는다 — 진짜 페이지가 하는 그대로. 안 박으면 위젯이 말 묶음을 받으러 갔다가
+ * 못 받아 **영영 안 그려진다**(실측: CI 배포 빨강).
+ */
+const catalogs = {
+  comparepic: JSON.parse(fs.readFileSync(path.join(appRoot, 'i18n/ko/comparepic.json'), 'utf8')),
+  livecount: JSON.parse(fs.readFileSync(path.join(appRoot, 'i18n/ko/livecount.json'), 'utf8'))
+};
+await page.evaluate((cat) => {
+  window.__KARMO_I18N = { ko: cat };
   window.__KARMO_LOCALE = 'ko';
   window.__reg = {};
   window.__dispose = [];
@@ -57,7 +66,7 @@ await page.evaluate(() => {
       return true;
     }
   };
-});
+}, catalogs);
 const read = (rel) => fs.readFileSync(path.join(appRoot, rel), 'utf8');
 await page.addScriptTag({ content: read('js/widgets/tools/comparepic.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/livecount.js') });
@@ -73,6 +82,11 @@ const cmp = await page.evaluate(async () => {
   host.style.width = '400px';
   document.body.appendChild(host);
   tool.tabs[0].build(host);
+  /* 말 묶음을 받은 뒤에 그려진다 — 부르자마자 읽으면 「칸이 없다」로 헛보인다. */
+  for (let i = 0; i < 80 && host.querySelector('#cpCanvas') === null; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (host.querySelector('#cpCanvas') === null) return { notDrawn: true };
 
   /** 한 가지 색으로 채운 그림 한 장을 파일처럼 만든다. */
   const makeFile = async (name, color) => {
@@ -106,7 +120,8 @@ const cmp = await page.evaluate(async () => {
   return { left: at(0.15), right: at(0.85), w: canvas.width, h: canvas.height };
 });
 
-if (cmp.missing === true) {
+if (cmp.notDrawn === true) fails.push('비교 슬라이더가 8초 안에 안 그려졌다');
+else if (cmp.missing === true) {
   fails.push('번들을 실어도 comparepic 이 등록되지 않는다');
 } else if (cmp.w === 0 || cmp.h === 0) {
   fails.push('그림 두 장을 넣어도 그림판 크기가 0이다 — 아무것도 안 그려졌다');
@@ -125,6 +140,10 @@ const count = await page.evaluate(async () => {
   host.id = 'lcHost';
   document.body.appendChild(host);
   tool.tabs[0].build(host);
+  for (let i = 0; i < 80 && host.querySelector('#lcBig') === null; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (host.querySelector('#lcBig') === null) return { notDrawn: true };
 
   const read = () => host.querySelector('#lcBig')?.textContent ?? '';
   const first = read();
@@ -141,7 +160,8 @@ const count = await page.evaluate(async () => {
   return { first, ticked, atLeave, afterLeave, disposers: mine.length };
 });
 
-if (count.missing === true) {
+if (count.notDrawn === true) fails.push('카운터가 8초 안에 안 그려졌다');
+else if (count.missing === true) {
   fails.push('번들을 실어도 livecount 가 등록되지 않는다');
 } else {
   if (count.first === count.ticked) fails.push(`1.3초를 기다려도 숫자가 안 올라간다: ${count.first}`);
