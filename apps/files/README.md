@@ -24,4 +24,5 @@
 - `.env.template` 을 `.env` 로 복사. `npm run upload` 가 그 파일을 읽음
 - `npm run upload -- --dry-run` — 목록만
 - Drive 한 장 왕복 확인: `node scripts/probe-rclone.mjs` (끝나면 프로브 폴더 삭제)
-- Worker 정본: `worker.mjs` — CF Worker `files` 에 붙임 (사람)
+- Worker live: `/blob/` → R2 `karm-files-vault` (비공개, `VAULT`). 객체 없으면 픽스처
+- `wrangler.toml` 바인딩 이름 정본. 공개 `blog-img` 쓰지 마
