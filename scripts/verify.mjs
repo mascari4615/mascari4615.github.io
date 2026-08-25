@@ -16,7 +16,7 @@ import { spawnSync } from 'node:child_process';
    그건 옳다(뒤 단계가 앞 단계 산출물을 쓴다). 그런데 로그에는 「멈췄다」만 있고 **몇 번째에서**
    **멈췄는지**가 없었다. 2번째에서 멈춘 것과 8번째에서 멈춘 것은 남은 값이 전혀 다르다 —
    앞이면 한 판을 통째로 다시 돌려야 하고, 뒤면 거의 다 본 것이다. 숫자를 적어 그 판단을 준다. */
-const totalSteps = 11;
+const totalSteps = 12;
 let currentStep = 0;
 
 /* ★ **어디서 오래 걸리는지 아무도 몰랐다** (2026-08-19). 「verify 기네」는 매번 나오는데
@@ -353,6 +353,11 @@ run('동반자 위젯 ↔ 봇 (봇 없으면 skip)', 'apps/karmolab', 'node scri
 //      깨져도 아무 빌드가 안 빨개진다 — 매일 도는 물건이라 조용한 고장이 제일 나쁘다.
 if (existsSync('apps/daily/engine.test.mjs')) {
   run('apps/daily 규칙 시험', 'apps/daily', 'node --test');
+}
+
+// Files 금고 규격 — 의존성 0. 화면 HTML 과 따로, 안 걸면 암호 왕복이 깨져도 Pages 배포는 초록이다.
+if (existsSync('apps/files/test/vault-roundtrip.test.mjs')) {
+  run('apps/files 금고 왕복', 'apps/files', 'node --test');
 }
 
 /* 6. 오탈자 — **있으면 여기서 돈다** (2026-08-17).

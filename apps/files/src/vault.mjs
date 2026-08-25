@@ -1,0 +1,246 @@
+/**
+ * Files 금고 v1 — 청크 AES-GCM + 암호화 목록.
+ *
+ * 왜 위젯 crypto.ts 를 안 쓰나: 그쪽은 CryptoJS AES-CBC 텍스트 메모다. 인증 태그가 없고
+ * 파일·이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).
+ *
+ * 저장 키에는 평문 경로를 넣지 않는다. 이름·목록은 idx 암호문 안에만 있다.
+ */
+const MAGIC = new TextEncoder().encode('KARMVLT1');
+const KDF_PBKDF2 = 1;
+const HEADER_LEN = 30;
+const IV_LEN = 12;
+const SALT_LEN = 16;
+const ID_LEN = 16;
+const CHUNK = 1024 * 1024;
+const PROD_ITERATIONS = 600_000;
+const AAD_INDEX = new TextEncoder().encode('karmvlt:index:1');
+
+export class VaultError extends Error {}
+export class VaultUnlockError extends VaultError {}
+export class VaultCorruptError extends VaultError {}
+export class VaultPathError extends VaultError {}
+
+export { CHUNK, PROD_ITERATIONS };
+
+export function memoryStore() {
+  const m = new Map();
+  return {
+    async put(key, bytes) {
+      m.set(key, bytes.slice());
+    },
+    async get(key) {
+      const v = m.get(key);
+      return v ? v.slice() : null;
+    },
+    snapshot() {
+      return m;
+    },
+  };
+}
+
+function u32be(n) {
+  const b = new Uint8Array(4);
+  new DataView(b.buffer).setUint32(0, n);
+  return b;
+}
+
+function readU32be(bytes, off) {
+  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(off);
+}
+
+export function hex(bytes) {
+  return Array.from(bytes, (x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+function randomBytes(n) {
+  const b = new Uint8Array(n);
+  crypto.getRandomValues(b);
+  return b;
+}
+
+export function normalizePath(path) {
+  if (typeof path !== 'string' || path === '') throw new VaultPathError('empty');
+  if (path.includes('\0') || path.includes('\\')) throw new VaultPathError('bad char');
+  const parts = path.split('/').filter((p) => p !== '');
+  if (parts.length === 0) throw new VaultPathError('empty');
+  if (parts.some((p) => p === '.' || p === '..')) throw new VaultPathError('dot');
+  return parts.join('/');
+}
+
+async function deriveKey(passphrase, salt, iterations) {
+  const raw = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    raw,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+async function seal(key, plain, aad) {
+  const iv = randomBytes(IV_LEN);
+  const ct = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, plain),
+  );
+  const out = new Uint8Array(IV_LEN + ct.length);
+  out.set(iv, 0);
+  out.set(ct, IV_LEN);
+  return out;
+}
+
+async function open(key, packed, aad) {
+  if (!packed || packed.length < IV_LEN + 16) throw new VaultCorruptError('short');
+  const iv = packed.subarray(0, IV_LEN);
+  const ct = packed.subarray(IV_LEN);
+  try {
+    return new Uint8Array(
+      await crypto.subtle.decrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, ct),
+    );
+  } catch {
+    throw new VaultCorruptError('auth');
+  }
+}
+
+function aadChunk(id, n) {
+  return new TextEncoder().encode(`karmvlt:chunk:${id}:${n}`);
+}
+
+async function sha256Hex(bytes) {
+  return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+}
+
+function encodeIndex(index) {
+  return new TextEncoder().encode(JSON.stringify(index));
+}
+
+function decodeIndex(bytes) {
+  let parsed;
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    throw new VaultCorruptError('index json');
+  }
+  if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.files)) {
+    throw new VaultCorruptError('index shape');
+  }
+  return parsed;
+}
+
+async function writeIndex(session, index) {
+  const packed = await seal(session.key, encodeIndex(index), AAD_INDEX);
+  await session.store.put('idx', packed);
+}
+
+async function readIndex(session) {
+  const packed = await session.store.get('idx');
+  if (!packed) throw new VaultCorruptError('no index');
+  return decodeIndex(await open(session.key, packed, AAD_INDEX));
+}
+
+function packHeader({ kdf, iterations, salt }) {
+  const h = new Uint8Array(HEADER_LEN);
+  h.set(MAGIC, 0);
+  h[8] = kdf;
+  h[9] = 0;
+  h.set(u32be(iterations), 10);
+  h.set(salt, 14);
+  return h;
+}
+
+function unpackHeader(bytes) {
+  if (!bytes || bytes.length !== HEADER_LEN) throw new VaultUnlockError('header');
+  for (let i = 0; i < MAGIC.length; i++) {
+    if (bytes[i] !== MAGIC[i]) throw new VaultUnlockError('magic');
+  }
+  const kdf = bytes[8];
+  if (kdf !== KDF_PBKDF2) throw new VaultUnlockError('kdf');
+  const iterations = readU32be(bytes, 10);
+  if (iterations < 1) throw new VaultUnlockError('iter');
+  const salt = bytes.subarray(14, 14 + SALT_LEN);
+  return { kdf, iterations, salt };
+}
+
+export async function createVault(store, passphrase, opts = {}) {
+  const iterations = opts.iterations ?? PROD_ITERATIONS;
+  const salt = randomBytes(SALT_LEN);
+  await store.put('hdr', packHeader({ kdf: KDF_PBKDF2, iterations, salt }));
+  const key = await deriveKey(passphrase, salt, iterations);
+  const session = { store, key, iterations };
+  await writeIndex(session, { v: 1, files: [] });
+  return session;
+}
+
+export async function unlockVault(store, passphrase) {
+  const header = unpackHeader(await store.get('hdr'));
+  const key = await deriveKey(passphrase, header.salt, header.iterations);
+  const session = { store, key, iterations: header.iterations };
+  try {
+    await readIndex(session);
+  } catch {
+    throw new VaultUnlockError('index');
+  }
+  return session;
+}
+
+export async function putFile(session, path, bytes, opts = {}) {
+  const norm = normalizePath(path);
+  const chunkSize = opts.chunkSize ?? CHUNK;
+  if (!(bytes instanceof Uint8Array)) throw new VaultPathError('bytes');
+  const id = hex(randomBytes(ID_LEN));
+  const n = bytes.length === 0 ? 0 : Math.ceil(bytes.length / chunkSize);
+  for (let i = 0; i < n; i++) {
+    const part = bytes.subarray(i * chunkSize, Math.min(bytes.length, (i + 1) * chunkSize));
+    const sealed = await seal(session.key, part, aadChunk(id, i));
+    await session.store.put(`c/${id}/${i}`, sealed);
+  }
+  const digest = await sha256Hex(bytes);
+  const index = await readIndex(session);
+  index.files = index.files.filter((f) => f.path !== norm);
+  index.files.push({ id, path: norm, size: bytes.length, chunks: n, sha256: digest });
+  await writeIndex(session, index);
+  return { id, sha256: digest, chunks: n };
+}
+
+export async function listFiles(session) {
+  const index = await readIndex(session);
+  return index.files.map((f) => ({
+    path: f.path,
+    size: f.size,
+    chunks: f.chunks,
+    sha256: f.sha256,
+  }));
+}
+
+export async function getFile(session, path) {
+  const norm = normalizePath(path);
+  const index = await readIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry) return null;
+  const parts = [];
+  let total = 0;
+  for (let i = 0; i < entry.chunks; i++) {
+    const packed = await session.store.get(`c/${entry.id}/${i}`);
+    if (!packed) throw new VaultCorruptError('missing chunk');
+    const part = await open(session.key, packed, aadChunk(entry.id, i));
+    parts.push(part);
+    total += part.length;
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const p of parts) {
+    out.set(p, off);
+    off += p.length;
+  }
+  if (out.length !== entry.size) throw new VaultCorruptError('size');
+  const digest = await sha256Hex(out);
+  if (digest !== entry.sha256) throw new VaultCorruptError('hash');
+  return { bytes: out, entry };
+}
