@@ -271,3 +271,73 @@ export async function getFile(session, path) {
   if (digest !== entry.sha256) throw new VaultCorruptError('hash');
   return { bytes: out, entry };
 }
+
+/** 브라우저·원격 읽기 전용. 올리기는 PC rclone. */
+export function fetchStore(base, fetchFn = globalThis.fetch) {
+  const prefix = String(base).replace(/\/+$/, '');
+  return {
+    async get(key) {
+      const r = await fetchFn(`${prefix}/${key}`);
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error('get ' + r.status);
+      return new Uint8Array(await r.arrayBuffer());
+    },
+    async put() {
+      throw new Error('read-only');
+    },
+  };
+}
+
+export function listDir(files, dir) {
+  const trimmed = (dir || '').replace(/^\/+|\/+$/g, '');
+  const prefix = trimmed ? trimmed + '/' : '';
+  const folders = new Set();
+  const rows = [];
+  for (const f of files) {
+    if (prefix) {
+      if (f.path === trimmed) continue;
+      if (!f.path.startsWith(prefix)) continue;
+      const rest = f.path.slice(prefix.length);
+      const slash = rest.indexOf('/');
+      if (slash === -1) rows.push(f);
+      else folders.add(rest.slice(0, slash));
+    } else {
+      const slash = f.path.indexOf('/');
+      if (slash === -1) rows.push(f);
+      else folders.add(f.path.slice(0, slash));
+    }
+  }
+  return {
+    dir: trimmed,
+    folders: [...folders].sort(),
+    files: rows.slice().sort((a, b) => a.path.localeCompare(b.path)),
+  };
+}
+
+export function previewKind(path) {
+  const ext = String(path).split('.').pop().toLowerCase();
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'].includes(ext)) return 'image';
+  if (['mp4', 'webm', 'ogv'].includes(ext)) return 'video';
+  if (['txt', 'md', 'json', 'csv'].includes(ext)) return 'text';
+  return 'file';
+}
+
+export function mimeFor(path) {
+  const ext = String(path).split('.').pop().toLowerCase();
+  const map = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    avif: 'image/avif',
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    ogv: 'video/ogg',
+    txt: 'text/plain',
+    md: 'text/plain',
+    json: 'application/json',
+    csv: 'text/csv',
+  };
+  return map[ext] || 'application/octet-stream';
+}

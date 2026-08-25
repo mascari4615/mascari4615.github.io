@@ -79,6 +79,8 @@ body {
 }
 .none, .err { padding: 28px 16px; color: var(--mute); font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
 .err { color: #8a2a1f; }
+.preview-img, .preview-vid { display: block; max-width: 100%; background: #1c1814; }
+.preview-text { margin: 0; padding: 16px; white-space: pre-wrap; word-break: break-all; font-size: .9rem; }
 @media (max-width: 560px) {
   .row { grid-template-columns: 22px 1fr; }
   .acts { grid-column: 1 / -1; }
@@ -92,112 +94,12 @@ body {
     <div class="who">내 파일</div>
   </header>
   <div class="drawers">
-    <button class="tab on" type="button">노트북</button>
-    <button class="tab" type="button" disabled title="다음 확장">금고</button>
+    <button class="tab on" type="button" id="tab-laptop">노트북</button>
+    <button class="tab" type="button" id="tab-vault">금고</button>
   </div>
   <p class="crumb" id="crumb"></p>
   <div class="cabinet" id="box"></div>
 </div>
-<script>
-(function () {
-  var LAPTOP = 'https://laptop.mascari4615.com';
-  var KEY = 'files.laptop.pass';
-  var box = document.getElementById('box');
-  var crumb = document.getElementById('crumb');
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  }
-  function fmtSize(n) {
-    if (n >= 1073741824) return (n / 1073741824).toFixed(2) + ' GB';
-    if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
-    if (n >= 1024) return (n / 1024).toFixed(0) + ' KB';
-    return n + ' B';
-  }
-  function fmtTime(ms) {
-    var d = new Date(ms + 9 * 3600000);
-    function p(x) { return String(x).padStart(2, '0'); }
-    return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes());
-  }
-  function abs(u) {
-    if (!u) return '';
-    if (u.indexOf('http') === 0) return u;
-    return LAPTOP + u;
-  }
-  function pathFromHash() {
-    var h = location.hash.replace(/^#/, '');
-    if (h.indexOf('laptop/') === 0) return decodeURIComponent(h.slice(7));
-    return '';
-  }
-  function authHeader() {
-    var pass = sessionStorage.getItem(KEY) || '';
-    if (!pass) return null;
-    return 'Basic ' + btoa('x:' + pass);
-  }
-  function showGate(msg) {
-    box.innerHTML = '<form class="gate" id="gate"><p>' + esc(msg || '노트북 공유 비밀번호') + '</p>' +
-      '<input type="password" id="pass" autocomplete="current-password">' +
-      '<div><button type="submit">열기</button></div></form>';
-    document.getElementById('gate').addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      sessionStorage.setItem(KEY, document.getElementById('pass').value);
-      load();
-    });
-  }
-  function load() {
-    var p = pathFromHash();
-    var auth = authHeader();
-    if (!auth) { showGate(); return; }
-    box.innerHTML = '<p class="none">서랍을 여는 중</p>';
-    fetch(LAPTOP + '/files/api/list?p=' + encodeURIComponent(p), {
-      headers: { Authorization: auth }
-    }).then(function (r) {
-      if (r.status === 401 || r.status === 403) {
-        sessionStorage.removeItem(KEY);
-        showGate('비밀번호가 틀렸거나 만료됐다.');
-        return null;
-      }
-      if (!r.ok) throw new Error('list ' + r.status);
-      return r.json();
-    }).then(function (data) {
-      if (!data) return;
-      if (!data.ok) {
-        box.innerHTML = '<p class="err">그 경로는 열 수 없다.</p>';
-        return;
-      }
-      var bits = ['<a href="#laptop/">노트북</a>'];
-      if (data.path) {
-        var acc = [];
-        data.path.split('/').forEach(function (part) {
-          acc.push(part);
-          bits.push('<a href="#laptop/' + encodeURIComponent(acc.join('/')) + '">' + esc(part) + '</a>');
-        });
-      }
-      crumb.innerHTML = bits.join(' · ');
-      if (!data.entries.length) {
-        box.innerHTML = '<p class="none">이 서랍은 비어 있다.</p>';
-        return;
-      }
-      box.innerHTML = data.entries.map(function (e) {
-        if (e.dir) {
-          return '<div class="row"><div class="mark"></div><div><div class="name"><a href="#laptop/' +
-            encodeURIComponent(e.rel) + '" style="color:inherit;text-decoration:none">' + esc(e.name) +
-            '</a></div><div class="meta">폴더 · ' + fmtTime(e.at) + '</div></div><div></div></div>';
-        }
-        var acts = '';
-        if (e.view) acts += '<a href="' + abs(e.view) + '">보기</a>';
-        if (e.get) acts += '<a href="' + abs(e.get) + '">받기</a>';
-        return '<div class="row"><div class="mark file"></div><div><div class="name">' + esc(e.name) +
-          '</div><div class="meta">' + fmtSize(e.size) + ' · ' + fmtTime(e.at) + '</div></div><div class="acts">' +
-          acts + '</div></div>';
-      }).join('');
-    }).catch(function () {
-      box.innerHTML = '<p class="err">노트북 확장이 안 붙는다. 화면은 여기 있고, 공유만 노트북에 있다.</p>';
-    });
-  }
-  window.addEventListener('hashchange', load);
-  if (!location.hash) location.hash = '#laptop/';
-  else load();
-})();
-</script>
+<script type="module" src="app.mjs"></script>
 </body>
 </html>

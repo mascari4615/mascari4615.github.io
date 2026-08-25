@@ -156,8 +156,11 @@ jobs:
       # 두 파일 다 새 자리로 넘겨보내는 한 장짜리다.
       - name: Prepare files app
         run: |
-          mkdir -p apps/blog/files
+          mkdir -p apps/blog/files/src
           cp apps/files/index.html apps/blog/files/index.html
+          cp apps/files/app.mjs apps/blog/files/app.mjs
+          cp apps/files/src/vault.mjs apps/blog/files/src/vault.mjs
+          node apps/files/scripts/build-fixture.mjs apps/blog/files/v
 
       - name: Prepare moved-game redirects
         run: |
