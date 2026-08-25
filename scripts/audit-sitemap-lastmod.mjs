@@ -110,6 +110,37 @@ const builtFile = (url) => {
   const candidates = [path.join(siteDir, rel), path.join(siteDir, rel, 'index.html')];
   return candidates.find((f) => fs.existsSync(f) && fs.statSync(f).isFile()) ?? null;
 };
+
+/* 홈 목록과 옛 `/posts/` 목록이 같은 내용을 내므로 검색 대표 주소는 `/` 하나다.
+   Search Console 실측(2026-08-26): Google 은 홈을 대표로 골랐는데 HTML 은 `/posts/`를
+   선언해 홈 색인이 빠졌다. 산출물에서 다시 갈라지면 배포를 세운다. */
+const sitemapUrls = blocks.map(loc);
+const homeUrl = sitemapUrls.find((url) => {
+  try {
+    return new URL(url).pathname === '/';
+  } catch {
+    return false;
+  }
+});
+const legacyPostsUrl = sitemapUrls.find((url) => {
+  try {
+    return new URL(url).pathname === '/posts/';
+  } catch {
+    return false;
+  }
+});
+const homeFile = homeUrl ? builtFile(homeUrl) : null;
+const homeCanonical = homeFile
+  ? (fs.readFileSync(homeFile, 'utf8').match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) ?? [])[1]
+  : null;
+if (!homeUrl || !homeFile || homeCanonical !== homeUrl || legacyPostsUrl) {
+  console.error('[audit-sitemap-lastmod] 블로그 대표 주소가 홈 하나로 모이지 않았다:');
+  if (!homeUrl) console.error('  / 가 사이트맵에 없다');
+  else if (!homeFile) console.error(`  홈 파일을 못 찾았다 — ${homeUrl}`);
+  else if (homeCanonical !== homeUrl) console.error(`  홈 canonical: ${homeCanonical || '(없음)'} (기대 ${homeUrl})`);
+  if (legacyPostsUrl) console.error(`  중복 목록이 사이트맵에 있다 — ${legacyPostsUrl}`);
+  process.exit(1);
+}
 const ROBOTS_META = /<meta[^>]+name\s*=\s*["']robots["'][^>]*>/i;
 const noindexUrls = blocks.map(loc).filter((url) => {
   const f = builtFile(url);

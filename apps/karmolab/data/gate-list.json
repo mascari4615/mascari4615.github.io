@@ -386,6 +386,14 @@
       ]
     },
     {
+      "name": "test:post-seo",
+      "watch": [
+        "scripts/test-post-seo.mjs",
+        "scripts/gen-post-pages.mjs",
+        "scripts/lib/post-page.mjs"
+      ]
+    },
+    {
       "name": "test:pose",
       "watch": [
         "../../packages/pose/src/source.mjs",

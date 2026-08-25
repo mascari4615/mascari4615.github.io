@@ -88,7 +88,7 @@ body.post-page main{max-width:none;padding:8px 20px 64px}
  * 거르기(칩·검색)는 인라인 몇 줄 — 바깥 리소스는 여전히 GoatCounter 하나다.
  * @param {Array<{slug:string,title:string,date:string,categories:string[],excerpt:string}>} posts 공개 글, 최신순
  */
-export function listPage(posts, { permalink = '/posts/', canonical = '/posts/' } = {}) {
+export function listPage(posts, { permalink = '/posts/', canonical = '/', sitemap = true } = {}) {
     const cats = [...new Set(posts.map((p) => p.categories[0]).filter(Boolean))];
     // 사이트맵 lastmod — 비면 배포가 선다 (audit-sitemap-lastmod exit 1). 가장 최근 글의 시각.
     const lastmod = posts.map((p) => p.lastmod ?? p.date).sort().at(-1) ?? '';
@@ -108,6 +108,7 @@ export function listPage(posts, { permalink = '/posts/', canonical = '/posts/' }
     return `---
 layout: none
 permalink: ${permalink}
+${sitemap ? '' : 'sitemap: false\n'}
 ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <!doctype html>
 <html lang="ko">
@@ -188,6 +189,17 @@ ${rows}
 }
 
 /**
+ * 같은 목록을 내는 두 주소의 검색 신호를 홈(`/`)으로 모은다.
+ * `/posts/`는 기존 링크를 깨지 않기 위한 호환 주소이며 사이트맵에는 제출하지 않는다.
+ */
+export function blogIndexPages(posts) {
+    return {
+        home: listPage(posts, { permalink: '/', canonical: '/' }),
+        legacyPosts: listPage(posts, { permalink: '/posts/', canonical: '/', sitemap: false }),
+    };
+}
+
+/**
  * `/works/` — 작업물 전시 (change.blog-finish ③, Chirpy works 레이아웃 승계).
  * 항목 = `_data/works.yml` (전시 목록이 정본 — hidden 글도 여기 있으면 의도된 전시다).
  * @param {Array<{slug:string,title:string,image:string,date:string,tags:string[]}>} works 큐레이션 순서 그대로
@@ -232,7 +244,7 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <body class="post-page">
     <header class="post-top">
         <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/posts/">글</a>
+        <a href="/">글</a>
         <a href="/works/">작업물</a>
         <a href="/about/">소개</a>
         <span class="spacer"></span>
@@ -282,7 +294,7 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 <body class="post-page">
     <header class="post-top">
         <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/posts/">글</a>
+        <a href="/">글</a>
         <span class="spacer"></span>
         <button id="themeToggle" aria-label="테마 전환">◐</button>
     </header>
@@ -355,7 +367,7 @@ export function feedXml(posts) {
         .join('\n');
     return (
         `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>\n` +
-        `  <title>KarmoDDrine</title>\n  <link>${SITE}/posts/</link>\n` +
+        `  <title>KarmoDDrine</title>\n  <link>${SITE}/</link>\n` +
         `  <description>삶을 섞고 술을 바꿀 시간</description>\n  <language>ko</language>\n${items}\n</channel></rss>\n`
     );
 }

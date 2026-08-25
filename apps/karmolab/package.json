@@ -283,6 +283,7 @@
     "test:meaning": "node ../../packages/meaning/test/parity.mjs",
     "test:3d": "node --test ../../packages/3d/test/*.mjs",
     "test:pose": "node --test ../../packages/pose/test/*.mjs",
+    "test:post-seo": "node scripts/test-post-seo.mjs",
     "fetch:hand": "node scripts/fetch-hand.mjs",
     "gen:related": "node scripts/gen-related-posts.mjs",
     "test:related": "node scripts/test-related.mjs",
