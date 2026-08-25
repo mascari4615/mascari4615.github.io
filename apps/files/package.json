@@ -4,6 +4,8 @@
   "type": "module",
   "description": "Files 앱 — 화면은 index.html, 금고 규격은 src/vault.mjs",
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "upload": "node src/upload.mjs",
+    "probe": "node scripts/probe-rclone.mjs"
   }
 }

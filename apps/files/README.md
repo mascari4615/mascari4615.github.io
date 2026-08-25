@@ -14,3 +14,12 @@
 - 청크 = AES-256-GCM · IV 12B · AAD 에 파일 id+번호 (순서 바꿔치기 차단)
 - 열쇠 = PBKDF2-SHA-256 (헤더의 반복 횟수). 운영 기본 600000
 - 위젯 `crypto.ts`(CryptoJS CBC) 와 다른 물건
+
+## PC 올리기
+
+- 전송: rclone 원격 (`FILES_VAULT_REMOTE`, 기본 `gdrive:karm-files-vault`)
+- restic 저장소와 섞지 않음
+- `.env.template` 을 `.env` 로 복사. 원본 절대경로는 env 만
+- `npm run upload` — 청크 암호 후 `rclone rcat`. 로그는 상대 경로만
+- `npm run upload -- --dry-run` — 목록만
+- Drive 한 장 왕복 확인: `node scripts/probe-rclone.mjs` (끝나면 프로브 폴더 삭제)

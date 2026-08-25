@@ -190,23 +190,50 @@ export async function unlockVault(store, passphrase) {
   return session;
 }
 
+export function newBlobId() {
+  return hex(randomBytes(ID_LEN));
+}
+
+/** 청크 하나 암호해서 바로 store 에 넣는다. 호출 쪽이 암호문 배열을 모으지 않게 길이만 돌려준다. */
+export async function putChunk(session, id, n, part) {
+  if (!(part instanceof Uint8Array)) throw new VaultPathError('bytes');
+  const sealed = await seal(session.key, part, aadChunk(id, n));
+  await session.store.put(`c/${id}/${n}`, sealed);
+  return sealed.length;
+}
+
+export async function commitFile(session, rec) {
+  const norm = normalizePath(rec.path);
+  const index = await readIndex(session);
+  index.files = index.files.filter((f) => f.path !== norm);
+  index.files.push({
+    id: rec.id,
+    path: norm,
+    size: rec.size,
+    chunks: rec.chunks,
+    sha256: rec.sha256,
+  });
+  await writeIndex(session, index);
+  return { id: rec.id, sha256: rec.sha256, chunks: rec.chunks };
+}
+
 export async function putFile(session, path, bytes, opts = {}) {
-  const norm = normalizePath(path);
   const chunkSize = opts.chunkSize ?? CHUNK;
   if (!(bytes instanceof Uint8Array)) throw new VaultPathError('bytes');
-  const id = hex(randomBytes(ID_LEN));
+  const id = newBlobId();
   const n = bytes.length === 0 ? 0 : Math.ceil(bytes.length / chunkSize);
   for (let i = 0; i < n; i++) {
     const part = bytes.subarray(i * chunkSize, Math.min(bytes.length, (i + 1) * chunkSize));
-    const sealed = await seal(session.key, part, aadChunk(id, i));
-    await session.store.put(`c/${id}/${i}`, sealed);
+    await putChunk(session, id, i, part);
   }
   const digest = await sha256Hex(bytes);
-  const index = await readIndex(session);
-  index.files = index.files.filter((f) => f.path !== norm);
-  index.files.push({ id, path: norm, size: bytes.length, chunks: n, sha256: digest });
-  await writeIndex(session, index);
-  return { id, sha256: digest, chunks: n };
+  return commitFile(session, {
+    id,
+    path,
+    size: bytes.length,
+    chunks: n,
+    sha256: digest,
+  });
 }
 
 export async function listFiles(session) {

@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+/**
+ * 열람 트리 → 금고 암호문 → rclone 원격.
+ * 원본 경로는 env 만. 로그에는 상대 경로만 찍는다.
+ *
+ * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
+ */
+import { createVault, unlockVault } from './vault.mjs';
+import { putFileFromPath } from './vault-node.mjs';
+import { rcloneStore } from './store-rclone.mjs';
+import { walkFiles } from './walk.mjs';
+
+function need(name) {
+  const v = process.env[name];
+  if (!v) {
+    console.error(`없음: ${name}`);
+    process.exit(2);
+  }
+  return v;
+}
+
+const root = need('FILES_VAULT_ROOT');
+const pass = need('FILES_VAULT_PASS');
+const remote = process.env.FILES_VAULT_REMOTE || 'gdrive:karm-files-vault';
+const dry = process.argv.includes('--dry-run');
+
+const files = await walkFiles(root);
+console.log(`파일 ${files.length}개`);
+if (dry) {
+  for (const f of files) console.log(f.rel);
+  process.exit(0);
+}
+
+const store = rcloneStore(remote);
+let session;
+const hdr = await store.get('hdr');
+if (hdr) session = await unlockVault(store, pass);
+else session = await createVault(store, pass);
+
+let n = 0;
+for (const f of files) {
+  await putFileFromPath(session, f.rel, f.abs);
+  n += 1;
+  console.log(f.rel);
+}
+console.log(`올림 ${n}`);
