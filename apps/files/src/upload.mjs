@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 열람 트리 → 금고 암호문 → rclone 원격.
- * 원본 경로는 env 만. 로그에는 상대 경로만 찍는다.
+ * 원본 경로는 env 만. 기본 로그는 개수. 이름 나열은 --verbose.
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
  */
@@ -28,11 +28,12 @@ const pass = need('FILES_VAULT_PASS');
 const remote = process.env.FILES_VAULT_REMOTE || 'gdrive:karm-files-vault';
 const extraRemote = process.env.FILES_VAULT_R2 || '';
 const dry = process.argv.includes('--dry-run');
+const verbose = process.argv.includes('--verbose');
 
 const files = await walkFiles(root);
 console.log(`파일 ${files.length}개`);
 if (dry) {
-  for (const f of files) console.log(f.rel);
+  if (verbose) for (const f of files) console.log(f.rel);
   process.exit(0);
 }
 
@@ -48,6 +49,7 @@ let n = 0;
 for (const f of files) {
   await putFileFromPath(session, f.rel, f.abs);
   n += 1;
-  console.log(f.rel);
+  if (verbose) console.log(f.rel);
+  else if (n % 50 === 0 || n === files.length) console.log(`${n}/${files.length}`);
 }
 console.log(`올림 ${n}`);
