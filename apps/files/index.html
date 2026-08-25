@@ -1,0 +1,203 @@
+---
+layout: none
+permalink: /files/
+sitemap: false
+---
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<title>Files</title>
+<style>
+:root {
+  --ink: #1c1814;
+  --paper: #efe4d0;
+  --paper-dim: #e0d3bb;
+  --brass: #b0894a;
+  --brass-dim: #8a6a38;
+  --tab: #3f4e44;
+  --tab-on: #c45c38;
+  --rule: #cbbfa8;
+  --mute: #6e6456;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Noto Serif KR", Georgia, serif;
+  background: radial-gradient(1200px 600px at 20% -10%, #3a3228 0%, var(--ink) 55%);
+  color: var(--paper);
+}
+.desk { min-height: 100%; max-width: 920px; margin: 0 auto; padding: 18px 16px 48px; }
+.mast {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  border-bottom: 1px solid var(--brass-dim); padding-bottom: 10px; margin-bottom: 16px;
+}
+.mast h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: .12em; margin: 0; text-transform: uppercase; }
+.mast .who { font-size: .78rem; color: var(--mute); }
+.drawers { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.tab {
+  border: 0; background: var(--tab); color: var(--paper-dim); padding: 8px 14px 10px;
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+  font: 700 .8rem/1 "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  letter-spacing: .06em; cursor: pointer;
+}
+.tab.on { background: var(--tab-on); color: #fff8ee; }
+.tab:disabled { opacity: .45; cursor: default; }
+.crumb { font-size: .82rem; color: var(--mute); margin: 0 0 12px; font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
+.crumb a { color: var(--brass); text-decoration: none; }
+.cabinet {
+  background: var(--paper); color: var(--ink); border-radius: 2px 2px 8px 8px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.35), inset 0 1px 0 #fff6e6;
+  overflow: hidden;
+}
+.row {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
+  padding: 12px 14px; border-top: 1px solid var(--rule);
+  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+}
+.row:first-child { border-top: 0; }
+.row .name { font-weight: 650; word-break: break-all; }
+.row .meta { color: var(--mute); font-size: .78rem; margin-top: 2px; }
+.mark { width: 22px; height: 14px; background: var(--tab); clip-path: polygon(0 0, 70% 0, 100% 100%, 0 100%); }
+.mark.file { background: var(--brass); clip-path: none; border-radius: 2px; height: 16px; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.acts a {
+  border: 1px solid var(--brass-dim); color: var(--brass-dim);
+  padding: 6px 10px; border-radius: 99px; text-decoration: none; font-size: .78rem; font-weight: 700;
+}
+.gate { padding: 20px 16px; font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
+.gate input {
+  width: 100%; max-width: 320px; padding: 10px 12px; border: 1px solid var(--brass-dim);
+  background: #fffaf0; color: var(--ink); font-size: 1rem;
+}
+.gate button {
+  margin-top: 10px; border: 0; background: var(--tab-on); color: #fff8ee;
+  padding: 10px 16px; font-weight: 700; cursor: pointer;
+}
+.none, .err { padding: 28px 16px; color: var(--mute); font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
+.err { color: #8a2a1f; }
+@media (max-width: 560px) {
+  .row { grid-template-columns: 22px 1fr; }
+  .acts { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+<div class="desk">
+  <header class="mast">
+    <h1>Files</h1>
+    <div class="who">내 파일</div>
+  </header>
+  <div class="drawers">
+    <button class="tab on" type="button">노트북</button>
+    <button class="tab" type="button" disabled title="다음 확장">금고</button>
+  </div>
+  <p class="crumb" id="crumb"></p>
+  <div class="cabinet" id="box"></div>
+</div>
+<script>
+(function () {
+  var LAPTOP = 'https://laptop.mascari4615.com';
+  var KEY = 'files.laptop.pass';
+  var box = document.getElementById('box');
+  var crumb = document.getElementById('crumb');
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  }
+  function fmtSize(n) {
+    if (n >= 1073741824) return (n / 1073741824).toFixed(2) + ' GB';
+    if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
+    if (n >= 1024) return (n / 1024).toFixed(0) + ' KB';
+    return n + ' B';
+  }
+  function fmtTime(ms) {
+    var d = new Date(ms + 9 * 3600000);
+    function p(x) { return String(x).padStart(2, '0'); }
+    return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes());
+  }
+  function abs(u) {
+    if (!u) return '';
+    if (u.indexOf('http') === 0) return u;
+    return LAPTOP + u;
+  }
+  function pathFromHash() {
+    var h = location.hash.replace(/^#/, '');
+    if (h.indexOf('laptop/') === 0) return decodeURIComponent(h.slice(7));
+    return '';
+  }
+  function authHeader() {
+    var pass = sessionStorage.getItem(KEY) || '';
+    if (!pass) return null;
+    return 'Basic ' + btoa('x:' + pass);
+  }
+  function showGate(msg) {
+    box.innerHTML = '<form class="gate" id="gate"><p>' + esc(msg || '노트북 공유 비밀번호') + '</p>' +
+      '<input type="password" id="pass" autocomplete="current-password">' +
+      '<div><button type="submit">열기</button></div></form>';
+    document.getElementById('gate').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      sessionStorage.setItem(KEY, document.getElementById('pass').value);
+      load();
+    });
+  }
+  function load() {
+    var p = pathFromHash();
+    var auth = authHeader();
+    if (!auth) { showGate(); return; }
+    box.innerHTML = '<p class="none">서랍을 여는 중</p>';
+    fetch(LAPTOP + '/files/api/list?p=' + encodeURIComponent(p), {
+      headers: { Authorization: auth }
+    }).then(function (r) {
+      if (r.status === 401 || r.status === 403) {
+        sessionStorage.removeItem(KEY);
+        showGate('비밀번호가 틀렸거나 만료됐다.');
+        return null;
+      }
+      if (!r.ok) throw new Error('list ' + r.status);
+      return r.json();
+    }).then(function (data) {
+      if (!data) return;
+      if (!data.ok) {
+        box.innerHTML = '<p class="err">그 경로는 열 수 없다.</p>';
+        return;
+      }
+      var bits = ['<a href="#laptop/">노트북</a>'];
+      if (data.path) {
+        var acc = [];
+        data.path.split('/').forEach(function (part) {
+          acc.push(part);
+          bits.push('<a href="#laptop/' + encodeURIComponent(acc.join('/')) + '">' + esc(part) + '</a>');
+        });
+      }
+      crumb.innerHTML = bits.join(' · ');
+      if (!data.entries.length) {
+        box.innerHTML = '<p class="none">이 서랍은 비어 있다.</p>';
+        return;
+      }
+      box.innerHTML = data.entries.map(function (e) {
+        if (e.dir) {
+          return '<div class="row"><div class="mark"></div><div><div class="name"><a href="#laptop/' +
+            encodeURIComponent(e.rel) + '" style="color:inherit;text-decoration:none">' + esc(e.name) +
+            '</a></div><div class="meta">폴더 · ' + fmtTime(e.at) + '</div></div><div></div></div>';
+        }
+        var acts = '';
+        if (e.view) acts += '<a href="' + abs(e.view) + '">보기</a>';
+        if (e.get) acts += '<a href="' + abs(e.get) + '">받기</a>';
+        return '<div class="row"><div class="mark file"></div><div><div class="name">' + esc(e.name) +
+          '</div><div class="meta">' + fmtSize(e.size) + ' · ' + fmtTime(e.at) + '</div></div><div class="acts">' +
+          acts + '</div></div>';
+      }).join('');
+    }).catch(function () {
+      box.innerHTML = '<p class="err">노트북 확장이 안 붙는다. 화면은 여기 있고, 공유만 노트북에 있다.</p>';
+    });
+  }
+  window.addEventListener('hashchange', load);
+  if (!location.hash) location.hash = '#laptop/';
+  else load();
+})();
+</script>
+</body>
+</html>

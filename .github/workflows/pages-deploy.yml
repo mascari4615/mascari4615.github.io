@@ -13,6 +13,7 @@ on:
       - apps/higher/**
       - apps/quest/**
       - apps/play/**
+      - apps/files/**
       - packages/ai/**
       - packages/badapple/**
       - .github/workflows/pages-deploy.yml
@@ -153,6 +154,11 @@ jobs:
       # (`/karmolab/#higher` · `/karmolab/#quest`). 알맹이(위젯 js·문제 표)는 앱 빌드와
       # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 —
       # 두 파일 다 새 자리로 넘겨보내는 한 장짜리다.
+      - name: Prepare files app
+        run: |
+          mkdir -p apps/blog/files
+          cp apps/files/index.html apps/blog/files/index.html
+
       - name: Prepare moved-game redirects
         run: |
           mkdir -p apps/blog/higher apps/blog/quest apps/blog/play
