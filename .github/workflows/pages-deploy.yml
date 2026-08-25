@@ -160,6 +160,7 @@ jobs:
           cp apps/files/index.html apps/blog/files/index.html
           cp apps/files/app.mjs apps/blog/files/app.mjs
           cp apps/files/src/vault.mjs apps/blog/files/src/vault.mjs
+          cp apps/files/src/vault-base.mjs apps/blog/files/src/vault-base.mjs
           node apps/files/scripts/build-fixture.mjs apps/blog/files/v
 
       - name: Prepare moved-game redirects

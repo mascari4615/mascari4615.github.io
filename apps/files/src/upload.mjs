@@ -8,7 +8,11 @@
 import { createVault, unlockVault } from './vault.mjs';
 import { putFileFromPath } from './vault-node.mjs';
 import { rcloneStore } from './store-rclone.mjs';
+import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
+import { loadFilesEnv } from './env-file.mjs';
+
+await loadFilesEnv();
 
 function need(name) {
   const v = process.env[name];
@@ -22,6 +26,7 @@ function need(name) {
 const root = need('FILES_VAULT_ROOT');
 const pass = need('FILES_VAULT_PASS');
 const remote = process.env.FILES_VAULT_REMOTE || 'gdrive:karm-files-vault';
+const extraRemote = process.env.FILES_VAULT_R2 || '';
 const dry = process.argv.includes('--dry-run');
 
 const files = await walkFiles(root);
@@ -31,7 +36,9 @@ if (dry) {
   process.exit(0);
 }
 
-const store = rcloneStore(remote);
+const primary = rcloneStore(remote);
+const extra = extraRemote ? rcloneStore(extraRemote) : null;
+const store = extra ? teeStore(primary, extra) : primary;
 let session;
 const hdr = await store.get('hdr');
 if (hdr) session = await unlockVault(store, pass);

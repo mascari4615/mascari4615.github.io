@@ -8,6 +8,7 @@ import {
   previewKind,
   unlockVault,
 } from './src/vault.mjs';
+import { pickVaultBase } from './src/vault-base.mjs';
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_KEY = 'files.laptop.pass';
@@ -21,7 +22,8 @@ let lastBlob = '';
 let vaultSession = null;
 let vaultListing = null;
 
-const vaultBase = new URL('v/', import.meta.url);
+const fixtureBase = new URL('v/', import.meta.url);
+let vaultBase = fixtureBase;
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -163,6 +165,12 @@ async function ensureVault() {
   if (vaultSession && vaultListing) return vaultSession;
   const pass = sessionStorage.getItem(VAULT_KEY) || '';
   if (!pass) return null;
+  vaultBase = new URL(
+    await pickVaultBase({
+      origin: location.origin,
+      fixture: fixtureBase.href,
+    }),
+  );
   const store = fetchStore(vaultBase.href);
   vaultSession = await unlockVault(store, pass);
   vaultListing = await listFiles(vaultSession);

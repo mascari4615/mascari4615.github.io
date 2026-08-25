@@ -6,7 +6,7 @@
 - 제품 호스트: `files.mascari4615.com` — Cloudflare가 붙인다. 노트북 터널 금지. GH Pages 커스텀 도메인은 `blog.` 하나라 `files.` → 이 앱(`/files/`) rewrite.
 - 노트북 확장: `https://laptop.mascari4615.com/files/api/list`
 - 금고 규격: `src/vault.mjs` (WebCrypto AES-GCM). 시험: `npm test`
-- 금고 탭: 픽스처 암호문(`v/`). 열쇠 `fixture`. 사적 파일 아님. 미리보기는 메모리 blob
+- 금고 탭: `/blob/hdr` 가 있으면 그 암호문, 없으면 픽스처 `v/` (열쇠 `fixture`)
 
 ## 금고 v1
 
@@ -19,8 +19,9 @@
 ## PC 올리기
 
 - 전송: rclone 원격 (`FILES_VAULT_REMOTE`, 기본 `gdrive:karm-files-vault`)
-- restic 저장소와 섞지 않음
-- `.env.template` 을 `.env` 로 복사. 원본 절대경로는 env 만
-- `npm run upload` — 청크 암호 후 `rclone rcat`. 로그는 상대 경로만
+- 선택 열람 저장: `FILES_VAULT_R2` (rclone 원격). Worker `VAULT` R2 바인딩 → `/blob/`
+- restic 저장소·공개 `img.` 버킷과 섞지 않음
+- `.env.template` 을 `.env` 로 복사. `npm run upload` 가 그 파일을 읽음
 - `npm run upload -- --dry-run` — 목록만
 - Drive 한 장 왕복 확인: `node scripts/probe-rclone.mjs` (끝나면 프로브 폴더 삭제)
+- Worker 정본: `worker.mjs` — CF Worker `files` 에 붙임 (사람)
