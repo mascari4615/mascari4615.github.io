@@ -145,6 +145,29 @@ async function readIndex(session) {
   return decodeIndex(await open(session.key, packed, AAD_INDEX));
 }
 
+async function loadIndex(session) {
+  if (session.index) return session.index;
+  session.index = await readIndex(session);
+  return session.index;
+}
+
+async function persistIndex(session, index) {
+  session.index = index;
+  if (session.deferIndex) {
+    session.indexDirty = true;
+    return;
+  }
+  await writeIndex(session, index);
+  session.indexDirty = false;
+}
+
+/** deferIndex 일 때 암호문 목록을 원격에 한 번 쓴다. */
+export async function flushIndex(session) {
+  if (!session.deferIndex || !session.indexDirty || !session.index) return;
+  await writeIndex(session, session.index);
+  session.indexDirty = false;
+}
+
 function packHeader({ kdf, iterations, salt }) {
   const h = new Uint8Array(HEADER_LEN);
   h.set(MAGIC, 0);
@@ -173,8 +196,8 @@ export async function createVault(store, passphrase, opts = {}) {
   const salt = randomBytes(SALT_LEN);
   await store.put('hdr', packHeader({ kdf: KDF_PBKDF2, iterations, salt }));
   const key = await deriveKey(passphrase, salt, iterations);
-  const session = { store, key, iterations };
-  await writeIndex(session, { v: 1, files: [] });
+  const session = { store, key, iterations, index: { v: 1, files: [] } };
+  await writeIndex(session, session.index);
   return session;
 }
 
@@ -183,7 +206,7 @@ export async function unlockVault(store, passphrase) {
   const key = await deriveKey(passphrase, header.salt, header.iterations);
   const session = { store, key, iterations: header.iterations };
   try {
-    await readIndex(session);
+    session.index = await readIndex(session);
   } catch {
     throw new VaultUnlockError('index');
   }
@@ -204,7 +227,7 @@ export async function putChunk(session, id, n, part) {
 
 export async function commitFile(session, rec) {
   const norm = normalizePath(rec.path);
-  const index = await readIndex(session);
+  const index = await loadIndex(session);
   index.files = index.files.filter((f) => f.path !== norm);
   index.files.push({
     id: rec.id,
@@ -213,7 +236,7 @@ export async function commitFile(session, rec) {
     chunks: rec.chunks,
     sha256: rec.sha256,
   });
-  await writeIndex(session, index);
+  await persistIndex(session, index);
   return { id: rec.id, sha256: rec.sha256, chunks: rec.chunks };
 }
 
@@ -237,7 +260,7 @@ export async function putFile(session, path, bytes, opts = {}) {
 }
 
 export async function listFiles(session) {
-  const index = await readIndex(session);
+  const index = await loadIndex(session);
   return index.files.map((f) => ({
     path: f.path,
     size: f.size,
@@ -248,7 +271,7 @@ export async function listFiles(session) {
 
 export async function getFile(session, path) {
   const norm = normalizePath(path);
-  const index = await readIndex(session);
+  const index = await loadIndex(session);
   const entry = index.files.find((f) => f.path === norm);
   if (!entry) return null;
   const parts = [];

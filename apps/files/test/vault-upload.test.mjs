@@ -105,6 +105,17 @@ test('모의 rclone 으로 헤더·청크가 원격 키로만 간다', async () 
   assert.equal(new TextDecoder().decode(got.bytes), 'rclone-body');
 });
 
+test('RATE_LIMIT 을 없는 키로 안 친다', async () => {
+  let n = 0;
+  const run = async () => {
+    n += 1;
+    throw new Error('RATE_LIMIT_EXCEEDED');
+  };
+  const store = rcloneStore('gdrive:karm-files-vault', { run, retryBaseMs: 1, tries: 2 });
+  await assert.rejects(() => store.get('hdr'), /RATE_LIMIT/);
+  assert.equal(n, 2);
+});
+
 test('원본 경로 env 없으면 CANNOT-RUN', async () => {
   const code = await new Promise((resolve) => {
     const child = spawn(process.execPath, [join(here, '..', 'src', 'upload.mjs')], {

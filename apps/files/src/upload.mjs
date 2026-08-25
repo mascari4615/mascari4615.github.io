@@ -5,9 +5,9 @@
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
  */
-import { createVault, listFiles, unlockVault } from './vault.mjs';
+import { createVault, flushIndex, listFiles, unlockVault } from './vault.mjs';
 import { putFileFromPath, sha256File } from './vault-node.mjs';
-import { rcloneStore } from './store-rclone.mjs';
+import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
 import { loadFilesEnv } from './env-file.mjs';
@@ -37,28 +37,43 @@ if (dry) {
   process.exit(0);
 }
 
-const primary = rcloneStore(remote, { delayMs: 400 });
+const daemon = extraRemote ? null : await startRcloneDaemon();
+const rcUrl = daemon?.url;
+const primary = rcloneStore(remote, { rcUrl, delayMs: rcUrl ? 0 : 400 });
 const extra = extraRemote ? rcloneStore(extraRemote) : null;
 const store = extra ? teeStore(primary, extra) : primary;
 let session;
 const hdr = await store.get('hdr');
 if (hdr) session = await unlockVault(store, pass);
 else session = await createVault(store, pass);
+session.deferIndex = true;
+console.log('금고 염');
 
 const have = new Map((await listFiles(session)).map((f) => [f.path, f.sha256]));
 let n = 0;
 let skipped = 0;
-for (const f of files) {
-  const digest = await sha256File(f.abs);
-  if (have.get(f.rel.replaceAll('\\', '/')) === digest) {
-    skipped += 1;
-    continue;
+try {
+  for (const f of files) {
+    const rel = f.rel.replaceAll('\\', '/');
+    const known = have.get(rel);
+    if (known) {
+      const digest = await sha256File(f.abs);
+      if (known === digest) {
+        skipped += 1;
+        continue;
+      }
+    }
+    await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
+    n += 1;
+    if ((n + skipped) % 10 === 0) await flushIndex(session);
+    if (verbose) console.log(rel);
+    else if ((n + skipped) % 10 === 0 || n + skipped === files.length) {
+      console.log(`${n + skipped}/${files.length} 올림 ${n} 건너뜀 ${skipped}`);
+    }
   }
-  await putFileFromPath(session, f.rel, f.abs);
-  n += 1;
-  if (verbose) console.log(f.rel);
-  else if ((n + skipped) % 50 === 0 || n + skipped === files.length) {
-    console.log(`${n + skipped}/${files.length} 올림 ${n} 건너뜀 ${skipped}`);
-  }
+  await flushIndex(session);
+} finally {
+  await flushIndex(session);
+  daemon?.stop();
 }
 console.log(`올림 ${n} 건너뜀 ${skipped}`);

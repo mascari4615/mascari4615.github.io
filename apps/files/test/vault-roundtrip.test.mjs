@@ -11,6 +11,7 @@ import {
   putFile,
   getFile,
   listFiles,
+  flushIndex,
 } from '../src/vault.mjs';
 
 const PASS = 'test-passphrase-not-a-secret';
@@ -114,4 +115,21 @@ test('청크는 하나씩 바로 저장 — 암호문 통째 배열을 안 만�
   const bytes = new Uint8Array(20).fill(7);
   await putFile(session, 'n.bin', bytes, { chunkSize: 8 });
   assert.ok(puts >= 3, `chunk puts + index, got ${puts}`);
+});
+
+test('deferIndex 는 idx 를 묶어서 쓴다', async () => {
+  const { store, session } = await fresh();
+  session.deferIndex = true;
+  let idxPuts = 0;
+  const inner = store.put.bind(store);
+  store.put = async (k, b) => {
+    if (k === 'idx') idxPuts += 1;
+    return inner(k, b);
+  };
+  await putFile(session, 'a.bin', new TextEncoder().encode('a'));
+  await putFile(session, 'b.bin', new TextEncoder().encode('b'));
+  assert.equal(idxPuts, 0);
+  await flushIndex(session);
+  assert.equal(idxPuts, 1);
+  assert.deepEqual((await listFiles(session)).map((f) => f.path).sort(), ['a.bin', 'b.bin']);
 });
