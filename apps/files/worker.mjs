@@ -1,7 +1,7 @@
 /**
  * files.mascari4615.com Cloudflare Worker 정본.
  * 화면 = Pages /files/ 프록시. 금고 암호문 = R2 바인딩 VAULT → /blob/<key>
- * VAULT 가 없으면 /blob 은 503 — 화면은 픽스처 v/ 로 떨어진다.
+ * VAULT 가 없으면 /blob 은 503. 키가 비면 Pages v/ 픽스처를 R2 에 채운다 (데모).
  *
  * CF: 이 파일을 Worker `files` 에 붙이고 R2 버킷을 VAULT 로 바인딩.
  * img.mascari4615.com 공개 버킷에 금고를 넣지 마.
@@ -17,8 +17,20 @@ export default {
         return new Response('bad key', { status: 400 });
       }
       if (!env || !env.VAULT) return new Response('no vault', { status: 503 });
-      const obj = await env.VAULT.get(key);
-      if (!obj) return new Response('missing', { status: 404 });
+      let obj = await env.VAULT.get(key);
+      if (!obj) {
+        const mirrored = await fetch(PAGES + '/v/' + key);
+        if (!mirrored.ok) return new Response('missing', { status: 404 });
+        const buf = await mirrored.arrayBuffer();
+        await env.VAULT.put(key, buf);
+        return new Response(buf, {
+          headers: {
+            'content-type': 'application/octet-stream',
+            'cache-control': 'private, max-age=60',
+            'x-content-type-options': 'nosniff',
+          },
+        });
+      }
       return new Response(obj.body, {
         headers: {
           'content-type': 'application/octet-stream',

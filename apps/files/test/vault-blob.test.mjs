@@ -72,6 +72,33 @@ test('Worker /blob 은 R2 키를 그대로 읽는다', async () => {
   assert.deepEqual([...buf], [1, 2, 3]);
 });
 
+test('Worker 빈 R2 는 Pages v/ 에서 채워 넣는다', async () => {
+  const put = [];
+  const orig = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith('/v/hdr')) {
+      return { ok: true, arrayBuffer: async () => new Uint8Array([9, 8]).buffer };
+    }
+    return { ok: false };
+  };
+  try {
+    const res = await worker.fetch(new Request('https://files.mascari4615.com/blob/hdr'), {
+      VAULT: {
+        async get() {
+          return null;
+        },
+        async put(key) {
+          put.push(key);
+        },
+      },
+    });
+    assert.equal(res.status, 200);
+    assert.deepEqual(put, ['hdr']);
+  } finally {
+    globalThis.fetch = orig;
+  }
+});
+
 test('Worker 는 금고 키 모양만 읽는다', async () => {
   const res = await worker.fetch(
     new Request('https://files.mascari4615.com/blob/hello.txt'),
