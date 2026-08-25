@@ -4,6 +4,31 @@
  */
 import { spawn } from 'node:child_process';
 
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function isRateLimit(err) {
+  const s = String(err && err.message ? err.message : err);
+  return s.includes('RATE_LIMIT') || s.includes('rateLimitExceeded') || s.includes('Quota exceeded');
+}
+
+async function withRetry(fn, tries = 8) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e;
+      if (!isRateLimit(e) || i === tries - 1) throw e;
+      const wait = Math.min(180_000, 15_000 * 2 ** i);
+      console.error(`대기 ${Math.round(wait / 1000)}s`);
+      await sleep(wait);
+    }
+  }
+  throw last;
+}
+
 function defaultRun(args, stdinBytes) {
   return new Promise((resolve, reject) => {
     const child = spawn('rclone', args, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -28,7 +53,9 @@ export function rcloneStore(prefix, opts = {}) {
   const run = opts.run ?? defaultRun;
   return {
     async put(key, bytes) {
-      await run(['rcat', `${base}/${key}`], Buffer.from(bytes));
+      await withRetry(() => run(['rcat', `${base}/${key}`], Buffer.from(bytes)));
+      const delay = opts.delayMs ?? 0;
+      if (delay) await sleep(delay);
     },
     async get(key) {
       try {

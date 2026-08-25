@@ -42,7 +42,7 @@ test('teeStore 는 정본을 먼저 쓰고 여분 실패를 삼킨다', async ()
 test('loadEnvFile 은 비어 있는 칸만 채운다', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'files-env-'));
   const path = join(dir, '.env');
-  process.env.FILES_VAULT_ENVTEST = '';
+  delete process.env.FILES_VAULT_ENVTEST;
   try {
     await writeFile(path, 'FILES_VAULT_ENVTEST=fromfile\n');
     await loadEnvFile(path);

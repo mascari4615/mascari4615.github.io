@@ -5,8 +5,8 @@
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
  */
-import { createVault, unlockVault } from './vault.mjs';
-import { putFileFromPath } from './vault-node.mjs';
+import { createVault, listFiles, unlockVault } from './vault.mjs';
+import { putFileFromPath, sha256File } from './vault-node.mjs';
 import { rcloneStore } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
@@ -37,7 +37,7 @@ if (dry) {
   process.exit(0);
 }
 
-const primary = rcloneStore(remote);
+const primary = rcloneStore(remote, { delayMs: 400 });
 const extra = extraRemote ? rcloneStore(extraRemote) : null;
 const store = extra ? teeStore(primary, extra) : primary;
 let session;
@@ -45,11 +45,20 @@ const hdr = await store.get('hdr');
 if (hdr) session = await unlockVault(store, pass);
 else session = await createVault(store, pass);
 
+const have = new Map((await listFiles(session)).map((f) => [f.path, f.sha256]));
 let n = 0;
+let skipped = 0;
 for (const f of files) {
+  const digest = await sha256File(f.abs);
+  if (have.get(f.rel.replaceAll('\\', '/')) === digest) {
+    skipped += 1;
+    continue;
+  }
   await putFileFromPath(session, f.rel, f.abs);
   n += 1;
   if (verbose) console.log(f.rel);
-  else if (n % 50 === 0 || n === files.length) console.log(`${n}/${files.length}`);
+  else if ((n + skipped) % 50 === 0 || n + skipped === files.length) {
+    console.log(`${n + skipped}/${files.length} 올림 ${n} 건너뜀 ${skipped}`);
+  }
 }
-console.log(`올림 ${n}`);
+console.log(`올림 ${n} 건너뜀 ${skipped}`);

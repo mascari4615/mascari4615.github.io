@@ -6,6 +6,24 @@ import { createHash } from 'node:crypto';
 import { open } from 'node:fs/promises';
 import { CHUNK, commitFile, newBlobId, normalizePath, putChunk } from './vault.mjs';
 
+export async function sha256File(absPath) {
+  const hash = createHash('sha256');
+  const fh = await open(absPath, 'r');
+  try {
+    const buf = Buffer.alloc(1024 * 1024);
+    let off = 0;
+    for (;;) {
+      const { bytesRead } = await fh.read(buf, 0, buf.length, off);
+      if (bytesRead === 0) break;
+      hash.update(buf.subarray(0, bytesRead));
+      off += bytesRead;
+    }
+    return hash.digest('hex');
+  } finally {
+    await fh.close();
+  }
+}
+
 export async function putFileFromPath(session, vaultPath, absPath, opts = {}) {
   const chunkSize = opts.chunkSize ?? CHUNK;
   const norm = normalizePath(vaultPath);

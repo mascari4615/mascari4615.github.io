@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { createVault, getFile, memoryStore } from '../src/vault.mjs';
-import { putFileFromPath } from '../src/vault-node.mjs';
+import { putFileFromPath, sha256File } from '../src/vault-node.mjs';
 import { rcloneStore } from '../src/store-rclone.mjs';
 import { walkFiles } from '../src/walk.mjs';
 
@@ -47,6 +47,18 @@ test('디스크에서 읽어 왕복 — 암호문 파일을 뿌리에 안 남김
     assert.equal(new TextDecoder().decode(got.bytes), 'stream-body-xyz');
     const names = await readdir(pack.root, { recursive: true });
     assert.equal(names.some((n) => String(n).includes('c/') || String(n).endsWith('.enc')), false);
+  } finally {
+    await rm(pack.root, { recursive: true, force: true });
+  }
+});
+
+test('sha256File 이 디스크 바이트와 같다', async () => {
+  const pack = await withTree(async (root) => {
+    await writeFile(join(root, 'a.bin'), 'hash-me');
+  });
+  try {
+    const want = createHash('sha256').update('hash-me').digest('hex');
+    assert.equal(await sha256File(join(pack.root, 'a.bin')), want);
   } finally {
     await rm(pack.root, { recursive: true, force: true });
   }

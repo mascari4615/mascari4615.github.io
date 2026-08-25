@@ -25,7 +25,7 @@ export async function loadEnvFile(path) {
     ) {
       v = v.slice(1, -1);
     }
-    if (!process.env[k]) process.env[k] = v;
+    if (process.env[k] === undefined) process.env[k] = v;
   }
   return true;
 }
