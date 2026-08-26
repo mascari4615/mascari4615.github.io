@@ -59,5 +59,12 @@
   "my-ai.time.in_hour": "{n}時間後",
   "my-ai.time.in_hour_min": "{h}時間{m}分後",
   "my-ai.time.in_day": "{n}日後",
-  "my-ai.note.live_failed": "ライブ照会が塞がれているため、この PC に残っている最後の記録を出している。"
+  "my-ai.note.live_failed": "ライブ照会が塞がれているため、この PC に残っている最後の記録を出している。",
+  "my-ai.mode.group": "ゲージ表示",
+  "my-ai.mode.left": "残り",
+  "my-ai.mode.used": "使用",
+  "my-ai.time.at_today": "今日 {hm}",
+  "my-ai.time.at_tomorrow": "明日 {hm}",
+  "my-ai.time.at_date": "{m}月{d}日 {hm}",
+  "my-ai.time.reset_at": "{rel} · {clock}"
 }

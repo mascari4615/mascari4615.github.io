@@ -59,5 +59,12 @@
   "my-ai.time.in_hour": "{n}시간 뒤",
   "my-ai.time.in_hour_min": "{h}시간 {m}분 뒤",
   "my-ai.time.in_day": "{n}일 뒤",
-  "my-ai.note.live_failed": "실시간 조회가 막혀서 로컬에 남은 마지막 기록을 보여준다."
+  "my-ai.note.live_failed": "실시간 조회가 막혀서 로컬에 남은 마지막 기록을 보여준다.",
+  "my-ai.mode.group": "게이지 보기",
+  "my-ai.mode.left": "남음",
+  "my-ai.mode.used": "사용",
+  "my-ai.time.at_today": "오늘 {hm}",
+  "my-ai.time.at_tomorrow": "내일 {hm}",
+  "my-ai.time.at_date": "{m}월 {d}일 {hm}",
+  "my-ai.time.reset_at": "{rel} · {clock}"
 }

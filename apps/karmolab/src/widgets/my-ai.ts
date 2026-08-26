@@ -50,6 +50,32 @@ import { t, loadNamespace } from '../lib/i18n';
   /** 라이브 카드만 의미가 있는 주기 — 스냅샷은 다시 읽어도 그대로다. */
   const AUTO_REFRESH_MS = 60_000;
 
+  /**
+   * 같은 수치를 「남음」으로 볼지 「사용」으로 볼지는 사람마다 갈린다 — 한쪽으로
+   * 고정하면 나머지 한쪽은 매번 100에서 빼야 한다. 선택은 이 컴퓨터에 남는다.
+   */
+  type MeterMode = 'left' | 'used';
+  const METER_MODE_KEY = 'karmolab_myai_meter_mode';
+
+  function readMeterMode(): MeterMode {
+    try {
+      return localStorage.getItem(METER_MODE_KEY) === 'used' ? 'used' : 'left';
+    } catch {
+      return 'left';
+    }
+  }
+
+  let meterMode: MeterMode = readMeterMode();
+
+  function writeMeterMode(mode: MeterMode): void {
+    meterMode = mode;
+    try {
+      localStorage.setItem(METER_MODE_KEY, mode);
+    } catch {
+      /* 저장 못 해도 이번 세션 동안은 바뀐 대로 본다. */
+    }
+  }
+
   type MyAiPanels = {
     claudeEnvironment?: (container: HTMLElement) => void;
   };
@@ -158,6 +184,33 @@ import { t, loadNamespace } from '../lib/i18n';
     return t('my-ai.time.in_day', { n: days }, `${days}일 뒤`);
   }
 
+  /** 미래 시각 → 「오늘 14:00」. 상대 표현만 두면 몇 시인지 사람이 암산해야 한다. */
+  function resetClock(epoch: number): string {
+    const at = new Date(epoch * 1000);
+    const hm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+    const dayKey = (d: Date): string => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 86_400_000);
+    if (dayKey(at) === dayKey(today)) return t('my-ai.time.at_today', { hm }, `오늘 ${hm}`);
+    if (dayKey(at) === dayKey(tomorrow)) return t('my-ai.time.at_tomorrow', { hm }, `내일 ${hm}`);
+    return t(
+      'my-ai.time.at_date',
+      { m: at.getMonth() + 1, d: at.getDate(), hm },
+      `${at.getMonth() + 1}월 ${at.getDate()}일 ${hm}`
+    );
+  }
+
+  /** 리셋 표기 = 남은 시간 + 실제 시각. 「7일 뒤」만으로는 언제 풀리는지 안 잡힌다. */
+  function resetHtml(epoch: number): string {
+    const full = new Date(epoch * 1000).toLocaleString();
+    const text = t(
+      'my-ai.time.reset_at',
+      { rel: until(epoch), clock: resetClock(epoch) },
+      `${until(epoch)} · ${resetClock(epoch)}`
+    );
+    return `<span class="myai-reset" title="${esc(full)}">${esc(text)}</span>`;
+  }
+
   /** 게이지 색 — 아직 여유 / 슬슬 / 곧 벽. 수치를 색으로 한 번 더 말한다. */
   function gaugeTone(percent: number): string {
     if (percent >= 85) return 'danger';
@@ -167,7 +220,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
   function gaugeHtml(w: QuotaWindow): string {
     const label = esc(windowLabel(w.key));
-    const reset = w.resets_at ? `<span class="myai-reset">${esc(until(w.resets_at))}</span>` : '';
+    const reset = w.resets_at ? resetHtml(w.resets_at) : '';
     if (w.used_percent === null || !Number.isFinite(w.used_percent)) {
       return `
         <div class="myai-gauge">
@@ -175,19 +228,26 @@ import { t, loadNamespace } from '../lib/i18n';
           <div class="myai-gauge-unknown">${esc(t('my-ai.t10', undefined, '수치 없음'))}</div>
         </div>`;
     }
-    const used = Math.max(0, Math.min(100, w.used_percent));
+    const used = Math.round(Math.max(0, Math.min(100, w.used_percent)) * 10) / 10;
     const left = Math.round((100 - used) * 10) / 10;
+    const usedText = t('my-ai.t12', { n: used }, `${used}% 사용`);
+    const leftText = t('my-ai.t11', { n: left }, `${left}% 남음`);
+    // 색은 언제나 「얼마나 썼나」 기준 — 막대가 남은 쪽을 채워도 위험도의 뜻은 그대로다.
+    const tone = gaugeTone(used);
+    const headline = meterMode === 'used' ? usedText : leftText;
+    const footline = meterMode === 'used' ? leftText : usedText;
+    const fill = meterMode === 'used' ? used : left;
     return `
       <div class="myai-gauge">
         <div class="myai-gauge-head">
           <span>${label}</span>
-          <strong class="myai-left">${esc(t('my-ai.t11', { n: left }, `${left}% 남음`))}</strong>
+          <strong class="myai-left">${esc(headline)}</strong>
         </div>
-        <div class="myai-bar" role="img" aria-label="${esc(t('my-ai.t12', { n: used }, `${used}% 사용`))}">
-          <span class="myai-bar-fill quota-bar-fill--${gaugeTone(used)}" style="width:${used}%"></span>
+        <div class="myai-bar" role="img" aria-label="${esc(usedText)}">
+          <span class="myai-bar-fill myai-bar-fill--${tone}" style="width:${fill}%"></span>
         </div>
         <div class="myai-gauge-foot">
-          <span>${esc(t('my-ai.t12', { n: used }, `${used}% 사용`))}</span>${reset}
+          <span>${esc(footline)}</span>${reset}
         </div>
       </div>`;
   }
@@ -224,10 +284,10 @@ import { t, loadNamespace } from '../lib/i18n';
 
   function freshnessHtml(data: VendorQuota): string {
     if (data.live) {
-      return `<span class="myai-chip quota-chip--live">${esc(t('my-ai.t15', undefined, '라이브'))}</span>`;
+      return `<span class="myai-chip myai-chip--live">${esc(t('my-ai.t15', undefined, '라이브'))}</span>`;
     }
     const when = data.observed_at ? ago(data.observed_at) : t('my-ai.t16', undefined, '시점 불명');
-    return `<span class="myai-chip quota-chip--stale" title="${esc(
+    return `<span class="myai-chip myai-chip--stale" title="${esc(
       t('my-ai.t17', undefined, '마지막으로 그 도구를 썼을 때 남아 있던 값이다. 지금 값은 이보다 적을 수 있다.')
     )}">${esc(t('my-ai.t18', { when }, `${when} 관측`))}</span>`;
   }
@@ -262,8 +322,14 @@ import { t, loadNamespace } from '../lib/i18n';
       `
       .myai-wrap { display: flex; flex-direction: column; gap: 14px; }
       .myai-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-      .myai-lede { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); }
-      .myai-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+      .myai-lede { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); flex: 1 1 240px; }
+      .myai-actions { display: flex; align-items: center; gap: 8px; }
+      /* 남음 ⟷ 사용 = 같은 수치의 다른 표현. 새로고침 옆에 붙여 「보기」 묶음으로 읽히게. */
+      .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+      .myai-mode { appearance: none; background: transparent; border: 0; color: var(--text-secondary); font-size: var(--font-size-2xs); padding: 4px 11px; cursor: pointer; }
+      .myai-mode + .myai-mode { border-left: 1px solid var(--border); }
+      .myai-mode--on { background: var(--accent, #a99bf5); color: var(--bg-primary); font-weight: 600; }
+      .myai-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: start; }
       .myai-card { border: 1px solid var(--border); border-left: 4px solid var(--myai-accent); border-radius: var(--radius-md); background: var(--bg-secondary); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
       .myai-card--error { border-left-color: var(--text-tertiary); }
       .myai-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -296,24 +362,48 @@ import { t, loadNamespace } from '../lib/i18n';
     );
 
     const wrap = document.createElement('div');
-    wrap.className = 'quota-wrap';
+    wrap.className = 'myai-wrap';
 
     const top = document.createElement('div');
-    top.className = 'quota-top';
+    top.className = 'myai-top';
     const lede = document.createElement('p');
-    lede.className = 'quota-lede';
+    lede.className = 'myai-lede';
     lede.textContent = t('my-ai.t01', undefined, '구독별 남은 양. 실시간으로 물어보고, 막히면 마지막으로 그 도구를 썼을 때의 값을 보여준다.');
+
+    const actions = document.createElement('div');
+    actions.className = 'myai-actions';
+
+    // 보기 전환 = 같은 수치의 다른 표현. 새로고침이 필요 없으니 다시 그리기만 한다.
+    const modeGroup = document.createElement('div');
+    modeGroup.className = 'myai-modes';
+    modeGroup.setAttribute('role', 'group');
+    modeGroup.setAttribute('aria-label', t('my-ai.mode.group', undefined, '게이지 보기'));
+    const modeButtons: Array<{ mode: MeterMode; el: HTMLButtonElement }> = (
+      [
+        { mode: 'left' as MeterMode, label: t('my-ai.mode.left', undefined, '남음') },
+        { mode: 'used' as MeterMode, label: t('my-ai.mode.used', undefined, '사용') }
+      ]
+    ).map(({ mode, label }) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'myai-mode';
+      el.textContent = label;
+      modeGroup.appendChild(el);
+      return { mode, el };
+    });
+
     const refreshBtn = document.createElement('button');
     refreshBtn.type = 'button';
     refreshBtn.className = 'btn btn-secondary btn-sm';
     refreshBtn.textContent = t('my-ai.t02', undefined, '새로고침');
-    top.append(lede, refreshBtn);
+    actions.append(modeGroup, refreshBtn);
+    top.append(lede, actions);
 
     const cards = document.createElement('div');
-    cards.className = 'quota-cards';
+    cards.className = 'myai-cards';
 
     const updated = document.createElement('div');
-    updated.className = 'quota-updated';
+    updated.className = 'myai-updated';
 
     wrap.append(top, cards, updated);
     container.appendChild(wrap);
@@ -321,22 +411,40 @@ import { t, loadNamespace } from '../lib/i18n';
     if (!isDesktop()) {
       cards.innerHTML = '';
       const note = document.createElement('p');
-      note.className = 'quota-note';
+      note.className = 'myai-note';
       note.textContent = t('my-ai.t03', undefined, '데스크톱 앱에서만 동작한다 — 토큰과 로그가 이 컴퓨터에만 있다.');
       cards.appendChild(note);
       refreshBtn.disabled = true;
+      modeGroup.hidden = true;
       return;
     }
 
     let cards_data: VendorCard[] = [];
     let fatal = '';
 
+    function syncModeButtons(): void {
+      for (const { mode, el } of modeButtons) {
+        const on = mode === meterMode;
+        el.classList.toggle('myai-mode--on', on);
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+    }
+
     function paint(): void {
+      syncModeButtons();
       if (fatal) {
         cards.innerHTML = `<p class="myai-error">${esc(errorText(fatal))}</p>`;
         return;
       }
       cards.innerHTML = cards_data.map(renderCard).join('');
+    }
+
+    for (const { mode, el } of modeButtons) {
+      el.addEventListener('click', () => {
+        if (meterMode === mode) return;
+        writeMeterMode(mode);
+        paint();
+      });
     }
 
     let inFlight = false;

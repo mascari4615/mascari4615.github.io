@@ -59,5 +59,12 @@
   "my-ai.time.in_hour": "in {n} h",
   "my-ai.time.in_hour_min": "in {h} h {m} min",
   "my-ai.time.in_day": "in {n} d",
-  "my-ai.note.live_failed": "Live lookup is blocked, so this is the last record left on this machine."
+  "my-ai.note.live_failed": "Live lookup is blocked, so this is the last record left on this machine.",
+  "my-ai.mode.group": "Gauge view",
+  "my-ai.mode.left": "Left",
+  "my-ai.mode.used": "Used",
+  "my-ai.time.at_today": "today {hm}",
+  "my-ai.time.at_tomorrow": "tomorrow {hm}",
+  "my-ai.time.at_date": "{m}/{d} {hm}",
+  "my-ai.time.reset_at": "{rel} · {clock}"
 }
