@@ -5,6 +5,7 @@
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
  */
+import { join } from 'node:path';
 import { createVault, flushIndex, listFiles, unlockVault } from './vault.mjs';
 import { putFileFromPath, sha256File } from './vault-node.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
@@ -29,8 +30,18 @@ const remote = process.env.FILES_VAULT_REMOTE || 'gdrive:karm-files-vault';
 const extraRemote = process.env.FILES_VAULT_R2 || '';
 const dry = process.argv.includes('--dry-run');
 const verbose = process.argv.includes('--verbose');
+const onlyAt = process.argv.indexOf('--only');
+const only = onlyAt === -1 ? '' : process.argv[onlyAt + 1];
+if (onlyAt !== -1 && (!only || only.split(/[\\/]/).some((part) => !part || part === '.' || part === '..'))) {
+  throw new Error('--only 는 금고 뿌리 아래의 상대 폴더 하나여야 함');
+}
 
-const files = await walkFiles(root);
+// 우선 올릴 폴더도 원격에서는 원래 상대 경로를 지킨다.
+const scanRoot = only ? join(root, ...only.split(/[\\/]/)) : root;
+const scanned = await walkFiles(scanRoot);
+const files = only
+  ? scanned.map((file) => ({ ...file, rel: only.replaceAll('\\\\', '/') + '/' + file.rel }))
+  : scanned;
 console.log(`파일 ${files.length}개`);
 if (dry) {
   if (verbose) for (const f of files) console.log(f.rel);
