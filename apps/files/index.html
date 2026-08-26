@@ -8,97 +8,163 @@ sitemap: false
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
 <title>Files</title>
 <style>
 :root {
-  --ink: #1c1814;
-  --paper: #efe4d0;
-  --paper-dim: #e0d3bb;
-  --brass: #b0894a;
-  --brass-dim: #8a6a38;
-  --tab: #3f4e44;
-  --tab-on: #c45c38;
-  --rule: #cbbfa8;
-  --mute: #6e6456;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f6f8;
+  --line: #e3e5e9;
+  --ink: #1f2328;
+  --mute: #6b7280;
+  --accent: #2f6feb;
+  --accent-soft: #eaf1fe;
+  --danger: #b3261e;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --surface: #1c1f24;
+    --surface-2: #24282e;
+    --line: #2e333a;
+    --ink: #e6e8eb;
+    --mute: #9aa2ad;
+    --accent: #6ea0ff;
+    --accent-soft: #23304a;
+    --danger: #f2857c;
+  }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body {
-  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Noto Serif KR", Georgia, serif;
-  background: radial-gradient(1200px 600px at 20% -10%, #3a3228 0%, var(--ink) 55%);
-  color: var(--paper);
+  font-family: "Pretendard", -apple-system, "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
 }
-.desk { min-height: 100%; max-width: 920px; margin: 0 auto; padding: 18px 16px 48px; }
-.mast {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  border-bottom: 1px solid var(--brass-dim); padding-bottom: 10px; margin-bottom: 16px;
+.app { max-width: 1040px; margin: 0 auto; padding: 0 16px 64px; }
+
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0 12px;
 }
-.mast h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: .12em; margin: 0; text-transform: uppercase; }
-.mast .who { font-size: .78rem; color: var(--mute); }
-.drawers { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.topbar h1 {
+  margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em;
+}
+.topbar .logo {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--accent); color: #fff;
+  display: grid; place-items: center; flex: none;
+}
+.topbar .logo svg { width: 15px; height: 15px; }
+
+.sources {
+  display: flex; gap: 4px; padding: 3px;
+  background: var(--surface-2); border-radius: 999px; width: fit-content;
+  margin-bottom: 14px;
+}
 .tab {
-  border: 0; background: var(--tab); color: var(--paper-dim); padding: 8px 14px 10px;
-  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
-  font: 700 .8rem/1 "Segoe UI", "Apple SD Gothic Neo", sans-serif;
-  letter-spacing: .06em; cursor: pointer;
+  border: 0; background: transparent; color: var(--mute);
+  font: inherit; font-weight: 600; font-size: .86rem;
+  padding: 7px 16px; border-radius: 999px; cursor: pointer;
 }
-.tab.on { background: var(--tab-on); color: #fff8ee; }
+.tab:hover { color: var(--ink); }
+.tab.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .tab:disabled { opacity: .45; cursor: default; }
-.crumb { font-size: .82rem; color: var(--mute); margin: 0 0 12px; font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
-.crumb a { color: var(--brass); text-decoration: none; }
-.cabinet {
-  background: var(--paper); color: var(--ink); border-radius: 2px 2px 8px 8px;
-  box-shadow: 0 18px 40px rgba(0,0,0,.35), inset 0 1px 0 #fff6e6;
-  overflow: hidden;
+
+.crumb {
+  font-size: .86rem; color: var(--mute); margin: 0 0 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+}
+.crumb a { color: var(--mute); text-decoration: none; padding: 3px 6px; border-radius: 6px; }
+.crumb a:hover { background: var(--surface-2); color: var(--ink); }
+.crumb a:last-child { color: var(--ink); font-weight: 600; }
+.crumb .sep { color: var(--line); }
+
+.panel {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.head {
+  display: grid; grid-template-columns: 34px 1fr 110px 140px 92px; gap: 12px;
+  align-items: center; padding: 9px 14px;
+  border-bottom: 1px solid var(--line); background: var(--surface-2);
+  font-size: .76rem; font-weight: 700; color: var(--mute); letter-spacing: .02em;
 }
 .row {
-  display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
-  padding: 12px 14px; border-top: 1px solid var(--rule);
-  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  display: grid; grid-template-columns: 34px 1fr 110px 140px 92px; gap: 12px;
+  align-items: center; padding: 9px 14px; border-top: 1px solid var(--line);
 }
-.row:first-child { border-top: 0; }
-.row .name { font-weight: 650; word-break: break-all; }
-.row .meta { color: var(--mute); font-size: .78rem; margin-top: 2px; }
-.mark { width: 22px; height: 14px; background: var(--tab); clip-path: polygon(0 0, 70% 0, 100% 100%, 0 100%); }
-.mark.file { background: var(--brass); clip-path: none; border-radius: 2px; height: 16px; }
-.acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.head + .row { border-top: 0; }
+.row:hover { background: var(--surface-2); }
+.row .name { font-weight: 500; word-break: break-all; }
+.row .name a { color: inherit; text-decoration: none; }
+.row .name a:hover { color: var(--accent); text-decoration: underline; }
+.row .size, .row .when { color: var(--mute); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.icon { width: 22px; height: 22px; color: var(--mute); }
+.icon.folder { color: var(--accent); }
+.acts { display: flex; gap: 6px; justify-content: flex-end; }
 .acts a {
-  border: 1px solid var(--brass-dim); color: var(--brass-dim);
-  padding: 6px 10px; border-radius: 99px; text-decoration: none; font-size: .78rem; font-weight: 700;
+  color: var(--mute); text-decoration: none; font-size: .8rem; font-weight: 600;
+  padding: 4px 9px; border-radius: 6px; border: 1px solid var(--line);
 }
-.gate { padding: 20px 16px; font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
+.acts a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+.gate { padding: 40px 18px; text-align: center; }
+.gate p { margin: 0 0 14px; color: var(--mute); }
 .gate input {
-  width: 100%; max-width: 320px; padding: 10px 12px; border: 1px solid var(--brass-dim);
-  background: #fffaf0; color: var(--ink); font-size: 1rem;
+  width: 100%; max-width: 280px; padding: 9px 12px; font: inherit;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink);
 }
+.gate input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
 .gate button {
-  margin-top: 10px; border: 0; background: var(--tab-on); color: #fff8ee;
-  padding: 10px 16px; font-weight: 700; cursor: pointer;
+  margin-top: 12px; border: 0; background: var(--accent); color: #fff;
+  font: inherit; font-weight: 600; padding: 9px 20px; border-radius: 8px; cursor: pointer;
 }
-.none, .err { padding: 28px 16px; color: var(--mute); font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif; }
-.err { color: #8a2a1f; }
-.preview-img, .preview-vid { display: block; max-width: 100%; background: #1c1814; }
-.preview-text { margin: 0; padding: 16px; white-space: pre-wrap; word-break: break-all; font-size: .9rem; }
-@media (max-width: 560px) {
-  .row { grid-template-columns: 22px 1fr; }
-  .acts { grid-column: 1 / -1; }
+.gate button:hover { filter: brightness(1.08); }
+
+.none, .err { padding: 44px 18px; color: var(--mute); text-align: center; }
+.err { color: var(--danger); }
+.preview-img, .preview-vid { display: block; max-width: calc(100% - 32px); margin: 24px auto; background: var(--surface-2); }
+.preview-text {
+  margin: 0; padding: 16px; white-space: pre-wrap; word-break: break-all;
+  font-size: .85rem; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+.dl { padding: 40px 18px; text-align: center; }
+.dl a {
+  color: #fff; background: var(--accent); text-decoration: none;
+  font-weight: 600; padding: 9px 20px; border-radius: 8px;
+}
+
+@media (max-width: 720px) {
+  .head { display: none; }
+  .row { grid-template-columns: 30px 1fr auto; }
+  .row .when { display: none; }
+  .row .size { grid-column: 2; margin-top: -4px; }
+  .acts { grid-row: 1; grid-column: 3; }
 }
 </style>
 </head>
 <body>
-<div class="desk">
-  <header class="mast">
+<div class="app">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6a2 2 0 0 1 2-2h3.2l1.8 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
+    </div>
     <h1>Files</h1>
-    <div class="who">내 파일</div>
   </header>
-  <div class="drawers">
-    <button class="tab on" type="button" id="tab-laptop">노트북</button>
-    <button class="tab" type="button" id="tab-vault">금고</button>
+  <div class="sources">
+    <button class="tab on" type="button" id="tab-laptop">내 PC</button>
+    <button class="tab" type="button" id="tab-vault">클라우드</button>
   </div>
-  <p class="crumb" id="crumb"></p>
-  <div class="cabinet" id="box"></div>
+  <nav class="crumb" id="crumb"></nav>
+  <div class="panel" id="box"></div>
 </div>
 <script type="module" src="app.mjs"></script>
 </body>
