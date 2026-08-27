@@ -241,8 +241,57 @@ sitemap: false
         <h1>여기엔 아무것도 없다</h1>
         <p style="color:var(--text-secondary)">주소가 바뀌었거나, 처음부터 없던 곳이다.</p>
         <p><a href="/?board=blog#community">글 목록</a> · <a href="/">KarmoLab</a></p>
+        <!-- 도구 주소로 잘못 들어온 사람 건지기 (TASK-KL-089 승계).
+             도구가 이름을 바꾸거나 사라지면 옛 링크와 옛 검색 결과가 전부 그 주소로 온다.
+             그냥 두면 여기서 통째로 버려진다 — 이름이 닮은 것을 찾아 그 자리에서 보여 준다.
+             도구 주소로 온 게 아니면 아무것도 하지 않는다. -->
+        <div id="karmolab-rescue" hidden style="margin-top:32px">
+            <p><strong id="karmolab-rescue-head"></strong></p>
+            <ul id="karmolab-rescue-list" style="list-style:none;padding:0"></ul>
+            <p><a href="/t/">도구 전체 목록 보기</a></p>
+        </div>
     </main>
-    <script>${SW_KILL}</script>
+    <script>
+    (function(){
+        var m = location.pathname.match(/^\/t\/([^\/]+)\/?$/);
+        if (!m) return;
+        var want = decodeURIComponent(m[1]).toLowerCase();
+        var box = document.getElementById('karmolab-rescue');
+        fetch('/t/tools.json')
+            .then(function(r){ return r.ok ? r.json() : null; })
+            .then(function(rows){
+                if (!rows) return;
+                /* 얼마나 닮았는지 — 서로의 글자가 겹치는 정도로 센다(짧은 이름이 유리하지 않게 나눈다). */
+                function score(a, b){
+                    if (!b) return 0;
+                    if (b.indexOf(a) !== -1 || a.indexOf(b) !== -1) return 1;
+                    var hit = 0;
+                    for (var i = 0; i + 2 <= a.length; i++) if (b.indexOf(a.substr(i, 2)) !== -1) hit++;
+                    return hit / Math.max(1, a.length - 1);
+                }
+                var best = rows
+                    .map(function(t){ return [Math.max(score(want, t[0]), score(want, String(t[2]).toLowerCase())), t]; })
+                    .filter(function(x){ return x[0] > 0.3; })
+                    .sort(function(x, y){ return y[0] - x[0]; })
+                    .slice(0, 5);
+                document.getElementById('karmolab-rescue-head').textContent = best.length
+                    ? '혹시 이걸 찾으셨나요'
+                    : '찾으시는 도구가 이름을 바꿨을 수 있습니다';
+                var ul = document.getElementById('karmolab-rescue-list');
+                best.forEach(function(x){
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = '/t/' + x[1][0] + '/';
+                    a.textContent = x[1][1];
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+                box.hidden = false;
+            })
+            .catch(function(){ /* 목록을 못 받으면 아래의 전체 목록 링크만 남는다 */ });
+    })();
+    ${SW_KILL}
+    </script>
 </body>
 </html>
 `;
