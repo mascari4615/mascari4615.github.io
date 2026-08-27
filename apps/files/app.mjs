@@ -181,13 +181,35 @@ function mountDesktopNav() {
     ico('<path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" stroke="currentColor" stroke-width="1.2" fill="none"/>') +
     '</button>';
 
-  document.getElementById('nav-back').addEventListener('click', () => {
-    // navigate 로 왔으므로 히스토리에 카모랩이 남아 있다.
+  // 이 화면이 **어느 창**에 떠 있냐에 따라 돌아가는 길이 다르다.
+  // 카모랩 창을 갈아탄 것이면 히스토리에 카모랩이 남아 뒤로가기가 먹지만,
+  // 따로 띄운 Files 창은 이 페이지가 첫 장이라 뒤로 갈 곳이 없다 — 그때는 창을 닫는다.
+  const winApi = globalThis.__TAURI__?.window?.getCurrentWindow;
+  const win = typeof winApi === 'function' ? winApi() : null;
+  const standalone = win?.label === 'files';
+
+  const back = document.getElementById('nav-back');
+  if (standalone) {
+    back.textContent = '닫기';
+    back.title = '따로 띄운 창입니다 — 닫으면 KarmoLab 이 그대로 있습니다';
+  }
+  back.addEventListener('click', () => {
+    if (standalone) {
+      win?.close?.();
+      return;
+    }
     history.back();
   });
-  document.getElementById('nav-window').addEventListener('click', () => {
-    desktopInvoke('files_window_open').catch(() => {});
-  });
+
+  const openWin = document.getElementById('nav-window');
+  if (standalone) {
+    // 이미 따로 떠 있는 창에서 또 띄울 이유가 없다.
+    openWin.remove();
+  } else {
+    openWin.addEventListener('click', () => {
+      desktopInvoke('files_window_open').catch(() => {});
+    });
+  }
 
   // 창 테두리가 없는 앱이라(decorations:false) 최소화·최대화·닫기를 화면이 그려야 한다.
   // 카모랩 셸에는 이미 있지만 이 화면은 그 셸이 아니다 — 없으면 창을 닫을 길이 없다.

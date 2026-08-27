@@ -57,6 +57,9 @@ pub fn open_files_window(app: &tauri::AppHandle) -> Result<(), String> {
         .title("Files")
         .inner_size(1000.0, 760.0)
         .resizable(true)
+        // 카모랩 창과 같은 결 — 틀은 화면이 그린다. 이걸 켜 두면 OS 타이틀바와
+        // 화면이 그린 창 단추가 **둘 다** 보인다 (2026-08-27 조수님이 봤다).
+        .decorations(false)
         .focused(true)
         .build()
         {
