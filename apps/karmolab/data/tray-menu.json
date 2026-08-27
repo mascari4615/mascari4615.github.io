@@ -28,6 +28,12 @@
       "tool": "servermonitor",
       "label": "서버 모니터 열기",
       "order": 40
+    },
+    {
+      "id": "files",
+      "kind": "files",
+      "label": "파일",
+      "order": 50
     }
   ]
 }

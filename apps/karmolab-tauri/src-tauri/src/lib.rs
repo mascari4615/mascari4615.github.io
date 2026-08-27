@@ -8,6 +8,7 @@ mod alarm;
 mod cockpit_graph;
 mod claude_env;
 mod desktop_login;
+mod files_window;
 #[cfg(debug_assertions)]
 mod dev_static;
 mod questlog_hub;
@@ -61,6 +62,7 @@ use local_dev::{
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
     LocalDevState,
 };
+use files_window::files_window_open;
 use vault_upload::{
     restore_upload_state, vault_upload_start, vault_upload_status, vault_upload_stop,
     VaultUploadState,
@@ -404,6 +406,11 @@ fn run_quick_item(
         }
         tray_menu::QuickKind::Url { url } => {
             let _ = open::that(url);
+        }
+        tray_menu::QuickKind::Files => {
+            if let Err(e) = files_window::open_files_window(app) {
+                eprintln!("[files] 창 열기 실패: {e}");
+            }
         }
     }
 }

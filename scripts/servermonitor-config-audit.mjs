@@ -241,10 +241,12 @@ function auditTrayMenu() {
       if (typeof item.url !== 'string' || !/^https?:\/\//.test(item.url)) {
         failures.push(`[tray] ${id}: url 줄인데 주소가 http(s) 로 시작하지 않는다`);
       }
+    } else if (item?.kind === 'files') {
+      // Files 전용 창. 가리킬 프로필·위젯·주소가 없다 — 주소는 앱이 main 창에서 파생한다.
     } else {
       failures.push(
         `[tray] ${id}: 모르는 kind 「${item?.kind}」 — 앱이 그 줄을 통째로 버린다 ` +
-          `(dev|tool|url 중 하나)`
+          `(dev|tool|url|files 중 하나)`
       );
     }
   }

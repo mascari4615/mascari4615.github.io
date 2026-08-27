@@ -201,3 +201,9 @@ name = "vault-upload"
 identifier = "allow-vault-upload"
 description = "Files 금고 전송기를 데스크톱이 붙든다 — 시작/중지/집계 상태만. 실행체·인자는 고정이고 열쇠·원본 경로는 오가지 않는다."
 commands = ["vault_upload_status", "vault_upload_start", "vault_upload_stop"]
+
+[[group]]
+name = "files-window"
+identifier = "allow-files-window"
+description = "Files 전용 창을 연다 — 파일 화면은 카모랩 위젯이 아니라 자기 창에서 산다."
+commands = ["files_window_open"]

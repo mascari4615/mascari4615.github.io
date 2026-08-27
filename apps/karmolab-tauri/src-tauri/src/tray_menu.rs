@@ -13,6 +13,7 @@
 //!              **사람 카드와 같은 손**(`localdev_start/stop`)이라 상태가 갈라지지 않는다.
 //!   - `tool` — 창을 열고 그 도구로 간다. `tool` = 위젯 id (주소의 `#<id>`).
 //!   - `url`  — 브라우저로 연다.
+//!   - `files` — Files 전용 창을 연다 (파일 화면은 독립 제품 표면이라 위젯이 아니다).
 //!
 //! 적어 둔 것이 실제로 있는지(없는 프로필·없는 위젯을 가리키는지)는 굽기 전에
 //! `scripts/servermonitor-config-audit.mjs` 가 막는다 — 눌러 보고 알게 되면 늦다.
@@ -38,6 +39,8 @@ pub enum QuickKind {
     Tool { tool: String },
     /// 브라우저로 열기.
     Url { url: String },
+    /// Files 전용 창을 연다. 카모랩 화면 안이 아니라 자기 창이다.
+    Files,
 }
 
 impl QuickItem {
@@ -101,6 +104,7 @@ pub fn parse(raw: &str) -> Vec<QuickItem> {
             "dev" => item.profile.map(|profile| QuickKind::Dev { profile }),
             "tool" => item.tool.map(|tool| QuickKind::Tool { tool }),
             "url" => item.url.map(|url| QuickKind::Url { url }),
+            "files" => Some(QuickKind::Files),
             // 모르는 갈래는 조용히 버린다 — 옛 앱이 새 갈래를 만나도 나머지는 뜬다.
             _ => None,
         };
