@@ -130,7 +130,7 @@ export function gridKey(lat: number, lon: number, step = 1): string {
 
 /* ── 원천들 ───────────────────────────────────────────────────────────── */
 
-const UA = 'KarmoLab/1.0 (+https://mascari4615.github.io/karmolab/)';
+const UA = 'KarmoLab/1.0 (+https://mascari4615.github.io/)';
 
 async function getJson(url: string, ms = 12000): Promise<unknown | null> {
   const ac = new AbortController();

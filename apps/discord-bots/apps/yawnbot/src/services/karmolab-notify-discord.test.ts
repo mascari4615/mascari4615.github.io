@@ -18,7 +18,7 @@ function note(overrides: Partial<Notification> = {}): Notification {
         source: 'community',
         title: '내 글에 답글이 달렸어요',
         body: '무슨 글 — 연보라 수달',
-        url: '/karmolab/?p=123#community',
+        url: '/?p=123#community',
         groupKey: 'post-reply:123',
         count: 1,
         createdAt: '2026-08-08T00:00:00.000Z',
@@ -35,7 +35,7 @@ describe('DM 한 줄', () => {
         const text = dmTextFor(note());
         expect(text).toContain('내 글에 답글이 달렸어요');
         expect(text).toContain('연보라 수달');
-        expect(text).toContain('https://blog.mascari4615.com/karmolab/?p=123#community');
+        expect(text).toContain('https://blog.mascari4615.com/?p=123#community');
     });
 
     it('묶인 알림은 몇 개인지 함께 적는다', () => {

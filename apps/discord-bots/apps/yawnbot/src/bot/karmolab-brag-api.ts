@@ -16,7 +16,7 @@ import { readImage } from '../services/karmolab-uploads';
 import { KarmolabBragStore, getKarmolabBragStore } from '../services/karmolab-brag';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 
-const SITE = 'https://blog.mascari4615.com/karmolab/';
+const SITE = 'https://blog.mascari4615.com/';
 
 const esc = (value: unknown): string =>
   String(value == null ? '' : value)

@@ -7,7 +7,7 @@ tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
 ---
 
-[KarmoLab](/karmolab/)에 도구를 스무 개쯤 만들어 놓고 나서야 깨달았다. **누가 무엇을 쓰는지 볼 방법이 없었다.**
+[KarmoLab](/)에 도구를 스무 개쯤 만들어 놓고 나서야 깨달았다. **누가 무엇을 쓰는지 볼 방법이 없었다.**
 
 다음에 무엇을 만들지, 어떤 설명이 안 먹히는지가 전부 그 데이터에 달려 있는데 눈이 없는 상태였다. 그래서 계측을 붙였고, 그 도구가 GoatCounter다.
 
@@ -48,7 +48,7 @@ image: /assets/img/background/kururu-lab.jpg
 계측이 알려주는 건 이 정도다.
 
 ```
-/karmolab/t/charcount/    ← 글자수 세기 페이지를 열었다
+/t/charcount/    ← 글자수 세기 페이지를 열었다
 use/charcount/copy        ← 거기서 결과를 복사했다
 ```
 

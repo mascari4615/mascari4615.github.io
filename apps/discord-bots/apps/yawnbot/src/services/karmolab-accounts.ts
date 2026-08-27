@@ -74,7 +74,7 @@ function prevDayKey(key: string): string {
 
 export interface Account {
   id: string;
-  /** 공개 주소에 쓰는 이름 (`/karmolab/u/<handle>`). 소문자·영숫자·`-`·`_` 만. */
+  /** 공개 주소에 쓰는 이름 (`/u/<handle>`). 소문자·영숫자·`-`·`_` 만. */
   handle: string;
   displayName: string;
   avatarUrl: string | null;

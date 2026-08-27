@@ -193,7 +193,7 @@ function labHtml(title, lead, icon) {
     <div class="row"><div class="icon"><svg viewBox="0 0 24 24" fill="none">${icon}</svg></div><h1>${title}</h1></div>
     <p>${lead}</p>
   </div>
-  <footer><span class="logo">${LOGO}</span><span class="dom">blog.mascari4615.com/karmolab</span></footer>
+  <footer><span class="logo">${LOGO}</span><span class="dom">blog.mascari4615.com</span></footer>
 </div>`;
 }
 

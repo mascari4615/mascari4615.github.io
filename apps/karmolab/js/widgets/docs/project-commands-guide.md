@@ -41,7 +41,7 @@ bundle exec jekyll serve --host 127.0.0.1 --port 4000 --livereload --incremental
 
 - **Windows(PowerShell)에서 Listen 오류**(`directory is already being watched`)가 나면 위 명령 끝에 **`--force_polling`** 을 붙이세요.
 - 사이트 루트: **http://127.0.0.1:4000/**
-- KarmoLab(Jekyll 경로): **http://127.0.0.1:4000/karmolab/** — Tauri만 빠르게 볼 때는 **`apps/karmolab-tauri`의 `npm run dev`**(8899 정적 서버 + `/apps/karmolab/`; Python 또는 Node)를 쓰는 편이 Listen 이슈가 없습니다.
+- KarmoLab(Jekyll 경로): **http://127.0.0.1:4000/** — Tauri만 빠르게 볼 때는 **`apps/karmolab-tauri`의 `npm run dev`**(8899 정적 서버 + `/apps/karmolab/`; Python 또는 Node)를 쓰는 편이 Listen 이슈가 없습니다.
 
 **래퍼 스크립트** (Git Bash / WSL / macOS / Linux):
 
@@ -184,4 +184,4 @@ npm run deploy:yawnbot
 
 ## KarmoLab에서 이 문서 열기
 
-**[KarmoLab](https://mascari4615.github.io/karmolab/)** → **문서** → **프로젝트 명령** 탭.
+**[KarmoLab](https://mascari4615.github.io/)** → **문서** → **프로젝트 명령** 탭.

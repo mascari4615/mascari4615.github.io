@@ -139,7 +139,7 @@ function isDesktopReturn(url: URL): boolean {
 
 /** 로그인 후 되돌아갈 수 있는 곳 — 열린 리디렉트(아무 주소로나 튕겨 보내기)를 막는다. */
 function safeReturnUrl(raw: unknown): string {
-  const fallback = 'https://blog.mascari4615.com/karmolab/';
+  const fallback = 'https://blog.mascari4615.com/';
   const value = typeof raw === 'string' ? raw : '';
   if (!value) return fallback;
   try {
@@ -548,7 +548,7 @@ export function registerKarmolabApi(
         // 내 화면에서도 디스코드 주소를 안 쓴다 — 화면에 박힌 주소는 그대로 복사돼 남에게 간다.
         avatarPath: account.avatarUrl ? `/kl/u/${encodeURIComponent(account.handle)}/avatar` : null,
         joinedAt: account.createdAt,
-        profileUrl: `https://blog.mascari4615.com/karmolab/u/?h=${encodeURIComponent(account.handle)}`,
+        profileUrl: `https://blog.mascari4615.com/u/?h=${encodeURIComponent(account.handle)}`,
       },
       records: account.records,
       recordsUpdatedAt: account.recordsUpdatedAt,
@@ -917,7 +917,7 @@ export function registerKarmolabApi(
   /**
    * 프로필 공유 주소 (TASK-KL-156 D9) — `https://yawnbot.mascari4615.com/kl/u/:handle/card`.
    *
-   * 왜 서버가 HTML 을 내보내나: 지금 프로필은 `/karmolab/u/?h=…` 라 **크롤러가 사람마다 다른
+   * 왜 서버가 HTML 을 내보내나: 지금 프로필은 `/u/?h=…` 라 **크롤러가 사람마다 다른
    * 미리보기 그림을 못 읽는다**(정적 파일 한 장이라 og 태그가 모두 같다). 카드 그림은 이미
    * 서버에 있는데 아무도 못 보는 상태였다.
    *
@@ -937,7 +937,7 @@ export function registerKarmolabApi(
     }
     const esc = (value: string): string =>
       String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    const target = `https://blog.mascari4615.com/karmolab/u/?h=${encodeURIComponent(account.handle)}`;
+    const target = `https://blog.mascari4615.com/u/?h=${encodeURIComponent(account.handle)}`;
     const image = `https://yawnbot.mascari4615.com/kl/u/${encodeURIComponent(account.handle)}/card.svg`;
     const title = `${account.displayName} (@${account.handle}) — KarmoLab`;
     const description = account.card?.bio || 'KarmoLab 에서 이어 온 기록.';
@@ -2004,8 +2004,8 @@ export function registerKarmolabApi(
   app.get('/kl/w/:id', (req: Request, res: Response) => {
     const pack = packs.get(req.params.id);
     const target = pack
-      ? `https://blog.mascari4615.com/karmolab/?wc=${encodeURIComponent(pack.id)}#worldcup`
-      : 'https://blog.mascari4615.com/karmolab/#worldcup';
+      ? `https://blog.mascari4615.com/?wc=${encodeURIComponent(pack.id)}#worldcup`
+      : 'https://blog.mascari4615.com/#worldcup';
     if (!pack) {
       res.status(404).type('html').send(`<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${target}">`);
       return;
@@ -2595,7 +2595,7 @@ export function registerKarmolabApi(
         source: 'follow',
         title: `${account.displayName} 님의 새 글`,
         body: gallery.titled ? title : text.slice(0, 60),
-        url: `/karmolab/?p=${encodeURIComponent(created.id)}#community`,
+        url: `/?p=${encodeURIComponent(created.id)}#community`,
         groupKey: `follow:${account.handle}`,
         actorAccountId: account.id,
       });
@@ -2643,7 +2643,7 @@ export function registerKarmolabApi(
         source: 'community',
         title: '내 글을 좋아했어요',
         body: `${target.title ?? target.text.slice(0, 30)} — @${account.handle}`,
-        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        url: `/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `post-like:${postId}`,
       });
       notes.flush();
@@ -2699,7 +2699,7 @@ export function registerKarmolabApi(
         source: 'community',
         title: `내 글에 답글이 달렸어요`,
         body: `${target.title ?? target.text.slice(0, 30)} — ${actorLabel}`,
-        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        url: `/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `post-reply:${postId}`,
       });
     }
@@ -2711,7 +2711,7 @@ export function registerKarmolabApi(
         source: 'community',
         title: '내 답글에 답글이 달렸어요',
         body: `${actorLabel}: ${text.slice(0, 40)}`,
-        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        url: `/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `reply-reply:${parentId}`,
       });
     }
@@ -2810,7 +2810,7 @@ export function registerKarmolabApi(
         source: 'community',
         title: `올리신 「${what}」 — ${closingWord[updated.status] ?? '상태가 바뀌었어요'}`,
         body: updated.statusNote,
-        url: `/karmolab/?p=${encodeURIComponent(updated.id)}#community`,
+        url: `/?p=${encodeURIComponent(updated.id)}#community`,
         groupKey: `post-status:${updated.id}`,
         actorAccountId: account.id,
       });
@@ -2907,7 +2907,7 @@ export function registerKarmolabApi(
         source: 'moderation',
         title: '신고가 들어왔어요',
         body: String(body.reason ?? '').slice(0, 60),
-        url: `/karmolab/?p=${encodeURIComponent(String(body.postId ?? ''))}#community`,
+        url: `/?p=${encodeURIComponent(String(body.postId ?? ''))}#community`,
         groupKey: 'reports',
       });
     }
@@ -3225,7 +3225,7 @@ export function registerKarmolabApi(
         source: 'chat',
         title: '내 말에 답이 달렸어요',
         body: `${result.message?.name}: ${result.message?.text.slice(0, 40)}`,
-        url: '/karmolab/#chat',
+        url: '/#chat',
         groupKey: `chat-answer:${req.body.replyTo}`,
       });
     }
@@ -3242,7 +3242,7 @@ export function registerKarmolabApi(
         source: 'chat',
         title: '채팅에 새 말이 있어요',
         body: `${result.message?.name}: ${result.message?.text.slice(0, 40)}`,
-        url: '/karmolab/#chat',
+        url: '/#chat',
         groupKey: 'chat',
         actorAccountId: account?.id ?? null,
       });
@@ -3371,7 +3371,7 @@ export function registerKarmolabApi(
         source: 'moderation',
         title: '채팅 신고가 들어왔어요',
         body: `${target.name}: ${target.text}`.slice(0, 60),
-        url: '/karmolab/#chat',
+        url: '/#chat',
         groupKey: 'chat-reports',
       });
     }

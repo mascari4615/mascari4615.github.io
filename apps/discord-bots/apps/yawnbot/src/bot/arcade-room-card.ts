@@ -22,11 +22,11 @@ import { PKG_ROOT } from '../paths';
 
 const SITE = 'https://blog.mascari4615.com';
 /**
- * **화면 주소와 그림 주소가 다르다.** 화면은 `/karmolab/…`(젠킬이 찍어 내는 쪽), 그림은
+ * **화면 주소와 그림 주소가 다르다.** 화면은 `/…`(젠킬이 찍어 내는 쪽), 그림은
  * `/apps/karmolab/…`(앱 폴더가 그대로 실리는 쪽)이다. 둘을 같은 뿌리로 적었다가 카드 그림이
  * 전부 404 였다 — 실주소를 찔러 보고서야 알았다(문패는 200 이라 화면상 아무 표도 안 났다).
  */
-const ARCADE = `${SITE}/karmolab/t/arcade/`;
+const ARCADE = `${SITE}/t/arcade/`;
 const ASSETS = `${SITE}/apps/karmolab`;
 
 const esc = (value: unknown): string =>

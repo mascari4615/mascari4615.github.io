@@ -1,6 +1,6 @@
 # KarmoLab (Tauri)
 
-데스크톱에서 시스템 WebView로 [KarmoLab](https://mascari4615.github.io/karmolab/)을 여는 얇은 셸입니다. **앱 바이너리에는 사이트 전체를 넣지 않고**, 배포된 GitHub Pages URL을 그대로 띄웁니다. 오프라인은 **서비스 워커(Chirpy PWA)가 받아 둔 캐시**에 의존합니다(한 번 온라인으로 쓴 뒤, WebView가 캐시를 지우지 않았다면 제한적으로 동작).
+데스크톱에서 시스템 WebView로 [KarmoLab](https://mascari4615.github.io/)을 여는 얇은 셸입니다. **앱 바이너리에는 사이트 전체를 넣지 않고**, 배포된 GitHub Pages URL을 그대로 띄웁니다. 오프라인은 **서비스 워커(Chirpy PWA)가 받아 둔 캐시**에 의존합니다(한 번 온라인으로 쓴 뒤, WebView가 캐시를 지우지 않았다면 제한적으로 동작).
 
 ## 준비물
 
@@ -39,7 +39,7 @@ dev/prod 분기 진실 = Rust `cfg!(debug_assertions)` (debug build = dev / rele
 ## 원격 + 캐시(오프라인에 가깝게)
 
 - KarmoLab 페이지(`apps/karmolab/index.html`)는 **프로덕션 빌드에서** 사이트 루트의 **`/sw.min.js`(Chirpy 서비스 워커)** 를 등록합니다. 본문 레이아웃을 쓰지 않던 페이지라 기존에는 SW가 붙지 않았습니다.
-- 그 SW는 설정상 **거부 경로가 아닌 GET 요청**을 네트워크로 받은 뒤 **Cache Storage에 넣습니다**. 그래서 **같은 출처**(`/karmolab/`, `/apps/karmolab/…` 등)는 방문·로드된 범위에서 캐시에 쌓일 수 있습니다.
+- 그 SW는 설정상 **거부 경로가 아닌 GET 요청**을 네트워크로 받은 뒤 **Cache Storage에 넣습니다**. 그래서 **같은 출처**(`/`, `/apps/karmolab/…` 등)는 방문·로드된 범위에서 캐시에 쌓일 수 있습니다.
 - **한계**: (1) 최초 실행부터 오프라인이면 캐시가 없어 빈 화면/실패할 수 있습니다. (2) 브라우저·WebView2가 디스크를 비우면 캐시가 사라집니다. (3) **폰트(Inter, Pretendard)·일부 위젯 전용 CDN** 등은 여전히 외부망이 필요할 수 있습니다. KarmoLab 본문은 `crypto-js`·`marked`·`prism`(테마·자주 쓰는 언어 컴포넌트)을 `apps/karmolab/js/vendor`에 두어 같은 출처로 제공합니다.
 - 로컬에서 앱으로 확인할 때는 **`npm run dev`** (8898 정적 서버 + KarmoLab Dev) 를 쓰면 됩니다. 배포본·서비스 워커·원격 캐시 검증은 그냥 production .exe (`KarmoLab`) 사용 — 이미 GitHub Pages live URL 띄움.
 

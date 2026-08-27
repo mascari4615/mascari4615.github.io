@@ -379,7 +379,7 @@
     "test:planner": "node scripts/test-planner-core.mjs",
     "test:platform": "node scripts/smoke-platform-pages.mjs",
     "test:play-i18n": "node scripts/smoke-play-i18n.mjs",
-    "test:play-i18n:ja": "node scripts/smoke-play-i18n.mjs --page https://blog.mascari4615.com/ja/karmolab/",
+    "test:play-i18n:ja": "node scripts/smoke-play-i18n.mjs --page https://blog.mascari4615.com/ja/",
     "test:pnum": "node scripts/test-pdfpagenum.mjs",
     "test:psign": "node scripts/test-pdfsign.mjs",
     "test:pulse": "node scripts/smoke-pulse.mjs",

@@ -109,7 +109,7 @@ export async function runKarmolabWeeklyDmTick(
         source: 'weekly',
         title: '지난 주 발자국',
         body: text.split('\n').slice(1, 3).join(' ').replace(/^·\s*/, ''),
-        url: '/karmolab/#user',
+        url: '/#user',
         groupKey: `weekly:${week}`,
       });
     }

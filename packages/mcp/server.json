@@ -4,7 +4,7 @@
   "title": "KarmoLab",
   "description": "MCP server for what LLMs get wrong: exact hashes, real randomness, and Korean rules.",
   "version": "0.2.0",
-  "websiteUrl": "https://blog.mascari4615.com/karmolab/",
+  "websiteUrl": "https://blog.mascari4615.com/",
   "repository": {
     "url": "https://github.com/mascari4615/mascari4615.github.io",
     "source": "github",

@@ -423,7 +423,7 @@ ${body}
 ${detailSection(data)}
 <footer>
   메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
-  욘봇이 만든 결산 · <a href="https://mascari4615.github.io/karmolab/">KarmoLab</a>
+  욘봇이 만든 결산 · <a href="https://mascari4615.github.io/">KarmoLab</a>
 </footer>
 ${imageScript(data)}
 </body></html>`;

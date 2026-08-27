@@ -186,7 +186,7 @@ describe('계정 API — HTTP', () => {
     const before = process.env.DISCORD_CLIENT_SECRET;
     delete process.env.DISCORD_CLIENT_SECRET;
     try {
-      const res = await fetch(`${baseUrl}/kl/auth/discord?return=https://blog.mascari4615.com/karmolab/`, {
+      const res = await fetch(`${baseUrl}/kl/auth/discord?return=https://blog.mascari4615.com/`, {
         redirect: 'manual',
       });
       expect(res.status).toBe(302);
@@ -567,7 +567,7 @@ describe('계정 API — HTTP', () => {
           redirect: 'manual',
         });
         const location = res.headers.get('location') ?? '';
-        expect(location).toContain('https://blog.mascari4615.com/karmolab/');
+        expect(location).toContain('https://blog.mascari4615.com/');
       }
     } finally {
       if (before !== undefined) process.env.DISCORD_CLIENT_SECRET = before;

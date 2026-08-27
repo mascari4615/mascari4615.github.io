@@ -88,7 +88,7 @@ compiled into `dist/`. Nothing is downloaded at runtime.
 - **No hand-written tool list.** The build emits every `src/core/*.ts` that exports a `spec`;
   the server reads that and derives names, descriptions and input schemas. Adding a tool touches no server code.
 - **The same code runs the website.** These tools are the calculation cores behind
-  [KarmoLab](https://blog.mascari4615.com/karmolab/) — the browser UI and this server share one implementation,
+  [KarmoLab](https://blog.mascari4615.com/) — the browser UI and this server share one implementation,
   so "the site says X but MCP says Y" is structurally impossible.
 - **Honest boundaries.** Tools say what they cannot know: `bizno_check` states it only validates the
   checksum (not registration), `workdays_*` says which years aren't in its holiday table instead of
@@ -112,7 +112,7 @@ what a user gets.
 값이 가장 큰 자리는 **한국 규칙**이다 — 나이 세 가지, 사업자등록번호 검증숫자, 대체공휴일,
 한영타·자모, 평·근·돈. 이건 지역 지식이라 모델이 외워서 답하다 어긋난다.
 
-같은 계산을 [KarmoLab](https://blog.mascari4615.com/karmolab/) 화면도 쓴다 — 한 벌이라
+같은 계산을 [KarmoLab](https://blog.mascari4615.com/) 화면도 쓴다 — 한 벌이라
 「사이트 값과 MCP 값이 다르다」가 생길 수 없다.
 
 ## License

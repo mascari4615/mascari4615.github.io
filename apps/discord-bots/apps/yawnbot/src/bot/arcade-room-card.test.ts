@@ -37,11 +37,11 @@ describe('오락실 방 문패', () => {
     expect(res.status).toBe(200);
     expect(res.text).toContain('7CCMN');
     expect(res.text).toContain('og:image');
-    /* 그림은 **앱 폴더 쪽** 주소다 — 화면 주소(`/karmolab/…`)로 적으면 404 라 카드가 빈 그림이
+    /* 그림은 **앱 폴더 쪽** 주소다 — 화면 주소(`/…`)로 적으면 404 라 카드가 빈 그림이
        된다. 문패 자체는 200 이라 화면상 표가 안 나므로 여기서 못 박는다(실주소로 확인함). */
     expect(res.text).toContain('/apps/karmolab/img/og/');
     /* 들어가는 문이 있어야 한다 — 그림만 뜨면 자랑이 유입이 안 된다. */
-    expect(res.text).toContain('/karmolab/t/arcade/?r=7CCMN');
+    expect(res.text).toContain('/t/arcade/?r=7CCMN');
   });
 
   it('작은 글자는 큰 글자로 봐 준다', async () => {

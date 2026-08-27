@@ -51,7 +51,7 @@ export function runFlowReminderTick(
       source: 'flow',
       title: `「${flow.title}」 할 때예요`,
       body: flow.auto ? `${flow.steps.length}단계 · 눌러서 시작 (스스로 이어감)` : `${flow.steps.length}단계 · 눌러서 시작`,
-      url: `/karmolab/?flow=${encodeURIComponent(flow.id)}#flow`,
+      url: `/?flow=${encodeURIComponent(flow.id)}#flow`,
       groupKey: `flow:${flow.id}`,
     });
     if (went) sent += 1;

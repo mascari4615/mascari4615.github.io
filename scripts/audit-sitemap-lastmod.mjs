@@ -94,7 +94,7 @@ if (disallowedUrls.length > 0) {
    바로 위 robots.txt 검사와 같은 말인데 막는 자리만 다르다 — 그쪽은 「들어오지 마라」,
    이쪽은 「들어와도 되는데 색인은 하지 마라」다. 둘 다 사이트맵에 실릴 이유가 없다.
    실사이트 전수 측정(2026-08-20): 866개 중 **53개가 noindex** 였다 — 글 작업대로 흡수한
-   옛 도구의 넘김 장 17개 × 3언어, 그리고 `/karmolab/u/` · `/daily/mine/`.
+   옛 도구의 넘김 장 17개 × 3언어, 그리고 `/u/` · `/daily/mine/`.
    장은 성했다(canonical·noindex 다 제대로 달려 있다). 틀린 건 명단이다. 크롤러는 그 장을
    **받아 본 뒤에야** noindex 를 읽는다 — 같은 날 실측으로 90일 크롤 342건 중 HTML 은 9%뿐인
    새 집에서 그 한 번이 아깝다.
@@ -170,8 +170,8 @@ const paths = blocks.map(loc).map((u) => {
   }
 });
 const FOCUS_FLOOR = [
-  ['/karmolab/ 간판', paths.filter((p) => p === '/karmolab/').length, 1],
-  ['/karmolab/t/ 도구 장', paths.filter((p) => /^\/karmolab\/t\/[^/]+\/$/.test(p)).length, 20]
+  ['/ 간판', paths.filter((p) => p === '/').length, 1],
+  ['/t/ 도구 장', paths.filter((p) => /^\/t\/[^/]+\/$/.test(p)).length, 20]
 ];
 const focusBroken = FOCUS_FLOOR.filter(([, got, floor]) => got < floor);
 if (focusBroken.length > 0) {

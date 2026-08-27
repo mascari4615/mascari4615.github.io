@@ -37,7 +37,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 
-const BASE = process.env.BASE || 'https://mascari4615.github.io/karmolab';
+const BASE = process.env.BASE || 'https://mascari4615.github.io';
 const REPS = Number(process.argv[2] || 5);
 const CPU = Number(process.env.CPU || 4);
 

@@ -297,7 +297,7 @@ export function renderDashboardPage(data: DashboardData): string {
 <footer>
   메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
   <a href="${escapeHtml(basePath.replace(/\/board$/, ''))}">← 결산 카드로</a> ·
-  욘봇 · <a href="https://mascari4615.github.io/karmolab/">KarmoLab</a>
+  욘봇 · <a href="https://mascari4615.github.io/">KarmoLab</a>
 </footer>
 </div></body></html>`;
 }

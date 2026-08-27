@@ -188,7 +188,7 @@ run('apps/karmolab 도구 장 찍기 (성능 게이트가 볼 것)', 'apps/karmo
    `verify` 에만 빠져 있었다. 1초 남짓이고, 안 붙이면 다음 사람이 남의 빨강을 물려받는다. */
 run('apps/karmolab 도구 장 짝 찍기 (en/ja)', 'apps/karmolab', 'npm run gen:tool-pages-locale');
 
-/* ★ **첫 화면 미리 그리기도 CI 에는 없다** (2026-08-16, 실측). `apps/blog/karmolab/` 은
+/* ★ **첫 화면 미리 그리기도 CI 에는 없다** (2026-08-16, 실측). `apps/blog/` 은
    `.gitignore` 에 걸린 **빌드 산출물**이라 CI 체크아웃에는 아예 없다. 그래서 `audit:prerender-home`
    이 매 판 「찍힌 첫 화면이 없다 — 못 돌림」으로 빠졌다: 첫 화면이 **미리 그려진 뒤에도 성한지**를
    보라고 만든 검사가, 정작 배포 때 말고는 한 번도 안 돈 것이다. 1초면 찍힌다 — 안 도는 검사를

@@ -121,7 +121,7 @@ export class SharedCache<T> {
 
 /* ── 원천들 ───────────────────────────────────────────────────────────── */
 
-const UA = 'KarmoLab/1.0 (+https://mascari4615.github.io/karmolab/)';
+const UA = 'KarmoLab/1.0 (+https://mascari4615.github.io/)';
 
 async function getJson<T>(url: string, ms = 12000): Promise<T | null> {
   const ac = new AbortController();
