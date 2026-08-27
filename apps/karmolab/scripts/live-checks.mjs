@@ -18,7 +18,7 @@
 
 export const PREP = [
   { name: '대조 기준 만들기 (빌드 산출물 — 게이트는 verify 몫)', cmd: ['npm', 'run', 'build:artifacts'] },
-  /* 아래 검사 몇 개는 **이 자리에 띄운 서버**로 `/karmolab/t/<도구>/` 를 연다. 그 페이지는
+  /* 아래 검사 몇 개는 **이 자리에 띄운 서버**로 `/t/<도구>/` 를 연다. 그 페이지는
      배포가 찍는 것이라 여기엔 없었고, 화면이 통째로 「not found」였다(2026-08-13 실측). */
   { name: '도구·놀이 페이지 찍기 (검사가 그 주소를 연다)', cmd: ['npm', 'run', 'gen:tool-pages'] },
   { name: '놀이 페이지 찍기', cmd: ['npm', 'run', 'gen:play-pages'] },

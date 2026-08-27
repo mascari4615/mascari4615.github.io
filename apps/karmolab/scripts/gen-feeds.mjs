@@ -56,7 +56,7 @@ const items = entries
   .slice(0, LIMIT)
   .map((entry) => {
     // 글자마다 제 주소가 있어야 구독기가 「이미 본 것」을 가릴 수 있다. 커밋 지문이 그 자리다.
-    const link = `${SITE}/karmolab/#status`;
+    const link = `${SITE}/#status`;
     return `    <item>
       <title>[${xml(entry.label)}] ${xml(entry.text)}</title>
       <link>${xml(link)}</link>
@@ -71,8 +71,8 @@ const body = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>KarmoLab — 변경 기록</title>
-    <link>${SITE}/karmolab/</link>
-    <atom:link href="${SITE}/karmolab/changes.xml" rel="self" type="application/rss+xml"/>
+    <link>${SITE}/</link>
+    <atom:link href="${SITE}/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
     <lastBuildDate>${rfc822(entries[0].date)}</lastBuildDate>
@@ -83,7 +83,7 @@ ${items}
 
 // Jekyll 이 이 파일을 건드리지 않게 앞머리를 붙인다 — 안 붙이면 그대로 복사만 되는데,
 // 주소를 우리가 정하려면 앞머리가 필요하다.
-const withFrontMatter = `---\nlayout: none\npermalink: /karmolab/changes.xml\n---\n${body}`;
+const withFrontMatter = `---\nlayout: none\npermalink: /changes.xml\n---\n${body}`;
 
 const prev = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
 if (prev === withFrontMatter) {

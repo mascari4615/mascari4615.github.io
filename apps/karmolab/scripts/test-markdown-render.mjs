@@ -95,8 +95,8 @@ function check(name, ok, got) {
     check('원문 HTML escape', !/<img/.test(onerr), onerr);
     const ext = user('[집](https://example.com)');
     check('바깥 링크 rel', ext.includes('rel="noopener noreferrer"'), ext);
-    const inner = user('[도구](/karmolab/t/qrgen/)');
-    check('안쪽 링크 유지', inner.includes('href="/karmolab/t/qrgen/"'), inner);
+    const inner = user('[도구](/t/qrgen/)');
+    check('안쪽 링크 유지', inner.includes('href="/t/qrgen/"'), inner);
 }
 
 // ── self 신뢰 — 내 글은 전 기능 (원문 HTML 이 산다)

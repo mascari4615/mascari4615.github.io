@@ -70,7 +70,7 @@ const problems = [];
 /*
  * ★ 반대 방향 하나 더 — **알맹이는 있는데 tools-seo 에 없는 도구** (2026-08-10, 두 번 밟았다).
  *
- * `tools-seo.json` 이 도구 페이지·마크다운 쌍둥이·검색 유입·주소(`/karmolab/t/<id>/`)를 만든다.
+ * `tools-seo.json` 이 도구 페이지·마크다운 쌍둥이·검색 유입·주소(`/t/<id>/`)를 만든다.
  * 알맹이(`src/core/<id>.ts`)가 있다는 건 **주소로 부를 수 있다**는 뜻인데, 여기 없으면 그 주소가
  * 아예 안 생긴다 — 위젯은 있고 **들어갈 문이 없는** 상태다. 빌드도 타입 검사도 전부 초록이라
  * 아무 데서도 안 걸린다. `chain` 을 그렇게 내보냈다가 다음 회차에 발견했다.
@@ -107,7 +107,7 @@ const problems = [];
  * 페이지에 박아 둔 빌드 지문과 지금 빌드를 견줘, 다르면 다시 찍으라고 알린다.
  * (배포는 늘 새로 찍으므로 이 문제가 없다. 그래서 로컬에 사본이 있을 때만 본다.) */
 {
-  const sample = path.join(root, '../blog/karmolab/t/loan/index.html');
+  const sample = path.join(root, '../blog/t/loan/index.html');
   const built = path.join(root, 'js/widgets-lazy-meta.js');
   if (fs.existsSync(sample) && fs.existsSync(built)) {
     let h = 0;
@@ -126,7 +126,7 @@ const problems = [];
  * 실제 사이트의 사이트맵을 받아 보니 도구 125장에는 그 날짜가 있는데 목록만 빠져 있었다.
  * 검색엔진은 그 값으로 다시 올 때를 정하므로, 도구를 새로 얹어도 목록을 늦게 다시 본다. */
 {
-  const hub = path.join(root, '../blog/karmolab/t/index.html');
+  const hub = path.join(root, '../blog/t/index.html');
   if (fs.existsSync(hub)) {
     const head = fs.readFileSync(hub, 'utf8').slice(0, 200);
     if (!/last_modified_at:\s*\d{4}-\d{2}-\d{2}/.test(head)) {
@@ -140,7 +140,7 @@ const problems = [];
  * 찾아 주려고 이름만 담은 목록을 함께 찍는데, 이게 조용히 안 찍히면 건지기가 죽는다 —
  * 화면에는 아무 티가 안 난다. 파일이 있는지, 읽히는지, 도구 수와 맞는지 본다. */
 {
-  const f = path.join(root, '../blog/karmolab/t/tools.json');
+  const f = path.join(root, '../blog/t/tools.json');
   if (fs.existsSync(f)) {
     const raw = fs.readFileSync(f, 'utf8').replace(/^---[\s\S]*?---\n/, '');
     let rows = null;

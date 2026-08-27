@@ -536,9 +536,9 @@ interface WorldBook {
   /* ── 이 페이지 자체 ───────────────────────────────────────────────────────────────────
    * 커뮤니티(`?p=<글id>#community`)와 같은 규칙을 쓴다: 앱은 한 페이지라 **물음표로**
    * 지금 보고 있는 것을 가리키고, 뒤로 가기로 오간다.
-   *   /karmolab/#wm                     소개
-   *   /karmolab/?wb=all#wm              도감 목록
-   *   /karmolab/?wb=characters/yawn#wm  그 항목
+   *   /#wm                     소개
+   *   /?wb=all#wm              도감 목록
+   *   /?wb=characters/yawn#wm  그 항목
    */
 
   let host: HTMLElement | null = null;

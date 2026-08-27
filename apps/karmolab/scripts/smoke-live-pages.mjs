@@ -55,7 +55,7 @@ const polishes = [];
 const LANES = 4;
 
 async function checkOne(page, id) {
-  const url = `${BASE}/karmolab/t/${id}/`;
+  const url = `${BASE}/t/${id}/`;
   /* 없는 파일을 부르고 있는가 (TASK-KL-089).
    * 실제로 한 도구가 매번 없는 스크립트를 부르고 있었다 — 목록에 적힌 경로와 빌드가 내놓는
    * 자리가 어긋나서다. 화면은 멀쩡해 보여서 아무도 몰랐다. 방문 기록기는 남의 서버라 뺀다. */
@@ -331,7 +331,7 @@ process.stdout.write('\n');
 await browser.close();
 
 /*
- * ── 마크다운 쌍둥이 (`/karmolab/t/<id>.md`) — 읽으러 온 쪽이 받는 판
+ * ── 마크다운 쌍둥이 (`/t/<id>.md`) — 읽으러 온 쪽이 받는 판
  *
  * 이 129장은 **사람이 안 보는 자리**라 깨져도 아무도 눈치채지 못한다. 실제로 두 번 깨져 있었다:
  * 한 번은 다음 생성기가 폴더째 지워서 404, 한 번은 살아남았지만 Jekyll 이 HTML 로 바꿔 놓아서
@@ -342,7 +342,7 @@ await browser.close();
  */
 const MD_SAMPLES = ids.slice(0, 3);
 for (const id of MD_SAMPLES) {
-  const url = `${BASE}/karmolab/t/${id}.md`;
+  const url = `${BASE}/t/${id}.md`;
   try {
     const res = await fetch(url, { redirect: 'follow' });
     if (res.ok === false) {

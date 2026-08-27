@@ -807,7 +807,7 @@ window.KARMOLAB_LAZY_META = [
 
   /* ───── 실용 도구 (TASK-KL-088) ─────
    * 검색 유입 1급 대상. 각 항목은 data/tools-seo.json 에 같은 id 의 SEO 문안이 있어야 하고,
-   * scripts/gen-tool-pages.mjs 가 /karmolab/t/<id>/ 정적 페이지를 만든다 (짝 없으면 빌드 실패). */
+   * scripts/gen-tool-pages.mjs 가 /t/<id>/ 정적 페이지를 만든다 (짝 없으면 빌드 실패). */
   /* ★ **작업대로 합친 옛 도구들 — 주소는 살려 둔다** (2026-08-13).
      열여섯을 「글 작업대」의 조작으로 합치면서 낱개 등록이 사라졌고, 그러자 `#textclean` 같은
      **사람 북마크가 아무 데도 안 열리게** 됐다(검사 `smoke:deeplink` 가 그걸 잡고 있었다).
@@ -1701,7 +1701,7 @@ window.KARMOLAB_LAZY_META = [
     icon: '<path d="M9 3L7 21M17 3l-2 18M4 8h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     // 해시 라이브러리를 **자기가** 부른다 (TASK-KL-104). 예전에는 셸이 그것을 늘 먼저
     // 받아 뒀기에 안 적어도 됐는데, 그 eager 로드를 뺀 뒤로 이 도구의 제 주소
-    // (`/karmolab/t/hashgen/`)에서만 「라이브러리를 불러오지 못했어요」가 떴다. 앱 안에서는
+    // (`/t/hashgen/`)에서만 「라이브러리를 불러오지 못했어요」가 떴다. 앱 안에서는
     // 묶음(개발 도구)이 대신 받아 줘서 멀쩡해 보였다 — 그래서 오래 안 들켰다.
     lazyScriptPaths: ['vendor/crypto-js.min', 'tools/hashgen']
   },

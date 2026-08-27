@@ -10,7 +10,7 @@
   "regextest.preset.email": "이메일",
   "regextest.sample.email": "help@karmolab.dev 로 보내고 cc 는 me@example.co.kr",
   "regextest.preset.phone": "전화번호(한국)",
-  "regextest.sample.url": "https://blog.mascari4615.com/karmolab/ 를 열어보세요",
+  "regextest.sample.url": "https://blog.mascari4615.com/ 를 열어보세요",
   "regextest.preset.html": "HTML 태그",
   "regextest.sample.html": "<div class=\"x\">본문</div>",
   "regextest.preset.hangul": "한글만",

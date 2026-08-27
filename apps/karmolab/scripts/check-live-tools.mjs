@@ -6,7 +6,7 @@
  * 커밋에 파일이 안 실렸을 때가 그렇다. 그러면 검색 결과를 타고 온 사람만 404 를 보고, 우리는
  * 모른다(우리는 늘 목록에서 눌러 들어가니까).
  *
- * ★ 주소를 여기 못 박아 둔다 — `/karmolab/t/<id>/` 다. 파일은 `apps/blog/karmolab/t/…` 에
+ * ★ 주소를 여기 못 박아 둔다 — `/t/<id>/` 다. 파일은 `apps/blog/t/…` 에
  *   있지만 Jekyll 이 permalink 로 옮긴다. 실측으로 `/apps/karmolab/t/…` 로 물었다가 「전부
  *   404」로 잘못 판단한 적이 있다(도구 장은 멀쩡했다).
  *
@@ -43,7 +43,7 @@ if (unknown.length > 0) {
   process.exit(1);
 }
 
-const urlOf = (id) => `${BASE}/karmolab/t/${id}/`;
+const urlOf = (id) => `${BASE}/t/${id}/`;
 
 /** 한 장을 본다. 200 만으로는 모자라다 — 그 장이 **그 도구의 장인지**까지 본다. */
 async function look(id) {

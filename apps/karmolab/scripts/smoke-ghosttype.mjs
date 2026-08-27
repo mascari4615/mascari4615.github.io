@@ -22,7 +22,7 @@ import { waitHydrated } from './lib/hydrated.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 void root;
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const URL_TOOL = `${BASE}/karmolab/t/ghosttype/`;
+const URL_TOOL = `${BASE}/t/ghosttype/`;
 
 const failures = [];
 const check = (name, cond, detail) => {
@@ -33,7 +33,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 page.on('pageerror', (e) => failures.push(`페이지 오류: ${e.message}`));
 
-/* 도구가 만드는 주소는 실제 사이트 기준(주소 뿌리 + /karmolab/t/...)이다.
+/* 도구가 만드는 주소는 실제 사이트 기준(주소 뿌리 + /t/...)이다.
  * 로컬 사본은 뿌리가 한 칸 더 들어가 있으므로, 검사에서는 해시만 떼어 붙인다. */
 function withGhost(url) {
   const i = url.indexOf('#');

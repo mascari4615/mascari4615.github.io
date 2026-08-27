@@ -39,9 +39,9 @@ const WATCH_MS = 4000;
 const BUDGET_PER_SEC = 4;
 
 const TARGETS = [
-  ['첫 화면', `${BASE}/karmolab/`],
-  ['도구 목록', `${BASE}/karmolab/t/`],
-  ['도구 화면', `${BASE}/karmolab/t/loan/`]
+  ['첫 화면', `${BASE}/`],
+  ['도구 목록', `${BASE}/t/`],
+  ['도구 화면', `${BASE}/t/loan/`]
 ];
 
 const SPY = () => {

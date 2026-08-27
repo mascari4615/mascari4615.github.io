@@ -21,10 +21,10 @@ const blog = path.resolve(root, '../blog');
 
 /** 볼 장 — 겉 장 둘 + 도구 장 표본 둘(사람이 검색으로 들어오는 자리). */
 const pagesToCheck = [
-  'en/karmolab/index.html',
-  'ja/karmolab/index.html',
-  'en/karmolab/t/loan/index.html',
-  'ja/karmolab/t/loan/index.html',
+  'en/index.html',
+  'ja/index.html',
+  'en/t/loan/index.html',
+  'ja/t/loan/index.html',
 ];
 
 /** 그 장이 실은 말 묶음을 꺼낸다. 없으면 null. */

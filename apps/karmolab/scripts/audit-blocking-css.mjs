@@ -42,7 +42,7 @@ for (const id of SAMPLE) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, serviceWorkers: 'block' });
   const page = await ctx.newPage();
   await page.coverage.startCSSCoverage();
-  await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   const cov = await page.coverage.stopCSSCoverage();
 

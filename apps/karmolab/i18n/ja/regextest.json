@@ -11,7 +11,7 @@
   "regextest.preset.email": "メールアドレス",
   "regextest.sample.email": "help@karmolab.dev に送って cc は me@example.co.kr",
   "regextest.preset.phone": "電話番号（韓国）",
-  "regextest.sample.url": "https://blog.mascari4615.com/karmolab/ を開いてください",
+  "regextest.sample.url": "https://blog.mascari4615.com/ を開いてください",
   "regextest.preset.html": "HTML タグ",
   "regextest.sample.html": "<div class=\"x\">本文</div>",
   "regextest.preset.hangul": "ハングルだけ",

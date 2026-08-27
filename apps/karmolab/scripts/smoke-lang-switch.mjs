@@ -156,7 +156,7 @@ if (real.length) fail.push('콘솔 오류: ' + real.slice(0, 3).join(' | '));
 for (const l of expected) {
   if (!l.prefix) continue;
   const tab = await browser.newPage();
-  await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/apps/blog${l.prefix}/karmolab/index.html`, {
+  await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/apps/blog${l.prefix}/index.html`, {
     waitUntil: 'domcontentloaded'
   });
   await tab.evaluate((id) => { window.__KL_LANG_SAMPLE = id; }, sample);

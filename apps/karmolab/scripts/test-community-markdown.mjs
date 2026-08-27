@@ -66,7 +66,7 @@ check('기울임', renderMarkdown('보통 *기울임*').includes('<em>기울임<
 check('코드', renderMarkdown('`code`').includes('<code>code</code>'));
 check('코드 안의 별표는 굵게가 아니다', renderMarkdown('`**x**`').includes('<code>**x**</code>'));
 check('바깥 링크는 새 창', renderMarkdown('[집](https://example.com)').includes('rel="noopener noreferrer"'));
-check('우리 주소는 같은 창', !renderMarkdown('[도구](/karmolab/t/qrgen/)').includes('target="_blank"'));
+check('우리 주소는 같은 창', !renderMarkdown('[도구](/t/qrgen/)').includes('target="_blank"'));
 check('제목', renderMarkdown('## 제목').includes('<h4>제목</h4>'));
 /* 표기는 marked 관용(태그 사이 줄바꿈·<p> 감싸기)을 허용하되, 구조는 그대로 요구한다. */
 check('인용', /<blockquote>[\s\S]*인용문[\s\S]*<\/blockquote>/.test(renderMarkdown('> 인용문')));

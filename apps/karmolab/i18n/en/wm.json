@@ -52,7 +52,7 @@
   "wm.t50": "<p class=\"wb-empty\">Nothing found. Try another word.</p>",
   "wm.t51": "Loading…",
   "wm.t52": "<div class=\"wm-body\"><p class=\"tool-status\">Loading…</p></div>",
-  "wm.t53": "<p class=\"wb-empty\">The condition table could not be read. <a href=\"/karmolab/?wb=gameplay%2Fcondition#wm\">See the source</a></p>",
+  "wm.t53": "<p class=\"wb-empty\">The condition table could not be read. <a href=\"/?wb=gameplay%2Fcondition#wm\">See the source</a></p>",
   "wm.t54": "<p class=\"wb-empty\">There is no such entry. Try the guide.</p>",
   "wm.t55": "<p class=\"tool-status\">Loading…</p>",
   "wm.t56": " - had it done.",

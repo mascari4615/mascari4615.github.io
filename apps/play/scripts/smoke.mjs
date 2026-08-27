@@ -30,20 +30,20 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 
 function resolve(url) {
   const u = decodeURIComponent(url.split('?')[0]);
-  if (u === '/karmolab/play/base.css') return path.join(here, 'base.css');
+  if (u === '/play/base.css') return path.join(here, 'base.css');
   /* 놀이 하나가 앱 안으로 들어갔다 — 앱 껍데기와 그 짐도 내줘야 한다.
    *
-   * ⚠ 여기는 `blog/karmolab/index.html` 을 가리키고 있었다. 그 자리는 **배포 산출물**이라
+   * ⚠ 여기는 `blog/index.html` 을 가리키고 있었다. 그 자리는 **배포 산출물**이라
    *   저장소에 그 파일이 없다 — 그래서 이 검사는 404 를 받고 **빈 화면**을 재고 있었다
    *   (「앱 틀 밖에 있다」·「고를 카드가 0장」·「고를 판이 0개」… 다섯이 한꺼번에 빨갛다).
    *   제품은 멀쩡했다: 같은 검사를 `BASE=실사이트` 로 돌리면 초록이고, 실사이트 화면에는
    *   카드 2·칩 3이 그대로 있다(2026-08-21 실측). **검사만 없는 파일을 보고 있었다.**
    *   원본은 `apps/karmolab/index.html` 이고, 그 안의 짐은 전부 `/apps/karmolab/…` 라
    *   바로 아랫줄이 이미 내주고 있다. */
-  if (u === '/karmolab/' || u === '/karmolab/index.html') return path.join(APPS, 'karmolab/index.html');
+  if (u === '/' || u === '/index.html') return path.join(APPS, 'karmolab/index.html');
   if (u.startsWith('/apps/karmolab/')) return path.join(APPS, 'karmolab', u.slice('/apps/karmolab/'.length));
-  if (u.startsWith('/karmolab/play')) return path.join(here, 'index.html');
-  for (const [prefix, dir] of [['/karmolab/higher', 'higher'], ['/karmolab/quest', 'quest']]) {
+  if (u.startsWith('/play')) return path.join(here, 'index.html');
+  for (const [prefix, dir] of [['/higher', 'higher'], ['/quest', 'quest']]) {
     if (!u.startsWith(prefix)) continue;
     if (u.endsWith('.json')) return path.join(APPS, dir, 'data', path.basename(u));
     return path.join(APPS, dir, 'index.html');
@@ -160,8 +160,8 @@ async function brandBg(page) {
 /* ── 높은 쪽 고르기 ── */
 {
   const page = await ctx.newPage();
-  // 놀이가 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/karmolab/#higher).
-  await page.goto(`${BASE}/karmolab/#higher`, { waitUntil: 'networkidle' });
+  // 놀이가 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/#higher).
+  await page.goto(`${BASE}/#higher`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   /* 이 놀이는 커뮤니티처럼 **앱 안**에 있다 — 그러니 놀이 전환 줄이 아니라
    * 앱 틀(헤더·브랜드색) 안에 들어 있는지로 본다. */
@@ -267,8 +267,8 @@ async function brandBg(page) {
 /* ── 오늘의 문제 ── */
 {
   const page = await ctx.newPage();
-  // 이 놀이도 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/karmolab/#quest).
-  await page.goto(`${BASE}/karmolab/#quest`, { waitUntil: 'networkidle' });
+  // 이 놀이도 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/#quest).
+  await page.goto(`${BASE}/#quest`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
   {
     const frame = await page.evaluate(() => ({
@@ -351,7 +351,7 @@ async function brandBg(page) {
  */
 {
   const page = await browser.newPage();
-  await page.goto(`${BASE}/karmolab/#twenty`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/#twenty`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1600);
   const first = await page.evaluate(() => ({
     question: (document.getElementById('twQ')?.textContent || '').trim(),
@@ -375,7 +375,7 @@ async function brandBg(page) {
   say(/2/.test(next.counted), `twenty: 몇 번째 질문인지가 안 올라간다 (${next.counted})`);
 
   // 내 표 — UGC 가 이 놀이들의 재료다. 만들고 곧바로 놀이 목록에 서는지까지 본다.
-  await page.goto(`${BASE}/karmolab/#packs`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/#packs`, { waitUntil: 'networkidle' });
   /* ★ **고정 대기 대신 보이는 것을 기다린다** (2026-08-16). 전에는 1400ms 를 세고 곧바로
      눌렀다 — 이 화면의 조각은 늦게 실려서, 느린 판에서는 아직 없는 단추를 누르러 갔고
      그 자리에서 30초를 기다리다 죽었다(라이브 점검이 24판 연속 빨갛던 이유 중 하나).

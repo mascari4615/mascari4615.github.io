@@ -19,7 +19,7 @@ import { chromium } from 'playwright';
 import { waitHydrated } from './lib/hydrated.mjs';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const TOOL = `${BASE}/karmolab/t/timecapsule/`;
+const TOOL = `${BASE}/t/timecapsule/`;
 const letter2 = '먼 날의 너에게 — 이 줄이 그대로 보이면 잠금이 제대로 열린 것이다.';
 const waited = 210000; // 2분 뒤로 잠그고 넉넉히 기다린다
 

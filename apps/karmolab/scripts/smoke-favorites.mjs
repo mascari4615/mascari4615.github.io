@@ -14,7 +14,7 @@ import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **기본 주소가 없는 장이었다** (2026-08-14). 기본이 실서비스
-   `https://…/karmolab/t/favorites/` 였는데 그 장은 **애초에 안 찍힌다** — 즐겨찾기는
+   `https://…/t/favorites/` 였는데 그 장은 **애초에 안 찍힌다** — 즐겨찾기는
    `tools-seo.json` 에 없고 갈래도 비어 있어 도구 상세 페이지 대상이 아니다. 실제로 404 다.
    그래서 이 검사는 열리지도 않는 문 앞에서 15초를 기다리다 빨갛게 죽어 있었다 —
    그런데 아무 데도 안 물려 있어서(고아) **몇 달간 아무도 못 봤다**.

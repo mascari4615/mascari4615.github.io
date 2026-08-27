@@ -56,7 +56,7 @@ for (const file of WORKFLOWS) {
        라이브 점검의 판정 잡은 그 폴더에서 **보고 스크립트만** 돌린다(빌드 결과는 artifact 로
        받아 온다). 그 잡에 「공용 꾸러미 짓는 단계가 없다」고 2건을 냈다 — 있을 이유가 없다.
        그래서 **실제로 짓는 명령**이 있는 잡만 본다. */
-    .filter((block) => /npm run build|npm run build:artifacts|npm ci/.test(block) && /apps\/karmolab/.test(block));
+    .filter((block) => /npm run build|npm run build:artifacts|npm ci/.test(block) && /apps/.test(block));
   jobs.forEach((block, i) => {
     /* ★ **채비를 한 곳으로 모은 뒤로 이 검사가 거짓말을 했다** (2026-08-16).
        공용 꾸러미 짓기는 이제 워크플로마다 손으로 적지 않고 `uses: ./.github/actions/<이름>`

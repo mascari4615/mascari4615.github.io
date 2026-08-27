@@ -12,11 +12,11 @@
  * 흔들리는 값은 평균이 지운다(0.0168 과 0.2363 이 번갈아 나던 날 평균만 보고 넘어갔었다).
  *
  * 사용: node scripts/measure-live-cls.mjs [주소] [판수]
- *       node scripts/measure-live-cls.mjs https://blog.mascari4615.com/karmolab/ 5
+ *       node scripts/measure-live-cls.mjs https://blog.mascari4615.com/ 5
  */
 import { chromium } from 'playwright';
 
-const URL = process.argv[2] || 'https://blog.mascari4615.com/karmolab/';
+const URL = process.argv[2] || 'https://blog.mascari4615.com/';
 const RUNS = Number(process.argv[3] || 3);
 /* 폰 폭으로 잰다 — 오늘 잡은 밀림 셋 중 둘이 **폰에서만** 났다(데스크톱은 값이 같아 안 튄다). */
 const VIEW = { width: 390, height: 844 };

@@ -75,7 +75,7 @@
   "howto.chain.0": "Write the steps as a JSON array (tool · op · args)",
   "howto.chain.1": "Use \"$1\" for the whole previous result, or \"a{{1}}b\" to slot it inside text",
   "howto.chain.2": "Hit run and each step reports its result on its own line",
-  "howto.chain.3": "It works from a URL too: /karmolab/t/chain/?op=run&steps=…",
+  "howto.chain.3": "It works from a URL too: /t/chain/?op=run&steps=…",
   "howto.charconv.0": "Choose which way to convert",
   "howto.charconv.1": "Paste the text and it converts straight away",
   "howto.charconv.2": "If full-width characters are mixed in, a notice appears above",

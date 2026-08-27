@@ -68,10 +68,10 @@ const FAKE = {
 
 const server = http.createServer((req, res) => {
   let u = decodeURIComponent(req.url.split('?')[0]);
-  if (u === '/karmolab/' || u === '/karmolab') u = '/apps/karmolab/index.html';
-  // `/karmolab/t/<도구>/` 는 배포 때 찍히는 상세 쪽이다. 여기선 껍데기를 그대로 내주면 된다 —
+  if (u === '/' || u === '/') u = '/apps/karmolab/index.html';
+  // `/t/<도구>/` 는 배포 때 찍히는 상세 쪽이다. 여기선 껍데기를 그대로 내주면 된다 —
   // 껍데기가 **주소에서** 어느 도구인지 읽어 그걸 연다(toolbox 의 `pathTool`).
-  const toolPath = /^\/karmolab\/t\/([a-z0-9-]+)\/?$/.exec(u);
+  const toolPath = /^\/t\/([a-z0-9-]+)\/?$/.exec(u);
   if (toolPath) u = '/apps/karmolab/index.html';
   if (u.endsWith('/')) u += 'index.html';
   // 도감 자료만 가짜로 바꿔 준다 — 나머지는 진짜 파일을 그대로 문다.
@@ -104,7 +104,7 @@ const problems = [];
 try {
   // 도구 주소로 곧장 연다 — 첫 화면의 `#wm` 로는 위젯이 안 떴다(2026-08-14 실측: 목록만 나온다).
   /* 진입 = 껍데기가 읽는 `KARMOLAB_ENTRY_TOOL` (도구 상세 쪽이 심는 값과 같은 것).
-   * `#wm` 해시로는 첫 화면만 떴고, `/karmolab/t/wm/` 로 가면 상대 경로가 깨져 빈 쪽이 온다.
+   * `#wm` 해시로는 첫 화면만 떴고, `/t/wm/` 로 가면 상대 경로가 깨져 빈 쪽이 온다.
    * 배포 쪽이 실제로 쓰는 길을 그대로 흉내 내는 것이 맞다. */
   await page.addInitScript(() => { window.KARMOLAB_ENTRY_TOOL = 'wm'; });
   await page.goto(`${BASE}/apps/karmolab/index.html`, { waitUntil: 'load', timeout: 30000 });

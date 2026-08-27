@@ -66,7 +66,7 @@ await page.click('#bnMake');
 await page.waitForSelector('#bnResult:visible', { timeout: 10000 });
 const link = await page.inputValue('#bnLink');
 check(link.includes('#n='), `링크가 만들어져야 한다 (지금 「${link.slice(0, 40)}」)`);
-check(link.includes('/karmolab/t/burnnote/'), '링크는 도구 상세 주소를 쓴다 — 해시는 이 앱에서 「어느 도구」를 뜻한다');
+check(link.includes('/t/burnnote/'), '링크는 도구 상세 주소를 쓴다 — 해시는 이 앱에서 「어느 도구」를 뜻한다');
 
 /* ② 서버에 올라간 것에 원문이 없다 */
 const stored = [...vault.values()][0] || '';
@@ -80,7 +80,7 @@ const leaked = sawOnServer.filter((rec) => rec.includes(key));
 check(leaked.length === 0, `열쇠가 서버로 가면 안 된다 (샌 곳: ${leaked.slice(0, 1)})`);
 
 /* ④ 그 링크로 들어가면 여는 화면이 뜬다 */
-/* 도구 상세 페이지(`/karmolab/t/burnnote/`)는 **배포 때 찍히고 저장소엔 없다**. 그 페이지가
+/* 도구 상세 페이지(`/t/burnnote/`)는 **배포 때 찍히고 저장소엔 없다**. 그 페이지가
    하는 일은 하나 — 「이 도구로 열어라」를 심는 것(`KARMOLAB_ENTRY_TOOL`)이고 열쇠는 해시에
    그대로 남는다. 검사는 그 진입을 똑같이 흉내 낸다. */
 await page.addInitScript(() => {

@@ -32,8 +32,8 @@ const MIME = {
 
 const server = http.createServer((req, res) => {
   let url = decodeURIComponent(req.url.split('?')[0]);
-  if (url === '/karmolab/' || url === '/karmolab') url = '/apps/karmolab/index.html';
-  if (url.startsWith('/karmolab/t/')) url = '/apps/blog/karmolab/t/' + url.slice('/karmolab/t/'.length);
+  if (url === '/' || url === '/') url = '/apps/karmolab/index.html';
+  if (url.startsWith('/t/')) url = '/apps/blog/t/' + url.slice('/t/'.length);
   if (url.endsWith('/')) url += 'index.html';
   const file = path.join(blogRoot, url.replace(/^\//, ''));
   if (!file.startsWith(blogRoot) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
@@ -56,7 +56,7 @@ const page = await (await browser.newContext({ viewport: { width: 1280, height: 
 
 /** 팔레트에 치고 「답」 칸에 나온 값들을 읽는다. */
 async function askPalette(q) {
-  await page.goto(`${BASE}/karmolab/`, { waitUntil: 'load', timeout: 30000 });
+  await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 30000 });
   await page.evaluate(() => Toolbox.switchPage('home'));
   await page.waitForSelector('.kp-inline .kp-input', { timeout: 45000 });
   await page.locator('.kp-inline .kp-input').fill(q);
@@ -66,7 +66,7 @@ async function askPalette(q) {
 
 /** 그 도구를 열어 값을 넣고 화면에 나온 글을 통째로 읽는다. */
 async function askTool(toolId, fills) {
-  await page.goto(`${BASE}/karmolab/t/${toolId}/`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.goto(`${BASE}/t/${toolId}/`, { waitUntil: 'networkidle', timeout: 30000 });
   /* ★ 고정 900ms 로는 부족하다 (2026-08-12). 위젯은 말 묶음(i18n)을 받아 온 **뒤에** 그린다 —
    *   느린 판에서는 그 사이에 값을 넣게 되고, `.catch(() => {})` 가 그 실패를 삼켜
    *   「도구 화면에 그 값이 없다」로 팔레트를 탓했다(실주소 CI 에서만 빨갰다).

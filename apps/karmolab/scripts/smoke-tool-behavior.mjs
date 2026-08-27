@@ -226,7 +226,7 @@ async function runCase([id, input, press, expect]) {
   const page = await ctx.newPage();
   const scope = `#page-${id}`;
   try {
-    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'networkidle', timeout: 25000 });
+    await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'networkidle', timeout: 25000 });
     await page.waitForTimeout(800);
 
     /* 칸이 여러 개인 도구 (TASK-KL-089).

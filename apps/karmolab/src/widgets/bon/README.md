@@ -1,6 +1,6 @@
 # 본 (bon) — 게임 UI 부품 만드는 곳
 
-주소 `/karmolab/#bon`. 정본 TASK = `memo/projects/karmolab/tasks/TASK-KL-254-…`.
+주소 `/#bon`. 정본 TASK = `memo/projects/tasks/TASK-KL-254-…`.
 
 이름은 거푸집의 「본」이다. 「먹」이 그림을 그리는 곳이면, 여기는 **찍어내는 틀**을 만드는 곳이다.
 

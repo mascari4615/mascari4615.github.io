@@ -44,14 +44,14 @@ const failures = [];
 for (const id of ids) {
   const page = await ctx.newPage();
   try {
-    const res = await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    const res = await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 25000 });
     const r = await page.evaluate(() => {
       const seoEl = document.querySelector('.tool-seo');
       return {
         h1: document.querySelector('h1')?.textContent.trim() || '',
         text: seoEl ? seoEl.textContent.replace(/\s+/g, ' ').trim().length : 0,
         headings: document.querySelectorAll('.tool-seo h2').length,
-        links: document.querySelectorAll('a[href^="/karmolab/t/"]').length
+        links: document.querySelectorAll('a[href^="/t/"]').length
       };
     });
     const why = [];
@@ -78,12 +78,12 @@ await browser.close();
  * (로컬 사본에는 이 주소가 없을 수 있어, 없으면 건너뛴다.) */
 let rootNote = '첫 화면 이 환경엔 사본이 없어 건너뜀';
 {
-  const r = await fetch(`${BASE}/karmolab/`);
+  const r = await fetch(`${BASE}/`);
   if (r.ok) {
     const html = await r.text();
     const body = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ');
     const text = body.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/g, ' ').replace(/\s+/g, ' ').trim();
-    const toolLinks = (body.match(/href="\/karmolab\/t\//g) || []).length;
+    const toolLinks = (body.match(/href="\/t\//g) || []).length;
     const why = [];
     if (text.length < 300) why.push(`글이 ${text.length}자뿐`);
     if (toolLinks < 4) why.push(`도구로 가는 길이 ${toolLinks}개뿐`);
@@ -96,19 +96,19 @@ let rootNote = '첫 화면 이 환경엔 사본이 없어 건너뜀';
  * 브라우저 없이 받은 글자만 본다. 목록에 걸린 도구를 전부 훑으므로 한 장만 얇아도 걸린다. */
 let sweptCount = 0;
 if (!process.argv.slice(2).length) {
-  const hub = await fetch(`${BASE}/karmolab/t/`);
-  const allIds = [...new Set([...(await hub.text()).matchAll(/\/karmolab\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
+  const hub = await fetch(`${BASE}/t/`);
+  const allIds = [...new Set([...(await hub.text()).matchAll(/\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
 
   const stripTags = (s) => s.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/g, ' ').replace(/\s+/g, ' ').trim();
   const sweep = async (id) => {
-    const r = await fetch(`${BASE}/karmolab/t/${id}/`);
+    const r = await fetch(`${BASE}/t/${id}/`);
     if (!r.ok) return `${id}: http ${r.status}`;
     const html = await r.text();
     // 검색 크롤러가 보는 것 = 이미 박혀 있는 글자다. 스크립트 안에 든 글자는 세면 안 된다.
     const body = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ');
     const why = [];
     const text = stripTags(body).length;
-    const links = (body.match(/href="\/karmolab\/t\//g) || []).length;
+    const links = (body.match(/href="\/t\//g) || []).length;
     if (text < MIN_TEXT) why.push(`설명이 ${text}자뿐`);
     if (links < MIN_LINKS) why.push(`다른 도구 링크가 ${links}개뿐`);
     /* 설명 글 말고 **도구 화면 자체**가 박혀 있는지 (TASK-KL-135 미리 그리기).

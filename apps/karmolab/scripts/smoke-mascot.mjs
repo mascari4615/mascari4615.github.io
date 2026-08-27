@@ -20,7 +20,7 @@
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
 
-const URL_TARGET = livePage('/karmolab/');
+const URL_TARGET = livePage('/');
 const problems = [];
 const note = (ok, msg) => { if (!ok) problems.push(msg); };
 

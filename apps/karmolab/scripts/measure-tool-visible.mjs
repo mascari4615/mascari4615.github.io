@@ -19,7 +19,7 @@ const args = process.argv.slice(2);
 const RUNS = Number(args[0] || 5);
 const IDS = args.slice(1).length ? args.slice(1) : ['loan', 'gitcmd', 'charcount'];
 
-const probe = await fetch(`${BASE}/karmolab/t/`).catch(() => null);
+const probe = await fetch(`${BASE}/t/`).catch(() => null);
 if (!probe?.ok) {
   console.error(`[measure-tool-visible] 목록을 못 받는다 — ${BASE}`);
   console.error('  → 다른 창에서 `npm run serve:gzip` 을 먼저 띄워라 (압축을 해야 실제와 같은 값이 나온다).');
@@ -65,7 +65,7 @@ for (const id of IDS) {
     });
 
     try {
-      await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'load', timeout: 90000 });
+      await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'load', timeout: 90000 });
       await page.waitForTimeout(2500);
       const r = await page.evaluate(() => ({
         tool: Math.round(window.__toolAt),

@@ -242,10 +242,10 @@ try {
    * 사람이 실제로 들어오는 곳은 첫 화면이 아니라 도구 화면 129장이다. 예전에는 거기서
    * 계정 스크립트가 없어 채팅이 스스로를 지웠고, 그래서 「사이트 어디에나 있다」가 거짓이었다.
    * 찍힌 도구 화면이 없으면 이 항목만 건너뛴다(빌드 산출물이라 없을 수 있다). */
-  const toolPage = path.join(SITE_ROOT, 'apps/blog/karmolab/t/qrread/index.html');
+  const toolPage = path.join(SITE_ROOT, 'apps/blog/t/qrread/index.html');
   if (existsSync(toolPage)) {
     const c = await openWindow(CHROME);
-    await c.page.goto(`${siteOrigin}/apps/blog/karmolab/t/qrread/index.html`, { waitUntil: 'domcontentloaded' });
+    await c.page.goto(`${siteOrigin}/apps/blog/t/qrread/index.html`, { waitUntil: 'domcontentloaded' });
     try {
       await c.page.waitForSelector('#klChatDock', { timeout: 15000 });
       check('도구 화면', true, '');

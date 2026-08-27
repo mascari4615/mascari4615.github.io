@@ -40,7 +40,7 @@ const LANES = 4;
 const prev = fs.existsSync(outPath) ? JSON.parse(fs.readFileSync(outPath, 'utf8')) : {};
 
 // 서버가 아예 안 떠 있으면 fetch 자체가 던진다 — 그냥 두면 스택만 쏟아지고 왜인지가 안 보인다.
-const hubRes = await fetch(`${BASE}/karmolab/t/`).catch((e) => ({ ok: false, status: `연결 실패(${e.code || e.message})` }));
+const hubRes = await fetch(`${BASE}/t/`).catch((e) => ({ ok: false, status: `연결 실패(${e.code || e.message})` }));
 if (!hubRes.ok) {
   console.error(
     `[measure-heights] 목록을 못 받는다 (${hubRes.status}) — ${BASE}\n` +
@@ -48,7 +48,7 @@ if (!hubRes.ok) {
   );
   process.exit(1);
 }
-const ids = [...new Set([...(await hubRes.text()).matchAll(/\/karmolab\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
+const ids = [...new Set([...(await hubRes.text()).matchAll(/\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
 /* ★ **한 도구만 다시 재는 길** (2026-08-21). 흔들리는 도구 하나를 다시 잠그려고 290장을
    전부 재고 있었다(한 판 2분+). 그동안 다른 289개도 같이 다시 쓰이므로 <b>안 건드려도 될
    값이 흔들릴 위험</b>까지 얹힌다. `out = { ...prev }` 라 고른 것만 갱신해도 나머지는 그대로다.
@@ -100,7 +100,7 @@ async function measure(ctx, id, key, attempt = 1) {
        안 온다</b> — 러너가 조금만 느려도 30초를 다 쓰고 죽는다(실측: `draw(wide)` 가 3번 다 그랬다).
        재는 것은 <b>높이</b>다. 필요한 것은 「문서가 섰고 글꼴이 왔다」뿐이고, 그 둘은 아래에서
        따로 기다린다(`document.fonts.ready`). 회선이 조용한지는 높이와 상관이 없다. */
-    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     /* 도구 자리가 그려질 때까지 — 초를 세지 않고 <b>생겼나</b>를 본다. */
     await page.waitForSelector('#tool-pages', { timeout: 20000 }).catch(() => null);
     // 글꼴이 늦게 오면 높이가 달라진다 — 다 온 뒤에 잰다.

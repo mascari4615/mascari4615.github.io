@@ -26,7 +26,7 @@ for (const id of IDS) {
   const page = await ctx.newPage();
   await page.coverage.startCSSCoverage();
   /* 첫 그림까지만 — `domcontentloaded` 뒤 그림이 한 장 나오면 거기서 끊는다. */
-  await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'domcontentloaded' });
   /* 셸이 주소를 한 번 고쳐 잡는 장이 있다 — 그때 이 평가는 날아간다. 날아가면 다시 한 번 센다.
      못 세면 그 장을 조용히 빼지 않고 말한다(빠진 장은 합집합을 **작게** 만들어 잘못 자르게 한다). */
   const pause = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));

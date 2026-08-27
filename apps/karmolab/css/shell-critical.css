@@ -685,7 +685,7 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     transition: color var(--transition), border-color var(--transition), background var(--transition);
 }
 
-.header-tools-link[href="/karmolab/t/"] { display: inline-flex; }
+.header-tools-link[href="/t/"] { display: inline-flex; }
 
 .header-tools-link:hover,
 .header-tools-link:active {

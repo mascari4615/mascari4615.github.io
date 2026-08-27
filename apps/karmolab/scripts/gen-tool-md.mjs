@@ -1,5 +1,5 @@
 /**
- * 도구마다 **마크다운 쌍둥이**를 찍는다 — `/karmolab/t/<id>.md` (TASK-KL-205 / 흡수계획 01 Batch4)
+ * 도구마다 **마크다운 쌍둥이**를 찍는다 — `/t/<id>.md` (TASK-KL-205 / 흡수계획 01 Batch4)
  *
  * 왜: 사람이 읽는 화면은 HTML 이 맞지만, **글로 읽는 쪽**(AI 에이전트·요약 도구)은 HTML 을
  * 마크다운으로 되돌리는 단계를 한 번 더 거친다. 그 과정에서 차림표·꼬리말·스크립트가 섞여
@@ -22,14 +22,14 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /*
  * ★ 원본을 `.md` 로 두면 **Jekyll 이 HTML 로 바꿔 버린다** (2026-08-09 로컬 빌드로 발각).
  *
- * 주소는 `/karmolab/t/<id>.md` 인데 내려오는 내용이 `<h1>…</h1>` 이었다. 마크다운을 달라고
+ * 주소는 `/t/<id>.md` 인데 내려오는 내용이 `<h1>…</h1>` 이었다. 마크다운을 달라고
  * 그 주소로 온 쪽(에이전트)에게 HTML 을 주면 이 파일들이 있는 이유가 없어진다.
  * Jekyll 은 **원본 확장자**로 변환 여부를 정하므로, 원본을 `.txt` 로 두고 주소만 `.md` 로 준다.
  *
  * 겸사겸사 폴더도 갈랐다 — `karmolab/t` 는 `gen-tool-pages` 가 정리하는 자리다.
  * 남의 정리 규칙에 얹혀 사는 것보다, 안 겹치는 자리에 두는 편이 낫다.
  */
-const outDir = path.resolve(root, '../blog/karmolab/tmd');
+const outDir = path.resolve(root, '../blog/tmd');
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
@@ -87,7 +87,7 @@ for (const id of RETIRED_OPERATION_IDS) {
 for (const id of ids) {
   const t = seo[id];
   const title = titleById[id] ?? id;
-  const lines = [`# ${title}`, '', `> ${t.description ?? t.lead ?? ''}`, '', `열기: ${SITE}/karmolab/t/${id}/`];
+  const lines = [`# ${title}`, '', `> ${t.description ?? t.lead ?? ''}`, '', `열기: ${SITE}/t/${id}/`];
 
   if (Array.isArray(t.howto) && t.howto.length > 0) {
     lines.push('', '## 쓰는 법', '', ...t.howto.map((h, i) => `${i + 1}. ${h}`));
@@ -103,7 +103,7 @@ for (const id of ids) {
       '',
       '## 주소로 부르기',
       '',
-      `\`${SITE}/karmolab/t/${id}/?op=<연산>&<칸>=<값>\``,
+      `\`${SITE}/t/${id}/?op=<연산>&<칸>=<값>\``,
       '',
       `연산: ${ops.join(' · ')}`,
       '',
@@ -120,7 +120,7 @@ for (const id of ids) {
    * (감싼 표시 자체는 출력에 안 남는다).
    */
   const body =
-    `---\npermalink: /karmolab/t/${id}.md\n---\n` +
+    `---\npermalink: /t/${id}.md\n---\n` +
     `{% raw %}${lines.join('\n')}\n{% endraw %}\n`;
   fs.writeFileSync(path.join(outDir, `${id}.txt`), body, 'utf8');
   n++;

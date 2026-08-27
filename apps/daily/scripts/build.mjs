@@ -232,7 +232,7 @@ ${ld}
 }
 
 const foot = (hub = false, past = null) => `<div class="foot">하루에 하나. 자정(KST)에 새 문제.<br>
-${past ? `<a href="${BASE}/${past}/past/">지난 문제</a> · ` : ''}${hub ? '' : `<a href="${BASE}/">다른 판 보기</a> · `}<a href="/karmolab/">KarmoLab</a></div>`;
+${past ? `<a href="${BASE}/${past}/past/">지난 문제</a> · ` : ''}${hub ? '' : `<a href="${BASE}/">다른 판 보기</a> · `}<a href="/">KarmoLab</a></div>`;
 
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(join(dist, 'data'), { recursive: true });
@@ -374,7 +374,7 @@ const mineHtml = `${head({
      data-pack="1" data-data="" data-others="[]">
   <div class="top">
     <h1>🎲 내 표로 맞히기</h1>
-    <div><span class="no"></span> <a class="home" href="/karmolab/#packs">내 표</a></div>
+    <div><span class="no"></span> <a class="home" href="/#packs">내 표</a></div>
   </div>
   ${stripHtml('daily')}
   <div class="tabs"><span class="tab on">속성</span><span class="streak"></span></div>
@@ -414,7 +414,7 @@ const hub = `${head({
   }),
 })}
 <div class="wrap">
-  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
+  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/">KarmoLab</a></div>
   ${stripHtml('daily')}
   <p class="lede">판을 고르면 오늘의 문제가 하나. <b>보통 서너 번이면 맞고 1분이면 끝난다.</b> 매일 자정(KST)에 바뀐다.</p>
   <div class="hub-jump"></div>

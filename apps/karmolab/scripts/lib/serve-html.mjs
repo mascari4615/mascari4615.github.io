@@ -4,7 +4,7 @@
  * ★ 왜: 이 저장소의 화면 몇 장은 Jekyll 앞머리(front matter)로 시작한다.
  *       ---
  *       layout: none
- *       permalink: /karmolab/
+ *       permalink: /
  *       ---
  *   배포에서는 Jekyll 이 이걸 **떼고** 내보낸다. 그런데 시험 서버들은 파일을 날것으로 낸다 —
  *   그러면 브라우저가 그 세 줄을 **본문 글자**로 읽고, 그 순간 `<head>` 가 닫힌 것으로 친다.

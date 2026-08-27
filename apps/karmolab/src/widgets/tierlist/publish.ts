@@ -11,7 +11,7 @@ import { isAppPath } from '../../lib/site-base';
 
     /**
      * 티어리스트 JSON(index·카탈로그)이 놓인 디렉터리 URL(끝에 슬래시 없음).
-     * Jekyll: 앱은 permalink로 /karmolab/ 이지만 data 는 /apps/karmolab/data/ 에 그대로 출력됨.
+     * Jekyll: 앱은 permalink로 / 이지만 data 는 /apps/karmolab/data/ 에 그대로 출력됨.
      * 로컬 file://·/apps/karmolab/index.html 은 현재 문서 기준 디렉터리로 폴백.
      */
     function karmolabPublishedDataRoot(): string {

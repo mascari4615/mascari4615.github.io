@@ -54,4 +54,4 @@ README 에 적는다.
 | `src/search/` | **lib 아님 — 셸 부품.** 쓰는 곳이 `palette.ts` 하나다(검사 2개 제외). 「둘 이상」 미달 | 그대로 |
 | `src/badapple/` | **lib 아님 — 페이지 코드.** 엔진은 이미 `packages/badapple`(별도 꾸러미)이고 이 폴더는 그걸 전용 페이지에 붙이는 부트·스튜디오다. 위젯 로더 밖에서 `<script src>` 로 뜬다 | 그대로 |
 
-정본 TASK = `memo/projects/karmolab/tasks/TASK-KL-326-*`.
+정본 TASK = `memo/projects/tasks/TASK-KL-326-*`.

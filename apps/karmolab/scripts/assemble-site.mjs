@@ -86,8 +86,8 @@ function gitLastmod(relPath) {
 // ---------------------------------------------------------------- ② 사이트맵 규율
 
 const NOINDEX = /<meta[^>]+name\s*=\s*["']robots["'][^>]*noindex/i;
-const CANONICAL_TOOL = /<link[^>]+rel=["']canonical["'][^>]+href=["'][^"']*\/karmolab\/t\/([^/"']+)\//i;
-const TOOL_URL = /^\/karmolab\/t\/([^/]+)\/$/;
+const CANONICAL_TOOL = /<link[^>]+rel=["']canonical["'][^>]+href=["'][^"']*\/t\/([^/"']+)\//i;
+const TOOL_URL = /^\/t\/([^/]+)\/$/;
 
 /** 얇은 도구 명단 — tools-seo.json 항목 700자 미만. 못 읽으면 아무것도 안 뺀다 (넓은 쪽이 안전). */
 function thinToolIds() {

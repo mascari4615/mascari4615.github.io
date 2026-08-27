@@ -24,14 +24,14 @@ import { chromium } from 'playwright';
 /* ★ **여기서 여는 것은 앱 화면이지 블로그 첫 화면이 아니다** (2026-08-13).
  *
  * 워크플로는 모든 검사에 같은 `BASE`(사이트 뿌리) 하나를 준다. 그런데 이 검사만 주소 뒤에
- * `/karmolab/` 이 붙어야 앱이 열린다 — 그게 없으면 **블로그 첫 화면**이 열리고, 앱 화면 다섯이
+ * `/` 이 붙어야 앱이 열린다 — 그게 없으면 **블로그 첫 화면**이 열리고, 앱 화면 다섯이
  * 전부 「알맹이가 안 그려졌다」로 빨개진다. CI 에서만 나던 그 빨강의 정체가 이것이었다
  * (계측을 붙여 보니 화면에 뜬 글이 「GoatCounter — 쿠키도 배너도 없는…」 블로그 글이었다).
  * 그러니 받은 주소를 그대로 믿지 말고 **앱 자리까지 맞춰 준다**. */
 const BASE = (() => {
-  const given = process.env.BASE || 'https://blog.mascari4615.com/karmolab/';
-  if (/karmolab/.test(given)) return given;
-  return given.replace(/\/+$/, '') + '/karmolab/';
+  const given = process.env.BASE || 'https://blog.mascari4615.com/';
+  if (/.test(given)) return given;
+  return given.replace(/\/+$/, '') + '/';
 })();
 
 /** 사람 브라우저라고 밝힌다 — 서버가 헤드리스를 사람으로 안 세는 게 맞고(그게 설계), 그러면 이 검사도 사람 화면을 못 본다. */

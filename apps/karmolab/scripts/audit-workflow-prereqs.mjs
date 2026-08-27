@@ -79,7 +79,7 @@ for (const f of files) {
 	// 자리를 잡는 방식이 둘이다: `working-directory:` 와 `cd`. 둘 다 받아야 한다 —
 	// 한 쪽만 보면 **verify.yml 이 통째로 빠진다**(이 전제를 처음 갖춘 워크플로가 그건데도).
 	const thisApp = lines.some((l) => l === 'working-directory: apps/karmolab')
-		|| code.some((l) => /cd apps\/karmolab(\s|$|&)/.test(l));
+		|| code.some((l) => /cd apps(\s|$|&)/.test(l));
 	// ★ `run: |` 블록으로 쓴 워크플로도 세어야 한다 — 한 줄 `run:` 만 보면 **배포 워크플로가
 	//   통째로 빠진다**(초판이 pages-deploy 를 못 봤다: 2개만 세고 3개째를 놓쳤다).
 	//   가장 중요한 판을 안 보는 게이트는 있으나 마나다.

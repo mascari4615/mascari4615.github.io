@@ -128,12 +128,12 @@ jobs:
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
-      - name: Prepare KarmoLab Jekyll page
-        run: |
-          mkdir -p apps/blog/karmolab
-          cp apps/karmolab/index.html apps/blog/karmolab/index.html
+      # 앱 셸이 **뿌리**에 앉는다 (change.karmolab-at-root ②).
+      # 아래 「Generate blog pages」 는 글 장을 apps/blog/posts/ 에 쓴다 — 여기를 덮지 않는다.
+      - name: Prepare KarmoLab root page
+        run: cp apps/karmolab/index.html apps/blog/index.html
 
-      # TASK-KL-129: 봇 소개(/karmolab/bot/)·프로필(/karmolab/u/)을 **앱 셸에 얹어** 찍는다.
+      # TASK-KL-129: 봇 소개(/bot/)·프로필(/u/)을 **앱 셸에 얹어** 찍는다.
       # 예전에는 원본을 그대로 복사했다 — 그러면 도구를 쓰다 그리로 갈 때 머리띠도 옆줄도
       # 테마 단추도 ⌘K 도 없는 다른 집으로 떨어졌다. 내용의 주인은 여전히 원본 문서다.
       - name: Generate KarmoLab shell pages (bot · profile)
@@ -151,7 +151,7 @@ jobs:
           cp -r apps/daily/dist/. apps/blog/daily/
 
       # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」·「오늘의 문제」는 KarmoLab 앱 안으로 들어갔다
-      # (`/karmolab/#higher` · `/karmolab/#quest`). 알맹이(위젯 js·문제 표)는 앱 빌드와
+      # (`/#higher` · `/#quest`). 알맹이(위젯 js·문제 표)는 앱 빌드와
       # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 —
       # 두 파일 다 새 자리로 넘겨보내는 한 장짜리다.
       - name: Prepare files app
@@ -170,9 +170,9 @@ jobs:
           cp apps/quest/index.html apps/blog/quest/index.html
           cp apps/play/base.css apps/blog/play/base.css
 
-      # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
+      # TASK-KL-088: 도구별 정적 페이지(/t/<id>/) + 허브(/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
-      # TASK-KL-098: 커뮤니티 글의 정적 페이지(/karmolab/c/<글id>/).
+      # TASK-KL-098: 커뮤니티 글의 정적 페이지(/c/<글id>/).
       # 화면이 스크립트로 그리는 글은 검색엔진이 못 읽어 **하나도 색인되지 않는다**.
       # 서버(노트북)에 못 닿으면 그냥 건너뛴다 — 노트북이 꺼졌다고 사이트 배포가 막히면 안 된다.
       - name: Generate KarmoLab community pages
@@ -208,7 +208,6 @@ jobs:
           cp -r content/pages/posts ../blog/posts
           cp -r content/pages/about ../blog/about
           cp -r content/pages/works ../blog/works
-          cp content/pages/index.html ../blog/index.html
           cp content/pages/feed.xml ../blog/feed.xml
           cp content/pages/404.html ../blog/404.html
 
@@ -235,7 +234,7 @@ jobs:
         run: |
           npm run serve:gzip &
           for i in $(seq 1 30); do
-            curl -fsS -o /dev/null http://127.0.0.1:8801/apps/blog/karmolab/t/ && break
+            curl -fsS -o /dev/null http://127.0.0.1:8801/apps/blog/t/ && break
             sleep 1
           done
           npm run prerender
@@ -300,7 +299,7 @@ jobs:
       # sitemap 388/388 동일 · lastmod·CSP 감사 초록. Ruby 는 이 저장소에서 소멸.
       - name: Build site
         working-directory: apps/blog
-        run: node ../karmolab/scripts/assemble-site.mjs --site . --out "_site${{ steps.pages.outputs.base_path }}"
+        run: node ../scripts/assemble-site.mjs --site . --out "_site${{ steps.pages.outputs.base_path }}"
 
       # 사이트맵은 **지어져야만 존재한다** — 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
       # 날짜가 빠지면 크롤러가 다시 올지 못 정하고, IndexNow 알림에서도 통째로 빠진다.
@@ -343,7 +342,7 @@ jobs:
 
       # **나갈 파일에 실제로 남아 있나** (TASK-KL-201, 2026-08-10).
       #
-      # 미리 그린 첫 화면은 `apps/blog/karmolab/index.html` 에 박히는데, 그 파일은 앞뒤로 여러
+      # 미리 그린 첫 화면은 `apps/blog/index.html` 에 박히는데, 그 파일은 앞뒤로 여러
       # 단계가 만지고 복사한다. 실제로 오늘 로컬에서 **뒤에 온 복사 한 줄이 박아 둔 것을 통째로
       # 덮었다** — 아무 오류도 안 났고, 화면도 멀쩡했고, 그냥 밀림만 도로 나빠졌을 뿐이다.
       # 그런 건 아무도 안 본다. 그래서 나가기 직전에 한 번 묻는다.
@@ -359,11 +358,11 @@ jobs:
         #   `/posts` 도 감시 대상에 넣는다 (옛 Chirpy 680장 예외는 끝났다).
         run: |
           SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
-          node apps/karmolab/scripts/audit-csp-meta.mjs "$SITE/karmolab" "$SITE/apps/karmolab" "$SITE/posts"
+          node apps/karmolab/scripts/audit-csp-meta.mjs "$SITE/t" "$SITE/apps/karmolab" "$SITE/posts"
 
       - name: 미리 그린 첫 화면이 나갈 파일에 남아 있나
         run: |
-          F=apps/blog/_site/karmolab/index.html
+          F=apps/blog/_site/index.html
           if [ ! -f "$F" ]; then
             echo "::warning::첫 화면 파일이 없다 ($F) — 경로가 바뀌었는지 봐라"
           elif grep -q "KARMOLAB_HOME_PRERENDERED" "$F"; then

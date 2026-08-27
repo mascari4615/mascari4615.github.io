@@ -24,16 +24,16 @@ const appsRoot = path.dirname(appRoot);
 
 /** 사이트 주소 → **저장소 안의 원본**. 못 옮기는 주소는 null(건너뜀).
  *
- *  ★ `apps/blog/karmolab/**` 는 보지 않는다 — 그건 **배포 때 다시 찍히는 사본**이라
+ *  ★ `apps/blog/**` 는 보지 않는다 — 그건 **배포 때 다시 찍히는 사본**이라
  *  내 컴퓨터에서는 늘 낡아 있다(붙이자마자 그 낡은 사본 때문에 거짓 빨강을 한 번 봤다).
  *  찍히는 장(도구 상세·놀이 장)은 실주소 짝 검사가 본다. 여기서는 **원본이 있는 것만** 본다. */
 function sourceSites(url2) {
   const done = (p) => (p.endsWith('/') ? `${p}index.html` : p);
   if (url2.startsWith('/apps/karmolab/')) return path.join(appsRoot, done(url2).slice('/apps/'.length));
-  if (url2 === '/karmolab/') return path.join(appRoot, 'index.html');
+  if (url2 === '/') return path.join(appRoot, 'index.html');
   /* ★ 찍힌 장(도구 상세·놀이)은 **갓 찍었을 때만** 본다 (2026-08-17). 늘 보면 낡은 사본 때문에
      거짓 빨강이 나고, 아예 안 보면 여섯 가지밖에 못 본다. 껍데기보다 새것이면 그건 지금 것이다. */
-  if (url2.startsWith('/karmolab/')) {
+  if (url2.startsWith('/')) {
     const emitted = path.join(appsRoot, 'blog', done(url2).slice(1));
     if (!fs.existsSync(emitted)) return null;
     const shell = path.join(appRoot, 'index.html');

@@ -33,7 +33,7 @@ const unreachable = [];
 
 for (const id of ids) {
   try {
-    const res = await fetch(`${BASE}/karmolab/t/${id}/`, { redirect: 'follow' });
+    const res = await fetch(`${BASE}/t/${id}/`, { redirect: 'follow' });
     if (!res.ok) {
       // 아직 배포되지 않은 새 도구는 실패가 아니다 — 다음 배포에 실린다.
       unreachable.push(`${id}(${res.status})`);

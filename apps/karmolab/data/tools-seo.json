@@ -1,5 +1,5 @@
 {
-  "$comment": "도구 상세 페이지(/karmolab/t/<id>/) 설명 정본 — TASK-KL-088. key = 위젯 id (widgets-lazy-meta.ts 와 1:1, 짝 없으면 gen-tool-pages.mjs 가 빌드 실패). 톤 = 담백한 사실 서술 (「무료」·「설치 없이」 류 광고 문구 X, meta keywords X — 스팸처럼 읽힘). 제목(h1·title)=위젯 매니페스트의 title 단일 정본 — 여기 중복 X. lead=첫 문단, howto=사용 단계, faq=FAQPage JSON-LD 소스, related=내부 링크(도구 id).",
+  "$comment": "도구 상세 페이지(/t/<id>/) 설명 정본 — TASK-KL-088. key = 위젯 id (widgets-lazy-meta.ts 와 1:1, 짝 없으면 gen-tool-pages.mjs 가 빌드 실패). 톤 = 담백한 사실 서술 (「무료」·「설치 없이」 류 광고 문구 X, meta keywords X — 스팸처럼 읽힘). 제목(h1·title)=위젯 매니페스트의 title 단일 정본 — 여기 중복 X. lead=첫 문단, howto=사용 단계, faq=FAQPage JSON-LD 소스, related=내부 링크(도구 id).",
   "tools": {
     "charcount": {
       "description": "공백 포함·제외 글자수, 단어·문장·원고지, 바이트, 종류별 집계와 읽는 시간까지 한 화면에서 셉니다.",
@@ -4081,7 +4081,7 @@
         "단계를 JSON 배열로 적기 (tool · op · args)",
         "앞 결과는 \"$1\" 로 통째로, \"a{{1}}b\" 로 글 안에 끼워 쓰기",
         "실행을 누르면 단계마다 결과가 한 줄씩 나옵니다",
-        "주소로도 부를 수 있습니다: /karmolab/t/chain/?op=run&steps=…"
+        "주소로도 부를 수 있습니다: /t/chain/?op=run&steps=…"
       ],
       "faq": [
         {

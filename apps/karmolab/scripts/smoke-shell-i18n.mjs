@@ -36,14 +36,14 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 const BLESS = process.argv.includes('--bless');
 
 const PAGES = [
-  ['en', 'apps/blog/en/karmolab/'],
-  ['ja', 'apps/blog/ja/karmolab/'],
+  ['en', 'apps/blog/en/'],
+  ['ja', 'apps/blog/ja/'],
   /* ★ **사람이 제일 먼저 밟는 자리는 도구 상세 장이다** (2026-08-17). 검색에서 오는 사람은
      첫 화면이 아니라 도구 한 장으로 들어온다 — 그 장은 셸을 복사해 쓰지만 SEO 글이 더 붙어
      나가므로 셸에 없는 한국어가 거기에만 남을 수 있다(같은 이유로 a11y 검사도 한 장을 표본으로 넣었다).
      지금은 깨끗하다(재 봤다: 「한국어」 한 낱말 = 판 바꾸는 링크뿐). 그 상태를 기준선으로 지킨다. */
-  ['en-tool', 'apps/blog/en/karmolab/t/loan/'],
-  ['ja-tool', 'apps/blog/ja/karmolab/t/loan/'],
+  ['en-tool', 'apps/blog/en/t/loan/'],
+  ['ja-tool', 'apps/blog/ja/t/loan/'],
 ];
 
 const server = http.createServer((req, res) => {

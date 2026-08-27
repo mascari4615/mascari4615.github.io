@@ -42,7 +42,7 @@ const mcpTools = fs.existsSync(coreDir)
       .sort()
   : [];
 
-const line = (id) => `- [${seo[id].description ? id : id}](${SITE}/karmolab/t/${id}/): ${seo[id].lead ?? seo[id].description ?? ''}`;
+const line = (id) => `- [${seo[id].description ? id : id}](${SITE}/t/${id}/): ${seo[id].lead ?? seo[id].description ?? ''}`;
 
 const head = `# KarmoLab
 
@@ -52,15 +52,15 @@ const head = `# KarmoLab
 
 ## AI 에이전트에게
 
-- 도구마다 정적 설명 페이지가 있습니다: \`${SITE}/karmolab/t/<도구id>/\`
+- 도구마다 정적 설명 페이지가 있습니다: \`${SITE}/t/<도구id>/\`
 - 같은 주소 끝에 \`.md\` 를 붙이면 **HTML 이 아니라 마크다운 원문**이 옵니다:
-  \`${SITE}/karmolab/t/<도구id>.md\` — 읽으려고 왔다면 이쪽이 싸고 정확합니다.
-- 주소로 바로 실행할 수 있습니다: \`${SITE}/karmolab/t/<도구id>/?op=<연산>&<칸>=<값>\`
-  예) \`${SITE}/karmolab/t/base64/?op=encode&text=안녕\`
+  \`${SITE}/t/<도구id>.md\` — 읽으려고 왔다면 이쪽이 싸고 정확합니다.
+- 주소로 바로 실행할 수 있습니다: \`${SITE}/t/<도구id>/?op=<연산>&<칸>=<값>\`
+  예) \`${SITE}/t/base64/?op=encode&text=안녕\`
 - **MCP 서버**가 있습니다 — 계산을 직접 호출하려면 이쪽이 정확합니다 (해시·난수·검증숫자처럼
   지어내면 안 되는 값). 도구 ${mcpTools.length}묶음: ${mcpTools.join(' · ')}
 - **도구를 이어서** 부를 수 있습니다 — 중간값을 돌려받아 다시 넣지 않아도 됩니다.
-  MCP 는 \`chain_run\`, 화면·주소는 \`${SITE}/karmolab/t/chain/\`.
+  MCP 는 \`chain_run\`, 화면·주소는 \`${SITE}/t/chain/\`.
   예) Base64 로 바꾼 뒤 그 결과의 SHA-256 —
   \`[{"tool":"base64","op":"encode","args":{"text":"안녕"}},{"tool":"hashgen","op":"text","args":{"text":"$1","algo":"SHA256"}}]\`
   해시처럼 **지어내면 안 되는 값**은 이렇게 부르는 편이 안전합니다. 중간에 글자가 바뀔 자리가 없습니다.
@@ -70,7 +70,7 @@ const short = `${head}
 ## 갈래
 
 - [도구 전체 목록](${SITE}/llms-full.txt): 도구 ${ids.length}개 전부와 한 줄 설명
-- [KarmoLab 첫 화면](${SITE}/karmolab/): 검색해서 찾기
+- [KarmoLab 첫 화면](${SITE}/): 검색해서 찾기
 - [블로그](${SITE}/): 게임 개발·기술 글
 `;
 

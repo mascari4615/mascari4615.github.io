@@ -2,7 +2,7 @@
  * 무한 텍스트 어드벤처 (KL-032).
  *
  * 단계: α (provider abstraction) + β (wiki entity kind) + γ (UI) + δ (turn loop) + ε (NPC chatbot context).
- * 시드: memo/projects/karmolab/tasks/TASK-KL-032-infinite-text-adventure.md
+ * 시드: memo/projects/tasks/TASK-KL-032-infinite-text-adventure.md
  */
 import {
   ALL_ADVENTURE_PROVIDERS,

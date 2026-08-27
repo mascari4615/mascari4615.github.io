@@ -75,7 +75,7 @@
   "howto.chain.0": "手順を JSON の配列で書く（tool · op · args）",
   "howto.chain.1": "前の結果は \"$1\" でまるごと、\"a{{1}}b\" で文章の中に差し込む",
   "howto.chain.2": "実行を押すと手順ごとに結果が1行ずつ出ます",
-  "howto.chain.3": "アドレスからも呼べます: /karmolab/t/chain/?op=run&steps=…",
+  "howto.chain.3": "アドレスからも呼べます: /t/chain/?op=run&steps=…",
   "howto.charconv.0": "変換する向きを選ぶ",
   "howto.charconv.1": "文を貼り付けるとすぐ変換されます",
   "howto.charconv.2": "全角が混ざっていると上に知らせが出ます",

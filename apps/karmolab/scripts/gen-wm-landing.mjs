@@ -1,7 +1,7 @@
 /**
  * gen-wm-landing: data/worldbook.json → wm/index.html (WM 소개 한 장, TASK-KL-162)
  *
- * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/karmolab/wm-hub.md § A1).
+ * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/wm-hub.md § A1).
  * 그 첫 장은 **손으로 쓴 소개문이면 안 된다** — WM 은 개발 중이라 설정이 자주 바뀌고,
  * 손글씨는 조용히 낡는다(사이트만 옛말을 한다). 그래서 이 페이지의 모든 문장은
  * memo 정본에서 온다. 문서가 바뀌면 다음 배포에 페이지가 따라 바뀐다.
@@ -9,7 +9,7 @@
  * 못 찾은 조각은 **그 자리만 빠진다** — 페이지는 산다. 대신 무엇이 빠졌는지 찍는다.
  * (조용한 백지 금지: 인물이 0명이면 실패로 세운다.)
  *
- * 나온 파일은 gen-shell-pages.mjs 가 셸에 얹어 /karmolab/wm/ 로 낸다.
+ * 나온 파일은 gen-shell-pages.mjs 가 셸에 얹어 /wm/ 로 낸다.
  *
  * 사용: node scripts/gen-wm-landing.mjs
  */
@@ -130,7 +130,7 @@ function castCard(d) {
   return `<article class="wm-cast-card">
         <h3>${esc(name)}${sub ? ` <span class="wm-cast-en">${esc(sub)}</span>` : ''}</h3>
         <p>${esc(line)}</p>
-        <a class="wm-cast-more" href="/karmolab/?wb=${encodeURIComponent(d.id)}#wm">도감에서 보기 →</a>
+        <a class="wm-cast-more" href="/?wb=${encodeURIComponent(d.id)}#wm">도감에서 보기 →</a>
       </article>`;
 }
 
@@ -149,10 +149,10 @@ const body = `<section class="wm-hero">
       <p class="wm-tagline">${esc(tagline)}</p>
       ${theme ? `<blockquote class="wm-theme">${esc(theme)}</blockquote>` : ''}
       <div class="wm-cta">
-        <a class="wm-btn wm-btn-main" href="/karmolab/?wb=day#wm">하루 체험하기</a>
-        <a class="wm-btn" href="/karmolab/#wm">세계 도감 보기</a>
-        <a class="wm-btn" href="/karmolab/?wb=news#wm">개발 소식</a>
-        <a class="wm-btn" href="/karmolab/?wb=board#wm">만드는 중</a>
+        <a class="wm-btn wm-btn-main" href="/?wb=day#wm">하루 체험하기</a>
+        <a class="wm-btn" href="/#wm">세계 도감 보기</a>
+        <a class="wm-btn" href="/?wb=news#wm">개발 소식</a>
+        <a class="wm-btn" href="/?wb=board#wm">만드는 중</a>
         <a class="wm-btn" href="${REPO_URL}" rel="noopener">개발 저장소</a>
       </div>
     </section>
@@ -168,7 +168,7 @@ const body = `<section class="wm-hero">
         ${cast.map(castCard).join('\n        ')}
       </div>
       ${extraCast.length > 0
-        ? `<p class="wm-more-cast">그리고 ${extraCast.map((d) => `<a href="/karmolab/?wb=${encodeURIComponent(d.id)}#wm">${esc(d.title.replace(/\s*\(.*$/, ''))}</a>`).join(' · ')}</p>`
+        ? `<p class="wm-more-cast">그리고 ${extraCast.map((d) => `<a href="/?wb=${encodeURIComponent(d.id)}#wm">${esc(d.title.replace(/\s*\(.*$/, ''))}</a>`).join(' · ')}</p>`
         : ''}
     </section>
 

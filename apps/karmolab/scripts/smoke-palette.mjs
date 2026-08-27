@@ -39,7 +39,7 @@ const MIME = {
 };
 
 /**
- * 배포된 주소 모양(`/karmolab/`)과 디스크 모양(`apps/karmolab/`)이 다르다.
+ * 배포된 주소 모양(`/`)과 디스크 모양(`apps/karmolab/`)이 다르다.
  * 앱 안의 링크는 배포 모양으로 적혀 있으므로 여기서 이어 준다.
  *
  * index.html 맨 앞의 Jekyll 앞머리(`---` 블록)는 걷어낸다. 안 걷으면 그 글자가 화면
@@ -47,10 +47,10 @@ const MIME = {
  */
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
-  if (urlPath === '/karmolab/' || urlPath === '/karmolab') urlPath = '/apps/karmolab/index.html';
+  if (urlPath === '/' || urlPath === '/') urlPath = '/apps/karmolab/index.html';
   /* 도구 상세·목록은 배포 때 **찍히는 생성물**이라 소스 옆이 아니라 blog 밑에 있다.
      이어 주지 않으면 그 화면을 여는 검사가 통째로 404 를 본다. */
-  if (urlPath.startsWith('/karmolab/t/')) urlPath = '/apps/blog' + urlPath;
+  if (urlPath.startsWith('/t/')) urlPath = '/apps/blog' + urlPath;
   if (urlPath.endsWith('/')) urlPath += 'index.html';
 
   const file = path.join(blogRoot, urlPath.replace(/^\//, ''));
@@ -77,7 +77,7 @@ const page = await ctx.newPage();
 
 /** 팔레트가 이미 그려진 뒤부터 시작해야 한다 — 위젯 등록이 끝나야 인덱스가 찬다. */
 async function gotoHome() {
-  await page.goto(`${BASE}/karmolab/`, { waitUntil: 'load', timeout: 30000 });
+  await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 30000 });
   // 첫 화면은 「마지막에 본 화면」 기억에 밀릴 수 있다 — 홈을 명시적으로 연다.
   await page.evaluate(() => Toolbox.switchPage('home'));
   await page.waitForSelector('.kp-inline .kp-input', { timeout: 15000 });
@@ -385,13 +385,13 @@ else {
  * 아무 일도 안 하고 오류도 안 난다** — 눈에 안 보이는 고장이다. 그래서 둘 다 본다:
  * 부팅 때 안 받았나 · 그런데 눌렀을 때 열리고 찾히나.
  */
-if (!fs.existsSync(path.join(blogRoot, 'apps/blog/karmolab/t/loan/index.html'))) {
+if (!fs.existsSync(path.join(blogRoot, 'apps/blog/t/loan/index.html'))) {
   console.log('  (⑫ 건너뜀 — 찍힌 도구 화면이 없다)');
 } else {
   const tp = await ctx.newPage();
   const asked = [];
   tp.on('request', (r) => asked.push(r.url()));
-  await tp.goto(`${BASE}/karmolab/t/loan/`, { waitUntil: 'load', timeout: 30000 });
+  await tp.goto(`${BASE}/t/loan/`, { waitUntil: 'load', timeout: 30000 });
   await tp.waitForTimeout(1200);
   const bootHas = (n) => asked.some((u) => u.includes(n));
   if (bootHas('palette.js')) problems.push('도구 화면이 부팅 때 팔레트를 받는다 — 미룬 것이 되돌아왔다');

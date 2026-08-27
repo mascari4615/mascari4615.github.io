@@ -29,7 +29,7 @@
  *    - layout: 'form'(기본·900px 카드) | 'wide'(1200px, 표·2단 편집기) | 'full'(화면 점유)
  *      · **'full' 은 특수한 경우만** — 페이지 스크롤을 죽이므로(main-content overflow:hidden)
  *        아래로 이어지는 내용이 있으면 잘린다. 챗봇·터미널처럼 화면을 통째로 써야 하는 위젯 전용.
- *        도구 상세 페이지(/karmolab/t/)가 있는 위젯은 gen-tool-pages.mjs 가 'full' 을 막는다.
+ *        도구 상세 페이지(/t/)가 있는 위젯은 gen-tool-pages.mjs 가 'full' 을 막는다.
  *    - tabs: [{ id, label, build(container) }]
  *    - tabLayout: (선택) `'sidebar'` — 탭이 많을 때 왼쪽 세로 목록 + 오른쪽 패널 (문서 위젯 등)
  *    - lazyTabs: (선택) true — 첫 탭 외에는 처음 열릴 때 그린다. 여러 도구를 탭으로 묶은
@@ -54,7 +54,7 @@ const Toolbox = (() => {
      * 통째로 안 보이게 된다(실측: 오류 60여 줄).
      * 그래서 값은 **빌드가 박아 넣는다**(`__KARMOLAB_APP_BASE__`). 아래 되돌림 값은 로컬에서
      * 소스를 그냥 열 때만 쓰이며, `test:site-base` 가 정본과 같은지 매번 확인한다. */
-    const APP_BASE = typeof __KARMOLAB_APP_BASE__ === 'string' ? __KARMOLAB_APP_BASE__ : '/karmolab/';
+    const APP_BASE = typeof __KARMOLAB_APP_BASE__ === 'string' ? __KARMOLAB_APP_BASE__ : '/';
     const appPath = (rest = '') => APP_BASE + String(rest).replace(/^\//, '');
     const toolIndexPath = () => appPath('t/');
     const toolPage = (id) => appPath('t/' + encodeURIComponent(id) + '/');
@@ -196,7 +196,7 @@ const Toolbox = (() => {
 
     /* 넘길 것은 **화면을 옮겨도 살아남아야 한다** (TASK-KL-133).
      *
-     * 도구 상세 페이지(`/karmolab/t/<id>/`)에서 「이어서」를 누르면 그건 다른 주소로 가는
+     * 도구 상세 페이지(`/t/<id>/`)에서 「이어서」를 누르면 그건 다른 주소로 가는
      * 진짜 이동이라, 기억에만 들고 있으면 그 순간 파일이 사라진다 — 눌렀더니 빈손으로
      * 도착했다(실제로 그랬다). 파일을 잃는 단추는 없는 단추보다 나쁘다.
      * 그래서 브라우저 저장소(IndexedDB)에 한 칸 놓아둔다. 파일 자체를 그대로 담을 수 있는
@@ -1426,7 +1426,7 @@ const Toolbox = (() => {
             ].filter(sec => sec.tools.length || sec.empty);
         };
 
-        /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /karmolab/t/)와
+        /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /t/)와
          * 무엇이 다른지 알 수 없었다 (2026-08-19 사용자 지적). 이 판은 **내 것**을 모아 둔 자리다. */
         if (headerNav) {
             const headerNavScroll = document.createElement('div');
@@ -1450,7 +1450,7 @@ const Toolbox = (() => {
              *      제 목록은 안 그린다 — 한 글자만 쳐도 찾는 창(팔레트)에 그 글자를 넘긴다.
              *      표면을 둘로 늘리면 결과가 두 벌로 갈린다.
              *
-             * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/karmolab/t/`). */
+             * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/t/`). */
             buildHeaderNavGroup(text2('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
 
             /* ── 검색칸 ── 진짜 input 이다. 흉내만 낸 단추를 두면 폰에서 자판이 안 올라오고,
@@ -1697,11 +1697,11 @@ const Toolbox = (() => {
         });
 
         const hashPage = location.hash ? location.hash.slice(1) : null;
-        // TASK-KL-088: /karmolab/t/<id>/ 도구 상세 페이지가 심는 진입 위젯.
+        // TASK-KL-088: /t/<id>/ 도구 상세 페이지가 심는 진입 위젯.
         // 있으면 해시·마지막 페이지보다 우선하고, URL 에 해시를 덧붙이지 않는다.
         /* 껍데기만 받아서 열린 경우 — 어느 도구로 가려 했는지는 **주소에 남아 있다**
          * (TASK-KL-191 축8). 오프라인에서 서비스 워커가 첫 화면 껍데기를 대신 내주면
-         * `KARMOLAB_ENTRY_TOOL` 은 비어 있지만 주소는 `/karmolab/t/<도구>/` 그대로다.
+         * `KARMOLAB_ENTRY_TOOL` 은 비어 있지만 주소는 `/t/<도구>/` 그대로다.
          * 그걸 안 읽으면 「도구 주소로 들어왔는데 홈이 뜬다」가 된다. */
         const pathTool = toolIdFromPath(location.pathname);
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || pathTool || null;
@@ -1987,7 +1987,7 @@ const Toolbox = (() => {
         (window.KLPerf?.mark ?? window.__klMark)?.('page:' + pageId);
         let { pushHistory = true, skipRecent = false } = opts;
 
-        // TASK-KL-088: 도구 상세 페이지(/karmolab/t/<id>/)에서 다른 도구로 옮기면
+        // TASK-KL-088: 도구 상세 페이지(/t/<id>/)에서 다른 도구로 옮기면
         // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목·
         // 설명이 이전 도구 것으로 남아 URL 과 내용이 어긋난다.
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
@@ -2036,7 +2036,7 @@ const Toolbox = (() => {
         const base = location.pathname + (location.search || '');
         /* ★ **데스크톱 전용 도구의 주소는 홈으로 튕기지 않는다** (2026-08-22, TASK-KL-349).
            여태 여기서 홈으로 돌려세웠다. 그런데 그 도구들도 상세 페이지 주소를 갖는다
-           (`/karmolab/t/my-ai/`) — 검색으로 들어온 사람은 **왜 홈이 떴는지 모른 채** 떠났다.
+           (`/t/my-ai/`) — 검색으로 들어온 사람은 **왜 홈이 떴는지 모른 채** 떠났다.
            목록·찾기창에서는 이미 빠져 있으므로 여기로 오는 길은 사실상 「주소를 직접 안 것」뿐이다.
            그 사람에게 필요한 건 홈이 아니라 「앱에서만 됩니다」 한 줄이다(아래 ensureToolPage). */
         const urlWithHash = base + '#' + pageId;
@@ -2153,7 +2153,7 @@ const Toolbox = (() => {
 
     /* 「이 도구가 내가 넣은 것을 어디로 보내나」 — 도구를 여는 자리에서 (TASK-KL-352).
      *
-     * 도구 상세 장(`/karmolab/t/`)에는 이 말이 적혀 있었지만 **거기서 쓰는 사람은 적다** —
+     * 도구 상세 장(`/t/`)에는 이 말이 적혀 있었지만 **거기서 쓰는 사람은 적다** —
      * 대부분 이 셸에서 바로 연다. 그런데 셸에는 아무 말도 없었고, 상세 장에 있던 그 한 줄은
      * 129장 전부에 똑같이 「어디에도 전송되지 않습니다」였다(그림을 Google 로 보내는 도구에도).
      *

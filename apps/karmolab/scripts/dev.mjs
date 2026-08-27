@@ -100,24 +100,25 @@ function stripFrontMatter(text) {
  * 실제 사이트의 주소 → 저장소의 파일 (TASK-KL-129)
  *
  * 이 서버는 파일 경로 그대로만 줬다. 그런데 앱 안의 링크는 **배포된 주소**로 적혀 있다
- * (`/karmolab/t/`, `/karmolab/bot/`, `/daily/`). 배포에서는 Jekyll 이 앞머리의 permalink 로
+ * (`/t/`, `/bot/`, `/daily/`). 배포에서는 Jekyll 이 앞머리의 permalink 로
  * 그 주소를 만들어 주지만 여기서는 아무도 안 만들어 줘서, 첫 화면의 「도구 목록」 카드를
  * 누르면 「없다」가 떴다 — 화면을 고치는 중에 목록·상세는 아예 못 열어 봤다는 뜻이다.
  * 규칙을 한 벌 적어 두는 대신 **있을 만한 자리를 차례로 찾는다**: 새 앱이 늘어도 그대로 맞는다.
  */
 function resolveFile(rel) {
-  const noLab = rel.replace(/^\/karmolab/, '') || '/index.html';
+  // 뿌리 이관 뒤(change.karmolab-at-root ②) 벗길 접두가 없다 — 뿌리가 곧 앱이다.
+  const noLab = rel === '/' ? '/index.html' : rel;
   // 어떤 앱은 제 것을 `dist/` 에 굽는다 (/daily/ → apps/daily/dist/index.html).
   const [, first, ...rest] = noLab.split('/');
   const dist = first ? path.join(REPO, 'apps', first, 'dist', ...rest) : null;
   const candidates = [
     path.join(REPO, rel),                    // 파일 경로 그대로 (/apps/karmolab/index.html)
-    /* **원본이 먼저다** (TASK-KL-129). 배포는 셸을 `apps/blog/karmolab/` 로 복사해 두는데,
+    /* **원본이 먼저다** (TASK-KL-129). 배포는 셸을 `apps/blog/` 로 복사해 두는데,
      * 그 사본은 파일 이름에 지문이 박힌 옛 판본을 부른다. 그쪽을 먼저 찾으면 방금 고친 것이
      * 화면에 하나도 안 나온다 — 「고쳤는데 왜 그대로지」의 가장 지독한 형태다(실제로 겪었다). */
-    path.join(here, noLab),                  // 셸과 그 곁의 페이지 (/karmolab/ · /karmolab/bot/)
+    path.join(here, noLab),                  // 셸과 그 곁의 페이지 (/ · /bot/)
     path.join(REPO, 'apps/blog', rel),       // 블로그가 내보내는 것 — 도구 목록·상세가 여기 찍힌다
-    path.join(REPO, 'apps', noLab),          // 딴 앱 (/karmolab/higher/ → apps/higher/)
+    path.join(REPO, 'apps', noLab),          // 딴 앱 (/higher/ → apps/higher/)
     path.join(REPO, 'apps', rel),            // 딴 앱을 제 이름으로 (/daily/ → apps/daily/)
     ...(dist ? [dist] : []),                 // 구워 두는 앱 (/daily/ → apps/daily/dist/)
     /* ★ 글 장도 본다 — `/posts/<slug>/` 는 `gen:post-pages` 가 굽는다(배포 때 조립기가 실어 나른다).
@@ -152,8 +153,8 @@ const server = http.createServer((req, res) => {
   if (!file) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(
-      rel.startsWith('/karmolab/t/')
-        ? `없다: ${rel}\n\n도구 목록·상세는 만들어 두는 페이지다. 한 번 찍어라:\n  npm run gen:tool-pages\n(찍은 것은 apps/blog/karmolab/t/ 에 들어간다.)`
+      rel.startsWith('/t/')
+        ? `없다: ${rel}\n\n도구 목록·상세는 만들어 두는 페이지다. 한 번 찍어라:\n  npm run gen:tool-pages\n(찍은 것은 apps/blog/t/ 에 들어간다.)`
         : '없다: ' + rel
     );
     return;

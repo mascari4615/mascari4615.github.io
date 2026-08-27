@@ -14,7 +14,7 @@
  * 그건 다음 걸음이다. 지금은 화면이 **직접 부르는 것**만 다룬다(셸 코드와 스타일 = 큰 덩이).
  * `sw.js` 도 안 박는다 — 그 주소가 고정이어야 브라우저가 「워커가 바뀌었나」를 본다.
  *
- * 언제 도나: 도구 페이지를 다 찍은 **뒤**. 배포에 나가는 HTML(`apps/blog/karmolab/**`)의
+ * 언제 도나: 도구 페이지를 다 찍은 **뒤**. 배포에 나가는 HTML(`apps/blog/**`)의
  * 주소를 바꿔 주는 것이 이 스크립트의 일이다. 소스(`apps/karmolab/index.html`)는 안 건드린다.
  *
  * 사용: node scripts/stamp-assets.mjs
@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const OUT_PAGES = path.resolve(root, '../blog/karmolab');
+const OUT_PAGES = path.resolve(root, '../blog');
 
 /** 지문을 안 박는 것 — 이유는 머리말 참고. */
 const SKIP = new Set(['split_script.cjs', 'asset-manifest.json']);

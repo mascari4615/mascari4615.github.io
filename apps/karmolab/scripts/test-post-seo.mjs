@@ -1,11 +1,15 @@
 /**
- * 블로그 목록 주소의 검색 신호가 한곳으로 모이는지 본다.
+ * 글 장·피드의 검색 신호를 본다.
  *
- * `/`와 `/posts/`가 같은 목록을 내더라도 검색 대표 주소는 홈(`/`) 하나여야 한다.
- * 레거시 `/posts/`를 사이트맵에 함께 싣으면 크롤러에게 중복 URL을 다시 제출하게 된다.
+ * 목록 장은 없다 — 목록의 집은 앱 안 커뮤니티 「글」 판이다
+ * (change.karmolab-at-root ②). 그래서 여기서 보는 것은 **글 한 장**의 대표 주소와
+ * 피드가 가리키는 자리다. 목록 장이 되살아나면 같은 목록이 두 군데가 되고 신호가 갈라진다.
  */
 import assert from 'node:assert/strict';
-import { blogIndexPages, feedXml } from './lib/post-page.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { feedXml } from './lib/post-page.mjs';
 
 const posts = [
     {
@@ -18,16 +22,17 @@ const posts = [
     },
 ];
 
-const { home, legacyPosts } = blogIndexPages(posts);
+const feed = feedXml(posts);
+assert.match(feed, /<item>[\s\S]*?<link>https:\/\/blog\.mascari4615\.com\/posts\/example\/<\/link>/, '글 주소 = /posts/<slug>/');
 
-assert.match(home, /permalink: \/\n/);
-assert.match(home, /<link rel="canonical" href="https:\/\/blog\.mascari4615\.com\/">/);
-assert.doesNotMatch(home, /sitemap: false/);
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-assert.match(legacyPosts, /permalink: \/posts\/\n/);
-assert.match(legacyPosts, /<link rel="canonical" href="https:\/\/blog\.mascari4615\.com\/">/);
-assert.match(legacyPosts, /sitemap: false/);
+/* 목록 장 생성기가 되살아나면 여기서 선다 — 되살릴 때는 이 시험부터 고쳐야 한다. */
+const lib = fs.readFileSync(path.join(HERE, 'lib', 'post-page.mjs'), 'utf8');
+assert.ok(!/export function (listPage|blogIndexPages)\b/.test(lib), '목록 장 생성기가 되살아났다');
 
-assert.match(feedXml(posts), /<channel>[\s\S]*?<link>https:\/\/blog\.mascari4615\.com\/<\/link>/);
+/* 뿌리 index.html 은 앱 셸 자리다 — 블로그가 거기 쓰면 앱을 통째로 덮는다. */
+const gen = fs.readFileSync(path.join(HERE, 'gen-post-pages.mjs'), 'utf8');
+assert.ok(!/path\.join\(OUT, 'index\.html'\)/.test(gen), '뿌리 index.html 은 앱 셸 자리다');
 
-console.log('[test-post-seo] 홈 canonical · 레거시 목록 제외 · 피드 주소 통과');
+console.log('[test-post-seo] 글 주소 · 피드 · 목록 장 없음 통과');

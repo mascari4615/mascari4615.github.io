@@ -19,7 +19,7 @@ import { chromium } from 'playwright';
 
 const AXE = path.join('node_modules', 'axe-core', 'axe.min.js');
 const args = process.argv.slice(2).filter((a) => a.startsWith('--') === false);
-const BASE = 'https://blog.mascari4615.com/karmolab/';
+const BASE = 'https://blog.mascari4615.com/';
 const URLS = args.length ? args : [BASE, `${BASE}t/`, `${BASE}?t=passgen`];
 const VIEW = { width: 390, height: 844 };
 

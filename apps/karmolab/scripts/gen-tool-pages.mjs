@@ -1,15 +1,15 @@
 /**
  * 도구 상세 페이지 생성기 (TASK-KL-088)
  *
- * 왜 필요한가: KarmoLab 은 해시 라우팅(`/karmolab/#charcount`) 이라 도구가 몇 개든 URL 이 하나였다.
+ * 왜 필요한가: KarmoLab 은 해시 라우팅(`/#charcount`) 이라 도구가 몇 개든 URL 이 하나였다.
  * 검색엔진은 fragment 를 별도 문서로 색인하지 않으므로 도구별 노출 면적이 0 이었다.
- * → 위젯 매니페스트 + data/tools-seo.json 을 짝지어 `/karmolab/t/<id>/` 정적 페이지를 찍는다.
+ * → 위젯 매니페스트 + data/tools-seo.json 을 짝지어 `/t/<id>/` 정적 페이지를 찍는다.
  *   각 페이지는 같은 앱 셸을 쓰되 head(제목·설명·canonical·JSON-LD)와 서버 렌더 설명 블록만 다르다.
  *
  * 입력: index.html (앱 셸 템플릿) · data/tools-seo.json · js/widgets-lazy-meta.js (빌드 산출물)
  * 출력: <out>/<id>/index.html + <out>/index.html (허브)
  *
- * 사용: node scripts/gen-tool-pages.mjs [--out ../blog/karmolab/t]
+ * 사용: node scripts/gen-tool-pages.mjs [--out ../blog/t]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,13 +31,13 @@ function replaceTitle(html, title) {
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
-const BASE_PATH = '/karmolab/t';
+const BASE_PATH = '/t';
 
 /* 검사(--audit)로 돌 때는 기록 파일을 건드리지 않는다 — 검사가 결과를 바꾸면
    그건 검사가 아니다(다음 검사가 통과해 버린다). */
 const NO_STATE = process.env.KARMOLAB_GEN_NO_STATE === '1';
 const outArgIndex = process.argv.indexOf('--out');
-const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 1] : '../blog/karmolab/t');
+const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 1] : '../blog/t');
 
 /* ── 입력 로드 ─────────────────────────────────────── */
 
@@ -202,7 +202,7 @@ const CRYPTO_TOOLS = (() => {
  * 만들 때 멈춰서 절대 배포로 못 나가게 한다. */
 {
   const known = new Set(ids);
-  const dead = [...shell.matchAll(/href="\/karmolab\/t\/([a-z0-9-]+)\//g)]
+  const dead = [...shell.matchAll(/href="\/t\/([a-z0-9-]+)\//g)]
     .map((m) => m[1])
     .filter((id) => !known.has(id));
   if (dead.length) {
@@ -531,7 +531,7 @@ function seoBlock(id) {
              axe 가 landmark-unique 로 잡았다 — 화면낭독기 landmark 목록에 같은 이름이 두 개라
              어느 쪽으로 갈지 못 고른다. 도구 장 129장 전부에 있던 일이다. -->
         <nav class="tool-seo-crumb" aria-label="이 글의 위치">
-          <a href="/karmolab/">KarmoLab</a> / <a href="${BASE_PATH}/">도구</a> / ${esc(heading(id))}
+          <a href="/">KarmoLab</a> / <a href="${BASE_PATH}/">도구</a> / ${esc(heading(id))}
         </nav>
         <p>${esc(t.description)}</p>${aliasLine(id, [heading(id), t.lead, t.description, t.howto.join(' '), t.faq.map((f) => f.q + f.a).join(' ')].join(' '))}
 
@@ -563,7 +563,7 @@ function seoBlock(id) {
 ${kinBlock(id)}${sponsorBlock(id)}
 ${privacyNote(id)}
         <p class="tool-seo-note">
-          <a href="${BASE_PATH}/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
+          <a href="${BASE_PATH}/">도구 전체 목록</a> · <a href="/">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
           · AI 와 함께 만들었습니다. <a href="https://github.com/Mascari4615/Mascari4615.github.io">소스 보기</a>
         </p>
       </section>`;
@@ -581,7 +581,7 @@ function jsonLd(id) {
       operatingSystem: 'Web',
       description: t.description,
       inLanguage: 'ko-KR',
-      isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/karmolab/` },
+      isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
       /* 아래 넷은 지어내지 않고 이미 가진 사실만 옮긴다 (TASK-KL-089).
        * 그림은 도구마다 찍어 둔 공유 카드, 바뀐 날은 사이트맵에 쓰는 값과 같은 것,
@@ -593,8 +593,8 @@ function jsonLd(id) {
         .split(' · ')
         .map((s) => s.trim())
         .filter(Boolean),
-      author: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/karmolab/` },
-      publisher: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/karmolab/` }
+      author: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/` },
+      publisher: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/` }
     },
     {
       '@context': 'https://schema.org',
@@ -609,7 +609,7 @@ function jsonLd(id) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/karmolab/` },
+        { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/` },
         { '@type': 'ListItem', position: 2, name: '도구', item: `${SITE}${BASE_PATH}/` },
         // 분류가 있으면 그 자리도 넣는다 — 화면에 보이는 이동 경로와 같아야 한다.
         ...(GROUP_OF[id]
@@ -682,7 +682,7 @@ function buildToolPage(id) {
 
   html = replaceTitle(html, esc(title));
   html = html.replace(
-    '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
+    '<link rel="canonical" href="https://blog.mascari4615.com/">',
     `<link rel="canonical" href="${toolPageUrl(id)}">`
   );
 
@@ -851,7 +851,7 @@ const GROUP_OF = (() => {
 function crumbLine(id) {
   const g = GROUP_OF[id];
   const parts = [
-    `<a href="/karmolab/">KarmoLab</a>`,
+    `<a href="/">KarmoLab</a>`,
     `<a href="${BASE_PATH}/">도구</a>`,
     ...(g ? [`<a href="${BASE_PATH}/#${g.anchor}">${esc(g.title)}</a>`] : []),
     `<span aria-current="page">${esc(heading(id))}</span>`
@@ -907,7 +907,7 @@ function buildHub() {
   const crumb = {
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/karmolab/` },
+      { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/` },
       { '@type': 'ListItem', position: 2, name: '도구', item: `${SITE}${BASE_PATH}/` }
     ]
   };
@@ -947,7 +947,7 @@ function buildHub() {
 
   html = replaceTitle(html, HUB_TITLE);
   html = html.replace(
-    '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
+    '<link rel="canonical" href="https://blog.mascari4615.com/">',
     `<link rel="canonical" href="${SITE}${BASE_PATH}/">`
   );
   html = replaceMeta(html, 'name', 'description', HUB_DESC);
@@ -979,13 +979,13 @@ function buildHub() {
   html = html.replace('<body>', '<body class="tool-hub-page">');
 
   const hubBody = `<section class="tool-seo tool-hub">
-      <nav class="tool-crumb" aria-label="위치"><a href="/karmolab/">KarmoLab</a><i aria-hidden="true">›</i><span aria-current="page">도구</span></nav>
+      <nav class="tool-crumb" aria-label="위치"><a href="/">KarmoLab</a><i aria-hidden="true">›</i><span aria-current="page">도구</span></nav>
       <!-- 큰제목은 검색엔진이 「이 문서가 무엇인가」로 읽는 자리다. 「도구」 한 단어로는
            목록인지 도구 하나인지도 흐리다. 몇 가지인지까지 담되 숫자는 만들 때 세어 넣는다. -->
       <h1>도구 ${ids.length}가지</h1>
       <p class="tool-seo-lead">삶을 섞고 술을 바꿀 시간.</p>
       <!-- 놀러 온 사람이 도구를 만나고, 도구 쓰던 사람이 놀 이유가 생긴다 (TASK-KL-089). -->
-      <p class="tool-hub-quest"><a href="/karmolab/higher/">높은 쪽 고르기</a> · <a href="/karmolab/quest/">오늘의 문제</a> — 놀다 가세요</p>
+      <p class="tool-hub-quest"><a href="/higher/">높은 쪽 고르기</a> · <a href="/quest/">오늘의 문제</a> — 놀다 가세요</p>
 
       <!-- 백 가지가 넘으면 눈으로 훑어 찾기 어렵다. 이름·설명으로 걸러 준다.
            스크립트가 없으면 이 칸만 숨고 목록은 그대로 다 보인다 — 크롤러도 사람도 잃지 않는다. -->
@@ -1007,7 +1007,7 @@ ${toc}
 ${cards}
       <p class="tool-seo-note">
         각 도구의 계산은 브라우저 안에서만 이뤄지며 입력한 내용은 저장·전송되지 않습니다.
-        <a href="/karmolab/">KarmoLab 전체 보기</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
+        <a href="/">KarmoLab 전체 보기</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
       </p>
     <script data-hub-desktop>
     (function () {
@@ -1241,7 +1241,7 @@ ${cards}
  * ★ 이 폴더는 **혼자 쓰는 곳이 아니다** (2026-08-09 실측으로 발각).
  *
  * 예전에는 `rmSync(outDir)` 로 폴더를 통째로 지우고 시작했다. 그런데 같은 자리에
- * `gen-tool-md` 가 먼저 **마크다운 쌍둥이 129장**(`/karmolab/t/<id>.md`, AI 가 읽는 판)을
+ * `gen-tool-md` 가 먼저 **마크다운 쌍둥이 129장**(`/t/<id>.md`, AI 가 읽는 판)을
  * 써 둔다. 그래서 배포 때마다 그 129장이 **소리 없이 사라졌다** — 만든 쪽도 지운 쪽도
  * 각자 성공했다고 로그를 남기고, 사이트에서만 404 였다.
  *
@@ -1310,9 +1310,9 @@ fs.writeFileSync(
   'utf8'
 );
 
-/* Service Worker 를 `/karmolab/sw.js` 로 서비스한다 (TASK-KL-088).
+/* Service Worker 를 `/sw.js` 로 서비스한다 (TASK-KL-088).
  * SW 의 제어 범위는 자기 URL 경로로 정해진다 — `/apps/karmolab/sw.js` 에 두면 정작 앱이 사는
- * `/karmolab/` 페이지를 제어하지 못한다. Jekyll front matter 로 위치만 옮긴다. */
+ * `/` 페이지를 제어하지 못한다. Jekyll front matter 로 위치만 옮긴다. */
 /**
  * 경로 하나를 실제 파일 자리로 바꾼다 — **앱의 규약과 같아야 한다** (TASK-KL-088).
  * 정본은 `src/toolbox.ts` 의 resolveScriptPath. 여기서 무조건 `js/widgets/` 로 붙이는 바람에
@@ -1327,7 +1327,7 @@ if (fs.existsSync(swBuilt)) {
   fs.mkdirSync(parent, { recursive: true });
   fs.writeFileSync(
     path.join(parent, 'sw.js'),
-    `---\nlayout: none\npermalink: /karmolab/sw.js\n---\n${fs.readFileSync(swBuilt, 'utf8')}`,
+    `---\nlayout: none\npermalink: /sw.js\n---\n${fs.readFileSync(swBuilt, 'utf8')}`,
     'utf8'
   );
 } else {

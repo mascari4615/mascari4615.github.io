@@ -22,7 +22,7 @@ import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
-const BARE = '/karmolab/';
+const BARE = '/';
 const fail = [];
 
 const links = (html) =>
@@ -74,7 +74,7 @@ for (const code of codes) {
  * 우기는 상태). 이제 도구 장에도 언어 판이 있으므로 규칙이 바뀐다: **있어야 하고, 제 id 를
  * 가리켜야 한다.** 없으면 언어 판이 한국어 장을 가리켜도 왕복이 안 돼 양쪽이 통째로 무시된다.
  */
-const toolsDir = path.join(root, '../blog/karmolab/t');
+const toolsDir = path.join(root, '../blog/t');
 if (fs.existsSync(toolsDir) && codes.length > 1) {
   const wrong = [];
   const bare = [];
@@ -91,7 +91,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
       continue;
     }
     /* 이 장의 주소가 아닌 곳을 가리키면(= 첫 화면이 새어 나옴) 그게 제일 나쁜 종류다. */
-    if (got.some((l) => !l.href.endsWith(`/karmolab/t/${id}/`))) wrong.push(id);
+    if (got.some((l) => !l.href.endsWith(`/t/${id}/`))) wrong.push(id);
   }
   if (wrong.length)
     fail.push(`도구 장 ${wrong.length}개의 짝 표시가 제 주소가 아니다 (예: ${wrong[0]}) — 셸에서 새어 나왔는지 확인`);
@@ -103,7 +103,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
 
 /* ⑤ 언어 장의 링크가 **실제로 있는 곳**을 가리키는가 ──
  *
- * 도구 장 258개를 찍자마자 그 전부가 `/en/karmolab/t/`(목록)·`/en/karmolab/bot/`(봇 소개)를
+ * 도구 장 258개를 찍자마자 그 전부가 `/en/t/`(목록)·`/en/bot/`(봇 소개)를
  * 가리켰다 — 그 둘은 아직 그 언어로 안 찍는다. 링크는 **눌러 보기 전에는 멀쩡해 보인다**:
  * 화면도 검사도 통과하고, 누른 사람만 404 를 본다. 그래서 찍은 장을 훑어 그 언어 주소를 전부
  * 모으고, 파일이 실제로 있는지 본다. 없는 곳을 가리키면 여기서 선다.
@@ -113,7 +113,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
   let checked = 0;
   for (const code of codes) {
     if (code === DEFAULT_LOCALE) continue;
-    const prefix = localizedPath('/karmolab/', code);
+    const prefix = localizedPath('/', code);
     const dir = path.join(root, '../blog', prefix.replace(/^\//, ''));
     if (!fs.existsSync(dir)) continue;
     const walk = (d) => {
@@ -126,7 +126,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
         if (e.name !== 'index.html') continue;
         checked++;
         const html = fs.readFileSync(f, 'utf8');
-        for (const m of html.matchAll(/href="(\/[a-z]{2}\/karmolab[^"#?]*)"/g)) {
+        for (const m of html.matchAll(/href="(\/[a-z]{2}[^"#?]*)"/g)) {
           const target = path.join(root, '../blog', m[1].replace(/^\//, ''), 'index.html');
           if (!fs.existsSync(target)) dead.add(m[1]);
         }

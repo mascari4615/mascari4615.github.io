@@ -1,7 +1,7 @@
 # 먹 (meok) — 그림 도구
 
-레이어로 그리고, 칸으로 움직이는 곳. 주소 `/karmolab/#meok`, 「이미지」 묶음의 **먹** 탭.
-정본 TASK = `memo/projects/karmolab/tasks/TASK-KL-240-…`.
+레이어로 그리고, 칸으로 움직이는 곳. 주소 `/#meok`, 「이미지」 묶음의 **먹** 탭.
+정본 TASK = `memo/projects/tasks/TASK-KL-240-…`.
 
 ## 어디에 뭐가 있나
 

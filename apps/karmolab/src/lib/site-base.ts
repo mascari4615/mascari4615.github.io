@@ -13,7 +13,7 @@
  */
 
 /** 앱 뿌리. 항상 `/` 로 시작하고 `/` 로 끝난다. */
-export const APP_BASE = '/karmolab/';
+export const APP_BASE = '/';
 
 /** 뿌리에서 이어 붙인 주소. `appPath('t/qr/')` → `/karmolab/t/qr/` */
 export function appPath(rest = ''): string {

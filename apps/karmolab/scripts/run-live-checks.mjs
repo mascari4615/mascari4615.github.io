@@ -119,7 +119,7 @@ if (todo.some((c) => c.needsServer)) {
   const ready = await (async () => {
     for (let i = 0; i < 60; i++) {
       try {
-        /* **늘 있는 파일**로 묻는다. 예전엔 `/apps/blog/karmolab/` 를 물었는데 그 자리는
+        /* **늘 있는 파일**로 묻는다. 예전엔 `/apps/blog/` 를 물었는데 그 자리는
            **찍어야 생기는 것**이라, 안 찍힌 판에서는 서버가 멀쩡한데도 「안 떴다」가 되어
            검사가 조용히 건너뛰어졌다 — 지키는 척만 하는 게이트가 된다. */
         const r = await fetch('http://127.0.0.1:8801/apps/karmolab/package.json');

@@ -31,7 +31,7 @@ let prerendered = 0;
 for (const id of ids) {
   const page = await ctx.newPage();
   try {
-    const res = await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const res = await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     if (res && res.status() !== 200) {
       deadOnes.push(`${id}: http ${res.status()}`);
       await page.close();

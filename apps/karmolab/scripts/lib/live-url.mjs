@@ -17,6 +17,6 @@ export const liveBase = () => process.env.BASE || defaultSite;
 
 /**
  * 이 판이 열 장.
- * @param {string} path 사이트 안의 길 (`/karmolab/` 처럼 앞에 빗금)
+ * @param {string} path 사이트 안의 길 (`/` 처럼 앞에 빗금)
  */
-export const livePage = (path = '/karmolab/') => process.env.URL || liveBase().replace(/\/+$/, '') + path;
+export const livePage = (path = '/') => process.env.URL || liveBase().replace(/\/+$/, '') + path;

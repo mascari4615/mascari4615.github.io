@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postBody, postHead, blogIndexPages, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { postBody, postHead, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
 import { parseWorksYml, buildWorks } from './lib/works-list.mjs';
 import { loadShell, shellCommon, replaceMeta, asStaticPage, esc as shellEsc } from './lib/shell-page.mjs';
 
@@ -227,12 +227,8 @@ const index = visible
 // data/ 판 = 서빙본 (rsync 로 /apps/karmolab/data/ 에 실린다). 커밋 X — 배포마다 새로 (gitignore).
 fs.writeFileSync(path.join(APP_ROOT, 'data', 'posts-index.json'), JSON.stringify(index, null, 1));
 
-// 목록 = `/`(canonical 본체) + `/posts/`(옛 링크 호환, sitemap 제외).
-// Search Console 에서 Google 이 홈을 대표 주소로 골랐는데 선언은 `/posts/`를 가리켜 신호가
-// 갈라졌다. 둘 다 같은 목록을 내므로 홈 하나로 모은다. 피드 · 소개 · 404도 함께 굽는다.
-const blogIndexes = blogIndexPages(index);
-fs.writeFileSync(path.join(OUT, 'posts', 'index.html'), blogIndexes.legacyPosts);
-fs.writeFileSync(path.join(OUT, 'index.html'), blogIndexes.home);
+// 목록 장은 안 찍는다 — 목록의 집은 앱 안 커뮤니티 「글」 판이다 (post-page.mjs 머리말).
+// 피드 · 소개 · 404 도 함께 굽는다.
 fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
 fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
 

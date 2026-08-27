@@ -13,7 +13,7 @@ import { chromium } from 'playwright';
 const BASE = process.env.BASE || 'http://127.0.0.1:8801/apps/blog';
 const PATH = process.argv[2] ?? '';
 const SETTLE = Number(process.argv[3] ?? 4) * 1000;
-const URL_ = `${BASE}/karmolab/${PATH}`;
+const URL_ = `${BASE}/${PATH}`;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({

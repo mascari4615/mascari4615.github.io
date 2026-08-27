@@ -31,7 +31,7 @@ page.on('pageerror', (e) => failures.push(`페이지 오류: ${e.message}`));
 
 /** 두 파일을 넣고 대조를 눌러, 상태줄이 결론을 말할 때까지 기다린다. */
 async function compare(a, b, mode) {
-  const res = await page.goto(`${BASE}/karmolab/t/pdfdiff/`, { waitUntil: 'domcontentloaded' });
+  const res = await page.goto(`${BASE}/t/pdfdiff/`, { waitUntil: 'domcontentloaded' });
   // 아직 안 올라간 것과 망가진 것은 고칠 곳이 다르다 — 섞어 적으면 없는 버그를 쫓게 된다.
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전) — 배포 후 다시 보라`);
   // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)

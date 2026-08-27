@@ -13,7 +13,7 @@
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
 
-const BASE = livePage('/karmolab/');
+const BASE = livePage('/');
 const problems = [];
 
 const browser = await chromium.launch();

@@ -12,7 +12,7 @@
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
 
-const BASE = livePage('/karmolab/');
+const BASE = livePage('/');
 const problems = [];
 
 const browser = await chromium.launch();
@@ -28,7 +28,7 @@ const make = (n, source) =>
     body: '내용',
     source,
     count: 1,
-    url: '/karmolab/',
+    url: '/',
     readAt: null,
     updatedAt: new Date().toISOString(),
   }));

@@ -1,13 +1,13 @@
 /**
  * PWA 등록 + 갱신 안내 (TASK-KL-088)
  *
- * 배경(진단) — KarmoLab 은 `/karmolab/` 에 서비스되는데 자체 SW 는 `/apps/karmolab/` 스코프로
+ * 배경(진단) — KarmoLab 은 `/` 에 서비스되는데 자체 SW 는 `/apps/karmolab/` 스코프로
  * 등록돼 있어 이 페이지를 전혀 제어하지 못했다. 실제로 제어하던 것은 블로그(Chirpy)의 루트 SW 이고,
  * 그 SW 는 cache-first + 새 버전이 waiting 으로 대기하는 구조인데 KarmoLab 화면에는 그것을 깨울
  * UI 가 없었다. 그래서 새로 배포한 위젯이 기존 방문자에게 계속 안 보였다.
  *
  * 처방:
- *  1. KarmoLab 전용 SW 를 `/karmolab/sw.js` 로 등록 (스코프 = `/karmolab/`, 도구 상세 페이지 포함)
+ *  1. KarmoLab 전용 SW 를 `/sw.js` 로 등록 (스코프 = `/`, 도구 상세 페이지 포함)
  *  2. 죽은 `/apps/karmolab/` 스코프 등록은 정리
  *  3. 등록된 SW 중 **하나라도** 대기 중이면 배너로 물어보고, 확인 시 전부에게 SKIP_WAITING
  *

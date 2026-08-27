@@ -51,8 +51,8 @@ const MIME = {
 function serveBuilt() {
   const server = http.createServer((req, res) => {
     let url = decodeURIComponent(req.url.split('?')[0]);
-    // 배포된 주소 모양(`/karmolab/t/…`)과 디스크 모양이 다르다 — 여기서 이어 준다.
-    if (url.startsWith('/karmolab/t/')) url = '/apps/blog/karmolab/t/' + url.slice('/karmolab/t/'.length);
+    // 배포된 주소 모양(`/t/…`)과 디스크 모양이 다르다 — 여기서 이어 준다.
+    if (url.startsWith('/t/')) url = '/apps/blog/t/' + url.slice('/t/'.length);
     if (url.endsWith('/')) url += 'index.html';
     const file = path.join(blogRoot, url.replace(/^\//, ''));
     if (!file.startsWith(blogRoot) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
@@ -86,7 +86,7 @@ try {
   const BASE = `http://127.0.0.1:${server.address().port}`;
   browser = await chromium.launch();
   const page = await (await browser.newContext({ viewport: { width: 390, height: 780 }, serviceWorkers: 'block' })).newPage();
-  await page.goto(`${BASE}/karmolab/t/${SAMPLE}/`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/t/${SAMPLE}/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
 
   const seen = await page.evaluate((toolId) => {

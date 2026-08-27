@@ -83,7 +83,7 @@ for (const g of roster) {
   /*
    * 통짜 앱 하나가 주소 한 칸을 통째로 갖는 것도 있다 — `/daily/` = `apps/daily/` 가 배포 때
    * 그 자리로 옮겨진다(소스에 permalink 가 없다). **한 칸짜리 주소일 때만** 이 규칙을 쓴다.
-   * 안 그러면 `/karmolab/t/오타/` 도 `apps/karmolab` 이 있다는 이유로 통과해 버린다.
+   * 안 그러면 `/t/오타/` 도 `apps/karmolab` 이 있다는 이유로 통과해 버린다.
    */
   const seg = url.split('/').filter((x) => x !== '');
   if (seg.length === 1 && fs.existsSync(path.join(repoRoot, 'apps', seg[0]))) continue;

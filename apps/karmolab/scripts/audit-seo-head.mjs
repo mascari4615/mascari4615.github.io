@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const HUB = `${BASE}/karmolab/t/`;
+const HUB = `${BASE}/t/`;
 
 const aliasPath = path.join(root, 'data/tool-aliases.json');
 const ALIASES = fs.existsSync(aliasPath) ? JSON.parse(fs.readFileSync(aliasPath, 'utf8')).aliases || {} : {};
@@ -36,7 +36,7 @@ if (!hubRes.ok) {
   process.exit(1);
 }
 const hubHtml = await hubRes.text();
-const ids = [...new Set([...hubHtml.matchAll(/\/karmolab\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
+const ids = [...new Set([...hubHtml.matchAll(/\/t\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
 if (ids.length < 20) {
   console.error(`[audit-seo-head] 목록에서 도구를 ${ids.length}개밖에 못 찾았다 — 목록이 깨졌다`);
   process.exit(1);
@@ -202,13 +202,13 @@ const want = ['SoftwareApplication', 'FAQPage', 'BreadcrumbList'];
 for (let i = 0; i < ids.length; i += 8) {
   await Promise.all(
     ids.slice(i, i + 8).map(async (id) => {
-      const r = await fetchAll(`${BASE}/karmolab/t/${id}/`);
+      const r = await fetchAll(`${BASE}/t/${id}/`);
       if (!r.ok) {
         if (r.cannotMeasureReason) couldNotMeasure.push(`${id}: ${r.cannotMeasureReason} (세 번 다 안 됐다)`);
         else problems.push(`${id}: http ${r.status}`);
         return;
       }
-      const found = inspect(id, await r.text(), `https://blog.mascari4615.com/karmolab/t/${id}/`);
+      const found = inspect(id, await r.text(), `https://blog.mascari4615.com/t/${id}/`);
       const missing = want.filter((t) => !found.has(t));
       if (missing.length) problems.push(`${id}: 구조화 데이터에 ${missing.join('·')} 가 없다`);
     })
@@ -223,7 +223,7 @@ if (BASE.startsWith('https://')) {
   if (!sm.ok) problems.push(`사이트맵을 못 받는다 (http ${sm.status})`);
   else {
     const xml = await sm.text();
-    const blocks = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => m[1]).filter((b) => /\/karmolab\/t\//.test(b));
+    const blocks = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => m[1]).filter((b) => /\/t\//.test(b));
     if (blocks.length < ids.length) {
       problems.push(`사이트맵에 도구 페이지가 ${blocks.length}장뿐이다 (지금 ${ids.length}장)`);
     }
@@ -232,7 +232,7 @@ if (BASE.startsWith('https://')) {
   }
 }
 
-const hubFound = inspect('목록', hubHtml, 'https://blog.mascari4615.com/karmolab/t/');
+const hubFound = inspect('목록', hubHtml, 'https://blog.mascari4615.com/t/');
 if (!hubFound.has('CollectionPage')) problems.push('목록: 모음 페이지라는 표시가 없다');
 
 /* 설명 글이 서로 너무 닮으면 검색엔진이 둘 중 하나만 남기고 묻는다. 도구가 늘수록

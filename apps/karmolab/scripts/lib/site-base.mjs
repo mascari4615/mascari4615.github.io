@@ -6,7 +6,7 @@
  */
 
 /** 앱 뿌리. 항상 `/` 로 시작하고 `/` 로 끝난다. */
-export const APP_BASE = '/karmolab/';
+export const APP_BASE = '/';
 
 /** 사이트 주소 (canonical·og 에 쓴다). */
 export const SITE_ORIGIN = 'https://blog.mascari4615.com';

@@ -10,7 +10,7 @@
  *   concept   → memo/wm/design/concepts/<slug>.md (있으면)       → entities/concepts/
  *   lore      → memo/wm/design/lore/<slug>.md (있으면)           → entities/lore/
  *
- * 룰: 룰 정본 = memo/projects/karmolab/docs/entity-schema.md.
+ * 룰: 룰 정본 = memo/projects/docs/entity-schema.md.
  */
 import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';

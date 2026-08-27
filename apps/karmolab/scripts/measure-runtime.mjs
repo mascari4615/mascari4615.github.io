@@ -27,7 +27,7 @@
  *
  * 주의: 도구 화면(`/t/…`)은 배포 때 찍히는 생성물이라 **소스 경로에 없다**.
  *       그래서 기본 대상은 실서비스다. 셸만 볼 거면 `BASE=http://127.0.0.1:8801/apps/karmolab`.
- *       (로컬 `/apps/blog/karmolab/` 은 지문이 박힌 **낡은 사본**이라 고친 코드가 안 보인다.)
+ *       (로컬 `/apps/blog/` 은 지문이 박힌 **낡은 사본**이라 고친 코드가 안 보인다.)
  *
  * 사용: node scripts/measure-runtime.mjs [반복수]
  *       TARGETS=홈,도구허브 node scripts/measure-runtime.mjs 5

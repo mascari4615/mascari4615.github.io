@@ -9,7 +9,7 @@ import { APP_BASE, toolPage } from './lib/site-base';
  *  - **입력 내용은 절대 안 보낸다.** 보내는 것은 도구 id 와 동작 이름뿐 (예: use/charcount/copy).
  *  - 쿠키·개인 식별자 없음 (GoatCounter). 블로그가 이미 쓰는 계정을 그대로 쓴다.
  *  - 데스크톱(Tauri) 앱에서는 아예 로드하지 않는다 — 내가 쓰는 것이 통계를 덮는다.
- *  - 앱 내부 전환도 도구 상세 페이지와 **같은 경로**(/karmolab/t/<id>/)로 기록해 합산되게 한다.
+ *  - 앱 내부 전환도 도구 상세 페이지와 **같은 경로**(/t/<id>/)로 기록해 합산되게 한다.
  */
 (function (): void {
   const SITE = 'https://mascari4615.goatcounter.com/count';

@@ -135,7 +135,7 @@ function safeGet(k: string): string | null {
 
 /* ── 주소 갈아끼우기 ────────────────────────────────── */
 
-/** 언어 앞머리를 떼어 낸 알맹이 주소 (`/en/karmolab/t/qr/` → `/karmolab/t/qr/`). */
+/** 언어 앞머리를 떼어 낸 알맹이 주소 (`/en/t/qr/` → `/t/qr/`). */
 export function stripPrefix(pathname: string): string {
   const code = fromPath(pathname);
   if (!code) return pathname;

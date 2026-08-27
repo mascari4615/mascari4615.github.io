@@ -95,7 +95,7 @@ if (server) await server.close();
   await page.waitForTimeout(300);
   check('표 만드는 문이 로비에 있다', (await page.$('#acPacks #acPackNew')) !== null);
 
-  const inApp = expected.find((g) => g.url.startsWith('/karmolab/#'));
+  const inApp = expected.find((g) => g.url.startsWith('/#'));
   await page.click(`#acSolo a[data-solo-go="${inApp.id}"]`);
   await page.waitForTimeout(1200);
   check(

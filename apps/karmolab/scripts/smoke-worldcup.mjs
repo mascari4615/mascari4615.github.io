@@ -20,7 +20,7 @@
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
 
-const URL_TARGET = livePage('/karmolab/#worldcup');
+const URL_TARGET = livePage('/#worldcup');
 const problems = [];
 
 const browser = await chromium.launch();

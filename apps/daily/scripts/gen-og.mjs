@@ -19,7 +19,7 @@ const outDir = join(app, 'img/og');
  * CI 에는 그 이웃이 없으므로 어디 있는지 `DAILY_PLAYWRIGHT` 로 알려 준다
  * (자매 스크립트 smoke.mjs · smoke-live.mjs 와 같은 규약. 여기만 경로가 박혀 있어
  *  「표 새로 받기」 워크플로가 마지막 단계에서 모듈을 못 찾고 죽었다 — 2026-08-10). */
-const pwRel = process.env.DAILY_PLAYWRIGHT || '../karmolab/node_modules/playwright/index.js';
+const pwRel = process.env.DAILY_PLAYWRIGHT || '../node_modules/playwright/index.js';
 const mod = await import(pathToFileURL(join(app, pwRel)).href);
 const pw = mod.chromium ? mod : mod.default;
 

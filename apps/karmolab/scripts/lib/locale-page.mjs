@@ -24,7 +24,7 @@ import { LOCALES, DEFAULT_LOCALE, meta, localizedPath, hreflangTags, catalog, tr
  */
 export const LOCALE_PAGES = [
   {
-    bare: '/karmolab/',
+    bare: '/',
     /** 틀 — 100% 아니면 그 언어로 안 낸다. */
     namespaces: ['site', 'shell'],
     /** 항목 — 거의 다 차면 낸다. 빠진 줄만 원본 언어로 보인다. */
@@ -83,7 +83,7 @@ function setMeta(html, attr, name, content) {
 /**
  * @param html   원본(기본 언어) 장의 HTML
  * @param code   만들 언어
- * @param bare   언어 앞머리를 뗀 주소 (`/karmolab/t/qr/`)
+ * @param bare   언어 앞머리를 뗀 주소 (`/t/qr/`)
  * @param site   사이트 뿌리 (`https://…`)
  * @param codes  이 장이 **실제로 존재하는** 언어들 — hreflang 은 이 안에서만 적는다
  * @param namespaces 머리말에 미리 박을 글 묶음 (기본 `site`)

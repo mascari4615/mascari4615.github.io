@@ -1,7 +1,7 @@
 /**
  * 셸 밖에 있던 한 장짜리 페이지들을 앱 안으로 들인다 (TASK-KL-129)
  *
- * 왜: 봇 소개(`/karmolab/bot/`)와 프로필(`/karmolab/u/`)은 손으로 짠 문서였다. 도구를 쓰다
+ * 왜: 봇 소개(`/bot/`)와 프로필(`/u/`)은 손으로 짠 문서였다. 도구를 쓰다
  * 그리로 가면 머리띠도 옆줄도 테마 단추도 ⌘K 도 없는 **다른 집**으로 떨어졌고, 돌아오는 길은
  * 작은 링크 하나뿐이었다. 도구 목록을 셸 안으로 들이면서 쓴 바탕(`lib/shell-page.mjs`)을
  * 그대로 쓴다 — 새 정적 페이지는 이제 「본문만 쓰면」 셸이 따라온다.
@@ -13,7 +13,7 @@
  * 곁들여 사라지는 것: 봇 소개가 남의 서버에서 받아 오던 글꼴 세 벌(수백 KB). 셸은 우리가
  * 구운 글꼴을 쓴다.
  *
- * 사용: node scripts/gen-shell-pages.mjs [--out ../blog/karmolab]
+ * 사용: node scripts/gen-shell-pages.mjs [--out ../blog]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -34,23 +34,23 @@ function replaceTitle(html, title) {
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
 const outArg = process.argv.indexOf('--out');
-const OUT = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog/karmolab');
+const OUT = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog');
 
 /** 들일 페이지들. `src` 가 내용의 주인, `permalink` 가 사람이 보는 주소. */
 const PAGES = [
   {
     kind: 'bot',
     src: 'bot/index.html',
-    permalink: '/karmolab/bot/',
+    permalink: '/bot/',
     out: 'bot',
     // 저 혼자 살 때 달았던 제 머리띠(「← KarmoLab」 + 부르기)는 뺀다 — 셸 머리띠 바로 아래에
     // 또 하나가 붙어 두 겹이 된다. 같은 자리의 「서버에 부르기」는 본문 첫 화면에 그대로 있다.
     strip: [/<div class="top">[\s\S]*?<\/div><\/div>\n?/],
   },
-  { kind: 'profile', src: 'u/index.html', permalink: '/karmolab/u/', out: 'u' },
+  { kind: 'profile', src: 'u/index.html', permalink: '/u/', out: 'u' },
   // TASK-KL-162: WM 소개 한 장. 원본(`wm/index.html`)은 손으로 쓰지 않는다 —
   // `scripts/gen-wm-landing.mjs` 가 memo 정본에서 찍는다(설정이 바뀌면 페이지도 바뀐다).
-  { kind: 'wm', src: 'wm/index.html', permalink: '/karmolab/wm/', out: 'wm' },
+  { kind: 'wm', src: 'wm/index.html', permalink: '/wm/', out: 'wm' },
 ];
 
 const shell = loadShell(root);
@@ -172,7 +172,7 @@ for (const page of PAGES) {
 
   html = replaceTitle(html, title);
   html = html.replace(
-    '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
+    '<link rel="canonical" href="https://blog.mascari4615.com/">',
     `<link rel="canonical" href="${SITE}${page.permalink}">`
   );
   html = replaceMeta(html, 'name', 'description', description);

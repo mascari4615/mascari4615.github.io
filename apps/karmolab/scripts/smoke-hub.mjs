@@ -66,7 +66,7 @@ page.on('response', (r) => {
   if (hashed.test(u.split('?')[0])) return;
   notFetched.push(`${r.status()} ${u.split('/').slice(-2).join('/')}`);
 });
-const res = await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
+const res = await page.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
 if (res.status() !== 200) problems.push(`목록 페이지가 안 열린다 (http ${res.status()})`);
 
 /* 관문에서 받다 만 것 — 화면이 멀쩡해도 기능이 빠진 것이다. */
@@ -74,9 +74,9 @@ await page.waitForTimeout(2500);   // 재움-의도: 늦게 받는 것들(load �
 for (const m of [...new Set(notFetched)].slice(0, 5)) problems.push(`관문에서 못 받은 것 — ${m}`);
 
 const state = await page.evaluate(() => {
-  const links = [...document.querySelectorAll('a[href^="/karmolab/t/"]')];
+  const links = [...document.querySelectorAll('a[href^="/t/"]')];
   const ids = links
-    .map((a) => a.getAttribute('href').replace(/^\/karmolab\/t\//, '').replace(/\/$/, ''))
+    .map((a) => a.getAttribute('href').replace(/^\/t\//, '').replace(/\/$/, ''))
     .filter(Boolean);
   const first = document.querySelector('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card');
   return {
@@ -184,7 +184,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
       problems.push(`걸러 놓고 엔터를 눌러도 그 도구로 안 간다 (${new URL(page.url()).pathname})`);
     }
     // 다시 목록으로 돌아와 이어서 본다 (페이지가 바뀌었으므로 손잡이를 새로 잡는다)
-    await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 25000 });
+    await page.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 25000 });
     await page.waitForTimeout(500);
     find = await page.$('#hubFind');
 
@@ -205,7 +205,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     /* 주소에 남는 것을 보는 자리다 — 주소가 바뀔 때까지 기다린다. */
     await page.waitForFunction(() => /[?&]q=/.test(location.href), null, { timeout: 5000 }).catch(() => {});
     if (!/[?&]q=/.test(page.url())) problems.push('걸러 찾은 결과가 주소에 안 남는다');
-    const shared = await page.goto(`${BASE}/karmolab/t/?q=PDF`, { waitUntil: 'networkidle', timeout: 25000 });
+    const shared = await page.goto(`${BASE}/t/?q=PDF`, { waitUntil: 'networkidle', timeout: 25000 });
     await page.waitForTimeout(600);
     const fromLink = await page.evaluate(() => ({
       value: document.getElementById('hubFind')?.value || '',
@@ -218,7 +218,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     /* 한글 검색어도 마찬가지여야 한다 — 이 사이트를 쓰는 사람 대부분이 한글로 친다.
      * 주소에 실릴 때 글자가 한 번 감싸지므로, 푸는 쪽이 어긋나면 **한글 링크만** 조용히 깨진다. */
     const ko = '이미지';
-    const korean = await page.goto(`${BASE}/karmolab/t/?q=${encodeURIComponent(ko)}`, {
+    const korean = await page.goto(`${BASE}/t/?q=${encodeURIComponent(ko)}`, {
       waitUntil: 'networkidle',
       timeout: 25000
     });
@@ -237,7 +237,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 if (state.firstHref) {
   // 앞 단계에서 걸러 놓은 상태로 오면 첫 카드가 숨어 있어 눌리지 않는다.
   // 「거르지 않은 목록」으로 돌아와서 누른다 — 카드 차례가 바뀌어도 흔들리지 않는다.
-  await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 25000 });
+  await page.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 25000 });
   await page.waitForTimeout(400);
   await page.click('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card');
   await page.waitForLoadState('networkidle');
@@ -255,7 +255,7 @@ if (state.firstHref) {
 {
   const s = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const sp = await s.newPage();
-  await sp.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
+  await sp.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
   await sp.waitForTimeout(400);
   /* 내려가는 자리가 **문서라고 단정하지 않는다** (TASK-KL-129).
    * 목록이 앱 셸 안으로 들어오면서 실제로 굴러가는 것은 본문 칸(.main-content)이다.
@@ -286,7 +286,7 @@ if (state.firstHref) {
  * 이미 같은 검사가 걸려 있는데 정작 관문에는 없었다 — 실제로 분류 옆 숫자가 11px 이었다. */
 {
   const phone = await (await browser.newContext({ viewport: { width: 375, height: 720 } })).newPage();
-  await phone.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
+  await phone.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
   await phone.waitForTimeout(700);
   const m = await phone.evaluate(() => {
     const near = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; };
@@ -335,7 +335,7 @@ if (state.firstHref) {
  * 오타나 옛 링크로 들어온 주소가 200 을 돌려주면 검색엔진이 그 빈 페이지를 정상 문서로 색인한다.
  * (없는 문서를 200 으로 답하는 것을 「가짜 200」이라 부른다.) 404 로 답해야 한다. */
 {
-  const ghost = await page.goto(`${BASE}/karmolab/t/이런도구는없다/`, {
+  const ghost = await page.goto(`${BASE}/t/이런도구는없다/`, {
     waitUntil: 'domcontentloaded',
     timeout: 20000
   });
@@ -348,17 +348,17 @@ if (state.firstHref) {
 const home = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 const homeErrs = [];
 home.on('pageerror', (e) => homeErrs.push(String(e.message).slice(0, 70)));
-const homeRes = await home.goto(`${BASE}/karmolab/`, { waitUntil: 'networkidle', timeout: 30000 });
+const homeRes = await home.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 30000 });
 await home.waitForTimeout(1200);
 
-// 첫 화면(`/karmolab/index.html`)은 배포가 복사해 만든다. 로컬 사본에는 없을 수 있는데,
+// 첫 화면(`/index.html`)은 배포가 복사해 만든다. 로컬 사본에는 없을 수 있는데,
 // 그건 이 환경에 없는 것이지 사이트가 깨진 게 아니다 — 없으면 건너뛴다(라이브에는 늘 있다).
 /* 이 주소가 여는 것은 **배포가 복사해 둔 사본**이다 — 소스(`apps/karmolab/index.html`)가 아니다.
    사본이 낡으면 그 안의 옛 지문 파일과 방금 새로 빌드된 파일이 섞여, 제품은 멀쩡한데
    「tools is not defined」 같은 오류가 난다(2026-08-08 실제로 그렇게 빨갰다).
    그건 **제품 고장이 아니라 이 환경의 사본이 낡은 것**이므로, 그때는 첫 화면 판정을 건너뛴다. */
 const srcShell = path.join(root, 'index.html');
-const copyShell = path.join(path.dirname(root), 'blog/karmolab/index.html');
+const copyShell = path.join(path.dirname(root), 'blog/index.html');
 const homeStale = fs.existsSync(srcShell) && fs.existsSync(copyShell)
   && fs.statSync(copyShell).mtimeMs < fs.statSync(srcShell).mtimeMs;
 if (homeStale) console.log('  (첫 화면 판정 건너뜀 — 배포 사본이 소스보다 낡았다. 배포가 다시 찍는다)');
@@ -368,7 +368,7 @@ if (!homeMissing && homeRes.status() !== 200) problems.push(`첫 화면이 안 �
 
 const homeState = homeMissing ? null : await home.evaluate(() => {
   const landing = document.querySelector('.landing-page, #page-home');
-  const toHub = [...document.querySelectorAll('a[href*="/karmolab/t/"]')].filter(
+  const toHub = [...document.querySelectorAll('a[href*="/t/"]')].filter(
     (a) => a.getBoundingClientRect().height > 0
   );
   /* 배경 판때기는 **뒤에 깔린다**(z-index 음수). 그런데 뒤에 깐 것은 그리는 순서상

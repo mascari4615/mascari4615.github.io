@@ -40,7 +40,7 @@ if (!fs.existsSync(path.join(root, 'js/widgets/meong/meong.js'))) {
 
 const server = http.createServer((req, res) => {
   let u = decodeURIComponent(req.url.split('?')[0]);
-  if (u === '/karmolab/' || u === '/karmolab') u = '/apps/karmolab/index.html';
+  if (u === '/' || u === '/') u = '/apps/karmolab/index.html';
   if (u.endsWith('/')) u += 'index.html';
   const f = path.join(repoRoot, u.replace(/^\//, ''));
   if (!f.startsWith(repoRoot) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) {

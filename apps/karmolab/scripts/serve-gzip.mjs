@@ -14,7 +14,7 @@
  *
  * 사용: node scripts/serve-gzip.mjs [뿌리경로] [포트]
  *       기본 = 저장소 뿌리, 8801. 주소는 평소 서버와 같은 모양이다
- *       (예: http://127.0.0.1:8801/apps/blog/karmolab/t/loan/).
+ *       (예: http://127.0.0.1:8801/apps/blog/t/loan/).
  */
 import http from 'node:http';
 import fs from 'node:fs';

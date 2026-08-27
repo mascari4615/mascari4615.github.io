@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const FILE = path.join(root, '../blog/karmolab/index.html');
+const FILE = path.join(root, '../blog/index.html');
 const BASE = process.env.BASE || 'http://127.0.0.1:8801/apps/blog';
 const EMPTY = '<div class="content-body" id="tool-pages"></div>';
 const MARK = '<!-- KARMOLAB_HOME_PRERENDERED -->';
@@ -40,7 +40,7 @@ const LIVE_BLOCKS = ['#homePulse', '.landing-pulse'];
 
 /* ★ **없으면 우리가 깐다** (2026-08-21, 실측).
  * 여긴 「없으면 건너뜀」이었다. 그런데 이 파일을 만드는 곳은 <b>배포 워크플로 한 줄뿐</b>이다
- * (`pages-deploy.yml` — `cp apps/karmolab/index.html apps/blog/karmolab/index.html`).
+ * (`pages-deploy.yml` — `cp apps/karmolab/index.html apps/blog/index.html`).
  * 그래서 로컬에서도, `verify` 에서도 <b>영영 안 만들어지고</b> 이 단계가 늘 건너뛰었다.
  * 그 여파로 뒤의 `audit:prerender-home` 이 매 판 「못 돌림」으로 물러났다 —
  * <b>첫 화면이 미리 그려진 뒤에도 성한지를 보라고 만든 검사가 배포 때 말고는 한 번도 안 돈 것</b>.
@@ -79,7 +79,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 
 let markup = '';
 try {
-  await page.goto(`${BASE}/karmolab/`, { waitUntil: 'load', timeout: 45000 });
+  await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 45000 });
   await page.waitForFunction(
     () => {
       const el = document.getElementById('page-home');

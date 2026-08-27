@@ -15,7 +15,7 @@
  *    제목·설명·한 줄·도구 자체·구조 설명이 다 있는 완성된 한 장이다. FAQ 구조 설명(JSON-LD)도
  *    같이 뺀다 — 없는 절을 있다고 알리면 검색엔진에 거짓을 말하는 것이다.
  *
- * 사용: node scripts/gen-tool-pages-locale.mjs [--src ../blog/karmolab/t] [--out ../blog] [--check]
+ * 사용: node scripts/gen-tool-pages-locale.mjs [--src ../blog/t] [--out ../blog] [--check]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,7 +39,7 @@ const arg = (name, fallback) => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? process.argv[i + 1] : fallback;
 };
-const srcDir = path.resolve(root, arg('--src', '../blog/karmolab/t'));
+const srcDir = path.resolve(root, arg('--src', '../blog/t'));
 const outRoot = path.resolve(root, arg('--out', '../blog'));
 
 /**
@@ -113,8 +113,8 @@ const targets = codes.filter((c) => c !== DEFAULT_LOCALE);
  * **그 언어 판이 실제로 있는 주소만** 앞머리를 붙인다 (TASK-KL-203 S4-b 후속).
  *
  * 처음에는 `/karmolab` 으로 시작하는 링크를 전부 `/en/karmolab…` 으로 바꿨다. 그 순간 도구 장
- * 258개가 **없는 주소를 가리키기 시작했다** — 목록(`/en/karmolab/t/`)·봇 소개(`/en/karmolab/bot/`)·
- * 변경 기록(`/en/karmolab/changes.xml`) 은 아직 그 언어로 안 찍는다. 링크는 눌러 보기 전에는
+ * 258개가 **없는 주소를 가리키기 시작했다** — 목록(`/en/t/`)·봇 소개(`/en/bot/`)·
+ * 변경 기록(`/en/changes.xml`) 은 아직 그 언어로 안 찍는다. 링크는 눌러 보기 전에는
  * 멀쩡해 보이고, 눌러야 404 다.
  *
  * 규칙: **없는 곳으로는 안 보낸다.** 그 언어 판이 없는 주소는 원래(한국어) 주소 그대로 둔다 —
@@ -123,20 +123,20 @@ const targets = codes.filter((c) => c !== DEFAULT_LOCALE);
  */
 function makeLocalizer(ids) {
   /* 목록(허브)도 이 실행에서 같이 찍으므로 처음부터 목록에 넣는다. */
-  const localized = new Set(['/karmolab/', '/karmolab/t/', ...ids.map((id) => `/karmolab/t/${id}/`)]);
+  const localized = new Set(['/', '/t/', ...ids.map((id) => `/t/${id}/`)]);
   return {
     has: (bare) => localized.has(bare),
     /** 그 언어 판이 있으면 앞머리를 붙인 주소, 없으면 원래 주소. */
     href: (bare, code) => (localized.has(bare) ? localizedPath(bare, code) : bare),
     apply(html, code) {
-      /* **언어 링크는 건드리지 않는다** (TASK-KL-244). 이 함수는 `/karmolab/...` 주소에
+      /* **언어 링크는 건드리지 않는다** (TASK-KL-244). 이 함수는 `/...` 주소에
          이 장의 언어 앞머리를 붙이는데, 「한국어로 보기」 링크에까지 붙이면 그 링크가
          자기 자신을 가리키게 된다 — 영어 장의 한국어 단추가 영어 장으로 가는 상태가 됐었다.
          `hreflang` 이 붙은 `<a>` = 어느 말로 갈지 이미 정해진 링크라는 뜻이므로 통과시킨다. */
-      return html.replace(/<a\s[^>]*>|href="(\/karmolab[^"]*)"/g, (whole, bare) => {
+      return html.replace(/<a\s[^>]*>|href="([^"]*)"/g, (whole, bare) => {
         if (whole.startsWith('<a')) {
           if (/hreflang=/.test(whole)) return whole;
-          return whole.replace(/href="(\/karmolab[^"]*)"/, (w, b) =>
+          return whole.replace(/href="([^"]*)"/, (w, b) =>
             localized.has(b) ? `href="${localizedPath(b, code)}"` : w
           );
         }
@@ -173,14 +173,14 @@ function toolSeoSection(id, code, sourceHtml) {
   const relatedIds = [];
   if (seoStart >= 0) {
     const chunk = sourceHtml.slice(seoStart, sourceHtml.indexOf('</div>', seoStart));
-    for (const m of chunk.matchAll(/\/karmolab\/t\/([^/"]+)\//g)) relatedIds.push(m[1]);
+    for (const m of chunk.matchAll(/\/t\/([^/"]+)\//g)) relatedIds.push(m[1]);
   }
-  const hub = L.href('/karmolab/t/', code);
-  const home = L.href('/karmolab/', code);
+  const hub = L.href('/t/', code);
+  const home = L.href('/', code);
   const related = relatedIds
     .map(
       (r) =>
-        `<a href="${L.href(`/karmolab/t/${r}/`, code)}">${esc(tr(code, `widgets.${r}.title`))}<span>${esc(
+        `<a href="${L.href(`/t/${r}/`, code)}">${esc(tr(code, `widgets.${r}.title`))}<span>${esc(
           tr(code, `tools.${r}.lead`)
         )}</span></a>`
     )
@@ -252,7 +252,7 @@ ${privacyNote(id, code)}
 }
 
 function localizeToolPage(source, id, code) {
-  const bare = `/karmolab/t/${id}/`;
+  const bare = `/t/${id}/`;
   let html = toLocalePage(source, {
     code,
     bare,
@@ -317,8 +317,8 @@ function localizeToolPage(source, id, code) {
   html = html.replace(
     /<nav class="tool-crumb"[\s\S]*?<\/nav>/,
     `<nav class="tool-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">` +
-      `<a href="${L.href('/karmolab/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
-      `<a href="${L.href('/karmolab/t/', code)}">${esc(tr(code, 'toolpage.crumb.tools'))}</a>` +
+      `<a href="${L.href('/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
+      `<a href="${L.href('/t/', code)}">${esc(tr(code, 'toolpage.crumb.tools'))}</a>` +
       `<i aria-hidden="true">›</i><span aria-current="page">${esc(title)}</span></nav>`
   );
 
@@ -383,7 +383,7 @@ for (const code of targets) {
     count: ids.length,
     href: (b, c) => L.href(b, c)
   });
-  const dest = path.join(outRoot, localizedPath('/karmolab/t/', code).replace(/^\//, ''), 'index.html');
+  const dest = path.join(outRoot, localizedPath('/t/', code).replace(/^\//, ''), 'index.html');
   if (CHECK) {
     if (!fs.existsSync(dest)) missing.push(`${code} 목록`);
   } else {
@@ -403,7 +403,7 @@ for (const code of targets) {
       console.error(`[tool-pages-locale] ${code}/${id}: ${e.message}`);
       process.exit(1);
     }
-    const dest = path.join(outRoot, localizedPath(`/karmolab/t/${id}/`, code).replace(/^\//, ''), 'index.html');
+    const dest = path.join(outRoot, localizedPath(`/t/${id}/`, code).replace(/^\//, ''), 'index.html');
     if (CHECK) {
       if (!fs.existsSync(dest)) missing.push(`${code}/${id}`);
     } else {
@@ -433,7 +433,7 @@ if (targets.length) {
        한 곳에만 있다. 예전엔 이 자리에 같은 코드가 베껴져 있었고, 그래서 저쪽에 언어 링크를
        더해도 한국어 원본 138장에는 안 붙었다(그게 지금 고치는 그것이다). */
     const next = addAlternatesToSource(html, {
-      bare: id ? `/karmolab/t/${id}/` : '/karmolab/t/',
+      bare: id ? `/t/${id}/` : '/t/',
       site: SITE,
       codes
     });
@@ -451,7 +451,7 @@ if (targets.length) {
 /* ★ **접은 도구도 언어 판에 문을 남긴다** (2026-08-14).
  *
  * 한국어에는 넘김판(한 장짜리 안내)이 찍히는데 언어 판에는 아무것도 안 찍혀 있었다 —
- * 실측: `/en/karmolab/t/charcount/` · `/ja/…` 가 **404**(한국어는 200 넘김판). 그 주소들은
+ * 실측: `/en/t/charcount/` · `/ja/…` 가 **404**(한국어는 200 넘김판). 그 주소들은
  * 예전에 온전한 도구 장이었으니 검색·북마크가 그리로 온다. 404 는 「없어졌다」만 말하고
  * 어디로 가야 할지는 안 말한다.
  *
@@ -461,8 +461,8 @@ if (!CHECK) {
   for (const code of targets) {
     for (const id of RETIRED_OPERATION_IDS) {
       if (!fs.existsSync(path.join(srcDir, id, 'index.html'))) continue; /* 한국어 넘김판이 있는 것만 */
-      const path2 = localizedPath(`/karmolab/t/${id}/`, code);
-      const workbench = localizedPath('/karmolab/t/text/', code);
+      const path2 = localizedPath(`/t/${id}/`, code);
+      const workbench = localizedPath('/t/text/', code);
       const dest = path.join(outRoot, path2.replace(/^\//, ''), 'index.html');
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(

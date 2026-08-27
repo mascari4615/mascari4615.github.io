@@ -35,8 +35,8 @@ const MIME = {
 
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
-  if (urlPath === '/karmolab/' || urlPath === '/karmolab') urlPath = '/apps/karmolab/index.html';
-  if (urlPath.startsWith('/karmolab/t/')) urlPath = '/apps/blog' + urlPath;
+  if (urlPath === '/' || urlPath === '/') urlPath = '/apps/karmolab/index.html';
+  if (urlPath.startsWith('/t/')) urlPath = '/apps/blog' + urlPath;
   if (urlPath.endsWith('/')) urlPath += 'index.html';
   const file = path.join(repoRoot, urlPath.replace(/^\//, ''));
   if (!file.startsWith(repoRoot) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
@@ -67,7 +67,7 @@ if (!fs.existsSync(toolPagesDir) || fs.readdirSync(toolPagesDir).length === 0) {
  * 없는 채로 그냥 돌리면 404 를 「제품 고장」으로 보고한다: 실제로 그렇게 나가서 build 가
  * 빨개졌고, 이 검사가 build 에 물려 있는 바람에 **다른 슬롯의 push 까지 막았다**(slot-E 보고).
  * 검사는 「통과/실패」 말고 **「못 돌린다」**를 말할 줄 알아야 한다. */
-const HUB = path.join(repoRoot, 'apps/blog/karmolab/t/index.html');
+const HUB = path.join(repoRoot, 'apps/blog/t/index.html');
 if (!fs.existsSync(HUB)) {
   console.log('[smoke-navigation] 건너뜀 — 찍힌 도구 화면이 없다 (`npm run gen:tool-pages` 뒤에 돌려라)');
   process.exit(2);
@@ -113,7 +113,7 @@ async function namesOnPage(url) {
     return seen;
   });
 }
-for (const [label, url] of [['첫 화면', `${BASE}/karmolab/`], ['도구 화면', `${BASE}/karmolab/t/loan/`]]) {
+for (const [label, url] of [['첫 화면', `${BASE}/`], ['도구 화면', `${BASE}/t/loan/`]]) {
   const seen = await namesOnPage(url);
   if (!Object.keys(seen).length) problems.push(`${label}: 이어 붙일 이름이 하나도 없다 — 옮길 때 화면이 통째로 깜빡인다`);
   for (const [n, c] of Object.entries(seen)) {
@@ -130,7 +130,7 @@ for (const [label, url] of [['첫 화면', `${BASE}/karmolab/`], ['도구 화면
  * 대신 브라우저가 **무엇을 하려 했는지**를 묻는다. 그러면 세 가지가 다 잡힌다:
  * 규칙이 글자로 성립하나(안 그러면 규칙집이 안 뜬다) · 우리가 겨눈 주소에 걸리나 ·
  * 막힌 이유가 「자동화 때문」 말고 다른 게 있나(그건 우리 잘못이다). */
-await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'load', timeout: 30000 });
+await page.goto(`${BASE}/t/`, { waitUntil: 'load', timeout: 30000 });
 const cdp = await ctx.newCDPSession(page);
 const rulesets = [];
 const attempts = [];
@@ -142,7 +142,7 @@ await cdp.send('Preload.enable');
 await page.reload({ waitUntil: 'load' });
 await page.waitForTimeout(1500);
 
-const link = page.locator('a[href^="/karmolab/t/"]:not([href$="/t/"])').first();
+const link = page.locator('a[href^="/t/"]:not([href$="/t/"])').first();
 if (!(await link.count())) {
   problems.push('목록에서 도구로 가는 링크를 못 찾았다 — 미리 돌 대상이 없다');
 } else {
@@ -153,7 +153,7 @@ if (!(await link.count())) {
   if (bad.length) problems.push(`미리받기 규칙이 성립하지 않는다 — ${bad[0].errorType} ${bad[0].errorMessage || ''}`);
   if (!rulesets.length) problems.push('미리받기 규칙집이 아예 안 잡혔다 — 화면에서 사라졌다');
 
-  const pre = attempts.filter((a) => a.key.action === 'Prerender' && /\/karmolab\/t\/[^/]+\//.test(a.key.url));
+  const pre = attempts.filter((a) => a.key.action === 'Prerender' && /\/t\/[^/]+\//.test(a.key.url));
   if (!pre.length) problems.push('도구 주소를 미리 **실행**하려는 시도가 하나도 없다 — 규칙이 prefetch 로 되돌아갔거나 주소가 안 걸린다');
 
   /* 자동화 탓 말고 다른 이유로 막혔다면 그건 우리가 고칠 것이다. */
@@ -191,9 +191,9 @@ if (!(await link.count())) {
     for (const x of e.notRestoredExplanations || []) reasons.push(x.reason);
   });
   await bfCdp.send('Page.enable');
-  await bf.goto(`${BASE}/karmolab/t/`, { waitUntil: 'load', timeout: 30000 });
+  await bf.goto(`${BASE}/t/`, { waitUntil: 'load', timeout: 30000 });
   await bf.waitForTimeout(1200);
-  await bf.goto(`${BASE}/karmolab/t/loan/`, { waitUntil: 'load', timeout: 30000 });
+  await bf.goto(`${BASE}/t/loan/`, { waitUntil: 'load', timeout: 30000 });
   await bf.waitForTimeout(1000);
   await bf.goBack({ waitUntil: 'commit' });
   await bf.waitForTimeout(1500);

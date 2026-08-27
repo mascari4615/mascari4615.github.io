@@ -646,7 +646,7 @@ import { profilePath, toolPage } from '../lib/site-base';
     /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('plaza'),
-        // 글판은 여기 두지 않는다 — 커뮤니티(`/karmolab/c/`)가 제 페이지로 갖는다.
+        // 글판은 여기 두지 않는다 — 커뮤니티(`/c/`)가 제 페이지로 갖는다.
         // 같은 것을 두 곳에 두면 한쪽은 반드시 낡고, 어느 쪽이 진짜인지 아무도 모르게 된다.
         tabs: [
             {

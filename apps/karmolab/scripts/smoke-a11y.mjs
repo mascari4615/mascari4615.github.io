@@ -45,7 +45,7 @@ const SCREENS = [
      사람 대부분이 처음 밟는 자리는 도구 상세 장(129장)인데 그 장은 껍데기에 SEO 글 뭉치가
      더 붙어 나간다 — 그래서 껍데기에 없는 위반이 거기에만 있었다(실측: 129장 전부에
      landmark-unique 하나씩, 같은 이름의 nav 가 둘이라). 한 장을 표본으로 넣는다. */
-  ['도구 상세 한 장', '/apps/blog/karmolab/t/loan/'],
+  ['도구 상세 한 장', '/apps/blog/t/loan/'],
 ];
 
 const MIME = {
@@ -63,7 +63,7 @@ const MIME = {
  *   기계에게 안 통한다 — 못 돌 이유를 스스로 없앤다. 찍는 데 4초면 된다.
  *   찍는 것도 실패하면 그때는 진짜 「못 잼」이다(기록 파일은 안 건드린다). */
 let tempPage = null;
-const SAMPLE_TOOL_PAGE = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
+const SAMPLE_TOOL_PAGE = path.join(repoRoot, 'apps/blog/t/loan/index.html');
 if (fs.existsSync(SAMPLE_TOOL_PAGE) === false) {
   tempPage = fs.mkdtempSync(path.join(os.tmpdir(), 'karmolab-a11y-'));
   try {
@@ -93,8 +93,8 @@ const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p.endsWith('/')) p += 'index.html';
   /* 갓 찍은 표본을 쓰는 판이면 그 자리로 보낸다 — 주소는 배포와 같게 둔다. */
-  const file = tempPage && p.startsWith('/apps/blog/karmolab/t/')
-    ? path.join(tempPage, 't', p.slice('/apps/blog/karmolab/t/'.length))
+  const file = tempPage && p.startsWith('/apps/blog/t/')
+    ? path.join(tempPage, 't', p.slice('/apps/blog/t/'.length))
     : path.join(repoRoot, p);
   if ((!file.startsWith(repoRoot) && !(tempPage && file.startsWith(tempPage))) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404); res.end('404'); return;

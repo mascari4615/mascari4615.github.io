@@ -22,7 +22,7 @@ export interface SoloPlay {
   id: string;
   title: string;
   emoji: string;
-  /** 갈 자리. 앱 안이면 `/karmolab/#<도구>`, 밖이면 `/daily/` 같은 진짜 주소. */
+  /** 갈 자리. 앱 안이면 `/#<도구>`, 밖이면 `/daily/` 같은 진짜 주소. */
   url: string;
   lead: string;
 }
@@ -57,7 +57,7 @@ export function soloPlays(): Promise<SoloPlay[]> {
   return inflight;
 }
 
-/** 앱 안에서 화면만 바꾸면 되는 자리인가 (`/karmolab/#<도구>`). 밖이면 그냥 링크로 둔다. */
+/** 앱 안에서 화면만 바꾸면 되는 자리인가 (`/#<도구>`). 밖이면 그냥 링크로 둔다. */
 export function inAppTool(url: string): string | null {
   const prefix = appHash('');
   return url.indexOf(prefix) === 0 ? url.slice(prefix.length) : null;

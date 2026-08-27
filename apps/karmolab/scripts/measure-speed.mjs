@@ -26,7 +26,7 @@ const TARGETS = [
   ['t/gitcmd/', 'git 명령어']
 ];
 
-const probe = await fetch(`${BASE}/karmolab/t/`).catch(() => null);
+const probe = await fetch(`${BASE}/t/`).catch(() => null);
 if (!probe?.ok) {
   console.error(`[measure-speed] 목록을 못 받는다 — ${BASE}`);
   console.error('  → 다른 창에서 `npm run serve:gzip` 을 먼저 띄워라 (압축을 해야 실제와 같은 값이 나온다).');
@@ -59,7 +59,7 @@ for (const [path, label] of TARGETS) {
       new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
     });
     try {
-      await page.goto(`${BASE}/karmolab/${path}`, { waitUntil: 'load', timeout: 90000 });
+      await page.goto(`${BASE}/${path}`, { waitUntil: 'load', timeout: 90000 });
       await page.waitForTimeout(2500);
       const r = await page.evaluate(() => ({
         fcp: Math.round((performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || -1),

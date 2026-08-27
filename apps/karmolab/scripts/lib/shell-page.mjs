@@ -78,7 +78,7 @@ export function scriptFile(p) {
 export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   // 사이트맵에 실릴 변경일도 여기서 박는다 (jekyll-sitemap 이 front matter 의 이 값을 읽는다).
   html = html.replace(
-    /^---\nlayout: none\npermalink: \/karmolab\/\n---/,
+    /^---\nlayout: none\npermalink: \/\n---/,
     `---\nlayout: none\npermalink: ${permalink}\nlast_modified_at: ${lastModified}\n---`
   );
   if (!html.startsWith(`---\nlayout: none\npermalink: ${permalink}`)) {
@@ -86,7 +86,7 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   }
 
   /* 셸에 박힌 **언어 판 표시는 셸의 것**이다 (TASK-KL-203).
-     그대로 복사되면 도구 129장이 전부 「내 영어 판은 /en/karmolab/ 이다」라고 우긴다 —
+     그대로 복사되면 도구 129장이 전부 「내 영어 판은 /en/ 이다」라고 우긴다 —
      그 주소는 첫 화면이지 이 도구가 아니다. 잘못된 짝 표시는 없느니만 못하다(양쪽이 무효가 된다).
      각 장이 제 언어 판을 가지게 되면 `lib/locale-page.mjs` 가 제 것을 다시 박는다. */
   html = html.replace(/\n\s*<!-- 언어 판 왕복 표시[\s\S]*?-->/, '');

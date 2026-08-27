@@ -21,7 +21,7 @@ import { chromium } from 'playwright';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const problems = [];
 
-/* 실제 주소 규약(`/karmolab/...`)을 그대로 내주는 작은 서버를 띄운다.
+/* 실제 주소 규약(`/...`)을 그대로 내주는 작은 서버를 띄운다.
  *
  * 브라우저 요청을 가로채 주소를 바꿔치는 방법으로는 이 검사를 못 한다 — 회선을 끊는 순간
  * 그 가로채기 자체가 멈춰서, 서비스 워커가 일하기도 전에 30초를 기다리다 죽는다(실측).
@@ -33,9 +33,10 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   let rel = url.pathname;
-  if (rel.startsWith('/karmolab/t/')) rel = '/apps/karmolab/index.html';       // 도구 상세 = 셸 한 장
-  else if (rel === '/karmolab/' || rel === '/karmolab') rel = '/apps/karmolab/index.html';
-  else if (rel.startsWith('/karmolab/')) rel = rel.replace('/karmolab/', '/apps/karmolab/');
+  /* 뿌리 이관 뒤(change.karmolab-at-root ②) 앱은 **뿌리 전체**다 — 자산 트리만 그대로 두고
+     나머지 주소는 전부 앱 셸 한 장으로 돌린다 (도구 상세도 알맹이는 셸이다). */
+  if (rel === '/sw.js') rel = '/apps/karmolab/sw.js';                 // 일꾼은 뿌리에서 선다
+  else if (!rel.startsWith('/apps/')) rel = '/apps/karmolab/index.html';
   const file = path.join(ROOT, '..', '..', rel.replace(/^\//, ''));
   fs.readFile(file, (err, body) => {
     if (err) { res.writeHead(404); res.end('not found'); return; }
@@ -50,13 +51,13 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 420, height: 860 } });
 const page = await context.newPage();
 
-await page.goto(`${origin}/karmolab/`, { waitUntil: 'networkidle', timeout: 30000 });
+await page.goto(`${origin}/`, { waitUntil: 'networkidle', timeout: 30000 });
 // 워커가 껍데기를 담을 때까지 기다린다 — 담기 전에 끊으면 이 검사는 워커가 아니라 운을 잰다.
 await page
   .waitForFunction(async () => {
     if (!navigator.serviceWorker?.controller) return false;
     const cache = await caches.open((await caches.keys()).find((k) => k.startsWith('karmolab-')) ?? 'x');
-    return Boolean(await cache.match('/karmolab/'));
+    return Boolean(await cache.match('/'));
   }, undefined, { timeout: 30000 })
   .catch(() => problems.push('서비스 워커가 껍데기를 안 담았다 — 이 검사는 여기서부터 의미가 없다'));
 
@@ -64,7 +65,7 @@ if (!problems.length) {
   await context.setOffline(true);
 
   // ① 첫 화면
-  const home = await page.goto(`${origin}/karmolab/`, { waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => null);
+  const home = await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => null);
   if (!home) problems.push('끊긴 상태에서 첫 화면이 안 열린다');
   else if (!(await page.locator('#tool-pages').count())) problems.push('첫 화면은 왔는데 앱이 안 그려졌다');
 
@@ -76,7 +77,7 @@ if (!problems.length) {
 
   // ② 도구 주소로 바로 — 껍데기를 받아 그 도구를 연다
   const deep = await page
-    .goto(`${origin}/karmolab/t/charcount/`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+    .goto(`${origin}/t/charcount/`, { waitUntil: 'domcontentloaded', timeout: 20000 })
     .catch(() => null);
   if (!deep) {
     problems.push('끊긴 상태에서 도구 주소로 못 들어간다 (브라우저 「인터넷 없음」)');

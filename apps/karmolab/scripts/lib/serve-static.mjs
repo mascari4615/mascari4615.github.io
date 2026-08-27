@@ -120,21 +120,23 @@ export async function serveRepo(options = {}) {
   const drifted = new Set();
   const server = http.createServer((req, res) => {
     let target = decodeURIComponent(req.url.split('?')[0]);
-    /* ★ **`/karmolab/…` 는 블로그 밑에 있다** (2026-08-14). 배포된 사이트에서는 도구 장이
-       `/karmolab/t/<도구>/` 로 서지만, 저장소에서는 `apps/blog/karmolab/…` 다. 이 매핑이 없으면
+    /* ★ **`/…` 는 블로그 밑에 있다** (2026-08-14). 배포된 사이트에서는 도구 장이
+       `/t/<도구>/` 로 서지만, 저장소에서는 `apps/blog/…` 다. 이 매핑이 없으면
        앱이 만들어 준 링크(편지 `?m=`)를 그대로 열 때 **없는 주소**가 되고, 그 창에는 셸이
        영영 안 뜬다 — 실측: 편지 판 검사가 CI 에서 30초·60초 모두 초과하며 섰다(사람 자리에서는
        dev 서버가 그 매핑을 해 줘서 멀쩡했다). 없는 것을 기다리게 두면 「느리다」로 오해한다. */
-    if (/^\/karmolab(\/|$)/.test(target)) target = `/apps/blog${target}`;
+    /* 뿌리 이관 뒤(change.karmolab-at-root ②) 앱은 **뿌리 전체**다 — 자산 트리(`/apps/…`)만
+       빼고 저장소의 `apps/blog/…` 로 돌린다. 예전에는 `/karmolab` 접두만 돌렸다. */
+    if (!/^\/apps\//.test(target)) target = `/apps/blog${target}`;
     if (target.endsWith('/')) target += 'index.html';
     let file = path.join(root, target.replace(/^\//, ''));
     /* ★ **도구 장은 저장소에 없다 — 없으면 셸을 내준다** (2026-08-14, 재현으로 확인).
-       `/karmolab/t/<도구>/index.html` 은 `gen:tool-pages` 가 굽고 배포가 찍는 것이라
+       `/t/<도구>/index.html` 은 `gen:tool-pages` 가 굽고 배포가 찍는 것이라
        `git ls-files` 로는 0개다. 앱이 만드는 편지 링크가 바로 그 주소라, CI 의 깨끗한
        체크아웃에서는 404 → 셸이 영영 안 뜬다(`Toolbox=undefined`, 60초 초과).
        그 장의 알맹이는 앱 셸과 같다(미리 그린 겉모습만 다르다) — 여기서 재려는 것은
        겉모습이 아니라 `?m=` 이 열리는 동작이다. */
-    if (!fs.existsSync(file) && /^\/apps\/blog\/karmolab\//.test(target)) {
+    if (!fs.existsSync(file) && /^\/apps\/blog\//.test(target)) {
       const shell = path.join(root, 'apps/karmolab/index.html');
       if (fs.existsSync(shell)) file = shell;
     }

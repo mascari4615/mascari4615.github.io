@@ -16,7 +16,7 @@
  */
 import { chromium } from 'playwright';
 
-const BASE = 'https://blog.mascari4615.com/karmolab/';
+const BASE = 'https://blog.mascari4615.com/';
 const urls = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const URLS = urls.length ? urls : [BASE, `${BASE}t/`, `${BASE}t/loan/`];
 const phone = { width: 390, height: 844 };

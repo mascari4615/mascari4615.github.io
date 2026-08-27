@@ -18,7 +18,7 @@
  *       BASE=http://127.0.0.1:8797/apps/blog node scripts/smoke-pwa.mjs
  */
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const APP = '/karmolab/';
+const APP = '/';
 
 // 설치 정보와 아이콘은 사이트 뿌리 기준 주소(`/apps/karmolab/...`)로 걸려 있다.
 // 로컬 사본을 볼 때 BASE 에 하위 경로가 붙어 있어도 뿌리에서 찾아야 한다.

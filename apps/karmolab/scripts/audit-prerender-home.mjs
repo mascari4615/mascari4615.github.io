@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const FILE = path.join(root, '../blog/karmolab/index.html');
+const FILE = path.join(root, '../blog/index.html');
 const MARK = '<!-- KARMOLAB_HOME_PRERENDERED -->';
 
 /** 나중에 채워지는 칸 — 미리 박을 때 **예약 표**를 달고 있어야 한다. */

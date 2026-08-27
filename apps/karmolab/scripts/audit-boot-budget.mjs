@@ -45,8 +45,8 @@ const blogRoot = path.dirname(root);
  * 첫 화면 JS 가 큰 것은 **맞다** — 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
   '앱 첫 화면': { file: path.join(root, 'index.html'), js: 41, css: 52 },
-  '도구 화면': { file: path.join(blogRoot, 'blog/karmolab/t/loan/index.html'), js: 23, css: 68 },
-  '도구 목록': { file: path.join(blogRoot, 'blog/karmolab/t/index.html'), js: 23, css: 68 }
+  '도구 화면': { file: path.join(blogRoot, 'blog/t/loan/index.html'), js: 23, css: 68 },
+  '도구 목록': { file: path.join(blogRoot, 'blog/t/index.html'), js: 23, css: 68 }
 };
 
 const gz = (p) => {

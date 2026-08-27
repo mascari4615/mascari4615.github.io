@@ -1,7 +1,7 @@
 /**
  * build-worldbook: memo/wm/design/** → apps/karmolab/data/worldbook.json (단방향)
  *
- * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/karmolab/wm-hub.md). 그런데 WM 은
+ * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/wm-hub.md). 그런데 WM 은
  * 한창 개발 중이라 문서 모양이 자주 바뀐다. 그래서 이 수집기는 **WM 의 현재 스키마를 모른다** —
  * frontmatter 에 있는 키를 그대로 싣고, 없는 것은 조용히 뺀다. 필드가 늘어도 웹 코드는 안 고친다.
  *

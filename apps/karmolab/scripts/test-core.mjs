@@ -1229,7 +1229,7 @@ eq(url.readInvocation(b64.spec, '?op=encode&text=a&out=raw').raw, true, 'out=raw
 
 // 만든 링크를 되읽으면 같은 값이 나오는가 (한 바퀴).
 const link = url.buildToolUrl(b64.spec, 'encode', { text: '안녕 & 반가워', urlSafe: true });
-check(link.startsWith('/karmolab/t/base64/?'), `링크 앞부분이 다르다: ${link}`);
+check(link.startsWith('/t/base64/?'), `링크 앞부분이 다르다: ${link}`);
 const back = url.readInvocation(b64.spec, link.slice(link.indexOf('?')));
 eq(back.args.text, '안녕 & 반가워', '링크 왕복 — 텍스트');
 eq(back.args.urlSafe, true, '링크 왕복 — 켬');
@@ -1373,7 +1373,7 @@ const shared = dl.shareText({
   rows: [M('MNMH'), M('HHHH')],
   tries: 2,
   maxTries: 6,
-  url: 'https://blog.mascari4615.com/karmolab/t/chain/'
+  url: 'https://blog.mascari4615.com/t/chain/'
 });
 check(shared.startsWith('한글타자 #2 2/6'), `머리줄: ${shared.split('\n')[0]}`);
 check(shared.includes('⬛🟨⬛🟩'), '격자 첫 줄');

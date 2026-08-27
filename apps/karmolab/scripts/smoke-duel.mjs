@@ -22,7 +22,7 @@ import { chromium } from 'playwright';
 import { waitHydrated } from './lib/hydrated.mjs';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
-const TOOL = `${BASE}/karmolab/t/duel/`;
+const TOOL = `${BASE}/t/duel/`;
 const CONNECT_MS = 60000; // 공개망을 거쳐 붙는 데 걸리는 시간은 들쭉날쭉하다
 const MATCH_MS = 90000;
 

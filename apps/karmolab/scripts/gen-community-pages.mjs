@@ -4,8 +4,8 @@
  * 왜 있나: 커뮤니티 글은 화면이 스크립트로 그린다. 검색엔진은 그 화면을 못 읽으므로 **글이
  * 하나도 색인되지 않는다** — 도구는 검색으로 사람이 오는데 커뮤니티는 올 길이 없었다.
  *
- * 어떻게: 배포할 때 서버에서 글을 받아 `/karmolab/c/<글id>/` 에 **읽을 수 있는 HTML**로 찍는다.
- * 도구 상세(`/karmolab/t/<도구id>/`)와 같은 규약이라 새 개념이 아니다.
+ * 어떻게: 배포할 때 서버에서 글을 받아 `/c/<글id>/` 에 **읽을 수 있는 HTML**로 찍는다.
+ * 도구 상세(`/t/<도구id>/`)와 같은 규약이라 새 개념이 아니다.
  * 사람이 그 주소로 들어오면 커뮤니티 화면으로 이어 주고, 크롤러는 본문을 그대로 읽는다.
  *
  * 성질 둘:
@@ -13,7 +13,7 @@
  *    대신 조용히 넘어가지 않고 몇 장을 못 찍었는지 남긴다.
  *  - 여기서 찍은 것은 **그 순간의 사본**이다. 새 답글은 다음 배포 때 반영된다 (화면은 늘 최신).
  *
- * 사용: node scripts/gen-community-pages.mjs [--out ../blog/karmolab/c]
+ * 사용: node scripts/gen-community-pages.mjs [--out ../blog/c]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -63,8 +63,8 @@ async function getJson(url) {
 /** 크롤러가 읽을 한 장. 화면 흉내를 내지 않는다 — 글이 읽히는 것이 전부다. */
 function page(post, galleryLabel) {
   const title = post.title || post.text.slice(0, 40);
-  const appUrl = `/karmolab/?p=${encodeURIComponent(post.id)}#community`;
-  const canonical = `${SITE}/karmolab/c/${post.id}/`;
+  const appUrl = `/?p=${encodeURIComponent(post.id)}#community`;
+  const canonical = `${SITE}/c/${post.id}/`;
   const desc = post.text.replace(/\s+/g, ' ').trim().slice(0, 150);
 
   const replies = (post.replies ?? [])
@@ -78,7 +78,7 @@ function page(post, galleryLabel) {
 
   return `---
 layout: none
-permalink: /karmolab/c/${post.id}/
+permalink: /c/${post.id}/
 ---
 <!doctype html>
 <html lang="ko">
@@ -104,7 +104,7 @@ ${jsonLd({
   articleBody: post.text,
   datePublished: post.createdAt,
   dateModified: post.bumpedAt,
-  author: { '@type': 'Person', name: post.authorHandle, url: `${SITE}/karmolab/u/?h=${encodeURIComponent(post.authorHandle)}` },
+  author: { '@type': 'Person', name: post.authorHandle, url: `${SITE}/u/?h=${encodeURIComponent(post.authorHandle)}` },
   url: canonical,
   commentCount: post.replyCount ?? 0,
   interactionStatistic: {
@@ -132,7 +132,7 @@ ${jsonLd({
 </head>
 <body>
   <main>
-    <p class="meta"><a href="/karmolab/">KarmoLab</a> · ${escapeHtml(galleryLabel)}</p>
+    <p class="meta"><a href="/">KarmoLab</a> · ${escapeHtml(galleryLabel)}</p>
     <h1>${escapeHtml(title)}</h1>
     <p class="meta">@${escapeHtml(post.authorHandle)} ·
       <time datetime="${escapeHtml(post.createdAt)}">${escapeHtml(post.createdAt.slice(0, 10))}</time>

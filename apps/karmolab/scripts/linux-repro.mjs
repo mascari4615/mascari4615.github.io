@@ -39,7 +39,7 @@ const stripFrontMatter = (s) => (s.startsWith('---') ? s.replace(/^---[\s\S]*?\n
 
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(String(req.url).split('?')[0]);
-  if (p === '/karmolab/' || p === '/karmolab') p = '/apps/karmolab/index.html';
+  if (p === '/' || p === '/') p = '/apps/karmolab/index.html';
   if (p.endsWith('/')) p += 'index.html';
   const file = path.join(BLOG_ROOT, p.replace(/^\//, ''));
   if (!file.startsWith(BLOG_ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {

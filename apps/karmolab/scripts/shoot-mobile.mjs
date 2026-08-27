@@ -36,7 +36,7 @@ const page = await context.newPage();
 
 const report = [];
 for (const id of ids) {
-  const url = id === 'hub' ? `${BASE}/karmolab/t/` : `${BASE}/karmolab/t/${id}/`;
+  const url = id === 'hub' ? `${BASE}/t/` : `${BASE}/t/${id}/`;
   await page.goto(url, { waitUntil: 'networkidle' });
   // 배포 전 수정안을 미리 보기 위한 주입 (실물 위에 CSS 만 덮어쓴다)
   if (injectCss) await page.addStyleTag({ content: injectCss });

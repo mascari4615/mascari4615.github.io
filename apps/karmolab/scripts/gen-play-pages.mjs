@@ -1,9 +1,9 @@
 /**
  * 놀이마다 한 장씩 — 검색으로 들어오는 문 (TASK-KL-151 ⑪)
  *
- * 왜 있나: 놀이는 전부 앱 안 해시 주소(`/karmolab/#worldcup`)로만 살았다. 크롤러는 해시를
+ * 왜 있나: 놀이는 전부 앱 안 해시 주소(`/#worldcup`)로만 살았다. 크롤러는 해시를
  * 안 보므로 **검색에 걸릴 글이 한 줄도 없었고**, 링크를 붙여도 미리보기가 안 떴다.
- * 관문(`/karmolab/play/`)이 있긴 하지만 사람은 「놀이터」로 검색하지 않는다 —
+ * 관문(`/play/`)이 있긴 하지만 사람은 「놀이터」로 검색하지 않는다 —
  * 「이상형 월드컵」, 「반응속도 테스트」로 검색한다.
  *
  * 왜 도구 상세 페이지 틀을 안 쓰나: 한 번 그렇게 했다가 「쓰는 법·자주 묻는 것」 틀이 딸려 와
@@ -12,7 +12,7 @@
  * 무엇이 정본인가: 어떤 놀이가 있나 = `apps/play/games.json`. 그 놀이를 뭐라고 설명하나 =
  * `data/play-seo.json`. 둘이 갈리면 여기서 멈춘다(한쪽에만 있는 id 는 실패로 본다).
  *
- * 사용: node scripts/gen-play-pages.mjs [--out ../blog/karmolab]
+ * 사용: node scripts/gen-play-pages.mjs [--out ../blog]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,7 +23,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 const SITE = 'https://blog.mascari4615.com';
 const outArg = process.argv.indexOf('--out');
-const OUT = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog/karmolab');
+const OUT = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog');
 
 const roster = JSON.parse(fs.readFileSync(path.join(repoRoot, 'apps/play/games.json'), 'utf8')).games;
 const copy = JSON.parse(fs.readFileSync(path.join(root, 'data/play-seo.json'), 'utf8')).games;
@@ -50,12 +50,12 @@ function body(game, text) {
   const others = roster
     .filter((g) => g.id !== game.id)
     .slice(0, 6)
-    .map((g) => `<a class="play-card" href="/karmolab/play/${g.id}/"><span class="play-emoji">${esc(g.emoji)}</span><strong>${esc(g.title)}</strong><span>${esc(g.lead)}</span></a>`)
+    .map((g) => `<a class="play-card" href="/play/${g.id}/"><span class="play-emoji">${esc(g.emoji)}</span><strong>${esc(g.title)}</strong><span>${esc(g.lead)}</span></a>`)
     .join('\n');
 
   return `
 <article class="play-page">
-  <nav class="tool-crumb" aria-label="위치"><a href="/karmolab/">KarmoLab</a><i aria-hidden="true">›</i><a href="/karmolab/play/">놀이터</a><i aria-hidden="true">›</i><span aria-current="page">${esc(game.title)}</span></nav>
+  <nav class="tool-crumb" aria-label="위치"><a href="/">KarmoLab</a><i aria-hidden="true">›</i><a href="/play/">놀이터</a><i aria-hidden="true">›</i><span aria-current="page">${esc(game.title)}</span></nav>
 
   <header class="play-head">
     <span class="play-head-emoji">${esc(game.emoji)}</span>
@@ -108,7 +108,7 @@ const STYLE = `<style>
 let made = 0;
 for (const game of roster) {
   const text = copy[game.id];
-  const permalink = `/karmolab/play/${game.id}/`;
+  const permalink = `/play/${game.id}/`;
   let html = shellCommon(shell, { permalink, lastModified: new Date().toISOString(), bootPaths: [] });
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(text.title)} | KarmoLab</title>`);
   html = replaceMeta(html, 'name', 'description', text.description);

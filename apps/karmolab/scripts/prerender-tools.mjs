@@ -24,7 +24,7 @@ import { chromium } from 'playwright';
 import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const OUT = path.resolve(root, '../blog/karmolab/t');
+const OUT = path.resolve(root, '../blog/t');
 const BASE = process.env.BASE || 'http://127.0.0.1:8801/apps/blog';
 
 /**
@@ -58,7 +58,7 @@ if (!targets.length) {
 
 /* 서버가 없으면 **못 돈다고 말한다**. 예전에는 여기서 조용히 0 으로 끝냈는데, 배포에서
    그 침묵이 「했다」로 읽혀 실제 사이트가 내내 빈 채로 나갔다 (2026-08-08). */
-const probe = await fetch(`${BASE}/karmolab/t/`).catch(() => null);
+const probe = await fetch(`${BASE}/t/`).catch(() => null);
 if (!probe?.ok) {
   console.error(`[prerender] 못 돈다 — 화면을 열 서버가 없다 (${BASE}). 먼저 \`npm run serve:gzip\`.`);
   process.exit(1);
@@ -95,7 +95,7 @@ async function drawOne(id) {
   const page = await ctx.newPage();
   let markup = '';
   try {
-    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'load', timeout: 45000 });
+    await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'load', timeout: 45000 });
     // 위젯이 제 화면을 만들 때까지 기다린다 — 「자리만 있고 속이 빈」 상태를 뜨면 의미가 없다.
     await page.waitForFunction(
       () => {

@@ -117,7 +117,7 @@ const result = await page.evaluate(async () => {
     return readHost.querySelector('#qrOut').value;
   };
 
-  const url = 'https://blog.mascari4615.com/karmolab/t/qr/';
+  const url = 'https://blog.mascari4615.com/t/qr/';
   const gotUrl = await readIt(await makeQr(url));
   const urlInfo = readHost.querySelector('#qrInfo').textContent;
 

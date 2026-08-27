@@ -16,7 +16,7 @@
  */
 import { chromium } from 'playwright';
 
-const URL = process.argv[2] || 'https://blog.mascari4615.com/karmolab/';
+const URL = process.argv[2] || 'https://blog.mascari4615.com/';
 const RUNS = Number(process.argv[3] || 3);
 /* 폰 폭 + 느린 기계로 잰다 — 데스크톱 최신 CPU 로는 뭘 해도 초록이라 아무것도 안 보인다. */
 const VIEW = { width: 390, height: 844 };

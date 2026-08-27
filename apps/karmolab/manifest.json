@@ -2,13 +2,13 @@
   "name": "KarmoLab",
   "short_name": "KarmoLab",
   "description": "손에 잡히는 도구들이 있는 작업실. 글·이미지·계산·개발 도구를 브라우저 안에서 다룹니다.",
-  "start_url": "/karmolab/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f12",
   "theme_color": "#0f0f12",
   "orientation": "portrait-primary",
   "lang": "ko-KR",
-  "scope": "/karmolab/",
+  "scope": "/",
   "icons": [
     {
       "src": "/apps/karmolab/img/icon-192.png",
@@ -31,7 +31,7 @@
     {
       "name": "텍스트 도구",
       "short_name": "텍스트",
-      "url": "/karmolab/t/text/",
+      "url": "/t/text/",
       "icons": [
         {
           "src": "/apps/karmolab/img/icon-192.png",
@@ -43,7 +43,7 @@
     {
       "name": "PDF 편집",
       "short_name": "PDF",
-      "url": "/karmolab/t/pdftool/",
+      "url": "/t/pdftool/",
       "icons": [
         {
           "src": "/apps/karmolab/img/icon-192.png",
@@ -55,7 +55,7 @@
     {
       "name": "QR 코드 생성",
       "short_name": "QR",
-      "url": "/karmolab/t/qrgen/",
+      "url": "/t/qrgen/",
       "icons": [
         {
           "src": "/apps/karmolab/img/icon-192.png",
@@ -67,7 +67,7 @@
     {
       "name": "이미지 편집",
       "short_name": "이미지",
-      "url": "/karmolab/t/imageedit/",
+      "url": "/t/imageedit/",
       "icons": [
         {
           "src": "/apps/karmolab/img/icon-192.png",
@@ -78,7 +78,7 @@
     }
   ],
   "share_target": {
-    "action": "/karmolab/share/",
+    "action": "/share/",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
@@ -101,7 +101,7 @@
   },
   "file_handlers": [
     {
-      "action": "/karmolab/share/",
+      "action": "/share/",
       "accept": {
         "image/*": [
           ".png",

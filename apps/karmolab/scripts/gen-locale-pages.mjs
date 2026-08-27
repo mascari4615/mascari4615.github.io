@@ -1,7 +1,7 @@
 /**
  * 언어별 장 찍기 (TASK-KL-203 S2)
  *
- * 지금 찍는 것: 앱 첫 화면의 언어 판 (`/en/karmolab/` …). 도구 상세 장들은 제 글이 아직
+ * 지금 찍는 것: 앱 첫 화면의 언어 판 (`/en/` …). 도구 상세 장들은 제 글이 아직
  * 안 옮겨졌으므로 여기서 안 찍는다 — **번역이 덜 된 장을 그 언어 주소로 올리는 건 안 올린
  * 것보다 나쁘다**(영어라고 적힌 주소에 한국어가 실린다). `tools-seo` 가 차면 여기 목록에 는다.
  *
@@ -57,7 +57,7 @@ for (const page of PAGES) {
    * 등록부에 `enabled: true` 한 줄만 바꿨는데 — 게이트가 「셸에 ja 짝 표시가 없다」로 섰다.
    * 그게 **언어를 늘릴 때 유일하게 손이 가는 자리**였다. 목표가 「켜기만 하면 는다」였으므로
    * 그 자리를 없앤다: 등록부에서 뽑아 그 블록을 다시 쓴다. 손으로 적을 곳이 하나 줄었다. */
-  if (page.bare === '/karmolab/') {
+  if (page.bare === '/') {
     const file = path.join(root, 'index.html');
     const html = fs.readFileSync(file, 'utf8');
     const block = hreflangTags(page.bare, SITE, codes).split('\n').map((l) => l.trim());

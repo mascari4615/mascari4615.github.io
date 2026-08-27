@@ -3,7 +3,7 @@
  *
  * **데이터 = memo 정본** (TASK-KL-009 Phase F): hardcoded `QUEST_DATA` 폐기,
  * Rust 명령 `get_quest_tree` (apps/karmolab-tauri/src-tauri/src/quest_index.rs) 가
- * memo 의 6 도메인 walk (wm/projects/karmolab/projects/yawnbot/life/hobby/learning)
+ * memo 의 6 도메인 walk (wm/projects/projects/yawnbot/life/hobby/learning)
  * + frontmatter 파싱 + 본문 체크박스 추출 → JSON. 위젯이 invoke 후 옛 트리 구조
  * (projects[].children[].leaf{checks} + sealed[]) 로 변환.
  *

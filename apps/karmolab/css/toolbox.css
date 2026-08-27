@@ -277,7 +277,7 @@ body {
 
 /* 스크롤 잠금은 **앱 껍데기가 있는 문서에만**.
    .app-layout 은 position:fixed inset:0 이라 스크롤을 자기가 갖는다 — 그때만 문서 스크롤을
-   막는 게 맞다. 이걸 맨 body 에 걸어 뒀더니, 껍데기 없이 글만 있는 문서(/karmolab/t/ 도구
+   막는 게 맞다. 이걸 맨 body 에 걸어 뒀더니, 껍데기 없이 글만 있는 문서(/t/ 도구
    전체 목록)가 데스크톱에서 스크롤 자체가 막혀 첫 화면 밑이 통째로 안 보였다.
    (폰은 아래 반응형에서 문서 스크롤로 되돌린다.) */
 body:has(> .app-layout) {
@@ -829,10 +829,10 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
 /* ★ **도구 목록으로 가는 길은 접히지 않는다** (2026-08-12).
    PC 에서는 옆줄이 그 역할이라는 전제로 이 링크들을 폰에서만 켰다. 그런데 첫 화면 꾸미기가
    기본을 「머리띠 차림 + 갈 곳 카드 접힘」으로 바꾸면서, **처음 온 사람의 PC 화면에 도구 목록으로
-   가는 보이는 링크가 0개**가 됐다(실측: /karmolab/t/ 링크 4개가 전부 접힌 칸 안에 있었다).
+   가는 보이는 링크가 0개**가 됐다(실측: /t/ 링크 4개가 전부 접힌 칸 안에 있었다).
    길은 취향이 아니다 — 꾸미기로 접는 칸 **밖**에 하나는 늘 서 있어야 한다.
    나머지 넷(봇·오늘의·커뮤니티·광장)은 그대로 폰 전용이다: PC 머리띠가 붐비지 않게 둔다. */
-.header-tools-link[href="/karmolab/t/"] { display: inline-flex; }
+.header-tools-link[href="/t/"] { display: inline-flex; }
 
 .header-tools-link:hover,
 .header-tools-link:active {

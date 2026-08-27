@@ -52,7 +52,7 @@
   "wm.t50": "<p class=\"wb-empty\">見つかりません。別の言葉で探してみてください。</p>",
   "wm.t51": "読み込み中…",
   "wm.t52": "<div class=\"wm-body\"><p class=\"tool-status\">読み込み中…</p></div>",
-  "wm.t53": "<p class=\"wb-empty\">コンディション表を読めませんでした。<a href=\"/karmolab/?wb=gameplay%2Fcondition#wm\">原文を見る</a></p>",
+  "wm.t53": "<p class=\"wb-empty\">コンディション表を読めませんでした。<a href=\"/?wb=gameplay%2Fcondition#wm\">原文を見る</a></p>",
   "wm.t54": "<p class=\"wb-empty\">その項目はありません。図鑑で探してみてください。</p>",
   "wm.t55": "<p class=\"tool-status\">読み込み中…</p>",
   "wm.t56": " - させた。",

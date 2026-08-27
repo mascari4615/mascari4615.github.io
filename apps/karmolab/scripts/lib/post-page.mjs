@@ -22,13 +22,15 @@ export function applyCdn(html) {
 }
 
 /**
- * 옛 Chirpy Service Worker 회수 (컷오버 — change.blog-cutover).
- * Chirpy PWA SW 가 scope '/' 로 `/`·`/posts/*` HTML 을 cache-first 로 붙들고 있었다 —
- * 파일(/sw.min.js)이 사라져도 기존 방문자에겐 옛 SW 가 남아 새 장 대신 옛 껍데기를 내민다.
- * scope 가 '/' 인 등록만 해제한다 — KarmoLab SW(/karmolab/·/apps/karmolab/)는 안 건드린다
- * (선례 = `src/pwa-update.ts` 의 scope 선별 해제).
+ * 옛 뿌리 Service Worker 회수 — **폐지** (change.karmolab-at-root ②).
+ *
+ * 컷오버 때는 뿌리에 아무도 안 살아서, scope 가 `/` 인 등록을 보이는 족족 지웠다.
+ * 이제 뿌리는 KarmoLab 앱의 집이고 그 SW 의 scope 가 바로 `/` 다 — 그대로 두면
+ * 글 장을 열 때마다 앱의 일꾼을 꺼 버린다.
+ * 옛 Chirpy SW 회수는 **같은 주소(`/sw.js`)에 새 SW 를 등록하는 것**으로 대신한다.
+ * 브라우저가 같은 자리의 낡은 것을 갈아치운다 — 지우는 것보다 이쪽이 맞다.
  */
-const SW_KILL = `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){try{if(new URL(r.scope).pathname==='/')r.unregister()}catch(e){}})}).catch(function(){})}`;
+const SW_KILL = '';
 
 /** 관측실 톤 최소 스타일 — 글이 읽히는 데 필요한 만큼만. */
 const CSS = `
@@ -83,121 +85,13 @@ body.post-page main{max-width:none;padding:8px 20px 64px}
 `;
 
 /**
- * `/posts/` 목록 한 장 (TASK-KL-355 — Phase 2). 같은 경량 셸 톤.
- * 공개 글이 78장이라 페이지네이션이 필요 없다 (카테고리/태그 아카이브 대신 목록+거르기 — 확정 결정).
- * 거르기(칩·검색)는 인라인 몇 줄 — 바깥 리소스는 여전히 GoatCounter 하나다.
- * @param {Array<{slug:string,title:string,date:string,categories:string[],excerpt:string}>} posts 공개 글, 최신순
+ * 글 **목록 장은 없다** (change.karmolab-at-root ②).
+ *
+ * 목록의 집은 앱 안 커뮤니티 「글」 판이다 (`/?board=blog#community`,
+ * change.board-unify ①). 정적 목록 장을 따로 찍으면 같은 목록이 두 군데가 되고
+ * 검색 신호도 갈라진다. 여기서는 **글 한 장씩**(`/posts/<slug>/`)만 찍는다.
+ * 목록 데이터 정본 = `data/posts-index.json` (빌드 산출, 공개 글만).
  */
-export function listPage(posts, { permalink = '/posts/', canonical = '/', sitemap = true } = {}) {
-    const cats = [...new Set(posts.map((p) => p.categories[0]).filter(Boolean))];
-    // 사이트맵 lastmod — 비면 배포가 선다 (audit-sitemap-lastmod exit 1). 가장 최근 글의 시각.
-    const lastmod = posts.map((p) => p.lastmod ?? p.date).sort().at(-1) ?? '';
-    const rows = posts
-        .map((p) => {
-            const cat = p.categories.join(' › ');
-            return (
-                `<li data-cat="${esc(p.categories[0] ?? '')}" data-text="${esc(`${p.title} ${cat}`.toLowerCase())}">` +
-                `<a href="/posts/${esc(p.slug)}/"><span class="t">${esc(p.title)}</span>` +
-                `<span class="m">${esc(cat)} · <time datetime="${esc(p.date)}">${p.date.slice(0, 10)}</time></span>` +
-                (p.excerpt ? `<span class="x">${esc(p.excerpt)}</span>` : '') +
-                `</a></li>`
-            );
-        })
-        .join('\n');
-
-    return `---
-layout: none
-permalink: ${permalink}
-${sitemap ? '' : 'sitemap: false\n'}
-${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
-<!doctype html>
-<html lang="ko">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>글 | KarmoDDrine</title>
-    <meta name="description" content="KarmoDDrine 블로그 — 컴퓨터·작업물·수필 ${posts.length}편">
-    <link rel="canonical" href="${SITE}${canonical}">
-    ${CSP_META}
-    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any">
-    <link rel="alternate" type="application/rss+xml" title="KarmoDDrine" href="/feed.xml">
-    <script>try{var t=localStorage.getItem('toolbox_theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
-    <style>${CSS}
-.list-filter{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
-.list-filter input{flex:1;min-width:160px;background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:8px;color:var(--text-primary);padding:8px 12px}
-.chip{background:none;border:1px solid var(--bg-tertiary);border-radius:999px;color:var(--text-secondary);padding:4px 12px;cursor:pointer;font-size:13px}
-.chip.on{border-color:var(--accent);color:var(--accent)}
-.post-list{list-style:none;margin:0;padding:0}
-.post-list li{border-bottom:1px solid var(--bg-tertiary)}
-.post-list a{display:block;padding:14px 2px;color:inherit;text-decoration:none}
-.post-list a:hover .t{color:var(--accent)}
-.post-list .t{display:block;font-weight:600}
-.post-list .m{display:block;font-size:13px;color:var(--text-tertiary);margin-top:2px}
-.post-list .x{display:block;font-size:14px;color:var(--text-secondary);margin-top:4px}
-</style>
-</head>
-<body class="post-page">
-    <header class="post-top">
-        <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/works/">작업물</a>
-        <a href="/about/">소개</a>
-        <span class="spacer"></span>
-        <button id="themeToggle" aria-label="테마 전환">◐</button>
-    </header>
-    <main>
-        <h1>글 <small style="color:var(--text-tertiary);font-size:16px">${posts.length}편</small></h1>
-        <div class="list-filter">
-            <input id="q" type="search" placeholder="제목·카테고리 찾기" aria-label="글 찾기">
-            ${cats.map((c) => `<button class="chip" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}
-        </div>
-        <ul class="post-list" id="list">
-${rows}
-        </ul>
-    </main>
-    <script>
-    (function(){
-        document.getElementById('themeToggle').addEventListener('click',function(){
-            var light=document.documentElement.dataset.theme==='light';
-            if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme='light';
-            try{localStorage.setItem('toolbox_theme',light?'dark':'light')}catch(e){}
-        });
-        var cat='',q='';
-        var rows=[].slice.call(document.querySelectorAll('#list li'));
-        function apply(){
-            rows.forEach(function(r){
-                var okCat=!cat||r.dataset.cat===cat;
-                var okQ=!q||r.dataset.text.indexOf(q)>=0;
-                r.style.display=okCat&&okQ?'':'none';
-            });
-        }
-        [].slice.call(document.querySelectorAll('.chip')).forEach(function(ch){
-            ch.addEventListener('click',function(){
-                var on=ch.classList.contains('on');
-                document.querySelectorAll('.chip.on').forEach(function(x){x.classList.remove('on')});
-                cat=on?'':ch.dataset.cat;if(!on)ch.classList.add('on');
-                apply();
-            });
-        });
-        document.getElementById('q').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();apply()});
-        ${SW_KILL}
-    })();
-    </script>
-    <script data-goatcounter="https://mascari4615.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-</body>
-</html>
-`;
-}
-
-/**
- * 같은 목록을 내는 두 주소의 검색 신호를 홈(`/`)으로 모은다.
- * `/posts/`는 기존 링크를 깨지 않기 위한 호환 주소이며 사이트맵에는 제출하지 않는다.
- */
-export function blogIndexPages(posts) {
-    return {
-        home: listPage(posts, { permalink: '/', canonical: '/' }),
-        legacyPosts: listPage(posts, { permalink: '/posts/', canonical: '/', sitemap: false }),
-    };
-}
 
 /**
  * `/works/` — 작업물 전시 (change.blog-finish ③, Chirpy works 레이아웃 승계).
@@ -247,8 +141,8 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 </head>
 <body class="post-page">
     <header class="post-top">
-        <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/">글</a>
+        <a href="/">◂ KarmoLab</a>
+        <a href="/?board=blog#community">글</a>
         <a href="/works/">작업물</a>
         <a href="/about/">소개</a>
         <span class="spacer"></span>
@@ -297,8 +191,8 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 </head>
 <body class="post-page">
     <header class="post-top">
-        <a href="/karmolab/">◂ KarmoLab</a>
-        <a href="/">글</a>
+        <a href="/">◂ KarmoLab</a>
+        <a href="/?board=blog#community">글</a>
         <span class="spacer"></span>
         <button id="themeToggle" aria-label="테마 전환">◐</button>
     </header>
@@ -346,7 +240,7 @@ sitemap: false
     <main style="text-align:center;padding-top:80px">
         <h1>여기엔 아무것도 없다</h1>
         <p style="color:var(--text-secondary)">주소가 바뀌었거나, 처음부터 없던 곳이다.</p>
-        <p><a href="/">글 목록</a> · <a href="/karmolab/">KarmoLab</a></p>
+        <p><a href="/?board=blog#community">글 목록</a> · <a href="/">KarmoLab</a></p>
     </main>
     <script>${SW_KILL}</script>
 </body>
@@ -390,7 +284,7 @@ export function postBody(meta, bodyHtml, nav) {
        앱과 이 장이 그 파일을 각자 링크한다 — 여기에 스타일을 적으면 두 집이 갈라진다.
        안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험). */
     return `<div class="c-wrap">
-    <div class="c-crumb"><a class="c-linkbtn" href="/karmolab/?board=blog#community">← 글</a></div>
+    <div class="c-crumb"><a class="c-linkbtn" href="/?board=blog#community">← 글</a></div>
     <article class="c-post">
         <h2 class="c-post-title">${esc(meta.title)}</h2>
         <div class="c-post-meta"><span>${meta.categories.map(esc).join(' › ')}</span>

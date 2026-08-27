@@ -1,7 +1,7 @@
 /**
  * 모험 raw 진행 storage — KL-032 결정 8 (세이브/로드 자율 결정).
  *
- * Tauri 환경: Tauri command 'adventure_save_raw' 가 memo/projects/karmolab/raw/adventures/{slug}.json 박음 (ζ 단계).
+ * Tauri 환경: Tauri command 'adventure_save_raw' 가 memo/projects/raw/adventures/{slug}.json 박음 (ζ 단계).
  * 브라우저: localStorage 임시 (Tauri 미가용 시 fallback).
  *
  * raw = turn 마다 user/assistant message + parsed (선택지 / NPC / scene) + image refs 누적.

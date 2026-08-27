@@ -105,7 +105,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
  *      빼고 찍는다. 그래서 첫 화면만 재면 사람 대부분이 실제로 밟는 길을 안 재는 것이 된다.
  * 도구 장은 배포 때 찍히는 생성물이라 새 체크아웃에는 없을 수 있다 — 없으면 건너뛴다고 말한다. */
 const TARGETS = [['앱 첫 화면', '/apps/karmolab/index.html', {}]];
-const toolPage = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
+const toolPage = path.join(repoRoot, 'apps/blog/t/loan/index.html');
 if (!fs.existsSync(toolPage)) {
   console.log('[perf-budget] 도구 장은 건너뜀 — 찍힌 페이지가 없다 (`npm run gen:tool-pages` 뒤에 다시)');
 } else if (!fs.readFileSync(toolPage, 'utf8').includes('js/perf.js')) {
@@ -122,7 +122,7 @@ if (!fs.existsSync(toolPage)) {
      지금+한 위젯몫(16KB)을 준다: 오늘 값은 통과하되 **여기서 더 붙으면 잡힌다**. */
   TARGETS.push([
     '도구 한 장(대출)',
-    '/apps/blog/karmolab/t/loan/index.html',
+    '/apps/blog/t/loan/index.html',
     /* 톱니를 조인다 (2026-08-16 저녁): 제 도구 코드를 낭비로 세던 것을 고쳐 36.8KB → 22KB.
        남은 22KB 는 일부러 실은 채팅이다. 예산도 그만큼 내린다 — 22 + 한 위젯몫 16. */
     { bootwaste: 22 * 1024 + 16 * 1024 },
@@ -203,7 +203,7 @@ async function measure(url, scenario) {
      진짜 단추를 누른다(빈 곳을 누르면 핸들러가 없어 「우리 코드가 느린가」를 못 본다). */
   /* ★ **누르는 것이 화면을 떠나면 재는 화면이 사라진다** (2026-08-16, 실측).
      도구 한 장에서 첫 번째로 잡히는 것은 머리말의 `「KarmoLab」` 단추다 — 생김새는 단추지만
-     누르면 `/karmolab/` 로 **간다**. 그 순간 재던 문서가 죽고 `KLPerf` 도 같이 사라져,
+     누르면 `/` 로 **간다**. 그 순간 재던 문서가 죽고 `KLPerf` 도 같이 사라져,
      검사는 「15초 기다렸는데 계측기가 안 왔다」로 끝났다 — 그래서 **도구 한 장(131장, 검색으로
      들어오는 정문)은 한 번도 안 재졌다**. 첫 화면만 달려 사람 대부분이 밟는 길을 몰랐다.
      둘을 고친다: ① 화면을 떠나는 것은 후보에서 뺀다 ② 그래도 떠나면 **그걸 그대로 말한다**

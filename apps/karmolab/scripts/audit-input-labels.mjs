@@ -55,7 +55,7 @@ const LANES = 4;
 
 async function auditOne(page, id) {
   {
-    await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'networkidle', timeout: 25000 });
+    await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'networkidle', timeout: 25000 });
     await page.waitForTimeout(400);
     const r = await page.evaluate((toolId) => {
       const el = document.getElementById('page-' + toolId);

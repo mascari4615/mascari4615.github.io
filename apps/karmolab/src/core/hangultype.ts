@@ -38,7 +38,7 @@ export const spec: ToolSpec = {
  * ★ 화면이 따로 없다 — 이건 **재는 자**이지 도구가 아니다.
  *
  * 쓰는 쪽은 `ghosttype`(타자 겨루기)과 데일리 게임이다. 둘이 같은 셈을 써야 하므로 여기 있고,
- * 그래서 `/karmolab/t/hangultype/` 같은 자기 주소는 필요 없다.
+ * 그래서 `/t/hangultype/` 같은 자기 주소는 필요 없다.
  * (MCP 로는 낸다 — 「이 문장 타수가 몇이야」는 에이전트가 자주 틀리는 계산이다.)
  */
 export const SCREENLESS = true;

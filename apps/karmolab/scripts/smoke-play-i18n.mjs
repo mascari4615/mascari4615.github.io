@@ -11,7 +11,7 @@
  * 왜 기존 검사가 못 잡았나:
  *   · `audit:i18n-load` 는 「그 파일이 `loadNamespace` 를 부르나」만 본다. higher 는 **부른다** —
  *     늦게 부를 뿐이다. 글자만 봐서는 이르고 늦음을 못 가른다.
- *   · `test:i18n:runtime` 은 **도구 장**(`/karmolab/t/<id>/`)이 있는 것만 연다. 놀이는 장이 없다.
+ *   · `test:i18n:runtime` 은 **도구 장**(`/t/<id>/`)이 있는 것만 연다. 놀이는 장이 없다.
  *     그래서 놀이 열 개는 아무 화면 검사도 안 받고 있었다.
  *
  * 그래서 여기서는 **열어 본다**. 판정은 둘:
@@ -65,10 +65,10 @@ if (!base) {
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${server.address().port}`;
 }
-/* 다른 말로 보는 판은 문이 다르다(`/ja/karmolab/`). 통째로 주소를 받는 길을 둔다 —
-   `KL_PAGE=https://…/ja/karmolab/ node scripts/smoke-play-i18n.mjs` */
-/* 다른 말로 보는 판은 문이 다르다(`/ja/karmolab/`). 통째로 주소를 받는 길을 둔다 —
-   `node scripts/smoke-play-i18n.mjs --page https://…/ja/karmolab/` (env `KL_PAGE` 도 된다).
+/* 다른 말로 보는 판은 문이 다르다(`/ja/`). 통째로 주소를 받는 길을 둔다 —
+   `KL_PAGE=https://…/ja/ node scripts/smoke-play-i18n.mjs` */
+/* 다른 말로 보는 판은 문이 다르다(`/ja/`). 통째로 주소를 받는 길을 둔다 —
+   `node scripts/smoke-play-i18n.mjs --page https://…/ja/` (env `KL_PAGE` 도 된다).
    창 띄우는 명령에 `VAR=값` 을 앞에 붙이는 방식은 윈도우에서 안 통해서 깃발도 같이 둔다. */
 const flag = process.argv.indexOf('--page');
 const gate = (flag >= 0 ? process.argv[flag + 1] : '') || process.env.KL_PAGE || `${base}/apps/karmolab/index.html`;

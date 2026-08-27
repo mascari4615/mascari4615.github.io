@@ -183,7 +183,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('chain.say.07'));
           };
 
-          // 주소로 부른 경우 (`/karmolab/t/chain/?op=run&steps=…`). 없으면 예시로 시작한다.
+          // 주소로 부른 경우 (`/t/chain/?op=run&steps=…`). 없으면 예시로 시작한다.
           const call = readInvocation(chainSpec);
           if (call === null) {
             steps.value = example();

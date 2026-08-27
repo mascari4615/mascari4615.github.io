@@ -470,7 +470,7 @@
   "howto.chain.0": "단계를 JSON 배열로 적기 (tool · op · args)",
   "howto.chain.1": "앞 결과는 \"$1\" 로 통째로, \"a{{1}}b\" 로 글 안에 끼워 쓰기",
   "howto.chain.2": "실행을 누르면 단계마다 결과가 한 줄씩 나옵니다",
-  "howto.chain.3": "주소로도 부를 수 있습니다: /karmolab/t/chain/?op=run&steps=…",
+  "howto.chain.3": "주소로도 부를 수 있습니다: /t/chain/?op=run&steps=…",
   "howto.dailytype.0": "문장을 보고 아래 칸에 그대로 치기",
   "howto.dailytype.1": "첫 글자를 치는 순간부터 시간이 갑니다",
   "howto.dailytype.2": "「다 쳤어요」를 누르면 타/분과 정확도가 나옵니다",

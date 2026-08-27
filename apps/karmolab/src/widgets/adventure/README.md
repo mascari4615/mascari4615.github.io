@@ -11,7 +11,7 @@ KarmoLab 내 텍스트 RPG 위젯. 출처 TASK: `TASK-KL-032-infinite-text-adven
 3. **모험 시작**: `시작` 버튼 → 내레이터(Timeto) 오프닝 + 선택지
 4. **턴 진행**: 선택지 클릭 or 자유 텍스트 입력 → LLM 응답 + 이미지 생성 (η — Imagen 4)
 5. **종료**: `[END]` 토큰 또는 수동 종료 → 요약 다이얼로그
-6. **저장**: ζ — Tauri `adventure_save_raw` → `memo/projects/karmolab/raw/adventures/{slug}.json`
+6. **저장**: ζ — Tauri `adventure_save_raw` → `memo/projects/raw/adventures/{slug}.json`
    - 브라우저 fallback: `localStorage` (`kl_adventure_session_{slug}`)
 7. **정수 추출** (θ, 미구현): 정수(精髓) → wiki public 커밋 흐름
 
@@ -53,7 +53,7 @@ LLM 응답
   → parseTurnResponse() (prompt.ts)
   → AdventureTurnRecord {ts, userText, assistantText, parsed, imageRefs, providerId, modelId}
   → saveSession() (storage.ts)
-      Tauri: adventure_save_raw → memo/projects/karmolab/raw/adventures/{slug}.json  (private)
+      Tauri: adventure_save_raw → memo/projects/raw/adventures/{slug}.json  (private)
       fallback: localStorage kl_adventure_session_{slug}
 ```
 

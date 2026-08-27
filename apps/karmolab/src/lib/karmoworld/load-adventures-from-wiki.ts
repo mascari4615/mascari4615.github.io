@@ -6,7 +6,7 @@
  * - 별 manifest = `_index.json` (적재 시 하나만 fetch, directory listing 회피).
  * - 갱신 = Tauri `adventure_commit_summary` (모험 종료 시 사용자 컨펌 후 commit).
  *
- * 시드: memo/projects/karmolab/tasks/TASK-KL-032-infinite-text-adventure.md
+ * 시드: memo/projects/tasks/TASK-KL-032-infinite-text-adventure.md
  */
 (function (): void {
   function worldBaseUrl(): string {

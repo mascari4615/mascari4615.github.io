@@ -47,8 +47,8 @@ const { base: BASE, close: closeServer } = await serveRepo();
  *   ② 도구 한 장 — **검색으로 들어오는 정문**이자 129장 중 하나. 여기는 여태 아무도 안 쟀다.
  * 도구 장은 배포 때 찍히는 생성물이라 새 체크아웃에는 없을 수 있다 — 없으면 그 화면은 건너뛴다. */
 const TARGETS = [['앱 첫 화면', BASE + '/apps/karmolab/index.html', null]];
-const toolPage = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
-if (fs.existsSync(toolPage)) TARGETS.push(['도구 한 장(대출)', BASE + '/apps/blog/karmolab/t/loan/index.html', null]);
+const toolPage = path.join(repoRoot, 'apps/blog/t/loan/index.html');
+if (fs.existsSync(toolPage)) TARGETS.push(['도구 한 장(대출)', BASE + '/apps/blog/t/loan/index.html', null]);
 else console.log('[smoke-perf] 도구 장은 건너뜀 — 찍힌 페이지가 없다 (`npm run gen:tool-pages` 뒤에 다시)');
 
 /** 예산 — 넘으면 빨간불. (오늘 고친 뒤 실측: 스타일 0/s · 스크롤 17ms · 마우스 33ms · 마우스CPU 0.65s) */

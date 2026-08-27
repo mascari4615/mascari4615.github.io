@@ -64,7 +64,7 @@ for (const l of LOCALES) {
     if (l.code === SOURCE_LOCALE) continue;
     const id = f.replace(/\.json$/, '');
     /* 도구 묶음만 — 공용 묶음(site·shell…)은 도구가 아니다. 판별 = 그 이름의 도구 장이 있는가. */
-    const page = path.join(appRoot, '../blog', localizedPath(`/karmolab/t/${id}/`, l.code).replace(/^\//, ''), 'index.html');
+    const page = path.join(appRoot, '../blog', localizedPath(`/t/${id}/`, l.code).replace(/^\//, ''), 'index.html');
     if (fs.existsSync(page)) targets.push({ code: l.code, id, page });
   }
 }
@@ -76,7 +76,7 @@ for (const l of LOCALES) {
    ②를 초록으로 넘기면 「다른 언어 화면이 그 언어로 나오는지」를 아무도 안 보게 된다. */
 if (!targets.length) {
   const localePages = LOCALES.filter((l) => l.code !== SOURCE_LOCALE).some((l) =>
-    fs.existsSync(path.join(appRoot, '../blog', localizedPath('/karmolab/t/', l.code).replace(/^\//, ''))),
+    fs.existsSync(path.join(appRoot, '../blog', localizedPath('/t/', l.code).replace(/^\//, ''))),
   );
   if (localePages) {
     console.error('[widget-i18n] CANNOT-RUN: 다국어 도구 장은 찍혀 있는데 볼 대상이 0 건이다');

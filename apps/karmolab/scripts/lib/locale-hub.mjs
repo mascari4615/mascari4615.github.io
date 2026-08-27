@@ -21,7 +21,7 @@ const esc = (s) =>
  * @param opts   { site, codes, count, href } — `href(bare, code)` = 그 언어 판이 있는 주소만 앞머리
  */
 export function toLocaleHub(source, code, { site, codes, count, href }) {
-  const bare = '/karmolab/t/';
+  const bare = '/t/';
   let html = toLocalePage(source, {
     code,
     bare,
@@ -51,7 +51,7 @@ export function toLocaleHub(source, code, { site, codes, count, href }) {
   html = html.replace(
     /<nav class="tool-crumb"[\s\S]*?<\/nav>/,
     `<nav class="tool-crumb" aria-label="${esc(L('toolpage.crumb.aria'))}">` +
-      `<a href="${href('/karmolab/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
+      `<a href="${href('/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
       `<span aria-current="page">${esc(L('toolpage.crumb.tools'))}</span></nav>`
   );
 
@@ -76,7 +76,7 @@ export function toLocaleHub(source, code, { site, codes, count, href }) {
 
   /* 도구 카드 — 이름과 한 줄 소개. `title` 속성(마우스 올렸을 때)도 같은 글이다. */
   html = html.replace(
-    /(<a class="tool-hub-card"[^>]*href="[^"]*\/karmolab\/t\/([^/"]+)\/"[^>]*>)<strong>([\s\S]*?)<\/strong><span title="[^"]*">[^<]*<\/span>/g,
+    /(<a class="tool-hub-card"[^>]*href="[^"]*\/t\/([^/"]+)\/"[^>]*>)<strong>([\s\S]*?)<\/strong><span title="[^"]*">[^<]*<\/span>/g,
     (whole, open, id, inner) => {
       const name = tr(code, `widgets.${id}.title`);
       const lead = tr(code, `tools.${id}.lead`);
@@ -111,7 +111,7 @@ export function toLocaleHub(source, code, { site, codes, count, href }) {
     `<p class="tool-seo-note">
         ${esc(L('toolpage.hub.note'))}
         ` +
-      `<a href="${href('/karmolab/', code)}">${esc(L('toolpage.nav.seeAll'))}</a> · ` +
+      `<a href="${href('/', code)}">${esc(L('toolpage.nav.seeAll'))}</a> · ` +
       `<a href="https://github.com/Mascari4615" rel="me">${esc(L('toolpage.nav.maker'))}</a>
       </p>`
   );
@@ -119,7 +119,7 @@ export function toLocaleHub(source, code, { site, codes, count, href }) {
   /* 「… — 놀다 가세요」 꼬리. 앞의 두 링크 이름은 위젯 이름이라 도구 이름 표가 이미 바꿨다. */
   html = html.replace(/<p class="tool-hub-quest">[\s\S]*?<\/p>/, (whole) => {
     /* 링크 이름은 위젯 이름이다 — 주소에서 id 를 뽑아 그 언어 이름을 붙인다. */
-    const links = [...whole.matchAll(/<a href="([^"]*\/karmolab\/([^/"]+)\/)"[^>]*>[^<]*<\/a>/g)];
+    const links = [...whole.matchAll(/<a href="([^"]*\/([^/"]+)\/)"[^>]*>[^<]*<\/a>/g)];
     if (!links.length) return whole;
     const body = links
       .map(([, url, id]) => `<a href="${url}">${esc(tr(code, `widgets.${id}.title`))}</a>`)

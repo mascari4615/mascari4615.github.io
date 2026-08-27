@@ -1,5 +1,5 @@
 /**
- * 놀이터 관문(/karmolab/play/) 만들기 + 목록 검사 (TASK-KL-089)
+ * 놀이터 관문(/play/) 만들기 + 목록 검사 (TASK-KL-089)
  *
  * 놀이가 셋이 되면서 「무엇이 있나」를 한 자리에서 보여 줄 곳이 필요해졌다.
  * 목록은 `games.json` 하나뿐이고, 관문도 각 놀이의 전환 줄도 전부 거기서 나온다.
@@ -23,17 +23,17 @@ const seen = new Set();
 /** 그 주소를 실제로 내주는 파일이 있는가 — 앱마다 어디에 사는지는 여기 한 번만 적는다. */
 const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
-  '/karmolab/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
-  '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
-  '/karmolab/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
-  '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
-  '/karmolab/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
-  '/karmolab/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
-  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
+  '/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
+  '/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
+  '/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
+  '/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
+  '/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
+  '/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
+  '/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
   /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다 — 검색으로 바로 들어올 수 있게.
      장은 배포 때 찍히므로, 있는지 물을 대상은 장이 아니라 그 장을 채우는 위젯 묶음이다. */
-  '/karmolab/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),
-  '/karmolab/t/dailycho/': path.join(apps, 'karmolab/js/widgets/tools/dailycho.js')
+  '/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),
+  '/t/dailycho/': path.join(apps, 'karmolab/js/widgets/tools/dailycho.js')
 };
 
 for (const g of list) {
@@ -55,7 +55,7 @@ const cards = list
 
 const html = `---
 layout: none
-permalink: /karmolab/play/
+permalink: /play/
 ---
 <!DOCTYPE html>
 <html lang="ko">
@@ -69,12 +69,12 @@ permalink: /karmolab/play/
 <meta name="color-scheme" content="dark">
 <title>놀이터 — 하루 한 판씩 | KarmoLab</title>
 <meta name="description" content="KarmoLab 의 놀이 ${list.length}가지. 오늘의 하나 맞히기, 높은 쪽 고르기, 도구로 푸는 하루 한 문제. 하나 하다 다른 것으로 바로 건너갈 수 있습니다.">
-<link rel="canonical" href="https://blog.mascari4615.com/karmolab/play/">
+<link rel="canonical" href="https://blog.mascari4615.com/play/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta property="og:type" content="website">
 <meta property="og:title" content="놀이터 — 하루 한 판씩">
 <meta property="og:description" content="맞히기 · 고르기 · 풀기. 하나 하다 다른 것으로 바로 건너갑니다.">
-<meta property="og:url" content="https://blog.mascari4615.com/karmolab/play/">
+<meta property="og:url" content="https://blog.mascari4615.com/play/">
 <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
 <meta property="og:locale" content="ko_KR">
 <link rel="icon" href="/apps/karmolab/img/favicon.ico">
@@ -108,14 +108,14 @@ ${STRIP_CSS}</style>
 </head>
 <body>
 <main>
-  <nav class="crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">놀이터</span></nav>
+  <nav class="crumb"><a href="/">KarmoLab</a> › <a href="/t/">도구</a> › <span aria-current="page">놀이터</span></nav>
   <h1>놀이터</h1>
   <p class="lead">하루 한 판씩. 하나 하다 다른 것으로 바로 건너가세요.</p>
   <div class="play-grid">
 ${cards}
   </div>
-  <p class="lead"><a href="/karmolab/#arcade">오락실에서 전부 보기 →</a> — 여럿이 하는 판 51개도 같은 자리에 있습니다.</p>
-  <footer>도구가 필요하면 — <a href="/karmolab/t/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a></footer>
+  <p class="lead"><a href="/#arcade">오락실에서 전부 보기 →</a> — 여럿이 하는 판 51개도 같은 자리에 있습니다.</p>
+  <footer>도구가 필요하면 — <a href="/t/">도구 전체 목록</a> · <a href="/">KarmoLab</a></footer>
 <script>
 (function () {
   /* 관문이 정적이라 「오늘 내가 뭘 했나」가 안 보였다 (TASK-KL-089).
@@ -181,7 +181,7 @@ if (problems.length) {
 
 fs.writeFileSync(path.join(here, 'index.html'), html, 'utf8');
 
-/* 앱 안의 오락실(`/karmolab/#arcade`)도 같은 목록을 본다 — 여기서 실어 준다 (TASK-KL-313:
+/* 앱 안의 오락실(`/#arcade`)도 같은 목록을 본다 — 여기서 실어 준다 (TASK-KL-313:
  * 놀이터 화면은 오락실로 합쳐졌고, 명부는 여전히 이 파일 하나가 정본이다).
  * 앱 쪽에 한 벌 더 적어 두면 그날부터 관문과 앱이 서로 다른 놀이를 말한다. */
 fs.writeFileSync(

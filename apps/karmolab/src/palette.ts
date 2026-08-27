@@ -255,7 +255,7 @@ const KarmoPalette = (() => {
     }
   }
 
-  /** 도구 목록(`/karmolab/t/`)에서 별로 꽂아 둔 것 — 사람이 직접 고른 목록 (TASK-KL-129) */
+  /** 도구 목록(`/t/`)에서 별로 꽂아 둔 것 — 사람이 직접 고른 목록 (TASK-KL-129) */
   function getPinnedToolIds(): string[] {
     try {
       const raw = localStorage.getItem(PINNED_KEY);

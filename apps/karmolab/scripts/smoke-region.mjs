@@ -32,10 +32,10 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 /** 지역이 정하는 항목 한 개를 골라 그것만 본다 — 「보인다/안 보인다」가 뚜렷한 줄. */
 const CASES = [
-  { locale: 'en', region: 'KR', page: 'apps/blog/en/karmolab/t/birth/index.html', expect: true },
-  { locale: 'en', region: 'US', page: 'apps/blog/en/karmolab/t/birth/index.html', expect: false },
-  { locale: 'ko', region: 'US', page: 'apps/blog/karmolab/t/birth/index.html', expect: false },
-  { locale: 'ko', region: 'KR', page: 'apps/blog/karmolab/t/birth/index.html', expect: true }
+  { locale: 'en', region: 'KR', page: 'apps/blog/en/t/birth/index.html', expect: true },
+  { locale: 'en', region: 'US', page: 'apps/blog/en/t/birth/index.html', expect: false },
+  { locale: 'ko', region: 'US', page: 'apps/blog/t/birth/index.html', expect: false },
+  { locale: 'ko', region: 'KR', page: 'apps/blog/t/birth/index.html', expect: true }
 ];
 
 const missing = CASES.filter((c) => !fs.existsSync(path.join(repoRoot, c.page)));
@@ -135,7 +135,7 @@ const HOLIDAY_CASES = [
   { locale: 'en', region: 'KR', from: '2026-02-14', to: '2026-02-20', want: 'Seollal' }
 ];
 
-const wdPage = 'apps/blog/en/karmolab/t/workdays/index.html';
+const wdPage = 'apps/blog/en/t/workdays/index.html';
 if (fs.existsSync(path.join(repoRoot, wdPage))) {
   for (const c of HOLIDAY_CASES) {
     const ctx = await browser.newContext();
@@ -193,7 +193,7 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
 
 /* ── 도량형 (S14) — 미국은 피트·파운드로 넣는다 ────────
  * 「kg 을 넣으세요」는 미국 사람에게 못 쓰는 도구다. 단위 칸이 지역을 따르는지 화면에서 본다. */
-const bmiPage = 'apps/blog/en/karmolab/t/bmi/index.html';
+const bmiPage = 'apps/blog/en/t/bmi/index.html';
 if (fs.existsSync(path.join(repoRoot, bmiPage))) {
   for (const c of [
     { region: 'US', want: 'lb', notWant: 'kg' },
@@ -229,7 +229,7 @@ if (fs.existsSync(path.join(repoRoot, bmiPage))) {
 /* ── 단위 변환의 **처음 놓인 짝** (S14-b) ─────────────
  * 미터법 나라는 「cm → 인치」, 미국은 그 반대가 궁금하다. 처음 놓인 자리가 틀리면 매번 손이
  * 한 번 더 가고, 그 한 번이 「이 도구는 내 것이 아니구나」를 만든다. */
-const ucPage = 'apps/blog/en/karmolab/t/unitconv/index.html';
+const ucPage = 'apps/blog/en/t/unitconv/index.html';
 if (fs.existsSync(path.join(repoRoot, ucPage))) {
   for (const c of [
     { region: 'US', from: 'inch', to: 'cm' },
@@ -265,7 +265,7 @@ if (fs.existsSync(path.join(repoRoot, ucPage))) {
 }
 
 /* 러닝 페이스 — 미국은 「1마일에 몇 분」으로 말한다 (S14-b). */
-const pacePage = 'apps/blog/en/karmolab/t/pace/index.html';
+const pacePage = 'apps/blog/en/t/pace/index.html';
 if (fs.existsSync(path.join(repoRoot, pacePage))) {
   for (const c of [
     { region: 'US', want: 'mile' },
