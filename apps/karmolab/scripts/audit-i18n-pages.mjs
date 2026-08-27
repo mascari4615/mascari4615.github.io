@@ -111,6 +111,10 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
 {
   const dead = new Set();
   let checked = 0;
+  const localeHrefRe = new RegExp(
+    `href="(\\/(?:${codes.filter((c) => c !== DEFAULT_LOCALE).join('|')})\\/[^"#?]*)"`,
+    'g',
+  );
   for (const code of codes) {
     if (code === DEFAULT_LOCALE) continue;
     const prefix = localizedPath('/', code);
@@ -126,7 +130,11 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
         if (e.name !== 'index.html') continue;
         checked++;
         const html = fs.readFileSync(f, 'utf8');
-        for (const m of html.matchAll(/href="(\/[a-z]{2}[^"#?]*)"/g)) {
+        /* ★ 언어 주소는 **켠 언어 코드로만** 알아본다 (change.karmolab-at-root ②).
+           예전에는 `/<두 글자>/karmolab…` 이라 두 글자가 곧 언어였다. 뿌리 이관으로
+           `karmolab` 이 빠지자 `/apps/…`·`/changes.xml` 까지 언어 주소로 읽혀
+           **배포가 섰다** (2026-08-27 실측, 13종 오검출). */
+        for (const m of html.matchAll(localeHrefRe)) {
           const target = path.join(root, '../blog', m[1].replace(/^\//, ''), 'index.html');
           if (!fs.existsSync(target)) dead.add(m[1]);
         }

@@ -70,6 +70,7 @@ apps/karmolab/.fontsrc/
 # apps/karmolab/index.html 복사. 도구 페이지·일꾼도 같은 켜에 찍힌다 (TASK-KL-088).
 apps/blog/index.html
 apps/blog/t/
+apps/blog/tmd/
 apps/blog/sw.js
 # 셸에 얹어 찍는 장 — gen:shell-pages (봇 소개 · 프로필 · WM).
 apps/blog/bot/
