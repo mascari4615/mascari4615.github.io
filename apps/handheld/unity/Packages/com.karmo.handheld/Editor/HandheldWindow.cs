@@ -227,8 +227,10 @@ namespace Handheld.EditorTools
         }
 
         /// <summary>
-        /// 폰이 열 주소. 터널이 켜져 있으면 그것, 아니면 같은 Wi-Fi 의 LAN 주소.
-        /// 폰에 필요한 건 https 가 아니라 **보안 컨텍스트**라, 같은 망 + 폰 플래그로도 붙는다.
+        /// 폰이 열 주소 — 터널 우선, 없으면 같은 Wi-Fi 의 LAN 주소.
+        ///
+        /// - 폰 요구 조건 = https 아닌 **보안 컨텍스트**
+        /// - 같은 망 + 폰 Chrome origin 플래그로도 성립
         /// </summary>
         string PhoneUrl()
         {
@@ -261,7 +263,7 @@ namespace Handheld.EditorTools
         // ── 터널 ─────────────────────────────────────────────────────────────────
         void DrawTunnelSection()
         {
-            // 같은 망 길 — 설치가 필요 없어 먼저 보여 준다.
+            // 같은 망 길 — 설치 불요라 맨 위
             Header("같은 Wi-Fi 로 (설치 없음)");
             string lan = LocalIp();
             if (lan == null)
@@ -409,7 +411,7 @@ namespace Handheld.EditorTools
         // ── QR ───────────────────────────────────────────────────────────────────
         void DrawQrSection()
         {
-            // 터널이 없어도 같은 망 주소로 찍게 한다 — 설치 없이 데모하는 길이 기본이다.
+            // 터널 없어도 같은 망 주소로 찍기 — 무설치 데모가 기본 동선
             string url = PhoneUrl();
             if (string.IsNullOrEmpty(url)) return;
 

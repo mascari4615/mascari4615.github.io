@@ -77,13 +77,12 @@ namespace Handheld.EditorTools
         }
 
         /// <summary>
-        /// **이미 돌고 있는 씬**에 리그를 얹는다 — 남의 앱에 넣는 사람이 실제로 하는 일이다.
-        /// 테스트 씬 만들기는 빈 씬을 새로 짓지만, 그건 패키지를 처음 볼 때 한 번뿐이다.
+        /// **이미 돌고 있는 씬**에 리그 얹기 — 남의 앱에 넣는 사람의 실제 동선.
         ///
-        /// 놓는 것은 둘: 서버 한 벌(+WebRTC), 그리고 뷰파인더를 그릴 카메라 한 대.
-        /// 이 카메라는 **호스트 카메라를 안 뺏는다** — 자세는 <see cref="HandheldRig.CameraFrameUpdated"/>
-        /// 로 흘려보내고, 호스트는 그걸 받아 제 카메라를 몰면 된다.
-        /// 이미 있으면 다시 안 만든다(두 번 눌러도 안전).
+        /// - 「테스트 씬 만들기」 = 빈 씬 신축. 패키지 첫 구경용 한 번뿐
+        /// - 놓는 것 둘: 서버 한 벌(+WebRTC) · 뷰파인더용 카메라 한 대
+        /// - **호스트 카메라 안 뺏음** — 자세는 <see cref="HandheldRig.CameraFrameUpdated"/> 로 흘려보냄
+        /// - 이미 있으면 재생성 없음 (두 번 눌러도 안전)
         /// </summary>
         [MenuItem("Handheld/이 씬에 붙이기", false, 20)]
         public static void AddToOpenScene()
@@ -118,7 +117,7 @@ namespace Handheld.EditorTools
                 var cam = camGo.AddComponent<Camera>();
                 cam.nearClipPlane = 0.03f;
                 cam.farClipPlane = 200f;
-                // 이미 있는 씬이다 — MainCamera 태그도 clearFlags 도 안 뺏는다.
+                // 이미 있는 씬 — MainCamera 태그·clearFlags 안 뺏음
 
                 rig = camGo.AddComponent<HandheldRig>();
                 rig.server = server;

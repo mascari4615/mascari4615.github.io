@@ -1149,9 +1149,10 @@
     try { xrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')); }
     catch (e) { xrOk = false; }
 
-    // 브라우저가 요구하는 건 https 가 아니라 **secure context** 다. 프로토콜만 보면
-    // 실제로 되는 길을 우리가 먼저 막는다 — 폰 Chrome 의 origin 플래그를 켜면
-    // isSecureContext 는 true 인데 protocol 은 여전히 http: 다. 브라우저 판정을 그대로 쓴다.
+    // 브라우저 요구 = https 아닌 **secure context**
+    //  - 프로토콜만 보면 실제로 되는 길을 우리가 먼저 막음
+    //  - 폰 Chrome origin 플래그: isSecureContext=true · protocol 은 http: 그대로
+    //  - 따라서 브라우저 판정을 그대로 사용
     if (!window.isSecureContext) {
       note.innerHTML = '센서를 쓰려면 <b>보안 컨텍스트</b>가 필요하다. 셋 중 하나:<br>' +
         '① 폰 Chrome <code>chrome://flags</code> → <code>unsafely-treat-insecure-origin-as-secure</code> 에 ' +
