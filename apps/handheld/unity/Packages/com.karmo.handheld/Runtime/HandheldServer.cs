@@ -137,6 +137,12 @@ namespace Handheld
         int _rxLines;
         volatile string _lastLine = "";
         volatile string _diagCache = "{}";
+
+        // 폰 페이지도 메인 스레드에서 미리 구워 둔다 — /diag 와 같은 이유.
+        //  - 에디터에서는 `AssetDatabase.LoadAssetAtPath` 로 찾는데, 그건 메인 스레드 전용
+        //  - 수신 스레드에서 부르면 EnsureRunningOnMainThread 예외 → **응답 없이 연결이 끊김**
+        //  - 밖에서는 「연결이 닫혔다」로만 보임 (2026-08-27 실측: 폰 페이지가 통째로 안 나감)
+        volatile string _pageCache;
         volatile string _phoneTrack = "?";        // 폰이 보고한 추적 상태
         int _recRequest;                                     // 0 없음 · 1 켜기 · 2 끄기
         double _nextDiagBake;
@@ -302,6 +308,7 @@ namespace Handheld
             double now = Application.isPlaying
                 ? Time.unscaledTimeAsDouble : UnityEngine.Time.realtimeSinceStartupAsDouble;
             if (now >= _nextDiagBake) { _nextDiagBake = now + 0.2; _diagCache = DiagJson(); }
+            if (_pageCache == null) _pageCache = PhonePageHtml;   // 메인 스레드에서만 찾을 수 있다
             if (webrtc == null) webrtc = GetComponent<HandheldWebRtc>();
             // ★ 여기서 던지면 **부르는 쪽의 나머지가 통째로 건너뛴다.** 실제로 그 일이 났다 —
             //   WebRTC 예외가 리그의 틱을 먹어서 프레임이 한 장도 안 나갔다(화면이 검었다).
@@ -436,11 +443,14 @@ namespace Handheld
             // 경로 탈출 방어도, MIME 표도, StreamingAssets 도 필요 없다.
             if (path == "/" || path == "/index.html")
             {
-                var page = PhonePageHtml;
+                // ★ 여기는 **수신 스레드다.** `PhonePageHtml` 을 직접 부르면 안 된다 —
+                //   에디터에서 AssetDatabase 를 타고, 그건 메인 스레드 전용이라 예외가 난다.
+                //   틱이 구워 둔 사본을 낸다.
+                var page = _pageCache;
                 if (page == null)
                 {
-                    WriteResponse(stream, "500 Internal Server Error", "text/plain; charset=utf-8",
-                        Encoding.UTF8.GetBytes("폰 페이지를 못 찾았다 — HandheldServer 의 phonePage 칸을 채워라"));
+                    WriteResponse(stream, "503 Service Unavailable", "text/plain; charset=utf-8",
+                        Encoding.UTF8.GetBytes("폰 페이지가 아직 안 구워졌다 — 조종석을 열어 두거나 Play 를 눌러 틱을 돌려라"));
                     return;
                 }
                 WriteResponse(stream, "200 OK", "text/html; charset=utf-8", Encoding.UTF8.GetBytes(page));
