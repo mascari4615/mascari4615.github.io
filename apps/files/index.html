@@ -64,18 +64,23 @@ body {
 .topbar .logo svg { width: 15px; height: 15px; }
 
 /* 데스크톱 전용 이동 손잡이 — 웹에서는 안 그린다 */
-.desknav { display: flex; gap: 6px; margin-bottom: 10px; }
-.desknav button {
-  border: 1px solid var(--line); background: var(--surface); color: var(--mute);
+/* 데스크톱 전용 손잡이 — 상단바 오른쪽에 붙어 카모랩 헤더와 같은 결로 놓인다.
+   따로 한 줄을 차지하면 화면에서 떠 보인다. */
+.desknav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.desknav .go {
+  border: 0; background: transparent; color: var(--mute);
   font: inherit; font-size: .8rem; font-weight: 600;
-  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  padding: 5px 10px; border-radius: 7px; cursor: pointer;
 }
-.desknav button:hover { color: var(--ink); border-color: var(--mute); }
-.desknav .nav-gap { flex: 1; }
+.desknav .go:hover { color: var(--ink); background: var(--surface-2); }
+.desknav .nav-gap { width: 8px; }
 .desknav .wc {
-  width: 30px; padding: 5px 0; border-radius: 8px; font-size: .9rem; line-height: 1;
+  width: 30px; height: 26px; border: 0; background: transparent; color: var(--mute);
+  display: grid; place-items: center; border-radius: 6px; cursor: pointer;
 }
-.desknav .wc-close:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
+.desknav .wc svg { width: 12px; height: 12px; display: block; }
+.desknav .wc:hover { background: var(--surface-2); color: var(--ink); }
+.desknav .wc-close:hover { background: var(--danger); color: #fff; }
 
 .sources {
   display: flex; gap: 4px; padding: 3px;
@@ -203,8 +208,8 @@ body {
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6a2 2 0 0 1 2-2h3.2l1.8 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
     </div>
     <h1>Files</h1>
+    <nav class="desknav" id="desknav" hidden></nav>
   </header>
-  <nav class="desknav" id="desknav" hidden></nav>
   <div class="sources">
     <button class="tab on" type="button" id="tab-laptop">내 PC</button>
     <button class="tab" type="button" id="tab-vault">클라우드</button>

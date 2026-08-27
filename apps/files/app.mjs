@@ -164,13 +164,23 @@ function mountDesktopNav() {
     return;
   }
   el.hidden = false;
+  // 아이콘은 카모랩 셸의 창 단추와 같은 모양이다 — 같은 앱인데 결이 다르면 붙인 티가 난다.
+  const ico = (d) =>
+    '<svg viewBox="0 0 12 12" aria-hidden="true">' + d + '</svg>';
   el.innerHTML =
-    '<button type="button" id="nav-back">← KarmoLab</button>' +
-    '<button type="button" id="nav-window">새 창으로</button>' +
+    '<button type="button" class="go" id="nav-back">← KarmoLab</button>' +
+    '<button type="button" class="go" id="nav-window">새 창</button>' +
     '<span class="nav-gap"></span>' +
-    '<button type="button" class="wc" id="wc-min" aria-label="최소화">–</button>' +
-    '<button type="button" class="wc" id="wc-max" aria-label="최대화">□</button>' +
-    '<button type="button" class="wc wc-close" id="wc-close" aria-label="닫기">×</button>';
+    '<button type="button" class="wc" id="wc-min" aria-label="최소화">' +
+    ico('<path d="M2.5 6 H9.5" stroke="currentColor" stroke-width="1.2" fill="none"/>') +
+    '</button>' +
+    '<button type="button" class="wc" id="wc-max" aria-label="최대화">' +
+    ico('<rect x="2.5" y="2.5" width="7" height="7" stroke="currentColor" stroke-width="1.2" fill="none"/>') +
+    '</button>' +
+    '<button type="button" class="wc wc-close" id="wc-close" aria-label="닫기">' +
+    ico('<path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" stroke="currentColor" stroke-width="1.2" fill="none"/>') +
+    '</button>';
+
   document.getElementById('nav-back').addEventListener('click', () => {
     // navigate 로 왔으므로 히스토리에 카모랩이 남아 있다.
     history.back();
