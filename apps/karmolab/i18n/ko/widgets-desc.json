@@ -16,6 +16,7 @@
   "widgets-desc.servermonitor.desc": "로컬 URL·프로세스·.env (데스크톱)",
   "widgets-desc.memo-atlas.desc": "내가 쓴 글이 어디에 쏠려 있는지 한 장으로",
   "widgets-desc.activity.desc": "내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)",
+  "widgets-desc.board.desc": "목표 하나의 진행 보드 — D-Day · 등급 · 마감 · 다음 한 수 (데스크톱 전용 · 내용은 비공개)",
   "widgets-desc.quest-log.desc": "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도",
   "widgets-desc.wm.desc": "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중",
   "widgets-desc.docs.desc": "KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차",
@@ -231,6 +232,5 @@
   "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다",
   "widgets-desc.cleanup.desc": "사진에서 거슬리는 것을 칠해서 지웁니다 — 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다",
   "widgets-desc.videobg.desc": "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다",
-  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다",
-  "widgets-desc.board.desc": "목표 하나의 진행 보드 — D-Day · 등급 · 마감 · 다음 한 수 (데스크톱 전용 · 내용은 비공개)"
+  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"
 }

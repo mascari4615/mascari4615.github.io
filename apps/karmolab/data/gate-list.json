@@ -1093,6 +1093,20 @@
       ]
     },
     {
+      "name": "smoke:board",
+      "watch": [
+        "src/widgets/board/**",
+        "scripts/smoke-board.mjs",
+        "src/tauri-bridge.ts",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
       "name": "audit:atlas-honesty",
       "watch": [
         "scripts/audit-atlas-honesty.mjs",
