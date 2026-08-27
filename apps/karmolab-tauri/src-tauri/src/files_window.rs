@@ -59,7 +59,30 @@ pub fn open_files_window(app: &tauri::AppHandle) -> Result<(), String> {
     .map_err(|e| format!("메인 스레드 마샬 실패: {}", e))
 }
 
-/// 화면(카모랩 위젯·트레이 밖의 손잡이)에서 Files 창을 열 때.
+/// 지금 창을 그대로 Files 로 바꾼다 — 기본 길.
+///
+/// 창을 새로 띄우면 창 관리가 늘어난다. 파일을 볼 때 카모랩을 동시에 볼 일은 드물고,
+/// navigate 는 히스토리를 남기므로 뒤로가기로 카모랩에 돌아온다.
+pub fn navigate_main_to_files(app: &tauri::AppHandle) -> Result<(), String> {
+    let main = app
+        .get_webview_window("main")
+        .ok_or_else(|| "main 창이 없습니다.".to_string())?;
+    let url = main.url().map_err(|e| format!("main 주소 조회 실패: {}", e))?;
+    let target = files_url_from(&url);
+    let _ = main.unminimize();
+    let _ = main.show();
+    let _ = main.set_focus();
+    main.navigate(target)
+        .map_err(|e| format!("Files 로 이동 실패: {}", e))
+}
+
+/// 지금 창을 Files 로 바꾼다 (화면 손잡이용).
+#[tauri::command]
+pub fn files_navigate(app: tauri::AppHandle) -> Result<(), String> {
+    navigate_main_to_files(&app)
+}
+
+/// 파일을 **따로 띄우고 싶을 때**. 카모랩과 나란히 봐야 하는 경우다.
 #[tauri::command]
 pub fn files_window_open(app: tauri::AppHandle) -> Result<(), String> {
     open_files_window(&app)

@@ -154,6 +154,28 @@ function isDesktop() {
   return typeof globalThis.__TAURI__?.core?.invoke === 'function';
 }
 
+// 데스크톱에서는 이 화면이 카모랩 창을 갈아탄 자리다 — 돌아갈 길과 따로 띄울 길을 준다.
+// 웹에서는 둘 다 뜻이 없으므로 아예 안 그린다.
+function mountDesktopNav() {
+  const el = document.getElementById('desknav');
+  if (!el) return;
+  if (!isDesktop()) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  el.innerHTML =
+    '<button type="button" id="nav-back">← KarmoLab</button>' +
+    '<button type="button" id="nav-window">새 창으로</button>';
+  document.getElementById('nav-back').addEventListener('click', () => {
+    // navigate 로 왔으므로 히스토리에 카모랩이 남아 있다.
+    history.back();
+  });
+  document.getElementById('nav-window').addEventListener('click', () => {
+    desktopInvoke('files_window_open').catch(() => {});
+  });
+}
+
 const UPLOAD_LABEL = {
   idle: '대기',
   preparing: '준비 중',
@@ -446,6 +468,7 @@ function load() {
   }
 }
 
+mountDesktopNav();
 window.addEventListener('hashchange', load);
 if (!location.hash) location.hash = '#laptop/';
 else load();

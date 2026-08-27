@@ -122,6 +122,13 @@ fn route(
 
         // Files 전용 창 열기 — 사람이 트레이를 누르는 길과 같은 손.
         // GUI 없이도 확인할 수 있어야 한다 (수동 경로만 있으면 검증이 사람 손에 묶인다).
+        (Method::Post, "/files/navigate") => {
+            match crate::files_window::navigate_main_to_files(app) {
+                Ok(()) => (200, json_ok(&serde_json::json!({ "navigated": true }))),
+                Err(e) => (500, json_err(&e)),
+            }
+        }
+
         (Method::Post, "/files/open") => match crate::files_window::open_files_window(app) {
             Ok(()) => (200, json_ok(&serde_json::json!({ "opened": true }))),
             Err(e) => (500, json_err(&e)),

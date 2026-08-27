@@ -63,6 +63,15 @@ body {
 }
 .topbar .logo svg { width: 15px; height: 15px; }
 
+/* 데스크톱 전용 이동 손잡이 — 웹에서는 안 그린다 */
+.desknav { display: flex; gap: 6px; margin-bottom: 10px; }
+.desknav button {
+  border: 1px solid var(--line); background: var(--surface); color: var(--mute);
+  font: inherit; font-size: .8rem; font-weight: 600;
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+}
+.desknav button:hover { color: var(--ink); border-color: var(--mute); }
+
 .sources {
   display: flex; gap: 4px; padding: 3px;
   background: var(--surface-2); border-radius: 999px; width: fit-content;
@@ -190,6 +199,7 @@ body {
     </div>
     <h1>Files</h1>
   </header>
+  <nav class="desknav" id="desknav" hidden></nav>
   <div class="sources">
     <button class="tab on" type="button" id="tab-laptop">내 PC</button>
     <button class="tab" type="button" id="tab-vault">클라우드</button>

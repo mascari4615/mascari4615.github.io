@@ -63,7 +63,7 @@ use local_dev::{
     restore_repo_root,
     LocalDevState,
 };
-use files_window::files_window_open;
+use files_window::{files_navigate, files_window_open};
 use vault_upload::{
     restore_upload_state, vault_upload_start, vault_upload_status, vault_upload_stop,
     VaultUploadState,
@@ -409,8 +409,10 @@ fn run_quick_item(
             let _ = open::that(url);
         }
         tray_menu::QuickKind::Files => {
-            if let Err(e) = files_window::open_files_window(app) {
-                eprintln!("[files] 창 열기 실패: {e}");
+            // 기본은 **지금 창 안에서** 전환 — 창을 늘리지 않는다.
+            // 따로 띄우는 길은 Files 화면 안의 「새 창」 손잡이다.
+            if let Err(e) = files_window::navigate_main_to_files(app) {
+                eprintln!("[files] Files 로 이동 실패: {e}");
             }
         }
     }
