@@ -71,6 +71,8 @@ apps/karmolab/.fontsrc/
 apps/blog/index.html
 apps/blog/t/
 apps/blog/tmd/
+# 커뮤니티 글 정적 장 — gen:community (노트북 서버에서 받아 찍는다).
+apps/blog/c/
 apps/blog/sw.js
 # 셸에 얹어 찍는 장 — gen:shell-pages (봇 소개 · 프로필 · WM).
 apps/blog/bot/
