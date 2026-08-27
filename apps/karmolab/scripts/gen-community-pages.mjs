@@ -25,7 +25,7 @@ const API = process.env.KARMOLAB_API_BASE || 'https://yawnbot.mascari4615.com';
 const SITE = 'https://blog.mascari4615.com';
 
 const outArg = process.argv.indexOf('--out');
-const OUT = outArg > 0 ? path.resolve(process.argv[outArg + 1]) : path.join(root, '..', 'blog', 'karmolab', 'c');
+const OUT = outArg > 0 ? path.resolve(process.argv[outArg + 1]) : path.join(root, '..', 'blog', 'c');
 
 /** 몇 장까지 찍을지. 글이 많아져도 배포가 안 길어지게. */
 const MAX_PAGES = 300;

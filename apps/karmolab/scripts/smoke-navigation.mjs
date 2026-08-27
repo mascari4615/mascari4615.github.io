@@ -52,7 +52,7 @@ const server = http.createServer((req, res) => {
 /* 이 검사는 **도구 상세 페이지가 이미 만들어져 있어야** 말이 된다 (`npm run gen:tool-pages`).
    없는데 그냥 돌면 「링크를 못 찾았다」로 죽는데, 그건 제품 고장이 아니라 **검사를 못 돌린 것**이다.
    그 둘을 같은 빨간불로 말했더니 사이트 배포가 몇 시간 섰다 (2026-08-08). */
-const toolPagesDir = path.join(repoRoot, 'apps', 'blog', 'karmolab', 't');
+const toolPagesDir = path.join(repoRoot, 'apps', 'blog', 't');
 /* 「못 돌린다」를 **빨강으로** 말하면 안 된다 — 바로 아래 짝 검사(HUB)는 건너뛰는데 이쪽만
  * 죽어서, 세 슬롯의 push 와 배포가 통째로 섰다(2026-08-08). 두 문지기가 같은 일에 서로 다른
  * 답을 내고 있었다. 이제 build 가 이 검사 앞에서 페이지를 찍으므로(`gen:tool-pages`),
