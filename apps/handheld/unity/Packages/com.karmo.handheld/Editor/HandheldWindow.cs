@@ -30,7 +30,7 @@ namespace Handheld.EditorTools
         string _qrFor = "";
         Vector2 _scroll;
 
-        [MenuItem("Handheld/조종석 %#h")]
+        [MenuItem("Handheld/Cockpit %#h")]
         public static void Open()
         {
             var w = GetWindow<HandheldWindow>("핸드헬드");
@@ -188,7 +188,7 @@ namespace Handheld.EditorTools
                 (HandheldEditorDriver.HasServer ? "" : "HandheldServer ") +
                 (HandheldEditorDriver.HasRig ? "" : "HandheldRig ") +
                 "를 못 찾았다 — 그러면 폰에 아무것도 안 간다(화면이 검다).\n" +
-                "「테스트 씬 만들기」로 씬을 짓거나, 그 컴포넌트가 켜져 있는지 봐라.",
+                "「Handheld/Create Test Scene」 으로 씬을 짓거나, 그 컴포넌트가 켜져 있는지 봐라.",
                 MessageType.Warning);
         }
 
@@ -680,7 +680,7 @@ namespace Handheld.EditorTools
                 else
                 {
                     if (GUILayout.Button("씬에 초점 흐림 다시 붙이기"))
-                        EditorApplication.ExecuteMenuItem("Handheld/URP/씬에 초점 흐림 붙이기");
+                        EditorApplication.ExecuteMenuItem("Handheld/URP/Add Depth of Field to Scene");
                 }
             }
         }

@@ -7,14 +7,14 @@ namespace Handheld.EditorTools
 {
     /// <summary>
     /// 테스트 씬을 코드로 짓는다 — 씬 파일을 손으로 쓰지 않는다.
-    /// 메뉴: Handheld / 테스트 씬 만들기 (배치 모드에서는 -executeMethod 로).
+    /// 메뉴: Handheld / Create Test Scene (배치 모드에서는 -executeMethod 로).
     /// TASK-KAR-230.
     /// </summary>
     public static class HandheldSetup
     {
         const string ScenePath = "Assets/Scenes/Handheld.unity";
 
-        [MenuItem("Handheld/테스트 씬 만들기")]
+        [MenuItem("Handheld/Create Test Scene")]
         public static void BuildScene()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -67,7 +67,7 @@ namespace Handheld.EditorTools
             // URP 가 깔려 있으면 초점 흐림까지 붙여 둔다 — 없으면 조용히 건너뛴다
             // (리그는 파이프라인 없이도 초점 「값」은 계속 낸다).
             if (HandheldUrpInstaller.UrpInstalled)
-                EditorApplication.ExecuteMenuItem("Handheld/URP/씬에 초점 흐림 붙이기");
+                EditorApplication.ExecuteMenuItem("Handheld/URP/Add Depth of Field to Scene");
 
             EditorSceneManager.MarkSceneDirty(scene);
             System.IO.Directory.CreateDirectory("Assets/Scenes");
@@ -79,12 +79,12 @@ namespace Handheld.EditorTools
         /// <summary>
         /// **이미 돌고 있는 씬**에 리그 얹기 — 남의 앱에 넣는 사람의 실제 동선.
         ///
-        /// - 「테스트 씬 만들기」 = 빈 씬 신축. 패키지 첫 구경용 한 번뿐
+        /// - 「Handheld/Create Test Scene」 = 빈 씬 신축. 패키지 첫 구경용 한 번뿐
         /// - 놓는 것 둘: 서버 한 벌(+WebRTC) · 뷰파인더용 카메라 한 대
         /// - **호스트 카메라 안 뺏음** — 자세는 <see cref="HandheldRig.CameraFrameUpdated"/> 로 흘려보냄
         /// - 이미 있으면 재생성 없음 (두 번 눌러도 안전)
         /// </summary>
-        [MenuItem("Handheld/이 씬에 붙이기", false, 20)]
+        [MenuItem("Handheld/Add to Open Scene", false, 20)]
         public static void AddToOpenScene()
         {
             var scene = SceneManager.GetActiveScene();
@@ -130,7 +130,7 @@ namespace Handheld.EditorTools
 
             EditorSceneManager.MarkSceneDirty(scene);
             Selection.activeGameObject = rig.gameObject;
-            Debug.Log("[Handheld] 이 씬에 붙였다 — 조종석(Ctrl+Shift+H)에서 서버를 켜고 폰으로 QR 을 찍어라. " +
+            Debug.Log("[Handheld] 이 씬에 붙였다 — 조종석 Handheld/Cockpit (Ctrl+Shift+H)에서 서버를 켜고 폰으로 QR 을 찍어라. " +
                       "호스트 카메라에 값을 넘기려면 rig.CameraFrameUpdated 를 받아라.");
         }
 
@@ -226,7 +226,7 @@ namespace Handheld.EditorTools
             EditorApplication.EnterPlaymode();
         }
 
-        [MenuItem("Handheld/씬 열고 Play")]
+        [MenuItem("Handheld/Open Scene and Play")]
         static void OpenAndPlayMenu() => OpenAndPlay();
 
         /// <summary>배치 모드 진입점 (-executeMethod Handheld.EditorTools.HandheldSetup.BuildSceneBatch).</summary>

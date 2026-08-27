@@ -94,7 +94,7 @@ namespace Handheld.EditorTools
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("조종석", EditorStyles.miniButtonLeft))
-                        EditorApplication.ExecuteMenuItem("Handheld/조종석");
+                        EditorApplication.ExecuteMenuItem("Handheld/Cockpit");
 
                     using (new EditorGUI.DisabledScope(server == null))
                     {

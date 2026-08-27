@@ -24,7 +24,7 @@ namespace Handheld.Urp
         const string ProfilePath = SettingsDir + "/HandheldVolume.asset";
 
         /// <summary>URP 에셋을 만들고 그래픽스·품질 설정에 꽂는다. 이미 URP 면 아무것도 안 한다.</summary>
-        [MenuItem("Handheld/URP/파이프라인 배선", false, 100)]
+        [MenuItem("Handheld/URP/Wire Pipeline", false, 100)]
         public static void WirePipeline()
         {
             try
@@ -78,13 +78,13 @@ namespace Handheld.Urp
         }
 
         /// <summary>씬에 글로벌 볼륨 + 피사계 심도를 놓고, 카메라에 값 전달자를 붙인다.</summary>
-        [MenuItem("Handheld/URP/씬에 초점 흐림 붙이기", false, 101)]
+        [MenuItem("Handheld/URP/Add Depth of Field to Scene", false, 101)]
         public static void WireDepthOfField()
         {
             var cam = FindHandheldCamera();
             if (cam == null)
             {
-                Debug.LogError("[Handheld] 씬에서 카메라를 못 찾았다 — 먼저 「Handheld/테스트 씬 만들기」.");
+                Debug.LogError("[Handheld] 씬에서 카메라를 못 찾았다 — 먼저 「Handheld/Create Test Scene」.");
                 return;
             }
 

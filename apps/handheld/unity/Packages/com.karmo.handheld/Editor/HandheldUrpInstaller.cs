@@ -23,8 +23,8 @@ namespace Handheld.EditorTools
         const string UrpTypeName =
             "UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset, Unity.RenderPipelines.Universal.Runtime";
 
-        const string MenuWirePipeline = "Handheld/URP/파이프라인 배선";
-        const string MenuWireDof = "Handheld/URP/씬에 초점 흐림 붙이기";
+        const string MenuWirePipeline = "Handheld/URP/Wire Pipeline";
+        const string MenuWireDof = "Handheld/URP/Add Depth of Field to Scene";
 
         const string PendingKey = "Handheld.Urp.WireAfterReload";
 
@@ -43,7 +43,7 @@ namespace Handheld.EditorTools
         /// URP 를 깔고, 다 깔리면 파이프라인 배선 + 씬 볼륨까지 이어서 한다.
         /// 버전은 안 적는다 — 패키지 매니저가 이 유니티에 맞는 판을 고르게 둔다.
         /// </summary>
-        [MenuItem("Handheld/URP/URP 켜기 (설치 + 배선)", false, 90)]
+        [MenuItem("Handheld/URP/Enable URP (Install + Wire)", false, 90)]
         public static void InstallAndWire()
         {
             if (UrpInstalled)
@@ -93,7 +93,7 @@ namespace Handheld.EditorTools
         }
 
         /// <summary>파이프라인 + 씬 볼륨 배선. URP 가 이미 깔려 있어야 한다.</summary>
-        [MenuItem("Handheld/URP/배선만 다시", false, 91)]
+        [MenuItem("Handheld/URP/Rewire Only", false, 91)]
         public static void Wire()
         {
             if (!UrpInstalled)
