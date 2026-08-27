@@ -346,6 +346,31 @@ pub(crate) fn is_pid_alive(pid: u32) -> bool {
         .unwrap_or(false)
 }
 
+/// **저장소 자리만** 되살린다. 파일 한 번 읽기라 즉시 끝난다 — PID 생존 확인(외부 프로세스)
+/// 과 달리 메인 흐름을 안 막는다.
+///
+/// 트레이 「빠른 손잡이」는 앱이 뜰 때 *한 번* 그려지고, 그 줄은 저장소 자리 아래의
+/// `tray-menu.json` 이 정한다. 자리 복원을 background thread 에 맡겼더니 트레이가 먼저
+/// 그려져 **손잡이가 통째로 빈 채로** 떴다 (2026-08-27). 그래서 트레이를 세우기 전에
+/// 이것만 동기로 부른다.
+pub fn restore_repo_root(app: &tauri::AppHandle) {
+    let persisted = load_persisted_state(app);
+    let Some(root) = persisted.repo_root else {
+        return;
+    };
+    let Some(state) = app.try_state::<LocalDevState>() else {
+        return;
+    };
+    let mut guard = match state.repo_root.lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    if guard.is_none() {
+        *guard = Some(root);
+    }
+    drop(guard);
+}
+
 /// 카모랩 부팅 시 호출. 영속된 PID 중 살아있는 것만 in-memory map에 복원하고
 /// 죽은 항목은 영속 파일에서도 제거.
 /// 앱이 뜰 때 지난 판의 상태를 되살린다 — 살아 있는 자식 PID + **저장소 자리**.
@@ -353,18 +378,8 @@ pub(crate) fn is_pid_alive(pid: u32) -> bool {
 /// 저장소 자리를 여기서 안 되살리면, 화면이 뜨기 전에는 아무것도 못 한다
 /// (트레이 빠른 손잡이가 첫 클릭에서 「저장소 루트를 먼저 설정하세요」로 죽었다).
 pub fn restore_persisted_state(app: &tauri::AppHandle) {
+    restore_repo_root(app);
     let persisted = load_persisted_state(app);
-
-    if let (Some(root), Some(state)) = (
-        persisted.repo_root.as_deref(),
-        app.try_state::<LocalDevState>(),
-    ) {
-        if let Ok(mut g) = state.repo_root.lock() {
-            if g.is_none() {
-                *g = Some(root.to_string());
-            }
-        }
-    }
 
     if persisted.pids.is_empty() {
         return;
