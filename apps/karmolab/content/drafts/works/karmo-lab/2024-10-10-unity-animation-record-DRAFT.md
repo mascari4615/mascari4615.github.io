@@ -24,7 +24,7 @@ hidden: true
 
 ### 목표
 
-Chanity에 사용될 모션녹화 모듈 개발.  
+외부 프로젝트에 쓸 모션녹화 모듈 개발.  
 
 #### 아바타 Transform을 이용해서 FBX파일로
 
@@ -34,7 +34,7 @@ Chanity에 사용될 모션녹화 모듈 개발.
 #### 아바타 Animation 데이터는
 
 - 아바타 Animator 컴포넌트에서 `.GetHumanBone()` 아니면 `.GetMuscle()`로 값을 가져오는걸로 하는게 좋을 것. (구상)
-- 접근 가능한 값은 Animator랑 Avatar 클래스 (Chanity Avatar 클래스겠지?)
+- 접근 가능한 값은 Animator랑 Avatar 클래스 (그쪽 Avatar 클래스겠지?)
 
 #### 목표
 
