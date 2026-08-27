@@ -5,7 +5,6 @@ mod app_launcher;
 mod adventure;
 mod agent_team;
 mod alarm;
-mod board;
 mod cockpit_graph;
 mod claude_env;
 mod desktop_login;
@@ -45,7 +44,6 @@ use ai_environment::ai_environment_audit;
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };
-use board::board_read;
 use desktop_login::desktop_login_start;
 use cockpit_graph::{cockpit_get_graph_spec, cockpit_save_graph_coords, cockpit_get_activity};
 use questlog_hub::get_questlog_hub;

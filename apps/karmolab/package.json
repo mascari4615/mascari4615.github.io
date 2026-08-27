@@ -221,7 +221,6 @@
     "smoke:badapple-tool": "node scripts/smoke-badapple-tool.mjs",
     "smoke:batchretry": "node scripts/smoke-batch-retry.mjs",
     "smoke:bm": "node scripts/smoke-bluemarble-frame.mjs",
-    "smoke:board": "node scripts/smoke-board.mjs",
     "smoke:burnnote": "node scripts/smoke-burnnote.mjs",
     "smoke:calcshell": "node scripts/smoke-calc-shell.mjs",
     "smoke:codeshot": "node scripts/smoke-codeshot.mjs",
