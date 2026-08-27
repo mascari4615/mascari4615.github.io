@@ -68,6 +68,7 @@ use local_dev::{
 use files_window::{files_navigate, files_window_open};
 use vault_upload::{
     restore_upload_state, vault_upload_start, vault_upload_status, vault_upload_stop,
+    vault_upload_targets,
     VaultUploadState,
 };
 use part_fetch::{part_fetch, part_fetched_path};

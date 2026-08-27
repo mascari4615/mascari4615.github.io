@@ -175,6 +175,49 @@ fn validate_target(target: &str) -> Result<String, String> {
     Ok(t.to_string())
 }
 
+/// `.env` 에서 값 하나. **여기서 읽고 여기서 끝난다** — 밖으로 나가는 것은 폴더 *이름* 뿐이고
+/// 원본 뿌리의 절대경로는 command 반환값에도 로그에도 실리지 않는다.
+///
+/// 왜 읽나: 올릴 폴더를 사람이 손으로 적게 두면 오타 한 글자에 아무 일도 안 일어나거나
+/// 엉뚱한 걸 올린다 (2026-08-27 「폴더 직접 입력하는거 에반데」). 고를 수 있어야 한다.
+fn env_value(app: &tauri::AppHandle, key: &str) -> Option<String> {
+    let path = repo_root(app).ok()?.join(UPLOADER_DIR).join(".env");
+    let raw = fs::read_to_string(path).ok()?;
+    for line in raw.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let (k, v) = line.split_once('=')?;
+        if k.trim() == key {
+            let v = v.trim();
+            let v = v.strip_prefix(char::from(34)).and_then(|x| x.strip_suffix(char::from(34))).unwrap_or(v);
+            return Some(v.to_string());
+        }
+    }
+    None
+}
+
+/// 올릴 수 있는 폴더 = 금고 뿌리 **바로 아래** 폴더들. 이름만 준다.
+#[tauri::command]
+pub async fn vault_upload_targets(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let root = env_value(&app, "FILES_VAULT_ROOT")
+            .ok_or_else(|| "apps/files/.env 에 FILES_VAULT_ROOT 가 없습니다.".to_string())?;
+        let mut names: Vec<String> = fs::read_dir(&root)
+            .map_err(|_| "원본 뿌리를 열 수 없습니다.".to_string())?
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
+            .filter_map(|e| e.file_name().into_string().ok())
+            .filter(|n| !n.starts_with('.'))
+            .collect();
+        names.sort();
+        Ok(names)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
 fn repo_root(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let state = app
         .try_state::<LocalDevState>()

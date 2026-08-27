@@ -216,6 +216,8 @@ const UPLOAD_LABEL = {
 };
 
 let uploadTimer = 0;
+/** 올릴 수 있는 폴더 이름들. 사람이 손으로 적게 두면 오타 한 글자에 엉뚱한 일이 난다. */
+let uploadTargets = [];
 
 function stopUploadPolling() {
   if (uploadTimer) clearInterval(uploadTimer);
@@ -242,8 +244,13 @@ function renderUploadPanel(st) {
     (st.startedAt ? ' · 시작 ' + esc(st.startedAt) : '') +
     '</div>' +
     '<div class="up-acts">' +
-    '<input id="up-target" type="text" placeholder="올릴 폴더" value="' + esc(target) + '"' +
-    (busy ? ' disabled' : '') + '>' +
+    '<select id="up-target"' + (busy ? ' disabled' : '') + '>' +
+    (uploadTargets.length
+      ? uploadTargets
+          .map((t) => '<option value="' + esc(t) + '"' + (t === target ? ' selected' : '') + '>' + esc(t) + '</option>')
+          .join('')
+      : '<option value="">올릴 폴더가 없습니다</option>') +
+    '</select>' +
     (busy
       ? '<button id="up-stop" type="button">중지</button>'
       : '<button id="up-start" type="button">' + (st.status === 'stopped' ? '이어서 올리기' : '올리기') + '</button>') +
@@ -300,7 +307,12 @@ function mountUploader() {
     el.innerHTML = '<div class="up-note">올리기는 PC 앱에서만 됩니다. 여기서는 보기만 가능합니다.</div>';
     return;
   }
-  pollUpload();
+  desktopInvoke('vault_upload_targets')
+    .then((list) => {
+      uploadTargets = Array.isArray(list) ? list : [];
+      return pollUpload();
+    })
+    .catch(showUploadError);
   stopUploadPolling();
   uploadTimer = setInterval(pollUpload, 5000);
 }
