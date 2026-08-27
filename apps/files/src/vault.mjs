@@ -259,6 +259,15 @@ export async function putFile(session, path, bytes, opts = {}) {
   });
 }
 
+/** 파일별 청크 키. 열람 저장에 **암호문을 그대로 옮길 때**만 쓴다 — 복호가 필요 없는 일이다. */
+export async function fileChunkKeys(session) {
+  const index = await loadIndex(session);
+  return index.files.map((f) => ({
+    path: f.path,
+    keys: Array.from({ length: f.chunks }, (_, i) => `c/${f.id}/${i}`),
+  }));
+}
+
 export async function listFiles(session) {
   const index = await loadIndex(session);
   return index.files.map((f) => ({

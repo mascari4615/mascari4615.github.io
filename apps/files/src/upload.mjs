@@ -71,6 +71,8 @@ console.log('금고 염');
    「진행 수치는 안 보입니다」가 된다(2026-08-27 조수님이 그 화면을 봤다). 누가 띄우든
    같은 자리에 적으면 앱이 읽는다. 여기 적는 것은 **집계 수치뿐** — 경로·파일 이름은 안 적는다. */
 const progressPath = new URL('../.upload-progress.json', import.meta.url);
+/** 열람 저장(R2)에 보낸 수. writeProgress 가 첫 호출부터 읽으므로 그 위에 선다. */
+let mirroredCount = 0;
 async function writeProgress(stage, total, done, uploaded, skipped) {
   const body = JSON.stringify({
     stage,
@@ -78,6 +80,9 @@ async function writeProgress(stage, total, done, uploaded, skipped) {
     done,
     uploaded,
     skipped,
+    // 열람 저장(R2)에 보낸 수. 「R2 로 가긴 하나」를 눈으로 셀 수 있어야 한다 —
+    // 안 그러면 안 가는 건지 지금 올리는 게 영상뿐인 건지 구분이 안 된다.
+    mirrored: mirroredCount,
     pid: process.pid,
     updatedAt: new Date().toISOString(),
   });
@@ -104,7 +109,9 @@ try {
       }
     }
     // 청크를 쓰는 자리는 session.store 다 — 파일마다 갈아끼워 R2 로 갈 것만 보낸다.
-    session.store = mirrorable(rel) ? mirrored : primary;
+    const toMirror = mirrorable(rel);
+    if (toMirror) mirroredCount += 1;
+    session.store = toMirror ? mirrored : primary;
     await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
     session.store = mirrored;
     n += 1;
