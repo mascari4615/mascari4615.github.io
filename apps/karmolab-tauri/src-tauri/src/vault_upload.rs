@@ -83,14 +83,39 @@ pub struct UploadStatus {
 /// 올라가는 중이다 — 그 상태에서 `올리기` 를 누르면 전송기가 **둘 겹쳐 돈다**
 /// (2026-08-27 실제로 그 화면을 봤다). 명령줄에 전송기 스크립트가 있는 프로세스를 찾는다.
 fn find_external_uploader() -> Option<u32> {
-    // 경로 구분자는 신경 쓰지 않는다 — 스크립트 파일 이름만 보면 충분하다.
-    let needle = "upload.mjs";
     list_all_processes()
         .into_iter()
-        .find(|(_, cmd)| {
-            cmd.contains(needle)
-        })
+        .find(|(_, cmd)| looks_like_uploader(cmd))
         .map(|(pid, _)| pid)
+}
+
+/// 명령줄이 **전송기 자신**인가.
+///
+/// 「upload.mjs 가 들어 있으면 전송기」로 봤더니 그 글자를 품은 셸(`bash -c "... upload.mjs ..."`)
+/// 까지 붙들었다 — 그 상태로 중지를 누르면 엉뚱한 프로세스를 죽인다 (2026-08-27 실제로
+/// AI 세션의 셸을 붙든 채로 떴다). 그래서 셸로 시작하는 줄은 배제하고 node 로 도는 것만 본다.
+fn looks_like_uploader(cmd: &str) -> bool {
+    let lower = cmd.to_lowercase();
+    if !lower.contains("upload.mjs") {
+        return false;
+    }
+    // 실행체 = 따옴표로 감쌌으면 그 안 전체, 아니면 첫 공백까지.
+    // 경로에 공백이 들어간다 — 공백으로 끊으면 엉뚱한 조각을 본다.
+    let head: &str = if let Some(rest) = lower.strip_prefix(char::from(34)) {
+        rest.split(char::from(34)).next().unwrap_or("")
+    } else {
+        lower.split_whitespace().next().unwrap_or("")
+    };
+    let sep = ['/', char::from(92)];
+    let exe = head.rsplit(sep).next().unwrap_or(head);
+    if matches!(
+        exe,
+        "bash.exe" | "bash" | "sh" | "cmd.exe" | "cmd" | "powershell.exe" | "powershell"
+            | "pwsh.exe" | "pwsh" | "wsl.exe"
+    ) {
+        return false;
+    }
+    exe.starts_with("node")
 }
 
 fn state_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -461,6 +486,25 @@ mod tests {
         assert!(validate_target("a\\b").is_err());
         assert!(validate_target("a;rm -rf").is_err());
         assert!(validate_target("a$(x)").is_err());
+    }
+
+    #[test]
+    fn 전송기_줄만_전송기로_본다() {
+        // 진짜 전송기
+        assert!(looks_like_uploader(
+            r#""C:\Program Files\nodejs\node.exe" src/upload.mjs --only 정리"#
+        ));
+        assert!(looks_like_uploader("node src/upload.mjs"));
+        // 전송기를 **말하는** 줄 — 붙들면 엉뚱한 프로세스를 죽인다
+        assert!(!looks_like_uploader(
+            r#""C:\Program Files\Git\usr\bin\bash.exe" -c "node src/upload.mjs""#
+        ));
+        assert!(!looks_like_uploader("cmd.exe /c node src/upload.mjs"));
+        assert!(!looks_like_uploader(
+            "powershell.exe -Command Get-Process | grep upload.mjs"
+        ));
+        // 아예 무관한 줄
+        assert!(!looks_like_uploader("node other.mjs"));
     }
 
     #[test]
