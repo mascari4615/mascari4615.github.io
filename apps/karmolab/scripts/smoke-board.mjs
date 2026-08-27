@@ -91,17 +91,21 @@ page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
 await page.goto(`${base}#board`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('.board-wrap', { timeout: 30000 });
-await page.waitForSelector('.board-table tbody tr', { timeout: 30000 });
+await page.waitForSelector('.board-blocks span', { timeout: 30000 });
 
 const seen = await page.evaluate(() => {
   const q = (s) => Array.from(document.querySelectorAll(s));
-  const rows = q('.board-table tbody tr');
   return {
-    dday: q('.board-dday .num').map((e) => e.textContent.trim()),
-    grades: rows.map((r) => r.querySelector('.board-g').textContent.trim()),
-    dues: rows.map((r) => r.querySelector('.board-due').textContent.trim()),
-    over: q('.board-due.over').length,
-    firstNeed: rows[0]?.querySelector('td:nth-child(2) b')?.textContent.trim() ?? '',
+    dday: document.querySelector('.board-hero .dday')?.textContent.trim() ?? '',
+    /* 시간 막대가 실제로 얼마쯤 차 있나 — 0%/100% 로 눌리면 그림이 거짓말을 한다. */
+    gone: document.querySelector('.board-time i')?.style.right ?? '',
+    gradeRows: q('.board-grow').length,
+    blocks: q('.board-blocks span').length,
+    blockNames: q('.board-blocks span').map((e) => e.title),
+    months: q('.board-month').length,
+    late: q('.board-dots i.dot-late').length,
+    on: q('.board-dots i.dot-done').length,
+    pick: document.querySelector('.board-lead .what')?.textContent.trim() ?? '',
     foot: document.querySelector('.board-foot')?.textContent ?? '',
     /* 넘치면 굴러야 한다 — 패널은 스스로 안 구르므로 이 값이 'auto' 가 아니면 아래가 잘린다. */
     overflowY: getComputedStyle(document.querySelector('.board-wrap')).overflowY
@@ -111,11 +115,16 @@ const seen = await page.evaluate(() => {
 const fail = [];
 const eq = (name, got, want) => { if (got !== want) fail.push(`${name}: ${JSON.stringify(got)} ≠ ${JSON.stringify(want)}`); };
 
-eq('행 수', seen.grades.length, 4);                    // 등급 정의 표(2행)를 안 먹었나
-eq('지난 기한 표시', seen.over, 1);                     // 2000-01 하나만 빨강
-eq('맨 위 = 가장 급한 것', seen.firstNeed, '요구 둘');   // 마감순 정렬
-if (!seen.dues.at(-1).includes('미정')) fail.push(`날짜 없는 것이 맨 아래가 아니다: ${seen.dues.at(-1)}`);
-if (seen.dday.length !== 2 || !seen.dday.every((d) => /^D-\d+$/.test(d))) fail.push(`D-Day 가 안 나온다: ${JSON.stringify(seen.dday)}`);
+eq('등급 줄', seen.gradeRows, 5);
+eq('칸 수', seen.blocks, 4);                       // 앞머리의 「등급 정의」 표를 먹으면 6이 된다
+eq('달 묶음', seen.months, 4);                     // 2000-01 · 2026-09 · 2099-12 · 날짜 없음(미정)
+eq('기한 지난 점', seen.late, 1);                  // 2000-01 하나
+eq('지금 제일 싼 것', seen.pick, '요구 하나');      // ◐ 중 기한이 가장 가까운 것
+if (!/^D-\d+$/.test(seen.dday)) fail.push(`D-Day 가 안 나온다: ${seen.dday}`);
+if (!seen.blockNames.every(Boolean)) fail.push('칸에 이름이 안 붙었다 — 마우스를 올려도 뭔지 모른다');
+if (!/^\d+(\.\d+)?%$/.test(seen.gone) || seen.gone === '0%' || seen.gone === '100%') {
+  fail.push(`시간 막대가 이상하다: right=${seen.gone}`);
+}
 if (!seen.foot.includes('career/goal/scoreboard.md')) fail.push('읽은 경로가 안 보인다');
 if (seen.overflowY !== 'auto') fail.push(`넘쳐도 안 구른다: overflow-y=${seen.overflowY}`);
 if (errors.length) fail.push(`콘솔 빨강 ${errors.length}건: ${errors.slice(0, 3).join(' / ')}`);
@@ -127,4 +136,4 @@ if (fail.length) {
   console.error('[board] 빨강\n  - ' + fail.join('\n  - '));
   process.exit(1);
 }
-console.log(`[board] OK — 행 ${seen.grades.length} · 등급 ${seen.grades.join('')} · D-Day ${seen.dday.join(' ')} · 지난 것 ${seen.over}`);
+console.log(`[board] OK — 칸 ${seen.blocks} · 등급 줄 ${seen.gradeRows} · 달 ${seen.months} · 지난 것 ${seen.late} · ${seen.dday} · 지난 시간 ${100 - parseFloat(seen.gone)}%`);

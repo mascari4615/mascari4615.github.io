@@ -27,13 +27,15 @@ import { isDesktop, invoke } from '../../tauri-bridge';
     id: string;
     docKey: string;              // Rust 쪽 허용 목록의 열쇠
     titleKey: string;
-    milestones: Milestone[];     // D-Day 로 셀 날짜들
+    startedAt: string;           // 언제부터 — 「얼마나 왔나」의 왼쪽 끝
+    milestones: Milestone[];     // D-Day 로 셀 날짜들. 마지막 것이 결승선이다
   }
   const TRACKS: Track[] = [
     {
       id: 'career',
       docKey: 'career-scoreboard',
       titleKey: 'board.track.career',
+      startedAt: '2026-08-26',
       milestones: [
         { date: '2027-02-01', label: 'board.ms.discharge' },
         { date: '2027-08-01', label: 'board.ms.apply' }
@@ -72,6 +74,9 @@ import { isDesktop, invoke } from '../../tauri-bridge';
   /** "2026-09" → 그 달 말일 / "2026-09-30" → 그날. 못 읽으면 null. */
   function parseDue(raw: string): number | null {
     const s = raw.replace(/\*/g, '').trim();
+    /* 「즉시」는 날짜가 아니지만 **가장 급한 것**이다. 날짜 없음으로 밀어 두면 제일 급한 칸이
+       화면 맨 끝에 가서 안 보인다(실측: 방어 꼬리질문이 그렇게 묻혔다). 오늘로 친다. */
+    if (/^(즉시|now|今すぐ)$/i.test(s)) return todayUtc();
     let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
     if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
     m = /^(\d{4})-(\d{2})$/.exec(s);
@@ -143,31 +148,53 @@ import { isDesktop, invoke } from '../../tauri-bridge';
 
   const CSS = `
 /* layout:'full' 의 패널은 flex:1 · min-height:0 까지만 잡아 준다 — **스스로 안 구른다.**
-   그래서 넘치는 만큼이 그냥 잘린다(2026-08-28 실측: 항목이 화면보다 길면 아래가 안 보인다).
-   구르는 자리는 위젯이 정한다. quest-log 도 같은 이유로 자기 뿌리에 이 셋을 갖고 있다. */
-.board-wrap{display:flex;flex-direction:column;gap:16px;padding:4px 2px 24px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
-.board-head{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
-.board-dday{flex:1 1 180px;min-width:160px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-.board-dday .lbl{font-size:var(--font-size-xs);color:var(--text-tertiary)}
-.board-dday .num{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1.1}
-.board-dday .sub{font-size:var(--font-size-xs);color:var(--text-secondary)}
-.board-bar{display:flex;gap:8px;flex-wrap:wrap}
-.board-chip{display:flex;align-items:center;gap:6px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:var(--font-size-sm)}
-.board-chip b{font-variant-numeric:tabular-nums}
-.board-table{width:100%;border-collapse:collapse;font-size:var(--font-size-sm)}
-.board-table th{text-align:left;font-size:var(--font-size-xs);color:var(--text-tertiary);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
-.board-table td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:top}
-.board-table tr:hover td{background:var(--bg-secondary)}
-.board-g{display:inline-block;min-width:22px;text-align:center;font-weight:800}
-.board-g.g-done{color:#3fb950}.board-g.g-half{color:#d29922}.board-g.g-part{color:#58a6ff}
-.board-g.g-none{color:#f85149}.board-g.g-unknown{color:var(--text-tertiary)}
-.board-due{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
-.board-due.over{color:#f85149;font-weight:700}
-.board-due.soon{color:#d29922;font-weight:600}
-.board-next{color:var(--text-secondary)}
+   그래서 넘치는 만큼이 그냥 잘린다(2026-08-28 실측). 구르는 자리는 위젯이 갖는다. */
+.board-wrap{display:flex;flex-direction:column;gap:28px;padding:8px 4px 32px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.board-hero{display:flex;flex-direction:column;gap:10px}
+.board-hero .row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.board-hero .name{font-size:var(--font-size-lg);font-weight:700}
+.board-hero .dday{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1}
+.board-hero .sub{font-size:var(--font-size-xs);color:var(--text-tertiary)}
+.board-time{position:relative;height:10px;border-radius:999px;background:var(--bg-secondary);border:1px solid var(--border);overflow:hidden}
+.board-time i{position:absolute;inset:0 auto 0 0;background:var(--accent);opacity:.55}
+.board-ends{display:flex;justify-content:space-between;font-size:var(--font-size-xs);color:var(--text-tertiary)}
+
+.board-grades{display:flex;flex-direction:column;gap:7px;max-width:760px}
+.board-grow{display:grid;grid-template-columns:104px auto 1fr;align-items:center;gap:12px}
+.board-grow.empty{opacity:.45}
+.board-blocks .n{font-size:var(--font-size-xs);color:var(--text-tertiary);font-variant-numeric:tabular-nums;align-self:center;margin-left:4px}
+.board-grow .lbl{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:right}
+.board-blocks{display:flex;gap:5px;flex-wrap:wrap}
+.board-blocks span{width:22px;height:22px;border-radius:5px;background:currentColor;opacity:.85}
+.board-grow .note{font-size:var(--font-size-xs);color:var(--text-tertiary);white-space:nowrap}
+.g-done{color:#3fb950}.g-half{color:#d29922}.g-part{color:#58a6ff}
+.g-none{color:#f85149}.g-unknown{color:var(--text-tertiary)}
+
+.board-months{display:flex;gap:22px;flex-wrap:wrap}
+.board-month{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.board-month .m{font-size:var(--font-size-xs);color:var(--text-tertiary);font-variant-numeric:tabular-nums}
+.board-dots{display:flex;gap:5px}
+.board-dots i{width:11px;height:11px;border-radius:999px;border:1.5px solid currentColor;display:block}
+.dot-todo{color:var(--text-tertiary)}
+.dot-done{color:#3fb950;background:currentColor}
+.dot-late{color:#f85149;background:currentColor}
+
+.board-lead{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+.board-lead .cap{font-size:var(--font-size-xs);color:var(--text-tertiary)}
+.board-lead .what{font-size:var(--font-size-md);font-weight:700}
+.board-lead .how{font-size:var(--font-size-sm);color:var(--text-secondary)}
 .board-foot{font-size:var(--font-size-xs);color:var(--text-tertiary);display:flex;gap:10px;flex-wrap:wrap}
 .board-empty{padding:28px;text-align:center;color:var(--text-secondary);background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px}
 `;
+
+  /** 등급별 이름·차례 — 왼쪽이 「다 된 것」, 오른쪽으로 갈수록 안 된 것. */
+  const GRADE_ROWS: { g: Grade; cls: string; key: string }[] = [
+    { g: '✓', cls: 'g-done', key: 'board.g.done' },
+    { g: '◐', cls: 'g-half', key: 'board.g.half' },
+    { g: '△', cls: 'g-part', key: 'board.g.part' },
+    { g: '✗', cls: 'g-none', key: 'board.g.none' },
+    { g: '?', cls: 'g-unknown', key: 'board.g.unknown' }
+  ];
 
   function render(container: HTMLElement, track: Track, doc: BoardDoc | null, err: string | null): void {
     const box = document.createElement('div');
@@ -182,58 +209,94 @@ import { isDesktop, invoke } from '../../tauri-bridge';
     const rows = parseRows(doc.text);
     const today = todayUtc();
 
-    const ddays = track.milestones.map((m) => {
+    /* ── 머리: 마지막 이정표까지 남은 날 + 시간이 얼마나 갔나 ────────────── */
+    const startTs = parseDue(track.startedAt) ?? today;
+    const endTs = parseDue(track.milestones[track.milestones.length - 1]?.date ?? '') ?? today;
+    const goneRatio = endTs > startTs ? Math.min(1, Math.max(0, (today - startTs) / (endTs - startTs))) : 0;
+    const daysLeft = Math.round((endTs - today) / MS_DAY);
+    const others = track.milestones.slice(0, -1).map((m) => {
       const ts = parseDue(m.date);
-      const left = ts === null ? null : Math.round((ts - today) / MS_DAY);
-      return `<div class="board-dday">
-        <div class="lbl">${esc(t(m.label))}</div>
-        <div class="num">${left === null ? '—' : 'D-' + left}</div>
-        <div class="sub">${esc(m.date)}</div>
+      const d = ts === null ? null : Math.round((ts - today) / MS_DAY);
+      return `${esc(t(m.label))} D-${d ?? '—'}`;
+    }).join(' · ');
+
+    /* ── 등급 막대: 12칸이 어디에 몰려 있나 ──────────────────────────── */
+    const cheapest = rows.filter((r) => r.grade === '◐').length;
+    const gradeRows = GRADE_ROWS.map(({ g, cls, key }) => {
+      const mine = rows.filter((r) => r.grade === g);
+      const blocks = mine.map((r) => `<span title="${esc(r.need)} · ${esc(r.due)}"></span>`).join('');
+      const note = g === '◐' && cheapest > 0 ? t('board.t.cheapest') : '';
+      return `<div class="board-grow ${cls}${mine.length === 0 ? ' empty' : ''}">
+        <div class="lbl">${esc(t(key))}</div>
+        <div class="board-blocks">${blocks}<b class="n">${mine.length}</b></div>
+        <div class="note">${esc(note)}</div>
       </div>`;
     }).join('');
 
-    const counts = GRADES.map((g) => ({ g, n: rows.filter((r) => r.grade === g).length }));
-    const chips = counts.map((c) =>
-      `<div class="board-chip"><span class="board-g ${GRADE_CLASS[c.g]}">${c.g}</span><b>${c.n}</b></div>`
-    ).join('');
+    /* ── 달별 점: 기한이 언제 몰려 있나. 채워진 점 = 끝난 것(✓) ───────── */
+    const byMonth = new Map<string, Row[]>();
+    for (const r of rows) {
+      /* 글자를 자르면 「즉시」가 월이 되어 맨 끝으로 밀린다 — 제일 급한 칸이 화면 끝에 가서
+         안 보였다(실측). 그래서 **읽어 낸 날짜**에서 월을 만든다. */
+      const ts = parseDue(r.due);
+      const key = ts === null ? '' : new Date(ts).toISOString().slice(0, 7);
+      if (!byMonth.has(key)) byMonth.set(key, []);
+      byMonth.get(key)!.push(r);
+    }
+    const months = Array.from(byMonth.entries())
+      .sort((a, b) => (a[0] === '' ? 1 : b[0] === '' ? -1 : a[0] < b[0] ? -1 : 1))
+      .map(([m, list]) => {
+        const dots = list.map((r) => {
+          /* 점은 **상태 세 가지만** 말한다: 끝났나 · 아직인가 · 기한이 지났나.
+             여기에 등급색까지 섞었더니 미래의 ✗ 항목이 빨갛게 떠서 「기한 지남」으로 읽혔다
+             (2026-08-28 화면 실측). 색 하나에 뜻 하나. 이름은 마우스를 올리면 나온다. */
+          const done = r.grade === '✓';
+          const late = !done && r.dueDays !== null && r.dueDays < 0;
+          const cls = done ? 'dot-done' : late ? 'dot-late' : 'dot-todo';
+          return `<i class="${cls}" title="${esc(r.need)} · ${esc(r.grade)}"></i>`;
+        }).join('');
+        return `<div class="board-month">
+          <div class="m">${esc(m || t('board.t.nodate'))}</div>
+          <div class="board-dots">${dots}</div>
+        </div>`;
+      }).join('');
 
-    /* 급한 것이 위로 — 날짜가 있는 것 먼저, 그중 가까운 것 먼저. */
-    const sorted = rows.slice().sort((a, b) => {
-      if (a.dueDays === null && b.dueDays === null) return 0;
-      if (a.dueDays === null) return 1;
-      if (b.dueDays === null) return -1;
-      return a.dueDays - b.dueDays;
-    });
+    /* ── 한 줄: 지금 제일 싼 것 = ◐ 중 기한이 가장 가까운 것 ─────────── */
+    const pick = rows
+      .filter((r) => r.grade === '◐' || r.grade === '?')
+      .sort((a, b) => (a.dueDays ?? 9e9) - (b.dueDays ?? 9e9))[0]
+      ?? rows.slice().sort((a, b) => (a.dueDays ?? 9e9) - (b.dueDays ?? 9e9))[0];
 
-    const body = sorted.map((r) => {
-      const cls = r.dueDays === null ? '' : r.dueDays < 0 ? ' over' : r.dueDays <= 30 ? ' soon' : '';
-      const dueText = r.dueDays === null ? r.due : `${r.due} · D${r.dueDays < 0 ? '+' + -r.dueDays : '-' + r.dueDays}`;
-      return `<tr>
-        <td><span class="board-g ${GRADE_CLASS[r.grade]}">${r.grade}</span></td>
-        <td><b>${esc(r.need)}</b><br><span class="board-next">${esc(r.evidence)}</span></td>
-        <td class="board-next">${esc(r.next)}</td>
-        <td class="board-due${cls}">${esc(dueText)}</td>
-      </tr>`;
-    }).join('');
-
-    const when = doc.modifiedMs ? new Date(doc.modifiedMs).toLocaleString() : '—';
+    const when = doc.modifiedMs ? new Date(doc.modifiedMs).toLocaleDateString() : '—';
     box.innerHTML = `
-      <div class="board-head">${ddays}</div>
-      <div class="board-bar">${chips}<div class="board-chip">${esc(t('board.t.total'))} <b>${rows.length}</b></div></div>
-      ${rows.length === 0 ? `<div class="board-empty">${esc(t('board.t.norows'))}</div>` : `
-      <table class="board-table">
-        <thead><tr>
-          <th>${esc(t('board.t.grade'))}</th>
-          <th>${esc(t('board.t.need'))}</th>
-          <th>${esc(t('board.t.next'))}</th>
-          <th>${esc(t('board.t.due'))}</th>
-        </tr></thead>
-        <tbody>${body}</tbody>
-      </table>`}
+      <div class="board-hero">
+        <div class="row">
+          <span class="name">${esc(t(track.titleKey, undefined, 'Board'))}</span>
+          <span class="dday">D-${daysLeft}</span>
+          <span class="sub">${others}</span>
+        </div>
+        <div class="board-time"><i style="right:${((1 - goneRatio) * 100).toFixed(2)}%"></i></div>
+        <div class="board-ends"><span>${esc(track.startedAt)}</span><span>${esc(track.milestones[track.milestones.length - 1]?.date ?? '')}</span></div>
+      </div>
+
+      <div class="board-grades">${gradeRows}</div>
+
+      <div>
+        <div class="board-months">${months}</div>
+        <div class="board-ends" style="margin-top:10px"><span>${esc(t('board.t.dots'))}</span></div>
+      </div>
+
+      ${pick ? `<div class="board-lead">
+        <div class="cap">${esc(t('board.t.pick'))}</div>
+        <div class="what">${esc(pick.need)}</div>
+        <div class="how">${esc(pick.next)}</div>
+      </div>` : ''}
+
       <div class="board-foot"><span>${esc(doc.relPath)}</span><span>${esc(t('board.t.read'))} ${esc(when)}</span></div>
     `;
     container.replaceChildren(box);
   }
+
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('board'),
