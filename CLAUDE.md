@@ -2,7 +2,8 @@
 
 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages, 도메인 `https://blog.mascari4615.com` (CNAME).
 구조: `apps/blog/` = 사이트 껍데기 (Jekyll = 얇은 조립기 — permalink·sitemap·정적 복사만, Chirpy 는 철거됨) / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/ai/`(`@karmo/ai`) / `unity/` 유니티 프로젝트 (npm workspace 밖 — 위 게이트와 무관).
-**블로그 = KarmoLab 파이프** (change.blog-cutover, memo): 글 정본 = `apps/karmolab/content/{posts,drafts}/` · 렌더 = `src/lib/markdown/` · 장 생성 = `scripts/gen-post-pages.mjs` (`/`·`/posts/<slug>/`·`/about/`·`/feed.xml`). 앱 안 읽기 = 커뮤니티 위젯 「글」 탭.
+**뿌리 = KarmoLab 앱** (change.karmolab-at-root, memo): `/` 가 앱 셸이고 `/t/<id>/`·`/u/`·`/bot/`·`/wm/`·`/c/`·`/play/`·`/sw.js` 가 그 켜에 선다. 옛 `/karmolab/*` 는 지원 안 함(404).
+**블로그 = KarmoLab 파이프** (change.blog-cutover, memo): 글 정본 = `apps/karmolab/content/{posts,drafts}/` · 렌더 = `src/lib/markdown/` · 장 생성 = `scripts/gen-post-pages.mjs` (`/posts/<slug>/`·`/about/`·`/works/`·`/feed.xml`). **목록 장은 없다** — 목록의 집은 커뮤니티 「글」 판(`/?board=blog#community`).
 
 ## Post 규칙 (글 원본 = `apps/karmolab/content/posts/`)
 
