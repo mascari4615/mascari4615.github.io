@@ -386,6 +386,15 @@
       ]
     },
     {
+      "name": "test:works",
+      "watch": [
+        "scripts/test-works-list.mjs",
+        "scripts/lib/works-list.mjs",
+        "scripts/gen-post-pages.mjs",
+        "../../apps/blog/_data/works.yml"
+      ]
+    },
+    {
       "name": "test:post-seo",
       "watch": [
         "scripts/test-post-seo.mjs",

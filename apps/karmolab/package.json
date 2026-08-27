@@ -434,6 +434,7 @@
     "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs",
     "test:widgets-alive": "node scripts/smoke-widgets-alive.mjs",
     "test:workdays": "node scripts/test-workdays.mjs",
+    "test:works": "node scripts/test-works-list.mjs",
     "test:workshop": "node scripts/smoke-workshop-kinds.mjs",
     "test:worldbook:unknown": "node scripts/smoke-worldbook-unknown.mjs",
     "test:worldcup": "node scripts/smoke-worldcup.mjs",

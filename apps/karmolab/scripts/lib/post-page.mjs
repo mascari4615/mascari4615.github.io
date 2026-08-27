@@ -202,16 +202,19 @@ export function blogIndexPages(posts) {
 /**
  * `/works/` — 작업물 전시 (change.blog-finish ③, Chirpy works 레이아웃 승계).
  * 항목 = `_data/works.yml` (전시 목록이 정본 — hidden 글도 여기 있으면 의도된 전시다).
- * @param {Array<{slug:string,title:string,image:string,date:string,tags:string[]}>} works 큐레이션 순서 그대로
+ * 글 카드(`/posts/<slug>/`)와 바깥 링크(유튜브 등)를 함께 싣는다.
+ * @param {Array<{url:string,slug:string|null,title:string,image:string,description:string,date:string,tags:string[]}>} works 큐레이션 순서 그대로
  */
 export function worksPage(works, lastmod) {
     const cards = works
         .map((w) => {
             const img = w.image ? (w.image.startsWith('/') ? `${CDN}${w.image}` : w.image) : '';
+            const external = !w.slug;
             return (
-                `<li><a href="/posts/${esc(w.slug)}/">` +
+                `<li><a href="${esc(w.url)}"${external ? ' target="_blank" rel="noopener"' : ''}>` +
                 (img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="ph"></span>') +
-                `<span class="t">${esc(w.title)}</span>` +
+                `<span class="t">${esc(w.title)}${external ? ' ↗' : ''}</span>` +
+                (w.description ? `<span class="d">${esc(w.description)}</span>` : '') +
                 `<span class="m">${esc(w.date ?? '')}${w.tags.length ? ` · ${w.tags.map(esc).join(', ')}` : ''}</span>` +
                 `</a></li>`
             );
@@ -238,6 +241,7 @@ ${lastmod ? `last_modified_at: ${lastmod}\n` : ''}---
 .works-grid a:hover .t{color:var(--accent)}
 .works-grid img,.works-grid .ph{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--bg-tertiary)}
 .works-grid .t{display:block;font-weight:600;padding:10px 12px 2px}
+.works-grid .d{display:block;font-size:13px;color:var(--text-secondary);padding:2px 12px 0}
 .works-grid .m{display:block;font-size:13px;color:var(--text-tertiary);padding:0 12px 12px}
 </style>
 </head>
