@@ -289,6 +289,18 @@
     "smoke:sndshell",
     "audit:loose",
     "test:audiorate",
+    {
+      "name": "audit:i18n-catalog",
+      "watch": [
+        "src/**",
+        "i18n/**",
+        "build.mjs",
+        "scripts/build-i18n.mjs",
+        "scripts/audit-i18n-catalog.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
     "audit:i18n-load",
     "audit:i18n-eager",
     "audit:generated",

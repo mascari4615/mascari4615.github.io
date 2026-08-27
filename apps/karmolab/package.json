@@ -108,6 +108,7 @@
     "audit:heights": "node scripts/measure-tool-heights.mjs --check",
     "audit:hidden": "node scripts/audit-hidden-display.mjs",
     "audit:hidden-tab": "node scripts/audit-hidden-tab-cpu.mjs",
+    "audit:i18n-catalog": "node scripts/audit-i18n-catalog.mjs",
     "audit:i18n-eager": "node scripts/audit-i18n-eager-call.mjs",
     "audit:i18n-load": "node scripts/audit-i18n-namespace-load.mjs",
     "audit:i18n-stub": "node scripts/audit-i18n-stub.mjs",

@@ -125,6 +125,17 @@ await esbuild.build({
 // 정본(`css/toolbox.css`)은 읽기만 한다 — 누가 그걸 고쳐도 다음 빌드에 그대로 반영된다.
 await import('./scripts/split-css.mjs');
 
+/* 말 묶음도 여기서 굽는다 (2026-08-28).
+ *
+ * `i18n/<언어>/<묶음>.json` 은 소스일 뿐이고, 화면이 실제로 받는 것은 `js/i18n/<언어>/<묶음>.js` 다.
+ * 새 위젯이 새 묶음을 들고 오면 그 js 가 없어 **404 → 위젯이 통째로 안 그려진다.** 그런데
+ * 빌드·타입·검사는 전부 초록이라(전부 *소스*만 본다) 원인이 안 보인다 — 실제로 반복해서 당했고,
+ * 2026-08-28 보드 위젯에서 또 났다. 사람이 기억할 절차로 두지 않고 **빌드가 늘 굽게** 한다.
+ *
+ * `--emit-only` = 원본 json·ts 는 한 글자도 안 고친다. 안 그러면 내 빌드가 옆 세션의 파일을
+ * 고쳐 아무도 안 만진 파일이 dirty 로 뜬다. 정규화·검사는 `npm run build:i18n` 이 그대로 한다. */
+execFileSync(process.execPath, [join(root, 'scripts/build-i18n.mjs'), '--emit-only'], { cwd: root, stdio: 'inherit' });
+
 await esbuild.build({
   entryPoints: [join(root, 'src/sw.ts')],
   outfile: join(root, 'sw.js'),

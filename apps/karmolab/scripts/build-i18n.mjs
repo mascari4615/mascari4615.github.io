@@ -27,6 +27,13 @@ import { widgetCatalog } from './lib/widgets-meta.mjs';
 
 const CHECK = process.argv.includes('--check');
 const SEAL = process.argv.includes('--seal');
+/* ★ **굽기만 한다** — 원본은 한 글자도 안 고친다 (2026-08-28).
+ *   `build.mjs` 가 매 빌드마다 이걸 부른다. 그때 원본 json·ts 까지 손보면 **내 빌드가 옆 세션의
+ *   파일을 고치는 꼴**이라, 아무도 안 만진 파일이 dirty 로 뜬다. 그래서 빌드에서 부를 때는
+ *   ④ 내보내기(`js/i18n/<언어>/<묶음>.js`)만 돌린다. 정규화·검사는 사람이 부를 때 그대로 돈다. */
+const EMIT_ONLY = process.argv.includes('--emit-only');
+/** 원본 파일에 쓰지 않는 판 — 검사(`--check`)와 굽기만(`--emit-only`). */
+const NO_SRC_WRITE = CHECK || EMIT_ONLY;
 /* ★ **남는 열쇠를 손으로 지우지 않는다** (TASK-KAR-212).
  *   원본에서 사라진 열쇠의 번역은 파일에 그대로 남는다 — 검사는 매번 「남음 18」로 알려 주는데
  *   지우는 일은 사람 몫이라, 그 숫자가 상수처럼 굳어 아무도 안 읽게 된다. 지우는 것은 기계 일이다.
@@ -77,7 +84,7 @@ export const LOCALES: LocaleMeta[] = ${JSON.stringify(
 const registryPath = path.join(APP_ROOT, 'src/lib/i18n-registry.ts');
 const registryOld = fs.existsSync(registryPath) ? fs.readFileSync(registryPath, 'utf8') : '';
 const registryDrift = registryOld.split('\r\n').join('\n') !== registryTs;
-if (registryDrift && !CHECK) fs.writeFileSync(registryPath, registryTs, 'utf8');
+if (registryDrift && !NO_SRC_WRITE) fs.writeFileSync(registryPath, registryTs, 'utf8');
 
 /* ── ①-b 지역 등록부도 같은 방식으로 ──────────────────
  *
@@ -111,7 +118,7 @@ export const REGIONS: RegionMeta[] = ${JSON.stringify(regionsJson.regions, null,
 const regionPath = path.join(APP_ROOT, 'src/lib/region-registry.ts');
 const regionOld = fs.existsSync(regionPath) ? fs.readFileSync(regionPath, 'utf8') : '';
 const regionDrift = regionOld.split('\r\n').join('\n') !== regionTs;
-if (regionDrift && !CHECK) fs.writeFileSync(regionPath, regionTs, 'utf8');
+if (regionDrift && !NO_SRC_WRITE) fs.writeFileSync(regionPath, regionTs, 'utf8');
 
 /* ── ①-b 도구 글은 이미 있는 파일에서 뽑는다 ───────────
  *
@@ -135,7 +142,7 @@ if (fs.existsSync(seoPath)) {
   const koToolsPath = path.join(I18N_DIR, SOURCE_LOCALE, 'tools.json');
   const next = JSON.stringify(derivedTools, null, 2) + '\n';
   const prev = fs.existsSync(koToolsPath) ? fs.readFileSync(koToolsPath, 'utf8').split('\r\n').join('\n') : '';
-  if (prev !== next && !CHECK) {
+  if (prev !== next && !NO_SRC_WRITE) {
     fs.mkdirSync(path.dirname(koToolsPath), { recursive: true });
     fs.writeFileSync(koToolsPath, next, 'utf8');
   }
@@ -164,7 +171,7 @@ if (fs.existsSync(seoPath)) {
   const koHowtoPath = path.join(I18N_DIR, SOURCE_LOCALE, 'howto.json');
   const next = JSON.stringify(derivedHowto, null, 2) + '\n';
   const prev = fs.existsSync(koHowtoPath) ? fs.readFileSync(koHowtoPath, 'utf8').split('\r\n').join('\n') : '';
-  if (prev !== next && !CHECK) fs.writeFileSync(koHowtoPath, next, 'utf8');
+  if (prev !== next && !NO_SRC_WRITE) fs.writeFileSync(koHowtoPath, next, 'utf8');
   if (prev !== next && CHECK) {
     console.error('[i18n] i18n/ko/howto.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
     process.exit(1);
@@ -192,7 +199,7 @@ if (fs.existsSync(seoPath)) {
   const koFaqPath = path.join(I18N_DIR, SOURCE_LOCALE, 'faq.json');
   const next = JSON.stringify(derivedFaq, null, 2) + '\n';
   const prev = fs.existsSync(koFaqPath) ? fs.readFileSync(koFaqPath, 'utf8').split('\r\n').join('\n') : '';
-  if (prev !== next && !CHECK) fs.writeFileSync(koFaqPath, next, 'utf8');
+  if (prev !== next && !NO_SRC_WRITE) fs.writeFileSync(koFaqPath, next, 'utf8');
   if (prev !== next && CHECK) {
     console.error('[i18n] i18n/ko/faq.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
     process.exit(1);
@@ -231,6 +238,7 @@ for (const [ns, body] of Object.entries(widgetSplit)) {
     console.error(`[i18n] i18n/${SOURCE_LOCALE}/${ns}.json 이 widgets-lazy-meta.ts 와 어긋남 — \`npm run build:i18n\` 후 커밋`);
     process.exit(1);
   }
+  if (EMIT_ONLY) continue;   // 굽기만 하는 판 — 원본은 그대로 둔다
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, next, 'utf8');
 }
