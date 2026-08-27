@@ -12,6 +12,7 @@
  */
 import { renderMarkdown, escapeHtml } from '../community-markdown';
 import { t, loadNamespace } from '../../lib/i18n';
+import { appHash, appPath, appQuery } from '../../lib/site-base';
 
 interface WorldDoc {
   id: string;
@@ -211,7 +212,7 @@ interface WorldBook {
 
     if (table.rows.length === 0) {
       return `<p class="wb-empty">공간 표를 읽지 못했습니다. ${
-        spaces ? `<a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">${esc(t('wm.t01'))}</a>` : t('wm.t45')
+        spaces ? `<a href="${appQuery(`wb=${encodeURIComponent(spaces.id)}`, 'wm')}">${esc(t('wm.t01'))}</a>` : t('wm.t45')
       }</p>`;
     }
 
@@ -238,10 +239,10 @@ interface WorldBook {
         ? `<section class="wm-in-block">
              <h3>${esc(t('wm.t03'))}</h3>
              <ul class="wm-rooms">${rooms}</ul>
-             ${home ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(home.id)}#wm">${esc(t('wm.t04'))}</a></p>` : ''}
+             ${home ? `<p class="wb-source"><a href="${appQuery(`wb=${encodeURIComponent(home.id)}`, 'wm')}">${esc(t('wm.t04'))}</a></p>` : ''}
            </section>`
         : ''}
-      ${spaces ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">${esc(t('wm.t05'))}</a></p>` : ''}`;
+      ${spaces ? `<p class="wb-source"><a href="${appQuery(`wb=${encodeURIComponent(spaces.id)}`, 'wm')}">${esc(t('wm.t05'))}</a></p>` : ''}`;
   }
 
   /* -- 하루 체험 (TASK-KL-163 첫 조각) ------------------------------------------------
@@ -348,8 +349,8 @@ interface WorldBook {
           ? `<div class="wm-day-end">${event ? `<p class="wm-day-event">${escapeHtml(event.desc)}</p>` : ''}<button type="button" class="btn btn-primary" data-day="next">${esc(t('wm.t08'))}</button></div>`
           : ''}
         <p class="wb-source">
-          <a href="/karmolab/?wb=gameplay%2Fcondition#wm">${esc(t('wm.t09'))}</a> ·
-          <a href="/karmolab/?wb=gameplay%2Ftime-seasons#wm">${esc(t('wm.t10'))}</a> ·
+          <a href="${appQuery('wb=gameplay%2Fcondition', 'wm')}">${esc(t('wm.t09'))}</a> ·
+          <a href="${appQuery('wb=gameplay%2Ftime-seasons', 'wm')}">${esc(t('wm.t10'))}</a> ·
           <button type="button" class="wm-day-reset" data-day="reset">${esc(t('wm.t11'))}</button>
         </p>
       </section>`;
@@ -400,7 +401,7 @@ interface WorldBook {
   function talkHtml(posts: TalkPost[] | null): string {
     if (posts === null) {
       return `<p class="wb-empty">${esc(t('wm.t12'))}
-        <a href="/karmolab/#community">${esc(t('wm.t13'))}</a></p>`;
+        <a href="${appHash('community')}">${esc(t('wm.t13'))}</a></p>`;
     }
     const tabs = talkTags.length > 0
       ? `<div class="wb-kinds wm-talk-tags">
@@ -411,7 +412,7 @@ interface WorldBook {
         </div>`
       : '';
     const write = `${tabs}<p class="wm-talk-write">
-        <a class="btn btn-primary" href="/karmolab/#community">${esc(t('wm.t15'))}</a>
+        <a class="btn btn-primary" href="${appHash('community')}">${esc(t('wm.t15'))}</a>
         <span class="wb-source">${esc(t('wm.t16'))}</span>
       </p>`;
     if (posts.length === 0) {
@@ -420,7 +421,7 @@ interface WorldBook {
     return `${write}<ul class="wm-talk">${posts
       .map(
         (talk) => `<li class="wm-talk-row">
-          <a class="wm-talk-title" href="/karmolab/?p=${encodeURIComponent(talk.id)}#community">${escapeHtml(talk.title || '(제목 없음)')}</a>
+          <a class="wm-talk-title" href="${appQuery(`p=${encodeURIComponent(talk.id)}`, 'community')}">${escapeHtml(talk.title || '(제목 없음)')}</a>
           <span class="wm-talk-meta">${escapeHtml(talk.handle || '익명')} · ${escapeHtml(whenText(talk.createdAt))}
             ${talk.replyCount > 0 ? ` · ${t('wm.replies', { n: talk.replyCount })}` : ''}${talk.likes > 0 ? ` · ${t('wm.likes', { n: talk.likes })}` : ''}</span>
         </li>`
@@ -513,7 +514,7 @@ interface WorldBook {
         <div class="wm-in-cta">
           <button type="button" class="btn btn-primary" data-go="all">${esc(t('wm.t24'))}</button>
           <button type="button" class="btn btn-ghost" data-go="news">${esc(t('wm.t25'))}</button>
-          <a class="btn btn-ghost" href="/karmolab/wm/">${esc(t('wm.t26'))}</a>
+          <a class="btn btn-ghost" href="${appPath('wm/')}">${esc(t('wm.t26'))}</a>
           <a class="btn btn-ghost" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">${esc(t('wm.t27'))}</a>
         </div>
       </section>
@@ -570,7 +571,7 @@ interface WorldBook {
         <button type="button" class="wm-nav-btn${on('talk')}" data-go="talk">${esc(t('wm.t34'))}</button>
         <button type="button" class="wm-nav-btn${on('news')}" data-go="news">${esc(t('wm.t35'))}</button>
         <button type="button" class="wm-nav-btn${on('board')}" data-go="board">${esc(t('wm.t36'))}</button>
-        <a class="wm-nav-link" href="/karmolab/wm/">${esc(t('wm.t37'))}</a>
+        <a class="wm-nav-link" href="${appPath('wm/')}">${esc(t('wm.t37'))}</a>
         <a class="wm-nav-link" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">${esc(t('wm.t27'))}</a>
       </nav>`;
   }

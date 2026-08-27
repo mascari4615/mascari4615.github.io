@@ -386,6 +386,16 @@
       ]
     },
     {
+      "name": "test:site-base",
+      "watch": [
+        "scripts/test-site-base.mjs",
+        "scripts/lib/site-base.mjs",
+        "src/lib/site-base.ts",
+        "src/toolbox.ts",
+        "build.mjs"
+      ]
+    },
+    {
       "name": "test:works",
       "watch": [
         "scripts/test-works-list.mjs",

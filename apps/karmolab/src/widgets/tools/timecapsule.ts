@@ -23,6 +23,7 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
 }
 
 import { t, loadNamespace, fmtDate } from '../../lib/i18n';
+import { toolPage } from '../../lib/site-base';
 
 (function (): void {
   const MAX_LETTER = 1200; // 주소에 담아야 하므로 — 이보다 길면 링크가 메신저에서 잘린다
@@ -176,7 +177,7 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
                 const round = roundAt(onOpen, info);
                 const sealed = await timelockEncrypt(round, Buffer.from(text, 'utf8') as never, clock());
                 const code = toBase64Url(new TextEncoder().encode(sealed));
-                const url = `${location.origin}/karmolab/t/timecapsule/#c=${code}`;
+                const url = `${location.origin}${toolPage('timecapsule')}#c=${code}`;
                 out.style.display = '';
                 out.innerHTML = `
                   <div class="tc-when">${esc(

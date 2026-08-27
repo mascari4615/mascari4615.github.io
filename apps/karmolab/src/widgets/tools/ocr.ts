@@ -14,6 +14,7 @@ import { enhance } from '../../core/docscan';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
+import { toolPage } from '../../lib/site-base';
 
 (function (): void {
 
@@ -101,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         box.style.display = '';
         box.innerHTML =
           esc(t('ocr.route.pdfHasText')) +
-          ' <a class="btn btn-ghost" style="margin-left:8px;" href="/karmolab/t/pdf2text/">' + esc(t('ocr.route.goPdf2text')) + '</a>';
+          ' <a class="btn btn-ghost" style="margin-left:8px;" href="' + toolPage('pdf2text') + '">' + esc(t('ocr.route.goPdf2text')) + '</a>';
         return;
       }
       if (plan.route === 'unsupported') {

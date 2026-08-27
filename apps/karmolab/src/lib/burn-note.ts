@@ -1,3 +1,4 @@
+import { toolPage } from './site-base';
 /**
  * 사라지는 쪽지 — 잠그고 푸는 일 (TASK-KL-251)
  *
@@ -119,7 +120,7 @@ export function unpackFile(text: string): { name: string; type: string; bytes: U
  * 타임캡슐이 먼저 같은 자리를 지나갔고 같은 모양을 쓴다.
  */
 export function linkFor(origin: string, id: string, key: string): string {
-  return `${origin}/karmolab/t/burnnote/#n=${encodeURIComponent(id)}.${encodeURIComponent(key)}`;
+  return `${origin}${toolPage('burnnote')}#n=${encodeURIComponent(id)}.${encodeURIComponent(key)}`;
 }
 
 /** 링크에서 이름과 열쇠를 되짚는다. 모양이 안 맞으면 null. */

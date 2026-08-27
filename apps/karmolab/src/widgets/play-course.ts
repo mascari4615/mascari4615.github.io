@@ -9,6 +9,7 @@
  * 남긴 것만 읽는다. 못 읽으면 코스만 조용히 빠지고 놀이는 그대로 된다.
  */
 import { t } from '../lib/i18n';
+import { appHash } from '../lib/site-base';
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -202,7 +203,7 @@ export function mountCourseNext(slot: HTMLElement, meId: string): void {
         `<span>${left.length}개 남았습니다</span>` +
         `<a class="pc-go" href="${next.url}">${emoji} ${next.title} 하러 가기 →</a>`;
       const go = slot.querySelector<HTMLAnchorElement>('.pc-go')!;
-      if (next.url.indexOf('/karmolab/#') === 0) {
+      if (next.url.indexOf(appHash('')) === 0) {
         go.addEventListener('click', (e) => {
           e.preventDefault();
           Toolbox.switchPage(next.url.split('#')[1]);

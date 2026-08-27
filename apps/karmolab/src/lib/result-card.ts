@@ -12,6 +12,7 @@
  * 순간 막힌다 — 그래서 그림은 「되면 얹고, 안 되면 없이」 간다(자랑이 통째로 막히는 것보다 낫다).
  */
 import { t, loadNamespace } from './i18n';
+import { appHost } from './site-base';
 
 /* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
@@ -112,7 +113,7 @@ export async function drawResultCard(card: ResultCard): Promise<HTMLCanvasElemen
 
   ctx.fillStyle = accent;
   ctx.font = '700 20px system-ui, -apple-system, "Segoe UI", sans-serif';
-  ctx.fillText('KarmoLab · blog.mascari4615.com/karmolab', textLeft, HEIGHT - 76);
+  ctx.fillText(`KarmoLab · ${appHost().replace(/\/$/, '')}`, textLeft, HEIGHT - 76);
 
   return canvas;
 }

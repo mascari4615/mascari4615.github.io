@@ -12,6 +12,7 @@
  * 화풍 = 자랑 카드와 같은 포스터(밝은 바탕 + 큰 세리프). 남의 피드에서 튀어야 하는 것은 같다.
  */
 import { t } from './lib/i18n';
+import { appHost } from './lib/site-base';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -135,7 +136,7 @@ export async function drawResultCard(data: CardData): Promise<Blob | null> {
     ctx.fill();
     ctx.fillStyle = '#16151f';
     ctx.font = '700 26px KarmoSans, "Malgun Gothic", sans-serif';
-    ctx.fillText('KarmoLab · blog.mascari4615.com/karmolab', left + 28, HEIGHT - 60);
+    ctx.fillText(`KarmoLab · ${appHost().replace(/\/$/, '')}`, left + 28, HEIGHT - 60);
 
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), 'image/png'));
 }

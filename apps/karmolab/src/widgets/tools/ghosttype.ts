@@ -20,6 +20,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { markLive } from './shared/say';
+import { toolPage } from '../../lib/site-base';
 
 (function (): void {
   /** 처음 온 사람에게 보여 줄 글. 겨룰 **글 자체가 내용**이라 언어마다 다시 썼다 —
@@ -331,7 +332,7 @@ import { markLive } from './shared/say';
             } catch {
               /* 못 적어도 그만 */
             }
-            const url = `${location.origin}/karmolab/t/ghosttype/#g=${encodeGhost(mine)}`;
+            const url = `${location.origin}${toolPage('ghosttype')}#g=${encodeGhost(mine)}`;
 
             let verdict: string;
             if (racing && ghost) {

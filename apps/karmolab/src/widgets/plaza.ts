@@ -14,6 +14,7 @@
  * 서버(집 노트북)에 못 닿으면 광장만 조용히 닫힌다. 도구는 그대로 돈다.
  */
 import { t, loadNamespace, locale } from '../lib/i18n';
+import { profilePath, toolPage } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -196,7 +197,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             .map(
                 (row, index) =>
                     `<tr><td>${index + 1}</td>` +
-                    `<td><a href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">${escapeHtml(row.displayName)}</a></td>` +
+                    `<td><a href="${profilePath(row.handle)}">${escapeHtml(row.displayName)}</a></td>` +
                     `<td>${t('plaza.unit.days', { n: num(row.streak) })}</td><td>${t('plaza.unit.days', { n: num(row.activeDays) })}</td></tr>`,
             )
             .join('');
@@ -225,7 +226,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             .map(
                 (row, index) =>
                     `<tr><td>${index + 1}</td>` +
-                    `<td><a href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">@${escapeHtml(row.handle)}</a></td>` +
+                    `<td><a href="${profilePath(row.handle)}">@${escapeHtml(row.handle)}</a></td>` +
                     `<td>🥇 ${num(row.gold)}</td><td>🥈 ${num(row.silver)}</td><td>🥉 ${num(row.bronze)}</td></tr>`,
             )
             .join('');
@@ -444,7 +445,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 (t, index) => `
                 <div class="plaza-tool">
                     <div class="plaza-tool-rank">${from + index + 1}</div>
-                    <a class="plaza-tool-name" href="/karmolab/t/${encodeURIComponent(t.toolId)}/">${escapeHtml(toolTitle(t.toolId) ?? t.toolId)}</a>
+                    <a class="plaza-tool-name" href="${toolPage(t.toolId)}">${escapeHtml(toolTitle(t.toolId) ?? t.toolId)}</a>
                     <div class="plaza-tool-bar"><i style="width:${Math.max(2, Math.round((t.recent / max) * 100))}%"></i></div>
                     <div class="plaza-tool-count">${num(t.recent)}회 / ${num(t.total)}</div>
                 </div>`,

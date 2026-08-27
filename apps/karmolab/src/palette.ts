@@ -30,6 +30,7 @@ import { createSearchSystem } from './search/search-system';
 import { studyMapDocuments } from './search/providers/studymap-provider';
 import { lessonDocuments } from './search/providers/lesson-provider';
 import { docsDocuments } from './search/providers/docs-provider';
+import { toolIndexPath } from './lib/site-base';
 
 type PaletteTool = {
   id: string;
@@ -642,7 +643,7 @@ const KarmoPalette = (() => {
      * 찾다가 막힌 자리에서 바로 보인다. */
     const idx = document.createElement('a');
     idx.className = 'kp-browse-chip kp-browse-chip--index';
-    idx.href = '/karmolab/t/';
+    idx.href = toolIndexPath();
     idx.textContent = '전체 도구 목록 →';
     idx.title = '도구 전체가 한 장에 적힌 목록';
     wrap.appendChild(idx);
@@ -793,7 +794,7 @@ const KarmoPalette = (() => {
       empty.innerHTML =
         '<p>「' + esc(q) + '」 로 찾은 도구가 없어요.</p>' +
         '<button type="button" class="kp-ask">하려는 일로 찾기 →</button>' +
-        '<a class="kp-empty-link" href="/karmolab/t/?q=' + encodeURIComponent(q) + '">전체 목록에서 찾아보기 →</a>';
+        '<a class="kp-empty-link" href="' + toolIndexPath() + '?q=' + encodeURIComponent(q) + '">전체 목록에서 찾아보기 →</a>';
       inst.list.appendChild(empty);
       askWire(inst, empty, q);
       announce(inst);
@@ -840,7 +841,7 @@ const KarmoPalette = (() => {
           }
           return;
         }
-        location.href = '/karmolab/t/?q=' + encodeURIComponent(query);
+        location.href = toolIndexPath() + '?q=' + encodeURIComponent(query);
       });
       inst.list.appendChild(more);
     }

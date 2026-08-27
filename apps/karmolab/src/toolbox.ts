@@ -46,6 +46,25 @@
 const Toolbox = (() => {
     const tools = [];
 
+    /* ★ 앱 뿌리 — 정본은 `scripts/lib/site-base.mjs` 한 곳이다 (change.karmolab-at-root ①).
+     *
+     * 이 파일만 **묶지 않고** 내보낸다(build.mjs `bundle: false`) — 여기서 import 를 쓰면
+     * 산출물에 `import ... from './lib/site-base'` 가 그대로 남아 브라우저가 404 를 받는다.
+     * 게다가 import 하나로 이 파일이 모듈이 되어, 전역을 나눠 쓰는 gemini.ts·palette.ts 가
+     * 통째로 안 보이게 된다(실측: 오류 60여 줄).
+     * 그래서 값은 **빌드가 박아 넣는다**(`__KARMOLAB_APP_BASE__`). 아래 되돌림 값은 로컬에서
+     * 소스를 그냥 열 때만 쓰이며, `test:site-base` 가 정본과 같은지 매번 확인한다. */
+    const APP_BASE = typeof __KARMOLAB_APP_BASE__ === 'string' ? __KARMOLAB_APP_BASE__ : '/karmolab/';
+    const appPath = (rest = '') => APP_BASE + String(rest).replace(/^\//, '');
+    const toolIndexPath = () => appPath('t/');
+    const toolPage = (id) => appPath('t/' + encodeURIComponent(id) + '/');
+    const appHash = (id) => APP_BASE + '#' + id;
+    const toolIdFromPath = (pathname) => {
+        if (pathname !== APP_BASE.slice(0, -1) && !pathname.startsWith(APP_BASE)) return null;
+        const m = /^t\/([a-z0-9][a-z0-9-]*)\/?$/.exec(pathname.slice(APP_BASE.length));
+        return m ? m[1] : null;
+    };
+
     /* ===== 카테고리 & 메타데이터 ===== */
 
     // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039) — 위젯은 일반
@@ -1316,7 +1335,7 @@ const Toolbox = (() => {
                     foot.className = 'header-nav-panel-foot';
                     const indexLink = document.createElement('a');
                     indexLink.className = 'nav-item nav-item-find';
-                    indexLink.href = '/karmolab/t/';
+                    indexLink.href = toolIndexPath();
                     indexLink.textContent = text2('shell.nav.toolIndex', '전체 도구 목록 →');
                     indexLink.title = text2('shell.nav.toolsList', '도구 전체 목록 장 — 128개를 한 장에서 훑습니다');
                     foot.appendChild(indexLink);
@@ -1684,10 +1703,7 @@ const Toolbox = (() => {
          * (TASK-KL-191 축8). 오프라인에서 서비스 워커가 첫 화면 껍데기를 대신 내주면
          * `KARMOLAB_ENTRY_TOOL` 은 비어 있지만 주소는 `/karmolab/t/<도구>/` 그대로다.
          * 그걸 안 읽으면 「도구 주소로 들어왔는데 홈이 뜬다」가 된다. */
-        const pathTool = (() => {
-            const m = /^\/karmolab\/t\/([a-z0-9-]+)\/?$/.exec(location.pathname);
-            return m ? m[1] : null;
-        })();
+        const pathTool = toolIdFromPath(location.pathname);
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || pathTool || null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
         const isValidPage = (id) => {
@@ -1981,8 +1997,8 @@ const Toolbox = (() => {
         if ((entryTool && pageId !== entryTool) || entryStatic) {
             const pages = (typeof window !== 'undefined' && window.KARMOLAB_TOOL_PAGES) || [];
             location.href = pageId === 'home'
-                ? '/karmolab/'
-                : (pages.indexOf(pageId) >= 0 ? '/karmolab/t/' + pageId + '/' : '/karmolab/#' + pageId);
+                ? APP_BASE
+                : (pages.indexOf(pageId) >= 0 ? toolPage(pageId) : appHash(pageId));
             return;
         }
         // 묶음의 탭으로 들어간 도구를 이름으로 부르면, 묶음을 열고 그 탭을 편다.
@@ -2388,7 +2404,7 @@ const Toolbox = (() => {
             '<b>커뮤니티</b><span>안 되는 것·있었으면 하는 도구를 남기는 곳</span></button>' +
             '<button type="button" class="tool-page-next-link" data-next="plaza">' +
             '<b>광장</b><span>이 사이트의 숫자를 전부 열어 둔 곳</span></button>' +
-            '<a class="tool-page-next-link" href="/karmolab/t/">' +
+            '<a class="tool-page-next-link" href="' + toolIndexPath() + '">' +
             '<b>도구 전체</b><span>비슷한 일을 하는 다른 도구들</span></a>' +
             '</div>';
         footer.querySelectorAll('[data-next]').forEach((button) => {

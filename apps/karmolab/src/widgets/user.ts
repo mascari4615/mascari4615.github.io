@@ -4,6 +4,7 @@
  * 환경 설정(테마·API 키·저장소)은 여기 없다 → `widgets/settings.ts`.
  */
 import { t, loadNamespace, locale } from '../lib/i18n';
+import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -378,7 +379,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             .map((raw) => {
                 const p = raw as { id?: string; title?: string | null; text?: string; votes?: number; replyCount?: number };
                 const heading = p.title || String(p.text ?? '').replace(/\s+/g, ' ').slice(0, 40);
-                return `<a class="user-act-row" href="/karmolab/?p=${encodeURIComponent(String(p.id ?? ''))}#community">
+                return `<a class="user-act-row" href="${appQuery(`p=${encodeURIComponent(String(p.id ?? ''))}`, 'community')}">
                             <span class="user-act-title">${escapeHtml(heading)}</span>
                             <span class="user-act-meta">답글 ${p.replyCount ?? 0}</span>
                         </a>`;
@@ -390,7 +391,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 <h3>${esc(t('user.t04'))}</h3>
                 <p class="user-act-lead">글 ${posts.length}개 · 답글 ${replies.length}개 — 이건 기기를 바꿔도 남습니다.</p>
                 <div class="user-acts">${rows}</div>
-                <a class="user-act-more" href="/karmolab/u/?h=${encodeURIComponent(handle)}">${esc(t('user.t05'))}</a>
+                <a class="user-act-more" href="${profilePath(handle)}">${esc(t('user.t05'))}</a>
             </div>`;
     }
 
@@ -443,7 +444,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                         ${avatar ? `<img class="user-account-avatar" src="${escapeHtml(avatar)}" alt="">` : ''}
                         <div class="user-account-text">
                             <strong>${escapeHtml(me.displayName)}</strong>
-                            <span>${esc(t('user.t08'))} <a href="${escapeHtml(me.profileUrl)}">/karmolab/u/?h=${escapeHtml(me.handle)}</a></span>
+                            <span>${esc(t('user.t08'))} <a href="${escapeHtml(me.profileUrl)}">${appPath('u/')}?h=${escapeHtml(me.handle)}</a></span>
                         </div>
                     </div>
                     <button type="button" class="user-account-btn user-account-btn-quiet" id="userSignOutBtn">${esc(t('user.btn.userSignOutBtn'))}</button>
@@ -790,7 +791,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 rows
                     .map(
                         (row) =>
-                            `<a class="fp-person" href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">` +
+                            `<a class="fp-person" href="${profilePath(row.handle)}">` +
                             `${escapeHtml(row.displayName)}${row.mutual ? t('user.t118') : ''}</a>`,
                     )
                     .join('');
@@ -823,7 +824,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         const rows = body.posts
             .map((post) => {
                 const heading = post.title || String(post.text ?? '').replace(/\s+/g, ' ').slice(0, 40);
-                return `<a class="user-act-row" href="/karmolab/?p=${encodeURIComponent(post.id)}#community">
+                return `<a class="user-act-row" href="${appQuery(`p=${encodeURIComponent(post.id)}`, 'community')}">
                             <span class="user-act-title">${escapeHtml(heading)}</span>
                             <span class="user-act-meta">@${escapeHtml(post.handle)}</span>
                         </a>`;
@@ -1444,7 +1445,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             t('user.totals', { days: activity.totals.activeDays, opens: activity.totals.opens, tools: activity.totals.distinctTools }),
         ];
         if (top.length) lines.push(`${t('user.topUsed')}: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(' · ')}`);
-        lines.push('https://blog.mascari4615.com/karmolab/');
+        lines.push(appUrl());
         return lines.join('\n');
     }
 

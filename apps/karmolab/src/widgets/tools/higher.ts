@@ -9,6 +9,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
+import { appHost } from '../../lib/site-base';
 
 (function (): void {
 
@@ -212,7 +213,7 @@ import { escapeHtml as esc } from './shared/text';
             const b = boards().filter((x) => x.id === boardId)[0];
             const text = `${t('higher.share.head', { board: b ? b.title : '', field: field ? field.label : '' })}\n${streak}연승 (최고 ${bestOf(
               boardId
-            )})\nblog.mascari4615.com/karmolab/t/higher/`;
+            )})\n${appHost('t/higher/')}`;
             void navigator.clipboard.writeText(text).then(() => {
               $('hiShare').textContent = t('higher.copy.done');
             });

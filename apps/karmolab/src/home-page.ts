@@ -14,6 +14,7 @@
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
 import { t } from './lib/i18n.js';
+import { toolIndexPath } from './lib/site-base';
 (function () {
     const switchPage = (id, opts) => Toolbox.switchPage(id, opts);
     const mountHomeDecor = () => Toolbox.mountHomeDecor();
@@ -67,7 +68,7 @@ import { t } from './lib/i18n.js';
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
                     <span class="landing-cta-card-title">${t('site.cta.favorites', undefined, '즐겨찾기')}</span>
                 </button>
-                <a class="landing-cta-card" href="/karmolab/t/">
+                <a class="landing-cta-card" href="${toolIndexPath()}">
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
                     <span class="landing-cta-card-title">${t('site.cta.tools', undefined, '도구 목록')}</span>
                 </a>

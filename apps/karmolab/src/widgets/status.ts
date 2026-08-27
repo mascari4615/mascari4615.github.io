@@ -13,6 +13,7 @@
  * 여기는 「지금 어떤가」를 보러 오는 자리라, 여기서까지 조용하면 볼 곳이 없다.
  */
 import { t, loadNamespace, locale } from '../lib/i18n';
+import { appPath } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -206,7 +207,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                     <div class="st-sec-head">
                         <h3 class="st-sec-title">${esc(t('status.t13'))}</h3>
                         <span class="st-sec-note">${esc(t('status.t14'))}
-                            <a class="st-feed" href="/karmolab/changes.xml">${esc(t('status.t15'))}</a></span>
+                            <a class="st-feed" href="${appPath('changes.xml')}">${esc(t('status.t15'))}</a></span>
                     </div>
                     <div id="stChanges"></div>
                 </div>

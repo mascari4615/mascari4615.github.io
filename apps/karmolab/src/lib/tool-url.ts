@@ -16,6 +16,7 @@
  * `error` 를 담아 돌려준다 — 위젯이 상태줄에 그대로 보여 주면 된다. 말없이 무시하지 않는다.
  */
 import { baseType, isOptional, type FieldType, type ToolSpec } from '../core/types';
+import { toolPage } from './site-base';
 
 export type ArgValue = string | number | boolean;
 
@@ -98,6 +99,6 @@ export function buildToolUrl(
   }
   if (options.raw === true) params.set('out', 'raw');
 
-  const base = options.base ?? `/karmolab/t/${spec.id}/`;
+  const base = options.base ?? toolPage(spec.id);
   return `${base}?${params.toString()}`;
 }

@@ -1,3 +1,4 @@
+import { APP_BASE, toolPage } from './lib/site-base';
 /**
  * KarmoLab 계측 (TASK-KL-088)
  *
@@ -36,7 +37,7 @@
     }
     const count = counter();
     if (!count) return;
-    count({ path: toolId === 'home' ? '/karmolab/' : `/karmolab/t/${toolId}/`, title: title || toolId });
+    count({ path: toolId === 'home' ? APP_BASE : toolPage(toolId), title: title || toolId });
   }
 
   /** 실제로 결과를 얻은 순간 — 「열어보기만 함」 과 구분하는 유일한 신호 */

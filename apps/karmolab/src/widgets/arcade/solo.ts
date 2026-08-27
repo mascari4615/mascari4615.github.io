@@ -1,3 +1,4 @@
+import { appHash } from '../../lib/site-base';
 /**
  * 혼자 놀이 명부 — 오락실이 문 하나가 되기 위한 다리 (TASK-KL-313)
  *
@@ -58,6 +59,6 @@ export function soloPlays(): Promise<SoloPlay[]> {
 
 /** 앱 안에서 화면만 바꾸면 되는 자리인가 (`/karmolab/#<도구>`). 밖이면 그냥 링크로 둔다. */
 export function inAppTool(url: string): string | null {
-  const at = url.indexOf('/karmolab/#');
-  return at === 0 ? url.slice('/karmolab/#'.length) : null;
+  const prefix = appHash('');
+  return url.indexOf(prefix) === 0 ? url.slice(prefix.length) : null;
 }

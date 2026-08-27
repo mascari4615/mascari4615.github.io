@@ -14,6 +14,7 @@
 import { stampToday } from './stamps';
 import { isDesktop, invoke } from './tauri-bridge';
 import { t, loadNamespace } from './lib/i18n';
+import { toolIdFromPath } from './lib/site-base';
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -477,9 +478,9 @@ const KarmoAccount = {
 
 /** 이 페이지가 지금 어느 도구를 보여 주고 있나. 도구가 아니면 null. */
 function currentToolId(): string | null {
-    // 도구 상세 페이지: /karmolab/t/<id>/
-    const detail = /^\/karmolab\/t\/([a-z0-9][a-z0-9-]*)\/?$/.exec(location.pathname);
-    if (detail) return detail[1];
+    // 도구 상세 페이지: <앱뿌리>t/<id>/
+    const detail = toolIdFromPath(location.pathname);
+    if (detail) return detail;
 
     // 앱 안: #<도구id>. 홈·계정 화면 등은 도구가 아니다.
     const hash = location.hash.replace(/^#/, '');

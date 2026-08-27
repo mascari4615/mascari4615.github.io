@@ -27,6 +27,8 @@ declare global {
    */
   const __KARMOLAB_BUILD__: string;
   const __KARMOLAB_COMMIT__: string;
+  /** 앱 뿌리 — 정본 `scripts/lib/site-base.mjs`. build.mjs 가 esbuild define 으로 박는다. */
+  const __KARMOLAB_APP_BASE__: string;
 
   interface Window {
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;

@@ -19,6 +19,7 @@ import {
   type SharedPackSummary
 } from '../lib/shared-packs';
 import { t, loadNamespace } from '../lib/i18n';
+import { appQuery } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -121,7 +122,7 @@ import { t, loadNamespace } from '../lib/i18n';
               return;
             }
             if (btn.dataset.share) {
-              const url = `${location.origin}/karmolab/?pack=${packToCode(p)}#packs`;
+              const url = `${location.origin}${appQuery(`pack=${packToCode(p)}`, 'packs')}`;
               void navigator.clipboard.writeText(url).then(() => {
                 $('pkMsg').textContent =
                   url.length > 6000

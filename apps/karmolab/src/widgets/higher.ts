@@ -17,6 +17,7 @@ import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
 import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 import { t, loadNamespace } from '../lib/i18n';
+import { appHost } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -435,8 +436,8 @@ import { t, loadNamespace } from '../lib/i18n';
             const b = boards.filter((x) => x.id === boardId)[0];
             const mine = boardId.indexOf('pack:') === 0 ? getPack(boardId.slice(5)) : null;
             const url = mine
-              ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#higher`
-              : 'blog.mascari4615.com/karmolab/#higher';
+              ? `${appHost()}?pack=${packToCode(mine)}#higher`
+              : `${appHost()}#higher`;
             const text = t('higher.shareText', {
               board: b ? b.title : '',
               n: streak,

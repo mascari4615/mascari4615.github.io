@@ -14,6 +14,7 @@
  * 데스크톱(Tauri)은 자체 업데이터 배너(toolbox.ts)를 쓰므로 여기서는 아무것도 하지 않는다.
  */
 import { t, loadNamespace } from './lib/i18n';
+import { APP_BASE, appPath } from './lib/site-base';
 
 /* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
@@ -24,7 +25,7 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
   if (window.__KARMOLAB_DESKTOP__) return;
   if (location.hash === '#alarm-fire') return;
 
-  const SW_URL = '/karmolab/sw.js';
+  const SW_URL = appPath('sw.js');
   /** 스코프 밖으로 등록돼 아무 페이지도 제어하지 못하던 옛 등록 */
   const DEAD_SCOPE = '/apps/karmolab/';
   /** 탭을 오래 켜 두는 사용자를 위한 주기 확인 */
@@ -129,7 +130,7 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
         void r.unregister();
         return;
       }
-      if (!r.scope.endsWith('/karmolab/')) watch(r);
+      if (!r.scope.endsWith(APP_BASE)) watch(r);
     });
   });
 

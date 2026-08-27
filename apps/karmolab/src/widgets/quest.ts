@@ -8,6 +8,7 @@
 import { mountCourseNext } from './play-course';
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
 import { t, loadNamespace } from '../lib/i18n';
+import { appHost, toolPage } from '../lib/site-base';
 
 /**
  * 오늘의 문제 순위 (TASK-KL-148 ②) — **적게 시도할수록** 위다.
@@ -267,7 +268,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03'
                 /* 스크립트를 못 받으면 자리표(「불러오는 중…」)가 그려지고 `ok` 는 참으로 온다 —
                  * 그것만 믿으면 영영 안 끝나는 상자가 남는다. 자리표가 보이면 못 편 것이다. */
                 if (!ok || slot.querySelector('.tb-lazy-loading')) {
-                  location.href = `/karmolab/t/${id}/`;
+                  location.href = toolPage(id);
                   return;
                 }
                 slot.hidden = false;
@@ -425,7 +426,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03'
             const text =
               `KarmoLab 오늘의 문제 #${dayNo() + 1}\n` +
               (st.win ? `🟩 ${st.tries}/5` : '🟥 5/5') +
-              '\nblog.mascari4615.com/karmolab/#quest';
+              `\n${appHost()}#quest`;
             void navigator.clipboard.writeText(text).then(() => {
               $('qsShare').textContent = t('quest.t29');
             });

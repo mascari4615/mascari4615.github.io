@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { APP_BASE, appPath, isAppPath } from './lib/site-base';
 /**
  * KarmoLab Service Worker (TASK-KAR-115 → TASK-KL-088 재작성)
  *
@@ -30,7 +31,7 @@ const CACHE_NAME = `karmolab-${BUILD}`;
  */
 const IMMUTABLE_CACHE = 'karmolab-immutable';
 
-const APP_SHELL = ['/karmolab/', '/apps/karmolab/manifest.json'];
+const APP_SHELL = [APP_BASE, '/apps/karmolab/manifest.json'];
 
 /**
  * 설치할 때 미리 받아 두는 것 — **바뀔 일이 드물고 무거운 것만** (TASK-KL-128).
@@ -169,7 +170,7 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
   const req = event.request;
 
   // 공유로 들어온 것 — 파일을 놓아두고 앱을 연다.
-  if (req.method === 'POST' && new URL(req.url).pathname === '/karmolab/share/') {
+  if (req.method === 'POST' && new URL(req.url).pathname === appPath('share/')) {
     event.respondWith(
       (async () => {
         try {
@@ -177,15 +178,15 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
           const file = form.get('file');
           if (file instanceof File && file.size > 0) {
             await putHandoff({ blob: file, name: file.name || '공유받은 파일', from: 'share', at: Date.now() });
-            return Response.redirect('/karmolab/?shared=1', 303);
+            return Response.redirect(`${APP_BASE}?shared=1`, 303);
           }
           // 글·주소만 온 경우 — 그대로 들고 들어간다(도구가 읽어 쓴다).
           const text = String(form.get('text') ?? form.get('url') ?? form.get('title') ?? '');
-          const target = text ? `/karmolab/?shared=1&text=${encodeURIComponent(text.slice(0, 2000))}` : '/karmolab/?shared=1';
+          const target = text ? `${APP_BASE}?shared=1&text=${encodeURIComponent(text.slice(0, 2000))}` : `${APP_BASE}?shared=1`;
           return Response.redirect(target, 303);
         } catch {
           // 실패해도 앱은 열어 준다 — 빈 화면보다 낫다.
-          return Response.redirect('/karmolab/?shared=0', 303);
+          return Response.redirect(`${APP_BASE}?shared=0`, 303);
         }
       })(),
     );
@@ -285,8 +286,8 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
              *
              * 그래서 우리 울타리 안의 이동이면 받아 둔 껍데기를 내준다. 어느 도구로 가려
              * 했는지는 주소에 그대로 남아 있어서, 앱이 그것을 읽고 그 도구를 연다. */
-            if (req.mode === 'navigate' && url.origin === ctx.location.origin && url.pathname.startsWith('/karmolab/')) {
-              return caches.match('/karmolab/').then((shell) => shell || Response.error());
+            if (req.mode === 'navigate' && url.origin === ctx.location.origin && isAppPath(url.pathname)) {
+              return caches.match(APP_BASE).then((shell) => shell || Response.error());
             }
             return Response.error();
           }),

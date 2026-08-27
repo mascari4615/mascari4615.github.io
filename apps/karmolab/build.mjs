@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { discoverEntryPoints } from './scripts/entry-points.mjs';
+import { APP_BASE } from './scripts/lib/site-base.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = __dirname;
@@ -103,6 +104,7 @@ await esbuild.build({
   // 서버에 묻지 않고 답하려면, 값이 **번들 안에** 있어야 한다 (KL 버전 표시).
   define: {
     __KARMOLAB_BUILD__: JSON.stringify(buildStamp),
+    __KARMOLAB_APP_BASE__: JSON.stringify(APP_BASE),
     __KARMOLAB_COMMIT__: JSON.stringify(buildCommit),
   },
   ...SAFE_MINIFY,
@@ -168,6 +170,7 @@ for (const rel of entryPoints) {
     // 같은 위젯을 두 번 받는다(실측으로 그랬다).
     define: {
       __KARMOLAB_BUILD__: JSON.stringify(buildStamp),
+    __KARMOLAB_APP_BASE__: JSON.stringify(APP_BASE),
       __KARMOLAB_COMMIT__: JSON.stringify(buildCommit),
       __KARMOLAB_GOOGLE_CLIENT_ID__: JSON.stringify(googleClientId),
     },

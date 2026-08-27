@@ -10,6 +10,7 @@ import { readInvocation } from '../../lib/tool-url';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { encode, loadImage } from './shared/image';
+import { appUrl } from '../../lib/site-base';
 
 (function (): void {
 
@@ -56,7 +57,7 @@ import { encode, loadImage } from './shared/image';
 
             <div class="field-group" id="qrPanelText">
               <label class="field-label">${esc(t('qrgen.label.content'))}</label>
-              <textarea id="qrText" placeholder="https://blog.mascari4615.com/karmolab/" style="min-height:90px;"></textarea>
+              <textarea id="qrText" placeholder="${appUrl()}" style="min-height:90px;"></textarea>
             </div>
 
             <div class="field-group" id="qrPanelWifi" style="display:none;">
@@ -342,7 +343,7 @@ import { encode, loadImage } from './shared/image';
           /* 열자마자 **QR 한 장이 이미 그려져 있게** 한다 (TASK-KL-133).
              빈 칸만 있으면 「여기 뭘 넣으라는 거지」로 시작한다 — 결과를 먼저 보여 주면
              무엇을 하는 도구인지 한 번에 안다. 사람이 치는 순간 그 값으로 바뀐다. */
-          $<HTMLTextAreaElement>('#qrText').value = 'https://blog.mascari4615.com/karmolab/';
+          $<HTMLTextAreaElement>('#qrText').value = appUrl();
           render();
           sizeInput.addEventListener('input', () => {
             sizeVal.textContent = sizeInput.value + 'px';

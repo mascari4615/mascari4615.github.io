@@ -13,6 +13,7 @@
  * 순위는 브라우저가 보내온 말을 믿고 매길 수 없다.
  */
 import { t, loadNamespace } from './i18n';
+import { appPath } from './site-base';
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -249,7 +250,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
             `${isMe ? 'font-weight:700;color:var(--accent);' : ''}">` +
             `<span style="display:flex;align-items:center;gap:7px;min-width:0">` +
             `<span style="opacity:.7">${e.rank}.</span>${face}` +
-            `<a href="/karmolab/u/${encodeURIComponent(e.handle)}/" style="color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(e.handle)}</a>` +
+            `<a href="${appPath(`u/${encodeURIComponent(e.handle)}/`)}" style="color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(e.handle)}</a>` +
             `</span>` +
             `<span style="flex:0 0 auto">${formatScore(spec, e.score)}</span></li>`
           );

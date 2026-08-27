@@ -19,6 +19,7 @@ import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../
 import { variantFor } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
 import { t, loadNamespace } from '../lib/i18n';
+import { appHost } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -358,8 +359,8 @@ import { t, loadNamespace } from '../lib/i18n';
              * 그래서 내 표일 때는 **표를 실은 주소**를 준다. 그러면 누르는 순간 표까지 따라온다. */
             const mine = topicId.indexOf('pack:') === 0 ? getPack(topicId.slice(5)) : null;
             const url = mine
-              ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#twenty`
-              : 'blog.mascari4615.com/karmolab/#twenty';
+              ? `${appHost()}?pack=${packToCode(mine)}#twenty`
+              : `${appHost()}#twenty`;
             const text =
               `KarmoLab 스무고개 — ${chip ? chip.title : ''}\n` +
               `${asked}번 만에 ${$('twQ').textContent === t('twenty.t19') ? t('twenty.t25') : t('twenty.t26')}\n` +

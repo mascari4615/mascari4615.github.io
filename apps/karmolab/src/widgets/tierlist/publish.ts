@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n';
+import { isAppPath } from '../../lib/site-base';
 
 (function () {
     const esc = (v: string): string =>
@@ -16,7 +17,7 @@ import { t } from '../../lib/i18n';
     function karmolabPublishedDataRoot(): string {
         const { origin, pathname } = location;
         const p = pathname.replace(/\/index\.html?$/i, '') || '/';
-        if (p === '/karmolab' || p.startsWith('/karmolab/')) {
+        if (isAppPath(p)) {
             return `${origin}/apps/karmolab`;
         }
         if (p.startsWith('/apps/karmolab')) {

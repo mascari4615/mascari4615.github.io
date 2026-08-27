@@ -17,6 +17,7 @@
  * 사람들 사이에서만 흐른다.
  */
 import { joinRoom, selfId, type DataPayload } from 'trystero/nostr';
+import { toolPage } from './site-base';
 
 /**
  * 그물망을 건너는 것은 **JSON 이 될 수 있는 값**뿐이다 — 함수도 클래스도 Map 도 못 건넌다.
@@ -45,7 +46,7 @@ export function makeCode(len = 5): string {
  * `#r=CODE` 로 열면 그 순간 `#arcade` 로 덮여 사라진다(오락실에서 실측했다).
  */
 export function inviteLink(toolPath: string, code: string): string {
-  const path = toolPath.startsWith('/') ? toolPath : `/karmolab/t/${toolPath}/`;
+  const path = toolPath.startsWith('/') ? toolPath : toolPage(toolPath);
   return `${location.origin}${path}?r=${code}`;
 }
 

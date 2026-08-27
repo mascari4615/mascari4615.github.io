@@ -10,6 +10,8 @@
  *  ③ 끄면 내 것을 안 보내고 남의 것도 안 그린다. 켜고 끄는 것은 이 브라우저에만 남는다.
  *  ④ 창이 뒤에 있으면 안 보낸다 — 안 보고 있는 화면의 커서는 소식이 아니라 소음이다.
  */
+import { toolIdFromPath } from './lib/site-base';
+
 /**
  * 어디에 붙을까. 기본은 노트북의 그 서버다.
  *
@@ -161,8 +163,8 @@ function clearAll(): void {
 
 /** 지금 보고 있는 화면 = 방 이름. 도구·게임·첫 화면 구분 없이 같은 규칙이다. */
 function currentRoom(): string {
-    const detail = /^\/karmolab\/t\/([a-z0-9][a-z0-9-]*)\/?$/.exec(location.pathname);
-    if (detail) return detail[1];
+    const detail = toolIdFromPath(location.pathname);
+    if (detail) return detail;
     const hash = location.hash.replace(/^#/, '');
     return /^[a-z0-9][a-z0-9-]*$/.test(hash) ? hash : 'home';
 }

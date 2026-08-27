@@ -15,6 +15,7 @@
  * 통째로 비고 로그도 안 남는다. 빌드와 타입 검사를 받는 자리에 둔다.
  */
 import { t, loadNamespace, locale } from './lib/i18n';
+import { APP_BASE, appQuery, toolPage } from './lib/site-base';
 
 /* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다.
@@ -80,7 +81,7 @@ function renderMessage(root: HTMLElement, title: string, detail: string): void {
         <div class="profile-empty">
             <h1>${escapeHtml(title)}</h1>
             <p>${escapeHtml(detail)}</p>
-            <p><a href="/karmolab/">${esc(t('profile.t02'))}</a></p>
+            <p><a href="${APP_BASE}">${esc(t('profile.t02'))}</a></p>
         </div>`;
 }
 
@@ -107,7 +108,7 @@ function cardHtml(profile: PublicProfile): string {
                 ? `<div class="profile-pins">${pins
                       .map(
                           (id) =>
-                              `<a class="profile-pin" href="/karmolab/t/${encodeURIComponent(id)}/">${escapeHtml(toolTitle(id))}</a>`,
+                              `<a class="profile-pin" href="${toolPage(id)}">${escapeHtml(toolTitle(id))}</a>`,
                       )
                       .join('')}</div>`
                 : ''}
@@ -212,7 +213,7 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
             <div id="profileWorks"></div>
             <div id="profileActivity"></div>
             <footer class="profile-foot">
-                <a href="/karmolab/">${esc(t('profile.t11'))}</a>
+                <a href="${APP_BASE}">${esc(t('profile.t11'))}</a>
                 <!-- 공유용 주소 (TASK-KL-156 D9). 이 주소로 붙여넣어야 카드 그림이 펼쳐진다 —
                      지금 주소(?h=)는 어느 사람이든 미리보기가 같다. -->
                 <button type="button" class="profile-share" id="profileShare">${esc(t('profile.btn.share'))}</button>
@@ -289,7 +290,7 @@ async function loadActivity(handle: string): Promise<void> {
         };
         if (data.counts.posts === 0 && data.counts.replies === 0) return;
 
-        const link = (postId: string): string => `/karmolab/?p=${encodeURIComponent(postId)}#community`;
+        const link = (postId: string): string => appQuery(`p=${encodeURIComponent(postId)}`, 'community');
         const posts = data.posts
             .map(
                 (p) =>

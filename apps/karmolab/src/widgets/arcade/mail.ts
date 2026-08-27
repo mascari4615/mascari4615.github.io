@@ -21,6 +21,7 @@
 
 import { Match } from './kernel';
 import type { GameDef } from './types';
+import { toolPage } from '../../lib/site-base';
 
 /** 편지 한 통 = 판 하나. */
 export interface Letter {
@@ -73,7 +74,7 @@ export function unfold(packed: string): Letter | null {
 
 /** 편지를 담은 링크. 방 링크(`?r=`)와 다른 자리를 쓴다 — 둘은 다른 놀이 방식이다. */
 export function letterLink(toolPath: string, packed: string): string {
-  const path = toolPath.startsWith('/') ? toolPath : `/karmolab/t/${toolPath}/`;
+  const path = toolPath.startsWith('/') ? toolPath : toolPage(toolPath);
   return `${location.origin}${path}?m=${packed}`;
 }
 
