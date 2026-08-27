@@ -14,7 +14,7 @@ const BASE = process.argv[2] ?? 'https://blog.mascari4615.com/daily';
 // (이게 없어서 이 검사는 여태 **내 기계에서만** 돌 수 있었다 — 내가 안 돌리면 아무도 안 봤다.)
 const pwPath = process.env.DAILY_PLAYWRIGHT
   ? join(app, process.env.DAILY_PLAYWRIGHT)
-  : join(app, '../node_modules/playwright/index.js');
+  : join(app, '../karmolab/node_modules/playwright/index.js');
 const mod = await import(pathToFileURL(pwPath).href);
 const pw = mod.chromium ? mod : mod.default;
 const { answerOf, findItem, kstDayNumber } = await import(pathToFileURL(join(app, 'engine.mjs')).href);

@@ -13,7 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const CANON = path.join(here, '../css/toolbox.css');
+const CANON = path.join(here, '../karmolab/css/toolbox.css');
 
 export function tokens() {
   const css = fs.readFileSync(CANON, 'utf8');

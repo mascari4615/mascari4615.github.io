@@ -299,7 +299,7 @@ jobs:
       # sitemap 388/388 동일 · lastmod·CSP 감사 초록. Ruby 는 이 저장소에서 소멸.
       - name: Build site
         working-directory: apps/blog
-        run: node ../scripts/assemble-site.mjs --site . --out "_site${{ steps.pages.outputs.base_path }}"
+        run: node ../karmolab/scripts/assemble-site.mjs --site . --out "_site${{ steps.pages.outputs.base_path }}"
 
       # 사이트맵은 **지어져야만 존재한다** — 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
       # 날짜가 빠지면 크롤러가 다시 올지 못 정하고, IndexNow 알림에서도 통째로 빠진다.

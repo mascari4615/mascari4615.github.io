@@ -23,7 +23,7 @@ const shots = join(app, '.cache/shots');
 // CI 에는 그 이웃이 없으므로 어디 있는지 환경변수로 알려 준다.
 const pwPath = process.env.DAILY_PLAYWRIGHT
   ? join(app, process.env.DAILY_PLAYWRIGHT)
-  : join(app, '../node_modules/playwright/index.js');
+  : join(app, '../karmolab/node_modules/playwright/index.js');
 const pwModule = await import(pathToFileURL(pwPath).href);
 const pw = pwModule.chromium ? pwModule : pwModule.default; // CJS 라 default 로 들어오는 경우가 있다
 
