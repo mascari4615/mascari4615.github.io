@@ -163,7 +163,7 @@ namespace Handheld.Urp
                 if (c != null) return c;
             }
             if (Camera.main != null) return Camera.main;
-            var all = UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude);
+            var all = UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             return all.Length > 0 ? all[0] : null;
         }
     }
