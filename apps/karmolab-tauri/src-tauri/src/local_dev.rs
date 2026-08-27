@@ -687,7 +687,7 @@ fn run_npm_command_streamed(
 // `Win32_Process.CommandLine` 에서 `profile.args.join(' ')` 부분 문자열을 찾는다.
 
 #[cfg(windows)]
-fn list_all_processes() -> Vec<(u32, String)> {
+pub(crate) fn list_all_processes() -> Vec<(u32, String)> {
     // Get-CimInstance 는 1개 결과면 object, 여러 개면 array — `@()` 로 강제 array 화.
     let script = r#"@(Get-CimInstance Win32_Process | Select-Object ProcessId,CommandLine) | ConvertTo-Json -Compress"#;
     let out = Command::new("powershell.exe")
@@ -731,7 +731,7 @@ fn parse_processes_json(raw: &str) -> Vec<(u32, String)> {
 }
 
 #[cfg(not(windows))]
-fn list_all_processes() -> Vec<(u32, String)> {
+pub(crate) fn list_all_processes() -> Vec<(u32, String)> {
     let out = Command::new("ps").args(["-eo", "pid=,args="]).output();
     let Ok(out) = out else {
         return vec![];

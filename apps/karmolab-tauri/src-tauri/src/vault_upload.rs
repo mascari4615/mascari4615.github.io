@@ -16,7 +16,9 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
-use crate::local_dev::{is_pid_alive, kill_process_tree, spawn_upload_process, LocalDevState};
+use crate::local_dev::{
+    is_pid_alive, kill_process_tree, list_all_processes, spawn_upload_process, LocalDevState,
+};
 
 const STATE_FILE_NAME: &str = "vault-upload-state.json";
 const LOG_FILE_NAME: &str = "vault-upload.log";
@@ -46,6 +48,9 @@ struct PersistedRun {
     /// 마지막으로 사람이 조작한 결과. `stopped` 는 중지 버튼을 눌렀다는 뜻이지 실패가 아니다.
     #[serde(default)]
     last_action: String,
+    /// 앱이 안 띄운 전송기를 붙든 경우. 진행 수치는 앱 로그가 아니라 그쪽에 있어 못 읽는다.
+    #[serde(default)]
+    external: bool,
 }
 
 /// UI 로 나가는 전부. 여기에 경로·이름·열쇠가 섞이면 안 된다.
@@ -65,6 +70,24 @@ pub struct UploadStatus {
     /// 로그 마지막 줄에서 뽑은 사람 읽을 문구 (진행률·단계). 파일 이름은 안 들어온다.
     note: String,
     alive: bool,
+    /// 앱 밖에서 띄운 전송기를 붙들고 있는가. 그때는 진행 수치가 안 보인다.
+    external: bool,
+}
+
+/// 앱이 안 띄운 전송기도 찾아낸다.
+///
+/// 사람이 터미널에서 먼저 띄워 둔 경우, 앱이 그걸 모르면 화면은 「대기」인데 실제로는
+/// 올라가는 중이다 — 그 상태에서 `올리기` 를 누르면 전송기가 **둘 겹쳐 돈다**
+/// (2026-08-27 실제로 그 화면을 봤다). 명령줄에 전송기 스크립트가 있는 프로세스를 찾는다.
+fn find_external_uploader() -> Option<u32> {
+    // 경로 구분자는 신경 쓰지 않는다 — 스크립트 파일 이름만 보면 충분하다.
+    let needle = "upload.mjs";
+    list_all_processes()
+        .into_iter()
+        .find(|(_, cmd)| {
+            cmd.contains(needle)
+        })
+        .map(|(pid, _)| pid)
 }
 
 fn state_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -215,8 +238,13 @@ fn build_status(app: &tauri::AppHandle, run: &PersistedRun, alive: bool) -> Uplo
         done,
         uploaded,
         skipped,
-        note,
+        note: if run.external && note.is_empty() {
+            "앱 밖에서 띄운 전송기입니다 — 진행 수치는 안 보입니다".to_string()
+        } else {
+            note
+        },
         alive,
+        external: run.external,
     }
 }
 
@@ -224,8 +252,21 @@ fn build_status(app: &tauri::AppHandle, run: &PersistedRun, alive: bool) -> Uplo
 #[tauri::command]
 pub async fn vault_upload_status(app: tauri::AppHandle) -> Result<UploadStatus, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let run = load_run(&app);
-        let alive = run.pid.map(is_pid_alive).unwrap_or(false);
+        let mut run = load_run(&app);
+        let mut alive = run.pid.map(is_pid_alive).unwrap_or(false);
+        if !alive {
+            // 우리가 안 띄운 전송기가 돌고 있을 수 있다. 있으면 그걸 붙든다 —
+            // 그래야 「대기」로 보이다가 두 번째를 띄우는 사고가 안 난다.
+            if let Some(pid) = find_external_uploader() {
+                run.pid = Some(pid);
+                run.external = true;
+                if run.run_id.is_empty() {
+                    run.run_id = format!("ext-{}", pid);
+                }
+                alive = true;
+                let _ = save_run(&app, &run);
+            }
+        }
         build_status(&app, &run, alive)
     })
     .await
@@ -243,7 +284,7 @@ pub async fn vault_upload_start(
 
     tauri::async_runtime::spawn_blocking(move || {
         let prev = load_run(&app);
-        if prev.pid.map(is_pid_alive).unwrap_or(false) {
+        if prev.pid.map(is_pid_alive).unwrap_or(false) || find_external_uploader().is_some() {
             return Err("이미 올리는 중입니다.".to_string());
         }
 
@@ -271,6 +312,7 @@ pub async fn vault_upload_start(
             pid: Some(pid),
             started_at: Some(started),
             last_action: "started".into(),
+            external: false,
         };
         save_run(&app, &run)?;
         if let Some(state) = app.try_state::<VaultUploadState>() {
