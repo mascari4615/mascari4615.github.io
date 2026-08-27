@@ -5,6 +5,7 @@
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
  */
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createVault, flushIndex, listFiles, unlockVault } from './vault.mjs';
 import { putFileFromPath, sha256File } from './vault-node.mjs';
@@ -60,6 +61,29 @@ else session = await createVault(store, pass);
 session.deferIndex = true;
 console.log('금고 염');
 
+/* 진행 상태를 **정해진 자리**에 적는다.
+   왜: 터미널에서 띄우면 로그 자리는 띄운 쪽이 정한다 — 그러면 데스크톱 앱이 그 로그를 못 찾아
+   「진행 수치는 안 보입니다」가 된다(2026-08-27 조수님이 그 화면을 봤다). 누가 띄우든
+   같은 자리에 적으면 앱이 읽는다. 여기 적는 것은 **집계 수치뿐** — 경로·파일 이름은 안 적는다. */
+const progressPath = new URL('../.upload-progress.json', import.meta.url);
+async function writeProgress(stage, total, done, uploaded, skipped) {
+  const body = JSON.stringify({
+    stage,
+    total,
+    done,
+    uploaded,
+    skipped,
+    pid: process.pid,
+    updatedAt: new Date().toISOString(),
+  });
+  try {
+    await writeFile(progressPath, body);
+  } catch {
+    /* 상태를 못 적는다고 올리기를 멈출 이유는 없다 */
+  }
+}
+await writeProgress('index', files.length, 0, 0, 0);
+
 const have = new Map((await listFiles(session)).map((f) => [f.path, f.sha256]));
 let n = 0;
 let skipped = 0;
@@ -81,8 +105,12 @@ try {
     else if ((n + skipped) % 10 === 0 || n + skipped === files.length) {
       console.log(`${n + skipped}/${files.length} 올림 ${n} 건너뜀 ${skipped}`);
     }
+    if ((n + skipped) % 10 === 0 || n + skipped === files.length) {
+      await writeProgress('upload', files.length, n + skipped, n, skipped);
+    }
   }
   await flushIndex(session);
+  await writeProgress('done', files.length, n + skipped, n, skipped);
 } finally {
   await flushIndex(session);
   daemon?.stop();

@@ -166,7 +166,11 @@ function mountDesktopNav() {
   el.hidden = false;
   el.innerHTML =
     '<button type="button" id="nav-back">← KarmoLab</button>' +
-    '<button type="button" id="nav-window">새 창으로</button>';
+    '<button type="button" id="nav-window">새 창으로</button>' +
+    '<span class="nav-gap"></span>' +
+    '<button type="button" class="wc" id="wc-min" aria-label="최소화">–</button>' +
+    '<button type="button" class="wc" id="wc-max" aria-label="최대화">□</button>' +
+    '<button type="button" class="wc wc-close" id="wc-close" aria-label="닫기">×</button>';
   document.getElementById('nav-back').addEventListener('click', () => {
     // navigate 로 왔으므로 히스토리에 카모랩이 남아 있다.
     history.back();
@@ -174,6 +178,22 @@ function mountDesktopNav() {
   document.getElementById('nav-window').addEventListener('click', () => {
     desktopInvoke('files_window_open').catch(() => {});
   });
+
+  // 창 테두리가 없는 앱이라(decorations:false) 최소화·최대화·닫기를 화면이 그려야 한다.
+  // 카모랩 셸에는 이미 있지만 이 화면은 그 셸이 아니다 — 없으면 창을 닫을 길이 없다.
+  const getWin = globalThis.__TAURI__?.window?.getCurrentWindow;
+  if (typeof getWin !== 'function') return;
+  const win = getWin();
+  const on = (id, fn) => document.getElementById(id)?.addEventListener('click', () => {
+    try {
+      fn()?.catch?.(() => {});
+    } catch {
+      /* 창 API 가 없으면 조용히 넘긴다 */
+    }
+  });
+  on('wc-min', () => win.minimize());
+  on('wc-max', () => win.toggleMaximize());
+  on('wc-close', () => win.close());
 }
 
 const UPLOAD_LABEL = {

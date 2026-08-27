@@ -71,6 +71,11 @@ body {
   padding: 5px 12px; border-radius: 999px; cursor: pointer;
 }
 .desknav button:hover { color: var(--ink); border-color: var(--mute); }
+.desknav .nav-gap { flex: 1; }
+.desknav .wc {
+  width: 30px; padding: 5px 0; border-radius: 8px; font-size: .9rem; line-height: 1;
+}
+.desknav .wc-close:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
 
 .sources {
   display: flex; gap: 4px; padding: 3px;
@@ -193,7 +198,7 @@ body {
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
+  <header class="topbar" data-tauri-drag-region>
     <div class="logo" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6a2 2 0 0 1 2-2h3.2l1.8 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
     </div>

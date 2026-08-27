@@ -26,6 +26,9 @@ const LOG_FILE_NAME: &str = "vault-upload.log";
 /// 전송기가 사는 곳. 저장소 뿌리 기준 고정 — UI 가 못 바꾼다.
 const UPLOADER_DIR: &str = "apps/files";
 const UPLOADER_SCRIPT: &str = "src/upload.mjs";
+/// 전송기가 스스로 적는 진행 상태. **누가 띄웠든** 같은 자리다 — 그래야 터미널에서 띄운
+/// 전송기도 화면에 수치가 뜬다 (앱 로그만 보면 「진행 수치는 안 보입니다」가 된다).
+const PROGRESS_FILE: &str = ".upload-progress.json";
 
 #[derive(Default)]
 pub struct VaultUploadState {
@@ -204,15 +207,49 @@ fn parse_progress(log_path: &Path) -> (u64, u64, u64, u64, String) {
     (total, done, uploaded, skipped, note)
 }
 
+/// 전송기가 적어 둔 진행 파일. 저장소 뿌리를 알아야 찾을 수 있다.
+#[derive(Deserialize, Default)]
+struct ProgressFile {
+    #[serde(default)]
+    stage: String,
+    #[serde(default)]
+    total: u64,
+    #[serde(default)]
+    done: u64,
+    #[serde(default)]
+    uploaded: u64,
+    #[serde(default)]
+    skipped: u64,
+}
+
+fn read_progress_file(app: &tauri::AppHandle) -> Option<ProgressFile> {
+    let root = repo_root(app).ok()?;
+    let path = root.join(UPLOADER_DIR).join(PROGRESS_FILE);
+    let raw = fs::read_to_string(path).ok()?;
+    serde_json::from_str::<ProgressFile>(&raw).ok()
+}
+
 fn build_status(app: &tauri::AppHandle, run: &PersistedRun, alive: bool) -> UploadStatus {
-    let (total, done, uploaded, skipped, note) = log_file(app)
+    // 전송기가 적은 것이 있으면 그게 우선이다 — 앱 로그는 우리가 띄웠을 때만 있다.
+    let (mut total, mut done, mut uploaded, mut skipped, mut note) = log_file(app)
         .map(|p| parse_progress(&p))
         .unwrap_or_default();
+    if let Some(pf) = read_progress_file(app) {
+        if pf.total > 0 {
+            total = pf.total;
+            done = pf.done;
+            uploaded = pf.uploaded;
+            skipped = pf.skipped;
+            if pf.stage == "index" {
+                note = "색인을 읽는 중".to_string();
+            }
+        }
+    }
 
     let status = if alive {
         // 앱 밖 전송기는 로그가 우리 것이 아니라 진행 줄이 영영 안 온다 —
         // 「준비 중」으로 굳어 보이면 멈춘 줄 안다 (2026-08-27 그 화면을 봤다).
-        if run.external {
+        if run.external && total == 0 {
             "running"
         } else if total == 0 {
             // 우리가 띄운 전송기는 색인을 먼저 읽는다 — 그동안은 진행 줄이 아직 없다.
@@ -242,8 +279,8 @@ fn build_status(app: &tauri::AppHandle, run: &PersistedRun, alive: bool) -> Uplo
         done,
         uploaded,
         skipped,
-        note: if run.external && note.is_empty() {
-            "앱 밖에서 띄운 전송기입니다 — 진행 수치는 안 보입니다".to_string()
+        note: if run.external && total == 0 && note.is_empty() {
+            "앱 밖에서 띄운 전송기입니다 — 옛 판이라 수치를 안 적습니다".to_string()
         } else {
             note
         },

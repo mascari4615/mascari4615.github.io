@@ -200,3 +200,7 @@ apps/karmolab/data/atlas.sources.json
 # 글 사진은 R2(img.mascari4615.com)가 정본 서빙 — git 은 더 안 든다 (change.board-unify).
 # 사본: R2 + C:\Users\masca\Backups\blog-images-2026-08-23\ zip + git 역사(재작성 전까지).
 apps/blog/assets/img/post/
+
+# Files 전송기 진행 상태 (기계 하나짜리 · 집계 수치뿐)
+apps/files/.upload-progress.json
+apps/files/.upload-*.log
