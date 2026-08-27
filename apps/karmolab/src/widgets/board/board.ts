@@ -142,7 +142,10 @@ import { isDesktop, invoke } from '../../tauri-bridge';
   }
 
   const CSS = `
-.board-wrap{display:flex;flex-direction:column;gap:16px;padding:4px 2px 24px}
+/* layout:'full' 의 패널은 flex:1 · min-height:0 까지만 잡아 준다 — **스스로 안 구른다.**
+   그래서 넘치는 만큼이 그냥 잘린다(2026-08-28 실측: 항목이 화면보다 길면 아래가 안 보인다).
+   구르는 자리는 위젯이 정한다. quest-log 도 같은 이유로 자기 뿌리에 이 셋을 갖고 있다. */
+.board-wrap{display:flex;flex-direction:column;gap:16px;padding:4px 2px 24px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 .board-head{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
 .board-dday{flex:1 1 180px;min-width:160px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
 .board-dday .lbl{font-size:var(--font-size-xs);color:var(--text-tertiary)}

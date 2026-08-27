@@ -102,7 +102,9 @@ const seen = await page.evaluate(() => {
     dues: rows.map((r) => r.querySelector('.board-due').textContent.trim()),
     over: q('.board-due.over').length,
     firstNeed: rows[0]?.querySelector('td:nth-child(2) b')?.textContent.trim() ?? '',
-    foot: document.querySelector('.board-foot')?.textContent ?? ''
+    foot: document.querySelector('.board-foot')?.textContent ?? '',
+    /* 넘치면 굴러야 한다 — 패널은 스스로 안 구르므로 이 값이 'auto' 가 아니면 아래가 잘린다. */
+    overflowY: getComputedStyle(document.querySelector('.board-wrap')).overflowY
   };
 });
 
@@ -115,6 +117,7 @@ eq('맨 위 = 가장 급한 것', seen.firstNeed, '요구 둘');   // 마감순 
 if (!seen.dues.at(-1).includes('미정')) fail.push(`날짜 없는 것이 맨 아래가 아니다: ${seen.dues.at(-1)}`);
 if (seen.dday.length !== 2 || !seen.dday.every((d) => /^D-\d+$/.test(d))) fail.push(`D-Day 가 안 나온다: ${JSON.stringify(seen.dday)}`);
 if (!seen.foot.includes('career/goal/scoreboard.md')) fail.push('읽은 경로가 안 보인다');
+if (seen.overflowY !== 'auto') fail.push(`넘쳐도 안 구른다: overflow-y=${seen.overflowY}`);
 if (errors.length) fail.push(`콘솔 빨강 ${errors.length}건: ${errors.slice(0, 3).join(' / ')}`);
 
 await browser.close();
