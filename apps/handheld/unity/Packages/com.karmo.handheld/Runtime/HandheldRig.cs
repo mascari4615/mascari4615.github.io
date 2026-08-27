@@ -178,6 +178,30 @@ namespace Handheld
         public bool showOverlay = true;
         public KeyCode recenterKey = KeyCode.R;
 
+        /// <summary>
+        /// 리센터 키가 방금 눌렸나 — **어느 입력 체계에서도** 답한다.
+        ///
+        /// - 받는 앱이 Input System 전용이면 구형 `Input` 은 **예외를 던진다**
+        ///   (2026-08-27 실측: 그 앱에서 리그 틱이 통째로 죽어 화면이 안 움직였다)
+        /// - 그래서 패키지는 둘 중 살아 있는 쪽을 골라 쓴다
+        /// - 키 하나 때문에 수용자에게 입력 패키지를 강요하지 않는다
+        /// </summary>
+        bool RecenterKeyDown()
+        {
+            // 두 조건이 다 서야 한다 — 패키지가 설치돼 있고(PKG), 그게 활성 체계여야(ENABLE_) 한다.
+#if ENABLE_INPUT_SYSTEM_PKG && ENABLE_INPUT_SYSTEM
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb == null) return false;
+            // KeyCode -> Key 는 이름이 같은 경우가 대부분이라 이름으로 찾는다.
+            if (!System.Enum.TryParse(recenterKey.ToString(), true, out UnityEngine.InputSystem.Key k))
+                return false;
+            var ctrl = kb[k];
+            return ctrl != null && ctrl.wasPressedThisFrame;
+#else
+            return Input.GetKeyDown(recenterKey);
+#endif
+        }
+
         Camera _cam;
         RenderTexture _rt;
         int _rtW, _rtH;
@@ -478,7 +502,7 @@ namespace Handheld
             _lastTickTime = now;
 
             _recenteredThisTick = false;
-            if (Application.isPlaying && Input.GetKeyDown(recenterKey)) Recenter();
+            if (Application.isPlaying && RecenterKeyDown()) Recenter();
             if (server.ConsumeRecenterRequest()) Recenter();
 
             // 폰이 보낸 렌즈 요청 — 줌은 목표만 바꾸고(램프가 잇는다), 탭 포커스는 그 자리를 한 번 잰다.

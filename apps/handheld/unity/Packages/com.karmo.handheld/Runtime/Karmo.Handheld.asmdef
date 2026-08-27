@@ -1,7 +1,11 @@
 {
     "name": "Karmo.Handheld",
     "rootNamespace": "Handheld",
-    "references": [ "Karmo.Handheld.Core", "Unity.WebRTC" ],
+    "references": [
+        "Karmo.Handheld.Core",
+        "Unity.WebRTC",
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -9,6 +13,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "ENABLE_INPUT_SYSTEM_PKG"
+        }
+    ],
     "noEngineReferences": false
 }
