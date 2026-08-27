@@ -60,6 +60,7 @@ use local_dev::{
     localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
+    restore_repo_root,
     LocalDevState,
 };
 use files_window::files_window_open;
@@ -1107,6 +1108,11 @@ pub fn run() {
             dev_static::start();
 
             let handle = app.handle().clone();
+
+            // 트레이를 세우기 전에 **저장소 자리부터** 되살린다 (파일 한 번 읽기).
+            // 이걸 background thread 에 맡겼더니 트레이가 먼저 그려져 빠른 손잡이가
+            // 빈 채로 떴다 (2026-08-27).
+            restore_repo_root(&handle);
 
             // QuestLog 파일 watcher (KL-024) — memo TASK 디렉토리 6개 변경 시
             // 'quest-tree-changed' 이벤트 emit. 위젯이 listen 해서 자동 새로고침.
