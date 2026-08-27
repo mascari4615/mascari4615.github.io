@@ -928,6 +928,18 @@
     gotOrientation = true;
   }
 
+  // iOS 13+ 는 자이로를 그냥 안 준다 — **사용자 탭 안에서** 권한을 물어야 한다.
+  //  - 안 물으면 리스너만 달리고 이벤트가 한 건도 안 옴 (조용히 죽는다)
+  //  - 그래서 아이폰에서는 회전조차 안 됐다 (2026-08-28 조사)
+  //  - 다른 브라우저도 같다 — iOS 는 엔진이 하나뿐
+  // 반환: 'granted' · 'denied' · 'unsupported'(안드로이드 등 물을 필요 없는 판)
+  async function askOrientationPermission() {
+    const D = window.DeviceOrientationEvent;
+    if (!D || typeof D.requestPermission !== 'function') return 'unsupported';
+    try { return await D.requestPermission(); }
+    catch (e) { return 'denied'; }        // 사용자 제스처 밖에서 부르면 여기로 떨어진다
+  }
+
   function start3Dof() {
     mode = '3dof';
     setTrack('3dof');
@@ -1141,7 +1153,17 @@
   }
   $('btnStop').onclick = stop;
   $('btnRecenter').onclick = () => { if (ws && ws.readyState === 1) ws.send('c|recenter'); };
-  $('btnFallback').onclick = () => start3Dof();
+  // 폴백도 같은 문을 거친다 — iOS 는 여기서도 권한을 물어야 센서가 온다.
+  $('btnFallback').onclick = async () => {
+    const perm = await askOrientationPermission();
+    if (perm === 'denied') {
+      const note = $('modeNote');
+      note.style.whiteSpace = 'pre-wrap';
+      note.textContent = '동작 센서 권한이 거부됐다.\n설정 앱 > Safari > 「동작 및 방향 접근」을 켜고 새로고침.';
+      return;
+    }
+    start3Dof();
+  };
 
   (async () => {
     const note = $('modeNote'), btn = $('btnStart');
@@ -1182,10 +1204,31 @@
         });
       };
     } else {
+      // iOS 는 WebXR 자체가 없다(Safari 26 까지 미지원 · 브라우저를 바꿔도 엔진이 같다).
+      // 그래서 여기로 온다 — 회전만 주고, 이동은 조이스틱이 맡는다.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);   // iPadOS 는 Mac 으로 위장한다
+
       btn.disabled = false;
       btn.textContent = '시작 (자이로 · 회전만)';
-      note.textContent = 'WebXR(ARCore)이 없다 — 회전만 전달된다. Play 스토어의 「Google Play 서비스 (AR)」를 깔면 6DoF 가 된다.';
-      btn.onclick = () => start3Dof();
+      note.textContent = isIOS
+        ? 'iOS 는 WebXR 이 없어 위치를 못 받는다 — 회전만 전달된다. 이동은 조이스틱으로. 시작을 누르면 동작 센서 권한을 묻는다.'
+        : 'WebXR(ARCore)이 없다 — 회전만 전달된다. Play 스토어의 「Google Play 서비스 (AR)」를 깔면 6DoF 가 된다.';
+
+      btn.onclick = async () => {
+        btn.disabled = true;
+        // ★ 이 await 는 **탭 핸들러 안**이라야 한다 — 밖에서 부르면 iOS 가 그냥 거부한다.
+        const perm = await askOrientationPermission();
+        if (perm === 'denied') {
+          btn.disabled = false;
+          note.style.whiteSpace = 'pre-wrap';
+          note.textContent = '동작 센서 권한이 거부됐다.\n\n'
+            + 'Safari → 설정 → 「동작 및 방향 접근」을 켜고 새로고침해라.\n'
+            + '(설정 앱 > Safari > 동작 및 방향 접근)';
+          return;
+        }
+        start3Dof();
+      };
     }
   })();
 })();
