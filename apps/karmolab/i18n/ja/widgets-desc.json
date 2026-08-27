@@ -231,5 +231,6 @@
   "widgets-desc.worldcup.desc": "二択だけのトーナメント — 表を作ればそのまま自分の大会になります",
   "widgets-desc.xmlfmt.desc": "XML を見やすく整え、一行にまとめ、JSON に変換します。おかしい所は行・桁で指し示します",
   "widgets-desc.ytdownloader.desc": "YouTube 動画をダウンロードします",
-  "widgets-desc.ziptool.desc": "ファイルを ZIP にまとめ、受け取った ZIP の中身を見て取り出します"
+  "widgets-desc.ziptool.desc": "ファイルを ZIP にまとめ、受け取った ZIP の中身を見て取り出します",
+  "widgets-desc.board.desc": "一つの目標の進行ボード — D-Day・評価・期限・次の一手（デスクトップ専用・内容は非公開）"
 }

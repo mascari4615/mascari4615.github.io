@@ -231,5 +231,6 @@
   "widgets-desc.worldcup.desc": "A bracket where you pick one of two — build a set and it becomes your own bracket",
   "widgets-desc.xmlfmt.desc": "Pretty-print XML, minify it to one line, or convert it to JSON. Problems are pinned to a line and column",
   "widgets-desc.ytdownloader.desc": "Download a YouTube video",
-  "widgets-desc.ziptool.desc": "Bundles files into a ZIP, and lists and extracts a ZIP you received"
+  "widgets-desc.ziptool.desc": "Bundles files into a ZIP, and lists and extracts a ZIP you received",
+  "widgets-desc.board.desc": "Progress board for one goal — D-Day, grades, deadlines, next move (desktop only, private contents)"
 }

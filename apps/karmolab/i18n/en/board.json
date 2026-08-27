@@ -1,0 +1,15 @@
+{
+  "board.track.career": "Nexon",
+  "board.ms.discharge": "Service ends",
+  "board.ms.apply": "Apply",
+  "board.t.grade": "Grade",
+  "board.t.need": "Requirement / My evidence",
+  "board.t.next": "Next move",
+  "board.t.due": "Due",
+  "board.t.total": "Items",
+  "board.t.read": "Read at",
+  "board.t.loading": "Reading the board…",
+  "board.t.nodata": "Board document not found. Check where the memo repo lives.",
+  "board.t.norows": "No grade table found. The board needs a table with a grade column.",
+  "board.t.desktoponly": "Desktop app only — this board's contents are not in the public repo."
+}

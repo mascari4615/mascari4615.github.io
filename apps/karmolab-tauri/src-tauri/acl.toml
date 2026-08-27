@@ -207,3 +207,9 @@ name = "files-window"
 identifier = "allow-files-window"
 description = "Files 전용 창을 연다 — 파일 화면은 카모랩 위젯이 아니라 자기 창에서 산다."
 commands = ["files_window_open", "files_navigate"]
+
+[[group]]
+name = "board"
+identifier = "allow-board"
+description = "비공개 저장소(memo)의 보드 마크다운을 읽는다 — 허용 목록에 적힌 문서만, 읽기 전용. 이 레포는 공개라 내용은 담지 않고 런타임에만 읽는다."
+commands = ["board_read"]

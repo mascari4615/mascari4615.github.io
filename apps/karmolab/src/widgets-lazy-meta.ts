@@ -215,6 +215,22 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['activity']
   },
   {
+    /* 보드 — 목표 하나의 진행판. **데이터는 이 레포에 없다** (비공개 memo 를 데스크톱에서 직접 읽는다).
+       그래서 quest-log 와 같이 데스크톱 전용·숨김이다. 웹에서 열면 안내만 뜬다. */
+    id: 'board',
+    get title() { return t('widgets.board.title', undefined, "보드"); },
+    category: 'lab',
+    desktopOnly: true,
+    hidden: true,
+    get desc() { return t('widgets-desc.board.desc', undefined, "목표 하나의 진행 보드 — D-Day · 등급 · 마감 · 다음 한 수 (데스크톱 전용 · 내용은 비공개)"); },
+    layout: 'full',
+    noHero: true,
+    icon:
+      '<path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<path d="M8 15v-3M12 15V9M16 15v-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['board/board']
+  },
+  {
     id: 'quest-log',
     get title() { return t('widgets.quest-log.title', undefined, "Quest Log"); },
     category: 'lab',
