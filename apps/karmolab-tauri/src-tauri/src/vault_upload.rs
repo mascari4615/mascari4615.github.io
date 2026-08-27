@@ -210,8 +210,12 @@ fn build_status(app: &tauri::AppHandle, run: &PersistedRun, alive: bool) -> Uplo
         .unwrap_or_default();
 
     let status = if alive {
-        // 전송기는 색인을 먼저 읽는다 — 그동안은 진행 줄이 아직 없다.
-        if total == 0 {
+        // 앱 밖 전송기는 로그가 우리 것이 아니라 진행 줄이 영영 안 온다 —
+        // 「준비 중」으로 굳어 보이면 멈춘 줄 안다 (2026-08-27 그 화면을 봤다).
+        if run.external {
+            "running"
+        } else if total == 0 {
+            // 우리가 띄운 전송기는 색인을 먼저 읽는다 — 그동안은 진행 줄이 아직 없다.
             "preparing"
         } else {
             "running"
