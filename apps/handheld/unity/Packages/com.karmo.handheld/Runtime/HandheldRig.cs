@@ -767,11 +767,21 @@ namespace Handheld
             Quaternion rot = pose.Rotation;
             Vector3 pos = pose.Position;
 
-            // 세로 그립 — 카메라맨이 폰을 세워 잡았다. 카메라를 그만큼 굴려야 16:9 프레임의
-            // 수평이 세상의 수평과 맞는다. 폰 화면도 같이 돌아가므로 겨냥 방향과 그림은
-            // 어긋나지 않는다 (화면만 돌리면 거짓 뷰파인더가 된다).
-            if (Mathf.Abs(pose.GripRoll) > 0.01f)
-                rot = rot * Quaternion.AngleAxis(pose.GripRoll, Vector3.forward);
+            // 세로 그립 보정 — 폰을 세워 잡으면 카메라를 그만큼 굴려야 **가로 프레임**의
+            // 수평이 세상의 수평과 맞는다. 폰 화면도 같이 돌아가므로 겨냥과 그림은 안 어긋난다
+            // (화면만 돌리면 거짓 뷰파인더가 된다).
+            //
+            // 재는 것은 **그립과 프레임의 차이**다. 그립만 보면 세로 프레임에서 두 번 굴어
+            // 그림이 90도 돌아간다 (2026-08-27 실기: 세워 들고 9:16 로 두자 옆으로 누웠다).
+            //
+            //   그립 세로(90) + 프레임 가로 -> +90   그립 세로 + 프레임 세로 ->  0
+            //   그립 가로(0)  + 프레임 가로 ->   0   그립 가로 + 프레임 세로 -> -90
+            //
+            // 폰이 보내는 값은 0(누워서) 아니면 90(세워서) 둘뿐이다.
+            float frameRoll = EffectiveAspect(pose.Aspect) < 1f ? 90f : 0f;
+            float roll = pose.GripRoll - frameRoll;
+            if (Mathf.Abs(roll) > 0.01f)
+                rot = rot * Quaternion.AngleAxis(roll, Vector3.forward);
 
             if (_hasOrigin)
             {
