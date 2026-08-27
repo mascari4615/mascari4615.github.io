@@ -197,6 +197,15 @@ namespace Handheld.EditorTools
         {
             Header("웹서버");
 
+            // 바인드 실패는 조용히 지나가면 안 된다 — 포트만 LISTENING 으로 남고
+            // 폰은 무응답을 만난다. 사람이 볼 자리에 크게 띄운다.
+            if (!string.IsNullOrEmpty(HandheldServer.BindError))
+            {
+                EditorGUILayout.HelpBox(
+                    HandheldServer.BindError + "\n\n다른 유니티 인스턴스나 프로그램이 그 포트를 쥐고 있다. " +
+                    "포트를 바꾸거나 그쪽을 닫아라.", MessageType.Error);
+            }
+
             bool on = _server.enabled && _server.gameObject.activeInHierarchy;
             bool want = EditorGUILayout.ToggleLeft(
                 on ? $"켜짐 — 포트 {_server.port}" : "꺼짐", on, EditorStyles.boldLabel);

@@ -253,17 +253,39 @@ namespace Handheld
             Application.runInBackground = true;
 
             _running = true;
-            try
+
+            // Play 를 켜고 끌 때 **옛 인스턴스와 새 인스턴스가 잠깐 겹친다.**
+            //  - 옛 쪽 OnDisable 이 끝나기 전에 새 쪽 OnEnable 이 돈다
+            //  - 그 순간 바인드가 실패하면 새 서버가 죽는데, 옛 리스너는 곧 닫혀
+            //    **포트만 LISTENING 으로 남고 아무도 응답하지 않는다**
+            //  - 밖에서는 「연결은 되는데 무응답」 — 폰이 끊긴 것처럼 보인다 (2026-08-27 실기)
+            // 그래서 잠깐 기다렸다 다시 문다. 남의 프로세스가 쥐고 있으면 끝내 실패한다.
+            const int BindTries = 20;          // 100ms 간격 = 최대 2초
+            Exception last = null;
+            for (int i = 0; i < BindTries; i++)
             {
-                _listener = new TcpListener(IPAddress.Any, port);
-                _listener.Start();
+                try
+                {
+                    _listener = new TcpListener(IPAddress.Any, port);
+                    _listener.Start();
+                    last = null;
+                    break;
+                }
+                catch (Exception e)
+                {
+                    last = e;
+                    _listener = null;
+                    Thread.Sleep(100);
+                }
             }
-            catch (Exception e)
+            if (last != null)
             {
-                Debug.LogError($"[Handheld] {port} 포트를 못 열었다: {e.Message}");
+                BindError = $"{port} 포트를 못 열었다 ({BindTries}회 시도): {last.Message}";
+                Debug.LogError("[Handheld] " + BindError);
                 _running = false;
                 return;
             }
+            BindError = null;
             _acceptThread = new Thread(AcceptLoop) { IsBackground = true, Name = "handheld-accept" };
             _acceptThread.Start();
             Debug.Log($"[Handheld] 서버 켜짐 — http://localhost:{port}/");
@@ -277,7 +299,15 @@ namespace Handheld
             _client?.Close();
             _client = null;
             _listener = null;
+
+            // accept 스레드가 소켓을 놓을 때까지 잠깐 기다린다 — 안 기다리면 다음 인스턴스가
+            // 바인드에서 부딪힌다. 오래 잡지는 않는다(에디터가 그만큼 멈춘다).
+            try { _acceptThread?.Join(300); } catch { }
+            _acceptThread = null;
         }
+
+        /// <summary>포트를 못 연 까닭. 정상이면 null — 조종석·/diag 가 이걸 띄운다.</summary>
+        public static string BindError;
 
         void Update()
         {
