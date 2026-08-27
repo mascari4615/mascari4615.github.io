@@ -22,6 +22,7 @@ mod quest_writeback;
 mod repo_file;
 mod terminal;
 mod tray_menu;
+mod vault_upload;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use alarm::{
@@ -59,6 +60,10 @@ use local_dev::{
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, restore_persisted_state,
     LocalDevState,
+};
+use vault_upload::{
+    restore_upload_state, vault_upload_start, vault_upload_status, vault_upload_stop,
+    VaultUploadState,
 };
 use part_fetch::{part_fetch, part_fetched_path};
 use repo_file::{repofile_open_default, repofile_read, repofile_reveal, repofile_write};
@@ -1072,6 +1077,7 @@ pub fn run() {
         .manage(TerminalState::default())
         .manage(LifeFeaturesState::default())
         .manage(AlarmStore::default())
+        .manage(VaultUploadState::default())
         // TASK-KL-063: 핸들러 목록은 acl.toml 단일 정본 → build.rs 가
         // $OUT_DIR/acl_handler.rs 로 파생 (tauri::generate_handler![..] expr).
         .invoke_handler(include!(concat!(env!("OUT_DIR"), "/acl_handler.rs")))
@@ -1105,6 +1111,8 @@ pub fn run() {
                 let h = handle.clone();
                 std::thread::spawn(move || {
                     restore_persisted_state(&h);
+                    // 금고 전송기도 같은 자리에서 다시 붙인다 (PID 생존 확인 = 외부 호출).
+                    restore_upload_state(&h);
                 });
             }
 

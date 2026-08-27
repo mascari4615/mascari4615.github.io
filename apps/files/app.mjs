@@ -138,6 +138,127 @@ function showVaultGate(msg) {
   });
 }
 
+
+// ── PC 업로드 관리 (데스크톱 앱에서만) ───────────────────────────────────────
+// 왜 여기 있나: 전송기를 터미널에서 띄우면 그 세션이 죽을 때 같이 죽는다.
+// 데스크톱 앱이 붙들면 창을 닫아도 살아 있고, 앱을 껐다 켜도 다시 붙는다.
+// 화면에는 집계 수치만 온다 — 원본 경로·파일 이름·비밀번호는 오가지 않는다.
+const UPLOAD_TARGET_KEY = 'files.upload.target';
+
+function desktopInvoke(cmd, args) {
+  const fn = globalThis.__TAURI__?.core?.invoke;
+  if (typeof fn !== 'function') return Promise.reject(new Error('desktop-only'));
+  return fn(cmd, args);
+}
+function isDesktop() {
+  return typeof globalThis.__TAURI__?.core?.invoke === 'function';
+}
+
+const UPLOAD_LABEL = {
+  idle: '대기',
+  preparing: '준비 중',
+  running: '올리는 중',
+  stopped: '중지됨',
+  done: '완료',
+  error: '중단됨',
+};
+
+let uploadTimer = 0;
+
+function stopUploadPolling() {
+  if (uploadTimer) clearInterval(uploadTimer);
+  uploadTimer = 0;
+}
+
+function renderUploadPanel(st) {
+  const el = document.getElementById('uploader');
+  if (!el) return;
+  const pct = st.total ? Math.floor((st.done / st.total) * 100) : 0;
+  const busy = st.status === 'running' || st.status === 'preparing';
+  const target = sessionStorage.getItem(UPLOAD_TARGET_KEY) || st.target || '';
+  el.innerHTML =
+    '<div class="up-head"><span class="up-badge ' + esc(st.status) + '">' +
+    esc(UPLOAD_LABEL[st.status] || st.status) + '</span>' +
+    (st.total
+      ? '<span class="up-num">' + st.done.toLocaleString() + ' / ' + st.total.toLocaleString() +
+        ' · ' + pct + '%</span>'
+      : '<span class="up-num">' + esc(st.note || '') + '</span>') +
+    '</div>' +
+    (st.total ? '<div class="up-bar"><i style="width:' + pct + '%"></i></div>' : '') +
+    '<div class="up-meta">' +
+    (st.total ? '올림 ' + st.uploaded.toLocaleString() + ' · 건너뜀 ' + st.skipped.toLocaleString() : '') +
+    (st.startedAt ? ' · 시작 ' + esc(st.startedAt) : '') +
+    '</div>' +
+    '<div class="up-acts">' +
+    '<input id="up-target" type="text" placeholder="올릴 폴더" value="' + esc(target) + '"' +
+    (busy ? ' disabled' : '') + '>' +
+    (busy
+      ? '<button id="up-stop" type="button">중지</button>'
+      : '<button id="up-start" type="button">' + (st.status === 'stopped' ? '이어서 올리기' : '올리기') + '</button>') +
+    '</div>';
+
+  const startBtn = document.getElementById('up-start');
+  if (startBtn) {
+    startBtn.addEventListener('click', async () => {
+      const v = (document.getElementById('up-target')?.value || '').trim();
+      if (!v) return;
+      sessionStorage.setItem(UPLOAD_TARGET_KEY, v);
+      startBtn.disabled = true;
+      try {
+        renderUploadPanel(await desktopInvoke('vault_upload_start', { target: v }));
+      } catch (e) {
+        showUploadError(e);
+      }
+    });
+  }
+  const stopBtn = document.getElementById('up-stop');
+  if (stopBtn) {
+    stopBtn.addEventListener('click', async () => {
+      stopBtn.disabled = true;
+      try {
+        renderUploadPanel(await desktopInvoke('vault_upload_stop'));
+      } catch (e) {
+        showUploadError(e);
+      }
+    });
+  }
+}
+
+function showUploadError(e) {
+  const el = document.getElementById('uploader');
+  if (!el) return;
+  const msg = e && e.message ? e.message : String(e);
+  el.innerHTML = '<div class="up-note err">' + esc(msg) + '</div>';
+}
+
+async function pollUpload() {
+  try {
+    renderUploadPanel(await desktopInvoke('vault_upload_status'));
+  } catch {
+    stopUploadPolling();
+  }
+}
+
+function mountUploader() {
+  const el = document.getElementById('uploader');
+  if (!el) return;
+  el.hidden = false;
+  if (!isDesktop()) {
+    // 웹·PWA 에서는 설명만. 전송기와 열쇠는 PC 안에서만 산다.
+    el.innerHTML = '<div class="up-note">올리기는 PC 앱에서만 됩니다. 여기서는 보기만 가능합니다.</div>';
+    return;
+  }
+  pollUpload();
+  stopUploadPolling();
+  uploadTimer = setInterval(pollUpload, 5000);
+}
+
+function unmountUploader() {
+  stopUploadPolling();
+  const el = document.getElementById('uploader');
+  if (el) el.hidden = true;
+}
+
 function loadLaptop() {
   const p = laptopPath();
   const auth = laptopAuth();
@@ -316,8 +437,13 @@ async function loadVault() {
 function load() {
   setTabs();
   revokeBlob();
-  if (extFromHash() === 'vault') loadVault();
-  else loadLaptop();
+  if (extFromHash() === 'vault') {
+    mountUploader();
+    loadVault();
+  } else {
+    unmountUploader();
+    loadLaptop();
+  }
 }
 
 window.addEventListener('hashchange', load);

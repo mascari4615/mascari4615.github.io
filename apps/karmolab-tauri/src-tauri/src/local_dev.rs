@@ -316,7 +316,7 @@ fn load_persisted_state(app: &tauri::AppHandle) -> PersistedState {
 }
 
 #[cfg(windows)]
-fn is_pid_alive(pid: u32) -> bool {
+pub(crate) fn is_pid_alive(pid: u32) -> bool {
     // tasklist는 /FI 결과가 없을 때 stdout에 "INFO: ..." 한 줄을 적고도 exit 0으로 끝나므로
     // success만으로는 판단할 수 없다. CSV 출력에 PID가 포함됐는지를 본다.
     let pid_str = pid.to_string();
@@ -338,7 +338,7 @@ fn is_pid_alive(pid: u32) -> bool {
 }
 
 #[cfg(not(windows))]
-fn is_pid_alive(pid: u32) -> bool {
+pub(crate) fn is_pid_alive(pid: u32) -> bool {
     Command::new("kill")
         .args(["-0", &pid.to_string()])
         .status()
@@ -431,6 +431,20 @@ pub fn localdev_log_tail(
 /// stdout/stderr는 `log_path`에 truncate redirect — 카모랩이 죽어도 자식이
 /// 직접 파일 핸들을 들고 있으므로 계속 기록된다. stdin 은 piped 로 두고 핸들을
 /// 호출자에게 반환 — `localdev_send_stdin` 으로 외부에서 입력 가능.
+/// 금고 전송기처럼 **stdin 이 필요 없는** 긴 작업을 띄운다.
+/// 같은 spawn 경로(허용 program·인자 검사·창 없음·로그 리다이렉트)를 쓰되 stdin 핸들은 버린다 —
+/// 붙들고 있으면 앱이 죽을 때 파이프가 닫히며 자식이 같이 흔들린다.
+pub(crate) fn spawn_upload_process(
+    program: &str,
+    args: &[String],
+    cwd: &Path,
+    log_path: &Path,
+) -> Result<u32, String> {
+    let (pid, stdin) = spawn_detached_process(program, args, cwd, log_path)?;
+    drop(stdin);
+    Ok(pid)
+}
+
 fn spawn_detached_process(
     program: &str,
     args: &[String],
@@ -782,7 +796,7 @@ where
 }
 
 #[cfg(windows)]
-fn kill_process_tree(pid: u32) -> Result<(), String> {
+pub(crate) fn kill_process_tree(pid: u32) -> Result<(), String> {
     let status = Command::new("taskkill.exe")
         .args(["/PID", &pid.to_string(), "/T", "/F"])
         .creation_flags(CREATE_NO_WINDOW)
@@ -795,7 +809,7 @@ fn kill_process_tree(pid: u32) -> Result<(), String> {
 }
 
 #[cfg(not(windows))]
-fn kill_process_tree(pid: u32) -> Result<(), String> {
+pub(crate) fn kill_process_tree(pid: u32) -> Result<(), String> {
     let p = pid.to_string();
     let s = Command::new("kill")
         .args(["-TERM", &p])

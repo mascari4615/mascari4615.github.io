@@ -115,6 +115,37 @@ body {
 }
 .acts a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
+/* PC 업로드 관리 — 데스크톱 앱에서만 조작, 웹에서는 안내 한 줄 */
+.uploader {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); padding: 12px 14px; margin-bottom: 12px;
+}
+.up-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.up-badge {
+  font-size: .74rem; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--surface-2); color: var(--mute);
+}
+.up-badge.running, .up-badge.preparing { background: var(--accent-soft); color: var(--accent); }
+.up-badge.done { background: var(--accent-soft); color: var(--accent); }
+.up-badge.error { background: var(--surface-2); color: var(--danger); }
+.up-num { font-size: .82rem; color: var(--mute); font-variant-numeric: tabular-nums; }
+.up-bar { height: 6px; border-radius: 999px; background: var(--surface-2); margin: 10px 0 6px; overflow: hidden; }
+.up-bar i { display: block; height: 100%; background: var(--accent); transition: width .4s ease; }
+.up-meta { font-size: .78rem; color: var(--mute); min-height: 1em; }
+.up-acts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.up-acts input {
+  flex: 1 1 160px; min-width: 0; padding: 7px 10px; font: inherit; font-size: .86rem;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink);
+}
+.up-acts input:disabled { opacity: .55; }
+.up-acts button {
+  border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600;
+  font-size: .86rem; padding: 7px 16px; border-radius: 8px; cursor: pointer;
+}
+.up-acts button:disabled { opacity: .55; cursor: default; }
+.up-note { font-size: .82rem; color: var(--mute); }
+.up-note.err { color: var(--danger); }
+
 .gate { padding: 40px 18px; text-align: center; }
 .gate p { margin: 0 0 14px; color: var(--mute); }
 .gate input {
@@ -163,6 +194,7 @@ body {
     <button class="tab on" type="button" id="tab-laptop">내 PC</button>
     <button class="tab" type="button" id="tab-vault">클라우드</button>
   </div>
+  <div class="uploader" id="uploader" hidden></div>
   <nav class="crumb" id="crumb"></nav>
   <div class="panel" id="box"></div>
 </div>
