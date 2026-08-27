@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -224,12 +226,69 @@ namespace Handheld.EditorTools
             }
         }
 
+        /// <summary>
+        /// 폰이 열 주소. 터널이 켜져 있으면 그것, 아니면 같은 Wi-Fi 의 LAN 주소.
+        /// 폰에 필요한 건 https 가 아니라 **보안 컨텍스트**라, 같은 망 + 폰 플래그로도 붙는다.
+        /// </summary>
+        string PhoneUrl()
+        {
+            if (!string.IsNullOrEmpty(_tunnelUrl)) return _tunnelUrl;
+            string ip = LocalIp();
+            return ip == null ? "" : $"http://{ip}:{_server.port}";
+        }
+
+        static string LocalIp()
+        {
+            try
+            {
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus != OperationalStatus.Up) continue;
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                    foreach (var a in ni.GetIPProperties().UnicastAddresses)
+                    {
+                        if (a.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                        string s = a.Address.ToString();
+                        if (s.StartsWith("169.254")) continue;   // 주소를 못 받은 판
+                        return s;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         // ── 터널 ─────────────────────────────────────────────────────────────────
         void DrawTunnelSection()
         {
-            Header("공개 주소 (https)");
+            // 같은 망 길 — 설치가 필요 없어 먼저 보여 준다.
+            Header("같은 Wi-Fi 로 (설치 없음)");
+            string lan = LocalIp();
+            if (lan == null)
+            {
+                EditorGUILayout.LabelField("이 PC 의 랜 주소를 못 찾았다.", WrapMini());
+            }
+            else
+            {
+                string lanUrl = $"http://{lan}:{_server.port}";
+                EditorGUILayout.SelectableLabel(lanUrl, EditorStyles.textField,
+                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                EditorGUILayout.LabelField(
+                    "폰이 센서를 쓰려면 이 주소를 보안 컨텍스트로 인정해야 한다 — 폰 Chrome 에서 " +
+                    "chrome://flags → unsafely-treat-insecure-origin-as-secure 에 위 주소를 넣고 재시작. 폰마다 한 번만.",
+                    WrapMini());
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("주소 복사")) EditorGUIUtility.systemCopyBuffer = lanUrl;
+                    if (GUILayout.Button("플래그 주소 복사"))
+                        EditorGUIUtility.systemCopyBuffer = "chrome://flags/#unsafely-treat-insecure-origin-as-secure";
+                }
+            }
+
+            EditorGUILayout.Space(6f);
+            Header("밖에서 (터널)");
             EditorGUILayout.LabelField(
-                "폰 센서는 https 에서만 돈다 — 터널을 켜야 폰이 붙는다.", WrapMini());
+                "다른 망에서 붙어야 할 때만. 주소가 공개로 열리고 이 서버는 인증이 없다.", WrapMini());
 
             bool running = _tunnel != null && !_tunnel.HasExited;
             bool want = EditorGUILayout.ToggleLeft(
@@ -350,10 +409,12 @@ namespace Handheld.EditorTools
         // ── QR ───────────────────────────────────────────────────────────────────
         void DrawQrSection()
         {
-            if (string.IsNullOrEmpty(_tunnelUrl)) return;
+            // 터널이 없어도 같은 망 주소로 찍게 한다 — 설치 없이 데모하는 길이 기본이다.
+            string url = PhoneUrl();
+            if (string.IsNullOrEmpty(url)) return;
 
             Header("폰으로 찍기");
-            EnsureQr(_tunnelUrl);
+            EnsureQr(url);
             if (_qr == null) return;
 
             float side = Mathf.Min(position.width - 30f, 240f);

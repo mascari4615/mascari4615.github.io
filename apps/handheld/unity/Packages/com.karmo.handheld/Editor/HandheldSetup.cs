@@ -76,6 +76,65 @@ namespace Handheld.EditorTools
             Debug.Log($"[Handheld] 테스트 씬 완성: {ScenePath}");
         }
 
+        /// <summary>
+        /// **이미 돌고 있는 씬**에 리그를 얹는다 — 남의 앱에 넣는 사람이 실제로 하는 일이다.
+        /// 테스트 씬 만들기는 빈 씬을 새로 짓지만, 그건 패키지를 처음 볼 때 한 번뿐이다.
+        ///
+        /// 놓는 것은 둘: 서버 한 벌(+WebRTC), 그리고 뷰파인더를 그릴 카메라 한 대.
+        /// 이 카메라는 **호스트 카메라를 안 뺏는다** — 자세는 <see cref="HandheldRig.CameraFrameUpdated"/>
+        /// 로 흘려보내고, 호스트는 그걸 받아 제 카메라를 몰면 된다.
+        /// 이미 있으면 다시 안 만든다(두 번 눌러도 안전).
+        /// </summary>
+        [MenuItem("Handheld/이 씬에 붙이기", false, 20)]
+        public static void AddToOpenScene()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid())
+            {
+                Debug.LogWarning("[Handheld] 열린 씬이 없다.");
+                return;
+            }
+
+            var server = Object.FindAnyObjectByType<HandheldServer>();
+            if (server == null)
+            {
+                var serverGo = new GameObject("HandheldServer");
+                server = serverGo.AddComponent<HandheldServer>();
+                server.autoRecord = true;
+                var rtc = serverGo.AddComponent<HandheldWebRtc>();
+                rtc.server = server;
+                server.webrtc = rtc;
+                Undo.RegisterCreatedObjectUndo(serverGo, "Handheld 서버 놓기");
+            }
+
+            var rig = Object.FindAnyObjectByType<HandheldRig>();
+            if (rig == null)
+            {
+                var root = new GameObject("HandheldRoot");
+                root.transform.position = new Vector3(0f, 1.4f, -3f);
+
+                var camGo = new GameObject("HandheldCamera");
+                camGo.transform.SetParent(root.transform, false);
+                var cam = camGo.AddComponent<Camera>();
+                cam.nearClipPlane = 0.03f;
+                cam.farClipPlane = 200f;
+                // 이미 있는 씬이다 — MainCamera 태그도 clearFlags 도 안 뺏는다.
+
+                rig = camGo.AddComponent<HandheldRig>();
+                rig.server = server;
+                rig.rigRoot = root.transform;
+                Undo.RegisterCreatedObjectUndo(root, "Handheld 리그 놓기");
+            }
+
+            var webrtc = server.GetComponent<HandheldWebRtc>();
+            if (webrtc != null && webrtc.rig == null) webrtc.rig = rig;
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            Selection.activeGameObject = rig.gameObject;
+            Debug.Log("[Handheld] 이 씬에 붙였다 — 조종석(Ctrl+Shift+H)에서 서버를 켜고 폰으로 QR 을 찍어라. " +
+                      "호스트 카메라에 값을 넘기려면 rig.CameraFrameUpdated 를 받아라.");
+        }
+
         static void BuildStage()
         {
             var stage = new GameObject("Stage");
