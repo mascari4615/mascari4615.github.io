@@ -12,6 +12,7 @@ import { putFileFromPath, sha256File } from './vault-node.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
+import { mirrorable } from './mirror-policy.mjs';
 import { loadFilesEnv } from './env-file.mjs';
 
 await loadFilesEnv();
@@ -49,11 +50,15 @@ if (dry) {
   process.exit(0);
 }
 
-const daemon = extraRemote ? null : await startRcloneDaemon();
+/* 데몬은 remote 를 안 가린다 — rc 한 판에 여러 원격을 태운다.
+   예전엔 열람 저장이 켜지면 데몬을 아예 안 띄웠는데, 그러면 청크마다 rclone 프로세스를
+   새로 띄워 몇 배로 느려진다. 열람 저장을 켠 값을 속도로 치를 이유가 없다. */
+const daemon = await startRcloneDaemon();
 const rcUrl = daemon?.url;
 const primary = rcloneStore(remote, { rcUrl, delayMs: rcUrl ? 0 : 400 });
-const extra = extraRemote ? rcloneStore(extraRemote) : null;
-const store = extra ? teeStore(primary, extra) : primary;
+const extra = extraRemote ? rcloneStore(extraRemote, { rcUrl, delayMs: rcUrl ? 0 : 400 }) : null;
+const mirrored = extra ? teeStore(primary, extra) : primary;
+const store = mirrored;
 let session;
 const hdr = await store.get('hdr');
 if (hdr) session = await unlockVault(store, pass);
@@ -98,7 +103,10 @@ try {
         continue;
       }
     }
+    // 청크를 쓰는 자리는 session.store 다 — 파일마다 갈아끼워 R2 로 갈 것만 보낸다.
+    session.store = mirrorable(rel) ? mirrored : primary;
     await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
+    session.store = mirrored;
     n += 1;
     if ((n + skipped) % 10 === 0) await flushIndex(session);
     if (verbose) console.log(rel);
