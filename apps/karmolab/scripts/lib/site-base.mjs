@@ -30,3 +30,34 @@ export function appHash(id) {
 export function appUrl(rest = '') {
     return SITE_ORIGIN + appPath(rest);
 }
+
+/**
+ * **앱 뿌리 밑이지만 앱이 아닌 자리** (change.karmolab-at-root ②).
+ *
+ * 뿌리 이관 전에는 이 목록이 필요 없었다 — 앱은 `/karmolab/` 안에만 살았고, 그 밖은 전부
+ * 남의 자리였다. 뿌리로 올라오면 **모든 주소가 앱 범위 안**이 되므로, 앱이 아닌 자리를
+ * 이름으로 적어 두어야 한다. 이게 없으면 서비스 워커가 글 장까지 앱 껍데기로 덮는다.
+ *
+ * 여기 없는 뿌리 밑 주소는 전부 앱 것이다 (`t/` `u/` `c/` `bot/` `wm/` `play/` `share/`).
+ */
+export const NON_APP_PREFIXES = [
+    '/posts/',
+    '/works/',
+    '/about/',
+    '/daily/',
+    '/files/',
+    '/higher/',
+    '/quest/',
+    '/assets/',
+    '/apps/',
+    '/feed.xml',
+    '/sitemap.xml',
+    '/robots.txt',
+    '/404.html',
+];
+
+/** 이 pathname 이 앱 것인가 (뿌리 자신 포함, 앱 아닌 자리 제외). */
+export function isAppPath(pathname) {
+    if (NON_APP_PREFIXES.some((x) => pathname === x || pathname.startsWith(x))) return false;
+    return pathname === APP_BASE.slice(0, -1) || pathname.startsWith(APP_BASE);
+}

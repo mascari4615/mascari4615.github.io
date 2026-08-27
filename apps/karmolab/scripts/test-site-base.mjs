@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { APP_BASE, appPath, toolPage, appHash, appUrl } from './lib/site-base.mjs';
+import { APP_BASE, NON_APP_PREFIXES, appPath, toolPage, appHash, appUrl, isAppPath } from './lib/site-base.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const tsSrc = fs.readFileSync(path.join(HERE, '..', 'src', 'lib', 'site-base.ts'), 'utf8');
@@ -35,4 +35,14 @@ assert.equal(fallback, APP_BASE, `toolbox.ts 되돌림(${fallback}) 이 정본($
 const buildSrc = fs.readFileSync(path.join(HERE, '..', 'build.mjs'), 'utf8');
 assert.ok(buildSrc.includes('__KARMOLAB_APP_BASE__: JSON.stringify(APP_BASE)'), 'build.mjs 가 앱 뿌리를 안 박는다');
 
-console.log(`[test-site-base] ok — 뿌리 ${APP_BASE} · 앱/생성기/toolbox 일치`);
+/* 앱 아닌 자리 목록도 두 벌이다 — 갈라지면 뿌리 이관 뒤 글 장이 앱 껍데기로 덮인다. */
+const tsList = /export const NON_APP_PREFIXES = \[([\s\S]*?)\];/.exec(tsSrc)?.[1] ?? '';
+const tsPrefixes = [...tsList.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+assert.deepEqual(tsPrefixes, NON_APP_PREFIXES, '앱 아닌 자리 목록이 앱/생성기에서 다르다');
+
+assert.ok(isAppPath(`${APP_BASE}t/qr/`), '도구 장은 앱 것이다');
+for (const p of NON_APP_PREFIXES) {
+    assert.equal(isAppPath(p), false, `${p} 는 앱이 아니다`);
+}
+
+console.log(`[test-site-base] ok — 뿌리 ${APP_BASE} · 앱/생성기/toolbox 일치 · 앱 아닌 자리 ${NON_APP_PREFIXES.length}`);

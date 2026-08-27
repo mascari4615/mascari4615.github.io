@@ -45,8 +45,29 @@ export function profilePath(handle: string): string {
     return `${appPath('u/')}?h=${encodeURIComponent(handle)}`;
 }
 
-/** 이 pathname 이 앱 안인가 (뿌리 자신도 포함). */
+/**
+ * **앱 뿌리 밑이지만 앱이 아닌 자리** (change.karmolab-at-root ②).
+ * 짝 = `scripts/lib/site-base.mjs`. 뜻은 그쪽 머리말에 있다 — `test:site-base` 가 목록 일치를 본다.
+ */
+export const NON_APP_PREFIXES = [
+    '/posts/',
+    '/works/',
+    '/about/',
+    '/daily/',
+    '/files/',
+    '/higher/',
+    '/quest/',
+    '/assets/',
+    '/apps/',
+    '/feed.xml',
+    '/sitemap.xml',
+    '/robots.txt',
+    '/404.html',
+];
+
+/** 이 pathname 이 앱 것인가 (뿌리 자신 포함, 앱 아닌 자리 제외). */
 export function isAppPath(pathname: string): boolean {
+    if (NON_APP_PREFIXES.some((x) => pathname === x || pathname.startsWith(x))) return false;
     return pathname === APP_BASE.slice(0, -1) || pathname.startsWith(APP_BASE);
 }
 
