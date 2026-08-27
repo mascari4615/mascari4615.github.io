@@ -12,14 +12,22 @@ use tauri::Manager;
 /// 이 창에서 command 를 부를 수 있다 (없으면 화면은 뜨는데 버튼이 다 죽는다).
 pub const FILES_WINDOW_LABEL: &str = "files";
 
-/// 카모랩 주소 → Files 주소. 경로의 `karmolab` 조각만 `files` 로 바꾼다.
-/// dev `/apps/karmolab/` → `/apps/files/`, prod `/karmolab/` → `/files/`.
+/// 카모랩 주소 → Files 주소.
+///
+/// 두 구조를 다 견딘다. 지금은 카모랩이 `/karmolab/`(prod)·`/apps/karmolab/`(dev)에 살지만,
+/// 뿌리 이전(change.karmolab-at-root)이 끝나면 카모랩이 `/` 를 차지하고 `/karmolab/*` 는
+/// 404 가 된다. 그때 이 치환만 믿으면 Files 로 못 간다.
 fn files_url_from(main_url: &tauri::Url) -> tauri::Url {
     let mut u = main_url.clone();
     u.set_fragment(None);
     u.set_query(None);
     let path = u.path().to_string();
-    let next = path.replace("/karmolab", "/files");
+    let next = if path.contains("/karmolab") {
+        path.replace("/karmolab", "/files")
+    } else {
+        // 카모랩이 뿌리에 산다 = Files 도 뿌리 옆 한 칸이다.
+        "/files/".to_string()
+    };
     u.set_path(&next);
     u
 }
@@ -108,6 +116,15 @@ mod tests {
             files_url_from(&u).as_str(),
             "http://127.0.0.1:8898/apps/files/index.html"
         );
+    }
+
+    #[test]
+    fn 뿌리로_옮긴_뒤에도_찾아간다() {
+        // change.karmolab-at-root 이후: 카모랩이 `/` 를 차지한다.
+        let u = tauri::Url::parse("https://blog.mascari4615.com/").unwrap();
+        assert_eq!(files_url_from(&u).as_str(), "https://blog.mascari4615.com/files/");
+        let u = tauri::Url::parse("https://blog.mascari4615.com/t/somethig/").unwrap();
+        assert_eq!(files_url_from(&u).as_str(), "https://blog.mascari4615.com/files/");
     }
 
     #[test]
