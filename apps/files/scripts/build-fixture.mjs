@@ -1,5 +1,5 @@
 /**
- * Pages 에 올릴 데모 금고. 열쇠는 공개 픽스처라 사적 파일 넣지 않음.
+ * Pages 에 올릴 데모 클라우드. 열쇠는 공개 픽스처라 사적 파일 넣지 않음.
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';

@@ -2,7 +2,7 @@ name = "files"
 main = "worker.mjs"
 compatibility_date = "2026-08-25"
 
-# 비공개 금고 버킷. blog-img 공개 이미지 버킷과 섞지 마.
+# 비공개 클라우드 버킷. blog-img 공개 이미지 버킷과 섞지 마.
 [[r2_buckets]]
 binding = "VAULT"
 bucket_name = "karm-files-vault"

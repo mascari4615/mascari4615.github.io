@@ -236,8 +236,6 @@ const UPLOAD_LABEL = {
 };
 
 let uploadTimer = 0;
-/** 올릴 수 있는 폴더 이름들. 사람이 손으로 적게 두면 오타 한 글자에 엉뚱한 일이 난다. */
-let uploadTargets = [];
 
 function stopUploadPolling() {
   if (uploadTimer) clearInterval(uploadTimer);
@@ -264,24 +262,40 @@ function renderUploadPanel(st) {
     (st.startedAt ? ' · 시작 ' + esc(st.startedAt) : '') +
     '</div>' +
     '<div class="up-acts">' +
-    '<select id="up-target"' + (busy ? ' disabled' : '') + '>' +
-    (uploadTargets.length
-      ? uploadTargets
-          .map((t) => '<option value="' + esc(t) + '"' + (t === target ? ' selected' : '') + '>' + esc(t) + '</option>')
-          .join('')
-      : '<option value="">올릴 폴더가 없습니다</option>') +
-    '</select>' +
+    '<button id="up-pick" type="button"' + (busy ? ' disabled' : '') + '>' +
+    (target ? esc(target) : '폴더 고르기…') + '</button>' +
     (busy
       ? '<button id="up-stop" type="button">중지</button>'
       : '<button id="up-start" type="button">' + (st.status === 'stopped' ? '이어서 올리기' : '올리기') + '</button>') +
     '</div>';
 
+  const pickBtn = document.getElementById('up-pick');
+  if (pickBtn) {
+    pickBtn.addEventListener('click', async () => {
+      pickBtn.disabled = true;
+      try {
+        // 취소하면 빈 문자열이 온다 — 고른 것이 없을 뿐이라 아무 것도 바꾸지 않는다.
+        const picked = (await desktopInvoke('vault_upload_pick_target') || '').trim();
+        if (picked) {
+          sessionStorage.setItem(UPLOAD_TARGET_KEY, picked);
+          pickBtn.textContent = picked;
+        }
+      } catch (e) {
+        showUploadError(e);
+        return;
+      }
+      pickBtn.disabled = false;
+    });
+  }
+
   const startBtn = document.getElementById('up-start');
   if (startBtn) {
     startBtn.addEventListener('click', async () => {
-      const v = (document.getElementById('up-target')?.value || '').trim();
-      if (!v) return;
-      sessionStorage.setItem(UPLOAD_TARGET_KEY, v);
+      const v = (sessionStorage.getItem(UPLOAD_TARGET_KEY) || '').trim();
+      if (!v) {
+        showUploadError(new Error('올릴 폴더를 먼저 고르세요.'));
+        return;
+      }
       startBtn.disabled = true;
       try {
         renderUploadPanel(await desktopInvoke('vault_upload_start', { target: v }));
@@ -327,12 +341,7 @@ function mountUploader() {
     el.innerHTML = '<div class="up-note">올리기는 PC 앱에서만 됩니다. 여기서는 보기만 가능합니다.</div>';
     return;
   }
-  desktopInvoke('vault_upload_targets')
-    .then((list) => {
-      uploadTargets = Array.isArray(list) ? list : [];
-      return pollUpload();
-    })
-    .catch(showUploadError);
+  pollUpload();
   stopUploadPolling();
   uploadTimer = setInterval(pollUpload, 5000);
 }

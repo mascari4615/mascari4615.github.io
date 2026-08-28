@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 열람 트리 → 금고 암호문 → rclone 원격.
+ * 열람 트리 → 클라우드 암호문 → rclone 원격.
  * 원본 경로는 env 만. 기본 로그는 개수. 이름 나열은 --verbose.
  *
  * FILES_VAULT_ROOT  FILES_VAULT_PASS  FILES_VAULT_REMOTE
@@ -35,7 +35,7 @@ const verbose = process.argv.includes('--verbose');
 const onlyAt = process.argv.indexOf('--only');
 const only = onlyAt === -1 ? '' : process.argv[onlyAt + 1];
 if (onlyAt !== -1 && (!only || only.split(/[\\/]/).some((part) => !part || part === '.' || part === '..'))) {
-  throw new Error('--only 는 금고 뿌리 아래의 상대 폴더 하나여야 함');
+  throw new Error('--only 는 원본 뿌리 아래의 상대 폴더 하나여야 함');
 }
 
 // 우선 올릴 폴더도 원격에서는 원래 상대 경로를 지킨다.
@@ -64,7 +64,7 @@ const hdr = await store.get('hdr');
 if (hdr) session = await unlockVault(store, pass);
 else session = await createVault(store, pass);
 session.deferIndex = true;
-console.log('금고 염');
+console.log('클라우드 염');
 
 /* 진행 상태를 **정해진 자리**에 적는다.
    왜: 터미널에서 띄우면 로그 자리는 띄운 쪽이 정한다 — 그러면 데스크톱 앱이 그 로그를 못 찾아

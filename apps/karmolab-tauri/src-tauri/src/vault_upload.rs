@@ -1,4 +1,4 @@
-//! Files 금고 업로드 — 데스크톱이 전송기를 붙든다 (change.encrypted-vault 단계 8).
+//! Files 클라우드 업로드 — 데스크톱이 전송기를 붙든다 (change.encrypted-vault 단계 8).
 //!
 //! 왜 있나: 전송기(`apps/files/src/upload.mjs`)를 사람이 터미널에서 띄우면 그 창·세션이
 //! 죽을 때 같이 죽는다. 실제로 2026-08-26 세션에서 몇 시간짜리 업로드가 그렇게 끊겼다.
@@ -155,7 +155,7 @@ fn save_run(app: &tauri::AppHandle, run: &PersistedRun) -> Result<(), String> {
     Ok(())
 }
 
-/// 대상은 금고 뿌리 **바로 아래 폴더 한 조각**만 받는다.
+/// 대상은 원본 뿌리 **바로 아래 폴더 한 조각**만 받는다.
 /// 경로 구분자·상위 이동을 막아 전송기가 뿌리 밖을 훑지 못하게 한다.
 fn validate_target(target: &str) -> Result<String, String> {
     let t = target.trim();
@@ -198,7 +198,7 @@ fn env_value(app: &tauri::AppHandle, key: &str) -> Option<String> {
     None
 }
 
-/// 올릴 수 있는 폴더 = 금고 뿌리 **바로 아래** 폴더들. 이름만 준다.
+/// 올릴 수 있는 폴더 = 원본 뿌리 **바로 아래** 폴더들. 이름만 준다.
 #[tauri::command]
 pub async fn vault_upload_targets(app: tauri::AppHandle) -> Result<Vec<String>, String> {
     tauri::async_runtime::spawn_blocking(move || {
@@ -216,6 +216,59 @@ pub async fn vault_upload_targets(app: tauri::AppHandle) -> Result<Vec<String>, 
     })
     .await
     .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+/// 탐색기로 올릴 폴더를 고른다. 시작 자리 = 원본 뿌리.
+///
+/// 왜 드롭다운이 아니라 탐색기인가: 폴더가 수십 개가 되면 목록에서 눈으로 찾는 편이
+/// 이름을 고르는 것보다 느리다. 대신 **뿌리 밖은 못 고른다** — 올리기 규격이 뿌리 기준
+/// 상대경로 한 칸이라, 밖을 허용하면 저장소 어디에 놓을지 정할 수 없다.
+///
+/// 반환은 폴더 *이름* 뿐이다. 절대경로는 여기서 끝난다.
+#[tauri::command]
+pub async fn vault_upload_pick_target(app: tauri::AppHandle) -> Result<String, String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let root = env_value(&app, "FILES_VAULT_ROOT")
+        .ok_or_else(|| "apps/files/.env 에 FILES_VAULT_ROOT 가 없습니다.".to_string())?;
+    let root_path = PathBuf::from(&root);
+
+    // blocking_pick_folder 는 UI 스레드를 잡는다 — command 는 async 런타임 위라 그대로 부르면
+    // 창이 얼어붙는다. 별도 blocking 스레드로 내보낸다.
+    let picked = tauri::async_runtime::spawn_blocking(move || {
+        app.dialog()
+            .file()
+            .set_title("올릴 폴더 고르기")
+            .set_directory(&root_path)
+            .blocking_pick_folder()
+            .and_then(|f| f.into_path().ok())
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?;
+
+    // 취소 = 오류가 아니다. 빈 문자열로 알린다.
+    let Some(dir) = picked else {
+        return Ok(String::new());
+    };
+    relative_target(Path::new(&root), &dir)
+}
+
+/// 고른 폴더 → 뿌리 바로 아래 한 칸 이름. 밖이거나 더 깊으면 거절한다.
+fn relative_target(root: &Path, picked: &Path) -> Result<String, String> {
+    // 심볼릭 링크·`..` 로 뿌리 밖을 가리키는 경로를 실경로로 펴서 본다.
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let picked = picked.canonicalize().unwrap_or_else(|_| picked.to_path_buf());
+    let rel = picked
+        .strip_prefix(&root)
+        .map_err(|_| "원본 뿌리 밖의 폴더는 올릴 수 없습니다.".to_string())?;
+    let mut parts = rel.components();
+    let first = parts
+        .next()
+        .ok_or_else(|| "뿌리 자체가 아니라 그 아래 폴더를 고르세요.".to_string())?;
+    if parts.next().is_some() {
+        return Err("뿌리 바로 아래 폴더 하나만 고를 수 있습니다.".into());
+    }
+    validate_target(&first.as_os_str().to_string_lossy())
 }
 
 fn repo_root(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -551,13 +604,28 @@ mod tests {
     }
 
     #[test]
+    fn 고른_폴더는_뿌리_바로_아래_한_칸만() {
+        let base = std::env::temp_dir().join("vault-pick-test");
+        let root = base.join("root");
+        std::fs::create_dir_all(root.join("사진").join("2026")).unwrap();
+        std::fs::create_dir_all(base.join("바깥")).unwrap();
+
+        assert_eq!(relative_target(&root, &root.join("사진")).unwrap(), "사진");
+        // 더 깊은 자리 = 올리기 규격(뿌리 기준 한 칸) 밖이다.
+        assert!(relative_target(&root, &root.join("사진").join("2026")).is_err());
+        // 뿌리 자체·뿌리 밖도 거절.
+        assert!(relative_target(&root, &root).is_err());
+        assert!(relative_target(&root, &base.join("바깥")).is_err());
+    }
+
+    #[test]
     fn 진행줄에서_집계만_뽑는다() {
         let dir = std::env::temp_dir().join("vault-upload-test");
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join("progress.log");
         std::fs::write(
             &p,
-            "파일 7510개\n금고 염\n1030/7510 올림 350 건너뜀 680\n1040/7510 올림 360 건너뜀 680\n",
+            "파일 7510개\n클라우드 염\n1030/7510 올림 350 건너뜀 680\n1040/7510 올림 360 건너뜀 680\n",
         )
         .unwrap();
         let (total, done, up, skip, note) = parse_progress(&p);
@@ -570,9 +638,9 @@ mod tests {
         let dir = std::env::temp_dir().join("vault-upload-test");
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join("early.log");
-        std::fs::write(&p, "파일 7510개\n금고 염\n").unwrap();
+        std::fs::write(&p, "파일 7510개\n클라우드 염\n").unwrap();
         let (total, done, _, _, note) = parse_progress(&p);
         assert_eq!((total, done), (0, 0));
-        assert_eq!(note, "금고 염");
+        assert_eq!(note, "클라우드 염");
     }
 }

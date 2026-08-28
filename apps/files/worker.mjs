@@ -1,10 +1,10 @@
 /**
  * files.mascari4615.com Cloudflare Worker 정본.
- * 화면 = Pages /files/ 프록시. 금고 암호문 = R2 바인딩 VAULT → /blob/<key>
+ * 화면 = Pages /files/ 프록시. 클라우드 암호문 = R2 바인딩 VAULT → /blob/<key>
  * VAULT 가 없으면 /blob 은 503. 키가 비면 Pages v/ 픽스처를 R2 에 채운다 (데모).
  *
  * CF: 이 파일을 Worker `files` 에 붙이고 R2 버킷을 VAULT 로 바인딩.
- * img.mascari4615.com 공개 버킷에 금고를 넣지 마.
+ * img.mascari4615.com 공개 버킷에 클라우드를 넣지 마.
  */
 const PAGES = 'https://blog.mascari4615.com/files';
 

@@ -446,7 +446,7 @@ pub fn localdev_log_tail(
 /// stdout/stderr는 `log_path`에 truncate redirect — 카모랩이 죽어도 자식이
 /// 직접 파일 핸들을 들고 있으므로 계속 기록된다. stdin 은 piped 로 두고 핸들을
 /// 호출자에게 반환 — `localdev_send_stdin` 으로 외부에서 입력 가능.
-/// 금고 전송기처럼 **stdin 이 필요 없는** 긴 작업을 띄운다.
+/// 클라우드 전송기처럼 **stdin 이 필요 없는** 긴 작업을 띄운다.
 /// 같은 spawn 경로(허용 program·인자 검사·창 없음·로그 리다이렉트)를 쓰되 stdin 핸들은 버린다 —
 /// 붙들고 있으면 앱이 죽을 때 파이프가 닫히며 자식이 같이 흔들린다.
 pub(crate) fn spawn_upload_process(

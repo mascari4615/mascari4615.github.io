@@ -38,7 +38,7 @@ const primary = rcloneStore(remote, { rcUrl, delayMs: rcUrl ? 0 : 400 });
 const extra = rcloneStore(extraRemote, { rcUrl, delayMs: rcUrl ? 0 : 400 });
 
 const session = await unlockVault(primary, pass);
-console.log('금고 염');
+console.log('클라우드 염');
 
 const all = await fileChunkKeys(session);
 const targets = all.filter((f) => mirrorable(f.path));
@@ -66,7 +66,7 @@ let copied = 0;
 let already = 0;
 let failed = 0;
 
-// hdr·idx 가 없으면 화면이 금고 자체를 못 연다 — 먼저 보장한다.
+// hdr·idx 가 없으면 화면이 클라우드 자체를 못 연다 — 먼저 보장한다.
 for (const key of ['hdr', 'idx']) {
   if (have.has(key)) {
     already += 1;

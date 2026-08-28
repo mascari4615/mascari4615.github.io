@@ -1,5 +1,5 @@
 /**
- * Files 금고 v1 — 청크 AES-GCM + 암호화 목록.
+ * Files 클라우드 v1 — 청크 AES-GCM + 암호화 목록.
  *
  * 왜 위젯 crypto.ts 를 안 쓰나: 그쪽은 CryptoJS AES-CBC 텍스트 메모다. 인증 태그가 없고
  * 파일·이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).

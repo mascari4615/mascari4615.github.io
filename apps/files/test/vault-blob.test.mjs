@@ -99,7 +99,7 @@ test('Worker 빈 R2 는 Pages v/ 에서 채워 넣는다', async () => {
   }
 });
 
-test('Worker 는 금고 키 모양만 읽는다', async () => {
+test('Worker 는 클라우드 키 모양만 읽는다', async () => {
   const res = await worker.fetch(
     new Request('https://files.mascari4615.com/blob/hello.txt'),
     { VAULT: { get: async () => ({ body: new Uint8Array(1) }) } },
