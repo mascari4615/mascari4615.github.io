@@ -159,4 +159,37 @@ $("delete-selected").addEventListener("click", async () => {
   await removeMany(targets, $("list-status"));
 });
 
+$("prune-folders").addEventListener("click", async () => {
+  const ROOT_IDS = new Set(["0", "1", "2", "3"]);
+  const removed = [];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const tree = await chrome.bookmarks.getTree();
+    const empties = [];
+    const walk = (nodes) => {
+      for (const n of nodes) {
+        if (n.url) continue;
+        walk(n.children || []);
+        if (!ROOT_IDS.has(n.id) && (n.children || []).length === 0) empties.push({ id: n.id, name: n.title || "" });
+      }
+    };
+    walk(tree);
+    for (const f of empties) {
+      try {
+        await chrome.bookmarks.remove(f.id);
+        removed.push(f);
+        changed = true;
+      } catch {
+        /* 다음 회차에 다시 시도 */
+      }
+    }
+  }
+  await load();
+  $("list-status").className = "status";
+  $("list-status").textContent = removed.length
+    ? `빈 폴더 ${removed.length}개 삭제:\n` + removed.map((f) => `- ${f.id}\t${f.name}`).join("\n")
+    : "빈 폴더 없음.";
+});
+
 load();
