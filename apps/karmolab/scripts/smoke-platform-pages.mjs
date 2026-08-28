@@ -30,7 +30,7 @@ import { chromium } from 'playwright';
  * 그러니 받은 주소를 그대로 믿지 말고 **앱 자리까지 맞춰 준다**. */
 const BASE = (() => {
   const given = process.env.BASE || 'https://blog.mascari4615.com/';
-  if (/.test(given)) return given;
+  if (/\/$/.test(given)) return given;
   return given.replace(/\/+$/, '') + '/';
 })();
 
