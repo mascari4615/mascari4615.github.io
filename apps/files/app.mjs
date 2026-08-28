@@ -213,9 +213,7 @@ function mountDesktopNav() {
 
   // 창 테두리가 없는 앱이라(decorations:false) 최소화·최대화·닫기를 화면이 그려야 한다.
   // 카모랩 셸에는 이미 있지만 이 화면은 그 셸이 아니다 — 없으면 창을 닫을 길이 없다.
-  const getWin = globalThis.__TAURI__?.window?.getCurrentWindow;
-  if (typeof getWin !== 'function') return;
-  const win = getWin();
+  if (!win) return;
   const on = (id, fn) => document.getElementById(id)?.addEventListener('click', () => {
     try {
       fn()?.catch?.(() => {});
