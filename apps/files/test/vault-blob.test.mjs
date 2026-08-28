@@ -72,14 +72,13 @@ test('Worker /blob 은 R2 키를 그대로 읽는다', async () => {
   assert.deepEqual([...buf], [1, 2, 3]);
 });
 
-test('Worker 빈 R2 는 Pages v/ 에서 채워 넣는다', async () => {
+test('Worker 는 없는 키를 딴 데서 가져와 채우지 않는다', async () => {
+  /* 회귀 근거(2026-08-28): 빈 칸을 Pages 픽스처로 메우던 한 줄이 hdr 을 딴 소금으로 굳혀,
+     맞는 비밀번호로도 클라우드가 안 열렸다. 없으면 없다고 답해야 한다. */
   const put = [];
   const orig = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).endsWith('/v/hdr')) {
-      return { ok: true, arrayBuffer: async () => new Uint8Array([9, 8]).buffer };
-    }
-    return { ok: false };
+  globalThis.fetch = async () => {
+    throw new Error('여기서 바깥을 부르면 안 된다');
   };
   try {
     const res = await worker.fetch(new Request('https://files.mascari4615.com/blob/hdr'), {
@@ -92,8 +91,8 @@ test('Worker 빈 R2 는 Pages v/ 에서 채워 넣는다', async () => {
         },
       },
     });
-    assert.equal(res.status, 200);
-    assert.deepEqual(put, ['hdr']);
+    assert.equal(res.status, 404);
+    assert.deepEqual(put, [], 'R2 에 아무것도 쓰지 않는다');
   } finally {
     globalThis.fetch = orig;
   }
