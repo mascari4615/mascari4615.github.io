@@ -693,6 +693,28 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tierlist/tierlist']
   },
   {
+    /* 작업물 — 제 주소(`/works/`)가 따로 있으므로 도구 상세 장은 안 만든다 (noPage). */
+    id: 'works',
+    noPage: true,
+    get title() { return t('widgets.works.title', undefined, "작업물"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.works.desc', undefined, "만든 것들 — 게임 · VRChat 콘텐츠 · 도구"); },
+    layout: 'full',
+    icon: '<rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['works']
+  },
+  {
+    /* 소개 — 제 주소(`/about/`)가 따로 있다. */
+    id: 'about',
+    noPage: true,
+    get title() { return t('widgets.about.title', undefined, "소개"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.about.desc', undefined, "카모뜨린 — 유니티 게임 개발 · VRChat 콘텐츠 제작"); },
+    layout: 'full',
+    icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="8" r="1" fill="currentColor"/>',
+    lazyScriptPaths: ['about']
+  },
+  {
     id: 'postgraph',
     get title() { return t('widgets.postgraph.title', undefined, "글 그래프"); },
     category: 'lab',

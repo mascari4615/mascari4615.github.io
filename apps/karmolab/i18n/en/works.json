@@ -1,0 +1,5 @@
+{
+  "works.search": "Search title or description",
+  "works.count": "{n} works",
+  "works.failed": "Could not load the works list"
+}

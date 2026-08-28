@@ -18,6 +18,13 @@
     "yours": "당신이 적은 주소로 요청이 실제로 나갑니다 — 그 주소의 주인에게 내용이 전달됩니다."
   },
   "tools": {
+    "about": {
+      "where": "assets",
+      "sends": "소개 본문을 우리 사이트의 정적 파일에서 받아 그립니다. 넣는 내용이 없습니다.",
+      "to": [
+        "blog.mascari4615.com"
+      ]
+    },
     "adventure": {
       "where": "third-party",
       "sends": "설정한 위키 주소에서 자료를 받아 옵니다.",
@@ -365,6 +372,13 @@
       "to": [
         "yawnbot.mascari4615.com",
         "github.com"
+      ]
+    },
+    "works": {
+      "where": "assets",
+      "sends": "전시 목록을 우리 사이트의 정적 파일에서 받아 그립니다. 넣는 내용이 없습니다.",
+      "to": [
+        "blog.mascari4615.com"
       ]
     },
     "worldcup": {

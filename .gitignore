@@ -93,6 +93,9 @@ apps/karmolab/content/pages/
 # 블로그 정적 장 산출물 — `gen:post-pages` 가 배포마다 새로 찍어 apps/blog 로 복사된다
 # (change.blog-cutover). 색인은 rsync 로 /apps/karmolab/data/ 에 실려 커뮤니티 「글」 탭이 읽는다.
 apps/karmolab/data/posts-index.json
+# 작업물 격자·소개 본문 = gen-post-pages 산출 (change.blog-surfaces-as-widgets)
+apps/karmolab/data/works.json
+apps/karmolab/data/about.json
 # 「비슷한 글」 — 색인에서 파생된다 (`npm run gen:related`). 곳간도 이 기계 것이다.
 apps/karmolab/data/related-posts.json
 apps/karmolab/data/.related-cache.json

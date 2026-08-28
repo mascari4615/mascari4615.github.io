@@ -60,6 +60,8 @@
   "widgets-desc.meok.desc": "갈아서 칠하고 칸으로 움직인다 — 레이어·붓·도트 애니메이션",
   "widgets-desc.imagelib.desc": "생성한 이미지를 저장하고 관리합니다",
   "widgets-desc.tierlist.desc": "후보 풀(주제별 요소)에서 순위 인스턴스를 만들고, 블로그·로컬 JSON으로 주고받기 (개발 중)",
+  "widgets-desc.works.desc": "만든 것들 — 게임 · VRChat 콘텐츠 · 도구",
+  "widgets-desc.about.desc": "카모뜨린 — 유니티 게임 개발 · VRChat 콘텐츠 제작",
   "widgets-desc.postgraph.desc": "블로그 포스트 간 내부 링크 관계를 그래프로 봅니다 (개발 중)",
   "widgets-desc.conch.desc": "소라고동에게 질문합니다",
   "widgets-desc.pulse.desc": "아무 의미 없는 것을 아주 규칙적으로 내보내는 방송국 7개 — 세 글자·종·눈금·낱말·한 줄·무늬·점 (TASK-KL-207)",

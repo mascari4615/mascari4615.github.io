@@ -18,9 +18,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
-import { postBody, postHead, aboutPage, worksPage, notFoundPage, feedXml, applyCdn } from './lib/post-page.mjs';
+import { postBody, postHead, notFoundBody, feedXml, applyCdn } from './lib/post-page.mjs';
 import { parseWorksYml, buildWorks } from './lib/works-list.mjs';
-import { loadShell, shellCommon, replaceMeta, asStaticPage, esc as shellEsc } from './lib/shell-page.mjs';
+import { loadShell, shellCommon, replaceMeta, asStaticPage, scriptFile, esc as shellEsc } from './lib/shell-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONTENT = path.join(APP_ROOT, 'content', 'posts');
@@ -153,6 +153,68 @@ const neighborOf = (post) => {
 /* 앱 셸 한 벌 — 글 장 전부가 이 셸을 지난다 (도구 상세 장과 같은 길). */
 const SHELL = loadShell(APP_ROOT);
 const SITE = 'https://blog.mascari4615.com';
+/** 글 사진 서빙본 (post-page.mjs `applyCdn` 과 같은 자리 — 여기서는 주소 문자열에 직접 입힌다). */
+const CDN = 'https://img.mascari4615.com';
+
+/**
+ * 위젯이 그리는 곁장 한 장 (`/works/` · `/about/`, change.blog-surfaces-as-widgets).
+ *
+ * 도구 상세 127장과 **같은 길**이다: 셸을 그대로 쓰고, `bootPaths` 로 그 위젯 하나를 미리 받고,
+ * `KARMOLAB_ENTRY_TOOL` 로 앱에게 「첫 화면 말고 이 도구를 열어라」라고 말한다.
+ * 다른 점 하나 = 이 장들은 `/t/<id>/` 가 아니라 제 주소를 가진다 (위젯 메타의 `noPage: true`).
+ *
+ * 스크립트가 그리는 화면이므로 **첫 HTML 에 읽을 말이 없다**. 그래서 셸의 SEO 자리에
+ * 서버 렌더 텍스트를 남긴다 — 안 남기면 검색엔진에는 빈 장이다.
+ */
+function widgetPage({ widget, permalink, title, heading, description, lastmod, seoHtml }) {
+    const bootPaths = [widget, 'chat'].filter((name) => {
+        const ok = fs.existsSync(path.join(APP_ROOT, scriptFile(name)));
+        if (!ok) console.warn(`[gen-post-pages] 부팅 목록에서 뺌 — 아직 안 구워진 조각: ${name}`);
+        return ok;
+    });
+    if (bootPaths.includes(widget) === false) {
+        console.warn(`[gen-post-pages] ${permalink} — 위젯 ${widget} 번들이 없다. 배포에서는 build 가 먼저 돈다`);
+    }
+
+    let page = shellCommon(SHELL, { permalink, lastModified: lastmod, bootPaths });
+    page = page.replace(/<title>[\s\S]*?<\/title>/, `<title>${shellEsc(title)} | KarmoDDrine</title>`);
+    page = replaceMeta(page, 'name', 'description', description);
+    page = replaceMeta(page, 'property', 'og:description', description);
+    page = replaceMeta(page, 'property', 'og:title', title);
+    page = replaceMeta(page, 'property', 'og:url', `${SITE}${permalink}`);
+    page = page.replace(
+        `<link rel="canonical" href="${SITE}/">`,
+        `<link rel="canonical" href="${SITE}${permalink}">`
+    );
+
+    /* 도구 상세 장과 **같은 몸 클래스**를 쓴다 — `tools.css` 의 화면 규칙(제목 자리·본문 폭)이
+       전부 `body.tool-detail` 아래에 있다. 안 붙이면 제목이 옆줄 위로 흘러 겹친다(실측). */
+    page = page.replace('<body>', '<body class="tool-detail">');
+
+    const entry =
+        `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(widget)};` +
+        'window.KARMOLAB_TOOL_PAGES=[];window.KARMOLAB_BUILD_PRINT="";</script>';
+    page = page.replace('</head>', `    ${entry}
+</head>`);
+
+    /* 제목은 스크립트를 기다리지 않고 바로 읽히게 미리 박는다 (도구 상세 장과 같은 이유).
+       단 본문이 제 큰제목을 들고 오는 장(소개)에서는 안 박는다 — 한 장에 큰제목은 하나다(KL-089). */
+    const slot = '<div class="content-body" id="tool-pages">';
+    if (!page.includes(slot)) throw new Error('셸에서 본문 자리를 못 찾음 — index.html 확인');
+    /* 자리 표시 한 줄(`tool-crumb`)이 **머리띠 자리를 채운다** — 도구 상세 장에는 늘 있다.
+       빼 보니 제목이 머리띠 뒤로 흘러 반쯤 잘렸다(2026-08-28 실측). 길 안내이자 자리다. */
+    const crumb =
+        `<nav class="tool-crumb" aria-label="위치"><a href="/">KarmoLab</a>` +
+        `<i aria-hidden="true">›</i><span aria-current="page">${shellEsc(title)}</span></nav>
+          `;
+    page = page.replace(slot, `${crumb}${slot}`);
+    if (heading) page = page.replace(slot, `<header class="tool-head"><h1>${shellEsc(heading)}</h1></header>
+                ${slot}`);
+
+    const anchor = page.match(/<!-- KARMOLAB_TOOL_SEO[\s\S]*?-->/);
+    if (!anchor) throw new Error('셸에 KARMOLAB_TOOL_SEO 앵커가 없음 — index.html 확인');
+    return page.replace(anchor[0], seoHtml);
+}
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
@@ -230,7 +292,17 @@ fs.writeFileSync(path.join(APP_ROOT, 'data', 'posts-index.json'), JSON.stringify
 // 목록 장은 안 찍는다 — 목록의 집은 앱 안 커뮤니티 「글」 판이다 (post-page.mjs 머리말).
 // 피드 · 소개 · 404 도 함께 굽는다.
 fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
-fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
+/* 404 도 다른 장과 **같은 셸**을 쓴다 (change.blog-surfaces-as-widgets) — 여기만 제 CSS 를
+   들고 다니면, 길을 잃은 사람이 도착하는 자리가 사이트에서 제일 낯선 곳이 된다.
+   본문이 이미 박혀 있으므로 위젯은 안 싣는다(asStaticPage). */
+{
+    let page = shellCommon(SHELL, { permalink: '/404.html', lastModified: new Date().toISOString(), bootPaths: [] });
+    page = page.replace(/<title>[\s\S]*?<\/title>/, '<title>404 | KarmoDDrine</title>');
+    page = asStaticPage(page, { kind: 'notfound', bodyHtml: notFoundBody(), head: '<meta name="robots" content="noindex">' });
+    // 없는 주소가 사이트맵에 실리면 안 된다 — Jekyll 이 이 앞머리를 읽는다.
+    page = page.replace('permalink: /404.html\n', 'permalink: /404.html\nsitemap: false\n');
+    fs.writeFileSync(path.join(OUT, '404.html'), page);
+}
 
 // 글 그래프 — 글 사이 링크를 판으로 (change.blog-finish ②, 옛 build-post-graph.cjs 승계).
 // 공개 글만 싣는다 (hidden 열거 방지 — 목록·색인과 같은 규율). postgraph 위젯이 읽는다.
@@ -261,6 +333,8 @@ fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
 
 // 작업물 — 전시 목록 정본 = apps/blog/_data/works.yml (큐레이션 순서 그대로, change.blog-finish ③).
 // 읽는 규칙·흘린 이력 = scripts/lib/works-list.mjs. hidden 글도 목록에 있으면 의도된 전시다.
+// 그리는 쪽 = `src/widgets/works.ts` **위젯 하나** (change.blog-surfaces-as-widgets) — 여기서는
+// 그 위젯이 읽을 원료(data/works.json)와, 그 위젯을 부팅하는 장(/works/)만 만든다.
 {
     const worksSrc = path.join(APP_ROOT, '..', 'blog', '_data', 'works.yml');
     if (fs.existsSync(worksSrc)) {
@@ -268,21 +342,71 @@ fs.writeFileSync(path.join(OUT, '404.html'), notFoundPage());
         const entries = parseWorksYml(fs.readFileSync(worksSrc, 'utf8'));
         const { works, skipped } = buildWorks(entries, bySlug);
         const worksLastmod = works.length ? posts.filter((p) => works.some((w) => w.slug === p.slug)).map((p) => p.lastmod ?? p.date).sort().at(-1) : null;
+
+        // 사진 주소에 CDN 을 입히는 것은 **여기까지**다 — 위젯은 받은 주소를 그대로 건다.
+        const rows = works.map((w) => ({
+            ...w,
+            image: w.image ? (w.image.startsWith('/') ? `${CDN}${w.image}` : w.image) : ''
+        }));
+        fs.writeFileSync(path.join(APP_ROOT, 'data', 'works.json'), JSON.stringify(rows, null, 1));
+
+        /* 색인용 텍스트 — 이 장은 스크립트가 그리므로, 카드에 적힌 말이 첫 HTML 에 하나도
+           없으면 검색엔진에는 빈 장이 된다. 제목·연도·설명만 셸의 SEO 자리에 남긴다. */
+        const seo =
+            `<section class="tool-seo"><h2>작업물 ${rows.length}건</h2><ul>` +
+            rows
+                .map(
+                    (w) =>
+                        `<li><a href="${shellEsc(w.url)}">${shellEsc(w.title)}</a>` +
+                        `${w.date ? ` <span>${shellEsc(w.date)}</span>` : ''}` +
+                        `${w.description ? ` — ${shellEsc(w.description)}` : ''}</li>`
+                )
+                .join('') +
+            '</ul></section>';
+
         fs.mkdirSync(path.join(OUT, 'works'), { recursive: true });
-        fs.writeFileSync(path.join(OUT, 'works', 'index.html'), worksPage(works, worksLastmod));
+        fs.writeFileSync(
+            path.join(OUT, 'works', 'index.html'),
+            widgetPage({
+                widget: 'works',
+                permalink: '/works/',
+                title: '작업물',
+                heading: '작업물',
+                description: `카모뜨린의 작업물 ${rows.length}건 — 게임·VRChat 콘텐츠·도구`,
+                lastmod: worksLastmod ?? new Date().toISOString(),
+                seoHtml: seo
+            })
+        );
         console.log(`[gen-post-pages] 작업물 ${works.length}건 / 정본 ${entries.length}건${skipped.length ? ` (카드 못 만든 것 ${skipped.length}: ${skipped.join(' ')})` : ''}`);
     }
 }
 
 // 소개 — 원문 = content/about.md (Chirpy _tabs/about.md 승계본, git 추적).
+// 그리는 쪽 = `src/widgets/about.ts`. 여기서는 렌더본(data/about.json)과 부팅 장(/about/)만 만든다.
 const aboutSrc = path.join(APP_ROOT, 'content', 'about.md');
 if (fs.existsSync(aboutSrc)) {
     const raw = fs.readFileSync(aboutSrc, 'utf8');
     const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
     const lastmod = m ? (/last_modified_at:\s*(\S+)/.exec(m[1])?.[1] ?? null) : null;
     const body = applyCdn(renderMarkdown(m ? raw.slice(m[0].length) : raw, { trust: 'self', marked }));
+    /* 조각은 **JSON 으로** 싣는다 — `data/*.html` 을 두면 화면 검사(csp-meta 등)가 이것을
+       한 장의 화면으로 오해한다. 머리말이 없는 본문 조각이라 그 검사가 맞을 수 없다. */
+    fs.writeFileSync(path.join(APP_ROOT, 'data', 'about.json'), JSON.stringify({ html: body }));
     fs.mkdirSync(path.join(OUT, 'about'), { recursive: true });
-    fs.writeFileSync(path.join(OUT, 'about', 'index.html'), aboutPage(body, lastmod));
+    fs.writeFileSync(
+        path.join(OUT, 'about', 'index.html'),
+        widgetPage({
+            widget: 'about',
+            permalink: '/about/',
+            title: '소개',
+            heading: null,
+            description: '카모뜨린 KarmoDDrine — 유니티 게임 개발·VRChat 콘텐츠 제작',
+            lastmod: lastmod ?? new Date().toISOString(),
+            // 소개는 본문 자체가 색인감이다 — 렌더본을 그대로 SEO 자리에 남긴다.
+            /* 색인용 사본 — 큰제목은 한 장에 하나여야 하므로 낮춰 싣는다 (KL-089). */
+            seoHtml: `<section class="tool-seo">${body.replace(/<(\/?)h1(\s|>)/g, '<$1h2$2')}</section>`
+        })
+    );
 }
 
 /* 무게 계약이 바뀌었다 (change.board-unify ②) — 경량 셸(≤2)에서 앱 셸로 옮겼으므로

@@ -247,5 +247,7 @@
   "widgets.worldcup.title": "Favorite bracket",
   "widgets.xmlfmt.title": "XML tools",
   "widgets.ytdownloader.title": "YouTube Download",
-  "widgets.ziptool.title": "ZIP file maker · extractor"
+  "widgets.ziptool.title": "ZIP file maker · extractor",
+  "widgets.works.title": "Works",
+  "widgets.about.title": "About"
 }
