@@ -6,7 +6,7 @@
       "docId": "docs-intro",
       "heading": "문서",
       "title": "문서",
-      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 「가이드」 , 개발자용 KarmoLabAI @karmo/ai 패키지·Node 서브패스 정리는 「KarmoLabAI」 탭이에요 - Jekyll·npm·KarmoLab·Tauri· apps/ 등 레포 전체에서 쓰는 터미널 명령은 「프로젝트 명령」 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 Jekyll·봇 등을 끄고 켜는 로컬 데브 러너 는 「데스크톱·로컬」 탭 local-dev-runner.md 에 정리했어요",
+      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 「가이드」 , 개발자용 KarmoLabAI @karmo/ai 패키지·Node 서브패스 정리는 「KarmoLabAI」 탭이에요 - npm·KarmoLab·Tauri· apps/ 등 레포 전체에서 쓰는 터미널 명령은 「프로젝트 명령」 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 핫리로드 서버·봇 등을 끄고 켜는 로컬 데브 러너 는 「데스크톱·로컬」 탭 local-dev-runner.md 에 정리했어요 - Dis",
       "aliases": "intro"
     },
     {
@@ -502,7 +502,7 @@
       "docId": "docs-project-commands",
       "heading": "프로젝트 통합 명령·경로 가이드",
       "title": "프로젝트 통합 명령·경로 가이드",
-      "description": "이 레포 Mascari4615.github.io 안에서 자주 쓰는 터미널 명령 과 로컬 URL 을 한곳에 모았습니다. 블로그 Jekyll , KarmoLab, 부가 앱 apps/ 을 오갈 때 복사해서 실행 하면 됩니다. 원본 파일: apps/karmolab/js/widgets/docs/project-commands-guide.md GitHub에서 직접 열어도 동일 ---",
+      "description": "이 레포 Mascari4615.github.io 안에서 자주 쓰는 터미널 명령 과 로컬 URL 을 한곳에 모았습니다. 블로그, KarmoLab, 부가 앱 apps/ 을 오갈 때 복사해서 실행 하면 됩니다. 블로그는 더 이상 Ruby Jekyll 로 짓지 않습니다. 글·작업물·소개까지 전부 KarmoLab 파이프가 굽고, 사이트 조립도 Node assemble-site.mjs 가 합니다. 원본 파일: apps/karmolab/js/widgets/docs/project-commands-guide.md GitHub에서 직접 열어도 동일 ---",
       "aliases": "project commands guide"
     },
     {
@@ -510,67 +510,35 @@
       "docId": "docs-project-commands",
       "heading": "레포 구조 한눈에",
       "title": "레포 구조 한눈에",
-      "description": "경로 역할 ------ ------ 루트 / Jekyll + Chirpy 블로그, 테마용 npm Rollup·PurgeCSS 등 apps/karmolab/ KarmoLab 웹앱 TypeScript → js/ 빌드 산출 apps/karmolab-tauri/ KarmoLab 데스크톱 Tauri + 로컬 정적 서버 또는 선택 시 Jekyll apps/discord-bots/ Discord 봇 워크스페이스 여러 패키지 apps/chat-overlay/ 방송용 오버레이 Tauri + Vite apps/karmo-web-extension/ Chrome 확장 MV3 tools/r",
+      "description": "경로 역할 ------ ------ 루트 / 모노레포 오케스트레이터 — npm run verify main invariant 단일 게이트 apps/karmolab/ KarmoLab 웹앱 TypeScript → js/ 빌드 산출 apps/karmolab-tauri/ KarmoLab 데스크톱 Tauri + 로컬 정적 서버 apps/discord-bots/ Discord 봇 워크스페이스 여러 패키지 apps/chat-overlay/ 방송용 오버레이 Tauri + Vite apps/karmo-web-extension/ Chrome 확장 MV3 apps/blog/ 배포되는 사",
       "aliases": "project commands guide"
     },
     {
       "id": "docs-project-commands:2",
       "docId": "docs-project-commands",
-      "heading": "블로그: Jekyll",
-      "title": "블로그: Jekyll",
-      "description": "Ruby 의존성은 Gemfile 기준으로 루트에서 한 번 설치합니다.",
+      "heading": "블로그: 글·장 굽기",
+      "title": "블로그: 글·장 굽기",
+      "description": "글 원본은 apps/karmolab/content/posts/ 마크다운, git 이고, 장은 KarmoLab 셸로 찍습니다. 산출은 검증용으로 content/pages/ 에 나옵니다 배포는 워크플로가 apps/blog/ 로 옮깁니다 . 사이트 한 벌을 그대로 조립해 보려면: ---",
       "aliases": "project commands guide"
     },
     {
       "id": "docs-project-commands:3",
       "docId": "docs-project-commands",
-      "heading": "로컬 미리보기 (가장 흔함)",
-      "title": "로컬 미리보기 (가장 흔함)",
-      "description": "증분 빌드 + 라이브 리로드: - Windows PowerShell 에서 Listen 오류 directory is already being watched 가 나면 위 명령 끝에 --force polling 을 붙이세요. - 사이트 루트: - KarmoLab Jekyll 경로 : — Tauri만 빠르게 볼 때는 apps/karmolab-tauri 의 npm run dev 8899 정적 서버 + /apps/karmolab/ ; Python 또는 Node 를 쓰는 편이 Listen 이슈가 없습니다. 래퍼 스크립트 Git Bash / WSL / macOS / Linux :",
+      "heading": "KarmoLab: TypeScript → js/ 빌드",
+      "title": "KarmoLab: TypeScript → js/ 빌드",
+      "description": "위젯·툴박스 소스는 src/ , 배포물은 js/ 입니다. KarmoLab 코드를 수정했다면 장을 굽기 전에 빌드하세요. 타입만 검사: 화면을 고치는 중이라면 배포를 기다리지 말고 핫리로드 서버를 씁니다: 작업 중 검사는 바뀐 것에 걸리는 것만: ---",
       "aliases": "project commands guide"
     },
     {
       "id": "docs-project-commands:4",
       "docId": "docs-project-commands",
-      "heading": "프로덕션 모드로 serve (PowerShell 예)",
-      "title": "프로덕션 모드로 serve (PowerShell 예)",
-      "description": "",
+      "heading": "KarmoLab: 정적 파일만 띄우기",
+      "title": "KarmoLab: 정적 파일만 띄우기",
+      "description": "빌드 산출을 파일 그대로 서빙해 볼 때 씁니다. 상단 앞머리 --- 가 글자로 보일 수 있으나 스크립트는 대체로 동작 합니다 배포에서는 조립기가 떼고 냅니다 . Python 3 레포 루트에서 : 브라우저: Node 정적 서버 예 : 그다음 같은 경로로 index.html 을 열면 됩니다. ---",
       "aliases": "project commands guide"
     },
     {
       "id": "docs-project-commands:5",
-      "docId": "docs-project-commands",
-      "heading": "정적 사이트만 생성",
-      "title": "정적 사이트만 생성",
-      "description": "출력은 기본 site/ Chirpy 설정 따름 . ---",
-      "aliases": "project commands guide"
-    },
-    {
-      "id": "docs-project-commands:6",
-      "docId": "docs-project-commands",
-      "heading": "블로그: 루트 npm (테마 JS/CSS·그래프)",
-      "title": "블로그: 루트 npm (테마 JS/CSS·그래프)",
-      "description": "Chirpy 테마의 프런트 빌드 와 포스트 그래프 생성입니다. CI와 맞추려면 Jekyll 전에 자주 돌립니다. - npm run site:prep = npm run build + npm run build:graph - npm run build = CSS/JS 동시 빌드 concurrently - npm run test = ESLint + Stylelint 개발 시 JS만 감시: ---",
-      "aliases": "project commands guide"
-    },
-    {
-      "id": "docs-project-commands:7",
-      "docId": "docs-project-commands",
-      "heading": "KarmoLab: TypeScript → js/ 빌드",
-      "title": "KarmoLab: TypeScript → js/ 빌드",
-      "description": "위젯·툴박스 소스는 src/ , 배포물은 js/ 입니다. KarmoLab 코드를 수정했다면 Jekyll 전에 빌드하세요. 타입만 검사: ---",
-      "aliases": "project commands guide"
-    },
-    {
-      "id": "docs-project-commands:8",
-      "docId": "docs-project-commands",
-      "heading": "KarmoLab: Jekyll 없이 정적 파일만 띄우기",
-      "title": "KarmoLab: Jekyll 없이 정적 파일만 띄우기",
-      "description": "apps/karmolab/index.html 주석과 같이, Jekyll 빌드 없이 파일만 서빙해 볼 때 씁니다. 상단 프론트매터가 HTML에 그대로 보일 수 있으나 스크립트는 대체로 동작 합니다. Python 3 레포 루트에서 : 브라우저: Node 정적 서버 예 : 그다음 같은 경로로 index.html 을 열면 됩니다. ---",
-      "aliases": "project commands guide"
-    },
-    {
-      "id": "docs-project-commands:9",
       "docId": "docs-project-commands",
       "heading": "KarmoLab Tauri (데스크톱)",
       "title": "KarmoLab Tauri (데스크톱)",
@@ -578,7 +546,7 @@
       "aliases": "project commands guide"
     },
     {
-      "id": "docs-project-commands:10",
+      "id": "docs-project-commands:6",
       "docId": "docs-project-commands",
       "heading": "Discord 봇 워크스페이스",
       "title": "Discord 봇 워크스페이스",
@@ -586,7 +554,7 @@
       "aliases": "project commands guide"
     },
     {
-      "id": "docs-project-commands:11",
+      "id": "docs-project-commands:7",
       "docId": "docs-project-commands",
       "heading": "기타 apps/",
       "title": "기타 apps/",
@@ -594,15 +562,15 @@
       "aliases": "project commands guide"
     },
     {
-      "id": "docs-project-commands:12",
+      "id": "docs-project-commands:8",
       "docId": "docs-project-commands",
       "heading": "유용한 링크",
       "title": "유용한 링크",
-      "description": "설명 URL ------ ----- 이 레포 Jekyll 문서 Chirpy 테마 위키 Tauri v2 ---",
+      "description": "설명 URL ------ ----- 이 레포 Tauri v2 ---",
       "aliases": "project commands guide"
     },
     {
-      "id": "docs-project-commands:13",
+      "id": "docs-project-commands:9",
       "docId": "docs-project-commands",
       "heading": "KarmoLab에서 이 문서 열기",
       "title": "KarmoLab에서 이 문서 열기",

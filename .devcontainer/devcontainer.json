@@ -1,6 +1,6 @@
 {
-  "name": "Jekyll",
-  "image": "mcr.microsoft.com/devcontainers/jekyll:2-bullseye",
+  "name": "KarmoDDrine",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
@@ -9,10 +9,6 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
-        // Liquid tags auto-complete
-        "killalau.vscode-liquid-snippets",
-        // Liquid syntax highlighting and formatting
-        "Shopify.theme-check-vscode",
         // Shell
         "timonwong.shellcheck",
         "mkhl.shfmt",

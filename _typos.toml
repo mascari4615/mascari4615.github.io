@@ -3,9 +3,6 @@
 
 [files]
 extend-exclude = [
-  # 외부 라이브러리 submodule — chirpy assets/lib (mermaid, mathjax, glightbox 등)
-  "apps/blog/assets/lib/**",
-
   # three.js 배포용 vendor 사본 (KL-345 로 실림) — 원저자 주석의 오타(`alloted`)까지 그대로
   # 들어 있다. 남의 코드는 안 고친다 — 파일째 뺀다 (2026-08-23: 이것 하나로 verify 가 빨갰다).
   "packages/three-kit/vendor/**",
@@ -42,7 +39,7 @@ extend-exclude = [
   # (2026-08-16: 「requires a clien」 → client 오타로 읽혔다). 다음 색인에서 또 난다 — 파일째 뺀다.
   "apps/karmolab/data/docs-search-index.*.json",
 
-  # Jekyll 빌드 산출물 (gitignored 지만 typos 가 untracked 도 봄)
+  # 사이트 조립 산출물 (gitignored 지만 typos 가 untracked 도 봄)
   "_site/**",
   "apps/blog/_site/**",
 ]

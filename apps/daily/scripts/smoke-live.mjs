@@ -131,7 +131,10 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   check('[허브] 판을 다 건다', cards >= 6, `${cards}장`);
   check(
     '[허브] ★ 다른 페이지에 덮이지 않았다',
-    !(await page.content()).includes('jekyll-theme-chirpy'),
+    /* 표식은 **지금 덮을 수 있는 것**이라야 한다 (2026-08-28). 예전에는 옛 테마 이름
+       (`jekyll-theme-chirpy`)을 찾았는데 그 테마는 컷오버로 사라졌다 — 그 뒤로 이 줄은
+       무엇이 덮이든 늘 통과였다. 지금 이 주소를 먹을 수 있는 것은 KarmoLab 앱 셸이다. */
+    !(await page.content()).includes('KARMOLAB_ENTRY'),
     cards === 0 ? '블로그 페이지가 이 주소를 먹었다' : '우리 허브가 맞다',
   );
   /**

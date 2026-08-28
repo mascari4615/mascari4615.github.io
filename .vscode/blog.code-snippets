@@ -45,11 +45,6 @@
 		"description": "Insert current time"
 	},
 
-	"Youtube Include": {
-		"prefix": ["karmoYoutube", "ㅛㅐㅕ셔ㅠㄷ"],
-		"body": [
-			"{% include embed/youtube.html id = \"_\" %}"
-		],
-		"description": "Insert YouTube embed code"
-	},
+	// 유튜브는 스니펫이 필요 없다 — 주소를 한 줄로 두면 렌더러가 카드로 만든다.
+	// (옛 Liquid `{% include embed/youtube.html %}` 는 컷오버로 사라졌다.)
 }
