@@ -125,6 +125,13 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
       } else if (msg?.type === "bookmarks.pruneEmptyFolders") {
         const removed = await pruneEmptyFolders();
         sendResponse({ ok: true, removed, remaining: (await listAll()).length });
+      } else if (msg?.type === "ext.version") {
+        const m = chrome.runtime.getManifest();
+        sendResponse({ ok: true, version: m.version, name: m.name });
+      } else if (msg?.type === "ext.reload") {
+        // 언팩 확장은 reload 시 디스크에서 다시 읽는다 = 코드 갱신 반영.
+        sendResponse({ ok: true, reloading: true });
+        setTimeout(() => chrome.runtime.reload(), 50);
       } else {
         sendResponse({ ok: false, error: `모르는 type: ${msg?.type}` });
       }

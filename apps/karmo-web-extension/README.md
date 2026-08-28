@@ -26,6 +26,19 @@
 `Bookmarks` JSON 파일을 직접 고치는 방법은 **동기화가 되살린다** (2026-08-28 실측: 3건 삭제 → 새 id 로 부활).
 확장 API 삭제는 동기화에도 그대로 전파되므로 이 경로를 써라.
 
+## 원격 호출 (externally_connectable)
+
+허용 도메인(`blog`·`127.0.0.1`·`localhost`) 페이지에서:
+
+```js
+chrome.runtime.sendMessage("<확장ID>", { type: "bookmarks.list" }, console.log);
+// bookmarks.listAll / bookmarks.remove {ids} / bookmarks.removeTree {ids}
+// bookmarks.pruneEmptyFolders / ext.version / ext.reload
+```
+
+`ext.reload` = 언팩 확장을 디스크에서 다시 읽는다 → **코드 고친 뒤 수동 새로고침 불필요**.
+(단 그 핸들러가 없던 버전에서 올릴 때는 `edge://extensions` 새로고침 1회가 필요하다.)
+
 ## 다음 작업 예시
 
 1. 치지직 라이브 시청 페이지에서 채팅 DOM 구조 확인
