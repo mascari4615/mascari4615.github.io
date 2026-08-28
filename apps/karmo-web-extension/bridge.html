@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KarmoWebExtension bridge</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: system-ui, sans-serif;
+        font-size: 13px;
+        color: #222;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0 0 6px;
+      }
+      p {
+        margin: 0 0 10px;
+        color: #555;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      pre {
+        background: #f7f7f7;
+        padding: 10px;
+        border-radius: 6px;
+        overflow: auto;
+        max-height: 45vh;
+      }
+      .ok {
+        color: #060;
+      }
+      .err {
+        color: #a00;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>KarmoWebExtension bridge</h1>
+    <p>
+      확장 페이지(<code>chrome-extension://</code>)는 자동화가 못 여는 내부 URL이라, 이 로컬 페이지가 확장으로 가는
+      통로 노릇을 한다. <code>externally_connectable</code> 허용 도메인(<code>127.0.0.1</code>)이라 여기서만 말이 통한다.
+    </p>
+    <p>
+      콘솔/자동화에서: <code>await bm.list()</code> · <code>await bm.listAll()</code> ·
+      <code>await bm.remove(ids)</code> · <code>await bm.removeTree(ids)</code> ·
+      <code>await bm.pruneEmptyFolders()</code> · <code>await bm.version()</code> · <code>await bm.reload()</code>
+    </p>
+    <pre id="out">확인 중…</pre>
+
+    <script>
+      const EXT = "oghekfjnfgdaoipbdpecioohoolffbbi";
+
+      function call(msg) {
+        return new Promise((res) => {
+          try {
+            chrome.runtime.sendMessage(EXT, msg, (x) =>
+              res(
+                x || {
+                  ok: false,
+                  error: String(chrome.runtime.lastError && chrome.runtime.lastError.message),
+                },
+              ),
+            );
+          } catch (e) {
+            res({ ok: false, error: String(e) });
+          }
+        });
+      }
+
+      window.bm = {
+        call,
+        list: () => call({ type: "bookmarks.list" }),
+        listAll: () => call({ type: "bookmarks.listAll" }),
+        remove: (ids) => call({ type: "bookmarks.remove", ids }),
+        removeTree: (ids) => call({ type: "bookmarks.removeTree", ids }),
+        pruneEmptyFolders: () => call({ type: "bookmarks.pruneEmptyFolders" }),
+        version: () => call({ type: "ext.version" }),
+        reload: () => call({ type: "ext.reload" }),
+      };
+
+      (async () => {
+        const out = document.getElementById("out");
+        const v = await bm.version();
+        if (!v.ok) {
+          out.className = "err";
+          out.textContent =
+            `확장에 연결 실패: ${v.error}\n\n` +
+            "- 확장이 로드돼 있나 (edge://extensions)\n" +
+            "- 이 페이지가 127.0.0.1/localhost 로 열렸나 (도메인 리다이렉트 주의)\n" +
+            `- 확장 ID 가 ${EXT} 가 맞나`;
+          return;
+        }
+        const list = await bm.list();
+        out.className = "ok";
+        out.textContent = `연결 OK — ${v.name} v${v.version} · 즐겨찾기 ${list.items ? list.items.length : "?"}건`;
+      })();
+    </script>
+  </body>
+</html>
