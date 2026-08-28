@@ -7,7 +7,7 @@ import { markLive } from './tools/shared/say';
     async function loadFromTxt(): Promise<void> {
         try {
             // 시각을 붙이지 않는다 — 저장소에 담긴 파일이라 우리가 바꿀 때만 바뀐다 (KL-088)
-            const res = await fetch('/assets/js/mathjax-config.json');
+            const res = await fetch('/apps/karmolab/data/crypto-sample.txt');
             if (!res.ok) throw new Error(t('crypto.err.01'));
             (document.getElementById('cryptoInput') as HTMLTextAreaElement).value = (await res.text()).trim();
             Toolbox.showToast!(t('crypto.t02'));
