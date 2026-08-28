@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>즐겨찾기 정리 — KarmoWebExtension</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px 20px 40px;
+        font-family: system-ui, sans-serif;
+        font-size: 13px;
+        color: #222;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #666;
+        margin: 0 0 14px;
+      }
+      section {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+      h2 {
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+      button {
+        padding: 6px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        margin-right: 6px;
+      }
+      button.danger {
+        color: #a00;
+        border-color: #a00;
+      }
+      textarea {
+        width: 100%;
+        min-height: 96px;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        box-sizing: border-box;
+      }
+      input[type="search"] {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+      }
+      .list {
+        max-height: 420px;
+        overflow: auto;
+        border: 1px solid #eee;
+        border-radius: 4px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        padding: 5px 8px;
+        border-bottom: 1px solid #f2f2f2;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .row .meta {
+        min-width: 0;
+        flex: 1;
+      }
+      .row .name {
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .row .url {
+        color: #777;
+        word-break: break-all;
+      }
+      .row .folder {
+        color: #999;
+        font-size: 11px;
+      }
+      .status {
+        margin-top: 8px;
+        color: #444;
+        white-space: pre-wrap;
+      }
+      .status.err {
+        color: #a00;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>즐겨찾기 정리</h1>
+    <p class="sub">
+      확장 API 로 지우므로 <b>동기화에도 그대로 전파</b>됩니다. (Bookmarks 파일을 직접 고치면 동기화가 되살립니다.)
+    </p>
+
+    <section>
+      <h2>1. 내보내기</h2>
+      <button type="button" id="copy-tsv">TSV 복사</button>
+      <button type="button" id="copy-md">Markdown 복사</button>
+      <button type="button" id="copy-json">JSON 복사</button>
+      <div class="status" id="export-status"></div>
+    </section>
+
+    <section>
+      <h2>2. 붙여넣기 일괄 삭제</h2>
+      <p class="sub">id 또는 URL 을 줄 단위로. 한 줄에 여러 값이 섞여 있어도 URL 을 알아서 뽑습니다.</p>
+      <textarea id="bulk" placeholder="475&#10;https://example.com/foo&#10;- [제목](https://example.com/bar) `id 492`"></textarea>
+      <div style="margin-top: 8px">
+        <button type="button" id="bulk-preview">미리보기</button>
+        <button type="button" class="danger" id="bulk-delete">삭제</button>
+      </div>
+      <div class="status" id="bulk-status"></div>
+    </section>
+
+    <section>
+      <h2>3. 목록에서 고르기</h2>
+      <input type="search" id="filter" placeholder="제목·URL·폴더 검색" />
+      <div style="margin-bottom: 8px">
+        <button type="button" id="select-all">보이는 것 전체 선택</button>
+        <button type="button" id="select-none">선택 해제</button>
+        <button type="button" class="danger" id="delete-selected">선택 삭제</button>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="status" id="list-status"></div>
+    </section>
+
+    <script src="bookmarks.js"></script>
+  </body>
+</html>
