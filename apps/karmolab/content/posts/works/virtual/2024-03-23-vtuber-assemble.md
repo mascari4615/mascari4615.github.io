@@ -8,7 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/BVWi1NPjCBg/mqdefault.jpg"
 hidden: true
 work:
-  org: 미정
+  org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
 ---

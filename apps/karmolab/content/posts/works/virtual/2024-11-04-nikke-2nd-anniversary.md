@@ -8,7 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/nikke-2nd-anniversary/nikke-2nd-anniversary-ppt-title.png
 hidden: true
 work:
-  org: 미정
+  org: 패러블 엔터테인먼트
   role: [프로그래밍]
   platform: VRChat
 ---

@@ -8,7 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/vtuber-soccer-tournament/230313-032705.png
 hidden: true
 work:
-  org: 미정
+  org: 왁타버스
   role: [아트]
   platform: VRChat
 ---
