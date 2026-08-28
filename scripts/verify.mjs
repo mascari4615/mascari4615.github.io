@@ -355,9 +355,9 @@ if (existsSync('apps/daily/engine.test.mjs')) {
   run('apps/daily 규칙 시험', 'apps/daily', 'node --test');
 }
 
-// Files 금고 규격 — 의존성 0. 화면 HTML 과 따로, 안 걸면 암호 왕복이 깨져도 Pages 배포는 초록이다.
+// Files 클라우드 규격 — 의존성 0. 화면 HTML 과 따로, 안 걸면 암호 왕복이 깨져도 Pages 배포는 초록이다.
 if (existsSync('apps/files/test/vault-roundtrip.test.mjs')) {
-  run('apps/files 금고 왕복', 'apps/files', 'node --test');
+  run('apps/files 클라우드 왕복', 'apps/files', 'node --test');
 }
 
 /* 6. 오탈자 — **있으면 여기서 돈다** (2026-08-17).
