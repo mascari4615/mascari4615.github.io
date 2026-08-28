@@ -88,7 +88,11 @@ if (!/^KO$/.test(code || '')) fail.push(`단추 언어 글자가 KO 가 아니�
 
 /* ② */
 await page.click('#langBtn');
+/* ★ **누른 직후에 세지 마라** (2026-08-28, 같은 커밋 재실행에서 거짓 빨강): 목록은 다음 프레임에
+   그려진다 — 첫 판은 통과했는데 재실행이 「눌러도 목록이 안 열린다」로 떨어졌다. 기다린 뒤에도
+   없으면 그때가 진짜 고장이다. */
 const menu = page.locator('.lang-menu');
+await page.waitForSelector('.lang-menu', { timeout: 3000 }).catch(() => {});
 if (!(await menu.count())) fail.push('눌러도 목록이 안 열린다');
 else {
   const text = await menu.innerText();
