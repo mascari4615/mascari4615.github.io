@@ -14,6 +14,7 @@ test('hdr 가 있으면 /blob/, 없으면 픽스처', async () => {
   const miss = await pickVaultBase({
     origin: 'https://files.example',
     fixture,
+    canonical: 'https://files.example',
     fetchFn: async () => ({ ok: false }),
   });
   assert.equal(miss, fixture);
@@ -23,6 +24,37 @@ test('hdr 가 있으면 /blob/, 없으면 픽스처', async () => {
     fetchFn: async () => ({ ok: true }),
   });
   assert.equal(hit, 'https://files.example/blob/');
+});
+
+test('제 자리에 없으면 정본 도메인을 마저 본다', async () => {
+  /* 회귀 근거(2026-08-28): Pages 껍데기(`blog…/files/`)로 열면 제 origin 에 `/blob/` 이
+     없어 픽스처로 되떨어졌고, 맞는 비밀번호로도 클라우드가 안 열렸다. */
+  const asked = [];
+  const base = await pickVaultBase({
+    origin: 'https://blog.example',
+    fixture: 'https://blog.example/files/v/',
+    canonical: 'https://files.example',
+    fetchFn: async (url) => {
+      asked.push(url);
+      return { ok: url.startsWith('https://files.example/') };
+    },
+  });
+  assert.equal(base, 'https://files.example/blob/');
+  assert.deepEqual(asked, ['https://blog.example/blob/hdr', 'https://files.example/blob/hdr']);
+});
+
+test('이미 정본 도메인이면 같은 것을 두 번 묻지 않는다', async () => {
+  const asked = [];
+  await pickVaultBase({
+    origin: 'https://files.example',
+    fixture: 'https://files.example/v/',
+    canonical: 'https://files.example',
+    fetchFn: async (url) => {
+      asked.push(url);
+      return { ok: false };
+    },
+  });
+  assert.equal(asked.length, 1);
 });
 
 test('teeStore 는 정본을 먼저 쓰고 여분 실패를 삼킨다', async () => {

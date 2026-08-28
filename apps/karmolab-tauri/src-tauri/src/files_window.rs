@@ -3,8 +3,14 @@
 //! 왜 별도 창인가: Files 는 카모랩 위젯이 아니라 독립 제품 표면(`files.mascari4615.com`)이다.
 //! 카모랩 화면 안에 끼워 넣으면 「위젯 하나」로 보이고, 뒤로가기·주소·크기가 카모랩에 묶인다.
 //!
-//! 주소는 **main 창의 실제 URL 에서 파생**한다 — dev(127.0.0.1:8898) / prod(Pages) 를
+//! 주소는 **main 창의 실제 URL 에서 파생**한다 — dev(127.0.0.1:8898) / prod 를
 //! 하드코딩하면 한쪽에서 죽는다. alarm 창이 같은 이유로 같은 방식을 쓴다.
+//!
+//! ★ prod 는 **`files.mascari4615.com` 제 도메인**으로 간다 (2026-08-29). Pages 쪽
+//!   `blog.mascari4615.com/files/` 로도 화면은 뜨지만, 클라우드 암호문을 내주는
+//!   `/blob/` 은 Worker 가 사는 그 도메인에만 있다. 그래서 Pages 로 열면 화면이
+//!   `/blob/hdr` 을 못 찾아 **픽스처(시험용 금고)로 되떨어지고**, 맞는 비밀번호를 쳐도
+//!   안 열린다(2026-08-28 실측). 웹에서 오는 길로 Pages `/files/` 는 그대로 둔다.
 
 use tauri::Manager;
 
@@ -21,6 +27,16 @@ fn files_url_from(main_url: &tauri::Url) -> tauri::Url {
     let mut u = main_url.clone();
     u.set_fragment(None);
     u.set_query(None);
+
+    /* 배포판은 제 도메인으로 간다 — 거기에만 `/blob/`(클라우드 암호문)이 있다.
+       `capabilities/default.json` 의 remote 목록에도 같은 주소가 있어야 단추가 산다. */
+    if u.scheme() == "https" {
+        if let Ok(files) = tauri::Url::parse("https://files.mascari4615.com/") {
+            return files;
+        }
+    }
+
+    // dev(로컬 정적 서버)는 한 저장소를 통째로 서빙하므로 경로만 옮긴다.
     let path = u.path().to_string();
     let next = if path.contains("/karmolab") {
         path.replace("/karmolab", "/files")
@@ -104,12 +120,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn prod_주소를_files_로_바꾼다() {
+    fn prod_는_제_도메인으로_간다() {
+        // Pages 로 열면 `/blob/` 이 없어 픽스처로 되떨어진다 (2026-08-28 사고).
         let u = tauri::Url::parse("https://blog.mascari4615.com/karmolab/#home").unwrap();
-        assert_eq!(
-            files_url_from(&u).as_str(),
-            "https://blog.mascari4615.com/files/"
-        );
+        assert_eq!(files_url_from(&u).as_str(), "https://files.mascari4615.com/");
     }
 
     #[test]
@@ -123,16 +137,17 @@ mod tests {
 
     #[test]
     fn 뿌리로_옮긴_뒤에도_찾아간다() {
-        // change.karmolab-at-root 이후: 카모랩이 `/` 를 차지한다.
+        // change.karmolab-at-root 이후: 카모랩이 `/` 를 차지한다. 어느 장에서 눌러도 한 곳이다.
         let u = tauri::Url::parse("https://blog.mascari4615.com/").unwrap();
-        assert_eq!(files_url_from(&u).as_str(), "https://blog.mascari4615.com/files/");
+        assert_eq!(files_url_from(&u).as_str(), "https://files.mascari4615.com/");
         let u = tauri::Url::parse("https://blog.mascari4615.com/t/somethig/").unwrap();
-        assert_eq!(files_url_from(&u).as_str(), "https://blog.mascari4615.com/files/");
+        assert_eq!(files_url_from(&u).as_str(), "https://files.mascari4615.com/");
     }
 
     #[test]
     fn 조각과_질의는_떨군다() {
-        let u = tauri::Url::parse("https://blog.mascari4615.com/karmolab/?dev=1#servermonitor").unwrap();
+        // dev 에서 잰다 — prod 는 제 도메인 한 곳으로 가므로 원래 조각·질의가 남지 않는다.
+        let u = tauri::Url::parse("http://127.0.0.1:8898/apps/karmolab/index.html?dev=1#servermonitor").unwrap();
         let out = files_url_from(&u);
         assert_eq!(out.fragment(), None);
         assert_eq!(out.query(), None);
