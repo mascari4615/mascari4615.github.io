@@ -8,6 +8,7 @@ tags: [작업물, 유니티]
 image: /assets/img/post/works/everything/230629-222847.png
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [아트]
   platform: Unity

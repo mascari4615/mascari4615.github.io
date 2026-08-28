@@ -8,6 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/girls-reverse/230220-064057.png
 hidden: true
 work:
+  field: 버추얼
   org: 패러블 엔터테인먼트
   role: [프로그래밍]
   platform: VRChat

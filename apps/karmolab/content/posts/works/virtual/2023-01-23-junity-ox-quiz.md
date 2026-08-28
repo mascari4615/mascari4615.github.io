@@ -8,6 +8,7 @@ tags: [작업물, 유니티]
 image: "https://img.youtube.com/vi/e9_KaSa9w_s/mqdefault.jpg"
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [게임 개발, 아트, 프로그래밍]
   platform: Unity

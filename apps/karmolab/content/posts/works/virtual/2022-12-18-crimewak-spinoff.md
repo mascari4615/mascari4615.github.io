@@ -8,6 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/crime-wak-spinoff/221218-022228.png
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat

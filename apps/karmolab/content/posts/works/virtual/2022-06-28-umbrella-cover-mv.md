@@ -8,6 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/umbrella-cover-mv/umbrella-cover-mv-banner.png
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [아트]
   platform: VRChat

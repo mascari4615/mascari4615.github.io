@@ -8,6 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-music-festival/gomem-music-festival-finale1.png
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [아트, 프로그래밍]
   platform: VRChat

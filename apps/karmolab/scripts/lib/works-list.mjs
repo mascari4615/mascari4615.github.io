@@ -23,7 +23,7 @@ export function parseWorksYml(text) {
     for (const line of text.split(/\r?\n/)) {
         const head = /^-\s*url:\s*(.*)$/.exec(line);
         if (head) {
-            entries.push({ url: unquote(head[1]), title: '', image: '', description: '', date: '', tags: [], org: '', platform: '', period: '', role: [] });
+            entries.push({ url: unquote(head[1]), title: '', image: '', description: '', date: '', tags: [], field: '', org: '', platform: '', period: '', role: [] });
             continue;
         }
         const last = entries[entries.length - 1];
@@ -35,7 +35,7 @@ export function parseWorksYml(text) {
         }
         /* 바깥 링크(유튜브 등)는 글이 없으니 **여기가 그 항목의 유일한 집**이다 —
            소속·역할·플랫폼·기간도 여기서 읽는다 (글이 있는 항목은 글 frontmatter 가 정본). */
-        const kv = /^\s+(date|title|image|description|org|platform|period):\s*(.*)$/.exec(line);
+        const kv = /^\s+(date|title|image|description|field|org|platform|period):\s*(.*)$/.exec(line);
         if (kv) last[kv[1]] = unquote(kv[2]);
     }
     return entries;

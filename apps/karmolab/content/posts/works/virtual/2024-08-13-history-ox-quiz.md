@@ -8,7 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/history-ox-quiz/240817-152627.png
 hidden: true
 work:
-  org: 미정
+  field: 버추얼
   role: [UI, 프로그래밍]
   platform: VRChat
 ---

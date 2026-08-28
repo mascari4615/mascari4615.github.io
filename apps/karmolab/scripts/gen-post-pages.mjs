@@ -80,6 +80,7 @@ function parsePost(file) {
         image: unquote(head.image),
         hidden: head.hidden === 'true',
         work: work && {
+            field: unquote(work.field) || null,
             org: unquote(work.org) || null,
             roles: list(work.role),
             platform: unquote(work.platform) || null,
@@ -375,7 +376,7 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
         const rows = works.map((w) => {
             const post = w.slug ? bySlug.get(w.slug) : null;
             /* 글이 있으면 글의 `work:` 가 정본, 없으면(바깥 링크) `works.yml` 항목 자신이 정본. */
-            const meta = post?.work ?? { org: w.org, roles: w.role ?? [], platform: w.platform, period: w.period };
+            const meta = post?.work ?? { field: w.field, org: w.org, roles: w.role ?? [], platform: w.platform, period: w.period };
             const period = meta.period || null;
             const at = period ? period.split('~')[0].trim() : (post?.date ?? w.date ?? '').slice(0, 7);
             return {
@@ -385,6 +386,7 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
                 at, // YYYY-MM — 정렬·연도 묶음은 이 값 하나로 한다
                 period,
                 ongoing: period ? period.trim().endsWith('~') : false,
+                field: meta.field || '',
                 org: meta.org || '',
                 roles: meta.roles ?? [],
                 platform: meta.platform || ''
@@ -408,7 +410,8 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
                     (w) =>
                         `<li><a href="${shellEsc(w.url)}">${shellEsc(w.title)}</a>` +
                         `${w.at ? ` <span>${shellEsc(w.period ?? w.at)}</span>` : ''}` +
-                        `${w.org ? ` · ${shellEsc(w.org)}` : ''}` +
+                        `${w.field ? ` · ${shellEsc(w.field)}` : ''}` +
+                        `${w.org ? ` (${shellEsc(w.org)})` : ''}` +
                         `${w.roles.length ? ` · ${shellEsc(w.roles.join(', '))}` : ''}` +
                         `${w.description ? ` — ${shellEsc(w.description)}` : ''}</li>`
                 )

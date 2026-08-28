@@ -20,6 +20,7 @@ export interface WorkRow {
     title: string;
     image: string;
     description: string;
+    field: string;
     at: string;
     period: string | null;
     ongoing: boolean;
@@ -41,12 +42,16 @@ export interface MinorRow {
     const esc = (v: unknown): string =>
         String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-    /** 소속마다 한 가지 빛깔 — 점·배지·레인이 **같은 색**을 써야 셋이 한 자료로 읽힌다. */
+    /* 자리는 **갈래(field) + 소속(org)** 두 겹이다 (사용자 확정 2026-08-28).
+       「버추얼」 안에 왁타버스도 있고 패러블 계약도 있고, 소속을 굳이 안 적는 것도 있다 —
+       한 줄로 늘어놓으면 성격이 다른 것들이 같은 무게로 보인다. */
+    const laneOf = (w: WorkRow): string => (w.org ? `${w.field} (${w.org})` : w.field || '·');
+
+    /** 빛깔은 소속이 정한다 — 점·배지·레인이 같은 색이어야 셋이 한 자료로 읽힌다. */
     const ORG_HUE: Record<string, string> = {
         개인: 'var(--accent)',
         '패러블 엔터테인먼트': '#d4a04f',
-        왁타버스: 'var(--secondary, #7ba7d4)',
-        외주: '#6fae8d'
+        왁타버스: 'var(--secondary, #7ba7d4)'
     };
     const hueOf = (org: string): string => ORG_HUE[org] ?? 'var(--text-tertiary)';
 
@@ -160,7 +165,7 @@ export interface MinorRow {
     const human = (at: string): string => at.replace('-', '.');
 
     function tile(w: WorkRow): string {
-        const meta = `${human(w.at)}${w.org ? ` · ${w.org}` : ''}`;
+        const meta = `${human(w.at)} · ${laneOf(w)}`;
         return (
             `<a class="wk-tile" href="${esc(w.url)}"${w.slug ? '' : ' target="_blank" rel="noopener"'}>` +
             (w.image ? `<img src="${esc(w.image)}" alt="" loading="lazy">` : '') +
@@ -190,7 +195,7 @@ export interface MinorRow {
                               `<a href="${esc(w.url)}">${w.image ? `<img src="${esc(w.image)}" alt="">` : ''}` +
                               `<em>${esc(t('works.ongoing', undefined, '지금도 만드는 중'))}</em>` +
                               `<span class="veil"><b>${esc(w.title)}</b>` +
-                              `<span>${esc(human(w.at))} ~ · ${esc(w.org)}</span></span></a>`
+                              `<span>${esc(human(w.at))} ~ · ${esc(laneOf(w))}</span></span></a>`
                       )
                       .join('') +
                   `</div>`
@@ -228,7 +233,14 @@ export interface MinorRow {
             const [y, m] = ym.split('-').map(Number);
             return ((y + ((m || 1) - 1) / 12 - from) / span) * 100;
         };
-        const orgs = [...new Set(works.map((w) => w.org).filter(Boolean))];
+        /* 자리 순서 — 내 것이 맨 위, 그다음 계약처, 그다음 커뮤니티, 소속을 안 적은 것이 끝.
+           건수 순으로 하면 왁타버스 34건이 늘 맨 위라, 몇 해씩 이어 온 내 것이 아래로 밀린다. */
+        const RANK = ['개인', '패러블 엔터테인먼트', '왁타버스', ''];
+        const lanesOf = [...new Set(works.map(laneOf))].sort((a, b) => {
+            const orgOf = (n: string): string => /\((.*)\)$/.exec(n)?.[1] ?? '';
+            const gap = RANK.indexOf(orgOf(a)) - RANK.indexOf(orgOf(b));
+            return gap !== 0 ? gap : a.localeCompare(b);
+        });
 
         host.innerHTML =
             `<div class="wk-map"><div class="wk-ruler"><div></div><div class="yy" id="wkYears" ` +
@@ -243,11 +255,18 @@ export interface MinorRow {
         ).join('');
 
         const lanes = host.querySelector('#wkLanes') as HTMLElement;
-        for (const org of orgs) {
-            const mine = works.filter((w) => w.org === org);
+        for (const name of lanesOf) {
+            const mine = works.filter((w) => laneOf(w) === name);
             const lane = document.createElement('div');
             lane.className = 'wk-lane';
-            lane.innerHTML = `<div class="who"><b>${esc(org)}</b>${mine.length}건</div><div class="wk-track"></div>`;
+            /* 큰 글자는 **누구와 한 일인가**(소속), 작은 글자가 갈래다. 갈래를 크게 적으면
+               「버추얼」이 네 줄에 되풀이돼, 정작 줄을 가르는 값이 안 보인다. */
+            const paren = /^(.*?)\s*\((.*)\)$/.exec(name);
+            const head = paren ? paren[2] : name;
+            const sub = paren ? paren[1] : '';
+            lane.innerHTML =
+                `<div class="who"><b>${esc(head)}</b>${sub ? `${esc(sub)} · ` : ''}${mine.length}건</div>` +
+                `<div class="wk-track"></div>`;
             const track = lane.querySelector('.wk-track') as HTMLElement;
             /* 막대끼리 겹치면 **아래 줄로 내린다**. 한 줄에 겹쳐 그리면 뒤엣것이 앞엣것의
                글자를 덮어 둘 다 못 읽는다 (패러블 레인에서 실제로 그랬다). */
@@ -269,6 +288,7 @@ export interface MinorRow {
                     el.style.width = `${width}%`;
                     el.style.top = `${11 + row * 30}px`;
                     el.style.color = hueOf(w.org);
+                    el.title = `${w.title} · ${w.period ?? w.at}`;
                     el.innerHTML =
                         (w.image ? `<img src="${esc(w.image)}" alt="">` : '') + `<span>${esc(w.title)}</span>`;
                 } else {
@@ -294,7 +314,7 @@ export interface MinorRow {
         const pick = (w: WorkRow): void => {
             (host.querySelector('#wkPick') as HTMLElement).innerHTML =
                 `<img src="${esc(w.image)}" alt=""><div class="txt"><h3>${esc(w.title)}</h3>` +
-                `<div class="sub">${esc(w.period ?? human(w.at))} · ${esc(w.org)}` +
+                `<div class="sub">${esc(w.period ?? human(w.at))} · ${esc(laneOf(w))}` +
                 `${w.platform ? ` · ${esc(w.platform)}` : ''}</div>` +
                 `${w.roles.length ? `<div class="sub">${esc(w.roles.join(' · '))}</div>` : ''}</div>`;
         };
@@ -306,7 +326,7 @@ export interface MinorRow {
         const all = data.works.filter((w) => w.at);
         const wrap = document.createElement('div');
         wrap.className = 'wk';
-        const orgs = [...new Set(all.map((w) => w.org).filter(Boolean))];
+        const chips = [...new Set(all.map(laneOf))];
 
         wrap.innerHTML =
             `<div class="wk-bar">
@@ -316,11 +336,11 @@ export interface MinorRow {
                 </div>
                 <input type="search" placeholder="${esc(t('works.search', undefined, '제목·설명 찾기'))}"
                     aria-label="${esc(t('works.search', undefined, '제목·설명 찾기'))}">
-                ${orgs
+                ${chips
                     .map(
-                        (o) =>
-                            `<button type="button" class="wk-chip" data-org="${esc(o)}">` +
-                            `<i style="background:${hueOf(o)}"></i>${esc(o)}</button>`
+                        (c) =>
+                            `<button type="button" class="wk-chip" data-lane="${esc(c)}">` +
+                            `<i style="background:${hueOf(c.replace(/^.*\((.*)\)$/, '$1'))}"></i>${esc(c)}</button>`
                     )
                     .join('')}
                 <span class="wk-count"></span>
@@ -339,8 +359,8 @@ export interface MinorRow {
         const draw = (): void => {
             const rows = all.filter(
                 (w) =>
-                    (org === '' || w.org === org) &&
-                    (query === '' || `${w.title} ${w.description} ${w.org}`.toLowerCase().includes(query))
+                    (org === '' || laneOf(w) === org) &&
+                    (query === '' || `${w.title} ${w.description} ${laneOf(w)}`.toLowerCase().includes(query))
             );
             count.textContent = t('works.count', { n: String(rows.length) }, '{n}건');
             if (rows.length === 0) {
@@ -363,7 +383,7 @@ export interface MinorRow {
             chip.addEventListener('click', () => {
                 const was = chip.classList.contains('on');
                 wrap.querySelectorAll('.wk-chip.on').forEach((el) => el.classList.remove('on'));
-                org = was ? '' : (chip.dataset.org ?? '');
+                org = was ? '' : (chip.dataset.lane ?? '');
                 if (!was) chip.classList.add('on');
                 draw();
             });

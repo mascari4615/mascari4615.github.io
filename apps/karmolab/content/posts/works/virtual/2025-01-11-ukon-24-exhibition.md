@@ -8,7 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/ukon-24-exhibition/ukon-24-exhibition-world-thumbnail.png
 hidden: true
 work:
-  org: 미정
+  field: 버추얼
   role: [프로그래밍]
   platform: VRChat
 ---

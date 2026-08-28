@@ -8,6 +8,7 @@ tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-dreamteam/bettingtrain/241130-230638.png
 hidden: true
 work:
+  field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
