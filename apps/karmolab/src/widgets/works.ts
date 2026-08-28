@@ -49,9 +49,9 @@ export interface MinorRow {
 
     /** 빛깔은 소속이 정한다 — 점·배지·레인이 같은 색이어야 셋이 한 자료로 읽힌다. */
     const ORG_HUE: Record<string, string> = {
-        개인: 'var(--accent)',
+        '개인': 'var(--accent)',
         '패러블 엔터테인먼트': '#d4a04f',
-        왁타버스: 'var(--secondary, #7ba7d4)'
+        '왁타버스': 'var(--secondary, #7ba7d4)'
     };
     const hueOf = (org: string): string => ORG_HUE[org] ?? 'var(--text-tertiary)';
 
