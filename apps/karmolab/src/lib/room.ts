@@ -20,9 +20,25 @@ import { joinRoom, selfId, type DataPayload } from 'trystero/nostr';
 import { toolPage } from './site-base';
 
 /**
- * 그물망을 건너는 것은 **JSON 이 될 수 있는 값**뿐이다 — 함수도 클래스도 Map 도 못 건넌다.
- * 판을 통째로 흘려보내려면 판도 이 모양이어야 한다(그래서 상태는 배열·수·글자로 짠다).
+ * 짝짓기를 거칠 **중계 목록**. 기본값에 맡기면 앱 이름으로 뽑기 때문에 항상 같은 다섯 곳이
+ * 걸리는데, 거기 `relay.damus.io` 가 끼어 있었다 — 오락실 콘솔이 계속 뱉던
+ * `rate-limited: you are noting too much` 의 정체다. 짝짓기 신호는 **잠깐 쓰고 버리는
+ * 소식**(ephemeral)이라 초당 여러 번 나가는데, 그런 쓰기를 막는 곳이 섞이면 방이 안 붙는다.
+ *
+ * 아래 다섯은 2026-08-29에 직접 재서 골랐다 — 한 번에 여섯 통을 던져 전부 받아 준 곳만 남겼다.
+ * 거른 것: damus(연결 실패·rate limit) · self-determined(rate limit) ·
+ * libernet(ephemeral 거부) · nostr.place(작업증명 요구) · froth/openhoofd/angor(연결 실패) ·
+ * kojira(`blocked: kind not accepted here` — 놀이마다 종류 번호가 달라 어떤 판은 통째로 막혔다).
+ * 다시 안 붙으면 같은 방법으로 재고 이 줄을 갈아라.
  */
+const RELAY_URLS = [
+  'wss://nos.lol',
+  'wss://nostr.data.haus',
+  'wss://purplerelay.com',
+  'wss://nostr.sathoarder.com',
+  'wss://nostr-01.yakihonne.com'
+];
+
 export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
 export type Payload = { [k: string]: Json };
 
@@ -102,7 +118,7 @@ export interface RoomOptions {
  * 각자 적으면 「이름이 안 뜨는 창」이 하나씩 생긴다.
  */
 export function openRoom(opts: RoomOptions): Room {
-  const room = joinRoom({ appId: opts.appId }, opts.code);
+  const room = joinRoom({ appId: opts.appId, relayConfig: { urls: RELAY_URLS } }, opts.code);
   const names = new Map<string, string>();
   const list = (): Peer[] => [...names].map(([id, name]) => ({ id, name }));
 
@@ -168,7 +184,7 @@ export function quickMatch(
   appId: string,
   onPaired: (code: string, host: boolean) => void
 ): QuickMatch {
-  const lobby = joinRoom({ appId }, 'lobby');
+  const lobby = joinRoom({ appId, relayConfig: { urls: RELAY_URLS } }, 'lobby');
   let paired = false;
   lobby.onPeerJoin = (peerId: string): void => {
     if (paired) return;
