@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-deck-compression/250215-000000.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 드디어 고멤 유치원 최종 합격자 발표  

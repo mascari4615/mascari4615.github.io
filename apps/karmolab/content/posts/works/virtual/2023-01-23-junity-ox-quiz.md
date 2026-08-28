@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, 유니티]
 image: "https://img.youtube.com/vi/e9_KaSa9w_s/mqdefault.jpg"
 hidden: true
+work:
+  org: 미정
+  role: [게임 개발, 아트, 프로그래밍]
+  platform: Unity
 ---
 
 [2023.01.22 / 설날 특집 방송] - 주르르 다시보기  

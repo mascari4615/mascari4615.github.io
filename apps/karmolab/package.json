@@ -437,6 +437,7 @@
     "test:workdays": "node scripts/test-workdays.mjs",
     "test:site-base": "node scripts/test-site-base.mjs",
     "test:works": "node scripts/test-works-list.mjs",
+    "audit:works": "node scripts/audit-works.mjs",
     "test:workshop": "node scripts/smoke-workshop-kinds.mjs",
     "test:worldbook:unknown": "node scripts/smoke-worldbook-unknown.mjs",
     "test:worldcup": "node scripts/smoke-worldcup.mjs",

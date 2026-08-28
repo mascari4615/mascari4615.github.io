@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/we-got-married/230429-224703.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 레전드 콜라보 컨텐츠ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ  

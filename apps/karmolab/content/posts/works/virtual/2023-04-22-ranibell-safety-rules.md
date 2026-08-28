@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/ranibell-safety-rules/230425-154148.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 도전! 라니벨 시즌2 - 안전수칙 편  

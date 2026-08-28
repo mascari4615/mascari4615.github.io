@@ -7,6 +7,11 @@ categories: [작업물, 게임 개발]
 tags: [작업물, 게임 개발, 유니티, "마녀:귀찮아!"]
 image: /assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png
 hidden: true
+work:
+  org: 개인
+  role: [게임 개발, 아트, UI, 프로그래밍]
+  platform: Unity
+  period: 2023-06~
 ---
 
 _

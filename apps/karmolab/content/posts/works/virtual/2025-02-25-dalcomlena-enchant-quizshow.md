@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/tt-vGVAu71k/mqdefault.jpg"
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 【25.02.25】🎉경🎈 달콤레나^^ㅣ 인챈트 입장 🎈축🎉  

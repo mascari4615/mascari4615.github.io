@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-dreamteam/bettingtrain/241130-230638.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 \[베팅트레인\] 룰영상 보고가세용!  

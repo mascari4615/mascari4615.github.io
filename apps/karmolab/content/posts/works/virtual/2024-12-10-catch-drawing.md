@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/catch-drawing/catch-drawing-logo.png
 hidden: true
+work:
+  org: 미정
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 뭘까용! - 캐치드로잉 합방  

@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/tonikaku-isekai/tonikaku-isekai-banner.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 트럭에 치인 나 - VR챗 상황극 콘테스트  

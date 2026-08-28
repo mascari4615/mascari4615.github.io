@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, 유니티]
 image: /assets/img/post/works/everything/230629-222847.png
 hidden: true
+work:
+  org: 미정
+  role: [아트]
+  platform: Unity
 ---
 
 SKYSIX (육광천) 'Everything' Official MV  

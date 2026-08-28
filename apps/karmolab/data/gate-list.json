@@ -417,6 +417,15 @@
       ]
     },
     {
+      "name": "audit:works",
+      "watch": [
+        "scripts/audit-works.mjs",
+        "scripts/lib/works-minor.mjs",
+        "scripts/gen-post-pages.mjs",
+        "../../apps/blog/_data/works.yml"
+      ]
+    },
+    {
       "name": "test:post-seo",
       "watch": [
         "scripts/test-post-seo.mjs",

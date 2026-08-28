@@ -115,7 +115,11 @@
   image: https://img.youtube.com/vi/VQxPKTFb0es/mqdefault.jpg
   description: SM 엔터테인먼트 산하레코드 ScreaM의 Journey of Emotions 프로모션
   tags: [Art, Programming]
-  date:
+  date: 2023-01
+  org: 패러블 엔터테인먼트
+  role: [아트, 프로그래밍]
+  platform: VRChat
+  period: 2023-01~2023-06
 
 - url: /posts/meta-study/
   tags: [Programming]
@@ -181,8 +185,6 @@
   tags: [GameDev, Art, Programming]
   date: '2101~2201'
 
-- url: "/posts/works/"
-  description: "다른 프로젝트도 보고 싶다면"
-  image: /assets/img/background/backtop.gif
-  tags: []
-  date: 'Last Update : 250511.'
+# 「다른 프로젝트도 보고 싶다면」 카드(`/posts/works/`)는 뺐다 — 그 글의 소품 목록은 이제
+# 작업물 장이 직접 읽어 「그 외 참여」로 편다 (change.blog-surfaces-as-widgets ②).
+# 글 자체는 그대로 산다(hidden). 정본 = apps/karmolab/content/posts/works/2024-10-21-works.md

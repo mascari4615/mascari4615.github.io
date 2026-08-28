@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/meta-study/meta-study-banner.png
 hidden: true
+work:
+  org: 미정
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 VR챗 맵 제작 스터디 4기 졸업 작품  

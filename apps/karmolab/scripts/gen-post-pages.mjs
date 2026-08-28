@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { loadMarked, loadMarkdownLib } from './lib/markdown-node.mjs';
 import { postBody, postHead, notFoundBody, feedXml, applyCdn } from './lib/post-page.mjs';
 import { parseWorksYml, buildWorks } from './lib/works-list.mjs';
+import { parseMinorWorks } from './lib/works-minor.mjs';
 import { loadShell, shellCommon, replaceMeta, asStaticPage, scriptFile, esc as shellEsc } from './lib/shell-page.mjs';
 
 const APP_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -52,6 +53,19 @@ function parsePost(file) {
                   .filter(Boolean)
             : [];
     const unquote = (raw) => (raw ?? '').replace(/^"(.*)"$/s, (_w, inner) => JSON.parse(`"${inner}"`)).trim();
+    /* `work:` 한 단 아래는 **작업물 메타**다 (change.blog-surfaces-as-widgets ②).
+       예전에는 이 값들이 `_data/works.yml` 에만 있어, 글을 고칠 때 따로 있는 그 파일을 같이
+       고쳐야 했다 — 그래서 제목·날짜가 두 곳에서 어긋났다. 이제 글이 제 메타를 든다. */
+    const work = (() => {
+        const block = /^work:\n((?:[ ]{2}.*\n?)+)/m.exec(m[1] + '\n');
+        if (!block) return null;
+        const out = {};
+        for (const line of block[1].split('\n')) {
+            const kv = /^\s{2}([a-z]+):\s*(.*)$/.exec(line);
+            if (kv) out[kv[1]] = kv[2].trim();
+        }
+        return out;
+    })();
     const slugMatch = /^\d{4}-\d{2}-\d{2}-(.+)\.md$/.exec(path.basename(file));
     if (!slugMatch) return null; // 규약 밖 파일명은 converter 리포트가 이미 안다
     return {
@@ -65,6 +79,12 @@ function parsePost(file) {
         tags: list(head.tags),
         image: unquote(head.image),
         hidden: head.hidden === 'true',
+        work: work && {
+            org: unquote(work.org) || null,
+            roles: list(work.role),
+            platform: unquote(work.platform) || null,
+            period: unquote(work.period) || null,
+        },
         body: text.slice(m[0].length),
     };
 }
@@ -343,12 +363,41 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
         const { works, skipped } = buildWorks(entries, bySlug);
         const worksLastmod = works.length ? posts.filter((p) => works.some((w) => w.slug === p.slug)).map((p) => p.lastmod ?? p.date).sort().at(-1) : null;
 
-        // 사진 주소에 CDN 을 입히는 것은 **여기까지**다 — 위젯은 받은 주소를 그대로 건다.
-        const rows = works.map((w) => ({
-            ...w,
-            image: w.image ? (w.image.startsWith('/') ? `${CDN}${w.image}` : w.image) : ''
-        }));
-        fs.writeFileSync(path.join(APP_ROOT, 'data', 'works.json'), JSON.stringify(rows, null, 1));
+        /* 항목 하나를 **카드감**으로 다듬는다.
+         *
+         * ① 사진 주소에 CDN 을 입히는 것은 여기까지다 — 위젯은 받은 주소를 그대로 건다.
+         * ② 때는 **글의 date** 를 정본으로 쓴다. 옛 `works.yml` 의 `date:` 는 `2411~` ·
+         *    `2311, 2411.` · `Last Update : 250511.` 처럼 사람이 적은 대로라 정렬도 묶음도
+         *    안 됐다(실측: 46건 중 형식이 다섯 가지). 기간은 글의 `work.period` 가 든다.
+         * ③ 제목의 `VRChat - ` 접두는 뗀다 — 플랫폼은 배지가 말한다. 제목 자체(색인)는 안 건드린다.
+         * ④ 소속·역할·플랫폼 = 글 frontmatter 의 `work:` (없으면 빈 값으로 두고 검사가 센다).
+         */
+        const rows = works.map((w) => {
+            const post = w.slug ? bySlug.get(w.slug) : null;
+            /* 글이 있으면 글의 `work:` 가 정본, 없으면(바깥 링크) `works.yml` 항목 자신이 정본. */
+            const meta = post?.work ?? { org: w.org, roles: w.role ?? [], platform: w.platform, period: w.period };
+            const period = meta.period || null;
+            const at = period ? period.split('~')[0].trim() : (post?.date ?? w.date ?? '').slice(0, 7);
+            return {
+                ...w,
+                title: w.title.replace(/^VRChat\s*-\s*/, ''),
+                image: w.image ? (w.image.startsWith('/') ? `${CDN}${w.image}` : w.image) : '',
+                at, // YYYY-MM — 정렬·연도 묶음은 이 값 하나로 한다
+                period,
+                ongoing: period ? period.trim().endsWith('~') : false,
+                org: meta.org || '',
+                roles: meta.roles ?? [],
+                platform: meta.platform || ''
+            };
+        });
+        /* 소품 — 따로 글을 안 쓴 참여작. 정본은 그 목록 글 하나이고, 여기서 자료로 읽는다.
+           카드 한 장 뒤에 27건이 숨어 있던 것을 작업물 장이 직접 펴게 하는 자리다. */
+        const minorPost = posts.find((p) => p.slug === 'works');
+        const minor = minorPost ? parseMinorWorks(minorPost.body) : [];
+        fs.writeFileSync(
+            path.join(APP_ROOT, 'data', 'works.json'),
+            JSON.stringify({ works: rows, minor }, null, 1)
+        );
 
         /* 색인용 텍스트 — 이 장은 스크립트가 그리므로, 카드에 적힌 말이 첫 HTML 에 하나도
            없으면 검색엔진에는 빈 장이 된다. 제목·연도·설명만 셸의 SEO 자리에 남긴다. */
@@ -358,11 +407,27 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
                 .map(
                     (w) =>
                         `<li><a href="${shellEsc(w.url)}">${shellEsc(w.title)}</a>` +
-                        `${w.date ? ` <span>${shellEsc(w.date)}</span>` : ''}` +
+                        `${w.at ? ` <span>${shellEsc(w.period ?? w.at)}</span>` : ''}` +
+                        `${w.org ? ` · ${shellEsc(w.org)}` : ''}` +
+                        `${w.roles.length ? ` · ${shellEsc(w.roles.join(', '))}` : ''}` +
                         `${w.description ? ` — ${shellEsc(w.description)}` : ''}</li>`
                 )
                 .join('') +
-            '</ul></section>';
+            '</ul>' +
+            (minor.length
+                ? `<h2>그 외 참여 ${minor.length}건</h2><ul>` +
+                  minor
+                      .map(
+                          (m) =>
+                              `<li>${shellEsc(m.title)}` +
+                              `${m.when ? ` <span>${shellEsc(m.when)}</span>` : ''}` +
+                              `${m.client ? ` · ${shellEsc(m.client)}` : ''}` +
+                              `${m.role ? ` · ${shellEsc(m.role)}` : ''}</li>`
+                      )
+                      .join('') +
+                  '</ul>'
+                : '') +
+            '</section>';
 
         fs.mkdirSync(path.join(OUT, 'works'), { recursive: true });
         fs.writeFileSync(
@@ -377,7 +442,10 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
                 seoHtml: seo
             })
         );
-        console.log(`[gen-post-pages] 작업물 ${works.length}건 / 정본 ${entries.length}건${skipped.length ? ` (카드 못 만든 것 ${skipped.length}: ${skipped.join(' ')})` : ''}`);
+        console.log(
+            `[gen-post-pages] 작업물 ${works.length}건 / 정본 ${entries.length}건 · 소품 ${minor.length}건` +
+                `${skipped.length ? ` (카드 못 만든 것 ${skipped.length}: ${skipped.join(' ')})` : ''}`
+        );
     }
 }
 

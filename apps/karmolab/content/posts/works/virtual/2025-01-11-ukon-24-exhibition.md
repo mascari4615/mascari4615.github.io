@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/ukon-24-exhibition/ukon-24-exhibition-world-thumbnail.png
 hidden: true
+work:
+  org: 미정
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 유콘 전시회🔥프로의 일러를! 몽땅! 다 보여드립니다!! [2024 일러스트 총집합]  

@@ -67,7 +67,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const real = path.join(HERE, '..', '..', 'blog', '_data', 'works.yml');
 if (fs.existsSync(real)) {
     const list = parseWorksYml(fs.readFileSync(real, 'utf8'));
-    assert.ok(list.length >= 46, `정본 항목 ${list.length}건 — 46건 밑으로 줄면 파서가 흘린 것`);
+    /* 문턱은 45 — 「다른 프로젝트도 보고 싶다면」 카드(`/posts/works/`)를 뺐다.
+       그 글의 소품 목록은 이제 작업물 장이 직접 읽어 편다(`lib/works-minor.mjs`). */
+    assert.ok(list.length >= 45, `정본 항목 ${list.length}건 — 45건 밑으로 줄면 파서가 흘린 것`);
     assert.ok(
         list.every((e) => e.url && !/^["']/.test(e.url)),
         'url 에 따옴표가 남으면 안 된다',

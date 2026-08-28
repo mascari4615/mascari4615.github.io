@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/uphill-road-cover-mv/uphill-road-cover-mv-banner-0.png
 hidden: true
+work:
+  org: 왁타버스
+  role: [아트]
+  platform: VRChat
 ---
 
 오르막길 - 뢴트게늄x해루석 COVER  

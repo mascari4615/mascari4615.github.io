@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/history-ox-quiz/240817-152627.png
 hidden: true
+work:
+  org: 미정
+  role: [UI, 프로그래밍]
+  platform: VRChat
 ---
 
 빼빼로와 함께한 방송인 한국사 OX퀴즈  

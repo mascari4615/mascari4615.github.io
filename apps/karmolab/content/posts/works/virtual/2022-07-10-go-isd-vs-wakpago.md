@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/m2oef8JhV9s/mqdefault.jpg"
 hidden: true
+work:
+  org: 왁타버스
+  role: [프로그래밍]
+  platform: VRChat
 ---
 
 이세돌 vs 왁파고 바둑대결 - 세기의 대결  

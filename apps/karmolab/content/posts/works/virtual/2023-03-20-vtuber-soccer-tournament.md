@@ -7,6 +7,10 @@ categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/vtuber-soccer-tournament/230313-032705.png
 hidden: true
+work:
+  org: 미정
+  role: [아트]
+  platform: VRChat
 ---
 
 Counting Stars - 버축대 카오닝스타즈 MV  
