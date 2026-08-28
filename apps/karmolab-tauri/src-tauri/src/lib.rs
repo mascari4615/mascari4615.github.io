@@ -652,10 +652,16 @@ fn spawn_update_check(handle: tauri::AppHandle, mode: UpdateCheckMode) {
                 });
                 let _ = handle.emit("karmolab://update-available", payload);
                 if matches!(mode, UpdateCheckMode::Manual) {
-                    if let Some(w) = handle.get_webview_window("main") {
-                        let _ = w.unminimize();
-                        let _ = w.show();
-                        let _ = w.set_focus();
+                    // 배너는 카모랩 화면만 듣는다 (`desktop-chrome.ts`). Files 처럼 다른 화면을
+                    // 보고 있으면 창을 띄워 봐야 아무 것도 안 뜬다 — 그때는 트레이가 직접 묻는다.
+                    if banner_can_show(&handle) {
+                        if let Some(w) = handle.get_webview_window("main") {
+                            let _ = w.unminimize();
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    } else {
+                        ask_then_install(handle.clone(), update.version.clone());
                     }
                 }
             }
@@ -702,6 +708,75 @@ fn try_focus_update_check(handle: &tauri::AppHandle) {
     }
     LAST_FOCUS_UPDATE_CHECK_EPOCH_MS.store(now_ms, Ordering::Relaxed);
     spawn_update_check(handle.clone(), UpdateCheckMode::Background);
+}
+
+/// 지금 main 창이 **배너를 그릴 수 있는 화면**인가.
+///
+/// 배너를 듣는 코드는 카모랩 셸 하나뿐이다. Files 로 갈아탄 창이나 Files 전용 창만 떠 있으면
+/// 이벤트는 가지만 아무 것도 안 보인다 — 「업데이트 확인을 눌러도 아무 일이 없다」의 정체다.
+fn banner_can_show(handle: &tauri::AppHandle) -> bool {
+    let Some(w) = handle.get_webview_window("main") else {
+        return false;
+    };
+    w.url()
+        .map(|u| u.path().contains("karmolab"))
+        .unwrap_or(false)
+}
+
+/// 배너가 없는 화면에서의 설치 경로. 트레이만으로 끝난다 — 묻고, 받고, 재시작까지.
+fn ask_then_install(handle: tauri::AppHandle, version: String) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
+
+    let current = env!("CARGO_PKG_VERSION");
+    let h = handle.clone();
+    handle
+        .dialog()
+        .message(format!(
+            "새 버전 {}이 있습니다 (지금 {}). 지금 받아서 설치할까요?",
+            version, current
+        ))
+        .title("KarmoLab 업데이트")
+        .buttons(MessageDialogButtons::OkCancelCustom(
+            "설치".into(),
+            "나중에".into(),
+        ))
+        .show(move |ok| {
+            if !ok {
+                return;
+            }
+            tauri::async_runtime::spawn(async move {
+                match desktop_install_pending_update(h.clone()).await {
+                    Ok(_) => ask_then_restart(h, version),
+                    Err(e) => {
+                        let _ = notify_rust::Notification::new()
+                            .summary("KarmoLab 업데이트")
+                            .body(&format!("설치 실패: {}", e))
+                            .appname("KarmoLab")
+                            .show();
+                    }
+                }
+            });
+        });
+}
+
+/// 설치는 끝났고 새 바이너리는 다음 실행부터다. 지금 재시작할지만 묻는다.
+fn ask_then_restart(handle: tauri::AppHandle, version: String) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
+
+    let h = handle.clone();
+    handle
+        .dialog()
+        .message(format!("{} 설치됨. 지금 다시 시작할까요?", version))
+        .title("KarmoLab 업데이트")
+        .buttons(MessageDialogButtons::OkCancelCustom(
+            "다시 시작".into(),
+            "나중에".into(),
+        ))
+        .show(move |ok| {
+            if ok {
+                h.restart();
+            }
+        });
 }
 
 /// 배너 클릭 등 사용자가 명시적으로 동의한 후의 설치 흐름. 다이얼로그 없이 곧장 다운로드·설치.
