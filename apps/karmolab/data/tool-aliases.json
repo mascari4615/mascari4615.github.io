@@ -1,6 +1,7 @@
 {
   "_note": "목록에서 찾을 때 같이 걸리는 다른 이름들. 사람은 「정규식」 만큼이나 「regex」 라고 친다. 화면에 보이지는 않고 찾기에만 쓰인다.",
   "aliases": {
+    "about": "소개 프로필 나에 대해 about profile",
     "activity": "활동 기록 히스토리 최근 내가한것 log history",
     "adventure": "어드벤처 텍스트게임 모험 이야기 rpg",
     "alarm": "알람 기상 깨우기 시계 alarm",
@@ -313,6 +314,7 @@
     "wm": "게임 마녀 위치 인디게임 witch mendokusai 개발일지",
     "wordfreq": "word frequency count 빈도",
     "workdays": "workdays business days 영업일 근무일",
+    "works": "작업물 포트폴리오 만든것 전시 works portfolio",
     "worldclock": "timezone world clock utc 타임존",
     "worldcup": "월드컵 이상형 토너먼트 고르기",
     "ziptool": "zip unzip archive 압축"
