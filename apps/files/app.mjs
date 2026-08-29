@@ -11,6 +11,13 @@ import {
 import { pickVaultBase } from './src/vault-base.mjs';
 import { mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
+import {
+  armScrollMemory,
+  bindViewerKeys,
+  neighbors,
+  restoreScroll,
+  watchScroll,
+} from './src/viewer.mjs';
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_KEY = 'files.laptop.pass';
@@ -26,6 +33,12 @@ let vaultListing = null;
 /* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다 — 칸마다 blob 을 들고 있다. */
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
+/** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
+let siblings = [];
+/** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
+let unbindKeys = null;
+/** 폴더를 보는 동안 스크롤을 적는 손. 폴더를 뜰 때 뗀다. */
+let unwatchScroll = null;
 
 const fixtureBase = new URL('v/', import.meta.url);
 let vaultBase = fixtureBase;
@@ -421,8 +434,7 @@ async function ensureVault() {
   if (vaultSession && vaultListing) return vaultSession;
   const pass = sessionStorage.getItem(VAULT_KEY) || '';
   if (!pass) return null;
-  /* 로컬(개발)에서는 **정본 도메인을 안 본다** — 개발하다 실제 클라우드를 받아 버리면
-     느리고, 시험이 진짜 자료에 붙는다. 배포된 껍데기에서만 한 곳으로 모인다. */
+  /* 로컬(개발)에선 정본 도메인 안 봄. 개발 중 실제 클라우드를 받으면 느리고 시험이 진짜 자료에 붙음 */
   const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   vaultBase = new URL(
     await pickVaultBase({
@@ -473,7 +485,15 @@ function viewSwitch(mode) {
 
 function renderVaultDir(dir) {
   closeGallery();
+  /* 파일 화면 키보드 해제. 안 떼면 폴더에서 화살표가 엉뚱한 파일로 튐 */
+  if (unbindKeys) {
+    unbindKeys();
+    unbindKeys = null;
+  }
+  if (unwatchScroll) unwatchScroll();
   const listed = listDir(vaultListing, dir);
+  /* 다음과 이전은 화면에 보이는 차례. 목록과 액자가 같은 순서라 여기서 한 번만 기록 */
+  siblings = listed.files.map((f) => f.path);
   crumb.innerHTML = vaultCrumbs(listed.dir);
   const canGrid = worthGallery(listed.files, previewKind);
   const mode = canGrid ? viewMode() : 'list';
@@ -519,6 +539,10 @@ function renderVaultDir(dir) {
       (rows.length ? listHead() + rows.join('') : '<p class="none">이 폴더는 비어 있습니다.</p>');
   }
 
+  restoreScroll(listed.dir);
+  /* 보는 동안 계속 기록. 파일 열 때 적으면 이미 0 (주소 바뀌며 꼭대기행) */
+  unwatchScroll = watchScroll(listed.dir);
+
   for (const b of box.querySelectorAll('.viewsw button')) {
     b.addEventListener('click', () => {
       try {
@@ -531,47 +555,105 @@ function renderVaultDir(dir) {
   }
 }
 
+/** 파일 화면 맨 위 줄. 몇 번째인지, 앞뒤로 가기, 받기 */
+function fileBar(path, blobUrl) {
+  const { prev, next, at, total } = neighbors(siblings, path);
+  const name = path.split('/').pop();
+  const go = (to, label, on) =>
+    '<button type="button" class="fb-btn"' + (to ? '' : ' disabled') +
+    ' data-go="' + (on || '') + '">' + label + '</button>';
+  return '<div class="filebar">' +
+    go(prev, '◂ 이전', 'prev') +
+    '<span class="fb-at">' + (at >= 0 ? (at + 1) + ' / ' + total : '') + '</span>' +
+    go(next, '다음 ▸', 'next') +
+    '<span class="fb-gap"></span>' +
+    (blobUrl
+      ? '<a class="fb-btn" href="' + blobUrl + '" download="' + esc(name) + '">받기</a>'
+      : '') +
+    '<button type="button" class="fb-btn" data-go="close">닫기 (Esc)</button>' +
+    '</div>';
+}
+
+/** 같은 폴더의 앞뒤 파일로. 폴더 복귀는 그 폴더 주소로. 뒤로가기 안 씀 */
+function goSibling(path, which) {
+  const { prev, next } = neighbors(siblings, path);
+  const to = which === 'prev' ? prev : next;
+  if (to) location.hash = '#vault/' + encodeURIComponent(to);
+}
+function closeFile(path) {
+  location.hash = '#vault/' + encodeURIComponent(path.split('/').slice(0, -1).join('/'));
+}
+
 async function renderVaultFile(path) {
   closeGallery();
+  /* 파일 주소로 바로 들어온 경우 (새로고침, 남이 준 링크).
+     폴더를 그린 적이 없어 형제 목록이 빔. 같은 폴더를 여기서 한 번 읽음 */
+  if (!siblings.includes(path)) {
+    siblings = listDir(vaultListing, path.split('/').slice(0, -1).join('/')).files.map((f) => f.path);
+  }
+  /* 폴더 쪽 스크롤 감시 해제. 파일 화면 스크롤을 폴더 자리로 적으면 안 됨 */
+  if (unwatchScroll) {
+    unwatchScroll();
+    unwatchScroll = null;
+  }
+  if (unbindKeys) unbindKeys();
+  unbindKeys = bindViewerKeys({
+    onPrev: () => goSibling(path, 'prev'),
+    onNext: () => goSibling(path, 'next'),
+    onClose: () => closeFile(path),
+  });
   crumb.innerHTML = vaultCrumbs(path.split('/').slice(0, -1).join('/')) +
     '<span class="sep">/</span><a>' + esc(path.split('/').pop()) + '</a>';
   box.innerHTML = '<p class="none">여는 중…</p>';
-  /* 열람 저장(R2)에 없는 것은 여기서 못 연다 — 정본은 Drive 에 있다.
-     예전에는 그냥 「열 수 없습니다」였다. 왜 안 되는지 말해야 사람이 다음 수를 안다
-     (2026-08-29: 영상이 목록에는 뜨는데 눌러도 아무 말 없이 실패했다). */
+  /* 열람 저장(R2)에 없으면 여기서 못 엶. 정본은 Drive.
+     예전엔 그냥 열 수 없습니다. 이유를 말해야 사람이 다음 수를 앎
+     (2026-08-29: 영상이 목록엔 뜨는데 눌러도 조용히 실패) */
   const entry = (vaultListing ?? []).find((f) => f.path === path);
   if (entry && !mirrorable(path, entry.size)) {
     box.innerHTML =
       '<p class="err">여기서는 못 여는 파일입니다.</p>' +
-      '<p class="none">화면에서 여는 것은 그림·글과 ' + fmtSize(VIDEO_MAX_BYTES) +
+      '<p class="none">화면에서 여는 것은 그림과 글, 그리고 ' + fmtSize(VIDEO_MAX_BYTES) +
       ' 이하 영상입니다. 이 파일은 ' + fmtSize(entry.size) +
-      ' — 원본은 클라우드에 그대로 있고, PC 에서 받을 수 있습니다.</p>';
+      '. 원본은 클라우드에 그대로 있고 PC 에서 받을 수 있습니다.</p>';
     return;
   }
   const got = await getFile(vaultSession, path);
   if (!got) {
     box.innerHTML =
       '<p class="err">이 항목을 열 수 없습니다.</p>' +
-      '<p class="none">열람 저장에 아직 안 올라왔을 수 있습니다 (올린 뒤 <code>mirror-backfill</code>).</p>';
+      '<p class="none">열람 저장에 아직 안 올라왔을 수 있습니다. 올린 뒤 <code>mirror-backfill</code> 로 채웁니다.</p>';
     return;
   }
   const kind = previewKind(path);
   revokeBlob();
+  const blob = new Blob([got.bytes], { type: mimeFor(path) });
+  lastBlob = URL.createObjectURL(blob);
+  /* 위 줄은 갈래와 무관하게 동일. 받기는 이미 복호한 자료 재사용 */
+  const bar = fileBar(path, lastBlob);
+  const put = (el) => {
+    box.innerHTML = bar;
+    box.appendChild(el);
+    for (const b of box.querySelectorAll('.filebar [data-go]')) {
+      b.addEventListener('click', () => {
+        const go = b.dataset.go;
+        if (go === 'close') closeFile(path);
+        else if (go) goSibling(path, go);
+      });
+    }
+  };
   if (kind === 'text') {
     const pre = document.createElement('pre');
     pre.className = 'preview-text';
     pre.textContent = new TextDecoder().decode(got.bytes);
-    box.replaceChildren(pre);
+    put(pre);
     return;
   }
-  const blob = new Blob([got.bytes], { type: mimeFor(path) });
-  lastBlob = URL.createObjectURL(blob);
   if (kind === 'image') {
     const img = document.createElement('img');
     img.className = 'preview-img';
     img.alt = path;
     img.src = lastBlob;
-    box.replaceChildren(img);
+    put(img);
     return;
   }
   if (kind === 'video') {
@@ -579,17 +661,14 @@ async function renderVaultFile(path) {
     video.className = 'preview-vid';
     video.controls = true;
     video.src = lastBlob;
-    box.replaceChildren(video);
+    put(video);
     return;
   }
-  const a = document.createElement('a');
-  a.href = lastBlob;
-  a.download = path.split('/').pop();
-  a.textContent = '다운로드';
-  const wrap = document.createElement('p');
-  wrap.className = 'dl';
-  wrap.appendChild(a);
-  box.replaceChildren(wrap);
+  /* 화면으로 못 보여 주는 갈래. 받기는 위 줄에 */
+  const info = document.createElement('p');
+  info.className = 'none';
+  info.textContent = '이 갈래는 화면에서 미리 못 봅니다. 위의 받기로 저장하세요.';
+  put(info);
 }
 
 async function loadVault() {
@@ -632,6 +711,7 @@ function load() {
 }
 
 mountDesktopNav();
+armScrollMemory();
 window.addEventListener('hashchange', load);
 if (!location.hash) location.hash = '#laptop/';
 else load();

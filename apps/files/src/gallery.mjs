@@ -8,7 +8,8 @@
  *      Worker 도 브라우저도 줄을 서고, 정작 먼저 보이는 칸이 제일 늦게 뜬다
  *   ③ 받은 것은 blob 으로 들고 있다가 화면을 뜰 때 되돌려 준다 (`dispose`)
  *
- * 그림이 아닌 것(영상·문서·꾸러미)은 받지 않는다 — 칸에 갈래 표시만 둔다.
+ * 그림 아닌 것(영상, 문서, 꾸러미)은 안 받음. 대신 갈래 표시와 이름과 크기.
+ * 예전엔 빗금만. 사람 눈에 고장난 칸과 구별 안 됨 (2026-08-29 관측)
  * R2 에 아직 안 올라간 것은 404 가 나는데, 그것도 「못 받았다」로 조용히 남긴다.
  * 열람 저장에는 그림·글만 올라가므로(mirror-policy) **빈 칸은 고장이 아니다**.
  */
@@ -18,6 +19,22 @@ const LIMIT = 4;
 /** 이 폴더에서 액자로 볼 만한가 — 그림이 한 장이라도 있으면. */
 export function worthGallery(files, kindOf) {
     return files.some((f) => kindOf(f.path) === 'image');
+}
+
+/** 갈래마다 한 글자. 그림 못 오는 칸에 최소한의 단서 */
+const FACE = { video: '▶', text: '≡', file: '◻' };
+
+/** 사람이 읽는 크기. 칸이 좁아 한 자리까지 */
+function human(bytes) {
+    if (!Number.isFinite(bytes)) return '';
+    const unit = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let n = bytes;
+    let i = 0;
+    while (n >= 1024 && i < unit.length - 1) {
+        n /= 1024;
+        i += 1;
+    }
+    return `${n < 10 && i > 0 ? n.toFixed(1) : Math.round(n)}${unit[i]}`;
 }
 
 /**
@@ -39,11 +56,18 @@ export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
         .map((f) => {
             const name = f.path.split('/').pop();
             const kind = kindOf(f.path);
+            const esc = (v) => String(v).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+            /* 그림 아니면 갈래 글자와 크기 미리 박기. 그림이면 비워 두고 `fill` 이 채움 */
+            const art =
+                kind === 'image'
+                    ? '<span class="frame-art"></span>'
+                    : `<span class="frame-art"><span class="frame-face">${FACE[kind] ?? FACE.file}` +
+                      `<i>${esc(human(f.size))}</i></span></span>`;
             return (
                 `<a class="frame" href="${hrefOf(f.path)}" data-path="${encodeURIComponent(f.path)}"` +
                 ` data-kind="${kind}" title="${name.replace(/"/g, '&quot;')}">` +
-                `<span class="frame-art"></span>` +
-                `<span class="frame-cap">${name.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])}</span></a>`
+                art +
+                `<span class="frame-cap">${esc(name)}</span></a>`
             );
         })
         .join('');
@@ -85,7 +109,8 @@ export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
                 if (!e.isIntersecting) continue;
                 io.unobserve(e.target);
                 if (e.target.dataset.kind !== 'image') {
-                    e.target.classList.add('blank');
+                    /* 갈래 글자 이미 있음. 받아올 것 없으므로 여기서 끝 */
+                    e.target.classList.add('shown');
                     continue;
                 }
                 queue.push(e.target);

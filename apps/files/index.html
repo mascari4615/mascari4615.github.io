@@ -134,8 +134,8 @@ body {
 }
 .acts a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
-/* 액자 보기 — 썸네일이 따로 없어 원본을 받아 그린다(gallery.mjs). 그래서 칸은
-   **자리를 먼저 잡고** 그림이 늦게 온다. 자리를 안 잡으면 그림이 올 때마다 화면이 튄다. */
+/* 액자 보기. 썸네일이 없어 원본을 받아 그림 (gallery.mjs).
+   칸은 자리를 먼저 잡고 그림이 늦게 옴. 자리 안 잡으면 그림 올 때마다 화면이 튐 */
 .viewsw { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
 .viewsw button {
   background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
@@ -160,7 +160,7 @@ body {
 .frame:hover { border-color: var(--accent); }
 .frame-art { display: block; aspect-ratio: 1; background: var(--surface-2); position: relative; }
 .frame-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* 아직 안 온 칸 = 옅은 맥박. 못 받은 칸 = 조용한 빗금 (고장이 아니라 「여긴 없음」) */
+/* 아직 안 온 칸은 옅은 맥박, 못 받은 칸은 조용한 빗금 (고장 아니라 여긴 없음) */
 .frame-art::after {
   content: ''; position: absolute; inset: 0; background: var(--line); opacity: .35;
   animation: framewait 1.4s ease-in-out infinite;
@@ -172,6 +172,30 @@ body {
   background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px);
 }
 @keyframes framewait { 0%, 100% { opacity: .18; } 50% { opacity: .4; } }
+/* 파일 화면 맨 위. 몇 번째인지, 앞뒤, 받기. 갈래와 무관하게 같은 줄 */
+.filebar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.filebar .fb-gap { flex: 1; }
+.filebar .fb-at { color: var(--mute); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.fb-btn {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 7px; cursor: pointer;
+  color: var(--ink); font: inherit; font-size: .82rem; font-weight: 600; padding: 5px 11px;
+  text-decoration: none; display: inline-block;
+}
+.fb-btn:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+.fb-btn[disabled] { opacity: .38; cursor: default; }
+
+/* 그림 아닌 칸. 빈 자리 대신 갈래 글자와 크기 (2026-08-29: 빗금만 두니 고장처럼 보임) */
+.frame-face {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  color: var(--mute); font-size: 1.5rem; line-height: 1;
+}
+.frame-face i { font-style: normal; font-size: .72rem; letter-spacing: .02em; }
+.frame.shown .frame-art::after { content: none; }
+
 .frame-cap {
   display: block; padding: 7px 9px; font-size: .78rem; color: var(--mute);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
