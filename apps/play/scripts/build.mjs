@@ -105,6 +105,21 @@ h1 { font-size: 1.5rem; margin: 0 0 0.2rem; letter-spacing: -0.02em; }
 footer { margin-top: 2rem; font-size: 0.8rem; color: #8b8b85; }
 footer a { color: #b9b9b2; }
 ${STRIP_CSS}</style>
+<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '놀이터. 하루 한 판씩',
+  description: `KarmoLab 의 놀이 ${list.length}가지. 맞히기, 고르기, 풀기`,
+  url: 'https://blog.mascari4615.com/play/',
+  inLanguage: 'ko-KR',
+  isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: 'https://blog.mascari4615.com/' },
+  hasPart: list.map((g) => ({
+    '@type': 'VideoGame',
+    name: g.title,
+    url: `https://blog.mascari4615.com/play/${g.id}/`,
+    applicationCategory: 'GameApplication',
+  })),
+}).replace(/</g, '\u003c')}</script>
 </head>
 <body>
 <main>

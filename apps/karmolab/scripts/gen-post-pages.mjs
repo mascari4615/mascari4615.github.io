@@ -189,7 +189,7 @@ const CDN = 'https://img.mascari4615.com';
  * 스크립트가 그리는 화면이므로 **첫 HTML 에 읽을 말이 없다**. 그래서 셸의 SEO 자리에
  * 서버 렌더 텍스트를 남긴다. 안 남기면 검색엔진에는 빈 장이다.
  */
-function widgetPage({ widget, permalink, title, heading, description, lastmod, seoHtml }) {
+function widgetPage({ widget, permalink, title, heading, description, lastmod, seoHtml, ldType }) {
     const bootPaths = [widget, 'chat'].filter((name) => {
         const ok = fs.existsSync(path.join(APP_ROOT, scriptFile(name)));
         if (!ok) console.warn(`[gen-post-pages] 부팅 목록에서 뺌. 아직 안 구워진 조각: ${name}`);
@@ -208,6 +208,24 @@ function widgetPage({ widget, permalink, title, heading, description, lastmod, s
     page = page.replace(
         `<link rel="canonical" href="${SITE}/">`,
         `<link rel="canonical" href="${SITE}${permalink}">`
+    );
+
+    /* 이 장이 무엇인지 (2026-08-29)
+       - 없으면 검색 결과에서 파란 줄 하나
+       - 지어내지 않음. 이름, 설명, 주소, 언어, 어느 사이트 것인지만 */
+    const ld = {
+        '@context': 'https://schema.org',
+        '@type': ldType ?? 'WebPage',
+        name: title,
+        description,
+        url: `${SITE}${permalink}`,
+        inLanguage: 'ko-KR',
+        isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+    };
+    page = page.replace(
+        '</head>',
+        `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\u003c')}</script>
+</head>`
     );
 
     /* 도구 상세 장과 **같은 몸 클래스**를 쓴다. `tools.css` 의 화면 규칙(제목 자리, 본문 폭)이
@@ -451,6 +469,7 @@ let worksRows = [];
             widgetPage({
                 widget: 'works',
                 permalink: '/works/',
+                ldType: 'CollectionPage',
                 title: '작업물',
                 heading: '작업물',
                 description: `카모뜨린의 작업물 ${rows.length}건. 게임, VRChat 콘텐츠, 도구`,
@@ -522,6 +541,7 @@ if (fs.existsSync(aboutSrc)) {
         widgetPage({
             widget: 'about',
             permalink: '/about/',
+            ldType: 'AboutPage',
             title: '소개',
             heading: null,
             description: '카모뜨린 KarmoDDrine. 유니티 게임 개발, VRChat 콘텐츠 제작',
