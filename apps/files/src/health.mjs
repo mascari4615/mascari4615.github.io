@@ -7,18 +7,20 @@
  * - hdr 은 열쇠 재료. 소금이 다르면 열쇠가 딴 값으로 유도됨
  * - 화면이 안 열려야 알아챔. 그 전까지 신호 0
  *
- * 재는 것 넷:
+ * 재는 것 여덟. 앞의 넷은 어긋나면 실패, 뒤의 넷은 숫자만 알린다:
  * 1. Drive 와 R2 의 `hdr` 일치. 다르면 그 자리에서 실패
  * 2. 화면 앞 문이 잠겼는가. 인증 없이 열리면 실패
- * 3. 비번으로 열리는가, 색인 파일 수
+ * 3. 인증 없는 **쓰기**가 막히는가. 휴지통용으로 연 PUT 자리
  * 4. 파일 하나 복호해 sha256 대조. 조용히 썩는 것 감지
+ * 그리고 열람 저장 값, 미리보기 몫, 시각 몫, 휴지통 크기
  *
  * 사용: node src/health.mjs [--quiet]
  */
 import { createHash } from 'node:crypto';
 import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore } from './store-rclone.mjs';
-import { getFile, listFiles, unlockVault } from './vault.mjs';
+import { getFile, listFiles, readTrash, unlockVault } from './vault.mjs';
+import { trashSummary } from './trash.mjs';
 import { mirrorable } from './mirror-policy.mjs';
 import { thumbKind } from './thumb.mjs';
 import { budgetLine, budgetState, capFromEnv, measureRemote } from './mirror-budget.mjs';
@@ -43,6 +45,27 @@ const pass = need('FILES_VAULT_PASS');
 const remote = process.env.FILES_VAULT_REMOTE || 'gdrive:karm-files-vault';
 const blobBase = process.env.FILES_BLOB_BASE || 'https://files.mascari4615.com/blob/';
 const sha = (b) => createHash('sha256').update(b).digest('hex');
+
+/**
+ * 인증 없는 **쓰기**가 막히는가. 2026-08-29 에 휴지통용으로 PUT 한 자리를 열었다.
+ * 문이 열려 있으면 아무나 남의 목록을 통째로 숨길 수 있다.
+ * Access 가 앞에서 막으므로 302 나 403 이 정상이다.
+ */
+async function writeShut() {
+    try {
+        const r = await fetch(blobBase + 'trash', {
+            method: 'PUT',
+            body: 'x',
+            cache: 'no-store',
+            redirect: 'manual',
+        });
+        if (r.status >= 300 && r.status < 400) return 'gated';
+        if (r.status === 401 || r.status === 403 || r.status === 405) return 'refused(' + r.status + ')';
+        return 'open(' + r.status + ')';
+    } catch {
+        return 'error';
+    }
+}
 
 /**
  * 화면 앞 문 상태. Access 뒤라 인증 없는 요청이 로그인으로 튕기는 것이 정상.
@@ -91,6 +114,10 @@ const gate = await gateAlive();
 say('[health] 화면 앞 문', gate);
 if (gate.startsWith('open')) fails.push('인증 없이 /blob/ 이 열린다. Access 정책 확인 필요');
 
+const write = await writeShut();
+say('[health] 인증 없는 쓰기', write);
+if (write.startsWith('open')) fails.push('인증 없이 /blob/trash 에 쓸 수 있다. 아무나 목록을 숨긴다');
+
 /* 2. 열림 확인 */
 const session = await unlockVault(drive, pass);
 const files = await listFiles(session);
@@ -101,6 +128,11 @@ const want = files.filter((f) => thumbKind(f.path, f.size));
 const has = want.filter((f) => f.thumb);
 say('[health] 미리보기', `${has.length} / ${want.length}`, want.length ? `(${Math.round((has.length / want.length) * 100)}%)` : '');
 /* 시각 몫. 이것도 실패로 안 친다. 없으면 날짜 칸이 빌 뿐이다 */
+/* 휴지통. 실패로 안 친다. 얼마나 쌓였는지만 */
+const trash = await readTrash(session);
+const bin = trashSummary(files, trash);
+say('[health] 휴지통', `${bin.count}개`, `(${(bin.bytes / 1024 / 1024).toFixed(1)} MB)`);
+
 const timed = files.filter((f) => f.mtime || f.shot);
 say('[health] 시각', `${timed.length} / ${files.length}`, files.length ? `(${Math.round((timed.length / files.length) * 100)}%)` : '');
 
