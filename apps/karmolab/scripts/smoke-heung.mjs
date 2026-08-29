@@ -421,6 +421,32 @@ if(!mobile){
   laneCountsAfterCross=await midiLaneCounts();
 }
 
+/* 글자 칸 안 되돌리기는 글자만. 예전엔 BPM 고치다 누른 Ctrl+Z 로 곡 전체가 되감김.
+   재는 대상은 값이 아니라 곡의 모양 */
+await page.locator('[data-bind=bpm]').click();
+await page.locator('[data-bind=bpm]').fill('128');
+await page.locator('[data-bind=bpm]').press('Enter');
+/* 자동 저장 250ms 지연. 그 전에 읽으면 옛 값이라 가짜 빨강 */
+await page.waitForTimeout(600);
+const shapeOf=()=>page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');if(!raw)return '없음';return raw.tracks.map((track)=>track.clips.map((clip)=>(clip.notes||[]).length).join('/')).join('|');});
+const shapeBeforeFieldUndo=await shapeOf();
+await page.locator('[data-bind=bpm]').click();
+/* 세 번. 한 번은 BPM 하나만 되감겨 모양이 그대로라 판별 불가 */
+for(let step=0;step<3;step++){await page.keyboard.press('Control+z');await page.waitForTimeout(120);}
+await page.waitForTimeout(600);
+const shapeAfterFieldUndo=await shapeOf();
+
+/* 되돌린 뒤에도 고른 것 유지. 첫 트랙으로 튀면 편집기 닫힘 */
+await page.locator('.hu-clip').first().click();
+await page.waitForTimeout(120);
+const pickedBeforeUndo=await page.locator('.hu-clip.is-selected').count();
+await page.keyboard.press('Control+z');
+await page.waitForTimeout(220);
+const pickedAfterUndo=await page.locator('.hu-clip.is-selected').count();
+/* 원복. 뒤 검사가 클립과 음 개수를 센다 */
+await page.keyboard.press('Control+y');
+await page.waitForTimeout(220);
+
 /* 클립 수는 화면이 아니라 프로젝트에서 센다. 화면 밖 클립은 안 그리므로(KL-220 14회차)
    DOM 개수는 지금 보이는 것이지 가진 것이 아니다. */
 const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return {tracks:document.querySelectorAll('.hu-track-row').length,clips:saved?saved.tracks.reduce((sum,track)=>sum+track.clips.length,0):-1,visibleClips:document.querySelectorAll('.hu-clip').length,notes:document.querySelectorAll('.hu-note').length,osc:window.__ksOsc,status:document.querySelector('[data-role=status]').textContent};});
@@ -430,6 +456,8 @@ if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 
 if(guideVisible!==1)problems.push(`처음 안내가 안 뜬다 (${guideVisible})`);
 if(guideAfterClose!==0)problems.push('처음 안내가 안 닫힌다');
 if(guideRemembered!=='1')problems.push('처음 안내를 닫은 걸 기억 안 한다');
+if(shapeAfterFieldUndo!==shapeBeforeFieldUndo)problems.push(`글자 칸 안 되돌리기가 곡을 되감았다 (${shapeBeforeFieldUndo}→${shapeAfterFieldUndo})`);
+if(pickedBeforeUndo>0&&pickedAfterUndo===0)problems.push('되돌린 뒤 고른 클립을 잃었다');
 if(hintDraw&&hintSelect&&hintDraw===hintSelect)problems.push(`빈 줄 안내가 도구를 안 따라간다 (${hintDraw})`);
 if(helpKeys<15)problems.push(`단축키 도움말이 비었다 (${helpKeys}개)`);
 if(helpDialog!==1)problems.push('도움말이 큰 창 규약(role=dialog)을 안 지킨다');

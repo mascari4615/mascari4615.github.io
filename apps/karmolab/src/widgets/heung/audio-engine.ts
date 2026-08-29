@@ -103,7 +103,8 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     const absoluteBeat = swingBeat(clip.start + note.beat, swing);
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
-    const audibleEnd = Math.min(absoluteBeat + note.duration, toBeat);
+    /* 클립 경계 상한. toBeat 만 보던 탓에 잘린 클립의 음이 계속 울던 자리 */
+    const audibleEnd = Math.min(absoluteBeat + note.duration, clip.start + clip.duration, toBeat);
     const at = startTime + (audibleStart - fromBeat) * secondsPerBeat;
     const end = startTime + (audibleEnd - fromBeat) * secondsPerBeat;
     const gain = context.createGain();

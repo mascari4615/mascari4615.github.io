@@ -94,7 +94,24 @@ import { decodeMidi, encodeMidi } from './midi-file';
     const $ = <T extends HTMLElement>(selector: string): T => root.querySelector(selector) as T;
     const status = (message: string): void => { $<HTMLElement>('[data-role=status]').textContent = message; };
     const saveSoon = (mergeKey = ''): void => { history.record(project,mergeKey);engine.updateProject(project);if (saveTimer !== undefined) clearTimeout(saveTimer); saveTimer = window.setTimeout(() => { try { saveProject(project); status('저장됨'); } catch (_) { status('브라우저 저장이 꽉 찼다. 프로젝트 받기로 파일을 내려라'); } }, 250); };
-    const restoreHistory = (direction: 'undo'|'redo'): void => { const result=direction==='undo'?history.undo(project):history.redo(project);if(!result.changed){status(direction==='undo'?'Nothing to undo':'Nothing to redo');return;}project=result.value;selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;engine.updateProject(project);if(saveTimer!==undefined)clearTimeout(saveTimer);saveTimer=window.setTimeout(()=>saveProject(project),250);renderAll();void refreshAssets();status(direction==='undo'?'Undone':'Redone'); };
+    const reviveSelection = (previous: StudioSelection, next: StudioProject): StudioSelection => {
+      /* 살아 있으면 고른 것 유지. 첫 트랙으로 튀면 편집기 닫힘, 배율과 스크롤 소실 */
+      if(previous){
+        const track=findTrack(next,previous.trackId);
+        if(track){
+          if(previous.type==='track')return previous;
+          const clip=track.clips.find((item)=>item.id===previous.clipId);
+          if(clip){
+            if(previous.type==='clip')return previous;
+            if(clip.notes.some((note)=>note.id===previous.noteId))return previous;
+            return {type:'clip',trackId:track.id,clipId:clip.id};
+          }
+          return {type:'track',trackId:track.id};
+        }
+      }
+      return next.tracks[0]?{type:'track',trackId:next.tracks[0].id}:null;
+    };
+    const restoreHistory = (direction: 'undo'|'redo'): void => { const result=direction==='undo'?history.undo(project):history.redo(project);if(!result.changed){status(direction==='undo'?'되돌릴 것이 없다':'다시 실행할 것이 없다');return;}const before=selection;project=result.value;selection=reviveSelection(before,project);engine.updateProject(project);if(saveTimer!==undefined)clearTimeout(saveTimer);saveTimer=window.setTimeout(()=>saveProject(project),250);renderAll();void refreshAssets();status(direction==='undo'?'되돌림':'다시 실행'); };
     const beatText = (beat: number): string => { const bar = Math.floor(beat / project.beatsPerBar) + 1; const within = beat % project.beatsPerBar; return `${bar}.${Math.floor(within) + 1}.${String(Math.floor((within % 1) * 100)).padStart(2, '0')}`; };
     const trackWidth = (): number => Math.max(900, projectLength(project) * pxPerBeat);
 
@@ -120,14 +137,16 @@ import { decodeMidi, encodeMidi } from './midi-file';
       const at=snapBeat(playhead,project.snap);
       if(clipboard.type==='clips'){
         const selected=selectedTrack();const pasted:ClipRef[]=[];
+        /* 여러 트랙에서 뜬 묶음은 원래 트랙 구조 유지. 한 트랙에서 뜬 것만 고른 트랙으로 */
+        const multiSource=new Set(clipboard.items.map((item)=>item.sourceTrackId)).size>1;
         for(const item of clipboard.items){
           const source=findTrack(project,item.sourceTrackId);
-          const target=selected?.kind===item.kind?selected:source;
+          const target=multiSource?(source||(selected?.kind===item.kind?selected:undefined)):(selected?.kind===item.kind?selected:source);
           if(!target)continue;
           const copy=cloneClip(item.clip,Math.max(0,at+(item.clip.start-clipboard.origin)));
           copy.trackId=target.id;target.clips.push(copy);pasted.push({trackId:target.id,clipId:copy.id});
         }
-        if(!pasted.length){status('Compatible track not found');return false;}
+        if(!pasted.length){status('맞는 트랙이 없다');return false;}
         marks.replace(pasted);selection={type:'clip',trackId:pasted[0].trackId,clipId:pasted[0].clipId};
         status(pasted.length>1?`Pasted ${pasted.length} clips at ${beatText(at)}`:`Pasted clip at ${beatText(at)}`);
       } else {
@@ -745,7 +764,8 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         status(clones.length>1?`Alt-drag, cloned ${clones.length} clips`:'Alt-drag, clone clip');
       } else {
         selection={type:'clip',trackId,clipId};
-        const chosen=isResize?[{track,clip:source}]:markedClips();
+        /* 잠긴 클립 제외. 집은 클립 하나만 막던 자리 */
+        const chosen=isResize?[{track,clip:source}]:markedClips().filter((item)=>!item.clip.locked);
         movers=chosen.map((item)=>({track:item.track,clip:item.clip,el:elementFor(item.track.id,item.clip.id),start:item.clip.start,duration:item.clip.duration}));
         anchor=movers.find((item)=>item.clip.id===clipId)||movers[0];
       }
@@ -1028,7 +1048,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
       else if(chosen.type==='clip'){const all=markedClips();const doomed=all.filter((item)=>!item.clip.locked);const kept=all.length-doomed.length;for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(kept)status(doomed.length?`${doomed.length}개 삭제, 잠긴 ${kept}개는 남김`:`잠겨 있어 안 지운다 (${kept}개)`);else if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
       selection={type:'track',trackId:track.id};saveSoon();renderAll();}
-    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();if(gestures.cancel())return;hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(editorExpanded&&selection?.type==='note'){
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();if(gestures.cancel())return;hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;const tag=(event.target as HTMLElement).tagName;const inField=tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA';if(command&&event.key.toLowerCase()==='z'&&!inField){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'&&!inField){event.preventDefault();restoreHistory('redo');return;}if(inField)return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(editorExpanded&&selection?.type==='note'){
         const target=noteTargets();const clip=selectedClip();const track=selectedTrack();if(target&&clip&&track){const notes=target.notes;if(command&&event.key.toLowerCase()==='a'){event.preventDefault();noteSel.replace(clip.notes.map((note)=>({clipId:clip.id,noteId:note.id})));selection={type:'note',trackId:track.id,clipId:clip.id,noteId:clip.notes[0]?.id||selection.noteId};renderEditor();renderSide();status(`${clip.notes.length}개 음 전체 선택`);return;}if(event.key==='Enter'){event.preventDefault();void engine.preview(track,notes[0].pitch,notes[0].velocity);return;}if(event.key==='Home'||event.key==='End'){event.preventDefault();const anchor=event.key==='Home'?0:Math.max(0,clip.duration-Math.max(...notes.map((note)=>note.duration)));const origin=Math.min(...notes.map((note)=>note.beat));for(const note of notes)note.beat=Math.max(0,Math.min(clip.duration-note.duration,note.beat-origin+anchor));saveSoon('note-key');renderEditor();renderTracks();return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();const fine=event.altKey?.01:project.snap;if(event.shiftKey&&(event.key==='ArrowLeft'||event.key==='ArrowRight'))for(const note of notes)note.duration=Math.max(fine,Math.min(clip.duration-note.beat,note.duration+(event.key==='ArrowRight'?fine:-fine)));else if(event.key==='ArrowLeft'||event.key==='ArrowRight')for(const note of notes)note.beat=Math.max(0,Math.min(clip.duration-note.duration,note.beat+(event.key==='ArrowRight'?fine:-fine)));else transposeNotes(notes,event.key==='ArrowUp'?1:-1,PIANO_GEOMETRY.low,PIANO_GEOMETRY.high);saveSoon('note-key');renderEditor();renderTracks();renderSide();return;}}}if(stepMode&&!command&&!event.altKey){
         const clip=selectedClip();const track=selectedTrack();
         if(clip&&track&&clip.kind==='midi'){
