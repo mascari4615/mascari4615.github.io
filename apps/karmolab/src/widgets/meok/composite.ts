@@ -58,7 +58,13 @@ export interface CompositeOptions {
   into?: Surface;
 }
 
-/** 한 장을 아래 그림(dst, 미리 곱해진 0..1 buffer) 위에 섞어 얹는다. 사각형 안만 손댄다. */
+/**
+ * 한 장을 아래 그림(dst, 미리 곱해진 0..1 buffer) 위에 섞어 얹기. 사각형 안만.
+ *
+ * `dst` 와 `clipAlpha` 는 **사각형 크기**로 잡힌 판. 원래 픽셀(`cel`, `mask`)은 문서 좌표.
+ * 두 좌표계를 섞지 마라. 예전에는 둘 다 문서 크기여서 64x64 만 다시 섞어도 4096^2 문서면
+ * 268MB 를 새로 잡았음.
+ */
 function drawLayerInto(
   dst: Float32Array,
   width: number,
@@ -71,38 +77,43 @@ function drawLayerInto(
   const blend = BLEND[layer.blend] || BLEND.normal;
   const src = cel.data;
   const mask = layer.mask;
-  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
-    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
-      const p = y * width + x;
+  /* 자리 셈은 **줄마다 한 번**. 픽셀마다 곱하면 4096^2 다섯 장에서 2억 번이 넘는 곱셈이 늘고,
+     그것만으로 전체 합성이 눈에 띄게 느려진다 (2026-08-29 실측). */
+  for (let ry = 0; ry < rect.h; ry += 1) {
+    let p = (rect.y + ry) * width + rect.x;
+    let q = ry * rect.w;
+    for (let rx = 0; rx < rect.w; rx += 1, p += 1, q += 1) {
       const i = p * 4;
+      const j = q * 4;
       let as = (src[i + 3] / 255) * layer.opacity * alphaScale;
       if (mask) as *= mask[p] / 255;
-      if (clipAlpha) as *= clipAlpha[p];
+      if (clipAlpha) as *= clipAlpha[q];
       if (as <= 0) continue;
 
-      const ab = dst[i + 3];
+      const ab = dst[j + 3];
       const ao = as + ab * (1 - as);
       for (let c = 0; c < 3; c += 1) {
         const cs = src[i + c] / 255;
         /* 아래 색은 미리 곱해져 있으므로 풀어서 본다. 알파 0 이면 섞을 색 자체가 없다. */
-        const cb = ab > 0 ? dst[i + c] / ab : 0;
-        dst[i + c] = as * (1 - ab) * cs + as * ab * blend(cb, cs) + (1 - as) * ab * cb;
+        const cb = ab > 0 ? dst[j + c] / ab : 0;
+        dst[j + c] = as * (1 - ab) * cs + as * ab * blend(cb, cs) + (1 - as) * ab * cb;
       }
-      dst[i + 3] = ao;
+      dst[j + 3] = ao;
     }
   }
 }
 
-/** 그 레이어가 화면에 내는 알파만 따로 뽑는다. 클리핑 밑판을 만들 때 쓴다. */
+/** 그 레이어가 화면에 내는 알파만 따로 뽑는다. 클리핑 밑판을 만들 때 쓴다. `out` 은 사각형 크기. */
 function alphaOf(layer: Layer, cel: Surface, width: number, rect: CompositeRect, out: Float32Array): void {
   const src = cel.data;
   const mask = layer.mask;
-  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
-    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
-      const p = y * width + x;
+  for (let ry = 0; ry < rect.h; ry += 1) {
+    let p = (rect.y + ry) * width + rect.x;
+    let q = ry * rect.w;
+    for (let rx = 0; rx < rect.w; rx += 1, p += 1, q += 1) {
       let a = (src[p * 4 + 3] / 255) * layer.opacity;
       if (mask) a *= mask[p] / 255;
-      out[p] = a;
+      out[q] = a;
     }
   }
 }
@@ -113,8 +124,6 @@ function alphaOf(layer: Layer, cel: Surface, width: number, rect: CompositeRect,
  */
 export function composite(doc: Doc, frame: number, only?: Layer[], opts: CompositeOptions = {}): Surface {
   const out = opts.into && opts.into.w === doc.w && opts.into.h === doc.h ? opts.into : createSurface(doc.w, doc.h);
-  const count = doc.w * doc.h;
-  const buf = new Float32Array(count * 4);
   /* 손댈 자리. 안 주면 판 전체. 판 밖으로 나가지 않게 잘라 둔다. */
   const rx = Math.max(0, Math.min(doc.w - 1, opts.rect ? opts.rect.x | 0 : 0));
   const ry = Math.max(0, Math.min(doc.h - 1, opts.rect ? opts.rect.y | 0 : 0));
@@ -124,6 +133,11 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
     h: Math.max(0, Math.min(doc.h - ry, opts.rect ? opts.rect.h | 0 : doc.h))
   };
   if (rect.w <= 0 || rect.h <= 0) return out;
+
+  /* 섞는 판은 **사각형 크기**로만. 문서 크기로 잡으면 붓 자리 하나를 다시 섞는 데도
+     4096^2 문서에서 268MB 를 새로 얻고 0 으로 채우게 됨. */
+  const area = rect.w * rect.h;
+  const buf = new Float32Array(area * 4);
 
   const layers = only || doc.layers;
   const onionBefore = only ? 0 : Math.max(0, opts.onionBefore || 0);
@@ -139,6 +153,12 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
     if (frame + d < doc.frames) ghosts.push({ frame: frame + d, alpha: onionOpacity / d });
   }
 
+  /* 클리핑 밑판. **끼워 붙인 레이어가 실제로 있을 때만** 만들고, 만든 판은 재사용.
+     예전에는 clip 이 하나도 없는 문서에서도 보통 레이어마다 문서 크기 배열을 새로 얻음
+     (1024^2 에 20장이면 rect 합성 한 번에 80MB). */
+  const anyClip = layers.some(layer => layer.clip);
+  let clipBuf: Float32Array | null = null;
+
   const paint = (atFrame: number, alphaScale: number): void => {
     let clipAlpha: Float32Array | null = null;
     layers.forEach(layer => {
@@ -152,8 +172,10 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
         drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, clipAlpha);
       } else {
         drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, null);
-        clipAlpha = new Float32Array(count);
-        alphaOf(layer, cel, doc.w, rect, clipAlpha);
+        if (!anyClip) return;
+        if (!clipBuf) clipBuf = new Float32Array(area);
+        alphaOf(layer, cel, doc.w, rect, clipBuf);
+        clipAlpha = clipBuf;
       }
     });
   };
@@ -163,17 +185,20 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
 
   /* 미리 곱해진 값을 되돌려 8비트로 굳힌다. 넘겨받은 판이면 그 자리를 **덮어쓴다** . 
      지운 자리가 옛 그림으로 남으면 안 되므로 알파 0 도 그대로 쓴다. */
-  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
-    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
-      const i = (y * doc.w + x) * 4;
-      const a = buf[i + 3];
+  for (let ry = 0; ry < rect.h; ry += 1) {
+    let pixel = (rect.y + ry) * doc.w + rect.x;
+    let local = ry * rect.w;
+    for (let rx = 0; rx < rect.w; rx += 1, pixel += 1, local += 1) {
+      const i = pixel * 4;
+      const j = local * 4;
+      const a = buf[j + 3];
       if (a <= 0) {
         out.data[i] = 0; out.data[i + 1] = 0; out.data[i + 2] = 0; out.data[i + 3] = 0;
         continue;
       }
-      out.data[i] = Math.round((buf[i] / a) * 255);
-      out.data[i + 1] = Math.round((buf[i + 1] / a) * 255);
-      out.data[i + 2] = Math.round((buf[i + 2] / a) * 255);
+      out.data[i] = Math.round((buf[j] / a) * 255);
+      out.data[i + 1] = Math.round((buf[j + 1] / a) * 255);
+      out.data[i + 2] = Math.round((buf[j + 2] / a) * 255);
       out.data[i + 3] = Math.round(a * 255);
     }
   }

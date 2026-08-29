@@ -107,14 +107,24 @@ export class CanvasView {
     return { x: (viewX - this.offsetX) / this.scale, y: (viewY - this.offsetY) / this.scale };
   }
 
-  /** 합성 결과를 속판에 얹는다. `rect` 를 주면 그 자리만. */
+  /**
+   * 합성 결과를 속판에 얹는다. `rect` 를 주면 그 자리만.
+   *
+   * 옮기는 것도 그 자리만. 예전에는 `rect` 를 받고도 `data.set(flat.data)` 로 판 전체를
+   * 베꼈다 (4096^2 이면 붓질 한 번에 64MB). 줄 단위로 자르면 붓 자리만 지나감.
+   */
   blit(flat: Surface, rect?: ViewRect): void {
-    this.image.data.set(flat.data);
-    if (rect) {
-      this.bufferCtx.putImageData(this.image, 0, 0, rect.x, rect.y, rect.w, rect.h);
-    } else {
+    if (!rect) {
+      this.image.data.set(flat.data);
       this.bufferCtx.putImageData(this.image, 0, 0);
+      return;
     }
+    const stride = this.image.width * 4;
+    for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+      const from = y * stride + rect.x * 4;
+      this.image.data.set(flat.data.subarray(from, from + rect.w * 4), from);
+    }
+    this.bufferCtx.putImageData(this.image, 0, 0, rect.x, rect.y, rect.w, rect.h);
   }
 
   /** 다음 화면 새로고침 때 한 번만 다시 그린다(붓질 중 그리기 요청이 몰려도 한 번). */
