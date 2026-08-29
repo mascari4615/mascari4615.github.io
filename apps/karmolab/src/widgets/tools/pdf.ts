@@ -223,7 +223,11 @@ import { t, loadNamespace } from '../../lib/i18n';
         input.files = dt.files;
         input.dispatchEvent(new Event('change', { bubbles: true }));
       }
-    } catch {
+    } catch (e) {
+      /* ★ **까닭 없이 못 고칩니다만 뜨면 아무도 못 고친다** (2026-08-29). 여태 이 자리는 오류를
+         통째로 삼켰다. 검사(`smoke:pdfshell`)가 사흘 넘게 빨간데도 화면과 로그 어디에도
+         까닭이 없어, 왜 안 되는지 알아내는 데만 한참 걸렸다. 사람에게는 짧게, 로그에는 그대로. */
+      console.error('[pdf] 고치기 실패', e);
       const label = editBar?.querySelector('span');
       if (label) label.textContent = t('pdf.edit.fail', undefined, '이 문서는 못 고칩니다');
     } finally {
