@@ -1146,6 +1146,7 @@ const Toolbox = (() => {
     const BUILD_COMMIT = typeof __KARMOLAB_COMMIT__ === 'string' ? __KARMOLAB_COMMIT__ : '';
 
     let versionBadgeEl = null;
+    let settingsMenuEl = null;
     let versionBadgeAppVer = null;
     let versionBadgeLiveCommit = null;
 
@@ -1170,6 +1171,8 @@ const Toolbox = (() => {
         return lines.join('\n');
     }
 
+    /* 배지 수명은 설정 목록이 열린 동안뿐 (2026-08-29). 자리 없으면 조용히 return.
+       `checkLiveBuild` 는 목록과 무관하게 1회. 결과 반영은 다음 열기 때 */
     function renderVersionBadge() {
         if (!versionBadgeEl) return;
         const parts = [];
@@ -1203,20 +1206,103 @@ const Toolbox = (() => {
             .catch(() => { /* 못 물어봤다고 배지가 사라질 이유는 없다 */ });
     }
 
-    function installVersionBadge() {
-        const left = document.querySelector('.header-bar-left');
-        if (!left || document.getElementById('headerVersionBadge')) return;
-        const el = document.createElement('button');
-        el.type = 'button';
-        el.id = 'headerVersionBadge';
-        el.className = 'karmolab-version-badge';
-        el.addEventListener('click', () => {
+    /* 판 표식 자리 이동. 머리띠 붙박이에서 설정 목록 안으로 (2026-08-29, 사용자 결정)
+       여기 남는 일은 서버에 더 새 판이 있나 1회 조회뿐 */
+    function initVersionInfo() {
+        checkLiveBuild();
+    }
+
+    /* 머리띠 설정 목록 (2026-08-29, 사용자 결정)
+     * 전: 설정 단추는 곧장 이동, 그 옆에 언어 단추와 판 표식이 각자 자리
+     * 후: 셋 다 내 환경 축이므로 한 자리로. 머리띠 자리 3개 -> 1개
+     * 스타일은 이 파일 안에서 주입. 공용 css 회피 이유는 `lang-switch.ts` 머리말과 동일
+     * 판 표식 칸만 기존 `.karmolab-version-badge` 재사용 */
+    const SETTINGS_MENU_STYLE_ID = 'header-settings-menu-style';
+
+    function ensureSettingsMenuStyle() {
+        if (document.getElementById(SETTINGS_MENU_STYLE_ID)) return;
+        const st = document.createElement('style');
+        st.id = SETTINGS_MENU_STYLE_ID;
+        st.textContent = `
+.header-settings-menu{position:absolute;z-index:2000;min-width:11rem;padding:.3rem;border-radius:.6rem;
+  background:var(--bg-secondary);border:1px solid var(--border);
+  box-shadow:0 .5rem 1.5rem rgba(0,0,0,.35);display:flex;flex-direction:column;gap:.1rem}
+.header-settings-menu button{all:unset;cursor:pointer;padding:.45rem .6rem;border-radius:.4rem;
+  font-size:.85rem;color:var(--text-primary);display:flex;align-items:center;
+  justify-content:space-between;gap:.75rem;min-height:32px;box-sizing:border-box}
+.header-settings-menu button:hover,.header-settings-menu button:focus-visible{background:var(--bg-hover)}
+.header-settings-menu .hsm-hint{font-size:.72rem;opacity:.55;font-variant-numeric:tabular-nums}`;
+        document.head.appendChild(st);
+    }
+
+    function closeSettingsMenu() {
+        settingsMenuEl?.remove();
+        settingsMenuEl = null;
+        versionBadgeEl = null;
+        document.getElementById('settingsPageBtn')?.setAttribute('aria-expanded', 'false');
+    }
+
+    function openSettingsMenu(btn) {
+        ensureSettingsMenuStyle();
+        closeSettingsMenu();
+        const box = document.createElement('div');
+        box.id = 'settingsMenu';
+        box.className = 'header-settings-menu';
+        box.setAttribute('role', 'menu');
+
+        const item = (id, label, hint) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.id = id;
+            b.setAttribute('role', 'menuitem');
+            b.innerHTML = `<span>${escapeHtml(label)}</span><span class="hsm-hint">${hint || ''}</span>`;
+            box.appendChild(b);
+            return b;
+        };
+
+        // 1. 설정 장으로
+        item('settingsMenuOpen', text2('shell.settings', '환경 설정'))
+            .addEventListener('click', () => { closeSettingsMenu(); switchPage('settings'); });
+
+        /* 2. 언어와 지역. 목록 실체는 `lang-switch.ts` 것 하나
+           여기 한 벌 더 그리면 켜진 언어나 지역이 늘 때 한쪽만 낡음 */
+        const lang = typeof window !== 'undefined' ? window.KarmoLang : null;
+        if (lang && typeof lang.openMenu === 'function') {
+            const code = escapeHtml(String(lang.locale?.() || '').toUpperCase());
+            item('settingsMenuLang', text2('shell.settings.lang', '언어와 지역'), code)
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeSettingsMenu();
+                    lang.openMenu(btn);
+                });
+        }
+
+        // 3. 버전 정보. 누르면 자세한 표식 복사 (문의 때 붙이는 값)
+        item('settingsMenuVersion', text2('shell.settings.version', '버전 정보'));
+        // 힌트 자리 재사용. 그 span 이 곧 판 표식 배지
+        const ver = box.lastElementChild;
+        const badge = ver.querySelector('.hsm-hint');
+        badge.classList.add('karmolab-version-badge');
+        badge.id = 'headerVersionBadge';
+        ver.addEventListener('click', () => {
             void copyText(versionBadgeDetail(), { message: '판 표식 복사됨', action: 'copy-version' });
         });
-        left.appendChild(el);
-        versionBadgeEl = el;
+        versionBadgeEl = badge;
         renderVersionBadge();
-        checkLiveBuild();
+
+        document.body.appendChild(box);
+        const r = btn.getBoundingClientRect();
+        box.style.top = `${r.bottom + 6 + scrollY}px`;
+        // 오른쪽 끝 단추. 왼쪽 정렬 시 화면 밖으로 나감
+        box.style.left = `${Math.max(8, r.right - box.offsetWidth + scrollX)}px`;
+        btn.setAttribute('aria-expanded', 'true');
+        settingsMenuEl = box;
+        setTimeout(() => { addEventListener('click', onSettingsMenuAway, { once: true }); }, 0);
+    }
+
+    function onSettingsMenuAway(e) {
+        if (settingsMenuEl && !settingsMenuEl.contains(e.target)) closeSettingsMenu();
+        else if (settingsMenuEl) setTimeout(() => addEventListener('click', onSettingsMenuAway, { once: true }), 0);
     }
 
     /** decorations:false 윈도우의 헤더 컨트롤(min/max/close)을 활성화. 데스크톱 외에는 noop. */
@@ -1768,7 +1854,20 @@ const Toolbox = (() => {
         // 옆줄 바닥의 찾기 — 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
         document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => window.KarmoPalette?.open(''));
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
-        document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
+        /* 설정 단추는 이동이 아니라 목록 열기 (2026-08-29). 설정, 언어, 판 표식이 이 안 */
+        const settingsHeaderBtn = document.getElementById('settingsPageBtn');
+        if (settingsHeaderBtn) {
+            settingsHeaderBtn.setAttribute('aria-haspopup', 'menu');
+            settingsHeaderBtn.setAttribute('aria-expanded', 'false');
+            settingsHeaderBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (settingsMenuEl) closeSettingsMenu();
+                else openSettingsMenu(settingsHeaderBtn);
+            });
+        }
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsMenuEl) closeSettingsMenu();
+        });
 
         window.addEventListener('gemini-active-profile-changed', () => {
             const name = typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName() || '기본') : '-';
@@ -1801,7 +1900,7 @@ const Toolbox = (() => {
          * 여기서 첫 화면을 그리면 적혀 있던 목록 위에 홈이 덮인다(실제로 그랬다). */
         if (staticBody) {
             installDesktopChrome();
-            installVersionBadge();
+            initVersionInfo();
             installPaletteShortcut();
             return;
         }
@@ -1828,7 +1927,7 @@ const Toolbox = (() => {
 
         installDesktopChrome();
         installSecrets();
-        installVersionBadge();
+        initVersionInfo();
         installPaletteShortcut();
         installGlobalDrop();
         installRunShortcut();

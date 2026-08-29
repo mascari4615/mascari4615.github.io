@@ -12,6 +12,8 @@
   "shell.nav.plazaTitle": "지금 무엇이 쓰이는지 · 이야기 · 도구 요청",
   "shell.account.me": "내 정보",
   "shell.settings": "환경 설정",
+  "shell.settings.lang": "언어와 지역",
+  "shell.settings.version": "버전 정보",
   "shell.theme.toggle": "테마 전환",
   "shell.theme.toggleAria": "라이트/다크 모드 전환",
   "shell.window.min": "최소화",

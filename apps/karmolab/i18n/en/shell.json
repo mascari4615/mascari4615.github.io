@@ -12,6 +12,8 @@
   "shell.nav.plazaTitle": "What's being used right now · stories · tool requests",
   "shell.account.me": "My page",
   "shell.settings": "Settings",
+  "shell.settings.lang": "Language and region",
+  "shell.settings.version": "Version",
   "shell.theme.toggle": "Switch theme",
   "shell.theme.toggleAria": "Toggle light/dark mode",
   "shell.window.min": "Minimize",

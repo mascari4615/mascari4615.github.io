@@ -12,6 +12,8 @@
   "shell.nav.plazaTitle": "いま何が使われているか · 話 · 道具のリクエスト",
   "shell.account.me": "マイページ",
   "shell.settings": "設定",
+  "shell.settings.lang": "言語と地域",
+  "shell.settings.version": "バージョン情報",
   "shell.theme.toggle": "テーマ切り替え",
   "shell.theme.toggleAria": "ライト/ダークモードの切り替え",
   "shell.window.min": "最小化",

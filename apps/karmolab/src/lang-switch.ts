@@ -1,16 +1,16 @@
 /**
- * 언어 단추 + 첫 방문 안내 띠 (TASK-KL-203 S3-b)
+ * 언어와 지역 목록 + 첫 방문 안내 띠 (TASK-KL-203 S3-b)
  *
  * 두 가지를 판다:
- *  ① 머리띠의 **언어 단추** — 지금 언어 두 글자(`KO`/`EN`)를 보여 주고, 누르면 목록이 내려온다.
+ *  1. **언어와 지역 목록**. 여는 자리는 머리띠 설정 목록의 언어 칸, `KarmoLang.openMenu`
+ *     (2026-08-29 전에는 머리띠에 붙박이 언어 단추가 따로 있었다).
  *     고르면 그 언어의 **같은 화면 주소**로 옮겨 간다(화면만 다시 그리지 않는다 — 그러면
  *     새로고침·공유·뒤로가기가 전부 어긋나고, 검색엔진이 보는 문서와 사람이 보는 화면이 갈라진다).
  *  ② **첫 방문 안내 띠** — 브라우저가 원하는 언어가 지금 화면과 다르면 맨 위에 한 줄 뜬다.
  *     자동으로 보내지 **않는다**: 자동 이동은 검색엔진이 한국어 장을 못 읽고 되돌아가게 만들어
  *     그 장이 색인에서 빠질 수 있다. 물어보고, 한 번 닫으면 다시 안 뜬다.
  *
- * 생김새는 스스로 챙긴다 — 단추는 머리띠의 기존 단추 모양(`header-btn`)을 그대로 쓰고,
- * 목록과 띠에 필요한 스타일만 **처음 열릴 때** 넣는다. 공용 스타일 파일을 건드리지 않는 이유:
+ * 생김새는 스스로 챙긴다. 목록과 띠에 필요한 스타일을 **처음 열릴 때** 넣는다. 공용 스타일 파일을 건드리지 않는 이유:
  * 그 파일은 여러 작업이 동시에 만지는 큰 한 장이라, 거기 끼워 넣은 줄은 통째 덮어쓰기에 조용히
  * 사라진다(이 레포에서 실제로 그랬다). 여기 있는 것은 이 파일과 운명을 같이한다.
  */
@@ -59,7 +59,8 @@ function countryName(code: string, fallback: string): string {
 
 /**
  * 나라를 **두 글자 코드**로. 「그 밖의 나라(XX)」만 지구본 기호를 쓴다 — 코드가 없는 칸이라
- * 빈자리로 두면 줄이 어긋난다. 깃발 그림문자를 안 쓰는 이유는 `mountButton` 주석 참고.
+ * 빈자리로 두면 줄이 어긋난다. 깃발 그림문자(🇰🇷)는 **안 쓴다**. 윈도우 크롬에 깃발
+ * 글리프가 없어 그 자리에 KR 두 글자가 그대로 떨어진다 (그림 자리에 글자).
  */
 function regionCode(code: string): string {
   return code === 'XX' ? '··' : code;
@@ -102,11 +103,15 @@ function ensureStyle(): void {
 /* ── ① 언어 단추 ────────────────────────────────────── */
 
 let menu: HTMLElement | null = null;
+/* 목록을 연 단추. 머리띠 언어 단추 폐지(2026-08-29) 뒤 여는 자리는 설정 목록의 언어 칸
+   `aria-expanded` 를 되돌릴 자리가 고정이 아니므로 열 때 기억 */
+let anchor: HTMLElement | null = null;
 
 function closeMenu(): void {
   menu?.remove();
   menu = null;
-  document.getElementById('langBtn')?.setAttribute('aria-expanded', 'false');
+  anchor?.setAttribute('aria-expanded', 'false');
+  anchor = null;
 }
 
 function openMenu(btn: HTMLElement): void {
@@ -186,6 +191,7 @@ function openMenu(btn: HTMLElement): void {
   /* 오른쪽 끝에 붙은 단추라 왼쪽으로 펼친다 — 그냥 왼쪽 정렬하면 화면 밖으로 나간다. */
   box.style.left = `${Math.max(8, r.right - box.offsetWidth + scrollX)}px`;
   btn.setAttribute('aria-expanded', 'true');
+  anchor = btn;
   menu = box;
   setTimeout(() => {
     addEventListener('click', onAway, { once: true });
@@ -197,25 +203,9 @@ function onAway(e: MouseEvent): void {
   else if (menu) setTimeout(() => addEventListener('click', onAway, { once: true }), 0);
 }
 
-function mountButton(): void {
-  const btn = document.getElementById('langBtn');
-  if (!btn) return;
-  /* 단추에는 **언어 두 글자만** 적는다. 한때 지역까지 붙였는데(「KO 🇰🇷」) 머리띠가 좁아
-     글자 덩어리로 보였다 — 지역은 누르면 나오는 목록 안에 이미 제자리가 있다.
-     깃발 그림문자(🇰🇷)는 **안 쓴다** — 윈도우 크롬에는 깃발 글리프가 없어 그 자리에 「KR」
-     두 글자가 그대로 떨어진다. 그림을 노렸는데 글자가 나오면 무슨 말인지 모르는 자리가 된다. */
-  const label = btn.querySelector('.lang-btn-code');
-  if (label) label.textContent = locale().toUpperCase();
-  btn.setAttribute('aria-label', t('shell.region.aria', undefined, '언어와 지역'));
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (menu) closeMenu();
-    else openMenu(btn);
-  });
-  window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && menu) closeMenu();
-  });
-}
+/* 머리띠 붙박이 언어 단추(`#langBtn`) 폐지 (2026-08-29, 사용자 결정)
+   여는 자리는 설정 목록의 언어 칸 하나, `KarmoLang.openMenu`
+   그 칸 글자는 언어 두 글자만. 지역까지 붙이면(KO 🇰🇷) 글자 덩어리, 지역은 목록 안이 제자리 */
 
 /* ── ② 첫 방문 안내 띠 ──────────────────────────────── */
 
@@ -263,7 +253,10 @@ async function maybeHint(): Promise<void> {
 }
 
 function boot(): void {
-  mountButton();
+  /* Escape 로 닫기. 예전 자리는 머리띠 언어 단추를 달던 곳, 그 단추 폐지로 여기로 이동 */
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && menu) closeMenu();
+  });
   /* 안내는 화면이 다 그려진 뒤에 — 첫 그림을 밀지 않는다. */
   const idle = (window as unknown as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback;
   const later = () => void maybeHint();
@@ -275,9 +268,13 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 /* 다른 코드가 부를 일이 있을 때를 위해 (언어 이름 정도는 어디서든 쓴다). */
+/* 머리띠 설정 목록의 언어 칸이 이 목록을 그대로 연다 (2026-08-29).
+   저쪽에 한 벌 더 안 그리는 이유는 켜진 언어나 지역이 늘 때 한쪽만 낡기 때문 */
 (window as unknown as { KarmoLang?: unknown }).KarmoLang = {
   locale,
   setLocale,
   label: () => localeMeta().endonym,
+  openMenu: (btn: HTMLElement) => openMenu(btn),
+  closeMenu,
   t
 };

@@ -6,7 +6,8 @@
  * 오류도 안 남긴다. 그래서 **검사가 직접 누른다**.
  *
  * 보는 것 넷:
- *  ① 단추가 화면에 있고 지금 언어 두 글자를 보여 준다
+ *  1. 설정 목록의 언어 칸 존재, 지금 언어 두 글자 표시
+ *     (머리띠 붙박이 언어 단추는 2026-08-29 폐지, 설정 목록 안으로)
  *  ② 누르면 목록이 열리고, 켠 언어가 전부 **제 나라 말 이름**으로 들어 있다
  *  ③ 고르면 그 언어의 **같은 화면 주소**로 옮겨 간다
  *  ④ 그 사이 콘솔에 오류가 없다 (조용히 죽는 것을 잡는다)
@@ -70,7 +71,7 @@ page.on('console', (m) => {
 const fail = [];
 const base = `http://127.0.0.1:${PORT_IN_USE}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => !!document.getElementById('langBtn'), undefined, { timeout: 5000 });
+await page.waitForFunction(() => !!document.getElementById('settingsPageBtn'), undefined, { timeout: 5000 });
 
 /* 이 장이 가진 언어 = 짝 표시. 생성기·검사와 같은 규칙이다. */
 const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
@@ -79,15 +80,19 @@ const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
 const expected = ENABLED_LOCALES.filter((l) => tags.includes(l.htmlLang));
 const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'widgets')]));
 
-/* ① */
-const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
-/* 단추는 **언어 두 글자만** 적는다(TASK-KL-203 S12). 지역은 눌러서 펴는 목록 안에 있다 —
-   머리띠에 둘 다 적으니 글자 덩어리로 보였다. 깃발 그림문자는 안 쓴다(윈도우 크롬에 깃발
-   글리프가 없어 「KR」 글자로 떨어진다). */
-if (!/^KO$/.test(code || '')) fail.push(`단추 언어 글자가 KO 가 아니다: ${code}`);
+/* 1. 설정 목록 먼저 펴기. 언어는 그 안 (2026-08-29) */
+await page.click('#settingsPageBtn');
+await page.waitForSelector('#settingsMenuLang', { timeout: 3000 }).catch(() => {});
+if (!(await page.locator('#settingsMenuLang').count())) {
+  fail.push('설정 목록에 언어 칸이 없다');
+}
+const code = (await page.locator('#settingsMenuLang .hsm-hint').textContent())?.trim();
+/* 칸 글자는 **언어 두 글자만** (TASK-KL-203 S12). 지역은 눌러서 펴는 목록 안
+   깃발 그림문자 금지 (윈도우 크롬에 깃발 글리프 없음, KR 글자로 떨어짐) */
+if (!/^KO$/.test(code || '')) fail.push(`칸 언어 글자가 KO 가 아니다: ${code}`);
 
 /* ② */
-await page.click('#langBtn');
+await page.click('#settingsMenuLang');
 /* ★ **누른 직후에 세지 마라** (2026-08-28, 같은 커밋 재실행에서 거짓 빨강): 목록은 다음 프레임에
    그려진다 — 첫 판은 통과했는데 재실행이 「눌러도 목록이 안 열린다」로 떨어졌다. 기다린 뒤에도
    없으면 그때가 진짜 고장이다. */
@@ -207,4 +212,4 @@ if (fail.length) {
   for (const f of fail) console.error('[lang-switch] ' + f);
   process.exit(1);
 }
-console.log(`[lang-switch] 단추 정상 — 글자 ${code} · 목록 ${expected.length}개(켠 언어 ${ENABLED_LOCALES.length}) · 고르면 주소 이동`);
+console.log(`[lang-switch] ⚙ → 언어 칸 정상 — 글자 ${code} · 목록 ${expected.length}개(켠 언어 ${ENABLED_LOCALES.length}) · 고르면 주소 이동`);
