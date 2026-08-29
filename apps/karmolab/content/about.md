@@ -23,27 +23,19 @@ last_modified_at: 2026-08-22T00:00:00+09:00
 - IT 산업기능요원 복무 (2025.03 -)
   - [Game Spring](https://gamespring.co.kr/): 유니티 클라이언트 프로그래머 (2025.03 -)
 
-- [패러블 엔터테인먼트](https://parable-asia.com/) (프로젝트 개별 임시직/계약, 총 1년 9개월 ~) - VRChat 월드 프로그래밍
-  - 2024.05 - 2024.08 (4개월) | [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld)
-    - SOOP (前 AfreecaTV) 버츄얼 스트리머 대상 종합 대회 컨텐츠 제작
-  - 2023.01 - 2023.06 (6개월) | [Journey of Emotions 프로모션](https://youtu.be/VQxPKTFb0es)
-    - SM 엔터테이먼트 산하 레이블 - ScreaM 신규 앨범 프로모션
-  - 2022.05 - 2023.03 (11개월) | [소녀:리버스 (피버스)](https://www.youtube.com/@girlsreverse)
-    - 카카오 엔터테이먼트 주관 버츄얼 아이돌 프로젝트
+- [패러블 엔터테인먼트](https://parable-asia.com/) - VRChat 월드 프로그래밍 (프로젝트 개별 임시직/계약)
+  - SM 엔터테인먼트 산하 레이블 ScreaM · SOOP(前 AfreecaTV) · 카카오 엔터테인먼트 주관 프로젝트에 참여
 
-- VRChat 컨텐츠 제작 (2022.02 - )
+- VRChat 컨텐츠 제작 (2022.02 -)
   - Unity - U# (C# + VRChat SDK)을 이용한 VRChat 플랫폼 기반 컨텐츠 제작
-  - [Woodon](https://github.com/wrchat/Woodon)
-    - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
+  - [Woodon](https://github.com/wrchat/Woodon) - 컨텐츠 맵 제작에 쓰는 U# 스크립트·프리팹 라이브러리 (유니티 커스텀 패키지)
 
-- [왁그리드](https://github.com/mascari4615/Wakgreed)
-  - 게임 스트리머 '우왁굳'님을 위한 팬 게임, 탑뷰 2D 로그라이크
-  - Public 리포지토리 공개 (개인 제작 리소스 | 재배포 가능한 오픈소스 리소스 사용)
-  - 2021 우왁굳 연말공모전 게임 분야 - 3위
+- 개인 게임 개발
+  - [마녀: 귀찮아!](https://github.com/mascari4615/Witch-Mendokusai) (2023.06 -) - HD-2D 마을 경영 x 로그라이크
+  - [왁그리드](https://github.com/mascari4615/Wakgreed) - 탑뷰 2D 로그라이크. 2021 우왁굳 연말공모전 게임 분야 3위
+  - 둘 다 Public 리포지토리 공개 (개인 제작 리소스 | 재배포 가능한 오픈소스 리소스 사용)
 
-- [마녀: 귀찮아!](https://github.com/mascari4615/Witch-Mendokusai) (2023.06 - )
-  - 개인 개발, HD-2D 마을 경영 x 로그라이크
-  - Public 리포지토리 공개 (개인 제작 리소스 | 재배포 가능한 오픈소스 리소스 사용)
+<!-- works:by-org -->
 
 ### 학력
 

@@ -352,6 +352,9 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
     console.log(`[gen-post-pages] 글 그래프 — 마디 ${graph.nodes.length} · 간선 ${links.length}`);
 }
 
+/** 소개 장이 쓸 작업물 요약 — 아래 작업물 블록이 채운다 (두 장이 한 자료를 본다). */
+let worksRows = [];
+
 // 작업물 — 전시 목록 정본 = apps/blog/_data/works.yml (큐레이션 순서 그대로, change.blog-finish ③).
 // 읽는 규칙·흘린 이력 = scripts/lib/works-list.mjs. hidden 글도 목록에 있으면 의도된 전시다.
 // 그리는 쪽 = `src/widgets/works.ts` **위젯 하나** (change.blog-surfaces-as-widgets) — 여기서는
@@ -396,6 +399,7 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
            카드 한 장 뒤에 27건이 숨어 있던 것을 작업물 장이 직접 펴게 하는 자리다. */
         const minorPost = posts.find((p) => p.slug === 'works');
         const minor = minorPost ? parseMinorWorks(minorPost.body) : [];
+        worksRows = rows;
         fs.writeFileSync(
             path.join(APP_ROOT, 'data', 'works.json'),
             JSON.stringify({ works: rows, minor }, null, 1)
@@ -452,6 +456,41 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
     }
 }
 
+/**
+ * 소속별 한 줄 — 「언제부터 언제까지 · 몇 건」과 그 판으로 가는 길.
+ * 여기서 개별 작업을 다시 나열하지 않는다. 그것이 두 곳에 같은 말을 적던 옛 문제다.
+ */
+function worksSummary() {
+    if (!worksRows.length) return '';
+    const groups = new Map();
+    for (const w of worksRows) {
+        if (!w.at) continue;
+        /* 소속을 안 적은 것(왁타 밖 의뢰 등)은 한 칸에 모은다 — 갈래 이름을 소속인 척 쓰면
+           「버추얼」이 회사 이름 자리에 앉아 읽는 사람이 헷갈린다. */
+        const key = w.org || '그 밖';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(w);
+    }
+    const human = (at) => at.replace('-', '.');
+    const order = ['개인', '패러블 엔터테인먼트', '왁타버스', '그 밖'];
+    const rank = (name) => {
+        const at = order.indexOf(name);
+        return at === -1 ? order.length : at; // 표에 없는 이름은 뒤로 — 앞으로 튀어나오지 않게
+    };
+    const lines = [...groups.entries()]
+        .sort((a, b) => {
+            const gap = rank(a[0]) - rank(b[0]);
+            return gap !== 0 ? gap : b[1].length - a[1].length;
+        })
+        .map(([org, list]) => {
+            const times = list.map((w) => w.at).sort();
+            const ongoing = list.some((w) => w.ongoing);
+            const span = `${human(times[0])} ~ ${ongoing ? '지금' : human(times[times.length - 1])}`;
+            return `- **${org}** — ${span} · ${list.length}건`;
+        });
+    return ['#### 작업물로 본 자취', '', ...lines, '', '자세한 것은 [작업물](/works/)에.'].join('\n');
+}
+
 // 소개 — 원문 = content/about.md (Chirpy _tabs/about.md 승계본, git 추적).
 // 그리는 쪽 = `src/widgets/about.ts`. 여기서는 렌더본(data/about.json)과 부팅 장(/about/)만 만든다.
 const aboutSrc = path.join(APP_ROOT, 'content', 'about.md');
@@ -459,7 +498,12 @@ if (fs.existsSync(aboutSrc)) {
     const raw = fs.readFileSync(aboutSrc, 'utf8');
     const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
     const lastmod = m ? (/last_modified_at:\s*(\S+)/.exec(m[1])?.[1] ?? null) : null;
-    const body = applyCdn(renderMarkdown(m ? raw.slice(m[0].length) : raw, { trust: 'self', marked }));
+    /* `<!-- works:by-org -->` 자리는 **작업물 자료가 채운다** (change.blog-surfaces-as-widgets ③).
+       예전에는 소개 글이 개별 작업을 손으로 나열했다 — 작업물 목록과 같은 말을 두 곳에 적으니
+       한쪽만 고쳐지고, 실제로 소개는 「총 1년 9개월」인데 목록은 다른 구간을 가리키고 있었다.
+       이제 소개는 「어디서·무슨 역할」만 들고, 무엇을 만들었는지는 작업물 장이 답한다. */
+    const md = (m ? raw.slice(m[0].length) : raw).replace('<!-- works:by-org -->', worksSummary());
+    const body = applyCdn(renderMarkdown(md, { trust: 'self', marked }));
     /* 조각은 **JSON 으로** 싣는다 — `data/*.html` 을 두면 화면 검사(csp-meta 등)가 이것을
        한 장의 화면으로 오해한다. 머리말이 없는 본문 조각이라 그 검사가 맞을 수 없다. */
     fs.writeFileSync(path.join(APP_ROOT, 'data', 'about.json'), JSON.stringify({ html: body }));
