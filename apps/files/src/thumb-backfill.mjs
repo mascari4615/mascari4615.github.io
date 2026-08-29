@@ -22,7 +22,7 @@ import { getFile, listFiles, putThumb, setTimes, unlockVault } from './vault.mjs
 import { takenAtOf } from './vault-node.mjs';
 import { teeStore } from './store-tee.mjs';
 import { thumbKind } from './thumb.mjs';
-import { hasFfmpeg, makeThumb, makeThumbFromBytes } from './thumb-node.mjs';
+import { hasFfmpeg, makeThumb, makeThumbFromBytes, probeVideo } from './thumb-node.mjs';
 
 await loadFilesEnv();
 
@@ -87,9 +87,13 @@ for (const f of todo) {
     }
     try {
         /* 시각은 디스크에 원본이 있을 때만. 클라우드 사본에는 원래 수정 시각이 없다 */
+        const isVideo = thumbKind(f.path, f.size) === 'video';
+        let video = null;
         if (abs && !(f.mtime || f.shot)) {
             const st = await stat(abs);
-            const shot = await takenAtOf(abs, f.path);
+            /* 사진은 EXIF, 영상은 컨테이너가 적어 둔 촬영 시각 */
+            if (isVideo) video = await probeVideo(abs);
+            const shot = video ? video.createdAt : await takenAtOf(abs, f.path);
             if (!dry) await setTimes(session, f.path, { mtime: Math.round(st.mtimeMs), shot });
             timed += 1;
         }
@@ -97,7 +101,7 @@ for (const f of todo) {
         if (f.thumb || !thumbKind(f.path, f.size)) continue;
         let thumb = null;
         if (abs) {
-            thumb = await makeThumb(abs, f.path, f.size);
+            thumb = await makeThumb(abs, f.path, f.size, { duration: video?.duration });
             if (thumb) fromDisk += 1;
         } else if (useCloud) {
             const got = await getFile(session, f.path);

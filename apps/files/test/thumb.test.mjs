@@ -101,3 +101,45 @@ test('굽지 않는 갈래는 조용히 null', async () => {
         await rm(dir, { recursive: true, force: true });
     }
 });
+
+test('말이 안 되는 촬영 시각은 안 받는다', async () => {
+    const { parseCreationTime } = await import('../src/thumb-node.mjs');
+    /* 컨테이너가 시각을 안 적으면 1904년이나 1970년이 그대로 나온다.
+       그걸 세우면 날짜순 맨 앞이 전부 그것으로 찬다 */
+    assert.equal(parseCreationTime('1904-01-01T00:00:00.000000Z'), 0);
+    assert.equal(parseCreationTime('1970-01-01T00:00:00.000000Z'), 0);
+    assert.equal(parseCreationTime('아님'), 0);
+    assert.equal(parseCreationTime(''), 0);
+    /* 내일 찍힌 영상은 없다 */
+    assert.equal(parseCreationTime(new Date(Date.now() + 5 * 86400000).toISOString()), 0);
+    assert.equal(
+        parseCreationTime('2024-03-07T09:22:05.000000Z'),
+        Date.UTC(2024, 2, 7, 9, 22, 5)
+    );
+});
+
+test('진짜 영상에서 길이와 촬영 시각을 한 판에 잰다', async (t) => {
+    const { probeVideo } = await import('../src/thumb-node.mjs');
+    if (!(await hasFfmpeg())) return t.skip('이 기계에 ffmpeg 없음');
+    const dir = await mkdtemp(join(tmpdir(), 'probetest-'));
+    try {
+        const mp4 = join(dir, 'clip.mp4');
+        await new Promise((resolve, reject) => {
+            import('node:child_process').then(({ execFile }) => {
+                execFile(
+                    'ffmpeg',
+                    ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+                        '-i', 'testsrc=size=320x240:rate=10:duration=2',
+                        '-metadata', 'creation_time=2024-03-07T09:22:05Z', mp4],
+                    { windowsHide: true },
+                    (e) => (e ? reject(e) : resolve()),
+                );
+            });
+        });
+        const got = await probeVideo(mp4);
+        assert.ok(Math.abs(got.duration - 2) < 0.5, `길이 ${got.duration}`);
+        assert.equal(got.createdAt, Date.UTC(2024, 2, 7, 9, 22, 5));
+    } finally {
+        await rm(dir, { recursive: true, force: true });
+    }
+});

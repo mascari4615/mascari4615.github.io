@@ -13,7 +13,8 @@ import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
 import { mirrorable } from './mirror-policy.mjs';
-import { hasFfmpeg, makeThumb } from './thumb-node.mjs';
+import { thumbKind } from './thumb.mjs';
+import { hasFfmpeg, makeThumb, probeVideo } from './thumb-node.mjs';
 import { budgetLine, capFromEnv, makeBudget, measureRemote } from './mirror-budget.mjs';
 import { loadFilesEnv } from './env-file.mjs';
 
@@ -141,8 +142,10 @@ try {
     if (toMirror) mirroredCount += 1;
     session.store = toMirror ? mirrored : primary;
     /* 시각도 같이 담는다. 목록의 날짜 칸에 서고 날짜순 정렬의 근거가 된다.
-       사진은 디스크 수정 시각이 옮긴 날로 덮이는 일이 잦아 찍은 날을 따로 읽는다 */
-    const shot = await takenAtOf(f.abs, rel);
+       사진은 디스크 수정 시각이 옮긴 날로 덮이는 일이 잦아 찍은 날을 따로 읽는다.
+       영상은 컨테이너가 적어 둔 촬영 시각을 본다. ffprobe 는 미리보기와 한 판에 돈다 */
+    const video = thumbsOn && thumbKind(rel, f.size) === 'video' ? await probeVideo(f.abs) : null;
+    const shot = video ? video.createdAt : await takenAtOf(f.abs, rel);
     await putFileFromPath(session, rel, f.abs, {
       chunkSize: 8 * 1024 * 1024,
       mtime: f.mtime,
@@ -151,7 +154,7 @@ try {
     /* 미리보기는 **늘 열람 저장까지** 간다. 원본을 안 올리는 큰 영상도 칸은 보여야 하고,
        한 장이 수십 KB 라 값이 거의 안 든다 */
     session.store = mirrored;
-    const thumb = thumbsOn ? await makeThumb(f.abs, rel, f.size) : null;
+    const thumb = thumbsOn ? await makeThumb(f.abs, rel, f.size, { duration: video?.duration }) : null;
     if (thumb) {
       await putThumb(session, rel, thumb);
       thumbCount += 1;
