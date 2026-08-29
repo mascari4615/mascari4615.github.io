@@ -669,7 +669,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
                   (st) => `<div class="sm-track-stage">${esc(st.title)}</div>${st.nodes
                     .map(
                       (n) =>
-                        `<button type="button" class="sm-track-node${done.has(n.id) ? ' is-done' : ''}${n.id === lessonOpen ? ' is-current' : ''}" data-${lessonOpen ? 'open' : 'goto'}="${esc(n.id)}">${esc(n.title)}</button>`,
+                        `<button type="button" class="sm-track-node${done.has(n.id) ? ' is-done' : ''}${n.id === lessonOpen ? ' is-current' : ''}" data-${lessonOpen ? 'open' : 'sm-goto'}="${esc(n.id)}">${esc(n.title)}</button>`,
                     )
                     .join('')}`,
                 )
@@ -893,7 +893,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           if (!p) return '';
           const d = done.has(pid);
           const label = `${t('studymap.prereq', undefined, '먼저')}: ${p.node.title}`;
-          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(pid)}" aria-label="${esc(label)}">${esc(p.node.title)}</button>`;
+          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-sm-goto="${esc(pid)}" aria-label="${esc(label)}">${esc(p.node.title)}</button>`;
         })
         .join('');
       const prereqBlock = prereqRow
@@ -1244,10 +1244,18 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     }
 
     elTracks.addEventListener('click', (e) => {
+      /* 읽는 중에는 옆줄의 칸이 **곧바로 그 강의를 연다**(위에서 `data-open` 으로 그린다).
+         이 갈래가 없어서 강의를 편 뒤에는 옆줄이 통째로 죽어 있었다 — 눌러도 아무 일도
+         안 났다(2026-08-29 실측). */
+      const openBtn = (e.target as HTMLElement).closest('[data-open]') as HTMLElement | null;
+      if (openBtn) {
+        void openLesson(openBtn.dataset.open || '');
+        return;
+      }
       /* 펼쳐진 목록의 칸을 누르면 본문에서 그 칸을 비춘다 — 지도 안에서 길을 잃지 않게. */
-      const goto = (e.target as HTMLElement).closest('[data-goto]') as HTMLElement | null;
+      const goto = (e.target as HTMLElement).closest('[data-sm-goto]') as HTMLElement | null;
       if (goto) {
-        const id = goto.dataset.goto || '';
+        const id = goto.dataset.smGoto || '';
         const card = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
         if (card instanceof HTMLElement) {
           card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1328,9 +1336,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         paint();
         return;
       }
-      const btn = target.closest('[data-goto]') as HTMLElement | null;
+      const btn = target.closest('[data-sm-goto]') as HTMLElement | null;
       if (!btn) return;
-      const id = btn.dataset.goto || '';
+      const id = btn.dataset.smGoto || '';
       const found = whereIs.get(id);
       if (!found) return;
       current = found.trackId;

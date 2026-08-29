@@ -3108,15 +3108,15 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
           const rows = d.near.slice(0, 5).map((j) => {
             const o = atlas!.docs[j];
             if (!o) return '';
-            return '<button data-goto="' + esc(o.id) + '">' + esc(headOf(o.title)) + '</button>';
+            return '<button data-atlas-goto="' + esc(o.id) + '">' + esc(headOf(o.title)) + '</button>';
           }).join('');
           return rows ? '<div class="atlas-near"><b>닮은 글</b>' + rows + '</div>' : '';
         })(),
       ].join('');
       /* 목록에서 누르면 그 글로 **간다** — 읽기만 되고 못 가면 목록이 아니라 장식이다. */
-      card.querySelectorAll('[data-goto]').forEach((el) => {
+      card.querySelectorAll('[data-atlas-goto]').forEach((el) => {
         el.addEventListener('click', () => {
-          const id = (el as HTMLElement).dataset.goto!;
+          const id = (el as HTMLElement).dataset.atlasGoto!;
           const o = atlas?.docs.find((x) => x.id === id);
           if (!o) return;
           chosen = o;

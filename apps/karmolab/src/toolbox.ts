@@ -1674,6 +1674,11 @@ const Toolbox = (() => {
            `data-goto` 로 바꾸고 여기서 위임해 받으면 셋이 한꺼번에 좋아진다:
              ① 인라인 손잡이 6개가 사라진다(14 → 8) ② 「Toolbox 가 아직 없나」를 안 물어봐도 된다
              (이 줄이 도는 시점이 곧 있다는 뜻) ③ 나중에 생기는 자리도 표시만 달면 된다. */
+        /* ★ `data-goto` 는 **껍데기 전용**이다 — 이 대리인은 document 에 붙어 있어서
+           위젯 안에서 같은 이름을 쓰면 그 누름이 그대로 올라와 **페이지를 갈아치운다.**
+           실제로 스터디맵은 옆줄의 칸을 누를 때마다 `/#web-html` 로 튀겨서 강의가
+           안 열렸다(2026-08-29). 위젯 안의 자리 이동은 자기 이름을 써라
+           (`data-sm-goto` · `data-atlas-goto` 처럼). */
         document.addEventListener('click', (e) => {
             const el = (e.target as HTMLElement | null)?.closest?.('[data-goto]') as HTMLElement | null;
             const destination = el?.dataset?.goto;
