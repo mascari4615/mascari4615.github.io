@@ -320,30 +320,52 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
    작은 화면에서도 420px 는 되고, 커도 화면을 넘지 않는다. */
 .sm-tree { height: clamp(420px, calc(100svh - 200px), 900px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .sm-tree-in { width: 100%; height: 100%; }
-/* 나무 보기 = **지도가 화면이다.** 상자 안에 넣어 두니 41갈래가 우표였다(폭 956px 에 글판 860px —
-   덮개를 열면 지도가 손톱만큼만 남았다). 갈래 목록은 지도 위에 떠 있는 유리 조각으로 올린다
-   (블루마블의 조작부와 같은 규약). --sm-sbw = 세로 스크롤막대 폭, JS 가 재서 넣는다 —
-   100vw 만 쓰면 그 폭만큼 가로 스크롤이 생긴다. */
-.sm-wrap.is-map .sm-body { position: relative; display: block;
-  width: calc(100vw - var(--sm-sbw, 0px)); margin-left: calc(50% - (100vw - var(--sm-sbw, 0px)) / 2); }
-.sm-wrap.is-map .sm-main { min-width: 0; }
-.sm-wrap.is-map .sm-tree { border-radius: 0; border-left: 0; border-right: 0;
-  height: clamp(460px, calc(100svh - 150px), 1100px); }
-/* 지도만 화면 끝까지 간다 — 「이어서」와 안내 한 줄은 읽는 물건이라 가운데 한 폭에 둔다
-   (끝까지 늘리면 글이 화면을 가로지른다). */
-.sm-wrap.is-map .sm-view > :not(.sm-tree) { max-width: 1180px; margin-left: auto; margin-right: auto; }
-@media (min-width: 900px) {
-  /* 유리 조각은 **지도 위**에만 뜬다 — 위의 「이어서」를 덮으면 그 줄을 못 누른다. */
-  .sm-wrap.is-map .sm-tracks { position: absolute; top: 108px; left: 18px; z-index: 6; width: 242px;
-    max-height: calc(100% - 128px); padding: 10px 8px; border-radius: var(--radius-lg);
-    border: 1px solid var(--border); box-shadow: 0 14px 44px rgba(0, 0, 0, .34);
-    background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-}
+/* 나무 보기 = **지도가 화면이다** (블루마블 bm-wrap 규약 그대로).
+   ① 화면 높이를 스스로 갖고 ② 위로 끌어올려 머리띠 밑까지 파고들고 ③ 조작부는 전부 **떠 있다.**
+   앞선 두 판은 지도를 상자에 넣은 채 제목·진도·「이어서」를 위에 쌓아 340px 를 먹였다 —
+   그건 큰 상자지 화면이 아니다.
+   --sm-lift = 이 자리가 화면 꼭대기에서 얼마나 내려와 있나(JS 가 잰다).
+   --sm-sbw  = 세로 스크롤막대 폭. 100vw 만 쓰면 그 폭만큼 가로 스크롤이 생긴다. */
+.sm-wrap.is-map { position: relative; gap: 0;
+  margin-top: calc(var(--sm-lift, 0px) * -1);
+  width: calc(100vw - var(--sm-sbw, 0px)); margin-left: calc(50% - (100vw - var(--sm-sbw, 0px)) / 2);
+  height: 100svh; max-height: 100svh; overflow: hidden; border-radius: 0; }
+.sm-wrap.is-map .sm-body { position: absolute; inset: 0; display: block; margin: 0; width: auto; }
+.sm-wrap.is-map .sm-main { position: static; height: 100%; }
+.sm-wrap.is-map .sm-view { height: 100%; }
+.sm-wrap.is-map .sm-tree { height: 100%; border: 0; border-radius: 0; }
+.sm-wrap.is-map .sm-foot { display: none; }
+/* 떠 있는 조각의 공통 살결 — 비치는 유리. 지구본 위의 칩과 같은 물성이다. */
+.sm-wrap.is-map .sm-head, .sm-wrap.is-map .sm-findbar, .sm-wrap.is-map .sm-tracks,
+.sm-wrap.is-map .sm-view > .sm-resume, .sm-wrap.is-map .sm-view > .sm-tree-head {
+  position: absolute; z-index: 6; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: 0 14px 44px rgba(0, 0, 0, .34);
+  background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+/* 머리띠(껍데기)가 위 52px 를 덮는다 — 조각은 그 아래에서 시작한다. */
+.sm-wrap.is-map .sm-head { top: 64px; left: 18px; right: auto; width: 242px;
+  display: block; padding: 12px 14px; }
+.sm-wrap.is-map .sm-head .sm-title { font-size: var(--font-size-sm); }
+.sm-wrap.is-map .sm-head .sm-lead { display: none; }
+.sm-wrap.is-map .sm-head .sm-meter { min-width: 0; margin-top: 8px; }
+.sm-wrap.is-map .sm-findbar { top: 64px; right: 18px; padding: 6px; display: flex; gap: 6px; }
+.sm-wrap.is-map .sm-tracks { top: 196px; left: 18px; width: 242px; max-height: calc(100% - 300px);
+  padding: 10px 8px; overflow-y: auto; }
+/* 「이어서」와 안내 한 줄 = 지구본의 아래 띠 자리. 눈이 마지막에 닿는 곳이다. */
+.sm-wrap.is-map .sm-view > .sm-resume { left: 50%; transform: translateX(-50%); bottom: 56px;
+  width: min(560px, calc(100% - 300px)); margin: 0; }
+.sm-wrap.is-map .sm-view > .sm-tree-head { left: 50%; transform: translateX(-50%); bottom: 18px;
+  margin: 0; padding: 7px 14px; font-size: 11px; }
+/* 읽는 중에는 아래 띠를 접는다 — 덮개보다 위에 떠 있어서 글 위에 얹혀 보였다. */
+.sm-wrap.is-map.is-reading .sm-view > .sm-resume,
+.sm-wrap.is-map.is-reading .sm-view > .sm-tree-head { display: none; }
 @media (max-width: 899px) {
-  /* 좁은 화면에서는 유리 조각을 띄울 자리가 없다 — 지도만 넓히고 갈래 레일은 원래대로 아래에 둔다. */
-  .sm-wrap.is-map .sm-body { display: flex; flex-direction: column; }
-  .sm-wrap.is-map .sm-tree { height: clamp(380px, calc(100svh - 210px), 900px); }
+  /* 좁은 화면 — 왼쪽에 유리판을 띄울 자리가 없다. 갈래 레일은 아래에 눕히고 지도가 나머지를 갖는다. */
+  .sm-wrap.is-map .sm-tracks { top: auto; bottom: 60px; left: 8px; right: 8px; width: auto;
+    max-height: none; display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
+  .sm-wrap.is-map .sm-head { width: calc(100% - 16px); left: 8px; top: 60px; }
+  .sm-wrap.is-map .sm-findbar { top: auto; bottom: 12px; right: 8px; }
+  .sm-wrap.is-map .sm-view > .sm-resume { display: none; }
 }
 
 /* 강의는 지도를 **덮는다** — 갈아 끼우지 않는다. 뒤가 비쳐야 「어디에서 열었는지」를 안 잃고,
@@ -1181,10 +1203,24 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
     }
 
-    /* 세로 스크롤막대 폭 — 지도를 화면 끝까지 펴려면 이 값을 빼야 가로 스크롤이 안 생긴다. */
+    /**
+     * 지도를 화면으로 만드는 데 필요한 두 수를 잰다 (블루마블은 둘 다 상수로 박아 뒀지만,
+     * 여기는 위에 얹힌 것(도구 제목·설명)이 화면 폭에 따라 접혀서 높이가 변한다).
+     *  - `--sm-lift` = 이 자리가 화면 꼭대기에서 얼마나 내려와 있나. 그만큼 끌어올린다.
+     *  - `--sm-sbw`  = 세로 스크롤막대 폭. 안 빼면 그 폭만큼 가로 스크롤이 생긴다.
+     * 재기 전에 끌어올린 값을 **0 으로 되돌린다** — 안 그러면 잰 값이 지난번 끌어올림을 또 먹는다.
+     */
     const measureBar = (): void => {
-      const bar = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-      container.querySelector<HTMLElement>('.sm-wrap')?.style.setProperty('--sm-sbw', `${bar}px`);
+      const wrap = container.querySelector<HTMLElement>('.sm-wrap');
+      if (!wrap) return;
+      wrap.style.setProperty('--sm-sbw', `${Math.max(0, window.innerWidth - document.documentElement.clientWidth)}px`);
+      if (!wrap.classList.contains('is-map')) {
+        wrap.style.setProperty('--sm-lift', '0px');
+        return;
+      }
+      wrap.style.setProperty('--sm-lift', '0px');
+      const top = wrap.getBoundingClientRect().top + window.scrollY;
+      wrap.style.setProperty('--sm-lift', `${Math.max(0, Math.round(top))}px`);
     };
     window.addEventListener('resize', () => {
       if (elStages.isConnected) measureBar();
