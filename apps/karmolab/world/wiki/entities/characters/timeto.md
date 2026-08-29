@@ -39,7 +39,7 @@ KarmoLab 의 소녀 연구소장. 조수님을 안내하는 마스코트.
 ## 관계
 
 - WM 우주의 인물. yon / alisa / ling 과 같은 행성. 단 현재 KarmoLab 무대 한정 활동.
-- mascari4615 (작가) ↔ 티메토: KarmoLab 마스코트 = 작가의 도구 사용 톤을 의인화.
+- mascari4615 (작가) ↔ 티메토: KarmoLab 마스코트: 작가의 도구 사용 톤을 의인화.
 
 ## 본문 cite
 
