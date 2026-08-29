@@ -118,6 +118,29 @@ export function stepNoteAt(notes: StudioNote[], pitch: number, beat: number, ste
   return notes.find((note) => note.pitch === pitch && Math.abs(note.beat - beat) < half);
 }
 
+/** 음계 목록. 반음 간격을 0 부터의 거리로 */
+export const SCALES: { id: string; name: string; steps: number[] }[] = [
+  { id: 'off', name: '표시 안 함', steps: [] },
+  { id: 'major', name: '장음계', steps: [0, 2, 4, 5, 7, 9, 11] },
+  { id: 'minor', name: '단음계', steps: [0, 2, 3, 5, 7, 8, 10] },
+  { id: 'harmonic', name: '화성 단음계', steps: [0, 2, 3, 5, 7, 8, 11] },
+  { id: 'dorian', name: '도리안', steps: [0, 2, 3, 5, 7, 9, 10] },
+  { id: 'mixolydian', name: '믹솔리디안', steps: [0, 2, 4, 5, 7, 9, 10] },
+  { id: 'pentatonic', name: '5음계', steps: [0, 2, 4, 7, 9] },
+  { id: 'minorPentatonic', name: '단 5음계', steps: [0, 3, 5, 7, 10] },
+  { id: 'blues', name: '블루스', steps: [0, 3, 5, 6, 7, 10] }
+];
+
+export const PITCH_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+/** 이 음이 음계 안에 드나. 표시 안 함이면 전부 안쪽으로 본다 */
+export function pitchInScale(pitch: number, root: number, scaleId: string): boolean {
+  const scale = SCALES.find((item) => item.id === scaleId);
+  if (!scale || !scale.steps.length) return true;
+  const distance = (((pitch - root) % 12) + 12) % 12;
+  return scale.steps.includes(distance);
+}
+
 /** 샘플러 재생 속도. 본디 음에서 반음 하나가 한 칸. 12칸이면 두 배 */
 export function samplePlaybackRate(pitch: number, rootPitch: number): number {
   return Math.pow(2, (pitch - rootPitch) / 12);
@@ -198,6 +221,8 @@ export interface StudioProject {
   assets: StudioAsset[];
   /** 구간 이름표. 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
   markers: StudioMarker[];
+  /** 피아노롤 음계 표시. root 는 0-11, id 는 SCALES 의 것 */
+  scale?: { root: number; id: string };
   /** 스윙 0~0.6. 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
   swing: number;
   updatedAt: string;
@@ -337,6 +362,10 @@ export function normalizeProject(input: unknown): StudioProject {
             };
           }))
       : [],
+    scale: {
+      root: Number.isFinite(Number((value as { scale?: { root?: unknown } }).scale?.root)) ? ((Math.round(Number((value as { scale?: { root?: unknown } }).scale?.root)) % 12) + 12) % 12 : 0,
+      id: SCALES.some((item) => item.id === (value as { scale?: { id?: unknown } }).scale?.id) ? String((value as { scale?: { id?: string } }).scale?.id) : 'off'
+    },
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : new Date().toISOString()
   };
   project.tracks = value.tracks.map((raw, index) => {

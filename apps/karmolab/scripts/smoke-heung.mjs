@@ -397,6 +397,22 @@ let gridCells=0, gridNotesAdded=0, gridScrollNeeded=null;
   await page.waitForTimeout(200);
 }
 
+/* 음계 표시와 고스트. 피아노롤에 어두운 줄과 흐린 음이 깔린다 */
+let offScaleRows=0, ghostCount=0;
+{
+  await page.keyboard.press('Escape'); await page.waitForTimeout(150);
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().dblclick();
+  await page.waitForTimeout(300);
+  await page.selectOption('[data-project-ins=scaleId]','major');
+  await page.selectOption('[data-project-ins=scaleRoot]','0');
+  await page.waitForTimeout(300);
+  offScaleRows=await page.locator('.hu-off-scale').count();
+  ghostCount=await page.locator('.hu-ghost-note').count();
+  await page.selectOption('[data-project-ins=scaleId]','off');
+  await page.waitForTimeout(200);
+  await page.keyboard.press('Escape'); await page.waitForTimeout(150);
+}
+
 /* 악기 프리셋. 고르면 파형과 소리 모양이 한 번에 바뀐다 */
 let presetCount=0, presetApplied='';
 {
@@ -554,6 +570,7 @@ if(guideAfterClose!==0)problems.push('처음 안내가 안 닫힌다');
 if(guideRemembered!=='1')problems.push('처음 안내를 닫은 걸 기억 안 한다');
 if(shapeAfterFieldUndo!==shapeBeforeFieldUndo)problems.push(`글자 칸 안 되돌리기가 곡을 되감았다 (${shapeBeforeFieldUndo}→${shapeAfterFieldUndo})`);
 if(pickedBeforeUndo>0&&pickedAfterUndo===0)problems.push('되돌린 뒤 고른 클립을 잃었다');
+if(offScaleRows<10)problems.push(`음계 밖 줄이 안 깔린다 (${offScaleRows})`);
 if(gridCells<8*4)problems.push(`드럼 클립에 격자가 안 뜬다 (${gridCells}칸)`);
 if(gridNotesAdded!==4)problems.push(`격자 칸 4개를 눌렀는데 음이 ${gridNotesAdded}개 들어갔다`);
 if(presetCount<11)problems.push(`악기 프리셋이 모자란다 (${presetCount-1}가지)`);

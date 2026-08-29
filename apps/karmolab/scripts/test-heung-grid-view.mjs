@@ -35,6 +35,16 @@ assert.ok(html.includes('data-grid-pitch="36" data-grid-beat="1"'), '켠 자리�
 assert.ok(html.includes('aria-pressed="true"'), '켜짐을 읽어 주는 표시');
 assert.ok(html.includes('킥'), '줄 이름이 악기 이름');
 
+// 세기는 칸 밝기로. 약한 칸과 센 칸이 눈에 달라야 함
+const loud = buildGridView({ clip: clip([{ id: 'n', beat: 0, duration: 0.2, pitch: 36, velocity: 1 }]), step: 0.25, beatsPerBar: 4, esc });
+const soft = buildGridView({ clip: clip([{ id: 'n', beat: 0, duration: 0.2, pitch: 36, velocity: 0.2 }]), step: 0.25, beatsPerBar: 4, esc });
+assert.ok(loud.includes('--hu-grid-level:1.00'), '센 칸은 가득');
+assert.ok(soft.includes('--hu-grid-level:0.20'), '약한 칸은 옅게');
+assert.ok(loud.includes('세기 127'), '읽어 주는 표시에 세기');
+assert.ok(soft.includes('세기 25'));
+const empty = buildGridView({ clip: clip([]), step: 0.25, beatsPerBar: 4, esc });
+assert.ok(!empty.includes('--hu-grid-level'), '꺼진 칸에는 밝기가 없다');
+
 // 켜고 끄기. 같은 칸 두 번이면 삭제
 const notes = [];
 assert.equal(toggleStepNote(notes, 42, 0.5, 0.25), 'added');
@@ -52,4 +62,4 @@ assert.equal(notes.length, 3, '같은 줄이라도 칸이 다르면 따로');
 // 길이는 격자보다 짧게. 넘치면 다음 칸과 겹침
 assert.ok(notes.every((note) => note.duration <= 0.25), '음 길이가 한 칸을 안 넘는다');
 
-console.log('[test-heung-grid-view] ✓ 격자 줄, 칸 수, 켜짐 표시, 켜고 끄기');
+console.log('[test-heung-grid-view] ✓ 격자 줄, 칸 수, 켜짐 표시, 세기 밝기, 켜고 끄기');

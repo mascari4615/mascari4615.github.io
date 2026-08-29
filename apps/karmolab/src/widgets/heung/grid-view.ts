@@ -44,7 +44,11 @@ export function buildGridView(input: GridViewInput): string {
       const beat = index * step;
       const on = stepNoteAt(clip.notes, row.pitch, beat, step);
       const strong = Math.abs(beat % beatsPerBar) < 1e-6;
-      return `<button type="button" class="hu-grid-cell${on ? ' is-on' : ''}${strong ? ' is-strong' : ''}" data-grid-pitch="${row.pitch}" data-grid-beat="${beat}" aria-pressed="${on ? 'true' : 'false'}" aria-label="${esc(row.name)} ${Math.floor(beat / beatsPerBar) + 1}마디 ${(beat % beatsPerBar) + 1}박"></button>`;
+      /* 세기는 칸 밝기로. 위아래로 끌면 바뀐다 */
+      const level = on ? Math.max(0.15, Math.min(1, on.velocity)) : 0;
+      const style = on ? ` style="--hu-grid-level:${level.toFixed(2)}"` : '';
+      const reading = on ? `, 세기 ${Math.round(on.velocity * 127)}` : '';
+      return `<button type="button" class="hu-grid-cell${on ? ' is-on' : ''}${strong ? ' is-strong' : ''}" data-grid-pitch="${row.pitch}" data-grid-beat="${beat}"${style} aria-pressed="${on ? 'true' : 'false'}" aria-label="${esc(row.name)} ${Math.floor(beat / beatsPerBar) + 1}마디 ${(beat % beatsPerBar) + 1}박${reading}"></button>`;
     }).join('');
     return `<div class="hu-grid-row"><span class="hu-grid-name">${esc(row.name)}</span>${cells}</div>`;
   }).join('');

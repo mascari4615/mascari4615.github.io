@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor, samplePlaybackRate, INSTRUMENT_PRESETS, findPreset, applyPreset } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor, samplePlaybackRate, INSTRUMENT_PRESETS, findPreset, applyPreset, SCALES, pitchInScale } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -407,4 +407,22 @@ const noFm = JSON.parse(JSON.stringify(shaped));
 delete noFm.tracks[0].fm;
 assert.deepEqual(JSON.stringify(normalizeProject(noFm).tracks[0].fm), JSON.stringify({ ratio: 1, amount: 0 }), '옛 저장본은 끈 상태로 열린다');
 
-console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치, 샘플러, 프리셋, 흔들기');
+// 음계. 하는 일은 밖의 음 가려내기 하나
+assert.ok(pitchInScale(60, 0, 'major'), 'C 는 C 장조 안');
+assert.ok(!pitchInScale(61, 0, 'major'), 'C# 은 밖');
+assert.ok(pitchInScale(61, 1, 'major'), 'C# 장조에서는 안');
+assert.ok(pitchInScale(48, 0, 'major') && pitchInScale(72, 0, 'major'), '옥타브가 달라도 같은 판정');
+assert.ok(pitchInScale(61, 0, 'off'), '표시 안 함이면 전부 안쪽');
+assert.ok(pitchInScale(61, 0, '없는음계'), '모르는 이름도 전부 안쪽');
+assert.ok(!pitchInScale(59, 0, 'pentatonic'), '5음계는 더 좁다');
+assert.ok(SCALES.length >= 8, '음계가 여덟 가지 이상');
+
+// 음계 설정도 저장 뒤 그대로
+const wildScale = JSON.parse(JSON.stringify(shaped));
+wildScale.tracks[0].clips = wildScale.tracks[0].clips || [];
+wildScale.scale = { root: 25, id: '없는것' };
+const scaleBack = normalizeProject(wildScale).scale;
+assert.equal(scaleBack.root, 1, '키는 12 로 감는다');
+assert.equal(scaleBack.id, 'off', '모르는 음계는 끔');
+
+console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치, 샘플러, 프리셋, 흔들기, 음계');

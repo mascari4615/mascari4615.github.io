@@ -2,7 +2,7 @@
 import { HeungEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
   automationValueAt, clampTrackHeight, cloneClip, nextClipColor, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, keyToPitch, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, selectionRange, snapBeat, sortMarkers, splitClip, stepMarker, tapTempo, studioId, transposeNotes,
-  TRACK_HEIGHT, TRACK_INSTRUMENTS, INSTRUMENT_PRESETS, applyPreset, findPreset, toggleStepNote, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack, type TrackInstrument
+  TRACK_HEIGHT, TRACK_INSTRUMENTS, INSTRUMENT_PRESETS, applyPreset, findPreset, toggleStepNote, stepNoteAt, SCALES, PITCH_NAMES, type AutomationParam, type StudioClip, type StudioNote, type StudioProject, type StudioSelection, type StudioTrack, type TrackInstrument
 } from './model';
 import { toWav } from '../tools/shared/media';
 import { addAsset, backupCurrent, hydrateAssets, importPortable, loadPrevious, loadProject, portableProject, savedAt, saveProject } from './storage';
@@ -42,7 +42,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorListenMode: 'clip' | 'song' = 'clip'; let editorLoopStart = 0; let editorLoopEnd = 0;
     let editorTimePx = pxPerBeat; let editorRowHeight: number = PIANO_GEOMETRY.row; let editorRangeStart: number | null = null; let editorRangeEnd: number | null = null; let lastNoteDuration = project.snap * 2; let suppressPianoRulerClick = false;
-    let gridMode = true; let editorDrum = false;
+    let gridMode = true; let editorDrum = false; let gridDragged = false;
     let overlapMode: 'merge' | 'replace' | 'allow' = 'merge';let overlapCycle={key:'',index:0,at:0};
     let editorReturnFocus: HTMLElement | null = null;
     /** 끌기는 언제나 한 판만 산다. 겹치면 앞 판이 취소된다. */
@@ -439,7 +439,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       const noteSelection = selection?.type === 'note' ? selection : null;
       const chosenNote = noteSelection && clip ? clip.notes.find((note) => note.id === noteSelection.noteId) : undefined;
       const chosenNotes = noteSelection ? markedNotes().map((item)=>item.note) : [];
-      side.innerHTML = `<section class="hu-section"><h4>PROJECT</h4>${field('LOOP START',`<input type="number" min="0" step="${project.snap}" value="${project.loopStart}" data-project-ins="loopStart">`)}${field('LOOP END',`<input type="number" min="${project.snap}" step="${project.snap}" value="${project.loopEnd}" data-project-ins="loopEnd">`)}</section><section class="hu-section"><h4>TRACK, ${track.kind.toUpperCase()}</h4>
+      side.innerHTML = `<section class="hu-section"><h4>PROJECT</h4>${field('키',`<select data-project-ins="scaleRoot">${PITCH_NAMES.map((name,index)=>`<option value="${index}"${index===(project.scale?.root??0)?' selected':''}>${name}</option>`).join('')}</select>`)+field('음계',`<select data-project-ins="scaleId">${SCALES.map((item)=>`<option value="${item.id}"${item.id===(project.scale?.id??'off')?' selected':''}>${esc(item.name)}</option>`).join('')}</select>`)+field('LOOP START',`<input type="number" min="0" step="${project.snap}" value="${project.loopStart}" data-project-ins="loopStart">`)}${field('LOOP END',`<input type="number" min="${project.snap}" step="${project.snap}" value="${project.loopEnd}" data-project-ins="loopEnd">`)}</section><section class="hu-section"><h4>TRACK, ${track.kind.toUpperCase()}</h4>
         ${field('NAME',`<input value="${esc(track.name)}" data-ins="track-name">`)}${field('COLOR',`<input type="color" value="${track.color}" data-ins="color">`)}
         ${field('VOLUME',`<input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-ins="volume">`)}${field('PAN',`<input type="range" min="-1" max="1" step="0.01" value="${track.pan}" data-ins="pan">`)}
         ${track.kind==='midi'?field('악기',`<select data-ins="preset"><option value="">직접 맞추기</option>${INSTRUMENT_PRESETS.map((item)=>`<option value="${item.id}"${item.id===track.presetId?' selected':''}>${esc(item.name)}</option>`).join('')}</select>`)+
@@ -461,6 +461,24 @@ import { decodeMidi, encodeMidi } from './midi-file';
         ${chosenNote?`<section class="hu-section"><h4>MIDI NOTE${chosenNotes.length>1?`S, ${chosenNotes.length}개 (차이 적용)`:`, ${chosenNote.pitch}`}</h4>${field('PITCH',`<input type="number" min="0" max="127" value="${chosenNote.pitch}" data-note-ins="pitch">`)}${field('START',`<input type="number" min="0" max="${clip?.duration||1}" step="${project.snap}" value="${chosenNote.beat}" data-note-ins="beat">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${chosenNote.duration}" data-note-ins="duration">`)}${field('VELOCITY',`<input type="range" min="0.05" max="1" step="0.01" value="${chosenNote.velocity}" data-note-ins="velocity">`)}</section>`:''}`;
     }
 
+    /** 다른 클립의 음을 이 클립 자리로 옮겨 온다. 보여 주기만 한다 */
+    function ghostNotesFor(clip: StudioClip): StudioNote[] {
+      const from=clip.start, to=clip.start+clip.duration;
+      const out: StudioNote[] = [];
+      for(const track of project.tracks){
+        for(const other of track.clips){
+          if(other.id===clip.id||other.kind!=='midi'||other.mute)continue;
+          if(other.start+other.duration<=from||other.start>=to)continue;
+          for(const note of other.notes){
+            const beat=other.start+note.beat-from;
+            if(beat+note.duration<=0||beat>=clip.duration)continue;
+            out.push({...note,beat});
+            if(out.length>=600)return out;
+          }
+        }
+      }
+      return out;
+    }
     function renderEditor(): void {
       const editor = $<HTMLElement>('[data-role=editor]'); const previousPiano = editor.querySelector<HTMLElement>('.hu-piano');
       if (previousPiano) { editorScrollTop = previousPiano.scrollTop; editorScrollLeft = previousPiano.scrollLeft; }
@@ -482,7 +500,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
         return;
       }
       const view = buildPianoView({
-        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat: editorExpanded ? editorTimePx : pxPerBeat, step: stepMode, drum: selectedTrack()?.instrument === 'drum', midi: midiOn, midiLabel,
+        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat: editorExpanded ? editorTimePx : pxPerBeat, step: stepMode, drum: track.instrument === 'drum', midi: midiOn, midiLabel,
+        scale: project.scale, ghosts: ghostNotesFor(clip),
         playheadBeat: playhead - clip.start, playing: engine.isPlaying(), metronome,
         listenMode: editorListenMode, loopStartBeat: editorLoopStart, loopEndBeat: editorLoopEnd || clip.duration,
         rowHeight: editorRowHeight, rangeStartBeat: editorRangeStart, rangeEndBeat: editorRangeEnd, gridBeat: editorTimePx >= 110 ? project.snap : editorTimePx >= 48 ? 1 : project.beatsPerBar, manualScale: editorExpanded, overlapMode,
@@ -647,6 +666,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       const raw=event.target as HTMLElement;
       const editorEdit=raw.closest<HTMLElement>('[data-editor-edit]')?.dataset.editorEdit;if(editorEdit){event.stopImmediatePropagation();runEditorEdit(editorEdit);return;}
       const gridCell=raw.closest<HTMLElement>('[data-grid-pitch]');
+      if(gridCell&&gridDragged){gridDragged=false;return;}
       if(gridCell){const track=selectedTrack();const clip=selectedClip();
         if(track&&clip&&clip.kind==='midi'){
           const pitch=Number(gridCell.dataset.gridPitch);const beat=Number(gridCell.dataset.gridBeat);
@@ -727,7 +747,9 @@ import { decodeMidi, encodeMidi } from './midi-file';
        같은 문자열을 만나도 건너뛰면 안 된다. 손이 닿은 순간 캐시를 버린다. */
     root.addEventListener('input',(event)=>{const input=event.target as HTMLInputElement;if(!input.dataset.noteIns)return;const target=noteTargets();if(!target||target.notes.length<2)return;event.stopImmediatePropagation();const anchor=target.notes[0],key=input.dataset.noteIns,value=Number(input.value);if(key==='velocity')for(const note of target.notes)note.velocity=Math.max(.05,Math.min(1,value));else{const origin=key==='pitch'?anchor.pitch:key==='beat'?anchor.beat:anchor.duration;const delta=value-origin;for(const note of target.notes){if(key==='pitch')note.pitch=Math.max(0,Math.min(127,note.pitch+delta));else if(key==='beat')note.beat=Math.max(0,Math.min(target.clip.duration-note.duration,note.beat+delta));else note.duration=Math.max(project.snap,Math.min(target.clip.duration-note.beat,note.duration+delta));}}saveSoon(`multi-note:${key}`);renderTracks();if(event.type==='change')renderAll();},true);
     root.addEventListener('input',()=>paintedRows.clear(),true);
-    root.addEventListener('input',(event)=>{const input=event.target as HTMLInputElement; if(input.dataset.bind==='project-name')project.name=input.value;else if(input.dataset.bind==='bpm')project.bpm=Math.max(30,Math.min(300,Number(input.value)||120));else if(input.dataset.bind==='meter')project.beatsPerBar=Number(input.value);else if(input.dataset.bind==='snap')project.snap=Number(input.value);else if(input.dataset.bind==='swing'){project.swing=Math.max(0,Math.min(0.6,Number(input.value)||0));engine.updateProject(project);}else if(input.dataset.projectIns){const key=input.dataset.projectIns;const value=Math.max(0,Number(input.value));if(key==='loopStart')project.loopStart=Math.min(value,project.loopEnd-project.snap);else project.loopEnd=Math.max(project.loopStart+project.snap,value);}else if(input.dataset.trackName){const track=findTrack(project,input.dataset.trackName);if(track)track.name=input.value;}else if(input.dataset.trackVolume){const track=findTrack(project,input.dataset.trackVolume);if(track)track.volume=Number(input.value);}else if(input.dataset.mix){const track=findTrack(project,input.dataset.track||'');if(track)(track as unknown as Record<string,unknown>)[input.dataset.mix]=Number(input.value);}else if(input.dataset.master)project.masterVolume=Number(input.value);else if(input.dataset.env){const track=selectedTrack();if(track)(track.envelope as unknown as Record<string,number>)[input.dataset.env]=Number(input.value);engine.updateProject(project);}
+    root.addEventListener('input',(event)=>{const input=event.target as HTMLInputElement; if(input.dataset.bind==='project-name')project.name=input.value;else if(input.dataset.bind==='bpm')project.bpm=Math.max(30,Math.min(300,Number(input.value)||120));else if(input.dataset.bind==='meter')project.beatsPerBar=Number(input.value);else if(input.dataset.bind==='snap')project.snap=Number(input.value);else if(input.dataset.bind==='swing'){project.swing=Math.max(0,Math.min(0.6,Number(input.value)||0));engine.updateProject(project);}else if(input.dataset.projectIns){const key=input.dataset.projectIns;
+      if(key==='scaleRoot'||key==='scaleId'){const scale={root:project.scale?.root??0,id:project.scale?.id??'off'};if(key==='scaleRoot')scale.root=Number(input.value)||0;else scale.id=input.value;project.scale=scale;saveSoon('scale');renderEditor();renderSide();status(scale.id==='off'?'음계 표시 끔':`${PITCH_NAMES[scale.root]} ${SCALES.find((item)=>item.id===scale.id)?.name}`);return;}
+      const value=Math.max(0,Number(input.value));if(key==='loopStart')project.loopStart=Math.min(value,project.loopEnd-project.snap);else project.loopEnd=Math.max(project.loopStart+project.snap,value);}else if(input.dataset.trackName){const track=findTrack(project,input.dataset.trackName);if(track)track.name=input.value;}else if(input.dataset.trackVolume){const track=findTrack(project,input.dataset.trackVolume);if(track)track.volume=Number(input.value);}else if(input.dataset.mix){const track=findTrack(project,input.dataset.track||'');if(track)(track as unknown as Record<string,unknown>)[input.dataset.mix]=Number(input.value);}else if(input.dataset.master)project.masterVolume=Number(input.value);else if(input.dataset.env){const track=selectedTrack();if(track)(track.envelope as unknown as Record<string,number>)[input.dataset.env]=Number(input.value);engine.updateProject(project);}
       else if(input.dataset.fm){const track=selectedTrack();if(track){(track.fm as unknown as Record<string,number>)[input.dataset.fm]=Number(input.value);track.presetId='';}}
     else if(input.dataset.filter){const track=selectedTrack();if(track)(track.filter as unknown as Record<string,number>)[input.dataset.filter]=Number(input.value);engine.updateProject(project);}
     else if(input.dataset.detune){const track=selectedTrack();if(track)track.detune=Number(input.value);engine.updateProject(project);}
@@ -973,6 +995,28 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
     });
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.hu-clip'))return;const lane=target.closest<HTMLElement>('.hu-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.hu-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.hu-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
+
+    /* 격자 칸을 위아래로 끌면 세기가 바뀐다. 켜진 칸에서만 */
+    root.addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const cell=(event.target as HTMLElement).closest<HTMLElement>('[data-grid-pitch]');
+      if(!cell||cell.getAttribute('aria-pressed')!=='true')return;
+      const clip=selectedClip();const track=selectedTrack();if(!clip||!track)return;
+      const note=stepNoteAt(clip.notes,Number(cell.dataset.gridPitch),Number(cell.dataset.gridBeat),project.snap);
+      if(!note)return;
+      const startY=event.clientY;const startVelocity=note.velocity;let moved=false;
+      gestures.begin({
+        capture:cell,pointerId:event.pointerId,
+        move:(moveEvent)=>{
+          const delta=(startY-moveEvent.clientY)/120;
+          if(Math.abs(startY-moveEvent.clientY)>3)moved=true;
+          note.velocity=Math.max(0.05,Math.min(1,startVelocity+delta));
+          cell.style.setProperty('--hu-grid-level',String(Math.max(0.15,note.velocity).toFixed(2)));
+        },
+        commit:()=>{if(!moved)return;gridDragged=true;saveSoon('grid-velocity');renderEditor();status(`세기 ${Math.round(note.velocity*127)}`);},
+        cancel:()=>{note.velocity=startVelocity;renderEditor();}
+      });
+    });
 
     /** 트랙 머리 아래 모서리를 끌어 줄 높이를 바꾼다. */
     root.addEventListener('pointerdown',(event)=>{

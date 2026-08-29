@@ -84,4 +84,19 @@ assert.equal((empty.html.match(/class="hu-note/g) || []).length, 0);
 const three = buildPianoView({ clip: clip([], 12), beatsPerBar: 3, expanded: false, pxPerBeat: 72, viewportWidth: 1500, isSelected: () => false, esc });
 assert.equal((three.html.match(/class="hu-piano-bar"/g) || []).length, 5, '12박, 3/4 = 눈금 5개(0,3,6,9,12)');
 
-console.log('[test-heung-piano-view] ✓ 음이름, 배율, 첫 스크롤, 선택 표시, 이스케이프, 마디 눈금');
+// 음계 표시. 밖의 줄에 어두운 띠
+const scaleView = buildPianoView({ clip: clip([]), beatsPerBar: 4, expanded: false, pxPerBeat: 72, viewportWidth: 1200, isSelected: () => false, esc, scale: { root: 0, id: 'major' } });
+const offRows = (scaleView.html.match(/hu-off-scale/g) || []).length;
+const octaves = (PIANO_GEOMETRY.high - PIANO_GEOMETRY.low + 1) / 12;
+assert.ok(offRows > 0, '음계 밖 줄이 표시된다');
+assert.ok(Math.abs(offRows - octaves * 5) < 6, `한 옥타브에 다섯 줄이 밖 (${offRows})`);
+const noScale = buildPianoView({ clip: clip([]), beatsPerBar: 4, expanded: false, pxPerBeat: 72, viewportWidth: 1200, isSelected: () => false, esc, scale: { root: 0, id: 'off' } });
+assert.equal((noScale.html.match(/hu-off-scale/g) || []).length, 0, '표시 안 함이면 하나도 안 깐다');
+
+// 고스트 노트. 다른 클립 음이 흐리게, 만질 수 없게
+const ghostView = buildPianoView({ clip: clip([]), beatsPerBar: 4, expanded: false, pxPerBeat: 72, viewportWidth: 1200, isSelected: () => false, esc, ghosts: [{ id: 'g1', beat: 0, duration: 1, pitch: 60, velocity: 0.8 }, { id: 'g2', beat: 2, duration: 1, pitch: 64, velocity: 0.8 }] });
+assert.equal((ghostView.html.match(/hu-ghost-note/g) || []).length, 2, '고스트 두 개');
+assert.ok(ghostView.html.includes('aria-hidden="true"'), '읽어 주지 않는다');
+assert.ok(!ghostView.html.includes('data-note="g1"'), '만질 수 있는 음으로 안 나간다');
+
+console.log('[test-heung-piano-view] ✓ 음이름, 배율, 첫 스크롤, 선택 표시, 이스케이프, 마디 눈금, 음계 표시, 고스트');
