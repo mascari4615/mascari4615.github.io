@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "나뉜 순간의 선택 — CAP 의 실용적 의미",
+      "title": "나뉜 순간의 선택. CAP 의 실용적 의미",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "네트워크는 언젠가 끊긴다 — 노드 사이가 나뉘는(분단, partition) 순간이 반드시 온다. 그 순간 시스템은 **「항상 최신(일관성)」과 「항상 응답(가용성)」 중 하나**를 골라야 한다: 최신을 지키려면 확신 없는 요청을 **거부**(응답 못 함), 응답을 유지하려면 조금 **낡은 값**을 줄 수 있음. 이게 **CAP 정리**의 실용적 의미다 — 「셋 중 둘」이라는 추상적 말보다, 「분단이 났을 때 C냐 A냐」의 선택으로 이해한다. 데이터마다 이 선택이 다르다(3장)."
+          "text": "네트워크는 언젠가 끊긴다. 노드 사이가 나뉘는(분단, partition) 순간이 반드시 온다. 그 순간 시스템은 **\"항상 최신(일관성)\"과 \"항상 응답(가용성)\" 중 하나**를 골라야 한다: 최신을 지키려면 확신 없는 요청을 **거부**(응답 못 함), 응답을 유지하려면 조금 **낡은 값**을 줄 수 있음. 이게 **CAP 정리**의 실용적 의미다. \"셋 중 둘\"이라는 추상적 말보다, \"분단이 났을 때 C냐 A냐\"의 선택으로 이해한다. 데이터마다 이 선택이 다르다(3장)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "분단이 났을 때 — C냐 A냐",
+          "label": "분단이 났을 때. C냐 A냐",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const choice = '{{choice}}';\n  if (choice === 'consistency') {\n    render('일관성(C) 선택 — 항상 최신',\n      '  분단으로 다른 노드와 못 맞춤 → 확신 없으면 응답 거부\\n' +\n      '  <span class=\\\"ok\\\">낡은 값을 절대 안 줌(잔액·재고).</span> <span class=\\\"no\\\">대신 그동안 응답 못 함(가용성 희생).</span>',\n      '일관성 선택: 최신을 확신 못 하면 거부 — 낡은 값 X, 응답 X.',\n      steps([['분단 발생(노드 간 끊김)', 'on'],['최신 확신 못 함 → 응답 거부', 'bad'],['낡은 값은 절대 안 줌(정확)', 'good']]));\n  } else {\n    render('가용성(A) 선택 — 항상 응답',\n      '  분단으로 못 맞춰도 → 각자 가진 값으로 응답\\n' +\n      '  <span class=\\\"ok\\\">계속 응답(좋아요 수·목록).</span> <span class=\\\"warn\\\">대신 잠깐 낡은 값 가능(일관성 희생).</span>',\n      '가용성 선택: 못 맞춰도 응답 — 낡은 값 가능, 하지만 계속 동작.',\n      steps([['분단 발생', 'on'],['각자 가진 값으로 응답(계속 동작)', 'good'],['잠깐 낡은 값 가능(곧 맞춰짐)', 'warn']]));\n  }\n</script>",
           "controls": [
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**CAP 의 실용적 의미: 네트워크 분단이 났을 때 「일관성(C)」과 「가용성(A)」 중 하나를 골라야 한다.** 분산 시스템에서 노드 사이가 끊기는(분단) 일은 반드시 일어난다(2장). 그 순간, 한 노드가 다른 노드와 데이터를 맞출 수 없으니 선택해야 한다: ① **C(일관성) 선택** — 「최신임을 확신 못 하면 응답하지 않는다」(낡은 값을 절대 안 줌, 대신 그동안 요청 거부 — 가용성 희생) ② **A(가용성) 선택** — 「못 맞춰도 각자 가진 값으로 응답한다」(계속 동작, 대신 잠깐 낡은 값 가능 — 일관성 희생). 「CAP = 셋 중 둘」이라는 유명한 말은 오해를 부른다 — 정확히는 **분단(P)이 났을 때 C 와 A 중 하나**다. 그래서 실전 질문은 「우리 데이터는 분단 시 낡은 값을 주더라도 응답할까(A), 아니면 확실할 때만 응답할까(C)」다. 이 선택이 데이터마다 다르고(3장), 저장소·설계를 정한다."
+          "text": "**CAP 의 실용적 의미: 네트워크 분단이 났을 때 \"일관성(C)\"과 \"가용성(A)\" 중 하나를 골라야 한다.** 분산 시스템에서 노드 사이가 끊기는(분단) 일은 반드시 일어난다(2장). 그 순간, 한 노드가 다른 노드와 데이터를 맞출 수 없으니 선택해야 한다: ① **C(일관성) 선택**. \"최신임을 확신 못 하면 응답하지 않는다\"(낡은 값을 절대 안 줌, 대신 그동안 요청 거부. 가용성 희생) ② **A(가용성) 선택**. \"못 맞춰도 각자 가진 값으로 응답한다\"(계속 동작, 대신 잠깐 낡은 값 가능. 일관성 희생). \"CAP = 셋 중 둘\"이라는 유명한 말은 오해를 부른다. 정확히는 **분단(P)이 났을 때 C 와 A 중 하나**다. 그래서 실전 질문은 \"우리 데이터는 분단 시 낡은 값을 주더라도 응답할까(A), 아니면 확실할 때만 응답할까(C)\"다. 이 선택이 데이터마다 다르고(3장), 저장소, 설계를 정한다."
         },
         {
           "type": "p",
-          "text": "**분단이 아닐 때는 C 와 A 를 둘 다 갖는다 — 선택은 분단 순간에만.** CAP 의 흔한 오해는 「일관성과 가용성 중 영원히 하나만」이라는 것인데, 그렇지 않다. **네트워크가 정상일 때는 최신 값을 주면서(C) 계속 응답한다(A)** — 둘 다 가진다. 선택은 오직 **분단이 난 순간**에만 강제된다: 그때 「낡아도 응답(A)」이냐 「확실할 때만 응답(C)」이냐. 그래서 실용적으로는 「평소엔 일관되고 빠르게, 분단 시엔 무엇을 희생할지」를 정하는 것이다. 이를 확장한 **PACELC**: 분단(P) 시엔 A vs C 를 고르고, **정상(E, else)일 때는 지연(L, latency) vs 일관성(C)** 을 고른다 — 즉 정상 상태에서도 「강한 일관성(느림, 노드 간 합의)」 vs 「약한 일관성(빠름)」의 트레이드오프가 있다. 그래서 「일관성을 강하게 할수록 느리고, 느슨하게 할수록 빠르다」가 평소에도 적용된다(6장). CAP 는 분단 시의 선택, PACELC 는 그것 + 평소의 지연↔일관성 선택이다."
+          "text": "**분단이 아닐 때는 C 와 A 를 둘 다 갖는다. 선택은 분단 순간에만.** CAP 의 흔한 오해는 \"일관성과 가용성 중 영원히 하나만\"이라는 것인데, 그렇지 않다. **네트워크가 정상일 때는 최신 값을 주면서(C) 계속 응답한다(A)**. 둘 다 가진다. 선택은 오직 **분단이 난 순간**에만 강제된다: 그때 \"낡아도 응답(A)\"이냐 \"확실할 때만 응답(C)\"이냐. 그래서 실용적으로는 \"평소엔 일관되고 빠르게, 분단 시엔 무엇을 희생할지\"를 정하는 것이다. 이를 확장한 **PACELC**: 분단(P) 시엔 A vs C 를 고르고, **정상(E, else)일 때는 지연(L, latency) vs 일관성(C)** 을 고른다. 즉 정상 상태에서도 \"강한 일관성(느림, 노드 간 합의)\" vs \"약한 일관성(빠름)\"의 트레이드오프가 있다. 그래서 \"일관성을 강하게 할수록 느리고, 느슨하게 할수록 빠르다\"가 평소에도 적용된다(6장). CAP 는 분단 시의 선택, PACELC 는 그것 + 평소의 지연↔일관성 선택이다."
         },
         {
           "type": "try",
-          "text": "네 시스템이 여러 노드(DB 복제·여러 지역)를 쓴다면, 노드 사이가 끊긴 순간(분단) 어떻게 동작하는지 생각하라 — 낡은 값을 주고 계속 응답하나(A), 확실할 때만 응답하나(C). 그 선택이 데이터에 맞는지(3장) 확인하라."
+          "text": "네 시스템이 여러 노드(DB 복제, 여러 지역)를 쓴다면, 노드 사이가 끊긴 순간(분단) 어떻게 동작하는지 생각하라. 낡은 값을 주고 계속 응답하나(A), 확실할 때만 응답하나(C). 그 선택이 데이터에 맞는지(3장) 확인하라."
         }
       ],
       "quiz": [
@@ -86,12 +86,12 @@
     },
     {
       "id": "2",
-      "title": "P 는 선택이 아니다 — CP vs AP",
+      "title": "P 는 선택이 아니다. CP vs AP",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "CAP 에서 **P(분단 내성)는 선택 사항이 아니다** — 분산 시스템이면 네트워크가 언젠가 끊기니 반드시 일어난다. 그래서 실제 선택은 「C·A·P 중 둘」이 아니라, **분단이 났을 때 C 를 지키고 응답을 거부할지(CP), A 를 지키고 낡은 값을 허용할지(AP)**다. **CP 시스템**(강한 일관성 우선 — 은행·재고): 분단 시 확실할 때만 응답. **AP 시스템**(가용성 우선 — SNS·장바구니): 분단 시에도 응답, 나중에 맞춤. 저장소도 이 성향으로 갈린다."
+          "text": "CAP 에서 **P(분단 내성)는 선택 사항이 아니다**. 분산 시스템이면 네트워크가 언젠가 끊기니 반드시 일어난다. 그래서 실제 선택은 \"C, A, P 중 둘\"이 아니라, **분단이 났을 때 C 를 지키고 응답을 거부할지(CP), A 를 지키고 낡은 값을 허용할지(AP)**다. **CP 시스템**(강한 일관성 우선. 은행, 재고): 분단 시 확실할 때만 응답. **AP 시스템**(가용성 우선. SNS, 장바구니): 분단 시에도 응답, 나중에 맞춤. 저장소도 이 성향으로 갈린다."
         },
         {
           "type": "demo",
@@ -120,11 +120,11 @@
         },
         {
           "type": "note",
-          "text": "**분산 시스템에서 P 는 필연이라, 실제 선택은 CP(일관성 우선) vs AP(가용성 우선)다.** 네트워크 분단은 「일어날 수도」가 아니라 「반드시 일어나는」 일이다(케이블·라우터·지연·서버 장애). 그래서 「P 를 포기」한다는 건 「분산을 안 한다(단일 노드)」는 뜻일 뿐, 분산하는 한 P 는 주어진 조건이다. 그러니 진짜 선택은 **분단 시 어느 쪽을 희생하나**다: **CP**(관계형 DB·etcd·ZooKeeper·Spanner 등 합의 기반) — 분단 시 확실할 때만 응답해 **항상 정확**하지만 일부 노드가 응답 못 한다(은행·재고·설정·리더 선출처럼 틀리면 안 되는 데이터). **AP**(Cassandra·DynamoDB·많은 NoSQL·CDN) — 분단 시에도 각자 응답해 **항상 살아 있지만** 잠깐 낡거나 충돌하는 값이 있을 수 있고 나중에 맞춘다(결과적 일관성, SNS·장바구니·좋아요·카탈로그처럼 낡아도 되는 데이터). 저장소를 고를 때 「이건 CP 냐 AP 냐」와 「내 데이터는 어느 쪽이 필요한가」(3장)를 맞춘다."
+          "text": "**분산 시스템에서 P 는 필연이라, 실제 선택은 CP(일관성 우선) vs AP(가용성 우선)다.** 네트워크 분단은 \"일어날 수도\"가 아니라 \"반드시 일어나는\" 일이다(케이블, 라우터, 지연, 서버 장애). 그래서 \"P 를 포기\"한다는 건 \"분산을 안 한다(단일 노드)\"는 뜻일 뿐, 분산하는 한 P 는 주어진 조건이다. 그러니 진짜 선택은 **분단 시 어느 쪽을 희생하나**다: **CP**(관계형 DB, etcd, ZooKeeper, Spanner 등 합의 기반). 분단 시 확실할 때만 응답해 **항상 정확**하지만 일부 노드가 응답 못 한다(은행, 재고, 설정, 리더 선출처럼 틀리면 안 되는 데이터). **AP**(Cassandra, DynamoDB, 많은 NoSQL, CDN). 분단 시에도 각자 응답해 **항상 살아 있지만** 잠깐 낡거나 충돌하는 값이 있을 수 있고 나중에 맞춘다(결과적 일관성, SNS, 장바구니, 좋아요, 카탈로그처럼 낡아도 되는 데이터). 저장소를 고를 때 \"이건 CP 냐 AP 냐\"와 \"내 데이터는 어느 쪽이 필요한가\"(3장)를 맞춘다."
         },
         {
           "type": "p",
-          "text": "**많은 저장소는 튜닝으로 CP↔AP 사이를 조절한다 — 「일관성 수준」이 다이얼이다.** 「이 DB 는 CP, 저 DB 는 AP」로 딱 갈리기보다, 많은 분산 저장소가 **읽기·쓰기의 일관성 수준**을 설정으로 조절한다: 예컨대 Cassandra·DynamoDB 는 「몇 개 노드가 확인해야 성공으로 볼지」(쿼럼, quorum)를 정할 수 있다 — 강하게(모든/과반 노드 확인 → CP 에 가깝게, 느림·분단 시 실패) 또는 느슨하게(한 노드만 → AP 에 가깝게, 빠름·낡을 수 있음). 그래서 「쓰기 쿼럼 + 읽기 쿼럼 > 전체 노드 수」면 최신을 보장하는(강한 일관성) 식으로 조절한다. 이건 6장의 일관성 스펙트럼과 이어진다 — CP/AP 는 양 끝이고, 실제로는 그 사이를 **데이터·연산별로** 고른다(같은 DB 에서 잔액 쓰기는 강하게, 조회는 느슨하게). 그래서 저장소 선택뿐 아니라 「각 연산에 어떤 일관성 수준을 쓰나」가 설계다. CAP 는 이 조절의 근본 트레이드오프(일관성↔가용성/지연)를 설명한다."
+          "text": "**많은 저장소는 튜닝으로 CP↔AP 사이를 조절한다. \"일관성 수준\"이 다이얼이다.** \"이 DB 는 CP, 저 DB 는 AP\"로 딱 갈리기보다, 많은 분산 저장소가 **읽기, 쓰기의 일관성 수준**을 설정으로 조절한다: 예컨대 Cassandra, DynamoDB 는 \"몇 개 노드가 확인해야 성공으로 볼지\"(쿼럼, quorum)를 정할 수 있다. 강하게(모든/과반 노드 확인 → CP 에 가깝게, 느림, 분단 시 실패) 또는 느슨하게(한 노드만 → AP 에 가깝게, 빠름, 낡을 수 있음). 그래서 \"쓰기 쿼럼 + 읽기 쿼럼 > 전체 노드 수\"면 최신을 보장하는(강한 일관성) 식으로 조절한다. 이건 6장의 일관성 스펙트럼과 이어진다. CP/AP 는 양 끝이고, 실제로는 그 사이를 **데이터, 연산별로** 고른다(같은 DB 에서 잔액 쓰기는 강하게, 조회는 느슨하게). 그래서 저장소 선택뿐 아니라 \"각 연산에 어떤 일관성 수준을 쓰나\"가 설계다. CAP 는 이 조절의 근본 트레이드오프(일관성↔가용성/지연)를 설명한다."
         },
         {
           "type": "try",
@@ -152,13 +152,13 @@
             "빠름만"
           ],
           "answer": 1,
-          "why": "은행·재고."
+          "why": "은행, 재고."
         },
         {
           "q": "많은 분산 저장소가 CP↔AP 를 조절하는 방법은?",
           "choices": [
             "불가",
-            "일관성 수준(쿼럼) 설정 — 데이터·연산별로",
+            "일관성 수준(쿼럼) 설정. 데이터, 연산별로",
             "재시작",
             "캐시"
           ],
@@ -174,12 +174,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "CP 냐 AP 냐는 기술 취향이 아니라 **데이터의 도메인**이 정한다 — 「틀리면 무슨 일이 생기나」로. **잔액·재고 차감** → 일관성(틀리면 돈이 샌다, 차라리 실패 — CP) · **게시글 목록·좋아요 수** → 가용성(몇 초 낡아도 된다 — AP) · **로그인 세션** → 대체로 가용성(잠깐 낡아도 큰 문제 아님). 같은 시스템 안에서도 데이터마다 다르다 — 「이 데이터가 낡으면/틀리면 무슨 일이 생기나?」를 항목마다 물어 정한다(8장)."
+          "text": "CP 냐 AP 냐는 기술 취향이 아니라 **데이터의 도메인**이 정한다. \"틀리면 무슨 일이 생기나\"로. **잔액, 재고 차감** → 일관성(틀리면 돈이 샌다, 차라리 실패. CP), **게시글 목록, 좋아요 수** → 가용성(몇 초 낡아도 된다. AP), **로그인 세션** → 대체로 가용성(잠깐 낡아도 큰 문제 아님). 같은 시스템 안에서도 데이터마다 다르다. \"이 데이터가 낡으면/틀리면 무슨 일이 생기나?\"를 항목마다 물어 정한다(8장)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "도메인이 정한다 — 낡으면?",
+          "label": "도메인이 정한다. 낡으면?",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const data = '{{data}}';\n  const cases = {\n    balance:['잔액·결제', 'cp', '틀리면 돈이 샌다(이중 인출·마이너스) → 차라리 실패'],\n    stock:['재고 차감', 'cp', '틀리면 없는 걸 팜(오버셀) → 일관성 필요'],\n    likes:['좋아요 수·조회수', 'ap', '몇 초 낡아도 아무 일 없음 → 가용성'],\n    feed:['게시글 목록·피드', 'ap', '방금 글이 잠깐 안 보여도 OK → 가용성'],\n    session:['로그인 세션', 'ap', '대체로 잠깐 낡아도 큰 문제 아님(권한 변경은 신중)'],\n  }[data];\n  const cp = cases[1]==='cp';\n  render('데이터: ' + cases[0] + ' → ' + (cp?'일관성(CP)':'가용성(AP)'),\n    '  「낡으면/틀리면?」: ' + cases[2] + '\\n\\n' +\n    (cp ? '  <span class=\\\"no\\\">틀리면 큰일 → 일관성 우선(차라리 실패).</span>'\n      : '  <span class=\\\"ok\\\">낡아도 괜찮음 → 가용성 우선(계속 응답).</span>'),\n    '「이 데이터가 틀리면/낡으면 무슨 일?」 — 도메인이 CP/AP 를 정한다.',\n    box(cases[0], cases[2], cp?'bad':'good'));\n</script>",
           "controls": [
@@ -191,7 +191,7 @@
               "options": [
                 {
                   "value": "balance",
-                  "label": "잔액·결제"
+                  "label": "잔액, 결제"
                 },
                 {
                   "value": "stock",
@@ -221,15 +221,15 @@
         },
         {
           "type": "note",
-          "text": "**CP/AP 는 도메인이 정한다 — 「이 데이터가 틀리면/낡으면 무슨 일이 생기나?」로 판단한다.** 기술적 선호가 아니라 데이터의 성격이 답을 준다: **돈·재고·권한처럼 틀리면 큰일** 나는 데이터는 일관성(CP)이 필요하다 — 잔액이 낡으면 이중 인출, 재고가 낡으면 오버셀(없는 걸 팜), 권한이 낡으면 접근 사고. 이런 건 「낡은 값을 주느니 차라리 실패」가 맞다(data-tx·pay-idem). 반면 **좋아요 수·조회수·피드·카탈로그처럼 몇 초 낡아도 아무 일 없는** 데이터는 가용성(AP)이 낫다 — 계속 응답하고 나중에 맞춰지면 된다. 핵심은 **같은 시스템 안에서도 데이터마다 다르다**는 것: 한 서비스가 잔액은 CP 로(강한 일관성 DB·트랜잭션), 피드는 AP 로(캐시·복제·결과적 일관성) 다룬다. 그래서 「우리 시스템은 CP/AP」가 아니라 「이 데이터는, 이 연산은」으로 물어야 한다. 8장의 「5초 낡으면?」이 그 판단 도구다."
+          "text": "**CP/AP 는 도메인이 정한다. \"이 데이터가 틀리면/낡으면 무슨 일이 생기나?\"로 판단한다.** 기술적 선호가 아니라 데이터의 성격이 답을 준다: **돈, 재고, 권한처럼 틀리면 큰일** 나는 데이터는 일관성(CP)이 필요하다. 잔액이 낡으면 이중 인출, 재고가 낡으면 오버셀(없는 걸 팜), 권한이 낡으면 접근 사고. 이런 건 \"낡은 값을 주느니 차라리 실패\"가 맞다(data-tx, pay-idem). 반면 **좋아요 수, 조회수, 피드, 카탈로그처럼 몇 초 낡아도 아무 일 없는** 데이터는 가용성(AP)이 낫다. 계속 응답하고 나중에 맞춰지면 된다. 핵심은 **같은 시스템 안에서도 데이터마다 다르다**는 것: 한 서비스가 잔액은 CP 로(강한 일관성 DB, 트랜잭션), 피드는 AP 로(캐시, 복제, 결과적 일관성) 다룬다. 그래서 \"우리 시스템은 CP/AP\"가 아니라 \"이 데이터는, 이 연산은\"으로 물어야 한다. 8장의 \"5초 낡으면?\"이 그 판단 도구다."
         },
         {
           "type": "p",
-          "text": "**한 흐름 안에서도 CP 와 AP 를 섞는다 — 핵심은 강하게, 부수는 느슨하게.** 대표 예가 주문·결제: 「주문 접수·재고 차감·결제」는 **일관성**(CP — 트랜잭션·원자적, 중복·오버셀 방지, data-tx·pay-idem)으로 하되, 그에 딸린 「확인 메일·추천 갱신·집계·알림」은 **가용성**(AP — 큐로 비동기, 좀 늦거나 낡아도 됨, data-queue)으로 처리한다. 이렇게 **핵심 경로는 강한 일관성, 부수 경로는 결과적 일관성**으로 나누면, 정확해야 할 것은 정확하고 나머지는 빠르고 견고하다(scale-vertical·data-queue 의 「핵심은 동기, 부수는 큐」와 같은 발상). 그래서 CAP 은 시스템 전체가 아니라 **각 데이터·연산·경로**에 적용하는 도구다 — 「이 흐름의 어느 부분이 틀리면 안 되고, 어느 부분이 낡아도 되나」를 나눠, 각각에 맞는 일관성을 준다. 전부 강한 일관성은 느리고 취약하고, 전부 느슨하면 돈이 샌다 — 데이터의 중요도에 맞춰 섞는 게 실전이다."
+          "text": "**한 흐름 안에서도 CP 와 AP 를 섞는다. 핵심은 강하게, 부수는 느슨하게.** 대표 예가 주문, 결제: \"주문 접수, 재고 차감, 결제\"는 **일관성**(CP. 트랜잭션, 원자적, 중복, 오버셀 방지, data-tx, pay-idem)으로 하되, 그에 딸린 \"확인 메일, 추천 갱신, 집계, 알림\"은 **가용성**(AP. 큐로 비동기, 좀 늦거나 낡아도 됨, data-queue)으로 처리한다. 이렇게 **핵심 경로는 강한 일관성, 부수 경로는 결과적 일관성**으로 나누면, 정확해야 할 것은 정확하고 나머지는 빠르고 견고하다(scale-vertical, data-queue 의 \"핵심은 동기, 부수는 큐\"와 같은 발상). 그래서 CAP 은 시스템 전체가 아니라 **각 데이터, 연산, 경로**에 적용하는 도구다. \"이 흐름의 어느 부분이 틀리면 안 되고, 어느 부분이 낡아도 되나\"를 나눠, 각각에 맞는 일관성을 준다. 전부 강한 일관성은 느리고 취약하고, 전부 느슨하면 돈이 샌다. 데이터의 중요도에 맞춰 섞는 게 실전이다."
         },
         {
           "type": "try",
-          "text": "네 서비스의 데이터 5종을 적고 각각 「5초 낡으면 무슨 일이 생기나?」에 답하라 — 아무 일 없으면 AP(가용성), 돈·재고·권한이 틀리면 CP(일관성). 그 답이 곧 저장소·캐시·복제 전략이다."
+          "text": "네 서비스의 데이터 5종을 적고 각각 \"5초 낡으면 무슨 일이 생기나?\"에 답하라. 아무 일 없으면 AP(가용성), 돈, 재고, 권한이 틀리면 CP(일관성). 그 답이 곧 저장소, 캐시, 복제 전략이다."
         }
       ],
       "quiz": [
@@ -237,7 +237,7 @@
           "q": "CP/AP 를 정하는 것은?",
           "choices": [
             "기술 취향",
-            "도메인 — 「데이터가 틀리면/낡으면 무슨 일?」",
+            "도메인. \"데이터가 틀리면/낡으면 무슨 일?\"",
             "속도",
             "인기"
           ],
@@ -248,7 +248,7 @@
           "q": "일관성(CP)이 필요한 데이터는?",
           "choices": [
             "좋아요 수",
-            "잔액·재고·권한(틀리면 큰일)",
+            "잔액, 재고, 권한(틀리면 큰일)",
             "피드",
             "조회수"
           ],
@@ -259,7 +259,7 @@
           "q": "주문 흐름의 일관성 설계는?",
           "choices": [
             "전부 CP",
-            "핵심(결제·재고)은 CP, 부수(메일·집계)는 AP(큐)",
+            "핵심(결제, 재고)은 CP, 부수(메일, 집계)는 AP(큐)",
             "전부 AP",
             "무작위"
           ],
@@ -275,12 +275,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**결과적 일관성**(eventual consistency): 지금은 노드마다 값이 다를 수 있지만 **「곧 맞춰진다」**(수렴). AP 를 택하면 이걸 받아들여야 하고, 그러면 **화면 설계가 바뀐다**: **낙관적 UI**(내 행동은 즉시 반영 — 서버 확인 전에 화면에 먼저), **「동기화 중」 표시**, **충돌 시 규칙**(7장). 사용자에게 「곧 반영됨」을 자연스럽게 보여 주는 게 핵심 — 「좋아요를 눌렀는데 안 바뀐다」가 아니라 「즉시 바뀌고 뒤에서 저장」이 되게."
+          "text": "**결과적 일관성**(eventual consistency): 지금은 노드마다 값이 다를 수 있지만 **\"곧 맞춰진다\"**(수렴). AP 를 택하면 이걸 받아들여야 하고, 그러면 **화면 설계가 바뀐다**: **낙관적 UI**(내 행동은 즉시 반영. 서버 확인 전에 화면에 먼저), **\"동기화 중\" 표시**, **충돌 시 규칙**(7장). 사용자에게 \"곧 반영됨\"을 자연스럽게 보여 주는 게 핵심. \"좋아요를 눌렀는데 안 바뀐다\"가 아니라 \"즉시 바뀌고 뒤에서 저장\"이 되게."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "결과적 일관성 — 낙관적 UI",
+          "label": "결과적 일관성. 낙관적 UI",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'naive') {\n    render('서버 확인 후 반영 (느린 체감)',\n      '  좋아요 클릭 → 서버 왕복·복제 대기 → 그다음 화면 갱신\\n' +\n      '  <span class=\\\"no\\\">클릭했는데 잠깐 안 바뀜 → \"안 눌렸나?\" 다시 클릭(중복).</span>',\n      '서버 확인 후 반영하면 지연 동안 안 바뀐 것처럼 보인다.',\n      timeline([['클릭', [[1,'write','좋아요']]],['화면', [[3,'lag','대기(안 바뀜)'],[1,'ok2','갱신']]]]));\n  } else {\n    render('낙관적 UI (즉시 반영)',\n      '  좋아요 클릭 → 화면 즉시 반영 → 뒤에서 서버 저장(실패 시 되돌림)\\n' +\n      '  <span class=\\\"ok\\\">즉시 반응 + \"동기화 중\" 표시 → 결과적 일관성을 자연스럽게.</span>',\n      '낙관적 UI: 내 행동은 즉시 반영, 서버는 뒤에서. 결과적 일관성과 함께.',\n      timeline([['클릭', [[1,'write','좋아요']]],['화면', [[1,'ok2','즉시 반영']]],['서버', [[3,'lag','뒤에서 저장'],[1,'ok2','확정']]]]));\n  }\n</script>",
           "controls": [
@@ -304,15 +304,15 @@
         },
         {
           "type": "note",
-          "text": "**결과적 일관성을 받아들이면 화면 설계가 바뀐다 — 낙관적 UI·동기화 표시·충돌 규칙.** AP(가용성)를 택하면 「지금은 노드마다 다를 수 있지만 곧 맞춰진다」를 전제로 UI 를 짠다: ① **낙관적 UI**(optimistic update) — 사용자 행동(좋아요·댓글·편집)을 서버 확인 **전에 화면에 즉시** 반영하고, 서버 저장은 뒤에서 한다(실패하면 되돌림). 그러면 사용자는 즉각 반응을 느끼고, 서버·복제 지연이 숨는다. ② **「동기화 중」 표시** — 아직 확정 안 된 상태를 자연스럽게 보여 준다(회색·스피너·「저장 중」). ③ **충돌 시 규칙**(7장) — 여러 곳에서 바꿔 충돌하면 어떻게 합칠지. 이렇게 하면 「좋아요를 눌렀는데 안 바뀐다 → 다시 누름(중복)」 같은 문제가 사라진다. 핵심: 결과적 일관성은 **사용자에게 숨기거나 자연스럽게 보여** 줘야지, 「가끔 낡은 값이 보인다」를 방치하면 혼란이다. 「곧 맞춰짐」을 UX 로 매끄럽게 다루는 게 AP 시스템의 프런트엔드 설계다(web-js 상태 관리와 이어짐)."
+          "text": "**결과적 일관성을 받아들이면 화면 설계가 바뀐다. 낙관적 UI, 동기화 표시, 충돌 규칙.** AP(가용성)를 택하면 \"지금은 노드마다 다를 수 있지만 곧 맞춰진다\"를 전제로 UI 를 짠다: ① **낙관적 UI**(optimistic update). 사용자 행동(좋아요, 댓글, 편집)을 서버 확인 **전에 화면에 즉시** 반영하고, 서버 저장은 뒤에서 한다(실패하면 되돌림). 그러면 사용자는 즉각 반응을 느끼고, 서버, 복제 지연이 숨는다. ② **\"동기화 중\" 표시**. 아직 확정 안 된 상태를 자연스럽게 보여 준다(회색, 스피너, \"저장 중\"). ③ **충돌 시 규칙**(7장). 여러 곳에서 바꿔 충돌하면 어떻게 합칠지. 이렇게 하면 \"좋아요를 눌렀는데 안 바뀐다 → 다시 누름(중복)\" 같은 문제가 사라진다. 핵심: 결과적 일관성은 **사용자에게 숨기거나 자연스럽게 보여** 줘야지, \"가끔 낡은 값이 보인다\"를 방치하면 혼란이다. \"곧 맞춰짐\"을 UX 로 매끄럽게 다루는 게 AP 시스템의 프런트엔드 설계다(web-js 상태 관리와 이어짐)."
         },
         {
           "type": "p",
-          "text": "**결과적 일관성은 「언제 맞춰지나」와 「그동안 뭘 보여 주나」를 명시해야 한다.** 「곧 맞춰진다」의 「곧」이 얼마인지(복제 지연·수렴 시간)와, 수렴 전에 사용자가 무엇을 보는지를 설계에 넣는다: ① **수렴 시간** — 대개 밀리초~초지만, 분단·부하 시 길어질 수 있다(관측·경보로 추적). ② **낙관적 UI 의 롤백** — 서버 저장이 실패하면 화면을 되돌리고 사용자에게 알린다(「저장 실패, 다시 시도」) — 즉시 반영했는데 실제로 실패하면 거짓을 보인 것이니 정직하게 정정한다. ③ **read-your-writes**(5장) — 최소한 「내가 방금 한 것」은 나에게 바로 보여야 한다(남의 것은 좀 늦어도, 내 것이 안 보이면 버그처럼 느낌). ④ **단조성** — 한 번 본 값이 뒤로 가지 않게(새로고침했더니 예전 값). 이런 보장들이 「결과적 일관성」을 사용자가 견딜 만하게 만든다(6장의 일관성 수준). 그래서 AP 를 택할 때 「그냥 낡을 수 있음」이 아니라 「어떤 낡음은 허용하고, 어떤 보장은 지키나」를 정하는 게 설계다 — 아무 보장 없는 결과적 일관성은 사용자를 혼란스럽게 한다."
+          "text": "**결과적 일관성은 \"언제 맞춰지나\"와 \"그동안 뭘 보여 주나\"를 명시해야 한다.** \"곧 맞춰진다\"의 \"곧\"이 얼마인지(복제 지연, 수렴 시간)와, 수렴 전에 사용자가 무엇을 보는지를 설계에 넣는다: ① **수렴 시간**. 대개 밀리초~초지만, 분단, 부하 시 길어질 수 있다(관측, 경보로 추적). ② **낙관적 UI 의 롤백**. 서버 저장이 실패하면 화면을 되돌리고 사용자에게 알린다(\"저장 실패, 다시 시도\"). 즉시 반영했는데 실제로 실패하면 거짓을 보인 것이니 정직하게 정정한다. ③ **read-your-writes**(5장). 최소한 \"내가 방금 한 것\"은 나에게 바로 보여야 한다(남의 것은 좀 늦어도, 내 것이 안 보이면 버그처럼 느낌). ④ **단조성**. 한 번 본 값이 뒤로 가지 않게(새로고침했더니 예전 값). 이런 보장들이 \"결과적 일관성\"을 사용자가 견딜 만하게 만든다(6장의 일관성 수준). 그래서 AP 를 택할 때 \"그냥 낡을 수 있음\"이 아니라 \"어떤 낡음은 허용하고, 어떤 보장은 지키나\"를 정하는 게 설계다. 아무 보장 없는 결과적 일관성은 사용자를 혼란스럽게 한다."
         },
         {
           "type": "try",
-          "text": "결과적 일관성인 데이터(좋아요·댓글)에 낙관적 UI 를 적용하라 — 행동을 즉시 반영하고 뒤에서 저장, 실패 시 되돌림. 「동기화 중」 표시와 「내가 방금 한 것은 나에게 바로 보이는지」(read-your-writes)도 확인하라."
+          "text": "결과적 일관성인 데이터(좋아요, 댓글)에 낙관적 UI 를 적용하라. 행동을 즉시 반영하고 뒤에서 저장, 실패 시 되돌림. \"동기화 중\" 표시와 \"내가 방금 한 것은 나에게 바로 보이는지\"(read-your-writes)도 확인하라."
         }
       ],
       "quiz": [
@@ -331,7 +331,7 @@
           "q": "낙관적 UI(optimistic update)란?",
           "choices": [
             "서버 확인 후 반영",
-            "행동을 즉시 화면에 반영·뒤에서 저장(실패 시 롤백)",
+            "행동을 즉시 화면에 반영, 뒤에서 저장(실패 시 롤백)",
             "느리게",
             "무시"
           ],
@@ -342,7 +342,7 @@
           "q": "결과적 일관성에서 지켜야 할 보장은?",
           "choices": [
             "없음",
-            "read-your-writes(내 것은 나에게 바로)·단조성",
+            "read-your-writes(내 것은 나에게 바로), 단조성",
             "항상 최신",
             "무응답"
           ],
@@ -358,12 +358,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "확장에 흔히 쓰는 **읽기 복제본**(read replica — 주 DB 에 쓰고, 복제본에서 읽어 읽기 부하 분산)은 **복제 지연**이라는 함정이 있다: 주 DB 에 쓴 직후 복제본에서 읽으면, 복제가 아직 안 돼 **낡은 값**이 보인다 — 「방금 저장했는데 안 보인다」. 이건 결과적 일관성의 구체적 형태다. 대처: **read-your-writes**(내가 방금 쓴 건 주 DB 에서 읽거나 그 복제본 확인) — 최소한 「내 쓰기」는 나에게 바로 보이게 한다."
+          "text": "확장에 흔히 쓰는 **읽기 복제본**(read replica. 주 DB 에 쓰고, 복제본에서 읽어 읽기 부하 분산)은 **복제 지연**이라는 함정이 있다: 주 DB 에 쓴 직후 복제본에서 읽으면, 복제가 아직 안 돼 **낡은 값**이 보인다. \"방금 저장했는데 안 보인다\". 이건 결과적 일관성의 구체적 형태다. 대처: **read-your-writes**(내가 방금 쓴 건 주 DB 에서 읽거나 그 복제본 확인). 최소한 \"내 쓰기\"는 나에게 바로 보이게 한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "복제 지연 — 쓰고 바로 읽으면",
+          "label": "복제 지연. 쓰고 바로 읽으면",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'naive') {\n    render('쓰고 복제본에서 바로 읽기',\n      '  주 DB 에 order 쓰기 → 복제본에서 목록 읽기(아직 복제 안 됨)\\n' +\n      '  <span class=\\\"no\\\">방금 만든 주문이 목록에 안 보임 → \"저장 안 됐나?\" 혼란·중복.</span>',\n      '주 DB 에 쓴 직후 복제본에서 읽으면 복제 지연으로 낡은 값(안 보임).',\n      timeline([['주 DB', [[1,'write','order 쓰기'],[3,'lag','복제 전파…']]],['복제본', [[1,'stale','읽기: order 없음!'],[3,'ok2','전파 후 보임']]]]));\n  } else {\n    render('read-your-writes',\n      '  방금 쓴 사용자는 주 DB 에서 읽음(또는 복제 확인 후)\\n' +\n      '  <span class=\\\"ok\\\">내가 만든 주문이 나에게 바로 보임. 남의 것은 좀 늦어도 OK.</span>',\n      'read-your-writes: 내가 방금 쓴 건 주 DB 에서 → 내 것은 바로 보인다.',\n      timeline([['주 DB', [[1,'write','order 쓰기'],[1,'ok2','내 읽기(주에서)']]],['복제본', [[3,'lag','전파(남의 읽기용)']]]]));\n  }\n</script>",
           "controls": [
@@ -393,11 +393,11 @@
         },
         {
           "type": "note",
-          "text": "**읽기 복제본은 복제 지연이 있어, 쓴 직후 복제본에서 읽으면 낡은 값(안 보임)이다 — read-your-writes 로 「내 쓰기」는 보장하라.** 읽기 복제본은 읽기 부하를 분산하는 흔한 확장 기법이지만(주 DB 쓰기, 복제본 읽기), 주 → 복제본 전파에 **지연**(대개 밀리초, 부하 시 초)이 있다. 그래서 「방금 주문을 만들고 목록을 조회」할 때 복제본에서 읽으면 그 주문이 아직 없어, 사용자는 「저장이 안 됐나?」 혼란스러워하고 다시 시도(중복)한다. 이건 CAP 의 결과적 일관성이 읽기 복제본에서 구체화된 것이다. 대처 **read-your-writes**: 「내가 방금 쓴 것」은 나에게 바로 보여야 하니, 쓴 직후의 그 사용자 읽기는 **주 DB 에서**(또는 복제본이 내 쓰기 위치를 따라잡았는지 확인 후) 한다. 남의 읽기·일반 목록 조회는 복제본으로 유지해 부하 분산은 그대로. 「최소한 내 것은 바로」가 read-your-writes 의 핵심 — 남의 것이 몇 초 낡는 건 대개 괜찮아도, 내 행동이 반영 안 되면 버그처럼 느껴진다."
+          "text": "**읽기 복제본은 복제 지연이 있어, 쓴 직후 복제본에서 읽으면 낡은 값(안 보임)이다. read-your-writes 로 \"내 쓰기\"는 보장하라.** 읽기 복제본은 읽기 부하를 분산하는 흔한 확장 기법이지만(주 DB 쓰기, 복제본 읽기), 주 → 복제본 전파에 **지연**(대개 밀리초, 부하 시 초)이 있다. 그래서 \"방금 주문을 만들고 목록을 조회\"할 때 복제본에서 읽으면 그 주문이 아직 없어, 사용자는 \"저장이 안 됐나?\" 혼란스러워하고 다시 시도(중복)한다. 이건 CAP 의 결과적 일관성이 읽기 복제본에서 구체화된 것이다. 대처 **read-your-writes**: \"내가 방금 쓴 것\"은 나에게 바로 보여야 하니, 쓴 직후의 그 사용자 읽기는 **주 DB 에서**(또는 복제본이 내 쓰기 위치를 따라잡았는지 확인 후) 한다. 남의 읽기, 일반 목록 조회는 복제본으로 유지해 부하 분산은 그대로. \"최소한 내 것은 바로\"가 read-your-writes 의 핵심. 남의 것이 몇 초 낡는 건 대개 괜찮아도, 내 행동이 반영 안 되면 버그처럼 느껴진다."
         },
         {
           "type": "p",
-          "text": "**복제 지연을 다루는 여러 방법 — 상황에 맞게.** read-your-writes 외에도: ① **쓰기 직후 창 동안 주에서 읽기** — 쓴 뒤 짧은 시간(복제 지연 예상치)은 그 사용자를 주 DB 로 라우팅. ② **복제 위치(LSN) 추적** — 쓰기의 로그 위치를 세션에 들고, 복제본이 그만큼 따라잡았을 때만 그 복제본에서 읽기(정확하지만 복잡). ③ **중요 읽기는 주에서, 나머지는 복제본** — 「방금 만든 것 확인」류는 주, 통계·목록은 복제본. ④ **복제 지연 관측·경보** — 지연이 커지면(부하·장애) 알아채 대응. 그리고 반대 함정 **단조 읽기 위반**: 여러 복제본을 오가며 읽으면, 한 복제본에서 새 값을 보고 다음에 다른(더 뒤진) 복제본에서 옛 값을 보는 「시간이 거꾸로」가 생긴다 — 같은 사용자를 같은 복제본에 고정(스티키)하거나 위치 추적으로 막는다. 그래서 읽기 복제본은 「부하 분산」의 이점과 「복제 지연·일관성」의 함정을 함께 갖는다 — 어떤 읽기가 최신을 요구하는지 구분해, 그것만 주에서·나머지는 복제본에서 하는 게 균형이다(6장의 일관성 수준)."
+          "text": "**복제 지연을 다루는 여러 방법. 상황에 맞게.** read-your-writes 외에도: ① **쓰기 직후 창 동안 주에서 읽기**. 쓴 뒤 짧은 시간(복제 지연 예상치)은 그 사용자를 주 DB 로 라우팅. ② **복제 위치(LSN) 추적**. 쓰기의 로그 위치를 세션에 들고, 복제본이 그만큼 따라잡았을 때만 그 복제본에서 읽기(정확하지만 복잡). ③ **중요 읽기는 주에서, 나머지는 복제본**. \"방금 만든 것 확인\"류는 주, 통계, 목록은 복제본. ④ **복제 지연 관측, 경보**. 지연이 커지면(부하, 장애) 알아채 대응. 그리고 반대 함정 **단조 읽기 위반**: 여러 복제본을 오가며 읽으면, 한 복제본에서 새 값을 보고 다음에 다른(더 뒤진) 복제본에서 옛 값을 보는 \"시간이 거꾸로\"가 생긴다. 같은 사용자를 같은 복제본에 고정(스티키)하거나 위치 추적으로 막는다. 그래서 읽기 복제본은 \"부하 분산\"의 이점과 \"복제 지연, 일관성\"의 함정을 함께 갖는다. 어떤 읽기가 최신을 요구하는지 구분해, 그것만 주에서, 나머지는 복제본에서 하는 게 균형이다(6장의 일관성 수준)."
         },
         {
           "type": "try",
@@ -409,7 +409,7 @@
           "q": "읽기 복제본의 함정은?",
           "choices": [
             "느림",
-            "복제 지연 — 쓴 직후 복제본에서 읽으면 낡은 값(안 보임)",
+            "복제 지연. 쓴 직후 복제본에서 읽으면 낡은 값(안 보임)",
             "메모리",
             "보안"
           ],
@@ -417,7 +417,7 @@
           "why": "결과적 일관성."
         },
         {
-          "q": "「방금 쓴 게 나에게 안 보임」을 막는 것은?",
+          "q": "\"방금 쓴 게 나에게 안 보임\"을 막는 것은?",
           "choices": [
             "캐시",
             "read-your-writes(내 쓰기 직후엔 주 DB 에서)",
@@ -431,7 +431,7 @@
           "q": "여러 복제본을 오가며 읽을 때의 위반은?",
           "choices": [
             "없음",
-            "단조 읽기 위반(시간이 거꾸로) → 스티키·위치 추적",
+            "단조 읽기 위반(시간이 거꾸로) → 스티키, 위치 추적",
             "빠름",
             "정확"
           ],
@@ -442,12 +442,12 @@
     },
     {
       "id": "6",
-      "title": "일관성 수준들 — 스펙트럼",
+      "title": "일관성 수준들. 스펙트럼",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "일관성은 「강한 vs 결과적」의 둘이 아니라 **스펙트럼**이다: **강한 일관성**(항상 최신 — 느림·CP) → **선형성**(단일 최신 순서) → **read-your-writes**(내 쓰기는 나에게) → **단조 읽기**(시간이 거꾸로 안 감) → **결과적 일관성**(곧 수렴 — 빠름·AP). 위로 갈수록 안전하나 느리고, 아래로 갈수록 빠르나 낡을 수 있다. **연산·데이터마다** 필요한 수준을 고른다 — 전부 강하게(느림)도, 전부 느슨하게(위험)도 아니고, 필요한 만큼."
+          "text": "일관성은 \"강한 vs 결과적\"의 둘이 아니라 **스펙트럼**이다: **강한 일관성**(항상 최신. 느림, CP) → **선형성**(단일 최신 순서) → **read-your-writes**(내 쓰기는 나에게) → **단조 읽기**(시간이 거꾸로 안 감) → **결과적 일관성**(곧 수렴. 빠름, AP). 위로 갈수록 안전하나 느리고, 아래로 갈수록 빠르나 낡을 수 있다. **연산, 데이터마다** 필요한 수준을 고른다. 전부 강하게(느림)도, 전부 느슨하게(위험)도 아니고, 필요한 만큼."
         },
         {
           "type": "demo",
@@ -484,15 +484,15 @@
         },
         {
           "type": "note",
-          "text": "**일관성은 스펙트럼이고, 연산·데이터마다 필요한 수준을 고른다 — 전부 강하게도 전부 느슨하게도 아니다.** 「강한 일관성이냐 결과적이냐」의 이분법이 아니라, 그 사이에 여러 유용한 수준이 있다: **강한 일관성/선형성**(모든 읽기가 최신 쓰기를 봄 — 가장 안전하나 노드 간 합의로 느리고 분단 시 실패, CP), **read-your-writes**(내가 쓴 건 나에게 바로, 5장), **단조 읽기**(한 번 본 값이 뒤로 안 감 — 새로고침에 옛 값이 안 나옴), **결과적 일관성**(곧 수렴하나 지금은 낡을 수 있음 — 가장 빠름, AP). 위로 갈수록 보장이 강하고 비싸며(지연·가용성 대가), 아래로 갈수록 싸고 낡을 수 있다. 실전은 **연산·데이터별로** 이 스펙트럼에서 고른다: 잔액 쓰기·읽기는 강한 일관성, 내 주문 목록은 read-your-writes, 피드는 단조 읽기, 좋아요 수는 결과적. 「필요한 만큼만 강하게」가 원칙 — 불필요하게 강하면 느리고 취약하고(전부 강한 일관성은 확장을 막음), 필요한데 느슨하면 버그(돈이 샘)다. 저장소의 일관성 설정(쿼럼 등, 2장)이 이 스펙트럼의 어디를 쓸지 정한다."
+          "text": "**일관성은 스펙트럼이고, 연산, 데이터마다 필요한 수준을 고른다. 전부 강하게도 전부 느슨하게도 아니다.** \"강한 일관성이냐 결과적이냐\"의 이분법이 아니라, 그 사이에 여러 유용한 수준이 있다: **강한 일관성/선형성**(모든 읽기가 최신 쓰기를 봄. 가장 안전하나 노드 간 합의로 느리고 분단 시 실패, CP), **read-your-writes**(내가 쓴 건 나에게 바로, 5장), **단조 읽기**(한 번 본 값이 뒤로 안 감. 새로고침에 옛 값이 안 나옴), **결과적 일관성**(곧 수렴하나 지금은 낡을 수 있음. 가장 빠름, AP). 위로 갈수록 보장이 강하고 비싸며(지연, 가용성 대가), 아래로 갈수록 싸고 낡을 수 있다. 실전은 **연산, 데이터별로** 이 스펙트럼에서 고른다: 잔액 쓰기, 읽기는 강한 일관성, 내 주문 목록은 read-your-writes, 피드는 단조 읽기, 좋아요 수는 결과적. \"필요한 만큼만 강하게\"가 원칙. 불필요하게 강하면 느리고 취약하고(전부 강한 일관성은 확장을 막음), 필요한데 느슨하면 버그(돈이 샘)다. 저장소의 일관성 설정(쿼럼 등, 2장)이 이 스펙트럼의 어디를 쓸지 정한다."
         },
         {
           "type": "p",
-          "text": "**강한 일관성은 비싸다 — 그래서 「진짜 필요한 곳만」 강하게.** 강한 일관성(선형성)은 여러 노드가 「하나의 최신 순서」에 합의해야 하므로(합의 알고리즘 Paxos·Raft), 노드 간 통신·조율이 필요해 **느리고**(지연↑) **분단 시 응답 불가**(CP — 가용성 희생)다. 그래서 모든 데이터를 강한 일관성으로 하면 시스템 전체가 느리고 취약해진다 — 확장의 걸림돌이다. 반대로 결과적 일관성은 각 노드가 독립적으로 응답하니 빠르고 견고하지만(AP) 낡을 수 있다. 그래서 확장 가능한 시스템은 **대부분을 느슨하게(빠르게) 하고, 정말 강한 일관성이 필요한 소수만**(잔액·재고 차감·리더 선출·유니크 제약) 강하게 한다. 이건 「돈·재고는 CP, 나머지는 AP」(3장)를 일관성 수준으로 정밀화한 것이다. 「이 연산이 정말 최신을 봐야 하나, 아니면 좀 낡아도 되나」를 물어 스펙트럼에서 고른다 — 강한 일관성을 아껴 쓰는 게 확장의 지혜다. 그리고 강한 일관성이 필요한 부분은 대개 작아서(핵심 거래), 그 부분만 CP 저장소·트랜잭션으로 다루고 나머지는 AP 로 확장한다."
+          "text": "**강한 일관성은 비싸다. 그래서 \"진짜 필요한 곳만\" 강하게.** 강한 일관성(선형성)은 여러 노드가 \"하나의 최신 순서\"에 합의해야 하므로(합의 알고리즘 Paxos, Raft), 노드 간 통신, 조율이 필요해 **느리고**(지연↑) **분단 시 응답 불가**(CP. 가용성 희생)다. 그래서 모든 데이터를 강한 일관성으로 하면 시스템 전체가 느리고 취약해진다. 확장의 걸림돌이다. 반대로 결과적 일관성은 각 노드가 독립적으로 응답하니 빠르고 견고하지만(AP) 낡을 수 있다. 그래서 확장 가능한 시스템은 **대부분을 느슨하게(빠르게) 하고, 정말 강한 일관성이 필요한 소수만**(잔액, 재고 차감, 리더 선출, 유니크 제약) 강하게 한다. 이건 \"돈, 재고는 CP, 나머지는 AP\"(3장)를 일관성 수준으로 정밀화한 것이다. \"이 연산이 정말 최신을 봐야 하나, 아니면 좀 낡아도 되나\"를 물어 스펙트럼에서 고른다. 강한 일관성을 아껴 쓰는 게 확장의 지혜다. 그리고 강한 일관성이 필요한 부분은 대개 작아서(핵심 거래), 그 부분만 CP 저장소, 트랜잭션으로 다루고 나머지는 AP 로 확장한다."
         },
         {
           "type": "try",
-          "text": "네 시스템의 연산들을 일관성 스펙트럼에 배치하라 — 무엇이 강한 일관성(잔액), read-your-writes(내 것), 결과적(좋아요)이면 되나. 불필요하게 강한 일관성을 쓰는 곳이 있으면 느슨하게 해 확장·속도를 얻을 수 있는지 보라."
+          "text": "네 시스템의 연산들을 일관성 스펙트럼에 배치하라. 무엇이 강한 일관성(잔액), read-your-writes(내 것), 결과적(좋아요)이면 되나. 불필요하게 강한 일관성을 쓰는 곳이 있으면 느슨하게 해 확장, 속도를 얻을 수 있는지 보라."
         }
       ],
       "quiz": [
@@ -522,7 +522,7 @@
           "q": "확장 가능한 시스템의 일관성 전략은?",
           "choices": [
             "전부 강하게",
-            "대부분 느슨하게·정말 필요한 소수만 강하게",
+            "대부분 느슨하게, 정말 필요한 소수만 강하게",
             "전부 느슨하게",
             "무작위"
           ],
@@ -538,7 +538,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "AP(가용성)를 택해 여러 노드가 독립적으로 쓰면, **같은 데이터를 동시에 다르게** 쓴 **충돌**이 생긴다 — 분단 중 A 노드는 「제목=X」, B 노드는 「제목=Y」로. 수렴할 때 어떻게 합칠지 정해야 한다: **Last-Write-Wins**(마지막 쓰기 승 — 단순하나 한쪽 유실) · **버전 벡터**(누가 언제 썼는지 추적해 충돌 감지) · **CRDT**(수학적으로 자동 병합 — 카운터·집합) · **애플리케이션 병합**(도메인 규칙으로 — 장바구니는 합집합). 「충돌하면 어떻게 합치나」를 미리 정한다."
+          "text": "AP(가용성)를 택해 여러 노드가 독립적으로 쓰면, **같은 데이터를 동시에 다르게** 쓴 **충돌**이 생긴다. 분단 중 A 노드는 \"제목=X\", B 노드는 \"제목=Y\"로. 수렴할 때 어떻게 합칠지 정해야 한다: **Last-Write-Wins**(마지막 쓰기 승. 단순하나 한쪽 유실), **버전 벡터**(누가 언제 썼는지 추적해 충돌 감지), **CRDT**(수학적으로 자동 병합. 카운터, 집합), **애플리케이션 병합**(도메인 규칙으로. 장바구니는 합집합). \"충돌하면 어떻게 합치나\"를 미리 정한다."
         },
         {
           "type": "demo",
@@ -575,15 +575,15 @@
         },
         {
           "type": "note",
-          "text": "**AP 에서 동시 쓰기는 충돌하니, 합치는 방법을 미리 정하라 — LWW·버전 벡터·CRDT·앱 병합.** 여러 노드가 독립적으로 쓰면(AP·오프라인 편집·멀티 지역), 분단 중 같은 데이터가 다르게 바뀌어 수렴 시 충돌한다. 해결 방법: ① **Last-Write-Wins(LWW)** — 타임스탬프가 늦은 쓰기가 이긴다. 단순하지만 진 쪽 변경이 **조용히 유실**되고, 서버 간 시계 차이로 「늦은」의 판단이 틀릴 수 있다(위험한 단순함). ② **버전 벡터/벡터 시계** — 누가 언제 썼는지 추적해 **충돌을 감지**하고(자동 병합은 아님) 앱·사용자에게 「충돌 났으니 고르세요」로 넘긴다. ③ **CRDT**(Conflict-free Replicated Data Type) — 수학적 성질(교환·결합 법칙)로 **자동으로 충돌 없이 병합**되게 설계된 자료구조: 카운터(증감 합산), 집합(합집합), 텍스트(협업 편집) — 순서·중복에 무관하게 같은 결과로 수렴한다(sync·실시간 협업에서 강력). ④ **애플리케이션 병합** — 도메인 규칙으로 합친다(장바구니는 두 버전의 합집합, 재고는 최솟값 등 — 의미 있는 병합). 「충돌하면 마지막 것으로」(LWW)가 기본값처럼 쓰이지만 유실 위험이 있으니, 데이터 의미에 맞는 병합(CRDT·앱 병합)이 나은 경우가 많다."
+          "text": "**AP 에서 동시 쓰기는 충돌하니, 합치는 방법을 미리 정하라. LWW, 버전 벡터, CRDT, 앱 병합.** 여러 노드가 독립적으로 쓰면(AP, 오프라인 편집, 멀티 지역), 분단 중 같은 데이터가 다르게 바뀌어 수렴 시 충돌한다. 해결 방법: ① **Last-Write-Wins(LWW)**. 타임스탬프가 늦은 쓰기가 이긴다. 단순하지만 진 쪽 변경이 **조용히 유실**되고, 서버 간 시계 차이로 \"늦은\"의 판단이 틀릴 수 있다(위험한 단순함). ② **버전 벡터/벡터 시계**. 누가 언제 썼는지 추적해 **충돌을 감지**하고(자동 병합은 아님) 앱, 사용자에게 \"충돌 났으니 고르세요\"로 넘긴다. ③ **CRDT**(Conflict-free Replicated Data Type). 수학적 성질(교환, 결합 법칙)로 **자동으로 충돌 없이 병합**되게 설계된 자료구조: 카운터(증감 합산), 집합(합집합), 텍스트(협업 편집). 순서, 중복에 무관하게 같은 결과로 수렴한다(sync, 실시간 협업에서 강력). ④ **애플리케이션 병합**. 도메인 규칙으로 합친다(장바구니는 두 버전의 합집합, 재고는 최솟값 등. 의미 있는 병합). \"충돌하면 마지막 것으로\"(LWW)가 기본값처럼 쓰이지만 유실 위험이 있으니, 데이터 의미에 맞는 병합(CRDT, 앱 병합)이 나은 경우가 많다."
         },
         {
           "type": "p",
-          "text": "**충돌을 「없애기」보다 「의미 있게 다루기」 — 데이터 성격이 방법을 정한다.** 충돌 해결의 핵심은 「어느 데이터에 어떤 병합이 옳은가」다: **카운터·집합류**(좋아요 수·태그·장바구니)는 CRDT·앱 병합으로 **손실 없이** 합칠 수 있다(합산·합집합 — 두 사람이 각자 담은 것을 다 보존). **단일 값**(제목·상태)은 LWW 나 「사용자에게 물어보기」(충돌 표시 후 선택). **협업 텍스트**(문서 동시 편집)는 CRDT·OT(operational transformation)로 문자 단위 병합(sync). 그래서 「무조건 LWW」가 아니라 데이터마다 옳은 방법을 고른다 — 장바구니를 LWW 로 하면 한 사람이 담은 게 사라지지만(나쁨), 합집합으로 하면 둘 다 보존(좋음). 그리고 **애초에 충돌을 줄이는** 설계도 있다: 강한 일관성이 필요한 건 CP 로(단일 주·트랜잭션, 충돌 원천 차단), 정말 분산 쓰기가 필요한 것만 AP + 병합으로. 「이 데이터가 여러 곳에서 동시에 쓰이나? 그러면 충돌을 어떻게 합쳐야 의미가 맞나?」를 물어, 데이터별 병합 전략을 정한다. 충돌 처리는 CAP 의 AP 선택이 낳는 필연적 설계 과제다."
+          "text": "**충돌을 \"없애기\"보다 \"의미 있게 다루기\". 데이터 성격이 방법을 정한다.** 충돌 해결의 핵심은 \"어느 데이터에 어떤 병합이 옳은가\"다: **카운터, 집합류**(좋아요 수, 태그, 장바구니)는 CRDT, 앱 병합으로 **손실 없이** 합칠 수 있다(합산, 합집합. 두 사람이 각자 담은 것을 다 보존). **단일 값**(제목, 상태)은 LWW 나 \"사용자에게 물어보기\"(충돌 표시 후 선택). **협업 텍스트**(문서 동시 편집)는 CRDT, OT(operational transformation)로 문자 단위 병합(sync). 그래서 \"무조건 LWW\"가 아니라 데이터마다 옳은 방법을 고른다. 장바구니를 LWW 로 하면 한 사람이 담은 게 사라지지만(나쁨), 합집합으로 하면 둘 다 보존(좋음). 그리고 **애초에 충돌을 줄이는** 설계도 있다: 강한 일관성이 필요한 건 CP 로(단일 주, 트랜잭션, 충돌 원천 차단), 정말 분산 쓰기가 필요한 것만 AP + 병합으로. \"이 데이터가 여러 곳에서 동시에 쓰이나? 그러면 충돌을 어떻게 합쳐야 의미가 맞나?\"를 물어, 데이터별 병합 전략을 정한다. 충돌 처리는 CAP 의 AP 선택이 낳는 필연적 설계 과제다."
         },
         {
           "type": "try",
-          "text": "네 시스템에 동시 쓰기로 충돌할 수 있는 데이터가 있는지 찾아(멀티 지역·오프라인·복제), 그 충돌을 어떻게 합칠지 정하라 — 카운터·집합은 CRDT·합집합, 단일 값은 LWW·사용자 선택. LWW 로 조용히 유실되는 곳이 없는지 점검하라."
+          "text": "네 시스템에 동시 쓰기로 충돌할 수 있는 데이터가 있는지 찾아(멀티 지역, 오프라인, 복제), 그 충돌을 어떻게 합칠지 정하라. 카운터, 집합은 CRDT, 합집합, 단일 값은 LWW, 사용자 선택. LWW 로 조용히 유실되는 곳이 없는지 점검하라."
         }
       ],
       "quiz": [
@@ -610,10 +610,10 @@
           "why": "의미 있는 병합이 나음."
         },
         {
-          "q": "카운터·집합을 손실 없이 병합하는 것은?",
+          "q": "카운터, 집합을 손실 없이 병합하는 것은?",
           "choices": [
             "LWW",
-            "CRDT(자동 병합·합산·합집합)·앱 병합",
+            "CRDT(자동 병합, 합산, 합집합), 앱 병합",
             "삭제",
             "무시"
           ],
@@ -624,17 +624,17 @@
     },
     {
       "id": "8",
-      "title": "판단 기준 — 5초 낡으면?",
+      "title": "판단 기준. 5초 낡으면?",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "CP/AP·일관성 수준을 정하는 **한 가지 질문**: **「이 데이터가 5초 낡으면 무슨 일이 생기나?」**를 항목마다 묻는다. **아무 일도 안 생기면** 가용성(AP)·결과적 일관성으로 가도 된다(빠르고 견고). **돈·재고·권한처럼 큰일** 나면 일관성(CP)으로 간다. 이 단순한 질문이 저장소·캐시·복제·UI 전략을 전부 정한다 — 「우리 시스템은 강한 일관성」 같은 뭉뚱그림 대신, 데이터마다 이 질문에 답하면 각각에 맞는 선택이 나온다."
+          "text": "CP/AP, 일관성 수준을 정하는 **한 가지 질문**: **\"이 데이터가 5초 낡으면 무슨 일이 생기나?\"**를 항목마다 묻는다. **아무 일도 안 생기면** 가용성(AP), 결과적 일관성으로 가도 된다(빠르고 견고). **돈, 재고, 권한처럼 큰일** 나면 일관성(CP)으로 간다. 이 단순한 질문이 저장소, 캐시, 복제, UI 전략을 전부 정한다. \"우리 시스템은 강한 일관성\" 같은 뭉뚱그림 대신, 데이터마다 이 질문에 답하면 각각에 맞는 선택이 나온다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "5초 낡으면? — 데이터별 판정",
+          "label": "5초 낡으면?. 데이터별 판정",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const data = '{{data}}';\n  const cases = {\n    balance:['잔액', '이중 인출·마이너스 잔액 → 돈이 샌다', 'cp'],\n    stock:['재고', '오버셀(없는 걸 팜) → 사고', 'cp'],\n    perm:['권한', '해지된 권한으로 접근 → 보안 사고', 'cp'],\n    likes:['좋아요 수', '아무 일 없음(5초 뒤 맞으면 됨)', 'ap'],\n    profile:['남의 프로필', '방금 바뀐 게 5초 늦게 보임 → 괜찮음', 'ap'],\n    catalog:['상품 카탈로그', '가격 표시가 5초 낡음 → 결제 시 재확인하면 OK', 'ap'],\n  }[data];\n  const cp = cases[2]==='cp';\n  render('데이터: ' + cases[0],\n    '  「5초 낡으면?」: ' + cases[1] + '\\n\\n' +\n    (cp ? '  <span class=\\\"no\\\">큰일 남 → 일관성(CP)·강한 일관성.</span>'\n      : '  <span class=\\\"ok\\\">아무 일 없음 → 가용성(AP)·결과적 일관성(빠르고 견고).</span>'),\n    '「5초 낡으면 무슨 일?」 — 아무 일 없으면 AP, 돈·재고·권한이면 CP.',\n    box(cases[0] + ' → ' + (cp?'CP':'AP'), cases[1], cp?'bad':'good'));\n</script>",
           "controls": [
@@ -674,15 +674,15 @@
         },
         {
           "type": "note",
-          "text": "**「이 데이터가 5초 낡으면 무슨 일이 생기나?」 — 아무 일 없으면 AP, 돈·재고·권한이면 CP.** 이 한 질문이 CAP·일관성 설계를 실용적으로 만든다. 각 데이터에 물어 본다: **큰일 나는 것**(잔액 낡음 → 이중 인출, 재고 낡음 → 오버셀, 권한 낡음 → 보안 사고) → 일관성(CP·강한 일관성·트랜잭션, data-tx·pay-idem). **아무 일 없는 것**(좋아요 수·남의 프로필·피드·카탈로그가 5초 낡음 → 곧 맞으면 됨) → 가용성(AP·결과적 일관성·캐시·복제 — 빠르고 견고). 미묘한 경우(카탈로그 가격)는 「표시는 좀 낡아도 되지만 결제 시 재확인」처럼 나눈다. 이 질문의 힘은 **항목마다 구체적**이라는 것 — 「우리 시스템은 강한 일관성이 필요해」라는 뭉뚱그림은 대부분 과하다(전부 강하게 = 느리고 취약). 데이터를 나눠 「이건 5초 낡아도 되나?」를 물으면, 대부분은 「된다」(AP 로 확장·캐시 가능)이고 소수만 「안 된다」(CP 로 정확히)로 갈린다. 그 답이 곧 저장소·캐시(data-cache)·복제(5장)·UI(4장) 전략이다."
+          "text": "**\"이 데이터가 5초 낡으면 무슨 일이 생기나?\". 아무 일 없으면 AP, 돈, 재고, 권한이면 CP.** 이 한 질문이 CAP, 일관성 설계를 실용적으로 만든다. 각 데이터에 물어 본다: **큰일 나는 것**(잔액 낡음 → 이중 인출, 재고 낡음 → 오버셀, 권한 낡음 → 보안 사고) → 일관성(CP, 강한 일관성, 트랜잭션, data-tx, pay-idem). **아무 일 없는 것**(좋아요 수, 남의 프로필, 피드, 카탈로그가 5초 낡음 → 곧 맞으면 됨) → 가용성(AP, 결과적 일관성, 캐시, 복제. 빠르고 견고). 미묘한 경우(카탈로그 가격)는 \"표시는 좀 낡아도 되지만 결제 시 재확인\"처럼 나눈다. 이 질문의 힘은 **항목마다 구체적**이라는 것. \"우리 시스템은 강한 일관성이 필요해\"라는 뭉뚱그림은 대부분 과하다(전부 강하게 = 느리고 취약). 데이터를 나눠 \"이건 5초 낡아도 되나?\"를 물으면, 대부분은 \"된다\"(AP 로 확장, 캐시 가능)이고 소수만 \"안 된다\"(CP 로 정확히)로 갈린다. 그 답이 곧 저장소, 캐시(data-cache), 복제(5장), UI(4장) 전략이다."
         },
         {
           "type": "p",
-          "text": "**「5초」는 예시고, 진짜 질문은 「허용 stale 시간」이다 — data-cache 와 같은 뿌리.** 데이터마다 허용되는 낡음의 정도가 다르다: 좋아요 수는 분 단위 낡아도 되고, 재고는 초 단위도 위험하고, 카탈로그 설명은 시간 단위도 괜찮다. 그래서 「5초」를 그 데이터의 실제 허용치로 바꿔 묻는다 — 이건 data-cache 1장의 「이 데이터가 몇 초/분 낡아도 사용자가 괜찮은가」와 정확히 같은 질문이다. CAP(어느 일관성)·캐시(얼마나 캐시)·복제(복제 지연 허용)가 다 이 「허용 stale 시간」에서 파생된다. 그리고 이 판단은 **비즈니스·사용자와 함께** 한다 — 「재고가 잠깐 낡아 오버셀되면 사과·환불로 감당 가능한가, 절대 안 되나」는 기술이 아니라 사업 결정이다(어떤 커머스는 약간의 오버셀을 감수하고 가용성·속도를 택한다). 그래서 CAP 선택은 「기술적으로 무엇이 가능한가」와 「사업적으로 무엇이 허용되나」의 만남이다. 데이터마다 이 대화를 하면, 「전부 완벽히 일관되게」(불가능·비쌈)가 아니라 「필요한 만큼 일관되게, 나머지는 빠르고 견고하게」의 현실적 설계가 나온다."
+          "text": "**\"5초\"는 예시고, 진짜 질문은 \"허용 stale 시간\"이다. data-cache 와 같은 뿌리.** 데이터마다 허용되는 낡음의 정도가 다르다: 좋아요 수는 분 단위 낡아도 되고, 재고는 초 단위도 위험하고, 카탈로그 설명은 시간 단위도 괜찮다. 그래서 \"5초\"를 그 데이터의 실제 허용치로 바꿔 묻는다. 이건 data-cache 1장의 \"이 데이터가 몇 초/분 낡아도 사용자가 괜찮은가\"와 정확히 같은 질문이다. CAP(어느 일관성), 캐시(얼마나 캐시), 복제(복제 지연 허용)가 다 이 \"허용 stale 시간\"에서 파생된다. 그리고 이 판단은 **비즈니스, 사용자와 함께** 한다. \"재고가 잠깐 낡아 오버셀되면 사과, 환불로 감당 가능한가, 절대 안 되나\"는 기술이 아니라 사업 결정이다(어떤 커머스는 약간의 오버셀을 감수하고 가용성, 속도를 택한다). 그래서 CAP 선택은 \"기술적으로 무엇이 가능한가\"와 \"사업적으로 무엇이 허용되나\"의 만남이다. 데이터마다 이 대화를 하면, \"전부 완벽히 일관되게\"(불가능, 비쌈)가 아니라 \"필요한 만큼 일관되게, 나머지는 빠르고 견고하게\"의 현실적 설계가 나온다."
         },
         {
           "type": "try",
-          "text": "네 서비스의 주요 데이터마다 「이게 (그 데이터의 허용 시간만큼) 낡으면 무슨 일?」에 답하라 — 그 답으로 CP/AP·일관성 수준·캐시·복제 전략을 정하라. 「큰일 남」이 소수이고 대부분은 「괜찮음」(AP 로 확장 가능)인지 확인하라."
+          "text": "네 서비스의 주요 데이터마다 \"이게 (그 데이터의 허용 시간만큼) 낡으면 무슨 일?\"에 답하라. 그 답으로 CP/AP, 일관성 수준, 캐시, 복제 전략을 정하라. \"큰일 남\"이 소수이고 대부분은 \"괜찮음\"(AP 로 확장 가능)인지 확인하라."
         }
       ],
       "quiz": [
@@ -698,10 +698,10 @@
           "why": "항목마다 물음."
         },
         {
-          "q": "「5초 낡아도 아무 일 없으면」?",
+          "q": "\"5초 낡아도 아무 일 없으면\"?",
           "choices": [
             "CP 강제",
-            "AP·결과적 일관성으로 가도 됨(빠르고 견고)",
+            "AP, 결과적 일관성으로 가도 됨(빠르고 견고)",
             "느림",
             "실패"
           ],
@@ -723,17 +723,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — CAP·일관성",
+      "title": "점검표. CAP, 일관성",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "분산 데이터를 설계하거나 「낡은 값·충돌」을 진단할 때 이 목록을 확인하라. 핵심은 「데이터마다 5초 낡으면? 을 묻고, 필요한 만큼만 일관성을 쓰라」다."
+          "text": "분산 데이터를 설계하거나 \"낡은 값, 충돌\"을 진단할 때 이 목록을 확인하라. 핵심은 \"데이터마다 5초 낡으면? 을 묻고, 필요한 만큼만 일관성을 쓰라\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:2px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .write { background:#a78bfa; } .tl .read { background:#38bdf8; } .tl .stale { background:#ef4444; color:#fff; } .tl .ok2 { background:#4ade80; } .tl .lag { background:#f59e0b; }\n  .scale2 { display:flex; margin:8px 0; border-radius:6px; overflow:hidden; font:10px ui-monospace, monospace; }\n  .scale2 .seg2 { padding:6px 4px; text-align:center; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const scale2 = (segs) => '<div class=\"scale2\">' + segs.map(([lab, w, col]) =>\n    '<div class=\"seg2\" style=\"flex:' + w + ';background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '분단 시 C(일관성) vs A(가용성)를 골라야 함을 안다',\n    'P 는 선택 아님 — 실제는 CP vs AP',\n    '데이터마다 「5초 낡으면?」으로 CP/AP 판정',\n    '결과적 일관성엔 낙관적 UI·동기화 표시',\n    '읽기 복제 지연 — read-your-writes 로 내 것 보장',\n    '일관성은 스펙트럼 — 필요한 만큼만 강하게',\n    'AP 동시 쓰기 충돌 — 병합 방법(LWW·CRDT·앱)',\n    '핵심은 CP, 부수는 AP 로 섞는다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 데이터마다 맞는 일관성으로 확장·정확을 둘 다 얻는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '데이터마다 5초 낡으면? · 필요한 만큼만 일관성 · 핵심 CP·부수 AP.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -750,23 +750,23 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 데이터마다 「5초 낡으면?」을 묻고, 필요한 만큼만 일관성을 쓰라.** 분단 시 C vs A 를 골라야 하고(1장), P 는 선택이 아니라 실제는 CP vs AP 이며(2장), 어느 쪽인지는 도메인이 정한다(3·8장 — 5초 낡으면?). AP 를 택하면 결과적 일관성을 낙관적 UI 로 다루고(4장), 읽기 복제 지연은 read-your-writes 로(5장), 일관성 스펙트럼에서 필요한 만큼만 강하게(6장), 동시 쓰기 충돌은 병합 방법으로(7장) 다룬다. 핵심(돈·재고)은 CP, 부수(좋아요·피드)는 AP 로 섞는 게 확장과 정확을 둘 다 얻는 길이다."
+          "text": "**한 줄 요약: 데이터마다 \"5초 낡으면?\"을 묻고, 필요한 만큼만 일관성을 쓰라.** 분단 시 C vs A 를 골라야 하고(1장), P 는 선택이 아니라 실제는 CP vs AP 이며(2장), 어느 쪽인지는 도메인이 정한다(3, 8장. 5초 낡으면?). AP 를 택하면 결과적 일관성을 낙관적 UI 로 다루고(4장), 읽기 복제 지연은 read-your-writes 로(5장), 일관성 스펙트럼에서 필요한 만큼만 강하게(6장), 동시 쓰기 충돌은 병합 방법으로(7장) 다룬다. 핵심(돈, 재고)은 CP, 부수(좋아요, 피드)는 AP 로 섞는 게 확장과 정확을 둘 다 얻는 길이다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** CP·트랜잭션은 data-tx·pay-idem, 결과적 일관성·캐시는 data-cache(허용 stale), 읽기 복제·샤딩은 scale-shard, 낙관적 UI 는 web-js(상태 관리), 충돌·CRDT·재연결은 sync(실시간 협업), 무상태·복제는 scale-lb, 도메인 판단은 design 로 이어진다. **「데이터마다 일관성 요구를 묻고, 필요한 만큼만 강하게 해 확장과 정확을 함께 얻는 감각」이 분산 데이터 설계의 핵심**이다."
+          "text": "**이 칸의 연결.** CP, 트랜잭션은 data-tx, pay-idem, 결과적 일관성, 캐시는 data-cache(허용 stale), 읽기 복제, 샤딩은 scale-shard, 낙관적 UI 는 web-js(상태 관리), 충돌, CRDT, 재연결은 sync(실시간 협업), 무상태, 복제는 scale-lb, 도메인 판단은 design 로 이어진다. **\"데이터마다 일관성 요구를 묻고, 필요한 만큼만 강하게 해 확장과 정확을 함께 얻는 감각\"이 분산 데이터 설계의 핵심**이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 분산 데이터를 점검하라. 「데이터마다 5초 낡으면? 판정」과 「read-your-writes(내 것은 바로)」 두 가지만 잡아도, 잘못된 일관성 선택과 「방금 쓴 게 안 보임」 사고가 크게 준다."
+          "text": "이 8개로 네 분산 데이터를 점검하라. \"데이터마다 5초 낡으면? 판정\"과 \"read-your-writes(내 것은 바로)\" 두 가지만 잡아도, 잘못된 일관성 선택과 \"방금 쓴 게 안 보임\" 사고가 크게 준다."
         }
       ],
       "quiz": [
         {
-          "q": "CAP·일관성 장의 한 줄 요약은?",
+          "q": "CAP, 일관성 장의 한 줄 요약은?",
           "choices": [
             "전부 강한 일관성",
-            "데이터마다 5초 낡으면? 묻고·필요한 만큼만 일관성",
+            "데이터마다 5초 낡으면? 묻고, 필요한 만큼만 일관성",
             "빠르게",
             "무시"
           ],
@@ -776,19 +776,19 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "전부 CP·전부 AP",
+            "전부 CP, 전부 AP",
             "데이터마다 5초 낡으면? 판정 + read-your-writes",
-            "샤딩·CRDT부터",
+            "샤딩, CRDT부터",
             "무시"
           ],
           "answer": 1,
-          "why": "선택·낡음 사고 방지."
+          "why": "선택, 낡음 사고 방지."
         },
         {
           "q": "CAP 이 이어지는 주제는?",
           "choices": [
             "없음",
-            "data-tx·data-cache·scale-shard·sync·web-js",
+            "data-tx, data-cache, scale-shard, sync, web-js",
             "문법",
             "속도"
           ],

@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "두 단어가 비슷해 보여서 코드에서도 섞인다. 질문이 다르다 — **인증(authentication)은 「너는 누구인가」**, **인가(authorization)는 「너는 이걸 해도 되나」**. 인증이 끝났다고 인가가 끝난 것이 아니다."
+          "text": "두 단어가 비슷해 보여서 코드에서도 섞인다. 질문이 다르다. **인증(authentication)은 \"너는 누구인가\"**, **인가(authorization)는 \"너는 이걸 해도 되나\"**. 인증이 끝났다고 인가가 끝난 것이 아니다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 어느 질문에서 걸리나",
+          "label": "상황을 골라 보라. 어느 질문에서 걸리나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    anon:  ['로그인하지 않은 사람이 /admin 을 연다', '인증 실패', '401 Unauthorized',\n      '이름 그대로면 「인가 실패」 같지만 401 은 <span class=\"warn\">인증</span> 쪽이다 — 역사적 오명.'],\n    user:  ['일반 사용자가 /admin 을 연다', '인가 실패', '403 Forbidden (또는 404)',\n      '누구인지는 안다. 다만 권한이 없다.'],\n    other: ['A 가 B 의 주문을 조회한다', '인가 실패', '404 (존재도 숨긴다)',\n      '가장 흔한 구멍(IDOR). 인증만 확인하고 소유 확인을 빠뜨린 경우.'],\n    expired:['토큰이 만료됐다', '인증 실패', '401 + 재발급 유도',\n      '클라이언트가 갱신 토큰으로 다시 받도록 흐름을 준다(3장).'],\n    scope: ['앱이 「읽기」 권한만 받았는데 쓰기를 시도', '인가 실패', '403 insufficient_scope',\n      'OAuth 의 범위(scope) — 사용자는 맞지만 앱에 준 권한이 아니다(5장).'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"no\">' + esc(t[1]) + '</span>  ->  ' + esc(t[2]) +\n    '\\n\\n  ' + t[3],\n    '순서: 인증(누구인가) -> 인가(해도 되나). 둘 다 서버에서, 매 요청마다.',\n    flow(['요청 도착', '인증: 세션·토큰 검증 -> 누구인가', '인가: 이 사람이 이 자원에 권한이 있나',\n          '처리'], c === 'anon' || c === 'expired' ? 1 : 2));\n</script>",
           "controls": [
@@ -49,7 +49,7 @@
         },
         {
           "type": "note",
-          "text": "**401 과 403 은 이름이 헷갈리게 붙었다.** 401 Unauthorized 는 사실 「인증이 안 됐다」는 뜻이고, 403 Forbidden 이 「인증은 됐는데 권한이 없다」다. 헷갈리면 「401 = 로그인해라, 403 = 너는 안 된다」로 외워라."
+          "text": "**401 과 403 은 이름이 헷갈리게 붙었다.** 401 Unauthorized 는 사실 \"인증이 안 됐다\"는 뜻이고, 403 Forbidden 이 \"인증은 됐는데 권한이 없다\"다. 헷갈리면 \"401 = 로그인해라, 403 = 너는 안 된다\"로 외워라."
         },
         {
           "type": "code",
@@ -59,16 +59,16 @@
         },
         {
           "type": "p",
-          "text": "이 칸에서는 인증을 **1~6장**, 인가를 **7장**에서 다룬다. 인증은 복잡해 보이지만 「비밀을 어떻게 다루고, 상태를 어디에 두느냐」 두 축으로 정리된다 — 그 축을 먼저 세운다."
+          "text": "이 칸에서는 인증을 **1~6장**, 인가를 **7장**에서 다룬다. 인증은 복잡해 보이지만 \"비밀을 어떻게 다루고, 상태를 어디에 두느냐\" 두 축으로 정리된다. 그 축을 먼저 세운다."
         },
         {
           "type": "try",
-          "text": "내 API 에서 401 과 403 을 구분해 쓰고 있는지 확인하라. 전부 401 이면 클라이언트가 「다시 로그인」을 잘못 유도하고 있을 수 있다."
+          "text": "내 API 에서 401 과 403 을 구분해 쓰고 있는지 확인하라. 전부 401 이면 클라이언트가 \"다시 로그인\"을 잘못 유도하고 있을 수 있다."
         }
       ],
       "quiz": [
         {
-          "q": "「너는 누구인가」에 답하는 것은?",
+          "q": "\"너는 누구인가\"에 답하는 것은?",
           "choices": [
             "인가",
             "인증",
@@ -76,7 +76,7 @@
             "세션"
           ],
           "answer": 1,
-          "why": "인가는 「해도 되나」."
+          "why": "인가는 \"해도 되나\"."
         },
         {
           "q": "로그인은 했지만 권한이 없을 때의 상태 코드는?",
@@ -104,17 +104,17 @@
     },
     {
       "id": "2",
-      "title": "비밀번호 — 저장하지 말고 검증만 하라",
+      "title": "비밀번호. 저장하지 말고 검증만 하라",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "비밀번호는 **되돌릴 수 없게** 저장한다. 그래서 「비밀번호를 알려 주세요」가 불가능한 서비스가 정상이다 — 알려 줄 수 있다면 평문이나 복호화 가능한 형태로 갖고 있다는 뜻이다."
+          "text": "비밀번호는 **되돌릴 수 없게** 저장한다. 그래서 \"비밀번호를 알려 주세요\"가 불가능한 서비스가 정상이다. 알려 줄 수 있다면 평문이나 복호화 가능한 형태로 갖고 있다는 뜻이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "저장 방식을 골라 보라 — 유출되면 어떻게 되나",
+          "label": "저장 방식을 골라 보라. 유출되면 어떻게 되나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    plain: ['평문', 'bad', 'password123',\n      '<span class=\"no\">즉시 전부 털린다.</span> 다른 사이트에서 같은 비밀번호를 쓰는 사용자까지 피해.'],\n    md5:   ['MD5·SHA-1 (빠른 해시)', 'bad', '482c811da5d5b4bc6d497ffa98491e38',\n      '<span class=\"no\">GPU 로 초당 수십억 번 시도</span> — 흔한 비밀번호는 몇 초. 레인보우 테이블도 있다.'],\n    salt:  ['SHA-256 + 솔트', 'warn', 'sha256(salt + pw)',\n      '레인보우 테이블은 막지만 여전히 빠르다 — 무차별 대입에는 약하다.'],\n    bcrypt:['bcrypt·scrypt·Argon2 (느린 해시)', 'good', '$2b$12$K3f…  (알고리즘·비용·솔트 포함)',\n      '<span class=\"ok\">일부러 느리게</span> 만든다 — 비용 인자로 조절. 솔트가 값 안에 들어 있다.'],\n    pepper:['+ 페퍼 (앱 비밀)', 'good', 'argon2(pw + salt, secret=PEPPER)',\n      'DB 만 털렸을 때 한 겹 더. 페퍼는 DB 가 아니라 비밀 관리 서비스에 둔다.'],\n  }[c];\n  render('users.password_hash',\n    '  <span class=\"' + (t[1] === 'good' ? 'ok' : t[1] === 'warn' ? 'warn' : 'no') + '\">' + esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    '핵심: 「느린 해시」 — 정상 로그인은 100ms, 공격자는 그 100ms 를 수억 번 치러야 한다.',\n    box('저장되는 값', t[2], t[1] === 'good' ? 'good' : t[1] === 'bad' ? 'bad' : ''));\n</script>",
           "controls": [
@@ -130,7 +130,7 @@
                 },
                 {
                   "value": "md5",
-                  "label": "MD5·SHA-1"
+                  "label": "MD5, SHA-1"
                 },
                 {
                   "value": "salt",
@@ -138,7 +138,7 @@
                 },
                 {
                   "value": "bcrypt",
-                  "label": "bcrypt·Argon2"
+                  "label": "bcrypt, Argon2"
                 },
                 {
                   "value": "pepper",
@@ -156,11 +156,11 @@
         },
         {
           "type": "note",
-          "text": "**정책은 「복잡함」보다 「길이」**다. 특수문자 강제는 `Passw0rd!` 같은 예측 가능한 패턴을 만든다 — 요즘 권고(NIST)는 **최소 8자 이상, 길이를 권장, 유출된 비밀번호 목록과 대조**, 그리고 **주기적 강제 변경은 하지 않는 것**이다."
+          "text": "**정책은 \"복잡함\"보다 \"길이\"**다. 특수문자 강제는 `Passw0rd!` 같은 예측 가능한 패턴을 만든다. 요즘 권고(NIST)는 **최소 8자 이상, 길이를 권장, 유출된 비밀번호 목록과 대조**, 그리고 **주기적 강제 변경은 하지 않는 것**이다."
         },
         {
           "type": "p",
-          "text": "그리고 **무차별 대입을 막아야** 한다. 아무리 좋은 해시를 써도 「1234」를 쓰는 계정은 몇 번이면 뚫린다 — IP·계정별 레이트 리밋, 실패 누적 시 지연, 의심스러운 로그인 알림."
+          "text": "그리고 **무차별 대입을 막아야** 한다. 아무리 좋은 해시를 써도 \"1234\"를 쓰는 계정은 몇 번이면 뚫린다. IP, 계정별 레이트 리밋, 실패 누적 시 지연, 의심스러운 로그인 알림."
         },
         {
           "type": "try",
@@ -172,7 +172,7 @@
           "q": "비밀번호 저장에 권하는 것은?",
           "choices": [
             "SHA-256",
-            "bcrypt·scrypt·Argon2 (느린 해시)",
+            "bcrypt, scrypt, Argon2 (느린 해시)",
             "AES 암호화",
             "평문 + 접근 제한"
           ],
@@ -205,17 +205,17 @@
     },
     {
       "id": "3",
-      "title": "상태를 어디에 두나 — 세션과 토큰",
+      "title": "상태를 어디에 두나. 세션과 토큰",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "로그인한 뒤에는 **매 요청마다 「이 사람이 그 사람인지」**를 알아야 한다. 방법은 크게 둘 — 서버가 기억하는 **세션**, 서명된 값을 들고 다니는 **토큰**."
+          "text": "로그인한 뒤에는 **매 요청마다 \"이 사람이 그 사람인지\"**를 알아야 한다. 방법은 크게 둘. 서버가 기억하는 **세션**, 서명된 값을 들고 다니는 **토큰**."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방식을 골라 보라 — 무엇을 얻고 잃나",
+          "label": "방식을 골라 보라. 무엇을 얻고 잃나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const t = {\n    session: ['세션 (서버가 기억)', ['쿠키에는 의미 없는 ID 만', '서버(또는 Redis)가 실제 정보를 갖는다'],\n      ['즉시 무효화 가능 — 로그아웃·강제 로그아웃이 진짜로 된다', '쿠키가 작다 · 내용이 안 샌다'],\n      ['저장소가 필요하다 · 서버가 여러 대면 공유해야 한다'],\n      '웹 앱의 기본값으로 삼기 좋다.'],\n    jwt:     ['JWT (자기 완결 토큰)', ['서명된 값 안에 사용자 정보가 들어 있다', '서버는 서명만 검증'],\n      ['저장소가 없어도 검증된다 · 서비스 사이에 넘기기 좋다'],\n      ['<span class=\"no\">즉시 무효화가 어렵다</span> — 만료 전까지 유효 · 내용이 노출된다(서명일 뿐 암호화 아님)'],\n      '짧은 만료 + 갱신 토큰과 함께 써야 실용적이다(4장).'],\n    hybrid:  ['짧은 액세스 + 갱신 토큰', ['액세스 5~15분 · 갱신 토큰은 서버가 기억'],\n      ['둘의 장점 — 검증은 가볍고, 회수는 갱신 지점에서'],\n      ['흐름이 복잡해진다 · 갱신 토큰 탈취 대비가 필요(회전)'],\n      '오늘날 API 인증의 표준 모양.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n' +\n    '  <span class=\"ok\">얻는 것</span>\\n' + t[2].map((s) => '    + ' + s).join('\\n') + '\\n\\n' +\n    '  <span class=\"no\">잃는 것</span>\\n' + t[3].map((s) => '    - ' + s).join('\\n') + '\\n\\n  ' + esc(t[4]),\n    '고르는 기준: 「즉시 로그아웃이 필요한가」와 「서비스가 여러 개인가」.');\n</script>",
           "controls": [
@@ -243,7 +243,7 @@
         },
         {
           "type": "note",
-          "text": "**「JWT 가 최신이니까 JWT」는 잘못된 이유다.** 단일 웹 앱이라면 세션이 더 단순하고 안전하다 — 즉시 무효화가 되고, 토큰 내용이 안 새고, 라이브러리가 잘 다져져 있다. JWT 는 **서비스 경계를 넘길 때** 값을 한다."
+          "text": "**\"JWT 가 최신이니까 JWT\"는 잘못된 이유다.** 단일 웹 앱이라면 세션이 더 단순하고 안전하다. 즉시 무효화가 되고, 토큰 내용이 안 새고, 라이브러리가 잘 다져져 있다. JWT 는 **서비스 경계를 넘길 때** 값을 한다."
         },
         {
           "type": "code",
@@ -253,7 +253,7 @@
         },
         {
           "type": "p",
-          "text": "**토큰을 `localStorage` 에 두는 것**은 흔하지만 위험하다 — XSS 한 번이면 그대로 읽힌다. `HttpOnly` 쿠키는 자바스크립트가 못 읽으므로 한 겹 더 안전하다(대신 CSRF 대비가 필요하다 — 앞 칸 5장)."
+          "text": "**토큰을 `localStorage` 에 두는 것**은 흔하지만 위험하다. XSS 한 번이면 그대로 읽힌다. `HttpOnly` 쿠키는 자바스크립트가 못 읽으므로 한 겹 더 안전하다(대신 CSRF 대비가 필요하다. 앞 칸 5장)."
         },
         {
           "type": "try",
@@ -298,17 +298,17 @@
     },
     {
       "id": "4",
-      "title": "JWT 를 쓴다면 — 실전 함정",
+      "title": "JWT 를 쓴다면. 실전 함정",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "JWT 는 **점 두 개로 나뉜 세 조각**이다 — 헤더·페이로드·서명. 앞의 둘은 그냥 base64 라 **누구나 읽는다**. 서명은 「내용이 바뀌지 않았다」만 보장한다."
+          "text": "JWT 는 **점 두 개로 나뉜 세 조각**이다. 헤더, 페이로드, 서명. 앞의 둘은 그냥 base64 라 **누구나 읽는다**. 서명은 \"내용이 바뀌지 않았다\"만 보장한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "함정을 골라 보라 — 무엇이 위험한가",
+          "label": "함정을 골라 보라. 무엇이 위험한가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{trap}}';\n  const t = {\n    read:  ['페이로드에 비밀을 넣는다', 'bad',\n      'eyJhbGciOi… .  eyJ1c2VySWQiOjQyLCJzc24iOiI4ODAxMDEtMS4uLiJ9  . 서명',\n      'base64 는 암호화가 아니다 — 브라우저 콘솔에서 atob 한 줄이면 보인다.'],\n    none:  ['alg: none 을 받아들인다', 'bad',\n      '{ \"alg\": \"none\" }  -> 서명 없이 통과',\n      '고전적인 취약점. 허용 알고리즘을 <span class=\"ok\">서버가 못 박아야</span> 한다.'],\n    exp:   ['만료가 길거나 없다', 'bad',\n      '{ \"exp\": 1799999999 }  (1년)',\n      '탈취되면 1년간 유효하다. 액세스 토큰은 <span class=\"ok\">분 단위</span>로.'],\n    revoke:['로그아웃했는데 계속 유효', 'bad',\n      '토큰은 서버에 없다 -> 지울 것이 없다',\n      '갱신 토큰을 서버에서 폐기 + 액세스는 짧게. 필요하면 블랙리스트(그러면 상태가 생긴다).'],\n    rotate:['갱신 토큰 회전', 'good',\n      '갱신할 때마다 새 갱신 토큰 발급 · 옛 것은 무효',\n      '<span class=\"ok\">탈취를 탐지할 수 있다</span> — 옛 토큰이 다시 쓰이면 도난 신호로 보고 전부 폐기.'],\n    aud:   ['aud·iss 를 확인하지 않는다', 'bad',\n      '다른 서비스용 토큰이 그대로 통과',\n      '발급자(iss)·대상(aud)·만료(exp)를 <span class=\"ok\">전부</span> 검증하라.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : 'no') + '\">' + esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    'JWT 는 「검증 코드를 제대로 쓰기」가 절반이다 — 라이브러리 기본값을 확인하라.',\n    box(t[1] === 'good' ? '좋은 방식' : '문제되는 토큰', t[2], t[1]));\n</script>",
           "controls": [
@@ -336,7 +336,7 @@
                 },
                 {
                   "value": "aud",
-                  "label": "iss·aud 미검증"
+                  "label": "iss, aud 미검증"
                 },
                 {
                   "value": "rotate",
@@ -358,7 +358,7 @@
         },
         {
           "type": "p",
-          "text": "**권한(role)을 토큰에 넣을지**도 흔한 고민이다. 넣으면 조회가 줄어 빠르지만, **권한을 회수해도 만료 전까지 유효**하다. 그래서 「신원은 토큰, 권한은 서버 조회」가 안전한 절충이고, 캐시로 성능을 메운다."
+          "text": "**권한(role)을 토큰에 넣을지**도 흔한 고민이다. 넣으면 조회가 줄어 빠르지만, **권한을 회수해도 만료 전까지 유효**하다. 그래서 \"신원은 토큰, 권한은 서버 조회\"가 안전한 절충이고, 캐시로 성능을 메운다."
         },
         {
           "type": "try",
@@ -403,17 +403,17 @@
     },
     {
       "id": "5",
-      "title": "남의 신원 빌려 쓰기 — OAuth 와 OIDC",
+      "title": "남의 신원 빌려 쓰기. OAuth 와 OIDC",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「구글로 로그인」의 핵심은 **비밀번호를 우리가 안 받는 것**이다. 사용자는 구글에만 비밀번호를 주고, 우리는 「이 사람이 맞다」는 증거만 받는다."
+          "text": "\"구글로 로그인\"의 핵심은 **비밀번호를 우리가 안 받는 것**이다. 사용자는 구글에만 비밀번호를 주고, 우리는 \"이 사람이 맞다\"는 증거만 받는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇이 오가나",
+          "label": "단계를 밀어 보라. 무엇이 오가나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    '사용자가 「구글로 로그인」을 누른다',\n    '우리 서버가 구글로 보낸다 (client_id · redirect_uri · state · PKCE)',\n    '사용자가 구글에서 로그인하고 동의한다  ← 비밀번호는 구글만 본다',\n    '구글이 우리 redirect_uri 로 인가 코드를 보낸다',\n    '우리 서버가 그 코드를 토큰으로 교환한다 (서버 대 서버)',\n    '토큰(및 ID 토큰)으로 사용자 정보를 확인하고 우리 세션을 만든다',\n  ];\n  const notes = [\n    '',\n    'state = CSRF 방지 · PKCE = 코드 가로채기 방지(공개 클라이언트 필수)',\n    '우리는 비밀번호를 절대 보지 않는다 — 이것이 가장 큰 이득',\n    '코드는 한 번만 쓸 수 있고 수명이 짧다',\n    '<span class=\"warn\">client_secret 은 서버에만</span> — 브라우저에 두면 안 된다',\n    'OIDC 의 ID 토큰이 「누구인가」를 알려 준다 (OAuth 만으로는 인증이 아니다)',\n  ];\n  render('OAuth 2.0 + OIDC (인가 코드 흐름)',\n    '  ' + esc(steps[s]) + (notes[s] ? '\\n\\n  ' + notes[s] : ''),\n    'OAuth = 인가 프로토콜 · OIDC = 그 위에 얹은 인증. 「구글 로그인」은 OIDC 다.',\n    flow(steps, s));\n</script>",
           "controls": [
@@ -430,7 +430,7 @@
         },
         {
           "type": "note",
-          "text": "**OAuth 는 인증 프로토콜이 아니다.** 「이 앱이 사용자의 자원에 접근해도 된다」는 인가를 다룬다 — 「이 사용자가 누구인가」는 그 위에 얹은 **OIDC** 의 ID 토큰이 답한다. 액세스 토큰으로 신원을 판단하면 취약해진다."
+          "text": "**OAuth 는 인증 프로토콜이 아니다.** \"이 앱이 사용자의 자원에 접근해도 된다\"는 인가를 다룬다. \"이 사용자가 누구인가\"는 그 위에 얹은 **OIDC** 의 ID 토큰이 답한다. 액세스 토큰으로 신원을 판단하면 취약해진다."
         },
         {
           "type": "code",
@@ -440,16 +440,16 @@
         },
         {
           "type": "p",
-          "text": "**직접 구현하지 마라.** 검증된 라이브러리·서비스(Auth0·Clerk·Keycloak·NextAuth 등)를 쓰는 편이 거의 언제나 낫다 — 이 영역은 미묘한 실수 하나가 계정 탈취로 이어지고, 명세도 계속 갱신된다."
+          "text": "**직접 구현하지 마라.** 검증된 라이브러리, 서비스(Auth0, Clerk, Keycloak, NextAuth 등)를 쓰는 편이 거의 언제나 낫다. 이 영역은 미묘한 실수 하나가 계정 탈취로 이어지고, 명세도 계속 갱신된다."
         },
         {
           "type": "try",
-          "text": "「구글로 로그인」을 쓰는 서비스에서 개발자도구 네트워크 탭을 열고 로그인해 보라. 위 여섯 단계가 실제로 보인다 — 특히 코드가 붙은 리다이렉트."
+          "text": "\"구글로 로그인\"을 쓰는 서비스에서 개발자도구 네트워크 탭을 열고 로그인해 보라. 위 여섯 단계가 실제로 보인다. 특히 코드가 붙은 리다이렉트."
         }
       ],
       "quiz": [
         {
-          "q": "「구글로 로그인」의 가장 큰 이득은?",
+          "q": "\"구글로 로그인\"의 가장 큰 이득은?",
           "choices": [
             "빠르다",
             "우리가 비밀번호를 안 받는다",
@@ -463,7 +463,7 @@
           "q": "OAuth 만으로 인증하면?",
           "choices": [
             "충분하다",
-            "부족하다 — OIDC 의 ID 토큰이 신원을 다룬다",
+            "부족하다. OIDC 의 ID 토큰이 신원을 다룬다",
             "더 안전하다",
             "표준 위반"
           ],
@@ -485,17 +485,17 @@
     },
     {
       "id": "6",
-      "title": "한 겹 더 — MFA 와 계정 복구",
+      "title": "한 겹 더. MFA 와 계정 복구",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "비밀번호는 **재사용되고 유출된다.** 그래서 「아는 것」 하나로는 부족하고, **가진 것**(휴대폰·보안키)이나 **자신인 것**(생체)을 더한다."
+          "text": "비밀번호는 **재사용되고 유출된다.** 그래서 \"아는 것\" 하나로는 부족하고, **가진 것**(휴대폰, 보안키)이나 **자신인 것**(생체)을 더한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "수단을 골라 보라 — 얼마나 튼튼한가",
+          "label": "수단을 골라 보라. 얼마나 튼튼한가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mfa}}';\n  const t = {\n    sms:   ['SMS 코드', 'warn', ['설정이 쉽고 보급률이 높다'],\n      ['<span class=\"warn\">SIM 스와핑 · 중계 피싱에 약하다</span>'],\n      '없는 것보다는 훨씬 낫다. 다만 고위험 계정에는 부족하다.'],\n    totp:  ['앱 코드 (TOTP)', 'ok', ['오프라인에서도 된다 · 통신사 의존 없음'],\n      ['<span class=\"warn\">실시간 피싱에는 여전히 약하다</span> — 사용자가 코드를 넘겨 준다'],\n      '가장 무난한 기본값. 백업 코드를 함께 준다.'],\n    push:  ['푸시 승인', 'ok', ['편하다'],\n      ['<span class=\"warn\">피로 공격</span> — 계속 보내면 사용자가 결국 누른다'],\n      '숫자 매칭(화면의 숫자를 고르게 하기)을 붙이면 크게 나아진다.'],\n    key:   ['보안키·패스키 (WebAuthn)', 'good', ['<span class=\"ok\">피싱에 원천적으로 강하다</span> — 도메인에 묶인 키'],\n      ['기기 분실 대비가 필요하다'],\n      '가짜 사이트에서는 아예 동작하지 않는다 — 오늘날 가장 강한 수단.'],\n    recover:['복구 흐름', 'bad', ['비밀번호를 잊었을 때의 경로'],\n      ['<span class=\"no\">여기가 가장 약한 고리인 경우가 많다</span> — MFA 를 우회하는 뒷문'],\n      '복구도 같은 수준으로 보호하라. 「이메일만으로 전부 되돌릴 수 있다」면 MFA 는 장식이다.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : t[1] === 'ok' ? 'ok' : t[1] === 'warn' ? 'warn' : 'no') + '\">' +\n    esc(t[0]) + '</span>\\n\\n' +\n    '  <span class=\"ok\">좋은 점</span>\\n' + t[2].map((s) => '    + ' + s).join('\\n') + '\\n\\n' +\n    '  <span class=\"no\">약한 점</span>\\n' + t[3].map((s) => '    - ' + s).join('\\n') + '\\n\\n  ' + esc(t[4]),\n    '가장 자주 뚫리는 곳은 MFA 자체가 아니라 「복구 경로」다.');\n</script>",
           "controls": [
@@ -519,7 +519,7 @@
                 },
                 {
                   "value": "key",
-                  "label": "보안키·패스키"
+                  "label": "보안키, 패스키"
                 },
                 {
                   "value": "recover",
@@ -531,7 +531,7 @@
         },
         {
           "type": "note",
-          "text": "**복구 흐름이 진짜 인증 수준을 정한다.** 「이메일 링크 하나로 비밀번호 재설정 + MFA 해제」가 가능하면, 그 계정의 실제 보안은 **이메일 계정의 보안**과 같다. 재설정 링크는 짧게, 1회용으로, 재설정 시 세션 전부 무효화."
+          "text": "**복구 흐름이 진짜 인증 수준을 정한다.** \"이메일 링크 하나로 비밀번호 재설정 + MFA 해제\"가 가능하면, 그 계정의 실제 보안은 **이메일 계정의 보안**과 같다. 재설정 링크는 짧게, 1회용으로, 재설정 시 세션 전부 무효화."
         },
         {
           "type": "code",
@@ -541,7 +541,7 @@
         },
         {
           "type": "p",
-          "text": "**패스키(WebAuthn)** 가 특히 중요한 이유는 **피싱에 원천적으로 강하다**는 점이다. 키가 도메인에 묶여 있어서 가짜 사이트에서는 서명 자체가 안 만들어진다 — 사용자의 주의력에 기대지 않는 몇 안 되는 방어다."
+          "text": "**패스키(WebAuthn)** 가 특히 중요한 이유는 **피싱에 원천적으로 강하다**는 점이다. 키가 도메인에 묶여 있어서 가짜 사이트에서는 서명 자체가 안 만들어진다. 사용자의 주의력에 기대지 않는 몇 안 되는 방어다."
         },
         {
           "type": "try",
@@ -586,17 +586,17 @@
     },
     {
       "id": "7",
-      "title": "인가 — 누가 무엇을 할 수 있나",
+      "title": "인가. 누가 무엇을 할 수 있나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "인증이 끝나면 **인가**다. 규칙이 코드 곳곳에 흩어지면 아무도 전체를 모르게 된다 — 그래서 모델을 정하고 **한곳에서** 판단하게 만든다."
+          "text": "인증이 끝나면 **인가**다. 규칙이 코드 곳곳에 흩어지면 아무도 전체를 모르게 된다. 그래서 모델을 정하고 **한곳에서** 판단하게 만든다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "모델을 골라 보라 — 언제 맞나",
+          "label": "모델을 골라 보라. 언제 맞나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{model}}';\n  const t = {\n    rbac: ['역할 기반 (RBAC)', ['user · editor · admin 처럼 역할을 준다'],\n      '단순하고 이해하기 쉽다. 대부분의 서비스가 여기서 시작한다.',\n      '역할이 늘어나면(editor-of-team-3) 폭발한다 — 그때가 다음 모델을 볼 시점.'],\n    own:  ['소유 기반', ['「내 것인가」로 판단 — order.userId === user.id'],\n      '가장 흔한 규칙. RBAC 와 함께 쓴다.',\n      '조회 쿼리에 조건으로 넣으면 빠뜨릴 일이 줄어든다(3장의 findFirst).'],\n    abac: ['속성 기반 (ABAC)', ['사용자·자원·환경의 속성으로 규칙을 만든다',\n      '예: 같은 팀이고 · 문서가 공개이고 · 근무 시간이면 읽기'],\n      '유연하지만 규칙이 복잡해진다 — 테스트가 필수.',\n      '공유·협업 기능이 늘면 자연스럽게 이쪽으로 온다.'],\n    rel:  ['관계 기반 (ReBAC)', ['「이 문서의 상위 폴더의 편집자인가」 같은 관계 그래프',\n      'Google Zanzibar 계열 — 파일 공유·조직 구조에 강하다'],\n      '규모가 커진 협업 제품의 선택지.',\n      '직접 만들기보다 전용 서비스·라이브러리를 쓰는 편이 낫다.'],\n    place:['어디서 판단하나', ['<span class=\"no\">프런트엔드 — 표시 여부만</span>',\n      '<span class=\"ok\">서버 · 되도록 데이터 접근 계층 가까이</span>'],\n      '가장 중요한 질문. 라우터마다 흩어 놓으면 하나를 빠뜨린다.',\n      '「권한 확인 없이 조회할 수 없는 구조」로 만들면 실수해도 안전하다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + s).join('\\n') + '\\n\\n  ' + esc(t[2]) + '\\n  ' + esc(t[3]),\n    '순서: 소유 기반 + RBAC 로 시작 -> 필요해지면 ABAC/ReBAC. 처음부터 크게 짓지 마라.');\n</script>",
           "controls": [
@@ -638,11 +638,11 @@
         },
         {
           "type": "note",
-          "text": "**권한 규칙에도 테스트를 붙여라.** 「일반 사용자가 남의 주문을 못 본다」는 한 줄짜리 테스트가 IDOR 을 영구히 막는다 — 기능 테스트보다 값어치가 높은 경우가 많다."
+          "text": "**권한 규칙에도 테스트를 붙여라.** \"일반 사용자가 남의 주문을 못 본다\"는 한 줄짜리 테스트가 IDOR 을 영구히 막는다. 기능 테스트보다 값어치가 높은 경우가 많다."
         },
         {
           "type": "p",
-          "text": "그리고 **관리자 기능일수록 흔적을 남겨라.** 누가 언제 무엇을 했는지(감사 로그)가 있어야 사고 때 범위를 파악할 수 있고, 내부자 위험도 줄어든다 — 「권한을 준다」와 「기록한다」는 짝이다."
+          "text": "그리고 **관리자 기능일수록 흔적을 남겨라.** 누가 언제 무엇을 했는지(감사 로그)가 있어야 사고 때 범위를 파악할 수 있고, 내부자 위험도 줄어든다. \"권한을 준다\"와 \"기록한다\"는 짝이다."
         },
         {
           "type": "try",
@@ -676,7 +676,7 @@
           "q": "권한 규칙에 테스트를 붙이는 이유는?",
           "choices": [
             "커버리지",
-            "「남의 자원을 못 본다」를 영구히 보장",
+            "\"남의 자원을 못 본다\"를 영구히 보장",
             "속도",
             "문서화"
           ],
@@ -687,17 +687,17 @@
     },
     {
       "id": "8",
-      "title": "계정의 일생 — 만들고 · 바꾸고 · 지운다",
+      "title": "계정의 일생. 만들고, 바꾸고, 지운다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "인증 코드는 잘 짜 놓고 **계정 수명주기**에서 새는 경우가 많다 — 퇴사자 계정이 살아 있거나, 이메일 변경으로 계정이 넘어가거나."
+          "text": "인증 코드는 잘 짜 놓고 **계정 수명주기**에서 새는 경우가 많다. 퇴사자 계정이 살아 있거나, 이메일 변경으로 계정이 넘어가거나."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자리를 골라 보라 — 무엇을 챙기나",
+          "label": "자리를 골라 보라. 무엇을 챙기나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{stage}}';\n  const t = {\n    signup: ['가입', ['이메일 확인 전에는 권한을 제한', '자동 가입 봇 대비(레이트 리밋·캡차)'],\n      '확인 안 된 이메일로 알림·초대를 보내면 스팸 통로가 된다.'],\n    email:  ['이메일 변경', ['<span class=\"warn\">가장 위험한 변경</span> — 계정 소유권이 넘어간다',\n      '현재 비밀번호(또는 MFA) 재확인 · 새 주소 확인 · 옛 주소에 알림'],\n      '탈취자가 가장 먼저 하는 일이 이메일 변경이다. 옛 주소 알림이 되돌릴 기회를 준다.'],\n    pw:     ['비밀번호 변경', ['현재 비밀번호 재확인', '변경 시 다른 세션 전부 무효화 + 알림'],\n      '「다른 기기에서 로그아웃」 버튼도 함께 주면 좋다.'],\n    leave:  ['퇴사·탈퇴', ['즉시 세션·토큰·API 키 폐기', 'SSO 라면 IdP 에서 끊으면 전부 끊긴다'],\n      '개별 서비스마다 계정을 지우는 방식은 반드시 빠뜨린다 — SSO 의 큰 이점.'],\n    audit:  ['감사와 알림', ['새 기기 로그인 알림 · 최근 로그인 기록 화면',\n      '관리자 행동 로그 (누가 누구의 권한을 바꿨나)'],\n      '사용자가 스스로 이상을 발견하게 해 주는 것이 가장 값싼 탐지다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + s).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '인증 코드보다 이 흐름들에서 새는 경우가 많다 — 각각을 한 번씩 직접 따라가 보라.');\n</script>",
           "controls": [
@@ -721,11 +721,11 @@
                 },
                 {
                   "value": "leave",
-                  "label": "퇴사·탈퇴"
+                  "label": "퇴사, 탈퇴"
                 },
                 {
                   "value": "audit",
-                  "label": "감사·알림"
+                  "label": "감사, 알림"
                 }
               ]
             }
@@ -733,7 +733,7 @@
         },
         {
           "type": "note",
-          "text": "**기계 계정(서비스 계정·API 키)도 사람 계정처럼 관리하라.** 만료·회전·최소 권한·소유자 지정. 「누가 만들었는지 모르는 키」가 몇 년째 살아 있는 것이 실제로 흔한 사고 원인이다(설정 칸 5장의 회전)."
+          "text": "**기계 계정(서비스 계정, API 키)도 사람 계정처럼 관리하라.** 만료, 회전, 최소 권한, 소유자 지정. \"누가 만들었는지 모르는 키\"가 몇 년째 살아 있는 것이 실제로 흔한 사고 원인이다(설정 칸 5장의 회전)."
         },
         {
           "type": "code",
@@ -743,7 +743,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **로그인 이력을 사용자에게 보여 주라.** 「어제 다른 나라에서 로그인」을 사용자가 직접 보고 신고하는 것이, 우리가 이상 탐지를 만드는 것보다 훨씬 싸고 빠를 때가 많다."
+          "text": "그리고 **로그인 이력을 사용자에게 보여 주라.** \"어제 다른 나라에서 로그인\"을 사용자가 직접 보고 신고하는 것이, 우리가 이상 탐지를 만드는 것보다 훨씬 싸고 빠를 때가 많다."
         },
         {
           "type": "try",
@@ -777,7 +777,7 @@
           "q": "가장 값싼 이상 탐지는?",
           "choices": [
             "ML 모델",
-            "사용자에게 로그인 이력·알림 보여 주기",
+            "사용자에게 로그인 이력, 알림 보여 주기",
             "IP 차단",
             "로그 분석"
           ],
@@ -788,33 +788,33 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "인증·인가는 직접 만들수록 위험한 영역이다. 검증된 것을 쓰되, **무엇을 확인해야 하는지는 알아야** 한다."
+          "text": "인증, 인가는 직접 만들수록 위험한 영역이다. 검증된 것을 쓰되, **무엇을 확인해야 하는지는 알아야** 한다."
         },
         {
           "type": "code",
           "lang": "text",
-          "label": "인증·인가 점검표",
+          "label": "인증, 인가 점검표",
           "text": "비밀번호\n  [ ] bcrypt·scrypt·Argon2 로 저장하나 (SHA 계열 X)              (2장)\n  [ ] 로그인 실패 메시지가 하나로 통일돼 있나                     (2장)\n  [ ] 로그인·재설정에 레이트 리밋이 있나                          (2장)\n세션·토큰\n  [ ] 쿠키에 HttpOnly · Secure · SameSite 가 있나                 (3장)\n  [ ] 로그인 시 세션을 새로 발급하나                              (3장)\n  [ ] 로그아웃이 서버에서 무효화되나                              (3장)\n  [ ] JWT 라면 alg·iss·aud·exp 를 전부 검증하나                   (4장)\n  [ ] 액세스 토큰이 짧고 갱신 토큰이 회전하나                     (4장)\n MFA·복구\n  [ ] MFA 를 제공하나 (되도록 패스키)                             (6장)\n  [ ] 재설정 토큰이 1회용·짧은 만료·해시 저장인가                 (6장)\n  [ ] 재설정·비밀번호 변경 시 세션을 무효화하나                   (6장)\n  [ ] 이메일 변경 시 옛 주소에 알림이 가나                        (8장)\n인가\n  [ ] 조회에 소유 조건이 함께 들어가나                            (7장)\n  [ ] 권한 규칙이 한곳에 모여 있나                                (7장)\n  [ ] 권한 테스트가 있나 (남의 자원 접근 거부)                    (7장)\n  [ ] 관리자 행동이 감사 로그로 남나                              (7·8장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .st { font:11.5px/1.9 ui-monospace, monospace; color:#64748b; }\n  .flow .st.on { color:#e2e8f0; }\n  .flow .st b { color:#7dd3fc; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const flow = (steps, on) => '<div class=\"flow\">' + steps.map((s, i) =>\n    '<div class=\"st ' + (i <= on ? 'on' : '') + '\">' + (i + 1) + '. ' + esc(s) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['401 은 「인증 안 됨」, 403 은 「권한 없음」이다', true],\n    ['비밀번호는 SHA-256 으로 저장하면 충분하다', false],\n    ['JWT 페이로드는 암호화돼 있다', false],\n    ['OAuth 만으로 사용자 인증을 해도 된다', false],\n    ['패스키는 피싱에 원천적으로 강하다', true],\n    ['비밀번호 변경 시 다른 세션을 무효화해야 한다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(코드) 2장(해시) 4장(JWT) 5장(OIDC) 6장(패스키·복구)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 비밀값 관리다. 여기까지가 「사람과 권한」이었다면, 다음은 **기계가 쓰는 비밀**을 다루는 법이다 — 앞의 DevOps 갈래(설정·비밀값)와 이어진다."
+          "text": "다음 칸은 비밀값 관리다. 여기까지가 \"사람과 권한\"이었다면, 다음은 **기계가 쓰는 비밀**을 다루는 법이다. 앞의 DevOps 갈래(설정, 비밀값)와 이어진다."
         },
         {
           "type": "try",
-          "text": "위 목록에서 「세션·토큰」 다섯 줄부터 확인하라. 여기서 걸리면 사고 시 피해 범위가 크게 달라진다."
+          "text": "위 목록에서 \"세션, 토큰\" 다섯 줄부터 확인하라. 여기서 걸리면 사고 시 피해 범위가 크게 달라진다."
         }
       ],
       "quiz": [
@@ -822,7 +822,7 @@
           "q": "인증을 직접 구현하는 것에 대해 옳은 것은?",
           "choices": [
             "항상 직접 만든다",
-            "검증된 라이브러리·서비스를 쓰되 확인할 것은 알아야 한다",
+            "검증된 라이브러리, 서비스를 쓰되 확인할 것은 알아야 한다",
             "아무 라이브러리나",
             "외부에 맡기면 끝"
           ],

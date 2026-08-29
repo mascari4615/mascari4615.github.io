@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「**따로 돌리면 초록인데 같이 돌리면 빨강**」 — 이 증상의 원인은 거의 항상 **테스트끼리 뭔가를 나눠 쓰고 있어서**다. 한 테스트가 공유된 것(객체·DB·파일·전역·시각)을 바꾸면, 다음(또는 병렬) 테스트가 그 오염된 상태를 물려받아 깨진다. 혼자 돌리면 오염이 없으니 통과하고, 같이 돌리면 서로 간섭해 실패한다(순서·병렬에 따라 결과가 갈림 — 깜빡임, qa-flaky). 해결의 핵심은 **각 테스트가 자기 데이터를 스스로 만들고, 끝나면 정리**해 **완전히 독립**되게 하는 것 — 「어떤 순서로·혼자든 같이든 같은 결과」. 이 칸은 **테스트 데이터를 어떻게 격리·구성하나**가 주제다."
+          "text": "\"**따로 돌리면 초록인데 같이 돌리면 빨강**\". 이 증상의 원인은 거의 항상 **테스트끼리 뭔가를 나눠 쓰고 있어서**다. 한 테스트가 공유된 것(객체, DB, 파일, 전역, 시각)을 바꾸면, 다음(또는 병렬) 테스트가 그 오염된 상태를 물려받아 깨진다. 혼자 돌리면 오염이 없으니 통과하고, 같이 돌리면 서로 간섭해 실패한다(순서, 병렬에 따라 결과가 갈림. 깜빡임, qa-flaky). 해결의 핵심은 **각 테스트가 자기 데이터를 스스로 만들고, 끝나면 정리**해 **완전히 독립**되게 하는 것. \"어떤 순서로, 혼자든 같이든 같은 결과\". 이 칸은 **테스트 데이터를 어떻게 격리, 구성하나**가 주제다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "공유 오염 — 따로 초록, 같이 빨강",
+          "label": "공유 오염. 따로 초록, 같이 빨강",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  if (mode === 'shared') {\n    render('공유 객체 (같이 돌리면 빨강)',\n      '  const 사용자 = { 이름: \\\"카르모\\\", 잔액: 1000 };  // 공유!\\n' +\n      '  A: 사용자.잔액 -= 500  → 잔액 500 (사용자를 고침)\\n' +\n      '  B: expect(사용자.잔액).toBe(1000)  → 500 이라 빨강!\\n\\n' +\n      '  <span class=\\\"no\\\">A 가 공유 객체를 오염 → B 가 물려받아 깨짐(순서 의존).</span>',\n      '공유 객체: A 가 고치면 B 가 오염된 걸 물려받아 깨짐.',\n      testRows([['A', '사용자.잔액 -= 500 (공유 오염)', '통과'],\n                ['B', 'expect(잔액).toBe(1000) → 500', '실패']]));\n  } else {\n    render('각자 자기 것 (항상 초록)',\n      '  function 새사용자() { return { 이름: \\\"카르모\\\", 잔액: 1000 }; }\\n' +\n      '  A: const u = 새사용자(); u.잔액 -= 500  (자기 것)\\n' +\n      '  B: const u = 새사용자(); expect(u.잔액).toBe(1000)  → 통과\\n\\n' +\n      '  <span class=\\\"ok\\\">각자 새로 만드니 오염 없음 → 순서·병렬 무관하게 초록.</span>',\n      '각자 새로 만듦: 오염 없음 → 어떤 순서로도 초록.',\n      testRows([['A', 'const u = 새사용자(); u.잔액 -= 500', '통과'],\n                ['B', 'const u = 새사용자(); 잔액 1000 확인', '통과']]));\n  }\n</script>",
           "controls": [
@@ -37,20 +37,20 @@
         },
         {
           "type": "note",
-          "text": "**「따로 초록, 같이 빨강」의 원인은 거의 항상 테스트끼리 뭔가를 공유해서다 — 각 테스트가 자기 데이터를 만들고 정리해 독립시키면 사라진다.** 증상: 테스트를 하나씩 돌리면 다 통과하는데, 전체를 함께(또는 병렬로) 돌리면 일부가 빨강. 원인의 거의 전부는 **공유된 가변 상태** — 한 테스트가 공유된 무언가(객체·DB 레코드·파일·전역 변수·환경변수·시각)를 **바꾸면**, 다음 테스트나 병렬 테스트가 그 **오염된 상태**를 물려받아 예상과 달라 깨진다. 예: 공유 객체 `사용자`를 A 가 수정하면(`잔액 -= 500`), B 가 「잔액은 1000」이라 기대했는데 500 이라 실패. 혼자 돌리면 오염이 없어(A 가 안 돎) 통과하고, 같이 돌리면 A→B 순서에서 깨진다. 그래서 결과가 **실행 순서·병렬 여부에 따라 갈리는** 비결정적 깜빡임이 된다(qa-flaky 5장의 순서·공유 상태 원인 — 이 칸은 그 「테스트 데이터」 측면을 깊이 다룬다). 근본 해결: **각 테스트가 완전히 독립**되게 한다 — ① **자기 데이터를 스스로 만든다**(공유 객체 참조 X, 매번 새로 생성 — 3장) ② **끝나면 정리한다**(만든 것을 지워 다음에 안 남김 — 5장) ③ 공유 자원(DB·파일)은 격리·초기화. 목표는 **「어떤 순서로, 혼자든 함께든 병렬이든, 몇 번을 돌려도 같은 결과」**. 이러면 순서·공유 오염 깜빡임이 사라진다. 이 칸의 주제는 **테스트 데이터를 어떻게 격리하고 구성하나** — 「각자 자기 것을 만들고 정리」가 원칙이고, 그걸 잘하는 방법(팩토리·픽스처 함수·뒷정리)이 이어진다. 핵심 통찰: 테스트의 독립성은 **데이터의 독립성**에서 온다 — 데이터를 공유하면 테스트가 얽히고, 데이터를 격리하면 테스트가 독립한다."
+          "text": "**\"따로 초록, 같이 빨강\"의 원인은 거의 항상 테스트끼리 뭔가를 공유해서다. 각 테스트가 자기 데이터를 만들고 정리해 독립시키면 사라진다.** 증상: 테스트를 하나씩 돌리면 다 통과하는데, 전체를 함께(또는 병렬로) 돌리면 일부가 빨강. 원인의 거의 전부는 **공유된 가변 상태**. 한 테스트가 공유된 무언가(객체, DB 레코드, 파일, 전역 변수, 환경변수, 시각)를 **바꾸면**, 다음 테스트나 병렬 테스트가 그 **오염된 상태**를 물려받아 예상과 달라 깨진다. 예: 공유 객체 `사용자`를 A 가 수정하면(`잔액 -= 500`), B 가 \"잔액은 1000\"이라 기대했는데 500 이라 실패. 혼자 돌리면 오염이 없어(A 가 안 돎) 통과하고, 같이 돌리면 A→B 순서에서 깨진다. 그래서 결과가 **실행 순서, 병렬 여부에 따라 갈리는** 비결정적 깜빡임이 된다(qa-flaky 5장의 순서, 공유 상태 원인. 이 칸은 그 \"테스트 데이터\" 측면을 깊이 다룬다). 근본 해결: **각 테스트가 완전히 독립**되게 한다. ① **자기 데이터를 스스로 만든다**(공유 객체 참조 X, 매번 새로 생성. 3장) ② **끝나면 정리한다**(만든 것을 지워 다음에 안 남김. 5장) ③ 공유 자원(DB, 파일)은 격리, 초기화. 목표는 **\"어떤 순서로, 혼자든 함께든 병렬이든, 몇 번을 돌려도 같은 결과\"**. 이러면 순서, 공유 오염 깜빡임이 사라진다. 이 칸의 주제는 **테스트 데이터를 어떻게 격리하고 구성하나**. \"각자 자기 것을 만들고 정리\"가 원칙이고, 그걸 잘하는 방법(팩토리, 픽스처 함수, 뒷정리)이 이어진다. 핵심 통찰: 테스트의 독립성은 **데이터의 독립성**에서 온다. 데이터를 공유하면 테스트가 얽히고, 데이터를 격리하면 테스트가 독립한다."
         },
         {
           "type": "p",
-          "text": "**공유 가변 상태가 얽힘의 근원 — 격리가 독립을 만든다.** 「따로 초록 같이 빨강」의 교훈은 공유 가변 상태의 해악이다(qa-flaky 5장과 같은 근본): 여러 주체가 가변 상태를 공유하면, 한쪽의 변경이 다른 쪽에 예상 못 한 영향을 줘 순서·타이밍 의존과 버그가 생긴다. 테스트에선 「공유 데이터를 한 테스트가 오염」이지만, 코드에선 「전역 변수·공유 객체를 한 부분이 변경해 다른 부분이 깨짐」(경쟁 조건·원격 작용)이다. 그래서 해결도 같다 — **격리와 불변성**: 각자 자기 데이터를 갖거나(격리), 데이터를 안 바꾸거나(불변), 공유를 명시적·통제된 접근으로. 테스트 데이터 격리는 이 원리를 테스트에 적용한 것 — 「각 테스트가 자기 데이터를 만든다」는 「각 작업이 자기 상태를 갖는다」(격리)의 사례. 그리고 이건 순수 함수(입력만으로 결정, 공유 상태 X, lang-fp)·불변 데이터(공유해도 안전 — 아무도 못 바꿈)의 이점과 통한다. 흥미롭게도 **불변 데이터를 쓰면 공유해도 오염이 없다**(A 가 못 바꾸니 B 가 안전) — 그래서 「각자 만들기」(격리)와 「불변으로 공유」(안전한 공유)가 둘 다 해법이다. 핵심은 **「가변 상태를 공유하지 마라」** — 공유하려면 불변으로, 바꾸려면 격리해서. 이 사고가 테스트와 코드 양쪽의 예측 가능성을 준다. 얽힘은 공유 가변에서 오고, 독립은 격리·불변에서 온다."
+          "text": "**공유 가변 상태가 얽힘의 근원. 격리가 독립을 만든다.** \"따로 초록 같이 빨강\"의 교훈은 공유 가변 상태의 해악이다(qa-flaky 5장과 같은 근본): 여러 주체가 가변 상태를 공유하면, 한쪽의 변경이 다른 쪽에 예상 못 한 영향을 줘 순서, 타이밍 의존과 버그가 생긴다. 테스트에선 \"공유 데이터를 한 테스트가 오염\"이지만, 코드에선 \"전역 변수, 공유 객체를 한 부분이 변경해 다른 부분이 깨짐\"(경쟁 조건, 원격 작용)이다. 그래서 해결도 같다. **격리와 불변성**: 각자 자기 데이터를 갖거나(격리), 데이터를 안 바꾸거나(불변), 공유를 명시적, 통제된 접근으로. 테스트 데이터 격리는 이 원리를 테스트에 적용한 것. \"각 테스트가 자기 데이터를 만든다\"는 \"각 작업이 자기 상태를 갖는다\"(격리)의 사례. 그리고 이건 순수 함수(입력만으로 결정, 공유 상태 X, lang-fp), 불변 데이터(공유해도 안전. 아무도 못 바꿈)의 이점과 통한다. 흥미롭게도 **불변 데이터를 쓰면 공유해도 오염이 없다**(A 가 못 바꾸니 B 가 안전). 그래서 \"각자 만들기\"(격리)와 \"불변으로 공유\"(안전한 공유)가 둘 다 해법이다. 핵심은 **\"가변 상태를 공유하지 마라\"**. 공유하려면 불변으로, 바꾸려면 격리해서. 이 사고가 테스트와 코드 양쪽의 예측 가능성을 준다. 얽힘은 공유 가변에서 오고, 독립은 격리, 불변에서 온다."
         },
         {
           "type": "try",
-          "text": "네 테스트를 무작위 순서로 한 번 돌려라(다음 장). 「따로 초록 같이 빨강」인 테스트가 있으면, 무엇을 공유하고 있는지 찾아라 — 공유 객체·DB·파일·전역·시각. 그 공유를 「각자 자기 것 만들기」로 바꿔, 어떤 순서로도 같은 결과가 나오는지 확인하라."
+          "text": "네 테스트를 무작위 순서로 한 번 돌려라(다음 장). \"따로 초록 같이 빨강\"인 테스트가 있으면, 무엇을 공유하고 있는지 찾아라. 공유 객체, DB, 파일, 전역, 시각. 그 공유를 \"각자 자기 것 만들기\"로 바꿔, 어떤 순서로도 같은 결과가 나오는지 확인하라."
         }
       ],
       "quiz": [
         {
-          "q": "「따로 초록, 같이 빨강」의 원인은?",
+          "q": "\"따로 초록, 같이 빨강\"의 원인은?",
           "choices": [
             "느려서",
             "테스트끼리 뭔가를 공유(한 테스트가 오염 → 다음이 물려받음)",
@@ -64,7 +64,7 @@
           "q": "테스트 데이터 격리의 목표는?",
           "choices": [
             "빠름",
-            "각자 자기 것 만들고 정리 → 어떤 순서·병렬로도 같은 결과",
+            "각자 자기 것 만들고 정리 → 어떤 순서, 병렬로도 같은 결과",
             "많이",
             "색"
           ],
@@ -75,7 +75,7 @@
           "q": "얽힘의 근원과 해법은?",
           "choices": [
             "속도",
-            "공유 가변 상태가 근원 → 격리(각자 만들기)·불변으로 해결",
+            "공유 가변 상태가 근원 → 격리(각자 만들기), 불변으로 해결",
             "메모리",
             "없음"
           ],
@@ -91,12 +91,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "테스트가 공유·오염되는 **새는 곳**은 정해져 있다: ① **모듈 최상단 변수** — 한 번 로드되면 계속 산다(테스트들이 같은 인스턴스를 공유). ② **데이터베이스·파일·임시 디렉터리** — 한 테스트가 남긴 레코드·파일을 다음이 봄. ③ **전역 설정·환경변수·시스템 시간** — 한 테스트가 바꾸면 전역 오염. ④ **로컬 저장소·캐시·싱글턴** — 상태가 남음. ⑤ **모의(mock)·스파이** — 초기화 안 하면 이전 호출 기록이 남음. 이 목록을 알면 「무엇을 공유하나」를 빨리 찾는다 — 「따로 초록 같이 빨강」이면 이 다섯을 먼저 의심한다. 공통점: **테스트 사이에 살아남는 상태**가 새는 곳이다."
+          "text": "테스트가 공유, 오염되는 **새는 곳**은 정해져 있다: ① **모듈 최상단 변수**. 한 번 로드되면 계속 산다(테스트들이 같은 인스턴스를 공유). ② **데이터베이스, 파일, 임시 디렉터리**. 한 테스트가 남긴 레코드, 파일을 다음이 봄. ③ **전역 설정, 환경변수, 시스템 시간**. 한 테스트가 바꾸면 전역 오염. ④ **로컬 저장소, 캐시, 싱글턴**. 상태가 남음. ⑤ **모의(mock), 스파이**. 초기화 안 하면 이전 호출 기록이 남음. 이 목록을 알면 \"무엇을 공유하나\"를 빨리 찾는다. \"따로 초록 같이 빨강\"이면 이 다섯을 먼저 의심한다. 공통점: **테스트 사이에 살아남는 상태**가 새는 곳이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "새는 곳 — 어디서 상태가 살아남나",
+          "label": "새는 곳. 어디서 상태가 살아남나",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const leak = '{{leak}}';\n  const rows = {\n    module:['모듈 최상단 변수', 'const cache = {}  (파일 최상단)', '한 번 로드되면 계속 삶 → 테스트들이 공유', 'beforeEach 로 초기화·함수 안으로'],\n    db:['DB·파일·임시 디렉터리', '테스트가 레코드·파일 남김', '다음 테스트가 그걸 봄', '각자 만들고 뒷정리(5장)·트랜잭션 롤백'],\n    global:['전역·환경변수·시각', 'process.env·Date.now 를 바꿈', '전역이라 다른 테스트 오염', '주입·고정·복원(afterEach)'],\n    singleton:['캐시·저장소·싱글턴', 'localStorage·싱글턴에 상태 남음', '이전 상태가 다음에 남음', '초기화·격리'],\n    mock:['모의(mock)·스파이', 'mock 호출 기록이 쌓임', '이전 호출이 다음 단언 오염', 'clearMocks·resetMocks'],\n  }[leak];\n  render('새는 곳: ' + rows[0],\n    '  예: ' + rows[1] + '\\n  문제: ' + rows[2] + '\\n  대책: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">공통 = 테스트 사이에 살아남는 상태. 다섯을 먼저 의심.</span>',\n    '모듈 변수·DB·파일·전역·시각·캐시·mock — 상태가 새는 곳들.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], 'bad'));\n</script>",
           "controls": [
@@ -112,19 +112,19 @@
                 },
                 {
                   "value": "db",
-                  "label": "DB·파일"
+                  "label": "DB, 파일"
                 },
                 {
                   "value": "global",
-                  "label": "전역·시각"
+                  "label": "전역, 시각"
                 },
                 {
                   "value": "singleton",
-                  "label": "캐시·싱글턴"
+                  "label": "캐시, 싱글턴"
                 },
                 {
                   "value": "mock",
-                  "label": "mock·스파이"
+                  "label": "mock, 스파이"
                 }
               ]
             }
@@ -138,15 +138,15 @@
         },
         {
           "type": "note",
-          "text": "**테스트가 공유·오염되는 새는 곳은 정해져 있다 — 모듈 최상단 변수·DB/파일·전역/시각·캐시/싱글턴·mock. 공통점은 「테스트 사이에 살아남는 상태」다.** 「무엇을 공유하나」를 찾을 때 이 목록부터 의심한다: ① **모듈 최상단 변수** — 파일 맨 위에 선언된 변수(`const cache = {}`, `let count = 0`)는 모듈이 한 번 로드되면 **계속 살아**, 그 모듈을 쓰는 모든 테스트가 같은 인스턴스를 공유한다. 한 테스트가 그걸 바꾸면 다음이 오염된 값을 본다. → 함수 안으로 넣거나 beforeEach 로 초기화. ② **데이터베이스·파일·임시 디렉터리** — 한 테스트가 만든 레코드·파일을 다음 테스트가 본다(외부 저장소는 테스트 사이에 지속). → 각자 고유 데이터 만들고 뒷정리(5장), 또는 트랜잭션 롤백. ③ **전역 설정·환경변수·시스템 시간** — `process.env`·전역 설정·`Date.now`를 한 테스트가 바꾸면 전역이라 다른 테스트가 영향받는다. → 주입·고정하고 afterEach 로 복원(원래 값으로 되돌림). ④ **로컬 저장소·캐시·싱글턴** — localStorage·전역 캐시·싱글턴 인스턴스에 상태가 남는다. → 초기화·격리. ⑤ **모의(mock)·스파이** — mock 의 호출 기록(몇 번·어떤 인자로 불렸나)이 테스트 사이에 **쌓인다** — 초기화 안 하면 이전 테스트의 호출이 다음 테스트의 단언(`toHaveBeenCalledTimes`)을 오염시킨다. → `clearMocks`·`resetMocks`(테스트 러너 설정으로 자동). **공통점 = 「테스트 사이에 살아남는 상태」**. 테스트는 각각 독립적이어야 하는데, 이런 지속 상태가 테스트를 연결한다. 그래서 「따로 초록 같이 빨강」이면 이 다섯을 먼저 뒤진다(진단 체크리스트 — 황금의 정신). 대책의 공통 패턴: **살아남는 상태를 없애거나(함수 안으로·매번 새로) 매 테스트마다 초기화·복원**(beforeEach 초기화, afterEach 정리·복원). 특히 **모듈 최상단 변수와 mock 기록**은 놓치기 쉬운 미묘한 새는 곳이라(눈에 안 띔) 주의한다. 이 목록을 알면 공유 오염을 빨리 진단·차단한다."
+          "text": "**테스트가 공유, 오염되는 새는 곳은 정해져 있다. 모듈 최상단 변수, DB/파일, 전역/시각, 캐시/싱글턴, mock. 공통점은 \"테스트 사이에 살아남는 상태\"다.** \"무엇을 공유하나\"를 찾을 때 이 목록부터 의심한다: ① **모듈 최상단 변수**. 파일 맨 위에 선언된 변수(`const cache = {}`, `let count = 0`)는 모듈이 한 번 로드되면 **계속 살아**, 그 모듈을 쓰는 모든 테스트가 같은 인스턴스를 공유한다. 한 테스트가 그걸 바꾸면 다음이 오염된 값을 본다. → 함수 안으로 넣거나 beforeEach 로 초기화. ② **데이터베이스, 파일, 임시 디렉터리**. 한 테스트가 만든 레코드, 파일을 다음 테스트가 본다(외부 저장소는 테스트 사이에 지속). → 각자 고유 데이터 만들고 뒷정리(5장), 또는 트랜잭션 롤백. ③ **전역 설정, 환경변수, 시스템 시간**. `process.env`, 전역 설정, `Date.now`를 한 테스트가 바꾸면 전역이라 다른 테스트가 영향받는다. → 주입, 고정하고 afterEach 로 복원(원래 값으로 되돌림). ④ **로컬 저장소, 캐시, 싱글턴**. localStorage, 전역 캐시, 싱글턴 인스턴스에 상태가 남는다. → 초기화, 격리. ⑤ **모의(mock), 스파이**. mock 의 호출 기록(몇 번, 어떤 인자로 불렸나)이 테스트 사이에 **쌓인다**. 초기화 안 하면 이전 테스트의 호출이 다음 테스트의 단언(`toHaveBeenCalledTimes`)을 오염시킨다. → `clearMocks`, `resetMocks`(테스트 러너 설정으로 자동). **공통점 = \"테스트 사이에 살아남는 상태\"**. 테스트는 각각 독립적이어야 하는데, 이런 지속 상태가 테스트를 연결한다. 그래서 \"따로 초록 같이 빨강\"이면 이 다섯을 먼저 뒤진다(진단 체크리스트. 황금의 정신). 대책의 공통 패턴: **살아남는 상태를 없애거나(함수 안으로, 매번 새로) 매 테스트마다 초기화, 복원**(beforeEach 초기화, afterEach 정리, 복원). 특히 **모듈 최상단 변수와 mock 기록**은 놓치기 쉬운 미묘한 새는 곳이라(눈에 안 띔) 주의한다. 이 목록을 알면 공유 오염을 빨리 진단, 차단한다."
         },
         {
           "type": "p",
-          "text": "**「지속되는 상태」는 격리의 적 — 생명주기를 의식하라.** 새는 곳들의 공통점은 **테스트의 생명주기보다 오래 사는 상태**다: 모듈 변수(프로세스 수명), DB·파일(영구), 전역(프로세스 수명), 싱글턴·캐시(앱 수명), mock 기록(리셋까지). 테스트는 「각 테스트」 단위로 독립해야 하는데, 이 상태들은 그보다 오래 살아 테스트를 넘나든다. 그래서 격리의 핵심은 **상태의 생명주기를 테스트 단위에 맞추는** 것 — 각 테스트 시작에 만들고(beforeEach), 끝에 정리(afterEach)해, 상태가 테스트 경계를 안 넘게. 이 「생명주기를 의식하는」 사고는 프로그래밍 전반에 중요하다: 자원(파일 핸들·연결·락)의 생명주기(열고 닫기·획득 해제), 객체 수명(생성 소멸), 스코프(변수가 언제까지 사나). 상태·자원이 의도한 범위보다 오래 살면 누수·오염·버그가 된다(메모리 누수·연결 누수·상태 오염). 그래서 「이 상태가 언제 생기고 언제 죽나」를 의식하고, 필요한 범위에 맞게 관리하는 게 견고한 코드의 핵심이다. 테스트 격리는 그 훈련 — 「테스트 사이에 살아남는 것」을 찾아 생명주기를 테스트 단위로 조인다. 생명주기를 의식하지 않으면 상태가 슬며시 새어 나가 오염·누수를 만든다. 무엇이 얼마나 오래 사는지 아는 것이 상태 관리의 출발이다."
+          "text": "**\"지속되는 상태\"는 격리의 적. 생명주기를 의식하라.** 새는 곳들의 공통점은 **테스트의 생명주기보다 오래 사는 상태**다: 모듈 변수(프로세스 수명), DB, 파일(영구), 전역(프로세스 수명), 싱글턴, 캐시(앱 수명), mock 기록(리셋까지). 테스트는 \"각 테스트\" 단위로 독립해야 하는데, 이 상태들은 그보다 오래 살아 테스트를 넘나든다. 그래서 격리의 핵심은 **상태의 생명주기를 테스트 단위에 맞추는** 것. 각 테스트 시작에 만들고(beforeEach), 끝에 정리(afterEach)해, 상태가 테스트 경계를 안 넘게. 이 \"생명주기를 의식하는\" 사고는 프로그래밍 전반에 중요하다: 자원(파일 핸들, 연결, 락)의 생명주기(열고 닫기, 획득 해제), 객체 수명(생성 소멸), 스코프(변수가 언제까지 사나). 상태, 자원이 의도한 범위보다 오래 살면 누수, 오염, 버그가 된다(메모리 누수, 연결 누수, 상태 오염). 그래서 \"이 상태가 언제 생기고 언제 죽나\"를 의식하고, 필요한 범위에 맞게 관리하는 게 견고한 코드의 핵심이다. 테스트 격리는 그 훈련. \"테스트 사이에 살아남는 것\"을 찾아 생명주기를 테스트 단위로 조인다. 생명주기를 의식하지 않으면 상태가 슬며시 새어 나가 오염, 누수를 만든다. 무엇이 얼마나 오래 사는지 아는 것이 상태 관리의 출발이다."
         },
         {
           "type": "try",
-          "text": "네 테스트에서 다섯 새는 곳을 점검하라 — 모듈 최상단 변수, DB·파일·임시 디렉터리, 전역·환경변수·시각, 캐시·싱글턴, mock 기록. 각각이 테스트 사이에 초기화되는지 확인하라(beforeEach·clearMocks·afterEach 복원). 「따로 초록 같이 빨강」이면 이 다섯부터 의심해 무엇이 살아남는지 찾아라."
+          "text": "네 테스트에서 다섯 새는 곳을 점검하라. 모듈 최상단 변수, DB, 파일, 임시 디렉터리, 전역, 환경변수, 시각, 캐시, 싱글턴, mock 기록. 각각이 테스트 사이에 초기화되는지 확인하라(beforeEach, clearMocks, afterEach 복원). \"따로 초록 같이 빨강\"이면 이 다섯부터 의심해 무엇이 살아남는지 찾아라."
         }
       ],
       "quiz": [
@@ -154,7 +154,7 @@
           "q": "테스트가 새는 곳이 아닌 것은?",
           "choices": [
             "모듈 최상단 변수",
-            "DB·파일·전역·시각",
+            "DB, 파일, 전역, 시각",
             "mock 호출 기록",
             "함수 지역 변수"
           ],
@@ -173,10 +173,10 @@
           "why": "격리의 적."
         },
         {
-          "q": "mock·스파이가 새는 이유는?",
+          "q": "mock, 스파이가 새는 이유는?",
           "choices": [
             "느려서",
-            "호출 기록이 테스트 사이에 쌓임 → clearMocks·resetMocks 필요",
+            "호출 기록이 테스트 사이에 쌓임 → clearMocks, resetMocks 필요",
             "색",
             "무관"
           ],
@@ -192,12 +192,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "원칙: **각 테스트가 자기 데이터를 스스로 만든다** — 공유 객체를 참조하지 말고, 매번 **새로 생성**한다. 공유 객체(`const 사용자 = {...}`)는 한 테스트가 고치면 다음이 오염된다. 대신 **팩토리 함수**(`function 새사용자() { return {...} }`)로 매 테스트가 자기 인스턴스를 만든다 — 서로 간섭 없음. 더 나아가 **필요한 값만 넘기고 나머지는 기본값**(`새사용자({ 잔액: 0 })`)으로 하면, 각 테스트가 「자기에게 중요한 것」만 지정한다. 이 팩토리·빌더 패턴이 테스트 데이터 격리의 핵심 도구다 — 공유는 오염을, 생성은 독립을 준다."
+          "text": "원칙: **각 테스트가 자기 데이터를 스스로 만든다**. 공유 객체를 참조하지 말고, 매번 **새로 생성**한다. 공유 객체(`const 사용자 = {...}`)는 한 테스트가 고치면 다음이 오염된다. 대신 **팩토리 함수**(`function 새사용자() { return {...} }`)로 매 테스트가 자기 인스턴스를 만든다. 서로 간섭 없음. 더 나아가 **필요한 값만 넘기고 나머지는 기본값**(`새사용자({ 잔액: 0 })`)으로 하면, 각 테스트가 \"자기에게 중요한 것\"만 지정한다. 이 팩토리, 빌더 패턴이 테스트 데이터 격리의 핵심 도구다. 공유는 오염을, 생성은 독립을 준다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "공유 vs 팩토리 — 참조 vs 생성",
+          "label": "공유 vs 팩토리. 참조 vs 생성",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  if (mode === 'shared') {\n    render('공유 객체 (오염)',\n      '  const 사용자 = { 이름: \\\"카르모\\\", 잔액: 1000 };  // 한 개를 공유\\n' +\n      '  모든 테스트가 같은 객체를 참조 → 하나가 고치면 전부 오염\\n\\n' +\n      '  <span class=\\\"no\\\">참조 공유 = 한 테스트의 변경이 모두에게 번짐.</span>',\n      '공유 객체: 모두 같은 것을 참조 → 하나가 고치면 오염.',\n      box('공유', 'const 사용자 = {...}  // 한 개\\nA·B·C 모두 이걸 참조·수정 → 서로 오염', 'bad'));\n  } else {\n    render('팩토리 함수 (독립)',\n      '  function 새사용자(덮어쓰기 = {}) {\\n' +\n      '    return { 이름: \\\"카르모\\\", 잔액: 1000, ...덮어쓰기 };\\n' +\n      '  }\\n' +\n      '  각 테스트: const u = 새사용자({ 잔액: 0 });  // 자기 것 + 필요한 것만\\n\\n' +\n      '  <span class=\\\"ok\\\">매번 새로 생성 → 독립 + 필요한 값만 지정(가독성).</span>',\n      '팩토리: 매번 새로 만들고 필요한 것만 덮어씀 → 독립 + 명확.',\n      box('팩토리', 'function 새사용자(o) { return {...기본, ...o} }\\n각 테스트가 자기 인스턴스 생성', 'good'));\n  }\n</script>",
           "controls": [
@@ -227,15 +227,15 @@
         },
         {
           "type": "note",
-          "text": "**각 테스트가 자기 데이터를 스스로 만든다 — 공유 객체를 참조하지 말고 팩토리 함수로 매번 새로 생성하고, 필요한 값만 덮어쓴다.** 공유 객체(`const 사용자 = {...}`를 파일 최상단에 두고 모든 테스트가 참조)는 오염의 원천이다 — 객체는 참조로 공유되니, 한 테스트가 그 객체를 **수정**하면(`사용자.잔액 -= 500`) 다음 테스트가 오염된 값을 본다(참조 공유, 2장 ①). 원칙: **각자 자기 것을 만든다**. **팩토리 함수**(factory — `function 새사용자() { return {...} }`)를 만들어, 각 테스트가 호출해 **자기만의 새 인스턴스**를 얻는다 — 서로 다른 객체라 한쪽 수정이 다른 쪽에 안 번진다(독립). 이게 테스트 데이터 격리의 핵심 도구다. 더 강력하게: **필요한 값만 넘기고 나머지는 기본값**(`새사용자({ 잔액: 0 })` — 잔액만 0 으로, 나머지는 기본). 스프레드(`{...기본값, ...덮어쓰기}`)로 구현. 이러면 각 테스트가 **자기에게 중요한 값만 명시**하고 나머지는 합리적 기본값을 받는다. 관련 패턴: **빌더**(`유저빌더().잔액(0).관리자().build()` — 체이닝으로 구성), **팩토리 라이브러리**(Factory Bot·Fishery·faker 로 현실적 랜덤 데이터 생성 — 단 랜덤은 시드 고정, qa-flaky). 이 팩토리·빌더가 테스트 데이터를 **격리**(각자 새로)하면서 **간결**(필요한 것만)하게 만든다. 핵심: 테스트 데이터는 **참조 공유(오염)가 아니라 생성(독립)**으로 다룬다 — 공유하고 싶은 유혹(한 번 정의해 재사용)을 이기고, 매번 만드는 게 격리의 값이다. 생성 비용이 걱정되면(무거운 객체) 불변으로 공유하는 방법도 있지만(1장 — 불변이면 오염 없음), 대개는 팩토리로 매번 만드는 게 단순·안전하다. 「각자 자기 것을 만든다」가 테스트 독립의 실천적 핵심이다."
+          "text": "**각 테스트가 자기 데이터를 스스로 만든다. 공유 객체를 참조하지 말고 팩토리 함수로 매번 새로 생성하고, 필요한 값만 덮어쓴다.** 공유 객체(`const 사용자 = {...}`를 파일 최상단에 두고 모든 테스트가 참조)는 오염의 원천이다. 객체는 참조로 공유되니, 한 테스트가 그 객체를 **수정**하면(`사용자.잔액 -= 500`) 다음 테스트가 오염된 값을 본다(참조 공유, 2장 ①). 원칙: **각자 자기 것을 만든다**. **팩토리 함수**(factory. `function 새사용자() { return {...} }`)를 만들어, 각 테스트가 호출해 **자기만의 새 인스턴스**를 얻는다. 서로 다른 객체라 한쪽 수정이 다른 쪽에 안 번진다(독립). 이게 테스트 데이터 격리의 핵심 도구다. 더 강력하게: **필요한 값만 넘기고 나머지는 기본값**(`새사용자({ 잔액: 0 })`. 잔액만 0 으로, 나머지는 기본). 스프레드(`{...기본값,...덮어쓰기}`)로 구현. 이러면 각 테스트가 **자기에게 중요한 값만 명시**하고 나머지는 합리적 기본값을 받는다. 관련 패턴: **빌더**(`유저빌더().잔액(0).관리자().build()`. 체이닝으로 구성), **팩토리 라이브러리**(Factory Bot, Fishery, faker 로 현실적 랜덤 데이터 생성. 단 랜덤은 시드 고정, qa-flaky). 이 팩토리, 빌더가 테스트 데이터를 **격리**(각자 새로)하면서 **간결**(필요한 것만)하게 만든다. 핵심: 테스트 데이터는 **참조 공유(오염)가 아니라 생성(독립)**으로 다룬다. 공유하고 싶은 유혹(한 번 정의해 재사용)을 이기고, 매번 만드는 게 격리의 값이다. 생성 비용이 걱정되면(무거운 객체) 불변으로 공유하는 방법도 있지만(1장. 불변이면 오염 없음), 대개는 팩토리로 매번 만드는 게 단순, 안전하다. \"각자 자기 것을 만든다\"가 테스트 독립의 실천적 핵심이다."
         },
         {
           "type": "p",
-          "text": "**팩토리·빌더는 「의도를 드러내는」 데이터 구성 — 격리를 넘어 표현력을 준다.** 팩토리 함수의 가치는 격리만이 아니다 — 데이터를 **의도가 드러나게** 구성한다. `새사용자({ 관리자: true })`·`새주문({ 상태: '취소' })`처럼 「이 테스트에 필요한 특징」만 명시하면, 그 데이터가 **무엇을 나타내는지**가 명확하다(4장 — 가독성). 이는 「의미 있는 이름의 생성 함수」로 도메인을 표현하는 것 — `관리자유저()`·`빈장바구니()`·`만료된토큰()` 같은 팩토리는 그 자체가 도메인 어휘가 되어, 테스트가 「무엇을 검증하는지」를 읽기 쉽게 한다. 이건 좋은 추상화의 사례 — 복잡한 데이터 구성을 의미 있는 함수로 감싸 재사용·표현. 그리고 팩토리는 **변경에 강하다** — 데이터 구조가 바뀌면 팩토리 한 곳만 고치면 되지(모든 테스트에 흩어진 리터럴을 다 고칠 필요 없이), 각 테스트는 「필요한 것만」 지정하니 무관한 필드 추가에 안 깨진다(팩토리가 기본값 제공). 그래서 팩토리는 격리 + 가독성 + 유지보수성을 함께 준다. 이 사고 — 데이터를 「의미 있는 생성 함수」로 구성 — 는 테스트를 넘어 좋은 코드 설계(팩토리 패턴·빌더 패턴·의미 있는 생성자)와 통한다. 테스트 데이터를 잘 다루는 건 곧 「데이터를 의도가 드러나게 구성하는」 훈련이다. 리터럴 덩어리보다 의미 있는 팩토리가 격리도·가독성도·유지보수성도 낫다."
+          "text": "**팩토리, 빌더는 \"의도를 드러내는\" 데이터 구성. 격리를 넘어 표현력을 준다.** 팩토리 함수의 가치는 격리만이 아니다. 데이터를 **의도가 드러나게** 구성한다. `새사용자({ 관리자: true })`, `새주문({ 상태: '취소' })`처럼 \"이 테스트에 필요한 특징\"만 명시하면, 그 데이터가 **무엇을 나타내는지**가 명확하다(4장. 가독성). 이는 \"의미 있는 이름의 생성 함수\"로 도메인을 표현하는 것. `관리자유저()`, `빈장바구니()`, `만료된토큰()` 같은 팩토리는 그 자체가 도메인 어휘가 되어, 테스트가 \"무엇을 검증하는지\"를 읽기 쉽게 한다. 이건 좋은 추상화의 사례. 복잡한 데이터 구성을 의미 있는 함수로 감싸 재사용, 표현. 그리고 팩토리는 **변경에 강하다**. 데이터 구조가 바뀌면 팩토리 한 곳만 고치면 되지(모든 테스트에 흩어진 리터럴을 다 고칠 필요 없이), 각 테스트는 \"필요한 것만\" 지정하니 무관한 필드 추가에 안 깨진다(팩토리가 기본값 제공). 그래서 팩토리는 격리 + 가독성 + 유지보수성을 함께 준다. 이 사고. 데이터를 \"의미 있는 생성 함수\"로 구성. 는 테스트를 넘어 좋은 코드 설계(팩토리 패턴, 빌더 패턴, 의미 있는 생성자)와 통한다. 테스트 데이터를 잘 다루는 건 곧 \"데이터를 의도가 드러나게 구성하는\" 훈련이다. 리터럴 덩어리보다 의미 있는 팩토리가 격리도, 가독성도, 유지보수성도 낫다."
         },
         {
           "type": "try",
-          "text": "네 테스트의 공유 픽스처 객체 하나를 팩토리 함수로 바꾸고, 각 테스트가 필요한 값만 넘기도록 정리하라(`새사용자({ 잔액: 0 })`). 자주 쓰는 특징은 의미 있는 팩토리로(`관리자유저()`·`만료된토큰()`). 데이터 구조가 바뀔 때 팩토리 한 곳만 고치면 되는지, 각 테스트가 무엇을 검증하는지 읽기 쉬운지 확인하라."
+          "text": "네 테스트의 공유 픽스처 객체 하나를 팩토리 함수로 바꾸고, 각 테스트가 필요한 값만 넘기도록 정리하라(`새사용자({ 잔액: 0 })`). 자주 쓰는 특징은 의미 있는 팩토리로(`관리자유저()`, `만료된토큰()`). 데이터 구조가 바뀔 때 팩토리 한 곳만 고치면 되는지, 각 테스트가 무엇을 검증하는지 읽기 쉬운지 확인하라."
         }
       ],
       "quiz": [
@@ -254,12 +254,12 @@
           "q": "팩토리 함수에 필요한 값만 넘기고 나머지는?",
           "choices": [
             "다 지정",
-            "기본값(필요한 것만 덮어씀) — 명확 + 변경에 강함",
+            "기본값(필요한 것만 덮어씀). 명확 + 변경에 강함",
             "랜덤",
             "없음"
           ],
           "answer": 1,
-          "why": "가독성·유지보수."
+          "why": "가독성, 유지보수."
         },
         {
           "q": "팩토리의 격리 외 이점은?",
@@ -281,12 +281,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "픽스처(fixture — 테스트가 쓰는 준비된 데이터) 함수의 **진짜 이익은 격리가 아니라 가독성**이다. 테스트마다 「**무엇이 이 결과를 만들었나**」가 한 줄로 보인다 — `새주문({ 상태: '취소' })`처럼 **이 테스트에 중요한 것만** 명시하고, 나머지는 기본값이라는 뜻이 분명하다. 리터럴 데이터 덩어리(20줄짜리 객체)를 각 테스트에 늘어놓으면 「무엇이 이 테스트의 핵심인지」가 노이즈에 묻힌다. 팩토리로 「**중요한 차이만**」 드러내면, 테스트를 읽는 사람이 「이건 취소된 주문일 때를 검증하는구나」를 한눈에 안다. 좋은 테스트는 **읽어서 무엇을 검증하는지 아는** 테스트고, 픽스처가 그걸 돕는다."
+          "text": "픽스처(fixture. 테스트가 쓰는 준비된 데이터) 함수의 **진짜 이익은 격리가 아니라 가독성**이다. 테스트마다 \"**무엇이 이 결과를 만들었나**\"가 한 줄로 보인다. `새주문({ 상태: '취소' })`처럼 **이 테스트에 중요한 것만** 명시하고, 나머지는 기본값이라는 뜻이 분명하다. 리터럴 데이터 덩어리(20줄짜리 객체)를 각 테스트에 늘어놓으면 \"무엇이 이 테스트의 핵심인지\"가 노이즈에 묻힌다. 팩토리로 \"**중요한 차이만**\" 드러내면, 테스트를 읽는 사람이 \"이건 취소된 주문일 때를 검증하는구나\"를 한눈에 안다. 좋은 테스트는 **읽어서 무엇을 검증하는지 아는** 테스트고, 픽스처가 그걸 돕는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "픽스처 가독성 — 중요한 차이만 드러낸다",
+          "label": "픽스처 가독성. 중요한 차이만 드러낸다",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  if (mode === 'literal') {\n    render('리터럴 덩어리 (노이즈)',\n      '  const 주문 = {\\n' +\n      '    id: 1, 사용자: \\\"카르모\\\", 상품: \\\"책\\\", 수량: 1,\\n' +\n      '    가격: 10000, 배송: \\\"서울\\\", 상태: \\\"취소\\\", 날짜: ...\\n' +\n      '  };  // 20줄 — 무엇이 핵심? 「상태: 취소」가 묻힘\\n\\n' +\n      '  <span class=\\\"warn\\\">전부 나열 → 이 테스트의 핵심(취소)이 노이즈에 묻힘.</span>',\n      '리터럴 덩어리: 다 나열 → 무엇이 핵심인지 안 보임.',\n      box('리터럴', '20줄 객체 — 「이 테스트가 뭘 검증?」 안 보임', 'bad'));\n  } else {\n    render('팩토리 (중요한 차이만)',\n      '  const 주문 = 새주문({ 상태: \\\"취소\\\" });\\n\\n' +\n      '  → 「취소된 주문일 때」를 검증하는구나 (한눈에)\\n' +\n      '  나머지는 기본값 = 이 테스트와 무관하다는 뜻\\n\\n' +\n      '  <span class=\\\"ok\\\">중요한 차이(취소)만 드러남 → 무엇을 검증하는지 명확.</span>',\n      '팩토리: 중요한 차이만 명시 → 무엇을 검증하는지 한눈에.',\n      box('팩토리', '새주문({ 상태: \\\"취소\\\" })\\n→ 취소 주문 검증 (한눈에)', 'good'));\n  }\n</script>",
           "controls": [
@@ -310,15 +310,15 @@
         },
         {
           "type": "note",
-          "text": "**픽스처 함수의 진짜 이익은 격리가 아니라 가독성이다 — 테스트마다 「무엇이 이 결과를 만들었나」가 한 줄로 보이고, 나머지는 기본값이라는 뜻이 분명하다.** 팩토리·픽스처를 「격리 도구」로만 보기 쉽지만, 더 큰 가치는 **테스트를 읽기 쉽게** 하는 것이다. 테스트에 **리터럴 데이터 덩어리**(20줄짜리 객체를 통째로)를 늘어놓으면, 「이 테스트가 무엇을 검증하는지」의 **핵심이 노이즈에 묻힌다** — 20개 필드 중 이 테스트에 중요한 건 「상태: 취소」 하나인데, 나머지 19개(id·이름·가격·날짜…)에 파묻혀 안 보인다. 읽는 사람이 「무엇이 이 결과의 원인인지」를 알려면 20줄을 다 훑어 다른 테스트와 비교해야 한다(피곤). **팩토리로 「중요한 차이만」** 드러내면(`새주문({ 상태: '취소' })`), 「아, 취소된 주문일 때를 검증하는구나」가 **한눈에** 보인다 — 명시한 것(상태: 취소)이 「이 테스트의 핵심」이고, 나머지는 기본값이니 「이 테스트와 무관」이라는 뜻이 분명하다. 이게 픽스처의 진짜 이익 — **테스트의 의도를 드러낸다**. 좋은 테스트는 **읽어서 무엇을 검증하는지 즉시 아는** 테스트다(테스트는 문서이자 명세 — 코드의 동작을 예제로 보여 줌). 픽스처가 「중요한 차이만 부각」해 그 가독성을 만든다. 실천: ① 팩토리에 합리적 기본값을 두고, 각 테스트는 **자기에게 중요한 것만 override**. ② 자주 쓰는 상태는 **의미 있는 이름의 팩토리**(`취소된주문()`·`관리자유저()`·`빈장바구니()`)로 — 이름 자체가 의도를 말함. ③ 테스트 본문은 「준비(중요한 데이터)—실행—검증」이 명확히 보이게. 이러면 테스트가 **명세처럼 읽힌다** — 「취소된 주문은 환불 가능」을 `새주문({상태:'취소'})` + `expect(환불가능(주문)).toBe(true)`로. 그래서 픽스처를 설계할 때 「격리되나」뿐 아니라 **「읽어서 의도가 보이나」**를 물어야 한다 — 격리는 팩토리의 부수 효과고, 가독성이 주 효과다. 잘 만든 픽스처는 테스트를 「무엇을·왜」가 명확한 살아있는 문서로 만든다."
+          "text": "**픽스처 함수의 진짜 이익은 격리가 아니라 가독성이다. 테스트마다 \"무엇이 이 결과를 만들었나\"가 한 줄로 보이고, 나머지는 기본값이라는 뜻이 분명하다.** 팩토리, 픽스처를 \"격리 도구\"로만 보기 쉽지만, 더 큰 가치는 **테스트를 읽기 쉽게** 하는 것이다. 테스트에 **리터럴 데이터 덩어리**(20줄짜리 객체를 통째로)를 늘어놓으면, \"이 테스트가 무엇을 검증하는지\"의 **핵심이 노이즈에 묻힌다**. 20개 필드 중 이 테스트에 중요한 건 \"상태: 취소\" 하나인데, 나머지 19개(id, 이름, 가격, 날짜)에 파묻혀 안 보인다. 읽는 사람이 \"무엇이 이 결과의 원인인지\"를 알려면 20줄을 다 훑어 다른 테스트와 비교해야 한다(피곤). **팩토리로 \"중요한 차이만\"** 드러내면(`새주문({ 상태: '취소' })`), \"아, 취소된 주문일 때를 검증하는구나\"가 **한눈에** 보인다. 명시한 것(상태: 취소)이 \"이 테스트의 핵심\"이고, 나머지는 기본값이니 \"이 테스트와 무관\"이라는 뜻이 분명하다. 이게 픽스처의 진짜 이익. **테스트의 의도를 드러낸다**. 좋은 테스트는 **읽어서 무엇을 검증하는지 즉시 아는** 테스트다(테스트는 문서이자 명세. 코드의 동작을 예제로 보여 줌). 픽스처가 \"중요한 차이만 부각\"해 그 가독성을 만든다. 실천: ① 팩토리에 합리적 기본값을 두고, 각 테스트는 **자기에게 중요한 것만 override**. ② 자주 쓰는 상태는 **의미 있는 이름의 팩토리**(`취소된주문()`, `관리자유저()`, `빈장바구니()`)로. 이름 자체가 의도를 말함. ③ 테스트 본문은 \"준비(중요한 데이터). 실행. 검증\"이 명확히 보이게. 이러면 테스트가 **명세처럼 읽힌다**. \"취소된 주문은 환불 가능\"을 `새주문({상태:'취소'})` + `expect(환불가능(주문)).toBe(true)`로. 그래서 픽스처를 설계할 때 \"격리되나\"뿐 아니라 **\"읽어서 의도가 보이나\"**를 물어야 한다. 격리는 팩토리의 부수 효과고, 가독성이 주 효과다. 잘 만든 픽스처는 테스트를 \"무엇을, 왜\"가 명확한 살아있는 문서로 만든다."
         },
         {
           "type": "p",
-          "text": "**테스트는 실행되는 문서 — 「무엇을 검증하는지」가 읽혀야 한다.** 픽스처 가독성의 교훈은 「테스트는 코드의 명세이자 문서」라는 것이다. 테스트는 통과/실패만 하는 게 아니라, **코드가 무엇을 해야 하는지를 예제로 보여 주는 문서**다 — 누군가 「이 함수가 뭘 하지?」 할 때 테스트를 읽으면 「아, 취소된 주문엔 환불이 되고, 배송 중엔 안 되는구나」를 안다(사용 예제·경계·의도). 그래서 테스트의 가독성은 문서로서의 가치를 정한다 — 읽어서 의도가 명확한 테스트는 좋은 문서, 노이즈에 묻힌 테스트는 나쁜 문서(통과해도 무엇을 보장하는지 모름). 이 관점에서 「무엇을·왜」를 드러내는 게 중요하다: 좋은 테스트 이름(「취소된 주문은 환불 가능」 — 무엇을 검증하는지 문장으로), 중요한 데이터만 부각(픽스처), 준비-실행-검증(AAA) 구조의 명확함, 하나의 테스트는 하나를 검증(초점). 이는 write(명확한 글쓰기)·craft(읽기 쉬운 코드)와 통한다 — 테스트도 「읽는 사람」을 위해 쓴다. 그리고 읽기 쉬운 테스트는 **유지보수**도 쉽다 — 실패했을 때 「무엇이 왜 깨졌나」를 빨리 알고(의도가 명확하니), 코드 변경 시 테스트를 이해하고 고칠 수 있다. 그래서 「테스트를 읽기 쉽게」는 사치가 아니라 테스트를 문서·안전망으로 제대로 기능하게 하는 핵심이다. 픽스처 가독성은 그 실천의 하나 — 데이터에서 노이즈를 걷고 의도를 드러내는 것. 통과하는 테스트를 넘어, 읽어서 이해되는 테스트를 목표로 한다."
+          "text": "**테스트는 실행되는 문서. \"무엇을 검증하는지\"가 읽혀야 한다.** 픽스처 가독성의 교훈은 \"테스트는 코드의 명세이자 문서\"라는 것이다. 테스트는 통과/실패만 하는 게 아니라, **코드가 무엇을 해야 하는지를 예제로 보여 주는 문서**다. 누군가 \"이 함수가 뭘 하지?\" 할 때 테스트를 읽으면 \"아, 취소된 주문엔 환불이 되고, 배송 중엔 안 되는구나\"를 안다(사용 예제, 경계, 의도). 그래서 테스트의 가독성은 문서로서의 가치를 정한다. 읽어서 의도가 명확한 테스트는 좋은 문서, 노이즈에 묻힌 테스트는 나쁜 문서(통과해도 무엇을 보장하는지 모름). 이 관점에서 \"무엇을, 왜\"를 드러내는 게 중요하다: 좋은 테스트 이름(\"취소된 주문은 환불 가능\". 무엇을 검증하는지 문장으로), 중요한 데이터만 부각(픽스처), 준비-실행-검증(AAA) 구조의 명확함, 하나의 테스트는 하나를 검증(초점). 이는 write(명확한 글쓰기), craft(읽기 쉬운 코드)와 통한다. 테스트도 \"읽는 사람\"을 위해 쓴다. 그리고 읽기 쉬운 테스트는 **유지보수**도 쉽다. 실패했을 때 \"무엇이 왜 깨졌나\"를 빨리 알고(의도가 명확하니), 코드 변경 시 테스트를 이해하고 고칠 수 있다. 그래서 \"테스트를 읽기 쉽게\"는 사치가 아니라 테스트를 문서, 안전망으로 제대로 기능하게 하는 핵심이다. 픽스처 가독성은 그 실천의 하나. 데이터에서 노이즈를 걷고 의도를 드러내는 것. 통과하는 테스트를 넘어, 읽어서 이해되는 테스트를 목표로 한다."
         },
         {
           "type": "try",
-          "text": "네 테스트 중 리터럴 데이터 덩어리가 있는 것을 골라, 팩토리로 「이 테스트에 중요한 차이만」 드러나게 바꿔라(`새주문({ 상태: '취소' })`). 자주 쓰는 상태는 의미 있는 이름의 팩토리로(`취소된주문()`). 바꾼 뒤 테스트를 읽어 「무엇을 검증하는지」가 한눈에 보이는지 확인하라 — 테스트는 읽히는 문서다."
+          "text": "네 테스트 중 리터럴 데이터 덩어리가 있는 것을 골라, 팩토리로 \"이 테스트에 중요한 차이만\" 드러나게 바꿔라(`새주문({ 상태: '취소' })`). 자주 쓰는 상태는 의미 있는 이름의 팩토리로(`취소된주문()`). 바꾼 뒤 테스트를 읽어 \"무엇을 검증하는지\"가 한눈에 보이는지 확인하라. 테스트는 읽히는 문서다."
         }
       ],
       "quiz": [
@@ -326,7 +326,7 @@
           "q": "픽스처 함수의 진짜 이익은?",
           "choices": [
             "속도",
-            "가독성 — 「무엇이 이 결과를 만들었나」가 한눈에(중요한 차이만)",
+            "가독성. \"무엇이 이 결과를 만들었나\"가 한눈에(중요한 차이만)",
             "메모리",
             "없음"
           ],
@@ -348,12 +348,12 @@
           "q": "테스트를 읽기 쉽게 하는 이유는?",
           "choices": [
             "예뻐서",
-            "테스트는 실행되는 문서·명세 — 무엇을 검증하는지 읽혀야",
+            "테스트는 실행되는 문서, 명세. 무엇을 검증하는지 읽혀야",
             "빠르려고",
             "없음"
           ],
           "answer": 1,
-          "why": "유지보수·이해."
+          "why": "유지보수, 이해."
         }
       ]
     },
@@ -364,12 +364,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "테스트가 외부 자원(DB·파일·임시 디렉터리·연결)을 쓰면 **끝나고 정리**해야 다음 테스트에 안 남는다: **beforeEach 로 만들고**(고유 임시 디렉터리·테스트 DB·초기 상태), **afterEach 로 지운다**(만든 파일·레코드 삭제, 연결 닫기, 전역 복원). 정리를 빠뜨리면 자원이 쌓이고(디스크·연결 누수) 다음 테스트가 오염된다. 더 나은 방법: **트랜잭션 롤백**(각 테스트를 트랜잭션으로 감싸 끝나면 되돌림 — DB 가 항상 깨끗)·**격리된 임시 공간**(테스트마다 고유 디렉터리·스키마). 그리고 정리는 **실패해도 반드시 실행**되게(try/finally·afterEach 는 실패해도 돎). 「만들면 정리한다」가 자원을 쓰는 테스트의 철칙이다."
+          "text": "테스트가 외부 자원(DB, 파일, 임시 디렉터리, 연결)을 쓰면 **끝나고 정리**해야 다음 테스트에 안 남는다: **beforeEach 로 만들고**(고유 임시 디렉터리, 테스트 DB, 초기 상태), **afterEach 로 지운다**(만든 파일, 레코드 삭제, 연결 닫기, 전역 복원). 정리를 빠뜨리면 자원이 쌓이고(디스크, 연결 누수) 다음 테스트가 오염된다. 더 나은 방법: **트랜잭션 롤백**(각 테스트를 트랜잭션으로 감싸 끝나면 되돌림. DB 가 항상 깨끗), **격리된 임시 공간**(테스트마다 고유 디렉터리, 스키마). 그리고 정리는 **실패해도 반드시 실행**되게(try/finally, afterEach 는 실패해도 돎). \"만들면 정리한다\"가 자원을 쓰는 테스트의 철칙이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "뒷정리 — 만들고·쓰고·지운다",
+          "label": "뒷정리. 만들고, 쓰고, 지운다",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const rows = [\n    ['beforeEach', '고유 임시 자원 생성', '임시경로 = mkdtemp(); db = 새테스트DB()', 'good'],\n    ['테스트 본문', '그 자원으로 검증', '파일 쓰고·읽고 단언', 'on'],\n    ['afterEach', '만든 것을 정리', 'rm(임시경로); db.정리(); 전역 복원', 'good'],\n    ['다음 테스트', '깨끗한 상태로 시작', '이전 흔적 없음 → 오염 X', 'good'],\n  ];\n  const n = Math.min(step, 3);\n  render('단계: ' + rows[n][0],\n    '  ' + rows[n][1] + '\\n  ' + rows[n][2] + '\\n\\n' +\n    (n >= 3\n      ? '  <span class=\\\"ok\\\">만들고·쓰고·지우니 다음 테스트가 깨끗한 상태로 시작.</span>'\n      : '  <span class=\\\"dim\\\">슬라이더로 생명주기를 밟아라.</span>'),\n    'beforeEach 만들고 → 본문 쓰고 → afterEach 지운다 → 다음은 깨끗.',\n    steps(rows.map((r,i)=>[r[0] + ' — ' + r[1], i <= n ? r[3] : ''])));\n</script>",
           "controls": [
@@ -387,20 +387,20 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "뒷정리 — beforeEach/afterEach",
+          "label": "뒷정리. beforeEach/afterEach",
           "text": "let 임시경로;\nbeforeEach(() => {\n  임시경로 = fs.mkdtempSync(path.join(os.tmpdir(), 't-'));  // 고유 임시 디렉터리\n});\nafterEach(() => {\n  fs.rmSync(임시경로, { recursive: true, force: true });   // 반드시 정리\n});\n\n// 더 나은 방법: 트랜잭션 롤백 (DB 가 항상 깨끗)\nbeforeEach(async () => { await db.begin(); });\nafterEach(async () => { await db.rollback(); });  // 변경을 통째로 되돌림\n\n// 정리는 실패해도 반드시 실행 (afterEach 는 테스트 실패해도 돎)"
         },
         {
           "type": "note",
-          "text": "**외부 자원을 쓰는 테스트는 beforeEach 로 만들고 afterEach 로 정리해, 다음 테스트가 깨끗한 상태로 시작하게 한다 — 트랜잭션 롤백이 더 깔끔하고, 정리는 실패해도 반드시 실행되게 한다.** 테스트가 DB·파일·임시 디렉터리·네트워크 연결 같은 **외부 자원**을 쓰면, 그것들은 테스트 사이에 지속되니(2장 ②) 정리 안 하면 다음 테스트를 오염시키고 자원이 쌓인다(디스크·연결 누수). **생명주기 패턴**: ① **beforeEach** — 각 테스트 전에 **고유한** 자원을 만든다(고유 임시 디렉터리 `mkdtemp`, 테스트 전용 DB·스키마, 초기 상태 세팅). 「고유」가 중요 — 테스트마다 다른 공간이라 병렬에도 충돌 없음. ② **테스트 본문** — 그 자원으로 검증. ③ **afterEach** — 만든 것을 **정리**한다(임시 파일·디렉터리 삭제, 테스트 레코드 삭제, 연결 닫기, 바꾼 전역·환경변수 복원). 이러면 다음 테스트가 깨끗한 상태로 시작한다. **더 나은 방법 — 트랜잭션 롤백**: 각 테스트를 DB 트랜잭션으로 감싸(beforeEach 에 begin, afterEach 에 rollback), 테스트가 무엇을 하든 끝나면 **통째로 되돌린다** — DB 가 항상 초기 상태로 돌아가 정리가 자동·완벽하고 빠르다(개별 삭제보다). 많은 테스트 프레임워크·ORM 이 이 패턴을 지원한다. **핵심 주의**: 정리는 **테스트가 실패해도 반드시 실행**되어야 한다 — afterEach 는 테스트 실패와 무관하게 돌고(프레임워크 보장), 수동이면 try/finally 로 감싼다. 정리가 실패 시 안 돌면, 한 테스트 실패가 자원 누수·다음 테스트 오염으로 번진다. 그래서 「정리를 확실히 보장」하는 게 중요하다(획득한 자원은 반드시 해제 — 자원 관리의 기본). **원칙: 「만들면 정리한다」** — 테스트가 만든 모든 흔적(파일·레코드·상태 변경)은 그 테스트가 책임지고 지운다. 이 규율이 테스트를 독립시키고(오염 X) 자원 누수를 막는다(디스크·연결 안 쌓임). 정리를 빠뜨린 테스트는 지금은 통과해도 나중에·병렬에서·반복 실행에서 문제를 일으킨다(누적된 오염). 뒷정리는 격리의 완성이다 — 만들기(3장)와 정리(5장)가 짝을 이뤄 각 테스트를 깨끗한 경계 안에 둔다."
+          "text": "**외부 자원을 쓰는 테스트는 beforeEach 로 만들고 afterEach 로 정리해, 다음 테스트가 깨끗한 상태로 시작하게 한다. 트랜잭션 롤백이 더 깔끔하고, 정리는 실패해도 반드시 실행되게 한다.** 테스트가 DB, 파일, 임시 디렉터리, 네트워크 연결 같은 **외부 자원**을 쓰면, 그것들은 테스트 사이에 지속되니(2장 ②) 정리 안 하면 다음 테스트를 오염시키고 자원이 쌓인다(디스크, 연결 누수). **생명주기 패턴**: ① **beforeEach**. 각 테스트 전에 **고유한** 자원을 만든다(고유 임시 디렉터리 `mkdtemp`, 테스트 전용 DB, 스키마, 초기 상태 세팅). \"고유\"가 중요. 테스트마다 다른 공간이라 병렬에도 충돌 없음. ② **테스트 본문**. 그 자원으로 검증. ③ **afterEach**. 만든 것을 **정리**한다(임시 파일, 디렉터리 삭제, 테스트 레코드 삭제, 연결 닫기, 바꾼 전역, 환경변수 복원). 이러면 다음 테스트가 깨끗한 상태로 시작한다. **더 나은 방법. 트랜잭션 롤백**: 각 테스트를 DB 트랜잭션으로 감싸(beforeEach 에 begin, afterEach 에 rollback), 테스트가 무엇을 하든 끝나면 **통째로 되돌린다**. DB 가 항상 초기 상태로 돌아가 정리가 자동, 완벽하고 빠르다(개별 삭제보다). 많은 테스트 프레임워크, ORM 이 이 패턴을 지원한다. **핵심 주의**: 정리는 **테스트가 실패해도 반드시 실행**되어야 한다. afterEach 는 테스트 실패와 무관하게 돌고(프레임워크 보장), 수동이면 try/finally 로 감싼다. 정리가 실패 시 안 돌면, 한 테스트 실패가 자원 누수, 다음 테스트 오염으로 번진다. 그래서 \"정리를 확실히 보장\"하는 게 중요하다(획득한 자원은 반드시 해제. 자원 관리의 기본). **원칙: \"만들면 정리한다\"**. 테스트가 만든 모든 흔적(파일, 레코드, 상태 변경)은 그 테스트가 책임지고 지운다. 이 규율이 테스트를 독립시키고(오염 X) 자원 누수를 막는다(디스크, 연결 안 쌓임). 정리를 빠뜨린 테스트는 지금은 통과해도 나중에, 병렬에서, 반복 실행에서 문제를 일으킨다(누적된 오염). 뒷정리는 격리의 완성이다. 만들기(3장)와 정리(5장)가 짝을 이뤄 각 테스트를 깨끗한 경계 안에 둔다."
         },
         {
           "type": "p",
-          "text": "**「획득한 것은 해제한다」 — 자원 생명주기 관리의 보편 원리.** 뒷정리의 교훈은 자원 관리 일반의 원리다: **획득한 자원(파일·연결·락·메모리)은 반드시 해제**한다 — 안 하면 누수(leak)가 쌓여 결국 고갈(디스크 참·연결 풀 소진·메모리 부족)된다. 그리고 **해제는 실패 경로에서도 보장**되어야 한다(정상 종료만이 아니라 예외·오류 시에도) — 그래서 try/finally, RAII(C++ — 소멸자로 자동 해제), `defer`(Go), `with`(파이썬 컨텍스트 매니저), `use`(자동 정리) 같은 장치가 있다. 테스트의 beforeEach/afterEach 는 이 「획득-해제」를 테스트 단위로 적용한 것 — 자원을 열고(setup) 반드시 닫는다(teardown, 실패해도). 이 「생명주기를 짝으로 관리」하는 사고는 견고한 코드의 핵심이다: 열면 닫고, 잠그면 풀고, 시작하면 끝내고, 구독하면 해지한다 — 각 획득에 대응하는 해제를 보장. 안 그러면 누수·오염·교착이 슬며시 쌓인다. 트랜잭션 롤백은 이 원리의 우아한 형태 — 「변경을 트랜잭션으로 감싸 통째로 되돌림」으로 개별 정리를 자동화(원자성·격리, data-tx 의 ACID). 그래서 테스트 뒷정리를 배우는 건 자원 생명주기 관리를 배우는 것 — 「만들면 정리」·「획득하면 해제」·「실패해도 보장」의 규율이 테스트뿐 아니라 모든 자원 다루는 코드에 통한다. 자원을 열 때마다 「이걸 어디서 닫지?」를 함께 생각하는 습관이 누수 없는 시스템을 만든다."
+          "text": "**\"획득한 것은 해제한다\". 자원 생명주기 관리의 보편 원리.** 뒷정리의 교훈은 자원 관리 일반의 원리다: **획득한 자원(파일, 연결, 락, 메모리)은 반드시 해제**한다. 안 하면 누수(leak)가 쌓여 결국 고갈(디스크 참, 연결 풀 소진, 메모리 부족)된다. 그리고 **해제는 실패 경로에서도 보장**되어야 한다(정상 종료만이 아니라 예외, 오류 시에도). 그래서 try/finally, RAII(C++. 소멸자로 자동 해제), `defer`(Go), `with`(파이썬 컨텍스트 매니저), `use`(자동 정리) 같은 장치가 있다. 테스트의 beforeEach/afterEach 는 이 \"획득-해제\"를 테스트 단위로 적용한 것. 자원을 열고(setup) 반드시 닫는다(teardown, 실패해도). 이 \"생명주기를 짝으로 관리\"하는 사고는 견고한 코드의 핵심이다: 열면 닫고, 잠그면 풀고, 시작하면 끝내고, 구독하면 해지한다. 각 획득에 대응하는 해제를 보장. 안 그러면 누수, 오염, 교착이 슬며시 쌓인다. 트랜잭션 롤백은 이 원리의 우아한 형태. \"변경을 트랜잭션으로 감싸 통째로 되돌림\"으로 개별 정리를 자동화(원자성, 격리, data-tx 의 ACID). 그래서 테스트 뒷정리를 배우는 건 자원 생명주기 관리를 배우는 것. \"만들면 정리\", \"획득하면 해제\", \"실패해도 보장\"의 규율이 테스트뿐 아니라 모든 자원 다루는 코드에 통한다. 자원을 열 때마다 \"이걸 어디서 닫지?\"를 함께 생각하는 습관이 누수 없는 시스템을 만든다."
         },
         {
           "type": "try",
-          "text": "네 테스트 중 파일·DB·연결을 쓰는 것을 골라, beforeEach 로 고유 자원을 만들고 afterEach 로 정리하는지 확인하라 — 정리 없으면 추가하라. DB 테스트는 트랜잭션 롤백으로 바꿔 보라(항상 깨끗). 정리가 테스트 실패 시에도 도는지(afterEach·try/finally) 확인하라 — 「만들면 정리」를 짝으로 지켜라."
+          "text": "네 테스트 중 파일, DB, 연결을 쓰는 것을 골라, beforeEach 로 고유 자원을 만들고 afterEach 로 정리하는지 확인하라. 정리 없으면 추가하라. DB 테스트는 트랜잭션 롤백으로 바꿔 보라(항상 깨끗). 정리가 테스트 실패 시에도 도는지(afterEach, try/finally) 확인하라. \"만들면 정리\"를 짝으로 지켜라."
         }
       ],
       "quiz": [
@@ -424,7 +424,7 @@
             "재시도"
           ],
           "answer": 1,
-          "why": "항상 깨끗·자동."
+          "why": "항상 깨끗, 자동."
         },
         {
           "q": "정리의 보편 원리는?",
@@ -446,12 +446,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "공유 오염은 「같이 돌리면 빨강」이라 **숨어 있다** — 늘 같은 순서면 우연히 통과할 수 있다. 드러내는 법: ① **실행 순서를 섞는다**(Vitest `sequence.shuffle`·Jest `--randomize`) — 순서에 의존하면 무작위 순서에서 깨져 정체가 드러난다. ② **한 파일만 단독 실행해도 초록인지** 확인 — 다른 파일에 의존하면 단독에서 깨진다. ③ **병렬 실행**에서만 깨지는지 — 공유 자원 충돌이 드러난다. 이 세 가지를 **CI 에 켜 두면** 순서·공유 의존을 조기에 잡는다(숨기 전에). 「무작위 순서로도 늘 초록」이 진짜 독립의 증거다 — 고정 순서의 초록은 우연일 수 있다."
+          "text": "공유 오염은 \"같이 돌리면 빨강\"이라 **숨어 있다**. 늘 같은 순서면 우연히 통과할 수 있다. 드러내는 법: ① **실행 순서를 섞는다**(Vitest `sequence.shuffle`, Jest `--randomize`). 순서에 의존하면 무작위 순서에서 깨져 정체가 드러난다. ② **한 파일만 단독 실행해도 초록인지** 확인. 다른 파일에 의존하면 단독에서 깨진다. ③ **병렬 실행**에서만 깨지는지. 공유 자원 충돌이 드러난다. 이 세 가지를 **CI 에 켜 두면** 순서, 공유 의존을 조기에 잡는다(숨기 전에). \"무작위 순서로도 늘 초록\"이 진짜 독립의 증거다. 고정 순서의 초록은 우연일 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "순서 의존 — 섞으면 드러난다",
+          "label": "순서 의존. 섞으면 드러난다",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  if (order === 'fixed') {\n    render('고정 순서 (숨어 있음)',\n      '  항상 A → B 순서 → A 가 세팅한 걸 B 가 씀 → 우연히 초록\\n\\n' +\n      '  <span class=\\\"warn\\\">순서 의존이 숨어 있음 — 고정 순서의 초록은 우연일 수 있다.</span>',\n      '고정 순서: A→B 로 늘 도니 의존이 숨어 우연히 초록.',\n      testRows([['A', '전역에 데이터 세팅', '통과'],\n                ['B', 'A 가 세팅한 걸 사용(의존)', '통과']]));\n  } else {\n    render('무작위 순서 (드러남)',\n      '  순서 섞음 → B → A 로 돌면 A 세팅 전에 B 실행 → 빨강!\\n\\n' +\n      '  <span class=\\\"no\\\">순서를 섞으니 숨은 의존이 드러남 → 고쳐야 할 것이 보인다.</span>',\n      '무작위 순서: B→A 면 B 가 A 세팅 전 실행 → 의존이 드러나 빨강.',\n      testRows([['B', 'A 세팅 전 실행 → 데이터 없음', '실패'],\n                ['A', '전역에 데이터 세팅', '통과']]));\n  }\n</script>",
           "controls": [
@@ -481,15 +481,15 @@
         },
         {
           "type": "note",
-          "text": "**순서·공유 의존은 늘 같은 순서로 돌면 숨어 있으니, 순서를 섞고·단독 실행하고·병렬로 돌려 드러낸다 — 「무작위 순서로도 늘 초록」이 진짜 독립의 증거다.** 공유 오염 버그는 교묘하다 — 테스트가 늘 **같은 순서**로 돌면(예: 항상 A→B), A 가 세팅한 걸 B 가 우연히 물려받아 **통과**해 버린다(순서 의존이 있지만 그 순서라 안 드러남). 그래서 「지금 다 초록」이 「독립적」을 뜻하지 않는다 — 고정 순서의 초록은 우연일 수 있다. 숨은 의존을 **드러내는 세 가지**: ① **실행 순서 섞기** — 테스트 러너의 순서 무작위화 옵션(Vitest `sequence.shuffle`, Jest `--randomize`, pytest `-p randomly`)을 켜면, 순서에 의존하는 테스트가 무작위 순서에서 깨져 정체가 드러난다(B→A 로 돌면 B 가 A 의 세팅 전에 실행돼 실패). ② **단독 실행** — 한 파일·한 테스트만 따로 돌려도 초록인지 — 다른 파일·테스트에 의존하면 단독에서 깨진다(격리 확인). ③ **병렬 실행** — 병렬로 돌리면 공유 자원(같은 DB 레코드·포트·파일) 충돌이 드러난다(순차엔 안 겹치던 게 동시에 겹침). 이 세 가지를 **CI 에 켜 두면**(무작위 순서 + 병렬을 기본으로) 순서·공유 의존을 **조기에**(숨어서 나중에 깜빡임으로 터지기 전에) 잡는다. 그래서 목표는 **「무작위 순서로도, 단독으로도, 병렬로도 늘 초록」** — 이게 진짜 독립의 증거다. 고정 순서의 초록에 안주하지 말고, 순서를 섞어 「정말 독립적인가」를 시험한다. 이건 qa-flaky 3장(재현율을 높여 깜빡임을 드러냄)과 같은 발상 — **숨은 문제를 적극적으로 드러내는** 것(수동적으로 「지금 초록이니 됐다」가 아니라, 능동적으로 「깨지는 조건을 만들어 시험」). 순서 무작위화는 「순서 의존」이라는 특정 문제를 위한 재현율 높이기다. 이 습관(순서 섞기·단독·병렬을 CI 에)이 공유 오염을 조기에 잡아 「따로 초록 같이 빨강」 깜빡임을 예방한다. 능동적으로 시험하지 않으면 숨은 의존이 최악의 순간(중요한 배포 직전 병렬 CI)에 터진다."
+          "text": "**순서, 공유 의존은 늘 같은 순서로 돌면 숨어 있으니, 순서를 섞고, 단독 실행하고, 병렬로 돌려 드러낸다. \"무작위 순서로도 늘 초록\"이 진짜 독립의 증거다.** 공유 오염 버그는 교묘하다. 테스트가 늘 **같은 순서**로 돌면(예: 항상 A→B), A 가 세팅한 걸 B 가 우연히 물려받아 **통과**해 버린다(순서 의존이 있지만 그 순서라 안 드러남). 그래서 \"지금 다 초록\"이 \"독립적\"을 뜻하지 않는다. 고정 순서의 초록은 우연일 수 있다. 숨은 의존을 **드러내는 세 가지**: ① **실행 순서 섞기**. 테스트 러너의 순서 무작위화 옵션(Vitest `sequence.shuffle`, Jest `--randomize`, pytest `-p randomly`)을 켜면, 순서에 의존하는 테스트가 무작위 순서에서 깨져 정체가 드러난다(B→A 로 돌면 B 가 A 의 세팅 전에 실행돼 실패). ② **단독 실행**. 한 파일, 한 테스트만 따로 돌려도 초록인지. 다른 파일, 테스트에 의존하면 단독에서 깨진다(격리 확인). ③ **병렬 실행**. 병렬로 돌리면 공유 자원(같은 DB 레코드, 포트, 파일) 충돌이 드러난다(순차엔 안 겹치던 게 동시에 겹침). 이 세 가지를 **CI 에 켜 두면**(무작위 순서 + 병렬을 기본으로) 순서, 공유 의존을 **조기에**(숨어서 나중에 깜빡임으로 터지기 전에) 잡는다. 그래서 목표는 **\"무작위 순서로도, 단독으로도, 병렬로도 늘 초록\"**. 이게 진짜 독립의 증거다. 고정 순서의 초록에 안주하지 말고, 순서를 섞어 \"정말 독립적인가\"를 시험한다. 이건 qa-flaky 3장(재현율을 높여 깜빡임을 드러냄)과 같은 발상. **숨은 문제를 적극적으로 드러내는** 것(수동적으로 \"지금 초록이니 됐다\"가 아니라, 능동적으로 \"깨지는 조건을 만들어 시험\"). 순서 무작위화는 \"순서 의존\"이라는 특정 문제를 위한 재현율 높이기다. 이 습관(순서 섞기, 단독, 병렬을 CI 에)이 공유 오염을 조기에 잡아 \"따로 초록 같이 빨강\" 깜빡임을 예방한다. 능동적으로 시험하지 않으면 숨은 의존이 최악의 순간(중요한 배포 직전 병렬 CI)에 터진다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** 테스트 데이터·격리(qa-data)는 qa 갈래(품질)의 기반 — 테스트가 **독립적**이려면 데이터가 격리돼야 한다. 「따로 초록 같이 빨강」·순서 의존은 qa-flaky(순서·공유 상태 원인의 데이터 측면 심화), 픽스처 가독성은 write·craft(읽히는 코드), 뒷정리·자원 생명주기는 「획득하면 해제」, 트랜잭션 롤백은 data-tx(ACID), 공유 가변 상태 회피는 lang-fp(불변·순수), 순서 섞어 드러내기는 qa-flaky 3장(능동적 재현)과 통한다. **「따로 초록 같이 빨강 = 공유 — 각자 자기 것을 만들고, 정리하고, 순서를 섞어 독립을 시험한다」**가 핵심이다. 테스트의 독립성은 데이터의 독립성에서 오고, 그게 믿을 수 있는 테스트(qa-flaky·qa-gate·qa-e2e 전부의 전제)의 기반이다."
+          "text": "**이 칸과 갈래.** 테스트 데이터, 격리(qa-data)는 qa 갈래(품질)의 기반. 테스트가 **독립적**이려면 데이터가 격리돼야 한다. \"따로 초록 같이 빨강\", 순서 의존은 qa-flaky(순서, 공유 상태 원인의 데이터 측면 심화), 픽스처 가독성은 write, craft(읽히는 코드), 뒷정리, 자원 생명주기는 \"획득하면 해제\", 트랜잭션 롤백은 data-tx(ACID), 공유 가변 상태 회피는 lang-fp(불변, 순수), 순서 섞어 드러내기는 qa-flaky 3장(능동적 재현)과 통한다. **\"따로 초록 같이 빨강 = 공유. 각자 자기 것을 만들고, 정리하고, 순서를 섞어 독립을 시험한다\"**가 핵심이다. 테스트의 독립성은 데이터의 독립성에서 오고, 그게 믿을 수 있는 테스트(qa-flaky, qa-gate, qa-e2e 전부의 전제)의 기반이다."
         },
         {
           "type": "try",
-          "text": "네 테스트를 무작위 순서로 한 번 돌려라(`sequence.shuffle`·`--randomize`). 깨지는 것이 있으면 무엇을 공유하는지 찾아 적고(2장 다섯), 「각자 만들기」(3장)·뒷정리(5장)로 고쳐라. 무작위 순서·단독·병렬을 CI 에 켜 두어, 「어떤 순서로도 늘 초록」을 독립의 증거로 삼아라 — 고정 초록에 안주하지 마라."
+          "text": "네 테스트를 무작위 순서로 한 번 돌려라(`sequence.shuffle`, `--randomize`). 깨지는 것이 있으면 무엇을 공유하는지 찾아 적고(2장 다섯), \"각자 만들기\"(3장), 뒷정리(5장)로 고쳐라. 무작위 순서, 단독, 병렬을 CI 에 켜 두어, \"어떤 순서로도 늘 초록\"을 독립의 증거로 삼아라. 고정 초록에 안주하지 마라."
         }
       ],
       "quiz": [
@@ -513,13 +513,13 @@
             "sleep 늘리기"
           ],
           "answer": 3,
-          "why": "섞기·단독·병렬로."
+          "why": "섞기, 단독, 병렬로."
         },
         {
           "q": "진짜 독립의 증거는?",
           "choices": [
             "고정 순서 초록",
-            "무작위 순서·단독·병렬로도 늘 초록",
+            "무작위 순서, 단독, 병렬로도 늘 초록",
             "빠름",
             "재시도 통과"
           ],
@@ -535,12 +535,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "테스트 데이터·환경을 **얼마나 진짜에 가깝게** 할지는 **신뢰 대비 속도**의 트레이드오프다: **가짜(mock·인메모리)** — 빠르고 격리 쉬우나 진짜와 다를 수 있음(mock 이 현실을 잘못 흉내 내면 통과해도 실제론 깨짐). **진짜에 가까운 것(테스트 DB·테스트 컨테이너)** — 느리나 현실을 반영(진짜 DB 의 제약·타입·쿼리 동작). 원칙: **단위는 가짜로 빠르게, 통합·E2E 는 진짜에 가깝게** — 층에 맞게(테스트 피라미드, qa-e2e). 특히 **DB 는 인메모리 가짜보다 진짜와 같은 종류**(같은 Postgres 를 도커로)가 낫다(SQL 방언·제약이 다르면 가짜 통과·진짜 실패). 「가짜의 속도」와 「진짜의 신뢰」 사이에서 층별로 고른다."
+          "text": "테스트 데이터, 환경을 **얼마나 진짜에 가깝게** 할지는 **신뢰 대비 속도**의 트레이드오프다: **가짜(mock, 인메모리)**. 빠르고 격리 쉬우나 진짜와 다를 수 있음(mock 이 현실을 잘못 흉내 내면 통과해도 실제론 깨짐). **진짜에 가까운 것(테스트 DB, 테스트 컨테이너)**. 느리나 현실을 반영(진짜 DB 의 제약, 타입, 쿼리 동작). 원칙: **단위는 가짜로 빠르게, 통합, E2E 는 진짜에 가깝게**. 층에 맞게(테스트 피라미드, qa-e2e). 특히 **DB 는 인메모리 가짜보다 진짜와 같은 종류**(같은 Postgres 를 도커로)가 낫다(SQL 방언, 제약이 다르면 가짜 통과, 진짜 실패). \"가짜의 속도\"와 \"진짜의 신뢰\" 사이에서 층별로 고른다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "진짜에 가까움 — 신뢰 vs 속도",
+          "label": "진짜에 가까움. 신뢰 vs 속도",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const rows = {\n    mock:['가짜(mock)', 9, 4, '빠름·격리 쉬움 / 현실과 다를 수 있음(잘못 흉내)', '단위 — 외부 의존 대체'],\n    inmem:['인메모리 DB', 7, 6, '빠름 / SQL 방언·제약이 진짜와 다를 수 있음', '주의 — 진짜와 다른 함정'],\n    container:['테스트 컨테이너', 4, 9, '진짜 DB 를 도커로 / 느리나 현실 반영', '통합 — 진짜에 가깝게'],\n    real:['실제 스테이징', 2, 10, '진짜 환경 / 느리고 격리 어려움', 'E2E 소수 — 최종 확인'],\n  }[kind];\n  const bar = (v, c) => c.repeat(v);\n  render('데이터 환경: ' + rows[0],\n    '  속도: ' + '⚡'.repeat(Math.round(rows[1]/2)) + ' (' + rows[1] + '/10)\\n' +\n    '  신뢰: ' + '✓'.repeat(Math.round(rows[2]/2)) + ' (' + rows[2] + '/10)\\n' +\n    '  특성: ' + rows[3] + '\\n  용도: ' + rows[4] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">단위=가짜(빠름) · 통합=진짜에 가깝게(신뢰). 층에 맞게.</span>',\n    '가짜(빠름)↔진짜(신뢰)의 트레이드오프 — 층에 맞게 고른다.',\n    box(rows[0], '속도 ' + rows[1] + '/10 · 신뢰 ' + rows[2] + '/10\\n' + rows[3], rows[2]>=9?'good':rows[2]<=4?'bad':''));\n</script>",
           "controls": [
@@ -572,23 +572,23 @@
         },
         {
           "type": "note",
-          "text": "**테스트를 얼마나 진짜에 가깝게 할지는 신뢰 대비 속도의 트레이드오프 — 단위는 가짜로 빠르게, 통합·E2E 는 진짜에 가깝게. 특히 DB 는 진짜와 같은 종류를 쓴다.** 테스트 데이터·환경의 「진짜에 가까운 정도」는 스펙트럼이고, **신뢰와 속도가 반비례**한다: ① **가짜(mock·stub·인메모리)** — 외부 의존(API·DB·파일)을 가짜로 대체. **빠르고**(네트워크·디스크 없이) **격리 쉽고**(외부 상태 무관) 결정적(qa-flaky). 하지만 **현실과 다를 위험** — mock 이 실제 동작을 잘못 흉내 내면(실제 API 는 이 경우 에러인데 mock 은 성공 반환), 테스트는 통과해도 **실제론 깨진다**(가짜 신뢰). ② **진짜에 가까운 것(테스트 컨테이너·실제 스테이징)** — 진짜 DB·서비스를 도커로 띄워 씀. **느리나**(기동·네트워크) **현실을 반영**(진짜 제약·타입·쿼리 동작·에러). **원칙 — 층에 맞게**(테스트 피라미드, qa-e2e 4장): **단위 테스트는 가짜로** 빠르게(많이 돌리니 속도 중요, 부품 로직만 보니 외부는 가짜로 충분). **통합·E2E 는 진짜에 가깝게**(적으니 느려도 됨, 통합 지점·현실을 확인해야 하니 진짜 필요). **특히 DB 주의**: 「인메모리 가짜 DB(SQLite 로 Postgres 흉내)」는 빠르지만 **SQL 방언·제약·타입이 진짜와 달라** 가짜에선 통과하고 진짜에선 깨지는 함정이 있다(가짜 신뢰). 그래서 **진짜와 같은 종류의 DB 를 도커로**(Testcontainers — 진짜 Postgres 를 테스트마다 띄움) 쓰는 게 낫다 — 느리지만 현실과 같아 신뢰가 높다. 핵심 통찰: **가짜는 속도를, 진짜는 신뢰를** 준다 — 무엇을 택할지는 「이 테스트가 무엇을 보장해야 하나」에 달렸다. 부품 로직(단위)엔 가짜의 속도가, 통합·현실 확인엔 진짜의 신뢰가 맞다. 그리고 **가짜를 쓸 땐 「이 가짜가 진짜를 정확히 흉내 내나」를 의심**해야 한다 — 부정확한 가짜는 거짓 통과(가장 위험한 실패 — 안심시키고 배신)를 만든다. 계약 테스트(contract test — 가짜가 진짜와 같은 계약을 지키는지 검증)로 이 위험을 줄인다. 「얼마나 진짜에 가깝게」의 선택이 테스트의 신뢰도를 정한다."
+          "text": "**테스트를 얼마나 진짜에 가깝게 할지는 신뢰 대비 속도의 트레이드오프. 단위는 가짜로 빠르게, 통합, E2E 는 진짜에 가깝게. 특히 DB 는 진짜와 같은 종류를 쓴다.** 테스트 데이터, 환경의 \"진짜에 가까운 정도\"는 스펙트럼이고, **신뢰와 속도가 반비례**한다: ① **가짜(mock, stub, 인메모리)**. 외부 의존(API, DB, 파일)을 가짜로 대체. **빠르고**(네트워크, 디스크 없이) **격리 쉽고**(외부 상태 무관) 결정적(qa-flaky). 하지만 **현실과 다를 위험**. mock 이 실제 동작을 잘못 흉내 내면(실제 API 는 이 경우 에러인데 mock 은 성공 반환), 테스트는 통과해도 **실제론 깨진다**(가짜 신뢰). ② **진짜에 가까운 것(테스트 컨테이너, 실제 스테이징)**. 진짜 DB, 서비스를 도커로 띄워 씀. **느리나**(기동, 네트워크) **현실을 반영**(진짜 제약, 타입, 쿼리 동작, 에러). **원칙. 층에 맞게**(테스트 피라미드, qa-e2e 4장): **단위 테스트는 가짜로** 빠르게(많이 돌리니 속도 중요, 부품 로직만 보니 외부는 가짜로 충분). **통합, E2E 는 진짜에 가깝게**(적으니 느려도 됨, 통합 지점, 현실을 확인해야 하니 진짜 필요). **특히 DB 주의**: \"인메모리 가짜 DB(SQLite 로 Postgres 흉내)\"는 빠르지만 **SQL 방언, 제약, 타입이 진짜와 달라** 가짜에선 통과하고 진짜에선 깨지는 함정이 있다(가짜 신뢰). 그래서 **진짜와 같은 종류의 DB 를 도커로**(Testcontainers. 진짜 Postgres 를 테스트마다 띄움) 쓰는 게 낫다. 느리지만 현실과 같아 신뢰가 높다. 핵심 통찰: **가짜는 속도를, 진짜는 신뢰를** 준다. 무엇을 택할지는 \"이 테스트가 무엇을 보장해야 하나\"에 달렸다. 부품 로직(단위)엔 가짜의 속도가, 통합, 현실 확인엔 진짜의 신뢰가 맞다. 그리고 **가짜를 쓸 땐 \"이 가짜가 진짜를 정확히 흉내 내나\"를 의심**해야 한다. 부정확한 가짜는 거짓 통과(가장 위험한 실패. 안심시키고 배신)를 만든다. 계약 테스트(contract test. 가짜가 진짜와 같은 계약을 지키는지 검증)로 이 위험을 줄인다. \"얼마나 진짜에 가깝게\"의 선택이 테스트의 신뢰도를 정한다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** 테스트 데이터·격리(qa-data)는 qa 갈래(품질·테스트)의 기반 — 신뢰할 수 있는 테스트는 격리된·잘 구성된·적절히 현실적인 데이터에서 온다. 「따로 초록 같이 빨강」·순서 의존(1·6장)은 qa-flaky(공유 상태 깜빡임의 데이터 측면), 픽스처 가독성(4장)은 write·craft(읽히는 테스트=문서), 뒷정리(5장)는 자원 생명주기·data-tx(트랜잭션), 공유 가변 회피(1장)는 lang-fp(불변·순수), 진짜에 가까움(7장)은 qa-e2e(통합은 진짜)·「가짜 신뢰의 위험」과 통한다. **「따로 초록 같이 빨강 = 공유 — 각자 만들고, 정리하고, 순서를 섞어 독립을 시험하고, 층에 맞게 진짜에 가깝게」**가 핵심이다. 테스트의 독립성·신뢰성은 **데이터를 어떻게 다루나**에서 오고, 그게 qa 갈래 전체(깜빡임·게이트·E2E·데이터)의 기반이다."
+          "text": "**이 칸과 갈래.** 테스트 데이터, 격리(qa-data)는 qa 갈래(품질, 테스트)의 기반. 신뢰할 수 있는 테스트는 격리된, 잘 구성된, 적절히 현실적인 데이터에서 온다. \"따로 초록 같이 빨강\", 순서 의존(1, 6장)은 qa-flaky(공유 상태 깜빡임의 데이터 측면), 픽스처 가독성(4장)은 write, craft(읽히는 테스트=문서), 뒷정리(5장)는 자원 생명주기, data-tx(트랜잭션), 공유 가변 회피(1장)는 lang-fp(불변, 순수), 진짜에 가까움(7장)은 qa-e2e(통합은 진짜), \"가짜 신뢰의 위험\"과 통한다. **\"따로 초록 같이 빨강 = 공유. 각자 만들고, 정리하고, 순서를 섞어 독립을 시험하고, 층에 맞게 진짜에 가깝게\"**가 핵심이다. 테스트의 독립성, 신뢰성은 **데이터를 어떻게 다루나**에서 오고, 그게 qa 갈래 전체(깜빡임, 게이트, E2E, 데이터)의 기반이다."
         },
         {
           "type": "try",
-          "text": "네 테스트의 데이터 환경을 층별로 점검하라 — 단위는 가짜로 빠른가, 통합은 진짜에 가까운가. 특히 DB 테스트가 인메모리 가짜(SQLite 로 Postgres 흉내)면, 진짜와 다른 함정이 있는지 보고 테스트 컨테이너(진짜 DB 도커)로 바꿀지 검토하라. 가짜를 쓰는 곳은 「이 가짜가 진짜를 정확히 흉내 내나」를 의심하라 — 부정확한 가짜는 거짓 통과를 만든다."
+          "text": "네 테스트의 데이터 환경을 층별로 점검하라. 단위는 가짜로 빠른가, 통합은 진짜에 가까운가. 특히 DB 테스트가 인메모리 가짜(SQLite 로 Postgres 흉내)면, 진짜와 다른 함정이 있는지 보고 테스트 컨테이너(진짜 DB 도커)로 바꿀지 검토하라. 가짜를 쓰는 곳은 \"이 가짜가 진짜를 정확히 흉내 내나\"를 의심하라. 부정확한 가짜는 거짓 통과를 만든다."
         }
       ],
       "quiz": [
         {
-          "q": "「얼마나 진짜에 가깝게」의 트레이드오프는?",
+          "q": "\"얼마나 진짜에 가깝게\"의 트레이드오프는?",
           "choices": [
-            "색·크기",
-            "신뢰 대비 속도(가짜=빠름·위험, 진짜=느림·신뢰)",
+            "색, 크기",
+            "신뢰 대비 속도(가짜=빠름, 위험, 진짜=느림, 신뢰)",
             "메모리",
             "없음"
           ],
@@ -599,7 +599,7 @@
           "q": "층별 원칙은?",
           "choices": [
             "다 진짜",
-            "단위=가짜(빠름), 통합·E2E=진짜에 가깝게(신뢰)",
+            "단위=가짜(빠름), 통합, E2E=진짜에 가깝게(신뢰)",
             "다 가짜",
             "무작위"
           ],
@@ -610,7 +610,7 @@
           "q": "인메모리 가짜 DB 의 함정은?",
           "choices": [
             "느림",
-            "SQL 방언·제약이 진짜와 달라 가짜 통과·진짜 실패(거짓 신뢰)",
+            "SQL 방언, 제약이 진짜와 달라 가짜 통과, 진짜 실패(거짓 신뢰)",
             "색",
             "없음"
           ],
@@ -621,17 +621,17 @@
     },
     {
       "id": "8",
-      "title": "점검표 — 테스트 데이터·격리",
+      "title": "점검표. 테스트 데이터, 격리",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "테스트 데이터를 다룰 때 이 목록을 확인하라. 핵심은 「따로 초록 같이 빨강 = 공유 — 각자 만들고, 정리하고, 순서를 섞어 독립을 시험한다」다."
+          "text": "테스트 데이터를 다룰 때 이 목록을 확인하라. 핵심은 \"따로 초록 같이 빨강 = 공유. 각자 만들고, 정리하고, 순서를 섞어 독립을 시험한다\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tests { margin:8px 0; }\n  .tests .t { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .tests .t .nm { width:64px; color:#7dd3fc; } .tests .t .st { color:#cbd5e1; flex:1; }\n  .tests .t .res { width:52px; text-align:right; font-weight:700; }\n  .tests .t .res.pass { color:#4ade80; } .tests .t .res.fail { color:#f87171; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const testRows = (rows) => '<div class=\"tests\">' + rows.map(([nm, st, res]) =>\n    '<div class=\"t\"><span class=\"nm\">' + esc(nm) + '</span><span class=\"st\">' + esc(st) +\n    '</span><span class=\"res ' + (res==='통과'?'pass':'fail') + '\">' + res + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '따로 초록 같이 빨강 = 테스트끼리 뭔가 공유(오염)',\n    '새는 곳 다섯: 모듈 변수·DB/파일·전역/시각·캐시·mock',\n    '각자 자기 것을 만든다(공유 객체 X → 팩토리 함수)',\n    '픽스처는 가독성 — 중요한 차이만, 나머지는 기본값',\n    '뒷정리: beforeEach 만들고 afterEach 정리(실패해도)',\n    '순서를 섞어 숨은 의존을 드러낸다(단독·병렬도)',\n    '층에 맞게 진짜에 가깝게(단위=가짜, 통합=진짜 DB)',\n    '「어떤 순서·병렬로도 늘 초록」이 진짜 독립의 증거',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 독립적이고 읽기 쉬운 테스트 데이터.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '따로 초록 같이 빨강 = 공유 — 각자 만들고·정리하고·순서 섞어 시험.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -648,15 +648,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 따로 초록 같이 빨강 = 공유 — 각자 자기 것을 만들고, 정리하고, 순서를 섞어 독립을 시험한다.** 「따로 초록 같이 빨강」은 테스트끼리 뭔가를 공유해서고(1장), 새는 곳은 모듈 변수·DB/파일·전역/시각·캐시·mock 다섯이며(2장), 각자 자기 것을 팩토리로 만들고(3장), 픽스처는 중요한 차이만 드러내 가독성을 주고(4장), beforeEach 만들고 afterEach 정리하고(5장), 순서를 섞어·단독·병렬로 숨은 의존을 드러내고(6장), 층에 맞게 진짜에 가깝게(단위=가짜·통합=진짜 DB, 7장) 한다. 「어떤 순서·병렬로도 늘 초록」이 진짜 독립의 증거다."
+          "text": "**한 줄 요약: 따로 초록 같이 빨강 = 공유. 각자 자기 것을 만들고, 정리하고, 순서를 섞어 독립을 시험한다.** \"따로 초록 같이 빨강\"은 테스트끼리 뭔가를 공유해서고(1장), 새는 곳은 모듈 변수, DB/파일, 전역/시각, 캐시, mock 다섯이며(2장), 각자 자기 것을 팩토리로 만들고(3장), 픽스처는 중요한 차이만 드러내 가독성을 주고(4장), beforeEach 만들고 afterEach 정리하고(5장), 순서를 섞어, 단독, 병렬로 숨은 의존을 드러내고(6장), 층에 맞게 진짜에 가깝게(단위=가짜, 통합=진짜 DB, 7장) 한다. \"어떤 순서, 병렬로도 늘 초록\"이 진짜 독립의 증거다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** 테스트 데이터·격리(qa-data)는 qa 갈래(품질·테스트)의 기반으로, 신뢰할 수 있는 테스트가 서는 토대다. 「따로 초록 같이 빨강」·순서 의존은 qa-flaky(공유 상태 깜빡임의 데이터 심화), 픽스처 가독성은 write·craft(테스트는 읽히는 문서), 뒷정리는 자원 생명주기·data-tx(트랜잭션 롤백), 공유 가변 회피는 lang-fp(불변·순수), 진짜에 가까움은 qa-e2e(통합은 진짜)와 통한다. **「따로 초록 같이 빨강 = 공유 — 각자 만들고, 정리하고, 순서를 섞어 독립을 시험하고, 층에 맞게 진짜에 가깝게」**가 이 칸의 전부다. 테스트의 독립성·가독성·신뢰성이 **데이터를 어떻게 격리·구성하나**에서 오고, 그게 qa 갈래 전체(깜빡임·게이트·E2E·데이터)가 믿을 수 있는 품질 체계를 이루는 기반이다."
+          "text": "**이 칸과 갈래.** 테스트 데이터, 격리(qa-data)는 qa 갈래(품질, 테스트)의 기반으로, 신뢰할 수 있는 테스트가 서는 토대다. \"따로 초록 같이 빨강\", 순서 의존은 qa-flaky(공유 상태 깜빡임의 데이터 심화), 픽스처 가독성은 write, craft(테스트는 읽히는 문서), 뒷정리는 자원 생명주기, data-tx(트랜잭션 롤백), 공유 가변 회피는 lang-fp(불변, 순수), 진짜에 가까움은 qa-e2e(통합은 진짜)와 통한다. **\"따로 초록 같이 빨강 = 공유. 각자 만들고, 정리하고, 순서를 섞어 독립을 시험하고, 층에 맞게 진짜에 가깝게\"**가 이 칸의 전부다. 테스트의 독립성, 가독성, 신뢰성이 **데이터를 어떻게 격리, 구성하나**에서 오고, 그게 qa 갈래 전체(깜빡임, 게이트, E2E, 데이터)가 믿을 수 있는 품질 체계를 이루는 기반이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 테스트 데이터를 점검하라. 「무작위 순서로 돌리기」와 「공유 객체를 팩토리로」 두 가지만 잡아도, 「따로 초록 같이 빨강」 깜빡임이 크게 준다. 지금 무작위 순서로 한 번 돌려 깨지는 걸 찾고, 공유 픽스처를 팩토리로 바꿔라 — 독립적이고 읽기 쉬운 테스트 데이터로."
+          "text": "이 8개로 네 테스트 데이터를 점검하라. \"무작위 순서로 돌리기\"와 \"공유 객체를 팩토리로\" 두 가지만 잡아도, \"따로 초록 같이 빨강\" 깜빡임이 크게 준다. 지금 무작위 순서로 한 번 돌려 깨지는 걸 찾고, 공유 픽스처를 팩토리로 바꿔라. 독립적이고 읽기 쉬운 테스트 데이터로."
         }
       ],
       "quiz": [
@@ -664,7 +664,7 @@
           "q": "테스트 데이터 장의 한 줄 요약은?",
           "choices": [
             "빠르게",
-            "따로 초록 같이 빨강 = 공유 — 각자 만들고·정리하고·순서 섞어 시험",
+            "따로 초록 같이 빨강 = 공유. 각자 만들고, 정리하고, 순서 섞어 시험",
             "재시도",
             "무시"
           ],
@@ -674,9 +674,9 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "속도·색",
+            "속도, 색",
             "무작위 순서로 돌리기 + 공유 객체를 팩토리로",
-            "sleep·재시도",
+            "sleep, 재시도",
             "무시"
           ],
           "answer": 1,
@@ -686,7 +686,7 @@
           "q": "테스트 데이터가 이어지는 주제는?",
           "choices": [
             "없음",
-            "qa-flaky(공유 상태)·data-tx(롤백)·lang-fp(불변)·craft(가독성)",
+            "qa-flaky(공유 상태), data-tx(롤백), lang-fp(불변), craft(가독성)",
             "속도만",
             "색"
           ],

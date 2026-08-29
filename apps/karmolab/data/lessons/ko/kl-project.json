@@ -4,7 +4,7 @@
   "parts": [
     {
       "id": "1",
-      "title": "무엇을 만들까 — 작게 자른다",
+      "title": "무엇을 만들까. 작게 자른다",
       "minutes": 8,
       "blocks": [
         {
@@ -14,7 +14,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "범위를 골라 보라 — 오늘 안에 끝나나",
+          "label": "범위를 골라 보라. 오늘 안에 끝나나",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{scope}}';\n  const t = {\n    tiny: ['글자 수 세기', 1, ['입력칸 하나', '숫자 표시'], true,\n      '입력 → 계산 → 표시. 이 앱의 한 바퀴를 **전부** 밟으면서 가장 작다.\\n'\n      + '이 과정에서 만들 것이 이것이다.'],\n    small: ['색 코드 바꾸기 (HEX ↔ RGB)', 2, ['입력칸', '변환', '복사 단추'], true,\n      '계산이 조금 붙지만 여전히 하루 안이다. 두 번째로 좋다.'],\n    mid: ['이미지 크기 줄이기', 5, ['파일 받기', 'canvas 처리', '내려받기', '진행 표시'], false,\n      '파일·비동기·오류 처리가 한꺼번에 온다. 첫 도구로는 크다.\\n'\n      + '먼저 작은 것으로 한 바퀴를 돌고 나서.'],\n    big: ['영상 편집기', 20, ['영상 디코딩', '타임라인 UI', '내보내기', '성능'], false,\n      '이 정도면 도구가 아니라 프로젝트다. 쪼개야 한다.'],\n  }[k];\n  stage.innerHTML = '<div class=\"panel\"><b>' + esc(t[0]) + '</b><br>'\n    + '예상 <b class=\"' + (t[3] ? 'ok' : 'no') + '\">' + t[1] + '</b>일 · 필요한 조각 ' + t[2].length + '개<br><br>'\n    + t[2].map((x) => '· ' + esc(x)).join('<br>')\n    + '<div style=\"height:9px;background:#334155;border-radius:5px;margin-top:10px\">'\n    + '<div style=\"height:100%;width:' + Math.min(100, t[1] * 5) + '%;background:'\n    + (t[3] ? '#22c55e' : '#ef4444') + ';border-radius:5px\"></div></div></div>';\n  clearLog('범위를 바꿔 가며 비교하라');\n  app.innerHTML = '<div style=\"font-size:15px;color:' + (t[3] ? '#4ade80' : '#fca5a5') + '\">'\n    + (t[3] ? '첫 도구로 알맞다' : '첫 도구로는 크다 — 쪼개라') + '</div>';\n  show(t[4] + '\\n\\n'\n     + '작게 자르는 기준\\n'\n     + '  · 조각이 3개를 넘으면 한 번 더 쪼갠다\\n'\n     + '  · 파일·네트워크·비동기가 끼면 난이도가 확 오른다\\n'\n     + '  · **오늘 화면에 뜨는가**를 물어라 — 안 뜨면 더 자른다\\n\\n'\n     + '이 과정에서 만들 것: 「글자 수 세기」\\n'\n     + '  글을 넣으면 글자·낱말·줄 수를 보여 주는 도구.\\n'\n     + '  작지만 이 앱의 모든 자리를 한 번씩 지난다 —\\n'\n     + '  메타·빌드·화면·이벤트·상태·말 묶음·검사기·커밋.');\n</script>",
           "controls": [
@@ -46,7 +46,7 @@
         },
         {
           "type": "note",
-          "text": "**「오늘 화면에 뜨는가」가 범위의 기준이다.** 한 바퀴를 한 번 돌면 그 뒤로는 쉬워지는데, 첫 바퀴를 못 돌면 배운 것이 하나도 안 남는다 — 크게 잡는 것이 초보자에게 가장 비싼 실수다."
+          "text": "**\"오늘 화면에 뜨는가\"가 범위의 기준이다.** 한 바퀴를 한 번 돌면 그 뒤로는 쉬워지는데, 첫 바퀴를 못 돌면 배운 것이 하나도 안 남는다. 크게 잡는 것이 초보자에게 가장 비싼 실수다."
         },
         {
           "type": "code",
@@ -56,7 +56,7 @@
         },
         {
           "type": "p",
-          "text": "**「안 할 것」을 적어 두는 것이 절반이다.** 만들다 보면 아이디어가 계속 붙는데, 목록에 적어 두고 이번 판에서는 손대지 않으면 오늘 끝난다 — 다음 판에 하면 된다."
+          "text": "**\"안 할 것\"을 적어 두는 것이 절반이다.** 만들다 보면 아이디어가 계속 붙는데, 목록에 적어 두고 이번 판에서는 손대지 않으면 오늘 끝난다. 다음 판에 하면 된다."
         },
         {
           "type": "try",
@@ -79,7 +79,7 @@
           "q": "난이도를 크게 올리는 요소는?",
           "choices": [
             "입력칸",
-            "파일·네트워크·비동기",
+            "파일, 네트워크, 비동기",
             "버튼 색",
             "이름"
           ],
@@ -87,7 +87,7 @@
           "why": "한꺼번에 오면 막힌다."
         },
         {
-          "q": "「안 할 것」 목록의 쓸모는?",
+          "q": "\"안 할 것\" 목록의 쓸모는?",
           "choices": [
             "문서용",
             "이번 판을 오늘 끝내게 해 준다",
@@ -101,7 +101,7 @@
     },
     {
       "id": "2",
-      "title": "먼저 읽는다 — 중복부터 확인",
+      "title": "먼저 읽는다. 중복부터 확인",
       "minutes": 8,
       "blocks": [
         {
@@ -128,7 +128,7 @@
         },
         {
           "type": "note",
-          "text": "**「진짜 신규」는 셋 중 마지막 선택지다.** 기존 도구에 탭 하나를 더하는 편이 대개 사용자에게도 낫다 — 도구 목록이 짧아지고, 관련 기능이 한자리에 모인다."
+          "text": "**\"진짜 신규\"는 셋 중 마지막 선택지다.** 기존 도구에 탭 하나를 더하는 편이 대개 사용자에게도 낫다. 도구 목록이 짧아지고, 관련 기능이 한자리에 모인다."
         },
         {
           "type": "code",
@@ -138,7 +138,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **비슷한 위젯을 한 개는 끝까지 읽어라.** 구조를 흉내 내는 것이 가장 빠른 학습이고, 이 저장소의 관습(컨테이너 다루기·정리·말 묶음)이 그 안에 전부 들어 있다."
+          "text": "그리고 **비슷한 위젯을 한 개는 끝까지 읽어라.** 구조를 흉내 내는 것이 가장 빠른 학습이고, 이 저장소의 관습(컨테이너 다루기, 정리, 말 묶음)이 그 안에 전부 들어 있다."
         },
         {
           "type": "try",
@@ -183,17 +183,17 @@
     },
     {
       "id": "3",
-      "title": "뼈대 — 세 자리에 넣는다",
+      "title": "뼈대. 세 자리에 넣는다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "이제 만든다. 05칸에서 본 **세 자리**(코드·메타·빌드)에 넣으면 목록에 뜨고 열린다 — 화면 내용은 그다음이다."
+          "text": "이제 만든다. 05칸에서 본 **세 자리**(코드, 메타, 빌드)에 넣으면 목록에 뜨고 열린다. 화면 내용은 그다음이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇을 넣고 무엇을 확인하나",
+          "label": "단계를 밀어 보라. 무엇을 넣고 무엇을 확인하나",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['① 파일을 만든다', 'src/widgets/mycount.ts',\n      \"(function () {\\n\"\n      + \"  Toolbox.register({\\n\"\n      + \"    ...Toolbox.getLazyWidgetPublicMeta('mycount'),\\n\"\n      + \"    tabs: [{ id: 'app', label: '세기',\\n\"\n      + \"      build(container) { container.textContent = '여기에 만든다'; } }]\\n\"\n      + \"  });\\n\"\n      + \"})();\",\n      '메타는 다시 적지 않고 목록에서 받아 쓴다 (05칸 2장).'],\n    ['② 목록에 한 줄', 'src/widgets-lazy-meta.ts',\n      \"{\\n\"\n      + \"  id: 'mycount',\\n\"\n      + \"  get title() { return t('widgets.mycount.title', undefined, '글자 수 세기'); },\\n\"\n      + \"  category: 'tool',\\n\"\n      + \"  get desc() { return t('widgets-desc.mycount.desc', undefined, '글자·낱말·줄 수를 셉니다'); },\\n\"\n      + \"  layout: 'form',\\n\"\n      + \"  icon: '<path d=\\\"M5 6h14M5 12h9M5 18h5\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"1.6\\\"/>',\\n\"\n      + \"  lazyScriptPaths: ['mycount']\\n\"\n      + \"}\",\n      'lazyScriptPaths 가 받을 파일을 정한다 — 여기가 틀리면 안 열린다.'],\n    ['③ 빌드에 등록', 'build.mjs 의 entryPoints',\n      \"entryPoints: [\\n\"\n      + \"  …,\\n\"\n      + \"  join(root, 'src/widgets/mycount.ts'),   // ← 한 줄\\n\"\n      + \"]\",\n      '이게 있어야 js/widgets/mycount.js 가 만들어진다.'],\n    ['④ 확인', '터미널 + 브라우저',\n      \"npm run typecheck        # 타입\\n\"\n      + \"# npm run dev 터미널에 다시 만든 기록이 뜨는지\\n\"\n      + \"# 브라우저 목록에서 「글자 수 세기」를 찾아 눌러 본다\",\n      '「여기에 만든다」가 보이면 뼈대가 선 것이다. 여기서부터는 안을 채우는 일뿐이다.'],\n  ][s];\n  stage.innerHTML = '<div class=\"panel\"><b>' + esc(steps[0]) + '</b> — <code>' + esc(steps[1]) + '</code>'\n    + '<div class=\"code\" style=\"margin-top:8px\">' + esc(steps[2]) + '</div>'\n    + '<span class=\"hint\">' + esc(steps[3]) + '</span></div>';\n  clearLog('단계를 밀어 보라');\n  app.innerHTML = '<div class=\"hint\">세 자리 + 확인 — 여기까지가 「열리는 도구」다</div>';\n  show('빠뜨렸을 때의 증상 (05칸 7장)\\n'\n     + '  ② 없음 → 목록에 아예 안 보인다\\n'\n     + '  ③ 없음 → 목록엔 있는데 「불러오는 중…」에서 멈춘다\\n'\n     + '  ① 없음/오류 → 열리는데 화면이 안 채워진다 (Console 확인)\\n\\n'\n     + '순서 요령\\n'\n     + '  · 화면 내용을 만들기 **전에** 여기까지 먼저 한다\\n'\n     + '  · 「열리기만 하는 빈 도구」를 먼저 띄우면 그 뒤가 전부 쉬워진다\\n'\n     + '  · 한 바퀴를 일찍 돌수록 막힐 자리가 줄어든다 (01칸 7장)');\n</script>",
           "controls": [
@@ -210,7 +210,7 @@
         },
         {
           "type": "note",
-          "text": "**화면 내용보다 뼈대를 먼저 세운다.** 「열리기만 하는 빈 도구」를 먼저 띄우면 그 뒤의 모든 작업이 「한 바퀴 안에서」 일어나고, 뭔가 안 될 때 원인 범위가 방금 쓴 몇 줄로 좁혀진다."
+          "text": "**화면 내용보다 뼈대를 먼저 세운다.** \"열리기만 하는 빈 도구\"를 먼저 띄우면 그 뒤의 모든 작업이 \"한 바퀴 안에서\" 일어나고, 뭔가 안 될 때 원인 범위가 방금 쓴 몇 줄로 좁혀진다."
         },
         {
           "type": "code",
@@ -220,11 +220,11 @@
         },
         {
           "type": "p",
-          "text": "**id 는 한 번 정하면 바꾸기 어렵다.** 주소(#id)·저장 열쇠·파일 이름·말 묶음 열쇠가 전부 그것을 따르므로, 짧고 뜻이 통하는 이름을 처음에 고른다."
+          "text": "**id 는 한 번 정하면 바꾸기 어렵다.** 주소(#id), 저장 열쇠, 파일 이름, 말 묶음 열쇠가 전부 그것을 따르므로, 짧고 뜻이 통하는 이름을 처음에 고른다."
         },
         {
           "type": "try",
-          "text": "실제로 세 자리에 넣고 브라우저에서 열어 보라. 「여기에 만든다」가 보이면 이 과정의 절반이 끝난 것이다."
+          "text": "실제로 세 자리에 넣고 브라우저에서 열어 보라. \"여기에 만든다\"가 보이면 이 과정의 절반이 끝난 것이다."
         }
       ],
       "quiz": [
@@ -254,7 +254,7 @@
           "q": "id 를 신중히 정해야 하는 이유는?",
           "choices": [
             "길이 제한",
-            "주소·저장 열쇠·파일명이 전부 따라간다",
+            "주소, 저장 열쇠, 파일명이 전부 따라간다",
             "검색",
             "정렬"
           ],
@@ -265,17 +265,17 @@
     },
     {
       "id": "4",
-      "title": "화면 — 진짜로 만들어 보자",
+      "title": "화면. 진짜로 만들어 보자",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "이제 안을 채운다. 아래 데모는 **단계를 밀면 코드가 늘고, 그 자리에서 실제로 동작한다** — 지금 만들고 있는 그 도구다."
+          "text": "이제 안을 채운다. 아래 데모는 **단계를 밀면 코드가 늘고, 그 자리에서 실제로 동작한다**. 지금 만들고 있는 그 도구다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 진짜로 돌아가는 도구가 조립된다",
+          "label": "단계를 밀어 보라. 진짜로 돌아가는 도구가 조립된다",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const s = {{step}};\n  /* 단계별로 실제 위젯을 조립한다 — 아래 화면은 진짜로 동작한다 */\n  let html = '<label for=\"src\" style=\"display:block;margin-bottom:4px\">글</label>'\n    + '<textarea id=\"src\" rows=\"3\" aria-label=\"글\">안녕 세계\\n두 번째 줄</textarea>';\n  if (s >= 1) html += '<div class=\"panel\" id=\"res\">결과가 여기 나온다</div>';\n  if (s >= 3) html += '<button data-act=\"copy\">결과 복사</button>'\n    + '<button data-act=\"clear\">비우기</button>';\n  stage.innerHTML = html;\n  const src = stage.querySelector('#src');\n  const res = stage.querySelector('#res');\n  function count(text) {\n    const chars = [...text].length;                      /* 이모지·한글도 한 글자로 */\n    const noSpace = [...text.replace(/\\s/g, '')].length;\n    const words = text.trim() ? text.trim().split(/\\s+/).length : 0;\n    const lines2 = text ? text.split('\\n').length : 0;\n    return { chars, noSpace, words, lines2 };\n  }\n  function render() {\n    if (!res) return;\n    const c = count(src.value);\n    res.innerHTML = '글자 <b>' + c.chars + '</b> · 공백 빼고 <b>' + c.noSpace\n      + '</b> · 낱말 <b>' + c.words + '</b> · 줄 <b>' + c.lines2 + '</b>';\n  }\n  if (s >= 2) { src.addEventListener('input', render); }\n  if (s >= 1) render();\n  if (s >= 3) {\n    stage.addEventListener('click', (e) => {\n      const b = e.target.closest('button');\n      if (!b) return;\n      if (b.dataset.act === 'clear') { src.value = ''; render(); log('비웠다'); }\n      else { log('복사: ' + res.textContent); }\n    });\n  }\n  const notes = [\n    ['① 입력칸만', '입력칸에는 **이름**이 있어야 한다 — label 또는 aria-label.\\n'\n      + '이 저장소에는 그걸 보는 검사기가 있다 (npm run test:names).'],\n    ['② 결과 자리 + 계산', '세는 함수를 따로 뒀다 — 나중에 검사하기도 쉽다.\\n'\n      + '[...text].length 를 쓴 이유: 이모지·한글이 한 글자로 세어진다 (cs-binary 갈래).'],\n    ['③ 입력에 반응', \"'input' 이벤트로 즉시 다시 그린다 — 누를 단추가 없어도 된다.\"],\n    ['④ 단추 두 개', '위임 하나로 두 단추를 받는다 (04칸 2장).\\n'\n      + 'data-act 로 의도를 담았다 — 화면 글자로 분기하지 않는다 (04칸 3장).'],\n  ][s];\n  clearLog(s >= 3 ? '단추를 눌러 보라 · 글을 고쳐 보라' : '글을 고쳐 보라');\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + notes[0] + '</div>'\n    + '<div class=\"hint\">' + notes[1].split('\\n')[0] + '</div>';\n  show(notes[1] + '\\n\\n'\n     + '화면을 만들 때의 관습 (03칸 8장)\\n'\n     + '  · 색·간격은 공용 토큰 (--bg-secondary · --border · --radius-md)\\n'\n     + '  · 자체 CSS 는 위젯 전용 클래스에만 (.mycount-…)\\n'\n     + '  · 탭 컨테이너에 레이아웃을 직접 걸지 않는다 — 안쪽 wrapper 에\\n'\n     + '  · 입력칸에는 이름을 붙인다 (label · aria-label)\\n\\n'\n     + '위 화면은 지금 **진짜로 동작한다** — 글을 고치면 숫자가 바뀐다.');\n</script>",
           "controls": [
@@ -298,15 +298,15 @@
         },
         {
           "type": "note",
-          "text": "**세는 함수를 따로 두라.** 화면과 계산이 붙어 있으면 나중에 검사를 붙이기 어렵고, 떼어 두면 그 함수만 놓고 확인할 수 있다 — 08칸의 검사 붙이기가 쉬워지는 자리다."
+          "text": "**세는 함수를 따로 두라.** 화면과 계산이 붙어 있으면 나중에 검사를 붙이기 어렵고, 떼어 두면 그 함수만 놓고 확인할 수 있다. 08칸의 검사 붙이기가 쉬워지는 자리다."
         },
         {
           "type": "p",
-          "text": "그리고 **`[...text].length` 를 쓴 이유**가 있다. `text.length` 는 이모지 하나를 2로 세는데(UTF-16 조각 수), 펼치기(`[...]`)는 **코드 포인트** 단위로 센다 — 대부분의 글자에서 사람이 세는 것과 맞아진다. 다만 피부색이 붙은 👍🏽 처럼 **여러 코드 포인트가 한 글자로 보이는** 경우는 그래도 2로 세어진다. 진짜 「보이는 글자」 단위가 필요하면 `Intl.Segmenter` 를 쓴다 — 정확성의 층이 세 개인 셈이다."
+          "text": "그리고 **`[...text].length` 를 쓴 이유**가 있다. `text.length` 는 이모지 하나를 2로 세는데(UTF-16 조각 수), 펼치기(`[...]`)는 **코드 포인트** 단위로 센다. 대부분의 글자에서 사람이 세는 것과 맞아진다. 다만 피부색이 붙은 👍🏽 처럼 **여러 코드 포인트가 한 글자로 보이는** 경우는 그래도 2로 세어진다. 진짜 \"보이는 글자\" 단위가 필요하면 `Intl.Segmenter` 를 쓴다. 정확성의 층이 세 개인 셈이다."
         },
         {
           "type": "try",
-          "text": "단계를 끝까지 밀고 👍🏽 를 넣어 보라. 글자가 **2** 로 나온다 — 이모지 + 피부색이 각각 한 코드 포인트이기 때문이다. `text.length` 였다면 4 였다. 어느 층까지 맞출지는 도구가 정할 문제다."
+          "text": "단계를 끝까지 밀고 👍🏽 를 넣어 보라. 글자가 **2** 로 나온다. 이모지 + 피부색이 각각 한 코드 포인트이기 때문이다. `text.length` 였다면 4 였다. 어느 층까지 맞출지는 도구가 정할 문제다."
         }
       ],
       "quiz": [
@@ -314,7 +314,7 @@
           "q": "입력칸에 반드시 있어야 하는 것은?",
           "choices": [
             "placeholder",
-            "이름(label·aria-label)",
+            "이름(label, aria-label)",
             "테두리",
             "id"
           ],
@@ -336,7 +336,7 @@
           "q": "`[...text].length` 를 쓰는 이유는?",
           "choices": [
             "빠르다",
-            "이모지·한글이 한 글자로 세어진다",
+            "이모지, 한글이 한 글자로 세어진다",
             "타입 때문",
             "관습"
           ],
@@ -347,7 +347,7 @@
     },
     {
       "id": "5",
-      "title": "말 묶음 — 세 언어로",
+      "title": "말 묶음. 세 언어로",
       "minutes": 8,
       "blocks": [
         {
@@ -357,7 +357,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "상태를 골라 보라 — 무엇이 걸리나",
+          "label": "상태를 골라 보라. 무엇이 걸리나",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{state}}';\n  const files = [['i18n/ko/mycount.json', k !== 'none'], ['i18n/en/mycount.json', k === 'all'],\n                 ['i18n/ja/mycount.json', k === 'all']];\n  stage.innerHTML = '<div class=\"panel\">' + files.map(([f, ok]) =>\n    '<div>' + (ok ? '<span class=\"ok\">✓</span> ' : '<span class=\"no\">✗</span> ') + '<code>' + esc(f) + '</code></div>').join('')\n    + '<div style=\"margin-top:10px\">검사기: ' + (k === 'all'\n      ? '<span class=\"ok\">초록</span>' : '<span class=\"no\">빨강 — test:i18n 계열</span>') + '</div>'\n    + '<div style=\"margin-top:6px\">화면에 보이는 것: ' + {\n        none: '<span class=\"no\">코드에 박은 한국어 (번역 불가)</span>',\n        ko: '<span class=\"mid\">한국어는 정상 · 영어/일본어 화면에서도 한국어</span>',\n        all: '<span class=\"ok\">각 언어로 제대로</span>' }[k] + '</div></div>';\n  clearLog('상태를 바꿔 가며 보라');\n  app.innerHTML = '<div class=\"hint\">' + { none: '아직 코드에 글자를 박아 둔 상태',\n    ko: '한국어만 뺀 상태', all: '세 언어를 다 채운 상태 ★' }[k] + '</div>';\n  show('옮기는 순서\\n'\n     + '  1. 화면 글자를 열쇠로 바꾼다 — t(\\'mycount.label.src\\')\\n'\n     + '  2. i18n/ko/mycount.json 에 열쇠와 한국어를 넣는다\\n'\n     + '  3. en · ja 에도 같은 열쇠를 넣는다 (번역은 나중에 다듬어도 된다)\\n'\n     + '  4. 그리기 전에 loadNamespace(\\'mycount\\') 를 기다린다 (06칸 5장)\\n\\n'\n     + '열쇠 이름 규칙\\n'\n     + '  mycount.label.src · mycount.btn.copy · mycount.res.summary\\n'\n     + '  <묶음>.<자리>.<이름> — 묶음 이름은 대개 도구 id\\n\\n'\n     + '자리 채우기\\n'\n     + '  ✗ t(\\'mycount.chars\\') + n + \\'자\\'\\n'\n     + '  ✓ t(\\'mycount.res.chars\\', { n })   // ko: \\'글자 {n}자\\' · en: \\'{n} characters\\'\\n'\n     + '  → 언어마다 어순이 다르다 (06칸 4장)');\n</script>",
           "controls": [
@@ -391,11 +391,11 @@
         },
         {
           "type": "note",
-          "text": "**번역이 아직 어설퍼도 열쇠는 세 파일에 다 넣어라.** 값이 한국어여도 검사기는 통과하고, 나중에 그 파일만 고치면 된다 — 열쇠가 아예 없으면 화면에 열쇠 이름이 뜬다(06칸 3장)."
+          "text": "**번역이 아직 어설퍼도 열쇠는 세 파일에 다 넣어라.** 값이 한국어여도 검사기는 통과하고, 나중에 그 파일만 고치면 된다. 열쇠가 아예 없으면 화면에 열쇠 이름이 뜬다(06칸 3장)."
         },
         {
           "type": "p",
-          "text": "그리고 **도구 이름·설명은 `widgets`·`widgets-desc` 묶음에 들어간다.** 목록에 뜨는 글이라 위젯 코드가 오기 전에 필요하기 때문인데, 3장의 메타에서 이미 그 열쇠를 썼다."
+          "text": "그리고 **도구 이름, 설명은 `widgets`, `widgets-desc` 묶음에 들어간다.** 목록에 뜨는 글이라 위젯 코드가 오기 전에 필요하기 때문인데, 3장의 메타에서 이미 그 열쇠를 썼다."
         },
         {
           "type": "try",
@@ -426,7 +426,7 @@
           "why": "묶음은 대개 도구 id."
         },
         {
-          "q": "「글자 {n}자」처럼 자리를 뚫는 이유는?",
+          "q": "\"글자 {n}자\"처럼 자리를 뚫는 이유는?",
           "choices": [
             "짧아서",
             "언어마다 어순이 달라서",
@@ -450,7 +450,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "검사를 골라 보라 — 무엇을 보고 어떻게 고치나",
+          "label": "검사를 골라 보라. 무엇을 보고 어떻게 고치나",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{gate}}';\n  const gates = [\n    ['typecheck', 'npm run typecheck', '타입이 맞나', k === 'typecheck'],\n    ['names', 'npm run test:names', '입력칸에 이름이 있나', k === 'names'],\n    ['i18n', 'npm run test:i18n:keys', '말 묶음 세 언어가 짝인가', k === 'i18n'],\n    ['tools', 'npm run test:tools', '도구가 실제로 열리나', k === 'tools'],\n    ['orphan', 'npm run audit:orphan-widgets', '메타·빌드·파일이 다 있나', k === 'orphan'],\n    ['a11y', 'npm run audit:iconbtn / audit:saylive', '아이콘 단추 이름 · 상태 알림', k === 'a11y'],\n  ];\n  stage.innerHTML = '<div class=\"panel\">' + gates.map(([id, cmd, what, on]) =>\n    '<div style=\"padding:4px 6px;border-radius:6px;' + (on ? 'background:#14351f;color:#bbf7d0' : 'color:#64748b') + '\">'\n    + (on ? '→ ' : '   ') + '<code>' + esc(cmd) + '</code> — ' + what + '</div>').join('') + '</div>';\n  clearLog('검사를 바꿔 가며 읽어 보라');\n  const t = {\n    typecheck: ['타입 검사', '가장 먼저·가장 자주 돌린다.',\n      '흔한 빨강: querySelector 결과가 null 일 수 있다 →\\n'\n      + '  const el = container.querySelector<HTMLElement>(\\'.x\\')!;  (있다고 단언)\\n'\n      + '  또는 if (!el) return;  (없을 때를 다룬다 — 이쪽이 안전하다)'],\n    names: ['입력칸 이름', '모든 입력칸에 label 이나 aria-label 이 있어야 한다.',\n      '흔한 빨강: <input> 만 두고 이름을 안 붙임 →\\n'\n      + '  <label for=\"x\">글</label><textarea id=\"x\">  또는  aria-label=\"글\"\\n'\n      + '  화면 낭독기 사용자에게는 이름이 곧 그 칸의 전부다'],\n    i18n: ['말 묶음 짝', 'ko·en·ja 에 같은 열쇠가 있어야 한다 (5장).',\n      '흔한 빨강: ko 에만 넣음 → en·ja 에 같은 열쇠를 채운다\\n'\n      + '  값은 우선 한국어를 넣어 둬도 통과한다'],\n    tools: ['도구가 열리나', '실제로 열어 보는 검사 — 헤드리스 브라우저로 돈다.',\n      '흔한 빨강: build 안에서 오류 → Console 에 찍히는 것과 같은 오류다\\n'\n      + '  로컬에서 그 도구를 열어 보면 바로 재현된다'],\n    orphan: ['세 자리 정합', '메타는 있는데 파일이 없거나, 반대인 경우를 잡는다.',\n      '흔한 빨강: build.mjs 에 안 넣음 (3장 ③)\\n'\n      + '  세 자리 중 하나가 빠지면 여기서 잡힌다'],\n    a11y: ['접근성 규칙', '아이콘만 있는 단추의 이름 · 상태 한 줄의 알림 등.',\n      '흔한 빨강: <button>🗑</button> 처럼 이름 없는 단추 →\\n'\n      + '  aria-label=\"지우기\" 를 붙인다\\n'\n      + '  결과 자리에는 aria-live=\"polite\" — 화면이 안 바뀐 채 글자만 바뀌면 안 읽힌다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>'\n    + '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '새 도구를 넣었을 때 도는 순서 (권장)\\n'\n     + '  1. npm run typecheck\\n'\n     + '  2. npm run test:names · test:i18n:keys      (가장 자주 걸리는 둘)\\n'\n     + '  3. 브라우저에서 실제로 열어 본다\\n'\n     + '  4. 올리기 직전 npm run gates                 (몰아서)\\n\\n'\n     + '검사기 메시지는 파일·줄·이유를 한국어로 적어 준다 — 끝까지 읽으면 대개 답이 있다.');\n</script>",
           "controls": [
@@ -490,7 +490,7 @@
         },
         {
           "type": "note",
-          "text": "**가장 자주 걸리는 둘은 `test:names` 와 `test:i18n:keys` 다.** 입력칸 이름과 세 언어 짝 — 새 도구를 넣을 때 이 둘만 미리 챙겨도 빨강을 거의 안 본다."
+          "text": "**가장 자주 걸리는 둘은 `test:names` 와 `test:i18n:keys` 다.** 입력칸 이름과 세 언어 짝. 새 도구를 넣을 때 이 둘만 미리 챙겨도 빨강을 거의 안 본다."
         },
         {
           "type": "code",
@@ -511,10 +511,10 @@
         {
           "q": "새 도구에서 가장 자주 걸리는 검사 둘은?",
           "choices": [
-            "typecheck·build",
-            "test:names·test:i18n:keys",
-            "tools·orphan",
-            "a11y·perf"
+            "typecheck, build",
+            "test:names, test:i18n:keys",
+            "tools, orphan",
+            "a11y, perf"
           ],
           "answer": 1,
           "why": "입력칸 이름과 세 언어 짝."
@@ -545,7 +545,7 @@
     },
     {
       "id": "7",
-      "title": "정리 — 남길 것과 지울 것",
+      "title": "정리. 남길 것과 지울 것",
       "minutes": 8,
       "blocks": [
         {
@@ -555,7 +555,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 골라 보라 — 왜 필요한가",
+          "label": "항목을 골라 보라. 왜 필요한가",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{item}}';\n  const items = [['debug', '디버그 코드 지우기'], ['dispose', '정리(dispose) 넣기'],\n                 ['store', '저장 열쇠 접두사'], ['edge', '빈 값·큰 입력 다루기'],\n                 ['both', '웹·데스크톱 둘 다 확인'], ['diff', '커밋 전 diff 읽기']];\n  stage.innerHTML = '<div class=\"panel\">' + items.map(([id, n]) =>\n    '<div style=\"padding:4px 8px;margin:2px 0;border-radius:6px;'\n    + (id === k ? 'background:#14351f;color:#bbf7d0' : 'color:#64748b') + '\">'\n    + (id === k ? '→ ' : '   ') + n + '</div>').join('') + '</div>';\n  clearLog('항목을 바꿔 가며 읽어 보라');\n  const t = {\n    debug: ['디버그 코드 지우기', 'console.log · debugger · 임시 파일.',\n      '유니크 접두사를 썼다면 한 번에 찾아 지운다 (07칸 5장):\\n'\n      + '  grep -rn \\'DEBUG-\\' src/\\n'\n      + '커밋 전 git diff --staged 로 남은 것이 없나 본다.'],\n    dispose: ['정리 넣기', '타이머·바깥 리스너를 닫을 때 거둔다.',\n      '작은 도구라도 setInterval 이나 document 리스너가 있으면 필요하다.\\n'\n      + 'AbortController 하나에 묶으면 abort() 한 줄이면 끝난다 (05칸 6장).\\n'\n      + '안 하면 여러 번 열수록 느려진다.'],\n    store: ['저장 열쇠 접두사', \"kl:<도구id>:<이름> 규칙.\",\n      '도구가 190개다 — 접두사가 없으면 남의 값을 덮어쓴다 (06칸 7장).\\n'\n      + '읽을 때는 try 로 감싸고 기본값을 준다.'],\n    edge: ['빈 값·큰 입력', '아무것도 안 넣었을 때 · 아주 긴 글을 넣었을 때.',\n      '빈 값에서 0 이 나오나 · 10만 자를 넣어도 멈추지 않나.\\n'\n      + '긴 글자가 레이아웃을 밀어내지 않나 (03칸 6장) — 실제 데이터로 시험한다.'],\n    both: ['웹·데스크톱 둘 다', '데스크톱 기능을 썼다면 웹에서도 열어 본다.',\n      '웹에서 invoke 는 거절된다 — 안 잡으면 그 도구가 웹에서만 죽는다 (06칸 8장).\\n'\n      + '창 폭도 좁게·넓게 두 번 (03칸 8장).'],\n    diff: ['커밋 전 diff 읽기', 'git status -s → git diff --staged.',\n      '내가 만진 것만 담겼나 · 남의 변경이 섞이지 않았나 (01칸 4장).\\n'\n      + '이 작업 트리는 세션이 여럿 공유한다 — add -A 대신 경로를 명시한다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>'\n    + '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '올리기 직전 순서\\n'\n     + '  ① 디버그 코드 지우기  ② 정리 넣기  ③ 빈 값·큰 입력 확인\\n'\n     + '  ④ 웹·데스크톱·좁은 화면  ⑤ 검사기  ⑥ diff 읽고 커밋');\n</script>",
           "controls": [
@@ -579,11 +579,11 @@
                 },
                 {
                   "value": "edge",
-                  "label": "빈 값·큰 입력"
+                  "label": "빈 값, 큰 입력"
                 },
                 {
                   "value": "both",
-                  "label": "웹·데스크톱"
+                  "label": "웹, 데스크톱"
                 },
                 {
                   "value": "diff",
@@ -601,11 +601,11 @@
         },
         {
           "type": "note",
-          "text": "**`git add -A` 대신 경로를 명시하라.** 이 작업 트리는 여러 세션이 공유하므로 남의 반쯤 된 변경까지 담길 수 있다 — 01칸 4장의 안전선이 여기서 그대로 적용된다."
+          "text": "**`git add -A` 대신 경로를 명시하라.** 이 작업 트리는 여러 세션이 공유하므로 남의 반쯤 된 변경까지 담길 수 있다. 01칸 4장의 안전선이 여기서 그대로 적용된다."
         },
         {
           "type": "p",
-          "text": "그리고 **빈 값과 아주 큰 입력을 꼭 넣어 보라.** 「가나다」로는 안 터지는 것들이 실제 데이터에서 터지는데, 이 두 극단만 확인해도 대부분 걸러진다."
+          "text": "그리고 **빈 값과 아주 큰 입력을 꼭 넣어 보라.** \"가나다\"로는 안 터지는 것들이 실제 데이터에서 터지는데, 이 두 극단만 확인해도 대부분 걸러진다."
         },
         {
           "type": "try",
@@ -638,10 +638,10 @@
         {
           "q": "꼭 넣어 봐야 할 두 극단은?",
           "choices": [
-            "짧은 글·중간 글",
-            "빈 값·아주 큰 입력",
-            "숫자·문자",
-            "한글·영어"
+            "짧은 글, 중간 글",
+            "빈 값, 아주 큰 입력",
+            "숫자, 문자",
+            "한글, 영어"
           ],
           "answer": 1,
           "why": "대부분 여기서 터진다."
@@ -650,17 +650,17 @@
     },
     {
       "id": "8",
-      "title": "올린 뒤 — 배포와 다음 판",
+      "title": "올린 뒤. 배포와 다음 판",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "이 저장소는 **master 에 올리면 자동으로 배포된다.** 그래서 올린 뒤에도 할 일이 하나 남아 있다 — 결과를 확인하는 것."
+          "text": "이 저장소는 **master 에 올리면 자동으로 배포된다.** 그래서 올린 뒤에도 할 일이 하나 남아 있다. 결과를 확인하는 것."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 올린 뒤에 일어나는 일",
+          "label": "단계를 밀어 보라. 올린 뒤에 일어나는 일",
           "height": "470px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['① push', 'git push', '공유 트리에서는 **커밋했으면 곧바로** 올린다.',\n      '안 올린 커밋은 다른 세션의 작업에 밀려 사라질 수 있다 (01칸 4장).'],\n    ['② 자동 검사·배포가 돈다', 'GitHub Actions', '검사 수십 개가 다시 돌고 통과하면 배포된다.',\n      '로컬에서 초록이어도 여기서 빨강일 수 있다 — 환경이 다르다.'],\n    ['③ 결과 확인', 'gh run list -L 5', '빨강이면 실패한 단계의 로그를 본다.',\n      'gh run view <id> --log-failed | head -40'],\n    ['④ 실제 사이트에서 열어 본다', '배포된 주소', '내 도구가 목록에 있고 열리나.',\n      '캐시 때문에 옛것이 보일 수 있다 — 강제 새로고침 (02칸 7장).'],\n    ['⑤ 다음 판 적기', '「안 할 것」 목록', '1장에서 미뤄 둔 것들을 지금 적어 둔다.',\n      '작게 여러 판이 크게 한 판보다 낫다 — 매번 사용자에게 도달한다.'],\n  ][s];\n  stage.innerHTML = '<div class=\"panel\"><b>' + esc(steps[0]) + '</b> — <code>' + esc(steps[1]) + '</code>'\n    + '<br><br>' + esc(steps[2]) + '<br><span class=\"hint\">' + esc(steps[3]) + '</span></div>';\n  clearLog('단계를 밀어 보라');\n  app.innerHTML = '<div class=\"hint\">올린 뒤가 끝이 아니다 — 배포 결과까지가 한 판</div>';\n  show('배포가 빨강일 때\\n'\n     + '  · 실패한 **단계**의 로그만 본다 (전체를 읽지 않는다)\\n'\n     + '  · 내 변경 때문인지 남의 것 때문인지 먼저 가른다 (08칸 사전 red 가족)\\n'\n     + '  · 검사 여러 개가 동시에 빨강이면 앞단부터 — 하나로 나머지가 풀릴 수 있다\\n\\n'\n     + '다음 판을 작게 쪼개는 법\\n'\n     + '  · 1장의 「안 할 것」에서 하나만 꺼낸다\\n'\n     + '  · 사용자가 실제로 쓰는 것을 먼저 (내가 만들고 싶은 것 말고)\\n'\n     + '  · 한 판이 하루를 넘으면 더 자른다\\n\\n'\n     + '축하한다 — 여기까지 왔으면 **읽기에서 고치기로** 넘어온 것이다.');\n</script>",
           "controls": [
@@ -677,7 +677,7 @@
         },
         {
           "type": "note",
-          "text": "**커밋했으면 곧바로 올려라.** 이 작업 트리는 세션이 여럿 공유하므로 안 올린 커밋은 조용히 사라질 수 있다 — 파일은 남아 있어서 알아채기도 어렵다."
+          "text": "**커밋했으면 곧바로 올려라.** 이 작업 트리는 세션이 여럿 공유하므로 안 올린 커밋은 조용히 사라질 수 있다. 파일은 남아 있어서 알아채기도 어렵다."
         },
         {
           "type": "code",
@@ -687,7 +687,7 @@
         },
         {
           "type": "p",
-          "text": "**작게 여러 판**이 크게 한 판보다 낫다. 매번 사용자에게 도달하고, 빨강이 나도 원인 범위가 작으며, 중간에 방향을 바꿀 수도 있다 — 첫 도구를 작게 자른 이유와 같다(1장)."
+          "text": "**작게 여러 판**이 크게 한 판보다 낫다. 매번 사용자에게 도달하고, 빨강이 나도 원인 범위가 작으며, 중간에 방향을 바꿀 수도 있다. 첫 도구를 작게 자른 이유와 같다(1장)."
         },
         {
           "type": "try",
@@ -732,7 +732,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -748,17 +748,17 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "완성본 — 여기서 실제로 써 보라",
+          "label": "완성본. 여기서 실제로 써 보라",
           "height": "460px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage textarea, #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n    border-radius:6px; color:#e2e8f0; font:12.5px/1.6 system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:92px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  /* 이 과정에서 만든 도구의 완성본 — 진짜로 동작한다 */\n  stage.innerHTML = '<label for=\"src\" style=\"display:block;margin-bottom:4px\">글</label>'\n    + '<textarea id=\"src\" rows=\"4\" aria-label=\"글\">여기에 글을 넣어 보세요 👍🏽\\n둘째 줄</textarea>'\n    + '<div class=\"panel\" id=\"res\" aria-live=\"polite\"></div>'\n    + '<button data-act=\"upper\">대문자로</button>'\n    + '<button data-act=\"clear\" aria-label=\"비우기\">비우기</button>';\n  const src = stage.querySelector('#src');\n  const res = stage.querySelector('#res');\n  function count(text) {\n    return {\n      chars: [...text].length,\n      noSpace: [...text.replace(/\\s/g, '')].length,\n      words: text.trim() ? text.trim().split(/\\s+/).length : 0,\n      lines: text ? text.split('\\n').length : 0,\n      bytes: new TextEncoder().encode(text).length,\n    };\n  }\n  function render() {\n    const c = count(src.value);\n    res.innerHTML = '글자 <b>' + c.chars + '</b> · 공백 빼고 <b>' + c.noSpace + '</b> · 낱말 <b>'\n      + c.words + '</b> · 줄 <b>' + c.lines + '</b> · UTF-8 <b>' + c.bytes + '</b>바이트';\n  }\n  src.addEventListener('input', render);\n  stage.addEventListener('click', (e) => {\n    const b = e.target.closest('button');\n    if (!b) return;\n    if (b.dataset.act === 'clear') { src.value = ''; log('비웠다'); }\n    else { src.value = src.value.toUpperCase(); log('대문자로 바꿨다'); }\n    render();\n  });\n  render();\n  clearLog('글을 고쳐 보라 · 이모지를 넣어 보라 · 단추를 눌러 보라');\n  app.innerHTML = '<div class=\"hint\">이 도구는 이 과정에서 만든 것 그대로다 — 위임 하나 · 상태 없음 · 계산 함수 분리</div>';\n  show('여기 쓰인 것들\\n'\n     + '  · 입력칸에 이름 (label + aria-label)                    6장\\n'\n     + '  · 계산을 함수로 분리                                    4장\\n'\n     + '  · [...text].length 로 이모지도 한 글자                  4장\\n'\n     + '  · 위임 하나로 단추 두 개 · data-act 로 의도             4장\\n'\n     + '  · aria-live 로 결과가 읽히게                            6장\\n'\n     + '  · TextEncoder 로 실제 UTF-8 바이트 수 (cs-binary 갈래)\\n\\n'\n     + '이모지 👍🏽 를 넣어 보라 — 글자 수와 바이트 수가 다르게 세어진다.');\n</script>"
         },
         {
           "type": "note",
-          "text": "이것으로 **KarmoLab 갈래 아홉 칸을 전부 지났다** — 환경·화면·레이아웃·이벤트·구조·경계·디버깅·증상 사전·그리고 완성. 「이 저장소를 고칠 수 있다」가 이 갈래의 목표였다."
+          "text": "이것으로 **KarmoLab 갈래 아홉 칸을 전부 지났다**. 환경, 화면, 레이아웃, 이벤트, 구조, 경계, 디버깅, 증상 사전, 그리고 완성. \"이 저장소를 고칠 수 있다\"가 이 갈래의 목표였다."
         },
         {
           "type": "try",
-          "text": "위 완성본에 이모지를 넣어 글자 수와 바이트 수를 비교해 보라. 그리고 진짜로 도구 하나를 만들어 올려 보라 — 그게 마지막 시험이다."
+          "text": "위 완성본에 이모지를 넣어 글자 수와 바이트 수를 비교해 보라. 그리고 진짜로 도구 하나를 만들어 올려 보라. 그게 마지막 시험이다."
         }
       ],
       "quiz": [

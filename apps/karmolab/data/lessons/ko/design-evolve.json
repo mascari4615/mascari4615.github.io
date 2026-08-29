@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "전부 미리 정하려는 설계가 **가장 빨리 낡는다.** 아직 안 겪은 요구를 상상해 만든 유연성은 대개 틀린 방향이고, 그 추측이 코드를 무겁게 한다. 좋은 설계는 완성된 청사진이 아니라 **바뀔 수 있는 상태**다 — 정해야 할 것은 「되돌리기 어려운 것」뿐이고, 나머지는 열어 둔다."
+          "text": "전부 미리 정하려는 설계가 **가장 빨리 낡는다.** 아직 안 겪은 요구를 상상해 만든 유연성은 대개 틀린 방향이고, 그 추측이 코드를 무겁게 한다. 좋은 설계는 완성된 청사진이 아니라 **바뀔 수 있는 상태**다. 정해야 할 것은 \"되돌리기 어려운 것\"뿐이고, 나머지는 열어 둔다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "미리 정한 유연성 — 맞나 틀리나",
+          "label": "미리 정한 유연성. 맞나 틀리나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const guess = {{guess}};               // 미리 만든 유연성 개수\n  const wrong = Math.round(guess * 0.7); // 대략 빗나감\n  render('아직 안 겪은 요구에 미리 만든 유연성 = ' + guess + '개',\n    '  나중에 틀린 것으로 드러남 ~ <span class=\\\"' + (wrong <= 1 ? 'ok' : 'no') + '\\\">' + wrong + '개</span>\\n\\n' +\n    (guess <= 1\n      ? '  <span class=\\\"ok\\\">최소한만 미리 — 대부분 실제 요구가 온 뒤 만든다.</span>'\n      : '  <span class=\\\"no\\\">추측으로 만든 유연성 대부분이 빗나가 — 안 쓰는 간접층으로 남는다.</span>') + '\\n\\n' +\n    '  상상한 유연성은 대개 틀린 방향. 되돌리기 어려운 것만 정하고 나머지는 열어 둔다.',\n    '전부 미리 정하면 낡는다. 좋은 설계 = 완성된 청사진이 아니라 바뀔 수 있는 상태.',\n    bars([['미리 만든 유연성', Math.min(100, guess * 18), guess + '개', '#38bdf8'],\n          ['빗나감(낭비)', Math.min(100, wrong * 18), wrong + '개', wrong <= 1 ? '#4ade80' : '#fca5a5']]));\n</script>",
           "controls": [
@@ -30,15 +30,15 @@
         },
         {
           "type": "note",
-          "text": "**YAGNI — 「필요할걸」의 대부분은 안 온다.** 상상한 요구에 미리 대비한 유연성(설정·플래그·추상 계층)은 대개 빗나가고, 그 추측이 코드를 복잡하게 해 진짜 변경을 방해한다(design-pattern 8장 과용). 지금 필요한 것만 단순하게 만들고, 요구가 실제로 오면 그때 확장한다 — 미래는 예측하는 게 아니라 대응하는 것이다."
+          "text": "**YAGNI. \"필요할걸\"의 대부분은 안 온다.** 상상한 요구에 미리 대비한 유연성(설정, 플래그, 추상 계층)은 대개 빗나가고, 그 추측이 코드를 복잡하게 해 진짜 변경을 방해한다(design-pattern 8장 과용). 지금 필요한 것만 단순하게 만들고, 요구가 실제로 오면 그때 확장한다. 미래는 예측하는 게 아니라 대응하는 것이다."
         },
         {
           "type": "p",
-          "text": "**설계는 명사가 아니라 동사다.** 「좋은 설계」는 한 번 그리고 끝나는 완성물이 아니라, 요구가 바뀔 때마다 **다시 빚는 과정**이다(design-model 8장 모델 진화). 그래서 목표는 「모든 미래에 대비한 완벽한 구조」가 아니라 「**변경에 강한** 구조」 — 바뀌어야 할 때 값싸게 바뀌는 상태다. 이 과정 전체가 그 유연함을 어디에 두고 어디에 안 두는지를 다룬다."
+          "text": "**설계는 명사가 아니라 동사다.** \"좋은 설계\"는 한 번 그리고 끝나는 완성물이 아니라, 요구가 바뀔 때마다 **다시 빚는 과정**이다(design-model 8장 모델 진화). 그래서 목표는 \"모든 미래에 대비한 완벽한 구조\"가 아니라 \"**변경에 강한** 구조\". 바뀌어야 할 때 값싸게 바뀌는 상태다. 이 과정 전체가 그 유연함을 어디에 두고 어디에 안 두는지를 다룬다."
         },
         {
           "type": "try",
-          "text": "네 코드에서 「나중에 필요할까 봐」 만든 유연성(안 쓰는 설정·단일 구현 추상)을 찾아라. 실제로 쓰이는지 보고, 안 쓰이면 걷어내 단순하게 하라."
+          "text": "네 코드에서 \"나중에 필요할까 봐\" 만든 유연성(안 쓰는 설정, 단일 구현 추상)을 찾아라. 실제로 쓰이는지 보고, 안 쓰이면 걷어내 단순하게 하라."
         }
       ],
       "quiz": [
@@ -84,12 +84,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "결정을 **되돌리기 쉬운가**로 나눈다. **일방통행 문**(되돌리기 어려움): 데이터 모델·공개 API·저장소 선택·인증 방식. **왕복 문**(쉽게 되돌림): 라이브러리 선택·내부 구현·UI 배치. 일방통행 문은 **천천히·신중히**, 왕복 문은 **빠르게·나중에 되돌리면** 된다. 대부분은 왕복 문이다."
+          "text": "결정을 **되돌리기 쉬운가**로 나눈다. **일방통행 문**(되돌리기 어려움): 데이터 모델, 공개 API, 저장소 선택, 인증 방식. **왕복 문**(쉽게 되돌림): 라이브러리 선택, 내부 구현, UI 배치. 일방통행 문은 **천천히, 신중히**, 왕복 문은 **빠르게, 나중에 되돌리면** 된다. 대부분은 왕복 문이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이 결정 — 일방통행인가 왕복인가",
+          "label": "이 결정. 일방통행인가 왕복인가",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const d = '{{decision}}';\n  const cases = {\n    schema:  ['데이터 모델', 'oneway', '마이그레이션·기존 데이터 얽힘 — 신중히(db-migrate)'],\n    api:     ['공개 API', 'oneway', '수많은 클라이언트가 의존 — 신중히(api-version)'],\n    store:   ['저장소 선택', 'oneway', '데이터 이전 큰 공사 — 신중히(ADR 감)'],\n    lib:     ['내부 라이브러리 선택', 'round', '어댑터 뒤라면 교체 쉬움 — 빠르게'],\n    impl:    ['내부 구현 방식', 'round', '인터페이스 뒤 — 언제든 리팩터링. 빠르게'],\n    ui:      ['UI 배치·색', 'round', '값싸게 바꿈 — 빠르게, 필요 시 되돌림'],\n  }[d];\n  const oneway = cases[1] === 'oneway';\n  render('결정: ' + cases[0],\n    '  문 종류 = ' + (oneway\n      ? '<span class=\\\"no\\\">일방통행 (되돌리기 어려움)</span> → 천천히·신중히'\n      : '<span class=\\\"ok\\\">왕복 (쉽게 되돌림)</span> → 빠르게, 아니면 되돌림') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  일방통행에만 시간을 쓴다 — 왕복에 과하게 고민하면 속도만 잃는다.',\n    '일방통행 문(모델·API·저장소)은 신중히, 왕복 문(구현·UI)은 빠르게.',\n    box(cases[0], cases[2], oneway ? 'bad' : 'good'));\n</script>",
           "controls": [
@@ -135,15 +135,15 @@
         },
         {
           "type": "note",
-          "text": "**대부분의 결정은 왕복 문이다 — 빠르게 결정하라.** 왕복 문을 일방통행처럼 고민하면 속도만 잃는다(과잉 분석). 되돌리기 쉬우니 일단 정하고, 아니면 되돌린다. 일방통행 문에만 신중함·기록(design-record ADR)·리뷰를 집중한다. 「이거 되돌리기 얼마나 어렵지?」 한 질문이 얼마나 고민할지를 정한다."
+          "text": "**대부분의 결정은 왕복 문이다. 빠르게 결정하라.** 왕복 문을 일방통행처럼 고민하면 속도만 잃는다(과잉 분석). 되돌리기 쉬우니 일단 정하고, 아니면 되돌린다. 일방통행 문에만 신중함, 기록(design-record ADR), 리뷰를 집중한다. \"이거 되돌리기 얼마나 어렵지?\" 한 질문이 얼마나 고민할지를 정한다."
         },
         {
           "type": "p",
-          "text": "**일방통행 문을 왕복 문으로 바꿀 수 있다.** 저장소 선택은 원래 일방통행이지만, 어댑터 뒤에 감추면(design-boundary) 되돌리기가 쉬워진다 — 문의 종류 자체를 설계로 바꾼 것이다(5장). 그래서 「이 일방통행 결정을, 경계를 둬서 왕복으로 만들 수 있나?」를 물으면, 신중해야 할 결정의 수 자체를 줄일 수 있다."
+          "text": "**일방통행 문을 왕복 문으로 바꿀 수 있다.** 저장소 선택은 원래 일방통행이지만, 어댑터 뒤에 감추면(design-boundary) 되돌리기가 쉬워진다. 문의 종류 자체를 설계로 바꾼 것이다(5장). 그래서 \"이 일방통행 결정을, 경계를 둬서 왕복으로 만들 수 있나?\"를 물으면, 신중해야 할 결정의 수 자체를 줄일 수 있다."
         },
         {
           "type": "try",
-          "text": "지금 고민 중인 결정을 「일방통행/왕복」으로 분류하라. 왕복이면 30분 안에 정하고 넘어가라. 일방통행이면 경계를 둬서 왕복으로 바꿀 수 있는지 검토하라."
+          "text": "지금 고민 중인 결정을 \"일방통행/왕복\"으로 분류하라. 왕복이면 30분 안에 정하고 넘어가라. 일방통행이면 경계를 둬서 왕복으로 바꿀 수 있는지 검토하라."
         }
       ],
       "quiz": [
@@ -151,12 +151,12 @@
           "q": "일방통행 문 결정은?",
           "choices": [
             "UI 색",
-            "데이터 모델·공개 API·저장소(되돌리기 어려움)",
+            "데이터 모델, 공개 API, 저장소(되돌리기 어려움)",
             "내부 구현",
             "라이브러리"
           ],
           "answer": 1,
-          "why": "신중히·천천히."
+          "why": "신중히, 천천히."
         },
         {
           "q": "왕복 문 결정을 신중히 고민하면?",
@@ -189,12 +189,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "정보가 가장 많은 시점은 **나중**이다. 지금은 요구·제약·규모를 다 모른다 — 그 상태로 정한 결정은 추측이다. 되돌리기 어려운 결정일수록 **결정할 정보가 충분해질 때까지 미룬다.** 단, 그냥 미루는 게 아니라 **미룰 수 있게 코드를 짜 두는 것**이 실력이다(4장) — 미루면서도 진행할 수 있게."
+          "text": "정보가 가장 많은 시점은 **나중**이다. 지금은 요구, 제약, 규모를 다 모른다. 그 상태로 정한 결정은 추측이다. 되돌리기 어려운 결정일수록 **결정할 정보가 충분해질 때까지 미룬다.** 단, 그냥 미루는 게 아니라 **미룰 수 있게 코드를 짜 두는 것**이 실력이다(4장). 미루면서도 진행할 수 있게."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "결정 시점 — 이른가 늦은가",
+          "label": "결정 시점. 이른가 늦은가",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = {{time}};                    // 결정 시점(0=지금, 10=충분히 나중)\n  const info = Math.min(100, t * 12);\n  render('결정 시점 = ' + t + '/10 (0=지금, 10=정보 충분)',\n    '  가진 정보 = <span class=\\\"' + (info > 60 ? 'ok' : info > 30 ? 'warn' : 'no') + '\\\">' + info + '%</span>\\n\\n' +\n    (t <= 2\n      ? '  <span class=\\\"no\\\">너무 이르다 — 요구·규모를 모른 채 추측으로 결정. 나중에 틀릴 확률 큼.</span>'\n      : t >= 8 ? '  <span class=\\\"warn\\\">막판까지 미룸 — 정보는 많으나 미룰 수 있게 짜 뒀어야(4장).</span>'\n      : '  <span class=\\\"ok\\\">정보가 충분히 쌓인 시점 — 추측이 아니라 근거로 결정.</span>') + '\\n\\n' +\n    '  되돌리기 어려운 결정은 정보가 충분해질 때까지 미룬다 — 미룰 수 있게 짜 두고.',\n    '정보는 나중에 많다. 되돌리기 어려운 결정일수록 충분해질 때까지 미룬다.',\n    bars([['가진 정보', info, info + '%', info > 60 ? '#4ade80' : info > 30 ? '#fbbf24' : '#fca5a5']]));\n</script>",
           "controls": [
@@ -211,15 +211,15 @@
         },
         {
           "type": "note",
-          "text": "**「마지막 책임 순간(last responsible moment)」까지 미룬다.** 더 미루면 옵션을 잃거나 진행이 막히는 그 직전까지 결정을 늦춘다 — 그때 정보가 가장 많다. 너무 일찍 정하면 추측이 되고, 너무 늦으면 병목이 된다. 「이 결정을 지금 안 하면 무엇이 막히나?」를 물어, 안 막히면 미룬다."
+          "text": "**\"마지막 책임 순간(last responsible moment)\"까지 미룬다.** 더 미루면 옵션을 잃거나 진행이 막히는 그 직전까지 결정을 늦춘다. 그때 정보가 가장 많다. 너무 일찍 정하면 추측이 되고, 너무 늦으면 병목이 된다. \"이 결정을 지금 안 하면 무엇이 막히나?\"를 물어, 안 막히면 미룬다."
         },
         {
           "type": "p",
-          "text": "**미루는 것과 방치는 다르다.** 미루기는 「결정할 지점을 명시하고, 그때까지 진행 가능하게 열어 두는」 의식적 선택이다. 방치는 그냥 안 정하고 문제를 쌓는 것이다. 미룰 결정은 「무엇을 알아야 정할 수 있나, 언제 그걸 알게 되나」를 적어 두고(design-record), 그 시점에 결정한다 — 미루기에도 계획이 있다."
+          "text": "**미루는 것과 방치는 다르다.** 미루기는 \"결정할 지점을 명시하고, 그때까지 진행 가능하게 열어 두는\" 의식적 선택이다. 방치는 그냥 안 정하고 문제를 쌓는 것이다. 미룰 결정은 \"무엇을 알아야 정할 수 있나, 언제 그걸 알게 되나\"를 적어 두고(design-record), 그 시점에 결정한다. 미루기에도 계획이 있다."
         },
         {
           "type": "try",
-          "text": "지금 정하려는 되돌리기 어려운 결정에 대해 「이걸 지금 안 정하면 무엇이 막히나?」를 물어라. 안 막히면, 무엇을 더 알아야 정할 수 있는지 적고 그때까지 미뤄라."
+          "text": "지금 정하려는 되돌리기 어려운 결정에 대해 \"이걸 지금 안 정하면 무엇이 막히나?\"를 물어라. 안 막히면, 무엇을 더 알아야 정할 수 있는지 적고 그때까지 미뤄라."
         }
       ],
       "quiz": [
@@ -235,7 +235,7 @@
           "why": "이른 결정은 추측."
         },
         {
-          "q": "「마지막 책임 순간」이란?",
+          "q": "\"마지막 책임 순간\"이란?",
           "choices": [
             "최대한 빨리",
             "더 미루면 옵션을 잃는 직전(정보 최대)",
@@ -249,7 +249,7 @@
           "q": "미루기와 방치의 차이는?",
           "choices": [
             "같다",
-            "미루기는 결정 지점·조건을 명시하고 진행 가능하게 열어 둠",
+            "미루기는 결정 지점, 조건을 명시하고 진행 가능하게 열어 둠",
             "미루기가 나쁨",
             "방치가 계획적"
           ],
@@ -265,12 +265,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "미루기의 핵심은 **미루면서도 진행할 수 있게** 코드를 짜는 것이다. 저장소를 아직 안 정했으면, **인터페이스만 정하고** 인메모리 구현으로 진행한다 — 나중에 진짜 저장소를 끼운다(design-seam). 결정을 여는 이음매를 두면, 그 결정 없이도 나머지를 만들 수 있다. 「무엇을 열어 두고 무엇으로 임시 진행할지」가 실력이다."
+          "text": "미루기의 핵심은 **미루면서도 진행할 수 있게** 코드를 짜는 것이다. 저장소를 아직 안 정했으면, **인터페이스만 정하고** 인메모리 구현으로 진행한다. 나중에 진짜 저장소를 끼운다(design-seam). 결정을 여는 이음매를 두면, 그 결정 없이도 나머지를 만들 수 있다. \"무엇을 열어 두고 무엇으로 임시 진행할지\"가 실력이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "결정을 열어 두기 — 임시 구현으로 진행",
+          "label": "결정을 열어 두기. 임시 구현으로 진행",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const open = '{{open}}' === 'yes';\n  render(open ? '인터페이스로 열어 두고 임시 구현' : '결정을 기다리며 멈춤',\n    (open\n      ? '  Storage 인터페이스만 정함 → 인메모리 구현으로 전체 흐름 개발\\n' +\n        '  <span class=\\\"ok\\\">저장소 결정 없이도 나머지가 진행된다. 나중에 진짜를 끼운다.</span>'\n      : '  「저장소 정해질 때까지」 관련 코드를 안 짬 → 진행 정체\\n' +\n        '  <span class=\\\"no\\\">한 결정이 안 되어 전체가 막힌다 — 미루기가 병목이 됐다.</span>'),\n    '인터페이스만 정하고 임시 구현으로 진행 — 결정을 열어 두면 미뤄도 안 막힌다.',\n    fan(open\n      ? [['ok', 'Storage 인터페이스'], '->', ['n', '인메모리(임시)'], '->', ['ok', '전체 개발 진행']]\n      : [['hit', '저장소 미정'], '->', ['hit', '관련 코드 정체']]));\n</script>",
           "controls": [
@@ -294,11 +294,11 @@
         },
         {
           "type": "note",
-          "text": "**임시 구현이 「대충」이 아니라 「의도된 자리표시」다.** 인메모리 저장소·가짜 결제·하드코딩된 설정은 「나중에 진짜로 바꿀 자리」임을 명시한 자리표시다(design-seam 의 이음매). 진짜가 정해지면 인터페이스 뒤만 갈아 끼운다 — 나머지 코드는 그대로. 이렇게 하면 되돌리기 어려운 결정을 미루면서도 전체가 굴러간다."
+          "text": "**임시 구현이 \"대충\"이 아니라 \"의도된 자리표시\"다.** 인메모리 저장소, 가짜 결제, 하드코딩된 설정은 \"나중에 진짜로 바꿀 자리\"임을 명시한 자리표시다(design-seam 의 이음매). 진짜가 정해지면 인터페이스 뒤만 갈아 끼운다. 나머지 코드는 그대로. 이렇게 하면 되돌리기 어려운 결정을 미루면서도 전체가 굴러간다."
         },
         {
           "type": "p",
-          "text": "**단, 열어 두는 것도 비용이다 — 정말 미룰 것만.** 모든 결정에 인터페이스를 두면 간접층 미로가 된다(design-boundary 7장). 「되돌리기 어렵고(일방통행), 아직 정보가 부족한」 결정만 열어 둔다. 왕복 문 결정은 그냥 정하고 진행한다 — 미루기의 이음매도 값어치 있는 곳에만 둔다."
+          "text": "**단, 열어 두는 것도 비용이다. 정말 미룰 것만.** 모든 결정에 인터페이스를 두면 간접층 미로가 된다(design-boundary 7장). \"되돌리기 어렵고(일방통행), 아직 정보가 부족한\" 결정만 열어 둔다. 왕복 문 결정은 그냥 정하고 진행한다. 미루기의 이음매도 값어치 있는 곳에만 둔다."
         },
         {
           "type": "try",
@@ -348,12 +348,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**바뀔 가능성이 높은 것**은 얇은 어댑터로 감싼다 — 외부 서비스·저장소·전송 형식·결제 게이트웨이처럼 내가 통제 못 하고 자주 바뀌는 것. 반대로 **안 바뀔 것까지 감싸면** 코드만 복잡해진다. 「무엇이 바뀔까」의 판단이 어디를 감쌀지를 정한다(design-boundary 2장 변화의 축)."
+          "text": "**바뀔 가능성이 높은 것**은 얇은 어댑터로 감싼다. 외부 서비스, 저장소, 전송 형식, 결제 게이트웨이처럼 내가 통제 못 하고 자주 바뀌는 것. 반대로 **안 바뀔 것까지 감싸면** 코드만 복잡해진다. \"무엇이 바뀔까\"의 판단이 어디를 감쌀지를 정한다(design-boundary 2장 변화의 축)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "감싸기 — 바뀔 것 vs 안 바뀔 것",
+          "label": "감싸기. 바뀔 것 vs 안 바뀔 것",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = '{{target}}';\n  const cases = {\n    external:['외부 결제 SDK', true, '통제 못 하고 자주 바뀜 — 어댑터로 감싼다(교체·격리)'],\n    store:   ['저장소', true, '나중에 바뀔 수 있음 — 인터페이스로 감싼다'],\n    format:  ['외부 API 응답 형식', true, '남이 바꿈 — 경계에서 내 타입으로 변환'],\n    stdlib:  ['언어 표준 라이브러리(배열·Map)', false, '거의 안 바뀜 — 감싸면 간접층만'],\n    math:    ['순수 계산 로직', false, '내가 통제·안 바뀜 — 감쌀 이유 없음'],\n  }[t];\n  render('대상: ' + cases[0],\n    '  감쌀까? = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">예 — 바뀔 가능성 높음(통제 밖)</span>'\n      : '<span class=\\\"no\\\">아니오 — 안 바뀜, 감싸면 복잡만</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  바뀔 것(외부·저장소·형식)은 감싸고, 안 바뀔 것(표준 라이브러리·순수 로직)은 그대로.',\n    '바뀔 가능성 높은 것만 얇은 어댑터로. 안 바뀔 것까지 감싸면 복잡만 는다.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
           "controls": [
@@ -389,15 +389,15 @@
         },
         {
           "type": "note",
-          "text": "**통제 못 하는 것을 먼저 감싼다.** 외부 API·라이브러리·서비스는 내가 아니라 **남이** 바꾼다 — 그들의 변경이 내 코드 곳곳으로 새면(design-boundary 4장) 통제 불능이다. 어댑터로 감싸 내 인터페이스 뒤에 두면, 그들이 바뀌어도 어댑터 하나만 고친다. 「내가 통제하나?」가 감싸기 우선순위의 첫 기준이다."
+          "text": "**통제 못 하는 것을 먼저 감싼다.** 외부 API, 라이브러리, 서비스는 내가 아니라 **남이** 바꾼다. 그들의 변경이 내 코드 곳곳으로 새면(design-boundary 4장) 통제 불능이다. 어댑터로 감싸 내 인터페이스 뒤에 두면, 그들이 바뀌어도 어댑터 하나만 고친다. \"내가 통제하나?\"가 감싸기 우선순위의 첫 기준이다."
         },
         {
           "type": "p",
-          "text": "**안정된 것을 감싸는 건 순수한 비용이다.** 언어 표준 라이브러리·안 바뀌는 순수 로직을 인터페이스로 감싸면, 유연성은 안 생기고 간접층·이름만 는다(design-pattern 8장 과용). 「이게 정말 바뀔까?」에 「아니」라면 감싸지 않는다. 감싸기는 변화를 흡수하는 방벽이지, 모든 것에 두르는 습관이 아니다."
+          "text": "**안정된 것을 감싸는 건 순수한 비용이다.** 언어 표준 라이브러리, 안 바뀌는 순수 로직을 인터페이스로 감싸면, 유연성은 안 생기고 간접층, 이름만 는다(design-pattern 8장 과용). \"이게 정말 바뀔까?\"에 \"아니\"라면 감싸지 않는다. 감싸기는 변화를 흡수하는 방벽이지, 모든 것에 두르는 습관이 아니다."
         },
         {
           "type": "try",
-          "text": "네 코드에서 외부 서비스·라이브러리를 직접 쓰는 곳(통제 밖·자주 바뀜)을 찾아 어댑터로 감싸라. 반대로 안 바뀔 것을 감싼 불필요한 층이 있으면 걷어내라."
+          "text": "네 코드에서 외부 서비스, 라이브러리를 직접 쓰는 곳(통제 밖, 자주 바뀜)을 찾아 어댑터로 감싸라. 반대로 안 바뀔 것을 감싼 불필요한 층이 있으면 걷어내라."
         }
       ],
       "quiz": [
@@ -405,7 +405,7 @@
           "q": "감싸야 할 것은?",
           "choices": [
             "순수 로직",
-            "바뀔 가능성 높은 것(외부·저장소·형식)",
+            "바뀔 가능성 높은 것(외부, 저장소, 형식)",
             "표준 라이브러리",
             "상수"
           ],
@@ -443,12 +443,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「나중에 바꿀 수 있게」 만든 유연성은 **실제로 바꿔 봐야** 진짜다. 저장소를 인메모리로 갈아 끼워 테스트가 도는가? 외부 API 를 가짜로 바꿔 로컬에서 전체 흐름이 도는가? 안 되면 그 추상화는 **이름뿐**이다 — 갈아 끼울 수 있다고 믿었을 뿐, 실은 세부가 새고 있다."
+          "text": "\"나중에 바꿀 수 있게\" 만든 유연성은 **실제로 바꿔 봐야** 진짜다. 저장소를 인메모리로 갈아 끼워 테스트가 도는가? 외부 API 를 가짜로 바꿔 로컬에서 전체 흐름이 도는가? 안 되면 그 추상화는 **이름뿐**이다. 갈아 끼울 수 있다고 믿었을 뿐, 실은 세부가 새고 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "추상화 검증 — 실제로 갈아 끼워지나",
+          "label": "추상화 검증. 실제로 갈아 끼워지나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const works = '{{works}}' === 'yes';\n  render(works ? '갈아 끼워 봤다 — 실제로 됨' : '갈아 끼워 본 적 없다',\n    (works\n      ? '  Storage 를 인메모리로 교체 → 테스트 통과. 외부 API 를 가짜로 → 로컬 흐름 통과.\\n' +\n        '  <span class=\\\"ok\\\">추상화가 진짜다 — 갈아 끼움이 실제로 작동한다.</span>'\n      : '  인터페이스는 있지만 한 번도 다른 구현으로 안 바꿔 봄\\n' +\n        '  <span class=\\\"no\\\">이름뿐인 추상화 — 실제로는 세부가 새어 갈아 끼우면 깨질 수 있다.</span>'),\n    '유연성은 실제로 갈아 끼워 봐야 진짜. 안 되면 그 추상화는 이름뿐이다.',\n    fan(works\n      ? [['ok', '진짜 구현'], '<->', ['ok', '가짜 구현'], '->', ['ok', '둘 다 흐름 통과']]\n      : [['hit', '인터페이스만'], '->', ['hit', '검증 안 됨(세부 샘)']]));\n</script>",
           "controls": [
@@ -478,20 +478,20 @@
         },
         {
           "type": "note",
-          "text": "**테스트가 그 검증을 매번 해 준다.** 저장소를 가짜로, 외부 API 를 가짜로 끼운 **테스트가 돌면**, 그 이음매가 진짜 작동한다는 증거가 매 실행마다 갱신된다(design-seam). 「테스트를 위해 가짜를 끼울 수 있다」 = 「운영에서 다른 구현으로 바꿀 수 있다」와 같은 능력이다. 그래서 테스트 용이성이 곧 변경 가능성의 증거다."
+          "text": "**테스트가 그 검증을 매번 해 준다.** 저장소를 가짜로, 외부 API 를 가짜로 끼운 **테스트가 돌면**, 그 이음매가 진짜 작동한다는 증거가 매 실행마다 갱신된다(design-seam). \"테스트를 위해 가짜를 끼울 수 있다\" = \"운영에서 다른 구현으로 바꿀 수 있다\"와 같은 능력이다. 그래서 테스트 용이성이 곧 변경 가능성의 증거다."
         },
         {
           "type": "p",
-          "text": "**두 번째 구현이 추상화를 검증한다.** 인터페이스는 구현이 하나뿐일 때 대개 그 하나의 세부를 은근히 반영한다 — 진짜 추상이 아니다. 두 번째 구현(진짜+가짜, 또는 두 저장소)을 실제로 붙여 보면, 인터페이스가 특정 구현에 새는지 드러난다. 「하나의 구현에만 맞는 인터페이스」는 추상화가 아니라 그냥 그 구현의 껍데기다."
+          "text": "**두 번째 구현이 추상화를 검증한다.** 인터페이스는 구현이 하나뿐일 때 대개 그 하나의 세부를 은근히 반영한다. 진짜 추상이 아니다. 두 번째 구현(진짜+가짜, 또는 두 저장소)을 실제로 붙여 보면, 인터페이스가 특정 구현에 새는지 드러난다. \"하나의 구현에만 맞는 인터페이스\"는 추상화가 아니라 그냥 그 구현의 껍데기다."
         },
         {
           "type": "try",
-          "text": "가장 중요한 추상화 하나를 실제로 다른 구현으로 갈아 끼워 보라(인메모리·가짜). 안 되거나 인터페이스를 고쳐야 하면, 그 추상화는 이름뿐 — 세부가 새는 곳을 찾아 막아라."
+          "text": "가장 중요한 추상화 하나를 실제로 다른 구현으로 갈아 끼워 보라(인메모리, 가짜). 안 되거나 인터페이스를 고쳐야 하면, 그 추상화는 이름뿐. 세부가 새는 곳을 찾아 막아라."
         }
       ],
       "quiz": [
         {
-          "q": "「나중에 바꿀 수 있게」 만든 유연성을 검증하는 법은?",
+          "q": "\"나중에 바꿀 수 있게\" 만든 유연성을 검증하는 법은?",
           "choices": [
             "믿는다",
             "실제로 다른 구현으로 갈아 끼워 본다",
@@ -532,7 +532,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "설계를 언제 바꿔야 하는지는 **신호**로 안다. **같은 자리를 반복해서 고친다** · **새 기능마다 조건문이 늘어난다** · **테스트가 자꾸 깨진다** · **한 변경이 여러 파일로 번진다**. 이건 설계가 현실을 못 따라간다는 신호다 — 코드가 「여기를 바꿔 달라」고 말하는 것이니, 그 신호를 따라 구조를 다시 긋는다."
+          "text": "설계를 언제 바꿔야 하는지는 **신호**로 안다. **같은 자리를 반복해서 고친다**, **새 기능마다 조건문이 늘어난다**, **테스트가 자꾸 깨진다**, **한 변경이 여러 파일로 번진다**. 이건 설계가 현실을 못 따라간다는 신호다. 코드가 \"여기를 바꿔 달라\"고 말하는 것이니, 그 신호를 따라 구조를 다시 긋는다."
         },
         {
           "type": "demo",
@@ -573,15 +573,15 @@
         },
         {
           "type": "note",
-          "text": "**신호가 오기 전에 미리 뜯어고치지 마라.** 진화는 **당겨서(pull)** 한다 — 실제 변경이 어렵다는 신호가 왔을 때 그 자리를 고친다. 신호 없이 「더 좋아 보이게」 미리 리팩터링하는 것은 추측성 유연성(1장)의 다른 얼굴이다. 코드가 아프다고 말하는 곳을, 아플 때 고친다 — 그래야 진짜 필요한 진화만 한다."
+          "text": "**신호가 오기 전에 미리 뜯어고치지 마라.** 진화는 **당겨서(pull)** 한다. 실제 변경이 어렵다는 신호가 왔을 때 그 자리를 고친다. 신호 없이 \"더 좋아 보이게\" 미리 리팩터링하는 것은 추측성 유연성(1장)의 다른 얼굴이다. 코드가 아프다고 말하는 곳을, 아플 때 고친다. 그래야 진짜 필요한 진화만 한다."
         },
         {
           "type": "p",
-          "text": "**측정이 신호를 객관화한다.** 「반복 수정」은 git 변경 빈도(design-coupling 8장 핫스팟), 「번짐」은 커밋당 파일 수, 「깨짐」은 테스트 실패 로그로 잰다. 느낌이 아니라 데이터로 「어디가 자주 아픈가」를 보면, 리팩터링을 **가장 아픈 곳부터** 우선순위 매겨 할 수 있다(황금의 정신: 측정). 진화도 감이 아니라 측정으로 방향을 잡는다."
+          "text": "**측정이 신호를 객관화한다.** \"반복 수정\"은 git 변경 빈도(design-coupling 8장 핫스팟), \"번짐\"은 커밋당 파일 수, \"깨짐\"은 테스트 실패 로그로 잰다. 느낌이 아니라 데이터로 \"어디가 자주 아픈가\"를 보면, 리팩터링을 **가장 아픈 곳부터** 우선순위 매겨 할 수 있다(황금의 정신: 측정). 진화도 감이 아니라 측정으로 방향을 잡는다."
         },
         {
           "type": "try",
-          "text": "네 코드에서 최근 자주 고친 자리·조건문이 계속 느는 자리를 찾아라. 그것이 진화 1순위다 — 신호가 가리키는 그 자리부터 구조를 다시 그어라."
+          "text": "네 코드에서 최근 자주 고친 자리, 조건문이 계속 느는 자리를 찾아라. 그것이 진화 1순위다. 신호가 가리키는 그 자리부터 구조를 다시 그어라."
         }
       ],
       "quiz": [
@@ -611,7 +611,7 @@
           "q": "진화 우선순위를 정하는 법은?",
           "choices": [
             "감으로",
-            "측정(변경 빈도·번짐·깨짐)으로 가장 아픈 곳부터",
+            "측정(변경 빈도, 번짐, 깨짐)으로 가장 아픈 곳부터",
             "무작위",
             "큰 파일부터"
           ],
@@ -627,12 +627,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "구조를 바꿀 땐 **안전망을 먼저, 작은 단계로, 되돌릴 수 있게.** ① 현재 동작을 **테스트로 고정**(design-seam 특성화 테스트) → ② **작은 단계**로 나눠 각 단계마다 초록 유지 → ③ **확장→이행→정리**로 옛것과 새것을 공존시키며 전환(db-migrate·api-version) → ④ 자주 커밋해 언제든 되돌린다. 「큰 재작성」이 아니라 「연속된 작은 안전한 변경」이다."
+          "text": "구조를 바꿀 땐 **안전망을 먼저, 작은 단계로, 되돌릴 수 있게.** ① 현재 동작을 **테스트로 고정**(design-seam 특성화 테스트) → ② **작은 단계**로 나눠 각 단계마다 초록 유지 → ③ **확장→이행→정리**로 옛것과 새것을 공존시키며 전환(db-migrate, api-version) → ④ 자주 커밋해 언제든 되돌린다. \"큰 재작성\"이 아니라 \"연속된 작은 안전한 변경\"이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "안전한 진화 — 단계별",
+          "label": "안전한 진화. 단계별",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const rows = [\n    ['① 현재 동작을 테스트로 고정(안전망)', 'good'],\n    ['② 새 구조를 「추가」(옛것 유지, 공존)', 'good'],\n    ['③ 조금씩 새 구조로 이행 — 매 단계 테스트 초록', 'good'],\n    ['④ 다 옮긴 뒤 옛 구조 제거(정리)', 'good'],\n    ['⑤ 자주 커밋 — 문제 나면 그 지점으로 되돌림', 'good'],\n  ];\n  const view = rows.map((r, i) => [r[0], i === s ? 'on' : (i < s ? 'good' : (r[1] || ''))]);\n  render('안전한 진화 (단계 ' + (s + 1) + '/5)',\n    '  ' + rows[s][0].replace(/^[①②③④⑤]\\s*/, '') + '\\n\\n' +\n    (s === 0 ? '  고치기 전에 지금 동작을 못 박는다 — 바뀌면 즉시 안다.'\n     : s >= 3 ? '  큰 재작성이 아니라 연속된 작은 안전한 변경 — 언제든 되돌린다.'\n     : '  옛것과 새것을 공존시키며 조금씩 — 각 단계가 배포 가능한 상태.'),\n    '안전망 먼저·작은 단계·확장이행정리·자주 커밋. 큰 재작성 대신 작은 안전한 변경.',\n    steps(view));\n</script>",
           "controls": [
@@ -649,11 +649,11 @@
         },
         {
           "type": "note",
-          "text": "**「크게 다시 쓰기」의 유혹을 경계하라.** 전면 재작성(big rewrite)은 대개 예상보다 오래 걸리고, 그동안 옛 시스템의 버그 수정·기능 추가가 멈추며, 새것이 옛것의 숨은 규칙(수많은 예외 처리)을 빠뜨린다. 대부분의 진화는 **돌아가는 시스템을 유지하며 조금씩** 하는 게 안전하다 — 스트랭글러 무화과(Strangler Fig)처럼 새것이 옛것을 점진적으로 감싸 대체한다."
+          "text": "**\"크게 다시 쓰기\"의 유혹을 경계하라.** 전면 재작성(big rewrite)은 대개 예상보다 오래 걸리고, 그동안 옛 시스템의 버그 수정, 기능 추가가 멈추며, 새것이 옛것의 숨은 규칙(수많은 예외 처리)을 빠뜨린다. 대부분의 진화는 **돌아가는 시스템을 유지하며 조금씩** 하는 게 안전하다. 스트랭글러 무화과(Strangler Fig)처럼 새것이 옛것을 점진적으로 감싸 대체한다."
         },
         {
           "type": "p",
-          "text": "**이 절차는 트랙 전체를 부른다.** 안전망은 design-seam(테스트 이음매), 공존 전환은 db-migrate·api-version(확장이행정리), 되돌리기는 결정 기록(design-record)과 작은 커밋, 방향은 진화 신호(7장)와 측정. 진화는 이 모든 것을 엮어 **돌아가는 시스템을 멈추지 않고 구조를 바꾸는** 일이다 — 설계 트랙의 종합이다."
+          "text": "**이 절차는 트랙 전체를 부른다.** 안전망은 design-seam(테스트 이음매), 공존 전환은 db-migrate, api-version(확장이행정리), 되돌리기는 결정 기록(design-record)과 작은 커밋, 방향은 진화 신호(7장)와 측정. 진화는 이 모든 것을 엮어 **돌아가는 시스템을 멈추지 않고 구조를 바꾸는** 일이다. 설계 트랙의 종합이다."
         },
         {
           "type": "try",
@@ -676,7 +676,7 @@
           "q": "큰 재작성(big rewrite)의 위험은?",
           "choices": [
             "안전",
-            "예상보다 오래·옛 규칙 누락·그동안 개선 멈춤",
+            "예상보다 오래, 옛 규칙 누락, 그동안 개선 멈춤",
             "빠름",
             "간단"
           ],
@@ -688,7 +688,7 @@
           "choices": [
             "테스트 안전망(seam)",
             "확장이행정리(migrate)",
-            "작은 커밋·되돌리기",
+            "작은 커밋, 되돌리기",
             "전역 상태 도입"
           ],
           "answer": 3,
@@ -698,17 +698,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 진화하는 설계",
+      "title": "점검표. 진화하는 설계",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "설계를 시작하거나 「고치기 어려운」 코드를 진화시킬 때 이 목록을 확인하라. 핵심은 「되돌림으로 나누고·미루고·바뀔 것만 감싸고·신호 따라 안전하게」다."
+          "text": "설계를 시작하거나 \"고치기 어려운\" 코드를 진화시킬 때 이 목록을 확인하라. 핵심은 \"되돌림으로 나누고, 미루고, 바뀔 것만 감싸고, 신호 따라 안전하게\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '전부 미리 정하지 않는다(추측성 유연성 X)',\n    '결정을 일방통행/왕복으로 나눈다',\n    '되돌리기 어려운 결정은 정보 쌓일 때까지 미룬다',\n    '미룰 수 있게 인터페이스+임시 구현으로 열어 둔다',\n    '바뀔 것(외부·저장소)만 감싼다',\n    '유연성을 실제로 갈아 끼워 검증한다',\n    '진화 신호를 (측정으로) 읽고 그 자리부터',\n    '안전망·작은 단계·공존 전환으로 진화한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 변경에 강한, 살아 움직이는 설계.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '되돌림으로 나누고·미루고·바뀔 것만 감싸고·신호 따라 안전하게. 진화의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -725,15 +725,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 설계는 완성이 아니라 진화다.** 되돌리기 어려운 것만 신중히 정하고(2장), 나머지는 미루고(3·4장), 바뀔 것만 감싸고(5장), 신호가 오면(7장) 안전하게(8장) 다시 빚는다. 목표는 완벽한 청사진이 아니라 **변경이 값싼 상태**를 유지하는 것 — 살아 움직이는 설계다."
+          "text": "**한 줄 요약: 설계는 완성이 아니라 진화다.** 되돌리기 어려운 것만 신중히 정하고(2장), 나머지는 미루고(3, 4장), 바뀔 것만 감싸고(5장), 신호가 오면(7장) 안전하게(8장) 다시 빚는다. 목표는 완벽한 청사진이 아니라 **변경이 값싼 상태**를 유지하는 것. 살아 움직이는 설계다."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 종합이자 마무리.** 진화는 design-coupling(변경 국소화)·seam(갈아 끼움)·boundary(감춤)·model(모델 다시 빚기)·pattern(도구)·record(왜)를 **시간 축**에서 통합한다 — 「지금 어떻게 짜나」가 아니라 「어떻게 계속 바꿀 수 있게 유지하나」. 그리고 db-migrate·api-version 의 안전한 변경과 한 몸이다. **변화를 두려워하지 않고 값싸게 만드는 것이 설계의 궁극 목표**다. 이것으로 설계 트랙을 닫는다."
+          "text": "**이 트랙의 종합이자 마무리.** 진화는 design-coupling(변경 국소화), seam(갈아 끼움), boundary(감춤), model(모델 다시 빚기), pattern(도구), record(왜)를 **시간 축**에서 통합한다. \"지금 어떻게 짜나\"가 아니라 \"어떻게 계속 바꿀 수 있게 유지하나\". 그리고 db-migrate, api-version 의 안전한 변경과 한 몸이다. **변화를 두려워하지 않고 값싸게 만드는 것이 설계의 궁극 목표**다. 이것으로 설계 트랙을 닫는다."
         },
         {
           "type": "try",
-          "text": "「고치기 두려운」 코드에 이 8개 항목을 채점하라. 「안전망을 먼저」와 「작은 단계로」 두 가지부터 잡으면, 두렵던 변경이 값싼 변경이 된다."
+          "text": "\"고치기 두려운\" 코드에 이 8개 항목을 채점하라. \"안전망을 먼저\"와 \"작은 단계로\" 두 가지부터 잡으면, 두렵던 변경이 값싼 변경이 된다."
         }
       ],
       "quiz": [
@@ -751,9 +751,9 @@
         {
           "q": "진화의 네 축은?",
           "choices": [
-            "빠름·큼·전역·미리",
-            "되돌림으로 나누고·미루고·바뀔 것만 감싸고·신호 따라 안전하게",
-            "캐시·복제·샤딩·압축",
+            "빠름, 큼, 전역, 미리",
+            "되돌림으로 나누고, 미루고, 바뀔 것만 감싸고, 신호 따라 안전하게",
+            "캐시, 복제, 샤딩, 압축",
             "재작성"
           ],
           "answer": 1,

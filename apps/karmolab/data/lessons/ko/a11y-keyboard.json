@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**키보드만으로 못 쓰는 화면은 대개 구조도 없는 화면이다.** 그래서 키보드 점검은 접근성의 **시작이자 가장 빠른 자가 진단**이다 — 마우스를 뽑고 Tab·Enter·Space·Esc·화살표만으로 주요 흐름을 끝까지 해 보면, 접근성 문제의 상당수가 바로 드러난다. 키보드로 조작 못 하는 사람은 많다: **운동장애·손 부상·RSI** 로 마우스를 못 쓰는 사람, **스크린리더** 사용자(키보드로 탐색), **파워 유저**(키보드가 빠름). 이들 모두가 키보드로 조작한다. 키보드로 되면 대개 스크린리더에서도 되고 구조도 건강하다 — 반대로 키보드로 막히면 시맨틱·포커스·순서 중 무언가가 깨진 것이다. 이 칸은 무엇이 포커스를 받나(2장)·순서는 DOM(3장)·포커스 표시(4장)·가두기와 건너뛰기(5장)를 다룬다. 아래 데모로 표준 요소 흐름과 div 흉내 흐름을 Tab 으로 비교하라."
+          "text": "**키보드만으로 못 쓰는 화면은 대개 구조도 없는 화면이다.** 그래서 키보드 점검은 접근성의 **시작이자 가장 빠른 자가 진단**이다. 마우스를 뽑고 Tab, Enter, Space, Esc, 화살표만으로 주요 흐름을 끝까지 해 보면, 접근성 문제의 상당수가 바로 드러난다. 키보드로 조작 못 하는 사람은 많다: **운동장애, 손 부상, RSI** 로 마우스를 못 쓰는 사람, **스크린리더** 사용자(키보드로 탐색), **파워 유저**(키보드가 빠름). 이들 모두가 키보드로 조작한다. 키보드로 되면 대개 스크린리더에서도 되고 구조도 건강하다. 반대로 키보드로 막히면 시맨틱, 포커스, 순서 중 무언가가 깨진 것이다. 이 칸은 무엇이 포커스를 받나(2장), 순서는 DOM(3장), 포커스 표시(4장), 가두기와 건너뛰기(5장)를 다룬다. 아래 데모로 표준 요소 흐름과 div 흉내 흐름을 Tab 으로 비교하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "Tab 순회 — 표준 vs div 흉내",
+          "label": "Tab 순회. 표준 vs div 흉내",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:8px 0; }\n  .flow .n { padding:6px 10px; border-radius:6px; background:#111c33; border:1px solid #334155; font:12px ui-monospace, monospace; }\n  .flow .n.focus { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee55; }\n  .flow .n.skip { opacity:.35; text-decoration:line-through; }\n  .flow .n.ring { outline:2px solid #4ade80; outline-offset:2px; }\n  .flow .arrow { color:#475569; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const pos = {{pos}};\n  const std = kind === 'std';\n  const reach = std ? ['로고', '메뉴', '검색', '저장', '푸터'] : ['로고', '메뉴', '검색', '푸터'];\n  const nodes = ['로고', '메뉴', '검색', '저장(div)', '푸터'].map((lb, i) => {\n    const focusable = std || lb !== '저장(div)';\n    let cls = '';\n    if (!focusable) cls = 'skip';\n    else if (reach[Math.min(pos, reach.length - 1)] === (lb === '저장(div)' ? '저장' : lb)) cls = 'focus';\n    return { label: std && lb === '저장(div)' ? '저장' : lb, cls };\n  });\n  render((std ? '표준 요소 — 전부 Tab 도달' : 'div onclick 저장 — Tab 이 건너뜀') + '  (Tab ' + (pos + 1) + '번)',\n    (std ? '<span class=\"ok\">모든 조작 요소가 Tab 순서에 들어와 키보드로 끝까지 간다.</span>'\n         : '<span class=\"no\">저장이 div 라 Tab 이 건너뛴다 — 키보드 사용자는 저장을 못 누른다.</span>'),\n    '마우스를 뽑고 Tab 만으로 끝까지 가 보라 — 못 가는 곳이 접근성 결함.',\n    flow(nodes));\n</script>",
           "controls": [
@@ -46,11 +46,11 @@
         },
         {
           "type": "note",
-          "text": "**키보드만으로 못 쓰는 화면은 대개 구조도 없는 화면이라, 키보드 점검이 접근성의 시작이자 가장 빠른 자가 진단이다.** **왜 키보드인가**: ① **키보드로 조작하는 사람이 많다** — 운동장애·손 부상·RSI·떨림으로 마우스의 정밀 조작이 어려운 사람, 스크린리더 사용자(화면을 키보드로 탐색), 스위치·음성 등 대체 입력(대개 키보드 인터페이스로 매핑), 그리고 속도를 원하는 파워 유저. ② **키보드 통과 = 구조 건강의 지표** — 키보드로 모든 기능에 도달·조작·탈출할 수 있으면, 시맨틱 요소가 제대로 쓰였고(포커스 가능), 포커스 순서가 논리적이며, 위젯이 규약대로 동작한다는 뜻이다. 반대로 키보드로 막히면 div 흉내(2장)·엉킨 순서(3장)·안 보이는 포커스(4장)·빠져나가는 모달(5장) 중 하나가 깨진 것이다. ③ **가장 싼 테스트** — 특별한 도구 없이 **마우스를 치우고** Tab·Shift+Tab·Enter·Space·Esc·화살표만으로 핵심 흐름(가입·검색·구매·설정)을 끝까지 해 보면 된다. 못 가는 곳, 안 보이는 포커스, 못 빠져나오는 곳이 곧 결함 목록이다. **키보드와 스크린리더의 관계**: 키보드 접근성은 스크린리더 접근성의 **토대**다 — 키보드로 안 되면 스크린리더로도 대개 안 된다(단 키보드 OK 라고 스크린리더가 자동 OK 는 아님 — 이름·역할은 별도, a11y-semantics). **정리**: 마우스를 뽑고 키보드만으로 써 보는 것이 접근성의 첫 자가 진단이다 — 못 쓰는 화면은 구조가 아픈 화면이다."
+          "text": "**키보드만으로 못 쓰는 화면은 대개 구조도 없는 화면이라, 키보드 점검이 접근성의 시작이자 가장 빠른 자가 진단이다.** **왜 키보드인가**: ① **키보드로 조작하는 사람이 많다**. 운동장애, 손 부상, RSI, 떨림으로 마우스의 정밀 조작이 어려운 사람, 스크린리더 사용자(화면을 키보드로 탐색), 스위치, 음성 등 대체 입력(대개 키보드 인터페이스로 매핑), 그리고 속도를 원하는 파워 유저. ② **키보드 통과 = 구조 건강의 지표**. 키보드로 모든 기능에 도달, 조작, 탈출할 수 있으면, 시맨틱 요소가 제대로 쓰였고(포커스 가능), 포커스 순서가 논리적이며, 위젯이 규약대로 동작한다는 뜻이다. 반대로 키보드로 막히면 div 흉내(2장), 엉킨 순서(3장), 안 보이는 포커스(4장), 빠져나가는 모달(5장) 중 하나가 깨진 것이다. ③ **가장 싼 테스트**. 특별한 도구 없이 **마우스를 치우고** Tab, Shift+Tab, Enter, Space, Esc, 화살표만으로 핵심 흐름(가입, 검색, 구매, 설정)을 끝까지 해 보면 된다. 못 가는 곳, 안 보이는 포커스, 못 빠져나오는 곳이 곧 결함 목록이다. **키보드와 스크린리더의 관계**: 키보드 접근성은 스크린리더 접근성의 **토대**다. 키보드로 안 되면 스크린리더로도 대개 안 된다(단 키보드 OK 라고 스크린리더가 자동 OK 는 아님. 이름, 역할은 별도, a11y-semantics). **정리**: 마우스를 뽑고 키보드만으로 써 보는 것이 접근성의 첫 자가 진단이다. 못 쓰는 화면은 구조가 아픈 화면이다."
         },
         {
           "type": "try",
-          "text": "**마우스를 뽑고**(또는 안 쓰고) 내 화면의 주요 흐름 하나(가입·검색·구매·설정)를 **Tab·Shift+Tab·Enter·Space·Esc·화살표만으로** 끝까지 해 보라. 못 가는 곳·안 보이는 포커스·못 빠져나오는 곳을 목록으로 적어라 — 그게 이 칸에서 하나씩 고칠 결함이다."
+          "text": "**마우스를 뽑고**(또는 안 쓰고) 내 화면의 주요 흐름 하나(가입, 검색, 구매, 설정)를 **Tab, Shift+Tab, Enter, Space, Esc, 화살표만으로** 끝까지 해 보라. 못 가는 곳, 안 보이는 포커스, 못 빠져나오는 곳을 목록으로 적어라. 그게 이 칸에서 하나씩 고칠 결함이다."
         }
       ],
       "quiz": [
@@ -58,7 +58,7 @@
           "q": "키보드 점검이 접근성의 시작인 이유는?",
           "choices": [
             "빨라서만",
-            "키보드로 못 쓰는 화면은 대개 구조도 없는 화면 — 가장 빠른 자가 진단",
+            "키보드로 못 쓰는 화면은 대개 구조도 없는 화면. 가장 빠른 자가 진단",
             "예뻐서",
             "무관"
           ],
@@ -68,7 +68,7 @@
         {
           "q": "키보드로 조작하는 사람이 아닌 것은?",
           "choices": [
-            "운동장애·RSI 사용자",
+            "운동장애, RSI 사용자",
             "스크린리더 사용자",
             "마우스만 쓰는 사람",
             "파워 유저"
@@ -96,7 +96,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**기본으로 포커스를 받는 것은 대화형 표준 요소뿐이다**: `a[href]`·`button`·`input`·`select`·`textarea`·`details`·`summary`. **`div`·`span` 은 안 받는다** — 그래서 div 로 만든 버튼은 Tab 으로 도달조차 못 한다. 필요하면 `tabindex` 로 조절한다: **`tabindex=\"0\"`** = 포커스 가능·DOM 순서에 편입(커스텀 위젯에), **`tabindex=\"-1\"`** = 프로그램으로만 포커스(JS 로 focus() — 모달 열 때 등), **`tabindex=\"양수\"`(1 이상)** = **쓰지 마라**(순서를 강제로 뒤집어 지옥을 만든다). 원칙: **조작 요소는 표준 요소로**(자동 포커스), 어쩔 수 없이 만든 커스텀 위젯만 tabindex=0. 반대로 **비활성 요소에 tabindex 를 남발**하면(단순 텍스트에 tabindex=0) Tab 이 쓸데없이 멈춰 피곤하다. 아래 데모로 요소별 포커스 여부를 확인하라."
+          "text": "**기본으로 포커스를 받는 것은 대화형 표준 요소뿐이다**: `a[href]`, `button`, `input`, `select`, `textarea`, `details`, `summary`. **`div`, `span` 은 안 받는다**. 그래서 div 로 만든 버튼은 Tab 으로 도달조차 못 한다. 필요하면 `tabindex` 로 조절한다: **`tabindex=\"0\"`** = 포커스 가능, DOM 순서에 편입(커스텀 위젯에), **`tabindex=\"-1\"`** = 프로그램으로만 포커스(JS 로 focus(). 모달 열 때 등), **`tabindex=\"양수\"`(1 이상)** = **쓰지 마라**(순서를 강제로 뒤집어 지옥을 만든다). 원칙: **조작 요소는 표준 요소로**(자동 포커스), 어쩔 수 없이 만든 커스텀 위젯만 tabindex=0. 반대로 **비활성 요소에 tabindex 를 남발**하면(단순 텍스트에 tabindex=0) Tab 이 쓸데없이 멈춰 피곤하다. 아래 데모로 요소별 포커스 여부를 확인하라."
         },
         {
           "type": "demo",
@@ -147,11 +147,11 @@
         },
         {
           "type": "note",
-          "text": "**기본으로 포커스를 받는 것은 대화형 표준 요소(a[href]·button·input·select·textarea·details/summary)뿐이고, div·span 은 안 받아 Tab 으로 도달조차 못 한다.** **tabindex 세 값의 뜻**: ① **tabindex=\"0\"** — 요소를 **포커스 가능하게 하고 DOM 순서에 편입**한다. 표준 요소로 표현 못 하는 **커스텀 위젯**(직접 만든 슬라이더·트리 항목)에만 쓴다. 표준 button/a 를 두고 div+tabindex=0 을 쓰는 건 안티패턴(1규칙 위반, a11y-semantics 1장). ② **tabindex=\"-1\"** — **Tab 으로는 못 가지만 JS 의 `.focus()` 로는 포커스 가능**. 용도: 모달을 열 때 프로그램으로 포커스를 옮기기, 에러 발생 시 해당 필드로 포커스 보내기, 위젯 안에서 roving tabindex(활성 항목만 0, 나머지 -1)로 화살표 이동 구현. ③ **tabindex=\"양수\"(1 이상)** — **절대 쓰지 마라**. 양수는 Tab 순서를 DOM 과 무관하게 강제 지정해, 페이지 전체의 순서를 뒤엎고 유지보수가 불가능해진다(요소 하나 추가하면 전부 재조정). **흔한 실수**: ⓐ div 로 조작 요소를 만들고 tabindex 를 안 줘 도달 불가. ⓑ 반대로 **단순 텍스트·컨테이너에 tabindex=0 남발** — Tab 이 아무 데서나 멈춰 키보드 사용자를 지치게 한다(포커스는 **조작 가능한 것**에만). ⓒ `<a>` 에 href 를 안 줘서 포커스 불가(링크는 href 가 있어야 포커스 가능 — 버튼이면 button 을 써라). **정리**: 조작 요소는 표준 요소로 두어 자동 포커스를 얻고, 커스텀 위젯만 tabindex=0, 프로그램 포커스만 tabindex=-1, 양수는 금지 — 텍스트에 tabindex 를 남발하지 마라."
+          "text": "**기본으로 포커스를 받는 것은 대화형 표준 요소(a[href], button, input, select, textarea, details/summary)뿐이고, div, span 은 안 받아 Tab 으로 도달조차 못 한다.** **tabindex 세 값의 뜻**: ① **tabindex=\"0\"**. 요소를 **포커스 가능하게 하고 DOM 순서에 편입**한다. 표준 요소로 표현 못 하는 **커스텀 위젯**(직접 만든 슬라이더, 트리 항목)에만 쓴다. 표준 button/a 를 두고 div+tabindex=0 을 쓰는 건 안티패턴(1규칙 위반, a11y-semantics 1장). ② **tabindex=\"-1\"**. **Tab 으로는 못 가지만 JS 의 `.focus()` 로는 포커스 가능**. 용도: 모달을 열 때 프로그램으로 포커스를 옮기기, 에러 발생 시 해당 필드로 포커스 보내기, 위젯 안에서 roving tabindex(활성 항목만 0, 나머지 -1)로 화살표 이동 구현. ③ **tabindex=\"양수\"(1 이상)**. **절대 쓰지 마라**. 양수는 Tab 순서를 DOM 과 무관하게 강제 지정해, 페이지 전체의 순서를 뒤엎고 유지보수가 불가능해진다(요소 하나 추가하면 전부 재조정). **흔한 실수**: ⓐ div 로 조작 요소를 만들고 tabindex 를 안 줘 도달 불가. ⓑ 반대로 **단순 텍스트, 컨테이너에 tabindex=0 남발**. Tab 이 아무 데서나 멈춰 키보드 사용자를 지치게 한다(포커스는 **조작 가능한 것**에만). ⓒ `<a>` 에 href 를 안 줘서 포커스 불가(링크는 href 가 있어야 포커스 가능. 버튼이면 button 을 써라). **정리**: 조작 요소는 표준 요소로 두어 자동 포커스를 얻고, 커스텀 위젯만 tabindex=0, 프로그램 포커스만 tabindex=-1, 양수는 금지. 텍스트에 tabindex 를 남발하지 마라."
         },
         {
           "type": "try",
-          "text": "내 화면에서 **div/span 으로 만든 조작 요소**가 Tab 으로 도달되는지 확인하라(안 되면 표준 요소로 바꾸거나 tabindex=0+키보드 핸들러). 반대로 **tabindex=\"양수\"** 나 텍스트·컨테이너의 불필요한 tabindex=0 을 찾아 없애라 — Tab 이 쓸데없이 멈추면 안 된다."
+          "text": "내 화면에서 **div/span 으로 만든 조작 요소**가 Tab 으로 도달되는지 확인하라(안 되면 표준 요소로 바꾸거나 tabindex=0+키보드 핸들러). 반대로 **tabindex=\"양수\"** 나 텍스트, 컨테이너의 불필요한 tabindex=0 을 찾아 없애라. Tab 이 쓸데없이 멈추면 안 된다."
         }
       ],
       "quiz": [
@@ -181,7 +181,7 @@
           "q": "tabindex 에 양수(1 이상)를 쓰면?",
           "choices": [
             "권장",
-            "순서를 강제로 뒤엎어 유지보수 지옥 — 쓰지 마라",
+            "순서를 강제로 뒤엎어 유지보수 지옥. 쓰지 마라",
             "더 빠름",
             "무관"
           ],
@@ -197,12 +197,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**Tab 순서는 화면의 시각적 위치가 아니라 DOM(HTML) 순서를 따른다.** CSS(`order`·`float`·`position`·grid 배치)로 요소를 눈에 보이는 자리를 바꿔도, 키보드는 **HTML 에 쓰인 차례대로** 이동한다. 그래서 **시각 순서와 DOM 순서가 어긋나면** 키보드 사용자의 포커스가 화면 여기저기를 **튀어 다녀** 혼란스럽다(위 → 아래 오른쪽 → 다시 왼쪽 위…). 해법: **DOM 순서 자체를 논리적으로**(읽는 순서 = 조작 순서 = HTML 순서) 두고, 시각 배치는 그 위에서 CSS 로. `tabindex` 양수로 순서를 억지로 맞추려 하지 마라(2장 — 지옥). 특히 반응형에서 `flex-direction: row-reverse` 나 grid 재배치로 시각 순서만 뒤집으면 DOM 과 어긋난다. 아래 데모로 DOM 순서와 시각 순서가 어긋난 Tab 흐름을 보라."
+          "text": "**Tab 순서는 화면의 시각적 위치가 아니라 DOM(HTML) 순서를 따른다.** CSS(`order`, `float`, `position`, grid 배치)로 요소를 눈에 보이는 자리를 바꿔도, 키보드는 **HTML 에 쓰인 차례대로** 이동한다. 그래서 **시각 순서와 DOM 순서가 어긋나면** 키보드 사용자의 포커스가 화면 여기저기를 **튀어 다녀** 혼란스럽다(위 → 아래 오른쪽 → 다시 왼쪽 위). 해법: **DOM 순서 자체를 논리적으로**(읽는 순서 = 조작 순서 = HTML 순서) 두고, 시각 배치는 그 위에서 CSS 로. `tabindex` 양수로 순서를 억지로 맞추려 하지 마라(2장. 지옥). 특히 반응형에서 `flex-direction: row-reverse` 나 grid 재배치로 시각 순서만 뒤집으면 DOM 과 어긋난다. 아래 데모로 DOM 순서와 시각 순서가 어긋난 Tab 흐름을 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "Tab 흐름 — DOM 순서 vs 시각 순서",
+          "label": "Tab 흐름. DOM 순서 vs 시각 순서",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:8px 0; }\n  .flow .n { padding:6px 10px; border-radius:6px; background:#111c33; border:1px solid #334155; font:12px ui-monospace, monospace; }\n  .flow .n.focus { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee55; }\n  .flow .n.skip { opacity:.35; text-decoration:line-through; }\n  .flow .n.ring { outline:2px solid #4ade80; outline-offset:2px; }\n  .flow .arrow { color:#475569; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ok = '{{order}}' === 'match';\n  const pos = {{pos}};\n  const labels = ['이름', '이메일', '전화', '제출'];\n  const domOrder = ok ? [0, 1, 2, 3] : [0, 2, 1, 3];\n  const nodes = labels.map((lb, i) => {\n    const rank = domOrder.indexOf(i);\n    return { label: lb + ' (' + (rank + 1) + ')', cls: rank === pos ? 'focus' : '' };\n  });\n  render(ok ? '시각 = DOM 순서 — 매끄러움' : '시각 ≠ DOM 순서 — 포커스가 튐',\n    (ok ? '<span class=\"ok\">Tab 이 이름→이메일→전화→제출로 자연스럽게 흐른다.</span>'\n        : '<span class=\"no\">화면엔 이름→이메일→전화지만 Tab 은 이름→전화→이메일 — 포커스가 튄다.</span>') +\n    '\\n  괄호 숫자 = 실제 Tab 순서(DOM). 지금 포커스: ' + labels[domOrder[Math.min(pos, 3)]],\n    'Tab 순서 = DOM 순서. 시각 배치와 어긋나면 포커스가 튄다.',\n    flow(nodes));\n</script>",
           "controls": [
@@ -241,11 +241,11 @@
         },
         {
           "type": "note",
-          "text": "**Tab 순서는 시각적 위치가 아니라 DOM 순서를 따르므로, 시각 순서와 DOM 순서가 어긋나면 키보드 포커스가 화면을 튀어 다닌다.** **원리**: 브라우저의 순차 포커스 이동(Tab/Shift+Tab)은 **문서 트리 순서**(HTML 에 요소가 나온 차례)와 tabindex 규칙으로 정해진다. CSS 는 **그리는 위치**만 바꿀 뿐 이 순서를 바꾸지 않는다 — `order`(flex), `row/column-reverse`, `position: absolute`, grid 의 명시적 배치, `float` 모두 시각 위치는 옮기지만 **DOM 순서는 그대로**다. **문제**: 디자인 편의로 HTML 을 「그리기 좋은 순서」로 쓰고 CSS 로 재배치하면, 화면엔 A→B→C 로 보여도 Tab 은 A→C→B 로 흘러 — 키보드/스크린리더 사용자는 포커스가 **예측 불가하게 점프**해 길을 잃는다. 특히 반응형에서 데스크톱/모바일 레이아웃을 CSS 로만 뒤집으면 한쪽에서 순서가 깨진다. **해법**: ① **DOM 순서를 논리적으로** — HTML 을 **읽는 순서 = 조작 순서**가 되도록 쓰고(위→아래, 좌→우 흐름), 시각 배치는 그 **위에서** CSS 로. 즉 「의미 순서로 마크업하고, 보기 좋게 CSS 로」. ② **tabindex 양수로 때우지 마라** — 순서를 억지로 맞추려 tabindex=1,2,3… 을 쓰면 더 큰 지옥(2장). 근본은 DOM 순서를 고치는 것. ③ **검증** — Tab 을 눌러 가며 포커스 링이 화면을 **논리적으로 훑는지**(위→아래로 자연스럽게) 눈으로 확인. 튀면 DOM 순서나 CSS 재배치를 고친다. **정리**: 의미 순서대로 마크업하면 Tab 순서가 저절로 논리적이 된다 — CSS 재배치로 시각만 바꾸고 DOM 을 방치하면 포커스가 튄다."
+          "text": "**Tab 순서는 시각적 위치가 아니라 DOM 순서를 따르므로, 시각 순서와 DOM 순서가 어긋나면 키보드 포커스가 화면을 튀어 다닌다.** **원리**: 브라우저의 순차 포커스 이동(Tab/Shift+Tab)은 **문서 트리 순서**(HTML 에 요소가 나온 차례)와 tabindex 규칙으로 정해진다. CSS 는 **그리는 위치**만 바꿀 뿐 이 순서를 바꾸지 않는다. `order`(flex), `row/column-reverse`, `position: absolute`, grid 의 명시적 배치, `float` 모두 시각 위치는 옮기지만 **DOM 순서는 그대로**다. **문제**: 디자인 편의로 HTML 을 \"그리기 좋은 순서\"로 쓰고 CSS 로 재배치하면, 화면엔 A→B→C 로 보여도 Tab 은 A→C→B 로 흘러. 키보드/스크린리더 사용자는 포커스가 **예측 불가하게 점프**해 길을 잃는다. 특히 반응형에서 데스크톱/모바일 레이아웃을 CSS 로만 뒤집으면 한쪽에서 순서가 깨진다. **해법**: ① **DOM 순서를 논리적으로**. HTML 을 **읽는 순서 = 조작 순서**가 되도록 쓰고(위→아래, 좌→우 흐름), 시각 배치는 그 **위에서** CSS 로. 즉 \"의미 순서로 마크업하고, 보기 좋게 CSS 로\". ② **tabindex 양수로 때우지 마라**. 순서를 억지로 맞추려 tabindex=1,2,3 을 쓰면 더 큰 지옥(2장). 근본은 DOM 순서를 고치는 것. ③ **검증**. Tab 을 눌러 가며 포커스 링이 화면을 **논리적으로 훑는지**(위→아래로 자연스럽게) 눈으로 확인. 튀면 DOM 순서나 CSS 재배치를 고친다. **정리**: 의미 순서대로 마크업하면 Tab 순서가 저절로 논리적이 된다. CSS 재배치로 시각만 바꾸고 DOM 을 방치하면 포커스가 튄다."
         },
         {
           "type": "try",
-          "text": "내 화면에서 Tab 을 눌러 가며 **포커스 링이 화면을 논리적으로 훑는지**(위→아래, 좌→우) 보라. 갑자기 먼 곳으로 튀는 지점을 찾아, CSS 재배치(order·reverse·absolute)로 시각만 바꾼 곳인지 확인하고 **DOM 순서 자체를 읽는 순서에 맞춰** 고쳐라(tabindex 양수 X)."
+          "text": "내 화면에서 Tab 을 눌러 가며 **포커스 링이 화면을 논리적으로 훑는지**(위→아래, 좌→우) 보라. 갑자기 먼 곳으로 튀는 지점을 찾아, CSS 재배치(order, reverse, absolute)로 시각만 바꾼 곳인지 확인하고 **DOM 순서 자체를 읽는 순서에 맞춰** 고쳐라(tabindex 양수 X)."
         }
       ],
       "quiz": [
@@ -253,7 +253,7 @@
           "q": "Tab 순서는 무엇을 따르나?",
           "choices": [
             "화면의 시각적 위치",
-            "DOM(HTML) 순서 — CSS 재배치와 무관",
+            "DOM(HTML) 순서. CSS 재배치와 무관",
             "알파벳순",
             "무작위"
           ],
@@ -275,7 +275,7 @@
           "q": "올바른 해법은?",
           "choices": [
             "tabindex 양수로 맞춤",
-            "DOM 을 읽는 순서로 두고 시각은 CSS 로 — 의미 순서 마크업",
+            "DOM 을 읽는 순서로 두고 시각은 CSS 로. 의미 순서 마크업",
             "포기",
             "무관"
           ],
@@ -291,12 +291,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**키보드 사용자는 「지금 포커스가 어디 있는지」가 보여야 조작할 수 있다 — 그런데 `outline: none` 으로 포커스 표시를 지우는 것이 가장 흔한 접근성 파괴다.** 디자이너가 파란 outline 을 싫어해 전역으로 `*:focus { outline: none }` 을 넣으면, 키보드 사용자는 자기가 화면 어디에 있는지 **완전히 잃는다**(마우스 사용자는 몰라도 됨). 해법: 지우지 말고 **더 나은 포커스 링을 디자인**하라 — `:focus-visible` 로 **키보드 포커스에만** 또렷한 링(색 대비 3:1 이상, outline-offset 으로 여백)을 주고, 마우스 클릭 때는 안 나오게 한다(`:focus-visible` 이 이걸 자동 구분). 링은 **배경과 대비**되어야 보인다(a11y-contrast — UI 요소 3:1). 아래 데모로 포커스 표시 유무를 비교하라."
+          "text": "**키보드 사용자는 \"지금 포커스가 어디 있는지\"가 보여야 조작할 수 있다. 그런데 `outline: none` 으로 포커스 표시를 지우는 것이 가장 흔한 접근성 파괴다.** 디자이너가 파란 outline 을 싫어해 전역으로 `*:focus { outline: none }` 을 넣으면, 키보드 사용자는 자기가 화면 어디에 있는지 **완전히 잃는다**(마우스 사용자는 몰라도 됨). 해법: 지우지 말고 **더 나은 포커스 링을 디자인**하라. `:focus-visible` 로 **키보드 포커스에만** 또렷한 링(색 대비 3:1 이상, outline-offset 으로 여백)을 주고, 마우스 클릭 때는 안 나오게 한다(`:focus-visible` 이 이걸 자동 구분). 링은 **배경과 대비**되어야 보인다(a11y-contrast. UI 요소 3:1). 아래 데모로 포커스 표시 유무를 비교하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "포커스 표시 — 없음 vs focus-visible",
+          "label": "포커스 표시. 없음 vs focus-visible",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:8px 0; }\n  .flow .n { padding:6px 10px; border-radius:6px; background:#111c33; border:1px solid #334155; font:12px ui-monospace, monospace; }\n  .flow .n.focus { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee55; }\n  .flow .n.skip { opacity:.35; text-decoration:line-through; }\n  .flow .n.ring { outline:2px solid #4ade80; outline-offset:2px; }\n  .flow .arrow { color:#475569; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const show = '{{show}}' !== 'none';\n  const pos = {{pos}};\n  const labels = ['홈', '검색', '장바구니', '로그인'];\n  const nodes = labels.map((lb, i) => ({ label: lb, cls: i === pos ? (show ? 'ring' : 'focus-none') : '' }));\n  if (!show) nodes.forEach((n, i) => { if (i === pos) n.cls = ''; });\n  render(show ? ':focus-visible 링 있음 — 위치가 보임' : 'outline:none — 위치를 잃음',\n    (show ? '<span class=\"ok\">포커스 링(초록 테두리)이 지금 어디인지 알려 준다.</span>'\n          : '<span class=\"no\">포커스 링이 없어 Tab 을 눌러도 어디 있는지 안 보인다 — 조작 불가.</span>') +\n    '\\n  지금 포커스(내부): ' + labels[pos] + (show ? '  (초록 링으로 표시됨)' : '  (화면엔 표시 안 됨)'),\n    'outline:none 으로 지우지 말고 :focus-visible 로 또렷한 링을. 대비 3:1.',\n    flow(nodes));\n</script>",
           "controls": [
@@ -330,12 +330,12 @@
         {
           "type": "code",
           "lang": "css",
-          "label": "포커스 링 — 지우지 말고 디자인",
+          "label": "포커스 링. 지우지 말고 디자인",
           "text": "/* 나쁨: 포커스 표시를 전역으로 지움 → 키보드 사용자가 위치를 잃음 */\n*:focus { outline: none; }\n\n/* 좋음: 키보드 포커스에만 또렷한 링 (마우스 클릭엔 안 나옴) */\n:focus-visible {\n  outline: 2px solid var(--accent);  /* 배경과 대비 3:1 이상 */\n  outline-offset: 2px;\n  border-radius: 4px;\n}"
         },
         {
           "type": "note",
-          "text": "**키보드 사용자는 포커스 위치가 보여야 조작할 수 있는데, outline:none 으로 포커스 표시를 지우는 것이 가장 흔하고 치명적인 접근성 파괴다.** **왜 치명적인가**: 마우스 사용자는 커서로 어디를 누를지 알지만, 키보드 사용자는 **포커스 링만이 「지금 여기」를 알려 주는 유일한 단서**다. 이걸 지우면 Tab 을 눌러도 어디로 갔는지 안 보여 — **눈을 가린 채 조작**하는 꼴이 된다(어느 버튼에 있는지 모르니 Enter 를 못 누름). 그런데 디자이너가 브라우저 기본 파란 outline 을 「못생겼다」고 여겨 `outline: 0`/`none` 을 전역으로 넣는 일이 매우 흔하다. **올바른 해법 — 지우지 말고 디자인**: ① **:focus-visible 사용** — 이 의사클래스는 브라우저가 **키보드 조작으로 포커스된 경우에만** 매칭한다(마우스 클릭 포커스엔 안 나옴). 그래서 「마우스 클릭 시 파란 테두리가 거슬린다」는 불만과 「키보드 사용자에겐 링이 필요하다」는 요구를 **동시에** 해결한다. ② **또렷하고 대비되는 링** — outline 2px 이상, 배경과 대비 3:1 이상(a11y-contrast, UI 요소 기준), `outline-offset` 으로 요소와 살짝 띄워 가독성↑. 색만이 아니라 **두께·오프셋**으로도 눈에 띄게. ③ **절대 outline:none 만 두지 마라** — 정 outline 을 없애려면 box-shadow·border 등 **대체 포커스 표시를 반드시** 준다(없애고 방치 = 파괴). ④ 커스텀 위젯도 포커스 시 시각 표시를 직접 준다. **정리**: 포커스 링은 키보드 사용자의 눈이다 — outline:none 으로 지우지 말고 :focus-visible 로 또렷하고 대비되는 링을 디자인하라."
+          "text": "**키보드 사용자는 포커스 위치가 보여야 조작할 수 있는데, outline:none 으로 포커스 표시를 지우는 것이 가장 흔하고 치명적인 접근성 파괴다.** **왜 치명적인가**: 마우스 사용자는 커서로 어디를 누를지 알지만, 키보드 사용자는 **포커스 링만이 \"지금 여기\"를 알려 주는 유일한 단서**다. 이걸 지우면 Tab 을 눌러도 어디로 갔는지 안 보여. **눈을 가린 채 조작**하는 꼴이 된다(어느 버튼에 있는지 모르니 Enter 를 못 누름). 그런데 디자이너가 브라우저 기본 파란 outline 을 \"못생겼다\"고 여겨 `outline: 0`/`none` 을 전역으로 넣는 일이 매우 흔하다. **올바른 해법. 지우지 말고 디자인**: ① **:focus-visible 사용**. 이 의사클래스는 브라우저가 **키보드 조작으로 포커스된 경우에만** 매칭한다(마우스 클릭 포커스엔 안 나옴). 그래서 \"마우스 클릭 시 파란 테두리가 거슬린다\"는 불만과 \"키보드 사용자에겐 링이 필요하다\"는 요구를 **동시에** 해결한다. ② **또렷하고 대비되는 링**. outline 2px 이상, 배경과 대비 3:1 이상(a11y-contrast, UI 요소 기준), `outline-offset` 으로 요소와 살짝 띄워 가독성↑. 색만이 아니라 **두께, 오프셋**으로도 눈에 띄게. ③ **절대 outline:none 만 두지 마라**. 정 outline 을 없애려면 box-shadow, border 등 **대체 포커스 표시를 반드시** 준다(없애고 방치 = 파괴). ④ 커스텀 위젯도 포커스 시 시각 표시를 직접 준다. **정리**: 포커스 링은 키보드 사용자의 눈이다. outline:none 으로 지우지 말고 :focus-visible 로 또렷하고 대비되는 링을 디자인하라."
         },
         {
           "type": "try",
@@ -347,7 +347,7 @@
           "q": "가장 흔한 치명적 접근성 파괴는?",
           "choices": [
             "색을 씀",
-            "outline:none 으로 포커스 표시를 지움 — 키보드 사용자가 위치를 잃음",
+            "outline:none 으로 포커스 표시를 지움. 키보드 사용자가 위치를 잃음",
             "여백",
             "무관"
           ],
@@ -380,17 +380,17 @@
     },
     {
       "id": "5",
-      "title": "가두기·풀기·건너뛰기",
+      "title": "가두기, 풀기, 건너뛰기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**모달을 열면 포커스를 그 안에 가두고(focus trap), 닫으면 열었던 버튼으로 되돌린다.** 트랩이 없으면 모달이 떠 있는데 Tab 이 **뒤쪽 배경**으로 빠져나가 — 키보드 사용자는 안 보이는 배경 요소를 만지게 되고 길을 잃는다. 규칙: ① 모달 열 때 첫 요소(또는 모달 컨테이너)로 **포커스 이동**, ② Tab/Shift+Tab 이 모달 **안에서 순환**, ③ **Esc 로 닫기**, ④ 닫으면 **열었던 트리거로 포커스 복귀**, ⑤ 배경은 `inert`(또는 aria-hidden)로 **비활성화**해 포커스·상호작용 차단. 반대로 화면 밖으로 밀어낸 요소(숨긴 서랍 메뉴)도 `inert`/`display:none` 으로 포커스를 빼야 한다(안 그러면 안 보이는데 Tab 이 들어감). 그리고 페이지 맨 앞에 **건너뛰기 링크**(`#main` 으로)를 두어, 반복되는 내비를 매번 Tab 하지 않고 본문으로 바로 가게 한다. 아래 데모로 트랩 유무와 Esc·복귀를 확인하라."
+          "text": "**모달을 열면 포커스를 그 안에 가두고(focus trap), 닫으면 열었던 버튼으로 되돌린다.** 트랩이 없으면 모달이 떠 있는데 Tab 이 **뒤쪽 배경**으로 빠져나가. 키보드 사용자는 안 보이는 배경 요소를 만지게 되고 길을 잃는다. 규칙: ① 모달 열 때 첫 요소(또는 모달 컨테이너)로 **포커스 이동**, ② Tab/Shift+Tab 이 모달 **안에서 순환**, ③ **Esc 로 닫기**, ④ 닫으면 **열었던 트리거로 포커스 복귀**, ⑤ 배경은 `inert`(또는 aria-hidden)로 **비활성화**해 포커스, 상호작용 차단. 반대로 화면 밖으로 밀어낸 요소(숨긴 서랍 메뉴)도 `inert`/`display:none` 으로 포커스를 빼야 한다(안 그러면 안 보이는데 Tab 이 들어감). 그리고 페이지 맨 앞에 **건너뛰기 링크**(`#main` 으로)를 두어, 반복되는 내비를 매번 Tab 하지 않고 본문으로 바로 가게 한다. 아래 데모로 트랩 유무와 Esc, 복귀를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "모달 포커스 트랩 · Esc · 복귀",
+          "label": "모달 포커스 트랩, Esc, 복귀",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:8px 0; }\n  .flow .n { padding:6px 10px; border-radius:6px; background:#111c33; border:1px solid #334155; font:12px ui-monospace, monospace; }\n  .flow .n.focus { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee55; }\n  .flow .n.skip { opacity:.35; text-decoration:line-through; }\n  .flow .n.ring { outline:2px solid #4ade80; outline-offset:2px; }\n  .flow .arrow { color:#475569; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const trap = '{{trap}}' === 'on';\n  const st = '{{state}}';\n  let title, nodes, msg, cls;\n  if (st === 'closed') {\n    title = '모달 닫힘 — 포커스는 열기 버튼'; cls = 'good';\n    nodes = [{label:'열기 버튼', cls:'ring'}, {label:'(모달)', cls:'skip'}, {label:'배경 링크', cls:''}];\n    msg = '닫으면 열었던 「열기 버튼」으로 포커스가 복귀한다.';\n  } else {\n    if (trap) { title = '모달 열림 · 트랩 O — Tab 이 안에서 순환'; cls='good';\n      nodes = [{label:'열기 버튼', cls:'skip'}, {label:'모달: 확인', cls:'focus'}, {label:'모달: 취소', cls:''}, {label:'배경 링크', cls:'skip'}];\n      msg = 'Tab 은 확인↔취소만 순환(배경 inert). Esc 로 닫고 복귀.'; }\n    else { title = '모달 열림 · 트랩 X — Tab 이 배경으로 샘'; cls='bad';\n      nodes = [{label:'열기 버튼', cls:''}, {label:'모달: 확인', cls:''}, {label:'모달: 취소', cls:''}, {label:'배경 링크', cls:'focus'}];\n      msg = 'Tab 이 모달 밖 배경 링크로 빠져나감 — 사용자가 길을 잃는다.'; }\n  }\n  render(title,\n    (cls === 'bad' ? '<span class=\"no\">' + msg + '</span>' : '<span class=\"ok\">' + msg + '</span>'),\n    '모달: 포커스 가두기 + Esc 닫기 + 복귀 + 배경 inert.',\n    flow(nodes));\n</script>",
           "controls": [
@@ -436,11 +436,11 @@
         },
         {
           "type": "note",
-          "text": "**모달을 열면 포커스를 그 안에 가두고(focus trap) 닫으면 열었던 트리거로 되돌려야 하며, 화면 밖으로 밀어낸 요소는 포커스를 빼고, 페이지 앞에는 건너뛰기 링크를 둔다.** **모달 포커스 관리(가두기)**: 모달·다이얼로그가 뜨면 시각적으로는 배경 위에 있지만, 트랩이 없으면 **Tab 이 배경 요소로 새어 나간다** — 키보드 사용자는 보이지 않는(가려진) 배경 링크·버튼에 포커스가 가 혼란에 빠진다. 규칙: ① **열 때** 모달 안 첫 요소(또는 제목/컨테이너, tabindex=-1)로 `focus()` 이동. ② **가두기** — Tab 이 마지막 요소에서 첫 요소로, Shift+Tab 이 첫에서 마지막으로 순환(모달 밖으로 안 나감). ③ **Esc 로 닫기** — 키보드 사용자가 갇히지 않게 탈출구 제공(모달은 Esc 가 규약). ④ **복귀** — 닫으면 **열었던 트리거 버튼**으로 포커스 되돌림(안 그러면 포커스가 문서 처음으로 튐). ⑤ **배경 비활성** — 배경을 `inert` 속성(또는 aria-hidden + 포커스 차단)으로 만들어 포커스·클릭·낭독에서 제외. **네이티브 `<dialog>`** 의 `showModal()` 은 이 중 상당수(트랩·Esc·배경 inert)를 자동으로 준다 — 직접 만들기 전에 고려. **밀어낸 요소 풀기**: 화면 밖으로 옮긴 요소(오프캔버스 서랍 메뉴, 접힌 아코디언 내용)를 `left:-9999px` 처럼 시각만 숨기면 **Tab 은 여전히 들어간다** — 안 보이는데 포커스가 가는 유령이 된다. `display:none`·`hidden`·`inert` 로 포커스도 함께 뺀다. **건너뛰기 링크(skip link)**: 페이지 최상단에 「본문으로 건너뛰기」 링크(`href=\"#main\"`)를 두어, 매 페이지 반복되는 긴 내비게이션을 매번 Tab 하지 않고 본문으로 바로 점프하게 한다 — 평소엔 숨기고 포커스 받으면 보이게. **정리**: 포커스는 상황에 따라 가두고(모달) 풀고(밀어낸 요소) 되돌리고(복귀) 건너뛴다(skip link) — 포커스가 새거나 갇히거나 사라지지 않게 관리하라."
+          "text": "**모달을 열면 포커스를 그 안에 가두고(focus trap) 닫으면 열었던 트리거로 되돌려야 하며, 화면 밖으로 밀어낸 요소는 포커스를 빼고, 페이지 앞에는 건너뛰기 링크를 둔다.** **모달 포커스 관리(가두기)**: 모달, 다이얼로그가 뜨면 시각적으로는 배경 위에 있지만, 트랩이 없으면 **Tab 이 배경 요소로 새어 나간다**. 키보드 사용자는 보이지 않는(가려진) 배경 링크, 버튼에 포커스가 가 혼란에 빠진다. 규칙: ① **열 때** 모달 안 첫 요소(또는 제목/컨테이너, tabindex=-1)로 `focus()` 이동. ② **가두기**. Tab 이 마지막 요소에서 첫 요소로, Shift+Tab 이 첫에서 마지막으로 순환(모달 밖으로 안 나감). ③ **Esc 로 닫기**. 키보드 사용자가 갇히지 않게 탈출구 제공(모달은 Esc 가 규약). ④ **복귀**. 닫으면 **열었던 트리거 버튼**으로 포커스 되돌림(안 그러면 포커스가 문서 처음으로 튐). ⑤ **배경 비활성**. 배경을 `inert` 속성(또는 aria-hidden + 포커스 차단)으로 만들어 포커스, 클릭, 낭독에서 제외. **네이티브 `<dialog>`** 의 `showModal()` 은 이 중 상당수(트랩, Esc, 배경 inert)를 자동으로 준다. 직접 만들기 전에 고려. **밀어낸 요소 풀기**: 화면 밖으로 옮긴 요소(오프캔버스 서랍 메뉴, 접힌 아코디언 내용)를 `left:-9999px` 처럼 시각만 숨기면 **Tab 은 여전히 들어간다**. 안 보이는데 포커스가 가는 유령이 된다. `display:none`, `hidden`, `inert` 로 포커스도 함께 뺀다. **건너뛰기 링크(skip link)**: 페이지 최상단에 \"본문으로 건너뛰기\" 링크(`href=\"#main\"`)를 두어, 매 페이지 반복되는 긴 내비게이션을 매번 Tab 하지 않고 본문으로 바로 점프하게 한다. 평소엔 숨기고 포커스 받으면 보이게. **정리**: 포커스는 상황에 따라 가두고(모달) 풀고(밀어낸 요소) 되돌리고(복귀) 건너뛴다(skip link). 포커스가 새거나 갇히거나 사라지지 않게 관리하라."
         },
         {
           "type": "try",
-          "text": "내 화면의 **모달을 열어 Tab 을 계속 눌러** 보라 — 포커스가 뒤쪽 배경으로 빠져나가면 트랩이 없는 것(고쳐라). **Esc 로 닫히는지**, 닫은 뒤 포커스가 **열었던 버튼으로 돌아오는지** 확인하라. 숨긴 서랍 메뉴에 Tab 이 들어가는지(유령 포커스), 페이지에 **건너뛰기 링크**가 있는지도 점검하라."
+          "text": "내 화면의 **모달을 열어 Tab 을 계속 눌러** 보라. 포커스가 뒤쪽 배경으로 빠져나가면 트랩이 없는 것(고쳐라). **Esc 로 닫히는지**, 닫은 뒤 포커스가 **열었던 버튼으로 돌아오는지** 확인하라. 숨긴 서랍 메뉴에 Tab 이 들어가는지(유령 포커스), 페이지에 **건너뛰기 링크**가 있는지도 점검하라."
         }
       ],
       "quiz": [
@@ -459,7 +459,7 @@
           "q": "화면 밖으로 시각만 숨긴 요소(left:-9999px)는?",
           "choices": [
             "포커스 안 감",
-            "Tab 이 여전히 들어감 — inert/display:none 으로 포커스도 빼야",
+            "Tab 이 여전히 들어감. inert/display:none 으로 포커스도 빼야",
             "자동 처리",
             "무관"
           ],
@@ -481,17 +481,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 키보드 접근성",
+      "title": "점검표. 키보드 접근성",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**마우스를 뽑고 키보드만으로 끝까지 갈 수 있으면 접근성의 큰 산을 넘은 것이다.** 이 점검표를 화면·컴포넌트마다 훑어, 도달 못 하거나·순서가 튀거나·포커스가 안 보이거나·갇히거나·새는 곳을 없애라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**마우스를 뽑고 키보드만으로 끝까지 갈 수 있으면 접근성의 큰 산을 넘은 것이다.** 이 점검표를 화면, 컴포넌트마다 훑어, 도달 못 하거나, 순서가 튀거나, 포커스가 안 보이거나, 갇히거나, 새는 곳을 없애라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "키보드 접근성 점검표 — 통과 수",
+          "label": "키보드 접근성 점검표. 통과 수",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:8px 0; }\n  .flow .n { padding:6px 10px; border-radius:6px; background:#111c33; border:1px solid #334155; font:12px ui-monospace, monospace; }\n  .flow .n.focus { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee55; }\n  .flow .n.skip { opacity:.35; text-decoration:line-through; }\n  .flow .n.ring { outline:2px solid #4ade80; outline-offset:2px; }\n  .flow .arrow { color:#475569; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '마우스 없이 모든 기능에 도달·조작·탈출할 수 있다',\n    '조작 요소는 표준(button/a/input) — div 흉내엔 tabindex=0+키보드',\n    'tabindex 양수를 쓰지 않았다 (순서 강제 X)',\n    'Tab 순서가 시각(읽는) 순서와 일치한다 (DOM 순서 논리적)',\n    'outline:none 으로 지우지 않고 :focus-visible 로 또렷한 링',\n    '포커스 링이 배경과 대비된다 (3:1 이상)',\n    '모달은 포커스를 가두고 Esc 로 닫고 트리거로 복귀한다',\n    '숨긴 요소는 포커스도 뺐고, 건너뛰기 링크가 있다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('키보드 접근성 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 키보드만으로 끝까지 가는 화면.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 마우스를 뽑고 하나씩 확인하라.</span>'),\n    '마우스를 뽑고 Tab·Enter·Space·Esc·화살표만으로 핵심 흐름을 끝까지.');\n</script>",
           "controls": [
@@ -508,11 +508,11 @@
         },
         {
           "type": "note",
-          "text": "**키보드 접근성 점검표 — 화면·컴포넌트마다 마우스를 뽑고 훑는다.** ① **끝까지 도달** — 마우스 없이 모든 기능에 도달·조작·탈출 가능(1장). ② **표준 요소** — 조작 요소는 button/a/input, 커스텀만 tabindex=0+키보드 핸들러(2장·a11y-semantics). ③ **양수 tabindex 금지** — 순서를 강제하지 않음(2장). ④ **논리적 순서** — Tab 순서가 시각(읽는) 순서와 일치, DOM 순서를 의미대로(3장). ⑤ **포커스 표시** — outline:none 으로 지우지 않고 :focus-visible 로 또렷한 링(4장). ⑥ **링 대비** — 포커스 링이 배경과 3:1 이상 대비(4장·a11y-contrast). ⑦ **모달 관리** — 포커스 가두기+Esc 닫기+트리거 복귀+배경 inert(5장). ⑧ **풀기·건너뛰기** — 숨긴 요소는 포커스도 빼고, 페이지 앞에 건너뛰기 링크(5장). **검증이 핵심**: 이 표는 「했다고 생각」이 아니라 **실제로 마우스를 뽑고** Tab·Shift+Tab·Enter·Space·Esc·화살표만으로 핵심 흐름을 해 보며 확인한다. 못 가는 곳·튀는 순서·안 보이는 포커스·갇힘·샘이 곧 결함 목록이다. 이 갈래의 대비·시맨틱·스크린리더 칸과 합쳐 접근성 기본기를 이룬다. **정리**: 마우스를 뽑고 이 표를 매번 훑어라 — 키보드로 끝까지 가면 대부분의 사용자가 쓸 수 있다."
+          "text": "**키보드 접근성 점검표. 화면, 컴포넌트마다 마우스를 뽑고 훑는다.** ① **끝까지 도달**. 마우스 없이 모든 기능에 도달, 조작, 탈출 가능(1장). ② **표준 요소**. 조작 요소는 button/a/input, 커스텀만 tabindex=0+키보드 핸들러(2장, a11y-semantics). ③ **양수 tabindex 금지**. 순서를 강제하지 않음(2장). ④ **논리적 순서**. Tab 순서가 시각(읽는) 순서와 일치, DOM 순서를 의미대로(3장). ⑤ **포커스 표시**. outline:none 으로 지우지 않고 :focus-visible 로 또렷한 링(4장). ⑥ **링 대비**. 포커스 링이 배경과 3:1 이상 대비(4장, a11y-contrast). ⑦ **모달 관리**. 포커스 가두기+Esc 닫기+트리거 복귀+배경 inert(5장). ⑧ **풀기, 건너뛰기**. 숨긴 요소는 포커스도 빼고, 페이지 앞에 건너뛰기 링크(5장). **검증이 핵심**: 이 표는 \"했다고 생각\"이 아니라 **실제로 마우스를 뽑고** Tab, Shift+Tab, Enter, Space, Esc, 화살표만으로 핵심 흐름을 해 보며 확인한다. 못 가는 곳, 튀는 순서, 안 보이는 포커스, 갇힘, 샘이 곧 결함 목록이다. 이 갈래의 대비, 시맨틱, 스크린리더 칸과 합쳐 접근성 기본기를 이룬다. **정리**: 마우스를 뽑고 이 표를 매번 훑어라. 키보드로 끝까지 가면 대부분의 사용자가 쓸 수 있다."
         },
         {
           "type": "try",
-          "text": "지금 만든 화면을 골라 **마우스를 뽑고** 위 8개 항목을 하나씩 확인하라 — Tab 으로 끝까지 가기, 순서가 튀는지, 포커스가 보이는지, 모달이 가두고 Esc 로 닫히고 복귀하는지, 숨긴 요소에 Tab 이 들어가는지. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
+          "text": "지금 만든 화면을 골라 **마우스를 뽑고** 위 8개 항목을 하나씩 확인하라. Tab 으로 끝까지 가기, 순서가 튀는지, 포커스가 보이는지, 모달이 가두고 Esc 로 닫히고 복귀하는지, 숨긴 요소에 Tab 이 들어가는지. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
         }
       ],
       "quiz": [
@@ -520,7 +520,7 @@
           "q": "키보드 접근성 점검의 방법은?",
           "choices": [
             "코드만 읽음",
-            "마우스를 뽑고 Tab·Enter·Space·Esc·화살표만으로 핵심 흐름을 끝까지",
+            "마우스를 뽑고 Tab, Enter, Space, Esc, 화살표만으로 핵심 흐름을 끝까지",
             "색만 봄",
             "무관"
           ],

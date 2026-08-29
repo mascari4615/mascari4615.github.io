@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "검색의 값어치는 **순서**에 있다 — 100개를 찾아 주는 것보다 **맞는 3개를 위에 올리는** 것이 낫다. 사용자는 상위 몇 개만 본다(첫 화면·첫 페이지). 관련 있는 게 50번째에 묻히면 없는 것과 같다. 그래서 「매칭되는 문서를 다 찾기」(재현율·recall)만큼, 아니 그 이상으로 **「가장 관련 있는 걸 맨 위에」(순위·ranking)**가 중요하다. LIKE 는 참/거짓만이라 순위가 없고(search-why 3장), 진짜 검색은 **관련도 점수**를 매겨 정렬한다. 이 칸(search-rank)은 **어떻게 점수를 매기고 정렬하나** — 텍스트 관련성(BM25)·필드 가중치·사업 신호(인기도·신선도)를 어떻게 결합하나 — 검색 품질을 결정하는 순위(랭킹)를 다룬다."
+          "text": "검색의 값어치는 **순서**에 있다. 100개를 찾아 주는 것보다 **맞는 3개를 위에 올리는** 것이 낫다. 사용자는 상위 몇 개만 본다(첫 화면, 첫 페이지). 관련 있는 게 50번째에 묻히면 없는 것과 같다. 그래서 \"매칭되는 문서를 다 찾기\"(재현율, recall)만큼, 아니 그 이상으로 **\"가장 관련 있는 걸 맨 위에\"(순위, ranking)**가 중요하다. LIKE 는 참/거짓만이라 순위가 없고(search-why 3장), 진짜 검색은 **관련도 점수**를 매겨 정렬한다. 이 칸(search-rank)은 **어떻게 점수를 매기고 정렬하나**. 텍스트 관련성(BM25), 필드 가중치, 사업 신호(인기도, 신선도)를 어떻게 결합하나. 검색 품질을 결정하는 순위(랭킹)를 다룬다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "순서의 값어치 — 다 찾기 vs 위에 올리기",
+          "label": "순서의 값어치. 다 찾기 vs 위에 올리기",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'unranked') {\n    render('순위 없이 — 100개를 순서 없이',\n      '  매칭 문서 100개를 관련도 순서 없이 나열\\n\\n' +\n      '  <span class=\\\"no\\\">사용자는 상위 몇 개만 봄 → 관련 있는 게 50번째면 없는 것과 같다.</span>',\n      '순위 없이: 100개를 순서 없이 → 관련 있는 게 묻힘.',\n      results([['','?','문서 (순서 무관 — 관련도 뒤죽박죽)'],['','?','...'],['','?','관련 문서가 50번째 어딘가...']]));\n  } else {\n    render('순위로 — 맞는 3개를 위에',\n      '  관련도 점수로 정렬 → 가장 관련 있는 걸 맨 위에\\n\\n' +\n      '  <span class=\\\"ok\\\">사용자가 위만 봐도 원하는 걸 찾음 → 검색의 값어치는 순서.</span>',\n      '순위로: 관련도 점수로 정렬 → 맞는 걸 위에(사용자는 위만 봄).',\n      results([['','9.2','가장 관련 있는 문서'],['','7.1','다음 관련'],['','5.8','그다음']]));\n  }\n</script>",
           "controls": [
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**검색의 값어치는 순서에 있다 — 100개를 찾아 주는 것보다 맞는 3개를 위에 올리는 것이 낫다. 사용자는 상위 몇 개만 보니, 순위(ranking)가 검색 품질을 정한다.** 검색은 「매칭되는 문서를 찾는」 것(recall·재현율)과 「그중 가장 관련 있는 걸 위에 놓는」 것(ranking·순위)의 두 부분이다. 그런데 **순위가 결정적**이다 — 이유: 사용자는 검색 결과의 **상위 몇 개만** 본다(첫 화면·첫 페이지, 특히 모바일). 매칭 문서가 아무리 많아도(100개 찾아도), 사용자가 원하는 게 **50번째에 묻히면 없는 것과 같다**(안 봄). 반대로 관련 있는 3개를 맨 위에 올리면, 사용자가 위만 봐도 원하는 걸 찾는다. 그래서 **「다 찾기」보다 「위에 올리기」가 사용자 가치를 정한다** — 100개를 순서 없이 주는 것과, 가장 관련 있는 3개를 위에 정렬해 주는 것은 천지 차이다(전자는 사용자가 다 뒤져야, 후자는 위만 보면 됨). LIKE 검색은 참/거짓만이라(search-why 3장) 순위가 없어 결과가 뒤죽박죽 — 이게 LIKE 가 「검색이 아닌」 이유 중 하나다. 진짜 검색은 각 매칭 문서에 **관련도 점수(relevance score)**를 매겨 **점수 순으로 정렬**한다. 이 칸(search-rank)의 주제는 **어떻게 점수를 매기나** — ① **텍스트 관련성**(BM25 — 단어 빈도·희귀도·문서 길이, 2장), ② **필드 가중치**(제목 > 본문, 3장), ③ **사업 신호**(인기도·신선도·재고 — 텍스트 외의 「좋음」, 4장)를 어떻게 **결합**해 최종 점수를 만드나. 그리고 **정렬과 필터를 구분**하고(5장), **측정으로 튜닝**한다(6장). 순위는 검색 품질의 핵심이자 가장 어려운 부분이다 — 「무엇이 관련·좋음인가」를 정의하고 여러 신호로 점수화하는 것(추천·랭킹의 근본, ml 과 통함). search-index(빠른 조회)·search-token(올바른 단위) 위에, search-rank(좋은 순서)가 얹혀야 「빠르고 정확하고 관련도 높은」 검색이 완성된다. 「검색 = 순위」라는 인식이 이 칸의 출발점이다."
+          "text": "**검색의 값어치는 순서에 있다. 100개를 찾아 주는 것보다 맞는 3개를 위에 올리는 것이 낫다. 사용자는 상위 몇 개만 보니, 순위(ranking)가 검색 품질을 정한다.** 검색은 \"매칭되는 문서를 찾는\" 것(recall, 재현율)과 \"그중 가장 관련 있는 걸 위에 놓는\" 것(ranking, 순위)의 두 부분이다. 그런데 **순위가 결정적**이다. 이유: 사용자는 검색 결과의 **상위 몇 개만** 본다(첫 화면, 첫 페이지, 특히 모바일). 매칭 문서가 아무리 많아도(100개 찾아도), 사용자가 원하는 게 **50번째에 묻히면 없는 것과 같다**(안 봄). 반대로 관련 있는 3개를 맨 위에 올리면, 사용자가 위만 봐도 원하는 걸 찾는다. 그래서 **\"다 찾기\"보다 \"위에 올리기\"가 사용자 가치를 정한다**. 100개를 순서 없이 주는 것과, 가장 관련 있는 3개를 위에 정렬해 주는 것은 천지 차이다(전자는 사용자가 다 뒤져야, 후자는 위만 보면 됨). LIKE 검색은 참/거짓만이라(search-why 3장) 순위가 없어 결과가 뒤죽박죽. 이게 LIKE 가 \"검색이 아닌\" 이유 중 하나다. 진짜 검색은 각 매칭 문서에 **관련도 점수(relevance score)**를 매겨 **점수 순으로 정렬**한다. 이 칸(search-rank)의 주제는 **어떻게 점수를 매기나**. ① **텍스트 관련성**(BM25. 단어 빈도, 희귀도, 문서 길이, 2장), ② **필드 가중치**(제목 > 본문, 3장), ③ **사업 신호**(인기도, 신선도, 재고. 텍스트 외의 \"좋음\", 4장)를 어떻게 **결합**해 최종 점수를 만드나. 그리고 **정렬과 필터를 구분**하고(5장), **측정으로 튜닝**한다(6장). 순위는 검색 품질의 핵심이자 가장 어려운 부분이다. \"무엇이 관련, 좋음인가\"를 정의하고 여러 신호로 점수화하는 것(추천, 랭킹의 근본, ml 과 통함). search-index(빠른 조회), search-token(올바른 단위) 위에, search-rank(좋은 순서)가 얹혀야 \"빠르고 정확하고 관련도 높은\" 검색이 완성된다. \"검색 = 순위\"라는 인식이 이 칸의 출발점이다."
         },
         {
           "type": "p",
-          "text": "**「찾기」보다 「순서」 — 랭킹이 정보 과잉 시대의 핵심 가치.** 순서의 값어치의 교훈은 「랭킹이 곧 가치」다: 정보가 넘치는 시대엔 **「무엇이 있나(찾기)」보다 「무엇이 가장 좋은가(순서)」**가 사용자 가치를 정한다. 매칭·후보는 넘치니(수천·수만), 그중 **가장 관련·좋은 것을 위에** 놓는 랭킹이 결정적이다 — 검색·추천·피드·자동완성이 다 「후보 생성(넓게 찾기) + 랭킹(좋은 순서)」의 2단계이고(search-index 4장), 사용자 만족은 **랭킹 품질**에 달렸다(위에 좋은 게 오나). 그래서 「다 보여 주기」가 아니라 「가장 좋은 것을 위에」가 좋은 시스템이다 — 사용자의 주의는 유한하고 상위에 쏠리니(첫 화면·첫 결과), 그 귀한 상위 자리에 무엇을 놓느냐가 가치를 정한다. 이는 정보 검색·추천 시스템·피드 알고리즘·개인화의 근본 — 「무엇을 상위에 올릴지」가 제품의 핵심 경쟁력이다(구글의 검색 순위, 추천의 상단, 피드의 첫 항목). 그리고 랭킹은 **여러 신호를 결합한 판단**이라(관련성·품질·인기·신선도·개인 취향) 정교하고 어렵다(4·8장·ml). 「검색의 값어치는 순서」는 이 「랭킹이 곧 가치」의 검색 버전 — 그리고 이 인식(찾기보다 순서)이 검색을 「필터」에서 「랭킹 시스템」으로 격상시킨다. 상위 몇 자리를 잘 채우는 게, 백 개를 다 찾는 것보다 사용자에게 낫다."
+          "text": "**\"찾기\"보다 \"순서\". 랭킹이 정보 과잉 시대의 핵심 가치.** 순서의 값어치의 교훈은 \"랭킹이 곧 가치\"다: 정보가 넘치는 시대엔 **\"무엇이 있나(찾기)\"보다 \"무엇이 가장 좋은가(순서)\"**가 사용자 가치를 정한다. 매칭, 후보는 넘치니(수천, 수만), 그중 **가장 관련, 좋은 것을 위에** 놓는 랭킹이 결정적이다. 검색, 추천, 피드, 자동완성이 다 \"후보 생성(넓게 찾기) + 랭킹(좋은 순서)\"의 2단계이고(search-index 4장), 사용자 만족은 **랭킹 품질**에 달렸다(위에 좋은 게 오나). 그래서 \"다 보여 주기\"가 아니라 \"가장 좋은 것을 위에\"가 좋은 시스템이다. 사용자의 주의는 유한하고 상위에 쏠리니(첫 화면, 첫 결과), 그 귀한 상위 자리에 무엇을 놓느냐가 가치를 정한다. 이는 정보 검색, 추천 시스템, 피드 알고리즘, 개인화의 근본. \"무엇을 상위에 올릴지\"가 제품의 핵심 경쟁력이다(구글의 검색 순위, 추천의 상단, 피드의 첫 항목). 그리고 랭킹은 **여러 신호를 결합한 판단**이라(관련성, 품질, 인기, 신선도, 개인 취향) 정교하고 어렵다(4, 8장, ml). \"검색의 값어치는 순서\"는 이 \"랭킹이 곧 가치\"의 검색 버전. 그리고 이 인식(찾기보다 순서)이 검색을 \"필터\"에서 \"랭킹 시스템\"으로 격상시킨다. 상위 몇 자리를 잘 채우는 게, 백 개를 다 찾는 것보다 사용자에게 낫다."
         },
         {
           "type": "try",
-          "text": "네 검색 결과가 관련도 순으로 정렬되는지 확인하라 — 상위 3개가 실제로 가장 관련 있는가, 아니면 순서가 뒤죽박죽(LIKE·정렬 안 됨)인가. 대표 질의로 「사용자가 상위 3개만 봐도 원하는 걸 찾는지」 점검하라. 「100개 찾기」보다 「맞는 3개를 위에」가 중요함을 체감하고, 순위(다음 장들)에 투자하라 — 검색의 값어치는 순서다."
+          "text": "네 검색 결과가 관련도 순으로 정렬되는지 확인하라. 상위 3개가 실제로 가장 관련 있는가, 아니면 순서가 뒤죽박죽(LIKE, 정렬 안 됨)인가. 대표 질의로 \"사용자가 상위 3개만 봐도 원하는 걸 찾는지\" 점검하라. \"100개 찾기\"보다 \"맞는 3개를 위에\"가 중요함을 체감하고, 순위(다음 장들)에 투자하라. 검색의 값어치는 순서다."
         }
       ],
       "quiz": [
@@ -53,7 +53,7 @@
           "q": "검색의 값어치는?",
           "choices": [
             "다 찾기",
-            "순서(순위) — 맞는 걸 위에(사용자는 상위만 봄)",
+            "순서(순위). 맞는 걸 위에(사용자는 상위만 봄)",
             "속도",
             "개수"
           ],
@@ -75,7 +75,7 @@
           "q": "랭킹의 일반 원리는?",
           "choices": [
             "다 보여주기",
-            "찾기보다 순서 — 가장 좋은 걸 상위에(정보 과잉 시대의 가치)",
+            "찾기보다 순서. 가장 좋은 걸 상위에(정보 과잉 시대의 가치)",
             "속도",
             "없음"
           ],
@@ -91,12 +91,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**BM25**는 텍스트 관련성의 표준 순위 함수다 — 세 직관: ① **빈도(TF)** — 그 단어가 문서에 **자주** 나오면 점수 ↑, **단 포화된다**(10번과 100번의 차이는 작다 — 처음 몇 번이 중요하고 그 뒤는 완만). ② **희귀도(IDF)** — 그 단어가 **전체에서 희귀**하면 점수 ↑(흔한 단어 「그리고」·「the」는 어디나 있어 변별력 없음 → 낮게, 희귀한 「양자컴퓨터」는 그게 있는 문서가 특별 → 높게). ③ **문서 길이 보정** — 긴 문서는 단어가 자연히 많이 나오니(TF 부풀려짐), 길이로 보정한다(짧은 문서에서 3번 나온 게 긴 문서에서 3번보다 관련 ↑). 이 셋(포화된 TF × IDF ÷ 길이 보정)이 「이 문서가 이 검색어와 얼마나 관련 있나」를 잘 근사한다 — TF-IDF 의 개선판으로, 대부분의 검색 엔진 기본 순위다."
+          "text": "**BM25**는 텍스트 관련성의 표준 순위 함수다. 세 직관: ① **빈도(TF)**. 그 단어가 문서에 **자주** 나오면 점수 ↑, **단 포화된다**(10번과 100번의 차이는 작다. 처음 몇 번이 중요하고 그 뒤는 완만). ② **희귀도(IDF)**. 그 단어가 **전체에서 희귀**하면 점수 ↑(흔한 단어 \"그리고\", \"the\"는 어디나 있어 변별력 없음 → 낮게, 희귀한 \"양자컴퓨터\"는 그게 있는 문서가 특별 → 높게). ③ **문서 길이 보정**. 긴 문서는 단어가 자연히 많이 나오니(TF 부풀려짐), 길이로 보정한다(짧은 문서에서 3번 나온 게 긴 문서에서 3번보다 관련 ↑). 이 셋(포화된 TF × IDF ÷ 길이 보정)이 \"이 문서가 이 검색어와 얼마나 관련 있나\"를 잘 근사한다. TF-IDF 의 개선판으로, 대부분의 검색 엔진 기본 순위다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "BM25 직관 — TF 포화·IDF",
+          "label": "BM25 직관. TF 포화, IDF",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const factor = '{{factor}}';\n  if (factor === 'tf') {\n    render('빈도(TF) — 자주 나오면 ↑, 단 포화',\n      '  단어 출현 횟수 → BM25 점수(포화 곡선)\\n' +\n      '  1번→낮음, 2~3번→급상승, 10번·100번→차이 작음(포화)\\n\\n' +\n      '  <span class=\\\"ok\\\">처음 몇 번이 중요, 그 뒤는 완만 — 키워드 도배 방어.</span>',\n      'TF: 자주 나오면 점수 ↑, 단 포화(10번과 100번 차이 작음).',\n      bars([1,2,3,5,10,50].map(f=>['출현 '+f+'번', +bm25tf(f).toFixed(2), 2.5])));\n  } else if (factor === 'idf') {\n    render('희귀도(IDF) — 희귀할수록 ↑',\n      '  단어가 전체에서 희귀 → 매칭이 의미 있음(점수 ↑)\\n' +\n      '  흔한 단어(어디나 있음) → 낮음 · 희귀 단어(특별) → 높음\\n\\n' +\n      '  <span class=\\\"ok\\\">「그리고」는 변별력 없고, 「양자컴퓨터」는 그게 있는 문서가 특별.</span>',\n      'IDF: 희귀할수록 매칭이 의미 있음 → 점수 ↑.',\n      bars([['4개 문서 중 4개(흔함)', +Math.log(1+(4-4+0.5)/(4+0.5)).toFixed(2)+'', 2.5], ['4개 중 2개', +Math.log(1+(4-2+0.5)/(2+0.5)).toFixed(2), 2.5], ['4개 중 1개(희귀)', +Math.log(1+(4-1+0.5)/(1+0.5)).toFixed(2), 2.5]]));\n  } else {\n    render('문서 길이 보정',\n      '  긴 문서는 단어가 자연히 많이 나옴(TF 부풀려짐)\\n' +\n      '  → 길이로 보정: 짧은 문서의 3번 > 긴 문서의 3번\\n\\n' +\n      '  <span class=\\\"ok\\\">길이를 보정해 「밀도」로 관련도 판단(긴 글 유리 방지).</span>',\n      '문서 길이 보정: 긴 문서의 부풀려진 빈도를 길이로 보정.',\n      cmp('짧은 문서(10단어)', '「사료」 3번 → 밀도 높음 → 관련 ↑', '긴 문서(100단어)', '「사료」 3번 → 밀도 낮음 → 관련 ↓'));\n  }\n</script>",
           "controls": [
@@ -108,7 +108,7 @@
               "options": [
                 {
                   "value": "tf",
-                  "label": "빈도(TF·포화)"
+                  "label": "빈도(TF, 포화)"
                 },
                 {
                   "value": "idf",
@@ -124,15 +124,15 @@
         },
         {
           "type": "note",
-          "text": "**BM25 는 텍스트 관련성의 표준 순위 — 빈도(TF, 단 포화)·희귀도(IDF)·문서 길이 보정의 셋으로 「이 문서가 검색어와 얼마나 관련 있나」를 근사한다.** ① **빈도(TF, Term Frequency)** — 검색어가 문서에 **자주** 나올수록 관련 ↑(「사료」가 3번 나온 문서 > 1번). **단 포화된다(saturation)** — BM25 의 핵심 개선: TF 가 **선형이 아니라 포화 곡선**이다(1→2번은 크게 오르지만, 10→100번은 거의 안 오름). 이유: 「사료」가 3번 나온 것과 100번 나온 것의 관련도 차이는 크지 않다(처음 몇 번이 「이 문서는 사료 얘기」를 말하고, 그 뒤는 부가). 이 포화가 **키워드 도배 방어**도 한다(같은 단어를 100번 넣어 점수를 조작하려 해도 포화로 이득이 적음). ② **희귀도(IDF, Inverse Document Frequency)** — 그 단어가 **전체 문서에서 희귀**할수록 그 단어의 매칭이 더 의미 있다(점수 ↑). 흔한 단어(「그리고·의·the」 — 거의 모든 문서에 있음)는 변별력이 없어 낮게, 희귀한 단어(「양자컴퓨터」 — 몇 문서에만)는 그게 있는 문서가 특별하니 높게. IDF 가 「이 단어의 매칭이 얼마나 특별한가」를 반영한다. ③ **문서 길이 보정(length normalization)** — 긴 문서는 단어가 **자연히 많이** 나오니(TF 가 부풀려짐), 그대로면 긴 문서가 유리하다(불공평). 그래서 **문서 길이로 보정**한다 — 짧은 문서에서 「사료」 3번(밀도 높음)이 긴 문서에서 3번(밀도 낮음)보다 관련 ↑. 「빈도」가 아니라 「밀도」로 본다. BM25 는 이 셋을 결합한다 — 대략 `포화된_TF × IDF ÷ 길이_보정`을 검색어의 각 단어에 대해 합산. TF-IDF(빈도 × 희귀도)의 개선판으로, **포화와 길이 보정**을 더해 더 현실적이다. **대부분의 검색 엔진(Elasticsearch·Lucene·Solr)의 기본 순위 함수**가 BM25 다. 이 셋의 직관을 알면 「왜 이 문서가 위/아래인가」를 이해하고 튜닝할 수 있다 — 검색어가 자주·희귀하게·밀도 높게 나온 문서가 위로 온다. BM25 는 「텍스트만으로의 관련성」이고, 실무에선 여기에 필드 가중치(3장)·사업 신호(4장)를 더한다. 하지만 텍스트 관련성의 뼈대는 이 BM25 의 세 직관이다."
+          "text": "**BM25 는 텍스트 관련성의 표준 순위. 빈도(TF, 단 포화), 희귀도(IDF), 문서 길이 보정의 셋으로 \"이 문서가 검색어와 얼마나 관련 있나\"를 근사한다.** ① **빈도(TF, Term Frequency)**. 검색어가 문서에 **자주** 나올수록 관련 ↑(\"사료\"가 3번 나온 문서 > 1번). **단 포화된다(saturation)**. BM25 의 핵심 개선: TF 가 **선형이 아니라 포화 곡선**이다(1→2번은 크게 오르지만, 10→100번은 거의 안 오름). 이유: \"사료\"가 3번 나온 것과 100번 나온 것의 관련도 차이는 크지 않다(처음 몇 번이 \"이 문서는 사료 얘기\"를 말하고, 그 뒤는 부가). 이 포화가 **키워드 도배 방어**도 한다(같은 단어를 100번 넣어 점수를 조작하려 해도 포화로 이득이 적음). ② **희귀도(IDF, Inverse Document Frequency)**. 그 단어가 **전체 문서에서 희귀**할수록 그 단어의 매칭이 더 의미 있다(점수 ↑). 흔한 단어(\"그리고, 의, the\". 거의 모든 문서에 있음)는 변별력이 없어 낮게, 희귀한 단어(\"양자컴퓨터\". 몇 문서에만)는 그게 있는 문서가 특별하니 높게. IDF 가 \"이 단어의 매칭이 얼마나 특별한가\"를 반영한다. ③ **문서 길이 보정(length normalization)**. 긴 문서는 단어가 **자연히 많이** 나오니(TF 가 부풀려짐), 그대로면 긴 문서가 유리하다(불공평). 그래서 **문서 길이로 보정**한다. 짧은 문서에서 \"사료\" 3번(밀도 높음)이 긴 문서에서 3번(밀도 낮음)보다 관련 ↑. \"빈도\"가 아니라 \"밀도\"로 본다. BM25 는 이 셋을 결합한다. 대략 `포화된_TF × IDF ÷ 길이_보정`을 검색어의 각 단어에 대해 합산. TF-IDF(빈도 × 희귀도)의 개선판으로, **포화와 길이 보정**을 더해 더 현실적이다. **대부분의 검색 엔진(Elasticsearch, Lucene, Solr)의 기본 순위 함수**가 BM25 다. 이 셋의 직관을 알면 \"왜 이 문서가 위/아래인가\"를 이해하고 튜닝할 수 있다. 검색어가 자주, 희귀하게, 밀도 높게 나온 문서가 위로 온다. BM25 는 \"텍스트만으로의 관련성\"이고, 실무에선 여기에 필드 가중치(3장), 사업 신호(4장)를 더한다. 하지만 텍스트 관련성의 뼈대는 이 BM25 의 세 직관이다."
         },
         {
           "type": "p",
-          "text": "**「많을수록 좋되 포화, 희귀할수록 특별, 크기로 보정」 — 신호를 현실적으로 다루는 직관.** BM25 의 교훈은 「신호를 현실에 맞게 변환」이다: 원시 신호(빈도)를 그대로 쓰지 않고 **현실적 직관에 맞게 변환**한다 — ① **포화(수확 체감)** — 「많을수록 좋되 점점 덜 좋다」(10번과 100번의 차이는 작다). 이는 로그·포화 함수로(선형 X). 많은 신호가 이렇다(만족도·효용·영향 — 처음이 크고 뒤는 완만). ② **희귀도(정보량)** — 「흔한 건 덜 의미 있고 희귀한 건 특별」(정보 이론의 정보량 — 드문 사건이 더 많은 정보). ③ **정규화(크기 보정)** — 「절대량이 아니라 비율·밀도로」(긴 문서의 빈도를 길이로 보정 — 공정 비교). 이 세 변환(포화·희귀도 가중·정규화)은 신호를 다루는 곳 어디나 통한다 — 추천(인기도를 로그로·희귀 취향을 가중), 통계(정규화·표준화), 이상 탐지(희귀할수록 이상), 점수화 일반. 핵심: **원시 신호를 그대로 쓰면 왜곡된다**(빈도 도배·긴 문서 유리·흔한 단어 과대) — 현실적 직관(수확 체감·희귀 = 특별·크기 보정)에 맞게 변환해야 좋은 점수가 된다. BM25 는 이 변환들을 텍스트 관련성에 정교하게 적용한 것 — 그래서 단순 「빈도」보다 훨씬 나은 순위를 준다. 신호를 점수로 바꿀 때 「이 신호를 그대로 쓰면 왜곡되나? 어떤 변환(로그·정규화·가중)이 필요한가?」를 묻는 게 좋은 랭킹·점수 설계의 근본이다."
+          "text": "**\"많을수록 좋되 포화, 희귀할수록 특별, 크기로 보정\". 신호를 현실적으로 다루는 직관.** BM25 의 교훈은 \"신호를 현실에 맞게 변환\"이다: 원시 신호(빈도)를 그대로 쓰지 않고 **현실적 직관에 맞게 변환**한다. ① **포화(수확 체감)**. \"많을수록 좋되 점점 덜 좋다\"(10번과 100번의 차이는 작다). 이는 로그, 포화 함수로(선형 X). 많은 신호가 이렇다(만족도, 효용, 영향. 처음이 크고 뒤는 완만). ② **희귀도(정보량)**. \"흔한 건 덜 의미 있고 희귀한 건 특별\"(정보 이론의 정보량. 드문 사건이 더 많은 정보). ③ **정규화(크기 보정)**. \"절대량이 아니라 비율, 밀도로\"(긴 문서의 빈도를 길이로 보정. 공정 비교). 이 세 변환(포화, 희귀도 가중, 정규화)은 신호를 다루는 곳 어디나 통한다. 추천(인기도를 로그로, 희귀 취향을 가중), 통계(정규화, 표준화), 이상 탐지(희귀할수록 이상), 점수화 일반. 핵심: **원시 신호를 그대로 쓰면 왜곡된다**(빈도 도배, 긴 문서 유리, 흔한 단어 과대). 현실적 직관(수확 체감, 희귀 = 특별, 크기 보정)에 맞게 변환해야 좋은 점수가 된다. BM25 는 이 변환들을 텍스트 관련성에 정교하게 적용한 것. 그래서 단순 \"빈도\"보다 훨씬 나은 순위를 준다. 신호를 점수로 바꿀 때 \"이 신호를 그대로 쓰면 왜곡되나? 어떤 변환(로그, 정규화, 가중)이 필요한가?\"를 묻는 게 좋은 랭킹, 점수 설계의 근본이다."
         },
         {
           "type": "try",
-          "text": "네 검색의 순위 함수가 BM25 인지 확인하고, 세 직관을 시험하라 — 검색어가 자주 나온 문서가 위로 오나(TF), 100번 도배해도 3번보다 크게 안 오르나(포화), 희귀한 단어 매칭이 더 높나(IDF), 짧은 문서의 밀도 높은 매칭이 긴 문서보다 위인가(길이 보정). 「왜 이 문서가 위/아래인가」를 BM25 의 세 요소로 설명해 보라."
+          "text": "네 검색의 순위 함수가 BM25 인지 확인하고, 세 직관을 시험하라. 검색어가 자주 나온 문서가 위로 오나(TF), 100번 도배해도 3번보다 크게 안 오르나(포화), 희귀한 단어 매칭이 더 높나(IDF), 짧은 문서의 밀도 높은 매칭이 긴 문서보다 위인가(길이 보정). \"왜 이 문서가 위/아래인가\"를 BM25 의 세 요소로 설명해 보라."
         }
       ],
       "quiz": [
@@ -161,8 +161,8 @@
         {
           "q": "BM25 의 세 직관은?",
           "choices": [
-            "색·크기·소리",
-            "빈도(포화)·희귀도(IDF)·문서 길이 보정",
+            "색, 크기, 소리",
+            "빈도(포화), 희귀도(IDF), 문서 길이 보정",
             "속도만",
             "없음"
           ],
@@ -178,12 +178,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "같은 단어라도 **어느 필드**에 있느냐로 관련도가 다르다 — **제목**에 「고양이 사료」가 있으면 **본문**에 있는 것보다 훨씬 관련 있다(제목은 그 문서의 핵심). 그래서 **필드 가중치**를 준다: `title^3, tags^2, body^1`(제목 매칭은 3배, 태그 2배, 본문 1배). 검색 엔진의 multi_match 등으로 필드별 가중치를 설정하면, 제목에 검색어가 있는 문서가 위로 온다. 이건 사람의 직관과 맞는다 — 「고양이 사료」를 찾을 때, 제목이 「고양이 사료 추천」인 문서가 본문에 「고양이 사료」가 스친 문서보다 관련 있다. 필드 가중치는 **구조(어디에 있나)를 관련도에 반영**하는 것 — 텍스트 빈도(BM25)만으론 못 잡는 「위치의 중요도」를 더한다. 어떤 필드를 얼마나 높일지가 검색 품질을 크게 좌우한다."
+          "text": "같은 단어라도 **어느 필드**에 있느냐로 관련도가 다르다. **제목**에 \"고양이 사료\"가 있으면 **본문**에 있는 것보다 훨씬 관련 있다(제목은 그 문서의 핵심). 그래서 **필드 가중치**를 준다: `title^3, tags^2, body^1`(제목 매칭은 3배, 태그 2배, 본문 1배). 검색 엔진의 multi_match 등으로 필드별 가중치를 설정하면, 제목에 검색어가 있는 문서가 위로 온다. 이건 사람의 직관과 맞는다. \"고양이 사료\"를 찾을 때, 제목이 \"고양이 사료 추천\"인 문서가 본문에 \"고양이 사료\"가 스친 문서보다 관련 있다. 필드 가중치는 **구조(어디에 있나)를 관련도에 반영**하는 것. 텍스트 빈도(BM25)만으론 못 잡는 \"위치의 중요도\"를 더한다. 어떤 필드를 얼마나 높일지가 검색 품질을 크게 좌우한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "필드 가중치 — 제목을 높이면 순위가 바뀐다",
+          "label": "필드 가중치. 제목을 높이면 순위가 바뀐다",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const wTitle = {{wtitle}};\n  const terms = ['고양이', '사료'];\n  const scored = DOCS.map(d => ({ id: d.id, title: d.title, score: +textScore(d, terms, wTitle, 1).toFixed(2) }));\n  scored.sort((a,b)=>b.score-a.score);\n  render('제목 가중치 = ' + wTitle + ' (본문 = 1)',\n    '  「고양이 사료」 검색 · 제목 매칭에 ' + wTitle + '배 가중\\n\\n' +\n    '  <span class=\\\"ok\\\">제목 가중치를 높이면 제목에 검색어 있는 문서가 위로.</span>',\n    '필드 가중치: 제목^' + wTitle + ' — 제목 매칭을 높여 순위를 바꾼다.',\n    results(scored.map(s=>['',s.score,s.id+': '+s.title])));\n</script>",
           "controls": [
@@ -206,15 +206,15 @@
         },
         {
           "type": "note",
-          "text": "**같은 단어라도 어느 필드에 있느냐로 관련도가 다르다 — 제목 매칭이 본문 매칭보다 중요하니, 필드 가중치(title^3, body^1)로 구조를 관련도에 반영한다.** BM25(2장)는 「단어가 문서에 얼마나 나오나」의 텍스트 빈도지만, **어느 필드**(제목·본문·태그·설명)에 나오느냐는 안 본다. 하지만 사람의 직관으론 **필드마다 중요도가 다르다** — **제목**에 「고양이 사료」가 있으면 그 문서의 **핵심 주제**가 고양이 사료인 것(제목은 문서를 대표), **본문**에 스치듯 나온 것보다 훨씬 관련 있다. 「고양이 사료」를 찾는 사용자는 제목이 「고양이 사료 추천」인 문서를 원하지, 본문 어딘가에 「우리 고양이는 사료를 잘 먹어요」가 있는 문서를 원하지 않는다. 그래서 **필드 가중치(field boost)**를 준다: `title^3, tags^2, body^1` — 제목 매칭은 **3배**, 태그 2배, 본문 1배로 점수를 매긴다(검색 엔진의 `multi_match` + `^` 문법). 그러면 제목에 검색어가 있는 문서가 위로 온다. 필드 가중치는 **구조(어디에 있나)를 관련도에 반영**하는 것 — 텍스트 빈도(BM25)만으로 못 잡는 「위치의 중요도」를 더한다. 필드별 가중치 설정: **제목**(가장 높게 — 핵심), **태그·카테고리**(높게 — 명시적 분류), **요약·설명**(중간), **본문**(기본), 등. 무엇을 얼마나 높일지는 **도메인·데이터에 따라** 다르고(상품은 상품명·브랜드가 중요, 문서는 제목·헤딩), **튜닝으로** 정한다(6장 — 가중치를 바꿔 보며 측정). 필드 가중치가 검색 품질을 크게 좌우한다 — 제목 가중치를 1(본문과 같게)로 두면 본문에 도배된 문서가 제목 매칭보다 위로 와 이상하고(1장의 「사료 사료 사료」 문서), 적절히(예: 3~5) 높이면 제목 매칭이 우선해 자연스럽다. 그래서 필드 가중치는 검색 순위 튜닝의 첫 번째 손잡이다 — 「이 검색에서 어느 필드가 중요한가」를 반영한다. 이는 BM25(텍스트 관련성) 위에 「구조적 중요도」를 얹는 것으로, 실무 검색의 기본이다."
+          "text": "**같은 단어라도 어느 필드에 있느냐로 관련도가 다르다. 제목 매칭이 본문 매칭보다 중요하니, 필드 가중치(title^3, body^1)로 구조를 관련도에 반영한다.** BM25(2장)는 \"단어가 문서에 얼마나 나오나\"의 텍스트 빈도지만, **어느 필드**(제목, 본문, 태그, 설명)에 나오느냐는 안 본다. 하지만 사람의 직관으론 **필드마다 중요도가 다르다**. **제목**에 \"고양이 사료\"가 있으면 그 문서의 **핵심 주제**가 고양이 사료인 것(제목은 문서를 대표), **본문**에 스치듯 나온 것보다 훨씬 관련 있다. \"고양이 사료\"를 찾는 사용자는 제목이 \"고양이 사료 추천\"인 문서를 원하지, 본문 어딘가에 \"우리 고양이는 사료를 잘 먹어요\"가 있는 문서를 원하지 않는다. 그래서 **필드 가중치(field boost)**를 준다: `title^3, tags^2, body^1`. 제목 매칭은 **3배**, 태그 2배, 본문 1배로 점수를 매긴다(검색 엔진의 `multi_match` + `^` 문법). 그러면 제목에 검색어가 있는 문서가 위로 온다. 필드 가중치는 **구조(어디에 있나)를 관련도에 반영**하는 것. 텍스트 빈도(BM25)만으로 못 잡는 \"위치의 중요도\"를 더한다. 필드별 가중치 설정: **제목**(가장 높게. 핵심), **태그, 카테고리**(높게. 명시적 분류), **요약, 설명**(중간), **본문**(기본), 등. 무엇을 얼마나 높일지는 **도메인, 데이터에 따라** 다르고(상품은 상품명, 브랜드가 중요, 문서는 제목, 헤딩), **튜닝으로** 정한다(6장. 가중치를 바꿔 보며 측정). 필드 가중치가 검색 품질을 크게 좌우한다. 제목 가중치를 1(본문과 같게)로 두면 본문에 도배된 문서가 제목 매칭보다 위로 와 이상하고(1장의 \"사료 사료 사료\" 문서), 적절히(예: 3~5) 높이면 제목 매칭이 우선해 자연스럽다. 그래서 필드 가중치는 검색 순위 튜닝의 첫 번째 손잡이다. \"이 검색에서 어느 필드가 중요한가\"를 반영한다. 이는 BM25(텍스트 관련성) 위에 \"구조적 중요도\"를 얹는 것으로, 실무 검색의 기본이다."
         },
         {
           "type": "p",
-          "text": "**「구조·맥락이 관련도를 바꾼다」 — 같은 내용도 어디 있느냐가 중요.** 필드 가중치의 교훈은 「위치·맥락이 신호의 의미를 바꾼다」다: 같은 단어·내용도 **어디에·어떤 맥락에** 있느냐로 중요도가 다르다 — 제목의 단어 ≠ 본문의 단어, 강조된 것 ≠ 스친 것. 그래서 신호를 볼 때 「무엇이 있나」뿐 아니라 **「어디에·어떤 맥락에 있나」**를 반영해야 정확하다. 이는 랭킹·평가 일반에 통한다 — 링크의 위치(제목 링크 vs 각주), 코드의 맥락(공개 API vs 내부), 로그의 심각도(에러 vs 디버그), 리뷰의 출처(전문가 vs 익명). 「구조·맥락에 따라 가중」하는 게 단순 「빈도·존재」보다 정확한 판단을 준다. 필드 가중치는 이 원리를 검색에 적용 — 문서의 구조(제목·본문)를 관련도에 반영해, 「제목에 있으면 더 중요」라는 맥락적 판단을 점수화한다. 이 사고 — 신호의 위치·맥락·출처를 가중해 판단 — 가 정교한 평가·랭킹의 특징이다(모든 매칭을 똑같이 보지 않고, 중요한 위치의 것을 높게). 검색에서 「어느 필드가 중요한가」를 정해 가중하듯, 어떤 판단이든 「어떤 신호가 어느 맥락에서 더 중요한가」를 반영하면 품질이 오른다. 「존재」를 넘어 「위치·맥락」을 보는 게 좋은 랭킹의 기본이다."
+          "text": "**\"구조, 맥락이 관련도를 바꾼다\". 같은 내용도 어디 있느냐가 중요.** 필드 가중치의 교훈은 \"위치, 맥락이 신호의 의미를 바꾼다\"다: 같은 단어, 내용도 **어디에, 어떤 맥락에** 있느냐로 중요도가 다르다. 제목의 단어 ≠ 본문의 단어, 강조된 것 ≠ 스친 것. 그래서 신호를 볼 때 \"무엇이 있나\"뿐 아니라 **\"어디에, 어떤 맥락에 있나\"**를 반영해야 정확하다. 이는 랭킹, 평가 일반에 통한다. 링크의 위치(제목 링크 vs 각주), 코드의 맥락(공개 API vs 내부), 로그의 심각도(에러 vs 디버그), 리뷰의 출처(전문가 vs 익명). \"구조, 맥락에 따라 가중\"하는 게 단순 \"빈도, 존재\"보다 정확한 판단을 준다. 필드 가중치는 이 원리를 검색에 적용. 문서의 구조(제목, 본문)를 관련도에 반영해, \"제목에 있으면 더 중요\"라는 맥락적 판단을 점수화한다. 이 사고. 신호의 위치, 맥락, 출처를 가중해 판단. 가 정교한 평가, 랭킹의 특징이다(모든 매칭을 똑같이 보지 않고, 중요한 위치의 것을 높게). 검색에서 \"어느 필드가 중요한가\"를 정해 가중하듯, 어떤 판단이든 \"어떤 신호가 어느 맥락에서 더 중요한가\"를 반영하면 품질이 오른다. \"존재\"를 넘어 \"위치, 맥락\"을 보는 게 좋은 랭킹의 기본이다."
         },
         {
           "type": "try",
-          "text": "제목 가중치를 1 → 3 → 10 으로 바꿔 대표 질의 5개의 상위 결과가 어떻게 달라지는지 표로 적어라 — 제목에 검색어 있는 문서가 위로 오나, 너무 높이면(10) 제목만 보고 본문 관련성을 무시하나. 네 데이터에서 어느 필드가 중요한지(제목·태그·본문) 정하고 적절한 가중치를 튜닝하라(6장). 「어디에 있나」를 관련도에 반영하라."
+          "text": "제목 가중치를 1 → 3 → 10 으로 바꿔 대표 질의 5개의 상위 결과가 어떻게 달라지는지 표로 적어라. 제목에 검색어 있는 문서가 위로 오나, 너무 높이면(10) 제목만 보고 본문 관련성을 무시하나. 네 데이터에서 어느 필드가 중요한지(제목, 태그, 본문) 정하고 적절한 가중치를 튜닝하라(6장). \"어디에 있나\"를 관련도에 반영하라."
         }
       ],
       "quiz": [
@@ -222,7 +222,7 @@
           "q": "필드 가중치를 주는 이유는?",
           "choices": [
             "빠르려고",
-            "제목 매칭이 본문보다 중요 — 구조(어디)를 관련도에 반영",
+            "제목 매칭이 본문보다 중요. 구조(어디)를 관련도에 반영",
             "색",
             "무관"
           ],
@@ -244,7 +244,7 @@
           "q": "필드 가중치의 일반 원리는?",
           "choices": [
             "존재만",
-            "위치·맥락이 신호의 중요도를 바꿈(같은 내용도 어디 있느냐)",
+            "위치, 맥락이 신호의 중요도를 바꿈(같은 내용도 어디 있느냐)",
             "빈도만",
             "없음"
           ],
@@ -260,12 +260,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "실무 순위는 텍스트 관련성만이 아니다 — **사업 신호**를 결합한다: `최종 점수 = 텍스트 관련성 × 인기도(판매량·조회수) × 신선도(최근) × 재고/품질`. 왜: 텍스트로 똑같이 관련 있는 두 상품이면, **더 잘 팔리는·재고 있는·최근의** 것이 사용자에게 대개 낫다(상품 검색). 결합 방법: **곱하거나 가중합**하고, **로그를 씌워 극단값을 억제**한다(인기도가 100만인 상품이 점수를 지배하지 않게 — 인기도의 로그를 곱함). 주의: **사업 신호를 과하게 넣으면 관련성이 죽는다** — 인기도만 높이면 「검색어와 무관해도 인기 상품이 위로」(1장의 부작용). 그래서 **텍스트 관련성을 기본으로, 사업 신호는 보정으로**(관련 있는 것들 사이의 순서를 조정). 「무엇이 관련·좋음인가」를 텍스트 + 사업으로 정의하되 균형을 잡는 게 순위 설계다."
+          "text": "실무 순위는 텍스트 관련성만이 아니다. **사업 신호**를 결합한다: `최종 점수 = 텍스트 관련성 × 인기도(판매량, 조회수) × 신선도(최근) × 재고/품질`. 왜: 텍스트로 똑같이 관련 있는 두 상품이면, **더 잘 팔리는, 재고 있는, 최근의** 것이 사용자에게 대개 낫다(상품 검색). 결합 방법: **곱하거나 가중합**하고, **로그를 씌워 극단값을 억제**한다(인기도가 100만인 상품이 점수를 지배하지 않게. 인기도의 로그를 곱함). 주의: **사업 신호를 과하게 넣으면 관련성이 죽는다**. 인기도만 높이면 \"검색어와 무관해도 인기 상품이 위로\"(1장의 부작용). 그래서 **텍스트 관련성을 기본으로, 사업 신호는 보정으로**(관련 있는 것들 사이의 순서를 조정). \"무엇이 관련, 좋음인가\"를 텍스트 + 사업으로 정의하되 균형을 잡는 게 순위 설계다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "텍스트 × 사업 신호 — 결합과 부작용",
+          "label": "텍스트 × 사업 신호. 결합과 부작용",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const popWeight = {{pop}};\n  const terms = ['고양이', '사료'];\n  const scored = DOCS.map(d => {\n    const text = textScore(d, terms, 3, 1);\n    const popBoost = 1 + popWeight * Math.log(1 + d.pop) / 10;  // 로그로 극단값 억제\n    return { id: d.id, title: d.title, pop: d.pop, text: +text.toFixed(2), score: +(text * popBoost).toFixed(2) };\n  });\n  scored.sort((a,b)=>b.score-a.score);\n  render('인기도 가중 = ' + popWeight + ' (0=텍스트만)',\n    '  최종 점수 = 텍스트 관련성 × (1 + 인기도 로그 × ' + popWeight + ')\\n\\n' +\n    (popWeight === 0\n      ? '  <span class=\\\"ok\\\">텍스트 관련성만 — 검색어와 관련 높은 순.</span>'\n      : popWeight >= 4\n        ? '  <span class=\\\"no\\\">인기도 과함 → 관련성 낮아도 인기 상품(C, 조회 2000)이 위로 → 부작용!</span>'\n        : '  <span class=\\\"ok\\\">텍스트 기본 + 인기도 보정 — 관련 있는 것들 사이 순서 조정.</span>'),\n    '최종 = 텍스트 × 인기도(로그). 과하면 관련성 죽고 인기 상품만 위로.',\n    results(scored.map(s=>['',s.score,s.id+': '+s.title+' (조회 '+s.pop+', 텍스트 '+s.text+')'])));\n</script>",
           "controls": [
@@ -282,15 +282,15 @@
         },
         {
           "type": "note",
-          "text": "**실무 순위는 텍스트 관련성 × 사업 신호(인기도·신선도·재고·품질)로 결합한다 — 로그로 극단값을 억제하고, 텍스트를 기본으로 사업 신호는 보정으로 써서 관련성이 죽지 않게 균형을 잡는다.** 텍스트 관련성(BM25 + 필드 가중치, 2·3장)은 「검색어와 얼마나 맞나」지만, 실무 검색(특히 상품·콘텐츠)은 **텍스트 외의 「좋음」**도 반영해야 한다: **인기도**(판매량·조회수·클릭 — 많이 찾는 게 대개 좋음), **신선도**(최근 것 — 뉴스·트렌드), **재고/구매 가능**(품절 상품을 위에 X), **품질**(평점·완성도), **개인화**(그 사용자 취향, 7장). 그래서 **최종 점수 = 텍스트 관련성 × 인기도 × 신선도 × 재고/품질**(또는 가중합)로 결합한다 — 텍스트로 관련 있는 것들 중, 더 인기·최근·재고 있는 걸 위에. **결합 방법**: ① **곱하거나 가중합** — 곱(각 신호가 배수로 작용)이나 가중합(각 신호에 가중치 두고 더함). ② **로그를 씌워 극단값 억제** — 인기도가 100만인 상품이 점수를 **지배하지 않게**, 인기도의 **로그**를 쓴다(log(1+pop) — 큰 값의 영향을 완만하게, BM25 의 TF 포화와 같은 발상). 안 그러면 초인기 상품 하나가 모든 검색을 지배한다. **핵심 주의 — 균형**: **사업 신호를 과하게 넣으면 관련성이 죽는다.** 인기도 가중을 너무 높이면 「검색어와 무관해도 인기 상품이 위로」 온다(1장의 순위 부작용 — 「고양이 사료」를 검색했는데 관련 낮은 인기 상품이 위에). 그래서 **텍스트 관련성을 기본(주된 축)으로, 사업 신호는 보정(관련 있는 것들 사이의 순서 조정)**으로 쓴다 — 사업 신호가 관련성을 **뒤집지 않게**(관련 없는 걸 관련 있는 것 위로 올리지 않게). 「관련 있는 것들 중에서」 인기·신선·재고로 순서를 다듬는 것이지, 관련성을 무시하고 인기순으로 가는 게 아니다. 이 균형이 순위 설계의 어려움이자 핵심이다 — 「무엇이 좋음인가」를 텍스트 + 사업으로 정의하되, 각 신호의 가중·변환(로그)·결합 방식을 정하고, 관련성이 죽지 않게 조절한다. 이건 튜닝과 측정이 필요하다(6장 — 가중치를 바꿔 보며 평가). 사업 신호는 검색을 「관련성 + 비즈니스 가치」로 만들지만, 남용하면 「관련 없는 인기 상품 나열」이 되니 신중히."
+          "text": "**실무 순위는 텍스트 관련성 × 사업 신호(인기도, 신선도, 재고, 품질)로 결합한다. 로그로 극단값을 억제하고, 텍스트를 기본으로 사업 신호는 보정으로 써서 관련성이 죽지 않게 균형을 잡는다.** 텍스트 관련성(BM25 + 필드 가중치, 2, 3장)은 \"검색어와 얼마나 맞나\"지만, 실무 검색(특히 상품, 콘텐츠)은 **텍스트 외의 \"좋음\"**도 반영해야 한다: **인기도**(판매량, 조회수, 클릭. 많이 찾는 게 대개 좋음), **신선도**(최근 것. 뉴스, 트렌드), **재고/구매 가능**(품절 상품을 위에 X), **품질**(평점, 완성도), **개인화**(그 사용자 취향, 7장). 그래서 **최종 점수 = 텍스트 관련성 × 인기도 × 신선도 × 재고/품질**(또는 가중합)로 결합한다. 텍스트로 관련 있는 것들 중, 더 인기, 최근, 재고 있는 걸 위에. **결합 방법**: ① **곱하거나 가중합**. 곱(각 신호가 배수로 작용)이나 가중합(각 신호에 가중치 두고 더함). ② **로그를 씌워 극단값 억제**. 인기도가 100만인 상품이 점수를 **지배하지 않게**, 인기도의 **로그**를 쓴다(log(1+pop). 큰 값의 영향을 완만하게, BM25 의 TF 포화와 같은 발상). 안 그러면 초인기 상품 하나가 모든 검색을 지배한다. **핵심 주의. 균형**: **사업 신호를 과하게 넣으면 관련성이 죽는다.** 인기도 가중을 너무 높이면 \"검색어와 무관해도 인기 상품이 위로\" 온다(1장의 순위 부작용. \"고양이 사료\"를 검색했는데 관련 낮은 인기 상품이 위에). 그래서 **텍스트 관련성을 기본(주된 축)으로, 사업 신호는 보정(관련 있는 것들 사이의 순서 조정)**으로 쓴다. 사업 신호가 관련성을 **뒤집지 않게**(관련 없는 걸 관련 있는 것 위로 올리지 않게). \"관련 있는 것들 중에서\" 인기, 신선, 재고로 순서를 다듬는 것이지, 관련성을 무시하고 인기순으로 가는 게 아니다. 이 균형이 순위 설계의 어려움이자 핵심이다. \"무엇이 좋음인가\"를 텍스트 + 사업으로 정의하되, 각 신호의 가중, 변환(로그), 결합 방식을 정하고, 관련성이 죽지 않게 조절한다. 이건 튜닝과 측정이 필요하다(6장. 가중치를 바꿔 보며 평가). 사업 신호는 검색을 \"관련성 + 비즈니스 가치\"로 만들지만, 남용하면 \"관련 없는 인기 상품 나열\"이 되니 신중히."
         },
         {
           "type": "p",
-          "text": "**「여러 신호를 결합하되 균형」 — 다목적 최적화의 딜레마.** 텍스트 + 사업 신호의 교훈은 「여러 목적의 결합과 균형」이다: 실제 랭킹은 **여러 목적**(관련성·인기·신선·수익·재고)을 동시에 만족해야 하는데, 이들이 **충돌**할 수 있다(관련성 높은 게 인기 낮음). 그래서 **여러 신호를 결합**(가중합·곱)하되 **균형**을 잡는다 — 한 신호가 다른 것을 압도하지 않게(로그로 극단 억제, 주된 축과 보정 축 구분). 이 「다목적 결합 + 균형」은 랭킹·추천·의사결정 전반에 통한다 — 추천(관련성 × 다양성 × 신선도 × 수익), 피드(참여도 × 품질 × 다양성), 대출 심사(위험 × 수익), 어떤 점수화든. 딜레마: 한 목적만 최적화하면(관련성만·수익만·인기만) 다른 게 망가진다(인기만 → 관련성 죽음, 수익만 → 사용자 이탈). 그래서 **여러 목적의 균형**이 핵심이고, 이는 ① 각 신호의 가중을 정하고(무엇이 얼마나 중요), ② 변환으로 스케일을 맞추고(로그·정규화 — 한 신호가 지배 안 하게), ③ 측정으로 균형점을 찾는다(6장). 특히 **단기 지표(클릭·수익)를 과최적화하면 장기 가치(신뢰·만족)가 망가지는** 주의가 있다(인기·수익만 좇으면 관련성·품질이 죽어 결국 사용자가 떠남 — product·굿하트의 법칙). 그래서 「여러 신호를 결합하되, 주된 가치(검색은 관련성)를 지키며 보정」하는 균형이 성숙한 랭킹이다. 텍스트 + 사업 신호는 이 다목적 균형의 사례 — 관련성을 축으로, 사업 가치를 보정으로, 극단을 억제하며 결합한다."
+          "text": "**\"여러 신호를 결합하되 균형\". 다목적 최적화의 딜레마.** 텍스트 + 사업 신호의 교훈은 \"여러 목적의 결합과 균형\"이다: 실제 랭킹은 **여러 목적**(관련성, 인기, 신선, 수익, 재고)을 동시에 만족해야 하는데, 이들이 **충돌**할 수 있다(관련성 높은 게 인기 낮음). 그래서 **여러 신호를 결합**(가중합, 곱)하되 **균형**을 잡는다. 한 신호가 다른 것을 압도하지 않게(로그로 극단 억제, 주된 축과 보정 축 구분). 이 \"다목적 결합 + 균형\"은 랭킹, 추천, 의사결정 전반에 통한다. 추천(관련성 × 다양성 × 신선도 × 수익), 피드(참여도 × 품질 × 다양성), 대출 심사(위험 × 수익), 어떤 점수화든. 딜레마: 한 목적만 최적화하면(관련성만, 수익만, 인기만) 다른 게 망가진다(인기만 → 관련성 죽음, 수익만 → 사용자 이탈). 그래서 **여러 목적의 균형**이 핵심이고, 이는 ① 각 신호의 가중을 정하고(무엇이 얼마나 중요), ② 변환으로 스케일을 맞추고(로그, 정규화. 한 신호가 지배 안 하게), ③ 측정으로 균형점을 찾는다(6장). 특히 **단기 지표(클릭, 수익)를 과최적화하면 장기 가치(신뢰, 만족)가 망가지는** 주의가 있다(인기, 수익만 좇으면 관련성, 품질이 죽어 결국 사용자가 떠남. product, 굿하트의 법칙). 그래서 \"여러 신호를 결합하되, 주된 가치(검색은 관련성)를 지키며 보정\"하는 균형이 성숙한 랭킹이다. 텍스트 + 사업 신호는 이 다목적 균형의 사례. 관련성을 축으로, 사업 가치를 보정으로, 극단을 억제하며 결합한다."
         },
         {
           "type": "try",
-          "text": "텍스트 점수에 인기도를 곱해 보고(인기도 가중을 0→높게), 인기 상품만 올라오는 부작용이 생기는지 확인하라 — 관련 낮은 인기 상품이 관련 높은 것 위로 오면 과한 것. 인기도에 로그를 씌워 극단값을 억제하고, 텍스트를 기본·사업 신호를 보정으로 균형을 잡아라. 「관련 있는 것들 사이의 순서 조정」이지 「관련성 무시」가 아니게 하라."
+          "text": "텍스트 점수에 인기도를 곱해 보고(인기도 가중을 0→높게), 인기 상품만 올라오는 부작용이 생기는지 확인하라. 관련 낮은 인기 상품이 관련 높은 것 위로 오면 과한 것. 인기도에 로그를 씌워 극단값을 억제하고, 텍스트를 기본, 사업 신호를 보정으로 균형을 잡아라. \"관련 있는 것들 사이의 순서 조정\"이지 \"관련성 무시\"가 아니게 하라."
         }
       ],
       "quiz": [
@@ -298,7 +298,7 @@
           "q": "실무 순위에 사업 신호를 결합하는 이유는?",
           "choices": [
             "빠르려고",
-            "텍스트로 관련 있는 것들 중 인기·신선·재고 있는 걸 위에",
+            "텍스트로 관련 있는 것들 중 인기, 신선, 재고 있는 걸 위에",
             "색",
             "무관"
           ],
@@ -309,7 +309,7 @@
           "q": "사업 신호에 로그를 씌우는 이유는?",
           "choices": [
             "빠르려고",
-            "극단값 억제 — 초인기 상품이 점수를 지배하지 않게",
+            "극단값 억제. 초인기 상품이 점수를 지배하지 않게",
             "정확히",
             "없음"
           ],
@@ -320,12 +320,12 @@
           "q": "사업 신호를 과하게 넣으면?",
           "choices": [
             "좋음",
-            "관련성이 죽음 — 관련 없어도 인기 상품이 위로(균형 필요)",
+            "관련성이 죽음. 관련 없어도 인기 상품이 위로(균형 필요)",
             "빠름",
             "정확"
           ],
           "answer": 1,
-          "why": "텍스트 기본·사업 보정."
+          "why": "텍스트 기본, 사업 보정."
         }
       ]
     },
@@ -336,7 +336,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**「가격순 정렬」은 관련성을 버리는 것이다.** 순위(관련도 정렬)와 명시적 정렬(가격·날짜순)은 다르다: ① **필터(filter)** — 결과를 **좁힌다**(브랜드=삼성, 가격 1~5만원, 재고 있음). 관련도 순위는 유지하되 조건에 맞는 것만. ② **정렬(sort)** — 순서를 **바꾼다**. 「가격 낮은 순」으로 정렬하면 관련도를 **버리고** 가격만으로 정렬(관련 없어도 싼 게 위로). 이 둘을 **섞어 설계하면 안 된다** — 필터는 좁히기(관련도 유지), 정렬은 순서 교체(관련도 대체). 기본은 **관련도 순**(순위), 사용자가 명시적으로 「가격순」을 고르면 그때 정렬. 그래서 UI 에서 필터(체크박스·범위 — 좁힘)와 정렬(드롭다운 — 순서)을 분리하고, 기본 정렬은 관련도로. 「필터로 좁히고, 관련도로 순위 매기고, 사용자가 원하면 명시적 정렬」이 올바른 구조다."
+          "text": "**\"가격순 정렬\"은 관련성을 버리는 것이다.** 순위(관련도 정렬)와 명시적 정렬(가격, 날짜순)은 다르다: ① **필터(filter)**. 결과를 **좁힌다**(브랜드=삼성, 가격 1~5만원, 재고 있음). 관련도 순위는 유지하되 조건에 맞는 것만. ② **정렬(sort)**. 순서를 **바꾼다**. \"가격 낮은 순\"으로 정렬하면 관련도를 **버리고** 가격만으로 정렬(관련 없어도 싼 게 위로). 이 둘을 **섞어 설계하면 안 된다**. 필터는 좁히기(관련도 유지), 정렬은 순서 교체(관련도 대체). 기본은 **관련도 순**(순위), 사용자가 명시적으로 \"가격순\"을 고르면 그때 정렬. 그래서 UI 에서 필터(체크박스, 범위. 좁힘)와 정렬(드롭다운. 순서)을 분리하고, 기본 정렬은 관련도로. \"필터로 좁히고, 관련도로 순위 매기고, 사용자가 원하면 명시적 정렬\"이 올바른 구조다."
         },
         {
           "type": "demo",
@@ -369,15 +369,15 @@
         },
         {
           "type": "note",
-          "text": "**필터(좁힘)와 정렬(순서 교체)은 다르다 — 필터는 관련도 순위를 유지하며 조건에 맞는 것만 남기고, 정렬(가격순)은 관련도를 버리고 그 값으로 정렬한다. 기본은 관련도, 명시적 정렬은 사용자가 고를 때만.** 검색 결과를 다루는 세 가지: ① **관련도 순위(relevance ranking, 기본)** — 관련도 점수(BM25 + 필드 가중치 + 사업 신호, 2~4장)로 정렬 — 「가장 관련 있는 걸 위에」(1장). 이게 검색의 기본 순서. ② **필터(filter)** — 결과를 **좁힌다**(조건에 맞는 것만): 브랜드=삼성, 가격 1~5만원, 재고 있음, 카테고리=노트북. 필터는 **관련도 순위를 유지**하되 조건에 맞는 문서만 남긴다(순서는 그대로 관련도 순, 개수만 줄임). 사용자가 「이 조건의 것들 중 관련 있는 걸」 보고 싶을 때. ③ **정렬(sort)** — 순서를 **명시적으로 바꾼다**(가격 낮은 순, 최신순, 평점순): 「가격 낮은 순」으로 정렬하면 **관련도를 버리고** 가격만으로 순서를 매긴다(관련 없어도 싼 게 맨 위). **「가격순 정렬」은 관련성을 버리는 것**이다 — 관련도 순위와 별개의, 사용자가 명시적으로 선택한 정렬. **핵심: 이 둘(필터·정렬)을 섞어 설계하면 안 된다** — **필터는 좁히기(관련도 유지), 정렬은 순서 교체(관련도 대체)**로 역할이 다르다. 흔한 실수: 필터를 정렬처럼 다루거나(브랜드 필터가 순서를 바꿈), 정렬을 기본으로 두거나(항상 가격순 — 관련도를 안 씀), 필터와 정렬을 한 UI 에 뭉뚱그림. 올바른 구조: **① 기본은 관련도 순위**(사용자가 검색어를 치면 관련도로), **② 필터로 좁히되 관련도 순위 유지**(조건 체크박스·범위 — 좁힘), **③ 사용자가 명시적으로 정렬을 고르면**(드롭다운 「가격 낮은 순」) 그때 관련도 대신 그 정렬. UI 에서 필터(사이드바 체크박스·슬라이더)와 정렬(상단 드롭다운)을 **분리**하고, 기본 정렬은 「관련도순」으로 둔다. 이 구분이 중요한 이유: 「가격순」을 기본으로 두면 검색이 「관련도 검색」이 아니라 「가격 목록」이 되어(관련 없는 싼 것들이 위로), 검색의 값어치(순서 = 관련도, 1장)를 잃는다. 그래서 **관련도(기본) + 필터(좁힘) + 명시적 정렬(선택)**의 세 역할을 명확히 나눠 설계한다."
+          "text": "**필터(좁힘)와 정렬(순서 교체)은 다르다. 필터는 관련도 순위를 유지하며 조건에 맞는 것만 남기고, 정렬(가격순)은 관련도를 버리고 그 값으로 정렬한다. 기본은 관련도, 명시적 정렬은 사용자가 고를 때만.** 검색 결과를 다루는 세 가지: ① **관련도 순위(relevance ranking, 기본)**. 관련도 점수(BM25 + 필드 가중치 + 사업 신호, 2~4장)로 정렬. \"가장 관련 있는 걸 위에\"(1장). 이게 검색의 기본 순서. ② **필터(filter)**. 결과를 **좁힌다**(조건에 맞는 것만): 브랜드=삼성, 가격 1~5만원, 재고 있음, 카테고리=노트북. 필터는 **관련도 순위를 유지**하되 조건에 맞는 문서만 남긴다(순서는 그대로 관련도 순, 개수만 줄임). 사용자가 \"이 조건의 것들 중 관련 있는 걸\" 보고 싶을 때. ③ **정렬(sort)**. 순서를 **명시적으로 바꾼다**(가격 낮은 순, 최신순, 평점순): \"가격 낮은 순\"으로 정렬하면 **관련도를 버리고** 가격만으로 순서를 매긴다(관련 없어도 싼 게 맨 위). **\"가격순 정렬\"은 관련성을 버리는 것**이다. 관련도 순위와 별개의, 사용자가 명시적으로 선택한 정렬. **핵심: 이 둘(필터, 정렬)을 섞어 설계하면 안 된다**. **필터는 좁히기(관련도 유지), 정렬은 순서 교체(관련도 대체)**로 역할이 다르다. 흔한 실수: 필터를 정렬처럼 다루거나(브랜드 필터가 순서를 바꿈), 정렬을 기본으로 두거나(항상 가격순. 관련도를 안 씀), 필터와 정렬을 한 UI 에 뭉뚱그림. 올바른 구조: **① 기본은 관련도 순위**(사용자가 검색어를 치면 관련도로), **② 필터로 좁히되 관련도 순위 유지**(조건 체크박스, 범위. 좁힘), **③ 사용자가 명시적으로 정렬을 고르면**(드롭다운 \"가격 낮은 순\") 그때 관련도 대신 그 정렬. UI 에서 필터(사이드바 체크박스, 슬라이더)와 정렬(상단 드롭다운)을 **분리**하고, 기본 정렬은 \"관련도순\"으로 둔다. 이 구분이 중요한 이유: \"가격순\"을 기본으로 두면 검색이 \"관련도 검색\"이 아니라 \"가격 목록\"이 되어(관련 없는 싼 것들이 위로), 검색의 값어치(순서 = 관련도, 1장)를 잃는다. 그래서 **관련도(기본) + 필터(좁힘) + 명시적 정렬(선택)**의 세 역할을 명확히 나눠 설계한다."
         },
         {
           "type": "p",
-          "text": "**「좁히기(필터)와 순서(정렬)는 다른 축」 — 역할을 섞지 않는다.** 필터 vs 정렬의 교훈은 「직교하는 관심사를 분리」다: **결과를 좁히는 것(필터·선택)**과 **순서를 정하는 것(정렬·순위)**은 **다른 축(직교)**이라, 섞지 말고 각각 명확히 다뤄야 한다. 필터는 「무엇을 포함할지」(집합), 정렬은 「어떤 순서로」(순서) — 다른 질문에 답한다. 이 둘을 뭉뚱그리면(필터가 순서를 바꾸거나, 정렬이 결과를 거르거나) 혼란스럽고 예측 불가능하다. 그래서 「좁히기」와 「순서」를 **분리된 축으로** 설계한다 — 사용자가 각각 독립적으로 조절(필터로 좁히고, 정렬로 순서). 이는 데이터·UI 설계 전반에 통한다 — WHERE(필터) vs ORDER BY(정렬)의 SQL 구분, 검색의 필터·정렬 분리, 목록 UI 의 필터·정렬 UI 분리. 「직교하는 관심사를 섞지 말고 분리」가 명료한 설계의 원리다(관심사 분리 — separation of concerns). 그리고 검색에선 **기본이 관련도**여야 한다는 점이 중요 — 「검색」의 본질이 관련도 순위(1장)라, 그걸 기본으로 두고 필터·명시적 정렬은 사용자 선택으로 얹는다. 「가격순을 기본으로」 두면 검색이 아니라 목록이 된다. 그래서 「관련도(검색의 본질)를 기본 축으로, 좁히기(필터)와 순서 교체(정렬)를 분리된 선택으로」 설계하는 게 검색 UX 의 올바른 구조다. 역할을 명확히 나누면 사용자가 이해하고 통제하기 쉽다."
+          "text": "**\"좁히기(필터)와 순서(정렬)는 다른 축\". 역할을 섞지 않는다.** 필터 vs 정렬의 교훈은 \"직교하는 관심사를 분리\"다: **결과를 좁히는 것(필터, 선택)**과 **순서를 정하는 것(정렬, 순위)**은 **다른 축(직교)**이라, 섞지 말고 각각 명확히 다뤄야 한다. 필터는 \"무엇을 포함할지\"(집합), 정렬은 \"어떤 순서로\"(순서). 다른 질문에 답한다. 이 둘을 뭉뚱그리면(필터가 순서를 바꾸거나, 정렬이 결과를 거르거나) 혼란스럽고 예측 불가능하다. 그래서 \"좁히기\"와 \"순서\"를 **분리된 축으로** 설계한다. 사용자가 각각 독립적으로 조절(필터로 좁히고, 정렬로 순서). 이는 데이터, UI 설계 전반에 통한다. WHERE(필터) vs ORDER BY(정렬)의 SQL 구분, 검색의 필터, 정렬 분리, 목록 UI 의 필터, 정렬 UI 분리. \"직교하는 관심사를 섞지 말고 분리\"가 명료한 설계의 원리다(관심사 분리. separation of concerns). 그리고 검색에선 **기본이 관련도**여야 한다는 점이 중요. \"검색\"의 본질이 관련도 순위(1장)라, 그걸 기본으로 두고 필터, 명시적 정렬은 사용자 선택으로 얹는다. \"가격순을 기본으로\" 두면 검색이 아니라 목록이 된다. 그래서 \"관련도(검색의 본질)를 기본 축으로, 좁히기(필터)와 순서 교체(정렬)를 분리된 선택으로\" 설계하는 게 검색 UX 의 올바른 구조다. 역할을 명확히 나누면 사용자가 이해하고 통제하기 쉽다."
         },
         {
           "type": "try",
-          "text": "네 검색 UI 에서 필터와 정렬이 분리돼 있는지, 기본 정렬이 관련도순인지 확인하라 — 「가격순」이 기본이면 검색이 목록이 된 것(관련도를 안 씀). 필터(좁힘 — 브랜드·가격 범위 체크박스)는 관련도 순위를 유지하고, 정렬(순서 교체 — 드롭다운)은 사용자가 명시적으로 고를 때만 관련도를 대체하게 하라. 좁히기와 순서를 분리된 축으로 설계하라."
+          "text": "네 검색 UI 에서 필터와 정렬이 분리돼 있는지, 기본 정렬이 관련도순인지 확인하라. \"가격순\"이 기본이면 검색이 목록이 된 것(관련도를 안 씀). 필터(좁힘. 브랜드, 가격 범위 체크박스)는 관련도 순위를 유지하고, 정렬(순서 교체. 드롭다운)은 사용자가 명시적으로 고를 때만 관련도를 대체하게 하라. 좁히기와 순서를 분리된 축으로 설계하라."
         }
       ],
       "quiz": [
@@ -385,7 +385,7 @@
           "q": "필터(filter)와 정렬(sort)의 차이는?",
           "choices": [
             "같음",
-            "필터=좁힘(관련도 유지)·정렬=순서 교체(관련도 버림)",
+            "필터=좁힘(관련도 유지), 정렬=순서 교체(관련도 버림)",
             "속도",
             "없음"
           ],
@@ -393,10 +393,10 @@
           "why": "다른 축."
         },
         {
-          "q": "「가격순 정렬」은?",
+          "q": "\"가격순 정렬\"은?",
           "choices": [
             "관련도 유지",
-            "관련도를 버리고 가격으로 정렬 — 명시적 선택일 때만",
+            "관련도를 버리고 가격으로 정렬. 명시적 선택일 때만",
             "필터",
             "기본"
           ],
@@ -407,7 +407,7 @@
           "q": "검색의 기본 정렬은?",
           "choices": [
             "가격순",
-            "관련도순(검색의 본질) — 필터·명시적 정렬은 얹기",
+            "관련도순(검색의 본질). 필터, 명시적 정렬은 얹기",
             "최신순",
             "무작위"
           ],
@@ -423,12 +423,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "가중치를 바꾸면 **어떤 질의는 좋아지고 어떤 질의는 나빠진다** — 제목 가중치를 높이면 어떤 검색은 좋아지지만 다른 검색은 제목만 보느라 나빠질 수 있다. **평가 세트 없이 튜닝하면** 체감(내가 시험한 몇 개)만 좋아지고 **전체는 나빠질 수 있다**(내가 안 본 질의들이 망가짐). 그래서 순위 튜닝엔 **평가 세트(evaluation set)**가 필수다 — 대표 질의들 + 각 질의의 「좋은 결과」(정답·관련도 라벨)를 모아 두고, 가중치를 바꿀 때마다 **전체 평가 세트로 점수를 측정**(nDCG·MRR·precision@k 같은 순위 지표)해 **전체가 좋아졌는지** 확인한다. 한두 질의의 체감이 아니라 **측정된 전체 품질**로 판단한다. 「측정 없는 튜닝」은 두더지 잡기(하나 고치면 다른 게 튀어나옴) — 평가 세트가 그걸 막는다."
+          "text": "가중치를 바꾸면 **어떤 질의는 좋아지고 어떤 질의는 나빠진다**. 제목 가중치를 높이면 어떤 검색은 좋아지지만 다른 검색은 제목만 보느라 나빠질 수 있다. **평가 세트 없이 튜닝하면** 체감(내가 시험한 몇 개)만 좋아지고 **전체는 나빠질 수 있다**(내가 안 본 질의들이 망가짐). 그래서 순위 튜닝엔 **평가 세트(evaluation set)**가 필수다. 대표 질의들 + 각 질의의 \"좋은 결과\"(정답, 관련도 라벨)를 모아 두고, 가중치를 바꿀 때마다 **전체 평가 세트로 점수를 측정**(nDCG, MRR, precision@k 같은 순위 지표)해 **전체가 좋아졌는지** 확인한다. 한두 질의의 체감이 아니라 **측정된 전체 품질**로 판단한다. \"측정 없는 튜닝\"은 두더지 잡기(하나 고치면 다른 게 튀어나옴). 평가 세트가 그걸 막는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "튜닝 — 평가 세트 없이 vs 함께",
+          "label": "튜닝. 평가 세트 없이 vs 함께",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const method = '{{method}}';\n  if (method === 'noeval') {\n    render('평가 세트 없이 튜닝 (위험)',\n      '  제목 가중치 ↑ → 내가 시험한 질의 2개 좋아짐 → 「개선!」\\n' +\n      '  but 안 본 질의 8개는? → 일부 나빠졌을 수 있음\\n\\n' +\n      '  <span class=\\\"no\\\">체감(몇 개)만 좋아지고 전체는 나빠질 수 있음 — 두더지 잡기.</span>',\n      '평가 세트 없이: 체감만 좋아지고 전체는 나빠질 수 있음.',\n      steps([['가중치 바꿈', 'on'],['시험한 질의 2개 좋아짐 → 「개선」', 'bad'],\n             ['안 본 질의 8개는 확인 안 함', 'bad'],['전체는 나빠졌을 수 있음', 'bad']]));\n  } else {\n    render('평가 세트와 함께 튜닝 (올바름)',\n      '  대표 질의 + 각 「좋은 결과」 라벨 → 평가 세트\\n' +\n      '  가중치 바꿀 때마다 전체 평가 세트로 점수(nDCG 등) 측정\\n\\n' +\n      '  <span class=\\\"ok\\\">전체 품질이 올랐는지 측정 → 두더지 잡기 방지.</span>',\n      '평가 세트와 함께: 전체 점수로 측정 → 진짜 개선인지 확인.',\n      steps([['평가 세트(질의+좋은 결과) 준비', 'good'],['가중치 바꿈', 'on'],\n             ['전체 평가 세트로 점수 측정', 'good'],['전체가 좋아졌으면 채택', 'good']]));\n  }\n</script>",
           "controls": [
@@ -452,15 +452,15 @@
         },
         {
           "type": "note",
-          "text": "**가중치를 바꾸면 어떤 질의는 좋아지고 어떤 질의는 나빠지니, 평가 세트 없이 튜닝하면 체감만 좋아지고 전체는 나빠질 수 있다 — 대표 질의 + 정답을 모은 평가 세트로 전체를 측정하며 튜닝한다.** 순위 튜닝(필드 가중치·사업 신호 조정, 3·4장)의 함정: 한 가중치를 바꾸면 **일부 질의는 좋아지고 일부는 나빠진다**(트레이드오프) — 제목 가중치를 높이면 「제목이 핵심인 검색」은 좋아지지만 「본문에 핵심이 있는 검색」은 나빠질 수 있다. **평가 세트 없이 튜닝하면**(내가 몇 개 시험해 보고 「좋아졌네」) **체감만 좋아지고 전체는 나빠질 수 있다** — 내가 시험한 2~3개 질의는 좋아졌지만, 안 본 수십·수백 질의 중 일부가 망가진 걸 모른다. 이건 **두더지 잡기**(하나 고치면 다른 게 튀어나옴)라, 감으로 튜닝하면 무한 반복하며 전체는 제자리거나 나빠진다. 그래서 **평가 세트(evaluation set, judgment set)**가 필수다: ① **대표 질의들**을 모은다(실제 검색 로그에서 자주·중요한 질의들 — 다양하게). ② 각 질의의 **「좋은 결과」**를 라벨링한다(이 질의엔 이 문서들이 관련 있음 — 사람이 판단하거나, 클릭 로그로 추정). ③ 가중치를 바꿀 때마다 **전체 평가 세트로 순위 품질을 측정**한다 — **순위 지표**(nDCG — 관련 있는 게 위에 있을수록 높음, MRR — 첫 정답의 순위, precision@k — 상위 k 개 중 관련 비율, recall)로 「전체적으로 관련 있는 게 위에 잘 오나」를 점수화. ④ **전체 점수가 올랐으면** 그 가중치를 채택(한두 질의 체감이 아니라 전체 측정으로). 이러면 「이 변경이 전체를 개선했나 악화했나」를 객관적으로 안다 — 두더지 잡기를 막는다. 이는 **실험·측정으로 개선**하는 것(A/B 테스트 — 실제 사용자 반응으로, analytics·qa) — 오프라인 평가(평가 세트로 지표)와 온라인 평가(A/B 로 클릭·전환)를 함께 쓴다. **핵심: 순위는 감이 아니라 측정으로 튜닝한다** — 「좋아 보인다」(체감·소수 질의)가 아니라 「측정된 전체 품질이 올랐다」(평가 세트·지표)로 판단한다(황금의 정신 — 추측 말고 측정, qa-gate 커버리지의 「측정을 목표로」 주의도 함께). 평가 세트를 만드는 건 품이 들지만(질의·정답 수집), 그것 없이는 순위 튜닝이 「장님 코끼리 만지기」다. 그래서 진지한 검색 팀은 평가 세트를 갖추고 지표로 순위 변경을 검증한다."
+          "text": "**가중치를 바꾸면 어떤 질의는 좋아지고 어떤 질의는 나빠지니, 평가 세트 없이 튜닝하면 체감만 좋아지고 전체는 나빠질 수 있다. 대표 질의 + 정답을 모은 평가 세트로 전체를 측정하며 튜닝한다.** 순위 튜닝(필드 가중치, 사업 신호 조정, 3, 4장)의 함정: 한 가중치를 바꾸면 **일부 질의는 좋아지고 일부는 나빠진다**(트레이드오프). 제목 가중치를 높이면 \"제목이 핵심인 검색\"은 좋아지지만 \"본문에 핵심이 있는 검색\"은 나빠질 수 있다. **평가 세트 없이 튜닝하면**(내가 몇 개 시험해 보고 \"좋아졌네\") **체감만 좋아지고 전체는 나빠질 수 있다**. 내가 시험한 2~3개 질의는 좋아졌지만, 안 본 수십, 수백 질의 중 일부가 망가진 걸 모른다. 이건 **두더지 잡기**(하나 고치면 다른 게 튀어나옴)라, 감으로 튜닝하면 무한 반복하며 전체는 제자리거나 나빠진다. 그래서 **평가 세트(evaluation set, judgment set)**가 필수다: ① **대표 질의들**을 모은다(실제 검색 로그에서 자주, 중요한 질의들. 다양하게). ② 각 질의의 **\"좋은 결과\"**를 라벨링한다(이 질의엔 이 문서들이 관련 있음. 사람이 판단하거나, 클릭 로그로 추정). ③ 가중치를 바꿀 때마다 **전체 평가 세트로 순위 품질을 측정**한다. **순위 지표**(nDCG. 관련 있는 게 위에 있을수록 높음, MRR. 첫 정답의 순위, precision@k. 상위 k 개 중 관련 비율, recall)로 \"전체적으로 관련 있는 게 위에 잘 오나\"를 점수화. ④ **전체 점수가 올랐으면** 그 가중치를 채택(한두 질의 체감이 아니라 전체 측정으로). 이러면 \"이 변경이 전체를 개선했나 악화했나\"를 객관적으로 안다. 두더지 잡기를 막는다. 이는 **실험, 측정으로 개선**하는 것(A/B 테스트. 실제 사용자 반응으로, analytics, qa). 오프라인 평가(평가 세트로 지표)와 온라인 평가(A/B 로 클릭, 전환)를 함께 쓴다. **핵심: 순위는 감이 아니라 측정으로 튜닝한다**. \"좋아 보인다\"(체감, 소수 질의)가 아니라 \"측정된 전체 품질이 올랐다\"(평가 세트, 지표)로 판단한다(황금의 정신. 추측 말고 측정, qa-gate 커버리지의 \"측정을 목표로\" 주의도 함께). 평가 세트를 만드는 건 품이 들지만(질의, 정답 수집), 그것 없이는 순위 튜닝이 \"장님 코끼리 만지기\"다. 그래서 진지한 검색 팀은 평가 세트를 갖추고 지표로 순위 변경을 검증한다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** 순위(search-rank)는 search 갈래(검색)의 핵심 — 「검색의 값어치는 순서」다. 순서가 값어치(1장)는 랭킹·정보 과잉, BM25(2장)는 신호를 현실적으로(포화·희귀도·정규화), 필드 가중치(3장)는 맥락 반영, 텍스트+사업 신호(4장)는 다목적 균형·ml·굿하트, 필터vs정렬(5장)은 관심사 분리, 측정 튜닝(6장)은 황금의 정신·A/B·평가 지표와 통한다. search-index(빠른 조회)·search-token(올바른 단위)·search-rank(좋은 순서)가 검색의 세 축이고, 순위는 품질을 결정한다. **「검색의 값어치는 순서 — BM25(빈도·희귀도·길이)를 기본으로, 필드 가중치로 구조를, 사업 신호로 비즈니스 가치를 결합하되 관련성이 죽지 않게 균형을, 필터와 정렬을 구분하고, 평가 세트로 측정하며 튜닝한다」**가 핵심이다. 순위는 「무엇이 관련·좋음인가」를 여러 신호로 정의하고 측정으로 다듬는, 검색의 가장 어렵고 가치 있는 부분이다."
+          "text": "**이 칸과 갈래.** 순위(search-rank)는 search 갈래(검색)의 핵심. \"검색의 값어치는 순서\"다. 순서가 값어치(1장)는 랭킹, 정보 과잉, BM25(2장)는 신호를 현실적으로(포화, 희귀도, 정규화), 필드 가중치(3장)는 맥락 반영, 텍스트+사업 신호(4장)는 다목적 균형, ml, 굿하트, 필터vs정렬(5장)은 관심사 분리, 측정 튜닝(6장)은 황금의 정신, A/B, 평가 지표와 통한다. search-index(빠른 조회), search-token(올바른 단위), search-rank(좋은 순서)가 검색의 세 축이고, 순위는 품질을 결정한다. **\"검색의 값어치는 순서. BM25(빈도, 희귀도, 길이)를 기본으로, 필드 가중치로 구조를, 사업 신호로 비즈니스 가치를 결합하되 관련성이 죽지 않게 균형을, 필터와 정렬을 구분하고, 평가 세트로 측정하며 튜닝한다\"**가 핵심이다. 순위는 \"무엇이 관련, 좋음인가\"를 여러 신호로 정의하고 측정으로 다듬는, 검색의 가장 어렵고 가치 있는 부분이다."
         },
         {
           "type": "try",
-          "text": "평가 세트를 만들어라 — 대표 질의 10~20개 + 각 질의의 「좋은 결과」(관련 문서 라벨, 사람 판단·클릭 로그). 가중치(제목·인기도 등)를 바꿀 때마다 전체 평가 세트로 순위 지표(nDCG·precision@k)를 측정해, 한두 질의 체감이 아니라 전체가 좋아졌는지 확인하라. 「측정 없는 튜닝」의 두더지 잡기를 평가 세트로 막아라 — 순위는 측정과 함께."
+          "text": "평가 세트를 만들어라. 대표 질의 10~20개 + 각 질의의 \"좋은 결과\"(관련 문서 라벨, 사람 판단, 클릭 로그). 가중치(제목, 인기도 등)를 바꿀 때마다 전체 평가 세트로 순위 지표(nDCG, precision@k)를 측정해, 한두 질의 체감이 아니라 전체가 좋아졌는지 확인하라. \"측정 없는 튜닝\"의 두더지 잡기를 평가 세트로 막아라. 순위는 측정과 함께."
         }
       ],
       "quiz": [
@@ -479,7 +479,7 @@
           "q": "평가 세트란?",
           "choices": [
             "로그",
-            "대표 질의 + 각 「좋은 결과」 라벨 — 전체 품질 측정용",
+            "대표 질의 + 각 \"좋은 결과\" 라벨. 전체 품질 측정용",
             "가중치",
             "없음"
           ],
@@ -490,7 +490,7 @@
           "q": "순위 튜닝의 원칙은?",
           "choices": [
             "감으로",
-            "측정과 함께 — 전체 평가 세트 지표로 판단(체감 X)",
+            "측정과 함께. 전체 평가 세트 지표로 판단(체감 X)",
             "무작위",
             "빠르게"
           ],
@@ -501,17 +501,17 @@
     },
     {
       "id": "7",
-      "title": "점검표 — 검색 순위",
+      "title": "점검표. 검색 순위",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "검색 순위를 다룰 때 이 목록을 확인하라. 핵심은 「검색의 값어치는 순서 — BM25 + 필드 가중치 + 사업 신호를 균형 있게, 필터·정렬 구분, 측정으로 튜닝」이다."
+          "text": "검색 순위를 다룰 때 이 목록을 확인하라. 핵심은 \"검색의 값어치는 순서. BM25 + 필드 가중치 + 사업 신호를 균형 있게, 필터, 정렬 구분, 측정으로 튜닝\"이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .res { margin:8px 0; }\n  .res .r { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .res .r.top { border-left-color:#22c55e; } .res .r .rank { width:24px; color:#7dd3fc; }\n  .res .r .score { width:60px; color:#fbbf24; text-align:right; } .res .r .doc { flex:1; color:#cbd5e1; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:130px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const results = (rows) => '<div class=\"res\">' + rows.map(([rank, score, doc, top], i) =>\n    '<div class=\"r ' + (i===0?'top':'') + '\"><span class=\"rank\">' + (i+1) + '</span><span class=\"score\">' + esc(score) +\n    '</span><span class=\"doc\">' + esc(doc) + '</span></div>').join('') + '</div>';\n  // 문서 집합 (제목/본문/인기도/신선도)\n  const DOCS = [\n    { id: 'A', title: '고양이 사료 추천 사료', body: '최고의 고양이 사료 비교', pop: 500, days: 3 },\n    { id: 'B', title: '강아지 사료 후기', body: '사료 사료 사료 좋아요 사료', pop: 50, days: 30 },\n    { id: 'C', title: '고양이 용품', body: '고양이 사료 간식 장난감', pop: 2000, days: 100 },\n    { id: 'D', title: '반려동물 이야기', body: '우리 고양이는 사료를 잘 먹어요', pop: 10, days: 1 },\n  ];\n  function tf(text, term) { return (text.split(/\\s+/).filter(w => w === term)).length; }\n  // BM25-lite: tf 포화 + idf + 필드 가중치\n  function idf(term, field) {\n    const N = DOCS.length;\n    const df = DOCS.filter(d => tf(d[field], term) > 0).length || 1;\n    return Math.log(1 + (N - df + 0.5) / (df + 0.5));\n  }\n  function bm25tf(freq) { const k = 1.2; return freq * (k + 1) / (freq + k); }  // 포화\n  function textScore(doc, terms, wTitle, wBody) {\n    let s = 0;\n    for (const t of terms) {\n      s += wTitle * bm25tf(tf(doc.title, t)) * idf(t, 'title');\n      s += wBody * bm25tf(tf(doc.body, t)) * idf(t, 'body');\n    }\n    return s;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '검색의 값어치는 순서(100개보다 맞는 3개 위에)',\n    'BM25: 빈도(포화)·희귀도(IDF)·문서 길이 보정',\n    '필드 가중치: 제목 매칭 > 본문(구조를 관련도에)',\n    '텍스트 × 사업 신호(인기·신선·재고), 로그로 극단 억제',\n    '사업 신호 과하면 관련성 죽음 — 텍스트 기본·신호 보정',\n    '필터(좁힘)와 정렬(순서 교체)을 구분·기본은 관련도',\n    '튜닝은 평가 세트로 측정(체감 X, 두더지 잡기 방지)',\n    '순위 = 여러 신호로 「좋음」을 정의하고 균형·측정',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 가장 관련·좋은 걸 위에 올리는 순위.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '검색의 값어치는 순서 — BM25+가중치+신호 균형·필터/정렬 구분·측정 튜닝.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -528,15 +528,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 검색의 값어치는 순서 — BM25(빈도·희귀도·길이)를 기본으로, 필드 가중치로 구조를, 사업 신호로 비즈니스를 결합하되 관련성이 죽지 않게, 필터·정렬을 구분하고, 평가 세트로 측정하며 튜닝한다.** 검색은 순서가 값어치고(1장), BM25 는 빈도(포화)·희귀도·길이 보정으로 텍스트 관련성을 매기고(2장), 필드 가중치로 제목 매칭을 높이고(3장), 텍스트 × 사업 신호(인기·신선·재고)를 로그로 극단 억제하며 결합하되 관련성이 죽지 않게 균형을 잡고(4장), 필터(좁힘)와 정렬(순서 교체)을 구분하며 기본은 관련도로 두고(5장), 평가 세트로 전체를 측정하며 튜닝한다(6장). 「가장 관련·좋은 걸 위에」가 핵심이다."
+          "text": "**한 줄 요약: 검색의 값어치는 순서. BM25(빈도, 희귀도, 길이)를 기본으로, 필드 가중치로 구조를, 사업 신호로 비즈니스를 결합하되 관련성이 죽지 않게, 필터, 정렬을 구분하고, 평가 세트로 측정하며 튜닝한다.** 검색은 순서가 값어치고(1장), BM25 는 빈도(포화), 희귀도, 길이 보정으로 텍스트 관련성을 매기고(2장), 필드 가중치로 제목 매칭을 높이고(3장), 텍스트 × 사업 신호(인기, 신선, 재고)를 로그로 극단 억제하며 결합하되 관련성이 죽지 않게 균형을 잡고(4장), 필터(좁힘)와 정렬(순서 교체)을 구분하며 기본은 관련도로 두고(5장), 평가 세트로 전체를 측정하며 튜닝한다(6장). \"가장 관련, 좋은 걸 위에\"가 핵심이다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** 순위(search-rank)는 search 갈래(검색)의 핵심으로, 검색 품질을 결정한다. 순서가 값어치는 랭킹·정보 과잉, BM25 는 신호의 현실적 변환(포화·희귀도·정규화), 필드 가중치는 맥락 반영, 텍스트+사업 신호는 다목적 균형·ml·굿하트, 필터vs정렬은 관심사 분리, 측정 튜닝은 황금의 정신·A/B 와 통한다. search-index(빠른 조회)·search-token(올바른 단위)·search-rank(좋은 순서)가 검색의 세 축이다. **「검색의 값어치는 순서 — BM25를 기본으로 필드 가중치·사업 신호를 균형 있게 결합하고, 필터와 정렬을 구분하고, 평가 세트로 측정하며 튜닝」**이 이 칸의 전부다. 순위는 「무엇이 관련·좋음인가」를 여러 신호로 정의하고 측정으로 다듬는 검색의 가장 어렵고 가치 있는 부분 — 이후 search-quality(품질 관리)·search-vector(의미 검색)로 이어진다."
+          "text": "**이 칸과 갈래.** 순위(search-rank)는 search 갈래(검색)의 핵심으로, 검색 품질을 결정한다. 순서가 값어치는 랭킹, 정보 과잉, BM25 는 신호의 현실적 변환(포화, 희귀도, 정규화), 필드 가중치는 맥락 반영, 텍스트+사업 신호는 다목적 균형, ml, 굿하트, 필터vs정렬은 관심사 분리, 측정 튜닝은 황금의 정신, A/B 와 통한다. search-index(빠른 조회), search-token(올바른 단위), search-rank(좋은 순서)가 검색의 세 축이다. **\"검색의 값어치는 순서. BM25를 기본으로 필드 가중치, 사업 신호를 균형 있게 결합하고, 필터와 정렬을 구분하고, 평가 세트로 측정하며 튜닝\"**이 이 칸의 전부다. 순위는 \"무엇이 관련, 좋음인가\"를 여러 신호로 정의하고 측정으로 다듬는 검색의 가장 어렵고 가치 있는 부분. 이후 search-quality(품질 관리), search-vector(의미 검색)로 이어진다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 검색 순위를 점검하라. 「필드 가중치 튜닝(제목 높이기)」과 「평가 세트로 측정」 두 가지만 잡아도, 가장 흔한 문제(관련도 뒤죽박죽·감으로 튜닝)를 막는다. BM25 위에 필드 가중치를 조정하고, 사업 신호를 균형 있게 결합하고, 필터·정렬을 구분하고, 평가 세트로 전체 품질을 측정하며 튜닝하라 — 가장 관련·좋은 걸 위에 올려라."
+          "text": "이 8개로 네 검색 순위를 점검하라. \"필드 가중치 튜닝(제목 높이기)\"과 \"평가 세트로 측정\" 두 가지만 잡아도, 가장 흔한 문제(관련도 뒤죽박죽, 감으로 튜닝)를 막는다. BM25 위에 필드 가중치를 조정하고, 사업 신호를 균형 있게 결합하고, 필터, 정렬을 구분하고, 평가 세트로 전체 품질을 측정하며 튜닝하라. 가장 관련, 좋은 걸 위에 올려라."
         }
       ],
       "quiz": [
@@ -544,29 +544,29 @@
           "q": "검색 순위 장의 한 줄 요약은?",
           "choices": [
             "빠르게",
-            "검색의 값어치는 순서 — BM25+가중치+신호 균형·필터/정렬 구분·측정 튜닝",
+            "검색의 값어치는 순서. BM25+가중치+신호 균형, 필터/정렬 구분, 측정 튜닝",
             "다 찾기",
             "무시"
           ],
           "answer": 1,
-          "why": "가장 관련·좋은 걸 위에."
+          "why": "가장 관련, 좋은 걸 위에."
         },
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "속도·색",
+            "속도, 색",
             "필드 가중치 튜닝 + 평가 세트로 측정",
-            "재시도·로그",
+            "재시도, 로그",
             "무시"
           ],
           "answer": 1,
-          "why": "관련도·감 튜닝 방지."
+          "why": "관련도, 감 튜닝 방지."
         },
         {
           "q": "순위가 이어지는 주제는?",
           "choices": [
             "없음",
-            "search-quality(품질)·search-vector(의미)·ml(learning to rank)",
+            "search-quality(품질), search-vector(의미), ml(learning to rank)",
             "속도만",
             "색"
           ],

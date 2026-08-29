@@ -3,21 +3,21 @@
   "parts": [
     {
       "id": "1",
-      "title": "파이프 — 작은 도구를 이어 붙인다",
+      "title": "파이프. 작은 도구를 이어 붙인다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "유닉스의 설계 원칙을 한 줄로 줄이면 이것이다 — **한 가지만 잘하는 작은 도구를 만들고, 글줄로 이어 붙인다.** 그래서 로그 분석 도구를 따로 살 필요가 없다. 이미 깔려 있는 도구 대여섯 개의 조합이 그 일을 한다."
+          "text": "유닉스의 설계 원칙을 한 줄로 줄이면 이것이다. **한 가지만 잘하는 작은 도구를 만들고, 글줄로 이어 붙인다.** 그래서 로그 분석 도구를 따로 살 필요가 없다. 이미 깔려 있는 도구 대여섯 개의 조합이 그 일을 한다."
         },
         {
           "type": "p",
-          "text": "`|`(파이프)는 **앞 명령의 출력을 뒤 명령의 입력으로** 흘려보낸다. 파일을 만들지 않고, 앞 명령이 끝나기를 기다리지도 않는다 — 줄이 나오는 대로 흘러간다. 그래서 100GB 짜리 로그도 메모리를 안 쓰고 훑을 수 있다."
+          "text": "`|`(파이프)는 **앞 명령의 출력을 뒤 명령의 입력으로** 흘려보낸다. 파일을 만들지 않고, 앞 명령이 끝나기를 기다리지도 않는다. 줄이 나오는 대로 흘러간다. 그래서 100GB 짜리 로그도 메모리를 안 쓰고 훑을 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 늘려 보라 — 줄이 어떻게 걸러지나",
+          "label": "단계를 늘려 보라. 줄이 어떻게 걸러지나",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const stages = [['cat app.log', LOG]];\n  let cur = LOG;\n  if (step >= 1) { cur = cur.filter((l) => l.includes('ERROR')); stages.push(['grep ERROR', cur]); }\n  if (step >= 2) { cur = cur.map((l) => l.split(/\\s+/)[3]); stages.push(['awk \\'{print $4}\\'', cur]); }\n  if (step >= 3) { cur = [...cur].sort(); stages.push(['sort', cur]); }\n  if (step >= 4) {\n    const m = new Map();\n    cur.forEach((v) => m.set(v, (m.get(v) || 0) + 1));\n    cur = [...m].map(([v, n]) => String(n).padStart(6) + ' ' + v).sort((a, b) => parseInt(b) - parseInt(a));\n    stages.push(['uniq -c | sort -rn', cur]);\n  }\n  const cmds = ['cat app.log',\n    'cat app.log | grep ERROR',\n    'grep ERROR app.log | awk \\'{print $4}\\'',\n    'grep ERROR app.log | awk \\'{print $4}\\' | sort',\n    'grep ERROR app.log | awk \\'{print $4}\\' | sort | uniq -c | sort -rn'];\n  pipeline(cmds[step], stages,\n    ['원본 10줄', '오류만 남겼다', '네 번째 칸(서비스 이름)만 뽑았다',\n     '같은 값을 붙여 놓으려고 정렬했다 — uniq 는 이웃한 중복만 본다',\n     '세어서 많은 순으로. 이 다섯 단계가 로그 분석의 8할이다'][step]);\n</script>",
           "controls": [
@@ -34,7 +34,7 @@
         },
         {
           "type": "note",
-          "text": "`sort | uniq -c | sort -rn` 은 통째로 외워 두면 좋은 한 줄이다. **「무엇이 몇 번 나왔나」**를 세는 만능 도구이고, `uniq` 가 이웃한 중복만 보기 때문에 **앞의 `sort` 가 필수**다."
+          "text": "`sort | uniq -c | sort -rn` 은 통째로 외워 두면 좋은 한 줄이다. **\"무엇이 몇 번 나왔나\"**를 세는 만능 도구이고, `uniq` 가 이웃한 중복만 보기 때문에 **앞의 `sort` 가 필수**다."
         },
         {
           "type": "code",
@@ -85,7 +85,7 @@
     },
     {
       "id": "2",
-      "title": "grep — 찾는 도구",
+      "title": "grep. 찾는 도구",
       "minutes": 8,
       "blocks": [
         {
@@ -95,7 +95,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "옵션을 골라 보라 — 결과가 어떻게 달라지나",
+          "label": "옵션을 골라 보라. 결과가 어떻게 달라지나",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const opt = '{{opt}}';\n  const P = 'ERROR';\n  let outLines, cmd, hint;\n  if (opt === 'plain') {\n    outLines = LOG.filter((l) => l.includes(P));\n    cmd = 'grep ERROR app.log'; hint = '무늬가 든 줄을 그대로 낸다.';\n  } else if (opt === 'i') {\n    outLines = LOG.filter((l) => l.toLowerCase().includes('error'));\n    cmd = 'grep -i error app.log'; hint = '대소문자를 무시한다 — 로그 형식이 섞여 있을 때 필수.';\n  } else if (opt === 'v') {\n    outLines = LOG.filter((l) => !l.includes(P));\n    cmd = 'grep -v ERROR app.log'; hint = '뒤집는다 — 「이것 말고 전부」. 잡음을 걷어낼 때 가장 많이 쓴다.';\n  } else if (opt === 'c') {\n    outLines = [String(LOG.filter((l) => l.includes(P)).length)];\n    cmd = 'grep -c ERROR app.log'; hint = '개수만 센다. 줄을 보고 싶지 않을 때.';\n  } else if (opt === 'C') {\n    const idx = LOG.map((l, i) => (l.includes(P) ? i : -1)).filter((i) => i >= 0);\n    const keep = new Set();\n    idx.forEach((i) => { for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < LOG.length) keep.add(k); });\n    outLines = [...keep].sort((a, b) => a - b).map((i) => (idx.includes(i) ? '> ' : '  ') + LOG[i]);\n    cmd = 'grep -C 1 ERROR app.log'; hint = '앞뒤 한 줄을 함께 — 「그 직전에 무슨 일이 있었나」를 보려면 이것.';\n  } else {\n    outLines = LOG.filter((l) => /ERROR (api|db)/.test(l)).map((l) => l.match(/ERROR \\w+/)[0]);\n    cmd = 'grep -oE \\'ERROR (api|db)\\' app.log'; hint = '-o = 맞은 부분만, -E = 확장 정규식(| 와 () 를 쓸 수 있다).';\n  }\n  pipeline(cmd, [['결과', outLines]], hint);\n</script>",
           "controls": [
@@ -141,7 +141,7 @@
         },
         {
           "type": "note",
-          "text": "`grep` 의 기본 정규식은 `+`·`?`·`|`·`()` 를 **특별하게 안 본다**. `-E`(확장) 를 붙이거나 `egrep` 을 써라. 「정규식이 왜 안 먹지」의 절반이 이것이다."
+          "text": "`grep` 의 기본 정규식은 `+`, `?`, `|`, `()` 를 **특별하게 안 본다**. `-E`(확장) 를 붙이거나 `egrep` 을 써라. \"정규식이 왜 안 먹지\"의 절반이 이것이다."
         },
         {
           "type": "try",
@@ -150,7 +150,7 @@
       ],
       "quiz": [
         {
-          "q": "「이 무늬가 없는 줄만」 보려면?",
+          "q": "\"이 무늬가 없는 줄만\" 보려면?",
           "choices": [
             "-i",
             "-v",
@@ -180,23 +180,23 @@
             "파일을 바꾼다"
           ],
           "answer": 1,
-          "why": "기본 정규식은 |·() 를 글자로 본다."
+          "why": "기본 정규식은 |, () 를 글자로 본다."
         }
       ]
     },
     {
       "id": "3",
-      "title": "sed — 바꾸는 도구",
+      "title": "sed. 바꾸는 도구",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "`sed` 는 「흐르는 줄에 손을 대는」 도구다. 실무에서 쓰는 것은 사실상 **치환 하나**다: `s/찾을것/바꿀것/`. 나머지는 필요할 때 찾아 쓰면 된다."
+          "text": "`sed` 는 \"흐르는 줄에 손을 대는\" 도구다. 실무에서 쓰는 것은 사실상 **치환 하나**다: `s/찾을것/바꿀것/`. 나머지는 필요할 때 찾아 쓰면 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "치환을 바꿔 보라 — g 하나로 결과가 갈린다",
+          "label": "치환을 바꿔 보라. g 하나로 결과가 갈린다",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  let outLines, cmd, hint;\n  if (mode === 'first') {\n    outLines = LOG.map((l) => l.replace('0', '#'));\n    cmd = \"sed 's/0/#/' app.log\";\n    hint = '줄마다 **처음 하나**만 바꾼다. 이게 기본값이라 자주 걸린다.';\n  } else if (mode === 'global') {\n    outLines = LOG.map((l) => l.replaceAll('0', '#'));\n    cmd = \"sed 's/0/#/g' app.log\";\n    hint = 'g = 그 줄의 전부. 「일부만 바뀌었다」면 g 를 빠뜨린 것이다.';\n  } else if (mode === 'group') {\n    outLines = LOG.map((l) => l.replace(/^(\\S+) (\\S+)/, '$2 [$1]'));\n    cmd = \"sed -E 's/^(\\\\S+) (\\\\S+)/\\\\2 [\\\\1]/' app.log\";\n    hint = '괄호로 잡은 조각을 \\\\1 \\\\2 로 다시 쓴다 — 날짜와 시각의 자리를 바꿨다.';\n  } else if (mode === 'delete') {\n    outLines = LOG.filter((l) => !/INFO/.test(l));\n    cmd = \"sed '/INFO/d' app.log\";\n    hint = '무늬에 맞는 줄을 지운다 — grep -v 와 같은 일을 sed 로.';\n  } else {\n    outLines = LOG.slice(0, 3);\n    cmd = \"sed -n '1,3p' app.log\";\n    hint = '-n 은 「기본 출력 끄기」, p 는 「이 줄만 내기」. 범위를 잘라 볼 때.';\n  }\n  pipeline(cmd, [['결과', outLines]], hint);\n</script>",
           "controls": [
@@ -232,12 +232,12 @@
         },
         {
           "type": "note",
-          "text": "**파일을 직접 고치는 `-i` 는 조심하라.** GNU 는 `sed -i 's/a/b/g' f`, macOS(BSD)는 `sed -i '' 's/a/b/g' f` 로 문법이 다르다. 그리고 되돌릴 수 없다 — 먼저 `-i.bak` 으로 사본을 남기거나, git 이 깨끗한 상태에서 하라."
+          "text": "**파일을 직접 고치는 `-i` 는 조심하라.** GNU 는 `sed -i 's/a/b/g' f`, macOS(BSD)는 `sed -i '' 's/a/b/g' f` 로 문법이 다르다. 그리고 되돌릴 수 없다. 먼저 `-i.bak` 으로 사본을 남기거나, git 이 깨끗한 상태에서 하라."
         },
         {
           "type": "code",
           "lang": "bash",
-          "label": "여러 파일 일괄 치환 — 안전한 순서",
+          "label": "여러 파일 일괄 치환. 안전한 순서",
           "text": "# 1) 어디가 바뀔지 먼저 본다\ngrep -rn 'oldName' src/\n\n# 2) 사본을 남기며 바꾼다\ngrep -rl 'oldName' src/ | xargs sed -i.bak 's/oldName/newName/g'\n\n# 3) diff 로 확인하고 사본을 지운다\ngit diff\nfind src -name '*.bak' -delete"
         },
         {
@@ -259,7 +259,7 @@
             "오류"
           ],
           "answer": 1,
-          "why": "g 가 「그 줄 전부」다."
+          "why": "g 가 \"그 줄 전부\"다."
         },
         {
           "q": "`sed -i` 를 쓰기 전에 할 일은?",
@@ -281,23 +281,23 @@
             "관습"
           ],
           "answer": 1,
-          "why": "s#…#…# 처럼 아무 글자나 쓸 수 있다."
+          "why": "s### 처럼 아무 글자나 쓸 수 있다."
         }
       ]
     },
     {
       "id": "4",
-      "title": "awk — 칸으로 다루는 도구",
+      "title": "awk. 칸으로 다루는 도구",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "로그·CSV 처럼 **칸(열)으로 나뉜 자료**에서는 `awk` 가 압도적으로 편하다. 기본 감각은 하나 — 줄이 들어오면 공백으로 쪼개 `$1 $2 $3…` 에 담아 주고, 우리는 그것으로 조건과 계산을 적는다."
+          "text": "로그, CSV 처럼 **칸(열)으로 나뉜 자료**에서는 `awk` 가 압도적으로 편하다. 기본 감각은 하나. 줄이 들어오면 공백으로 쪼개 `$1 $2 $3` 에 담아 주고, 우리는 그것으로 조건과 계산을 적는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 뽑을지 골라 보라 — 칸 번호로 다룬다",
+          "label": "무엇을 뽑을지 골라 보라. 칸 번호로 다룬다",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const cols = LOG.map((l) => l.split(/\\s+/));\n  let outLines, cmd, hint;\n  if (q === 'print') {\n    outLines = cols.map((c) => c[1] + ' ' + c[2] + ' ' + c[3]);\n    cmd = \"awk '{print $2, $3, $4}' app.log\";\n    hint = '원하는 칸만 골라 낸다. $0 은 줄 전체.';\n  } else if (q === 'filter') {\n    outLines = cols.filter((c) => c[2] === 'ERROR').map((c) => c.join(' '));\n    cmd = \"awk '$3 == \\\"ERROR\\\"' app.log\";\n    hint = '조건만 적으면 그 줄을 낸다 — grep 보다 정확하다(그 칸이 정확히 그 값일 때만).';\n  } else if (q === 'slow') {\n    outLines = cols.filter((c) => c[7] && parseInt(c[7]) > 100).map((c) => c[7].padStart(7) + '  ' + c[5] + ' ' + c[6]);\n    cmd = \"awk '{ ms = $8 + 0 } ms > 100 { print $8, $6, $7 }' app.log\";\n    hint = '숫자 비교가 그냥 된다 — grep 으로는 「100ms 보다 느린 줄」을 못 고른다.';\n  } else if (q === 'count') {\n    const m = new Map();\n    cols.forEach((c) => m.set(c[2], (m.get(c[2]) || 0) + 1));\n    outLines = [...m].map(([k, v]) => k.padEnd(6) + v);\n    cmd = \"awk '{ n[$3]++ } END { for (k in n) print k, n[k] }' app.log\";\n    hint = 'awk 는 연관 배열을 그냥 쓴다 — 세기·묶기가 한 줄이다.';\n  } else {\n    const nums = cols.map((c) => parseInt(c[7])).filter((v) => !isNaN(v));\n    const sum = nums.reduce((s, v) => s + v, 0);\n    outLines = ['건수 ' + nums.length, '합계 ' + sum + 'ms', '평균 ' + (sum / nums.length).toFixed(1) + 'ms',\n                '최대 ' + Math.max(...nums) + 'ms'];\n    cmd = \"awk '{ s += $8; if ($8+0 > m) m = $8+0; n++ } END { print n, s, s/n, m }' app.log\";\n    hint = 'END 블록은 다 읽은 뒤 한 번 돈다 — 합계·평균은 거의 언제나 여기서.';\n  }\n  pipeline(cmd, [['결과', outLines]], hint);\n</script>",
           "controls": [
@@ -325,7 +325,7 @@
                 },
                 {
                   "value": "stat",
-                  "label": "합계·평균·최대"
+                  "label": "합계, 평균, 최대"
                 }
               ]
             }
@@ -339,15 +339,15 @@
         },
         {
           "type": "note",
-          "text": "「grep 으로 되면 grep, 칸이 필요하면 awk, 통째로 바꾸려면 sed」가 고르는 기준이다. 셋을 다 외울 필요는 없다 — **`$숫자` 와 `END` 만 알아도** awk 의 실무 8할이 커버된다."
+          "text": "\"grep 으로 되면 grep, 칸이 필요하면 awk, 통째로 바꾸려면 sed\"가 고르는 기준이다. 셋을 다 외울 필요는 없다. **`$숫자` 와 `END` 만 알아도** awk 의 실무 8할이 커버된다."
         },
         {
           "type": "p",
-          "text": "다만 자료가 정말 CSV(따옴표 안에 쉼표가 들어가는)라면 awk 로 자르지 마라. 따옴표 규칙을 안 지켜서 조용히 틀린다 — 그때는 `csvkit`·`mlr`(miller)·`python` 을 쓰는 편이 맞다."
+          "text": "다만 자료가 정말 CSV(따옴표 안에 쉼표가 들어가는)라면 awk 로 자르지 마라. 따옴표 규칙을 안 지켜서 조용히 틀린다. 그때는 `csvkit`, `mlr`(miller), `python` 을 쓰는 편이 맞다."
         },
         {
           "type": "try",
-          "text": "내 접근 로그에서 「가장 느린 요청 10개」를 뽑아 보라: `awk '{print $NF, $0}' access.log | sort -rn | head`. `$NF` 는 마지막 칸이다."
+          "text": "내 접근 로그에서 \"가장 느린 요청 10개\"를 뽑아 보라: `awk '{print $NF, $0}' access.log | sort -rn | head`. `$NF` 는 마지막 칸이다."
         }
       ],
       "quiz": [
@@ -363,7 +363,7 @@
           "why": "$0 은 줄 전체."
         },
         {
-          "q": "합계·평균을 적는 자리는?",
+          "q": "합계, 평균을 적는 자리는?",
           "choices": [
             "BEGIN",
             "조건 블록",
@@ -374,7 +374,7 @@
           "why": "다 읽은 뒤 한 번 돈다."
         },
         {
-          "q": "「100ms 보다 느린 줄」을 고르는 도구는?",
+          "q": "\"100ms 보다 느린 줄\"을 고르는 도구는?",
           "choices": [
             "grep",
             "awk (숫자 비교)",
@@ -388,17 +388,17 @@
     },
     {
       "id": "5",
-      "title": "흐름을 다루기 — 리다이렉션과 표준 스트림",
+      "title": "흐름을 다루기. 리다이렉션과 표준 스트림",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "명령마다 통로가 셋 있다 — **stdin(0)·stdout(1)·stderr(2)**. 이 셋을 어디로 보낼지 정하는 것이 리다이렉션이고, 「로그가 안 잡힌다」·「오류만 안 보인다」의 답이 전부 여기 있다."
+          "text": "명령마다 통로가 셋 있다. **stdin(0), stdout(1), stderr(2)**. 이 셋을 어디로 보낼지 정하는 것이 리다이렉션이고, \"로그가 안 잡힌다\", \"오류만 안 보인다\"의 답이 전부 여기 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "어디로 보낼지 골라 보라 — 무엇이 파일에 남나",
+          "label": "어디로 보낼지 골라 보라. 무엇이 파일에 남나",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const r = '{{redir}}';\n  const stdout = ['정상 결과 줄 1', '정상 결과 줄 2'];\n  const stderr = ['오류: 파일을 못 찾음'];\n  const t = {\n    out:  ['cmd > out.txt', stdout, stderr, '화면에는 오류만 남는다 — stderr 는 안 딸려간다.'],\n    both: ['cmd > out.txt 2>&1', stdout.concat(stderr), [], '2>&1 = 「stderr 를 stdout 이 가는 곳으로」. 순서가 중요하다.'],\n    err:  ['cmd 2> err.txt', [], stderr, '오류만 파일로. 정상 출력은 그대로 화면에.'],\n    drop: ['cmd 2> /dev/null', stdout, [], '오류를 버린다 — 편하지만 진짜 문제도 함께 사라진다.'],\n    tee:  ['cmd | tee out.txt', stdout, stderr, 'tee = 화면에도 보이고 파일에도 남는다. 긴 작업에 좋다.'],\n  }[r];\n  pipeline(t[0], [['out.txt 에 남는 것', t[1]], ['화면에 보이는 것', t[2]]], t[3]);\n</script>",
           "controls": [
@@ -434,7 +434,7 @@
         },
         {
           "type": "note",
-          "text": "`> f 2>&1` 과 `2>&1 > f` 는 **다르다.** 앞은 둘 다 파일로 가고, 뒤는 stderr 가 「그때의 stdout」인 화면으로 간 뒤 stdout 만 파일로 바뀐다. 순서대로 해석되기 때문이다. 요즘 bash 는 `&> f` 로 줄여 쓴다."
+          "text": "`> f 2>&1` 과 `2>&1 > f` 는 **다르다.** 앞은 둘 다 파일로 가고, 뒤는 stderr 가 \"그때의 stdout\"인 화면으로 간 뒤 stdout 만 파일로 바뀐다. 순서대로 해석되기 때문이다. 요즘 bash 는 `&> f` 로 줄여 쓴다."
         },
         {
           "type": "code",
@@ -444,7 +444,7 @@
         },
         {
           "type": "p",
-          "text": "스트림이 나뉘어 있어서 **파이프가 깨끗하게 작동한다.** 진행 상황·경고는 stderr 로, 진짜 결과는 stdout 으로 내보내면 다음 명령이 결과만 받는다. 내가 만드는 스크립트도 이 규칙을 지켜야 남이 이어 붙일 수 있다."
+          "text": "스트림이 나뉘어 있어서 **파이프가 깨끗하게 작동한다.** 진행 상황, 경고는 stderr 로, 진짜 결과는 stdout 으로 내보내면 다음 명령이 결과만 받는다. 내가 만드는 스크립트도 이 규칙을 지켜야 남이 이어 붙일 수 있다."
         },
         {
           "type": "try",
@@ -489,7 +489,7 @@
     },
     {
       "id": "6",
-      "title": "여러 파일·여러 인자 — find 와 xargs",
+      "title": "여러 파일, 여러 인자. find 와 xargs",
       "minutes": 8,
       "blocks": [
         {
@@ -499,7 +499,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "작업을 골라 보라 — 목록이 어떻게 명령이 되나",
+          "label": "작업을 골라 보라. 목록이 어떻게 명령이 되나",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const job = '{{job}}';\n  const files = ['src/app.ts', 'src/util.ts', 'src/old.js', 'test/app.test.ts',\n                 'node_modules/x/index.js', 'dist/bundle.js', 'README.md'];\n  let stages, cmd, hint;\n  if (job === 'find') {\n    const f = files.filter((p) => p.endsWith('.ts') && !p.startsWith('node_modules'));\n    stages = [['전체', files], ['find 결과', f]];\n    cmd = \"find . -name '*.ts' -not -path './node_modules/*'\";\n    hint = '조건은 이름·경로·크기·수정시각으로 준다. -not -path 로 폴더를 뺀다.';\n  } else if (job === 'xargs') {\n    const f = files.filter((p) => p.endsWith('.ts'));\n    stages = [['목록', f], ['실행된 명령', ['wc -l ' + f.join(' ')]]];\n    cmd = \"find . -name '*.ts' | xargs wc -l\";\n    hint = 'xargs 는 목록을 「인자」로 바꾼다 — wc 를 파일 수만큼 부르지 않고 한 번에 넘긴다.';\n  } else if (job === 'null') {\n    const f = ['my file.ts', 'src/app.ts'];\n    stages = [['이름에 공백이 있는 파일', f],\n              ['그냥 xargs 면', ['wc -l my', 'wc -l file.ts', 'wc -l src/app.ts   <- 쪼개졌다']],\n              ['-print0 | xargs -0 이면', ['wc -l \\'my file.ts\\' src/app.ts   <- 안전']]];\n    cmd = \"find . -name '*.ts' -print0 | xargs -0 wc -l\";\n    hint = '공백·따옴표가 든 이름은 그냥 넘기면 쪼개진다. -print0 / -0 이 짝이다.';\n  } else {\n    stages = [['대상', ['src/old.js', 'dist/bundle.js']],\n              ['먼저 확인', ['find . -name \\'*.js\\' -mtime +30 -print']],\n              ['확인 뒤 실행', ['find . -name \\'*.js\\' -mtime +30 -delete']]];\n    cmd = \"find . -name '*.js' -mtime +30 -print   # 지우기 전에 반드시\";\n    hint = '지우는 명령은 **먼저 -print 로 목록을 확인**하고 나서 -delete 로 바꾼다.';\n  }\n  pipeline(cmd, stages, hint);\n</script>",
           "controls": [
@@ -541,7 +541,7 @@
         },
         {
           "type": "try",
-          "text": "`find . -name '*.ts' -not -path './node_modules/*' | xargs wc -l | sort -n | tail` 로 내 프로젝트에서 가장 긴 파일을 찾아 보라."
+          "text": "`find. -name '*.ts' -not -path './node_modules/*' | xargs wc -l | sort -n | tail` 로 내 프로젝트에서 가장 긴 파일을 찾아 보라."
         }
       ],
       "quiz": [
@@ -568,7 +568,7 @@
           "why": "구분자를 널 문자로 바꾼다."
         },
         {
-          "q": "`find … -delete` 전에 할 일은?",
+          "q": "`find -delete` 전에 할 일은?",
           "choices": [
             "백업",
             "-print 로 목록 먼저 확인",
@@ -582,7 +582,7 @@
     },
     {
       "id": "7",
-      "title": "한 줄 완성하기 — 실전 조합",
+      "title": "한 줄 완성하기. 실전 조합",
       "minutes": 8,
       "blocks": [
         {
@@ -592,7 +592,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "질문을 골라 보라 — 답이 한 줄이다",
+          "label": "질문을 골라 보라. 답이 한 줄이다",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const cols = LOG.map((l) => l.split(/\\s+/));\n  let cmd, res, hint;\n  if (q === 'top') {\n    const m = new Map();\n    cols.filter((c) => c[2] === 'ERROR').forEach((c) => m.set(c[3], (m.get(c[3]) || 0) + 1));\n    res = [...m].sort((a, b) => b[1] - a[1]).map(([k, v]) => String(v).padStart(6) + ' ' + k);\n    cmd = \"grep ERROR app.log | awk '{print $4}' | sort | uniq -c | sort -rn | head\";\n    hint = '무엇이 제일 많이 터지나 — 장애 대응의 첫 질문.';\n  } else if (q === 'slow') {\n    res = cols.filter((c) => c[7]).map((c) => [parseInt(c[7]), c])\n      .sort((a, b) => b[0] - a[0]).slice(0, 5)\n      .map(([ms, c]) => String(ms).padStart(6) + 'ms  ' + c[5] + ' ' + c[6]);\n    cmd = \"awk '{print $8, $6, $7}' app.log | sort -rn | head -5\";\n    hint = '가장 느린 요청 다섯 — 성능 조사의 첫 질문.';\n  } else if (q === 'rate') {\n    const tot = LOG.length, err = LOG.filter((l) => l.includes('ERROR')).length;\n    res = ['전체 ' + tot + '줄', '오류 ' + err + '줄', '오류율 ' + (err / tot * 100).toFixed(1) + '%'];\n    cmd = \"awk '{ n++ } /ERROR/ { e++ } END { print n, e, e/n*100 \\\"%\\\" }' app.log\";\n    hint = '한 번 훑으면서 두 가지를 동시에 센다 — 파일을 두 번 읽지 않는다.';\n  } else {\n    const m = new Map();\n    cols.forEach((c) => { const min = c[1].slice(0, 5); m.set(min, (m.get(min) || 0) + 1); });\n    res = [...m].sort().map(([k, v]) => k + '  ' + '#'.repeat(v) + ' ' + v);\n    cmd = \"awk '{print substr($2,1,5)}' app.log | sort | uniq -c\";\n    hint = '분 단위로 묶어 몰린 시각을 본다 — 「언제 터졌나」.';\n  }\n  pipeline(cmd, [['결과', res]], hint);\n</script>",
           "controls": [
@@ -630,20 +630,20 @@
         },
         {
           "type": "note",
-          "text": "`tail -f | grep` 이 아무것도 안 뿜을 때가 있다 — grep 이 출력을 모아 두기 때문이다. `--line-buffered`(또는 `stdbuf -oL`)를 붙여 줄 단위로 흘리게 하라. 「파이프에 걸면 조용해지는」 문제의 표준 처방이다."
+          "text": "`tail -f | grep` 이 아무것도 안 뿜을 때가 있다. grep 이 출력을 모아 두기 때문이다. `--line-buffered`(또는 `stdbuf -oL`)를 붙여 줄 단위로 흘리게 하라. \"파이프에 걸면 조용해지는\" 문제의 표준 처방이다."
         },
         {
           "type": "p",
-          "text": "그리고 한 줄이 길어지면 **파일로 옮겨라.** 세 번 이상 쓸 것이면 스크립트가 되고, 그때부터는 이름·주석·인자가 생긴다. 셸 한 줄의 값은 「빨리 답을 얻는 것」이지 「영원히 쓰는 것」이 아니다."
+          "text": "그리고 한 줄이 길어지면 **파일로 옮겨라.** 세 번 이상 쓸 것이면 스크립트가 되고, 그때부터는 이름, 주석, 인자가 생긴다. 셸 한 줄의 값은 \"빨리 답을 얻는 것\"이지 \"영원히 쓰는 것\"이 아니다."
         },
         {
           "type": "try",
-          "text": "위 네 질문 중 하나를 골라 내 실제 로그에 돌려 보라. 결과가 안 나오면 칸 번호가 다른 것이다 — `head -1 log | awk '{print NF}'` 로 칸 수부터 세어라."
+          "text": "위 네 질문 중 하나를 골라 내 실제 로그에 돌려 보라. 결과가 안 나오면 칸 번호가 다른 것이다. `head -1 log | awk '{print NF}'` 로 칸 수부터 세어라."
         }
       ],
       "quiz": [
         {
-          "q": "「무엇이 제일 많이 나왔나」의 표준 조합은?",
+          "q": "\"무엇이 제일 많이 나왔나\"의 표준 조합은?",
           "choices": [
             "grep | wc",
             "sort | uniq -c | sort -rn",
@@ -657,7 +657,7 @@
           "q": "`tail -f | grep` 이 조용할 때는?",
           "choices": [
             "로그가 없다",
-            "grep 이 출력을 모아 둔다 — --line-buffered",
+            "grep 이 출력을 모아 둔다. --line-buffered",
             "권한 문제",
             "파이프 오류"
           ],
@@ -679,17 +679,17 @@
     },
     {
       "id": "8",
-      "title": "안전하게 — 잘못 치면 되돌릴 수 없다",
+      "title": "안전하게. 잘못 치면 되돌릴 수 없다",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "셸은 물어보지 않는다. `rm -rf` 는 확인 없이 지우고, `>` 는 확인 없이 덮어쓴다. 그래서 **위험한 명령에는 순서가 있다** — 먼저 보고, 그다음 실행한다."
+          "text": "셸은 물어보지 않는다. `rm -rf` 는 확인 없이 지우고, `>` 는 확인 없이 덮어쓴다. 그래서 **위험한 명령에는 순서가 있다**. 먼저 보고, 그다음 실행한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 무엇이 위험한가",
+          "label": "상황을 골라 보라. 무엇이 위험한가",
           "height": "330px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    rm: ['rm -rf $DIR/*',\n      ['$DIR 이 비어 있으면?  ->  rm -rf /*  (시스템이 지워진다)'],\n      ['rm -rf \\\"${DIR:?DIR 이 비었다}\\\"/*   <- 비어 있으면 멈춘다',\n       '또는 먼저 ls \\\"$DIR\\\" 로 확인'],\n      '변수가 빈 채로 펼쳐지는 것이 셸 사고의 대표 원인이다.'],\n    quote: ['for f in $(ls)',\n      ['이름에 공백이 있으면 쪼개진다', 'my file.txt  ->  my / file.txt 두 개로'],\n      ['for f in *; do …; done   <- 글롭을 그대로', '변수는 늘 \\\"$f\\\" 로 감싼다'],\n      'ls 의 출력을 파싱하지 마라 — 셸 초보와 숙련자를 가르는 한 줄.'],\n    over: ['cmd > important.log',\n      ['파일이 있어도 묻지 않고 통째로 덮어쓴다'],\n      ['cmd >> important.log   <- 이어 붙이기', 'set -o noclobber   <- > 로 덮어쓰기 금지'],\n      '실수로 원본을 날리는 가장 흔한 한 글자 차이.'],\n    script: ['#!/bin/bash 만 적힌 스크립트',\n      ['중간 명령이 실패해도 계속 진행한다', '없는 변수를 빈 값으로 조용히 쓴다'],\n      ['set -euo pipefail 을 맨 위에',\n       'e=실패하면 멈춤 · u=없는 변수면 오류 · pipefail=파이프 중간 실패도 잡음'],\n      '이 한 줄이 스크립트의 안전벨트다.'],\n  }[c];\n  pipeline(t[0], [['무엇이 문제인가', t[1]], ['이렇게 한다', t[2]]], t[3]);\n</script>",
           "controls": [
@@ -727,11 +727,11 @@
         },
         {
           "type": "note",
-          "text": "**`--dry-run` 이 있는 명령은 먼저 그것으로 돌려라.** `rsync --dry-run`, `git clean -n`, `docker system prune --dry-run`. 없으면 실행 대신 `echo` 를 앞에 붙여 「무엇이 실행될지」를 먼저 찍어 보라 — `find … | xargs echo rm`."
+          "text": "**`--dry-run` 이 있는 명령은 먼저 그것으로 돌려라.** `rsync --dry-run`, `git clean -n`, `docker system prune --dry-run`. 없으면 실행 대신 `echo` 를 앞에 붙여 \"무엇이 실행될지\"를 먼저 찍어 보라. `find | xargs echo rm`."
         },
         {
           "type": "try",
-          "text": "내 스크립트 파일들 맨 위에 `set -euo pipefail` 이 있는지 확인하라. 없으면 하나 골라 넣고 돌려 보라 — 지금까지 조용히 실패하던 줄이 드러날 수 있다."
+          "text": "내 스크립트 파일들 맨 위에 `set -euo pipefail` 이 있는지 확인하라. 없으면 하나 골라 넣고 돌려 보라. 지금까지 조용히 실패하던 줄이 드러날 수 있다."
         }
       ],
       "quiz": [
@@ -761,7 +761,7 @@
           "q": "`ls` 의 출력을 반복문에 쓰면 안 되는 이유는?",
           "choices": [
             "느려서",
-            "이름의 공백·특수문자로 쪼개져서",
+            "이름의 공백, 특수문자로 쪼개져서",
             "정렬 때문",
             "권한 때문"
           ],
@@ -772,7 +772,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -788,22 +788,22 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.55 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .stage { border-left:2px solid #334155; padding-left:10px; margin-top:8px; }\n  .n { color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"app\"></div>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const app = document.getElementById('app');\n  /** 예제 로그 — 모든 장이 같은 자료를 쓴다(매 장 새 자료를 읽게 하지 않으려고). */\n  const LOG = [\n    '2026-08-13 10:01:22 INFO  api  GET /users 200 12ms',\n    '2026-08-13 10:01:23 WARN  api  GET /users 200 812ms',\n    '2026-08-13 10:01:25 ERROR db   connect timeout',\n    '2026-08-13 10:02:01 INFO  api  POST /login 200 44ms',\n    '2026-08-13 10:02:04 ERROR api  POST /login 500 8ms',\n    '2026-08-13 10:02:09 INFO  api  GET /users 200 15ms',\n    '2026-08-13 10:03:11 ERROR db   connect timeout',\n    '2026-08-13 10:03:40 INFO  web  GET /index 200 3ms',\n    '2026-08-13 10:04:02 ERROR api  GET /users 500 21ms',\n    '2026-08-13 10:04:30 WARN  web  GET /index 200 640ms',\n  ];\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계별 결과를 세로로 쌓아 보여 준다 — 파이프가 「단계」라는 걸 눈으로 보게. */\n  function pipeline(cmd, stages, hint) {\n    document.getElementById('cmd').textContent = '$ ' + cmd;\n    app.innerHTML = stages.map(([name, lines]) =>\n      '<div class=\"stage\"><div class=\"hint\"><span class=\"n\">' + esc(name) + '</span> — ' + lines.length + '줄</div>' +\n      '<pre>' + esc(lines.slice(0, 8).join('\\n') || '(빈 결과)') +\n      (lines.length > 8 ? '\\n…' : '') + '</pre></div>').join('');\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['uniq -c 앞에는 sort 가 필요하다', true],\n    ['sed s/a/b/ 는 줄의 모든 a 를 바꾼다', false],\n    ['cmd > f 는 stderr 도 파일로 보낸다', false],\n    ['awk 의 END 블록은 다 읽은 뒤 한 번 돈다', true],\n    ['find … -delete 는 되돌릴 수 있다', false],\n    ['xargs -P 4 는 네 개씩 동시에 돌린다', true],\n  ];\n  document.getElementById('cmd').textContent = '$ self-check';\n  app.innerHTML = '<pre>' + q.map(([t, a]) => (a ? '  O  ' : '  X  ') + t).join('\\n') + '</pre>';\n  document.getElementById('hint').textContent =\n    '틀린 것이 있으면 그 장으로 — 1장(uniq) 3장(g) 5장(2>&1) 4장(END) 6장(delete·-P)';\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 프로세스·포트·자원이다. 여기까지가 「글줄을 다루는 법」이었다면, 다음은 **지금 무엇이 돌고 있고 무엇을 물고 있나**를 보는 법이다."
+          "text": "다음 칸은 프로세스, 포트, 자원이다. 여기까지가 \"글줄을 다루는 법\"이었다면, 다음은 **지금 무엇이 돌고 있고 무엇을 물고 있나**를 보는 법이다."
         },
         {
           "type": "try",
-          "text": "위 표에서 오늘 실제로 쓴 줄에 표시해 보라. 안 써 본 줄 하나를 골라 지금 내 프로젝트에서 한 번 실행해라 — 손이 기억하는 것만 남는다."
+          "text": "위 표에서 오늘 실제로 쓴 줄에 표시해 보라. 안 써 본 줄 하나를 골라 지금 내 프로젝트에서 한 번 실행해라. 손이 기억하는 것만 남는다."
         }
       ],
       "quiz": [
         {
-          "q": "「무엇이 몇 번 나왔나」를 세는 조합은?",
+          "q": "\"무엇이 몇 번 나왔나\"를 세는 조합은?",
           "choices": [
             "grep -c",
             "sort | uniq -c | sort -rn",

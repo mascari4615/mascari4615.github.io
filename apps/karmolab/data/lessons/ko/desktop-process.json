@@ -4,7 +4,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "데스크톱 앱은 **두 세계**로 나뉜다 — 화면(웹뷰)과 시스템 권한을 가진 쪽. 그 경계가 곧 **보안 경계**다."
+      "text": "데스크톱 앱은 **두 세계**로 나뉜다. 화면(웹뷰)과 시스템 권한을 가진 쪽. 그 경계가 곧 **보안 경계**다."
     },
     {
       "type": "h",
@@ -23,18 +23,18 @@
     {
       "type": "code",
       "lang": "js",
-      "label": "Electron — 필요한 것만 노출",
+      "label": "Electron. 필요한 것만 노출",
       "text": "// preload.js\nconst { contextBridge, ipcRenderer } = require('electron');\ncontextBridge.exposeInMainWorld('api', {\n  readConfig: () => ipcRenderer.invoke('config:read'),   // 특정 기능만\n});\n// nodeIntegration: false · contextIsolation: true 는 기본으로 둔다"
     },
     {
       "type": "code",
       "lang": "rust",
-      "label": "Tauri — 명령 단위 노출",
+      "label": "Tauri. 명령 단위 노출",
       "text": "#[tauri::command]\nfn read_config(app: tauri::AppHandle) -> Result<Config, String> { … }\n// 프런트: await invoke('read_config')"
     },
     {
       "type": "note",
-      "text": "「파일을 읽어 주는 범용 함수」를 노출하면 **경계가 사라진다**. `readFile(path)` 대신 `readConfig()` 처럼 **의도 단위**로 노출하라."
+      "text": "\"파일을 읽어 주는 범용 함수\"를 노출하면 **경계가 사라진다**. `readFile(path)` 대신 `readConfig()` 처럼 **의도 단위**로 노출하라."
     },
     {
       "type": "h",
@@ -42,7 +42,7 @@
     },
     {
       "type": "p",
-      "text": "웹뷰 스레드에서 무거운 계산을 하면 화면이 멈춘다. 파일 스캔·이미지 변환 같은 것은 **백엔드(Rust·Node)에서 비동기**로 돌리고 진행률만 이벤트로 보내라."
+      "text": "웹뷰 스레드에서 무거운 계산을 하면 화면이 멈춘다. 파일 스캔, 이미지 변환 같은 것은 **백엔드(Rust, Node)에서 비동기**로 돌리고 진행률만 이벤트로 보내라."
     },
     {
       "type": "h",
@@ -60,7 +60,7 @@
     },
     {
       "type": "note",
-      "text": "**두 쪽을 따로 본다** — 웹뷰는 개발자도구, 백엔드는 로그·디버거. 「호출했는데 아무 일도 없다」의 절반은 명령 등록 누락, 나머지는 권한/허용 목록 설정이다."
+      "text": "**두 쪽을 따로 본다**. 웹뷰는 개발자도구, 백엔드는 로그, 디버거. \"호출했는데 아무 일도 없다\"의 절반은 명령 등록 누락, 나머지는 권한/허용 목록 설정이다."
     },
     {
       "type": "h",

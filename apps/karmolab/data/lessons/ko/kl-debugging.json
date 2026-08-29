@@ -9,12 +9,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "고장을 만나면 손이 먼저 나간다 — 「여기가 문제겠지」 하고 고쳐 보는 것. 그런데 **추측으로 고치면 두 가지가 나빠진다**: 안 고쳐지고, 코드가 지저분해진다."
+          "text": "고장을 만나면 손이 먼저 나간다. \"여기가 문제겠지\" 하고 고쳐 보는 것. 그런데 **추측으로 고치면 두 가지가 나빠진다**: 안 고쳐지고, 코드가 지저분해진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방식을 골라 보라 — 어느 쪽이 빨리 끝나나",
+          "label": "방식을 골라 보라. 어느 쪽이 빨리 끝나나",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const way = '{{way}}', hard = {{hard}};\n  const suspects = 8;\n  /* 추측: 후보 중 하나를 찍는다 (맞을 확률 1/8) · 관측: 절반씩 지운다 */\n  const guessTries = suspects / 2;                    /* 평균 */\n  const obsTries = Math.ceil(Math.log2(suspects));\n  const setup = way === 'guess' ? 0 : (hard ? 12 : 4); /* 관측 도구를 세우는 값 */\n  const perTry = hard ? 6 : 2;                         /* 한 번 확인하는 데 드는 분 */\n  const guessMin = guessTries * perTry + (hard ? 20 : 4);  /* 못 잡으면 헤매는 값 */\n  const obsMin = setup + obsTries * perTry;\n  const mine = way === 'guess' ? guessMin : obsMin;\n  const other = way === 'guess' ? obsMin : guessMin;\n  stage.innerHTML = '<div class=\"panel\">'\n    + [['추측으로 고쳐 보기', guessMin, '#f59e0b'], ['재현 루프 세우고 좁히기', obsMin, '#22c55e']]\n      .map(([n, v, c]) => '<div style=\"margin:6px 0\">' + n + ' — <b style=\"color:' + c + '\">'\n        + v + '분</b><div style=\"height:9px;background:#334155;border-radius:5px;margin-top:3px\">'\n        + '<div style=\"height:100%;width:' + Math.min(100, v * 1.6) + '%;background:' + c + ';border-radius:5px\"></div></div></div>').join('')\n    + '</div>';\n  clearLog('난이도와 방식을 바꿔 보라');\n  app.innerHTML = '<div class=\"hint\">' + (hard ? '어려운 고장(가끔 나고 확인이 오래 걸림)' : '쉬운 고장(바로 재현되고 확인이 빠름)')\n    + ' · 후보 ' + suspects + '곳</div>';\n  show((way === 'guess'\n    ? '추측으로 고치기\\n'\n      + '  · 도구를 안 세우니 **시작은 빠르다**\\n'\n      + '  · 그런데 틀리면 그 수정이 코드에 남는다 — 다음 사람이 이유를 모른다\\n'\n      + '  · 「고쳐진 것 같다」와 「고쳤다」를 구분할 수 없다 (재현이 없으니까)'\n    : '관측으로 좁히기 ★\\n'\n      + '  · 재현 루프를 세우는 값(' + setup + '분)을 먼저 낸다\\n'\n      + '  · 그다음부터는 후보가 **절반씩** 줄어든다 (' + obsTries + '번이면 끝)\\n'\n      + '  · 고친 뒤 「정말 고쳐졌나」를 그 루프로 확인할 수 있다') + '\\n\\n'\n     + '지금 조건에서: ' + (mine <= other ? '이 방식이 ' + (other - mine) + '분 빠르다'\n       : '다른 방식이 ' + (mine - other) + '분 빠르다') + '\\n\\n'\n     + '규칙\\n'\n     + '  · 쉬운 고장은 추측이 이길 때도 있다 — 다만 **두 번 틀리면 멈추고 루프를 세운다**\\n'\n     + '  · 어려운 고장일수록 루프의 값어치가 커진다 (그래프를 비교해 보라)\\n'\n     + '  · 「고쳐진 것 같다」로 끝내지 않는다 — 확인할 방법을 먼저 만든다');\n</script>",
           "controls": [
@@ -44,7 +44,7 @@
         },
         {
           "type": "note",
-          "text": "**같은 증상이 두 번 반복되면 가설이 틀린 것이다.** 그때는 고치기를 멈추고 진단 도구부터 세운다 — 세 번째 추측은 거의 항상 시간 낭비다."
+          "text": "**같은 증상이 두 번 반복되면 가설이 틀린 것이다.** 그때는 고치기를 멈추고 진단 도구부터 세운다. 세 번째 추측은 거의 항상 시간 낭비다."
         },
         {
           "type": "code",
@@ -54,11 +54,11 @@
         },
         {
           "type": "p",
-          "text": "**「고쳐진 것 같다」와 「고쳤다」는 다르다.** 재현 방법이 없으면 그 둘을 구분할 수 없고, 며칠 뒤 같은 증상이 다시 올라온다 — 그래서 2장의 재현이 모든 것의 앞에 온다."
+          "text": "**\"고쳐진 것 같다\"와 \"고쳤다\"는 다르다.** 재현 방법이 없으면 그 둘을 구분할 수 없고, 며칠 뒤 같은 증상이 다시 올라온다. 그래서 2장의 재현이 모든 것의 앞에 온다."
         },
         {
           "type": "try",
-          "text": "손잡이로 「어려운 고장」을 켜고 두 방식을 비교하라. 루프를 세우는 값이 왜 금방 회수되는지 그래프로 보인다."
+          "text": "손잡이로 \"어려운 고장\"을 켜고 두 방식을 비교하라. 루프를 세우는 값이 왜 금방 회수되는지 그래프로 보인다."
         }
       ],
       "quiz": [
@@ -66,7 +66,7 @@
           "q": "같은 증상이 두 번 반복되면?",
           "choices": [
             "한 번 더 시도",
-            "가설이 틀린 것 — 진단 도구를 세운다",
+            "가설이 틀린 것. 진단 도구를 세운다",
             "롤백",
             "무시"
           ],
@@ -77,7 +77,7 @@
           "q": "재현 방법이 없으면 구분할 수 없는 것은?",
           "choices": [
             "원인과 결과",
-            "「고쳐진 것 같다」와 「고쳤다」",
+            "\"고쳐진 것 같다\"와 \"고쳤다\"",
             "층과 파일",
             "로그와 오류"
           ],
@@ -99,17 +99,17 @@
     },
     {
       "id": "2",
-      "title": "재현 — 손에 쥐어야 고친다",
+      "title": "재현. 손에 쥐어야 고친다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**재현이 되면 절반은 끝난 것이다.** 문제는 「가끔 난다」인데, 재현율이 낮을수록 확인 한 번의 값어치가 떨어진다 — 그 값을 숫자로 보자."
+          "text": "**재현이 되면 절반은 끝난 것이다.** 문제는 \"가끔 난다\"인데, 재현율이 낮을수록 확인 한 번의 값어치가 떨어진다. 그 값을 숫자로 보자."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "재현율을 밀어 보라 — 몇 번 돌려야 믿을 수 있나",
+          "label": "재현율을 밀어 보라. 몇 번 돌려야 믿을 수 있나",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const p = {{rate}} / 100;\n  /* 고쳤다고 믿으려면: 안 고쳤을 때 N번 연속 통과할 확률이 충분히 낮아야 한다 */\n  const need = (conf) => p <= 0 ? Infinity : Math.ceil(Math.log(1 - conf) / Math.log(1 - p));\n  const n90 = need(0.9), n99 = need(0.99);\n  const rows = [['90% 확신', n90], ['99% 확신', n99]];\n  stage.innerHTML = '<div class=\"panel\">재현율 <b>' + (p * 100).toFixed(0) + '%</b> 일 때 '\n    + '「고쳤다」고 말하려면<table style=\"margin-top:6px\">'\n    + rows.map(([a, v]) => '<tr><td>' + a + '</td><td><b style=\"color:'\n        + (v > 20 ? '#fca5a5' : '#4ade80') + '\">' + (isFinite(v) ? v + '번 연속 통과' : '판정 불가')\n        + '</b></td></tr>').join('') + '</table></div>';\n  clearLog('재현율을 5% · 30% · 100% 로 바꿔 보라');\n  app.innerHTML = '<div class=\"hint\">한 번 돌릴 때 증상이 나올 확률 = 재현율</div>';\n  show('왜 재현율을 먼저 올려야 하나\\n'\n     + '  재현율 100% → 1번 통과하면 끝난다\\n'\n     + '  재현율 30%  → ' + need(0.9) + '번은 연속 통과해야 90% 확신이 선다\\n'\n     + '  재현율 5%   → ' + need(0.9) + '번… 사실상 판정 불가\\n\\n'\n     + '재현율을 올리는 방법\\n'\n     + '  · 조건을 고정한다 — 같은 데이터·같은 순서·같은 창 크기\\n'\n     + '  · 느리게 만들어 본다 — 네트워크 제한, 일부러 지연 넣기 (경쟁 조건이면 잘 터진다)\\n'\n     + '  · 반복을 자동화한다 — 손으로 20번 대신 코드로 200번\\n'\n     + '  · 범위를 줄인다 — 그 부분만 떼어 낸 최소 재현 (7장)\\n\\n'\n     + '재현 방법을 적는 형식\\n'\n     + '  ① 무엇을 했더니  ② 무엇을 기대했는데  ③ 무엇이 일어났다\\n'\n     + '  + 환경(브라우저·웹/데스크톱·언어) — 경계가 다르면 증상도 다르다 (06칸)');\n</script>",
           "controls": [
@@ -126,7 +126,7 @@
         },
         {
           "type": "note",
-          "text": "**재현율이 낮으면 「고쳤다」를 판정할 수 없다.** 5%짜리 증상은 45번 연속 통과해야 90% 확신이 서는데, 그럴 바에는 재현율을 먼저 올리는 편이 훨씬 싸다 — 조건 고정·지연 주입·자동 반복."
+          "text": "**재현율이 낮으면 \"고쳤다\"를 판정할 수 없다.** 5%짜리 증상은 45번 연속 통과해야 90% 확신이 서는데, 그럴 바에는 재현율을 먼저 올리는 편이 훨씬 싸다. 조건 고정, 지연 주입, 자동 반복."
         },
         {
           "type": "code",
@@ -136,11 +136,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **환경을 함께 적어라.** 웹이냐 데스크톱이냐, 어느 언어냐, 창이 좁으냐 — 06칸에서 본 경계들이 다르면 증상도 달라진다. 「제 컴퓨터에선 되는데요」의 절반은 이 정보가 없어서 생긴다."
+          "text": "그리고 **환경을 함께 적어라.** 웹이냐 데스크톱이냐, 어느 언어냐, 창이 좁으냐. 06칸에서 본 경계들이 다르면 증상도 달라진다. \"제 컴퓨터에선 되는데요\"의 절반은 이 정보가 없어서 생긴다."
         },
         {
           "type": "try",
-          "text": "재현율을 10% 로 두고 필요한 통과 횟수를 보라. 그 숫자를 보면 「일단 고쳐 보고 몇 번 눌러 보자」가 왜 판정이 안 되는지 납득된다."
+          "text": "재현율을 10% 로 두고 필요한 통과 횟수를 보라. 그 숫자를 보면 \"일단 고쳐 보고 몇 번 눌러 보자\"가 왜 판정이 안 되는지 납득된다."
         }
       ],
       "quiz": [
@@ -181,17 +181,17 @@
     },
     {
       "id": "3",
-      "title": "층을 가른다 — 어디서 처음 보이나",
+      "title": "층을 가른다. 어디서 처음 보이나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "이 앱은 층이 여럿이다(02칸). **증상이 처음 보이는 층**을 찾으면 나머지 층은 볼 필요가 없다 — 범위가 한 번에 몇 분의 일로 준다."
+          "text": "이 앱은 층이 여럿이다(02칸). **증상이 처음 보이는 층**을 찾으면 나머지 층은 볼 필요가 없다. 범위가 한 번에 몇 분의 일로 준다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "증상을 골라 보라 — 첫 창과 그다음 행동",
+          "label": "증상을 골라 보라. 첫 창과 그다음 행동",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{sym}}';\n  const layers = ['터미널(빌드·검사)', 'Network(파일)', 'Console(실행)', 'Elements(DOM·CSS)', '데이터·저장'];\n  const t = {\n    blank: ['화면이 통째로 빈다', 2, 'Console 의 **첫** 오류부터.',\n      '그리는 코드가 멈췄다. 뒤에 줄줄이 뜨는 오류는 대개 첫 오류의 결과다.'],\n    loading: ['「불러오는 중…」에서 멈춘다', 1, 'Network 에 404 가 있나.',\n      '있으면 경로·빌드 문제(05칸 7장) · 없으면 Console 로 넘어간다.'],\n    key: ['화면에 열쇠 이름이 보인다', 2, 'Console 의 [i18n] 없는 열쇠 경고.',\n      '묶음을 안 받았거나(06칸 5장) 세 언어 중 하나가 빠졌다.'],\n    style: ['모양만 틀어졌다', 3, 'Elements 에서 그 요소 → Styles 의 취소선.',\n      '규칙이 졌거나 부모 배치가 다르다 (02·03칸).'],\n    stale: ['옛 화면이 계속 나온다', 4, 'Application → 캐시·서비스워커, 그리고 저장소.',\n      '강제 새로고침으로 갈리면 캐시, 아니면 저장된 값이다 (06칸 7장).'],\n    gate: ['검사기가 빨강', 0, '그 검사기가 스스로 말한 사유.',\n      '이 저장소 검사기는 파일·줄·이유를 한국어로 적어 준다 (01칸 6장).'],\n    web: ['웹에서만 안 된다', 2, 'Console — invoke 거절이 안 잡혔나.',\n      '데스크톱 경계 문제일 확률이 높다 (06칸 8장).'],\n    slow: ['느리다', 3, 'Performance 로 **재 본다**.',\n      '느낌으로 고치면 엉뚱한 곳을 고친다. 어디서 시간을 쓰는지 먼저.'],\n  }[k];\n  stage.innerHTML = '<div class=\"panel\">' + layers.map((n, i) =>\n    '<div style=\"padding:4px 8px;margin:3px 0;border-radius:6px;'\n    + (i === t[1] ? 'background:#14351f;color:#bbf7d0;border:1px solid #22c55e' : 'color:#64748b')\n    + '\">' + (i === t[1] ? '→ ' : '   ') + n + '</div>').join('') + '</div>';\n  clearLog('증상을 바꿔 가며 첫 창을 확인하라');\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>'\n    + '<div style=\"font-size:15px;color:#4ade80\">첫 행동: ' + t[2] + '</div>';\n  show(t[3] + '\\n\\n'\n     + '가르는 질문 두 개면 대부분 끝난다\\n'\n     + '  ① Elements 에서 그 요소를 찾을 수 있나?\\n'\n     + '      찾는다 → 있는데 안 보이는 것 → CSS\\n'\n     + '      못 찾는다 → 안 만들어진 것 → JS (Console)\\n'\n     + '  ② 파일은 왔나? (Network)\\n'\n     + '      404 → 경로·빌드 · 200인데 안 돎 → 코드\\n\\n'\n     + '층을 가르면 얻는 것\\n'\n     + '  · 볼 파일이 수십 개에서 한두 개로 준다\\n'\n     + '  · 「어디부터 보지」에 시간을 안 쓴다\\n'\n     + '  · 남에게 물어볼 때도 질문이 정확해진다');\n</script>",
           "controls": [
@@ -239,7 +239,7 @@
         },
         {
           "type": "note",
-          "text": "**Console 은 첫 오류부터 본다.** 자바스크립트는 오류가 나면 그 자리에서 멈추므로 뒤따르는 오류들은 대개 결과다 — 첫 줄을 고치면 나머지가 함께 사라지는 경우가 많다."
+          "text": "**Console 은 첫 오류부터 본다.** 자바스크립트는 오류가 나면 그 자리에서 멈추므로 뒤따르는 오류들은 대개 결과다. 첫 줄을 고치면 나머지가 함께 사라지는 경우가 많다."
         },
         {
           "type": "code",
@@ -249,11 +249,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **이 앱 특유의 층이 하나 더 있다** — 검사기(gate)다. 화면을 열기도 전에 터미널에서 잡히는 고장이 있고, 그쪽은 대개 사유가 한국어로 적혀 있어 가장 빨리 끝난다."
+          "text": "그리고 **이 앱 특유의 층이 하나 더 있다**. 검사기(gate)다. 화면을 열기도 전에 터미널에서 잡히는 고장이 있고, 그쪽은 대개 사유가 한국어로 적혀 있어 가장 빨리 끝난다."
         },
         {
           "type": "try",
-          "text": "여덟 증상을 다 읽어 보라. 다음에 고장을 만나면 「어느 창부터」를 고민하지 않게 된다."
+          "text": "여덟 증상을 다 읽어 보라. 다음에 고장을 만나면 \"어느 창부터\"를 고민하지 않게 된다."
         }
       ],
       "quiz": [
@@ -280,10 +280,10 @@
           "why": "뒤는 결과다."
         },
         {
-          "q": "「옛 화면이 계속 나온다」의 첫 확인은?",
+          "q": "\"옛 화면이 계속 나온다\"의 첫 확인은?",
           "choices": [
             "Styles",
-            "캐시·서비스워커·저장소",
+            "캐시, 서비스워커, 저장소",
             "타입 검사",
             "Network 속도"
           ],
@@ -299,12 +299,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "층을 갈랐어도 후보가 여럿이면 **절반씩 지운다.** 하나씩 확인하면 32곳에 32번이지만, 반씩 지우면 5번이면 끝난다 — 직접 해 보자."
+          "text": "층을 갈랐어도 후보가 여럿이면 **절반씩 지운다.** 하나씩 확인하면 32곳에 32번이지만, 반씩 지우면 5번이면 끝난다. 직접 해 보자."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 찾아 보라 — 범인이 진짜로 숨어 있다",
+          "label": "직접 찾아 보라. 범인이 진짜로 숨어 있다",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const n = {{size}};\n  const bad = Math.floor(Math.random() * n);   /* 이 데모가 몰래 정한 범인 */\n  let lo = 0, hi = n - 1, tries = 0, done = false;\n  function paint() {\n    stage.innerHTML = '<div class=\"panel\">범위를 반으로 잘라 보라 — 「이 절반에 있나?」를 물으면 답해 준다.<br>'\n      + '남은 후보: <b>' + (hi - lo + 1) + '</b>곳 (' + lo + '~' + hi + ') · 확인 횟수 <b>' + tries + '</b>'\n      + (done ? '<br><span style=\"color:#4ade80\">찾았다 — ' + bad + '번이 범인 (' + tries + '번 만에)</span>' : '') + '</div>';\n    for (let i = 0; i < n; i++) {\n      const b = document.createElement('button');\n      b.textContent = i;\n      b.disabled = i < lo || i > hi || done;\n      if (done && i === bad) b.dataset.bad = '1';\n      b.dataset.i = String(i);\n      stage.appendChild(b);\n    }\n  }\n  paint();\n  stage.addEventListener('click', (e) => {\n    const b = e.target.closest('button');\n    if (!b || b.disabled || done) return;\n    const i = Number(b.dataset.i);\n    tries++;\n    if (i === bad) { done = true; log('✓ ' + i + '번 — 여기가 범인이다 (' + tries + '번 만에 찾음)'); }\n    else if (i < bad) { lo = i + 1; log(i + '번 이하는 멀쩡하다 → 범위를 ' + lo + '~' + hi + ' 로 줄인다'); }\n    else { hi = i - 1; log(i + '번 이상은 멀쩡하다 → 범위를 ' + lo + '~' + hi + ' 로 줄인다'); }\n    paint();\n  });\n  clearLog('가운데를 눌러 보라 — 절반씩 지워진다');\n  app.innerHTML = '<div class=\"hint\">후보 ' + n + '곳 · 가운데를 고르면 이론상 '\n    + Math.ceil(Math.log2(n)) + '번 안에 끝난다</div>';\n  show('하나씩 vs 반씩\\n'\n     + '  하나씩 확인: 평균 ' + Math.round(n / 2) + '번 · 최악 ' + n + '번\\n'\n     + '  반씩 지우기: 최악 ' + Math.ceil(Math.log2(n)) + '번\\n\\n'\n     + '무엇을 반으로 자를 수 있나\\n'\n     + '  · 코드     — 함수의 절반을 주석 처리하고 증상이 남나 본다\\n'\n     + '  · 데이터   — 입력을 절반으로 줄여 본다 (어느 줄이 터뜨리나)\\n'\n     + '  · 시간(커밋) — git bisect (7장)\\n'\n     + '  · 설정     — 확장·설정을 절반씩 꺼 본다\\n'\n     + '  · 환경     — 웹/데스크톱 · 다른 브라우저 · 다른 언어\\n\\n'\n     + '조건 하나: **각 절반을 확인할 수 있어야 한다** — 그래서 2장의 재현이 먼저다.');\n</script>",
           "controls": [
@@ -321,7 +321,7 @@
         },
         {
           "type": "note",
-          "text": "**반으로 자르려면 「이 절반에 있나」에 답할 수 있어야 한다.** 그 답을 주는 것이 재현 루프이고, 그래서 2장이 4장보다 먼저 온다 — 순서가 뒤바뀌면 이분 탐색이 아니라 그냥 추측이 된다."
+          "text": "**반으로 자르려면 \"이 절반에 있나\"에 답할 수 있어야 한다.** 그 답을 주는 것이 재현 루프이고, 그래서 2장이 4장보다 먼저 온다. 순서가 뒤바뀌면 이분 탐색이 아니라 그냥 추측이 된다."
         },
         {
           "type": "code",
@@ -331,7 +331,7 @@
         },
         {
           "type": "p",
-          "text": "**최소 재현을 만드는 것도 같은 일이다.** 문제를 재현하는 가장 작은 조각까지 깎아 내려가면, 그 조각 자체가 원인을 가리키는 경우가 많다 — 깎다가 저절로 풀리는 일도 흔하다."
+          "text": "**최소 재현을 만드는 것도 같은 일이다.** 문제를 재현하는 가장 작은 조각까지 깎아 내려가면, 그 조각 자체가 원인을 가리키는 경우가 많다. 깎다가 저절로 풀리는 일도 흔하다."
         },
         {
           "type": "try",
@@ -376,7 +376,7 @@
     },
     {
       "id": "5",
-      "title": "계측 — 값을 눈으로 본다",
+      "title": "계측. 값을 눈으로 본다",
       "minutes": 9,
       "blocks": [
         {
@@ -386,7 +386,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "도구를 골라 보라 — 무엇을 얻고 무엇을 잃나",
+          "label": "도구를 골라 보라. 무엇을 얻고 무엇을 잃나",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{tool}}';\n  const t = {\n    breakpoint: ['중단점 (Sources)', 5, 5, 1,\n      '그 줄에서 멈춘다 → **그 시점의 모든 변수**를 본다.\\n'\n      + '· 코드를 안 고쳐도 된다 (다시 빌드 X)\\n'\n      + '· 조건부 중단점: 「i === 42 일 때만 멈춰」\\n'\n      + '· 호출 스택으로 「누가 불렀나」까지 거슬러 본다'],\n    logpoint: ['로그포인트', 4, 4, 1,\n      '멈추지 않고 값만 찍는다 — 코드를 안 고치고 로그를 심는 것.\\n'\n      + '· 반복이 많거나 애니메이션처럼 멈추면 안 되는 자리에 좋다\\n'\n      + '· 지우는 것도 개발자 도구에서 — 코드에 흔적이 안 남는다'],\n    console: ['console.log', 3, 2, 3,\n      '가장 익숙하지만 값이 싸지 않다.\\n'\n      + '· 코드를 고치고 다시 빌드해야 한다\\n'\n      + '· 지우는 걸 잊으면 그대로 커밋된다 (커밋 전 diff 확인 — git-areas 8장)\\n'\n      + '· 쓸 거면 **유니크 접두사**를 붙여라: [DEBUG-a4f2] — 나중에 한 번에 지운다'],\n    table: ['console.table / group', 4, 3, 2,\n      '목록·객체를 표로 본다 — 배열 20개를 한눈에.\\n'\n      + '· console.group 으로 묶으면 반복 안의 흐름이 읽힌다\\n'\n      + '· console.count / console.time 도 값이 좋다'],\n    alert: ['alert', 1, 1, 5,\n      '✗ 쓰지 마라.\\n'\n      + '· 실행을 멈춰서 타이밍이 달라진다 (경쟁 조건이 사라져 버린다)\\n'\n      + '· 값 하나만 보이고 객체는 못 본다'],\n  }[k];\n  const bars = [['얻는 정보', t[1]], ['빠르게 답에 도달', t[2]], ['치우는 비용(낮을수록 좋음)', t[3]]];\n  stage.innerHTML = '<div class=\"panel\">' + bars.map(([n2, v]) =>\n    '<div style=\"margin:6px 0\">' + n2 + '<div style=\"height:9px;background:#334155;border-radius:5px;margin-top:3px\">'\n    + '<div style=\"height:100%;width:' + v * 20 + '%;background:'\n    + (n2.startsWith('치우는') ? (v > 2 ? '#ef4444' : '#22c55e') : (v > 3 ? '#22c55e' : '#f59e0b'))\n    + ';border-radius:5px\"></div></div></div>').join('') + '</div>';\n  clearLog('도구를 바꿔 가며 비교하라');\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>';\n  show(t[4] + '\\n\\n'\n     + '고르는 순서\\n'\n     + '  1. 중단점 — 기본. 한 번 써 보면 안 돌아간다\\n'\n     + '  2. 로그포인트 — 멈추면 안 되는 자리\\n'\n     + '  3. console.log — 남겨야 하거나 자동 반복 안에서 볼 때\\n\\n'\n     + 'console.log 를 쓸 때의 규칙\\n'\n     + '  · 유니크 접두사를 붙인다: console.log(\\'[DEBUG-a4f2]\\', value)\\n'\n     + '  · 끝나면 그 접두사로 한 번에 찾아 지운다 (grep -rn DEBUG-a4f2 src/)\\n'\n     + '  · 커밋 전 git diff --staged 로 남은 것이 없나 본다 (git-areas 4장)');\n</script>",
           "controls": [
@@ -428,11 +428,11 @@
         },
         {
           "type": "note",
-          "text": "**객체를 로그로 찍으면 「나중 상태」가 보일 수 있다.** 개발자 도구가 참조를 들고 있다가 펼칠 때 읽기 때문인데, `structuredClone(obj)` 이나 `JSON.stringify` 로 그 순간을 떠 두면 이 함정을 피한다."
+          "text": "**객체를 로그로 찍으면 \"나중 상태\"가 보일 수 있다.** 개발자 도구가 참조를 들고 있다가 펼칠 때 읽기 때문인데, `structuredClone(obj)` 이나 `JSON.stringify` 로 그 순간을 떠 두면 이 함정을 피한다."
         },
         {
           "type": "p",
-          "text": "**`alert` 은 쓰지 마라.** 실행을 멈춰 타이밍을 바꾸기 때문에, 경쟁 조건처럼 순서가 중요한 고장은 alert 을 넣는 순간 사라진다 — 그러면 원인이 아니라 관측 도구를 조사하게 된다."
+          "text": "**`alert` 은 쓰지 마라.** 실행을 멈춰 타이밍을 바꾸기 때문에, 경쟁 조건처럼 순서가 중요한 고장은 alert 을 넣는 순간 사라진다. 그러면 원인이 아니라 관측 도구를 조사하게 된다."
         },
         {
           "type": "try",
@@ -477,17 +477,17 @@
     },
     {
       "id": "6",
-      "title": "가설 — 반증할 수 있게 세운다",
+      "title": "가설. 반증할 수 있게 세운다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「아마 이것 때문일 것」은 가설이 아니다. **「X 때문이면 Y 하면 사라지고 Z 하면 심해진다」**처럼 **틀렸음을 확인할 수 있는** 형태여야 한다."
+          "text": "\"아마 이것 때문일 것\"은 가설이 아니다. **\"X 때문이면 Y 하면 사라지고 Z 하면 심해진다\"**처럼 **틀렸음을 확인할 수 있는** 형태여야 한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "가설을 골라 보라 — 반증 가능한가",
+          "label": "가설을 골라 보라. 반증 가능한가",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{h}}';\n  const t = {\n    vague: ['「캐시 문제인 것 같다」', false,\n      '무엇을 하면 아니라고 말할 수 있나? 아무것도 없다.',\n      '→ 다듬으면: 「서비스워커 캐시 때문이면 **시크릿 창**에서는 안 난다」'],\n    race: ['「묶음이 늦게 와서면, 네트워크를 느리게 하면 **더 자주** 난다」', true,\n      '느리게 → 심해짐 / 미리 받아 두기 → 사라짐. 양쪽으로 확인된다.',\n      '경쟁 조건 가설의 좋은 형태다 (2장의 지연 주입과 짝을 이룬다)'],\n    listener: ['「중복 리스너면 한 번 눌렀을 때 핸들러가 **여러 번** 돈다」', true,\n      'console.count 한 줄로 즉시 판정된다 (04칸 7장).',\n      '판정 비용이 싼 가설부터 확인하는 것이 요령이다'],\n    data: ['「특정 데이터에서만 난다면, 그 항목을 빼면 사라진다」', true,\n      '입력을 반으로 줄여 가며 확인한다 (4장).',\n      '데이터 문제는 대개 이분 탐색으로 몇 분 안에 좁혀진다'],\n    blame: ['「저 라이브러리가 이상하다」', false,\n      '확인할 방법이 없고, 대개 우리 코드가 원인이다.',\n      '→ 다듬으면: 「그 함수에 같은 입력을 직접 넣어도 같은 결과가 나오나」'],\n  }[k];\n  stage.innerHTML = '<div class=\"panel\"><b>' + esc(t[0]) + '</b><br><br>'\n    + '<span style=\"font-size:15px;color:' + (t[1] ? '#4ade80' : '#fca5a5') + '\">'\n    + (t[1] ? '✓ 반증 가능하다 — 확인해 볼 수 있다' : '✗ 반증 불가 — 이대로는 못 쓴다') + '</span><br><br>'\n    + esc(t[3]) + '</div>';\n  clearLog('가설을 바꿔 가며 형태를 비교하라');\n  app.innerHTML = '';\n  show(t[2] + '\\n\\n'\n     + '좋은 가설의 모양\\n'\n     + '  「<X> 가 원인이면 <Y> 할 때 사라지고 <Z> 할 때 심해진다」\\n\\n'\n     + '세우는 요령\\n'\n     + '  · 3~5개를 **먼저 적고** 그럴듯한 순으로 줄을 세운다\\n'\n     + '  · 판정 비용이 **싼 것부터** 확인한다 (한 줄로 갈리는 것 우선)\\n'\n     + '  · 하나 확인할 때마다 후보가 줄어드는지 본다 — 안 줄면 가설 목록이 잘못된 것\\n\\n'\n     + '흔한 함정\\n'\n     + '  · 한 번에 두 곳을 고치면 **무엇이 고쳤는지 모른다** — 한 번에 하나\\n'\n     + '  · 「고쳤더니 됐다」는 우연일 수 있다 — 되돌려 보고 다시 나는지 확인하면 확실해진다');\n</script>",
           "controls": [
@@ -523,7 +523,7 @@
         },
         {
           "type": "note",
-          "text": "**「고쳤더니 됐다」는 우연일 수 있다.** 확실히 하려면 수정을 되돌려 증상이 **다시 나는지** 보면 된다 — 그 한 번의 확인이 「원인을 알고 고쳤다」와 「어쩌다 사라졌다」를 가른다."
+          "text": "**\"고쳤더니 됐다\"는 우연일 수 있다.** 확실히 하려면 수정을 되돌려 증상이 **다시 나는지** 보면 된다. 그 한 번의 확인이 \"원인을 알고 고쳤다\"와 \"어쩌다 사라졌다\"를 가른다."
         },
         {
           "type": "code",
@@ -537,7 +537,7 @@
         },
         {
           "type": "try",
-          "text": "지금 쫓고 있는 고장이 있으면 가설 3개를 적어 보라. 「무엇을 하면 사라지나」를 함께 적으면 그 자리에서 확인 순서가 정해진다."
+          "text": "지금 쫓고 있는 고장이 있으면 가설 3개를 적어 보라. \"무엇을 하면 사라지나\"를 함께 적으면 그 자리에서 확인 순서가 정해진다."
         }
       ],
       "quiz": [
@@ -564,7 +564,7 @@
           "why": "한 줄로 갈리는 것 우선."
         },
         {
-          "q": "「고쳤더니 됐다」를 확실히 하려면?",
+          "q": "\"고쳤더니 됐다\"를 확실히 하려면?",
           "choices": [
             "여러 번 눌러 본다",
             "수정을 되돌려 다시 나는지 본다",
@@ -578,17 +578,17 @@
     },
     {
       "id": "7",
-      "title": "안 풀릴 때 — 되던 시점으로",
+      "title": "안 풀릴 때. 되던 시점으로",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "가설이 다 빗나가면 방향을 바꾼다. **「되던 때가 있었나?」** — 있었다면 그때와의 차이가 답이고, 그 차이는 기계가 찾아 준다."
+          "text": "가설이 다 빗나가면 방향을 바꾼다. **\"되던 때가 있었나?\"**. 있었다면 그때와의 차이가 답이고, 그 차이는 기계가 찾아 준다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "커밋 수를 밀어 보라 — 되감기로 좁히는 값",
+          "label": "커밋 수를 밀어 보라. 되감기로 좁히는 값",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const n = {{commits}};\n  const steps = Math.ceil(Math.log2(n));\n  const perMin = {{cost}};\n  stage.innerHTML = '<div class=\"panel\">'\n    + '<table><tr><th>방법</th><th>확인 횟수</th><th>걸리는 시간</th></tr>'\n    + '<tr><td>하나씩 되돌려 보기</td><td>평균 ' + Math.round(n / 2) + '번</td>'\n    + '<td style=\"color:#fca5a5\">' + Math.round(n / 2 * perMin) + '분</td></tr>'\n    + '<tr><td>git bisect (반씩)</td><td>' + steps + '번</td>'\n    + '<td style=\"color:#4ade80\">' + (steps * perMin) + '분</td></tr>'\n    + '</table></div>';\n  clearLog('커밋 수와 확인 비용을 바꿔 보라');\n  app.innerHTML = '<div class=\"hint\">의심 구간 커밋 ' + n + '개 · 한 번 확인에 ' + perMin + '분</div>';\n  show('되던 시점을 찾는 순서\\n'\n     + '  1. 되던 판이 있나? (어제 · 지난 배포 · 다른 사람 화면)\\n'\n     + '  2. 그때와 지금의 **차이**를 본다 — 코드·데이터·환경·설정\\n'\n     + '  3. 차이가 많으면 기계에 맡긴다 — git bisect (' + steps + '번이면 끝)\\n\\n'\n     + 'git bisect 한 줄 요약\\n'\n     + '  git bisect start\\n'\n     + '  git bisect bad            # 지금은 고장\\n'\n     + '  git bisect good <옛해시>  # 그때는 멀쩡\\n'\n     + '  … 매번 확인하고 good / bad 를 답한다 …\\n'\n     + '  git bisect reset\\n\\n'\n     + '확인을 자동화할 수 있으면 사람이 답할 필요도 없다:\\n'\n     + '  git bisect run npm run test:그검사\\n\\n'\n     + '그래도 안 되면\\n'\n     + '  · **최소 재현**을 만든다 — 깎다가 저절로 풀리는 일이 흔하다\\n'\n     + '  · 소리 내어 설명해 본다 (사람이든 종이든) — 설명하다 보이는 경우가 많다\\n'\n     + '  · 잠깐 떠난다 — 같은 화면을 오래 보면 같은 곳만 본다');\n</script>",
           "controls": [
@@ -614,7 +614,7 @@
         },
         {
           "type": "note",
-          "text": "**되던 게 안 되면 재설계가 아니라 회귀부터 의심하라.** ①마지막으로 되던 시점 ②그 뒤의 변경 ③원래 의도 — 이 셋을 확인하기 전에 구조를 갈아엎으면, 원인은 그대로 둔 채 새 문제만 얻는다."
+          "text": "**되던 게 안 되면 재설계가 아니라 회귀부터 의심하라.** ①마지막으로 되던 시점 ②그 뒤의 변경 ③원래 의도. 이 셋을 확인하기 전에 구조를 갈아엎으면, 원인은 그대로 둔 채 새 문제만 얻는다."
         },
         {
           "type": "code",
@@ -624,11 +624,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **차이는 코드에만 있는 게 아니다.** 데이터가 바뀌었을 수도, 의존성이 올라갔을 수도, 브라우저가 업데이트됐을 수도 있다 — 「내 코드는 안 건드렸는데 안 된다」면 이쪽을 먼저 본다."
+          "text": "그리고 **차이는 코드에만 있는 게 아니다.** 데이터가 바뀌었을 수도, 의존성이 올라갔을 수도, 브라우저가 업데이트됐을 수도 있다. \"내 코드는 안 건드렸는데 안 된다\"면 이쪽을 먼저 본다."
         },
         {
           "type": "try",
-          "text": "커밋 수를 512 로 올려 보라. 하나씩 되돌리면 256번, bisect 는 9번이다 — 이 차이가 bisect 를 배워 둘 이유의 전부다."
+          "text": "커밋 수를 512 로 올려 보라. 하나씩 되돌리면 256번, bisect 는 9번이다. 이 차이가 bisect 를 배워 둘 이유의 전부다."
         }
       ],
       "quiz": [
@@ -655,10 +655,10 @@
           "why": "log2(512) = 9."
         },
         {
-          "q": "「내 코드는 안 건드렸는데 안 된다」면?",
+          "q": "\"내 코드는 안 건드렸는데 안 된다\"면?",
           "choices": [
             "코드만 본다",
-            "데이터·의존성·환경 변화를 본다",
+            "데이터, 의존성, 환경 변화를 본다",
             "재설치",
             "무시"
           ],
@@ -669,7 +669,7 @@
     },
     {
       "id": "8",
-      "title": "고친 뒤 — 굳히고 치운다",
+      "title": "고친 뒤. 굳히고 치운다",
       "minutes": 8,
       "blocks": [
         {
@@ -679,7 +679,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 골라 보라 — 왜 필요한가",
+          "label": "항목을 골라 보라. 왜 필요한가",
           "height": "440px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const k = '{{after}}';\n  const items = [['test', '재발 방지 장치'], ['clean', '조사 흔적 치우기'],\n                 ['scope', '같은 종류 훑기'], ['note', '왜 그랬는지 남기기'], ['verify', '진짜 고쳤나 확인']];\n  stage.innerHTML = '<div class=\"panel\">' + items.map(([id, n]) =>\n    '<div style=\"padding:4px 8px;margin:3px 0;border-radius:6px;'\n    + (id === k ? 'background:#14351f;color:#bbf7d0' : 'color:#64748b') + '\">'\n    + (id === k ? '→ ' : '   ') + n + '</div>').join('') + '</div>';\n  clearLog('항목을 바꿔 가며 읽어 보라');\n  const t = {\n    verify: ['진짜 고쳤나 확인', '2장의 재현 방법으로 다시 돌려 본다.',\n      '· 재현율이 낮았다면 필요한 횟수만큼 (2장의 표)\\n'\n      + '· 수정을 되돌리면 증상이 **다시 나는지**도 확인하면 확실해진다 (6장)'],\n    test: ['재발 방지 장치', '올바른 자리에 검사를 하나 남긴다.',\n      '· 이 저장소는 검사기(gate)가 그 역할을 한다 — 비슷한 검사가 이미 있는지 먼저 본다\\n'\n      + '· 검사를 못 만들 자리면, 코드에 조건을 두거나 주석으로 이유를 남긴다\\n'\n      + '· 「고치기 전에 실패하는 검사를 먼저」가 가장 확실하다'],\n    clean: ['조사 흔적 치우기', '심어 둔 로그·중단점·임시 파일을 지운다.',\n      '· 유니크 접두사를 썼다면 한 번에 찾아 지운다 (5장)\\n'\n      + '· 커밋 전 git diff --staged 로 확인 (git-areas 4장)\\n'\n      + '· 임시 검증 스크립트도 지운다 — 남기려면 제대로 된 자리에'],\n    scope: ['같은 종류 훑기', '같은 실수가 다른 데도 있는지 본다.',\n      '· 원인이 패턴이면(예: 다시 그릴 때 리스너를 붙임) 다른 위젯도 같을 수 있다\\n'\n      + '· grep 한 번이면 확인된다 — 이때가 가장 싸다'],\n    note: ['왜 그랬는지 남기기', '커밋 메시지·주석에 원인과 근거를.',\n      '· 「무엇을 고쳤나」보다 **「왜 그게 원인이었나」**가 값이 크다\\n'\n      + '· 이 저장소 코드에는 그런 주석이 실제로 많다 — 같은 함정을 두 번 안 밟으려고\\n'\n      + '· 다음 사람이 그 코드를 「이상한데?」 하며 지우는 것을 막는다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>'\n    + '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '한 판의 끝맺음 순서\\n'\n     + '  ① 재현 방법으로 확인 → ② 재발 방지 → ③ 같은 종류 훑기\\n'\n     + '  → ④ 흔적 치우기 → ⑤ 이유 남기기 → 커밋\\n\\n'\n     + '이 저장소에서의 실제 모습\\n'\n     + '  · 검사기를 하나 더 두거나, 있는 검사기의 범위를 넓힌다\\n'\n     + '  · 커밋 메시지에 증상·원인·근거를 적는다\\n'\n     + '  · 코드에 「왜 이렇게 했는지」 주석 — 지우면 안 되는 이유를 남긴다');\n</script>",
           "controls": [
@@ -715,7 +715,7 @@
         },
         {
           "type": "note",
-          "text": "**「왜 그게 원인이었나」가 「무엇을 고쳤나」보다 값이 크다.** 다음 사람(대개 반년 뒤의 나)이 그 코드를 보고 「이건 왜 이렇지?」 하며 지우는 것을 막아 주기 때문이다 — 이 저장소 코드에 긴 주석이 많은 이유다."
+          "text": "**\"왜 그게 원인이었나\"가 \"무엇을 고쳤나\"보다 값이 크다.** 다음 사람(대개 반년 뒤의 나)이 그 코드를 보고 \"이건 왜 이렇지?\" 하며 지우는 것을 막아 주기 때문이다. 이 저장소 코드에 긴 주석이 많은 이유다."
         },
         {
           "type": "code",
@@ -725,11 +725,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **같은 종류를 훑는 것이 가장 싼 순간이 지금**이다. 원인이 패턴이라면 다른 위젯에도 같은 코드가 있을 확률이 높고, `grep` 한 번이면 확인된다 — 나중에 하나씩 버그로 만나는 것보다 훨씬 싸다."
+          "text": "그리고 **같은 종류를 훑는 것이 가장 싼 순간이 지금**이다. 원인이 패턴이라면 다른 위젯에도 같은 코드가 있을 확률이 높고, `grep` 한 번이면 확인된다. 나중에 하나씩 버그로 만나는 것보다 훨씬 싸다."
         },
         {
           "type": "try",
-          "text": "최근에 고친 것이 있으면 그 커밋 메시지를 다시 보라. 「왜 그게 원인이었나」가 적혀 있는지 — 없다면 지금 주석으로 남겨도 늦지 않다."
+          "text": "최근에 고친 것이 있으면 그 커밋 메시지를 다시 보라. \"왜 그게 원인이었나\"가 적혀 있는지. 없다면 지금 주석으로 남겨도 늦지 않다."
         }
       ],
       "quiz": [
@@ -770,7 +770,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -786,16 +786,16 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 눌러서 확인",
+          "label": "스스로 채점. 눌러서 확인",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px;\n           display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage button[data-bad=\"1\"] { background:#3b1d1d; border-color:#ef4444; }\n  #stage button:disabled { opacity:.35; cursor:default; }\n  #stage .panel { flex:1 1 100%; min-width:0; background:#111c33; border:1px solid #334155; border-radius:8px;\n                  padding:10px; font:12px/1.7 system-ui; color:#cbd5e1; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:104px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n</script>\n<script>\n  const q = [\n    ['같은 증상이 두 번 반복되면 가설이 틀린 것이다', true],\n    ['재현율이 낮아도 몇 번 눌러 보면 판정할 수 있다', false],\n    ['후보 32곳은 반씩 지우면 5번이면 좁혀진다', true],\n    ['alert 은 디버깅에 좋은 도구다', false],\n    ['「캐시 문제인 것 같다」는 쓸 만한 가설이다', false],\n    ['한 번에 두 곳을 고쳐도 원인을 알 수 있다', false],\n    ['되던 게 안 되면 회귀부터 의심한다', true],\n    ['커밋 메시지에는 왜 그게 원인이었는지를 적는다', true],\n  ];\n  stage.style.flexDirection = 'column';\n  stage.innerHTML = '';\n  q.forEach(([text], i) => {\n    const b = document.createElement('button');\n    b.style.cssText = 'text-align:left;width:100%'; b.dataset.i = String(i);\n    b.textContent = '? ' + text; stage.appendChild(b);\n  });\n  let seen = 0;\n  stage.addEventListener('click', (e) => {\n    const b = e.target.closest('button');\n    if (!b || b.dataset.done) return;\n    const [text, ans] = q[Number(b.dataset.i)];\n    b.dataset.done = '1'; b.dataset.on = ans ? '1' : '0';\n    b.textContent = (ans ? 'O ' : 'X ') + text;\n    if (!ans) b.dataset.bad = '1';\n    log((ans ? '맞다' : '아니다') + ' — ' + text + '   (' + (++seen) + '/8)');\n  });\n  clearLog('문항을 눌러 답을 확인하라');\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 2장(재현율) 4장(반씩) 5장(도구) 6장(가설) 7장(회귀)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 **증상 사전**이다. 여기서 익힌 순서를 「이 증상이면 이 창」 형태로 빠르게 찾아볼 수 있게 정리한 것 — 방법을 아는 것과 손이 바로 나가는 것은 다르니까."
+          "text": "다음 칸은 **증상 사전**이다. 여기서 익힌 순서를 \"이 증상이면 이 창\" 형태로 빠르게 찾아볼 수 있게 정리한 것. 방법을 아는 것과 손이 바로 나가는 것은 다르니까."
         },
         {
           "type": "try",
-          "text": "일부러 고장을 하나 내 보라 — 위젯 코드에 오타를 넣거나, 없는 id 를 찾게 하거나, 말 묶음 열쇠를 틀리게 써 보라. 그리고 **어느 창에 처음 보이는지** 확인하라. 이 칸의 진짜 시험이다."
+          "text": "일부러 고장을 하나 내 보라. 위젯 코드에 오타를 넣거나, 없는 id 를 찾게 하거나, 말 묶음 열쇠를 틀리게 써 보라. 그리고 **어느 창에 처음 보이는지** 확인하라. 이 칸의 진짜 시험이다."
         }
       ],
       "quiz": [

@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "문법이 예뻐도 **라이브러리·채용·도구**가 없으면 프로젝트가 고생한다 — 언어는 **생태계까지가 언어**다. 실제로 쓰는 건 언어 코어(문법·표준 라이브러리)뿐 아니라 그 위의 패키지·프레임워크·빌드 도구·IDE·디버거·배포 도구·커뮤니티 지식·채용 시장 전체다. 「이 언어가 멋있나」가 아니라 「이 언어로 **이 문제를** 풀 때, 그 주변이 다 갖춰져 있나」가 진짜 질문이다."
+          "text": "문법이 예뻐도 **라이브러리, 채용, 도구**가 없으면 프로젝트가 고생한다. 언어는 **생태계까지가 언어**다. 실제로 쓰는 건 언어 코어(문법, 표준 라이브러리)뿐 아니라 그 위의 패키지, 프레임워크, 빌드 도구, IDE, 디버거, 배포 도구, 커뮤니티 지식, 채용 시장 전체다. \"이 언어가 멋있나\"가 아니라 \"이 언어로 **이 문제를** 풀 때, 그 주변이 다 갖춰져 있나\"가 진짜 질문이다."
         },
         {
           "type": "demo",
@@ -37,23 +37,23 @@
         },
         {
           "type": "note",
-          "text": "**언어 선택은 「문법」이 아니라 「그 언어로 이 문제를 풀 때 필요한 전부가 갖춰졌나」다.** 실전에서 개발 속도·안정성을 좌우하는 건 문법의 우아함이 아니라 ① 이 문제 영역의 **성숙한 라이브러리·프레임워크** ② **도구**(빌드·패키지 매니저·IDE·디버거·배포) ③ **커뮤니티 지식**(막혔을 때 검색하면 나오나) ④ **채용·유지보수**(사람을 구할 수 있나)다. 아무리 언어가 좋아도 이 영역에서 라이브러리를 직접 만들어야 하거나, 도구가 미숙하거나, 아무도 안 쓰면 프로젝트가 고생한다. 그래서 언어를 고를 땐 코어보다 **주변**을 본다 — 언어는 생태계까지가 언어다."
+          "text": "**언어 선택은 \"문법\"이 아니라 \"그 언어로 이 문제를 풀 때 필요한 전부가 갖춰졌나\"다.** 실전에서 개발 속도, 안정성을 좌우하는 건 문법의 우아함이 아니라 ① 이 문제 영역의 **성숙한 라이브러리, 프레임워크** ② **도구**(빌드, 패키지 매니저, IDE, 디버거, 배포) ③ **커뮤니티 지식**(막혔을 때 검색하면 나오나) ④ **채용, 유지보수**(사람을 구할 수 있나)다. 아무리 언어가 좋아도 이 영역에서 라이브러리를 직접 만들어야 하거나, 도구가 미숙하거나, 아무도 안 쓰면 프로젝트가 고생한다. 그래서 언어를 고를 땐 코어보다 **주변**을 본다. 언어는 생태계까지가 언어다."
         },
         {
           "type": "p",
-          "text": "**이 칸은 「실무 언어 선택」 — lang-second 의 「배움용 언어」와 다르다(lang-second 8장).** 관점을 넓히려 배우는 언어는 「안 겪은 축」으로 고르지만(어려움이 소득), 프로젝트에 쓸 언어는 **생태계·팀·현실**로 고른다(위험을 줄이는 게 목적). 두 기준을 섞으면 안 된다 — 멋져서 배운 언어를 무조건 프로젝트에 넣으려 하거나(생태계 부족으로 고생), 익숙하다고 새 관점을 안 배우거나(성장 정체). 이 칸은 **프로젝트에 무엇을 쓸까**의 실무 판단이다: 배움은 다른 축으로 넓히되, 실무는 갖춰진 것으로 안전하게 — 목적이 다르면 기준도 다르다."
+          "text": "**이 칸은 \"실무 언어 선택\". lang-second 의 \"배움용 언어\"와 다르다(lang-second 8장).** 관점을 넓히려 배우는 언어는 \"안 겪은 축\"으로 고르지만(어려움이 소득), 프로젝트에 쓸 언어는 **생태계, 팀, 현실**로 고른다(위험을 줄이는 게 목적). 두 기준을 섞으면 안 된다. 멋져서 배운 언어를 무조건 프로젝트에 넣으려 하거나(생태계 부족으로 고생), 익숙하다고 새 관점을 안 배우거나(성장 정체). 이 칸은 **프로젝트에 무엇을 쓸까**의 실무 판단이다: 배움은 다른 축으로 넓히되, 실무는 갖춰진 것으로 안전하게. 목적이 다르면 기준도 다르다."
         },
         {
           "type": "try",
-          "text": "지금 프로젝트에 쓰는 언어를 「문법이 좋아서」가 아니라 「생태계(라이브러리·도구·채용)가 갖춰져서」의 관점으로 다시 평가하라 — 어느 영역이 강하고 어디가 약한지 적어라."
+          "text": "지금 프로젝트에 쓰는 언어를 \"문법이 좋아서\"가 아니라 \"생태계(라이브러리, 도구, 채용)가 갖춰져서\"의 관점으로 다시 평가하라. 어느 영역이 강하고 어디가 약한지 적어라."
         }
       ],
       "quiz": [
         {
-          "q": "「언어는 생태계까지가 언어」의 뜻은?",
+          "q": "\"언어는 생태계까지가 언어\"의 뜻은?",
           "choices": [
             "문법이 전부",
-            "코어+라이브러리·도구·커뮤니티·채용 전체가 언어",
+            "코어+라이브러리, 도구, 커뮤니티, 채용 전체가 언어",
             "표준 라이브러리만",
             "빠름"
           ],
@@ -64,7 +64,7 @@
           "q": "실전 언어 선택에서 문법의 우아함은?",
           "choices": [
             "가장 중요",
-            "일부일 뿐 — 생태계·도구·채용이 더 좌우",
+            "일부일 뿐. 생태계, 도구, 채용이 더 좌우",
             "무관",
             "유일 기준"
           ],
@@ -75,7 +75,7 @@
           "q": "실무 언어와 배움용 언어의 기준은?",
           "choices": [
             "같음",
-            "실무=생태계·현실, 배움=안 겪은 축(다름)",
+            "실무=생태계, 현실, 배움=안 겪은 축(다름)",
             "둘 다 인기",
             "둘 다 문법"
           ],
@@ -91,12 +91,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "실무 언어를 고르는 여섯 기준: ① **이 문제 영역의 라이브러리·프레임워크가 성숙한가** ② **팀이 이미 쓸 줄 아는가**(가장 현실적) ③ **채용·유지보수가 가능한가**(5년 뒤에도) ④ **도구**(빌드·IDE·디버거·배포)가 갖춰졌나 ⑤ **성능·특성**이 요구에 맞나(지연·메모리, lang-memory) ⑥ **커뮤니티·지식**이 두터운가(막히면 답이 나오나). 이 기준들을 이 프로젝트 맥락에서 저울질한다 — 하나가 아니라 종합이다."
+          "text": "실무 언어를 고르는 여섯 기준: ① **이 문제 영역의 라이브러리, 프레임워크가 성숙한가** ② **팀이 이미 쓸 줄 아는가**(가장 현실적) ③ **채용, 유지보수가 가능한가**(5년 뒤에도) ④ **도구**(빌드, IDE, 디버거, 배포)가 갖춰졌나 ⑤ **성능, 특성**이 요구에 맞나(지연, 메모리, lang-memory) ⑥ **커뮤니티, 지식**이 두터운가(막히면 답이 나오나). 이 기준들을 이 프로젝트 맥락에서 저울질한다. 하나가 아니라 종합이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "여섯 기준 — 이 프로젝트에서",
+          "label": "여섯 기준. 이 프로젝트에서",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .lr { padding:5px 10px; margin:2px 0; border-radius:5px; display:flex; justify-content:space-between; }\n  .stack .core { background:#14263a; color:#7dd3fc; } .stack .eco { background:#132a1c; color:#86efac; } .stack .missing { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"lr ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{c}}';\n  const cases = {\n    lib: ['① 라이브러리 성숙', '이 문제 영역(데이터·웹·모바일)의 프레임워크·패키지가 성숙한가', '없으면 직접 만들어야 → 큰 비용'],\n    team:['② 팀이 아는가', '팀이 이미 쓸 줄 아는가 (가장 현실적 기준)', '모르면 학습·실수 비용 — 3장'],\n    hire:['③ 채용·유지보수', '5년 뒤에도 사람을 구하고 유지할 수 있나', '아무도 안 쓰는 언어 = 유지보수 위험'],\n    tool:['④ 도구', '빌드·패키지·IDE·디버거·배포가 갖춰졌나', '미숙한 도구 = 매일의 마찰'],\n    perf:['⑤ 성능·특성', '지연·메모리·동시성 요구에 맞나(lang-memory)', '멈춤 감당·자원 제약에 따라'],\n    comm:['⑥ 커뮤니티·지식', '막혔을 때 검색·질문하면 답이 나오나', '얇은 커뮤니티 = 혼자 헤맴'],\n  }[c];\n  render('기준 ' + cases[0],\n    '  묻는 것: ' + cases[1] + '\\n  없으면: <span class=\\\"no\\\">' + cases[2] + '</span>',\n    '라이브러리·팀·채용·도구·성능·커뮤니티 — 여섯을 종합해 저울질.',\n    box(cases[0], cases[1]));\n</script>",
           "controls": [
@@ -142,15 +142,15 @@
         },
         {
           "type": "note",
-          "text": "**여섯 기준은 종합이지, 하나로 결정하지 않는다.** 성능만 보고(⑤) 팀이 모르는 언어(②)를 고르거나, 인기만 보고(⑥) 이 영역 라이브러리가 없는(①) 언어를 고르면 프로젝트가 고생한다. 각 기준의 **가중치는 프로젝트마다** 다르다: 스타트업 MVP 는 팀 숙련도·개발 속도(②④)가, 대규모 장수 시스템은 채용·유지보수(③)가, 저지연 서비스는 성능(⑤)이 크다. 그래서 「이 언어가 최고」가 아니라 「이 프로젝트의 제약에서 이 여섯을 저울질하면 무엇이 맞나」를 묻는다. 대부분의 언어 논쟁이 공허한 건 이 맥락(프로젝트 제약)을 빼고 언어만 비교하기 때문이다 — 맥락이 답을 정한다."
+          "text": "**여섯 기준은 종합이지, 하나로 결정하지 않는다.** 성능만 보고(⑤) 팀이 모르는 언어(②)를 고르거나, 인기만 보고(⑥) 이 영역 라이브러리가 없는(①) 언어를 고르면 프로젝트가 고생한다. 각 기준의 **가중치는 프로젝트마다** 다르다: 스타트업 MVP 는 팀 숙련도, 개발 속도(②④)가, 대규모 장수 시스템은 채용, 유지보수(③)가, 저지연 서비스는 성능(⑤)이 크다. 그래서 \"이 언어가 최고\"가 아니라 \"이 프로젝트의 제약에서 이 여섯을 저울질하면 무엇이 맞나\"를 묻는다. 대부분의 언어 논쟁이 공허한 건 이 맥락(프로젝트 제약)을 빼고 언어만 비교하기 때문이다. 맥락이 답을 정한다."
         },
         {
           "type": "p",
-          "text": "**특히 ①(영역 라이브러리)과 ②(팀 숙련)가 실무에서 무겁다.** 언어의 진짜 생산성은 「이 문제를 푸는 라이브러리가 있나」에 크게 좌우된다 — 데이터 분석에 파이썬을 쓰는 건 문법 때문이 아니라 pandas·numpy·scikit-learn 이 있어서다(4장). 그리고 아무리 좋은 언어도 팀이 모르면 배우는 동안 느리고 실수가 잦다 — 그래서 「팀이 아는가」가 가장 현실적 기준이다(3장). 이 둘이 강하면 다른 기준의 약점을 상당히 상쇄한다. 반대로 이 둘이 약한 언어는 「멋짐」으로 밀어붙이기 어렵다. 언어 선택은 이상적 우월성이 아니라 **이 팀이 이 문제를 이 도구들로 얼마나 빨리·안전하게 푸나**의 현실 계산이다."
+          "text": "**특히 ①(영역 라이브러리)과 ②(팀 숙련)가 실무에서 무겁다.** 언어의 진짜 생산성은 \"이 문제를 푸는 라이브러리가 있나\"에 크게 좌우된다. 데이터 분석에 파이썬을 쓰는 건 문법 때문이 아니라 pandas, numpy, scikit-learn 이 있어서다(4장). 그리고 아무리 좋은 언어도 팀이 모르면 배우는 동안 느리고 실수가 잦다. 그래서 \"팀이 아는가\"가 가장 현실적 기준이다(3장). 이 둘이 강하면 다른 기준의 약점을 상당히 상쇄한다. 반대로 이 둘이 약한 언어는 \"멋짐\"으로 밀어붙이기 어렵다. 언어 선택은 이상적 우월성이 아니라 **이 팀이 이 문제를 이 도구들로 얼마나 빨리, 안전하게 푸나**의 현실 계산이다."
         },
         {
           "type": "try",
-          "text": "지금 프로젝트에 이 언어를 쓴 이유를 위 여섯 기준으로 세 줄 이상 적어라 — 못 적으면 관성으로 고른 것이다. 각 기준의 이 프로젝트에서의 가중치도 정해 보라."
+          "text": "지금 프로젝트에 이 언어를 쓴 이유를 위 여섯 기준으로 세 줄 이상 적어라. 못 적으면 관성으로 고른 것이다. 각 기준의 이 프로젝트에서의 가중치도 정해 보라."
         }
       ],
       "quiz": [
@@ -163,7 +163,7 @@
             "가장 빠른가"
           ],
           "answer": 1,
-          "why": "학습·실수 비용."
+          "why": "학습, 실수 비용."
         },
         {
           "q": "여섯 기준을 어떻게 적용하나?",
@@ -179,10 +179,10 @@
         {
           "q": "실무에서 특히 무거운 두 기준은?",
           "choices": [
-            "문법·이름",
+            "문법, 이름",
             "영역 라이브러리 성숙 + 팀 숙련",
-            "최신·유행",
-            "짧음·빠름"
+            "최신, 유행",
+            "짧음, 빠름"
           ],
           "answer": 1,
           "why": "생산성 좌우."
@@ -196,7 +196,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "여섯 기준 중 **「팀이 이미 쓸 줄 아는가」**가 가장 현실적이다. 아무리 좋은 언어라도 팀이 모르면 ① **배우는 동안 느리고** ② **초보 실수**로 버그가 잦고 ③ **관용구를 몰라** 어색한 코드를 낳는다(lang-second 6장). 새 언어의 이론적 이점이 이 학습 비용을 넘을 만큼 크지 않으면, 팀이 아는 언어로 문제를 푸는 게 대개 낫다. 「최고의 언어」보다 「우리가 잘 쓰는 언어」가 실제 결과를 낸다."
+          "text": "여섯 기준 중 **\"팀이 이미 쓸 줄 아는가\"**가 가장 현실적이다. 아무리 좋은 언어라도 팀이 모르면 ① **배우는 동안 느리고** ② **초보 실수**로 버그가 잦고 ③ **관용구를 몰라** 어색한 코드를 낳는다(lang-second 6장). 새 언어의 이론적 이점이 이 학습 비용을 넘을 만큼 크지 않으면, 팀이 아는 언어로 문제를 푸는 게 대개 낫다. \"최고의 언어\"보다 \"우리가 잘 쓰는 언어\"가 실제 결과를 낸다."
         },
         {
           "type": "demo",
@@ -225,23 +225,23 @@
         },
         {
           "type": "note",
-          "text": "**새 언어의 이점이 학습 비용을 확실히 넘을 때만 새 언어를 골라라.** 팀이 모르는 언어는 초기 수개월의 느림, 관용구를 몰라 생기는 어색한 코드와 버그(lang-second 6장의 「옛 언어처럼 쓰기」), 리뷰·디버깅의 어려움을 대가로 치른다. 그래서 「이 언어가 이론적으로 더 낫다」만으론 부족하다 — 그 이점이 **이 프로젝트에서 학습 비용을 넘을 만큼 구체적으로 큰가**를 물어야 한다(예: 저지연이 필수라 GC 언어로는 불가능, 특정 라이브러리가 그 언어에만 있음). 그런 결정적 이유가 없으면, 팀이 잘 아는 언어로 문제를 풀고 그 절약한 시간을 설계·테스트·운영(8장)에 쓰는 게 대개 더 나은 결과를 낸다. 「우리가 잘 쓰는 것」의 힘은 과소평가되기 쉽다."
+          "text": "**새 언어의 이점이 학습 비용을 확실히 넘을 때만 새 언어를 골라라.** 팀이 모르는 언어는 초기 수개월의 느림, 관용구를 몰라 생기는 어색한 코드와 버그(lang-second 6장의 \"옛 언어처럼 쓰기\"), 리뷰, 디버깅의 어려움을 대가로 치른다. 그래서 \"이 언어가 이론적으로 더 낫다\"만으론 부족하다. 그 이점이 **이 프로젝트에서 학습 비용을 넘을 만큼 구체적으로 큰가**를 물어야 한다(예: 저지연이 필수라 GC 언어로는 불가능, 특정 라이브러리가 그 언어에만 있음). 그런 결정적 이유가 없으면, 팀이 잘 아는 언어로 문제를 풀고 그 절약한 시간을 설계, 테스트, 운영(8장)에 쓰는 게 대개 더 나은 결과를 낸다. \"우리가 잘 쓰는 것\"의 힘은 과소평가되기 쉽다."
         },
         {
           "type": "p",
-          "text": "**단, 팀 숙련이 「관성」의 핑계가 되면 안 된다.** 「팀이 아는 것」은 강력하지만, 그것만 고집하면 성장이 멈추고 문제에 안 맞는 도구를 억지로 쓰게 된다 — 데이터 분석을 팀이 아는 자바로만 고집하거나, 저지연 시스템을 파이썬으로 밀어붙이는 식(4장의 영역 불일치). 그래서 균형이 필요하다: **기본은 팀이 아는 것**으로 하되, ① 문제가 특정 언어를 강하게 요구하거나 ② 팀이 새 관점·영역으로 성장할 필요가 있으면(경계가 잘 그어진 새 서비스에서, 6장) 새 언어를 **의도적으로** 도입한다. 「팀이 안다」를 이유로 쓰는 것과 관성으로 안 바꾸는 것은 다르다 — 전자는 판단, 후자는 회피다. 이유를 명시할 수 있으면 판단이다(2장 try)."
+          "text": "**단, 팀 숙련이 \"관성\"의 핑계가 되면 안 된다.** \"팀이 아는 것\"은 강력하지만, 그것만 고집하면 성장이 멈추고 문제에 안 맞는 도구를 억지로 쓰게 된다. 데이터 분석을 팀이 아는 자바로만 고집하거나, 저지연 시스템을 파이썬으로 밀어붙이는 식(4장의 영역 불일치). 그래서 균형이 필요하다: **기본은 팀이 아는 것**으로 하되, ① 문제가 특정 언어를 강하게 요구하거나 ② 팀이 새 관점, 영역으로 성장할 필요가 있으면(경계가 잘 그어진 새 서비스에서, 6장) 새 언어를 **의도적으로** 도입한다. \"팀이 안다\"를 이유로 쓰는 것과 관성으로 안 바꾸는 것은 다르다. 전자는 판단, 후자는 회피다. 이유를 명시할 수 있으면 판단이다(2장 try)."
         },
         {
           "type": "try",
-          "text": "팀이 새 언어를 도입하려 한다면, 그 이점이 학습 비용을 넘을 구체적 이유(문제가 요구·결정적 라이브러리·성장 필요)를 적어라 — 못 적으면 팀이 아는 언어가 낫다. 반대로 관성으로 안 바꾸는 것은 아닌지도 점검하라."
+          "text": "팀이 새 언어를 도입하려 한다면, 그 이점이 학습 비용을 넘을 구체적 이유(문제가 요구, 결정적 라이브러리, 성장 필요)를 적어라. 못 적으면 팀이 아는 언어가 낫다. 반대로 관성으로 안 바꾸는 것은 아닌지도 점검하라."
         }
       ],
       "quiz": [
         {
-          "q": "「팀이 아는 언어」가 강력한 이유는?",
+          "q": "\"팀이 아는 언어\"가 강력한 이유는?",
           "choices": [
             "이론적 최고",
-            "바로 생산적 — 학습·실수·관용구 비용 없음",
+            "바로 생산적. 학습, 실수, 관용구 비용 없음",
             "가장 빠름",
             "무료"
           ],
@@ -260,7 +260,7 @@
           "why": "결정적 이유 필요."
         },
         {
-          "q": "「팀이 안다」가 핑계가 되는 경우는?",
+          "q": "\"팀이 안다\"가 핑계가 되는 경우는?",
           "choices": [
             "없음",
             "문제에 안 맞는데 관성으로 고집(성장 정체)",
@@ -279,7 +279,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "언어는 **문제 영역별로 사실상 표준**이 있다 — 그 영역의 라이브러리·도구·인력이 몰려 있어서다: **데이터·ML** → Python(pandas·PyTorch) · **웹 프런트** → JS/TS(선택지가 없다) · **시스템·성능** → Rust·Go·C++ · **모바일** → Swift(iOS)·Kotlin(Android) · **백엔드** → 다양(Go·Java·Node·Python·C#) · **인프라·CLI** → Go. 이 「영역별 중력」을 거스르려면 강한 이유가 필요하다 — 표준을 벗어나면 라이브러리·인력이 얇아진다."
+          "text": "언어는 **문제 영역별로 사실상 표준**이 있다. 그 영역의 라이브러리, 도구, 인력이 몰려 있어서다: **데이터, ML** → Python(pandas, PyTorch), **웹 프런트** → JS/TS(선택지가 없다), **시스템, 성능** → Rust, Go, C++, **모바일** → Swift(iOS), Kotlin(Android), **백엔드** → 다양(Go, Java, Node, Python, C#), **인프라, CLI** → Go. 이 \"영역별 중력\"을 거스르려면 강한 이유가 필요하다. 표준을 벗어나면 라이브러리, 인력이 얇아진다."
         },
         {
           "type": "demo",
@@ -296,7 +296,7 @@
               "options": [
                 {
                   "value": "data",
-                  "label": "데이터·ML"
+                  "label": "데이터, ML"
                 },
                 {
                   "value": "web",
@@ -304,7 +304,7 @@
                 },
                 {
                   "value": "sys",
-                  "label": "시스템·성능"
+                  "label": "시스템, 성능"
                 },
                 {
                   "value": "mobile",
@@ -316,7 +316,7 @@
                 },
                 {
                   "value": "infra",
-                  "label": "인프라·CLI"
+                  "label": "인프라, CLI"
                 }
               ]
             }
@@ -324,34 +324,34 @@
         },
         {
           "type": "note",
-          "text": "**영역별 표준을 거스르려면 강한 이유가 필요하다 — 표준엔 라이브러리·인력·지식이 몰려 있다.** 데이터·ML 을 파이썬으로 하는 건 문법 때문이 아니라 그 영역의 라이브러리·모델·튜토리얼·인력이 전부 파이썬에 있어서다 — 다른 언어로 하면 그 생태계를 포기하고 직접 채워야 한다. 웹 프런트는 아예 브라우저가 JS 만 실행해 선택지가 없다(TS 로 타입을 얹을 뿐). 그래서 「이 영역엔 이 언어」라는 중력이 있고, 이를 벗어나려면 그만한 이득(결정적 이유)이 있어야 한다. 반대로 백엔드처럼 **여러 정답이 있는** 영역은 팀·생태계·성능 요구로 고른다. 언어 선택의 상당 부분은 이미 **영역이 정해 준다** — 먼저 「내 문제가 어느 영역이고 그 표준이 뭔가」를 본다."
+          "text": "**영역별 표준을 거스르려면 강한 이유가 필요하다. 표준엔 라이브러리, 인력, 지식이 몰려 있다.** 데이터, ML 을 파이썬으로 하는 건 문법 때문이 아니라 그 영역의 라이브러리, 모델, 튜토리얼, 인력이 전부 파이썬에 있어서다. 다른 언어로 하면 그 생태계를 포기하고 직접 채워야 한다. 웹 프런트는 아예 브라우저가 JS 만 실행해 선택지가 없다(TS 로 타입을 얹을 뿐). 그래서 \"이 영역엔 이 언어\"라는 중력이 있고, 이를 벗어나려면 그만한 이득(결정적 이유)이 있어야 한다. 반대로 백엔드처럼 **여러 정답이 있는** 영역은 팀, 생태계, 성능 요구로 고른다. 언어 선택의 상당 부분은 이미 **영역이 정해 준다**. 먼저 \"내 문제가 어느 영역이고 그 표준이 뭔가\"를 본다."
         },
         {
           "type": "p",
-          "text": "**영역 중력을 벗어나는 정당한 이유도 있다 — 하지만 대가를 알고 하라.** 표준을 벗어나는 게 옳을 때도 있다: 성능이 표준으로는 불가능하거나(파이썬 ML 서빙의 뜨거운 부분을 Rust·C++ 로), 팀이 다른 언어에 압도적으로 강하거나, 특정 요구(안전·동시성)가 결정적일 때. 하지만 그럴 땐 **얇아진 생태계**(라이브러리를 직접 만들거나 이식)와 **인력**(그 조합을 아는 사람이 적음)의 대가를 계산에 넣어야 한다. 흔한 지혜는 「대부분은 영역 표준으로, 표준으로 안 되는 부분만 다른 언어로」다(폴리글랏, 5장) — 예: 대부분 파이썬, 성능 임계 경로만 Rust 확장. 중력을 무시하지도, 맹종하지도 않고, 이유와 대가를 저울질해 정한다."
+          "text": "**영역 중력을 벗어나는 정당한 이유도 있다. 하지만 대가를 알고 하라.** 표준을 벗어나는 게 옳을 때도 있다: 성능이 표준으로는 불가능하거나(파이썬 ML 서빙의 뜨거운 부분을 Rust, C++ 로), 팀이 다른 언어에 압도적으로 강하거나, 특정 요구(안전, 동시성)가 결정적일 때. 하지만 그럴 땐 **얇아진 생태계**(라이브러리를 직접 만들거나 이식)와 **인력**(그 조합을 아는 사람이 적음)의 대가를 계산에 넣어야 한다. 흔한 지혜는 \"대부분은 영역 표준으로, 표준으로 안 되는 부분만 다른 언어로\"다(폴리글랏, 5장). 예: 대부분 파이썬, 성능 임계 경로만 Rust 확장. 중력을 무시하지도, 맹종하지도 않고, 이유와 대가를 저울질해 정한다."
         },
         {
           "type": "try",
-          "text": "네 프로젝트(또는 관심 영역)의 문제가 어느 영역이고 그 사실상 표준이 무엇인지 적어라. 표준을 벗어난다면 그 이유와 대가(얇은 라이브러리·인력)를 명시하라 — 명시 못 하면 표준을 따르는 게 안전하다."
+          "text": "네 프로젝트(또는 관심 영역)의 문제가 어느 영역이고 그 사실상 표준이 무엇인지 적어라. 표준을 벗어난다면 그 이유와 대가(얇은 라이브러리, 인력)를 명시하라. 명시 못 하면 표준을 따르는 게 안전하다."
         }
       ],
       "quiz": [
         {
-          "q": "데이터·ML 영역의 사실상 표준 언어는?",
+          "q": "데이터, ML 영역의 사실상 표준 언어는?",
           "choices": [
             "Java",
-            "Python(pandas·PyTorch 생태계)",
+            "Python(pandas, PyTorch 생태계)",
             "Go",
             "C"
           ],
           "answer": 1,
-          "why": "라이브러리·인력 집중."
+          "why": "라이브러리, 인력 집중."
         },
         {
           "q": "웹 프런트가 JS/TS 인 이유는?",
           "choices": [
             "빨라서",
-            "브라우저가 JS 만 실행 — 선택지 없음",
+            "브라우저가 JS 만 실행. 선택지 없음",
             "예뻐서",
             "무료"
           ],
@@ -362,7 +362,7 @@
           "q": "영역 표준을 벗어날 때 대가는?",
           "choices": [
             "없음",
-            "얇아진 라이브러리·인력을 직접 채워야",
+            "얇아진 라이브러리, 인력을 직접 채워야",
             "속도만",
             "무관"
           ],
@@ -378,12 +378,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "서비스마다 다른 언어를 쓰면(폴리글랏) **자유롭지만**, **도구·배포·모니터링·채용이 두 배**가 된다 — 언어마다 빌드 파이프라인·의존성 관리·로깅·모니터링 통합·라이브러리 표준·채용 풀이 따로다. 팀이 작다면 **언어 수를 줄이는 것**이 대개 이득이다. 언어 다양성은 「각 문제에 최적 도구」라는 이점과 「운영 복잡도 증가」라는 비용의 트레이드오프다 — 팀 크기·조직 성숙도에 따라 답이 다르다."
+          "text": "서비스마다 다른 언어를 쓰면(폴리글랏) **자유롭지만**, **도구, 배포, 모니터링, 채용이 두 배**가 된다. 언어마다 빌드 파이프라인, 의존성 관리, 로깅, 모니터링 통합, 라이브러리 표준, 채용 풀이 따로다. 팀이 작다면 **언어 수를 줄이는 것**이 대개 이득이다. 언어 다양성은 \"각 문제에 최적 도구\"라는 이점과 \"운영 복잡도 증가\"라는 비용의 트레이드오프다. 팀 크기, 조직 성숙도에 따라 답이 다르다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "언어 수 — 자유 vs 운영 비용",
+          "label": "언어 수. 자유 vs 운영 비용",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .lr { padding:5px 10px; margin:2px 0; border-radius:5px; display:flex; justify-content:space-between; }\n  .stack .core { background:#14263a; color:#7dd3fc; } .stack .eco { background:#132a1c; color:#86efac; } .stack .missing { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"lr ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{n}};\n  const overhead = n * 25;\n  render('사용 언어 ' + n + '개',\n    '  각 언어마다: 빌드·의존성·로깅·모니터링·채용 풀 따로\\n' +\n    '  운영 복잡도 ≈ ' + Math.min(100, overhead) + '%\\n\\n' +\n    (n <= 2\n      ? '  <span class=\\\"ok\\\">언어 수가 적어 운영 단순 — 작은 팀에 유리.</span>'\n      : n <= 3\n        ? '  <span class=\\\"warn\\\">늘어나는 운영 부담 — 이점이 그만큼 큰지 확인.</span>'\n        : '  <span class=\\\"no\\\">언어마다 도구·인력 중복 → 작은 팀엔 과부하. 줄여라.</span>'),\n    '언어 다양성 = 최적 도구 이점 vs 운영·채용 복잡도. 팀 크기가 답을 정한다.',\n    bars([['운영 복잡도', Math.min(100,overhead), Math.min(100,overhead)+'%', overhead>75?'#ef4444':overhead>50?'#f59e0b':'#4ade80'],\n      ['도구·인력 중복', Math.min(100,n*22), n+'개 언어분', '#f59e0b']]));\n</script>",
           "controls": [
@@ -400,15 +400,15 @@
         },
         {
           "type": "note",
-          "text": "**언어 다양성의 비용은 곱해진다 — 언어마다 도구·배포·모니터링·채용이 따로다.** 서비스마다 최적 언어를 쓰면 각 문제에 좋은 도구를 쓰는 이점이 있지만, 대가로 언어 수만큼 ① 빌드·CI·의존성 관리 파이프라인 ② 로깅·모니터링·에러 추적 통합 ③ 배포·런타임 환경 ④ 라이브러리·보안 패치 추적 ⑤ 채용·온보딩·코드 리뷰 역량이 곱해진다. 작은 팀에선 이 곱셈이 금방 과부하가 된다 — 그래서 「언어 수를 줄이는 것」이 대개 이득이다. 큰 조직은 이 비용을 감당할 인프라·인력이 있어 다양성을 택할 수 있지만, 그들도 무한정 늘리진 않고 **승인된 소수의 언어**로 표준화한다. 「최적 도구」의 유혹과 「운영 단순함」의 실리를 팀 규모로 저울질한다."
+          "text": "**언어 다양성의 비용은 곱해진다. 언어마다 도구, 배포, 모니터링, 채용이 따로다.** 서비스마다 최적 언어를 쓰면 각 문제에 좋은 도구를 쓰는 이점이 있지만, 대가로 언어 수만큼 ① 빌드, CI, 의존성 관리 파이프라인 ② 로깅, 모니터링, 에러 추적 통합 ③ 배포, 런타임 환경 ④ 라이브러리, 보안 패치 추적 ⑤ 채용, 온보딩, 코드 리뷰 역량이 곱해진다. 작은 팀에선 이 곱셈이 금방 과부하가 된다. 그래서 \"언어 수를 줄이는 것\"이 대개 이득이다. 큰 조직은 이 비용을 감당할 인프라, 인력이 있어 다양성을 택할 수 있지만, 그들도 무한정 늘리진 않고 **승인된 소수의 언어**로 표준화한다. \"최적 도구\"의 유혹과 \"운영 단순함\"의 실리를 팀 규모로 저울질한다."
         },
         {
           "type": "p",
-          "text": "**그래도 폴리글랏이 옳은 경우가 있다 — 영역이 확실히 다를 때.** 데이터 파이프라인은 파이썬, 저지연 게이트웨이는 Rust·Go, 프런트는 TS 처럼 **영역별 표준이 명확히 다르면**(4장) 한 언어로 다 하는 게 오히려 손해다 — 파이썬으로 프런트를 못 하고, JS 로 ML 을 억지로 하면 생태계를 버린다. 그래서 실무의 균형은 「**의미 있는 영역 경계마다** 그 영역 표준 언어를, 그 안에서는 하나로 통일」이다 — 언어를 서비스마다 취향으로 늘리는 게 아니라, 영역이 요구할 때만 는다. 그리고 그렇게 나눌 땐 서비스 경계(design-boundary·api)를 잘 그어 언어 간 통신을 명확히 한다. 「하나로 통일」과 「영역마다 최적」 사이에서, **비용을 정당화하는 경계**에만 언어를 추가하는 게 핵심이다."
+          "text": "**그래도 폴리글랏이 옳은 경우가 있다. 영역이 확실히 다를 때.** 데이터 파이프라인은 파이썬, 저지연 게이트웨이는 Rust, Go, 프런트는 TS 처럼 **영역별 표준이 명확히 다르면**(4장) 한 언어로 다 하는 게 오히려 손해다. 파이썬으로 프런트를 못 하고, JS 로 ML 을 억지로 하면 생태계를 버린다. 그래서 실무의 균형은 \"**의미 있는 영역 경계마다** 그 영역 표준 언어를, 그 안에서는 하나로 통일\"이다. 언어를 서비스마다 취향으로 늘리는 게 아니라, 영역이 요구할 때만 는다. 그리고 그렇게 나눌 땐 서비스 경계(design-boundary, api)를 잘 그어 언어 간 통신을 명확히 한다. \"하나로 통일\"과 \"영역마다 최적\" 사이에서, **비용을 정당화하는 경계**에만 언어를 추가하는 게 핵심이다."
         },
         {
           "type": "try",
-          "text": "네 시스템(또는 조직)이 쓰는 언어 수를 세고, 각 언어가 「영역이 요구해서」인지 「취향·관성으로 늘어서」인지 분류하라. 줄일 수 있는(취향으로 는) 언어가 있는지, 팀 크기 대비 운영 부담이 적절한지 점검하라."
+          "text": "네 시스템(또는 조직)이 쓰는 언어 수를 세고, 각 언어가 \"영역이 요구해서\"인지 \"취향, 관성으로 늘어서\"인지 분류하라. 줄일 수 있는(취향으로 는) 언어가 있는지, 팀 크기 대비 운영 부담이 적절한지 점검하라."
         }
       ],
       "quiz": [
@@ -416,7 +416,7 @@
           "q": "여러 언어를 쓸 때의 비용은?",
           "choices": [
             "없음",
-            "도구·배포·모니터링·채용이 언어마다 곱해짐",
+            "도구, 배포, 모니터링, 채용이 언어마다 곱해짐",
             "속도만",
             "메모리"
           ],
@@ -449,17 +449,17 @@
     },
     {
       "id": "6",
-      "title": "바꾸는 비용 — 되돌리기 어렵다",
+      "title": "바꾸는 비용. 되돌리기 어렵다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "언어 교체는 **되돌리기 어려운 결정**이다 — 코드·인력·도구·지식이 그 언어에 묶여 쌓이니까. 그래서 신중해야 하지만, **경계가 잘 그어져 있으면** 서비스 단위로 조금씩 옮길 수 있다(**스트랭글러 패턴**: 옛 시스템을 감싸며 새 언어로 한 조각씩 대체). 반대로 「한 번에 전부 다시 짜기」(big rewrite)는 거의 항상 재앙이다 — 오래 걸리고, 기존 기능을 놓치고, 그 사이 사업이 멈춘다."
+          "text": "언어 교체는 **되돌리기 어려운 결정**이다. 코드, 인력, 도구, 지식이 그 언어에 묶여 쌓이니까. 그래서 신중해야 하지만, **경계가 잘 그어져 있으면** 서비스 단위로 조금씩 옮길 수 있다(**스트랭글러 패턴**: 옛 시스템을 감싸며 새 언어로 한 조각씩 대체). 반대로 \"한 번에 전부 다시 짜기\"(big rewrite)는 거의 항상 재앙이다. 오래 걸리고, 기존 기능을 놓치고, 그 사이 사업이 멈춘다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "언어 교체 — 빅뱅 vs 스트랭글러",
+          "label": "언어 교체. 빅뱅 vs 스트랭글러",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .lr { padding:5px 10px; margin:2px 0; border-radius:5px; display:flex; justify-content:space-between; }\n  .stack .core { background:#14263a; color:#7dd3fc; } .stack .eco { background:#132a1c; color:#86efac; } .stack .missing { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"lr ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  if (way === 'bigbang') {\n    render('빅뱅 재작성 (한 번에 전부)',\n      '  옛 시스템 멈추고 새 언어로 처음부터 다시\\n' +\n      '  <span class=\\\"no\\\">오래 걸림 + 기존 기능 누락 + 그 사이 신규 개발 정지 → 거의 재앙.</span>',\n      '한 번에 전부 재작성은 거의 항상 실패 — 오래 걸리고 기능을 놓친다.',\n      steps([['옛 시스템 동결', 'bad'],['새 언어로 전부 재작성(수개월~년)', 'bad'],['그 사이 신규 기능 정지', 'bad'],['출시 때 기존 기능 누락 발견', 'bad']]));\n  } else {\n    render('스트랭글러 (조금씩 대체)',\n      '  경계(서비스·모듈)마다 한 조각씩 새 언어로 교체\\n' +\n      '  <span class=\\\"ok\\\">옛 시스템은 계속 돌고, 새것이 점점 감싸며 대체 → 안전.</span>',\n      '경계가 잘 그어졌으면 서비스 단위로 조금씩 옮긴다(스트랭글러).',\n      steps([['경계로 한 조각 선택', 'on'],['그 조각만 새 언어로 교체·검증', 'good'],['옛 시스템은 계속 운영', 'good'],['조각씩 반복 → 점진 전환', 'good']]));\n  }\n</script>",
           "controls": [
@@ -483,15 +483,15 @@
         },
         {
           "type": "note",
-          "text": "**언어 교체는 되돌리기 어려우니, 경계를 그어 조각씩 옮겨라 — 빅뱅 재작성은 피하라.** 「전부 새 언어로 다시 짜자」는 유혹적이지만 거의 항상 실패한다: 예상보다 오래 걸리고(기존 시스템의 숨은 요구사항을 다 재발견해야), 그 사이 신규 개발이 멈추고, 완성돼도 기존 기능이 누락된다(design 의 「되던 게 안 된다」). 대신 **스트랭글러 패턴** — 옛 시스템을 감싸고 **서비스·모듈 단위로 한 조각씩** 새 언어로 대체하며, 그동안 옛것은 계속 돌린다. 이게 가능하려면 **경계가 잘 그어져 있어야** 한다(design-boundary·api — 모듈 간 계약이 명확해야 한 조각만 갈아 끼움). 그래서 「언어를 바꿀 수도 있게」 만드는 건 애초에 경계를 잘 긋는 설계다 — 잘 나뉜 시스템은 언어조차 점진 교체가 된다."
+          "text": "**언어 교체는 되돌리기 어려우니, 경계를 그어 조각씩 옮겨라. 빅뱅 재작성은 피하라.** \"전부 새 언어로 다시 짜자\"는 유혹적이지만 거의 항상 실패한다: 예상보다 오래 걸리고(기존 시스템의 숨은 요구사항을 다 재발견해야), 그 사이 신규 개발이 멈추고, 완성돼도 기존 기능이 누락된다(design 의 \"되던 게 안 된다\"). 대신 **스트랭글러 패턴**. 옛 시스템을 감싸고 **서비스, 모듈 단위로 한 조각씩** 새 언어로 대체하며, 그동안 옛것은 계속 돌린다. 이게 가능하려면 **경계가 잘 그어져 있어야** 한다(design-boundary, api. 모듈 간 계약이 명확해야 한 조각만 갈아 끼움). 그래서 \"언어를 바꿀 수도 있게\" 만드는 건 애초에 경계를 잘 긋는 설계다. 잘 나뉜 시스템은 언어조차 점진 교체가 된다."
         },
         {
           "type": "p",
-          "text": "**「바꾸기 어렵다」가 처음 선택을 더 중요하게 만든다 — 하지만 완벽을 기다리지 마라.** 언어는 한 번 정하면 오래 가고 바꾸기 비싸니 신중해야 하지만, 그렇다고 **분석 마비**에 빠지면 안 된다(8장) — 완벽한 언어는 없고, 대부분의 언어는 대부분의 문제를 풀 수 있다. 그래서 실용적 태도는 ① 여섯 기준(2장)으로 **합리적 선택**을 하되 ② 경계를 잘 그어 **나중에 바꿀 여지**를 남기고(스트랭글러 가능하게) ③ 정해지면 **그 언어로 문제를 푸는 데** 집중한다. 「바꾸기 어려움」의 답은 「영원히 고민」이 아니라 「합리적으로 정하고, 바꿀 수 있게 설계」다. 처음부터 완벽히 고르려는 것보다, 적당히 좋은 선택 + 유연한 경계가 낫다."
+          "text": "**\"바꾸기 어렵다\"가 처음 선택을 더 중요하게 만든다. 하지만 완벽을 기다리지 마라.** 언어는 한 번 정하면 오래 가고 바꾸기 비싸니 신중해야 하지만, 그렇다고 **분석 마비**에 빠지면 안 된다(8장). 완벽한 언어는 없고, 대부분의 언어는 대부분의 문제를 풀 수 있다. 그래서 실용적 태도는 ① 여섯 기준(2장)으로 **합리적 선택**을 하되 ② 경계를 잘 그어 **나중에 바꿀 여지**를 남기고(스트랭글러 가능하게) ③ 정해지면 **그 언어로 문제를 푸는 데** 집중한다. \"바꾸기 어려움\"의 답은 \"영원히 고민\"이 아니라 \"합리적으로 정하고, 바꿀 수 있게 설계\"다. 처음부터 완벽히 고르려는 것보다, 적당히 좋은 선택 + 유연한 경계가 낫다."
         },
         {
           "type": "try",
-          "text": "네 시스템에서 언어를 바꾼다면 어디를 먼저·조각으로 옮길 수 있을지(경계가 잘 그어진 서비스) 생각하라. 경계가 없어 「전부 아니면 무」인 곳이 있다면, 그게 곧 언어 교체를 막는 결합임을 확인하라(design-boundary)."
+          "text": "네 시스템에서 언어를 바꾼다면 어디를 먼저, 조각으로 옮길 수 있을지(경계가 잘 그어진 서비스) 생각하라. 경계가 없어 \"전부 아니면 무\"인 곳이 있다면, 그게 곧 언어 교체를 막는 결합임을 확인하라(design-boundary)."
         }
       ],
       "quiz": [
@@ -510,7 +510,7 @@
           "q": "빅뱅 재작성이 거의 실패하는 이유는?",
           "choices": [
             "빨라서",
-            "오래 걸리고·기능 누락·그 사이 개발 정지",
+            "오래 걸리고, 기능 누락, 그 사이 개발 정지",
             "쉬워서",
             "안전해서"
           ],
@@ -521,7 +521,7 @@
           "q": "언어를 점진 교체 가능하게 하는 것은?",
           "choices": [
             "큰 모놀리스",
-            "잘 그어진 경계(모듈·서비스 계약)",
+            "잘 그어진 경계(모듈, 서비스 계약)",
             "전역 상태",
             "하나의 언어"
           ],
@@ -537,12 +537,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "새 언어·프레임워크의 **과장(hype)**에 속지 마라 — 벤치마크·트위터·컨퍼런스의 「이게 미래다」는 실전의 성숙도와 다르다. 확인할 것: **성숙도**(프로덕션에서 오래 검증됐나) · **롱테일**(내가 필요한 라이브러리·엣지 케이스가 있나) · **채용·유지보수**(2년 뒤에도 사람과 지원이 있나) · **네가 겪을 문제인가**(벤치마크의 문제가 내 문제인가). 실제 작은 기능을 만들어 배포까지 해 보면 **생태계의 구멍**이 드러난다."
+          "text": "새 언어, 프레임워크의 **과장(hype)**에 속지 마라. 벤치마크, 트위터, 컨퍼런스의 \"이게 미래다\"는 실전의 성숙도와 다르다. 확인할 것: **성숙도**(프로덕션에서 오래 검증됐나), **롱테일**(내가 필요한 라이브러리, 엣지 케이스가 있나), **채용, 유지보수**(2년 뒤에도 사람과 지원이 있나), **네가 겪을 문제인가**(벤치마크의 문제가 내 문제인가). 실제 작은 기능을 만들어 배포까지 해 보면 **생태계의 구멍**이 드러난다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "하이프 검증 — 무엇을 확인하나",
+          "label": "하이프 검증. 무엇을 확인하나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .lr { padding:5px 10px; margin:2px 0; border-radius:5px; display:flex; justify-content:space-between; }\n  .stack .core { background:#14263a; color:#7dd3fc; } .stack .eco { background:#132a1c; color:#86efac; } .stack .missing { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"lr ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const check = '{{check}}';\n  const cases = {\n    maturity:['성숙도', '프로덕션에서 오래·널리 검증됐나 (블로그 아닌 실전)', '새것은 미검증 버그·급변하는 API'],\n    longtail:['롱테일 라이브러리', '내가 필요한 특정 라이브러리·통합이 있나', '\"핵심은 멋진데\" 주변 라이브러리가 비어 직접 만듦'],\n    hire:['채용·지속성', '2년 뒤에도 인력·지원·업데이트가 있나', '유행 지나면 유지보수 고아'],\n    mine:['내 문제인가', '벤치마크·데모의 문제가 내가 겪을 문제인가', '\"빠르다\"의 벤치가 내 워크로드와 무관할 수 있음'],\n  }[check];\n  render('하이프 검증: ' + cases[0],\n    '  확인: ' + cases[1] + '\\n  함정: <span class=\\\"no\\\">' + cases[2] + '</span>',\n    '성숙도·롱테일·채용·내 문제인가 — 과장 뒤의 실전을 확인.',\n    box(cases[0], cases[1]));\n</script>",
           "controls": [
@@ -562,7 +562,7 @@
                 },
                 {
                   "value": "hire",
-                  "label": "채용·지속"
+                  "label": "채용, 지속"
                 },
                 {
                   "value": "mine",
@@ -574,24 +574,24 @@
         },
         {
           "type": "note",
-          "text": "**하이프는 「핵심 데모」를 보여 주고, 실전은 「롱테일」에서 갈린다.** 새 언어·프레임워크의 홍보는 대개 가장 빛나는 시나리오(핵심 벤치마크·간단한 예제)를 보여 주지만, 실전 프로젝트는 그 주변의 **수많은 자잘한 것**에서 막힌다: 특정 DB 드라이버·인증 라이브러리·모니터링 통합·엣지 케이스 처리·오래된 시스템과의 연동. 핵심이 아무리 멋져도 이 롱테일이 비어 있으면 직접 만들어야 해 비용이 폭발한다. 그래서 「이게 미래다」에 흔들리기 전에, **내가 실제로 필요한 것들이 이미 있나**를 확인한다 — 가장 확실한 방법은 가장 작은 실제 기능을 그 언어로 만들어 **배포까지** 해 보는 것이다(그때 구멍이 드러난다). 성숙도는 시간이 검증하고, 검증 안 된 새것은 그 위험을 네가 진다."
+          "text": "**하이프는 \"핵심 데모\"를 보여 주고, 실전은 \"롱테일\"에서 갈린다.** 새 언어, 프레임워크의 홍보는 대개 가장 빛나는 시나리오(핵심 벤치마크, 간단한 예제)를 보여 주지만, 실전 프로젝트는 그 주변의 **수많은 자잘한 것**에서 막힌다: 특정 DB 드라이버, 인증 라이브러리, 모니터링 통합, 엣지 케이스 처리, 오래된 시스템과의 연동. 핵심이 아무리 멋져도 이 롱테일이 비어 있으면 직접 만들어야 해 비용이 폭발한다. 그래서 \"이게 미래다\"에 흔들리기 전에, **내가 실제로 필요한 것들이 이미 있나**를 확인한다. 가장 확실한 방법은 가장 작은 실제 기능을 그 언어로 만들어 **배포까지** 해 보는 것이다(그때 구멍이 드러난다). 성숙도는 시간이 검증하고, 검증 안 된 새것은 그 위험을 네가 진다."
         },
         {
           "type": "p",
-          "text": "**「지루한 기술」이 대개 옳다 — 검증된 것의 힘.** 오래되고 「지루한」 언어·도구(자바·파이썬·PostgreSQL 등)는 화제성은 없지만 ① 오래 검증돼 함정을 다 알고 ② 롱테일 라이브러리가 다 있고 ③ 인력·지식이 풍부하다 — 그래서 「예측 가능」하다. 반짝이는 새것은 그 예측 가능성을 아직 못 쌓았다. 물론 모든 새것을 배척하란 게 아니라(그러면 발전이 없다), **혁신의 예산을 아껴 쓰라**는 것이다: 프로젝트에서 정말 새로울 부분(핵심 차별점)에만 새 기술을 쓰고, 나머지는 지루하고 검증된 것으로 위험을 낮춘다. 언어·인프라 같은 **바꾸기 어려운** 기반일수록 검증된 것을 고르고, 실험은 격리된·바꾸기 쉬운 곳에서 한다. 하이프의 반대는 냉소가 아니라 **증거를 요구하는 태도**다."
+          "text": "**\"지루한 기술\"이 대개 옳다. 검증된 것의 힘.** 오래되고 \"지루한\" 언어, 도구(자바, 파이썬, PostgreSQL 등)는 화제성은 없지만 ① 오래 검증돼 함정을 다 알고 ② 롱테일 라이브러리가 다 있고 ③ 인력, 지식이 풍부하다. 그래서 \"예측 가능\"하다. 반짝이는 새것은 그 예측 가능성을 아직 못 쌓았다. 물론 모든 새것을 배척하란 게 아니라(그러면 발전이 없다), **혁신의 예산을 아껴 쓰라**는 것이다: 프로젝트에서 정말 새로울 부분(핵심 차별점)에만 새 기술을 쓰고, 나머지는 지루하고 검증된 것으로 위험을 낮춘다. 언어, 인프라 같은 **바꾸기 어려운** 기반일수록 검증된 것을 고르고, 실험은 격리된, 바꾸기 쉬운 곳에서 한다. 하이프의 반대는 냉소가 아니라 **증거를 요구하는 태도**다."
         },
         {
           "type": "try",
-          "text": "도입을 고민 중인 새 언어·프레임워크가 있다면, 그것으로 가장 작은 **실제** 기능 하나(DB 연결·인증·배포 포함)를 만들어 배포까지 해 보라 — 롱테일의 구멍(없는 라이브러리·미숙한 도구)이 그때 드러난다. 하이프의 데모가 아니라 네 문제로 검증하라."
+          "text": "도입을 고민 중인 새 언어, 프레임워크가 있다면, 그것으로 가장 작은 **실제** 기능 하나(DB 연결, 인증, 배포 포함)를 만들어 배포까지 해 보라. 롱테일의 구멍(없는 라이브러리, 미숙한 도구)이 그때 드러난다. 하이프의 데모가 아니라 네 문제로 검증하라."
         }
       ],
       "quiz": [
         {
           "q": "하이프를 검증하는 방법이 아닌 것은?",
           "choices": [
-            "성숙도·롱테일 확인",
+            "성숙도, 롱테일 확인",
             "작은 실제 기능을 배포까지 만들어 봄",
-            "채용·지속성 확인",
+            "채용, 지속성 확인",
             "트위터 반응 세기"
           ],
           "answer": 3,
@@ -601,7 +601,7 @@
           "q": "실전 프로젝트가 막히는 곳은?",
           "choices": [
             "핵심 데모",
-            "롱테일(자잘한 라이브러리·통합·엣지)",
+            "롱테일(자잘한 라이브러리, 통합, 엣지)",
             "문법",
             "이름"
           ],
@@ -609,10 +609,10 @@
           "why": "핵심은 멋진데 주변이 빔."
         },
         {
-          "q": "「지루한 기술」이 대개 옳은 이유는?",
+          "q": "\"지루한 기술\"이 대개 옳은 이유는?",
           "choices": [
             "느려서",
-            "검증됨·롱테일 갖춤·인력 풍부(예측 가능)",
+            "검증됨, 롱테일 갖춤, 인력 풍부(예측 가능)",
             "무료라서",
             "빨라서"
           ],
@@ -623,12 +623,12 @@
     },
     {
       "id": "8",
-      "title": "그리고 대개는 — 언어보다 그 위",
+      "title": "그리고 대개는. 언어보다 그 위",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "결국, **언어보다 설계·테스트·운영이 결과를 더 좌우한다.** 잘 설계된 파이썬 서비스가 엉망으로 짠 Rust 서비스보다 안정적이고 빠를 수 있다 — 병목은 대개 언어가 아니라 아키텍처·알고리즘·DB·운영에 있다. 그래서 언어 고민이 길어지면, **팀이 잘 아는 것으로 정하고 그 시간에 문제를 풀어라.** 언어 선택은 중요하지만, 대부분의 프로젝트에서 성패를 가르는 건 그 위에서 무엇을 어떻게 짓느냐다."
+          "text": "결국, **언어보다 설계, 테스트, 운영이 결과를 더 좌우한다.** 잘 설계된 파이썬 서비스가 엉망으로 짠 Rust 서비스보다 안정적이고 빠를 수 있다. 병목은 대개 언어가 아니라 아키텍처, 알고리즘, DB, 운영에 있다. 그래서 언어 고민이 길어지면, **팀이 잘 아는 것으로 정하고 그 시간에 문제를 풀어라.** 언어 선택은 중요하지만, 대부분의 프로젝트에서 성패를 가르는 건 그 위에서 무엇을 어떻게 짓느냐다."
         },
         {
           "type": "demo",
@@ -665,15 +665,15 @@
         },
         {
           "type": "note",
-          "text": "**언어는 기반이지 성패의 주역이 아니다 — 대개 설계·테스트·운영이 결과를 가른다.** 같은 언어로도 잘·못 짤 수 있고, 병목은 보통 언어의 속도가 아니라 아키텍처(불필요한 호출·N+1·잘못된 데이터 모델)·알고리즘·DB·네트워크에 있다(sys-profile). 안정성은 언어가 아니라 테스트·모니터링·장애 대응이 만든다. 그래서 언어를 「완벽히」 고르느라 오래 고민하는 건 대개 낭비다 — 여섯 기준(2장)으로 **합리적 선택**을 빠르게 하고, 아낀 시간을 진짜 성패를 가르는 설계·테스트·운영에 쓴다. 「어떤 언어를 쓰나」보다 「그 언어로 무엇을 어떻게 짓나」가 훨씬 많은 걸 결정한다. 언어는 출발점이지 결승선이 아니다."
+          "text": "**언어는 기반이지 성패의 주역이 아니다. 대개 설계, 테스트, 운영이 결과를 가른다.** 같은 언어로도 잘, 못 짤 수 있고, 병목은 보통 언어의 속도가 아니라 아키텍처(불필요한 호출, N+1, 잘못된 데이터 모델), 알고리즘, DB, 네트워크에 있다(sys-profile). 안정성은 언어가 아니라 테스트, 모니터링, 장애 대응이 만든다. 그래서 언어를 \"완벽히\" 고르느라 오래 고민하는 건 대개 낭비다. 여섯 기준(2장)으로 **합리적 선택**을 빠르게 하고, 아낀 시간을 진짜 성패를 가르는 설계, 테스트, 운영에 쓴다. \"어떤 언어를 쓰나\"보다 \"그 언어로 무엇을 어떻게 짓나\"가 훨씬 많은 걸 결정한다. 언어는 출발점이지 결승선이 아니다."
         },
         {
           "type": "p",
-          "text": "**분석 마비를 경계하라 — 정하고 나아가는 게 대개 최선이다.** 언어 선택에 완벽을 추구하며 몇 주를 태우는 것보다, 여섯 기준으로 「충분히 좋은」 선택을 하고 문제를 푸는 게 낫다 — 대부분의 언어는 대부분의 프로젝트를 성공시킬 수 있고, 실패는 언어가 아니라 실행에서 온다. 그리고 정말 언어가 문제가 되면 그때 경계를 이용해 조각씩 바꾼다(6장). 그래서 이 갈래(언어·패러다임)의 마지막 교훈은 역설적이다: **언어를 깊이 이해하되(관점·모델·트레이드오프), 실무 선택은 실용적으로 빠르게 하고, 그 위에서 잘 짓는 데 집중하라.** 언어를 아는 것은 더 나은 코드를 위한 것이지, 언어 자체가 목적이 아니다 — lang 갈래 전체를 관통하는 「도구지 목적 아님」이다."
+          "text": "**분석 마비를 경계하라. 정하고 나아가는 게 대개 최선이다.** 언어 선택에 완벽을 추구하며 몇 주를 태우는 것보다, 여섯 기준으로 \"충분히 좋은\" 선택을 하고 문제를 푸는 게 낫다. 대부분의 언어는 대부분의 프로젝트를 성공시킬 수 있고, 실패는 언어가 아니라 실행에서 온다. 그리고 정말 언어가 문제가 되면 그때 경계를 이용해 조각씩 바꾼다(6장). 그래서 이 갈래(언어, 패러다임)의 마지막 교훈은 역설적이다: **언어를 깊이 이해하되(관점, 모델, 트레이드오프), 실무 선택은 실용적으로 빠르게 하고, 그 위에서 잘 짓는 데 집중하라.** 언어를 아는 것은 더 나은 코드를 위한 것이지, 언어 자체가 목적이 아니다. lang 갈래 전체를 관통하는 \"도구지 목적 아님\"이다."
         },
         {
           "type": "try",
-          "text": "언어 선택에 고민이 길어지고 있다면, 여섯 기준으로 「충분히 좋은」 답을 정하고 멈춰라 — 그리고 그 시간에 설계·테스트·운영 중 하나를 개선하라. 실제 병목이 언어인 경우가 얼마나 드문지 네 경험에서 떠올려 보라."
+          "text": "언어 선택에 고민이 길어지고 있다면, 여섯 기준으로 \"충분히 좋은\" 답을 정하고 멈춰라. 그리고 그 시간에 설계, 테스트, 운영 중 하나를 개선하라. 실제 병목이 언어인 경우가 얼마나 드문지 네 경험에서 떠올려 보라."
         }
       ],
       "quiz": [
@@ -681,7 +681,7 @@
           "q": "대개 프로젝트 결과를 더 좌우하는 것은?",
           "choices": [
             "언어 선택",
-            "설계·테스트·운영(언어보다 위)",
+            "설계, 테스트, 운영(언어보다 위)",
             "문법",
             "언어 속도"
           ],
@@ -703,7 +703,7 @@
           "q": "lang 갈래 전체를 관통하는 교훈은?",
           "choices": [
             "최고 언어를 찾아라",
-            "언어는 도구지 목적 아님 — 깊이 알되 실용적으로 고름",
+            "언어는 도구지 목적 아님. 깊이 알되 실용적으로 고름",
             "많이 배워라",
             "무시"
           ],
@@ -714,17 +714,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 언어 고르기",
+      "title": "점검표. 언어 고르기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "실무 언어를 고를 때 이 목록을 확인하라. 핵심은 「생태계·팀으로 합리적으로 빠르게 고르고, 그 위에서 잘 지어라」다."
+          "text": "실무 언어를 고를 때 이 목록을 확인하라. 핵심은 \"생태계, 팀으로 합리적으로 빠르게 고르고, 그 위에서 잘 지어라\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .lr { padding:5px 10px; margin:2px 0; border-radius:5px; display:flex; justify-content:space-between; }\n  .stack .core { background:#14263a; color:#7dd3fc; } .stack .eco { background:#132a1c; color:#86efac; } .stack .missing { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"lr ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '언어는 생태계(라이브러리·도구·채용)까지가 언어',\n    '여섯 기준을 프로젝트 맥락에서 종합한다',\n    '팀이 아는 것을 우선(새 언어는 이유가 비용을 넘을 때)',\n    '영역별 사실상 표준을 먼저 본다',\n    '언어 수를 줄인다(다양성은 운영 비용, 작은 팀)',\n    '경계를 그어 점진 교체 가능하게(빅뱅 X)',\n    '하이프는 실제 작은 기능을 배포해 검증',\n    '언어보다 설계·테스트·운영에 집중(분석 마비 X)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 생태계·팀으로 합리적으로 고르고 그 위에서 잘 짓는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '생태계·팀으로 빠르게 고르고 · 경계로 바꿀 여지 남기고 · 그 위에서 잘 지어라.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -741,15 +741,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 생태계·팀으로 합리적으로 빠르게 고르고, 그 위에서 잘 지어라.** 언어는 생태계까지가 언어이고(1장), 여섯 기준을 맥락에서 종합하되(2장) 팀이 아는 것을 우선하고(3장), 영역 표준을 보고(4장), 언어 수를 줄이고(5장), 경계로 바꿀 여지를 남기고(6장), 하이프는 실제로 검증하고(7장), 결국 언어보다 설계·테스트·운영에 집중한다(8장). 언어 선택은 중요하지만, 완벽을 좇기보다 합리적으로 정하고 문제를 푸는 게 낫다."
+          "text": "**한 줄 요약: 생태계, 팀으로 합리적으로 빠르게 고르고, 그 위에서 잘 지어라.** 언어는 생태계까지가 언어이고(1장), 여섯 기준을 맥락에서 종합하되(2장) 팀이 아는 것을 우선하고(3장), 영역 표준을 보고(4장), 언어 수를 줄이고(5장), 경계로 바꿀 여지를 남기고(6장), 하이프는 실제로 검증하고(7장), 결국 언어보다 설계, 테스트, 운영에 집중한다(8장). 언어 선택은 중요하지만, 완벽을 좇기보다 합리적으로 정하고 문제를 푸는 게 낫다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래의 마무리.** 배움용 언어는 lang-second(안 겪은 축), 성능·특성은 lang-memory·lang-concurrency, 패러다임 이해는 lang-fp·lang-oop·lang-types, 실제 성패는 design·quality·sys·scale 로 이어진다. **「언어를 깊이 이해하되(관점·모델·트레이드오프), 실무는 생태계·팀으로 실용적으로 고르고, 그 위에서 잘 짓는」 태도가 언어·패러다임 갈래 전체의 결론**이다 — 언어는 도구지 목적이 아니다."
+          "text": "**이 칸과 갈래의 마무리.** 배움용 언어는 lang-second(안 겪은 축), 성능, 특성은 lang-memory, lang-concurrency, 패러다임 이해는 lang-fp, lang-oop, lang-types, 실제 성패는 design, quality, sys, scale 로 이어진다. **\"언어를 깊이 이해하되(관점, 모델, 트레이드오프), 실무는 생태계, 팀으로 실용적으로 고르고, 그 위에서 잘 짓는\" 태도가 언어, 패러다임 갈래 전체의 결론**이다. 언어는 도구지 목적이 아니다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 프로젝트의 언어 선택을 점검하라. 「생태계·팀으로 고르기」와 「언어보다 설계·테스트·운영에 집중」 두 가지만 지켜도, 관성적 선택과 분석 마비, 그리고 「언어 탓」 착각이 사라진다."
+          "text": "이 8개로 네 프로젝트의 언어 선택을 점검하라. \"생태계, 팀으로 고르기\"와 \"언어보다 설계, 테스트, 운영에 집중\" 두 가지만 지켜도, 관성적 선택과 분석 마비, 그리고 \"언어 탓\" 착각이 사라진다."
         }
       ],
       "quiz": [
@@ -757,7 +757,7 @@
           "q": "언어 고르기 장의 한 줄 요약은?",
           "choices": [
             "최고 언어를 찾아라",
-            "생태계·팀으로 합리적으로 고르고 그 위에서 잘 지어라",
+            "생태계, 팀으로 합리적으로 고르고 그 위에서 잘 지어라",
             "가장 빠른 것",
             "무시"
           ],
@@ -767,16 +767,16 @@
         {
           "q": "먼저 지킬 두 가지는?",
           "choices": [
-            "문법·유행",
-            "생태계·팀으로 고르기 + 언어보다 설계·테스트·운영에 집중",
-            "최신·최고 성능",
+            "문법, 유행",
+            "생태계, 팀으로 고르기 + 언어보다 설계, 테스트, 운영에 집중",
+            "최신, 최고 성능",
             "무시"
           ],
           "answer": 1,
-          "why": "관성·마비·언어탓 방지."
+          "why": "관성, 마비, 언어탓 방지."
         },
         {
-          "q": "언어·패러다임 갈래의 결론은?",
+          "q": "언어, 패러다임 갈래의 결론은?",
           "choices": [
             "한 언어만",
             "언어를 깊이 알되 실용적으로 고르고 그 위에서 잘 짓기",

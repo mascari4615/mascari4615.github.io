@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "찾아보기 — 인덱스가 하는 일",
+      "title": "찾아보기. 인덱스가 하는 일",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스는 **책 뒤의 찾아보기**다. 없으면 1000쪽을 처음부터 넘겨야 하고(풀 스캔), 있으면 자음 순서를 따라 바로 펼친다. 데이터베이스도 똑같다 — 인덱스가 없으면 **모든 행**을 읽어 조건을 검사하고, 있으면 **정렬된 색인**을 따라 몇 번만에 찾는다."
+          "text": "인덱스는 **책 뒤의 찾아보기**다. 없으면 1000쪽을 처음부터 넘겨야 하고(풀 스캔), 있으면 자음 순서를 따라 바로 펼친다. 데이터베이스도 똑같다. 인덱스가 없으면 **모든 행**을 읽어 조건을 검사하고, 있으면 **정렬된 색인**을 따라 몇 번만에 찾는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "풀 스캔 vs 인덱스 — 행이 늘면 격차가 벌어진다",
+          "label": "풀 스캔 vs 인덱스. 행이 늘면 격차가 벌어진다",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}};\n  const scan = N;                       // 한 행씩 다 본다\n  const idx = Math.ceil(Math.log2(N + 1)); // 정렬 색인 이진 탐색\n  render('SELECT * FROM users WHERE id = 777   (행 ' + N.toLocaleString() + '개)',\n    '  풀 스캔  = ' + scan.toLocaleString() + ' 번 비교 (모든 행을 읽는다)\\n' +\n    '  인덱스   = ' + idx + ' 번 비교 (정렬된 색인을 반씩 좁힌다)\\n\\n' +\n    '  같은 결과를 얻는데 ' + Math.round(scan / idx).toLocaleString() + '배 적게 읽는다.',\n    '행이 2배가 되면 풀 스캔은 2배 느려지지만 인덱스는 딱 1번만 늘어난다.',\n    bars([['풀 스캔', Math.min(100, scan / 100), scan.toLocaleString() + '번', '#fca5a5'],\n          ['인덱스', idx * 2, idx + '번', '#4ade80']]));\n</script>",
           "controls": [
@@ -30,11 +30,11 @@
         },
         {
           "type": "note",
-          "text": "**인덱스는 정렬을 미리 해 두는 것이다.** 정렬돼 있으니 「반씩 좁히기(이진 탐색)」가 가능하다. 정렬이 안 된 데이터에선 원하는 값이 어디 있을지 알 수 없어 전부 봐야 한다 — 이것이 인덱스가 없을 때와 있을 때의 본질적 차이다."
+          "text": "**인덱스는 정렬을 미리 해 두는 것이다.** 정렬돼 있으니 \"반씩 좁히기(이진 탐색)\"가 가능하다. 정렬이 안 된 데이터에선 원하는 값이 어디 있을지 알 수 없어 전부 봐야 한다. 이것이 인덱스가 없을 때와 있을 때의 본질적 차이다."
         },
         {
           "type": "p",
-          "text": "**모든 조회가 인덱스로 빨라지는 것은 아니다.** 인덱스는 「조건에 맞는 소수의 행」을 찾을 때 강력하다. 테이블의 절반을 가져오는 조회라면 색인을 타고 왔다 갔다 하느니 그냥 다 읽는 게 빠르다(3장). 인덱스는 **바늘 찾기**에 쓰는 도구다."
+          "text": "**모든 조회가 인덱스로 빨라지는 것은 아니다.** 인덱스는 \"조건에 맞는 소수의 행\"을 찾을 때 강력하다. 테이블의 절반을 가져오는 조회라면 색인을 타고 왔다 갔다 하느니 그냥 다 읽는 게 빠르다(3장). 인덱스는 **바늘 찾기**에 쓰는 도구다."
         },
         {
           "type": "try",
@@ -79,17 +79,17 @@
     },
     {
       "id": "2",
-      "title": "왜 이렇게 빠른가 — B-tree 의 깊이",
+      "title": "왜 이렇게 빠른가. B-tree 의 깊이",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "DB 인덱스는 대부분 **B-tree**다. 한 노드가 자식을 수백 개 갖는 넓고 얕은 트리다. 그래서 수백만 행도 **3~4단계**만에 닿는다. 핵심은 「비교 횟수가 행 수에 비례하지 않고 **로그**로 는다」는 것 — 행이 100배 늘어도 깊이는 한두 단만 는다."
+          "text": "DB 인덱스는 대부분 **B-tree**다. 한 노드가 자식을 수백 개 갖는 넓고 얕은 트리다. 그래서 수백만 행도 **3~4단계**만에 닿는다. 핵심은 \"비교 횟수가 행 수에 비례하지 않고 **로그**로 는다\"는 것. 행이 100배 늘어도 깊이는 한두 단만 는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "트리 깊이 — 행이 백만이어도 몇 단뿐",
+          "label": "트리 깊이. 행이 백만이어도 몇 단뿐",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}}, fan = {{fanout}};\n  const depth = Math.max(1, Math.ceil(Math.log(N) / Math.log(fan)));\n  // 각 단계의 노드 수(대략)\n  const lvls = [];\n  for (let d = 0; d < depth; d++) lvls.push(Math.min(N, Math.pow(fan, d)));\n  const treeHtml = '<div class=\\\"tree\\\">' + lvls.map((cnt, i) => {\n    const show = Math.min(cnt, 7);\n    let nodes = '';\n    for (let k = 0; k < show; k++) nodes += '<span class=\\\"nd' + (k === 0 ? ' on' : '') + '\\\">' +\n      (i === depth - 1 ? 'row' : '·') + '</span>';\n    if (cnt > show) nodes += '<span class=\\\"nd\\\">+' + (cnt - show).toLocaleString() + '</span>';\n    return '<div class=\\\"lvl\\\">' + nodes + '</div>';\n  }).join('') + '</div>';\n  render('B-tree: 행 ' + N.toLocaleString() + ' · 노드당 자식 ' + fan,\n    '  깊이 = <span class=\\\"ok\\\">' + depth + '</span> 단  ->  한 행을 찾는 데 디스크 읽기 약 ' + depth + '번\\n\\n' +\n    '  행을 ' + fan + '배 늘려야 깊이가 1단 는다. 백만 행도 위에서 아래로 ' + depth + '번이면 닿는다.',\n    '자식이 많을수록(넓을수록) 트리가 얕아진다 — fanout 을 키워 보라.',\n    treeHtml);\n</script>",
           "controls": [
@@ -119,7 +119,7 @@
         },
         {
           "type": "p",
-          "text": "**로그 성장이 핵심 직관이다.** 행이 1천 → 100만 → 10억으로 1000배씩 늘어도, 깊이는 대략 2 → 3 → 4단으로 **1씩만** 는다. 「데이터가 아무리 커져도 조회 시간은 거의 그대로」 — 인덱스가 규모를 견디는 이유가 여기 있다."
+          "text": "**로그 성장이 핵심 직관이다.** 행이 1천 → 100만 → 10억으로 1000배씩 늘어도, 깊이는 대략 2 → 3 → 4단으로 **1씩만** 는다. \"데이터가 아무리 커져도 조회 시간은 거의 그대로\". 인덱스가 규모를 견디는 이유가 여기 있다."
         },
         {
           "type": "try",
@@ -164,17 +164,17 @@
     },
     {
       "id": "3",
-      "title": "언제 이득인가 — 선택도",
+      "title": "언제 이득인가. 선택도",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스는 **조건에 맞는 행이 적을수록** 이득이다(높은 선택도). `email = ...`(한 명)은 완벽하다. 하지만 `is_active = true`(90%가 참)는 인덱스로 90%의 행을 하나씩 색인→테이블로 오가느니, 그냥 테이블을 순차로 읽는 게 빠르다. **옵티마이저는 이 손익을 계산해 인덱스를 안 쓸 수도 있다.**"
+          "text": "인덱스는 **조건에 맞는 행이 적을수록** 이득이다(높은 선택도). `email =...`(한 명)은 완벽하다. 하지만 `is_active = true`(90%가 참)는 인덱스로 90%의 행을 하나씩 색인→테이블로 오가느니, 그냥 테이블을 순차로 읽는 게 빠르다. **옵티마이저는 이 손익을 계산해 인덱스를 안 쓸 수도 있다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "선택도를 바꿔 보라 — 손익분기점",
+          "label": "선택도를 바꿔 보라. 손익분기점",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const pct = {{sel}};                    // 조건에 맞는 행 비율(%)\n  const N = 100000, hit = N * pct / 100;\n  // 인덱스: 맞는 행마다 색인+테이블 방문(랜덤). 풀스캔: N 순차(순차는 싸다 가정 계수 0.25)\n  const idxCost = hit * 2;\n  const scanCost = N * 0.25;\n  const useIdx = idxCost < scanCost;\n  render('WHERE ...  (10만 행 중 ' + pct + '% 일치 = ' + hit.toLocaleString() + '행)',\n    '  인덱스 예상 비용 = ' + Math.round(idxCost).toLocaleString() + '  (맞는 행마다 색인->테이블 랜덤 접근)\\n' +\n    '  풀 스캔 예상 비용 = ' + Math.round(scanCost).toLocaleString() + '  (순차 읽기는 랜덤보다 싸다)\\n\\n' +\n    '  -> 옵티마이저 선택: <span class=\\\"' + (useIdx ? 'ok' : 'no') + '\\\">' +\n      (useIdx ? '인덱스 사용' : '풀 스캔 (인덱스 무시)') + '</span>',\n    '일치 비율이 낮으면 인덱스, 높으면 풀 스캔이 이긴다. 슬라이더로 뒤집어 보라.',\n    bars([['인덱스', Math.min(100, idxCost / 500), Math.round(idxCost).toLocaleString(), useIdx ? '#4ade80' : '#64748b'],\n          ['풀 스캔', Math.min(100, scanCost / 500), Math.round(scanCost).toLocaleString(), useIdx ? '#64748b' : '#fca5a5']]));\n</script>",
           "controls": [
@@ -191,11 +191,11 @@
         },
         {
           "type": "note",
-          "text": "**성별·불리언처럼 값 종류가 적은 컬럼은 단독 인덱스 효과가 약하다.** `gender = 'M'` 이 절반을 고른다면 인덱스가 거의 도움이 안 된다. 이런 컬럼은 선택도 높은 다른 컬럼과 **복합 인덱스**로 묶을 때 의미가 생긴다(4장)."
+          "text": "**성별, 불리언처럼 값 종류가 적은 컬럼은 단독 인덱스 효과가 약하다.** `gender = 'M'` 이 절반을 고른다면 인덱스가 거의 도움이 안 된다. 이런 컬럼은 선택도 높은 다른 컬럼과 **복합 인덱스**로 묶을 때 의미가 생긴다(4장)."
         },
         {
           "type": "p",
-          "text": "**통계가 낡으면 옵티마이저가 틀린다.** DB 는 각 값의 분포 통계를 보고 「몇 행이 맞을까」를 추정해 인덱스/풀스캔을 고른다. 데이터가 많이 바뀌었는데 통계가 갱신 안 되면 엉뚱한 계획을 짠다 — 느려졌다면 통계 갱신(ANALYZE)을 의심하라."
+          "text": "**통계가 낡으면 옵티마이저가 틀린다.** DB 는 각 값의 분포 통계를 보고 \"몇 행이 맞을까\"를 추정해 인덱스/풀스캔을 고른다. 데이터가 많이 바뀌었는데 통계가 갱신 안 되면 엉뚱한 계획을 짠다. 느려졌다면 통계 갱신(ANALYZE)을 의심하라."
         },
         {
           "type": "try",
@@ -215,7 +215,7 @@
           "why": "바늘 찾기에 강하다."
         },
         {
-          "q": "불리언·성별 컬럼 단독 인덱스가 약한 이유는?",
+          "q": "불리언, 성별 컬럼 단독 인덱스가 약한 이유는?",
           "choices": [
             "용량이 커서",
             "값 종류가 적어 큰 비율을 골라 선택도가 낮으므로",
@@ -240,12 +240,12 @@
     },
     {
       "id": "4",
-      "title": "복합 인덱스 — 왼쪽 접두사",
+      "title": "복합 인덱스. 왼쪽 접두사",
       "minutes": 10,
       "blocks": [
         {
           "type": "p",
-          "text": "여러 컬럼을 묶은 **복합 인덱스** `(a, b, c)` 는 전화번호부처럼 **왼쪽부터** 정렬돼 있다 — 먼저 a 로, 같으면 b 로, 그다음 c 로. 그래서 `a`, `a+b`, `a+b+c` 조회엔 쓰이지만, **`b` 단독이나 `c` 단독**엔 못 쓴다. 성으로 정렬된 명부에서 이름만으로 찾을 수 없는 것과 같다."
+          "text": "여러 컬럼을 묶은 **복합 인덱스** `(a, b, c)` 는 전화번호부처럼 **왼쪽부터** 정렬돼 있다. 먼저 a 로, 같으면 b 로, 그다음 c 로. 그래서 `a`, `a+b`, `a+b+c` 조회엔 쓰이지만, **`b` 단독이나 `c` 단독**엔 못 쓴다. 성으로 정렬된 명부에서 이름만으로 찾을 수 없는 것과 같다."
         },
         {
           "type": "demo",
@@ -294,7 +294,7 @@
         },
         {
           "type": "try",
-          "text": "가장 느린 조회의 WHERE + ORDER BY 를 적고, 등호 조건을 왼쪽·범위를 오른쪽에 둔 복합 인덱스를 설계하라. 실행 계획으로 타는지 확인하라."
+          "text": "가장 느린 조회의 WHERE + ORDER BY 를 적고, 등호 조건을 왼쪽, 범위를 오른쪽에 둔 복합 인덱스를 설계하라. 실행 계획으로 타는지 확인하라."
         }
       ],
       "quiz": [
@@ -340,12 +340,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스가 **있는데도** 안 쓰이는 흔한 함정들이 있다. 대부분 「인덱스된 컬럼을 그대로 두지 않고 **가공**」하거나, 정렬을 활용할 수 없게 만드는 경우다. 실행 계획에 풀 스캔이 뜨는데 이유를 모르겠다면 여기를 의심하라."
+          "text": "인덱스가 **있는데도** 안 쓰이는 흔한 함정들이 있다. 대부분 \"인덱스된 컬럼을 그대로 두지 않고 **가공**\"하거나, 정렬을 활용할 수 없게 만드는 경우다. 실행 계획에 풀 스캔이 뜨는데 이유를 모르겠다면 여기를 의심하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이 조회는 인덱스를 탈까 — 패턴을 골라 보라",
+          "label": "이 조회는 인덱스를 탈까. 패턴을 골라 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const p = '{{pat}}';\n  const cases = {\n    plain:  ['WHERE created_at >= \\'2026-08-01\\'', true, '컬럼을 그대로 비교 -> 탄다'],\n    func:   ['WHERE DATE(created_at) = \\'2026-08-12\\'', false, '컬럼을 함수로 감싸면 인덱스 값과 매칭 불가'],\n    like1:  ['WHERE name LIKE \\'김%\\'', true, '앞이 고정된 LIKE 는 범위로 바뀌어 탄다'],\n    like2:  ['WHERE name LIKE \\'%김%\\'', false, '앞이 와일드카드면 시작점을 못 잡아 풀 스캔'],\n    type:   ['WHERE phone = 01012345678', false, 'phone 은 문자열인데 숫자로 비교 -> 형변환이 컬럼을 가공'],\n    ornull: ['WHERE status = \\'paid\\' OR ref IS NULL', false, '서로 다른 컬럼 OR -> 한 인덱스로 못 좁힌다'],\n  }[p];\n  render('EXPLAIN  ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">인덱스 사용 O</span>'\n      : '<span class=\\\"no\\\">인덱스 사용 X -> 풀 스캔</span>') + '\\n\\n  ' + cases[2] +\n    (cases[1] ? '' : '\\n\\n  고치는 법: 컬럼을 가공하지 말고 <span class=\\\"warn\\\">값 쪽</span>을 바꾼다 (범위·타입 정정).'),\n    '규칙 하나: 인덱스된 컬럼을 WHERE 왼쪽에서 함수·연산·형변환으로 감싸지 마라.',\n    box(cases[1] ? '탄다' : '안 탄다',\n      p === 'func'  ? '❌ DATE(created_at) = ...\\n✅ created_at >= \\'2026-08-12\\' AND created_at < \\'2026-08-13\\''\n    : p === 'like2' ? '❌ LIKE \\'%김%\\'  (전문검색 인덱스가 필요한 영역)\\n✅ LIKE \\'김%\\''\n    : p === 'type'  ? '❌ phone = 01012345678  (숫자)\\n✅ phone = \\'01012345678\\'  (문자열)'\n    : p === 'ornull'? '❌ A OR B  (다른 컬럼)\\n✅ UNION 으로 각 조건을 따로 태운다'\n    : '그대로 두면 인덱스가 값을 그대로 찾을 수 있다',\n      cases[1] ? 'good' : 'bad'));\n</script>",
           "controls": [
@@ -385,15 +385,15 @@
         },
         {
           "type": "note",
-          "text": "**컬럼을 건드리지 말고 값을 건드려라.** `DATE(created_at) = X` 대신 `created_at >= X AND created_at < X+1일` 처럼 **범위**로 바꾸면 원본 컬럼이 그대로라 인덱스가 산다. 형 불일치도 마찬가지 — 리터럴을 컬럼 타입에 맞춘다."
+          "text": "**컬럼을 건드리지 말고 값을 건드려라.** `DATE(created_at) = X` 대신 `created_at >= X AND created_at < X+1일` 처럼 **범위**로 바꾸면 원본 컬럼이 그대로라 인덱스가 산다. 형 불일치도 마찬가지. 리터럴을 컬럼 타입에 맞춘다."
         },
         {
           "type": "p",
-          "text": "**중간·양쪽 와일드카드 검색(`%김%`)은 일반 인덱스로 못 푼다.** 시작 문자를 모르면 정렬 색인의 출발점을 잡을 수 없다. 이런 부분 문자열·전문 검색은 별도의 **전문 인덱스(full-text)** 나 검색 엔진의 영역이다(search 트랙)."
+          "text": "**중간, 양쪽 와일드카드 검색(`%김%`)은 일반 인덱스로 못 푼다.** 시작 문자를 모르면 정렬 색인의 출발점을 잡을 수 없다. 이런 부분 문자열, 전문 검색은 별도의 **전문 인덱스(full-text)** 나 검색 엔진의 영역이다(search 트랙)."
         },
         {
           "type": "try",
-          "text": "느린 조회들의 WHERE 절을 훑어, 인덱스 컬럼을 함수로 감싸거나 형이 안 맞는 곳을 찾아라. 값 쪽을 고쳐 범위·정확한 타입으로 바꿔라."
+          "text": "느린 조회들의 WHERE 절을 훑어, 인덱스 컬럼을 함수로 감싸거나 형이 안 맞는 곳을 찾아라. 값 쪽을 고쳐 범위, 정확한 타입으로 바꿔라."
         }
       ],
       "quiz": [
@@ -423,7 +423,7 @@
           "q": "컬럼 가공으로 인덱스가 죽었을 때 올바른 수정 방향은?",
           "choices": [
             "인덱스 추가",
-            "컬럼 대신 값 쪽을 바꿔 범위·타입 정정",
+            "컬럼 대신 값 쪽을 바꿔 범위, 타입 정정",
             "테이블 분할",
             "캐시"
           ],
@@ -439,12 +439,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스로 행을 찾은 뒤엔 보통 **테이블 본체로 돌아가** 나머지 컬럼을 읽는다. 그런데 조회가 필요한 컬럼이 **인덱스 안에 다 있으면** 이 왕복이 사라진다 — 이를 **커버링 인덱스**라 한다. 인덱스만 읽고 답을 완성하니 훨씬 빠르다."
+          "text": "인덱스로 행을 찾은 뒤엔 보통 **테이블 본체로 돌아가** 나머지 컬럼을 읽는다. 그런데 조회가 필요한 컬럼이 **인덱스 안에 다 있으면** 이 왕복이 사라진다. 이를 **커버링 인덱스**라 한다. 인덱스만 읽고 답을 완성하니 훨씬 빠르다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "커버링 여부 — 테이블 왕복이 사라지나",
+          "label": "커버링 여부. 테이블 왕복이 사라지나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{sel}}';\n  // INDEX (user_id, created_at) INCLUDE (title)\n  const cases = {\n    cover:  ['SELECT created_at, title WHERE user_id=42', true, 'user_id·created_at·title 모두 인덱스 안 -> 테이블 안 감'],\n    order:  ['SELECT created_at WHERE user_id=42 ORDER BY created_at', true, '인덱스가 이미 created_at 순 -> 정렬 공짜'],\n    extra:  ['SELECT body WHERE user_id=42', false, 'body 는 인덱스에 없다 -> 행마다 테이블 왕복'],\n    star:   ['SELECT * WHERE user_id=42', false, 'SELECT * 는 모든 컬럼 -> 거의 항상 테이블 왕복'],\n  }[q];\n  render('INDEX (user_id, created_at) INCLUDE (title)   <-  ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">커버링 O — 인덱스만 읽고 끝(Index Only Scan)</span>'\n      : '<span class=\\\"no\\\">커버링 X — 맞는 행마다 테이블로 돌아가 읽음</span>') + '\\n\\n  ' + cases[2],\n    '필요한 컬럼이 인덱스에 다 들어 있으면 테이블 접근이 통째로 생략된다.',\n    bars(cases[1]\n      ? [['인덱스 읽기', 20, '1회 경로', '#4ade80'], ['테이블 왕복', 2, '0회', '#166534']]\n      : [['인덱스 읽기', 20, '1회 경로', '#38bdf8'], ['테이블 왕복', 70, '맞는 행마다', '#fca5a5']]));\n</script>",
           "controls": [
@@ -480,7 +480,7 @@
         },
         {
           "type": "p",
-          "text": "**커버링은 공짜가 아니다.** INCLUDE 로 컬럼을 넣을수록 인덱스가 커지고 쓰기·저장 비용이 는다. 자주·크게 이득 보는 핵심 조회에만 커버링을 설계하고, `SELECT *` 를 커버하려 애쓰지 마라 — 그건 사실상 테이블을 복제하는 것이다."
+          "text": "**커버링은 공짜가 아니다.** INCLUDE 로 컬럼을 넣을수록 인덱스가 커지고 쓰기, 저장 비용이 는다. 자주, 크게 이득 보는 핵심 조회에만 커버링을 설계하고, `SELECT *` 를 커버하려 애쓰지 마라. 그건 사실상 테이블을 복제하는 것이다."
         },
         {
           "type": "try",
@@ -514,7 +514,7 @@
           "q": "커버링을 남용하면 안 되는 이유는?",
           "choices": [
             "느려서",
-            "인덱스가 커져 쓰기·저장 비용 증가",
+            "인덱스가 커져 쓰기, 저장 비용 증가",
             "정렬이 깨져서",
             "권한 문제"
           ],
@@ -525,12 +525,12 @@
     },
     {
       "id": "7",
-      "title": "공짜가 아니다 — 쓰기 비용",
+      "title": "공짜가 아니다. 쓰기 비용",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스는 **읽기를 빠르게 하는 대신 쓰기를 느리게** 한다. 행을 INSERT·UPDATE·DELETE 할 때마다 그 테이블의 **모든 인덱스**를 함께 갱신해야 한다. 인덱스 5개면 INSERT 한 번에 6곳(본체 1 + 인덱스 5)을 고친다. 읽기와 쓰기의 균형이 인덱스 설계의 핵심 트레이드오프다."
+          "text": "인덱스는 **읽기를 빠르게 하는 대신 쓰기를 느리게** 한다. 행을 INSERT, UPDATE, DELETE 할 때마다 그 테이블의 **모든 인덱스**를 함께 갱신해야 한다. 인덱스 5개면 INSERT 한 번에 6곳(본체 1 + 인덱스 5)을 고친다. 읽기와 쓰기의 균형이 인덱스 설계의 핵심 트레이드오프다."
         },
         {
           "type": "demo",
@@ -552,11 +552,11 @@
         },
         {
           "type": "note",
-          "text": "**쓰기가 많은 테이블(로그·이벤트·큐)일수록 인덱스를 아껴라.** 초당 수천 INSERT 가 도는 테이블에 인덱스가 여럿이면 그 갱신이 병목이 된다. 반대로 대부분 읽기만 하는 참조 테이블은 인덱스를 넉넉히 둬도 된다."
+          "text": "**쓰기가 많은 테이블(로그, 이벤트, 큐)일수록 인덱스를 아껴라.** 초당 수천 INSERT 가 도는 테이블에 인덱스가 여럿이면 그 갱신이 병목이 된다. 반대로 대부분 읽기만 하는 참조 테이블은 인덱스를 넉넉히 둬도 된다."
         },
         {
           "type": "p",
-          "text": "**「일단 다 붙이자」와 「인덱스 있으니 괜찮다」 둘 다 틀렸다.** 전자는 쓰기를 망치고, 후자는 안 쓰이는 인덱스가 조용히 쓰기·저장을 갉아먹는데도 방치한다. 인덱스는 **측정에 근거해** 필요한 만큼만, 안 쓰이면 지운다(8장)."
+          "text": "**\"일단 다 붙이자\"와 \"인덱스 있으니 괜찮다\" 둘 다 틀렸다.** 전자는 쓰기를 망치고, 후자는 안 쓰이는 인덱스가 조용히 쓰기, 저장을 갉아먹는데도 방치한다. 인덱스는 **측정에 근거해** 필요한 만큼만, 안 쓰이면 지운다(8장)."
         },
         {
           "type": "try",
@@ -579,7 +579,7 @@
           "q": "인덱스를 특히 아껴야 하는 테이블은?",
           "choices": [
             "읽기만 하는 참조 테이블",
-            "쓰기가 잦은 로그·이벤트 테이블",
+            "쓰기가 잦은 로그, 이벤트 테이블",
             "작은 테이블",
             "설정 테이블"
           ],
@@ -590,12 +590,12 @@
           "q": "안 쓰이는 인덱스가 나쁜 이유는?",
           "choices": [
             "읽기를 느리게 해서",
-            "이득 없이 쓰기·저장 비용만 갉아먹으므로",
+            "이득 없이 쓰기, 저장 비용만 갉아먹으므로",
             "정렬을 깨서",
             "락을 늘려서"
           ],
           "answer": 1,
-          "why": "순수 손해 — 지운다."
+          "why": "순수 손해. 지운다."
         }
       ]
     },
@@ -634,7 +634,7 @@
         },
         {
           "type": "note",
-          "text": "**전후를 같은 조건으로 비교하라.** 캐시가 데워진 두 번째 실행은 원래 빠르다 — 인덱스 덕인지 캐시 덕인지 헷갈린다. 같은 데이터·같은 파라미터로 여러 번 재고, 실행 계획이 실제로 Index Scan 으로 바뀌었는지 눈으로 확인한다."
+          "text": "**전후를 같은 조건으로 비교하라.** 캐시가 데워진 두 번째 실행은 원래 빠르다. 인덱스 덕인지 캐시 덕인지 헷갈린다. 같은 데이터, 같은 파라미터로 여러 번 재고, 실행 계획이 실제로 Index Scan 으로 바뀌었는지 눈으로 확인한다."
         },
         {
           "type": "try",
@@ -679,17 +679,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 인덱스 설계",
+      "title": "점검표. 인덱스 설계",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "인덱스를 추가·검토하기 전에 이 목록을 확인하라. 하나라도 「아니오」면 그 인덱스는 이득 없이 쓰기만 갉아먹거나, 있어도 안 타는 인덱스일 수 있다."
+          "text": "인덱스를 추가, 검토하기 전에 이 목록을 확인하라. 하나라도 \"아니오\"면 그 인덱스는 이득 없이 쓰기만 갉아먹거나, 있어도 안 타는 인덱스일 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  .tree { font:11px/1.5 ui-monospace, monospace; margin:8px 0; }\n  .tree .lvl { display:flex; gap:4px; justify-content:center; margin:3px 0; flex-wrap:wrap; }\n  .tree .nd { background:#1e293b; border:1px solid #334155; border-radius:4px; padding:2px 7px; color:#cbd5e1; }\n  .tree .nd.on { background:#0e7490; border-color:#22d3ee; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '느린 조회를 실측으로 찾았다(감이 아니라 로그)',\n    'EXPLAIN 으로 현재 Seq Scan 임을 확인했다',\n    '조건의 선택도가 높다(적은 행을 고른다)',\n    '복합 인덱스는 등호 왼쪽·범위 오른쪽 순이다',\n    'WHERE 에서 인덱스 컬럼을 함수·형변환으로 감싸지 않았다',\n    '자주 함께 읽는 컬럼은 커버링/정렬 흡수를 고려했다',\n    '쓰기 부담 대비 읽기 이득이 크다(쓰기 잦은 표는 절제)',\n    '인덱스 사용 통계를 주기적으로 보고 안 쓰이면 지운다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 근거 있는 인덱스다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음 — 그만큼 추측으로 붙이는 중.</span>'),\n    '읽기 이득과 쓰기 비용을 저울에 올리고, 측정으로 결정한다.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -706,11 +706,11 @@
         },
         {
           "type": "note",
-          "text": "**순서가 우선순위다.** 느린 조회를 찾고(1~2) → 이득이 있는지 보고(3) → 잘 설계하고(4~6) → 비용을 저울질하고(7) → 지킨다(8). 이 순서를 건너뛰고 「일단 인덱스」로 시작하면 쓰기를 망치고도 조회는 그대로일 수 있다."
+          "text": "**순서가 우선순위다.** 느린 조회를 찾고(1~2) → 이득이 있는지 보고(3) → 잘 설계하고(4~6) → 비용을 저울질하고(7) → 지킨다(8). 이 순서를 건너뛰고 \"일단 인덱스\"로 시작하면 쓰기를 망치고도 조회는 그대로일 수 있다."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 합류점.** 인덱스는 실행 계획(db-explain)·락(db-lock)·N+1(db-nplus1)·풀(db-pool) 과 이어진다. 인덱스로 조회를 빠르게 만들면 트랜잭션이 락을 쥐는 시간이 줄고, 커넥션 회전이 빨라져 시스템 전체가 가벼워진다 — 빠른 조회는 만병의 예방약이다."
+          "text": "**이 트랙의 합류점.** 인덱스는 실행 계획(db-explain), 락(db-lock), N+1(db-nplus1), 풀(db-pool) 과 이어진다. 인덱스로 조회를 빠르게 만들면 트랜잭션이 락을 쥐는 시간이 줄고, 커넥션 회전이 빨라져 시스템 전체가 가벼워진다. 빠른 조회는 만병의 예방약이다."
         },
         {
           "type": "try",
@@ -733,7 +733,7 @@
           "q": "빠른 조회가 시스템 전체에 주는 부수 효과는?",
           "choices": [
             "없음",
-            "락 점유 시간·커넥션 회전이 줄어 전체가 가벼워짐",
+            "락 점유 시간, 커넥션 회전이 줄어 전체가 가벼워짐",
             "쓰기가 빨라짐",
             "저장 절약"
           ],
@@ -741,7 +741,7 @@
           "why": "만병의 예방약."
         },
         {
-          "q": "「일단 다 붙이자」식 인덱스의 결과는?",
+          "q": "\"일단 다 붙이자\"식 인덱스의 결과는?",
           "choices": [
             "항상 빠름",
             "쓰기를 망치고도 조회는 그대로일 수 있음",

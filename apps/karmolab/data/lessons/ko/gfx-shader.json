@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**셰이더는 GPU 에서 수백만 번 동시에 도는 아주 작은 프로그램이다 — CPU 사고방식(긴 반복문·복잡한 분기·전역 상태·순차 처리)으로 쓰면 느리거나 아예 안 된다.** CPU 는 코어 몇 개로 명령을 **순서대로** 처리하지만, GPU 는 코어 수천 개로 **같은 프로그램을 수많은 데이터(정점·픽셀)에 동시에** 돌린다(대규모 병렬, SIMD). 그래서 프래그먼트 셰이더는 「모든 픽셀을 도는 반복문」을 **내가 쓰는 게 아니라**, GPU 가 픽셀마다 셰이더를 **한 번씩 병렬로** 실행한다 — 나는 「한 픽셀의 색을 어떻게 정할지」만 쓴다. 이 병렬 모델을 이해하면 왜 분기가 비싸고(5장), 왜 전역 상태·픽셀 간 통신이 안 되고, 왜 짧고 균일한 코드가 빠른지가 이해된다. 이 칸은 두 종류(2장)·값을 넣는 세 통로(3장)·좌표와 UV(4장)·분기와 디버깅(5장)을 다룬다. 아래 데모로 병렬 실행 모델을 확인하라."
+          "text": "**셰이더는 GPU 에서 수백만 번 동시에 도는 아주 작은 프로그램이다. CPU 사고방식(긴 반복문, 복잡한 분기, 전역 상태, 순차 처리)으로 쓰면 느리거나 아예 안 된다.** CPU 는 코어 몇 개로 명령을 **순서대로** 처리하지만, GPU 는 코어 수천 개로 **같은 프로그램을 수많은 데이터(정점, 픽셀)에 동시에** 돌린다(대규모 병렬, SIMD). 그래서 프래그먼트 셰이더는 \"모든 픽셀을 도는 반복문\"을 **내가 쓰는 게 아니라**, GPU 가 픽셀마다 셰이더를 **한 번씩 병렬로** 실행한다. 나는 \"한 픽셀의 색을 어떻게 정할지\"만 쓴다. 이 병렬 모델을 이해하면 왜 분기가 비싸고(5장), 왜 전역 상태, 픽셀 간 통신이 안 되고, 왜 짧고 균일한 코드가 빠른지가 이해된다. 이 칸은 두 종류(2장), 값을 넣는 세 통로(3장), 좌표와 UV(4장), 분기와 디버깅(5장)을 다룬다. 아래 데모로 병렬 실행 모델을 확인하라."
         },
         {
           "type": "demo",
@@ -37,11 +37,11 @@
         },
         {
           "type": "note",
-          "text": "**셰이더는 GPU 에서 수많은 데이터에 동시에 실행되는 작은 병렬 프로그램이라, CPU 의 순차·상태 중심 사고로 쓰면 느리거나 동작하지 않는다.** **CPU vs GPU 실행 모델**: CPU 는 소수의 강력한 코어로 명령을 **순차적으로**(분기 예측·큰 캐시로 한 흐름을 빠르게) 처리한다. GPU 는 **수천 개의 단순한 코어**로 **같은 프로그램(셰이더)을 수많은 요소(정점·프래그먼트)에 동시에** 실행한다(SIMT/SIMD, 대규모 병렬). **셰이더의 사고 전환**: ① **반복문을 내가 안 쓴다** — 프래그먼트 셰이더는 「모든 픽셀에 대해」 도는 for 문을 작성하는 게 아니라, **한 픽셀의 색을 계산하는 함수**를 작성한다. GPU 가 그 함수를 픽셀마다 **한 번씩 병렬로** 호출한다(`gl_FragCoord` 로 현재 픽셀 위치를 앎). 정점 셰이더도 정점마다 한 번. ② **전역 상태·부작용이 없다** — 각 셰이더 호출은 **독립적**이라, 다른 픽셀의 결과를 읽거나 전역 변수를 누적할 수 없다(픽셀 간 통신·순서 의존 불가). 입력(attribute·uniform·텍스처)을 받아 **출력(색·위치)만** 낸다 — 순수 함수에 가깝다. ③ **분기·긴 루프가 비싸다** — 인접 픽셀들이 **묶여서 같은 명령**을 돌기 때문에, 픽셀마다 다른 분기·다른 반복 횟수는 병렬성을 깬다(5장). ④ **짧고 균일한 코드가 빠르다** — 모든 픽셀이 같은 짧은 경로를 도는 게 이상적. **왜 이래야 하나**: 화면 200만 픽셀 × 60fps = 초당 1억 회 이상 실행되므로, 한 호출이 조금만 무거워도·분기가 갈려도 전체가 크게 느려진다. 이 병렬·독립·균일 모델이 셰이더의 모든 제약(3·4·5장)의 뿌리다. **정리**: 셰이더는 「한 요소의 결과를 내는, 수백만 번 병렬로 도는 작은 순수 함수」다 — 반복문·전역 상태·순차 사고를 버리고, 짧고 균일하고 독립적으로 써라."
+          "text": "**셰이더는 GPU 에서 수많은 데이터에 동시에 실행되는 작은 병렬 프로그램이라, CPU 의 순차, 상태 중심 사고로 쓰면 느리거나 동작하지 않는다.** **CPU vs GPU 실행 모델**: CPU 는 소수의 강력한 코어로 명령을 **순차적으로**(분기 예측, 큰 캐시로 한 흐름을 빠르게) 처리한다. GPU 는 **수천 개의 단순한 코어**로 **같은 프로그램(셰이더)을 수많은 요소(정점, 프래그먼트)에 동시에** 실행한다(SIMT/SIMD, 대규모 병렬). **셰이더의 사고 전환**: ① **반복문을 내가 안 쓴다**. 프래그먼트 셰이더는 \"모든 픽셀에 대해\" 도는 for 문을 작성하는 게 아니라, **한 픽셀의 색을 계산하는 함수**를 작성한다. GPU 가 그 함수를 픽셀마다 **한 번씩 병렬로** 호출한다(`gl_FragCoord` 로 현재 픽셀 위치를 앎). 정점 셰이더도 정점마다 한 번. ② **전역 상태, 부작용이 없다**. 각 셰이더 호출은 **독립적**이라, 다른 픽셀의 결과를 읽거나 전역 변수를 누적할 수 없다(픽셀 간 통신, 순서 의존 불가). 입력(attribute, uniform, 텍스처)을 받아 **출력(색, 위치)만** 낸다. 순수 함수에 가깝다. ③ **분기, 긴 루프가 비싸다**. 인접 픽셀들이 **묶여서 같은 명령**을 돌기 때문에, 픽셀마다 다른 분기, 다른 반복 횟수는 병렬성을 깬다(5장). ④ **짧고 균일한 코드가 빠르다**. 모든 픽셀이 같은 짧은 경로를 도는 게 이상적. **왜 이래야 하나**: 화면 200만 픽셀 × 60fps = 초당 1억 회 이상 실행되므로, 한 호출이 조금만 무거워도, 분기가 갈려도 전체가 크게 느려진다. 이 병렬, 독립, 균일 모델이 셰이더의 모든 제약(3, 4, 5장)의 뿌리다. **정리**: 셰이더는 \"한 요소의 결과를 내는, 수백만 번 병렬로 도는 작은 순수 함수\"다. 반복문, 전역 상태, 순차 사고를 버리고, 짧고 균일하고 독립적으로 써라."
         },
         {
           "type": "try",
-          "text": "**The Book of Shaders**(온라인 셰이더 놀이터)를 열고, 프래그먼트 셰이더의 `main()` 이 **한 픽셀**의 색만 정한다는 것을 확인하라 — for 문으로 모든 픽셀을 돌지 않는다. `gl_FragCoord` 로 현재 픽셀 위치를 얻어 색을 바꿔 보며, GPU 가 그 함수를 모든 픽셀에 동시에 돌린다는 감각을 익혀라."
+          "text": "**The Book of Shaders**(온라인 셰이더 놀이터)를 열고, 프래그먼트 셰이더의 `main()` 이 **한 픽셀**의 색만 정한다는 것을 확인하라. for 문으로 모든 픽셀을 돌지 않는다. `gl_FragCoord` 로 현재 픽셀 위치를 얻어 색을 바꿔 보며, GPU 가 그 함수를 모든 픽셀에 동시에 돌린다는 감각을 익혀라."
         }
       ],
       "quiz": [
@@ -49,7 +49,7 @@
           "q": "셰이더는 어떻게 실행되나?",
           "choices": [
             "CPU 에서 순차로",
-            "GPU 에서 요소(픽셀·정점)마다 동시에 병렬로",
+            "GPU 에서 요소(픽셀, 정점)마다 동시에 병렬로",
             "한 번만",
             "무관"
           ],
@@ -60,7 +60,7 @@
           "q": "프래그먼트 셰이더에 for 문으로 모든 픽셀을 도나?",
           "choices": [
             "그렇다",
-            "아니다 — 한 픽셀의 색만 쓰고 GPU 가 픽셀마다 호출",
+            "아니다. 한 픽셀의 색만 쓰고 GPU 가 픽셀마다 호출",
             "가끔",
             "무관"
           ],
@@ -71,7 +71,7 @@
           "q": "셰이더에서 하기 어려운 것은?",
           "choices": [
             "입력받기",
-            "전역 상태 누적·다른 픽셀 결과 읽기(픽셀 간 통신)",
+            "전역 상태 누적, 다른 픽셀 결과 읽기(픽셀 간 통신)",
             "색 출력",
             "무관"
           ],
@@ -82,12 +82,12 @@
     },
     {
       "id": "2",
-      "title": "두 종류 — 정점과 프래그먼트",
+      "title": "두 종류. 정점과 프래그먼트",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**기본 셰이더는 둘이다: 정점 셰이더(점마다 한 번, 위치 결정)와 프래그먼트 셰이더(픽셀마다 한 번, 색 결정) — 그리고 그 사이의 값은 자동으로 보간된다.** ① **정점 셰이더(vertex)**: 각 정점마다 실행돼 그 점의 **최종 위치**(클립 좌표, gfx-space 의 MVP)를 정하고, 색·UV·법선 같은 속성을 프래그먼트로 넘긴다. ② **프래그먼트 셰이더(fragment)**: 래스터화로 생긴 각 픽셀마다 실행돼 그 픽셀의 **색**을 정한다(텍스처·조명). **보간(interpolation)**: 삼각형의 세 정점에서 나온 값(varying)은, 그 안의 픽셀들에서 **위치에 따라 자동으로 섞여**(보간) 전달된다 — 그래서 두 정점 색이 빨강·파랑이면 사이 픽셀은 보라색 그라데이션이 된다. 이 정점→보간→프래그먼트 흐름이 셰이더의 기본 구조다. 아래 데모로 정점 색이 보간되는 걸 확인하라."
+          "text": "**기본 셰이더는 둘이다: 정점 셰이더(점마다 한 번, 위치 결정)와 프래그먼트 셰이더(픽셀마다 한 번, 색 결정). 그리고 그 사이의 값은 자동으로 보간된다.** ① **정점 셰이더(vertex)**: 각 정점마다 실행돼 그 점의 **최종 위치**(클립 좌표, gfx-space 의 MVP)를 정하고, 색, UV, 법선 같은 속성을 프래그먼트로 넘긴다. ② **프래그먼트 셰이더(fragment)**: 래스터화로 생긴 각 픽셀마다 실행돼 그 픽셀의 **색**을 정한다(텍스처, 조명). **보간(interpolation)**: 삼각형의 세 정점에서 나온 값(varying)은, 그 안의 픽셀들에서 **위치에 따라 자동으로 섞여**(보간) 전달된다. 그래서 두 정점 색이 빨강, 파랑이면 사이 픽셀은 보라색 그라데이션이 된다. 이 정점→보간→프래그먼트 흐름이 셰이더의 기본 구조다. 아래 데모로 정점 색이 보간되는 걸 확인하라."
         },
         {
           "type": "demo",
@@ -126,11 +126,11 @@
         },
         {
           "type": "note",
-          "text": "**렌더링의 기본 셰이더는 정점 셰이더(정점마다 위치 결정)와 프래그먼트 셰이더(픽셀마다 색 결정) 둘이며, 그 사이의 값은 삼각형 내부에서 자동으로 보간된다.** **① 정점 셰이더(vertex shader)**: 그리는 메시의 **각 정점마다 한 번** 실행된다. 핵심 임무는 정점의 **최종 화면 위치**를 계산하는 것 — 로컬 좌표를 MVP 행렬로 클립 좌표로 변환(gfx-space)해 `gl_Position` 에 넣는다. 부수적으로 각 정점의 속성(색·UV·법선·월드 위치)을 프래그먼트로 넘길 수 있다(varying/out). 정점 셰이더에서 위치를 흔들면 물결·바람·스키닝(뼈대 애니메이션) 같은 정점 애니메이션이 된다. **② 프래그먼트(픽셀) 셰이더(fragment/pixel shader)**: 래스터화(gfx-pipeline 2장)로 생긴 **각 프래그먼트(픽셀 후보)마다 한 번** 실행돼 그 픽셀의 **색**을 계산한다 — 텍스처 샘플링, 조명·PBR(gfx-light), 특수 효과. 출력은 색(`gl_FragColor`/out). 대부분의 시각적 마법(재질·라이팅·포스트)이 여기서 일어나고, 픽셀 수만큼 실행되므로 성능에 민감(gfx-pipeline). **③ 보간(interpolation)**: 정점 셰이더가 정점마다 내보낸 **varying** 값은, 그 정점들이 이루는 삼각형 **내부의 각 픽셀**에서 **위치(무게중심 좌표)에 따라 자동으로 섞여** 프래그먼트 셰이더에 도착한다. 그래서 세 정점의 색·UV·법선이 픽셀들 사이에서 부드럽게 그라데이션 된다(두 정점이 빨강·파랑이면 중간은 보라). 이 자동 보간이 텍스처 매핑·부드러운 조명을 가능케 한다. (원근 보정 보간이 기본, 법선은 보간 후 재정규화 필요.) **그 밖의 셰이더**: 지오메트리·테셀레이션·컴퓨트 셰이더 등도 있지만, 기본은 정점+프래그먼트. **정리**: 정점 셰이더가 위치를, 프래그먼트 셰이더가 색을 정하고, 그 사이 varying 은 삼각형 내부에서 자동 보간된다 — 이 흐름이 셰이더 파이프라인의 뼈대다."
+          "text": "**렌더링의 기본 셰이더는 정점 셰이더(정점마다 위치 결정)와 프래그먼트 셰이더(픽셀마다 색 결정) 둘이며, 그 사이의 값은 삼각형 내부에서 자동으로 보간된다.** **① 정점 셰이더(vertex shader)**: 그리는 메시의 **각 정점마다 한 번** 실행된다. 핵심 임무는 정점의 **최종 화면 위치**를 계산하는 것. 로컬 좌표를 MVP 행렬로 클립 좌표로 변환(gfx-space)해 `gl_Position` 에 넣는다. 부수적으로 각 정점의 속성(색, UV, 법선, 월드 위치)을 프래그먼트로 넘길 수 있다(varying/out). 정점 셰이더에서 위치를 흔들면 물결, 바람, 스키닝(뼈대 애니메이션) 같은 정점 애니메이션이 된다. **② 프래그먼트(픽셀) 셰이더(fragment/pixel shader)**: 래스터화(gfx-pipeline 2장)로 생긴 **각 프래그먼트(픽셀 후보)마다 한 번** 실행돼 그 픽셀의 **색**을 계산한다. 텍스처 샘플링, 조명, PBR(gfx-light), 특수 효과. 출력은 색(`gl_FragColor`/out). 대부분의 시각적 마법(재질, 라이팅, 포스트)이 여기서 일어나고, 픽셀 수만큼 실행되므로 성능에 민감(gfx-pipeline). **③ 보간(interpolation)**: 정점 셰이더가 정점마다 내보낸 **varying** 값은, 그 정점들이 이루는 삼각형 **내부의 각 픽셀**에서 **위치(무게중심 좌표)에 따라 자동으로 섞여** 프래그먼트 셰이더에 도착한다. 그래서 세 정점의 색, UV, 법선이 픽셀들 사이에서 부드럽게 그라데이션 된다(두 정점이 빨강, 파랑이면 중간은 보라). 이 자동 보간이 텍스처 매핑, 부드러운 조명을 가능케 한다. (원근 보정 보간이 기본, 법선은 보간 후 재정규화 필요.) **그 밖의 셰이더**: 지오메트리, 테셀레이션, 컴퓨트 셰이더 등도 있지만, 기본은 정점+프래그먼트. **정리**: 정점 셰이더가 위치를, 프래그먼트 셰이더가 색을 정하고, 그 사이 varying 은 삼각형 내부에서 자동 보간된다. 이 흐름이 셰이더 파이프라인의 뼈대다."
         },
         {
           "type": "try",
-          "text": "간단한 메시(삼각형·사각형)에 **정점마다 다른 색**을 주고 프래그먼트에서 그 색을 그대로 출력해, 삼각형 내부가 **그라데이션(보간)**으로 채워지는지 보라. 그다음 정점 셰이더에서 `gl_Position` 의 y 를 시간·위치로 흔들어 정점 애니메이션(물결)을 만들어 보고, 정점(위치)과 프래그먼트(색)의 역할을 구분하라."
+          "text": "간단한 메시(삼각형, 사각형)에 **정점마다 다른 색**을 주고 프래그먼트에서 그 색을 그대로 출력해, 삼각형 내부가 **그라데이션(보간)**으로 채워지는지 보라. 그다음 정점 셰이더에서 `gl_Position` 의 y 를 시간, 위치로 흔들어 정점 애니메이션(물결)을 만들어 보고, 정점(위치)과 프래그먼트(색)의 역할을 구분하라."
         }
       ],
       "quiz": [
@@ -149,7 +149,7 @@
           "q": "프래그먼트 셰이더의 임무는?",
           "choices": [
             "위치",
-            "각 픽셀의 색 결정(텍스처·조명)",
+            "각 픽셀의 색 결정(텍스처, 조명)",
             "정점 수",
             "무관"
           ],
@@ -157,7 +157,7 @@
           "why": "픽셀마다 색."
         },
         {
-          "q": "두 정점 색이 빨강·파랑일 때 사이 픽셀은?",
+          "q": "두 정점 색이 빨강, 파랑일 때 사이 픽셀은?",
           "choices": [
             "검정",
             "보간되어 보라 그라데이션",
@@ -176,12 +176,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**셰이더에 값을 넣는 통로는 셋이고, 각각 「얼마나 자주 바뀌나」가 다르다: attribute·uniform·varying.** ① **attribute(정점 입력)** — **정점마다 다른** 값: 위치·UV·법선·정점 색. 메시의 각 점에 붙어 정점 셰이더로 들어온다. ② **uniform** — **한 번의 그리기 동안 고정**된 값: 시간·변환 행렬·재질 색·텍스처 핸들·라이트 방향. 모든 정점·픽셀이 같은 값을 본다(CPU 가 그리기 전에 설정). ③ **varying(보간 출력)** — 정점 셰이더가 내보내 **프래그먼트에서 보간되어** 받는 값(2장): UV·월드 위치·법선. 요약: **attribute=정점마다, uniform=그리는 동안 고정, varying=정점→프래그먼트 보간**. (현대 GLSL 에서는 attribute→`in`(vertex), varying→`out`/`in` 으로 이름이 바뀌었지만 개념은 같다.) 아래 데모로 각 통로가 무엇을 나르는지 확인하라."
+          "text": "**셰이더에 값을 넣는 통로는 셋이고, 각각 \"얼마나 자주 바뀌나\"가 다르다: attribute, uniform, varying.** ① **attribute(정점 입력)**. **정점마다 다른** 값: 위치, UV, 법선, 정점 색. 메시의 각 점에 붙어 정점 셰이더로 들어온다. ② **uniform**. **한 번의 그리기 동안 고정**된 값: 시간, 변환 행렬, 재질 색, 텍스처 핸들, 라이트 방향. 모든 정점, 픽셀이 같은 값을 본다(CPU 가 그리기 전에 설정). ③ **varying(보간 출력)**. 정점 셰이더가 내보내 **프래그먼트에서 보간되어** 받는 값(2장): UV, 월드 위치, 법선. 요약: **attribute=정점마다, uniform=그리는 동안 고정, varying=정점→프래그먼트 보간**. (현대 GLSL 에서는 attribute→`in`(vertex), varying→`out`/`in` 으로 이름이 바뀌었지만 개념은 같다.) 아래 데모로 각 통로가 무엇을 나르는지 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "세 통로 — 무엇을 얼마나 자주",
+          "label": "세 통로. 무엇을 얼마나 자주",
           "height": "440px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cv { border-radius:8px; margin:8px auto; display:block; }\n  .caplbl { text-align:center; font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .pxgrid { display:grid; gap:2px; margin:8px auto; width:max-content; }\n  .pxgrid .px { width:16px; height:16px; border-radius:2px; background:#22d3ee; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // canvas: paint a fragment-shader-like pattern. fn(u,v)->[r,g,b] in 0..1\n  function canvas(w, h, fn, label) {\n    const id = 'cv' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(w, h);\n      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {\n        const u = x / w, v = 1 - y / h; const col = fn(u, v);\n        const i = (y * w + x) * 4;\n        img.data[i] = col[0] * 255; img.data[i+1] = col[1] * 255; img.data[i+2] = col[2] * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<canvas class=\"cv\" id=\"' + id + '\" width=\"' + w + '\" height=\"' + h + '\" style=\"width:' + w * 2 + 'px;height:' + h * 2 + 'px\"></canvas>' +\n      (label ? '<div class=\"caplbl\">' + esc(label) + '</div>' : '');\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ch = '{{ch}}';\n  const table = {\n    'attribute': ['attribute (정점 입력)', '정점마다 다름', '위치 · UV · 법선 · 정점 색', '정점 셰이더로 들어옴'],\n    'uniform': ['uniform', '그리는 동안 고정', '시간 · 변환 행렬 · 재질 색 · 텍스처 · 라이트', '모든 정점·픽셀이 같은 값'],\n    'varying': ['varying (보간 출력)', '정점→프래그먼트 보간', 'UV · 월드 위치 · 법선', '정점이 내보내 픽셀에서 섞임'],\n  };\n  const r = table[ch];\n  render('통로: ' + r[0],\n    steps([\n      ['얼마나 자주 바뀌나: ' + r[1], 'on'],\n      ['나르는 것: ' + r[2], 'good'],\n      ['흐름: ' + r[3], ''],\n    ]) + '  <span class=\"ok\">attribute=정점마다 · uniform=고정 · varying=보간.</span>',\n    '값의 통로 셋 — 「얼마나 자주 바뀌나」로 구분한다.',\n    box('세 통로', 'attribute (정점마다)  →  [정점 셰이더]  →  varying (보간)  →  [프래그먼트]\\n  uniform (그리는 동안 고정) → 양쪽 모두', 'good'));\n</script>",
           "controls": [
@@ -215,18 +215,18 @@
         },
         {
           "type": "note",
-          "text": "**셰이더에 값을 넣는 통로는 attribute·uniform·varying 셋이며, 「값이 얼마나 자주 바뀌는가」가 셋을 가른다.** ① **attribute(정점 속성)** — **정점마다 다른** 값이 정점 버퍼에서 정점 셰이더로 들어온다: 정점 **위치**, **UV**(텍스처 좌표), **법선**, 정점 색, 탄젠트, 뼈대 가중치 등. 메시의 각 점에 고유한 데이터. 정점 셰이더에서만 직접 받는다. ② **uniform** — **한 번의 드로우 콜 동안 모든 정점·픽셀에 동일**하게 고정된 값: 변환 **행렬**(MVP·모델), **시간**, 재질 **색**·파라미터, **라이트** 방향·색, **텍스처** 샘플러(핸들), 화면 해상도. CPU 가 그리기 **전에** 설정하고, 정점·프래그먼트 셰이더 양쪽에서 읽는다. 매 픽셀 같은 값이라 분기 조건으로 쓰면 상대적으로 안전(uniform 분기, 5장). ③ **varying(보간 변수)** — 정점 셰이더가 **출력**해 프래그먼트 셰이더가 **보간된 채로 입력**받는 값(2장): 정점의 UV·월드 위치·법선·색을 픽셀별로 부드럽게 전달. 정점 수만큼 계산하고 픽셀에서 섞으므로 효율적. **이름의 변화(GLSL 버전)**: 구형 GLSL(ES 1.0/WebGL1)은 `attribute`/`varying` 키워드를 썼지만, 현대 GLSL(ES 3.0/WebGL2·데스크톱)에서는 정점 입력은 `in`, 정점→프래그먼트는 `out`(정점)·`in`(프래그먼트)로 통일됐다 — **개념은 동일**(정점 입력 / 보간 출력). uniform 은 그대로. 추가로 **UBO/SSBO**(유니폼·스토리지 버퍼)·**텍스처**로 대량 데이터를 넘기기도. **왜 구분이 중요한가**: 값을 잘못된 통로로 넣으면 — 정점마다 달라야 할 걸 uniform 으로 두거나, 픽셀 보간이 필요한 걸 안 넘기면 — 결과가 틀린다. 또 **자주 바뀌는 값일수록 비용**이 다르니(uniform 갱신 vs attribute 버퍼) 적절히 배치한다. **정리**: attribute(정점마다)·uniform(그리는 동안 고정)·varying(정점→프래그먼트 보간) — 값의 변화 빈도에 맞는 통로로 넣어라(현대 GLSL 은 in/out 으로 통일)."
+          "text": "**셰이더에 값을 넣는 통로는 attribute, uniform, varying 셋이며, \"값이 얼마나 자주 바뀌는가\"가 셋을 가른다.** ① **attribute(정점 속성)**. **정점마다 다른** 값이 정점 버퍼에서 정점 셰이더로 들어온다: 정점 **위치**, **UV**(텍스처 좌표), **법선**, 정점 색, 탄젠트, 뼈대 가중치 등. 메시의 각 점에 고유한 데이터. 정점 셰이더에서만 직접 받는다. ② **uniform**. **한 번의 드로우 콜 동안 모든 정점, 픽셀에 동일**하게 고정된 값: 변환 **행렬**(MVP, 모델), **시간**, 재질 **색**, 파라미터, **라이트** 방향, 색, **텍스처** 샘플러(핸들), 화면 해상도. CPU 가 그리기 **전에** 설정하고, 정점, 프래그먼트 셰이더 양쪽에서 읽는다. 매 픽셀 같은 값이라 분기 조건으로 쓰면 상대적으로 안전(uniform 분기, 5장). ③ **varying(보간 변수)**. 정점 셰이더가 **출력**해 프래그먼트 셰이더가 **보간된 채로 입력**받는 값(2장): 정점의 UV, 월드 위치, 법선, 색을 픽셀별로 부드럽게 전달. 정점 수만큼 계산하고 픽셀에서 섞으므로 효율적. **이름의 변화(GLSL 버전)**: 구형 GLSL(ES 1.0/WebGL1)은 `attribute`/`varying` 키워드를 썼지만, 현대 GLSL(ES 3.0/WebGL2, 데스크톱)에서는 정점 입력은 `in`, 정점→프래그먼트는 `out`(정점), `in`(프래그먼트)로 통일됐다. **개념은 동일**(정점 입력 / 보간 출력). uniform 은 그대로. 추가로 **UBO/SSBO**(유니폼, 스토리지 버퍼), **텍스처**로 대량 데이터를 넘기기도. **왜 구분이 중요한가**: 값을 잘못된 통로로 넣으면. 정점마다 달라야 할 걸 uniform 으로 두거나, 픽셀 보간이 필요한 걸 안 넘기면. 결과가 틀린다. 또 **자주 바뀌는 값일수록 비용**이 다르니(uniform 갱신 vs attribute 버퍼) 적절히 배치한다. **정리**: attribute(정점마다), uniform(그리는 동안 고정), varying(정점→프래그먼트 보간). 값의 변화 빈도에 맞는 통로로 넣어라(현대 GLSL 은 in/out 으로 통일)."
         },
         {
           "type": "try",
-          "text": "간단한 셰이더에서 값 하나를 **uniform 으로** 넘겨 보라(예: `uTime` 으로 색을 시간에 따라 바꾸기) — 모든 픽셀이 같은 값을 본다. 그다음 정점마다 다른 값을 **attribute→varying** 으로 넘겨(정점 색·UV) 프래그먼트에서 보간되는지 확인하라. 각 통로가 「얼마나 자주 바뀌나」로 나뉜다는 걸 체감하라."
+          "text": "간단한 셰이더에서 값 하나를 **uniform 으로** 넘겨 보라(예: `uTime` 으로 색을 시간에 따라 바꾸기). 모든 픽셀이 같은 값을 본다. 그다음 정점마다 다른 값을 **attribute→varying** 으로 넘겨(정점 색, UV) 프래그먼트에서 보간되는지 확인하라. 각 통로가 \"얼마나 자주 바뀌나\"로 나뉜다는 걸 체감하라."
         }
       ],
       "quiz": [
         {
-          "q": "attribute·uniform·varying 을 가르는 기준은?",
+          "q": "attribute, uniform, varying 을 가르는 기준은?",
           "choices": [
-            "색·크기",
+            "색, 크기",
             "값이 얼마나 자주 바뀌나(정점마다/고정/보간)",
             "이름 길이",
             "무관"
@@ -235,7 +235,7 @@
           "why": "변화 빈도."
         },
         {
-          "q": "그리는 동안 고정된 값(행렬·시간·색)의 통로는?",
+          "q": "그리는 동안 고정된 값(행렬, 시간, 색)의 통로는?",
           "choices": [
             "attribute",
             "uniform",
@@ -260,17 +260,17 @@
     },
     {
       "id": "4",
-      "title": "좌표와 UV — 종횡비 보정",
+      "title": "좌표와 UV. 종횡비 보정",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**프래그먼트 셰이더에서 화면 좌표를 0~1 로 정규화할 때, 화면이 정사각형이 아니면 종횡비를 보정하지 않아 원이 타원으로 찌그러진다.** 흔한 시작: `vec2 uv = gl_FragCoord.xy / uResolution;` — 픽셀 좌표를 해상도로 나눠 **0~1 UV** 로. 여기에 `uv = uv * 2.0 - 1.0;` 로 중심을 원점(-1~1)으로 옮기기도 한다. 문제: 화면이 16:9 처럼 가로로 길면, x 방향 1 단위와 y 방향 1 단위의 **실제 픽셀 길이가 달라** `length(uv)` 로 그린 원이 **가로로 늘어난 타원**이 된다. 보정: **x 에 종횡비(가로/세로)를 곱한다** — `uv.x *= uResolution.x / uResolution.y;`. 그러면 거리가 등방적이 되어 원이 원으로 보인다. 텍스처 UV(모델에 붙은 좌표)와 화면 좌표를 구분하는 것도 중요. 아래 데모로 종횡비 보정 유무를 확인하라."
+          "text": "**프래그먼트 셰이더에서 화면 좌표를 0~1 로 정규화할 때, 화면이 정사각형이 아니면 종횡비를 보정하지 않아 원이 타원으로 찌그러진다.** 흔한 시작: `vec2 uv = gl_FragCoord.xy / uResolution;`. 픽셀 좌표를 해상도로 나눠 **0~1 UV** 로. 여기에 `uv = uv * 2.0 - 1.0;` 로 중심을 원점(-1~1)으로 옮기기도 한다. 문제: 화면이 16:9 처럼 가로로 길면, x 방향 1 단위와 y 방향 1 단위의 **실제 픽셀 길이가 달라** `length(uv)` 로 그린 원이 **가로로 늘어난 타원**이 된다. 보정: **x 에 종횡비(가로/세로)를 곱한다**. `uv.x *= uResolution.x / uResolution.y;`. 그러면 거리가 등방적이 되어 원이 원으로 보인다. 텍스처 UV(모델에 붙은 좌표)와 화면 좌표를 구분하는 것도 중요. 아래 데모로 종횡비 보정 유무를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "종횡비 보정 — 원이 찌그러지나",
+          "label": "종횡비 보정. 원이 찌그러지나",
           "height": "440px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cv { border-radius:8px; margin:8px auto; display:block; }\n  .caplbl { text-align:center; font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .pxgrid { display:grid; gap:2px; margin:8px auto; width:max-content; }\n  .pxgrid .px { width:16px; height:16px; border-radius:2px; background:#22d3ee; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // canvas: paint a fragment-shader-like pattern. fn(u,v)->[r,g,b] in 0..1\n  function canvas(w, h, fn, label) {\n    const id = 'cv' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(w, h);\n      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {\n        const u = x / w, v = 1 - y / h; const col = fn(u, v);\n        const i = (y * w + x) * 4;\n        img.data[i] = col[0] * 255; img.data[i+1] = col[1] * 255; img.data[i+2] = col[2] * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<canvas class=\"cv\" id=\"' + id + '\" width=\"' + w + '\" height=\"' + h + '\" style=\"width:' + w * 2 + 'px;height:' + h * 2 + 'px\"></canvas>' +\n      (label ? '<div class=\"caplbl\">' + esc(label) + '</div>' : '');\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const corrected = '{{fix}}' === 'on';\n  const aspect = 56 / 30; // 데모 캔버스 가로/세로\n  const fn = (u, v) => {\n    let x = u * 2 - 1, y = v * 2 - 1;\n    if (corrected) x *= aspect;\n    const d = Math.hypot(x, y);\n    const c = d < 0.7 ? 1 : 0.12;\n    return [c * 0.9, c * 0.55, c * 0.2];\n  };\n  render(corrected ? '종횡비 보정 O — 원이 원' : '보정 X — 원이 타원으로 찌그러짐',\n    (corrected\n      ? '<span class=\"ok\">uv.x *= 가로/세로 → 거리가 등방적 → 원이 제대로 원으로 보인다.</span>'\n      : '<span class=\"no\">x·y 픽셀 길이가 달라 length(uv) 의 원이 가로로 늘어난 타원이 된다.</span>') +\n    '\\n  uv = gl_FragCoord.xy / uResolution · 원이면 uv.x *= aspect 보정.',\n    'gl_FragCoord/uResolution 로 UV · 종횡비 보정으로 원을 원으로.',\n    canvas(56, 30, fn, corrected ? 'length(uv) 원 (보정됨)' : 'length(uv) 타원 (보정 안 함)'));\n</script>",
           "controls": [
@@ -300,7 +300,7 @@
         },
         {
           "type": "note",
-          "text": "**프래그먼트 셰이더에서 화면 좌표를 0~1 로 정규화할 때 종횡비를 보정하지 않으면 x·y 의 픽셀 길이가 달라 원이 타원으로 찌그러진다.** **화면 좌표 얻기**: 프래그먼트 셰이더는 현재 픽셀의 화면 좌표를 `gl_FragCoord.xy`(픽셀 단위)로 안다. 이를 해상도로 나눠 **정규화 UV(0~1)**를 만든다: `vec2 uv = gl_FragCoord.xy / uResolution;`. 도형을 중심 기준으로 그리려면 `uv = uv * 2.0 - 1.0;` 로 **-1~1**(중심이 원점)로 옮긴다. **종횡비 문제**: 화면이 정사각형이 아니면(대개 16:9 등 가로가 김), 0~1 로 나눈 **x 한 칸과 y 한 칸의 실제 픽셀 거리가 다르다**. 그래서 `length(uv)`(원점에서 거리)로 원을 그리면 — x 방향이 더 늘어나 **가로로 퍼진 타원**이 된다(원을 의도했는데). **보정**: **x(또는 짧은 축)에 종횡비를 곱해** 거리를 등방적으로 만든다 — `uv.x *= uResolution.x / uResolution.y;`(가로가 길면 x 를 확대해 상대적으로 압축 효과). 그러면 원이 원으로, 정사각형이 정사각형으로 보인다. 셰이더 토이(Shadertoy)·The Book of Shaders 의 예제가 이 보정을 흔히 포함한다. **화면 좌표 vs 텍스처 UV 구분**: ① **화면/스크린 좌표**(`gl_FragCoord`) — 픽셀의 화면 위치. 풀스크린 효과·프로시저럴 패턴에. ② **텍스처 UV**(정점에서 온 `vUV`, 3장) — **모델 표면에 붙은** 0~1 좌표로, 텍스처를 어떻게 감쌀지 정한다(모델러가 UV 언랩). 둘은 **다른 것**이라 혼동하면 텍스처가 화면에 고정돼 미끄러지거나(스크린 좌표로 샘플) 패턴이 모델에 안 맞는다. **정리**: `gl_FragCoord/uResolution` 로 UV 를 만들고, 원·등방 패턴을 그릴 땐 `uv.x *= aspect` 로 종횡비를 보정하며, 화면 좌표와 텍스처 UV 를 구분하라 — 보정을 빼면 원이 타원이 된다."
+          "text": "**프래그먼트 셰이더에서 화면 좌표를 0~1 로 정규화할 때 종횡비를 보정하지 않으면 x, y 의 픽셀 길이가 달라 원이 타원으로 찌그러진다.** **화면 좌표 얻기**: 프래그먼트 셰이더는 현재 픽셀의 화면 좌표를 `gl_FragCoord.xy`(픽셀 단위)로 안다. 이를 해상도로 나눠 **정규화 UV(0~1)**를 만든다: `vec2 uv = gl_FragCoord.xy / uResolution;`. 도형을 중심 기준으로 그리려면 `uv = uv * 2.0 - 1.0;` 로 **-1~1**(중심이 원점)로 옮긴다. **종횡비 문제**: 화면이 정사각형이 아니면(대개 16:9 등 가로가 김), 0~1 로 나눈 **x 한 칸과 y 한 칸의 실제 픽셀 거리가 다르다**. 그래서 `length(uv)`(원점에서 거리)로 원을 그리면. x 방향이 더 늘어나 **가로로 퍼진 타원**이 된다(원을 의도했는데). **보정**: **x(또는 짧은 축)에 종횡비를 곱해** 거리를 등방적으로 만든다. `uv.x *= uResolution.x / uResolution.y;`(가로가 길면 x 를 확대해 상대적으로 압축 효과). 그러면 원이 원으로, 정사각형이 정사각형으로 보인다. 셰이더 토이(Shadertoy), The Book of Shaders 의 예제가 이 보정을 흔히 포함한다. **화면 좌표 vs 텍스처 UV 구분**: ① **화면/스크린 좌표**(`gl_FragCoord`). 픽셀의 화면 위치. 풀스크린 효과, 프로시저럴 패턴에. ② **텍스처 UV**(정점에서 온 `vUV`, 3장). **모델 표면에 붙은** 0~1 좌표로, 텍스처를 어떻게 감쌀지 정한다(모델러가 UV 언랩). 둘은 **다른 것**이라 혼동하면 텍스처가 화면에 고정돼 미끄러지거나(스크린 좌표로 샘플) 패턴이 모델에 안 맞는다. **정리**: `gl_FragCoord/uResolution` 로 UV 를 만들고, 원, 등방 패턴을 그릴 땐 `uv.x *= aspect` 로 종횡비를 보정하며, 화면 좌표와 텍스처 UV 를 구분하라. 보정을 빼면 원이 타원이 된다."
         },
         {
           "type": "try",
@@ -312,7 +312,7 @@
           "q": "종횡비를 보정하지 않으면?",
           "choices": [
             "문제없음",
-            "x·y 픽셀 길이가 달라 원이 타원으로 찌그러짐",
+            "x, y 픽셀 길이가 달라 원이 타원으로 찌그러짐",
             "색이 변함",
             "무관"
           ],
@@ -334,7 +334,7 @@
           "q": "gl_FragCoord(화면 좌표)와 vUV(텍스처 UV)는?",
           "choices": [
             "같음",
-            "다른 것 — 화면 위치 vs 모델 표면 좌표",
+            "다른 것. 화면 위치 vs 모델 표면 좌표",
             "무의미",
             "무관"
           ],
@@ -345,17 +345,17 @@
     },
     {
       "id": "5",
-      "title": "분기를 조심 · 값을 색으로 디버깅",
+      "title": "분기를 조심, 값을 색으로 디버깅",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**GPU 는 인접 픽셀을 묶어 같은 명령을 돌리므로, 픽셀마다 다른 분기가 나면 양쪽을 모두 실행해 느려진다 — 그리고 셰이더엔 로그가 없어 값을 색으로 출력해 디버깅한다.** ① **분기(branch) 조심**: GPU 는 픽셀들을 워프/웨이브(예: 32~64개)로 묶어 **한꺼번에 같은 명령**을 실행한다(SIMD). 한 묶음 안에서 픽셀마다 `if` 결과가 갈리면(**분기 발산, divergence**), GPU 는 **양쪽 분기를 모두 실행**하고 각자 필요한 결과만 취한다 — 비용이 합쳐진다. 그래서 픽셀마다 갈리는 `if` 대신 **`mix`·`step`·`smoothstep`·`clamp`** 같은 분기 없는 수식으로 쓰면 빠르다. (uniform 처럼 묶음 전체가 같은 값으로 갈리는 분기는 덜 나쁘다.) ② **디버깅**: 셰이더엔 `print`·로그·중단점이 (대체로) 없다 — **값을 색으로 출력**해 눈으로 본다: 법선을 RGB 로, UV 를 RG 로, 거리·마스크를 흑백으로. **화면이 검으면 대개 값이 0 이거나 NaN**이다. 아래 데모로 분기 발산 비용과 값-색 디버깅을 확인하라."
+          "text": "**GPU 는 인접 픽셀을 묶어 같은 명령을 돌리므로, 픽셀마다 다른 분기가 나면 양쪽을 모두 실행해 느려진다. 그리고 셰이더엔 로그가 없어 값을 색으로 출력해 디버깅한다.** ① **분기(branch) 조심**: GPU 는 픽셀들을 워프/웨이브(예: 32~64개)로 묶어 **한꺼번에 같은 명령**을 실행한다(SIMD). 한 묶음 안에서 픽셀마다 `if` 결과가 갈리면(**분기 발산, divergence**), GPU 는 **양쪽 분기를 모두 실행**하고 각자 필요한 결과만 취한다. 비용이 합쳐진다. 그래서 픽셀마다 갈리는 `if` 대신 **`mix`, `step`, `smoothstep`, `clamp`** 같은 분기 없는 수식으로 쓰면 빠르다. (uniform 처럼 묶음 전체가 같은 값으로 갈리는 분기는 덜 나쁘다.) ② **디버깅**: 셰이더엔 `print`, 로그, 중단점이 (대체로) 없다. **값을 색으로 출력**해 눈으로 본다: 법선을 RGB 로, UV 를 RG 로, 거리, 마스크를 흑백으로. **화면이 검으면 대개 값이 0 이거나 NaN**이다. 아래 데모로 분기 발산 비용과 값-색 디버깅을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "분기 발산 · 값을 색으로",
+          "label": "분기 발산, 값을 색으로",
           "height": "440px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cv { border-radius:8px; margin:8px auto; display:block; }\n  .caplbl { text-align:center; font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .pxgrid { display:grid; gap:2px; margin:8px auto; width:max-content; }\n  .pxgrid .px { width:16px; height:16px; border-radius:2px; background:#22d3ee; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // canvas: paint a fragment-shader-like pattern. fn(u,v)->[r,g,b] in 0..1\n  function canvas(w, h, fn, label) {\n    const id = 'cv' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(w, h);\n      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {\n        const u = x / w, v = 1 - y / h; const col = fn(u, v);\n        const i = (y * w + x) * 4;\n        img.data[i] = col[0] * 255; img.data[i+1] = col[1] * 255; img.data[i+2] = col[2] * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<canvas class=\"cv\" id=\"' + id + '\" width=\"' + w + '\" height=\"' + h + '\" style=\"width:' + w * 2 + 'px;height:' + h * 2 + 'px\"></canvas>' +\n      (label ? '<div class=\"caplbl\">' + esc(label) + '</div>' : '');\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'branch-bad' || view === 'branch-good') {\n    const diverge = view === 'branch-bad';\n    render(diverge ? '픽셀마다 갈리는 if — 발산(양쪽 실행)' : 'mix/step — 분기 없이',\n      (diverge\n        ? '<span class=\"no\">한 묶음 안에서 if 가 픽셀마다 갈림 → GPU 가 양쪽 다 실행 → 비용 합산(느림).</span>'\n        : '<span class=\"ok\">mix(a,b,t)·step·smoothstep 으로 분기 없이 → 모든 픽셀 같은 경로 → 빠름.</span>'),\n      '픽셀마다 갈리는 if 는 피하고 mix·step·smoothstep 을.',\n      bars([{ lab: 'if 발산', pct: 95, val: '2x', cls: 'b' }, { lab: 'mix/step', pct: 45, val: '1x', cls: 'g' }]));\n  } else {\n    const fn = view === 'uv' ? (u, v) => [u, v, 0]\n      : view === 'normal' ? (u, v) => { const nx = (u - 0.5) * 2, ny = (v - 0.5) * 2; const nz = Math.sqrt(Math.max(0, 1 - nx*nx - ny*ny)); return [nx*0.5+0.5, ny*0.5+0.5, nz*0.5+0.5]; }\n      : (u, v) => { const c = 0; return [c, c, c]; };\n    const lbl = view === 'uv' ? 'UV 를 색으로 (R=u, G=v)' : view === 'normal' ? '법선을 색으로 (구 모양이 보임)' : '검은 화면 = 값이 0 이거나 NaN';\n    render('디버깅: ' + lbl,\n      (view === 'black'\n        ? '<span class=\"no\">화면이 검으면 대개 출력이 0 이거나 NaN — 어느 값이 죽었는지 색으로 추적.</span>'\n        : '<span class=\"ok\">' + lbl + ' — 값을 색으로 출력하면 UV·법선이 어떻게 펼쳐졌는지 한눈에.</span>'),\n      '로그가 없으니 값을 색으로 — 법선·UV·거리를 색/흑백으로 본다.',\n      canvas(56, 36, fn, lbl));\n  }\n</script>",
           "controls": [
@@ -392,16 +392,16 @@
         {
           "type": "code",
           "lang": "glsl",
-          "label": "분기 대신 수식 · 값을 색으로",
+          "label": "분기 대신 수식, 값을 색으로",
           "text": "// 나쁨: 픽셀마다 갈리는 분기 (발산)\nif (d < 0.5) color = a; else color = b;\n\n// 좋음: 분기 없는 수식\ncolor = mix(a, b, step(0.5, d));         // 또는 smoothstep\n\n// 디버깅: 값을 색으로 (로그가 없다)\ngl_FragColor = vec4(vNormal * 0.5 + 0.5, 1.0); // 법선을 색으로\ngl_FragColor = vec4(vUV, 0.0, 1.0);            // UV 를 색으로\n// 검은 화면 = 대개 0 또는 NaN"
         },
         {
           "type": "note",
-          "text": "**GPU 는 인접 픽셀을 워프로 묶어 같은 명령을 실행하므로 픽셀마다 갈리는 분기는 양쪽을 다 실행해 느려지고, 셰이더엔 로그가 없어 값을 색으로 출력해 디버깅한다.** **① 분기 발산(branch divergence)**: GPU 는 픽셀(스레드)들을 **워프/웨이브프론트**(하드웨어마다 32·64개 등)로 묶어 **한 명령을 그 묶음 전체에 동시에** 적용한다(SIMT). 한 묶음 안에서 `if` 조건이 **픽셀마다 다르게** 갈리면(일부는 참, 일부는 거짓), GPU 는 그 묶음에 대해 **참 분기와 거짓 분기를 순차로 모두 실행**하고 각 픽셀은 자기 결과만 취한다(마스킹) — 즉 **두 분기 비용이 합쳐진다**(발산). 그래서 픽셀마다 갈리는 분기·픽셀마다 다른 반복 횟수는 비싸다. **처방**: 가능하면 분기를 **분기 없는 수식**으로 대체한다 — `mix(a, b, t)`(선형 보간), `step(edge, x)`(계단), `smoothstep`(부드러운 계단), `clamp`, `min/max`, 곱셈 마스크. 이러면 모든 픽셀이 **같은 경로**를 돌아 발산이 없다. **덜 나쁜 분기**: 조건이 **uniform**(3장)이거나 워프 전체가 같은 값으로 갈리면(예: 텍스처 유무 토글) 발산이 없어 상대적으로 저렴 — 「모든 분기가 나쁘다」가 아니라 **묶음 안에서 갈리는** 분기가 나쁜 것. 그래도 조기 종료(early-out)로 무거운 계산을 통째로 건너뛰는 게 이득이면 분기가 나을 수도(측정으로 판단, gfx-perf). **② 값을 색으로 디버깅**: 셰이더는 `printf`·로그·(대개) 중단점이 없어 **눈에 보이는 출력(색)만이 정보**다. 그래서 의심되는 값을 `gl_FragColor` 로 **직접 색으로 출력**해 본다 — **법선**을 `n*0.5+0.5` 로 RGB 화(구는 부드러운 색구, 면은 평평한 색), **UV** 를 `vec4(uv, 0, 1)` 로(모델이 어떻게 펼쳐졌는지 그라데이션으로), **거리·마스크·중간값**을 흑백으로. **검은 화면의 진단**: 화면이 검으면 대개 출력이 **0**(계산이 죽음·잘못된 곱셈)이거나 **NaN**(0 나눗셈·음수 sqrt·정규화 실패 — NaN 은 대개 검정/이상색으로). 각 입력을 하나씩 색으로 찍어 어디서 0/NaN 이 되는지 이분 탐색한다(craft-debug 의 계측). RenderDoc 등으로 특정 픽셀의 값을 직접 보기도(gfx-pipeline). **정리**: 묶음 안에서 갈리는 분기를 mix·step·smoothstep 으로 피해 발산을 줄이고, 로그가 없는 셰이더는 값을 색으로 출력해 디버깅하라 — 검은 화면은 대개 0 이나 NaN 이다."
+          "text": "**GPU 는 인접 픽셀을 워프로 묶어 같은 명령을 실행하므로 픽셀마다 갈리는 분기는 양쪽을 다 실행해 느려지고, 셰이더엔 로그가 없어 값을 색으로 출력해 디버깅한다.** **① 분기 발산(branch divergence)**: GPU 는 픽셀(스레드)들을 **워프/웨이브프론트**(하드웨어마다 32, 64개 등)로 묶어 **한 명령을 그 묶음 전체에 동시에** 적용한다(SIMT). 한 묶음 안에서 `if` 조건이 **픽셀마다 다르게** 갈리면(일부는 참, 일부는 거짓), GPU 는 그 묶음에 대해 **참 분기와 거짓 분기를 순차로 모두 실행**하고 각 픽셀은 자기 결과만 취한다(마스킹). 즉 **두 분기 비용이 합쳐진다**(발산). 그래서 픽셀마다 갈리는 분기, 픽셀마다 다른 반복 횟수는 비싸다. **처방**: 가능하면 분기를 **분기 없는 수식**으로 대체한다. `mix(a, b, t)`(선형 보간), `step(edge, x)`(계단), `smoothstep`(부드러운 계단), `clamp`, `min/max`, 곱셈 마스크. 이러면 모든 픽셀이 **같은 경로**를 돌아 발산이 없다. **덜 나쁜 분기**: 조건이 **uniform**(3장)이거나 워프 전체가 같은 값으로 갈리면(예: 텍스처 유무 토글) 발산이 없어 상대적으로 저렴. \"모든 분기가 나쁘다\"가 아니라 **묶음 안에서 갈리는** 분기가 나쁜 것. 그래도 조기 종료(early-out)로 무거운 계산을 통째로 건너뛰는 게 이득이면 분기가 나을 수도(측정으로 판단, gfx-perf). **② 값을 색으로 디버깅**: 셰이더는 `printf`, 로그, (대개) 중단점이 없어 **눈에 보이는 출력(색)만이 정보**다. 그래서 의심되는 값을 `gl_FragColor` 로 **직접 색으로 출력**해 본다. **법선**을 `n*0.5+0.5` 로 RGB 화(구는 부드러운 색구, 면은 평평한 색), **UV** 를 `vec4(uv, 0, 1)` 로(모델이 어떻게 펼쳐졌는지 그라데이션으로), **거리, 마스크, 중간값**을 흑백으로. **검은 화면의 진단**: 화면이 검으면 대개 출력이 **0**(계산이 죽음, 잘못된 곱셈)이거나 **NaN**(0 나눗셈, 음수 sqrt, 정규화 실패. NaN 은 대개 검정/이상색으로). 각 입력을 하나씩 색으로 찍어 어디서 0/NaN 이 되는지 이분 탐색한다(craft-debug 의 계측). RenderDoc 등으로 특정 픽셀의 값을 직접 보기도(gfx-pipeline). **정리**: 묶음 안에서 갈리는 분기를 mix, step, smoothstep 으로 피해 발산을 줄이고, 로그가 없는 셰이더는 값을 색으로 출력해 디버깅하라. 검은 화면은 대개 0 이나 NaN 이다."
         },
         {
           "type": "try",
-          "text": "① 셰이더에서 픽셀마다 갈리는 `if` 를 **`mix`/`step`/`smoothstep`** 으로 바꿔 보고 결과가 같은지·성능이 나은지 확인하라. ② **법선이나 UV 를 그대로 색으로 출력**해(`vec4(n*0.5+0.5,1)`·`vec4(uv,0,1)`) 모델이 어떻게 펼쳐졌는지 한눈에 보라. 화면이 검게 나오면 어느 값이 0 이나 NaN 인지 하나씩 색으로 찍어 추적하라."
+          "text": "① 셰이더에서 픽셀마다 갈리는 `if` 를 **`mix`/`step`/`smoothstep`** 으로 바꿔 보고 결과가 같은지, 성능이 나은지 확인하라. ② **법선이나 UV 를 그대로 색으로 출력**해(`vec4(n*0.5+0.5,1)`, `vec4(uv,0,1)`) 모델이 어떻게 펼쳐졌는지 한눈에 보라. 화면이 검게 나오면 어느 값이 0 이나 NaN 인지 하나씩 색으로 찍어 추적하라."
         }
       ],
       "quiz": [
@@ -420,7 +420,7 @@
           "q": "분기 대신 쓰는 것은?",
           "choices": [
             "더 많은 if",
-            "mix·step·smoothstep·clamp (분기 없는 수식)",
+            "mix, step, smoothstep, clamp (분기 없는 수식)",
             "for 문",
             "무관"
           ],
@@ -431,7 +431,7 @@
           "q": "셰이더 디버깅 방법은?",
           "choices": [
             "로그 출력",
-            "값을 색으로 출력해 눈으로(법선·UV·거리)",
+            "값을 색으로 출력해 눈으로(법선, UV, 거리)",
             "중단점만",
             "무관"
           ],
@@ -442,17 +442,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 셰이더",
+      "title": "점검표. 셰이더",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**병렬·독립 모델로 생각하고, 두 종류와 세 통로를 맞추고, 좌표를 보정하고, 분기를 피하고, 값을 색으로 디버깅한다.** 이 점검표를 셰이더 작업마다 훑어, 느리거나 안 그려지는 셰이더를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**병렬, 독립 모델로 생각하고, 두 종류와 세 통로를 맞추고, 좌표를 보정하고, 분기를 피하고, 값을 색으로 디버깅한다.** 이 점검표를 셰이더 작업마다 훑어, 느리거나 안 그려지는 셰이더를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "셰이더 점검표 — 통과 수",
+          "label": "셰이더 점검표. 통과 수",
           "height": "440px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cv { border-radius:8px; margin:8px auto; display:block; }\n  .caplbl { text-align:center; font:10px ui-monospace, monospace; color:#94a3b8; margin-top:2px; }\n  .pxgrid { display:grid; gap:2px; margin:8px auto; width:max-content; }\n  .pxgrid .px { width:16px; height:16px; border-radius:2px; background:#22d3ee; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // canvas: paint a fragment-shader-like pattern. fn(u,v)->[r,g,b] in 0..1\n  function canvas(w, h, fn, label) {\n    const id = 'cv' + Math.random().toString(36).slice(2);\n    setTimeout(() => {\n      const c = document.getElementById(id); if (!c) return; const ctx = c.getContext('2d');\n      const img = ctx.createImageData(w, h);\n      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {\n        const u = x / w, v = 1 - y / h; const col = fn(u, v);\n        const i = (y * w + x) * 4;\n        img.data[i] = col[0] * 255; img.data[i+1] = col[1] * 255; img.data[i+2] = col[2] * 255; img.data[i+3] = 255;\n      }\n      ctx.putImageData(img, 0, 0);\n    }, 0);\n    return '<canvas class=\"cv\" id=\"' + id + '\" width=\"' + w + '\" height=\"' + h + '\" style=\"width:' + w * 2 + 'px;height:' + h * 2 + 'px\"></canvas>' +\n      (label ? '<div class=\"caplbl\">' + esc(label) + '</div>' : '');\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    'CPU 반복문·전역 상태가 아니라 「한 요소의 함수」로 썼다',\n    '정점(위치)과 프래그먼트(색)의 역할을 구분했다',\n    '값을 통로에 맞게 넣었다(attribute/uniform/varying)',\n    'gl_FragCoord/uResolution 로 UV 를 만들었다',\n    '원·등방 패턴에 종횡비를 보정했다(uv.x *= aspect)',\n    '화면 좌표와 텍스처 UV 를 혼동하지 않았다',\n    '픽셀마다 갈리는 분기를 mix·step 으로 피했다',\n    '로그 대신 값을 색으로 출력해 디버깅했다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('셰이더 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 병렬 모델에 맞는 빠르고 디버깅되는 셰이더.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '병렬 함수 · 두 종류·세 통로 · 좌표 보정 · 분기 회피 · 색 디버깅.');\n</script>",
           "controls": [
@@ -469,19 +469,19 @@
         },
         {
           "type": "note",
-          "text": "**셰이더 점검표 — 셰이더 작업마다 훑는다.** ① **병렬 모델** — CPU 반복문·전역 상태가 아니라 「한 요소의 순수 함수」로(1장). ② **두 종류** — 정점(위치)과 프래그먼트(색)의 역할 구분, 보간 이해(2장). ③ **세 통로** — attribute(정점마다)·uniform(고정)·varying(보간)을 맞게(3장). ④ **좌표** — gl_FragCoord/uResolution 로 UV(4장). ⑤ **종횡비** — 원·등방 패턴에 uv.x *= aspect(4장). ⑥ **좌표 구분** — 화면 좌표 vs 텍스처 UV(4장). ⑦ **분기 회피** — 픽셀마다 갈리는 if 를 mix·step 으로(5장). ⑧ **색 디버깅** — 로그 대신 값을 색으로(5장). **관통 원리**: 셰이더는 **GPU 병렬 모델**(1장) 위에서 도는 작은 프로그램이라, CPU 사고를 버리고 병렬·독립·균일하게 짜야 빠르다 — 두 종류·세 통로(2·3장)로 데이터를 옳게 흘리고, 좌표를 보정하고(4장), 분기를 피하고 값을 색으로 디버깅한다(5장). 이 칸(shader)은 gfx 갈래에서 **픽셀의 색을 실제로 계산**하는 곳 — color(색 공간)·space(좌표) 위에서 돌고, pipeline(비용)이 이를 재고, light(PBR 조명)가 이 셰이더 안에서 구현된다. **정리**: 병렬 함수로 생각하고 두 종류·세 통로를 맞추고 좌표를 보정하고 분기를 피하고 값을 색으로 디버깅하라 — 이 표로 느리고 안 그려지는 셰이더를 매번 걸러라."
+          "text": "**셰이더 점검표. 셰이더 작업마다 훑는다.** ① **병렬 모델**. CPU 반복문, 전역 상태가 아니라 \"한 요소의 순수 함수\"로(1장). ② **두 종류**. 정점(위치)과 프래그먼트(색)의 역할 구분, 보간 이해(2장). ③ **세 통로**. attribute(정점마다), uniform(고정), varying(보간)을 맞게(3장). ④ **좌표**. gl_FragCoord/uResolution 로 UV(4장). ⑤ **종횡비**. 원, 등방 패턴에 uv.x *= aspect(4장). ⑥ **좌표 구분**. 화면 좌표 vs 텍스처 UV(4장). ⑦ **분기 회피**. 픽셀마다 갈리는 if 를 mix, step 으로(5장). ⑧ **색 디버깅**. 로그 대신 값을 색으로(5장). **관통 원리**: 셰이더는 **GPU 병렬 모델**(1장) 위에서 도는 작은 프로그램이라, CPU 사고를 버리고 병렬, 독립, 균일하게 짜야 빠르다. 두 종류, 세 통로(2, 3장)로 데이터를 옳게 흘리고, 좌표를 보정하고(4장), 분기를 피하고 값을 색으로 디버깅한다(5장). 이 칸(shader)은 gfx 갈래에서 **픽셀의 색을 실제로 계산**하는 곳. color(색 공간), space(좌표) 위에서 돌고, pipeline(비용)이 이를 재고, light(PBR 조명)가 이 셰이더 안에서 구현된다. **정리**: 병렬 함수로 생각하고 두 종류, 세 통로를 맞추고 좌표를 보정하고 분기를 피하고 값을 색으로 디버깅하라. 이 표로 느리고 안 그려지는 셰이더를 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금 쓰는(또는 새로 쓸) 셰이더로 위 8개 항목을 하나씩 확인하라 — 한 요소의 함수로 썼나, 정점·프래그먼트 역할이 맞나, 값을 통로에 맞게 넣었나, 종횡비를 보정했나, 픽셀마다 갈리는 분기를 피했나, 값을 색으로 디버깅해 봤나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
+          "text": "지금 쓰는(또는 새로 쓸) 셰이더로 위 8개 항목을 하나씩 확인하라. 한 요소의 함수로 썼나, 정점, 프래그먼트 역할이 맞나, 값을 통로에 맞게 넣었나, 종횡비를 보정했나, 픽셀마다 갈리는 분기를 피했나, 값을 색으로 디버깅해 봤나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
         }
       ],
       "quiz": [
         {
           "q": "셰이더를 짤 때의 사고는?",
           "choices": [
-            "CPU 반복문·전역 상태",
-            "GPU 병렬 — 한 요소의 독립적 순수 함수",
+            "CPU 반복문, 전역 상태",
+            "GPU 병렬. 한 요소의 독립적 순수 함수",
             "순차 처리",
             "무관"
           ],
@@ -492,7 +492,7 @@
           "q": "다음 중 점검표 항목이 아닌 것은?",
           "choices": [
             "종횡비 보정",
-            "분기를 mix·step 으로 회피",
+            "분기를 mix, step 으로 회피",
             "픽셀마다 갈리는 if 를 많이 쓰기",
             "값을 색으로 디버깅"
           ],
@@ -503,7 +503,7 @@
           "q": "gfx-shader 는 gfx 갈래에서?",
           "choices": [
             "부수적",
-            "픽셀의 색을 실제로 계산하는 곳 — light(PBR)가 이 안에서 구현됨",
+            "픽셀의 색을 실제로 계산하는 곳. light(PBR)가 이 안에서 구현됨",
             "선택",
             "무관"
           ],

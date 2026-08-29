@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "단위 테스트 300개가 **전부 초록인데 앱이 안 뜨는** 일은 실제로 일어난다 — 조각들은 각각 맞는데 **이어 붙이면** 안 되는 것(라우팅 오류·빌드 설정·환경 변수 누락·번들 깨짐·초기화 실패). 단위 테스트는 부품을 검사하지, **부품이 조립된 전체가 진짜로 도는지**는 안 본다. 그래서 **누군가는 진짜로 눌러 봐야 한다** — 그게 사람이 아니어도 된다. **E2E(end-to-end) 테스트**가 실제 브라우저에서 앱을 띄우고, 사용자처럼 클릭·입력해 「진짜로 되는지」를 확인한다. E2E 는 「전체가 조립돼 실제로 작동하는가」라는, 단위 테스트가 못 답하는 질문에 답한다."
+          "text": "단위 테스트 300개가 **전부 초록인데 앱이 안 뜨는** 일은 실제로 일어난다. 조각들은 각각 맞는데 **이어 붙이면** 안 되는 것(라우팅 오류, 빌드 설정, 환경 변수 누락, 번들 깨짐, 초기화 실패). 단위 테스트는 부품을 검사하지, **부품이 조립된 전체가 진짜로 도는지**는 안 본다. 그래서 **누군가는 진짜로 눌러 봐야 한다**. 그게 사람이 아니어도 된다. **E2E(end-to-end) 테스트**가 실제 브라우저에서 앱을 띄우고, 사용자처럼 클릭, 입력해 \"진짜로 되는지\"를 확인한다. E2E 는 \"전체가 조립돼 실제로 작동하는가\"라는, 단위 테스트가 못 답하는 질문에 답한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "초록인데 안 뜬다 — 부품 vs 전체",
+          "label": "초록인데 안 뜬다. 부품 vs 전체",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'unit') {\n    render('단위 테스트 300개 초록',\n      '  결제 함수 ✓ · 검증 ✓ · 렌더 ✓ · API ✓ (각 부품 OK)\\n\\n' +\n      '  <span class=\\\"no\\\">그런데 앱이 안 뜬다 — 라우팅·빌드·env·초기화가 이어 붙을 때 깨짐.</span>',\n      '단위 초록 = 부품 각각 OK. 하지만 조립된 전체는 안 볼 수 있음.',\n      steps([['결제 함수 단위 ✓', 'good'],['검증 단위 ✓', 'good'],['렌더 단위 ✓', 'good'],\n             ['그러나 앱 안 뜸 (조립 실패)', 'bad']]));\n  } else {\n    render('E2E — 진짜로 눌러 본다',\n      '  실제 브라우저에서 앱 띄움 → 첫 화면 뜨나? 콘솔 오류 없나?\\n' +\n      '  → 로그인 → 핵심 작업 → 저장 확인 (사용자처럼)\\n\\n' +\n      '  <span class=\\\"ok\\\">전체가 조립돼 실제로 도는지 확인 — 단위가 못 답하는 질문.</span>',\n      'E2E: 실제 브라우저에서 사용자처럼 — 전체가 진짜 도는지.',\n      steps([['실제 브라우저로 앱 띄움', 'on'],['첫 화면 뜸 + 콘솔 오류 없음 ✓', 'good'],\n             ['로그인 → 핵심 작업 → 저장 ✓', 'good'],['전체가 진짜 작동 확인', 'good']]));\n  }\n</script>",
           "controls": [
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**단위 테스트 300개가 초록이어도 앱이 안 뜰 수 있다 — 단위는 부품을, E2E 는 조립된 전체가 진짜 도는지를 검사한다.** 단위 테스트(unit test)는 개별 함수·모듈을 격리해 검사한다 — 각 부품이 올바른지. 하지만 **부품이 다 맞아도 조립하면 안 될 수 있다**: 라우팅 설정 오류, 빌드·번들 깨짐, 환경 변수 누락, 의존성 버전 충돌, 초기화 순서 문제, API 연결 실패, CSS·정적 자원 로드 실패 — 이런 **통합 지점의 문제**는 각 단위 테스트를 다 통과해도 남는다(단위는 격리 상태라 조립을 안 봄). 그래서 「단위 300개 초록인데 첫 화면이 안 뜬다」가 실제로 일어난다. **누군가는 진짜로 앱을 띄워 눌러 봐야** 이걸 잡는다 — 그리고 그게 사람일 필요는 없다(매번 수동 테스트는 느리고 빠짐). **E2E(end-to-end) 테스트**가 그 역할이다: 실제 브라우저(Playwright·Cypress·Selenium)에서 앱을 진짜로 띄우고, 사용자처럼 페이지를 열고·클릭하고·입력해 「진짜로 되는지」를 자동으로 확인한다. E2E 가 답하는 질문은 단위가 못 답하는 것 — **「모든 게 조립돼 실제 환경에서 사용자가 쓸 수 있는가」**. 첫 화면이 뜨나, 로그인이 되나, 핵심 흐름(주문·결제·저장)이 끝까지 되나, 콘솔에 오류가 안 나나. 이건 테스트 피라미드(4장)의 꼭대기 — 적지만(느리고 비싸니) 없어선 안 되는 층이다. 단위(빠르고 많음, 부품)와 E2E(느리고 적음, 전체)는 **다른 질문에 답하니 둘 다 필요**하다 — 단위만 있으면 「부품은 맞는데 앱이 안 뜸」을, E2E 만 있으면 「어디가 왜 틀렸는지 못 좁힘」을 겪는다. E2E 의 핵심 가치는 **「진짜로 작동하는가」의 최종 확인** — 사용자가 겪을 실제 경험을 자동으로 검증한다."
+          "text": "**단위 테스트 300개가 초록이어도 앱이 안 뜰 수 있다. 단위는 부품을, E2E 는 조립된 전체가 진짜 도는지를 검사한다.** 단위 테스트(unit test)는 개별 함수, 모듈을 격리해 검사한다. 각 부품이 올바른지. 하지만 **부품이 다 맞아도 조립하면 안 될 수 있다**: 라우팅 설정 오류, 빌드, 번들 깨짐, 환경 변수 누락, 의존성 버전 충돌, 초기화 순서 문제, API 연결 실패, CSS, 정적 자원 로드 실패. 이런 **통합 지점의 문제**는 각 단위 테스트를 다 통과해도 남는다(단위는 격리 상태라 조립을 안 봄). 그래서 \"단위 300개 초록인데 첫 화면이 안 뜬다\"가 실제로 일어난다. **누군가는 진짜로 앱을 띄워 눌러 봐야** 이걸 잡는다. 그리고 그게 사람일 필요는 없다(매번 수동 테스트는 느리고 빠짐). **E2E(end-to-end) 테스트**가 그 역할이다: 실제 브라우저(Playwright, Cypress, Selenium)에서 앱을 진짜로 띄우고, 사용자처럼 페이지를 열고, 클릭하고, 입력해 \"진짜로 되는지\"를 자동으로 확인한다. E2E 가 답하는 질문은 단위가 못 답하는 것. **\"모든 게 조립돼 실제 환경에서 사용자가 쓸 수 있는가\"**. 첫 화면이 뜨나, 로그인이 되나, 핵심 흐름(주문, 결제, 저장)이 끝까지 되나, 콘솔에 오류가 안 나나. 이건 테스트 피라미드(4장)의 꼭대기. 적지만(느리고 비싸니) 없어선 안 되는 층이다. 단위(빠르고 많음, 부품)와 E2E(느리고 적음, 전체)는 **다른 질문에 답하니 둘 다 필요**하다. 단위만 있으면 \"부품은 맞는데 앱이 안 뜸\"을, E2E 만 있으면 \"어디가 왜 틀렸는지 못 좁힘\"을 겪는다. E2E 의 핵심 가치는 **\"진짜로 작동하는가\"의 최종 확인**. 사용자가 겪을 실제 경험을 자동으로 검증한다."
         },
         {
           "type": "p",
-          "text": "**통합의 진실은 통합해 봐야 안다 — 「부분의 합 ≠ 전체」.** E2E 의 근본은 **창발(emergence)** — 전체의 동작은 부분들의 상호작용에서 나오고, 부분을 각각 검사하는 것만으론 전체를 보장 못 한다. 부품이 다 맞아도 인터페이스·타이밍·설정·환경의 조합에서 새 문제가 생긴다(통합 버그). 그래서 「부분을 검증했으니 전체도 된다」는 틀리다 — 통합 지점 자체를 검증해야 한다. 이는 소프트웨어를 넘어 시스템 전반의 진실: 부품 테스트를 통과한 부품들로 조립한 기계가 안 돌 수 있고, 각자 맞는 계획이 합치면 충돌할 수 있다. 그래서 **통합 테스트·E2E·통합 리허설·엔드투엔드 검증**이 필요하다 — 실제 조건에서 전체를 돌려 봐야 통합의 진실을 안다. 「스테이징에서 실제처럼 돌려 보기」·「배포 전 스모크 테스트」·「전체 리허설」이 다 이 원리. 특히 「실제 환경」이 중요하다 — 단위는 가짜(mock) 환경이지만 E2E 는 진짜에 가까운 환경에서 돌려, mock 이 숨긴 현실(진짜 네트워크·진짜 브라우저·진짜 빌드)을 드러낸다. 그래서 「최종적으로 진짜로 되는지」는 진짜로 해 봐야 안다 — 부분의 검증이 아무리 많아도 전체의 검증을 대체 못 한다. E2E 는 그 「전체를 진짜로」의 자동화된 형태다."
+          "text": "**통합의 진실은 통합해 봐야 안다. \"부분의 합 ≠ 전체\".** E2E 의 근본은 **창발(emergence)**. 전체의 동작은 부분들의 상호작용에서 나오고, 부분을 각각 검사하는 것만으론 전체를 보장 못 한다. 부품이 다 맞아도 인터페이스, 타이밍, 설정, 환경의 조합에서 새 문제가 생긴다(통합 버그). 그래서 \"부분을 검증했으니 전체도 된다\"는 틀리다. 통합 지점 자체를 검증해야 한다. 이는 소프트웨어를 넘어 시스템 전반의 진실: 부품 테스트를 통과한 부품들로 조립한 기계가 안 돌 수 있고, 각자 맞는 계획이 합치면 충돌할 수 있다. 그래서 **통합 테스트, E2E, 통합 리허설, 엔드투엔드 검증**이 필요하다. 실제 조건에서 전체를 돌려 봐야 통합의 진실을 안다. \"스테이징에서 실제처럼 돌려 보기\", \"배포 전 스모크 테스트\", \"전체 리허설\"이 다 이 원리. 특히 \"실제 환경\"이 중요하다. 단위는 가짜(mock) 환경이지만 E2E 는 진짜에 가까운 환경에서 돌려, mock 이 숨긴 현실(진짜 네트워크, 진짜 브라우저, 진짜 빌드)을 드러낸다. 그래서 \"최종적으로 진짜로 되는지\"는 진짜로 해 봐야 안다. 부분의 검증이 아무리 많아도 전체의 검증을 대체 못 한다. E2E 는 그 \"전체를 진짜로\"의 자동화된 형태다."
         },
         {
           "type": "try",
-          "text": "네 앱에 「첫 화면이 뜨고 콘솔 오류가 없다」는 E2E 테스트 하나를 붙여 CI 에서 돌려라(Playwright·Cypress). 단위 테스트가 다 초록이어도 이 E2E 가 잡는 문제(빌드·라우팅·env·초기화)가 있는지 보라 — 「부품은 맞는데 앱이 안 뜸」을 최소 하나의 E2E 로 막아라."
+          "text": "네 앱에 \"첫 화면이 뜨고 콘솔 오류가 없다\"는 E2E 테스트 하나를 붙여 CI 에서 돌려라(Playwright, Cypress). 단위 테스트가 다 초록이어도 이 E2E 가 잡는 문제(빌드, 라우팅, env, 초기화)가 있는지 보라. \"부품은 맞는데 앱이 안 뜸\"을 최소 하나의 E2E 로 막아라."
         }
       ],
       "quiz": [
@@ -53,7 +53,7 @@
           "q": "단위 300개 초록인데 앱이 안 뜨는 이유는?",
           "choices": [
             "단위가 틀림",
-            "부품은 맞아도 조립·통합 지점(라우팅·빌드·env)이 깨짐",
+            "부품은 맞아도 조립, 통합 지점(라우팅, 빌드, env)이 깨짐",
             "느려서",
             "무관"
           ],
@@ -72,10 +72,10 @@
           "why": "단위가 못 답함."
         },
         {
-          "q": "「부분의 합 ≠ 전체」의 함의는?",
+          "q": "\"부분의 합 ≠ 전체\"의 함의는?",
           "choices": [
             "부품만 보면 됨",
-            "통합의 진실은 통합해 봐야 안다(E2E·통합 검증 필요)",
+            "통합의 진실은 통합해 봐야 안다(E2E, 통합 검증 필요)",
             "테스트 불필요",
             "무관"
           ],
@@ -86,17 +86,17 @@
     },
     {
       "id": "2",
-      "title": "최소 한 개만이라도 — 스모크",
+      "title": "최소 한 개만이라도. 스모크",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "완벽한 E2E 스위트를 목표로 미루지 말고 **최소 한 개**부터: 「**첫 화면이 뜨고 핵심 버튼이 보인다**」. 이 하나만으로도 「앱이 아예 안 뜸」(가장 흔하고 치명적인 배포 사고)을 잡는다 — **스모크 테스트**(연기가 나나 확인). 그리고 **콘솔 오류·페이지 오류 수집**을 붙여 두면 「보이긴 하는데 안에서 터지고 있는」 상태(화면은 떴지만 JS 에러로 기능이 죽은)를 잡는다 — 스크린샷보다 이게 먼저다(눈엔 멀쩡해도 콘솔이 빨갛다). 「첫 화면 뜸 + 콘솔 오류 없음」 이 두 줄이 E2E 의 8할 가치를 준다 — 완벽을 미루느니 이 하나를 지금 넣어라."
+          "text": "완벽한 E2E 스위트를 목표로 미루지 말고 **최소 한 개**부터: \"**첫 화면이 뜨고 핵심 버튼이 보인다**\". 이 하나만으로도 \"앱이 아예 안 뜸\"(가장 흔하고 치명적인 배포 사고)을 잡는다. **스모크 테스트**(연기가 나나 확인). 그리고 **콘솔 오류, 페이지 오류 수집**을 붙여 두면 \"보이긴 하는데 안에서 터지고 있는\" 상태(화면은 떴지만 JS 에러로 기능이 죽은)를 잡는다. 스크린샷보다 이게 먼저다(눈엔 멀쩡해도 콘솔이 빨갛다). \"첫 화면 뜸 + 콘솔 오류 없음\" 이 두 줄이 E2E 의 8할 가치를 준다. 완벽을 미루느니 이 하나를 지금 넣어라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스모크 — 첫 화면 + 콘솔 오류 없음",
+          "label": "스모크. 첫 화면 + 콘솔 오류 없음",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const state = '{{state}}';\n  const rows = {\n    ok:['정상', '첫 화면 뜸 · 핵심 버튼 보임 · 콘솔 오류 0', '✓ 통과 — 앱이 살아 있다', 'good'],\n    blank:['빈 화면', '첫 화면 안 뜸(하얀 화면)', '✗ 스모크 실패 — 배포 막음(가장 치명적 사고 차단)', 'bad'],\n    consoleerr:['보이는데 터짐', '화면은 뜨나 콘솔에 JS 에러', '✗ 콘솔 오류 감지 — 눈엔 멀쩡해도 안에서 죽음', 'bad'],\n  }[state];\n  render('스모크 테스트: ' + rows[0],\n    '  상태: ' + rows[1] + '\\n  결과: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">「첫 화면 뜸 + 콘솔 오류 없음」 두 줄이 E2E 8할 가치.</span>',\n    '최소 한 개: 첫 화면 뜨고 콘솔 오류 없나 — 앱 죽음을 잡는다.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], rows[3]));\n</script>",
           "controls": [
@@ -130,15 +130,15 @@
         },
         {
           "type": "note",
-          "text": "**완벽한 스위트를 미루지 말고 최소 한 개(스모크)부터 — 「첫 화면 뜸 + 콘솔 오류 없음」 두 줄이 E2E 의 8할 가치를 준다.** E2E 는 「완벽한 커버리지를 갖추려면 크다」는 생각에 미루기 쉽지만, **최소 한 개**가 없는 것보다 압도적으로 낫다. 첫 E2E: **스모크 테스트**(smoke test — 전원 켜서 연기 나나 보는 것에서 유래) = 「앱이 뜨고 가장 기본적인 게 되나」. 「첫 화면이 뜨고 핵심 버튼이 보인다」 이 하나가 **가장 흔하고 치명적인 사고**를 잡는다 — 「배포했는데 앱이 아예 안 뜸」(하얀 화면·빌드 깨짐·라우팅 오류). 이건 사용자 전원에게 영향을 주는 최악 사고인데, 스모크 하나로 배포 전에 잡는다. 여기에 **콘솔 오류·페이지 오류 수집**을 붙이면 한 단계 더: 화면은 떴지만 **안에서 JS 에러로 터지고 있는** 상태(버튼은 보이는데 눌러도 안 되는, 데이터가 안 로드된)를 잡는다. `page.on('console')`·`page.on('pageerror')`로 오류를 모아 「오류가 0개여야」를 단언한다. **이게 스크린샷(시각 회귀, 6장)보다 먼저**다 — 눈엔 멀쩡해 보여도(스크린샷 통과) 콘솔이 빨갛게 터지고 있을 수 있으니, 「보이나」보다 「안에서 안 터지나」가 근본이다. 그래서 첫 E2E 두 줄 = ① 첫 화면·핵심 요소가 보임(앱이 뜸) ② 콘솔·페이지 오류가 없음(안에서 안 터짐). 이 둘이 E2E 가치의 대부분을 준다 — 「앱이 살아 있고 안에서 안 죽는다」는 최소 보증. 완벽한 흐름 테스트(로그인→결제→…)는 그다음(3·4장)이고, 이 스모크 하나부터 **지금** 넣는 게 중요하다(완벽을 미루다 0개보다, 불완전해도 1개가 낫다). 실무 팁: 이 스모크를 배포 파이프라인의 게이트(qa-gate)로 걸면, 「앱 안 뜨는 배포」를 자동 차단한다 — 배포 후 스모크(qa-gate 3장의 배포 후 층)로도 유용하다."
+          "text": "**완벽한 스위트를 미루지 말고 최소 한 개(스모크)부터. \"첫 화면 뜸 + 콘솔 오류 없음\" 두 줄이 E2E 의 8할 가치를 준다.** E2E 는 \"완벽한 커버리지를 갖추려면 크다\"는 생각에 미루기 쉽지만, **최소 한 개**가 없는 것보다 압도적으로 낫다. 첫 E2E: **스모크 테스트**(smoke test. 전원 켜서 연기 나나 보는 것에서 유래) = \"앱이 뜨고 가장 기본적인 게 되나\". \"첫 화면이 뜨고 핵심 버튼이 보인다\" 이 하나가 **가장 흔하고 치명적인 사고**를 잡는다. \"배포했는데 앱이 아예 안 뜸\"(하얀 화면, 빌드 깨짐, 라우팅 오류). 이건 사용자 전원에게 영향을 주는 최악 사고인데, 스모크 하나로 배포 전에 잡는다. 여기에 **콘솔 오류, 페이지 오류 수집**을 붙이면 한 단계 더: 화면은 떴지만 **안에서 JS 에러로 터지고 있는** 상태(버튼은 보이는데 눌러도 안 되는, 데이터가 안 로드된)를 잡는다. `page.on('console')`, `page.on('pageerror')`로 오류를 모아 \"오류가 0개여야\"를 단언한다. **이게 스크린샷(시각 회귀, 6장)보다 먼저**다. 눈엔 멀쩡해 보여도(스크린샷 통과) 콘솔이 빨갛게 터지고 있을 수 있으니, \"보이나\"보다 \"안에서 안 터지나\"가 근본이다. 그래서 첫 E2E 두 줄 = ① 첫 화면, 핵심 요소가 보임(앱이 뜸) ② 콘솔, 페이지 오류가 없음(안에서 안 터짐). 이 둘이 E2E 가치의 대부분을 준다. \"앱이 살아 있고 안에서 안 죽는다\"는 최소 보증. 완벽한 흐름 테스트(로그인→결제→)는 그다음(3, 4장)이고, 이 스모크 하나부터 **지금** 넣는 게 중요하다(완벽을 미루다 0개보다, 불완전해도 1개가 낫다). 실무 팁: 이 스모크를 배포 파이프라인의 게이트(qa-gate)로 걸면, \"앱 안 뜨는 배포\"를 자동 차단한다. 배포 후 스모크(qa-gate 3장의 배포 후 층)로도 유용하다."
         },
         {
           "type": "p",
-          "text": "**「불완전해도 지금 하나」가 「완벽한데 나중」을 이긴다 — 점진적 가치의 원리.** 스모크 하나부터의 교훈은 일 전반에 통한다: **완벽을 목표로 미루기보다, 불완전해도 지금 가치를 주는 최소를 먼저** 한다. E2E 스위트 전체를 갖추려다 아무것도 없는 것보다, 스모크 하나가 지금 「앱 죽음」을 막는다(가장 큰 위험을 최소 노력으로). 이는 「80/20」(적은 노력으로 대부분 가치) + 「점진적 전달」(완벽을 미루지 말고 조금씩 가치를 쌓기, product-mvp)의 사례다. 특히 안전망(테스트·모니터링·백업)은 「불완전한 것이라도 있는 게 없는 것보다 훨씬 낫다」 — 스모크 하나가 최악(전체 다운)을 막듯, 불완전한 백업이 백업 없음보다 낫듯. 그래서 「이상적 완벽」의 크기에 눌려 시작 못 하는 것을 경계하고, **「지금 넣을 수 있는 최소 가치」를 먼저 넣고 점진적으로 키운다**. 핵심 질문은 「완벽한 스위트는 무엇인가」가 아니라 「지금 하나 넣는다면 무엇이 가장 큰 위험을 막나」 — 그게 스모크다. 이 사고(최소 가치 먼저·점진적 확장)가 미루기를 이기고 실제 안전을 준다. 완벽주의는 종종 아무것도 안 하게 만드는 함정이다 — 「하나라도」가 그걸 깬다."
+          "text": "**\"불완전해도 지금 하나\"가 \"완벽한데 나중\"을 이긴다. 점진적 가치의 원리.** 스모크 하나부터의 교훈은 일 전반에 통한다: **완벽을 목표로 미루기보다, 불완전해도 지금 가치를 주는 최소를 먼저** 한다. E2E 스위트 전체를 갖추려다 아무것도 없는 것보다, 스모크 하나가 지금 \"앱 죽음\"을 막는다(가장 큰 위험을 최소 노력으로). 이는 \"80/20\"(적은 노력으로 대부분 가치) + \"점진적 전달\"(완벽을 미루지 말고 조금씩 가치를 쌓기, product-mvp)의 사례다. 특히 안전망(테스트, 모니터링, 백업)은 \"불완전한 것이라도 있는 게 없는 것보다 훨씬 낫다\". 스모크 하나가 최악(전체 다운)을 막듯, 불완전한 백업이 백업 없음보다 낫듯. 그래서 \"이상적 완벽\"의 크기에 눌려 시작 못 하는 것을 경계하고, **\"지금 넣을 수 있는 최소 가치\"를 먼저 넣고 점진적으로 키운다**. 핵심 질문은 \"완벽한 스위트는 무엇인가\"가 아니라 \"지금 하나 넣는다면 무엇이 가장 큰 위험을 막나\". 그게 스모크다. 이 사고(최소 가치 먼저, 점진적 확장)가 미루기를 이기고 실제 안전을 준다. 완벽주의는 종종 아무것도 안 하게 만드는 함정이다. \"하나라도\"가 그걸 깬다."
         },
         {
           "type": "try",
-          "text": "네 앱에 스모크 테스트 하나를 넣어라 — 첫 화면이 뜨고, 핵심 버튼이 보이고, 콘솔·페이지 오류가 0개인지. 콘솔 오류 수집(`page.on('console')`·`pageerror`)을 꼭 붙여 「보이는데 안에서 터지는」 상태를 잡아라. 이 하나를 배포 게이트로 걸어 「앱 안 뜨는 배포」를 차단하라 — 완벽을 미루지 말고 지금."
+          "text": "네 앱에 스모크 테스트 하나를 넣어라. 첫 화면이 뜨고, 핵심 버튼이 보이고, 콘솔, 페이지 오류가 0개인지. 콘솔 오류 수집(`page.on('console')`, `pageerror`)을 꼭 붙여 \"보이는데 안에서 터지는\" 상태를 잡아라. 이 하나를 배포 게이트로 걸어 \"앱 안 뜨는 배포\"를 차단하라. 완벽을 미루지 말고 지금."
         }
       ],
       "quiz": [
@@ -146,7 +146,7 @@
           "q": "첫 E2E 로 무엇을?",
           "choices": [
             "완벽한 전체",
-            "스모크 하나 — 첫 화면 뜸 + 콘솔 오류 없음",
+            "스모크 하나. 첫 화면 뜸 + 콘솔 오류 없음",
             "성능",
             "없음"
           ],
@@ -165,7 +165,7 @@
           "why": "스크린샷보다 먼저."
         },
         {
-          "q": "「불완전해도 하나」의 원리는?",
+          "q": "\"불완전해도 하나\"의 원리는?",
           "choices": [
             "완벽 우선",
             "지금 최소 가치 먼저 → 점진 확장(가장 큰 위험을 최소 노력으로)",
@@ -179,17 +179,17 @@
     },
     {
       "id": "3",
-      "title": "선택자 — 안 깨지는 순서",
+      "title": "선택자. 안 깨지는 순서",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "E2E 가 요소를 찾는 **선택자**의 선택이 안정성을 좌우한다 — 잘 안 깨지는 순서: ① **역할 + 이름** `getByRole('button', {name:'저장'})`(접근성과 같이 좋아짐 — 사용자가 인식하는 방식) ② **라벨·텍스트** `getByLabel('이메일')`·`getByText('저장됨')` ③ **테스트 전용 속성** `data-testid`(명시적 계약) ④ **CSS·XPath** `.btn-primary > div:nth-child(2)`(가장 잘 깨짐 — 디자인·구조 바뀌면 실패). 앞쪽(역할·라벨)은 **사용자가 인식하는 것**에 기반해 디자인이 바뀌어도 견디고, 뒤쪽(CSS 위치)은 구현 세부라 쉽게 깨진다. 「사용자가 보는 것」으로 찾으면 견고하고, 「구현 구조」로 찾으면 깨진다."
+          "text": "E2E 가 요소를 찾는 **선택자**의 선택이 안정성을 좌우한다. 잘 안 깨지는 순서: ① **역할 + 이름** `getByRole('button', {name:'저장'})`(접근성과 같이 좋아짐. 사용자가 인식하는 방식) ② **라벨, 텍스트** `getByLabel('이메일')`, `getByText('저장됨')` ③ **테스트 전용 속성** `data-testid`(명시적 계약) ④ **CSS, XPath** `.btn-primary > div:nth-child(2)`(가장 잘 깨짐. 디자인, 구조 바뀌면 실패). 앞쪽(역할, 라벨)은 **사용자가 인식하는 것**에 기반해 디자인이 바뀌어도 견디고, 뒤쪽(CSS 위치)은 구현 세부라 쉽게 깨진다. \"사용자가 보는 것\"으로 찾으면 견고하고, \"구현 구조\"로 찾으면 깨진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "선택자 안정성 — 디자인 바뀌면?",
+          "label": "선택자 안정성. 디자인 바뀌면?",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const change = '{{change}}';\n  const sels = [\n    ['역할+이름', \"getByRole('button',{name:'저장'})\", change !== 'rename'],\n    ['라벨·텍스트', \"getByText('저장')\", change !== 'rename'],\n    ['data-testid', \"getByTestId('save-btn')\", true],\n    ['CSS 위치', \".panel > .btn-primary:nth-child(2)\", change === 'none'],\n  ];\n  const changeDesc = { none:'변경 없음', restyle:'CSS 클래스·구조 변경(리디자인)',\n    reorder:'요소 순서 변경', rename:'버튼 글자 변경(저장→저장하기)' }[change];\n  const survive = { none:true, restyle:c=>c[0]!=='CSS 위치', reorder:c=>c[0]!=='CSS 위치', rename:c=>c[0]==='data-testid' };\n  let h = '<div class=\\\"sel\\\">';\n  for (const [name, code, baseOk] of sels) {\n    let ok;\n    if (change==='none') ok = true;\n    else if (change==='rename') ok = (name==='data-testid');\n    else ok = (name!=='CSS 위치');\n    h += '<div class=\\\"row\\\"><span class=\\\"name\\\">'+name+'</span><span class=\\\"code\\\">'+esc(code)+\n      '</span><span class=\\\"mark '+(ok?'ok':'no')+'\\\">'+(ok?'통과':'깨짐')+'</span></div>';\n  }\n  h += '</div>';\n  render('디자인 변경: ' + changeDesc,\n    '  변경 후에도 살아남는 선택자 = 견고한 선택자\\n\\n' +\n    '  <span class=\\\"ok\\\">역할·라벨(사용자가 보는 것)은 리디자인에 견딤 · CSS 위치는 깨짐.</span>',\n    '역할+이름 > 라벨 > testid > CSS. 사용자가 보는 것으로 찾으면 견고.', h);\n</script>",
           "controls": [
@@ -205,7 +205,7 @@
                 },
                 {
                   "value": "restyle",
-                  "label": "CSS·구조 변경"
+                  "label": "CSS, 구조 변경"
                 },
                 {
                   "value": "reorder",
@@ -222,20 +222,20 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "선택자 — 잘 안 깨지는 순서",
+          "label": "선택자. 잘 안 깨지는 순서",
           "text": "// 잘 안 깨지는 순서 (위가 견고)\ngetByRole('button', { name: '저장' })  // ① 역할+이름 — 접근성과 같이 좋아짐\ngetByLabel('이메일')                    // ② 라벨\ngetByText('저장됨')                     // ② 텍스트\ngetByTestId('save-btn')                 // ③ 테스트 전용 속성(명시적 계약)\npage.locator('.panel > .btn:nth-child(2)') // ④ CSS 위치 — 가장 잘 깨짐\n\n// 왜? 역할·라벨 = 사용자가 인식하는 것 (디자인 바뀌어도 유지)\n//     CSS 위치 = 구현 세부 (클래스·구조 바뀌면 깨짐)"
         },
         {
           "type": "note",
-          "text": "**선택자는 잘 안 깨지는 순서로 고른다: 역할+이름 > 라벨·텍스트 > data-testid > CSS·XPath 위치. 사용자가 인식하는 것으로 찾으면 견고하고, 구현 세부로 찾으면 깨진다.** E2E 가 요소를 찾는 방법(선택자)의 선택이 테스트 안정성을 크게 좌우한다 — 잘못 고르면 디자인을 살짝만 바꿔도 테스트가 우수수 깨진다(깜빡임의 사촌 — 취약한 테스트). 안정성 순서: ① **역할 + 접근가능 이름**(`getByRole('button', {name:'저장'})`) — 가장 견고. 요소의 **역할**(버튼·링크·체크박스)과 **사용자에게 보이는 이름**으로 찾는다. 이건 **접근성(a11y)과 같이 좋아진다** — 접근성을 위한 올바른 마크업(role·aria·의미 있는 텍스트)이 곧 좋은 선택자다(스크린리더가 찾는 방식 = 테스트가 찾는 방식 = 사용자가 인식하는 방식). CSS 클래스·구조가 바뀌어도 「저장 버튼」이면 통과. ② **라벨·텍스트**(`getByLabel('이메일')`·`getByText('저장됨')`) — 사용자가 보는 텍스트로. 역시 디자인 변경에 견고(텍스트가 그대로면). ③ **테스트 전용 속성**(`data-testid='save-btn'`) — 명시적으로 「이건 테스트용 앵커」라고 표시한 속성. 디자인·텍스트가 바뀌어도 유지되는 **명시적 계약**(단, 마크업에 테스트용 속성을 심어야 함). 텍스트가 자주 바뀌는 요소에 유용. ④ **CSS·XPath 위치**(`.panel > .btn-primary:nth-child(2)`) — 가장 잘 깨짐. 클래스 이름·DOM 구조·요소 순서 같은 **구현 세부**에 의존해, 리디자인·리팩터링 때 우수수 깨진다(테스트가 진짜 문제가 아닌데 빨강 — 취약). **원리**: 앞쪽(역할·라벨·텍스트)은 **사용자가 인식하는 것**(무엇을·어떻게 쓰나)에 기반해, 구현(CSS·구조)이 바뀌어도 견딘다 — 사용자 관점이 안정적이니까. 뒤쪽(CSS 위치)은 **구현 세부**라 구현이 바뀌면 깨진다. 그래서 「사용자가 이 요소를 어떻게 인식하나」(역할·이름·라벨)로 찾는 게 E2E 의 정석이다 — Testing Library·Playwright 가 `getByRole`을 권장하는 이유. 이러면 테스트가 **사용자 관점**을 검증하고(구현이 아니라 동작), 리팩터링·리디자인에 강건하다(구현을 바꿔도 동작이 같으면 통과). 취약한 선택자(CSS 위치)는 깜빡임처럼 신뢰를 깎으니(qa-flaky), 견고한 선택자가 E2E 를 유지 가능하게 한다."
+          "text": "**선택자는 잘 안 깨지는 순서로 고른다: 역할+이름 > 라벨, 텍스트 > data-testid > CSS, XPath 위치. 사용자가 인식하는 것으로 찾으면 견고하고, 구현 세부로 찾으면 깨진다.** E2E 가 요소를 찾는 방법(선택자)의 선택이 테스트 안정성을 크게 좌우한다. 잘못 고르면 디자인을 살짝만 바꿔도 테스트가 우수수 깨진다(깜빡임의 사촌. 취약한 테스트). 안정성 순서: ① **역할 + 접근가능 이름**(`getByRole('button', {name:'저장'})`). 가장 견고. 요소의 **역할**(버튼, 링크, 체크박스)과 **사용자에게 보이는 이름**으로 찾는다. 이건 **접근성(a11y)과 같이 좋아진다**. 접근성을 위한 올바른 마크업(role, aria, 의미 있는 텍스트)이 곧 좋은 선택자다(스크린리더가 찾는 방식 = 테스트가 찾는 방식 = 사용자가 인식하는 방식). CSS 클래스, 구조가 바뀌어도 \"저장 버튼\"이면 통과. ② **라벨, 텍스트**(`getByLabel('이메일')`, `getByText('저장됨')`). 사용자가 보는 텍스트로. 역시 디자인 변경에 견고(텍스트가 그대로면). ③ **테스트 전용 속성**(`data-testid='save-btn'`). 명시적으로 \"이건 테스트용 앵커\"라고 표시한 속성. 디자인, 텍스트가 바뀌어도 유지되는 **명시적 계약**(단, 마크업에 테스트용 속성을 심어야 함). 텍스트가 자주 바뀌는 요소에 유용. ④ **CSS, XPath 위치**(`.panel >.btn-primary:nth-child(2)`). 가장 잘 깨짐. 클래스 이름, DOM 구조, 요소 순서 같은 **구현 세부**에 의존해, 리디자인, 리팩터링 때 우수수 깨진다(테스트가 진짜 문제가 아닌데 빨강. 취약). **원리**: 앞쪽(역할, 라벨, 텍스트)은 **사용자가 인식하는 것**(무엇을, 어떻게 쓰나)에 기반해, 구현(CSS, 구조)이 바뀌어도 견딘다. 사용자 관점이 안정적이니까. 뒤쪽(CSS 위치)은 **구현 세부**라 구현이 바뀌면 깨진다. 그래서 \"사용자가 이 요소를 어떻게 인식하나\"(역할, 이름, 라벨)로 찾는 게 E2E 의 정석이다. Testing Library, Playwright 가 `getByRole`을 권장하는 이유. 이러면 테스트가 **사용자 관점**을 검증하고(구현이 아니라 동작), 리팩터링, 리디자인에 강건하다(구현을 바꿔도 동작이 같으면 통과). 취약한 선택자(CSS 위치)는 깜빡임처럼 신뢰를 깎으니(qa-flaky), 견고한 선택자가 E2E 를 유지 가능하게 한다."
         },
         {
           "type": "p",
-          "text": "**「구현이 아니라 동작을 테스트하라」 — 사용자 관점이 안정적인 계약이다.** 선택자 원리의 핵심은 **구현 세부가 아니라 사용자가 보는 동작을 테스트**하는 것이다 — 이는 좋은 테스트의 일반 원칙이다: 테스트가 **구현 세부**(내부 구조·CSS 클래스·private 메서드·정확한 DOM)에 의존하면, 구현을 바꿀 때마다(리팩터링) 동작은 같은데 테스트가 깨진다(취약·유지비 폭발). 반대로 **관찰 가능한 동작**(사용자가 보는 것·공개 인터페이스·기능)을 테스트하면, 구현을 바꿔도 동작이 같으면 통과한다(리팩터링에 강건 — 테스트가 리팩터링을 방해 않고 보호함). E2E 선택자에서 「역할·라벨(사용자가 보는 것)」이 「CSS 위치(구현)」보다 나은 게 이 원리. 단위 테스트도 같다 — 내부 구현이 아니라 공개 동작을 검증(구현 결합 X). 그래서 「테스트는 무엇을 검증하나」가 중요 — **「어떻게 만들었나(구현)」가 아니라 「무엇을 하나(동작)」**. 동작 기반 테스트는 안정적 계약(사용자 관점은 잘 안 바뀜)이라 오래가고, 구현 기반 테스트는 취약한 결합이라 리팩터링을 방해한다. 이 사고는 좋은 API 설계(구현 숨기고 동작 노출)·좋은 추상화와 통한다. E2E 에서 「사용자가 보는 것으로 찾기」는 이 원리의 구체적 실천이고, 접근성까지 덤으로 좋아지는(사용자 관점 = 접근성 관점) 아름다운 정렬이다."
+          "text": "**\"구현이 아니라 동작을 테스트하라\". 사용자 관점이 안정적인 계약이다.** 선택자 원리의 핵심은 **구현 세부가 아니라 사용자가 보는 동작을 테스트**하는 것이다. 이는 좋은 테스트의 일반 원칙이다: 테스트가 **구현 세부**(내부 구조, CSS 클래스, private 메서드, 정확한 DOM)에 의존하면, 구현을 바꿀 때마다(리팩터링) 동작은 같은데 테스트가 깨진다(취약, 유지비 폭발). 반대로 **관찰 가능한 동작**(사용자가 보는 것, 공개 인터페이스, 기능)을 테스트하면, 구현을 바꿔도 동작이 같으면 통과한다(리팩터링에 강건. 테스트가 리팩터링을 방해 않고 보호함). E2E 선택자에서 \"역할, 라벨(사용자가 보는 것)\"이 \"CSS 위치(구현)\"보다 나은 게 이 원리. 단위 테스트도 같다. 내부 구현이 아니라 공개 동작을 검증(구현 결합 X). 그래서 \"테스트는 무엇을 검증하나\"가 중요. **\"어떻게 만들었나(구현)\"가 아니라 \"무엇을 하나(동작)\"**. 동작 기반 테스트는 안정적 계약(사용자 관점은 잘 안 바뀜)이라 오래가고, 구현 기반 테스트는 취약한 결합이라 리팩터링을 방해한다. 이 사고는 좋은 API 설계(구현 숨기고 동작 노출), 좋은 추상화와 통한다. E2E 에서 \"사용자가 보는 것으로 찾기\"는 이 원리의 구체적 실천이고, 접근성까지 덤으로 좋아지는(사용자 관점 = 접근성 관점) 아름다운 정렬이다."
         },
         {
           "type": "try",
-          "text": "네 E2E 의 CSS 선택자(`.class`·`nth-child`·XPath)를 역할·라벨 기반(`getByRole`·`getByLabel`·`getByText`)으로 바꾸고, 디자인을 살짝 바꿔도(클래스·구조 변경) 통과하는지 확인하라. 텍스트가 자주 바뀌는 요소만 `data-testid`를 쓰라. 「사용자가 이 요소를 어떻게 인식하나」로 찾으면 리디자인에 강건해진다."
+          "text": "네 E2E 의 CSS 선택자(`.class`, `nth-child`, XPath)를 역할, 라벨 기반(`getByRole`, `getByLabel`, `getByText`)으로 바꾸고, 디자인을 살짝 바꿔도(클래스, 구조 변경) 통과하는지 확인하라. 텍스트가 자주 바뀌는 요소만 `data-testid`를 쓰라. \"사용자가 이 요소를 어떻게 인식하나\"로 찾으면 리디자인에 강건해진다."
         }
       ],
       "quiz": [
@@ -243,7 +243,7 @@
           "q": "가장 견고한(잘 안 깨지는) 선택자는?",
           "choices": [
             "CSS 위치",
-            "역할+이름(getByRole) — 사용자가 인식하는 것·접근성과 같이",
+            "역할+이름(getByRole). 사용자가 인식하는 것, 접근성과 같이",
             "nth-child",
             "XPath"
           ],
@@ -254,7 +254,7 @@
           "q": "CSS 위치 선택자가 잘 깨지는 이유는?",
           "choices": [
             "느려서",
-            "구현 세부(클래스·구조·순서)에 의존 → 리디자인 때 깨짐",
+            "구현 세부(클래스, 구조, 순서)에 의존 → 리디자인 때 깨짐",
             "짧아서",
             "무관"
           ],
@@ -265,7 +265,7 @@
           "q": "선택자 원리의 일반 교훈은?",
           "choices": [
             "빠르게",
-            "구현이 아니라 동작(사용자가 보는 것)을 테스트 — 리팩터링에 강건",
+            "구현이 아니라 동작(사용자가 보는 것)을 테스트. 리팩터링에 강건",
             "색",
             "없음"
           ],
@@ -281,12 +281,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "E2E 는 느리고 비싸니(브라우저 띄우고 전체 흐름) **모든 걸 덮으면 안 된다** — **돈과 데이터가 걸린 핵심 흐름 몇 개만**: 로그인 → 핵심 작업 → 저장 확인, 주문 → 결제 → 완료. 나머지 세부(입력 검증·경계값·에러 처리)는 **아래 층**(단위·통합 테스트)에서 — 빠르고 정확히 원인을 짚으니까. 이게 **테스트 피라미드**: 단위(많고 빠름, 바닥) > 통합(중간) > E2E(적고 느림, 꼭대기). **E2E 가 20개를 넘어가면 대개 유지비가 폭발**한다(느리고 깜빡이고 손 많이 감). E2E 는 「전체가 조립돼 도는가」의 최종 확인용 소수로, 세부 검증은 아래 층에 맡긴다."
+          "text": "E2E 는 느리고 비싸니(브라우저 띄우고 전체 흐름) **모든 걸 덮으면 안 된다**. **돈과 데이터가 걸린 핵심 흐름 몇 개만**: 로그인 → 핵심 작업 → 저장 확인, 주문 → 결제 → 완료. 나머지 세부(입력 검증, 경계값, 에러 처리)는 **아래 층**(단위, 통합 테스트)에서. 빠르고 정확히 원인을 짚으니까. 이게 **테스트 피라미드**: 단위(많고 빠름, 바닥) > 통합(중간) > E2E(적고 느림, 꼭대기). **E2E 가 20개를 넘어가면 대개 유지비가 폭발**한다(느리고 깜빡이고 손 많이 감). E2E 는 \"전체가 조립돼 도는가\"의 최종 확인용 소수로, 세부 검증은 아래 층에 맡긴다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "테스트 피라미드 — 층마다 다른 역할",
+          "label": "테스트 피라미드. 층마다 다른 역할",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const layer = '{{layer}}';\n  const pyr = [\n    ['E2E', '#ef4444', 20, '핵심 흐름 몇 개(돈·데이터) — 전체 조립 확인', '느림·비쌈·적게'],\n    ['통합', '#f59e0b', 45, '모듈 몇 개가 함께 도나 — API·DB 연동', '중간'],\n    ['단위', '#22c55e', 90, '함수·부품 각각 — 세부·경계·에러 처리', '빠름·많이'],\n  ];\n  const idx = { e2e:0, integration:1, unit:2 }[layer];\n  let h = '<div class=\\\"pyr\\\">';\n  pyr.forEach((p,i)=>{ h += '<div class=\\\"layer\\\" style=\\\"width:'+p[2]+'%;background:'+p[1]+\n    ';opacity:'+(i===idx?1:0.5)+'\\\">'+p[0]+'</div>'; });\n  h += '</div>';\n  const p = pyr[idx];\n  render('층: ' + p[0],\n    '  역할: ' + p[3] + '\\n  특성: ' + p[4] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">단위=많고 빠름(세부) · E2E=적고 느림(핵심 흐름). 층마다 역할.</span>',\n    '피라미드: 단위(많음·세부) > 통합 > E2E(적음·핵심 흐름). E2E 는 소수만.', h);\n</script>",
           "controls": [
@@ -314,15 +314,15 @@
         },
         {
           "type": "note",
-          "text": "**E2E 는 느리고 비싸니 돈·데이터가 걸린 핵심 흐름 몇 개만 덮고, 세부는 아래 층(단위·통합)에 맡긴다 — 테스트 피라미드. E2E 가 20개를 넘으면 대개 유지비가 폭발한다.** E2E 는 실제 브라우저에서 전체 흐름을 도니 **느리고**(각 테스트가 초~수십 초), **비싸고**(유지·디버깅 손 많이 감), **깜빡이기 쉽다**(전체를 다루니 타이밍·네트워크 변수 많음, qa-flaky). 그래서 **모든 걸 E2E 로 덮으면 안 된다** — 느린 스위트 + 잦은 깜빡임 + 높은 유지비로 무너진다. **무엇을 E2E 로**: **돈과 데이터가 걸린 핵심 흐름 몇 개** — 사용자가 반드시 성공해야 하고 실패 시 치명적인 것(로그인 → 핵심 작업 → 저장, 상품 → 장바구니 → 결제 → 완료, 회원가입). 이런 「끝까지 되어야 하는」 주요 여정(critical path)을 E2E 로 전체 확인한다. **나머지는 아래 층**: 입력 검증·경계값·에러 처리·다양한 조합 같은 **세부**는 단위·통합 테스트로 — 빠르고(수 ms), 정확히 원인을 짚고(어느 함수가 틀렸는지), 많이 돌릴 수 있다. 예: 「이메일 형식 검증」의 온갖 경우는 단위로(빠르게 100가지), 「로그인 흐름 전체」는 E2E 로 하나. 이게 **테스트 피라미드**: 바닥에 **단위**(많고 빠름 — 부품·세부), 중간에 **통합**(모듈들이 함께 도나 — API·DB 연동), 꼭대기에 **E2E**(적고 느림 — 전체 흐름). 넓은 바닥(빠른 단위 다수)이 세부를 촘촘히 잡고, 좁은 꼭대기(느린 E2E 소수)가 전체 조립을 확인한다. **역피라미드**(E2E 많고 단위 적음)는 안티패턴 — 느리고 깜빡이고 유지 불가(E2E 로 세부까지 덮으려다). 실용 기준: **E2E 가 20개를 넘어가면** 대개 유지비가 폭발하는 신호 — 세부를 E2E 로 덮고 있는 것이니 아래 층으로 내려야 한다. E2E 의 역할은 「전체가 조립돼 핵심 흐름이 도는가」의 최종 확인이지, 모든 경우의 검증이 아니다. 각 층이 자기가 잘하는 걸 맡을 때(단위=세부·속도, E2E=전체·현실) 전체 테스트 전략이 빠르고 견고하다."
+          "text": "**E2E 는 느리고 비싸니 돈, 데이터가 걸린 핵심 흐름 몇 개만 덮고, 세부는 아래 층(단위, 통합)에 맡긴다. 테스트 피라미드. E2E 가 20개를 넘으면 대개 유지비가 폭발한다.** E2E 는 실제 브라우저에서 전체 흐름을 도니 **느리고**(각 테스트가 초~수십 초), **비싸고**(유지, 디버깅 손 많이 감), **깜빡이기 쉽다**(전체를 다루니 타이밍, 네트워크 변수 많음, qa-flaky). 그래서 **모든 걸 E2E 로 덮으면 안 된다**. 느린 스위트 + 잦은 깜빡임 + 높은 유지비로 무너진다. **무엇을 E2E 로**: **돈과 데이터가 걸린 핵심 흐름 몇 개**. 사용자가 반드시 성공해야 하고 실패 시 치명적인 것(로그인 → 핵심 작업 → 저장, 상품 → 장바구니 → 결제 → 완료, 회원가입). 이런 \"끝까지 되어야 하는\" 주요 여정(critical path)을 E2E 로 전체 확인한다. **나머지는 아래 층**: 입력 검증, 경계값, 에러 처리, 다양한 조합 같은 **세부**는 단위, 통합 테스트로. 빠르고(수 ms), 정확히 원인을 짚고(어느 함수가 틀렸는지), 많이 돌릴 수 있다. 예: \"이메일 형식 검증\"의 온갖 경우는 단위로(빠르게 100가지), \"로그인 흐름 전체\"는 E2E 로 하나. 이게 **테스트 피라미드**: 바닥에 **단위**(많고 빠름. 부품, 세부), 중간에 **통합**(모듈들이 함께 도나. API, DB 연동), 꼭대기에 **E2E**(적고 느림. 전체 흐름). 넓은 바닥(빠른 단위 다수)이 세부를 촘촘히 잡고, 좁은 꼭대기(느린 E2E 소수)가 전체 조립을 확인한다. **역피라미드**(E2E 많고 단위 적음)는 안티패턴. 느리고 깜빡이고 유지 불가(E2E 로 세부까지 덮으려다). 실용 기준: **E2E 가 20개를 넘어가면** 대개 유지비가 폭발하는 신호. 세부를 E2E 로 덮고 있는 것이니 아래 층으로 내려야 한다. E2E 의 역할은 \"전체가 조립돼 핵심 흐름이 도는가\"의 최종 확인이지, 모든 경우의 검증이 아니다. 각 층이 자기가 잘하는 걸 맡을 때(단위=세부, 속도, E2E=전체, 현실) 전체 테스트 전략이 빠르고 견고하다."
         },
         {
           "type": "p",
-          "text": "**「적절한 층에서 검증하라」 — 각 도구가 잘하는 것에 맡기는 균형.** 테스트 피라미드의 원리는 **각 검증을 가장 적합한 층에서** 하는 것이다 — 세부·경계·속도가 필요하면 아래(단위, 빠르고 정밀), 전체·통합·현실이 필요하면 위(E2E, 느리지만 진짜). 잘못된 층에서 하면 비효율: 세부를 E2E 로 덮으면 느리고 취약(역피라미드), 통합을 단위로만 하면 조립 문제를 놓침(1장). 그래서 「이 검증은 어느 층이 맞나」를 물어 배분한다 — 각 층의 강점(단위=속도·정밀·격리, 통합=연동, E2E=현실·전체)에 맞게. 이는 「적재적소」의 원리 — 각 도구·방법이 잘하는 것에 맡기고 균형을 잡기(qa-gate 7장의 「기계 vs 사람」과 통함 — 무엇을 어느 층위로). 그리고 「많고 빠른 아래 + 적고 느린 위」의 형태는 비용·피드백 최적화다 — 대부분의 검증을 빠른 층에서(빠른 피드백·저비용), 소수의 중요한 것만 느린 층에서(현실 확인·고비용). 이 균형이 「빠르면서도 현실을 검증하는」 테스트 전략을 준다. E2E 를 소수로 유지하는 절제(모든 걸 E2E 로 X)가 피라미드를 건강하게 한다 — 「E2E 로 다 하면 안심」은 함정(느리고 깜빡여 결국 무시됨). 적절한 층에서, 적절한 양으로가 성숙한 테스트 설계다."
+          "text": "**\"적절한 층에서 검증하라\". 각 도구가 잘하는 것에 맡기는 균형.** 테스트 피라미드의 원리는 **각 검증을 가장 적합한 층에서** 하는 것이다. 세부, 경계, 속도가 필요하면 아래(단위, 빠르고 정밀), 전체, 통합, 현실이 필요하면 위(E2E, 느리지만 진짜). 잘못된 층에서 하면 비효율: 세부를 E2E 로 덮으면 느리고 취약(역피라미드), 통합을 단위로만 하면 조립 문제를 놓침(1장). 그래서 \"이 검증은 어느 층이 맞나\"를 물어 배분한다. 각 층의 강점(단위=속도, 정밀, 격리, 통합=연동, E2E=현실, 전체)에 맞게. 이는 \"적재적소\"의 원리. 각 도구, 방법이 잘하는 것에 맡기고 균형을 잡기(qa-gate 7장의 \"기계 vs 사람\"과 통함. 무엇을 어느 층위로). 그리고 \"많고 빠른 아래 + 적고 느린 위\"의 형태는 비용, 피드백 최적화다. 대부분의 검증을 빠른 층에서(빠른 피드백, 저비용), 소수의 중요한 것만 느린 층에서(현실 확인, 고비용). 이 균형이 \"빠르면서도 현실을 검증하는\" 테스트 전략을 준다. E2E 를 소수로 유지하는 절제(모든 걸 E2E 로 X)가 피라미드를 건강하게 한다. \"E2E 로 다 하면 안심\"은 함정(느리고 깜빡여 결국 무시됨). 적절한 층에서, 적절한 양으로가 성숙한 테스트 설계다."
         },
         {
           "type": "try",
-          "text": "네 앱의 「돈·데이터가 걸린 핵심 흐름」을 3~5개 꼽아(로그인·결제·저장 등) 그것만 E2E 로 덮어라. 세부(입력 검증·경계·에러)는 단위·통합으로 내려라. E2E 개수를 세어 20개를 넘으면 역피라미드 신호 — 세부를 E2E 로 덮고 있는지 보고 아래 층으로 옮겨라."
+          "text": "네 앱의 \"돈, 데이터가 걸린 핵심 흐름\"을 3~5개 꼽아(로그인, 결제, 저장 등) 그것만 E2E 로 덮어라. 세부(입력 검증, 경계, 에러)는 단위, 통합으로 내려라. E2E 개수를 세어 20개를 넘으면 역피라미드 신호. 세부를 E2E 로 덮고 있는지 보고 아래 층으로 옮겨라."
         }
       ],
       "quiz": [
@@ -330,7 +330,7 @@
           "q": "E2E 로 덮을 것은?",
           "choices": [
             "모든 경우",
-            "돈·데이터가 걸린 핵심 흐름 몇 개(전체 조립 확인)",
+            "돈, 데이터가 걸린 핵심 흐름 몇 개(전체 조립 확인)",
             "입력 검증 전부",
             "경계값"
           ],
@@ -341,7 +341,7 @@
           "q": "테스트 피라미드의 형태는?",
           "choices": [
             "E2E 많음",
-            "단위(많음·바닥) > 통합 > E2E(적음·꼭대기)",
+            "단위(많음, 바닥) > 통합 > E2E(적음, 꼭대기)",
             "E2E 만",
             "평평"
           ],
@@ -352,7 +352,7 @@
           "q": "E2E 가 20개를 넘으면?",
           "choices": [
             "좋음",
-            "유지비 폭발 신호 — 세부를 E2E 로 덮는 중, 아래 층으로",
+            "유지비 폭발 신호. 세부를 E2E 로 덮는 중, 아래 층으로",
             "빠름",
             "무관"
           ],
@@ -363,17 +363,17 @@
     },
     {
       "id": "5",
-      "title": "안정성 — 조건 대기와 격리",
+      "title": "안정성. 조건 대기와 격리",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "E2E 는 **가장 깜빡이기 쉬운** 테스트다(전체를 다루니 타이밍·네트워크·순서 변수가 많음). qa-flaky 의 원칙이 여기서 특히 중요하다: ① **조건 대기**(고정 sleep X) — 페이지·요소가 준비될 때까지 기다린다. Playwright·Cypress 의 assertion 은 **자동 재시도**(요소가 나타날 때까지)라 sleep 이 거의 불필요. ② **격리** — 각 테스트가 자기 데이터·상태로 시작(공유 X, 순서 무관). ③ **가짜/고정** — 외부 API 는 가짜로(외부 장애와 무관), 시각·랜덤 고정. 깜빡이는 E2E 는 「없느니만 못하다」(신뢰 붕괴)라, E2E 는 **소수를 확실히 안정적으로** 유지하는 게 많은 불안정한 것보다 낫다."
+          "text": "E2E 는 **가장 깜빡이기 쉬운** 테스트다(전체를 다루니 타이밍, 네트워크, 순서 변수가 많음). qa-flaky 의 원칙이 여기서 특히 중요하다: ① **조건 대기**(고정 sleep X). 페이지, 요소가 준비될 때까지 기다린다. Playwright, Cypress 의 assertion 은 **자동 재시도**(요소가 나타날 때까지)라 sleep 이 거의 불필요. ② **격리**. 각 테스트가 자기 데이터, 상태로 시작(공유 X, 순서 무관). ③ **가짜/고정**. 외부 API 는 가짜로(외부 장애와 무관), 시각, 랜덤 고정. 깜빡이는 E2E 는 \"없느니만 못하다\"(신뢰 붕괴)라, E2E 는 **소수를 확실히 안정적으로** 유지하는 게 많은 불안정한 것보다 낫다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "E2E 안정성 — 조건 대기·격리·가짜",
+          "label": "E2E 안정성. 조건 대기, 격리, 가짜",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const method = '{{method}}';\n  const rows = {\n    wait:['조건 대기', 'sleep 대신 요소가 나타날 때까지', 'await expect(locator).toBeVisible() — 자동 재시도', '타이밍 깜빡임 제거'],\n    isolate:['격리', '각 테스트 자기 데이터·상태로 시작', 'beforeEach 로 초기화·자기 계정 생성', '순서·병렬 무관'],\n    mock:['가짜 외부', '외부 API 를 가짜로(고정 응답)', 'page.route 로 API 가로채기', '외부 장애·지연과 무관'],\n    fix:['시각·랜덤 고정', '현재 시각·무작위를 고정', 'clock.setFixedTime · seed 주입', '시각·값 의존 제거'],\n  }[method];\n  render('안정화: ' + rows[0],\n    '  방법: ' + rows[1] + '\\n  구현: ' + rows[2] + '\\n  효과: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">E2E 는 가장 깜빡이기 쉬움 → 소수를 확실히 안정적으로.</span>',\n    '조건 대기·격리·가짜·고정 — E2E 를 안정적으로(qa-flaky 원칙).',\n    box(rows[0], rows[2] + '\\n→ ' + rows[3], 'good'));\n</script>",
           "controls": [
@@ -397,7 +397,7 @@
                 },
                 {
                   "value": "fix",
-                  "label": "시각·랜덤 고정"
+                  "label": "시각, 랜덤 고정"
                 }
               ]
             }
@@ -405,15 +405,15 @@
         },
         {
           "type": "note",
-          "text": "**E2E 는 가장 깜빡이기 쉬우니 qa-flaky 의 원칙을 특히 지킨다 — 조건 대기·격리·가짜 외부·고정. 소수를 확실히 안정적으로 유지하는 게 많은 불안정한 것보다 낫다.** E2E 는 전체 흐름(브라우저·네트워크·비동기·여러 페이지)을 다루니 **비결정성의 원천이 많아** 깜빡임에 가장 취약하다(qa-flaky 2장의 다섯 원인이 다 모임). 그래서 안정화가 특히 중요하다: ① **조건 대기**(qa-flaky 4장) — 고정 `sleep` 대신 「요소·상태가 준비될 때까지」 기다린다. 현대 E2E 도구는 assertion 에 **자동 재시도**가 내장돼(`await expect(locator).toBeVisible()`는 요소가 나타날 때까지 짧게 재시도), 명시적 sleep 이 거의 불필요하다. 「시간」이 아니라 「상태」를 기다리는 게 핵심. ② **격리**(qa-flaky 5장) — 각 테스트가 자기 데이터·계정·상태로 시작하고(공유 X), 끝나면 정리. 그래야 순서·병렬에 안정적. E2E 는 공유 상태(같은 테스트 계정·DB)로 특히 간섭하기 쉬우니 격리가 중요. ③ **가짜 외부**(qa-flaky 8장) — 외부 API·서드파티를 가짜로 대체(`page.route`로 가로채 고정 응답)해, 외부 장애·지연·변화와 무관하게 만든다(단, 진짜 통합을 확인하는 소수 E2E 는 실제로 — 균형). ④ **시각·랜덤 고정** — 현재 시각·무작위를 고정해 시각·값 의존 제거. 이 원칙들로 E2E 를 안정화한다. **핵심 태도**: E2E 는 소수만 두되(4장) 그 **소수를 확실히 안정적으로** 유지한다 — 깜빡이는 E2E 는 「없느니만 못하다」(qa-flaky 1장 — 신뢰 붕괴, 팀이 빨강을 무시). 많은 불안정한 E2E 보다 적은 확실한 E2E 가 낫다(qa-flaky). 그래서 E2E 를 추가할 때마다 「이게 안정적으로 유지될 수 있나」를 물어야 하고, 깜빡이면 고치거나 격리·제거한다(qa-flaky 7장). E2E 의 가치는 「전체가 도는지 믿을 수 있게 확인」인데, 깜빡이면 그 신뢰가 무너지니, 안정성이 E2E 의 생명이다."
+          "text": "**E2E 는 가장 깜빡이기 쉬우니 qa-flaky 의 원칙을 특히 지킨다. 조건 대기, 격리, 가짜 외부, 고정. 소수를 확실히 안정적으로 유지하는 게 많은 불안정한 것보다 낫다.** E2E 는 전체 흐름(브라우저, 네트워크, 비동기, 여러 페이지)을 다루니 **비결정성의 원천이 많아** 깜빡임에 가장 취약하다(qa-flaky 2장의 다섯 원인이 다 모임). 그래서 안정화가 특히 중요하다: ① **조건 대기**(qa-flaky 4장). 고정 `sleep` 대신 \"요소, 상태가 준비될 때까지\" 기다린다. 현대 E2E 도구는 assertion 에 **자동 재시도**가 내장돼(`await expect(locator).toBeVisible()`는 요소가 나타날 때까지 짧게 재시도), 명시적 sleep 이 거의 불필요하다. \"시간\"이 아니라 \"상태\"를 기다리는 게 핵심. ② **격리**(qa-flaky 5장). 각 테스트가 자기 데이터, 계정, 상태로 시작하고(공유 X), 끝나면 정리. 그래야 순서, 병렬에 안정적. E2E 는 공유 상태(같은 테스트 계정, DB)로 특히 간섭하기 쉬우니 격리가 중요. ③ **가짜 외부**(qa-flaky 8장). 외부 API, 서드파티를 가짜로 대체(`page.route`로 가로채 고정 응답)해, 외부 장애, 지연, 변화와 무관하게 만든다(단, 진짜 통합을 확인하는 소수 E2E 는 실제로. 균형). ④ **시각, 랜덤 고정**. 현재 시각, 무작위를 고정해 시각, 값 의존 제거. 이 원칙들로 E2E 를 안정화한다. **핵심 태도**: E2E 는 소수만 두되(4장) 그 **소수를 확실히 안정적으로** 유지한다. 깜빡이는 E2E 는 \"없느니만 못하다\"(qa-flaky 1장. 신뢰 붕괴, 팀이 빨강을 무시). 많은 불안정한 E2E 보다 적은 확실한 E2E 가 낫다(qa-flaky). 그래서 E2E 를 추가할 때마다 \"이게 안정적으로 유지될 수 있나\"를 물어야 하고, 깜빡이면 고치거나 격리, 제거한다(qa-flaky 7장). E2E 의 가치는 \"전체가 도는지 믿을 수 있게 확인\"인데, 깜빡이면 그 신뢰가 무너지니, 안정성이 E2E 의 생명이다."
         },
         {
           "type": "p",
-          "text": "**E2E 와 깜빡임·게이트가 만나는 지점 — qa 갈래의 원칙들이 함께 작동한다.** E2E 안정성은 qa 갈래의 다른 칸들과 긴밀하다: **qa-flaky**(깜빡임 다루기)의 모든 원칙(조건 대기·격리·비결정성 제거·재현율)이 E2E 에 직접 적용되고(E2E 가 깜빡임의 주 무대), **qa-gate**(품질 게이트)와 연결된다(스모크 E2E 를 배포 게이트로 — 단, 깜빡이는 E2E 를 게이트에 넣으면 게이트 전체가 못 믿을 것이 됨, qa-gate 4장의 「안 깜빡임」). 그래서 「안정적인 E2E 소수」가 「믿을 만한 게이트」의 전제다. 이 상호작용이 보여 주는 건 품질 실천들이 따로가 아니라 **함께 작동하는 체계**라는 것 — 좋은 선택자(3장, 취약성 제거)·조건 대기(qa-flaky)·소수 유지(4장, 피라미드)·안정성(5장)이 합쳐져 「믿을 수 있는 E2E」를 만들고, 그게 「믿을 수 있는 게이트」가 되어 「믿을 수 있는 배포」를 뒷받침한다. 반대로 하나가 무너지면(취약한 선택자·깜빡임·과다한 E2E) 연쇄로 신뢰가 무너진다. 그래서 E2E 를 「전체가 도는지 확인하는 최종 안전망」으로 제대로 쓰려면, qa 갈래의 원칙들(피라미드·깜빡임 제거·좋은 게이트·견고한 선택자)을 함께 지켜야 한다 — 품질은 개별 기법이 아니라 정합된 체계다."
+          "text": "**E2E 와 깜빡임, 게이트가 만나는 지점. qa 갈래의 원칙들이 함께 작동한다.** E2E 안정성은 qa 갈래의 다른 칸들과 긴밀하다: **qa-flaky**(깜빡임 다루기)의 모든 원칙(조건 대기, 격리, 비결정성 제거, 재현율)이 E2E 에 직접 적용되고(E2E 가 깜빡임의 주 무대), **qa-gate**(품질 게이트)와 연결된다(스모크 E2E 를 배포 게이트로. 단, 깜빡이는 E2E 를 게이트에 넣으면 게이트 전체가 못 믿을 것이 됨, qa-gate 4장의 \"안 깜빡임\"). 그래서 \"안정적인 E2E 소수\"가 \"믿을 만한 게이트\"의 전제다. 이 상호작용이 보여 주는 건 품질 실천들이 따로가 아니라 **함께 작동하는 체계**라는 것. 좋은 선택자(3장, 취약성 제거), 조건 대기(qa-flaky), 소수 유지(4장, 피라미드), 안정성(5장)이 합쳐져 \"믿을 수 있는 E2E\"를 만들고, 그게 \"믿을 수 있는 게이트\"가 되어 \"믿을 수 있는 배포\"를 뒷받침한다. 반대로 하나가 무너지면(취약한 선택자, 깜빡임, 과다한 E2E) 연쇄로 신뢰가 무너진다. 그래서 E2E 를 \"전체가 도는지 확인하는 최종 안전망\"으로 제대로 쓰려면, qa 갈래의 원칙들(피라미드, 깜빡임 제거, 좋은 게이트, 견고한 선택자)을 함께 지켜야 한다. 품질은 개별 기법이 아니라 정합된 체계다."
         },
         {
           "type": "try",
-          "text": "네 E2E 의 안정성을 qa-flaky 원칙으로 점검하라 — sleep 을 자동 재시도 assertion 으로, 공유 상태를 격리로, 외부 API 를 가짜로, 시각·랜덤을 고정으로. 각 E2E 를 여러 번 돌려 재현율(qa-flaky 3장)을 재서 깜빡이면 고치거나 제거하라. 「소수를 확실히 안정적으로」를 지켜라."
+          "text": "네 E2E 의 안정성을 qa-flaky 원칙으로 점검하라. sleep 을 자동 재시도 assertion 으로, 공유 상태를 격리로, 외부 API 를 가짜로, 시각, 랜덤을 고정으로. 각 E2E 를 여러 번 돌려 재현율(qa-flaky 3장)을 재서 깜빡이면 고치거나 제거하라. \"소수를 확실히 안정적으로\"를 지켜라."
         }
       ],
       "quiz": [
@@ -421,7 +421,7 @@
           "q": "E2E 가 가장 깜빡이기 쉬운 이유는?",
           "choices": [
             "느려서",
-            "전체 흐름을 다뤄 비결정성 원천(타이밍·네트워크·순서)이 많음",
+            "전체 흐름을 다뤄 비결정성 원천(타이밍, 네트워크, 순서)이 많음",
             "짧아서",
             "무관"
           ],
@@ -432,7 +432,7 @@
           "q": "E2E 안정화 방법이 아닌 것은?",
           "choices": [
             "조건 대기(자동 재시도)",
-            "격리·가짜 외부·시각 고정",
+            "격리, 가짜 외부, 시각 고정",
             "고정 sleep 늘리기",
             "재현율 재기"
           ],
@@ -459,12 +459,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "두 가지 실전 도구. **시각 회귀**: 기준 이미지를 저장 → 다음 실행과 **픽셀 비교** → 차이가 크면 빨강. 「의도치 않은 시각 변화」(레이아웃 깨짐·요소 사라짐)를 잡는다. **주의**: 폰트·OS·GPU 가 다르면 미세하게 달라지니 → **CI 와 같은 환경**(도커 이미지 고정)에서 기준을 만들고, 미세 차이 허용치(threshold)를 둔다. **실패 진단**: E2E 는 로그만으론 원인을 못 잡는다 — **스크린샷·비디오·추적(trace)**을 **실패 시에만** 저장하면 디버깅 시간이 몇 배 준다(실패 순간의 화면·조작 과정·네트워크를 그대로 봄). 「왜 깨졌나」를 로그로 상상하는 대신 실패를 **재생**한다."
+          "text": "두 가지 실전 도구. **시각 회귀**: 기준 이미지를 저장 → 다음 실행과 **픽셀 비교** → 차이가 크면 빨강. \"의도치 않은 시각 변화\"(레이아웃 깨짐, 요소 사라짐)를 잡는다. **주의**: 폰트, OS, GPU 가 다르면 미세하게 달라지니 → **CI 와 같은 환경**(도커 이미지 고정)에서 기준을 만들고, 미세 차이 허용치(threshold)를 둔다. **실패 진단**: E2E 는 로그만으론 원인을 못 잡는다. **스크린샷, 비디오, 추적(trace)**을 **실패 시에만** 저장하면 디버깅 시간이 몇 배 준다(실패 순간의 화면, 조작 과정, 네트워크를 그대로 봄). \"왜 깨졌나\"를 로그로 상상하는 대신 실패를 **재생**한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "시각 회귀 — 픽셀 비교",
+          "label": "시각 회귀. 픽셀 비교",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const diff = {{diff}};\n  const seed = 7; let s = seed;\n  const rand = () => { s = (s*1103515245+12345) & 0x7fffffff; return s/0x7fffffff; };\n  let changed = 0; let grid = '';\n  for (let i = 0; i < 50; i++) {\n    const isDiff = rand() < diff/100;\n    if (isDiff) changed++;\n    grid += '<div class=\\\"px ' + (isDiff?'diff':'same') + '\\\"></div>';\n  }\n  const pct = (changed/50*100).toFixed(0);\n  const threshold = 5;\n  const fail = pct > threshold;\n  render('시각 회귀 — 기준과 픽셀 비교',\n    '  다른 픽셀: ' + pct + '% (허용치 ' + threshold + '%)\\n\\n' +\n    (fail\n      ? '  <span class=\\\"no\\\">차이 ' + pct + '% > 허용치 → 빨강(의도치 않은 시각 변화 의심).</span>'\n      : '  <span class=\\\"ok\\\">차이 ' + pct + '% ≤ 허용치 → 통과(폰트·GPU 미세 차이 흡수).</span>'),\n    '기준 이미지와 픽셀 비교 → 차이가 허용치 넘으면 빨강. 환경 고정 필수.',\n    '<div class=\\\"pixgrid\\\">' + grid + '</div>');\n</script>",
           "controls": [
@@ -487,15 +487,15 @@
         },
         {
           "type": "note",
-          "text": "**시각 회귀는 기준 이미지와 픽셀 비교로 의도치 않은 시각 변화를 잡되 환경을 고정해야 하고, 실패 진단은 스크린샷·비디오·추적을 실패 시에만 저장해 디버깅을 몇 배 빠르게 한다.** **시각 회귀(visual regression)**: 화면의 **기준 이미지**(baseline)를 저장하고, 다음 실행의 스크린샷과 **픽셀 단위로 비교**해 차이가 크면 빨강. 이건 코드 로직이 아니라 **보이는 결과**를 검증한다 — 레이아웃 깨짐, 요소가 사라짐·겹침, 색·간격 변화, CSS 회귀 같은 「기능은 되는데 보기에 망가진」 것을 잡는다(단위·기능 테스트가 못 보는 영역). **핵심 주의**: 폰트 렌더링·OS·GPU·브라우저 버전이 다르면 **같은 화면도 픽셀이 미세하게 달라진다** — 그래서 ⓐ **CI 와 같은 환경**(고정된 도커 이미지·같은 브라우저 버전)에서 기준을 만들고 비교해야 하고(내 맥에서 만든 기준을 리눅스 CI 와 비교하면 폰트 차이로 다 빨강), ⓑ **허용치(threshold)**를 둬 미세 차이(안티에일리어싱 등)를 흡수한다(`maxDiffPixelRatio`). 환경 고정과 허용치 없이 시각 회귀를 켜면 깜빡임 지옥이 된다(환경 차이로 늘 빨강). 그래서 시각 회귀는 강력하지만 환경 통제가 필수다. **실패 진단**: E2E 는 여러 단계·비동기·브라우저 상태가 얽혀 **로그만으론 원인을 못 잡는다**(「어디서 왜 멈췄나」가 텍스트로 안 보임). 그래서 **스크린샷**(실패 순간 화면)·**비디오**(전체 조작 과정)·**추적(trace)**(각 단계의 DOM·네트워크·콘솔·타이밍을 타임라인으로 재생)을 저장한다 — 단 **실패 시에만**(`only-on-failure`·`retain-on-failure`), 성공까지 다 저장하면 용량·시간 낭비. 이걸 켜 두면 실패를 「로그로 상상」하는 대신 **그대로 재생**해 본다(실패 순간의 화면을 보고, 조작을 되짚고, 어느 네트워크 요청이 실패했는지 봄) — 디버깅 시간이 몇 배 준다(황금의 정신 — 재현·계측). Playwright 의 trace viewer 가 특히 강력하다(각 단계를 스냅샷으로 되감기). 이 진단 도구가 E2E 의 「느리고 원인 찾기 어렵다」는 약점을 크게 보완한다 — 실패를 재생 가능하게 만들어."
+          "text": "**시각 회귀는 기준 이미지와 픽셀 비교로 의도치 않은 시각 변화를 잡되 환경을 고정해야 하고, 실패 진단은 스크린샷, 비디오, 추적을 실패 시에만 저장해 디버깅을 몇 배 빠르게 한다.** **시각 회귀(visual regression)**: 화면의 **기준 이미지**(baseline)를 저장하고, 다음 실행의 스크린샷과 **픽셀 단위로 비교**해 차이가 크면 빨강. 이건 코드 로직이 아니라 **보이는 결과**를 검증한다. 레이아웃 깨짐, 요소가 사라짐, 겹침, 색, 간격 변화, CSS 회귀 같은 \"기능은 되는데 보기에 망가진\" 것을 잡는다(단위, 기능 테스트가 못 보는 영역). **핵심 주의**: 폰트 렌더링, OS, GPU, 브라우저 버전이 다르면 **같은 화면도 픽셀이 미세하게 달라진다**. 그래서 ⓐ **CI 와 같은 환경**(고정된 도커 이미지, 같은 브라우저 버전)에서 기준을 만들고 비교해야 하고(내 맥에서 만든 기준을 리눅스 CI 와 비교하면 폰트 차이로 다 빨강), ⓑ **허용치(threshold)**를 둬 미세 차이(안티에일리어싱 등)를 흡수한다(`maxDiffPixelRatio`). 환경 고정과 허용치 없이 시각 회귀를 켜면 깜빡임 지옥이 된다(환경 차이로 늘 빨강). 그래서 시각 회귀는 강력하지만 환경 통제가 필수다. **실패 진단**: E2E 는 여러 단계, 비동기, 브라우저 상태가 얽혀 **로그만으론 원인을 못 잡는다**(\"어디서 왜 멈췄나\"가 텍스트로 안 보임). 그래서 **스크린샷**(실패 순간 화면), **비디오**(전체 조작 과정), **추적(trace)**(각 단계의 DOM, 네트워크, 콘솔, 타이밍을 타임라인으로 재생)을 저장한다. 단 **실패 시에만**(`only-on-failure`, `retain-on-failure`), 성공까지 다 저장하면 용량, 시간 낭비. 이걸 켜 두면 실패를 \"로그로 상상\"하는 대신 **그대로 재생**해 본다(실패 순간의 화면을 보고, 조작을 되짚고, 어느 네트워크 요청이 실패했는지 봄). 디버깅 시간이 몇 배 준다(황금의 정신. 재현, 계측). Playwright 의 trace viewer 가 특히 강력하다(각 단계를 스냅샷으로 되감기). 이 진단 도구가 E2E 의 \"느리고 원인 찾기 어렵다\"는 약점을 크게 보완한다. 실패를 재생 가능하게 만들어."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질)의 꼭대기 층 — 「전체가 조립돼 진짜 도는가」를 확인한다. 「부분의 합 ≠ 전체」(1장)는 통합 검증의 근본, 스모크 하나(2장)는 「불완전해도 지금」(product-mvp), 견고한 선택자(3장)는 「구현이 아니라 동작을 테스트」(사용자 관점·접근성 a11y), 피라미드(4장)는 적재적소, 안정성(5장)은 qa-flaky, 게이트 연결은 qa-gate, 실패 진단(6장)은 황금의 정신(재현·계측)과 통한다. **「단위가 다 초록이어도 앱은 안 뜰 수 있다 — 최소 스모크 하나로 전체를 확인하고, 견고한 선택자로 안정적으로, 핵심 흐름 소수만, 실패는 재생 가능하게」**가 핵심이다. E2E 는 「진짜로 되는가」의 최종 자동 확인이다."
+          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질)의 꼭대기 층. \"전체가 조립돼 진짜 도는가\"를 확인한다. \"부분의 합 ≠ 전체\"(1장)는 통합 검증의 근본, 스모크 하나(2장)는 \"불완전해도 지금\"(product-mvp), 견고한 선택자(3장)는 \"구현이 아니라 동작을 테스트\"(사용자 관점, 접근성 a11y), 피라미드(4장)는 적재적소, 안정성(5장)은 qa-flaky, 게이트 연결은 qa-gate, 실패 진단(6장)은 황금의 정신(재현, 계측)과 통한다. **\"단위가 다 초록이어도 앱은 안 뜰 수 있다. 최소 스모크 하나로 전체를 확인하고, 견고한 선택자로 안정적으로, 핵심 흐름 소수만, 실패는 재생 가능하게\"**가 핵심이다. E2E 는 \"진짜로 되는가\"의 최종 자동 확인이다."
         },
         {
           "type": "try",
-          "text": "네 E2E 도구에 실패 시 스크린샷·비디오·추적(trace) 저장을 켜고(`only-on-failure`), 일부러 테스트를 실패시켜 추적을 재생해 보라 — 로그보다 얼마나 빨리 원인이 보이는지. 핵심 화면에 시각 회귀를 넣되, CI 와 같은 환경에서 기준을 만들고 허용치를 둬 환경 차이 깜빡임을 피하라."
+          "text": "네 E2E 도구에 실패 시 스크린샷, 비디오, 추적(trace) 저장을 켜고(`only-on-failure`), 일부러 테스트를 실패시켜 추적을 재생해 보라. 로그보다 얼마나 빨리 원인이 보이는지. 핵심 화면에 시각 회귀를 넣되, CI 와 같은 환경에서 기준을 만들고 허용치를 둬 환경 차이 깜빡임을 피하라."
         }
       ],
       "quiz": [
@@ -503,7 +503,7 @@
           "q": "시각 회귀에서 환경을 고정해야 하는 이유는?",
           "choices": [
             "빠르려고",
-            "폰트·OS·GPU 가 다르면 같은 화면도 픽셀이 달라짐(깜빡임)",
+            "폰트, OS, GPU 가 다르면 같은 화면도 픽셀이 달라짐(깜빡임)",
             "색",
             "없음"
           ],
@@ -514,7 +514,7 @@
           "q": "E2E 실패 진단에 저장하는 것은?",
           "choices": [
             "로그만",
-            "스크린샷·비디오·추적(trace) — 실패 시에만",
+            "스크린샷, 비디오, 추적(trace). 실패 시에만",
             "없음",
             "커버리지"
           ],
@@ -525,28 +525,28 @@
           "q": "추적(trace)이 강력한 이유는?",
           "choices": [
             "빠름",
-            "각 단계의 화면·DOM·네트워크를 타임라인으로 재생(상상 대신)",
+            "각 단계의 화면, DOM, 네트워크를 타임라인으로 재생(상상 대신)",
             "짧음",
             "색"
           ],
           "answer": 1,
-          "why": "재현·계측(황금의 정신)."
+          "why": "재현, 계측(황금의 정신)."
         }
       ]
     },
     {
       "id": "7",
-      "title": "어디서 돌릴까 — 로컬·CI",
+      "title": "어디서 돌릴까. 로컬, CI",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "E2E 를 **어디서** 돌리느냐도 전략이다: **로컬**(개발 중 빠른 확인 — 관련 것만)·**CI/PR**(전체 E2E 강제 — 우회 불가, 병렬로 빠르게)·**배포 후 스모크**(프로덕션에 진짜 떴나 — 최종 안전망). E2E 는 느리니 **병렬 실행**(여러 브라우저·워커로 나눔)으로 시간을 줄이고, **핵심 스모크만 PR 게이트**로(전체는 밤에 nightly)·나머지는 비차단으로 둬 PR 속도를 지킨다. 그리고 **여러 브라우저·기기**(크롬·사파리·모바일)를 덮을지는 위험 대비 비용으로 정한다(주 브라우저부터). 「빠른 로컬 확인 + 강제된 CI + 배포 후 최종」의 배치가 E2E 를 실용적으로 만든다."
+          "text": "E2E 를 **어디서** 돌리느냐도 전략이다: **로컬**(개발 중 빠른 확인. 관련 것만), **CI/PR**(전체 E2E 강제. 우회 불가, 병렬로 빠르게), **배포 후 스모크**(프로덕션에 진짜 떴나. 최종 안전망). E2E 는 느리니 **병렬 실행**(여러 브라우저, 워커로 나눔)으로 시간을 줄이고, **핵심 스모크만 PR 게이트**로(전체는 밤에 nightly), 나머지는 비차단으로 둬 PR 속도를 지킨다. 그리고 **여러 브라우저, 기기**(크롬, 사파리, 모바일)를 덮을지는 위험 대비 비용으로 정한다(주 브라우저부터). \"빠른 로컬 확인 + 강제된 CI + 배포 후 최종\"의 배치가 E2E 를 실용적으로 만든다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "E2E 실행 위치 — 로컬·CI·배포 후",
+          "label": "E2E 실행 위치. 로컬, CI, 배포 후",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const where = '{{where}}';\n  const rows = {\n    local:['로컬(개발 중)', '관련 E2E 만 빠르게', '즉시 확인 — 만들며 검증', 'headed 로 눈으로 보며 디버그'],\n    ci:['CI/PR', '전체 E2E 강제(우회 불가)', '병렬로 빠르게 · 핵심은 게이트', 'PR 막기 전 전체 확인'],\n    nightly:['nightly(밤)', '느린·광범위 E2E 전체', '여러 브라우저·기기 조합', 'PR 안 막고 광범위 커버'],\n    smoke:['배포 후 스모크', '프로덕션에 진짜 떴나', '최종 안전망 · 실패 시 롤백', '실제 환경 최종 확인'],\n  }[where];\n  render('위치: ' + rows[0],\n    '  무엇: ' + rows[1] + '\\n  역할: ' + rows[2] + '\\n  특징: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">빠른 로컬 + 강제된 CI + 배포 후 최종 — 층층이.</span>',\n    '로컬(빠름)·CI(강제)·nightly(광범위)·배포 후(최종) — 층층이 배치.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], 'good'));\n</script>",
           "controls": [
@@ -578,15 +578,15 @@
         },
         {
           "type": "note",
-          "text": "**E2E 를 어디서 돌리느냐도 전략이다 — 로컬(빠른 확인)·CI/PR(강제·병렬)·nightly(광범위)·배포 후 스모크(최종 안전망)로 층층이 배치한다.** E2E 는 느리니 「어디서·무엇을」 돌릴지 나눠 **PR 속도와 커버리지를 둘 다** 얻는다: ① **로컬**(개발 중) — 지금 만지는 기능의 관련 E2E 만 빠르게 돌려 즉시 확인(전체 말고). `headed` 모드(브라우저를 눈으로 보며)로 디버그. 만들며 검증(빠른 피드백). ② **CI/PR** — 전체(또는 핵심) E2E 를 **강제**로 돌린다(서버에서 도니 우회 불가, qa-gate 3장). **병렬 실행**(여러 워커·브라우저로 분산)으로 느린 E2E 의 총 시간을 줄인다. **핵심 스모크만 PR 게이트**(병합 차단)로 하고 나머지는 비차단으로 둬 PR 속도를 지킨다(전부 차단이면 느려서 답답). ③ **nightly**(밤 정기 실행) — 느리고 광범위한 E2E(여러 브라우저·기기·전체 흐름)를 밤에 전부 돌린다. PR 을 안 막으면서 넓은 커버리지 확보(아침에 결과 확인). ④ **배포 후 스모크** — 프로덕션(또는 스테이징)에 실제로 배포된 뒤 「진짜 떴나」를 확인하는 최종 안전망(qa-gate 3장의 배포 후 층). 실패하면 롤백. **브라우저·기기 커버리지**: 크롬·사파리·파이어폭스·모바일을 다 덮을지는 **위험 대비 비용**으로 — 사용자 대부분이 쓰는 주 브라우저부터, 크로스 브라우저 이슈가 잦으면 확대. 전부 매 PR 에 돌리면 느리니, 주 브라우저는 PR·나머지는 nightly 로. **핵심**: 「빠른 로컬(개발 피드백) + 강제된 CI(병합 전 확인) + 광범위 nightly(넓은 커버) + 배포 후 스모크(최종)」의 층층이 배치가, E2E 의 느림을 관리하며 「빠른 피드백」과 「포괄적 검증」을 둘 다 얻는 방법이다(qa-gate 3장의 게이트 사다리와 같은 발상 — 빠른 건 앞, 느린 건 뒤). E2E 를 「전부 매번」 돌리려는 유혹을 이기고, 목적별로 나눠 배치하는 게 실용적이다."
+          "text": "**E2E 를 어디서 돌리느냐도 전략이다. 로컬(빠른 확인), CI/PR(강제, 병렬), nightly(광범위), 배포 후 스모크(최종 안전망)로 층층이 배치한다.** E2E 는 느리니 \"어디서, 무엇을\" 돌릴지 나눠 **PR 속도와 커버리지를 둘 다** 얻는다: ① **로컬**(개발 중). 지금 만지는 기능의 관련 E2E 만 빠르게 돌려 즉시 확인(전체 말고). `headed` 모드(브라우저를 눈으로 보며)로 디버그. 만들며 검증(빠른 피드백). ② **CI/PR**. 전체(또는 핵심) E2E 를 **강제**로 돌린다(서버에서 도니 우회 불가, qa-gate 3장). **병렬 실행**(여러 워커, 브라우저로 분산)으로 느린 E2E 의 총 시간을 줄인다. **핵심 스모크만 PR 게이트**(병합 차단)로 하고 나머지는 비차단으로 둬 PR 속도를 지킨다(전부 차단이면 느려서 답답). ③ **nightly**(밤 정기 실행). 느리고 광범위한 E2E(여러 브라우저, 기기, 전체 흐름)를 밤에 전부 돌린다. PR 을 안 막으면서 넓은 커버리지 확보(아침에 결과 확인). ④ **배포 후 스모크**. 프로덕션(또는 스테이징)에 실제로 배포된 뒤 \"진짜 떴나\"를 확인하는 최종 안전망(qa-gate 3장의 배포 후 층). 실패하면 롤백. **브라우저, 기기 커버리지**: 크롬, 사파리, 파이어폭스, 모바일을 다 덮을지는 **위험 대비 비용**으로. 사용자 대부분이 쓰는 주 브라우저부터, 크로스 브라우저 이슈가 잦으면 확대. 전부 매 PR 에 돌리면 느리니, 주 브라우저는 PR, 나머지는 nightly 로. **핵심**: \"빠른 로컬(개발 피드백) + 강제된 CI(병합 전 확인) + 광범위 nightly(넓은 커버) + 배포 후 스모크(최종)\"의 층층이 배치가, E2E 의 느림을 관리하며 \"빠른 피드백\"과 \"포괄적 검증\"을 둘 다 얻는 방법이다(qa-gate 3장의 게이트 사다리와 같은 발상. 빠른 건 앞, 느린 건 뒤). E2E 를 \"전부 매번\" 돌리려는 유혹을 이기고, 목적별로 나눠 배치하는 게 실용적이다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질)의 꼭대기 — 「전체가 진짜 도는가」의 최종 확인. 「부분의 합 ≠ 전체」(1장)·통합 검증, 스모크 하나(2장)·점진적 가치, 견고한 선택자(3장)·「동작을 테스트」·접근성(a11y), 피라미드(4장)·적재적소, 안정성(5장)·qa-flaky, 시각 회귀·실패 진단(6장)·재현(황금의 정신), 실행 배치(7장)·게이트 사다리(qa-gate)와 통한다. **「단위가 다 초록이어도 앱은 안 뜰 수 있다 — 실제로 눌러 봐야 안다(그게 사람이 아니어도). 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로, 실패는 재생 가능하게, 층층이 배치」**가 qa-e2e 의 전부다. E2E 는 「진짜로 되는가」의 자동화된 최종 답이자, 사용자가 겪을 현실을 검증하는 안전망이다."
+          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질)의 꼭대기. \"전체가 진짜 도는가\"의 최종 확인. \"부분의 합 ≠ 전체\"(1장), 통합 검증, 스모크 하나(2장), 점진적 가치, 견고한 선택자(3장), \"동작을 테스트\", 접근성(a11y), 피라미드(4장), 적재적소, 안정성(5장), qa-flaky, 시각 회귀, 실패 진단(6장), 재현(황금의 정신), 실행 배치(7장), 게이트 사다리(qa-gate)와 통한다. **\"단위가 다 초록이어도 앱은 안 뜰 수 있다. 실제로 눌러 봐야 안다(그게 사람이 아니어도). 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로, 실패는 재생 가능하게, 층층이 배치\"**가 qa-e2e 의 전부다. E2E 는 \"진짜로 되는가\"의 자동화된 최종 답이자, 사용자가 겪을 현실을 검증하는 안전망이다."
         },
         {
           "type": "try",
-          "text": "네 E2E 실행을 층층이 배치하라 — 로컬(관련 것만 빠르게)·CI(핵심 스모크만 게이트, 나머지 비차단)·nightly(광범위)·배포 후 스모크(최종). 병렬 실행으로 CI 시간을 줄여라. 브라우저 커버리지는 주 브라우저부터(위험 대비 비용). 「전부 매번」 대신 목적별로 나눠 PR 속도와 커버리지를 둘 다 잡아라."
+          "text": "네 E2E 실행을 층층이 배치하라. 로컬(관련 것만 빠르게), CI(핵심 스모크만 게이트, 나머지 비차단), nightly(광범위), 배포 후 스모크(최종). 병렬 실행으로 CI 시간을 줄여라. 브라우저 커버리지는 주 브라우저부터(위험 대비 비용). \"전부 매번\" 대신 목적별로 나눠 PR 속도와 커버리지를 둘 다 잡아라."
         }
       ],
       "quiz": [
@@ -594,7 +594,7 @@
           "q": "E2E 실행 배치의 원리는?",
           "choices": [
             "전부 매번",
-            "층층이 — 로컬(빠름)·CI(강제)·nightly(광범위)·배포 후(최종)",
+            "층층이. 로컬(빠름), CI(강제), nightly(광범위), 배포 후(최종)",
             "로컬만",
             "없음"
           ],
@@ -605,7 +605,7 @@
           "q": "느린 E2E 의 CI 시간을 줄이는 법은?",
           "choices": [
             "삭제",
-            "병렬 실행 + 핵심만 PR 게이트(나머지 비차단·nightly)",
+            "병렬 실행 + 핵심만 PR 게이트(나머지 비차단, nightly)",
             "sleep",
             "무시"
           ],
@@ -616,7 +616,7 @@
           "q": "브라우저 커버리지는 어떻게 정하나?",
           "choices": [
             "전부 매번",
-            "위험 대비 비용 — 주 브라우저부터, 필요시 확대",
+            "위험 대비 비용. 주 브라우저부터, 필요시 확대",
             "하나만 영원히",
             "무작위"
           ],
@@ -627,17 +627,17 @@
     },
     {
       "id": "8",
-      "title": "점검표 — E2E 테스트",
+      "title": "점검표. E2E 테스트",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "E2E 를 세우고 유지할 때 이 목록을 확인하라. 핵심은 「단위가 다 초록이어도 앱은 안 뜰 수 있다 — 스모크 하나부터, 견고하게, 소수만, 안정적으로」다."
+          "text": "E2E 를 세우고 유지할 때 이 목록을 확인하라. 핵심은 \"단위가 다 초록이어도 앱은 안 뜰 수 있다. 스모크 하나부터, 견고하게, 소수만, 안정적으로\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sel { margin:8px 0; }\n  .sel .row { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n              background:#111c33; font:11.5px ui-monospace, monospace; }\n  .sel .row .name { width:96px; color:#7dd3fc; } .sel .row .code { color:#cbd5e1; flex:1; }\n  .sel .row .mark { width:52px; text-align:right; font-weight:700; }\n  .sel .row .mark.ok { color:#4ade80; } .sel .row .mark.no { color:#f87171; }\n  .pyr { margin:8px 0; }\n  .pyr .layer { margin:2px auto; text-align:center; border-radius:4px; padding:4px 0; font:11px ui-monospace; color:#0b1220; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pixgrid { display:grid; grid-template-columns:repeat(10,12px); gap:1px; margin:8px 0; }\n  .pixgrid .px { width:12px; height:12px; border-radius:1px; } .px.same { background:#1e293b; } .px.diff { background:#dc2626; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '단위 다 초록이어도 앱 안 뜰 수 있다(누가 진짜 눌러 봐야)',\n    '최소 한 개(스모크): 첫 화면 뜸 + 콘솔 오류 없음',\n    '선택자: 역할+이름 > 라벨 > testid > CSS(사용자가 보는 것)',\n    '돈·데이터 핵심 흐름 몇 개만(피라미드, E2E 20개 넘으면 위험)',\n    '안정성: 조건 대기·격리·가짜 외부(qa-flaky 원칙)',\n    '시각 회귀는 환경 고정+허용치, 로그로 안 되게',\n    '실패 시 스크린샷·비디오·추적으로 재생 가능하게',\n    '로컬·CI·nightly·배포 후로 층층이 배치',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 전체가 진짜 도는지 안정적으로 확인한다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '단위 초록이어도 앱 안 뜰 수 있다 — 스모크부터·견고하게·소수만·안정적으로.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -654,15 +654,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 단위가 다 초록이어도 앱은 안 뜰 수 있다 — 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로.** 단위는 부품을·E2E 는 조립된 전체가 진짜 도는지 확인하고(1장), 최소 스모크 하나(첫 화면+콘솔 오류)가 8할 가치를 주고(2장), 선택자는 사용자가 보는 것(역할·라벨)으로 견고하게(3장), 돈·데이터 핵심 흐름 몇 개만 E2E 로 나머지는 아래 층으로(피라미드, 4장), qa-flaky 원칙으로 안정적으로(5장), 시각 회귀는 환경 고정+허용치·실패는 스크린샷·비디오·추적으로 재생(6장), 로컬·CI·nightly·배포 후로 층층이 배치한다(7장). 「전체가 진짜 도는지 안정적으로 확인」이 핵심이다."
+          "text": "**한 줄 요약: 단위가 다 초록이어도 앱은 안 뜰 수 있다. 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로.** 단위는 부품을, E2E 는 조립된 전체가 진짜 도는지 확인하고(1장), 최소 스모크 하나(첫 화면+콘솔 오류)가 8할 가치를 주고(2장), 선택자는 사용자가 보는 것(역할, 라벨)으로 견고하게(3장), 돈, 데이터 핵심 흐름 몇 개만 E2E 로 나머지는 아래 층으로(피라미드, 4장), qa-flaky 원칙으로 안정적으로(5장), 시각 회귀는 환경 고정+허용치, 실패는 스크린샷, 비디오, 추적으로 재생(6장), 로컬, CI, nightly, 배포 후로 층층이 배치한다(7장). \"전체가 진짜 도는지 안정적으로 확인\"이 핵심이다."
         },
         {
           "type": "p",
-          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질·테스트)의 꼭대기 층으로 「전체가 조립돼 진짜 도는가」를 확인한다. 「부분의 합 ≠ 전체」는 통합 검증, 스모크 하나는 「불완전해도 지금」(product-mvp), 견고한 선택자는 「구현이 아니라 동작을 테스트」·접근성(a11y), 피라미드는 적재적소, 안정성은 qa-flaky, 게이트 연결은 qa-gate, 실패 진단은 황금의 정신(재현·계측)과 통한다. **「단위가 다 초록이어도 앱은 안 뜰 수 있다 — 실제로 눌러 봐야 안다. 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로, 실패는 재생 가능하게」**가 이 칸의 전부다. E2E 는 「진짜로 되는가」의 최종 자동 확인이자, 사용자가 겪을 현실을 검증하는 안전망 — qa 갈래(깜빡임·게이트·데이터·E2E)와 함께 「믿을 수 있는 품질 체계」를 이룬다."
+          "text": "**이 칸과 갈래.** E2E(qa-e2e)는 qa 갈래(품질, 테스트)의 꼭대기 층으로 \"전체가 조립돼 진짜 도는가\"를 확인한다. \"부분의 합 ≠ 전체\"는 통합 검증, 스모크 하나는 \"불완전해도 지금\"(product-mvp), 견고한 선택자는 \"구현이 아니라 동작을 테스트\", 접근성(a11y), 피라미드는 적재적소, 안정성은 qa-flaky, 게이트 연결은 qa-gate, 실패 진단은 황금의 정신(재현, 계측)과 통한다. **\"단위가 다 초록이어도 앱은 안 뜰 수 있다. 실제로 눌러 봐야 안다. 스모크 하나부터, 견고한 선택자로, 핵심 흐름 소수만, 안정적으로, 실패는 재생 가능하게\"**가 이 칸의 전부다. E2E 는 \"진짜로 되는가\"의 최종 자동 확인이자, 사용자가 겪을 현실을 검증하는 안전망. qa 갈래(깜빡임, 게이트, 데이터, E2E)와 함께 \"믿을 수 있는 품질 체계\"를 이룬다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 E2E 를 점검하라. 「스모크 하나(첫 화면+콘솔 오류)」와 「선택자를 역할·라벨로」 두 가지만 잡아도, 앱 죽음을 막고 리디자인에 강건해진다. 스모크 하나를 지금 넣어 배포 게이트로 걸고, 실패 시 추적 저장을 켜라 — 전체가 진짜 도는지 안정적으로 확인하는 최소 체계를 세워라."
+          "text": "이 8개로 네 E2E 를 점검하라. \"스모크 하나(첫 화면+콘솔 오류)\"와 \"선택자를 역할, 라벨로\" 두 가지만 잡아도, 앱 죽음을 막고 리디자인에 강건해진다. 스모크 하나를 지금 넣어 배포 게이트로 걸고, 실패 시 추적 저장을 켜라. 전체가 진짜 도는지 안정적으로 확인하는 최소 체계를 세워라."
         }
       ],
       "quiz": [
@@ -670,7 +670,7 @@
           "q": "E2E 장의 한 줄 요약은?",
           "choices": [
             "빠르게",
-            "단위 초록이어도 앱 안 뜰 수 있다 — 스모크부터·견고하게·소수만·안정적으로",
+            "단위 초록이어도 앱 안 뜰 수 있다. 스모크부터, 견고하게, 소수만, 안정적으로",
             "느리게",
             "무시"
           ],
@@ -680,9 +680,9 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "시각 회귀·병렬",
-            "스모크 하나(첫 화면+콘솔 오류) + 선택자를 역할·라벨로",
-            "성능·색",
+            "시각 회귀, 병렬",
+            "스모크 하나(첫 화면+콘솔 오류) + 선택자를 역할, 라벨로",
+            "성능, 색",
             "무시"
           ],
           "answer": 1,
@@ -692,7 +692,7 @@
           "q": "E2E 가 이어지는 주제는?",
           "choices": [
             "없음",
-            "qa-flaky(안정성)·qa-gate(게이트)·a11y(선택자)·통합 검증",
+            "qa-flaky(안정성), qa-gate(게이트), a11y(선택자), 통합 검증",
             "속도만",
             "색"
           ],

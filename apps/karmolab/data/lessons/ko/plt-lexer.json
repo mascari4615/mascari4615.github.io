@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**토크나이저(렉서)**는 **글자를 낱말로 묶는** 일이다 — `12+age` 를 `[12] [+] [age]` 로. 사람이 문장을 읽을 때 글자가 아니라 단어 단위로 보듯, 언어 처리도 문자 하나하나가 아니라 **의미 단위(토큰)**로 다룬다. 이 한 단계만으로 문자열 처리의 절반이 쉬워진다 — 파서(다음 단계)는 「글자」가 아니라 「토큰」을 다루니 훨씬 단순하다. 토크나이저는 언어 파이프라인(plt-why 6장)의 첫 단계이자, 문자열 처리에서 가장 자주 필요한 기술이다."
+          "text": "**토크나이저(렉서)**는 **글자를 낱말로 묶는** 일이다. `12+age` 를 `[12] [+] [age]` 로. 사람이 문장을 읽을 때 글자가 아니라 단어 단위로 보듯, 언어 처리도 문자 하나하나가 아니라 **의미 단위(토큰)**로 다룬다. 이 한 단계만으로 문자열 처리의 절반이 쉬워진다. 파서(다음 단계)는 \"글자\"가 아니라 \"토큰\"을 다루니 훨씬 단순하다. 토크나이저는 언어 파이프라인(plt-why 6장)의 첫 단계이자, 문자열 처리에서 가장 자주 필요한 기술이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "실제 토크나이저 — 글자를 토큰으로",
+          "label": "실제 토크나이저. 글자를 토큰으로",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const src = '{{src}}';\n  const t = lex(src).map(([ty,vl]) => [ty==='err'?'err':ty, vl]);\n  render('입력: ' + src,\n    '  글자를 의미 단위(토큰)로 묶는다:\\n\\n' +\n    '  ' + t.map(x=>'['+x[1]+']').join(' ') + '\\n\\n' +\n    '  <span class=\\\"ok\\\">num(숫자)·id(이름)·op(연산자)·eof(끝)로 분류.</span>',\n    '글자를 낱말로 — 파서는 글자가 아니라 토큰을 다룬다.',\n    tokens(t));\n</script>",
           "controls": [
@@ -41,15 +41,15 @@
         },
         {
           "type": "note",
-          "text": "**토크나이저는 글자를 의미 단위(토큰)로 묶어, 이후 단계를 「글자」가 아니라 「토큰」으로 다루게 한다.** `12+age` 를 문자 그대로 다루면 「1, 2, +, a, g, e」인데, 토크나이저가 이를 「숫자 12, 연산자 +, 이름 age」의 세 토큰으로 묶는다. 이 묶음 덕에 파서(plt-parser)는 「이 글자가 숫자의 일부인가 이름의 시작인가」를 매번 걱정하지 않고, 「숫자 다음에 연산자, 그다음 이름」처럼 **의미 단위로** 다룬다 — 사람이 문장을 단어로 읽듯. 각 토큰은 **타입**(num·id·op·eof)과 **값**(12·age·+)을 갖고(4장), **위치**도 담는다(5장 — 오류 메시지용). 토크나이저는 언어 만들기의 첫 단계지만, 그 자체로도 문자열 처리(로그 파싱·설정 파싱·간단한 계산기)에서 자주 쓰이는 실용 기술이다. 「글자를 낱말로 묶는」 이 단순한 변환이 이후 모든 것(파싱·해석·변환)을 쉽게 만든다."
+          "text": "**토크나이저는 글자를 의미 단위(토큰)로 묶어, 이후 단계를 \"글자\"가 아니라 \"토큰\"으로 다루게 한다.** `12+age` 를 문자 그대로 다루면 \"1, 2, +, a, g, e\"인데, 토크나이저가 이를 \"숫자 12, 연산자 +, 이름 age\"의 세 토큰으로 묶는다. 이 묶음 덕에 파서(plt-parser)는 \"이 글자가 숫자의 일부인가 이름의 시작인가\"를 매번 걱정하지 않고, \"숫자 다음에 연산자, 그다음 이름\"처럼 **의미 단위로** 다룬다. 사람이 문장을 단어로 읽듯. 각 토큰은 **타입**(num, id, op, eof)과 **값**(12, age, +)을 갖고(4장), **위치**도 담는다(5장. 오류 메시지용). 토크나이저는 언어 만들기의 첫 단계지만, 그 자체로도 문자열 처리(로그 파싱, 설정 파싱, 간단한 계산기)에서 자주 쓰이는 실용 기술이다. \"글자를 낱말로 묶는\" 이 단순한 변환이 이후 모든 것(파싱, 해석, 변환)을 쉽게 만든다."
         },
         {
           "type": "p",
-          "text": "**토크나이저는 「무엇이 하나의 낱말인가」를 정한다.** 언어마다 토큰의 규칙이 다르다: 숫자는 연속된 digit(`123`), 이름(식별자)은 글자로 시작해 글자·숫자·밑줄(`age`, `user_id`), 연산자는 정해진 기호(`+`, `>=`), 문자열은 따옴표로 감싼 것(`'hello'`). 토크나이저의 일은 원본을 왼쪽부터 훑으며 「지금 위치에서 어떤 종류의 토큰이 시작되나」를 보고, 그 토큰이 끝나는 지점까지 묶는 것이다 — 숫자를 만나면 숫자가 끝날 때까지, 글자를 만나면 이름이 끝날 때까지. 공백은 토큰 사이를 나누지만 대개 **버린다**(공백 자체는 의미 없음, 단 파이썬처럼 들여쓰기가 의미 있는 언어는 예외). 그래서 토크나이저를 설계할 때 「이 언어의 낱말 종류는 무엇이고, 각각 어떤 글자로 시작해 어디서 끝나나」를 정하면 된다. 이게 다음 장의 30줄 토크나이저(3장)로 구현된다 — 놀랄 만큼 단순하다."
+          "text": "**토크나이저는 \"무엇이 하나의 낱말인가\"를 정한다.** 언어마다 토큰의 규칙이 다르다: 숫자는 연속된 digit(`123`), 이름(식별자)은 글자로 시작해 글자, 숫자, 밑줄(`age`, `user_id`), 연산자는 정해진 기호(`+`, `>=`), 문자열은 따옴표로 감싼 것(`'hello'`). 토크나이저의 일은 원본을 왼쪽부터 훑으며 \"지금 위치에서 어떤 종류의 토큰이 시작되나\"를 보고, 그 토큰이 끝나는 지점까지 묶는 것이다. 숫자를 만나면 숫자가 끝날 때까지, 글자를 만나면 이름이 끝날 때까지. 공백은 토큰 사이를 나누지만 대개 **버린다**(공백 자체는 의미 없음, 단 파이썬처럼 들여쓰기가 의미 있는 언어는 예외). 그래서 토크나이저를 설계할 때 \"이 언어의 낱말 종류는 무엇이고, 각각 어떤 글자로 시작해 어디서 끝나나\"를 정하면 된다. 이게 다음 장의 30줄 토크나이저(3장)로 구현된다. 놀랄 만큼 단순하다."
         },
         {
           "type": "try",
-          "text": "간단한 수식(`1 + 2 * age`)을 손으로 토큰화하라 — 글자를 훑으며 숫자·이름·연산자로 묶고 공백은 버려라. 각 토큰이 어디서 시작해 어디서 끝나는지 표시해, 토크나이저가 하는 일을 손으로 밟아라."
+          "text": "간단한 수식(`1 + 2 * age`)을 손으로 토큰화하라. 글자를 훑으며 숫자, 이름, 연산자로 묶고 공백은 버려라. 각 토큰이 어디서 시작해 어디서 끝나는지 표시해, 토크나이저가 하는 일을 손으로 밟아라."
         }
       ],
       "quiz": [
@@ -95,7 +95,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「토큰으로 쪼개는 것」은 정규식으로도 되지만, **정규식은 어느 지점에서 무너진다**. 정규식으로 되는 것: 전화번호 형식 확인, 단순 치환, **평면적인 토큰 분리**. 정규식으로 **안 되는 것**: **괄호 짝 맞추기·우선순위·중첩 구조** — `(1 + (2 * 3))` 처럼 중첩이 있으면 정규식은 「짝이 맞나」를 셀 수 없다(정규 언어의 한계). 그래서 **토큰화는 정규식(또는 단순 루프)으로, 구조(중첩·우선순위)는 파서(트리)로** 나눈다. 「정규식으로 파싱하려다 무너지는 지점」을 넘는 게 렉서+파서다."
+          "text": "\"토큰으로 쪼개는 것\"은 정규식으로도 되지만, **정규식은 어느 지점에서 무너진다**. 정규식으로 되는 것: 전화번호 형식 확인, 단순 치환, **평면적인 토큰 분리**. 정규식으로 **안 되는 것**: **괄호 짝 맞추기, 우선순위, 중첩 구조**. `(1 + (2 * 3))` 처럼 중첩이 있으면 정규식은 \"짝이 맞나\"를 셀 수 없다(정규 언어의 한계). 그래서 **토큰화는 정규식(또는 단순 루프)으로, 구조(중첩, 우선순위)는 파서(트리)로** 나눈다. \"정규식으로 파싱하려다 무너지는 지점\"을 넘는 게 렉서+파서다."
         },
         {
           "type": "demo",
@@ -124,11 +124,11 @@
         },
         {
           "type": "note",
-          "text": "**정규식은 「평면적 패턴」에 강하나 「중첩·짝 맞추기·우선순위」에서 무너진다 — 그 지점이 렉서+파서로 넘어갈 신호다.** 정규식(정규 언어)은 「고정된 패턴 매칭」(전화번호·이메일·토큰 분리)엔 강하지만, **중첩된 구조를 셀 수 없다** — `(1 + (2 * 3))` 에서 「열린 괄호와 닫힌 괄호의 수가 같은가」·「어느 괄호가 어느 괄호와 짝인가」를 정규식은 판단 못 한다(정규 언어는 「개수를 세는」 능력이 없다는 게 계산 이론의 결과다). 우선순위(`2 + 3 * 4` 에서 `*`가 먼저)도 정규식으론 표현이 어렵다. 그래서 「정규식으로 파싱하다 무너지는」 흔한 경험(HTML·중첩 JSON·수식을 정규식으로 파싱하려다 실패)이 나온다. 해결은 **역할 분리**: **토큰화**(글자→토큰, 평면적이라 정규식·단순 루프로 OK)는 렉서가, **구조**(중첩·우선순위, 셈이 필요)는 파서가 트리로 다룬다(plt-parser). 「이 문제에 중첩·짝·우선순위가 있나?」를 물어, 있으면 정규식을 넘어 렉서+파서로 간다. 이게 plt-why 8장의 「정규식으로 버티다 무너지는 지점」이다."
+          "text": "**정규식은 \"평면적 패턴\"에 강하나 \"중첩, 짝 맞추기, 우선순위\"에서 무너진다. 그 지점이 렉서+파서로 넘어갈 신호다.** 정규식(정규 언어)은 \"고정된 패턴 매칭\"(전화번호, 이메일, 토큰 분리)엔 강하지만, **중첩된 구조를 셀 수 없다**. `(1 + (2 * 3))` 에서 \"열린 괄호와 닫힌 괄호의 수가 같은가\", \"어느 괄호가 어느 괄호와 짝인가\"를 정규식은 판단 못 한다(정규 언어는 \"개수를 세는\" 능력이 없다는 게 계산 이론의 결과다). 우선순위(`2 + 3 * 4` 에서 `*`가 먼저)도 정규식으론 표현이 어렵다. 그래서 \"정규식으로 파싱하다 무너지는\" 흔한 경험(HTML, 중첩 JSON, 수식을 정규식으로 파싱하려다 실패)이 나온다. 해결은 **역할 분리**: **토큰화**(글자→토큰, 평면적이라 정규식, 단순 루프로 OK)는 렉서가, **구조**(중첩, 우선순위, 셈이 필요)는 파서가 트리로 다룬다(plt-parser). \"이 문제에 중첩, 짝, 우선순위가 있나?\"를 물어, 있으면 정규식을 넘어 렉서+파서로 간다. 이게 plt-why 8장의 \"정규식으로 버티다 무너지는 지점\"이다."
         },
         {
           "type": "p",
-          "text": "**「정규식으로 HTML/코드를 파싱하지 마라」는 유명한 조언의 근거가 이것이다.** HTML·XML·프로그래밍 언어·중첩 JSON 은 **재귀적 중첩 구조**(태그 안에 태그, 괄호 안에 괄호)라 정규 언어가 아니다(문맥 자유 언어 이상) — 정규식으로는 근본적으로 못 파싱한다. 단순한 경우엔 되는 것처럼 보여도 중첩이 깊어지면 무너진다(Stack Overflow 의 유명한 「정규식으로 HTML 파싱」 답변이 이를 풍자한다). 그래서 이런 구조는 **전용 파서**(HTML 파서·JSON 파서·언어 파서, plt-parser)를 쓴다 — 대부분 이미 만들어진 라이브러리가 있으니 직접 안 만들어도 된다(plt-why 4장의 「기존 것을 먼저」). 요점: **정규식은 강력하지만 만능이 아니고, 중첩 구조엔 부적합**하다. 「이걸 정규식으로 하려는데 자꾸 예외가 생긴다」면 대개 그 문제가 정규식의 표현력을 넘은 것이다 — 그때 렉서+파서(또는 기존 파서)로 넘어간다. 정규식의 한계를 아는 것이 「언제 파서가 필요한가」를 아는 것이다."
+          "text": "**\"정규식으로 HTML/코드를 파싱하지 마라\"는 유명한 조언의 근거가 이것이다.** HTML, XML, 프로그래밍 언어, 중첩 JSON 은 **재귀적 중첩 구조**(태그 안에 태그, 괄호 안에 괄호)라 정규 언어가 아니다(문맥 자유 언어 이상). 정규식으로는 근본적으로 못 파싱한다. 단순한 경우엔 되는 것처럼 보여도 중첩이 깊어지면 무너진다(Stack Overflow 의 유명한 \"정규식으로 HTML 파싱\" 답변이 이를 풍자한다). 그래서 이런 구조는 **전용 파서**(HTML 파서, JSON 파서, 언어 파서, plt-parser)를 쓴다. 대부분 이미 만들어진 라이브러리가 있으니 직접 안 만들어도 된다(plt-why 4장의 \"기존 것을 먼저\"). 요점: **정규식은 강력하지만 만능이 아니고, 중첩 구조엔 부적합**하다. \"이걸 정규식으로 하려는데 자꾸 예외가 생긴다\"면 대개 그 문제가 정규식의 표현력을 넘은 것이다. 그때 렉서+파서(또는 기존 파서)로 넘어간다. 정규식의 한계를 아는 것이 \"언제 파서가 필요한가\"를 아는 것이다."
         },
         {
           "type": "try",
@@ -140,7 +140,7 @@
           "q": "정규식으로 되는 것은?",
           "choices": [
             "괄호 짝 맞추기",
-            "평면적 패턴(형식 확인·토큰 분리·치환)",
+            "평면적 패턴(형식 확인, 토큰 분리, 치환)",
             "중첩 구조",
             "우선순위"
           ],
@@ -151,7 +151,7 @@
           "q": "정규식이 무너지는 지점은?",
           "choices": [
             "단순 매칭",
-            "중첩·짝 맞추기·우선순위(개수를 못 셈)",
+            "중첩, 짝 맞추기, 우선순위(개수를 못 셈)",
             "짧은 문자열",
             "치환"
           ],
@@ -162,7 +162,7 @@
           "q": "역할 분리의 원칙은?",
           "choices": [
             "다 정규식",
-            "토큰화는 렉서(평면), 구조는 파서(트리·중첩)",
+            "토큰화는 렉서(평면), 구조는 파서(트리, 중첩)",
             "다 파서",
             "무작위"
           ],
@@ -178,12 +178,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "토크나이저는 놀랄 만큼 **짧다** — 30줄이면 된다. 구조: **원본을 왼쪽부터 한 글자씩 훑으며**(포인터 `i`), ① **공백이면 건너뛰고** ② **숫자면** 숫자가 끝날 때까지 묶어 `num` 토큰 ③ **글자면** 이름이 끝날 때까지 묶어 `id` 토큰 ④ **연산자면** 그 기호로 `op` 토큰 ⑤ 모르는 글자면 오류. 각 경우가 「시작을 보고, 끝까지 묶고, 포인터를 그만큼 전진」한다. 정규식 없이 단순 루프로도 된다 — 그래서 토크나이저 만들기는 「문자열 처리의 기본기」다."
+          "text": "토크나이저는 놀랄 만큼 **짧다**. 30줄이면 된다. 구조: **원본을 왼쪽부터 한 글자씩 훑으며**(포인터 `i`), ① **공백이면 건너뛰고** ② **숫자면** 숫자가 끝날 때까지 묶어 `num` 토큰 ③ **글자면** 이름이 끝날 때까지 묶어 `id` 토큰 ④ **연산자면** 그 기호로 `op` 토큰 ⑤ 모르는 글자면 오류. 각 경우가 \"시작을 보고, 끝까지 묶고, 포인터를 그만큼 전진\"한다. 정규식 없이 단순 루프로도 된다. 그래서 토크나이저 만들기는 \"문자열 처리의 기본기\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "30줄 토크나이저 — 동작을 본다",
+          "label": "30줄 토크나이저. 동작을 본다",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const src = '{{src}}';\n  const t = lex(src);\n  render('tokenize(\\\"' + src + '\\\")',\n    '  왼쪽부터 훑으며 종류별로 묶는다:\\n\\n' +\n    t.map((x,idx)=> '  ' + idx + ': ' + x[0].padEnd(4) + ' \\\"' + x[1] + '\\\"').join('\\n') + '\\n\\n' +\n    '  <span class=\\\"ok\\\">공백 건너뛰고 · 숫자·이름·연산자·eof 로 분류. 30줄이면 된다.</span>',\n    '왼쪽부터 한 글자씩: 공백 skip·숫자 묶기·이름 묶기·연산자·eof.',\n    tokens(t.map(([ty,vl])=>[ty==='err'?'err':ty,vl])));\n</script>",
           "controls": [
@@ -217,15 +217,15 @@
         },
         {
           "type": "note",
-          "text": "**토크나이저의 구조는 단순하다: 포인터를 왼쪽부터 옮기며, 현재 글자로 토큰 종류를 판단해 끝까지 묶고 포인터를 전진한다.** 핵심 패턴은 **「맥스멍치(maximal munch)」** — 각 위치에서 「가능한 한 길게」 묶는다: 숫자면 숫자가 끝날 때까지(`123`), 이름이면 이름이 끝날 때까지(`user_id`). `while` 루프로 같은 종류의 글자를 계속 먹다가, 다른 종류가 나오면 멈춰 하나의 토큰으로 만들고, 포인터 `i` 를 그만큼 전진시킨다. 각 경우(공백·숫자·이름·연산자)를 `if` 로 나눠 처리하고, 어디에도 안 맞으면 오류(모르는 글자). 마지막에 `eof` 토큰을 넣는다(6장). 이 30줄이 문자열을 토큰 배열로 바꾼다 — 정규식 없이 단순 루프로도 되고(정규식은 각 종류 판단에 보조로 쓸 수 있다), 이해·디버깅·확장이 쉽다. 「토크나이저는 어렵다」는 오해다 — 이 기본 구조를 알면 어떤 작은 언어의 렉서든 이 틀에 맞춰 만들 수 있다. 그리고 이 코드가 문자열 처리(로그·설정·계산기)의 기본기라, 언어를 안 만들어도 자주 쓰인다."
+          "text": "**토크나이저의 구조는 단순하다: 포인터를 왼쪽부터 옮기며, 현재 글자로 토큰 종류를 판단해 끝까지 묶고 포인터를 전진한다.** 핵심 패턴은 **\"맥스멍치(maximal munch)\"**. 각 위치에서 \"가능한 한 길게\" 묶는다: 숫자면 숫자가 끝날 때까지(`123`), 이름이면 이름이 끝날 때까지(`user_id`). `while` 루프로 같은 종류의 글자를 계속 먹다가, 다른 종류가 나오면 멈춰 하나의 토큰으로 만들고, 포인터 `i` 를 그만큼 전진시킨다. 각 경우(공백, 숫자, 이름, 연산자)를 `if` 로 나눠 처리하고, 어디에도 안 맞으면 오류(모르는 글자). 마지막에 `eof` 토큰을 넣는다(6장). 이 30줄이 문자열을 토큰 배열로 바꾼다. 정규식 없이 단순 루프로도 되고(정규식은 각 종류 판단에 보조로 쓸 수 있다), 이해, 디버깅, 확장이 쉽다. \"토크나이저는 어렵다\"는 오해다. 이 기본 구조를 알면 어떤 작은 언어의 렉서든 이 틀에 맞춰 만들 수 있다. 그리고 이 코드가 문자열 처리(로그, 설정, 계산기)의 기본기라, 언어를 안 만들어도 자주 쓰인다."
         },
         {
           "type": "p",
-          "text": "**직접 옮겨 보며 확장하는 게 배우는 길이다.** 이 토크나이저는 짧아서 그대로 옮겨 실행하고 고쳐 보기 좋다: `1 + 2*(x - 3)` 을 넣어 토큰 배열을 보고, `>=` 를 지원하도록 두 글자 연산자 처리를 추가하고, 문자열 리터럴(`'...'`)·주석 건너뛰기·소수점을 더해 본다(7장의 자주 걸리는 것). 각 확장이 「이 언어의 낱말 종류를 하나 더하는」 것이다. 그리고 모르는 글자를 넣어 오류 메시지에 **위치가 정확히** 찍히는지 확인한다(5장) — 위치를 안 담으면 나중에 못 되살린다. 이렇게 손으로 만들고 확장하면, 남의 렉서(정규식·SQL·설정 파서)를 볼 때도 「아, 이렇게 토큰화하는구나」가 보인다(plt-why 7장). 「토크나이저를 한 번 만들어 보는」 게 언어·문자열 처리 이해의 큰 도약이다 — 이론보다 30줄을 직접 짜고 고쳐 보는 게 빠르다(황금의 정신: 손으로 돌려 보기)."
+          "text": "**직접 옮겨 보며 확장하는 게 배우는 길이다.** 이 토크나이저는 짧아서 그대로 옮겨 실행하고 고쳐 보기 좋다: `1 + 2*(x - 3)` 을 넣어 토큰 배열을 보고, `>=` 를 지원하도록 두 글자 연산자 처리를 추가하고, 문자열 리터럴(`'...'`), 주석 건너뛰기, 소수점을 더해 본다(7장의 자주 걸리는 것). 각 확장이 \"이 언어의 낱말 종류를 하나 더하는\" 것이다. 그리고 모르는 글자를 넣어 오류 메시지에 **위치가 정확히** 찍히는지 확인한다(5장). 위치를 안 담으면 나중에 못 되살린다. 이렇게 손으로 만들고 확장하면, 남의 렉서(정규식, SQL, 설정 파서)를 볼 때도 \"아, 이렇게 토큰화하는구나\"가 보인다(plt-why 7장). \"토크나이저를 한 번 만들어 보는\" 게 언어, 문자열 처리 이해의 큰 도약이다. 이론보다 30줄을 직접 짜고 고쳐 보는 게 빠르다(황금의 정신: 손으로 돌려 보기)."
         },
         {
           "type": "try",
-          "text": "위 30줄 토크나이저를 그대로 옮겨 `1 + 2*(x - 3)` 을 넣고 토큰 배열을 출력하라. 그다음 `>=`·소수점·문자열 리터럴을 지원하도록 확장하고, 모르는 글자에 위치가 정확히 찍히는지 확인하라."
+          "text": "위 30줄 토크나이저를 그대로 옮겨 `1 + 2*(x - 3)` 을 넣고 토큰 배열을 출력하라. 그다음 `>=`, 소수점, 문자열 리터럴을 지원하도록 확장하고, 모르는 글자에 위치가 정확히 찍히는지 확인하라."
         }
       ],
       "quiz": [
@@ -241,10 +241,10 @@
           "why": "30줄이면 됨."
         },
         {
-          "q": "「맥스멍치(maximal munch)」란?",
+          "q": "\"맥스멍치(maximal munch)\"란?",
           "choices": [
             "한 글자씩",
-            "각 위치에서 가능한 한 길게 묶음(숫자·이름 끝까지)",
+            "각 위치에서 가능한 한 길게 묶음(숫자, 이름 끝까지)",
             "짧게",
             "무작위"
           ],
@@ -255,7 +255,7 @@
           "q": "토크나이저를 배우는 가장 좋은 방법은?",
           "choices": [
             "이론만",
-            "직접 옮겨 실행하고 확장(>=·문자열·주석)해 보기",
+            "직접 옮겨 실행하고 확장(>=, 문자열, 주석)해 보기",
             "영상",
             "암기"
           ],
@@ -266,12 +266,12 @@
     },
     {
       "id": "4",
-      "title": "토큰의 모양 — 타입·값·위치",
+      "title": "토큰의 모양. 타입, 값, 위치",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "각 토큰은 세 가지를 담는다: **타입**(num·id·op·string·eof — 「무슨 종류」) · **값**(`12`·`age`·`+` — 「실제 내용」) · **위치**(at·line·col — 「어디서 왔나」). 파서는 **타입**으로 구조를 판단하고(「숫자 다음에 연산자」), **값**으로 실제 계산·이름을 알고, **위치**로 오류 메시지를 낸다(5장). 그래서 토큰은 「타입 + 값 + 위치」의 작은 객체다 — 이 셋을 담으면 파서·인터프리터·오류 처리가 다 가능해진다. 특히 위치는 처음에 안 담으면 나중에 못 되살린다."
+          "text": "각 토큰은 세 가지를 담는다: **타입**(num, id, op, string, eof. \"무슨 종류\"), **값**(`12`, `age`, `+`. \"실제 내용\"), **위치**(at, line, col. \"어디서 왔나\"). 파서는 **타입**으로 구조를 판단하고(\"숫자 다음에 연산자\"), **값**으로 실제 계산, 이름을 알고, **위치**로 오류 메시지를 낸다(5장). 그래서 토큰은 \"타입 + 값 + 위치\"의 작은 객체다. 이 셋을 담으면 파서, 인터프리터, 오류 처리가 다 가능해진다. 특히 위치는 처음에 안 담으면 나중에 못 되살린다."
         },
         {
           "type": "demo",
@@ -304,24 +304,24 @@
         },
         {
           "type": "note",
-          "text": "**토큰은 「타입 + 값 + 위치」의 작은 객체다 — 각각이 이후 단계에서 쓰인다.** ① **타입**(num·id·op·keyword·string·eof)은 파서가 **구조를 판단**하는 데 쓴다 — 파서는 「이게 무슨 값인가」보다 「무슨 종류인가」(숫자? 연산자? 여는 괄호?)로 문법 규칙을 적용한다(plt-parser). ② **값**(12·age·+)은 실제 내용으로, 인터프리터가 **계산·해석**할 때 쓴다(숫자 12 를 실제로 더하고, 이름 age 로 변수를 찾음). ③ **위치**(at 오프셋, 또는 line·col)는 **오류 메시지**를 위해 담는다(5장) — 「3번째 줄 7번째 글자에서 오류」를 내려면 토큰이 그 위치를 알아야 한다. 그래서 토큰을 만들 때 이 셋을 담는다. 어떤 토큰은 값이 필요 없기도 하고(연산자는 타입만으로 충분할 수 있음), 키워드(`if`·`while`)는 id 로 만든 뒤 파서가 구분하거나 렉서가 별도 타입으로 만든다. 핵심은 **「타입으로 구조, 값으로 내용, 위치로 오류」**의 세 역할 — 이 작은 객체가 언어 파이프라인 전체를 통과하며 각 단계가 필요한 부분을 쓴다."
+          "text": "**토큰은 \"타입 + 값 + 위치\"의 작은 객체다. 각각이 이후 단계에서 쓰인다.** ① **타입**(num, id, op, keyword, string, eof)은 파서가 **구조를 판단**하는 데 쓴다. 파서는 \"이게 무슨 값인가\"보다 \"무슨 종류인가\"(숫자? 연산자? 여는 괄호?)로 문법 규칙을 적용한다(plt-parser). ② **값**(12, age, +)은 실제 내용으로, 인터프리터가 **계산, 해석**할 때 쓴다(숫자 12 를 실제로 더하고, 이름 age 로 변수를 찾음). ③ **위치**(at 오프셋, 또는 line, col)는 **오류 메시지**를 위해 담는다(5장). \"3번째 줄 7번째 글자에서 오류\"를 내려면 토큰이 그 위치를 알아야 한다. 그래서 토큰을 만들 때 이 셋을 담는다. 어떤 토큰은 값이 필요 없기도 하고(연산자는 타입만으로 충분할 수 있음), 키워드(`if`, `while`)는 id 로 만든 뒤 파서가 구분하거나 렉서가 별도 타입으로 만든다. 핵심은 **\"타입으로 구조, 값으로 내용, 위치로 오류\"**의 세 역할. 이 작은 객체가 언어 파이프라인 전체를 통과하며 각 단계가 필요한 부분을 쓴다."
         },
         {
           "type": "p",
-          "text": "**타입과 값을 나누는 게 파서를 단순하게 한다.** 만약 토큰이 값(`12`·`age`·`+`)만 있고 타입이 없으면, 파서가 매번 「이 값이 숫자인가 이름인가 연산자인가」를 다시 판단해야 한다(렉서가 이미 한 일을 반복). 타입을 담으면 파서는 `token.type === 'num'` 처럼 **종류만 보고** 문법을 적용한다 — 「숫자면 값 노드, 연산자면 그 우선순위대로」. 이 「분류를 렉서가 한 번 하고 파서는 타입만 본다」가 역할 분리(렉서=분류, 파서=구조)의 핵심이고, 두 단계를 각각 단순하게 유지한다. 그래서 렉서의 산출물(토큰 배열)이 파서의 입력이 되는 **깔끔한 인터페이스**가 생긴다 — 렉서는 「문자열 → 토큰」, 파서는 「토큰 → 트리」만 신경 쓴다(design 의 관심사 분리). 이 인터페이스 덕에 렉서와 파서를 따로 만들고 테스트할 수 있다(렉서는 「이 입력에 이 토큰들」, 파서는 「이 토큰들에 이 트리」). 토큰의 타입은 이 인터페이스의 언어다."
+          "text": "**타입과 값을 나누는 게 파서를 단순하게 한다.** 만약 토큰이 값(`12`, `age`, `+`)만 있고 타입이 없으면, 파서가 매번 \"이 값이 숫자인가 이름인가 연산자인가\"를 다시 판단해야 한다(렉서가 이미 한 일을 반복). 타입을 담으면 파서는 `token.type === 'num'` 처럼 **종류만 보고** 문법을 적용한다. \"숫자면 값 노드, 연산자면 그 우선순위대로\". 이 \"분류를 렉서가 한 번 하고 파서는 타입만 본다\"가 역할 분리(렉서=분류, 파서=구조)의 핵심이고, 두 단계를 각각 단순하게 유지한다. 그래서 렉서의 산출물(토큰 배열)이 파서의 입력이 되는 **깔끔한 인터페이스**가 생긴다. 렉서는 \"문자열 → 토큰\", 파서는 \"토큰 → 트리\"만 신경 쓴다(design 의 관심사 분리). 이 인터페이스 덕에 렉서와 파서를 따로 만들고 테스트할 수 있다(렉서는 \"이 입력에 이 토큰들\", 파서는 \"이 토큰들에 이 트리\"). 토큰의 타입은 이 인터페이스의 언어다."
         },
         {
           "type": "try",
-          "text": "네 토크나이저의 토큰이 타입·값·위치를 다 담는지 확인하라 — 안 담으면 추가하라(특히 위치, 5장). 파서가 값이 아니라 타입으로 구조를 판단하게 짜, 렉서와 파서의 역할이 나뉘는지 보라."
+          "text": "네 토크나이저의 토큰이 타입, 값, 위치를 다 담는지 확인하라. 안 담으면 추가하라(특히 위치, 5장). 파서가 값이 아니라 타입으로 구조를 판단하게 짜, 렉서와 파서의 역할이 나뉘는지 보라."
         }
       ],
       "quiz": [
         {
           "q": "토큰이 담는 세 가지는?",
           "choices": [
-            "크기·색·모양",
-            "타입·값·위치(at)",
-            "속도·메모리·CPU",
+            "크기, 색, 모양",
+            "타입, 값, 위치(at)",
+            "속도, 메모리, CPU",
             "이름만"
           ],
           "answer": 1,
@@ -358,12 +358,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "토큰에 **위치(at·line·col)를 반드시 담아라.** 나중에 「3번째 줄 7번째 글자에서 오류」를 내려면, 토크나이저에서 안 담은 위치 정보는 **되살릴 수 없다** — 파서·인터프리터는 토큰만 보고 원본 문자열을 다시 안 보니까. 오류 메시지의 품질(plt-error — 「언어의 절반」)이 여기서 결정된다: 위치가 있으면 「어디가 틀렸는지」를 가리킬 수 있고, 없으면 「어딘가 오류」밖에 못 낸다. 위치를 담는 건 토큰 만들 때 한 줄이지만, 안 담으면 좋은 오류가 원천적으로 불가능하다."
+          "text": "토큰에 **위치(at, line, col)를 반드시 담아라.** 나중에 \"3번째 줄 7번째 글자에서 오류\"를 내려면, 토크나이저에서 안 담은 위치 정보는 **되살릴 수 없다**. 파서, 인터프리터는 토큰만 보고 원본 문자열을 다시 안 보니까. 오류 메시지의 품질(plt-error. \"언어의 절반\")이 여기서 결정된다: 위치가 있으면 \"어디가 틀렸는지\"를 가리킬 수 있고, 없으면 \"어딘가 오류\"밖에 못 낸다. 위치를 담는 건 토큰 만들 때 한 줄이지만, 안 담으면 좋은 오류가 원천적으로 불가능하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "위치 있음 vs 없음 — 오류 메시지",
+          "label": "위치 있음 vs 없음. 오류 메시지",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{has}}' === 'yes';\n  if (!has) {\n    render('위치를 안 담으면',\n      '  토큰: { type, value } — 위치 없음\\n' +\n      '  오류: \\\"구문 오류\\\" 또는 \\\"예상치 못한 토큰\\\"\\n' +\n      '  <span class=\\\"no\\\">어디가 틀렸는지 못 가리킴 → 사용자가 헤맴. 되살릴 수 없다.</span>',\n      '위치를 안 담으면 「어딘가 오류」밖에 못 낸다 — 되살릴 수 없다.',\n      box('나쁜 오류', 'SyntaxError: 구문 오류\\n(어디가? 왜?)', 'bad'));\n  } else {\n    render('위치를 담으면',\n      '  토큰: { type, value, at, line, col }\\n' +\n      '  오류: \\\"2번째 줄 7번째 글자: )를 기대했는데 , 가 왔습니다\\\"\\n' +\n      '  <span class=\\\"ok\\\">위치·기대를 가리킴 → 사용자가 스스로 고침(plt-error).</span>',\n      '위치를 담으면 「어디가 왜」를 가리킬 수 있다 — 좋은 오류의 뿌리.',\n      box('좋은 오류', 'Error at line 2, col 7:\\n  expected \\\")\\\" but got \\\",\\\"\\n  age > 20,\\n        ^', 'good'));\n  }\n</script>",
           "controls": [
@@ -387,15 +387,15 @@
         },
         {
           "type": "note",
-          "text": "**위치를 토큰에 담아라 — 안 담으면 좋은 오류 메시지가 원천적으로 불가능하다.** 오류 메시지의 품질은 토크나이저에서 결정된다: 각 토큰이 **원본에서 어디서 왔나**(at 오프셋, 또는 line·col)를 담아야, 파서·인터프리터가 오류를 만날 때 「몇 줄 몇 번째에서, 무엇을 기대했는데 무엇이 왔다」를 가리킬 수 있다. 이 정보를 토큰 만들 때 안 담으면, 나중에 파서·인터프리터는 토큰만 보고 원본을 다시 안 보니 **위치를 되살릴 수 없다** — 결국 「구문 오류」·「예상치 못한 토큰」 같은 쓸모없는 메시지밖에 못 낸다. 좋은 오류 메시지(plt-error 「언어의 절반」)는 ① 위치(화살표로 지점 표시) ② 무엇을 기대했나 ③ 수정 제안을 주는데, 이 모두가 위치 정보에서 시작한다. 위치를 담는 건 토큰 객체에 `at: i`(또는 line·col) 한 필드 추가일 뿐이지만, 이 작은 습관이 「쓸 수 있는 언어」와 「못 쓰는 언어」를 가른다. 그래서 토크나이저를 만들 때 처음부터 위치를 담는다 — 나중에 추가하려면 토크나이저를 다시 짜야 한다."
+          "text": "**위치를 토큰에 담아라. 안 담으면 좋은 오류 메시지가 원천적으로 불가능하다.** 오류 메시지의 품질은 토크나이저에서 결정된다: 각 토큰이 **원본에서 어디서 왔나**(at 오프셋, 또는 line, col)를 담아야, 파서, 인터프리터가 오류를 만날 때 \"몇 줄 몇 번째에서, 무엇을 기대했는데 무엇이 왔다\"를 가리킬 수 있다. 이 정보를 토큰 만들 때 안 담으면, 나중에 파서, 인터프리터는 토큰만 보고 원본을 다시 안 보니 **위치를 되살릴 수 없다**. 결국 \"구문 오류\", \"예상치 못한 토큰\" 같은 쓸모없는 메시지밖에 못 낸다. 좋은 오류 메시지(plt-error \"언어의 절반\")는 ① 위치(화살표로 지점 표시) ② 무엇을 기대했나 ③ 수정 제안을 주는데, 이 모두가 위치 정보에서 시작한다. 위치를 담는 건 토큰 객체에 `at: i`(또는 line, col) 한 필드 추가일 뿐이지만, 이 작은 습관이 \"쓸 수 있는 언어\"와 \"못 쓰는 언어\"를 가른다. 그래서 토크나이저를 만들 때 처음부터 위치를 담는다. 나중에 추가하려면 토크나이저를 다시 짜야 한다."
         },
         {
           "type": "p",
-          "text": "**위치는 오프셋만이 아니라 범위(시작~끝)로 담으면 더 좋다.** 단순히 「at: i」(시작 오프셋)만 담아도 「몇 번째 글자」는 되지만, **토큰의 범위**(start~end)를 담으면 「이 토큰 전체를 밑줄」로 가리킬 수 있어 오류가 더 명확하다(`age` 토큰의 5~7 글자를 `^^^` 로). 그리고 오프셋(0부터 세는 문자 위치)에서 line·col(몇 줄 몇 칸)로 변환하려면 원본의 줄바꿈 위치를 알아야 하니, 오프셋을 담고 오류 낼 때 변환하거나, 토크나이저가 줄바꿈을 세며 line·col 을 함께 담는다. 실전 도구(컴파일러·린터·LSP, plt-lsp)는 이 위치 정보로 에디터에 오류를 표시하고(빨간 밑줄), 「정의로 가기」·「사용처 찾기」를 한다 — 전부 「이 토큰·노드가 원본 어디에 대응하나」의 위치 정보 덕이다. 그래서 위치는 오류뿐 아니라 **모든 도구 기능의 바탕**이다. 「소스 맵」(빌드된 코드가 원본 어디에서 왔나, web-build)도 같은 원리다. 위치를 잘 담고 전파하는 게(토큰→AST 노드까지 위치를 이어감) 좋은 언어 도구의 기초다."
+          "text": "**위치는 오프셋만이 아니라 범위(시작~끝)로 담으면 더 좋다.** 단순히 \"at: i\"(시작 오프셋)만 담아도 \"몇 번째 글자\"는 되지만, **토큰의 범위**(start~end)를 담으면 \"이 토큰 전체를 밑줄\"로 가리킬 수 있어 오류가 더 명확하다(`age` 토큰의 5~7 글자를 `^^^` 로). 그리고 오프셋(0부터 세는 문자 위치)에서 line, col(몇 줄 몇 칸)로 변환하려면 원본의 줄바꿈 위치를 알아야 하니, 오프셋을 담고 오류 낼 때 변환하거나, 토크나이저가 줄바꿈을 세며 line, col 을 함께 담는다. 실전 도구(컴파일러, 린터, LSP, plt-lsp)는 이 위치 정보로 에디터에 오류를 표시하고(빨간 밑줄), \"정의로 가기\", \"사용처 찾기\"를 한다. 전부 \"이 토큰, 노드가 원본 어디에 대응하나\"의 위치 정보 덕이다. 그래서 위치는 오류뿐 아니라 **모든 도구 기능의 바탕**이다. \"소스 맵\"(빌드된 코드가 원본 어디에서 왔나, web-build)도 같은 원리다. 위치를 잘 담고 전파하는 게(토큰→AST 노드까지 위치를 이어감) 좋은 언어 도구의 기초다."
         },
         {
           "type": "try",
-          "text": "네 토크나이저가 각 토큰에 위치(최소 시작 오프셋, 가능하면 범위·line·col)를 담는지 확인하라. 안 담으면 추가하고, 모르는 글자·오류에 위치가 정확히 찍혀 「몇 줄 몇 번째」를 가리키는지 확인하라 — 이게 좋은 오류(plt-error)의 뿌리다."
+          "text": "네 토크나이저가 각 토큰에 위치(최소 시작 오프셋, 가능하면 범위, line, col)를 담는지 확인하라. 안 담으면 추가하고, 모르는 글자, 오류에 위치가 정확히 찍혀 \"몇 줄 몇 번째\"를 가리키는지 확인하라. 이게 좋은 오류(plt-error)의 뿌리다."
         }
       ],
       "quiz": [
@@ -414,7 +414,7 @@
           "q": "위치 없는 토큰의 오류 메시지는?",
           "choices": [
             "정확",
-            "「구문 오류」·「예상치 못한 토큰」(어디가 왜인지 못 가리킴)",
+            "\"구문 오류\", \"예상치 못한 토큰\"(어디가 왜인지 못 가리킴)",
             "좋음",
             "위치 있음"
           ],
@@ -425,7 +425,7 @@
           "q": "위치 정보가 바탕이 되는 도구 기능은?",
           "choices": [
             "없음",
-            "오류 표시·정의로 가기·소스 맵(에디터·LSP)",
+            "오류 표시, 정의로 가기, 소스 맵(에디터, LSP)",
             "속도",
             "메모리"
           ],
@@ -441,12 +441,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "토큰 배열 마지막에 **`eof`(끝) 토큰 하나**를 넣는 작은 습관이 파서 코드를 눈에 띄게 줄인다. eof 가 없으면 파서는 「아직 토큰이 남았나?」를 **매번 길이로 검사**해야 한다(`if (i < tokens.length)`). eof 가 있으면 파서는 그냥 「현재 토큰이 eof 인가?」만 보면 되고, 끝을 지나 읽는 실수(배열 범위 초과)가 없다 — eof 를 계속 반환하니까. 「끝을 데이터로 표현」하는 이 습관이 파서를 단순·안전하게 한다(sys-fd 의 「모든 것을 통일된 표현으로」와 같은 발상)."
+          "text": "토큰 배열 마지막에 **`eof`(끝) 토큰 하나**를 넣는 작은 습관이 파서 코드를 눈에 띄게 줄인다. eof 가 없으면 파서는 \"아직 토큰이 남았나?\"를 **매번 길이로 검사**해야 한다(`if (i < tokens.length)`). eof 가 있으면 파서는 그냥 \"현재 토큰이 eof 인가?\"만 보면 되고, 끝을 지나 읽는 실수(배열 범위 초과)가 없다. eof 를 계속 반환하니까. \"끝을 데이터로 표현\"하는 이 습관이 파서를 단순, 안전하게 한다(sys-fd 의 \"모든 것을 통일된 표현으로\"와 같은 발상)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "eof 있음 vs 없음 — 파서 코드",
+          "label": "eof 있음 vs 없음. 파서 코드",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{has}}' === 'yes';\n  if (!has) {\n    render('eof 없음 — 매번 길이 검사',\n      '  파서가 토큰을 볼 때마다 i < tokens.length 검사\\n' +\n      '  <span class=\\\"no\\\">검사를 빠뜨리면 범위 초과(undefined) → 크래시·버그.</span>',\n      'eof 없으면 파서가 매번 길이를 검사 — 빠뜨리면 범위 초과.',\n      cmp('eof 없음', 'if (i < tokens.length &&\\n    tokens[i].type===\\\"op\\\")\\n// 매번 길이 검사', '문제', '검사 누락 →\\nundefined 접근\\n크래시'));\n  } else {\n    render('eof 있음 — 끝을 토큰으로',\n      '  마지막에 {type:\\\"eof\\\"} 하나 → 파서는 eof 인지만 확인\\n' +\n      '  <span class=\\\"ok\\\">끝을 지나도 eof 를 계속 봄(범위 초과 없음). 코드 간결.</span>',\n      'eof 를 넣으면 파서는 「eof 인가」만 보면 됨 — 간결·안전.',\n      cmp('eof 있음', 'while (peek().type !== \\\"eof\\\")\\n  ...\\n// 길이 검사 불필요', '이점', '범위 초과 없음\\n코드 간결\\n안전'));\n  }\n</script>",
           "controls": [
@@ -470,11 +470,11 @@
         },
         {
           "type": "note",
-          "text": "**마지막에 eof 토큰을 넣으면 파서가 「끝났나?」를 길이로 검사하지 않아도 돼 코드가 간결·안전해진다.** eof(end-of-file) 토큰은 「토큰이 끝났다」를 **데이터로 표현**한 것이다. eof 가 없으면 파서는 토큰을 볼 때마다 `if (i < tokens.length)` 로 범위를 검사해야 하고, 이 검사를 빠뜨리면 `tokens[i]` 가 `undefined` 가 되어 크래시·미묘한 버그가 난다(파서는 재귀·여러 경로라 이 검사를 곳곳에 넣어야 함). eof 를 넣으면 파서는 그냥 `peek().type !== 'eof'` 처럼 **토큰 타입만** 보면 되고, 끝을 지나 읽어도 eof 토큰을 계속 반환하니(peek 이 항상 eof) **범위 초과가 원천적으로 없다**. 이 「끝을 특별한 값(sentinel)으로 표현」하는 패턴은 여러 곳에서 쓰인다 — 문자열의 널 종결(C), 링크드 리스트의 null, 스트림의 EOF(sys-fd). eof 토큰 하나를 넣는 작은 습관이 파서 코드에서 길이 검사를 없애 눈에 띄게 단순하게 만든다. 그래서 토크나이저는 마지막에 반드시 eof 를 넣는다 — 파서를 쉽게 만드는 선물이다."
+          "text": "**마지막에 eof 토큰을 넣으면 파서가 \"끝났나?\"를 길이로 검사하지 않아도 돼 코드가 간결, 안전해진다.** eof(end-of-file) 토큰은 \"토큰이 끝났다\"를 **데이터로 표현**한 것이다. eof 가 없으면 파서는 토큰을 볼 때마다 `if (i < tokens.length)` 로 범위를 검사해야 하고, 이 검사를 빠뜨리면 `tokens[i]` 가 `undefined` 가 되어 크래시, 미묘한 버그가 난다(파서는 재귀, 여러 경로라 이 검사를 곳곳에 넣어야 함). eof 를 넣으면 파서는 그냥 `peek().type !== 'eof'` 처럼 **토큰 타입만** 보면 되고, 끝을 지나 읽어도 eof 토큰을 계속 반환하니(peek 이 항상 eof) **범위 초과가 원천적으로 없다**. 이 \"끝을 특별한 값(sentinel)으로 표현\"하는 패턴은 여러 곳에서 쓰인다. 문자열의 널 종결(C), 링크드 리스트의 null, 스트림의 EOF(sys-fd). eof 토큰 하나를 넣는 작은 습관이 파서 코드에서 길이 검사를 없애 눈에 띄게 단순하게 만든다. 그래서 토크나이저는 마지막에 반드시 eof 를 넣는다. 파서를 쉽게 만드는 선물이다."
         },
         {
           "type": "p",
-          "text": "**「끝을 값으로 표현」이 특수 경우를 없앤다 — 일반적 설계 교훈.** eof 토큰은 「특수 경우(배열 끝)를 일반 경우(하나의 토큰)로 만드는」 기법의 예다. 프로그래밍에서 버그와 복잡도의 상당수가 **특수 경우**(빈 목록, 마지막 요소, null, 경계)에서 나온다 — 이걸 매번 따로 처리하면(if 로 검사) 코드가 복잡하고 빠뜨리기 쉽다. eof 는 「끝」이라는 특수 경우를 「eof 토큰」이라는 **보통 데이터**로 바꿔, 파서가 특수 처리 없이 균일하게 다루게 한다. 같은 발상: 링크드 리스트의 **센티널 노드**(빈 리스트도 헤드 노드 하나로 통일), 경계를 위한 **가드 값**(정렬에서 양 끝에 ±무한대), 널 오브젝트 패턴(null 대신 「아무것도 안 하는 객체」). 이 「특수 경우를 데이터로 흡수」하는 사고는 lang-fp(순수 함수로 특수 경우 줄이기)·design 과 통한다. eof 토큰이라는 작은 것에서 「경계를 데이터로 표현해 특수 처리를 없애는」 일반 교훈을 배운다 — 이게 렉서를 넘어 여러 코드를 단순하게 만드는 사고다."
+          "text": "**\"끝을 값으로 표현\"이 특수 경우를 없앤다. 일반적 설계 교훈.** eof 토큰은 \"특수 경우(배열 끝)를 일반 경우(하나의 토큰)로 만드는\" 기법의 예다. 프로그래밍에서 버그와 복잡도의 상당수가 **특수 경우**(빈 목록, 마지막 요소, null, 경계)에서 나온다. 이걸 매번 따로 처리하면(if 로 검사) 코드가 복잡하고 빠뜨리기 쉽다. eof 는 \"끝\"이라는 특수 경우를 \"eof 토큰\"이라는 **보통 데이터**로 바꿔, 파서가 특수 처리 없이 균일하게 다루게 한다. 같은 발상: 링크드 리스트의 **센티널 노드**(빈 리스트도 헤드 노드 하나로 통일), 경계를 위한 **가드 값**(정렬에서 양 끝에 ±무한대), 널 오브젝트 패턴(null 대신 \"아무것도 안 하는 객체\"). 이 \"특수 경우를 데이터로 흡수\"하는 사고는 lang-fp(순수 함수로 특수 경우 줄이기), design 과 통한다. eof 토큰이라는 작은 것에서 \"경계를 데이터로 표현해 특수 처리를 없애는\" 일반 교훈을 배운다. 이게 렉서를 넘어 여러 코드를 단순하게 만드는 사고다."
         },
         {
           "type": "try",
@@ -486,7 +486,7 @@
           "q": "eof 토큰을 넣는 이유는?",
           "choices": [
             "빠름",
-            "파서가 길이 검사 없이 「eof 인가」만 봐 간결·안전",
+            "파서가 길이 검사 없이 \"eof 인가\"만 봐 간결, 안전",
             "메모리",
             "타입"
           ],
@@ -497,7 +497,7 @@
           "q": "eof 없이 파서가 해야 하는 것은?",
           "choices": [
             "없음",
-            "매번 i < length 검사(빠뜨리면 범위 초과·크래시)",
+            "매번 i < length 검사(빠뜨리면 범위 초과, 크래시)",
             "빠름",
             "eof 생성"
           ],
@@ -524,12 +524,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "토크나이저에서 자주 걸리는 함정들: ① **두 글자 연산자** — `>=` 를 `>` 와 `=` 로 쪼개지 않으려면 **긴 것을 먼저** 시도한다(maximal munch) ② **문자열 안의 공백·이스케이프** — `\"a b\\\"c\"` 의 공백은 버리면 안 되고, 이스케이프(`\\\"`)를 처리해야 ③ **주석 건너뛰기** — `// ...` 나 `/* ... */` 를 토큰이 아니라 무시 ④ **숫자의 형태** — 소수점·음수·지수(`3.14`·`1e10`) ⑤ **키워드 vs 이름** — `if`·`while` 을 이름으로 읽은 뒤 키워드로 구분. 이 함정들을 알면 실전 렉서를 만들 때 덜 헤맨다."
+          "text": "토크나이저에서 자주 걸리는 함정들: ① **두 글자 연산자**. `>=` 를 `>` 와 `=` 로 쪼개지 않으려면 **긴 것을 먼저** 시도한다(maximal munch) ② **문자열 안의 공백, 이스케이프**. `\"a b\\\"c\"` 의 공백은 버리면 안 되고, 이스케이프(`\\\"`)를 처리해야 ③ **주석 건너뛰기**. `//...` 나 `/*... */` 를 토큰이 아니라 무시 ④ **숫자의 형태**. 소수점, 음수, 지수(`3.14`, `1e10`) ⑤ **키워드 vs 이름**. `if`, `while` 을 이름으로 읽은 뒤 키워드로 구분. 이 함정들을 알면 실전 렉서를 만들 때 덜 헤맨다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자주 걸리는 것 — 무엇을 조심",
+          "label": "자주 걸리는 것. 무엇을 조심",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const trap = '{{trap}}';\n  const cases = {\n    twochar:['두 글자 연산자', '>= 를 > 와 = 로 쪼갬', '긴 것 먼저 시도(maximal munch): >= 를 > 보다 먼저 확인'],\n    string:['문자열 이스케이프', '\\\"a b\\\" 의 공백을 버리거나 \\\\\\\" 를 끝으로 오인', '문자열 안은 공백 유지 + 이스케이프(\\\\\\\") 처리'],\n    comment:['주석', '// 주석을 토큰으로 만듦', '주석은 토큰 X — 만나면 줄 끝까지(또는 */까지) 건너뜀'],\n    number:['숫자 형태', '3.14 를 3 . 14 로 쪼갬', '소수점·지수(1e10)·음수를 숫자 규칙에 포함'],\n    keyword:['키워드 vs 이름', 'if 를 그냥 이름으로', '이름으로 읽은 뒤 예약어 목록과 비교해 키워드로 구분'],\n  }[trap];\n  render('함정: ' + cases[0],\n    '  실수: <span class=\\\"no\\\">' + cases[1] + '</span>\\n  대처: <span class=\\\"ok\\\">' + cases[2] + '</span>',\n    '긴 연산자 먼저·문자열 이스케이프·주석 건너뛰기·숫자 형태·키워드.',\n    box(cases[0], cases[2]));\n</script>",
           "controls": [
@@ -565,15 +565,15 @@
         },
         {
           "type": "note",
-          "text": "**토크나이저의 자주 걸리는 함정: 긴 연산자 먼저·문자열 이스케이프·주석 건너뛰기·숫자 형태·키워드 구분.** ① **두 글자 연산자** — `>=`·`<=`·`==`·`!=`·`->` 같은 것을 `>` 와 `=` 로 쪼개면 안 된다. **긴 것을 먼저 시도**(maximal munch)해야 — 현재 위치에서 두 글자를 먼저 확인하고, 아니면 한 글자로. ② **문자열 리터럴** — `\"a b\"` 안의 공백은 버리면 안 되고(문자열 내용), 이스케이프(`\\\"` 는 문자열 끝이 아니라 따옴표 문자, `\\n` 은 개행)를 처리해야 한다. 문자열은 여는 따옴표부터 (이스케이프 안 된) 닫는 따옴표까지 묶는다. ③ **주석** — `//` 나 `/* */` 는 토큰이 아니라 **무시**한다(만나면 줄 끝 또는 `*/` 까지 건너뜀). ④ **숫자 형태** — 소수점(`3.14`)·지수(`1e10`)·음수(대개 `-`는 별도 연산자로, 파서가 처리)·16진수(`0xff`)를 숫자 규칙에 넣을지 정한다. ⑤ **키워드 vs 이름** — `if`·`while`·`return` 을 이름(id)으로 읽은 뒤 **예약어 목록과 비교**해 키워드 타입으로 바꾸거나, 파서가 구분한다. 이 함정들은 실전 렉서에서 흔히 마주치니, 30줄 기본(3장)에서 확장할 때 하나씩 처리한다. 각각이 「이 언어의 낱말 규칙을 정확히」 하는 일이다."
+          "text": "**토크나이저의 자주 걸리는 함정: 긴 연산자 먼저, 문자열 이스케이프, 주석 건너뛰기, 숫자 형태, 키워드 구분.** ① **두 글자 연산자**. `>=`, `<=`, `==`, `!=`, `->` 같은 것을 `>` 와 `=` 로 쪼개면 안 된다. **긴 것을 먼저 시도**(maximal munch)해야. 현재 위치에서 두 글자를 먼저 확인하고, 아니면 한 글자로. ② **문자열 리터럴**. `\"a b\"` 안의 공백은 버리면 안 되고(문자열 내용), 이스케이프(`\\\"` 는 문자열 끝이 아니라 따옴표 문자, `\\n` 은 개행)를 처리해야 한다. 문자열은 여는 따옴표부터 (이스케이프 안 된) 닫는 따옴표까지 묶는다. ③ **주석**. `//` 나 `/* */` 는 토큰이 아니라 **무시**한다(만나면 줄 끝 또는 `*/` 까지 건너뜀). ④ **숫자 형태**. 소수점(`3.14`), 지수(`1e10`), 음수(대개 `-`는 별도 연산자로, 파서가 처리), 16진수(`0xff`)를 숫자 규칙에 넣을지 정한다. ⑤ **키워드 vs 이름**. `if`, `while`, `return` 을 이름(id)으로 읽은 뒤 **예약어 목록과 비교**해 키워드 타입으로 바꾸거나, 파서가 구분한다. 이 함정들은 실전 렉서에서 흔히 마주치니, 30줄 기본(3장)에서 확장할 때 하나씩 처리한다. 각각이 \"이 언어의 낱말 규칙을 정확히\" 하는 일이다."
         },
         {
           "type": "p",
-          "text": "**함정의 공통 원인은 「탐욕과 문맥」이다.** 대부분의 렉서 함정은 두 가지에서 온다: ① **탐욕(greedy) 매칭의 방향** — 「가능한 한 길게」(maximal munch)가 기본이라 `>=` 를 한 번에 먹어야 하는데, 순서를 잘못하면(`>` 를 먼저 확인) 쪼개진다. 그래서 「긴 후보를 먼저」가 규칙이다. ② **문맥에 따라 규칙이 바뀌는 것** — 문자열 **안**에서는 공백·특수문자의 규칙이 다르고(그냥 문자), 주석 **안**에서는 아무것도 토큰이 아니다. 이걸 다루려면 렉서가 **모드/상태**를 가져야 한다(「지금 문자열 안인가, 주석 안인가, 일반 코드인가」에 따라 다르게 처리). 그래서 실전 렉서는 단순한 「한 글자씩」을 넘어 **상태를 가진** 처리가 된다(문자열 모드·주석 모드). 이런 문맥 의존이 심해지면(중첩 문자열·템플릿 리터럴 안의 표현식) 렉서가 복잡해지는데, 그건 「이 언어의 문법이 복잡하다」는 신호다. 대부분의 작은 언어는 이 함정 몇 개만 처리하면 되고, 복잡한 언어는 검증된 렉서 생성기(lex·flex·ANTLR)나 기존 파서를 쓴다(plt-why 4장). 함정을 알면 「내 언어가 얼마나 복잡한지」와 「직접 만들지 도구를 쓸지」가 보인다."
+          "text": "**함정의 공통 원인은 \"탐욕과 문맥\"이다.** 대부분의 렉서 함정은 두 가지에서 온다: ① **탐욕(greedy) 매칭의 방향**. \"가능한 한 길게\"(maximal munch)가 기본이라 `>=` 를 한 번에 먹어야 하는데, 순서를 잘못하면(`>` 를 먼저 확인) 쪼개진다. 그래서 \"긴 후보를 먼저\"가 규칙이다. ② **문맥에 따라 규칙이 바뀌는 것**. 문자열 **안**에서는 공백, 특수문자의 규칙이 다르고(그냥 문자), 주석 **안**에서는 아무것도 토큰이 아니다. 이걸 다루려면 렉서가 **모드/상태**를 가져야 한다(\"지금 문자열 안인가, 주석 안인가, 일반 코드인가\"에 따라 다르게 처리). 그래서 실전 렉서는 단순한 \"한 글자씩\"을 넘어 **상태를 가진** 처리가 된다(문자열 모드, 주석 모드). 이런 문맥 의존이 심해지면(중첩 문자열, 템플릿 리터럴 안의 표현식) 렉서가 복잡해지는데, 그건 \"이 언어의 문법이 복잡하다\"는 신호다. 대부분의 작은 언어는 이 함정 몇 개만 처리하면 되고, 복잡한 언어는 검증된 렉서 생성기(lex, flex, ANTLR)나 기존 파서를 쓴다(plt-why 4장). 함정을 알면 \"내 언어가 얼마나 복잡한지\"와 \"직접 만들지 도구를 쓸지\"가 보인다."
         },
         {
           "type": "try",
-          "text": "네 토크나이저에 자주 걸리는 것들을 하나씩 추가해 보라 — `>=`(긴 것 먼저), 문자열 리터럴(이스케이프 포함), 주석 건너뛰기, 소수점. 각 확장에서 「긴 것 먼저」와 「문맥(문자열·주석 안)」을 어떻게 다루는지 확인하라."
+          "text": "네 토크나이저에 자주 걸리는 것들을 하나씩 추가해 보라. `>=`(긴 것 먼저), 문자열 리터럴(이스케이프 포함), 주석 건너뛰기, 소수점. 각 확장에서 \"긴 것 먼저\"와 \"문맥(문자열, 주석 안)\"을 어떻게 다루는지 확인하라."
         }
       ],
       "quiz": [
@@ -600,10 +600,10 @@
           "why": "토큰 아님."
         },
         {
-          "q": "문자열·주석 안의 규칙이 다른 걸 다루려면?",
+          "q": "문자열, 주석 안의 규칙이 다른 걸 다루려면?",
           "choices": [
             "불가",
-            "렉서가 모드/상태를 가짐(문자열 모드·주석 모드)",
+            "렉서가 모드/상태를 가짐(문자열 모드, 주석 모드)",
             "정규식",
             "무시"
           ],
@@ -614,12 +614,12 @@
     },
     {
       "id": "8",
-      "title": "실전 렉서 — 손수 짜기 vs 도구",
+      "title": "실전 렉서. 손수 짜기 vs 도구",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "간단한 작은 언어는 **손수 짠 30줄 렉서**로 충분하고(단순·이해·디버깅 쉬움), 복잡한 언어는 **렉서 생성기**(lex/flex·ANTLR·정규식 규칙 테이블)를 쓴다 — 토큰 규칙을 선언적으로 적으면 렉서를 생성한다. 판단: **토큰 종류가 적고 규칙이 단순하면 손수**(대부분의 작은 언어), **토큰이 많고 문맥·모드가 복잡하면 도구 또는 기존 파서**(plt-why 4장 「기존 것을 먼저」). 그리고 정말 흔한 것(JSON·정규식·SQL·프로그래밍 언어)은 **이미 만들어진 파서**가 있으니 직접 안 만든다."
+          "text": "간단한 작은 언어는 **손수 짠 30줄 렉서**로 충분하고(단순, 이해, 디버깅 쉬움), 복잡한 언어는 **렉서 생성기**(lex/flex, ANTLR, 정규식 규칙 테이블)를 쓴다. 토큰 규칙을 선언적으로 적으면 렉서를 생성한다. 판단: **토큰 종류가 적고 규칙이 단순하면 손수**(대부분의 작은 언어), **토큰이 많고 문맥, 모드가 복잡하면 도구 또는 기존 파서**(plt-why 4장 \"기존 것을 먼저\"). 그리고 정말 흔한 것(JSON, 정규식, SQL, 프로그래밍 언어)은 **이미 만들어진 파서**가 있으니 직접 안 만든다."
         },
         {
           "type": "demo",
@@ -652,15 +652,15 @@
         },
         {
           "type": "note",
-          "text": "**작은 언어는 손수, 복잡한 언어는 생성기, 흔한 것은 기존 파서 — 필요에 맞게 고른다.** ① **손수 짠 렉서**(30줄, 3장) — 토큰 종류가 적고 규칙이 단순한 대부분의 작은 언어(계산기·설정·쿼리 필터·간단한 DSL)에 충분하다. 단순하고 이해·디버깅이 쉽고 의존성이 없다. plt 를 배우는 목적도 이 손수 렉서를 만들 수 있게 되는 것이다. ② **렉서 생성기**(lex/flex·ANTLR·정규식 규칙 테이블) — 토큰이 많고 규칙이 복잡하거나(프로그래밍 언어) 성능이 중요할 때, 토큰 규칙을 **선언적으로**(정규식 + 액션) 적으면 효율적인 렉서를 생성한다. 직접 짜는 것보다 규칙 관리가 쉽고 최적화돼 있다. ③ **기존 파서** — JSON·YAML·정규식·SQL·HTML·프로그래밍 언어처럼 **널리 쓰이는 것**은 검증된 파서 라이브러리가 이미 있으니 직접 안 만든다(plt-why 4장). 그래서 「내 언어의 렉서를 만들까」의 답은 「작고 단순하면 손수(배움+실용), 복잡하면 생성기, 흔한 형식이면 기존 파서」다. 대부분의 실무는 손수 렉서(작은 DSL)나 기존 파서(흔한 형식)로 해결되고, 렉서 생성기는 진짜 새 언어를 만들 때다."
+          "text": "**작은 언어는 손수, 복잡한 언어는 생성기, 흔한 것은 기존 파서. 필요에 맞게 고른다.** ① **손수 짠 렉서**(30줄, 3장). 토큰 종류가 적고 규칙이 단순한 대부분의 작은 언어(계산기, 설정, 쿼리 필터, 간단한 DSL)에 충분하다. 단순하고 이해, 디버깅이 쉽고 의존성이 없다. plt 를 배우는 목적도 이 손수 렉서를 만들 수 있게 되는 것이다. ② **렉서 생성기**(lex/flex, ANTLR, 정규식 규칙 테이블). 토큰이 많고 규칙이 복잡하거나(프로그래밍 언어) 성능이 중요할 때, 토큰 규칙을 **선언적으로**(정규식 + 액션) 적으면 효율적인 렉서를 생성한다. 직접 짜는 것보다 규칙 관리가 쉽고 최적화돼 있다. ③ **기존 파서**. JSON, YAML, 정규식, SQL, HTML, 프로그래밍 언어처럼 **널리 쓰이는 것**은 검증된 파서 라이브러리가 이미 있으니 직접 안 만든다(plt-why 4장). 그래서 \"내 언어의 렉서를 만들까\"의 답은 \"작고 단순하면 손수(배움+실용), 복잡하면 생성기, 흔한 형식이면 기존 파서\"다. 대부분의 실무는 손수 렉서(작은 DSL)나 기존 파서(흔한 형식)로 해결되고, 렉서 생성기는 진짜 새 언어를 만들 때다."
         },
         {
           "type": "p",
-          "text": "**성능은 대개 문제가 아니다 — 렉서는 이미 빠르다.** 초보가 렉서 성능을 걱정하지만, 단순한 손수 렉서도 대부분의 용도(설정·쿼리·소스 파일)엔 충분히 빠르다(문자열을 한 번 훑는 O(n)). 성능이 정말 중요한 경우는 ① 매우 큰 입력을 자주 파싱(빌드 도구가 수천 파일을) ② 실시간 편집(에디터가 매 키입력마다 재파싱, plt-lsp) 정도인데, 이땐 생성기의 최적화나 증분 파싱(바뀐 부분만 다시)을 쓴다. 그래서 「빠른 렉서」를 걱정하기 전에 「올바르고 이해하기 쉬운 렉서」를 만들고(sys-profile 의 「재기 전에 고치지 마라」), 정말 느리면 측정 후 최적화한다. 초보의 흔한 실수는 성능을 위해 렉서를 복잡하게(정규식 곡예·수동 최적화) 만들다 버그를 늘리는 것이다 — 단순한 30줄이 대부분 정답이다. 렉서는 언어 처리에서 가장 간단하고 빠른 부분이라, 여기서 조기 최적화할 이유가 거의 없다. 성능보다 「올바름·위치 정보·좋은 오류」에 공을 들이는 게 낫다."
+          "text": "**성능은 대개 문제가 아니다. 렉서는 이미 빠르다.** 초보가 렉서 성능을 걱정하지만, 단순한 손수 렉서도 대부분의 용도(설정, 쿼리, 소스 파일)엔 충분히 빠르다(문자열을 한 번 훑는 O(n)). 성능이 정말 중요한 경우는 ① 매우 큰 입력을 자주 파싱(빌드 도구가 수천 파일을) ② 실시간 편집(에디터가 매 키입력마다 재파싱, plt-lsp) 정도인데, 이땐 생성기의 최적화나 증분 파싱(바뀐 부분만 다시)을 쓴다. 그래서 \"빠른 렉서\"를 걱정하기 전에 \"올바르고 이해하기 쉬운 렉서\"를 만들고(sys-profile 의 \"재기 전에 고치지 마라\"), 정말 느리면 측정 후 최적화한다. 초보의 흔한 실수는 성능을 위해 렉서를 복잡하게(정규식 곡예, 수동 최적화) 만들다 버그를 늘리는 것이다. 단순한 30줄이 대부분 정답이다. 렉서는 언어 처리에서 가장 간단하고 빠른 부분이라, 여기서 조기 최적화할 이유가 거의 없다. 성능보다 \"올바름, 위치 정보, 좋은 오류\"에 공을 들이는 게 낫다."
         },
         {
           "type": "try",
-          "text": "네 작은 언어의 렉서를 「손수 30줄로 될지, 생성기가 필요한지, 기존 파서가 있는지」로 판단하라. 대부분의 작은 언어는 손수로 충분하고, 흔한 형식(JSON·정규식)은 기존 파서를 쓴다 — 직접 렉서를 만들기 전에 이걸 확인하라."
+          "text": "네 작은 언어의 렉서를 \"손수 30줄로 될지, 생성기가 필요한지, 기존 파서가 있는지\"로 판단하라. 대부분의 작은 언어는 손수로 충분하고, 흔한 형식(JSON, 정규식)은 기존 파서를 쓴다. 직접 렉서를 만들기 전에 이걸 확인하라."
         }
       ],
       "quiz": [
@@ -668,7 +668,7 @@
           "q": "대부분의 작은 언어 렉서는?",
           "choices": [
             "생성기 필수",
-            "손수 30줄로 충분(단순·이해·디버깅)",
+            "손수 30줄로 충분(단순, 이해, 디버깅)",
             "기존 파서만",
             "불가"
           ],
@@ -676,10 +676,10 @@
           "why": "작고 단순."
         },
         {
-          "q": "널리 쓰이는 형식(JSON·SQL)의 렉서는?",
+          "q": "널리 쓰이는 형식(JSON, SQL)의 렉서는?",
           "choices": [
             "직접 만들기",
-            "기존 파서 사용(검증됨·유지됨)",
+            "기존 파서 사용(검증됨, 유지됨)",
             "생성기",
             "손수"
           ],
@@ -690,7 +690,7 @@
           "q": "렉서 성능에 대한 올바른 태도는?",
           "choices": [
             "항상 최적화",
-            "대개 충분히 빠름 — 올바름·위치·오류에 공을 들이고 필요 시 측정",
+            "대개 충분히 빠름. 올바름, 위치, 오류에 공을 들이고 필요 시 측정",
             "복잡하게",
             "무시"
           ],
@@ -701,17 +701,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 토크나이저",
+      "title": "점검표. 토크나이저",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "토크나이저를 만들거나 문자열을 토큰으로 다룰 때 이 목록을 확인하라. 핵심은 「글자를 토큰으로, 위치를 담고, eof 를 넣고, 긴 것을 먼저」다."
+          "text": "토크나이저를 만들거나 문자열을 토큰으로 다룰 때 이 목록을 확인하라. 핵심은 \"글자를 토큰으로, 위치를 담고, eof 를 넣고, 긴 것을 먼저\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .toks { display:flex; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { padding:4px 9px; border-radius:5px; background:#1e2a3a; font:11px ui-monospace, monospace; text-align:center; }\n  .toks .t .ty { display:block; font-size:9px; color:#94a3b8; } .toks .t .vl { color:#fdba74; font-weight:600; }\n  .toks .t.num .vl { color:#7dd3fc; } .toks .t.op .vl { color:#fca5a5; } .toks .t.id .vl { color:#86efac; } .toks .t.eof { background:#3b2a5f; } .toks .t.eof .vl { color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tokens = (list) => '<div class=\"toks\">' + list.map(([ty, vl]) =>\n    '<span class=\"t ' + ty + '\"><span class=\"ty\">' + esc(ty) + '</span><span class=\"vl\">' + esc(vl) + '</span></span>').join('') + '</div>';\n  // 실제 토크나이저 (데모에서 재사용)\n  function lex(src) {\n    const out = []; let i = 0;\n    while (i < src.length) {\n      const c = src[i];\n      if (c === ' ' || c === '\\t') { i++; continue; }\n      if (c >= '0' && c <= '9') {\n        let j = i; while (j < src.length && src[j] >= '0' && src[j] <= '9') j++;\n        out.push(['num', src.slice(i, j)]); i = j; continue;\n      }\n      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_') {\n        let j = i; while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;\n        out.push(['id', src.slice(i, j)]); i = j; continue;\n      }\n      // 두 글자 연산자 먼저\n      const two = src.slice(i, i + 2);\n      if (['>=', '<=', '==', '!='].includes(two)) { out.push(['op', two]); i += 2; continue; }\n      if ('+-*/()<>='.includes(c)) { out.push(['op', c]); i++; continue; }\n      out.push(['err', c]); i++;  // 모르는 글자\n    }\n    out.push(['eof', 'eof']);\n    return out;\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '토크나이저 = 글자를 의미 단위(토큰)로 묶기',\n    '중첩·우선순위는 정규식 넘어 파서로(정규식 한계)',\n    '30줄 구조 — 왼쪽부터 종류별로 묶고 전진',\n    '토큰 = 타입 + 값 + 위치',\n    '위치를 반드시 담는다(좋은 오류의 뿌리)',\n    'eof 토큰으로 파서를 간결·안전하게',\n    '긴 연산자 먼저·문자열·주석·숫자·키워드',\n    '작은 언어는 손수·흔한 형식은 기존 파서',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 토크나이저를 만들고 문자열을 토큰으로 다룰 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '글자를 토큰으로 · 위치를 담고 · eof 를 넣고 · 긴 것을 먼저.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -728,15 +728,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 글자를 토큰으로, 위치를 담고, eof 를 넣고, 긴 것을 먼저.** 토크나이저는 글자를 의미 단위로 묶고(1장), 중첩·우선순위는 정규식을 넘어 파서로 가고(2장), 30줄 구조로 왼쪽부터 종류별로 묶고(3장), 토큰은 타입+값+위치를 담고(4장), 특히 위치를 반드시 담아 좋은 오류의 뿌리로 삼고(5장), eof 토큰으로 파서를 간결·안전하게 하고(6장), 긴 연산자·문자열·주석 같은 함정을 처리하고(7장), 작은 언어는 손수·흔한 형식은 기존 파서를 쓴다(8장). 토크나이저는 언어 파이프라인의 첫 단계이자 문자열 처리의 기본기다."
+          "text": "**한 줄 요약: 글자를 토큰으로, 위치를 담고, eof 를 넣고, 긴 것을 먼저.** 토크나이저는 글자를 의미 단위로 묶고(1장), 중첩, 우선순위는 정규식을 넘어 파서로 가고(2장), 30줄 구조로 왼쪽부터 종류별로 묶고(3장), 토큰은 타입+값+위치를 담고(4장), 특히 위치를 반드시 담아 좋은 오류의 뿌리로 삼고(5장), eof 토큰으로 파서를 간결, 안전하게 하고(6장), 긴 연산자, 문자열, 주석 같은 함정을 처리하고(7장), 작은 언어는 손수, 흔한 형식은 기존 파서를 쓴다(8장). 토크나이저는 언어 파이프라인의 첫 단계이자 문자열 처리의 기본기다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** 토크나이저(plt-lexer)의 토큰은 파서(plt-parser)의 입력이 되어 트리(AST)로, 그 트리는 인터프리터(plt-interp)로 실행되고, 위치 정보는 좋은 오류(plt-error)·에디터 도구(plt-lsp)의 바탕이 된다. 정규식의 한계는 plt-why(작은 언어), 문자열 처리는 data-format(인코딩·이스케이프), eof 의 센티널 패턴은 sys-fd·design 과 통한다. **「글자를 위치 있는 토큰으로 묶는 첫 단계」가 언어·도구 만들기의 출발**이자, 파서·인터프리터·오류·에디터 도구가 그 위에 선다."
+          "text": "**이 칸의 연결.** 토크나이저(plt-lexer)의 토큰은 파서(plt-parser)의 입력이 되어 트리(AST)로, 그 트리는 인터프리터(plt-interp)로 실행되고, 위치 정보는 좋은 오류(plt-error), 에디터 도구(plt-lsp)의 바탕이 된다. 정규식의 한계는 plt-why(작은 언어), 문자열 처리는 data-format(인코딩, 이스케이프), eof 의 센티널 패턴은 sys-fd, design 과 통한다. **\"글자를 위치 있는 토큰으로 묶는 첫 단계\"가 언어, 도구 만들기의 출발**이자, 파서, 인터프리터, 오류, 에디터 도구가 그 위에 선다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 토크나이저를 점검하라. 「위치를 담기」와 「eof 토큰 넣기」 두 가지만 잡아도, 좋은 오류 메시지의 바탕이 생기고 파서가 간결해진다. 30줄 토크나이저를 직접 만들어 손에 익혀라."
+          "text": "이 8개로 네 토크나이저를 점검하라. \"위치를 담기\"와 \"eof 토큰 넣기\" 두 가지만 잡아도, 좋은 오류 메시지의 바탕이 생기고 파서가 간결해진다. 30줄 토크나이저를 직접 만들어 손에 익혀라."
         }
       ],
       "quiz": [
@@ -744,7 +744,7 @@
           "q": "토크나이저 장의 한 줄 요약은?",
           "choices": [
             "빠르게",
-            "글자를 토큰으로·위치를 담고·eof 를 넣고·긴 것을 먼저",
+            "글자를 토큰으로, 위치를 담고, eof 를 넣고, 긴 것을 먼저",
             "트리 만들기",
             "무시"
           ],
@@ -754,19 +754,19 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "성능·정규식 곡예",
+            "성능, 정규식 곡예",
             "위치 담기(좋은 오류) + eof 토큰(파서 간결)",
-            "키워드·모드",
+            "키워드, 모드",
             "무시"
           ],
           "answer": 1,
-          "why": "오류·파서 바탕."
+          "why": "오류, 파서 바탕."
         },
         {
           "q": "토크나이저가 이어지는 주제는?",
           "choices": [
             "없음",
-            "plt-parser·plt-interp·plt-error·plt-lsp",
+            "plt-parser, plt-interp, plt-error, plt-lsp",
             "문법",
             "속도"
           ],

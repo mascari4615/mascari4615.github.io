@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "「좋아진 것 같다」는 착각",
+      "title": "\"좋아진 것 같다\"는 착각",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "프롬프트를 고친 뒤의 「좋아진 것 같다」는 대체로 착각이다. 모델은 같은 질문에도 **매번 조금씩 다르게** 답하고(비결정성), 우리는 방금 본 몇 개만 기억한다. **고정된 문제 세트로 점수를 매기지 않으면** 개선인지 후퇴인지 알 수 없다."
+          "text": "프롬프트를 고친 뒤의 \"좋아진 것 같다\"는 대체로 착각이다. 모델은 같은 질문에도 **매번 조금씩 다르게** 답하고(비결정성), 우리는 방금 본 몇 개만 기억한다. **고정된 문제 세트로 점수를 매기지 않으면** 개선인지 후퇴인지 알 수 없다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "같은 질문을 여러 번 — 눈대중이 안 되는 이유",
+          "label": "같은 질문을 여러 번. 눈대중이 안 되는 이유",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const run = {{run}};\n  const answers = [\n    ['환불은 구매 후 7일 이내에 가능합니다.', 'ok', '정확'],\n    ['보통 일주일쯤 안에 환불돼요. 상황에 따라 달라질 수 있어요.', 'warn', '모호'],\n    ['환불 정책은 앱 설정에서 확인해 주세요.', 'no', '회피'],\n    ['환불은 7일 이내, 미개봉 상품에 한합니다.', 'ok', '정확+조건'],\n  ];\n  const a = answers[run % 4];\n  const cls = a[1] === 'ok' ? 'ok' : a[1] === 'warn' ? 'warn' : 'no';\n  render('prompt: 「환불 언제까지 되나요?」   (실행 #' + (run + 1) + ')',\n    '  답: <span class=\\\"' + cls + '\\\">' + esc(a[0]) + '</span>\\n\\n' +\n    '  네가 방금 이 한 번만 봤다면 -> 「' + a[2] + '」 이 이 프롬프트의 실력이라 믿는다.',\n    '같은 프롬프트인데 실행마다 답이 흔들린다. 한두 번 보고 「좋아졌다」 판정 = 도박.',\n    box('이 프롬프트를 4번 돌린 결과', answers.map((x, i) =>\n      (i === run % 4 ? '> ' : '  ') + '#' + (i + 1) + ' [' + x[2] + '] ' + x[0]).join('\\n')));\n</script>",
           "controls": [
@@ -30,23 +30,23 @@
         },
         {
           "type": "note",
-          "text": "**기억은 표본이 편향돼 있다.** 우리는 방금 본 답·인상적이던 실패만 기억한다. 4번 중 2번 좋고 2번 나쁜 프롬프트도, 마지막에 좋은 답을 보면 「좋다」고 착각한다. 숫자만이 편향 없는 증거다."
+          "text": "**기억은 표본이 편향돼 있다.** 우리는 방금 본 답, 인상적이던 실패만 기억한다. 4번 중 2번 좋고 2번 나쁜 프롬프트도, 마지막에 좋은 답을 보면 \"좋다\"고 착각한다. 숫자만이 편향 없는 증거다."
         },
         {
           "type": "p",
-          "text": "**평가(eval) = 고정된 입력 묶음에 점수를 매기는 것.** 프롬프트·모델·문서 색인을 바꿀 때마다 **같은 세트**를 돌려 점수를 비교하면, 흔들림에 속지 않고 진짜 방향을 안다. 이 과정 전체가 그 세트를 만들고 키우고 신뢰하는 방법이다."
+          "text": "**평가(eval) = 고정된 입력 묶음에 점수를 매기는 것.** 프롬프트, 모델, 문서 색인을 바꿀 때마다 **같은 세트**를 돌려 점수를 비교하면, 흔들림에 속지 않고 진짜 방향을 안다. 이 과정 전체가 그 세트를 만들고 키우고 신뢰하는 방법이다."
         },
         {
           "type": "try",
-          "text": "지금 개선하려는 기능에서, 최근 「좋아졌다」고 느낀 근거를 세어 보라 — 몇 개의 답을 보고 판단했는가. 3개 미만이면 그것은 인상이지 측정이 아니다."
+          "text": "지금 개선하려는 기능에서, 최근 \"좋아졌다\"고 느낀 근거를 세어 보라. 몇 개의 답을 보고 판단했는가. 3개 미만이면 그것은 인상이지 측정이 아니다."
         }
       ],
       "quiz": [
         {
-          "q": "「프롬프트 고쳤더니 좋아진 것 같다」가 위험한 1차 이유는?",
+          "q": "\"프롬프트 고쳤더니 좋아진 것 같다\"가 위험한 1차 이유는?",
           "choices": [
             "모델이 느려서",
-            "비결정성 + 표본 편향 — 몇 개 인상으로 판단",
+            "비결정성 + 표본 편향. 몇 개 인상으로 판단",
             "토큰이 비싸서",
             "형식이 바뀌어서"
           ],
@@ -62,7 +62,7 @@
             "속도 측정"
           ],
           "answer": 1,
-          "why": "같은 세트 · 점수 · 비교."
+          "why": "같은 세트, 점수, 비교."
         },
         {
           "q": "눈대중 대신 숫자가 필요한 까닭은?",
@@ -79,12 +79,12 @@
     },
     {
       "id": "2",
-      "title": "가장 작은 평가 — 케이스와 점수",
+      "title": "가장 작은 평가. 케이스와 점수",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "평가는 거창할 필요 없다. **입력 + 원하는 것(want)** 쌍 몇 개면 시작이다. 각 케이스를 돌려 맞으면 1, 틀리면 0 — 평균이 점수다. 20개로 시작해 실패가 나올 때마다 늘린다."
+          "text": "평가는 거창할 필요 없다. **입력 + 원하는 것(want)** 쌍 몇 개면 시작이다. 각 케이스를 돌려 맞으면 1, 틀리면 0. 평균이 점수다. 20개로 시작해 실패가 나올 때마다 늘린다."
         },
         {
           "type": "code",
@@ -95,7 +95,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "케이스셋을 채점해 보라 — 통과/실패와 정확도",
+          "label": "케이스셋을 채점해 보라. 통과/실패와 정확도",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ver = '{{ver}}';\n  const cases = ['이중결제->payment','비번분실->account','배송문의->shipping',\n                 '환불요청->payment','앱이 튕겨요->bug','쿠폰 안돼요->payment'];\n  // 두 버전의 분류 결과(결정적으로 고정)\n  const want = ['payment','account','shipping','payment','bug','payment'];\n  const got = {\n    v1: ['payment','account','shipping','account','bug','account'],\n    v2: ['payment','account','shipping','payment','bug','payment'],\n  }[ver];\n  let pass = 0; const rows = [];\n  for (let i = 0; i < cases.length; i++) {\n    const ok = got[i] === want[i]; if (ok) pass++;\n    rows.push('<div class=\\\"cell ' + (ok ? 'hit' : 'miss') + '\\\">' +\n      esc(cases[i].split('->')[0]) + '<br>' + (ok ? 'OK ' : 'X ') + esc(got[i]) + '</div>');\n  }\n  const sc = pass / cases.length;\n  render('eval(' + ver + '): ' + pass + '/' + cases.length + ' pass',\n    '  정확도 = ' + pass + '/' + cases.length + ' = <span class=\\\"' +\n      (sc >= 0.9 ? 'ok' : sc >= 0.7 ? 'warn' : 'no') + '\\\">' + (sc * 100).toFixed(0) + '%</span>\\n\\n' +\n    '  v1 은 payment 를 account 로 자주 헷갈린다 -> v2 에서 잡혔다.',\n    '같은 6케이스를 두 버전에 돌려 점수를 비교한다. 이것이 「개선」의 증거.',\n    '<div class=\\\"grid\\\" style=\\\"grid-template-columns:repeat(3,1fr)\\\">' + rows.join('') + '</div>');\n</script>",
           "controls": [
@@ -119,11 +119,11 @@
         },
         {
           "type": "note",
-          "text": "**실패 사례를 모아 평가 세트로 키운다.** 사용자가 신고한 이상한 답을 그날 바로 케이스로 추가하면, 같은 실수가 두 번 나가지 않는다. 평가셋은 처음부터 완벽할 수 없다 — 실패를 흡수하며 자란다."
+          "text": "**실패 사례를 모아 평가 세트로 키운다.** 사용자가 신고한 이상한 답을 그날 바로 케이스로 추가하면, 같은 실수가 두 번 나가지 않는다. 평가셋은 처음부터 완벽할 수 없다. 실패를 흡수하며 자란다."
         },
         {
           "type": "p",
-          "text": "**점수 하나로 뭉개지 말라.** 어떤 케이스가 틀렸는지 봐야 고친다. 위 데모처럼 케이스별 통과/실패를 남기면, v1 이 payment 를 account 로 헷갈린다는 **패턴**이 보인다 — 그게 다음 프롬프트 수정의 방향이다."
+          "text": "**점수 하나로 뭉개지 말라.** 어떤 케이스가 틀렸는지 봐야 고친다. 위 데모처럼 케이스별 통과/실패를 남기면, v1 이 payment 를 account 로 헷갈린다는 **패턴**이 보인다. 그게 다음 프롬프트 수정의 방향이다."
         },
         {
           "type": "try",
@@ -173,12 +173,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「정확도」 하나로는 부족하다. **정답이 하나면** 정확도. **형식이 중요하면** 형식 준수율(JSON 파싱 성공률·필드 완비율). **정답이 여럿이면**(요약·글쓰기) 기준을 나눠 채점한다 — 사실성·간결성·형식. 그리고 품질만이 아니라 **지연·토큰·비용**도 같이 잰다."
+          "text": "\"정확도\" 하나로는 부족하다. **정답이 하나면** 정확도. **형식이 중요하면** 형식 준수율(JSON 파싱 성공률, 필드 완비율). **정답이 여럿이면**(요약, 글쓰기) 기준을 나눠 채점한다. 사실성, 간결성, 형식. 그리고 품질만이 아니라 **지연, 토큰, 비용**도 같이 잰다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 재느냐에 따라 다른 그림 — 지표를 골라 보라",
+          "label": "무엇을 재느냐에 따라 다른 그림. 지표를 골라 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{metric}}';\n  const data = {\n    acc:    [['v1 정확도', 72, '72%', '#38bdf8'], ['v2 정확도', 91, '91%', '#4ade80']],\n    format: [['v1 JSON 성공', 84, '84%', '#38bdf8'], ['v2 JSON 성공', 99, '99%', '#4ade80']],\n    multi:  [['사실성', 88, '0.88', '#38bdf8'], ['간결성', 61, '0.61', '#fbbf24'], ['형식', 95, '0.95', '#4ade80']],\n    cost:   [['v1 지연', 40, '0.8s', '#38bdf8'], ['v2 지연', 90, '1.8s', '#fca5a5'], ['v2 토큰', 75, '1500', '#fbbf24']],\n  }[m];\n  const note = {\n    acc:    '정답이 하나로 정해지는 분류·추출 — 맞다/틀리다.',\n    format: '구조가 중요한 API 응답 — 파싱 성공률·필드 완비율.',\n    multi:  '정답이 여럿인 요약·글쓰기 — 기준을 나눠 각각 0~1 로.',\n    cost:   'v2 가 더 똑똑하지만 2배 느리고 비싸다 — 품질만 보면 놓친다.',\n  }[m];\n  render('metric: ' + m,\n    '  ' + note + '\\n\\n' +\n    (m === 'cost' ? '  <span class=\\\"warn\\\">품질 개선이 지연·비용 악화와 맞바꾼 것일 수 있다 — 함께 봐야 한다.</span>'\n                  : '  <span class=\\\"dim\\\">한 지표가 좋아도 다른 지표가 나빠질 수 있다.</span>'),\n    '무엇을 재느냐가 「좋음」의 정의다. 과제 성격에 맞는 지표를 골라라.',\n    bars(data));\n</script>",
           "controls": [
@@ -202,7 +202,7 @@
                 },
                 {
                   "value": "cost",
-                  "label": "지연·토큰·비용"
+                  "label": "지연, 토큰, 비용"
                 }
               ]
             }
@@ -211,24 +211,24 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "다기준 채점 — 항목을 나눈다",
+          "label": "다기준 채점. 항목을 나눈다",
           "text": "// 요약 품질: 하나의 점수로 뭉개지 말고 기준을 쪼갠다\nfunction scoreSummary(source, summary) {\n  return {\n    factual: allFactsInSource(summary, source),  // 없는 사실 지어냈나 (0~1)\n    concise: summary.length <= source.length * 0.3, // 충분히 짧나\n    format:  /^- /.test(summary),                  // 요청한 불릿 형식인가\n  };\n}\n// 각 기준을 따로 추적하면 '어느 축이 나빠졌나'가 보인다"
         },
         {
           "type": "note",
-          "text": "**품질과 비용은 맞바꾸기 관계일 때가 많다.** 더 큰 모델·더 긴 프롬프트·더 많은 도구 호출은 점수를 올리며 지연·토큰을 늘린다. 정확도만 보고 배포하면 청구서와 응답 속도에서 뒤통수를 맞는다 — 항상 함께 잰다."
+          "text": "**품질과 비용은 맞바꾸기 관계일 때가 많다.** 더 큰 모델, 더 긴 프롬프트, 더 많은 도구 호출은 점수를 올리며 지연, 토큰을 늘린다. 정확도만 보고 배포하면 청구서와 응답 속도에서 뒤통수를 맞는다. 항상 함께 잰다."
         },
         {
           "type": "try",
-          "text": "네 기능의 「좋은 답」을 3개 기준으로 쪼개 적어라(예: 사실성·형식·길이). 각 기준을 0/1 로 채점하는 규칙을 한 줄씩 정의하라."
+          "text": "네 기능의 \"좋은 답\"을 3개 기준으로 쪼개 적어라(예: 사실성, 형식, 길이). 각 기준을 0/1 로 채점하는 규칙을 한 줄씩 정의하라."
         }
       ],
       "quiz": [
         {
-          "q": "정답이 여럿인 요약·글쓰기를 채점하는 법은?",
+          "q": "정답이 여럿인 요약, 글쓰기를 채점하는 법은?",
           "choices": [
             "정확도 하나로",
-            "기준을 나눠(사실성·간결성·형식) 각각 채점",
+            "기준을 나눠(사실성, 간결성, 형식) 각각 채점",
             "길이만",
             "채점 불가"
           ],
@@ -239,7 +239,7 @@
           "q": "품질 지표와 함께 반드시 봐야 하는 것은?",
           "choices": [
             "모델 이름",
-            "지연·토큰·비용",
+            "지연, 토큰, 비용",
             "코드 줄 수",
             "직원 수"
           ],
@@ -250,7 +250,7 @@
           "q": "API 응답처럼 구조가 중요할 때의 지표는?",
           "choices": [
             "정확도",
-            "형식 준수율(파싱 성공·필드 완비)",
+            "형식 준수율(파싱 성공, 필드 완비)",
             "지연",
             "길이"
           ],
@@ -261,17 +261,17 @@
     },
     {
       "id": "4",
-      "title": "결정적 채점의 함정 — 정규화",
+      "title": "결정적 채점의 함정. 정규화",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "정답이 하나여도 채점은 미묘하다. 「Payment」와 「payment 」(뒤 공백)를 다르다고 채점하면, 멀쩡한 답이 **틀렸다고 집계**된다. 반대로 너무 느슨하게 맞추면 틀린 답을 통과시킨다. **정규화 규칙을 명시**하는 것이 결정적 채점의 핵심이다."
+          "text": "정답이 하나여도 채점은 미묘하다. \"Payment\"와 \"payment \"(뒤 공백)를 다르다고 채점하면, 멀쩡한 답이 **틀렸다고 집계**된다. 반대로 너무 느슨하게 맞추면 틀린 답을 통과시킨다. **정규화 규칙을 명시**하는 것이 결정적 채점의 핵심이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "정규화를 켜고 꺼 보라 — 같은 답, 다른 통과율",
+          "label": "정규화를 켜고 꺼 보라. 같은 답, 다른 통과율",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const norm = {{norm}};\n  const pairs = [\n    ['payment', 'Payment'], ['account', 'account '], ['shipping', 'Shipping'],\n    ['payment', 'payment.'], ['bug', 'BUG'], ['refund', 'refund'],\n  ];\n  const clean = (s) => norm ? s.toLowerCase().trim().replace(/[.\\s]+$/, '') : s;\n  let pass = 0; const rows = [];\n  for (const [want, got] of pairs) {\n    const ok = clean(want) === clean(got); if (ok) pass++;\n    rows.push('<div class=\\\"cell ' + (ok ? 'hit' : 'miss') + '\\\">want:' + esc(want) +\n      '<br>got:' + esc(got.replace(/ /g, '_')) + '<br>' + (ok ? 'OK' : 'X') + '</div>');\n  }\n  render('normalize = ' + norm,\n    '  통과 ' + pass + '/6 = <span class=\\\"' + (pass === 6 ? 'ok' : 'no') + '\\\">' +\n      (pass / 6 * 100).toFixed(0) + '%</span>\\n\\n' +\n    (norm ? '  대소문자·뒤 공백·마침표를 무시하니 의미가 같은 답이 통과한다.'\n          : '  <span class=\\\"no\\\">멀쩡한 답이 대문자·공백 때문에 「틀림」으로 집계된다 — 가짜 실패.</span>'),\n    '채점기의 정규화가 곧 「무엇을 같다고 볼지」의 정의. 너무 엄격해도 느슨해도 거짓 점수.',\n    '<div class=\\\"grid\\\" style=\\\"grid-template-columns:repeat(3,1fr)\\\">' + rows.join('') + '</div>');\n</script>",
           "controls": [
@@ -289,11 +289,11 @@
         },
         {
           "type": "p",
-          "text": "**숫자·목록·JSON 은 값으로 비교하라.** 문자열 그대로 비교하면 `1.0` 과 `1`, 키 순서가 다른 JSON 이 틀렸다고 나온다. 파싱해서 **의미 단위**로 비교하고, 부분 정답은 부분 점수(정밀도·재현율)로 다룬다."
+          "text": "**숫자, 목록, JSON 은 값으로 비교하라.** 문자열 그대로 비교하면 `1.0` 과 `1`, 키 순서가 다른 JSON 이 틀렸다고 나온다. 파싱해서 **의미 단위**로 비교하고, 부분 정답은 부분 점수(정밀도, 재현율)로 다룬다."
         },
         {
           "type": "try",
-          "text": "네 채점 코드에서 want 와 got 을 비교하는 줄을 찾아, 대소문자·공백·후행 문장부호를 어떻게 다루는지 확인하라. 규칙이 없다면 한 줄 추가하라."
+          "text": "네 채점 코드에서 want 와 got 을 비교하는 줄을 찾아, 대소문자, 공백, 후행 문장부호를 어떻게 다루는지 확인하라. 규칙이 없다면 한 줄 추가하라."
         }
       ],
       "quiz": [
@@ -301,7 +301,7 @@
           "q": "채점에서 정규화가 필요한 이유는?",
           "choices": [
             "빠르려고",
-            "대소문자·공백 차이로 멀쩡한 답이 가짜 실패가 되므로",
+            "대소문자, 공백 차이로 멀쩡한 답이 가짜 실패가 되므로",
             "예뻐서",
             "규칙"
           ],
@@ -309,10 +309,10 @@
           "why": "false fail 방지."
         },
         {
-          "q": "JSON·숫자 답을 비교하는 올바른 방법은?",
+          "q": "JSON, 숫자 답을 비교하는 올바른 방법은?",
           "choices": [
             "문자열 그대로",
-            "파싱해서 값·의미 단위로",
+            "파싱해서 값, 의미 단위로",
             "길이로",
             "해시로"
           ],
@@ -334,23 +334,23 @@
     },
     {
       "id": "5",
-      "title": "모델로 채점하기 — LLM-as-judge",
+      "title": "모델로 채점하기. LLM-as-judge",
       "minutes": 10,
       "blocks": [
         {
           "type": "p",
-          "text": "정답이 열려 있는 글(요약·설명·상담 답변)은 규칙으로 채점하기 어렵다. 이때 **또 다른 모델에게 채점을 맡긴다** — 기준을 주고 0/1 이나 점수를 내게 한다. 강력하지만, **채점 모델도 틀린다**는 것이 핵심 함정이다."
+          "text": "정답이 열려 있는 글(요약, 설명, 상담 답변)은 규칙으로 채점하기 어렵다. 이때 **또 다른 모델에게 채점을 맡긴다**. 기준을 주고 0/1 이나 점수를 내게 한다. 강력하지만, **채점 모델도 틀린다**는 것이 핵심 함정이다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "채점 프롬프트 — 기준을 못 박는다",
+          "label": "채점 프롬프트. 기준을 못 박는다",
           "text": "const judgePrompt = `아래 답변을 채점하라.\n기준:\n (1) 근거 문서에 있는 사실만 말했나 (지어낸 사실 = 0)\n (2) 질문에 직접 답했나\n (3) 요청한 형식(불릿 3개)을 지켰나\n각 항목 0 또는 1 로, 이유 한 줄과 함께 JSON 으로:\n{\"factual\":0|1, \"answered\":0|1, \"format\":0|1, \"why\":\"...\"}\n\n[질문] ${q}\n[근거] ${context}\n[답변] ${answer}`;\n// 낮은 temperature · 구조화 출력 · 근거를 함께 준다"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "채점 모델을 사람과 대조 — 얼마나 믿을 수 있나",
+          "label": "채점 모델을 사람과 대조. 얼마나 믿을 수 있나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const j = '{{judge}}';\n  // 40개를 사람이 채점(정답) vs 채점모델이 채점 -> 혼동행렬\n  const cm = {\n    good: { tp: 18, fn: 2, fp: 3, tn: 17 },\n    bad:  { tp: 12, fn: 8, fp: 9, tn: 11 },\n  }[j];\n  const total = cm.tp + cm.fn + cm.fp + cm.tn;\n  const agree = (cm.tp + cm.tn) / total;\n  const grid = [\n    '<div class=\\\"cell hd\\\"></div><div class=\\\"cell hd\\\">사람:좋음</div><div class=\\\"cell hd\\\">사람:나쁨</div>',\n    '<div class=\\\"cell hd\\\">모델:좋음</div><div class=\\\"cell hit\\\">' + cm.tp + '</div><div class=\\\"cell miss\\\">' + cm.fp + ' 헛통과</div>',\n    '<div class=\\\"cell hd\\\">모델:나쁨</div><div class=\\\"cell miss\\\">' + cm.fn + ' 헛탈락</div><div class=\\\"cell hit\\\">' + cm.tn + '</div>',\n  ].join('');\n  render('judge vs human (n=' + total + ')',\n    '  사람과의 일치율 = <span class=\\\"' + (agree >= 0.85 ? 'ok' : 'no') + '\\\">' +\n      (agree * 100).toFixed(0) + '%</span>\\n\\n' +\n    (agree >= 0.85 ? '  일치율이 높다 -> 이 채점기를 자동 평가에 써도 된다.'\n                   : '  <span class=\\\"no\\\">일치율이 낮다 -> 이 채점기의 점수는 믿을 수 없다. 기준·프롬프트부터 고쳐라.</span>'),\n    '채점기를 쓰기 전에 사람 채점 30~50개로 일치율을 먼저 검증한다 — 채점기도 평가 대상.',\n    '<div class=\\\"grid\\\" style=\\\"grid-template-columns:repeat(3,1fr)\\\">' + grid + '</div>');\n</script>",
           "controls": [
@@ -374,7 +374,7 @@
         },
         {
           "type": "note",
-          "text": "**채점기도 평가 대상이다.** 사람이 채점한 30~50개로 채점 모델의 **일치율**을 먼저 확인하고 쓰는 것이 정석이다. 일치율이 낮으면 그 채점기가 낸 점수는 잡음일 뿐 — 기준을 더 구체화하거나 근거를 함께 주어 고친다."
+          "text": "**채점기도 평가 대상이다.** 사람이 채점한 30~50개로 채점 모델의 **일치율**을 먼저 확인하고 쓰는 것이 정석이다. 일치율이 낮으면 그 채점기가 낸 점수는 잡음일 뿐. 기준을 더 구체화하거나 근거를 함께 주어 고친다."
         },
         {
           "type": "p",
@@ -406,7 +406,7 @@
             "자기 스타일 선호"
           ],
           "answer": 2,
-          "why": "길이·위치·스타일 편향이 알려진 것."
+          "why": "길이, 위치, 스타일 편향이 알려진 것."
         },
         {
           "q": "두 답을 비교 채점할 때 위치 편향을 줄이는 법은?",
@@ -423,17 +423,17 @@
     },
     {
       "id": "6",
-      "title": "오프라인과 온라인 — 두 개의 눈",
+      "title": "오프라인과 온라인. 두 개의 눈",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**오프라인 평가**는 고정 세트로 배포 전에 점수를 낸다 — 빠르고 반복 가능. 하지만 실제 사용자·실제 질문의 분포는 세트와 다르다. **온라인 평가**는 진짜 트래픽에서 두 버전을 나눠 사용자 반응을 잰다(A/B). 둘 다 필요하다."
+          "text": "**오프라인 평가**는 고정 세트로 배포 전에 점수를 낸다. 빠르고 반복 가능. 하지만 실제 사용자, 실제 질문의 분포는 세트와 다르다. **온라인 평가**는 진짜 트래픽에서 두 버전을 나눠 사용자 반응을 잰다(A/B). 둘 다 필요하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "A/B — 온라인에서 두 버전을 가른다",
+          "label": "A/B. 온라인에서 두 버전을 가른다",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{n}};\n  // 두 버전의 사용자 만족(해결률). 표본이 적으면 차이를 못 믿는다.\n  const pA = 0.62, pB = 0.71;\n  const seA = Math.sqrt(pA * (1 - pA) / n), seB = Math.sqrt(pB * (1 - pB) / n);\n  const diff = pB - pA, se = Math.sqrt(seA * seA + seB * seB);\n  const z = diff / se;                       // 대략적 유의성\n  const sig = z >= 1.96;\n  render('A/B  n=' + n + '/버전',\n    '  A(구): 62% 해결   B(신): 71% 해결   차이 +9%p\\n\\n' +\n    '  z ~ ' + z.toFixed(2) + '  ->  ' + (sig\n      ? '<span class=\\\"ok\\\">차이를 믿을 만하다(95%). B 를 밀어도 된다.</span>'\n      : '<span class=\\\"no\\\">표본이 적어 이 +9%p 가 우연일 수 있다. 더 모아라.</span>'),\n    '같은 +9%p 라도 표본이 적으면 우연과 구분이 안 된다 — n 을 늘려 보라.',\n    bars([['A 해결률', 62, '62%', '#38bdf8'], ['B 해결률', 71, '71%', '#4ade80'],\n          ['신뢰 여유(1/√n)', Math.min(100, 100 / Math.sqrt(n) * 6), '±' + (se * 100 * 1.96).toFixed(1) + '%p', '#fbbf24']]));\n</script>",
           "controls": [
@@ -450,7 +450,7 @@
         },
         {
           "type": "note",
-          "text": "**온라인 지표는 대리(proxy)다.** 「좋아요」·재질문율·해결 클릭은 진짜 만족의 근사일 뿐이다. 사용자가 포기하고 나간 것을 「해결」로 오해하지 않도록, 여러 신호를 함께 본다 — 재질문율↓·상담 전환율↓·체류 적정."
+          "text": "**온라인 지표는 대리(proxy)다.** \"좋아요\", 재질문율, 해결 클릭은 진짜 만족의 근사일 뿐이다. 사용자가 포기하고 나간 것을 \"해결\"로 오해하지 않도록, 여러 신호를 함께 본다. 재질문율↓, 상담 전환율↓, 체류 적정."
         },
         {
           "type": "p",
@@ -458,7 +458,7 @@
         },
         {
           "type": "try",
-          "text": "네 서비스에서 「사용자가 만족했다」를 대리할 온라인 신호 2개를 정하라(예: 재질문 없음·상담 전환 없음). 각각이 어떻게 오해될 수 있는지도 한 줄 적어라."
+          "text": "네 서비스에서 \"사용자가 만족했다\"를 대리할 온라인 신호 2개를 정하라(예: 재질문 없음, 상담 전환 없음). 각각이 어떻게 오해될 수 있는지도 한 줄 적어라."
         }
       ],
       "quiz": [
@@ -499,17 +499,17 @@
     },
     {
       "id": "7",
-      "title": "회귀를 막는 자리 — CI 게이트",
+      "title": "회귀를 막는 자리. CI 게이트",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "평가의 진짜 힘은 **자동으로 도는 것**이다. 프롬프트·모델·문서 색인이 바뀔 때마다 평가셋을 돌리고, **기준선 아래로 떨어지면 실패**로 만든다. 그러면 조용한 후퇴가 배포로 나가기 전에 잡힌다 — 회귀 테스트와 같은 원리다."
+          "text": "평가의 진짜 힘은 **자동으로 도는 것**이다. 프롬프트, 모델, 문서 색인이 바뀔 때마다 평가셋을 돌리고, **기준선 아래로 떨어지면 실패**로 만든다. 그러면 조용한 후퇴가 배포로 나가기 전에 잡힌다. 회귀 테스트와 같은 원리다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "기준선 게이트 — 통과와 빨강",
+          "label": "기준선 게이트. 통과와 빨강",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const sc = {{score}} / 100;\n  const base = 0.85;              // 기준선\n  const pass = sc >= base;\n  render('CI: eval score ' + (sc * 100).toFixed(0) + '%  (기준선 ' + (base * 100) + '%)',\n    '  ' + (pass\n      ? '<span class=\\\"ok\\\">PASS — 기준선 이상. 배포 진행.</span>'\n      : '<span class=\\\"no\\\">FAIL — 기준선 아래. 파이프라인 정지, 배포 차단.</span>') +\n    '\\n\\n  이 게이트가 없으면 이 하락은 조용히 배포되어 사용자가 먼저 발견한다.',\n    '점수가 기준선을 넘으면 초록, 아래면 빨강 — 슬라이더를 내려 회귀를 만들어 보라.',\n    bars([['기준선', 85, '85%', '#64748b'], ['이번 점수', sc * 100,\n      (sc * 100).toFixed(0) + '%', pass ? '#4ade80' : '#fca5a5']]));\n</script>",
           "controls": [
@@ -532,15 +532,15 @@
         },
         {
           "type": "note",
-          "text": "**평가에도 비결정성이 있다.** 모델 출력이 흔들리면 같은 코드가 어떤 날은 통과, 어떤 날은 실패(flaky)한다. 온도를 낮추고, 케이스를 늘려 분산을 줄이고, 기준선에 약간의 여유(예: 3회 평균)를 둔다 — flaky 게이트는 무시당하다 결국 꺼진다."
+          "text": "**평가에도 비결정성이 있다.** 모델 출력이 흔들리면 같은 코드가 어떤 날은 통과, 어떤 날은 실패(flaky)한다. 온도를 낮추고, 케이스를 늘려 분산을 줄이고, 기준선에 약간의 여유(예: 3회 평균)를 둔다. flaky 게이트는 무시당하다 결국 꺼진다."
         },
         {
           "type": "p",
-          "text": "**기준선은 래칫이다.** 점수가 오르면 기준선도 의도적으로 올려, 한 번 도달한 품질이 뒤로 새지 않게 잠근다. 단, 올리는 것은 사람의 결정으로 — 자동으로 올리면 우연한 좋은 날에 맞춰져 이후 계속 flaky 해진다."
+          "text": "**기준선은 래칫이다.** 점수가 오르면 기준선도 의도적으로 올려, 한 번 도달한 품질이 뒤로 새지 않게 잠근다. 단, 올리는 것은 사람의 결정으로. 자동으로 올리면 우연한 좋은 날에 맞춰져 이후 계속 flaky 해진다."
         },
         {
           "type": "try",
-          "text": "네 평가를 CI 에 붙이고, 일부러 프롬프트를 나쁘게 고쳐 PR 을 열어 보라. 게이트가 빨강으로 막는가. 안 막으면 기준선·연결이 틀린 것이다."
+          "text": "네 평가를 CI 에 붙이고, 일부러 프롬프트를 나쁘게 고쳐 PR 을 열어 보라. 게이트가 빨강으로 막는가. 안 막으면 기준선, 연결이 틀린 것이다."
         }
       ],
       "quiz": [
@@ -567,7 +567,7 @@
           "why": "끄면 회귀가 다시 새 나간다."
         },
         {
-          "q": "기준선을 「래칫」으로 두는 이유는?",
+          "q": "기준선을 \"래칫\"으로 두는 이유는?",
           "choices": [
             "멋져서",
             "도달한 품질이 뒤로 새지 않게 잠그려고",
@@ -586,12 +586,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "모든 실패가 같지 않다. 배송 예상일을 하루 틀리는 것과, **없는 환불 규정을 지어내거나 유해한 답을 내는 것**은 무게가 다르다. 평균 정확도는 이 차이를 뭉갠다 — **치명적 실패에 큰 가중치**를 주거나 별도로 세어야 한다."
+          "text": "모든 실패가 같지 않다. 배송 예상일을 하루 틀리는 것과, **없는 환불 규정을 지어내거나 유해한 답을 내는 것**은 무게가 다르다. 평균 정확도는 이 차이를 뭉갠다. **치명적 실패에 큰 가중치**를 주거나 별도로 세어야 한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "평균 vs 가중 — 치명 실패를 드러내라",
+          "label": "평균 vs 가중. 치명 실패를 드러내라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  // 20케이스: 17 정답, 2 사소한 오답, 1 치명(환각/유해)\n  const simple = 17 / 20;                    // 평균 정확도\n  const critFail = 1;\n  const weighted = mode === 'weighted'\n    ? (17 * 1 + 2 * 0 + 1 * -10) / (20 * 1)   // 치명에 큰 음수 가중\n    : simple;\n  render('scoring: ' + mode,\n    '  단순 평균 정확도 = <span class=\\\"warn\\\">85%</span>  (17/20)\\n\\n' +\n    (mode === 'weighted'\n      ? '  치명 실패 1건에 큰 벌점 -> 가중 점수 = <span class=\\\"no\\\">' + (weighted).toFixed(2) +\n        '</span>\\n  한 건의 환각/유해 답이 점수를 무너뜨린다 — 그래야 눈에 띈다.'\n      : '  <span class=\\\"no\\\">85% 는 안전해 보인다 — 하지만 그 15% 안에 유해 답이 숨어 있다.</span>'),\n    '평균은 치명 실패를 다수의 정답으로 덮는다. 안전 케이스는 따로 세거나 크게 벌한다.',\n    bars([['정답 17', 85, '85%', '#4ade80'], ['사소한 오답 2', 10, '10%', '#fbbf24'],\n          ['치명 실패 1', 5, '1건 (유해/환각)', '#fca5a5']]));\n</script>",
           "controls": [
@@ -615,15 +615,15 @@
         },
         {
           "type": "note",
-          "text": "**안전·정책 케이스는 별도 세트로 100% 를 요구하라.** 「개인정보를 누설하지 않는다」·「의료·법률 조언을 단정하지 않는다」·「탈옥 시도에 넘어가지 않는다」 같은 것은 평균에 섞지 말고, 하나라도 실패하면 배포를 막는 하드 게이트로 둔다."
+          "text": "**안전, 정책 케이스는 별도 세트로 100% 를 요구하라.** \"개인정보를 누설하지 않는다\", \"의료, 법률 조언을 단정하지 않는다\", \"탈옥 시도에 넘어가지 않는다\" 같은 것은 평균에 섞지 말고, 하나라도 실패하면 배포를 막는 하드 게이트로 둔다."
         },
         {
           "type": "p",
-          "text": "**최악을 일부러 찔러라(red-team).** 평범한 케이스만 모으면 치명 실패가 세트에 없어 영영 안 잡힌다. 탈옥 프롬프트·함정 질문·모호한 위험 요청을 의도적으로 세트에 넣어, 나쁜 실패를 **평가가 먼저** 만나게 한다."
+          "text": "**최악을 일부러 찔러라(red-team).** 평범한 케이스만 모으면 치명 실패가 세트에 없어 영영 안 잡힌다. 탈옥 프롬프트, 함정 질문, 모호한 위험 요청을 의도적으로 세트에 넣어, 나쁜 실패를 **평가가 먼저** 만나게 한다."
         },
         {
           "type": "try",
-          "text": "네 기능에서 「일어나면 절대 안 되는」 답 3가지를 적고(예: 없는 정책 지어내기·개인정보 노출), 각각을 유도하는 함정 케이스를 만들어 세트에 넣어라."
+          "text": "네 기능에서 \"일어나면 절대 안 되는\" 답 3가지를 적고(예: 없는 정책 지어내기, 개인정보 노출), 각각을 유도하는 함정 케이스를 만들어 세트에 넣어라."
         }
       ],
       "quiz": [
@@ -639,7 +639,7 @@
           "why": "85%에 유해 답이 숨는다."
         },
         {
-          "q": "안전·정책 케이스를 다루는 올바른 방법은?",
+          "q": "안전, 정책 케이스를 다루는 올바른 방법은?",
           "choices": [
             "평균에 섞기",
             "별도 세트로 하드 게이트(100% 요구)",
@@ -664,17 +664,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 평가 체계 세우기",
+      "title": "점검표. 평가 체계 세우기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "새 AI 기능이나 프롬프트 변경 앞에서, 이 목록을 위에서 아래로 확인하라. 하나라도 「아니오」면 그 답은 개선인지 후퇴인지 **모르는** 상태다."
+          "text": "새 AI 기능이나 프롬프트 변경 앞에서, 이 목록을 위에서 아래로 확인하라. 하나라도 \"아니오\"면 그 답은 개선인지 후퇴인지 **모르는** 상태다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.hit { background:#132a1c; color:#4ade80; } .cell.miss { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '고정된 평가셋이 있다(입력+want, 최소 20개)',\n    '실패 사례가 나오면 그날 케이스로 추가한다',\n    '과제에 맞는 지표를 골랐다(정확도/형식/다기준)',\n    '품질과 함께 지연·토큰·비용도 잰다',\n    '채점 정규화 규칙이 명시돼 있다(false fail 방지)',\n    'LLM 채점기는 사람 표본으로 일치율을 검증했다',\n    '평가가 CI 에 붙어 기준선 아래면 빨강이다',\n    '안전·치명 케이스는 별도 하드 게이트다',\n  ];\n  const rows = items.map((t, i) => '<div class=\\\"st ' + (i < on ? 'on ' : '') +\n    (i < on ? 'done' : '') + '\\\" style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 갖췄다 — 이제 「좋아졌다」를 숫자로 증명할 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음 — 그만큼 개선/후퇴를 눈대중에 맡기는 중.</span>'),\n    '평가 체계는 한 번에 완성되지 않는다 — 최소셋부터 시작해 위 항목을 채워 간다.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -691,11 +691,11 @@
         },
         {
           "type": "note",
-          "text": "**순서가 곧 우선순위다.** 고정 세트 없이 채점기·CI 부터 만들면 잴 것이 없다. 최소 평가셋(1~2장) -> 무엇을 잴지(3장) -> 채점 신뢰(4~5장) -> 온·오프라인·CI(6~7장) -> 안전(8장) 순으로 쌓는다."
+          "text": "**순서가 곧 우선순위다.** 고정 세트 없이 채점기, CI 부터 만들면 잴 것이 없다. 최소 평가셋(1~2장) -> 무엇을 잴지(3장) -> 채점 신뢰(4~5장) -> 온, 오프라인, CI(6~7장) -> 안전(8장) 순으로 쌓는다."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 합류점.** 프롬프트(무엇을 시킬까)·토큰(얼마나 비싼가)·한계(언제 못 믿나)·RAG(어떻게 근거를 붙일까)·도구/에이전트(어떻게 행동할까) — 이 모든 변경이 **개선인지**는 오직 평가만이 답한다. 평가는 AI 개발의 나침반이다."
+          "text": "**이 트랙의 합류점.** 프롬프트(무엇을 시킬까), 토큰(얼마나 비싼가), 한계(언제 못 믿나), RAG(어떻게 근거를 붙일까), 도구/에이전트(어떻게 행동할까). 이 모든 변경이 **개선인지**는 오직 평가만이 답한다. 평가는 AI 개발의 나침반이다."
         },
         {
           "type": "try",

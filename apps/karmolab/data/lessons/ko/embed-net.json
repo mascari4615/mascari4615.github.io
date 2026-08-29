@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**IoT 의 망은 웹의 망과 다르다 — 끊기고, 느리고, 배터리가 있다. 웹의 가정을 그대로 들고 가면 기기가 하루 만에 방전된다.** 웹 개발은 안정된 광대역·상시 전원·넉넉한 자원을 전제하지만, IoT 기기는 **연결이 자주 끊기고**(약한 Wi-Fi·셀룰러·이동), **대역폭이 좁고 지연이 크며**, **배터리로** 돈다(무선 송신이 가장 비쌈, embed-limit 4장). 그래서 웹 습관 — 매번 HTTP 요청, 상시 연결, 큰 JSON, 「실패하면 재시도하면 되지」 — 를 그대로 쓰면 **전력이 순식간에 소모되고** 끊김에 취약하다. IoT 망 설계의 핵심: **작은 메시지·드문 전송·연결 절약·끊김을 전제한 견고함**. 이래서 HTTP 폴링 대신 **MQTT**(경량 발행/구독)를 쓰고(2장), 중복·유실을 다루며(3장), 전력과 주기를 저울질하고(4장), 보안·시간·오프라인을 챙긴다(5장). 이 칸은 그 규칙을 다룬다. 아래 데모로 웹 가정 vs IoT 현실을 확인하라."
+          "text": "**IoT 의 망은 웹의 망과 다르다. 끊기고, 느리고, 배터리가 있다. 웹의 가정을 그대로 들고 가면 기기가 하루 만에 방전된다.** 웹 개발은 안정된 광대역, 상시 전원, 넉넉한 자원을 전제하지만, IoT 기기는 **연결이 자주 끊기고**(약한 Wi-Fi, 셀룰러, 이동), **대역폭이 좁고 지연이 크며**, **배터리로** 돈다(무선 송신이 가장 비쌈, embed-limit 4장). 그래서 웹 습관. 매번 HTTP 요청, 상시 연결, 큰 JSON, \"실패하면 재시도하면 되지\". 를 그대로 쓰면 **전력이 순식간에 소모되고** 끊김에 취약하다. IoT 망 설계의 핵심: **작은 메시지, 드문 전송, 연결 절약, 끊김을 전제한 견고함**. 이래서 HTTP 폴링 대신 **MQTT**(경량 발행/구독)를 쓰고(2장), 중복, 유실을 다루며(3장), 전력과 주기를 저울질하고(4장), 보안, 시간, 오프라인을 챙긴다(5장). 이 칸은 그 규칙을 다룬다. 아래 데모로 웹 가정 vs IoT 현실을 확인하라."
         },
         {
           "type": "demo",
@@ -29,7 +29,7 @@
                 },
                 {
                   "value": "band",
-                  "label": "대역폭·지연"
+                  "label": "대역폭, 지연"
                 },
                 {
                   "value": "power",
@@ -45,19 +45,19 @@
         },
         {
           "type": "note",
-          "text": "**IoT 망은 웹과 달리 자주 끊기고 느리고 배터리로 돌기 때문에, 안정된 상시 연결·넉넉한 대역폭·상시 전원을 전제하는 웹 습관을 그대로 쓰면 기기가 방전되고 끊김에 취약해진다.** **웹의 전제 vs IoT 현실**: ① **연결 — 상시 vs 자주 끊김**: 웹/PC 는 안정된 유선·Wi-Fi 를 전제하지만, IoT 기기는 약한 Wi-Fi 신호·셀룰러 음영·이동·전력 절약(잠자기)으로 **연결이 수시로 끊긴다**. 그래서 「끊기지 않는다」를 가정하면 안 되고, **끊김을 전제로** 재연결·오프라인 버퍼(5장)를 설계한다. ② **대역폭·지연 — 넓고 빠름 vs 좁고 느림**: 셀룰러·LPWAN(LoRa)·좁은 Wi-Fi 는 대역폭이 작고 지연·손실이 크다. 웹처럼 **큰 JSON·잦은 요청·무거운 헤더**를 보내면 느리고 비싸다 — **작고 드물게** 보낸다. ③ **전원 — 콘센트 vs 배터리**: 많은 IoT 기기가 배터리로 돌고, **무선 송신·상시 연결 유지가 전력을 크게 먹는다**(embed-limit 4장 — 송신이 최고 비용). 웹처럼 상시 연결·폴링하면 **하루 만에 방전**된다 — 그래서 대부분 재우고 잠깐만 깨어 전송한다(4장). ④ **프로토콜 — HTTP vs MQTT**: 웹의 HTTP 요청/응답·폴링은 연결 수립·헤더 오버헤드가 크다. IoT 는 **MQTT** 같은 경량 발행/구독 프로토콜로 작은 메시지를 효율적으로 주고받는다(2장). **결과 — 다른 설계 원칙**: **작은 메시지 · 드문 전송(모아서) · 연결 절약(필요할 때만) · 끊김을 전제한 견고함(재연결·버퍼·멱등) · 시간·보안 별도 관리**. 웹 개발자가 IoT 로 오면 이 전환이 가장 큰 벽이다 — 「일단 REST API 로」·「상시 소켓 연결」·「실패하면 재시도」가 배터리·대역폭·끊김에서 무너진다. **정리**: IoT 망은 끊기고 느리고 배터리이므로, 웹의 가정을 버리고 작은 메시지·드문 전송·연결 절약·끊김 전제로 설계하라(다음 장이 그 도구 MQTT·QoS·전력·보안)."
+          "text": "**IoT 망은 웹과 달리 자주 끊기고 느리고 배터리로 돌기 때문에, 안정된 상시 연결, 넉넉한 대역폭, 상시 전원을 전제하는 웹 습관을 그대로 쓰면 기기가 방전되고 끊김에 취약해진다.** **웹의 전제 vs IoT 현실**: ① **연결. 상시 vs 자주 끊김**: 웹/PC 는 안정된 유선, Wi-Fi 를 전제하지만, IoT 기기는 약한 Wi-Fi 신호, 셀룰러 음영, 이동, 전력 절약(잠자기)으로 **연결이 수시로 끊긴다**. 그래서 \"끊기지 않는다\"를 가정하면 안 되고, **끊김을 전제로** 재연결, 오프라인 버퍼(5장)를 설계한다. ② **대역폭, 지연. 넓고 빠름 vs 좁고 느림**: 셀룰러, LPWAN(LoRa), 좁은 Wi-Fi 는 대역폭이 작고 지연, 손실이 크다. 웹처럼 **큰 JSON, 잦은 요청, 무거운 헤더**를 보내면 느리고 비싸다. **작고 드물게** 보낸다. ③ **전원. 콘센트 vs 배터리**: 많은 IoT 기기가 배터리로 돌고, **무선 송신, 상시 연결 유지가 전력을 크게 먹는다**(embed-limit 4장. 송신이 최고 비용). 웹처럼 상시 연결, 폴링하면 **하루 만에 방전**된다. 그래서 대부분 재우고 잠깐만 깨어 전송한다(4장). ④ **프로토콜. HTTP vs MQTT**: 웹의 HTTP 요청/응답, 폴링은 연결 수립, 헤더 오버헤드가 크다. IoT 는 **MQTT** 같은 경량 발행/구독 프로토콜로 작은 메시지를 효율적으로 주고받는다(2장). **결과. 다른 설계 원칙**: **작은 메시지, 드문 전송(모아서), 연결 절약(필요할 때만), 끊김을 전제한 견고함(재연결, 버퍼, 멱등), 시간, 보안 별도 관리**. 웹 개발자가 IoT 로 오면 이 전환이 가장 큰 벽이다. \"일단 REST API 로\", \"상시 소켓 연결\", \"실패하면 재시도\"가 배터리, 대역폭, 끊김에서 무너진다. **정리**: IoT 망은 끊기고 느리고 배터리이므로, 웹의 가정을 버리고 작은 메시지, 드문 전송, 연결 절약, 끊김 전제로 설계하라(다음 장이 그 도구 MQTT, QoS, 전력, 보안)."
         },
         {
           "type": "try",
-          "text": "만들려는(또는 만든) IoT 기기의 망을 웹 가정으로 점검하라 — **상시 연결을 전제하나**(끊기면?), **큰 JSON·잦은 요청을 보내나**(대역폭·전력?), **배터리인데 상시 연결·폴링하나**(방전?). 웹 습관이 있으면 작은 메시지·드문 전송·끊김 전제로 바꿀 지점을 표시하라."
+          "text": "만들려는(또는 만든) IoT 기기의 망을 웹 가정으로 점검하라. **상시 연결을 전제하나**(끊기면?), **큰 JSON, 잦은 요청을 보내나**(대역폭, 전력?), **배터리인데 상시 연결, 폴링하나**(방전?). 웹 습관이 있으면 작은 메시지, 드문 전송, 끊김 전제로 바꿀 지점을 표시하라."
         }
       ],
       "quiz": [
         {
           "q": "IoT 망의 세 특성은?",
           "choices": [
-            "빠르고 안정·무전원",
-            "끊기고·느리고·배터리",
+            "빠르고 안정, 무전원",
+            "끊기고, 느리고, 배터리",
             "웹과 같음",
             "무관"
           ],
@@ -65,7 +65,7 @@
           "why": "웹과 다름."
         },
         {
-          "q": "웹 가정(상시 연결·폴링)을 배터리 IoT 에 쓰면?",
+          "q": "웹 가정(상시 연결, 폴링)을 배터리 IoT 에 쓰면?",
           "choices": [
             "문제없음",
             "전력이 소모돼 하루 만에 방전",
@@ -73,18 +73,18 @@
             "무관"
           ],
           "answer": 1,
-          "why": "송신·연결이 비쌈."
+          "why": "송신, 연결이 비쌈."
         },
         {
           "q": "IoT 망 설계 원칙은?",
           "choices": [
-            "큰 메시지·상시 연결",
-            "작은 메시지·드문 전송·연결 절약·끊김 전제",
+            "큰 메시지, 상시 연결",
+            "작은 메시지, 드문 전송, 연결 절약, 끊김 전제",
             "웹과 동일",
             "무관"
           ],
           "answer": 1,
-          "why": "절약·견고."
+          "why": "절약, 견고."
         }
       ]
     },
@@ -95,12 +95,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**MQTT 는 IoT 에 맞는 경량 발행/구독 프로토콜이다 — 작은 헤더, 발행/구독 구조, 연결 유지(keep-alive), 유언 메시지(기기가 죽으면 브로커가 대신 알림)로 HTTP 폴링보다 전력·대역폭이 훨씬 유리하다.** 구조: 기기(발행자)가 **토픽**에 메시지를 **발행(publish)**하면, 그 토픽을 **구독(subscribe)**한 쪽이 **브로커(broker)**를 통해 받는다 — 발행자와 구독자는 서로를 몰라도 되고(느슨한 결합), 브로커가 중개한다. HTTP 폴링(「새 데이터 있어?」를 반복)과 달리, MQTT 는 **연결을 유지**하며 데이터가 생길 때 **밀어(push)** 준다 — 헤더가 작고 폴링 낭비가 없다. **유언 메시지(Last Will)**: 연결 시 「내가 갑자기 죽으면 이 메시지를 대신 보내 줘」를 등록해, 기기 전원이 나가면 브로커가 `offline` 을 알려 준다. **토픽 설계**: 계층적이고 기기 id 를 넣는다(`home/livingroom/sensor/temp`), 구독은 와일드카드(`home/+/sensor/temp`). 아래 데모로 발행/구독과 폴링 대비를 확인하라."
+          "text": "**MQTT 는 IoT 에 맞는 경량 발행/구독 프로토콜이다. 작은 헤더, 발행/구독 구조, 연결 유지(keep-alive), 유언 메시지(기기가 죽으면 브로커가 대신 알림)로 HTTP 폴링보다 전력, 대역폭이 훨씬 유리하다.** 구조: 기기(발행자)가 **토픽**에 메시지를 **발행(publish)**하면, 그 토픽을 **구독(subscribe)**한 쪽이 **브로커(broker)**를 통해 받는다. 발행자와 구독자는 서로를 몰라도 되고(느슨한 결합), 브로커가 중개한다. HTTP 폴링(\"새 데이터 있어?\"를 반복)과 달리, MQTT 는 **연결을 유지**하며 데이터가 생길 때 **밀어(push)** 준다. 헤더가 작고 폴링 낭비가 없다. **유언 메시지(Last Will)**: 연결 시 \"내가 갑자기 죽으면 이 메시지를 대신 보내 줘\"를 등록해, 기기 전원이 나가면 브로커가 `offline` 을 알려 준다. **토픽 설계**: 계층적이고 기기 id 를 넣는다(`home/livingroom/sensor/temp`), 구독은 와일드카드(`home/+/sensor/temp`). 아래 데모로 발행/구독과 폴링 대비를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "MQTT 발행/구독 · 유언 메시지",
+          "label": "MQTT 발행/구독, 유언 메시지",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .pubsub { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .pubsub .node { padding:6px 10px; border-radius:8px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .pubsub .node.broker { border-color:#22d3ee; color:#7dd3fc; } .pubsub .node.pub { border-color:#4ade80; color:#4ade80; } .pubsub .node.sub { border-color:#a78bfa; color:#c4b5fd; }\n  .pubsub .arrow { color:#475569; font-size:10px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function pubsub(nodes) { return '<div class=\"pubsub\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">' + (nd.arrow || '-&gt;') + '</span>' : '') +\n    '<span class=\"node ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'pubsub' || view === 'poll') {\n    const mqtt = view === 'pubsub';\n    render(mqtt ? 'MQTT 발행/구독 — 브로커가 중개, 생기면 밀어 줌' : 'HTTP 폴링 — 「새 데이터 있어?」 반복(낭비)',\n      (mqtt ? '<span class=\"ok\">토픽에 발행 → 브로커 → 구독자. 연결 유지·작은 헤더·push → 전력·대역폭 유리.</span>'\n            : '<span class=\"no\">주기적으로 서버에 물음 → 대부분 「없음」 → 연결 수립·헤더 낭비 → 전력·대역폭 소모.</span>'),\n      'MQTT: 작은 헤더·발행/구독·keep-alive → HTTP 폴링보다 전력·대역폭 유리.',\n      mqtt\n        ? pubsub([{ label: '기기(발행)', cls: 'pub' }, { label: 'home/.../temp' }, { label: '브로커', cls: 'broker' }, { label: '구독자', cls: 'sub' }])\n        : pubsub([{ label: '기기', cls: 'pub' }, { label: '새 데이터?', arrow: '-&gt;' }, { label: '서버' }, { label: '없음', arrow: '&lt;-', cls: 'sub' }]));\n  } else {\n    render('유언 메시지(Last Will) — 기기가 죽으면 브로커가 대신 알림',\n      '<span class=\"ok\">연결 시 「내가 갑자기 끊기면 이 메시지 보내 줘」 등록 → 전원이 나가도 브로커가 offline 을 알림.</span>\\n  기기 스스로 「나 죽어요」를 못 보내는 상황을 브로커가 대신 처리.',\n      '유언 메시지: 기기가 갑자기 죽어도 브로커가 offline 을 알려 준다.',\n      steps([['연결 시 유언 등록: topic=device/1/status, msg=offline', 'on'], ['기기 전원 나감(갑자기)', 'bad'], ['브로커가 device/1/status = offline 발행', 'good']]));\n  }\n</script>",
           "controls": [
@@ -134,11 +134,11 @@
         },
         {
           "type": "note",
-          "text": "**MQTT 는 작은 헤더·발행/구독 구조·연결 유지·유언 메시지를 갖춘 경량 프로토콜이라, HTTP 폴링보다 IoT 의 전력·대역폭에 훨씬 유리하다.** **발행/구독(pub/sub) 구조**: MQTT 의 핵심은 **브로커(broker)**를 통한 발행/구독이다 — 기기(발행자)가 특정 **토픽(topic)**에 메시지를 **발행(publish)**하면, 그 토픽을 **구독(subscribe)**한 클라이언트들이 브로커를 통해 받는다. 발행자와 구독자는 **서로를 직접 알 필요가 없고**(느슨한 결합), 브로커가 라우팅한다 — 한 센서 값을 여러 소비자(대시보드·저장·알림)가 동시에 받기 쉽다. **HTTP 폴링 대비 이점**: HTTP 폴링은 클라이언트가 「새 데이터 있어?」를 **반복 요청**하는데, 대부분 「없음」이라 연결 수립·큰 헤더가 **낭비**된다(전력·대역폭). MQTT 는 **연결을 유지**하며 데이터가 생기면 브로커가 **밀어(push)** 주므로 — 헤더가 **아주 작고**(수 바이트), 폴링 낭비가 없어 **전력·대역폭 효율**이 훨씬 좋다(IoT·배터리에 결정적, 1장). **keep-alive**: 클라이언트가 주기적으로 작은 ping 을 보내 연결이 살아 있음을 알린다 — 브로커는 keep-alive 시간 내 소식이 없으면 연결이 끊긴 것으로 본다. **유언 메시지(Last Will and Testament, LWT)**: 클라이언트가 연결할 때 「내가 **비정상적으로** 끊기면(전원 나감·네트워크 단절) 이 토픽에 이 메시지를 대신 발행해 줘」를 브로커에 등록한다. 기기가 스스로 「나 죽어요」를 보낼 수 없는 갑작스러운 죽음을, **브로커가 대신** 알려 줘 — 대시보드가 그 기기를 `offline` 으로 표시할 수 있다(끊김이 잦은 IoT 에 유용, 1장). **retained 메시지**: 토픽의 마지막 값을 브로커가 보관해, 새 구독자가 즉시 최신 상태를 받게 한다. **토픽 설계**: **계층적**이고 **기기 id 를 포함**해야 관리·필터가 쉽다 — `home/livingroom/sensor/temp`. 구독은 와일드카드로 유연하게 — `+`(한 단계, `home/+/sensor/temp`)·`#`(그 아래 전부, `home/#`). 토픽에 큰 데이터·비밀을 넣지 않고, 페이로드는 작게(JSON 최소화·바이너리·CBOR). **정리**: MQTT 는 브로커 기반 발행/구독으로 느슨하게 결합하고, 작은 헤더·연결 유지·push 로 폴링보다 효율적이며, 유언 메시지로 끊김을 알린다 — IoT 의 표준 메시징이다."
+          "text": "**MQTT 는 작은 헤더, 발행/구독 구조, 연결 유지, 유언 메시지를 갖춘 경량 프로토콜이라, HTTP 폴링보다 IoT 의 전력, 대역폭에 훨씬 유리하다.** **발행/구독(pub/sub) 구조**: MQTT 의 핵심은 **브로커(broker)**를 통한 발행/구독이다. 기기(발행자)가 특정 **토픽(topic)**에 메시지를 **발행(publish)**하면, 그 토픽을 **구독(subscribe)**한 클라이언트들이 브로커를 통해 받는다. 발행자와 구독자는 **서로를 직접 알 필요가 없고**(느슨한 결합), 브로커가 라우팅한다. 한 센서 값을 여러 소비자(대시보드, 저장, 알림)가 동시에 받기 쉽다. **HTTP 폴링 대비 이점**: HTTP 폴링은 클라이언트가 \"새 데이터 있어?\"를 **반복 요청**하는데, 대부분 \"없음\"이라 연결 수립, 큰 헤더가 **낭비**된다(전력, 대역폭). MQTT 는 **연결을 유지**하며 데이터가 생기면 브로커가 **밀어(push)** 주므로. 헤더가 **아주 작고**(수 바이트), 폴링 낭비가 없어 **전력, 대역폭 효율**이 훨씬 좋다(IoT, 배터리에 결정적, 1장). **keep-alive**: 클라이언트가 주기적으로 작은 ping 을 보내 연결이 살아 있음을 알린다. 브로커는 keep-alive 시간 내 소식이 없으면 연결이 끊긴 것으로 본다. **유언 메시지(Last Will and Testament, LWT)**: 클라이언트가 연결할 때 \"내가 **비정상적으로** 끊기면(전원 나감, 네트워크 단절) 이 토픽에 이 메시지를 대신 발행해 줘\"를 브로커에 등록한다. 기기가 스스로 \"나 죽어요\"를 보낼 수 없는 갑작스러운 죽음을, **브로커가 대신** 알려 줘. 대시보드가 그 기기를 `offline` 으로 표시할 수 있다(끊김이 잦은 IoT 에 유용, 1장). **retained 메시지**: 토픽의 마지막 값을 브로커가 보관해, 새 구독자가 즉시 최신 상태를 받게 한다. **토픽 설계**: **계층적**이고 **기기 id 를 포함**해야 관리, 필터가 쉽다. `home/livingroom/sensor/temp`. 구독은 와일드카드로 유연하게. `+`(한 단계, `home/+/sensor/temp`), `#`(그 아래 전부, `home/#`). 토픽에 큰 데이터, 비밀을 넣지 않고, 페이로드는 작게(JSON 최소화, 바이너리, CBOR). **정리**: MQTT 는 브로커 기반 발행/구독으로 느슨하게 결합하고, 작은 헤더, 연결 유지, push 로 폴링보다 효율적이며, 유언 메시지로 끊김을 알린다. IoT 의 표준 메시징이다."
         },
         {
           "type": "try",
-          "text": "**공개 MQTT 브로커(또는 로컬 Mosquitto)**로 센서 값을 **토픽에 발행**하고 `mosquitto_sub` 로 **구독**해 받아 보라 — 계층적 토픽에 기기 id 를 넣어라(`home/room/sensor/temp`). **유언 메시지(Last Will)**를 설정하고 기기 전원을 뽑아 브로커가 `offline` 을 알려 주는지 확인하라. HTTP 폴링과 헤더 크기·전력을 비교하라."
+          "text": "**공개 MQTT 브로커(또는 로컬 Mosquitto)**로 센서 값을 **토픽에 발행**하고 `mosquitto_sub` 로 **구독**해 받아 보라. 계층적 토픽에 기기 id 를 넣어라(`home/room/sensor/temp`). **유언 메시지(Last Will)**를 설정하고 기기 전원을 뽑아 브로커가 `offline` 을 알려 주는지 확인하라. HTTP 폴링과 헤더 크기, 전력을 비교하라."
         }
       ],
       "quiz": [
@@ -146,7 +146,7 @@
           "q": "MQTT 가 HTTP 폴링보다 나은 이유는?",
           "choices": [
             "더 복잡",
-            "작은 헤더·발행/구독·연결 유지·push → 전력·대역폭 유리",
+            "작은 헤더, 발행/구독, 연결 유지, push → 전력, 대역폭 유리",
             "느려서",
             "무관"
           ],
@@ -167,13 +167,13 @@
         {
           "q": "좋은 토픽 설계는?",
           "choices": [
-            "평면·랜덤",
+            "평면, 랜덤",
             "계층적이고 기기 id 포함(home/room/sensor/temp)",
             "숫자 하나",
             "무관"
           ],
           "answer": 1,
-          "why": "관리·필터."
+          "why": "관리, 필터."
         }
       ]
     },
@@ -184,12 +184,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**MQTT 의 QoS(전송 보장 수준)는 셋이다: 0(한 번 보냄·유실 가능)·1(최소 한 번·중복 가능)·2(정확히 한 번·느림) — 대부분 1 을 쓰고 수신 측을 멱등하게 만드는 편이 현실적이다.** ① **QoS 0** — 「최대 한 번(fire and forget)」: 보내고 잊음, 확인 없음, **유실 가능**하지만 가장 빠르고 가볍다(자주 갱신되는 센서값에 OK — 하나 놓쳐도 다음이 옴). ② **QoS 1** — 「최소 한 번」: 수신 확인(ACK)까지 재전송하므로 **반드시 도착하지만 중복될 수 있다**(ACK 유실 시 재전송). ③ **QoS 2** — 「정확히 한 번」: 4-way 핸드셰이크로 중복 없이 딱 한 번, **가장 느리고 무겁다**. **현실적 선택**: 대부분 **QoS 1**(도착 보장) + **수신 측 멱등성**(같은 메시지를 여러 번 받아도 결과가 같게 — id/시퀀스로 중복 무시)이 QoS 2 의 비용 없이 안전하다. 「명령을 두 번 실행하면 안 되는」 것(문 열기·결제)은 멱등하게 설계한다. 아래 데모로 QoS 별 특성과 멱등 수신을 확인하라."
+          "text": "**MQTT 의 QoS(전송 보장 수준)는 셋이다: 0(한 번 보냄, 유실 가능), 1(최소 한 번, 중복 가능), 2(정확히 한 번, 느림). 대부분 1 을 쓰고 수신 측을 멱등하게 만드는 편이 현실적이다.** ① **QoS 0**. \"최대 한 번(fire and forget)\": 보내고 잊음, 확인 없음, **유실 가능**하지만 가장 빠르고 가볍다(자주 갱신되는 센서값에 OK. 하나 놓쳐도 다음이 옴). ② **QoS 1**. \"최소 한 번\": 수신 확인(ACK)까지 재전송하므로 **반드시 도착하지만 중복될 수 있다**(ACK 유실 시 재전송). ③ **QoS 2**. \"정확히 한 번\": 4-way 핸드셰이크로 중복 없이 딱 한 번, **가장 느리고 무겁다**. **현실적 선택**: 대부분 **QoS 1**(도착 보장) + **수신 측 멱등성**(같은 메시지를 여러 번 받아도 결과가 같게. id/시퀀스로 중복 무시)이 QoS 2 의 비용 없이 안전하다. \"명령을 두 번 실행하면 안 되는\" 것(문 열기, 결제)은 멱등하게 설계한다. 아래 데모로 QoS 별 특성과 멱등 수신을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "QoS 0/1/2 · 멱등 수신",
+          "label": "QoS 0/1/2, 멱등 수신",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .pubsub { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .pubsub .node { padding:6px 10px; border-radius:8px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .pubsub .node.broker { border-color:#22d3ee; color:#7dd3fc; } .pubsub .node.pub { border-color:#4ade80; color:#4ade80; } .pubsub .node.sub { border-color:#a78bfa; color:#c4b5fd; }\n  .pubsub .arrow { color:#475569; font-size:10px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function pubsub(nodes) { return '<div class=\"pubsub\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">' + (nd.arrow || '-&gt;') + '</span>' : '') +\n    '<span class=\"node ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{qos}}';\n  const table = {\n    '0': ['QoS 0 (최대 한 번)', '보내고 잊음 · 확인 없음 · 유실 가능', '빠르고 가벼움 — 자주 갱신되는 센서값'],\n    '1': ['QoS 1 (최소 한 번)', 'ACK 까지 재전송 · 도착 보장 · 중복 가능', '대부분 이것 + 수신 멱등화(현실적)'],\n    '2': ['QoS 2 (정확히 한 번)', '4-way 핸드셰이크 · 중복 없음 · 느리고 무거움', '꼭 필요할 때만(비용 큼)'],\n    'idem': ['멱등 수신', '같은 메시지를 여러 번 받아도 결과 동일(id/시퀀스로 중복 무시)', 'QoS 1 의 중복을 안전하게 흡수'],\n  };\n  const r = table[q];\n  render(r[0],\n    steps([['특성: ' + r[1], q === '2' || q === 'idem' ? 'good' : q === '0' ? '' : 'on'], ['용도: ' + r[2], 'good']]) +\n    '  <span class=\"ok\">대부분 QoS 1 + 멱등 수신이 QoS 2 의 비용 없이 안전.</span>',\n    'QoS 0 유실 가능 · 1 중복 가능 · 2 느림 — 대개 1 + 수신 멱등.',\n    q === 'idem'\n      ? steps([['같은 명령 id=42 를 두 번 받음', 'on'], ['id 42 는 이미 처리 → 무시', 'good'], ['문 한 번만 열림(중복 실행 X)', 'good']])\n      : bars([{ lab: '속도', pct: q === '0' ? 95 : q === '1' ? 60 : 30, val: q === '0' ? '빠름' : q === '1' ? '중간' : '느림', cls: q === '0' ? 'g' : q === '1' ? 'w' : 'b' }, { lab: '보장', pct: q === '0' ? 30 : q === '1' ? 75 : 100, val: q === '0' ? '유실 가능' : q === '1' ? '중복 가능' : '정확', cls: q === '2' ? 'g' : 'c' }]));\n</script>",
           "controls": [
@@ -227,11 +227,11 @@
         },
         {
           "type": "note",
-          "text": "**MQTT 의 QoS 는 전송 보장 수준(0 유실 가능·1 중복 가능·2 정확히 한 번)이며, 대부분 QoS 1 을 쓰고 수신 측을 멱등하게 만드는 편이 현실적이다.** **세 수준**: ① **QoS 0 (at most once, 최대 한 번)** — 발행자가 **보내고 잊는다**(fire and forget). 브로커의 확인이 없어 네트워크가 나쁘면 **유실될 수 있다**. 대신 **가장 빠르고 가벼워** 전력·대역폭에 좋다 — **자주 갱신되는 센서값**(온도를 5초마다)처럼 하나쯤 놓쳐도 다음 값이 오는 데이터에 적합. ② **QoS 1 (at least once, 최소 한 번)** — 브로커가 **수신 확인(PUBACK)**을 보낼 때까지 발행자가 **재전송**한다 — 그래서 **반드시 도착**하지만, ACK 가 유실되면 발행자가 다시 보내 **중복 수신이 생길 수 있다**. 보장과 비용의 균형이 좋아 **가장 널리 쓰인다**. ③ **QoS 2 (exactly once, 정확히 한 번)** — 4단계 핸드셰이크로 **중복 없이 딱 한 번** 전달을 보장한다 — 하지만 왕복이 많아 **가장 느리고 무겁다**(전력·지연). **현실적 선택 — QoS 1 + 멱등성**: QoS 2 는 비싸므로, 실무에서는 대부분 **QoS 1 로 도착을 보장**하고 **수신 측을 멱등(idempotent)하게** 만들어 QoS 1 의 중복을 안전하게 흡수한다 — 이게 QoS 2 의 비용 없이 「정확히 한 번의 효과」를 낸다. **멱등성**: **같은 메시지를 여러 번 받아도 결과가 한 번 받은 것과 같게** 만드는 것 — 메시지에 **고유 id·시퀀스 번호**를 넣고, 수신 측이 **이미 처리한 id 는 무시**한다. 특히 **부작용이 있는 명령**(문 열기·모터 켜기·결제·카운터 증가)은 반드시 멱등해야 한다(중복 수신 = 문 두 번 열림·이중 결제). 단순 상태 보고(「현재 온도 25」)는 최신값 덮어쓰기라 자연히 멱등에 가깝다. **선택 지침**: 손실 무관한 잦은 센서값 → **QoS 0**, 도착이 중요한 대부분 → **QoS 1 + 멱등**, 절대 중복 불가한 특수한 경우만 → **QoS 2**. QoS 가 높을수록 전력·대역폭·지연 비용이 크니 필요만큼만(1장). **정리**: QoS 0(유실)·1(중복)·2(정확)의 트레이드오프를 알고, 대개 QoS 1 로 도착을 보장하며 수신을 멱등하게 만들어 중복을 안전하게 처리하라(analytics-clean 의 중복 제거·멱등키와 통함)."
+          "text": "**MQTT 의 QoS 는 전송 보장 수준(0 유실 가능, 1 중복 가능, 2 정확히 한 번)이며, 대부분 QoS 1 을 쓰고 수신 측을 멱등하게 만드는 편이 현실적이다.** **세 수준**: ① **QoS 0 (at most once, 최대 한 번)**. 발행자가 **보내고 잊는다**(fire and forget). 브로커의 확인이 없어 네트워크가 나쁘면 **유실될 수 있다**. 대신 **가장 빠르고 가벼워** 전력, 대역폭에 좋다. **자주 갱신되는 센서값**(온도를 5초마다)처럼 하나쯤 놓쳐도 다음 값이 오는 데이터에 적합. ② **QoS 1 (at least once, 최소 한 번)**. 브로커가 **수신 확인(PUBACK)**을 보낼 때까지 발행자가 **재전송**한다. 그래서 **반드시 도착**하지만, ACK 가 유실되면 발행자가 다시 보내 **중복 수신이 생길 수 있다**. 보장과 비용의 균형이 좋아 **가장 널리 쓰인다**. ③ **QoS 2 (exactly once, 정확히 한 번)**. 4단계 핸드셰이크로 **중복 없이 딱 한 번** 전달을 보장한다. 하지만 왕복이 많아 **가장 느리고 무겁다**(전력, 지연). **현실적 선택. QoS 1 + 멱등성**: QoS 2 는 비싸므로, 실무에서는 대부분 **QoS 1 로 도착을 보장**하고 **수신 측을 멱등(idempotent)하게** 만들어 QoS 1 의 중복을 안전하게 흡수한다. 이게 QoS 2 의 비용 없이 \"정확히 한 번의 효과\"를 낸다. **멱등성**: **같은 메시지를 여러 번 받아도 결과가 한 번 받은 것과 같게** 만드는 것. 메시지에 **고유 id, 시퀀스 번호**를 넣고, 수신 측이 **이미 처리한 id 는 무시**한다. 특히 **부작용이 있는 명령**(문 열기, 모터 켜기, 결제, 카운터 증가)은 반드시 멱등해야 한다(중복 수신 = 문 두 번 열림, 이중 결제). 단순 상태 보고(\"현재 온도 25\")는 최신값 덮어쓰기라 자연히 멱등에 가깝다. **선택 지침**: 손실 무관한 잦은 센서값 → **QoS 0**, 도착이 중요한 대부분 → **QoS 1 + 멱등**, 절대 중복 불가한 특수한 경우만 → **QoS 2**. QoS 가 높을수록 전력, 대역폭, 지연 비용이 크니 필요만큼만(1장). **정리**: QoS 0(유실), 1(중복), 2(정확)의 트레이드오프를 알고, 대개 QoS 1 로 도착을 보장하며 수신을 멱등하게 만들어 중복을 안전하게 처리하라(analytics-clean 의 중복 제거, 멱등키와 통함)."
         },
         {
           "type": "try",
-          "text": "메시지에 **고유 id/시퀀스 번호**를 넣고, 수신 측에서 **이미 처리한 id 는 무시**하도록(멱등) 만들어라. QoS 1 로 발행해 **중복이 와도** 명령이 한 번만 실행되는지 확인하라 — 특히 문 열기·결제 같은 부작용 명령. 잦은 센서값은 QoS 0 으로도 충분한지, 정말 QoS 2 가 필요한 곳이 있는지 판단하라."
+          "text": "메시지에 **고유 id/시퀀스 번호**를 넣고, 수신 측에서 **이미 처리한 id 는 무시**하도록(멱등) 만들어라. QoS 1 로 발행해 **중복이 와도** 명령이 한 번만 실행되는지 확인하라. 특히 문 열기, 결제 같은 부작용 명령. 잦은 센서값은 QoS 0 으로도 충분한지, 정말 QoS 2 가 필요한 곳이 있는지 판단하라."
         }
       ],
       "quiz": [
@@ -239,7 +239,7 @@
           "q": "QoS 1 의 특성은?",
           "choices": [
             "유실 가능",
-            "최소 한 번 — 도착 보장, 중복 가능",
+            "최소 한 번. 도착 보장, 중복 가능",
             "정확히 한 번",
             "무관"
           ],
@@ -261,7 +261,7 @@
           "q": "멱등해야 하는 것은?",
           "choices": [
             "단순 상태 보고",
-            "문 열기·결제 등 부작용 명령(중복 실행 방지)",
+            "문 열기, 결제 등 부작용 명령(중복 실행 방지)",
             "없음",
             "무관"
           ],
@@ -277,12 +277,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**연결을 유지하면 전력을 쓴다 — 배터리 기기는 「깨어나서 → 연결 → 전송 → 즉시 절전」이 기본이고, 그래서 「명령을 즉시 받는 기능」과 배터리 수명은 서로 상충한다.** MQTT 의 연결 유지(keep-alive)는 편리하지만, **연결을 계속 켜 두면**(상시 온라인) 무선이 계속 깨어 있어 배터리를 빠르게 소모한다(embed-limit 4장). 배터리 기기는 대부분 **깊은 잠**에 들었다가, 주기적으로 **깨어나 → 연결 → 데이터 전송 → 다시 잠든다** — 깨어 있는 시간을 최소화한다. **핵심 상충**: 기기가 자고 있으면 **서버가 명령을 즉시 못 보낸다**(연결이 없으니). 그래서 **「즉시 제어(낮은 지연)」와 「긴 배터리 수명」은 상충**한다 — 둘 다는 못 갖는다. 절충: 명령을 **기기가 깨어날 때까지 브로커가 대기**(retained·큐)시키거나, 급하면 더 자주 깨우거나(수명 희생), 상시 전원이면 상시 연결. 요구(응답성 vs 수명)에 맞게 주기를 정한다. 아래 데모로 전송 주기와 배터리·응답성 상충을 확인하라."
+          "text": "**연결을 유지하면 전력을 쓴다. 배터리 기기는 \"깨어나서 → 연결 → 전송 → 즉시 절전\"이 기본이고, 그래서 \"명령을 즉시 받는 기능\"과 배터리 수명은 서로 상충한다.** MQTT 의 연결 유지(keep-alive)는 편리하지만, **연결을 계속 켜 두면**(상시 온라인) 무선이 계속 깨어 있어 배터리를 빠르게 소모한다(embed-limit 4장). 배터리 기기는 대부분 **깊은 잠**에 들었다가, 주기적으로 **깨어나 → 연결 → 데이터 전송 → 다시 잠든다**. 깨어 있는 시간을 최소화한다. **핵심 상충**: 기기가 자고 있으면 **서버가 명령을 즉시 못 보낸다**(연결이 없으니). 그래서 **\"즉시 제어(낮은 지연)\"와 \"긴 배터리 수명\"은 상충**한다. 둘 다는 못 갖는다. 절충: 명령을 **기기가 깨어날 때까지 브로커가 대기**(retained, 큐)시키거나, 급하면 더 자주 깨우거나(수명 희생), 상시 전원이면 상시 연결. 요구(응답성 vs 수명)에 맞게 주기를 정한다. 아래 데모로 전송 주기와 배터리, 응답성 상충을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "전송 주기 — 수명 vs 응답성 상충",
+          "label": "전송 주기. 수명 vs 응답성 상충",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .pubsub { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .pubsub .node { padding:6px 10px; border-radius:8px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .pubsub .node.broker { border-color:#22d3ee; color:#7dd3fc; } .pubsub .node.pub { border-color:#4ade80; color:#4ade80; } .pubsub .node.sub { border-color:#a78bfa; color:#c4b5fd; }\n  .pubsub .arrow { color:#475569; font-size:10px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function pubsub(nodes) { return '<div class=\"pubsub\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">' + (nd.arrow || '-&gt;') + '</span>' : '') +\n    '<span class=\"node ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const periodMin = {{period}};\n  const wakeSec = 3; // 깨어나 연결·전송에 3초\n  const iWake = 80, iSleep = 0.05; // mA (무선 켜면 큼)\n  const duty = wakeSec / (periodMin * 60);\n  const avg = iWake * duty + iSleep * (1 - duty);\n  const days = 2000 / avg / 24;\n  const life = days > 60 ? (days / 30).toFixed(1) + '개월' : days.toFixed(1) + '일';\n  const latency = periodMin < 1 ? '즉시에 가까움' : periodMin + '분까지 지연';\n  render(periodMin + '분마다 깨어나 전송 → 수명 약 ' + life + ' · 명령 지연 최대 ' + (periodMin < 1 ? '수초' : periodMin + '분'),\n    (periodMin >= 5\n      ? '<span class=\"ok\">드물게 깨우면 수명 ↑ 하지만 명령을 즉시 못 받음(지연 ↑) — 수명 우선.</span>'\n      : '<span class=\"warn\">자주 깨우면 응답 빠르지만 수명 ↓ — 즉시 제어와 수명은 상충.</span>'),\n    '연결 유지 = 전력. 즉시 명령 수신과 배터리 수명은 상충한다.',\n    bars([\n      { lab: '배터리 수명', pct: Math.min(100, days / 3), val: life, cls: days > 60 ? 'g' : 'w' },\n      { lab: '명령 응답성', pct: Math.max(5, 100 - periodMin * 8), val: latency, cls: periodMin < 1 ? 'g' : 'b' },\n    ]));\n</script>",
           "controls": [
@@ -305,11 +305,11 @@
         },
         {
           "type": "note",
-          "text": "**MQTT 연결 유지는 전력을 소모하므로 배터리 기기는 잠들었다 주기적으로 깨어나 전송하고 즉시 절전하며, 이 때문에 즉시 명령 수신과 배터리 수명은 근본적으로 상충한다.** **연결 유지의 전력 비용**: MQTT 의 지속 연결(keep-alive ping)은 「상시 온라인」의 편리를 주지만, **무선(Wi-Fi/셀룰러)을 계속 켜 두면** 그 자체로 전력을 크게 쓴다(무선 활성 유지 + 주기적 ping, embed-limit 4장 — 무선이 최고 비용). 배터리 기기가 상시 연결하면 **수 시간~하루** 만에 방전된다. **배터리 기본 패턴**: 그래서 배터리 IoT 기기는 대부분의 시간을 **딥슬립**하고, 주기적으로(또는 이벤트 시) **깨어나 → 무선 연결 → 데이터 전송(모아서, 3·1장) → 즉시 다시 잠든다**. 깨어 있는 시간(무선 켜진 시간)을 최소화하는 게 수명의 핵심. **근본 상충 — 응답성 vs 수명**: 기기가 자고 있으면 **연결이 없어 서버가 명령을 즉시 보낼 수 없다**. 명령은 기기가 다음에 깨어나 연결할 때까지 기다려야 한다 — 즉 **「명령을 즉시 받는 낮은 지연」과 「긴 배터리 수명」은 동시에 못 갖는다**(트레이드오프). 자주 깨우면 응답은 빠르지만 배터리가 빨리 닳고, 드물게 깨우면 오래 가지만 명령 지연이 커진다. **절충안**: ① **명령 대기** — 브로커가 명령을 **retained 메시지나 큐**에 보관했다가 기기가 깨어나 연결하면 전달(즉시성 대신 「다음 깨어남에 전달」). ② **주기 조절** — 응답이 급한 기기는 더 자주 깨우거나(수명 희생), 이벤트 기반으로 깨움(핀 인터럽트·모션 감지). ③ **상시 전원 기기**는 상시 연결(응답성 우선) — 전원 방식이 설계를 가른다. ④ **하이브리드** — 평소 절전, 특정 시간대만 상시 연결. ⑤ **저전력 프로토콜**(BLE·LoRa·저전력 Wi-Fi)로 연결 비용 자체를 낮춤. **결정 기준**: 「이 기기가 명령을 얼마나 빨리 받아야 하나(문 잠금=즉시, 온도 로거=느려도 됨)」와 「배터리·충전 주기」를 저울질해 전송·깨움 주기를 정한다 — 요구에 맞는 지점. **정리**: 연결 유지는 전력이라 배터리 기기는 깨어나서 전송하고 자며, 즉시 명령 수신과 수명은 상충하니 요구(응답성 vs 수명)에 맞게 주기·연결 전략을 정하라(측정으로 확인, embed-limit 4장)."
+          "text": "**MQTT 연결 유지는 전력을 소모하므로 배터리 기기는 잠들었다 주기적으로 깨어나 전송하고 즉시 절전하며, 이 때문에 즉시 명령 수신과 배터리 수명은 근본적으로 상충한다.** **연결 유지의 전력 비용**: MQTT 의 지속 연결(keep-alive ping)은 \"상시 온라인\"의 편리를 주지만, **무선(Wi-Fi/셀룰러)을 계속 켜 두면** 그 자체로 전력을 크게 쓴다(무선 활성 유지 + 주기적 ping, embed-limit 4장. 무선이 최고 비용). 배터리 기기가 상시 연결하면 **수 시간~하루** 만에 방전된다. **배터리 기본 패턴**: 그래서 배터리 IoT 기기는 대부분의 시간을 **딥슬립**하고, 주기적으로(또는 이벤트 시) **깨어나 → 무선 연결 → 데이터 전송(모아서, 3, 1장) → 즉시 다시 잠든다**. 깨어 있는 시간(무선 켜진 시간)을 최소화하는 게 수명의 핵심. **근본 상충. 응답성 vs 수명**: 기기가 자고 있으면 **연결이 없어 서버가 명령을 즉시 보낼 수 없다**. 명령은 기기가 다음에 깨어나 연결할 때까지 기다려야 한다. 즉 **\"명령을 즉시 받는 낮은 지연\"과 \"긴 배터리 수명\"은 동시에 못 갖는다**(트레이드오프). 자주 깨우면 응답은 빠르지만 배터리가 빨리 닳고, 드물게 깨우면 오래 가지만 명령 지연이 커진다. **절충안**: ① **명령 대기**. 브로커가 명령을 **retained 메시지나 큐**에 보관했다가 기기가 깨어나 연결하면 전달(즉시성 대신 \"다음 깨어남에 전달\"). ② **주기 조절**. 응답이 급한 기기는 더 자주 깨우거나(수명 희생), 이벤트 기반으로 깨움(핀 인터럽트, 모션 감지). ③ **상시 전원 기기**는 상시 연결(응답성 우선). 전원 방식이 설계를 가른다. ④ **하이브리드**. 평소 절전, 특정 시간대만 상시 연결. ⑤ **저전력 프로토콜**(BLE, LoRa, 저전력 Wi-Fi)로 연결 비용 자체를 낮춤. **결정 기준**: \"이 기기가 명령을 얼마나 빨리 받아야 하나(문 잠금=즉시, 온도 로거=느려도 됨)\"와 \"배터리, 충전 주기\"를 저울질해 전송, 깨움 주기를 정한다. 요구에 맞는 지점. **정리**: 연결 유지는 전력이라 배터리 기기는 깨어나서 전송하고 자며, 즉시 명령 수신과 수명은 상충하니 요구(응답성 vs 수명)에 맞게 주기, 연결 전략을 정하라(측정으로 확인, embed-limit 4장)."
         },
         {
           "type": "try",
-          "text": "**전송/깨움 주기를 1초·1분·10분으로 바꿔** 소비 전류를 재고 배터리 수명을 계산하라(embed-limit 4장) — 자주 깨울수록 응답은 빠르나 수명이 준다. 이 기기가 **명령을 얼마나 빨리 받아야 하는지**(문=즉시, 로거=느려도 됨)와 저울질해 주기를 정하고, 상시 전원이 가능한지·저전력 프로토콜이 맞는지도 검토하라."
+          "text": "**전송/깨움 주기를 1초, 1분, 10분으로 바꿔** 소비 전류를 재고 배터리 수명을 계산하라(embed-limit 4장). 자주 깨울수록 응답은 빠르나 수명이 준다. 이 기기가 **명령을 얼마나 빨리 받아야 하는지**(문=즉시, 로거=느려도 됨)와 저울질해 주기를 정하고, 상시 전원이 가능한지, 저전력 프로토콜이 맞는지도 검토하라."
         }
       ],
       "quiz": [
@@ -328,7 +328,7 @@
           "q": "즉시 명령 수신과 배터리 수명의 관계는?",
           "choices": [
             "둘 다 최대",
-            "상충 — 자고 있으면 명령을 즉시 못 받음",
+            "상충. 자고 있으면 명령을 즉시 못 받음",
             "무관",
             "같음"
           ],
@@ -350,17 +350,17 @@
     },
     {
       "id": "5",
-      "title": "보안·시간·오프라인 데이터",
+      "title": "보안, 시간, 오프라인 데이터",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**IoT 는 물리적으로 탈취될 수 있으니 한 대가 뚫려도 전체가 안 뚫리게 설계하고, 기기 시계는 잘 틀리니 시간을 맞추며, 오프라인 데이터는 모았다 몰아 보낸다.** ① **보안**: **TLS 로 암호화**(평문 금지), **기기마다 다른 자격증명**(공유 비밀번호 절대 금지 — 하나 유출되면 전부 뚫림), **토픽 단위 권한**(기기는 자기 토픽만). IoT 기기는 **물리적으로 뜯겨** 키가 추출될 수 있으므로 — **한 대가 뚫려도 전체가 안 뚫리게**(기기별 키·최소 권한·키 폐기 가능) 설계한다. ② **시간**: MCU 시계는 부정확하고 재부팅 시 리셋된다 — 타임스탬프를 **서버 기준으로 다시 찍거나 NTP 로 맞춘다**(로그·순서에 시간이 중요, embed-limit·analytics-clean 시간대). ③ **오프라인 데이터**: 연결이 끊긴 동안의 데이터를 **로컬에 모았다가(버퍼) 재연결 시 몰아 보내는** 경로를 만들어 유실을 막는다(1장 끊김 전제). 아래 데모로 보안·시간·오프라인 처리를 확인하라."
+          "text": "**IoT 는 물리적으로 탈취될 수 있으니 한 대가 뚫려도 전체가 안 뚫리게 설계하고, 기기 시계는 잘 틀리니 시간을 맞추며, 오프라인 데이터는 모았다 몰아 보낸다.** ① **보안**: **TLS 로 암호화**(평문 금지), **기기마다 다른 자격증명**(공유 비밀번호 절대 금지. 하나 유출되면 전부 뚫림), **토픽 단위 권한**(기기는 자기 토픽만). IoT 기기는 **물리적으로 뜯겨** 키가 추출될 수 있으므로. **한 대가 뚫려도 전체가 안 뚫리게**(기기별 키, 최소 권한, 키 폐기 가능) 설계한다. ② **시간**: MCU 시계는 부정확하고 재부팅 시 리셋된다. 타임스탬프를 **서버 기준으로 다시 찍거나 NTP 로 맞춘다**(로그, 순서에 시간이 중요, embed-limit, analytics-clean 시간대). ③ **오프라인 데이터**: 연결이 끊긴 동안의 데이터를 **로컬에 모았다가(버퍼) 재연결 시 몰아 보내는** 경로를 만들어 유실을 막는다(1장 끊김 전제). 아래 데모로 보안, 시간, 오프라인 처리를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "보안 · 시간 · 오프라인",
+          "label": "보안, 시간, 오프라인",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .pubsub { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .pubsub .node { padding:6px 10px; border-radius:8px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .pubsub .node.broker { border-color:#22d3ee; color:#7dd3fc; } .pubsub .node.pub { border-color:#4ade80; color:#4ade80; } .pubsub .node.sub { border-color:#a78bfa; color:#c4b5fd; }\n  .pubsub .arrow { color:#475569; font-size:10px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function pubsub(nodes) { return '<div class=\"pubsub\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">' + (nd.arrow || '-&gt;') + '</span>' : '') +\n    '<span class=\"node ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  const table = {\n    'shared': ['공유 비밀번호(위험)', '모든 기기가 같은 자격 → 한 대 유출 = 전체 뚫림', 'bad'],\n    'perdev': ['기기별 자격 + TLS + 토픽 권한', '한 대가 뚫려도 그 기기만 · 키 폐기 가능 · 최소 권한', 'good'],\n    'time': ['시간 맞추기', '기기 시계는 틀림·리셋됨 → NTP 또는 서버 기준 타임스탬프', 'good'],\n    'offline': ['오프라인 버퍼', '끊긴 동안 로컬에 모았다가 재연결 시 몰아 보냄(유실 방지)', 'good'],\n  };\n  const r = table[view];\n  const bad = r[2] === 'bad';\n  render(r[0],\n    box(r[0], r[1], bad ? 'bad' : 'good') + '  ' +\n    (bad ? '<span class=\"no\">공유 비밀번호는 한 대만 뚫려도 전체가 뚫린다 — 기기별 자격으로.</span>' : '<span class=\"ok\">한 대가 뚫려도 전체가 안 뚫리게 · 시간 맞춤 · 오프라인 버퍼.</span>'),\n    'TLS·기기별 자격·토픽 권한 · 시간 맞춤 · 오프라인 모았다 몰아 보내기.',\n    view === 'offline'\n      ? steps([['연결 끊김 → 데이터를 로컬 버퍼에 쌓음', 'on'], ['재연결 → 쌓인 데이터를 몰아 전송', 'good'], ['유실 없음(끊김을 전제)', 'good']])\n      : steps([[bad ? '모든 기기 = 같은 비밀번호' : 'TLS 암호화', bad ? 'bad' : 'good'], [bad ? '한 대 유출 → 전체 뚫림' : '기기마다 다른 자격증명', bad ? 'bad' : 'good'], [bad ? '' : '토픽 단위 최소 권한', bad ? '' : 'good']].filter((x) => x[0])));\n</script>",
           "controls": [
@@ -393,16 +393,16 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "보안·시간·오프라인",
+          "label": "보안, 시간, 오프라인",
           "text": "보안:\n  TLS 암호화(평문 X) · 기기마다 다른 자격증명(공유 X)\n  토픽 단위 권한(기기는 자기 토픽만) · 키 폐기 가능\n  → 물리 탈취 가능 → 한 대 뚫려도 전체 안 뚫리게\n\n시간: 기기 시계는 틀림 → NTP·서버 기준 타임스탬프\n오프라인: 끊긴 동안 로컬 버퍼 → 재연결 시 몰아 보내기"
         },
         {
           "type": "note",
-          "text": "**IoT 보안은 물리적 탈취를 전제해 한 대가 뚫려도 전체가 안 뚫리게 설계하고, 부정확한 기기 시계는 서버 기준·NTP 로 맞추며, 오프라인 데이터는 로컬에 모았다 재연결 시 몰아 보낸다.** **① 보안**: IoT 는 웹 서버와 달리 **기기가 물리적으로 손에 닿는 곳(집·거리·공장)에 있어 뜯겨서 펌웨어·키가 추출**될 수 있고, 수천~수백만 대라 하나만 뚫려도 파장이 크다. 원칙: ⓐ **TLS 암호화** — 통신을 평문으로 보내지 말고 TLS 로(도청·변조 방지). MQTT 는 TLS(8883 포트) 위에서. ⓑ **기기마다 다른 자격증명** — 모든 기기가 **공유 비밀번호/키**를 쓰면 **한 대만 유출돼도 전체가 뚫린다**(그리고 교체하려면 전부 업데이트) — 절대 금지. 기기별 고유 인증서·토큰·키를 발급하고, 유출된 한 대만 **폐기(revoke)**할 수 있게. ⓒ **최소 권한(토픽 단위)** — 각 기기는 **자기 토픽만** 발행/구독하도록 권한을 제한(한 기기가 뚫려도 다른 기기 데이터·제어에 접근 못 함). ⓓ **보안 부팅·키 저장** — 가능하면 보안 요소(secure element)에 키를 저장하고, 서명된 펌웨어(embed-ota)로. **핵심 원칙: 한 대가 뚫려도 전체가 안 뚫리게** — 격리·기기별 키·최소 권한(제로 트러스트). **② 시간**: MCU 의 내부 시계(RTC)는 부정확하고 드리프트하며, 전원이 나가면 리셋된다(백업 배터리 없으면). 그런데 로그·이벤트 순서·인증서 만료 검증엔 정확한 시간이 필요하다 — **NTP(네트워크 시간 프로토콜)로 주기적으로 맞추거나**, 기기 타임스탬프를 믿지 말고 **서버가 수신 시각으로 다시 찍는다**(단 전송 지연·오프라인 버퍼는 원래 시각이 필요하니 상대 시간+동기화 병행). 시간대·UTC 저장 문제도 챙긴다(analytics-clean 5장). **③ 오프라인 데이터**: IoT 는 연결이 자주 끊기므로(1장), **끊긴 동안의 데이터를 로컬(플래시·RAM 버퍼)에 모았다가 재연결 시 몰아 보내는** 경로를 만든다 — 안 그러면 오프라인 동안의 측정이 **유실**된다. 버퍼 크기 한계·오래된 데이터 정책(가득 차면 오래된 것 버림 or 다운샘플)·순서·중복(멱등, 3장)을 정한다. 이 「store and forward」가 끊김을 전제한 견고함의 핵심. **정리**: 물리 탈취를 전제해 TLS·기기별 자격·최소 권한으로 한 대가 뚫려도 전체가 안 뚫리게, 시간은 NTP·서버 기준으로 맞추고, 오프라인 데이터는 버퍼링 후 몰아 보내라."
+          "text": "**IoT 보안은 물리적 탈취를 전제해 한 대가 뚫려도 전체가 안 뚫리게 설계하고, 부정확한 기기 시계는 서버 기준, NTP 로 맞추며, 오프라인 데이터는 로컬에 모았다 재연결 시 몰아 보낸다.** **① 보안**: IoT 는 웹 서버와 달리 **기기가 물리적으로 손에 닿는 곳(집, 거리, 공장)에 있어 뜯겨서 펌웨어, 키가 추출**될 수 있고, 수천~수백만 대라 하나만 뚫려도 파장이 크다. 원칙: ⓐ **TLS 암호화**. 통신을 평문으로 보내지 말고 TLS 로(도청, 변조 방지). MQTT 는 TLS(8883 포트) 위에서. ⓑ **기기마다 다른 자격증명**. 모든 기기가 **공유 비밀번호/키**를 쓰면 **한 대만 유출돼도 전체가 뚫린다**(그리고 교체하려면 전부 업데이트). 절대 금지. 기기별 고유 인증서, 토큰, 키를 발급하고, 유출된 한 대만 **폐기(revoke)**할 수 있게. ⓒ **최소 권한(토픽 단위)**. 각 기기는 **자기 토픽만** 발행/구독하도록 권한을 제한(한 기기가 뚫려도 다른 기기 데이터, 제어에 접근 못 함). ⓓ **보안 부팅, 키 저장**. 가능하면 보안 요소(secure element)에 키를 저장하고, 서명된 펌웨어(embed-ota)로. **핵심 원칙: 한 대가 뚫려도 전체가 안 뚫리게**. 격리, 기기별 키, 최소 권한(제로 트러스트). **② 시간**: MCU 의 내부 시계(RTC)는 부정확하고 드리프트하며, 전원이 나가면 리셋된다(백업 배터리 없으면). 그런데 로그, 이벤트 순서, 인증서 만료 검증엔 정확한 시간이 필요하다. **NTP(네트워크 시간 프로토콜)로 주기적으로 맞추거나**, 기기 타임스탬프를 믿지 말고 **서버가 수신 시각으로 다시 찍는다**(단 전송 지연, 오프라인 버퍼는 원래 시각이 필요하니 상대 시간+동기화 병행). 시간대, UTC 저장 문제도 챙긴다(analytics-clean 5장). **③ 오프라인 데이터**: IoT 는 연결이 자주 끊기므로(1장), **끊긴 동안의 데이터를 로컬(플래시, RAM 버퍼)에 모았다가 재연결 시 몰아 보내는** 경로를 만든다. 안 그러면 오프라인 동안의 측정이 **유실**된다. 버퍼 크기 한계, 오래된 데이터 정책(가득 차면 오래된 것 버림 or 다운샘플), 순서, 중복(멱등, 3장)을 정한다. 이 \"store and forward\"가 끊김을 전제한 견고함의 핵심. **정리**: 물리 탈취를 전제해 TLS, 기기별 자격, 최소 권한으로 한 대가 뚫려도 전체가 안 뚫리게, 시간은 NTP, 서버 기준으로 맞추고, 오프라인 데이터는 버퍼링 후 몰아 보내라."
         },
         {
           "type": "try",
-          "text": "기기 통신에 **TLS**를 켜고, **기기마다 다른 자격증명**(공유 비밀번호가 아닌)을 쓰는지, **토픽 권한**이 자기 것만인지 점검하라 — 한 대가 뚫려도 전체가 안 뚫리게. 기기 타임스탬프를 **NTP 나 서버 기준**으로 맞추고, **오프라인 동안 데이터를 로컬에 모았다 재연결 시 몰아 보내는** 경로를 만들어 유실을 막아라."
+          "text": "기기 통신에 **TLS**를 켜고, **기기마다 다른 자격증명**(공유 비밀번호가 아닌)을 쓰는지, **토픽 권한**이 자기 것만인지 점검하라. 한 대가 뚫려도 전체가 안 뚫리게. 기기 타임스탬프를 **NTP 나 서버 기준**으로 맞추고, **오프라인 동안 데이터를 로컬에 모았다 재연결 시 몰아 보내는** 경로를 만들어 유실을 막아라."
         }
       ],
       "quiz": [
@@ -410,7 +410,7 @@
           "q": "IoT 보안의 핵심 원칙은?",
           "choices": [
             "공유 비밀번호로 간단히",
-            "한 대가 뚫려도 전체가 안 뚫리게 — 기기별 자격·최소 권한·TLS",
+            "한 대가 뚫려도 전체가 안 뚫리게. 기기별 자격, 최소 권한, TLS",
             "암호화 생략",
             "무관"
           ],
@@ -443,17 +443,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — IoT 망",
+      "title": "점검표. IoT 망",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**끊김·느림·배터리를 전제하고, MQTT 로 가볍게, QoS·멱등으로 안전하게, 전력과 응답성을 저울질하고, 보안·시간·오프라인을 챙긴다.** 이 점검표를 IoT 망 작업마다 훑어, 방전·유실·중복·탈취를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**끊김, 느림, 배터리를 전제하고, MQTT 로 가볍게, QoS, 멱등으로 안전하게, 전력과 응답성을 저울질하고, 보안, 시간, 오프라인을 챙긴다.** 이 점검표를 IoT 망 작업마다 훑어, 방전, 유실, 중복, 탈취를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "IoT 망 점검표 — 통과 수",
+          "label": "IoT 망 점검표. 통과 수",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .pubsub { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .pubsub .node { padding:6px 10px; border-radius:8px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .pubsub .node.broker { border-color:#22d3ee; color:#7dd3fc; } .pubsub .node.pub { border-color:#4ade80; color:#4ade80; } .pubsub .node.sub { border-color:#a78bfa; color:#c4b5fd; }\n  .pubsub .arrow { color:#475569; font-size:10px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:80px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function pubsub(nodes) { return '<div class=\"pubsub\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">' + (nd.arrow || '-&gt;') + '</span>' : '') +\n    '<span class=\"node ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '끊김·느림·배터리를 전제로 설계했다(웹 가정 X)',\n    'HTTP 폴링 대신 MQTT 발행/구독을 썼다',\n    '토픽을 계층적·기기 id 로 설계하고 유언 메시지를 뒀다',\n    'QoS 를 상황에 맞게(대개 1) + 수신을 멱등하게 했다',\n    '배터리면 깨어나서 전송하고 즉시 절전한다',\n    '응답성 vs 수명 상충을 이해하고 주기를 정했다',\n    'TLS·기기별 자격·최소 권한으로 한 대 뚫려도 안전',\n    '시간을 맞추고 오프라인 데이터를 모았다 몰아 보낸다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('IoT 망 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 끊김·배터리·보안에 견디는 IoT 망.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '끊김 전제 · MQTT · QoS/멱등 · 전력 저울질 · 보안·시간·오프라인.');\n</script>",
           "controls": [
@@ -470,19 +470,19 @@
         },
         {
           "type": "note",
-          "text": "**IoT 망 점검표 — 망 작업마다 훑는다.** ① **끊김 전제** — 끊김·느림·배터리를 전제로(웹 가정 X, 1장). ② **MQTT** — HTTP 폴링 대신 경량 발행/구독(2장). ③ **토픽·유언** — 계층적·기기 id·유언 메시지(2장). ④ **QoS·멱등** — 상황에 맞는 QoS(대개 1)+수신 멱등(3장). ⑤ **절전 전송** — 배터리면 깨어나서 전송하고 즉시 절전(4장). ⑥ **주기 결정** — 응답성 vs 수명 상충을 이해하고(4장). ⑦ **보안** — TLS·기기별 자격·최소 권한, 한 대 뚫려도 안전(5장). ⑧ **시간·오프라인** — 시간 맞춤·오프라인 버퍼(5장). **관통 원리**: IoT 망은 **끊기고 느리고 배터리**라(1장) 웹의 가정을 버리고 — 경량 MQTT 로(2장), QoS·멱등으로 유실·중복을 다루고(3장), 전력과 응답성을 저울질하며(4장), 물리 탈취·부정확한 시계·오프라인을 전제해 견고하게(5장) 짓는다. 이 칸(net)은 embed 갈래에서 **원격 연결**을 다루는 자리 — mcu·rt·limit·bus 위에서 기기를 인터넷에 잇고, ota(원격 업데이트)가 이 망을 타고 온다. 「하루 만에 방전·데이터 유실·한 대 뚫려 전체 뚫림」의 근원이 대개 여기다. **정리**: 끊김을 전제하고, MQTT 로 가볍게, QoS·멱등으로 안전하게, 전력을 저울질하고, 보안·시간·오프라인을 챙겨라 — 이 표로 IoT 망 사고를 매번 걸러라."
+          "text": "**IoT 망 점검표. 망 작업마다 훑는다.** ① **끊김 전제**. 끊김, 느림, 배터리를 전제로(웹 가정 X, 1장). ② **MQTT**. HTTP 폴링 대신 경량 발행/구독(2장). ③ **토픽, 유언**. 계층적, 기기 id, 유언 메시지(2장). ④ **QoS, 멱등**. 상황에 맞는 QoS(대개 1)+수신 멱등(3장). ⑤ **절전 전송**. 배터리면 깨어나서 전송하고 즉시 절전(4장). ⑥ **주기 결정**. 응답성 vs 수명 상충을 이해하고(4장). ⑦ **보안**. TLS, 기기별 자격, 최소 권한, 한 대 뚫려도 안전(5장). ⑧ **시간, 오프라인**. 시간 맞춤, 오프라인 버퍼(5장). **관통 원리**: IoT 망은 **끊기고 느리고 배터리**라(1장) 웹의 가정을 버리고. 경량 MQTT 로(2장), QoS, 멱등으로 유실, 중복을 다루고(3장), 전력과 응답성을 저울질하며(4장), 물리 탈취, 부정확한 시계, 오프라인을 전제해 견고하게(5장) 짓는다. 이 칸(net)은 embed 갈래에서 **원격 연결**을 다루는 자리. mcu, rt, limit, bus 위에서 기기를 인터넷에 잇고, ota(원격 업데이트)가 이 망을 타고 온다. \"하루 만에 방전, 데이터 유실, 한 대 뚫려 전체 뚫림\"의 근원이 대개 여기다. **정리**: 끊김을 전제하고, MQTT 로 가볍게, QoS, 멱등으로 안전하게, 전력을 저울질하고, 보안, 시간, 오프라인을 챙겨라. 이 표로 IoT 망 사고를 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금 만드는 IoT 기기의 망으로 위 8개 항목을 하나씩 확인하라 — 끊김을 전제했나, MQTT 인가, 토픽·유언·QoS·멱등이 맞나, 배터리면 절전 전송인가, TLS·기기별 자격인가, 시간·오프라인 버퍼가 있나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 방전·유실·탈취에 견디는지 확인하라."
+          "text": "지금 만드는 IoT 기기의 망으로 위 8개 항목을 하나씩 확인하라. 끊김을 전제했나, MQTT 인가, 토픽, 유언, QoS, 멱등이 맞나, 배터리면 절전 전송인가, TLS, 기기별 자격인가, 시간, 오프라인 버퍼가 있나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 방전, 유실, 탈취에 견디는지 확인하라."
         }
       ],
       "quiz": [
         {
           "q": "IoT 망 설계의 대전제는?",
           "choices": [
-            "웹처럼 안정·상시 연결",
-            "끊김·느림·배터리를 전제로 견고하게",
+            "웹처럼 안정, 상시 연결",
+            "끊김, 느림, 배터리를 전제로 견고하게",
             "무제한 대역폭",
             "무관"
           ],
@@ -504,7 +504,7 @@
           "q": "embed-net 는 embed 갈래에서?",
           "choices": [
             "부수적",
-            "기기를 인터넷에 잇는 원격 연결의 자리 — 방전·유실·탈취의 근원",
+            "기기를 인터넷에 잇는 원격 연결의 자리. 방전, 유실, 탈취의 근원",
             "선택",
             "무관"
           ],

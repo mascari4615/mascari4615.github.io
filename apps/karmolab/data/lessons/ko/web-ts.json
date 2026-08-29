@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「타입이 있으면 버그가 줄어든다」는 절반만 맞다. 실무에서 더 크게 체감되는 것은 **자동완성**, **안전한 이름 바꾸기**, **문서 역할**, 그리고 **경계에서의 계약**이다."
+          "text": "\"타입이 있으면 버그가 줄어든다\"는 절반만 맞다. 실무에서 더 크게 체감되는 것은 **자동완성**, **안전한 이름 바꾸기**, **문서 역할**, 그리고 **경계에서의 계약**이다."
         },
         {
           "type": "demo",
@@ -49,7 +49,7 @@
         },
         {
           "type": "note",
-          "text": "TypeScript 는 **자바스크립트의 확장**이다. 유효한 JS 는 대부분 유효한 TS 이고, 컴파일하면 타입이 **지워진 JS** 가 나온다. 그래서 실행 중에는 타입이 존재하지 않는다 — 이 사실이 5·6장의 모든 이야기를 만든다."
+          "text": "TypeScript 는 **자바스크립트의 확장**이다. 유효한 JS 는 대부분 유효한 TS 이고, 컴파일하면 타입이 **지워진 JS** 가 나온다. 그래서 실행 중에는 타입이 존재하지 않는다. 이 사실이 5, 6장의 모든 이야기를 만든다."
         },
         {
           "type": "code",
@@ -59,7 +59,7 @@
         },
         {
           "type": "p",
-          "text": "그러니 TypeScript 를 **실행 중 안전장치**로 기대하면 안 된다. 그것은 **작성 시점의 도구**다 — 편집기가 알려 주고, 빌드가 막아 준다. 실행 중 들어오는 값은 여전히 검사해야 한다(6장)."
+          "text": "그러니 TypeScript 를 **실행 중 안전장치**로 기대하면 안 된다. 그것은 **작성 시점의 도구**다. 편집기가 알려 주고, 빌드가 막아 준다. 실행 중 들어오는 값은 여전히 검사해야 한다(6장)."
         },
         {
           "type": "try",
@@ -82,7 +82,7 @@
           "q": "실무에서 가장 자주 체감되는 이득은?",
           "choices": [
             "버그 예방",
-            "자동완성·이름 바꾸기",
+            "자동완성, 이름 바꾸기",
             "성능",
             "번들 크기"
           ],
@@ -104,7 +104,7 @@
     },
     {
       "id": "2",
-      "title": "추론 — 적지 말아야 할 것들",
+      "title": "추론. 적지 말아야 할 것들",
       "minutes": 9,
       "blocks": [
         {
@@ -114,7 +114,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "코드를 골라 보라 — 추론이 무엇을 아는가",
+          "label": "코드를 골라 보라. 추론이 무엇을 아는가",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    letconst: ['let x = 3;      // 추론: number\\nconst y = 3;    // 추론: 3  (리터럴 타입)',\n      true, '',\n      'const 는 다시 대입할 수 없으니 「3 이라는 값 자체」로 좁혀 준다.\\n'\n      + '이 차이가 유니온·조건 분기에서 큰 역할을 한다(3장).'],\n    verbose: ['const names: string[] = users.map((u: User): string => u.name);',\n      true, '통과하지만 군더더기',\n      'users 가 User[] 이면 u 도 반환값도 전부 추론된다.\\n'\n      + '  const names = users.map((u) => u.name);   // 이걸로 충분\\n'\n      + '손으로 적을수록 시그니처가 바뀔 때 고칠 곳만 는다.'],\n    ret: ['function total(items: Item[]) {\\n  return items.reduce((s, i) => s + i.price, 0);\\n}',\n      true, '반환 타입은 추론된다(number)',\n      '다만 **공개 API·라이브러리 경계**에서는 반환 타입을 적는 편이 낫다 —\\n'\n      + '실수로 타입이 바뀌는 것을 그 자리에서 막아 주고, 추론 비용도 준다.'],\n    param: ['function greet(name) { … }',\n      false, \"Parameter 'name' implicitly has an 'any' type\",\n      '**매개변수는 추론되지 않는다** — 부르는 쪽을 미리 알 수 없기 때문.\\n'\n      + '그래서 적어야 하는 곳은 대체로 「입구」다: 함수 매개변수, 빈 배열·객체의 첫 선언.'],\n    empty: ['const items = [];        // any[] 로 시작\\nitems.push(1);\\nitems.push(\"a\");   // 막히지 않는다',\n      true, '통과하지만 타입이 죽었다',\n      '빈 배열은 추론할 근거가 없다.\\n'\n      + '  const items: Item[] = [];   // 이럴 때 적는다'],\n  }[k];\n  card(t[0], t[1], t[2]);\n  show(t[3] + '\\n\\n'\n     + '적는 기준 한 줄\\n'\n     + '  **입구에는 적고, 안쪽은 맡긴다.**\\n'\n     + '  적을 곳: 함수 매개변수 · 빈 배열/객체 · 공개 API 반환 · 경계에서 받은 값\\n'\n     + '  맡길 곳: 지역 변수 · map/filter 콜백 · 대부분의 반환 타입');\n</script>",
           "controls": [
@@ -150,7 +150,7 @@
         },
         {
           "type": "note",
-          "text": "**`noImplicitAny`(strict 에 포함)를 켜면** 추론이 안 되는 자리를 컴파일러가 알려 준다. 「어디에 적어야 하나」를 고민할 필요가 없어진다 — 빨간 줄이 뜨는 곳에만 적으면 된다."
+          "text": "**`noImplicitAny`(strict 에 포함)를 켜면** 추론이 안 되는 자리를 컴파일러가 알려 준다. \"어디에 적어야 하나\"를 고민할 필요가 없어진다. 빨간 줄이 뜨는 곳에만 적으면 된다."
         },
         {
           "type": "code",
@@ -160,7 +160,7 @@
         },
         {
           "type": "p",
-          "text": "`satisfies` 는 비교적 새 기능인데 아주 유용하다. `: Record<string, string>` 으로 적으면 값이 넓어지지만(`string`), `satisfies` 는 **검사는 하되 좁은 추론을 유지**한다 — 「검사」와 「추론」을 분리한 것이다."
+          "text": "`satisfies` 는 비교적 새 기능인데 아주 유용하다. `: Record<string, string>` 으로 적으면 값이 넓어지지만(`string`), `satisfies` 는 **검사는 하되 좁은 추론을 유지**한다. \"검사\"와 \"추론\"을 분리한 것이다."
         },
         {
           "type": "try",
@@ -205,17 +205,17 @@
     },
     {
       "id": "3",
-      "title": "유니온과 좁히기 — TypeScript 의 심장",
+      "title": "유니온과 좁히기. TypeScript 의 심장",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "TypeScript 를 「잘 쓴다」는 것은 대체로 **유니온을 만들고 좁히는** 일을 잘한다는 뜻이다. 「이 값은 A 이거나 B」를 타입으로 적어 두면, 컴파일러가 **모든 경우를 다뤘는지** 검사해 준다."
+          "text": "TypeScript 를 \"잘 쓴다\"는 것은 대체로 **유니온을 만들고 좁히는** 일을 잘한다는 뜻이다. \"이 값은 A 이거나 B\"를 타입으로 적어 두면, 컴파일러가 **모든 경우를 다뤘는지** 검사해 준다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "좁히기 방법을 골라 보라 — 어떻게 확정되나",
+          "label": "좁히기 방법을 골라 보라. 어떻게 확정되나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{narrow}}';\n  const t = {\n    typeof: ['function len(x: string | number) {\\n'\n      + '  if (typeof x === \"string\") return x.length;   // 여기서 x 는 string\\n'\n      + '  return String(x).length;                       // 여기서 x 는 number\\n}',\n      'typeof 로 좁히기', '원시 타입에 쓴다 — string · number · boolean · function · undefined'],\n    in: ['type Cat = { meow: () => void };\\n'\n      + 'type Dog = { bark: () => void };\\n'\n      + 'function speak(a: Cat | Dog) {\\n'\n      + '  if (\"meow\" in a) a.meow();   // Cat 으로 좁혀진다\\n'\n      + '  else a.bark();\\n}',\n      'in 연산자로 좁히기', '속성이 있는지로 가른다 — 태그가 없는 객체 유니온에 쓴다'],\n    tag: ['type Result =\\n'\n      + '  | { ok: true; value: number }\\n'\n      + '  | { ok: false; error: string };\\n\\n'\n      + 'if (r.ok) r.value.toFixed();   // ok:true 쪽으로 확정\\n'\n      + 'else console.error(r.error);',\n      '판별 유니온 (가장 권장)', '공통 필드(태그) 하나로 갈린다 — 가장 읽기 쉽고 확장에도 강하다'],\n    guard: ['function isCat(a: Cat | Dog): a is Cat {\\n'\n      + '  return \"meow\" in a;\\n}\\n\\n'\n      + 'if (isCat(a)) a.meow();',\n      '사용자 정의 타입 가드', '판단 로직이 복잡할 때 함수로 뺀다 — a is Cat 이 핵심'],\n    never: ['function area(s: Shape) {\\n'\n      + '  switch (s.kind) {\\n'\n      + '    case \"circle\": return …;\\n'\n      + '    case \"rect\":   return …;\\n'\n      + '    default: {\\n'\n      + '      const _exhaustive: never = s;   // 새 종류가 생기면 여기서 오류\\n'\n      + '      throw new Error(\"모르는 모양\");\\n'\n      + '    }\\n  }\\n}',\n      '빠짐없음 검사 (never)', '유니온에 새 항목이 추가되면 **컴파일이 알려 준다** — 가장 값진 패턴'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[0]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '좁히기의 값\\n'\n     + '  · if 안에서는 그 타입으로 **확정**되어 자동완성이 정확해진다\\n'\n     + '  · 모든 경우를 다뤘는지 컴파일러가 검사한다 (never 패턴)\\n'\n     + '  · 「이 값은 null 일 수 있다」를 타입에 적으면 부르는 쪽이 반드시 다룬다');\n</script>",
           "controls": [
@@ -261,11 +261,11 @@
         },
         {
           "type": "p",
-          "text": "이것이 타입의 진짜 힘이다 — **불가능한 상태를 표현할 수 없게** 만드는 것. `isLoading: boolean` + `data?: Post[]` 로 두면 「로딩 중인데 데이터가 있는」 이상한 조합이 가능해지지만, 판별 유니온은 그것을 애초에 막는다."
+          "text": "이것이 타입의 진짜 힘이다. **불가능한 상태를 표현할 수 없게** 만드는 것. `isLoading: boolean` + `data?: Post[]` 로 두면 \"로딩 중인데 데이터가 있는\" 이상한 조합이 가능해지지만, 판별 유니온은 그것을 애초에 막는다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 `isLoading`·`isError` 같은 불리언 여러 개로 상태를 표현한 곳을 찾아 판별 유니온으로 바꿔 보라. 다뤄야 할 분기가 몇 개인지 컴파일러가 알려 준다."
+          "text": "내 코드에서 `isLoading`, `isError` 같은 불리언 여러 개로 상태를 표현한 곳을 찾아 판별 유니온으로 바꿔 보라. 다뤄야 할 분기가 몇 개인지 컴파일러가 알려 준다."
         }
       ],
       "quiz": [
@@ -306,17 +306,17 @@
     },
     {
       "id": "4",
-      "title": "any · unknown · 단언 — 도망칠 때의 대가",
+      "title": "any, unknown, 단언. 도망칠 때의 대가",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "타입이 막힐 때 쓸 수 있는 탈출구가 셋 있다 — `any`, `unknown`, `as`. 셋은 **위험도가 완전히 다르다**. 이 차이를 모르면 타입을 켜 놓고도 안전하지 않은 코드를 쓰게 된다."
+          "text": "타입이 막힐 때 쓸 수 있는 탈출구가 셋 있다. `any`, `unknown`, `as`. 셋은 **위험도가 완전히 다르다**. 이 차이를 모르면 타입을 켜 놓고도 안전하지 않은 코드를 쓰게 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "탈출구를 골라 보라 — 무엇을 잃나",
+          "label": "탈출구를 골라 보라. 무엇을 잃나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{escape}}';\n  const t = {\n    any: ['const data: any = JSON.parse(s);\\n'\n      + 'data.user.name.toUpperCase();   // 아무 검사 없이 통과\\n'\n      + 'data.전혀없는속성.또없음();      // 이것도 통과',\n      false, '위험: 검사를 통째로 끈다',\n      'any 는 「검사하지 마」다. 그 값에서 파생되는 것까지 전부 검사가 꺼진다 —\\n'\n      + '타입 구멍이 코드 전체로 번진다. 마지막 수단으로만.'],\n    unknown: ['const data: unknown = JSON.parse(s);\\n'\n      + 'data.user;   // 오류 — 먼저 좁혀라\\n\\n'\n      + 'if (typeof data === \"object\" && data && \"user\" in data) { … }',\n      true, '안전: 쓰려면 반드시 좁혀야 한다',\n      'unknown 은 「아직 모른다」다. 무엇이든 담을 수 있지만 **쓰려면 확인해야** 한다.\\n'\n      + 'any 를 쓰고 싶을 때 대신 넣을 첫 후보.'],\n    as: ['const user = JSON.parse(s) as User;\\n'\n      + 'user.name.toUpperCase();   // 통과 — 하지만 진짜 User 인지는 아무도 안 봤다',\n      true, '통과하지만 검사가 아니다',\n      'as 는 검사가 아니라 **주장**이다 — 「내가 맞다고 하니 믿어라」.\\n'\n      + '틀리면 실행 중에 터진다. 경계에서는 진짜 검증을 써라(5장).'],\n    bang: ['const el = document.querySelector(\"#app\")!;\\n'\n      + 'el.classList.add(\"on\");   // el 이 null 이면 실행 중 오류',\n      true, '통과하지만 null 을 우겼다',\n      '! 는 「null 아니야」라는 주장이다.\\n'\n      + '확실한 자리(직후에 만든 요소 등)에서는 편하지만, 습관이 되면 위험하다.'],\n    guard2: ['function isUser(v: unknown): v is User {\\n'\n      + '  return typeof v === \"object\" && v !== null\\n'\n      + '    && typeof (v as any).name === \"string\";\\n}\\n\\n'\n      + 'if (isUser(data)) data.name.toUpperCase();',\n      true, '안전: 실제로 확인한다',\n      '타입 가드는 **실행 중에 진짜 검사**하고, 그 결과를 타입으로 알려 준다.\\n'\n      + 'as 와 겉모습은 비슷하지만 성질이 정반대다.'],\n  }[k];\n  card(t[0], t[1], t[2]);\n  show(t[3] + '\\n\\n'\n     + '위험도 순서\\n'\n     + '  any  >  as / !  >  unknown + 타입 가드\\n'\n     + '  (왼쪽일수록 위험)\\n\\n'\n     + '규칙: any 를 쓰고 싶으면 unknown 을 먼저 시도하라.');\n</script>",
           "controls": [
@@ -352,7 +352,7 @@
         },
         {
           "type": "note",
-          "text": "**`any` 는 전염된다.** `any` 값에서 꺼낸 것도 `any` 이고, 그것을 넘긴 함수 안에서도 검사가 느슨해진다. 그래서 한 곳의 `any` 가 그 주변 전체의 안전성을 갉아먹는다 — `unknown` 은 그렇지 않다."
+          "text": "**`any` 는 전염된다.** `any` 값에서 꺼낸 것도 `any` 이고, 그것을 넘긴 함수 안에서도 검사가 느슨해진다. 그래서 한 곳의 `any` 가 그 주변 전체의 안전성을 갉아먹는다. `unknown` 은 그렇지 않다."
         },
         {
           "type": "code",
@@ -362,11 +362,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **`as` 를 쓸 때는 이유를 주석으로 남겨라.** 「왜 컴파일러보다 내가 더 잘 아는가」를 적을 수 없다면, 그것은 대개 잘못된 단언이다."
+          "text": "그리고 **`as` 를 쓸 때는 이유를 주석으로 남겨라.** \"왜 컴파일러보다 내가 더 잘 아는가\"를 적을 수 없다면, 그것은 대개 잘못된 단언이다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 `as ` 와 `: any` 를 검색해 개수를 세라. 그중 경계(API 응답·JSON.parse)에서 쓰인 것이 있으면 6장의 검증으로 바꿀 후보다."
+          "text": "내 코드에서 `as ` 와 `: any` 를 검색해 개수를 세라. 그중 경계(API 응답, JSON.parse)에서 쓰인 것이 있으면 6장의 검증으로 바꿀 후보다."
         }
       ],
       "quiz": [
@@ -407,17 +407,17 @@
     },
     {
       "id": "5",
-      "title": "경계에서 검증 — 타입은 실행 중에 없다",
+      "title": "경계에서 검증. 타입은 실행 중에 없다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "1장의 사실이 여기서 문제가 된다 — **타입은 컴파일하면 사라진다.** 그래서 프로그램 **바깥에서 들어오는 값**은 타입이 아무것도 보장해 주지 않는다. API 응답, `JSON.parse`, `localStorage`, URL 파라미터, 폼 입력."
+          "text": "1장의 사실이 여기서 문제가 된다. **타입은 컴파일하면 사라진다.** 그래서 프로그램 **바깥에서 들어오는 값**은 타입이 아무것도 보장해 주지 않는다. API 응답, `JSON.parse`, `localStorage`, URL 파라미터, 폼 입력."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "경계를 골라 보라 — 무엇이 보장되고 무엇이 아닌가",
+          "label": "경계를 골라 보라. 무엇이 보장되고 무엇이 아닌가",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{boundary}}';\n  const t = {\n    api: ['const user = await res.json() as User;', false,\n      'API 응답 — 서버가 바뀌면 조용히 깨진다',\n      '서버가 필드 이름을 바꾸거나 null 을 보내도 컴파일은 통과한다.\\n'\n      + '오류는 한참 뒤 「undefined 의 속성을 읽을 수 없다」로 나타난다.'],\n    storage: ['const prefs = JSON.parse(localStorage.getItem(\"prefs\")!) as Prefs;', false,\n      'localStorage — 옛 버전이 남아 있다',\n      '앱을 업데이트해도 사용자 기기에는 **예전 모양의 값**이 남아 있다.\\n'\n      + '가장 흔한데 가장 잊히는 경계.'],\n    url: ['const page = Number(params.get(\"page\"));', false,\n      'URL — 사용자가 아무 값이나 넣는다',\n      'page=abc 이면 NaN, page=-5 이면 음수. 타입은 number 라고 말하지만 값은 쓰레기다.'],\n    form: ['const age: number = form.age;', false,\n      '폼 입력 — 문자열이 들어온다',\n      '입력칸의 값은 언제나 문자열이다. 변환과 범위 검사가 필요하다.'],\n    internal: ['function total(items: Item[]) { … }  // 내부 호출', true,\n      '내부 함수 — 여기서는 타입이 보장된다',\n      '경계를 한 번 통과한 뒤로는 타입을 믿어도 된다.\\n'\n      + '**검증은 경계에서 한 번만** 하고, 안쪽에서는 반복하지 않는 것이 좋은 설계다.'],\n  }[k];\n  card(t[0], t[1], t[1] ? '내부 — 타입을 믿어도 된다' : '컴파일은 통과 · 실행 중에는 아무도 안 본다');\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '원칙: **경계에서 한 번 검증하고, 안에서는 믿는다.**\\n'\n     + '  바깥 -> [검증] -> 내부(타입 보장) -> [직렬화] -> 바깥');\n</script>",
           "controls": [
@@ -459,7 +459,7 @@
         },
         {
           "type": "note",
-          "text": "**스키마에서 타입을 뽑아라.** `interface User` 와 검증 스키마를 따로 적으면 언젠가 어긋난다. `z.infer` 처럼 **한 벌에서 파생**시키면 그 문제가 구조적으로 사라진다 — SSOT 의 타입 버전이다."
+          "text": "**스키마에서 타입을 뽑아라.** `interface User` 와 검증 스키마를 따로 적으면 언젠가 어긋난다. `z.infer` 처럼 **한 벌에서 파생**시키면 그 문제가 구조적으로 사라진다. SSOT 의 타입 버전이다."
         },
         {
           "type": "p",
@@ -473,7 +473,7 @@
         },
         {
           "type": "try",
-          "text": "내 코드에서 `await res.json()` 을 검색하라. 그 뒤에 `as` 가 붙어 있으면, 그 자리가 「컴파일은 통과하지만 아무도 안 보는」 자리다."
+          "text": "내 코드에서 `await res.json()` 을 검색하라. 그 뒤에 `as` 가 붙어 있으면, 그 자리가 \"컴파일은 통과하지만 아무도 안 보는\" 자리다."
         }
       ],
       "quiz": [
@@ -492,7 +492,7 @@
           "q": "타입과 검증 스키마를 따로 적으면?",
           "choices": [
             "안전하다",
-            "언젠가 어긋난다 — 한 벌에서 파생시켜라",
+            "언젠가 어긋난다. 한 벌에서 파생시켜라",
             "빠르다",
             "차이 없다"
           ],
@@ -514,7 +514,7 @@
     },
     {
       "id": "6",
-      "title": "재사용 — 제네릭과 유틸리티 타입",
+      "title": "재사용. 제네릭과 유틸리티 타입",
       "minutes": 9,
       "blocks": [
         {
@@ -524,7 +524,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "도구를 골라 보라 — 무엇을 파생시키나",
+          "label": "도구를 골라 보라. 무엇을 파생시키나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{util}}';\n  const t = {\n    generic: ['function first<T>(items: T[]): T | undefined {\\n  return items[0];\\n}\\n\\n'\n      + 'first([1, 2, 3]);      // number | undefined\\n'\n      + 'first([\"a\", \"b\"]);     // string | undefined',\n      '제네릭 — 타입을 인자로 받는다',\n      '「무엇이 들어오든 그 타입 그대로 돌려준다」를 표현한다.\\n'\n      + 'any 로 하면 정보가 사라지지만, 제네릭은 이어진다.'],\n    pick: ['type User = { id: number; name: string; email: string; password: string };\\n\\n'\n      + 'type PublicUser = Omit<User, \"password\">;\\n'\n      + 'type UserCard  = Pick<User, \"id\" | \"name\">;',\n      'Pick / Omit — 골라내기',\n      '원본이 바뀌면 파생 타입도 따라 바뀐다. 두 벌로 적으면 그렇지 않다.'],\n    partial: ['type Draft = Partial<User>;        // 전부 선택적\\n'\n      + 'type Frozen = Readonly<User>;       // 전부 읽기 전용\\n'\n      + 'type Required2 = Required<Draft>;   // 전부 필수로',\n      'Partial / Readonly / Required',\n      '수정 폼(일부만), 불변 상태(읽기 전용) 같은 자리에서 그대로 쓴다.'],\n    record: ['type Status = \"todo\" | \"doing\" | \"done\";\\n'\n      + 'const LABEL: Record<Status, string> = {\\n'\n      + '  todo: \"할 일\", doing: \"진행\", done: \"완료\",\\n'\n      + '};   // 하나라도 빠지면 컴파일 오류',\n      'Record — 키를 빠짐없이',\n      '유니온에 새 값을 추가하면 이 표에서도 오류가 난다 — 3장의 빠짐없음 검사와 같은 효과.'],\n    returntype: ['function makeUser() { return { id: 1, name: \"a\" }; }\\n'\n      + 'type User2 = ReturnType<typeof makeUser>;\\n'\n      + 'type Item  = Post[\"tags\"][number];',\n      'ReturnType / 인덱스 접근',\n      '이미 있는 값·타입에서 필요한 조각을 꺼낸다 — 새로 적지 않는다.'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[0]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '공통 원칙: **한 곳에서 정의하고 나머지는 파생시킨다.**\\n'\n     + '같은 모양을 두 번 적는 순간, 어긋날 날짜가 정해진 것이다.');\n</script>",
           "controls": [
@@ -560,7 +560,7 @@
         },
         {
           "type": "note",
-          "text": "**제네릭을 남용하지 마라.** 타입 매개변수가 세 개 넘어가고 조건부 타입이 중첩되면, 읽는 사람도 컴파일러도 느려진다. 「이 추상화가 실제로 두 곳 이상에서 쓰이나?」를 먼저 물어라 — 코드의 DRY 원칙과 같다."
+          "text": "**제네릭을 남용하지 마라.** 타입 매개변수가 세 개 넘어가고 조건부 타입이 중첩되면, 읽는 사람도 컴파일러도 느려진다. \"이 추상화가 실제로 두 곳 이상에서 쓰이나?\"를 먼저 물어라. 코드의 DRY 원칙과 같다."
         },
         {
           "type": "code",
@@ -574,7 +574,7 @@
         },
         {
           "type": "try",
-          "text": "내 코드에서 같은 모양을 두 번 적은 타입을 찾아라. `Pick`·`Omit`·`ReturnType` 으로 한쪽을 파생시킬 수 있는지 시도해 보라."
+          "text": "내 코드에서 같은 모양을 두 번 적은 타입을 찾아라. `Pick`, `Omit`, `ReturnType` 으로 한쪽을 파생시킬 수 있는지 시도해 보라."
         }
       ],
       "quiz": [
@@ -615,17 +615,17 @@
     },
     {
       "id": "7",
-      "title": "설정과 도입 — strict 부터 시작한다",
+      "title": "설정과 도입. strict 부터 시작한다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "TypeScript 의 값은 **설정에 크게 좌우된다.** 느슨하게 켜 두면 「타입이 있는 척하는 자바스크립트」가 되고, 그 상태로 몇 달이 지나면 되돌리기 어려워진다."
+          "text": "TypeScript 의 값은 **설정에 크게 좌우된다.** 느슨하게 켜 두면 \"타입이 있는 척하는 자바스크립트\"가 되고, 그 상태로 몇 달이 지나면 되돌리기 어려워진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 켜 보라 — 무엇이 잡히나",
+          "label": "설정을 켜 보라. 무엇이 잡히나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const n = {{opts}};\n  const opts = [\n    ['strict', '아래 항목을 한꺼번에 켠다 — 새 프로젝트의 기본값'],\n    ['noImplicitAny', '타입을 못 정한 자리를 알려 준다 (2장)'],\n    ['strictNullChecks', 'null/undefined 를 타입으로 다룬다 — 가장 값진 하나 (3장)'],\n    ['noUncheckedIndexedAccess', 'arr[i] 를 T | undefined 로 — 범위 밖 접근을 잡는다'],\n    ['exactOptionalPropertyTypes', '「없음」과 「undefined 를 넣음」을 구분한다'],\n    ['noUnusedLocals / noFallthroughCasesInSwitch', '안 쓰는 변수·빠진 break'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  opts.forEach(([name, desc], i) => {\n    const on = i < n;\n    box(14, 6 + i * 30, 412, 26, (on ? '✓ ' : '   ') + name, '',\n        on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n    ctx.fillStyle = on ? '#94a3b8' : '#334155'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(desc, 190, 23 + i * 30);\n  });\n  const safety = [10, 45, 80, 88, 93, 97][n] || 0;\n  app.innerHTML = '<div class=\"hint\">켠 설정 ' + n + ' / 6 · 체감 안전도 ' + safety + '%</div>';\n  show((n === 0 ? '아무것도 안 켰다 — 타입이 있는 척하는 자바스크립트에 가깝다.'\n      : n <= 2 ? 'noImplicitAny 까지 — 아직 null 이 몰래 섞인다.'\n      : n <= 3 ? 'strictNullChecks 까지 — 여기서부터 TypeScript 를 쓰는 이유가 생긴다.'\n      : '엄격한 설정 — 처음엔 성가시지만 잡히는 것이 크게 는다.') + '\\n\\n'\n     + '새 프로젝트: strict: true 로 시작하라. 나중에 켜는 것이 훨씬 비싸다.\\n'\n     + '기존 프로젝트: 한 번에 켜지 말고 파일 단위로 옮긴다(다음 항목).');\n</script>",
           "controls": [
@@ -648,7 +648,7 @@
         },
         {
           "type": "p",
-          "text": "**기존 자바스크립트 프로젝트를 옮길 때**는 한 번에 하지 마라. `allowJs` 를 켜고 JS 와 TS 를 섞어 둔 채, **새 파일부터 TS 로** 쓰고 자주 고치는 파일을 하나씩 옮긴다. 앞 칸(cs-db 8장)의 「확장 → 이전 → 축소」와 같은 전략이다."
+          "text": "**기존 자바스크립트 프로젝트를 옮길 때**는 한 번에 하지 마라. `allowJs` 를 켜고 JS 와 TS 를 섞어 둔 채, **새 파일부터 TS 로** 쓰고 자주 고치는 파일을 하나씩 옮긴다. 앞 칸(cs-db 8장)의 \"확장 → 이전 → 축소\"와 같은 전략이다."
         },
         {
           "type": "code",
@@ -658,11 +658,11 @@
         },
         {
           "type": "note",
-          "text": "**타입 검사는 빌드와 분리하라.** 번들러(esbuild·swc)는 타입을 지우기만 하고 검사하지 않는다 — 빠른 대신 검사를 안 한다. 그래서 `tsc --noEmit` 을 **CI 의 별도 단계**로 두어야 실제로 막힌다(git-hooks 5장)."
+          "text": "**타입 검사는 빌드와 분리하라.** 번들러(esbuild, swc)는 타입을 지우기만 하고 검사하지 않는다. 빠른 대신 검사를 안 한다. 그래서 `tsc --noEmit` 을 **CI 의 별도 단계**로 두어야 실제로 막힌다(git-hooks 5장)."
         },
         {
           "type": "try",
-          "text": "내 `tsconfig.json` 을 열어 `strict` 가 켜져 있는지 보라. 꺼져 있다면 `strictNullChecks` 하나만 켜고 오류 수를 세어 보라 — 그 숫자가 지금의 위험이다."
+          "text": "내 `tsconfig.json` 을 열어 `strict` 가 켜져 있는지 보라. 꺼져 있다면 `strictNullChecks` 하나만 켜고 오류 수를 세어 보라. 그 숫자가 지금의 위험이다."
         }
       ],
       "quiz": [
@@ -692,7 +692,7 @@
           "q": "번들러만 쓰면 타입 검사가 되나?",
           "choices": [
             "된다",
-            "안 된다 — tsc --noEmit 을 CI 에 따로 둬야 한다",
+            "안 된다. tsc --noEmit 을 CI 에 따로 둬야 한다",
             "부분적으로",
             "설정에 따라"
           ],
@@ -749,7 +749,7 @@
         },
         {
           "type": "note",
-          "text": "**오류 메시지를 끝까지 읽어라.** TypeScript 의 메시지는 길지만, 대개 마지막 몇 줄에 진짜 원인이 있다(「Type 'X' is not assignable to type 'Y'」 아래의 상세). 중첩 객체에서는 어느 속성이 안 맞는지까지 알려 준다."
+          "text": "**오류 메시지를 끝까지 읽어라.** TypeScript 의 메시지는 길지만, 대개 마지막 몇 줄에 진짜 원인이 있다(\"Type 'X' is not assignable to type 'Y'\" 아래의 상세). 중첩 객체에서는 어느 속성이 안 맞는지까지 알려 준다."
         },
         {
           "type": "code",
@@ -759,7 +759,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **타입이 자꾸 어려워지면 설계를 의심하라.** 「이 함수는 인자에 따라 다른 걸 돌려줘요」를 타입으로 표현하려고 조건부 타입을 세 겹 쌓고 있다면, 대개는 함수를 둘로 나누는 편이 옳다."
+          "text": "그리고 **타입이 자꾸 어려워지면 설계를 의심하라.** \"이 함수는 인자에 따라 다른 걸 돌려줘요\"를 타입으로 표현하려고 조건부 타입을 세 겹 쌓고 있다면, 대개는 함수를 둘로 나누는 편이 옳다."
         },
         {
           "type": "try",
@@ -782,7 +782,7 @@
           "q": "`res.json()` 의 반환 타입은?",
           "choices": [
             "unknown",
-            "any — 타입 구멍의 단골",
+            "any. 타입 구멍의 단골",
             "object",
             "제네릭"
           ],
@@ -804,7 +804,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -820,13 +820,13 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여덟 문항",
+          "label": "스스로 채점. 여덟 문항",
           "height": "300px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  .ok { color:#4ade80; } .bad { color:#fca5a5; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 코드 + 판정 카드 — 장마다 같은 모양을 쓴다. */\n  function card(code, verdict, msg) {\n    app.innerHTML = '<div class=\"code\">' + esc(code) + '</div>' +\n      '<div style=\"margin-top:8px;font-size:15px\" class=\"' + (verdict ? 'ok' : 'bad') + '\">' +\n      (verdict ? '✓ 통과' : '✗ 컴파일 오류') + (msg ? ' — ' + esc(msg) : '') + '</div>';\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['타입은 실행 중에도 값을 검사한다', false],\n    ['함수 매개변수는 추론되지 않는다', true],\n    ['any 는 그 값에서 파생된 것까지 검사를 끈다', true],\n    ['as User 는 실행 중에 모양을 확인한다', false],\n    ['판별 유니온은 불가능한 상태를 막는다', true],\n    ['번들러가 타입 검사도 해 준다', false],\n    ['strictNullChecks 는 켜는 편이 좋다', true],\n    ['스키마와 타입은 따로 적는 게 안전하다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(지워짐) 2장(추론) 4장(any/as) 5장(경계) 7장(설정)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 프레임워크다. 여기까지가 「값의 모양을 약속하는 법」이었다면, 다음은 **그 값이 화면이 되는 구조**다 — DOM 칸의 「상태 → 화면 한 방향」이 프레임워크의 이름으로 다시 나온다."
+          "text": "다음 칸은 프레임워크다. 여기까지가 \"값의 모양을 약속하는 법\"이었다면, 다음은 **그 값이 화면이 되는 구조**다. DOM 칸의 \"상태 → 화면 한 방향\"이 프레임워크의 이름으로 다시 나온다."
         },
         {
           "type": "try",
@@ -838,7 +838,7 @@
           "q": "타입을 켜 두고도 안전하지 않은 대표 자리는?",
           "choices": [
             "내부 함수",
-            "경계(API·JSON·storage)",
+            "경계(API, JSON, storage)",
             "테스트",
             "설정 파일"
           ],

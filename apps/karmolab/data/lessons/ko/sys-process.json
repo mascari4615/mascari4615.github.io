@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「프로세스」를 「실행 중인 프로그램」이라 외우면 실행 사고를 못 읽는다. 프로세스는 **운영체제가 한 실행 단위마다 들고 있는 자원 묶음**이다 — 메모리 공간·열린 파일 번호표(fd)·현재 디렉터리·환경변수·사용자 권한. 이 목록을 알면 「왜 갑자기 죽었나」·「왜 환경변수가 안 먹나」 같은 사고가 대부분 설명된다."
+          "text": "\"프로세스\"를 \"실행 중인 프로그램\"이라 외우면 실행 사고를 못 읽는다. 프로세스는 **운영체제가 한 실행 단위마다 들고 있는 자원 묶음**이다. 메모리 공간, 열린 파일 번호표(fd), 현재 디렉터리, 환경변수, 사용자 권한. 이 목록을 알면 \"왜 갑자기 죽었나\", \"왜 환경변수가 안 먹나\" 같은 사고가 대부분 설명된다."
         },
         {
           "type": "demo",
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**프로세스는 「격리된 자원 묶음」이라 서로 못 건드린다.** 한 프로세스의 메모리·fd 는 그 프로세스만의 것이라, 옆 프로세스가 함부로 읽거나 망가뜨리지 못한다(격리·isolation, sys-mem 과 이어짐). 그래서 한 프로세스가 죽어도 다른 프로세스는 살아 있다. 이 격리가 안정성·보안의 토대다 — 반대로, 자원을 **공유**하고 싶으면 스레드나 IPC 를 쓴다(8장)."
+          "text": "**프로세스는 \"격리된 자원 묶음\"이라 서로 못 건드린다.** 한 프로세스의 메모리, fd 는 그 프로세스만의 것이라, 옆 프로세스가 함부로 읽거나 망가뜨리지 못한다(격리, isolation, sys-mem 과 이어짐). 그래서 한 프로세스가 죽어도 다른 프로세스는 살아 있다. 이 격리가 안정성, 보안의 토대다. 반대로, 자원을 **공유**하고 싶으면 스레드나 IPC 를 쓴다(8장)."
         },
         {
           "type": "p",
-          "text": "**이 묶음을 알면 진단이 쉬워진다.** 「파일을 못 연다」 → fd 한도·권한(sys-fd)이고, 「env 를 바꿨는데 안 먹는다」 → env 는 시작 시 복사되니 재시작 필요(6장)이고, 「이유 없이 재시작」 → 종료 코드·신호(4·5장)다. 증상을 프로세스가 든 자원 목록에 대응시키면 원인이 좁혀진다 — 「실행 중인 코드」라는 뭉뚱그린 그림으론 못 하는 진단이다."
+          "text": "**이 묶음을 알면 진단이 쉬워진다.** \"파일을 못 연다\" → fd 한도, 권한(sys-fd)이고, \"env 를 바꿨는데 안 먹는다\" → env 는 시작 시 복사되니 재시작 필요(6장)이고, \"이유 없이 재시작\" → 종료 코드, 신호(4, 5장)다. 증상을 프로세스가 든 자원 목록에 대응시키면 원인이 좁혀진다. \"실행 중인 코드\"라는 뭉뚱그린 그림으론 못 하는 진단이다."
         },
         {
           "type": "try",
-          "text": "지금 도는 프로세스 하나를 골라 그것이 든 자원을 확인하라 — 열린 파일(fd), 현재 디렉터리, 환경변수, 사용자. 각각이 「프로세스마다 따로」임을 눈으로 확인하라."
+          "text": "지금 도는 프로세스 하나를 골라 그것이 든 자원을 확인하라. 열린 파일(fd), 현재 디렉터리, 환경변수, 사용자. 각각이 \"프로세스마다 따로\"임을 눈으로 확인하라."
         }
       ],
       "quiz": [
@@ -53,7 +53,7 @@
           "q": "프로세스를 가장 정확히 설명한 것은?",
           "choices": [
             "실행 중인 코드",
-            "OS 가 든 자원 묶음(메모리·fd·env·권한)",
+            "OS 가 든 자원 묶음(메모리, fd, env, 권한)",
             "파일 하나",
             "스레드"
           ],
@@ -69,10 +69,10 @@
             "OS 없어서"
           ],
           "answer": 1,
-          "why": "격리가 안정성·보안 토대."
+          "why": "격리가 안정성, 보안 토대."
         },
         {
-          "q": "「env 바꿨는데 안 먹는다」의 원인 갈래는?",
+          "q": "\"env 바꿨는데 안 먹는다\"의 원인 갈래는?",
           "choices": [
             "버그",
             "env 는 시작 시 복사 → 재시작 필요",
@@ -91,12 +91,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "한 프로세스가 든 자원을 하나씩 보면: **메모리 공간**(코드·힙·스택) · **열린 파일 번호표**(파일 디스크립터, sys-fd) · **현재 작업 디렉터리**(cwd) · **환경변수**(env) · **사용자·권한** · **PID·부모 PID**. 각각이 프로세스마다 독립이라, 이 목록이 곧 「이 프로세스가 무엇을 할 수 있나」의 경계다."
+          "text": "한 프로세스가 든 자원을 하나씩 보면: **메모리 공간**(코드, 힙, 스택), **열린 파일 번호표**(파일 디스크립터, sys-fd), **현재 작업 디렉터리**(cwd), **환경변수**(env), **사용자, 권한**, **PID, 부모 PID**. 각각이 프로세스마다 독립이라, 이 목록이 곧 \"이 프로세스가 무엇을 할 수 있나\"의 경계다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자원 항목 — 무엇이고 왜 중요한가",
+          "label": "자원 항목. 무엇이고 왜 중요한가",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const item = '{{item}}';\n  const cases = {\n    mem:  ['메모리(코드·힙·스택)', '코드=명령, 힙=동적 할당, 스택=호출·지역변수', '넘치면 OOM(137)·스택오버플로', '#38bdf8'],\n    fd:   ['열린 파일 번호표(fd)', '파일·소켓마다 정수 번호. 0/1/2=표준 입출력', 'fd 누수 → \"too many open files\"(sys-fd)', '#a78bfa'],\n    cwd:  ['현재 디렉터리(cwd)', '상대 경로의 기준. 프로세스마다 따로', '\"파일 없음\"은 대개 cwd 착각', '#fbbf24'],\n    env:  ['환경변수(env)', 'PATH·설정값. 시작 시 부모에게서 복사', '떠 있는 프로세스 env 밖에서 못 바꿈(6장)', '#4ade80'],\n    perm: ['사용자·권한', '누구로 실행 중인가. 파일·포트 접근 좌우', 'root 로 열면 사고 시 피해 큼(최소 권한)', '#fca5a5'],\n  }[item];\n  render('자원: ' + cases[0],\n    '  뜻: ' + cases[1] + '\\n  사고: ' + cases[2],\n    '메모리·fd·cwd·env·권한 — 각각이 프로세스의 능력 경계.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2]).replace('#111c33', cases[3]));\n</script>",
           "controls": [
@@ -138,15 +138,15 @@
         },
         {
           "type": "note",
-          "text": "**메모리는 코드·힙·스택으로 나뉜다.** 코드는 명령(읽기 전용), **힙**은 동적으로 할당하는 영역(넘치거나 새면 메모리 사고), **스택**은 함수 호출·지역변수(너무 깊은 재귀면 스택 오버플로). 「메모리를 많이 쓴다」가 힙인지 스택인지, 누수인지 정상 사용인지 구분해야 진단이 된다(sys-mem·sys-profile). 자원을 뭉뚱그리지 말고 항목으로 본다."
+          "text": "**메모리는 코드, 힙, 스택으로 나뉜다.** 코드는 명령(읽기 전용), **힙**은 동적으로 할당하는 영역(넘치거나 새면 메모리 사고), **스택**은 함수 호출, 지역변수(너무 깊은 재귀면 스택 오버플로). \"메모리를 많이 쓴다\"가 힙인지 스택인지, 누수인지 정상 사용인지 구분해야 진단이 된다(sys-mem, sys-profile). 자원을 뭉뚱그리지 말고 항목으로 본다."
         },
         {
           "type": "p",
-          "text": "**표준 입출력도 fd 다(0·1·2).** stdin(0)·stdout(1)·stderr(2)는 프로세스가 태어날 때부터 열린 fd 라, `> log.txt` 리다이렉트나 파이프는 이 fd 를 바꿔 끼우는 것이다(sys-fd). 그래서 「로그가 왜 파일로 안 가나」·「파이프가 왜 안 이어지나」는 fd 를 어디에 연결했나의 문제다. 프로세스의 입출력은 fd 라는 번호표로 관리된다는 걸 알면 셸의 리다이렉트가 이해된다."
+          "text": "**표준 입출력도 fd 다(0, 1, 2).** stdin(0), stdout(1), stderr(2)는 프로세스가 태어날 때부터 열린 fd 라, `> log.txt` 리다이렉트나 파이프는 이 fd 를 바꿔 끼우는 것이다(sys-fd). 그래서 \"로그가 왜 파일로 안 가나\", \"파이프가 왜 안 이어지나\"는 fd 를 어디에 연결했나의 문제다. 프로세스의 입출력은 fd 라는 번호표로 관리된다는 걸 알면 셸의 리다이렉트가 이해된다."
         },
         {
           "type": "try",
-          "text": "프로세스 하나의 열린 fd 목록을 보고(리눅스 `ls /proc/<pid>/fd`, macOS `lsof -p <pid>`), 0·1·2 가 무엇에 연결됐는지 확인하라. 그다음 cwd 와 env 도 확인해 「이 프로세스만의 것」임을 보라."
+          "text": "프로세스 하나의 열린 fd 목록을 보고(리눅스 `ls /proc/<pid>/fd`, macOS `lsof -p <pid>`), 0, 1, 2 가 무엇에 연결됐는지 확인하라. 그다음 cwd 와 env 도 확인해 \"이 프로세스만의 것\"임을 보라."
         }
       ],
       "quiz": [
@@ -173,7 +173,7 @@
           "why": "0=stdin,1=stdout,2=stderr."
         },
         {
-          "q": "「상대 경로로 파일을 못 찾음」의 흔한 원인은?",
+          "q": "\"상대 경로로 파일을 못 찾음\"의 흔한 원인은?",
           "choices": [
             "권한",
             "cwd(현재 디렉터리) 착각",
@@ -187,17 +187,17 @@
     },
     {
       "id": "3",
-      "title": "부모와 자식 — 좀비와 고아",
+      "title": "부모와 자식. 좀비와 고아",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "프로세스는 다른 프로세스가 **띄운다** — 띄운 쪽이 부모(PPID), 태어난 쪽이 자식이다. 자식이 끝나면 부모가 그 **종료 코드를 거둬야**(reap) 목록에서 사라진다. 안 거두면 **좀비**(끝났는데 목록에 남음), 부모가 먼저 죽으면 자식은 **고아**가 되어 최상위 프로세스(PID 1)가 입양한다. 이 관계를 알면 「끝났는데 안 사라지는」 프로세스가 설명된다."
+          "text": "프로세스는 다른 프로세스가 **띄운다**. 띄운 쪽이 부모(PPID), 태어난 쪽이 자식이다. 자식이 끝나면 부모가 그 **종료 코드를 거둬야**(reap) 목록에서 사라진다. 안 거두면 **좀비**(끝났는데 목록에 남음), 부모가 먼저 죽으면 자식은 **고아**가 되어 최상위 프로세스(PID 1)가 입양한다. 이 관계를 알면 \"끝났는데 안 사라지는\" 프로세스가 설명된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "부모-자식 — 좀비와 고아",
+          "label": "부모-자식. 좀비와 고아",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const scen = '{{scen}}';\n  if (scen === 'normal') {\n    render('정상: 부모가 거둠',\n      '  자식 종료 → 부모가 종료 코드 수거(wait) → 목록에서 사라짐',\n      '자식이 끝나면 부모가 종료 코드를 거둬야 깨끗이 사라진다.',\n      '<div class=\\\"tree\\\"><span class=\\\"n\\\">부모(wait)</span> → <span class=\\\"n\\\">자식 종료→수거됨</span></div>');\n  } else if (scen === 'zombie') {\n    render('좀비: 부모가 안 거둠',\n      '  자식은 끝났는데 부모가 wait 안 함 → <span class=\\\"warn\\\">종료 코드만 목록에 남음(좀비)</span>\\n' +\n      '  좀비 자체는 자원 거의 안 쓰지만, 쌓이면 PID 고갈. 부모 버그 신호.',\n      '부모가 wait 를 안 하면 자식이 좀비로 목록에 남는다.',\n      '<div class=\\\"tree\\\"><span class=\\\"n\\\">부모(wait 안함)</span> → <span class=\\\"n z\\\">자식 &lt;defunct&gt; 좀비</span></div>');\n  } else {\n    render('고아: 부모가 먼저 죽음',\n      '  부모 종료 → 자식은 계속 도는데 부모 없음 → <span class=\\\"ok\\\">PID 1 이 입양해 거둠</span>\\n' +\n      '  고아는 문제 아님(1번이 책임짐). 데몬은 일부러 고아로 만들기도.',\n      '부모가 먼저 죽으면 자식은 고아가 되어 PID 1 이 입양한다.',\n      '<div class=\\\"tree\\\"><span class=\\\"n d\\\">부모 죽음</span> <span class=\\\"n o\\\">→ PID1 입양</span> → <span class=\\\"n\\\">자식(고아)</span></div>');\n  }\n</script>",
           "controls": [
@@ -231,11 +231,11 @@
         },
         {
           "type": "note",
-          "text": "**좀비가 쌓이면 부모의 버그다 — PID 는 유한하다.** 좀비 하나는 종료 코드만 든 껍데기라 메모리는 거의 안 쓰지만, 부모가 자식을 계속 안 거두면 좀비가 쌓여 **PID 테이블이 고갈**되고 새 프로세스를 못 만든다. 그래서 자식을 띄우는 프로그램은 반드시 `wait`(또는 SIGCHLD 처리)로 거둬야 한다. 컨테이너에서 PID 1 이 이걸 안 하면 좀비가 쌓이니, 제대로 된 init 을 PID 1 로 둔다(`--init`)."
+          "text": "**좀비가 쌓이면 부모의 버그다. PID 는 유한하다.** 좀비 하나는 종료 코드만 든 껍데기라 메모리는 거의 안 쓰지만, 부모가 자식을 계속 안 거두면 좀비가 쌓여 **PID 테이블이 고갈**되고 새 프로세스를 못 만든다. 그래서 자식을 띄우는 프로그램은 반드시 `wait`(또는 SIGCHLD 처리)로 거둬야 한다. 컨테이너에서 PID 1 이 이걸 안 하면 좀비가 쌓이니, 제대로 된 init 을 PID 1 로 둔다(`--init`)."
         },
         {
           "type": "p",
-          "text": "**컨테이너의 PID 1 은 특별하다.** 보통 시스템은 PID 1(init/systemd)이 고아를 입양·수거하지만, 컨테이너에선 네 앱이 PID 1 이 되기 쉽다 — 그러면 앱이 자식 수거(reaping)와 신호 전달을 대신 해야 하는데, 대부분 앱은 그 역할을 안 한다. 그래서 `docker run --init` 이나 tini 같은 가벼운 init 을 PID 1 로 두어 좀비 수거·신호 전달을 맡긴다. 「컨테이너에 좀비가 쌓인다」는 이 문제인 경우가 많다."
+          "text": "**컨테이너의 PID 1 은 특별하다.** 보통 시스템은 PID 1(init/systemd)이 고아를 입양, 수거하지만, 컨테이너에선 네 앱이 PID 1 이 되기 쉽다. 그러면 앱이 자식 수거(reaping)와 신호 전달을 대신 해야 하는데, 대부분 앱은 그 역할을 안 한다. 그래서 `docker run --init` 이나 tini 같은 가벼운 init 을 PID 1 로 두어 좀비 수거, 신호 전달을 맡긴다. \"컨테이너에 좀비가 쌓인다\"는 이 문제인 경우가 많다."
         },
         {
           "type": "try",
@@ -285,12 +285,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "프로세스가 끝나면 **종료 코드**(0~255)를 남긴다 — 셸에서 `echo $?` 로 본다. `0`=정상, 그 외는 오류다. 관례: `1`=일반 오류, `2`=사용법 오류, `126`=실행 권한 없음, `127`=명령 없음, `128+N`=신호 N 으로 죽음(5장). 이 숫자가 「왜 죽었나」의 첫 단서라, CI·스크립트·컨테이너 진단의 출발점이다."
+          "text": "프로세스가 끝나면 **종료 코드**(0~255)를 남긴다. 셸에서 `echo $?` 로 본다. `0`=정상, 그 외는 오류다. 관례: `1`=일반 오류, `2`=사용법 오류, `126`=실행 권한 없음, `127`=명령 없음, `128+N`=신호 N 으로 죽음(5장). 이 숫자가 \"왜 죽었나\"의 첫 단서라, CI, 스크립트, 컨테이너 진단의 출발점이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "종료 코드 — 무엇을 뜻하나",
+          "label": "종료 코드. 무엇을 뜻하나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const code = {{code}};\n  const map = {\n    0:['정상 종료', '아무 문제 없음. 스크립트가 다음으로 진행', 'good'],\n    1:['일반 오류', '가장 흔한 실패. 프로그램이 문제를 만남', 'bad'],\n    2:['사용법 오류', '인자·옵션이 틀림(많은 CLI 관례)', 'bad'],\n    126:['실행 권한 없음', '파일은 있는데 x 권한이 없어 실행 불가', 'bad'],\n    127:['명령 없음', 'PATH 에서 명령을 못 찾음(오타·미설치)', 'bad'],\n    130:['SIGINT(Ctrl+C)', '128+2 — 사용자가 인터럽트로 끝냄', 'warn'],\n    137:['SIGKILL/OOM', '128+9 — 강제 종료. 컨테이너면 대개 메모리 초과', 'bad'],\n    139:['SIGSEGV', '128+11 — 잘못된 메모리 접근(세그폴트)', 'bad'],\n  }[code];\n  render('exit ' + code + '  →  ' + map[0],\n    '  뜻: ' + map[1] + '\\n\\n' +\n    (code===0 ? '  <span class=\\\"ok\\\">성공. $? 가 0.</span>'\n      : code>=128 ? '  <span class=\\\"warn\\\">128+N = 신호 N 으로 죽음. N=' + (code-128) + '(5장).</span>'\n      : '  <span class=\\\"no\\\">실패. 스크립트는 여기서 멈춰야 안전(set -e).</span>'),\n    '$? 가 0 이면 성공, 아니면 실패. 128+N 은 신호로 죽은 것.',\n    box('exit ' + code, map[1], map[2]));\n</script>",
           "controls": [
@@ -344,15 +344,15 @@
         },
         {
           "type": "note",
-          "text": "**137 을 보면 메모리를 의심하라.** 컨테이너에서 앱이 「이유 없이」 재시작한다면 거의 항상 137 이다 — 128+9, 즉 SIGKILL(대개 메모리 한도 초과로 OOM killer 가 죽임). 로그엔 아무것도 안 남는다(SIGKILL 은 정리할 틈을 안 준다, 5장). 그러니 「원인 모를 재시작」은 먼저 종료 코드를 확인하고, 137 이면 메모리 한도·사용량을 본다(sys-mem)."
+          "text": "**137 을 보면 메모리를 의심하라.** 컨테이너에서 앱이 \"이유 없이\" 재시작한다면 거의 항상 137 이다. 128+9, 즉 SIGKILL(대개 메모리 한도 초과로 OOM killer 가 죽임). 로그엔 아무것도 안 남는다(SIGKILL 은 정리할 틈을 안 준다, 5장). 그러니 \"원인 모를 재시작\"은 먼저 종료 코드를 확인하고, 137 이면 메모리 한도, 사용량을 본다(sys-mem)."
         },
         {
           "type": "p",
-          "text": "**종료 코드로 스크립트·파이프라인이 갈린다.** `cmd1 && cmd2` 는 cmd1 이 0 일 때만 cmd2 를 실행하고, `set -e` 는 0 아닌 코드에서 즉시 멈춘다 — 그래서 프로그램이 실패를 **정확한 종료 코드**로 알려야 CI 가 빨강으로 멈춘다. `process.exit(1)` 을 빼먹어 실패해도 0 을 반환하면, 실패가 초록으로 지나가는 무음 실패다(quality 트랙). 종료 코드는 자동화의 신경이다 — 성공은 0, 실패는 0 아님을 지켜라."
+          "text": "**종료 코드로 스크립트, 파이프라인이 갈린다.** `cmd1 && cmd2` 는 cmd1 이 0 일 때만 cmd2 를 실행하고, `set -e` 는 0 아닌 코드에서 즉시 멈춘다. 그래서 프로그램이 실패를 **정확한 종료 코드**로 알려야 CI 가 빨강으로 멈춘다. `process.exit(1)` 을 빼먹어 실패해도 0 을 반환하면, 실패가 초록으로 지나가는 무음 실패다(quality 트랙). 종료 코드는 자동화의 신경이다. 성공은 0, 실패는 0 아님을 지켜라."
         },
         {
           "type": "try",
-          "text": "존재하지 않는 명령을 실행해 127 을, `Ctrl+C` 로 끝내 130 을 확인하고 비교하라. 그다음 네 스크립트가 실패 시 0 아닌 코드를 반환하는지(`echo $?`) 점검하라 — 안 그러면 CI 가 실패를 못 잡는다."
+          "text": "존재하지 않는 명령을 실행해 127 을, `Ctrl+C` 로 끝내 130 을 확인하고 비교하라. 그다음 네 스크립트가 실패 시 0 아닌 코드를 반환하는지(`echo $?`) 점검하라. 안 그러면 CI 가 실패를 못 잡는다."
         }
       ],
       "quiz": [
@@ -382,7 +382,7 @@
           "q": "실패했는데 0 을 반환하면?",
           "choices": [
             "괜찮음",
-            "무음 실패 — CI 가 초록으로 통과",
+            "무음 실패. CI 가 초록으로 통과",
             "빠름",
             "메모리 절약"
           ],
@@ -393,17 +393,17 @@
     },
     {
       "id": "5",
-      "title": "신호로 죽는다 — 128 + N",
+      "title": "신호로 죽는다. 128 + N",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "종료 코드 `128+N` 은 **신호 N** 으로 죽었다는 뜻이다. 핵심 신호: **SIGINT(2, Ctrl+C)** = 정중한 중단 요청 · **SIGTERM(15)** = 정상 종료 요청(정리할 틈 줌) · **SIGKILL(9)** = 강제 종료(틈 안 줌·못 막음) · **SIGSEGV(11)** = 잘못된 메모리 접근. 그래서 130=Ctrl+C, 143=SIGTERM, 137=SIGKILL, 139=세그폴트다. 신호를 알면 「어떻게 죽었나」가 읽힌다."
+          "text": "종료 코드 `128+N` 은 **신호 N** 으로 죽었다는 뜻이다. 핵심 신호: **SIGINT(2, Ctrl+C)** = 정중한 중단 요청, **SIGTERM(15)** = 정상 종료 요청(정리할 틈 줌), **SIGKILL(9)** = 강제 종료(틈 안 줌, 못 막음), **SIGSEGV(11)** = 잘못된 메모리 접근. 그래서 130=Ctrl+C, 143=SIGTERM, 137=SIGKILL, 139=세그폴트다. 신호를 알면 \"어떻게 죽었나\"가 읽힌다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "신호 — 정중한 종료 vs 강제 종료",
+          "label": "신호. 정중한 종료 vs 강제 종료",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const sig = '{{sig}}';\n  const cases = {\n    term:['SIGTERM(15) → exit 143', '정상 종료 요청. 앱이 신호를 받아 정리(연결 닫기·저장) 후 종료', '기본 종료 방법. graceful shutdown 가능', 'good'],\n    int: ['SIGINT(2) → exit 130', 'Ctrl+C. 사용자가 중단 요청. 앱이 처리 가능', '개발 중 흔함. 정리 후 종료할 수 있음', 'warn'],\n    kill:['SIGKILL(9) → exit 137', '강제 종료. 앱이 막을 수도, 정리할 틈도 없음', 'OOM killer·kill -9. 로그 안 남음. 최후 수단', 'bad'],\n    segv:['SIGSEGV(11) → exit 139', '잘못된 메모리 접근(세그폴트). 대개 버그', 'null 역참조·버퍼 오버런. 코어 덤프로 분석', 'bad'],\n  }[sig];\n  render(cases[0],\n    '  뜻: ' + cases[1] + '\\n  맥락: ' + cases[2],\n    'SIGTERM=정중(정리 틈), SIGKILL=강제(틈 없음·못 막음). 128+N.',\n    steps([\n      ['SIGTERM(15): 정리 후 종료 가능', sig==='term'?'good':''],\n      ['SIGINT(2): Ctrl+C, 처리 가능', sig==='int'?'on':''],\n      ['SIGKILL(9): 못 막음·틈 없음', sig==='kill'?'bad':''],\n      ['SIGSEGV(11): 메모리 버그', sig==='segv'?'bad':'']]));\n</script>",
           "controls": [
@@ -441,15 +441,15 @@
         },
         {
           "type": "note",
-          "text": "**SIGKILL(9)은 잡을 수도 막을 수도 없다 — 최후 수단이다.** SIGTERM(15)은 앱이 받아 정리(연결 닫기·저장·flush)할 틈을 주지만, SIGKILL(9)은 커널이 즉시 죽여 **정리 코드가 안 돈다**. 그래서 쿠버네티스·docker stop 은 먼저 SIGTERM 을 주고 유예 시간(grace period) 뒤에도 안 죽으면 SIGKILL 한다. 「kill -9 를 습관적으로 쓰지 마라」는 이래서다 — 정리 없이 죽으면 데이터·연결이 어중간해진다. 먼저 15, 안 되면 9."
+          "text": "**SIGKILL(9)은 잡을 수도 막을 수도 없다. 최후 수단이다.** SIGTERM(15)은 앱이 받아 정리(연결 닫기, 저장, flush)할 틈을 주지만, SIGKILL(9)은 커널이 즉시 죽여 **정리 코드가 안 돈다**. 그래서 쿠버네티스, docker stop 은 먼저 SIGTERM 을 주고 유예 시간(grace period) 뒤에도 안 죽으면 SIGKILL 한다. \"kill -9 를 습관적으로 쓰지 마라\"는 이래서다. 정리 없이 죽으면 데이터, 연결이 어중간해진다. 먼저 15, 안 되면 9."
         },
         {
           "type": "p",
-          "text": "**graceful shutdown 을 구현하면 무중단 배포가 된다.** 앱이 SIGTERM 을 받아 ① 새 요청 그만 받고 ② 처리 중인 요청 끝내고 ③ 연결·자원 정리 후 종료하면, 배포·스케일다운 때 요청이 끊기지 않는다(scale 트랙). 이걸 안 하면 배포마다 진행 중 요청이 잘리고 연결이 새 것으로 남는다. 신호를 「죽는 방법」이 아니라 「종료를 조율하는 메시지」로 다루는 게 프로덕션 프로세스의 기본이다."
+          "text": "**graceful shutdown 을 구현하면 무중단 배포가 된다.** 앱이 SIGTERM 을 받아 ① 새 요청 그만 받고 ② 처리 중인 요청 끝내고 ③ 연결, 자원 정리 후 종료하면, 배포, 스케일다운 때 요청이 끊기지 않는다(scale 트랙). 이걸 안 하면 배포마다 진행 중 요청이 잘리고 연결이 새 것으로 남는다. 신호를 \"죽는 방법\"이 아니라 \"종료를 조율하는 메시지\"로 다루는 게 프로덕션 프로세스의 기본이다."
         },
         {
           "type": "try",
-          "text": "앱에 SIGTERM 핸들러를 붙여 「정리 후 종료」를 로그로 확인하라. 그다음 SIGKILL(`kill -9`)을 보내 핸들러가 안 돌고 즉시 죽는지 비교하라 — 왜 kill -9 를 최후에만 쓰는지 체감하라."
+          "text": "앱에 SIGTERM 핸들러를 붙여 \"정리 후 종료\"를 로그로 확인하라. 그다음 SIGKILL(`kill -9`)을 보내 핸들러가 안 돌고 즉시 죽는지 비교하라. 왜 kill -9 를 최후에만 쓰는지 체감하라."
         }
       ],
       "quiz": [
@@ -495,12 +495,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "자식 프로세스는 부모의 환경변수를 **복사해서** 시작한다 — 참조가 아니라 사본이다. 그래서 이미 떠 있는 프로세스의 env 를 밖에서 바꿔도 **소용없다**. 새 값을 적용하려면 **다시 띄워야** 한다. 이 한 가지가 「.env 를 고쳤는데 왜 안 먹지?」·「export 했는데 왜 그 프로세스엔 없지?」의 답이다."
+          "text": "자식 프로세스는 부모의 환경변수를 **복사해서** 시작한다. 참조가 아니라 사본이다. 그래서 이미 떠 있는 프로세스의 env 를 밖에서 바꿔도 **소용없다**. 새 값을 적용하려면 **다시 띄워야** 한다. 이 한 가지가 \".env 를 고쳤는데 왜 안 먹지?\", \"export 했는데 왜 그 프로세스엔 없지?\"의 답이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "env 복사 — 바꿔도 왜 안 먹나",
+          "label": "env 복사. 바꿔도 왜 안 먹나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const act = '{{act}}';\n  if (act === 'change') {\n    render('떠 있는 프로세스의 env 를 밖에서 변경',\n      '  프로세스는 시작 때 env 를 <b>복사</b>해 들고 있다\\n' +\n      '  → 밖에서 export/.env 를 바꿔도 <span class=\\\"no\\\">그 프로세스의 사본은 그대로.</span>',\n      'env 는 시작 시 복사된 사본 — 밖에서 바꿔도 실행 중 프로세스엔 안 먹는다.',\n      steps([['부모 env 변경(export FOO=2)', 'on'], ['실행 중 자식: 여전히 FOO=1(사본)', 'bad']]));\n  } else {\n    render('다시 띄우기',\n      '  프로세스를 재시작 → 시작 시점의 env 를 새로 복사 → <span class=\\\"ok\\\">새 값 적용.</span>',\n      '새 env 를 적용하려면 프로세스를 다시 띄운다.',\n      steps([['env 변경(FOO=2)', 'on'], ['프로세스 재시작', 'on'], ['새 자식: FOO=2 복사됨', 'good']]));\n  }\n</script>",
           "controls": [
@@ -530,11 +530,11 @@
         },
         {
           "type": "note",
-          "text": "**env 는 시작 시 부모→자식으로 복사되는 사본이다 — 실행 중엔 못 바꾼다.** 이 규칙이 여러 혼란을 한 번에 설명한다: `.env` 를 고쳐도 도는 서버엔 반영 안 됨(재시작 필요) · 셸에서 `export` 한 값이 이미 뜬 프로세스엔 없음 · systemd/pm2 서비스의 env 를 바꾸면 재시작해야 적용. 「설정을 바꿨는데 왜 그대로지?」의 답은 대개 「그 프로세스는 옛 사본을 들고 있다, 재시작하라」다."
+          "text": "**env 는 시작 시 부모→자식으로 복사되는 사본이다. 실행 중엔 못 바꾼다.** 이 규칙이 여러 혼란을 한 번에 설명한다: `.env` 를 고쳐도 도는 서버엔 반영 안 됨(재시작 필요), 셸에서 `export` 한 값이 이미 뜬 프로세스엔 없음, systemd/pm2 서비스의 env 를 바꾸면 재시작해야 적용. \"설정을 바꿨는데 왜 그대로지?\"의 답은 대개 \"그 프로세스는 옛 사본을 들고 있다, 재시작하라\"다."
         },
         {
           "type": "p",
-          "text": "**그래서 설정을 env 로 주입하는 게 관례다(12-factor).** 프로세스는 시작 시 env 를 복사하니, 코드·이미지는 그대로 두고 **env 만 바꿔 재시작**하면 개발·스테이징·프로덕션이 갈린다 — 비밀번호·API 키·DB 주소를 코드에 박지 않고 env 로 준다(pay-security·sec 트랙). 「복사되어 시작 시 고정」이라는 성질이 오히려 장점이다: 실행 중 몰래 바뀌지 않으니 그 프로세스의 설정이 **재현 가능**하다. 바꾸려면 명시적으로 재시작한다."
+          "text": "**그래서 설정을 env 로 주입하는 게 관례다(12-factor).** 프로세스는 시작 시 env 를 복사하니, 코드, 이미지는 그대로 두고 **env 만 바꿔 재시작**하면 개발, 스테이징, 프로덕션이 갈린다. 비밀번호, API 키, DB 주소를 코드에 박지 않고 env 로 준다(pay-security, sec 트랙). \"복사되어 시작 시 고정\"이라는 성질이 오히려 장점이다: 실행 중 몰래 바뀌지 않으니 그 프로세스의 설정이 **재현 가능**하다. 바꾸려면 명시적으로 재시작한다."
         },
         {
           "type": "try",
@@ -546,7 +546,7 @@
           "q": "실행 중 프로세스의 env 를 밖에서 바꾸면?",
           "choices": [
             "바로 적용",
-            "안 먹음 — 사본이라 재시작 필요",
+            "안 먹음. 사본이라 재시작 필요",
             "에러",
             "자식만 적용"
           ],
@@ -568,7 +568,7 @@
           "q": "설정을 env 로 주입하는 이점은?",
           "choices": [
             "느림",
-            "코드 안 고치고 env+재시작으로 환경 분리·재현",
+            "코드 안 고치고 env+재시작으로 환경 분리, 재현",
             "메모리",
             "보안 약화"
           ],
@@ -584,12 +584,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "프로세스 진단의 시작은 **관찰**이다. `ps` 로 무엇이 도는지, 부모(PPID)·CPU·메모리·실행 시간·명령줄을 본다. `top`/`htop` 으로 실시간 사용량을, `/proc/<pid>/`(리눅스)로 fd·env·상태를 본다. 「추측하지 말고 측정하라」 — 프로세스 상태를 눈으로 확인한 뒤 진단해야 헛다리를 안 짚는다."
+          "text": "프로세스 진단의 시작은 **관찰**이다. `ps` 로 무엇이 도는지, 부모(PPID), CPU, 메모리, 실행 시간, 명령줄을 본다. `top`/`htop` 으로 실시간 사용량을, `/proc/<pid>/`(리눅스)로 fd, env, 상태를 본다. \"추측하지 말고 측정하라\". 프로세스 상태를 눈으로 확인한 뒤 진단해야 헛다리를 안 짚는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "ps — 무엇을·누가·얼마나",
+          "label": "ps. 무엇을, 누가, 얼마나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const col = '{{col}}';\n  const cases = {\n    tree:['PID/PPID(부모)', 'ps -o pid,ppid,cmd', '누가 누구를 띄웠나 — 좀비·고아·재시작 추적'],\n    cpu: ['%cpu/%mem', 'ps -o pid,%cpu,%mem,cmd', '자원 먹는 범인 찾기(top/htop 실시간)'],\n    time:['etime(실행 시간)', 'ps -o pid,etime,cmd', '언제 떴나 — 재시작 여부·오래된 프로세스'],\n    cmd: ['cmd(명령줄)', 'ps -o pid,cmd', '정확히 어떤 인자로 떴나 — 설정·중복 실행 확인'],\n  }[col];\n  render('ps 로 보는 것: ' + cases[0],\n    '  명령: ' + cases[1] + '\\n  용도: ' + cases[2],\n    'ps 로 PID·부모·CPU·메모리·시간·명령줄을 본다. 추측 말고 측정.',\n    box(cases[1], cases[2]));\n</script>",
           "controls": [
@@ -627,15 +627,15 @@
         },
         {
           "type": "note",
-          "text": "**추측하지 말고 측정하라 — 프로세스 상태는 눈으로 확인된다.** 「메모리 누수 같다」·「CPU 를 먹는다」·「재시작됐다」는 전부 `ps`·`top`·`/proc` 으로 **직접 볼 수 있는** 사실이다. 진단의 황금률은 가설을 박기 전에 데이터를 확보하는 것(process 룰의 「황금의 정신」) — 어떤 프로세스가 얼마의 자원을 언제부터 쓰는지 측정하면, 상상 속 원인이 아니라 실제 범인을 좁힌다. PID·PPID·etime 이 그 첫 데이터다."
+          "text": "**추측하지 말고 측정하라. 프로세스 상태는 눈으로 확인된다.** \"메모리 누수 같다\", \"CPU 를 먹는다\", \"재시작됐다\"는 전부 `ps`, `top`, `/proc` 으로 **직접 볼 수 있는** 사실이다. 진단의 황금률은 가설을 박기 전에 데이터를 확보하는 것(process 룰의 \"황금의 정신\"). 어떤 프로세스가 얼마의 자원을 언제부터 쓰는지 측정하면, 상상 속 원인이 아니라 실제 범인을 좁힌다. PID, PPID, etime 이 그 첫 데이터다."
         },
         {
           "type": "p",
-          "text": "**부모(PPID)와 실행 시간(etime)이 특히 유용하다.** PPID 로 「누가 이걸 띄웠나」를 거슬러 올라가면 좀비의 부모, 예상 밖의 재시작 주체, 중복 실행의 출처가 드러난다. etime 으로 「언제 떴나」를 보면 방금 재시작됐는지(크래시 후 부활), 오래 떠 있는지(누수 의심)를 안다. 두 값을 함께 보면 프로세스의 **계보와 나이**가 잡혀, 「왜 이게 돌고 있나」가 설명된다."
+          "text": "**부모(PPID)와 실행 시간(etime)이 특히 유용하다.** PPID 로 \"누가 이걸 띄웠나\"를 거슬러 올라가면 좀비의 부모, 예상 밖의 재시작 주체, 중복 실행의 출처가 드러난다. etime 으로 \"언제 떴나\"를 보면 방금 재시작됐는지(크래시 후 부활), 오래 떠 있는지(누수 의심)를 안다. 두 값을 함께 보면 프로세스의 **계보와 나이**가 잡혀, \"왜 이게 돌고 있나\"가 설명된다."
         },
         {
           "type": "try",
-          "text": "지금 도는 프로세스를 `ps -o pid,ppid,%cpu,%mem,etime,cmd` 로 보고, 하나를 골라 부모(PPID)를 거슬러 올라가라. `/proc/<pid>/fd`(또는 lsof)로 그것이 연 파일·소켓도 확인하라."
+          "text": "지금 도는 프로세스를 `ps -o pid,ppid,%cpu,%mem,etime,cmd` 로 보고, 하나를 골라 부모(PPID)를 거슬러 올라가라. `/proc/<pid>/fd`(또는 lsof)로 그것이 연 파일, 소켓도 확인하라."
         }
       ],
       "quiz": [
@@ -643,7 +643,7 @@
           "q": "프로세스 진단의 첫걸음은?",
           "choices": [
             "재시작",
-            "관찰(ps/top/proc) — 추측 말고 측정",
+            "관찰(ps/top/proc). 추측 말고 측정",
             "코드 수정",
             "로그 삭제"
           ],
@@ -651,7 +651,7 @@
           "why": "데이터 먼저."
         },
         {
-          "q": "「누가 이 프로세스를 띄웠나」를 보는 값은?",
+          "q": "\"누가 이 프로세스를 띄웠나\"를 보는 값은?",
           "choices": [
             "PID",
             "PPID(부모 PID)",
@@ -662,7 +662,7 @@
           "why": "계보 추적."
         },
         {
-          "q": "리눅스에서 프로세스의 열린 fd·env 를 보는 곳은?",
+          "q": "리눅스에서 프로세스의 열린 fd, env 를 보는 곳은?",
           "choices": [
             "/etc",
             "/proc/<pid>/",
@@ -681,12 +681,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**프로세스**는 자원(메모리·fd)이 격리된 독립 단위고, **스레드**는 한 프로세스 **안에서** 그 메모리를 **공유**하며 도는 실행 흐름이다. 프로세스는 격리라 안전하지만 만들기·통신 비용이 크고, 스레드는 공유라 빠르고 가볍지만 같은 메모리를 동시에 건드려 **경합**이 난다(lang-concurrency). 「무엇을 나눌 것인가」로 둘을 고른다."
+          "text": "**프로세스**는 자원(메모리, fd)이 격리된 독립 단위고, **스레드**는 한 프로세스 **안에서** 그 메모리를 **공유**하며 도는 실행 흐름이다. 프로세스는 격리라 안전하지만 만들기, 통신 비용이 크고, 스레드는 공유라 빠르고 가볍지만 같은 메모리를 동시에 건드려 **경합**이 난다(lang-concurrency). \"무엇을 나눌 것인가\"로 둘을 고른다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "프로세스 vs 스레드 — 격리와 공유",
+          "label": "프로세스 vs 스레드. 격리와 공유",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'process') {\n    render('프로세스 = 격리',\n      '  각자 독립된 메모리·fd. 하나가 죽어도 다른 것은 산다.\\n' +\n      '  <span class=\\\"ok\\\">안전(격리)·안정.</span> 대신 생성·통신(IPC) 비용이 크다.',\n      '프로세스는 메모리를 격리 — 안전하지만 통신 비용. 크래시 전파 안 됨.',\n      '<div class=\\\"tree\\\"><span class=\\\"n\\\">프로세스A [메모리A]</span> &nbsp; <span class=\\\"n\\\">프로세스B [메모리B]</span><br><span class=\\\"dim\\\">↕ IPC(파이프·소켓)로만 통신</span></div>');\n  } else {\n    render('스레드 = 공유',\n      '  한 프로세스 안 여러 실행 흐름이 같은 메모리 공유.\\n' +\n      '  <span class=\\\"ok\\\">가볍고 빠른 통신.</span> 대신 <span class=\\\"no\\\">같은 메모리 동시 접근 → 경합(락 필요).</span>',\n      '스레드는 메모리 공유 — 빠르지만 경합(race). 하나 크래시가 전체를 죽일 수도.',\n      '<div class=\\\"tree\\\"><span class=\\\"n o\\\">스레드1</span> <span class=\\\"n o\\\">스레드2</span> <span class=\\\"n o\\\">스레드3</span><br><span class=\\\"dim\\\">└ 공유 메모리(힙) — 경합 지점</span></div>');\n  }\n</script>",
           "controls": [
@@ -716,15 +716,15 @@
         },
         {
           "type": "note",
-          "text": "**격리를 살 것인가, 공유의 속도를 살 것인가.** 프로세스는 자원이 격리되어 한 쪽 크래시·메모리 오염이 다른 쪽에 안 번진다 — 안정성이 필요한 곳(브라우저 탭마다 프로세스, 워커 격리)에 쓴다. 스레드는 메모리를 공유해 통신이 공짜에 가깝지만, 그 공유가 **경합(race condition)**의 원인이라 락·동기화가 필요하다(lang-concurrency·db-lock 의 경합과 같은 뿌리). 「무엇을 격리하고 무엇을 공유할지」가 설계 결정이다."
+          "text": "**격리를 살 것인가, 공유의 속도를 살 것인가.** 프로세스는 자원이 격리되어 한 쪽 크래시, 메모리 오염이 다른 쪽에 안 번진다. 안정성이 필요한 곳(브라우저 탭마다 프로세스, 워커 격리)에 쓴다. 스레드는 메모리를 공유해 통신이 공짜에 가깝지만, 그 공유가 **경합(race condition)**의 원인이라 락, 동기화가 필요하다(lang-concurrency, db-lock 의 경합과 같은 뿌리). \"무엇을 격리하고 무엇을 공유할지\"가 설계 결정이다."
         },
         {
           "type": "p",
-          "text": "**멀티프로세스와 멀티스레드는 상충이 아니라 층이 다르다.** Node.js 는 기본이 단일 스레드지만 여러 **프로세스**(cluster·worker)로 코어를 쓰고, 웹 서버는 여러 프로세스 각각이 여러 스레드/이벤트 루프를 돌린다. 격리가 필요한 경계(사용자·작업 단위)는 프로세스로 나누고, 그 안의 가벼운 병렬은 스레드/비동기로 처리하는 식이다. 「프로세스 = 격리 경계, 스레드 = 그 안의 병렬」로 층을 나눠 보면 시스템 구조가 읽힌다."
+          "text": "**멀티프로세스와 멀티스레드는 상충이 아니라 층이 다르다.** Node.js 는 기본이 단일 스레드지만 여러 **프로세스**(cluster, worker)로 코어를 쓰고, 웹 서버는 여러 프로세스 각각이 여러 스레드/이벤트 루프를 돌린다. 격리가 필요한 경계(사용자, 작업 단위)는 프로세스로 나누고, 그 안의 가벼운 병렬은 스레드/비동기로 처리하는 식이다. \"프로세스 = 격리 경계, 스레드 = 그 안의 병렬\"로 층을 나눠 보면 시스템 구조가 읽힌다."
         },
         {
           "type": "try",
-          "text": "네 앱이 프로세스로 병렬화하는지(cluster/worker·pm2 -i) 스레드로 하는지 확인하라. 그리고 「이 데이터를 프로세스 간에 나눌까 스레드로 공유할까」를 하나 골라, 격리 비용과 경합 위험을 견줘 보라."
+          "text": "네 앱이 프로세스로 병렬화하는지(cluster/worker, pm2 -i) 스레드로 하는지 확인하라. 그리고 \"이 데이터를 프로세스 간에 나눌까 스레드로 공유할까\"를 하나 골라, 격리 비용과 경합 위험을 견줘 보라."
         }
       ],
       "quiz": [
@@ -748,7 +748,7 @@
             "IPC"
           ],
           "answer": 1,
-          "why": "락·동기화 필요."
+          "why": "락, 동기화 필요."
         },
         {
           "q": "한 워커 크래시가 다른 워커에 안 번지게 하려면?",
@@ -765,17 +765,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 프로세스",
+      "title": "점검표. 프로세스",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "프로세스를 다루거나 실행 사고를 진단할 때 이 목록을 확인하라. 핵심은 「프로세스 = 자원 묶음 — 종료 코드·신호·env·계보를 읽어라」다."
+          "text": "프로세스를 다루거나 실행 사고를 진단할 때 이 목록을 확인하라. 핵심은 \"프로세스 = 자원 묶음. 종료 코드, 신호, env, 계보를 읽어라\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  .mem { display:flex; flex-direction:column; gap:2px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .mem .seg { padding:4px 8px; border-radius:4px; color:#0b1220; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mem = (segs) => '<div class=\"mem\">' + segs.map(([lab, col]) =>\n    '<div class=\"seg\" style=\"background:' + col + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '프로세스를 자원 묶음(메모리·fd·cwd·env·권한)으로 본다',\n    '종료 코드로 성공/실패를 판단($?), 실패는 0 아님',\n    '137=OOM, 128+N=신호 N 으로 죽음을 안다',\n    'SIGTERM(정리 틈) vs SIGKILL(강제) 차이를 안다',\n    'graceful shutdown(SIGTERM 처리)을 구현했다',\n    'env 는 시작 시 복사 — 바꾸면 재시작해야 적용',\n    '자식을 거둔다(wait) — 좀비를 안 쌓는다',\n    'ps/top/proc 로 추측 말고 측정한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 실행 사고를 자원·종료 코드·신호로 읽을 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '프로세스=자원 묶음 — 종료 코드·신호·env·계보를 읽어라.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -792,15 +792,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 프로세스는 자원 묶음이고, 그 상태는 읽을 수 있다.** 종료 코드로 어떻게 끝났나(4장), 신호로 어떻게 죽었나(5장), env 로 왜 설정이 안 먹나(6장), ps/proc 로 무엇이 도나(7장)를 읽는다. 「이유 없이 죽었다」는 없다 — 137 은 OOM, 좀비는 부모의 wait 누락, 안 먹는 env 는 재시작 필요다. 추측 대신 측정한다."
+          "text": "**한 줄 요약: 프로세스는 자원 묶음이고, 그 상태는 읽을 수 있다.** 종료 코드로 어떻게 끝났나(4장), 신호로 어떻게 죽었나(5장), env 로 왜 설정이 안 먹나(6장), ps/proc 로 무엇이 도나(7장)를 읽는다. \"이유 없이 죽었다\"는 없다. 137 은 OOM, 좀비는 부모의 wait 누락, 안 먹는 env 는 재시작 필요다. 추측 대신 측정한다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** 프로세스가 든 fd 는 sys-fd, 메모리는 sys-mem, 스케줄링은 sys-sched, 시스템 콜은 sys-syscall 로 이어진다. 격리·공유는 lang-concurrency·db-lock 의 경합과 같은 뿌리이고, graceful shutdown 은 scale(무중단 배포)·컨테이너(sys-container)와 닿는다. **「프로세스가 든 자원과 그 생애(생성·종료·신호)를 읽는 눈」이 모든 실행·운영 진단의 바탕**이다."
+          "text": "**이 칸의 연결.** 프로세스가 든 fd 는 sys-fd, 메모리는 sys-mem, 스케줄링은 sys-sched, 시스템 콜은 sys-syscall 로 이어진다. 격리, 공유는 lang-concurrency, db-lock 의 경합과 같은 뿌리이고, graceful shutdown 은 scale(무중단 배포), 컨테이너(sys-container)와 닿는다. **\"프로세스가 든 자원과 그 생애(생성, 종료, 신호)를 읽는 눈\"이 모든 실행, 운영 진단의 바탕**이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네가 운영하는 프로세스를 점검하라. 「종료 코드로 실패 판단」과 「graceful shutdown」 두 가지부터 잡으면, 배포·CI·재시작 사고의 상당수가 사라진다."
+          "text": "이 8개로 네가 운영하는 프로세스를 점검하라. \"종료 코드로 실패 판단\"과 \"graceful shutdown\" 두 가지부터 잡으면, 배포, CI, 재시작 사고의 상당수가 사라진다."
         }
       ],
       "quiz": [
@@ -808,7 +808,7 @@
           "q": "프로세스 장의 한 줄 요약은?",
           "choices": [
             "코드가 곧 프로세스",
-            "자원 묶음이고 상태(종료코드·신호·env)는 읽을 수 있다",
+            "자원 묶음이고 상태(종료코드, 신호, env)는 읽을 수 있다",
             "빠르게",
             "무시"
           ],
@@ -818,19 +818,19 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "캐시·압축",
+            "캐시, 압축",
             "종료 코드로 실패 판단 + graceful shutdown",
-            "샤딩·GraphQL",
+            "샤딩, GraphQL",
             "무시"
           ],
           "answer": 1,
-          "why": "배포·CI 사고 감소."
+          "why": "배포, CI 사고 감소."
         },
         {
           "q": "프로세스가 이어지는 주제는?",
           "choices": [
             "없음",
-            "sys-fd·sys-mem·lang-concurrency·sys-container",
+            "sys-fd, sys-mem, lang-concurrency, sys-container",
             "문법",
             "속도"
           ],

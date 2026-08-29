@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**데이터부터 들여다보면 이미 믿고 있던 것만 눈에 들어온다 — 그래서 분석은 데이터가 아니라 질문에서 시작한다.** 사람 뇌는 방대한 숫자에서 **자기 가설을 뒷받침하는 패턴**을 골라내는 데 능하다(확증 편향). 목적 없이 대시보드를 뒤지면, 우연한 상관·눈에 띄는 이상치를 「봐, 내 말이 맞잖아」로 엮어 **틀린 결론에 확신**을 더한다. 반대로 **답할 질문을 먼저 문장으로 적으면**, 어떤 데이터가 필요한지·무엇이 답이 되고 무엇이 반증이 되는지가 정해져 — 데이터가 나를 끌고 다니지 못한다. 질문 먼저 = 가설을 **반증 가능**하게(craft-debug 와 통함), 데이터 먼저 = 원하는 답을 사후 정당화. 이 칸은 좋은 질문의 성질(2장)·상관과 인과(3장)·숫자가 거짓말하는 방식(4장)·결과를 문장으로(5장)를 다룬다. 아래 데모로 질문 먼저 vs 데이터 먼저를 비교하라."
+          "text": "**데이터부터 들여다보면 이미 믿고 있던 것만 눈에 들어온다. 그래서 분석은 데이터가 아니라 질문에서 시작한다.** 사람 뇌는 방대한 숫자에서 **자기 가설을 뒷받침하는 패턴**을 골라내는 데 능하다(확증 편향). 목적 없이 대시보드를 뒤지면, 우연한 상관, 눈에 띄는 이상치를 \"봐, 내 말이 맞잖아\"로 엮어 **틀린 결론에 확신**을 더한다. 반대로 **답할 질문을 먼저 문장으로 적으면**, 어떤 데이터가 필요한지, 무엇이 답이 되고 무엇이 반증이 되는지가 정해져. 데이터가 나를 끌고 다니지 못한다. 질문 먼저 = 가설을 **반증 가능**하게(craft-debug 와 통함), 데이터 먼저 = 원하는 답을 사후 정당화. 이 칸은 좋은 질문의 성질(2장), 상관과 인과(3장), 숫자가 거짓말하는 방식(4장), 결과를 문장으로(5장)를 다룬다. 아래 데모로 질문 먼저 vs 데이터 먼저를 비교하라."
         },
         {
           "type": "demo",
@@ -37,11 +37,11 @@
         },
         {
           "type": "note",
-          "text": "**데이터부터 보면 이미 믿고 있던 것만 눈에 들어오므로, 분석은 데이터가 아니라 답할 질문을 먼저 적는 데서 시작한다.** **확증 편향의 함정**: 사람은 대량의 데이터에서 **자기 기대에 맞는 패턴**을 무의식적으로 골라낸다. 목적 없이 대시보드·로그를 탐색하면, 수많은 지표 중 **우연히** 내 가설과 맞아 보이는 상관이나 튀는 수치를 발견하고 「거봐」로 엮는다 — 그 결과 **틀린 믿음에 데이터라는 갑옷**을 입혀 더 위험해진다(다변량 탐색은 우연한 유의성을 낳음, 4·다중비교). **질문 먼저의 힘**: 답할 질문을 **문장으로 먼저 적으면** — ① 어떤 데이터가 필요한지 정해지고, ② **무엇이 답이고 무엇이 반증인지**를 데이터를 보기 **전에** 정하게 되어(사후 정당화 차단), ③ 탐색 범위가 좁아져 우연한 패턴에 덜 속는다. 이는 craft-debug 의 「반증 가능한 가설을 먼저」와 같은 규율이다. **탐색적 분석(EDA)은?**: 데이터를 훑어 가설을 **생성**하는 탐색은 가치 있다 — 단 그건 「가설 생성」 단계이고, 거기서 나온 가설은 **새 데이터/기간으로 검증**해야 한다(생성한 데이터로 그대로 확증하면 편향). 즉 탐색은 질문을 **만드는** 것이지 답을 **확정**하는 게 아니다. **정리**: 분석의 첫 단계는 SQL 도 차트도 아니라 **질문을 문장으로 적는 것**이다 — 답과 반증을 미리 정해 데이터가 나를 끌고 다니지 못하게 하라."
+          "text": "**데이터부터 보면 이미 믿고 있던 것만 눈에 들어오므로, 분석은 데이터가 아니라 답할 질문을 먼저 적는 데서 시작한다.** **확증 편향의 함정**: 사람은 대량의 데이터에서 **자기 기대에 맞는 패턴**을 무의식적으로 골라낸다. 목적 없이 대시보드, 로그를 탐색하면, 수많은 지표 중 **우연히** 내 가설과 맞아 보이는 상관이나 튀는 수치를 발견하고 \"거봐\"로 엮는다. 그 결과 **틀린 믿음에 데이터라는 갑옷**을 입혀 더 위험해진다(다변량 탐색은 우연한 유의성을 낳음, 4, 다중비교). **질문 먼저의 힘**: 답할 질문을 **문장으로 먼저 적으면**. ① 어떤 데이터가 필요한지 정해지고, ② **무엇이 답이고 무엇이 반증인지**를 데이터를 보기 **전에** 정하게 되어(사후 정당화 차단), ③ 탐색 범위가 좁아져 우연한 패턴에 덜 속는다. 이는 craft-debug 의 \"반증 가능한 가설을 먼저\"와 같은 규율이다. **탐색적 분석(EDA)은?**: 데이터를 훑어 가설을 **생성**하는 탐색은 가치 있다. 단 그건 \"가설 생성\" 단계이고, 거기서 나온 가설은 **새 데이터/기간으로 검증**해야 한다(생성한 데이터로 그대로 확증하면 편향). 즉 탐색은 질문을 **만드는** 것이지 답을 **확정**하는 게 아니다. **정리**: 분석의 첫 단계는 SQL 도 차트도 아니라 **질문을 문장으로 적는 것**이다. 답과 반증을 미리 정해 데이터가 나를 끌고 다니지 못하게 하라."
         },
         {
           "type": "try",
-          "text": "다음 분석을 시작하기 전에 **답할 질문을 한 문장으로** 적어라. 그리고 데이터를 보기 전에 「어떤 결과면 답이 예/아니오인가」(반증 기준)를 미리 정하라. 대시보드부터 뒤지고 싶은 충동이 들면, 그게 확증 편향의 신호다."
+          "text": "다음 분석을 시작하기 전에 **답할 질문을 한 문장으로** 적어라. 그리고 데이터를 보기 전에 \"어떤 결과면 답이 예/아니오인가\"(반증 기준)를 미리 정하라. 대시보드부터 뒤지고 싶은 충동이 들면, 그게 확증 편향의 신호다."
         }
       ],
       "quiz": [
@@ -60,7 +60,7 @@
           "q": "질문을 먼저 적으면 좋은 이유는?",
           "choices": [
             "빨라서",
-            "필요한 데이터·답·반증이 정해져 데이터에 끌려다니지 않음",
+            "필요한 데이터, 답, 반증이 정해져 데이터에 끌려다니지 않음",
             "예뻐서",
             "무관"
           ],
@@ -71,7 +71,7 @@
           "q": "탐색적 분석(EDA)의 올바른 역할은?",
           "choices": [
             "답을 확정",
-            "가설을 생성 — 생성한 가설은 새 데이터로 검증",
+            "가설을 생성. 생성한 가설은 새 데이터로 검증",
             "편향",
             "무관"
           ],
@@ -87,12 +87,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**좋은 분석 질문의 세 성질: ① 답이 행동으로 이어진다, ② 데이터로 답할 수 있다, ③ 범위가 좁다(구체적).** 「사용자가 왜 안 쓰지?」는 셋 다 약하다 — 범위가 막연하고(무슨 사용자·무슨 기능), 「왜」는 데이터만으론 답 못 하며, 행동으로 바로 안 이어진다. 반면 「**가입 3일 내 재방문율이 지난 분기 대비 떨어졌는가?**」는 — 좁고(가입 3일·재방문율), 데이터로 답 가능(코호트 비교), 답에 따라 행동(온보딩 개선)이 정해진다. 큰 궁금증은 **작고 답 가능한 질문들로 쪼갠다**. 「행동으로 안 이어지는」 질문(so what?)은 지표를 늘리기만 하고(허영 지표), 「데이터로 답 못 하는」 질문은 인터뷰·실험이 필요하다는 신호다. 아래 데모로 질문을 세 성질로 채점해 보라."
+          "text": "**좋은 분석 질문의 세 성질: ① 답이 행동으로 이어진다, ② 데이터로 답할 수 있다, ③ 범위가 좁다(구체적).** \"사용자가 왜 안 쓰지?\"는 셋 다 약하다. 범위가 막연하고(무슨 사용자, 무슨 기능), \"왜\"는 데이터만으론 답 못 하며, 행동으로 바로 안 이어진다. 반면 \"**가입 3일 내 재방문율이 지난 분기 대비 떨어졌는가?**\"는. 좁고(가입 3일, 재방문율), 데이터로 답 가능(코호트 비교), 답에 따라 행동(온보딩 개선)이 정해진다. 큰 궁금증은 **작고 답 가능한 질문들로 쪼갠다**. \"행동으로 안 이어지는\" 질문(so what?)은 지표를 늘리기만 하고(허영 지표), \"데이터로 답 못 하는\" 질문은 인터뷰, 실험이 필요하다는 신호다. 아래 데모로 질문을 세 성질로 채점해 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "질문 채점 — 세 성질",
+          "label": "질문 채점. 세 성질",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const table = {\n    'vague': { t: '사용자가 왜 안 쓰지?', act: 1, ans: 1, narrow: 1 },\n    'vanity': { t: '누적 가입자는 몇 명?', act: 1, ans: 3, narrow: 2 },\n    'good': { t: '가입 3일 내 재방문율이 지난 분기보다 떨어졌나?', act: 3, ans: 3, narrow: 3 },\n    'why': { t: '이 기능이 매출에 도움 됐나?(무작위 실험)', act: 3, ans: 3, narrow: 3 },\n  };\n  const r = table[q];\n  const total = r.act + r.ans + r.narrow;\n  render('질문: 「' + r.t + '」  →  ' + total + '/9',\n    (total >= 8 ? '<span class=\"ok\">세 성질을 다 갖춘 좋은 질문 — 답이 행동으로 이어진다.</span>'\n      : total <= 4 ? '<span class=\"no\">셋 다 약함 — 좁히고, 데이터로 답 가능하게, 행동에 연결하라.</span>'\n      : '<span class=\"warn\">일부만 충족 — 약한 성질을 보강하라.</span>'),\n    '좋은 질문 = 행동으로 이어짐 + 데이터로 답 가능 + 범위 좁음.',\n    bars([\n      { lab: '행동으로 이어짐', pct: r.act / 3 * 100, val: r.act + '/3', cls: r.act >= 3 ? 'g' : 'b' },\n      { lab: '데이터로 답 가능', pct: r.ans / 3 * 100, val: r.ans + '/3', cls: r.ans >= 3 ? 'g' : 'b' },\n      { lab: '범위 좁음', pct: r.narrow / 3 * 100, val: r.narrow + '/3', cls: r.narrow >= 3 ? 'g' : 'b' },\n    ]));\n</script>",
           "controls": [
@@ -130,30 +130,30 @@
         },
         {
           "type": "note",
-          "text": "**좋은 분석 질문은 세 성질을 갖춘다: 답이 행동으로 이어지고, 데이터로 답할 수 있고, 범위가 좁다.** ① **행동으로 이어진다(actionable)** — 답이 예/아니오/수치로 나왔을 때 **무엇을 할지가 바뀌어야** 좋은 질문이다. 「누적 가입자 몇 명?」은 답을 알아도 대개 행동이 안 바뀐다(허영 지표 vanity metric) — 자랑은 되지만 결정을 못 이끈다. 「이 실험군의 전환이 대조군보다 높나?」는 답에 따라 출시/롤백이 갈린다. 질문을 적은 뒤 **「so what? — 그래서 무엇을 할까」**를 물어 답이 없으면 약한 질문. ② **데이터로 답할 수 있다(answerable)** — 가진(또는 모을 수 있는) 데이터로 답이 나와야 한다. 「사용자가 왜 안 쓰지?」의 **「왜」**는 대개 데이터만으론 못 답한다 — 관측 데이터는 **무엇이 일어났나**는 보여도 **왜/의도**는 못 보여 준다(인터뷰·설문·실험이 필요). 「왜」 질문은 「무엇/얼마나」의 답 가능한 질문들로 바꾸거나, 정성 조사가 필요하다는 신호로 읽는다. ③ **범위가 좁다(specific)** — 대상·지표·기간·비교 기준이 명확해야 한다. 「사용자」가 아니라 「가입 3일 이내 코호트」, 「안 쓴다」가 아니라 「재방문율」, 「요즘」이 아니라 「지난 분기 대비」. 좁을수록 답이 명확하고 반증이 선명하다. **큰 질문은 쪼갠다**: 「이탈이 왜 늘었나?」 같은 큰 궁금증은 답 가능한 작은 질문들(어느 단계·어느 세그먼트·어느 기간)로 분해해 하나씩 답한다. **정리**: 질문을 적은 뒤 세 성질로 점검하라 — 행동으로 이어지지 않으면 허영, 데이터로 답 못 하면 정성 조사 신호, 범위가 넓으면 쪼개라."
+          "text": "**좋은 분석 질문은 세 성질을 갖춘다: 답이 행동으로 이어지고, 데이터로 답할 수 있고, 범위가 좁다.** ① **행동으로 이어진다(actionable)**. 답이 예/아니오/수치로 나왔을 때 **무엇을 할지가 바뀌어야** 좋은 질문이다. \"누적 가입자 몇 명?\"은 답을 알아도 대개 행동이 안 바뀐다(허영 지표 vanity metric). 자랑은 되지만 결정을 못 이끈다. \"이 실험군의 전환이 대조군보다 높나?\"는 답에 따라 출시/롤백이 갈린다. 질문을 적은 뒤 **\"so what?. 그래서 무엇을 할까\"**를 물어 답이 없으면 약한 질문. ② **데이터로 답할 수 있다(answerable)**. 가진(또는 모을 수 있는) 데이터로 답이 나와야 한다. \"사용자가 왜 안 쓰지?\"의 **\"왜\"**는 대개 데이터만으론 못 답한다. 관측 데이터는 **무엇이 일어났나**는 보여도 **왜/의도**는 못 보여 준다(인터뷰, 설문, 실험이 필요). \"왜\" 질문은 \"무엇/얼마나\"의 답 가능한 질문들로 바꾸거나, 정성 조사가 필요하다는 신호로 읽는다. ③ **범위가 좁다(specific)**. 대상, 지표, 기간, 비교 기준이 명확해야 한다. \"사용자\"가 아니라 \"가입 3일 이내 코호트\", \"안 쓴다\"가 아니라 \"재방문율\", \"요즘\"이 아니라 \"지난 분기 대비\". 좁을수록 답이 명확하고 반증이 선명하다. **큰 질문은 쪼갠다**: \"이탈이 왜 늘었나?\" 같은 큰 궁금증은 답 가능한 작은 질문들(어느 단계, 어느 세그먼트, 어느 기간)로 분해해 하나씩 답한다. **정리**: 질문을 적은 뒤 세 성질로 점검하라. 행동으로 이어지지 않으면 허영, 데이터로 답 못 하면 정성 조사 신호, 범위가 넓으면 쪼개라."
         },
         {
           "type": "try",
-          "text": "지금 답하려는 질문을 세 성질로 채점하라 — **행동으로 이어지나(so what?)·데이터로 답 가능한가(「왜」는 아닌가)·범위가 좁은가**. 약한 성질이 있으면 보강하라: 허영 지표면 결정과 연결, 「왜」면 「무엇/얼마나」로 바꾸거나 인터뷰 계획, 막연하면 대상·지표·기간·비교로 좁혀라."
+          "text": "지금 답하려는 질문을 세 성질로 채점하라. **행동으로 이어지나(so what?), 데이터로 답 가능한가(\"왜\"는 아닌가), 범위가 좁은가**. 약한 성질이 있으면 보강하라: 허영 지표면 결정과 연결, \"왜\"면 \"무엇/얼마나\"로 바꾸거나 인터뷰 계획, 막연하면 대상, 지표, 기간, 비교로 좁혀라."
         }
       ],
       "quiz": [
         {
           "q": "좋은 분석 질문의 세 성질은?",
           "choices": [
-            "길다·복잡·많다",
-            "행동으로 이어짐 · 데이터로 답 가능 · 범위 좁음",
-            "빠름·싸다·쉽다",
+            "길다, 복잡, 많다",
+            "행동으로 이어짐, 데이터로 답 가능, 범위 좁음",
+            "빠름, 싸다, 쉽다",
             "무관"
           ],
           "answer": 1,
           "why": "세 성질."
         },
         {
-          "q": "「누적 가입자 몇 명?」이 약한 이유는?",
+          "q": "\"누적 가입자 몇 명?\"이 약한 이유는?",
           "choices": [
             "틀려서",
-            "답을 알아도 행동이 안 바뀜 — 허영 지표",
+            "답을 알아도 행동이 안 바뀜. 허영 지표",
             "너무 좁아서",
             "무관"
           ],
@@ -161,10 +161,10 @@
           "why": "actionable 하지 않음."
         },
         {
-          "q": "「사용자가 왜 안 쓰지?」의 「왜」는?",
+          "q": "\"사용자가 왜 안 쓰지?\"의 \"왜\"는?",
           "choices": [
             "데이터로 쉽게",
-            "관측 데이터만으론 답 못 함 — 인터뷰·실험 신호",
+            "관측 데이터만으론 답 못 함. 인터뷰, 실험 신호",
             "항상 답 가능",
             "무관"
           ],
@@ -180,12 +180,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**두 값이 함께 움직인다고(상관) 하나가 다른 걸 일으키는(인과) 건 아니다 — 이 혼동이 데이터 실수의 최다 원인이다.** 아이스크림 판매와 익사 사고는 함께 오르지만, 아이스크림이 익사를 부르는 게 아니라 **더위**라는 **교란변수(confounder)**가 둘 다 올린다. 상관이 인과처럼 보이는 이유는 셋: ① **교란변수**(숨은 제3의 원인이 둘 다), ② **역인과**(사실은 반대 방향), ③ **우연**(많이 비교하면 우연히 상관, 4장). 관측 데이터로 인과를 **거의** 확정할 수 없다 — 인과의 왕도는 **무작위 실험**(A/B, analytics-ab)이다. 실험이 불가하면 교란변수를 통제(층화·회귀)하되, 「인과」라 단정하지 말고 「연관」으로 조심스럽게 말한다. 아래 데모로 교란변수가 만드는 가짜 상관을 확인하라."
+          "text": "**두 값이 함께 움직인다고(상관) 하나가 다른 걸 일으키는(인과) 건 아니다. 이 혼동이 데이터 실수의 최다 원인이다.** 아이스크림 판매와 익사 사고는 함께 오르지만, 아이스크림이 익사를 부르는 게 아니라 **더위**라는 **교란변수(confounder)**가 둘 다 올린다. 상관이 인과처럼 보이는 이유는 셋: ① **교란변수**(숨은 제3의 원인이 둘 다), ② **역인과**(사실은 반대 방향), ③ **우연**(많이 비교하면 우연히 상관, 4장). 관측 데이터로 인과를 **거의** 확정할 수 없다. 인과의 왕도는 **무작위 실험**(A/B, analytics-ab)이다. 실험이 불가하면 교란변수를 통제(층화, 회귀)하되, \"인과\"라 단정하지 말고 \"연관\"으로 조심스럽게 말한다. 아래 데모로 교란변수가 만드는 가짜 상관을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상관 ≠ 인과 — 교란변수",
+          "label": "상관 ≠ 인과. 교란변수",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  render('아이스크림 판매 ↔ 익사 사고',\n    (view === 'naive'\n      ? '  아이스크림 판매 ↑  →  익사 사고 ↑  (강한 상관)\\n  성급한 결론: 「아이스크림을 금지하면 익사가 준다」?\\n\\n  <span class=\"no\">상관을 인과로 착각 — 틀린 결론.</span>'\n      : '  숨은 원인: <span class=\"warn\">더위(여름)</span>\\n    더위 → 아이스크림 ↑\\n    더위 → 물놀이 ↑ → 익사 ↑\\n  아이스크림과 익사는 둘 다 더위의 결과일 뿐(직접 인과 X)\\n\\n  <span class=\"ok\">교란변수(더위)가 둘을 함께 올린 것.</span>'),\n    '함께 움직여도(상관) 원인은 따로 있을 수 있다(교란변수).',\n    view === 'naive'\n      ? bars([{ lab: '아이스크림', pct: 80, val: '↑', cls: 'c' }, { lab: '익사', pct: 78, val: '↑', cls: 'c' }])\n      : steps([['더위(여름) — 숨은 제3 원인', 'on'], ['→ 아이스크림 판매 ↑', 'good'], ['→ 물놀이 ↑ → 익사 ↑', 'bad'], ['아이스크림→익사 직접 인과 = 없음', 'good']]));\n</script>",
           "controls": [
@@ -215,11 +215,11 @@
         },
         {
           "type": "note",
-          "text": "**두 값이 함께 움직이는 상관은 하나가 다른 하나를 일으키는 인과와 다르며, 이 혼동이 데이터 오독의 최대 원인이다.** **상관이 인과처럼 보이는 경로**: 두 변수 X, Y 가 상관할 때 「X 가 Y 를 일으킨다」 외에도 여러 설명이 가능하다 — ① **교란변수(confounder)** — 숨은 제3 변수 Z 가 X 와 Y 를 **동시에** 움직인다. 아이스크림·익사는 **더위**가, 「커피 많이 마시는 사람이 오래 산다」는 **소득·생활습관**이 교란한다. ② **역인과(reverse causation)** — 방향이 반대. 「행복한 사람이 운동을 많이 한다」인지 「운동이 행복을 준다」인지. ③ **선택 편향** — 표본이 특정 방식으로 걸러져 가짜 관계(4장 생존자 편향). ④ **우연** — 지표를 많이 비교하면 우연히 강한 상관이 나온다(다중 비교, 4장). **왜 위험한가**: 상관을 인과로 오독하면 엉뚱한 개입을 한다 — 「이탈한 사용자는 기능 X 를 덜 썼다」(상관)를 「X 를 강제하면 이탈이 준다」(인과)로 착각해 X 를 밀어붙이면, 사실은 **애초에 관심 낮은 사용자**(교란)가 X 도 안 쓰고 이탈도 한 것이라 효과가 없다. **인과를 알려면**: ① **무작위 실험(A/B)** — 무작위 배정이 교란변수를 양쪽에 고루 섞어 **인과를 분리**한다(analytics-ab). 인과의 가장 확실한 길. ② **실험이 불가할 때** — 교란변수를 **통제**(층화 분석·회귀에 공변량 포함·성향점수 매칭·자연실험/이중차분)하되, 여전히 **모르는 교란**이 남을 수 있어 「인과」라 단정하지 않는다. **말하기**: 관측 데이터 결과는 「A 를 하면 B 가 된다」가 아니라 「A 와 B 가 **연관**된다」로, 교란 가능성을 덧붙여 조심스럽게(5장). **정리**: 함께 움직인다고 원인이 아니다 — 교란·역인과·우연을 의심하고, 인과가 필요하면 무작위 실험을 하라."
+          "text": "**두 값이 함께 움직이는 상관은 하나가 다른 하나를 일으키는 인과와 다르며, 이 혼동이 데이터 오독의 최대 원인이다.** **상관이 인과처럼 보이는 경로**: 두 변수 X, Y 가 상관할 때 \"X 가 Y 를 일으킨다\" 외에도 여러 설명이 가능하다. ① **교란변수(confounder)**. 숨은 제3 변수 Z 가 X 와 Y 를 **동시에** 움직인다. 아이스크림, 익사는 **더위**가, \"커피 많이 마시는 사람이 오래 산다\"는 **소득, 생활습관**이 교란한다. ② **역인과(reverse causation)**. 방향이 반대. \"행복한 사람이 운동을 많이 한다\"인지 \"운동이 행복을 준다\"인지. ③ **선택 편향**. 표본이 특정 방식으로 걸러져 가짜 관계(4장 생존자 편향). ④ **우연**. 지표를 많이 비교하면 우연히 강한 상관이 나온다(다중 비교, 4장). **왜 위험한가**: 상관을 인과로 오독하면 엉뚱한 개입을 한다. \"이탈한 사용자는 기능 X 를 덜 썼다\"(상관)를 \"X 를 강제하면 이탈이 준다\"(인과)로 착각해 X 를 밀어붙이면, 사실은 **애초에 관심 낮은 사용자**(교란)가 X 도 안 쓰고 이탈도 한 것이라 효과가 없다. **인과를 알려면**: ① **무작위 실험(A/B)**. 무작위 배정이 교란변수를 양쪽에 고루 섞어 **인과를 분리**한다(analytics-ab). 인과의 가장 확실한 길. ② **실험이 불가할 때**. 교란변수를 **통제**(층화 분석, 회귀에 공변량 포함, 성향점수 매칭, 자연실험/이중차분)하되, 여전히 **모르는 교란**이 남을 수 있어 \"인과\"라 단정하지 않는다. **말하기**: 관측 데이터 결과는 \"A 를 하면 B 가 된다\"가 아니라 \"A 와 B 가 **연관**된다\"로, 교란 가능성을 덧붙여 조심스럽게(5장). **정리**: 함께 움직인다고 원인이 아니다. 교란, 역인과, 우연을 의심하고, 인과가 필요하면 무작위 실험을 하라."
         },
         {
           "type": "try",
-          "text": "최근 본 「A 하면 B 된다」류 주장 하나를 골라 **교란변수·역인과·우연**을 각각 물어라 — 「둘 다 일으키는 숨은 원인(Z)이 있나? 방향이 반대일 수 있나? 많이 비교해서 우연히 나온 건 아닌가?」. 인과가 중요하면 무작위 실험을 설계하고, 불가하면 결론을 「연관」으로 낮춰 말하라."
+          "text": "최근 본 \"A 하면 B 된다\"류 주장 하나를 골라 **교란변수, 역인과, 우연**을 각각 물어라. \"둘 다 일으키는 숨은 원인(Z)이 있나? 방향이 반대일 수 있나? 많이 비교해서 우연히 나온 건 아닌가?\". 인과가 중요하면 무작위 실험을 설계하고, 불가하면 결론을 \"연관\"으로 낮춰 말하라."
         }
       ],
       "quiz": [
@@ -249,7 +249,7 @@
           "q": "인과를 확정하는 가장 확실한 방법은?",
           "choices": [
             "관측 데이터 더 모으기",
-            "무작위 실험(A/B) — 교란을 양쪽에 고루 섞음",
+            "무작위 실험(A/B). 교란을 양쪽에 고루 섞음",
             "상관계수",
             "무관"
           ],
@@ -265,12 +265,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**같은 데이터로 정반대의 이야기를 만들 수 있다 — 숫자가 거짓말하는 정형화된 방식들을 알아 두면 스스로와 남을 덜 속인다.** 대표: ① **생존자 편향** — 남은 것만 보고 사라진 것을 못 봄(「명문대 중퇴자가 성공했다」 → 중퇴하고 실패한 다수는 안 보임). ② **심슨의 역설** — 그룹별로는 A 가 낫지만 **합치면** 반대로 보임(그룹 크기가 다를 때). ③ **작은 표본의 극단값** — 표본이 작으면 비율이 요동쳐 우연한 극단이 「1위」가 됨. ④ **기간 선택(체리피킹)** — 시작·끝을 골라 원하는 추세를 만듦. ⑤ **다중 비교** — 20개를 비교하면 하나는 우연히 「유의」. 이들은 **악의 없이도** 발생한다(모르면 자신도 속음). 아래 데모로 심슨의 역설을 확인하라."
+          "text": "**같은 데이터로 정반대의 이야기를 만들 수 있다. 숫자가 거짓말하는 정형화된 방식들을 알아 두면 스스로와 남을 덜 속인다.** 대표: ① **생존자 편향**. 남은 것만 보고 사라진 것을 못 봄(\"명문대 중퇴자가 성공했다\" → 중퇴하고 실패한 다수는 안 보임). ② **심슨의 역설**. 그룹별로는 A 가 낫지만 **합치면** 반대로 보임(그룹 크기가 다를 때). ③ **작은 표본의 극단값**. 표본이 작으면 비율이 요동쳐 우연한 극단이 \"1위\"가 됨. ④ **기간 선택(체리피킹)**. 시작, 끝을 골라 원하는 추세를 만듦. ⑤ **다중 비교**. 20개를 비교하면 하나는 우연히 \"유의\". 이들은 **악의 없이도** 발생한다(모르면 자신도 속음). 아래 데모로 심슨의 역설을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "심슨의 역설 — 합치면 뒤집힌다",
+          "label": "심슨의 역설. 합치면 뒤집힌다",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  render(view === 'group' ? '그룹별로 보면: 신약이 모든 그룹에서 낫다' : '합쳐 보면: 신약이 더 나빠 보인다(!)',\n    (view === 'group'\n      ? '  경증: 신약 90/100(90%) vs 기존 20/25(80%)  → 신약 우세\\n  중증: 신약 30/50(60%) vs 기존 60/125(48%)  → 신약 우세\\n\\n  <span class=\"ok\">두 그룹 모두 신약이 낫다.</span>'\n      : '  합계: 신약 120/150(80%) vs 기존 80/150(53%)... 겉보기엔 신약 우세?\\n  하지만 배정이 쏠리면(신약에 경증 몰림) 합산 비율이 왜곡됨\\n\\n  <span class=\"no\">그룹 크기·구성이 다르면 합산이 개별과 반대로 갈 수 있다.</span>'),\n    '심슨의 역설: 그룹별 결론과 합산 결론이 반대 — 항상 층화해 보라.',\n    view === 'group'\n      ? bars([{ lab: '경증·신약', pct: 90, val: '90%', cls: 'g' }, { lab: '경증·기존', pct: 80, val: '80%', cls: 'b' }, { lab: '중증·신약', pct: 60, val: '60%', cls: 'g' }, { lab: '중증·기존', pct: 48, val: '48%', cls: 'b' }])\n      : bars([{ lab: '합산이 왜곡', pct: 60, val: '주의', cls: 'b' }]));\n</script>",
           "controls": [
@@ -300,11 +300,11 @@
         },
         {
           "type": "note",
-          "text": "**같은 데이터로 정반대 이야기를 만들 수 있으므로, 숫자가 거짓말하는 정형화된 방식들을 알아 스스로와 남을 덜 속여야 한다.** ① **생존자 편향(survivorship bias)** — 「살아남은」 표본만 보고 「사라진」 표본을 못 본다. 성공한 중퇴 창업자만 보고 중퇴 후 실패한 다수를 놓치거나, 귀환한 전투기의 총알 자국만 보강하려는 실수(정작 안 돌아온 기체의 급소를 놓침). **「빠진 데이터는 어디 갔나」**를 항상 물어라. ② **심슨의 역설(Simpson's paradox)** — 각 하위 그룹에서는 A 가 B 보다 나은데, 그룹을 **합치면** B 가 나아 보인다. 그룹 크기·구성이 다를 때(교란) 발생 — 신약을 경증에 더 많이 배정하면 합산 비율이 왜곡된다. **해법: 항상 관련 그룹으로 층화**해 본다(집계 하나를 믿지 마라). ③ **작은 표본의 극단** — 표본이 작으면 비율이 크게 요동친다(큰 수의 법칙 미작동). 「전환율 1위 페이지」가 방문 3명 중 2명(67%)이면 의미 없다 — 표본 크기·신뢰구간을 함께 본다(analytics-stats 3장). ④ **기간 선택/체리피킹** — 유리한 시작·끝점을 골라 상승/하락 추세를 조작. 「기준 시점을 왜 여기로?」를 묻고, 전체 기간·이동평균으로 본다. ⑤ **다중 비교(multiple comparisons)** — 지표 20개를 유의수준 5%로 비교하면 **우연히** 하나는 「유의」하게 나온다(가짜 발견). 탐색으로 찾은 패턴은 새 데이터로 검증하고, 사전 등록·보정(Bonferroni 등)을 쓴다. ⑥ **평균의 함정** — 평균 하나가 분포·이상치를 가린다(analytics-stats). **공통 방어**: 악의 없이도 발생하니(모르면 자신도 속음), **「빠진 것은? 층화하면? 표본은? 기간 기준은? 몇 개나 비교했나?」**를 습관적으로 묻는다. **정리**: 숫자는 중립이 아니라 **고르는 방식**에 따라 말이 달라진다 — 이 정형 패턴들을 체크리스트로 삼아 자신의 분석부터 의심하라."
+          "text": "**같은 데이터로 정반대 이야기를 만들 수 있으므로, 숫자가 거짓말하는 정형화된 방식들을 알아 스스로와 남을 덜 속여야 한다.** ① **생존자 편향(survivorship bias)**. \"살아남은\" 표본만 보고 \"사라진\" 표본을 못 본다. 성공한 중퇴 창업자만 보고 중퇴 후 실패한 다수를 놓치거나, 귀환한 전투기의 총알 자국만 보강하려는 실수(정작 안 돌아온 기체의 급소를 놓침). **\"빠진 데이터는 어디 갔나\"**를 항상 물어라. ② **심슨의 역설(Simpson's paradox)**. 각 하위 그룹에서는 A 가 B 보다 나은데, 그룹을 **합치면** B 가 나아 보인다. 그룹 크기, 구성이 다를 때(교란) 발생. 신약을 경증에 더 많이 배정하면 합산 비율이 왜곡된다. **해법: 항상 관련 그룹으로 층화**해 본다(집계 하나를 믿지 마라). ③ **작은 표본의 극단**. 표본이 작으면 비율이 크게 요동친다(큰 수의 법칙 미작동). \"전환율 1위 페이지\"가 방문 3명 중 2명(67%)이면 의미 없다. 표본 크기, 신뢰구간을 함께 본다(analytics-stats 3장). ④ **기간 선택/체리피킹**. 유리한 시작, 끝점을 골라 상승/하락 추세를 조작. \"기준 시점을 왜 여기로?\"를 묻고, 전체 기간, 이동평균으로 본다. ⑤ **다중 비교(multiple comparisons)**. 지표 20개를 유의수준 5%로 비교하면 **우연히** 하나는 \"유의\"하게 나온다(가짜 발견). 탐색으로 찾은 패턴은 새 데이터로 검증하고, 사전 등록, 보정(Bonferroni 등)을 쓴다. ⑥ **평균의 함정**. 평균 하나가 분포, 이상치를 가린다(analytics-stats). **공통 방어**: 악의 없이도 발생하니(모르면 자신도 속음), **\"빠진 것은? 층화하면? 표본은? 기간 기준은? 몇 개나 비교했나?\"**를 습관적으로 묻는다. **정리**: 숫자는 중립이 아니라 **고르는 방식**에 따라 말이 달라진다. 이 정형 패턴들을 체크리스트로 삼아 자신의 분석부터 의심하라."
         },
         {
           "type": "try",
-          "text": "최근 분석(또는 남의 주장) 하나에 다섯 질문을 던져라 — **① 빠진(사라진) 데이터는?(생존자) ② 그룹으로 나누면 뒤집히나?(심슨) ③ 표본이 충분한가? ④ 기간 시작·끝을 왜 그렇게? ⑤ 몇 개나 비교했나?(다중)**. 하나라도 걸리면 결론을 재검토하라."
+          "text": "최근 분석(또는 남의 주장) 하나에 다섯 질문을 던져라. **① 빠진(사라진) 데이터는?(생존자) ② 그룹으로 나누면 뒤집히나?(심슨) ③ 표본이 충분한가? ④ 기간 시작, 끝을 왜 그렇게? ⑤ 몇 개나 비교했나?(다중)**. 하나라도 걸리면 결론을 재검토하라."
         }
       ],
       "quiz": [
@@ -334,7 +334,7 @@
           "q": "지표 20개를 비교하면?",
           "choices": [
             "다 정확",
-            "우연히 하나는 「유의」하게 나옴(다중 비교) — 검증 필요",
+            "우연히 하나는 \"유의\"하게 나옴(다중 비교). 검증 필요",
             "항상 유의 없음",
             "무관"
           ],
@@ -350,12 +350,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**분석은 숫자가 아니라 문장으로 끝난다 — 「무엇을 발견했고, 얼마나 확신하며, 그래서 무엇을 하자」를 한 문장으로 못 쓰면 분석이 안 끝난 것이다.** 좋은 결과 진술: ① **답(방향·크기)** — 「재방문율이 지난 분기 대비 6%p 낮다」(단순 「낮다」가 아니라 **얼마나**). ② **불확실성** — 「표본 400명, 신뢰구간 ±3%p」·「관측 데이터라 인과 아님」(확신을 과장하지 않음, 3장). ③ **행동/함의** — 「온보딩 2단계 개선을 실험하자」(so what, 2장). 나쁜 진술: 숫자 나열만·확신 과장(「확실히 X 때문」)·행동 없음·전문용어로 숨김. **경영진·비전문가에겐 결론을 먼저**(핵심 한 줄 → 근거 → 한계). 숫자를 던지지 말고 **의사결정을 돕는 이야기**로. 아래 데모로 나쁜 진술 vs 좋은 진술을 비교하라."
+          "text": "**분석은 숫자가 아니라 문장으로 끝난다. \"무엇을 발견했고, 얼마나 확신하며, 그래서 무엇을 하자\"를 한 문장으로 못 쓰면 분석이 안 끝난 것이다.** 좋은 결과 진술: ① **답(방향, 크기)**. \"재방문율이 지난 분기 대비 6%p 낮다\"(단순 \"낮다\"가 아니라 **얼마나**). ② **불확실성**. \"표본 400명, 신뢰구간 ±3%p\", \"관측 데이터라 인과 아님\"(확신을 과장하지 않음, 3장). ③ **행동/함의**. \"온보딩 2단계 개선을 실험하자\"(so what, 2장). 나쁜 진술: 숫자 나열만, 확신 과장(\"확실히 X 때문\"), 행동 없음, 전문용어로 숨김. **경영진, 비전문가에겐 결론을 먼저**(핵심 한 줄 → 근거 → 한계). 숫자를 던지지 말고 **의사결정을 돕는 이야기**로. 아래 데모로 나쁜 진술 vs 좋은 진술을 비교하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "결과 진술 — 나쁨 vs 좋음",
+          "label": "결과 진술. 나쁨 vs 좋음",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = '{{quality}}';\n  const bad = t === 'bad';\n  render(bad ? '나쁜 진술 — 숫자 나열·확신 과장·행동 없음' : '좋은 진술 — 답+불확실성+행동',\n    (bad\n      ? '  「재방문율 통계 냄. 42.3% 나옴. 지난달 48.1%. 확실히 새 UI 때문임.」\\n\\n  <span class=\"no\">얼마나 나쁜지 애매, 인과 단정, 불확실성 없음, 그래서 뭘? 없음.</span>'\n      : '  「가입 3일 재방문율이 지난 분기 대비 6%p 낮다(48→42%,\\n   표본 400, ±3%p). 관측이라 인과는 아니나 새 UI 출시와 시점이 겹침.\\n   → 온보딩 2단계 개선을 A/B 로 검증하자.」\\n\\n  <span class=\"ok\">답(크기)+불확실성+인과 조심+행동 — 결정을 돕는다.</span>'),\n    '결과 = 답(크기) + 불확실성 + 행동. 확신을 과장하지 마라.',\n    bars([\n      { lab: '답(방향·크기)', pct: bad ? 40 : 100, val: bad ? '애매' : 'O', cls: bad ? 'b' : 'g' },\n      { lab: '불확실성 명시', pct: bad ? 0 : 100, val: bad ? 'X' : 'O', cls: bad ? 'b' : 'g' },\n      { lab: '행동/함의', pct: bad ? 0 : 100, val: bad ? 'X' : 'O', cls: bad ? 'b' : 'g' },\n    ]));\n</script>",
           "controls": [
@@ -367,7 +367,7 @@
               "options": [
                 {
                   "value": "bad",
-                  "label": "나쁨(나열·과장)"
+                  "label": "나쁨(나열, 과장)"
                 },
                 {
                   "value": "good",
@@ -385,30 +385,30 @@
         },
         {
           "type": "note",
-          "text": "**분석은 숫자가 아니라 문장으로 끝나며, 「무엇을 발견했고 얼마나 확신하며 그래서 무엇을 하자」를 명확히 못 쓰면 분석이 완성되지 않은 것이다.** **좋은 결과 진술의 3요소**: ① **답 — 방향과 크기** — 「낮다/높다」가 아니라 **얼마나**(6%p, 1.3배)를 쓴다. 크기가 없으면 실무적으로 중요한지(effect size) 판단 못 한다 — 통계적 유의성과 **실질적 중요성**은 다르다(표본이 크면 사소한 차이도 「유의」, analytics-stats 5장). ② **불확실성** — 표본 크기·신뢰구간·가정·한계를 **함께** 밝힌다. 「±3%p」, 「관측 데이터라 인과 아님」(3장), 「이 기간에 한함」. 확신을 **과장하지 않는 것**이 신뢰의 핵심 — 모르는 걸 안다고 하면 한 번 틀렸을 때 전부 잃는다(황금의 정신 「확신 X 솔직 명시」). ③ **행동·함의(so what)** — 답이 결정에 어떻게 연결되는지(2장 actionable). 「그래서 X 를 실험하자/Y 를 고치자/Z 는 기각」. **나쁜 진술의 징후**: 숫자만 나열(해석 없음), 인과 단정(「확실히 ~때문」), 불확실성 생략(과신), 행동 없음(so what 부재), 전문용어로 숨김(p-value 를 던지고 뜻은 설명 안 함). **청중에 맞추기**: 경영진·비전문가에겐 **결론을 먼저**(BLUF — bottom line up front): 핵심 한 줄 → 근거 → 한계 순. 숫자를 던지지 말고 **의사결정을 돕는 이야기**로 번역한다 — 차트는 결론을 뒷받침하는 증거로(analytics-viz 5장 「제목이 결론」). **재현 가능하게**: 결과와 함께 **어떻게 얻었는지**(데이터·정리·코드)를 남겨 남이(그리고 미래의 내가) 검증·재현할 수 있게(analytics-repro). **정리**: 분석의 산출물은 숫자가 아니라 **답+불확실성+행동을 담은 정직한 문장**이다 — 확신을 과장하지 말고, 결론을 먼저, 결정을 돕게 써라."
+          "text": "**분석은 숫자가 아니라 문장으로 끝나며, \"무엇을 발견했고 얼마나 확신하며 그래서 무엇을 하자\"를 명확히 못 쓰면 분석이 완성되지 않은 것이다.** **좋은 결과 진술의 3요소**: ① **답. 방향과 크기**. \"낮다/높다\"가 아니라 **얼마나**(6%p, 1.3배)를 쓴다. 크기가 없으면 실무적으로 중요한지(effect size) 판단 못 한다. 통계적 유의성과 **실질적 중요성**은 다르다(표본이 크면 사소한 차이도 \"유의\", analytics-stats 5장). ② **불확실성**. 표본 크기, 신뢰구간, 가정, 한계를 **함께** 밝힌다. \"±3%p\", \"관측 데이터라 인과 아님\"(3장), \"이 기간에 한함\". 확신을 **과장하지 않는 것**이 신뢰의 핵심. 모르는 걸 안다고 하면 한 번 틀렸을 때 전부 잃는다(황금의 정신 \"확신 X 솔직 명시\"). ③ **행동, 함의(so what)**. 답이 결정에 어떻게 연결되는지(2장 actionable). \"그래서 X 를 실험하자/Y 를 고치자/Z 는 기각\". **나쁜 진술의 징후**: 숫자만 나열(해석 없음), 인과 단정(\"확실히 ~때문\"), 불확실성 생략(과신), 행동 없음(so what 부재), 전문용어로 숨김(p-value 를 던지고 뜻은 설명 안 함). **청중에 맞추기**: 경영진, 비전문가에겐 **결론을 먼저**(BLUF. bottom line up front): 핵심 한 줄 → 근거 → 한계 순. 숫자를 던지지 말고 **의사결정을 돕는 이야기**로 번역한다. 차트는 결론을 뒷받침하는 증거로(analytics-viz 5장 \"제목이 결론\"). **재현 가능하게**: 결과와 함께 **어떻게 얻었는지**(데이터, 정리, 코드)를 남겨 남이(그리고 미래의 내가) 검증, 재현할 수 있게(analytics-repro). **정리**: 분석의 산출물은 숫자가 아니라 **답+불확실성+행동을 담은 정직한 문장**이다. 확신을 과장하지 말고, 결론을 먼저, 결정을 돕게 써라."
         },
         {
           "type": "try",
-          "text": "최근 분석 결과를 **한 문장 틀**로 다시 써라 — [답: 방향+**크기**] + [불확실성: 표본·신뢰구간·한계·인과 여부] + [행동: so what]. 「확실히 ~때문」 같은 과신, 숫자만 나열, 행동 없음이 없는지 점검하고, 비전문가용은 **결론을 맨 앞**에 두어라."
+          "text": "최근 분석 결과를 **한 문장 틀**로 다시 써라. [답: 방향+**크기**] + [불확실성: 표본, 신뢰구간, 한계, 인과 여부] + [행동: so what]. \"확실히 ~때문\" 같은 과신, 숫자만 나열, 행동 없음이 없는지 점검하고, 비전문가용은 **결론을 맨 앞**에 두어라."
         }
       ],
       "quiz": [
         {
           "q": "좋은 결과 진술의 3요소는?",
           "choices": [
-            "숫자·색·표",
+            "숫자, 색, 표",
             "답(방향+크기) + 불확실성 + 행동",
-            "길이·전문용어·차트 수",
+            "길이, 전문용어, 차트 수",
             "무관"
           ],
           "answer": 1,
           "why": "문장으로 끝남."
         },
         {
-          "q": "「낮다」 대신 무엇을 써야 하나?",
+          "q": "\"낮다\" 대신 무엇을 써야 하나?",
           "choices": [
             "더 세게 낮다",
-            "얼마나 낮은지(크기, 6%p) — effect size",
+            "얼마나 낮은지(크기, 6%p). effect size",
             "느낌",
             "무관"
           ],
@@ -419,7 +419,7 @@
           "q": "신뢰를 지키는 핵심은?",
           "choices": [
             "확신을 과장",
-            "불확실성·한계를 솔직히 밝힘(모르는 걸 안다고 X)",
+            "불확실성, 한계를 솔직히 밝힘(모르는 걸 안다고 X)",
             "숫자 나열",
             "무관"
           ],
@@ -430,17 +430,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 분석의 질문",
+      "title": "점검표. 분석의 질문",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**좋은 분석은 좋은 질문에서 시작해 정직한 문장으로 끝난다.** 이 점검표를 분석마다 훑어, 확증 편향·상관/인과 혼동·숫자의 거짓말·과신을 걸러라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**좋은 분석은 좋은 질문에서 시작해 정직한 문장으로 끝난다.** 이 점검표를 분석마다 훑어, 확증 편향, 상관/인과 혼동, 숫자의 거짓말, 과신을 걸러라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "분석 질문 점검표 — 통과 수",
+          "label": "분석 질문 점검표. 통과 수",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '데이터를 보기 전에 답할 질문을 문장으로 적었다',\n    '질문이 세 성질(행동·답 가능·좁음)을 갖췄다',\n    '「왜」 질문은 「무엇/얼마나」로 바꾸거나 인터뷰로 돌렸다',\n    '상관을 인과로 단정하지 않았다 (교란·역인과·우연 의심)',\n    '생존자 편향 — 빠진(사라진) 데이터를 확인했다',\n    '심슨·다중 비교 — 층화하고 비교 횟수를 고려했다',\n    '결과를 답(크기)+불확실성+행동의 문장으로 썼다',\n    '확신을 과장하지 않고 한계를 솔직히 밝혔다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('분석 질문 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 질문에서 시작해 정직하게 끝낸 분석.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '질문 먼저 · 상관≠인과 · 숫자의 거짓말 경계 · 정직한 문장.');\n</script>",
           "controls": [
@@ -457,11 +457,11 @@
         },
         {
           "type": "note",
-          "text": "**분석 질문 점검표 — 분석마다 훑는다.** ① **질문 먼저** — 데이터를 보기 전에 답할 질문을 문장으로(1장, 확증 편향 방지). ② **세 성질** — 행동으로 이어짐·데이터로 답 가능·범위 좁음(2장). ③ **「왜」 처리** — 관측으로 답 못 하는 「왜」는 「무엇/얼마나」로 바꾸거나 인터뷰·실험으로(2·3장). ④ **상관≠인과** — 교란변수·역인과·우연을 의심, 인과가 필요하면 실험(3장). ⑤ **생존자 편향** — 빠진(사라진) 데이터를 확인(4장). ⑥ **심슨·다중 비교** — 관련 그룹으로 층화하고, 비교 횟수·표본·기간 선택을 점검(4장). ⑦ **결과 문장** — 답(크기)+불확실성+행동으로(5장). ⑧ **정직** — 확신을 과장하지 않고 한계를 밝힘(5장·황금의 정신). **관통하는 원리**: 분석은 **질문에서 시작(1·2장)해, 함정을 피하며(3·4장) 데이터를 읽고, 정직한 문장으로 끝난다(5장)**. 이 갈래의 다음 칸 — 데이터 씻기(clean)·통계(stats)·A/B 실험(ab)·시각화(viz)·재현(repro) — 은 이 각 단계를 깊게 다룬다. **정리**: 좋은 질문과 정직한 결론이 분석의 처음과 끝이다 — 이 표로 확증 편향·인과 착각·숫자의 거짓말·과신을 매번 걸러라."
+          "text": "**분석 질문 점검표. 분석마다 훑는다.** ① **질문 먼저**. 데이터를 보기 전에 답할 질문을 문장으로(1장, 확증 편향 방지). ② **세 성질**. 행동으로 이어짐, 데이터로 답 가능, 범위 좁음(2장). ③ **\"왜\" 처리**. 관측으로 답 못 하는 \"왜\"는 \"무엇/얼마나\"로 바꾸거나 인터뷰, 실험으로(2, 3장). ④ **상관≠인과**. 교란변수, 역인과, 우연을 의심, 인과가 필요하면 실험(3장). ⑤ **생존자 편향**. 빠진(사라진) 데이터를 확인(4장). ⑥ **심슨, 다중 비교**. 관련 그룹으로 층화하고, 비교 횟수, 표본, 기간 선택을 점검(4장). ⑦ **결과 문장**. 답(크기)+불확실성+행동으로(5장). ⑧ **정직**. 확신을 과장하지 않고 한계를 밝힘(5장, 황금의 정신). **관통하는 원리**: 분석은 **질문에서 시작(1, 2장)해, 함정을 피하며(3, 4장) 데이터를 읽고, 정직한 문장으로 끝난다(5장)**. 이 갈래의 다음 칸. 데이터 씻기(clean), 통계(stats), A/B 실험(ab), 시각화(viz), 재현(repro). 은 이 각 단계를 깊게 다룬다. **정리**: 좋은 질문과 정직한 결론이 분석의 처음과 끝이다. 이 표로 확증 편향, 인과 착각, 숫자의 거짓말, 과신을 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금 하는(또는 최근) 분석을 골라 위 8개 항목을 하나씩 확인하라 — 질문을 먼저 적었나, 세 성질을 갖췄나, 상관을 인과로 단정하지 않았나, 빠진 데이터·층화·다중 비교를 봤나, 결과를 답+불확실성+행동으로 썼나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
+          "text": "지금 하는(또는 최근) 분석을 골라 위 8개 항목을 하나씩 확인하라. 질문을 먼저 적었나, 세 성질을 갖췄나, 상관을 인과로 단정하지 않았나, 빠진 데이터, 층화, 다중 비교를 봤나, 결과를 답+불확실성+행동으로 썼나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어라."
         }
       ],
       "quiz": [
@@ -488,10 +488,10 @@
           "why": "과신 금지."
         },
         {
-          "q": "「왜」 질문의 처리는?",
+          "q": "\"왜\" 질문의 처리는?",
           "choices": [
             "관측 데이터로 단정",
-            "「무엇/얼마나」로 바꾸거나 인터뷰·실험으로",
+            "\"무엇/얼마나\"로 바꾸거나 인터뷰, 실험으로",
             "무시",
             "무관"
           ],

@@ -3,7 +3,7 @@
   "parts": [
     {
       "id": "1",
-      "title": "두 자리 — 스택과 힙",
+      "title": "두 자리. 스택과 힙",
       "minutes": 8,
       "blocks": [
         {
@@ -30,11 +30,11 @@
         },
         {
           "type": "p",
-          "text": "JavaScript 를 쓰면 이 구분이 안 보이지만 **성질은 그대로 남는다.** 숫자·불리언 같은 값은 그 자리에 그대로 있고, 객체·배열·함수는 힙에 놓이며 변수에는 **주소만** 들어간다. 앞 칸(JS 1장)의 「값과 참조」가 사실 이 이야기였다."
+          "text": "JavaScript 를 쓰면 이 구분이 안 보이지만 **성질은 그대로 남는다.** 숫자, 불리언 같은 값은 그 자리에 그대로 있고, 객체, 배열, 함수는 힙에 놓이며 변수에는 **주소만** 들어간다. 앞 칸(JS 1장)의 \"값과 참조\"가 사실 이 이야기였다."
         },
         {
           "type": "note",
-          "text": "스택이 빠른 이유는 단순하다 — **끝에서만 넣고 뺀다.** 주소 계산이 「스택 포인터를 옮긴다」 한 줄이고, 방금 쓴 자리라 캐시에도 남아 있다. 힙은 빈 자리를 찾고 관리 정보를 유지해야 해서 더 비싸다."
+          "text": "스택이 빠른 이유는 단순하다. **끝에서만 넣고 뺀다.** 주소 계산이 \"스택 포인터를 옮긴다\" 한 줄이고, 방금 쓴 자리라 캐시에도 남아 있다. 힙은 빈 자리를 찾고 관리 정보를 유지해야 해서 더 비싸다."
         },
         {
           "type": "code",
@@ -44,7 +44,7 @@
         },
         {
           "type": "try",
-          "text": "브라우저 콘솔에서 `function f(){ f(); } f()` 를 실행해 보라(주의: 탭이 잠깐 멈춘다). 나는 오류 이름이 무엇인지 보라 — 스택이 어디까지 쌓이는지 알려 주는 값이다."
+          "text": "브라우저 콘솔에서 `function f(){ f(); } f()` 를 실행해 보라(주의: 탭이 잠깐 멈춘다). 나는 오류 이름이 무엇인지 보라. 스택이 어디까지 쌓이는지 알려 주는 값이다."
         }
       ],
       "quiz": [
@@ -63,7 +63,7 @@
           "q": "JavaScript 에서 객체는 어디에 놓이나?",
           "choices": [
             "스택",
-            "힙 — 변수에는 주소만",
+            "힙. 변수에는 주소만",
             "둘 다",
             "정해져 있지 않다"
           ],
@@ -85,17 +85,17 @@
     },
     {
       "id": "2",
-      "title": "이름표와 상자 — 참조가 만드는 일",
+      "title": "이름표와 상자. 참조가 만드는 일",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "변수를 「값을 담는 상자」로 그리면 객체에서 반드시 틀린다. 객체를 다룰 때 변수는 **상자에 붙은 이름표**다. 이름표를 하나 더 붙인다고 상자가 늘지 않는다."
+          "text": "변수를 \"값을 담는 상자\"로 그리면 객체에서 반드시 틀린다. 객체를 다룰 때 변수는 **상자에 붙은 이름표**다. 이름표를 하나 더 붙인다고 상자가 늘지 않는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 했는지 골라 보라 — 상자가 몇 개인가",
+          "label": "무엇을 했는지 골라 보라. 상자가 몇 개인가",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const act = '{{act}}';\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('이름(스택)', 16, 16); ctx.fillText('상자(힙)', 250, 16);\n  box(16, 26, 150, 34, 'a', '-> 주소 1', '#111c33');\n  const two = act !== 'alias';\n  box(16, 74, 150, 34, 'b', two ? '-> 주소 2' : '-> 주소 1', '#111c33');\n  box(250, 26, 176, 40, act === 'copy' ? '{ n: 1 }' : '{ n: ' + (act === 'alias' ? 2 : 1) + ' }', '주소 1', '#14351f');\n  arrow(166, 43, 250, 46);\n  if (two) { box(250, 92, 176, 40, '{ n: 2 }', '주소 2', '#14351f'); arrow(166, 91, 250, 112); }\n  else arrow(166, 91, 250, 56);\n  const t = {\n    alias: ['const b = a; b.n = 2;', '이름표만 하나 더 붙었다. 상자는 하나 — a.n 도 2가 된다.'],\n    copy:  ['const b = { ...a }; b.n = 2;', '상자를 새로 만들어 내용을 베꼈다. a 는 그대로 1.'],\n    deep:  ['const b = structuredClone(a); b.n = 2;', '안쪽에 든 객체까지 전부 새로 만든다. 얕은 복사의 한계가 없다.'],\n  }[act];\n  app.innerHTML = '<div class=\"hint\">const a = { n: 1 };  뒤에 무엇을 했나</div>';\n  show(t[0] + '\\n\\n' + t[1] + '\\n\\n'\n     + '판단 기준: 새 상자를 만들었나(복사) · 이름만 늘렸나(참조).');\n</script>",
           "controls": [
@@ -123,7 +123,7 @@
         },
         {
           "type": "p",
-          "text": "여기서 **함수 인자**도 같은 규칙을 따른다. 객체를 넘기면 상자가 아니라 **주소가 복사**된다. 그래서 함수 안에서 `obj.x = 1` 은 바깥에 보이고, `obj = {}` 는 안 보인다 — 앞은 상자를 고쳤고 뒤는 이름표를 옮겼을 뿐이다."
+          "text": "여기서 **함수 인자**도 같은 규칙을 따른다. 객체를 넘기면 상자가 아니라 **주소가 복사**된다. 그래서 함수 안에서 `obj.x = 1` 은 바깥에 보이고, `obj = {}` 는 안 보인다. 앞은 상자를 고쳤고 뒤는 이름표를 옮겼을 뿐이다."
         },
         {
           "type": "code",
@@ -133,7 +133,7 @@
         },
         {
           "type": "note",
-          "text": "**얕은 복사는 한 겹만 뜬다.** `{...obj}` 로 복사해도 안쪽 객체는 여전히 공유된다. 중첩 자료를 다룰 때 「분명 복사했는데 원본이 바뀌었다」의 원인이 거의 항상 이것이다 — `structuredClone` 이나 층마다 새로 만들기."
+          "text": "**얕은 복사는 한 겹만 뜬다.** `{...obj}` 로 복사해도 안쪽 객체는 여전히 공유된다. 중첩 자료를 다룰 때 \"분명 복사했는데 원본이 바뀌었다\"의 원인이 거의 항상 이것이다. `structuredClone` 이나 층마다 새로 만들기."
         },
         {
           "type": "try",
@@ -178,7 +178,7 @@
     },
     {
       "id": "3",
-      "title": "호출 스택 — 깊이에는 끝이 있다",
+      "title": "호출 스택. 깊이에는 끝이 있다",
       "minutes": 7,
       "blocks": [
         {
@@ -188,7 +188,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "깊이를 올려 보라 — 어디서 넘치나",
+          "label": "깊이를 올려 보라. 어디서 넘치나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const D = {{d}};\n  let reached = 0, err = '';\n  function down(k) { reached = Math.max(reached, k); if (k >= D) return k; return down(k + 1); }\n  try { down(0); } catch (e) { err = e.constructor.name + ': ' + e.message; }\n  /* 반복문으로 바꾸면 프레임이 안 쌓인다 */\n  let loopOk = 0;\n  for (let i = 0; i < D; i++) loopOk = i;\n  app.innerHTML = '<div class=\"hint\">깊이 ' + D.toLocaleString() + ' 까지 재귀로 내려가 본다</div>';\n  show('재귀    도달 깊이 ' + reached.toLocaleString() + (err ? '  ->  ' + err : '  ->  통과') + '\\n'\n     + '반복문  도달 ' + (loopOk + 1).toLocaleString() + '  ->  통과 (프레임이 안 쌓인다)\\n\\n'\n     + '스택 한계는 브라우저·엔진마다 다르다(대개 만 단위).\\n'\n     + '깊이를 미리 알 수 없는 재귀(트리·그래프)는 반복문 + 명시적 스택으로 바꾸는 편이 안전하다.');\n</script>",
           "controls": [
@@ -206,16 +206,16 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "재귀를 반복으로 — 스택을 내가 들고 있으면 된다",
+          "label": "재귀를 반복으로. 스택을 내가 들고 있으면 된다",
           "text": "// 깊은 트리에서 터지는 형태\nfunction walk(node) { visit(node); node.children.forEach(walk); }\n\n// 힙에 스택을 두면 한계가 사라진다(메모리가 허락하는 만큼)\nfunction walkIter(root) {\n  const stack = [root];\n  while (stack.length) {\n    const n = stack.pop();\n    visit(n);\n    for (let i = n.children.length - 1; i >= 0; i--) stack.push(n.children[i]);\n  }\n}"
         },
         {
           "type": "note",
-          "text": "스택 오버플로는 **무한 재귀**의 신호이기도 하다. 종료 조건을 안 썼거나, 자료에 순환이 있는 경우다(부모가 자식을, 자식이 다시 부모를). 오류가 나면 먼저 「끝나는 조건이 있나」와 「자료에 고리가 있나」를 보라."
+          "text": "스택 오버플로는 **무한 재귀**의 신호이기도 하다. 종료 조건을 안 썼거나, 자료에 순환이 있는 경우다(부모가 자식을, 자식이 다시 부모를). 오류가 나면 먼저 \"끝나는 조건이 있나\"와 \"자료에 고리가 있나\"를 보라."
         },
         {
           "type": "try",
-          "text": "깊이를 1000부터 올리며 어디서 오류가 나는지 찾아라. 그 숫자가 이 브라우저의 대략적인 스택 한계다 — 기계마다 다르다는 것도 함께 확인하라."
+          "text": "깊이를 1000부터 올리며 어디서 오류가 나는지 찾아라. 그 숫자가 이 브라우저의 대략적인 스택 한계다. 기계마다 다르다는 것도 함께 확인하라."
         }
       ],
       "quiz": [
@@ -223,7 +223,7 @@
           "q": "함수 호출마다 스택에 쌓이는 것은?",
           "choices": [
             "힙 객체",
-            "프레임(지역 변수·인자·돌아갈 주소)",
+            "프레임(지역 변수, 인자, 돌아갈 주소)",
             "전역 변수",
             "코드"
           ],
@@ -256,17 +256,17 @@
     },
     {
       "id": "4",
-      "title": "도달 가능성 — 무엇이 살아남나",
+      "title": "도달 가능성. 무엇이 살아남나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "가비지 컬렉터가 하는 판단은 **한 가지**다. 뿌리(전역, 지금 스택에 있는 지역 변수)에서 참조를 따라가 **닿을 수 있으면 살고, 못 닿으면 죽는다.** 「안 쓰는 것」이 아니라 「못 닿는 것」이 기준이다 — 이 차이가 누수의 정체다."
+          "text": "가비지 컬렉터가 하는 판단은 **한 가지**다. 뿌리(전역, 지금 스택에 있는 지역 변수)에서 참조를 따라가 **닿을 수 있으면 살고, 못 닿으면 죽는다.** \"안 쓰는 것\"이 아니라 \"못 닿는 것\"이 기준이다. 이 차이가 누수의 정체다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "연결을 끊어 보라 — 무엇이 회색이 되나",
+          "label": "연결을 끊어 보라. 무엇이 회색이 되나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const cut = '{{cut}}';\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('뿌리(전역·현재 스택)', 16, 14);\n  const dead = { none: [], b: ['B', 'C'], cache: ['D'] }[cut];\n  const isDead = (n) => dead.includes(n);\n  const col = (n) => (isDead(n) ? '#1e293b' : '#14351f');\n  box(16, 22, 120, 34, 'window', '뿌리', '#111c33');\n  box(16, 82, 120, 34, 'cache(Map)', cut === 'cache' ? '비웠다' : '항목 1개', '#111c33');\n  box(190, 22, 110, 34, 'A', '살아 있다', col('A'));\n  box(190, 74, 110, 34, 'B', isDead('B') ? '못 닿는다' : '', col('B'));\n  box(190, 126, 110, 34, 'D', isDead('D') ? '못 닿는다' : '', col('D'));\n  box(330, 74, 96, 34, 'C', isDead('C') ? '못 닿는다' : '', col('C'));\n  arrow(136, 39, 190, 39);\n  if (cut !== 'b') arrow(136, 39, 190, 84, '#f59e0b');\n  arrow(300, 91, 330, 91, isDead('C') ? '#475569' : '#f59e0b');\n  if (cut !== 'cache') arrow(136, 99, 190, 140, '#f59e0b');\n  const t = {\n    none:  ['(아무것도 안 끊음)', '전부 뿌리에서 닿는다 — 전부 산다.'],\n    b:     ['window.b = null', 'B 가 안 닿게 되면서 B 만 가리키던 C 도 함께 죽는다. 연쇄로 회수된다.'],\n    cache: ['cache.clear()', 'D 를 붙잡고 있던 것은 Map 이었다. 놓아 주자 죽는다 — 이것이 누수의 정체.'],\n  }[cut];\n  app.innerHTML = '<div class=\"hint\">초록 = 살아남음 · 회색 = 회수 대상</div>';\n  show(t[0] + '\\n\\n' + t[1] + '\\n\\n'\n     + '기준은 「안 쓴다」가 아니라 「못 닿는다」. 참조 하나가 남아 있으면 안 쓰는 값도 안 죽는다.');\n</script>",
           "controls": [
@@ -298,7 +298,7 @@
         },
         {
           "type": "note",
-          "text": "GC 는 **언제 도는지 우리가 모른다.** 그래서 「메모리를 비웠다」고 곧바로 숫자가 줄지 않는다. 우리가 할 수 있는 일은 하나뿐 — **참조를 놓는 것**. `null` 대입, 리스너 제거, Map 에서 삭제."
+          "text": "GC 는 **언제 도는지 우리가 모른다.** 그래서 \"메모리를 비웠다\"고 곧바로 숫자가 줄지 않는다. 우리가 할 수 있는 일은 하나뿐. **참조를 놓는 것**. `null` 대입, 리스너 제거, Map 에서 삭제."
         },
         {
           "type": "code",
@@ -308,7 +308,7 @@
         },
         {
           "type": "try",
-          "text": "개발자도구 Memory 탭에서 힙 스냅샷을 두 번 찍고 비교해 보라(Comparison). 화면을 열었다 닫았는데 늘어난 객체가 있으면, 그것이 「못 놓아 준」 참조다."
+          "text": "개발자도구 Memory 탭에서 힙 스냅샷을 두 번 찍고 비교해 보라(Comparison). 화면을 열었다 닫았는데 늘어난 객체가 있으면, 그것이 \"못 놓아 준\" 참조다."
         }
       ],
       "quiz": [
@@ -321,7 +321,7 @@
             "생성 시각"
           ],
           "answer": 1,
-          "why": "「안 쓰는 것」과 「못 닿는 것」은 다르다."
+          "why": "\"안 쓰는 것\"과 \"못 닿는 것\"은 다르다."
         },
         {
           "q": "순환 참조가 요즘 엔진에서 회수되는 이유는?",
@@ -349,17 +349,17 @@
     },
     {
       "id": "5",
-      "title": "누수 — 놓아 주지 않은 자리들",
+      "title": "누수. 놓아 주지 않은 자리들",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "누수는 「메모리가 새는」 것이 아니라 **놓아 주지 않는** 것이다. 앞 장의 기준으로 보면 전부 같은 문제다 — 어딘가에서 참조가 살아 있다. 실제로 자주 나오는 자리는 다섯 개뿐이다."
+          "text": "누수는 \"메모리가 새는\" 것이 아니라 **놓아 주지 않는** 것이다. 앞 장의 기준으로 보면 전부 같은 문제다. 어딘가에서 참조가 살아 있다. 실제로 자주 나오는 자리는 다섯 개뿐이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자리를 골라 보라 — 무엇이 붙잡고 있나",
+          "label": "자리를 골라 보라. 무엇이 붙잡고 있나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{kind}}';\n  const t = {\n    listener: ['화면을 떠나면서 리스너를 안 뗌',\n      \"window.addEventListener('resize', onResize)\",\n      '리스너 -> 콜백 -> 클로저 -> 그 화면의 상태 전부. 화면을 오갈수록 쌓인다.',\n      \"AbortController 로 한 번에 떼거나 removeEventListener\"],\n    timer: ['setInterval 을 안 멈춤',\n      'setInterval(tick, 1000)',\n      '타이머가 콜백을 붙잡고, 콜백이 화면 자료를 붙잡는다. 화면은 사라졌는데 계속 돈다.',\n      'clearInterval · 컴포넌트 정리 함수에서 반드시'],\n    cache: ['상한 없는 캐시',\n      'cache.set(key, hugeObject)',\n      '넣기만 하고 안 지우면 프로그램이 살아 있는 동안 계속 는다.',\n      '개수 상한(LRU) 또는 WeakMap · TTL'],\n    detached: ['떼어 낸 DOM 을 변수가 붙잡음',\n      'const row = el; el.remove();   // row 가 남아 있다',\n      '화면에서는 사라졌는데 자바스크립트가 붙잡고 있다(detached DOM). 자식까지 통째로 산다.',\n      '변수를 비우거나 애초에 참조를 남기지 않기'],\n    global: ['전역에 쌓아 두기',\n      'window.__logs.push(entry)',\n      '뿌리에 직접 매달렸으니 절대 회수되지 않는다.',\n      '길이 상한을 두거나 주기적으로 비우기'],\n  }[k];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div><div style=\"font:12.5px ui-monospace,monospace;color:#fca5a5;margin-top:6px\">' + t[1] + '</div>';\n  show('무엇이 붙잡고 있나\\n  ' + t[2] + '\\n\\n고치는 법\\n  ' + t[3] + '\\n\\n'\n     + '공통 규칙: 만든 쪽이 치운다. 걸었으면 뗀다. 담았으면 상한을 둔다.');\n</script>",
           "controls": [
@@ -401,15 +401,15 @@
         },
         {
           "type": "note",
-          "text": "누수를 찾는 방법은 **스냅샷 비교**다. ① 문제의 화면을 열기 전 스냅샷 ② 열었다 닫기를 서너 번 ③ 다시 스냅샷 → 두 스냅샷 사이에 남아 있는 객체가 범인이다. 「Detached HTMLDivElement」 같은 이름이 보이면 4번 자리다."
+          "text": "누수를 찾는 방법은 **스냅샷 비교**다. ① 문제의 화면을 열기 전 스냅샷 ② 열었다 닫기를 서너 번 ③ 다시 스냅샷 → 두 스냅샷 사이에 남아 있는 객체가 범인이다. \"Detached HTMLDivElement\" 같은 이름이 보이면 4번 자리다."
         },
         {
           "type": "p",
-          "text": "그리고 누수는 **오래 사는 화면에서만 문제가 된다.** 페이지를 새로고침하면 다 사라지므로, 옛날 웹에서는 티가 안 났다. SPA·데스크톱 앱·서버처럼 며칠씩 도는 곳에서 비로소 드러난다 — 그래서 지금 문제가 되는 것이다."
+          "text": "그리고 누수는 **오래 사는 화면에서만 문제가 된다.** 페이지를 새로고침하면 다 사라지므로, 옛날 웹에서는 티가 안 났다. SPA, 데스크톱 앱, 서버처럼 며칠씩 도는 곳에서 비로소 드러난다. 그래서 지금 문제가 되는 것이다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 `addEventListener` 와 `setInterval` 을 전부 찾아, 각각의 짝(제거·중지)이 있는지 세어 보라. 숫자가 안 맞으면 그만큼이 후보다."
+          "text": "내 코드에서 `addEventListener` 와 `setInterval` 을 전부 찾아, 각각의 짝(제거, 중지)이 있는지 세어 보라. 숫자가 안 맞으면 그만큼이 후보다."
         }
       ],
       "quiz": [
@@ -425,7 +425,7 @@
           "why": "참조가 남아 있으면 회수되지 않는다."
         },
         {
-          "q": "「Detached HTMLDivElement」 가 스냅샷에 보이면?",
+          "q": "\"Detached HTMLDivElement\" 가 스냅샷에 보이면?",
           "choices": [
             "정상",
             "화면에서 뗀 DOM 을 코드가 붙잡고 있다",
@@ -450,7 +450,7 @@
     },
     {
       "id": "6",
-      "title": "지역성 — 왜 붙어 있는 것이 빠른가",
+      "title": "지역성. 왜 붙어 있는 것이 빠른가",
       "minutes": 8,
       "blocks": [
         {
@@ -460,7 +460,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "접근 순서를 바꿔 보라 — 같은 개수, 다른 시간",
+          "label": "접근 순서를 바꿔 보라. 같은 개수, 다른 시간",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}} * 1000, order = '{{order}}';\n  const data = new Float64Array(N);\n  for (let i = 0; i < N; i++) data[i] = i;\n  const idx = new Int32Array(N);\n  if (order === 'seq') { for (let i = 0; i < N; i++) idx[i] = i; }\n  else if (order === 'stride') { let k = 0; for (let s = 0; s < 16; s++) for (let i = s; i < N; i += 16) idx[k++] = i; }\n  else { for (let i = 0; i < N; i++) idx[i] = i; for (let i = N - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = idx[i]; idx[i] = idx[j]; idx[j] = t; } }\n  const ms = bench(() => { let s = 0; for (let i = 0; i < N; i++) s += data[idx[i]]; }, 5);\n  app.innerHTML = '<div class=\"hint\">' + N.toLocaleString() + '개를 전부 한 번씩 읽는다 — 순서만 다르다</div>';\n  show({ seq: '순서대로 (0,1,2,3,…)', stride: '16칸씩 건너뛰며', rand: '완전히 뒤섞인 순서' }[order] + '\\n'\n     + '걸린 시간 ' + ms.toFixed(2) + 'ms\\n\\n'\n     + '읽는 개수는 셋 다 똑같다. 다른 것은 「다음 값이 방금 가져온 64바이트 안에 있나」뿐.\\n'\n     + '세 갈래를 번갈아 눌러 배수를 적어 보라.');\n</script>",
           "controls": [
@@ -497,17 +497,17 @@
         },
         {
           "type": "p",
-          "text": "이것이 앞 칸에서 「연결 리스트가 순회에서 지는」 이유의 정체다. 값이 메모리 여기저기 흩어져 있으면 캐시가 도와줄 수 없다. **자료를 어떻게 놓느냐가 알고리즘만큼 성능을 정한다.**"
+          "text": "이것이 앞 칸에서 \"연결 리스트가 순회에서 지는\" 이유의 정체다. 값이 메모리 여기저기 흩어져 있으면 캐시가 도와줄 수 없다. **자료를 어떻게 놓느냐가 알고리즘만큼 성능을 정한다.**"
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "게임·시뮬레이션에서 쓰는 배치 뒤집기",
+          "label": "게임, 시뮬레이션에서 쓰는 배치 뒤집기",
           "text": "// 객체 배열 — 필드 하나만 훑어도 객체 전체가 캐시에 올라온다\nconst entities = [{ x: 0, y: 0, hp: 10, name: '…' }, …];\n\n// 배열 여럿 — x 만 훑으면 x 만 캐시에 올라온다 (SoA)\nconst xs = new Float32Array(n);\nconst ys = new Float32Array(n);\nconst hps = new Int16Array(n);\n\n// 수만 개를 매 프레임 도는 코드에서 몇 배 차이가 난다"
         },
         {
           "type": "note",
-          "text": "다만 **작은 규모에서는 의미 없다.** 수백 개짜리 목록을 형식화 배열로 바꾸는 것은 코드만 어려워진다. 이 장의 지식은 「수만 개를 매 프레임」 같은 자리에서만 꺼내라 — 그리고 언제나 **재 보고** 결정하라."
+          "text": "다만 **작은 규모에서는 의미 없다.** 수백 개짜리 목록을 형식화 배열로 바꾸는 것은 코드만 어려워진다. 이 장의 지식은 \"수만 개를 매 프레임\" 같은 자리에서만 꺼내라. 그리고 언제나 **재 보고** 결정하라."
         },
         {
           "type": "try",
@@ -552,17 +552,17 @@
     },
     {
       "id": "7",
-      "title": "크기 — 값 하나가 차지하는 자리",
+      "title": "크기. 값 하나가 차지하는 자리",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「객체 하나가 몇 바이트인가」는 언어마다 다르지만, 방향은 같다 — **객체에는 관리 정보(헤더·모양·해시)가 붙는다.** 숫자 하나를 담는 객체가 숫자 자체보다 몇 배 크다."
+          "text": "\"객체 하나가 몇 바이트인가\"는 언어마다 다르지만, 방향은 같다. **객체에는 관리 정보(헤더, 모양, 해시)가 붙는다.** 숫자 하나를 담는 객체가 숫자 자체보다 몇 배 크다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자료 모양을 골라 보라 — 같은 값, 다른 크기",
+          "label": "자료 모양을 골라 보라. 같은 값, 다른 크기",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const kind = '{{kind}}', N = 100000;\n  let make, note;\n  if (kind === 'typed') { make = () => { const a = new Float64Array(N); for (let i = 0; i < N; i++) a[i] = i; return a; }; note = '연속된 8바이트 x N — 군더더기가 거의 없다.'; }\n  else if (kind === 'array') { make = () => { const a = new Array(N); for (let i = 0; i < N; i++) a[i] = i; return a; }; note = '엔진이 숫자 배열로 최적화하지만, 일반 배열이라 여지가 더 있다.'; }\n  else if (kind === 'objs') { make = () => { const a = new Array(N); for (let i = 0; i < N; i++) a[i] = { v: i }; return a; }; note = '객체마다 헤더·모양 정보가 붙는다 — 값 하나에 수십 바이트.'; }\n  else { make = () => { const m = new Map(); for (let i = 0; i < N; i++) m.set(i, i); return m; }; note = 'Map 은 칸·해시·링크까지 들고 있어 가장 크다. 대신 기능이 많다.'; }\n  const ms = bench(make, 3);\n  const holder = make();\n  const rough = { typed: N * 8, array: N * 8, objs: N * 40, map: N * 50 }[kind];\n  app.innerHTML = '<div class=\"hint\">' + N.toLocaleString() + '개의 정수를 담는다</div>';\n  show({ typed: 'Float64Array', array: '일반 배열', objs: '객체 배열 [{v:0},…]', map: 'Map' }[kind] + '\\n'\n     + '만드는 시간   ' + ms.toFixed(2) + 'ms\\n'\n     + '대략 크기     ' + (rough / 1048576).toFixed(1) + 'MB 안팎 (엔진마다 다르다)\\n'\n     + '담긴 개수     ' + (holder.size || holder.length) + '\\n\\n' + note + '\\n\\n'\n     + '정확한 값은 개발자도구 Memory 탭의 힙 스냅샷에서 봐야 한다 — 여기 숫자는 어림이다.');\n</script>",
           "controls": [
@@ -594,11 +594,11 @@
         },
         {
           "type": "note",
-          "text": "위 크기는 **어림**이다. 엔진은 같은 모양의 객체를 모아 최적화하고(hidden class), 작은 정수는 포인터 안에 그대로 담기도 한다(SMI). 그래서 진짜 숫자는 언제나 **힙 스냅샷으로 재야** 한다 — 추측하지 마라."
+          "text": "위 크기는 **어림**이다. 엔진은 같은 모양의 객체를 모아 최적화하고(hidden class), 작은 정수는 포인터 안에 그대로 담기도 한다(SMI). 그래서 진짜 숫자는 언제나 **힙 스냅샷으로 재야** 한다. 추측하지 마라."
         },
         {
           "type": "p",
-          "text": "실무에서 크기가 문제 되는 자리는 대개 셋이다 — **수만 건을 한꺼번에 메모리에 올릴 때**, **같은 문자열을 수없이 복제할 때**, **큰 이미지·버퍼를 안 놓아 줄 때**. 앞의 둘은 스트리밍·페이지네이션으로, 마지막은 5장의 규칙으로 푼다."
+          "text": "실무에서 크기가 문제 되는 자리는 대개 셋이다. **수만 건을 한꺼번에 메모리에 올릴 때**, **같은 문자열을 수없이 복제할 때**, **큰 이미지, 버퍼를 안 놓아 줄 때**. 앞의 둘은 스트리밍, 페이지네이션으로, 마지막은 5장의 규칙으로 푼다."
         },
         {
           "type": "code",
@@ -608,7 +608,7 @@
         },
         {
           "type": "try",
-          "text": "네 가지를 번갈아 눌러 만드는 시간을 비교하라. 그리고 개발자도구 Memory 탭에서 힙 스냅샷을 찍어 실제 크기를 확인하라 — 어림과 얼마나 다른가?"
+          "text": "네 가지를 번갈아 눌러 만드는 시간을 비교하라. 그리고 개발자도구 Memory 탭에서 힙 스냅샷을 찍어 실제 크기를 확인하라. 어림과 얼마나 다른가?"
         }
       ],
       "quiz": [
@@ -616,7 +616,7 @@
           "q": "객체가 원시값보다 큰 이유는?",
           "choices": [
             "값을 두 번 저장해서",
-            "헤더·모양 정보 같은 관리 정보가 붙어서",
+            "헤더, 모양 정보 같은 관리 정보가 붙어서",
             "정렬 때문",
             "GC 때문"
           ],
@@ -638,7 +638,7 @@
           "q": "수만 건 자료를 다룰 때 먼저 고려할 것은?",
           "choices": [
             "형식화 배열",
-            "한꺼번에 올리지 않기(스트리밍·페이지네이션)",
+            "한꺼번에 올리지 않기(스트리밍, 페이지네이션)",
             "GC 강제 호출",
             "전역 변수"
           ],
@@ -649,17 +649,17 @@
     },
     {
       "id": "8",
-      "title": "누가 치우나 — 세 가지 모델",
+      "title": "누가 치우나. 세 가지 모델",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "메모리를 언제 회수하느냐는 언어의 성격을 정하는 큰 결정이다. 크게 셋이다 — **사람이 직접**(C), **런타임이 알아서**(JS·Java·Go), **컴파일러가 규칙으로**(Rust)."
+          "text": "메모리를 언제 회수하느냐는 언어의 성격을 정하는 큰 결정이다. 크게 셋이다. **사람이 직접**(C), **런타임이 알아서**(JS, Java, Go), **컴파일러가 규칙으로**(Rust)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "모델을 골라 보라 — 무엇을 얻고 무엇을 잃나",
+          "label": "모델을 골라 보라. 무엇을 얻고 무엇을 잃나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const m = '{{model}}';\n  const t = {\n    manual: ['수동 (C · C++ 일부)', 'malloc / free',\n      ['언제 회수될지 정확히 안다 — 지연이 없다', '메모리를 최소로 쓸 수 있다'],\n      ['안 치우면 누수 · 두 번 치우면 붕괴', '치운 자리를 또 쓰면(use-after-free) 보안 구멍']],\n    gc:     ['자동 GC (JavaScript · Java · Go · C#)', '못 닿으면 회수',\n      ['해제 실수가 사라진다', '순환 참조도 알아서 정리'],\n      ['언제 도는지 모른다 — 순간 멈춤(GC pause)', '메모리를 더 쓴다 · 누수는 여전히 가능(참조를 붙잡으면)']],\n    own:    ['소유권 (Rust)', '범위를 벗어나면 그 자리에서 해제',\n      ['런타임 비용 0 · GC 멈춤 없음', '해제 실수를 컴파일이 막는다'],\n      ['규칙을 배우는 비용이 크다', '자료 구조가 복잡하면 표현이 까다롭다']],\n  }[m];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div><div style=\"font:12.5px ui-monospace,monospace;color:#7dd3fc;margin-top:6px\">' + t[1] + '</div>';\n  show('얻는 것\\n' + t[2].map((x) => '  + ' + x).join('\\n') + '\\n\\n'\n     + '잃는 것\\n' + t[3].map((x) => '  - ' + x).join('\\n') + '\\n\\n'\n     + '고르는 기준: 지연이 치명적인가(게임·거래·임베디드) · 팀이 감당할 복잡도는 어디까지인가.');\n</script>",
           "controls": [
@@ -675,7 +675,7 @@
                 },
                 {
                   "value": "gc",
-                  "label": "자동 GC (JS·Java·Go)"
+                  "label": "자동 GC (JS, Java, Go)"
                 },
                 {
                   "value": "own",
@@ -687,11 +687,11 @@
         },
         {
           "type": "p",
-          "text": "GC 의 진짜 비용은 「느리다」가 아니라 **예측할 수 없다**는 점이다. 평소에는 충분히 빠르지만 가끔 수 ms~수십 ms 멈춘다. 60fps 게임에서 한 프레임은 16.7ms — 그래서 게임·오디오·실시간 거래에서 GC 언어가 힘든 것이다."
+          "text": "GC 의 진짜 비용은 \"느리다\"가 아니라 **예측할 수 없다**는 점이다. 평소에는 충분히 빠르지만 가끔 수 ms~수십 ms 멈춘다. 60fps 게임에서 한 프레임은 16.7ms. 그래서 게임, 오디오, 실시간 거래에서 GC 언어가 힘든 것이다."
         },
         {
           "type": "note",
-          "text": "그 대응이 **객체 풀**이다. 매 프레임 새 객체를 만들지 말고 미리 만들어 둔 것을 돌려 쓰면 GC 가 일할 거리가 없어진다. 게임 엔진의 총알·파티클이 전부 이 방식이다 — 「할당하지 않는」 코드를 쓰는 것."
+          "text": "그 대응이 **객체 풀**이다. 매 프레임 새 객체를 만들지 말고 미리 만들어 둔 것을 돌려 쓰면 GC 가 일할 거리가 없어진다. 게임 엔진의 총알, 파티클이 전부 이 방식이다. \"할당하지 않는\" 코드를 쓰는 것."
         },
         {
           "type": "code",
@@ -701,7 +701,7 @@
         },
         {
           "type": "try",
-          "text": "내가 쓰는 언어의 모델이 무엇인지, 그리고 그 대가가 내 프로젝트에서 문제가 되는지 한 줄로 적어 보라. 대부분의 웹 앱에서는 「문제 안 됨」이 정답이다."
+          "text": "내가 쓰는 언어의 모델이 무엇인지, 그리고 그 대가가 내 프로젝트에서 문제가 되는지 한 줄로 적어 보라. 대부분의 웹 앱에서는 \"문제 안 됨\"이 정답이다."
         }
       ],
       "quiz": [
@@ -742,7 +742,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -758,17 +758,17 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 점검 — 붙잡는 것과 놓는 것을 눈으로",
+          "label": "스스로 점검. 붙잡는 것과 놓는 것을 눈으로",
           "height": "300px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 상자 하나 — 스택 칸·힙 객체를 같은 모양으로 그린다. */\n  function box(x, y, w, h, label, sub, color) {\n    ctx.fillStyle = color || '#111c33';\n    ctx.strokeStyle = color === '#1e293b' ? '#475569' : '#60a5fa';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath();\n    ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  /* 실제로 참조를 만들고 끊어 보며 「무엇이 살아 있나」를 센다 */\n  const strong = new Map();\n  const weak = new WeakMap();\n  const alive = [];\n  for (let i = 0; i < 5; i++) {\n    const node = document.createElement('div');\n    node.textContent = 'row ' + i;\n    document.body.appendChild(node);\n    strong.set(node, { i });\n    weak.set(node, { i });\n    alive.push(node);\n  }\n  alive.forEach((n) => n.remove());          /* 화면에서는 뗐다 */\n  const stillInDom = document.querySelectorAll('div').length;\n  show('DOM 에서 뗀 요소 5개\\n\\n'\n     + '화면에 남은 div        ' + stillInDom + '개\\n'\n     + 'Map 이 붙잡고 있는 수  ' + strong.size + '개   <- 이것이 detached DOM 누수\\n'\n     + 'alive 배열이 붙잡는 수 ' + alive.length + '개   <- 변수도 붙잡는다\\n\\n'\n     + '고치기: strong.clear() · alive.length = 0 · 또는 애초에 WeakMap\\n'\n     + 'WeakMap 은 키를 안 붙잡으므로, 다른 참조가 사라지면 항목도 함께 사라진다.\\n\\n'\n     + '(GC 는 언제 돌지 모르므로 「즉시 줄어드는」 숫자를 기대하지 마라 —\\n'\n     + ' 우리가 확인할 수 있는 것은 「붙잡고 있나 아닌가」뿐이다.)');\n  app.innerHTML = '<div class=\"hint\">참조를 만들고 끊어 본다</div>';\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 운영체제다. 여기까지가 「내 프로그램 안의 자리」였다면, 다음은 **그 프로그램에 자리를 나눠 주는 쪽**이다 — 프로세스, 가상 메모리, 스케줄링."
+          "text": "다음 칸은 운영체제다. 여기까지가 \"내 프로그램 안의 자리\"였다면, 다음은 **그 프로그램에 자리를 나눠 주는 쪽**이다. 프로세스, 가상 메모리, 스케줄링."
         },
         {
           "type": "try",
-          "text": "위 열 줄로 내 프로젝트를 훑고, 걸리는 줄이 있으면 힙 스냅샷을 두 장 찍어 확인하라. 스냅샷 두 장이 없으면 「고쳤다」고 말할 수 없다."
+          "text": "위 열 줄로 내 프로젝트를 훑고, 걸리는 줄이 있으면 힙 스냅샷을 두 장 찍어 확인하라. 스냅샷 두 장이 없으면 \"고쳤다\"고 말할 수 없다."
         }
       ],
       "quiz": [
@@ -781,10 +781,10 @@
             "특정 브라우저만"
           ],
           "answer": 1,
-          "why": "그래서 SPA·서버에서 드러난다."
+          "why": "그래서 SPA, 서버에서 드러난다."
         },
         {
-          "q": "「고쳤다」고 말하려면 필요한 것은?",
+          "q": "\"고쳤다\"고 말하려면 필요한 것은?",
           "choices": [
             "코드 리뷰",
             "전후 힙 스냅샷 두 장",

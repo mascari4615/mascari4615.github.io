@@ -13,7 +13,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "깊이를 밀어 보라 — 무엇이 함께 들어오나",
+          "label": "깊이를 밀어 보라. 무엇이 함께 들어오나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const d = {{depth}};\n  const rows = [[0, 'my-app  (내가 쓴 코드 3,000줄)', 'ok']];\n  if (d >= 1) rows.push([1, 'express  (직접 고른 것)', ''], [1, 'react', ''], [1, 'axios', '']);\n  if (d >= 2) rows.push([2, 'body-parser · qs · cookie …', 'dim'], [2, 'scheduler · loose-envify', 'dim'],\n                        [2, 'follow-redirects · form-data', 'dim']);\n  if (d >= 3) rows.push([3, '(간접 의존성 수백 개)', 'dim'],\n                        [3, '이 중 하나가 뚫리면 내 서버에서 돈다', 'hot']);\n  const counts = [1, 4, 40, 900][d];\n  render('npm ls --all | wc -l',\n    '  이 깊이까지의 패키지 수: 약 <span class=\"' + (d >= 2 ? 'warn' : 'ok') + '\">' + counts + '개</span>\\n\\n' +\n    (d >= 2 ? '  <span class=\"dim\">내가 고른 것은 3개, 나머지는 「그것들이 고른 것」이다.\\n' +\n              '  간접 의존성까지 검토하는 팀은 거의 없다 — 그래서 여기가 공격 표면이 된다.</span>'\n            : '  <span class=\"dim\">여기까지는 사람이 검토할 수 있다.</span>'),\n    '공급망 공격은 「내 코드」가 아니라 「내가 신뢰하는 것들」을 노린다.', tree(rows));\n</script>",
           "controls": [
@@ -30,11 +30,11 @@
         },
         {
           "type": "p",
-          "text": "**설치 = 실행**이라는 점이 핵심이다. npm 은 설치 시 스크립트를 돌릴 수 있고, 빌드 도구는 임의 코드를 실행한다 — 그래서 「악성 패키지 하나」가 개발자 노트북과 CI 를 동시에 가져갈 수 있다(5장)."
+          "text": "**설치 = 실행**이라는 점이 핵심이다. npm 은 설치 시 스크립트를 돌릴 수 있고, 빌드 도구는 임의 코드를 실행한다. 그래서 \"악성 패키지 하나\"가 개발자 노트북과 CI 를 동시에 가져갈 수 있다(5장)."
         },
         {
           "type": "note",
-          "text": "실제 사건들이 이 그림을 증명했다 — 널리 쓰이는 작은 패키지가 **소유권 이전·계정 탈취**로 악성 코드를 심었고, 빌드 도구가 오염돼 **그것으로 만든 모든 산출물**이 감염됐다(SolarWinds). 공통점: **직접 고른 적 없는 것**이 문제였다."
+          "text": "실제 사건들이 이 그림을 증명했다. 널리 쓰이는 작은 패키지가 **소유권 이전, 계정 탈취**로 악성 코드를 심었고, 빌드 도구가 오염돼 **그것으로 만든 모든 산출물**이 감염됐다(SolarWinds). 공통점: **직접 고른 적 없는 것**이 문제였다."
         },
         {
           "type": "code",
@@ -71,7 +71,7 @@
           "why": "공격 표면이 여기 있다."
         },
         {
-          "q": "「설치 = 실행」이 뜻하는 것은?",
+          "q": "\"설치 = 실행\"이 뜻하는 것은?",
           "choices": [
             "빌드가 느리다",
             "설치 스크립트로 임의 코드가 돈다",
@@ -85,17 +85,17 @@
     },
     {
       "id": "2",
-      "title": "버전을 못 박기 — lockfile",
+      "title": "버전을 못 박기. lockfile",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`^1.2.3` 같은 범위 표기는 **「호환되는 최신」**을 뜻한다. 편리하지만, 어제와 오늘의 설치 결과가 달라진다 — 그리고 그 사이에 누군가 악성 버전을 올릴 수 있다."
+          "text": "`^1.2.3` 같은 범위 표기는 **\"호환되는 최신\"**을 뜻한다. 편리하지만, 어제와 오늘의 설치 결과가 달라진다. 그리고 그 사이에 누군가 악성 버전을 올릴 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "설치 방식을 골라 보라 — 무엇이 들어오나",
+          "label": "설치 방식을 골라 보라. 무엇이 들어오나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    range: ['package.json 만 (^1.2.3)', 'bad',\n      'express: ^4.18.0  ->  오늘은 4.18.2, 내일은 4.19.0 이 올 수 있다',\n      '<span class=\"no\">사람마다·판마다 다른 것이 설치된다.</span> 「내 기계에서는 되는데」와 공급망 위험이 함께 온다.'],\n    lock:  ['lockfile 커밋 + npm ci', 'good',\n      'package-lock.json 에 정확한 버전 + 무결성 해시(integrity)',\n      '<span class=\"ok\">모두가 같은 것을 설치한다.</span> 해시가 다르면 설치가 실패한다 — 변조 감지.'],\n    install:['npm install 을 CI 에서', 'bad',\n      'lockfile 이 있어도 조건에 따라 갱신될 수 있다',\n      'CI 에서는 <span class=\"ok\">npm ci</span> — lockfile 그대로, 안 맞으면 실패(CI 칸 2장).'],\n    exact: ['정확한 버전 고정 (1.2.3)', 'warn',\n      'save-exact 로 캐럿 없이',\n      '더 엄격하지만 보안 패치도 안 온다 — <span class=\"warn\">자동 갱신 PR 과 짝</span>으로 써야 한다.'],\n    hash:  ['해시까지 고정', 'good',\n      'pip: --require-hashes · npm: lockfile 의 integrity 필드',\n      '같은 버전 번호로 내용을 바꿔치기하는 공격까지 막는다.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : t[1] === 'warn' ? 'warn' : 'no') + '\">' +\n    esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    'lockfile 은 재현성 도구이자 보안 도구다 — 둘은 같은 문제의 두 얼굴.',\n    box('설치되는 것', t[2], t[1] === 'good' ? 'good' : t[1] === 'bad' ? 'bad' : ''));\n</script>",
           "controls": [
@@ -131,7 +131,7 @@
         },
         {
           "type": "note",
-          "text": "**lockfile 을 커밋하지 않는 것**은 라이브러리를 만들 때의 관례이고, **애플리케이션은 반드시 커밋**한다. 그리고 lockfile 의 diff 를 리뷰에서 훑어라 — 의도치 않은 대량 변경이 보이면 무언가 잘못된 것이다."
+          "text": "**lockfile 을 커밋하지 않는 것**은 라이브러리를 만들 때의 관례이고, **애플리케이션은 반드시 커밋**한다. 그리고 lockfile 의 diff 를 리뷰에서 훑어라. 의도치 않은 대량 변경이 보이면 무언가 잘못된 것이다."
         },
         {
           "type": "code",
@@ -141,7 +141,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **레지스트리를 못 박는 것**도 중요하다. `.npmrc` 에 사설 레지스트리를 쓰면서 범위 이름을 잘못 두면, 같은 이름의 공개 패키지가 대신 설치되는 사고(의존성 혼동)가 난다 — 4장에서 다시 본다."
+          "text": "그리고 **레지스트리를 못 박는 것**도 중요하다. `.npmrc` 에 사설 레지스트리를 쓰면서 범위 이름을 잘못 두면, 같은 이름의 공개 패키지가 대신 설치되는 사고(의존성 혼동)가 난다. 4장에서 다시 본다."
         },
         {
           "type": "try",
@@ -186,17 +186,17 @@
     },
     {
       "id": "3",
-      "title": "알려진 취약점 — 알림을 다루는 법",
+      "title": "알려진 취약점. 알림을 다루는 법",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`npm audit` 을 처음 돌리면 경고가 수십 개 나온다. 그리고 대부분의 팀이 그 상태로 **무뎌진다** — 이 장은 그 목록을 **행동 가능한 것**으로 줄이는 이야기다."
+          "text": "`npm audit` 을 처음 돌리면 경고가 수십 개 나온다. 그리고 대부분의 팀이 그 상태로 **무뎌진다**. 이 장은 그 목록을 **행동 가능한 것**으로 줄이는 이야기다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "경고를 골라 보라 — 실제로 위험한가",
+          "label": "경고를 골라 보라. 실제로 위험한가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    direct: ['직접 의존성 · 원격 코드 실행 · 우리가 그 기능을 쓴다', 'no', '즉시',\n      '심각도와 도달 가능성이 모두 높다 — 오늘 올린다.'],\n    dev:    ['개발 의존성만 · 빌드 도구', 'warn', '이번 주',\n      '운영에는 안 나가지만 <span class=\"warn\">개발자 기계와 CI 는 위험</span>하다 — 낮게 보지 마라.'],\n    unreach:['취약한 함수를 우리가 안 쓴다', 'warn', '판단 필요',\n      '도달 가능성 분석이 되는 도구면 확인하고, 안 되면 보수적으로 올린다.'],\n    dos:    ['정규식 DoS · 내부 전용 서비스', 'warn', '일정에 넣기',\n      '심각도 표는 참고일 뿐 — <span class=\"ok\">우리 맥락</span>에서 다시 판단한다.'],\n    trans:  ['간접 의존성 · 상위가 아직 안 고침', 'warn', '임시 조치',\n      'overrides·resolutions 로 강제 · 대안 검토 · 상위에 이슈 열기.'],\n    old:    ['3년째 방치된 경고 200개', 'no', '정리부터',\n      '<span class=\"no\">이 상태가 가장 위험하다</span> — 진짜 위험이 묻힌다. 기준을 정해 한 번 비우고 그 뒤로는 즉시 처리.'],\n  }[c];\n  render('npm audit  ·  Dependabot',\n    '  ' + esc(t[0]) + '\\n\\n  대응: <span class=\"' + (t[1] === 'no' ? 'no' : 'warn') + '\">' + esc(t[2]) + '</span>\\n\\n  ' + t[3],\n    '판단 기준 셋: 운영에 나가나 · 우리가 그 코드에 닿나 · 공격자가 실제로 도달할 수 있나.');\n</script>",
           "controls": [
@@ -208,7 +208,7 @@
               "options": [
                 {
                   "value": "direct",
-                  "label": "직접·RCE·사용 중"
+                  "label": "직접, RCE, 사용 중"
                 },
                 {
                   "value": "dev",
@@ -224,7 +224,7 @@
                 },
                 {
                   "value": "trans",
-                  "label": "간접·상위 미수정"
+                  "label": "간접, 상위 미수정"
                 },
                 {
                   "value": "old",
@@ -236,7 +236,7 @@
         },
         {
           "type": "note",
-          "text": "**심각도(CVSS)만 보고 정렬하면 틀린다.** 「이 취약점이 우리 환경에서 실제로 악용될 수 있나」가 진짜 기준이다 — 운영에 안 나가는 개발 도구의 「치명적」보다, 인터넷에 열린 서비스의 「중간」이 급할 수 있다."
+          "text": "**심각도(CVSS)만 보고 정렬하면 틀린다.** \"이 취약점이 우리 환경에서 실제로 악용될 수 있나\"가 진짜 기준이다. 운영에 안 나가는 개발 도구의 \"치명적\"보다, 인터넷에 열린 서비스의 \"중간\"이 급할 수 있다."
         },
         {
           "type": "code",
@@ -246,7 +246,7 @@
         },
         {
           "type": "p",
-          "text": "**갱신을 자주 하는 것이 곧 방어**다. 6개월씩 안 올리면 나중에 한꺼번에 올려야 하고, 그때는 깨질 것이 많아 또 미룬다 — 매주 조금씩 올리는 팀이 결국 가장 안전하고 가장 덜 고생한다."
+          "text": "**갱신을 자주 하는 것이 곧 방어**다. 6개월씩 안 올리면 나중에 한꺼번에 올려야 하고, 그때는 깨질 것이 많아 또 미룬다. 매주 조금씩 올리는 팀이 결국 가장 안전하고 가장 덜 고생한다."
         },
         {
           "type": "try",
@@ -269,7 +269,7 @@
           "q": "개발 의존성 취약점은?",
           "choices": [
             "무시해도 된다",
-            "개발 기계·CI 가 위험하므로 낮게 보면 안 된다",
+            "개발 기계, CI 가 위험하므로 낮게 보면 안 된다",
             "운영과 같다",
             "자동 해결된다"
           ],
@@ -291,17 +291,17 @@
     },
     {
       "id": "4",
-      "title": "악성 패키지 — 이름·소유권·계정",
+      "title": "악성 패키지. 이름, 소유권, 계정",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "취약점은 **실수**지만, 악성 패키지는 **의도**다. 그리고 들어오는 경로가 정해져 있다 — 이름을 헷갈리게 하거나, 기존 패키지를 넘겨받거나, 계정을 훔치거나."
+          "text": "취약점은 **실수**지만, 악성 패키지는 **의도**다. 그리고 들어오는 경로가 정해져 있다. 이름을 헷갈리게 하거나, 기존 패키지를 넘겨받거나, 계정을 훔치거나."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "경로를 골라 보라 — 어떻게 들어오나",
+          "label": "경로를 골라 보라. 어떻게 들어오나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{path}}';\n  const t = {\n    typo:  ['타이포스쿼팅', 'lodahs · reqeusts · crossenv',\n      '오타 하나로 다른 패키지가 설치된다. 설치 스크립트가 바로 돈다.',\n      '복사-붙여넣기로 설치 · 다운로드 수와 게시일 확인 · 사내 미러 사용'],\n    confuse:['의존성 혼동', '사내 패키지와 같은 이름을 공개 레지스트리에 올린다',\n      '설정에 따라 <span class=\"no\">공개 쪽이 더 높은 버전</span>이면 그것이 설치된다.',\n      '스코프(@myorg/) 사용 · 레지스트리 못 박기 · 사내 이름을 공개에 선점'],\n    handover:['소유권 이전', '오래된 인기 패키지를 유지보수자가 넘긴다',\n      '새 소유자가 악성 코드를 넣는다 — 사용자는 알아채기 어렵다.',\n      '갱신 PR 의 diff 확인 · 관리자 변경 알림 · 의존성 수 줄이기(8장)'],\n    account:['계정 탈취', '유지보수자의 npm 계정이 피싱으로 넘어간다',\n      '정상 패키지의 새 버전으로 악성 코드가 배포된다.',\n      '레지스트리의 2FA 강제 · 신뢰 게시(provenance) 확인 (6장)'],\n    protest:['의도적 파괴', '유지보수자가 스스로 코드를 망가뜨린다',\n      '실제로 있었던 일 — 무한 루프·데이터 삭제를 넣은 사례.',\n      '버전 고정 + 갱신 시 확인 · 핵심 의존성은 벤더링 검토'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n  ' + t[2] +\n    '\\n\\n  <span class=\"ok\">막는 법: ' + esc(t[3]) + '</span>',\n    '공통점: 「신뢰가 이전되는 순간」이 취약하다 — 이름·소유권·계정.',\n    box('예', t[1], 'bad'));\n</script>",
           "controls": [
@@ -337,7 +337,7 @@
         },
         {
           "type": "note",
-          "text": "**의존성 혼동**이 특히 무섭다 — 사내 전용 패키지 이름을 알아내 같은 이름을 공개 레지스트리에 올리면, 설정이 허술한 곳에서는 그것이 설치된다. **스코프 사용 + 레지스트리 명시**가 기본 방어다."
+          "text": "**의존성 혼동**이 특히 무섭다. 사내 전용 패키지 이름을 알아내 같은 이름을 공개 레지스트리에 올리면, 설정이 허술한 곳에서는 그것이 설치된다. **스코프 사용 + 레지스트리 명시**가 기본 방어다."
         },
         {
           "type": "code",
@@ -347,7 +347,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **사내 미러·프록시 레지스트리**를 두면 여러 문제가 한 번에 준다 — 승인된 패키지만 통과, 캐시로 가용성 확보, 감사 기록. 조직이 조금만 커지면 값을 한다."
+          "text": "그리고 **사내 미러, 프록시 레지스트리**를 두면 여러 문제가 한 번에 준다. 승인된 패키지만 통과, 캐시로 가용성 확보, 감사 기록. 조직이 조금만 커지면 값을 한다."
         },
         {
           "type": "try",
@@ -370,7 +370,7 @@
           "q": "계정 탈취로 인한 악성 배포를 줄이는 것은?",
           "choices": [
             "다운로드 수 확인",
-            "레지스트리 2FA·신뢰 게시(provenance)",
+            "레지스트리 2FA, 신뢰 게시(provenance)",
             "버전 범위",
             "미러"
           ],
@@ -386,23 +386,23 @@
             "설치 스크립트 유무"
           ],
           "answer": 2,
-          "why": "전부 읽는 것은 비현실적 — 신호로 판단한다."
+          "why": "전부 읽는 것은 비현실적. 신호로 판단한다."
         }
       ]
     },
     {
       "id": "5",
-      "title": "설치와 빌드 — 코드가 도는 순간들",
+      "title": "설치와 빌드. 코드가 도는 순간들",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "패키지는 **설치할 때부터** 코드를 돌릴 수 있다. 그리고 빌드 도구·플러그인도 임의 코드다 — 「빌드만 했는데 감염」이 가능한 이유다."
+          "text": "패키지는 **설치할 때부터** 코드를 돌릴 수 있다. 그리고 빌드 도구, 플러그인도 임의 코드다. \"빌드만 했는데 감염\"이 가능한 이유다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "시점을 골라 보라 — 무엇이 실행되나",
+          "label": "시점을 골라 보라. 무엇이 실행되나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{when}}';\n  const t = {\n    install:['npm install (설치 스크립트)', 'bad',\n      '\"scripts\": { \"postinstall\": \"node setup.js\" }',\n      '설치만 해도 임의 코드가 돈다 — 환경 변수·SSH 키·클라우드 자격증명이 그 자리에서 털린다.',\n      'npm ci --ignore-scripts · 필요한 것만 허용 목록으로'],\n    build:  ['빌드 (플러그인·로더)', 'bad',\n      'webpack/vite 플러그인 · babel 프리셋',\n      '빌드 도구는 원래 코드를 실행한다 — 오염되면 <span class=\"no\">산출물에 심어진다</span>.',\n      '빌드를 격리된 환경에서 · 산출물 재현성 확인 · 플러그인 수 줄이기'],\n    test:   ['테스트 실행', 'warn',\n      '테스트 프레임워크·리포터도 코드다',\n      'CI 에서 비밀에 접근 가능한 상태로 남의 코드를 돌린다.',\n      '테스트 잡의 권한을 최소로 (CI 칸 8장)'],\n    run:    ['운영 실행', 'warn',\n      '실제 서비스에서 도는 코드',\n      '가장 눈에 띄지만, 앞의 셋보다 오히려 감시가 잘 되는 편.',\n      '최소 권한 · 컨테이너 · 네트워크 정책'],\n    safe:   ['--ignore-scripts 로 설치', 'good',\n      'npm ci --ignore-scripts',\n      '<span class=\"ok\">설치 시점 실행을 막는다.</span> 일부 패키지는 네이티브 빌드가 필요해 깨질 수 있다.',\n      '깨지는 것만 골라 허용 — pnpm 은 기본이 차단(onlyBuiltDependencies)'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : t[1] === 'warn' ? 'warn' : 'no') + '\">' +\n    esc(t[0]) + '</span>\\n\\n  ' + t[3] + '\\n\\n  <span class=\"ok\">-> ' + esc(t[4]) + '</span>',\n    '기억할 것: CI 는 비밀을 들고 남의 코드를 돌리는 자리다.',\n    box('무엇이 도나', t[2], t[1] === 'good' ? 'good' : 'bad'));\n</script>",
           "controls": [
@@ -438,7 +438,7 @@
         },
         {
           "type": "note",
-          "text": "**CI 가 가장 위험한 자리**다 — 비밀을 들고, 네트워크가 열려 있고, 남의 코드를 돌린다. 그래서 「설치 스크립트 차단 · 최소 권한 토큰 · 네트워크 제한」 셋이 값을 한다(CI 칸 8장)."
+          "text": "**CI 가 가장 위험한 자리**다. 비밀을 들고, 네트워크가 열려 있고, 남의 코드를 돌린다. 그래서 \"설치 스크립트 차단, 최소 권한 토큰, 네트워크 제한\" 셋이 값을 한다(CI 칸 8장)."
         },
         {
           "type": "code",
@@ -448,11 +448,11 @@
         },
         {
           "type": "p",
-          "text": "**개발자 노트북도 표적**이다. 거기에는 운영 자격증명·SSH 키·소스가 다 있다 — 그래서 요즘은 개발 환경을 컨테이너로 격리하고, 자격증명은 짧은 수명으로 발급받는 방향으로 간다."
+          "text": "**개발자 노트북도 표적**이다. 거기에는 운영 자격증명, SSH 키, 소스가 다 있다. 그래서 요즘은 개발 환경을 컨테이너로 격리하고, 자격증명은 짧은 수명으로 발급받는 방향으로 간다."
         },
         {
           "type": "try",
-          "text": "`npm ci --ignore-scripts` 로 한 번 설치해 보라. 문제없이 되면 CI 에 그대로 적용할 수 있다 — 깨지는 패키지만 따로 허용하면 된다."
+          "text": "`npm ci --ignore-scripts` 로 한 번 설치해 보라. 문제없이 되면 CI 에 그대로 적용할 수 있다. 깨지는 패키지만 따로 허용하면 된다."
         }
       ],
       "quiz": [
@@ -460,7 +460,7 @@
           "q": "가장 위험한 실행 시점은?",
           "choices": [
             "운영 실행",
-            "설치·빌드·테스트 (비밀을 들고 남의 코드를 돌린다)",
+            "설치, 빌드, 테스트 (비밀을 들고 남의 코드를 돌린다)",
             "배포",
             "린트"
           ],
@@ -482,7 +482,7 @@
           "q": "개발자 노트북이 표적이 되는 이유는?",
           "choices": [
             "느려서",
-            "운영 자격증명·SSH 키·소스가 다 있어서",
+            "운영 자격증명, SSH 키, 소스가 다 있어서",
             "방화벽이 없어서",
             "OS 때문"
           ],
@@ -493,17 +493,17 @@
     },
     {
       "id": "6",
-      "title": "출처를 증명하기 — SBOM 과 서명",
+      "title": "출처를 증명하기. SBOM 과 서명",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「이 산출물이 **그 소스**에서 **그 파이프라인**으로 만들어졌다」를 증명할 수 있으면, 중간에 끼어든 변조를 잡을 수 있다. 그 도구가 **SBOM**(재료 목록)과 **서명·출처 증명**이다."
+          "text": "\"이 산출물이 **그 소스**에서 **그 파이프라인**으로 만들어졌다\"를 증명할 수 있으면, 중간에 끼어든 변조를 잡을 수 있다. 그 도구가 **SBOM**(재료 목록)과 **서명, 출처 증명**이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "도구를 골라 보라 — 무엇에 답하나",
+          "label": "도구를 골라 보라. 무엇에 답하나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{tool}}';\n  const t = {\n    sbom:  ['SBOM (재료 목록)', '무엇이 들어 있나',\n      ['패키지 이름·버전·라이선스·해시의 목록 (SPDX·CycloneDX)'],\n      '새 취약점이 발표됐을 때 <span class=\"ok\">「우리가 그걸 쓰나」를 몇 초에</span> 답할 수 있다.'],\n    sign:  ['아티팩트 서명', '누가 만들었나',\n      ['cosign 으로 이미지·파일에 서명 · 검증'],\n      '레지스트리가 뚫려 이미지가 바뀌어도 서명 검증에서 걸린다.'],\n    prov:  ['출처 증명 (provenance)', '어떤 소스에서 어떻게 만들어졌나',\n      ['SLSA · npm provenance · GitHub Actions 증명'],\n      '<span class=\"ok\">「이 npm 패키지는 그 저장소의 그 커밋에서 CI 가 만들었다」</span>를 검증할 수 있다.'],\n    repro: ['재현 가능한 빌드', '같은 소스가 같은 산출물을 내나',\n      ['타임스탬프·경로·순서를 제거해 바이트 단위로 동일하게'],\n      '어렵지만 강력하다 — 제3자가 독립적으로 같은 결과를 만들어 대조할 수 있다.'],\n    admit: ['배포 시 검증', '검증된 것만 돌린다',\n      ['쿠버네티스 admission 정책 · 서명 없는 이미지 거부'],\n      '증명을 만들어 두고 검증하지 않으면 아무 소용이 없다 — 마지막 고리.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span> — ' + esc(t[1]) + '\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + t[3],\n    '순서: 만들 때 증명을 붙이고 · 배포할 때 검증한다.');\n</script>",
           "controls": [
@@ -545,11 +545,11 @@
         },
         {
           "type": "note",
-          "text": "**SBOM 의 진짜 값은 사고 때 나온다.** 새 취약점(Log4Shell 같은)이 터졌을 때 「우리 서비스 중 무엇이 그걸 쓰나」를 몇 초에 답할 수 있느냐가 대응 속도를 정한다 — 그때 만들려면 이미 늦다."
+          "text": "**SBOM 의 진짜 값은 사고 때 나온다.** 새 취약점(Log4Shell 같은)이 터졌을 때 \"우리 서비스 중 무엇이 그걸 쓰나\"를 몇 초에 답할 수 있느냐가 대응 속도를 정한다. 그때 만들려면 이미 늦다."
         },
         {
           "type": "p",
-          "text": "그리고 **검증 없는 서명은 장식**이다. 서명을 만들어 두고 배포 시 확인하지 않으면 아무것도 막지 못한다 — 「생성 → 저장 → **검증**」의 마지막 고리를 반드시 걸어라."
+          "text": "그리고 **검증 없는 서명은 장식**이다. 서명을 만들어 두고 배포 시 확인하지 않으면 아무것도 막지 못한다. \"생성 → 저장 → **검증**\"의 마지막 고리를 반드시 걸어라."
         },
         {
           "type": "try",
@@ -572,7 +572,7 @@
           "q": "출처 증명(provenance)이 답하는 것은?",
           "choices": [
             "재료 목록",
-            "어떤 소스·파이프라인에서 만들어졌나",
+            "어떤 소스, 파이프라인에서 만들어졌나",
             "성능",
             "라이선스"
           ],
@@ -599,12 +599,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "지금까지의 도구는 모두 **위험을 관리**하는 것이다. 위험을 **없애는** 유일한 방법은 하나다 — **의존성을 덜 쓰는 것**."
+          "text": "지금까지의 도구는 모두 **위험을 관리**하는 것이다. 위험을 **없애는** 유일한 방법은 하나다. **의존성을 덜 쓰는 것**."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 정말 필요한가",
+          "label": "상황을 골라 보라. 정말 필요한가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    tiny:   ['한 줄짜리 유틸 패키지', 'no',\n      'is-odd · left-pad · is-number',\n      '직접 쓰면 세 줄이다. 의존성 하나는 <span class=\"no\">그 패키지의 미래 전부</span>를 떠안는 일.'],\n    std:    ['표준 라이브러리로 되는 것', 'no',\n      'lodash.clonedeep -> structuredClone · uuid -> crypto.randomUUID · axios -> fetch',\n      '런타임이 좋아지면서 많은 패키지가 <span class=\"ok\">필요 없어졌다</span> — 주기적으로 재검토하라.'],\n    big:    ['큰 프레임워크·DB 드라이버', 'ok',\n      'react · pg · express',\n      '직접 만들 수 없는 것이다. 대신 <span class=\"ok\">널리 쓰이고 관리되는 것</span>을 고른다.'],\n    crypto: ['암호·인증 라이브러리', 'ok',\n      'argon2 · jose · libsodium',\n      '직접 만들면 훨씬 위험하다(암호 칸 1장) — 여기서는 의존성이 답이다.'],\n    dev:    ['개발 편의 도구', 'warn',\n      '린트 플러그인 · 스타터 킷',\n      '설치=실행이므로 개발 의존성도 위험은 같다 — 편의 대비 위험을 재라.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '  ->  <span class=\"' + (t[1] === 'ok' ? 'ok' : t[1] === 'warn' ? 'warn' : 'no') + '\">' +\n    (t[1] === 'ok' ? '쓰는 편이 낫다' : t[1] === 'warn' ? '재 보고 결정' : '빼는 편이 낫다') + '</span>\\n\\n  ' + t[3],\n    '질문: 「이걸 직접 쓰면 몇 줄인가」 · 「이 패키지가 내일 사라지면 어떻게 되나」.',\n    box('예', t[2], t[1] === 'ok' ? 'good' : t[1] === 'no' ? 'bad' : ''));\n</script>",
           "controls": [
@@ -640,7 +640,7 @@
         },
         {
           "type": "note",
-          "text": "**의존성 하나를 추가하는 것은 그 패키지의 미래 전부를 떠안는 일**이다 — 유지보수 중단·소유권 이전·악성 배포·라이선스 변경까지. 「지금 편한가」가 아니라 「5년 뒤에도 괜찮은가」로 물어라."
+          "text": "**의존성 하나를 추가하는 것은 그 패키지의 미래 전부를 떠안는 일**이다. 유지보수 중단, 소유권 이전, 악성 배포, 라이선스 변경까지. \"지금 편한가\"가 아니라 \"5년 뒤에도 괜찮은가\"로 물어라."
         },
         {
           "type": "code",
@@ -650,11 +650,11 @@
         },
         {
           "type": "p",
-          "text": "다만 **극단으로 가지 마라.** 암호·인증·파서처럼 직접 만들면 더 위험한 것도 있다(암호 칸). 기준은 「직접 만들었을 때의 위험 vs 의존했을 때의 위험」이고, 대부분의 유틸은 전자가 훨씬 작다."
+          "text": "다만 **극단으로 가지 마라.** 암호, 인증, 파서처럼 직접 만들면 더 위험한 것도 있다(암호 칸). 기준은 \"직접 만들었을 때의 위험 vs 의존했을 때의 위험\"이고, 대부분의 유틸은 전자가 훨씬 작다."
         },
         {
           "type": "try",
-          "text": "`package.json` 의 dependencies 를 한 줄씩 읽으며 「직접 쓰면 몇 줄인가」를 적어 보라. 다섯 줄 미만인 것이 셋 이상이면 정리할 값이 있다."
+          "text": "`package.json` 의 dependencies 를 한 줄씩 읽으며 \"직접 쓰면 몇 줄인가\"를 적어 보라. 다섯 줄 미만인 것이 셋 이상이면 정리할 값이 있다."
         }
       ],
       "quiz": [
@@ -673,7 +673,7 @@
           "q": "직접 만들면 더 위험한 것은?",
           "choices": [
             "문자열 유틸",
-            "암호·인증",
+            "암호, 인증",
             "날짜 포맷",
             "배열 헬퍼"
           ],
@@ -695,7 +695,7 @@
     },
     {
       "id": "8",
-      "title": "우리 것도 공급망이다 — 배포하는 쪽",
+      "title": "우리 것도 공급망이다. 배포하는 쪽",
       "minutes": 8,
       "blocks": [
         {
@@ -705,7 +705,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 골라 보라 — 배포자가 할 일",
+          "label": "항목을 골라 보라. 배포자가 할 일",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{item}}';\n  const t = {\n    twofa: ['레지스트리 2FA', ['계정 탈취가 곧 사용자 감염이다'],\n      '가장 값싸고 가장 큰 방어. 조직 계정이면 전원 강제.'],\n    ci:    ['CI 에서만 게시', ['개인 노트북에서 publish 하지 않는다'],\n      '노트북이 감염되면 그대로 배포된다. 게시 토큰은 CI 에만.'],\n    prov:  ['출처 증명 붙이기', ['npm publish --provenance'],\n      '사용자가 「이 버전이 그 저장소에서 나왔다」를 검증할 수 있다(6장).'],\n    scripts:['설치 스크립트 최소화', ['postinstall 없이도 되게 만든다'],\n      '사용자가 --ignore-scripts 로 안전하게 설치할 수 있게 해 주는 배려.'],\n    files: ['배포물에 불필요한 것 넣지 않기', ['.npmignore·files 필드로 좁히기'],\n      '.env·테스트 픽스처·내부 문서가 딸려 나가는 사고가 흔하다.'],\n    sec:   ['취약점 신고 창구', ['SECURITY.md · security@ 주소'],\n      '알릴 곳이 없으면 공개적으로 터진다(앞 칸 8장).'],\n  }[c];\n  render('npm publish',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '내가 신뢰받는 쪽이 되면, 앞 장들의 공격이 나를 통해 남에게 간다.');\n</script>",
           "controls": [
@@ -751,11 +751,11 @@
         },
         {
           "type": "note",
-          "text": "**`npm pack --dry-run` 을 게시 전에 한 번 보라.** `.env`·`.git`·내부 스크립트가 딸려 나가는 사고가 실제로 자주 난다 — 목록을 눈으로 확인하는 30초가 유출을 막는다."
+          "text": "**`npm pack --dry-run` 을 게시 전에 한 번 보라.** `.env`, `.git`, 내부 스크립트가 딸려 나가는 사고가 실제로 자주 난다. 목록을 눈으로 확인하는 30초가 유출을 막는다."
         },
         {
           "type": "p",
-          "text": "그리고 **버려진 패키지를 남기지 마라.** 안 쓰게 된 이름은 소유권 이전 요청의 표적이 된다 — 사용하지 않을 것이면 deprecate 표시를 하고, 아카이브하거나 신뢰할 수 있는 사람에게만 넘겨라."
+          "text": "그리고 **버려진 패키지를 남기지 마라.** 안 쓰게 된 이름은 소유권 이전 요청의 표적이 된다. 사용하지 않을 것이면 deprecate 표시를 하고, 아카이브하거나 신뢰할 수 있는 사람에게만 넘겨라."
         },
         {
           "type": "try",
@@ -800,7 +800,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -816,17 +816,17 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .tree { font:12px/1.75 ui-monospace, monospace; margin:8px 0; }\n  .tree .n { color:#cbd5e1; }\n  .tree .n.hot { color:#fca5a5; }\n  .tree .n.ok { color:#4ade80; }\n  .tree .n.dim { color:#475569; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const tree = (rows) => '<div class=\"tree\">' + rows.map(([indent, name, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\">' + '&nbsp;'.repeat(indent * 2) +\n    (indent ? '└─ ' : '') + esc(name) + '</div>').join('') + '</div>';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['간접 의존성이 직접 의존성보다 훨씬 많다', true],\n    ['lockfile 은 라이브러리든 앱이든 커밋하지 않는다', false],\n    ['설치만 해도 임의 코드가 돌 수 있다', true],\n    ['CVSS 점수가 높으면 무조건 먼저 고쳐야 한다', false],\n    ['서명을 만들어 두면 검증은 안 해도 된다', false],\n    ['의존성을 줄이는 것이 가장 확실한 방어다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(나무) 2장(lockfile) 3장(판단) 5장(설치) 6장(검증) 7장(줄이기)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 직접 뚫어 보기다. 여기까지가 「막는 법」이었다면, 다음은 **공격자의 눈으로 내 서비스를 보는 연습**이다 — 막는 것보다 뚫어 보는 쪽이 이해가 빠를 때가 많다."
+          "text": "다음 칸은 직접 뚫어 보기다. 여기까지가 \"막는 법\"이었다면, 다음은 **공격자의 눈으로 내 서비스를 보는 연습**이다. 막는 것보다 뚫어 보는 쪽이 이해가 빠를 때가 많다."
         },
         {
           "type": "try",
-          "text": "위 점검표의 「재현성」 세 줄부터 확인하라. 가장 값싸고, 여기가 갖춰져야 나머지가 의미를 갖는다."
+          "text": "위 점검표의 \"재현성\" 세 줄부터 확인하라. 가장 값싸고, 여기가 갖춰져야 나머지가 의미를 갖는다."
         }
       ],
       "quiz": [
@@ -845,7 +845,7 @@
           "q": "취약점 대응 속도를 정하는 것은?",
           "choices": [
             "스캐너 성능",
-            "「우리가 그걸 쓰나」에 답할 수 있는가(SBOM)",
+            "\"우리가 그걸 쓰나\"에 답할 수 있는가(SBOM)",
             "팀 규모",
             "예산"
           ],

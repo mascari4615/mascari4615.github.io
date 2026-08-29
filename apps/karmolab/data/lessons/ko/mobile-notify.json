@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**알림 권한은 앱을 켜자마자 묻지 말고, 사용자가 그 가치를 원하는 순간에 맥락 안에서 물어야 한다 — 그래야 승낙률도 유지율도 오른다.** 처음부터 권한을 다 물어보는 앱은 지워진다: 아직 가치를 못 본 사용자는 「왜 알림을?」 하며 **거절**하고, **한 번 거절하면 다시 묻기가 매우 어렵다**(OS 가 재요청을 막거나 설정에서 직접 켜야 함). 그래서 ① **앱을 켜자마자 X** — 가치를 보여 준 뒤에. ② **가치를 원하는 순간에** — 「이 상품 **재입고되면 알려 드릴까요?**」, 「배송 시작하면 알림 받을래요?」처럼 **맥락 안에서**. ③ **먼저 프라이머(pre-permission)** — 내 화면에서 **이유를 설명하고 예/아니오**를 받은 뒤, 「예」일 때만 진짜 OS 권한창을 띄운다(거절 아까운 OS 창을 낭비 안 함). ④ **거절은 존중** — 나중에 가치가 커진 순간 다시 유도. 핵심: **권한은 자산 — 가치를 보여 준 뒤 맥락에서 묻는다.** 아래 데모로 즉시 요청 vs 프라이머+맥락을 확인하라."
+          "text": "**알림 권한은 앱을 켜자마자 묻지 말고, 사용자가 그 가치를 원하는 순간에 맥락 안에서 물어야 한다. 그래야 승낙률도 유지율도 오른다.** 처음부터 권한을 다 물어보는 앱은 지워진다: 아직 가치를 못 본 사용자는 \"왜 알림을?\" 하며 **거절**하고, **한 번 거절하면 다시 묻기가 매우 어렵다**(OS 가 재요청을 막거나 설정에서 직접 켜야 함). 그래서 ① **앱을 켜자마자 X**. 가치를 보여 준 뒤에. ② **가치를 원하는 순간에**. \"이 상품 **재입고되면 알려 드릴까요?**\", \"배송 시작하면 알림 받을래요?\"처럼 **맥락 안에서**. ③ **먼저 프라이머(pre-permission)**. 내 화면에서 **이유를 설명하고 예/아니오**를 받은 뒤, \"예\"일 때만 진짜 OS 권한창을 띄운다(거절 아까운 OS 창을 낭비 안 함). ④ **거절은 존중**. 나중에 가치가 커진 순간 다시 유도. 핵심: **권한은 자산. 가치를 보여 준 뒤 맥락에서 묻는다.** 아래 데모로 즉시 요청 vs 프라이머+맥락을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "언제 묻나 — 즉시 vs 프라이머+맥락",
+          "label": "언제 묻나. 즉시 vs 프라이머+맥락",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const primer = way === 'primer';\n  render(primer ? '프라이머 + 맥락 — 가치를 원하는 순간에' : '앱 켜자마자 즉시 요청 — 거절당함',\n    (primer\n      ? '<span class=\"ok\">「재입고되면 알려 드릴까요?」처럼 맥락에서, 내 화면 프라이머로 이유 설명 → 「예」일 때만 OS 창 → 승낙률↑.</span>'\n      : '<span class=\"no\">가치 보기 전 즉시 요청 → 「왜?」 거절 → 한 번 거절하면 다시 묻기 매우 어려움(OS 가 막음).</span>'),\n    '켜자마자 X · 가치를 원하는 순간 · 프라이머로 먼저 · 거절은 존중.',\n    primer\n      ? steps([['맥락: 「재입고 알림 받을래요?」', 'on'], ['내 화면 프라이머: 이유 설명 + 예/아니오', 'good'], ['「예」일 때만 OS 권한창', 'good'], ['승낙 → 유지율도 오름', 'good']])\n      : steps([['앱 켜자마자 OS 권한창', 'bad'], ['가치 못 봄 → 「왜 알림을?」', 'bad'], ['거절 → 다시 묻기 매우 어려움', 'bad']]));\n</script>",
           "controls": [
@@ -43,11 +43,11 @@
         },
         {
           "type": "note",
-          "text": "**알림 권한은 앱 시작 시 무작정 묻지 말고, 사용자가 그 가치를 실제로 원하는 맥락에서 프라이머로 먼저 물은 뒤 요청해야 승낙률과 유지율이 오른다.** **왜 즉시 요청이 나쁜가**: 앱을 켜자마자 OS 권한창을 띄우면 — 사용자는 **아직 앱의 가치를 못 봤고**, 「이 앱이 왜 내게 알림을?」이라는 의심만 든다 → **거절**. 그리고 결정적으로 **한 번 거절당하면 다시 묻기가 매우 어렵다**: iOS·안드로이드는 **OS 권한창을 다시 자동으로 못 띄우게** 막고(한 번 거부하면 앱이 재요청 불가), 사용자가 **설정에 직접 들어가 수동으로 켜야** 한다(거의 안 함). 즉 **첫 요청은 단 한 번의 기회** — 낭비하면 영영 알림을 못 보낸다. **원칙**: ① **켜자마자 X, 가치를 보여 준 뒤**. ② **가치를 원하는 순간(맥락)에** — 「이 상품 **재입고되면 알려 드릴까요?**」, 「이 글에 **답글 달리면 알림 받을래요?**」, 「타이머 끝나면 알려 줄까요?」처럼 **사용자가 방금 그 알림을 원하게 된 순간**에 묻는다. 이때 승낙률이 훨씬 높다. ③ **프라이머(pre-permission prompt)를 먼저**: OS 권한창을 바로 띄우지 말고, **내 앱 화면에서 「알림을 켜면 이런 걸 받아요」라고 이유를 설명하고 예/아니오**를 받는다. 「예」를 누른 사용자에게만 **진짜 OS 권한창**을 띄운다 — 이러면 **아까운 한 번의 OS 요청을 「이미 원한다고 밝힌」 사람에게만** 쓰므로, OS 거절(영구적)을 피하고 승낙률을 극대화한다. 「아니오」면 OS 창을 안 띄우고 **나중에 다시** 물을 수 있다(내 화면이니까). ④ **거절을 존중하고 나중을 노린다** — 지금 「아니오」여도 앱 가치가 커진 순간 다시 부드럽게 유도(강요·반복 X — 반복하면 앱을 지운다). **권한은 자산**: 알림 권한은 사용자와의 신뢰 계약이다 — 얻기 어렵고 잃기 쉽다(2·5장 남발하면 꺼짐). **정리**: 켜자마자 묻지 말고, 가치를 원하는 맥락에서, 프라이머로 먼저 이유를 설명한 뒤 요청하라 — 첫 OS 요청은 한 번뿐이니 아껴 써라(product-problem 「진짜 원하는 순간」과 통함)."
+          "text": "**알림 권한은 앱 시작 시 무작정 묻지 말고, 사용자가 그 가치를 실제로 원하는 맥락에서 프라이머로 먼저 물은 뒤 요청해야 승낙률과 유지율이 오른다.** **왜 즉시 요청이 나쁜가**: 앱을 켜자마자 OS 권한창을 띄우면. 사용자는 **아직 앱의 가치를 못 봤고**, \"이 앱이 왜 내게 알림을?\"이라는 의심만 든다 → **거절**. 그리고 결정적으로 **한 번 거절당하면 다시 묻기가 매우 어렵다**: iOS, 안드로이드는 **OS 권한창을 다시 자동으로 못 띄우게** 막고(한 번 거부하면 앱이 재요청 불가), 사용자가 **설정에 직접 들어가 수동으로 켜야** 한다(거의 안 함). 즉 **첫 요청은 단 한 번의 기회**. 낭비하면 영영 알림을 못 보낸다. **원칙**: ① **켜자마자 X, 가치를 보여 준 뒤**. ② **가치를 원하는 순간(맥락)에**. \"이 상품 **재입고되면 알려 드릴까요?**\", \"이 글에 **답글 달리면 알림 받을래요?**\", \"타이머 끝나면 알려 줄까요?\"처럼 **사용자가 방금 그 알림을 원하게 된 순간**에 묻는다. 이때 승낙률이 훨씬 높다. ③ **프라이머(pre-permission prompt)를 먼저**: OS 권한창을 바로 띄우지 말고, **내 앱 화면에서 \"알림을 켜면 이런 걸 받아요\"라고 이유를 설명하고 예/아니오**를 받는다. \"예\"를 누른 사용자에게만 **진짜 OS 권한창**을 띄운다. 이러면 **아까운 한 번의 OS 요청을 \"이미 원한다고 밝힌\" 사람에게만** 쓰므로, OS 거절(영구적)을 피하고 승낙률을 극대화한다. \"아니오\"면 OS 창을 안 띄우고 **나중에 다시** 물을 수 있다(내 화면이니까). ④ **거절을 존중하고 나중을 노린다**. 지금 \"아니오\"여도 앱 가치가 커진 순간 다시 부드럽게 유도(강요, 반복 X. 반복하면 앱을 지운다). **권한은 자산**: 알림 권한은 사용자와의 신뢰 계약이다. 얻기 어렵고 잃기 쉽다(2, 5장 남발하면 꺼짐). **정리**: 켜자마자 묻지 말고, 가치를 원하는 맥락에서, 프라이머로 먼저 이유를 설명한 뒤 요청하라. 첫 OS 요청은 한 번뿐이니 아껴 써라(product-problem \"진짜 원하는 순간\"과 통함)."
         },
         {
           "type": "try",
-          "text": "권한 요청 **전에 이유를 설명하는 화면(프라이머)**을 넣고, **가치를 원하는 맥락**(재입고·답글·배송 등)에서만 물어라 — 그리고 프라이머를 **넣기 전후의 승낙률을 비교**하라. 앱 켜자마자 묻던 것을 맥락 안으로 옮기면 승낙률·유지율이 어떻게 달라지는지 측정하라(첫 OS 요청은 한 번뿐임을 기억)."
+          "text": "권한 요청 **전에 이유를 설명하는 화면(프라이머)**을 넣고, **가치를 원하는 맥락**(재입고, 답글, 배송 등)에서만 물어라. 그리고 프라이머를 **넣기 전후의 승낙률을 비교**하라. 앱 켜자마자 묻던 것을 맥락 안으로 옮기면 승낙률, 유지율이 어떻게 달라지는지 측정하라(첫 OS 요청은 한 번뿐임을 기억)."
         }
       ],
       "quiz": [
@@ -66,7 +66,7 @@
           "q": "한 번 거절당하면?",
           "choices": [
             "바로 다시 물음",
-            "다시 묻기 매우 어려움(OS 가 막음·설정서 수동)",
+            "다시 묻기 매우 어려움(OS 가 막음, 설정서 수동)",
             "문제없음",
             "무관"
           ],
@@ -77,7 +77,7 @@
           "q": "프라이머(pre-permission)의 역할은?",
           "choices": [
             "불필요",
-            "내 화면서 이유 설명·예/아니오 → 「예」만 OS 창(요청 아낌)",
+            "내 화면서 이유 설명, 예/아니오 → \"예\"만 OS 창(요청 아낌)",
             "OS 창 대체",
             "무관"
           ],
@@ -93,12 +93,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**보낼지의 기준은 하나다 — 받는 사람에게 지금 필요한가. 마케팅 알림이 늘면 전체 알림이 꺼진다.** 알림은 **받는 사람 관점**에서 판단한다: 이 알림이 **지금 그에게 유용·필요**한가(내가 보내고 싶은가 X). ① **트랜잭션·개인 관련 알림**(주문 배송, 답글·멘션, 예약 임박, 결제 완료) = 대개 필요 → 환영. ② **마케팅·프로모션 알림**(세일·재참여 유도·「우리를 잊지 마세요」) = 대개 불필요 → **쌓이면 사용자는 알림 전체를 끈다**(하나 꺼서 끝이 아니라 앱 알림 자체를 OFF). 한 번 꺼지면 **필요한 알림도 못 보낸다** → 미래의 손실(5장 해제율). ③ **유형별 on/off** — 사용자가 **종류별로 켜고 끌 수 있게**(주문 알림은 켜고 마케팅은 끄게) → 전체 OFF 대신 선택적. ④ **기본값은 보수적으로** — 처음엔 꼭 필요한 것만 ON, 마케팅은 OFF(opt-in). 아래 데모로 유형별 필요성을 확인하라."
+          "text": "**보낼지의 기준은 하나다. 받는 사람에게 지금 필요한가. 마케팅 알림이 늘면 전체 알림이 꺼진다.** 알림은 **받는 사람 관점**에서 판단한다: 이 알림이 **지금 그에게 유용, 필요**한가(내가 보내고 싶은가 X). ① **트랜잭션, 개인 관련 알림**(주문 배송, 답글, 멘션, 예약 임박, 결제 완료) = 대개 필요 → 환영. ② **마케팅, 프로모션 알림**(세일, 재참여 유도, \"우리를 잊지 마세요\") = 대개 불필요 → **쌓이면 사용자는 알림 전체를 끈다**(하나 꺼서 끝이 아니라 앱 알림 자체를 OFF). 한 번 꺼지면 **필요한 알림도 못 보낸다** → 미래의 손실(5장 해제율). ③ **유형별 on/off**. 사용자가 **종류별로 켜고 끌 수 있게**(주문 알림은 켜고 마케팅은 끄게) → 전체 OFF 대신 선택적. ④ **기본값은 보수적으로**. 처음엔 꼭 필요한 것만 ON, 마케팅은 OFF(opt-in). 아래 데모로 유형별 필요성을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 보낼까 — 유형별 필요성",
+          "label": "무엇을 보낼까. 유형별 필요성",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const table = {\n    'order': ['주문·배송 알림', true, '받는 사람에게 지금 필요 — 「배송 시작」 「도착 예정」. 환영받음.'],\n    'reply': ['답글·멘션 알림', true, '개인 관련 — 「내 글에 답글」 「나를 멘션」. 원해서 켠 것.'],\n    'marketing': ['마케팅·세일 알림', false, '대개 불필요 — 쌓이면 사용자가 전체 알림을 끔 → 필요한 것도 못 보냄.'],\n    'reengage': ['「우리를 잊지 마세요」', false, '재참여 유도 남발 → 짜증 → 해제·앱 삭제. 미래의 손실.'],\n  };\n  const r = table[kind];\n  const good = r[1];\n  render((good ? '필요 O' : '필요 X') + ' — ' + r[0],\n    box(r[0], r[2], good ? 'good' : 'bad') + '  ' +\n    (good ? '<span class=\"ok\">기준 = 받는 사람에게 지금 필요한가. 필요하면 보낸다.</span>' : '<span class=\"no\">마케팅이 늘면 전체 알림이 꺼진다 → 유형별 on/off + 기본은 보수적으로.</span>'),\n    '기준 = 받는 사람에게 지금 필요한가 · 유형별 on/off · 기본 보수적.',\n    noti([\n      { app: kind === 'order' ? '쇼핑' : kind === 'reply' ? '커뮤니티' : '앱', text: r[0], cls: good ? 'good' : 'bad' },\n    ]));\n</script>",
           "controls": [
@@ -110,15 +110,15 @@
               "options": [
                 {
                   "value": "order",
-                  "label": "주문·배송"
+                  "label": "주문, 배송"
                 },
                 {
                   "value": "reply",
-                  "label": "답글·멘션"
+                  "label": "답글, 멘션"
                 },
                 {
                   "value": "marketing",
-                  "label": "마케팅·세일"
+                  "label": "마케팅, 세일"
                 },
                 {
                   "value": "reengage",
@@ -130,11 +130,11 @@
         },
         {
           "type": "note",
-          "text": "**알림을 보낼지의 유일한 기준은 받는 사람에게 지금 필요한가이고, 마케팅 알림이 늘면 사용자가 전체 알림을 꺼 필요한 알림까지 잃는다.** **받는 사람 관점**: 알림 여부는 「내가(회사가) 보내고 싶은가」가 아니라 **「받는 사람에게 지금 유용·필요한가」**로 정한다(product-metric 「목소리 큰 사람」·persona 관점과 통함). 사용자의 주의(attention)는 빌린 것 — 함부로 쓰면 회수된다. **유형별 성격**: **① 트랜잭션·개인 알림 = 대개 필요** — 주문/배송 상태(「배송 시작」·「곧 도착」), 내 콘텐츠 반응(답글·멘션·좋아요는 선택적), 예약·일정 임박, 결제·보안(로그인·이체) 알림. 사용자가 **결과를 기다리거나 자신과 직접 관련**되어 환영받는다. **② 마케팅·프로모션 = 대개 불필요·위험** — 세일 공지, 신기능 홍보, **재참여 유도(「우리를 잊지 마세요」·「오랜만이에요」)**, 남의 활동 뭉치. 이런 게 쌓이면 사용자는 짜증 내며 — **개별 알림을 끄는 게 아니라 앱 알림 자체를 통째로 OFF** 한다(또는 앱 삭제). 그러면 **정작 필요한 트랜잭션 알림도 못 보낸다** → 단기 클릭 몇 개를 얻고 **채널 전체를 영구히 잃는** 미래의 손실(5장 해제율). **핵심 대응**: **① 유형별 on/off** — 사용자가 **알림 종류별로 켜고 끌 수 있게** 세분화(주문 알림 ON, 마케팅 OFF). 그러면 마케팅이 싫어도 필요한 알림 채널은 살아 있다(안드로이드 알림 채널·iOS 카테고리). **② 기본값은 보수적으로(opt-in)** — 처음엔 **꼭 필요한 것만 기본 ON**, 마케팅·홍보는 **기본 OFF** 로 두고 원하는 사람만 켜게. 「전부 켜고 끄게 하기」보다 신뢰를 지킨다. **③ 빈도 제한·개인화** — 필요한 것도 너무 잦으면 피로 → 빈도 상한, 관심사 기반. **④ 가치가 의심되면 안 보낸다** — 「이거 안 보내면 사용자가 아쉬울까?」 아니오면 스킵. **정리**: 기준은 받는 사람에게 지금 필요한가 하나 — 마케팅 남발로 전체 알림을 끄게 만들지 말고, 유형별 on/off·보수적 기본값으로 필요한 채널을 지켜라."
+          "text": "**알림을 보낼지의 유일한 기준은 받는 사람에게 지금 필요한가이고, 마케팅 알림이 늘면 사용자가 전체 알림을 꺼 필요한 알림까지 잃는다.** **받는 사람 관점**: 알림 여부는 \"내가(회사가) 보내고 싶은가\"가 아니라 **\"받는 사람에게 지금 유용, 필요한가\"**로 정한다(product-metric \"목소리 큰 사람\", persona 관점과 통함). 사용자의 주의(attention)는 빌린 것. 함부로 쓰면 회수된다. **유형별 성격**: **① 트랜잭션, 개인 알림 = 대개 필요**. 주문/배송 상태(\"배송 시작\", \"곧 도착\"), 내 콘텐츠 반응(답글, 멘션, 좋아요는 선택적), 예약, 일정 임박, 결제, 보안(로그인, 이체) 알림. 사용자가 **결과를 기다리거나 자신과 직접 관련**되어 환영받는다. **② 마케팅, 프로모션 = 대개 불필요, 위험**. 세일 공지, 신기능 홍보, **재참여 유도(\"우리를 잊지 마세요\", \"오랜만이에요\")**, 남의 활동 뭉치. 이런 게 쌓이면 사용자는 짜증 내며. **개별 알림을 끄는 게 아니라 앱 알림 자체를 통째로 OFF** 한다(또는 앱 삭제). 그러면 **정작 필요한 트랜잭션 알림도 못 보낸다** → 단기 클릭 몇 개를 얻고 **채널 전체를 영구히 잃는** 미래의 손실(5장 해제율). **핵심 대응**: **① 유형별 on/off**. 사용자가 **알림 종류별로 켜고 끌 수 있게** 세분화(주문 알림 ON, 마케팅 OFF). 그러면 마케팅이 싫어도 필요한 알림 채널은 살아 있다(안드로이드 알림 채널, iOS 카테고리). **② 기본값은 보수적으로(opt-in)**. 처음엔 **꼭 필요한 것만 기본 ON**, 마케팅, 홍보는 **기본 OFF** 로 두고 원하는 사람만 켜게. \"전부 켜고 끄게 하기\"보다 신뢰를 지킨다. **③ 빈도 제한, 개인화**. 필요한 것도 너무 잦으면 피로 → 빈도 상한, 관심사 기반. **④ 가치가 의심되면 안 보낸다**. \"이거 안 보내면 사용자가 아쉬울까?\" 아니오면 스킵. **정리**: 기준은 받는 사람에게 지금 필요한가 하나. 마케팅 남발로 전체 알림을 끄게 만들지 말고, 유형별 on/off, 보수적 기본값으로 필요한 채널을 지켜라."
         },
         {
           "type": "try",
-          "text": "지금 보내는(또는 보낼) 알림들을 **「받는 사람에게 지금 필요한가」** 기준으로 분류하라 — 트랜잭션·개인 알림(필요)과 마케팅·재참여 유도(대개 불필요)를 나누고, **유형별 on/off** 를 제공하며 **기본값은 보수적으로**(마케팅 OFF) 두어라. 각 알림에 「이거 안 보내면 사용자가 아쉬울까?」를 물어 아니면 빼라."
+          "text": "지금 보내는(또는 보낼) 알림들을 **\"받는 사람에게 지금 필요한가\"** 기준으로 분류하라. 트랜잭션, 개인 알림(필요)과 마케팅, 재참여 유도(대개 불필요)를 나누고, **유형별 on/off** 를 제공하며 **기본값은 보수적으로**(마케팅 OFF) 두어라. 각 알림에 \"이거 안 보내면 사용자가 아쉬울까?\"를 물어 아니면 빼라."
         }
       ],
       "quiz": [
@@ -169,7 +169,7 @@
             "무관"
           ],
           "answer": 1,
-          "why": "선택적·보수적."
+          "why": "선택적, 보수적."
         }
       ]
     },
@@ -180,12 +180,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**웹 푸시 알림은 서비스 워커 + Push API 로 만든다 — 권한 받기 → 구독(subscribe) → 서버에 구독 정보 저장 → 서버가 푸시 전송 → 서비스 워커가 표시.** 흐름: ① **권한**(1장, 프라이머 후 `Notification.requestPermission()`). ② **서비스 워커 준비**(mobile-pwa) — 백그라운드에서 푸시를 받을 주체. ③ **구독** — `reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey })`(VAPID 공개키). 반환된 **구독 객체(endpoint+키)를 내 서버에 저장**. ④ **서버가 전송** — 저장한 구독으로 푸시 서비스(브라우저 제공)에 요청(VAPID 로 서명, 웹푸시 프로토콜). ⑤ **서비스 워커가 수신·표시** — `self.addEventListener('push', ...)` 에서 `showNotification(title, {body, icon, data})`, `notificationclick` 에서 **딥링크로 이동**(4장). 네이티브는 APNs(iOS)·FCM(안드로이드) 로 유사. 핵심: **구독을 저장하고, 서버가 보내고, 워커가 받아 표시·이동.** 아래 데모로 흐름을 확인하라."
+          "text": "**웹 푸시 알림은 서비스 워커 + Push API 로 만든다. 권한 받기 → 구독(subscribe) → 서버에 구독 정보 저장 → 서버가 푸시 전송 → 서비스 워커가 표시.** 흐름: ① **권한**(1장, 프라이머 후 `Notification.requestPermission()`). ② **서비스 워커 준비**(mobile-pwa). 백그라운드에서 푸시를 받을 주체. ③ **구독**. `reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey })`(VAPID 공개키). 반환된 **구독 객체(endpoint+키)를 내 서버에 저장**. ④ **서버가 전송**. 저장한 구독으로 푸시 서비스(브라우저 제공)에 요청(VAPID 로 서명, 웹푸시 프로토콜). ⑤ **서비스 워커가 수신, 표시**. `self.addEventListener('push',...)` 에서 `showNotification(title, {body, icon, data})`, `notificationclick` 에서 **딥링크로 이동**(4장). 네이티브는 APNs(iOS), FCM(안드로이드) 로 유사. 핵심: **구독을 저장하고, 서버가 보내고, 워커가 받아 표시, 이동.** 아래 데모로 흐름을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "만드는 법 — 푸시 구독·전송 흐름",
+          "label": "만드는 법. 푸시 구독, 전송 흐름",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const stage = {{stage}};\n  const rows = [\n    ['1. 권한 요청 (프라이머 후)', 'Notification.requestPermission() → granted'],\n    ['2. 서비스 워커 준비', 'navigator.serviceWorker.ready (백그라운드 수신 주체)'],\n    ['3. 구독 subscribe', 'reg.pushManager.subscribe({ userVisibleOnly, applicationServerKey })'],\n    ['4. 구독을 내 서버에 저장', 'POST /subscribe { endpoint, keys } → DB'],\n    ['5. 서버가 푸시 전송', '저장한 구독으로 웹푸시(VAPID 서명) → 푸시 서비스'],\n    ['6. 워커 수신·표시·딥링크', \"self.on('push') → showNotification / click → 화면 이동\"],\n  ];\n  render('푸시 만들기 — 단계 ' + stage + '/6',\n    steps(rows.map((r, i) => [r[0] + '  —  ' + r[1], i < stage ? 'good' : i === stage ? 'on' : ''])) +\n    '  ' + (stage >= 6 ? '<span class=\"ok\">구독 저장 → 서버 전송 → 워커 표시·딥링크. 완성.</span>' : '<span class=\"dim\">슬라이더로 단계를 넘겨라.</span>'),\n    '권한 → SW 준비 → 구독 → 서버 저장 → 서버 전송 → 워커 표시·딥링크.');\n</script>",
           "controls": [
@@ -208,11 +208,11 @@
         },
         {
           "type": "note",
-          "text": "**웹 푸시 알림은 서비스 워커와 Push API 로, 권한→구독→서버 저장→서버 전송→워커 수신·표시의 흐름으로 만든다.** **전체 구조**: 푸시는 **① 클라이언트(구독 등록·표시) ② 브라우저의 푸시 서비스(중계) ③ 내 서버(전송 주체)** 셋이 협력한다. 순서: **① 권한 확보** — 1장대로 프라이머 후 `Notification.requestPermission()` 이 `granted` 여야 한다. **② 서비스 워커 준비** — 서비스 워커(mobile-pwa)는 **앱이 닫혀 있어도 백그라운드에서 푸시를 받는 주체**다(`navigator.serviceWorker.ready`). **③ 구독(subscribe)** — `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <VAPID 공개키> })`. `userVisibleOnly:true` 는 「받은 푸시는 반드시 사용자에게 보이는 알림으로 표시하겠다」는 약속(조용한 추적 금지). **VAPID**(공개/개인 키쌍)로 서버 신원을 증명한다. 반환된 **구독 객체**(`endpoint` URL + 암호화 키 `p256dh`·`auth`)를 **`fetch('/subscribe')` 로 내 서버에 저장**한다 — 이게 그 사용자에게 보낼 「주소」. **④ 서버가 전송** — 보낼 때가 되면 서버가 저장한 구독의 `endpoint`(브라우저가 운영하는 푸시 서비스: FCM/Mozilla/WNS 등)로 **웹푸시 프로토콜** 요청을 보낸다(페이로드는 구독 키로 **암호화**, VAPID 개인키로 **서명**). web-push 라이브러리가 이 암호화·서명을 처리. **⑤ 서비스 워커가 수신·표시** — 푸시 서비스가 기기로 밀어 주면, 서비스 워커의 **`push` 이벤트**가 깨어나 `self.registration.showNotification(title, { body, icon, badge, data, actions })` 로 알림을 표시한다. **⑥ 클릭 처리·딥링크** — `notificationclick` 이벤트에서 알림을 닫고 **`clients.openWindow(url)` 로 정확한 화면으로 이동**(4장 딥링크). **네이티브**: iOS 는 **APNs**, 안드로이드는 **FCM** 으로 유사한 구조(토큰을 서버에 저장 → 서버가 APNs/FCM 에 전송 → OS 가 표시). iOS 웹푸시는 **홈 화면에 설치된 PWA**에서만 지원(제약, mobile-pwa). **주의**: HTTPS 필수, 구독은 **만료·변경될 수 있어**(재구독 처리) 서버의 죽은 구독을 정리한다. **정리**: 권한→서비스 워커→구독(VAPID)→구독을 서버에 저장→서버가 암호화·서명해 전송→워커가 push 이벤트로 표시→click 에서 딥링크 — 이 흐름으로 푸시를 만든다."
+          "text": "**웹 푸시 알림은 서비스 워커와 Push API 로, 권한→구독→서버 저장→서버 전송→워커 수신, 표시의 흐름으로 만든다.** **전체 구조**: 푸시는 **① 클라이언트(구독 등록, 표시) ② 브라우저의 푸시 서비스(중계) ③ 내 서버(전송 주체)** 셋이 협력한다. 순서: **① 권한 확보**. 1장대로 프라이머 후 `Notification.requestPermission()` 이 `granted` 여야 한다. **② 서비스 워커 준비**. 서비스 워커(mobile-pwa)는 **앱이 닫혀 있어도 백그라운드에서 푸시를 받는 주체**다(`navigator.serviceWorker.ready`). **③ 구독(subscribe)**. `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <VAPID 공개키> })`. `userVisibleOnly:true` 는 \"받은 푸시는 반드시 사용자에게 보이는 알림으로 표시하겠다\"는 약속(조용한 추적 금지). **VAPID**(공개/개인 키쌍)로 서버 신원을 증명한다. 반환된 **구독 객체**(`endpoint` URL + 암호화 키 `p256dh`, `auth`)를 **`fetch('/subscribe')` 로 내 서버에 저장**한다. 이게 그 사용자에게 보낼 \"주소\". **④ 서버가 전송**. 보낼 때가 되면 서버가 저장한 구독의 `endpoint`(브라우저가 운영하는 푸시 서비스: FCM/Mozilla/WNS 등)로 **웹푸시 프로토콜** 요청을 보낸다(페이로드는 구독 키로 **암호화**, VAPID 개인키로 **서명**). web-push 라이브러리가 이 암호화, 서명을 처리. **⑤ 서비스 워커가 수신, 표시**. 푸시 서비스가 기기로 밀어 주면, 서비스 워커의 **`push` 이벤트**가 깨어나 `self.registration.showNotification(title, { body, icon, badge, data, actions })` 로 알림을 표시한다. **⑥ 클릭 처리, 딥링크**. `notificationclick` 이벤트에서 알림을 닫고 **`clients.openWindow(url)` 로 정확한 화면으로 이동**(4장 딥링크). **네이티브**: iOS 는 **APNs**, 안드로이드는 **FCM** 으로 유사한 구조(토큰을 서버에 저장 → 서버가 APNs/FCM 에 전송 → OS 가 표시). iOS 웹푸시는 **홈 화면에 설치된 PWA**에서만 지원(제약, mobile-pwa). **주의**: HTTPS 필수, 구독은 **만료, 변경될 수 있어**(재구독 처리) 서버의 죽은 구독을 정리한다. **정리**: 권한→서비스 워커→구독(VAPID)→구독을 서버에 저장→서버가 암호화, 서명해 전송→워커가 push 이벤트로 표시→click 에서 딥링크. 이 흐름으로 푸시를 만든다."
         },
         {
           "type": "try",
-          "text": "서비스 워커를 등록하고(mobile-pwa) `pushManager.subscribe`(VAPID 공개키)로 **구독을 만들어 서버에 저장**하라. 서비스 워커의 **`push` 이벤트에서 `showNotification`**, **`notificationclick` 에서 `clients.openWindow(딥링크)`** 를 구현하라. web-push 라이브러리로 서버에서 테스트 알림을 보내 — 앱이 닫혀 있어도 알림이 뜨고, 누르면 정확한 화면으로 가는지 확인하라."
+          "text": "서비스 워커를 등록하고(mobile-pwa) `pushManager.subscribe`(VAPID 공개키)로 **구독을 만들어 서버에 저장**하라. 서비스 워커의 **`push` 이벤트에서 `showNotification`**, **`notificationclick` 에서 `clients.openWindow(딥링크)`** 를 구현하라. web-push 라이브러리로 서버에서 테스트 알림을 보내. 앱이 닫혀 있어도 알림이 뜨고, 누르면 정확한 화면으로 가는지 확인하라."
         }
       ],
       "quiz": [
@@ -231,7 +231,7 @@
           "q": "구독(subscribe)으로 얻은 것은 어떻게?",
           "choices": [
             "버림",
-            "내 서버에 저장 — 그 사용자에게 보낼 주소",
+            "내 서버에 저장. 그 사용자에게 보낼 주소",
             "클라이언트만 씀",
             "무관"
           ],
@@ -258,12 +258,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**「알림 잘하는 앱」의 공통점 넷 — 시간대 고려(새벽 금지)·묶어 보내기(10건을 1건으로)·누르면 정확한 화면으로(딥링크)·읽은 것은 지우기.** ① **시간대 고려** — 사용자의 **로컬 시간**을 존중해 **새벽에 안 보낸다**(조용한 시간 quiet hours). 긴급하지 않으면 적절한 시간에 묶어서. ② **묶어 보내기(배칭)** — 짧은 시간에 **10건이 올 걸 1건으로 요약**(「새 댓글 10개」). 낱개로 쏟으면 알림 폭탄 → 해제. ③ **누르면 정확한 화면으로(딥링크)** — 알림을 누르면 **홈이 아니라 그 알림이 가리키는 바로 그 화면**으로(해당 주문·해당 대화). 홈으로 보내면 사용자가 다시 찾아야 → 마찰. ④ **읽은 것은 지우기** — 다른 기기·앱 안에서 **이미 본 알림은 자동으로 없앤다**(중복·유령 배지 제거). 이 넷이 사용자를 존중하는 알림의 표식이다. 아래 데모로 각 규칙의 유무를 확인하라."
+          "text": "**\"알림 잘하는 앱\"의 공통점 넷. 시간대 고려(새벽 금지), 묶어 보내기(10건을 1건으로), 누르면 정확한 화면으로(딥링크), 읽은 것은 지우기.** ① **시간대 고려**. 사용자의 **로컬 시간**을 존중해 **새벽에 안 보낸다**(조용한 시간 quiet hours). 긴급하지 않으면 적절한 시간에 묶어서. ② **묶어 보내기(배칭)**. 짧은 시간에 **10건이 올 걸 1건으로 요약**(\"새 댓글 10개\"). 낱개로 쏟으면 알림 폭탄 → 해제. ③ **누르면 정확한 화면으로(딥링크)**. 알림을 누르면 **홈이 아니라 그 알림이 가리키는 바로 그 화면**으로(해당 주문, 해당 대화). 홈으로 보내면 사용자가 다시 찾아야 → 마찰. ④ **읽은 것은 지우기**. 다른 기기, 앱 안에서 **이미 본 알림은 자동으로 없앤다**(중복, 유령 배지 제거). 이 넷이 사용자를 존중하는 알림의 표식이다. 아래 데모로 각 규칙의 유무를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "조용한 규칙 — 넷의 유무",
+          "label": "조용한 규칙. 넷의 유무",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rule = '{{rule}}';\n  const table = {\n    'time': ['시간대 고려 (새벽 금지)', '사용자 로컬 시간 존중 — 새벽 3시에 마케팅 X. 조용한 시간(quiet hours)에 안 보냄.', 'good', '☾ 03:00 — 안 보냄 (아침에 묶어서)'],\n    'batch': ['묶어 보내기 (10건→1건)', '짧은 시간 10건을 1건으로 요약 — 「새 댓글 10개」. 낱개 폭탄 X.', 'good', '커뮤니티: 새 댓글 10개 (묶음)'],\n    'deeplink': ['누르면 정확한 화면으로 (딥링크)', '홈 X — 알림이 가리키는 바로 그 화면(해당 주문·대화)으로.', 'good', '누름 → 해당 대화로 바로 이동'],\n    'clear': ['읽은 것은 지우기', '다른 기기·앱에서 이미 본 알림 자동 제거 — 유령 배지·중복 없음.', 'good', '이미 읽음 → 알림 자동 사라짐'],\n  };\n  const r = table[rule];\n  render(r[0],\n    box(r[0], r[1], 'good') + '  <span class=\"ok\">이 넷이 「알림 잘하는 앱」의 공통점 — 사용자를 존중.</span>',\n    '새벽 금지 · 묶기 · 딥링크 · 읽은 것 지우기 = 알림 잘하는 앱.',\n    noti([{ app: '앱', text: r[3], cls: 'good' }]));\n</script>",
           "controls": [
@@ -301,24 +301,24 @@
         },
         {
           "type": "note",
-          "text": "**알림을 잘하는 앱은 시간대를 고려하고(새벽 금지), 여러 건을 묶고, 누르면 정확한 화면으로 보내고, 이미 읽은 알림을 지운다.** **① 시간대 고려(quiet hours)**: 사용자의 **로컬 시간대**를 기준으로, **새벽·심야에는 긴급하지 않은 알림을 보내지 않는다**. 서버 시간이나 UTC 로 일괄 발송하면 누군가에겐 새벽 3시다 — 잠을 깨우는 마케팅 알림은 곧장 **해제·삭제**로 이어진다. 각 사용자의 타임존을 저장해 적절한 시간대(예: 오전~저녁)에 보내고, 밤에 쌓인 건 아침에 묶어서(②). 사용자가 **방해 금지 시간**을 설정하게 하면 더 좋다. **② 묶어 보내기(배칭·coalescing)**: 짧은 시간에 이벤트가 몰릴 때 **낱개로 다 보내지 않고 하나로 요약**한다 — 「새 댓글 10개」, 「3명이 좋아요」, 「주문 3건 배송 시작」. 안 그러면 **알림 폭탄**이 되어 사용자가 알림을 통째로 끈다(2장). 안드로이드는 **알림 그룹**, 서버단에서는 **디바운스·집계 후 발송**. **③ 누르면 정확한 화면으로(딥링크)**: 알림 탭 시 **앱의 홈이 아니라, 그 알림이 가리키는 바로 그 화면**으로 데려간다 — 「배송 알림 → 그 주문 상세」, 「답글 알림 → 그 대화의 그 답글」. 홈으로 던지면 사용자가 **직접 찾아 들어가야** 해서 마찰이 크고 알림의 의미가 반감된다(3장 `notificationclick` → `openWindow(url)`, 딥링크/유니버설 링크). **④ 읽은 것은 지우기**: 사용자가 **다른 기기나 앱 안에서 이미 확인한 알림**은 자동으로 없앤다 — 폰에서 본 알림이 태블릿엔 아직 떠 있거나, 앱에서 읽었는데 **유령 배지 숫자**가 남으면 짜증. 서버가 **읽음 상태를 동기화**해 오래된 알림을 취소(`registration.getNotifications()` 로 닫기, 배지 갱신). **왜 이 넷인가**: 모두 **사용자의 시간과 주의를 존중**하는 규칙이다 — 알림은 사용자의 삶에 끼어드는 것이므로, 방해를 최소화하고 가치를 최대화할 때만 신뢰(=권한, 1장)가 유지된다. **정리**: 새벽 금지·묶기·딥링크·읽은 것 지우기 — 이 넷을 지키면 알림이 방해가 아니라 도움이 되고, 사용자가 알림을 켜 둔다."
+          "text": "**알림을 잘하는 앱은 시간대를 고려하고(새벽 금지), 여러 건을 묶고, 누르면 정확한 화면으로 보내고, 이미 읽은 알림을 지운다.** **① 시간대 고려(quiet hours)**: 사용자의 **로컬 시간대**를 기준으로, **새벽, 심야에는 긴급하지 않은 알림을 보내지 않는다**. 서버 시간이나 UTC 로 일괄 발송하면 누군가에겐 새벽 3시다. 잠을 깨우는 마케팅 알림은 곧장 **해제, 삭제**로 이어진다. 각 사용자의 타임존을 저장해 적절한 시간대(예: 오전~저녁)에 보내고, 밤에 쌓인 건 아침에 묶어서(②). 사용자가 **방해 금지 시간**을 설정하게 하면 더 좋다. **② 묶어 보내기(배칭, coalescing)**: 짧은 시간에 이벤트가 몰릴 때 **낱개로 다 보내지 않고 하나로 요약**한다. \"새 댓글 10개\", \"3명이 좋아요\", \"주문 3건 배송 시작\". 안 그러면 **알림 폭탄**이 되어 사용자가 알림을 통째로 끈다(2장). 안드로이드는 **알림 그룹**, 서버단에서는 **디바운스, 집계 후 발송**. **③ 누르면 정확한 화면으로(딥링크)**: 알림 탭 시 **앱의 홈이 아니라, 그 알림이 가리키는 바로 그 화면**으로 데려간다. \"배송 알림 → 그 주문 상세\", \"답글 알림 → 그 대화의 그 답글\". 홈으로 던지면 사용자가 **직접 찾아 들어가야** 해서 마찰이 크고 알림의 의미가 반감된다(3장 `notificationclick` → `openWindow(url)`, 딥링크/유니버설 링크). **④ 읽은 것은 지우기**: 사용자가 **다른 기기나 앱 안에서 이미 확인한 알림**은 자동으로 없앤다. 폰에서 본 알림이 태블릿엔 아직 떠 있거나, 앱에서 읽었는데 **유령 배지 숫자**가 남으면 짜증. 서버가 **읽음 상태를 동기화**해 오래된 알림을 취소(`registration.getNotifications()` 로 닫기, 배지 갱신). **왜 이 넷인가**: 모두 **사용자의 시간과 주의를 존중**하는 규칙이다. 알림은 사용자의 삶에 끼어드는 것이므로, 방해를 최소화하고 가치를 최대화할 때만 신뢰(=권한, 1장)가 유지된다. **정리**: 새벽 금지, 묶기, 딥링크, 읽은 것 지우기. 이 넷을 지키면 알림이 방해가 아니라 도움이 되고, 사용자가 알림을 켜 둔다."
         },
         {
           "type": "try",
-          "text": "알림에 **조용한 규칙 넷**을 적용하라 — ① 사용자 **타임존을 존중해 새벽 발송 금지**, ② 몰리는 이벤트는 **묶어서 요약**(10건→1건), ③ 알림을 누르면 **정확한 화면으로(딥링크)** — 특히 「알림을 눌렀을 때 홈이 아니라 해당 화면으로 가게 딥링크를 붙여라」, ④ **다른 기기서 읽은 알림·유령 배지 제거**. 넷 중 빠진 것을 채워 알림이 방해가 아닌 도움이 되게 하라."
+          "text": "알림에 **조용한 규칙 넷**을 적용하라. ① 사용자 **타임존을 존중해 새벽 발송 금지**, ② 몰리는 이벤트는 **묶어서 요약**(10건→1건), ③ 알림을 누르면 **정확한 화면으로(딥링크)**. 특히 \"알림을 눌렀을 때 홈이 아니라 해당 화면으로 가게 딥링크를 붙여라\", ④ **다른 기기서 읽은 알림, 유령 배지 제거**. 넷 중 빠진 것을 채워 알림이 방해가 아닌 도움이 되게 하라."
         }
       ],
       "quiz": [
         {
-          "q": "「알림 잘하는 앱」의 공통점 넷이 아닌 것은?",
+          "q": "\"알림 잘하는 앱\"의 공통점 넷이 아닌 것은?",
           "choices": [
             "새벽 금지",
             "묶어 보내기",
-            "가능한 한 자주·많이 보내기",
+            "가능한 한 자주, 많이 보내기",
             "누르면 정확한 화면으로(딥링크)"
           ],
           "answer": 2,
-          "why": "존중·절제."
+          "why": "존중, 절제."
         },
         {
           "q": "짧은 시간에 이벤트가 몰리면?",
@@ -351,12 +351,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**알림은 전송 수가 아니라 열람률·해제율을 봐라 — 해제율이 오르는 알림은 성공이 아니라 미래의 손실이다.** 흔한 착각: 「알림을 많이 보냈다(전송 수↑)」를 성과로 본다. 하지만 전송은 비용이 0에 가까워 **부풀리기 쉽고, 사용자 가치를 뜻하지 않는다**(analytics-question 「허영 지표」와 통함). 봐야 할 것: ① **열람률(open/click rate)** — 받은 사람 중 **실제로 열어 본 비율**. 이게 높으면 유용한 알림. ② **해제율(opt-out/mute·앱 알림 OFF·삭제)** — 이 알림 뒤에 **알림을 끄거나 앱을 지운 비율**. **해제율이 오르는 알림은, 지금 클릭 몇 개를 얻고 그 사용자에게 영영 못 보내게 되는 것** → 성공이 아니라 **미래의 손실**(2장 채널 상실). ③ **유형별로 측정** — 어떤 알림이 열람을 끌고 어떤 게 해제를 부르는지 나눠 본다 → 해제 부르는 유형은 줄이거나 끈다. 원칙: **열람을 최대화하고 해제를 최소화 — 전송 수는 지표가 아니다.** 아래 데모로 마케팅 남발 → 해제율을 확인하라."
+          "text": "**알림은 전송 수가 아니라 열람률, 해제율을 봐라. 해제율이 오르는 알림은 성공이 아니라 미래의 손실이다.** 흔한 착각: \"알림을 많이 보냈다(전송 수↑)\"를 성과로 본다. 하지만 전송은 비용이 0에 가까워 **부풀리기 쉽고, 사용자 가치를 뜻하지 않는다**(analytics-question \"허영 지표\"와 통함). 봐야 할 것: ① **열람률(open/click rate)**. 받은 사람 중 **실제로 열어 본 비율**. 이게 높으면 유용한 알림. ② **해제율(opt-out/mute, 앱 알림 OFF, 삭제)**. 이 알림 뒤에 **알림을 끄거나 앱을 지운 비율**. **해제율이 오르는 알림은, 지금 클릭 몇 개를 얻고 그 사용자에게 영영 못 보내게 되는 것** → 성공이 아니라 **미래의 손실**(2장 채널 상실). ③ **유형별로 측정**. 어떤 알림이 열람을 끌고 어떤 게 해제를 부르는지 나눠 본다 → 해제 부르는 유형은 줄이거나 끈다. 원칙: **열람을 최대화하고 해제를 최소화. 전송 수는 지표가 아니다.** 아래 데모로 마케팅 남발 → 해제율을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "지표 — 남발 → 해제율",
+          "label": "지표. 남발 → 해제율",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const perDay = {{freq}};\n  const optout = Math.min(90, Math.max(2, (perDay - 1) * 9));\n  const openRate = Math.max(8, 55 - (perDay - 1) * 6);\n  const bad = perDay >= 5;\n  render('하루 알림 ' + perDay + '건 → 열람률 ~' + openRate + '% · 해제율 ~' + optout + '%',\n    (perDay <= 2\n      ? '<span class=\"ok\">절제 → 열람률 높고 해제율 낮음. 필요한 것만 보내니 신뢰 유지.</span>'\n      : bad ? '<span class=\"no\">남발 → 열람률 떨어지고 해제율 급등 → 사용자가 알림 OFF·앱 삭제 → 채널 영영 상실(미래 손실).</span>'\n            : '<span class=\"warn\">중간 — 전송 수 늘리지 말고 열람률·해제율을 봐라.</span>'),\n    '전송 수 X · 열람률↑ 해제율↓ · 해제 부르는 유형은 줄인다.',\n    bars([\n      { lab: '열람률', pct: openRate, val: openRate + '%', cls: openRate >= 35 ? 'g' : 'w' },\n      { lab: '해제율', pct: optout, val: optout + '%', cls: optout <= 10 ? 'g' : 'b' },\n      { lab: '전송 수(허영)', pct: Math.min(100, perDay * 11), val: perDay + '/일', cls: 'c' },\n    ]));\n</script>",
           "controls": [
@@ -373,11 +373,11 @@
         },
         {
           "type": "note",
-          "text": "**알림의 성과는 전송 수가 아니라 열람률과 해제율로 재고, 해제율을 올리는 알림은 미래의 발송 채널을 잃는 손실이다.** **허영 지표 — 전송 수**: 「이번 달 알림 N만 건 발송」은 **비용이 0 에 가까워 얼마든 부풀릴 수 있고**, 사용자에게 가치가 갔는지 전혀 말해 주지 않는다(analytics-question·product-metric 의 「허영 지표」). 전송 수를 목표로 삼으면 남발하게 되고(2장), 결국 해제를 부른다. **봐야 할 지표**: **① 열람률(open rate·click-through rate)** — 보낸 알림 중 **사용자가 실제로 열어/눌러 본 비율**. 높으면 그 알림이 **유용**했다는 신호. 유형·문구·시간대별로 열람률을 비교해 무엇이 통하는지 배운다(analytics-ab 실험과 통함). **② 해제율(opt-out rate)** — 이 알림(또는 이 유형) 이후에 **알림을 끄거나(mute), 앱 알림을 통째로 OFF 하거나, 앱을 삭제한 비율**. 이게 진짜 비용이다: **해제는 되돌리기 어렵고(1장 재요청 제약), 그 사용자에게 미래에 보낼 모든 알림을 잃는다**. 그래서 **해제율이 오르는 알림은 「성공」이 아니라 「미래의 손실」** — 오늘 클릭 몇 개를 얻고 채널 전체를 태우는 셈. **③ 유형별·코호트별 측정**: 어떤 알림 유형이 **열람을 끌고**, 어떤 게 **해제를 부르는지** 나눠 본다 → 해제를 부르는 유형(대개 마케팅·재참여)은 **줄이거나 끄고**, 열람을 끄는 유형(트랜잭션)에 집중. 시간대·빈도별로도. **④ 장기 지표 연결**: 알림의 진짜 목표는 클릭이 아니라 **리텐션·복귀·핵심 행동**(product-metric) — 알림이 그걸 올렸는지(그리고 해제로 미래를 깎지 않았는지) 본다. 단기 클릭↑·장기 리텐션↓면 실패. **⑤ 재현·정직**: 지표는 실제 사용자 행동으로(analytics-repro·clean), 유리한 숫자만 보지 말 것. **정리**: 전송 수는 허영 지표 — 열람률을 최대화하고 해제율을 최소화하라. 해제율이 오르면 지금 성과가 아니라 미래의 채널을 잃는 것이다(analytics·product-metric 의 지표 규율과 한 몸)."
+          "text": "**알림의 성과는 전송 수가 아니라 열람률과 해제율로 재고, 해제율을 올리는 알림은 미래의 발송 채널을 잃는 손실이다.** **허영 지표. 전송 수**: \"이번 달 알림 N만 건 발송\"은 **비용이 0 에 가까워 얼마든 부풀릴 수 있고**, 사용자에게 가치가 갔는지 전혀 말해 주지 않는다(analytics-question, product-metric 의 \"허영 지표\"). 전송 수를 목표로 삼으면 남발하게 되고(2장), 결국 해제를 부른다. **봐야 할 지표**: **① 열람률(open rate, click-through rate)**. 보낸 알림 중 **사용자가 실제로 열어/눌러 본 비율**. 높으면 그 알림이 **유용**했다는 신호. 유형, 문구, 시간대별로 열람률을 비교해 무엇이 통하는지 배운다(analytics-ab 실험과 통함). **② 해제율(opt-out rate)**. 이 알림(또는 이 유형) 이후에 **알림을 끄거나(mute), 앱 알림을 통째로 OFF 하거나, 앱을 삭제한 비율**. 이게 진짜 비용이다: **해제는 되돌리기 어렵고(1장 재요청 제약), 그 사용자에게 미래에 보낼 모든 알림을 잃는다**. 그래서 **해제율이 오르는 알림은 \"성공\"이 아니라 \"미래의 손실\"**. 오늘 클릭 몇 개를 얻고 채널 전체를 태우는 셈. **③ 유형별, 코호트별 측정**: 어떤 알림 유형이 **열람을 끌고**, 어떤 게 **해제를 부르는지** 나눠 본다 → 해제를 부르는 유형(대개 마케팅, 재참여)은 **줄이거나 끄고**, 열람을 끄는 유형(트랜잭션)에 집중. 시간대, 빈도별로도. **④ 장기 지표 연결**: 알림의 진짜 목표는 클릭이 아니라 **리텐션, 복귀, 핵심 행동**(product-metric). 알림이 그걸 올렸는지(그리고 해제로 미래를 깎지 않았는지) 본다. 단기 클릭↑, 장기 리텐션↓면 실패. **⑤ 재현, 정직**: 지표는 실제 사용자 행동으로(analytics-repro, clean), 유리한 숫자만 보지 말 것. **정리**: 전송 수는 허영 지표. 열람률을 최대화하고 해제율을 최소화하라. 해제율이 오르면 지금 성과가 아니라 미래의 채널을 잃는 것이다(analytics, product-metric 의 지표 규율과 한 몸)."
         },
         {
           "type": "try",
-          "text": "알림 성과를 **전송 수 대신 열람률·해제율**로 측정하는 대시보드를 만들어라 — 알림 **유형별로** 열람률과 (알림 후) **해제·앱 삭제율**을 나눠 보고, **해제율을 올리는 유형을 찾아 줄이거나 꺼라**. 「많이 보냈다」를 성과로 삼지 말고, 해제율이 오르면 미래의 채널을 잃는 것임을 팀과 공유하라."
+          "text": "알림 성과를 **전송 수 대신 열람률, 해제율**로 측정하는 대시보드를 만들어라. 알림 **유형별로** 열람률과 (알림 후) **해제, 앱 삭제율**을 나눠 보고, **해제율을 올리는 유형을 찾아 줄이거나 꺼라**. \"많이 보냈다\"를 성과로 삼지 말고, 해제율이 오르면 미래의 채널을 잃는 것임을 팀과 공유하라."
         }
       ],
       "quiz": [
@@ -385,7 +385,7 @@
           "q": "알림에서 봐야 할 지표는?",
           "choices": [
             "전송 수",
-            "열람률·해제율",
+            "열람률, 해제율",
             "발송 비용",
             "무관"
           ],
@@ -396,7 +396,7 @@
           "q": "해제율이 오르는 알림은?",
           "choices": [
             "성공",
-            "미래의 손실 — 그 사용자에게 영영 못 보냄",
+            "미래의 손실. 그 사용자에게 영영 못 보냄",
             "무관",
             "좋음"
           ],
@@ -418,17 +418,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 알림",
+      "title": "점검표. 알림",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**가치를 보여 준 뒤 맥락에서 묻고, 필요한 것만 보내고, 서비스 워커로 만들고, 조용한 규칙을 지키고, 열람률·해제율을 본다.** 이 점검표를 알림을 넣을 때마다 훑어, 켜자마자 묻기·남발·홈으로 던지기·전송 수 자랑을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**가치를 보여 준 뒤 맥락에서 묻고, 필요한 것만 보내고, 서비스 워커로 만들고, 조용한 규칙을 지키고, 열람률, 해제율을 본다.** 이 점검표를 알림을 넣을 때마다 훑어, 켜자마자 묻기, 남발, 홈으로 던지기, 전송 수 자랑을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "알림 점검표 — 통과 수",
+          "label": "알림 점검표. 통과 수",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .noti { margin:8px auto; max-width:230px; }\n  .noti .n { background:#1e293b; border-radius:10px; padding:7px 10px; margin:5px 0; border-left:3px solid #334155;\n             font:11px system-ui; color:#e2e8f0; }\n  .noti .n.good { border-left-color:#22c55e; } .noti .n.bad { border-left-color:#ef4444; opacity:.7; }\n  .noti .n .t { font-weight:600; font-size:10px; color:#94a3b8; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:74px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function noti(rows) { return '<div class=\"noti\">' + rows.map((r) =>\n    '<div class=\"n ' + (r.cls||'') + '\"><span class=\"t\">' + esc(r.app || '알림') + '</span><br>' + esc(r.text) + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '켜자마자 X — 가치를 원하는 맥락에서 묻는다',\n    '프라이머(내 화면 이유 설명)로 먼저, 「예」만 OS 창',\n    '보낼 기준 = 받는 사람에게 지금 필요한가',\n    '유형별 on/off + 기본값 보수적(마케팅 OFF)',\n    '서비스 워커+Push로 구독 저장→서버 전송→표시',\n    '시간대 고려(새벽 금지) + 묶어 보내기',\n    '누르면 정확한 화면으로(딥링크) + 읽은 것 지우기',\n    '전송 수 X — 열람률↑ 해제율↓ 을 측정',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('알림 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 방해가 아니라 도움이 되는 알림.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '맥락에서 묻기 · 필요한 것만 · SW로 · 조용한 규칙 · 열람·해제율.');\n</script>",
           "controls": [
@@ -445,11 +445,11 @@
         },
         {
           "type": "note",
-          "text": "**알림 점검표 — 알림을 넣을 때마다 훑는다.** ① **언제** — 켜자마자 X, 가치를 원하는 맥락에서(1장). ② **프라이머** — 내 화면 이유 설명·「예」만 OS 창(1장). ③ **무엇** — 받는 사람에게 지금 필요한가(2장). ④ **유형별 제어** — on/off + 기본 보수적(2장). ⑤ **만드는 법** — SW+Push, 구독 저장→서버 전송→표시(3장). ⑥ **조용히** — 새벽 금지·묶어 보내기(4장). ⑦ **딥링크·정리** — 정확한 화면으로·읽은 것 지우기(4장). ⑧ **지표** — 전송 수 X, 열람률↑ 해제율↓(5장). **관통 원리**: 알림 권한은 **얻기 어렵고 잃기 쉬운 자산**(1장) — 가치를 보여 준 뒤 맥락에서 묻고(1장), 필요한 것만 보내며(2장), 조용한 규칙으로 존중하고(4장), 전송 수가 아니라 열람·해제율로 판단한다(5장·analytics·product-metric). 이 칸(notify)은 mobile 갈래에서 **사용자의 주의를 다루는 규율** — pwa(서비스 워커·설치)가 기술 바탕이고, touch·perf 가 도착 후 경험을 받친다. 「켜자마자 묻고 남발해 알림이 꺼지는」의 반대편. **정리**: 맥락에서 묻기·필요한 것만·SW로 만들기·조용한 규칙·열람/해제율 — 이 표로 방해가 아니라 도움이 되는 알림을 매번 만들어라."
+          "text": "**알림 점검표. 알림을 넣을 때마다 훑는다.** ① **언제**. 켜자마자 X, 가치를 원하는 맥락에서(1장). ② **프라이머**. 내 화면 이유 설명, \"예\"만 OS 창(1장). ③ **무엇**. 받는 사람에게 지금 필요한가(2장). ④ **유형별 제어**. on/off + 기본 보수적(2장). ⑤ **만드는 법**. SW+Push, 구독 저장→서버 전송→표시(3장). ⑥ **조용히**. 새벽 금지, 묶어 보내기(4장). ⑦ **딥링크, 정리**. 정확한 화면으로, 읽은 것 지우기(4장). ⑧ **지표**. 전송 수 X, 열람률↑ 해제율↓(5장). **관통 원리**: 알림 권한은 **얻기 어렵고 잃기 쉬운 자산**(1장). 가치를 보여 준 뒤 맥락에서 묻고(1장), 필요한 것만 보내며(2장), 조용한 규칙으로 존중하고(4장), 전송 수가 아니라 열람, 해제율로 판단한다(5장, analytics, product-metric). 이 칸(notify)은 mobile 갈래에서 **사용자의 주의를 다루는 규율**. pwa(서비스 워커, 설치)가 기술 바탕이고, touch, perf 가 도착 후 경험을 받친다. \"켜자마자 묻고 남발해 알림이 꺼지는\"의 반대편. **정리**: 맥락에서 묻기, 필요한 것만, SW로 만들기, 조용한 규칙, 열람/해제율. 이 표로 방해가 아니라 도움이 되는 알림을 매번 만들어라."
         },
         {
           "type": "try",
-          "text": "지금(또는 다음) 알림 기능으로 위 8개 항목을 하나씩 확인하라 — 맥락에서 묻나, 프라이머가 있나, 필요한 것만 보내나, 유형별 on/off 가 있나, SW+Push 로 만들었나, 새벽 금지·묶기를 하나, 딥링크·정리를 하나, 열람률·해제율을 보나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 알림이 방해가 아니라 도움이 되는지 확인하라."
+          "text": "지금(또는 다음) 알림 기능으로 위 8개 항목을 하나씩 확인하라. 맥락에서 묻나, 프라이머가 있나, 필요한 것만 보내나, 유형별 on/off 가 있나, SW+Push 로 만들었나, 새벽 금지, 묶기를 하나, 딥링크, 정리를 하나, 열람률, 해제율을 보나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 알림이 방해가 아니라 도움이 되는지 확인하라."
         }
       ],
       "quiz": [
@@ -457,7 +457,7 @@
           "q": "알림의 관통 원리는?",
           "choices": [
             "많이 보낼수록 좋다",
-            "권한은 얻기 어렵고 잃기 쉬운 자산 — 맥락·절제·존중",
+            "권한은 얻기 어렵고 잃기 쉬운 자산. 맥락, 절제, 존중",
             "전송 수가 성과",
             "무관"
           ],
@@ -470,16 +470,16 @@
             "맥락에서 묻기",
             "가능한 한 자주 보내 전송 수 늘리기",
             "딥링크로 정확한 화면",
-            "열람률·해제율 측정"
+            "열람률, 해제율 측정"
           ],
           "answer": 1,
-          "why": "절제·지표."
+          "why": "절제, 지표."
         },
         {
           "q": "mobile-notify 는 mobile 갈래에서?",
           "choices": [
             "부수적",
-            "사용자의 주의를 다루는 규율 — pwa 위에서 존중하며 보냄",
+            "사용자의 주의를 다루는 규율. pwa 위에서 존중하며 보냄",
             "선택",
             "무관"
           ],

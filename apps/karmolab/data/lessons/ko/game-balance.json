@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "수치를 데이터로 — 조정이 배포가 되면 안 된다",
+      "title": "수치를 데이터로. 조정이 배포가 되면 안 된다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**숫자를 코드에 박으면 조정이 곧 배포가 된다** — 데미지 12 를 14 로 바꾸려고 코드 수정 → 빌드 → 배포 → 확인… 한 번 조정에 수 분~수십 분. 밸런싱은 **빠른 반복(수십·수백 번 조정)이 전부**라, 이 사이클이 느리면 **밸런스를 못 맞춘다**. **수치를 밖으로 빼는 순간 게임이 살아난다** — 무기·적·레벨 수치를 **데이터(JSON·설정 파일·스프레드시트)로** 빼고, **실행 중 다시 불러오게**(핫 리로드) 하면 **재빌드 없이** 게임을 켠 채로 숫자를 바꿔 즉시 확인한다(조정 사이클이 분→초). **표로 빼면 비교가 가능해진다** — 무기들을 한 표에 나란히 두면 「도끼가 정말 센 게 맞나」를 **눈으로 확인**할 수 있다(코드에 흩어져 있으면 못 봄 — craft-doc 의 표로 비교). 데이터 분리의 이점: 빠른 반복(핫 리로드), 비교(한눈에), 비개발자도 조정(기획자가 스프레드시트로), 버전 관리(수치 변경 이력). **밸런싱 = 빠른 반복**이니, 수치를 데이터로 빼 반복 사이클을 짧게 만드는 게 첫 단추다. 이 칸은 밸런싱 — **데이터로**·**파생값**(2장)·**곡선 설계**(3장)·**재미와 공정**(4장)·**관측**(5장)을 다룬다. 아래 데모로 데이터 분리·핫 리로드를 확인하라."
+          "text": "**숫자를 코드에 박으면 조정이 곧 배포가 된다**. 데미지 12 를 14 로 바꾸려고 코드 수정 → 빌드 → 배포 → 확인 한 번 조정에 수 분~수십 분. 밸런싱은 **빠른 반복(수십, 수백 번 조정)이 전부**라, 이 사이클이 느리면 **밸런스를 못 맞춘다**. **수치를 밖으로 빼는 순간 게임이 살아난다**. 무기, 적, 레벨 수치를 **데이터(JSON, 설정 파일, 스프레드시트)로** 빼고, **실행 중 다시 불러오게**(핫 리로드) 하면 **재빌드 없이** 게임을 켠 채로 숫자를 바꿔 즉시 확인한다(조정 사이클이 분→초). **표로 빼면 비교가 가능해진다**. 무기들을 한 표에 나란히 두면 \"도끼가 정말 센 게 맞나\"를 **눈으로 확인**할 수 있다(코드에 흩어져 있으면 못 봄. craft-doc 의 표로 비교). 데이터 분리의 이점: 빠른 반복(핫 리로드), 비교(한눈에), 비개발자도 조정(기획자가 스프레드시트로), 버전 관리(수치 변경 이력). **밸런싱 = 빠른 반복**이니, 수치를 데이터로 빼 반복 사이클을 짧게 만드는 게 첫 단추다. 이 칸은 밸런싱. **데이터로**, **파생값**(2장), **곡선 설계**(3장), **재미와 공정**(4장), **관측**(5장)을 다룬다. 아래 데모로 데이터 분리, 핫 리로드를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "수치를 데이터로 — 핫 리로드 사이클",
+          "label": "수치를 데이터로. 핫 리로드 사이클",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const external = '{{external}}' === 'on';\n  render(external ? '데이터로 뺌 + 핫 리로드 — 초 단위 반복' : '코드에 박음 — 조정이 배포',\n    '  ' + (external\n      ? '수치를 JSON 으로 빼고 실행 중 다시 불러옴\\n  데미지 12→14 = 파일 수정 → 게임이 즉시 반영(재빌드 X)\\n  한 번 조정 = 몇 초\\n\\n  <span class=\\\"ok\\\">재빌드 없이 켠 채로 조정 → 밸런싱은 빠른 반복이 전부.</span>'\n      : '수치가 코드에 박힘\\n  데미지 12→14 = 코드 수정 → 빌드 → 배포 → 확인\\n  한 번 조정 = 몇 분~몇십 분\\n\\n  <span class=\\\"no\\\">조정이 곧 배포 → 느려서 밸런스를 못 맞춘다.</span>'),\n    '수치를 데이터로 빼고 핫 리로드 → 조정 사이클 분→초(밸런싱=빠른 반복).',\n    external\n      ? steps([['수치를 JSON/설정으로 뺌', 'on'], ['실행 중 다시 불러옴(핫 리로드)', 'good'], ['재빌드 없이 즉시 반영 → 초 단위 반복', 'good'], ['표로 비교 가능 + 비개발자도 조정', 'good']])\n      : box('코드에 박음 (느림)', 'damage = 12; // 코드\\n조정 = 수정→빌드→배포→확인\\n한 번에 몇 분~몇십 분', 'bad'));\n</script>",
           "controls": [
@@ -43,15 +43,15 @@
         },
         {
           "type": "note",
-          "text": "**숫자를 코드에 박으면 조정이 곧 배포가 되어(수정→빌드→배포→확인, 한 번에 수 분) 밸런싱의 빠른 반복이 불가능하다 — 수치를 데이터(JSON·설정)로 빼고 실행 중 다시 불러오면(핫 리로드) 재빌드 없이 초 단위로 조정하고, 표로 빼면 비교가 가능해진다. 밸런싱은 빠른 반복이 전부다.** 밸런싱의 첫 원칙 — **수치를 데이터로 분리**. **문제 — 코드에 박으면 조정이 배포**: 무기 데미지·적 체력·레벨 경험치 같은 수치를 **코드에 하드코딩**(`damage = 12`)하면, 그 값을 바꾸려면 **코드 수정 → 빌드 → 배포(또는 재실행) → 확인**의 사이클을 돈다 — 한 번 조정에 **수 분~수십 분**. **밸런싱은 본질적으로 빠른 반복**이다 — 「이 무기 조금 세게, 저 적 조금 약하게」를 **수십·수백 번** 조정하며 감을 잡는다. 이 사이클이 느리면(조정마다 배포) **반복 횟수가 적어 밸런스를 못 맞춘다**(느려서 몇 번 못 해봄). **해법 — 데이터로 빼고 핫 리로드**: ① **수치를 데이터 파일로** — 무기·적·레벨 수치를 **JSON·설정 파일·스프레드시트**로 빼서 코드 밖에 둔다(「sword 의 damage 12」 처럼 키·값으로). 코드는 그 데이터를 읽어 쓴다. ② **실행 중 다시 불러오기(핫 리로드 hot reload)** — 게임을 **켠 채로** 데이터 파일이 바뀌면 **다시 읽어** 즉시 반영한다(재빌드·재시작 X). 그러면 게임을 플레이하면서 **JSON 값을 바꾸면 즉시 반영**돼 확인 — **조정 사이클이 분에서 초로** 줄어든다(밸런싱 반복이 폭발적으로 빨라짐). **표로 빼면 비교가 가능**: 수치를 **표(스프레드시트·JSON 테이블)로** 빼면 — 무기들을 **한 표에 나란히** 놓고 **비교**할 수 있다: 「도끼(22)가 검(12)보다 세다」, 「이 적이 저 적보다 체력이 2배」를 **눈으로 확인**한다(craft-doc 1장 — 표로 비교). **코드에 흩어져 있으면**(각 무기 클래스에 값이 박힘) 「도끼가 정말 센 게 맞나」를 **볼 수 없다**(한눈에 안 들어옴 — 파일마다 흩어짐). 표가 밸런스를 **가시화**한다. **데이터 분리의 이점**: ① **빠른 반복**(핫 리로드 — 밸런싱의 핵심), ② **비교·가시화**(표로 한눈에), ③ **비개발자도 조정**(기획자·디자이너가 스프레드시트로 — 개발자 없이), ④ **버전 관리**(수치 변경 이력 — 언제 뭘 바꿨나, 되돌리기), ⑤ **A/B·실험**(다른 수치 세트를 쉽게 시험). **정리**: **밸런싱은 빠른 반복이 전부**이니, **수치를 코드에서 데이터(JSON·설정)로 빼고 실행 중 다시 불러오게(핫 리로드)** 해서 조정 사이클을 **분→초**로 줄이고, **표로 빼서 비교·가시화**한다. 조정이 배포가 되면 밸런스를 못 맞추니, 수치를 밖으로 빼는 게 첫 단추다."
+          "text": "**숫자를 코드에 박으면 조정이 곧 배포가 되어(수정→빌드→배포→확인, 한 번에 수 분) 밸런싱의 빠른 반복이 불가능하다. 수치를 데이터(JSON, 설정)로 빼고 실행 중 다시 불러오면(핫 리로드) 재빌드 없이 초 단위로 조정하고, 표로 빼면 비교가 가능해진다. 밸런싱은 빠른 반복이 전부다.** 밸런싱의 첫 원칙. **수치를 데이터로 분리**. **문제. 코드에 박으면 조정이 배포**: 무기 데미지, 적 체력, 레벨 경험치 같은 수치를 **코드에 하드코딩**(`damage = 12`)하면, 그 값을 바꾸려면 **코드 수정 → 빌드 → 배포(또는 재실행) → 확인**의 사이클을 돈다. 한 번 조정에 **수 분~수십 분**. **밸런싱은 본질적으로 빠른 반복**이다. \"이 무기 조금 세게, 저 적 조금 약하게\"를 **수십, 수백 번** 조정하며 감을 잡는다. 이 사이클이 느리면(조정마다 배포) **반복 횟수가 적어 밸런스를 못 맞춘다**(느려서 몇 번 못 해봄). **해법. 데이터로 빼고 핫 리로드**: ① **수치를 데이터 파일로**. 무기, 적, 레벨 수치를 **JSON, 설정 파일, 스프레드시트**로 빼서 코드 밖에 둔다(\"sword 의 damage 12\" 처럼 키, 값으로). 코드는 그 데이터를 읽어 쓴다. ② **실행 중 다시 불러오기(핫 리로드 hot reload)**. 게임을 **켠 채로** 데이터 파일이 바뀌면 **다시 읽어** 즉시 반영한다(재빌드, 재시작 X). 그러면 게임을 플레이하면서 **JSON 값을 바꾸면 즉시 반영**돼 확인. **조정 사이클이 분에서 초로** 줄어든다(밸런싱 반복이 폭발적으로 빨라짐). **표로 빼면 비교가 가능**: 수치를 **표(스프레드시트, JSON 테이블)로** 빼면. 무기들을 **한 표에 나란히** 놓고 **비교**할 수 있다: \"도끼(22)가 검(12)보다 세다\", \"이 적이 저 적보다 체력이 2배\"를 **눈으로 확인**한다(craft-doc 1장. 표로 비교). **코드에 흩어져 있으면**(각 무기 클래스에 값이 박힘) \"도끼가 정말 센 게 맞나\"를 **볼 수 없다**(한눈에 안 들어옴. 파일마다 흩어짐). 표가 밸런스를 **가시화**한다. **데이터 분리의 이점**: ① **빠른 반복**(핫 리로드. 밸런싱의 핵심), ② **비교, 가시화**(표로 한눈에), ③ **비개발자도 조정**(기획자, 디자이너가 스프레드시트로. 개발자 없이), ④ **버전 관리**(수치 변경 이력. 언제 뭘 바꿨나, 되돌리기), ⑤ **A/B, 실험**(다른 수치 세트를 쉽게 시험). **정리**: **밸런싱은 빠른 반복이 전부**이니, **수치를 코드에서 데이터(JSON, 설정)로 빼고 실행 중 다시 불러오게(핫 리로드)** 해서 조정 사이클을 **분→초**로 줄이고, **표로 빼서 비교, 가시화**한다. 조정이 배포가 되면 밸런스를 못 맞추니, 수치를 밖으로 빼는 게 첫 단추다."
         },
         {
           "type": "note",
-          "text": "**「반복 사이클을 짧게」 — 빠른 피드백 루프가 튜닝을 가능케 한다.** 밸런싱의 첫 교훈은 「튜닝·탐색이 필요한 것은 반복(시도-확인) 사이클을 최대한 짧게 만들어야 잘 맞출 수 있다」다: 밸런싱은 정답을 한 번에 못 정하고 수십·수백 번 조정하며 찾는 것이라, 한 번의 조정-확인이 느리면(배포) 반복이 적어 못 맞춘다 — 사이클을 짧게(데이터+핫 리로드) 하면 반복이 폭발해 잘 맞춘다. 이 「빠른 반복 루프」는 개발·탐색 전반의 근본이다 — 핫 리로드·라이브 리로드(코드 변경 즉시 반영), 피드백 루프 먼저(황금의 정신 — 루프 없이 fix 금지), REPL·인터랙티브 개발, 짧은 빌드·테스트(craft-focus 의 재시작 비용), CI 빠른 피드백. 핵심 통찰: **탐색·튜닝·디버깅처럼 반복이 필요한 일의 속도는 「한 번의 시도-확인 사이클」의 길이가 좌우한다** — 사이클이 짧으면 많이 시도해 잘 찾고, 길면 적게 시도해 못 찾는다(craft-debug 의 재현 루프, math-prob 의 시뮬). 그래서 「튜닝·탐색·디버깅이 필요한 것은, 무엇보다 「시도-확인」 사이클을 짧게 만들어라 — 수치를 데이터로 빼 핫 리로드하듯, 반복을 빠르게 하는 데 먼저 투자하라」가 근본 — 밸런싱의 데이터 분리는 그 실천으로, 빠른 반복 루프가 좋은 밸런스를 만든다. 사이클을 짧게 하라."
+          "text": "**\"반복 사이클을 짧게\". 빠른 피드백 루프가 튜닝을 가능케 한다.** 밸런싱의 첫 교훈은 \"튜닝, 탐색이 필요한 것은 반복(시도-확인) 사이클을 최대한 짧게 만들어야 잘 맞출 수 있다\"다: 밸런싱은 정답을 한 번에 못 정하고 수십, 수백 번 조정하며 찾는 것이라, 한 번의 조정-확인이 느리면(배포) 반복이 적어 못 맞춘다. 사이클을 짧게(데이터+핫 리로드) 하면 반복이 폭발해 잘 맞춘다. 이 \"빠른 반복 루프\"는 개발, 탐색 전반의 근본이다. 핫 리로드, 라이브 리로드(코드 변경 즉시 반영), 피드백 루프 먼저(황금의 정신. 루프 없이 fix 금지), REPL, 인터랙티브 개발, 짧은 빌드, 테스트(craft-focus 의 재시작 비용), CI 빠른 피드백. 핵심 통찰: **탐색, 튜닝, 디버깅처럼 반복이 필요한 일의 속도는 \"한 번의 시도-확인 사이클\"의 길이가 좌우한다**. 사이클이 짧으면 많이 시도해 잘 찾고, 길면 적게 시도해 못 찾는다(craft-debug 의 재현 루프, math-prob 의 시뮬). 그래서 \"튜닝, 탐색, 디버깅이 필요한 것은, 무엇보다 \"시도-확인\" 사이클을 짧게 만들어라. 수치를 데이터로 빼 핫 리로드하듯, 반복을 빠르게 하는 데 먼저 투자하라\"가 근본. 밸런싱의 데이터 분리는 그 실천으로, 빠른 반복 루프가 좋은 밸런스를 만든다. 사이클을 짧게 하라."
         },
         {
           "type": "try",
-          "text": "무기·적 수치를 **JSON 으로 빼고 실행 중 다시 불러오게** 만들어라 — 게임을 켠 채로 JSON 값을 바꾸면 재빌드 없이 즉시 반영되게(핫 리로드). **재빌드 없이 조정하는 사이클을 만드는 것이 목표**다(조정 사이클을 분→초로). 수치를 표(스프레드시트·JSON 테이블)로 빼서 무기들을 나란히 비교해 「도끼가 정말 센 게 맞나」를 눈으로 확인하라(코드에 흩어지면 못 봄). 밸런싱은 빠른 반복이 전부이니, 시도-확인 사이클을 짧게 만드는 데 먼저 투자하라 — 조정이 배포가 되면 밸런스를 못 맞춘다."
+          "text": "무기, 적 수치를 **JSON 으로 빼고 실행 중 다시 불러오게** 만들어라. 게임을 켠 채로 JSON 값을 바꾸면 재빌드 없이 즉시 반영되게(핫 리로드). **재빌드 없이 조정하는 사이클을 만드는 것이 목표**다(조정 사이클을 분→초로). 수치를 표(스프레드시트, JSON 테이블)로 빼서 무기들을 나란히 비교해 \"도끼가 정말 센 게 맞나\"를 눈으로 확인하라(코드에 흩어지면 못 봄). 밸런싱은 빠른 반복이 전부이니, 시도-확인 사이클을 짧게 만드는 데 먼저 투자하라. 조정이 배포가 되면 밸런스를 못 맞춘다."
         }
       ],
       "quiz": [
@@ -59,7 +59,7 @@
           "q": "수치를 코드에 박으면?",
           "choices": [
             "빠름",
-            "조정이 곧 배포(수정→빌드→배포→확인) — 느려서 밸런스를 못 맞춤",
+            "조정이 곧 배포(수정→빌드→배포→확인). 느려서 밸런스를 못 맞춤",
             "정확",
             "무관"
           ],
@@ -81,7 +81,7 @@
           "q": "수치를 표로 빼면 좋은 점은?",
           "choices": [
             "없음",
-            "비교가 가능 — 「도끼가 정말 센 게 맞나」를 눈으로 확인(가시화)",
+            "비교가 가능. \"도끼가 정말 센 게 맞나\"를 눈으로 확인(가시화)",
             "느림",
             "무관"
           ],
@@ -92,17 +92,17 @@
     },
     {
       "id": "2",
-      "title": "파생값은 계산한다 — DPS·유효 체력",
+      "title": "파생값은 계산한다. DPS, 유효 체력",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "밸런스는 **원시 수치**(데미지·쿨다운)만 보면 오판한다 — **파생값(derived stats)**을 계산해 봐야 진짜 강함이 보인다. 예: **DPS(초당 피해) = 데미지 / 쿨다운**. 검(데미지 12·쿨다운 0.4) → DPS 30, 도끼(데미지 22·쿨다운 0.9) → DPS 24.4 — **도끼는 한 방이 세지만(22>12) 지속 피해는 검이 높다(30>24.4)**. 원시 데미지만 보면 「도끼가 세다」지만, DPS 로는 「검이 지속 딜은 낫다」 — **파생값이 진짜 관계를 드러낸다**. 다른 파생값: **유효 체력(EHP) = 체력 / (1 − 방어율)**(방어를 감안한 실질 체력), **분당 자원·킬당 경험치·시간당 골드** 등. **핵심 — 원시 수치가 아니라 「실제로 중요한 지표」로 비교**한다: 무기는 DPS·유효 딜, 방어구는 유효 체력, 진행은 시간당 성장. 파생값을 **표로 계산해 출력**하면(1장의 데이터 표에서 자동 계산) **의도와 다른 항목**이 드러난다(「이게 왜 이렇게 세지?»). 감이 아니라 파생 지표로 비교해 밸런스를 본다. 아래 데모로 DPS 등 파생값을 확인하라."
+          "text": "밸런스는 **원시 수치**(데미지, 쿨다운)만 보면 오판한다. **파생값(derived stats)**을 계산해 봐야 진짜 강함이 보인다. 예: **DPS(초당 피해) = 데미지 / 쿨다운**. 검(데미지 12, 쿨다운 0.4) → DPS 30, 도끼(데미지 22, 쿨다운 0.9) → DPS 24.4. **도끼는 한 방이 세지만(22>12) 지속 피해는 검이 높다(30>24.4)**. 원시 데미지만 보면 \"도끼가 세다\"지만, DPS 로는 \"검이 지속 딜은 낫다\". **파생값이 진짜 관계를 드러낸다**. 다른 파생값: **유효 체력(EHP) = 체력 / (1 − 방어율)**(방어를 감안한 실질 체력), **분당 자원, 킬당 경험치, 시간당 골드** 등. **핵심. 원시 수치가 아니라 \"실제로 중요한 지표\"로 비교**한다: 무기는 DPS, 유효 딜, 방어구는 유효 체력, 진행은 시간당 성장. 파생값을 **표로 계산해 출력**하면(1장의 데이터 표에서 자동 계산) **의도와 다른 항목**이 드러난다(\"이게 왜 이렇게 세지?»). 감이 아니라 파생 지표로 비교해 밸런스를 본다. 아래 데모로 DPS 등 파생값을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "파생값 — DPS·유효 체력으로 진짜 강함",
+          "label": "파생값. DPS, 유효 체력으로 진짜 강함",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'dps') {\n    const weapons = [['sword', 12, 0.4], ['axe', 22, 0.9], ['spear', 15, 0.6], ['dagger', 6, 0.15]];\n    let html = '<table><tr><th>무기</th><th>데미지</th><th>쿨다운</th><th>DPS(=dmg/cd)</th></tr>';\n    const dpsList = weapons.map(([n, d, c]) => [n, d, c, d/c]);\n    const maxDps = Math.max(...dpsList.map(w => w[3]));\n    for (const [n, d, c, dps] of dpsList) {\n      html += '<tr><td style=\\\"color:#7dd3fc\\\">' + n + '</td><td>' + d + '</td><td>' + c + '</td><td class=\\\"' + (dps===maxDps?'hi':'') + '\\\">' + dps.toFixed(1) + '</td></tr>';\n    }\n    html += '</table>';\n    render('DPS = 데미지 / 쿨다운 — 지속 피해',\n      '  원시 데미지: 도끼(22) > 검(12) → 「도끼가 세다」?\\n' +\n      '  DPS: 검 30 > 도끼 24.4 → 도끼는 한 방이 세지만 지속 딜은 검이 높다\\n\\n' +\n      '  <span class=\\\"ok\\\">원시 수치가 아니라 파생값(DPS)이 진짜 관계를 드러낸다.</span>',\n      'DPS(dmg/cd)로 보면 원시 데미지와 다른 진짜 강함이 드러난다.',\n      html);\n  } else {\n    const hp = {{hp}}, armor = {{armor}} / 100;\n    const ehp = hp / (1 - armor);\n    render('유효 체력(EHP) = 체력 / (1 − 방어율)',\n      '  체력 ' + hp + ' · 방어율 ' + ({{armor}}) + '%\\n' +\n      '  유효 체력 = ' + hp + ' / (1 − ' + armor.toFixed(2) + ') = ' + ehp.toFixed(0) + '\\n' +\n      '  → 방어 ' + ({{armor}}) + '% 면 실질 체력이 ' + (ehp/hp).toFixed(1) + '배\\n\\n' +\n      '  <span class=\\\"ok\\\">체력만 보면 오판 — 방어를 감안한 유효 체력이 실질 강함.</span>',\n      '유효 체력: 방어를 감안한 실질 체력 — 체력만 보면 오판.',\n      stat([[hp, '체력', 'ok'], [({{armor}}) + '%', '방어율', 'ok'], [ehp.toFixed(0), '유효 체력(EHP)', 'good'], [(ehp/hp).toFixed(1) + '배', '실질 배수', 'good']]));\n  }\n</script>",
           "controls": [
@@ -150,15 +150,15 @@
         },
         {
           "type": "note",
-          "text": "**밸런스는 원시 수치(데미지·쿨다운)만 보면 오판하니 파생값을 계산해야 진짜 강함이 보인다 — DPS = 데미지/쿨다운(검 30 > 도끼 24.4, 도끼는 한 방이 세도 지속 딜은 검이 높음), 유효 체력 = 체력/(1−방어율). 원시 수치가 아니라 실제로 중요한 지표(DPS·유효 체력·시간당 성장)로 비교한다.** 1장에서 수치를 표로 뺐으니, 이제 **무엇을 비교하나** — **원시 수치가 아니라 파생값**이다. **문제 — 원시 수치는 오판**: **데미지·쿨다운·체력·방어** 같은 **원시 수치(raw stats)**만 보면 강함을 잘못 판단한다 — 도끼의 데미지(22)가 검(12)보다 크니 「도끼가 세다」고 여기지만, **쿨다운**(도끼 0.9초 vs 검 0.4초)을 감안하면 다르다. **해법 — 파생값(derived stats)을 계산**: 여러 원시 수치를 조합한 **실제로 중요한 지표**를 계산한다. ① **DPS(Damage Per Second, 초당 피해) = 데미지 / 쿨다운** — 지속 피해. 검(12/0.4 = **30**) vs 도끼(22/0.9 = **24.4**) → **도끼는 한 방이 세지만(22>12) 지속 피해는 검이 높다(30>24.4)**. 원시 데미지만 보면 「도끼가 세다」지만, **DPS 로는 「검이 지속 딜은 낫다」** — 파생값이 **진짜 관계**를 드러낸다(둘은 「한 방 강함 vs 지속 딜」로 성격이 다름 — 4장의 상황 의존 강점). ② **유효 체력(Effective HP, EHP) = 체력 / (1 − 방어율)** — 방어를 감안한 **실질 체력**. 체력 100·방어율 50% 면 유효 체력 200(방어가 실질 체력을 2배로) — **체력만 보면 오판**(방어율 높은 유닛이 실제론 훨씬 단단). ③ 다른 파생값: **분당 자원·킬당 경험치·시간당 골드**(진행 속도), **DPS × 유효 체력**(종합 전투력), **비용 대비 효율**(가성비). **핵심 — 실제로 중요한 지표로 비교**: 무기는 **원시 데미지가 아니라 DPS·유효 딜**로, 방어구는 **체력이 아니라 유효 체력**으로, 진행은 **레벨이 아니라 시간당 성장**으로 비교한다. 「무엇이 실제로 중요한가」를 나타내는 파생값을 정하고 그걸로 본다. **표로 계산·출력하면 의도와 다른 게 드러남**: 파생값을 **1장의 데이터 표에서 자동 계산해 출력**하면(각 무기의 DPS·EHP 를 표에), **의도와 다른 항목**이 눈에 띈다 — 「이 무기가 왜 DPS 가 이렇게 높지?»(밸런스 붕괴 발견), 「이 적의 유효 체력이 의도보다 2배네」. 감으로는 못 보는 걸 파생 지표가 드러낸다(craft-doc 의 표로 비교 + math-stats 의 분포로 보기). **정리**: 밸런스는 **원시 수치가 아니라 파생값(DPS·유효 체력·시간당 성장 등 실제로 중요한 지표)**을 계산해 비교한다 — 파생값이 진짜 강함·관계를 드러내고, 표로 계산·출력하면 의도와 다른 항목(밸런스 붕괴)이 보인다. 원시 수치의 함정을 파생값으로 넘는다."
+          "text": "**밸런스는 원시 수치(데미지, 쿨다운)만 보면 오판하니 파생값을 계산해야 진짜 강함이 보인다. DPS = 데미지/쿨다운(검 30 > 도끼 24.4, 도끼는 한 방이 세도 지속 딜은 검이 높음), 유효 체력 = 체력/(1−방어율). 원시 수치가 아니라 실제로 중요한 지표(DPS, 유효 체력, 시간당 성장)로 비교한다.** 1장에서 수치를 표로 뺐으니, 이제 **무엇을 비교하나**. **원시 수치가 아니라 파생값**이다. **문제. 원시 수치는 오판**: **데미지, 쿨다운, 체력, 방어** 같은 **원시 수치(raw stats)**만 보면 강함을 잘못 판단한다. 도끼의 데미지(22)가 검(12)보다 크니 \"도끼가 세다\"고 여기지만, **쿨다운**(도끼 0.9초 vs 검 0.4초)을 감안하면 다르다. **해법. 파생값(derived stats)을 계산**: 여러 원시 수치를 조합한 **실제로 중요한 지표**를 계산한다. ① **DPS(Damage Per Second, 초당 피해) = 데미지 / 쿨다운**. 지속 피해. 검(12/0.4 = **30**) vs 도끼(22/0.9 = **24.4**) → **도끼는 한 방이 세지만(22>12) 지속 피해는 검이 높다(30>24.4)**. 원시 데미지만 보면 \"도끼가 세다\"지만, **DPS 로는 \"검이 지속 딜은 낫다\"**. 파생값이 **진짜 관계**를 드러낸다(둘은 \"한 방 강함 vs 지속 딜\"로 성격이 다름. 4장의 상황 의존 강점). ② **유효 체력(Effective HP, EHP) = 체력 / (1 − 방어율)**. 방어를 감안한 **실질 체력**. 체력 100, 방어율 50% 면 유효 체력 200(방어가 실질 체력을 2배로). **체력만 보면 오판**(방어율 높은 유닛이 실제론 훨씬 단단). ③ 다른 파생값: **분당 자원, 킬당 경험치, 시간당 골드**(진행 속도), **DPS × 유효 체력**(종합 전투력), **비용 대비 효율**(가성비). **핵심. 실제로 중요한 지표로 비교**: 무기는 **원시 데미지가 아니라 DPS, 유효 딜**로, 방어구는 **체력이 아니라 유효 체력**으로, 진행은 **레벨이 아니라 시간당 성장**으로 비교한다. \"무엇이 실제로 중요한가\"를 나타내는 파생값을 정하고 그걸로 본다. **표로 계산, 출력하면 의도와 다른 게 드러남**: 파생값을 **1장의 데이터 표에서 자동 계산해 출력**하면(각 무기의 DPS, EHP 를 표에), **의도와 다른 항목**이 눈에 띈다. \"이 무기가 왜 DPS 가 이렇게 높지?»(밸런스 붕괴 발견), \"이 적의 유효 체력이 의도보다 2배네\". 감으로는 못 보는 걸 파생 지표가 드러낸다(craft-doc 의 표로 비교 + math-stats 의 분포로 보기). **정리**: 밸런스는 **원시 수치가 아니라 파생값(DPS, 유효 체력, 시간당 성장 등 실제로 중요한 지표)**을 계산해 비교한다. 파생값이 진짜 강함, 관계를 드러내고, 표로 계산, 출력하면 의도와 다른 항목(밸런스 붕괴)이 보인다. 원시 수치의 함정을 파생값으로 넘는다."
         },
         {
           "type": "note",
-          "text": "**「진짜 중요한 지표로 봐라」 — 원시 값이 아니라 파생 지표가 진실을 드러낸다.** 파생값의 교훈은 「원시 수치 하나만 보지 말고, 실제로 중요한 것을 나타내는 파생 지표(여러 값의 조합)로 판단하라」다: 데미지(원시)만 보면 도끼가 세 보이지만 DPS(파생)로는 검이 낫듯 — 개별 원시 값은 부분적이고, 진짜 중요한 관계는 그것들을 조합한 파생 지표에서 드러난다. 「무엇을 측정하나」가 「무엇을 보나」를 정한다. 이 「올바른 지표로 판단」은 측정·평가 전반의 근본이다 — 허영 지표 vs 실질 지표(총 가입 vs 활성 사용자 — product·analytics), 파생 메트릭(전환율·LTV·유효값), math-stats(평균 vs 백분위 — 무엇을 보나), 비율·효율(원시 총량 아니라). 핵심 통찰: **원시 값 하나는 오해를 부르고, 「실제로 중요한 것」을 나타내는 올바른 파생 지표를 정해 봐야 진실이 드러난다** — 그래서 「무엇이 진짜 중요한가」를 먼저 정의하고(DPS·유효 체력·활성 사용자) 그 지표로 판단한다(엉뚱한 원시 값에 속지 말고). 그래서 「무언가를 비교·판단할 때, 눈에 띄는 원시 값 하나에 속지 말고 — 실제로 중요한 것을 나타내는 파생 지표를 정해 그것으로 봐라」가 근본 — 밸런싱의 파생값은 그 대표로, DPS·유효 체력이 원시 수치의 오판을 바로잡는다. 올바른 지표로 판단하라."
+          "text": "**\"진짜 중요한 지표로 봐라\". 원시 값이 아니라 파생 지표가 진실을 드러낸다.** 파생값의 교훈은 \"원시 수치 하나만 보지 말고, 실제로 중요한 것을 나타내는 파생 지표(여러 값의 조합)로 판단하라\"다: 데미지(원시)만 보면 도끼가 세 보이지만 DPS(파생)로는 검이 낫듯. 개별 원시 값은 부분적이고, 진짜 중요한 관계는 그것들을 조합한 파생 지표에서 드러난다. \"무엇을 측정하나\"가 \"무엇을 보나\"를 정한다. 이 \"올바른 지표로 판단\"은 측정, 평가 전반의 근본이다. 허영 지표 vs 실질 지표(총 가입 vs 활성 사용자. product, analytics), 파생 메트릭(전환율, LTV, 유효값), math-stats(평균 vs 백분위. 무엇을 보나), 비율, 효율(원시 총량 아니라). 핵심 통찰: **원시 값 하나는 오해를 부르고, \"실제로 중요한 것\"을 나타내는 올바른 파생 지표를 정해 봐야 진실이 드러난다**. 그래서 \"무엇이 진짜 중요한가\"를 먼저 정의하고(DPS, 유효 체력, 활성 사용자) 그 지표로 판단한다(엉뚱한 원시 값에 속지 말고). 그래서 \"무언가를 비교, 판단할 때, 눈에 띄는 원시 값 하나에 속지 말고. 실제로 중요한 것을 나타내는 파생 지표를 정해 그것으로 봐라\"가 근본. 밸런싱의 파생값은 그 대표로, DPS, 유효 체력이 원시 수치의 오판을 바로잡는다. 올바른 지표로 판단하라."
         },
         {
           "type": "try",
-          "text": "**DPS·유효 체력 같은 파생 지표를 계산해 표로 출력**하고, **의도와 다른 항목을 찾아라** — 각 무기의 DPS(데미지/쿨다운), 각 유닛의 유효 체력(체력/(1−방어율))을 1장의 데이터 표에서 자동 계산해 나란히 보라. 원시 데미지만 보면 「도끼가 세다」지만 DPS 로는 다름(검이 지속 딜은 위)을 확인하라. 파생값을 보면 「이게 왜 이렇게 세지?»(밸런스 붕괴)가 드러난다. 원시 수치가 아니라 실제로 중요한 지표(DPS·유효 체력·시간당 성장)로 비교하라 — 올바른 지표가 진짜 강함을 드러낸다."
+          "text": "**DPS, 유효 체력 같은 파생 지표를 계산해 표로 출력**하고, **의도와 다른 항목을 찾아라**. 각 무기의 DPS(데미지/쿨다운), 각 유닛의 유효 체력(체력/(1−방어율))을 1장의 데이터 표에서 자동 계산해 나란히 보라. 원시 데미지만 보면 \"도끼가 세다\"지만 DPS 로는 다름(검이 지속 딜은 위)을 확인하라. 파생값을 보면 \"이게 왜 이렇게 세지?»(밸런스 붕괴)가 드러난다. 원시 수치가 아니라 실제로 중요한 지표(DPS, 유효 체력, 시간당 성장)로 비교하라. 올바른 지표가 진짜 강함을 드러낸다."
         }
       ],
       "quiz": [
@@ -166,7 +166,7 @@
           "q": "밸런스를 원시 수치(데미지)만 보면?",
           "choices": [
             "정확",
-            "오판 — 쿨다운 등을 감안한 파생값(DPS)이 진짜 강함을 드러냄",
+            "오판. 쿨다운 등을 감안한 파생값(DPS)이 진짜 강함을 드러냄",
             "빠름",
             "무관"
           ],
@@ -177,7 +177,7 @@
           "q": "DPS(초당 피해)는?",
           "choices": [
             "데미지만",
-            "데미지 / 쿨다운 — 검 30 > 도끼 24.4(한 방은 도끼, 지속 딜은 검)",
+            "데미지 / 쿨다운. 검 30 > 도끼 24.4(한 방은 도끼, 지속 딜은 검)",
             "체력",
             "쿨다운"
           ],
@@ -185,10 +185,10 @@
           "why": "지속 피해."
         },
         {
-          "q": "파생값을 표로 계산·출력하면?",
+          "q": "파생값을 표로 계산, 출력하면?",
           "choices": [
             "소용없음",
-            "의도와 다른 항목(밸런스 붕괴)이 드러남 — 감으로 못 보는 걸",
+            "의도와 다른 항목(밸런스 붕괴)이 드러남. 감으로 못 보는 걸",
             "느림",
             "무관"
           ],
@@ -199,17 +199,17 @@
     },
     {
       "id": "3",
-      "title": "곡선을 설계한다 — 손이 아니라 식으로",
+      "title": "곡선을 설계한다. 손이 아니라 식으로",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "레벨·강화 수치(레벨별 필요 경험치·데미지 성장·비용)는 **손으로 하나씩 적지 말고 식으로 정의하라**. 100레벨을 손으로 적으면 — 실수·불일치가 나고, 「전체적으로 조금 완만하게」 같은 조정이 **100개를 다 고쳐야** 한다. **식(공식)으로 정의**하면 파라미터 하나로 곡선 전체를 조정한다. **곡선 종류**: ① **선형**(`base + k*level`) — **꾸준한** 성장(예측 가능·안정). ② **지수**(`base * r^level`) — **후반 폭발**(레벨업이 점점 커짐 — 성장 쾌감·인플레). ③ **로그·제곱근**(`base * sqrt(level)`) — **초반 급성장 후 완만**(초반 재미·후반 벽). ④ **다항·구간별**(초반 완만·후반 가파름 등). **곡선이 게임 감각을 정한다** — 선형은 꾸준, 지수는 후반 폭발감(과하면 인플레·밸런스 붕괴), 로그는 초반 쾌속. 그리고 **그 식이 몇 시간짜리 진행인지 확인**한다 — 식만 정하고 「이대로 하면 만렙까지 몇 시간?」을 계산·시뮬해 의도한 플레이 시간과 맞추기(math-prob 의 시뮬로 검증). 손 노가다가 아니라 **식 + 파라미터 + 시뮬 검증**으로 곡선을 설계한다. 아래 데모로 곡선 종류를 확인하라."
+          "text": "레벨, 강화 수치(레벨별 필요 경험치, 데미지 성장, 비용)는 **손으로 하나씩 적지 말고 식으로 정의하라**. 100레벨을 손으로 적으면. 실수, 불일치가 나고, \"전체적으로 조금 완만하게\" 같은 조정이 **100개를 다 고쳐야** 한다. **식(공식)으로 정의**하면 파라미터 하나로 곡선 전체를 조정한다. **곡선 종류**: ① **선형**(`base + k*level`). **꾸준한** 성장(예측 가능, 안정). ② **지수**(`base * r^level`). **후반 폭발**(레벨업이 점점 커짐. 성장 쾌감, 인플레). ③ **로그, 제곱근**(`base * sqrt(level)`). **초반 급성장 후 완만**(초반 재미, 후반 벽). ④ **다항, 구간별**(초반 완만, 후반 가파름 등). **곡선이 게임 감각을 정한다**. 선형은 꾸준, 지수는 후반 폭발감(과하면 인플레, 밸런스 붕괴), 로그는 초반 쾌속. 그리고 **그 식이 몇 시간짜리 진행인지 확인**한다. 식만 정하고 \"이대로 하면 만렙까지 몇 시간?\"을 계산, 시뮬해 의도한 플레이 시간과 맞추기(math-prob 의 시뮬로 검증). 손 노가다가 아니라 **식 + 파라미터 + 시뮬 검증**으로 곡선을 설계한다. 아래 데모로 곡선 종류를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "곡선 — 선형·지수·로그",
+          "label": "곡선. 선형, 지수, 로그",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const type = '{{type}}';\n  const level = {{level}};\n  const base = 100;\n  const linear = (l) => base * (1 + l * 20);\n  const expo = (l) => base * Math.pow(1.15, l * 30);\n  const logc = (l) => base * (1 + Math.sqrt(l * 30) * 3);\n  const fn = { linear, expo, log: logc }[type];\n  const label = { linear: '선형(꾸준함)', expo: '지수(후반 폭발)', log: '로그·제곱근(초반 급성장 후 완만)' }[type];\n  const maxY = { linear: linear(1), expo: expo(1), log: logc(1) }[type];\n  const atLevel = Math.round(fn(level/30));\n  render('곡선: ' + label,\n    '  레벨 ' + Math.round(level) + ' 의 필요 경험치 ≈ ' + atLevel.toLocaleString() + '\\n' +\n    '  성격: ' + label + '\\n' +\n    '  ⚠ 이 식이 만렙까지 몇 시간인지 계산·시뮬로 확인\\n\\n' +\n    '  <span class=\\\"ok\\\">손으로 적지 말고 식으로 — 파라미터 하나로 곡선 전체 조정.</span>',\n    '곡선을 식으로: 선형(꾸준)·지수(후반 폭발)·로그(초반 급성장) — 시뮬로 검증.',\n    plot(300, 160, [[fn, type==='expo'?'#f87171':type==='log'?'#4ade80':'#7dd3fc']], maxY));\n</script>",
           "controls": [
@@ -252,23 +252,23 @@
         },
         {
           "type": "note",
-          "text": "**레벨·강화 수치는 손으로 하나씩 적지 말고 식으로 정의한다 — 선형(꾸준함)·지수(후반 폭발)·로그/제곱근(초반 급성장 후 완만) 같은 곡선을 파라미터로 조정하고, 그 식이 몇 시간짜리 진행인지 계산·시뮬로 확인해 의도한 플레이 시간과 맞춘다.** 밸런싱의 큰 부분 — **진행 곡선(progression curve)**. **문제 — 손으로 적으면**: 레벨별 필요 경험치·데미지 성장·강화 비용 같은 **레벨에 따라 변하는 수치**를 **100레벨까지 손으로 하나씩** 적으면 — **실수·불일치**가 나고(46레벨만 튀는 값), 「**전체적으로 조금 완만하게**」 같은 조정에 **100개를 다 고쳐야** 한다(반복 지옥 — 1장의 빠른 반복과 반대). **해법 — 식(공식)으로 정의**: 수치를 **레벨의 함수(식)로** 정의한다(`xpForLevel(l) = 100 * 1.15^l`). 그러면 **파라미터 하나(base·비율 r·지수)로 곡선 전체를 조정**한다 — 「완만하게」는 비율을 1.15→1.10 으로(전체가 한 번에). 100줄 노가다가 아니라 몇 개 파라미터. **곡선 종류와 성격**: ① **선형(`base + k*level`)** — **꾸준한** 성장(레벨마다 같은 양 증가). 예측 가능·안정적(성장이 일정). ② **지수(`base * r^level`)** — **후반 폭발**(레벨업마다 곱해져 점점 커짐). 후반의 **성장 쾌감**(숫자가 폭발적으로 커짐 — RPG 의 데미지 인플레), 단 **과하면 밸런스 붕괴·인플레**(후반이 초반을 무의미하게). ③ **로그·제곱근(`base * sqrt(level)`)** — **초반 급성장 후 완만**(처음엔 빨리 늘다 점점 느려짐). **초반 재미**(빠른 성장 체감)·**후반 벽**(성장이 더뎌 도전). ④ **다항·구간별·S자** — 초반 완만·중반 가파름·후반 완만(밸런스 조절). **곡선이 게임 감각을 정한다**: 곡선 선택이 게임의 **진행 느낌**을 정한다 — 선형(꾸준·안정), 지수(후반 폭발·쾌감, 인플레 위험), 로그(초반 쾌속·후반 도전). 게임 성격에 맞는 곡선을 고른다. **핵심 — 식이 몇 시간짜리인지 확인**: 곡선 식을 정하면 끝이 아니라, **「이 식대로면 만렙까지 몇 시간?」을 계산·시뮬**한다(math-prob 의 시뮬로 검증) — 「레벨당 경험치 곡선 × 시간당 획득 경험치」로 **총 플레이 시간**을 계산해, **의도한 플레이 시간**(예: 40시간짜리 게임)과 맞춘다. 곡선이 너무 가파르면 진행이 느려 지치고, 너무 완만하면 금방 만렙(할 게 없음). **정리**: 진행 수치는 **손으로 적지 말고 식(선형·지수·로그)으로 정의**해 파라미터로 조정하고, **그 식이 몇 시간짜리 진행인지 계산·시뮬로 확인**해 의도한 플레이 시간과 맞춘다. 곡선이 진행 감각을 정하고, 시뮬이 그 곡선을 검증한다(math-prob 의 밸런스 조정 — 경험을 정하고 시뮬로)."
+          "text": "**레벨, 강화 수치는 손으로 하나씩 적지 말고 식으로 정의한다. 선형(꾸준함), 지수(후반 폭발), 로그/제곱근(초반 급성장 후 완만) 같은 곡선을 파라미터로 조정하고, 그 식이 몇 시간짜리 진행인지 계산, 시뮬로 확인해 의도한 플레이 시간과 맞춘다.** 밸런싱의 큰 부분. **진행 곡선(progression curve)**. **문제. 손으로 적으면**: 레벨별 필요 경험치, 데미지 성장, 강화 비용 같은 **레벨에 따라 변하는 수치**를 **100레벨까지 손으로 하나씩** 적으면. **실수, 불일치**가 나고(46레벨만 튀는 값), \"**전체적으로 조금 완만하게**\" 같은 조정에 **100개를 다 고쳐야** 한다(반복 지옥. 1장의 빠른 반복과 반대). **해법. 식(공식)으로 정의**: 수치를 **레벨의 함수(식)로** 정의한다(`xpForLevel(l) = 100 * 1.15^l`). 그러면 **파라미터 하나(base, 비율 r, 지수)로 곡선 전체를 조정**한다. \"완만하게\"는 비율을 1.15→1.10 으로(전체가 한 번에). 100줄 노가다가 아니라 몇 개 파라미터. **곡선 종류와 성격**: ① **선형(`base + k*level`)**. **꾸준한** 성장(레벨마다 같은 양 증가). 예측 가능, 안정적(성장이 일정). ② **지수(`base * r^level`)**. **후반 폭발**(레벨업마다 곱해져 점점 커짐). 후반의 **성장 쾌감**(숫자가 폭발적으로 커짐. RPG 의 데미지 인플레), 단 **과하면 밸런스 붕괴, 인플레**(후반이 초반을 무의미하게). ③ **로그, 제곱근(`base * sqrt(level)`)**. **초반 급성장 후 완만**(처음엔 빨리 늘다 점점 느려짐). **초반 재미**(빠른 성장 체감), **후반 벽**(성장이 더뎌 도전). ④ **다항, 구간별, S자**. 초반 완만, 중반 가파름, 후반 완만(밸런스 조절). **곡선이 게임 감각을 정한다**: 곡선 선택이 게임의 **진행 느낌**을 정한다. 선형(꾸준, 안정), 지수(후반 폭발, 쾌감, 인플레 위험), 로그(초반 쾌속, 후반 도전). 게임 성격에 맞는 곡선을 고른다. **핵심. 식이 몇 시간짜리인지 확인**: 곡선 식을 정하면 끝이 아니라, **\"이 식대로면 만렙까지 몇 시간?\"을 계산, 시뮬**한다(math-prob 의 시뮬로 검증). \"레벨당 경험치 곡선 × 시간당 획득 경험치\"로 **총 플레이 시간**을 계산해, **의도한 플레이 시간**(예: 40시간짜리 게임)과 맞춘다. 곡선이 너무 가파르면 진행이 느려 지치고, 너무 완만하면 금방 만렙(할 게 없음). **정리**: 진행 수치는 **손으로 적지 말고 식(선형, 지수, 로그)으로 정의**해 파라미터로 조정하고, **그 식이 몇 시간짜리 진행인지 계산, 시뮬로 확인**해 의도한 플레이 시간과 맞춘다. 곡선이 진행 감각을 정하고, 시뮬이 그 곡선을 검증한다(math-prob 의 밸런스 조정. 경험을 정하고 시뮬로)."
         },
         {
           "type": "note",
-          "text": "**「손 데이터가 아니라 규칙으로」 — 식이 반복 조정과 일관성을 준다.** 곡선의 교훈은 「규칙적으로 변하는 값들은 하나씩 손으로 적지 말고, 그것들을 생성하는 식(규칙)으로 정의하라」다: 100개 값을 손으로 적으면 실수·불일치가 나고 전체 조정이 100번 수정이지만, 식으로 정의하면 파라미터 하나로 전체를 일관되게 조정한다(선형→지수도 식만 바꿈) — 데이터가 아니라 그것을 만드는 규칙을 다룬다. 이 「데이터를 생성 규칙으로」는 프로그래밍 전반의 근본이다 — 절차적 생성(맵·콘텐츠를 식·시드로 — math-random), 이징 곡선(math-easing — 값 나열 아니라 함수), 설정을 코드로(IaC), DRY(반복 데이터를 규칙으로). 핵심 통찰: **규칙성이 있는 데이터는 「값의 나열」이 아니라 「값을 만드는 규칙(식)」으로 다뤄야 — 일관되고, 조정이 쉽고, 실수가 없다** — 손으로 나열한 데이터는 불일치·수정 지옥을 낳지만, 규칙(식)은 파라미터 하나로 전체를 일관되게 바꾼다. 그리고 그 규칙의 결과(만렙까지 시간)는 계산·시뮬로 검증한다. 그래서 「규칙적으로 변하는 값(레벨 곡선·비용·성장)은 손으로 나열하지 말고 식(규칙)으로 정의해 파라미터로 조정하고, 그 결과를 계산·시뮬로 검증하라」가 근본 — 밸런싱의 곡선 설계는 그 실천으로, 식이 노가다를 없애고 일관성을 준다. 데이터가 아니라 규칙을 다뤄라."
+          "text": "**\"손 데이터가 아니라 규칙으로\". 식이 반복 조정과 일관성을 준다.** 곡선의 교훈은 \"규칙적으로 변하는 값들은 하나씩 손으로 적지 말고, 그것들을 생성하는 식(규칙)으로 정의하라\"다: 100개 값을 손으로 적으면 실수, 불일치가 나고 전체 조정이 100번 수정이지만, 식으로 정의하면 파라미터 하나로 전체를 일관되게 조정한다(선형→지수도 식만 바꿈). 데이터가 아니라 그것을 만드는 규칙을 다룬다. 이 \"데이터를 생성 규칙으로\"는 프로그래밍 전반의 근본이다. 절차적 생성(맵, 콘텐츠를 식, 시드로. math-random), 이징 곡선(math-easing. 값 나열 아니라 함수), 설정을 코드로(IaC), DRY(반복 데이터를 규칙으로). 핵심 통찰: **규칙성이 있는 데이터는 \"값의 나열\"이 아니라 \"값을 만드는 규칙(식)\"으로 다뤄야. 일관되고, 조정이 쉽고, 실수가 없다**. 손으로 나열한 데이터는 불일치, 수정 지옥을 낳지만, 규칙(식)은 파라미터 하나로 전체를 일관되게 바꾼다. 그리고 그 규칙의 결과(만렙까지 시간)는 계산, 시뮬로 검증한다. 그래서 \"규칙적으로 변하는 값(레벨 곡선, 비용, 성장)은 손으로 나열하지 말고 식(규칙)으로 정의해 파라미터로 조정하고, 그 결과를 계산, 시뮬로 검증하라\"가 근본. 밸런싱의 곡선 설계는 그 실천으로, 식이 노가다를 없애고 일관성을 준다. 데이터가 아니라 규칙을 다뤄라."
         },
         {
           "type": "try",
-          "text": "레벨·강화 수치를 **손으로 적지 말고 식으로** 정의하라 — `xpForLevel(l) = base * r^l`(지수)처럼. 선형(꾸준)·지수(후반 폭발)·로그(초반 급성장)를 바꿔 가며 진행 느낌의 차이를 보라. 파라미터 하나(base·r)로 곡선 전체가 조정됨을 확인하라(100개 손수정 X). 그리고 **그 식이 만렙까지 몇 시간짜리인지 계산·시뮬**하라(레벨 곡선 × 시간당 획득) — 의도한 플레이 시간과 맞추기(math-prob 의 시뮬로 검증). 규칙적 데이터는 나열이 아니라 식으로, 결과는 시뮬로 검증하라."
+          "text": "레벨, 강화 수치를 **손으로 적지 말고 식으로** 정의하라. `xpForLevel(l) = base * r^l`(지수)처럼. 선형(꾸준), 지수(후반 폭발), 로그(초반 급성장)를 바꿔 가며 진행 느낌의 차이를 보라. 파라미터 하나(base, r)로 곡선 전체가 조정됨을 확인하라(100개 손수정 X). 그리고 **그 식이 만렙까지 몇 시간짜리인지 계산, 시뮬**하라(레벨 곡선 × 시간당 획득). 의도한 플레이 시간과 맞추기(math-prob 의 시뮬로 검증). 규칙적 데이터는 나열이 아니라 식으로, 결과는 시뮬로 검증하라."
         }
       ],
       "quiz": [
         {
-          "q": "레벨·강화 수치를 다루는 법은?",
+          "q": "레벨, 강화 수치를 다루는 법은?",
           "choices": [
             "손으로 100줄",
-            "식(선형·지수·로그)으로 정의 — 파라미터 하나로 곡선 전체 조정",
+            "식(선형, 지수, 로그)으로 정의. 파라미터 하나로 곡선 전체 조정",
             "무작위",
             "무시"
           ],
@@ -279,7 +279,7 @@
           "q": "지수 곡선(base * r^l)의 성격은?",
           "choices": [
             "꾸준함",
-            "후반 폭발(레벨업마다 곱해져 커짐) — 성장 쾌감, 과하면 인플레",
+            "후반 폭발(레벨업마다 곱해져 커짐). 성장 쾌감, 과하면 인플레",
             "초반 급성장",
             "선형"
           ],
@@ -290,7 +290,7 @@
           "q": "곡선 식을 정한 뒤 확인할 것은?",
           "choices": [
             "없음",
-            "그 식이 몇 시간짜리 진행인지 계산·시뮬 → 의도한 플레이 시간과 맞춤",
+            "그 식이 몇 시간짜리 진행인지 계산, 시뮬 → 의도한 플레이 시간과 맞춤",
             "색",
             "무관"
           ],
@@ -301,17 +301,17 @@
     },
     {
       "id": "4",
-      "title": "재미와 공정 — 대칭은 지루하다",
+      "title": "재미와 공정. 대칭은 지루하다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**완벽한 대칭은 대개 지루하다** — 모든 무기·캐릭터가 정확히 같은 성능이면 「선택의 의미」가 없다(뭘 골라도 같음). 재미는 **비대칭(다름)**에서 온다: ① **가위바위보 관계** — A 가 B 에 강하고, B 는 C 에 강하고, C 는 A 에 강함(상성 순환). **어느 것도 절대 최강이 아니라** 상대에 따라 강약이 갈려 — **선택·상황 판단이 재미**있어진다(상대를 보고 고름). ② **상황 의존 강점** — 무기마다 **잘 통하는 상황이 다름**(근접 vs 원거리, 단일 vs 다수, 한 방 vs 지속 — 2장의 DPS 성격 차이). 상황에 맞는 선택. **하지만 — 지배 전략을 피하라**: 「**선택지가 하나뿐인 최적해(dominant strategy)**」가 있으면(A 가 모든 상황에서 최강) — 다른 선택이 **무의미**해지고(다 A 만 씀), 다양성이 죽는다(밸런스 붕괴). **비대칭하되 각각 존재 이유가 있게** — 완벽 대칭(지루)도, 지배 전략(획일)도 아닌 **「각자 다른 강점의 균형」**이 목표다(모두가 어딘가에서 최선). 재미(비대칭·선택)와 공정(지배 전략 없음)의 균형이다. 아래 데모로 대칭·가위바위보·지배 전략을 확인하라."
+          "text": "**완벽한 대칭은 대개 지루하다**. 모든 무기, 캐릭터가 정확히 같은 성능이면 \"선택의 의미\"가 없다(뭘 골라도 같음). 재미는 **비대칭(다름)**에서 온다: ① **가위바위보 관계**. A 가 B 에 강하고, B 는 C 에 강하고, C 는 A 에 강함(상성 순환). **어느 것도 절대 최강이 아니라** 상대에 따라 강약이 갈려. **선택, 상황 판단이 재미**있어진다(상대를 보고 고름). ② **상황 의존 강점**. 무기마다 **잘 통하는 상황이 다름**(근접 vs 원거리, 단일 vs 다수, 한 방 vs 지속. 2장의 DPS 성격 차이). 상황에 맞는 선택. **하지만. 지배 전략을 피하라**: \"**선택지가 하나뿐인 최적해(dominant strategy)**\"가 있으면(A 가 모든 상황에서 최강). 다른 선택이 **무의미**해지고(다 A 만 씀), 다양성이 죽는다(밸런스 붕괴). **비대칭하되 각각 존재 이유가 있게**. 완벽 대칭(지루)도, 지배 전략(획일)도 아닌 **\"각자 다른 강점의 균형\"**이 목표다(모두가 어딘가에서 최선). 재미(비대칭, 선택)와 공정(지배 전략 없음)의 균형이다. 아래 데모로 대칭, 가위바위보, 지배 전략을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "재미와 공정 — 대칭 vs 가위바위보 vs 지배",
+          "label": "재미와 공정. 대칭 vs 가위바위보 vs 지배",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const info = {\n    symmetric: ['완벽 대칭', '모든 선택이 정확히 같은 성능', '선택의 의미 없음 — 지루(뭘 골라도 같음)', 'bad'],\n    rps: ['가위바위보 관계', 'A>B>C>A (상성 순환)·상황 의존 강점', '어느 것도 절대 최강 X → 선택·판단이 재미', 'good'],\n    dominant: ['지배 전략', 'A 가 모든 상황에서 최강', '다른 선택 무의미(다 A 만) — 다양성 죽음', 'bad'],\n  }[kind];\n  render('밸런스: ' + info[0],\n    '  ' + info[1] + '\\n  결과: ' + info[2] + '\\n\\n' +\n    '  <span class=\\\"' + (info[3]==='good'?'ok':'no') + '\\\">' +\n    (kind==='rps' ? '비대칭하되 각자 존재 이유 — 재미(선택) + 공정(지배 전략 없음).' : kind==='symmetric' ? '완벽 대칭은 선택이 무의미 — 지루.' : '지배 전략은 획일 — 다양성이 죽음.') + '</span>',\n    '완벽 대칭(지루)도 지배 전략(획일)도 아닌 「각자 다른 강점의 균형」.',\n    kind === 'rps'\n      ? steps([['A > B (A 가 B 에 강함)', 'good'], ['B > C', 'good'], ['C > A (순환 — 절대 최강 없음)', 'good'], ['→ 상대를 보고 선택 = 재미', 'good']])\n      : box(info[0] + (info[3]==='bad'?' (문제)':''), info[1] + '\\n→ ' + info[2], 'bad'));\n</script>",
           "controls": [
@@ -345,15 +345,15 @@
         },
         {
           "type": "note",
-          "text": "**완벽한 대칭은 대개 지루하다(선택의 의미가 없음) — 재미는 비대칭(가위바위보 관계·상황 의존 강점)에서 온다. 하지만 지배 전략(모든 상황에서 최강인 하나)이 있으면 다른 선택이 무의미해져 다양성이 죽으니, 완벽 대칭도 지배 전략도 아닌 「각자 다른 강점의 균형」이 목표다.** 밸런스의 목표는 **「모두 똑같이」가 아니다** — 그건 지루하다. **완벽한 대칭은 지루**: 모든 무기·캐릭터·전략이 **정확히 같은 성능**이면(완벽 대칭) — **선택의 의미가 없다**(뭘 골라도 결과가 같으니). 「밸런스 = 다 똑같이」는 오해다. **재미는 비대칭에서**: 다양성·선택의 재미는 **각자 다름(비대칭)**에서 온다: ① **가위바위보 관계(rock-paper-scissors)** — **A 가 B 에 강하고, B 는 C 에 강하고, C 는 A 에 강한** 상성 순환. 이러면 **어느 것도 절대 최강이 아니고**(각자 강한 상대·약한 상대가 있음), **상대에 따라 강약이 갈린다** → **상대를 보고 무엇을 고를지 판단하는 게 재미**(메타·심리전). 스타크래프트 종족, 격투 게임 캐릭터, 포켓몬 타입이 이 구조. ② **상황 의존 강점** — 무기·캐릭터마다 **잘 통하는 상황이 다르다**: 근접 vs 원거리, 단일 대상 vs 다수, 한 방(버스트) vs 지속(DPS — 2장), 초반 vs 후반. **상황에 맞는 선택**이 전략이 된다(각자 자기 자리에서 최고). **하지만 — 지배 전략을 피하라**: 비대칭이되 **「선택지가 하나뿐인 최적해(dominant strategy, 지배 전략)」**가 생기면 안 된다 — **하나(A)가 모든 상황에서 최강**이면, 다른 선택이 **무의미**해진다(합리적 플레이어는 다 A 만 씀 — 「A 픽률 90%」). 그러면 **다양성이 죽고**(선택의 재미 소멸), 밸런스가 붕괴한다(2장의 파생값·5장의 관측으로 지배 전략 발견 — 「이 무기 승률·사용률이 압도적」). **목표 — 각자 다른 강점의 균형**: 완벽 대칭(지루·선택 무의미)도, 지배 전략(획일·다양성 죽음)도 아닌 — **비대칭하되 각각 존재 이유가 있게**(각자 어딘가에서 최선). 「모두가 어떤 상황·상대에선 최고, 어떤 데선 약함」 — 그래야 **선택이 의미 있고(재미)** 어느 하나가 압도하지 않는다(공정). **재미(비대칭·선택)와 공정(지배 전략 없음)의 균형**이 밸런싱의 예술이다. math-prob 4장의 「기댓값은 밸런스, 분포는 재미」와 통한다(밸런스는 공정, 다양성은 재미). **정리**: 밸런스는 **완벽 대칭(지루)이 아니라 비대칭(가위바위보·상황 의존 강점)으로 재미**를 주되, **지배 전략(모든 상황 최강)을 피해** 다양성을 지킨다 — **각자 다른 강점의 균형**(모두가 어딘가에서 최선)이 재미와 공정을 함께 준다. 같게가 아니라 「다르되 균형 있게」가 목표다."
+          "text": "**완벽한 대칭은 대개 지루하다(선택의 의미가 없음). 재미는 비대칭(가위바위보 관계, 상황 의존 강점)에서 온다. 하지만 지배 전략(모든 상황에서 최강인 하나)이 있으면 다른 선택이 무의미해져 다양성이 죽으니, 완벽 대칭도 지배 전략도 아닌 \"각자 다른 강점의 균형\"이 목표다.** 밸런스의 목표는 **\"모두 똑같이\"가 아니다**. 그건 지루하다. **완벽한 대칭은 지루**: 모든 무기, 캐릭터, 전략이 **정확히 같은 성능**이면(완벽 대칭). **선택의 의미가 없다**(뭘 골라도 결과가 같으니). \"밸런스 = 다 똑같이\"는 오해다. **재미는 비대칭에서**: 다양성, 선택의 재미는 **각자 다름(비대칭)**에서 온다: ① **가위바위보 관계(rock-paper-scissors)**. **A 가 B 에 강하고, B 는 C 에 강하고, C 는 A 에 강한** 상성 순환. 이러면 **어느 것도 절대 최강이 아니고**(각자 강한 상대, 약한 상대가 있음), **상대에 따라 강약이 갈린다** → **상대를 보고 무엇을 고를지 판단하는 게 재미**(메타, 심리전). 스타크래프트 종족, 격투 게임 캐릭터, 포켓몬 타입이 이 구조. ② **상황 의존 강점**. 무기, 캐릭터마다 **잘 통하는 상황이 다르다**: 근접 vs 원거리, 단일 대상 vs 다수, 한 방(버스트) vs 지속(DPS. 2장), 초반 vs 후반. **상황에 맞는 선택**이 전략이 된다(각자 자기 자리에서 최고). **하지만. 지배 전략을 피하라**: 비대칭이되 **\"선택지가 하나뿐인 최적해(dominant strategy, 지배 전략)\"**가 생기면 안 된다. **하나(A)가 모든 상황에서 최강**이면, 다른 선택이 **무의미**해진다(합리적 플레이어는 다 A 만 씀. \"A 픽률 90%\"). 그러면 **다양성이 죽고**(선택의 재미 소멸), 밸런스가 붕괴한다(2장의 파생값, 5장의 관측으로 지배 전략 발견. \"이 무기 승률, 사용률이 압도적\"). **목표. 각자 다른 강점의 균형**: 완벽 대칭(지루, 선택 무의미)도, 지배 전략(획일, 다양성 죽음)도 아닌. **비대칭하되 각각 존재 이유가 있게**(각자 어딘가에서 최선). \"모두가 어떤 상황, 상대에선 최고, 어떤 데선 약함\". 그래야 **선택이 의미 있고(재미)** 어느 하나가 압도하지 않는다(공정). **재미(비대칭, 선택)와 공정(지배 전략 없음)의 균형**이 밸런싱의 예술이다. math-prob 4장의 \"기댓값은 밸런스, 분포는 재미\"와 통한다(밸런스는 공정, 다양성은 재미). **정리**: 밸런스는 **완벽 대칭(지루)이 아니라 비대칭(가위바위보, 상황 의존 강점)으로 재미**를 주되, **지배 전략(모든 상황 최강)을 피해** 다양성을 지킨다. **각자 다른 강점의 균형**(모두가 어딘가에서 최선)이 재미와 공정을 함께 준다. 같게가 아니라 \"다르되 균형 있게\"가 목표다."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 「수치를 조정해 재미와 공정을 만들기」다. 데이터로(1장)는 빠른 반복 루프, 파생값(2장)은 올바른 지표, 곡선(3장)은 데이터가 아니라 규칙(math-easing·random), 재미와 공정(4장)은 비대칭의 균형(지배 전략 회피·math-prob 의 밸런스vs재미), 관측(5장)은 감이 아니라 분포(math-stats)와 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, balance 는 math 갈래(prob·stats)의 도구로 수치를 설계·검증한다(기댓값·분포·시뮬·백분위). **「밸런싱은 빠른 반복이 전부 — 수치를 데이터로 빼 핫 리로드하고, 원시 수치가 아니라 파생값(DPS·유효 체력)으로 비교하고, 진행은 식(곡선)으로 정의해 시뮬로 검증하고, 완벽 대칭(지루)도 지배 전략(획일)도 아닌 비대칭의 균형(가위바위보·상황 의존)으로 재미와 공정을, 감이 아니라 플레이 로그의 분포로 조정하라」**가 이 칸의 핵심이다."
+          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 \"수치를 조정해 재미와 공정을 만들기\"다. 데이터로(1장)는 빠른 반복 루프, 파생값(2장)은 올바른 지표, 곡선(3장)은 데이터가 아니라 규칙(math-easing, random), 재미와 공정(4장)은 비대칭의 균형(지배 전략 회피, math-prob 의 밸런스vs재미), 관측(5장)은 감이 아니라 분포(math-stats)와 통한다. game 갈래(loop, feel, input, balance, engine, ship)가 \"게임을 만드는 법\"이고, balance 는 math 갈래(prob, stats)의 도구로 수치를 설계, 검증한다(기댓값, 분포, 시뮬, 백분위). **\"밸런싱은 빠른 반복이 전부. 수치를 데이터로 빼 핫 리로드하고, 원시 수치가 아니라 파생값(DPS, 유효 체력)으로 비교하고, 진행은 식(곡선)으로 정의해 시뮬로 검증하고, 완벽 대칭(지루)도 지배 전략(획일)도 아닌 비대칭의 균형(가위바위보, 상황 의존)으로 재미와 공정을, 감이 아니라 플레이 로그의 분포로 조정하라\"**가 이 칸의 핵심이다."
         },
         {
           "type": "try",
-          "text": "네 게임의 밸런스가 **완벽 대칭(지루)인지, 지배 전략(획일)인지, 비대칭의 균형인지** 점검하라 — 모든 선택이 같으면 선택의 의미가 없고(지루), 하나가 모든 상황에서 최강이면 다양성이 죽는다(지배 전략). **가위바위보 관계**(A>B>C>A)나 **상황 의존 강점**(근접/원거리·단일/다수·한 방/지속 — 2장 DPS 성격)을 만들어 「각자 다른 강점의 균형」을 목표로 하라(모두가 어딘가에서 최선). 지배 전략은 파생값·플레이 로그(5장)로 찾아라(압도적 승률·사용률). 같게가 아니라 「다르되 균형 있게」 — 재미(비대칭)와 공정(지배 없음)을 함께."
+          "text": "네 게임의 밸런스가 **완벽 대칭(지루)인지, 지배 전략(획일)인지, 비대칭의 균형인지** 점검하라. 모든 선택이 같으면 선택의 의미가 없고(지루), 하나가 모든 상황에서 최강이면 다양성이 죽는다(지배 전략). **가위바위보 관계**(A>B>C>A)나 **상황 의존 강점**(근접/원거리, 단일/다수, 한 방/지속. 2장 DPS 성격)을 만들어 \"각자 다른 강점의 균형\"을 목표로 하라(모두가 어딘가에서 최선). 지배 전략은 파생값, 플레이 로그(5장)로 찾아라(압도적 승률, 사용률). 같게가 아니라 \"다르되 균형 있게\". 재미(비대칭)와 공정(지배 없음)을 함께."
         }
       ],
       "quiz": [
@@ -361,7 +361,7 @@
           "q": "완벽한 대칭(모두 같은 성능)의 문제는?",
           "choices": [
             "공정",
-            "선택의 의미가 없음 — 지루(뭘 골라도 같음)",
+            "선택의 의미가 없음. 지루(뭘 골라도 같음)",
             "재미",
             "무관"
           ],
@@ -372,7 +372,7 @@
           "q": "재미를 만드는 비대칭 구조는?",
           "choices": [
             "다 똑같이",
-            "가위바위보 관계(A>B>C>A)·상황 의존 강점 — 상대·상황을 보고 선택",
+            "가위바위보 관계(A>B>C>A), 상황 의존 강점. 상대, 상황을 보고 선택",
             "지배 전략",
             "무작위"
           ],
@@ -383,7 +383,7 @@
           "q": "피해야 할 것은?",
           "choices": [
             "비대칭",
-            "지배 전략(모든 상황에서 최강인 하나) — 다른 선택 무의미·다양성 죽음",
+            "지배 전략(모든 상황에서 최강인 하나). 다른 선택 무의미, 다양성 죽음",
             "가위바위보",
             "선택"
           ],
@@ -394,17 +394,17 @@
     },
     {
       "id": "5",
-      "title": "관측 — 감이 아니라 분포로",
+      "title": "관측. 감이 아니라 분포로",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "밸런스는 **감이 아니라 데이터(분포)로** 조정한다 — **플레이 로그를 남겨라**: **무기별 사용률·승률**(어느 무기가 얼마나 쓰이고 이기나), **구간별 이탈률**(어느 스테이지에서 사람들이 그만두나), **레벨별 진행 시간**, **아이템 획득·소비**. **감이 아니라 분포로 보면 조정할 곳이 보인다**: 「검이 세 보인다」(감)가 아니라 「**검 사용률 60%·승률 58%**」(데이터) — **지배 전략(4장)이 사용률·승률로 드러나고**(압도적이면 너프), **아무도 안 쓰는 무기**가 사용률로 보이고(버프·재설계), **이탈 구간**이 「여기서 60% 가 그만둠」으로 드러난다(너무 어려움 — 난이도 조정). **핵심 — 분포로**: 평균이 아니라 **분포**를 본다(math-stats) — 사용률 분포(고르게? 한쪽 쏠림?), 승률 분포(50% 근처? 극단?), 진행 시간 분포(의도대로? 특정 구간 정체?). **A/B·비교**로 조정 효과를 측정(craft-ai·math-prob — 감이 아니라 측정). 밸런싱 사이클: **데이터로 빼고(1장) → 파생값·곡선 설계(2·3장) → 플레이 로그 관측 → 분포로 조정 → 반복(1장의 빠른 반복)**. 감으로 흔들지 말고, 데이터가 가리키는 곳을 조정한다. 아래 데모로 플레이 로그·분포를 확인하라."
+          "text": "밸런스는 **감이 아니라 데이터(분포)로** 조정한다. **플레이 로그를 남겨라**: **무기별 사용률, 승률**(어느 무기가 얼마나 쓰이고 이기나), **구간별 이탈률**(어느 스테이지에서 사람들이 그만두나), **레벨별 진행 시간**, **아이템 획득, 소비**. **감이 아니라 분포로 보면 조정할 곳이 보인다**: \"검이 세 보인다\"(감)가 아니라 \"**검 사용률 60%, 승률 58%**\"(데이터). **지배 전략(4장)이 사용률, 승률로 드러나고**(압도적이면 너프), **아무도 안 쓰는 무기**가 사용률로 보이고(버프, 재설계), **이탈 구간**이 \"여기서 60% 가 그만둠\"으로 드러난다(너무 어려움. 난이도 조정). **핵심. 분포로**: 평균이 아니라 **분포**를 본다(math-stats). 사용률 분포(고르게? 한쪽 쏠림?), 승률 분포(50% 근처? 극단?), 진행 시간 분포(의도대로? 특정 구간 정체?). **A/B, 비교**로 조정 효과를 측정(craft-ai, math-prob. 감이 아니라 측정). 밸런싱 사이클: **데이터로 빼고(1장) → 파생값, 곡선 설계(2, 3장) → 플레이 로그 관측 → 분포로 조정 → 반복(1장의 빠른 반복)**. 감으로 흔들지 말고, 데이터가 가리키는 곳을 조정한다. 아래 데모로 플레이 로그, 분포를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "관측 — 사용률·승률·이탈률 분포",
+          "label": "관측. 사용률, 승률, 이탈률 분포",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'usage') {\n    const weapons = [['sword', 60, 58], ['axe', 25, 51], ['spear', 12, 49], ['dagger', 3, 42]];\n    const rows = weapons.map(([n, u, w]) => [n + ' (승률 ' + w + '%)', u, u >= 50 ? 'hi' : u <= 5 ? 'ok' : '', u + '% 사용']);\n    render('무기별 사용률·승률 — 감이 아니라 데이터',\n      '  검: 사용률 60%·승률 58% → 지배 전략(너프 후보)\\n' +\n      '  단검: 사용률 3%·승률 42% → 아무도 안 씀·약함(버프·재설계)\\n\\n' +\n      '  <span class=\\\"ok\\\">사용률·승률로 지배 전략(검)과 죽은 선택(단검)이 드러난다.</span>',\n      '무기별 사용률·승률 분포 → 지배 전략(너프)·죽은 선택(버프)이 보인다.',\n      bars(rows, 60));\n  } else {\n    const stages = [['1-1', 5], ['1-2', 8], ['1-3', 12], ['2-1', 55], ['2-2', 20]];\n    const rows = stages.map(([s, drop]) => ['스테이지 ' + s, drop, drop >= 40 ? 'hi' : '', drop + '% 이탈']);\n    render('구간별 이탈률 — 어디서 그만두나',\n      '  스테이지 2-1 에서 55% 이탈 → 여기가 너무 어려움(난이도 벽)\\n\\n' +\n      '  <span class=\\\"warn\\\">이탈 구간이 데이터로 드러남 → 그 구간 난이도 조정.</span>',\n      '구간별 이탈률 → 어디서 사람들이 그만두나(난이도 벽)가 드러난다.',\n      bars(rows, 55));\n  }\n</script>",
           "controls": [
@@ -416,7 +416,7 @@
               "options": [
                 {
                   "value": "usage",
-                  "label": "사용률·승률"
+                  "label": "사용률, 승률"
                 },
                 {
                   "value": "drop",
@@ -429,20 +429,20 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "관측 — 분포로",
+          "label": "관측. 분포로",
           "text": "플레이 로그를 남겨라:\n · 무기별 사용률·승률 (지배 전략·죽은 선택 발견)\n · 구간별 이탈률 (어디서 그만두나 — 난이도 벽)\n · 레벨별 진행 시간 · 아이템 획득/소비\n\n감이 아니라 분포로 보면 조정할 곳이 보인다\n  「검이 세 보인다」(감) → 「검 사용률 60%·승률 58%」(데이터)\n\n사이클: 데이터로 빼고 → 파생값·곡선 → 로그 관측 → 분포로 조정 → 반복"
         },
         {
           "type": "note",
-          "text": "**밸런스는 감이 아니라 데이터(분포)로 조정한다 — 플레이 로그(무기별 사용률·승률·구간별 이탈률·진행 시간)를 남기면, 「검이 세 보인다」(감)가 「검 사용률 60%·승률 58%」(데이터)가 되어 지배 전략·죽은 선택·이탈 구간이 분포로 드러나 조정할 곳이 보인다.** 밸런싱의 마무리 — **관측(observation)으로 조정**. **감이 아니라 데이터로**: 밸런스를 **감**(「검이 세 보여」, 「여기가 어려운 것 같아」)으로 조정하면 — 주관적이고 틀리기 쉽다(내 플레이 ≠ 전체 플레이어). **플레이 로그를 남겨** 데이터로 본다. **남길 로그**: ① **무기별 사용률·승률** — 어느 무기·캐릭터가 **얼마나 쓰이고(사용률) 얼마나 이기나(승률)**. ② **구간별 이탈률** — 어느 스테이지·레벨에서 **사람들이 그만두나**(리텐션·퍼널 — analytics). ③ **레벨별 진행 시간** — 각 구간을 **얼마나 걸려 지나나**(3장의 곡선이 의도대로인지). ④ **아이템 획득·소비, 자원 흐름, 사망 원인** 등. **데이터가 조정할 곳을 드러낸다**: ⓐ **지배 전략(4장) 발견** — 「검 **사용률 60%·승률 58%**」면 지배 전략(너무 강함 → 너프). 압도적 사용률·승률이 밸런스 붕괴의 증거. ⓑ **죽은 선택 발견** — 「단검 사용률 3%·승률 42%」면 아무도 안 쓰고 약함(버프·재설계 — 존재 이유를 줌). ⓒ **난이도 벽 발견** — 「스테이지 2-1 에서 55% 이탈」이면 그 구간이 너무 어려움(난이도 조정 — 이탈 방지). ⓓ **진행 정체** — 특정 구간에서 시간이 오래 걸리면 곡선(3장) 조정. **핵심 — 분포로 본다**: 평균이 아니라 **분포**를 본다(math-stats — 평균은 분포를 숨김): 사용률 **분포**(고르게 퍼졌나? 한쪽 쏠림?), 승률 **분포**(다 50% 근처면 균형? 극단이면 붕괴?), 진행 시간 **분포**(의도대로? 특정 구간 정체?). 그리고 **A/B·비교**로 조정 효과를 측정한다(craft-ai·math-prob — 감이 아니라 측정으로 검증). **밸런싱 사이클(전체)**: **① 데이터로 빼고(1장) → ② 파생값·곡선 설계(2·3장) → ③ 플레이 로그 관측 → ④ 분포로 조정 → ⑤ 반복(1장의 빠른 반복)**. 이 사이클을 빠르게(핫 리로드) 돌며 데이터가 가리키는 곳을 조정한다. math-prob 5장의 「감으로 숫자 흔들지 말고 경험→기댓값→시뮬→최악 확인」과 정합(측정·시뮬 기반 조정). **정리**: 밸런스는 **감이 아니라 플레이 로그의 분포(사용률·승률·이탈률)로** 조정한다 — 지배 전략·죽은 선택·이탈 구간이 데이터로 드러나 조정할 곳이 보인다. 「검이 세 보인다」가 아니라 「검 사용률 60%」로, 분포로 보고 데이터가 가리키는 곳을 조정한다. 관측이 밸런싱을 감에서 과학으로 만든다."
+          "text": "**밸런스는 감이 아니라 데이터(분포)로 조정한다. 플레이 로그(무기별 사용률, 승률, 구간별 이탈률, 진행 시간)를 남기면, \"검이 세 보인다\"(감)가 \"검 사용률 60%, 승률 58%\"(데이터)가 되어 지배 전략, 죽은 선택, 이탈 구간이 분포로 드러나 조정할 곳이 보인다.** 밸런싱의 마무리. **관측(observation)으로 조정**. **감이 아니라 데이터로**: 밸런스를 **감**(\"검이 세 보여\", \"여기가 어려운 것 같아\")으로 조정하면. 주관적이고 틀리기 쉽다(내 플레이 ≠ 전체 플레이어). **플레이 로그를 남겨** 데이터로 본다. **남길 로그**: ① **무기별 사용률, 승률**. 어느 무기, 캐릭터가 **얼마나 쓰이고(사용률) 얼마나 이기나(승률)**. ② **구간별 이탈률**. 어느 스테이지, 레벨에서 **사람들이 그만두나**(리텐션, 퍼널. analytics). ③ **레벨별 진행 시간**. 각 구간을 **얼마나 걸려 지나나**(3장의 곡선이 의도대로인지). ④ **아이템 획득, 소비, 자원 흐름, 사망 원인** 등. **데이터가 조정할 곳을 드러낸다**: ⓐ **지배 전략(4장) 발견**. \"검 **사용률 60%, 승률 58%**\"면 지배 전략(너무 강함 → 너프). 압도적 사용률, 승률이 밸런스 붕괴의 증거. ⓑ **죽은 선택 발견**. \"단검 사용률 3%, 승률 42%\"면 아무도 안 쓰고 약함(버프, 재설계. 존재 이유를 줌). ⓒ **난이도 벽 발견**. \"스테이지 2-1 에서 55% 이탈\"이면 그 구간이 너무 어려움(난이도 조정. 이탈 방지). ⓓ **진행 정체**. 특정 구간에서 시간이 오래 걸리면 곡선(3장) 조정. **핵심. 분포로 본다**: 평균이 아니라 **분포**를 본다(math-stats. 평균은 분포를 숨김): 사용률 **분포**(고르게 퍼졌나? 한쪽 쏠림?), 승률 **분포**(다 50% 근처면 균형? 극단이면 붕괴?), 진행 시간 **분포**(의도대로? 특정 구간 정체?). 그리고 **A/B, 비교**로 조정 효과를 측정한다(craft-ai, math-prob. 감이 아니라 측정으로 검증). **밸런싱 사이클(전체)**: **① 데이터로 빼고(1장) → ② 파생값, 곡선 설계(2, 3장) → ③ 플레이 로그 관측 → ④ 분포로 조정 → ⑤ 반복(1장의 빠른 반복)**. 이 사이클을 빠르게(핫 리로드) 돌며 데이터가 가리키는 곳을 조정한다. math-prob 5장의 \"감으로 숫자 흔들지 말고 경험→기댓값→시뮬→최악 확인\"과 정합(측정, 시뮬 기반 조정). **정리**: 밸런스는 **감이 아니라 플레이 로그의 분포(사용률, 승률, 이탈률)로** 조정한다. 지배 전략, 죽은 선택, 이탈 구간이 데이터로 드러나 조정할 곳이 보인다. \"검이 세 보인다\"가 아니라 \"검 사용률 60%\"로, 분포로 보고 데이터가 가리키는 곳을 조정한다. 관측이 밸런싱을 감에서 과학으로 만든다."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 「수치를 조정해 재미와 공정을 만들기」다. 데이터로는 빠른 반복 루프, 파생값은 올바른 지표, 곡선은 데이터가 아니라 규칙, 재미와 공정은 비대칭의 균형(지배 전략 회피), 관측은 감이 아니라 분포(math-stats·analytics)와 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, balance 는 math 갈래(prob·stats)의 도구로 수치를 설계·검증하며(기댓값·분포·시뮬·백분위) analytics(로그·이탈률)와 이어진다. **「밸런싱은 빠른 반복이 전부 — 수치를 데이터로 빼 핫 리로드, 원시 수치가 아니라 파생값(DPS·유효 체력)으로 비교, 진행은 식(곡선)으로 정의해 시뮬로 검증, 완벽 대칭도 지배 전략도 아닌 비대칭의 균형으로 재미와 공정을, 감이 아니라 플레이 로그의 분포로 조정하라」**가 이 칸의 핵심이다."
+          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 \"수치를 조정해 재미와 공정을 만들기\"다. 데이터로는 빠른 반복 루프, 파생값은 올바른 지표, 곡선은 데이터가 아니라 규칙, 재미와 공정은 비대칭의 균형(지배 전략 회피), 관측은 감이 아니라 분포(math-stats, analytics)와 통한다. game 갈래(loop, feel, input, balance, engine, ship)가 \"게임을 만드는 법\"이고, balance 는 math 갈래(prob, stats)의 도구로 수치를 설계, 검증하며(기댓값, 분포, 시뮬, 백분위) analytics(로그, 이탈률)와 이어진다. **\"밸런싱은 빠른 반복이 전부. 수치를 데이터로 빼 핫 리로드, 원시 수치가 아니라 파생값(DPS, 유효 체력)으로 비교, 진행은 식(곡선)으로 정의해 시뮬로 검증, 완벽 대칭도 지배 전략도 아닌 비대칭의 균형으로 재미와 공정을, 감이 아니라 플레이 로그의 분포로 조정하라\"**가 이 칸의 핵심이다."
         },
         {
           "type": "try",
-          "text": "**플레이 로그를 남기고 분포로 조정하라** — 무기별 사용률·승률, 구간별 이탈률, 레벨별 진행 시간을 기록하라. 「검이 세 보인다」(감)가 아니라 「검 사용률 60%·승률 58%」(데이터)로 보면 지배 전략(너프)·죽은 선택(버프)·이탈 구간(난이도 조정)이 드러난다. 평균이 아니라 분포로(사용률 쏠림·승률 극단 — math-stats), A/B 로 조정 효과를 측정하라(감이 아니라). 밸런싱 사이클(데이터로 빼고→파생값·곡선→로그 관측→분포로 조정→반복)을 빠르게 돌려라 — 감으로 흔들지 말고 데이터가 가리키는 곳을 조정하라."
+          "text": "**플레이 로그를 남기고 분포로 조정하라**. 무기별 사용률, 승률, 구간별 이탈률, 레벨별 진행 시간을 기록하라. \"검이 세 보인다\"(감)가 아니라 \"검 사용률 60%, 승률 58%\"(데이터)로 보면 지배 전략(너프), 죽은 선택(버프), 이탈 구간(난이도 조정)이 드러난다. 평균이 아니라 분포로(사용률 쏠림, 승률 극단. math-stats), A/B 로 조정 효과를 측정하라(감이 아니라). 밸런싱 사이클(데이터로 빼고→파생값, 곡선→로그 관측→분포로 조정→반복)을 빠르게 돌려라. 감으로 흔들지 말고 데이터가 가리키는 곳을 조정하라."
         }
       ],
       "quiz": [
@@ -450,7 +450,7 @@
           "q": "밸런스를 조정하는 근거는?",
           "choices": [
             "감",
-            "플레이 로그의 분포(사용률·승률·이탈률) — 감이 아니라 데이터",
+            "플레이 로그의 분포(사용률, 승률, 이탈률). 감이 아니라 데이터",
             "무작위",
             "직관"
           ],
@@ -458,10 +458,10 @@
           "why": "분포로 보면 조정할 곳이 보임."
         },
         {
-          "q": "「검 사용률 60%·승률 58%」가 드러내는 것은?",
+          "q": "\"검 사용률 60%, 승률 58%\"가 드러내는 것은?",
           "choices": [
             "균형",
-            "지배 전략(너무 강함) — 너프 후보(압도적 사용률·승률)",
+            "지배 전략(너무 강함). 너프 후보(압도적 사용률, 승률)",
             "약함",
             "무관"
           ],
@@ -472,7 +472,7 @@
           "q": "밸런싱 사이클은?",
           "choices": [
             "감으로 흔들기",
-            "데이터로 빼고→파생값·곡선→로그 관측→분포로 조정→반복(빠른 반복)",
+            "데이터로 빼고→파생값, 곡선→로그 관측→분포로 조정→반복(빠른 반복)",
             "한 번에",
             "무작위"
           ],
@@ -483,17 +483,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 게임 밸런싱",
+      "title": "점검표. 게임 밸런싱",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "게임을 밸런싱할 때 이 목록을 확인하라. 핵심은 「빠른 반복 — 데이터로·파생값·곡선 식·비대칭 균형·분포로 조정」이다."
+          "text": "게임을 밸런싱할 때 이 목록을 확인하라. 핵심은 \"빠른 반복. 데이터로, 파생값, 곡선 식, 비대칭 균형, 분포로 조정\"이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "400px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:82px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:15px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  svg { display:block; margin:8px auto; background:#0d1526; border-radius:8px; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:center; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  td.hi { color:#4ade80; font-weight:700; } td.lo { color:#f87171; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:60px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.hi { background:#ef4444; } .bars .b .bar.ok { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 200)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function plot(w, h, fns, maxY) {\n    const pad = 14, gw = w - pad*2, gh = h - pad*2;\n    let paths = '';\n    for (const [fn, color] of fns) {\n      let d = '';\n      for (let i = 0; i <= 40; i++) { const t = i/40, v = Math.min(1, fn(t)/maxY); const x = pad + t*gw, y = pad + (1-v)*gh; d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' '; }\n      paths += '<path d=\"' + d + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/>';\n    }\n    const grid = '<line x1=' + pad + ' y1=' + (pad+gh) + ' x2=' + (pad+gw) + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>' +\n      '<line x1=' + pad + ' y1=' + pad + ' x2=' + pad + ' y2=' + (pad+gh) + ' stroke=\"#334155\"/>';\n    return '<svg width=\"' + w + '\" height=\"' + h + '\" viewBox=\"0 0 ' + w + ' ' + h + '\">' + grid + paths + '</svg>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '밸런싱은 빠른 반복이 전부 — 수치를 데이터로 빼고 핫 리로드',\n    '표로 빼면 비교 가능(도끼가 정말 센 게 맞나 눈으로)',\n    '원시 수치 아니라 파생값(DPS·유효 체력)으로 비교',\n    '레벨·강화는 손 아니라 식(선형·지수·로그)으로 정의',\n    '그 식이 몇 시간짜리인지 계산·시뮬로 확인',\n    '완벽 대칭(지루)도 지배 전략(획일)도 아닌 비대칭 균형',\n    '가위바위보·상황 의존 강점 — 각자 다른 강점(재미+공정)',\n    '감 아니라 플레이 로그의 분포(사용률·승률·이탈률)로 조정',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 빠른 반복 + 데이터로 재미와 공정을.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '빠른 반복 — 데이터로·파생값·곡선 식·비대칭 균형·분포로 조정.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -510,15 +510,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 밸런싱은 빠른 반복이 전부이니 수치를 코드가 아니라 데이터(JSON)로 빼 핫 리로드로 초 단위 조정하고 표로 비교하며, 원시 수치가 아니라 파생값(DPS=데미지/쿨다운·유효 체력)으로 진짜 강함을 비교하고, 레벨·강화는 손으로 적지 말고 식(선형·지수·로그)으로 정의해 그 식이 몇 시간짜리인지 시뮬로 검증하며, 완벽 대칭(지루)도 지배 전략(획일)도 아닌 비대칭의 균형(가위바위보·상황 의존 강점 — 각자 다른 강점)으로 재미와 공정을 함께 주고, 감이 아니라 플레이 로그의 분포(무기별 사용률·승률·구간별 이탈률)로 조정할 곳을 찾는다.** 데이터로(1장), 파생값(2장), 곡선 식(3장), 비대칭 균형(4장), 분포로 조정(5장). 「빠른 반복 + 데이터로 재미와 공정」이 핵심이다."
+          "text": "**한 줄 요약: 밸런싱은 빠른 반복이 전부이니 수치를 코드가 아니라 데이터(JSON)로 빼 핫 리로드로 초 단위 조정하고 표로 비교하며, 원시 수치가 아니라 파생값(DPS=데미지/쿨다운, 유효 체력)으로 진짜 강함을 비교하고, 레벨, 강화는 손으로 적지 말고 식(선형, 지수, 로그)으로 정의해 그 식이 몇 시간짜리인지 시뮬로 검증하며, 완벽 대칭(지루)도 지배 전략(획일)도 아닌 비대칭의 균형(가위바위보, 상황 의존 강점. 각자 다른 강점)으로 재미와 공정을 함께 주고, 감이 아니라 플레이 로그의 분포(무기별 사용률, 승률, 구간별 이탈률)로 조정할 곳을 찾는다.** 데이터로(1장), 파생값(2장), 곡선 식(3장), 비대칭 균형(4장), 분포로 조정(5장). \"빠른 반복 + 데이터로 재미와 공정\"이 핵심이다."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 「수치를 조정해 재미와 공정을 만들기」다. 데이터로는 빠른 반복 루프, 파생값은 올바른 지표, 곡선은 데이터가 아니라 규칙(math-easing·random), 재미와 공정은 비대칭의 균형(지배 전략 회피·math-prob 의 밸런스vs재미), 관측은 감이 아니라 분포(math-stats·analytics)와 통한다. game 갈래(loop·feel·input·balance·engine·ship)가 「게임을 만드는 법」이고, balance 는 math 갈래(prob·stats — 기댓값·분포·시뮬·백분위)의 도구로 수치를 설계·검증하며 analytics(로그·이탈률)와 이어진다. **「빠른 반복 — 데이터로·파생값·곡선 식·비대칭 균형·분포로 조정」**이 이 칸의 전부다. 밸런싱은 감이 아니라 빠른 반복(데이터·핫 리로드) + 올바른 지표(파생값) + 규칙(곡선 식·시뮬 검증) + 비대칭의 균형(재미·공정) + 데이터 관측(분포)으로 하는 것이다."
+          "text": "**이 칸과 갈래.** 밸런싱(game-balance)은 game 갈래(게임 개발)에서 \"수치를 조정해 재미와 공정을 만들기\"다. 데이터로는 빠른 반복 루프, 파생값은 올바른 지표, 곡선은 데이터가 아니라 규칙(math-easing, random), 재미와 공정은 비대칭의 균형(지배 전략 회피, math-prob 의 밸런스vs재미), 관측은 감이 아니라 분포(math-stats, analytics)와 통한다. game 갈래(loop, feel, input, balance, engine, ship)가 \"게임을 만드는 법\"이고, balance 는 math 갈래(prob, stats. 기댓값, 분포, 시뮬, 백분위)의 도구로 수치를 설계, 검증하며 analytics(로그, 이탈률)와 이어진다. **\"빠른 반복. 데이터로, 파생값, 곡선 식, 비대칭 균형, 분포로 조정\"**이 이 칸의 전부다. 밸런싱은 감이 아니라 빠른 반복(데이터, 핫 리로드) + 올바른 지표(파생값) + 규칙(곡선 식, 시뮬 검증) + 비대칭의 균형(재미, 공정) + 데이터 관측(분포)으로 하는 것이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 게임 밸런싱을 점검하라. 「수치를 데이터로 빼 핫 리로드」와 「감이 아니라 분포로 조정」 두 가지만 잡아도, 밸런싱이 빠르고 정확해진다. 수치를 JSON 으로 빼 재빌드 없이 조정하고, 파생값(DPS·유효 체력)으로 비교하고, 진행은 식으로 정의해 시뮬로 검증하고, 완벽 대칭도 지배 전략도 아닌 비대칭 균형(가위바위보)으로, 플레이 로그의 분포(사용률·승률·이탈률)로 조정할 곳을 찾아라 — 빠른 반복 + 데이터로 재미와 공정을 만들어라."
+          "text": "이 8개로 네 게임 밸런싱을 점검하라. \"수치를 데이터로 빼 핫 리로드\"와 \"감이 아니라 분포로 조정\" 두 가지만 잡아도, 밸런싱이 빠르고 정확해진다. 수치를 JSON 으로 빼 재빌드 없이 조정하고, 파생값(DPS, 유효 체력)으로 비교하고, 진행은 식으로 정의해 시뮬로 검증하고, 완벽 대칭도 지배 전략도 아닌 비대칭 균형(가위바위보)으로, 플레이 로그의 분포(사용률, 승률, 이탈률)로 조정할 곳을 찾아라. 빠른 반복 + 데이터로 재미와 공정을 만들어라."
         }
       ],
       "quiz": [
@@ -526,7 +526,7 @@
           "q": "게임 밸런싱 장의 한 줄 요약은?",
           "choices": [
             "감으로 조정",
-            "빠른 반복 — 데이터로·파생값·곡선 식·비대칭 균형·분포로 조정",
+            "빠른 반복. 데이터로, 파생값, 곡선 식, 비대칭 균형, 분포로 조정",
             "무시",
             "코드에 박음"
           ],
@@ -536,9 +536,9 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "속도·색",
+            "속도, 색",
             "수치를 데이터로 빼 핫 리로드 + 감이 아니라 분포로 조정",
-            "정렬·압축",
+            "정렬, 압축",
             "무시"
           ],
           "answer": 1,
@@ -548,12 +548,12 @@
           "q": "밸런싱이 이어지는 주제는?",
           "choices": [
             "없음",
-            "math-prob(기댓값·시뮬)·stats(분포)·analytics(로그·이탈률)·game 전반",
+            "math-prob(기댓값, 시뮬), stats(분포), analytics(로그, 이탈률), game 전반",
             "속도만",
             "색"
           ],
           "answer": 1,
-          "why": "수치 설계·검증."
+          "why": "수치 설계, 검증."
         }
       ]
     }

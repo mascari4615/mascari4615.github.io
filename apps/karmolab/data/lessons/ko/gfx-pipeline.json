@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**「무거워요」의 원인이 정점(vertex)인지 픽셀(fragment)인지 모르면 최적화가 전부 도박이다 — 화면 한 장이 만들어지는 순서를 알면 어디를 볼지가 정해진다.** GPU 성능 문제는 크게 몇 가지 병목 중 하나다: **정점 처리**(모델이 복잡)·**프래그먼트 처리**(픽셀이 많거나 셰이더가 무거움)·**드로우 콜**(CPU 가 그리기 명령을 너무 많이)·**대역폭/상태 변경**. 이 중 무엇인지 모르고 「폴리곤 줄이자·텍스처 줄이자」를 아무거나 시도하면 대부분 헛수고다(gfx-perf 「눈으로 짐작한 병목은 대개 틀린다」). **빠른 이분법**: 해상도를 낮췄더니 빨라지면 **프래그먼트(픽셀) 병목**, 오브젝트 수를 줄였더니 빨라지면 **드로우 콜(CPU) 병목**, 모델을 단순화했더니 빨라지면 **정점 병목**이다. 파이프라인의 순서를 알면 이 진단이 논리적으로 이어진다. 이 칸은 정점에서 픽셀까지(2장)·드로우 콜(3장)·오버드로우(4장)·상태 변경과 프로파일링(5장)을 다룬다. 아래 데모로 병목 이분법을 확인하라."
+          "text": "**\"무거워요\"의 원인이 정점(vertex)인지 픽셀(fragment)인지 모르면 최적화가 전부 도박이다. 화면 한 장이 만들어지는 순서를 알면 어디를 볼지가 정해진다.** GPU 성능 문제는 크게 몇 가지 병목 중 하나다: **정점 처리**(모델이 복잡), **프래그먼트 처리**(픽셀이 많거나 셰이더가 무거움), **드로우 콜**(CPU 가 그리기 명령을 너무 많이), **대역폭/상태 변경**. 이 중 무엇인지 모르고 \"폴리곤 줄이자, 텍스처 줄이자\"를 아무거나 시도하면 대부분 헛수고다(gfx-perf \"눈으로 짐작한 병목은 대개 틀린다\"). **빠른 이분법**: 해상도를 낮췄더니 빨라지면 **프래그먼트(픽셀) 병목**, 오브젝트 수를 줄였더니 빨라지면 **드로우 콜(CPU) 병목**, 모델을 단순화했더니 빨라지면 **정점 병목**이다. 파이프라인의 순서를 알면 이 진단이 논리적으로 이어진다. 이 칸은 정점에서 픽셀까지(2장), 드로우 콜(3장), 오버드로우(4장), 상태 변경과 프로파일링(5장)을 다룬다. 아래 데모로 병목 이분법을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "병목 이분법 — 무엇을 줄이니 빨라지나",
+          "label": "병목 이분법. 무엇을 줄이니 빨라지나",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const fix = '{{fix}}';\n  const table = {\n    'res': ['해상도를 절반으로 낮췄더니 빨라짐', '프래그먼트(픽셀) 병목 — 픽셀 수·픽셀 셰이더가 무겁다(4장 오버드로우·후처리).'],\n    'count': ['오브젝트 수를 줄였더니 빨라짐', '드로우 콜(CPU) 병목 — 그리기 명령이 너무 많다(3장 배칭·인스턴싱).'],\n    'model': ['모델을 단순화했더니 빨라짐', '정점 병목 — 폴리곤이 너무 많다(LOD·메시 단순화).'],\n    'none': ['아무거나 시도(도박)', '병목을 모른 채 폴리곤·텍스처를 마구 줄임 → 대부분 헛수고.'],\n  };\n  const r = table[fix];\n  const ok = fix !== 'none';\n  render('실험: ' + r[0],\n    (ok ? '<span class=\"ok\">' + r[1] + '</span>' : '<span class=\"no\">' + r[1] + '</span>') +\n    '\\n  파이프라인 순서를 알면 「무엇을 줄이면 어디가 병목인지」가 논리적으로 이어진다.',\n    '병목이 정점·픽셀·드로우 콜 중 무엇인지 먼저 — 아니면 최적화는 도박.',\n    flow([{ label: '정점 처리' }, { label: '래스터화' }, { label: '프래그먼트' }, { label: '출력 병합' }]));\n</script>",
           "controls": [
@@ -45,11 +45,11 @@
         },
         {
           "type": "note",
-          "text": "**렌더링이 느릴 때 원인이 정점인지 픽셀인지 드로우 콜인지 모르면 최적화가 도박이 되며, 파이프라인 순서를 알면 어디를 볼지가 정해진다.** **왜 병목을 알아야 하나**: GPU 렌더링은 여러 단계(정점 → 래스터화 → 프래그먼트 → 출력, 2장)를 거치고, 프레임 시간은 **가장 느린 단계(병목)**가 지배한다. 병목이 아닌 곳을 최적화하면 — 예를 들어 프래그먼트 병목인데 폴리곤을 줄이면 — **성능이 안 변한다**(헛수고). 그래서 무엇을 줄일지 정하기 전에 **어느 단계가 병목인지** 먼저 알아야 한다(gfx-perf 「눈으로 짐작한 병목은 대개 틀린다」·「캡처해서 봐야」). **주요 병목 후보**: ① **정점 처리(vertex-bound)** — 폴리곤(정점)이 너무 많음. 정점 수는 **모델 복잡도**에 비례. ② **프래그먼트 처리(fragment/fill-bound)** — 픽셀이 너무 많거나 픽셀 셰이더가 무거움. 프래그먼트 수는 **화면에서 차지하는 면적**에 비례(2장) — 화면을 가득 채우는 반투명·후처리가 폴리곤 많은 작은 모델보다 비쌀 수 있다(4장 오버드로우). ③ **드로우 콜(CPU-bound)** — 그리기 명령이 너무 많아 CPU 가 GPU 를 못 따라감(3장). ④ **대역폭/상태 변경** — 텍스처 전송·재질 전환(5장). **빠른 이분법 진단**(실험으로 병목 좁히기): ⓐ **해상도를 절반으로** 낮췄더니 빨라짐 → **프래그먼트(픽셀) 병목**(픽셀 수에 좌우되므로). ⓑ **오브젝트 수를 절반으로** 줄였더니 빨라짐 → **드로우 콜(CPU) 병목**(명령 횟수에 좌우). ⓒ **모델을 단순화**(폴리곤 감소)했더니 빨라짐 → **정점 병목**. ⓓ 아무것도 안 변하면 다른 병목(대역폭·동기화). 이 실험들은 파이프라인 단계와 직접 대응해, 어느 단계를 볼지 알려 준다. 더 정확히는 프로파일러·프레임 캡처로 각 단계 시간을 본다(5장). **정리**: 최적화 전에 병목이 정점·픽셀·드로우 콜 중 무엇인지 이분법 실험이나 프로파일링으로 특정하라 — 파이프라인 순서를 알면 진단이 논리적으로 이어진다(다음 장이 각 단계)."
+          "text": "**렌더링이 느릴 때 원인이 정점인지 픽셀인지 드로우 콜인지 모르면 최적화가 도박이 되며, 파이프라인 순서를 알면 어디를 볼지가 정해진다.** **왜 병목을 알아야 하나**: GPU 렌더링은 여러 단계(정점 → 래스터화 → 프래그먼트 → 출력, 2장)를 거치고, 프레임 시간은 **가장 느린 단계(병목)**가 지배한다. 병목이 아닌 곳을 최적화하면. 예를 들어 프래그먼트 병목인데 폴리곤을 줄이면. **성능이 안 변한다**(헛수고). 그래서 무엇을 줄일지 정하기 전에 **어느 단계가 병목인지** 먼저 알아야 한다(gfx-perf \"눈으로 짐작한 병목은 대개 틀린다\", \"캡처해서 봐야\"). **주요 병목 후보**: ① **정점 처리(vertex-bound)**. 폴리곤(정점)이 너무 많음. 정점 수는 **모델 복잡도**에 비례. ② **프래그먼트 처리(fragment/fill-bound)**. 픽셀이 너무 많거나 픽셀 셰이더가 무거움. 프래그먼트 수는 **화면에서 차지하는 면적**에 비례(2장). 화면을 가득 채우는 반투명, 후처리가 폴리곤 많은 작은 모델보다 비쌀 수 있다(4장 오버드로우). ③ **드로우 콜(CPU-bound)**. 그리기 명령이 너무 많아 CPU 가 GPU 를 못 따라감(3장). ④ **대역폭/상태 변경**. 텍스처 전송, 재질 전환(5장). **빠른 이분법 진단**(실험으로 병목 좁히기): ⓐ **해상도를 절반으로** 낮췄더니 빨라짐 → **프래그먼트(픽셀) 병목**(픽셀 수에 좌우되므로). ⓑ **오브젝트 수를 절반으로** 줄였더니 빨라짐 → **드로우 콜(CPU) 병목**(명령 횟수에 좌우). ⓒ **모델을 단순화**(폴리곤 감소)했더니 빨라짐 → **정점 병목**. ⓓ 아무것도 안 변하면 다른 병목(대역폭, 동기화). 이 실험들은 파이프라인 단계와 직접 대응해, 어느 단계를 볼지 알려 준다. 더 정확히는 프로파일러, 프레임 캡처로 각 단계 시간을 본다(5장). **정리**: 최적화 전에 병목이 정점, 픽셀, 드로우 콜 중 무엇인지 이분법 실험이나 프로파일링으로 특정하라. 파이프라인 순서를 알면 진단이 논리적으로 이어진다(다음 장이 각 단계)."
         },
         {
           "type": "try",
-          "text": "느린 씬에서 **해상도를 절반으로** 낮춰 보고, 따로 **오브젝트 수를 절반으로** 줄여 보라. **어느 쪽에서 프레임이 회복되는지**가 병목의 정체다 — 해상도면 프래그먼트(픽셀), 오브젝트 수면 드로우 콜(CPU), 둘 다 아니면 정점이나 다른 병목. 이 이분법으로 무엇을 최적화할지 정하라(아무거나 줄이지 말고)."
+          "text": "느린 씬에서 **해상도를 절반으로** 낮춰 보고, 따로 **오브젝트 수를 절반으로** 줄여 보라. **어느 쪽에서 프레임이 회복되는지**가 병목의 정체다. 해상도면 프래그먼트(픽셀), 오브젝트 수면 드로우 콜(CPU), 둘 다 아니면 정점이나 다른 병목. 이 이분법으로 무엇을 최적화할지 정하라(아무거나 줄이지 말고)."
         }
       ],
       "quiz": [
@@ -57,7 +57,7 @@
           "q": "최적화 전에 가장 먼저 할 일은?",
           "choices": [
             "폴리곤 줄이기",
-            "병목이 정점·픽셀·드로우 콜 중 무엇인지 특정",
+            "병목이 정점, 픽셀, 드로우 콜 중 무엇인지 특정",
             "텍스처 줄이기",
             "무관"
           ],
@@ -95,12 +95,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**화면 한 장은 「정점 처리 → 래스터화 → 프래그먼트 처리 → 출력 병합」 순서로 만들어진다.** ① **정점 처리(vertex)** — 모델의 점들을 화면 좌표로 변환(MVP, gfx-space). 정점마다 한 번, **모델 복잡도**에 비례. ② **래스터화(rasterization)** — 삼각형을 **픽셀(프래그먼트)로 쪼갠다**(고정 기능). 삼각형이 화면에서 차지하는 면적만큼 프래그먼트가 생김. ③ **프래그먼트 처리(fragment/pixel)** — 각 픽셀의 **색을 계산**(텍스처 샘플·조명, gfx-shader). 프래그먼트마다 한 번, **화면 면적**에 비례 — 그래서 화면을 가득 채우는 효과가 무겁다. ④ **출력 병합(output merge)** — **깊이 테스트**(앞뒤 가림)·**블렌딩**(반투명 합성)으로 최종 픽셀 결정. 핵심: **정점 수는 모델에, 프래그먼트 수는 화면 면적에** 비례한다 — 그래서 폴리곤 적어도 화면을 덮는 반투명이 비쌀 수 있다. 아래 데모로 파이프라인 단계를 따라가 보라."
+          "text": "**화면 한 장은 \"정점 처리 → 래스터화 → 프래그먼트 처리 → 출력 병합\" 순서로 만들어진다.** ① **정점 처리(vertex)**. 모델의 점들을 화면 좌표로 변환(MVP, gfx-space). 정점마다 한 번, **모델 복잡도**에 비례. ② **래스터화(rasterization)**. 삼각형을 **픽셀(프래그먼트)로 쪼갠다**(고정 기능). 삼각형이 화면에서 차지하는 면적만큼 프래그먼트가 생김. ③ **프래그먼트 처리(fragment/pixel)**. 각 픽셀의 **색을 계산**(텍스처 샘플, 조명, gfx-shader). 프래그먼트마다 한 번, **화면 면적**에 비례. 그래서 화면을 가득 채우는 효과가 무겁다. ④ **출력 병합(output merge)**. **깊이 테스트**(앞뒤 가림), **블렌딩**(반투명 합성)으로 최종 픽셀 결정. 핵심: **정점 수는 모델에, 프래그먼트 수는 화면 면적에** 비례한다. 그래서 폴리곤 적어도 화면을 덮는 반투명이 비쌀 수 있다. 아래 데모로 파이프라인 단계를 따라가 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "파이프라인 단계 — 정점에서 픽셀까지",
+          "label": "파이프라인 단계. 정점에서 픽셀까지",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const stages = [\n    ['정점 처리', '모델의 점 → 화면 좌표 변환(MVP)', '정점마다 한 번 · 모델 복잡도에 비례'],\n    ['래스터화', '삼각형을 픽셀(프래그먼트)로 쪼갬', '고정 기능 · 삼각형 면적만큼 프래그먼트 생성'],\n    ['프래그먼트 처리', '각 픽셀의 색 계산(텍스처·조명)', '프래그먼트마다 한 번 · 화면 면적에 비례'],\n    ['출력 병합', '깊이 테스트·블렌딩으로 최종 픽셀', '앞뒤 가림·반투명 합성'],\n  ];\n  const nodes = stages.map((s, i) => ({ label: s[0], cls: i === step ? 'on' : i < step ? 'done' : '' }));\n  const cur = stages[step];\n  render('파이프라인  ' + (step + 1) + '/4 : ' + cur[0],\n    box(cur[0], cur[1] + '\\n  ' + cur[2], 'good') + '  ' +\n    '<span class=\"ok\">정점 수 = 모델에 비례 · 프래그먼트 수 = 화면 면적에 비례.</span>',\n    '정점→래스터화→프래그먼트→출력 병합 — 어느 단계가 병목인지 짚어라.',\n    flow(nodes));\n</script>",
           "controls": [
@@ -123,11 +123,11 @@
         },
         {
           "type": "note",
-          "text": "**화면 한 장은 정점 처리→래스터화→프래그먼트 처리→출력 병합 순으로 만들어지며, 정점 수는 모델 복잡도에·프래그먼트 수는 화면 면적에 비례한다.** **단계별 상세**: ① **정점 처리(vertex shader)** — 각 정점(모델의 점)을 로컬 좌표에서 클립 좌표로 변환하고(gfx-space 의 MVP), 정점별 속성(법선·UV·색)을 준비한다. **정점마다 한 번** 실행되므로 비용은 **정점(폴리곤) 수**에 비례 — 고폴리 모델·많은 오브젝트가 정점 병목을 만든다. ② **래스터화(rasterization)** — 변환된 삼각형을 화면 격자에 맞춰 **어느 픽셀들을 덮는지 계산해 프래그먼트로 쪼갠다**. 고정 기능(하드웨어)이라 직접 프로그래밍하진 않지만, 삼각형이 화면에서 차지하는 **면적만큼 프래그먼트가 생성**된다. 정점 속성은 여기서 픽셀별로 보간된다. ③ **프래그먼트(픽셀) 처리(fragment shader)** — 생성된 각 프래그먼트의 **최종 색을 계산**(텍스처 샘플링·조명·PBR, gfx-shader·gfx-light). **프래그먼트마다 한 번** 실행 → 비용은 **화면에서 그려지는 픽셀 수(fill)와 셰이더 복잡도**에 비례. 그래서 화면을 크게 덮는 물체·풀스크린 후처리·복잡한 픽셀 셰이더가 프래그먼트 병목을 만든다. ④ **출력 병합(output merge/ROP)** — 계산된 프래그먼트를 프레임버퍼에 쓸지 결정: **깊이 테스트**(z-버퍼로 앞뒤 가림 — 뒤에 가려지면 버림)·**스텐실**·**블렌딩**(반투명 합성). **핵심 통찰 — 비용의 두 축**: 정점 비용은 **모델(폴리곤)**에, 프래그먼트 비용은 **화면 면적(픽셀)**에 비례한다. 그래서 **폴리곤이 적어도 화면을 가득 채우는 반투명·후처리가 매우 비쌀 수 있고**(면적 × 겹침, 4장 오버드로우), 반대로 폴리곤이 많아도 화면에서 작게 보이면 프래그먼트 비용은 작다. 이 두 축을 구분해야 병목을 옳게 짚는다(1장 이분법). **정리**: 정점→래스터화→프래그먼트→출력 병합의 순서와 「정점=모델, 프래그먼트=면적」의 비례 관계를 알면, 무엇이 비싼지·어느 단계가 병목인지 논리적으로 진단할 수 있다."
+          "text": "**화면 한 장은 정점 처리→래스터화→프래그먼트 처리→출력 병합 순으로 만들어지며, 정점 수는 모델 복잡도에, 프래그먼트 수는 화면 면적에 비례한다.** **단계별 상세**: ① **정점 처리(vertex shader)**. 각 정점(모델의 점)을 로컬 좌표에서 클립 좌표로 변환하고(gfx-space 의 MVP), 정점별 속성(법선, UV, 색)을 준비한다. **정점마다 한 번** 실행되므로 비용은 **정점(폴리곤) 수**에 비례. 고폴리 모델, 많은 오브젝트가 정점 병목을 만든다. ② **래스터화(rasterization)**. 변환된 삼각형을 화면 격자에 맞춰 **어느 픽셀들을 덮는지 계산해 프래그먼트로 쪼갠다**. 고정 기능(하드웨어)이라 직접 프로그래밍하진 않지만, 삼각형이 화면에서 차지하는 **면적만큼 프래그먼트가 생성**된다. 정점 속성은 여기서 픽셀별로 보간된다. ③ **프래그먼트(픽셀) 처리(fragment shader)**. 생성된 각 프래그먼트의 **최종 색을 계산**(텍스처 샘플링, 조명, PBR, gfx-shader, gfx-light). **프래그먼트마다 한 번** 실행 → 비용은 **화면에서 그려지는 픽셀 수(fill)와 셰이더 복잡도**에 비례. 그래서 화면을 크게 덮는 물체, 풀스크린 후처리, 복잡한 픽셀 셰이더가 프래그먼트 병목을 만든다. ④ **출력 병합(output merge/ROP)**. 계산된 프래그먼트를 프레임버퍼에 쓸지 결정: **깊이 테스트**(z-버퍼로 앞뒤 가림. 뒤에 가려지면 버림), **스텐실**, **블렌딩**(반투명 합성). **핵심 통찰. 비용의 두 축**: 정점 비용은 **모델(폴리곤)**에, 프래그먼트 비용은 **화면 면적(픽셀)**에 비례한다. 그래서 **폴리곤이 적어도 화면을 가득 채우는 반투명, 후처리가 매우 비쌀 수 있고**(면적 × 겹침, 4장 오버드로우), 반대로 폴리곤이 많아도 화면에서 작게 보이면 프래그먼트 비용은 작다. 이 두 축을 구분해야 병목을 옳게 짚는다(1장 이분법). **정리**: 정점→래스터화→프래그먼트→출력 병합의 순서와 \"정점=모델, 프래그먼트=면적\"의 비례 관계를 알면, 무엇이 비싼지, 어느 단계가 병목인지 논리적으로 진단할 수 있다."
         },
         {
           "type": "try",
-          "text": "씬의 물체 하나를 골라 **화면에서 차지하는 면적**을 크게(가까이)·작게(멀리) 바꿔 프레임 시간을 비교하라 — 면적에 크게 좌우되면 프래그먼트(픽셀) 비용이 크다는 뜻. 반대로 같은 물체를 여러 개 복제해(정점·드로우 콜 증가) 비교하면 정점/드로우 콜 비용을 본다. 두 축(모델 vs 면적)을 구분해 보라."
+          "text": "씬의 물체 하나를 골라 **화면에서 차지하는 면적**을 크게(가까이), 작게(멀리) 바꿔 프레임 시간을 비교하라. 면적에 크게 좌우되면 프래그먼트(픽셀) 비용이 크다는 뜻. 반대로 같은 물체를 여러 개 복제해(정점, 드로우 콜 증가) 비교하면 정점/드로우 콜 비용을 본다. 두 축(모델 vs 면적)을 구분해 보라."
         }
       ],
       "quiz": [
@@ -157,7 +157,7 @@
           "q": "폴리곤이 적은데도 비쌀 수 있는 경우는?",
           "choices": [
             "없음",
-            "화면을 가득 채우는 반투명·후처리(면적 때문)",
+            "화면을 가득 채우는 반투명, 후처리(면적 때문)",
             "작은 모델",
             "무관"
           ],
@@ -168,17 +168,17 @@
     },
     {
       "id": "3",
-      "title": "드로우 콜 — CPU 병목",
+      "title": "드로우 콜. CPU 병목",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**드로우 콜은 CPU 가 GPU 에게 「이거 그려라」라고 시키는 횟수다 — 오브젝트가 많으면 GPU 는 한가한데 CPU 가 병목이 된다.** 각 드로우 콜마다 CPU 는 상태를 설정하고 명령을 준비해 GPU 로 보내는데, 이 준비 비용이 쌓인다. 오브젝트 하나하나를 따로 그리면(드로우 콜 수천 개) CPU 가 명령 보내느라 GPU 가 놀아, 화면은 단순한데도 느리다. **줄이는 법**: ① **정적 배칭(static batching)** — 안 움직이는 오브젝트들을 하나의 메시로 합쳐 한 번에. ② **인스턴싱(GPU instancing)** — 같은 메시를 위치만 바꿔 여러 개 그릴 때 **한 드로우 콜로** 수천 개. ③ **텍스처 아틀라스** — 여러 텍스처를 한 장에 모아 재질을 통합(상태 변경↓, 5장). 목표는 **드로우 콜 수를 줄여** CPU 병목을 푸는 것. 아래 데모로 배칭이 드로우 콜을 합치는 걸 확인하라."
+          "text": "**드로우 콜은 CPU 가 GPU 에게 \"이거 그려라\"라고 시키는 횟수다. 오브젝트가 많으면 GPU 는 한가한데 CPU 가 병목이 된다.** 각 드로우 콜마다 CPU 는 상태를 설정하고 명령을 준비해 GPU 로 보내는데, 이 준비 비용이 쌓인다. 오브젝트 하나하나를 따로 그리면(드로우 콜 수천 개) CPU 가 명령 보내느라 GPU 가 놀아, 화면은 단순한데도 느리다. **줄이는 법**: ① **정적 배칭(static batching)**. 안 움직이는 오브젝트들을 하나의 메시로 합쳐 한 번에. ② **인스턴싱(GPU instancing)**. 같은 메시를 위치만 바꿔 여러 개 그릴 때 **한 드로우 콜로** 수천 개. ③ **텍스처 아틀라스**. 여러 텍스처를 한 장에 모아 재질을 통합(상태 변경↓, 5장). 목표는 **드로우 콜 수를 줄여** CPU 병목을 푸는 것. 아래 데모로 배칭이 드로우 콜을 합치는 걸 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "드로우 콜 — 배칭으로 합치기",
+          "label": "드로우 콜. 배칭으로 합치기",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const objs = {{objs}};\n  const batched = '{{batch}}' === 'on';\n  const calls = batched ? Math.max(1, Math.ceil(objs / 200)) : objs;\n  const cpuBound = calls > 300;\n  render(objs + '개 오브젝트 · ' + (batched ? '배칭/인스턴싱' : '개별 그리기') + '  →  드로우 콜 ' + calls + '개',\n    steps([\n      ['오브젝트: ' + objs + '개', ''],\n      ['드로우 콜: ' + calls + '개 ' + (batched ? '(배칭으로 합침)' : '(하나씩 따로)'), batched ? 'good' : cpuBound ? 'bad' : 'on'],\n    ]) + '  ' + (batched\n      ? '<span class=\"ok\">배칭/인스턴싱으로 드로우 콜을 ' + calls + '개로 합침 → CPU 병목 해소, GPU 가 일한다.</span>'\n      : cpuBound ? '<span class=\"no\">' + calls + '개 드로우 콜 → CPU 가 명령 보내느라 GPU 가 논다(CPU 병목).</span>'\n                 : '<span class=\"warn\">아직 견딜 만하나 오브젝트가 늘면 CPU 병목이 온다.</span>'),\n    '드로우 콜 = CPU 비용. 배칭·인스턴싱·아틀라스로 횟수를 줄여라.',\n    bars([{ lab: '개별', pct: Math.min(100, objs / 20), val: objs + '콜', cls: 'b' }, { lab: '배칭', pct: Math.min(100, (batched ? calls : Math.ceil(objs/200)) / 20), val: Math.ceil(objs / 200) + '콜', cls: 'g' }]));\n</script>",
           "controls": [
@@ -217,11 +217,11 @@
         },
         {
           "type": "note",
-          "text": "**드로우 콜은 CPU 가 GPU 에 그리기를 지시하는 횟수이고, 오브젝트가 많아 드로우 콜이 폭증하면 GPU 가 한가한데도 CPU 가 병목이 되어 느려진다.** **드로우 콜의 비용**: GPU 에게 무언가를 그리라고 시킬 때마다 CPU 는 — 셰이더·재질·텍스처·상태를 설정하고, 그리기 명령을 그래픽 드라이버를 통해 준비·검증해 GPU 로 보낸다. 이 **CPU 측 준비 비용**이 드로우 콜마다 든다(특히 구형 API 에서 큼). 오브젝트를 하나하나 따로 그리면 드로우 콜이 수천 개가 되고, **CPU 가 명령을 만드느라 바빠 GPU 가 논다** — 화면이 단순(폴리곤·픽셀 적음)한데도 프레임이 느린 전형적 CPU 병목(1장 이분법: 오브젝트 수를 줄이면 빨라짐). **줄이는 법**: ① **정적 배칭(static batching)** — 움직이지 않는 여러 오브젝트를 **하나의 큰 메시로 미리 합쳐** 한 드로우 콜로 그린다(메모리를 더 쓰지만 콜 감소). ② **GPU 인스턴싱(instancing)** — **같은 메시**를 위치·색만 바꿔 여러 개 그릴 때(나무·풀·군중), **한 번의 드로우 콜로 수천 인스턴스**를 그린다(인스턴스별 데이터만 배열로). 반복되는 오브젝트에 최강. ③ **동적 배칭** — 작은 동적 오브젝트를 런타임에 합침(제약 있음). ④ **텍스처 아틀라스·재질 통합** — 여러 텍스처를 한 장에 모으고 재질을 공유하면, 같은 재질끼리 묶여 상태 변경이 줄고 배칭이 쉬워진다(5장). ⑤ **컬링** — 안 보이는 오브젝트는 아예 안 그림(절두체·오클루전 컬링, gfx-perf). **현대 API**: Vulkan·DirectX 12·Metal 은 드로우 콜 오버헤드를 크게 줄이고(명령 버퍼·멀티스레드), 간접 그리기(GPU-driven)로 CPU 부담을 더 던다. 하지만 원칙(콜 수를 줄여라)은 같다. **주의**: 배칭은 **정점·프래그먼트 병목**엔 도움 안 된다 — 드로우 콜(CPU)이 병목일 때만 효과. 그래서 병목 진단(1장)이 먼저. **정리**: 드로우 콜은 CPU 비용이라, 오브젝트가 많으면 배칭·인스턴싱·아틀라스로 콜 수를 줄여 CPU 병목을 풀어라 — 단 CPU 병목일 때만."
+          "text": "**드로우 콜은 CPU 가 GPU 에 그리기를 지시하는 횟수이고, 오브젝트가 많아 드로우 콜이 폭증하면 GPU 가 한가한데도 CPU 가 병목이 되어 느려진다.** **드로우 콜의 비용**: GPU 에게 무언가를 그리라고 시킬 때마다 CPU 는. 셰이더, 재질, 텍스처, 상태를 설정하고, 그리기 명령을 그래픽 드라이버를 통해 준비, 검증해 GPU 로 보낸다. 이 **CPU 측 준비 비용**이 드로우 콜마다 든다(특히 구형 API 에서 큼). 오브젝트를 하나하나 따로 그리면 드로우 콜이 수천 개가 되고, **CPU 가 명령을 만드느라 바빠 GPU 가 논다**. 화면이 단순(폴리곤, 픽셀 적음)한데도 프레임이 느린 전형적 CPU 병목(1장 이분법: 오브젝트 수를 줄이면 빨라짐). **줄이는 법**: ① **정적 배칭(static batching)**. 움직이지 않는 여러 오브젝트를 **하나의 큰 메시로 미리 합쳐** 한 드로우 콜로 그린다(메모리를 더 쓰지만 콜 감소). ② **GPU 인스턴싱(instancing)**. **같은 메시**를 위치, 색만 바꿔 여러 개 그릴 때(나무, 풀, 군중), **한 번의 드로우 콜로 수천 인스턴스**를 그린다(인스턴스별 데이터만 배열로). 반복되는 오브젝트에 최강. ③ **동적 배칭**. 작은 동적 오브젝트를 런타임에 합침(제약 있음). ④ **텍스처 아틀라스, 재질 통합**. 여러 텍스처를 한 장에 모으고 재질을 공유하면, 같은 재질끼리 묶여 상태 변경이 줄고 배칭이 쉬워진다(5장). ⑤ **컬링**. 안 보이는 오브젝트는 아예 안 그림(절두체, 오클루전 컬링, gfx-perf). **현대 API**: Vulkan, DirectX 12, Metal 은 드로우 콜 오버헤드를 크게 줄이고(명령 버퍼, 멀티스레드), 간접 그리기(GPU-driven)로 CPU 부담을 더 던다. 하지만 원칙(콜 수를 줄여라)은 같다. **주의**: 배칭은 **정점, 프래그먼트 병목**엔 도움 안 된다. 드로우 콜(CPU)이 병목일 때만 효과. 그래서 병목 진단(1장)이 먼저. **정리**: 드로우 콜은 CPU 비용이라, 오브젝트가 많으면 배칭, 인스턴싱, 아틀라스로 콜 수를 줄여 CPU 병목을 풀어라. 단 CPU 병목일 때만."
         },
         {
           "type": "try",
-          "text": "프로파일러(또는 엔진 통계 창)에서 **드로우 콜(배치) 수**를 확인하라. 수천 개면 CPU 병목 후보 — **같은 메시가 반복**되면 GPU 인스턴싱을, **안 움직이는 오브젝트**는 정적 배칭을, 텍스처가 많으면 아틀라스로 재질을 통합해 콜을 줄이고, 드로우 콜 수와 프레임 시간이 함께 떨어지는지 보라."
+          "text": "프로파일러(또는 엔진 통계 창)에서 **드로우 콜(배치) 수**를 확인하라. 수천 개면 CPU 병목 후보. **같은 메시가 반복**되면 GPU 인스턴싱을, **안 움직이는 오브젝트**는 정적 배칭을, 텍스처가 많으면 아틀라스로 재질을 통합해 콜을 줄이고, 드로우 콜 수와 프레임 시간이 함께 떨어지는지 보라."
         }
       ],
       "quiz": [
@@ -229,7 +229,7 @@
           "q": "드로우 콜이 많으면 병목은 어디?",
           "choices": [
             "GPU",
-            "CPU — 명령 보내느라 GPU 가 놀 수 있음",
+            "CPU. 명령 보내느라 GPU 가 놀 수 있음",
             "메모리",
             "무관"
           ],
@@ -240,7 +240,7 @@
           "q": "같은 메시를 위치만 바꿔 많이 그릴 때는?",
           "choices": [
             "하나씩",
-            "GPU 인스턴싱 — 한 콜로 수천 개",
+            "GPU 인스턴싱. 한 콜로 수천 개",
             "텍스처 늘림",
             "무관"
           ],
@@ -251,7 +251,7 @@
           "q": "배칭이 도움 안 되는 경우는?",
           "choices": [
             "드로우 콜 병목",
-            "정점·프래그먼트가 병목일 때 — 콜 수와 무관",
+            "정점, 프래그먼트가 병목일 때. 콜 수와 무관",
             "항상 도움",
             "무관"
           ],
@@ -267,12 +267,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**오버드로우(overdraw)는 같은 픽셀을 여러 번 칠하는 것이다 — 특히 반투명은 깊이 테스트로 걸러지지 않아 겹칠수록 비싸다.** 불투명 물체는 **깊이 테스트**로 뒤에 가려진 픽셀을 버릴 수 있어(또는 앞에서부터 그려 뒤를 건너뜀) 오버드로우가 적다. 하지만 **반투명(알파 블렌딩)**은 뒤가 비쳐 보여야 하므로 **뒤 픽셀도 다 그려서 섞어야** 한다 — 여러 겹이 겹치면 같은 픽셀을 겹친 만큼 반복해 칠해 **프래그먼트 비용이 배로** 든다. 흔한 범인: **UI(겹친 반투명 패널)·파티클(연기·불티 수백 장)·풀숲·나뭇잎**. 줄이는 법: 큰 반투명 면적 줄이기, 파티클 수·크기 제한, 알파 컷아웃(반투명 대신 불투명+구멍) 쓰기, 겹침 줄이기. 아래 데모로 겹친 반투명이 오버드로우를 늘리는 걸 확인하라."
+          "text": "**오버드로우(overdraw)는 같은 픽셀을 여러 번 칠하는 것이다. 특히 반투명은 깊이 테스트로 걸러지지 않아 겹칠수록 비싸다.** 불투명 물체는 **깊이 테스트**로 뒤에 가려진 픽셀을 버릴 수 있어(또는 앞에서부터 그려 뒤를 건너뜀) 오버드로우가 적다. 하지만 **반투명(알파 블렌딩)**은 뒤가 비쳐 보여야 하므로 **뒤 픽셀도 다 그려서 섞어야** 한다. 여러 겹이 겹치면 같은 픽셀을 겹친 만큼 반복해 칠해 **프래그먼트 비용이 배로** 든다. 흔한 범인: **UI(겹친 반투명 패널), 파티클(연기, 불티 수백 장), 풀숲, 나뭇잎**. 줄이는 법: 큰 반투명 면적 줄이기, 파티클 수, 크기 제한, 알파 컷아웃(반투명 대신 불투명+구멍) 쓰기, 겹침 줄이기. 아래 데모로 겹친 반투명이 오버드로우를 늘리는 걸 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "오버드로우 — 겹친 반투명",
+          "label": "오버드로우. 겹친 반투명",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{layers}};\n  const transparent = '{{kind}}' === 'trans';\n  const drawCost = transparent ? n : 1; // 불투명은 깊이 테스트로 1회, 반투명은 겹친 만큼\n  render((transparent ? '반투명 ' : '불투명 ') + n + '겹  →  한 픽셀을 ' + drawCost + '번 칠함',\n    (transparent\n      ? '<span class=\"no\">반투명은 깊이 테스트로 못 걸러 겹친 ' + n + '장을 다 그려 섞음 → 오버드로우 ' + n + '배(파티클·UI·풀숲).</span>'\n      : '<span class=\"ok\">불투명은 깊이 테스트로 가려진 픽셀을 버림 → 겹쳐도 한 번만 칠함.</span>') +\n    '\\n  프래그먼트 비용 ∝ (면적 × 겹친 횟수) — 반투명 겹침이 픽셀 병목을 만든다.',\n    '오버드로우 = 같은 픽셀 여러 번. 반투명은 깊이 테스트로 안 걸러진다.',\n    layers(transparent ? n : 1) + bars([{ lab: '픽셀 칠하기', pct: Math.min(100, drawCost * 14), val: drawCost + '회', cls: transparent && n > 2 ? 'b' : 'g' }]));\n</script>",
           "controls": [
@@ -311,11 +311,11 @@
         },
         {
           "type": "note",
-          "text": "**오버드로우는 같은 픽셀을 여러 번 칠하는 것이고, 반투명은 깊이 테스트로 걸러지지 않아 겹칠수록 프래그먼트 비용이 배로 든다.** **오버드로우란**: 프래그먼트(픽셀) 처리(2장)는 픽셀마다 셰이더를 실행한다. 한 픽셀이 **여러 물체·여러 겹에 의해 반복해서** 칠해지면, 그 픽셀의 셰이더가 그만큼 여러 번 실행된다 — 이 낭비가 오버드로우다. 프래그먼트 비용은 **(그려지는 면적 × 겹친 횟수)**에 비례하므로, 오버드로우가 심하면 픽셀(fill) 병목이 된다. **불투명 vs 반투명**: ① **불투명 물체**는 **깊이 테스트(z-버퍼)**로 뒤에 가려진 픽셀을 버릴 수 있다. 특히 **앞에서 뒤로(front-to-back) 정렬**해 그리거나 **early-Z**(픽셀 셰이더 전에 깊이로 컬링)를 쓰면, 가려질 픽셀의 비싼 셰이더를 아예 실행하지 않아 오버드로우가 적다. 그래서 불투명은 겹쳐도 대체로 한 번만 칠해진다. ② **반투명(알파 블렌딩)** 물체는 **뒤가 비쳐 보여야** 하므로 뒤 픽셀을 **버릴 수 없다** — 뒤에서 앞으로 정렬해 **겹친 모든 층을 다 그려 섞어야** 한다. 그래서 반투명이 N겹 겹치면 그 픽셀을 N번 칠한다(오버드로우 N배). **흔한 범인**: ⓐ **UI** — 반투명 패널·그림자·블러가 화면에 겹겹이. ⓑ **파티클** — 연기·불·먼지는 반투명 쿼드 수백~수천 장이 화면에서 크게 겹침(파티클 오버드로우가 모바일 성능의 흔한 킬러). ⓒ **풀숲·나뭇잎·머리카락** — 알파가 있는 얇은 면이 겹침. ⓓ 풀스크린 후처리 중첩. **줄이는 법**: 반투명 **면적·겹침을 줄이고**, 파티클 **수·크기·수명**을 제한하고, 가능하면 **알파 컷아웃(alpha test/cutout)**(반투명 대신 불투명+구멍 — 나뭇잎 등, 깊이로 걸러짐)으로 바꾸고, UI 의 불필요한 반투명 레이어를 없앤다. 프로파일러의 **오버드로우 시각화**(겹칠수록 밝게)로 어디가 심한지 본다(5장). **정리**: 오버드로우는 같은 픽셀의 반복 칠하기이고 반투명이 주범이다 — 깊이 테스트로 못 걸러지므로 반투명 겹침·파티클을 줄이고 가능하면 불투명/컷아웃으로 바꿔라."
+          "text": "**오버드로우는 같은 픽셀을 여러 번 칠하는 것이고, 반투명은 깊이 테스트로 걸러지지 않아 겹칠수록 프래그먼트 비용이 배로 든다.** **오버드로우란**: 프래그먼트(픽셀) 처리(2장)는 픽셀마다 셰이더를 실행한다. 한 픽셀이 **여러 물체, 여러 겹에 의해 반복해서** 칠해지면, 그 픽셀의 셰이더가 그만큼 여러 번 실행된다. 이 낭비가 오버드로우다. 프래그먼트 비용은 **(그려지는 면적 × 겹친 횟수)**에 비례하므로, 오버드로우가 심하면 픽셀(fill) 병목이 된다. **불투명 vs 반투명**: ① **불투명 물체**는 **깊이 테스트(z-버퍼)**로 뒤에 가려진 픽셀을 버릴 수 있다. 특히 **앞에서 뒤로(front-to-back) 정렬**해 그리거나 **early-Z**(픽셀 셰이더 전에 깊이로 컬링)를 쓰면, 가려질 픽셀의 비싼 셰이더를 아예 실행하지 않아 오버드로우가 적다. 그래서 불투명은 겹쳐도 대체로 한 번만 칠해진다. ② **반투명(알파 블렌딩)** 물체는 **뒤가 비쳐 보여야** 하므로 뒤 픽셀을 **버릴 수 없다**. 뒤에서 앞으로 정렬해 **겹친 모든 층을 다 그려 섞어야** 한다. 그래서 반투명이 N겹 겹치면 그 픽셀을 N번 칠한다(오버드로우 N배). **흔한 범인**: ⓐ **UI**. 반투명 패널, 그림자, 블러가 화면에 겹겹이. ⓑ **파티클**. 연기, 불, 먼지는 반투명 쿼드 수백~수천 장이 화면에서 크게 겹침(파티클 오버드로우가 모바일 성능의 흔한 킬러). ⓒ **풀숲, 나뭇잎, 머리카락**. 알파가 있는 얇은 면이 겹침. ⓓ 풀스크린 후처리 중첩. **줄이는 법**: 반투명 **면적, 겹침을 줄이고**, 파티클 **수, 크기, 수명**을 제한하고, 가능하면 **알파 컷아웃(alpha test/cutout)**(반투명 대신 불투명+구멍. 나뭇잎 등, 깊이로 걸러짐)으로 바꾸고, UI 의 불필요한 반투명 레이어를 없앤다. 프로파일러의 **오버드로우 시각화**(겹칠수록 밝게)로 어디가 심한지 본다(5장). **정리**: 오버드로우는 같은 픽셀의 반복 칠하기이고 반투명이 주범이다. 깊이 테스트로 못 걸러지므로 반투명 겹침, 파티클을 줄이고 가능하면 불투명/컷아웃으로 바꿔라."
         },
         {
           "type": "try",
-          "text": "엔진의 **오버드로우 시각화 모드**(겹칠수록 밝게 표시)로 씬을 보라 — UI·파티클·풀숲에서 밝게 뭉치는 곳이 오버드로우가 심한 곳이다. 파티클 수·크기를 줄이거나, 반투명 나뭇잎을 알파 컷아웃(불투명+구멍)으로 바꾸거나, 겹친 반투명 UI 레이어를 줄여 프레임이 회복되는지 보라(특히 픽셀 병목일 때)."
+          "text": "엔진의 **오버드로우 시각화 모드**(겹칠수록 밝게 표시)로 씬을 보라. UI, 파티클, 풀숲에서 밝게 뭉치는 곳이 오버드로우가 심한 곳이다. 파티클 수, 크기를 줄이거나, 반투명 나뭇잎을 알파 컷아웃(불투명+구멍)으로 바꾸거나, 겹친 반투명 UI 레이어를 줄여 프레임이 회복되는지 보라(특히 픽셀 병목일 때)."
         }
       ],
       "quiz": [
@@ -344,10 +344,10 @@
         {
           "q": "오버드로우의 흔한 범인이 아닌 것은?",
           "choices": [
-            "파티클(연기·불)",
+            "파티클(연기, 불)",
             "겹친 반투명 UI",
             "불투명 단색 큐브 하나",
-            "풀숲·나뭇잎"
+            "풀숲, 나뭇잎"
           ],
           "answer": 2,
           "why": "불투명은 깊이로 걸러짐."
@@ -361,12 +361,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**재질·셰이더·텍스처를 바꾸는 「상태 변경」도 비용이라, 같은 재질끼리 모아 그리면 드로우 콜이 합쳐지고, 병목은 짐작 말고 프레임을 캡처해 봐야 한다.** ① **상태 변경(state change)**: GPU 는 셰이더·텍스처·블렌드 모드 등 「상태」로 그린다 — 오브젝트마다 재질이 뒤죽박죽이면 매번 상태를 바꿔야 해 비싸고 배칭도 깨진다. **같은 재질·셰이더끼리 정렬해** 그리면 상태 변경이 줄고 드로우 콜이 합쳐진다(불투명은 앞→뒤, 반투명은 뒤→앞 정렬). ② **어디서 보나(프로파일링)**: 눈으로 짐작한 병목은 대개 틀린다(gfx-perf) — **한 프레임을 통째로 캡처**해 드로우 콜 목록·각 패스 시간·오버드로우를 봐야 한다. 도구: **RenderDoc**(프레임 캡처, 드로우 콜별 분석)·**엔진 프로파일러**(유니티·언리얼)·**브라우저 개발자도구의 GPU 트랙**. 가장 비싼 드로우 콜·패스를 찾아 거기부터 고친다. 아래 데모로 재질 정렬이 상태 변경을 줄이는 걸 확인하라."
+          "text": "**재질, 셰이더, 텍스처를 바꾸는 \"상태 변경\"도 비용이라, 같은 재질끼리 모아 그리면 드로우 콜이 합쳐지고, 병목은 짐작 말고 프레임을 캡처해 봐야 한다.** ① **상태 변경(state change)**: GPU 는 셰이더, 텍스처, 블렌드 모드 등 \"상태\"로 그린다. 오브젝트마다 재질이 뒤죽박죽이면 매번 상태를 바꿔야 해 비싸고 배칭도 깨진다. **같은 재질, 셰이더끼리 정렬해** 그리면 상태 변경이 줄고 드로우 콜이 합쳐진다(불투명은 앞→뒤, 반투명은 뒤→앞 정렬). ② **어디서 보나(프로파일링)**: 눈으로 짐작한 병목은 대개 틀린다(gfx-perf). **한 프레임을 통째로 캡처**해 드로우 콜 목록, 각 패스 시간, 오버드로우를 봐야 한다. 도구: **RenderDoc**(프레임 캡처, 드로우 콜별 분석), **엔진 프로파일러**(유니티, 언리얼), **브라우저 개발자도구의 GPU 트랙**. 가장 비싼 드로우 콜, 패스를 찾아 거기부터 고친다. 아래 데모로 재질 정렬이 상태 변경을 줄이는 걸 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상태 변경 — 재질 정렬",
+          "label": "상태 변경. 재질 정렬",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const sorted = '{{sort}}' === 'on';\n  // 6개 오브젝트, 재질 A/B/A/B/A/B\n  const seq = sorted ? 'A A A | B B B' : 'A B A B A B';\n  const changes = sorted ? 1 : 5;\n  render((sorted ? '재질끼리 정렬' : '재질 뒤죽박죽') + '  →  상태 변경 ' + changes + '회',\n    steps([\n      ['그리는 순서: ' + seq, sorted ? 'good' : 'bad'],\n      ['재질(상태) 전환: ' + changes + '회 ' + (sorted ? '(A→B 한 번)' : '(매번 바뀜)'), sorted ? 'good' : 'bad'],\n    ]) + '  ' + (sorted\n      ? '<span class=\"ok\">같은 재질끼리 모아 그리니 상태 변경 최소 + 배칭 가능 → 드로우 콜 합쳐짐.</span>'\n      : '<span class=\"no\">재질이 매번 바뀌어 상태 변경 비용 + 배칭 깨짐.</span>'),\n    '같은 재질끼리 정렬 → 상태 변경↓ · 드로우 콜↓. 병목은 캡처해 확인.',\n    bars([{ lab: '상태 변경', pct: changes * 18, val: changes + '회', cls: sorted ? 'g' : 'b' }]));\n</script>",
           "controls": [
@@ -391,24 +391,24 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "상태 변경·프로파일링",
+          "label": "상태 변경, 프로파일링",
           "text": "상태 변경: 재질·셰이더·텍스처 전환 비용\n  같은 재질끼리 정렬해 그리면 → 상태 변경↓ · 드로우 콜 합쳐짐\n  (불투명 앞→뒤, 반투명 뒤→앞 정렬)\n\n어디서 보나 (짐작 말고 캡처):\n  RenderDoc        프레임 캡처 · 드로우 콜별 분석\n  엔진 프로파일러  유니티·언리얼 GPU/CPU 타임라인\n  브라우저 GPU 트랙 웹GL/WebGPU\n→ 한 프레임을 통째로 잡아 가장 비싼 패스를 찾아라"
         },
         {
           "type": "note",
-          "text": "**재질·셰이더·텍스처 전환인 상태 변경도 비용이라 같은 재질끼리 모아 그려 줄이고, 병목은 짐작하지 말고 프레임을 캡처해 확인해야 한다.** **① 상태 변경(state/pipeline change)**: GPU 는 현재 설정된 「상태」(바인딩된 셰이더·텍스처·블렌드/깊이 모드·유니폼)로 그린다. 오브젝트마다 다른 재질을 쓰면 **매 드로우 콜 전에 상태를 바꿔야** 하는데, 이 전환(특히 셰이더/파이프라인 교체·텍스처 바인딩)에 비용이 들고 **배칭도 깨진다**(다른 재질은 못 합침, 3장). 그래서 렌더러는 **같은 재질·셰이더끼리 정렬(sort)**해 연속으로 그린다 — 상태 변경이 최소화되고 같은 상태의 드로우 콜이 합쳐질 수 있다. 정렬 순서: **불투명은 앞→뒤**(front-to-back, 오버드로우·early-Z 이득, 4장) + 재질별 묶음, **반투명은 뒤→앞**(back-to-front, 올바른 블렌딩, 4장). 텍스처 아틀라스·재질 공유(3장)가 상태 변경을 근본적으로 줄인다. ② **어디서 보나 — 프로파일링**: **눈으로 짐작한 병목은 대개 틀린다**(gfx-perf) — 특히 GPU 는 내부가 안 보여 캡처해야 안다. **한 프레임을 통째로 캡처**해 드로우 콜 목록, 각 패스(그림자·불투명·반투명·후처리)의 시간, 상태 변경 횟수, 오버드로우를 본다. 도구: ⓐ **RenderDoc** — 무료 프레임 캡처 디버거. 드로우 콜을 하나씩 짚어 그 시점의 상태·리소스·결과를 본다(무엇이 가장 비싼지·왜 안 그려지는지). ⓑ **엔진 프로파일러** — 유니티 Profiler/Frame Debugger, 언리얼 GPU Visualizer/stat 명령 — CPU/GPU 타임라인·드로우 콜·병목. ⓒ **브라우저 개발자도구의 GPU 트랙**(WebGL/WebGPU)·Spector.js. 가장 비싼 드로우 콜·패스를 찾아 **거기부터** 고친다(레버리지 큰 곳 우선). 이는 소프트웨어 프로파일링(측정 후 최적화)과 같은 원리 — 측정 없는 최적화는 도박(1장). **정리**: 같은 재질끼리 정렬해 상태 변경과 드로우 콜을 줄이고, 병목은 RenderDoc·프로파일러로 프레임을 캡처해 가장 비싼 곳을 찾아 고쳐라 — 짐작하지 마라."
+          "text": "**재질, 셰이더, 텍스처 전환인 상태 변경도 비용이라 같은 재질끼리 모아 그려 줄이고, 병목은 짐작하지 말고 프레임을 캡처해 확인해야 한다.** **① 상태 변경(state/pipeline change)**: GPU 는 현재 설정된 \"상태\"(바인딩된 셰이더, 텍스처, 블렌드/깊이 모드, 유니폼)로 그린다. 오브젝트마다 다른 재질을 쓰면 **매 드로우 콜 전에 상태를 바꿔야** 하는데, 이 전환(특히 셰이더/파이프라인 교체, 텍스처 바인딩)에 비용이 들고 **배칭도 깨진다**(다른 재질은 못 합침, 3장). 그래서 렌더러는 **같은 재질, 셰이더끼리 정렬(sort)**해 연속으로 그린다. 상태 변경이 최소화되고 같은 상태의 드로우 콜이 합쳐질 수 있다. 정렬 순서: **불투명은 앞→뒤**(front-to-back, 오버드로우, early-Z 이득, 4장) + 재질별 묶음, **반투명은 뒤→앞**(back-to-front, 올바른 블렌딩, 4장). 텍스처 아틀라스, 재질 공유(3장)가 상태 변경을 근본적으로 줄인다. ② **어디서 보나. 프로파일링**: **눈으로 짐작한 병목은 대개 틀린다**(gfx-perf). 특히 GPU 는 내부가 안 보여 캡처해야 안다. **한 프레임을 통째로 캡처**해 드로우 콜 목록, 각 패스(그림자, 불투명, 반투명, 후처리)의 시간, 상태 변경 횟수, 오버드로우를 본다. 도구: ⓐ **RenderDoc**. 무료 프레임 캡처 디버거. 드로우 콜을 하나씩 짚어 그 시점의 상태, 리소스, 결과를 본다(무엇이 가장 비싼지, 왜 안 그려지는지). ⓑ **엔진 프로파일러**. 유니티 Profiler/Frame Debugger, 언리얼 GPU Visualizer/stat 명령. CPU/GPU 타임라인, 드로우 콜, 병목. ⓒ **브라우저 개발자도구의 GPU 트랙**(WebGL/WebGPU), Spector.js. 가장 비싼 드로우 콜, 패스를 찾아 **거기부터** 고친다(레버리지 큰 곳 우선). 이는 소프트웨어 프로파일링(측정 후 최적화)과 같은 원리. 측정 없는 최적화는 도박(1장). **정리**: 같은 재질끼리 정렬해 상태 변경과 드로우 콜을 줄이고, 병목은 RenderDoc, 프로파일러로 프레임을 캡처해 가장 비싼 곳을 찾아 고쳐라. 짐작하지 마라."
         },
         {
           "type": "try",
-          "text": "**RenderDoc(또는 엔진 프레임 디버거)로 한 프레임을 캡처**해, **드로우 콜 수**와 **가장 비싼 패스/드로우 콜**을 적어라. 상태 변경이 잦으면 재질을 공유·정렬해 줄이고, 특정 패스(그림자·반투명·후처리)가 비싸면 거기부터 최적화하라. 짐작이 아니라 캡처가 가리키는 곳을 고쳐라."
+          "text": "**RenderDoc(또는 엔진 프레임 디버거)로 한 프레임을 캡처**해, **드로우 콜 수**와 **가장 비싼 패스/드로우 콜**을 적어라. 상태 변경이 잦으면 재질을 공유, 정렬해 줄이고, 특정 패스(그림자, 반투명, 후처리)가 비싸면 거기부터 최적화하라. 짐작이 아니라 캡처가 가리키는 곳을 고쳐라."
         }
       ],
       "quiz": [
         {
-          "q": "상태 변경(재질·셰이더 전환)을 줄이려면?",
+          "q": "상태 변경(재질, 셰이더 전환)을 줄이려면?",
           "choices": [
             "무작위로 그림",
-            "같은 재질끼리 정렬해 그림 → 상태 변경↓·드로우 콜 합쳐짐",
+            "같은 재질끼리 정렬해 그림 → 상태 변경↓, 드로우 콜 합쳐짐",
             "텍스처 늘림",
             "무관"
           ],
@@ -419,7 +419,7 @@
           "q": "그래픽 병목을 찾는 올바른 방법은?",
           "choices": [
             "눈으로 짐작",
-            "프레임을 통째로 캡처해 드로우 콜·패스 시간을 봄",
+            "프레임을 통째로 캡처해 드로우 콜, 패스 시간을 봄",
             "느낌",
             "무관"
           ],
@@ -430,7 +430,7 @@
           "q": "프레임 캡처 도구는?",
           "choices": [
             "없음",
-            "RenderDoc·엔진 프로파일러·브라우저 GPU 트랙",
+            "RenderDoc, 엔진 프로파일러, 브라우저 GPU 트랙",
             "메모장",
             "무관"
           ],
@@ -441,17 +441,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 렌더 파이프라인",
+      "title": "점검표. 렌더 파이프라인",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**병목을 특정하고, 드로우 콜·오버드로우·상태 변경을 줄이고, 프레임을 캡처해 확인한다.** 이 점검표를 성능 작업마다 훑어, 짐작 최적화와 숨은 낭비를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**병목을 특정하고, 드로우 콜, 오버드로우, 상태 변경을 줄이고, 프레임을 캡처해 확인한다.** 이 점검표를 성능 작업마다 훑어, 짐작 최적화와 숨은 낭비를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "렌더 파이프라인 점검표 — 통과 수",
+          "label": "렌더 파이프라인 점검표. 통과 수",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:8px 0; }\n  .flow .n { padding:6px 9px; border-radius:6px; background:#111c33; border:1px solid #334155; font:11px ui-monospace, monospace; }\n  .flow .n.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; box-shadow:0 0 0 2px #22d3ee44; }\n  .flow .n.done { opacity:.5; } .flow .arrow { color:#475569; font-size:10px; }\n  .layers { position:relative; height:80px; margin:8px 0; }\n  .layers .ly { position:absolute; height:34px; border-radius:6px; border:1px solid #f97316; background:rgba(249,115,22,.28); font:10px ui-monospace, monospace; color:#fed7aa; padding:3px 6px; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#fbbf24; }\n  .bars .val { width:78px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function flow(nodes) { return '<div class=\"flow\">' + nodes.map((nd, i) =>\n    (i ? '<span class=\"arrow\">-&gt;</span>' : '') +\n    '<span class=\"n ' + (nd.cls || '') + '\">' + esc(nd.label) + '</span>').join('') + '</div>'; }\n  function layers(n) { let h = ''; for (let i = 0; i < n; i++) h += '<div class=\"ly\" style=\"left:' + (i * 14) + 'px;top:' + (i * 7) + 'px;width:150px\">칠하기 ' + (i + 1) + '</div>'; return '<div class=\"layers\">' + h + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '병목이 정점·픽셀·드로우 콜 중 무엇인지 특정했다(짐작 X)',\n    '해상도↓/오브젝트↓ 이분법으로 병목을 좁혔다',\n    '드로우 콜을 배칭·인스턴싱·아틀라스로 줄였다(CPU 병목 시)',\n    '반투명 오버드로우(파티클·UI·풀숲)를 줄였다',\n    '가능하면 반투명을 알파 컷아웃/불투명으로 바꿨다',\n    '같은 재질끼리 정렬해 상태 변경을 줄였다',\n    '불투명 앞→뒤, 반투명 뒤→앞으로 정렬했다',\n    'RenderDoc/프로파일러로 프레임을 캡처해 확인했다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('렌더 파이프라인 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 병목을 알고 낭비를 줄인 렌더링.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '병목 특정 · 드로우 콜↓ · 오버드로우↓ · 상태 변경↓ · 캡처.');\n</script>",
           "controls": [
@@ -468,11 +468,11 @@
         },
         {
           "type": "note",
-          "text": "**렌더 파이프라인 점검표 — 성능 작업마다 훑는다.** ① **병목 특정** — 정점·픽셀·드로우 콜 중 무엇인지 먼저(1장, 짐작 금지). ② **이분법** — 해상도↓/오브젝트↓ 실험으로 병목을 좁힘(1장). ③ **드로우 콜↓** — 배칭·인스턴싱·아틀라스로 CPU 병목 해소(3장). ④ **오버드로우↓** — 반투명 파티클·UI·풀숲의 겹침을 줄임(4장). ⑤ **컷아웃 전환** — 가능하면 반투명을 알파 컷아웃/불투명으로(4장). ⑥ **상태 변경↓** — 같은 재질끼리 정렬(5장). ⑦ **정렬 순서** — 불투명 앞→뒤(early-Z), 반투명 뒤→앞(블렌딩, 4·5장). ⑧ **캡처 확인** — RenderDoc·프로파일러로 프레임을 잡아 가장 비싼 곳(5장). **관통 원리**: 렌더링 최적화는 **파이프라인 순서(2장)를 알고 병목을 측정(1·5장)한 뒤, 그 병목에 맞는 처방**(정점=LOD, 픽셀=오버드로우↓, CPU=드로우 콜↓)을 하는 것 — 병목 아닌 곳을 고치면 헛수고다. 이 칸(pipeline)은 gfx 갈래의 **성능 관점 토대** — color(색)·space(좌표) 위에서 shader(픽셀 프로그램)·light(조명)가 도는 비용을 이 파이프라인이 설명하고, perf(성능)가 이를 실측·관리한다. **정리**: 병목을 특정하고 드로우 콜·오버드로우·상태 변경을 줄이며 프레임을 캡처해 확인하라 — 이 표로 짐작 최적화와 숨은 낭비를 매번 걸러라."
+          "text": "**렌더 파이프라인 점검표. 성능 작업마다 훑는다.** ① **병목 특정**. 정점, 픽셀, 드로우 콜 중 무엇인지 먼저(1장, 짐작 금지). ② **이분법**. 해상도↓/오브젝트↓ 실험으로 병목을 좁힘(1장). ③ **드로우 콜↓**. 배칭, 인스턴싱, 아틀라스로 CPU 병목 해소(3장). ④ **오버드로우↓**. 반투명 파티클, UI, 풀숲의 겹침을 줄임(4장). ⑤ **컷아웃 전환**. 가능하면 반투명을 알파 컷아웃/불투명으로(4장). ⑥ **상태 변경↓**. 같은 재질끼리 정렬(5장). ⑦ **정렬 순서**. 불투명 앞→뒤(early-Z), 반투명 뒤→앞(블렌딩, 4, 5장). ⑧ **캡처 확인**. RenderDoc, 프로파일러로 프레임을 잡아 가장 비싼 곳(5장). **관통 원리**: 렌더링 최적화는 **파이프라인 순서(2장)를 알고 병목을 측정(1, 5장)한 뒤, 그 병목에 맞는 처방**(정점=LOD, 픽셀=오버드로우↓, CPU=드로우 콜↓)을 하는 것. 병목 아닌 곳을 고치면 헛수고다. 이 칸(pipeline)은 gfx 갈래의 **성능 관점 토대**. color(색), space(좌표) 위에서 shader(픽셀 프로그램), light(조명)가 도는 비용을 이 파이프라인이 설명하고, perf(성능)가 이를 실측, 관리한다. **정리**: 병목을 특정하고 드로우 콜, 오버드로우, 상태 변경을 줄이며 프레임을 캡처해 확인하라. 이 표로 짐작 최적화와 숨은 낭비를 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "느린 씬으로 위 8개 항목을 하나씩 확인하라 — 병목을 이분법으로 특정했나, 드로우 콜을 줄였나, 오버드로우 시각화로 반투명 겹침을 봤나, 재질을 정렬했나, 프레임을 캡처했나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 프레임이 실제로 회복되는지 확인하라."
+          "text": "느린 씬으로 위 8개 항목을 하나씩 확인하라. 병목을 이분법으로 특정했나, 드로우 콜을 줄였나, 오버드로우 시각화로 반투명 겹침을 봤나, 재질을 정렬했나, 프레임을 캡처했나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 프레임이 실제로 회복되는지 확인하라."
         }
       ],
       "quiz": [
@@ -480,7 +480,7 @@
           "q": "렌더링 최적화의 첫 단계는?",
           "choices": [
             "폴리곤 줄이기",
-            "병목이 무엇인지 특정(측정) — 아니면 도박",
+            "병목이 무엇인지 특정(측정). 아니면 도박",
             "텍스처 줄이기",
             "무관"
           ],

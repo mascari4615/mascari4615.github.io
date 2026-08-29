@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "테이블이 1억 행이 되면 **지우는 것조차 어려워진다** — DELETE 가 몇 시간, 락, 복제 지연을 부른다. 인덱스가 램을 넘고, 정리 작업이 못 따라온다. 그래서 「어떻게 커질지」와 「무엇을 언제 버릴지」는 **작을 때 미리** 정하는 게 언제나 싸다."
+          "text": "테이블이 1억 행이 되면 **지우는 것조차 어려워진다**. DELETE 가 몇 시간, 락, 복제 지연을 부른다. 인덱스가 램을 넘고, 정리 작업이 못 따라온다. 그래서 \"어떻게 커질지\"와 \"무엇을 언제 버릴지\"는 **작을 때 미리** 정하는 게 언제나 싸다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "성장 추이 — 6개월 뒤를 지금 추정하라",
+          "label": "성장 추이. 6개월 뒤를 지금 추정하라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const perDay = {{rate}};               // 하루 증가 행(만)\n  const cur = 500;                       // 현재 만 행\n  const d180 = cur + perDay * 180;\n  const d365 = cur + perDay * 365;\n  const big = d180 > 5000;\n  render('현재 ' + cur + '만 행 · 하루 +' + perDay + '만',\n    '  6개월 뒤 ~ ' + d180.toLocaleString() + '만 행\\n  1년 뒤 ~ ' + d365.toLocaleString() + '만 행\\n\\n' +\n    (big\n      ? '<span class=\\\"warn\\\">곧 「크다」의 영역 — 파티션·보관 정책을 지금 정해야 나중이 싸다.</span>'\n      : '  아직 여유 있지만, 증가 속도를 알면 언제 손봐야 할지 미리 안다.'),\n    '증가 속도 x 시간 = 미래 크기. 지금 추정해 두면 놀라지 않는다.',\n    bars([['현재', Math.min(100, cur / 100), cur + '만', '#4ade80'],\n          ['6개월 뒤', Math.min(100, d180 / 100), d180.toLocaleString() + '만', big ? '#fbbf24' : '#38bdf8'],\n          ['1년 뒤', Math.min(100, d365 / 100), d365.toLocaleString() + '만', d365 > 5000 ? '#fca5a5' : '#38bdf8']]));\n</script>",
           "controls": [
@@ -31,20 +31,20 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "먼저 정할 것 — 보관 기간",
+          "label": "먼저 정할 것. 보관 기간",
           "text": "이 데이터는 언제까지 필요한가?\n\n로그·이벤트     30~90일이면 대개 충분 (그 뒤엔 집계본만)\n주문·결제       법·회계상 수년 (원본 보관 의무 확인)\n세션·임시       며칠~몇 주\n\n=> 보관 기간을 「데이터 종류별」로 문서에 못 박는다.\n   기간이 정해지면 파티션·아카이브·삭제 전략이 따라 정해진다."
         },
         {
           "type": "note",
-          "text": "**커지고 나서 손대면 모든 게 비싸다.** 작은 테이블은 인덱스 추가·파티션 전환·타입 변경이 몇 초다. 1억 행이 되면 같은 작업이 몇 시간 락이 된다(db-migrate). 「지금은 작으니 나중에」가 아니라, **작을 때가 유일하게 값싼 시점**이다."
+          "text": "**커지고 나서 손대면 모든 게 비싸다.** 작은 테이블은 인덱스 추가, 파티션 전환, 타입 변경이 몇 초다. 1억 행이 되면 같은 작업이 몇 시간 락이 된다(db-migrate). \"지금은 작으니 나중에\"가 아니라, **작을 때가 유일하게 값싼 시점**이다."
         },
         {
           "type": "p",
-          "text": "**증가 속도를 지표로 추적하라.** 테이블별 행 수·디스크 크기를 주기적으로 기록하면 성장 곡선이 보이고, 「언제 파티션이 필요할지·언제 램을 넘을지」를 미리 예측한다. 갑자기 느려져 놀라는 대신, 곡선을 보고 **선제적으로** 손본다(황금의 정신: 측정)."
+          "text": "**증가 속도를 지표로 추적하라.** 테이블별 행 수, 디스크 크기를 주기적으로 기록하면 성장 곡선이 보이고, \"언제 파티션이 필요할지, 언제 램을 넘을지\"를 미리 예측한다. 갑자기 느려져 놀라는 대신, 곡선을 보고 **선제적으로** 손본다(황금의 정신: 측정)."
         },
         {
           "type": "try",
-          "text": "가장 큰 테이블의 최근 크기 추이를 확인하고 6개월·1년 뒤 크기를 추정하라. 데이터 종류별 보관 기간을 정해 문서에 적어라."
+          "text": "가장 큰 테이블의 최근 크기 추이를 확인하고 6개월, 1년 뒤 크기를 추정하라. 데이터 종류별 보관 기간을 정해 문서에 적어라."
         }
       ],
       "quiz": [
@@ -52,7 +52,7 @@
           "q": "커지기 전에 정책을 정해야 하는 이유는?",
           "choices": [
             "규정",
-            "커진 뒤엔 삭제·구조 변경조차 몇 시간 락이 되므로",
+            "커진 뒤엔 삭제, 구조 변경조차 몇 시간 락이 되므로",
             "보안",
             "속도"
           ],
@@ -74,7 +74,7 @@
           "q": "갑작스런 성능 저하를 예방하려면?",
           "choices": [
             "더 큰 서버",
-            "테이블 크기·증가 속도를 지표로 추적",
+            "테이블 크기, 증가 속도를 지표로 추적",
             "캐시",
             "재시작"
           ],
@@ -90,7 +90,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「오래된 것 삭제」는 작을 땐 쉽지만 커지면 악몽이다. `DELETE ... WHERE created_at < ...` 이 수천만 건이면 **긴 락·거대 트랜잭션·복제 지연·인덱스 팽창**을 부른다. 그리고 지운 공간이 바로 반환되지도 않는다. 대량 삭제는 커진 테이블의 대표적 함정이다."
+          "text": "\"오래된 것 삭제\"는 작을 땐 쉽지만 커지면 악몽이다. `DELETE... WHERE created_at <...` 이 수천만 건이면 **긴 락, 거대 트랜잭션, 복제 지연, 인덱스 팽창**을 부른다. 그리고 지운 공간이 바로 반환되지도 않는다. 대량 삭제는 커진 테이블의 대표적 함정이다."
         },
         {
           "type": "demo",
@@ -128,15 +128,15 @@
         },
         {
           "type": "note",
-          "text": "**시간 기반 데이터는 처음부터 월/일 단위 파티션으로 만들어라.** 「90일 지난 것 삭제」가 `DELETE` 수천만 건에서 **오래된 파티션 하나를 DETACH/DROP** 하는 즉시 작업으로 바뀐다. 커지기 전(1장)에 파티션을 도입하는 것이 나중의 삭제 지옥을 없앤다(3장)."
+          "text": "**시간 기반 데이터는 처음부터 월/일 단위 파티션으로 만들어라.** \"90일 지난 것 삭제\"가 `DELETE` 수천만 건에서 **오래된 파티션 하나를 DETACH/DROP** 하는 즉시 작업으로 바뀐다. 커지기 전(1장)에 파티션을 도입하는 것이 나중의 삭제 지옥을 없앤다(3장)."
         },
         {
           "type": "p",
-          "text": "**대량 삭제가 불가피하면 배치로.** 이미 파티션이 없는 큰 테이블을 정리해야 한다면, db-migrate 6장처럼 **작은 배치로 나눠** 삭제하고 각각 커밋한다. 한 방 DELETE 의 긴 락·거대 트랜잭션을 피하고, 사이사이 vacuum·복제가 따라올 틈을 준다."
+          "text": "**대량 삭제가 불가피하면 배치로.** 이미 파티션이 없는 큰 테이블을 정리해야 한다면, db-migrate 6장처럼 **작은 배치로 나눠** 삭제하고 각각 커밋한다. 한 방 DELETE 의 긴 락, 거대 트랜잭션을 피하고, 사이사이 vacuum, 복제가 따라올 틈을 준다."
         },
         {
           "type": "try",
-          "text": "가장 큰 시간 기반 테이블에서 「오래된 데이터 삭제」를 어떻게 하고 있는지 보라. 대량 DELETE 라면, 파티셔닝으로 전환해 DROP 으로 바꿀 수 있는지 검토하라."
+          "text": "가장 큰 시간 기반 테이블에서 \"오래된 데이터 삭제\"를 어떻게 하고 있는지 보라. 대량 DELETE 라면, 파티셔닝으로 전환해 DROP 으로 바꿀 수 있는지 검토하라."
         }
       ],
       "quiz": [
@@ -149,10 +149,10 @@
             "선택도 향상"
           ],
           "answer": 3,
-          "why": "락·팽창·지연이 문제."
+          "why": "락, 팽창, 지연이 문제."
         },
         {
-          "q": "「90일 지난 것 삭제」를 즉시 작업으로 바꾸는 것은?",
+          "q": "\"90일 지난 것 삭제\"를 즉시 작업으로 바꾸는 것은?",
           "choices": [
             "더 큰 서버",
             "시간 파티션의 DROP/DETACH",
@@ -166,7 +166,7 @@
           "q": "파티션 없는 큰 테이블을 정리할 때는?",
           "choices": [
             "한 방 DELETE",
-            "작은 배치로 나눠 삭제·커밋",
+            "작은 배치로 나눠 삭제, 커밋",
             "TRUNCATE 전체",
             "무시"
           ],
@@ -177,17 +177,17 @@
     },
     {
       "id": "3",
-      "title": "파티셔닝 — 큰 테이블을 조각으로",
+      "title": "파티셔닝. 큰 테이블을 조각으로",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**파티셔닝**은 하나의 큰 논리 테이블을 물리적으로 여러 조각(파티션)으로 나눈다. 시간 기반이면 **월별·일별**로 나눈다. 조회에 시간 조건이 있으면 DB 가 **관련 파티션만 스캔**(partition pruning)하고, 오래된 조각은 통째로 떼어낸다. 큰 시간 데이터의 표준 해법이다."
+          "text": "**파티셔닝**은 하나의 큰 논리 테이블을 물리적으로 여러 조각(파티션)으로 나눈다. 시간 기반이면 **월별, 일별**로 나눈다. 조회에 시간 조건이 있으면 DB 가 **관련 파티션만 스캔**(partition pruning)하고, 오래된 조각은 통째로 떼어낸다. 큰 시간 데이터의 표준 해법이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "partition pruning — 필요한 조각만 스캔",
+          "label": "partition pruning. 필요한 조각만 스캔",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const months = {{range}};              // 조회 범위(최근 N개월)\n  const total = 12;\n  const cells = [];\n  for (let i = 0; i < total; i++) {\n    const monthsAgo = total - 1 - i;\n    const scanned = monthsAgo < months;\n    const old = monthsAgo >= 10;\n    cells.push([old ? 'cold' : scanned ? 'hot scan' : 'warm',\n      '25-' + String(i + 1).padStart(2, '0')]);\n  }\n  render('WHERE created_at >= now() - ' + months + '개월  (월 파티션 12개)',\n    '  스캔할 파티션 = <span class=\\\"ok\\\">' + Math.min(months, total) + '/' + total + '</span>' +\n      '  (나머지는 아예 안 읽는다 — pruning)\\n\\n' +\n    '  조회에 시간 조건이 있으면 DB 가 관련 파티션만 골라 읽어 훨씬 빠르다.',\n    '초록 테두리 = 실제 스캔. 시간 조건이 파티션을 잘라 준다(pruning).',\n    partView(cells));\n</script>",
           "controls": [
@@ -204,11 +204,11 @@
         },
         {
           "type": "note",
-          "text": "**파티션 키는 조회 패턴을 따라간다.** 대부분의 조회·삭제가 시간 기준이면 시간으로 파티션한다. 파티션 키가 조회 조건에 없으면 pruning 이 안 돼 모든 파티션을 뒤진다(복합 인덱스의 왼쪽 접두사와 같은 원리 — db-index 4장). 「어떻게 조회·삭제하는가」가 파티션 키를 정한다."
+          "text": "**파티션 키는 조회 패턴을 따라간다.** 대부분의 조회, 삭제가 시간 기준이면 시간으로 파티션한다. 파티션 키가 조회 조건에 없으면 pruning 이 안 돼 모든 파티션을 뒤진다(복합 인덱스의 왼쪽 접두사와 같은 원리. db-index 4장). \"어떻게 조회, 삭제하는가\"가 파티션 키를 정한다."
         },
         {
           "type": "p",
-          "text": "**파티션은 공짜가 아니다.** 파티션이 너무 많으면(수천 개) 계획 수립이 느려지고 관리가 복잡해진다. 파티션 키가 안 걸린 조회는 오히려 느려질 수 있다. **큰 시간 시계열**처럼 이득이 명확한 곳에 쓰고, 작은 테이블을 미리 파티션하지는 마라 — 필요해질 때 도입한다."
+          "text": "**파티션은 공짜가 아니다.** 파티션이 너무 많으면(수천 개) 계획 수립이 느려지고 관리가 복잡해진다. 파티션 키가 안 걸린 조회는 오히려 느려질 수 있다. **큰 시간 시계열**처럼 이득이 명확한 곳에 쓰고, 작은 테이블을 미리 파티션하지는 마라. 필요해질 때 도입한다."
         },
         {
           "type": "try",
@@ -231,7 +231,7 @@
           "q": "파티션 키를 정하는 기준은?",
           "choices": [
             "알파벳",
-            "조회·삭제 패턴(대개 시간)",
+            "조회, 삭제 패턴(대개 시간)",
             "컬럼 크기",
             "무작위"
           ],
@@ -242,7 +242,7 @@
           "q": "파티셔닝을 쓰기 좋은 곳은?",
           "choices": [
             "작은 설정 테이블",
-            "큰 시간 시계열(로그·이벤트)",
+            "큰 시간 시계열(로그, 이벤트)",
             "1:1 관계",
             "모든 테이블"
           ],
@@ -258,12 +258,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "모든 데이터가 똑같이 자주 쓰이지 않는다. **최근 데이터(뜨거움)** 는 자주 읽고 쓰지만, **오래된 데이터(차가움)** 는 거의 안 본다. 뜨거운 것은 빠른 저장·많은 인덱스로, 차가운 것은 값싼 저장·최소 인덱스로 **분리(티어링)**하면 비용과 성능을 함께 잡는다."
+          "text": "모든 데이터가 똑같이 자주 쓰이지 않는다. **최근 데이터(뜨거움)** 는 자주 읽고 쓰지만, **오래된 데이터(차가움)** 는 거의 안 본다. 뜨거운 것은 빠른 저장, 많은 인덱스로, 차가운 것은 값싼 저장, 최소 인덱스로 **분리(티어링)**하면 비용과 성능을 함께 잡는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "데이터 나이별 티어 — 어디에 두나",
+          "label": "데이터 나이별 티어. 어디에 두나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const age = {{age}};                   // 데이터 나이(일)\n  const tier = age <= 30 ? ['운영 DB(뜨거움)', '빠른 디스크·인덱스 많이', '#0e7490', 'hot']\n    : age <= 365 ? ['아카이브 테이블(따뜻함)', '같은 DB·인덱스 최소', '#334155', 'warm']\n    : ['콜드 스토리지(차가움)', '오브젝트 스토리지·압축·집계본만', '#1e293b', 'cold'];\n  render('데이터 나이 ' + age + '일',\n    '  적정 위치 = <span style=\\\"color:#7dd3fc\\\">' + tier[0] + '</span>\\n  방식: ' + tier[1] + '\\n\\n' +\n    '  뜨거운 소수를 빠른 곳에, 차가운 다수를 값싼 곳에 — 운영 DB 를 가볍게 유지한다.',\n    '자주 쓰는 최근 데이터만 운영 DB 에. 오래된 것은 값싼 티어로 내려보낸다.',\n    partView([\n      [age <= 30 ? 'hot scan' : 'hot', '0~30일'],\n      [age > 30 && age <= 365 ? 'warm scan' : 'warm', '~1년'],\n      [age > 365 ? 'cold scan' : 'cold', '1년+']]));\n</script>",
           "controls": [
@@ -286,15 +286,15 @@
         },
         {
           "type": "note",
-          "text": "**운영 DB 를 작게 유지하는 것이 목표다.** 뜨거운 데이터만 운영 DB 에 두면 인덱스가 램에 들어가 빠르고(5장), 백업·복구가 빠르며(db-backup), vacuum 이 따라온다. 차가운 데이터를 운영 DB 에 쌓아 두는 것은 「거의 안 보는 것」때문에 「자주 보는 것」이 느려지는 손해다."
+          "text": "**운영 DB 를 작게 유지하는 것이 목표다.** 뜨거운 데이터만 운영 DB 에 두면 인덱스가 램에 들어가 빠르고(5장), 백업, 복구가 빠르며(db-backup), vacuum 이 따라온다. 차가운 데이터를 운영 DB 에 쌓아 두는 것은 \"거의 안 보는 것\"때문에 \"자주 보는 것\"이 느려지는 손해다."
         },
         {
           "type": "p",
-          "text": "**옮기기 전에 「차가운 데이터를 어떻게 조회할지」 정하라.** 아카이브로 내린 데이터도 가끔은 필요하다 — 감사·분쟁·분석. 콜드 스토리지에서 어떻게 되읽을지(느려도 되는 경로)를 설계해 두면, 안심하고 운영 DB 를 비울 수 있다. 접근 방법 없는 아카이빙은 사실상 삭제다."
+          "text": "**옮기기 전에 \"차가운 데이터를 어떻게 조회할지\" 정하라.** 아카이브로 내린 데이터도 가끔은 필요하다. 감사, 분쟁, 분석. 콜드 스토리지에서 어떻게 되읽을지(느려도 되는 경로)를 설계해 두면, 안심하고 운영 DB 를 비울 수 있다. 접근 방법 없는 아카이빙은 사실상 삭제다."
         },
         {
           "type": "try",
-          "text": "가장 큰 테이블의 조회를 데이터 나이별로 분석하라. 대부분이 최근 것만 본다면, 오래된 데이터를 아카이브 테이블·콜드 스토리지로 내리는 계획과 되읽기 경로를 설계하라."
+          "text": "가장 큰 테이블의 조회를 데이터 나이별로 분석하라. 대부분이 최근 것만 본다면, 오래된 데이터를 아카이브 테이블, 콜드 스토리지로 내리는 계획과 되읽기 경로를 설계하라."
         }
       ],
       "quiz": [
@@ -307,13 +307,13 @@
             "무작위"
           ],
           "answer": 1,
-          "why": "비용·성능 동시."
+          "why": "비용, 성능 동시."
         },
         {
           "q": "운영 DB 를 작게 유지하면 좋은 점이 아닌 것은?",
           "choices": [
             "인덱스가 램에 듦",
-            "백업·복구가 빠름",
+            "백업, 복구가 빠름",
             "vacuum 이 따라옴",
             "차가운 데이터도 빠름"
           ],
@@ -340,12 +340,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "테이블이 커지면 성능이 **매끄럽게** 나빠지지 않는다 — 어느 임계를 넘으면 **계단식으로** 급락한다. 가장 흔한 계단: **인덱스가 램에 안 들어가기 시작**할 때. 그전까진 빠르다가, 인덱스가 디스크를 오가기 시작하면 갑자기 몇 배 느려진다."
+          "text": "테이블이 커지면 성능이 **매끄럽게** 나빠지지 않는다. 어느 임계를 넘으면 **계단식으로** 급락한다. 가장 흔한 계단: **인덱스가 램에 안 들어가기 시작**할 때. 그전까진 빠르다가, 인덱스가 디스크를 오가기 시작하면 갑자기 몇 배 느려진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "인덱스가 램을 넘는 순간 — 계단식 악화",
+          "label": "인덱스가 램을 넘는 순간. 계단식 악화",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const idxGB = {{idx}};                 // 자주 쓰는 인덱스 크기(GB)\n  const ramGB = 8;                       // 캐시용 램(GB)\n  const fits = idxGB <= ramGB;\n  const latency = fits ? 3 : 3 + (idxGB - ramGB) * 15;\n  render('자주 쓰는 인덱스 ' + idxGB + 'GB · 캐시 램 ' + ramGB + 'GB',\n    '  조회 지연 ~ <span class=\\\"' + (fits ? 'ok' : 'no') + '\\\">' + Math.round(latency) + 'ms</span>\\n\\n' +\n    (fits\n      ? '  인덱스가 램에 들어간다 — 디스크 안 가고 빠르다.'\n      : '  <span class=\\\"no\\\">인덱스가 램을 넘어 디스크를 오간다 -> 갑자기 몇 배 느려짐(계단식).</span>'),\n    '매끄럽게 아니라 계단식으로 나빠진다. 인덱스가 램을 넘는 지점이 대표적 계단.',\n    bars([['램 캐시', ramGB * 8, ramGB + 'GB', '#64748b'],\n          ['인덱스 크기', Math.min(100, idxGB * 8), idxGB + 'GB', fits ? '#4ade80' : '#fca5a5'],\n          ['조회 지연', Math.min(100, latency * 1.5), Math.round(latency) + 'ms', fits ? '#4ade80' : '#fca5a5']]));\n</script>",
           "controls": [
@@ -368,15 +368,15 @@
         },
         {
           "type": "note",
-          "text": "**증상은 갑자기, 원인은 서서히.** 「어제까진 멀쩡했는데 오늘 갑자기 느리다」는 대개 어떤 임계(램·vacuum 처리량)를 넘은 것이다. 그래서 1장의 **크기 추적**이 중요하다 — 곡선을 보면 계단이 오기 전에 파티션·아카이브·증설을 준비할 수 있다."
+          "text": "**증상은 갑자기, 원인은 서서히.** \"어제까진 멀쩡했는데 오늘 갑자기 느리다\"는 대개 어떤 임계(램, vacuum 처리량)를 넘은 것이다. 그래서 1장의 **크기 추적**이 중요하다. 곡선을 보면 계단이 오기 전에 파티션, 아카이브, 증설을 준비할 수 있다."
         },
         {
           "type": "p",
-          "text": "**커지면 정리 작업도 못 따라온다.** 죽은 행을 청소하고 통계를 갱신하는 vacuum/analyze 가 쓰기 속도를 못 따라가면, 테이블이 부풀고(bloat) 실행 계획이 나빠진다(db-explain 3장 — 낡은 통계). 큰 테이블에선 정리 작업의 주기·강도도 함께 조율해야 한다."
+          "text": "**커지면 정리 작업도 못 따라온다.** 죽은 행을 청소하고 통계를 갱신하는 vacuum/analyze 가 쓰기 속도를 못 따라가면, 테이블이 부풀고(bloat) 실행 계획이 나빠진다(db-explain 3장. 낡은 통계). 큰 테이블에선 정리 작업의 주기, 강도도 함께 조율해야 한다."
         },
         {
           "type": "try",
-          "text": "자주 쓰는 인덱스들의 총 크기와 DB 캐시 램을 비교하라. 인덱스가 램을 넘고 있다면, 데이터 티어링(4장)·파티셔닝(3장)으로 운영 인덱스를 줄이거나 램을 늘려라."
+          "text": "자주 쓰는 인덱스들의 총 크기와 DB 캐시 램을 비교하라. 인덱스가 램을 넘고 있다면, 데이터 티어링(4장), 파티셔닝(3장)으로 운영 인덱스를 줄이거나 램을 늘려라."
         }
       ],
       "quiz": [
@@ -392,7 +392,7 @@
           "why": "인덱스가 램 넘는 지점 등."
         },
         {
-          "q": "「갑자기 느려진」 큰 테이블의 흔한 원인은?",
+          "q": "\"갑자기 느려진\" 큰 테이블의 흔한 원인은?",
           "choices": [
             "네트워크",
             "인덱스가 램을 넘어 디스크를 오감",
@@ -422,7 +422,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「지난 1년 매출」을 매번 **원본 1억 행에서** 계산하지 마라. **일 단위 집계 테이블**(롤업)을 만들어 두면, 조회가 1억 행 스캔에서 365행 조회로 준다. 그리고 원본을 아카이브·삭제해도 **집계는 남아** 장기 통계를 지킨다 — 성장 관리와 조회 속도를 함께 얻는다."
+          "text": "\"지난 1년 매출\"을 매번 **원본 1억 행에서** 계산하지 마라. **일 단위 집계 테이블**(롤업)을 만들어 두면, 조회가 1억 행 스캔에서 365행 조회로 준다. 그리고 원본을 아카이브, 삭제해도 **집계는 남아** 장기 통계를 지킨다. 성장 관리와 조회 속도를 함께 얻는다."
         },
         {
           "type": "demo",
@@ -451,11 +451,11 @@
         },
         {
           "type": "note",
-          "text": "**집계는 증분으로 갱신한다.** 매일 밤 그날치만 집계 테이블에 더하면(또는 이벤트가 들어올 때 누적), 전체를 다시 계산할 필요가 없다. 「어제까지의 집계 + 오늘분」으로 유지하면 롤업 자체도 저렴하다. 구체화 뷰(materialized view)나 배치 잡으로 자동화한다."
+          "text": "**집계는 증분으로 갱신한다.** 매일 밤 그날치만 집계 테이블에 더하면(또는 이벤트가 들어올 때 누적), 전체를 다시 계산할 필요가 없다. \"어제까지의 집계 + 오늘분\"으로 유지하면 롤업 자체도 저렴하다. 구체화 뷰(materialized view)나 배치 잡으로 자동화한다."
         },
         {
           "type": "p",
-          "text": "**집계본이 아카이빙을 가능하게 한다.** 원본 로그를 90일만 두더라도, 일·월 집계를 따로 남기면 「작년 이맘때와 비교」 같은 장기 분석이 된다. 즉 **원본은 짧게(보관 기간), 집계는 길게** 두는 조합이 성장 관리의 핵심 패턴이다 — 버릴 것은 버리되 요약은 지킨다."
+          "text": "**집계본이 아카이빙을 가능하게 한다.** 원본 로그를 90일만 두더라도, 일, 월 집계를 따로 남기면 \"작년 이맘때와 비교\" 같은 장기 분석이 된다. 즉 **원본은 짧게(보관 기간), 집계는 길게** 두는 조합이 성장 관리의 핵심 패턴이다. 버릴 것은 버리되 요약은 지킨다."
         },
         {
           "type": "try",
@@ -483,13 +483,13 @@
             "복제"
           ],
           "answer": 1,
-          "why": "materialized view·배치."
+          "why": "materialized view, 배치."
         },
         {
           "q": "성장 관리의 핵심 조합은?",
           "choices": [
-            "원본 길게·집계 짧게",
-            "원본 짧게(보관 기간)·집계 길게",
+            "원본 길게, 집계 짧게",
+            "원본 짧게(보관 기간), 집계 길게",
             "둘 다 무한",
             "둘 다 삭제"
           ],
@@ -500,17 +500,17 @@
     },
     {
       "id": "7",
-      "title": "한 대의 한계 — 수평 분할",
+      "title": "한 대의 한계. 수평 분할",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "파티션·티어링·집계로도 **한 대(한 DB 인스턴스)** 가 감당 못 할 만큼 커지면, 데이터를 여러 서버로 나누는 **샤딩(수평 분할)** 을 고려한다. 각 서버가 데이터의 **일부**만 맡는다. 강력하지만 복잡도가 크게 오르므로, **정말 필요할 때** 마지막에 꺼내는 카드다."
+          "text": "파티션, 티어링, 집계로도 **한 대(한 DB 인스턴스)** 가 감당 못 할 만큼 커지면, 데이터를 여러 서버로 나누는 **샤딩(수평 분할)** 을 고려한다. 각 서버가 데이터의 **일부**만 맡는다. 강력하지만 복잡도가 크게 오르므로, **정말 필요할 때** 마지막에 꺼내는 카드다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "샤딩 — 샤드 키로 데이터를 흩는다",
+          "label": "샤딩. 샤드 키로 데이터를 흩는다",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const key = '{{key}}';\n  const cases = {\n    user:  ['user_id 해시', true, '사용자별 조회가 한 샤드로 — 대부분 조회가 단일 샤드. 좋은 키.'],\n    time:  ['created_at(시간)', false, '최신 데이터가 한 샤드로 몰림(hot shard) — 쓰기가 편중된다.'],\n    random:['완전 무작위', false, '고르게 흩어지지만 「한 사용자 데이터」가 전 샤드에 흩어져 조회가 fan-out.'],\n  }[key];\n  render('샤드 키: ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">좋은 샤드 키 — 고르게 분산 + 조회가 한 샤드로 모임</span>'\n      : '<span class=\\\"no\\\">문제 있는 키 — ' + cases[2].split(' — ')[0] + '</span>') + '\\n\\n  ' + cases[2],\n    '샤드 키가 전부다. 고르게 분산되면서 조회가 한 샤드로 모이는 키를 골라라.',\n    partView([0,1,2,3].map(i => [\n      key === 'time' && i === 3 ? 'hot scan' : key === 'user' ? 'warm' : 'cold',\n      'shard' + i])));\n</script>",
           "controls": [
@@ -538,15 +538,15 @@
         },
         {
           "type": "note",
-          "text": "**샤딩은 마지막 수단이다.** 조인·트랜잭션·유니크 제약이 샤드를 넘으면 어려워지고, 재분할(리샤딩)은 큰 공사다. 샤딩 전에 ① 인덱스·쿼리 최적화(db-index·explain) ② 읽기 복제본(db-pool 8장) ③ 파티셔닝·아카이빙(이 칸) ④ 수직 확장(더 큰 서버)을 **먼저** 소진하라. 대부분은 여기서 해결된다."
+          "text": "**샤딩은 마지막 수단이다.** 조인, 트랜잭션, 유니크 제약이 샤드를 넘으면 어려워지고, 재분할(리샤딩)은 큰 공사다. 샤딩 전에 ① 인덱스, 쿼리 최적화(db-index, explain) ② 읽기 복제본(db-pool 8장) ③ 파티셔닝, 아카이빙(이 칸) ④ 수직 확장(더 큰 서버)을 **먼저** 소진하라. 대부분은 여기서 해결된다."
         },
         {
           "type": "p",
-          "text": "**샤드 키는 되돌리기 어렵다 — 신중히.** 좋은 샤드 키는 **고르게 분산**되면서 **대부분의 조회가 한 샤드로** 모이는 것이다(예: 멀티테넌트의 tenant_id). 시간처럼 최신이 몰리는 키는 hot shard 를, 무작위 키는 조회 fan-out 을 만든다. 한번 정하면 바꾸기 어려우니 조회 패턴을 깊이 보고 정한다(scale 트랙에서 더 깊이)."
+          "text": "**샤드 키는 되돌리기 어렵다. 신중히.** 좋은 샤드 키는 **고르게 분산**되면서 **대부분의 조회가 한 샤드로** 모이는 것이다(예: 멀티테넌트의 tenant_id). 시간처럼 최신이 몰리는 키는 hot shard 를, 무작위 키는 조회 fan-out 을 만든다. 한번 정하면 바꾸기 어려우니 조회 패턴을 깊이 보고 정한다(scale 트랙에서 더 깊이)."
         },
         {
           "type": "try",
-          "text": "지금 규모에서 정말 샤딩이 필요한지, 아니면 인덱스·복제·파티셔닝·수직 확장으로 충분한지 먼저 따져라. 필요하다면 조회 패턴을 분석해 「대부분의 조회가 한 샤드로 모이는」 샤드 키 후보를 찾아라."
+          "text": "지금 규모에서 정말 샤딩이 필요한지, 아니면 인덱스, 복제, 파티셔닝, 수직 확장으로 충분한지 먼저 따져라. 필요하다면 조회 패턴을 분석해 \"대부분의 조회가 한 샤드로 모이는\" 샤드 키 후보를 찾아라."
         }
       ],
       "quiz": [
@@ -565,12 +565,12 @@
           "q": "샤딩을 마지막 수단으로 두는 이유는?",
           "choices": [
             "느려서",
-            "조인·트랜잭션·리샤딩이 크게 어려워지므로",
+            "조인, 트랜잭션, 리샤딩이 크게 어려워지므로",
             "비싸서만",
             "불가능"
           ],
           "answer": 1,
-          "why": "먼저 인덱스·복제·파티션을 소진."
+          "why": "먼저 인덱스, 복제, 파티션을 소진."
         },
         {
           "q": "좋은 샤드 키의 조건은?",
@@ -581,7 +581,7 @@
             "가장 작은 컬럼"
           ],
           "answer": 1,
-          "why": "hot shard·fan-out 회피."
+          "why": "hot shard, fan-out 회피."
         }
       ]
     },
@@ -592,12 +592,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "성장 관리의 핵심은 **순서**다. 작을 때 파티션·보관·집계를 설계하면 몇 줄이지만, 커진 뒤엔 같은 일이 긴 락·다운타임이 된다. 그렇다고 **아직 안 큰데 미리 샤딩**하는 과잉도 낭비다. 「지금 규모에 맞는, 그러나 다음 단계를 막지 않는」 설계가 목표다."
+          "text": "성장 관리의 핵심은 **순서**다. 작을 때 파티션, 보관, 집계를 설계하면 몇 줄이지만, 커진 뒤엔 같은 일이 긴 락, 다운타임이 된다. 그렇다고 **아직 안 큰데 미리 샤딩**하는 과잉도 낭비다. \"지금 규모에 맞는, 그러나 다음 단계를 막지 않는\" 설계가 목표다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "성장 단계별 적정 대응 — 과잉도 지연도 아니게",
+          "label": "성장 단계별 적정 대응. 과잉도 지연도 아니게",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{stage}};\n  const stages = [\n    ['소규모: 보관 기간만 정해 둔다(문서)', 'good'],\n    ['성장: 시간 테이블을 파티션으로 설계', 'good'],\n    ['중규모: 티어링·집계 테이블 도입', 'good'],\n    ['대규모: 읽기 복제본·수직 확장', 'good'],\n    ['초대규모: 그래도 부족하면 샤딩', 'good'],\n  ];\n  const view = stages.map((r, i) => [r[0],\n    i === s ? 'on' : (i < s ? 'good' : '')]);\n  render('성장 단계 ' + (s + 1) + '/5',\n    '  지금 단계의 적정 대응: ' + stages[s][0].split(': ')[1] + '\\n\\n' +\n    '  <span class=\\\"dim\\\">앞 단계를 건너뛰면(예: 소규모에 바로 샤딩) 과잉 — 복잡도만 산다.</span>\\n' +\n    '  <span class=\\\"dim\\\">뒤로 미루면(1억 행에 파티션 시작) 긴 락·다운타임.</span>',\n    '단계에 맞는 대응을 제때. 미리 하는 건 파티션·보관·집계까지, 샤딩은 정말 필요할 때.',\n    steps(view));\n</script>",
           "controls": [
@@ -614,23 +614,23 @@
         },
         {
           "type": "note",
-          "text": "**미리 하기 좋은 것 vs 나중에 할 것.** **미리**(작을 때) 하면 값싼 것 — 보관 기간 문서화, 시간 테이블 파티셔닝, 집계 테이블 습관. **나중에**(필요해지면) 하는 것 — 샤딩, 대규모 아키텍처 변경. 앞의 것들은 「다음 단계를 막지 않게」 미리, 뒤의 것은 「정말 필요할 때」."
+          "text": "**미리 하기 좋은 것 vs 나중에 할 것.** **미리**(작을 때) 하면 값싼 것. 보관 기간 문서화, 시간 테이블 파티셔닝, 집계 테이블 습관. **나중에**(필요해지면) 하는 것. 샤딩, 대규모 아키텍처 변경. 앞의 것들은 \"다음 단계를 막지 않게\" 미리, 뒤의 것은 \"정말 필요할 때\"."
         },
         {
           "type": "p",
-          "text": "**성장 관리는 이 트랙 전체를 부른다.** 파티션은 db-migrate 로 안전하게 도입하고, 커진 테이블의 조회는 db-index·db-explain 으로 점검하며, 대량 정리는 db-lock(짧은 락)·db-pool(연결)을 아끼고, 아카이빙은 db-backup 과 짝이다. **크기를 미리 관리하는 것이 이 모든 문제를 예방**한다."
+          "text": "**성장 관리는 이 트랙 전체를 부른다.** 파티션은 db-migrate 로 안전하게 도입하고, 커진 테이블의 조회는 db-index, db-explain 으로 점검하며, 대량 정리는 db-lock(짧은 락), db-pool(연결)을 아끼고, 아카이빙은 db-backup 과 짝이다. **크기를 미리 관리하는 것이 이 모든 문제를 예방**한다."
         },
         {
           "type": "try",
-          "text": "네 서비스의 현재 성장 단계를 판단하고, 그 단계의 적정 대응이 되어 있는지 점검하라. 아직 작다면 「보관 기간 + 시간 파티션」만 미리 해 두고, 샤딩 같은 대공사는 지표가 요구할 때까지 미뤄라."
+          "text": "네 서비스의 현재 성장 단계를 판단하고, 그 단계의 적정 대응이 되어 있는지 점검하라. 아직 작다면 \"보관 기간 + 시간 파티션\"만 미리 해 두고, 샤딩 같은 대공사는 지표가 요구할 때까지 미뤄라."
         }
       ],
       "quiz": [
         {
-          "q": "성장 관리에서 「미리」 하기 좋은 것은?",
+          "q": "성장 관리에서 \"미리\" 하기 좋은 것은?",
           "choices": [
             "샤딩",
-            "보관 기간·시간 파티션·집계 습관",
+            "보관 기간, 시간 파티션, 집계 습관",
             "대규모 재설계",
             "복제 3단"
           ],
@@ -638,7 +638,7 @@
           "why": "작을 때 값싼 것."
         },
         {
-          "q": "「소규모인데 미리 샤딩」의 문제는?",
+          "q": "\"소규모인데 미리 샤딩\"의 문제는?",
           "choices": [
             "느림",
             "이득 없이 복잡도만 사는 과잉",
@@ -663,17 +663,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 성장 다루기",
+      "title": "점검표. 성장 다루기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "테이블이 커지고 있거나 「점점 느려지는」 조짐이 보일 때 이 목록을 확인하라. 핵심은 「미리 정하고·조각내고·식히고·요약하고·측정」이다."
+          "text": "테이블이 커지고 있거나 \"점점 느려지는\" 조짐이 보일 때 이 목록을 확인하라. 핵심은 \"미리 정하고, 조각내고, 식히고, 요약하고, 측정\"이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .parts { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .parts .pt { padding:5px 8px; border-radius:5px; font:10.5px ui-monospace; text-align:center; }\n  .parts .hot { background:#0e7490; color:#fff; } .parts .warm { background:#334155; color:#cbd5e1; }\n  .parts .cold { background:#1e293b; color:#64748b; } .parts .drop { background:#2a1414; color:#fca5a5; text-decoration:line-through; }\n  .parts .scan { outline:2px solid #4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const partView = (cells) => '<div class=\"parts\">' + cells.map(([cls, label]) =>\n    '<span class=\"pt ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '데이터 종류별 보관 기간을 문서로 정했다',\n    '테이블 크기·증가 속도를 지표로 추적한다',\n    '시간 기반 큰 테이블은 파티션으로 나눴다',\n    '오래된 것은 DROP 파티션으로 즉시 지운다',\n    '뜨거운/차가운 데이터를 티어로 분리했다',\n    '자주 쓰는 인덱스가 램에 들어가는지 확인한다',\n    '무거운 통계는 집계 테이블로 미리 계산한다',\n    '샤딩은 다른 수단을 소진한 뒤 마지막에',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 커져도 놀라지 않고, 지우기·조회가 싸다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '미리 정하고·조각내고·식히고·요약하고·측정. 커지기 전이 유일하게 싼 시점.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -690,15 +690,15 @@
         },
         {
           "type": "note",
-          "text": "**핵심 한 줄: 커지기 전이 유일하게 싼 시점.** 파티션·보관·집계는 작을 때 몇 줄, 커진 뒤엔 다운타임이다. 크기를 지표로 추적해(1장) 계단이 오기 전에 손쓰고, 샤딩 같은 대공사는 정말 필요할 때만(7·8장) 꺼낸다."
+          "text": "**핵심 한 줄: 커지기 전이 유일하게 싼 시점.** 파티션, 보관, 집계는 작을 때 몇 줄, 커진 뒤엔 다운타임이다. 크기를 지표로 추적해(1장) 계단이 오기 전에 손쓰고, 샤딩 같은 대공사는 정말 필요할 때만(7, 8장) 꺼낸다."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 종착점.** 성장 관리는 db 트랙의 모든 조각을 엮는다 — 파티션 도입은 db-migrate, 커진 조회는 db-index·db-explain, 정리는 db-lock·db-pool, 아카이빙은 db-backup. **「이 데이터가 얼마나 커질까」를 처음부터 묻는 습관**이 DB 를 오래 건강하게 유지하는 마지막 열쇠다."
+          "text": "**이 트랙의 종착점.** 성장 관리는 db 트랙의 모든 조각을 엮는다. 파티션 도입은 db-migrate, 커진 조회는 db-index, db-explain, 정리는 db-lock, db-pool, 아카이빙은 db-backup. **\"이 데이터가 얼마나 커질까\"를 처음부터 묻는 습관**이 DB 를 오래 건강하게 유지하는 마지막 열쇠다."
         },
         {
           "type": "try",
-          "text": "가장 빠르게 커지는 테이블에 이 8개 항목을 채점하라. 「보관 기간」과 「크기 추적」이 비어 있다면 그 둘부터 — 나머지 전략이 거기서 따라 나온다."
+          "text": "가장 빠르게 커지는 테이블에 이 8개 항목을 채점하라. \"보관 기간\"과 \"크기 추적\"이 비어 있다면 그 둘부터. 나머지 전략이 거기서 따라 나온다."
         }
       ],
       "quiz": [
@@ -716,10 +716,10 @@
         {
           "q": "성장 전략이 따라 나오는 출발점 두 가지는?",
           "choices": [
-            "샤딩·복제",
+            "샤딩, 복제",
             "보관 기간 + 크기 추적",
-            "인덱스·캐시",
-            "백업·복구"
+            "인덱스, 캐시",
+            "백업, 복구"
           ],
           "answer": 1,
           "why": "기간과 곡선이 나머지를 정한다."
@@ -728,7 +728,7 @@
           "q": "성장 관리가 이 트랙에서 갖는 위치는?",
           "choices": [
             "독립 주제",
-            "migrate·index·explain·lock·pool·backup 을 엮는 종착점",
+            "migrate, index, explain, lock, pool, backup 을 엮는 종착점",
             "성능만",
             "무관"
           ],

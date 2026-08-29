@@ -3,7 +3,7 @@
   "parts": [
     {
       "id": "1",
-      "title": "글자에서 픽셀까지 — 다섯 단계",
+      "title": "글자에서 픽셀까지. 다섯 단계",
       "minutes": 9,
       "blocks": [
         {
@@ -13,7 +13,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇이 무엇을 만드나",
+          "label": "단계를 밀어 보라. 무엇이 무엇을 만드나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const step = {{step}};\n  const stages = [\n    ['① 파싱', 'HTML -> DOM\\nCSS -> CSSOM', '태그와 규칙을 나무로 만든다'],\n    ['② 스타일', '요소마다 최종 값 계산', '어느 규칙이 이겼나(캐스케이드)를 여기서 정한다'],\n    ['③ 레이아웃', '위치와 크기 계산', '「어디에 얼마만 하게」 — 가장 비싼 단계'],\n    ['④ 페인트', '색·글자·그림자를 칠한다', '레이어별로 그림을 그린다'],\n    ['⑤ 합성', '레이어를 겹쳐 화면에', 'GPU 가 잘하는 일 — 가장 싸다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  stages.forEach(([t, sub, d], i) => {\n    const on = i <= step;\n    box(12 + i * 85, 40, 78, 66, t, on ? sub : '', on ? '#14351f' : '#111c33',\n        i === step ? '#f59e0b' : on ? '#22c55e' : '#334155');\n    if (i < 4) { ctx.strokeStyle = on ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n      ctx.beginPath(); ctx.moveTo(90 + i * 85, 73); ctx.lineTo(97 + i * 85, 73); ctx.stroke(); }\n  });\n  app.innerHTML = '';\n  show(stages[step][0] + '  ' + stages[step][2] + '\\n\\n'\n     + '핵심 규칙: **앞 단계를 건드리면 뒤 단계가 전부 다시 돈다.**\\n'\n     + '  레이아웃을 바꾸면  -> 레이아웃 + 페인트 + 합성  (가장 비싸다)\\n'\n     + '  색만 바꾸면        -> 페인트 + 합성\\n'\n     + '  transform/opacity  -> 합성만                      (가장 싸다)\\n\\n'\n     + '그래서 애니메이션에 transform 을 쓰라는 말이 나온다(4장).');\n</script>",
           "controls": [
@@ -30,11 +30,11 @@
         },
         {
           "type": "p",
-          "text": "여기서 중요한 것은 **되돌아가지 않는다**는 점이다. 파이프라인은 한 방향이고, 앞을 바꾸면 그 뒤가 전부 다시 계산된다. 그러니 성능 개선은 언제나 「**어느 단계부터 다시 하게 만들었나**」를 묻는 일이다."
+          "text": "여기서 중요한 것은 **되돌아가지 않는다**는 점이다. 파이프라인은 한 방향이고, 앞을 바꾸면 그 뒤가 전부 다시 계산된다. 그러니 성능 개선은 언제나 \"**어느 단계부터 다시 하게 만들었나**\"를 묻는 일이다."
         },
         {
           "type": "note",
-          "text": "레이아웃은 다른 이름으로도 불린다 — 리플로우(reflow), 리레이아웃. 크롬 개발자도구 Performance 탭에서는 보라색 **Layout**, 초록색 **Paint**, 그리고 **Composite Layers** 로 나뉘어 보인다. 색만 봐도 어느 단계가 비쌌는지 알 수 있다."
+          "text": "레이아웃은 다른 이름으로도 불린다. 리플로우(reflow), 리레이아웃. 크롬 개발자도구 Performance 탭에서는 보라색 **Layout**, 초록색 **Paint**, 그리고 **Composite Layers** 로 나뉘어 보인다. 색만 봐도 어느 단계가 비쌌는지 알 수 있다."
         },
         {
           "type": "code",
@@ -44,7 +44,7 @@
         },
         {
           "type": "try",
-          "text": "개발자도구 Performance 탭에서 아무 페이지나 녹화해 보라. 보라색(Layout)과 초록색(Paint) 막대가 어디에 몰려 있는지 — 그것이 그 페이지의 비용 구조다."
+          "text": "개발자도구 Performance 탭에서 아무 페이지나 녹화해 보라. 보라색(Layout)과 초록색(Paint) 막대가 어디에 몰려 있는지. 그것이 그 페이지의 비용 구조다."
         }
       ],
       "quiz": [
@@ -57,13 +57,13 @@
             "합성"
           ],
           "answer": 1,
-          "why": "위치·크기를 전부 다시 계산한다."
+          "why": "위치, 크기를 전부 다시 계산한다."
         },
         {
           "q": "`transform` 애니메이션이 싼 이유는?",
           "choices": [
             "GPU 라서만",
-            "레이아웃·페인트를 건너뛰고 합성만 하기 때문",
+            "레이아웃, 페인트를 건너뛰고 합성만 하기 때문",
             "값이 작아서",
             "브라우저 최적화"
           ],
@@ -85,17 +85,17 @@
     },
     {
       "id": "2",
-      "title": "첫 화면을 막는 것들 — 렌더 차단",
+      "title": "첫 화면을 막는 것들. 렌더 차단",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "브라우저는 **CSSOM 이 완성될 때까지 아무것도 안 그린다.** 스타일이 없으면 잘못 그렸다가 다시 그려야 하기 때문이다. 그리고 일반 `<script>` 는 만나는 순간 **파싱을 멈춘다** — 그 스크립트가 DOM 을 바꿀 수 있어서다."
+          "text": "브라우저는 **CSSOM 이 완성될 때까지 아무것도 안 그린다.** 스타일이 없으면 잘못 그렸다가 다시 그려야 하기 때문이다. 그리고 일반 `<script>` 는 만나는 순간 **파싱을 멈춘다**. 그 스크립트가 DOM 을 바꿀 수 있어서다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자원 배치를 바꿔 보라 — 첫 픽셀이 언제 나오나",
+          "label": "자원 배치를 바꿔 보라. 첫 픽셀이 언제 나오나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const css = {{css}}, jsMode = '{{js}}';\n  const RTT = 40;\n  const rows = [];\n  let firstPaint;\n  const push = (name, start, len, color) => rows.push({ name, start, len, color });\n  push('HTML 받기', 0, RTT + 20, '#60a5fa');\n  let t = RTT + 20;\n  push('CSS ' + css + '개 받기', t, RTT + css * 15, '#f472b6');\n  const cssEnd = t + RTT + css * 15;\n  if (jsMode === 'blocking') {\n    push('JS 받기+실행 (파싱 중단)', t, RTT + 60, '#ef4444');\n    firstPaint = Math.max(cssEnd, t + RTT + 60);\n  } else if (jsMode === 'defer') {\n    push('JS 받기 (병렬)', t, RTT + 30, '#f59e0b');\n    push('JS 실행 (파싱 후)', cssEnd, 40, '#f59e0b');\n    firstPaint = cssEnd;\n  } else {\n    push('JS 받기 (async)', t, RTT + 30, '#f59e0b');\n    firstPaint = cssEnd;\n  }\n  const total = Math.max(...rows.map((r) => r.start + r.len)) + 40;\n  ctx.clearRect(0, 0, 440, 190);\n  rows.forEach((r, i) => {\n    const y = 16 + i * 30;\n    ctx.fillStyle = r.color;\n    ctx.fillRect(14 + (r.start / total) * 280, y, Math.max(3, (r.len / total) * 280), 18);\n    ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(r.name, 300, y + 13);\n  });\n  const fx = 14 + (firstPaint / total) * 280;\n  ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);\n  ctx.beginPath(); ctx.moveTo(fx, 8); ctx.lineTo(fx, 150); ctx.stroke(); ctx.setLineDash([]);\n  ctx.fillStyle = '#22c55e'; ctx.font = '11px system-ui';\n  ctx.fillText('첫 그리기', fx + 4, 164);\n  app.innerHTML = '<div class=\"hint\">CSS ' + css + '개 · 스크립트 ' + jsMode + '</div>';\n  show('첫 픽셀까지 약 ' + Math.round(firstPaint) + 'ms\\n\\n'\n     + { blocking: '<script> 를 그냥 두면 파싱이 멈춘다 — 받고 실행할 때까지 아무것도 못 그린다.',\n         defer: 'defer: 받는 것은 병렬, 실행은 파싱이 끝난 뒤. 순서도 보장된다 — 기본으로 쓸 것.',\n         async: 'async: 받는 즉시 실행. 순서 보장이 없어 서로 의존하는 스크립트에는 위험하다.' }[jsMode] + '\\n\\n'\n     + 'CSS 는 늘 차단한다 — 그래서 첫 화면에 필요한 것만 남기고 나머지는 나중에 불러야 한다.');\n</script>",
           "controls": [
@@ -138,11 +138,11 @@
         },
         {
           "type": "note",
-          "text": "`defer` 와 `async` 의 차이는 **순서**다. `defer` 는 적힌 순서대로 파싱 후 실행되고, `async` 는 먼저 도착한 것부터 실행된다. 서로 의존하는 스크립트에 `async` 를 쓰면 「가끔」 깨진다 — 앞 칸에서 본 재현 안 되는 버그가 된다."
+          "text": "`defer` 와 `async` 의 차이는 **순서**다. `defer` 는 적힌 순서대로 파싱 후 실행되고, `async` 는 먼저 도착한 것부터 실행된다. 서로 의존하는 스크립트에 `async` 를 쓰면 \"가끔\" 깨진다. 앞 칸에서 본 재현 안 되는 버그가 된다."
         },
         {
           "type": "p",
-          "text": "그리고 **글꼴도 차단한다.** 글꼴이 안 오면 브라우저는 글자를 안 보여 주거나(FOIT) 임시 글꼴로 보여 준다(FOUT). `font-display: swap` 으로 「일단 보여 주고 나중에 바꾸기」를 고르는 것이 대개 낫다(8장)."
+          "text": "그리고 **글꼴도 차단한다.** 글꼴이 안 오면 브라우저는 글자를 안 보여 주거나(FOIT) 임시 글꼴로 보여 준다(FOUT). `font-display: swap` 으로 \"일단 보여 주고 나중에 바꾸기\"를 고르는 것이 대개 낫다(8장)."
         },
         {
           "type": "try",
@@ -187,7 +187,7 @@
     },
     {
       "id": "3",
-      "title": "레이아웃 — 무엇이 다시 계산되게 하나",
+      "title": "레이아웃. 무엇이 다시 계산되게 하나",
       "minutes": 9,
       "blocks": [
         {
@@ -197,7 +197,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 재 보라 — 읽기와 쓰기를 섞으면 무슨 일이 생기나",
+          "label": "직접 재 보라. 읽기와 쓰기를 섞으면 무슨 일이 생기나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}}, MODE = '{{mode}}';\n  const host = document.createElement('div');\n  host.style.cssText = 'position:absolute;left:-9999px;top:0;width:300px';\n  document.body.appendChild(host);\n  const els = [];\n  for (let i = 0; i < N; i++) {\n    const d = document.createElement('div');\n    d.textContent = 'x'; d.style.height = '10px';\n    host.appendChild(d); els.push(d);\n  }\n  let ms;\n  if (MODE === 'thrash') {\n    ms = bench(() => { for (const el of els) { const h = el.offsetHeight; el.style.height = (h + 1) + 'px'; } }, 3);\n  } else if (MODE === 'batch') {\n    ms = bench(() => {\n      const hs = els.map((el) => el.offsetHeight);\n      els.forEach((el, i) => { el.style.height = (hs[i] + 1) + 'px'; });\n    }, 3);\n  } else {\n    ms = bench(() => { for (const el of els) { el.style.transform = 'translateY(1px)'; } }, 3);\n  }\n  host.remove();\n  app.innerHTML = '<div class=\"hint\">요소 ' + N + '개 · ' +\n    { thrash: '읽기-쓰기 번갈아', batch: '전부 읽고 전부 쓰기', transform: 'transform 만 (레이아웃 없음)' }[MODE] + '</div>';\n  show('걸린 시간(중앙값) ' + ms.toFixed(2) + 'ms\\n\\n'\n     + { thrash: '「크기를 읽고 → 고치고 → 또 읽고」 를 반복하면, 읽을 때마다 브라우저가\\n'\n                + '밀린 변경을 전부 계산해야 한다(강제 동기 레이아웃). 이것이 레이아웃 스래싱.',\n         batch: '전부 읽어 두고 전부 쓰면 레이아웃 계산이 한 번으로 줄어든다.\\n같은 일인데 시간이 크게 다르다.',\n         transform: 'transform 은 레이아웃을 안 건드린다 — 합성 단계에서 끝난다.' }[MODE] + '\\n\\n'\n     + '세 갈래를 번갈아 눌러 배수를 적어 보라.');\n</script>",
           "controls": [
@@ -234,7 +234,7 @@
         },
         {
           "type": "note",
-          "text": "**레이아웃을 강제로 일으키는 속성들**이 있다 — `offsetTop/Height`, `clientWidth`, `scrollTop`, `getBoundingClientRect()`, `getComputedStyle()`. 이것들을 읽는 순간 브라우저는 「지금까지 밀어 둔 변경」을 전부 계산해야 한다."
+          "text": "**레이아웃을 강제로 일으키는 속성들**이 있다. `offsetTop/Height`, `clientWidth`, `scrollTop`, `getBoundingClientRect()`, `getComputedStyle()`. 이것들을 읽는 순간 브라우저는 \"지금까지 밀어 둔 변경\"을 전부 계산해야 한다."
         },
         {
           "type": "code",
@@ -244,7 +244,7 @@
         },
         {
           "type": "p",
-          "text": "레이아웃 **범위를 줄이는** 방법도 있다. `contain: layout` 이나 `content-visibility: auto` 를 쓰면 「이 안에서 일어난 변화는 밖에 영향이 없다」고 브라우저에 약속하는 셈이라, 계산이 그 상자 안에서 끝난다."
+          "text": "레이아웃 **범위를 줄이는** 방법도 있다. `contain: layout` 이나 `content-visibility: auto` 를 쓰면 \"이 안에서 일어난 변화는 밖에 영향이 없다\"고 브라우저에 약속하는 셈이라, 계산이 그 상자 안에서 끝난다."
         },
         {
           "type": "try",
@@ -272,7 +272,7 @@
             "textContent 쓰기"
           ],
           "answer": 1,
-          "why": "크기·위치를 묻는 순간 계산이 필요하다."
+          "why": "크기, 위치를 묻는 순간 계산이 필요하다."
         },
         {
           "q": "레이아웃 범위를 상자 안으로 가두는 속성은?",
@@ -289,17 +289,17 @@
     },
     {
       "id": "4",
-      "title": "페인트와 합성 — 무엇이 싸고 무엇이 비싼가",
+      "title": "페인트와 합성. 무엇이 싸고 무엇이 비싼가",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "레이아웃이 끝나면 **칠하고**(페인트), **겹친다**(합성). 페인트는 CPU 가 그림을 그리는 일이고, 합성은 이미 그려진 레이어를 GPU 가 겹치는 일이다 — 그래서 합성이 압도적으로 싸다."
+          "text": "레이아웃이 끝나면 **칠하고**(페인트), **겹친다**(합성). 페인트는 CPU 가 그림을 그리는 일이고, 합성은 이미 그려진 레이어를 GPU 가 겹치는 일이다. 그래서 합성이 압도적으로 싸다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "애니메이션 속성을 바꿔 보라 — 실제로 재 본다",
+          "label": "애니메이션 속성을 바꿔 보라. 실제로 재 본다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const PROP = '{{prop}}', N = {{n}};\n  hideCanvas();\n  const host = document.createElement('div');\n  host.style.cssText = 'position:relative;height:60px;overflow:hidden';\n  app.innerHTML = '<div class=\"hint\">사각형 ' + N + '개를 60프레임 동안 움직인다 · 속성: ' + PROP + '</div>';\n  app.appendChild(host);\n  const els = [];\n  for (let i = 0; i < N; i++) {\n    const d = document.createElement('div');\n    d.style.cssText = 'position:absolute;top:' + (i % 3) * 20 + 'px;left:0;width:12px;height:12px;background:#60a5fa;border-radius:3px';\n    host.appendChild(d); els.push(d);\n  }\n  let frames = 0, t0 = performance.now();\n  function step() {\n    const p = (frames % 60) / 60;\n    for (const el of els) {\n      if (PROP === 'left') el.style.left = (p * 200) + 'px';\n      else if (PROP === 'width') el.style.width = (6 + p * 20) + 'px';\n      else el.style.transform = 'translateX(' + (p * 200) + 'px)';\n    }\n    frames++;\n    if (frames < 60) requestAnimationFrame(step);\n    else {\n      const ms = performance.now() - t0;\n      show('60프레임에 ' + ms.toFixed(0) + 'ms  ->  프레임당 ' + (ms / 60).toFixed(2) + 'ms\\n\\n'\n         + { left: 'left 를 바꾸면 레이아웃부터 다시 — 가장 비싸다.',\n             width: 'width 도 레이아웃을 건드린다. 주변 요소까지 영향을 준다.',\n             transform: 'transform 은 합성만 — 프레임당 비용이 거의 0에 가깝다.' }[PROP]\n         + '\\n\\n프레임 예산은 16.7ms(60fps). 프레임당 비용이 그것을 넘으면 끊긴다(5장).');\n    }\n  }\n  requestAnimationFrame(step);\n  show('도는 중…');\n</script>",
           "controls": [
@@ -336,11 +336,11 @@
         },
         {
           "type": "p",
-          "text": "**합성만으로 되는 속성은 사실상 둘뿐**이다 — `transform` 과 `opacity`. 그래서 「움직이기·크기 변화·페이드」는 전부 이 둘로 표현하는 것이 원칙이다. `left/top/width/height` 로 하는 애니메이션은 거의 항상 다시 쓸 수 있다."
+          "text": "**합성만으로 되는 속성은 사실상 둘뿐**이다. `transform` 과 `opacity`. 그래서 \"움직이기, 크기 변화, 페이드\"는 전부 이 둘로 표현하는 것이 원칙이다. `left/top/width/height` 로 하는 애니메이션은 거의 항상 다시 쓸 수 있다."
         },
         {
           "type": "note",
-          "text": "`will-change: transform` 은 「이 요소를 곧 움직일 테니 레이어로 올려 두라」는 힌트다. 다만 **남발하면 안 된다** — 레이어마다 메모리를 먹고, 너무 많으면 오히려 느려진다. 애니메이션 직전에 켜고 끝나면 지우는 것이 정석이다."
+          "text": "`will-change: transform` 은 \"이 요소를 곧 움직일 테니 레이어로 올려 두라\"는 힌트다. 다만 **남발하면 안 된다**. 레이어마다 메모리를 먹고, 너무 많으면 오히려 느려진다. 애니메이션 직전에 켜고 끝나면 지우는 것이 정석이다."
         },
         {
           "type": "code",
@@ -363,7 +363,7 @@
             "margin, padding"
           ],
           "answer": 1,
-          "why": "레이아웃·페인트를 건너뛴다."
+          "why": "레이아웃, 페인트를 건너뛴다."
         },
         {
           "q": "페인트와 합성의 차이는?",
@@ -396,12 +396,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "화면이 초당 60번 갱신되면, 한 프레임에 쓸 수 있는 시간은 **16.7ms** 다. 그 안에 자바스크립트·스타일·레이아웃·페인트·합성이 전부 끝나야 한다. 하나라도 넘치면 그 프레임을 건너뛰고, 사람은 그것을 **끊김**으로 느낀다."
+          "text": "화면이 초당 60번 갱신되면, 한 프레임에 쓸 수 있는 시간은 **16.7ms** 다. 그 안에 자바스크립트, 스타일, 레이아웃, 페인트, 합성이 전부 끝나야 한다. 하나라도 넘치면 그 프레임을 건너뛰고, 사람은 그것을 **끊김**으로 느낀다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "작업 시간을 늘려 보라 — 애니메이션이 언제 끊기나",
+          "label": "작업 시간을 늘려 보라. 애니메이션이 언제 끊기나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const WORK = {{work}};\n  hideCanvas();\n  app.innerHTML = '<div class=\"hint\">매 프레임 ' + WORK + 'ms 짜리 계산을 한다</div>' +\n    '<div style=\"height:36px;background:#111c33;border-radius:8px;margin-top:8px;overflow:hidden\">' +\n    '<div id=\"ball\" style=\"width:30px;height:30px;margin:3px;border-radius:50%;background:#22c55e\"></div></div>';\n  const ball = document.getElementById('ball');\n  const LIMIT = Math.max(24, Math.min(90, Math.round(1100 / (WORK + 16))));\n  let frames = 0, dropped = 0, last = performance.now(), t0 = last;\n  function step(now) {\n    const dt = now - last; last = now;\n    if (dt > 20) dropped++;\n    frames++;\n    ball.style.transform = 'translateX(' + (Math.sin(frames / 10) * 0.5 + 0.5) * 200 + 'px)';\n    const end = performance.now() + WORK;\n    while (performance.now() < end) { /* 일부러 붙잡는다 */ }\n    if (frames < LIMIT) requestAnimationFrame(step);\n    else {\n      const total = performance.now() - t0;\n      const fps = frames / (total / 1000);\n      show('프레임 ' + frames + ' · 걸린 시간 ' + total.toFixed(0) + 'ms\\n'\n         + '실측 ' + fps.toFixed(1) + ' fps · 늦은 프레임 ' + dropped + '개\\n\\n'\n         + '프레임 예산 16.7ms 중 ' + WORK + 'ms 를 자바스크립트가 썼다.\\n'\n         + (WORK < 8 ? '여유가 있다 — 부드럽게 돈다.'\n            : WORK < 16 ? '아슬아슬하다 — 다른 일이 조금만 겹쳐도 끊긴다.'\n            : '예산 초과 — 눈에 보이게 끊긴다.') + '\\n\\n'\n         + '해법: 일을 쪼개거나(작은 조각 + rAF), 워커로 보내거나, 아예 덜 하기.');\n    }\n  }\n  requestAnimationFrame(step);\n  show('도는 중…');\n</script>",
           "controls": [
@@ -418,7 +418,7 @@
         },
         {
           "type": "note",
-          "text": "**요즘 화면은 60Hz 만이 아니다.** 120Hz 기기에서는 예산이 8.3ms 로 줄어든다. 그래서 「고정된 ms 를 가정하지 말고」 `requestAnimationFrame` 이 주는 시각을 쓰는 것이 옳다 — 프레임 간격을 직접 재서 움직임을 계산하라."
+          "text": "**요즘 화면은 60Hz 만이 아니다.** 120Hz 기기에서는 예산이 8.3ms 로 줄어든다. 그래서 \"고정된 ms 를 가정하지 말고\" `requestAnimationFrame` 이 주는 시각을 쓰는 것이 옳다. 프레임 간격을 직접 재서 움직임을 계산하라."
         },
         {
           "type": "code",
@@ -473,17 +473,17 @@
     },
     {
       "id": "6",
-      "title": "스크롤과 입력 — 반응이 느껴지는 자리",
+      "title": "스크롤과 입력. 반응이 느껴지는 자리",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "사용자가 성능을 **가장 예민하게 느끼는** 곳은 스크롤과 탭이다. 여기서 100ms 만 늦어도 「무겁다」고 느낀다. 그래서 이 경로에는 특별한 규칙이 있다."
+          "text": "사용자가 성능을 **가장 예민하게 느끼는** 곳은 스크롤과 탭이다. 여기서 100ms 만 늦어도 \"무겁다\"고 느낀다. 그래서 이 경로에는 특별한 규칙이 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 바꿔 보라 — 스크롤이 어떻게 달라지나",
+          "label": "설정을 바꿔 보라. 스크롤이 어떻게 달라지나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const PASSIVE = {{passive}}, WORK = {{work}};\n  app.innerHTML = '<div class=\"hint\">아래 상자를 스크롤해 보라 (' + (PASSIVE ? 'passive: true' : 'passive 아님') + ' · 핸들러 ' + WORK + 'ms)</div>' +\n    '<div id=\"sc\" style=\"height:80px;overflow:auto;background:#111c33;border-radius:8px;margin-top:8px;padding:8px\">' +\n    Array.from({ length: 40 }, (_, i) => '<div style=\"padding:4px\">줄 ' + i + '</div>').join('') + '</div>';\n  const sc = document.getElementById('sc');\n  let n = 0, worst = 0;\n  sc.addEventListener('scroll', () => {\n    const t0 = performance.now();\n    const end = t0 + WORK;\n    while (performance.now() < end) { /* 붙잡는다 */ }\n    n++;\n    worst = Math.max(worst, performance.now() - t0);\n    show('스크롤 이벤트 ' + n + '회 · 핸들러 최대 ' + worst.toFixed(1) + 'ms\\n\\n'\n       + (PASSIVE\n          ? 'passive: true 는 「preventDefault 를 안 하겠다」는 약속이다.\\n'\n            + '그래서 브라우저가 핸들러를 기다리지 않고 스크롤을 먼저 처리한다 — 손가락이 안 걸린다.'\n          : 'passive 가 아니면 브라우저는 「이 핸들러가 스크롤을 막을지도 모른다」고 보고 기다린다.\\n'\n            + '핸들러가 무거우면 그만큼 스크롤이 늦게 반응한다.') + '\\n\\n'\n       + '스크롤 핸들러에서는 아무것도 무겁게 하지 마라 — 값만 저장하고 rAF 에서 처리한다.');\n  }, { passive: PASSIVE });\n  show('상자를 스크롤해 보라.');\n</script>",
           "controls": [
@@ -512,11 +512,11 @@
         },
         {
           "type": "note",
-          "text": "**스크롤 위치로 계산하던 것들은 대부분 관찰자로 대체된다.** 화면에 들어왔는지는 `IntersectionObserver`, 크기가 바뀌었는지는 `ResizeObserver` — 브라우저가 알아서 알려 주므로 매 프레임 재지 않아도 된다."
+          "text": "**스크롤 위치로 계산하던 것들은 대부분 관찰자로 대체된다.** 화면에 들어왔는지는 `IntersectionObserver`, 크기가 바뀌었는지는 `ResizeObserver`. 브라우저가 알아서 알려 주므로 매 프레임 재지 않아도 된다."
         },
         {
           "type": "p",
-          "text": "입력 반응은 **INP** 라는 지표로 측정된다(7장). 탭·클릭·키 입력에서 화면이 반응하기까지의 시간인데, 여기서 큰 몫을 차지하는 것이 「그 순간 도는 긴 자바스크립트」다 — 5장의 프레임 예산과 같은 문제다."
+          "text": "입력 반응은 **INP** 라는 지표로 측정된다(7장). 탭, 클릭, 키 입력에서 화면이 반응하기까지의 시간인데, 여기서 큰 몫을 차지하는 것이 \"그 순간 도는 긴 자바스크립트\"다. 5장의 프레임 예산과 같은 문제다."
         },
         {
           "type": "try",
@@ -547,7 +547,7 @@
           "why": "프레임당 한 번으로 줄인다."
         },
         {
-          "q": "「화면에 보이면 처리」에 알맞은 API 는?",
+          "q": "\"화면에 보이면 처리\"에 알맞은 API 는?",
           "choices": [
             "scroll 이벤트",
             "IntersectionObserver",
@@ -561,17 +561,17 @@
     },
     {
       "id": "7",
-      "title": "지표로 말하기 — LCP · CLS · INP",
+      "title": "지표로 말하기. LCP, CLS, INP",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「빠르다/느리다」는 말로는 고칠 수 없다. 그래서 사용자가 **실제로 느끼는 것**을 세 숫자로 정리한 것이 코어 웹 바이털이다 — **언제 보이나(LCP)**, **밀리지 않나(CLS)**, **누르면 반응하나(INP)**."
+          "text": "\"빠르다/느리다\"는 말로는 고칠 수 없다. 그래서 사용자가 **실제로 느끼는 것**을 세 숫자로 정리한 것이 코어 웹 바이털이다. **언제 보이나(LCP)**, **밀리지 않나(CLS)**, **누르면 반응하나(INP)**."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "지표를 골라 보라 — 무엇을 재고 어떻게 고치나",
+          "label": "지표를 골라 보라. 무엇을 재고 어떻게 고치나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const m = '{{metric}}', V = {{value}};\n  const spec = {\n    lcp: ['LCP — 가장 큰 것이 보이기까지', [2500, 4000], 'ms', 6000,\n      '첫 화면에서 가장 큰 요소(대개 대표 이미지나 제목)가 그려진 시점.',\n      '고치는 법: 이미지 최적화·preload · 서버 응답 시간 · 렌더 차단 자원 줄이기 (2·8장)'],\n    cls: ['CLS — 화면이 밀린 정도', [0.1, 0.25], '', 0.5,\n      '읽고 있는데 갑자기 밀리는 그 현상의 누적 점수.',\n      '고치는 법: 이미지·광고 자리를 미리 잡기(width/height·aspect-ratio) · 늦게 오는 글꼴 (8장)'],\n    inp: ['INP — 눌렀을 때 반응까지', [200, 500], 'ms', 800,\n      '탭·클릭·키 입력에 화면이 반응하기까지 걸린 시간(최악에 가까운 값).',\n      '고치는 법: 긴 작업 쪼개기 · 핸들러 가볍게 · 워커 (5·6장)'],\n  }[m];\n  const [good, poor] = spec[1];\n  const grade = V <= good ? '좋음' : V <= poor ? '개선 필요' : '나쁨';\n  const color = V <= good ? '#22c55e' : V <= poor ? '#f59e0b' : '#ef4444';\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#22c55e'; ctx.fillRect(14, 40, 410 * (good / spec[3]), 26);\n  ctx.fillStyle = '#f59e0b'; ctx.fillRect(14 + 410 * (good / spec[3]), 40, 410 * ((poor - good) / spec[3]), 26);\n  ctx.fillStyle = '#ef4444'; ctx.fillRect(14 + 410 * (poor / spec[3]), 40, 410 * (1 - poor / spec[3]), 26);\n  const x = 14 + 410 * Math.min(1, V / spec[3]);\n  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 3;\n  ctx.beginPath(); ctx.moveTo(x, 30); ctx.lineTo(x, 76); ctx.stroke();\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('내 값 ' + (m === 'cls' ? (V / 1000).toFixed(3) : V + 'ms') + '  ->  ' + grade, 14, 100);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui';\n  ctx.fillText('좋음 ~' + (m === 'cls' ? (good / 1000).toFixed(2) : good) + '   ·   나쁨 ' + (m === 'cls' ? (poor / 1000).toFixed(2) : poor) + ' 이상', 14, 118);\n  app.innerHTML = '<div style=\"font-size:15px;color:' + color + '\">' + spec[0] + '</div>';\n  show(spec[4] + '\\n\\n' + spec[5] + '\\n\\n'\n     + '기억할 것\\n'\n     + '  · 내 기계에서 잰 값은 표본 1이다 — 실제 사용자에게서 걷어라(RUM)\\n'\n     + '  · 평균이 아니라 상위 25% 가 나쁜 쪽(75분위)을 본다\\n'\n     + '  · 세 지표는 서로 다른 원인을 가리킨다 — 한 번에 하나씩 고쳐라');\n</script>",
           "controls": [
@@ -618,11 +618,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **한 번에 하나씩** 고쳐라. 세 지표는 원인이 다르다 — LCP 는 네트워크·자원, CLS 는 레이아웃 예약, INP 는 자바스크립트 실행. 한꺼번에 손대면 무엇이 효과였는지 알 수 없다."
+          "text": "그리고 **한 번에 하나씩** 고쳐라. 세 지표는 원인이 다르다. LCP 는 네트워크, 자원, CLS 는 레이아웃 예약, INP 는 자바스크립트 실행. 한꺼번에 손대면 무엇이 효과였는지 알 수 없다."
         },
         {
           "type": "try",
-          "text": "개발자도구 콘솔에서 `performance.getEntriesByType('navigation')[0]` 을 찍어 보라. 그리고 Lighthouse 를 한 번 돌려 세 지표를 적어 두라 — 오늘의 기준선이 된다."
+          "text": "개발자도구 콘솔에서 `performance.getEntriesByType('navigation')[0]` 을 찍어 보라. 그리고 Lighthouse 를 한 번 돌려 세 지표를 적어 두라. 오늘의 기준선이 된다."
         }
       ],
       "quiz": [
@@ -635,7 +635,7 @@
             "메모리"
           ],
           "answer": 1,
-          "why": "이미지·광고 자리 예약으로 고친다."
+          "why": "이미지, 광고 자리 예약으로 고친다."
         },
         {
           "q": "INP 가 나쁠 때 주로 볼 곳은?",
@@ -663,7 +663,7 @@
     },
     {
       "id": "8",
-      "title": "가장 큰 실전 레버 — 이미지와 글꼴",
+      "title": "가장 큰 실전 레버. 이미지와 글꼴",
       "minutes": 8,
       "blocks": [
         {
@@ -673,7 +673,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 바꿔 보라 — 무엇이 좋아지나",
+          "label": "설정을 바꿔 보라. 무엇이 좋아지나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const SIZE = {{size}}, DIMS = {{dims}}, FMT = '{{fmt}}';\n  const factor = { jpg: 1, webp: 0.65, avif: 0.45 }[FMT];\n  const kb = Math.round(SIZE * factor);\n  const ms = Math.round(kb * 8 / (20 * 1000) * 1000);\n  const cls = DIMS ? 0 : 0.18;\n  app.innerHTML = '<div class=\"hint\">대표 이미지 ' + SIZE + 'KB(원본) · ' + FMT + ' · 크기 지정 ' + (DIMS ? 'O' : 'X') + '</div>';\n  show('전송 크기   ' + kb + 'KB   (' + FMT + ' 로 ' + Math.round((1 - factor) * 100) + '% 절감)\\n'\n     + '받는 시간   약 ' + ms + 'ms  (20Mbps 가정) -> LCP 에 그대로 더해진다\\n'\n     + 'CLS 기여    ' + cls.toFixed(2) + (DIMS ? '  (자리를 미리 잡아 안 밀린다)' : '  <- 이미지가 늦게 와서 글이 밀린다') + '\\n\\n'\n     + '이미지 점검\\n'\n     + '  · width/height(또는 aspect-ratio) 를 반드시 적는다 -> CLS 0\\n'\n     + '  · 화면 밖 이미지는 loading=\"lazy\"\\n'\n     + '  · 첫 화면 대표 이미지는 오히려 fetchpriority=\"high\" · preload\\n'\n     + '  · srcset/sizes 로 화면 폭에 맞는 파일을 주기\\n'\n     + '  · 포맷: AVIF > WebP > JPEG (picture 로 대체 제공)');\n</script>",
           "controls": [
@@ -722,16 +722,16 @@
         },
         {
           "type": "note",
-          "text": "**첫 화면 이미지에 `loading=\"lazy\"` 를 붙이지 마라.** 흔한 실수인데, 오히려 LCP 를 늦춘다. lazy 는 「화면 밖」 전용이고, 대표 이미지는 반대로 우선순위를 **올려야** 한다."
+          "text": "**첫 화면 이미지에 `loading=\"lazy\"` 를 붙이지 마라.** 흔한 실수인데, 오히려 LCP 를 늦춘다. lazy 는 \"화면 밖\" 전용이고, 대표 이미지는 반대로 우선순위를 **올려야** 한다."
         },
         {
           "type": "p",
-          "text": "글꼴은 두 가지를 고른다 — **언제 보여 줄까**(`font-display`)와 **얼마나 받을까**(서브셋). `swap` 으로 일단 기본 글꼴로 보여 주고 나중에 바꾸면 글자가 안 보이는 시간이 사라지지만, 대신 바뀔 때 살짝 밀린다. `size-adjust` 로 대체 글꼴 크기를 맞추면 그 밀림도 줄어든다."
+          "text": "글꼴은 두 가지를 고른다. **언제 보여 줄까**(`font-display`)와 **얼마나 받을까**(서브셋). `swap` 으로 일단 기본 글꼴로 보여 주고 나중에 바꾸면 글자가 안 보이는 시간이 사라지지만, 대신 바뀔 때 살짝 밀린다. `size-adjust` 로 대체 글꼴 크기를 맞추면 그 밀림도 줄어든다."
         },
         {
           "type": "code",
           "lang": "css",
-          "label": "글꼴 — 밀림을 줄이는 형태",
+          "label": "글꼴. 밀림을 줄이는 형태",
           "text": "@font-face {\n  font-family: 'Pretendard';\n  src: url('/fonts/pretendard-subset.woff2') format('woff2');\n  font-display: swap;                 /* 일단 보여 주고 나중에 바꾼다 */\n  unicode-range: U+AC00-D7A3, U+0020-007E;   /* 필요한 글자만 */\n}\n\n/* 대체 글꼴의 크기를 맞춰 바뀔 때의 밀림을 줄인다 */\n@font-face {\n  font-family: 'Pretendard Fallback';\n  src: local('Apple SD Gothic Neo'), local('Malgun Gothic');\n  size-adjust: 96%;\n}"
         },
         {
@@ -777,7 +777,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -793,13 +793,13 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 실제로 재서 확인한다",
+          "label": "스스로 채점. 실제로 재서 확인한다",
           "height": "290px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .stage { background:#111c33; border-radius:8px; padding:10px; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) { const t0 = performance.now(); fn(); ts.push(performance.now() - t0); }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const host = document.createElement('div');\n  host.style.cssText = 'position:absolute;left:-9999px;width:300px';\n  document.body.appendChild(host);\n  const els = [];\n  for (let i = 0; i < 800; i++) { const d = document.createElement('div'); d.style.height = '10px'; host.appendChild(d); els.push(d); }\n  const thrash = bench(() => { for (const el of els) { const h = el.offsetHeight; el.style.height = (h + 1) + 'px'; } }, 3);\n  const batch = bench(() => { const hs = els.map((el) => el.offsetHeight); els.forEach((el, i) => { el.style.height = (hs[i] + 1) + 'px'; }); }, 3);\n  const tf = bench(() => { for (const el of els) el.style.transform = 'translateY(1px)'; }, 3);\n  host.remove();\n  app.innerHTML = '<div class=\"hint\">이 기계에서 방금 잰 값 (요소 800개)</div>';\n  show('읽기-쓰기 번갈아   ' + thrash.toFixed(2) + 'ms\\n'\n     + '전부 읽고 전부 쓰기 ' + batch.toFixed(2) + 'ms   -> ' + (batch > 0 ? (thrash / batch).toFixed(1) : '—') + '배\\n'\n     + 'transform 만        ' + tf.toFixed(2) + 'ms   -> ' + (tf > 0 ? (thrash / tf).toFixed(1) : '—') + '배\\n\\n'\n     + '이 세 줄이 이 칸의 요약이다 — 같은 일, 다른 단계.');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 접근성·폼이다. 여기까지가 「빨리 보이게 하는 법」이었다면, 다음은 **모두에게 보이고 쓰이게 하는 법**이다 — 둘은 자주 같은 처방을 공유한다(자리를 미리 잡기, 의미 있는 구조)."
+          "text": "다음 칸은 접근성, 폼이다. 여기까지가 \"빨리 보이게 하는 법\"이었다면, 다음은 **모두에게 보이고 쓰이게 하는 법**이다. 둘은 자주 같은 처방을 공유한다(자리를 미리 잡기, 의미 있는 구조)."
         },
         {
           "type": "try",

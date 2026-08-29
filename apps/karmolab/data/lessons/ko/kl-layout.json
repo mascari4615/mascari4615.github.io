@@ -14,7 +14,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "display 를 바꿔 보라 — 실제로 배치가 달라진다",
+          "label": "display 를 바꿔 보라. 실제로 배치가 달라진다",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const d = '{{display}}';\n  const css = { block: '', flex: 'display:flex;gap:8px;', grid: 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;',\n                inline: '', none: '' }[d];\n  const itemCss = d === 'inline' ? 'display:inline-block;margin:3px;' : d === 'none' ? '' : 'margin-bottom:6px;';\n  lay('padding:10px;' + css, 5, itemCss);\n  if (d === 'none') stage.children[1].style.display = 'none';\n  app.innerHTML = '<div class=\"code\">.container { ' + esc(css || '/* 기본값 (block 흐름) */') + ' }</div>';\n  const t = {\n    block: '기본 흐름 — 상자가 **한 줄씩 위에서 아래로** 쌓이고, 가로는 부모를 꽉 채운다.',\n    flex: '한 방향으로 나란히 — 가로줄 하나에 놓인다 (3장).',\n    grid: '두 방향 격자 — 칸을 미리 정해 두고 채운다 (4장).',\n    inline: '글자처럼 흐른다 — 줄이 모자라면 다음 줄로 넘어간다.',\n    none: '2번 상자에 display:none — **자리까지 사라진다**. 뒤 상자들이 당겨진다.',\n  }[d];\n  show(t + '\\n\\n'\n     + '무대(컨테이너)가 실제로 계산한 값\\n' + measure(stage, ['display', 'padding-top', 'width']) + '\\n\\n'\n     + '첫 상자 크기: ' + rect(stage.children[0]) + '\\n\\n'\n     + '기억할 것\\n'\n     + '  · 배치는 **부모**가 정한다 — 자식을 아무리 고쳐도 부모가 block 이면 세로로 쌓인다\\n'\n     + '  · display:none 은 자리까지 없앤다 · visibility:hidden 은 자리를 남긴다\\n'\n     + '  · 「왜 나란히 안 되지」 → 부모의 display 를 먼저 보라');\n</script>",
           "controls": [
@@ -50,11 +50,11 @@
         },
         {
           "type": "note",
-          "text": "**배치는 부모가 정한다.** 자식에 `float`·`width` 를 아무리 걸어도 부모가 어떤 배치 방식인지가 먼저다 — 「나란히 안 놓인다」의 첫 확인은 언제나 부모의 `display` 다."
+          "text": "**배치는 부모가 정한다.** 자식에 `float`, `width` 를 아무리 걸어도 부모가 어떤 배치 방식인지가 먼저다. \"나란히 안 놓인다\"의 첫 확인은 언제나 부모의 `display` 다."
         },
         {
           "type": "p",
-          "text": "그리고 **`display:none` 과 `visibility:hidden` 은 다르다.** 전자는 자리까지 없애고 후자는 빈 자리를 남긴다 — 「숨겼는데 빈칸이 남는다」·「숨겼더니 아래가 확 올라왔다」가 이 차이다."
+          "text": "그리고 **`display:none` 과 `visibility:hidden` 은 다르다.** 전자는 자리까지 없애고 후자는 빈 자리를 남긴다. \"숨겼는데 빈칸이 남는다\", \"숨겼더니 아래가 확 올라왔다\"가 이 차이다."
         },
         {
           "type": "try",
@@ -99,17 +99,17 @@
     },
     {
       "id": "2",
-      "title": "상자의 크기 — padding·border·box-sizing",
+      "title": "상자의 크기. padding, border, box-sizing",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「200px 로 했는데 220px 이 나온다」는 **박스 모델** 때문이다. 안쪽 여백과 테두리가 크기에 더해지느냐 포함되느냐를 `box-sizing` 이 정한다."
+          "text": "\"200px 로 했는데 220px 이 나온다\"는 **박스 모델** 때문이다. 안쪽 여백과 테두리가 크기에 더해지느냐 포함되느냐를 `box-sizing` 이 정한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "값을 바꿔 보라 — 실제 폭을 재서 보여 준다",
+          "label": "값을 바꿔 보라. 실제 폭을 재서 보여 준다",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const pad = {{pad}}, bs = '{{sizing}}';\n  lay('padding:14px;', 1, 'width:200px;min-height:auto;padding:' + pad + 'px;border:6px solid #f59e0b;'\n    + 'box-sizing:' + bs + ';display:block;');\n  const el = stage.children[0];\n  const w = Math.round(el.getBoundingClientRect().width);\n  app.innerHTML = '<div class=\"code\">.box {\\n  width: 200px;\\n  padding: ' + pad + 'px;\\n'\n    + '  border: 6px solid;\\n  box-sizing: ' + bs + ';\\n}</div>';\n  show('실제로 차지하는 가로: **' + w + 'px**\\n\\n'\n     + (bs === 'content-box'\n        ? '기본값(content-box)\\n'\n          + '  width 는 **내용만**의 폭이다.\\n'\n          + '  200(내용) + ' + pad + '×2(안쪽 여백) + 6×2(테두리) = ' + w + 'px\\n'\n          + '  → 값을 키우면 상자가 통째로 커진다. 옆 것을 밀어낸다.'\n        : 'border-box\\n'\n          + '  width 는 **테두리까지 포함한** 폭이다. 항상 200px.\\n'\n          + '  안쪽 여백을 늘리면 내용 자리가 줄어들 뿐 상자는 안 커진다.\\n'\n          + '  → 계산이 쉬워서 요즘은 대개 이쪽을 기본으로 깐다.') + '\\n\\n'\n     + '계산된 값\\n' + measure(el, ['box-sizing', 'padding-left', 'border-left-width']) + '\\n\\n'\n     + '거의 모든 프로젝트가 첫 줄에 이걸 깐다:\\n'\n     + '  *, *::before, *::after { box-sizing: border-box; }');\n</script>",
           "controls": [
@@ -142,7 +142,7 @@
         },
         {
           "type": "note",
-          "text": "**`border-box` 를 기본으로 깔면 계산이 사람 직관과 맞는다.** 「폭 200px」이 정말 200px 이 되고, 안쪽 여백을 늘려도 옆 것을 밀지 않는다 — 거의 모든 프로젝트가 첫 줄에 이 규칙을 깔아 두는 이유다."
+          "text": "**`border-box` 를 기본으로 깔면 계산이 사람 직관과 맞는다.** \"폭 200px\"이 정말 200px 이 되고, 안쪽 여백을 늘려도 옆 것을 밀지 않는다. 거의 모든 프로젝트가 첫 줄에 이 규칙을 깔아 두는 이유다."
         },
         {
           "type": "code",
@@ -152,7 +152,7 @@
         },
         {
           "type": "p",
-          "text": "**`margin` 은 상자 밖이라 배경색이 안 칠해진다.** 「배경이 있는 간격을 주고 싶다」면 `padding` 이고, 「상자와 상자 사이를 띄우고 싶다」면 `margin` 이나 `gap` 이다 — 5장에서 셋을 나란히 두고 가른다."
+          "text": "**`margin` 은 상자 밖이라 배경색이 안 칠해진다.** \"배경이 있는 간격을 주고 싶다\"면 `padding` 이고, \"상자와 상자 사이를 띄우고 싶다\"면 `margin` 이나 `gap` 이다. 5장에서 셋을 나란히 두고 가른다."
         },
         {
           "type": "try",
@@ -197,17 +197,17 @@
     },
     {
       "id": "3",
-      "title": "flex — 한 방향으로 늘어놓기",
+      "title": "flex. 한 방향으로 늘어놓기",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**flex 는 한 줄(또는 한 열)** 을 다루는 도구다. 「가로로 나란히, 남는 공간은 이렇게 나눠」가 필요할 때 거의 항상 답이다."
+          "text": "**flex 는 한 줄(또는 한 열)** 을 다루는 도구다. \"가로로 나란히, 남는 공간은 이렇게 나눠\"가 필요할 때 거의 항상 답이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "손잡이를 돌려 보라 — 진짜 flex 가 걸린다",
+          "label": "손잡이를 돌려 보라. 진짜 flex 가 걸린다",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const dir = '{{dir}}', jc = '{{justify}}';\n  lay('display:flex;flex-direction:' + dir + ';justify-content:' + jc + ';align-items:center;gap:8px;padding:12px;'\n    + (dir.startsWith('column') ? 'min-height:180px;' : ''), 4,\n    (i) => 'width:' + (i === 1 ? 90 : 60) + 'px;');\n  app.innerHTML = '<div class=\"code\">.row {\\n  display: flex;\\n  flex-direction: ' + dir + ';\\n'\n    + '  justify-content: ' + jc + ';\\n  align-items: center;\\n  gap: 8px;\\n}</div>';\n  const axis = dir.startsWith('row') ? '가로' : '세로';\n  const jcNote = { 'flex-start': '앞쪽에 몰기', 'center': '가운데', 'flex-end': '뒤쪽에 몰기',\n                   'space-between': '양 끝에 붙이고 사이를 균등하게', 'space-around': '각 항목 둘레를 균등하게',\n                   'space-evenly': '모든 틈을 완전히 균등하게' }[jc];\n  show('지금: 주축이 **' + axis + '** · 주축 방향 정렬 = ' + jcNote + '\\n\\n'\n     + 'flex 의 핵심 두 축\\n'\n     + '  주축(main)  — flex-direction 이 정한다. justify-content 가 여기를 다룬다\\n'\n     + '  교차축(cross) — 그 직각 방향. align-items 가 여기를 다룬다\\n\\n'\n     + '  → direction 을 column 으로 바꾸면 **두 속성의 의미가 통째로 뒤집힌다**.\\n'\n     + '    「가운데 정렬이 갑자기 이상해졌다」의 대부분이 이것이다.\\n\\n'\n     + '자주 쓰는 조합\\n'\n     + '  좌우 양끝 배치      justify-content: space-between\\n'\n     + '  완전 가운데         justify-content:center + align-items:center\\n'\n     + '  오른쪽으로 밀기     그 항목에 margin-left:auto');\n</script>",
           "controls": [
@@ -272,7 +272,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "자식 쪽 손잡이 — flex-grow 로 남는 공간 나누기",
+          "label": "자식 쪽 손잡이. flex-grow 로 남는 공간 나누기",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const g = {{grow}}, wrap = {{wrap}};\n  lay('display:flex;gap:8px;padding:12px;flex-wrap:' + (wrap ? 'wrap' : 'nowrap') + ';', 4,\n    (i) => 'width:' + (wrap ? 150 : 80) + 'px;' + (i === 1 ? 'flex-grow:' + g + ';' : 'flex-grow:1;'));\n  const ws = Array.from(stage.children).map((c) => Math.round(c.getBoundingClientRect().width));\n  app.innerHTML = '<div class=\"code\">.row { display:flex; gap:8px; flex-wrap:' + (wrap ? 'wrap' : 'nowrap') + '; }\\n'\n    + '.row > *      { flex-grow: 1 }\\n.row > *:nth-child(2) { flex-grow: ' + g + ' }</div>';\n  show('실제로 재 본 각 상자 폭: ' + ws.join('px · ') + 'px\\n\\n'\n     + 'flex-grow — 남는 공간을 **비율로** 나눠 가진다\\n'\n     + '  0 = 안 늘어난다 (기본값) · 1 = 한 몫 · 2 = 두 몫\\n'\n     + '  지금 2번 상자가 ' + g + '몫이라 다른 것보다 ' + (g > 1 ? '넓다' : g === 1 ? '같다' : '좁다') + '\\n\\n'\n     + 'flex-wrap — 줄이 모자랄 때\\n'\n     + '  nowrap(기본): 억지로 한 줄에 밀어 넣는다 → 상자가 찌그러진다\\n'\n     + '  wrap:        다음 줄로 넘긴다 → 반응형에 대개 이쪽\\n\\n'\n     + '한 줄 요약: flex-grow 는 **남는 공간**을, width 는 **시작 크기**를 정한다.');\n</script>",
           "controls": [
@@ -295,11 +295,11 @@
         },
         {
           "type": "note",
-          "text": "**`flex-direction: column` 으로 바꾸면 `justify-content` 와 `align-items` 의 의미가 뒤집힌다.** 「가로 가운데」를 하려고 `justify-content:center` 를 넣었는데 세로 가운데가 되는 일이 여기서 온다 — 주축이 무엇인지부터 확인하라."
+          "text": "**`flex-direction: column` 으로 바꾸면 `justify-content` 와 `align-items` 의 의미가 뒤집힌다.** \"가로 가운데\"를 하려고 `justify-content:center` 를 넣었는데 세로 가운데가 되는 일이 여기서 온다. 주축이 무엇인지부터 확인하라."
         },
         {
           "type": "p",
-          "text": "그리고 **오른쪽으로 밀기는 `margin-left:auto`** 하나면 된다. flex 안에서 `auto` 여백은 남는 공간을 전부 먹으므로, 툴바에서 「이 버튼만 오른쪽 끝」이 한 줄로 해결된다."
+          "text": "그리고 **오른쪽으로 밀기는 `margin-left:auto`** 하나면 된다. flex 안에서 `auto` 여백은 남는 공간을 전부 먹으므로, 툴바에서 \"이 버튼만 오른쪽 끝\"이 한 줄로 해결된다."
         },
         {
           "type": "try",
@@ -330,7 +330,7 @@
           "why": "시작 크기는 width 가 정한다."
         },
         {
-          "q": "flex 안에서 「이 항목만 오른쪽 끝」은?",
+          "q": "flex 안에서 \"이 항목만 오른쪽 끝\"은?",
           "choices": [
             "float:right",
             "margin-left:auto",
@@ -344,17 +344,17 @@
     },
     {
       "id": "4",
-      "title": "grid — 두 방향 격자",
+      "title": "grid. 두 방향 격자",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**grid 는 행과 열을 미리 정해 두고** 그 칸에 채우는 방식이다. 카드 목록·대시보드처럼 「줄과 칸이 맞아야 하는」 화면에서 flex 보다 훨씬 편하다."
+          "text": "**grid 는 행과 열을 미리 정해 두고** 그 칸에 채우는 방식이다. 카드 목록, 대시보드처럼 \"줄과 칸이 맞아야 하는\" 화면에서 flex 보다 훨씬 편하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "열 정의를 바꿔 보라 — 진짜 grid 가 걸린다",
+          "label": "열 정의를 바꿔 보라. 진짜 grid 가 걸린다",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const cols = '{{cols}}', n = {{count}};\n  lay('display:grid;grid-template-columns:' + cols + ';gap:8px;padding:12px;', n);\n  const first = stage.children[0];\n  app.innerHTML = '<div class=\"code\">.grid {\\n  display: grid;\\n  grid-template-columns: ' + esc(cols) + ';\\n  gap: 8px;\\n}</div>';\n  const note = {\n    'repeat(3, 1fr)': '세 칸을 **똑같이** 나눈다. fr = 남는 공간의 몫.',\n    '2fr 1fr': '왼쪽이 두 배 넓다. 본문 + 사이드바 같은 배치.',\n    '200px 1fr': '왼쪽은 고정, 오른쪽이 남는 걸 다 먹는다. 사이드바 패턴.',\n    'repeat(auto-fill, minmax(120px, 1fr))': '★ 화면 폭에 따라 **칸 수가 알아서** 바뀐다.\\n'\n      + '  미디어 쿼리 없이 반응형이 된다 — 카드 목록의 정답에 가깝다.',\n    'repeat(2, 1fr)': '두 칸. 좁은 화면에서 흔한 모양.',\n  }[cols];\n  show(note + '\\n\\n'\n     + '지금 상자 ' + n + '개 · 첫 칸 실제 폭 ' + rect(first) + '\\n\\n'\n     + '읽는 법\\n'\n     + '  1fr        남는 공간 한 몫 (flex-grow 의 격자판)\\n'\n     + '  repeat(n,) n번 반복\\n'\n     + '  minmax(a,b) 최소 a, 최대 b\\n'\n     + '  auto-fill  들어갈 수 있는 만큼 칸을 만든다\\n\\n'\n     + 'flex 와 고르는 기준\\n'\n     + '  한 방향(툴바·버튼 줄)         → flex\\n'\n     + '  줄과 칸이 맞아야 함(카드·표)  → grid\\n'\n     + '  둘을 겹쳐 쓰는 것도 정상이다 — grid 칸 안에 flex 를 넣는 식');\n</script>",
           "controls": [
@@ -405,15 +405,15 @@
         },
         {
           "type": "note",
-          "text": "**`repeat(auto-fill, minmax(220px, 1fr))` 한 줄을 외워 두라.** 카드 목록 반응형의 90%가 이걸로 끝난다 — 미디어 쿼리 없이 화면 폭에 따라 칸 수가 알아서 바뀐다."
+          "text": "**`repeat(auto-fill, minmax(220px, 1fr))` 한 줄을 외워 두라.** 카드 목록 반응형의 90%가 이걸로 끝난다. 미디어 쿼리 없이 화면 폭에 따라 칸 수가 알아서 바뀐다."
         },
         {
           "type": "p",
-          "text": "**flex 와 grid 는 경쟁 관계가 아니다.** 바깥 뼈대는 grid 로 잡고, 각 칸 안의 버튼 줄은 flex 로 두는 식이 가장 흔하다 — 「한 방향이면 flex, 두 방향이면 grid」가 고르는 기준이다."
+          "text": "**flex 와 grid 는 경쟁 관계가 아니다.** 바깥 뼈대는 grid 로 잡고, 각 칸 안의 버튼 줄은 flex 로 두는 식이 가장 흔하다. \"한 방향이면 flex, 두 방향이면 grid\"가 고르는 기준이다."
         },
         {
           "type": "try",
-          "text": "`auto-fill minmax` 를 고르고 상자 수를 늘려 보라. 그리고 브라우저 창 폭을 줄여 보라 — 칸 수가 알아서 바뀐다."
+          "text": "`auto-fill minmax` 를 고르고 상자 수를 늘려 보라. 그리고 브라우저 창 폭을 줄여 보라. 칸 수가 알아서 바뀐다."
         }
       ],
       "quiz": [
@@ -454,7 +454,7 @@
     },
     {
       "id": "5",
-      "title": "gap · padding · margin — 셋을 가르기",
+      "title": "gap, padding, margin. 셋을 가르기",
       "minutes": 9,
       "blocks": [
         {
@@ -464,7 +464,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "셋을 따로 돌려 보라 — 무엇이 어디에 생기나",
+          "label": "셋을 따로 돌려 보라. 무엇이 어디에 생기나",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const g = {{gap}}, p = {{pad}}, m = {{margin}};\n  lay('display:flex;gap:' + g + 'px;padding:' + p + 'px;background:#0f1a2e;', 3,\n    'margin:' + m + 'px;width:70px;');\n  const box0 = stage.children[0].getBoundingClientRect();\n  const box1 = stage.children[1].getBoundingClientRect();\n  const between = Math.round(box1.left - box0.right);\n  const edge = Math.round(box0.left - stage.getBoundingClientRect().left - stage.clientLeft);\n  app.innerHTML = '<div class=\"code\">.row { display:flex; gap:' + g + 'px; padding:' + p + 'px; }\\n'\n    + '.row > * { margin:' + m + 'px; }</div>';\n  show('실제로 재 본 값\\n'\n     + '  상자와 상자 사이 : ' + between + 'px   (gap ' + g + ' + margin ' + m + '×2 = ' + (g + m * 2) + ')\\n'\n     + '  테두리와 첫 상자 : ' + edge + 'px   (padding ' + p + ' + margin ' + m + ' = ' + (p + m) + ')\\n\\n'\n     + '누구와 누구 사이인가로 고른다\\n'\n     + '  gap      형제들 **사이만** — 바깥 가장자리에는 안 생긴다 ★ 대개 이걸 쓴다\\n'\n     + '  padding  부모 **안쪽 테두리와 내용 사이** — 배경색이 칠해진다\\n'\n     + '  margin   상자 **바깥** — 배경 없음. 이웃과 합쳐지기도 한다(세로 margin 상쇄)\\n\\n'\n     + '왜 gap 이 낫나\\n'\n     + '  · 마지막 항목만 margin 을 빼는 :last-child 꼼수가 필요 없다\\n'\n     + '  · 항목이 늘고 줄어도 규칙 하나로 끝난다\\n'\n     + '  · flex·grid 둘 다에서 똑같이 동작한다');\n</script>",
           "controls": [
@@ -499,7 +499,7 @@
         },
         {
           "type": "note",
-          "text": "**세로 `margin` 은 이웃과 합쳐진다(margin 상쇄).** 아래 20px + 위 20px 이 40px 이 아니라 20px 이 되는 현상인데, `gap` 에는 이 일이 없다 — 예측 가능성 때문에도 `gap` 이 낫다."
+          "text": "**세로 `margin` 은 이웃과 합쳐진다(margin 상쇄).** 아래 20px + 위 20px 이 40px 이 아니라 20px 이 되는 현상인데, `gap` 에는 이 일이 없다. 예측 가능성 때문에도 `gap` 이 낫다."
         },
         {
           "type": "code",
@@ -509,11 +509,11 @@
         },
         {
           "type": "p",
-          "text": "그리고 **KarmoLab 은 간격도 공용 토큰으로 맞춘다.** 임의의 숫자를 박기보다 다른 위젯이 쓰는 값을 따라가면 화면 전체의 리듬이 맞는다 — 8장에서 그 규칙을 정리한다."
+          "text": "그리고 **KarmoLab 은 간격도 공용 토큰으로 맞춘다.** 임의의 숫자를 박기보다 다른 위젯이 쓰는 값을 따라가면 화면 전체의 리듬이 맞는다. 8장에서 그 규칙을 정리한다."
         },
         {
           "type": "try",
-          "text": "margin 만 0 이 아니게 두고 상자 사이 거리를 보라. gap 과 margin 이 **더해진다**는 것이 숫자로 보인다 — 둘을 섞으면 계산이 어려워지는 이유다."
+          "text": "margin 만 0 이 아니게 두고 상자 사이 거리를 보라. gap 과 margin 이 **더해진다**는 것이 숫자로 보인다. 둘을 섞으면 계산이 어려워지는 이유다."
         }
       ],
       "quiz": [
@@ -544,7 +544,7 @@
           "choices": [
             "last-child 꼼수 불필요",
             "상쇄가 없다",
-            "flex·grid 공통",
+            "flex, grid 공통",
             "더 빠르다"
           ],
           "answer": 3,
@@ -554,7 +554,7 @@
     },
     {
       "id": "6",
-      "title": "넘침과 줄바꿈 — 레이아웃이 깨지는 자리",
+      "title": "넘침과 줄바꿈. 레이아웃이 깨지는 자리",
       "minutes": 9,
       "blocks": [
         {
@@ -564,7 +564,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "긴 글자를 넣어 보라 — 어디서 터지나",
+          "label": "긴 글자를 넣어 보라. 어디서 터지나",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const len = {{len}}, fix = '{{fix}}';\n  const long = 'aVeryLongUnbrokenIdentifier'.repeat(Math.max(1, Math.round(len / 8)));\n  const itemFix = { none: '', minw: 'min-width:0;', wrap: 'min-width:0;overflow-wrap:anywhere;',\n                    ellipsis: 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',\n                    scroll: 'min-width:0;overflow-x:auto;' }[fix];\n  lay('display:flex;gap:8px;padding:12px;', 2,\n    (i) => (i === 0 ? 'flex:1;' + itemFix + 'display:block;text-align:left;' : 'width:70px;flex:0 0 auto;'));\n  stage.children[0].textContent = long;\n  const over = Math.round(stage.scrollWidth - stage.clientWidth);\n  const iw = Math.round(stage.children[0].getBoundingClientRect().width);\n  app.innerHTML = '<div class=\"code\">.item { flex: 1; ' + esc(itemFix || '/* 아무 처리 없음 */') + ' }</div>';\n  const note = {\n    none: '⚠ flex 항목의 기본 min-width 는 auto — **내용보다 작아지지 않는다**.\\n'\n      + '  그래서 긴 글자가 옆 상자를 밀어내고 전체가 넘친다.',\n    minw: 'min-width:0 을 주면 **상자는** 줄어들 수 있게 된다 (폭을 재 보면 확인된다).\\n'\n      + '  ★ flex/grid 안에서 넘칠 때 가장 먼저 시도할 한 줄.\\n'\n      + '  다만 끊기지 않는 글자는 그 상자 밖으로 계속 삐져나온다 —\\n'\n      + '  아래 「줄바꿈 허용」이나 「자르기」를 **함께** 줘야 완전히 멎는다.',\n    wrap: 'overflow-wrap:anywhere — 긴 단어를 아무 데서나 끊어 줄바꿈한다.\\n'\n      + '  URL·해시·식별자처럼 띄어쓰기가 없는 글자에 필요하다.',\n    ellipsis: '한 줄로 자르고 … 을 붙인다. 목록의 제목 칸에서 흔하다.\\n'\n      + '  세 속성이 **함께** 있어야 동작한다.',\n    scroll: '그 상자 안에서만 가로 스크롤. 표·코드 블록에 적합하다.\\n'\n      + '  페이지 전체가 가로로 흔들리는 것보다 훨씬 낫다.',\n  }[fix];\n  show(note + '\\n\\n'\n     + '첫 상자 폭: ' + iw + 'px   ·   무대 넘침: ' + (over > 0 ? over + 'px 삐져나감 ⚠' : '없음 ✓') + '\\n\\n'\n     + '기억할 것\\n'\n     + '  · flex·grid 항목의 기본 min-width 는 auto — 이것이 넘침의 1순위 원인\\n'\n     + '  · 긴 글자는 실제 데이터로 시험하라 (「가나다」로는 안 터진다)\\n'\n     + '  · 페이지가 가로로 흔들리면 넘치는 요소를 찾아라 (아래 코드)');\n</script>",
           "controls": [
@@ -597,7 +597,7 @@
                 },
                 {
                   "value": "ellipsis",
-                  "label": "… 로 자르기"
+                  "label": " 로 자르기"
                 },
                 {
                   "value": "scroll",
@@ -615,15 +615,15 @@
         },
         {
           "type": "note",
-          "text": "**`min-width: 0` 이 flex 넘침의 첫 단추다.** flex·grid 항목은 기본적으로 「내용보다 작아지지 않는다」(min-width:auto)는 규칙을 갖고, 긴 글자 하나가 이 규칙 때문에 레이아웃 전체를 밀어낸다. 다만 이 한 줄은 **상자만** 줄여 준다 — 글자 자체를 가두려면 줄바꿈(`overflow-wrap`)이나 자르기(`overflow:hidden`)를 함께 줘야 한다."
+          "text": "**`min-width: 0` 이 flex 넘침의 첫 단추다.** flex, grid 항목은 기본적으로 \"내용보다 작아지지 않는다\"(min-width:auto)는 규칙을 갖고, 긴 글자 하나가 이 규칙 때문에 레이아웃 전체를 밀어낸다. 다만 이 한 줄은 **상자만** 줄여 준다. 글자 자체를 가두려면 줄바꿈(`overflow-wrap`)이나 자르기(`overflow:hidden`)를 함께 줘야 한다."
         },
         {
           "type": "p",
-          "text": "그리고 **실제 데이터로 시험하라.** 「가나다」 세 글자로 만든 카드는 예쁘지만, 실제 제목·URL·해시가 들어오면 터진다 — 가장 긴 값을 한 번 넣어 보는 것이 가장 싼 검사다."
+          "text": "그리고 **실제 데이터로 시험하라.** \"가나다\" 세 글자로 만든 카드는 예쁘지만, 실제 제목, URL, 해시가 들어오면 터진다. 가장 긴 값을 한 번 넣어 보는 것이 가장 싼 검사다."
         },
         {
           "type": "try",
-          "text": "글자 길이를 최대로 올린 채 처리를 차례로 바꿔 보라. `min-width: 0` 에서 **첫 상자 폭**이 확 줄고, 「줄바꿈 허용」·「자르기」에서 비로소 넘침이 0 이 되는 것이 숫자로 보인다."
+          "text": "글자 길이를 최대로 올린 채 처리를 차례로 바꿔 보라. `min-width: 0` 에서 **첫 상자 폭**이 확 줄고, \"줄바꿈 허용\", \"자르기\"에서 비로소 넘침이 0 이 되는 것이 숫자로 보인다."
         }
       ],
       "quiz": [
@@ -650,7 +650,7 @@
           "why": "띄어쓰기가 없어도 끊는다."
         },
         {
-          "q": "「…」 로 자르려면 필요한 것은?",
+          "q": "\"\" 로 자르려면 필요한 것은?",
           "choices": [
             "text-overflow 만",
             "overflow+text-overflow+white-space 셋",
@@ -669,12 +669,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「가운데로」는 CSS 에서 가장 많이 검색되는 말이다. 이제는 방법이 단순해졌지만, **무엇을 무엇 안에서** 가운데로 두는지에 따라 답이 갈린다."
+          "text": "\"가운데로\"는 CSS 에서 가장 많이 검색되는 말이다. 이제는 방법이 단순해졌지만, **무엇을 무엇 안에서** 가운데로 두는지에 따라 답이 갈린다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "패턴을 골라 보라 — 실제로 그렇게 배치된다",
+          "label": "패턴을 골라 보라. 실제로 그렇게 배치된다",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const k = '{{pat}}';\n  const cases = {\n    center: ['완전 가운데', 'display:flex;align-items:center;justify-content:center;min-height:150px;', 1, '',\n      '가장 흔한 답. flex 두 줄이면 가로·세로 모두 가운데.\\n'\n      + 'display:grid; place-items:center 도 같은 결과다 (더 짧다).'],\n    bar: ['툴바 — 왼쪽 묶음 + 오른쪽 하나', 'display:flex;align-items:center;gap:8px;padding:12px;', 3,\n      'auto', '마지막 항목에 margin-left:auto — 남는 공간을 다 먹어 오른쪽으로 밀린다.'],\n    holy: ['사이드바 + 본문', 'display:grid;grid-template-columns:150px 1fr;gap:8px;padding:12px;', 2, '',\n      '고정 폭 + 남는 폭. 사이드바 레이아웃의 기본형.'],\n    stack: ['세로 쌓기 (일정한 간격)', 'display:flex;flex-direction:column;gap:8px;padding:12px;', 3, '',\n      '카드 안 요소들을 일정 간격으로 쌓을 때. margin 대신 gap 을 쓴다 (5장).'],\n    cards: ['반응형 카드 목록', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:12px;', 6, '',\n      '미디어 쿼리 없이 칸 수가 바뀐다 (4장).'],\n    sticky: ['본문은 늘고 바닥은 아래로', 'display:flex;flex-direction:column;min-height:170px;padding:12px;gap:8px;', 3,\n      'grow', '가운데 항목에 flex:1 — 남는 세로 공간을 먹어 바닥이 아래로 밀린다.'],\n  }[k];\n  lay(cases[1], cases[2], (i) => {\n    if (cases[3] === 'auto') return i === 2 ? 'margin-left:auto;width:80px;' : 'width:70px;';\n    if (cases[3] === 'grow') return i === 1 ? 'flex:1;' : '';\n    return '';\n  });\n  app.innerHTML = '<div class=\"hint\">' + cases[0] + '</div><div class=\"code\" style=\"margin-top:4px\">'\n    + esc('.box { ' + cases[1].split(';').filter(Boolean).join('; ') + ' }') + '</div>';\n  show(cases[4] + '\\n\\n'\n     + '외워 둘 만한 다섯 줄\\n'\n     + '  완전 가운데      display:grid; place-items:center\\n'\n     + '  오른쪽으로 밀기  margin-left:auto\\n'\n     + '  사이드바         grid-template-columns: 200px 1fr\\n'\n     + '  반응형 카드      repeat(auto-fill, minmax(220px, 1fr))\\n'\n     + '  바닥 붙이기      세로 flex + 가운데에 flex:1');\n</script>",
           "controls": [
@@ -714,7 +714,7 @@
         },
         {
           "type": "note",
-          "text": "**`place-items: center` 는 `align-items` + `justify-items` 를 한 줄로 쓴 것이다.** grid 에서 완전 가운데가 필요하면 두 줄 대신 이 한 줄이면 된다 — `place-content`·`place-self` 도 같은 방식의 줄임이다."
+          "text": "**`place-items: center` 는 `align-items` + `justify-items` 를 한 줄로 쓴 것이다.** grid 에서 완전 가운데가 필요하면 두 줄 대신 이 한 줄이면 된다. `place-content`, `place-self` 도 같은 방식의 줄임이다."
         },
         {
           "type": "code",
@@ -724,7 +724,7 @@
         },
         {
           "type": "p",
-          "text": "**이 여섯 개면 실무 레이아웃의 대부분이 덮인다.** 새 화면을 짤 때 「어떤 패턴에 가장 가까운가」를 먼저 고르면, 처음부터 CSS 를 발명할 일이 거의 없다."
+          "text": "**이 여섯 개면 실무 레이아웃의 대부분이 덮인다.** 새 화면을 짤 때 \"어떤 패턴에 가장 가까운가\"를 먼저 고르면, 처음부터 CSS 를 발명할 일이 거의 없다."
         },
         {
           "type": "try",
@@ -779,7 +779,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "규칙을 골라 보라 — 왜 그런가",
+          "label": "규칙을 골라 보라. 왜 그런가",
           "height": "380px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const k = '{{rule}}';\n  const cases = {\n    container: ['탭 컨테이너에 레이아웃을 직접 걸지 않는다', false,\n      'build(container) 의 container 는 **공용 .tab-panel** 이기도 하다.\\n'\n      + '거기에 display:grid 를 걸면 .tab-panel.active 규칙과 충돌해\\n'\n      + '**넓은 화면에서만** 레이아웃이 풀리는 일이 생긴다.',\n      '해법: 안쪽에 전용 wrapper 를 하나 두고 거기에 건다'],\n    token: ['색·간격은 공용 토큰을 쓴다', false,\n      '자체 색을 박으면 테마가 바뀔 때 그 위젯만 남는다.\\n'\n      + '--bg-primary · --bg-secondary · --text-primary · --border · --radius-md · --accent',\n      '해법: 다른 위젯이 쓰는 변수를 그대로 쓴다'],\n    css: ['자체 CSS 는 위젯 전용 클래스에만', false,\n      '전역 요소 선택자(button, .card)에 스타일을 걸면 남의 화면까지 바뀐다.',\n      '해법: .mywidget-… 처럼 접두사를 붙인다'],\n    overflow: ['넓은 내용은 그 안에서 스크롤', true,\n      '표·코드 블록이 페이지 전체를 가로로 흔들면 모바일에서 최악이다 (6장).',\n      '해법: 그 요소를 overflow-x:auto 컨테이너로 감싼다'],\n    dvh: ['화면 높이는 100dvh', true,\n      '모바일 브라우저의 주소창이 접혔다 펴지면 100vh 가 튄다.',\n      '해법: dvh 를 쓰면 실제 보이는 높이를 따른다'],\n  }[k];\n  const good = cases[1];\n  lay('display:flex;flex-direction:column;gap:8px;padding:12px;', 2,\n    (i) => i === 0 ? 'background:' + (good ? '#14351f' : '#3b1d1d') + ';border-color:'\n      + (good ? '#22c55e' : '#ef4444') + ';' : '');\n  stage.children[0].textContent = good ? '이렇게 한다' : '이렇게 하지 않는다';\n  stage.children[1].textContent = cases[3];\n  stage.children[1].style.cssText += 'text-align:left;justify-content:flex-start;';\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + cases[0] + '</div>';\n  show(cases[2] + '\\n\\n'\n     + '정본: apps/karmolab/src/widgets/README.md\\n'\n     + '  새 위젯을 만들거나 화면을 크게 고치기 전에 한 번 읽는다.\\n\\n'\n     + '왜 관습이 필요한가\\n'\n     + '  도구가 수백 개인데 각자 다른 색·간격을 쓰면 한 앱으로 안 보인다.\\n'\n     + '  토큰을 쓰면 테마를 바꿔도 전부 같이 따라온다.');\n</script>",
           "controls": [
@@ -821,15 +821,15 @@
         },
         {
           "type": "note",
-          "text": "**「넓은 화면에서만 깨진다」는 버그의 흔한 원인이 컨테이너 직접 스타일링이다.** 좁은 화면에서는 어차피 한 줄로 쌓이니 안 드러나고, 넓어지는 순간 공용 규칙과 충돌이 보인다 — 그래서 창 폭을 넓혀 보는 확인이 필요하다."
+          "text": "**\"넓은 화면에서만 깨진다\"는 버그의 흔한 원인이 컨테이너 직접 스타일링이다.** 좁은 화면에서는 어차피 한 줄로 쌓이니 안 드러나고, 넓어지는 순간 공용 규칙과 충돌이 보인다. 그래서 창 폭을 넓혀 보는 확인이 필요하다."
         },
         {
           "type": "p",
-          "text": "그리고 **화면을 고쳤으면 창 폭을 두 번 확인하라** — 좁게(모바일)와 넓게. 개발자 도구의 기기 모드로 한 번 보는 것만으로 대부분의 반응형 사고를 미리 잡는다."
+          "text": "그리고 **화면을 고쳤으면 창 폭을 두 번 확인하라**. 좁게(모바일)와 넓게. 개발자 도구의 기기 모드로 한 번 보는 것만으로 대부분의 반응형 사고를 미리 잡는다."
         },
         {
           "type": "try",
-          "text": "`src/widgets/README.md` 의 「글로벌 디자인 토큰」 부분을 열어 변수 이름들을 훑어보라. 앞으로 색을 정할 때 여기서 고르면 된다."
+          "text": "`src/widgets/README.md` 의 \"글로벌 디자인 토큰\" 부분을 열어 변수 이름들을 훑어보라. 앞으로 색을 정할 때 여기서 고르면 된다."
         }
       ],
       "quiz": [
@@ -870,7 +870,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -886,16 +886,16 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 실제로 그려서 확인",
+          "label": "스스로 채점. 실제로 그려서 확인",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  /* 무대 — 여기 안에서 진짜 CSS 가 돈다 */\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; min-height:120px; }\n  #stage .it { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n               font:12px/1.5 system-ui; display:flex; align-items:center; justify-content:center; }\n  #stage .it.b { background:#7c2d12; border-color:#f59e0b; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  /** 무대에 상자 n개를 깔고, 컨테이너에 CSS 를 건다. */\n  function lay(css, n, itemCss) {\n    stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;min-height:120px;' + css;\n    stage.innerHTML = '';\n    for (let i = 0; i < n; i++) {\n      const d = document.createElement('div');\n      d.className = 'it' + (i === 1 ? ' b' : '');\n      d.textContent = i + 1;\n      d.style.cssText = 'min-height:34px;padding:6px 10px;' + (itemCss ? (typeof itemCss === 'function' ? itemCss(i) : itemCss) : '');\n      stage.appendChild(d);\n    }\n    return stage;\n  }\n  /** 실제로 계산된 값을 읽어 준다 — 개발자 도구 Computed 와 같은 것. */\n  function measure(el, props) {\n    const cs = getComputedStyle(el);\n    return props.map((p) => '  ' + p.padEnd(18) + cs.getPropertyValue(p)).join('\\n');\n  }\n  function rect(el) {\n    const r = el.getBoundingClientRect();\n    return Math.round(r.width) + ' x ' + Math.round(r.height);\n  }\n</script>\n<script>\n  const q = [\n    ['배치는 부모의 display 가 정한다', true],\n    ['content-box 에서 padding 을 키우면 상자가 커진다', true],\n    ['flex-direction:column 이면 justify-content 는 세로를 다룬다', true],\n    ['gap 은 바깥 가장자리에도 간격을 준다', false],\n    ['flex 항목은 기본적으로 내용보다 작아진다', false],\n    ['repeat(auto-fill, minmax()) 는 미디어 쿼리가 필요하다', false],\n    ['margin 에는 배경색이 안 칠해진다', true],\n    ['탭 컨테이너에 직접 grid 를 걸어도 안전하다', false],\n  ];\n  stage.style.cssText = 'background:#0f1a2e;border:1px dashed #475569;border-radius:8px;'\n    + 'display:flex;flex-direction:column;gap:4px;padding:10px;';\n  stage.innerHTML = '';\n  q.forEach(([t, a]) => {\n    const row = document.createElement('div');\n    row.style.cssText = 'display:flex;gap:8px;align-items:center;font-size:12px';\n    row.innerHTML = '<b style=\"color:' + (a ? '#22c55e' : '#ef4444') + ';width:14px\">'\n      + (a ? 'O' : 'X') + '</b><span style=\"color:#cbd5e1\">' + esc(t) + '</span>';\n    stage.appendChild(row);\n  });\n  app.innerHTML = '';\n  show('이 채점표 자체가 세로 flex + gap 으로 그려졌다 (5·7장).\\n'\n     + '틀린 것이 있으면 그 장으로 — 2장(박스) 3장(flex) 5장(gap) 6장(넘침) 8장(관습)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 **이벤트 → 상태 → 렌더**다. 여기까지가 「보이는 것」이었다면, 다음은 **클릭이 화면을 바꾸는 흐름** — 위임된 클릭, `data-*` 속성, 그리고 다시 그리기."
+          "text": "다음 칸은 **이벤트 → 상태 → 렌더**다. 여기까지가 \"보이는 것\"이었다면, 다음은 **클릭이 화면을 바꾸는 흐름**. 위임된 클릭, `data-*` 속성, 그리고 다시 그리기."
         },
         {
           "type": "try",
-          "text": "지금 만들고 있는 화면 하나를 골라 창 폭을 최소·최대로 흔들어 보라. 깨지는 곳이 있으면 6장의 손잡이를 다시 돌려 보면 원인이 대개 보인다."
+          "text": "지금 만들고 있는 화면 하나를 골라 창 폭을 최소, 최대로 흔들어 보라. 깨지는 곳이 있으면 6장의 손잡이를 다시 돌려 보면 원인이 대개 보인다."
         }
       ],
       "quiz": [

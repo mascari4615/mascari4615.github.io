@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "컨테이너는 가상 머신이 아니다. **그냥 리눅스 프로세스**인데, ① 보이는 세상이 좁혀져 있고(namespace) ② 쓸 자원에 상한이 걸려 있을(cgroup) 뿐이다. 별도 OS 를 띄우는 VM 과 달리, 컨테이너 안 프로세스는 **호스트 커널을 그대로 공유**하며 돈다 — 그래서 가볍고 빠르다. 「컨테이너 = 격리된 프로세스」로 이해하면, 컨테이너의 온갖 동작과 사고가 설명된다."
+          "text": "컨테이너는 가상 머신이 아니다. **그냥 리눅스 프로세스**인데, ① 보이는 세상이 좁혀져 있고(namespace) ② 쓸 자원에 상한이 걸려 있을(cgroup) 뿐이다. 별도 OS 를 띄우는 VM 과 달리, 컨테이너 안 프로세스는 **호스트 커널을 그대로 공유**하며 돈다. 그래서 가볍고 빠르다. \"컨테이너 = 격리된 프로세스\"로 이해하면, 컨테이너의 온갖 동작과 사고가 설명된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "컨테이너 = 좁혀진·상한 걸린 프로세스",
+          "label": "컨테이너 = 좁혀진, 상한 걸린 프로세스",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'vm') {\n    render('오해: 컨테이너 = 작은 VM',\n      '  「안에 별도 OS·커널이 있다」 ← <span class=\\\"no\\\">틀림.</span>\\n' +\n      '  이러면 못 설명: 왜 이렇게 가볍나·왜 호스트 커널 버그에 같이 뚫리나.',\n      '컨테이너는 별도 OS 를 안 띄운다 — 호스트 커널을 공유하는 프로세스다.',\n      box('오해', 'VM 처럼 게스트 OS 가 들어 있다(무거움)', 'bad'));\n  } else {\n    render('정확: 그냥 리눅스 프로세스',\n      '  호스트 커널 위 프로세스 + namespace(좁힌 시야) + cgroup(자원 상한)\\n' +\n      '  <span class=\\\"ok\\\">가볍고 빠르다(OS 부팅 없음). 커널은 공유.</span>',\n      'namespace 로 시야를 좁히고 cgroup 으로 상한을 건 프로세스.',\n      steps([['호스트 커널 (공유)', 'on'],['+ namespace: 무엇이 보이나 좁힘', 'good'],['+ cgroup: 얼마나 쓰나 상한', 'good'],['= 격리된 프로세스(컨테이너)', 'good']]));\n  }\n</script>",
           "controls": [
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**컨테이너는 「namespace + cgroup 으로 격리한 프로세스」다 — 이 한 문장이 전부를 설명한다.** 안에서 `ps` 하면 프로세스가 몇 개 안 보이는 것(pid namespace), localhost 로 다른 컨테이너에 못 붙는 것(net namespace), 메모리 상한(cgroup), 빠른 시작(OS 부팅 없음)이 모두 이 두 부품에서 나온다(2·3장). VM 은 하이퍼바이저가 하드웨어를 흉내 내 **게스트 OS·커널**을 통째로 띄우지만, 컨테이너는 그 층이 없다 — 그래서 가볍지만 커널을 공유하는 대가(격리 강도·커널 취약점 공유)도 있다(6장)."
+          "text": "**컨테이너는 \"namespace + cgroup 으로 격리한 프로세스\"다. 이 한 문장이 전부를 설명한다.** 안에서 `ps` 하면 프로세스가 몇 개 안 보이는 것(pid namespace), localhost 로 다른 컨테이너에 못 붙는 것(net namespace), 메모리 상한(cgroup), 빠른 시작(OS 부팅 없음)이 모두 이 두 부품에서 나온다(2, 3장). VM 은 하이퍼바이저가 하드웨어를 흉내 내 **게스트 OS, 커널**을 통째로 띄우지만, 컨테이너는 그 층이 없다. 그래서 가볍지만 커널을 공유하는 대가(격리 강도, 커널 취약점 공유)도 있다(6장)."
         },
         {
           "type": "p",
-          "text": "**「그냥 프로세스」라 진단도 프로세스처럼 한다.** 컨테이너가 죽으면 그건 그 안 PID 1 프로세스가 종료된 것이고(sys-process·signal), 137 이면 cgroup 메모리 상한 초과 OOM(sys-mem 5장), 신호가 안 먹으면 PID 1/exec form 문제(sys-signal 6장)다. 호스트에서 `ps` 로 보면 컨테이너 안 프로세스가 **그냥 호스트 프로세스로** 보인다(다른 namespace 일 뿐). 그래서 앞서 배운 프로세스·fd·신호·메모리·syscall 지식이 컨테이너에 그대로 적용된다 — 컨테이너는 새로운 세계가 아니라 익숙한 프로세스에 격리를 얹은 것이다."
+          "text": "**\"그냥 프로세스\"라 진단도 프로세스처럼 한다.** 컨테이너가 죽으면 그건 그 안 PID 1 프로세스가 종료된 것이고(sys-process, signal), 137 이면 cgroup 메모리 상한 초과 OOM(sys-mem 5장), 신호가 안 먹으면 PID 1/exec form 문제(sys-signal 6장)다. 호스트에서 `ps` 로 보면 컨테이너 안 프로세스가 **그냥 호스트 프로세스로** 보인다(다른 namespace 일 뿐). 그래서 앞서 배운 프로세스, fd, 신호, 메모리, syscall 지식이 컨테이너에 그대로 적용된다. 컨테이너는 새로운 세계가 아니라 익숙한 프로세스에 격리를 얹은 것이다."
         },
         {
           "type": "try",
-          "text": "컨테이너를 하나 띄우고, **호스트**에서 `ps aux | grep <프로세스>` 로 그 안 프로세스가 호스트에도 그냥 프로세스로 보이는지 확인하라 — VM 이라면 안 보일 것이다. 「컨테이너 = 프로세스」를 눈으로 확인하라."
+          "text": "컨테이너를 하나 띄우고, **호스트**에서 `ps aux | grep <프로세스>` 로 그 안 프로세스가 호스트에도 그냥 프로세스로 보이는지 확인하라. VM 이라면 안 보일 것이다. \"컨테이너 = 프로세스\"를 눈으로 확인하라."
         }
       ],
       "quiz": [
@@ -64,7 +64,7 @@
           "q": "컨테이너가 VM 보다 가벼운 이유는?",
           "choices": [
             "압축",
-            "게스트 OS·커널을 안 띄우고 호스트 커널 공유",
+            "게스트 OS, 커널을 안 띄우고 호스트 커널 공유",
             "캐시",
             "작은 CPU"
           ],
@@ -86,17 +86,17 @@
     },
     {
       "id": "2",
-      "title": "namespace — 무엇이 보이나",
+      "title": "namespace. 무엇이 보이나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**namespace** 는 프로세스에게 「무엇이 보이나」를 가른다 — 같은 커널 위에 있어도 각 컨테이너가 **자기만의 뷰**를 갖게 한다. **pid**(내가 1번으로 보이고 남의 프로세스는 안 보임) · **net**(자기 네트워크 스택·IP·포트) · **mount**(자기 파일 시스템 트리) · **uts**(호스트 이름) · **user**(uid 매핑) · **ipc**. 이 「시야 좁히기」가 컨테이너 격리의 절반이다(나머지 절반은 cgroup, 3장)."
+          "text": "**namespace** 는 프로세스에게 \"무엇이 보이나\"를 가른다. 같은 커널 위에 있어도 각 컨테이너가 **자기만의 뷰**를 갖게 한다. **pid**(내가 1번으로 보이고 남의 프로세스는 안 보임), **net**(자기 네트워크 스택, IP, 포트), **mount**(자기 파일 시스템 트리), **uts**(호스트 이름), **user**(uid 매핑), **ipc**. 이 \"시야 좁히기\"가 컨테이너 격리의 절반이다(나머지 절반은 cgroup, 3장)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "namespace 별 — 무엇이 격리되나",
+          "label": "namespace 별. 무엇이 격리되나",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ns = '{{ns}}';\n  const cases = {\n    pid: ['pid', '내가 1번 프로세스로 보임 · 호스트의 다른 프로세스 안 보임', '안에서 ps 하면 몇 개 안 보인다 · PID1 책임(sys-signal 6장)'],\n    net: ['net', '자기 네트워크 스택 · 자기 IP · 자기 포트 공간', 'localhost 로 다른 컨테이너에 못 붙음 · 포트 매핑 필요'],\n    mount:['mount', '자기 파일 시스템 트리(이미지 기반)', '호스트 파일 안 보임 · 볼륨으로 연결해야 공유'],\n    uts: ['uts', '자기 호스트 이름', 'hostname 이 컨테이너 id 로 보임'],\n    user:['user', 'uid 매핑(안의 root 를 밖의 일반 유저로)', '안에선 root 여도 밖에선 무권한 — 보안 강화'],\n  }[ns];\n  render('namespace: ' + cases[0],\n    '  격리: ' + cases[1] + '\\n  그래서: ' + cases[2],\n    'pid·net·mount·uts·user — 각 namespace 가 「무엇이 보이나」를 가른다.',\n    box(cases[0] + ' namespace', cases[1] + '\\n→ ' + cases[2]));\n</script>",
           "controls": [
@@ -138,15 +138,15 @@
         },
         {
           "type": "note",
-          "text": "**namespace 는 「시야」를 가를 뿐, 커널은 하나다.** 각 컨테이너는 자기만의 프로세스 목록·네트워크·파일 트리를 보지만, 그 아래 커널은 호스트와 공유한다 — namespace 는 커널이 「이 프로세스에겐 이만큼만 보여 준다」고 뷰를 좁히는 장치다. 그래서 컨테이너 안 `ps` 는 같은 pid namespace 의 프로세스만, 안의 IP·포트는 자기 net namespace 것만 보인다. 이게 「가벼운 격리」의 정체 — VM 처럼 하드웨어를 흉내 내지 않고, 커널이 뷰만 나눠 주니 비용이 거의 없다. 대신 커널 자체는 공유라 격리 강도는 VM 보다 약하다(6장)."
+          "text": "**namespace 는 \"시야\"를 가를 뿐, 커널은 하나다.** 각 컨테이너는 자기만의 프로세스 목록, 네트워크, 파일 트리를 보지만, 그 아래 커널은 호스트와 공유한다. namespace 는 커널이 \"이 프로세스에겐 이만큼만 보여 준다\"고 뷰를 좁히는 장치다. 그래서 컨테이너 안 `ps` 는 같은 pid namespace 의 프로세스만, 안의 IP, 포트는 자기 net namespace 것만 보인다. 이게 \"가벼운 격리\"의 정체. VM 처럼 하드웨어를 흉내 내지 않고, 커널이 뷰만 나눠 주니 비용이 거의 없다. 대신 커널 자체는 공유라 격리 강도는 VM 보다 약하다(6장)."
         },
         {
           "type": "p",
-          "text": "**user namespace 는 보안의 핵심 도구다.** user namespace 를 쓰면 컨테이너 **안에선 root(uid 0)**여도 **밖에선 권한 없는 일반 유저**로 매핑된다 — 그래서 컨테이너가 뚫려 안에서 root 를 잡아도 호스트에선 아무것도 못 한다. 이게 rootless 컨테이너·강화된 격리의 바탕이다(7장 「root 로 돌리지 마라」와 이어짐). namespace 를 이해하면 「안에선 root 인데 왜 호스트 파일을 못 건드리지?」·「왜 컨테이너끼리 localhost 로 안 붙지?」 같은 질문이 「뷰가 갈렸으니까」로 자연스럽게 풀린다."
+          "text": "**user namespace 는 보안의 핵심 도구다.** user namespace 를 쓰면 컨테이너 **안에선 root(uid 0)**여도 **밖에선 권한 없는 일반 유저**로 매핑된다. 그래서 컨테이너가 뚫려 안에서 root 를 잡아도 호스트에선 아무것도 못 한다. 이게 rootless 컨테이너, 강화된 격리의 바탕이다(7장 \"root 로 돌리지 마라\"와 이어짐). namespace 를 이해하면 \"안에선 root 인데 왜 호스트 파일을 못 건드리지?\", \"왜 컨테이너끼리 localhost 로 안 붙지?\" 같은 질문이 \"뷰가 갈렸으니까\"로 자연스럽게 풀린다."
         },
         {
           "type": "try",
-          "text": "컨테이너 안에서 `ps`(적은 프로세스)·`hostname`(컨테이너 id)·`ip addr`(자기 IP)를 실행해 호스트와 무엇이 다른지 적어라. 각 차이가 어느 namespace(pid·uts·net) 때문인지 짝지어 보라."
+          "text": "컨테이너 안에서 `ps`(적은 프로세스), `hostname`(컨테이너 id), `ip addr`(자기 IP)를 실행해 호스트와 무엇이 다른지 적어라. 각 차이가 어느 namespace(pid, uts, net) 때문인지 짝지어 보라."
         }
       ],
       "quiz": [
@@ -154,7 +154,7 @@
           "q": "namespace 가 가르는 것은?",
           "choices": [
             "자원 사용량",
-            "무엇이 보이나(pid·net·mount 등 뷰)",
+            "무엇이 보이나(pid, net, mount 등 뷰)",
             "CPU 속도",
             "디스크 크기"
           ],
@@ -165,7 +165,7 @@
           "q": "컨테이너 안 ps 에 프로세스가 몇 개 안 보이는 이유는?",
           "choices": [
             "빠름",
-            "pid namespace — 자기 뷰만 보임",
+            "pid namespace. 자기 뷰만 보임",
             "메모리 부족",
             "권한"
           ],
@@ -187,17 +187,17 @@
     },
     {
       "id": "3",
-      "title": "cgroup — 얼마나 쓰나",
+      "title": "cgroup. 얼마나 쓰나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**cgroup**(control group)은 프로세스가 「자원을 얼마나 쓸 수 있나」에 **상한·배분**을 건다 — 메모리·CPU·디스크 I/O·PID 수. namespace 가 「무엇이 보이나」(2장)라면 cgroup 은 「얼마나 쓰나」다. 메모리 상한을 넘으면 그 컨테이너만 OOM 되고(sys-mem 5장), CPU 쿼터로 한 컨테이너가 코어를 독점 못 하게 한다. 이 상한이 여러 컨테이너를 한 호스트에 안전하게 얹는 바탕이다."
+          "text": "**cgroup**(control group)은 프로세스가 \"자원을 얼마나 쓸 수 있나\"에 **상한, 배분**을 건다. 메모리, CPU, 디스크 I/O, PID 수. namespace 가 \"무엇이 보이나\"(2장)라면 cgroup 은 \"얼마나 쓰나\"다. 메모리 상한을 넘으면 그 컨테이너만 OOM 되고(sys-mem 5장), CPU 쿼터로 한 컨테이너가 코어를 독점 못 하게 한다. 이 상한이 여러 컨테이너를 한 호스트에 안전하게 얹는 바탕이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "cgroup — 상한과 격리",
+          "label": "cgroup. 상한과 격리",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const res = '{{res}}';\n  const limit = {{limit}};\n  const cases = {\n    mem: ['메모리', 'memory.max', '초과 시 그 컨테이너만 OOMKilled(137). 호스트·이웃은 안전'],\n    cpu: ['CPU', 'cpu.max(쿼터)', '한 컨테이너가 코어 독점 못 함 — 배분·상한'],\n    pids:['PID 수', 'pids.max', 'fork 폭탄이 호스트 전체 PID 를 못 먹게'],\n  }[res];\n  const use = Math.min(limit + 30, 130);\n  render('cgroup ' + cases[0] + ' 상한 ' + limit + '%',\n    '  ' + cases[1] + ' = 상한 · 용도: ' + cases[2] + '\\n\\n' +\n    (use > 100\n      ? '  <span class=\\\"no\\\">상한 초과 → ' + (res==='mem'?'OOMKilled(그 컨테이너만)':res==='cpu'?'스로틀(더 못 씀)':'fork 거부') + '. 이웃은 안전.</span>'\n      : '  <span class=\\\"ok\\\">상한 안에서 사용 — 격리 유지.</span>'),\n    'cgroup 은 자원 상한·배분. 초과해도 그 컨테이너만 영향, 이웃 보호.',\n    bars([['상한(max)', limit, limit+'%', '#334155'],['사용', Math.min(100,use), use+'%', use>100?'#ef4444':'#38bdf8']]));\n</script>",
           "controls": [
@@ -235,20 +235,20 @@
         {
           "type": "code",
           "lang": "bash",
-          "label": "cgroup 상한 보기·걸기",
+          "label": "cgroup 상한 보기, 걸기",
           "text": "# 컨테이너 안에서 실제 상한 보기 (cgroup v2)\ncat /sys/fs/cgroup/memory.max     # 메모리 상한 (max = 무제한)\ncat /sys/fs/cgroup/cpu.max        # CPU 쿼터\n\n# 상한 걸기\ndocker run --memory=512m --cpus=1.5 --pids-limit=100 myapp\n#   메모리 512M · CPU 1.5코어 · PID 100개 상한\n#   메모리 초과 → 그 컨테이너만 OOMKilled(137), 이웃·호스트 안전"
         },
         {
           "type": "note",
-          "text": "**상한을 항상 명시하라 — 안 걸면 한 컨테이너가 호스트를 삼킨다.** cgroup 상한이 없으면 메모리 누수 있는 컨테이너 하나가 호스트 램을 다 먹어 **다른 컨테이너까지 OOM** 시키고(noisy neighbor), fork 폭탄이 PID 를 고갈시킨다. 상한을 걸면 사고가 **그 컨테이너 안에 갇힌다** — 512M 초과 컨테이너만 OOMKilled 되고 이웃은 무사하다. 그래서 프로덕션에선 메모리·CPU·PID 상한을 반드시 명시한다. 이 「폭발 반경 제한」이 여러 워크로드를 한 호스트에 안전하게 얹는 핵심이다."
+          "text": "**상한을 항상 명시하라. 안 걸면 한 컨테이너가 호스트를 삼킨다.** cgroup 상한이 없으면 메모리 누수 있는 컨테이너 하나가 호스트 램을 다 먹어 **다른 컨테이너까지 OOM** 시키고(noisy neighbor), fork 폭탄이 PID 를 고갈시킨다. 상한을 걸면 사고가 **그 컨테이너 안에 갇힌다**. 512M 초과 컨테이너만 OOMKilled 되고 이웃은 무사하다. 그래서 프로덕션에선 메모리, CPU, PID 상한을 반드시 명시한다. 이 \"폭발 반경 제한\"이 여러 워크로드를 한 호스트에 안전하게 얹는 핵심이다."
         },
         {
           "type": "p",
-          "text": "**단, 런타임이 cgroup 상한을 봐야 한다(sys-mem 5장 재확인).** cgroup 으로 512M 을 걸어도, 컨테이너 안 런타임(Node·JVM)이나 도구(`free`·`nproc`)가 옛날엔 **호스트 전체 값**을 보고 상한을 모른 채 초과 → OOM 됐다. 「컨테이너 안에서 메모리를 재면 호스트 값이 나온다」는 이 여러 사고의 근원이다 — 최근 런타임·cgroup v2 는 상한을 인식하지만, 옛 버전은 호스트를 본다. 그래서 런타임에 상한을 명시(`--max-old-space-size` 등)하거나 cgroup-aware 옵션을 켜야 한다. cgroup 을 걸었으면 **안에서도 그 값이 보이는지** 확인하는 게 안전하다(8장)."
+          "text": "**단, 런타임이 cgroup 상한을 봐야 한다(sys-mem 5장 재확인).** cgroup 으로 512M 을 걸어도, 컨테이너 안 런타임(Node, JVM)이나 도구(`free`, `nproc`)가 옛날엔 **호스트 전체 값**을 보고 상한을 모른 채 초과 → OOM 됐다. \"컨테이너 안에서 메모리를 재면 호스트 값이 나온다\"는 이 여러 사고의 근원이다. 최근 런타임, cgroup v2 는 상한을 인식하지만, 옛 버전은 호스트를 본다. 그래서 런타임에 상한을 명시(`--max-old-space-size` 등)하거나 cgroup-aware 옵션을 켜야 한다. cgroup 을 걸었으면 **안에서도 그 값이 보이는지** 확인하는 게 안전하다(8장)."
         },
         {
           "type": "try",
-          "text": "컨테이너에 `--memory`·`--cpus` 상한을 걸고, 안에서 `cat /sys/fs/cgroup/memory.max` 로 실제 상한이 반영됐는지 확인하라. 일부러 상한을 넘겨 그 컨테이너만 OOMKilled 되고 호스트·이웃은 멀쩡한지 관찰하라."
+          "text": "컨테이너에 `--memory`, `--cpus` 상한을 걸고, 안에서 `cat /sys/fs/cgroup/memory.max` 로 실제 상한이 반영됐는지 확인하라. 일부러 상한을 넘겨 그 컨테이너만 OOMKilled 되고 호스트, 이웃은 멀쩡한지 관찰하라."
         }
       ],
       "quiz": [
@@ -256,7 +256,7 @@
           "q": "cgroup 이 거는 것은?",
           "choices": [
             "무엇이 보이나",
-            "얼마나 쓰나(메모리·CPU·PID 상한)",
+            "얼마나 쓰나(메모리, CPU, PID 상한)",
             "호스트 이름",
             "IP"
           ],
@@ -278,7 +278,7 @@
           "q": "cgroup 상한을 걸었는데 여전히 호스트 값을 보면?",
           "choices": [
             "정상",
-            "런타임이 cgroup 미인식 — 상한 명시·cgroup-aware 필요",
+            "런타임이 cgroup 미인식. 상한 명시, cgroup-aware 필요",
             "네트워크",
             "권한"
           ],
@@ -294,7 +294,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「namespace + cgroup 프로세스」라는 정의만으로 컨테이너의 흔한 현상들이 전부 설명된다: **안에서 ps 하면 몇 개 안 보임**(pid ns) · **localhost 로 다른 컨테이너에 못 붙음**(net ns) · **호스트 파일이 안 보임**(mount ns) · **메모리를 재면 호스트 값**(cgroup 미인식) · **137 로 죽음**(cgroup OOM) · **신호가 안 먹음**(PID1). 「왜 이러지?」를 만나면 「어느 namespace/cgroup 때문인가」로 되물으면 답이 나온다."
+          "text": "\"namespace + cgroup 프로세스\"라는 정의만으로 컨테이너의 흔한 현상들이 전부 설명된다: **안에서 ps 하면 몇 개 안 보임**(pid ns), **localhost 로 다른 컨테이너에 못 붙음**(net ns), **호스트 파일이 안 보임**(mount ns), **메모리를 재면 호스트 값**(cgroup 미인식), **137 로 죽음**(cgroup OOM), **신호가 안 먹음**(PID1). \"왜 이러지?\"를 만나면 \"어느 namespace/cgroup 때문인가\"로 되물으면 답이 나온다."
         },
         {
           "type": "demo",
@@ -339,15 +339,15 @@
         },
         {
           "type": "note",
-          "text": "**컨테이너 사고는 「어느 부품 때문인가」로 환원된다.** 새로운 마법이 아니라 namespace(뷰)·cgroup(상한)·이미지(파일 트리, 5장)·PID1(신호·수거) 중 하나로 귀결된다 — 그래서 「왜 이러지?」를 만나면 그 목록에 대응시키면 원인이 좁혀진다. 이게 컨테이너를 「블랙박스」가 아니라 「이해 가능한 프로세스」로 다루는 힘이다. 앞 시스템 칸들(process·fd·signal·mem·syscall)의 지식이 여기서 전부 재사용된다 — 컨테이너는 그 위에 격리 부품 몇 개를 얹은 것뿐이다."
+          "text": "**컨테이너 사고는 \"어느 부품 때문인가\"로 환원된다.** 새로운 마법이 아니라 namespace(뷰), cgroup(상한), 이미지(파일 트리, 5장), PID1(신호, 수거) 중 하나로 귀결된다. 그래서 \"왜 이러지?\"를 만나면 그 목록에 대응시키면 원인이 좁혀진다. 이게 컨테이너를 \"블랙박스\"가 아니라 \"이해 가능한 프로세스\"로 다루는 힘이다. 앞 시스템 칸들(process, fd, signal, mem, syscall)의 지식이 여기서 전부 재사용된다. 컨테이너는 그 위에 격리 부품 몇 개를 얹은 것뿐이다."
         },
         {
           "type": "p",
-          "text": "**네트워크가 특히 자주 헷갈린다 — localhost 의 범위가 좁혀졌다.** 컨테이너 안 `localhost` 는 **그 컨테이너 자신**이라, 옆 컨테이너의 DB 에 `localhost:5432` 로 못 붙는다(net namespace). 대신 ① 같은 네트워크에 두고 **서비스 이름**으로 부르거나(compose·k8s 의 DNS) ② 호스트로 노출하려면 **포트 매핑**(`-p 8080:80`)을 한다. 「로컬에선 localhost 로 됐는데 컨테이너에선 안 된다」는 이 net namespace 때문이다 — 각 컨테이너가 자기 네트워크 뷰를 가지니, 연결은 명시적으로 이어 줘야 한다."
+          "text": "**네트워크가 특히 자주 헷갈린다. localhost 의 범위가 좁혀졌다.** 컨테이너 안 `localhost` 는 **그 컨테이너 자신**이라, 옆 컨테이너의 DB 에 `localhost:5432` 로 못 붙는다(net namespace). 대신 ① 같은 네트워크에 두고 **서비스 이름**으로 부르거나(compose, k8s 의 DNS) ② 호스트로 노출하려면 **포트 매핑**(`-p 8080:80`)을 한다. \"로컬에선 localhost 로 됐는데 컨테이너에선 안 된다\"는 이 net namespace 때문이다. 각 컨테이너가 자기 네트워크 뷰를 가지니, 연결은 명시적으로 이어 줘야 한다."
         },
         {
           "type": "try",
-          "text": "컨테이너 두 개를 띄우고 하나에서 다른 하나에 `localhost` 로 붙어 실패를 확인한 뒤, 같은 네트워크에 두고 **서비스 이름**으로 붙어 성공하는지 비교하라 — net namespace 의 효과를 체감하라."
+          "text": "컨테이너 두 개를 띄우고 하나에서 다른 하나에 `localhost` 로 붙어 실패를 확인한 뒤, 같은 네트워크에 두고 **서비스 이름**으로 붙어 성공하는지 비교하라. net namespace 의 효과를 체감하라."
         }
       ],
       "quiz": [
@@ -355,12 +355,12 @@
           "q": "컨테이너 안 localhost 로 옆 컨테이너에 못 붙는 이유는?",
           "choices": [
             "방화벽",
-            "net namespace — 각자 네트워크 뷰",
+            "net namespace. 각자 네트워크 뷰",
             "느림",
             "권한"
           ],
           "answer": 1,
-          "why": "서비스명·포트매핑 필요."
+          "why": "서비스명, 포트매핑 필요."
         },
         {
           "q": "컨테이너 현상을 진단하는 사고법은?",
@@ -393,12 +393,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "컨테이너 **이미지**는 「그 안에서 보일 파일 트리」를 담은 것이고, **레이어**로 쌓인다 — Dockerfile 의 각 명령(FROM·COPY·RUN)이 한 레이어를 만든다. 레이어는 **캐시**된다: 바뀌지 않은 레이어는 재빌드·재전송을 건너뛴다. 그래서 **잘 바뀌는 것을 아래(뒤)에** 두면 캐시가 잘 들어 빌드가 빨라진다 — COPY 순서 하나가 빌드 시간을 좌우한다."
+          "text": "컨테이너 **이미지**는 \"그 안에서 보일 파일 트리\"를 담은 것이고, **레이어**로 쌓인다. Dockerfile 의 각 명령(FROM, COPY, RUN)이 한 레이어를 만든다. 레이어는 **캐시**된다: 바뀌지 않은 레이어는 재빌드, 재전송을 건너뛴다. 그래서 **잘 바뀌는 것을 아래(뒤)에** 두면 캐시가 잘 들어 빌드가 빨라진다. COPY 순서 하나가 빌드 시간을 좌우한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "레이어 캐시 — COPY 순서가 좌우",
+          "label": "레이어 캐시. COPY 순서가 좌우",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  if (order === 'good') {\n    render('좋은 순서: deps 먼저, 소스 나중',\n      '  package.json 만 먼저 COPY → npm ci → 그다음 소스 COPY\\n' +\n      '  <span class=\\\"ok\\\">소스만 바뀌면 무거운 npm ci 레이어는 캐시 재사용 → 빠름.</span>',\n      '잘 바뀌는 소스를 뒤에 — 무거운 의존성 설치 레이어를 캐시한다.',\n      layers([['FROM node:22', 'cached', 'cached'],\n        ['COPY package.json', 'cached', 'cached'],\n        ['RUN npm ci (무거움)', 'cached ✓', 'cached'],\n        ['COPY 소스', '소스 바뀜→재빌드', 'rebuilt']]));\n  } else {\n    render('나쁜 순서: 소스 먼저',\n      '  COPY . (소스 전체) → RUN npm ci\\n' +\n      '  <span class=\\\"no\\\">소스 한 줄만 바뀌어도 그 아래 npm ci 캐시 깨짐 → 매번 재설치(느림).</span>',\n      '소스를 먼저 COPY 하면 소스 변경마다 그 아래 무거운 레이어가 다시 빌드된다.',\n      layers([['FROM node:22', 'cached', 'cached'],\n        ['COPY . (소스 전체)', '소스 바뀜→깨짐', 'rebuilt'],\n        ['RUN npm ci (무거움)', '캐시 깨져 재설치', 'rebuilt']]));\n  }\n</script>",
           "controls": [
@@ -428,15 +428,15 @@
         },
         {
           "type": "note",
-          "text": "**레이어 캐시는 「위에서부터, 바뀐 레이어와 그 아래 전부」 다시 빌드한다.** 한 레이어가 바뀌면 그 아래 레이어의 캐시가 전부 무효화된다 — 그래서 자주 바뀌는 것(소스)을 **뒤로**, 안 바뀌는 것(베이스·의존성 설치)을 **앞으로** 둔다. 소스 한 줄 고칠 때마다 `npm ci` 를 다시 도는 건 순서를 거꾸로 짠 탓이다. 이 캐시 규칙 하나로 빌드가 분 단위에서 초 단위로 바뀐다. 「COPY 순서를 왜 신경 쓰나」의 답이 이 레이어 무효화 규칙이다."
+          "text": "**레이어 캐시는 \"위에서부터, 바뀐 레이어와 그 아래 전부\" 다시 빌드한다.** 한 레이어가 바뀌면 그 아래 레이어의 캐시가 전부 무효화된다. 그래서 자주 바뀌는 것(소스)을 **뒤로**, 안 바뀌는 것(베이스, 의존성 설치)을 **앞으로** 둔다. 소스 한 줄 고칠 때마다 `npm ci` 를 다시 도는 건 순서를 거꾸로 짠 탓이다. 이 캐시 규칙 하나로 빌드가 분 단위에서 초 단위로 바뀐다. \"COPY 순서를 왜 신경 쓰나\"의 답이 이 레이어 무효화 규칙이다."
         },
         {
           "type": "p",
-          "text": "**이미지는 작을수록 좋다 — 공격면·전송비·시작 속도.** 큰 이미지는 ① 다운로드·배포가 느리고 ② 불필요한 도구가 많아 공격면(취약점)이 넓고 ③ 저장 비용이 크다. 그래서 **멀티스테이지 빌드**(빌드 도구는 빌드 단계에만, 최종 이미지엔 결과물만)와 **작은 베이스**(alpine·distroless·slim)를 쓴다. 「빌드에 필요한 것」과 「실행에 필요한 것」을 분리해, 최종 이미지엔 앱과 런타임만 남긴다. 레이어 캐시(빠른 빌드)와 작은 이미지(빠른 배포·좁은 공격면)가 이미지 위생의 두 축이다(7장)."
+          "text": "**이미지는 작을수록 좋다. 공격면, 전송비, 시작 속도.** 큰 이미지는 ① 다운로드, 배포가 느리고 ② 불필요한 도구가 많아 공격면(취약점)이 넓고 ③ 저장 비용이 크다. 그래서 **멀티스테이지 빌드**(빌드 도구는 빌드 단계에만, 최종 이미지엔 결과물만)와 **작은 베이스**(alpine, distroless, slim)를 쓴다. \"빌드에 필요한 것\"과 \"실행에 필요한 것\"을 분리해, 최종 이미지엔 앱과 런타임만 남긴다. 레이어 캐시(빠른 빌드)와 작은 이미지(빠른 배포, 좁은 공격면)가 이미지 위생의 두 축이다(7장)."
         },
         {
           "type": "try",
-          "text": "Dockerfile 의 COPY 순서를 바꿔(소스 먼저 vs deps 먼저) 소스 한 줄 수정 후 재빌드 시간을 비교하라 — 캐시가 살고 죽는 차이를 시간으로 확인하라. 멀티스테이지로 최종 이미지 크기도 줄여 보라."
+          "text": "Dockerfile 의 COPY 순서를 바꿔(소스 먼저 vs deps 먼저) 소스 한 줄 수정 후 재빌드 시간을 비교하라. 캐시가 살고 죽는 차이를 시간으로 확인하라. 멀티스테이지로 최종 이미지 크기도 줄여 보라."
         }
       ],
       "quiz": [
@@ -471,7 +471,7 @@
             "캐시 끄기"
           ],
           "answer": 1,
-          "why": "공격면·전송비↓."
+          "why": "공격면, 전송비↓."
         }
       ]
     },
@@ -482,12 +482,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**VM** 은 하이퍼바이저가 하드웨어를 흉내 내 그 위에 **게스트 OS·커널**을 통째로 띄운다 — 강한 격리, 무거움(부팅·메모리). **컨테이너**는 호스트 커널을 공유하는 프로세스라 — 가볍고 빠른 시작, 대신 커널 공유라 격리가 상대적으로 약하다. 「강한 격리가 필요한가(멀티테넌트·신뢰 못 하는 코드)」 vs 「가볍고 빠른 게 중요한가(마이크로서비스·CI)」로 고른다. 둘을 합치기도 한다(VM 안에 컨테이너)."
+          "text": "**VM** 은 하이퍼바이저가 하드웨어를 흉내 내 그 위에 **게스트 OS, 커널**을 통째로 띄운다. 강한 격리, 무거움(부팅, 메모리). **컨테이너**는 호스트 커널을 공유하는 프로세스라. 가볍고 빠른 시작, 대신 커널 공유라 격리가 상대적으로 약하다. \"강한 격리가 필요한가(멀티테넌트, 신뢰 못 하는 코드)\" vs \"가볍고 빠른 게 중요한가(마이크로서비스, CI)\"로 고른다. 둘을 합치기도 한다(VM 안에 컨테이너)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "층 비교 — VM vs 컨테이너",
+          "label": "층 비교. VM vs 컨테이너",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'vm') {\n    render('VM — 게스트 OS 를 통째로',\n      '  하드웨어 → 하이퍼바이저 → 게스트 OS·커널 → 앱\\n' +\n      '  <span class=\\\"warn\\\">강한 격리(별도 커널) · 무거움(GB·부팅 수십초).</span>',\n      'VM 은 게스트 커널까지 통째 — 강한 격리, 무겁다.',\n      stack([['앱', 'app'],['게스트 OS·커널', 'guest'],['하이퍼바이저', 'kern'],['하드웨어', 'hw']]));\n  } else {\n    render('컨테이너 — 커널 공유',\n      '  하드웨어 → 호스트 커널(공유) → 컨테이너(프로세스)\\n' +\n      '  <span class=\\\"ok\\\">가벼움(MB·즉시 시작) · 커널 공유라 격리는 상대적으로 약함.</span>',\n      '컨테이너는 호스트 커널 공유 — 가볍지만 커널 취약점은 공유.',\n      stack([['앱(컨테이너 = 프로세스)', 'app'],['호스트 커널 (공유)', 'kern'],['하드웨어', 'hw']]));\n  }\n</script>",
           "controls": [
@@ -511,15 +511,15 @@
         },
         {
           "type": "note",
-          "text": "**커널을 공유하느냐가 핵심 차이다.** 컨테이너는 호스트 커널을 공유하니 게스트 OS 부팅이 없어 가볍고 빠르지만(초 단위 수천 개), 그 대가로 **커널 취약점이 컨테이너 탈출로 이어질 수 있다** — 격리가 VM 보다 약하다. VM 은 게스트마다 별도 커널이라 격리가 강하지만 무겁다(GB·부팅). 그래서 신뢰할 수 없는 코드·강한 멀티테넌시엔 VM(또는 gVisor·Firecracker 같은 경량 VM/샌드박스)을, 신뢰하는 마이크로서비스·CI 엔 컨테이너를 쓴다. 「가벼움 ↔ 격리 강도」의 트레이드오프를 커널 공유 여부가 만든다."
+          "text": "**커널을 공유하느냐가 핵심 차이다.** 컨테이너는 호스트 커널을 공유하니 게스트 OS 부팅이 없어 가볍고 빠르지만(초 단위 수천 개), 그 대가로 **커널 취약점이 컨테이너 탈출로 이어질 수 있다**. 격리가 VM 보다 약하다. VM 은 게스트마다 별도 커널이라 격리가 강하지만 무겁다(GB, 부팅). 그래서 신뢰할 수 없는 코드, 강한 멀티테넌시엔 VM(또는 gVisor, Firecracker 같은 경량 VM/샌드박스)을, 신뢰하는 마이크로서비스, CI 엔 컨테이너를 쓴다. \"가벼움 ↔ 격리 강도\"의 트레이드오프를 커널 공유 여부가 만든다."
         },
         {
           "type": "p",
-          "text": "**그래서 둘은 대체가 아니라 조합이다.** 실무에선 흔히 **VM 안에서 컨테이너를 돌린다** — 클라우드의 컨테이너 서비스도 내부적으론 VM 으로 테넌트를 격리하고 그 안에서 컨테이너를 띄운다. VM 이 강한 경계(다른 고객과의 격리)를, 컨테이너가 가벼운 배포 단위(빠른 시작·이미지)를 맡는 식이다. 「컨테이너냐 VM 이냐」는 양자택일이 아니라, **어느 경계에 무엇을 쓸지**의 층 나누기다 — 강한 격리 경계는 VM, 그 안 배포 단위는 컨테이너. 여기에 경량 VM(Firecracker)·샌드박스(gVisor)가 그 중간을 메운다."
+          "text": "**그래서 둘은 대체가 아니라 조합이다.** 실무에선 흔히 **VM 안에서 컨테이너를 돌린다**. 클라우드의 컨테이너 서비스도 내부적으론 VM 으로 테넌트를 격리하고 그 안에서 컨테이너를 띄운다. VM 이 강한 경계(다른 고객과의 격리)를, 컨테이너가 가벼운 배포 단위(빠른 시작, 이미지)를 맡는 식이다. \"컨테이너냐 VM 이냐\"는 양자택일이 아니라, **어느 경계에 무엇을 쓸지**의 층 나누기다. 강한 격리 경계는 VM, 그 안 배포 단위는 컨테이너. 여기에 경량 VM(Firecracker), 샌드박스(gVisor)가 그 중간을 메운다."
         },
         {
           "type": "try",
-          "text": "컨테이너 시작 시간과 VM 부팅 시간을 비교하고, 각각의 이미지/디스크 크기 차이를 확인하라. 「강한 격리가 필요한 경계」와 「가벼운 배포 단위」를 네 시스템에서 하나씩 짚어, 어디에 무엇이 맞는지 생각해 보라."
+          "text": "컨테이너 시작 시간과 VM 부팅 시간을 비교하고, 각각의 이미지/디스크 크기 차이를 확인하라. \"강한 격리가 필요한 경계\"와 \"가벼운 배포 단위\"를 네 시스템에서 하나씩 짚어, 어디에 무엇이 맞는지 생각해 보라."
         }
       ],
       "quiz": [
@@ -538,7 +538,7 @@
           "q": "컨테이너 격리가 VM 보다 약한 이유는?",
           "choices": [
             "느려서",
-            "호스트 커널 공유 — 커널 취약점이 탈출로 이어질 수 있음",
+            "호스트 커널 공유. 커널 취약점이 탈출로 이어질 수 있음",
             "메모리",
             "네트워크"
           ],
@@ -549,7 +549,7 @@
           "q": "강한 멀티테넌시와 가벼운 배포를 함께 얻으려면?",
           "choices": [
             "둘 중 하나만",
-            "VM 안에서 컨테이너(조합)·경량 VM",
+            "VM 안에서 컨테이너(조합), 경량 VM",
             "베어메탈",
             "무시"
           ],
@@ -565,12 +565,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "컨테이너를 프로덕션에 올릴 때의 기본 규칙: **① root 로 돌리지 마라**(USER 지정) · **② 이미지는 작게**(공격면·전송비, 멀티스테이지·작은 베이스) · **③ 자원 상한을 항상 명시**(cgroup, 3장) · **④ 로그는 파일이 아니라 표준 출력으로**(수집·회전은 플랫폼에) · **⑤ 신호가 앱까지 닿게**(exec form·PID1, sys-signal 6장) · **⑥ 컨테이너는 일회용**(상태는 밖에, 볼륨·DB). 이 규칙들이 안전하고 운영 가능한 컨테이너를 만든다."
+          "text": "컨테이너를 프로덕션에 올릴 때의 기본 규칙: **① root 로 돌리지 마라**(USER 지정), **② 이미지는 작게**(공격면, 전송비, 멀티스테이지, 작은 베이스), **③ 자원 상한을 항상 명시**(cgroup, 3장), **④ 로그는 파일이 아니라 표준 출력으로**(수집, 회전은 플랫폼에), **⑤ 신호가 앱까지 닿게**(exec form, PID1, sys-signal 6장), **⑥ 컨테이너는 일회용**(상태는 밖에, 볼륨, DB). 이 규칙들이 안전하고 운영 가능한 컨테이너를 만든다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "실무 규칙 — 지키면/어기면",
+          "label": "실무 규칙. 지키면/어기면",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rule = '{{rule}}';\n  const cases = {\n    root: ['root 로 돌리지 마라(USER)', '뚫리면 컨테이너 안 root → 탈출 시 피해 큼', 'USER node 로 비-root 실행. user namespace 병행'],\n    small:['이미지는 작게', '큰 이미지 = 넓은 공격면·느린 배포·비용', '멀티스테이지·distroless/alpine·.dockerignore'],\n    limit:['상한을 명시', '없으면 noisy neighbor·OOM 전파(3장)', '--memory·--cpus·--pids-limit'],\n    log:  ['로그는 표준 출력으로', '파일에 쌓으면 회전·수집이 컨테이너 안 문제로', 'stdout/stderr → 플랫폼이 수집·회전(12-factor)'],\n    signal:['신호가 앱까지', 'shell form 이면 SIGTERM 이 앱에 안 감', 'exec form·--init(sys-signal 6장)'],\n    ephemeral:['컨테이너는 일회용', '안에 상태 저장하면 재시작·교체 시 유실', '상태는 볼륨·DB 로 밖에(무상태 지향)'],\n  }[rule];\n  render('규칙: ' + cases[0],\n    '  어기면: <span class=\\\"no\\\">' + cases[1] + '</span>\\n  지키면: <span class=\\\"ok\\\">' + cases[2] + '</span>',\n    'root X · 작게 · 상한 · stdout 로그 · 신호 도달 · 일회용.',\n    box(cases[0], cases[2], 'good'));\n</script>",
           "controls": [
@@ -616,15 +616,15 @@
         },
         {
           "type": "note",
-          "text": "**root·상한·신호·무상태 — 이 넷이 프로덕션 컨테이너의 최소 위생이다.** 비-root(USER)로 돌려 탈출 피해를 줄이고, cgroup 상한으로 폭발 반경을 가두고(3장), exec form/--init 로 신호가 앱에 닿아 곱게 죽게 하고(sys-signal), 상태를 컨테이너 밖(볼륨·DB)에 두어 언제든 교체·재시작 가능하게(무상태) 한다. 여기에 작은 이미지(공격면·속도)와 stdout 로그(수집·회전을 플랫폼에)를 더하면, 확장·배포·복구가 쉬운 컨테이너가 된다. 규칙 하나하나가 앞 시스템 칸(signal·mem·process)의 실전 적용이다."
+          "text": "**root, 상한, 신호, 무상태. 이 넷이 프로덕션 컨테이너의 최소 위생이다.** 비-root(USER)로 돌려 탈출 피해를 줄이고, cgroup 상한으로 폭발 반경을 가두고(3장), exec form/--init 로 신호가 앱에 닿아 곱게 죽게 하고(sys-signal), 상태를 컨테이너 밖(볼륨, DB)에 두어 언제든 교체, 재시작 가능하게(무상태) 한다. 여기에 작은 이미지(공격면, 속도)와 stdout 로그(수집, 회전을 플랫폼에)를 더하면, 확장, 배포, 복구가 쉬운 컨테이너가 된다. 규칙 하나하나가 앞 시스템 칸(signal, mem, process)의 실전 적용이다."
         },
         {
           "type": "p",
-          "text": "**컨테이너는 「소 떼(cattle)이지 애완동물(pet)이 아니다」.** 하나하나를 손보며 오래 살리는(pet) 대신, 언제든 죽이고 똑같은 걸 새로 띄울 수 있게(cattle) 만든다 — 그래서 상태를 안에 두지 않고(무상태), 설정은 env 로 주입하고(sys-process 6장·12-factor), 이미지가 곧 정의라 재현 가능하다. 이 「일회용·재현 가능」 성질이 오토스케일·무중단 배포·자가 치유(죽으면 새로 띄움)를 가능하게 한다(scale). 컨테이너의 진짜 힘은 격리 자체보다, **똑같은 것을 언제든 많이 찍어낼 수 있음**에 있다."
+          "text": "**컨테이너는 \"소 떼(cattle)이지 애완동물(pet)이 아니다\".** 하나하나를 손보며 오래 살리는(pet) 대신, 언제든 죽이고 똑같은 걸 새로 띄울 수 있게(cattle) 만든다. 그래서 상태를 안에 두지 않고(무상태), 설정은 env 로 주입하고(sys-process 6장, 12-factor), 이미지가 곧 정의라 재현 가능하다. 이 \"일회용, 재현 가능\" 성질이 오토스케일, 무중단 배포, 자가 치유(죽으면 새로 띄움)를 가능하게 한다(scale). 컨테이너의 진짜 힘은 격리 자체보다, **똑같은 것을 언제든 많이 찍어낼 수 있음**에 있다."
         },
         {
           "type": "try",
-          "text": "네 Dockerfile 이 이 6규칙을 지키는지 점검하라 — USER 지정·멀티스테이지·상한·stdout 로그·exec form·무상태. 특히 root 로 도는지(`docker exec whoami`)와 상한이 걸렸는지부터 확인하라."
+          "text": "네 Dockerfile 이 이 6규칙을 지키는지 점검하라. USER 지정, 멀티스테이지, 상한, stdout 로그, exec form, 무상태. 특히 root 로 도는지(`docker exec whoami`)와 상한이 걸렸는지부터 확인하라."
         }
       ],
       "quiz": [
@@ -643,7 +643,7 @@
           "q": "컨테이너 로그는 어디로?",
           "choices": [
             "안의 파일",
-            "표준 출력(stdout/stderr) — 수집·회전은 플랫폼",
+            "표준 출력(stdout/stderr). 수집, 회전은 플랫폼",
             "삭제",
             "DB"
           ],
@@ -651,15 +651,15 @@
           "why": "12-factor."
         },
         {
-          "q": "「cattle, not pet」의 뜻은?",
+          "q": "\"cattle, not pet\"의 뜻은?",
           "choices": [
             "오래 손봄",
-            "언제든 죽이고 새로 띄움(무상태·재현 가능)",
+            "언제든 죽이고 새로 띄움(무상태, 재현 가능)",
             "느리게",
             "수동 관리"
           ],
           "answer": 1,
-          "why": "확장·자가치유."
+          "why": "확장, 자가치유."
         }
       ]
     },
@@ -670,7 +670,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "컨테이너 문제는 **안에 들어가 실제 값을 보면** 풀린다: `docker exec -it <id> sh` 로 들어가 `ps`(pid ns)·`cat /sys/fs/cgroup/memory.max`(실제 상한)·`env`(주입된 설정)·`whoami`(root 여부)·`ip addr`(네트워크)를 확인한다. 「짐작한 것」과 「실제 컨테이너 안 값」이 다른 경우가 대부분이라 — 상한이 반영됐나·설정이 들어갔나·어느 유저로 도나를 눈으로 본다."
+          "text": "컨테이너 문제는 **안에 들어가 실제 값을 보면** 풀린다: `docker exec -it <id> sh` 로 들어가 `ps`(pid ns), `cat /sys/fs/cgroup/memory.max`(실제 상한), `env`(주입된 설정), `whoami`(root 여부), `ip addr`(네트워크)를 확인한다. \"짐작한 것\"과 \"실제 컨테이너 안 값\"이 다른 경우가 대부분이라. 상한이 반영됐나, 설정이 들어갔나, 어느 유저로 도나를 눈으로 본다."
         },
         {
           "type": "demo",
@@ -703,7 +703,7 @@
                 },
                 {
                   "value": "file",
-                  "label": "파일·볼륨"
+                  "label": "파일, 볼륨"
                 }
               ]
             }
@@ -717,15 +717,15 @@
         },
         {
           "type": "note",
-          "text": "**짐작하지 말고 컨테이너 안 실제 값을 봐라 — 대부분 「건 것」과 「보이는 것」이 다르다.** 「메모리 512M 걸었는데 왜 OOM?」 → 안에서 `memory.max` 가 호스트값이면 런타임 미인식(3장). 「env 줬는데 안 먹어」 → `env` 에 없으면 오타·재시작 누락(sys-process 6장). 「왜 파일 권한 오류?」 → `whoami` 가 root 가 아니거나 볼륨 소유권 문제. `docker exec`·`inspect`·`logs` 로 실제 상태를 확인하는 게 컨테이너 진단의 기본이다 — 프로세스·fd·syscall 진단(sys-* 8장들)과 같은 「추측 말고 측정」 원칙이다."
+          "text": "**짐작하지 말고 컨테이너 안 실제 값을 봐라. 대부분 \"건 것\"과 \"보이는 것\"이 다르다.** \"메모리 512M 걸었는데 왜 OOM?\" → 안에서 `memory.max` 가 호스트값이면 런타임 미인식(3장). \"env 줬는데 안 먹어\" → `env` 에 없으면 오타, 재시작 누락(sys-process 6장). \"왜 파일 권한 오류?\" → `whoami` 가 root 가 아니거나 볼륨 소유권 문제. `docker exec`, `inspect`, `logs` 로 실제 상태를 확인하는 게 컨테이너 진단의 기본이다. 프로세스, fd, syscall 진단(sys-* 8장들)과 같은 \"추측 말고 측정\" 원칙이다."
         },
         {
           "type": "p",
-          "text": "**`docker inspect` 와 `logs` 가 밖에서 보는 첫 창이다.** 컨테이너에 못 들어가거나(이미 죽음) 셸이 없는(distroless) 경우, 호스트에서 `docker inspect <id>` 로 상한·마운트·env·**종료 상태(OOMKilled·exit code)**를 보고, `docker logs` 로 stdout/stderr(그래서 로그를 stdout 으로 내야 함, 7장)를 본다. 죽은 컨테이너의 exit 137 + `OOMKilled: true`(sys-mem 5장), 신호 관련 종료 코드(sys-signal)가 여기 다 나온다. 「왜 죽었나」는 대개 `docker inspect` 한 번으로 시작된다 — 안에 못 들어가도 밖에서 상태를 읽는다."
+          "text": "**`docker inspect` 와 `logs` 가 밖에서 보는 첫 창이다.** 컨테이너에 못 들어가거나(이미 죽음) 셸이 없는(distroless) 경우, 호스트에서 `docker inspect <id>` 로 상한, 마운트, env, **종료 상태(OOMKilled, exit code)**를 보고, `docker logs` 로 stdout/stderr(그래서 로그를 stdout 으로 내야 함, 7장)를 본다. 죽은 컨테이너의 exit 137 + `OOMKilled: true`(sys-mem 5장), 신호 관련 종료 코드(sys-signal)가 여기 다 나온다. \"왜 죽었나\"는 대개 `docker inspect` 한 번으로 시작된다. 안에 못 들어가도 밖에서 상태를 읽는다."
         },
         {
           "type": "try",
-          "text": "컨테이너 안에서 `ps` 와 `cat /sys/fs/cgroup/memory.max` 를 실행해 밖(호스트)과 무엇이 다른지 적어라. `whoami`·`env` 로 유저·설정도 확인하고, `docker inspect` 로 상한·OOMKilled 상태를 밖에서 읽어 보라."
+          "text": "컨테이너 안에서 `ps` 와 `cat /sys/fs/cgroup/memory.max` 를 실행해 밖(호스트)과 무엇이 다른지 적어라. `whoami`, `env` 로 유저, 설정도 확인하고, `docker inspect` 로 상한, OOMKilled 상태를 밖에서 읽어 보라."
         }
       ],
       "quiz": [
@@ -741,7 +741,7 @@
           "why": "건 것≠보이는 것."
         },
         {
-          "q": "「메모리 상한 걸었는데 OOM」을 안에서 확인하려면?",
+          "q": "\"메모리 상한 걸었는데 OOM\"을 안에서 확인하려면?",
           "choices": [
             "재시작",
             "cat /sys/fs/cgroup/memory.max (호스트값?)",
@@ -752,10 +752,10 @@
           "why": "런타임 인식 여부."
         },
         {
-          "q": "죽은 컨테이너의 사인(OOMKilled·exit)을 보려면?",
+          "q": "죽은 컨테이너의 사인(OOMKilled, exit)을 보려면?",
           "choices": [
             "안에 들어가기",
-            "docker inspect(밖에서 상태·exit·OOMKilled)",
+            "docker inspect(밖에서 상태, exit, OOMKilled)",
             "재빌드",
             "추측"
           ],
@@ -766,17 +766,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 컨테이너",
+      "title": "점검표. 컨테이너",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "컨테이너를 만들거나 사고를 진단할 때 이 목록을 확인하라. 핵심은 「컨테이너 = namespace(뷰) + cgroup(상한) 프로세스 — 부품으로 이해하고, root·상한·신호·무상태를 지켜라」다."
+          "text": "컨테이너를 만들거나 사고를 진단할 때 이 목록을 확인하라. 핵심은 \"컨테이너 = namespace(뷰) + cgroup(상한) 프로세스. 부품으로 이해하고, root, 상한, 신호, 무상태를 지켜라\"다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:5px 9px; margin:2px 0; border-radius:4px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .cached { background:#132a1c; color:#86efac; } .layers .rebuilt { background:#3a2a14; color:#fcd34d; }\n  .stack { margin:8px 0; font:11px ui-monospace, monospace; }\n  .stack .row2 { padding:4px 8px; margin:2px 0; border-radius:4px; }\n  .stack .app { background:#14263a; color:#7dd3fc; } .stack .kern { background:#3a1e14; color:#fdba74; }\n  .stack .hw { background:#1e2a1e; color:#86efac; } .stack .guest { background:#2a1e3a; color:#c4b5fd; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  const stack = (rows) => '<div class=\"stack\">' + rows.map(([lab, cls]) =>\n    '<div class=\"row2 ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '컨테이너 = 커널 공유 프로세스(VM 아님)로 이해한다',\n    'namespace(무엇이 보이나)와 cgroup(얼마나 쓰나)을 안다',\n    '현상을 어느 namespace/cgroup/PID1 로 환원해 진단한다',\n    '레이어 캐시를 살리게 COPY 순서를 짠다(deps 먼저)',\n    '이미지는 작게(멀티스테이지·작은 베이스)',\n    '자원 상한을 명시하고 런타임이 인식하는지 확인',\n    'root 금지·stdout 로그·신호 도달·무상태',\n    'exec/inspect/logs 로 안의 실제 값을 확인한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 컨테이너를 부품으로 이해하고 안전하게 운영한다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    'namespace+cgroup 프로세스 — 부품으로 이해하고 root·상한·신호·무상태.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -793,15 +793,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 컨테이너는 namespace + cgroup 으로 격리한 프로세스다.** 뷰를 좁히는 namespace(2장)와 상한을 거는 cgroup(3장)이 두 부품이고, 온갖 현상이 이 부품 + 이미지(레이어, 5장) + PID1 로 환원된다(4장). 프로덕션에선 root 금지·작은 이미지·상한 명시·stdout 로그·신호 도달·무상태를 지키고(7장), 문제는 안의 실제 값을 봐서 푼다(8장). VM 이 아니라 프로세스임을 기억하면 전부 익숙한 지식으로 다뤄진다."
+          "text": "**한 줄 요약: 컨테이너는 namespace + cgroup 으로 격리한 프로세스다.** 뷰를 좁히는 namespace(2장)와 상한을 거는 cgroup(3장)이 두 부품이고, 온갖 현상이 이 부품 + 이미지(레이어, 5장) + PID1 로 환원된다(4장). 프로덕션에선 root 금지, 작은 이미지, 상한 명시, stdout 로그, 신호 도달, 무상태를 지키고(7장), 문제는 안의 실제 값을 봐서 푼다(8장). VM 이 아니라 프로세스임을 기억하면 전부 익숙한 지식으로 다뤄진다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** 컨테이너는 프로세스·PID1(sys-process)·신호(sys-signal 6장)·메모리 상한(sys-mem 5장)·namespace/cgroup(syscall·커널)·격리(seccomp)를 한데 묶은 **시스템 지식의 종합**이다. 위로는 오케스트레이션·무중단 배포·오토스케일(scale), 이미지 보안·공급망(sec·legal-deps), 데브옵스·배포(web-deploy)로 이어진다. **「컨테이너를 마법이 아니라 격리된 프로세스로 읽는 눈」이 현대 배포·운영의 바탕**이다."
+          "text": "**이 칸의 연결.** 컨테이너는 프로세스, PID1(sys-process), 신호(sys-signal 6장), 메모리 상한(sys-mem 5장), namespace/cgroup(syscall, 커널), 격리(seccomp)를 한데 묶은 **시스템 지식의 종합**이다. 위로는 오케스트레이션, 무중단 배포, 오토스케일(scale), 이미지 보안, 공급망(sec, legal-deps), 데브옵스, 배포(web-deploy)로 이어진다. **\"컨테이너를 마법이 아니라 격리된 프로세스로 읽는 눈\"이 현대 배포, 운영의 바탕**이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 컨테이너를 점검하라. 「자원 상한 명시+런타임 인식」과 「root 금지·신호 도달」 두 가지부터 잡으면, OOM·noisy neighbor·배포 시 요청 유실 같은 흔한 사고의 상당수가 사라진다."
+          "text": "이 8개로 네 컨테이너를 점검하라. \"자원 상한 명시+런타임 인식\"과 \"root 금지, 신호 도달\" 두 가지부터 잡으면, OOM, noisy neighbor, 배포 시 요청 유실 같은 흔한 사고의 상당수가 사라진다."
         }
       ],
       "quiz": [
@@ -819,9 +819,9 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "캐시·압축",
-            "자원 상한(+런타임 인식) + root 금지·신호 도달",
-            "샤딩·GraphQL",
+            "캐시, 압축",
+            "자원 상한(+런타임 인식) + root 금지, 신호 도달",
+            "샤딩, GraphQL",
             "무시"
           ],
           "answer": 1,
@@ -831,12 +831,12 @@
           "q": "컨테이너가 이어지는 주제는?",
           "choices": [
             "없음",
-            "sys-process·sys-signal·sys-mem·scale·sec",
+            "sys-process, sys-signal, sys-mem, scale, sec",
             "문법",
             "속도"
           ],
           "answer": 1,
-          "why": "배포·운영의 바탕."
+          "why": "배포, 운영의 바탕."
         }
       ]
     }

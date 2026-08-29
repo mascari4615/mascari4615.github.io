@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "먼저 나가는 법 — 갇히지 않기",
+      "title": "먼저 나가는 법. 갇히지 않기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "서버에 붙어 `git commit` 을 치면 낯선 화면이 뜨고 아무 키도 안 먹는다. 이 칸의 첫 목표는 편집이 아니라 **나가는 법**이다 — 그것만 알아도 서버 작업이 무섭지 않다."
+          "text": "서버에 붙어 `git commit` 을 치면 낯선 화면이 뜨고 아무 키도 안 먹는다. 이 칸의 첫 목표는 편집이 아니라 **나가는 법**이다. 그것만 알아도 서버 작업이 무섭지 않다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 어떻게 빠져나오나",
+          "label": "상황을 골라 보라. 어떻게 빠져나오나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  screen(LINES, null, null);\n  const t = {\n    save: ['vim: :wq  또는  ZZ', ['w = 쓴다(write) · q = 나간다(quit)',\n      '먼저 Esc 를 눌러 명령 모드로 간 다음 : 를 친다'],\n      '저장하고 나가기. 커밋 메시지 화면도 이걸로 끝낸다.'],\n    quit: ['vim: :q!', ['! 는 「고친 것 버리고」라는 뜻',\n      '실수로 뭔가 눌렀는데 뭘 눌렀는지 모를 때 이것'],\n      '커밋 메시지 화면에서 :q! 로 나가면 커밋 자체가 취소된다 — 안전한 탈출구.'],\n    nano: ['nano: Ctrl-O 저장 → Enter → Ctrl-X 나가기', ['화면 아래에 늘 단축키가 적혀 있다',\n      '^ 는 Ctrl 을 뜻한다'],\n      'nano 는 안내가 화면에 있어서 처음 쓰기 쉽다. 서버에 대개 깔려 있다.'],\n    stuck: ['아무 키도 안 먹는다', ['Ctrl-S 를 눌러 화면이 멈춘 것일 수 있다 -> Ctrl-Q 로 푼다',\n      'Esc 를 두어 번 누르고 다시 시도', '정말 안 되면 SSH 세션에서 ~. (앞 칸 1장)'],\n      '터미널이 얼어붙는 대표 원인이 Ctrl-S 다 — 흐름 제어(XOFF)라는 옛 기능.'],\n  }[c];\n  mode(c === 'nano' ? 'nano' : c === 'save' || c === 'quit' ? '명령' : '?');\n  say('  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]), '');\n</script>",
           "controls": [
@@ -55,7 +55,7 @@
         },
         {
           "type": "try",
-          "text": "빈 폴더에서 `vim t.txt` 를 열고 아무것도 안 한 채 `:q!` 로 나와 보라. 세 번쯤 반복하면 손이 기억한다 — 이 칸에서 가장 값진 15초다."
+          "text": "빈 폴더에서 `vim t.txt` 를 열고 아무것도 안 한 채 `:q!` 로 나와 보라. 세 번쯤 반복하면 손이 기억한다. 이 칸에서 가장 값진 15초다."
         }
       ],
       "quiz": [
@@ -68,7 +68,7 @@
             "Ctrl-X"
           ],
           "answer": 1,
-          "why": "! 가 「버리고」라는 뜻."
+          "why": "! 가 \"버리고\"라는 뜻."
         },
         {
           "q": "nano 에서 저장하고 나가는 순서는?",
@@ -96,17 +96,17 @@
     },
     {
       "id": "2",
-      "title": "모드 — vim 이 이상해 보이는 이유",
+      "title": "모드. vim 이 이상해 보이는 이유",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "vim 이 낯선 이유는 딱 하나다 — **모드가 있다.** 평소에는 글자를 치는 곳이 아니라 **명령을 내리는 곳**이고, 글을 쓰려면 입력 모드로 들어가야 한다. 이 구분만 잡히면 나머지는 어휘다."
+          "text": "vim 이 낯선 이유는 딱 하나다. **모드가 있다.** 평소에는 글자를 치는 곳이 아니라 **명령을 내리는 곳**이고, 글을 쓰려면 입력 모드로 들어가야 한다. 이 구분만 잡히면 나머지는 어휘다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "키를 골라 보라 — 어느 모드로 가나",
+          "label": "키를 골라 보라. 어느 모드로 가나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const k = '{{key}}';\n  const info = {\n    esc:  ['명령', [2, 2], null, 'Esc', '어디서든 명령 모드로 돌아온다. 헷갈리면 일단 Esc.'],\n    i:    ['입력', [2, 2], null, 'i', '커서 자리에서 입력 시작(insert).'],\n    a:    ['입력', [2, 3], null, 'a', '커서 다음 칸부터 입력(append) — 줄 끝에 덧붙일 때.'],\n    o:    ['입력', [3, 0], null, 'o', '아래에 새 줄을 만들고 입력. 대문자 O 는 위에.'],\n    v:    ['선택', [2, 2], [2, 2], 'v', '글자 단위 선택. V 는 줄 단위, Ctrl-v 는 네모 블록.'],\n    colon:['명령줄', [2, 2], null, ':', '맨 아래에 명령을 친다 — :w :q :s 같은 것들.'],\n  }[k];\n  screen(LINES, info[1], info[2]);\n  mode(info[0]);\n  say('  누른 키: <span class=\"ok\">' + esc(info[3]) + '</span>\\n\\n  ' + esc(info[4]) + '\\n\\n' +\n    '  <span class=\"dim\">명령 모드 --i/a/o--> 입력 모드 --Esc--> 명령 모드</span>',\n    '「글자가 안 쳐진다」 = 명령 모드다. 「Esc 를 눌러도 이상하다」 = 입력 모드에서 명령을 친 것이다.');\n</script>",
           "controls": [
@@ -146,11 +146,11 @@
         },
         {
           "type": "p",
-          "text": "모드가 있어서 얻는 것은 **한 손으로 편집 명령을 쓸 수 있다**는 점이다. 다른 편집기라면 Ctrl·Alt 조합이 필요한 일을 vim 은 글자 하나로 한다 — 대신 「지금 어느 모드인가」를 늘 알고 있어야 한다."
+          "text": "모드가 있어서 얻는 것은 **한 손으로 편집 명령을 쓸 수 있다**는 점이다. 다른 편집기라면 Ctrl, Alt 조합이 필요한 일을 vim 은 글자 하나로 한다. 대신 \"지금 어느 모드인가\"를 늘 알고 있어야 한다."
         },
         {
           "type": "note",
-          "text": "화면 왼쪽 아래에 `-- INSERT --` 가 보이면 입력 모드다. 안 보이면 명령 모드다. 헷갈릴 때는 **일단 Esc 를 두 번** 누르면 언제나 명령 모드로 돌아온다 — 이것이 vim 의 「홈 버튼」이다."
+          "text": "화면 왼쪽 아래에 `-- INSERT --` 가 보이면 입력 모드다. 안 보이면 명령 모드다. 헷갈릴 때는 **일단 Esc 를 두 번** 누르면 언제나 명령 모드로 돌아온다. 이것이 vim 의 \"홈 버튼\"이다."
         },
         {
           "type": "code",
@@ -168,7 +168,7 @@
           "q": "vim 에서 글자가 안 쳐지면?",
           "choices": [
             "파일이 잠겼다",
-            "명령 모드다 — i 를 눌러야 한다",
+            "명령 모드다. i 를 눌러야 한다",
             "권한 문제",
             "터미널 오류"
           ],
@@ -201,17 +201,17 @@
     },
     {
       "id": "3",
-      "title": "움직이기 — 화살표를 그만 쓴다",
+      "title": "움직이기. 화살표를 그만 쓴다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "vim 의 힘은 **커서를 옮기는 어휘**에서 나온다. 화살표로 한 칸씩 가는 대신 「단어 단위」·「줄 단위」·「찾아서」 움직인다 — 이것이 다음 장의 편집 명령과 조합된다."
+          "text": "vim 의 힘은 **커서를 옮기는 어휘**에서 나온다. 화살표로 한 칸씩 가는 대신 \"단어 단위\", \"줄 단위\", \"찾아서\" 움직인다. 이것이 다음 장의 편집 명령과 조합된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이동 명령을 골라 보라 — 커서가 어디로 가나",
+          "label": "이동 명령을 골라 보라. 커서가 어디로 가나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{move}}';\n  const p = { hjkl: [2, 2], w: [2, 7], zero: [2, 0], dollar: [2, 13], gg: [0, 0],\n              G: [5, 0], search: [3, 2], num: [3, 0] }[m];\n  screen(LINES, p, null);\n  mode('명령');\n  const t = {\n    hjkl: ['h j k l', '왼 아래 위 오른쪽. 손을 홈 포지션에서 안 떼려고 이 자리에 있다.'],\n    w:    ['w / b / e', '단어 앞으로 / 뒤로 / 단어 끝으로. 화살표보다 훨씬 빠르다.'],\n    zero: ['0 / ^', '줄 맨 앞 / 공백 아닌 첫 글자. 들여쓰기가 있으면 ^ 가 낫다.'],\n    dollar:['$', '줄 맨 끝. A 는 사실 $ + a 다.'],\n    gg:   ['gg / G', '파일 맨 위 / 맨 아래. 로그를 볼 때 G 로 끝으로 뛴다.'],\n    G:    ['G', '맨 아래 줄로.'],\n    num:  ['4G  또는  :4', '4번째 줄로. 오류 메시지가 알려 준 줄로 바로 뛸 때.'],\n    search:['/port 다음 Enter', '찾아서 이동. n 으로 다음, N 으로 이전. 이동 명령 중 가장 많이 쓴다.'],\n  }[m];\n  say('  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  ' + esc(t[1]),\n    '이동 명령은 다음 장에서 d·c·y 와 조합된다 — 그래서 이동을 배우면 편집이 따라온다.');\n</script>",
           "controls": [
@@ -265,7 +265,7 @@
         },
         {
           "type": "note",
-          "text": "**숫자를 앞에 붙이면 반복된다** — `5j`(다섯 줄 아래), `3w`(세 단어 앞). 이 규칙이 vim 문법의 핵심이다: **[횟수][명령][대상]**. 다음 장의 `d2w`(두 단어 지우기)도 같은 규칙이다."
+          "text": "**숫자를 앞에 붙이면 반복된다**. `5j`(다섯 줄 아래), `3w`(세 단어 앞). 이 규칙이 vim 문법의 핵심이다: **[횟수][명령][대상]**. 다음 장의 `d2w`(두 단어 지우기)도 같은 규칙이다."
         },
         {
           "type": "try",
@@ -310,17 +310,17 @@
     },
     {
       "id": "4",
-      "title": "고치기 — 지우고 · 바꾸고 · 붙이기",
+      "title": "고치기. 지우고, 바꾸고, 붙이기",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "편집 명령은 **동사 + 대상**으로 조합된다. `d`(지운다) `c`(바꾼다) `y`(복사한다)에 앞 장의 이동 명령을 붙이면 된다 — 외울 것은 동사 셋뿐이다."
+          "text": "편집 명령은 **동사 + 대상**으로 조합된다. `d`(지운다) `c`(바꾼다) `y`(복사한다)에 앞 장의 이동 명령을 붙이면 된다. 외울 것은 동사 셋뿐이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "명령을 골라 보라 — 무엇이 사라지나",
+          "label": "명령을 골라 보라. 무엇이 사라지나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{cmd}}';\n  const L = LINES.slice();\n  let cur = [2, 2], after = null, desc;\n  if (c === 'x') { after = L.slice(); after[2] = '  ort: 3000'; desc = ['x', '커서 글자 하나 지우기. 3x 면 세 글자.']; }\n  else if (c === 'dw') { after = L.slice(); after[2] = '  3000'; desc = ['dw', '커서부터 단어 끝까지 지우기.']; }\n  else if (c === 'dd') { after = L.filter((_, i) => i !== 2); desc = ['dd', '줄 통째로 지우기. 3dd 면 세 줄. 가장 많이 쓰는 명령.']; }\n  else if (c === 'cw') { after = L.slice(); after[2] = '  timeout: 3000'; desc = ['cw', '단어를 지우고 바로 입력 모드로 — 「바꾸기」.']; }\n  else if (c === 'yyp') { after = L.slice(0, 3).concat([L[2]], L.slice(3)); desc = ['yy 다음 p', '줄 복사(yank) 후 아래에 붙이기(put). 설정 줄을 늘릴 때.']; }\n  else if (c === 'u') { after = L.slice(); desc = ['u', '되돌리기. Ctrl-r 은 다시 하기. 마음껏 실험해도 되는 이유.']; }\n  else { after = L.slice(); after[2] = '  port: 8080'; desc = [':%s/3000/8080/g', '파일 전체 치환 — % 는 모든 줄, g 는 줄 안 전부. sed 와 같은 문법(파이프 칸 3장).']; }\n  screen(after, cur, null);\n  mode(c === 'cw' ? '입력' : '명령');\n  say('  <span class=\"ok\">' + esc(desc[0]) + '</span>\\n\\n  ' + esc(desc[1]) + '\\n\\n' +\n    '  <span class=\"dim\">동사(d c y) + 대상(w $ 0 아래 등) · dd·cc·yy 는 줄 전체</span>',\n    'd2w(두 단어) · d$(줄 끝까지) · ci\\\"(따옴표 안을 바꾸기) — 조합이라 외울 게 적다.');\n</script>",
           "controls": [
@@ -348,7 +348,7 @@
                 },
                 {
                   "value": "yyp",
-                  "label": "yy p (복사·붙이기)"
+                  "label": "yy p (복사, 붙이기)"
                 },
                 {
                   "value": "u",
@@ -356,7 +356,7 @@
                 },
                 {
                   "value": "sub",
-                  "label": ":%s/…/…/g (치환)"
+                  "label": ":%s///g (치환)"
                 }
               ]
             }
@@ -370,11 +370,11 @@
         },
         {
           "type": "note",
-          "text": "**`.`(점)은 앞 명령을 그대로 반복한다.** `cw새단어<Esc>` 로 한 곳을 고친 뒤, 다음 자리에서 `n`(다음 찾기) `.`(반복)만 누르면 된다 — 「찾아서 하나씩 확인하며 바꾸기」가 두 키로 끝난다."
+          "text": "**`.`(점)은 앞 명령을 그대로 반복한다.** `cw새단어<Esc>` 로 한 곳을 고친 뒤, 다음 자리에서 `n`(다음 찾기) `.`(반복)만 누르면 된다. \"찾아서 하나씩 확인하며 바꾸기\"가 두 키로 끝난다."
         },
         {
           "type": "p",
-          "text": "`ci\"`·`di(`·`ca{` 같은 조합도 알아 두면 코드 편집이 빨라진다 — `i`(안쪽) `a`(둘러싼 것 포함)에 괄호·따옴표를 붙인다. `ci\"` 는 커서가 따옴표 안 어디에 있든 **그 안을 통째로 바꾼다.**"
+          "text": "`ci\"`, `di(`, `ca{` 같은 조합도 알아 두면 코드 편집이 빨라진다. `i`(안쪽) `a`(둘러싼 것 포함)에 괄호, 따옴표를 붙인다. `ci\"` 는 커서가 따옴표 안 어디에 있든 **그 안을 통째로 바꾼다.**"
         },
         {
           "type": "try",
@@ -424,12 +424,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "서버에서 vim 으로 하는 일은 대개 정해져 있다 — **설정 한 줄 고치기, 로그 훑기, 커밋 메시지 쓰기.** 각각의 최소 절차만 손에 붙이면 된다."
+          "text": "서버에서 vim 으로 하는 일은 대개 정해져 있다. **설정 한 줄 고치기, 로그 훑기, 커밋 메시지 쓰기.** 각각의 최소 절차만 손에 붙이면 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "작업을 골라 보라 — 최소 절차",
+          "label": "작업을 골라 보라. 최소 절차",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{task}}';\n  screen(LINES, [2, 8], null);\n  mode('명령');\n  const t = {\n    conf: ['설정 한 줄 고치기',\n      ['sudo cp app.yml app.yml.bak      <- 먼저 사본',\n       'sudo vim app.yml', '/port  Enter    <- 찾아서 이동', 'A  또는  cw  로 고치고  Esc', ':wq'],\n      '고친 뒤 반드시 문법 검사·재시작 확인까지: nginx -t · systemctl restart'],\n    log: ['로그 훑기',\n      ['less /var/log/app.log     <- 편집기 말고 less', 'G 로 끝 · /ERROR 로 찾기 · n 으로 다음',\n       'F 를 누르면 tail -f 처럼 따라간다 (Ctrl-c 로 해제)'],\n      'vim 으로 큰 로그를 열면 통째로 읽어 느리다 — 읽기만 할 거면 less 가 맞다.'],\n    commit: ['커밋 메시지 쓰기',\n      ['git commit  ->  편집기가 열린다', 'i 로 입력 → 제목 한 줄 → 빈 줄 → 본문', 'Esc  :wq',\n       '취소하려면 :q! (빈 메시지로 나가도 취소된다)'],\n      '이 화면이 무서워서 -m 만 쓰는 사람이 많다 — 나가는 법을 알면 본문을 쓰게 된다.'],\n    root: ['권한 없이 열었다',\n      ['E45: readonly option is set   <- 저장할 때 나온다',\n       ':w !sudo tee % > /dev/null    <- 지금 파일을 sudo 로 쓴다', '그다음 :q!'],\n      '한 줄 외워 두면 「아 sudo 안 붙였네」로 다시 여는 수고가 사라진다.'],\n  }[c];\n  say('  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]), '');\n</script>",
           "controls": [
@@ -461,7 +461,7 @@
         },
         {
           "type": "note",
-          "text": "**설정을 고치기 전에 사본을 남겨라.** `cp app.yml app.yml.bak` 한 줄이면 되돌릴 수 있다. 그리고 고친 뒤에는 **문법 검사**가 있는 도구라면 반드시 돌려라 — `nginx -t`, `sshd -t`, `visudo`(자체 검사). 재시작해서 안 뜨는 것보다 낫다."
+          "text": "**설정을 고치기 전에 사본을 남겨라.** `cp app.yml app.yml.bak` 한 줄이면 되돌릴 수 있다. 그리고 고친 뒤에는 **문법 검사**가 있는 도구라면 반드시 돌려라. `nginx -t`, `sshd -t`, `visudo`(자체 검사). 재시작해서 안 뜨는 것보다 낫다."
         },
         {
           "type": "code",
@@ -471,7 +471,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **SSH 설정만은 특히 조심하라.** `sshd_config` 를 잘못 고치고 재시작하면 다시 못 들어간다. 지금 세션을 열어 둔 채로 **새 터미널에서 접속을 확인**한 뒤에 원래 세션을 닫아라 — 이 습관 하나가 서버를 살린다."
+          "text": "그리고 **SSH 설정만은 특히 조심하라.** `sshd_config` 를 잘못 고치고 재시작하면 다시 못 들어간다. 지금 세션을 열어 둔 채로 **새 터미널에서 접속을 확인**한 뒤에 원래 세션을 닫아라. 이 습관 하나가 서버를 살린다."
         },
         {
           "type": "try",
@@ -516,12 +516,12 @@
     },
     {
       "id": "6",
-      "title": "여러 파일·창 — 조금 더 편하게",
+      "title": "여러 파일, 창. 조금 더 편하게",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "여기부터는 「알면 편한」 영역이다. 서버에서 파일 두 개를 오가거나, 넓은 화면을 나눠 쓰고 싶을 때."
+          "text": "여기부터는 \"알면 편한\" 영역이다. 서버에서 파일 두 개를 오가거나, 넓은 화면을 나눠 쓰고 싶을 때."
         },
         {
           "type": "demo",
@@ -568,7 +568,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 요즘은 **VS Code Remote·JetBrains Gateway** 로 원격 파일을 로컬 편집기처럼 여는 방법이 있다(앞 칸의 SSH config 를 그대로 쓴다). 큰 작업은 그쪽이 편하다 — vim 은 **「지금 이 한 줄만 고치면 되는」** 순간을 위한 도구로 남는다."
+          "text": "그리고 요즘은 **VS Code Remote, JetBrains Gateway** 로 원격 파일을 로컬 편집기처럼 여는 방법이 있다(앞 칸의 SSH config 를 그대로 쓴다). 큰 작업은 그쪽이 편하다. vim 은 **\"지금 이 한 줄만 고치면 되는\"** 순간을 위한 도구로 남는다."
         },
         {
           "type": "try",
@@ -602,7 +602,7 @@
           "q": "공용 서버 계정에 개인 vimrc 를 두면?",
           "choices": [
             "권장된다",
-            "다른 사람이 놀란다 — 내 계정에만",
+            "다른 사람이 놀란다. 내 계정에만",
             "성능 문제",
             "보안 위험"
           ],
@@ -655,11 +655,11 @@
         },
         {
           "type": "note",
-          "text": "nano 로 설정을 고칠 때 조심할 것 하나 — **자동 줄바꿈**. 긴 줄이 화면에서 접혀 보이는 것은 괜찮지만, 옛 버전은 실제로 줄을 끊어 저장하기도 했다. `nano -w` 로 끄고 열면 안전하다."
+          "text": "nano 로 설정을 고칠 때 조심할 것 하나. **자동 줄바꿈**. 긴 줄이 화면에서 접혀 보이는 것은 괜찮지만, 옛 버전은 실제로 줄을 끊어 저장하기도 했다. `nano -w` 로 끄고 열면 안전하다."
         },
         {
           "type": "p",
-          "text": "정리하면 — **읽기만 하면 `less`, 한 줄 고치면 `nano` 나 vim 최소 명령, 큰 작업이면 원격 편집기.** 도구를 고르는 기준이 「무엇을 할 것인가」이지 「어느 것이 멋있나」가 아니다."
+          "text": "정리하면. **읽기만 하면 `less`, 한 줄 고치면 `nano` 나 vim 최소 명령, 큰 작업이면 원격 편집기.** 도구를 고르는 기준이 \"무엇을 할 것인가\"이지 \"어느 것이 멋있나\"가 아니다."
         },
         {
           "type": "code",
@@ -669,7 +669,7 @@
         },
         {
           "type": "try",
-          "text": "`nano /tmp/test.txt` 로 열고 화면 아래 안내를 읽으며 저장·나가기를 해 보라. vim 과 어느 쪽이 손에 맞는지 직접 판단하라."
+          "text": "`nano /tmp/test.txt` 로 열고 화면 아래 안내를 읽으며 저장, 나가기를 해 보라. vim 과 어느 쪽이 손에 맞는지 직접 판단하라."
         }
       ],
       "quiz": [
@@ -693,23 +693,23 @@
             "cat"
           ],
           "answer": 2,
-          "why": "검색·따라가기가 다 된다."
+          "why": "검색, 따라가기가 다 된다."
         }
       ]
     },
     {
       "id": "8",
-      "title": "덜 다치기 — 서버에서 파일을 고칠 때",
+      "title": "덜 다치기. 서버에서 파일을 고칠 때",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "편집기 자체보다 **고치는 절차**가 사고를 가른다. 서버 설정을 고치는 순간은 언제나 「되돌릴 수 있나」를 먼저 물어야 한다."
+          "text": "편집기 자체보다 **고치는 절차**가 사고를 가른다. 서버 설정을 고치는 순간은 언제나 \"되돌릴 수 있나\"를 먼저 물어야 한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "사고를 골라 보라 — 어떻게 막나",
+          "label": "사고를 골라 보라. 어떻게 막나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  screen(LINES, null, null);\n  document.getElementById('mode').innerHTML = '';\n  const t = {\n    nobak: ['사본 없이 고치고 서비스가 안 뜬다',\n      ['cp f{,.bak} 한 줄이면 끝나는 일이었다', '설정은 git 으로 관리하는 편이 더 낫다(/etc 를 저장소로)'],\n      '고치기 전 사본 · 가능하면 형상 관리.'],\n    nocheck: ['문법 오류인 채로 재시작했다',\n      ['nginx -t · sshd -t · visudo · yq/jq 로 검사', 'systemctl reload 는 검사에 실패하면 옛 설정을 유지한다'],\n      '검사 명령이 있는 설정은 반드시 통과시키고 재시작하라.'],\n    ssh: ['sshd_config 를 고치고 로그아웃했다',\n      ['다시 못 들어간다 — 콘솔 접속이 없으면 복구 불가',\n       '지금 세션을 열어 둔 채 새 터미널로 확인했어야 한다'],\n      'SSH·방화벽 설정은 「지금 연결」을 절대 닫지 말고 확인하라.'],\n    concurrent: ['두 사람이 같은 파일을 동시에 열었다',\n      ['vim 이 .swp 파일로 경고한다 — 무시하지 마라',\n       '나중에 저장한 사람이 앞사람 변경을 덮어쓴다'],\n      'E325 경고가 뜨면 누가 열고 있는지 확인부터. 서버 설정은 한 사람씩.'],\n  }[c];\n  say('  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
           "controls": [
@@ -751,7 +751,7 @@
         },
         {
           "type": "p",
-          "text": "가장 좋은 것은 **서버에서 손으로 고치지 않는 것**이다 — 설정을 저장소에 두고 배포로 내려보내면, 사본·이력·리뷰가 공짜로 따라온다. vim 은 그렇게 못 하는 순간을 위한 비상 도구로 남겨 두는 것이 이상적이다."
+          "text": "가장 좋은 것은 **서버에서 손으로 고치지 않는 것**이다. 설정을 저장소에 두고 배포로 내려보내면, 사본, 이력, 리뷰가 공짜로 따라온다. vim 은 그렇게 못 하는 순간을 위한 비상 도구로 남겨 두는 것이 이상적이다."
         },
         {
           "type": "try",
@@ -785,7 +785,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -801,17 +801,17 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "300px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .screen { background:#050a14; border-radius:8px; padding:10px 12px; font:12.5px/1.75 ui-monospace, monospace;\n            white-space:pre; overflow-x:auto; min-height:120px; }\n  .cur { background:#f59e0b; color:#0b1220; }\n  .sel { background:#1d4ed8; color:#fff; }\n  .status { margin-top:6px; font:12px ui-monospace, monospace; color:#0b1220; background:#4ade80;\n            display:inline-block; padding:2px 10px; border-radius:5px; }\n  .status.ins { background:#f59e0b; }\n  .status.vis { background:#60a5fa; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"screen\" id=\"screen\"></div>\n  <div id=\"mode\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const LINES = [\n    'server:',\n    '  host: 0.0.0.0',\n    '  port: 3000',\n    '  workers: 4',\n    'log:',\n    '  level: info',\n  ];\n  /** 화면을 그린다. cur = [줄, 칸] · sel = [시작줄, 끝줄] */\n  function screen(lines, cur, sel) {\n    const html = lines.map((l, i) => {\n      let s = esc(l);\n      if (sel && i >= sel[0] && i <= sel[1]) return '<span class=\"sel\">' + (s || ' ') + '</span>';\n      if (cur && i === cur[0]) {\n        const c = Math.min(cur[1], Math.max(0, l.length));\n        s = esc(l.slice(0, c)) + '<span class=\"cur\">' + esc(l[c] || ' ') + '</span>' + esc(l.slice(c + 1));\n      }\n      return s;\n    }).join('\\n');\n    document.getElementById('screen').innerHTML = html || ' ';\n  }\n  function mode(name) {\n    const cls = name === '입력' ? 'ins' : name === '선택' ? 'vis' : '';\n    document.getElementById('mode').innerHTML = '<span class=\"status ' + cls + '\">-- ' + name + ' --</span>';\n  }\n  function say(body, hint) {\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  screen(LINES, null, null);\n  document.getElementById('mode').innerHTML = '';\n  const q = [\n    [':q! 는 고친 것을 버리고 나간다', true],\n    ['vim 은 열자마자 글자를 칠 수 있다', false],\n    ['dd 는 줄을 지운다', true],\n    ['큰 로그는 vim 으로 여는 게 좋다', false],\n    ['sudo 없이 연 파일도 :w !sudo tee % 로 저장할 수 있다', true],\n    ['sshd_config 를 고쳤으면 바로 로그아웃해도 된다', false],\n  ];\n  say(q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(나가기) 2장(모드) 4장(편집) 5·8장(절차)');\n</script>"
         },
         {
           "type": "note",
-          "text": "이것으로 셸 갈래를 한 바퀴 돌았다 — **경로·권한**(바닥) → **파이프**(도구) → **프로세스**(상태) → **SSH**(원격) → **스크립트**(자동화) → **편집기**(그 자리에서 고치기). 서버 앞에서 막히는 자리는 대개 이 여섯 중 하나다."
+          "text": "이것으로 셸 갈래를 한 바퀴 돌았다. **경로, 권한**(바닥) → **파이프**(도구) → **프로세스**(상태) → **SSH**(원격) → **스크립트**(자동화) → **편집기**(그 자리에서 고치기). 서버 앞에서 막히는 자리는 대개 이 여섯 중 하나다."
         },
         {
           "type": "try",
-          "text": "위 열 줄 중 손에 안 붙은 것 하나를 골라, 오늘 실제 작업에서 한 번 써라. 「알고 있다」와 「손이 안다」는 다르다."
+          "text": "위 열 줄 중 손에 안 붙은 것 하나를 골라, 오늘 실제 작업에서 한 번 써라. \"알고 있다\"와 \"손이 안다\"는 다르다."
         }
       ],
       "quiz": [
@@ -830,7 +830,7 @@
           "q": "설정 편집에서 가장 중요한 습관은?",
           "choices": [
             "빠른 타이핑",
-            "사본 · 문법 검사 · 확인",
+            "사본, 문법 검사, 확인",
             "단축키",
             "vimrc"
           ],

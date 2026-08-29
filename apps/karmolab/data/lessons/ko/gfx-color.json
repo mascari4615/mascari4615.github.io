@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**「왜 유니티에서만 뿌옇지」·「포토샵과 색이 다르네」·「그림자 경계가 지저분해」의 답은 대부분 색 공간과 감마다.** 화면에 저장·표시되는 색(sRGB)과 빛을 물리적으로 계산해야 하는 색(선형, linear)이 **다르다는 것을 모르고 섞으면**, 색이 어두워지거나 뿌예지거나 경계가 지저분해진다. 이건 「감」의 문제가 아니라 **정해진 규칙**이 있는 문제라 — 규칙을 알면 대부분 해결된다. 핵심 한 줄: **저장·표시는 sRGB, 계산(섞기·조명)은 선형** — 값을 선형으로 편 뒤 계산하고 다시 sRGB 로 되돌린다. 이 칸은 sRGB 와 선형(2장)·섞으면 틀리는 것들(3장)·텍스처마다 다른 색 공간(4장)·HDR 톤 매핑과 알파(5장)를 다룬다. 아래 데모로 색 공간을 안 맞췄을 때 생기는 증상을 확인하라."
+          "text": "**\"왜 유니티에서만 뿌옇지\", \"포토샵과 색이 다르네\", \"그림자 경계가 지저분해\"의 답은 대부분 색 공간과 감마다.** 화면에 저장, 표시되는 색(sRGB)과 빛을 물리적으로 계산해야 하는 색(선형, linear)이 **다르다는 것을 모르고 섞으면**, 색이 어두워지거나 뿌예지거나 경계가 지저분해진다. 이건 \"감\"의 문제가 아니라 **정해진 규칙**이 있는 문제라. 규칙을 알면 대부분 해결된다. 핵심 한 줄: **저장, 표시는 sRGB, 계산(섞기, 조명)은 선형**. 값을 선형으로 편 뒤 계산하고 다시 sRGB 로 되돌린다. 이 칸은 sRGB 와 선형(2장), 섞으면 틀리는 것들(3장), 텍스처마다 다른 색 공간(4장), HDR 톤 매핑과 알파(5장)를 다룬다. 아래 데모로 색 공간을 안 맞췄을 때 생기는 증상을 확인하라."
         },
         {
           "type": "demo",
@@ -45,16 +45,16 @@
         },
         {
           "type": "note",
-          "text": "**렌더링에서 「뿌옇다·색이 다르다·경계가 지저분하다」는 대부분 색 공간(sRGB vs 선형)과 감마를 안 맞춰 생기며, 이는 감이 아니라 규칙이 있는 문제다.** **문제의 뿌리**: 컴퓨터 그래픽에는 **두 종류의 색**이 있다 — ① **sRGB**(감마 인코딩된 색): 이미지 파일·모니터가 쓰는 색 공간. 사람 눈이 어두운 영역에 민감한 걸 반영해 **비선형**으로 값을 배분한다(적은 비트로 효율적 저장). ② **선형(linear) 색**: 빛의 물리량에 비례하는 색. **빛을 더하고 섞고 조명 계산**을 하려면 값이 물리량에 비례해야(2배 밝으면 값도 2배) 옳게 계산된다. **틀리는 이유**: sRGB 값은 물리량에 비례하지 **않는다**(감마 곡선으로 휘어 있음). 그래서 sRGB 값을 **그대로** 평균 내거나(색 섞기·밉맵·이미지 축소·알파 블렌딩) 조명 계산에 넣으면 — 감마 때문에 결과가 **어두워지거나 뿌예진다**. 「포토샵과 색이 다르다」·「유니티에서만 뿌옇다」는 대개 한쪽은 선형으로 계산하고 다른 쪽은 안 해서, 또는 텍스처의 색 공간 설정이 틀려서 생긴다. **핵심 규칙(이 칸의 요약)**: **저장·표시는 sRGB, 계산은 선형** — 텍스처를 읽을 때 **선형으로 펴고**(감마 제거), 그 선형 공간에서 **섞고 조명 계산**을 하고, 화면에 낼 때 다시 **sRGB 로 인코딩**한다(감마 적용). 현대 엔진·API 는 이 변환을 상당 부분 자동으로 해 주지만(sRGB 텍스처 플래그·sRGB 프레임버퍼), **어느 텍스처가 색이고 어느 것이 데이터인지**(4장)·**어디서 섞는지**(3장)를 맞춰 줘야 한다. **정리**: 색 사고의 대부분은 sRGB 와 선형을 혼동해 생긴다 — 저장·표시는 sRGB, 계산은 선형이라는 규칙을 알면 뿌옇고 어두운 증상 대부분이 풀린다(다음 장부터 각론)."
+          "text": "**렌더링에서 \"뿌옇다, 색이 다르다, 경계가 지저분하다\"는 대부분 색 공간(sRGB vs 선형)과 감마를 안 맞춰 생기며, 이는 감이 아니라 규칙이 있는 문제다.** **문제의 뿌리**: 컴퓨터 그래픽에는 **두 종류의 색**이 있다. ① **sRGB**(감마 인코딩된 색): 이미지 파일, 모니터가 쓰는 색 공간. 사람 눈이 어두운 영역에 민감한 걸 반영해 **비선형**으로 값을 배분한다(적은 비트로 효율적 저장). ② **선형(linear) 색**: 빛의 물리량에 비례하는 색. **빛을 더하고 섞고 조명 계산**을 하려면 값이 물리량에 비례해야(2배 밝으면 값도 2배) 옳게 계산된다. **틀리는 이유**: sRGB 값은 물리량에 비례하지 **않는다**(감마 곡선으로 휘어 있음). 그래서 sRGB 값을 **그대로** 평균 내거나(색 섞기, 밉맵, 이미지 축소, 알파 블렌딩) 조명 계산에 넣으면. 감마 때문에 결과가 **어두워지거나 뿌예진다**. \"포토샵과 색이 다르다\", \"유니티에서만 뿌옇다\"는 대개 한쪽은 선형으로 계산하고 다른 쪽은 안 해서, 또는 텍스처의 색 공간 설정이 틀려서 생긴다. **핵심 규칙(이 칸의 요약)**: **저장, 표시는 sRGB, 계산은 선형**. 텍스처를 읽을 때 **선형으로 펴고**(감마 제거), 그 선형 공간에서 **섞고 조명 계산**을 하고, 화면에 낼 때 다시 **sRGB 로 인코딩**한다(감마 적용). 현대 엔진, API 는 이 변환을 상당 부분 자동으로 해 주지만(sRGB 텍스처 플래그, sRGB 프레임버퍼), **어느 텍스처가 색이고 어느 것이 데이터인지**(4장), **어디서 섞는지**(3장)를 맞춰 줘야 한다. **정리**: 색 사고의 대부분은 sRGB 와 선형을 혼동해 생긴다. 저장, 표시는 sRGB, 계산은 선형이라는 규칙을 알면 뿌옇고 어두운 증상 대부분이 풀린다(다음 장부터 각론)."
         },
         {
           "type": "try",
-          "text": "쓰는 엔진(유니티·언리얼·웹GL)에서 **프로젝트가 선형 색 공간(Linear)인지 감마인지** 확인하라. 그리고 「뿌옇다·색이 다르다」는 증상이 있으면 — 텍스처의 sRGB 설정, 조명 계산이 선형에서 도는지, 최종 출력이 sRGB 로 인코딩되는지를 점검하라. 대부분의 색 사고는 이 셋 중 하나다."
+          "text": "쓰는 엔진(유니티, 언리얼, 웹GL)에서 **프로젝트가 선형 색 공간(Linear)인지 감마인지** 확인하라. 그리고 \"뿌옇다, 색이 다르다\"는 증상이 있으면. 텍스처의 sRGB 설정, 조명 계산이 선형에서 도는지, 최종 출력이 sRGB 로 인코딩되는지를 점검하라. 대부분의 색 사고는 이 셋 중 하나다."
         }
       ],
       "quiz": [
         {
-          "q": "렌더링에서 「뿌옇다·색이 다르다」의 흔한 원인은?",
+          "q": "렌더링에서 \"뿌옇다, 색이 다르다\"의 흔한 원인은?",
           "choices": [
             "GPU 고장",
             "sRGB 와 선형(감마)을 혼동해 섞음",
@@ -65,10 +65,10 @@
           "why": "색 공간 규칙."
         },
         {
-          "q": "저장·표시와 계산의 색 공간은?",
+          "q": "저장, 표시와 계산의 색 공간은?",
           "choices": [
             "둘 다 sRGB",
-            "저장·표시는 sRGB, 계산(섞기·조명)은 선형",
+            "저장, 표시는 sRGB, 계산(섞기, 조명)은 선형",
             "둘 다 선형",
             "무관"
           ],
@@ -78,7 +78,7 @@
         {
           "q": "이 문제는 어떤 성격인가?",
           "choices": [
-            "감·취향",
+            "감, 취향",
             "정해진 규칙이 있어 알면 풀림",
             "운",
             "무관"
@@ -90,17 +90,17 @@
     },
     {
       "id": "2",
-      "title": "sRGB 와 선형 — 감마",
+      "title": "sRGB 와 선형. 감마",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**sRGB 는 감마 곡선으로 인코딩된 색이라 물리량에 비례하지 않고, 선형은 물리량(빛의 세기)에 비례한다 — 계산하려면 선형으로 펴야 한다.** 왜 sRGB 는 휘어 있나: 사람 눈은 어두운 영역의 차이에 민감해서, 제한된 비트(8bit)를 **어두운 쪽에 더 촘촘히** 배분하면 밴딩 없이 효율적이다. 그래서 sRGB 는 대략 **값^2.2**(감마) 형태로 휘어 있다 — sRGB 0.5 는 물리적 밝기 0.5 가 아니라 약 0.21 이다. **변환**: 선형 = sRGB 를 디감마(약 2.2 제곱), sRGB = 선형을 감마(약 1/2.2 제곱). 조명·섞기는 선형에서, 저장·표시는 sRGB 에서. 「밝기 2배」가 값 2배가 되는 건 **선형에서만** 성립한다. 아래 데모로 감마 곡선과 sRGB 0.5 의 실제 밝기를 확인하라."
+          "text": "**sRGB 는 감마 곡선으로 인코딩된 색이라 물리량에 비례하지 않고, 선형은 물리량(빛의 세기)에 비례한다. 계산하려면 선형으로 펴야 한다.** 왜 sRGB 는 휘어 있나: 사람 눈은 어두운 영역의 차이에 민감해서, 제한된 비트(8bit)를 **어두운 쪽에 더 촘촘히** 배분하면 밴딩 없이 효율적이다. 그래서 sRGB 는 대략 **값^2.2**(감마) 형태로 휘어 있다. sRGB 0.5 는 물리적 밝기 0.5 가 아니라 약 0.21 이다. **변환**: 선형 = sRGB 를 디감마(약 2.2 제곱), sRGB = 선형을 감마(약 1/2.2 제곱). 조명, 섞기는 선형에서, 저장, 표시는 sRGB 에서. \"밝기 2배\"가 값 2배가 되는 건 **선형에서만** 성립한다. 아래 데모로 감마 곡선과 sRGB 0.5 의 실제 밝기를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "감마 곡선 — sRGB 0.5 의 실제 밝기",
+          "label": "감마 곡선. sRGB 0.5 의 실제 밝기",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sw { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; align-items:flex-end; }\n  .sw .chip { border-radius:8px; height:56px; min-width:80px; display:flex; align-items:flex-end; justify-content:center; padding:4px; font:10px ui-monospace, monospace; color:#000; text-shadow:0 0 2px #fff; }\n  .sw .lab { font:10px ui-monospace, monospace; color:#94a3b8; text-align:center; margin-top:2px; }\n  .grad { height:20px; border-radius:5px; margin:6px 0; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function s2l(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }\n  function l2s(c) { c = c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, c)) * 255); }\n  function rgb(arr) { return 'rgb(' + arr.map((x) => Math.round(x)).join(',') + ')'; }\n  function chip(color, label, lab2) { return '<div style=\"text-align:center\"><div class=\"chip\" style=\"background:' + color + '\">' + esc(label || '') + '</div><div class=\"lab\">' + esc(lab2 || '') + '</div></div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const v = {{v}} / 100;\n  const lin = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);\n  const sByte = Math.round(v * 255);\n  const linByte = Math.round(lin * 255);\n  render('sRGB 값 ' + v.toFixed(2) + '  →  선형(물리 밝기) ' + lin.toFixed(3),\n    steps([\n      ['sRGB 저장 값: ' + v.toFixed(2) + ' (모니터·파일)', 'on'],\n      ['실제 물리 밝기(선형): ' + lin.toFixed(3) + (Math.abs(v - 0.5) < 0.02 ? '  ← sRGB 0.5 는 밝기 0.5 가 아니라 ~0.21!' : ''), 'good'],\n    ]) + '  ' + (v > 0.02 && lin < v - 0.05\n      ? '<span class=\"warn\">sRGB 값 > 선형 값 — 감마로 어두운 쪽이 늘어나 있다. 계산하려면 선형으로 펴라.</span>'\n      : '<span class=\"ok\">양 끝(0·1)에서는 같지만 중간은 크게 다르다.</span>'),\n    'sRGB ≈ 물리밝기^(1/2.2) — 계산은 선형에서, 표시는 sRGB 에서.',\n    '<div class=\"sw\">' + chip('rgb(' + sByte + ',' + sByte + ',' + sByte + ')', '', 'sRGB ' + v.toFixed(2)) +\n    chip('rgb(' + linByte + ',' + linByte + ',' + linByte + ')', '', '선형 ' + lin.toFixed(2)) + '</div>');\n</script>",
           "controls": [
@@ -123,11 +123,11 @@
         },
         {
           "type": "note",
-          "text": "**sRGB 는 감마 곡선으로 인코딩되어 물리량에 비례하지 않고, 선형 색만 빛의 세기에 비례하므로 조명·섞기 계산은 선형에서 해야 한다.** **왜 감마가 존재하나**: 사람의 시각은 **어두운 영역의 밝기 차이에 훨씬 민감**하다(밝은 영역의 같은 차이는 잘 못 느낌). 8bit(256단계)로 밝기를 저장할 때 값을 **선형으로** 배분하면, 어두운 영역에서 단계가 너무 성겨 **밴딩(띠 무늬)**이 보인다. 그래서 sRGB 는 값을 **비선형(감마)**으로 배분해 — 어두운 쪽에 단계를 촘촘히, 밝은 쪽에 성기게 — 같은 비트로 지각적으로 매끄럽게 저장한다. 이것이 이미지 파일·모니터의 표준(sRGB, 감마 ≈ 2.2). **결과 — 값이 물리량과 다름**: sRGB 0.5 는 물리적 밝기의 절반이 **아니다** — 디감마하면 약 0.21. 즉 sRGB 값은 **감마로 휘어** 물리량에 비례하지 않는다. **왜 계산은 선형인가**: 빛은 물리적으로 **더해지고 곱해진다**(두 광원의 빛을 더하면 합, 반사율을 곱하면 감쇠). 이 덧셈·곱셈이 옳으려면 값이 **물리량(방사휘도)에 비례**해야 한다 — 그게 선형 공간이다. sRGB 값을 그대로 더하거나 조명 반사율을 곱하면 감마 때문에 틀린 결과(주로 어두워짐, 3장). **변환**: 텍스처·색을 **읽을 때 디감마**(sRGB→선형, 대략 2.2 제곱; 정확히는 sRGB 전달 함수)해서 선형으로 펴고, 그 공간에서 **조명·섞기**를 하고, 화면에 낼 때 **감마 적용**(선형→sRGB)해 되돌린다. **현대 엔진**: 「선형 렌더링(linear workflow)」이 표준 — sRGB 텍스처는 GPU 가 샘플링 시 자동 디감마하고(sRGB 텍스처 플래그), 최종 프레임버퍼가 자동 sRGB 인코딩한다. 하지만 **어느 텍스처가 sRGB(색)이고 어느 것이 선형(데이터)인지**는 사람이 지정해야 한다(4장). **정리**: sRGB 는 지각 효율을 위해 감마로 휘어 있고 선형만 물리량에 비례한다 — 읽을 때 선형으로 펴 계산하고, 표시할 때 sRGB 로 되돌려라."
+          "text": "**sRGB 는 감마 곡선으로 인코딩되어 물리량에 비례하지 않고, 선형 색만 빛의 세기에 비례하므로 조명, 섞기 계산은 선형에서 해야 한다.** **왜 감마가 존재하나**: 사람의 시각은 **어두운 영역의 밝기 차이에 훨씬 민감**하다(밝은 영역의 같은 차이는 잘 못 느낌). 8bit(256단계)로 밝기를 저장할 때 값을 **선형으로** 배분하면, 어두운 영역에서 단계가 너무 성겨 **밴딩(띠 무늬)**이 보인다. 그래서 sRGB 는 값을 **비선형(감마)**으로 배분해. 어두운 쪽에 단계를 촘촘히, 밝은 쪽에 성기게. 같은 비트로 지각적으로 매끄럽게 저장한다. 이것이 이미지 파일, 모니터의 표준(sRGB, 감마 ≈ 2.2). **결과. 값이 물리량과 다름**: sRGB 0.5 는 물리적 밝기의 절반이 **아니다**. 디감마하면 약 0.21. 즉 sRGB 값은 **감마로 휘어** 물리량에 비례하지 않는다. **왜 계산은 선형인가**: 빛은 물리적으로 **더해지고 곱해진다**(두 광원의 빛을 더하면 합, 반사율을 곱하면 감쇠). 이 덧셈, 곱셈이 옳으려면 값이 **물리량(방사휘도)에 비례**해야 한다. 그게 선형 공간이다. sRGB 값을 그대로 더하거나 조명 반사율을 곱하면 감마 때문에 틀린 결과(주로 어두워짐, 3장). **변환**: 텍스처, 색을 **읽을 때 디감마**(sRGB→선형, 대략 2.2 제곱; 정확히는 sRGB 전달 함수)해서 선형으로 펴고, 그 공간에서 **조명, 섞기**를 하고, 화면에 낼 때 **감마 적용**(선형→sRGB)해 되돌린다. **현대 엔진**: \"선형 렌더링(linear workflow)\"이 표준. sRGB 텍스처는 GPU 가 샘플링 시 자동 디감마하고(sRGB 텍스처 플래그), 최종 프레임버퍼가 자동 sRGB 인코딩한다. 하지만 **어느 텍스처가 sRGB(색)이고 어느 것이 선형(데이터)인지**는 사람이 지정해야 한다(4장). **정리**: sRGB 는 지각 효율을 위해 감마로 휘어 있고 선형만 물리량에 비례한다. 읽을 때 선형으로 펴 계산하고, 표시할 때 sRGB 로 되돌려라."
         },
         {
           "type": "try",
-          "text": "그리기 도구·엔진에서 **50% 회색(sRGB 0.5)** 을 만들고, 그것을 선형으로 변환하면 약 0.21(≈ 21%)임을 확인하라(엔진 컬러 피커의 선형 값). 「sRGB 0.5 ≠ 물리 밝기 0.5」를 체감하면, 왜 sRGB 값끼리 그냥 평균 내면 안 되는지(3장)가 이해된다."
+          "text": "그리기 도구, 엔진에서 **50% 회색(sRGB 0.5)** 을 만들고, 그것을 선형으로 변환하면 약 0.21(≈ 21%)임을 확인하라(엔진 컬러 피커의 선형 값). \"sRGB 0.5 ≠ 물리 밝기 0.5\"를 체감하면, 왜 sRGB 값끼리 그냥 평균 내면 안 되는지(3장)가 이해된다."
         }
       ],
       "quiz": [
@@ -143,10 +143,10 @@
           "why": "지각 효율."
         },
         {
-          "q": "조명·섞기 계산을 선형에서 하는 이유는?",
+          "q": "조명, 섞기 계산을 선형에서 하는 이유는?",
           "choices": [
             "예뻐서",
-            "빛은 물리량에 비례해 더해지고 곱해지므로 — 선형만 옳음",
+            "빛은 물리량에 비례해 더해지고 곱해지므로. 선형만 옳음",
             "빠름",
             "무관"
           ],
@@ -173,12 +173,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**sRGB 값끼리 그냥 평균 내면 결과가 어두워진다 — 그래서 색을 섞는 모든 연산은 선형으로 편 뒤 해야 한다.** 대표적으로 **알파 블렌딩·밉맵 생성·이미지 축소(리샘플링)·그라데이션·안티에일리어싱**이 모두 「값을 평균/보간」하는 연산이라, sRGB 에서 하면 감마 때문에 어두운 쪽으로 치우친다. 예: 빨강(sRGB 1,0,0)과 초록(0,1,0)을 sRGB 에서 평균 내면 칙칙한 갈색이 되지만, 선형에서 섞으면 밝은 노랑에 가깝다. 이것이 「경계가 지저분하다·축소하니 어두워졌다·그라데이션이 칙칙하다」의 원인이다. 규칙: **섞기 전 디감마 → 선형에서 평균/보간 → 다시 감마**. 현대 엔진은 sRGB 텍스처 샘플링·밉맵을 선형에서 처리하지만, 직접 픽셀을 다루거나 이미지를 축소할 때는 주의. 아래 데모로 sRGB 평균과 선형 평균을 비교하라."
+          "text": "**sRGB 값끼리 그냥 평균 내면 결과가 어두워진다. 그래서 색을 섞는 모든 연산은 선형으로 편 뒤 해야 한다.** 대표적으로 **알파 블렌딩, 밉맵 생성, 이미지 축소(리샘플링), 그라데이션, 안티에일리어싱**이 모두 \"값을 평균/보간\"하는 연산이라, sRGB 에서 하면 감마 때문에 어두운 쪽으로 치우친다. 예: 빨강(sRGB 1,0,0)과 초록(0,1,0)을 sRGB 에서 평균 내면 칙칙한 갈색이 되지만, 선형에서 섞으면 밝은 노랑에 가깝다. 이것이 \"경계가 지저분하다, 축소하니 어두워졌다, 그라데이션이 칙칙하다\"의 원인이다. 규칙: **섞기 전 디감마 → 선형에서 평균/보간 → 다시 감마**. 현대 엔진은 sRGB 텍스처 샘플링, 밉맵을 선형에서 처리하지만, 직접 픽셀을 다루거나 이미지를 축소할 때는 주의. 아래 데모로 sRGB 평균과 선형 평균을 비교하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "두 색 평균 — sRGB vs 선형",
+          "label": "두 색 평균. sRGB vs 선형",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sw { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; align-items:flex-end; }\n  .sw .chip { border-radius:8px; height:56px; min-width:80px; display:flex; align-items:flex-end; justify-content:center; padding:4px; font:10px ui-monospace, monospace; color:#000; text-shadow:0 0 2px #fff; }\n  .sw .lab { font:10px ui-monospace, monospace; color:#94a3b8; text-align:center; margin-top:2px; }\n  .grad { height:20px; border-radius:5px; margin:6px 0; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function s2l(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }\n  function l2s(c) { c = c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, c)) * 255); }\n  function rgb(arr) { return 'rgb(' + arr.map((x) => Math.round(x)).join(',') + ')'; }\n  function chip(color, label, lab2) { return '<div style=\"text-align:center\"><div class=\"chip\" style=\"background:' + color + '\">' + esc(label || '') + '</div><div class=\"lab\">' + esc(lab2 || '') + '</div></div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const space = '{{space}}';\n  const linear = space === 'linear';\n  // 빨강과 초록 섞기\n  const a = [255, 0, 0], b = [0, 255, 0];\n  let mix;\n  if (linear) {\n    mix = [0, 1, 2].map((i) => l2s((s2l(a[i]) + s2l(b[i])) / 2));\n  } else {\n    mix = [0, 1, 2].map((i) => Math.round((a[i] + b[i]) / 2));\n  }\n  render('빨강 + 초록 평균 — ' + (linear ? '선형에서(옳음)' : 'sRGB 에서(어두워짐)'),\n    (linear\n      ? '<span class=\"ok\">선형으로 펴서 평균 → 밝은 노랑에 가깝다(물리적으로 옳음).</span>'\n      : '<span class=\"no\">sRGB 값끼리 그냥 평균 → 칙칙한 어두운 색. 알파 블렌딩·밉맵·축소가 이렇게 어두워진다.</span>') +\n    '\\n  결과 rgb: ' + mix.map((x) => Math.round(x)).join(', '),\n    '섞기(평균·보간)는 선형에서 — 디감마 → 평균 → 감마.',\n    '<div class=\"sw\">' + chip('rgb(255,0,0)', '', '빨강') + chip('rgb(0,255,0)', '', '초록') +\n    chip(rgb(mix), '', linear ? '선형 평균' : 'sRGB 평균') + '</div>');\n</script>",
           "controls": [
@@ -208,11 +208,11 @@
         },
         {
           "type": "note",
-          "text": "**sRGB 값끼리 직접 평균·보간하면 감마 때문에 결과가 어두워지므로, 색을 섞는 모든 연산은 선형으로 편 뒤 해야 한다.** **왜 어두워지나**: 2장에서 봤듯 sRGB 값은 물리 밝기와 비례하지 않는다(sRGB 0.5 ≈ 물리 0.21). 두 색의 sRGB 값을 그냥 평균 내면, 그 평균은 **물리적 밝기의 평균이 아니다** — 감마 곡선이 볼록해서 sRGB 평균은 물리 평균보다 **낮은(어두운)** 밝기에 대응한다. 그래서 결과가 칙칙하고 어둡게 나온다. **어디서 일어나나 — 「평균/보간」하는 모든 연산**: ① **알파 블렌딩** — 반투명을 배경과 섞는 것은 가중 평균이라 선형에서 해야(안 그러면 경계·반투명이 어두움). ② **밉맵 생성** — 텍스처 축소본을 만들 때 이웃 픽셀을 평균 → sRGB 에서 하면 멀리 있는 텍스처가 어두워짐(엔진은 보통 선형에서 처리). ③ **이미지 축소/리샘플링** — 포토샵·코드로 이미지를 줄일 때 픽셀 평균 → sRGB 축소는 어두워짐(특히 밝은 디테일이 많은 이미지). ④ **그라데이션·보간** — 두 색 사이 보간을 sRGB 에서 하면 중간이 칙칙(선형 보간이 더 밝고 자연스러움). ⑤ **안티에일리어싱·블러** — 픽셀 평균이라 같은 문제. **극적인 예**: 순수 빨강과 순수 초록을 섞을 때, sRGB 평균은 어두운 갈색(~188,188,0 이 아니라 낮게), 선형 평균은 밝은 노랑에 가깝다 — 눈으로도 확연히 다르다. **처방**: 픽셀 값을 **디감마(선형으로)** → 선형에서 **평균/보간** → **감마(sRGB 로)** 되돌린다. 현대 GPU·엔진은 sRGB 텍스처 샘플링·밉맵·블렌딩을 선형에서 자동 처리하지만(sRGB 플래그가 켜져 있을 때), **직접 픽셀을 조작하거나(셰이더에서 raw 값), 이미지 편집 도구로 축소하거나, 색을 코드로 보간할 때**는 사람이 챙겨야 한다. **정리**: 섞기·평균·보간·축소는 감마 때문에 sRGB 에서 하면 어두워진다 — 선형으로 펴서 계산하고 되돌려라."
+          "text": "**sRGB 값끼리 직접 평균, 보간하면 감마 때문에 결과가 어두워지므로, 색을 섞는 모든 연산은 선형으로 편 뒤 해야 한다.** **왜 어두워지나**: 2장에서 봤듯 sRGB 값은 물리 밝기와 비례하지 않는다(sRGB 0.5 ≈ 물리 0.21). 두 색의 sRGB 값을 그냥 평균 내면, 그 평균은 **물리적 밝기의 평균이 아니다**. 감마 곡선이 볼록해서 sRGB 평균은 물리 평균보다 **낮은(어두운)** 밝기에 대응한다. 그래서 결과가 칙칙하고 어둡게 나온다. **어디서 일어나나. \"평균/보간\"하는 모든 연산**: ① **알파 블렌딩**. 반투명을 배경과 섞는 것은 가중 평균이라 선형에서 해야(안 그러면 경계, 반투명이 어두움). ② **밉맵 생성**. 텍스처 축소본을 만들 때 이웃 픽셀을 평균 → sRGB 에서 하면 멀리 있는 텍스처가 어두워짐(엔진은 보통 선형에서 처리). ③ **이미지 축소/리샘플링**. 포토샵, 코드로 이미지를 줄일 때 픽셀 평균 → sRGB 축소는 어두워짐(특히 밝은 디테일이 많은 이미지). ④ **그라데이션, 보간**. 두 색 사이 보간을 sRGB 에서 하면 중간이 칙칙(선형 보간이 더 밝고 자연스러움). ⑤ **안티에일리어싱, 블러**. 픽셀 평균이라 같은 문제. **극적인 예**: 순수 빨강과 순수 초록을 섞을 때, sRGB 평균은 어두운 갈색(~188,188,0 이 아니라 낮게), 선형 평균은 밝은 노랑에 가깝다. 눈으로도 확연히 다르다. **처방**: 픽셀 값을 **디감마(선형으로)** → 선형에서 **평균/보간** → **감마(sRGB 로)** 되돌린다. 현대 GPU, 엔진은 sRGB 텍스처 샘플링, 밉맵, 블렌딩을 선형에서 자동 처리하지만(sRGB 플래그가 켜져 있을 때), **직접 픽셀을 조작하거나(셰이더에서 raw 값), 이미지 편집 도구로 축소하거나, 색을 코드로 보간할 때**는 사람이 챙겨야 한다. **정리**: 섞기, 평균, 보간, 축소는 감마 때문에 sRGB 에서 하면 어두워진다. 선형으로 펴서 계산하고 되돌려라."
         },
         {
           "type": "try",
-          "text": "이미지 편집 도구나 코드로 **밝은 무늬가 많은 이미지를 절반 크기로 축소**해 보라 — sRGB(기본)에서 축소하면 원본보다 어두워지는지 확인하고, 「선형/감마 인식 리샘플」 옵션(있으면)으로 다시 해 비교하라. 또는 두 원색을 sRGB 평균과 선형 평균으로 각각 섞어 밝기 차이를 눈으로 보라."
+          "text": "이미지 편집 도구나 코드로 **밝은 무늬가 많은 이미지를 절반 크기로 축소**해 보라. sRGB(기본)에서 축소하면 원본보다 어두워지는지 확인하고, \"선형/감마 인식 리샘플\" 옵션(있으면)으로 다시 해 비교하라. 또는 두 원색을 sRGB 평균과 선형 평균으로 각각 섞어 밝기 차이를 눈으로 보라."
         }
       ],
       "quiz": [
@@ -231,7 +231,7 @@
           "q": "선형에서 해야 하는 연산이 아닌 것은?",
           "choices": [
             "알파 블렌딩",
-            "밉맵·이미지 축소",
+            "밉맵, 이미지 축소",
             "파일 이름 짓기",
             "그라데이션 보간"
           ],
@@ -242,7 +242,7 @@
           "q": "이미지를 sRGB 에서 축소하면?",
           "choices": [
             "더 선명",
-            "평균이 어두워져 칙칙해짐 — 선형 인식 리샘플 필요",
+            "평균이 어두워져 칙칙해짐. 선형 인식 리샘플 필요",
             "변화 없음",
             "무관"
           ],
@@ -258,12 +258,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**모든 텍스처가 색은 아니다 — 어떤 것은 「색」이고 어떤 것은 「데이터」라, 색 공간 설정을 각각 맞춰야 한다.** ① **색(sRGB) 텍스처** — 눈에 보이는 색을 담은 것: **Albedo/BaseColor**(기본색), 이모티브 색 등. 이들은 **sRGB 로 저장**되어 있으니 읽을 때 **디감마(선형으로)** 해야 조명 계산이 맞는다 → 엔진에서 **sRGB 체크 ON**. ② **데이터(선형) 텍스처** — 색이 아니라 **숫자**를 담은 것: **Normal**(법선 방향 벡터), **Roughness/Metallic**(0~1 물성값), **AO**, **높이맵**, **마스크**. 이들은 감마 보정을 하면 **값이 망가진다**(법선이 틀어지고 러프니스가 어긋남) → 엔진에서 **sRGB 체크 OFF(선형으로 읽기)**. 흔한 버그: 노멀맵을 sRGB 로 읽어 조명이 이상하거나, albedo 를 선형으로 읽어 색이 뜬다. 규칙: **색이면 sRGB, 데이터면 선형**. 아래 데모로 텍스처별 올바른 설정을 확인하라."
+          "text": "**모든 텍스처가 색은 아니다. 어떤 것은 \"색\"이고 어떤 것은 \"데이터\"라, 색 공간 설정을 각각 맞춰야 한다.** ① **색(sRGB) 텍스처**. 눈에 보이는 색을 담은 것: **Albedo/BaseColor**(기본색), 이모티브 색 등. 이들은 **sRGB 로 저장**되어 있으니 읽을 때 **디감마(선형으로)** 해야 조명 계산이 맞는다 → 엔진에서 **sRGB 체크 ON**. ② **데이터(선형) 텍스처**. 색이 아니라 **숫자**를 담은 것: **Normal**(법선 방향 벡터), **Roughness/Metallic**(0~1 물성값), **AO**, **높이맵**, **마스크**. 이들은 감마 보정을 하면 **값이 망가진다**(법선이 틀어지고 러프니스가 어긋남) → 엔진에서 **sRGB 체크 OFF(선형으로 읽기)**. 흔한 버그: 노멀맵을 sRGB 로 읽어 조명이 이상하거나, albedo 를 선형으로 읽어 색이 뜬다. 규칙: **색이면 sRGB, 데이터면 선형**. 아래 데모로 텍스처별 올바른 설정을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "텍스처별 색 공간 — sRGB vs 선형",
+          "label": "텍스처별 색 공간. sRGB vs 선형",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sw { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; align-items:flex-end; }\n  .sw .chip { border-radius:8px; height:56px; min-width:80px; display:flex; align-items:flex-end; justify-content:center; padding:4px; font:10px ui-monospace, monospace; color:#000; text-shadow:0 0 2px #fff; }\n  .sw .lab { font:10px ui-monospace, monospace; color:#94a3b8; text-align:center; margin-top:2px; }\n  .grad { height:20px; border-radius:5px; margin:6px 0; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function s2l(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }\n  function l2s(c) { c = c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, c)) * 255); }\n  function rgb(arr) { return 'rgb(' + arr.map((x) => Math.round(x)).join(',') + ')'; }\n  function chip(color, label, lab2) { return '<div style=\"text-align:center\"><div class=\"chip\" style=\"background:' + color + '\">' + esc(label || '') + '</div><div class=\"lab\">' + esc(lab2 || '') + '</div></div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const tex = '{{tex}}';\n  const table = {\n    'albedo': ['Albedo / BaseColor', 'sRGB', '눈에 보이는 색 → sRGB(디감마해서 읽음). 단 그림자·하이라이트는 그리지 말 것.'],\n    'normal': ['Normal (법선)', '선형', '색이 아니라 방향 벡터(숫자) → 선형. sRGB 로 읽으면 조명이 틀어짐.'],\n    'rough': ['Roughness / Metallic', '선형', '0~1 물성값(숫자) → 선형. 감마 넣으면 거칠기가 어긋남.'],\n    'ao': ['AO / 높이 / 마스크', '선형', '가려짐·높이·마스크(숫자) → 선형.'],\n  };\n  const r = table[tex];\n  const isColor = r[1] === 'sRGB';\n  render(r[0] + '  →  ' + r[1] + ' 로 읽어야',\n    box(r[0] + ' = ' + (isColor ? '색(sRGB)' : '데이터(선형)'), r[2], isColor ? 'good' : 'good') + '  ' +\n    '<span class=\"ok\">색이면 sRGB 체크 ON · 데이터면 OFF(선형).</span>',\n    '색(albedo)=sRGB · 데이터(normal·roughness·AO)=선형.',\n    steps([\n      ['Albedo/BaseColor', tex === 'albedo' ? 'on' : ''],\n      ['Normal · Roughness · Metallic · AO · 마스크', tex !== 'albedo' ? 'on' : ''],\n    ]));\n</script>",
           "controls": [
@@ -301,11 +301,11 @@
         },
         {
           "type": "note",
-          "text": "**텍스처는 색을 담은 것과 데이터를 담은 것으로 나뉘며, 색은 sRGB 로 데이터는 선형으로 읽어야 한다.** **두 부류**: ① **색 텍스처(sRGB)** — 사람 눈에 보이는 **색**을 담는다: PBR 의 **Albedo(BaseColor)**, Emissive 의 색, 그 밖에 「이 표면은 무슨 색」을 나타내는 텍스처. 이들은 아티스트가 sRGB 화면에서 만들어 **sRGB 로 저장**되므로, 렌더러가 읽을 때 **디감마(선형으로 변환)**해야 조명 계산(선형, 2·3장)이 맞는다 → 엔진 임포트 설정에서 **sRGB(색) 체크 ON**. ② **데이터 텍스처(선형)** — 색이 아니라 **숫자(파라미터)**를 픽셀에 인코딩한다: **Normal 맵**(각 픽셀이 표면 법선의 방향 벡터 x,y,z), **Roughness/Metallic**(0~1 물성값), **AO**(가려짐 정도), **Height/Displacement**(높이), **Mask**(영역 구분), **Smoothness**. 이들에 감마 보정(디감마)을 적용하면 **저장된 숫자 자체가 왜곡**된다 — 법선 벡터가 틀어져 조명 방향이 어긋나고, 러프니스 0.5 가 다른 값으로 읽혀 반짝임이 이상해진다 → 엔진 설정에서 **sRGB 체크 OFF(Linear/Raw 로 읽기)**. **흔한 버그**: ⓐ **노멀맵을 sRGB 로** 읽음 → 라이팅이 미묘하게(또는 심하게) 틀어짐, 표면이 이상하게 반짝임. ⓑ **Albedo 를 선형으로** 읽음 → 색이 밝게 뜨거나 채도가 이상함. ⓒ Roughness 를 sRGB 로 → 거칠기 분포가 어긋나 재질이 달라 보임. **아티스트 주의(색 텍스처)**: Albedo 에는 **그림자·하이라이트·AO 를 그려 넣지 마라** — 그건 조명이 실시간으로 만들 것이라, 텍스처에 미리 그리면 이중으로 어두워진다(PBR 은 순수 반사색만, gfx-light). **규칙 요약**: **「이 텍스처가 색인가 데이터인가」**를 묻고, 색이면 sRGB, 데이터면 선형으로 임포트 설정을 맞춘다. **정리**: albedo·emissive 같은 색은 sRGB, normal·roughness·metallic·AO·mask 같은 데이터는 선형으로 읽어라 — 이 설정 하나가 틀리면 조명·색이 조용히 어긋난다."
+          "text": "**텍스처는 색을 담은 것과 데이터를 담은 것으로 나뉘며, 색은 sRGB 로 데이터는 선형으로 읽어야 한다.** **두 부류**: ① **색 텍스처(sRGB)**. 사람 눈에 보이는 **색**을 담는다: PBR 의 **Albedo(BaseColor)**, Emissive 의 색, 그 밖에 \"이 표면은 무슨 색\"을 나타내는 텍스처. 이들은 아티스트가 sRGB 화면에서 만들어 **sRGB 로 저장**되므로, 렌더러가 읽을 때 **디감마(선형으로 변환)**해야 조명 계산(선형, 2, 3장)이 맞는다 → 엔진 임포트 설정에서 **sRGB(색) 체크 ON**. ② **데이터 텍스처(선형)**. 색이 아니라 **숫자(파라미터)**를 픽셀에 인코딩한다: **Normal 맵**(각 픽셀이 표면 법선의 방향 벡터 x,y,z), **Roughness/Metallic**(0~1 물성값), **AO**(가려짐 정도), **Height/Displacement**(높이), **Mask**(영역 구분), **Smoothness**. 이들에 감마 보정(디감마)을 적용하면 **저장된 숫자 자체가 왜곡**된다. 법선 벡터가 틀어져 조명 방향이 어긋나고, 러프니스 0.5 가 다른 값으로 읽혀 반짝임이 이상해진다 → 엔진 설정에서 **sRGB 체크 OFF(Linear/Raw 로 읽기)**. **흔한 버그**: ⓐ **노멀맵을 sRGB 로** 읽음 → 라이팅이 미묘하게(또는 심하게) 틀어짐, 표면이 이상하게 반짝임. ⓑ **Albedo 를 선형으로** 읽음 → 색이 밝게 뜨거나 채도가 이상함. ⓒ Roughness 를 sRGB 로 → 거칠기 분포가 어긋나 재질이 달라 보임. **아티스트 주의(색 텍스처)**: Albedo 에는 **그림자, 하이라이트, AO 를 그려 넣지 마라**. 그건 조명이 실시간으로 만들 것이라, 텍스처에 미리 그리면 이중으로 어두워진다(PBR 은 순수 반사색만, gfx-light). **규칙 요약**: **\"이 텍스처가 색인가 데이터인가\"**를 묻고, 색이면 sRGB, 데이터면 선형으로 임포트 설정을 맞춘다. **정리**: albedo, emissive 같은 색은 sRGB, normal, roughness, metallic, AO, mask 같은 데이터는 선형으로 읽어라. 이 설정 하나가 틀리면 조명, 색이 조용히 어긋난다."
         },
         {
           "type": "try",
-          "text": "엔진에서 쓰는 텍스처들의 **임포트 색 공간 설정**을 점검하라 — Albedo/BaseColor 가 **sRGB(ON)**인지, Normal·Roughness·Metallic·AO·Mask 가 **선형(sRGB OFF)**인지. 노멀맵이 sRGB 로 되어 있거나 albedo 가 선형으로 되어 있으면 바로잡고, 라이팅·색이 어떻게 달라지는지 보라. 그리고 Albedo 에 그림자가 그려져 있지 않은지도 확인하라."
+          "text": "엔진에서 쓰는 텍스처들의 **임포트 색 공간 설정**을 점검하라. Albedo/BaseColor 가 **sRGB(ON)**인지, Normal, Roughness, Metallic, AO, Mask 가 **선형(sRGB OFF)**인지. 노멀맵이 sRGB 로 되어 있거나 albedo 가 선형으로 되어 있으면 바로잡고, 라이팅, 색이 어떻게 달라지는지 보라. 그리고 Albedo 에 그림자가 그려져 있지 않은지도 확인하라."
         }
       ],
       "quiz": [
@@ -313,7 +313,7 @@
           "q": "Albedo(BaseColor) 텍스처의 색 공간은?",
           "choices": [
             "선형",
-            "sRGB — 눈에 보이는 색이므로 디감마해서 읽음",
+            "sRGB. 눈에 보이는 색이므로 디감마해서 읽음",
             "무관",
             "둘 다"
           ],
@@ -321,10 +321,10 @@
           "why": "색=sRGB."
         },
         {
-          "q": "Normal·Roughness 텍스처의 색 공간은?",
+          "q": "Normal, Roughness 텍스처의 색 공간은?",
           "choices": [
             "sRGB",
-            "선형 — 색이 아니라 숫자(데이터)라 감마 넣으면 망가짐",
+            "선형. 색이 아니라 숫자(데이터)라 감마 넣으면 망가짐",
             "무관",
             "둘 다"
           ],
@@ -335,7 +335,7 @@
           "q": "Albedo 텍스처에 그림자를 그려 넣으면?",
           "choices": [
             "더 사실적",
-            "조명이 다시 어둡게 해 이중으로 어두워짐 — 순수 색만",
+            "조명이 다시 어둡게 해 이중으로 어두워짐. 순수 색만",
             "괜찮음",
             "무관"
           ],
@@ -346,17 +346,17 @@
     },
     {
       "id": "5",
-      "title": "HDR·톤 매핑과 알파",
+      "title": "HDR, 톤 매핑과 알파",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**빛은 1.0 을 넘을 수 있고(태양·전구), 그 값을 화면 범위(0~1)로 눌러 담는 것이 톤 매핑이며, 알파 블렌딩에도 색 공간·프리멀티플라이 함정이 있다.** ① **HDR·톤 매핑**: 실제 빛의 밝기는 태양처럼 1.0 을 훨씬 넘어(HDR, high dynamic range) 계산은 넘치는 값으로 하고, 화면에 낼 때 **0~1 로 압축**한다 — 이 압축 곡선이 **톤 매핑**(ACES·Reinhard 등). 곡선에 따라 게임의 「룩」이 크게 달라진다(밝은 곳이 하얗게 날아가나, 부드럽게 굴러가나). 단순히 1.0 으로 자르면(clamp) 밝은 부분이 뭉개진다. ② **알파의 함정**: 반투명을 섞는 알파 블렌딩은 **선형에서**(3장) 해야 하고, **프리멀티플라이드 알파**(색에 알파를 미리 곱함)를 쓰지 않으면 반투명 경계에 **검은/흰 테두리(fringe)**가 생긴다(특히 밉맵·필터링 시). 아래 데모로 톤 매핑이 밝은 값을 눌러 담는 걸 확인하라."
+          "text": "**빛은 1.0 을 넘을 수 있고(태양, 전구), 그 값을 화면 범위(0~1)로 눌러 담는 것이 톤 매핑이며, 알파 블렌딩에도 색 공간, 프리멀티플라이 함정이 있다.** ① **HDR, 톤 매핑**: 실제 빛의 밝기는 태양처럼 1.0 을 훨씬 넘어(HDR, high dynamic range) 계산은 넘치는 값으로 하고, 화면에 낼 때 **0~1 로 압축**한다. 이 압축 곡선이 **톤 매핑**(ACES, Reinhard 등). 곡선에 따라 게임의 \"룩\"이 크게 달라진다(밝은 곳이 하얗게 날아가나, 부드럽게 굴러가나). 단순히 1.0 으로 자르면(clamp) 밝은 부분이 뭉개진다. ② **알파의 함정**: 반투명을 섞는 알파 블렌딩은 **선형에서**(3장) 해야 하고, **프리멀티플라이드 알파**(색에 알파를 미리 곱함)를 쓰지 않으면 반투명 경계에 **검은/흰 테두리(fringe)**가 생긴다(특히 밉맵, 필터링 시). 아래 데모로 톤 매핑이 밝은 값을 눌러 담는 걸 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "톤 매핑 — 1.0 넘는 빛을 눌러 담기",
+          "label": "톤 매핑. 1.0 넘는 빛을 눌러 담기",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sw { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; align-items:flex-end; }\n  .sw .chip { border-radius:8px; height:56px; min-width:80px; display:flex; align-items:flex-end; justify-content:center; padding:4px; font:10px ui-monospace, monospace; color:#000; text-shadow:0 0 2px #fff; }\n  .sw .lab { font:10px ui-monospace, monospace; color:#94a3b8; text-align:center; margin-top:2px; }\n  .grad { height:20px; border-radius:5px; margin:6px 0; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function s2l(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }\n  function l2s(c) { c = c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, c)) * 255); }\n  function rgb(arr) { return 'rgb(' + arr.map((x) => Math.round(x)).join(',') + ')'; }\n  function chip(color, label, lab2) { return '<div style=\"text-align:center\"><div class=\"chip\" style=\"background:' + color + '\">' + esc(label || '') + '</div><div class=\"lab\">' + esc(lab2 || '') + '</div></div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const exposure = {{exp}} / 10;\n  const tone = '{{tone}}';\n  // 장면의 밝은 값(HDR): 태양 4.0\n  const hdr = 4.0 * exposure;\n  let mapped;\n  if (tone === 'clamp') mapped = Math.min(1, hdr);\n  else mapped = hdr / (hdr + 1); // Reinhard\n  const byte = l2s(mapped);\n  render('HDR 값 ' + hdr.toFixed(1) + ' (1.0 초과)  →  ' + (tone === 'clamp' ? '클램프' : 'Reinhard 톤매핑') + ' → ' + mapped.toFixed(2),\n    (tone === 'clamp'\n      ? '<span class=\"no\">1.0 에서 뚝 잘림 → 밝은 부분의 디테일이 하얗게 뭉개진다(clipping).</span>'\n      : '<span class=\"ok\">곡선으로 부드럽게 압축 → 밝은 부분도 계조가 살아 있다. 곡선이 게임 룩을 정한다.</span>') +\n    '\\n  노출을 올리면(슬라이더) 톤 매핑 곡선의 차이가 커진다.',\n    '빛은 1.0 을 넘는다 — 톤 매핑 곡선으로 눌러 담아라(clamp X).',\n    bars([\n      { lab: 'HDR 원본', pct: Math.min(100, hdr * 20), val: hdr.toFixed(1), cls: 'c' },\n      { lab: '화면 출력', pct: mapped * 100, val: mapped.toFixed(2), cls: tone === 'clamp' && hdr > 1 ? 'b' : 'g' },\n    ]));\n</script>",
           "controls": [
@@ -390,16 +390,16 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "HDR·톤매핑·알파",
+          "label": "HDR, 톤매핑, 알파",
           "text": "HDR: 빛은 1.0 을 넘음(태양·전구) → 넘치는 값으로 계산\n톤 매핑: 화면 범위(0~1)로 압축하는 곡선 (ACES·Reinhard)\n  단순 clamp(1.0 자름) → 밝은 부분 뭉개짐\n  곡선 → 계조 유지 · 곡선이 게임 「룩」을 정함\n\n알파: 블렌딩은 선형에서(3장)\n  프리멀티플라이드 알파(색×알파 미리) 안 쓰면\n  → 반투명 경계에 검은/흰 테두리(fringe)"
         },
         {
           "type": "note",
-          "text": "**실제 빛은 1.0 을 넘으므로 넘치는 값으로 계산한 뒤 톤 매핑 곡선으로 화면 범위에 압축하며, 알파 블렌딩에는 선형·프리멀티플라이 함정이 있다.** **HDR(High Dynamic Range)**: 현실의 밝기 범위는 어마어마하다 — 그늘과 태양은 밝기가 수만 배 차이. 렌더링은 조명 계산을 **0~1 에 가두지 않고** 태양·전구처럼 **1.0 을 훨씬 넘는 값**으로 한다(부동소수 HDR 버퍼). 그래야 밝은 빛이 물리적으로 옳게 더해지고 블룸·노출 같은 효과가 자연스럽다. **톤 매핑(tone mapping)**: 하지만 모니터는 0~1(sRGB)만 표시하므로, 마지막에 HDR 값을 **0~1 로 압축**해야 한다 — 이 압축 곡선이 톤 매핑이다. 단순히 **1.0 에서 자르면(clamp)** 그 이상 밝은 부분이 전부 순백으로 **뭉개져(clipping)** 디테일·색이 사라진다(하늘·하이라이트가 하얀 덩어리). 대신 **곡선**(Reinhard, 필믹, **ACES** 등)으로 부드럽게 굴려 담으면 밝은 부분도 **계조**가 살아 있다. **어떤 곡선을 쓰느냐가 게임의 「룩」**을 크게 좌우한다(영화적 대비, 채도 처리). 톤 매핑은 **선형 HDR 에서 → 톤 매핑 → sRGB 인코딩** 순서로 파이프라인 끝에서 한다. **알파의 함정**: ① **선형에서 블렌딩** — 반투명을 배경과 섞는 것은 가중 평균이라 3장대로 **선형**에서 해야 경계가 안 어두워진다. ② **프리멀티플라이드 알파(premultiplied alpha)** — 색에 알파를 **미리 곱해** 저장하는 방식. 스트레이트(비프리멀티플라이) 알파를 밉맵·필터링·블렌딩하면, 투명 픽셀의 (의미 없는) RGB 가 이웃과 섞여 **경계에 검은/흰 테두리(fringe·halo)**가 생긴다 — 특히 텍스처 축소·안티에일리어싱에서. 프리멀티플라이드로 두면 이 아티팩트가 사라진다. ③ 반투명 정렬(뒤→앞)·깊이 문제도 별개로 주의. **정리**: 빛은 1.0 을 넘으니 HDR 로 계산하고 톤 매핑 곡선으로 눌러 담아라(clamp 금지) — 곡선이 룩을 정한다. 알파는 선형에서 블렌딩하고 프리멀티플라이드로 경계 테두리를 없애라."
+          "text": "**실제 빛은 1.0 을 넘으므로 넘치는 값으로 계산한 뒤 톤 매핑 곡선으로 화면 범위에 압축하며, 알파 블렌딩에는 선형, 프리멀티플라이 함정이 있다.** **HDR(High Dynamic Range)**: 현실의 밝기 범위는 어마어마하다. 그늘과 태양은 밝기가 수만 배 차이. 렌더링은 조명 계산을 **0~1 에 가두지 않고** 태양, 전구처럼 **1.0 을 훨씬 넘는 값**으로 한다(부동소수 HDR 버퍼). 그래야 밝은 빛이 물리적으로 옳게 더해지고 블룸, 노출 같은 효과가 자연스럽다. **톤 매핑(tone mapping)**: 하지만 모니터는 0~1(sRGB)만 표시하므로, 마지막에 HDR 값을 **0~1 로 압축**해야 한다. 이 압축 곡선이 톤 매핑이다. 단순히 **1.0 에서 자르면(clamp)** 그 이상 밝은 부분이 전부 순백으로 **뭉개져(clipping)** 디테일, 색이 사라진다(하늘, 하이라이트가 하얀 덩어리). 대신 **곡선**(Reinhard, 필믹, **ACES** 등)으로 부드럽게 굴려 담으면 밝은 부분도 **계조**가 살아 있다. **어떤 곡선을 쓰느냐가 게임의 \"룩\"**을 크게 좌우한다(영화적 대비, 채도 처리). 톤 매핑은 **선형 HDR 에서 → 톤 매핑 → sRGB 인코딩** 순서로 파이프라인 끝에서 한다. **알파의 함정**: ① **선형에서 블렌딩**. 반투명을 배경과 섞는 것은 가중 평균이라 3장대로 **선형**에서 해야 경계가 안 어두워진다. ② **프리멀티플라이드 알파(premultiplied alpha)**. 색에 알파를 **미리 곱해** 저장하는 방식. 스트레이트(비프리멀티플라이) 알파를 밉맵, 필터링, 블렌딩하면, 투명 픽셀의 (의미 없는) RGB 가 이웃과 섞여 **경계에 검은/흰 테두리(fringe, halo)**가 생긴다. 특히 텍스처 축소, 안티에일리어싱에서. 프리멀티플라이드로 두면 이 아티팩트가 사라진다. ③ 반투명 정렬(뒤→앞), 깊이 문제도 별개로 주의. **정리**: 빛은 1.0 을 넘으니 HDR 로 계산하고 톤 매핑 곡선으로 눌러 담아라(clamp 금지). 곡선이 룩을 정한다. 알파는 선형에서 블렌딩하고 프리멀티플라이드로 경계 테두리를 없애라."
         },
         {
           "type": "try",
-          "text": "엔진에서 **톤 매핑을 껐다 켜 보거나 곡선(Reinhard·ACES·필믹)을 바꿔** 보라 — 밝은 하늘·하이라이트가 하얗게 뭉개지는지(clamp) 계조가 사는지(곡선), 전체 「룩」이 어떻게 달라지는지 관찰하라. 반투명 텍스처에 검은/흰 경계 테두리가 있으면 프리멀티플라이드 알파·선형 블렌딩 설정을 점검하라."
+          "text": "엔진에서 **톤 매핑을 껐다 켜 보거나 곡선(Reinhard, ACES, 필믹)을 바꿔** 보라. 밝은 하늘, 하이라이트가 하얗게 뭉개지는지(clamp) 계조가 사는지(곡선), 전체 \"룩\"이 어떻게 달라지는지 관찰하라. 반투명 텍스처에 검은/흰 경계 테두리가 있으면 프리멀티플라이드 알파, 선형 블렌딩 설정을 점검하라."
         }
       ],
       "quiz": [
@@ -418,7 +418,7 @@
           "q": "톤 매핑 곡선(ACES 등)의 선택은?",
           "choices": [
             "무의미",
-            "게임의 「룩」을 크게 좌우함",
+            "게임의 \"룩\"을 크게 좌우함",
             "속도만",
             "무관"
           ],
@@ -429,7 +429,7 @@
           "q": "반투명 경계의 검은/흰 테두리(fringe) 원인은?",
           "choices": [
             "GPU 고장",
-            "스트레이트 알파를 프리멀티플라이·선형 없이 블렌딩",
+            "스트레이트 알파를 프리멀티플라이, 선형 없이 블렌딩",
             "느림",
             "무관"
           ],
@@ -440,17 +440,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 색과 감마",
+      "title": "점검표. 색과 감마",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**저장·표시는 sRGB, 계산은 선형 — 텍스처 색 공간을 맞추고, 섞기는 선형에서, 빛은 톤 매핑으로 담는다.** 이 점검표를 재질·씬마다 훑어, 「뿌옇다·어둡다·색이 다르다」의 대부분을 걸러라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**저장, 표시는 sRGB, 계산은 선형. 텍스처 색 공간을 맞추고, 섞기는 선형에서, 빛은 톤 매핑으로 담는다.** 이 점검표를 재질, 씬마다 훑어, \"뿌옇다, 어둡다, 색이 다르다\"의 대부분을 걸러라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "색·감마 점검표 — 통과 수",
+          "label": "색, 감마 점검표. 통과 수",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .sw { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; align-items:flex-end; }\n  .sw .chip { border-radius:8px; height:56px; min-width:80px; display:flex; align-items:flex-end; justify-content:center; padding:4px; font:10px ui-monospace, monospace; color:#000; text-shadow:0 0 2px #fff; }\n  .sw .lab { font:10px ui-monospace, monospace; color:#94a3b8; text-align:center; margin-top:2px; }\n  .grad { height:20px; border-radius:5px; margin:6px 0; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function s2l(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }\n  function l2s(c) { c = c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, c)) * 255); }\n  function rgb(arr) { return 'rgb(' + arr.map((x) => Math.round(x)).join(',') + ')'; }\n  function chip(color, label, lab2) { return '<div style=\"text-align:center\"><div class=\"chip\" style=\"background:' + color + '\">' + esc(label || '') + '</div><div class=\"lab\">' + esc(lab2 || '') + '</div></div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '프로젝트가 선형 색 공간(linear workflow)으로 설정돼 있다',\n    'Albedo·Emissive 등 색 텍스처는 sRGB 로 읽는다',\n    'Normal·Roughness·Metallic·AO·Mask 는 선형으로 읽는다',\n    'Albedo 에 그림자·하이라이트·AO 를 그려 넣지 않았다',\n    '색 섞기(블렌딩·밉맵·축소·그라데이션)를 선형에서 한다',\n    '빛은 HDR 로 계산하고 톤 매핑 곡선으로 담는다(clamp X)',\n    '알파는 선형 블렌딩 + 프리멀티플라이(경계 테두리 없음)',\n    '최종 출력이 sRGB 로 인코딩된다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('색·감마 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 색이 물리적으로 옳게 도는 파이프라인.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    'sRGB(저장/표시) ⇄ 선형(계산) · 텍스처 색공간 · 톤 매핑.');\n</script>",
           "controls": [
@@ -467,11 +467,11 @@
         },
         {
           "type": "note",
-          "text": "**색·감마 점검표 — 재질·씬마다 훑는다.** ① **선형 워크플로** — 프로젝트가 linear color space 로 설정(1·2장). ② **색 텍스처 sRGB** — Albedo·Emissive 등은 sRGB 로 읽음(4장). ③ **데이터 텍스처 선형** — Normal·Roughness·Metallic·AO·Mask 는 선형(4장). ④ **Albedo 순수색** — 그림자·하이라이트·AO 를 안 그림(4장·gfx-light). ⑤ **선형에서 섞기** — 블렌딩·밉맵·축소·그라데이션을 선형에서(3장). ⑥ **HDR·톤 매핑** — 빛은 넘치는 값으로 계산, 톤 매핑 곡선으로 담기(clamp 금지, 5장). ⑦ **알파** — 선형 블렌딩 + 프리멀티플라이(경계 테두리 없음, 5장). ⑧ **sRGB 출력** — 최종 프레임을 sRGB 로 인코딩(1·2장). **관통 원리**: 색의 모든 사고는 **「어느 색 공간인지」를 안 맞춰** 생긴다 — **sRGB(저장·표시) ⇄ 선형(계산)**의 왕복을 텍스처별·연산별로 올바로 하면 뿌옇고 어둡고 색이 다른 증상 대부분이 사라진다. 이 칸(color)은 gfx 갈래의 **바탕** — space(좌표)·pipeline(그리는 순서)·shader(GPU 프로그램)·light(PBR 조명)·perf(성능)가 이 위에서 옳은 색으로 돈다. 특히 gfx-light 의 PBR 은 선형·HDR 을 전제한다. **정리**: 저장·표시는 sRGB, 계산은 선형이라는 왕복을 텍스처와 연산마다 맞춰라 — 이 표로 색 사고의 대부분을 매번 걸러라."
+          "text": "**색, 감마 점검표. 재질, 씬마다 훑는다.** ① **선형 워크플로**. 프로젝트가 linear color space 로 설정(1, 2장). ② **색 텍스처 sRGB**. Albedo, Emissive 등은 sRGB 로 읽음(4장). ③ **데이터 텍스처 선형**. Normal, Roughness, Metallic, AO, Mask 는 선형(4장). ④ **Albedo 순수색**. 그림자, 하이라이트, AO 를 안 그림(4장, gfx-light). ⑤ **선형에서 섞기**. 블렌딩, 밉맵, 축소, 그라데이션을 선형에서(3장). ⑥ **HDR, 톤 매핑**. 빛은 넘치는 값으로 계산, 톤 매핑 곡선으로 담기(clamp 금지, 5장). ⑦ **알파**. 선형 블렌딩 + 프리멀티플라이(경계 테두리 없음, 5장). ⑧ **sRGB 출력**. 최종 프레임을 sRGB 로 인코딩(1, 2장). **관통 원리**: 색의 모든 사고는 **\"어느 색 공간인지\"를 안 맞춰** 생긴다. **sRGB(저장, 표시) ⇄ 선형(계산)**의 왕복을 텍스처별, 연산별로 올바로 하면 뿌옇고 어둡고 색이 다른 증상 대부분이 사라진다. 이 칸(color)은 gfx 갈래의 **바탕**. space(좌표), pipeline(그리는 순서), shader(GPU 프로그램), light(PBR 조명), perf(성능)가 이 위에서 옳은 색으로 돈다. 특히 gfx-light 의 PBR 은 선형, HDR 을 전제한다. **정리**: 저장, 표시는 sRGB, 계산은 선형이라는 왕복을 텍스처와 연산마다 맞춰라. 이 표로 색 사고의 대부분을 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금 씬의 재질 하나를 골라 위 8개 항목을 확인하라 — 선형 워크플로인가, 색/데이터 텍스처의 색 공간이 맞나, albedo 에 그림자가 없나, 섞기가 선형인가, 톤 매핑이 켜져 있나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 뿌옇거나 어두운 증상이 사라지는지 보라."
+          "text": "지금 씬의 재질 하나를 골라 위 8개 항목을 확인하라. 선형 워크플로인가, 색/데이터 텍스처의 색 공간이 맞나, albedo 에 그림자가 없나, 섞기가 선형인가, 톤 매핑이 켜져 있나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 뿌옇거나 어두운 증상이 사라지는지 보라."
         }
       ],
       "quiz": [
@@ -479,7 +479,7 @@
           "q": "색 사고를 막는 한 줄 규칙은?",
           "choices": [
             "다 sRGB",
-            "저장·표시는 sRGB, 계산(섞기·조명)은 선형",
+            "저장, 표시는 sRGB, 계산(섞기, 조명)은 선형",
             "다 선형",
             "무관"
           ],
@@ -501,7 +501,7 @@
           "q": "gfx-color 는 gfx 갈래에서?",
           "choices": [
             "부수적",
-            "색이 옳게 도는 바탕 — light(PBR) 등이 그 위에 섬",
+            "색이 옳게 도는 바탕. light(PBR) 등이 그 위에 섬",
             "선택",
             "무관"
           ],

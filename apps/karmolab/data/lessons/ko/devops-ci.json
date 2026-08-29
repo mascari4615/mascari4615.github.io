@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "CI 가 실제로 파는 것 — 빠른 피드백",
+      "title": "CI 가 실제로 파는 것. 빠른 피드백",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "CI 를 「테스트를 대신 돌려 주는 것」으로 보면 절반만 본 것이다. CI 가 파는 진짜 상품은 **틀린 것을 얼마나 빨리 알려 주나**다 — 실패를 발견하는 시점이 이를수록 고치는 비용이 싸다."
+          "text": "CI 를 \"테스트를 대신 돌려 주는 것\"으로 보면 절반만 본 것이다. CI 가 파는 진짜 상품은 **틀린 것을 얼마나 빨리 알려 주나**다. 실패를 발견하는 시점이 이를수록 고치는 비용이 싸다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "발견 시점을 골라 보라 — 고치는 비용이 얼마나 다른가",
+          "label": "발견 시점을 골라 보라. 고치는 비용이 얼마나 다른가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const w = '{{when}}';\n  const d = {\n    editor: { cost: 1, t: '편집기에서 (타입 오류 · 린트)', say: '몇 초. 머릿속에 맥락이 그대로 있다.' },\n    commit: { cost: 3, t: '커밋 전 훅', say: '몇 초~몇 분. 아직 내 기계 안이라 아무도 안 봤다.' },\n    ci:     { cost: 10, t: 'CI (PR 검사)', say: '몇 분. 리뷰어를 기다리게 하지 않는다.' },\n    staging:{ cost: 60, t: 'staging 에서', say: '한나절. 되돌리고 다시 배포해야 한다.' },\n    prod:   { cost: 600, t: '운영에서 (사용자가 먼저 발견)', say: '장애 대응 · 신뢰 손실 · 회고까지.' },\n  }[w];\n  const bars = [['편집기', 1], ['커밋 훅', 3], ['CI', 10], ['staging', 60], ['운영', 600]]\n    .map(([n, c]) => [n, c, n === { editor: '편집기', commit: '커밋 훅', ci: 'CI', staging: 'staging', prod: '운영' }[w] ? (c > 50 ? 'fail' : 'hit') : 'skip']);\n  render('',\n    '  발견 시점: <span class=\"ok\">' + esc(d.t) + '</span>\\n' +\n    '  상대 비용: 약 ' + d.cost + '배\\n\\n  ' + esc(d.say),\n    '그래서 CI 설계의 목표는 「전부 검사」가 아니라 「제일 자주 깨지는 것을 제일 먼저」다.',\n    steps(bars));\n</script>",
           "controls": [
@@ -53,17 +53,17 @@
         },
         {
           "type": "note",
-          "text": "CI 는 **팀의 약속을 기계로 옮긴 것**이기도 하다. 「린트 지키자」는 잊히지만 「린트가 빨강이면 머지 못 함」은 안 잊힌다. 규칙을 문서에 적는 대신 파이프라인에 넣는 것이 실제로 지켜지는 유일한 방법에 가깝다."
+          "text": "CI 는 **팀의 약속을 기계로 옮긴 것**이기도 하다. \"린트 지키자\"는 잊히지만 \"린트가 빨강이면 머지 못 함\"은 안 잊힌다. 규칙을 문서에 적는 대신 파이프라인에 넣는 것이 실제로 지켜지는 유일한 방법에 가깝다."
         },
         {
           "type": "code",
           "lang": "yaml",
-          "label": "가장 작은 CI — 이것만 있어도 값을 한다",
+          "label": "가장 작은 CI. 이것만 있어도 값을 한다",
           "text": "name: ci\non: [push, pull_request]\n\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20, cache: npm }\n      - run: npm ci\n      - run: npm run lint\n      - run: npm test"
         },
         {
           "type": "try",
-          "text": "내 프로젝트 CI 의 평균 소요 시간을 확인하라(`gh run list -L 20 --json durationMs`). 10분을 넘으면 3장의 캐시·병렬을 볼 자리다."
+          "text": "내 프로젝트 CI 의 평균 소요 시간을 확인하라(`gh run list -L 20 --json durationMs`). 10분을 넘으면 3장의 캐시, 병렬을 볼 자리다."
         }
       ],
       "quiz": [
@@ -109,12 +109,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "이름은 도구마다 달라도 뼈대는 같다 — **가져오고 → 준비하고 → 검사하고 → 만들고 → 결과물을 남긴다.** 각 단계가 무엇을 위한 것인지 알면 남의 설정 파일도 읽힌다."
+          "text": "이름은 도구마다 달라도 뼈대는 같다. **가져오고 → 준비하고 → 검사하고 → 만들고 → 결과물을 남긴다.** 각 단계가 무엇을 위한 것인지 알면 남의 설정 파일도 읽힌다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇을 하는 자리인가",
+          "label": "단계를 밀어 보라. 무엇을 하는 자리인가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const list = [\n    ['checkout', 8, '소스를 가져온다. CI 는 매번 빈 기계에서 시작한다 — 내 노트북 상태에 기대면 안 된다.'],\n    ['setup + 캐시', 25, '언어·도구 설치. 여기서 버전을 못 박아야 「내 기계에서는 되는데」가 안 생긴다.'],\n    ['install (npm ci)', 45, 'lockfile 그대로 설치. npm install 이 아니라 ci — 잠금 파일을 고치지 않는다.'],\n    ['lint + 타입', 30, '가장 빠르고 가장 자주 걸리는 검사. 앞쪽에 둔다.'],\n    ['test', 120, '단위 -> 통합 순. 느린 것은 뒤로, 병렬로.'],\n    ['build', 60, '배포할 결과물을 만든다. 여기서 만든 것을 그대로 배포해야 한다(7장).'],\n    ['artifact 업로드', 15, '결과물·리포트를 남긴다. 다음 잡이나 배포가 이것을 받아 쓴다.'],\n  ];\n  const bars = list.map(([n, t], i) => [n, t, i < s ? 'hit' : i === s ? '' : 'skip']);\n  render('', '  <span class=\"ok\">' + esc(list[s][0]) + '</span>\\n\\n  ' + esc(list[s][2]) +\n    '\\n\\n  누적 ' + (list.slice(0, s + 1).reduce((a, [, t]) => a + t, 0)) + '초',\n    '순서의 원칙: 빠르고 자주 깨지는 것을 앞으로 — 실패를 빨리 알리려고.',\n    steps(bars));\n</script>",
           "controls": [
@@ -131,7 +131,7 @@
         },
         {
           "type": "note",
-          "text": "**`npm install` 이 아니라 `npm ci` 다.** `ci` 는 lockfile 을 그대로 설치하고, 안 맞으면 실패한다 — CI 가 「어제와 다른 버전」을 조용히 끌어오는 일을 막는다. 다른 생태계도 같은 짝이 있다(`pip install -r` + 해시, `bundle install --deployment`)."
+          "text": "**`npm install` 이 아니라 `npm ci` 다.** `ci` 는 lockfile 을 그대로 설치하고, 안 맞으면 실패한다. CI 가 \"어제와 다른 버전\"을 조용히 끌어오는 일을 막는다. 다른 생태계도 같은 짝이 있다(`pip install -r` + 해시, `bundle install --deployment`)."
         },
         {
           "type": "code",
@@ -141,11 +141,11 @@
         },
         {
           "type": "p",
-          "text": "잡(job)은 **서로 다른 기계**에서 돈다. 그래서 앞 잡에서 만든 파일이 뒤 잡에 자동으로 있지 않다 — 넘기려면 아티팩트로 올리고 내려받아야 한다. 「빌드는 됐는데 배포 잡에서 파일이 없다」의 원인이 대개 이것이다."
+          "text": "잡(job)은 **서로 다른 기계**에서 돈다. 그래서 앞 잡에서 만든 파일이 뒤 잡에 자동으로 있지 않다. 넘기려면 아티팩트로 올리고 내려받아야 한다. \"빌드는 됐는데 배포 잡에서 파일이 없다\"의 원인이 대개 이것이다."
         },
         {
           "type": "try",
-          "text": "내 CI 설정을 열어 단계 순서를 확인하라. 느린 테스트가 린트보다 앞에 있으면 순서를 바꿔 보라 — 실패를 몇 분 일찍 알게 된다."
+          "text": "내 CI 설정을 열어 단계 순서를 확인하라. 느린 테스트가 린트보다 앞에 있으면 순서를 바꿔 보라. 실패를 몇 분 일찍 알게 된다."
         }
       ],
       "quiz": [
@@ -164,7 +164,7 @@
           "q": "잡 사이에 파일을 넘기려면?",
           "choices": [
             "자동으로 넘어간다",
-            "아티팩트로 업로드·다운로드",
+            "아티팩트로 업로드, 다운로드",
             "캐시로",
             "볼륨"
           ],
@@ -186,17 +186,17 @@
     },
     {
       "id": "3",
-      "title": "빠르게 — 캐시 · 병렬 · 변경 감지",
+      "title": "빠르게. 캐시, 병렬, 변경 감지",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "CI 를 빠르게 만드는 방법은 셋뿐이다 — **다시 안 하기(캐시)**, **동시에 하기(병렬)**, **아예 안 하기(변경 감지)**. 순서대로 효과가 크다."
+          "text": "CI 를 빠르게 만드는 방법은 셋뿐이다. **다시 안 하기(캐시)**, **동시에 하기(병렬)**, **아예 안 하기(변경 감지)**. 순서대로 효과가 크다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "최적화를 골라 보라 — 얼마나 줄어드나",
+          "label": "최적화를 골라 보라. 얼마나 줄어드나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const o = '{{opt}}';\n  const base = [['checkout', 8], ['setup', 25], ['install', 90], ['lint', 30], ['test', 180], ['build', 60]];\n  let list, total, say;\n  if (o === 'none') {\n    list = base.map(([n, t]) => [n, t, '']);\n    say = '매번 전부 다시 한다. 이것이 기준선.';\n  } else if (o === 'cache') {\n    list = base.map(([n, t]) => n === 'install' ? [n, 12, 'hit'] : [n, t, '']);\n    say = '의존성 캐시 적중 — install 90초 -> 12초. 가장 값싼 개선이다.';\n  } else if (o === 'parallel') {\n    list = [['checkout+setup', 33, ''], ['install(캐시)', 12, 'hit'],\n            ['lint | test | build (동시)', 180, 'hit']];\n    say = '잡을 나눠 동시에 — 전체 시간은 「가장 느린 것」이 정한다.';\n  } else if (o === 'shard') {\n    list = [['checkout+setup', 33, ''], ['install(캐시)', 12, 'hit'],\n            ['lint', 30, 'hit'], ['test 1/4 (동시)', 50, 'hit'], ['build', 60, 'hit']];\n    say = '테스트를 넷으로 쪼개 동시에 — 180초가 50초로. 러너 비용은 늘어난다.';\n  } else {\n    list = [['checkout', 8, ''], ['변경 감지: docs 만 바뀜', 2, 'hit'],\n            ['test · build 건너뜀', 0, 'skip']];\n    say = '문서만 고쳤는데 전체를 도는 것이 가장 큰 낭비다. paths 필터로 아예 안 돈다.';\n  }\n  total = o === 'parallel' ? 33 + 12 + 180 : o === 'shard' ? 33 + 12 + 60 : list.reduce((a, [, t]) => a + t, 0);\n  render('', '  전체 <span class=\"ok\">' + (total / 60).toFixed(1) + '분</span>' +\n    '  (기준선 ' + ((base.reduce((a, [, t]) => a + t, 0)) / 60).toFixed(1) + '분)\\n\\n  ' + esc(say),\n    '가장 빠른 검사는 「안 도는 검사」다 — 다만 안 도는 것이 안전한지 먼저 따져야 한다.',\n    steps(list));\n</script>",
           "controls": [
@@ -238,11 +238,11 @@
         },
         {
           "type": "note",
-          "text": "**캐시 키에 lockfile 해시를 넣어라.** 고정 키를 쓰면 의존성이 바뀌어도 옛 캐시를 쓰다가 「CI 에서만 이상한」 상태가 된다. 반대로 키가 너무 잘게 갈리면 적중률이 0 이 된다 — 해시 + 폴백(`restore-keys`)이 정석이다."
+          "text": "**캐시 키에 lockfile 해시를 넣어라.** 고정 키를 쓰면 의존성이 바뀌어도 옛 캐시를 쓰다가 \"CI 에서만 이상한\" 상태가 된다. 반대로 키가 너무 잘게 갈리면 적중률이 0 이 된다. 해시 + 폴백(`restore-keys`)이 정석이다."
         },
         {
           "type": "p",
-          "text": "**변경 감지는 조심해서 쓰라.** 모노레포에서 「내 패키지만 고쳤으니 내 테스트만」은 합리적이지만, 공유 라이브러리를 고쳤는데 그것을 쓰는 앱 테스트를 건너뛰면 의미가 없다. 의존 그래프를 아는 도구(turbo·nx·bazel)를 쓰거나, 보수적으로 잡아라."
+          "text": "**변경 감지는 조심해서 쓰라.** 모노레포에서 \"내 패키지만 고쳤으니 내 테스트만\"은 합리적이지만, 공유 라이브러리를 고쳤는데 그것을 쓰는 앱 테스트를 건너뛰면 의미가 없다. 의존 그래프를 아는 도구(turbo, nx, bazel)를 쓰거나, 보수적으로 잡아라."
         },
         {
           "type": "try",
@@ -292,12 +292,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "검사를 많이 거는 것과 **머지를 막는 것**은 다른 문제다. 막는 검사(필수)가 너무 많으면 개발이 멈추고, 너무 적으면 CI 가 장식이 된다. 기준은 **「이게 깨진 채 머지되면 곤란한가」** 하나다."
+          "text": "검사를 많이 거는 것과 **머지를 막는 것**은 다른 문제다. 막는 검사(필수)가 너무 많으면 개발이 멈추고, 너무 적으면 CI 가 장식이 된다. 기준은 **\"이게 깨진 채 머지되면 곤란한가\"** 하나다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "검사를 골라 보라 — 필수인가 정보인가",
+          "label": "검사를 골라 보라. 필수인가 정보인가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{check}}';\n  const t = {\n    build:   ['빌드 성공', 'ok', '필수', '안 되면 배포 자체가 불가능하다. 논쟁의 여지가 없다.'],\n    unit:    ['단위 테스트', 'ok', '필수', '빠르고 안정적이다. 여기서 걸러야 뒤가 편하다.'],\n    types:   ['타입 검사', 'ok', '필수', '빠르고 결정적이다 — 사람마다 결과가 다르지 않다.'],\n    lint:    ['린트·포맷', 'ok', '필수(자동 고침과 함께)', '다만 포맷은 CI 에서 막기보다 저장 시 자동 정리가 낫다.'],\n    e2e:     ['E2E 테스트', 'warn', '경우에 따라', '느리고 흔들린다. 핵심 흐름만 필수로, 나머지는 야간 실행으로 빼는 절충이 흔하다.'],\n    cov:     ['커버리지 임계값', 'warn', '정보 권장', '숫자를 게이트로 걸면 의미 없는 테스트가 늘어난다. 추세를 보는 편이 낫다.'],\n    sec:     ['취약점 스캔', 'warn', '심각도별로', '전부 막으면 남의 라이브러리 때문에 배포가 멈춘다. critical 만 막고 나머지는 리포트.'],\n    perf:    ['성능 예산 (번들 크기 등)', 'warn', '필수로 걸 만하다', '한 번 커진 번들은 잘 안 줄어든다 — 늘어날 때 막는 편이 싸다.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"' + t[1] + '\">' + esc(t[2]) + '</span>\\n\\n  ' + esc(t[3]),\n    '필수 게이트는 「빠르고 · 결정적이고 · 깨지면 진짜 곤란한」 것으로 제한하라.');\n</script>",
           "controls": [
@@ -345,7 +345,7 @@
         },
         {
           "type": "note",
-          "text": "**흔들리는(flaky) 검사를 필수로 걸면 재앙이다.** 사람들이 「또 그거네」하고 재실행을 습관화하고, 그러면 진짜 실패도 함께 무시된다. 흔들리는 검사는 **필수에서 빼고 고치는 것**이 순서다(5장)."
+          "text": "**흔들리는(flaky) 검사를 필수로 걸면 재앙이다.** 사람들이 \"또 그거네\"하고 재실행을 습관화하고, 그러면 진짜 실패도 함께 무시된다. 흔들리는 검사는 **필수에서 빼고 고치는 것**이 순서다(5장)."
         },
         {
           "type": "code",
@@ -355,7 +355,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **게이트는 사람이 아니라 상황에 맞춰 늘려라.** 처음부터 열 개를 걸면 팀이 우회 방법을 찾는다. 사고가 난 자리에 게이트를 하나씩 추가하는 방식이 실제로 지켜진다 — 「이 사고를 막았을 검사」를 회고에서 정하는 식이다."
+          "text": "그리고 **게이트는 사람이 아니라 상황에 맞춰 늘려라.** 처음부터 열 개를 걸면 팀이 우회 방법을 찾는다. 사고가 난 자리에 게이트를 하나씩 추가하는 방식이 실제로 지켜진다. \"이 사고를 막았을 검사\"를 회고에서 정하는 식이다."
         },
         {
           "type": "try",
@@ -410,7 +410,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 무엇을 해야 하나",
+          "label": "상황을 골라 보라. 무엇을 해야 하나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    mine:  ['내가 방금 push 해서 빨강',\n      ['맥락이 살아 있는 지금이 가장 싸다'],\n      '즉시 고친다. 10분 안에 못 고치겠으면 revert 하고 다시 준비한다.', 'ok'],\n    main:  ['main 이 빨강인데 다들 그냥 작업 중',\n      ['이후 모든 PR 이 빨강으로 시작한다 — 누가 원인인지 안 보인다',\n       '팀 전체의 「이 빨강은 무시해도 됨」 학습이 시작된다'],\n      'main 빨강은 최우선 — 고치거나 되돌린다. 「나중에」가 가장 비싸다.', 'no'],\n    flaky: ['같은 코드인데 됐다 안 됐다',\n      ['시간·순서·네트워크·공유 상태 의존', '재실행으로 넘기면 신뢰가 무너진다'],\n      '① 필수에서 내린다 ② 격리(quarantine) 목록에 넣는다 ③ 원인을 고친다 — 순서가 중요하다.', 'warn'],\n    infra: ['러너·레지스트리 장애로 빨강',\n      ['내 코드 문제가 아니다', '그런데 구분이 안 되면 사람들이 전부 「인프라겠지」로 넘긴다'],\n      '실패 원인을 로그에 분명히 남기고, 잦으면 재시도를 자동화하되 횟수를 제한한다.', 'warn'],\n    skip:  ['일단 머지하고 나중에 고치기',\n      ['빨강이 쌓이면 원인 추적이 기하급수로 어려워진다'],\n      '가장 비싼 선택. 정말 급하면 되돌리고(revert) 다시 하는 편이 언제나 싸다.', 'no'],\n  }[c];\n  render('', '  <span class=\"' + t[3] + '\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '규율 한 줄: main 은 언제나 초록. 못 고치면 되돌린다.');\n</script>",
           "controls": [
@@ -446,7 +446,7 @@
         },
         {
           "type": "note",
-          "text": "**「고치기」보다 「되돌리기」가 대개 낫다.** revert 는 몇 초면 되고 위험이 낮다 — 고치는 것은 시간이 얼마나 걸릴지 모른다. main 을 초록으로 돌려놓고 나서 천천히 원인을 보는 것이 팀 전체의 시간을 아낀다(git 칸 7장의 revert)."
+          "text": "**\"고치기\"보다 \"되돌리기\"가 대개 낫다.** revert 는 몇 초면 되고 위험이 낮다. 고치는 것은 시간이 얼마나 걸릴지 모른다. main 을 초록으로 돌려놓고 나서 천천히 원인을 보는 것이 팀 전체의 시간을 아낀다(git 칸 7장의 revert)."
         },
         {
           "type": "code",
@@ -456,7 +456,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **빨강 알림이 사람에게 닿아야** 한다. 아무도 안 보는 대시보드에 빨강이 뜨는 것은 없는 것과 같다 — 채널 알림·PR 코멘트처럼 **작업 흐름 안**으로 가져오는 것이 실제로 작동한다."
+          "text": "그리고 **빨강 알림이 사람에게 닿아야** 한다. 아무도 안 보는 대시보드에 빨강이 뜨는 것은 없는 것과 같다. 채널 알림, PR 코멘트처럼 **작업 흐름 안**으로 가져오는 것이 실제로 작동한다."
         },
         {
           "type": "try",
@@ -501,17 +501,17 @@
     },
     {
       "id": "6",
-      "title": "재현성 — CI 에서만 되는·안 되는",
+      "title": "재현성. CI 에서만 되는, 안 되는",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「내 기계에서는 되는데」의 반대말이 「CI 에서만 안 되는」이다. 둘 다 원인은 하나다 — **환경이 고정돼 있지 않다.**"
+          "text": "\"내 기계에서는 되는데\"의 반대말이 \"CI 에서만 안 되는\"이다. 둘 다 원인은 하나다. **환경이 고정돼 있지 않다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "증상을 골라 보라 — 무엇이 안 고정됐나",
+          "label": "증상을 골라 보라. 무엇이 안 고정됐나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    dep:  ['어제는 됐는데 오늘 빨강 (코드 변경 없음)',\n      ['의존성이 새 버전으로 올라왔다', 'lockfile 을 안 쓰거나 install 을 쓰고 있다'],\n      'npm ci · lockfile 커밋 · 액션도 버전 고정(uses: actions/checkout@v4 또는 커밋 해시)'],\n    node: ['CI 에서만 문법 오류 / API 없음',\n      ['로컬 Node 22, CI 는 18'],\n      '.nvmrc·engines 로 못 박고 CI 가 그 값을 읽게 한다 — 한 곳에서 정하기.'],\n    tz:   ['날짜 테스트가 CI 에서만 실패',\n      ['CI 는 UTC, 내 기계는 KST — 하루 차이', '실제 시각에 의존하는 테스트'],\n      'TZ 를 명시하고, 테스트에서는 시간을 고정한다(가짜 타이머).'],\n    case: ['import 가 CI 에서만 실패',\n      ['맥·윈도우 파일 시스템은 대소문자를 구분 안 한다', '리눅스 러너는 구분한다'],\n      '파일명 규칙을 정하고 린트로 강제 — 이 사고는 반드시 한 번은 겪는다.'],\n    order:['테스트를 혼자 돌리면 되는데 전체에서는 실패',\n      ['테스트끼리 상태를 공유한다(DB·전역·파일)'],\n      '각 테스트가 자기 데이터를 만들고 치우게. 순서를 무작위로 돌려 미리 잡는다.'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '재현성의 규칙: 버전·시간·경로·순서를 전부 못 박아라.');\n</script>",
           "controls": [
@@ -553,15 +553,15 @@
         },
         {
           "type": "note",
-          "text": "**액션·이미지도 의존성이다.** `@v4` 는 움직이는 태그라 어느 날 동작이 바뀐다. 보안이 중요하면 커밋 해시로 고정하고, Dependabot 으로 갱신을 받아라 — 「자동으로 최신」과 「고정 + 갱신 PR」 중 후자가 안전하다."
+          "text": "**액션, 이미지도 의존성이다.** `@v4` 는 움직이는 태그라 어느 날 동작이 바뀐다. 보안이 중요하면 커밋 해시로 고정하고, Dependabot 으로 갱신을 받아라. \"자동으로 최신\"과 \"고정 + 갱신 PR\" 중 후자가 안전하다."
         },
         {
           "type": "p",
-          "text": "그리고 **CI 를 로컬에서 재현할 수 있게** 해 두면 디버깅이 훨씬 싸진다. 검사 명령을 `npm run verify` 같은 한 줄로 모아 두면 CI 도 사람도 같은 것을 돌린다 — CI 설정에만 있는 명령이 늘어날수록 「CI 에서만」이 늘어난다."
+          "text": "그리고 **CI 를 로컬에서 재현할 수 있게** 해 두면 디버깅이 훨씬 싸진다. 검사 명령을 `npm run verify` 같은 한 줄로 모아 두면 CI 도 사람도 같은 것을 돌린다. CI 설정에만 있는 명령이 늘어날수록 \"CI 에서만\"이 늘어난다."
         },
         {
           "type": "try",
-          "text": "CI 가 돌리는 명령들을 로컬에서 그대로 돌려 보라. 안 되는 것이 있으면 그 차이가 곧 「CI 에서만」의 원인 후보다."
+          "text": "CI 가 돌리는 명령들을 로컬에서 그대로 돌려 보라. 안 되는 것이 있으면 그 차이가 곧 \"CI 에서만\"의 원인 후보다."
         }
       ],
       "quiz": [
@@ -569,7 +569,7 @@
           "q": "코드 변경 없이 갑자기 빨강이면?",
           "choices": [
             "러너 문제",
-            "의존성 버전이 움직였다 (lockfile·ci 확인)",
+            "의존성 버전이 움직였다 (lockfile, ci 확인)",
             "캐시",
             "권한"
           ],
@@ -585,7 +585,7 @@
             "경로 길이"
           ],
           "answer": 1,
-          "why": "맥·윈도우는 구분하지 않는다."
+          "why": "맥, 윈도우는 구분하지 않는다."
         },
         {
           "q": "액션 버전을 커밋 해시로 고정하면?",
@@ -602,17 +602,17 @@
     },
     {
       "id": "7",
-      "title": "PR 을 위한 CI — 사람을 돕는 자동화",
+      "title": "PR 을 위한 CI. 사람을 돕는 자동화",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "CI 는 막는 일만 하지 않는다. **리뷰어와 작성자를 돕는** 자동화가 붙으면 리뷰가 훨씬 빨라진다 — 사람은 사람만 할 수 있는 것에 집중하게 된다."
+          "text": "CI 는 막는 일만 하지 않는다. **리뷰어와 작성자를 돕는** 자동화가 붙으면 리뷰가 훨씬 빨라진다. 사람은 사람만 할 수 있는 것에 집중하게 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자동화를 골라 보라 — 무엇을 돕나",
+          "label": "자동화를 골라 보라. 무엇을 돕나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const t = {\n    preview: ['미리보기 배포', ['PR 마다 임시 URL 을 만들어 준다', '리뷰어가 코드를 안 받고도 눈으로 본다'],\n      '화면 변경이 있는 프로젝트에서 리뷰 속도를 가장 크게 바꾼다.'],\n    diff:    ['영향 요약 코멘트', ['번들 크기 +12KB', '커버리지 -0.4%', '변경된 API 목록'],\n      '숫자를 사람이 찾아보게 하지 말고 PR 에 붙여 준다 — 안 보면 없는 것과 같다.'],\n    fix:     ['자동 고침 커밋', ['포맷·간단한 린트는 CI 가 고쳐서 커밋'],\n      '「포맷 고쳐 주세요」 코멘트를 없앤다. 다만 자동 커밋이 무한 루프를 안 돌게 조심.'],\n    label:   ['자동 라벨·리뷰어 지정', ['바뀐 경로로 라벨(area/api)과 코드 오너 지정'],\n      '모노레포에서 특히 값을 한다 — 누가 볼지 자동으로 정해진다.'],\n    matrix:  ['여러 환경에서 검사', ['Node 18·20·22 · OS 셋', '지원한다고 적은 환경은 실제로 검사해야 한다'],\n      '라이브러리라면 필수. 앱이면 실제 배포 환경 하나로 충분한 경우가 많다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    'CI 는 게이트이자 도우미다 — 막는 것만 늘리면 팀이 CI 를 미워하게 된다.');\n</script>",
           "controls": [
@@ -636,7 +636,7 @@
                 },
                 {
                   "value": "label",
-                  "label": "라벨·리뷰어"
+                  "label": "라벨, 리뷰어"
                 },
                 {
                   "value": "matrix",
@@ -649,20 +649,20 @@
         {
           "type": "code",
           "lang": "yaml",
-          "label": "매트릭스 — 조합을 한 번에",
+          "label": "매트릭스. 조합을 한 번에",
           "text": "jobs:\n  test:\n    strategy:\n      fail-fast: false          # 하나 깨져도 나머지는 계속 (원인 파악에 유리)\n      matrix:\n        node: [18, 20, 22]\n        os: [ubuntu-latest, windows-latest]\n        exclude:\n          - { os: windows-latest, node: 18 }\n    runs-on: ${{ matrix.os }}\n    steps:\n      - uses: actions/setup-node@v4\n        with: { node-version: ${{ matrix.node }} }\n      - run: npm ci && npm test"
         },
         {
           "type": "note",
-          "text": "**매트릭스는 비용이 곱해진다.** 3 × 2 = 6판이 매 PR 마다 돈다. 라이브러리처럼 여러 환경을 정말 지원해야 하면 값을 하지만, 앱이라면 「배포하는 환경 하나」로 충분한 경우가 많다 — 전체 조합은 야간 실행으로 빼는 절충이 흔하다."
+          "text": "**매트릭스는 비용이 곱해진다.** 3 × 2 = 6판이 매 PR 마다 돈다. 라이브러리처럼 여러 환경을 정말 지원해야 하면 값을 하지만, 앱이라면 \"배포하는 환경 하나\"로 충분한 경우가 많다. 전체 조합은 야간 실행으로 빼는 절충이 흔하다."
         },
         {
           "type": "p",
-          "text": "그리고 **자동 코멘트는 시끄러워지기 쉽다.** 매 push 마다 새 코멘트가 쌓이면 아무도 안 읽는다 — 기존 코멘트를 갱신하는 방식(sticky comment)으로 하나만 유지하라."
+          "text": "그리고 **자동 코멘트는 시끄러워지기 쉽다.** 매 push 마다 새 코멘트가 쌓이면 아무도 안 읽는다. 기존 코멘트를 갱신하는 방식(sticky comment)으로 하나만 유지하라."
         },
         {
           "type": "try",
-          "text": "내 PR 흐름에서 사람이 매번 반복하는 확인이 있는지 보라(「빌드 크기 봐 주세요」·「포맷 고쳐 주세요」). 있으면 그것이 자동화할 첫 후보다."
+          "text": "내 PR 흐름에서 사람이 매번 반복하는 확인이 있는지 보라(\"빌드 크기 봐 주세요\", \"포맷 고쳐 주세요\"). 있으면 그것이 자동화할 첫 후보다."
         }
       ],
       "quiz": [
@@ -703,7 +703,7 @@
     },
     {
       "id": "8",
-      "title": "CI 도 시스템이다 — 비용과 권한",
+      "title": "CI 도 시스템이다. 비용과 권한",
       "minutes": 8,
       "blocks": [
         {
@@ -713,7 +713,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 골라 보라 — 무엇을 챙기나",
+          "label": "항목을 골라 보라. 무엇을 챙기나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{item}}';\n  const t = {\n    cost:   ['러너 비용', ['분당 과금 · 매트릭스와 재실행이 곱해진다',\n      '큰 러너는 비싸지만 시간이 줄어 총액은 줄기도 한다 — 재 보고 정하라'],\n      'paths 필터·캐시·중복 실행 취소(concurrency)로 줄인다.'],\n    concur: ['중복 실행 취소', ['push 를 연달아 하면 옛 판이 계속 돈다'],\n      'concurrency 그룹으로 앞 판을 취소한다 — 비용과 대기 시간이 함께 준다.'],\n    timeout:['타임아웃', ['멈춘 잡이 6시간을 채우고 죽는 일이 흔하다'],\n      'timeout-minutes 를 잡마다 걸어라. 기본값은 너무 길다.'],\n    perm:   ['토큰 권한', ['기본 토큰이 쓰기 권한을 갖고 있으면 워크플로가 저장소를 고칠 수 있다'],\n      'permissions: contents: read 로 시작해 필요한 것만 연다(설정 칸 8장).'],\n    third:  ['서드파티 액션', ['남의 코드가 내 비밀에 접근할 수 있다', '태그는 언제든 옮겨질 수 있다'],\n      '커밋 해시로 고정 · 조직 허용 목록 · 정말 필요한지 먼저 검토.'],\n    selfh:  ['자체 호스팅 러너', ['빠르고 싸지만 상태가 남는다 — 앞 작업의 흔적이 다음 작업에 영향',\n      '공개 저장소에 붙이면 남이 내 기계에서 코드를 돌린다'],\n      '일회용(ephemeral) 러너로 · 공개 저장소에는 쓰지 마라.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]), '');\n</script>",
           "controls": [
@@ -759,7 +759,7 @@
         },
         {
           "type": "note",
-          "text": "**자체 호스팅 러너를 공개 저장소에 붙이지 마라.** 누구나 PR 을 열어 내 기계에서 코드를 돌릴 수 있게 된다. 사내 저장소라도 러너에 상태가 남으면 앞 작업의 캐시·비밀이 다음 작업에 보일 수 있으니, 매번 새로 만드는 방식이 안전하다."
+          "text": "**자체 호스팅 러너를 공개 저장소에 붙이지 마라.** 누구나 PR 을 열어 내 기계에서 코드를 돌릴 수 있게 된다. 사내 저장소라도 러너에 상태가 남으면 앞 작업의 캐시, 비밀이 다음 작업에 보일 수 있으니, 매번 새로 만드는 방식이 안전하다."
         },
         {
           "type": "p",
@@ -767,7 +767,7 @@
         },
         {
           "type": "try",
-          "text": "내 워크플로에 `concurrency` 와 `timeout-minutes` 가 있는지 확인하라. 없으면 지금 넣어라 — 두 줄로 비용과 사고가 함께 준다."
+          "text": "내 워크플로에 `concurrency` 와 `timeout-minutes` 가 있는지 확인하라. 없으면 지금 넣어라. 두 줄로 비용과 사고가 함께 준다."
         }
       ],
       "quiz": [
@@ -802,13 +802,13 @@
             "안전하다"
           ],
           "answer": 1,
-          "why": "일회용 러너·비공개 저장소에서만."
+          "why": "일회용 러너, 비공개 저장소에서만."
         }
       ]
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -824,13 +824,13 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .step { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:12px ui-monospace, monospace; }\n  .step .nm { width:150px; flex:none; }\n  .step .bar { height:16px; border-radius:4px; background:#2563eb; }\n  .step .t { color:#94a3b8; font-size:11px; }\n  .step.hit .bar { background:#22c55e; }\n  .step.fail .bar { background:#ef4444; }\n  .step.skip .bar { background:#334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 단계 막대 — [이름, 초, 상태] */\n  const steps = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 1);\n    return list.map(([nm, sec, cls]) =>\n      '<div class=\"step ' + (cls || '') + '\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"bar\" style=\"width:' + Math.max(2, (sec / max) * 240) + 'px\"></span>' +\n      '<span class=\"t\">' + (sec >= 60 ? (sec / 60).toFixed(1) + '분' : sec + '초') + '</span></div>').join('');\n  };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['CI 의 핵심 가치는 빠른 피드백이다', true],\n    ['CI 에서는 npm install 을 쓰는 것이 맞다', false],\n    ['흔들리는 검사도 필수 게이트로 걸어야 한다', false],\n    ['잡 사이에 파일은 자동으로 넘어간다', false],\n    ['main 이 빨강이면 되돌리는 것도 좋은 선택이다', true],\n    ['매트릭스는 조합만큼 비용이 곱해진다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(가치) 2장(ci·아티팩트) 4·5장(게이트·빨강) 7장(매트릭스)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 CD 다. 여기까지가 「내보내도 되는지 검사하는 법」이었다면, 다음은 **실제로 내보내는 법**이다 — 어떻게 바꿔 끼우고, 잘못됐을 때 어떻게 되돌리나."
+          "text": "다음 칸은 CD 다. 여기까지가 \"내보내도 되는지 검사하는 법\"이었다면, 다음은 **실제로 내보내는 법**이다. 어떻게 바꿔 끼우고, 잘못됐을 때 어떻게 되돌리나."
         },
         {
           "type": "try",
@@ -850,10 +850,10 @@
           "why": "속도와 신뢰가 CI 의 두 축이다."
         },
         {
-          "q": "「CI 에서만 실패」의 근본 대책은?",
+          "q": "\"CI 에서만 실패\"의 근본 대책은?",
           "choices": [
             "재실행",
-            "버전·시간·경로·순서를 고정하기",
+            "버전, 시간, 경로, 순서를 고정하기",
             "러너 교체",
             "테스트 삭제"
           ],

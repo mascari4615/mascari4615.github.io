@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**느낌으로 판단하면 목소리 큰 한 명이 방향을 정한다 — 숫자는 그 목소리를 이기기 위한 도구다.** 「사람들이 이 기능 좋아할 거야」·「이게 문제야」를 감으로 정하면, 회의에서 **가장 확신에 차 있거나 지위가 높은 사람**의 의견이 이긴다(HiPPO — highest paid person's opinion). 그 사람이 옳을 때도 있지만, 대개는 **자기 편향·특수한 경험**을 전체로 착각한다(analytics-question 확증 편향). **숫자(지표)는 이 목소리를 이기는 공정한 심판**이다 — 「내 생각엔」이 아니라 「데이터를 보니」로 말하면, 지위·목청이 아니라 **사실**이 방향을 정한다. 단 숫자면 다 좋은 게 아니다 — **좋은 지표**(2장)를 골라야 하고, 허영 지표(3장)를 피하고, 하나에 집중하고(4장), 짝을 두고(5장) 정직하게 재야(5장) 한다. 이 칸은 그 규율을 다룬다. 아래 데모로 느낌 vs 숫자를 비교하라."
+          "text": "**느낌으로 판단하면 목소리 큰 한 명이 방향을 정한다. 숫자는 그 목소리를 이기기 위한 도구다.** \"사람들이 이 기능 좋아할 거야\", \"이게 문제야\"를 감으로 정하면, 회의에서 **가장 확신에 차 있거나 지위가 높은 사람**의 의견이 이긴다(HiPPO. highest paid person's opinion). 그 사람이 옳을 때도 있지만, 대개는 **자기 편향, 특수한 경험**을 전체로 착각한다(analytics-question 확증 편향). **숫자(지표)는 이 목소리를 이기는 공정한 심판**이다. \"내 생각엔\"이 아니라 \"데이터를 보니\"로 말하면, 지위, 목청이 아니라 **사실**이 방향을 정한다. 단 숫자면 다 좋은 게 아니다. **좋은 지표**(2장)를 골라야 하고, 허영 지표(3장)를 피하고, 하나에 집중하고(4장), 짝을 두고(5장) 정직하게 재야(5장) 한다. 이 칸은 그 규율을 다룬다. 아래 데모로 느낌 vs 숫자를 비교하라."
         },
         {
           "type": "demo",
@@ -37,11 +37,11 @@
         },
         {
           "type": "note",
-          "text": "**느낌으로 제품 방향을 정하면 가장 목소리 크거나 지위 높은 사람의 의견이 이기고, 숫자(지표)는 그 편향을 이기는 공정한 심판이다.** **HiPPO 문제**: 데이터 없이 감으로 결정하면 — 회의에서 **가장 확신에 차 있거나·말을 잘하거나·직급이 높은 사람**의 의견이 채택된다(HiPPO, Highest Paid Person's Opinion). 이 사람이 옳을 때도 있지만, 대개는 ⓐ **자기 경험을 전체로 착각**하고(자신은 파워유저인데 대중 사용자를 그렇게 상상), ⓑ **확증 편향**으로 자기 가설에 맞는 일화만 기억하며(analytics-question 1장), ⓒ 반박할 데이터가 없어 **목청·지위가 논리를 대체**한다. 그 결과 아무도 안 원하는 기능을 만들거나(product-problem), 진짜 문제를 놓친다. **숫자가 심판인 이유**: 지표는 「내 생각엔」을 **「데이터를 보니」**로 바꾼다 — 「재방문율이 이번 달 6%p 떨어졌다」는 지위·목청과 무관한 **사실**이라, 누구의 의견인지가 아니라 **무엇이 참인지**로 대화가 옮겨간다. 신입도 데이터로 임원의 감을 반박할 수 있고, 논쟁이 「누가 옳은가」에서 「무엇이 사실인가」로 바뀐다. 이것이 데이터 기반 의사결정의 핵심 가치 — **공정성과 편향 극복**. **단, 숫자면 다 좋은 게 아니다**: 잘못된 지표(허영 지표, 3장)를 보면 오히려 틀린 방향에 확신을 더한다(숫자의 갑옷을 입은 착각). 그래서 — **좋은 지표를 고르고**(2장·사용자 가치와 연결·행동 가능·조작 어려움), **허영 지표를 피하고**(3장), **하나에 집중하고**(4장·OMTM), **가드레일 짝을 두고**(5장), **정직하게 재고 성공 기준을 미리 정한다**(5장·analytics-ab 사전 등록). 지표는 도구일 뿐 — **어떤 숫자를 보느냐**가 그 도구의 성패를 가른다. **주의 — 숫자가 전부는 아니다**: 정성(인터뷰·관찰, product-problem·feedback)과 정량(지표)은 함께 간다 — 지표는 「무엇이·얼마나」를, 인터뷰는 「왜」를 준다(analytics-question 2장). 지표만 맹신하면 맥락을 놓친다. **정리**: 느낌은 목소리 큰 사람을 이기게 하고 숫자는 편향을 이기게 한다 — 단 좋은 지표를 골라야 숫자가 심판이 된다(다음 장이 그 조건)."
+          "text": "**느낌으로 제품 방향을 정하면 가장 목소리 크거나 지위 높은 사람의 의견이 이기고, 숫자(지표)는 그 편향을 이기는 공정한 심판이다.** **HiPPO 문제**: 데이터 없이 감으로 결정하면. 회의에서 **가장 확신에 차 있거나, 말을 잘하거나, 직급이 높은 사람**의 의견이 채택된다(HiPPO, Highest Paid Person's Opinion). 이 사람이 옳을 때도 있지만, 대개는 ⓐ **자기 경험을 전체로 착각**하고(자신은 파워유저인데 대중 사용자를 그렇게 상상), ⓑ **확증 편향**으로 자기 가설에 맞는 일화만 기억하며(analytics-question 1장), ⓒ 반박할 데이터가 없어 **목청, 지위가 논리를 대체**한다. 그 결과 아무도 안 원하는 기능을 만들거나(product-problem), 진짜 문제를 놓친다. **숫자가 심판인 이유**: 지표는 \"내 생각엔\"을 **\"데이터를 보니\"**로 바꾼다. \"재방문율이 이번 달 6%p 떨어졌다\"는 지위, 목청과 무관한 **사실**이라, 누구의 의견인지가 아니라 **무엇이 참인지**로 대화가 옮겨간다. 신입도 데이터로 임원의 감을 반박할 수 있고, 논쟁이 \"누가 옳은가\"에서 \"무엇이 사실인가\"로 바뀐다. 이것이 데이터 기반 의사결정의 핵심 가치. **공정성과 편향 극복**. **단, 숫자면 다 좋은 게 아니다**: 잘못된 지표(허영 지표, 3장)를 보면 오히려 틀린 방향에 확신을 더한다(숫자의 갑옷을 입은 착각). 그래서. **좋은 지표를 고르고**(2장, 사용자 가치와 연결, 행동 가능, 조작 어려움), **허영 지표를 피하고**(3장), **하나에 집중하고**(4장, OMTM), **가드레일 짝을 두고**(5장), **정직하게 재고 성공 기준을 미리 정한다**(5장, analytics-ab 사전 등록). 지표는 도구일 뿐. **어떤 숫자를 보느냐**가 그 도구의 성패를 가른다. **주의. 숫자가 전부는 아니다**: 정성(인터뷰, 관찰, product-problem, feedback)과 정량(지표)은 함께 간다. 지표는 \"무엇이, 얼마나\"를, 인터뷰는 \"왜\"를 준다(analytics-question 2장). 지표만 맹신하면 맥락을 놓친다. **정리**: 느낌은 목소리 큰 사람을 이기게 하고 숫자는 편향을 이기게 한다. 단 좋은 지표를 골라야 숫자가 심판이 된다(다음 장이 그 조건)."
         },
         {
           "type": "try",
-          "text": "최근 제품 결정 하나를 떠올려, **느낌(누구의 의견)으로 정했는지 데이터로 정했는지** 보라. 느낌으로 정했다면 그 판단을 **확인하거나 반박할 지표**가 무엇일지 적어라 — 「내 생각엔」을 「데이터를 보니」로 바꿀 수 있는지. 목소리 큰 사람의 감이 아니라 사실로 방향을 정하는 연습을 하라."
+          "text": "최근 제품 결정 하나를 떠올려, **느낌(누구의 의견)으로 정했는지 데이터로 정했는지** 보라. 느낌으로 정했다면 그 판단을 **확인하거나 반박할 지표**가 무엇일지 적어라. \"내 생각엔\"을 \"데이터를 보니\"로 바꿀 수 있는지. 목소리 큰 사람의 감이 아니라 사실로 방향을 정하는 연습을 하라."
         }
       ],
       "quiz": [
@@ -60,7 +60,7 @@
           "q": "숫자(지표)의 역할은?",
           "choices": [
             "장식",
-            "편향·목청을 이기는 공정한 심판(데이터가 방향을 정함)",
+            "편향, 목청을 이기는 공정한 심판(데이터가 방향을 정함)",
             "느림",
             "무관"
           ],
@@ -71,7 +71,7 @@
           "q": "숫자면 다 좋은가?",
           "choices": [
             "그렇다",
-            "아니다 — 좋은 지표를 골라야(허영 지표는 착각에 갑옷)",
+            "아니다. 좋은 지표를 골라야(허영 지표는 착각에 갑옷)",
             "무관",
             "항상"
           ],
@@ -87,12 +87,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**좋은 지표는 세 조건을 갖춘다: ① 사용자 가치와 연결됨, ② 행동으로 바꿀 수 있음, ③ 조작하기 어려움.** ① **사용자 가치와 연결** — 그 숫자가 오르면 **사용자가 실제로 더 나은 경험**을 하는가(허수가 아니라 진짜 가치). ② **행동으로 바꿀 수 있음(actionable)** — 그 숫자를 보고 **무엇을 할지가 정해지는가**(내가 영향을 줄 수 있는 것, analytics-question 2장). ③ **조작하기 어려움** — 팀이 그 숫자만 올리려고 **꼼수를 부리기 어려운가**(쉬우면 지표를 게임함, 굿하트의 법칙). 예: **「페이지뷰」는 셋 다 약하다** — 헤매도 오르고(가치 X), 팝업·페이지 쪼개기로 조작 쉽고, 무엇을 할지 불명. 반면 **「메모를 저장한 사람 수」는 셋 다 강하다** — 저장 = 실제 가치 실현, 조작 어렵고, 저장을 막는 병목을 고치면 오른다. 아래 데모로 지표를 세 조건으로 채점하라."
+          "text": "**좋은 지표는 세 조건을 갖춘다: ① 사용자 가치와 연결됨, ② 행동으로 바꿀 수 있음, ③ 조작하기 어려움.** ① **사용자 가치와 연결**. 그 숫자가 오르면 **사용자가 실제로 더 나은 경험**을 하는가(허수가 아니라 진짜 가치). ② **행동으로 바꿀 수 있음(actionable)**. 그 숫자를 보고 **무엇을 할지가 정해지는가**(내가 영향을 줄 수 있는 것, analytics-question 2장). ③ **조작하기 어려움**. 팀이 그 숫자만 올리려고 **꼼수를 부리기 어려운가**(쉬우면 지표를 게임함, 굿하트의 법칙). 예: **\"페이지뷰\"는 셋 다 약하다**. 헤매도 오르고(가치 X), 팝업, 페이지 쪼개기로 조작 쉽고, 무엇을 할지 불명. 반면 **\"메모를 저장한 사람 수\"는 셋 다 강하다**. 저장 = 실제 가치 실현, 조작 어렵고, 저장을 막는 병목을 고치면 오른다. 아래 데모로 지표를 세 조건으로 채점하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "지표 채점 — 세 조건",
+          "label": "지표 채점. 세 조건",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .curve { position:relative; height:90px; background:#0e1830; border-radius:8px; margin:8px 0; overflow:hidden; }\n  .curve svg { width:100%; height:100%; display:block; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // retention curve: pts is array of y in 0..1 (retention over time). flatten=true → settles above 0\n  function curve(pts, color) {\n    const W = 300, H = 80, pad = 6;\n    const n = pts.length;\n    const path = pts.map((y, i) => (i ? 'L' : 'M') + (pad + i / (n - 1) * (W - 2 * pad)).toFixed(1) + ',' + (pad + (1 - y) * (H - 2 * pad)).toFixed(1)).join(' ');\n    return '<div class=\"curve\"><svg viewBox=\"0 0 ' + W + ' ' + H + '\" preserveAspectRatio=\"none\">' +\n      '<path d=\"' + path + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/></svg></div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{m}}';\n  const table = {\n    'pageview': ['페이지뷰', 1, 1, 1],\n    'signup': ['누적 가입자', 1, 1, 2],\n    'saved': ['메모를 저장한 사람 수', 3, 3, 3],\n    'retention': ['주간 재방문율(리텐션)', 3, 3, 3],\n  };\n  const r = table[m];\n  const total = r[1] + r[2] + r[3];\n  render('지표: ' + r[0] + '  →  ' + total + '/9',\n    (total >= 8 ? '<span class=\"ok\">세 조건을 다 갖춘 좋은 지표 — 이걸로 방향을 정한다.</span>'\n      : total <= 4 ? '<span class=\"no\">셋 다 약함(허영 지표에 가까움) — 오르는데 가치·행동·정직이 약하다.</span>'\n      : '<span class=\"warn\">일부만 충족 — 약한 조건을 보강하거나 다른 지표를.</span>'),\n    '좋은 지표 = 사용자 가치 연결 + 행동으로 바꿈 + 조작 어려움.',\n    bars([\n      { lab: '사용자 가치 연결', pct: r[1] / 3 * 100, val: r[1] + '/3', cls: r[1] >= 3 ? 'g' : 'b' },\n      { lab: '행동으로 바꿈', pct: r[2] / 3 * 100, val: r[2] + '/3', cls: r[2] >= 3 ? 'g' : 'b' },\n      { lab: '조작 어려움', pct: r[3] / 3 * 100, val: r[3] + '/3', cls: r[3] >= 3 ? 'g' : 'b' },\n    ]));\n</script>",
           "controls": [
@@ -130,30 +130,30 @@
         },
         {
           "type": "note",
-          "text": "**좋은 지표는 사용자 가치와 연결되고, 행동으로 바꿀 수 있고, 조작하기 어려운 세 조건을 갖춘다.** ① **사용자 가치와 연결됨**: 그 지표가 오를 때 **사용자가 실제로 더 나은 경험·결과**를 얻는가? 지표는 궁극적으로 「사용자가 우리 제품으로 이루려는 것(가치)」의 **대리 측정**이어야 한다 — 「메모 저장」은 「생각을 남긴다」는 가치를 반영하지만, 「페이지뷰」는 헤매서 여러 페이지를 봐도 오르니 가치와 어긋난다. 가치와 연결 안 된 지표를 올리면 사용자에겐 아무 이득이 없다(허영, 3장). ② **행동으로 바꿀 수 있음(actionable)**: 그 숫자를 보고 **무엇을 할지가 정해지고, 우리가 영향을 줄 수 있어야** 한다(analytics-question 2장). 「메모 저장 사람 수」가 낮으면 → 저장을 막는 병목(버튼 안 보임·느림)을 고칠 수 있다. 반면 「전체 시장 규모」는 우리가 못 바꾸니 지표로 부적합. 행동으로 안 이어지는 숫자는 대시보드 장식일 뿐. ③ **조작하기 어려움(게임 불가)**: 팀이 **그 숫자만 올리려고 꼼수**를 부리기 쉬우면, 지표는 오르는데 실제 가치는 안 오른다 — **굿하트의 법칙**(측정이 목표가 되면 좋은 측정이 되기를 멈춘다). 「페이지뷰」는 페이지를 잘게 쪼개거나 팝업으로 쉽게 부풀릴 수 있다(사용자 가치 훼손하며). 「메모를 저장한 **사람** 수」(고유 사용자·실제 행동)는 조작이 어렵다. **예시 대비**: **페이지뷰**(가치 약·조작 쉬움·행동 불명) vs **메모 저장 사람 수**(가치 강·조작 어려움·병목 고치면 오름) — 후자가 좋은 지표. **비율·행동 기반이 대체로 강함**: 누적·총합(가입자 총수)보다 **비율·활성·행동**(재방문율·핵심 행동 완료율·고유 사용자)이 세 조건에 강하다(3장). **정리**: 지표를 고를 때 「이게 오르면 사용자가 진짜 나아지나(가치)·보고 뭘 할지 정해지나(행동)·꼼수로 못 올리나(조작)」 세 질문으로 채점하라 — 셋 다 강한 것이 좋은 지표다."
+          "text": "**좋은 지표는 사용자 가치와 연결되고, 행동으로 바꿀 수 있고, 조작하기 어려운 세 조건을 갖춘다.** ① **사용자 가치와 연결됨**: 그 지표가 오를 때 **사용자가 실제로 더 나은 경험, 결과**를 얻는가? 지표는 궁극적으로 \"사용자가 우리 제품으로 이루려는 것(가치)\"의 **대리 측정**이어야 한다. \"메모 저장\"은 \"생각을 남긴다\"는 가치를 반영하지만, \"페이지뷰\"는 헤매서 여러 페이지를 봐도 오르니 가치와 어긋난다. 가치와 연결 안 된 지표를 올리면 사용자에겐 아무 이득이 없다(허영, 3장). ② **행동으로 바꿀 수 있음(actionable)**: 그 숫자를 보고 **무엇을 할지가 정해지고, 우리가 영향을 줄 수 있어야** 한다(analytics-question 2장). \"메모 저장 사람 수\"가 낮으면 → 저장을 막는 병목(버튼 안 보임, 느림)을 고칠 수 있다. 반면 \"전체 시장 규모\"는 우리가 못 바꾸니 지표로 부적합. 행동으로 안 이어지는 숫자는 대시보드 장식일 뿐. ③ **조작하기 어려움(게임 불가)**: 팀이 **그 숫자만 올리려고 꼼수**를 부리기 쉬우면, 지표는 오르는데 실제 가치는 안 오른다. **굿하트의 법칙**(측정이 목표가 되면 좋은 측정이 되기를 멈춘다). \"페이지뷰\"는 페이지를 잘게 쪼개거나 팝업으로 쉽게 부풀릴 수 있다(사용자 가치 훼손하며). \"메모를 저장한 **사람** 수\"(고유 사용자, 실제 행동)는 조작이 어렵다. **예시 대비**: **페이지뷰**(가치 약, 조작 쉬움, 행동 불명) vs **메모 저장 사람 수**(가치 강, 조작 어려움, 병목 고치면 오름). 후자가 좋은 지표. **비율, 행동 기반이 대체로 강함**: 누적, 총합(가입자 총수)보다 **비율, 활성, 행동**(재방문율, 핵심 행동 완료율, 고유 사용자)이 세 조건에 강하다(3장). **정리**: 지표를 고를 때 \"이게 오르면 사용자가 진짜 나아지나(가치), 보고 뭘 할지 정해지나(행동), 꼼수로 못 올리나(조작)\" 세 질문으로 채점하라. 셋 다 강한 것이 좋은 지표다."
         },
         {
           "type": "try",
-          "text": "지금 보고 있는(또는 볼) 지표 하나를 **세 조건으로 채점**하라 — ① 오르면 사용자가 진짜 나아지나(가치)? ② 보고 무엇을 할지 정해지나(행동)? ③ 꼼수로 올리기 어려운가(조작)? 하나라도 약하면(특히 누적·총합류) **행동·비율 기반 지표**(재방문율·핵심 행동 완료율)로 바꿀 수 있는지 보라."
+          "text": "지금 보고 있는(또는 볼) 지표 하나를 **세 조건으로 채점**하라. ① 오르면 사용자가 진짜 나아지나(가치)? ② 보고 무엇을 할지 정해지나(행동)? ③ 꼼수로 올리기 어려운가(조작)? 하나라도 약하면(특히 누적, 총합류) **행동, 비율 기반 지표**(재방문율, 핵심 행동 완료율)로 바꿀 수 있는지 보라."
         }
       ],
       "quiz": [
         {
           "q": "좋은 지표의 세 조건은?",
           "choices": [
-            "크다·빠르다·많다",
+            "크다, 빠르다, 많다",
             "사용자 가치 연결 + 행동으로 바꿈 + 조작 어려움",
-            "예쁨·간단·유행",
+            "예쁨, 간단, 유행",
             "무관"
           ],
           "answer": 1,
           "why": "세 조건."
         },
         {
-          "q": "「페이지뷰」가 나쁜 지표인 이유는?",
+          "q": "\"페이지뷰\"가 나쁜 지표인 이유는?",
           "choices": [
             "작아서",
-            "가치 약·조작 쉬움·행동 불명 — 셋 다 약함",
+            "가치 약, 조작 쉬움, 행동 불명. 셋 다 약함",
             "너무 정확",
             "무관"
           ],
@@ -180,12 +180,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**허영 지표(vanity metric)는 오르기만 하고 판단에 도움 안 되는 숫자다 — 누적 가입자·총 페이지뷰·앱 다운로드처럼 「좋아 보이지만」 행동으로 안 이어진다.** 허영 지표의 특징: **항상 오른다**(누적은 줄지 않음), 보기 좋아 자랑용이지만, **무엇을 할지 안 알려 주고** 사용자가 실제로 쓰는지도 모른다(다운로드받고 안 쓸 수 있음). 대신 **유효 지표(actionable metric)**: **주간 활성 사용자(WAU)·핵심 행동 완료율·재방문율(리텐션)** 처럼 **실제 사용·정착**을 본다. 특히 **리텐션 곡선**이 중요하다 — 시간이 지나며 **평평해지는지(정착)**를 보면 「제품이 붙잡는가」를 안다: 계속 0 으로 떨어지면 아무도 안 남는 것(구멍 난 양동이), **어느 수준에서 평평해지면** 그 비율의 사용자가 **정착(product-market fit 신호)**한 것. 누적 지표는 이 진실을 가린다. 아래 데모로 허영 vs 유효, 리텐션 곡선을 확인하라."
+          "text": "**허영 지표(vanity metric)는 오르기만 하고 판단에 도움 안 되는 숫자다. 누적 가입자, 총 페이지뷰, 앱 다운로드처럼 \"좋아 보이지만\" 행동으로 안 이어진다.** 허영 지표의 특징: **항상 오른다**(누적은 줄지 않음), 보기 좋아 자랑용이지만, **무엇을 할지 안 알려 주고** 사용자가 실제로 쓰는지도 모른다(다운로드받고 안 쓸 수 있음). 대신 **유효 지표(actionable metric)**: **주간 활성 사용자(WAU), 핵심 행동 완료율, 재방문율(리텐션)** 처럼 **실제 사용, 정착**을 본다. 특히 **리텐션 곡선**이 중요하다. 시간이 지나며 **평평해지는지(정착)**를 보면 \"제품이 붙잡는가\"를 안다: 계속 0 으로 떨어지면 아무도 안 남는 것(구멍 난 양동이), **어느 수준에서 평평해지면** 그 비율의 사용자가 **정착(product-market fit 신호)**한 것. 누적 지표는 이 진실을 가린다. 아래 데모로 허영 vs 유효, 리텐션 곡선을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "허영 vs 유효 · 리텐션 곡선",
+          "label": "허영 vs 유효, 리텐션 곡선",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .curve { position:relative; height:90px; background:#0e1830; border-radius:8px; margin:8px 0; overflow:hidden; }\n  .curve svg { width:100%; height:100%; display:block; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // retention curve: pts is array of y in 0..1 (retention over time). flatten=true → settles above 0\n  function curve(pts, color) {\n    const W = 300, H = 80, pad = 6;\n    const n = pts.length;\n    const path = pts.map((y, i) => (i ? 'L' : 'M') + (pad + i / (n - 1) * (W - 2 * pad)).toFixed(1) + ',' + (pad + (1 - y) * (H - 2 * pad)).toFixed(1)).join(' ');\n    return '<div class=\"curve\"><svg viewBox=\"0 0 ' + W + ' ' + H + '\" preserveAspectRatio=\"none\">' +\n      '<path d=\"' + path + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/></svg></div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'vanity' || view === 'valid') {\n    const valid = view === 'valid';\n    render(valid ? '유효 지표 — 실제 사용·정착' : '허영 지표 — 오르기만, 판단 불가',\n      (valid ? '<span class=\"ok\">주간 활성·핵심 행동 완료율·재방문율 → 실제로 쓰는지·정착하는지 보임 → 행동 가능.</span>'\n             : '<span class=\"no\">누적 가입자·총 페이지뷰·다운로드 → 항상 오름·자랑용 → 쓰는지 모름·무엇을 할지 불명.</span>'),\n      '허영(누적·총합) 피하고 유효(활성·완료율·리텐션)를.',\n      cmp('허영 지표', '누적 가입자\\n총 페이지뷰\\n앱 다운로드\\n→ 항상 오름·자랑용', '유효 지표', '주간 활성 사용자\\n핵심 행동 완료율\\n재방문율(리텐션)\\n→ 실제 사용·정착', valid ? '' : 'bad', valid ? 'good' : ''));\n  } else {\n    const settle = view === 'settle';\n    const pts = settle ? [1, 0.6, 0.42, 0.36, 0.34, 0.33, 0.33] : [1, 0.5, 0.28, 0.16, 0.09, 0.04, 0.01];\n    render(settle ? '리텐션 곡선 — 평평해짐(정착·PMF 신호)' : '리텐션 곡선 — 0 으로 떨어짐(아무도 안 남음)',\n      (settle ? '<span class=\"ok\">어느 수준(~33%)에서 평평 → 그 비율이 정착. 제품이 붙잡는다(product-market fit 신호).</span>'\n              : '<span class=\"no\">계속 0 으로 떨어짐 → 새로 와도 다 떠남(구멍 난 양동이). 누적 지표는 이걸 가린다.</span>'),\n      '리텐션 곡선이 평평해지는지(정착) 보라 — 누적 지표는 진실을 가린다.',\n      curve(pts, settle ? '#4ade80' : '#f87171'));\n  }\n</script>",
           "controls": [
@@ -223,11 +223,11 @@
         },
         {
           "type": "note",
-          "text": "**허영 지표는 오르기만 하고 행동에 도움 안 되는 숫자이고, 유효 지표는 실제 사용·정착을 보여 주며, 특히 리텐션 곡선이 평평해지는지가 제품의 진실을 드러낸다.** **허영 지표(vanity metric)**: 보기에는 좋지만 판단에 쓸모없는 숫자 — **누적 가입자, 총 페이지뷰, 앱 다운로드 수, 총 등록 계정** 등. 특징: ① **항상 오른다** — 누적·총합은 줄지 않으니 언제나 「성장 중」처럼 보인다(하지만 신규가 유입되는 만큼 이탈해도 누적은 오름 — 진실을 가림). ② **자랑용** — 투자자·상사에게 보이기 좋지만 결정을 못 이끈다(analytics-question 2장 「so what?」). ③ **실제 사용 여부를 모름** — 다운로드받고 한 번도 안 쓸 수 있고, 가입만 하고 떠날 수 있다. 그래서 허영 지표가 올라도 **무엇을 할지, 제품이 건강한지** 알 수 없다. **유효 지표(actionable/actionable metric)**: **주간/월간 활성 사용자(WAU/MAU), 핵심 행동 완료율, 재방문율(리텐션), 전환율** 처럼 **실제 사용과 정착**을 재는 지표(2장 세 조건 강함). **리텐션 곡선이 핵심**: 특정 시점(가입일)에 들어온 사용자 코호트가 **시간이 지나며 얼마나 남는지**를 그린 곡선. 두 모양: ⓐ **계속 0 으로 떨어짐** — 새 사용자가 와도 곧 다 떠난다(구멍 난 양동이 leaky bucket). 누적 가입자는 늘어도 **아무도 정착 안 함** — 이 상태에서 마케팅으로 유입을 늘리면 밑 빠진 독에 물 붓기. ⓑ **어느 수준에서 평평해짐(settle)** — 초기 이탈 후 일정 비율(예: 30%)이 **꾸준히 남는다** = 그 비율의 사용자가 **정착**했다는 뜻, 제품이 진짜 가치를 준다는 강한 신호(**product-market fit** 의 핵심 지표). 평평해지는 수준이 높을수록 건강. **왜 누적이 위험한가**: 누적 가입자·다운로드는 **리텐션의 진실을 완전히 가린다** — 곡선이 0 으로 떨어져도 누적은 계속 오르니, 「성장 중」이라 착각하며 근본 문제(정착 실패)를 못 본다. **정리**: 항상 오르는 허영 지표(누적·총합)를 피하고, 활성·완료율·리텐션 같은 유효 지표를 보되 — 특히 **리텐션 곡선이 평평해지는지**로 제품이 사용자를 붙잡는지(정착)를 확인하라."
+          "text": "**허영 지표는 오르기만 하고 행동에 도움 안 되는 숫자이고, 유효 지표는 실제 사용, 정착을 보여 주며, 특히 리텐션 곡선이 평평해지는지가 제품의 진실을 드러낸다.** **허영 지표(vanity metric)**: 보기에는 좋지만 판단에 쓸모없는 숫자. **누적 가입자, 총 페이지뷰, 앱 다운로드 수, 총 등록 계정** 등. 특징: ① **항상 오른다**. 누적, 총합은 줄지 않으니 언제나 \"성장 중\"처럼 보인다(하지만 신규가 유입되는 만큼 이탈해도 누적은 오름. 진실을 가림). ② **자랑용**. 투자자, 상사에게 보이기 좋지만 결정을 못 이끈다(analytics-question 2장 \"so what?\"). ③ **실제 사용 여부를 모름**. 다운로드받고 한 번도 안 쓸 수 있고, 가입만 하고 떠날 수 있다. 그래서 허영 지표가 올라도 **무엇을 할지, 제품이 건강한지** 알 수 없다. **유효 지표(actionable/actionable metric)**: **주간/월간 활성 사용자(WAU/MAU), 핵심 행동 완료율, 재방문율(리텐션), 전환율** 처럼 **실제 사용과 정착**을 재는 지표(2장 세 조건 강함). **리텐션 곡선이 핵심**: 특정 시점(가입일)에 들어온 사용자 코호트가 **시간이 지나며 얼마나 남는지**를 그린 곡선. 두 모양: ⓐ **계속 0 으로 떨어짐**. 새 사용자가 와도 곧 다 떠난다(구멍 난 양동이 leaky bucket). 누적 가입자는 늘어도 **아무도 정착 안 함**. 이 상태에서 마케팅으로 유입을 늘리면 밑 빠진 독에 물 붓기. ⓑ **어느 수준에서 평평해짐(settle)**. 초기 이탈 후 일정 비율(예: 30%)이 **꾸준히 남는다** = 그 비율의 사용자가 **정착**했다는 뜻, 제품이 진짜 가치를 준다는 강한 신호(**product-market fit** 의 핵심 지표). 평평해지는 수준이 높을수록 건강. **왜 누적이 위험한가**: 누적 가입자, 다운로드는 **리텐션의 진실을 완전히 가린다**. 곡선이 0 으로 떨어져도 누적은 계속 오르니, \"성장 중\"이라 착각하며 근본 문제(정착 실패)를 못 본다. **정리**: 항상 오르는 허영 지표(누적, 총합)를 피하고, 활성, 완료율, 리텐션 같은 유효 지표를 보되. 특히 **리텐션 곡선이 평평해지는지**로 제품이 사용자를 붙잡는지(정착)를 확인하라."
         },
         {
           "type": "try",
-          "text": "지금 보는 지표 중 **허영 지표**(누적 가입자·총 페이지뷰·다운로드 등 항상 오르는 것)를 찾아, **유효 지표**(주간 활성·핵심 행동 완료율·재방문율)로 바꿔라. 그리고 **리텐션 곡선**을 그려 — 시간이 지나며 **0 으로 떨어지는지, 어느 수준에서 평평해지는지** 보라. 평평해지면 그 비율이 정착한 것(건강), 떨어지면 정착 실패다."
+          "text": "지금 보는 지표 중 **허영 지표**(누적 가입자, 총 페이지뷰, 다운로드 등 항상 오르는 것)를 찾아, **유효 지표**(주간 활성, 핵심 행동 완료율, 재방문율)로 바꿔라. 그리고 **리텐션 곡선**을 그려. 시간이 지나며 **0 으로 떨어지는지, 어느 수준에서 평평해지는지** 보라. 평평해지면 그 비율이 정착한 것(건강), 떨어지면 정착 실패다."
         }
       ],
       "quiz": [
@@ -235,7 +235,7 @@
           "q": "허영 지표의 특징은?",
           "choices": [
             "행동으로 이어짐",
-            "항상 오르고 자랑용이지만 판단·행동에 도움 안 됨",
+            "항상 오르고 자랑용이지만 판단, 행동에 도움 안 됨",
             "정직",
             "무관"
           ],
@@ -246,7 +246,7 @@
           "q": "리텐션 곡선이 어느 수준에서 평평해지면?",
           "choices": [
             "실패",
-            "그 비율의 사용자가 정착(제품이 붙잡음·PMF 신호)",
+            "그 비율의 사용자가 정착(제품이 붙잡음, PMF 신호)",
             "무의미",
             "무관"
           ],
@@ -257,7 +257,7 @@
           "q": "누적 가입자가 위험한 이유는?",
           "choices": [
             "작아서",
-            "리텐션(정착 실패)의 진실을 가림 — 떨어져도 누적은 오름",
+            "리텐션(정착 실패)의 진실을 가림. 떨어져도 누적은 오름",
             "정확해서",
             "무관"
           ],
@@ -268,12 +268,12 @@
     },
     {
       "id": "4",
-      "title": "하나를 고른다 — OMTM",
+      "title": "하나를 고른다. OMTM",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**지금 단계에서 가장 중요한 한 숫자(OMTM, One Metric That Matters)를 정하라 — 열 개를 보면 아무것도 안 본 것과 같다.** 지표가 많으면: 서로 상충할 때 무엇을 우선할지 모르고, 아무 숫자나 골라 상황을 정당화하고(자기 편의), 팀의 집중이 흩어진다. **한 숫자에 집중**하면 — 모두가 같은 목표를 보고, 그 숫자를 움직일 실험에 자원을 모은다. **OMTM 은 단계마다 바뀐다**: 초기에는 대개 **「핵심 행동을 반복하는 사람 수」**(리텐션·활성 — 제품이 붙잡는지, 3장), 성장기에는 유입·전환, 수익화기에는 매출·객단가. 지금 **가장 위험한 질문**에 답하는 지표 하나를 고른다(product-mvp 「가장 위험한 가정」과 통함). 나머지 지표는 **참고(가드레일 포함, 5장)**로 보되, **결정은 OMTM 으로**. 아래 데모로 하나 집중 vs 열 개를 비교하라."
+          "text": "**지금 단계에서 가장 중요한 한 숫자(OMTM, One Metric That Matters)를 정하라. 열 개를 보면 아무것도 안 본 것과 같다.** 지표가 많으면: 서로 상충할 때 무엇을 우선할지 모르고, 아무 숫자나 골라 상황을 정당화하고(자기 편의), 팀의 집중이 흩어진다. **한 숫자에 집중**하면. 모두가 같은 목표를 보고, 그 숫자를 움직일 실험에 자원을 모은다. **OMTM 은 단계마다 바뀐다**: 초기에는 대개 **\"핵심 행동을 반복하는 사람 수\"**(리텐션, 활성. 제품이 붙잡는지, 3장), 성장기에는 유입, 전환, 수익화기에는 매출, 객단가. 지금 **가장 위험한 질문**에 답하는 지표 하나를 고른다(product-mvp \"가장 위험한 가정\"과 통함). 나머지 지표는 **참고(가드레일 포함, 5장)**로 보되, **결정은 OMTM 으로**. 아래 데모로 하나 집중 vs 열 개를 비교하라."
         },
         {
           "type": "demo",
@@ -303,16 +303,16 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "OMTM — 단계마다 하나",
+          "label": "OMTM. 단계마다 하나",
           "text": "OMTM(One Metric That Matters): 지금 가장 중요한 한 숫자\n\n초기   : 핵심 행동을 반복하는 사람 수 (리텐션·활성 — 붙잡는가)\n성장기 : 유입·전환율\n수익화 : 매출·객단가·LTV\n\n지금 「가장 위험한 질문」에 답하는 지표 하나를 고른다\n나머지는 참고(가드레일 포함) · 결정은 OMTM 으로"
         },
         {
           "type": "note",
-          "text": "**지금 단계에서 가장 중요한 한 숫자(OMTM)를 정해 집중해야 하며, 열 개를 동시에 보면 아무것도 안 본 것과 같다.** **왜 하나인가**: 지표가 많으면 — ① **상충 시 마비** — 어떤 건 오르고 어떤 건 내릴 때 무엇을 우선할지 몰라 결정을 못 한다. ② **자기 편의 정당화** — 열 개 중 **자기 주장에 유리한 숫자**를 골라 「거봐 잘되고 있어」로 우긴다(analytics-question 확증 편향). ③ **집중 분산** — 팀이 여러 지표를 동시에 좇으면 어느 것도 제대로 못 움직인다. **OMTM(One Metric That Matters)**: **지금 이 단계에서 가장 중요한 단 하나의 지표**에 집중하는 것(에릭 리스·린 애널리틱스). 효과: ⓐ **정렬** — 모두가 같은 목표를 보고 같은 방향으로 일한다. ⓑ **집중** — 그 하나를 움직일 실험(product-mvp·analytics-ab)에 자원을 모은다. ⓒ **명료한 판단** — 「이 결정이 OMTM 을 올리나」로 우선순위가 정해진다. **OMTM 은 단계마다 바뀐다**: 제품의 여정에서 **지금 가장 위험한 질문**(product-mvp 「가장 위험한 가정」)이 무엇이냐에 따라 다르다 — **초기**(제품이 가치 있나): **핵심 행동을 반복하는 사람 수**(활성·리텐션 — 붙잡는지가 최대 관심, 3장). **성장기**(더 많은 사람에게 닿나): 유입·전환율·바이럴. **수익화기**(돈이 되나): 매출·객단가·LTV·이탈률. 한 질문이 답되면 다음 위험으로 OMTM 을 옮긴다. **나머지 지표는 어떻게**: OMTM 하나만 보는 게 아니라 — **가드레일 지표**(OMTM 을 올리다 망가지면 안 되는 것, 5장)와 **참고 지표**는 **함께 모니터링**하되, **의사결정의 중심**은 OMTM 이다(하나에 집중 ≠ 하나만 봄). **주의**: OMTM 도 **좋은 지표의 세 조건**(2장)을 갖춰야 하고 허영이 아니어야(3장) — 잘못된 하나에 집중하면 틀린 방향으로 전력질주. **정리**: 지금 단계의 가장 위험한 질문에 답하는 한 숫자(OMTM)를 골라 집중하라 — 초기엔 대개 핵심 행동을 반복하는 사람 수이고, 나머지는 참고·가드레일로 보되 결정은 OMTM 으로."
+          "text": "**지금 단계에서 가장 중요한 한 숫자(OMTM)를 정해 집중해야 하며, 열 개를 동시에 보면 아무것도 안 본 것과 같다.** **왜 하나인가**: 지표가 많으면. ① **상충 시 마비**. 어떤 건 오르고 어떤 건 내릴 때 무엇을 우선할지 몰라 결정을 못 한다. ② **자기 편의 정당화**. 열 개 중 **자기 주장에 유리한 숫자**를 골라 \"거봐 잘되고 있어\"로 우긴다(analytics-question 확증 편향). ③ **집중 분산**. 팀이 여러 지표를 동시에 좇으면 어느 것도 제대로 못 움직인다. **OMTM(One Metric That Matters)**: **지금 이 단계에서 가장 중요한 단 하나의 지표**에 집중하는 것(에릭 리스, 린 애널리틱스). 효과: ⓐ **정렬**. 모두가 같은 목표를 보고 같은 방향으로 일한다. ⓑ **집중**. 그 하나를 움직일 실험(product-mvp, analytics-ab)에 자원을 모은다. ⓒ **명료한 판단**. \"이 결정이 OMTM 을 올리나\"로 우선순위가 정해진다. **OMTM 은 단계마다 바뀐다**: 제품의 여정에서 **지금 가장 위험한 질문**(product-mvp \"가장 위험한 가정\")이 무엇이냐에 따라 다르다. **초기**(제품이 가치 있나): **핵심 행동을 반복하는 사람 수**(활성, 리텐션. 붙잡는지가 최대 관심, 3장). **성장기**(더 많은 사람에게 닿나): 유입, 전환율, 바이럴. **수익화기**(돈이 되나): 매출, 객단가, LTV, 이탈률. 한 질문이 답되면 다음 위험으로 OMTM 을 옮긴다. **나머지 지표는 어떻게**: OMTM 하나만 보는 게 아니라. **가드레일 지표**(OMTM 을 올리다 망가지면 안 되는 것, 5장)와 **참고 지표**는 **함께 모니터링**하되, **의사결정의 중심**은 OMTM 이다(하나에 집중 ≠ 하나만 봄). **주의**: OMTM 도 **좋은 지표의 세 조건**(2장)을 갖춰야 하고 허영이 아니어야(3장). 잘못된 하나에 집중하면 틀린 방향으로 전력질주. **정리**: 지금 단계의 가장 위험한 질문에 답하는 한 숫자(OMTM)를 골라 집중하라. 초기엔 대개 핵심 행동을 반복하는 사람 수이고, 나머지는 참고, 가드레일로 보되 결정은 OMTM 으로."
         },
         {
           "type": "try",
-          "text": "지금 서비스의 **OMTM 하나**를 정해 적어라 — 「지금 가장 위험한 질문」(가치 있나/성장하나/돈 되나)에 답하는 지표(초기면 대개 핵심 행동을 반복하는 사람 수). 열 개를 보고 있다면 **하나로 좁혀라**. 그리고 나머지 중 **가드레일 두 개**(5장)를 정해 함께 보되, 결정은 OMTM 으로 하라."
+          "text": "지금 서비스의 **OMTM 하나**를 정해 적어라. \"지금 가장 위험한 질문\"(가치 있나/성장하나/돈 되나)에 답하는 지표(초기면 대개 핵심 행동을 반복하는 사람 수). 열 개를 보고 있다면 **하나로 좁혀라**. 그리고 나머지 중 **가드레일 두 개**(5장)를 정해 함께 보되, 결정은 OMTM 으로 하라."
         }
       ],
       "quiz": [
@@ -331,7 +331,7 @@
           "q": "지표를 열 개 동시에 보면?",
           "choices": [
             "가장 정확",
-            "상충 시 마비·자기 편의 정당화·집중 분산",
+            "상충 시 마비, 자기 편의 정당화, 집중 분산",
             "빠름",
             "무관"
           ],
@@ -342,7 +342,7 @@
           "q": "초기 단계의 OMTM 은 대개?",
           "choices": [
             "누적 가입자",
-            "핵심 행동을 반복하는 사람 수(활성·리텐션)",
+            "핵심 행동을 반복하는 사람 수(활성, 리텐션)",
             "총 매출",
             "무관"
           ],
@@ -353,17 +353,17 @@
     },
     {
       "id": "5",
-      "title": "지표에는 짝이 필요하다 · 재는 법",
+      "title": "지표에는 짝이 필요하다, 재는 법",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**한 지표만 올리면 다른 것이 망가지니 가드레일 지표를 함께 두고, 이벤트로 정직하게 재며, 성공 기준은 만들기 전에 적는다.** ① **가드레일 지표**: 하나의 지표만 좇으면 **부작용**이 생긴다 — 알림을 늘리면 방문(OMTM)은 오르지만 **해제율·이탈**이 는다. 그래서 OMTM 옆에 **망가지면 안 되는 것**(해제율·오류율·응답 시간·이탈률)을 가드레일로 둔다(analytics-ab 3장). OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화. ② **재는 법(이벤트)**: 핵심 행동을 **이벤트로 기록**한다 — 이름은 **과거형·스네이크**(`note_saved`), 속성은 넉넉히(`source`·`length`) 붙인다(**속성은 나중에 자를 수 있지만, 안 남긴 데이터는 되살릴 수 없다**). ③ **성공 기준을 미리**: 기능을 만들 때 **「무엇이 얼마가 되면 성공인가」를 개발 전에** 적어라 — 나중에 정하면 **결과에 맞춰 기준이 움직인다**(사후 정당화, analytics-ab 사전 등록). 아래 데모로 가드레일과 성공 기준을 확인하라."
+          "text": "**한 지표만 올리면 다른 것이 망가지니 가드레일 지표를 함께 두고, 이벤트로 정직하게 재며, 성공 기준은 만들기 전에 적는다.** ① **가드레일 지표**: 하나의 지표만 좇으면 **부작용**이 생긴다. 알림을 늘리면 방문(OMTM)은 오르지만 **해제율, 이탈**이 는다. 그래서 OMTM 옆에 **망가지면 안 되는 것**(해제율, 오류율, 응답 시간, 이탈률)을 가드레일로 둔다(analytics-ab 3장). OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화. ② **재는 법(이벤트)**: 핵심 행동을 **이벤트로 기록**한다. 이름은 **과거형, 스네이크**(`note_saved`), 속성은 넉넉히(`source`, `length`) 붙인다(**속성은 나중에 자를 수 있지만, 안 남긴 데이터는 되살릴 수 없다**). ③ **성공 기준을 미리**: 기능을 만들 때 **\"무엇이 얼마가 되면 성공인가\"를 개발 전에** 적어라. 나중에 정하면 **결과에 맞춰 기준이 움직인다**(사후 정당화, analytics-ab 사전 등록). 아래 데모로 가드레일과 성공 기준을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "가드레일 · 성공 기준 미리",
+          "label": "가드레일, 성공 기준 미리",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .curve { position:relative; height:90px; background:#0e1830; border-radius:8px; margin:8px 0; overflow:hidden; }\n  .curve svg { width:100%; height:100%; display:block; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // retention curve: pts is array of y in 0..1 (retention over time). flatten=true → settles above 0\n  function curve(pts, color) {\n    const W = 300, H = 80, pad = 6;\n    const n = pts.length;\n    const path = pts.map((y, i) => (i ? 'L' : 'M') + (pad + i / (n - 1) * (W - 2 * pad)).toFixed(1) + ',' + (pad + (1 - y) * (H - 2 * pad)).toFixed(1)).join(' ');\n    return '<div class=\"curve\"><svg viewBox=\"0 0 ' + W + ' ' + H + '\" preserveAspectRatio=\"none\">' +\n      '<path d=\"' + path + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/></svg></div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'noguard' || view === 'guard') {\n    const g = view === 'guard';\n    render(g ? '가드레일 있음 — OMTM+부작용을 함께 봄' : '가드레일 없음 — 한 지표만 올려 다른 게 망가짐',\n      (g ? '<span class=\"ok\">알림을 늘려 방문↑(OMTM) — 하지만 해제율·이탈(가드레일)도 봄 → 나빠지면 나쁜 변화로 판정.</span>'\n         : '<span class=\"no\">방문(OMTM)만 좇아 알림 폭탄 → 방문은 올라도 해제율·이탈 폭증(안 보임) → 장기 손해.</span>'),\n      '가드레일: OMTM 올리다 망가지면 안 되는 것(해제율·오류·이탈)을 함께.',\n      bars([{ lab: 'OMTM(방문)', pct: 80, val: '↑', cls: 'c' }, { lab: '가드레일(해제율)', pct: g ? 30 : 85, val: g ? '지킴' : '↑망가짐', cls: g ? 'g' : 'b' }]));\n  } else {\n    const pre = view === 'pre';\n    render(pre ? '성공 기준을 개발 전에 적음' : '나중에 정함 — 결과에 맞춰 기준이 움직임',\n      (pre ? '<span class=\"ok\">「저장 완료율이 40%→55% 면 성공」을 개발 전에 → 결과를 정직하게 판정.</span>'\n           : '<span class=\"no\">결과를 보고 기준을 정함 → 유리하게 조정(사후 정당화) → 무엇을 배웠는지 모름.</span>'),\n      '기능마다 「무엇이 얼마가 되면 성공」을 개발 전에 적어라.',\n      steps(pre ? [['개발 전: 성공 = 저장 완료율 40%→55%', 'good'], ['이벤트로 측정', 'on'], ['기준대로 정직하게 판정', 'good']]\n                : [['일단 만듦', 'bad'], ['결과 보고 성공 기준 정함', 'bad'], ['유리하게 조정(사후 정당화)', 'bad']]));\n  }\n</script>",
           "controls": [
@@ -396,16 +396,16 @@
         {
           "type": "code",
           "lang": "js",
-          "label": "이벤트로 재기 · 성공 기준",
+          "label": "이벤트로 재기, 성공 기준",
           "text": "// 핵심 행동을 이벤트로: 이름은 과거형·스네이크, 속성은 넉넉히\ntrack('note_saved', { source: 'editor', length: text.length });\n// 속성은 나중에 자를 수 있지만, 안 남긴 데이터는 되살릴 수 없다\n\n// 성공 기준을 개발 전에 (나중에 정하면 기준이 움직인다)\n// 목표: 저장 완료율 40% → 55%\n// 가드레일: 오류율 <1%, 응답 시간 p95 안 나빠짐"
         },
         {
           "type": "note",
-          "text": "**한 지표만 좇으면 부작용이 생기므로 가드레일 지표를 함께 두고, 핵심 행동을 이벤트로 정직하게 기록하며, 성공 기준은 개발 전에 적어야 한다.** **① 가드레일 지표(guardrail)**: 하나의 지표(OMTM)만 최적화하면 거의 항상 **다른 것이 망가진다** — 알림을 늘리면 방문·재방문(OMTM)은 오르지만 **알림 해제율·앱 삭제·이탈**이 늘고(사용자를 괴롭혀 단기 지표를 짜냄), 전환을 올리려 다크패턴을 쓰면 전환은 오르지만 **환불·불만·신뢰**가 무너진다(굿하트의 법칙, 2장). 그래서 OMTM 옆에 **「올리다 망가지면 안 되는 것」**을 가드레일로 둔다 — 해제율·오류율·응답 시간·이탈률·환불율·고객 문의(analytics-ab 3장의 가드레일과 같은 개념). **OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화**로 판정한다. ② **재는 법 — 이벤트**: 지표를 재려면 **핵심 행동을 이벤트로 기록**해야 한다 — `track('note_saved', {...})`. 관례: **이름은 과거형·스네이크 케이스**(`note_saved`, `checkout_completed` — 「일어난 사실」), **속성(properties)을 넉넉히** 붙인다(`source`, `length`, `plan`). **핵심 원칙: 속성은 나중에 분석에서 자를 수 있지만, 처음부터 안 남긴 데이터는 되살릴 수 없다** — 그러니 의심스러우면 남긴다(단 개인정보·PII 는 신중히). 이벤트 스키마를 일관되게 관리(이름 규칙·필수 속성). ③ **성공 기준을 미리**: 기능·실험을 시작할 때 **「무엇이 얼마가 되면 성공인가」를 개발 전에 문장으로** 적는다 — 「저장 완료율이 40%→55% 면 성공」. **나중에 정하면 결과에 맞춰 기준이 움직인다**(잘 나온 지표를 골라 「성공」이라 우김 = 사후 정당화, analytics-ab 5장 사전 등록·analytics-question 확증 편향과 같은 규율). 성공/실패 기준과 가드레일을 미리 못 박아야 **정직하게 배운다**(무엇이 참인지, product-mvp 5장 판단 기준). **정리**: OMTM 옆에 가드레일을 두어 부작용을 감시하고, 핵심 행동을 과거형 이벤트로 넉넉한 속성과 함께 남기며(안 남기면 못 되살림), 성공 기준을 개발 전에 적어 결과에 맞춰 기준이 움직이지 않게 하라."
+          "text": "**한 지표만 좇으면 부작용이 생기므로 가드레일 지표를 함께 두고, 핵심 행동을 이벤트로 정직하게 기록하며, 성공 기준은 개발 전에 적어야 한다.** **① 가드레일 지표(guardrail)**: 하나의 지표(OMTM)만 최적화하면 거의 항상 **다른 것이 망가진다**. 알림을 늘리면 방문, 재방문(OMTM)은 오르지만 **알림 해제율, 앱 삭제, 이탈**이 늘고(사용자를 괴롭혀 단기 지표를 짜냄), 전환을 올리려 다크패턴을 쓰면 전환은 오르지만 **환불, 불만, 신뢰**가 무너진다(굿하트의 법칙, 2장). 그래서 OMTM 옆에 **\"올리다 망가지면 안 되는 것\"**을 가드레일로 둔다. 해제율, 오류율, 응답 시간, 이탈률, 환불율, 고객 문의(analytics-ab 3장의 가드레일과 같은 개념). **OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화**로 판정한다. ② **재는 법. 이벤트**: 지표를 재려면 **핵심 행동을 이벤트로 기록**해야 한다. `track('note_saved', {...})`. 관례: **이름은 과거형, 스네이크 케이스**(`note_saved`, `checkout_completed`. \"일어난 사실\"), **속성(properties)을 넉넉히** 붙인다(`source`, `length`, `plan`). **핵심 원칙: 속성은 나중에 분석에서 자를 수 있지만, 처음부터 안 남긴 데이터는 되살릴 수 없다**. 그러니 의심스러우면 남긴다(단 개인정보, PII 는 신중히). 이벤트 스키마를 일관되게 관리(이름 규칙, 필수 속성). ③ **성공 기준을 미리**: 기능, 실험을 시작할 때 **\"무엇이 얼마가 되면 성공인가\"를 개발 전에 문장으로** 적는다. \"저장 완료율이 40%→55% 면 성공\". **나중에 정하면 결과에 맞춰 기준이 움직인다**(잘 나온 지표를 골라 \"성공\"이라 우김 = 사후 정당화, analytics-ab 5장 사전 등록, analytics-question 확증 편향과 같은 규율). 성공/실패 기준과 가드레일을 미리 못 박아야 **정직하게 배운다**(무엇이 참인지, product-mvp 5장 판단 기준). **정리**: OMTM 옆에 가드레일을 두어 부작용을 감시하고, 핵심 행동을 과거형 이벤트로 넉넉한 속성과 함께 남기며(안 남기면 못 되살림), 성공 기준을 개발 전에 적어 결과에 맞춰 기준이 움직이지 않게 하라."
         },
         {
           "type": "try",
-          "text": "OMTM 옆에 **가드레일 두 개**(해제율·오류율·응답 시간·이탈 중)를 정해 함께 보라 — OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화다. 핵심 행동을 **이벤트로 기록**하되(과거형·스네이크·속성 넉넉히) 안 남긴 데이터는 못 되살림을 기억하라. 그리고 다음 기능의 **「무엇이 얼마가 되면 성공인가」를 개발 전에** 문장으로 남겨라."
+          "text": "OMTM 옆에 **가드레일 두 개**(해제율, 오류율, 응답 시간, 이탈 중)를 정해 함께 보라. OMTM 이 올라도 가드레일이 나빠지면 나쁜 변화다. 핵심 행동을 **이벤트로 기록**하되(과거형, 스네이크, 속성 넉넉히) 안 남긴 데이터는 못 되살림을 기억하라. 그리고 다음 기능의 **\"무엇이 얼마가 되면 성공인가\"를 개발 전에** 문장으로 남겨라."
         }
       ],
       "quiz": [
@@ -413,7 +413,7 @@
           "q": "가드레일 지표란?",
           "choices": [
             "OMTM 자체",
-            "OMTM 을 올리다 망가지면 안 되는 것(해제율·오류·이탈)",
+            "OMTM 을 올리다 망가지면 안 되는 것(해제율, 오류, 이탈)",
             "허영 지표",
             "무관"
           ],
@@ -435,7 +435,7 @@
           "q": "성공 기준은 언제 적나?",
           "choices": [
             "결과를 보고",
-            "개발 전에 — 나중에 정하면 결과에 맞춰 기준이 움직임",
+            "개발 전에. 나중에 정하면 결과에 맞춰 기준이 움직임",
             "안 적음",
             "무관"
           ],
@@ -446,17 +446,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 지표",
+      "title": "점검표. 지표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**느낌 대신 숫자로, 좋은 지표를 고르고, 허영을 피하고, 하나(OMTM)에 집중하고, 가드레일과 미리 정한 성공 기준으로 정직하게 판단한다.** 이 점검표를 지표를 정할 때마다 훑어, 목소리 큰 사람·허영 지표·부작용·사후 정당화를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**느낌 대신 숫자로, 좋은 지표를 고르고, 허영을 피하고, 하나(OMTM)에 집중하고, 가드레일과 미리 정한 성공 기준으로 정직하게 판단한다.** 이 점검표를 지표를 정할 때마다 훑어, 목소리 큰 사람, 허영 지표, 부작용, 사후 정당화를 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "지표 점검표 — 통과 수",
+          "label": "지표 점검표. 통과 수",
           "height": "420px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .curve { position:relative; height:90px; background:#0e1830; border-radius:8px; margin:8px 0; overflow:hidden; }\n  .curve svg { width:100%; height:100%; display:block; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:60px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  // retention curve: pts is array of y in 0..1 (retention over time). flatten=true → settles above 0\n  function curve(pts, color) {\n    const W = 300, H = 80, pad = 6;\n    const n = pts.length;\n    const path = pts.map((y, i) => (i ? 'L' : 'M') + (pad + i / (n - 1) * (W - 2 * pad)).toFixed(1) + ',' + (pad + (1 - y) * (H - 2 * pad)).toFixed(1)).join(' ');\n    return '<div class=\"curve\"><svg viewBox=\"0 0 ' + W + ' ' + H + '\" preserveAspectRatio=\"none\">' +\n      '<path d=\"' + path + '\" fill=\"none\" stroke=\"' + color + '\" stroke-width=\"2.5\"/></svg></div>';\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '느낌이 아니라 숫자(데이터)로 방향을 정한다',\n    '지표가 세 조건(가치 연결·행동 가능·조작 어려움)을 갖췄다',\n    '허영 지표(누적·총합)를 피하고 유효 지표를 본다',\n    '리텐션 곡선이 평평해지는지(정착)를 본다',\n    'OMTM 하나를 정해 집중한다(단계에 맞게)',\n    'OMTM 옆에 가드레일을 함께 둔다',\n    '핵심 행동을 이벤트로 기록한다(속성 넉넉히)',\n    '성공 기준을 개발 전에 적는다',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('지표 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 편향을 이기고 정직하게 판단하는 지표.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '숫자로 · 좋은 지표 · 허영 피하기 · OMTM · 가드레일 · 성공 기준 미리.');\n</script>",
           "controls": [
@@ -473,11 +473,11 @@
         },
         {
           "type": "note",
-          "text": "**지표 점검표 — 지표를 정할 때마다 훑는다.** ① **숫자로** — 느낌이 아니라 데이터로(1장). ② **세 조건** — 가치 연결·행동 가능·조작 어려움(2장). ③ **허영 피하기** — 누적·총합 대신 유효 지표(3장). ④ **리텐션** — 곡선이 평평해지는지(정착, 3장). ⑤ **OMTM** — 하나에 집중, 단계에 맞게(4장). ⑥ **가드레일** — OMTM 옆에 부작용 감시(5장). ⑦ **이벤트** — 핵심 행동을 기록, 속성 넉넉히(5장). ⑧ **성공 기준 미리** — 개발 전에(5장). **관통 원리**: 지표는 **목소리 큰 사람을 이기는 도구**지만(1장), **어떤 숫자를 보느냐**가 성패를 가른다 — 좋은 지표를 고르고(2장), 허영을 피하고(3장), 하나에 집중하고(4장), 가드레일·미리 정한 기준으로 정직하게(5장) 봐야 편향을 이긴다. 이 칸(metric)은 product 갈래에서 **판단의 공정성** — problem(문제)·mvp(검증)·scope(끝내기) 위에서 결정을 데이터로 하게 하고, release·feedback 과 이어진다. analytics 갈래(question·stats·ab)의 규율을 제품 결정에 적용한 것. 「목소리 큰 사람이 정하는 제품」의 반대편. **정리**: 느낌 대신 숫자로, 좋은 지표·OMTM·가드레일·미리 정한 성공 기준으로 — 이 표로 편향과 사후 정당화를 매번 걸러라."
+          "text": "**지표 점검표. 지표를 정할 때마다 훑는다.** ① **숫자로**. 느낌이 아니라 데이터로(1장). ② **세 조건**. 가치 연결, 행동 가능, 조작 어려움(2장). ③ **허영 피하기**. 누적, 총합 대신 유효 지표(3장). ④ **리텐션**. 곡선이 평평해지는지(정착, 3장). ⑤ **OMTM**. 하나에 집중, 단계에 맞게(4장). ⑥ **가드레일**. OMTM 옆에 부작용 감시(5장). ⑦ **이벤트**. 핵심 행동을 기록, 속성 넉넉히(5장). ⑧ **성공 기준 미리**. 개발 전에(5장). **관통 원리**: 지표는 **목소리 큰 사람을 이기는 도구**지만(1장), **어떤 숫자를 보느냐**가 성패를 가른다. 좋은 지표를 고르고(2장), 허영을 피하고(3장), 하나에 집중하고(4장), 가드레일, 미리 정한 기준으로 정직하게(5장) 봐야 편향을 이긴다. 이 칸(metric)은 product 갈래에서 **판단의 공정성**. problem(문제), mvp(검증), scope(끝내기) 위에서 결정을 데이터로 하게 하고, release, feedback 과 이어진다. analytics 갈래(question, stats, ab)의 규율을 제품 결정에 적용한 것. \"목소리 큰 사람이 정하는 제품\"의 반대편. **정리**: 느낌 대신 숫자로, 좋은 지표, OMTM, 가드레일, 미리 정한 성공 기준으로. 이 표로 편향과 사후 정당화를 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금 지표로 위 8개 항목을 하나씩 확인하라 — 숫자로 정하나, 세 조건을 갖췄나, 허영 지표를 피했나, 리텐션을 보나, OMTM 이 하나인가, 가드레일이 있나, 이벤트로 재나, 성공 기준을 미리 적나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 편향을 이기고 정직하게 판단하는지 확인하라."
+          "text": "지금 지표로 위 8개 항목을 하나씩 확인하라. 숫자로 정하나, 세 조건을 갖췄나, 허영 지표를 피했나, 리텐션을 보나, OMTM 이 하나인가, 가드레일이 있나, 이벤트로 재나, 성공 기준을 미리 적나. 통과 못 한 항목을 고치고 몇 개를 통과시켰는지 세어, 편향을 이기고 정직하게 판단하는지 확인하라."
         }
       ],
       "quiz": [
@@ -485,7 +485,7 @@
           "q": "지표의 관통 원리는?",
           "choices": [
             "숫자면 다 좋음",
-            "목소리 큰 사람을 이기는 도구 — 단 어떤 숫자를 보느냐가 관건",
+            "목소리 큰 사람을 이기는 도구. 단 어떤 숫자를 보느냐가 관건",
             "많을수록 좋음",
             "무관"
           ],
@@ -507,7 +507,7 @@
           "q": "product-metric 은 product 갈래에서?",
           "choices": [
             "부수적",
-            "판단의 공정성 — 결정을 데이터로 하게 함",
+            "판단의 공정성. 결정을 데이터로 하게 함",
             "선택",
             "무관"
           ],

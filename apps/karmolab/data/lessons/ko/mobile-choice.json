@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**「네이티브가 좋냐 크로스플랫폼이 좋냐」에 정답은 없다 — 있는 것은 무엇을 포기할지의 선택이다.** 이 질문에 「무조건 X 가 낫다」는 답은 없다. 각 길은 **얻는 것과 포기하는 것**이 다르다: 네이티브는 성능·최신 OS 기능을 얻고 **개발 비용·팀 크기**를 치르고, 크로스플랫폼은 코드 공유·속도를 얻고 **네이티브 깊이·성숙도**를 양보하고, 웹/PWA 는 배포·접근성을 얻고 **일부 OS 기능·스토어 존재감**을 포기한다. 그래서 옳은 질문은 「무엇이 최고냐」가 아니라 **「내 상황에서 무엇을 포기해도 되고 무엇은 절대 못 포기하나」**다(product-scope 의 「트레이드오프」·「빼기」와 같은 정신). 이 칸은 세 갈래(2장)·판단 기준(3장)·섞기(4장)·첫 출시 관점(5장)을 다룬다. 아래 데모로 「정답」이 아니라 「포기의 선택」임을 확인하라."
+          "text": "**\"네이티브가 좋냐 크로스플랫폼이 좋냐\"에 정답은 없다. 있는 것은 무엇을 포기할지의 선택이다.** 이 질문에 \"무조건 X 가 낫다\"는 답은 없다. 각 길은 **얻는 것과 포기하는 것**이 다르다: 네이티브는 성능, 최신 OS 기능을 얻고 **개발 비용, 팀 크기**를 치르고, 크로스플랫폼은 코드 공유, 속도를 얻고 **네이티브 깊이, 성숙도**를 양보하고, 웹/PWA 는 배포, 접근성을 얻고 **일부 OS 기능, 스토어 존재감**을 포기한다. 그래서 옳은 질문은 \"무엇이 최고냐\"가 아니라 **\"내 상황에서 무엇을 포기해도 되고 무엇은 절대 못 포기하나\"**다(product-scope 의 \"트레이드오프\", \"빼기\"와 같은 정신). 이 칸은 세 갈래(2장), 판단 기준(3장), 섞기(4장), 첫 출시 관점(5장)을 다룬다. 아래 데모로 \"정답\"이 아니라 \"포기의 선택\"임을 확인하라."
         },
         {
           "type": "demo",
@@ -37,11 +37,11 @@
         },
         {
           "type": "note",
-          "text": "**모바일 개발 방식(네이티브·크로스플랫폼·웹)에는 절대적 정답이 없고, 각 길이 무엇을 얻고 무엇을 포기하는지의 트레이드오프만 있다.** **왜 정답이 없나**: 「네이티브가 무조건 낫다」·「요즘은 크로스플랫폼이 답」·「웹이면 충분」 같은 단정은 — **상황(팀·자원·요구·단계)을 무시한** 도그마다. 각 방식은 **강점과 대가가 다르고**, 어떤 상황엔 이게 옳고 다른 상황엔 저게 옳다. 예: 카메라·센서를 깊이 쓰는 앱엔 네이티브가, 화면 많은 정보 앱엔 크로스플랫폼이, 빠른 검증·검색 유입 서비스엔 웹이 유리하다. **트레이드오프의 구조**: 각 길은 **얻는 것 ↔ 포기하는 것**이 짝을 이룬다 — **네이티브**(Swift/Kotlin): 최고 성능·최신 OS 기능·플랫폼 일관성을 얻지만 **iOS·안드로이드 각각 개발**(팀·비용 두 배·배포 두 곳). **크로스플랫폼**(Flutter·React Native): **코드 하나로 두 플랫폼**(개발 속도·공유)을 얻지만 네이티브 깊이·최신 기능 지연·프레임워크 종속·미묘한 플랫폼 차이를 양보. **웹/PWA**(mobile-pwa): 스토어 심사 없이 **즉시 배포·검색 유입·URL 접근**을 얻지만 일부 OS 기능 제한·스토어 존재감·오프라인 한계를 포기. **옳은 질문**: 「무엇이 최고냐」가 아니라 **「내 상황(팀 크기·기간·핵심 기능·유입 경로·단계)에서 무엇을 포기해도 되고, 무엇은 절대 못 포기하나」**다 — 절대 못 포기하는 것(예: 백그라운드 위치 정확도, 또는 검색 유입)이 방식을 정한다(product-scope 3장 「무엇을 자를지」·product-problem 의 「진짜 요구」와 같은 규율). **주의**: 선택은 **고정이 아니다** — 단계에 따라 바뀔 수 있다(5장 웹으로 검증 후 네이티브). 그리고 **섞을 수도** 있다(4장 하이브리드). **정리**: 모바일 방식에 정답은 없다 — 각 길의 트레이드오프를 알고, 내 상황에서 무엇을 절대 못 포기하는지로 선택하라(다음 장이 세 갈래와 기준)."
+          "text": "**모바일 개발 방식(네이티브, 크로스플랫폼, 웹)에는 절대적 정답이 없고, 각 길이 무엇을 얻고 무엇을 포기하는지의 트레이드오프만 있다.** **왜 정답이 없나**: \"네이티브가 무조건 낫다\", \"요즘은 크로스플랫폼이 답\", \"웹이면 충분\" 같은 단정은. **상황(팀, 자원, 요구, 단계)을 무시한** 도그마다. 각 방식은 **강점과 대가가 다르고**, 어떤 상황엔 이게 옳고 다른 상황엔 저게 옳다. 예: 카메라, 센서를 깊이 쓰는 앱엔 네이티브가, 화면 많은 정보 앱엔 크로스플랫폼이, 빠른 검증, 검색 유입 서비스엔 웹이 유리하다. **트레이드오프의 구조**: 각 길은 **얻는 것 ↔ 포기하는 것**이 짝을 이룬다. **네이티브**(Swift/Kotlin): 최고 성능, 최신 OS 기능, 플랫폼 일관성을 얻지만 **iOS, 안드로이드 각각 개발**(팀, 비용 두 배, 배포 두 곳). **크로스플랫폼**(Flutter, React Native): **코드 하나로 두 플랫폼**(개발 속도, 공유)을 얻지만 네이티브 깊이, 최신 기능 지연, 프레임워크 종속, 미묘한 플랫폼 차이를 양보. **웹/PWA**(mobile-pwa): 스토어 심사 없이 **즉시 배포, 검색 유입, URL 접근**을 얻지만 일부 OS 기능 제한, 스토어 존재감, 오프라인 한계를 포기. **옳은 질문**: \"무엇이 최고냐\"가 아니라 **\"내 상황(팀 크기, 기간, 핵심 기능, 유입 경로, 단계)에서 무엇을 포기해도 되고, 무엇은 절대 못 포기하나\"**다. 절대 못 포기하는 것(예: 백그라운드 위치 정확도, 또는 검색 유입)이 방식을 정한다(product-scope 3장 \"무엇을 자를지\", product-problem 의 \"진짜 요구\"와 같은 규율). **주의**: 선택은 **고정이 아니다**. 단계에 따라 바뀔 수 있다(5장 웹으로 검증 후 네이티브). 그리고 **섞을 수도** 있다(4장 하이브리드). **정리**: 모바일 방식에 정답은 없다. 각 길의 트레이드오프를 알고, 내 상황에서 무엇을 절대 못 포기하는지로 선택하라(다음 장이 세 갈래와 기준)."
         },
         {
           "type": "try",
-          "text": "「네이티브 vs 크로스플랫폼 vs 웹, 뭐가 최고?」라는 질문을 **「내 상황에서 무엇을 절대 못 포기하나」**로 바꿔라 — 핵심 기능·팀 크기·기간·유입 경로·단계를 적고, 그중 **양보 불가한 것**(예: 특정 OS 기능, 또는 검색 유입, 또는 빠른 검증)이 무엇인지 정하라. 그것이 방식을 정한다."
+          "text": "\"네이티브 vs 크로스플랫폼 vs 웹, 뭐가 최고?\"라는 질문을 **\"내 상황에서 무엇을 절대 못 포기하나\"**로 바꿔라. 핵심 기능, 팀 크기, 기간, 유입 경로, 단계를 적고, 그중 **양보 불가한 것**(예: 특정 OS 기능, 또는 검색 유입, 또는 빠른 검증)이 무엇인지 정하라. 그것이 방식을 정한다."
         }
       ],
       "quiz": [
@@ -49,7 +49,7 @@
           "q": "모바일 개발 방식의 정답은?",
           "choices": [
             "네이티브가 무조건 최고",
-            "정답 없음 — 무엇을 포기할지의 트레이드오프",
+            "정답 없음. 무엇을 포기할지의 트레이드오프",
             "웹이면 충분",
             "무관"
           ],
@@ -76,7 +76,7 @@
             "무관"
           ],
           "answer": 1,
-          "why": "단계·하이브리드."
+          "why": "단계, 하이브리드."
         }
       ]
     },
@@ -87,12 +87,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**모바일을 만드는 길은 크게 셋이다: 네이티브·크로스플랫폼·웹/PWA.** ① **네이티브(Native)** — iOS 는 **Swift**, 안드로이드는 **Kotlin** 으로 각각. **성능이 최고**, **최신 OS 기능·API 를 바로**, 플랫폼 디자인에 딱 맞고 **심사 친화적**. 대신 **두 플랫폼을 따로** 만들어 팀·비용·유지보수가 대략 **두 배**. ② **크로스플랫폼(Cross-platform)** — **Flutter**(Dart)·**React Native**(JS) 등으로 **코드 하나로 두 OS**. 개발 속도·코드 공유가 크고 대부분의 앱에 충분. 대신 네이티브 깊은 기능은 **브리지(네이티브 모듈)**가 필요하고, 최신 OS 기능 지원이 늦고, 프레임워크에 종속되며 미묘한 플랫폼 차이를 다뤄야. ③ **웹/PWA** — 브라우저로 돌고 **PWA**(mobile-pwa)면 설치·오프라인도. **스토어 없이 즉시 배포·검색 유입·URL 공유**. 대신 일부 OS 기능 제한·스토어 존재감·성능·오프라인 한계. 아래 데모로 세 갈래를 비교하라."
+          "text": "**모바일을 만드는 길은 크게 셋이다: 네이티브, 크로스플랫폼, 웹/PWA.** ① **네이티브(Native)**. iOS 는 **Swift**, 안드로이드는 **Kotlin** 으로 각각. **성능이 최고**, **최신 OS 기능, API 를 바로**, 플랫폼 디자인에 딱 맞고 **심사 친화적**. 대신 **두 플랫폼을 따로** 만들어 팀, 비용, 유지보수가 대략 **두 배**. ② **크로스플랫폼(Cross-platform)**. **Flutter**(Dart), **React Native**(JS) 등으로 **코드 하나로 두 OS**. 개발 속도, 코드 공유가 크고 대부분의 앱에 충분. 대신 네이티브 깊은 기능은 **브리지(네이티브 모듈)**가 필요하고, 최신 OS 기능 지원이 늦고, 프레임워크에 종속되며 미묘한 플랫폼 차이를 다뤄야. ③ **웹/PWA**. 브라우저로 돌고 **PWA**(mobile-pwa)면 설치, 오프라인도. **스토어 없이 즉시 배포, 검색 유입, URL 공유**. 대신 일부 OS 기능 제한, 스토어 존재감, 성능, 오프라인 한계. 아래 데모로 세 갈래를 비교하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "세 갈래 비교 — 네이티브·크로스·웹",
+          "label": "세 갈래 비교. 네이티브, 크로스, 웹",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .tbl { margin:8px 0; font:11px ui-monospace, monospace; }\n  .tbl .r { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #1e293b; }\n  .tbl .r.head { color:#7dd3fc; border-bottom:1px solid #334155; }\n  .tbl .c { flex:1; } .tbl .c.on { color:#4ade80; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function tbl(head, rows, onCol) { return '<div class=\"tbl\"><div class=\"r head\">' + head.map((h) => '<span class=\"c\">' + esc(h) + '</span>').join('') + '</div>' +\n    rows.map((r) => '<div class=\"r\">' + r.map((c, i) => '<span class=\"c ' + (i === onCol ? 'on' : '') + '\">' + esc(c) + '</span>').join('') + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const g = '{{g}}';\n  const table = {\n    'native': ['네이티브 (Swift·Kotlin)', '성능·최신 OS 기능·심사 친화·플랫폼 일관성', '두 플랫폼 따로(팀·비용 2배)', '깊은 OS 기능이 핵심·최고 성능 필요'],\n    'cross': ['크로스플랫폼 (Flutter·RN)', '코드 하나로 두 OS·개발 속도·공유', '네이티브 깊이·최신 기능 지연·프레임워크 종속', '화면 많고 로직 공유 중요·대부분의 앱'],\n    'web': ['웹/PWA', '스토어 없이 즉시 배포·검색 유입·URL 접근', '일부 OS 기능·스토어 존재감·오프라인 한계', '검색 유입·즉시 접근·잦은 배포·빠른 검증'],\n  };\n  const r = table[g];\n  render(r[0],\n    cmp('얻는 것', r[1], '포기하는 것', r[2], 'good', 'bad') +\n    '  <span class=\"ok\">잘 맞는 곳: ' + r[3] + '</span>',\n    '네이티브(성능·OS) · 크로스(공유·속도) · 웹(배포·접근) — 얻고 포기하는 게 다르다.',\n    tbl(['', '성능', '공유', '즉시 배포'], [\n      ['네이티브', '최고', '없음', '심사 필요'],\n      ['크로스', '좋음', '높음', '심사 필요'],\n      ['웹/PWA', '보통', '최고', '즉시'],\n    ], g === 'native' ? -1 : -1));\n</script>",
           "controls": [
@@ -126,19 +126,19 @@
         },
         {
           "type": "note",
-          "text": "**모바일 개발은 네이티브·크로스플랫폼·웹/PWA 세 갈래이고, 각각 성능·공유·배포에서 얻고 포기하는 것이 다르다.** **① 네이티브(Native)**: iOS 는 **Swift(+SwiftUI/UIKit)**, 안드로이드는 **Kotlin(+Jetpack Compose)** 으로 **각 플랫폼을 따로** 만든다. **강점**: **최고 성능**(플랫폼 직결), **최신 OS 기능·API 를 출시 즉시** 사용, 플랫폼 디자인 가이드에 완벽히 맞고, 스토어 **심사에 유리**, 도구·디버깅 성숙. **대가**: **두 코드베이스**(iOS·안드로이드)를 따로 개발·유지 → 팀·비용·시간이 대략 **두 배**, 기능도 두 번 구현. **② 크로스플랫폼(Cross-platform)**: **Flutter(Dart)**·**React Native(JS/TS)**·기타(KMP·.NET MAUI)로 **하나의 코드로 두 OS** 앱을 만든다. **강점**: **개발 속도·코드 공유**(로직·상당수 UI 를 한 번만), 팀 하나로 두 플랫폼, 대부분의 앱에 성능·품질이 충분(특히 Flutter 는 자체 렌더링으로 일관). **대가**: 네이티브 깊은 기능(특정 센서·백그라운드·최신 API)은 **네이티브 모듈/브리지**가 필요, **최신 OS 기능 지원이 지연**될 수 있고, **프레임워크에 종속**(생태계·수명), 미묘한 플랫폼 차이·성능 한계를 다뤄야. **③ 웹/PWA**: 브라우저에서 도는 웹앱, **PWA**(Progressive Web App, mobile-pwa)면 홈 화면 설치·오프라인·푸시(제한적)까지. **강점**: **스토어 심사·설치 없이 즉시 배포**(URL 만 있으면), **검색 유입(SEO)·링크 공유·즉시 접근**, 한 코드로 모든 기기(데스크톱 포함), 업데이트 즉시. **대가**: **일부 OS 기능 제한**(블루투스·백그라운드·깊은 통합은 브라우저가 막거나 미지원, 특히 iOS 가 제한적), **스토어 존재감·발견성** 약함, 네이티브만큼의 **성능·오프라인·통합**은 어려움. **핵심**: 세 갈래는 「좋고 나쁨」이 아니라 **얻는 축(성능·OS 깊이 / 코드 공유·속도 / 배포·접근성)이 다르다** — 무엇이 중요한지가 선택을 정한다(3장). **정리**: 네이티브(성능·OS 깊이·2배 비용), 크로스플랫폼(공유·속도·깊이 양보), 웹/PWA(즉시 배포·접근성·OS 한계) — 세 갈래의 강점과 대가를 알고 고르라."
+          "text": "**모바일 개발은 네이티브, 크로스플랫폼, 웹/PWA 세 갈래이고, 각각 성능, 공유, 배포에서 얻고 포기하는 것이 다르다.** **① 네이티브(Native)**: iOS 는 **Swift(+SwiftUI/UIKit)**, 안드로이드는 **Kotlin(+Jetpack Compose)** 으로 **각 플랫폼을 따로** 만든다. **강점**: **최고 성능**(플랫폼 직결), **최신 OS 기능, API 를 출시 즉시** 사용, 플랫폼 디자인 가이드에 완벽히 맞고, 스토어 **심사에 유리**, 도구, 디버깅 성숙. **대가**: **두 코드베이스**(iOS, 안드로이드)를 따로 개발, 유지 → 팀, 비용, 시간이 대략 **두 배**, 기능도 두 번 구현. **② 크로스플랫폼(Cross-platform)**: **Flutter(Dart)**, **React Native(JS/TS)**, 기타(KMP,.NET MAUI)로 **하나의 코드로 두 OS** 앱을 만든다. **강점**: **개발 속도, 코드 공유**(로직, 상당수 UI 를 한 번만), 팀 하나로 두 플랫폼, 대부분의 앱에 성능, 품질이 충분(특히 Flutter 는 자체 렌더링으로 일관). **대가**: 네이티브 깊은 기능(특정 센서, 백그라운드, 최신 API)은 **네이티브 모듈/브리지**가 필요, **최신 OS 기능 지원이 지연**될 수 있고, **프레임워크에 종속**(생태계, 수명), 미묘한 플랫폼 차이, 성능 한계를 다뤄야. **③ 웹/PWA**: 브라우저에서 도는 웹앱, **PWA**(Progressive Web App, mobile-pwa)면 홈 화면 설치, 오프라인, 푸시(제한적)까지. **강점**: **스토어 심사, 설치 없이 즉시 배포**(URL 만 있으면), **검색 유입(SEO), 링크 공유, 즉시 접근**, 한 코드로 모든 기기(데스크톱 포함), 업데이트 즉시. **대가**: **일부 OS 기능 제한**(블루투스, 백그라운드, 깊은 통합은 브라우저가 막거나 미지원, 특히 iOS 가 제한적), **스토어 존재감, 발견성** 약함, 네이티브만큼의 **성능, 오프라인, 통합**은 어려움. **핵심**: 세 갈래는 \"좋고 나쁨\"이 아니라 **얻는 축(성능, OS 깊이 / 코드 공유, 속도 / 배포, 접근성)이 다르다**. 무엇이 중요한지가 선택을 정한다(3장). **정리**: 네이티브(성능, OS 깊이, 2배 비용), 크로스플랫폼(공유, 속도, 깊이 양보), 웹/PWA(즉시 배포, 접근성, OS 한계). 세 갈래의 강점과 대가를 알고 고르라."
         },
         {
           "type": "try",
-          "text": "세 갈래(**네이티브·크로스플랫폼·웹/PWA**) 각각의 **얻는 것과 포기하는 것**을 내 프로젝트 관점에서 한 줄씩 적어라. 그리고 **경쟁·유사 앱이 무엇으로 만들어졌는지** 조사하라(앱 크기·프레임워크 흔적·개발자 블로그) — 그들이 왜 그 선택을 했을지 추측해 적어, 내 판단의 참고로 삼아라."
+          "text": "세 갈래(**네이티브, 크로스플랫폼, 웹/PWA**) 각각의 **얻는 것과 포기하는 것**을 내 프로젝트 관점에서 한 줄씩 적어라. 그리고 **경쟁, 유사 앱이 무엇으로 만들어졌는지** 조사하라(앱 크기, 프레임워크 흔적, 개발자 블로그). 그들이 왜 그 선택을 했을지 추측해 적어, 내 판단의 참고로 삼아라."
         }
       ],
       "quiz": [
         {
-          "q": "네이티브(Swift·Kotlin)의 대가는?",
+          "q": "네이티브(Swift, Kotlin)의 대가는?",
           "choices": [
             "없음",
-            "두 플랫폼을 따로 만들어 팀·비용 약 2배",
+            "두 플랫폼을 따로 만들어 팀, 비용 약 2배",
             "성능 낮음",
             "무관"
           ],
@@ -146,10 +146,10 @@
           "why": "두 코드베이스."
         },
         {
-          "q": "크로스플랫폼(Flutter·RN)의 강점은?",
+          "q": "크로스플랫폼(Flutter, RN)의 강점은?",
           "choices": [
             "최신 OS 즉시",
-            "코드 하나로 두 OS·개발 속도·공유",
+            "코드 하나로 두 OS, 개발 속도, 공유",
             "스토어 없이 배포",
             "무관"
           ],
@@ -160,7 +160,7 @@
           "q": "웹/PWA 의 강점은?",
           "choices": [
             "최고 성능",
-            "스토어 없이 즉시 배포·검색 유입·URL 접근",
+            "스토어 없이 즉시 배포, 검색 유입, URL 접근",
             "깊은 OS 통합",
             "무관"
           ],
@@ -176,12 +176,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**갈래는 유행이 아니라 몇 가지 판단 기준으로 정한다 — 깊은 OS 기능이 핵심인가, 화면·로직 공유가 중요한가, 검색 유입·즉시 접근·잦은 배포가 필요한가.** 기준: ① **카메라·블루투스·백그라운드 위치·헬스킷처럼 깊은 OS 기능이 제품의 핵심인가?** → **네이티브**(크로스도 되지만 브리지·한계, 핵심이면 네이티브가 안전). ② **화면이 많고 두 플랫폼에 로직·UI 공유가 중요한가?** → **크로스플랫폼**(대부분의 콘텐츠·커머스·툴 앱). ③ **검색 유입·URL 공유·즉시 접근·잦은 배포·빠른 검증이 중요한가?** → **웹/PWA**. 그 밖에 **팀 역량**(가진 기술), **기간·예산**, **성능 요구**, **타깃 사용자**(어느 OS·어느 유입)도 본다. 여러 기준이 섞이면 **가장 못 포기하는 것**(1장)을 우선하거나 **섞는다**(4장). 아래 데모로 요구별 추천 갈래를 확인하라."
+          "text": "**갈래는 유행이 아니라 몇 가지 판단 기준으로 정한다. 깊은 OS 기능이 핵심인가, 화면, 로직 공유가 중요한가, 검색 유입, 즉시 접근, 잦은 배포가 필요한가.** 기준: ① **카메라, 블루투스, 백그라운드 위치, 헬스킷처럼 깊은 OS 기능이 제품의 핵심인가?** → **네이티브**(크로스도 되지만 브리지, 한계, 핵심이면 네이티브가 안전). ② **화면이 많고 두 플랫폼에 로직, UI 공유가 중요한가?** → **크로스플랫폼**(대부분의 콘텐츠, 커머스, 툴 앱). ③ **검색 유입, URL 공유, 즉시 접근, 잦은 배포, 빠른 검증이 중요한가?** → **웹/PWA**. 그 밖에 **팀 역량**(가진 기술), **기간, 예산**, **성능 요구**, **타깃 사용자**(어느 OS, 어느 유입)도 본다. 여러 기준이 섞이면 **가장 못 포기하는 것**(1장)을 우선하거나 **섞는다**(4장). 아래 데모로 요구별 추천 갈래를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "판단 기준 — 요구 → 갈래",
+          "label": "판단 기준. 요구 → 갈래",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .tbl { margin:8px 0; font:11px ui-monospace, monospace; }\n  .tbl .r { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #1e293b; }\n  .tbl .r.head { color:#7dd3fc; border-bottom:1px solid #334155; }\n  .tbl .c { flex:1; } .tbl .c.on { color:#4ade80; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function tbl(head, rows, onCol) { return '<div class=\"tbl\"><div class=\"r head\">' + head.map((h) => '<span class=\"c\">' + esc(h) + '</span>').join('') + '</div>' +\n    rows.map((r) => '<div class=\"r\">' + r.map((c, i) => '<span class=\"c ' + (i === onCol ? 'on' : '') + '\">' + esc(c) + '</span>').join('') + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const need = '{{need}}';\n  const table = {\n    'osdeep': ['깊은 OS 기능이 핵심 (카메라·블루투스·백그라운드 위치)', '네이티브', '깊은 통합·최신 API·성능이 안전(크로스는 브리지·한계)'],\n    'share': ['화면 많고 로직·UI 공유 중요', '크로스플랫폼', '코드 하나로 두 OS — 콘텐츠·커머스·툴 대부분'],\n    'reach': ['검색 유입·URL 공유·즉시 접근·잦은 배포', '웹/PWA', '스토어 없이 즉시·SEO·링크 — 빠른 검증에도'],\n    'team': ['팀이 웹 기술만 있음·기간 짧음', '웹 또는 크로스(RN)', '가진 역량·기간에 맞춤 — 없는 기술로 시작 X'],\n  };\n  const r = table[need];\n  render('요구: ' + r[0] + '  →  ' + r[1],\n    box('추천 갈래: ' + r[1], r[2], 'good') + '  <span class=\"ok\">유행이 아니라 요구로 — 여러 기준 섞이면 못 포기하는 것 우선(1장).</span>',\n    '깊은 OS→네이티브 · 공유→크로스 · 검색·즉시→웹 · 팀·기간도 고려.',\n    steps([\n      ['깊은 OS 기능 핵심 → 네이티브', need === 'osdeep' ? 'on' : ''],\n      ['화면 많고 공유 중요 → 크로스플랫폼', need === 'share' ? 'on' : ''],\n      ['검색 유입·즉시·잦은 배포 → 웹/PWA', need === 'reach' ? 'on' : ''],\n      ['팀 역량·기간·예산·타깃도 본다', need === 'team' ? 'on' : ''],\n    ]));\n</script>",
           "controls": [
@@ -197,15 +197,15 @@
                 },
                 {
                   "value": "share",
-                  "label": "화면·로직 공유"
+                  "label": "화면, 로직 공유"
                 },
                 {
                   "value": "reach",
-                  "label": "검색·즉시 접근"
+                  "label": "검색, 즉시 접근"
                 },
                 {
                   "value": "team",
-                  "label": "팀·기간"
+                  "label": "팀, 기간"
                 }
               ]
             }
@@ -219,11 +219,11 @@
         },
         {
           "type": "note",
-          "text": "**갈래는 유행이 아니라 판단 기준으로 정하며, 깊은 OS 기능·코드 공유·검색 유입 중 무엇이 핵심인지와 팀·기간을 본다.** **핵심 기준**: ① **깊은 OS 기능이 제품의 핵심인가** — 카메라의 고급 제어, 블루투스/BLE, **백그라운드 위치·모션**, 헬스킷/센서, 위젯·라이브 액티비티, 결제·생체인증 같은 **OS 깊은 통합**이 제품의 중심이면 → **네이티브**가 안전하다(크로스플랫폼도 브리지로 되지만, 핵심 기능이 프레임워크의 지원·성능·최신성에 발목 잡히면 위험). 반대로 이런 게 부수적이면 다른 길도 OK. ② **화면이 많고 두 플랫폼에 로직·UI 공유가 중요한가** — 콘텐츠·커머스·소셜·생산성 툴처럼 **화면 수가 많고 비즈니스 로직이 큰** 앱은 → **크로스플랫폼**이 개발 속도·유지보수에서 큰 이득(한 번 만들어 두 OS). 대부분의 일반 앱이 여기. ③ **검색 유입·URL 공유·즉시 접근·잦은 배포·빠른 검증이 중요한가** — 콘텐츠를 **검색으로 발견**시키거나(SEO), 링크로 공유하거나, 설치 마찰 없이 즉시 쓰게 하거나, **자주·빠르게 배포**(스토어 심사 지연 없이)하고 싶으면 → **웹/PWA**(mobile-pwa). 초기 검증에도 유리(5장). **추가로 볼 것**: **팀 역량**(가진 기술 — 웹 개발자면 웹/RN, iOS/안드 경험 있으면 네이티브; **없는 기술로 시작하면 학습 비용**), **기간·예산**(짧고 적으면 공유·즉시 배포 쪽), **성능 요구**(게임·고사양 → 네이티브/게임엔진), **타깃 사용자**(주 OS·유입 경로·기기 사양), **유지보수 여력**(장기). **여러 기준이 섞이면**: 대개 그렇다 — 그럴 땐 **가장 못 포기하는 것을 우선**하거나(1장), **섞는다**(4장 하이브리드 — 대부분 크로스+핵심만 네이티브, 또는 네이티브 껍데기+웹뷰). **주의 — 유행에 휩쓸리지 말기**: 「요즘 다 Flutter」·「네이티브가 진짜」 같은 유행이 아니라 **내 요구**로 판단한다(product-metric 「목소리 큰 사람」과 통함). **정리**: 깊은 OS 기능→네이티브, 화면·로직 공유→크로스플랫폼, 검색·즉시 접근·잦은 배포→웹/PWA, 그리고 팀·기간·성능·타깃을 함께 봐 요구로 정하라."
+          "text": "**갈래는 유행이 아니라 판단 기준으로 정하며, 깊은 OS 기능, 코드 공유, 검색 유입 중 무엇이 핵심인지와 팀, 기간을 본다.** **핵심 기준**: ① **깊은 OS 기능이 제품의 핵심인가**. 카메라의 고급 제어, 블루투스/BLE, **백그라운드 위치, 모션**, 헬스킷/센서, 위젯, 라이브 액티비티, 결제, 생체인증 같은 **OS 깊은 통합**이 제품의 중심이면 → **네이티브**가 안전하다(크로스플랫폼도 브리지로 되지만, 핵심 기능이 프레임워크의 지원, 성능, 최신성에 발목 잡히면 위험). 반대로 이런 게 부수적이면 다른 길도 OK. ② **화면이 많고 두 플랫폼에 로직, UI 공유가 중요한가**. 콘텐츠, 커머스, 소셜, 생산성 툴처럼 **화면 수가 많고 비즈니스 로직이 큰** 앱은 → **크로스플랫폼**이 개발 속도, 유지보수에서 큰 이득(한 번 만들어 두 OS). 대부분의 일반 앱이 여기. ③ **검색 유입, URL 공유, 즉시 접근, 잦은 배포, 빠른 검증이 중요한가**. 콘텐츠를 **검색으로 발견**시키거나(SEO), 링크로 공유하거나, 설치 마찰 없이 즉시 쓰게 하거나, **자주, 빠르게 배포**(스토어 심사 지연 없이)하고 싶으면 → **웹/PWA**(mobile-pwa). 초기 검증에도 유리(5장). **추가로 볼 것**: **팀 역량**(가진 기술. 웹 개발자면 웹/RN, iOS/안드 경험 있으면 네이티브; **없는 기술로 시작하면 학습 비용**), **기간, 예산**(짧고 적으면 공유, 즉시 배포 쪽), **성능 요구**(게임, 고사양 → 네이티브/게임엔진), **타깃 사용자**(주 OS, 유입 경로, 기기 사양), **유지보수 여력**(장기). **여러 기준이 섞이면**: 대개 그렇다. 그럴 땐 **가장 못 포기하는 것을 우선**하거나(1장), **섞는다**(4장 하이브리드. 대부분 크로스+핵심만 네이티브, 또는 네이티브 껍데기+웹뷰). **주의. 유행에 휩쓸리지 말기**: \"요즘 다 Flutter\", \"네이티브가 진짜\" 같은 유행이 아니라 **내 요구**로 판단한다(product-metric \"목소리 큰 사람\"과 통함). **정리**: 깊은 OS 기능→네이티브, 화면, 로직 공유→크로스플랫폼, 검색, 즉시 접근, 잦은 배포→웹/PWA, 그리고 팀, 기간, 성능, 타깃을 함께 봐 요구로 정하라."
         },
         {
           "type": "try",
-          "text": "만들려는 앱의 **핵심 기능 5개**를 적고, 각각 **웹으로 가능한지** 표시하라 — 안 되는 것이 **1~2개면** 그 부분만 다른 길(네이티브 모듈·하이브리드)을 찾을 수 있다(4장). 그리고 세 판단 기준(깊은 OS·공유·검색 유입)과 **팀 역량·기간**을 대조해, 내 상황에서 어느 갈래가 맞는지 정하라."
+          "text": "만들려는 앱의 **핵심 기능 5개**를 적고, 각각 **웹으로 가능한지** 표시하라. 안 되는 것이 **1~2개면** 그 부분만 다른 길(네이티브 모듈, 하이브리드)을 찾을 수 있다(4장). 그리고 세 판단 기준(깊은 OS, 공유, 검색 유입)과 **팀 역량, 기간**을 대조해, 내 상황에서 어느 갈래가 맞는지 정하라."
         }
       ],
       "quiz": [
@@ -231,7 +231,7 @@
           "q": "깊은 OS 기능(백그라운드 위치 등)이 핵심이면?",
           "choices": [
             "웹",
-            "네이티브(깊은 통합·성능이 안전)",
+            "네이티브(깊은 통합, 성능이 안전)",
             "무관",
             "아무거나"
           ],
@@ -239,7 +239,7 @@
           "why": "깊은 OS."
         },
         {
-          "q": "검색 유입·즉시 접근·잦은 배포가 중요하면?",
+          "q": "검색 유입, 즉시 접근, 잦은 배포가 중요하면?",
           "choices": [
             "네이티브",
             "웹/PWA",
@@ -247,13 +247,13 @@
             "게임엔진"
           ],
           "answer": 1,
-          "why": "즉시·SEO."
+          "why": "즉시, SEO."
         },
         {
           "q": "갈래를 무엇으로 정하나?",
           "choices": [
             "유행",
-            "요구(깊은 OS·공유·유입)와 팀·기간",
+            "요구(깊은 OS, 공유, 유입)와 팀, 기간",
             "가장 새 기술",
             "무관"
           ],
@@ -269,12 +269,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**하나만 골라야 하는 게 아니다 — 많은 서비스가 껍데기는 네이티브(또는 크로스), 내용 일부는 웹뷰로 섞는다.** 흔한 하이브리드: **자주 바뀌는 화면(이벤트·공지·약관·FAQ)은 웹뷰**로(앱 심사·배포 없이 즉시 수정), **성능·상호작용이 중요한 화면(피드·카메라·지도)은 네이티브**로. 이러면 각 화면에 맞는 길을 쓴다. 단 **웹뷰가 많아질수록 「그냥 웹앱을 껍데기에 넣은 것」**이 되어 — 느리고, 네이티브 느낌이 없고, 앱을 설치할 이유가 약해진다(스토어 심사도 이를 문제 삼기도). 그래서 **핵심 경험은 네이티브로 지키고, 웹뷰는 보조·가변 콘텐츠에** 쓴다. 다른 섞기: **크로스플랫폼 + 핵심만 네이티브 모듈**(대부분 공유, 깊은 기능만 네이티브 브리지). 원칙: **화면·기능 단위로 적합한 길**을 고르되 핵심 경험의 품질을 지킨다. 아래 데모로 웹뷰 비중과 트레이드오프를 확인하라."
+          "text": "**하나만 골라야 하는 게 아니다. 많은 서비스가 껍데기는 네이티브(또는 크로스), 내용 일부는 웹뷰로 섞는다.** 흔한 하이브리드: **자주 바뀌는 화면(이벤트, 공지, 약관, FAQ)은 웹뷰**로(앱 심사, 배포 없이 즉시 수정), **성능, 상호작용이 중요한 화면(피드, 카메라, 지도)은 네이티브**로. 이러면 각 화면에 맞는 길을 쓴다. 단 **웹뷰가 많아질수록 \"그냥 웹앱을 껍데기에 넣은 것\"**이 되어. 느리고, 네이티브 느낌이 없고, 앱을 설치할 이유가 약해진다(스토어 심사도 이를 문제 삼기도). 그래서 **핵심 경험은 네이티브로 지키고, 웹뷰는 보조, 가변 콘텐츠에** 쓴다. 다른 섞기: **크로스플랫폼 + 핵심만 네이티브 모듈**(대부분 공유, 깊은 기능만 네이티브 브리지). 원칙: **화면, 기능 단위로 적합한 길**을 고르되 핵심 경험의 품질을 지킨다. 아래 데모로 웹뷰 비중과 트레이드오프를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "하이브리드 — 웹뷰 비중",
+          "label": "하이브리드. 웹뷰 비중",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .tbl { margin:8px 0; font:11px ui-monospace, monospace; }\n  .tbl .r { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #1e293b; }\n  .tbl .r.head { color:#7dd3fc; border-bottom:1px solid #334155; }\n  .tbl .c { flex:1; } .tbl .c.on { color:#4ade80; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function tbl(head, rows, onCol) { return '<div class=\"tbl\"><div class=\"r head\">' + head.map((h) => '<span class=\"c\">' + esc(h) + '</span>').join('') + '</div>' +\n    rows.map((r) => '<div class=\"r\">' + r.map((c, i) => '<span class=\"c ' + (i === onCol ? 'on' : '') + '\">' + esc(c) + '</span>').join('') + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const webviewPct = {{web}};\n  const tooMuch = webviewPct >= 70;\n  render('웹뷰 비중 ' + webviewPct + '% · 네이티브 ' + (100 - webviewPct) + '%',\n    (webviewPct <= 40\n      ? '<span class=\"ok\">핵심은 네이티브, 자주 바뀌는 화면(이벤트·약관)만 웹뷰 → 각 화면에 맞는 길. 좋은 균형.</span>'\n      : tooMuch ? '<span class=\"no\">웹뷰가 ' + webviewPct + '% → 「웹앱을 껍데기에 넣은 것」 → 느리고 네이티브 느낌 없고 설치 이유 약함(심사도 문제 삼음).</span>'\n                : '<span class=\"warn\">중간 — 핵심 경험이 웹뷰로 넘어가지 않게 주의.</span>'),\n    '껍데기 네이티브 + 가변 콘텐츠 웹뷰 · 핵심 경험은 네이티브로 지킨다.',\n    steps([\n      ['자주 바뀌는 화면(이벤트·약관·FAQ) → 웹뷰', 'on'],\n      ['성능·상호작용 화면(피드·카메라·지도) → 네이티브', 'good'],\n      [tooMuch ? '웹뷰 과다 → 웹앱 껍데기 (설치 이유 약함)' : '핵심은 네이티브로 지킴', tooMuch ? 'bad' : 'good'],\n    ]));\n</script>",
           "controls": [
@@ -297,11 +297,11 @@
         },
         {
           "type": "note",
-          "text": "**하나의 방식만 고를 필요 없이, 껍데기는 네이티브(또는 크로스)이고 자주 바뀌는 일부 화면은 웹뷰로 섞을 수 있으며, 다만 핵심 경험의 품질을 지켜야 한다.** **왜 섞나**: 앱의 화면·기능마다 요구가 다르다 — 어떤 건 성능·상호작용이 중요하고, 어떤 건 **자주 바뀌어 빠른 수정**이 중요하다. 하나의 방식으로 다 하는 대신, **화면 단위로 적합한 길**을 쓰면 각각의 장점을 취한다. **가장 흔한 하이브리드 — 네이티브/크로스 껍데기 + 웹뷰**: ① **웹뷰(WebView)로 넣을 것** — **자주 바뀌는 콘텐츠**: 이벤트·프로모션·공지, 약관·개인정보처리방침, FAQ·도움말, 블로그·뉴스. 이런 건 웹으로 만들어 앱에 임베드하면 **스토어 심사·앱 업데이트 없이 서버에서 즉시 수정**된다(embed-ota·product-release 의 「자주 바뀌는 것」과 통함). ② **네이티브로 만들 것** — **성능·상호작용이 중요한 핵심 화면**: 피드·스크롤·애니메이션, 카메라·지도, 결제·로그인, 오프라인 기능. 여기서 네이티브 품질(mobile-touch·perf)을 지킨다. **웹뷰 과다의 함정**: 웹뷰가 많아질수록 앱이 **「웹앱을 네이티브 껍데기에 넣은 것」**이 된다 — ⓐ **느리다**(웹뷰 로딩·렌더링), ⓑ **네이티브 느낌이 없다**(제스처·전환·터치 반응이 어색, mobile-touch), ⓒ **오프라인·통합이 약하다**, ⓓ **설치할 이유가 약해진다**(그냥 웹으로 쓰지 왜 설치?), ⓔ **스토어 심사가 문제 삼기도**(애플은 「단순 웹 래퍼」를 거부하기도, mobile-store). 그래서 **웹뷰는 보조·가변 콘텐츠에**, **핵심 경험은 네이티브로** 지킨다. **다른 섞기**: **크로스플랫폼 + 네이티브 모듈** — 대부분을 Flutter/RN 으로 공유하고 **깊은 OS 기능만 네이티브 브리지**로(3장). **웹 + 캡슐(Capacitor/Cordova)** — 웹앱을 네이티브 컨테이너로 감싸 스토어 배포(PWA 의 스토어 버전). **마이크로 프론트엔드**적 접근. **원칙**: **화면·기능 단위로 적합한 길을 고르되, 사용자가 매일 만나는 핵심 경험의 품질(성능·터치 느낌)은 타협하지 않는다** — 섞기는 편의를 위한 것이지 품질을 낮추는 핑계가 아니다(product-mvp 5장 「적게, 그러나 제대로」). **정리**: 껍데기+웹뷰로 자주 바뀌는 화면은 웹, 핵심 화면은 네이티브로 섞되 — 웹뷰가 핵심 경험을 잠식하지 않게, 설치할 이유(네이티브 품질)를 지켜라."
+          "text": "**하나의 방식만 고를 필요 없이, 껍데기는 네이티브(또는 크로스)이고 자주 바뀌는 일부 화면은 웹뷰로 섞을 수 있으며, 다만 핵심 경험의 품질을 지켜야 한다.** **왜 섞나**: 앱의 화면, 기능마다 요구가 다르다. 어떤 건 성능, 상호작용이 중요하고, 어떤 건 **자주 바뀌어 빠른 수정**이 중요하다. 하나의 방식으로 다 하는 대신, **화면 단위로 적합한 길**을 쓰면 각각의 장점을 취한다. **가장 흔한 하이브리드. 네이티브/크로스 껍데기 + 웹뷰**: ① **웹뷰(WebView)로 넣을 것**. **자주 바뀌는 콘텐츠**: 이벤트, 프로모션, 공지, 약관, 개인정보처리방침, FAQ, 도움말, 블로그, 뉴스. 이런 건 웹으로 만들어 앱에 임베드하면 **스토어 심사, 앱 업데이트 없이 서버에서 즉시 수정**된다(embed-ota, product-release 의 \"자주 바뀌는 것\"과 통함). ② **네이티브로 만들 것**. **성능, 상호작용이 중요한 핵심 화면**: 피드, 스크롤, 애니메이션, 카메라, 지도, 결제, 로그인, 오프라인 기능. 여기서 네이티브 품질(mobile-touch, perf)을 지킨다. **웹뷰 과다의 함정**: 웹뷰가 많아질수록 앱이 **\"웹앱을 네이티브 껍데기에 넣은 것\"**이 된다. ⓐ **느리다**(웹뷰 로딩, 렌더링), ⓑ **네이티브 느낌이 없다**(제스처, 전환, 터치 반응이 어색, mobile-touch), ⓒ **오프라인, 통합이 약하다**, ⓓ **설치할 이유가 약해진다**(그냥 웹으로 쓰지 왜 설치?), ⓔ **스토어 심사가 문제 삼기도**(애플은 \"단순 웹 래퍼\"를 거부하기도, mobile-store). 그래서 **웹뷰는 보조, 가변 콘텐츠에**, **핵심 경험은 네이티브로** 지킨다. **다른 섞기**: **크로스플랫폼 + 네이티브 모듈**. 대부분을 Flutter/RN 으로 공유하고 **깊은 OS 기능만 네이티브 브리지**로(3장). **웹 + 캡슐(Capacitor/Cordova)**. 웹앱을 네이티브 컨테이너로 감싸 스토어 배포(PWA 의 스토어 버전). **마이크로 프론트엔드**적 접근. **원칙**: **화면, 기능 단위로 적합한 길을 고르되, 사용자가 매일 만나는 핵심 경험의 품질(성능, 터치 느낌)은 타협하지 않는다**. 섞기는 편의를 위한 것이지 품질을 낮추는 핑계가 아니다(product-mvp 5장 \"적게, 그러나 제대로\"). **정리**: 껍데기+웹뷰로 자주 바뀌는 화면은 웹, 핵심 화면은 네이티브로 섞되. 웹뷰가 핵심 경험을 잠식하지 않게, 설치할 이유(네이티브 품질)를 지켜라."
         },
         {
           "type": "try",
-          "text": "앱의 화면들을 **「자주 바뀌나」와 「성능·상호작용이 중요한가」**로 분류하라 — **자주 바뀌는 것(이벤트·약관·FAQ)은 웹뷰**로(심사 없이 즉시 수정), **핵심 경험(피드·카메라·주요 흐름)은 네이티브**로. 웹뷰 비중이 커져 「웹앱 껍데기」가 되지 않는지, 사용자가 **설치할 이유(네이티브 품질)**가 있는지 점검하라."
+          "text": "앱의 화면들을 **\"자주 바뀌나\"와 \"성능, 상호작용이 중요한가\"**로 분류하라. **자주 바뀌는 것(이벤트, 약관, FAQ)은 웹뷰**로(심사 없이 즉시 수정), **핵심 경험(피드, 카메라, 주요 흐름)은 네이티브**로. 웹뷰 비중이 커져 \"웹앱 껍데기\"가 되지 않는지, 사용자가 **설치할 이유(네이티브 품질)**가 있는지 점검하라."
         }
       ],
       "quiz": [
@@ -319,8 +319,8 @@
         {
           "q": "웹뷰로 넣기 좋은 화면은?",
           "choices": [
-            "카메라·피드",
-            "자주 바뀌는 것(이벤트·약관·FAQ) — 심사 없이 즉시 수정",
+            "카메라, 피드",
+            "자주 바뀌는 것(이벤트, 약관, FAQ). 심사 없이 즉시 수정",
             "결제",
             "무관"
           ],
@@ -331,7 +331,7 @@
           "q": "웹뷰가 너무 많아지면?",
           "choices": [
             "최고 성능",
-            "「웹앱 껍데기」 → 느리고 설치 이유 약함(심사도 문제)",
+            "\"웹앱 껍데기\" → 느리고 설치 이유 약함(심사도 문제)",
             "무관",
             "빨라짐"
           ],
@@ -347,12 +347,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**혼자 또는 작은 팀이 처음 만든다면 「가장 빨리 사용자 손에 닿는 것」이 대체로 옳다 — 웹으로 검증하고, 필요해지면 네이티브로 옮기는 순서가 실패 비용이 가장 싸다.** 첫 출시의 목표는 **완벽한 앱**이 아니라 **문제·수요를 빨리 검증**하는 것이다(product-mvp·product-problem). 처음부터 네이티브 두 벌을 만들면 — 몇 달을 쓰고, 그동안 배우지 못하고, 틀리면 크게 잃는다. 반면 **웹/PWA 로 먼저** 내면 — 스토어 심사·설치 마찰 없이 **즉시** 사용자에게 닿고, 검색으로 유입되고, 빠르게 고치며 배운다. **검증 후 필요가 확인되면**(리텐션·요구가 명확) 그때 네이티브로 옮기거나 크로스플랫폼으로 만든다 — **순서가 실패 비용을 최소화**한다(product-mvp 「가장 싼 배움」·「빨리」). 단, 처음부터 **깊은 OS 기능이 핵심**이면 웹으로 검증이 어려워 예외(3장). 원칙: **가장 싸고 빠른 길로 먼저 검증, 성공하면 투자**. 아래 데모로 첫 출시 순서를 확인하라."
+          "text": "**혼자 또는 작은 팀이 처음 만든다면 \"가장 빨리 사용자 손에 닿는 것\"이 대체로 옳다. 웹으로 검증하고, 필요해지면 네이티브로 옮기는 순서가 실패 비용이 가장 싸다.** 첫 출시의 목표는 **완벽한 앱**이 아니라 **문제, 수요를 빨리 검증**하는 것이다(product-mvp, product-problem). 처음부터 네이티브 두 벌을 만들면. 몇 달을 쓰고, 그동안 배우지 못하고, 틀리면 크게 잃는다. 반면 **웹/PWA 로 먼저** 내면. 스토어 심사, 설치 마찰 없이 **즉시** 사용자에게 닿고, 검색으로 유입되고, 빠르게 고치며 배운다. **검증 후 필요가 확인되면**(리텐션, 요구가 명확) 그때 네이티브로 옮기거나 크로스플랫폼으로 만든다. **순서가 실패 비용을 최소화**한다(product-mvp \"가장 싼 배움\", \"빨리\"). 단, 처음부터 **깊은 OS 기능이 핵심**이면 웹으로 검증이 어려워 예외(3장). 원칙: **가장 싸고 빠른 길로 먼저 검증, 성공하면 투자**. 아래 데모로 첫 출시 순서를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "첫 출시 순서 — 웹 먼저 vs 네이티브 먼저",
+          "label": "첫 출시 순서. 웹 먼저 vs 네이티브 먼저",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .tbl { margin:8px 0; font:11px ui-monospace, monospace; }\n  .tbl .r { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #1e293b; }\n  .tbl .r.head { color:#7dd3fc; border-bottom:1px solid #334155; }\n  .tbl .c { flex:1; } .tbl .c.on { color:#4ade80; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function tbl(head, rows, onCol) { return '<div class=\"tbl\"><div class=\"r head\">' + head.map((h) => '<span class=\"c\">' + esc(h) + '</span>').join('') + '</div>' +\n    rows.map((r) => '<div class=\"r\">' + r.map((c, i) => '<span class=\"c ' + (i === onCol ? 'on' : '') + '\">' + esc(c) + '</span>').join('') + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const webFirst = way === 'web';\n  render(webFirst ? '웹으로 먼저 검증 → 필요하면 네이티브 (실패 비용 최소)' : '처음부터 네이티브 두 벌 (검증 전에 크게 투자)',\n    (webFirst\n      ? '<span class=\"ok\">스토어 없이 즉시 손에 닿음·빠르게 배움 → 성공 확인 후 네이티브로 투자. 틀려도 싸게.</span>'\n      : '<span class=\"no\">검증 전에 네이티브 2벌에 몇 달 → 틀리면 크게 잃고, 그동안 못 배움. (깊은 OS 핵심이면 예외)</span>'),\n    '가장 빨리 손에 닿는 길로 먼저 검증 → 성공하면 투자(웹→네이티브).',\n    webFirst\n      ? steps([['웹/PWA 로 즉시 출시', 'good'], ['검색 유입·빠른 반복으로 검증', 'good'], ['수요 확인 → 네이티브/크로스로 투자', 'good']])\n      : steps([['네이티브 iOS+안드로이드 (몇 달)', 'bad'], ['출시 전까지 못 배움', 'bad'], ['틀리면 크게 잃음', 'bad']]));\n</script>",
           "controls": [
@@ -382,11 +382,11 @@
         },
         {
           "type": "note",
-          "text": "**혼자나 작은 팀의 첫 출시는 가장 빨리 사용자 손에 닿는 길이 대체로 옳고, 웹으로 검증한 뒤 필요해지면 네이티브로 옮기는 순서가 실패 비용을 최소화한다.** **첫 출시의 진짜 목표**: 완벽한 앱을 만드는 게 아니라 **문제·수요가 진짜인지 빨리 검증**하는 것이다(product-problem·product-mvp 「가장 싼 배움」). 대부분의 초기 아이디어는 틀리거나 조정이 필요하므로, **크게 투자하기 전에 싸게 배우는 게** 핵심. **네이티브 먼저의 위험**: 처음부터 **iOS·안드로이드 네이티브 두 벌**을 만들면 — ⓐ 출시까지 **몇 달**이 걸려 그동안 아무것도 못 배우고, ⓑ 매몰비용이 커져 방향 전환이 어렵고(product-mvp 1장), ⓒ **틀렸을 때 크게 잃는다**(두 벌 개발비). 검증 안 된 아이디어에 가장 비싼 방식으로 올인하는 셈. **웹 먼저의 이점**: **웹/PWA**로 먼저 내면 — **스토어 심사·설치 마찰 없이 즉시** 사용자에게 닿고(URL 만 공유), **검색으로 유입**되고(SEO), **빠르게 고치며 배운다**(즉시 배포). 며칠~몇 주에 실제 사용자 반응(리텐션·행동, product-metric·feedback)을 얻어 **싸게 검증**한다. **순서 — 검증 후 투자**: 웹으로 **수요·리텐션이 확인되면**(정착 곡선이 좋으면, product-metric 3장), 그때 **네이티브로 옮기거나 크로스플랫폼**으로 제대로 만든다 — 이미 검증된 것에 자신 있게 투자(product-mvp 「맞으면 자신 있게 키운다」). 이 **「싼 길로 검증 → 성공하면 투자」** 순서가 전체 실패 비용을 최소화한다. 실제로 많은 성공한 앱이 웹으로 시작해 네이티브로 확장했다. **예외**: 처음부터 **깊은 OS 기능이 제품의 핵심**이면(카메라 앱·피트니스 트래커·게임) 웹으로는 검증 자체가 어려워, 네이티브/크로스로 최소 버전을 만들어야 할 수 있다(3장) — 그래도 **범위는 최소로**(product-scope·mvp). **팀·자원이 크면** 사정이 다를 수 있으나(병렬 개발 여력), 첫 출시·검증 단계의 원칙은 같다: **가장 싸고 빠르게 검증**. **정리**: 첫 출시는 가장 빨리 손에 닿는 길(대개 웹/PWA)로 먼저 검증하고, 수요가 확인되면 네이티브로 투자하라 — 순서가 실패 비용을 최소화한다(깊은 OS 핵심이면 예외)."
+          "text": "**혼자나 작은 팀의 첫 출시는 가장 빨리 사용자 손에 닿는 길이 대체로 옳고, 웹으로 검증한 뒤 필요해지면 네이티브로 옮기는 순서가 실패 비용을 최소화한다.** **첫 출시의 진짜 목표**: 완벽한 앱을 만드는 게 아니라 **문제, 수요가 진짜인지 빨리 검증**하는 것이다(product-problem, product-mvp \"가장 싼 배움\"). 대부분의 초기 아이디어는 틀리거나 조정이 필요하므로, **크게 투자하기 전에 싸게 배우는 게** 핵심. **네이티브 먼저의 위험**: 처음부터 **iOS, 안드로이드 네이티브 두 벌**을 만들면. ⓐ 출시까지 **몇 달**이 걸려 그동안 아무것도 못 배우고, ⓑ 매몰비용이 커져 방향 전환이 어렵고(product-mvp 1장), ⓒ **틀렸을 때 크게 잃는다**(두 벌 개발비). 검증 안 된 아이디어에 가장 비싼 방식으로 올인하는 셈. **웹 먼저의 이점**: **웹/PWA**로 먼저 내면. **스토어 심사, 설치 마찰 없이 즉시** 사용자에게 닿고(URL 만 공유), **검색으로 유입**되고(SEO), **빠르게 고치며 배운다**(즉시 배포). 며칠~몇 주에 실제 사용자 반응(리텐션, 행동, product-metric, feedback)을 얻어 **싸게 검증**한다. **순서. 검증 후 투자**: 웹으로 **수요, 리텐션이 확인되면**(정착 곡선이 좋으면, product-metric 3장), 그때 **네이티브로 옮기거나 크로스플랫폼**으로 제대로 만든다. 이미 검증된 것에 자신 있게 투자(product-mvp \"맞으면 자신 있게 키운다\"). 이 **\"싼 길로 검증 → 성공하면 투자\"** 순서가 전체 실패 비용을 최소화한다. 실제로 많은 성공한 앱이 웹으로 시작해 네이티브로 확장했다. **예외**: 처음부터 **깊은 OS 기능이 제품의 핵심**이면(카메라 앱, 피트니스 트래커, 게임) 웹으로는 검증 자체가 어려워, 네이티브/크로스로 최소 버전을 만들어야 할 수 있다(3장). 그래도 **범위는 최소로**(product-scope, mvp). **팀, 자원이 크면** 사정이 다를 수 있으나(병렬 개발 여력), 첫 출시, 검증 단계의 원칙은 같다: **가장 싸고 빠르게 검증**. **정리**: 첫 출시는 가장 빨리 손에 닿는 길(대개 웹/PWA)로 먼저 검증하고, 수요가 확인되면 네이티브로 투자하라. 순서가 실패 비용을 최소화한다(깊은 OS 핵심이면 예외)."
         },
         {
           "type": "try",
-          "text": "첫 출시(또는 다음 아이디어)를 **「가장 빨리 사용자 손에 닿는 길」**로 계획하라 — 깊은 OS 기능이 핵심이 아니면 **웹/PWA 로 먼저** 내어 검증하고(스토어 없이 즉시·빠른 반복), 리텐션·수요가 확인되면(product-metric) 그때 네이티브/크로스로 투자하라. 처음부터 네이티브 두 벌에 몇 달을 쓰기 전에 — 웹으로 며칠에 배울 수 있는지 보라."
+          "text": "첫 출시(또는 다음 아이디어)를 **\"가장 빨리 사용자 손에 닿는 길\"**로 계획하라. 깊은 OS 기능이 핵심이 아니면 **웹/PWA 로 먼저** 내어 검증하고(스토어 없이 즉시, 빠른 반복), 리텐션, 수요가 확인되면(product-metric) 그때 네이티브/크로스로 투자하라. 처음부터 네이티브 두 벌에 몇 달을 쓰기 전에. 웹으로 며칠에 배울 수 있는지 보라."
         }
       ],
       "quiz": [
@@ -394,7 +394,7 @@
           "q": "혼자/작은 팀의 첫 출시 원칙은?",
           "choices": [
             "네이티브 두 벌 완벽히",
-            "가장 빨리 사용자 손에 닿는 것(대개 웹) — 싸게 검증",
+            "가장 빨리 사용자 손에 닿는 것(대개 웹). 싸게 검증",
             "가장 최신 기술",
             "무관"
           ],
@@ -427,17 +427,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 방식 선택",
+      "title": "점검표. 방식 선택",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "**정답이 아니라 트레이드오프로 보고, 세 갈래를 알고, 요구로 판단하고, 섞을 수 있고, 첫 출시는 가장 빨리 검증한다.** 이 점검표를 방식을 정할 때 훑어, 유행·도그마로 잘못 고르는 일을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
+          "text": "**정답이 아니라 트레이드오프로 보고, 세 갈래를 알고, 요구로 판단하고, 섞을 수 있고, 첫 출시는 가장 빨리 검증한다.** 이 점검표를 방식을 정할 때 훑어, 유행, 도그마로 잘못 고르는 일을 막아라. 하나씩 통과시키며 아래 데모로 점수를 채워 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방식 선택 점검표 — 통과 수",
+          "label": "방식 선택 점검표. 통과 수",
           "height": "430px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .cmp .col.good { border:1px solid #166534; } .cmp .col.bad { border:1px solid #7f1d1d; }\n  .tbl { margin:8px 0; font:11px ui-monospace, monospace; }\n  .tbl .r { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #1e293b; }\n  .tbl .r.head { color:#7dd3fc; border-bottom:1px solid #334155; }\n  .tbl .c { flex:1; } .tbl .c.on { color:#4ade80; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:4px 0; font:11px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; }\n  .bars .track { flex:1; height:16px; background:#111c33; border-radius:4px; overflow:hidden; }\n  .bars .fill { height:100%; } .bars .fill.g { background:#4ade80; } .bars .fill.b { background:#7f1d1d; } .bars .fill.c { background:#22d3ee; } .bars .fill.w { background:#facc15; }\n  .bars .val { width:70px; color:#cbd5e1; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody, aCls, bCls) =>\n    '<div class=\"cmp\"><div class=\"col ' + (aCls||'') + '\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b ' + (bCls||'') + '\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  function bars(rows) { return '<div class=\"bars\">' + rows.map((r) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(r.lab) + '</span><span class=\"track\">' +\n    '<span class=\"fill ' + (r.cls||'') + '\" style=\"width:' + Math.max(0, Math.min(100, r.pct)) + '%\"></span></span>' +\n    '<span class=\"val\">' + esc(r.val) + '</span></div>').join('') + '</div>'; }\n  function tbl(head, rows, onCol) { return '<div class=\"tbl\"><div class=\"r head\">' + head.map((h) => '<span class=\"c\">' + esc(h) + '</span>').join('') + '</div>' +\n    rows.map((r) => '<div class=\"r\">' + r.map((c, i) => '<span class=\"c ' + (i === onCol ? 'on' : '') + '\">' + esc(c) + '</span>').join('') + '</div>').join('') + '</div>'; }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{done}};\n  const items = [\n    '「무엇이 최고」가 아니라 「무엇을 포기할지」로 본다',\n    '세 갈래(네이티브·크로스·웹/PWA)의 트레이드오프를 안다',\n    '깊은 OS 기능이 핵심인지 확인했다',\n    '화면·로직 공유, 검색 유입 등 요구로 판단했다',\n    '팀 역량·기간·타깃을 함께 봤다(없는 기술로 시작 X)',\n    '필요하면 섞는다(껍데기+웹뷰, 크로스+네이티브 모듈)',\n    '웹뷰가 핵심 경험을 잠식하지 않게 한다',\n    '첫 출시는 가장 빨리 손에 닿는 길로 검증한다(웹→네이티브)',\n  ];\n  const rows = items.map((t, i) => [(i < n ? 'V ' : '  ') + t, i < n ? 'good' : '']);\n  render('방식 선택 점검  ' + n + '/' + items.length,\n    steps(rows) + '  ' + (n >= items.length\n      ? '<span class=\"ok\">전부 통과 — 유행이 아니라 요구로 고른 방식.</span>'\n      : '<span class=\"warn\">' + (items.length - n) + '개 남음 — 하나씩 통과시켜라.</span>'),\n    '트레이드오프 · 세 갈래 · 요구로 판단 · 섞기 · 첫 출시 빨리.');\n</script>",
           "controls": [
@@ -454,11 +454,11 @@
         },
         {
           "type": "note",
-          "text": "**방식 선택 점검표 — 방식을 정할 때 훑는다.** ① **트레이드오프** — 「무엇이 최고」 아닌 「무엇을 포기」로(1장). ② **세 갈래** — 네이티브·크로스·웹/PWA 의 강점·대가(2장). ③ **깊은 OS 기능** — 핵심인지 확인(3장). ④ **요구로 판단** — 공유·검색 유입 등(3장). ⑤ **팀·기간** — 역량·기간·타깃, 없는 기술로 시작 X(3장). ⑥ **섞기** — 껍데기+웹뷰·크로스+네이티브 모듈(4장). ⑦ **핵심 경험 지키기** — 웹뷰가 잠식 안 하게(4장). ⑧ **첫 출시 빨리** — 가장 빨리 검증(웹→네이티브, 5장). **관통 원리**: 모바일 방식엔 정답이 없고 **트레이드오프**만 있다(1장) — 세 갈래를 알고(2장) **요구**로 판단하며(3장), 필요하면 섞고(4장), 첫 출시는 **가장 싸고 빠르게 검증**한다(5장·product-mvp). 이 칸(choice)은 mobile 갈래에서 **무엇으로 만들지의 근본 결정** — touch(터치 UI) 위에서 방식을 정하고, pwa·notify·offline·perf·store 가 그 방식 안에서 구현된다. 「유행 따라 골랐다가 요구에 안 맞아 갈아엎는」의 반대편. product-scope·mvp 의 트레이드오프·검증 규율과 한 몸. **정리**: 트레이드오프·세 갈래·요구·섞기·첫 출시 빨리 — 이 표로 유행·도그마로 잘못 고르는 일을 매번 걸러라."
+          "text": "**방식 선택 점검표. 방식을 정할 때 훑는다.** ① **트레이드오프**. \"무엇이 최고\" 아닌 \"무엇을 포기\"로(1장). ② **세 갈래**. 네이티브, 크로스, 웹/PWA 의 강점, 대가(2장). ③ **깊은 OS 기능**. 핵심인지 확인(3장). ④ **요구로 판단**. 공유, 검색 유입 등(3장). ⑤ **팀, 기간**. 역량, 기간, 타깃, 없는 기술로 시작 X(3장). ⑥ **섞기**. 껍데기+웹뷰, 크로스+네이티브 모듈(4장). ⑦ **핵심 경험 지키기**. 웹뷰가 잠식 안 하게(4장). ⑧ **첫 출시 빨리**. 가장 빨리 검증(웹→네이티브, 5장). **관통 원리**: 모바일 방식엔 정답이 없고 **트레이드오프**만 있다(1장). 세 갈래를 알고(2장) **요구**로 판단하며(3장), 필요하면 섞고(4장), 첫 출시는 **가장 싸고 빠르게 검증**한다(5장, product-mvp). 이 칸(choice)은 mobile 갈래에서 **무엇으로 만들지의 근본 결정**. touch(터치 UI) 위에서 방식을 정하고, pwa, notify, offline, perf, store 가 그 방식 안에서 구현된다. \"유행 따라 골랐다가 요구에 안 맞아 갈아엎는\"의 반대편. product-scope, mvp 의 트레이드오프, 검증 규율과 한 몸. **정리**: 트레이드오프, 세 갈래, 요구, 섞기, 첫 출시 빨리. 이 표로 유행, 도그마로 잘못 고르는 일을 매번 걸러라."
         },
         {
           "type": "try",
-          "text": "지금(또는 다음) 모바일 프로젝트로 위 8개 항목을 하나씩 확인하라 — 트레이드오프로 보나, 세 갈래를 아나, 깊은 OS 기능이 핵심인가, 요구·팀·기간으로 판단했나, 섞을 여지가 있나, 첫 출시를 빨리 검증하나. 통과 못 한 항목을 채우고 몇 개를 통과시켰는지 세어, 유행이 아니라 요구로 고르는지 확인하라."
+          "text": "지금(또는 다음) 모바일 프로젝트로 위 8개 항목을 하나씩 확인하라. 트레이드오프로 보나, 세 갈래를 아나, 깊은 OS 기능이 핵심인가, 요구, 팀, 기간으로 판단했나, 섞을 여지가 있나, 첫 출시를 빨리 검증하나. 통과 못 한 항목을 채우고 몇 개를 통과시켰는지 세어, 유행이 아니라 요구로 고르는지 확인하라."
         }
       ],
       "quiz": [
@@ -466,7 +466,7 @@
           "q": "모바일 방식 선택의 관통 원리는?",
           "choices": [
             "정답을 찾음",
-            "정답 없음 — 트레이드오프를 요구로 판단",
+            "정답 없음. 트레이드오프를 요구로 판단",
             "가장 새 기술",
             "무관"
           ],
@@ -488,7 +488,7 @@
           "q": "mobile-choice 는 mobile 갈래에서?",
           "choices": [
             "부수적",
-            "무엇으로 만들지의 근본 결정 — 다른 칸이 그 방식 안에",
+            "무엇으로 만들지의 근본 결정. 다른 칸이 그 방식 안에",
             "선택",
             "무관"
           ],

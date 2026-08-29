@@ -8,12 +8,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "보안을 「전문가의 영역」으로 두면 아무것도 안 된다. 실제로 뚫리는 자리는 놀랄 만큼 반복되고, **대부분 만드는 사람이 막을 수 있는 것**이다. OWASP Top 10 은 그 반복되는 자리를 모아 둔 목록이다."
+          "text": "보안을 \"전문가의 영역\"으로 두면 아무것도 안 된다. 실제로 뚫리는 자리는 놀랄 만큼 반복되고, **대부분 만드는 사람이 막을 수 있는 것**이다. OWASP Top 10 은 그 반복되는 자리를 모아 둔 목록이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 골라 보라 — 무엇이 문제이고 어디서 막나",
+          "label": "항목을 골라 보라. 무엇이 문제이고 어디서 막나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{item}}';\n  const t = {\n    access: ['접근 통제 실패', '남의 자료를 볼 수 있다 · 관리자 기능을 쓸 수 있다',\n      '서버에서 「이 사용자가 이 자원에 권한이 있나」를 매번 확인 (3장)'],\n    crypto: ['암호 실패', '비밀번호를 평문·MD5 로 저장 · HTTPS 없이 전송',\n      '검증된 알고리즘 · 전송 구간 암호화 · 저장 시 해시(암호 칸)'],\n    inject: ['주입 (SQL·명령·템플릿)', '입력이 코드로 해석된다',\n      '문자열을 합치지 말고 구조를 분리 — 매개변수 바인딩 (2장)'],\n    design: ['안전하지 않은 설계', '흐름 자체에 구멍 — 비밀번호 재설정으로 남의 계정 탈취',\n      '코드가 아니라 흐름을 검토 · 위협 모델링'],\n    config: ['설정 오류', '기본 계정 · 디버그 모드 · 공개 버킷 · 상세 오류 노출',\n      '기본값을 안전하게 · 배포 전 점검 목록 (7장)'],\n    deps:   ['낡고 취약한 구성요소', '알려진 취약점이 있는 라이브러리를 쓰고 있다',\n      '의존성 목록 관리 · 자동 갱신 PR · 스캔 (공급망 칸)'],\n    authn:  ['인증 실패', '무차별 대입 허용 · 세션 관리 부실',\n      '레이트 리밋 · 안전한 세션 · MFA (인증 칸)'],\n    ssrf:   ['SSRF', '서버가 공격자가 준 주소로 요청을 보낸다',\n      '주소 허용 목록 · 내부망 대역 차단 (6장)'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n  ' + esc(t[1]) +\n    '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '공통점: 「데이터와 코드의 경계」와 「누가 무엇을 할 수 있나」 — 이 둘이 대부분이다.');\n</script>",
           "controls": [
@@ -61,11 +61,11 @@
         },
         {
           "type": "note",
-          "text": "**목록을 외우는 것이 목표가 아니다.** 두 가지 감각만 붙으면 대부분 막힌다 — ① **입력은 언제나 적대적일 수 있다** ② **권한은 서버에서 매번 확인한다**. 나머지는 이 둘의 변주다."
+          "text": "**목록을 외우는 것이 목표가 아니다.** 두 가지 감각만 붙으면 대부분 막힌다. ① **입력은 언제나 적대적일 수 있다** ② **권한은 서버에서 매번 확인한다**. 나머지는 이 둘의 변주다."
         },
         {
           "type": "p",
-          "text": "그리고 보안은 **켜고 끄는 스위치가 아니라 정도**다. 「완전히 안전한」 시스템은 없고, 목표는 **공격 비용을 올리고 피해를 좁히는 것**이다. 그래서 여러 겹으로 막는다(심층 방어)."
+          "text": "그리고 보안은 **켜고 끄는 스위치가 아니라 정도**다. \"완전히 안전한\" 시스템은 없고, 목표는 **공격 비용을 올리고 피해를 좁히는 것**이다. 그래서 여러 겹으로 막는다(심층 방어)."
         },
         {
           "type": "code",
@@ -75,7 +75,7 @@
         },
         {
           "type": "try",
-          "text": "내 서비스에서 「사용자 입력이 SQL·명령·HTML·URL 로 들어가는 자리」를 세어 보라. 그 목록이 곧 이 칸에서 볼 자리다."
+          "text": "내 서비스에서 \"사용자 입력이 SQL, 명령, HTML, URL 로 들어가는 자리\"를 세어 보라. 그 목록이 곧 이 칸에서 볼 자리다."
         }
       ],
       "quiz": [
@@ -94,7 +94,7 @@
           "q": "보안 감각 두 가지로 맞는 것은?",
           "choices": [
             "암호화와 방화벽",
-            "입력은 적대적일 수 있다 · 권한은 서버에서 확인",
+            "입력은 적대적일 수 있다, 권한은 서버에서 확인",
             "로그와 백업",
             "테스트와 리뷰"
           ],
@@ -116,17 +116,17 @@
     },
     {
       "id": "2",
-      "title": "주입 — 데이터가 코드가 되는 순간",
+      "title": "주입. 데이터가 코드가 되는 순간",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "주입의 원리는 하나다 — **데이터를 코드 문자열에 이어 붙였기 때문**이다. 그러면 해석기가 그 데이터의 일부를 문법으로 읽는다. SQL 이든 셸이든 템플릿이든 원리가 같다."
+          "text": "주입의 원리는 하나다. **데이터를 코드 문자열에 이어 붙였기 때문**이다. 그러면 해석기가 그 데이터의 일부를 문법으로 읽는다. SQL 이든 셸이든 템플릿이든 원리가 같다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "입력을 골라 보라 — 무엇이 실행되나",
+          "label": "입력을 골라 보라. 무엇이 실행되나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{input}}';\n  const inputs = {\n    normal: \"kim\",\n    quote:  \"kim' OR '1'='1\",\n    drop:   \"kim'; DROP TABLE users; --\",\n    union:  \"kim' UNION SELECT password FROM users --\",\n  };\n  const v = inputs[c];\n  const bad = \"SELECT * FROM users WHERE name = '\" + v + \"'\";\n  const say = {\n    normal: '정상 입력이면 아무 문제 없어 보인다 — 그래서 발견이 늦는다.',\n    quote:  \"조건이 항상 참이 된다 -> 모든 사용자가 조회된다(로그인 우회의 고전).\",\n    drop:   '문장을 끝내고 새 문장을 붙였다. -- 뒤는 주석 처리.',\n    union:  '다른 테이블의 값을 결과에 실어 보낸다 — 자료 유출.',\n  }[c];\n  render('',\n    '  <span class=\"' + (c === 'normal' ? 'ok' : 'no') + '\">' + esc(say) + '</span>\\n\\n' +\n    '  <span class=\"dim\">매개변수 바인딩을 쓰면 위 입력이 무엇이든 「이름」으로만 취급된다.</span>',\n    '문자열을 합치는 순간 데이터와 코드의 경계가 사라진다.',\n    box('사용자 입력', v) +\n    box('만들어진 SQL (문자열 합치기)', bad, c === 'normal' ? '' : 'bad') +\n    box('안전한 방식 (바인딩)', \"SELECT * FROM users WHERE name = $1\\n  params: [\" + JSON.stringify(v) + ']', 'good'));\n</script>",
           "controls": [
@@ -164,15 +164,15 @@
         },
         {
           "type": "note",
-          "text": "**「이스케이프하면 되지 않나」**는 위험한 절충이다. 규칙이 문맥마다 다르고(문자열 안·식별자·LIKE·JSON) 한 군데만 빠뜨려도 뚫린다. **바인딩이 가능하면 언제나 바인딩**, 안 되는 자리(테이블명 등)는 **허용 목록**으로 처리하라."
+          "text": "**\"이스케이프하면 되지 않나\"**는 위험한 절충이다. 규칙이 문맥마다 다르고(문자열 안, 식별자, LIKE, JSON) 한 군데만 빠뜨려도 뚫린다. **바인딩이 가능하면 언제나 바인딩**, 안 되는 자리(테이블명 등)는 **허용 목록**으로 처리하라."
         },
         {
           "type": "p",
-          "text": "셸 명령도 같다. `exec('rm ' + name)` 은 이름에 `; rm -rf /` 가 들어오면 그대로 돈다. **셸을 안 거치는 API**(`execFile`·`spawn` 에 배열 인자)를 쓰면 애초에 문법이 없어 주입이 성립하지 않는다."
+          "text": "셸 명령도 같다. `exec('rm ' + name)` 은 이름에 `; rm -rf /` 가 들어오면 그대로 돈다. **셸을 안 거치는 API**(`execFile`, `spawn` 에 배열 인자)를 쓰면 애초에 문법이 없어 주입이 성립하지 않는다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 SQL·셸 명령을 문자열로 조립하는 자리를 grep 해 보라(`query(\\``, `exec(`). 하나라도 있으면 오늘 바꿀 자리다."
+          "text": "내 코드에서 SQL, 셸 명령을 문자열로 조립하는 자리를 grep 해 보라(`query(\\``, `exec(`). 하나라도 있으면 오늘 바꿀 자리다."
         }
       ],
       "quiz": [
@@ -213,17 +213,17 @@
     },
     {
       "id": "3",
-      "title": "접근 통제 — 가장 흔하고 가장 조용한 구멍",
+      "title": "접근 통제. 가장 흔하고 가장 조용한 구멍",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "OWASP 1위가 접근 통제 실패다. 화면에서 버튼을 숨겼다고 막힌 것이 아니다 — **요청은 브라우저를 거치지 않고도 보낼 수 있다.**"
+          "text": "OWASP 1위가 접근 통제 실패다. 화면에서 버튼을 숨겼다고 막힌 것이 아니다. **요청은 브라우저를 거치지 않고도 보낼 수 있다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "요청을 골라 보라 — 서버가 무엇을 확인해야 하나",
+          "label": "요청을 골라 보라. 서버가 무엇을 확인해야 하나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    idor:  ['GET /api/orders/1042', '다른 사람의 주문 번호로 바꿔 요청',\n      'if (order.userId !== req.user.id) return res.status(404).end();',\n      '가장 흔하다(IDOR). 번호가 순차면 전부 긁어 갈 수 있다.'],\n    hidden:['POST /api/admin/users/9/role', '화면에 안 보이는 관리자 API 를 직접 호출',\n      'requireRole(\\'admin\\') 미들웨어를 서버에서',\n      '「UI 에 없으니 안전」은 방어가 아니다 — 경로는 추측·유출된다.'],\n    param: ['POST /api/profile  { role: \\'admin\\' }', '허용 안 된 필드를 함께 보낸다',\n      '허용 목록으로만 받는다: pick(body, [\\'name\\', \\'bio\\'])',\n      '대량 할당(mass assignment) — ORM 에 body 를 통째로 넘기면 열린다.'],\n    jwt:   ['Authorization: Bearer <내 토큰>', '토큰 안의 role 을 그대로 믿는다',\n      '서명 검증 + 서버 권한 조회 — 토큰의 주장은 신원까지만',\n      '권한은 자주 바뀐다. 토큰에 박아 두면 회수가 안 된다.'],\n    path:  ['GET /files?name=../../etc/passwd', '경로를 벗어난다',\n      'path.resolve 후 기준 폴더로 시작하는지 확인 · 이름은 화이트리스트',\n      '업로드·다운로드 자리의 고전(경로 탐색).'],\n  }[c];\n  render(t[0],\n    '  <span class=\"no\">공격: ' + esc(t[1]) + '</span>\\n\\n  ' + esc(t[3]),\n    '규칙: 화면이 아니라 서버에서 · 매 요청마다 · 「이 사람이 이 자원에」를 확인.',\n    box('막는 코드', t[2], 'good'));\n</script>",
           "controls": [
@@ -259,17 +259,17 @@
         },
         {
           "type": "note",
-          "text": "**「없는 것처럼 보이게」는 방어가 아니다.** 버튼 숨기기·경로 난독화·순차 ID 를 UUID 로 바꾸기는 공격 비용을 조금 올릴 뿐이다 — 서버의 권한 확인이 없으면 언젠가 뚫린다."
+          "text": "**\"없는 것처럼 보이게\"는 방어가 아니다.** 버튼 숨기기, 경로 난독화, 순차 ID 를 UUID 로 바꾸기는 공격 비용을 조금 올릴 뿐이다. 서버의 권한 확인이 없으면 언젠가 뚫린다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "기본을 「거부」로 두면 실수해도 안전하다",
+          "label": "기본을 \"거부\"로 두면 실수해도 안전하다",
           "text": "// 나쁨: 보호가 필요한 곳에만 미들웨어를 붙인다 (빠뜨리면 열린다)\napp.get('/api/orders/:id', getOrder);\napp.get('/api/admin/stats', requireAdmin, getStats);\n\n// 좋음: 전부 막고 예외만 연다\napp.use(requireAuth);                       // 기본 = 로그인 필요\napp.get('/api/public/health', allowAnon, health);\n\n// 자원 소유 확인은 조회에 함께 넣는다\nconst order = await db.order.findFirst({ where: { id, userId: req.user.id } });\nif (!order) return res.status(404).end();   // 존재 여부도 흘리지 않는다"
         },
         {
           "type": "p",
-          "text": "**없는 것과 권한 없는 것을 같은 응답으로** 돌려주는 것도 요령이다. 403 과 404 를 구분해 주면 「그 번호의 자원이 존재한다」는 사실이 새어 나간다 — 열거 공격의 재료가 된다."
+          "text": "**없는 것과 권한 없는 것을 같은 응답으로** 돌려주는 것도 요령이다. 403 과 404 를 구분해 주면 \"그 번호의 자원이 존재한다\"는 사실이 새어 나간다. 열거 공격의 재료가 된다."
         },
         {
           "type": "try",
@@ -314,17 +314,17 @@
     },
     {
       "id": "4",
-      "title": "XSS — 브라우저에서 코드가 되는 순간",
+      "title": "XSS. 브라우저에서 코드가 되는 순간",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "주입의 브라우저 판이 XSS 다. **남의 입력이 내 페이지의 스크립트로 실행**되면, 그 사용자의 세션·화면·행동이 전부 공격자 것이 된다."
+          "text": "주입의 브라우저 판이 XSS 다. **남의 입력이 내 페이지의 스크립트로 실행**되면, 그 사용자의 세션, 화면, 행동이 전부 공격자 것이 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "자리를 골라 보라 — 무엇이 실행되나",
+          "label": "자리를 골라 보라. 무엇이 실행되나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{ctx}}';\n  const payload = '<img src=x onerror=steal(document.cookie)>';\n  const t = {\n    html:  ['본문에 넣기', 'el.innerHTML = comment', payload,\n      'el.textContent = comment', '가장 흔하다. 글자로 보여 줄 곳에 innerHTML 을 쓴 경우.'],\n    attr:  ['속성에 넣기', 'el.setAttribute(\\'title\\', v)', 'x\" onmouseover=\"steal()',\n      '값을 그대로 넣되 따옴표 처리를 프레임워크에 맡긴다', '속성 문맥은 이스케이프 규칙이 또 다르다.'],\n    url:   ['링크 주소에 넣기', 'a.href = userUrl', 'javascript:steal()',\n      'new URL(v) 로 파싱 후 http/https 만 허용', 'href·src 는 자바스크립트 실행 통로가 될 수 있다.'],\n    script:['스크립트 안에 넣기', 'eval(\\'var x = \\' + v)', '1; steal()',\n      'JSON.parse · 애초에 eval 을 쓰지 않는다', '가장 위험한 문맥 — 값이 곧 코드다.'],\n    react: ['프레임워크', 'dangerouslySetInnerHTML', payload,\n      '기본 렌더링을 쓰거나 DOMPurify 로 정제', 'React·Vue 는 기본이 안전 — 그 「탈출구」만 조심하면 된다.'],\n  }[c];\n  render('',\n    '  <span class=\"no\">' + esc(t[0]) + '</span> — ' + esc(t[4]),\n    '문맥마다 규칙이 다르다 — 그래서 「내가 이스케이프한다」보다 「프레임워크에 맡긴다」가 안전하다.',\n    box('취약한 코드', t[1], 'bad') + box('공격 입력', t[2], 'bad') + box('안전한 방식', t[3], 'good'));\n</script>",
           "controls": [
@@ -360,17 +360,17 @@
         },
         {
           "type": "note",
-          "text": "**저장형 XSS 가 가장 나쁘다.** 댓글·프로필에 저장된 스크립트는 그 페이지를 보는 **모든 사용자**에게 실행된다. 반사형(URL 파라미터)은 링크를 클릭한 사람만, DOM 기반은 클라이언트 코드가 스스로 만드는 경우다."
+          "text": "**저장형 XSS 가 가장 나쁘다.** 댓글, 프로필에 저장된 스크립트는 그 페이지를 보는 **모든 사용자**에게 실행된다. 반사형(URL 파라미터)은 링크를 클릭한 사람만, DOM 기반은 클라이언트 코드가 스스로 만드는 경우다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "CSP — 뚫려도 피해를 줄이는 두 번째 겹",
+          "label": "CSP. 뚫려도 피해를 줄이는 두 번째 겹",
           "text": "// 응답 헤더\nContent-Security-Policy:\n  default-src 'self';\n  script-src 'self' 'nonce-r4nd0m';   // 인라인 스크립트는 nonce 있는 것만\n  object-src 'none';\n  base-uri 'none';\n\n// 쿠키는 자바스크립트가 못 읽게\nSet-Cookie: session=…; HttpOnly; Secure; SameSite=Lax"
         },
         {
           "type": "p",
-          "text": "**`HttpOnly` 쿠키 + CSP** 는 XSS 가 나도 피해를 크게 줄인다 — 세션을 훔치지 못하고, 외부 스크립트를 불러오지 못한다. 다만 이것들은 **두 번째 겹**이지 첫 번째 방어가 아니다. 출력을 안전하게 하는 것이 먼저다."
+          "text": "**`HttpOnly` 쿠키 + CSP** 는 XSS 가 나도 피해를 크게 줄인다. 세션을 훔치지 못하고, 외부 스크립트를 불러오지 못한다. 다만 이것들은 **두 번째 겹**이지 첫 번째 방어가 아니다. 출력을 안전하게 하는 것이 먼저다."
         },
         {
           "type": "try",
@@ -387,7 +387,7 @@
             "WAF"
           ],
           "answer": 1,
-          "why": "CSP·HttpOnly 는 두 번째 겹."
+          "why": "CSP, HttpOnly 는 두 번째 겹."
         },
         {
           "q": "가장 피해가 큰 XSS 유형은?",
@@ -415,17 +415,17 @@
     },
     {
       "id": "5",
-      "title": "CSRF 와 세션 — 남의 브라우저를 빌려 쓰기",
+      "title": "CSRF 와 세션. 남의 브라우저를 빌려 쓰기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "브라우저는 그 사이트로 가는 요청에 **쿠키를 자동으로 붙인다.** 그래서 공격자가 사용자를 속여 요청을 보내게 하면, 그 요청은 **로그인된 상태로** 처리된다 — 이것이 CSRF 다."
+          "text": "브라우저는 그 사이트로 가는 요청에 **쿠키를 자동으로 붙인다.** 그래서 공격자가 사용자를 속여 요청을 보내게 하면, 그 요청은 **로그인된 상태로** 처리된다. 이것이 CSRF 다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방어를 골라 보라 — 어떻게 막나",
+          "label": "방어를 골라 보라. 어떻게 막나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{fix}}';\n  const t = {\n    none:  ['방어 없음', 'bad',\n      '<form action=CSRF_URL method=POST> <input name=to value=attacker> + 자동 제출',\n      '공격자 사이트의 폼이 자동 제출된다. 쿠키는 브라우저가 붙여 준다.'],\n    samesite:['SameSite 쿠키', 'good',\n      'Set-Cookie: session=…; SameSite=Lax; HttpOnly; Secure',\n      '다른 사이트에서 시작된 요청에는 쿠키를 안 붙인다. 요즘 브라우저 기본값이라 큰 몫을 막는다.'],\n    token:  ['CSRF 토큰', 'good',\n      '<input type=\\\"hidden\\\" name=\\\"_csrf\\\" value=\\\"r4nd0m\\\">',\n      '공격자는 그 값을 모른다. 폼 기반 앱의 표준 방어.'],\n    header: ['커스텀 헤더 + CORS', 'good',\n      'X-Requested-With: XMLHttpRequest  (또는 Authorization 헤더)',\n      '헤더를 붙이려면 CORS 사전 요청이 필요하다 — 폼으로는 못 보낸다. 토큰 기반 API 에 맞다.'],\n    get:    ['GET 으로 상태 변경', 'bad',\n      '<img src=\\\"https://bank.com/transfer?to=attacker\\\">',\n      '이미지 태그 하나로 실행된다. 상태를 바꾸는 요청은 절대 GET 으로 두지 마라.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : 'no') + '\">' + esc(t[0]) + '</span>\\n\\n  ' + esc(t[3]),\n    '핵심: 「이 요청이 정말 우리 사이트에서 시작됐나」를 확인하는 것.',\n    box(t[1] === 'good' ? '방어' : '공격', t[2], t[1]));\n</script>",
           "controls": [
@@ -461,7 +461,7 @@
         },
         {
           "type": "note",
-          "text": "**세션 쿠키 세 속성을 통째로 외워 두라** — `HttpOnly`(JS 가 못 읽음) · `Secure`(HTTPS 에서만) · `SameSite=Lax`(다른 사이트에서 온 요청엔 안 붙음). 이 세 줄이 XSS·도청·CSRF 를 각각 한 겹씩 막는다."
+          "text": "**세션 쿠키 세 속성을 통째로 외워 두라**. `HttpOnly`(JS 가 못 읽음), `Secure`(HTTPS 에서만), `SameSite=Lax`(다른 사이트에서 온 요청엔 안 붙음). 이 세 줄이 XSS, 도청, CSRF 를 각각 한 겹씩 막는다."
         },
         {
           "type": "code",
@@ -471,11 +471,11 @@
         },
         {
           "type": "p",
-          "text": "**CORS 를 방어로 오해하지 마라.** CORS 는 「브라우저가 응답을 읽게 해 줄까」를 정하는 규칙이지, 요청이 도달하는 것을 막지 않는다. `Access-Control-Allow-Origin: *` 을 켜 두고 인증을 쿠키로 하면 위험이 커진다."
+          "text": "**CORS 를 방어로 오해하지 마라.** CORS 는 \"브라우저가 응답을 읽게 해 줄까\"를 정하는 규칙이지, 요청이 도달하는 것을 막지 않는다. `Access-Control-Allow-Origin: *` 을 켜 두고 인증을 쿠키로 하면 위험이 커진다."
         },
         {
           "type": "try",
-          "text": "내 서비스의 `Set-Cookie` 헤더를 개발자도구에서 확인하라. `HttpOnly`·`Secure`·`SameSite` 셋이 다 있는지 보라."
+          "text": "내 서비스의 `Set-Cookie` 헤더를 개발자도구에서 확인하라. `HttpOnly`, `Secure`, `SameSite` 셋이 다 있는지 보라."
         }
       ],
       "quiz": [
@@ -504,9 +504,9 @@
         {
           "q": "세션 쿠키에 붙일 세 속성은?",
           "choices": [
-            "Path·Domain·Max-Age",
-            "HttpOnly·Secure·SameSite",
-            "Expires·Priority·Partitioned",
+            "Path, Domain, Max-Age",
+            "HttpOnly, Secure, SameSite",
+            "Expires, Priority, Partitioned",
             "None"
           ],
           "answer": 1,
@@ -516,17 +516,17 @@
     },
     {
       "id": "6",
-      "title": "서버를 심부름꾼으로 — SSRF 와 업로드",
+      "title": "서버를 심부름꾼으로. SSRF 와 업로드",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "사용자가 준 **주소로 서버가 요청을 보내는** 기능(썸네일 생성·웹훅·URL 미리보기)은 편리하지만, 그 순간 서버가 공격자의 손발이 된다 — 내부망에 접근할 수 있기 때문이다."
+          "text": "사용자가 준 **주소로 서버가 요청을 보내는** 기능(썸네일 생성, 웹훅, URL 미리보기)은 편리하지만, 그 순간 서버가 공격자의 손발이 된다. 내부망에 접근할 수 있기 때문이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "입력을 골라 보라 — 서버가 어디로 가나",
+          "label": "입력을 골라 보라. 서버가 어디로 가나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{target}}';\n  const t = {\n    normal: ['https://example.com/logo.png', 'good', '정상 — 바깥의 공개 자원.'],\n    meta:   ['http://169.254.169.254/latest/meta-data/iam/', 'bad',\n      '클라우드 메타데이터 — 인스턴스의 자격 증명이 나온다. SSRF 의 대표 표적.'],\n    local:  ['http://localhost:6379/', 'bad',\n      '같은 기계의 내부 서비스(Redis·관리 화면). 방화벽 안쪽이라 인증이 없는 경우가 많다.'],\n    file:   ['file:///etc/passwd', 'bad', '스킴 제한이 없으면 파일까지 읽는다.'],\n    dns:    ['https://attacker.com  (DNS 가 내부 IP 로)', 'bad',\n      '검사할 때는 외부 IP, 요청할 때는 내부 IP — 검사와 사용 사이의 시차를 노린다.'],\n  }[c];\n  render('POST /api/thumbnail  { url }',\n    '  <span class=\"' + (t[1] === 'good' ? 'ok' : 'no') + '\">' + esc(t[2]) + '</span>\\n\\n' +\n    '  <span class=\"dim\">막는 법: https 만 허용 · 도메인 허용 목록 · 사설/링크로컬 IP 차단 ·\\n' +\n    '  리다이렉트 따라가지 않기 · 나가는 요청을 전용 프록시로 · 메타데이터는 IMDSv2</span>',\n    'SSRF 는 「서버가 요청을 보낸다」는 기능 자체에서 나온다 — 기능을 좁히는 것이 방어다.',\n    box('사용자가 준 URL', t[0], t[1]));\n</script>",
           "controls": [
@@ -562,7 +562,7 @@
         },
         {
           "type": "p",
-          "text": "**파일 업로드**도 비슷한 자리다. 확장자·Content-Type 은 사용자가 정하는 값이라 믿을 수 없다 — 서버에서 실제 내용을 확인하고, **저장할 이름을 서버가 정하고**, 업로드 폴더에서는 실행이 불가능해야 한다."
+          "text": "**파일 업로드**도 비슷한 자리다. 확장자, Content-Type 은 사용자가 정하는 값이라 믿을 수 없다. 서버에서 실제 내용을 확인하고, **저장할 이름을 서버가 정하고**, 업로드 폴더에서는 실행이 불가능해야 한다."
         },
         {
           "type": "code",
@@ -572,11 +572,11 @@
         },
         {
           "type": "note",
-          "text": "**업로드 파일을 앱과 같은 도메인에서 서빙하지 마라.** 사용자가 올린 HTML·SVG 가 그 도메인의 스크립트로 실행되면 XSS 와 같아진다. 별도 도메인이나 오브젝트 스토리지 + `Content-Disposition: attachment` 를 쓴다."
+          "text": "**업로드 파일을 앱과 같은 도메인에서 서빙하지 마라.** 사용자가 올린 HTML, SVG 가 그 도메인의 스크립트로 실행되면 XSS 와 같아진다. 별도 도메인이나 오브젝트 스토리지 + `Content-Disposition: attachment` 를 쓴다."
         },
         {
           "type": "try",
-          "text": "내 서비스에 URL 을 받아 서버가 요청하는 기능이 있는지 보라. 있으면 `http://169.254.169.254/` 를 넣어 보라(내 테스트 환경에서) — 응답이 오면 SSRF 다."
+          "text": "내 서비스에 URL 을 받아 서버가 요청하는 기능이 있는지 보라. 있으면 `http://169.254.169.254/` 를 넣어 보라(내 테스트 환경에서). 응답이 오면 SSRF 다."
         }
       ],
       "quiz": [
@@ -584,7 +584,7 @@
           "q": "SSRF 의 대표 표적은?",
           "choices": [
             "외부 API",
-            "클라우드 메타데이터·내부 서비스",
+            "클라우드 메타데이터, 내부 서비스",
             "CDN",
             "DNS 서버"
           ],
@@ -600,13 +600,13 @@
             "상관없다"
           ],
           "answer": 1,
-          "why": "경로 탐색·덮어쓰기를 막는다."
+          "why": "경로 탐색, 덮어쓰기를 막는다."
         },
         {
           "q": "업로드 파일을 앱과 같은 도메인에서 서빙하면?",
           "choices": [
             "빠르다",
-            "올린 HTML·SVG 가 XSS 통로가 된다",
+            "올린 HTML, SVG 가 XSS 통로가 된다",
             "캐시가 는다",
             "문제없다"
           ],
@@ -617,7 +617,7 @@
     },
     {
       "id": "7",
-      "title": "설정과 노출 — 안 열어도 될 문",
+      "title": "설정과 노출. 안 열어도 될 문",
       "minutes": 8,
       "blocks": [
         {
@@ -627,7 +627,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 골라 보라 — 무엇이 새나",
+          "label": "설정을 골라 보라. 무엇이 새나",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    debug: ['디버그 모드가 켜져 있다', ['스택 트레이스에 경로·쿼리·버전이 나온다',\n      '오류 화면이 그대로 정찰 자료가 된다'],\n      '운영에서는 상세 오류를 끄고, 사용자에게는 참조 ID 만 보여 준다.'],\n    bucket:['스토리지 버킷이 공개', ['목록이 열려 있으면 전부 받아 갈 수 있다'],\n      '기본을 비공개로 · 공개 접근 차단 켜기 · 서명 URL 로 필요한 것만.'],\n    cors:  ['CORS 가 * 로 열려 있다', ['쿠키 인증과 함께면 남의 사이트가 내 API 를 대신 호출'],\n      '허용 오리진을 목록으로 · credentials 를 쓸 때는 * 금지(브라우저도 막는다).'],\n    ver:   ['버전·기술 스택 노출', ['Server · X-Powered-By 헤더 · 기본 오류 화면'],\n      '큰 위험은 아니지만 공짜로 주는 정보다 — 헤더는 끄는 편이 낫다.'],\n    dir:   ['디렉터리 목록·백업 파일', ['/.git · /backup.zip · /.env 가 그대로 열려 있다'],\n      '정적 서버 설정에서 목록 끄기 · 배포물에 소스·백업을 넣지 않기.'],\n    admin: ['관리 화면이 인터넷에', ['기본 계정 · 무차별 대입에 노출'],\n      'VPN·IP 제한·SSO 뒤로 · 기본 계정 삭제.'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '이 부류는 코드 리뷰로 안 잡힌다 — 배포 전 점검과 스캔으로 잡는다.');\n</script>",
           "controls": [
@@ -655,7 +655,7 @@
                 },
                 {
                   "value": "dir",
-                  "label": "디렉터리·백업"
+                  "label": "디렉터리, 백업"
                 },
                 {
                   "value": "admin",
@@ -673,15 +673,15 @@
         },
         {
           "type": "note",
-          "text": "**오류 메시지가 새는 정보**를 조심하라. 「비밀번호가 틀렸습니다」와 「없는 계정입니다」를 구분해 주면 계정 열거가 가능해진다 — 로그인 실패는 **한 가지 메시지**로 통일하는 것이 기본이다."
+          "text": "**오류 메시지가 새는 정보**를 조심하라. \"비밀번호가 틀렸습니다\"와 \"없는 계정입니다\"를 구분해 주면 계정 열거가 가능해진다. 로그인 실패는 **한 가지 메시지**로 통일하는 것이 기본이다."
         },
         {
           "type": "p",
-          "text": "그리고 이런 항목은 **자동 검사에 맡겨라.** 배포 파이프라인에서 헤더·공개 설정·의존성 취약점을 훑는 도구를 돌리면, 사람이 매번 기억할 필요가 없다(CI 칸 4장의 게이트)."
+          "text": "그리고 이런 항목은 **자동 검사에 맡겨라.** 배포 파이프라인에서 헤더, 공개 설정, 의존성 취약점을 훑는 도구를 돌리면, 사람이 매번 기억할 필요가 없다(CI 칸 4장의 게이트)."
         },
         {
           "type": "try",
-          "text": "내 사이트에 `curl -I https://내주소` 를 쳐서 헤더를 보라. 위 다섯 헤더 중 몇 개가 있는지 세어라 — 대개 두세 개가 빠져 있다."
+          "text": "내 사이트에 `curl -I https://내주소` 를 쳐서 헤더를 보라. 위 다섯 헤더 중 몇 개가 있는지 세어라. 대개 두세 개가 빠져 있다."
         }
       ],
       "quiz": [
@@ -722,17 +722,17 @@
     },
     {
       "id": "8",
-      "title": "무엇부터 — 겹으로 막고, 값싼 것부터",
+      "title": "무엇부터. 겹으로 막고, 값싼 것부터",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "보안 항목은 끝이 없다. 그래서 **값싸고 효과가 큰 것부터** 순서를 정해야 한다 — 그리고 하나가 뚫려도 다음 겹이 남게 배치한다."
+          "text": "보안 항목은 끝이 없다. 그래서 **값싸고 효과가 큰 것부터** 순서를 정해야 한다. 그리고 하나가 뚫려도 다음 겹이 남게 배치한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 골라 보라 — 지금 어디인가",
+          "label": "단계를 골라 보라. 지금 어디인가",
           "height": "340px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{stage}}';\n  const t = {\n    zero: ['아무것도 안 했다', 'no',\n      ['문자열로 SQL 을 만든다 · 권한 확인이 화면에만'],\n      '다음 한 걸음: <span class=\"ok\">바인딩 + 서버 권한 확인</span> — 이 둘이 실제 사고의 대부분을 막는다.'],\n    basic:['주입·권한을 막았다', 'warn',\n      ['가장 큰 둘은 막혔다'],\n      '다음 한 걸음: <span class=\"ok\">쿠키 3속성 + 보안 헤더 + 의존성 스캔</span> — 설정 몇 줄로 여러 겹이 는다.'],\n    hard: ['설정·헤더도 갖췄다', 'warn',\n      ['기본기는 끝났다'],\n      '다음 한 걸음: <span class=\"ok\">비밀 관리 · 레이트 리밋 · 감사 로그</span>.'],\n    test: ['자동 검사까지', 'ok',\n      ['CI 에서 의존성·헤더·시크릿 스캔이 돈다'],\n      '다음 한 걸음: <span class=\"ok\">위협 모델링 · 외부 점검</span> — 사람이 볼 차례.'],\n    mature:['정기 점검·훈련까지', 'ok',\n      ['설계 단계에서 위협을 논한다 · 취약점 신고 창구가 있다'],\n      '여기까지 오면 새 기능마다 자연스럽게 보안 질문이 나온다.'],\n  }[c];\n  render('', '  <span class=\"' + t[1] + '\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + t[3],\n    '겹으로 막기: 입력 검증 -> 출력 인코딩 -> 권한 확인 -> 쿠키·헤더 -> 최소 권한 -> 탐지.',\n    box('심층 방어', '입력  →  출력  →  권한  →  세션  →  네트워크  →  탐지\\n' +\n      '하나가 뚫려도 다음 겹에서 막히거나, 최소한 티가 난다', 'good'));\n</script>",
           "controls": [
@@ -748,11 +748,11 @@
                 },
                 {
                   "value": "basic",
-                  "label": "주입·권한"
+                  "label": "주입, 권한"
                 },
                 {
                   "value": "hard",
-                  "label": "설정·헤더"
+                  "label": "설정, 헤더"
                 },
                 {
                   "value": "test",
@@ -768,7 +768,7 @@
         },
         {
           "type": "note",
-          "text": "**「보안 담당자가 나중에 봐 준다」는 잘 작동하지 않는다.** 설계가 끝난 뒤에는 고치는 비용이 크다 — 새 기능을 만들 때 「이 입력은 어디로 가나」·「누가 이걸 할 수 있어야 하나」 두 질문만 해도 대부분 앞당겨 잡힌다."
+          "text": "**\"보안 담당자가 나중에 봐 준다\"는 잘 작동하지 않는다.** 설계가 끝난 뒤에는 고치는 비용이 크다. 새 기능을 만들 때 \"이 입력은 어디로 가나\", \"누가 이걸 할 수 있어야 하나\" 두 질문만 해도 대부분 앞당겨 잡힌다."
         },
         {
           "type": "code",
@@ -778,7 +778,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **취약점을 알려 오는 창구**를 만들어 두라(`security.txt`·보안 메일). 외부에서 발견해도 알릴 곳이 없으면 공개적으로 터지거나 악용된다 — 창구 하나가 그 차이를 만든다."
+          "text": "그리고 **취약점을 알려 오는 창구**를 만들어 두라(`security.txt`, 보안 메일). 외부에서 발견해도 알릴 곳이 없으면 공개적으로 터지거나 악용된다. 창구 하나가 그 차이를 만든다."
         },
         {
           "type": "try",
@@ -801,7 +801,7 @@
           "q": "심층 방어의 뜻은?",
           "choices": [
             "가장 강한 방어 하나",
-            "여러 겹 — 하나가 뚫려도 다음에서 막히거나 티가 난다",
+            "여러 겹. 하나가 뚫려도 다음에서 막히거나 티가 난다",
             "이중 인증",
             "암호화 두 번"
           ],
@@ -811,10 +811,10 @@
         {
           "q": "새 기능을 만들 때 할 두 질문은?",
           "choices": [
-            "빠른가·싼가",
-            "이 입력은 어디로 가나 · 누가 할 수 있어야 하나",
-            "테스트·문서",
-            "누가 만드나·언제"
+            "빠른가, 싼가",
+            "이 입력은 어디로 가나, 누가 할 수 있어야 하나",
+            "테스트, 문서",
+            "누가 만드나, 언제"
           ],
           "answer": 1,
           "why": "설계 단계에서 대부분 잡힌다."
@@ -823,12 +823,12 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "이 목록은 「보안 전문가가 되는 법」이 아니라 **만드는 사람이 스스로 막을 수 있는 것들**이다."
+          "text": "이 목록은 \"보안 전문가가 되는 법\"이 아니라 **만드는 사람이 스스로 막을 수 있는 것들**이다."
         },
         {
           "type": "code",
@@ -839,17 +839,17 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['이스케이프보다 매개변수 바인딩이 확실하다', true],\n    ['UI 에서 버튼을 숨기면 권한이 막힌다', false],\n    ['CSP 는 XSS 의 첫 번째 방어다', false],\n    ['상태를 바꾸는 요청을 GET 으로 두면 안 된다', true],\n    ['업로드 파일 이름은 사용자 것을 그대로 쓰면 된다', false],\n    ['로그인 실패 메시지는 하나로 통일한다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 2장(바인딩) 3장(권한) 4장(XSS) 5장(CSRF) 6장(업로드) 7장(노출)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 인증과 인가다. 여기까지가 「흔한 구멍」이었다면, 다음은 **「너는 누구인가」와 「무엇을 할 수 있나」**를 제대로 다루는 법이다 — 3장에서 미뤄 둔 이야기의 본편."
+          "text": "다음 칸은 인증과 인가다. 여기까지가 \"흔한 구멍\"이었다면, 다음은 **\"너는 누구인가\"와 \"무엇을 할 수 있나\"**를 제대로 다루는 법이다. 3장에서 미뤄 둔 이야기의 본편."
         },
         {
           "type": "try",
-          "text": "위 목록에서 「입력이 코드가 되는 자리」 네 줄부터 실제로 grep 해 확인하라. 여기서 걸리는 것이 가장 위험하다."
+          "text": "위 목록에서 \"입력이 코드가 되는 자리\" 네 줄부터 실제로 grep 해 확인하라. 여기서 걸리는 것이 가장 위험하다."
         }
       ],
       "quiz": [
@@ -857,7 +857,7 @@
           "q": "이 칸에서 가장 많이 나온 원리는?",
           "choices": [
             "암호화",
-            "데이터와 코드의 경계 · 서버에서의 권한 확인",
+            "데이터와 코드의 경계, 서버에서의 권한 확인",
             "네트워크 차단",
             "로그"
           ],
@@ -867,7 +867,7 @@
         {
           "q": "값싸게 큰 효과를 내는 첫 두 조치는?",
           "choices": [
-            "WAF·IDS",
+            "WAF, IDS",
             "바인딩 + 서버 권한 확인",
             "암호화 강화",
             "침투 테스트"

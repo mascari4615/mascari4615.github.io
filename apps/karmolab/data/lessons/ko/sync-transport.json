@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "실시간의 답은 셋 — 방향부터 정하라",
+      "title": "실시간의 답은 셋. 방향부터 정하라",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「실시간으로 보이게 해 주세요」의 답은 **셋**이다 — **폴링**·**SSE(Server-Sent Events)**·**웹소켓**. 웹소켓이 **항상 정답은 아니다**. 고를 때 첫 질문은 **「한 방향이냐 양방향이냐」**다: ① **폴링(polling)** — 클라가 **주기적으로 물어본다**(「새 거 있어?»). 가장 단순하고 HTTP 그대로라 캐시·프록시·재시도와 잘 지낸다. 지연 = 주기(3초 폴링이면 최대 3초 늦음), 사람이 늘면 **빈 요청**이 대부분. ② **SSE** — 서버가 클라로 **한 방향** 스트림을 흘린다(서버→클라만). 알림·피드·진행률에 딱, HTTP 위라 단순하고 **자동 재연결**이 표준. ③ **웹소켓** — **양방향** 상시 연결(둘 다 아무 때나 보냄). 채팅·협업·게임처럼 **클라도 자주 보내야** 할 때. 방향이 먼저다 — **서버→클라만이면 SSE/폴링, 양방향이면 웹소켓**. 「실시간=웹소켓」이 아니라 요구(방향·빈도·인프라)에 맞게 고른다."
+          "text": "\"실시간으로 보이게 해 주세요\"의 답은 **셋**이다. **폴링**, **SSE(Server-Sent Events)**, **웹소켓**. 웹소켓이 **항상 정답은 아니다**. 고를 때 첫 질문은 **\"한 방향이냐 양방향이냐\"**다: ① **폴링(polling)**. 클라가 **주기적으로 물어본다**(\"새 거 있어?»). 가장 단순하고 HTTP 그대로라 캐시, 프록시, 재시도와 잘 지낸다. 지연 = 주기(3초 폴링이면 최대 3초 늦음), 사람이 늘면 **빈 요청**이 대부분. ② **SSE**. 서버가 클라로 **한 방향** 스트림을 흘린다(서버→클라만). 알림, 피드, 진행률에 딱, HTTP 위라 단순하고 **자동 재연결**이 표준. ③ **웹소켓**. **양방향** 상시 연결(둘 다 아무 때나 보냄). 채팅, 협업, 게임처럼 **클라도 자주 보내야** 할 때. 방향이 먼저다. **서버→클라만이면 SSE/폴링, 양방향이면 웹소켓**. \"실시간=웹소켓\"이 아니라 요구(방향, 빈도, 인프라)에 맞게 고른다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "세 방식 — 방향·특징 비교",
+          "label": "세 방식. 방향, 특징 비교",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const info = {\n    poll: ['폴링', '클라 → 서버 (주기적으로 물어봄)', '단방향(당김) · 가장 단순 · 캐시/프록시 친화 · 지연=주기 · 빈 요청 많음'],\n    sse: ['SSE', '서버 → 클라 (한 방향 스트림)', '단방향(밀기) · HTTP 위 · 자동 재연결 표준 · 알림/피드/진행률'],\n    ws: ['웹소켓', '서버 ↔ 클라 (양방향 상시 연결)', '양방향 · 채팅/협업/게임 · 직접 챙길 것 많음(형식/하트비트/재연결)'],\n  }[way];\n  const rows = [['폴링','서버→클라만? 단순 최우선?','poll'],['SSE','서버→클라만 + 스트림?','sse'],['웹소켓','양방향(클라도 자주 보냄)?','ws']];\n  const tbl = '<table><tr><th>방식</th><th>언제</th></tr>' + rows.map(r =>\n    '<tr class=\\\"' + (r[2]===way?'on':'') + '\\\"><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') + '</table>';\n  render('방식: ' + info[0],\n    '  방향: ' + info[1] + '\\n  특징: ' + info[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">첫 질문 = 한 방향이냐 양방향이냐. ' + (way==='ws' ? '양방향 → 웹소켓.' : '서버→클라만 → SSE/폴링(웹소켓 불필요).') + '</span>',\n    '실시간 = 폴링/SSE/웹소켓 — 방향(한쪽/양쪽)부터 정한다.',\n    tbl);\n</script>",
           "controls": [
@@ -47,24 +47,24 @@
         },
         {
           "type": "note",
-          "text": "**실시간의 답은 폴링·SSE·웹소켓 셋이고, 웹소켓이 항상 정답은 아니다 — 고를 때 첫 질문은 「한 방향이냐 양방향이냐」다(서버→클라만이면 SSE/폴링, 양방향이면 웹소켓).** 「실시간으로 보이게 해 주세요」라는 요구에 반사적으로 웹소켓을 떠올리기 쉽지만, **세 가지 선택지**가 있고 각각 맞는 곳이 다르다: ① **폴링(polling)** — 클라이언트가 **주기적으로 서버에 물어본다**(「새 거 있어?» → 있으면 받고 없으면 빈손). **당기는(pull)** 방식. 장점: **가장 단순**하고(그냥 반복되는 HTTP 요청), HTTP 그대로라 **캐시·프록시·로드밸런서·재시도·상태 코드와 완벽히 호환**(인프라가 특별할 게 없음). 단점: **지연 = 주기**(3초마다 폴링하면 새 데이터가 최대 3초 늦게 보임), 사용자가 늘면 **빈 요청(새 게 없는데 물어봄)이 대부분**이라 낭비. **롱 폴링(long polling)**은 변형 — 서버가 새 게 생길 때까지 응답을 **붙잡아** 지연을 줄인다(2장). ② **SSE(Server-Sent Events)** — 서버가 클라로 **한 방향 이벤트 스트림**을 흘린다(서버→클라만, **미는(push)** 방식). HTTP 위에서 동작해(EventSource API) 단순하고, **자동 재연결·Last-Event-ID 재개가 표준으로 내장**(3장). **알림·라이브 피드·진행률·주가 티커**처럼 「서버가 일방적으로 업데이트를 보내는」 데 딱이다. 단점: 단방향(클라→서버는 별도 HTTP), 오래된 프록시·HTTP/1.1 동시 연결 제한 이슈. ③ **웹소켓(WebSocket)** — **양방향 상시 연결**(한 번 열면 서버·클라 **둘 다 아무 때나** 메시지를 보냄). **채팅·공동 편집·게임·화이트보드**처럼 **클라이언트도 자주·즉시 보내야** 하는 곳에 필요하다. 단점: HTTP 의 편의(캐시·상태 코드·표준 재시도)를 잃고, **메시지 형식·하트비트·재연결·인증을 직접** 챙겨야 한다(4장). **선택의 첫 질문 = 방향**: **데이터가 서버→클라 한 방향**이면(알림·피드·진행률) **SSE**(또는 폴링) — 웹소켓은 과함. **양방향**이면(클라도 자주 보냄 — 채팅·협업) **웹소켓**. 그다음 질문은 빈도(얼마나 자주·즉시성)·규모(사용자 수)·인프라(프록시·서버 여러 대 — 5장)다. **「실시간=웹소켓」은 흔한 과잉**이다 — 서버가 일방적으로 미는 것뿐이면 SSE 가 훨씬 단순하고, 몇 초 지연이 괜찮으면 폴링이 가장 쉽다(search-why 5장·오버스펙 회피). 요구에 맞는 가장 단순한 방식을 고른다."
+          "text": "**실시간의 답은 폴링, SSE, 웹소켓 셋이고, 웹소켓이 항상 정답은 아니다. 고를 때 첫 질문은 \"한 방향이냐 양방향이냐\"다(서버→클라만이면 SSE/폴링, 양방향이면 웹소켓).** \"실시간으로 보이게 해 주세요\"라는 요구에 반사적으로 웹소켓을 떠올리기 쉽지만, **세 가지 선택지**가 있고 각각 맞는 곳이 다르다: ① **폴링(polling)**. 클라이언트가 **주기적으로 서버에 물어본다**(\"새 거 있어?» → 있으면 받고 없으면 빈손). **당기는(pull)** 방식. 장점: **가장 단순**하고(그냥 반복되는 HTTP 요청), HTTP 그대로라 **캐시, 프록시, 로드밸런서, 재시도, 상태 코드와 완벽히 호환**(인프라가 특별할 게 없음). 단점: **지연 = 주기**(3초마다 폴링하면 새 데이터가 최대 3초 늦게 보임), 사용자가 늘면 **빈 요청(새 게 없는데 물어봄)이 대부분**이라 낭비. **롱 폴링(long polling)**은 변형. 서버가 새 게 생길 때까지 응답을 **붙잡아** 지연을 줄인다(2장). ② **SSE(Server-Sent Events)**. 서버가 클라로 **한 방향 이벤트 스트림**을 흘린다(서버→클라만, **미는(push)** 방식). HTTP 위에서 동작해(EventSource API) 단순하고, **자동 재연결, Last-Event-ID 재개가 표준으로 내장**(3장). **알림, 라이브 피드, 진행률, 주가 티커**처럼 \"서버가 일방적으로 업데이트를 보내는\" 데 딱이다. 단점: 단방향(클라→서버는 별도 HTTP), 오래된 프록시, HTTP/1.1 동시 연결 제한 이슈. ③ **웹소켓(WebSocket)**. **양방향 상시 연결**(한 번 열면 서버, 클라 **둘 다 아무 때나** 메시지를 보냄). **채팅, 공동 편집, 게임, 화이트보드**처럼 **클라이언트도 자주, 즉시 보내야** 하는 곳에 필요하다. 단점: HTTP 의 편의(캐시, 상태 코드, 표준 재시도)를 잃고, **메시지 형식, 하트비트, 재연결, 인증을 직접** 챙겨야 한다(4장). **선택의 첫 질문 = 방향**: **데이터가 서버→클라 한 방향**이면(알림, 피드, 진행률) **SSE**(또는 폴링). 웹소켓은 과함. **양방향**이면(클라도 자주 보냄. 채팅, 협업) **웹소켓**. 그다음 질문은 빈도(얼마나 자주, 즉시성), 규모(사용자 수), 인프라(프록시, 서버 여러 대. 5장)다. **\"실시간=웹소켓\"은 흔한 과잉**이다. 서버가 일방적으로 미는 것뿐이면 SSE 가 훨씬 단순하고, 몇 초 지연이 괜찮으면 폴링이 가장 쉽다(search-why 5장, 오버스펙 회피). 요구에 맞는 가장 단순한 방식을 고른다."
         },
         {
           "type": "note",
-          "text": "**「요구를 먼저, 도구는 그다음」 — 가장 강력한 도구가 기본값이 아니다.** 전송 선택의 교훈은 「가장 강력·화려한 도구(웹소켓)를 기본으로 삼지 말고, 요구의 형태(방향·빈도)에 맞는 가장 단순한 것을 골라라」다: 웹소켓은 가장 강력하지만(양방향 상시) 그만큼 챙길 게 많다(형식·하트비트·재연결·인프라) — 요구가 「서버→클라 알림」뿐이면 그 강력함은 다 부담이고, SSE·폴링이 훨씬 값싸고 견고하다. 「강력한 걸 쓰면 안전하다」는 착각이 오버엔지니어링을 낳는다(강력함엔 복잡성 비용이 따라옴). 이 「요구에 맞는 최소 도구」는 기술 선택 전반의 원칙이다 — 상태 관리(useState 로 될 걸 Redux 로), 데이터베이스(파일로 될 걸 분산 DB 로), 통신(REST 로 될 걸 gRPC·GraphQL 로), 아키텍처(모놀리스로 될 걸 마이크로서비스로). 핵심은 **요구의 형태를 먼저 정확히 파악**(방향·빈도·규모·일관성)하고, **그걸 충족하는 가장 단순한 도구**를 고르는 것 — 도구의 화려함이 아니라 요구와의 적합성이 기준이다. 그래서 「무엇이 필요한지(요구)를 먼저 명확히 하고, 가장 강력한 게 아니라 가장 맞는(대개 더 단순한) 도구를 골라라」가 근본 자세 — 실시간에선 「방향부터」가 그 첫 질문이다. 강력한 도구는 그 강력함이 정말 필요할 때만 값어치를 한다(sync-crdt 6장 사다리·sync-event 5장 필요한 곳에만과 같은 「필요한 만큼만」)."
+          "text": "**\"요구를 먼저, 도구는 그다음\". 가장 강력한 도구가 기본값이 아니다.** 전송 선택의 교훈은 \"가장 강력, 화려한 도구(웹소켓)를 기본으로 삼지 말고, 요구의 형태(방향, 빈도)에 맞는 가장 단순한 것을 골라라\"다: 웹소켓은 가장 강력하지만(양방향 상시) 그만큼 챙길 게 많다(형식, 하트비트, 재연결, 인프라). 요구가 \"서버→클라 알림\"뿐이면 그 강력함은 다 부담이고, SSE, 폴링이 훨씬 값싸고 견고하다. \"강력한 걸 쓰면 안전하다\"는 착각이 오버엔지니어링을 낳는다(강력함엔 복잡성 비용이 따라옴). 이 \"요구에 맞는 최소 도구\"는 기술 선택 전반의 원칙이다. 상태 관리(useState 로 될 걸 Redux 로), 데이터베이스(파일로 될 걸 분산 DB 로), 통신(REST 로 될 걸 gRPC, GraphQL 로), 아키텍처(모놀리스로 될 걸 마이크로서비스로). 핵심은 **요구의 형태를 먼저 정확히 파악**(방향, 빈도, 규모, 일관성)하고, **그걸 충족하는 가장 단순한 도구**를 고르는 것. 도구의 화려함이 아니라 요구와의 적합성이 기준이다. 그래서 \"무엇이 필요한지(요구)를 먼저 명확히 하고, 가장 강력한 게 아니라 가장 맞는(대개 더 단순한) 도구를 골라라\"가 근본 자세. 실시간에선 \"방향부터\"가 그 첫 질문이다. 강력한 도구는 그 강력함이 정말 필요할 때만 값어치를 한다(sync-crdt 6장 사다리, sync-event 5장 필요한 곳에만과 같은 \"필요한 만큼만\")."
         },
         {
           "type": "try",
-          "text": "네 실시간 요구의 방향을 먼저 정하라 — 데이터가 서버→클라 한 방향인가(알림·피드·진행률 → SSE 또는 폴링), 클라도 자주 보내는 양방향인가(채팅·협업·게임 → 웹소켓)? 몇 초 지연이 괜찮은가(→ 폴링으로 충분)? 「실시간=웹소켓」으로 바로 가지 말고, 요구에 맞는 가장 단순한 방식을 골라라. 진행률 표시를 SSE 로 만들어 보고, 같은 걸 웹소켓으로 하면 얼마나 더 챙길 게 많은지(형식·하트비트·재연결) 비교하라 — 단방향엔 SSE 가 훨씬 단순하다."
+          "text": "네 실시간 요구의 방향을 먼저 정하라. 데이터가 서버→클라 한 방향인가(알림, 피드, 진행률 → SSE 또는 폴링), 클라도 자주 보내는 양방향인가(채팅, 협업, 게임 → 웹소켓)? 몇 초 지연이 괜찮은가(→ 폴링으로 충분)? \"실시간=웹소켓\"으로 바로 가지 말고, 요구에 맞는 가장 단순한 방식을 골라라. 진행률 표시를 SSE 로 만들어 보고, 같은 걸 웹소켓으로 하면 얼마나 더 챙길 게 많은지(형식, 하트비트, 재연결) 비교하라. 단방향엔 SSE 가 훨씬 단순하다."
         }
       ],
       "quiz": [
         {
           "q": "실시간의 세 가지 방식은?",
           "choices": [
-            "HTTP·FTP·SSH",
-            "폴링·SSE·웹소켓",
-            "GET·POST·PUT",
+            "HTTP, FTP, SSH",
+            "폴링, SSE, 웹소켓",
+            "GET, POST, PUT",
             "없음"
           ],
           "answer": 1,
@@ -74,7 +74,7 @@
           "q": "방식을 고를 때 첫 질문은?",
           "choices": [
             "속도",
-            "한 방향이냐 양방향이냐 — 서버→클라만이면 SSE/폴링, 양방향이면 웹소켓",
+            "한 방향이냐 양방향이냐. 서버→클라만이면 SSE/폴링, 양방향이면 웹소켓",
             "색",
             "가격"
           ],
@@ -82,10 +82,10 @@
           "why": "방향부터."
         },
         {
-          "q": "「실시간=웹소켓」이 흔한 과잉인 이유는?",
+          "q": "\"실시간=웹소켓\"이 흔한 과잉인 이유는?",
           "choices": [
             "느려서",
-            "서버가 일방적으로 미는 것뿐이면 SSE 가 훨씬 단순 — 요구에 맞는 최소 도구",
+            "서버가 일방적으로 미는 것뿐이면 SSE 가 훨씬 단순. 요구에 맞는 최소 도구",
             "비싸서",
             "무관"
           ],
@@ -96,17 +96,17 @@
     },
     {
       "id": "2",
-      "title": "폴링 — 단순함의 대가와 롱 폴링",
+      "title": "폴링. 단순함의 대가와 롱 폴링",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**폴링**은 가장 단순하다 — 클라가 **N초마다** 「새 거 있어?»를 물어본다. 그냥 반복 HTTP 라 **캐시·프록시·재시도·상태 코드와 완벽 호환**, 서버도 특별할 게 없다(평범한 요청). 대가는 둘이다: ① **지연 = 주기** — 3초 폴링이면 새 데이터가 **최대 3초 늦게** 보인다(주기를 줄이면 지연↓ 요청↑). ② **빈 요청** — 업데이트가 드물면 대부분의 요청이 **새 게 없다**를 받는다(낭비 — 사용자가 늘면 빈 요청이 서버를 때림). 개선: **롱 폴링(long polling)** — 서버가 **새 게 생길 때까지 응답을 붙잡았다가**(hang) 생기면 즉시 응답, 클라는 받자마자 다시 요청. 빈 응답이 줄고 지연이 거의 실시간이 된다(SSE·웹소켓 없이 HTTP 로). 아래 데모로 폴링 주기·업데이트 빈도에 따른 요청 수·지연·빈 요청 비율을 계산해 보라 — 트레이드오프가 수치로 보인다."
+          "text": "**폴링**은 가장 단순하다. 클라가 **N초마다** \"새 거 있어?»를 물어본다. 그냥 반복 HTTP 라 **캐시, 프록시, 재시도, 상태 코드와 완벽 호환**, 서버도 특별할 게 없다(평범한 요청). 대가는 둘이다: ① **지연 = 주기**. 3초 폴링이면 새 데이터가 **최대 3초 늦게** 보인다(주기를 줄이면 지연↓ 요청↑). ② **빈 요청**. 업데이트가 드물면 대부분의 요청이 **새 게 없다**를 받는다(낭비. 사용자가 늘면 빈 요청이 서버를 때림). 개선: **롱 폴링(long polling)**. 서버가 **새 게 생길 때까지 응답을 붙잡았다가**(hang) 생기면 즉시 응답, 클라는 받자마자 다시 요청. 빈 응답이 줄고 지연이 거의 실시간이 된다(SSE, 웹소켓 없이 HTTP 로). 아래 데모로 폴링 주기, 업데이트 빈도에 따른 요청 수, 지연, 빈 요청 비율을 계산해 보라. 트레이드오프가 수치로 보인다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "폴링 비용 — 주기 vs 지연 vs 낭비",
+          "label": "폴링 비용. 주기 vs 지연 vs 낭비",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const interval = {{interval}};   // 폴링 주기(초)\n  const updatesPerMin = {{updates}}; // 분당 실제 업데이트 수\n  const users = 100;\n  const reqPerMinPerUser = 60 / interval;\n  const totalReqPerMin = Math.round(reqPerMinPerUser * users);\n  const avgLatency = (interval / 2).toFixed(1);   // 평균 지연 = 주기/2\n  const maxLatency = interval;\n  const hitPerMin = Math.min(reqPerMinPerUser, updatesPerMin); // 실제 데이터 받는 요청\n  const emptyPct = Math.max(0, Math.round((1 - hitPerMin / reqPerMinPerUser) * 100));\n  const latCls = maxLatency <= 2 ? 'good' : maxLatency <= 5 ? 'warn' : 'bad';\n  const emptyCls = emptyPct >= 80 ? 'bad' : emptyPct >= 50 ? 'warn' : 'good';\n  render('폴링 주기 ' + interval + '초 · 분당 업데이트 ' + updatesPerMin + '건 · 사용자 ' + users + '명',\n    '  주기를 줄이면 지연↓ 이지만 요청↑ · 업데이트가 드물수록 빈 요청↑\\n\\n' +\n    '  <span class=\\\"' + (emptyPct>=80?'warn':'ok') + '\\\">' +\n    (emptyPct >= 80 ? '빈 요청이 ' + emptyPct + '% — 롱 폴링/SSE 를 고려하라.' : '균형 잡힘 — 폴링으로 충분할 수 있다.') + '</span>',\n    '폴링: 주기↓=지연↓·요청↑ · 업데이트 드물수록 빈 요청↑ (트레이드오프).',\n    stat([\n      [totalReqPerMin + '/분', '총 요청(100명)', 'warn'],\n      ['~' + avgLatency + '초', '평균 지연', latCls],\n      [emptyPct + '%', '빈 요청 비율', emptyCls],\n    ]));\n</script>",
           "controls": [
@@ -138,24 +138,24 @@
         },
         {
           "type": "note",
-          "text": "**폴링은 가장 단순하고 HTTP 인프라와 완벽히 호환되지만, 지연=주기와 빈 요청의 대가가 있다 — 롱 폴링(새 게 생길 때까지 응답을 붙잡음)으로 빈 응답을 줄이고 지연을 거의 실시간으로 만들 수 있다.** **폴링(polling)**의 원리: 클라가 **일정 주기(N초)마다** 서버에 「마지막 이후 새 거 있어?»(`/updates?since=마지막번호`)를 물어, 있으면 받고 없으면 빈손으로 돌아온다. **장점 — 단순함과 호환성**: 그냥 반복되는 평범한 HTTP 요청이라, **캐시·프록시·로드밸런서·재시도·상태 코드·표준 로깅과 완벽히 호환**된다(특별한 인프라·프로토콜 불필요 — 재연결도 그냥 다음 요청). 구현·디버깅·운영이 가장 쉽다. **대가 두 가지**: ① **지연 = 주기** — 폴링 주기가 지연의 상한이다. 3초마다 폴링하면 새 데이터가 **최대 3초, 평균 1.5초(주기/2) 늦게** 보인다. 지연을 줄이려 주기를 짧게 하면(1초) **요청 수가 늘어**(1초 폴링 × 사용자 수 = 큰 부하), 지연↔부하 트레이드오프. ② **빈 요청(낭비)** — 업데이트가 **드물면** 대부분의 폴링이 「새 거 없음」을 받는다. 위 데모처럼 5초 폴링(분당 12회) × 100명 = 분당 1,200요청인데 실제 업데이트가 분당 4건이면 **대부분이 빈 요청**(낭비 — 서버·네트워크·배터리를 헛되이 씀). 사용자가 늘수록 빈 요청이 서버를 때린다. **개선 — 롱 폴링(long polling)**: 서버가 요청을 받으면 **새 게 생길 때까지 응답을 즉시 안 주고 붙잡고**(hang, 최대 타임아웃까지) 있다가, **새 데이터가 생기는 순간 응답**한다. 클라는 응답을 받자마자 **곧바로 다음 요청**을 건다. 효과: **빈 응답이 거의 사라지고**(새 게 있을 때만 응답), **지연이 거의 실시간**(생기자마자 옴)이 된다 — SSE·웹소켓 없이 **HTTP 만으로** 준실시간을 얻는다(오래된 인프라·프록시에서도 동작). 대가: 서버가 많은 연결을 **붙잡고** 있어야 하고(동시 연결·리소스), 타임아웃·재연결 처리가 필요하다. **정리**: 폴링은 **단순함이 최고 가치**일 때(작은 규모·낮은 실시간성·인프라 제약) 훌륭한 기본값이고, **지연·낭비가 문제면 롱 폴링**으로 개선하거나 **SSE/웹소켓**으로 옮긴다. 「실시간엔 무조건 소켓」이 아니라, 폴링으로 충분한 경우가 많다(특히 업데이트가 드물거나 몇 초 지연이 괜찮으면)."
+          "text": "**폴링은 가장 단순하고 HTTP 인프라와 완벽히 호환되지만, 지연=주기와 빈 요청의 대가가 있다. 롱 폴링(새 게 생길 때까지 응답을 붙잡음)으로 빈 응답을 줄이고 지연을 거의 실시간으로 만들 수 있다.** **폴링(polling)**의 원리: 클라가 **일정 주기(N초)마다** 서버에 \"마지막 이후 새 거 있어?»(`/updates?since=마지막번호`)를 물어, 있으면 받고 없으면 빈손으로 돌아온다. **장점. 단순함과 호환성**: 그냥 반복되는 평범한 HTTP 요청이라, **캐시, 프록시, 로드밸런서, 재시도, 상태 코드, 표준 로깅과 완벽히 호환**된다(특별한 인프라, 프로토콜 불필요. 재연결도 그냥 다음 요청). 구현, 디버깅, 운영이 가장 쉽다. **대가 두 가지**: ① **지연 = 주기**. 폴링 주기가 지연의 상한이다. 3초마다 폴링하면 새 데이터가 **최대 3초, 평균 1.5초(주기/2) 늦게** 보인다. 지연을 줄이려 주기를 짧게 하면(1초) **요청 수가 늘어**(1초 폴링 × 사용자 수 = 큰 부하), 지연↔부하 트레이드오프. ② **빈 요청(낭비)**. 업데이트가 **드물면** 대부분의 폴링이 \"새 거 없음\"을 받는다. 위 데모처럼 5초 폴링(분당 12회) × 100명 = 분당 1,200요청인데 실제 업데이트가 분당 4건이면 **대부분이 빈 요청**(낭비. 서버, 네트워크, 배터리를 헛되이 씀). 사용자가 늘수록 빈 요청이 서버를 때린다. **개선. 롱 폴링(long polling)**: 서버가 요청을 받으면 **새 게 생길 때까지 응답을 즉시 안 주고 붙잡고**(hang, 최대 타임아웃까지) 있다가, **새 데이터가 생기는 순간 응답**한다. 클라는 응답을 받자마자 **곧바로 다음 요청**을 건다. 효과: **빈 응답이 거의 사라지고**(새 게 있을 때만 응답), **지연이 거의 실시간**(생기자마자 옴)이 된다. SSE, 웹소켓 없이 **HTTP 만으로** 준실시간을 얻는다(오래된 인프라, 프록시에서도 동작). 대가: 서버가 많은 연결을 **붙잡고** 있어야 하고(동시 연결, 리소스), 타임아웃, 재연결 처리가 필요하다. **정리**: 폴링은 **단순함이 최고 가치**일 때(작은 규모, 낮은 실시간성, 인프라 제약) 훌륭한 기본값이고, **지연, 낭비가 문제면 롱 폴링**으로 개선하거나 **SSE/웹소켓**으로 옮긴다. \"실시간엔 무조건 소켓\"이 아니라, 폴링으로 충분한 경우가 많다(특히 업데이트가 드물거나 몇 초 지연이 괜찮으면)."
         },
         {
           "type": "note",
-          "text": "**「당김 vs 밀기」 — 빈도와 즉시성이 낭비와 지연을 가른다.** 폴링의 교훈은 「당기는(pull) 방식은 단순하지만, 얼마나 자주 당길지가 지연과 낭비를 동시에 결정한다」다: 폴링은 **당김**(클라가 물음)이라 단순하고 제어가 쉽지만, 「얼마나 자주」에 지연(뜸하면 늦음)과 낭비(잦으면 빈 요청)가 **상충**한다 — 이 긴장이 당김 방식의 본질이다. **밀기(push, SSE·웹소켓)**는 「생겼을 때만」 보내니 이 긴장을 없애지만(지연≈0·낭비≈0) 상시 연결·인프라 비용을 진다. 이 「당김 vs 밀기」는 시스템 설계 전반의 근본 축이다 — 캐시 무효화(TTL 폴링 vs 이벤트 푸시), 모니터링(주기 수집 vs 이벤트 기반), CI(폴링 vs 웹훅 — pay-webhook), 데이터 동기화(주기 sync vs 실시간 스트림). 핵심 통찰: **당김은 단순·제어 가능하나 빈도의 딜레마(지연↔낭비)가 있고, 밀기는 즉시·효율적이나 연결·복잡성 비용이 있다** — 업데이트가 **드물고 지연 허용**이면 당김(폴링)이 값싸고, **잦고 즉시성**이 중요하면 밀기(SSE·웹소켓)가 값어치를 한다. 롱 폴링은 그 사이 — 당김의 껍데기(HTTP)로 밀기의 효과(즉시·비낭비)를 흉내 낸 영리한 절충이다. 그래서 「실시간이 필요할 때, 업데이트 빈도와 요구 즉시성을 재서 당김(폴링)·절충(롱 폴링)·밀기(SSE/웹소켓) 중 고르라」가 근본 판단 — 빈도와 즉시성이 낭비·지연을 통해 방식을 결정한다."
+          "text": "**\"당김 vs 밀기\". 빈도와 즉시성이 낭비와 지연을 가른다.** 폴링의 교훈은 \"당기는(pull) 방식은 단순하지만, 얼마나 자주 당길지가 지연과 낭비를 동시에 결정한다\"다: 폴링은 **당김**(클라가 물음)이라 단순하고 제어가 쉽지만, \"얼마나 자주\"에 지연(뜸하면 늦음)과 낭비(잦으면 빈 요청)가 **상충**한다. 이 긴장이 당김 방식의 본질이다. **밀기(push, SSE, 웹소켓)**는 \"생겼을 때만\" 보내니 이 긴장을 없애지만(지연≈0, 낭비≈0) 상시 연결, 인프라 비용을 진다. 이 \"당김 vs 밀기\"는 시스템 설계 전반의 근본 축이다. 캐시 무효화(TTL 폴링 vs 이벤트 푸시), 모니터링(주기 수집 vs 이벤트 기반), CI(폴링 vs 웹훅. pay-webhook), 데이터 동기화(주기 sync vs 실시간 스트림). 핵심 통찰: **당김은 단순, 제어 가능하나 빈도의 딜레마(지연↔낭비)가 있고, 밀기는 즉시, 효율적이나 연결, 복잡성 비용이 있다**. 업데이트가 **드물고 지연 허용**이면 당김(폴링)이 값싸고, **잦고 즉시성**이 중요하면 밀기(SSE, 웹소켓)가 값어치를 한다. 롱 폴링은 그 사이. 당김의 껍데기(HTTP)로 밀기의 효과(즉시, 비낭비)를 흉내 낸 영리한 절충이다. 그래서 \"실시간이 필요할 때, 업데이트 빈도와 요구 즉시성을 재서 당김(폴링), 절충(롱 폴링), 밀기(SSE/웹소켓) 중 고르라\"가 근본 판단. 빈도와 즉시성이 낭비, 지연을 통해 방식을 결정한다."
         },
         {
           "type": "try",
-          "text": "진행률 표시를 폴링(N초마다 조회)으로 만들고, 주기·업데이트 빈도를 바꿔 가며 요청 수와 지연을 재라 — 주기를 줄이면 지연이 주는 대신 요청이 느는지, 업데이트가 드물면 빈 요청이 대부분인지. 그다음 롱 폴링(서버가 새 게 생길 때까지 응답을 붙잡음)으로 바꿔 빈 응답이 줄고 지연이 실시간에 가까워지는지 보라. 같은 것을 SSE 로도 만들어 요청 수를 비교하라 — 당김(폴링)과 밀기(SSE)의 차이를 수치로 체감하라."
+          "text": "진행률 표시를 폴링(N초마다 조회)으로 만들고, 주기, 업데이트 빈도를 바꿔 가며 요청 수와 지연을 재라. 주기를 줄이면 지연이 주는 대신 요청이 느는지, 업데이트가 드물면 빈 요청이 대부분인지. 그다음 롱 폴링(서버가 새 게 생길 때까지 응답을 붙잡음)으로 바꿔 빈 응답이 줄고 지연이 실시간에 가까워지는지 보라. 같은 것을 SSE 로도 만들어 요청 수를 비교하라. 당김(폴링)과 밀기(SSE)의 차이를 수치로 체감하라."
         }
       ],
       "quiz": [
         {
           "q": "폴링의 두 가지 대가는?",
           "choices": [
-            "느림·큼",
+            "느림, 큼",
             "지연=주기 + 빈 요청(업데이트 드물면 대부분 헛됨)",
-            "색·소리",
+            "색, 소리",
             "없음"
           ],
           "answer": 1,
@@ -165,7 +165,7 @@
           "q": "롱 폴링(long polling)이란?",
           "choices": [
             "더 자주 폴링",
-            "서버가 새 게 생길 때까지 응답을 붙잡음 → 빈 응답↓·지연≈실시간(HTTP만으로)",
+            "서버가 새 게 생길 때까지 응답을 붙잡음 → 빈 응답↓, 지연≈실시간(HTTP만으로)",
             "웹소켓",
             "캐시"
           ],
@@ -176,28 +176,28 @@
           "q": "폴링(당김)이 값싼 경우는?",
           "choices": [
             "항상",
-            "업데이트가 드물고 몇 초 지연이 괜찮을 때 — 단순·인프라 호환",
+            "업데이트가 드물고 몇 초 지연이 괜찮을 때. 단순, 인프라 호환",
             "채팅",
             "게임"
           ],
           "answer": 1,
-          "why": "빈도·즉시성이 기준."
+          "why": "빈도, 즉시성이 기준."
         }
       ]
     },
     {
       "id": "3",
-      "title": "SSE — 서버가 미는 한 방향 스트림",
+      "title": "SSE. 서버가 미는 한 방향 스트림",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**SSE(Server-Sent Events)**는 서버가 클라로 **한 방향** 이벤트를 흘리는 표준이다(서버→클라, **밀기**). HTTP 응답을 **닫지 않고** `text/event-stream` 으로 이벤트를 계속 써 보내면, 클라는 브라우저 내장 **EventSource** 로 받는다. **장점**: HTTP 위라 단순하고(특별한 프로토콜 X), **자동 재연결이 표준 내장**(끊기면 EventSource 가 알아서 다시 붙음), **Last-Event-ID** 로 **따라잡기도 표준**(각 이벤트에 id 를 붙이면, 재연결 시 브라우저가 마지막 id 를 헤더로 보내 서버가 그 이후만 — sync-reconnect 3장을 프로토콜이 공짜로). **알림·라이브 피드·진행률·주가·로그 스트림**처럼 「서버가 일방적으로 업데이트를 미는」 데 딱이다. **한계**: 단방향(클라→서버는 별도 HTTP 요청으로), 텍스트만(바이너리는 인코딩), HTTP/1.1 에선 브라우저당 동시 연결 제한(HTTP/2 로 완화). 양방향이 필요 없으면 웹소켓보다 **훨씬 단순**하다. 아래 데모로 SSE 스트림과 Last-Event-ID 재개를 확인하라."
+          "text": "**SSE(Server-Sent Events)**는 서버가 클라로 **한 방향** 이벤트를 흘리는 표준이다(서버→클라, **밀기**). HTTP 응답을 **닫지 않고** `text/event-stream` 으로 이벤트를 계속 써 보내면, 클라는 브라우저 내장 **EventSource** 로 받는다. **장점**: HTTP 위라 단순하고(특별한 프로토콜 X), **자동 재연결이 표준 내장**(끊기면 EventSource 가 알아서 다시 붙음), **Last-Event-ID** 로 **따라잡기도 표준**(각 이벤트에 id 를 붙이면, 재연결 시 브라우저가 마지막 id 를 헤더로 보내 서버가 그 이후만. sync-reconnect 3장을 프로토콜이 공짜로). **알림, 라이브 피드, 진행률, 주가, 로그 스트림**처럼 \"서버가 일방적으로 업데이트를 미는\" 데 딱이다. **한계**: 단방향(클라→서버는 별도 HTTP 요청으로), 텍스트만(바이너리는 인코딩), HTTP/1.1 에선 브라우저당 동시 연결 제한(HTTP/2 로 완화). 양방향이 필요 없으면 웹소켓보다 **훨씬 단순**하다. 아래 데모로 SSE 스트림과 Last-Event-ID 재개를 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "SSE 스트림 · Last-Event-ID 재개",
+          "label": "SSE 스트림, Last-Event-ID 재개",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'stream') {\n    render('SSE 스트림 — 서버가 밀기',\n      '  서버가 연결을 닫지 않고 이벤트를 계속 써 보냄:\\n\\n' +\n      '  id: 1\\n  data: {\\\"progress\\\": 20}\\n\\n  id: 2\\n  data: {\\\"progress\\\": 55}\\n\\n  id: 3\\n  data: {\\\"progress\\\": 90}\\n\\n' +\n      '  <span class=\\\"ok\\\">클라는 EventSource 로 받음 — 폴링 없이 생기는 즉시 도착.</span>',\n      'SSE: 서버가 연결을 열어 두고 이벤트를 밀기 — 즉시 도착.',\n      steps([['id: 1  data: progress 20', 'on'],['id: 2  data: progress 55', 'on'],['id: 3  data: progress 90', 'good']]));\n  } else {\n    const last = {{last}};\n    const events = [ [1,'progress 20'],[2,'progress 55'],[3,'progress 90'],[4,'done'] ];\n    const rows = events.map(([n, d]) => { const got = n <= last, send = n > last;\n      return '<div class=\\\"e ' + (send?'good':'off') + '\\\"><span class=\\\"n\\\">' + n + '</span><span>' + d + ' <span class=\\\"dim\\\">' + (got?'(이미 받음)':'← 재개 후 받음') + '</span></span></div>'; }).join('');\n    render('Last-Event-ID: ' + last + ' 로 재연결',\n      '  끊김 → EventSource 자동 재연결 → 헤더 Last-Event-ID: ' + last + '\\n' +\n      '  → 서버는 ' + (last+1) + '번 이후만 보냄(따라잡기 — 프로토콜이 공짜로)\\n\\n' +\n      '  <span class=\\\"ok\\\">각 이벤트에 id → 재연결 시 마지막 id 이후만 = 놓침 없음.</span>',\n      'SSE 자동 재연결 + Last-Event-ID → 마지막 id 이후만(따라잡기 표준).',\n      '<div class=\\\"log\\\">' + rows + '</div>');\n  }\n</script>",
           "controls": [
@@ -236,24 +236,24 @@
         },
         {
           "type": "note",
-          "text": "**SSE 는 서버가 클라로 한 방향 이벤트를 미는 HTTP 표준으로, 자동 재연결과 Last-Event-ID 따라잡기가 프로토콜에 내장돼 단방향(알림·피드·진행률)엔 웹소켓보다 훨씬 단순하다.** **SSE(Server-Sent Events)**의 동작: 서버가 HTTP 응답을 **닫지 않고**(`Content-Type: text/event-stream`, keep-alive), 이벤트가 생길 때마다 **`id: N` / `data: ...` 형식으로 계속 써 보낸다**(밀기·push). 클라이언트는 브라우저 **내장 EventSource API**(`new EventSource(url)`)로 받아, `onmessage` 로 각 이벤트를 처리한다. **강점**: ① **HTTP 위라 단순** — 특별한 프로토콜 핸드셰이크 없이 그냥 긴 HTTP 응답. 기존 HTTP 인프라·인증·CORS 를 그대로 쓴다. ② **자동 재연결 표준** — 연결이 끊기면 **EventSource 가 알아서 다시 붙는다**(sync-reconnect 2장의 재연결을 브라우저가 공짜로 — 재시도 간격도 서버가 `retry:` 로 지정 가능). ③ **Last-Event-ID 따라잡기 표준** — 각 이벤트에 **`id:`**를 붙이면, 브라우저는 마지막으로 받은 id 를 기억했다가 **재연결 시 `Last-Event-ID` 헤더로 보낸다** → 서버는 그 id **이후만** 보내면 된다(sync-reconnect 3장의 따라잡기를 **프로토콜이 공짜로** 제공 — 직접 구현 불필요). 이 두 표준(자동 재연결 + Last-Event-ID)이 SSE 의 큰 매력이다 — 웹소켓에선 직접 짜야 할 걸 브라우저·프로토콜이 해 준다. **적합한 곳**: 서버가 **일방적으로 미는** 것 — **알림, 라이브 피드(뉴스·SNS 타임라인), 진행률(업로드·빌드·배포), 주가·환율 티커, 로그·이벤트 스트림, AI 토큰 스트리밍**(실은 많은 LLM 응답이 SSE). 「클라는 주로 보기만, 서버가 업데이트를 밀어 줌」이면 SSE 가 이상적이다. **한계**: ① **단방향**(서버→클라만) — 클라가 서버로 보낼 땐 **별도의 일반 HTTP 요청**을 쓴다(대부분 이걸로 충분 — 보내는 건 가끔, 받는 건 스트림). 진짜 양방향 고빈도가 필요하면 웹소켓. ② **텍스트만** — 바이너리는 base64 등으로 인코딩(대부분 JSON 텍스트라 무관). ③ **HTTP/1.1 동시 연결 제한** — 브라우저가 도메인당 연결 수를 제한해 여러 탭에서 문제될 수 있음(HTTP/2 로 다중화하면 완화). **정리**: 데이터가 **서버→클라 한 방향**이면 SSE 가 **웹소켓보다 훨씬 단순하고**(자동 재연결·따라잡기 공짜) 견고하다 — 양방향이 정말 필요할 때만 웹소켓으로(4장). 「실시간 미는 알림」의 기본값으로 SSE 를 먼저 고려하라."
+          "text": "**SSE 는 서버가 클라로 한 방향 이벤트를 미는 HTTP 표준으로, 자동 재연결과 Last-Event-ID 따라잡기가 프로토콜에 내장돼 단방향(알림, 피드, 진행률)엔 웹소켓보다 훨씬 단순하다.** **SSE(Server-Sent Events)**의 동작: 서버가 HTTP 응답을 **닫지 않고**(`Content-Type: text/event-stream`, keep-alive), 이벤트가 생길 때마다 **`id: N` / `data:...` 형식으로 계속 써 보낸다**(밀기, push). 클라이언트는 브라우저 **내장 EventSource API**(`new EventSource(url)`)로 받아, `onmessage` 로 각 이벤트를 처리한다. **강점**: ① **HTTP 위라 단순**. 특별한 프로토콜 핸드셰이크 없이 그냥 긴 HTTP 응답. 기존 HTTP 인프라, 인증, CORS 를 그대로 쓴다. ② **자동 재연결 표준**. 연결이 끊기면 **EventSource 가 알아서 다시 붙는다**(sync-reconnect 2장의 재연결을 브라우저가 공짜로. 재시도 간격도 서버가 `retry:` 로 지정 가능). ③ **Last-Event-ID 따라잡기 표준**. 각 이벤트에 **`id:`**를 붙이면, 브라우저는 마지막으로 받은 id 를 기억했다가 **재연결 시 `Last-Event-ID` 헤더로 보낸다** → 서버는 그 id **이후만** 보내면 된다(sync-reconnect 3장의 따라잡기를 **프로토콜이 공짜로** 제공. 직접 구현 불필요). 이 두 표준(자동 재연결 + Last-Event-ID)이 SSE 의 큰 매력이다. 웹소켓에선 직접 짜야 할 걸 브라우저, 프로토콜이 해 준다. **적합한 곳**: 서버가 **일방적으로 미는** 것. **알림, 라이브 피드(뉴스, SNS 타임라인), 진행률(업로드, 빌드, 배포), 주가, 환율 티커, 로그, 이벤트 스트림, AI 토큰 스트리밍**(실은 많은 LLM 응답이 SSE). \"클라는 주로 보기만, 서버가 업데이트를 밀어 줌\"이면 SSE 가 이상적이다. **한계**: ① **단방향**(서버→클라만). 클라가 서버로 보낼 땐 **별도의 일반 HTTP 요청**을 쓴다(대부분 이걸로 충분. 보내는 건 가끔, 받는 건 스트림). 진짜 양방향 고빈도가 필요하면 웹소켓. ② **텍스트만**. 바이너리는 base64 등으로 인코딩(대부분 JSON 텍스트라 무관). ③ **HTTP/1.1 동시 연결 제한**. 브라우저가 도메인당 연결 수를 제한해 여러 탭에서 문제될 수 있음(HTTP/2 로 다중화하면 완화). **정리**: 데이터가 **서버→클라 한 방향**이면 SSE 가 **웹소켓보다 훨씬 단순하고**(자동 재연결, 따라잡기 공짜) 견고하다. 양방향이 정말 필요할 때만 웹소켓으로(4장). \"실시간 미는 알림\"의 기본값으로 SSE 를 먼저 고려하라."
         },
         {
           "type": "note",
-          "text": "**「프로토콜이 해 주는 걸 다시 짜지 마라」 — 표준의 내장 기능을 활용하라.** SSE 의 교훈은 「필요한 기능(재연결·따라잡기)을 프로토콜·표준이 이미 제공하면, 직접 구현하지 말고 그걸 써라」다: SSE 는 재연결·Last-Event-ID 를 표준으로 내장해, sync-reconnect 에서 직접 짰던 것(감지·재연결·따라잡기)을 브라우저가 공짜로 해 준다 — 웹소켓을 골랐다면 그걸 다 손수 짜야 한다. 「더 강력한 도구(웹소켓)」가 「더 많은 수작업」을 뜻할 수 있다(강력함 = 저수준 = 직접 챙김). 이 「표준의 내장 기능 활용」은 엔지니어링 전반의 지혜다 — HTTP 의 캐시·조건부 요청·상태 코드(직접 캐시 로직 짜지 말고), 브라우저 내장 API(폼 검증·날짜 파싱·국제화), 표준 라이브러리·프로토콜의 검증된 기능. 핵심은 **바퀴를 다시 발명하지 않기** — 특히 재연결·따라잡기·재시도 같은 「까다롭고 틀리기 쉬운」 것은 검증된 표준이 있으면 그걸 쓰는 게 훨씬 안전하다(직접 짜면 엣지 케이스에서 버그). 그래서 「저수준의 강력한 도구를 고르기 전에, 더 높은 수준의 표준이 요구를 충족하며 그 까다로운 부분을 대신 해 주지 않는지 보라」가 근본 판단 — SSE(표준이 재연결·따라잡기를 해 줌) vs 웹소켓(다 직접)의 선택이 그 예다. 요구가 단방향이면 SSE 의 내장 기능이 큰 값어치를 한다 — 도구 선택은 「강력함」만이 아니라 「무엇을 대신 해 주는가」로도 따진다."
+          "text": "**\"프로토콜이 해 주는 걸 다시 짜지 마라\". 표준의 내장 기능을 활용하라.** SSE 의 교훈은 \"필요한 기능(재연결, 따라잡기)을 프로토콜, 표준이 이미 제공하면, 직접 구현하지 말고 그걸 써라\"다: SSE 는 재연결, Last-Event-ID 를 표준으로 내장해, sync-reconnect 에서 직접 짰던 것(감지, 재연결, 따라잡기)을 브라우저가 공짜로 해 준다. 웹소켓을 골랐다면 그걸 다 손수 짜야 한다. \"더 강력한 도구(웹소켓)\"가 \"더 많은 수작업\"을 뜻할 수 있다(강력함 = 저수준 = 직접 챙김). 이 \"표준의 내장 기능 활용\"은 엔지니어링 전반의 지혜다. HTTP 의 캐시, 조건부 요청, 상태 코드(직접 캐시 로직 짜지 말고), 브라우저 내장 API(폼 검증, 날짜 파싱, 국제화), 표준 라이브러리, 프로토콜의 검증된 기능. 핵심은 **바퀴를 다시 발명하지 않기**. 특히 재연결, 따라잡기, 재시도 같은 \"까다롭고 틀리기 쉬운\" 것은 검증된 표준이 있으면 그걸 쓰는 게 훨씬 안전하다(직접 짜면 엣지 케이스에서 버그). 그래서 \"저수준의 강력한 도구를 고르기 전에, 더 높은 수준의 표준이 요구를 충족하며 그 까다로운 부분을 대신 해 주지 않는지 보라\"가 근본 판단. SSE(표준이 재연결, 따라잡기를 해 줌) vs 웹소켓(다 직접)의 선택이 그 예다. 요구가 단방향이면 SSE 의 내장 기능이 큰 값어치를 한다. 도구 선택은 \"강력함\"만이 아니라 \"무엇을 대신 해 주는가\"로도 따진다."
         },
         {
           "type": "try",
-          "text": "진행률 표시를 SSE 로 만들어라 — 서버는 `text/event-stream` 으로 `id:`/`data:` 를 계속 쓰고, 클라는 EventSource 로 받는다. 개발자도구 네트워크에서 하나의 긴 연결로 이벤트가 흘러오는지 보라(폴링의 반복 요청과 대조). 연결을 끊었다 살려(와이파이 토글) EventSource 가 자동 재연결하고, 각 이벤트에 id 를 붙였을 때 Last-Event-ID 로 놓친 것부터 받는지 확인하라 — 재연결·따라잡기를 프로토콜이 공짜로 해 준다(직접 짤 필요 없음)."
+          "text": "진행률 표시를 SSE 로 만들어라. 서버는 `text/event-stream` 으로 `id:`/`data:` 를 계속 쓰고, 클라는 EventSource 로 받는다. 개발자도구 네트워크에서 하나의 긴 연결로 이벤트가 흘러오는지 보라(폴링의 반복 요청과 대조). 연결을 끊었다 살려(와이파이 토글) EventSource 가 자동 재연결하고, 각 이벤트에 id 를 붙였을 때 Last-Event-ID 로 놓친 것부터 받는지 확인하라. 재연결, 따라잡기를 프로토콜이 공짜로 해 준다(직접 짤 필요 없음)."
         }
       ],
       "quiz": [
         {
           "q": "SSE 의 방향과 위치는?",
           "choices": [
-            "양방향·TCP",
-            "서버→클라 한 방향(밀기) · HTTP 위 · EventSource",
-            "클라→서버·FTP",
+            "양방향, TCP",
+            "서버→클라 한 방향(밀기), HTTP 위, EventSource",
+            "클라→서버, FTP",
             "없음"
           ],
           "answer": 1,
@@ -262,9 +262,9 @@
         {
           "q": "SSE 가 표준으로 내장한 두 가지는?",
           "choices": [
-            "암호화·압축",
+            "암호화, 압축",
             "자동 재연결 + Last-Event-ID 따라잡기(직접 짤 필요 없음)",
-            "캐시·CDN",
+            "캐시, CDN",
             "없음"
           ],
           "answer": 1,
@@ -274,7 +274,7 @@
           "q": "SSE 가 웹소켓보다 나은 경우는?",
           "choices": [
             "양방향 고빈도",
-            "서버→클라 한 방향(알림·피드·진행률) — 훨씬 단순",
+            "서버→클라 한 방향(알림, 피드, 진행률). 훨씬 단순",
             "게임",
             "바이너리"
           ],
@@ -285,17 +285,17 @@
     },
     {
       "id": "4",
-      "title": "웹소켓 — 양방향, 처음부터 정할 것",
+      "title": "웹소켓. 양방향, 처음부터 정할 것",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**웹소켓**은 **양방향 상시 연결**이다 — 한 번 열면 서버·클라 **둘 다 아무 때나** 메시지를 보낸다(채팅·공동 편집·게임처럼 **클라도 자주 즉시** 보내야 할 때). HTTP 로 시작해 업그레이드 핸드셰이크 후 TCP 위 양방향 채널이 된다. 대신 HTTP 의 편의(캐시·상태 코드·표준 재시도)를 잃고 **직접 챙길 게 많다** — **처음부터 정하라**: ① **메시지 형식** — `{ type, payload, id }`. **type 없이 시작하면 반드시 후회한다**(메시지 종류를 구분 못 해 나중에 대혼란). ② **하트비트 주기** — 주기적 ping/pong 으로 죽은 연결 감지(sync-reconnect 1장 — 안 하면 죽은 연결을 붙잡음, 프록시가 끊음 5장). ③ **재연결 정책** — 지수 백오프+흔들기(sync-reconnect 2장). ④ **따라잡기·멱등·인증**(sync-reconnect 3·4장). **HTTP 로 되는 일을 웹소켓으로 옮기지 마라** — 요청/응답은 HTTP 가 훨씬 다루기 쉽다(캐시·재시도·상태코드·로그). 웹소켓은 「서버가 먼저 말해야 하거나 클라가 상시 보내야 하는」 것만. 아래 데모로 메시지 형식(type 유무)의 차이를 보라."
+          "text": "**웹소켓**은 **양방향 상시 연결**이다. 한 번 열면 서버, 클라 **둘 다 아무 때나** 메시지를 보낸다(채팅, 공동 편집, 게임처럼 **클라도 자주 즉시** 보내야 할 때). HTTP 로 시작해 업그레이드 핸드셰이크 후 TCP 위 양방향 채널이 된다. 대신 HTTP 의 편의(캐시, 상태 코드, 표준 재시도)를 잃고 **직접 챙길 게 많다**. **처음부터 정하라**: ① **메시지 형식**. `{ type, payload, id }`. **type 없이 시작하면 반드시 후회한다**(메시지 종류를 구분 못 해 나중에 대혼란). ② **하트비트 주기**. 주기적 ping/pong 으로 죽은 연결 감지(sync-reconnect 1장. 안 하면 죽은 연결을 붙잡음, 프록시가 끊음 5장). ③ **재연결 정책**. 지수 백오프+흔들기(sync-reconnect 2장). ④ **따라잡기, 멱등, 인증**(sync-reconnect 3, 4장). **HTTP 로 되는 일을 웹소켓으로 옮기지 마라**. 요청/응답은 HTTP 가 훨씬 다루기 쉽다(캐시, 재시도, 상태코드, 로그). 웹소켓은 \"서버가 먼저 말해야 하거나 클라가 상시 보내야 하는\" 것만. 아래 데모로 메시지 형식(type 유무)의 차이를 보라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "웹소켓 메시지 형식 — type 유무",
+          "label": "웹소켓 메시지 형식. type 유무",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const typed = '{{typed}}' === 'on';\n  const msgs = typed\n    ? [ {type:'chat', payload:{text:'안녕'}, id:'a1'}, {type:'typing', payload:{who:'수아'}}, {type:'presence', payload:{online:3}} ]\n    : [ {text:'안녕'}, {who:'수아'}, {online:3} ];\n  let body, hint, viz;\n  if (typed) {\n    const rows = msgs.map(m => '<div class=\\\"e good\\\"><span>type: ' + m.type + '</span><span class=\\\"dim\\\">' + JSON.stringify(m.payload) + '</span></div>').join('');\n    body = '  라우팅: switch(msg.type) { case \\\"chat\\\": ... }\\n\\n  <span class=\\\"ok\\\">type 으로 종류를 구분 → 깔끔하게 분기·확장 가능.</span>';\n    hint = 'type 있음: 메시지 종류를 구분 → 라우팅·확장이 명확.';\n    viz = '<div class=\\\"log\\\">' + rows + '</div>';\n  } else {\n    const rows = msgs.map(m => '<div class=\\\"e bad\\\"><span>?</span><span class=\\\"dim\\\">' + JSON.stringify(m) + '</span></div>').join('');\n    body = '  라우팅: if (msg.text) ... else if (msg.who) ... 필드로 추측(깨지기 쉬움)\\n\\n  <span class=\\\"no\\\">종류를 필드 존재로 추측 → 새 종류마다 대혼란(반드시 후회).</span>';\n    hint = 'type 없음: 종류를 필드로 추측 → 확장 시 대혼란.';\n    viz = '<div class=\\\"log\\\">' + rows + '</div>';\n  }\n  render(typed ? '{ type, payload, id } — 형식 있음' : 'type 없이 시작 — 후회',\n    body, hint, viz);\n</script>",
           "controls": [
@@ -325,15 +325,15 @@
         },
         {
           "type": "note",
-          "text": "**웹소켓은 양방향 상시 연결이라 클라도 자주 보내야 할 때(채팅·협업·게임) 쓰되, HTTP 의 편의를 잃고 메시지 형식·하트비트·재연결·따라잡기·멱등을 직접 챙겨야 한다 — 특히 메시지 형식에 type 을 처음부터 넣어라. HTTP 로 되는 일은 웹소켓으로 옮기지 마라.** **웹소켓(WebSocket)**의 특징: HTTP 요청으로 시작해 **업그레이드 핸드셰이크**(`Upgrade: websocket`) 후, TCP 위의 **양방향 상시 연결**이 된다 — 한 번 열면 **서버와 클라 둘 다 아무 때나** 메시지를 보낼 수 있다(HTTP 의 요청→응답 왕복이 아니라 자유로운 양방향). 그래서 **클라이언트도 자주·즉시 보내야** 하는 곳에 필요하다: **채팅**(양쪽이 계속 주고받음), **공동 편집·화이트보드**(각자 편집을 실시간 전송), **게임**(입력·상태를 초당 여러 번), **협업 커서·라이브 상호작용**. **대가 — 직접 챙길 게 많다**: HTTP 의 편의(캐시·상태 코드·표준 재시도·표준 로깅·스테이트리스)를 **잃고**, 상태 있는 상시 연결을 손수 관리해야 한다. **처음부터 정해야 할 것들**: ① **메시지 형식** — `{ type, payload, id }` 같은 **구조를 처음부터**. 특히 **`type`(메시지 종류) 없이 시작하면 반드시 후회한다** — 여러 종류의 메시지(채팅·타이핑 알림·프레즌스·시스템)를 한 연결로 주고받는데, type 이 없으면 **종류를 필드 존재로 추측**해야 하고(`if (msg.text)... else if (msg.who)...`) 새 종류를 더할 때마다 깨진다. type 이 있으면 `switch(msg.type)` 로 깔끔히 라우팅·확장한다. `id` 는 멱등·응답 매칭용. ② **하트비트(heartbeat)** — 주기적 ping/pong 으로 **죽은 연결을 감지**(sync-reconnect 1장 — TCP 는 끊김을 바로 안 알려 주고, 프록시가 유휴 연결을 끊음 5장). ③ **재연결 정책** — 지수 백오프+흔들기(sync-reconnect 2장). ④ **따라잡기**(마지막 번호 이후만 — 3장)·**멱등**(고유 id — 4장)·**인증**(HTTP 쿠키·토큰을 핸드셰이크나 첫 메시지로). 이 모든 걸 웹소켓에선 **직접** 구현해야 한다(SSE 는 재연결·따라잡기를 프로토콜이 공짜로 준 것과 대조 — 3장). **핵심 원칙 — HTTP 로 되는 일을 웹소켓으로 옮기지 마라**: 요청/응답 성격의 작업(데이터 조회·폼 제출·CRUD)은 **HTTP 가 훨씬 다루기 쉽다** — 캐시·재시도·상태 코드·표준 로깅·스테이트리스 확장이 다 공짜다. 웹소켓 위에 요청/응답을 얹으면 이 모든 걸 다시 만들어야 한다(비효율·버그). **웹소켓은 「서버가 먼저 말해야 하거나(푸시) 클라가 상시 빠르게 보내야 하는(고빈도 양방향)」 것만** 쓰고, 나머지는 HTTP 로 둔다(웹소켓 + HTTP 를 함께 쓰는 게 정상 — 실시간 채널은 소켓, 일반 작업은 HTTP). 웹소켓은 강력하지만 그만큼 책임이 크니, 정말 양방향 고빈도가 필요할 때만 신중히 도입한다."
+          "text": "**웹소켓은 양방향 상시 연결이라 클라도 자주 보내야 할 때(채팅, 협업, 게임) 쓰되, HTTP 의 편의를 잃고 메시지 형식, 하트비트, 재연결, 따라잡기, 멱등을 직접 챙겨야 한다. 특히 메시지 형식에 type 을 처음부터 넣어라. HTTP 로 되는 일은 웹소켓으로 옮기지 마라.** **웹소켓(WebSocket)**의 특징: HTTP 요청으로 시작해 **업그레이드 핸드셰이크**(`Upgrade: websocket`) 후, TCP 위의 **양방향 상시 연결**이 된다. 한 번 열면 **서버와 클라 둘 다 아무 때나** 메시지를 보낼 수 있다(HTTP 의 요청→응답 왕복이 아니라 자유로운 양방향). 그래서 **클라이언트도 자주, 즉시 보내야** 하는 곳에 필요하다: **채팅**(양쪽이 계속 주고받음), **공동 편집, 화이트보드**(각자 편집을 실시간 전송), **게임**(입력, 상태를 초당 여러 번), **협업 커서, 라이브 상호작용**. **대가. 직접 챙길 게 많다**: HTTP 의 편의(캐시, 상태 코드, 표준 재시도, 표준 로깅, 스테이트리스)를 **잃고**, 상태 있는 상시 연결을 손수 관리해야 한다. **처음부터 정해야 할 것들**: ① **메시지 형식**. `{ type, payload, id }` 같은 **구조를 처음부터**. 특히 **`type`(메시지 종류) 없이 시작하면 반드시 후회한다**. 여러 종류의 메시지(채팅, 타이핑 알림, 프레즌스, 시스템)를 한 연결로 주고받는데, type 이 없으면 **종류를 필드 존재로 추측**해야 하고(`if (msg.text)... else if (msg.who)...`) 새 종류를 더할 때마다 깨진다. type 이 있으면 `switch(msg.type)` 로 깔끔히 라우팅, 확장한다. `id` 는 멱등, 응답 매칭용. ② **하트비트(heartbeat)**. 주기적 ping/pong 으로 **죽은 연결을 감지**(sync-reconnect 1장. TCP 는 끊김을 바로 안 알려 주고, 프록시가 유휴 연결을 끊음 5장). ③ **재연결 정책**. 지수 백오프+흔들기(sync-reconnect 2장). ④ **따라잡기**(마지막 번호 이후만. 3장), **멱등**(고유 id. 4장), **인증**(HTTP 쿠키, 토큰을 핸드셰이크나 첫 메시지로). 이 모든 걸 웹소켓에선 **직접** 구현해야 한다(SSE 는 재연결, 따라잡기를 프로토콜이 공짜로 준 것과 대조. 3장). **핵심 원칙. HTTP 로 되는 일을 웹소켓으로 옮기지 마라**: 요청/응답 성격의 작업(데이터 조회, 폼 제출, CRUD)은 **HTTP 가 훨씬 다루기 쉽다**. 캐시, 재시도, 상태 코드, 표준 로깅, 스테이트리스 확장이 다 공짜다. 웹소켓 위에 요청/응답을 얹으면 이 모든 걸 다시 만들어야 한다(비효율, 버그). **웹소켓은 \"서버가 먼저 말해야 하거나(푸시) 클라가 상시 빠르게 보내야 하는(고빈도 양방향)\" 것만** 쓰고, 나머지는 HTTP 로 둔다(웹소켓 + HTTP 를 함께 쓰는 게 정상. 실시간 채널은 소켓, 일반 작업은 HTTP). 웹소켓은 강력하지만 그만큼 책임이 크니, 정말 양방향 고빈도가 필요할 때만 신중히 도입한다."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 「무엇으로 연결하나」의 계층 — 폴링·SSE·웹소켓 중 요구(방향·빈도·인프라)에 맞게 고른다. 세 방식·방향(1장)은 요구에 맞는 최소 도구, 폴링(2장)은 당김 vs 밀기, SSE(3장)는 표준 내장 활용, 웹소켓(4장)은 양방향의 책임(형식·하트비트·직접 챙김)과 통한다. 전송(transport)은 sync-reconnect(끊겼을 때 어떻게)의 짝 — reconnect 가 「연결이 끊기면」이면 transport 는 「무엇으로 연결하나」다(SSE 는 재연결을 프로토콜이, 웹소켓은 직접). sync 갈래(offline·conflict·crdt·event·transport·reconnect·presence·cost)가 「연결이 불안정한 곳에서 데이터를 맞추는」 전 영역이다. **「실시간의 답은 폴링·SSE·웹소켓 셋 — 방향(한쪽/양쪽)부터 정하고, 서버→클라만이면 SSE(재연결·따라잡기 공짜), 양방향이면 웹소켓(형식·하트비트·재연결 직접), HTTP 로 되는 건 HTTP 로」**가 이 칸의 핵심이다."
+          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 \"무엇으로 연결하나\"의 계층. 폴링, SSE, 웹소켓 중 요구(방향, 빈도, 인프라)에 맞게 고른다. 세 방식, 방향(1장)은 요구에 맞는 최소 도구, 폴링(2장)은 당김 vs 밀기, SSE(3장)는 표준 내장 활용, 웹소켓(4장)은 양방향의 책임(형식, 하트비트, 직접 챙김)과 통한다. 전송(transport)은 sync-reconnect(끊겼을 때 어떻게)의 짝. reconnect 가 \"연결이 끊기면\"이면 transport 는 \"무엇으로 연결하나\"다(SSE 는 재연결을 프로토콜이, 웹소켓은 직접). sync 갈래(offline, conflict, crdt, event, transport, reconnect, presence, cost)가 \"연결이 불안정한 곳에서 데이터를 맞추는\" 전 영역이다. **\"실시간의 답은 폴링, SSE, 웹소켓 셋. 방향(한쪽/양쪽)부터 정하고, 서버→클라만이면 SSE(재연결, 따라잡기 공짜), 양방향이면 웹소켓(형식, 하트비트, 재연결 직접), HTTP 로 되는 건 HTTP 로\"**가 이 칸의 핵심이다."
         },
         {
           "type": "try",
-          "text": "웹소켓을 쓰기 전에 정말 양방향 고빈도가 필요한지 확인하라 — 서버→클라 단방향이면 SSE, 몇 초 지연 OK 면 폴링이 더 단순하다. 웹소켓을 쓴다면 처음부터 정하라: 메시지 형식(`{ type, payload, id }` — type 필수), 하트비트 주기, 재연결 정책(백오프+흔들기), 따라잡기·멱등·인증. type 없이 시작했다 종류가 늘 때 겪는 혼란을 피하라. 웹소켓 연결을 열고 와이파이를 껐다 켜 얼마 만에 죽음을 감지하는지(하트비트) 재라 — HTTP 로 될 일은 HTTP 로 두고, 소켓은 실시간 채널만."
+          "text": "웹소켓을 쓰기 전에 정말 양방향 고빈도가 필요한지 확인하라. 서버→클라 단방향이면 SSE, 몇 초 지연 OK 면 폴링이 더 단순하다. 웹소켓을 쓴다면 처음부터 정하라: 메시지 형식(`{ type, payload, id }`. type 필수), 하트비트 주기, 재연결 정책(백오프+흔들기), 따라잡기, 멱등, 인증. type 없이 시작했다 종류가 늘 때 겪는 혼란을 피하라. 웹소켓 연결을 열고 와이파이를 껐다 켜 얼마 만에 죽음을 감지하는지(하트비트) 재라. HTTP 로 될 일은 HTTP 로 두고, 소켓은 실시간 채널만."
         }
       ],
       "quiz": [
@@ -341,7 +341,7 @@
           "q": "웹소켓을 쓰는 경우는?",
           "choices": [
             "단방향 알림",
-            "양방향 상시 연결이 필요할 때(클라도 자주 보냄 — 채팅·협업·게임)",
+            "양방향 상시 연결이 필요할 때(클라도 자주 보냄. 채팅, 협업, 게임)",
             "정적 파일",
             "캐시"
           ],
@@ -352,7 +352,7 @@
           "q": "웹소켓 메시지 형식에서 type 을 처음부터 넣는 이유는?",
           "choices": [
             "예뻐서",
-            "종류를 구분해 라우팅·확장 — 없으면 필드로 추측하다 반드시 후회",
+            "종류를 구분해 라우팅, 확장. 없으면 필드로 추측하다 반드시 후회",
             "빠르려고",
             "무관"
           ],
@@ -360,10 +360,10 @@
           "why": "{ type, payload, id }."
         },
         {
-          "q": "「HTTP 로 되는 일을 웹소켓으로 옮기지 마라」의 뜻은?",
+          "q": "\"HTTP 로 되는 일을 웹소켓으로 옮기지 마라\"의 뜻은?",
           "choices": [
             "웹소켓 금지",
-            "요청/응답은 HTTP 가 쉬움(캐시·재시도·상태코드) — 웹소켓은 푸시·고빈도 양방향만",
+            "요청/응답은 HTTP 가 쉬움(캐시, 재시도, 상태코드). 웹소켓은 푸시, 고빈도 양방향만",
             "속도",
             "무관"
           ],
@@ -374,17 +374,17 @@
     },
     {
       "id": "5",
-      "title": "프록시·인프라 현실 — 유휴와 팬아웃",
+      "title": "프록시, 인프라 현실. 유휴와 팬아웃",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "실시간 연결은 **인프라 현실**에 부딪힌다. ① **유휴 연결 끊김** — 많은 프록시·로드밸런서·방화벽이 **유휴 연결을 60초쯤에 끊는다**(트래픽 없는 연결을 정리). 그래서 **하트비트가 선택이 아니라 필수**다 — 주기적(예: 30초)으로 ping 을 보내 연결을 살아 있게 유지하고 죽음을 감지한다(sync-reconnect 1장·4장). ② **팬아웃(fan-out) — 서버 여러 대의 문제** — 서버를 **여러 대로 늘리는 순간**, 「연결이 붙은 서버」와 「이벤트가 생긴 서버」가 **다를 수 있다**(사용자 A 는 서버1에, 이벤트는 서버2에서 발생 → A 에게 못 감). 해결: 서버 간 **메시지 브로커·펍섭**(Redis Pub/Sub·Kafka·NATS)으로 이벤트를 **모든 서버에 퍼뜨려**, 각 서버가 자기에 붙은 연결로 전달한다. 또 **스티키 세션**(같은 클라를 같은 서버로)·**연결 상태 공유**도 고려한다. 실시간은 「연결만」이 아니라 **유휴 관리 + 여러 서버 간 이벤트 전파**까지가 진짜 일이다. 아래 데모로 하트비트 유무·팬아웃을 확인하라."
+          "text": "실시간 연결은 **인프라 현실**에 부딪힌다. ① **유휴 연결 끊김**. 많은 프록시, 로드밸런서, 방화벽이 **유휴 연결을 60초쯤에 끊는다**(트래픽 없는 연결을 정리). 그래서 **하트비트가 선택이 아니라 필수**다. 주기적(예: 30초)으로 ping 을 보내 연결을 살아 있게 유지하고 죽음을 감지한다(sync-reconnect 1장, 4장). ② **팬아웃(fan-out). 서버 여러 대의 문제**. 서버를 **여러 대로 늘리는 순간**, \"연결이 붙은 서버\"와 \"이벤트가 생긴 서버\"가 **다를 수 있다**(사용자 A 는 서버1에, 이벤트는 서버2에서 발생 → A 에게 못 감). 해결: 서버 간 **메시지 브로커, 펍섭**(Redis Pub/Sub, Kafka, NATS)으로 이벤트를 **모든 서버에 퍼뜨려**, 각 서버가 자기에 붙은 연결로 전달한다. 또 **스티키 세션**(같은 클라를 같은 서버로), **연결 상태 공유**도 고려한다. 실시간은 \"연결만\"이 아니라 **유휴 관리 + 여러 서버 간 이벤트 전파**까지가 진짜 일이다. 아래 데모로 하트비트 유무, 팬아웃을 확인하라."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "유휴 끊김(하트비트) · 팬아웃",
+          "label": "유휴 끊김(하트비트), 팬아웃",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'idle') {\n    const hb = '{{hb}}' === 'on';\n    render(hb ? '하트비트 있음 — 연결 유지' : '하트비트 없음 — 60초에 끊김',\n      '  프록시는 유휴 연결을 ~60초에 끊는다\\n' +\n      (hb ? '  30초마다 ping → 프록시가 「살아 있다」고 봄 → 유지 + 죽음 감지\\n\\n  <span class=\\\"ok\\\">하트비트로 유휴 끊김 방지 + 죽은 연결 감지.</span>'\n          : '  트래픽 없음 → 프록시가 60초에 조용히 끊음 → 죽은 연결 붙잡음\\n\\n  <span class=\\\"no\\\">하트비트 없으면 프록시가 끊고, 끊긴 줄도 모름.</span>'),\n      hb ? '하트비트(주기적 ping) = 유휴 끊김 방지 + 죽음 감지 (필수).' : '하트비트 없으면 프록시가 유휴 연결을 끊는다.',\n      steps([['0초: 연결됨', 'on'],\n             hb ? ['30초: ping → pong (살아 있음 표시)', 'good'] : ['30초: 트래픽 없음(유휴)', 'bad'],\n             hb ? ['60초+: 계속 유지', 'good'] : ['60초: 프록시가 조용히 끊음', 'bad']]));\n  } else {\n    const broker = '{{broker}}' === 'on';\n    render(broker ? '펍섭 브로커 — 모든 서버에 전파' : '브로커 없음 — 다른 서버엔 못 감',\n      '  사용자 A → 서버1 연결 · 이벤트는 서버2 에서 발생\\n' +\n      (broker ? '  서버2 이벤트 → 브로커(Redis Pub/Sub) → 서버1도 받음 → A 에게 전달\\n\\n  <span class=\\\"ok\\\">브로커가 이벤트를 모든 서버에 퍼뜨림 → 어디 붙었든 도달.</span>'\n              : '  서버2 이벤트 → 서버1은 모름 → A 에게 안 감(누락!)\\n\\n  <span class=\\\"no\\\">서버 여러 대면 「붙은 서버」와 「이벤트 서버」가 달라 누락.</span>'),\n      broker ? '팬아웃: 브로커(펍섭)로 이벤트를 모든 서버에 전파 → 도달.' : '서버 여러 대 + 브로커 없으면 이벤트가 다른 서버 연결엔 누락.',\n      steps([['A 는 서버1 에 연결', 'on'],\n             ['이벤트는 서버2 에서 발생', 'on'],\n             broker ? ['브로커가 서버1·2 모두에 전파 → A 도달', 'good'] : ['서버1은 이벤트를 모름 → A 누락', 'bad']]));\n  }\n</script>",
           "controls": [
@@ -440,15 +440,15 @@
         },
         {
           "type": "note",
-          "text": "**실시간 연결은 인프라 현실에 부딪힌다 — 프록시가 유휴 연결을 60초쯤에 끊으니 하트비트가 필수이고, 서버를 여러 대로 늘리면 「연결된 서버」와 「이벤트가 생긴 서버」가 달라 메시지 브로커(펍섭)로 이벤트를 모든 서버에 전파해야 한다.** 실시간은 「연결을 여는 것」으로 끝이 아니다 — **운영 인프라**가 두 가지 현실을 강제한다: ① **유휴 연결 끊김** — 실제 네트워크 경로엔 **프록시·로드밸런서·방화벽·NAT** 가 있고, 이들 상당수가 **트래픽 없는(유휴) 연결을 일정 시간(흔히 60초 안팎)에 끊는다**(리소스 회수 — 죽은 것 같은 연결을 오래 붙잡지 않으려). 그래서 실시간 연결이 **조용히 끊긴다**(앱은 멀쩡한데 프록시가 중간에서 끊음). **하트비트(heartbeat)가 선택이 아니라 필수**인 이유다 — 주기적(프록시 타임아웃보다 짧게, 예: 30초)으로 **ping/pong**을 주고받으면, ⓐ 프록시가 「이 연결은 활성」이라 보고 안 끊고(유지), ⓑ pong 이 안 오면 「죽었다」고 감지한다(sync-reconnect 1장·4장의 감지). 하트비트 없으면 연결이 60초마다 끊기고, 끊긴 줄도 모른 채 죽은 연결을 붙잡는다. ② **팬아웃(fan-out) — 수평 확장의 문제** — 사용자가 늘어 서버를 **여러 대**로 늘리면(수평 확장), 각 사용자의 연결은 **로드밸런서가 아무 서버에나** 붙인다. 문제: **「사용자의 연결이 붙은 서버」와 「그 사용자에게 보낼 이벤트가 생긴 서버」가 다를 수 있다** — 사용자 A 의 웹소켓은 **서버1**에 붙어 있는데, A 에게 보낼 채팅 메시지가 **서버2**에서 처리되면, 서버2 는 A 의 연결(서버1에 있음)을 **직접 모른다** → A 에게 **메시지가 안 간다**(누락). 단일 서버일 땐 없던 문제가 확장하는 순간 생긴다. **해결 — 서버 간 이벤트 전파(펍섭 브로커)**: **메시지 브로커**(Redis Pub/Sub·Kafka·NATS·MQTT)를 두고, 어느 서버에서 이벤트가 생기면 **브로커에 발행(publish)**하고, **모든 서버가 구독(subscribe)**해 받는다 → 각 서버는 받은 이벤트 중 **자기에게 붙은 연결** 대상이면 그 연결로 전달한다. 이러면 A 가 어느 서버에 붙었든 이벤트가 도달한다(브로커가 서버 간 다리). 추가 고려: **스티키 세션**(로드밸런서가 같은 클라를 같은 서버로 — 상태 유지 도움), **연결 레지스트리**(어느 사용자가 어느 서버에 있나 공유), **프레즌스**(sync-presence — 누가 온라인인지도 서버 간 공유 필요). **정리**: 실시간의 진짜 일은 「연결만」이 아니라 **유휴 관리(하트비트)+ 수평 확장 시 이벤트 전파(펍섭)**다 — 개발 땐 단일 서버·로컬이라 안 보이다가, 프로덕션(프록시 뒤·여러 서버)에서 터진다. 그래서 실시간을 프로덕션에 올릴 땐 이 인프라 현실을 처음부터 설계해야 한다(하트비트 필수, 확장하면 브로커 필수)."
+          "text": "**실시간 연결은 인프라 현실에 부딪힌다. 프록시가 유휴 연결을 60초쯤에 끊으니 하트비트가 필수이고, 서버를 여러 대로 늘리면 \"연결된 서버\"와 \"이벤트가 생긴 서버\"가 달라 메시지 브로커(펍섭)로 이벤트를 모든 서버에 전파해야 한다.** 실시간은 \"연결을 여는 것\"으로 끝이 아니다. **운영 인프라**가 두 가지 현실을 강제한다: ① **유휴 연결 끊김**. 실제 네트워크 경로엔 **프록시, 로드밸런서, 방화벽, NAT** 가 있고, 이들 상당수가 **트래픽 없는(유휴) 연결을 일정 시간(흔히 60초 안팎)에 끊는다**(리소스 회수. 죽은 것 같은 연결을 오래 붙잡지 않으려). 그래서 실시간 연결이 **조용히 끊긴다**(앱은 멀쩡한데 프록시가 중간에서 끊음). **하트비트(heartbeat)가 선택이 아니라 필수**인 이유다. 주기적(프록시 타임아웃보다 짧게, 예: 30초)으로 **ping/pong**을 주고받으면, ⓐ 프록시가 \"이 연결은 활성\"이라 보고 안 끊고(유지), ⓑ pong 이 안 오면 \"죽었다\"고 감지한다(sync-reconnect 1장, 4장의 감지). 하트비트 없으면 연결이 60초마다 끊기고, 끊긴 줄도 모른 채 죽은 연결을 붙잡는다. ② **팬아웃(fan-out). 수평 확장의 문제**. 사용자가 늘어 서버를 **여러 대**로 늘리면(수평 확장), 각 사용자의 연결은 **로드밸런서가 아무 서버에나** 붙인다. 문제: **\"사용자의 연결이 붙은 서버\"와 \"그 사용자에게 보낼 이벤트가 생긴 서버\"가 다를 수 있다**. 사용자 A 의 웹소켓은 **서버1**에 붙어 있는데, A 에게 보낼 채팅 메시지가 **서버2**에서 처리되면, 서버2 는 A 의 연결(서버1에 있음)을 **직접 모른다** → A 에게 **메시지가 안 간다**(누락). 단일 서버일 땐 없던 문제가 확장하는 순간 생긴다. **해결. 서버 간 이벤트 전파(펍섭 브로커)**: **메시지 브로커**(Redis Pub/Sub, Kafka, NATS, MQTT)를 두고, 어느 서버에서 이벤트가 생기면 **브로커에 발행(publish)**하고, **모든 서버가 구독(subscribe)**해 받는다 → 각 서버는 받은 이벤트 중 **자기에게 붙은 연결** 대상이면 그 연결로 전달한다. 이러면 A 가 어느 서버에 붙었든 이벤트가 도달한다(브로커가 서버 간 다리). 추가 고려: **스티키 세션**(로드밸런서가 같은 클라를 같은 서버로. 상태 유지 도움), **연결 레지스트리**(어느 사용자가 어느 서버에 있나 공유), **프레즌스**(sync-presence. 누가 온라인인지도 서버 간 공유 필요). **정리**: 실시간의 진짜 일은 \"연결만\"이 아니라 **유휴 관리(하트비트)+ 수평 확장 시 이벤트 전파(펍섭)**다. 개발 땐 단일 서버, 로컬이라 안 보이다가, 프로덕션(프록시 뒤, 여러 서버)에서 터진다. 그래서 실시간을 프로덕션에 올릴 땐 이 인프라 현실을 처음부터 설계해야 한다(하트비트 필수, 확장하면 브로커 필수)."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 「무엇으로 연결하나」의 계층으로, 폴링·SSE·웹소켓 중 요구(방향·빈도·인프라)에 맞게 고르고 인프라 현실(유휴·팬아웃)을 다룬다. 세 방식·방향은 요구에 맞는 최소 도구, 폴링은 당김 vs 밀기, SSE 는 표준 내장 활용, 웹소켓은 양방향의 책임, 인프라(유휴·팬아웃)는 프로덕션 현실(하트비트·펍섭)과 통한다. 전송은 sync-reconnect(끊겼을 때)의 짝이고, 팬아웃은 sync-presence(누가 온라인)와 이어진다. sync 갈래(offline·conflict·crdt·event·transport·reconnect·presence·cost)가 「연결이 불안정한 곳에서 데이터를 맞추는」 전 영역이다. **「실시간의 답은 폴링·SSE·웹소켓 셋 — 방향부터 정하고(단방향 SSE·양방향 웹소켓), HTTP 로 되는 건 HTTP 로, 프록시 유휴엔 하트비트 필수, 여러 서버엔 펍섭 브로커로 이벤트 전파」**가 이 칸의 핵심이다."
+          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 \"무엇으로 연결하나\"의 계층으로, 폴링, SSE, 웹소켓 중 요구(방향, 빈도, 인프라)에 맞게 고르고 인프라 현실(유휴, 팬아웃)을 다룬다. 세 방식, 방향은 요구에 맞는 최소 도구, 폴링은 당김 vs 밀기, SSE 는 표준 내장 활용, 웹소켓은 양방향의 책임, 인프라(유휴, 팬아웃)는 프로덕션 현실(하트비트, 펍섭)과 통한다. 전송은 sync-reconnect(끊겼을 때)의 짝이고, 팬아웃은 sync-presence(누가 온라인)와 이어진다. sync 갈래(offline, conflict, crdt, event, transport, reconnect, presence, cost)가 \"연결이 불안정한 곳에서 데이터를 맞추는\" 전 영역이다. **\"실시간의 답은 폴링, SSE, 웹소켓 셋. 방향부터 정하고(단방향 SSE, 양방향 웹소켓), HTTP 로 되는 건 HTTP 로, 프록시 유휴엔 하트비트 필수, 여러 서버엔 펍섭 브로커로 이벤트 전파\"**가 이 칸의 핵심이다."
         },
         {
           "type": "try",
-          "text": "실시간 연결을 프로덕션 인프라 관점에서 점검하라 — 하트비트가 있나(없으면 프록시가 유휴 연결을 60초에 끊음)? 서버를 여러 대로 늘렸을 때 이벤트가 다른 서버에 붙은 사용자에게도 가나(펍섭 브로커 있나, 없으면 누락)? 웹소켓 연결을 열고 아무것도 안 보낸 채 1~2분 두어 프록시가 끊는지 보고, 하트비트를 넣어 유지되는지 확인하라. 확장을 염두에 두면 처음부터 Redis Pub/Sub 등으로 이벤트를 서버 간 전파하게 설계하라 — 실시간의 진짜 일은 연결 관리+이벤트 전파다."
+          "text": "실시간 연결을 프로덕션 인프라 관점에서 점검하라. 하트비트가 있나(없으면 프록시가 유휴 연결을 60초에 끊음)? 서버를 여러 대로 늘렸을 때 이벤트가 다른 서버에 붙은 사용자에게도 가나(펍섭 브로커 있나, 없으면 누락)? 웹소켓 연결을 열고 아무것도 안 보낸 채 1~2분 두어 프록시가 끊는지 보고, 하트비트를 넣어 유지되는지 확인하라. 확장을 염두에 두면 처음부터 Redis Pub/Sub 등으로 이벤트를 서버 간 전파하게 설계하라. 실시간의 진짜 일은 연결 관리+이벤트 전파다."
         }
       ],
       "quiz": [
@@ -478,7 +478,7 @@
           "q": "팬아웃 해결책은?",
           "choices": [
             "서버 하나만",
-            "메시지 브로커(Redis Pub/Sub·Kafka)로 이벤트를 모든 서버에 전파",
+            "메시지 브로커(Redis Pub/Sub, Kafka)로 이벤트를 모든 서버에 전파",
             "무시",
             "폴링"
           ],
@@ -489,17 +489,17 @@
     },
     {
       "id": "6",
-      "title": "점검표 — 실시간 전송",
+      "title": "점검표. 실시간 전송",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "실시간 전송 방식을 고를 때 이 목록을 확인하라. 핵심은 「방향부터 — 단방향 SSE·양방향 웹소켓·단순은 폴링, HTTP 로 될 건 HTTP, 하트비트 필수, 확장엔 펍섭」이다."
+          "text": "실시간 전송 방식을 고를 때 이 목록을 확인하라. 핵심은 \"방향부터. 단방향 SSE, 양방향 웹소켓, 단순은 폴링, HTTP 로 될 건 HTTP, 하트비트 필수, 확장엔 펍섭\"이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "380px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .stat { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }\n  .stat .s { flex:1; min-width:88px; background:#111c33; border-radius:6px; padding:8px; text-align:center; }\n  .stat .s .v { font:17px ui-monospace, monospace; font-weight:700; color:#7dd3fc; }\n  .stat .s.warn .v { color:#fbbf24; } .stat .s.bad .v { color:#f87171; } .stat .s.good .v { color:#4ade80; }\n  .stat .s .k { font:10px system-ui; color:#94a3b8; margin-top:2px; }\n  .bars { margin:8px 0; }\n  .bars .b { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace, monospace; }\n  .bars .b .lab { width:64px; color:#94a3b8; text-align:right; }\n  .bars .b .bar { height:15px; border-radius:3px; background:#22d3ee; min-width:2px; }\n  .bars .b .bar.empty { background:#475569; } .bars .b .bar.hit { background:#4ade80; }\n  .bars .b .v { color:#cbd5e1; }\n  .log { margin:8px 0; }\n  .log .e { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n            background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .log .e.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .log .e.good { border-left-color:#22c55e; background:#132a1c; } .log .e.bad { border-left-color:#ef4444; background:#2a1414; }\n  .log .e .n { width:24px; color:#64748b; text-align:right; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  table { border-collapse:collapse; width:100%; margin:8px 0; font:11px ui-monospace, monospace; }\n  th, td { border:1px solid #1e293b; padding:5px 8px; text-align:left; }\n  th { background:#111c33; color:#94a3b8; } td { color:#cbd5e1; }\n  tr.on td { background:#0e2a3a; color:#e2f5ff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const stat = (cells) => '<div class=\"stat\">' + cells.map(([v, k, cls]) =>\n    '<div class=\"s ' + (cls||'') + '\"><div class=\"v\">' + esc(v) + '</div><div class=\"k\">' + esc(k) + '</div></div>').join('') + '</div>';\n  const bars = (rows, max) => '<div class=\"bars\">' + rows.map(([lab, val, cls, txt]) =>\n    '<div class=\"b\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"bar ' + (cls||'') + '\" style=\"width:' +\n    Math.max(2, Math.round(val / max * 220)) + 'px\"></span><span class=\"v\">' + esc(txt != null ? txt : val) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '방향부터 — 한 방향(SSE/폴링)이냐 양방향(웹소켓)이냐',\n    '단순·인프라 호환 최우선이면 폴링(지연=주기·빈 요청 대가)',\n    '서버→클라 스트림이면 SSE(자동 재연결·Last-Event-ID 공짜)',\n    '양방향 고빈도면 웹소켓(형식·하트비트·재연결 직접)',\n    '웹소켓 메시지에 type 을 처음부터({ type, payload, id })',\n    'HTTP 로 되는 일을 웹소켓으로 옮기지 마라',\n    '하트비트 필수 — 프록시가 유휴 연결을 60초에 끊음',\n    '서버 여러 대면 펍섭 브로커로 이벤트 전파(팬아웃)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 방향에 맞는 최소 도구로.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '방향부터 — SSE/폴링/웹소켓, HTTP 로 될 건 HTTP, 하트비트·펍섭.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -516,15 +516,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 실시간의 답은 폴링·SSE·웹소켓 셋이고 방향부터 정한다 — 서버→클라 한 방향이면 SSE(자동 재연결·Last-Event-ID 공짜), 양방향 고빈도면 웹소켓(형식·하트비트·재연결 직접), 단순·인프라 호환이면 폴링(지연=주기·빈 요청 대가), HTTP 로 되는 일은 HTTP 로 두고, 프록시 유휴엔 하트비트가 필수이며, 서버 여러 대엔 펍섭 브로커로 이벤트를 전파한다.** 방향부터 정하고(1장), 폴링은 단순하나 지연·빈 요청 대가(2장·롱 폴링으로 개선), SSE 는 단방향 스트림에 자동 재연결·따라잡기 공짜(3장), 웹소켓은 양방향이나 직접 챙길 게 많고 type 필수(4장), 인프라 현실로 하트비트 필수·여러 서버엔 펍섭(5장). 「방향에 맞는 최소 도구, 웹소켓이 항상 정답은 아님」이 핵심이다."
+          "text": "**한 줄 요약: 실시간의 답은 폴링, SSE, 웹소켓 셋이고 방향부터 정한다. 서버→클라 한 방향이면 SSE(자동 재연결, Last-Event-ID 공짜), 양방향 고빈도면 웹소켓(형식, 하트비트, 재연결 직접), 단순, 인프라 호환이면 폴링(지연=주기, 빈 요청 대가), HTTP 로 되는 일은 HTTP 로 두고, 프록시 유휴엔 하트비트가 필수이며, 서버 여러 대엔 펍섭 브로커로 이벤트를 전파한다.** 방향부터 정하고(1장), 폴링은 단순하나 지연, 빈 요청 대가(2장, 롱 폴링으로 개선), SSE 는 단방향 스트림에 자동 재연결, 따라잡기 공짜(3장), 웹소켓은 양방향이나 직접 챙길 게 많고 type 필수(4장), 인프라 현실로 하트비트 필수, 여러 서버엔 펍섭(5장). \"방향에 맞는 최소 도구, 웹소켓이 항상 정답은 아님\"이 핵심이다."
         },
         {
           "type": "note",
-          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 「무엇으로 연결하나」의 계층으로, 폴링·SSE·웹소켓 중 요구(방향·빈도·인프라)에 맞게 고른다. 세 방식·방향은 요구에 맞는 최소 도구, 폴링은 당김 vs 밀기, SSE 는 표준 내장 활용, 웹소켓은 양방향의 책임, 인프라(유휴·팬아웃)는 프로덕션 현실(하트비트·펍섭)과 통한다. 전송은 sync-reconnect(끊겼을 때 어떻게)의 짝이고(transport=무엇으로, reconnect=끊기면), 팬아웃은 sync-presence(누가 온라인)로 이어진다. sync 갈래(offline·conflict·crdt·event·transport·reconnect·presence·cost)가 「연결이 불안정한 곳에서 데이터를 맞추는」 전 영역이다. **「방향부터 — 단방향 SSE·양방향 웹소켓·단순은 폴링, HTTP 로 될 건 HTTP, 하트비트 필수, 확장엔 펍섭」**이 이 칸의 전부다. 실시간은 연결 선택 + 유휴 관리 + 이벤트 전파까지가 진짜 일이다."
+          "text": "**이 칸과 갈래.** 전송(sync-transport)은 sync 갈래(동기화)에서 \"무엇으로 연결하나\"의 계층으로, 폴링, SSE, 웹소켓 중 요구(방향, 빈도, 인프라)에 맞게 고른다. 세 방식, 방향은 요구에 맞는 최소 도구, 폴링은 당김 vs 밀기, SSE 는 표준 내장 활용, 웹소켓은 양방향의 책임, 인프라(유휴, 팬아웃)는 프로덕션 현실(하트비트, 펍섭)과 통한다. 전송은 sync-reconnect(끊겼을 때 어떻게)의 짝이고(transport=무엇으로, reconnect=끊기면), 팬아웃은 sync-presence(누가 온라인)로 이어진다. sync 갈래(offline, conflict, crdt, event, transport, reconnect, presence, cost)가 \"연결이 불안정한 곳에서 데이터를 맞추는\" 전 영역이다. **\"방향부터. 단방향 SSE, 양방향 웹소켓, 단순은 폴링, HTTP 로 될 건 HTTP, 하트비트 필수, 확장엔 펍섭\"**이 이 칸의 전부다. 실시간은 연결 선택 + 유휴 관리 + 이벤트 전파까지가 진짜 일이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 실시간 기능을 점검하라. 「방향부터(단방향 SSE·양방향 웹소켓)」와 「하트비트 필수」 두 가지만 잡아도, 과잉(불필요한 웹소켓) 회피와 유휴 끊김 방지를 얻는다. 진행률을 SSE 로 만들어 자동 재연결·Last-Event-ID 를 확인하고, 웹소켓을 쓴다면 type·하트비트·재연결을 처음부터 넣고, 확장을 염두에 두면 펍섭 브로커를 설계하라 — 방향에 맞는 최소 도구로, 프로덕션 인프라를 처음부터."
+          "text": "이 8개로 네 실시간 기능을 점검하라. \"방향부터(단방향 SSE, 양방향 웹소켓)\"와 \"하트비트 필수\" 두 가지만 잡아도, 과잉(불필요한 웹소켓) 회피와 유휴 끊김 방지를 얻는다. 진행률을 SSE 로 만들어 자동 재연결, Last-Event-ID 를 확인하고, 웹소켓을 쓴다면 type, 하트비트, 재연결을 처음부터 넣고, 확장을 염두에 두면 펍섭 브로커를 설계하라. 방향에 맞는 최소 도구로, 프로덕션 인프라를 처음부터."
         }
       ],
       "quiz": [
@@ -532,7 +532,7 @@
           "q": "실시간 전송 장의 한 줄 요약은?",
           "choices": [
             "무조건 웹소켓",
-            "방향부터 — 단방향 SSE·양방향 웹소켓·단순은 폴링, HTTP 로 될 건 HTTP, 하트비트·펍섭",
+            "방향부터. 단방향 SSE, 양방향 웹소켓, 단순은 폴링, HTTP 로 될 건 HTTP, 하트비트, 펍섭",
             "무시",
             "폴링만"
           ],
@@ -542,9 +542,9 @@
         {
           "q": "먼저 잡을 두 가지는?",
           "choices": [
-            "속도·색",
-            "방향부터(단방향 SSE·양방향 웹소켓) + 하트비트 필수(유휴 끊김 방지)",
-            "정렬·압축",
+            "속도, 색",
+            "방향부터(단방향 SSE, 양방향 웹소켓) + 하트비트 필수(유휴 끊김 방지)",
+            "정렬, 압축",
             "무시"
           ],
           "answer": 1,
@@ -554,7 +554,7 @@
           "q": "전송이 이어지는 주제는?",
           "choices": [
             "없음",
-            "sync-reconnect(끊기면)·sync-presence(팬아웃·온라인)·pay-webhook(밀기)",
+            "sync-reconnect(끊기면), sync-presence(팬아웃, 온라인), pay-webhook(밀기)",
             "속도만",
             "색"
           ],

@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "증상 — 쿼리가 201개",
+      "title": "증상. 쿼리가 201개",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "코드는 깔끔한데 화면만 느리다. 로그를 보면 **쿼리가 201개** 나갔다. 목록 200개를 가져오는 쿼리 1개 + 각 항목의 작성자를 가져오는 쿼리 200개. 이것이 **N+1 문제** — ORM 을 쓰면 거의 반드시 한 번은 겪는다."
+          "text": "코드는 깔끔한데 화면만 느리다. 로그를 보면 **쿼리가 201개** 나갔다. 목록 200개를 가져오는 쿼리 1개 + 각 항목의 작성자를 가져오는 쿼리 200개. 이것이 **N+1 문제**. ORM 을 쓰면 거의 반드시 한 번은 겪는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "목록 크기와 쿼리 수 — 1 + N",
+          "label": "목록 크기와 쿼리 수. 1 + N",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const N = {{rows}};\n  const total = 1 + N;\n  const perMs = 2;                       // 쿼리당 왕복 2ms 가정\n  render('GET /posts  (' + N + '개 표시)',\n    '  나간 쿼리 = 목록 1 + 작성자 ' + N + ' = <span class=\\\"' +\n      (total <= 3 ? 'ok' : total <= 20 ? 'warn' : 'no') + '\\\">' + total + '개</span>\\n' +\n    '  예상 지연 = ' + total + ' x ' + perMs + 'ms = ' + (total * perMs) + 'ms (왕복만)\\n\\n' +\n    '  목록이 커질수록 쿼리 수가 정비례로 늘어난다 — 화면이 점점 느려지는 이유.',\n    '항목 하나 늘 때마다 쿼리 하나 추가. 이 정비례가 N+1 의 특징이다.',\n    bars([['DB 왕복 횟수', Math.min(100, total / 2), total + '회', total > 20 ? '#fca5a5' : '#38bdf8']]));\n</script>",
           "controls": [
@@ -36,11 +36,11 @@
         },
         {
           "type": "note",
-          "text": "**N+1 은 개발 중엔 안 보인다.** 로컬 DB 는 왕복이 0.1ms 라 201개도 20ms — 빠르다. 운영에선 DB 가 네트워크 너머라 왕복이 1~5ms, 201개면 수백 ms~1초. **데이터가 적은 개발 환경에서 숨었다가 운영에서 터지는** 대표적 문제다."
+          "text": "**N+1 은 개발 중엔 안 보인다.** 로컬 DB 는 왕복이 0.1ms 라 201개도 20ms. 빠르다. 운영에선 DB 가 네트워크 너머라 왕복이 1~5ms, 201개면 수백 ms~1초. **데이터가 적은 개발 환경에서 숨었다가 운영에서 터지는** 대표적 문제다."
         },
         {
           "type": "p",
-          "text": "**핵심 신호는 「쿼리 수가 목록 크기에 비례」다.** 화면이 느린데 각 쿼리는 빠르다면 N+1 을 의심하라. 실행 계획(db-explain)이 개별 쿼리는 멀쩡하다고 말해도, **개수 자체**가 문제인 것이다 — 그래서 쿼리 수를 세는 습관이 중요하다(6장)."
+          "text": "**핵심 신호는 \"쿼리 수가 목록 크기에 비례\"다.** 화면이 느린데 각 쿼리는 빠르다면 N+1 을 의심하라. 실행 계획(db-explain)이 개별 쿼리는 멀쩡하다고 말해도, **개수 자체**가 문제인 것이다. 그래서 쿼리 수를 세는 습관이 중요하다(6장)."
         },
         {
           "type": "try",
@@ -49,7 +49,7 @@
       ],
       "quiz": [
         {
-          "q": "N+1 에서 「+1」과 「N」은 각각 무엇인가?",
+          "q": "N+1 에서 \"+1\"과 \"N\"은 각각 무엇인가?",
           "choices": [
             "둘 다 목록",
             "목록 조회 1개 + 각 항목 관계 조회 N개",
@@ -85,12 +85,12 @@
     },
     {
       "id": "2",
-      "title": "왜 생기나 — 지연 로딩",
+      "title": "왜 생기나. 지연 로딩",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "ORM 은 관계를 **지연 로딩(lazy)** 한다 — `post.author` 에 **접근하는 순간** 쿼리를 낸다. 편리하지만 함정이다. 루프 안에서 관계에 접근하면, 그 편리함이 **반복 횟수만큼의 쿼리**로 조용히 바뀐다. 코드엔 `SELECT` 가 한 줄도 안 보이는데."
+          "text": "ORM 은 관계를 **지연 로딩(lazy)** 한다. `post.author` 에 **접근하는 순간** 쿼리를 낸다. 편리하지만 함정이다. 루프 안에서 관계에 접근하면, 그 편리함이 **반복 횟수만큼의 쿼리**로 조용히 바뀐다. 코드엔 `SELECT` 가 한 줄도 안 보이는데."
         },
         {
           "type": "demo",
@@ -119,15 +119,15 @@
         },
         {
           "type": "note",
-          "text": "**「관계 접근 = 쿼리 가능성」이라고 의심하라.** ORM 의 `post.author`, `order.items`, `user.profile` 은 필드처럼 보이지만 DB 왕복일 수 있다. 특히 **루프·맵·템플릿 안**에서 관계에 접근하는 코드를 보면 N+1 을 먼저 떠올려야 한다."
+          "text": "**\"관계 접근 = 쿼리 가능성\"이라고 의심하라.** ORM 의 `post.author`, `order.items`, `user.profile` 은 필드처럼 보이지만 DB 왕복일 수 있다. 특히 **루프, 맵, 템플릿 안**에서 관계에 접근하는 코드를 보면 N+1 을 먼저 떠올려야 한다."
         },
         {
           "type": "p",
-          "text": "**지연 로딩 자체가 나쁜 건 아니다.** 한 건을 다룰 땐(상세 화면) 필요할 때 가져오는 게 효율적이다. 문제는 **여러 건을 루프로 돌 때**다. 그래서 해법은 「지연 로딩을 끄기」가 아니라 「목록을 다룰 땐 **미리 함께** 가져오기」다(3~4장)."
+          "text": "**지연 로딩 자체가 나쁜 건 아니다.** 한 건을 다룰 땐(상세 화면) 필요할 때 가져오는 게 효율적이다. 문제는 **여러 건을 루프로 돌 때**다. 그래서 해법은 \"지연 로딩을 끄기\"가 아니라 \"목록을 다룰 땐 **미리 함께** 가져오기\"다(3~4장)."
         },
         {
           "type": "try",
-          "text": "N+1 이 의심되는 화면의 코드에서, 루프·map·템플릿 안에서 관계 필드(`.author`, `.items` 등)에 접근하는 줄을 찾아라. 그 줄이 쿼리를 내고 있다."
+          "text": "N+1 이 의심되는 화면의 코드에서, 루프, map, 템플릿 안에서 관계 필드(`.author`, `.items` 등)에 접근하는 줄을 찾아라. 그 줄이 쿼리를 내고 있다."
         }
       ],
       "quiz": [
@@ -168,12 +168,12 @@
     },
     {
       "id": "3",
-      "title": "해법① 미리 함께 — eager 조인",
+      "title": "해법① 미리 함께. eager 조인",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "가장 흔한 해법은 **eager loading**: 목록을 가져올 때 관계도 **함께** 조회하도록 지시한다. ORM 의 `include`·`with`·`join fetch` 가 이것이다. 내부적으로 **조인** 한 번으로 부모와 자식을 같이 가져와, 201개가 1개로 준다."
+          "text": "가장 흔한 해법은 **eager loading**: 목록을 가져올 때 관계도 **함께** 조회하도록 지시한다. ORM 의 `include`, `with`, `join fetch` 가 이것이다. 내부적으로 **조인** 한 번으로 부모와 자식을 같이 가져와, 201개가 1개로 준다."
         },
         {
           "type": "demo",
@@ -201,11 +201,11 @@
         },
         {
           "type": "note",
-          "text": "**조인이 항상 답은 아니다.** 1:N 관계(게시글 : 댓글)를 조인하면 부모 행이 자식 수만큼 **중복**돼 전송량이 커진다(5장). 자식이 많은 1:N 은 조인보다 **쿼리 2번**(부모·자식 따로, IN 으로)이 더 쌀 때가 많다 — 그래서 4장의 IN 방식이 있다."
+          "text": "**조인이 항상 답은 아니다.** 1:N 관계(게시글 : 댓글)를 조인하면 부모 행이 자식 수만큼 **중복**돼 전송량이 커진다(5장). 자식이 많은 1:N 은 조인보다 **쿼리 2번**(부모, 자식 따로, IN 으로)이 더 쌀 때가 많다. 그래서 4장의 IN 방식이 있다."
         },
         {
           "type": "p",
-          "text": "**필요한 관계만 include 하라.** 「N+1 무섭다」고 모든 관계를 eager 로 걸면, 안 쓰는 데이터까지 매번 조인해 반대편 함정(과다 fetch, 7장)에 빠진다. 그 화면이 **실제로 쓰는** 관계만 골라 함께 가져오는 것이 균형이다."
+          "text": "**필요한 관계만 include 하라.** \"N+1 무섭다\"고 모든 관계를 eager 로 걸면, 안 쓰는 데이터까지 매번 조인해 반대편 함정(과다 fetch, 7장)에 빠진다. 그 화면이 **실제로 쓰는** 관계만 골라 함께 가져오는 것이 균형이다."
         },
         {
           "type": "try",
@@ -239,7 +239,7 @@
           "q": "모든 관계를 eager 로 거는 것의 문제는?",
           "choices": [
             "N+1 재발",
-            "안 쓰는 데이터까지 조인 — 과다 fetch",
+            "안 쓰는 데이터까지 조인. 과다 fetch",
             "인덱스 무력화",
             "락 증가"
           ],
@@ -250,12 +250,12 @@
     },
     {
       "id": "4",
-      "title": "해법② IN 으로 배치 — 2 쿼리",
+      "title": "해법② IN 으로 배치. 2 쿼리",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "조인 대신 **쿼리를 딱 2번**으로 묶는 방법: 먼저 부모를 다 가져오고, 필요한 자식 id 를 모아 **`WHERE id IN (…)`** 로 한 번에 가져온다. 부모 중복이 없어 전송량이 작고, 1:N 관계에 특히 좋다. N 개의 쿼리가 **상수 2개**로 준다."
+          "text": "조인 대신 **쿼리를 딱 2번**으로 묶는 방법: 먼저 부모를 다 가져오고, 필요한 자식 id 를 모아 **`WHERE id IN ()`** 로 한 번에 가져온다. 부모 중복이 없어 전송량이 작고, 1:N 관계에 특히 좋다. N 개의 쿼리가 **상수 2개**로 준다."
         },
         {
           "type": "demo",
@@ -277,15 +277,15 @@
         },
         {
           "type": "note",
-          "text": "**IN 목록이 너무 길면 잘라서 보낸다.** id 가 수천 개면 `IN (…)` 하나가 되레 무거워지고 일부 DB 는 파라미터 한도가 있다. 1000개씩 **청크**로 나눠 여러 번 IN 하면 안전하다 — 그래도 N 번이 아니라 N/1000 번이라 여전히 상수에 가깝다."
+          "text": "**IN 목록이 너무 길면 잘라서 보낸다.** id 가 수천 개면 `IN ()` 하나가 되레 무거워지고 일부 DB 는 파라미터 한도가 있다. 1000개씩 **청크**로 나눠 여러 번 IN 하면 안전하다. 그래도 N 번이 아니라 N/1000 번이라 여전히 상수에 가깝다."
         },
         {
           "type": "p",
-          "text": "**DataLoader 패턴이 이걸 자동화한다.** 코드에선 `post.author` 를 그냥 접근하되, 뒤에서 같은 tick 의 요청들을 모아 **한 번의 IN** 으로 배치한다. GraphQL 서버가 N+1 을 이 방식으로 막는다 — 접근 코드는 자연스럽게 두고, 로딩만 묶는다."
+          "text": "**DataLoader 패턴이 이걸 자동화한다.** 코드에선 `post.author` 를 그냥 접근하되, 뒤에서 같은 tick 의 요청들을 모아 **한 번의 IN** 으로 배치한다. GraphQL 서버가 N+1 을 이 방식으로 막는다. 접근 코드는 자연스럽게 두고, 로딩만 묶는다."
         },
         {
           "type": "try",
-          "text": "조인이 부모 중복을 많이 만드는 1:N 화면을 골라, 개별 조회를 「부모 1 + 자식 IN 1」 2쿼리로 바꿔라. 전송량과 쿼리 수를 조인 방식과 비교하라."
+          "text": "조인이 부모 중복을 많이 만드는 1:N 화면을 골라, 개별 조회를 \"부모 1 + 자식 IN 1\" 2쿼리로 바꿔라. 전송량과 쿼리 수를 조인 방식과 비교하라."
         }
       ],
       "quiz": [
@@ -309,7 +309,7 @@
             "캐시"
           ],
           "answer": 1,
-          "why": "파라미터 한도·무거움."
+          "why": "파라미터 한도, 무거움."
         },
         {
           "q": "DataLoader 패턴의 특징은?",
@@ -326,12 +326,12 @@
     },
     {
       "id": "5",
-      "title": "조인의 함정 — 중복 폭증",
+      "title": "조인의 함정. 중복 폭증",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "N+1 을 조인으로 고쳤는데 **더 느려질** 수 있다. 여러 1:N 을 한 번에 조인하면 행이 **곱셈**으로 폭증한다 — 게시글 1개에 댓글 10, 태그 5 를 함께 조인하면 10 x 5 = **50행**이 나오고, 게시글 데이터가 50번 중복 전송된다. 카테시안 곱의 함정이다."
+          "text": "N+1 을 조인으로 고쳤는데 **더 느려질** 수 있다. 여러 1:N 을 한 번에 조인하면 행이 **곱셈**으로 폭증한다. 게시글 1개에 댓글 10, 태그 5 를 함께 조인하면 10 x 5 = **50행**이 나오고, 게시글 데이터가 50번 중복 전송된다. 카테시안 곱의 함정이다."
         },
         {
           "type": "demo",
@@ -362,11 +362,11 @@
         },
         {
           "type": "note",
-          "text": "**한 조인엔 1:N 을 하나만.** 부모에 여러 컬렉션(댓글·태그·좋아요)이 달렸다면, 하나만 조인으로 가져오고 나머지는 **각각 별도 IN 쿼리**로 가져온다. 「쿼리 수를 1로」에 집착하다 전송량을 곱으로 키우는 게 더 나쁘다 — 쿼리 2~3개가 정답일 때가 많다."
+          "text": "**한 조인엔 1:N 을 하나만.** 부모에 여러 컬렉션(댓글, 태그, 좋아요)이 달렸다면, 하나만 조인으로 가져오고 나머지는 **각각 별도 IN 쿼리**로 가져온다. \"쿼리 수를 1로\"에 집착하다 전송량을 곱으로 키우는 게 더 나쁘다. 쿼리 2~3개가 정답일 때가 많다."
         },
         {
           "type": "p",
-          "text": "**N+1 해결의 목표는 「쿼리 1개」가 아니라 「상수 개」다.** 200개든 2000개든 쿼리 수가 **항목 수에 안 늘면** 성공이다. 관계 3개면 쿼리 4개(부모 1 + 관계별 IN 3)라도 훌륭하다. 개수를 상수로 묶되, 전송량 폭증은 피하는 균형을 찾는다."
+          "text": "**N+1 해결의 목표는 \"쿼리 1개\"가 아니라 \"상수 개\"다.** 200개든 2000개든 쿼리 수가 **항목 수에 안 늘면** 성공이다. 관계 3개면 쿼리 4개(부모 1 + 관계별 IN 3)라도 훌륭하다. 개수를 상수로 묶되, 전송량 폭증은 피하는 균형을 찾는다."
         },
         {
           "type": "try",
@@ -389,7 +389,7 @@
           "q": "부모에 컬렉션이 여럿일 때 처방은?",
           "choices": [
             "모두 한 조인에",
-            "하나만 조인·나머지는 각각 IN",
+            "하나만 조인, 나머지는 각각 IN",
             "캐시",
             "개별 N+1"
           ],
@@ -411,12 +411,12 @@
     },
     {
       "id": "6",
-      "title": "잡아내는 장치 — 쿼리 수 게이트",
+      "title": "잡아내는 장치. 쿼리 수 게이트",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "N+1 은 **다시 스며든다** — 누가 루프에 관계 접근 한 줄을 추가하면 조용히 부활한다. 그래서 **요청당 쿼리 수를 세어 문턱을 넘으면 실패**시키는 자동 장치가 필요하다. 이것이 N+1 회귀를 막는 유일하게 확실한 방법이다."
+          "text": "N+1 은 **다시 스며든다**. 누가 루프에 관계 접근 한 줄을 추가하면 조용히 부활한다. 그래서 **요청당 쿼리 수를 세어 문턱을 넘으면 실패**시키는 자동 장치가 필요하다. 이것이 N+1 회귀를 막는 유일하게 확실한 방법이다."
         },
         {
           "type": "demo",
@@ -444,15 +444,15 @@
         },
         {
           "type": "note",
-          "text": "**상한은 항목 수와 무관한 상수로 잡는다.** `limit=200` 인데 쿼리 15개 이하를 요구하면, 목록이 커져도 상수여야 통과한다 — 즉 N+1 이면 반드시 실패한다. 상한을 목록 크기에 비례해 잡으면(예: N+5) N+1 을 잡지 못한다."
+          "text": "**상한은 항목 수와 무관한 상수로 잡는다.** `limit=200` 인데 쿼리 15개 이하를 요구하면, 목록이 커져도 상수여야 통과한다. 즉 N+1 이면 반드시 실패한다. 상한을 목록 크기에 비례해 잡으면(예: N+5) N+1 을 잡지 못한다."
         },
         {
           "type": "p",
-          "text": "**개발 중에도 요청당 쿼리 수를 찍어 두라.** 로컬에선 느리지 않아 N+1 이 안 보이지만, 콘솔에 「이 요청: 쿼리 47개」가 찍히면 즉시 알아챈다. 테스트 게이트(배포 차단)와 개발 로그(즉시 인지)를 함께 두는 것이 이상적이다."
+          "text": "**개발 중에도 요청당 쿼리 수를 찍어 두라.** 로컬에선 느리지 않아 N+1 이 안 보이지만, 콘솔에 \"이 요청: 쿼리 47개\"가 찍히면 즉시 알아챈다. 테스트 게이트(배포 차단)와 개발 로그(즉시 인지)를 함께 두는 것이 이상적이다."
         },
         {
           "type": "try",
-          "text": "핵심 목록 API 하나에 「쿼리 수 상한」 테스트를 붙여라. 일부러 루프에 관계 접근을 넣어 테스트가 빨강이 되는지 확인하라."
+          "text": "핵심 목록 API 하나에 \"쿼리 수 상한\" 테스트를 붙여라. 일부러 루프에 관계 접근을 넣어 테스트가 빨강이 되는지 확인하라."
         }
       ],
       "quiz": [
@@ -493,17 +493,17 @@
     },
     {
       "id": "7",
-      "title": "반대 방향의 함정 — 과다 fetch",
+      "title": "반대 방향의 함정. 과다 fetch",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "N+1 이 무서워 **반대로 과하게** 가져오는 함정도 있다. `SELECT *` 로 큰 텍스트·JSON 컬럼까지 매번 끌어오고, 관계를 전부 eager 로 걸어 한 요청에 수 MB 를 전송한다. 쿼리 수는 적은데 **각 쿼리가 무거워** 느려진다 — N+1 을 피하려다 반대 절벽으로 떨어진 것이다."
+          "text": "N+1 이 무서워 **반대로 과하게** 가져오는 함정도 있다. `SELECT *` 로 큰 텍스트, JSON 컬럼까지 매번 끌어오고, 관계를 전부 eager 로 걸어 한 요청에 수 MB 를 전송한다. 쿼리 수는 적은데 **각 쿼리가 무거워** 느려진다. N+1 을 피하려다 반대 절벽으로 떨어진 것이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "SELECT * · 전부 include 의 전송량",
+          "label": "SELECT *, 전부 include 의 전송량",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const cases = {\n    lean:  ['필요한 컬럼만 · 쓰는 관계만', 3, '목록에 id·title·author.name 만 -> 가볍다', '#4ade80'],\n    star:  ['SELECT * (본문·JSON 포함)', 60, '목록인데 각 행의 본문·메타 JSON 까지 전송', '#fbbf24'],\n    allinc:['모든 관계 eager include', 95, '댓글·태그·좋아요·이력 전부 -> 한 요청 수 MB', '#fca5a5'],\n  }[mode];\n  render('GET /posts  (' + cases[0] + ')',\n    '  전송량 = <span style=\\\"color:' + cases[3] + '\\\">' + cases[1] + ' (상대)</span>\\n\\n  ' + cases[2] +\n    '\\n\\n  쿼리 수는 적어도, 목록 화면에 안 쓰는 큰 데이터를 실어 나르면 느리다.',\n    '목록에 필요한 것만 골라라 — 쿼리 수와 전송량은 둘 다 봐야 한다.',\n    bars([['전송량', cases[1], cases[1] + '단위', cases[3]]]));\n</script>",
           "controls": [
@@ -531,15 +531,15 @@
         },
         {
           "type": "note",
-          "text": "**목록과 상세를 다르게 가져와라.** 목록 화면엔 카드에 보이는 몇 컬럼만(제목·작성자·썸네일), 상세 화면에서 본문·댓글·관계를 가져온다. 목록에 상세용 데이터를 실으면 「N+1 은 없는데 느린」 상태가 된다. 커버링 인덱스(db-index)와도 이어진다 — 필요한 컬럼만."
+          "text": "**목록과 상세를 다르게 가져와라.** 목록 화면엔 카드에 보이는 몇 컬럼만(제목, 작성자, 썸네일), 상세 화면에서 본문, 댓글, 관계를 가져온다. 목록에 상세용 데이터를 실으면 \"N+1 은 없는데 느린\" 상태가 된다. 커버링 인덱스(db-index)와도 이어진다. 필요한 컬럼만."
         },
         {
           "type": "p",
-          "text": "**두 절벽 사이의 능선을 걸어라.** 한쪽은 N+1(쿼리 폭발), 다른 쪽은 과다 fetch(전송량 폭발)다. 균형점은 「그 화면이 **실제로 쓰는** 데이터를, **상수 번의** 쿼리로」다. 쿼리 수와 전송량(payload 크기)을 **둘 다** 계측해야 어느 절벽인지 안다."
+          "text": "**두 절벽 사이의 능선을 걸어라.** 한쪽은 N+1(쿼리 폭발), 다른 쪽은 과다 fetch(전송량 폭발)다. 균형점은 \"그 화면이 **실제로 쓰는** 데이터를, **상수 번의** 쿼리로\"다. 쿼리 수와 전송량(payload 크기)을 **둘 다** 계측해야 어느 절벽인지 안다."
         },
         {
           "type": "try",
-          "text": "목록 API 의 응답 크기(payload bytes)를 재라. 한 화면에 수백 KB~MB 라면, 목록에 안 쓰는 컬럼·관계를 빼고 상세에서만 가져오도록 나눠라."
+          "text": "목록 API 의 응답 크기(payload bytes)를 재라. 한 화면에 수백 KB~MB 라면, 목록에 안 쓰는 컬럼, 관계를 빼고 상세에서만 가져오도록 나눠라."
         }
       ],
       "quiz": [
@@ -547,7 +547,7 @@
           "q": "N+1 을 피하려다 빠지는 반대 함정은?",
           "choices": [
             "인덱스 과다",
-            "과다 fetch(SELECT *·전부 include)로 전송량 폭발",
+            "과다 fetch(SELECT *, 전부 include)로 전송량 폭발",
             "락",
             "정렬"
           ],
@@ -558,7 +558,7 @@
           "q": "목록과 상세 화면의 올바른 데이터 전략은?",
           "choices": [
             "똑같이 전부",
-            "목록은 필요한 몇 컬럼, 상세에서 본문·관계",
+            "목록은 필요한 몇 컬럼, 상세에서 본문, 관계",
             "둘 다 SELECT *",
             "목록에 다 실음"
           ],
@@ -580,7 +580,7 @@
     },
     {
       "id": "8",
-      "title": "캐시는 나중 — 순서가 중요하다",
+      "title": "캐시는 나중. 순서가 중요하다",
       "minutes": 8,
       "blocks": [
         {
@@ -614,11 +614,11 @@
         },
         {
           "type": "note",
-          "text": "**캐시는 무효화라는 세금을 물린다.** 「컴퓨터 과학의 어려운 두 문제 중 하나가 캐시 무효화」라는 농담이 있다. N+1 을 구조로 고치면 무효화가 필요 없다 — 캐시는 그 뒤, **정말로 반복 조회가 많고 데이터가 잘 안 바뀌는** 곳에만 선택적으로 얹는다."
+          "text": "**캐시는 무효화라는 세금을 물린다.** \"컴퓨터 과학의 어려운 두 문제 중 하나가 캐시 무효화\"라는 농담이 있다. N+1 을 구조로 고치면 무효화가 필요 없다. 캐시는 그 뒤, **정말로 반복 조회가 많고 데이터가 잘 안 바뀌는** 곳에만 선택적으로 얹는다."
         },
         {
           "type": "p",
-          "text": "**「느리면 캐시」는 증상 추격이다(db-explain·황금의 정신과 같은 원리).** 왜 느린지(N+1·인덱스·과다 fetch)를 먼저 진단해 구조를 고치고, 캐시는 **그 뒤에도 남는** 반복 부하에만 쓴다. 원인을 덮는 캐시는 문제를 숨기고 무효화 버그로 되돌아온다."
+          "text": "**\"느리면 캐시\"는 증상 추격이다(db-explain, 황금의 정신과 같은 원리).** 왜 느린지(N+1, 인덱스, 과다 fetch)를 먼저 진단해 구조를 고치고, 캐시는 **그 뒤에도 남는** 반복 부하에만 쓴다. 원인을 덮는 캐시는 문제를 숨기고 무효화 버그로 되돌아온다."
         },
         {
           "type": "try",
@@ -649,10 +649,10 @@
           "why": "무효화 세금이 있으니 선택적으로."
         },
         {
-          "q": "「느리면 캐시」가 문제인 근본 이유는?",
+          "q": "\"느리면 캐시\"가 문제인 근본 이유는?",
           "choices": [
             "비용",
-            "원인 진단 없이 증상을 덮는 것 — 문제를 숨김",
+            "원인 진단 없이 증상을 덮는 것. 문제를 숨김",
             "느림",
             "복잡"
           ],
@@ -663,17 +663,17 @@
     },
     {
       "id": "9",
-      "title": "점검표 — N+1 다루기",
+      "title": "점검표. N+1 다루기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "목록·관계를 다루는 화면을 만들거나 느린 화면을 고칠 때 이 목록을 확인하라. 하나라도 「아니오」면 N+1 이 숨어 있거나 반대 절벽에 있을 수 있다."
+          "text": "목록, 관계를 다루는 화면을 만들거나 느린 화면을 고칠 때 이 목록을 확인하라. 하나라도 \"아니오\"면 N+1 이 숨어 있거나 반대 절벽에 있을 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
           "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .qlog { font:11px/1.5 ui-monospace, monospace; margin:8px 0; max-height:150px; overflow:auto; }\n  .qlog .q { padding:1px 6px; color:#64748b; } .qlog .q.hot { color:#fca5a5; } .qlog .q.one { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const qlog = (lines) => '<div class=\"qlog\">' + lines.map(([txt, cls]) =>\n    '<div class=\"q ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '요청당 쿼리 수를 센다(개발 로그 + 테스트 게이트)',\n    '쿼리 수가 항목 수에 비례하지 않는다(상수)',\n    '루프·map·템플릿 안에서 관계 접근을 안 한다',\n    '목록은 include/IN 으로 관계를 미리 가져온다',\n    '여러 1:N 을 한 조인에 몰지 않는다(중복 폭증)',\n    '목록엔 필요한 컬럼만(SELECT * 회피)',\n    '쿼리 수 상한을 상수로 건 회귀 테스트가 있다',\n    '캐시는 구조 수정 뒤 마지막에만 얹는다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 쿼리 수가 데이터에 안 눌린다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    'N+1 은 쿼리 수를 세는 순간 보인다. 세고, 상수로 묶고, 게이트로 지킨다.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
@@ -690,7 +690,7 @@
         },
         {
           "type": "note",
-          "text": "**핵심 한 줄: 세라.** N+1 은 요청당 쿼리 수를 세는 순간 드러난다. 세지 않으면 영영 안 보이고, 세면 즉시 보인다. 나머지 항목은 모두 「센 다음」의 처방이다 — 계측이 먼저다(황금의 정신)."
+          "text": "**핵심 한 줄: 세라.** N+1 은 요청당 쿼리 수를 세는 순간 드러난다. 세지 않으면 영영 안 보이고, 세면 즉시 보인다. 나머지 항목은 모두 \"센 다음\"의 처방이다. 계측이 먼저다(황금의 정신)."
         },
         {
           "type": "p",
@@ -698,7 +698,7 @@
         },
         {
           "type": "try",
-          "text": "가장 무거운 목록 화면에 이 8개 항목을 채점하라. 「쿼리 수를 센다」가 아니오라면, 그것부터 오늘 붙여라 — 나머지는 그 뒤에 보인다."
+          "text": "가장 무거운 목록 화면에 이 8개 항목을 채점하라. \"쿼리 수를 센다\"가 아니오라면, 그것부터 오늘 붙여라. 나머지는 그 뒤에 보인다."
         }
       ],
       "quiz": [
@@ -728,7 +728,7 @@
           "q": "N+1 개선이 트랙의 다른 주제에 주는 효과는?",
           "choices": [
             "없음",
-            "락 시간·커넥션 풀 회전 개선",
+            "락 시간, 커넥션 풀 회전 개선",
             "인덱스 무력화",
             "정렬 증가"
           ],

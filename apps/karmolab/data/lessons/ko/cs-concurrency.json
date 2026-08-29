@@ -3,17 +3,17 @@
   "parts": [
     {
       "id": "1",
-      "title": "경쟁 조건 — 「가끔」 틀리는 버그의 정체",
+      "title": "경쟁 조건. \"가끔\" 틀리는 버그의 정체",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`count = count + 1` 은 한 줄이지만 기계에게는 **세 단계**다 — 읽고, 더하고, 쓴다. 두 흐름이 이 사이에 끼어들면 한쪽의 더하기가 통째로 사라진다. 「가끔 숫자가 안 맞는」 버그의 정체가 이것이다."
+          "text": "`count = count + 1` 은 한 줄이지만 기계에게는 **세 단계**다. 읽고, 더하고, 쓴다. 두 흐름이 이 사이에 끼어들면 한쪽의 더하기가 통째로 사라진다. \"가끔 숫자가 안 맞는\" 버그의 정체가 이것이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "끼어드는 자리를 바꿔 보라 — 결과가 달라진다",
+          "label": "끼어드는 자리를 바꿔 보라. 결과가 달라진다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const cut = {{cut}};\n  /* A 와 B 가 각각 count 를 1씩 올린다. cut = A 가 몇 단계까지 간 뒤 B 가 끼어드나 */\n  const steps = [\n    ['A: 읽기  (tmp = count)', 'a'],\n    ['A: 더하기 (tmp = tmp + 1)', 'a'],\n    ['A: 쓰기  (count = tmp)', 'a'],\n  ];\n  const bSteps = [\n    ['B: 읽기  (tmp = count)', 'b'],\n    ['B: 더하기 (tmp = tmp + 1)', 'b'],\n    ['B: 쓰기  (count = tmp)', 'b'],\n  ];\n  const order = [...steps.slice(0, cut), ...bSteps, ...steps.slice(cut)];\n  let count = 0, ta = 0, tb = 0;\n  const log = [];\n  for (const [label, who] of order) {\n    if (label.includes('읽기')) { if (who === 'a') ta = count; else tb = count; }\n    else if (label.includes('더하기')) { if (who === 'a') ta++; else tb++; }\n    else { count = who === 'a' ? ta : tb; }\n    log.push('  ' + label.padEnd(28) + ' count=' + count);\n  }\n  ctx.clearRect(0, 0, 440, 180);\n  order.forEach(([label, who], i) => {\n    ctx.fillStyle = who === 'a' ? COLORS[0] : COLORS[1];\n    ctx.fillRect(14 + i * 68, who === 'a' ? 40 : 96, 62, 34);\n    ctx.fillStyle = '#0b1220'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';\n    ctx.fillText(label.slice(3, 6), 45 + i * 68, (who === 'a' ? 40 : 96) + 21);\n  });\n  ctx.textAlign = 'left'; ctx.fillStyle = COLORS[0]; ctx.font = '11px system-ui';\n  ctx.fillText('흐름 A', 14, 32); ctx.fillStyle = COLORS[1]; ctx.fillText('흐름 B', 14, 148);\n  app.innerHTML = '<div class=\"hint\">둘 다 +1 했으니 답은 2 여야 한다</div>';\n  show(log.join('\\n') + '\\n\\n최종 count = ' + count + (count === 2 ? '  (맞다)' : '  <- 하나가 사라졌다(lost update)') + '\\n\\n'\n     + (count === 2 ? 'A 가 쓰기까지 끝낸 뒤 B 가 시작했다 — 겹치지 않았다.'\n                    : 'B 가 A 의 「읽기~쓰기」 사이에 끼어들어, 둘이 같은 옛 값을 읽었다.'));\n</script>",
           "controls": [
@@ -30,11 +30,11 @@
         },
         {
           "type": "p",
-          "text": "이 버그가 무서운 이유는 **재현이 안 되기 때문**이다. 끼어드는 타이밍은 매번 다르고, 디버거를 붙이면 타이밍이 바뀌어 사라진다. 그래서 「내 컴퓨터에서는 되는데」의 대표 사례가 된다."
+          "text": "이 버그가 무서운 이유는 **재현이 안 되기 때문**이다. 끼어드는 타이밍은 매번 다르고, 디버거를 붙이면 타이밍이 바뀌어 사라진다. 그래서 \"내 컴퓨터에서는 되는데\"의 대표 사례가 된다."
         },
         {
           "type": "note",
-          "text": "경쟁 조건의 조건은 셋이다 — **여럿이 접근**, **최소 하나는 쓰기**, **순서를 정해 두지 않음**. 셋 중 하나만 없애면 사라진다. 그래서 해법도 세 갈래다: 접근을 줄이거나(불변), 쓰기를 한 곳으로 모으거나, 순서를 강제하거나(잠금)."
+          "text": "경쟁 조건의 조건은 셋이다. **여럿이 접근**, **최소 하나는 쓰기**, **순서를 정해 두지 않음**. 셋 중 하나만 없애면 사라진다. 그래서 해법도 세 갈래다: 접근을 줄이거나(불변), 쓰기를 한 곳으로 모으거나, 순서를 강제하거나(잠금)."
         },
         {
           "type": "code",
@@ -44,7 +44,7 @@
         },
         {
           "type": "try",
-          "text": "손잡이를 0~3 으로 전부 옮겨 보라. count 가 2가 되는 자리와 1이 되는 자리를 세어 보라 — 「가끔」이 실제로 몇 분의 몇인지 보인다."
+          "text": "손잡이를 0~3 으로 전부 옮겨 보라. count 가 2가 되는 자리와 1이 되는 자리를 세어 보라. \"가끔\"이 실제로 몇 분의 몇인지 보인다."
         }
       ],
       "quiz": [
@@ -52,7 +52,7 @@
           "q": "`count = count + 1` 이 위험한 이유는?",
           "choices": [
             "느려서",
-            "읽기·더하기·쓰기 세 단계라 사이에 끼어들 수 있어서",
+            "읽기, 더하기, 쓰기 세 단계라 사이에 끼어들 수 있어서",
             "타입 때문",
             "메모리 때문"
           ],
@@ -85,17 +85,17 @@
     },
     {
       "id": "2",
-      "title": "원자성과 잠금 — 순서를 강제하는 법",
+      "title": "원자성과 잠금. 순서를 강제하는 법",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "고치는 방법은 결국 **「이 구간은 한 번에 한 명만」**이다. 그 구간을 임계 구역이라 하고, 문을 잠그는 도구가 잠금(뮤텍스)이다. 또는 애초에 **쪼개질 수 없는 연산**(원자적 연산)을 쓴다."
+          "text": "고치는 방법은 결국 **\"이 구간은 한 번에 한 명만\"**이다. 그 구간을 임계 구역이라 하고, 문을 잠그는 도구가 잠금(뮤텍스)이다. 또는 애초에 **쪼개질 수 없는 연산**(원자적 연산)을 쓴다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "잠금을 켜고 꺼 보라 — 최종 값이 달라진다",
+          "label": "잠금을 켜고 꺼 보라. 최종 값이 달라진다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const LOCK = {{lock}}, ROUNDS = {{rounds}};\n  /* 두 흐름이 번갈아 돈다. 잠금이 없으면 읽기~쓰기 사이에 끼어든다 */\n  let count = 0, held = false;\n  const tmp = [0, 0];\n  let lost = 0;\n  for (let r = 0; r < ROUNDS; r++) {\n    for (const who of [0, 1]) {\n      if (LOCK) { count = count + 1; continue; }          /* 잠금 = 세 단계가 한 덩어리 */\n      tmp[who] = count;                                    /* 읽기 */\n      const other = 1 - who;\n      if (r % 2 === 0 && who === 0) { tmp[other] = count; count = tmp[other] + 1; lost++; }  /* 끼어들기 */\n      count = tmp[who] + 1;                                /* 쓰기 (옛 값 기준) */\n    }\n  }\n  const want = ROUNDS * 2;\n  ctx.clearRect(0, 0, 440, 180);\n  box(14, 30, 190, 54, LOCK ? '잠금 있음' : '잠금 없음', LOCK ? '한 번에 한 명만 들어간다' : '아무나 들어간다',\n      LOCK ? '#14351f' : '#3b1d1d', LOCK ? '#22c55e' : '#ef4444');\n  box(236, 30, 190, 54, '최종 count = ' + count, '기대값 ' + want, count === want ? '#14351f' : '#3b1d1d',\n      count === want ? '#22c55e' : '#ef4444');\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText(LOCK ? '임계 구역이 지켜졌다' : '끼어든 횟수 ' + lost + '회 — 그만큼 사라졌다', 14, 110);\n  app.innerHTML = '<div class=\"hint\">두 흐름이 각각 ' + ROUNDS + '번씩 +1</div>';\n  show('기대값 ' + want + ' · 실제 ' + count + (count === want ? '' : '  (' + (want - count) + '개 사라짐)') + '\\n\\n'\n     + (LOCK\n        ? '잠금은 정확하지만 값이 있다 — 기다리는 시간, 잊고 안 푸는 실수, 교착(3장).'\n        : '잠금이 없으면 빠르지만 값이 틀린다. 빠른 오답은 답이 아니다.'));\n</script>",
           "controls": [
@@ -118,7 +118,7 @@
         },
         {
           "type": "p",
-          "text": "잠금 대신 쓸 수 있는 것이 **원자적 연산**이다. 「읽고-고치고-쓰기」를 CPU 명령 하나로 해 주므로 끼어들 틈이 없다. 데이터베이스의 `UPDATE t SET n = n + 1`, 자바스크립트의 `Atomics.add`, SQL 의 `INSERT … ON CONFLICT` 가 같은 계열이다."
+          "text": "잠금 대신 쓸 수 있는 것이 **원자적 연산**이다. \"읽고-고치고-쓰기\"를 CPU 명령 하나로 해 주므로 끼어들 틈이 없다. 데이터베이스의 `UPDATE t SET n = n + 1`, 자바스크립트의 `Atomics.add`, SQL 의 `INSERT ON CONFLICT` 가 같은 계열이다."
         },
         {
           "type": "code",
@@ -128,7 +128,7 @@
         },
         {
           "type": "note",
-          "text": "잠금의 범위는 **좁을수록 좋다.** 넓게 잡으면 안전하지만 다들 줄을 서서 동시성이 사라진다(직렬화). 그리고 잠금을 쥔 채로 네트워크·디스크를 기다리지 마라 — 그동안 아무도 못 들어온다."
+          "text": "잠금의 범위는 **좁을수록 좋다.** 넓게 잡으면 안전하지만 다들 줄을 서서 동시성이 사라진다(직렬화). 그리고 잠금을 쥔 채로 네트워크, 디스크를 기다리지 마라. 그동안 아무도 못 들어온다."
         },
         {
           "type": "try",
@@ -173,17 +173,17 @@
     },
     {
       "id": "3",
-      "title": "교착 상태 — 서로 기다리다 멈춘다",
+      "title": "교착 상태. 서로 기다리다 멈춘다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "잠금을 쓰기 시작하면 새 문제가 생긴다. A 는 1번 자물쇠를 쥔 채 2번을 기다리고, B 는 2번을 쥔 채 1번을 기다린다 — 둘 다 영원히 멈춘다. 이것이 교착이다."
+          "text": "잠금을 쓰기 시작하면 새 문제가 생긴다. A 는 1번 자물쇠를 쥔 채 2번을 기다리고, B 는 2번을 쥔 채 1번을 기다린다. 둘 다 영원히 멈춘다. 이것이 교착이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "잠그는 순서를 맞춰 보라 — 교착이 사라진다",
+          "label": "잠그는 순서를 맞춰 보라. 교착이 사라진다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const same = {{same}};\n  ctx.clearRect(0, 0, 440, 180);\n  box(14, 26, 150, 46, '흐름 A', same ? '1번 -> 2번 순서' : '1번 -> 2번 순서', '#111c33', COLORS[0]);\n  box(276, 26, 150, 46, '흐름 B', same ? '1번 -> 2번 순서' : '2번 -> 1번 순서', '#111c33', COLORS[1]);\n  box(120, 108, 90, 42, '자물쇠 1', 'A 가 쥠', '#14351f', '#22c55e');\n  box(232, 108, 90, 42, '자물쇠 2', same ? '비어 있음' : 'B 가 쥠', same ? '#111c33' : '#14351f', same ? '#334155' : '#22c55e');\n  arrow(80, 72, 150, 108, COLORS[0]);\n  if (same) { arrow(340, 72, 300, 108, COLORS[1]); }\n  else {\n    arrow(350, 72, 300, 108, COLORS[1]);\n    arrow(206, 130, 232, 130, '#ef4444');\n    arrow(232, 142, 206, 142, '#ef4444');\n    ctx.fillStyle = '#ef4444'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';\n    ctx.fillText('서로 기다린다', 220, 172);\n  }\n  app.innerHTML = '';\n  show(same\n    ? '둘 다 「1번 먼저, 그다음 2번」 순서로 잠근다.\\n'\n      + '-> 늦게 온 쪽은 1번에서 기다리고, 이긴 쪽은 2번까지 얻어 일을 끝낸다. 교착이 없다.\\n\\n'\n      + '이것이 실무에서 가장 많이 쓰는 예방책: **잠금 순서를 전역으로 하나로 정한다.**'\n    : 'A: 1번을 쥐고 2번을 기다린다\\nB: 2번을 쥐고 1번을 기다린다\\n-> 둘 다 영원히 멈춘다.\\n\\n'\n      + '교착의 네 조건(코프만): 상호 배제 · 점유하며 대기 · 뺏을 수 없음 · 순환 대기.\\n'\n      + '넷 중 하나만 깨면 된다 — 보통 「순환 대기」를 깬다(순서 통일).');\n</script>",
           "controls": [
@@ -197,7 +197,7 @@
         },
         {
           "type": "note",
-          "text": "실무 처방 셋 — ① **순서 통일**(가장 흔하다) ② **시간 제한**(`tryLock(500ms)` — 못 얻으면 포기하고 재시도) ③ **한 번에 하나만**(중첩 잠금을 아예 금지). 데이터베이스는 교착을 감지해 한쪽을 죽이고 오류를 준다 — 그래서 **재시도 코드가 필요**하다."
+          "text": "실무 처방 셋. ① **순서 통일**(가장 흔하다) ② **시간 제한**(`tryLock(500ms)`. 못 얻으면 포기하고 재시도) ③ **한 번에 하나만**(중첩 잠금을 아예 금지). 데이터베이스는 교착을 감지해 한쪽을 죽이고 오류를 준다. 그래서 **재시도 코드가 필요**하다."
         },
         {
           "type": "code",
@@ -207,11 +207,11 @@
         },
         {
           "type": "p",
-          "text": "교착만큼 흔한 사촌이 **기아**(starvation)와 **라이브락**이다. 기아는 우선순위에 밀려 영영 차례가 안 오는 것, 라이브락은 서로 양보하다 아무도 못 가는 것 — 좁은 복도에서 계속 같은 쪽으로 비키는 두 사람이다."
+          "text": "교착만큼 흔한 사촌이 **기아**(starvation)와 **라이브락**이다. 기아는 우선순위에 밀려 영영 차례가 안 오는 것, 라이브락은 서로 양보하다 아무도 못 가는 것. 좁은 복도에서 계속 같은 쪽으로 비키는 두 사람이다."
         },
         {
           "type": "try",
-          "text": "손잡이를 켜고 끄며 그림을 비교하라. 그리고 내 코드에서 잠금·트랜잭션을 두 개 이상 잡는 자리가 있는지, 순서가 늘 같은지 확인하라."
+          "text": "손잡이를 켜고 끄며 그림을 비교하라. 그리고 내 코드에서 잠금, 트랜잭션을 두 개 이상 잡는 자리가 있는지, 순서가 늘 같은지 확인하라."
         }
       ],
       "quiz": [
@@ -230,7 +230,7 @@
           "q": "DB 가 교착을 감지하면?",
           "choices": [
             "둘 다 멈춘다",
-            "한쪽을 죽이고 오류를 준다 — 재시도해야 한다",
+            "한쪽을 죽이고 오류를 준다. 재시도해야 한다",
             "자동 재시도한다",
             "무시한다"
           ],
@@ -252,17 +252,17 @@
     },
     {
       "id": "4",
-      "title": "공유하지 않기 — 메시지로 주고받는 모델",
+      "title": "공유하지 않기. 메시지로 주고받는 모델",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "경쟁 조건의 뿌리는 **공유**다. 그러면 아예 공유하지 않으면 된다 — 각자 자기 자료만 만지고, 필요한 것은 **복사해서 보낸다.** 이것이 액터 모델이고, 웹 워커·Erlang·Go 채널이 같은 계열이다."
+          "text": "경쟁 조건의 뿌리는 **공유**다. 그러면 아예 공유하지 않으면 된다. 각자 자기 자료만 만지고, 필요한 것은 **복사해서 보낸다.** 이것이 액터 모델이고, 웹 워커, Erlang, Go 채널이 같은 계열이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "모델을 골라 보라 — 무엇을 얻고 무엇을 잃나",
+          "label": "모델을 골라 보라. 무엇을 얻고 무엇을 잃나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const m = '{{model}}';\n  const t = {\n    shared: ['공유 메모리 + 잠금', 'Java · C++ · SharedArrayBuffer',\n      ['복사 비용이 없다 — 큰 자료를 그대로 본다', '세밀하게 최적화할 수 있다'],\n      ['경쟁·교착·가시성 문제를 사람이 책임진다', '틀려도 조용해서 나중에 터진다']],\n    message: ['메시지 전달(액터)', '웹 워커 · Erlang · Go 채널',\n      ['공유가 없으니 경쟁 조건이 구조적으로 안 생긴다', '분산으로 확장하기 쉽다 — 같은 모양이라서'],\n      ['복사 비용이 든다(큰 자료면 큼)', '순서·중복·유실을 따로 다뤄야 한다']],\n    immutable: ['불변 자료', 'Clojure · 함수형 · React state',\n      ['읽기는 아무 데서나 안전하다 — 잠금이 필요 없다', '이전 상태가 남아 되돌리기·비교가 쉽다'],\n      ['바꿀 때마다 새로 만든다(메모리·GC 압박)', '구조 공유 같은 기법을 알아야 효율이 난다']],\n  }[m];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show('+ ' + t[2].join('\\n+ ') + '\\n\\n- ' + t[3].join('\\n- ') + '\\n\\n'\n     + '고르는 기준: 자료가 큰가(복사 비용) · 팀이 잠금을 감당할 수 있나 · 나중에 여러 기계로 나눌 것인가.');\n</script>",
           "controls": [
@@ -291,20 +291,20 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "웹 워커 — 복사해서 보낸다",
+          "label": "웹 워커. 복사해서 보낸다",
           "text": "const w = new Worker('heavy.js');\nw.postMessage({ rows });                 // 구조화 복제(복사)\nw.onmessage = (e) => render(e.data);\n\n// 큰 버퍼는 복사 대신 소유권을 넘긴다 — 보낸 쪽에서는 못 쓰게 된다\nw.postMessage(buf, [buf]);               // transferable\nbuf.byteLength;                          // 0 — 넘어갔다"
         },
         {
           "type": "note",
-          "text": "「공유하지 않기」의 웹 버전이 **소유권 이전**이다. `postMessage(buf, [buf])` 는 복사하지 않고 **넘겨 준다** — 보낸 쪽은 그 순간부터 못 쓴다. 그래서 두 쪽이 동시에 만질 일이 없다. Rust 의 소유권과 같은 생각이다."
+          "text": "\"공유하지 않기\"의 웹 버전이 **소유권 이전**이다. `postMessage(buf, [buf])` 는 복사하지 않고 **넘겨 준다**. 보낸 쪽은 그 순간부터 못 쓴다. 그래서 두 쪽이 동시에 만질 일이 없다. Rust 의 소유권과 같은 생각이다."
         },
         {
           "type": "p",
-          "text": "React 의 상태 규칙(「고치지 말고 새 값을 만들어라」)도 같은 계보다. 불변으로 두면 **읽기는 언제나 안전**하고, 바뀐 것은 새 값의 등장으로 알 수 있다. 앞 칸의 「상태 → 화면, 한 방향」이 여기서 다시 만난다."
+          "text": "React 의 상태 규칙(\"고치지 말고 새 값을 만들어라\")도 같은 계보다. 불변으로 두면 **읽기는 언제나 안전**하고, 바뀐 것은 새 값의 등장으로 알 수 있다. 앞 칸의 \"상태 → 화면, 한 방향\"이 여기서 다시 만난다."
         },
         {
           "type": "try",
-          "text": "무거운 계산 하나를 워커로 옮겨 보라. `postMessage` 로 보내는 자료가 크다면 transferable 로 바꿔 시간을 재라 — 복사 비용이 눈에 보인다."
+          "text": "무거운 계산 하나를 워커로 옮겨 보라. `postMessage` 로 보내는 자료가 크다면 transferable 로 바꿔 시간을 재라. 복사 비용이 눈에 보인다."
         }
       ],
       "quiz": [
@@ -345,12 +345,12 @@
     },
     {
       "id": "5",
-      "title": "한 줄기에서도 경쟁은 생긴다 — async 의 틈",
+      "title": "한 줄기에서도 경쟁은 생긴다. async 의 틈",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「자바스크립트는 싱글 스레드라 경쟁 조건이 없다」는 절반만 맞다. **`await` 마다 다른 일이 끼어들 수 있다.** 스레드는 하나지만 끼어들 자리는 있다 — 앞 칸의 이벤트 루프가 바로 그 자리다."
+          "text": "\"자바스크립트는 싱글 스레드라 경쟁 조건이 없다\"는 절반만 맞다. **`await` 마다 다른 일이 끼어들 수 있다.** 스레드는 하나지만 끼어들 자리는 있다. 앞 칸의 이벤트 루프가 바로 그 자리다."
         },
         {
           "type": "demo",
@@ -383,7 +383,7 @@
         },
         {
           "type": "p",
-          "text": "이 버그의 이름은 **오래된 응답**(stale response) 또는 경합이다. 검색 자동완성, 탭 전환, 무한 스크롤에서 매번 나온다. 증상은 「가끔 엉뚱한 결과가 뜬다」이고, 원인은 언제나 **응답 순서 ≠ 요청 순서**다."
+          "text": "이 버그의 이름은 **오래된 응답**(stale response) 또는 경합이다. 검색 자동완성, 탭 전환, 무한 스크롤에서 매번 나온다. 증상은 \"가끔 엉뚱한 결과가 뜬다\"이고, 원인은 언제나 **응답 순서 ≠ 요청 순서**다."
         },
         {
           "type": "code",
@@ -397,7 +397,7 @@
         },
         {
           "type": "try",
-          "text": "세 갈래를 번갈아 눌러 로그를 비교하라. 「없음」에서 화면에 남는 값이 무엇인지 확인하고, 내 검색창에 이 장치가 있는지 보라."
+          "text": "세 갈래를 번갈아 눌러 로그를 비교하라. \"없음\"에서 화면에 남는 값이 무엇인지 확인하고, 내 검색창에 이 장치가 있는지 보라."
         }
       ],
       "quiz": [
@@ -438,17 +438,17 @@
     },
     {
       "id": "6",
-      "title": "재시도 — 멱등성과 백오프",
+      "title": "재시도. 멱등성과 백오프",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "분산·동시 환경에서는 **실패가 정상**이다. 그래서 재시도가 필요하고, 재시도가 안전하려면 **같은 요청을 두 번 해도 결과가 같아야** 한다(멱등성). 결제·주문에서 이게 없으면 두 번 청구된다."
+          "text": "분산, 동시 환경에서는 **실패가 정상**이다. 그래서 재시도가 필요하고, 재시도가 안전하려면 **같은 요청을 두 번 해도 결과가 같아야** 한다(멱등성). 결제, 주문에서 이게 없으면 두 번 청구된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "전략을 골라 보라 — 서버가 어떻게 되나",
+          "label": "전략을 골라 보라. 서버가 어떻게 되나",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const how = '{{how}}', CLIENTS = {{clients}};\n  /* 실패한 요청을 다시 보낼 때, 언제 보내느냐로 서버가 살거나 죽는다 */\n  const buckets = new Array(20).fill(0);\n  for (let c = 0; c < CLIENTS; c++) {\n    let t = 0;\n    for (let a = 0; a < 4; a++) {\n      if (how === 'now') t += 1;\n      else if (how === 'fixed') t += 3;\n      else if (how === 'backoff') t += Math.pow(2, a);\n      else t += Math.pow(2, a) * (0.5 + Math.random());\n      const b = Math.min(19, Math.floor(t));\n      buckets[b]++;\n    }\n  }\n  ctx.clearRect(0, 0, 440, 180);\n  const max = Math.max(...buckets, 1);\n  buckets.forEach((v, i) => {\n    const h = (v / max) * 130;\n    ctx.fillStyle = v > CLIENTS * 0.8 ? '#ef4444' : v > CLIENTS * 0.4 ? '#f59e0b' : '#22c55e';\n    ctx.fillRect(14 + i * 21, 150 - h, 19, Math.max(2, h));\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('시간 ->  (막대 = 그 시각에 몰린 요청 수)', 14, 170);\n  app.innerHTML = '<div class=\"hint\">클라이언트 ' + CLIENTS + '개가 동시에 실패하고 각각 4번 재시도한다</div>';\n  show({ now: '즉시 재시도', fixed: '고정 간격(3초)', backoff: '지수 백오프(1·2·4·8)', jitter: '지수 백오프 + 흔들기' }[how] + '\\n'\n     + '가장 높은 막대: ' + Math.max(...buckets) + '개 요청이 한 시점에 몰림\\n\\n'\n     + { now: '전부 같은 순간에 다시 몰린다 — 죽어 가는 서버를 확실히 죽인다.',\n         fixed: '여전히 같은 시각에 겹친다. 간격만 벌렸을 뿐 동기화는 그대로.',\n         backoff: '간격이 벌어지지만 클라이언트끼리는 여전히 같은 시각에 몰린다(천둥 무리).',\n         jitter: '무작위로 흔들어 겹침을 깬다 — 이것이 실무 표준이다.' }[how]);\n</script>",
           "controls": [
@@ -495,7 +495,7 @@
         },
         {
           "type": "note",
-          "text": "**모든 실패를 재시도하면 안 된다.** 400(잘못된 요청)은 백 번 해도 400 이다. 재시도할 것은 일시적 실패 — 429, 502/503/504, 연결 끊김, 타임아웃. 그리고 재시도 횟수에는 반드시 상한을 두라."
+          "text": "**모든 실패를 재시도하면 안 된다.** 400(잘못된 요청)은 백 번 해도 400 이다. 재시도할 것은 일시적 실패. 429, 502/503/504, 연결 끊김, 타임아웃. 그리고 재시도 횟수에는 반드시 상한을 두라."
         },
         {
           "type": "p",
@@ -503,7 +503,7 @@
         },
         {
           "type": "try",
-          "text": "즉시 재시도와 백오프+흔들기를 번갈아 보며 가장 높은 막대 숫자를 비교하라. 그 차이가 「천둥 무리」를 막는 값이다."
+          "text": "즉시 재시도와 백오프+흔들기를 번갈아 보며 가장 높은 막대 숫자를 비교하라. 그 차이가 \"천둥 무리\"를 막는 값이다."
         }
       ],
       "quiz": [
@@ -549,12 +549,12 @@
       "blocks": [
         {
           "type": "p",
-          "text": "일을 넷으로 나누면 네 배 빨라질까? 아니다. **나눌 수 없는 부분**과 **합치는 비용**이 남는다. 앞 칸에서 본 암달의 법칙이 여기서 다시 나온다 — 이번엔 병렬화의 상한으로."
+          "text": "일을 넷으로 나누면 네 배 빨라질까? 아니다. **나눌 수 없는 부분**과 **합치는 비용**이 남는다. 앞 칸에서 본 암달의 법칙이 여기서 다시 나온다. 이번엔 병렬화의 상한으로."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "병렬 가능한 비율을 밀어 보라 — 상한이 보인다",
+          "label": "병렬 가능한 비율을 밀어 보라. 상한이 보인다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const P = {{p}} / 100, N = {{n}};\n  const speed = (n) => 1 / ((1 - P) + P / n);\n  ctx.clearRect(0, 0, 440, 180);\n  ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.beginPath();\n  for (let n = 1; n <= 16; n++) {\n    const x = 20 + ((n - 1) / 15) * 400;\n    const y = 160 - (speed(n) / 8) * 140;\n    n === 1 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);\n  }\n  ctx.stroke();\n  const limit = 1 / (1 - P);\n  const ly = 160 - Math.min(8, limit) / 8 * 140;\n  ctx.strokeStyle = '#ef4444'; ctx.setLineDash([4, 4]); ctx.beginPath();\n  ctx.moveTo(20, ly); ctx.lineTo(420, ly); ctx.stroke(); ctx.setLineDash([]);\n  ctx.fillStyle = '#ef4444'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('상한 ' + (isFinite(limit) ? limit.toFixed(1) + '배' : '무한'), 24, ly - 6);\n  ctx.fillStyle = '#94a3b8'; ctx.fillText('일꾼 1 -> 16', 20, 175);\n  app.innerHTML = '<div class=\"hint\">병렬로 나눌 수 있는 비율 ' + (P * 100).toFixed(0) + '%</div>';\n  show('일꾼 ' + N + '명일 때 속도  ' + speed(N).toFixed(2) + '배\\n'\n     + '아무리 늘려도 상한   ' + (isFinite(limit) ? limit.toFixed(2) + '배' : '없음') + '\\n\\n'\n     + '남은 ' + ((1 - P) * 100).toFixed(0) + '% 는 순서대로 해야 하는 부분이다 — 그것이 벽이 된다.\\n'\n     + '90% 를 병렬화해도 상한은 10배. 95% 라야 20배.\\n\\n'\n     + '실제로는 여기에 나누고 합치는 비용, 잠금 경합, 캐시 간섭까지 더해져\\n'\n     + '일꾼을 늘리다 보면 오히려 느려지는 지점이 온다.');\n</script>",
           "controls": [
@@ -580,7 +580,7 @@
         },
         {
           "type": "note",
-          "text": "그리고 **잠금 경합**은 일꾼이 늘수록 나빠진다. 같은 자물쇠를 넷이 다투면 셋은 기다린다 — 일꾼을 늘렸는데 처리량이 그대로이거나 줄어드는 전형적인 원인이다. 이럴 때는 자물쇠를 쪼개거나(샤딩) 공유를 없앤다(4장)."
+          "text": "그리고 **잠금 경합**은 일꾼이 늘수록 나빠진다. 같은 자물쇠를 넷이 다투면 셋은 기다린다. 일꾼을 늘렸는데 처리량이 그대로이거나 줄어드는 전형적인 원인이다. 이럴 때는 자물쇠를 쪼개거나(샤딩) 공유를 없앤다(4장)."
         },
         {
           "type": "code",
@@ -590,11 +590,11 @@
         },
         {
           "type": "p",
-          "text": "**정말 잘 나뉘는 일**도 있다. 서로 완전히 독립적인 작업(이미지 수천 장 썸네일, 요청 수만 개 처리)은 일꾼 수만큼 거의 그대로 빨라진다. 이런 것을 「민망할 정도로 병렬적」이라 부른다 — 이런 일부터 병렬화하라."
+          "text": "**정말 잘 나뉘는 일**도 있다. 서로 완전히 독립적인 작업(이미지 수천 장 썸네일, 요청 수만 개 처리)은 일꾼 수만큼 거의 그대로 빨라진다. 이런 것을 \"민망할 정도로 병렬적\"이라 부른다. 이런 일부터 병렬화하라."
         },
         {
           "type": "try",
-          "text": "비율을 90 → 95 → 99 로 올리며 상한 숫자를 적어라. 「나눌 수 없는 5%」가 얼마나 큰 벽인지 숫자로 남겨라."
+          "text": "비율을 90 → 95 → 99 로 올리며 상한 숫자를 적어라. \"나눌 수 없는 5%\"가 얼마나 큰 벽인지 숫자로 남겨라."
         }
       ],
       "quiz": [
@@ -629,13 +629,13 @@
             "잠금이 많은 일"
           ],
           "answer": 1,
-          "why": "「민망할 정도로 병렬적」인 것부터."
+          "why": "\"민망할 정도로 병렬적\"인 것부터."
         }
       ]
     },
     {
       "id": "8",
-      "title": "고치는 법 — 재현하고 좁히기",
+      "title": "고치는 법. 재현하고 좁히기",
       "minutes": 8,
       "blocks": [
         {
@@ -645,7 +645,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "흔들기 강도를 올려 보라 — 실패율이 드러난다",
+          "label": "흔들기 강도를 올려 보라. 실패율이 드러난다",
           "height": "330px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const JITTER = {{jitter}}, RUNS = 400;\n  /* 두 「흐름」의 단계 순서를 무작위로 섞어 lost update 가 얼마나 나는지 센다 */\n  let bad = 0;\n  for (let r = 0; r < RUNS; r++) {\n    let count = 0; const tmp = [0, 0];\n    const steps = [ [0,'r'], [0,'w'], [1,'r'], [1,'w'] ];\n    /* jitter 가 클수록 A 와 B 의 단계가 많이 섞인다 */\n    for (let i = steps.length - 1; i > 0; i--) {\n      if (Math.random() * 100 > JITTER) continue;\n      const j = Math.floor(Math.random() * (i + 1));\n      const t = steps[i]; steps[i] = steps[j]; steps[j] = t;\n    }\n    for (const [who, op] of steps) {\n      if (op === 'r') tmp[who] = count; else count = tmp[who] + 1;\n    }\n    if (count !== 2) bad++;\n  }\n  const rate = (bad / RUNS * 100).toFixed(1);\n  app.innerHTML = '<div class=\"hint\">같은 코드를 ' + RUNS + '번 돌린다 — 순서만 흔든다</div>';\n  show('흔들기 강도  ' + JITTER + '%\\n'\n     + '틀린 횟수    ' + bad + ' / ' + RUNS + '   (' + rate + '%)\\n\\n'\n     + (JITTER < 20\n        ? '거의 안 흔들면 거의 안 터진다 — 「내 컴퓨터에서는 됩니다」의 정체.'\n        : '흔들수록 실패율이 올라간다. 테스트에서 일부러 흔들어야 잡힌다.') + '\\n\\n'\n     + '실무 도구: 무작위 지연 주입 · 스트레스 반복(--repeat 1000) · ThreadSanitizer · Go -race\\n'\n     + '핵심은 하나 — 재현율을 올려야 고쳤는지 확인할 수 있다.');\n</script>",
           "controls": [
@@ -668,11 +668,11 @@
         },
         {
           "type": "note",
-          "text": "**로그에 순서를 남겨라.** 동시성 버그는 스택 트레이스만으로 못 읽는다. 「누가·언제·무엇을」이 있어야 인터리빙을 재구성할 수 있다 — 요청 id, 단계 이름, 단조 증가하는 시각(`performance.now`)."
+          "text": "**로그에 순서를 남겨라.** 동시성 버그는 스택 트레이스만으로 못 읽는다. \"누가, 언제, 무엇을\"이 있어야 인터리빙을 재구성할 수 있다. 요청 id, 단계 이름, 단조 증가하는 시각(`performance.now`)."
         },
         {
           "type": "p",
-          "text": "그리고 고치기 전에 **어떤 종류인지 이름 붙여라** — lost update(1장), 오래된 응답(5장), 교착(3장), 중복 처리(6장). 이름이 붙으면 처방은 이미 정해져 있다. 이름을 못 붙였다면 아직 원인을 모르는 것이다."
+          "text": "그리고 고치기 전에 **어떤 종류인지 이름 붙여라**. lost update(1장), 오래된 응답(5장), 교착(3장), 중복 처리(6장). 이름이 붙으면 처방은 이미 정해져 있다. 이름을 못 붙였다면 아직 원인을 모르는 것이다."
         },
         {
           "type": "try",
@@ -706,7 +706,7 @@
           "q": "동시성 버그 로그에 반드시 있어야 할 것은?",
           "choices": [
             "스택 트레이스만",
-            "요청 id·단계·시각(순서를 재구성할 정보)",
+            "요청 id, 단계, 시각(순서를 재구성할 정보)",
             "메모리 사용량",
             "CPU 사용량"
           ],
@@ -717,7 +717,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -733,22 +733,22 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
           "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['싱글 스레드면 경쟁 조건이 없다', false],\n    ['잠금 순서를 통일하면 교착을 막을 수 있다', true],\n    ['400 응답도 재시도해야 한다', false],\n    ['멱등하면 재시도가 안전하다', true],\n    ['일꾼을 두 배로 늘리면 두 배 빨라진다', false],\n    ['동시성 테스트는 한 번 통과하면 충분하다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 180);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 18 + i * 28;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 5장(await) 3장(교착) 6장(재시도) 7장(암달) 8장(재현)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 네트워크다. 여기까지가 「한 기계 안에서 여럿이 움직일 때」였다면, 다음은 **기계 사이**다 — 지연·유실·순서 뒤바뀜이 기본값인 세계이고, 이 칸의 도구가 그대로 필요해진다."
+          "text": "다음 칸은 네트워크다. 여기까지가 \"한 기계 안에서 여럿이 움직일 때\"였다면, 다음은 **기계 사이**다. 지연, 유실, 순서 뒤바뀜이 기본값인 세계이고, 이 칸의 도구가 그대로 필요해진다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 「두 번 눌러도 괜찮은가」를 검사해 보라. 저장·결제·전송 단추를 빠르게 두 번 눌러 어떻게 되는지 — 대부분 여기서 하나가 걸린다."
+          "text": "내 코드에서 \"두 번 눌러도 괜찮은가\"를 검사해 보라. 저장, 결제, 전송 단추를 빠르게 두 번 눌러 어떻게 되는지. 대부분 여기서 하나가 걸린다."
         }
       ],
       "quiz": [
         {
-          "q": "「화면에 옛 결과가 뜬다」의 이름은?",
+          "q": "\"화면에 옛 결과가 뜬다\"의 이름은?",
           "choices": [
             "교착",
             "오래된 응답",
