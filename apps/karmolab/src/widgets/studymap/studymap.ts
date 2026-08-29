@@ -150,18 +150,19 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     style.id = 'studymap-widget-styles';
     style.textContent = `
 /* 스터디 맵 — 읽는 화면이다. 글줄 길이와 여백이 첫 번째 기능. */
-.sm-wrap { display: flex; flex-direction: column; gap: 20px; }
+/* 사이는 8의 배수로만 벌린다. 전에는 6, 7, 10, 12, 14, 18, 22 가 섞여 있었다. */
+.sm-wrap { display: flex; flex-direction: column; gap: 16px; }
 
-.sm-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; justify-content: space-between; }
-.sm-lead { color: var(--text-secondary); font-size: var(--font-size-xs); line-height: 1.6; max-width: 62ch; margin: 6px 0 0; }
-.sm-title { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
-.sm-title .sm-emoji { font-size: 1.15em; }
+/* 머리는 한 줄이다. 갈래 이름, 진도, 찾기. 전에는 제목과 설명과 진도와 찾기가 네 줄로 쌓여
+   화면 위 180px 를 글자만으로 먹었고, 정작 할 일인 다음 한 칸은 접힌 자리 아래에 있었다. */
+.sm-head { display: flex; align-items: center; gap: 16px; min-height: 32px; }
+.sm-title { font-size: var(--font-size-md); font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.sm-title .sm-emoji { font-size: 1.1em; }
 
-.sm-meter { min-width: 200px; }
-.sm-meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: var(--font-size-2xs); color: var(--text-secondary); margin-bottom: 6px; }
-.sm-meter-top b { color: var(--accent); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
-.sm-bar { height: 6px; border-radius: 999px; background: var(--bg-tertiary); overflow: hidden; }
-.sm-meter-all { margin-top: 6px; text-align: right; font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.sm-meter { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; max-width: 240px; }
+.sm-meter-num { font-size: var(--font-size-2xs); color: var(--text-tertiary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sm-meter-num b { color: var(--accent); }
+.sm-bar { height: 4px; border-radius: 999px; background: var(--bg-tertiary); overflow: hidden; flex: 1; }
 .sm-found { font-size: var(--font-size-2xs); color: var(--text-secondary); margin-bottom: 14px; }
 .sm-stage-find::before { display: none; }
 .sm-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--secondary), var(--accent)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
@@ -210,7 +211,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px dashed var(--border-strong); color: var(--secondary); margin-left: 8px; vertical-align: middle; }
 
 /* 찾기는 평소엔 접혀 있다 — 지도를 훑는 게 기본 동작이고, 찾기는 목적이 생겼을 때만 쓴다. */
-.sm-findbar { display: flex; align-items: center; gap: 8px; }
+.sm-findbar { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .sm-find-btn { border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 5px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .sm-find-btn:hover { border-color: var(--accent); color: var(--accent); }
 .sm-findbar .sm-search { padding: 6px 12px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: var(--font-size-2xs); }
@@ -311,32 +312,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 
 
-/* 강의는 지도를 **덮는다** — 갈아 끼우지 않는다. 뒤가 비쳐야 「어디에서 열었는지」를 안 잃고,
-   닫았을 때 지도가 보던 그 자리 그대로다(전에는 카메라가 처음으로 돌아갔다).
-   흐림은 뒤 그림을 지우려는 것이 아니라 **글자를 읽히게** 하려는 것이다. */
-.sm-main { position: relative; }
-/* 덮개는 **지도를 지우지 않는다** — 옅게 흐려 뒤로 물릴 뿐이다. 글은 가운데 한 폭으로만 앉는다
-   (글줄이 길면 못 읽고, 화면을 다 덮으면 「지도에서 열었다」가 사라진다). */
-.sm-reader { position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
-  min-height: 60svh; padding: 0; border-radius: var(--radius-lg); cursor: zoom-out;
-  background: color-mix(in srgb, #000 34%, transparent);
-  backdrop-filter: blur(5px) saturate(.85); -webkit-backdrop-filter: blur(5px) saturate(.85);
-  animation: sm-reader-in .18s ease-out; }
-/* 글이 앉는 판 — **여기가 종이다.** 배경과 같은 물성이면 어디까지가 글인지 안 보인다:
-   판은 불투명에 가깝고 테두리가 또렷하며 그림자로 떠 있다. 배경은 눌러서 닫는 자리라
-   커서도 다르다(판 위에서는 원래 커서로 돌아온다). */
-.sm-reader > * { max-width: 780px; margin: 22px auto; padding: 22px 26px 32px; cursor: auto;
-  border: 1px solid var(--border-hover, var(--border)); border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--bg-primary) 97%, transparent);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, .5), 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
-@keyframes sm-reader-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-/* 흐림을 못 그리는 브라우저에서는 **불투명하게** — 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .sm-reader { background: color-mix(in srgb, #000 55%, transparent); }
-  .sm-reader > * { background: var(--bg-primary); }
-}
-@media (prefers-reduced-motion: reduce) { .sm-reader { animation: none; } }
-@media (max-width: 899px) { .sm-reader > * { margin: 10px 8px; padding: 14px 14px 24px; } }
 .tt-svg { display: block; max-width: none; }
 .tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
 .tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
@@ -467,7 +442,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   /* 강의를 읽는 동안은 지도 머리를 접는다 — 첫 화면에 본문이 오게. */
   /* 읽는 동안 접는 것은 머리와 찾기까지다. **옆줄 목록은 남긴다** — 강의가 지도를 덮고 있으니
    다음 칸으로 옮겨 다닐 손잡이가 필요하다(좁은 화면에서는 자리가 없어 그것도 접는다). */
-.sm-wrap.is-reading .sm-head, .sm-wrap.is-reading .sm-findbar { display: none; }
+/* 읽는 중에도 머리 한 줄 유지 — 자리를 안 먹고 갈래와 진도가 계속 보임.
+   옆줄 목록은 좁은 화면에서만 접기 */
 @media (max-width: 899px) { .sm-wrap.is-reading .sm-tracks { display: none; } }
 }
 `;
@@ -512,30 +488,22 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     container.innerHTML = `
       <div class="sm-wrap">
         <div class="sm-head">
-          <div>
-            <div class="sm-title"><span class="sm-emoji" data-sm="emoji"></span><span data-sm="title"></span></div>
-            <p class="sm-lead" data-sm="lead"></p>
-          </div>
+          <div class="sm-title"><span class="sm-emoji" data-sm="emoji"></span><span data-sm="title"></span></div>
           <div class="sm-meter">
-            <div class="sm-meter-top"><span>${esc(t('studymap.progress', undefined, '이 갈래 진도'))}</span><span><b data-sm="pdone">0</b> / <span data-sm="ptotal">0</span></span></div>
             <div class="sm-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-sm="pmeter"><i data-sm="pbar" style="width:0%"></i></div>
-            <div class="sm-meter-all" data-sm="pall"></div>
+            <span class="sm-meter-num"><b data-sm="pdone">0</b> / <span data-sm="ptotal">0</span></span>
           </div>
-        </div>
-        <div class="sm-findbar">
-          <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
-          <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
-                 placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
-                 aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
+          <div class="sm-findbar">
+            <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
+            <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
+                   placeholder="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}"
+                   aria-label="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}">
+          </div>
         </div>
         <div class="sm-body">
           <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
           <div class="sm-main" data-sm="stages" aria-live="polite">
-            <!-- 지도와 강의는 **형제**다. 전에는 같은 자리를 갈아 끼워서, 강의를 열면 지도가
-                 통째로 죽었다(캔버스를 다시 굽고 카메라가 처음으로 돌아갔다). 지도는 그대로 두고
-                 강의를 그 위에 덮는다 — 뒤가 비쳐야 「어디에서 열었는지」를 안 잃는다. -->
             <div class="sm-view" data-sm="view"></div>
-            <div class="sm-reader" data-sm="reader" hidden></div>
           </div>
         </div>
         <div class="sm-foot">
@@ -548,10 +516,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     const q = <T extends HTMLElement>(key: string): T => container.querySelector(`[data-sm="${key}"]`) as T;
     const elTracks = q<HTMLDivElement>('tracks');
     const elStages = q<HTMLDivElement>('stages');
-    /** 지도·목록이 사는 자리. 화면을 갈아엎는 것은 여기까지다. */
+    /** 목록과 강의가 번갈아 사는 자리. */
     const elView = q<HTMLDivElement>('view');
-    /** 강의가 사는 자리 — 지도 위에 덮인다. 닫아도 지도는 그대로 살아 있다. */
-    const elReader = q<HTMLDivElement>('reader');
     const elSearch = q<HTMLInputElement>('search');
 
     /* 선수 관계는 갈래를 넘는다 — id 하나로 어느 갈래의 어느 칸인지 바로 찾을 표를 만든다. */
@@ -812,12 +778,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       partOpen = wantPart ?? null;
       /* 읽는 중에는 머리(제목·진도·찾기)를 접는다 — 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
       container.querySelector('.sm-wrap')?.classList.add('is-reading');
-      elReader.hidden = false;
-      elReader.scrollTop = 0;
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
       /* 글자 한 줄 대신 **올 모양**을 미리 그린다 — 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
-      elReader.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
+      elView.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
         <div class="sm-skel-line is-crumb"></div>
         <div class="sm-skel-line is-title"></div>
         <div class="sm-skel-line is-meta"></div>
@@ -878,7 +842,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
       if (!lesson) {
         const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
-        elReader.innerHTML = `<div class="sm-lesson">${back}
+        elView.innerHTML = `<div class="sm-lesson">${back}
           <h3>${esc(node.title)}</h3>
           <div class="sm-lesson-meta">${esc(t('studymap.lesson.none', undefined, '이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.'))}</div>
           <p>${esc(node.why)}</p>
@@ -961,7 +925,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         )
         .join('');
 
-      elReader.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
+      elView.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
         <h3>${esc(node.title)}</h3>
         <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${parts.length > 1 ? ` · ${esc(t('studymap.lesson.partno', { n: pIdx + 1, all: parts.length }, '{n}/{all}장'))}` : ''}${part.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: part.minutes }, '약 {n}분'))}` : ''}</div>
         ${prereqBlock}
@@ -1066,8 +1030,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       lessonOpen = null;
       const wrapEl = container.querySelector('.sm-wrap');
       wrapEl?.classList.remove('is-reading');
-      elReader.hidden = true;
-      elReader.innerHTML = '';
       stopWatching?.();
       stopWatching = null;
       const tr = trackOf(current);
@@ -1085,7 +1047,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         badge.textContent = t('studymap.scope.badge', undefined, '내 것');
         titleEl.appendChild(badge);
       }
-      q<HTMLElement>('lead').textContent = tr.lead;
       q<HTMLElement>('pdone').textContent = String(d);
       q<HTMLElement>('ptotal').textContent = String(all.length);
       const pct = all.length ? Math.round((d / all.length) * 100) : 0;
@@ -1093,7 +1054,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       const meter = q<HTMLElement>('pmeter');
       meter.setAttribute('aria-valuenow', String(pct));
       meter.setAttribute('aria-label', t('studymap.progress', undefined, '이 갈래 진도'));
-      q<HTMLElement>('pall').textContent = t('studymap.all', { done: everyDone, total: everyNode.length }, '지도 전체 {done} / {total}');
 
       /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
       const next = all.find((n) => !done.has(n.id));
@@ -1207,14 +1167,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     elStages.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
 
-      /* 덮개의 **빈 자리**를 누르면 닫는다 — 덮어 놓은 물건의 기본 약속이다.
-         글판 안을 누른 것과 구별해야 하므로 과녁이 덮개 **자기 자신**일 때만 (자식이면 글이다).
-         닫는 길은 Esc·「지도로」와 같다 — 기록에 빈 칸이 안 남는다. */
-      if (target === elReader && lessonOpen) {
-        if ((history.state as { smLesson?: string } | null)?.smLesson) history.back();
-        else paint();
-        return;
-      }
 
       /* 장 이동 — 같은 칸 안이므로 기록도 한 칸 쌓는다(뒤로가기가 장 단위로 돌아간다). */
       const jump = target.closest('[data-part]') as HTMLElement | null;

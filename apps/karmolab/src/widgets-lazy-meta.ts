@@ -2530,6 +2530,9 @@ window.KARMOLAB_LAZY_META = [
     category: 'ref',
     get desc() { return t('widgets-desc.studymap.desc', undefined, "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)"); },
     layout: 'wide',
+    /* 제목 카드를 안 그린다. 위젯이 제 머리를 한 줄로 갖고 있어서, 껍데기 제목까지 얹으면
+       화면 위 180px 가 글자만으로 차고 본문이 접힌 화면 밖으로 밀린다. */
+    noHero: true,
     icon:
       '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' +
       '<path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
