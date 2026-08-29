@@ -128,6 +128,9 @@ for (const f of todo) {
             continue;
         }
         if (!thumb) {
+            /* 못 구운 것은 **어느 파일인지** 남긴다. 숫자만 있으면 다음에 또 못 고친다.
+               앞의 20개만. 같은 이유가 반복되면 그 스무 줄로 충분하다 */
+            if (failed < 20) console.log(`  못 구움: ${f.path} (${f.size} B)`);
             failed += 1;
             continue;
         }
@@ -135,7 +138,8 @@ for (const f of todo) {
         made += 1;
         touched += 1;
         if (made % 20 === 0) console.log(`구움 ${made} (디스크 ${fromDisk}, 클라우드 ${fromCloud}), 못 구움 ${failed}`);
-    } catch {
+    } catch (e) {
+        if (failed < 20) console.log(`  못 구움: ${f.path} — ${String(e && e.message ? e.message : e).slice(0, 80)}`);
         failed += 1;
     }
 }
