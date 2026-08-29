@@ -1,0 +1,59 @@
+name: Deploy Files Worker
+
+# `files.mascari4615.com` 을 받는 Cloudflare Worker 를 push 로 내보낸다.
+#
+# 왜 만들었나: 이 Worker 만 자동 배포에 안 물려 있어서 **대시보드에 손으로 붙여넣어야** 했다.
+# 그래서 고쳐 놓고도 실제로는 옛 판이 도는 일이 생겼다 — 2026-08-28 사고(빈 키를 픽스처로
+# 메우다 hdr 이 굳어 클라우드가 안 열림)의 고침이 그 상태로 며칠 묵을 뻔했다.
+# 고친 것이 곧 도는 것과 같아야 한다.
+#
+# 한 번만 사람 손: 저장소 Secret `CLOUDFLARE_API_TOKEN` (권한 = Workers Scripts 편집).
+# 없으면 이 잡은 **조용히 건너뛰지 않고 빨갛게 선다** — 안 도는 배포를 도는 줄 알면 안 된다.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/files/worker.mjs'
+      - 'apps/files/wrangler.toml'
+      - '.github/workflows/deploy-files-worker.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-files-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 배포 전에 이 Worker 의 시험을 돌린다 — 캐시 계약·빈 키 처리가 여기서 깨지면
+      # 사이트가 아니라 **클라우드 전체**가 안 열린다 (열쇠 재료가 그 안에 있다).
+      - name: Test files app
+        working-directory: apps/files
+        run: npm test
+
+      - name: Check token
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN 이 없다 — 저장소 Secret 에 넣어야 Worker 가 나간다."
+            echo "만드는 곳: Cloudflare 대시보드 → My Profile → API Tokens → Edit Cloudflare Workers"
+            exit 1
+          fi
+
+      - name: Deploy worker
+        working-directory: apps/files
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4 deploy
