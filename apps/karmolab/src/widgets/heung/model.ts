@@ -56,6 +56,49 @@ export const DRUM_PIECES: Record<number, string> = {
   36: '킥', 38: '스네어', 39: '클랩', 42: '닫은 하이햇', 45: '로우 톰', 46: '열린 하이햇', 48: '하이 톰', 49: '크래시'
 };
 
+/** 악기 프리셋. 파형과 소리 모양과 흔들기를 묶어 이름을 붙인 것 */
+export interface InstrumentPreset {
+  id: string;
+  name: string;
+  instrument: TrackInstrument;
+  envelope: StudioTrack['envelope'];
+  filter: StudioTrack['filter'];
+  detune: number;
+  fm: { ratio: number; amount: number };
+}
+
+const preset = (id: string, name: string, instrument: TrackInstrument, attack: number, decay: number, sustain: number, release: number, cutoff: number, filterEnvelope: number, detune: number, ratio = 1, amount = 0): InstrumentPreset =>
+  ({ id, name, instrument, envelope: { attack, decay, sustain, release }, filter: { cutoff, envelope: filterEnvelope }, detune, fm: { ratio, amount } });
+
+/** 고르면 바로 소리가 되는 열두 가지. 노브를 몰라도 시작할 수 있어야 한다 */
+export const INSTRUMENT_PRESETS: InstrumentPreset[] = [
+  preset('pluck', '플럭', 'triangle', 0.004, 0.22, 0.04, 0.14, 4200, 1.6, 0),
+  preset('lead', '신스 리드', 'sawtooth', 0.01, 0.18, 0.78, 0.14, 5200, 1.1, 12),
+  preset('bass', '베이스', 'square', 0.006, 0.16, 0.72, 0.1, 900, 0.8, 0),
+  preset('sub', '서브 베이스', 'sine', 0.012, 0.2, 0.9, 0.18, 420, 0.2, 0),
+  preset('pad', '패드', 'triangle', 0.42, 0.6, 0.85, 1.7, 2100, 0.5, 9),
+  preset('strings', '스트링', 'sawtooth', 0.26, 0.5, 0.9, 0.9, 3200, 0.6, 7),
+  preset('brass', '브라스', 'sawtooth', 0.07, 0.24, 0.82, 0.22, 2600, 1.8, 4, 1, 0.12),
+  preset('organ', '오르간', 'square', 0.006, 0.05, 1, 0.06, 6000, 0.2, 3),
+  preset('epiano', '일렉피아노', 'sine', 0.004, 0.85, 0.18, 0.4, 5200, 1.2, 0, 2, 0.42),
+  preset('bell', '벨', 'sine', 0.002, 1.35, 0.02, 0.9, 8000, 0.6, 0, 3.5, 0.62),
+  preset('chip', '8비트 리드', 'square', 0.001, 0.05, 1, 0.02, 18000, 0, 0),
+  preset('wobble', '흔들 베이스', 'sawtooth', 0.008, 0.3, 0.7, 0.14, 1400, 1.4, 0, 0.5, 0.55)
+];
+
+export function findPreset(id: string): InstrumentPreset | undefined {
+  return INSTRUMENT_PRESETS.find((item) => item.id === id);
+}
+
+/** 프리셋을 트랙에 붓는다. 클립과 믹서 값은 안 건드린다 */
+export function applyPreset(track: StudioTrack, item: InstrumentPreset): void {
+  track.instrument = item.instrument;
+  track.envelope = { ...item.envelope };
+  track.filter = { ...item.filter };
+  track.detune = item.detune;
+  track.fm = { ...item.fm };
+}
+
 /** 샘플러 재생 속도. 본디 음에서 반음 하나가 한 칸. 12칸이면 두 배 */
 export function samplePlaybackRate(pitch: number, rootPitch: number): number {
   return Math.pow(2, (pitch - rootPitch) / 12);
@@ -94,6 +137,10 @@ export interface StudioTrack {
   filter: { cutoff: number; envelope: number };
   /** 살짝 어긋난 두 번째 오실레이터로 두툼하게 (0 = 끔, 센트). */
   detune: number;
+  /** 소리를 흔드는 두 번째 오실레이터. 비율은 음높이의 몇 배, 세기는 0 이면 끔 */
+  fm: { ratio: number; amount: number };
+  /** 지금 고른 프리셋 이름표. 노브를 손대면 빈 값이 된다 */
+  presetId?: string;
   clips: StudioClip[];
   /** 시간에 따라 움직이는 값들. 점이 0개인 항목은 트랙의 고정값을 그대로 쓴다. */
   automation: Record<AutomationParam, AutomationPoint[]>;
@@ -179,6 +226,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
     instrument: kind === 'midi' ? 'sawtooth' : 'sine',
+    fm: { ratio: 1, amount: 0 },
     envelope: { attack: 0.01, decay: 0.12, sustain: 0.68, release: 0.12 },
     filter: { cutoff: 6800, envelope: 1.6 }, detune: 8,
     clips: [], automation: { volume: [], pan: [], reverb: [] }, folded: false, height: TRACK_HEIGHT.default
@@ -281,6 +329,9 @@ export function normalizeProject(input: unknown): StudioProject {
       const number = Number(value);
       return Number.isFinite(number) ? Math.max(low, Math.min(high, number)) : fallback;
     };
+    const fm = (source as { fm?: Partial<StudioTrack['fm']> }).fm;
+    track.fm = { ratio: clamp(fm?.ratio, 0.125, 12, 1), amount: clamp(fm?.amount, 0, 1, 0) };
+    if (typeof track.presetId !== 'string' || !findPreset(track.presetId)) track.presetId = '';
     if (typeof track.sampleAssetId !== 'string') delete track.sampleAssetId;
     track.sampleRootPitch = clamp(track.sampleRootPitch, 0, 127, 60);
     const envelope = (source as { envelope?: Partial<StudioTrack['envelope']> }).envelope;

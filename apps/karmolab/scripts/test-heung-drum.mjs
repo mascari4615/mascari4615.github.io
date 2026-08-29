@@ -18,7 +18,7 @@ vm.runInNewContext(`(function(exports,module){${load('src/widgets/heung/export.t
 const require_ = (name) => { if (name === './model') return model.exports; if (name === './export') return exportModule.exports; throw new Error(`모르는 모듈 ${name}`); };
 vm.runInNewContext(`(function(exports,module,require){${load('src/widgets/heung/audio-engine.ts')}\n})(module.exports,module,require);`,
   { module: engine, console, Math, Date, JSON, crypto, require: require_, window: {}, WeakMap });
-const { scheduleDrum, makeImpulse } = engine.exports;
+const { scheduleDrum, makeImpulse, scheduleMidi } = engine.exports;
 
 /** 가짜 오디오 장치. 무엇을 몇 개 만들었는지만 기록 */
 function fakeContext() {
@@ -90,4 +90,23 @@ assert.deepEqual(Array.from(firstImpulse.getChannelData(0).slice(0, 24)), Array.
 assert.notDeepEqual(Array.from(firstImpulse.getChannelData(0).slice(0, 24)), Array.from(firstImpulse.getChannelData(1).slice(0, 24)), '두 귀는 서로 다르다');
 assert.ok(firstImpulse.getChannelData(0).some((value) => value !== 0), '무음이 아니다');
 
-console.log('[test-heung-drum] ✓ 타악기 8종의 재료, 시각, 정지 목록, 잔향 재현');
+// 흔들기. 세기가 0 이 아니면 목소리마다 흔드는 오실레이터가 하나씩
+const { newTrack } = model.exports;
+const midiClip = { id: 'c', trackId: 't', kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'n', beat: 0, duration: 0.5, pitch: 60, velocity: 0.8 }] };
+const plainTrack = newTrack('midi', 1);
+const plainContext = fakeContext();
+scheduleMidi(plainContext, input, plainTrack, midiClip, 0, 4, 0, 0.5, []);
+const wobbleTrack = { ...newTrack('midi', 1), fm: { ratio: 2, amount: 0.5 } };
+const wobbleContext = fakeContext();
+scheduleMidi(wobbleContext, input, wobbleTrack, midiClip, 0, 4, 0, 0.5, []);
+assert.equal(wobbleContext.made.oscillators.length, plainContext.made.oscillators.length * 2, '목소리마다 흔드는 짝이 하나씩 붙는다');
+assert.ok(wobbleContext.made.gains.length > plainContext.made.gains.length, '흔드는 세기를 정하는 게인도 더 생긴다');
+
+// 정지 목록에도 적재. 안 담으면 멈춰도 계속 흔들림
+const wobbleSources = [];
+scheduleMidi(fakeContext(), input, wobbleTrack, midiClip, 0, 4, 0, 0.5, wobbleSources);
+const plainSources = [];
+scheduleMidi(fakeContext(), input, plainTrack, midiClip, 0, 4, 0, 0.5, plainSources);
+assert.ok(wobbleSources.length > plainSources.length, '흔드는 것도 정지 목록에');
+
+console.log('[test-heung-drum] ✓ 타악기 8종의 재료, 시각, 정지 목록, 잔향 재현, 흔들기');

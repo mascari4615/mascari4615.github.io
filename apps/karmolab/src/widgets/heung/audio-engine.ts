@@ -161,7 +161,7 @@ function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean,
   if(!track.automation.reverb.length)graph.reverbSend.gain.setTargetAtTime(track.reverb, at, 0.015);
 }
 
-function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0, assets?: Map<string, StudioAssetRuntime>): void {
+export function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0, assets?: Map<string, StudioAssetRuntime>): void {
   for (const note of clip.notes) {
     if (note.muted === true) continue;
     /* 스윙은 **소리 낼 때만** 민다. 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
@@ -213,11 +213,24 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     filter.frequency.exponentialRampToValueAtTime(base, at + Math.max(0.02, track.envelope.decay));
     /* 두툼하게. 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
     const voices: OscillatorNode[] = [];
+    const carrierHz = noteFrequency(note.pitch);
     for (const cents of track.detune > 0 ? [-track.detune, track.detune] : [0]) {
       const oscillator = context.createOscillator();
       oscillator.type = track.instrument;
-      oscillator.frequency.value = noteFrequency(note.pitch);
+      oscillator.frequency.value = carrierHz;
       oscillator.detune.value = cents;
+      /* 흔들기. 두 번째 오실레이터가 첫째의 **주파수**를 흔든다. 벨과 일렉피아노가 여기서 나온다 */
+      if (track.fm.amount > 0) {
+        const modulator = context.createOscillator();
+        modulator.type = 'sine';
+        modulator.frequency.value = carrierHz * track.fm.ratio;
+        const depth = context.createGain();
+        depth.gain.value = carrierHz * track.fm.amount * 4;
+        modulator.connect(depth).connect(oscillator.frequency);
+        modulator.start(at);
+        modulator.stop(end + Math.max(0.01, track.envelope.release) + 0.01);
+        sources.push(modulator);
+      }
       voices.push(oscillator);
     }
     const peak = Math.max(0.001, note.velocity * clip.gain * 0.18 / voices.length);

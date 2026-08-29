@@ -359,6 +359,20 @@ if(panSpot){await page.mouse.click(panSpot.x,panSpot.y);await page.waitForTimeou
 const panPointsAfter=await page.locator('[data-auto] [data-auto-point]').count();
 const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.automation?.volume||[]).length)+((track.automation?.pan||[]).length),0):-1;});
 /* 믹서 미터. 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
+/* 악기 프리셋. 고르면 파형과 소리 모양이 한 번에 바뀐다 */
+let presetCount=0, presetApplied='';
+{
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().click();
+  await page.waitForTimeout(120);
+  presetCount=await page.locator('[data-ins=preset] option').count();
+  if(presetCount>1){
+    await page.selectOption('[data-ins=preset]','bell');
+    /* 자동 저장 250ms 뒤. 그 전에 읽으면 안 붙은 것처럼 보인다 */
+    await page.waitForTimeout(600);
+    presetApplied=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');const track=raw?.tracks?.find((item)=>item.presetId);return track?`${track.presetId}:${track.instrument}:${track.fm?.amount}`:'';});
+  }
+}
+
 /* 타악기 한 벌. 악기를 드럼으로 바꾸면 같은 음이 북소리로 나가야 한다. 소리가 그래프에
    닿는지는 미터로 잰다. */
 let drumMeterMoved=false, drumOptionSeen=0;
@@ -502,6 +516,8 @@ if(guideAfterClose!==0)problems.push('처음 안내가 안 닫힌다');
 if(guideRemembered!=='1')problems.push('처음 안내를 닫은 걸 기억 안 한다');
 if(shapeAfterFieldUndo!==shapeBeforeFieldUndo)problems.push(`글자 칸 안 되돌리기가 곡을 되감았다 (${shapeBeforeFieldUndo}→${shapeAfterFieldUndo})`);
 if(pickedBeforeUndo>0&&pickedAfterUndo===0)problems.push('되돌린 뒤 고른 클립을 잃었다');
+if(presetCount<11)problems.push(`악기 프리셋이 모자란다 (${presetCount-1}가지)`);
+if(!presetApplied.startsWith('bell:sine:')||presetApplied.endsWith(':0'))problems.push(`프리셋이 트랙에 안 붙었다 (${presetApplied})`);
 if(!drumOptionSeen)problems.push('악기 고르기에 드럼 한 벌이 없다');
 else if(!drumMeterMoved)problems.push('드럼으로 바꾸니 소리가 안 난다');
 if(hintDraw&&hintSelect&&hintDraw===hintSelect)problems.push(`빈 줄 안내가 도구를 안 따라간다 (${hintDraw})`);

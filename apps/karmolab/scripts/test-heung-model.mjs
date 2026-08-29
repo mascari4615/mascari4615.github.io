@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor, samplePlaybackRate } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor, samplePlaybackRate, INSTRUMENT_PRESETS, findPreset, applyPreset } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -380,4 +380,31 @@ noAsset.tracks[0].sampleAssetId = 42;
 assert.equal(normalizeProject(noAsset).tracks[0].sampleAssetId, undefined, '숫자 id 는 버린다');
 assert.equal(normalizeProject(noAsset).tracks[0].sampleRootPitch, 60, '본디 음 기본값은 가운데 도');
 
-console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치, 샘플러');
+// 프리셋. 고르면 파형과 소리 모양과 흔들기가 한 번에
+assert.ok(INSTRUMENT_PRESETS.length >= 10, `열 가지 이상 (${INSTRUMENT_PRESETS.length})`);
+assert.equal(new Set(INSTRUMENT_PRESETS.map((item) => item.id)).size, INSTRUMENT_PRESETS.length, '이름표가 겹치지 않는다');
+const bell = findPreset('bell');
+assert.ok(bell && bell.fm.amount > 0, '벨은 흔들기로 만든다');
+assert.equal(findPreset('없는것'), undefined);
+const target = newProject().tracks[0];
+const before = { volume: target.volume, clips: target.clips.length };
+applyPreset(target, bell);
+assert.equal(target.instrument, bell.instrument);
+assert.equal(target.fm.amount, bell.fm.amount);
+assert.equal(target.envelope.decay, bell.envelope.decay);
+assert.equal(target.volume, before.volume, '믹서 값은 안 건드린다');
+assert.equal(target.clips.length, before.clips, '클립도 안 건드린다');
+applyPreset(target, findPreset('chip'));
+assert.equal(target.fm.amount, 0, '흔들기 없는 프리셋으로 바꾸면 꺼진다');
+
+// 흔들기 값도 저장 뒤 그대로
+const wildFmSource = JSON.parse(JSON.stringify(shaped));
+wildFmSource.tracks[0].fm = { ratio: 900, amount: 5 };
+const wildFm = normalizeProject(wildFmSource).tracks[0].fm;
+assert.equal(wildFm.ratio, 12, '비율 천장');
+assert.equal(wildFm.amount, 1, '세기 천장');
+const noFm = JSON.parse(JSON.stringify(shaped));
+delete noFm.tracks[0].fm;
+assert.deepEqual(JSON.stringify(normalizeProject(noFm).tracks[0].fm), JSON.stringify({ ratio: 1, amount: 0 }), '옛 저장본은 끈 상태로 열린다');
+
+console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치, 샘플러, 프리셋, 흔들기');
