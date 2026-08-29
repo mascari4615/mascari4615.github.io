@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Float32Array });
-const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds, smplChunk, beatToSample, loopSections } = module.exports;
+const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds, smplChunk, beatToSample, loopSections, seamDiscontinuity } = module.exports;
 
 const pcm = (channels) => ({
   numberOfChannels: channels.length,
@@ -120,4 +120,17 @@ assert.equal(whole.map((section) => section.name).join(), 'loop', '루프가 곡
 const tailOnly = loopSections({ from: 0, to: 16 }, { from: 0, to: 8 });
 assert.equal(tailOnly.map((section) => section.name).join(), 'loop,outro');
 
-console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간');
+// 이음매. 끝 표본과 첫 표본이 벌어질수록 커지는 딱 소리
+const fakeBuffer = (channels) => ({ numberOfChannels: channels.length, length: channels[0].length, getChannelData: (index) => channels[index] });
+const seamless = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0])]));
+assert.equal(seamless.jump, 0, '끝과 시작이 같으면 어긋남 0');
+assert.equal(seamless.dbfs, -Infinity, '어긋남이 없으면 잴 값이 없다');
+const rough = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 1])]));
+assert.ok(Math.abs(rough.jump - 1) < 1e-6);
+assert.ok(Math.abs(rough.dbfs - 0) < 1e-6, '한 칸 다 벌어지면 0 dBFS');
+const quiet = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0.001])]));
+assert.ok(quiet.dbfs < -50 && quiet.dbfs > -70, '작은 어긋남은 -60 dBFS 근처');
+const twoEars = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0, 0, 0.5]), Float32Array.from([0, 0, 0, 0])]));
+assert.ok(Math.abs(twoEars.jump - 0.5) < 1e-6, '두 귀 중 더 벌어진 쪽으로 잰다');
+
+console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간, 이음매');

@@ -101,6 +101,23 @@ export function loopSections(song: BeatRange, loop: BeatRange): { name: 'intro' 
   return sections;
 }
 
+/**
+ * 루프 이음매의 어긋남. 끝 표본과 첫 표본이 얼마나 벌어져 있나.
+ *
+ * 두 값이 멀수록 이어 붙일 때 딱 소리. 귀보다 숫자가 먼저.
+ * 기준은 -60 dBFS 아래면 안 들림, -20 dBFS 위면 대개 들림.
+ */
+export function seamDiscontinuity(buffer: PcmLike): { jump: number; dbfs: number } {
+  let jump = 0;
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const data = buffer.getChannelData(channel);
+    if (data.length < 2) continue;
+    const gap = Math.abs(data[data.length - 1] - data[0]);
+    if (gap > jump) jump = gap;
+  }
+  return { jump, dbfs: jump > 0 ? 20 * Math.log10(jump) : -Infinity };
+}
+
 /** 여러 벌을 한 배수로 맞춘다. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
 export function commonNormalizeGain(peaks: number[], targetDb = -1): number {
   const loudest = peaks.reduce((high, peak) => (peak > high ? peak : high), 0);

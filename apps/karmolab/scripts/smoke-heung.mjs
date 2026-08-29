@@ -423,6 +423,19 @@ const wavDownload=page.waitForEvent('download');await page.click('[data-export-a
 const exportStatus=await page.locator('[data-role=status]').textContent();
 await page.waitForTimeout(200);
 const exportClosed=await page.locator('.hu-export').count()===0;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
+/* 이음매 듣기. 재고 나서 그 자리부터 반복 재생이 시작돼야 한다 */
+await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
+await page.click('[data-export-act=seam]');
+let seamNote='';
+for(let tick=0;tick<40;tick++){
+  await page.waitForTimeout(120);
+  seamNote=(await page.locator('[data-role=status]').textContent())||'';
+  if(seamNote.includes('이음매 차이'))break;
+}
+const seamClosed=await page.locator('.hu-export').count()===0;
+const seamPlaying=await page.locator('[data-act=play].is-on, [data-act=play]').first().isVisible();
+await page.click('[data-act=stop]');await page.waitForTimeout(150);
+
 /* 게임용 루프 지점. 켜면 WAV 안에 smpl 덩어리가 들어가야 한다 */
 await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
 await page.check('[data-export=loopPoints]');
@@ -601,6 +614,9 @@ if(!/peak .* dBFS/.test(exportStatus||''))problems.push(`내보내기 결과에 
 if(wav.readUInt16LE(22)!==1)problems.push(`모노로 골랐는데 채널이 ${wav.readUInt16LE(22)}개다`);
 if(wav.readUInt32LE(24)!==22050)problems.push(`표본율 선택이 안 먹었다 (${wav.readUInt32LE(24)})`);
 if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'||wav.length<10000)problems.push(`WAV 출력 실패 (${wav.length} bytes)`);
+if(!seamNote.includes('이음매 차이'))problems.push(`이음매 수치가 안 나온다 (${seamNote.slice(0,40)})`);
+if(!seamClosed)problems.push('이음매를 듣는데 내보내기 창이 안 닫혔다');
+if(!seamPlaying)problems.push('이음매 듣기가 재생을 안 켰다');
 if(!loopWav)problems.push('루프 지점을 켠 WAV 를 못 받았다');
 else{
   const smplAt=loopWav.indexOf('smpl');

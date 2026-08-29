@@ -14,7 +14,7 @@ import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
-import { analysePeak, applyGain, beatToSample, clampBuffer, commonNormalizeGain, exportRange, loopSections, normalizeGain, smplChunk, stemFileName, uniqueNames, type ExportRangeMode } from './export';
+import { analysePeak, applyGain, beatToSample, clampBuffer, commonNormalizeGain, exportRange, loopSections, normalizeGain, seamDiscontinuity, smplChunk, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 import { decodeMidi, encodeMidi } from './midi-file';
 
@@ -202,7 +202,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
         <label>루프 지점 넣기 (게임용) <input type="checkbox" data-export="loopPoints"${exportOptions.loopPoints?' checked':''}></label>
         <label>인트로, 루프, 아웃트로 3파일 (ZIP) <input type="checkbox" data-export="sections"${exportOptions.sections?' checked':''}></label>
         <p class="hu-export-note" data-role="export-note">끄면 1 을 넘는 표본은 깎인다. 켜면 가장 큰 소리를 -1 dBFS 에 맞춘다.</p>
-        <div class="hu-export-actions"><button class="hu-btn" data-export-act="cancel">취소</button><button class="hu-btn" data-export-act="go">내보내기</button></div>
+        <div class="hu-export-actions"><button class="hu-btn" data-export-act="cancel">취소</button><button class="hu-btn" data-export-act="seam" title="루프 끝과 시작이 얼마나 벌어졌는지 재고, 그 자리만 반복해 들려줍니다">이음매 듣기</button><button class="hu-btn" data-export-act="go">내보내기</button></div>
       </div>`;
       $<HTMLElement>('[data-role=backdrop]').classList.add('is-open');
       host.querySelector<HTMLElement>('[data-export-act=go]')?.focus();
@@ -268,6 +268,25 @@ import { decodeMidi, encodeMidi } from './midi-file';
       download(blob,`${project.name||'흥'}-sections.zip`);
       status(`${sections.map((section)=>section.name).join(', ')} ${sections.length}파일, ${(blob.size/1048576).toFixed(1)} MB`);
       closeExport();
+    }
+    /** 루프 이음매. 끝과 시작이 얼마나 벌어졌는지 재고, 그 자리만 반복해 들려준다 */
+    async function runSeamCheck(): Promise<void> {
+      const note=$<HTMLElement>('[data-role=export-note]');
+      const from=project.loopStart, to=project.loopEnd;
+      if(to-from<=0){status('루프 구간이 없다');if(note)note.textContent='구간 반복을 먼저 잡아라';return;}
+      if(note)note.textContent='이음매 재는 중...';
+      const rendered=await renderProject(project,assets,from,to,exportOptions.sampleRate,1);
+      const seam=seamDiscontinuity(rendered);
+      const verdict=seam.dbfs<-60?'안 들린다':seam.dbfs<-20?'희미하게 들릴 수 있다':'딱 소리가 들린다';
+      const text=`이음매 차이 ${seam.dbfs===-Infinity?'없음':`${seam.dbfs.toFixed(1)} dBFS`}, ${verdict}`;
+      if(note)note.textContent=text;
+      status(text);
+      /* 재는 데서 끝내지 않는다. 그 자리만 반복해 들려줘야 귀로 확인이 된다 */
+      closeExport();
+      const runUp=Math.min(2,Math.max(0.5,(to-from)/4));
+      project.loop=true;renderToggles();
+      playhead=Math.max(from,to-runUp);
+      play();
     }
     async function runExport(): Promise<void> {
       stop();
@@ -650,7 +669,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       gestures.begin({capture:ruler,pointerId:event.pointerId,move:(moveEvent)=>{if(Math.abs(moveEvent.clientX-event.clientX)<4)return;dragged=true;editorRangeStart=Math.min(anchor,at(moveEvent));editorRangeEnd=Math.max(anchor,at(moveEvent));let range=root.querySelector<HTMLElement>('[data-time-range]');if(!range){range=document.createElement('div');range.className='hu-time-range';range.dataset.timeRange='';ruler.parentElement?.append(range);}range.style.left=`${PIANO_GEOMETRY.keyWidth+editorRangeStart*pianoPxPerBeat}px`;range.style.width=`${(editorRangeEnd-editorRangeStart)*pianoPxPerBeat}px`;},commit:()=>{if(!dragged)return;suppressPianoRulerClick=true;setTimeout(()=>{suppressPianoRulerClick=false;},0);renderEditor();status(`시간 범위 ${beatText(editorRangeStart||0)} → ${beatText(editorRangeEnd||0)}`);},cancel:()=>{editorRangeStart=beforeStart;editorRangeEnd=beforeEnd;renderEditor();}});
     },true);
 
-    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(raw.closest('[data-help-act]')){closeHelp();return;}if(raw.closest('[data-act=help]')){openHelp();return;}if(raw.closest('[data-act=guide-close]')){$<HTMLElement>('[data-role=guide]').hidden=true;try{localStorage.setItem(GUIDE_KEY,'1');}catch(_){/* 못 적어도 이번엔 닫힌다 */}return;}const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='rename'){const chosen=markedClips();if(chosen.length){const next=prompt('클립 이름',chosen[0].clip.name);if(next!==null){const name=next.trim()||chosen[0].clip.name;for(const item of chosen)item.clip.name=name;saveSoon('clip-name');renderAll();status(chosen.length>1?`${chosen.length}개 이름 → ${name}`:`이름 → ${name}`);}}}
+    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(raw.closest('[data-help-act]')){closeHelp();return;}if(raw.closest('[data-act=help]')){openHelp();return;}if(raw.closest('[data-act=guide-close]')){$<HTMLElement>('[data-role=guide]').hidden=true;try{localStorage.setItem(GUIDE_KEY,'1');}catch(_){/* 못 적어도 이번엔 닫힌다 */}return;}const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else if(exportAct==='seam')void runSeamCheck();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='rename'){const chosen=markedClips();if(chosen.length){const next=prompt('클립 이름',chosen[0].clip.name);if(next!==null){const name=next.trim()||chosen[0].clip.name;for(const item of chosen)item.clip.name=name;saveSoon('clip-name');renderAll();status(chosen.length>1?`${chosen.length}개 이름 → ${name}`:`이름 → ${name}`);}}}
       else if(contextAct==='mute'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.mute;for(const item of chosen)item.clip.mute=next;engine.updateProject(project);saveSoon('clip-mute');renderAll();status(next?`${chosen.length}개 소리 끔`:`${chosen.length}개 소리 켬`);}}
       else if(contextAct==='lock'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.locked;for(const item of chosen)item.clip.locked=next;saveSoon('clip-lock');renderAll();status(next?`${chosen.length}개 잠금`:`${chosen.length}개 잠금 풀기`);}}
       else if(contextAct==='color'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=nextClipColor(focus.color);for(const item of chosen)item.clip.color=next;saveSoon('clip-color');renderAll();status(next?`색 ${next}`:'트랙 색으로');}}
