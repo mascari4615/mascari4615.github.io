@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { previewKind } from '../src/vault.mjs';
-import { mountGallery, worthGallery } from '../src/gallery.mjs';
+import { mountGallery, worthGallery, CELL_SIZES, cellSize } from '../src/gallery.mjs';
 
 test('그림이 하나도 없으면 액자 보기를 권하지 않는다', () => {
     const kind = previewKind;
@@ -108,4 +108,14 @@ test('그림이 아닌 칸은 받지 않는다', async () => {
     });
     await new Promise((r) => setTimeout(r, 60));
     assert.equal(called, 0);
+});
+
+test('칸 크기는 넷. 모르는 값은 보통으로', () => {
+    assert.equal(CELL_SIZES.length, 4);
+    assert.equal(cellSize('lg').px, 220);
+    assert.equal(cellSize(null).id, 'md');
+    assert.equal(cellSize('없는값').id, 'md');
+    /* 작은 것부터 큰 것 순. 버튼이 그 차례로 선다 */
+    const px = CELL_SIZES.map((c) => c.px);
+    assert.deepEqual(px, [...px].sort((a, b) => a - b));
 });

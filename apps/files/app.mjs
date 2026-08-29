@@ -9,7 +9,7 @@ import {
   unlockVault,
 } from './src/vault.mjs';
 import { pickVaultBase } from './src/vault-base.mjs';
-import { mountGallery, worthGallery } from './src/gallery.mjs';
+import { CELL_SIZES, cellSize, mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 import { KINDS, SORTS, activeSummary, arrange, arrangeFolders } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
@@ -35,6 +35,7 @@ let vaultListing = null;
 /* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다. 칸마다 blob 을 들고 있다. */
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
+const CELL_KEY = 'files.vault.cell';
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
 let siblings = [];
 /** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
@@ -502,11 +503,28 @@ function siftBar(total, shown) {
     '</div>';
 }
 
-/** 보기 전환 버튼. 그림이 있는 폴더에서만 뜻이 있음 */
+/** 액자 칸 크기. 고른 값은 한 자리에 적어 폴더를 옮겨도 유지된다 */
+function cellMode() {
+  try {
+    return cellSize(sessionStorage.getItem(CELL_KEY));
+  } catch {
+    return cellSize(null);
+  }
+}
+
+/** 보기 전환 버튼. 그림이 있는 폴더에서만 뜻이 있음. 액자일 때는 칸 크기도 */
 function viewSwitch(mode) {
+  const cell = cellMode();
+  const sizes = mode === 'grid'
+    ? '<span class="cellsw">' + CELL_SIZES.map(
+        (c) => '<button type="button" data-cell="' + c.id + '"' +
+          (c.id === cell.id ? ' class="on"' : '') + '>' + c.label + '</button>',
+      ).join('') + '</span>'
+    : '';
   return '<div class="viewsw">' +
     '<button type="button" data-view="list"' + (mode === 'list' ? ' class="on"' : '') + '>목록</button>' +
     '<button type="button" data-view="grid"' + (mode === 'grid' ? ' class="on"' : '') + '>액자</button>' +
+    sizes +
     '</div>';
 }
 
@@ -542,7 +560,7 @@ function renderVaultDir(dir) {
           folders.map((f) => '<a href="' + f.href + '">' + icon('folder') + esc(f.name) + '</a>').join('') +
           '</div>'
         : '') +
-      '<div class="grid" id="vgrid"></div>';
+      '<div class="grid" id="vgrid" style="--cell:' + cellMode().px + 'px"></div>';
     const host = document.getElementById('vgrid');
     if (shownFiles.length) {
       gallery = mountGallery({
@@ -607,9 +625,18 @@ function renderVaultDir(dir) {
   for (const b of box.querySelectorAll('.viewsw button')) {
     b.addEventListener('click', () => {
       try {
-        sessionStorage.setItem(VIEW_KEY, b.dataset.view);
+        if (b.dataset.cell) sessionStorage.setItem(CELL_KEY, b.dataset.cell);
+        else sessionStorage.setItem(VIEW_KEY, b.dataset.view);
       } catch {
         /* 못 적어도 이번 화면은 바꾼다 */
+      }
+      /* 칸 크기는 CSS 변수 한 줄이라 다시 안 그린다. 다시 그리면 받아 둔 그림을
+         전부 버리고 처음부터 받는다 (2026-08-29) */
+      if (b.dataset.cell) {
+        const host = document.getElementById('vgrid');
+        if (host) host.style.setProperty('--cell', cellSize(b.dataset.cell).px + 'px');
+        for (const o of box.querySelectorAll('.cellsw button')) o.classList.toggle('on', o === b);
+        return;
       }
       renderVaultDir(dir);
     });

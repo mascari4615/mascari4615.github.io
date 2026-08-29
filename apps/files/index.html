@@ -136,12 +136,14 @@ body {
 
 /* 액자 보기. 썸네일이 없어 원본을 받아 그림 (gallery.mjs).
    칸은 자리를 먼저 잡고 그림이 늦게 옴. 자리 안 잡으면 그림 올 때마다 화면이 튐 */
-.viewsw { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.viewsw { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
 .viewsw button {
   background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
   color: var(--mute); font-size: .8rem; font-weight: 600; padding: 4px 10px;
 }
 .viewsw button.on { color: var(--ink); border-color: var(--line); background: var(--surface); }
+/* 칸 크기. 액자일 때만 뜬다. 목록 옆에 붙으면 무엇에 걸리는 값인지 안 헷갈린다 */
+.cellsw { display: flex; gap: 4px; margin-left: auto; }
 .folderbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
 .folderbar a {
   display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--ink);
@@ -150,7 +152,7 @@ body {
 .folderbar a:hover { border-color: var(--accent); color: var(--accent); }
 .folderbar .icon { width: 16px; height: 16px; }
 .grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cell, 146px), 1fr));
   gap: 10px; padding: 12px;
 }
 .frame {

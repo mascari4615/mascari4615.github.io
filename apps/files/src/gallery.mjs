@@ -16,6 +16,22 @@
 
 const LIMIT = 4;
 
+/**
+ * 칸 크기 넷. 탐색기의 아주 큰, 큰, 보통, 작은 아이콘과 같은 결.
+ * 값은 한 칸의 최소 너비(px). 실제 칸 수는 창 너비가 정한다.
+ */
+export const CELL_SIZES = [
+    { id: 'sm', label: '작게', px: 104 },
+    { id: 'md', label: '보통', px: 146 },
+    { id: 'lg', label: '크게', px: 220 },
+    { id: 'xl', label: '아주 크게', px: 320 }
+];
+
+/** 모르는 값이 와도 보통으로. 저장된 값이 옛것일 수 있다 */
+export function cellSize(id) {
+    return CELL_SIZES.find((c) => c.id === id) ?? CELL_SIZES[1];
+}
+
 /** 이 폴더에서 액자로 볼 만한가. 그림이 한 장이라도 있으면. */
 export function worthGallery(files, kindOf) {
     return files.some((f) => kindOf(f.path) === 'image');
