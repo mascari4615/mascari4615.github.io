@@ -1082,6 +1082,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 
 .header-btn.user-btn,
 .header-btn.settings-btn,
+.header-btn.files-btn,
 .header-btn.lang-btn,
 .theme-toggle {
     width: 36px; height: 36px; padding: 0;
@@ -1096,6 +1097,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 .header-btn.user-btn:hover,
 .header-btn.settings-btn:hover,
+.header-btn.files-btn:hover,
 .header-btn.lang-btn:hover,
 .theme-toggle:hover {
     background: var(--bg-hover);
@@ -1108,6 +1110,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 .header-btn.user-btn svg,
 .header-btn.settings-btn svg,
+.header-btn.files-btn svg,
 .header-btn.lang-btn svg,
 .theme-toggle .theme-icon {
     width: 18px; height: 18px;
