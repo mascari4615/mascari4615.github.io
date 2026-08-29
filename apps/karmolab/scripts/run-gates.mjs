@@ -151,6 +151,37 @@ function changedFiles(base) {
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const results = [];
+const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+/* ★ **npm 껍데기가 검사보다 비쌌다** (2026-08-29 실측). 같은 스크립트를 두 길로 세 번씩:
+     `npm run --silent gen:arcade-catalog` 3675ms, `node scripts/gen-arcade-catalog.mjs` 931ms.
+   차 2744ms 는 전부 npm.cmd 와 shell 기동이다. 130판이면 357초, 직렬 합계 548초의 65%가
+   검사가 아니라 npm 이었다.
+
+   그래서 `package.json` 의 명령 문자열을 읽어 **node 를 직접 부른다**. 다만 아무 문자열이나
+   가르면 안 된다. `&&` 나 따옴표가 든 것(지금 `test:meok`, `test:mcp` 둘)은 shell 이 해야 할
+   일이라 npm 길을 그대로 둔다. 갈라도 되는 꼴만 갈라낸다. */
+const SIMPLE_NODE = /^node((?: +[^\s&|<>;"'`$()]+)+)$/;
+const gateScripts = pkgScripts();
+function directCommand(gate) {
+  const m = SIMPLE_NODE.exec((gateScripts[gate] ?? '').trim());
+  if (!m) return null;
+  return { cmd: process.execPath, args: m[1].trim().split(/ +/) };
+}
+
+/* 브라우저를 띄우는 검사인가. 판단 근거는 그 검사의 첫 파일이 playwright 나 `lib/browser.mjs`
+   를 들이는가 하나다. 넘게 세도 손해가 없고(같이 도는 크로미움이 줄 뿐), 덜 세면 RAM 이
+   터진다. 그래서 의심스러우면 브라우저로 친다. */
+function usesBrowser(gate) {
+  const direct = directCommand(gate);
+  const entry = direct?.args?.[0] ?? (gateScripts[gate] ?? '').match(/scripts\/[\w.-]+\.mjs/)?.[0];
+  if (!entry) return true;
+  try {
+    return /playwright|lib\/browser/.test(readFileSync(path.join(appRoot, entry), 'utf8'));
+  } catch {
+    return true;
+  }
+}
 
 /**
  * 검사 하나를 돌린다. **화면에는 그대로 흘려보내면서, 마지막 몇 줄은 따로 쥔다.**
@@ -179,10 +210,13 @@ function runGate(gate) {
     /* ★ 인자 배열 대신 **한 줄 명령**으로 넘긴다. 윈도우의 `npm.cmd` 는 shell 이 있어야
        돌고(없으면 EINVAL), shell 에 인자 배열을 같이 주면 Node 가 매 판 DEP0190 경고를 찍는다.
        그 경고가 tail 열두 줄을 채우면 검사의 제 말이 또 밀려난다. 이름은 우리 목록에서만 온다. */
-    const child = spawn(`${npm} run --silent ${gate}`, {
-      stdio: ['inherit', 'pipe', 'pipe'],
-      shell: true
-    });
+    const direct = directCommand(gate);
+    const child = direct
+      ? spawn(direct.cmd, direct.args, { cwd: appRoot, stdio: ['inherit', 'pipe', 'pipe'] })
+      : spawn(`${npm} run --silent ${gate}`, {
+          stdio: ['inherit', 'pipe', 'pipe'],
+          shell: true
+        });
     /* ★ **같이 도니까 흘려보내면 안 된다** (2026-08-19). 여덟 판이 한 화면에 섞여 찍히면
        어느 검사가 한 말인지 못 가린다. 사유 없는 빨강과 같아진다. 모았다가 끝날 때
        한 덩이로 낸다(머리글 + 그 검사의 output). */
@@ -208,26 +242,50 @@ const timesFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 
 let previousTimes = {};
 try { previousTimes = JSON.parse(readFileSync(timesFile, 'utf8')); } catch { /* 처음이면 없다 */ }
 
-const workerCount = Math.max(1, Number(process.env.KL_GATE_JOBS || Math.min(8, (os.cpus().length || 4) - 2)));
+/* ★ **폭이 8로 묶여 있었다.** 코어 스물넷인 자리에서 스물둘이 논다. 폭을 올리는 것을 막던
+   것은 RAM 이다. 검사 절반이 크로미움을 띄우고 한 개가 200~400MB 라, 폭 16을 그냥 주면
+   최악 6GB 다. 그래서 **세는 자리를 둘로 나눈다**: 전체 폭과 브라우저 폭.
+   브라우저 폭은 예전 그대로 8이므로 메모리 최고점은 안 오르고, 나머지 여덟 자리는 파일만
+   읽는 검사가 채운다. */
+const cpuCount = os.cpus().length || 4;
+const workerCount = Math.max(1, Number(process.env.KL_GATE_JOBS || Math.min(16, cpuCount - 2)));
+const browserLimit = Math.max(1, Number(process.env.KL_GATE_BROWSER_JOBS || Math.min(8, workerCount)));
 /* 모르는 검사는 **중간쯤**으로 친다. 맨 앞에 세우면 새 검사 하나가 판을 늘어뜨리고,
    맨 뒤에 세우면 사실 긴 놈이 꼬리에 남는다. */
 const knownTimes = Object.values(previousTimes).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
 const medianTime = knownTimes.length ? knownTimes[Math.floor(knownTimes.length / 2)] : 1;
 const ordered = gates
-  .map((gate, i) => ({ gate, i, expectedSec: previousTimes[gate] ?? medianTime }))
+  .map((gate, i) => ({ gate, i, expectedSec: previousTimes[gate] ?? medianTime, browser: usesBrowser(gate) }))
   .sort((a, b) => b.expectedSec - a.expectedSec);
 
-console.log(`[gates] 검사 ${gates.length}개, 한 번에 ${workerCount}판씩 (긴 것부터)`);
+const browserCount = ordered.filter((e) => e.browser).length;
+const directCount = ordered.filter((e) => directCommand(e.gate)).length;
+console.log(
+  `[gates] 검사 ${gates.length}개, 한 번에 ${workerCount}판씩 (그중 브라우저는 ${browserLimit}판까지, 브라우저 검사 ${browserCount}개), 긴 것부터` +
+    (directCount < gates.length ? `, npm 껍데기를 쓰는 검사 ${gates.length - directCount}개` : '')
+);
 const startedAt = Date.now();
 let finishedCount = 0;
+let browserActive = 0;
 const pending = [...ordered];
+/** 브라우저 자리가 찼으면 그 검사는 건너뛰고 다음 것을 집는다. 순서(긴 것부터)는 그대로다. */
+function takeNext() {
+  const idx = pending.findIndex((e) => !e.browser || browserActive < browserLimit);
+  if (idx === -1) return undefined;
+  const [entry] = pending.splice(idx, 1);
+  if (entry.browser) browserActive += 1;
+  return entry;
+}
 await Promise.all(
   Array.from({ length: Math.min(workerCount, pending.length) }, async () => {
     for (;;) {
-      const nextGate = pending.shift();
+      const nextGate = takeNext();
+      /* 브라우저 자리가 차서 못 집은 것뿐이면 이 일꾼은 접기. 브라우저를 쥔 판이 살아 있고,
+         그 판이 끝나면 다시 집으므로 남은 검사가 굶지 않음 */
       if (nextGate === undefined) return;
       const started = Date.now();
       const run = await runGate(nextGate.gate);
+      if (nextGate.browser) browserActive -= 1;
       const sec = Math.round((Date.now() - started) / 1000);
       /* 죽은 방식도 구분해 남긴다. 빨강과 아예 못 돌았다는 손 갈 데가 다르다. */
       const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
