@@ -326,9 +326,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
    그건 큰 상자지 화면이 아니다.
    --sm-lift = 이 자리가 화면 꼭대기에서 얼마나 내려와 있나(JS 가 잰다).
    --sm-sbw  = 세로 스크롤막대 폭. 100vw 만 쓰면 그 폭만큼 가로 스크롤이 생긴다. */
+/* 폭은 뷰포트가 아니라 본문 칸 기준
+   예전 방식은 100vw 에 음수 margin. 셸이 왼쪽 목록 224px 를 늘
+   깔면서 그 계산이 목록 밑으로 112px 파고들고 오른쪽으로 112px 삐져나갔다 (1600px 실측)
+   본문 칸이 이미 화면 폭을 다 쓰므로 좌우 여백만 되돌림 */
 .sm-wrap.is-map { position: relative; gap: 0;
   margin-top: calc(var(--sm-lift, 0px) * -1);
-  width: calc(100vw - var(--sm-sbw, 0px)); margin-left: calc(50% - (100vw - var(--sm-sbw, 0px)) / 2);
+  width: auto; margin-inline: calc(var(--space-lg) * -1);
   height: 100svh; max-height: 100svh; overflow: hidden; border-radius: 0; }
 .sm-wrap.is-map .sm-body { position: absolute; inset: 0; display: block; margin: 0; width: auto; }
 .sm-wrap.is-map .sm-main { position: static; height: 100%; }
