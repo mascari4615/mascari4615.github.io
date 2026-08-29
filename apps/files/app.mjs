@@ -17,7 +17,7 @@ import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 import { KINDS, SORTS, activeSummary, arrange, arrangeFolders, timeOf } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
 import { MAX_TOTAL, makeZip } from './src/zip.mjs';
-import { applyTrash, inTrash, normalizeTrash, putTrash, takeTrash, trashSummary } from './src/trash.mjs';
+import { applyTrash, normalizeTrash, putTrash, takeTrash } from './src/trash.mjs';
 import {
   armScrollMemory,
   bindViewerKeys,
@@ -617,7 +617,10 @@ async function downloadChosen(files, button) {
  */
 async function downloadFolder(dir, button) {
   const prefix = dir ? dir + '/' : '';
-  const targets = (vaultListing ?? []).filter((f) => f.path.startsWith(prefix));
+  /* 버린 것은 안 담는다. 화면에 안 보이는 파일이 묶음에 딸려 오면 안 된다.
+     휴지통 보기에서 받으면 그 반대로 버린 것만 (화면과 같은 것을 준다) */
+  const seen = applyTrash(vaultListing ?? [], vaultTrash, { showTrash });
+  const targets = seen.filter((f) => f.path.startsWith(prefix));
   return downloadFiles(targets, button, dir, { keepPath: prefix });
 }
 
