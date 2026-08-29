@@ -1,5 +1,5 @@
 import type { AutomationPoint, StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
-import { automationValueAt, swingBeat } from './model';
+import { automationValueAt, drumPieceFor, swingBeat } from './model';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -25,6 +25,58 @@ function noteFrequency(note: number): number {
 }
 
 const impulseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+const noiseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+
+/** 잡음 1초. 타악기의 재료 */
+function noiseBuffer(context: AudioContextLike): AudioBuffer {
+  const cached = noiseCache.get(context);
+  if (cached) return cached;
+  const length = Math.floor(context.sampleRate);
+  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < length; index++) data[index] = Math.random() * 2 - 1;
+  noiseCache.set(context, buffer);
+  return buffer;
+}
+
+/** 타악기 한 소리. 음높이가 악기를 고르고, 길이는 소리마다 정해져 있다 */
+export function scheduleDrum(context: AudioContextLike, input: AudioNode, pitch: number, velocity: number, at: number, sources: AudioScheduledSourceNode[]): void {
+  const piece = drumPieceFor(pitch);
+  const level = Math.max(0.001, velocity * 0.5);
+  const tone = (from: number, to: number, sweep: number, hold: number, type: OscillatorType = 'sine'): void => {
+    const oscillator = context.createOscillator();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(from, at);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, to), at + sweep);
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(level, at);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + hold);
+    oscillator.connect(gain).connect(input);
+    oscillator.start(at); oscillator.stop(at + hold + 0.02);
+    sources.push(oscillator);
+  };
+  const noise = (filterType: BiquadFilterType, frequency: number, hold: number, amount = 1): void => {
+    const source = context.createBufferSource();
+    source.buffer = noiseBuffer(context);
+    const filter = context.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.value = frequency;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(level * amount, at);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + hold);
+    source.connect(filter).connect(gain).connect(input);
+    source.start(at); source.stop(at + hold + 0.02);
+    sources.push(source);
+  };
+  if (piece === 36) { tone(150, 45, 0.09, 0.34); noise('lowpass', 320, 0.02, 0.5); }
+  else if (piece === 38) { tone(190, 120, 0.06, 0.14, 'triangle'); noise('highpass', 1400, 0.18, 0.9); }
+  else if (piece === 39) { for (const offset of [0, 0.012, 0.026]) { const shifted = at + offset; const source = context.createBufferSource(); source.buffer = noiseBuffer(context); const filter = context.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1650; filter.Q.value = 1.4; const gain = context.createGain(); gain.gain.setValueAtTime(level * 0.7, shifted); gain.gain.exponentialRampToValueAtTime(0.0001, shifted + 0.12); source.connect(filter).connect(gain).connect(input); source.start(shifted); source.stop(shifted + 0.14); sources.push(source); } }
+  else if (piece === 42) noise('highpass', 7200, 0.045, 0.55);
+  else if (piece === 46) noise('highpass', 6800, 0.32, 0.5);
+  else if (piece === 45) tone(130, 62, 0.16, 0.32);
+  else if (piece === 48) tone(232, 112, 0.14, 0.26);
+  else noise('highpass', 4600, 1.15, 0.42);
+}
 
 function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
   const cached = impulseCache.get(context);
@@ -103,6 +155,11 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     const absoluteBeat = swingBeat(clip.start + note.beat, swing);
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
+    if (track.instrument === 'drum') {
+      /* 타악기는 한 방. 음 길이가 아니라 소리가 스스로 끝난다 */
+      if (absoluteBeat >= fromBeat) scheduleDrum(context, input, note.pitch, note.velocity * clip.gain, startTime + (absoluteBeat - fromBeat) * secondsPerBeat, sources);
+      continue;
+    }
     /* 클립 경계 상한. toBeat 만 보던 탓에 잘린 클립의 음이 계속 울던 자리 */
     const audibleEnd = Math.min(absoluteBeat + note.duration, clip.start + clip.duration, toBeat);
     const at = startTime + (audibleStart - fromBeat) * secondsPerBeat;

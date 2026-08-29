@@ -6,7 +6,7 @@
  * 결과값으로 나가고, 그 값을 어디에 넣을지는 본체가 정한다.
  */
 
-import type { StudioClip } from './model';
+import { DRUM_PIECES, type StudioClip } from './model';
 
 /** 화면 좌표 규칙. 뷰와 제스처가 같은 숫자를 봐야 해서 여기서 단일 출처로 낸다. */
 export const PIANO_GEOMETRY = {
@@ -38,6 +38,8 @@ export function initialScrollTop(clip: StudioClip): number {
 export interface PianoViewInput {
   /** 자판 건반 모드가 켜져 있나. 도구 단축키와 겹쳐서 모드로 가른다. */
   step?: boolean;
+  /** 타악기 트랙인가. 건반 이름이 음이름 대신 악기 이름이 된다. */
+  drum?: boolean;
   /** MIDI 건반이 붙어 있나 + 무엇이 붙었는지. */
   midi?: boolean;
   midiLabel?: string;
@@ -72,6 +74,7 @@ export interface PianoView {
 export function buildPianoView(input: PianoViewInput): PianoView {
   const { clip, beatsPerBar, expanded, isSelected, esc } = input;
   const step = input.step === true;
+  const drum = input.drum === true;
   const { high, low, keyWidth, rulerHeight } = PIANO_GEOMETRY;
   const row = input.rowHeight ?? PIANO_GEOMETRY.row;
   const pianoPxPerBeat = input.manualScale ? Math.max(24, Math.min(260, input.pxPerBeat)) : pianoScale(clip, input.pxPerBeat, expanded, input.viewportWidth);
@@ -80,7 +83,10 @@ export function buildPianoView(input: PianoViewInput): PianoView {
   let keys = '';
   for (let pitch = high; pitch >= low; pitch--) {
     const black = [1, 3, 6, 8, 10].includes(pitch % 12);
-    keys += `<button type="button" class="hu-key${black ? ' is-black' : ''}" data-key-pitch="${pitch}" aria-label="${noteName(pitch)} 소리 듣기" style="top:${rulerHeight + (high - pitch) * row}px">${noteName(pitch)}</button>`;
+    /* 타악기 트랙은 음이름 대신 악기 이름. 한 벌에 없는 줄은 그대로 음이름 */
+    const piece = drum ? DRUM_PIECES[pitch] : undefined;
+    const label = piece ?? noteName(pitch);
+    keys += `<button type="button" class="hu-key${black ? ' is-black' : ''}${piece ? ' is-piece' : ''}" data-key-pitch="${pitch}" aria-label="${label} 소리 듣기" style="top:${rulerHeight + (high - pitch) * row}px">${label}</button>`;
   }
 
   let bars = '';

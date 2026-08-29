@@ -165,6 +165,8 @@ export const HEUNG_CSS = `
     .hu-key { position:absolute; left:0; width:68px; height:16px; border:1px solid var(--border); border-top:0; border-radius:0; text-align:left; cursor:pointer;
       background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
     .hu-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }
+    /* 타악기 줄. 한 벌에 있는 소리만 폭을 넓혀 이름이 안 잘리게 */
+    .hu-key.is-piece { width:68px; background:var(--accent); color:#0e0e12; font-weight:600; z-index:6; }
     .hu-piano-ruler { position:absolute; top:0; left:68px; height:24px; z-index:3; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
     .hu-piano-ruler { cursor:pointer; }
     .hu-after-end { position:absolute; top:0; bottom:0; z-index:2; display:grid; place-items:start center; padding-top:34px; background:repeating-linear-gradient(135deg,rgba(0,0,0,.34) 0 8px,rgba(0,0,0,.48) 8px 16px); color:var(--text-tertiary); pointer-events:none; font:10px var(--font-mono); }

@@ -19,7 +19,8 @@ expect(shell.includes('샘플은 연습용'), '첫 화면이 샘플의 정체를
 expect(shell.includes('프로젝트 받기') && shell.includes('WAV로 완성하기'), '저장과 완성의 이름이 다시 모호해졌다');
 expect(!/[①②③]/.test(shell), '기기에서 깨지는 원문자 번호가 돌아왔다');
 expect(piano.includes('data-key-pitch="${pitch}"'), '피아노 건반 pitch 계약이 없다');
-expect(piano.includes('aria-label="${noteName(pitch)} 소리 듣기"'), '건반의 접근 가능한 이름이 없다');
+expect(/aria-label="\$\{(label|noteName\(pitch\))\} 소리 듣기"/.test(piano), '건반의 접근 가능한 이름이 없다');
+expect(piano.includes('DRUM_PIECES[pitch]'), '타악기 트랙에서 건반이 악기 이름을 안 쓴다');
 expect(studio.includes("closest<HTMLElement>('[data-key-pitch]')"), '건반 전용 audition 경로가 없다');
 expect(studio.includes('void engine.preview(track,pitch)'), '건반이 악기 미리듣기로 이어지지 않는다');
 expect(styles.includes('.hu-lane,.hu-clip,.hu-handle,.hu-note,.hu-note-handle,[data-piano]'), '편집 표면 touch-action 계약이 없다');

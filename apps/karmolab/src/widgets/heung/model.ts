@@ -46,6 +46,24 @@ export interface AutomationPoint {
   value: number;
 }
 
+/** 트랙 악기. 파형 4종에 타악기 한 벌. */
+export type TrackInstrument = OscillatorType | 'drum';
+
+export const TRACK_INSTRUMENTS: TrackInstrument[] = ['sine', 'triangle', 'sawtooth', 'square', 'drum'];
+
+/** 타악기 한 벌. 열쇠는 MIDI 음높이, GM 배치를 따른다. 음높이 하나가 소리 하나 */
+export const DRUM_PIECES: Record<number, string> = {
+  36: '킥', 38: '스네어', 39: '클랩', 42: '닫은 하이햇', 45: '로우 톰', 46: '열린 하이햇', 48: '하이 톰', 49: '크래시'
+};
+
+/** 아무 음높이나 가장 가까운 타악기로. 격자 어디를 찍어도 소리는 난다 */
+export function drumPieceFor(pitch: number): number {
+  const keys = Object.keys(DRUM_PIECES).map(Number);
+  let best = keys[0];
+  for (const key of keys) if (Math.abs(key - pitch) < Math.abs(best - pitch)) best = key;
+  return best;
+}
+
 export interface StudioTrack {
   id: string;
   kind: TrackKind;
@@ -60,7 +78,7 @@ export interface StudioTrack {
   eqHigh: number;
   compressor: number;
   reverb: number;
-  instrument: OscillatorType;
+  instrument: TrackInstrument;
   /** 소리의 모양. 붙는 속도, 줄어드는 속도, 버티는 크기, 꼬리 길이(초). */
   envelope: { attack: number; decay: number; sustain: number; release: number };
   /** 저역 통과 필터. 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
@@ -248,6 +266,8 @@ export function normalizeProject(input: unknown): StudioProject {
   project.tracks = value.tracks.map((raw, index) => {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
+    /* 모르는 악기 이름은 톱니로. 옛 저장본과 손으로 고친 파일이 소리를 잃지 않게 */
+    if (!TRACK_INSTRUMENTS.includes(track.instrument)) track.instrument = 'sawtooth';
     const clamp = (value: unknown, low: number, high: number, fallback: number): number => {
       const number = Number(value);
       return Number.isFinite(number) ? Math.max(low, Math.min(high, number)) : fallback;

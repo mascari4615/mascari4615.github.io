@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -343,4 +343,21 @@ const notNumber = JSON.parse(JSON.stringify(shaped));
 notNumber.tracks[0].envelope = { attack: 'x' };
 assert.ok(normalizeProject(notNumber).tracks[0].envelope.attack >= 0, '숫자가 아니면 기본값');
 
-console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양');
+// 타악기. 아무 줄이나 찍어도 가장 가까운 소리로
+assert.equal(drumPieceFor(36), 36, '킥 줄은 킥');
+assert.equal(drumPieceFor(37), 36, '한 칸 위는 아직 킥');
+assert.equal(drumPieceFor(41), 42, '41 은 닫은 하이햇 쪽이 가깝다');
+assert.equal(drumPieceFor(120), 49, '한참 위는 마지막 소리');
+assert.equal(drumPieceFor(0), 36, '한참 아래는 첫 소리');
+assert.ok(Object.keys(DRUM_PIECES).length >= 8, '한 벌은 8가지 이상');
+assert.ok(TRACK_INSTRUMENTS.includes('drum'), '악기 목록에 드럼이 있다');
+
+// 모르는 악기 이름은 톱니로. 손으로 고친 파일도 소리 유지
+const oddInstrument = JSON.parse(JSON.stringify(shaped));
+oddInstrument.tracks[0].instrument = 'bagpipe';
+assert.equal(normalizeProject(oddInstrument).tracks[0].instrument, 'sawtooth');
+const keptDrum = JSON.parse(JSON.stringify(shaped));
+keptDrum.tracks[0].instrument = 'drum';
+assert.equal(normalizeProject(keptDrum).tracks[0].instrument, 'drum', '드럼은 그대로 산다');
+
+console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치');
