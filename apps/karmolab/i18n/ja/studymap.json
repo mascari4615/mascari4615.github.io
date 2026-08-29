@@ -54,5 +54,7 @@
   "studymap.lesson.parts": "章の一覧",
   "studymap.lesson.partno": "{n}/{all}章",
   "studymap.lesson.prevpart": "前の章",
-  "studymap.lesson.nextpart": "次の章"
+  "studymap.lesson.nextpart": "次の章",
+  "studymap.open": "開く",
+  "studymap.path": "そこまでの道"
 }

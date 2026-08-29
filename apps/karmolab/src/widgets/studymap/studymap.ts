@@ -159,7 +159,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 /* 머리는 한 줄이다. 갈래 이름, 진도, 찾기. 전에는 제목과 설명과 진도와 찾기가 네 줄로 쌓여
    화면 위 180px 를 글자만으로 먹었고, 정작 할 일인 다음 한 칸은 접힌 자리 아래에 있었다. */
 .sm-head { display: flex; align-items: center; gap: 16px; min-height: 32px; }
-.sm-title { font-size: var(--font-size-md); font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.sm-title { font-size: var(--font-size-sm); font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
 .sm-title .sm-emoji { font-size: 1.1em; }
 
 .sm-meter { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; max-width: 240px; }
@@ -230,14 +230,18 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-stage.is-clear .sm-stage-dot { border-color: var(--success); background: var(--success); }
 .sm-stage-name { font-size: var(--font-size-xs); font-weight: 650; margin-bottom: 2px; }
 .sm-stage-sub { font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-.sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 16px 0 24px; }
+.sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 24px; margin: 8px 0 24px; }
 
-.sm-node { position: relative; display: flex; gap: 12px; padding: 14px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg-secondary); transition: border-color .15s, transform .15s, background .15s; }
-.sm-node:hover { border-color: var(--border-hover); transform: translateY(-1px); }
-.sm-node.is-done { background: var(--bg-primary); border-color: var(--success-subtle); }
+/* 무게 3군 — 나머지 칸. 상자 걷고 얇은 선만.
+   아홉 개가 전부 상자면 눈이 무엇부터 볼지 못 고름 */
+.sm-node { position: relative; display: flex; gap: 12px; padding: 12px 8px; border-radius: var(--radius-md);
+  border: 0; border-top: 1px solid var(--border); background: none; transition: background .15s; }
+.sm-node:hover { background: var(--bg-secondary); }
+.sm-node.is-done { background: none; }
 .sm-node.is-done .sm-node-title { color: var(--text-tertiary); text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
 .sm-node.is-done .sm-node-why, .sm-node.is-done .sm-node-check { opacity: .45; }
-.sm-node.is-next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim), 0 6px 20px -12px var(--accent-glow); }
+/* 다음 한 칸은 위에 크게 있음 — 목록에서는 윗선 표시만 (강조색 두 번 금지) */
+.sm-node.is-next { border-top-color: var(--accent); }
 
 .sm-check { appearance: none; flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; border-radius: 6px; border: 2px solid var(--border-hover); background: transparent; cursor: pointer; position: relative; transition: border-color .15s, background .15s; }
 .sm-check:hover { border-color: var(--accent); }
@@ -246,7 +250,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .sm-node-body { min-width: 0; flex: 1; }
-.sm-node-title { font-size: var(--font-size-2xs); font-weight: 650; line-height: 1.45; }
+/* sm-open 의 font:inherit 가 뒤에서 크기를 되돌림 — 카드 제목이 본문과 같은 18px 로 커져
+   1군 28px 과 위계가 안 갈렸음. 카드 안에서만 고정 */
+.sm-node .sm-node-title { font-size: 15px; font-weight: 650; line-height: 1.45; }
 .sm-open { display: block; width: 100%; text-align: left; background: none; border: none; padding: 0; color: inherit; font: inherit; font-weight: 650; cursor: pointer; }
 .sm-open:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .sm-has-lesson { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; margin-left: 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); vertical-align: middle; }
@@ -309,10 +315,28 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
 /* ── 나무 눈 ── 관계를 보는 화면. 선은 「먼저 이것」을 뜻한다. */
-.sm-resume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; width: 100%; text-align: left; margin-bottom: 16px; padding: 14px 18px; border: 1px solid var(--accent); border-radius: var(--radius-xl); background: var(--accent-subtle); color: var(--text-primary); font: inherit; cursor: pointer; }
-.sm-resume:hover { background: var(--accent-dim); }
-.sm-resume-tag { font-size: 10px; letter-spacing: .06em; color: var(--accent); }
-.sm-resume-title { font-size: var(--font-size-sm); font-weight: 600; }
+/* 무게 1군 — 화면에서 제일 큰 것 하나, 강조색도 여기서만.
+   전에는 카드 아홉과 같은 상자라 다음 한 칸이 목록의 한 줄로 보임 */
+.sm-resume { display: grid; gap: 8px; width: 100%; text-align: left; margin-bottom: 24px;
+  padding: 24px; border: 1px solid var(--accent); border-radius: var(--radius-xl);
+  background: var(--accent-subtle); color: var(--text-primary); font: inherit; cursor: pointer;
+  transition: background .15s, transform .15s; }
+.sm-resume:hover { background: var(--accent-dim); transform: translateY(-1px); }
+.sm-resume-tag { font-size: 11px; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+.sm-resume-title { font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
+.sm-resume-why { font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.7; max-width: 60ch; }
+.sm-resume-why:empty { display: none; }
+.sm-resume-foot { display: flex; align-items: baseline; gap: 16px; margin-top: 8px; font-size: 12px; }
+.sm-resume-go { margin-left: auto; color: var(--accent); font-weight: 700; }
+
+/* 무게 2군 — 거기까지 가는 길. 알약도 상자도 아닌 글자와 화살표 */
+.sm-path { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 24px; }
+.sm-path-step { font: inherit; font-size: var(--font-size-2xs); color: var(--text-tertiary);
+  background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.sm-path-step:hover { color: var(--text-primary); }
+.sm-path-step.is-here { color: var(--text-primary); font-weight: 700; }
+.sm-path-step.is-done { text-decoration: line-through; opacity: .55; }
+.sm-path-arrow { color: var(--text-tertiary); opacity: .5; font-size: 11px; }
 .sm-resume.is-review { border-color: var(--secondary); background: var(--secondary-subtle, var(--bg-tertiary)); }
 .sm-resume.is-review .sm-resume-tag { color: var(--secondary); }
 .sm-node.is-review { border-color: var(--secondary); }
@@ -1081,19 +1105,41 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
          밀린 복습이 먼저 오고(새로 배우는 것보다 잊는 것이 빠르다), 그 다음이 이어서 할 한 칸이다. */
       const lastId = readLast();
       const lastWhere = lastId ? whereIs.get(lastId) : undefined;
-      const resume = lastWhere
-        ? `<button type="button" class="sm-resume" data-open="${esc(lastId)}">
-            <span class="sm-resume-tag">${esc(t('studymap.resume', undefined, '이어서'))}</span>
-            <span class="sm-resume-title">${esc(lastWhere.node.title)}</span>
-            <span class="sm-resume-track">${esc(trackOf(lastWhere.trackId).title)}</span>
+      /* 1군 하나 — 강조색은 여기서만, 나머지는 회색조 */
+      const headNode = lastWhere ? lastWhere.node : next;
+      const headTrack = lastWhere ? trackOf(lastWhere.trackId) : tr;
+      const headTag = lastWhere
+        ? t('studymap.resume', undefined, '이어서')
+        : t('studymap.next', undefined, '다음');
+      const resume = headNode
+        ? `<button type="button" class="sm-resume" data-open="${esc(headNode.id)}">
+            <span class="sm-resume-tag">${esc(headTag)}</span>
+            <span class="sm-resume-title">${esc(headNode.title)}</span>
+            <span class="sm-resume-why">${esc(headNode.why || '')}</span>
+            <span class="sm-resume-foot">
+              <span class="sm-resume-track">${esc(headTrack.emoji)} ${esc(headTrack.title)}</span>
+              <span class="sm-resume-go">${esc(t('studymap.open', undefined, '열기'))} -&gt;</span>
+            </span>
           </button>`
-        : next
-          ? `<button type="button" class="sm-resume" data-open="${esc(next.id)}">
-            <span class="sm-resume-tag">${esc(t('studymap.next', undefined, '다음'))}</span>
-            <span class="sm-resume-title">${esc(next.title)}</span>
-            <span class="sm-resume-track">${esc(tr.title)}</span>
-          </button>`
-          : '';
+        : '';
+
+      /* 2군 — 거기까지 가는 길. 지금 칸의 앞뒤 다섯 칸만.
+         41갈래 311칸을 펴는 대신 지금 어디고 다음이 무엇인가에만 답 */
+      const at = headNode ? orderAt.get(headNode.id) ?? -1 : -1;
+      const path = at >= 0
+        ? flatOrder.slice(Math.max(0, at - 1), at + 4)
+        : [];
+      const pathRow = path.length > 1
+        ? `<nav class="sm-path" aria-label="${esc(t('studymap.path', undefined, '거기까지 가는 길'))}">
+            ${path
+              .map((x, i) => {
+                const here = headNode && x.id === headNode.id;
+                const mark = done.has(x.id) ? ' is-done' : here ? ' is-here' : '';
+                return `${i ? '<span class="sm-path-arrow">-&gt;</span>' : ''}<button type="button" class="sm-path-step${mark}" data-open="${esc(x.id)}">${esc(x.title)}</button>`;
+              })
+              .join('')}
+          </nav>`
+        : '';
       const due = dueList();
       const review = due.length
         ? `<button type="button" class="sm-resume is-review" data-open="${esc(due[0])}">
@@ -1103,7 +1149,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           </button>`
         : '';
 
-      elView.innerHTML = review + resume + tr.stages
+      elView.innerHTML = review + resume + pathRow + tr.stages
 
         .map((st) => {
           const clear = st.nodes.every((n) => done.has(n.id));

@@ -54,5 +54,7 @@
   "studymap.lesson.parts": "장 목록",
   "studymap.lesson.partno": "{n}/{all}장",
   "studymap.lesson.prevpart": "이전 장",
-  "studymap.lesson.nextpart": "다음 장"
+  "studymap.lesson.nextpart": "다음 장",
+  "studymap.open": "열기",
+  "studymap.path": "거기까지 가는 길"
 }

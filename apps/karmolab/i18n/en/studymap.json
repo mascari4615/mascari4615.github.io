@@ -54,5 +54,7 @@
   "studymap.lesson.parts": "Chapters",
   "studymap.lesson.partno": "Ch. {n}/{all}",
   "studymap.lesson.prevpart": "Previous chapter",
-  "studymap.lesson.nextpart": "Next chapter"
+  "studymap.lesson.nextpart": "Next chapter",
+  "studymap.open": "Open",
+  "studymap.path": "The way there"
 }
