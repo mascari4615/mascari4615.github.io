@@ -13,6 +13,7 @@ import { CELL_SIZES, cellSize, mountGallery, worthGallery } from './src/gallery.
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 import { KINDS, SORTS, activeSummary, arrange, arrangeFolders } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
+import { MAX_TOTAL, makeZip } from './src/zip.mjs';
 import {
   armScrollMemory,
   bindViewerKeys,
@@ -36,6 +37,12 @@ let vaultListing = null;
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
 const CELL_KEY = 'files.vault.cell';
+
+/* 여럿 고르기. 폴더를 옮기면 푼다. 다른 폴더의 것까지 담고 있으면
+   화면에 안 보이는 것을 받게 되어 사람이 무엇을 받는지 모른다 */
+let selecting = false;
+const chosen = new Set();
+let chosenDir = null;
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
 let siblings = [];
 /** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
@@ -500,7 +507,68 @@ function siftBar(total, shown) {
     '<button type="button" class="sf-chip" data-desc="1" title="차례 뒤집기">' +
     (sift.desc ? '내림' : '오름') + '</button></span>' +
     (note ? '<span class="sf-note">' + esc(note) + '</span>' : '') +
+    '<button type="button" class="sf-chip' + (selecting ? ' on' : '') +
+    '" data-sel="1">고르기</button>' +
     '</div>';
+}
+
+/** 고른 것 줄. 몇 개인지, 합쳐서 몇인지, 무엇을 할 수 있는지 */
+function pickBar(files) {
+  const total = files.filter((f) => chosen.has(f.path)).reduce((n, f) => n + f.size, 0);
+  return '<div class="pickbar">' +
+    '<span class="pb-at">' + chosen.size + '개 고름 · ' + fmtSize(total) + '</span>' +
+    '<button type="button" class="fb-btn" data-pick="all">모두</button>' +
+    '<button type="button" class="fb-btn" data-pick="none">해제</button>' +
+    '<span class="fb-gap"></span>' +
+    '<button type="button" class="fb-btn" data-pick="get"' + (chosen.size ? '' : ' disabled') +
+    '>받기</button>' +
+    '</div>';
+}
+
+/**
+ * 고른 것 받기. 하나면 그대로, 여럿이면 한 덩이(zip)로.
+ *
+ * 여럿을 각각 내려받게 하면 브라우저가 두 번째부터 막거나 사람에게 다시 묻는다.
+ * 그리고 복호는 어차피 여기서 한 번씩 해야 하므로, 묶는 값은 거의 안 든다.
+ */
+async function downloadChosen(files, button) {
+  const targets = files.filter((f) => chosen.has(f.path));
+  const total = targets.reduce((n, f) => n + f.size, 0);
+  if (total > MAX_TOTAL) {
+    button.textContent = '너무 큼';
+    setTimeout(() => { button.textContent = '받기'; }, 2500);
+    return;
+  }
+  const label = button.textContent;
+  button.disabled = true;
+  const parts = [];
+  try {
+    for (let i = 0; i < targets.length; i++) {
+      button.textContent = (i + 1) + ' / ' + targets.length;
+      const got = await getFile(vaultSession, targets[i].path);
+      if (got) parts.push({ name: targets[i].path.split('/').pop(), bytes: got.bytes });
+    }
+    if (!parts.length) throw new Error('none');
+    const one = parts.length === 1;
+    const blob = one
+      ? new Blob([parts[0].bytes], { type: mimeFor(parts[0].name) })
+      : new Blob([makeZip(parts)], { type: 'application/zip' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = one ? parts[0].name : (chosenDir ? chosenDir.split('/').pop() : 'files') + '.zip';
+    a.click();
+    /* 누른 뒤 바로 거두면 큰 것은 저장이 중간에 끊긴다 */
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    button.textContent = '받음';
+  } catch (e) {
+    button.textContent = '못 받음';
+    console.error('[files] 고른 것 받기 실패', e);
+  }
+  setTimeout(() => {
+    button.disabled = false;
+    button.textContent = label;
+  }, 2500);
 }
 
 /** 액자 칸 크기. 고른 값은 한 자리에 적어 폴더를 옮겨도 유지된다 */
@@ -537,6 +605,12 @@ function renderVaultDir(dir) {
   }
   if (unwatchScroll) unwatchScroll();
   const listed = listDir(vaultListing, dir);
+  /* 폴더가 바뀌면 고른 것을 푼다. 안 보이는 것을 받게 되면 사람이 무엇을 받는지 모른다 */
+  if (chosenDir !== listed.dir) {
+    chosen.clear();
+    selecting = false;
+    chosenDir = listed.dir;
+  }
   /* 거른 뒤의 차례가 화면 차례. 다음과 이전이 이걸 따르므로 여기서 한 번만 정한다 */
   const shownFiles = arrange(listed.files, { ...sift, kindOf: previewKind });
   const shownFolders = arrangeFolders(listed.folders, sift);
@@ -560,6 +634,7 @@ function renderVaultDir(dir) {
           folders.map((f) => '<a href="' + f.href + '">' + icon('folder') + esc(f.name) + '</a>').join('') +
           '</div>'
         : '') +
+      (selecting ? pickBar(shownFiles) : '') +
       '<div class="grid" id="vgrid" style="--cell:' + cellMode().px + 'px"></div>';
     const host = document.getElementById('vgrid');
     if (shownFiles.length) {
@@ -571,6 +646,25 @@ function renderVaultDir(dir) {
         mimeOf: mimeFor,
         hrefOf: (path) => '#vault/' + encodeURIComponent(path),
       });
+      /* 칸에 체크를 얹는다. 액자 모듈은 그림 받아 오는 일만 하게 둔다.
+         칸 자체가 링크라, 체크를 그 **안**에 두면 누를 때 파일이 열린다.
+         (막으려고 preventDefault 를 걸면 이번엔 체크가 안 켜진다.)
+         그래서 칸을 한 겹 감싸고 체크를 링크 **밖**에 형제로 둔다 */
+      if (selecting) {
+        for (const cell of [...host.querySelectorAll('.frame')]) {
+          const path = decodeURIComponent(cell.dataset.path);
+          const wrap = document.createElement('span');
+          wrap.className = 'framewrap';
+          cell.replaceWith(wrap);
+          const mark = document.createElement('input');
+          mark.type = 'checkbox';
+          mark.className = 'pick frame-pick';
+          mark.dataset.path = cell.dataset.path;
+          mark.checked = chosen.has(path);
+          mark.setAttribute('aria-label', path.split('/').pop() + ' 고르기');
+          wrap.append(mark, cell);
+        }
+      }
     } else {
       host.innerHTML = '<p class="none">이 폴더에는 파일이 없습니다.</p>';
     }
@@ -580,11 +674,16 @@ function renderVaultDir(dir) {
     for (const f of shownFiles) {
       const name = f.path.split('/').pop();
       const href = '#vault/' + encodeURIComponent(f.path);
-      rows.push(row(iconFor(name), link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
+      const mark = selecting
+        ? '<input type="checkbox" class="pick" data-path="' + encodeURIComponent(f.path) + '"' +
+          (chosen.has(f.path) ? ' checked' : '') + ' aria-label="' + esc(name) + ' 고르기">'
+        : iconFor(name);
+      rows.push(row(mark, link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
     }
     box.innerHTML =
       siftBar(listed.files.length, shownFiles.length) +
       (canGrid ? viewSwitch(mode) : '') +
+      (selecting ? pickBar(shownFiles) : '') +
       (rows.length
         ? listHead() + rows.join('')
         : '<p class="none">' +
@@ -613,6 +712,43 @@ function renderVaultDir(dir) {
       }, 160);
     });
   }
+  const selBtn = box.querySelector('.siftbar [data-sel]');
+  if (selBtn) {
+    selBtn.addEventListener('click', () => {
+      selecting = !selecting;
+      if (!selecting) chosen.clear();
+      renderVaultDir(dir);
+    });
+  }
+  for (const c of box.querySelectorAll('input.pick')) {
+    c.addEventListener('click', (e) => {
+      /* 액자에서는 체크가 링크 위에 있다. 안 막으면 파일이 열린다 */
+      e.stopPropagation();
+      const path = decodeURIComponent(c.dataset.path);
+      if (c.checked) chosen.add(path);
+      else chosen.delete(path);
+      /* 줄만 다시 그린다. 액자를 다시 그리면 받아 둔 그림을 전부 버린다 */
+      const bar = box.querySelector('.pickbar');
+      if (bar) bar.outerHTML = pickBar(shownFiles);
+      bindPickBar();
+    });
+  }
+  function bindPickBar() {
+    for (const b of box.querySelectorAll('.pickbar [data-pick]')) {
+      b.addEventListener('click', () => {
+        if (b.dataset.pick === 'get') return void downloadChosen(shownFiles, b);
+        if (b.dataset.pick === 'all') for (const f of shownFiles) chosen.add(f.path);
+        else chosen.clear();
+        for (const c of box.querySelectorAll('input.pick')) {
+          c.checked = chosen.has(decodeURIComponent(c.dataset.path));
+        }
+        const bar = box.querySelector('.pickbar');
+        if (bar) bar.outerHTML = pickBar(shownFiles);
+        bindPickBar();
+      });
+    }
+  }
+  bindPickBar();
   for (const b of box.querySelectorAll('.siftbar [data-kind], .siftbar [data-sort], .siftbar [data-desc]')) {
     b.addEventListener('click', () => {
       if (b.dataset.kind) sift.kind = sift.kind === b.dataset.kind ? '' : b.dataset.kind;
