@@ -1,6 +1,12 @@
 /**
  * files.mascari4615.com Cloudflare Worker 정본.
  * 화면 = Pages /files/ 프록시. 클라우드 암호문 = R2 바인딩 VAULT → /blob/<key>
+ *
+ * 캐시: 청크(`c/<id>/<n>`)는 **한 번 쓰이면 안 바뀐다** — 같은 자리에 다른 내용이 오지 않는다
+ * (내용이 달라지면 새 id 를 받는다). 그래서 오래 잡아 둔다. 반대로 `hdr`·`idx` 는 파일이
+ * 늘 때마다 바뀌므로 매번 물어본다. 전에는 셋 다 60초여서, 액자를 다시 열 때마다 그림을
+ * 통째로 다시 받아 왔다 (2026-08-29 사용자 관측: 「매번 새로 받는 것 같다」).
+ * 어느 쪽이든 `private` 이다 — 중간 캐시(CDN·프록시)가 남의 암호문을 들고 있으면 안 된다.
  * VAULT 가 없으면 /blob 은 503. **없는 키는 404 다** — 딴 데서 가져와 채우지 않는다.
  *
  * ★ 예전에는 키가 비면 Pages `v/` 픽스처를 R2 에 **써 넣었다**(데모용). 그 한 줄이
@@ -25,10 +31,13 @@ export default {
       if (!env || !env.VAULT) return new Response('no vault', { status: 503 });
       const obj = await env.VAULT.get(key);
       if (!obj) return new Response('missing', { status: 404 });
+      const immutable = key.startsWith('c/');
       return new Response(obj.body, {
         headers: {
           'content-type': 'application/octet-stream',
-          'cache-control': 'private, max-age=60',
+          'cache-control': immutable
+            ? 'private, max-age=31536000, immutable'
+            : 'private, no-cache',
           'x-content-type-options': 'nosniff',
         },
       });
