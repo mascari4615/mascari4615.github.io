@@ -484,7 +484,9 @@ const Toolbox = (() => {
 
     function getNavLayout() {
         const v = localStorage.getItem(NAV_LAYOUT_KEY);
-        return (v === 'sidebar' || v === 'header') ? v : 'header';
+        /* 바닥값은 왼쪽 목록. 도구 233개라 위 메뉴 하나로는 이름 안 보임
+           위 메뉴 모드는 설정에 유지 */
+        return (v === 'sidebar' || v === 'header') ? v : 'sidebar';
     }
 
     function setNavLayout(layout) {

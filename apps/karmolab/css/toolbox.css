@@ -79,6 +79,7 @@
     --space-xl: 32px;
     --space-2xl: 48px;
 
+
     /* 위젯 내부 툴 사이드바 폭 (이미지 편집 등; 앱 메인 내비와 무관) */
     --sidebar-width: 224px;
     --sidebar-collapsed-width: 56px;
@@ -919,8 +920,9 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     height: 52px;
     overflow: visible;
     isolation: isolate;
-    background: transparent;
-    border-bottom: none;
+    /* 머리띠 불투명. 투명이면 지나가는 본문이 비쳐 글자 두 겹 */
+    background: var(--bg-void);
+    border-bottom: 1px solid var(--border);
 }
 
 /* 단일 글래스 레이어: 헤더 줄 + 열린 메가 영역까지 동일 backdrop (패널에 또 깔면 뒤가 달라져 색이 어긋남) */
@@ -1230,8 +1232,11 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
    ═══════════════════════════════════════ */
 
 .main-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; position: relative; min-height: 0; }
+/* 본문 바탕. 사이드바보다 한 톤 밝게 (Linear, 디스코드, LLM 챗 방식)
+   도구 화면에서만. 첫 화면까지 칠하면 배경 격자와 떠다니는 그림을 덮음 (실측 확인) */
+html[data-view="tool"] .main-content { background: var(--bg-primary); }
 .content-body {
-    padding: var(--space-lg) var(--space-xl) var(--space-2xl);
+    padding: var(--space-lg) var(--space-lg) var(--space-2xl);
     flex: 0 0 auto;
     min-height: 100%;
     display: flex; flex-direction: column;
@@ -1334,7 +1339,14 @@ html[data-view="home"] .home-decor { opacity: 0.72; transition: opacity .45s eas
     will-change: transform;
     transition: transform .55s cubic-bezier(.22, .61, .36, 1);
 }
-html[data-view="tool"] .home-decor-stage { transform: scale(0.84); }
+/* 배경 장식은 첫 화면 전용. 도구 화면에선 글자 뒤 겹침으로 읽기 방해
+   도구 열 때만 평면 한 색. 배경 테마 6종은 그대로, 차이는 첫 화면에서 */
+html[data-view="tool"] .home-decor-stage { display: none; }
+html[data-view="tool"] .app-bg {
+    background-image: none;
+    background-color: var(--bg-void);
+}
+html[data-view="tool"] .app-bg::before { display: none; }
 html[data-view="home"] .home-decor-stage { transform: scale(1); }
 /* 움직임을 줄여 달라고 한 사람에게는 미끄러지지 않고 바로 놓인다 */
 @media (prefers-reduced-motion: reduce) { .home-decor-stage { transition: none; } }
@@ -1903,18 +1915,22 @@ a.landing-cta-card:hover { color: inherit; }
    입력칸이 어디냐이지 이 도구 이름이 무엇이냐가 아니다. 이름은 이미 알고 눌러서 왔다.
    그래서 브랜드 제목(첫 화면)과 달리 여기서는 크기를 줄이고 여백을 좁힌다. */
 .tool-page-hero {
-    text-align: center;
-    padding: var(--space-md) 0 var(--space-sm);
+    /* 왼쪽정렬. 제목만 가운데면 세로 축이 둘로 갈림
+       구분선 제거. 앱 화면의 제목은 표지가 아니라 이름표 */
+    text-align: left;
+    padding: 0 0 var(--space-md);
     margin-bottom: var(--space-md);
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
 }
 .tool-page-hero-title {
-    font-family: var(--font-serif);
-    font-size: 26px; font-weight: 900; letter-spacing: -0.02em;
-    line-height: 1.1; color: var(--text-primary); margin-bottom: 6px;
+    /* 세리프는 로고 세 자리 전용 (머리띠, 첫 화면, 인트로)
+       도구마다 세리프면 로고가 로고로 안 읽힘. 크기도 26 에서 20 으로 */
+    font-family: var(--font-sans);
+    font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+    line-height: 1.2; color: var(--text-primary); margin-bottom: 2px;
 }
 .tool-page-hero-desc {
-    font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
+    font-size: var(--font-size-2xs); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
 /* 브라우저에서 연 데스크톱 전용 도구 (TASK-KL-349). 빈 자리 대신 이 한 줄이 선다.
    경고가 아니라 안내다: 아래 설명은 그대로 읽히므로 색을 세게 쓰지 않는다. */
@@ -1957,14 +1973,14 @@ a.landing-cta-card:hover { color: inherit; }
 /* 도구 이름 밑의 지금까지 N번 열렸어요 (TASK-KL-098).
    아직 아무도 안 연 도구에는 글자가 안 들어가므로, 그때는 자리도 없어야 한다. */
 .tool-page-hero-count { margin: 6px 0 0; font-size: 11px; color: var(--text-tertiary); }
-.tool-page-hero-count:empty { display: none; }
+.tool-page-hero-count { display: none; }
 .tool-page-hero-count b { color: var(--text-secondary); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .layout-full .tool-page-hero {
     padding: var(--space-md) 0 var(--space-sm);
     margin-bottom: var(--space-sm);
 }
-.layout-full .tool-page-hero-title { font-size: 28px; }
+.layout-full .tool-page-hero-title { font-size: 20px; }
 
 .tool-page {
     display: none;
@@ -1980,16 +1996,28 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page.layout-full > .tab-row { flex-shrink: 0; }
 .tool-page.layout-full > .tab-panel { display: none; }
 .tool-page.layout-full > .tab-panel.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.tool-page.layout-form {
-    max-width: 900px; margin: 0 auto var(--space-2xl);
+/* 도구 한 판의 공통 뼈대. 가운데 상자 없이 화면 폭 전부
+   예전: form 만 테두리와 바탕, wide 는 맨몸. 도구 옮길 때마다 좌우 튐
+   실측: Linear, Grafana, 디스코드, LLM 챗 전부 가운데 상자 안 씀
+   (play.grafana.org 바탕 #111217, 사이드바 320px 배경색 없음, 항목 14px 에 행 32px)
+   full 은 제외. 화면 끝까지 쓰는 것이 목적 */
+.tool-page.layout-form,
+.tool-page.layout-wide {
+    max-width: none;
+    margin: 0 0 var(--space-2xl);
     width: 100%;
-    padding: var(--space-md);
-    border: 1px solid var(--border);
-    background: var(--bg-secondary);
+    padding: 0;
+    border: none;
+    background: none;
     position: relative;
 }
-.tool-page.layout-wide { max-width: 1200px; margin: 0 auto var(--space-2xl); width: 100%; }
-.tool-page.layout-wide .tool-page-hero { margin-bottom: var(--space-xl); }
+
+/* 세로 리듬. 형제끼리 최소 간격
+   인접 margin 합쳐짐이라 기존 여백이 크면 그쪽이 이김. 위젯 파일 안 건드리는 방식 */
+.tool-page.layout-form > .tab-panel.active > * + *,
+.tool-page.layout-wide > .tab-panel.active > * + * {
+    margin-top: var(--space-md);
+}
 
 /* ── Tabs ── */
 
@@ -2401,34 +2429,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 html[data-nav="sidebar"] .header-nav { display: none !important; }
 html[data-nav="sidebar"] .header-bar-right { grid-column: 3; }
 
+/* 왼쪽 목록. 늘 펼침
+   예전: 56px 아이콘 줄 + 마우스 얹어 확장. 도구 233개에 이름 가림은 목록 아님
+   실측: Grafana 320px, it-tools 240px, transform 196px 전부 이름 상시 노출
+   유리(backdrop-filter) 제거. 뒤 비침으로 배경 격자가 글자에 겹침 */
 html[data-nav="sidebar"] .sidebar {
     display: flex;
     position: fixed;
     top: 52px; /* header-bar 높이 */
     left: 0;
     bottom: 0;
-    width: var(--sidebar-collapsed-width);
-    background: var(--glass-strong);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: blur(14px);
+    width: var(--sidebar-width);
+    background: var(--bg-void);
     border-right: 1px solid var(--border);
     flex-direction: column;
     flex-shrink: 0;
     overflow: hidden;
-    transition: width var(--transition-slow);
     z-index: 50;
 }
 
-html[data-nav="sidebar"] .sidebar:hover {
-    width: var(--sidebar-width);
-}
-
 html[data-nav="sidebar"] .main-content {
-    margin-left: var(--sidebar-collapsed-width);
-    transition: margin-left var(--transition-slow);
-}
-
-html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     margin-left: var(--sidebar-width);
 }
 
@@ -2571,23 +2591,9 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
     transition: opacity var(--transition-slow);
 }
 
-/* 접힌 상태: opacity로만 숨김 (width 조작 없음 → reflow/줄바꿈 없음) */
-html[data-nav="sidebar"] .sidebar:not(:hover) .sidebar-group-label,
-html[data-nav="sidebar"] .sidebar:not(:hover) .nav-item-text {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* 펼친 상태: 텍스트 페이드인 */
-html[data-nav="sidebar"] .sidebar:hover .sidebar-group-label,
-html[data-nav="sidebar"] .sidebar:hover .nav-item-text {
-    opacity: 1;
-}
-
-html[data-nav="sidebar"] .sidebar:not(:hover) .sidebar-dev-links-icon { display: flex; }
-html[data-nav="sidebar"] .sidebar:not(:hover) .sidebar-dev-links-text { display: none; }
-html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-icon { display: flex; }
-html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inline; }
+/* 목록 상시 펼침이라 이름도 상시 노출. 예전엔 마우스 얹기 전까지 opacity 0 */
+html[data-nav="sidebar"] .sidebar-dev-links-icon { display: flex; }
+html[data-nav="sidebar"] .sidebar-dev-links-text { display: inline; }
 
 @media (max-width: 768px) {
     html[data-nav="sidebar"] .sidebar { display: none; }
