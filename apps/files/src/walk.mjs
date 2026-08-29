@@ -27,7 +27,9 @@ export async function walkFiles(root) {
       if (st.isDirectory()) await rec(abs);
       else if (st.isFile()) {
         const rel = relative(root, abs).split('\\').join('/');
-        out.push({ abs, rel });
+        /* 크기도 담는다 — 영상은 크기로 열람 저장 여부가 갈린다(mirror-policy).
+           `stat` 은 이미 했으므로 값이 공짜다. */
+        out.push({ abs, rel, size: st.size });
       }
     }
   }

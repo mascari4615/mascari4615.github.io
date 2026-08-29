@@ -10,6 +10,7 @@ import {
 } from './src/vault.mjs';
 import { pickVaultBase } from './src/vault-base.mjs';
 import { mountGallery, worthGallery } from './src/gallery.mjs';
+import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_KEY = 'files.laptop.pass';
@@ -535,9 +536,23 @@ async function renderVaultFile(path) {
   crumb.innerHTML = vaultCrumbs(path.split('/').slice(0, -1).join('/')) +
     '<span class="sep">/</span><a>' + esc(path.split('/').pop()) + '</a>';
   box.innerHTML = '<p class="none">여는 중…</p>';
+  /* 열람 저장(R2)에 없는 것은 여기서 못 연다 — 정본은 Drive 에 있다.
+     예전에는 그냥 「열 수 없습니다」였다. 왜 안 되는지 말해야 사람이 다음 수를 안다
+     (2026-08-29: 영상이 목록에는 뜨는데 눌러도 아무 말 없이 실패했다). */
+  const entry = (vaultListing ?? []).find((f) => f.path === path);
+  if (entry && !mirrorable(path, entry.size)) {
+    box.innerHTML =
+      '<p class="err">여기서는 못 여는 파일입니다.</p>' +
+      '<p class="none">화면에서 여는 것은 그림·글과 ' + fmtSize(VIDEO_MAX_BYTES) +
+      ' 이하 영상입니다. 이 파일은 ' + fmtSize(entry.size) +
+      ' — 원본은 클라우드에 그대로 있고, PC 에서 받을 수 있습니다.</p>';
+    return;
+  }
   const got = await getFile(vaultSession, path);
   if (!got) {
-    box.innerHTML = '<p class="err">이 항목을 열 수 없습니다.</p>';
+    box.innerHTML =
+      '<p class="err">이 항목을 열 수 없습니다.</p>' +
+      '<p class="none">열람 저장에 아직 안 올라왔을 수 있습니다 (올린 뒤 <code>mirror-backfill</code>).</p>';
     return;
   }
   const kind = previewKind(path);

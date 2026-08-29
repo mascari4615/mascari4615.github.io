@@ -13,7 +13,7 @@
  */
 import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
-import { fileChunkKeys, unlockVault } from './vault.mjs';
+import { fileChunkKeys, listFiles, unlockVault } from './vault.mjs';
 import { mirrorable } from './mirror-policy.mjs';
 
 await loadFilesEnv();
@@ -41,7 +41,9 @@ const session = await unlockVault(primary, pass);
 console.log('클라우드 염');
 
 const all = await fileChunkKeys(session);
-const targets = all.filter((f) => mirrorable(f.path));
+/* 영상은 크기로 가르므로(mirror-policy) 색인에서 크기를 붙여 온다 — 청크 키 목록에는 없다. */
+const sizeOf = new Map((await listFiles(session)).map((f) => [f.path, f.size]));
+const targets = all.filter((f) => mirrorable(f.path, sizeOf.get(f.path)));
 console.log(`열람 저장 대상 ${targets.length}개 / 전체 ${all.length}개`);
 
 /* 이미 R2 에 있는 키는 **목록 한 번**으로 안다.

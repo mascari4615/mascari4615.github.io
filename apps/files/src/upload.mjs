@@ -109,7 +109,8 @@ try {
       }
     }
     // 청크를 쓰는 자리는 session.store 다 — 파일마다 갈아끼워 R2 로 갈 것만 보낸다.
-    const toMirror = mirrorable(rel);
+    // 영상은 크기까지 봐야 판단된다 (mirror-policy: 큰 영상은 화면이 못 연다)
+    const toMirror = mirrorable(rel, f.size);
     if (toMirror) mirroredCount += 1;
     session.store = toMirror ? mirrored : primary;
     await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
