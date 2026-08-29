@@ -94,7 +94,10 @@ export function pathsInside(source) {
  * 모든 소스와 같은 뜻이라 **아무 정보가 없는** 발판. 이런 것은 알아낸 것으로 안 친다 . 
  * 넣어 봐야 그 검사는 늘 돌고, 발판을 알아냈다는 숫자만 부풀린다.
  */
-const meaningless = new Set(['src/**', 'src', 'data/**', 'data']);
+/* `src/lib` 도 여기 든다 (2026-08-29). 검사 하나가 그 폴더를 통째로 훑으면 유도가
+   `src/lib/**` 를 내주는데, 그건 도구 하나를 고쳐도 걸리는 자리다. `test:gate-derive` 의
+   함정 목록과 같은 판단이라 여기서 막는다. push, CI 는 언제나 통짜라 놓치는 것은 없다. */
+const meaningless = new Set(['src/**', 'src', 'data/**', 'data', 'src/lib', 'src/lib/**']);
 
 /** 그 경로가 폴더면 `dir/**` 로 넓힌다. 폴더를 훑는 검사는 그 안 아무 파일에나 걸린다. */
 function widen(rel) {

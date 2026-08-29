@@ -73,7 +73,7 @@ for (let i = 0; i < 60 && !near; i += 1) {
   await page.waitForTimeout(35);
   near = await page.evaluate(() => {
     const el = document.querySelector('#host .atlas-near');
-    return el ? { n: el.querySelectorAll('[data-goto]').length, first: el.querySelector('[data-goto]')?.textContent, title: document.querySelector('#host .atlas-card-title')?.textContent } : null;
+    return el ? { n: el.querySelectorAll('[data-atlas-goto]').length, first: el.querySelector('[data-atlas-goto]')?.textContent, title: document.querySelector('#host .atlas-card-title')?.textContent } : null;
   });
 }
 let moved = false;
@@ -81,7 +81,7 @@ console.log(near ? `  점 누름 → ${near.title}, 닮은 글 ${near.n}개, 첫
 
 if (near) {
   const before = await page.evaluate(() => document.querySelector('#host .atlas-card-title')?.textContent);
-  await page.click('#host .atlas-near [data-goto]');
+  await page.click('#host .atlas-near [data-atlas-goto]');
   await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
   const after = await page.evaluate(() => ({ t: document.querySelector('#host .atlas-card-title')?.textContent, s: window.__atlasScale }));
   console.log(`  닮은 글 누름 → ${before} → ${after.t}, 배율 ${Number(after.s).toFixed(2)}`);

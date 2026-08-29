@@ -60,6 +60,7 @@ for (const [path, label] of TARGETS) {
     });
     try {
       await page.goto(`${BASE}/${path}`, { waitUntil: 'load', timeout: 90000 });
+      // 재움-의도: load 뒤 2.5초 시점의 값이 이 측정의 정의
       await page.waitForTimeout(2500);
       const r = await page.evaluate(() => ({
         fcp: Math.round((performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || -1),

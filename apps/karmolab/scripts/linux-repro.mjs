@@ -62,9 +62,11 @@ const toMeasure = [
     phone: true,
     prepare: async (p) => {
       await p.waitForSelector('.km-canvas', { timeout: 20000 });
+      // 재움-의도: 애니메이션이 끝난 뒤의 좌표
       await p.waitForTimeout(1200);
       const b = await p.locator('.km-canvas').boundingBox();
       await p.mouse.dblclick(b.x + b.width * 0.4, b.y + b.height * 0.22);
+      // 재움-의도: 두 번 누른 뒤 열리는 판이 자리 잡을 때까지
       await p.waitForTimeout(900);
       await p.evaluate(() => document.querySelector('[data-km="time-add"]')?.click());
       await p.waitForTimeout(900);

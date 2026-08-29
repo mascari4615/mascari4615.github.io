@@ -60,6 +60,7 @@ for (let i = 0; i < RUNS; i++) {
     await ctx.close();
     continue;
   }
+  // 재움-의도: CLS 는 시간 동안 쌓이는 값. 흘려보내는 것이 곧 측정
   await page.waitForTimeout(5000);
   const rows = await page.evaluate(() => window.__cls);
   const total = rows.reduce((a, r) => a + r.v, 0);

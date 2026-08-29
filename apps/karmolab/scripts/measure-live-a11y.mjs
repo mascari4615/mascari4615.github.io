@@ -49,7 +49,8 @@ for (const url of URLS) {
     await ctx.close();
     continue;
   }
-  await page.waitForTimeout(2500);   // 늦게 오는 조각까지 화면에 붙은 뒤에 본다
+  // 재움-의도: 늦게 오는 조각까지 앉은 뒤의 화면이 판정 대상
+  await page.waitForTimeout(2500);
   await page.addScriptTag({ content: axeSource });
   const res = await page.evaluate(async () => {
     const r = await window.axe.run(document, { resultTypes: ['violations'] });

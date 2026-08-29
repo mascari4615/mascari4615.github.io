@@ -76,6 +76,7 @@ for (let i = 0; i < RUNS; i++) {
     try { await a.run(page); await page.waitForTimeout(600); }
     catch { skipped.push(a.name); }
   }
+  // 재움-의도: 누른 뒤 반응이 끝난 시점의 값. 기다릴 조건이 아니라 흘러간 시간이 축
   await page.waitForTimeout(600);
 
   const rows = await page.evaluate(() => window.__inp);

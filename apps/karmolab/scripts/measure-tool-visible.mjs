@@ -66,6 +66,7 @@ for (const id of IDS) {
 
     try {
       await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'load', timeout: 90000 });
+      // 재움-의도: load 뒤 2.5초 시점에 보이는 것의 수
       await page.waitForTimeout(2500);
       const r = await page.evaluate(() => ({
         tool: Math.round(window.__toolAt),

@@ -106,8 +106,10 @@ async function once(path, variant) {
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
 
   await page.goto(`${BASE}${path}`, { waitUntil: 'load' });
-  await page.waitForTimeout(3500);           // 늦게 따라오는 것들(아이콘, 꾸밈)이 다 앉을 때까지
+  // 재움-의도: 늦게 따라오는 것들(아이콘, 꾸밈)이 앉은 뒤의 런타임 비용
+  await page.waitForTimeout(3500);
   await page.evaluate(VARIANTS[variant]).catch(() => {});
+  // 재움-의도: 조작 뒤 600ms 시점의 비용 측정
   await page.waitForTimeout(600);
 
   /* ① 쉬는가. 이 구간만 기기 느리게를 끈다. 켠 채로 재면 느리게 만드느라 태운 CPU 가 섞인다. */
