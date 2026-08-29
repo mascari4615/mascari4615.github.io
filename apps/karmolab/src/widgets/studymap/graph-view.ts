@@ -159,6 +159,10 @@ export function mountTree(host: HTMLElement, layout: TreeLayout, opts: TreeViewO
     onNodeClick: (id) => opts.onPick(id),
   });
   canvas.setSpec(toGraphSpec(layout, opts.size ?? 64, opts.laneLabels ?? [], opts.groups ?? []));
+  /* **보기 전용으로 못 박는다.** 이 파일 맨 위에 「끌어서 옮기기는 주지 않는다」고 적어 두고
+     정작 끄지 않아서, 묶음과 칸을 끌면 지도가 움직였다 — 지도는 사람이 고치는 물건이 아니다.
+     엔진은 손잡이를 숨기는 게 아니라 **안 만든다**(숨기기는 CSS 한 줄만 어긋나도 새어 나온다). */
+  canvas.setEditable(false);
   canvas.render();
 
   /* 추천 경로에 불을 켠다 — 엔진의 활성 집합을 그대로 쓴다(같은 장치를 두 벌 만들지 않는다). */

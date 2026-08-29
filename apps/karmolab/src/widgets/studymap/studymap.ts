@@ -319,7 +319,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
    스스로 정한다. 62vh 짜리 상자에 41갈래를 넣으니 지도가 아니라 우표였다.
    작은 화면에서도 420px 는 되고, 커도 화면을 넘지 않는다. */
 .sm-tree { height: clamp(420px, calc(100svh - 200px), 900px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
-.sm-tree-in { width: 100%; height: 100%; }
+.sm-tree-in { width: 100%; height: 100%;
+  /* 끌면 글자가 잡혀 파랗게 칠해졌다 — 지도는 미는 물건이지 고르는 물건이 아니다. */
+  user-select: none; -webkit-user-select: none; }
 /* 나무 보기 = **지도가 화면이다** (블루마블 bm-wrap 규약 그대로).
    ① 화면 높이를 스스로 갖고 ② 위로 끌어올려 머리띠 밑까지 파고들고 ③ 조작부는 전부 **떠 있다.**
    앞선 두 판은 지도를 상자에 넣은 채 제목·진도·「이어서」를 위에 쌓아 340px 를 먹였다 —
@@ -1586,16 +1588,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     });
 
     /* 목록 눈과 나무 눈을 오간다 — 읽을 때는 목록, 길을 볼 때는 나무. */
-    /* 왼쪽 조각은 접힌 채로 시작한다 — 편 채로 두면 지도가 처음부터 가려진다.
-       편 상태는 기억한다(늘 쓰는 사람에게 매번 다시 펴게 하지 않는다). */
-    const PANEL_KEY = 'karmolab-studymap-panel';
-    let panelOpen = (() => {
-      try {
-        return localStorage.getItem(PANEL_KEY) === '1';
-      } catch {
-        return false;
-      }
-    })();
+    /* 왼쪽 조각은 **늘 접힌 채로 시작한다.** 편 상태를 기억하게 했더니 한 번 편 뒤로는
+       열 때마다 지도가 가려져 있었다 — 첫 화면은 지도여야 한다. 펴는 것은 그 자리의 선택이다. */
+    let panelOpen = false;
     const elMapMenu = q<HTMLButtonElement>('mapmenu');
     const paintPanel = (): void => {
       container.querySelector('.sm-wrap')?.classList.toggle('is-panel', panelOpen);
@@ -1603,11 +1598,6 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     };
     elMapMenu.addEventListener('click', () => {
       panelOpen = !panelOpen;
-      try {
-        localStorage.setItem(PANEL_KEY, panelOpen ? '1' : '0');
-      } catch {
-        /* 못 적어도 이번 화면은 바뀐다 */
-      }
       paintPanel();
     });
     paintPanel();

@@ -498,7 +498,11 @@ export class GraphCanvas {
       const hitEl = target.closest('.ck-edge-hit') as SVGPathElement | null;
       this.pressEdgeId = hitEl?.dataset.edgeId ?? null;
       this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: hits.node ?? null };
-      if (intent.kind === 'node-drag') {
+      /* 보기 전용이면 **끌어서 옮기기가 아예 없다** — 누른 채 끌면 화면이 밀린다(지도의 몸짓).
+         `setEditable(false)` 는 손잡이만 안 만들었지 노드·묶음 끌기는 그대로 열려 있었다:
+         스터디 맵에서 갈래를 끌면 지도가 흐트러졌다(2026-08-29 실측). 누르는 뜻 자체를 막는다.
+         누름 기록(`pressOrigin`)은 위에서 이미 남겼으므로 **누르기(클릭)는 그대로 산다.** */
+      if (intent.kind === 'node-drag' && this.editable) {
         const nodeId = intent.nodeId;
         const coords = this.nodeCoords.get(nodeId);
         if (!coords) return;
@@ -521,7 +525,7 @@ export class GraphCanvas {
           this.multiDrag = null;
         }
         this.svg.style.cursor = 'grabbing';
-      } else if (intent.kind === 'group-drag') {
+      } else if (intent.kind === 'group-drag' && this.editable) {
         // 그룹 드래그 — 멤버 노드 + anchor 같이 이동
         const groupId = intent.groupId;
         const grp = this.spec?.groups.find((g) => g.id === groupId);
