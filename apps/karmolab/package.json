@@ -117,6 +117,7 @@
     "audit:labels": "node scripts/audit-input-labels.mjs",
     "audit:live": "node scripts/audit-live-essentials.mjs",
     "audit:live-fresh": "node scripts/audit-live-fresh.mjs",
+    "audit:canonical": "node scripts/audit-canonical.mjs",
     "audit:locale-inline": "node scripts/audit-locale-inline.mjs",
     "audit:loose": "node scripts/audit-loose-checks.mjs",
     "audit:material-shell": "node scripts/audit-material-shell.mjs",

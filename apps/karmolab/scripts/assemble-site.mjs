@@ -111,6 +111,8 @@ function sitemapEligible(page, thin, hubs) {
     if (/^\/page\d+\/?$/.test(url)) return false; // drop-paginated
     if (/^\/assets\/doc\//.test(url)) return false; // drop-thin (파일)
     if (NOINDEX.test(page.html)) return false; // drop-noindex
+    // 검색엔진 소유 확인 파일. 색인 대상이 아니고 대표 주소도 없다 (2026-08-29 audit-canonical 로 드러남)
+    if (/^\/(google|naver)[0-9a-f]+\.html$/.test(url)) return false;
     const tool = url.match(TOOL_URL);
     if (tool && thin && thin.has(tool[1]) && hubs.has(tool[1]) === false) return false; // focus. 얇은 도구 (모이는 자리 면제)
     return true;

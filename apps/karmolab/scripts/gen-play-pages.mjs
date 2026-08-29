@@ -115,6 +115,13 @@ for (const game of roster) {
   html = replaceMeta(html, 'property', 'og:title', text.title);
   html = replaceMeta(html, 'property', 'og:description', text.description);
   html = replaceMeta(html, 'property', 'og:url', `${SITE}${permalink}`);
+  /* 대표 주소를 제 주소로 (2026-08-29). 셸에서 온 뿌리 canonical 을 안 갈면 이 장은
+     뿌리의 사본 취급이라 색인에서 통째로 빠진다. `/play/worldcup/` 이 그렇게 빠져 있었고
+     그 검색어 수요가 3개월 93.1K 다 */
+  html = html.replace(
+    `<link rel="canonical" href="${SITE}/">`,
+    `<link rel="canonical" href="${SITE}${permalink}">`
+  );
   html = asStaticPage(html, { kind: 'play', bodyHtml: body(game, text), head: STYLE });
 
   const dir = path.join(OUT, 'play', game.id);

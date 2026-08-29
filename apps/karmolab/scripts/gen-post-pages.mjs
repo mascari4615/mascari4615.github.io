@@ -259,6 +259,12 @@ for (const post of posts) {
     }
     page = replaceMeta(page, 'property', 'og:title', post.title);
     page = replaceMeta(page, 'property', 'og:url', `${SITE}${permalink}`);
+    /* 셸이 들고 온 뿌리 canonical 을 뺀다 (2026-08-29). `postHead` 가 제 주소로 하나를 더 박아서
+       글 장마다 canonical 이 두 개였다. 둘이면 검색엔진이 어느 쪽을 믿을지 우리가 못 정한다 */
+    const shellCanonical = `    <link rel="canonical" href="${SITE}/">
+`;
+    if (!page.includes(shellCanonical)) throw new Error('[gen-post-pages] 셸 canonical 자리를 못 찾았다. index.html 확인');
+    page = page.replace(shellCanonical, '');
     page = asStaticPage(page, {
         kind: 'post',
         bodyHtml: postBody(post, html, {
