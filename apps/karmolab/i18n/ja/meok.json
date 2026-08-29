@@ -149,5 +149,13 @@
   "meok.toShelfHelp": "つくったものを棚に上げる (CC0)",
   "meok.shelfKeyAsk": "棚の鍵（このブラウザにだけ残る）",
   "meok.shelfSending": "棚に上げている...",
-  "meok.shelfDone": "棚に上げた"
+  "meok.shelfDone": "棚に上げた",
+  "meok.saveGif": "GIF",
+  "meok.saveGifHelp": "フレームを動くGIF一枚に。毎秒の値が速さになる",
+  "meok.gifNoEncoder": "GIFを作るものがまだ届いていない。少し後にもう一度",
+  "meok.gifNeedsFrames": "フレームが二枚は必要",
+  "meok.gifBaking": "焼いている",
+  "meok.gifDone": "GIFができた",
+  "meok.gifFailed": "GIFを焼けなかった",
+  "meok.gifShrunk": "焼いている"
 }

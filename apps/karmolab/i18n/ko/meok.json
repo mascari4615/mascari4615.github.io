@@ -149,5 +149,13 @@
   "meok.toShelfHelp": "만든 것을 선반에 올린다 (CC0)",
   "meok.shelfKeyAsk": "선반 열쇠 (이 브라우저에만 남는다)",
   "meok.shelfSending": "선반에 올리는 중...",
-  "meok.shelfDone": "선반에 올렸다"
+  "meok.shelfDone": "선반에 올렸다",
+  "meok.saveGif": "GIF",
+  "meok.saveGifHelp": "프레임을 움직이는 GIF 한 장으로. 초당 값이 속도가 된다",
+  "meok.gifNoEncoder": "GIF 만드는 것을 아직 못 받았다. 잠시 뒤 다시",
+  "meok.gifNeedsFrames": "프레임이 두 장은 있어야 움직인다",
+  "meok.gifBaking": "굽는 중",
+  "meok.gifDone": "GIF 나왔다",
+  "meok.gifFailed": "GIF 를 못 구웠다",
+  "meok.gifShrunk": "굽는 중"
 }

@@ -149,5 +149,13 @@
   "meok.toShelfHelp": "Put what you made on the shelf (CC0)",
   "meok.shelfKeyAsk": "Shelf key (stays in this browser)",
   "meok.shelfSending": "Sending to the shelf...",
-  "meok.shelfDone": "Put on the shelf"
+  "meok.shelfDone": "Put on the shelf",
+  "meok.saveGif": "GIF",
+  "meok.saveGifHelp": "Frames into one animated GIF. The per-second value sets the speed",
+  "meok.gifNoEncoder": "The GIF encoder has not arrived yet. Try again shortly",
+  "meok.gifNeedsFrames": "Needs at least two frames to move",
+  "meok.gifBaking": "Baking",
+  "meok.gifDone": "GIF ready",
+  "meok.gifFailed": "Could not bake the GIF",
+  "meok.gifShrunk": "Baking"
 }

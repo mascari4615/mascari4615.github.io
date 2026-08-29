@@ -14,7 +14,10 @@ import { loadNamespace, t } from '../../lib/i18n';
 import { download, encode } from '../tools/shared/image';
 import { intervalWhileVisible } from '../../lib/tick';
 import { Stroke, defaultBrush, pickColor, type BrushSettings } from './brush';
-import { composite, spriteSheet } from './composite';
+import { composite, compositeAll, spriteSheet } from './composite';
+/* GIF 인코더. 약속만 여기서 받고 코드는 늦게 온다. 이미지 묶음이 `tools/gifenc` 를 같이 실으므로
+   먹이 뜬 시점에는 이미 와 있다 (`widgets-lazy-meta.ts` 의 image 묶음 lazyScriptPaths). */
+import { getKarmoGif } from '../../lib/karmogif';
 import {
   BLEND_MODES, activeLayer, addLayer, celAt, cloneSurface, createDoc, createSurface,
   ensureCel, findLayer, insertFrame, isHold, mergeDown, moveLayer, removeFrame, removeLayer,
@@ -201,6 +204,7 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
       '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
+      '<button data-act="save-gif" title="' + esc(T('saveGifHelp', '프레임을 움직이는 GIF 한 장으로. 초당 값이 속도가 된다')) + '">' + esc(T('saveGif', 'GIF')) + '</button>' +
       '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어, 프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
       '<span class="meok-status" data-status></span>' +
@@ -1152,6 +1156,49 @@ function buildMeok(container: HTMLElement): void {
       const scale = doc.grid > 0 ? 1 : 1;
       void encode(surfaceToCanvas(spriteSheet(doc, undefined, scale)), 'png')
         .then(blob => download(blob, safeName(doc.name) + '-' + doc.frames + 'f.png'));
+    },
+    /**
+     * 프레임을 움직이는 GIF 한 장으로. 굽는 재료는 `compositeAll` 이 내놓는 그림 그대로,
+     * 즉 화면과 저장물이 어긋날 자리 없음. 속도는 타임라인의 초당 값.
+     *
+     * 인코더는 `window.KarmoGif` 로 늦게 옴. 못 받았으면 그 사실을 말한다. 몰래 기다리면
+     * 누른 뒤 몇 초 있다 반응하는 버튼이 됨.
+     */
+    'save-gif': () => {
+      const gif = getKarmoGif();
+      if (!gif) { say(T('gifNoEncoder', 'GIF 만드는 것을 아직 못 받았다. 잠시 뒤 다시')); return; }
+      if (doc.frames < 2) { say(T('gifNeedsFrames', '프레임이 두 장은 있어야 움직인다')); return; }
+      const button = root.querySelector<HTMLButtonElement>('[data-act="save-gif"]');
+      if (button) button.disabled = true;
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      /* 긴 변 상한. 인코딩 시간이 픽셀 수를 따라 가파르게 는다 (같은 기계 3프레임 실측:
+         512^2 1.4초, 1024^2 9.9초). 512 로 줄여 구우면 1024^2 문서 3프레임이 5.1초
+         (합성 2.0 + 줄이기 2.1 + 인코딩 1.0). GIF 는 움직이는 것을 보여 주는 그림이라
+         512 면 충분하고, 원본 크기가 필요하면 PNG 와 시트가 그 자리에 있다. */
+      const LONG_EDGE = 512;
+      const long = Math.max(doc.w, doc.h);
+      const scale = long > LONG_EDGE ? LONG_EDGE / long : 1;
+      const outW = Math.max(1, Math.round(doc.w * scale));
+      const outH = Math.max(1, Math.round(doc.h * scale));
+      say(scale < 1 ? T('gifShrunk', '굽는 중') + ' ' + outW + 'x' + outH : T('gifBaking', '굽는 중'));
+      /* 굽기 전에 한 번 쉰다. 안 그러면 위 문구가 화면에 못 뜨고 바로 긴 계산에 들어간다. */
+      setTimeout(() => {
+        const frames = compositeAll(doc).map(surface => ({
+          data: (scale < 1 ? resize(surface, outW, outH, doc.grid === 0) : surface).data,
+          delayMs
+        }));
+        void gif.encodeAsync({
+          width: outW, height: outH, frames,
+          onProgress: ratio => say(T('gifBaking', '굽는 중') + ' ' + Math.round(ratio * 100) + '%')
+        }).then(blob => {
+          download(blob, safeName(doc.name) + '.gif');
+          say(T('gifDone', 'GIF 나왔다') + ' ' + Math.round(blob.size / 1024) + 'KB');
+        }).catch(() => {
+          say(T('gifFailed', 'GIF 를 못 구웠다'));
+        }).finally(() => {
+          if (button) button.disabled = false;
+        });
+      }, 0);
     },
     'save-meok': () => {
       const stored = packDoc(doc);
