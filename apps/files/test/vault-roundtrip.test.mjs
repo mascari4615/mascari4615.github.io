@@ -133,3 +133,20 @@ test('deferIndex 는 idx 를 묶어서 쓴다', async () => {
   assert.equal(idxPuts, 1);
   assert.deepEqual((await listFiles(session)).map((f) => f.path).sort(), ['a.bin', 'b.bin']);
 });
+
+test('받는 동안 조각마다 알린다', async () => {
+  /* 큰 파일은 여기서 몇 초씩 멈춘다. 그 사이 화면이 아무 말이 없으면 멈춘 것처럼 보인다 */
+  const s = await createVault(memoryStore(), 'pw', { iterations: 1000 });
+  await putFile(s, 'big.bin', new Uint8Array(300), { chunkSize: 100 });
+  const seen = [];
+  const got = await getFile(s, 'big.bin', { onProgress: (d, a, b) => seen.push([d, a, b]) });
+  assert.equal(got.bytes.length, 300);
+  /* 시작한 것이 보이게 0 부터 */
+  assert.deepEqual(seen, [[0, 3, 0], [1, 3, 100], [2, 3, 200], [3, 3, 300]]);
+});
+
+test('알림을 안 줘도 그대로 받는다', async () => {
+  const s = await createVault(memoryStore(), 'pw', { iterations: 1000 });
+  await putFile(s, 'a.bin', new Uint8Array([1, 2, 3]));
+  assert.equal((await getFile(s, 'a.bin')).bytes.length, 3);
+});

@@ -195,7 +195,7 @@ function mountDesktopNav() {
     return;
   }
   el.hidden = false;
-  // 아이콘은 카모랩 셸의 창 단추와 같은 모양이다. 같은 앱인데 결이 다르면 붙인 티가 난다.
+  // 아이콘은 카모랩 셸의 창 버튼과 같은 모양이다. 같은 앱인데 결이 다르면 붙인 티가 난다.
   const ico = (d) =>
     '<svg viewBox="0 0 12 12" aria-hidden="true">' + d + '</svg>';
   el.innerHTML =
@@ -517,7 +517,7 @@ function siftBar(total, shown) {
 function pickBar(files) {
   const total = files.filter((f) => chosen.has(f.path)).reduce((n, f) => n + f.size, 0);
   return '<div class="pickbar">' +
-    '<span class="pb-at">' + chosen.size + '개 고름 · ' + fmtSize(total) + '</span>' +
+    '<span class="pb-at">' + chosen.size + '개 고름, ' + fmtSize(total) + '</span>' +
     '<button type="button" class="fb-btn" data-pick="all">모두</button>' +
     '<button type="button" class="fb-btn" data-pick="none">해제</button>' +
     '<span class="fb-gap"></span>' +
@@ -545,8 +545,14 @@ async function downloadChosen(files, button) {
   const parts = [];
   try {
     for (let i = 0; i < targets.length; i++) {
-      button.textContent = (i + 1) + ' / ' + targets.length;
-      const got = await getFile(vaultSession, targets[i].path);
+      const at = (i + 1) + ' / ' + targets.length;
+      button.textContent = at;
+      /* 큰 파일 하나에서 오래 멈춘 것처럼 보이지 않게 조각 수도 같이 */
+      const got = await getFile(vaultSession, targets[i].path, {
+        onProgress: (done, all) => {
+          button.textContent = all > 1 ? `${at}, ${done}/${all} 조각` : at;
+        },
+      });
       if (got) parts.push({ name: targets[i].path.split('/').pop(), bytes: got.bytes });
     }
     if (!parts.length) throw new Error('none');
@@ -909,7 +915,7 @@ async function renderVaultFile(path) {
   });
   crumb.innerHTML = vaultCrumbs(path.split('/').slice(0, -1).join('/')) +
     '<span class="sep">/</span><a>' + esc(path.split('/').pop()) + '</a>';
-  box.innerHTML = '<p class="none">여는 중...</p>';
+  box.innerHTML = '<p class="none" id="opening">여는 중...</p>';
   /* 열람 저장(R2)에 없으면 여기서 못 엶. 정본은 Drive.
      예전엔 그냥 열 수 없습니다. 이유를 말해야 사람이 다음 수를 앎
      (2026-08-29: 영상이 목록엔 뜨는데 눌러도 조용히 실패) */
@@ -922,7 +928,15 @@ async function renderVaultFile(path) {
       '. 원본은 클라우드에 그대로 있고 PC 에서 받을 수 있습니다.</p>';
     return;
   }
-  const got = await getFile(vaultSession, path);
+  /* 청크마다 알린다. 100MB 면 열세 번 온다. 그 사이 아무 말이 없으면 멈춘 것처럼 보인다.
+     조각이 하나뿐이면 숫자가 0 / 1 에서 1 / 1 로 튀기만 해 도움이 안 된다 */
+  const note = box.querySelector('#opening');
+  const got = await getFile(vaultSession, path, {
+    onProgress: (done, all, bytes) => {
+      if (!note || !note.isConnected || all < 2) return;
+      note.textContent = `여는 중 ${done} / ${all} 조각 (${fmtSize(bytes)})`;
+    },
+  });
   if (!got) {
     box.innerHTML =
       '<p class="err">이 항목을 열 수 없습니다.</p>' +

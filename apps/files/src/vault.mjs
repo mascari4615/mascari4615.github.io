@@ -354,19 +354,29 @@ export async function thumbKeys(session) {
   return index.files.filter((f) => f.thumb).map((f) => ({ path: f.path, key: `t/${f.id}` }));
 }
 
-export async function getFile(session, path) {
+/**
+ * 파일 하나 받아 복호.
+ *
+ * `opts.onProgress(done, all, bytes)` 를 주면 청크마다 부른다. 큰 파일은 청크가 8MB 라
+ * 100MB 면 열세 번 온다. 그 사이 화면이 아무 말이 없으면 멈춘 것처럼 보인다.
+ */
+export async function getFile(session, path, opts = {}) {
   const norm = normalizePath(path);
   const index = await loadIndex(session);
   const entry = index.files.find((f) => f.path === norm);
   if (!entry) return null;
   const parts = [];
   let total = 0;
+  const tell = typeof opts.onProgress === 'function' ? opts.onProgress : null;
+  /* 받기 전에 한 번. 0 / 13 을 먼저 보여 줘야 시작한 것이 보인다 */
+  tell?.(0, entry.chunks, 0);
   for (let i = 0; i < entry.chunks; i++) {
     const packed = await session.store.get(`c/${entry.id}/${i}`);
     if (!packed) throw new VaultCorruptError('missing chunk');
     const part = await open(session.key, packed, aadChunk(entry.id, i));
     parts.push(part);
     total += part.length;
+    tell?.(i + 1, entry.chunks, total);
   }
   const out = new Uint8Array(total);
   let off = 0;
