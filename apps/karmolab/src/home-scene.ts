@@ -399,8 +399,25 @@
             parked = true;
             ramp(1, 0, EASE_MS, true);
         }
+        /* 장식은 첫 화면의 물건 — 도구 장은 읽는 자리라 배경이 흐를 까닭 없음.
+           깨우는 조건에 스크롤이 있어 긴 글을 읽는 내내 한 번도 안 쉼.
+           위 주석의 실측값으로 그 상태가 코어의 42%. 도구 장에서는 안 깨움 */
+        const onHome = () => {
+            const h = (location.hash || '').slice(1);
+            return !h || h === 'home';
+        };
+
+        /** 도구 장에서는 **곧바로** 세운다. 잦아들기는 rAF 로 도는데, 보고 있지도 않은 자리에서
+            프레임을 기다리다 영영 안 서는 일이 있었다(가려진 탭은 rAF 가 안 온다). */
+        function parkNow() {
+            cancelAnimationFrame(rampRaf);
+            parked = true;
+            for (const a of floats()) { try { a.pause(); } catch { /* 무시 */ } }
+        }
+
         function wake() {
             clearTimeout(idleTimer);
+            if (!onHome()) { parkNow(); return; }
             idleTimer = setTimeout(park, IDLE_MS);
             if (!parked) return;
             parked = false;
@@ -412,12 +429,16 @@
            스크롤만 하는 사람에게는 배경이 죽은 것처럼 보인다. */
         for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'])
             window.addEventListener(ev, wake, bye);
+        /* 장을 옮기면 그 자리에서 판정한다 — 첫 화면으로 돌아오면 다시 흐른다. */
+        window.addEventListener('hashchange', wake, bye);
         /* 창을 내려 두면 기다리지 않고 바로 세운다 — 브라우저가 알아서 늦추기도 하지만
            탭이 보이는 채로 가려져 있는 경우까지는 안 봐 준다. */
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) { clearTimeout(idleTimer); park(); } else wake();
         }, bye);
-        idleTimer = setTimeout(park, IDLE_MS);
+        /* 첫 화면이 아닌 자리에서 열렸으면 처음부터 안 흐른다. */
+        if (onHome()) idleTimer = setTimeout(park, IDLE_MS);
+        else parkNow();
 
         return wrap;
     }
