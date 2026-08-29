@@ -305,6 +305,7 @@
     "smoke:timeshell",
     "smoke:vidshell",
     "smoke:newtools",
+    "smoke:shell-layout",
     "smoke:sndshell",
     "audit:loose",
     "test:audiorate",

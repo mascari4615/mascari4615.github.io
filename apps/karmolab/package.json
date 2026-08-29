@@ -462,7 +462,8 @@
     "test:post-model": "node scripts/test-post-model.mjs",
     "gen:docs-pages": "node scripts/gen-docs-pages.mjs",
     "test:docs-pages": "node scripts/test-docs-pages.mjs",
-    "test:pwa-update": "node scripts/test-pwa-update.mjs"
+    "test:pwa-update": "node scripts/test-pwa-update.mjs",
+    "smoke:shell-layout": "node scripts/smoke-shell-layout.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",
