@@ -116,6 +116,7 @@
     "audit:jpegbg": "node scripts/audit-jpeg-background.mjs",
     "audit:labels": "node scripts/audit-input-labels.mjs",
     "audit:live": "node scripts/audit-live-essentials.mjs",
+    "audit:live-fresh": "node scripts/audit-live-fresh.mjs",
     "audit:locale-inline": "node scripts/audit-locale-inline.mjs",
     "audit:loose": "node scripts/audit-loose-checks.mjs",
     "audit:material-shell": "node scripts/audit-material-shell.mjs",

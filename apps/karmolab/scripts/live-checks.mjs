@@ -113,6 +113,9 @@ const RAW_CHECKS = [
   { name: '스크립트 없이도 읽히는지', cmd: ['npm', 'run', 'test:nojs'] },
   { name: '미리 그린 화면에 손이 달리는지', cmd: ['npm', 'run', 'test:hydration'] },
   { name: '실제 사이트에 있어야 하는 것이 있는지', cmd: ['npm', 'run', 'audit:live'], live: true },
+  /* 있어야 할 것이 다 있어도 낡았을 수 있음. 2026-08-29 배포 세 판 빨강, 위 검사는 16/16 초록.
+     요소 유무와 신선도는 다른 물음 */
+  { name: '지금 뜬 사이트가 최신 판인지', cmd: ['npm', 'run', 'audit:live-fresh'], live: true },
   { name: '놀이 셋이 성한지', cmd: ['node', '../play/scripts/smoke.mjs'] },
   /* 놀이 열 판이 **지어지기는 하나**. 말 묶음을 이르게 부르면 위젯이 통째로 안 올라간다.
      도구 장이 없는 놀이는 `test:i18n:runtime` 이 안 보고 있었다 (2026-08-14 실서비스 고장). */

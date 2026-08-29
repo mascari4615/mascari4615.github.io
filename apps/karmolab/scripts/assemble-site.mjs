@@ -119,6 +119,15 @@ function sitemapEligible(page, thin, hubs) {
 // ---------------------------------------------------------------- 조립
 
 const started = new Date().toISOString();
+
+/** 지금 체크아웃 HEAD sha. CI 에서는 GITHUB_SHA 우선 */
+function gitHeadSha() {
+    try {
+        return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: SITE_SRC, encoding: 'utf8' }).trim();
+    } catch {
+        return '';
+    }
+}
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -189,6 +198,15 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'), xml);
 // 같은 목록을 두 번째 주소로도 낸다. GSC 는 이미 제출된 주소를 새 행으로 안 만들어서,
 // 뿌리 이관(2026-08-27) 뒤 바뀐 목록을 읽히려면 다른 주소가 필요하다 (seo-ops 공백 ②).
 fs.writeFileSync(path.join(OUT, 'sitemap-root.xml'), xml);
+
+// 라이브 판본 표시 (2026-08-29)
+//   - 왜냐면 배포 세 판 연속 빨강인데 `audit-live-essentials` 는 16/16 초록. 요소 유무만 재는 검사
+//   - 이 sha 로 신선도를 바깥에서 잰다 (`audit-live-fresh.mjs`)
+const buildSha = process.env.GITHUB_SHA || gitHeadSha() || '';
+fs.writeFileSync(
+    path.join(OUT, 'build.json'),
+    JSON.stringify({ sha: buildSha, builtAt: started }, null, 2) + '\n'
+);
 
 console.log(
     `[assemble] 머리말 장 ${processed}, 정적 복사 ${copied}, 사이트맵 ${listed.length}장 (후보 ${pages.length}) → ${path.relative(process.cwd(), OUT)}`
