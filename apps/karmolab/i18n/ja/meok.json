@@ -157,5 +157,9 @@
   "meok.gifBaking": "焼いている",
   "meok.gifDone": "GIFができた",
   "meok.gifFailed": "GIFを焼けなかった",
-  "meok.gifShrunk": "焼いている"
+  "meok.gifShrunk": "焼いている",
+  "meok.saveApng": "APNG",
+  "meok.saveApngHelp": "動くPNG。半透明の縁が残る。Discordのステッカーはこの形式",
+  "meok.apngDone": "APNGができた",
+  "meok.apngFailed": "APNGを焼けなかった"
 }

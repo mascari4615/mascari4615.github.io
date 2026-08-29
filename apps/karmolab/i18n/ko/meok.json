@@ -157,5 +157,9 @@
   "meok.gifBaking": "굽는 중",
   "meok.gifDone": "GIF 나왔다",
   "meok.gifFailed": "GIF 를 못 구웠다",
-  "meok.gifShrunk": "굽는 중"
+  "meok.gifShrunk": "굽는 중",
+  "meok.saveApng": "APNG",
+  "meok.saveApngHelp": "움직이는 PNG. 반투명 가장자리가 살아 있다. 디스코드 스티커가 이 형식",
+  "meok.apngDone": "APNG 나왔다",
+  "meok.apngFailed": "APNG 를 못 구웠다"
 }

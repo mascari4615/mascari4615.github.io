@@ -18,6 +18,7 @@ import { composite, compositeAll, spriteSheet } from './composite';
 /* GIF 인코더. 약속만 여기서 받고 코드는 늦게 온다. 이미지 묶음이 `tools/gifenc` 를 같이 실으므로
    먹이 뜬 시점에는 이미 와 있다 (`widgets-lazy-meta.ts` 의 image 묶음 lazyScriptPaths). */
 import { getKarmoGif } from '../../lib/karmogif';
+import { encodeApng } from './apng';
 import {
   BLEND_MODES, activeLayer, addLayer, celAt, cloneSurface, createDoc, createSurface,
   ensureCel, findLayer, insertFrame, isHold, mergeDown, moveLayer, removeFrame, removeLayer,
@@ -205,6 +206,7 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
       '<button data-act="save-gif" title="' + esc(T('saveGifHelp', '프레임을 움직이는 GIF 한 장으로. 초당 값이 속도가 된다')) + '">' + esc(T('saveGif', 'GIF')) + '</button>' +
+      '<button data-act="save-apng" title="' + esc(T('saveApngHelp', '움직이는 PNG. 반투명 가장자리가 살아 있다. 디스코드 스티커가 이 형식')) + '">' + esc(T('saveApng', 'APNG')) + '</button>' +
       '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어, 프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
       '<span class="meok-status" data-status></span>' +
@@ -1195,6 +1197,39 @@ function buildMeok(container: HTMLElement): void {
           say(T('gifDone', 'GIF 나왔다') + ' ' + Math.round(blob.size / 1024) + 'KB');
         }).catch(() => {
           say(T('gifFailed', 'GIF 를 못 구웠다'));
+        }).finally(() => {
+          if (button) button.disabled = false;
+        });
+      }, 0);
+    },
+    /**
+     * 움직이는 PNG. GIF 와 재료도 상한도 같고 형식만 다름.
+     * GIF 는 색 256개에 투명이 켜짐과 꺼짐 둘뿐이라 반투명 가장자리가 계단.
+     * APNG 는 그 가장자리를 그대로 들고 감. 대신 파일이 큼.
+     */
+    'save-apng': () => {
+      if (doc.frames < 2) { say(T('gifNeedsFrames', '프레임이 두 장은 있어야 움직인다')); return; }
+      const button = root.querySelector<HTMLButtonElement>('[data-act="save-apng"]');
+      if (button) button.disabled = true;
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      const long = Math.max(doc.w, doc.h);
+      const scale = long > 512 ? 512 / long : 1;
+      const outW = Math.max(1, Math.round(doc.w * scale));
+      const outH = Math.max(1, Math.round(doc.h * scale));
+      say(T('gifBaking', '굽는 중') + (scale < 1 ? ' ' + outW + 'x' + outH : ''));
+      setTimeout(() => {
+        const frames = compositeAll(doc).map(surface => ({
+          data: (scale < 1 ? resize(surface, outW, outH, doc.grid === 0) : surface).data,
+          delayMs
+        }));
+        void encodeApng({
+          width: outW, height: outH, frames,
+          onProgress: ratio => say(T('gifBaking', '굽는 중') + ' ' + Math.round(ratio * 100) + '%')
+        }).then(blob => {
+          download(blob, safeName(doc.name) + '.png');
+          say(T('apngDone', 'APNG 나왔다') + ' ' + Math.round(blob.size / 1024) + 'KB');
+        }).catch(() => {
+          say(T('apngFailed', 'APNG 를 못 구웠다'));
         }).finally(() => {
           if (button) button.disabled = false;
         });

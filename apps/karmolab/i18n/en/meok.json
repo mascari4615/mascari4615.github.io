@@ -157,5 +157,9 @@
   "meok.gifBaking": "Baking",
   "meok.gifDone": "GIF ready",
   "meok.gifFailed": "Could not bake the GIF",
-  "meok.gifShrunk": "Baking"
+  "meok.gifShrunk": "Baking",
+  "meok.saveApng": "APNG",
+  "meok.saveApngHelp": "Animated PNG. Soft edges survive. Discord stickers use this format",
+  "meok.apngDone": "APNG ready",
+  "meok.apngFailed": "Could not bake the APNG"
 }
