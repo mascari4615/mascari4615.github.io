@@ -26,7 +26,7 @@ export const generated = [
     why: '말 판, 지역 표를 코드로 찍은 것. 낡으면 새 언어, 지역이 화면에 안 뜬다'
   },
   {
-    npm: 'test:studymap:lessons',
+    npm: 'gen:studymap-lessons',
     outputs: ['data/lessons/search-index.ko.json'],
     why: '강의, 장 통합 검색 색인. 낡으면 새 강의가 검색에 안 잡힌다'
   },
@@ -38,7 +38,7 @@ export const generated = [
     why: '문서 위젯의 통합 검색 색인. 낡으면 새 문서가 검색에 안 뜬다'
   },
   {
-    npm: 'test:studymap:lessons',
+    npm: 'gen:studymap-lessons',
     outputs: ['data/lessons/index.json'],
     why: '공부 지도가 이 칸에 강의가 있나를 읽는 표. 낡으면 새 강의가 지도에 표시 안 된다'
   },

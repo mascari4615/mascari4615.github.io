@@ -13,6 +13,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const WRITE = process.argv.includes('--write');
+
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dataDir = path.join(root, 'data');
 const lessonsDir = path.join(dataDir, 'lessons');
@@ -117,6 +119,17 @@ if (fail.length > 0) {
   for (const line of fail) console.log(`  ${line}`);
   console.log(`[studymap-lessons] 깨진 곳 ${fail.length}개`);
   process.exit(1);
+}
+
+/* ★ **검사가 작업 트리를 쓰면 옆 검사의 판정이 흔들린다** (2026-08-29 실측).
+   이 스크립트는 게이트이면서 생성기였다. 검사 도중 색인을 새로 구워 놓으니,
+   같은 차례의 `audit:generated` 가 그 파일을 낡았다고 했다가 다음번에는 초록이었다.
+   같은 커밋인데 결과가 갈리는 검사는 아무 말도 안 하는 것과 같다.
+   이제 굽는 것은 `--write` 를 준 자리(`gen:studymap-lessons`)뿐이고, 낡음 판정은
+   `audit:generated` 한 곳이 한다. */
+if (!WRITE) {
+  console.log(`[studymap-lessons] 강의 ${Object.values(index).reduce((sum, ids) => sum + ids.length, 0)}편 정상, 지도 칸 ${nodeIds.size}개 (색인은 안 굽는다. 굽기는 gen:studymap-lessons)`);
+  process.exit(0);
 }
 
 fs.writeFileSync(

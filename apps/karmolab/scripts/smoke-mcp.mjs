@@ -48,15 +48,36 @@ child.stdout.on('data', (chunk) => {
   }
 });
 
+/* ★ **안 오는 답과 늦는 답은 다르다** (2026-08-29 실측).
+   문턱이 10초였다. 검사를 한 번에 열여섯 개씩 돌리기 시작하자 이 검사만 빨개졌다가,
+   혼자 돌리면 16초에 초록으로 돌아왔다. 서버가 고장난 게 아니라 기계가 바빴던 것이다.
+   못 잰 것을 빨강으로 세면 사람이 곧 게이트를 안 믿는다(이 저장소 규약: exit 2).
+   문턱도 넉넉히, 넘으면 CANNOT-RUN. */
+const TIMEOUT_MS = Number(process.env.KL_MCP_TIMEOUT_MS || 60000);
 let nextId = 1;
 function rpc(method, params) {
   const id = nextId++;
   return new Promise((resolve, reject) => {
-    pending.set(id, resolve);
+    const timer = setTimeout(() => {
+      const e = new Error(`${method} 이 ${Math.round(TIMEOUT_MS / 1000)}초 안에 답하지 않았다. stderr: ${stderr}`);
+      e.cantRun = true;
+      reject(e);
+    }, TIMEOUT_MS);
+    pending.set(id, (msg) => { clearTimeout(timer); resolve(msg); });
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id, method, params }) + '\n');
-    setTimeout(() => reject(new Error(`${method} 이 10초 안에 답하지 않았다. stderr: ${stderr}`)), 10000);
   });
 }
+const cantRunExit = (e) => {
+  if (e && e.cantRun) {
+    console.error(`[smoke-mcp] CANNOT-RUN. ${e.message}`);
+    console.error('  기계가 바빠 못 잰 것이다. 빨강이 아니다 (KL_MCP_TIMEOUT_MS 로 늘릴 수 있다).');
+    process.exit(2);
+  }
+  throw e;
+};
+/* 맨 위 await 가 깨지면 Node 는 이것을 잡히지 않은 예외로 낸다. 둘 다 걸어 둔다 */
+process.on('unhandledRejection', cantRunExit);
+process.on('uncaughtException', cantRunExit);
 const callTool = async (name, args) => (await rpc('tools/call', { name, arguments: args })).result;
 
 // ── 에이전트가 하는 순서 그대로 ─────────────────────────────────────────────
