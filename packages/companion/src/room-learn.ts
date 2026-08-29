@@ -129,9 +129,12 @@ export class learnSlot {
  * Bad Taste ft. Kasane Teto | YouTube Music ...과 다른 노래 | YouTube Music ...은 같은
  * 자리인데 제목이 다르다. 통째로 열쇠를 삼으면 노래를 바꿀 때마다 새로 물어본다. 물어보는
  * 값이 영영 안 줄어든다. **뒤쪽**(프로그램 이름이 붙는 slot)만 남긴다.
+ *
+ * 대시 두 종류는 유니코드 이스케이프로 적는다. 글자 그대로 두면 AI 티 문자 스윕이
+ * 정규식 안까지 바꿔 문자 클래스가 깨진다 (2026-08-29, TS1517 로 빌드 중단).
  */
 export function brief(title5: string): string {
-  const chunk = title5.split(/\s[|-. -]\s/).map((x) => x.trim()).filter((x) => x !== '');
+  const chunk = title5.split(/\s[|\u2013\u2014-]\s/).map((x) => x.trim()).filter((x) => x !== '');
   const after = chunk.length >= 2 ? chunk.slice(-2).join(' - ') : (chunk[0] ?? title5);
   return after.slice(0, 60);
 }
