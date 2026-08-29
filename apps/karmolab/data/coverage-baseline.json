@@ -1,59 +1,59 @@
 {
-  "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
-  "at": "2026-08-13T15:04:56.796Z",
-  "totals": {
-    "cssUnused": 147066,
-    "cssTotal": 168009,
-    "jsUnused": null,
-    "jsTotal": null
+ "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
+ "at": "2026-08-13T15:04:56.796Z",
+ "totals": {
+  "cssUnused": 147066,
+  "cssTotal": 168009,
+  "jsUnused": null,
+  "jsTotal": null
+ },
+ "files": [
+  {
+   "file": "css/tools.css",
+   "kind": "css",
+   "total": 66790,
+   "unused": 66615
   },
-  "files": [
-    {
-      "file": "css/tools.css",
-      "kind": "css",
-      "total": 66790,
-      "unused": 66615
-    },
-    {
-      "file": "css/shell-critical.css",
-      "kind": "css",
-      "total": 83285,
-      "unused": 64340
-    },
-    {
-      "file": "css/shell-deferred.css",
-      "kind": "css",
-      "total": 9109,
-      "unused": 7333
-    },
-    {
-      "file": "css/randomgen.css",
-      "kind": "css",
-      "total": 6088,
-      "unused": 6088
-    },
-    {
-      "file": "js/vendor/prism/themes-cdn/prism-tomorrow.min.css",
-      "kind": "css",
-      "total": 1313,
-      "unused": 1313
-    },
-    {
-      "file": "css/fonts.css",
-      "kind": "css",
-      "total": 1187,
-      "unused": 1187
-    },
-    {
-      "file": "index.html",
-      "kind": "css",
-      "total": 237,
-      "unused": 190
-    }
-  ],
-  "sections": null,
-  "viewports": [
-    "데스크톱 1280",
-    "폰 390"
-  ]
+  {
+   "file": "css/shell-critical.css",
+   "kind": "css",
+   "total": 83285,
+   "unused": 64340
+  },
+  {
+   "file": "css/shell-deferred.css",
+   "kind": "css",
+   "total": 9109,
+   "unused": 7333
+  },
+  {
+   "file": "css/randomgen.css",
+   "kind": "css",
+   "total": 6088,
+   "unused": 6088
+  },
+  {
+   "file": "js/vendor/prism/themes-cdn/prism-tomorrow.min.css",
+   "kind": "css",
+   "total": 1313,
+   "unused": 1313
+  },
+  {
+   "file": "css/fonts.css",
+   "kind": "css",
+   "total": 1187,
+   "unused": 1187
+  },
+  {
+   "file": "index.html",
+   "kind": "css",
+   "total": 237,
+   "unused": 190
+  }
+ ],
+ "sections": null,
+ "viewports": [
+  "데스크톱 1280",
+  "폰 390"
+ ]
 }
