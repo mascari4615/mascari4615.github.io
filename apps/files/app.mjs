@@ -9,6 +9,7 @@ import {
   unlockVault,
 } from './src/vault.mjs';
 import { pickVaultBase } from './src/vault-base.mjs';
+import { mountGallery, worthGallery } from './src/gallery.mjs';
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_KEY = 'files.laptop.pass';
@@ -21,6 +22,9 @@ const tabVault = document.getElementById('tab-vault');
 let lastBlob = '';
 let vaultSession = null;
 let vaultListing = null;
+/* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다 — 칸마다 blob 을 들고 있다. */
+let gallery = null;
+const VIEW_KEY = 'files.vault.view';
 
 const fixtureBase = new URL('v/', import.meta.url);
 let vaultBase = fixtureBase;
@@ -413,10 +417,14 @@ async function ensureVault() {
   if (vaultSession && vaultListing) return vaultSession;
   const pass = sessionStorage.getItem(VAULT_KEY) || '';
   if (!pass) return null;
+  /* 로컬(개발)에서는 **정본 도메인을 안 본다** — 개발하다 실제 클라우드를 받아 버리면
+     느리고, 시험이 진짜 자료에 붙는다. 배포된 껍데기에서만 한 곳으로 모인다. */
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   vaultBase = new URL(
     await pickVaultBase({
       origin: location.origin,
       fixture: fixtureBase.href,
+      canonical: local ? '' : undefined,
     }),
   );
   const store = fetchStore(vaultBase.href);
@@ -436,25 +444,91 @@ function vaultCrumbs(dir) {
   return crumbHtml(bits);
 }
 
+function closeGallery() {
+  if (gallery) {
+    gallery.dispose();
+    gallery = null;
+  }
+}
+
+function viewMode() {
+  try {
+    return sessionStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list';
+  } catch {
+    return 'list';
+  }
+}
+
+/** 보기 전환 단추 — 그림이 있는 폴더에서만 뜻이 있다. */
+function viewSwitch(mode) {
+  return '<div class="viewsw">' +
+    '<button type="button" data-view="list"' + (mode === 'list' ? ' class="on"' : '') + '>목록</button>' +
+    '<button type="button" data-view="grid"' + (mode === 'grid' ? ' class="on"' : '') + '>액자</button>' +
+    '</div>';
+}
+
 function renderVaultDir(dir) {
+  closeGallery();
   const listed = listDir(vaultListing, dir);
   crumb.innerHTML = vaultCrumbs(listed.dir);
-  const rows = [];
-  for (const name of listed.folders) {
+  const canGrid = worthGallery(listed.files, previewKind);
+  const mode = canGrid ? viewMode() : 'list';
+
+  const folders = listed.folders.map((name) => {
     const rel = listed.dir ? listed.dir + '/' + name : name;
-    rows.push(row(icon('folder'), link('#vault/' + encodeURIComponent(rel), esc(name)), '', '', ''));
+    return { name, href: '#vault/' + encodeURIComponent(rel) };
+  });
+
+  if (mode === 'grid') {
+    /* 폴더는 액자 위에 한 줄로 남긴다 — 그림만 보이면 위로 올라갈 길이 사라진다. */
+    box.innerHTML =
+      (canGrid ? viewSwitch(mode) : '') +
+      (folders.length
+        ? '<div class="folderbar">' +
+          folders.map((f) => '<a href="' + f.href + '">' + icon('folder') + esc(f.name) + '</a>').join('') +
+          '</div>'
+        : '') +
+      '<div class="grid" id="vgrid"></div>';
+    const host = document.getElementById('vgrid');
+    if (listed.files.length) {
+      gallery = mountGallery({
+        host,
+        files: listed.files,
+        kindOf: previewKind,
+        load: (path) => getFile(vaultSession, path),
+        mimeOf: mimeFor,
+        hrefOf: (path) => '#vault/' + encodeURIComponent(path),
+      });
+    } else {
+      host.innerHTML = '<p class="none">이 폴더에는 파일이 없습니다.</p>';
+    }
+  } else {
+    const rows = [];
+    for (const f of folders) rows.push(row(icon('folder'), link(f.href, esc(f.name)), '', '', ''));
+    for (const f of listed.files) {
+      const name = f.path.split('/').pop();
+      const href = '#vault/' + encodeURIComponent(f.path);
+      rows.push(row(iconFor(name), link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
+    }
+    box.innerHTML =
+      (canGrid ? viewSwitch(mode) : '') +
+      (rows.length ? listHead() + rows.join('') : '<p class="none">이 폴더는 비어 있습니다.</p>');
   }
-  for (const f of listed.files) {
-    const name = f.path.split('/').pop();
-    const href = '#vault/' + encodeURIComponent(f.path);
-    rows.push(row(iconFor(name), link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
+
+  for (const b of box.querySelectorAll('.viewsw button')) {
+    b.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem(VIEW_KEY, b.dataset.view);
+      } catch {
+        /* 못 적어도 이번 화면은 바꾼다 */
+      }
+      renderVaultDir(dir);
+    });
   }
-  box.innerHTML = rows.length
-    ? listHead() + rows.join('')
-    : '<p class="none">이 폴더는 비어 있습니다.</p>';
 }
 
 async function renderVaultFile(path) {
+  closeGallery();
   crumb.innerHTML = vaultCrumbs(path.split('/').slice(0, -1).join('/')) +
     '<span class="sep">/</span><a>' + esc(path.split('/').pop()) + '</a>';
   box.innerHTML = '<p class="none">여는 중…</p>';

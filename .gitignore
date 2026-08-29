@@ -214,5 +214,7 @@ apps/karmolab/data/atlas.sources.json
 apps/blog/assets/img/post/
 
 # Files 전송기 진행 상태 (기계 하나짜리 · 집계 수치뿐)
+# 픽스처 금고 = 배포가 굽는다 (pages-deploy: build-fixture.mjs → apps/blog/files/v)
+apps/files/v/
 apps/files/.upload-progress.json
 apps/files/.upload-*.log
