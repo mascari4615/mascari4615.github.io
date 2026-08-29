@@ -8,7 +8,7 @@
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createVault, flushIndex, listFiles, putThumb, unlockVault } from './vault.mjs';
-import { putFileFromPath, sha256File } from './vault-node.mjs';
+import { putFileFromPath, sha256File, takenAtOf } from './vault-node.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
@@ -140,7 +140,14 @@ try {
     const toMirror = mirrorable(rel, f.size);
     if (toMirror) mirroredCount += 1;
     session.store = toMirror ? mirrored : primary;
-    await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
+    /* 시각도 같이 담는다. 목록의 날짜 칸에 서고 날짜순 정렬의 근거가 된다.
+       사진은 디스크 수정 시각이 옮긴 날로 덮이는 일이 잦아 찍은 날을 따로 읽는다 */
+    const shot = await takenAtOf(f.abs, rel);
+    await putFileFromPath(session, rel, f.abs, {
+      chunkSize: 8 * 1024 * 1024,
+      mtime: f.mtime,
+      shot,
+    });
     /* 미리보기는 **늘 열람 저장까지** 간다. 원본을 안 올리는 큰 영상도 칸은 보여야 하고,
        한 장이 수십 KB 라 값이 거의 안 든다 */
     session.store = mirrored;

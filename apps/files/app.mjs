@@ -12,7 +12,7 @@ import {
 import { pickVaultBase } from './src/vault-base.mjs';
 import { CELL_SIZES, cellSize, mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
-import { KINDS, SORTS, activeSummary, arrange, arrangeFolders } from './src/browse.mjs';
+import { KINDS, SORTS, activeSummary, arrange, arrangeFolders, timeOf } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
 import { MAX_TOTAL, makeZip } from './src/zip.mjs';
 import {
@@ -680,7 +680,10 @@ function renderVaultDir(dir) {
         ? '<input type="checkbox" class="pick" data-path="' + encodeURIComponent(f.path) + '"' +
           (chosen.has(f.path) ? ' checked' : '') + ' aria-label="' + esc(name) + ' 고르기">'
         : iconFor(name);
-      rows.push(row(mark, link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
+      /* 날짜 칸. 찍은 날이 있으면 그것, 없으면 디스크 수정 시각.
+         전에는 머리글만 있고 값이 늘 비어 있었다 (2026-08-29) */
+      const at = timeOf(f);
+      rows.push(row(mark, link(href, esc(name)), fmtSize(f.size), at ? fmtTime(at) : '', link(href, '열기')));
     }
     box.innerHTML =
       siftBar(listed.files.length, shownFiles.length) +
@@ -812,7 +815,7 @@ function paintInfo(path, entry, kind, el) {
         duration: el.duration || 0,
       }
     : {};
-  const rows = infoRows(path, entry, { kind, fmtSize, media });
+  const rows = infoRows(path, entry, { kind, fmtSize, fmtTime, media });
   panel.innerHTML = rows
     .map((r) => '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>')
     .join('');

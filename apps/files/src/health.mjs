@@ -100,6 +100,9 @@ say('[health] Drive 열림. 파일', files.length, '개');
 const want = files.filter((f) => thumbKind(f.path, f.size));
 const has = want.filter((f) => f.thumb);
 say('[health] 미리보기', `${has.length} / ${want.length}`, want.length ? `(${Math.round((has.length / want.length) * 100)}%)` : '');
+/* 시각 몫. 이것도 실패로 안 친다. 없으면 날짜 칸이 빌 뿐이다 */
+const timed = files.filter((f) => f.mtime || f.shot);
+say('[health] 시각', `${timed.length} / ${files.length}`, files.length ? `(${Math.round((timed.length / files.length) * 100)}%)` : '');
 
 /* 3. 복호 왕복. 열람 대상 중 제일 작은 것 */
 const small = files

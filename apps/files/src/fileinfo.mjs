@@ -8,7 +8,7 @@
  * - 이름, 폴더, 크기, 조각 수, sha256 은 색인(`idx`)에 이미 있다. 공짜다
  * - 가로세로와 길이는 **화면이 이미 그린 것에서 읽는다**. 그림은 naturalWidth,
  *   영상은 videoWidth 와 duration. 따로 굽는 것이 없다
- * - 수정한 날, 찍은 날(EXIF)은 색인에 없다. 넣으려면 올릴 때 같이 적어야 한다
+ * - 수정한 날과 찍은 날은 올릴 때 색인에 같이 담는다 (`exif.mjs`, `walk.mjs`)
  *
  * 여기 있는 것은 값 계산뿐이다. DOM 은 `app.mjs` 몫.
  */
@@ -57,6 +57,9 @@ export function infoRows(path, entry, opt = {}) {
     if (m.duration > 0) rows.push(['길이', fmtDuration(m.duration)]);
 
     if (entry) {
+        /* 찍은 날을 먼저. 사진의 수정 시각은 옮긴 날로 덮이는 일이 잦다 */
+        if (entry.shot > 0) rows.push(['찍은 날', opt.fmtTime ? opt.fmtTime(entry.shot) : String(entry.shot)]);
+        if (entry.mtime > 0) rows.push(['수정한 날', opt.fmtTime ? opt.fmtTime(entry.mtime) : String(entry.mtime)]);
         rows.push(['크기', `${fmtSize(entry.size)} (${withCommas(entry.size)} B)`]);
         if (entry.chunks > 0) rows.push(['조각', `${entry.chunks}개`]);
         if (entry.sha256) rows.push(['sha256', shortHash(entry.sha256)]);

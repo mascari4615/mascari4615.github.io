@@ -4,6 +4,7 @@
  */
 import { createHash } from 'node:crypto';
 import { open } from 'node:fs/promises';
+import { HEAD_BYTES, exifTakenAt, hasExif } from './exif.mjs';
 import { CHUNK, commitFile, newBlobId, normalizePath, putChunk } from './vault.mjs';
 
 export async function sha256File(absPath) {
@@ -21,6 +22,26 @@ export async function sha256File(absPath) {
     return hash.digest('hex');
   } finally {
     await fh.close();
+  }
+}
+
+/**
+ * 찍은 날. JPEG 앞부분만 읽는다. 못 찾으면 0.
+ * 사진의 디스크 수정 시각은 옮긴 날로 덮이는 일이 잦아 이 값을 따로 본다.
+ */
+export async function takenAtOf(absPath, rel) {
+  if (!hasExif(rel)) return 0;
+  try {
+    const fh = await open(absPath, 'r');
+    try {
+      const buf = Buffer.alloc(HEAD_BYTES);
+      const { bytesRead } = await fh.read(buf, 0, HEAD_BYTES, 0);
+      return exifTakenAt(Uint8Array.from(buf.subarray(0, bytesRead)));
+    } finally {
+      await fh.close();
+    }
+  } catch {
+    return 0;
   }
 }
 
@@ -49,6 +70,8 @@ export async function putFileFromPath(session, vaultPath, absPath, opts = {}) {
       size,
       chunks: n,
       sha256: hash.digest('hex'),
+      mtime: opts.mtime ?? 0,
+      shot: opts.shot ?? 0,
     });
   } finally {
     await fh.close();

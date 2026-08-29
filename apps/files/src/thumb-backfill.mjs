@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 이미 올라간 파일들에 미리보기를 채운다.
+ * 이미 올라간 파일들에 미리보기와 시각을 채운다.
  *
  * 왜 필요한가: 미리보기는 **올릴 때** 굽는다. 그래서 그 전에 올라간 것들은 영원히 없다
  * (열람 저장을 나중에 켰을 때와 같은 구멍이다, `mirror-backfill.mjs` 참고).
@@ -9,13 +9,17 @@
  * - `FILES_VAULT_ROOT` 아래 그 자리에 있으면 **디스크에서**. 빠르고 통신이 없다
  * - 없으면 클라우드에서 받아 복호한다. 느리므로 `--cloud` 를 줄 때만 한다
  *
+ * 시각도 같은 판에 붙인다. 원본을 이미 손에 쥔 자리라 값이 거의 안 든다.
+ * 두 번 훑으면 7,510개를 두 번 읽게 된다.
+ *
  * 쓰기: node src/thumb-backfill.mjs [--cloud] [--limit N] [--dry-run]
  */
 import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
-import { getFile, listFiles, putThumb, unlockVault } from './vault.mjs';
+import { getFile, listFiles, putThumb, setTimes, unlockVault } from './vault.mjs';
+import { takenAtOf } from './vault-node.mjs';
 import { teeStore } from './store-tee.mjs';
 import { thumbKind } from './thumb.mjs';
 import { hasFfmpeg, makeThumb, makeThumbFromBytes } from './thumb-node.mjs';
@@ -56,10 +60,14 @@ const session = await unlockVault(store, pass);
 console.log('클라우드 염');
 
 const files = await listFiles(session);
-const todo = files.filter((f) => !f.thumb && thumbKind(f.path, f.size));
-console.log(`미리보기 없는 것 ${todo.length}개 / 전체 ${files.length}개`);
+/* 미리보기가 없거나 시각이 없으면 손볼 것이 있다 */
+const todo = files.filter((f) => (!f.thumb && thumbKind(f.path, f.size)) || !(f.mtime || f.shot));
+const noThumb = files.filter((f) => !f.thumb && thumbKind(f.path, f.size)).length;
+const noTime = files.filter((f) => !(f.mtime || f.shot)).length;
+console.log(`손볼 것 ${todo.length}개 (미리보기 ${noThumb}, 시각 ${noTime}) / 전체 ${files.length}개`);
 
 let made = 0;
+let timed = 0;
 let fromDisk = 0;
 let fromCloud = 0;
 let skipped = 0;
@@ -78,6 +86,15 @@ for (const f of todo) {
         }
     }
     try {
+        /* 시각은 디스크에 원본이 있을 때만. 클라우드 사본에는 원래 수정 시각이 없다 */
+        if (abs && !(f.mtime || f.shot)) {
+            const st = await stat(abs);
+            const shot = await takenAtOf(abs, f.path);
+            if (!dry) await setTimes(session, f.path, { mtime: Math.round(st.mtimeMs), shot });
+            timed += 1;
+        }
+        /* 미리보기가 이미 있거나 애초에 굽지 않는 갈래면 여기까지가 할 일이다 */
+        if (f.thumb || !thumbKind(f.path, f.size)) continue;
         let thumb = null;
         if (abs) {
             thumb = await makeThumb(abs, f.path, f.size);
@@ -106,7 +123,7 @@ for (const f of todo) {
 }
 
 console.log(
-    `끝. 구움 ${made} (디스크 ${fromDisk}, 클라우드 ${fromCloud}), 원본 못 찾음 ${skipped}, ` +
-    `못 구움 ${failed}${dry ? ' (연습)' : ''}`,
+    `끝. 구움 ${made} (디스크 ${fromDisk}, 클라우드 ${fromCloud}), 시각 ${timed}, ` +
+    `원본 못 찾음 ${skipped}, 못 구움 ${failed}${dry ? ' (연습)' : ''}`,
 );
 await daemon?.stop?.();

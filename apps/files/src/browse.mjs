@@ -19,8 +19,19 @@ export const KINDS = [
 export const SORTS = [
     { id: 'name', label: '이름' },
     { id: 'size', label: '크기' },
+    { id: 'date', label: '날짜' },
     { id: 'kind', label: '갈래' }
 ];
+
+/**
+ * 이 파일의 시각. 찍은 날이 있으면 그것, 없으면 디스크 수정 시각.
+ *
+ * 왜 찍은 날 먼저: 사진의 수정 시각은 복사, 내려받기, 백업 한 번이면 전부 같은 날이 된다.
+ * 그러면 날짜순이 아무 뜻이 없어진다.
+ */
+export function timeOf(f) {
+    return f.shot || f.mtime || 0;
+}
 
 const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
 
@@ -42,6 +53,16 @@ export function arrange(files, opt) {
     });
     out.sort((a, b) => {
         if (sort === 'size') return a.size - b.size;
+        if (sort === 'date') {
+            /* 시각을 모르는 것은 뒤로. 뒤집기까지 끝난 뒤에 한 번 더 뒤로 민다
+               (아래). 모르는 것이 앞에 몰리면 아는 것이 안 보인다 */
+            const x = timeOf(a);
+            const y = timeOf(b);
+            if (!x && !y) return collator.compare(baseOf(a.path), baseOf(b.path));
+            if (!x) return 1;
+            if (!y) return -1;
+            if (x !== y) return x - y;
+        }
         if (sort === 'kind') {
             const gap = collator.compare(kindOf(a.path), kindOf(b.path));
             if (gap !== 0) return gap;
@@ -49,6 +70,10 @@ export function arrange(files, opt) {
         return collator.compare(baseOf(a.path), baseOf(b.path));
     });
     if (desc) out.reverse();
+    if (sort === 'date') {
+        /* 뒤집어도 모르는 것은 뒤에 남아야 한다 */
+        return [...out.filter((f) => timeOf(f)), ...out.filter((f) => !timeOf(f))];
+    }
     return out;
 }
 

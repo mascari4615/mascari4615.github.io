@@ -235,13 +235,18 @@ export async function commitFile(session, rec) {
   const norm = normalizePath(rec.path);
   const index = await loadIndex(session);
   index.files = index.files.filter((f) => f.path !== norm);
-  index.files.push({
+  const row = {
     id: rec.id,
     path: norm,
     size: rec.size,
     chunks: rec.chunks,
     sha256: rec.sha256,
-  });
+  };
+  /* 시각은 있을 때만 담는다. 0 을 담으면 옛 항목과 구별이 안 된다.
+     `mtime` 은 디스크 수정 시각, `shot` 은 찍은 날 (EXIF) */
+  if (rec.mtime > 0) row.mtime = rec.mtime;
+  if (rec.shot > 0) row.shot = rec.shot;
+  index.files.push(row);
   await persistIndex(session, index);
   return { id: rec.id, sha256: rec.sha256, chunks: rec.chunks };
 }
@@ -282,7 +287,31 @@ export async function listFiles(session) {
     chunks: f.chunks,
     sha256: f.sha256,
     thumb: f.thumb ?? 0,
+    mtime: f.mtime ?? 0,
+    shot: f.shot ?? 0,
   }));
+}
+
+/**
+ * 이미 담긴 항목에 시각만 붙인다. 청크는 안 건드린다.
+ * 이미 올라간 것들을 채울 때 쓴다 (`meta-backfill`).
+ */
+export async function setTimes(session, path, times) {
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry) return null;
+  let changed = false;
+  if (times.mtime > 0 && entry.mtime !== times.mtime) {
+    entry.mtime = times.mtime;
+    changed = true;
+  }
+  if (times.shot > 0 && entry.shot !== times.shot) {
+    entry.shot = times.shot;
+    changed = true;
+  }
+  if (changed) await persistIndex(session, index);
+  return { changed };
 }
 
 /**
