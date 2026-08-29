@@ -14,7 +14,7 @@ import {
 import { pickVaultBase } from './src/vault-base.mjs';
 import { CELL_SIZES, cellSize, mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
-import { KINDS, SORTS, activeSummary, arrange, arrangeFolders, timeOf } from './src/browse.mjs';
+import { KINDS, SORTS, activeSummary, arrange, arrangeFolders, between, timeOf } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
 import { MAX_TOTAL, makeZip } from './src/zip.mjs';
 import { applyTrash, normalizeTrash, putTrash, takeTrash } from './src/trash.mjs';
@@ -69,6 +69,8 @@ let chosenDir = null;
 let vaultTrash = normalizeTrash(null);
 let showTrash = false;
 let vaultDirNow = '';
+/** 마지막으로 찍은 자리. Shift 범위의 시작점 */
+let lastPick = '';
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
 let siblings = [];
 /** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
@@ -723,6 +725,7 @@ function renderVaultDir(dir) {
   if (chosenDir !== listed.dir) {
     chosen.clear();
     selecting = false;
+    lastPick = '';
     chosenDir = listed.dir;
   }
   /* 거른 뒤의 차례가 화면 차례. 다음과 이전이 이걸 따르므로 여기서 한 번만 정한다 */
@@ -850,6 +853,7 @@ function renderVaultDir(dir) {
   if (selBtn) {
     selBtn.addEventListener('click', () => {
       selecting = !selecting;
+      lastPick = '';
       if (!selecting) chosen.clear();
       renderVaultDir(dir);
     });
@@ -859,8 +863,19 @@ function renderVaultDir(dir) {
       /* 액자에서는 체크가 링크 위에 있다. 안 막으면 파일이 열린다 */
       e.stopPropagation();
       const path = decodeURIComponent(c.dataset.path);
-      if (c.checked) chosen.add(path);
+      /* Shift 는 마지막으로 찍은 자리부터 여기까지. 차례는 화면에 보이는 차례다 */
+      const span = e.shiftKey && lastPick ? between(siblings, lastPick, path) : [];
+      if (span.length) {
+        for (const p of span) {
+          if (c.checked) chosen.add(p);
+          else chosen.delete(p);
+        }
+        for (const other of box.querySelectorAll('input.pick')) {
+          other.checked = chosen.has(decodeURIComponent(other.dataset.path));
+        }
+      } else if (c.checked) chosen.add(path);
       else chosen.delete(path);
+      lastPick = path;
       /* 줄만 다시 그린다. 액자를 다시 그리면 받아 둔 그림을 전부 버린다 */
       const bar = box.querySelector('.pickbar');
       if (bar) bar.outerHTML = pickBar(shownFiles);

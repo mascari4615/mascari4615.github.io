@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { activeSummary, arrange, arrangeFolders } from '../src/browse.mjs';
+import { activeSummary, arrange, arrangeFolders, between } from '../src/browse.mjs';
 import { previewKind } from '../src/vault.mjs';
 
 const kindOf = previewKind;
@@ -46,4 +46,14 @@ test('좁힌 상태를 한 줄로 알린다', () => {
     assert.equal(activeSummary({ kind: '', query: '' }, 5, 5), '');
     assert.equal(activeSummary({ kind: 'video', query: '' }, 5, 1), '영상 1 / 5');
     assert.equal(activeSummary({ kind: '', query: ' p1 ' }, 5, 1), '"p1" 1 / 5');
+});
+
+test('Shift 로 두 자리 사이를 다 고른다', () => {
+    /* 탐색기와 Finder 가 그 방식. 어느 쪽을 먼저 찍었든 같은 묶음 */
+    const list = ['a', 'b', 'c', 'd', 'e'];
+    assert.deepEqual(between(list, 'b', 'd'), ['b', 'c', 'd']);
+    assert.deepEqual(between(list, 'd', 'b'), ['b', 'c', 'd']);
+    assert.deepEqual(between(list, 'c', 'c'), ['c']);
+    /* 목록에 없는 것이 오면 아무것도 안 고른다. 정렬이 바뀐 뒤 옛 자리가 남을 수 있다 */
+    assert.deepEqual(between(list, 'b', '없음'), []);
 });

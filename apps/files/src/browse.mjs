@@ -86,6 +86,20 @@ export function arrangeFolders(names, opt) {
     return out;
 }
 
+/**
+ * 두 자리 사이를 다 고르기. 탐색기와 Finder 의 Shift 누르고 찍기.
+ *
+ * 차례는 **화면에 보이는 차례**다. 정렬을 바꾸면 사이에 드는 것도 바뀐다.
+ * 그게 사람이 눈으로 보고 기대하는 것이다.
+ * 어느 쪽을 먼저 찍었든 같은 묶음을 준다.
+ */
+export function between(list, a, b) {
+    const i = list.indexOf(a);
+    const j = list.indexOf(b);
+    if (i === -1 || j === -1) return [];
+    return i <= j ? list.slice(i, j + 1) : list.slice(j, i + 1);
+}
+
 /** 지금 무엇으로 좁혔는지 한 줄. 아무것도 안 걸렸으면 빈 문자열 */
 export function activeSummary({ kind, query }, total, shown) {
     const bits = [];
