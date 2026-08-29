@@ -256,7 +256,12 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
  * 읽는 화면의 글 리듬. 재 보니 본문 12px 인데 코드가 18px 이었다 — 위계가 뒤집혀 있었다.
  * 문서 사이트 기준으로 다시 잡는다: 본문이 가장 크고, 코드는 그보다 한 단 작게, 줄높이는 한글에 맞춰 넉넉히.
  */
-.sm-lesson { max-width: 70ch; font-size: 15px; line-height: 1.85; }
+/* 글줄만 좁히고 **자리는 다 쓴다.** 전에는 article 통째로 70ch(583px) 라, 넓은 화면에서
+   데모와 코드와 확인 문제까지 583px 안에 갇혀 오른쪽이 비었다.
+   읽는 줄(문단, 목록, 제목)만 재고, 보여 주는 것(데모, 코드, 문제)은 칸을 채운다. */
+.sm-lesson { max-width: none; font-size: 15px; line-height: 1.85; }
+.sm-lesson > p, .sm-lesson > ul, .sm-lesson > ol, .sm-lesson > h3, .sm-lesson > h4,
+.sm-lesson > blockquote, .sm-lesson > .sm-lesson-meta, .sm-lesson > .sm-callout { max-width: 68ch; }
 .sm-lesson p { font-size: 15px; line-height: 1.85; margin: 0 0 18px; }
 .sm-lesson h3 { font-size: 25px; line-height: 1.35; letter-spacing: -0.01em; }
 .sm-lesson h4 { font-size: 17px; line-height: 1.5; font-weight: 700; margin: 36px 0 12px; letter-spacing: -0.005em; }
@@ -296,7 +301,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .doc-toc-a:hover { background: var(--bg-hover); color: var(--text-primary); }
 .doc-toc-a.is-here { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
 @media (min-width: 1100px) {
-  .sm-lesson-wrap { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: start; }
+  /* 목차 칸은 목차가 있을 때만 자리를 먹는다 — 220px 로 못 박아 두면 목차 없는 강의에서
+     오른쪽 220px 가 그냥 빈다. */
+  .sm-lesson-wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; }
+  .doc-toc { width: 220px; }
   .sm-lesson { min-width: 0; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
