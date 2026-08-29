@@ -99,6 +99,25 @@ export function applyPreset(track: StudioTrack, item: InstrumentPreset): void {
   track.fm = { ...item.fm };
 }
 
+/**
+ * 격자 칸 하나를 켜고 끄기. 있으면 삭제, 없으면 추가.
+ *
+ * 리듬은 켜고 끄는 일. 음높이도 길이도 안 정함.
+ */
+export function toggleStepNote(notes: StudioNote[], pitch: number, beat: number, step: number, velocity = 0.8): 'added' | 'removed' {
+  const half = step / 2;
+  const index = notes.findIndex((note) => note.pitch === pitch && Math.abs(note.beat - beat) < half);
+  if (index >= 0) { notes.splice(index, 1); return 'removed'; }
+  notes.push({ id: studioId('note'), beat, duration: Math.max(0.05, step * 0.9), pitch, velocity });
+  return 'added';
+}
+
+/** 격자에서 이 칸이 켜져 있나 */
+export function stepNoteAt(notes: StudioNote[], pitch: number, beat: number, step: number): StudioNote | undefined {
+  const half = step / 2;
+  return notes.find((note) => note.pitch === pitch && Math.abs(note.beat - beat) < half);
+}
+
 /** 샘플러 재생 속도. 본디 음에서 반음 하나가 한 칸. 12칸이면 두 배 */
 export function samplePlaybackRate(pitch: number, rootPitch: number): number {
   return Math.pow(2, (pitch - rootPitch) / 12);

@@ -2,7 +2,7 @@
 import { HeungEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
   automationValueAt, clampTrackHeight, cloneClip, nextClipColor, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, keyToPitch, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, selectionRange, snapBeat, sortMarkers, splitClip, stepMarker, tapTempo, studioId, transposeNotes,
-  TRACK_HEIGHT, TRACK_INSTRUMENTS, INSTRUMENT_PRESETS, applyPreset, findPreset, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack, type TrackInstrument
+  TRACK_HEIGHT, TRACK_INSTRUMENTS, INSTRUMENT_PRESETS, applyPreset, findPreset, toggleStepNote, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack, type TrackInstrument
 } from './model';
 import { toWav } from '../tools/shared/media';
 import { addAsset, backupCurrent, hydrateAssets, importPortable, loadPrevious, loadProject, portableProject, savedAt, saveProject } from './storage';
@@ -13,6 +13,7 @@ import { GestureHost } from './gesture';
 import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
+import { buildGridView } from './grid-view';
 import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, beatToSample, clampBuffer, commonNormalizeGain, exportRange, loopSections, normalizeGain, seamDiscontinuity, smplChunk, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
@@ -41,6 +42,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorListenMode: 'clip' | 'song' = 'clip'; let editorLoopStart = 0; let editorLoopEnd = 0;
     let editorTimePx = pxPerBeat; let editorRowHeight: number = PIANO_GEOMETRY.row; let editorRangeStart: number | null = null; let editorRangeEnd: number | null = null; let lastNoteDuration = project.snap * 2; let suppressPianoRulerClick = false;
+    let gridMode = true; let editorDrum = false;
     let overlapMode: 'merge' | 'replace' | 'allow' = 'merge';let overlapCycle={key:'',index:0,at:0};
     let editorReturnFocus: HTMLElement | null = null;
     /** 끌기는 언제나 한 판만 산다. 겹치면 앞 판이 취소된다. */
@@ -471,7 +473,14 @@ import { decodeMidi, encodeMidi } from './midi-file';
         return;
       }
       reconcileNotes();
-      if (editorClipId !== clip.id) { editorClipId = clip.id; editorScrollLeft = 0; editorScrollTop = initialScrollTop(clip); editorLoopStart = 0; editorLoopEnd = clip.duration; editorRangeStart=null;editorRangeEnd=null;editorTimePx=pxPerBeat;editorRowHeight=PIANO_GEOMETRY.row; }
+      const drumNow = track.instrument === 'drum';
+      /* 악기를 드럼으로 바꾸면 볼 줄이 달라진다. 클립이 그대로여도 다시 잡는다 */
+      if (editorClipId !== clip.id || editorDrum !== drumNow) { editorClipId = clip.id; editorDrum = drumNow; editorScrollLeft = 0; editorScrollTop = initialScrollTop(clip, drumNow); editorLoopStart = 0; editorLoopEnd = clip.duration; editorRangeStart=null;editorRangeEnd=null;editorTimePx=pxPerBeat;editorRowHeight=PIANO_GEOMETRY.row; }
+      /* 타악기는 격자로. 음높이와 길이를 안 정하는 것이 리듬 찍기의 전부다 */
+      if (track.instrument === 'drum' && gridMode) {
+        editor.innerHTML = `<div class="hu-editor-head"><strong>격자, ${esc(clip.name)}</strong><span>칸을 눌러 켜고 끈다</span><span class="hu-spacer"></span><button class="hu-btn" data-act="grid-off">피아노롤로</button></div>${buildGridView({ clip, step: project.snap, beatsPerBar: project.beatsPerBar, playheadBeat: playhead - clip.start, esc })}`;
+        return;
+      }
       const view = buildPianoView({
         clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat: editorExpanded ? editorTimePx : pxPerBeat, step: stepMode, drum: selectedTrack()?.instrument === 'drum', midi: midiOn, midiLabel,
         playheadBeat: playhead - clip.start, playing: engine.isPlaying(), metronome,
@@ -637,6 +646,15 @@ import { decodeMidi, encodeMidi } from './midi-file';
     root.addEventListener('click',(event)=>{
       const raw=event.target as HTMLElement;
       const editorEdit=raw.closest<HTMLElement>('[data-editor-edit]')?.dataset.editorEdit;if(editorEdit){event.stopImmediatePropagation();runEditorEdit(editorEdit);return;}
+      const gridCell=raw.closest<HTMLElement>('[data-grid-pitch]');
+      if(gridCell){const track=selectedTrack();const clip=selectedClip();
+        if(track&&clip&&clip.kind==='midi'){
+          const pitch=Number(gridCell.dataset.gridPitch);const beat=Number(gridCell.dataset.gridBeat);
+          const result=toggleStepNote(clip.notes,pitch,beat,project.snap);
+          if(result==='added')void engine.preview(track,pitch);
+          saveSoon('grid');renderEditor();renderTracks();
+        }
+        return;}
       const pianoKey=raw.closest<HTMLElement>('[data-key-pitch]');
       if(pianoKey){event.stopImmediatePropagation();const track=selectedTrack();const pitch=Number(pianoKey.dataset.keyPitch);if(track&&Number.isFinite(pitch)){void engine.preview(track,pitch);status(`${pianoKey.textContent?.trim()||'건반'} 소리 듣기`);}return;}
       const editorAct=raw.closest<HTMLElement>('[data-editor-act]')?.dataset.editorAct;
@@ -699,6 +717,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(act==='undo')restoreHistory('undo');else if(act==='redo')restoreHistory('redo');
       else if(act==='toggle-editor')setEditorExpanded(!editorExpanded);
       else if(act==='split'){const clip=selectedClip();const track=selectedTrack();if(clip&&track){const right=splitClip(clip,snapBeat(playhead,project.snap));if(right){track.clips.push(right);selection={type:'clip',trackId:track.id,clipId:right.id};saveSoon();renderAll();}else status('Place the playhead inside the selected clip');}}
+      else if(act==='grid-off'){gridMode=false;renderEditor();status('피아노롤로 바꿈');}
+      else if(act==='grid-on'){gridMode=true;renderEditor();status('격자로 바꿈');}
       else if(act==='restore-prev'){const previous=loadPrevious();if(!previous){status('되찾을 곡이 없다');return;}if(!confirm('직전 곡으로 되돌린다. 지금 곡은 다시 한 칸 뒤로 밀린다. 계속할까.'))return;stop();backupCurrent();project=previous;history.reset(project);selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;saveSoon();renderAll();void refreshAssets();status(`${project.name||'직전 곡'} 되찾음`);}
       else if(act==='delete-clip'){deleteSelection();}
     });

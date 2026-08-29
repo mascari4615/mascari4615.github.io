@@ -166,6 +166,15 @@ export const HEUNG_CSS = `
       background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
     .hu-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }
     /* 타악기 줄. 한 벌에 있는 소리만 폭을 넓혀 이름이 안 잘리게 */
+    .hu-grid { display:flex; flex-direction:column; gap:3px; padding:10px; overflow:auto; height:100%; }
+    .hu-grid-row { display:flex; align-items:center; gap:3px; }
+    .hu-grid-name { width:96px; flex:0 0 96px; font:11px var(--font-mono); color:var(--text-secondary); text-align:right; padding-right:6px; }
+    .hu-grid-cell { width:var(--hu-grid-cell,34px); height:30px; flex:0 0 var(--hu-grid-cell,34px); border:1px solid var(--border); border-radius:3px; background:var(--bg-secondary); cursor:pointer; padding:0; }
+    .hu-grid-cell.is-strong { border-color:var(--text-tertiary); }
+    .hu-grid-cell.is-on { background:var(--accent); border-color:var(--accent); }
+    .hu-grid-cell:focus-visible { outline:2px solid var(--accent-hover); outline-offset:1px; }
+    .hu-grid-tick { width:var(--hu-grid-cell,34px); flex:0 0 var(--hu-grid-cell,34px); text-align:center; font:10px var(--font-mono); color:var(--text-tertiary); }
+    .hu-grid-tick.is-strong { color:var(--text-secondary); }
     .hu-hint { margin:2px 6px 6px; font:10px var(--font-mono); color:var(--text-tertiary); }
     .hu-key.is-piece { width:68px; background:var(--accent); color:#0e0e12; font-weight:600; z-index:6; }
     .hu-piano-ruler { position:absolute; top:0; left:68px; height:24px; z-index:3; background:var(--bg-secondary); border-bottom:1px solid var(--border); }

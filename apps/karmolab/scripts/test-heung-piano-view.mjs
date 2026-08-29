@@ -8,7 +8,12 @@ const sourcePath = path.resolve('src/widgets/heung/piano-view.ts');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
-vm.runInNewContext(`(function(exports,module,require){${compiled}\n})(module.exports,module,()=>({}));`, { module, console, Math });
+const modelCompiled = ts.transpileModule(fs.readFileSync(path.resolve('src/widgets/heung/model.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const modelModule = { exports: {} };
+vm.runInNewContext(`(function(exports,module){${modelCompiled}
+})(module.exports,module);`, { module: modelModule, console, Math, Date, JSON, crypto });
+vm.runInNewContext(`(function(exports,module,require){${compiled}
+})(module.exports,module,()=>modelExports);`, { module, console, Math, Object, modelExports: modelModule.exports });
 const { buildPianoView, pianoScale, initialScrollTop, noteName, PIANO_GEOMETRY } = module.exports;
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -31,6 +36,14 @@ assert.ok(pianoScale(clip([], 4), 72, true, 300) >= 72, '좁은 화면에서도 
 assert.equal(initialScrollTop(clip([])), Math.max(0, (PIANO_GEOMETRY.high - 72) * PIANO_GEOMETRY.row - 64), '음이 없으면 C5 기준');
 assert.equal(initialScrollTop(clip([note('n1', 0, PIANO_GEOMETRY.high)])), 0, '천장 음이면 맨 위');
 assert.ok(PIANO_GEOMETRY.low <= 28 && PIANO_GEOMETRY.high >= 90, '베이스와 높은 음을 마우스로 찍을 수 있는 음역');
+// 타악기 트랙은 한 벌이 있는 자리로. 넓힌 음역에서 36-49 는 한참 아래
+const highNote = clip([note('n1', 0, PIANO_GEOMETRY.high)]);
+assert.equal(initialScrollTop(highNote, false), 0, '보통 트랙은 가장 높은 음 기준');
+const drumTop = initialScrollTop(highNote, true);
+assert.ok(drumTop > 400, `타악기는 한 벌 가운데로 내려간다 (${drumTop})`);
+assert.equal(initialScrollTop(clip([]), true), drumTop, '음이 없어도 같은 자리');
+const pieceRow = (PIANO_GEOMETRY.high - 42) * PIANO_GEOMETRY.row;
+assert.ok(Math.abs(pieceRow - drumTop) < 260, '하이햇 줄이 화면 안에 들어오는 거리');
 assert.ok(initialScrollTop(clip([note('n1', 0, 40)])) > 0, '낮은 음은 아래로 내려가 있다');
 
 // 뷰. 고른 음만 표시가 붙는다

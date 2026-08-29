@@ -359,6 +359,44 @@ if(panSpot){await page.mouse.click(panSpot.x,panSpot.y);await page.waitForTimeou
 const panPointsAfter=await page.locator('[data-auto] [data-auto-point]').count();
 const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.automation?.volume||[]).length)+((track.automation?.pan||[]).length),0):-1;});
 /* 믹서 미터. 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
+/* 타악기 격자. 드럼 트랙 클립을 열면 격자가 뜨고, 칸을 누르면 음이 켜진다 */
+let gridCells=0, gridNotesAdded=0, gridScrollNeeded=null;
+{
+  /* 큰 창이 열려 있으면 아래 줄을 못 누른다 */
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().click();
+  await page.waitForTimeout(120);
+  await page.selectOption('[data-ins=instrument]','drum');
+  await page.waitForTimeout(200);
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().dblclick();
+  await page.waitForTimeout(300);
+  gridCells=await page.locator('[data-grid-pitch]').count();
+  if(gridCells){
+    const before=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1'));return raw.tracks.reduce((sum,track)=>sum+track.clips.reduce((count,clip)=>count+(clip.notes||[]).length,0),0);});
+    for(const index of [0,4,8,12]) await page.locator('[data-grid-pitch]').nth(index).click();
+    await page.waitForTimeout(700);
+    const after=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1'));return raw.tracks.reduce((sum,track)=>sum+track.clips.reduce((count,clip)=>count+(clip.notes||[]).length,0),0);});
+    gridNotesAdded=after-before;
+    /* 격자에서 피아노롤로 오갈 수 있나. 자동 스크롤 자체는 단위 검사가 잰다 */
+    await page.click('[data-act=grid-off]');
+    await page.waitForTimeout(400);
+    gridScrollNeeded=await page.evaluate(()=>{
+      const key=document.querySelector('[data-key-pitch="42"]');
+      const piano=document.querySelector('[data-piano]');
+      if(!key||!piano)return 'no-key';
+      const keyBox=key.getBoundingClientRect(), pianoBox=piano.getBoundingClientRect();
+      return keyBox.top>=pianoBox.top&&keyBox.bottom<=pianoBox.bottom?'visible':'off-screen';
+    });
+    await page.click('[data-act=grid-on]');
+    await page.waitForTimeout(200);
+  }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  await page.selectOption('[data-ins=instrument]','sawtooth');
+  await page.waitForTimeout(200);
+}
+
 /* 악기 프리셋. 고르면 파형과 소리 모양이 한 번에 바뀐다 */
 let presetCount=0, presetApplied='';
 {
@@ -516,6 +554,8 @@ if(guideAfterClose!==0)problems.push('처음 안내가 안 닫힌다');
 if(guideRemembered!=='1')problems.push('처음 안내를 닫은 걸 기억 안 한다');
 if(shapeAfterFieldUndo!==shapeBeforeFieldUndo)problems.push(`글자 칸 안 되돌리기가 곡을 되감았다 (${shapeBeforeFieldUndo}→${shapeAfterFieldUndo})`);
 if(pickedBeforeUndo>0&&pickedAfterUndo===0)problems.push('되돌린 뒤 고른 클립을 잃었다');
+if(gridCells<8*4)problems.push(`드럼 클립에 격자가 안 뜬다 (${gridCells}칸)`);
+if(gridNotesAdded!==4)problems.push(`격자 칸 4개를 눌렀는데 음이 ${gridNotesAdded}개 들어갔다`);
 if(presetCount<11)problems.push(`악기 프리셋이 모자란다 (${presetCount-1}가지)`);
 if(!presetApplied.startsWith('bell:sine:')||presetApplied.endsWith(':0'))problems.push(`프리셋이 트랙에 안 붙었다 (${presetApplied})`);
 if(!drumOptionSeen)problems.push('악기 고르기에 드럼 한 벌이 없다');
