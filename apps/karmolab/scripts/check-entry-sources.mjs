@@ -145,6 +145,19 @@ if (fs.existsSync(metaPath)) {
 {
   const SOURCE = 'ko';
   const seen = new Set();
+  /* ★ **묶음마다 git 을 띄우지 않는다** (2026-08-29 실측). 위젯 이름마다 `ls-tree` 를 한 번씩
+     불러 윈도우에서 판당 400ms 씩 먹었고, 이 검사가 게이트 판의 꼬리(328초)였다.
+     그 커밋의 `i18n/<원본언어>` 목록을 **한 번에** 받아 두고 있나만 본다. 보는 것은 같다.
+     못 물어보면 예전처럼 그 칸을 넘어간다(모르는 것을 빨강으로 만들지 않는다). */
+  let catalogsAtRef = null;
+  try {
+    catalogsAtRef = new Set(
+      git(['ls-tree', '-r', '--name-only', REF, `i18n/${SOURCE}`])
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+    );
+  } catch { /* 못 물어보면 넘어간다 */ }
   for (const rel of entryPoints) {
     const m = /^src\/widgets\/(?:tools\/|ref\/)?([\w-]+)(?:\/[\w-]+)?\.ts$/.exec(rel);
     if (!m) continue;
@@ -156,10 +169,7 @@ if (fs.existsSync(metaPath)) {
     if (!src.includes(`t('${ns}.`)) continue; // 그 묶음을 안 쓰면 없어도 된다
     const catalogRel = `i18n/${SOURCE}/${ns}.json`;
     if (!fs.existsSync(path.join(root, catalogRel))) continue; // 아예 안 만든 것은 다른 검사 몫
-    try {
-      git(['ls-tree', '-r', '--name-only', REF, catalogRel])
-        .trim() || missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
-    } catch { /* 못 물어보면 넘어간다 */ }
+    if (catalogsAtRef && !catalogsAtRef.has(catalogRel)) missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
   }
 }
 

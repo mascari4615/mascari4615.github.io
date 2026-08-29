@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readBlobsAtRef } from './lib/git-blobs.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dir = path.join(root, 'src/widgets/tools');
@@ -48,6 +49,11 @@ function toolsAtRef() {
       .map((l) => l.trim())
       .filter((l) => l.endsWith('.ts'));
     if (!names.length) return null; // 하나도 못 봤다 = 못 물어본 것에 가깝다
+    /* ★ **파일마다 git 을 띄우지 않는다** (2026-08-29 실측). 도구 280개면 `git show` 도 280번이고
+       윈도우에서 그것만 71초다. 이 검사가 게이트 판의 꼬리(277초)였다. `cat-file --batch` 는
+       한 프로세스에서 전부 돌려준다. 읽는 자리와 내용이 같으므로 판정은 안 바뀐다. */
+    const blobs = readBlobsAtRef(root, REF, names, gitEnv);
+    if (blobs.size === names.length) return names.map((full) => ({ name: full.split('/').pop(), src: blobs.get(full) }));
     /* `ls-tree` 가 돌려주는 자리는 **지금 선 곳 기준**이다. `show` 에 그대로 넘기면 저장소
        뿌리 기준으로 읽어 엉뚱한 자리를 찾다 던진다. 그러면 조용히 디스크로 내려가 버려서
        고쳐 놓고도 남의 낡은 사본 때문에 계속 빨갰다. `./` 를 붙여 여기 기준이라고 말한다. */
