@@ -19,6 +19,8 @@ export interface GardenLoop {
 /** `fn` 을 매 프레임 부른다. 셸이 있으면 셸이 멈춰 준다 — 없으면(시험·따로 띄운 화면) 그냥 돈다. */
 export function gloop(fn: () => void): GardenLoop {
   if (typeof Toolbox !== 'undefined' && Toolbox?.raf) return Toolbox.raf(() => fn());
+  /* 셸이 없을 때만 오는 자리 — 여기서 멈춰 줄 사람이 없다. 검사에게 그 사실을 말한다:
+     keepAlive('셸 없이 띄운 화면 — 멈춰 줄 셸이 없다') */
   let handle: number | undefined = requestAnimationFrame(function tick() {
     handle = requestAnimationFrame(tick);
     fn();

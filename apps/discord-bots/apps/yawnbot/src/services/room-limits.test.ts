@@ -4,7 +4,7 @@
  * 시간을 실제로 흘려보내지 않는다 — 1초를 기다리는 시험은 검사가 아니라 지연이다.
  */
 import { describe, expect, it } from 'vitest';
-import { MOVE_LIMIT, OP_MAX_BYTES, RoomLimiter, opTooBig } from './room-limits';
+import { MOVE_LIMIT, OP_MAX_BYTES, RoomLimiter, opTooBig, MOVE_IP_LIMIT } from './room-limits';
 
 describe('RoomLimiter', () => {
   it('몰아 쓰기까지는 통과하고 그 다음이 막힌다', () => {
@@ -58,5 +58,22 @@ describe('opTooBig', () => {
     const loop: Record<string, unknown> = {};
     loop.self = loop;
     expect(opTooBig(loop)).toBe('depth');
+  });
+});
+
+describe('IP 지붕 (참가자 상한 위)', () => {
+  it('참가자를 늘려도 IP 지붕은 안 늘어난다 — 창을 여럿 열어 우회하던 길', () => {
+    const perMember = new RoomLimiter(MOVE_LIMIT);
+    const perIp = new RoomLimiter(MOVE_IP_LIMIT);
+    const now = 1_000_000;
+    let passed = 0;
+    // 창 열 개가 각자 자기 몫을 다 쓴다 — 참가자 상한만 있으면 600번이 통과한다.
+    for (let tab = 0; tab < 10; tab += 1) {
+      for (let i = 0; i < MOVE_LIMIT.burst; i += 1) {
+        if (perMember.take(`room:tab${tab}`, now) && perIp.take('ip', now)) passed += 1;
+      }
+    }
+    expect(passed).toBe(MOVE_IP_LIMIT.burst);
+    expect(passed).toBeLessThan(10 * MOVE_LIMIT.burst);
   });
 });

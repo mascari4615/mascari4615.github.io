@@ -53,7 +53,7 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
-import { MOVE_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
+import { MOVE_IP_LIMIT, MOVE_LIMIT, OP_IP_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
 import { identityOf } from '../services/karmolab-identity';
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
@@ -1438,9 +1438,15 @@ export function registerKarmolabApi(
      상한이 아니라 확성기다. 참가자 기준이라 같은 IP 를 쓰는 옆자리를 같이 벌하지 않는다. */
   const moveLimiter = new RoomLimiter(MOVE_LIMIT);
   const opLimiter = new RoomLimiter(OP_LIMIT);
+  /* 참가자 상한 위에 **IP 지붕**을 하나 더. 창을 여럿 열어 참가자를 늘리면 참가자 상한은
+     그만큼 늘어난다 — 지붕이 없으면 상한을 우회하는 길이 열려 있는 셈이다. */
+  const moveIpLimiter = new RoomLimiter(MOVE_IP_LIMIT);
+  const opIpLimiter = new RoomLimiter(OP_IP_LIMIT);
   setInterval(() => {
     moveLimiter.sweep();
     opLimiter.sweep();
+    moveIpLimiter.sweep();
+    opIpLimiter.sweep();
   }, 60_000).unref?.();
 
   /** 방 id 로 받아들일 모양 — 주소에 그대로 들어가므로 좁게 잡는다. */
@@ -1515,7 +1521,7 @@ export function registerKarmolabApi(
     const id = memberIdOf(req, body.tab);
     /* 넘친 좌표는 **조용히 버린다** — 지나간 커서는 값이 0 이라, 「너무 빠르다」를 돌려주는
        것 자체가 또 하나의 소음이다. 다만 `moved` 는 거짓말하지 않는다(방에는 그대로 있다). */
-    if (!moveLimiter.take(`${roomId}:${id}`)) {
+    if (!moveLimiter.take(`${roomId}:${id}`) || !moveIpLimiter.take(abuseKeyFor(req))) {
       res.json({ moved: rooms.members(roomId).some((m) => m.id === id), throttled: true });
       return;
     }
@@ -1541,7 +1547,7 @@ export function registerKarmolabApi(
       res.status(413).json({ error: tooBig === 'size' ? 'op_too_long' : 'op_too_deep' });
       return;
     }
-    if (!opLimiter.take(`${roomId}:${id}`)) {
+    if (!opLimiter.take(`${roomId}:${id}`) || !opIpLimiter.take(abuseKeyFor(req))) {
       res.status(429).json({ error: 'too_fast' });
       return;
     }

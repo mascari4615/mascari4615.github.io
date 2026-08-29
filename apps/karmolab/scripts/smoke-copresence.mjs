@@ -200,6 +200,23 @@ try {
   const t2 = await openTab();
   const t3 = await openTab();
   await t3.waitForTimeout(4000); // 대표 뽑기 한 바퀴(1초) + 여유
+  /* 사람 수는 커서만의 이야기가 아니다 — 접속자 수와 채팅 「지금 여기」도 같은 사람으로
+     묶여야 한다 (change.identity-one). 탭 셋이 열려 있는 지금 재는 것이 가장 정직하다. */
+  const onlineOf = (page) =>
+    page.evaluate(async (origin) => {
+      const res = await fetch(`${origin}/kl/presence`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'human' }),
+      });
+      return res.ok ? (await res.json()).online : -1;
+    }, apiOrigin);
+  const onlineFromTabs = [await onlineOf(a.page), await onlineOf(t2), await onlineOf(t3)];
+  /* 지금 창은 둘(A 브라우저 · B 브라우저)이고 A 는 탭이 셋이다. 탭마다 세던 시절이면 4 가 된다. */
+  check('접속자는 사람 수', onlineFromTabs.every((n) => n === 2),
+    `탭 셋에서 잰 접속자 수가 ${onlineFromTabs.join('·')} — 브라우저 둘이니 전부 2 여야 한다 (탭을 세면 4 가 된다)`);
+
   check('탭 셋 = 한 사람', mine() === 1, `탭을 셋 열었더니 A 가 ${mine()}명이 됐다 (대표 뽑기가 안 섰다)`);
   await t2.close();
   await t3.close();

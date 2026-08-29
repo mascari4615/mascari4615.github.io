@@ -135,7 +135,7 @@ import { download, encode } from '../tools/shared/image';
     let time = 0;
     let last = 0;
     let running = true;
-    let raf = 0;
+    let loop: { stop: () => void } | null = null;
 
     function fit(): void {
       const rect = root.getBoundingClientRect();
@@ -160,7 +160,6 @@ import { download, encode } from '../tools/shared/image';
     }
 
     function tick(now: number): void {
-      raf = requestAnimationFrame(tick);
       if (!last) last = now;
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
@@ -184,7 +183,10 @@ import { download, encode } from '../tools/shared/image';
     if (calm) running = false;
 
     paint();
-    raf = requestAnimationFrame(tick);
+    /* 보이는 동안만 돈다 (change.widget-idle-cost). 예전엔 스스로를 다시 걸어서, 다른 화면으로
+       가도 매 프레임 깨어났다 — 할 일은 `onScreen()` 이 걸러 냈지만 깨어나는 것 자체가 값이다
+       (실측: 나온 뒤에도 rAF 120/2초). */
+    loop = Toolbox.raf?.(tick) ?? null;
 
     const ro = new ResizeObserver(function () {
       const was = w;
@@ -411,7 +413,7 @@ import { download, encode } from '../tools/shared/image';
     });
 
     Toolbox.onDispose?.(function () {
-      cancelAnimationFrame(raf);
+      loop?.stop();
       window.clearTimeout(idleTimer);
       ro.disconnect();
     });

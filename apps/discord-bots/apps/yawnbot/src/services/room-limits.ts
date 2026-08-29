@@ -31,6 +31,16 @@ export const MOVE_LIMIT: LimitSpec = { rate: 30, burst: 60 };
 /** 연산 — 사람이 치는 글자는 이보다 느리다. */
 export const OP_LIMIT: LimitSpec = { rate: 20, burst: 40 };
 
+/**
+ * 같은 IP 하나에 걸리는 지붕 (change.identity-one 3단계 잔여).
+ *
+ * 참가자 기준 상한만 있으면, 한 사람이 창을 여럿 열어 **참가자를 늘리는 방식**으로 그 상한을
+ * 우회한다. 그래서 IP 위에 지붕을 하나 더 얹는다 — 한 집·한 사무실에 사람이 여럿일 수 있으니
+ * 참가자 몫의 네 배로 넉넉히 잡는다. 좁히려는 것이 아니라 **폭주만** 막는 자리다.
+ */
+export const MOVE_IP_LIMIT: LimitSpec = { rate: 120, burst: 240 };
+export const OP_IP_LIMIT: LimitSpec = { rate: 80, burst: 160 };
+
 /** 연산 하나의 크기 상한. 이걸 넘는 것은 글이 아니라 짐이다. */
 export const OP_MAX_BYTES = 8 * 1024;
 
