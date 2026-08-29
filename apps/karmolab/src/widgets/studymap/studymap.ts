@@ -315,8 +315,28 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 /* 캔버스가 자기 크기를 잡는다 — 우리는 자리만 내준다(가로 스크롤은 이제 캔버스 몫). */
 /* 캔버스는 자기 상자를 height:100% 로 채운다 — 그래서 **크기를 정하는 틀**을 하나 감싸 준다.
    (안 감싸면 100% 가 auto 를 만나 상자가 한없이 커진다: 실측 910px.) */
-.sm-tree { height: min(62vh, 560px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
+/* 지도는 **창**이다 — 블루마블(bm-wrap)과 같은 규약: 높이를 부모에게 안 묻고 화면 기준으로
+   스스로 정한다. 62vh 짜리 상자에 41갈래를 넣으니 지도가 아니라 우표였다.
+   작은 화면에서도 420px 는 되고, 커도 화면을 넘지 않는다. */
+.sm-tree { height: clamp(420px, calc(100svh - 200px), 900px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .sm-tree-in { width: 100%; height: 100%; }
+/* 강의는 지도를 **덮는다** — 갈아 끼우지 않는다. 뒤가 비쳐야 「어디에서 열었는지」를 안 잃고,
+   닫았을 때 지도가 보던 그 자리 그대로다(전에는 카메라가 처음으로 돌아갔다).
+   흐림은 뒤 그림을 지우려는 것이 아니라 **글자를 읽히게** 하려는 것이다. */
+.sm-main { position: relative; }
+.sm-reader { position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
+  min-height: 60svh; padding: 20px 22px 32px; border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
+  backdrop-filter: blur(16px) saturate(1.08); -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  animation: sm-reader-in .18s ease-out; }
+@keyframes sm-reader-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* 흐림을 못 그리는 브라우저에서는 **불투명하게** — 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sm-reader { background: var(--bg-primary); }
+}
+@media (prefers-reduced-motion: reduce) { .sm-reader { animation: none; } }
+@media (max-width: 899px) { .sm-reader { padding: 14px 14px 24px; } }
 .tt-svg { display: block; max-width: none; }
 .tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
 .tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
@@ -445,7 +465,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-resume { padding: 16px; }
   .sm-node-title { min-height: 40px; }
   /* 강의를 읽는 동안은 지도 머리를 접는다 — 첫 화면에 본문이 오게. */
-  .sm-wrap.is-reading .sm-head, .sm-wrap.is-reading .sm-findbar, .sm-wrap.is-reading .sm-tracks { display: none; }
+  /* 읽는 동안 접는 것은 머리와 찾기까지다. **옆줄 목록은 남긴다** — 강의가 지도를 덮고 있으니
+   다음 칸으로 옮겨 다닐 손잡이가 필요하다(좁은 화면에서는 자리가 없어 그것도 접는다). */
+.sm-wrap.is-reading .sm-head, .sm-wrap.is-reading .sm-findbar { display: none; }
+@media (max-width: 899px) { .sm-wrap.is-reading .sm-tracks { display: none; } }
 }
 `;
     document.head.appendChild(style);
@@ -527,7 +550,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         </div>
         <div class="sm-body">
           <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
-          <div class="sm-main" data-sm="stages" aria-live="polite"></div>
+          <div class="sm-main" data-sm="stages" aria-live="polite">
+            <!-- 지도와 강의는 **형제**다. 전에는 같은 자리를 갈아 끼워서, 강의를 열면 지도가
+                 통째로 죽었다(캔버스를 다시 굽고 카메라가 처음으로 돌아갔다). 지도는 그대로 두고
+                 강의를 그 위에 덮는다 — 뒤가 비쳐야 「어디에서 열었는지」를 안 잃는다. -->
+            <div class="sm-view" data-sm="view"></div>
+            <div class="sm-reader" data-sm="reader" hidden></div>
+          </div>
         </div>
         <div class="sm-foot">
           <button type="button" class="sm-reset" data-sm="export">${esc(t('studymap.export', undefined, '진도 내보내기'))}</button>
@@ -539,6 +568,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     const q = <T extends HTMLElement>(key: string): T => container.querySelector(`[data-sm="${key}"]`) as T;
     const elTracks = q<HTMLDivElement>('tracks');
     const elStages = q<HTMLDivElement>('stages');
+    /** 지도·목록이 사는 자리. 화면을 갈아엎는 것은 여기까지다. */
+    const elView = q<HTMLDivElement>('view');
+    /** 강의가 사는 자리 — 지도 위에 덮인다. 닫아도 지도는 그대로 살아 있다. */
+    const elReader = q<HTMLDivElement>('reader');
     const elSearch = q<HTMLInputElement>('search');
 
     /* 선수 관계는 갈래를 넘는다 — id 하나로 어느 갈래의 어느 칸인지 바로 찾을 표를 만든다. */
@@ -864,10 +897,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       partOpen = wantPart ?? null;
       /* 읽는 중에는 머리(제목·진도·찾기)를 접는다 — 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
       container.querySelector('.sm-wrap')?.classList.add('is-reading');
+      elReader.hidden = false;
+      elReader.scrollTop = 0;
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
       /* 글자 한 줄 대신 **올 모양**을 미리 그린다 — 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
-      elStages.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
+      elReader.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
         <div class="sm-skel-line is-crumb"></div>
         <div class="sm-skel-line is-title"></div>
         <div class="sm-skel-line is-meta"></div>
@@ -928,7 +963,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
       if (!lesson) {
         const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
-        elStages.innerHTML = `<div class="sm-lesson">${back}
+        elReader.innerHTML = `<div class="sm-lesson">${back}
           <h3>${esc(node.title)}</h3>
           <div class="sm-lesson-meta">${esc(t('studymap.lesson.none', undefined, '이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.'))}</div>
           <p>${esc(node.why)}</p>
@@ -1011,7 +1046,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         )
         .join('');
 
-      elStages.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
+      elReader.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
         <h3>${esc(node.title)}</h3>
         <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${parts.length > 1 ? ` · ${esc(t('studymap.lesson.partno', { n: pIdx + 1, all: parts.length }, '{n}/{all}장'))}` : ''}${part.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: part.minutes }, '약 {n}분'))}` : ''}</div>
         ${prereqBlock}
@@ -1115,6 +1150,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     function paint(): void {
       lessonOpen = null;
       container.querySelector('.sm-wrap')?.classList.remove('is-reading');
+      elReader.hidden = true;
+      elReader.innerHTML = '';
       stopWatching?.();
       stopWatching = null;
       const tr = trackOf(current);
@@ -1148,7 +1185,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       doneSrc = readSrc();
 
       if (query) {
-        elStages.innerHTML = searchHtml();
+        elView.innerHTML = searchHtml();
         paintTracks();
         return;
       }
@@ -1197,7 +1234,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 가까이 있을수록 강의 내용이 비슷하다 · 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
-        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree"><div class="sm-tree-in" data-sm="treehost"></div></div>`;
+        elView.innerHTML = `${review}${resume}${head}<div class="sm-tree"><div class="sm-tree-in" data-sm="treehost"></div></div>`;
         /* 그리기는 KarmoGraph 엔진에 맡긴다 — 확대·이동·미니맵·손가락 두 개가 공짜로 따라온다. */
         const host = elStages.querySelector('[data-sm="treehost"]');
         if (host instanceof HTMLElement) {
@@ -1258,7 +1295,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
 
-      elStages.innerHTML = tr.stages
+      elView.innerHTML = tr.stages
         .map((st) => {
           const clear = st.nodes.every((n) => done.has(n.id));
           const sd = st.nodes.filter((n) => done.has(n.id)).length;
@@ -1305,6 +1342,19 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
       paint();
     });
+
+    /* Esc — 덮어 놓은 것은 걷는 길이 있어야 한다. 뒤로가기와 **같은 길**로 보낸다
+       (그래야 기록에 빈 칸이 안 남는다). 글자를 치는 중이면 가로채지 않는다. */
+    const onKey = (e: KeyboardEvent): void => {
+      /* 떼어 낸 판이 남의 Esc 를 먹지 않게 — 이 위젯의 자리가 아직 붙어 있을 때만 (popstate 와 같은 규약). */
+      if (e.key !== 'Escape' || !lessonOpen || !elStages.isConnected) return;
+      const el = document.activeElement;
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+      if ((history.state as { smLesson?: string } | null)?.smLesson) history.back();
+      else paint();
+    };
+    document.addEventListener('keydown', onKey);
 
     /* 뒤로/앞으로 — 우리가 쌓은 칸이면 강의를 열고 닫는다. 남의 기록이면 손대지 않는다. */
     window.addEventListener('popstate', (e) => {
