@@ -760,6 +760,40 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
 .tool-hub-group a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
+/* 창고 (2026-08-29). 넉 주 동안 아무도 안 연 도구 105개가 여기로 내려왔다.
+   지운 것이 아니라 접은 것이라, 눌러서 펴는 자리라는 게 보여야 한다.
+   진열된 분류들과 확실히 갈라 놓으려고 위에 선을 하나 긋는다. */
+.tool-hub-archive {
+    margin-top: 44px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+.tool-hub-archive > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.tool-hub-archive > summary::-webkit-details-marker { display: none; }
+/* 접힘 표시는 글자로 그린다. 아이콘 하나 더 받아 오려고 요청을 늘리지 않는다. */
+.tool-hub-archive > summary::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid var(--text-secondary);
+    border-bottom: 1.5px solid var(--text-secondary);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+}
+.tool-hub-archive[open] > summary::before { transform: rotate(45deg); }
+.tool-hub-archive > summary .tool-hub-group { margin: 0; }
+.tool-hub-archive-note {
+    margin: 8px 0 12px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
 /* 목록은 **훑는 화면**이다 (TASK-KL-128). 카드 한 장이 84px 이라 폰에서 한 화면에 아홉 장쯤
    들어갔는데, 도구는 125가지다. 원하는 것에 닿기까지 스크롤이 너무 길었다. 한 장을 낮추고
    칸을 좁혀 한 화면에 들어가는 수를 늘린다. 설명은 지우지 않는다(고르는 데 필요한 문장이다).

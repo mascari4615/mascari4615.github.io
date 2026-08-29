@@ -46,6 +46,12 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
 /* 도구마다 넣은 것이 이 기기를 떠나는가. 판정 정본 (TASK-KL-352). */
 const privacy = JSON.parse(fs.readFileSync(path.join(root, 'data/tool-privacy.json'), 'utf8'));
 
+/* 창고 (2026-08-29). 넉 주 동안 아무도 안 연 도구다.
+ * 지우지 않는다. 주소도 검색도 그대로고, 목록에서만 맨 아래 접힌 자리로 내려간다.
+ * 판정 근거와 그 근거의 한계는 `data/tool-archive.json` 이 같이 들고 있다. */
+const ARCHIVED = new Set(JSON.parse(fs.readFileSync(path.join(root, 'data/tool-archive.json'), 'utf8')).ids);
+const ARCHIVE_TITLE = '창고';
+
 /* 준비물은 **한 장도 쓰기 전에** 다 확인한다.
  * 예전에는 sw.js 확인이 맨 끝에 있어, 페이지 121장을 다 써 놓고 나서야 멈췄다 . 
  * 반쯤 만들어진 결과가 남아 다음 사람이 그걸 성한 것으로 착각한다. */
@@ -826,7 +832,20 @@ function groupIds() {
   const rest = ids.filter((id) => !claimed.has(id));
   bundles.sort((a, b) => b.parts.length - a.parts.length);
   if (rest.length) bundles.push({ title: '그 밖에', parts: rest, bundleId: null });
-  return bundles;
+
+  /* 창고를 **분류에서 걷어 내 한 자리에 모은다** (2026-08-29).
+   * 묶음 자체는 지우지 않는다. 개발 도구에서 열일곱을 내려도 그 묶음 페이지(`/t/devtool/`)
+   * 안에는 그대로 다 있다. 여기서 바뀌는 것은 목록 장의 진열뿐이다.
+   * 묶음이 통째로 창고로 가면 빈 묶음이 남으므로 그때는 묶음째 지운다. */
+  const shelved = [];
+  for (const g of bundles) {
+    const keep = g.parts.filter((id) => !ARCHIVED.has(id));
+    shelved.push(...g.parts.filter((id) => ARCHIVED.has(id)));
+    g.parts = keep;
+  }
+  const visible = bundles.filter((g) => g.parts.length);
+  if (shelved.length) visible.push({ title: ARCHIVE_TITLE, parts: shelved, bundleId: null, archived: true });
+  return visible;
 }
 
 
@@ -893,13 +912,26 @@ function buildHub() {
           ? `      <h2 class="tool-hub-group" id="${anchor}"><a href="${BASE_PATH}/${g.bundleId}/">${esc(g.title)}</a><span class="tool-hub-count" data-total="${g.parts.length}">${g.parts.length}</span></h2>`
           : `      <h2 class="tool-hub-group" id="${anchor}">${esc(g.title)}<span class="tool-hub-count" data-total="${g.parts.length}">${g.parts.length}</span></h2>`;
       const grid = g.parts.map(card).join(String.fromCharCode(10));
+      /* 창고는 접어서 낸다. 스크립트 없이도 열리는 `details` 라 크롤러도 사람도 다 볼 수 있다. */
+      if (g.archived) {
+        return [
+          `      <details class="tool-hub-archive" id="${anchor}">`,
+          `        <summary><span class="tool-hub-group">${esc(g.title)}<span class="tool-hub-count" data-total="${g.parts.length}">${g.parts.length}</span></span></summary>`,
+          '        <p class="tool-hub-archive-note">넉 주 동안 아무도 안 열었습니다. 지운 것은 아니고 주소는 그대로입니다.</p>',
+          '        <div class="tool-hub-grid">',
+          grid,
+          '        </div>',
+          '      </details>'
+        ].join(String.fromCharCode(10));
+      }
       return [head, '      <div class="tool-hub-grid">', grid, '      </div>'].join(String.fromCharCode(10));
     })
     .join(String.fromCharCode(10));
 
+  /* 목차에 창고는 안 넣는다. 접어 둔 자리로 보내는 길을 위에 다시 내면 접은 뜻이 없다. */
   const toc =
     '      <nav class="tool-hub-toc" aria-label="분류 바로가기">' +
-    groupList.map((g) => `<a href="#${anchorOf(g)}">${esc(g.title)}</a>`).join('') +
+    groupList.filter((g) => !g.archived).map((g) => `<a href="#${anchorOf(g)}">${esc(g.title)}</a>`).join('') +
     '</nav>';
 
   // 화면에는 KarmoLab / 도구 경로가 있는데 기계가 읽는 쪽에는 없었다 (TASK-KL-089).
@@ -1091,6 +1123,18 @@ ${cards}
             }
           }
         });
+        /* 창고는 접혀 있어서, 걸러 찾은 것이 그 안에 있으면 사람 눈에는 없는 것과 같다.
+           찾는 중에는 열어 주고, 다 지우면 도로 접는다. 하나도 안 걸리면 통째로 숨긴다. */
+        var archive = document.querySelector('.tool-hub-archive');
+        if (archive) {
+          var archiveHit = [].slice.call(archive.querySelectorAll('.tool-hub-card')).filter(function (c) { return c.style.display !== 'none'; }).length;
+          archive.style.display = (q && !archiveHit) ? 'none' : '';
+          archive.open = !!(q && archiveHit);
+          var archiveBadge = archive.querySelector('.tool-hub-count');
+          if (archiveBadge) archiveBadge.textContent = q ? archiveHit : archiveBadge.getAttribute('data-total');
+          var note = archive.querySelector('.tool-hub-archive-note');
+          if (note) note.style.display = q ? 'none' : '';
+        }
         // 숨은 분류로 가는 목차 링크는 눌러도 갈 곳이 없다. 같이 숨긴다.
         [].slice.call(document.querySelectorAll('.tool-hub-toc a')).forEach(function (a) {
           var target = document.getElementById(a.getAttribute('href').slice(1));
