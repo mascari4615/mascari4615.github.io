@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey, DRUM_PIECES, TRACK_INSTRUMENTS, drumPieceFor, samplePlaybackRate } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -360,4 +360,24 @@ const keptDrum = JSON.parse(JSON.stringify(shaped));
 keptDrum.tracks[0].instrument = 'drum';
 assert.equal(normalizeProject(keptDrum).tracks[0].instrument, 'drum', '드럼은 그대로 산다');
 
-console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치');
+// 샘플러. 본디 음에서 반음 하나가 재생 속도 한 칸
+assert.equal(samplePlaybackRate(60, 60), 1, '본디 음은 원래 속도');
+assert.ok(Math.abs(samplePlaybackRate(72, 60) - 2) < 1e-9, '한 옥타브 위는 두 배');
+assert.ok(Math.abs(samplePlaybackRate(48, 60) - 0.5) < 1e-9, '한 옥타브 아래는 절반');
+assert.ok(samplePlaybackRate(61, 60) > 1 && samplePlaybackRate(61, 60) < 1.07, '반음은 약 1.06배');
+
+// 샘플러 설정도 저장 뒤 그대로
+const sampler = JSON.parse(JSON.stringify(shaped));
+sampler.tracks[0].instrument = 'sampler';
+sampler.tracks[0].sampleAssetId = 'asset-1';
+sampler.tracks[0].sampleRootPitch = 999;
+const samplerBack = normalizeProject(sampler).tracks[0];
+assert.equal(samplerBack.instrument, 'sampler');
+assert.equal(samplerBack.sampleAssetId, 'asset-1');
+assert.equal(samplerBack.sampleRootPitch, 127, '음높이는 127 까지');
+const noAsset = JSON.parse(JSON.stringify(shaped));
+noAsset.tracks[0].sampleAssetId = 42;
+assert.equal(normalizeProject(noAsset).tracks[0].sampleAssetId, undefined, '숫자 id 는 버린다');
+assert.equal(normalizeProject(noAsset).tracks[0].sampleRootPitch, 60, '본디 음 기본값은 가운데 도');
+
+console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양, 타악기 배치, 샘플러');

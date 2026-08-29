@@ -10,8 +10,9 @@ import { DRUM_PIECES, type StudioClip } from './model';
 
 /** 화면 좌표 규칙. 뷰와 제스처가 같은 숫자를 봐야 해서 여기서 단일 출처로 낸다. */
 export const PIANO_GEOMETRY = {
-  high: 84,
-  low: 36,
+  /* C7 부터 C1 까지. 84-36 이던 시절엔 베이스 음을 마우스로 못 찍었다 */
+  high: 96,
+  low: 24,
   row: 16,
   keyWidth: 68,
   rulerHeight: 24

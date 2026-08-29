@@ -47,14 +47,19 @@ export interface AutomationPoint {
 }
 
 /** 트랙 악기. 파형 4종에 타악기 한 벌. */
-export type TrackInstrument = OscillatorType | 'drum';
+export type TrackInstrument = OscillatorType | 'drum' | 'sampler';
 
-export const TRACK_INSTRUMENTS: TrackInstrument[] = ['sine', 'triangle', 'sawtooth', 'square', 'drum'];
+export const TRACK_INSTRUMENTS: TrackInstrument[] = ['sine', 'triangle', 'sawtooth', 'square', 'drum', 'sampler'];
 
 /** 타악기 한 벌. 열쇠는 MIDI 음높이, GM 배치를 따른다. 음높이 하나가 소리 하나 */
 export const DRUM_PIECES: Record<number, string> = {
   36: '킥', 38: '스네어', 39: '클랩', 42: '닫은 하이햇', 45: '로우 톰', 46: '열린 하이햇', 48: '하이 톰', 49: '크래시'
 };
+
+/** 샘플러 재생 속도. 본디 음에서 반음 하나가 한 칸. 12칸이면 두 배 */
+export function samplePlaybackRate(pitch: number, rootPitch: number): number {
+  return Math.pow(2, (pitch - rootPitch) / 12);
+}
 
 /** 아무 음높이나 가장 가까운 타악기로. 격자 어디를 찍어도 소리는 난다 */
 export function drumPieceFor(pitch: number): number {
@@ -79,6 +84,10 @@ export interface StudioTrack {
   compressor: number;
   reverb: number;
   instrument: TrackInstrument;
+  /** 샘플러가 울릴 소리. 프로젝트 자산 id */
+  sampleAssetId?: string;
+  /** 그 소리의 본디 음높이. 이 음을 찍으면 원래 속도로 난다 */
+  sampleRootPitch?: number;
   /** 소리의 모양. 붙는 속도, 줄어드는 속도, 버티는 크기, 꼬리 길이(초). */
   envelope: { attack: number; decay: number; sustain: number; release: number };
   /** 저역 통과 필터. 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
@@ -272,6 +281,8 @@ export function normalizeProject(input: unknown): StudioProject {
       const number = Number(value);
       return Number.isFinite(number) ? Math.max(low, Math.min(high, number)) : fallback;
     };
+    if (typeof track.sampleAssetId !== 'string') delete track.sampleAssetId;
+    track.sampleRootPitch = clamp(track.sampleRootPitch, 0, 127, 60);
     const envelope = (source as { envelope?: Partial<StudioTrack['envelope']> }).envelope;
     track.envelope = {
       attack: clamp(envelope?.attack, 0, 2, 0.01),

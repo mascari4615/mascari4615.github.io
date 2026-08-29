@@ -1,5 +1,5 @@
 import type { AutomationPoint, StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
-import { automationValueAt, drumPieceFor, swingBeat } from './model';
+import { automationValueAt, drumPieceFor, samplePlaybackRate, swingBeat } from './model';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -148,7 +148,7 @@ function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean,
   if(!track.automation.reverb.length)graph.reverbSend.gain.setTargetAtTime(track.reverb, at, 0.015);
 }
 
-function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0): void {
+function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0, assets?: Map<string, StudioAssetRuntime>): void {
   for (const note of clip.notes) {
     if (note.muted === true) continue;
     /* 스윙은 **소리 낼 때만** 민다. 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
@@ -158,6 +158,31 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     if (track.instrument === 'drum') {
       /* 타악기는 한 방. 음 길이가 아니라 소리가 스스로 끝난다 */
       if (absoluteBeat >= fromBeat) scheduleDrum(context, input, note.pitch, note.velocity * clip.gain, startTime + (absoluteBeat - fromBeat) * secondsPerBeat, sources);
+      continue;
+    }
+    if (track.instrument === 'sampler') {
+      /* 내 소리를 악기로. 본디 음높이에서 반음 하나가 재생 속도 한 칸 */
+      const buffer = track.sampleAssetId ? assets?.get(track.sampleAssetId)?.buffer : undefined;
+      if (!buffer) continue;
+      const root = track.sampleRootPitch ?? 60;
+      const at = startTime + (Math.max(absoluteBeat, fromBeat) - fromBeat) * secondsPerBeat;
+      const endBeat = Math.min(absoluteBeat + note.duration, clip.start + clip.duration, toBeat);
+      const stopAt = startTime + (endBeat - fromBeat) * secondsPerBeat;
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.playbackRate.value = samplePlaybackRate(note.pitch, root);
+      const gain = context.createGain();
+      const peak = Math.max(0.0001, note.velocity * clip.gain);
+      const release = Math.max(0.01, track.envelope.release);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(peak, at + Math.max(0.002, track.envelope.attack));
+      gain.gain.setValueAtTime(peak, Math.max(at + 0.004, stopAt));
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt + release);
+      source.connect(gain).connect(input);
+      const offset = Math.max(0, (fromBeat - absoluteBeat) * secondsPerBeat);
+      source.start(at, Math.min(offset, Math.max(0, buffer.duration - 0.01)));
+      source.stop(stopAt + release + 0.01);
+      sources.push(source);
       continue;
     }
     /* 클립 경계 상한. toBeat 만 보던 탓에 잘린 클립의 음이 계속 울던 자리 */
@@ -237,7 +262,7 @@ function scheduleProject(context: AudioContextLike, project: StudioProject, asse
     scheduleAutomation(graph, track, fromBeat, toBeat, startTime, secondsPerBeat, muted);
     for (const clip of track.clips) {
       if (clip.mute) continue;
-      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources, project.swing);
+      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources, project.swing, assets);
       else scheduleAudio(context, graph.input, clip, clip.assetId ? assets.get(clip.assetId) : undefined, fromBeat, toBeat, startTime, secondsPerBeat, sources);
     }
   }
@@ -319,7 +344,8 @@ export class HeungEngine {
       const context = this.previewContext;
       if (context.state === 'suspended') await context.resume();
       const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
-      scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
+      /* 미리듣기도 실제 자산을 쓴다. 빈 Map 이면 샘플러가 소리를 잃는다 */
+      scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, this.assets, 0, 1, context.currentTime + 0.01, context.destination);
     } catch (error) {
       this.previewContext = null;
       this.onPreviewError?.(error instanceof Error ? error.message : '미리듣기 실패');
@@ -336,7 +362,7 @@ export class HeungEngine {
     const beat=this.currentBeat();const endBeat=this.endBeat(project);
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
-      for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){if(note.muted===true)continue;const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources,project.swing);}}}
+      for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){if(note.muted===true)continue;const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources,project.swing,this.assets);}}}
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph||!(['volume','pan','reverb'] as const).some((key)=>track.automation[key].length))continue;const anySolo=project.tracks.some((item)=>item.solo);scheduleAutomation(graph,track,from,horizonBeat,fromTime,secondsPerBeat,track.mute||(anySolo&&!track.solo));}
     if(this.metronome){
       for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){

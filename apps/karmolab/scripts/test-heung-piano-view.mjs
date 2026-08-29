@@ -29,7 +29,8 @@ assert.ok(pianoScale(clip([], 4), 72, true, 300) >= 72, '좁은 화면에서도 
 
 // 첫 스크롤. 가장 높은 음이 위쪽에 걸린다
 assert.equal(initialScrollTop(clip([])), Math.max(0, (PIANO_GEOMETRY.high - 72) * PIANO_GEOMETRY.row - 64), '음이 없으면 C5 기준');
-assert.equal(initialScrollTop(clip([note('n1', 0, 84)])), 0, '천장 음이면 맨 위');
+assert.equal(initialScrollTop(clip([note('n1', 0, PIANO_GEOMETRY.high)])), 0, '천장 음이면 맨 위');
+assert.ok(PIANO_GEOMETRY.low <= 28 && PIANO_GEOMETRY.high >= 90, '베이스와 높은 음을 마우스로 찍을 수 있는 음역');
 assert.ok(initialScrollTop(clip([note('n1', 0, 40)])) > 0, '낮은 음은 아래로 내려가 있다');
 
 // 뷰. 고른 음만 표시가 붙는다
