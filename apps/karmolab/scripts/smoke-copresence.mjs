@@ -114,12 +114,13 @@ const browser = await chromium.launch();
 /** 창 하나 — UA 가 다르면 서버가 다른 사람으로 본다(같은 IP 라도 이름표가 갈린다). */
 async function openWindow(userAgent) {
   const context = await browser.newContext({ userAgent });
-  const page = await context.newPage();
-  // 같이 쓰기는 이 손잡이로 붙을 곳을 정한다(운영 코드에 있는 길이다).
-  await page.addInitScript((origin) => {
+  /* **창(context)** 에 건다 — 탭에만 걸면 이 검사가 나중에 여는 탭들이 그대로
+     운영 서버로 나간다(그래서 여기서 한 번 헤맸다: 새 탭이 로컬 방에 아예 안 들어왔다). */
+  await context.addInitScript((origin) => {
     window.KARMOLAB_API_BASE = origin;
   }, apiOrigin);
-  await page.route(`${PROD_ORIGIN}/**`, (route) => route.abort());
+  await context.route(`${PROD_ORIGIN}/**`, (route) => route.abort());
+  const page = await context.newPage();
   await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
   return { context, page };
 }
@@ -165,6 +166,46 @@ try {
   await b.page.waitForFunction(() => document.querySelector('.kl-cursor')?.dataset.active === '0', null, { timeout: 5000 }).catch(() => {});
   check('떠남 신호', await b.page.evaluate(() => document.querySelector('.kl-cursor')?.dataset.active === '0'), '창을 떠났는데 남의 화면에서 커서가 계속 활성이다');
 
+  /* ④ 한 사람이 탭을 셋 열어도 그 사람은 하나 (change.copresence-hardening 2단계).
+     같은 context = 같은 브라우저다. 탭끼리 대표를 뽑아 대표만 연결을 연다.
+     인원 전체가 아니라 **A 쪽 사람 수**를 센다 — 뒤에 있는 창은 안 보는 창이라
+     스스로 조용해지고(설계), 그것까지 세면 검사가 남의 사정에 흔들린다. */
+  const keyOf = (id) => id.split(':')[0];
+  const keyA = keyOf(rooms.members('home')[0]?.id ?? '');
+  const mine = () => rooms.members('home').filter((m) => keyOf(m.id) === keyA).length;
+  check('기준', keyA !== '', 'A 의 이름표를 못 읽었다 — 앞 단계가 이미 깨졌다');
+
+  /* 새 탭은 **앞으로 꺼내 놓고** 기다린다 — 뒤에 있는 탭은 브라우저가 한가한 틈을 안 주고,
+     같이 쓰기는 그 틈에 실린다(`boot-late`). 앞에 안 꺼내면 아예 안 켜져서, 검사가
+     「대표 뽑기가 됐다」가 아니라 「아무 일도 안 일어났다」를 초록으로 읽는다. */
+  const openTab = async () => {
+    const page = await a.context.newPage();
+    await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
+    await page.bringToFront();
+    await page.mouse.move(500, 500);
+    await page.waitForFunction(() => !!window.KarmoCopresence, null, { timeout: 15000 });
+    return page;
+  };
+  const t2 = await openTab();
+  const t3 = await openTab();
+  await t3.waitForTimeout(4000); // 대표 뽑기 한 바퀴(1초) + 여유
+  check('탭 셋 = 한 사람', mine() === 1, `탭을 셋 열었더니 A 가 ${mine()}명이 됐다 (대표 뽑기가 안 섰다)`);
+  await t2.close();
+  await t3.close();
+
+  /* ⑤ 커서를 꺼도 **관은 산다** — 지구본 동시관람·함께 편집이 이 관을 같이 쓴다
+     (1단계 계약 변경). 끈 뒤에도 방에 남아야 하고, 남의 커서만 안 그려야 한다. */
+  await a.page.bringToFront();
+  await a.page.mouse.move(360, 360);
+  await a.page.waitForTimeout(500);
+  await a.page.evaluate(() => window.KarmoCopresence.set(false));
+  await a.page.waitForTimeout(1500);
+  check('꺼도 방에 남는다', mine() === 1, '커서를 껐더니 방에서 나가 버렸다 (관까지 끈 것이다)');
+  await b.page.bringToFront();
+  await b.page.mouse.move(250, 250);
+  await b.page.waitForTimeout(800);
+  check('꺼면 안 그린다', (await a.page.evaluate(cursors)) === 0, '껐는데도 남의 커서가 그려진다');
+
   await a.context.close();
   await b.context.close();
 } catch (error) {
@@ -181,4 +222,4 @@ if (failures.length) {
   for (const line of failures) console.error(`  - ${line}`);
   process.exit(1);
 }
-console.log('[smoke-copresence] OK — 커서 그리기 · 잘린 뒤 스스로 재입장 · 떠남 신호');
+console.log('[smoke-copresence] OK — 커서 그리기 · 잘린 뒤 스스로 재입장 · 떠남 신호 · 탭 셋 = 한 사람 · 꺼도 관은 산다');

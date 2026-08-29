@@ -22,7 +22,12 @@ import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, sola
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { paleoTex } from './paleo';
-import { sendRoomOp, onRoomOp } from '../../copresence';
+/* 관은 **셸이 한 번만** 띄운다(`copresence.js`). 여기서 import 하면 이 위젯 묶음 안에 관이
+   한 벌 더 들어가 연결이 둘이 된다 — 창 하나가 두 사람으로 세어진다. 그래서 창에 얹힌
+   손잡이를 쓴다 (change.copresence-hardening 1단계). */
+const sendRoomOp = (op: unknown): void => window.KarmoCopresence?.sendOp(op);
+const onRoomOp = (fn: (op: unknown, from: string) => void): (() => void) =>
+    window.KarmoCopresence?.onOp(fn) ?? (() => {});
 import { loadRegion, levelFor, fitLevel, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';

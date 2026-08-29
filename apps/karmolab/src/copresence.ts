@@ -7,91 +7,28 @@
  * 규율:
  *  ① **아무것도 저장하지 않는다.** 좌표는 비율(0~1)로 보내고 서버는 흘려보내기만 한다.
  *  ② 내 커서는 **안 그린다** — 브라우저가 이미 그리고 있다. 두 개로 보이면 이상하다.
- *  ③ 끄면 내 것을 안 보내고 남의 것도 안 그린다. 켜고 끄는 것은 이 브라우저에만 남는다.
+ *  ③ 끄면 내 좌표를 안 보내고 남의 커서도 안 그린다. 켜고 끄는 것은 이 브라우저에만 남는다.
+ *     **관은 안 끈다** — 같이 보던 지구본이나 같이 쓰던 글까지 멈출 이유가 없다
+ *     (change.copresence-hardening 1단계).
  *  ④ 창이 뒤에 있으면 안 보낸다 — 안 보고 있는 화면의 커서는 소식이 아니라 소음이다.
- */
-import { toolIdFromPath } from './lib/site-base';
-
-/**
- * 어디에 붙을까. 기본은 노트북의 그 서버다.
  *
- * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로 붙는다 — **로컬에서 봇을 띄워 놓고 이 화면을
- * 그 봇에 붙이는 길**이다. 이게 없으면 같이 쓰기는 배포해야만 확인할 수 있고, 그건 확인
- * 루프가 없는 것과 같다.
+ * 방·연결·탭 대표 뽑기는 여기 없다. 전부 `room-channel.ts` 가 한다.
  */
-const API_BASE =
-    (typeof window !== 'undefined' && (window as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE) ||
-    'https://yawnbot.mascari4615.com';
+import {
+    onRoomEvent,
+    onRoomOp,
+    sendInactive,
+    sendMove,
+    sendRoomOp,
+    type RoomMember,
+} from './room-channel';
+import { shareField } from './cotext-share';
 
 /** 켜짐/꺼짐. 기본은 켜짐 — 「사람이 있다」가 이 기능의 전부라 꺼 두면 없는 것과 같다. */
 const PREF_KEY = 'karmolab_copresence';
 
-/** 좌표를 얼마나 자주 보내나. 사람 눈은 20/초면 부드럽다고 느끼고, 그보다 잦으면 낭비다. */
-const SEND_MS = 50;
-
-/** 이 창 하나를 가리키는 이름. 같은 사람이 창을 둘 열면 커서도 둘이다(그게 사실이다). */
-const TAB_ID = Math.random().toString(36).slice(2, 10);
-
-/**
- * 안 움직여도 이만큼마다 마지막 자리를 다시 보낸다.
- *
- * 서버는 **침묵을 나감으로 판정한다**(30초). 가만히 화면만 보는 사람은 나간 사람이 아닌데도
- * 그 판정에 걸려 남의 화면에서 사라졌다 — 그리고 돌아올 길이 없었다(아래 `rejoin`).
- * 30초의 1/3 이면 한 번 못 보내도 안 잘린다.
- */
-const KEEPALIVE_MS = 10 * 1000;
-
-/** 다시 들어가기를 이보다 자주는 안 한다 — 서버가 계속 「없다」고 하면 붙었다 떨어졌다 하게 된다. */
-const REJOIN_MIN_MS = 3 * 1000;
-
-interface Member {
-    id: string;
-    name: string;
-    color: string;
-    handle: string | null;
-    x: number;
-    y: number;
-    active: boolean;
-}
-
-let source: EventSource | null = null;
 let layer: HTMLElement | null = null;
-let roomId: string | null = null;
-let pending: { x: number; y: number; active: boolean } | null = null;
-/** 마지막으로 안 자리 — 안 움직일 때도 이걸 다시 보내 「아직 여기 있다」를 말한다. */
-let last = { x: 0.5, y: 0.5, active: false };
-let lastSentAt = 0;
-let rejoinAt = 0;
-let sendTimer: ReturnType<typeof setInterval> | null = null;
 const cursors = new Map<string, HTMLElement>();
-
-/* ── 남는 관 하나 (TASK-KL-206 · 동시 관람) ─────────────────────────
- *
- * 서버의 `/op` 는 **받아서 그대로 흘려보내기만 한다** — 뜻을 정하지 않는다. 그래서 같이 쓰기
- * 말고 다른 것도 이 관으로 보낼 수 있다(지구본이 보고 있는 자리 같은 것). 연결은 **하나만**
- * 쓴다: 위젯마다 EventSource 를 새로 열면 같은 사람이 방에 여러 번 있는 것으로 세어진다.
- */
-type OpListener = (op: unknown, from: string) => void;
-const opListeners = new Set<OpListener>();
-
-/** 이 관으로 오는 것을 듣는다. 돌려받은 함수를 부르면 그만 듣는다. */
-export function onRoomOp(fn: OpListener): () => void {
-    opListeners.add(fn);
-    return () => opListeners.delete(fn);
-}
-
-/** 이 관으로 보낸다. 방에 안 들어가 있으면 아무 일도 안 일어난다(조용히). */
-export function sendRoomOp(op: unknown): void {
-    if (!roomId || !isCopresenceOn()) return;
-    void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/op`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tab: TAB_ID, op }),
-    }).catch(() => {
-        /* 한 번 못 보낸 것은 다음 것이 대신한다 — 지나간 자리는 값이 0 이다 */
-    });
-}
 
 export function isCopresenceOn(): boolean {
     try {
@@ -107,8 +44,7 @@ export function setCopresence(on: boolean): void {
     } catch {
         /* 저장이 안 돼도 이번 창에서는 동작한다 */
     }
-    if (on) joinRoom(roomId ?? currentRoom());
-    else leaveRoom();
+    if (!on) clearAll();
 }
 
 function ensureLayer(): HTMLElement {
@@ -144,7 +80,8 @@ function ensureLayer(): HTMLElement {
     return layer;
 }
 
-function drawMember(member: Member): void {
+function drawMember(member: RoomMember): void {
+    if (!isCopresenceOn()) return;
     const host = ensureLayer();
     let node = cursors.get(member.id);
     if (!node) {
@@ -163,6 +100,13 @@ function drawMember(member: Member): void {
     node.style.transform = `translate(${member.x * window.innerWidth}px, ${member.y * window.innerHeight}px)`;
 }
 
+function moveMember(data: { id: string; x: number; y: number; active: boolean }): void {
+    const node = cursors.get(data.id);
+    if (!node) return; // 아직 못 본 사람의 움직임은 버린다 — join 이 오면 그때 그린다.
+    node.dataset.active = data.active ? '1' : '0';
+    node.style.transform = `translate(${data.x * window.innerWidth}px, ${data.y * window.innerHeight}px)`;
+}
+
 function removeMember(id: string): void {
     const node = cursors.get(id);
     if (!node) return;
@@ -177,111 +121,24 @@ function clearAll(): void {
     layer = null;
 }
 
-/** 지금 보고 있는 화면 = 방 이름. 도구·게임·첫 화면 구분 없이 같은 규칙이다. */
-function currentRoom(): string {
-    const detail = toolIdFromPath(location.pathname);
-    if (detail) return detail;
-    const hash = location.hash.replace(/^#/, '');
-    return /^[a-z0-9][a-z0-9-]*$/.test(hash) ? hash : 'home';
-}
-
-function leaveRoom(): void {
-    source?.close();
-    source = null;
-    if (sendTimer) {
-        clearInterval(sendTimer);
-        sendTimer = null;
+onRoomEvent((kind, data) => {
+    if (kind === 'reset') {
+        clearAll();
+        return;
     }
-    clearAll();
-}
-
-function joinRoom(next: string): void {
     if (!isCopresenceOn()) return;
-    if (source && roomId === next) return;
-    leaveRoom();
-    roomId = next;
-
-    source = new EventSource(`${API_BASE}/kl/room/${encodeURIComponent(next)}/stream?tab=${TAB_ID}`, {
-        withCredentials: true,
-    });
-    source.addEventListener('hello', (event) => {
-        const data = JSON.parse((event as MessageEvent).data) as { members: Member[] };
-        data.members.forEach(drawMember);
-    });
-    source.addEventListener('join', (event) => {
-        drawMember((JSON.parse((event as MessageEvent).data) as { member: Member }).member);
-    });
-    source.addEventListener('move', (event) => {
-        const data = JSON.parse((event as MessageEvent).data) as { id: string; x: number; y: number; active: boolean };
-        const node = cursors.get(data.id);
-        if (!node) return; // 아직 못 본 사람의 움직임은 버린다 — join 이 오면 그때 그린다.
-        node.dataset.active = data.active ? '1' : '0';
-        node.style.transform = `translate(${data.x * window.innerWidth}px, ${data.y * window.innerHeight}px)`;
-    });
-    source.addEventListener('op', (event) => {
-        const data = JSON.parse((event as MessageEvent).data) as { op?: unknown; member?: { id?: string } };
-        applyRemote(data.op);
-        // 같이 쓰기 말고 다른 것도 이 관으로 흐른다 — 뜻은 받는 쪽이 정한다
-        for (const fn of opListeners) fn(data.op, data.member?.id ?? '');
-    });
-    source.addEventListener('leave', (event) => {
-        removeMember((JSON.parse((event as MessageEvent).data) as { id: string }).id);
-    });
-    // 서버가 죽거나 터널이 끊기면 브라우저가 알아서 다시 붙는다. 우리가 할 일은 없다.
-
-    lastSentAt = Date.now();
-    sendTimer = setInterval(() => {
-        if (!roomId) return;
-        // 안 움직여도 가끔은 말한다 — 침묵이 곧 나감으로 읽히기 때문이다.
-        if (!pending && document.visibilityState === 'visible' && Date.now() - lastSentAt >= KEEPALIVE_MS) {
-            pending = { ...last };
-        }
-        if (!pending) return;
-        const body = { ...pending, tab: TAB_ID };
-        pending = null;
-        lastSentAt = Date.now();
-        void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/move`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        })
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data: { moved?: boolean } | null) => {
-                // 서버가 「그런 사람 없다」고 하면 이미 내보내진 것이다. 다시 들어간다 —
-                // 이 답을 안 보던 시절엔 한 번 잘린 창의 커서가 새로고침 전까지 안 보였다.
-                if (data && data.moved === false) rejoin();
-            })
-            .catch(() => {
-                /* 한 번 못 보낸 좌표는 버린다 — 다음 좌표가 곧 온다 */
-            });
-    }, SEND_MS);
-}
-
-/** 내보내진 뒤 다시 들어간다. 방은 그대로, 관만 새로 연다. */
-function rejoin(): void {
-    if (!roomId || !isCopresenceOn()) return;
-    const now = Date.now();
-    if (now - rejoinAt < REJOIN_MIN_MS) return;
-    rejoinAt = now;
-    const room = roomId;
-    leaveRoom();
-    joinRoom(room);
-}
+    if (kind === 'hello') (data as { members: RoomMember[] }).members.forEach(drawMember);
+    else if (kind === 'join') drawMember((data as { member: RoomMember }).member);
+    else if (kind === 'move') moveMember(data as { id: string; x: number; y: number; active: boolean });
+    else if (kind === 'leave') removeMember((data as { id: string }).id);
+});
 
 function watchPointer(): void {
     const note = (x: number, y: number, active: boolean): void => {
         if (!isCopresenceOn()) return;
         // 안 보고 있는 창의 커서는 소식이 아니라 소음이다.
         if (document.visibilityState !== 'visible') return;
-        last = { x: x / window.innerWidth, y: y / window.innerHeight, active };
-        pending = { ...last };
-    };
-    /** 「이제 안 보인다」는 반드시 나가야 한다 — pending 이 비어 있어도 새로 만든다. */
-    const goInactive = (): void => {
-        if (!isCopresenceOn()) return;
-        last.active = false;
-        pending = { ...last };
+        sendMove(x / window.innerWidth, y / window.innerHeight, active);
     };
     window.addEventListener('pointermove', (event) => note(event.clientX, event.clientY, true), { passive: true });
     // 손가락도 커서다 — 폰에서 같이 쓰는 사람이 안 보이면 그건 반쪽이다.
@@ -289,146 +146,16 @@ function watchPointer(): void {
         const touch = event.touches[0];
         if (touch) note(touch.clientX, touch.clientY, true);
     }, { passive: true });
-    // 직전에 보내 버려 pending 이 비어 있으면 「나갔다」가 영영 안 나갔다 — 남의 화면엔
+    // 직전에 보내 버려 보낼 것이 비어 있어도 「나갔다」는 나가야 한다 — 안 그러면 남의 화면에
     // 30초 동안 멈춘 커서가 남았다(2026-08-29 정독).
-    window.addEventListener('pointerleave', goInactive);
+    window.addEventListener('pointerleave', () => sendInactive());
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState !== 'visible') goInactive();
-        // 돌아왔다면 그새 잘렸을 수 있다 — 다음 보내기가 답을 보고 알아서 다시 들어간다.
-        else lastSentAt = 0;
+        if (document.visibilityState !== 'visible') sendInactive();
     });
 }
 
-function start(): void {
-    watchPointer();
-    joinRoom(currentRoom());
-    window.addEventListener('hashchange', () => joinRoom(currentRoom()));
-    // 창 크기가 바뀌면 비율은 그대로여도 픽셀이 달라진다 — 다음 움직임에서 맞춰진다.
-}
-
-if (document.readyState === 'complete') start();
-else window.addEventListener('load', start);
-
-/* ── 함께 편집 붙이기 (TASK-KL-183 C) ─────────────────────────────
- *
- * 도구는 **글칸 하나를 건네주기만** 하면 된다: `KarmoCopresence.share(el, 'memo-1')`.
- * 나머지(연산 만들기·보내기·받기·커서 지키기)는 여기서 한다 — 도구마다 CRDT 를 알게 하면
- * 아무도 안 붙인다.
- *
- * **방을 나가도 글은 남는다** (TASK-KL-191 축2). 첫 사이클은 「방에 있는 동안만」이었다 —
- * 마지막 사람이 나가면 같이 쓴 것이 사라졌고, 남는 것이 없으면 그건 문서가 아니라 대화였다.
- * 이제 서버가 **글 한 장**을 들고 있는다(연산 기록도, 커서도 아니다).
- *
- * 갈라짐을 어떻게 막나: 다시 들어온 사람들이 **같은 글에서 같은 이름표**로 시작한다
- * (`CoText.seed` — 자리마다 정해진 이름). 각자 `diffTo` 로 집어넣으면 이름이 사람마다 달라져
- * 한 글자만 쳐도 글이 두 벌로 갈라진다.
- */
-const shared = new Map<
-    string,
-    { doc: import('./cotext').CoText; el: HTMLTextAreaElement | HTMLInputElement; version: number }
->();
-
-/** 저장은 손을 멈춘 뒤에 — 글자마다 보내면 방이 아니라 서버가 먼저 지친다. */
-const SAVE_IDLE_MS = 1500;
-const remoteSaveTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-function saveDoc(key: string): void {
-    const entry = shared.get(key);
-    if (!entry || !roomId) return;
-    void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/doc/${encodeURIComponent(key)}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: entry.doc.text, basedOn: entry.version }),
-    })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data: { version?: number } | null) => {
-            if (typeof data?.version === 'number') entry.version = data.version;
-        })
-        .catch(() => {
-            /* 못 보냈으면 다음 멈춤에서 다시 보낸다 — 글은 여전히 이 창에 있다 */
-        });
-}
-
-async function shareField(el: HTMLTextAreaElement | HTMLInputElement, key: string): Promise<void> {
-    if (!isCopresenceOn() || shared.has(key)) return;
-    const { CoText } = await import('./cotext');
-    const doc = new CoText(TAB_ID);
-    const entry = { doc, el, version: 0 };
-    shared.set(key, entry);
-
-    /* 시작점 — 서버에 남아 있던 글이 있으면 그것으로, 없으면 지금 화면 글로.
-     * 순서가 중요하다: 서버 글을 먼저 깔아야 **모두가 같은 이름표**로 시작한다.
-     * 내가 이미 쓰던 글이 있으면 그건 내 글자로 뒤에 붙는다(남의 글을 안 지운다). */
-    let saved = '';
-    if (roomId) {
-        try {
-            const res = await fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/doc/${encodeURIComponent(key)}`);
-            if (res.ok) {
-                const data = (await res.json()) as { text?: string; version?: number };
-                saved = String(data.text ?? '');
-                entry.version = Number(data.version) || 0;
-            }
-        } catch {
-            /* 서버에 못 닿으면 저장 없이 이 창 안에서만 같이 쓴다 — 도구는 그대로 돈다 */
-        }
-    }
-    if (saved) {
-        doc.seed(saved);
-        const mine = el.value;
-        el.value = doc.text;
-        if (mine && mine !== saved) doc.diffTo(`${doc.text}${mine}`);
-        el.value = doc.text;
-    } else {
-        // 빈 글에서 시작하면 남이 들어오는 순간 내 글이 사라진다.
-        doc.diffTo(el.value);
-    }
-
-    let saveTimer: ReturnType<typeof setTimeout> | null = null;
-    el.addEventListener('input', () => {
-        const ops = doc.diffTo(el.value);
-        if (!ops.length) return;
-        if (saveTimer) clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => saveDoc(key), SAVE_IDLE_MS);
-        if (!roomId) return;
-        void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/op`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tab: TAB_ID, op: { key, ops } }),
-        }).catch(() => {
-            /* 한 번 못 보낸 연산은 다음 입력 때 다시 실려 간다(diff 는 지금 글 기준이다) */
-        });
-    });
-}
-
-function applyRemote(payload: unknown): void {
-    const data = payload as { key?: string; ops?: Array<import('./cotext').TextOp> } | undefined;
-    const entry = data?.key ? shared.get(data.key) : undefined;
-    if (!entry || !Array.isArray(data?.ops)) return;
-    data.ops.forEach((op) => entry.doc.apply(op));
-    /* 남이 친 것도 저장한다 — 안 그러면 「받아 적기만 한 사람」이 나갈 때 그 글이 안 남는다.
-     * 여럿이 같이 저장해도 판 번호가 낡은 저장을 걸러 준다(서버 원장). */
-    if (data.key) {
-        const at = remoteSaveTimers.get(data.key);
-        if (at) clearTimeout(at);
-        remoteSaveTimers.set(data.key, setTimeout(() => saveDoc(data.key as string), SAVE_IDLE_MS));
-    }
-    // 커서 자리를 지킨다 — 남이 친 글자 때문에 내 커서가 튀면 같이 쓰는 게 아니라 방해가 된다.
-    const el = entry.el;
-    const before = el.selectionStart ?? 0;
-    const prevLength = el.value.length;
-    const next = entry.doc.text;
-    if (el.value === next) return;
-    el.value = next;
-    const shift = next.length - prevLength;
-    const at = Math.max(0, before + (shift > 0 ? shift : 0));
-    try {
-        el.setSelectionRange(at, at);
-    } catch {
-        /* 몇몇 입력칸은 커서를 못 옮긴다 — 글은 이미 맞았다 */
-    }
-}
+if (document.readyState === 'complete') watchPointer();
+else window.addEventListener('load', watchPointer);
 
 declare global {
     interface Window {

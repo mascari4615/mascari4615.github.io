@@ -53,6 +53,7 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
+import { MOVE_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
@@ -1414,6 +1415,14 @@ export function registerKarmolabApi(
    * 로그인은 필요 없다. 익명도 같이 쓸 수 있어야 「지금 여기 사람이 있다」가 성립한다.
    */
   const rooms = getKarmolabRoomStore();
+  /* 상한 (change.copresence-hardening 3단계) — 팬아웃이 있는 자리에서 무제한 입력은
+     상한이 아니라 확성기다. 참가자 기준이라 같은 IP 를 쓰는 옆자리를 같이 벌하지 않는다. */
+  const moveLimiter = new RoomLimiter(MOVE_LIMIT);
+  const opLimiter = new RoomLimiter(OP_LIMIT);
+  setInterval(() => {
+    moveLimiter.sweep();
+    opLimiter.sweep();
+  }, 60_000).unref?.();
 
   /** 방 id 로 받아들일 모양 — 주소에 그대로 들어가므로 좁게 잡는다. */
   function roomIdOf(raw: unknown): string | null {
@@ -1481,7 +1490,14 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    const moved = rooms.move(roomId, memberIdOf(req, body.tab), body.x, body.y, body.active !== false);
+    const id = memberIdOf(req, body.tab);
+    /* 넘친 좌표는 **조용히 버린다** — 지나간 커서는 값이 0 이라, 「너무 빠르다」를 돌려주는
+       것 자체가 또 하나의 소음이다. 다만 `moved` 는 거짓말하지 않는다(방에는 그대로 있다). */
+    if (!moveLimiter.take(`${roomId}:${id}`)) {
+      res.json({ moved: rooms.members(roomId).some((m) => m.id === id), throttled: true });
+      return;
+    }
+    const moved = rooms.move(roomId, id, body.x, body.y, body.active !== false);
     res.json({ moved });
   });
 
@@ -1496,7 +1512,18 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    res.json({ relayed: rooms.relayOp(roomId, memberIdOf(req, body.tab), body.op) });
+    const id = memberIdOf(req, body.tab);
+    // 크기·깊이는 뜻을 안 읽고도 잴 수 있다 — 깊은 것을 흘려보내면 받는 쪽 브라우저가 먼저 죽는다.
+    const tooBig = opTooBig(body.op);
+    if (tooBig) {
+      res.status(413).json({ error: tooBig === 'size' ? 'op_too_long' : 'op_too_deep' });
+      return;
+    }
+    if (!opLimiter.take(`${roomId}:${id}`)) {
+      res.status(429).json({ error: 'too_fast' });
+      return;
+    }
+    res.json({ relayed: rooms.relayOp(roomId, id, body.op) });
   });
 
   /* ── 같이 쓴 글이 방을 나가도 남는다 (TASK-KL-191 축2) ─────────────
