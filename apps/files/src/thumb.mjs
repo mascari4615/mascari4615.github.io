@@ -47,8 +47,10 @@ export function ffmpegArgs(kind, input, output, opts = {}) {
     const max = opts.max ?? THUMB_MAX;
     const scale = `scale='min(${max},iw)':-1`;
     if (kind === 'video') {
-        const at = Number.isFinite(opts.seconds) && opts.seconds > 0 ? opts.seconds : 1;
-        /* 첫 프레임은 검은 경우가 많다. 조금 들어간 자리를 뽑는다 */
+        /* 0 도 뜻이 있는 값이다. 첫 프레임을 뽑으라는 말이다.
+           예전엔 0 을 못 쓴 값으로 보고 1 로 되돌렸는데, 그래서 짧은 영상이
+           통째로 실패했다 (2026-08-29, 0.64초짜리에서 1초 지점) */
+        const at = Number.isFinite(opts.seconds) && opts.seconds >= 0 ? opts.seconds : 1;
         return ['-hide_banner', '-loglevel', 'error', '-y', '-ss', String(at), '-i', input,
             '-frames:v', '1', '-vf', scale, '-q:v', '4', output];
     }
@@ -56,8 +58,15 @@ export function ffmpegArgs(kind, input, output, opts = {}) {
         '-frames:v', '1', '-vf', scale, '-q:v', '4', output];
 }
 
-/** 영상 길이에서 어느 지점을 뽑나. 10%, 다만 1초와 10초 사이 */
+/**
+ * 영상 길이에서 어느 지점을 뽑나. 10%, 다만 10초를 안 넘는다.
+ *
+ * **짧은 것은 첫 프레임.** 2026-08-29 에 0.64초짜리 mp4 에서 1초 지점을 뽑으라고 해서
+ * 끝을 넘었고 한 장도 안 나왔다. 그런 mp4 가 못 구운 18개 중 여섯이었다.
+ * 길이를 모를 때도 첫 프레임으로 간다. 검을 수는 있어도 없는 것보다 낫다.
+ */
 export function seekPoint(durationSec) {
-    if (!Number.isFinite(durationSec) || durationSec <= 0) return 1;
+    if (!Number.isFinite(durationSec) || durationSec <= 0) return 0;
+    if (durationSec <= 2) return 0;
     return Math.min(10, Math.max(1, durationSec * 0.1));
 }

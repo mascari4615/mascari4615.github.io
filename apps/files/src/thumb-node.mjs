@@ -9,6 +9,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ffmpegArgs, seekPoint, thumbKind } from './thumb.mjs';
+import { firstFrame } from './webp-frame.mjs';
 
 /* 줄 가르기. ffprobe 출력은 윈도우에서 CRLF 로 온다 */
 const NL = String.fromCharCode(10);
@@ -83,6 +84,23 @@ export function parseCreationTime(text) {
 }
 
 /**
+ * 애니메이션 WebP 면 첫 장면을 정지 WebP 로 적어 그 자리를 돌려준다. 아니면 null.
+ * ffmpeg 은 파일을 읽으므로 임시로 한 번 적는다.
+ */
+async function stillWebp(absPath, dir) {
+    if (!/\.webp$/i.test(absPath)) return null;
+    try {
+        const still = firstFrame(new Uint8Array(await readFile(absPath)));
+        if (!still) return null;
+        const at = join(dir, 'still.webp');
+        await writeFile(at, still);
+        return at;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * 파일 하나에서 미리보기 바이트. 못 만들면 null.
  * @param {string} absPath 원본 파일 자리
  * @param {string} rel 클라우드 안 경로 (갈래 판단용)
@@ -101,8 +119,10 @@ export async function makeThumb(absPath, rel, size, opts = {}) {
             ? (Number.isFinite(opts.duration) ? opts.duration : (await probeVideo(absPath)).duration)
             : 0;
         const seconds = kind === 'video' ? seekPoint(dur) : 0;
+        /* 애니메이션 WebP 는 ffmpeg 이 못 읽는다. 첫 장면만 뽑아 정지 그림으로 건넨다 */
+        const src = kind === 'image' ? ((await stillWebp(absPath, dir)) ?? absPath) : absPath;
         /* 한 장 굽는 데 1분을 넘기면 뭔가 잘못된 것이다. 전송을 붙잡아 두지 않는다 */
-        await run('ffmpeg', ffmpegArgs(kind, absPath, out, { seconds }), 60_000);
+        await run('ffmpeg', ffmpegArgs(kind, src, out, { seconds }), 60_000);
         return new Uint8Array(await readFile(out));
     } catch {
         return null;
