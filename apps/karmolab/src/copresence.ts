@@ -32,6 +32,18 @@ const SEND_MS = 50;
 /** 이 창 하나를 가리키는 이름. 같은 사람이 창을 둘 열면 커서도 둘이다(그게 사실이다). */
 const TAB_ID = Math.random().toString(36).slice(2, 10);
 
+/**
+ * 안 움직여도 이만큼마다 마지막 자리를 다시 보낸다.
+ *
+ * 서버는 **침묵을 나감으로 판정한다**(30초). 가만히 화면만 보는 사람은 나간 사람이 아닌데도
+ * 그 판정에 걸려 남의 화면에서 사라졌다 — 그리고 돌아올 길이 없었다(아래 `rejoin`).
+ * 30초의 1/3 이면 한 번 못 보내도 안 잘린다.
+ */
+const KEEPALIVE_MS = 10 * 1000;
+
+/** 다시 들어가기를 이보다 자주는 안 한다 — 서버가 계속 「없다」고 하면 붙었다 떨어졌다 하게 된다. */
+const REJOIN_MIN_MS = 3 * 1000;
+
 interface Member {
     id: string;
     name: string;
@@ -46,6 +58,10 @@ let source: EventSource | null = null;
 let layer: HTMLElement | null = null;
 let roomId: string | null = null;
 let pending: { x: number; y: number; active: boolean } | null = null;
+/** 마지막으로 안 자리 — 안 움직일 때도 이걸 다시 보내 「아직 여기 있다」를 말한다. */
+let last = { x: 0.5, y: 0.5, active: false };
+let lastSentAt = 0;
+let rejoinAt = 0;
 let sendTimer: ReturnType<typeof setInterval> | null = null;
 const cursors = new Map<string, HTMLElement>();
 
@@ -213,19 +229,44 @@ function joinRoom(next: string): void {
     });
     // 서버가 죽거나 터널이 끊기면 브라우저가 알아서 다시 붙는다. 우리가 할 일은 없다.
 
+    lastSentAt = Date.now();
     sendTimer = setInterval(() => {
-        if (!pending || !roomId) return;
+        if (!roomId) return;
+        // 안 움직여도 가끔은 말한다 — 침묵이 곧 나감으로 읽히기 때문이다.
+        if (!pending && document.visibilityState === 'visible' && Date.now() - lastSentAt >= KEEPALIVE_MS) {
+            pending = { ...last };
+        }
+        if (!pending) return;
         const body = { ...pending, tab: TAB_ID };
         pending = null;
+        lastSentAt = Date.now();
         void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/move`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
-        }).catch(() => {
-            /* 한 번 못 보낸 좌표는 버린다 — 다음 좌표가 곧 온다 */
-        });
+        })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data: { moved?: boolean } | null) => {
+                // 서버가 「그런 사람 없다」고 하면 이미 내보내진 것이다. 다시 들어간다 —
+                // 이 답을 안 보던 시절엔 한 번 잘린 창의 커서가 새로고침 전까지 안 보였다.
+                if (data && data.moved === false) rejoin();
+            })
+            .catch(() => {
+                /* 한 번 못 보낸 좌표는 버린다 — 다음 좌표가 곧 온다 */
+            });
     }, SEND_MS);
+}
+
+/** 내보내진 뒤 다시 들어간다. 방은 그대로, 관만 새로 연다. */
+function rejoin(): void {
+    if (!roomId || !isCopresenceOn()) return;
+    const now = Date.now();
+    if (now - rejoinAt < REJOIN_MIN_MS) return;
+    rejoinAt = now;
+    const room = roomId;
+    leaveRoom();
+    joinRoom(room);
 }
 
 function watchPointer(): void {
@@ -233,7 +274,14 @@ function watchPointer(): void {
         if (!isCopresenceOn()) return;
         // 안 보고 있는 창의 커서는 소식이 아니라 소음이다.
         if (document.visibilityState !== 'visible') return;
-        pending = { x: x / window.innerWidth, y: y / window.innerHeight, active };
+        last = { x: x / window.innerWidth, y: y / window.innerHeight, active };
+        pending = { ...last };
+    };
+    /** 「이제 안 보인다」는 반드시 나가야 한다 — pending 이 비어 있어도 새로 만든다. */
+    const goInactive = (): void => {
+        if (!isCopresenceOn()) return;
+        last.active = false;
+        pending = { ...last };
     };
     window.addEventListener('pointermove', (event) => note(event.clientX, event.clientY, true), { passive: true });
     // 손가락도 커서다 — 폰에서 같이 쓰는 사람이 안 보이면 그건 반쪽이다.
@@ -241,11 +289,13 @@ function watchPointer(): void {
         const touch = event.touches[0];
         if (touch) note(touch.clientX, touch.clientY, true);
     }, { passive: true });
-    window.addEventListener('pointerleave', () => {
-        if (pending) pending.active = false;
-    });
+    // 직전에 보내 버려 pending 이 비어 있으면 「나갔다」가 영영 안 나갔다 — 남의 화면엔
+    // 30초 동안 멈춘 커서가 남았다(2026-08-29 정독).
+    window.addEventListener('pointerleave', goInactive);
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState !== 'visible' && pending) pending.active = false;
+        if (document.visibilityState !== 'visible') goInactive();
+        // 돌아왔다면 그새 잘렸을 수 있다 — 다음 보내기가 답을 보고 알아서 다시 들어간다.
+        else lastSentAt = 0;
     });
 }
 

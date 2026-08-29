@@ -322,6 +322,7 @@
     "test:badapple:home",
     "test:badapple:load",
     "test:chat",
+    "test:copresence",
     "test:offline",
     "audit:handoff",
     "test:paperask",

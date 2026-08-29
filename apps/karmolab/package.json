@@ -280,6 +280,7 @@
     "test:contract:live": "node scripts/smoke-format-contract.mjs",
     "test:contrast": "node scripts/smoke-contrast.mjs",
     "test:copyable": "node scripts/test-copyable.mjs",
+    "test:copresence": "node scripts/smoke-copresence.mjs",
     "test:core": "node scripts/test-core.mjs",
     "test:meaning": "node ../../packages/meaning/test/parity.mjs",
     "test:3d": "node --test ../../packages/3d/test/*.mjs",
