@@ -127,7 +127,15 @@ export async function serveRepo(options = {}) {
        dev 서버가 그 매핑을 해 줘서 멀쩡했다). 없는 것을 기다리게 두면 느리다로 오해한다. */
     /* 뿌리 이관 뒤(change.karmolab-at-root ②) 앱은 **뿌리 전체**다. 자산 트리(`/apps/...`)만
        빼고 저장소의 `apps/blog/...` 로 돌린다. 예전에는 `/karmolab` 접두만 돌렸다. */
-    if (!/^\/apps\//.test(target)) target = `/apps/blog${target}`;
+    /* ★ **저장소에 그대로 있는 자리는 그대로 내준다** (2026-08-29 실측). 위 규칙은 모든 주소를
+       `apps/blog/...` 로 돌리는데, 배포 때 뿌리로 복사되는 자리가 `apps/blog` 말고도 있다.
+       `/packages/3d/vendor/three.module.min.js` 가 그렇다. 돌려 버리니 없는 파일이 되고,
+       아래 셸 되돌림이 그 자리에 **index.html 을 내줬다**. 브라우저는 `text/html` 을 모듈로
+       못 읽어 입체 판이 영영 안 떴고, 화면 검사는 그걸 WebGL 을 못 얻었다로 적었다.
+       못 도는 검사는 없는 검사다. 실재하면 돌리지 않는다. */
+    const asIs = path.join(root, target.replace(/^\//, ''));
+    const here = !/^\/apps\//.test(target) && target !== '/' && !target.endsWith('/') && fs.existsSync(asIs) && !fs.statSync(asIs).isDirectory();
+    if (!here && !/^\/apps\//.test(target)) target = `/apps/blog${target}`;
     if (target.endsWith('/')) target += 'index.html';
     let file = path.join(root, target.replace(/^\//, ''));
     /* ★ **도구 장은 저장소에 없다. 없으면 셸을 내준다** (2026-08-14, 재현으로 확인).

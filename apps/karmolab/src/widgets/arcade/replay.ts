@@ -17,7 +17,7 @@
  * 똑같이 만들어 내는 것을 굳이 받아 적을 이유가 없다.
  */
 import { Match, type SeatSpec } from './kernel';
-import type { GameDef } from './types';
+import type { GameDef, GameOpts } from './types';
 
 /** 한 판을 되살리는 데 필요한 전부. */
 export interface Tape<A> {
@@ -25,6 +25,8 @@ export interface Tape<A> {
   game: string;
   seed: number;
   seats: SeatSpec[];
+  /** 시작할 때 고른 값 (판 크기 등). 없으면 그 놀이의 기본값 */
+  opts?: GameOpts;
   /** 사람이 누른 것 (커널 시계 기준) */
   moves: Array<{ at: number; seat: number; action: A }>;
   /** 판이 끝난 시각 */
@@ -32,7 +34,7 @@ export interface Tape<A> {
 }
 
 export function record<S, A>(game: GameDef<S, A>, match: Match<S, A>, seats: SeatSpec[], seed: number): Tape<A> {
-  return { game: game.id, seed, seats, moves: [...match.tape], end: match.clock() };
+  return { game: game.id, seed, seats, opts: match.opts, moves: [...match.tape], end: match.clock() };
 }
 
 /**
@@ -46,7 +48,7 @@ export function playback<S, A>(
   tape: Tape<A>,
   onFrame?: (m: Match<S, A>) => void
 ): Match<S, A> {
-  const m = new Match(game, tape.seed, tape.seats);
+  const m = new Match(game, tape.seed, tape.seats, tape.opts ?? {});
   /**
    * **커널의 시계에 맞춰 넣는다.** 이 시각 이하로 넣으면 한 칸씩 어긋난 판이 나온다 . 
    * 적을 때의 시각은 *그 직전 칸*의 값이라, 재생 쪽이 칸을 먼저 옮기면 수가 한 칸 늦게 들어간다.

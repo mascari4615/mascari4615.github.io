@@ -35,7 +35,15 @@ const letter = { game: 'gomoku', seed: 4242, who: ['조수', '깜냥'], moves: [
 const packed = fold(letter);
 ok(typeof packed === 'string' && packed.length > 0, '편지가 접힌다', String(packed).slice(0, 20));
 ok(!/[+/=]/.test(packed || ''), '주소에 그대로 실을 수 있는 글자만', packed || '');
-ok(JSON.stringify(unfold(packed)) === JSON.stringify(letter), '펴면 그대로다');
+/* 고른 값(`opts`)이 나중에 붙었다. 안 실은 편지를 펴면 빈 것이 되어 돌아온다 */
+ok(JSON.stringify(unfold(packed)) === JSON.stringify({ ...letter, opts: {} }), '펴면 그대로다 (고른 값은 빈 것으로)');
+{
+  const withOpts = { ...letter, opts: { size: 19, renju: false } };
+  ok(JSON.stringify(unfold(fold(withOpts))) === JSON.stringify(withOpts), '고른 값도 같이 접히고 펴진다');
+  /* 남이 준 글자라 못 믿는다. 숫자와 참거짓이 아닌 것은 버린다 */
+  const dirty = fold({ ...letter, opts: { size: 19, evil: '<script>' } });
+  ok(JSON.stringify(unfold(dirty).opts) === JSON.stringify({ size: 19 }), '이상한 값은 버린다');
+}
 
 console.log('[mail] 못 믿을 글자');
 for (const junk of ['', 'zzz', '!!!!', 'eyJhIjoxfQ', 'W10', null, undefined, '한글']) {
@@ -49,8 +57,9 @@ ok(unfold('W10') === null, '모양이 틀린 편지는 null');
 console.log('[mail] 길이');
 const long = { game: 'gomoku', seed: 1, who: ['a', 'b'], moves: Array.from({ length: 3000 }, (_, i) => ({ cell: i })) };
 ok(fold(long) === null, `너무 긴 판은 null (상한 ${MAX_CHARS}자)`);
-ok((fold({ game: 'gomoku', seed: 1, who: ['a', 'b'], moves: Array.from({ length: 30 }, (_, i) => ({ cell: i })) }) || '').length < 500,
-  '오목 서른 수는 500자 아래');
+/* 판이 열다섯 줄이 되고 고른 값이 붙어 길어졌다. 링크가 감당하는 선(1800)의 3분의 1 아래면 넉넉하다 */
+ok((fold({ game: 'gomoku', seed: 1, who: ['a', 'b'], opts: { size: 15, renju: true }, moves: Array.from({ length: 30 }, (_, i) => ({ cell: i })) }) || '').length < 600,
+  '오목 서른 수는 600자 아래');
 
 console.log('[mail] 편지로 둔 판 = 직접 둔 판');
 {

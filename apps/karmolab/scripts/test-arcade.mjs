@@ -48,8 +48,8 @@ console.log('[arcade] 판 위 말. 네 판이 같은 표현 부품을 쓴다');
 }
 
 /** 판을 끝까지 민다. 사람 자리는 `play` 가 대신 둔다(없으면 아무도 안 둔다). */
-function run(game, seed, seats, play, maxMs = 200000) {
-  const m = new Match(game, seed, seats);
+function run(game, seed, seats, play, maxMs = 200000, opts = {}) {
+  const m = new Match(game, seed, seats, opts);
   for (let now = 0; now <= maxMs; now += 50) {
     m.step(now);
     const v = m.view();
@@ -363,6 +363,79 @@ console.log('[arcade] 오목. 차례, 보드');
   /* 사람이 하나면 남은 자리는 봇이 앉는다. 싱글 모드 없이 혼자 놀 수 있다 */
   const m = new Match(gameById('gomoku'), 2, [{ name: '나', bot: false }]);
   ok(m.seats.length === 2 && m.seats[1].bot, '모자란 자리는 봇이 채운다');
+}
+
+console.log('[arcade] 오목. 판 크기와 렌주 금수');
+{
+  const g = gameById('gomoku');
+  const two = [{ name: 'a', bot: false }, { name: 'b', bot: false }];
+  const sizeOf = (opts) => new Match(g, 1, two, opts).view().state.n;
+  ok(sizeOf({}) === 15, '안 고르면 열다섯 줄 (오목 표준)');
+  ok(sizeOf({ size: 9 }) === 9 && sizeOf({ size: 19 }) === 19, '아홉 줄과 열아홉 줄을 고를 수 있다');
+  ok(sizeOf({ size: 13 }) === 15 && sizeOf({ size: -1 }) === 15, '모르는 크기가 오면 표준으로 되돌린다');
+  ok(new Match(g, 1, two, { size: 19 }).view().state.board.length === 361, '판 칸 수가 줄 수를 따른다');
+
+  /* 판을 손으로 놓는다. 커널을 통하면 차례가 번갈아 흑을 못 쌓는다 */
+  const N = 15;
+  const put = (b, x, y, w) => { b[y * N + x] = w; };
+  const fresh = () => new Array(N * N).fill(0);
+  const black = (b) => {
+    const m2 = new Match(g, 1, two, {});
+    /* 상태를 갈아 끼워 흑 차례를 만든다. 규칙만 재는 자리라 커널 흐름을 안 탄다 */
+    const st = m2.view().state;
+    return { m: m2, s: { ...st, board: b } };
+  };
+
+  /* 장목. 흑이 여섯을 만들면 금수라 못 둔다 */
+  {
+    const b = fresh();
+    for (const x of [3, 4, 6, 7, 8]) put(b, x, 7, 1);
+    const { m, s } = black(b);
+    const banned = g.reduce(s, { cell: 7 * N + 5 }, 0, { seats: m.seats, rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(banned.board[7 * N + 5] === 0, '장목(여섯)은 못 둔다');
+  }
+  /* 같은 자리라도 렌주를 끄면 둘 수 있고, 그 수로 이긴다 */
+  {
+    const b = fresh();
+    for (const x of [3, 4, 6, 7, 8]) put(b, x, 7, 1);
+    const s = { board: b, n: N, renju: false, turn: 0, won: -1, last: -1, banned: [] };
+    const after = g.reduce(s, { cell: 7 * N + 5 }, 0, { seats: [], rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(after.board[7 * N + 5] === 1 && after.won === 0, '렌주를 끄면 여섯도 두고 이긴다');
+  }
+  /* 정확히 다섯이면 금수 모양이어도 이긴다 */
+  {
+    const b = fresh();
+    for (const x of [3, 4, 6, 7]) put(b, x, 7, 1);
+    const s = { board: b, n: N, renju: true, turn: 0, won: -1, last: -1, banned: [] };
+    const after = g.reduce(s, { cell: 7 * N + 5 }, 0, { seats: [], rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(after.won === 0, '정확히 다섯은 이긴 수다');
+  }
+  /* 삼삼. 가로 열린 삼과 세로 열린 삼이 한 수에 생기면 금수 */
+  {
+    const b = fresh();
+    put(b, 6, 7, 1); put(b, 8, 7, 1);
+    put(b, 7, 6, 1); put(b, 7, 8, 1);
+    const s = { board: b, n: N, renju: true, turn: 0, won: -1, last: -1, banned: [] };
+    const after = g.reduce(s, { cell: 7 * N + 7 }, 0, { seats: [], rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(after.board[7 * N + 7] === 0, '삼삼은 못 둔다');
+    const off = g.reduce({ ...s, renju: false }, { cell: 7 * N + 7 }, 0, { seats: [], rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(off.board[7 * N + 7] === 1, '렌주를 끄면 같은 자리에 둘 수 있다');
+  }
+  /* 백은 금수가 없다. 같은 삼삼 모양을 백으로 두면 놓인다 */
+  {
+    const b = fresh();
+    put(b, 6, 7, 2); put(b, 8, 7, 2);
+    put(b, 7, 6, 2); put(b, 7, 8, 2);
+    const s = { board: b, n: N, renju: true, turn: 1, won: -1, last: -1, banned: [] };
+    const after = g.reduce(s, { cell: 7 * N + 7 }, 1, { seats: [], rng: () => 0, now: 0, round: 0, opts: {} });
+    ok(after.board[7 * N + 7] === 2, '백은 삼삼을 둘 수 있다');
+  }
+  /* 봇 대 봇. 열아홉 줄에서도 끝난다 */
+  {
+    const m = run(g, 5, [{ name: 'b1', bot: true }, { name: 'b2', bot: true }], null, 600000, { size: 19 });
+    ok(m.view().state.n === 19, '열아홉 줄로 판이 뜬다');
+    ok(m.view().finished, '열아홉 줄에서도 봇끼리 두면 끝난다');
+  }
 }
 
 {

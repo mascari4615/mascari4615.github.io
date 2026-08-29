@@ -22,6 +22,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { CARDS, cardById } from './catalog-meta.generated';
+import { SETUPS, optsFor, chooseOpt } from './setups';
 import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
@@ -133,8 +134,57 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-card-face:linear-gradient(168deg,#ffffff 0%,#fbf8f2 62%,#f0ebe0 100%);' +
       '--ac-card-back:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 4px,rgba(255,255,255,0) 4px 8px),linear-gradient(150deg,#2f6f5e 0%,#245647 100%);' +
       '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
-      '--ac-red:#c62f36;--ac-black:#23201c' +
+      '--ac-red:#c62f36;--ac-black:#23201c;' +
+      /**
+       * ── 오목판 한 벌 ──
+       * 판놀이 공용 나무(`--ac-wood`)와 갈라 둔다. 저 나무는 여러 판이 같이 쓰는 밝은 결이고,
+       * 이쪽은 실제 비자나무 판의 채도 낮은 살구빛. 결은 옅게 두 겹만
+       * 무늬가 뚜렷하면 줄과 겨루고, 그러면 사람이 줄을 못 읽음
+       */
+      '--ac-goban-wood:repeating-linear-gradient(91deg,rgba(150,104,48,.05) 0 1px,rgba(150,104,48,0) 1px 14px),' +
+      'repeating-linear-gradient(89deg,rgba(122,80,32,.04) 0 1px,rgba(122,80,32,0) 1px 37px),' +
+      'linear-gradient(168deg,#e7ab6d 0%,#e2a263 52%,#d5924f 100%);' +
+      '--ac-goban-side:#b8783c;' +
+      '--ac-goban-line:rgba(38,30,22,.82);' +
+      '--ac-line-w:1.5px;' +
+      /* 알 그림자는 오른쪽 아래로 짧게. 길면 알이 판에서 뜬다 */
+      '--ac-stone-sh:0 2px 3px rgba(40,24,8,.45);' +
+      '--ac-stone-ghost:radial-gradient(circle at 34% 28%,rgba(60,54,48,.3) 0%,rgba(40,34,28,.18) 100%);' +
+      '--ac-bowl-wood:radial-gradient(circle at 36% 30%,#c89a5e 0%,#a9773f 100%);' +
+      '--ac-bowl-fill:#3a2c1a;' +
+      '--ac-bowl-b:radial-gradient(circle at 30% 26%,#5d5955 0 22%,#211f1d 23%,#141312 46%,transparent 47%),' +
+      'radial-gradient(circle at 66% 38%,#514d49 0 20%,#1d1b1a 21%,#111010 42%,transparent 43%),' +
+      'radial-gradient(circle at 44% 68%,#4a4643 0 24%,#1b1918 25%,#0e0d0c 48%,transparent 49%),' +
+      'radial-gradient(circle at 50% 50%,#221f1d 0%,#0c0b0a 100%);' +
+      '--ac-bowl-w:radial-gradient(circle at 30% 26%,#fbf7ee 0 22%,#d8d1c2 23%,#bcb4a4 46%,transparent 47%),' +
+      'radial-gradient(circle at 66% 38%,#f6f1e6 0 20%,#d2cabb 21%,#b4ab9b 42%,transparent 43%),' +
+      'radial-gradient(circle at 44% 68%,#f3eee2 0 24%,#cec6b6 25%,#aea595 48%,transparent 49%),' +
+      'radial-gradient(circle at 50% 50%,#cbc3b4 0%,#9a9182 100%)' +
       '}',
+      /**
+       * ── 껍데기를 걷은 판 (`views.ts` 의 `bare`) ──
+       * 자리표와 상태 줄을 지우고 판만 남김. 아래 버튼은 손이 갈 때만 나타남
+       * 판을 보는 동안 화면에 글자가 한 자도 없음
+       */
+      '#acPlay.ac-bare{grid-template-columns:minmax(0,1fr);position:relative}',
+      /* 어두운 방. 판 뒤의 위젯 배경(꽃, 마름모)이 판과 겨루면 판이 물건으로 안 보임
+         가운데만 따뜻하게 남겨 판 위로 빛이 떨어지는 자리를 만든다 */
+      '#acPlay.ac-bare::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 46%,rgba(30,22,14,.62) 0%,rgba(9,7,5,.95) 72%);pointer-events:none;z-index:0}',
+      '#acPlay.ac-bare>*{position:relative;z-index:1}',
+      '#acPlay.ac-bare #acSeats,#acPlay.ac-bare #acStatus{display:none}',
+      /* 판 뒤의 카드도 걷는다. 물건 뒤에 또 판때기가 있으면 물건으로 안 보인다 */
+      '#acPlay.ac-bare .ac-stage{grid-column:1;background:none;border:0;box-shadow:none;padding:0}',
+      '#acPlay.ac-bare #acControls{grid-column:1;justify-content:center}',
+      /* ── 시작 전에 고르는 줄 (`setups.ts`) ── */
+      '.ac-setup{display:flex;flex-direction:column;gap:8px;margin:var(--space-md) 0}',
+      '.ac-setrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}',
+      '.ac-setrow>b{font-size:var(--font-size-xs);opacity:.72;min-width:64px}',
+      '.ac-setpick{display:inline-flex;border:1px solid rgba(60,58,48,.28);border-radius:999px;overflow:hidden}',
+      '.ac-setpick button{border:0;background:none;color:inherit;font:inherit;font-size:var(--font-size-xs);padding:5px 12px;cursor:pointer}',
+      '.ac-setpick button+button{border-left:1px solid rgba(60,58,48,.18)}',
+      '.ac-setpick button[aria-pressed="true"]{background:#3c3a30;color:#fdfcf7;font-weight:700}',
+      '#acPlay.ac-bare #acControls{opacity:0;transition:opacity .18s ease}',
+      '#acPlay.ac-bare:hover #acControls,#acPlay.ac-bare:focus-within #acControls{opacity:1}',
       /* ── 캔버스 판의 곁것들 (점수줄, 조작 막대) ──
        * 판 안에 글자를 그리면 판마다 제 글꼴이 되고 무대가 커져도 안 따라 커진다.
        * 글자는 전부 판 **밖**에서, 여기 한 벌로. */
@@ -299,16 +349,52 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 칸을 그리는 격자는 그대로 두되, 칸의 **테두리를 줄로** 삼고 돌을 칸의 **좌상단 모서리**로
        * 옮긴다(`::after` 의 자리). 마지막 줄, 열의 점을 위해 판에 한 칸만큼 여백을 준다.
        */
-      '.ac-board{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;max-width:100%;margin:var(--space-lg) auto;aspect-ratio:1;background:var(--ac-wood);padding:calc(50% / var(--n) + 8px);box-sizing:border-box;border-radius:10px;box-shadow:0 14px 26px rgba(84,56,22,.28),inset 0 2px 0 rgba(255,240,215,.7),inset 0 -6px 12px rgba(120,78,30,.28)}',
-      '.ac-board.ac-waiting{opacity:.85}',
-      '.ac-cell{aspect-ratio:1;border:0;border-top:1px solid var(--ac-wood-line);border-left:1px solid var(--ac-wood-line);background:transparent;color:transparent;border-radius:0;font-size:min(4vw,20px);line-height:1;padding:0;cursor:pointer;position:relative}',
+      /**
+       * 판은 **한 판 안에서만** 사는 물건이다. 나무 상자 위에 격자가 얹히고, 그 대각으로
+       * 바둑통 둘이 놓임. 오른쪽에 이름표를 세우는 대신 여백을 물건으로 채움
+       */
+      '.ac-goban{position:relative;width:100%;max-width:min(78vh,820px);margin:0 auto;padding:6%;box-sizing:border-box}',
+      /**
+       * ★ **알은 줄이 만나는 점 위**. 그래서 칸의 **한가운데**가 곧 점
+       * 예전에는 칸의 테두리를 줄로 삼고 알을 좌상단 모서리로 옮겼는데, 그러면 손이 올라간
+       * 칸과 알이 놓일 점이 반 칸 어긋나고(사용자 실측), 마지막 줄과 열이 아예 안 그려짐
+       * 지금은 칸마다 제 십자를 그리고 바깥쪽 반 토막만 지움. 줄 수가 몇이든 맞음
+       */
+      '.ac-board{position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;width:100%;aspect-ratio:1;box-sizing:border-box;background:var(--ac-goban-wood);border-radius:3px;box-shadow:0 1px 0 rgba(255,244,224,.55) inset,0 -2px 0 rgba(120,78,30,.22) inset,0 10px 0 -2px var(--ac-goban-side),0 26px 40px rgba(20,12,4,.42)}',
+      '.ac-board.ac-waiting{filter:saturate(.96)}',
+      '.ac-cell{aspect-ratio:1;border:0;background:transparent;color:transparent;border-radius:0;font-size:0;line-height:0;padding:0;cursor:pointer;position:relative}',
       '.ac-cell:disabled{cursor:default}',
-      /* 돌은 칸의 **좌상단 모서리**(=줄이 만나는 점)에 얹힌다. 칸 한가운데가 아니다. */
-      '.ac-cell.ac-s1::after,.ac-cell.ac-s2::after{content:"";position:absolute;left:0;top:0;width:80%;height:80%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:var(--ac-sh-rest)}',
-      '.ac-cell.ac-s1::after{background:var(--ac-stone-b)}',
-      '.ac-cell.ac-s2::after{background:var(--ac-stone-w)}',
-      '.ac-cell.ac-last.ac-s1::after,.ac-cell.ac-last.ac-s2::after{outline:2px solid rgba(226,80,60,.9);outline-offset:1px}',
-      '.ac-cell:not(:disabled):hover{background:rgba(30,26,20,.12)}',
+      /* 십자 한 벌. 세로는 i::before, 가로는 i::after. 알과 화점은 칸이 직접 그린다 */
+      '.ac-cell i{position:absolute;inset:0;display:block;pointer-events:none}',
+      /* 글자 돌은 판정과 읽기용. 눈에는 안 보이고 스크린 리더와 화면 검사만 읽는다 */
+      '.ac-cell .ac-mk{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);font-size:0;color:transparent}',
+      '.ac-cell i::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:var(--ac-line-w);margin-left:calc(var(--ac-line-w) / -2);background:var(--ac-goban-line)}',
+      '.ac-cell i::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--ac-line-w);margin-top:calc(var(--ac-line-w) / -2);background:var(--ac-goban-line)}',
+      /* 판 밖으로 새는 반 토막을 지운다. 가장자리 칸에만 붙는다(화면이 붙여 준다) */
+      '.ac-cell.ac-e-t i::before{top:50%}',
+      '.ac-cell.ac-e-b i::before{bottom:50%}',
+      '.ac-cell.ac-e-l i::after{left:50%}',
+      '.ac-cell.ac-e-r i::after{right:50%}',
+      /* 화점. 자리는 화면이 정한다(판 크기마다 다르다). 칸 번호를 CSS 에 박지 않는다 */
+      '.ac-cell.ac-star::before{content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;transform:translate(-50%,-50%);border-radius:50%;background:var(--ac-goban-line)}',
+      /* 알. 칸 한가운데 = 줄이 만나는 점. 지름은 칸의 92% (실측 레퍼런스 0.84~0.94) */
+      '.ac-cell.ac-s1::after,.ac-cell.ac-s2::after{content:"";position:absolute;left:50%;top:50%;width:92%;height:92%;transform:translate(-50%,-50%);border-radius:50%}',
+      '.ac-cell.ac-s1::after{background:var(--ac-stone-b);box-shadow:var(--ac-stone-sh)}',
+      '.ac-cell.ac-s2::after{background:var(--ac-stone-w);box-shadow:var(--ac-stone-sh)}',
+      /* 마지막 수. 알 위에 작은 점 하나. 테를 두르면 그 알만 다른 물건으로 보인다 */
+      '.ac-cell.ac-last::before{content:"";position:absolute;left:50%;top:50%;width:20%;height:20%;transform:translate(-50%,-50%);border-radius:50%;background:rgba(220,72,54,.95);z-index:1}',
+      /* 손이 올라간 점. 놓일 알을 옅게 미리 보여 준다. 칸을 칠하면 반 칸 어긋나 보인다 */
+      '.ac-cell:not(:disabled):hover::after{content:"";position:absolute;left:50%;top:50%;width:92%;height:92%;transform:translate(-50%,-50%);border-radius:50%;background:var(--ac-stone-ghost)}',
+      /* 금수. 흑이 못 두는 자리 (렌주 삼삼, 사사, 장목) */
+      '.ac-cell.ac-ban::after{content:"";position:absolute;left:50%;top:50%;width:44%;height:44%;transform:translate(-50%,-50%);border-radius:2px;background:none;border:2px solid rgba(198,58,44,.72);rotate:45deg}',
+      /* 바둑통 둘. 대각으로 놓인다(레퍼런스와 같은 자리). 그림자가 판 바깥을 채운다 */
+      '.ac-bowl{position:absolute;width:12%;aspect-ratio:1;border-radius:50%;background:var(--ac-bowl-wood);box-shadow:0 10px 20px rgba(12,8,3,.6),inset 0 -7px 12px rgba(88,54,18,.55),inset 0 4px 6px rgba(255,226,186,.35);pointer-events:none}',
+      /* 통 안. 어두운 바닥 위에 알이 무더기로 담긴다. 알 하나를 크게 두면 접시가 된다 */
+      '.ac-bowl::after{content:"";position:absolute;inset:13%;border-radius:50%;background:var(--ac-bowl-fill);box-shadow:inset 0 4px 10px rgba(0,0,0,.7)}',
+      '.ac-bowl.ac-bowl-b{left:0;top:0;transform:translate(-52%,-52%)}',
+      '.ac-bowl.ac-bowl-b::after{background:var(--ac-bowl-b)}',
+      '.ac-bowl.ac-bowl-w{right:0;bottom:0;transform:translate(52%,52%)}',
+      '.ac-bowl.ac-bowl-w::after{background:var(--ac-bowl-w)}',
       /**
        * ── 입체 판 (표현 = 3D) ──
        * 무대는 `three-board.ts` 가 짓는다(받아 둔 three). 여기서는 **자리만** 내준다 . 
@@ -320,17 +406,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-stage:has(.ac-t3){background:none}',
       '.ac-t3{width:100%;aspect-ratio:1;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden}',
       '.ac-t3.ac-waiting{opacity:.92}',
-      /* 화점. 나무판의 기준점. 9칸 판에서 네 귀와 한가운데(0-based 2, 6 교차, 4,4). */
-      /* 화점. **자리는 판이 정한다**(`three-board.ts` 의 `star`). 여기 칸 번호를 박으면
-         칸 수가 다른 판에 엉뚱한 점이 찍힌다(8칸 판에서 실측). 2D 오목판만 아직 번호로 찍는다. */
-      /* 화점도 같은 점(좌상단 모서리)에 찍는다. 돌과 어긋나면 판이 틀린 것으로 보인다. */
-      '.ac-cell::before{content:"";position:absolute;left:0;top:0;width:0;height:0}',
+      /* 화점. **자리는 판이 정한다**. 여기 칸 번호를 박으면 칸 수가 다른 판에 엉뚱한 점이
+         찍힌다(9칸 번호가 15칸 판에 그대로 찍혀 있었다. 2026-08-29 실측).
+         2D 오목판은 화면이 `ac-star` 를 붙이고(`gomoku-view.ts`), 입체 판은 `three-board.ts` 가 그린다. */
       '.ac-c3::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0}',
-      '.ac-board .ac-cell:nth-child(21)::before,.ac-board .ac-cell:nth-child(25)::before,' +
-      '.ac-board .ac-cell:nth-child(41)::before,' +
-      '.ac-board .ac-cell:nth-child(57)::before,.ac-board .ac-cell:nth-child(61)::before,' +
-      '.ac-c3.ac-star::before' +
-      '{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(92,61,24,.8)}',
+      '.ac-c3.ac-star::before{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(92,61,24,.8)}',
       '.ac-seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:var(--space-lg) 0}',
       '.ac-seat{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-secondary);font-size:var(--font-size-xs);font-weight:600}',
       '.ac-seat.ac-me{border-color:var(--accent);background:var(--accent-dim)}',
@@ -1074,8 +1154,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 시작 단추의 data-* 는 카드 시절 그대로다(`wireCards`, 화면 검사가 같은 이름을 본다).
      */
     function openDetail(id: string): void {
-      const g = CARDS.find((x) => x.id === id);
+      /* 감춘 놀이도 주소로 들어오면 열린다. 그래서 로비 목록이 아니라 전체 명패에서 찾는다 */
+      const g = cardById(id);
       if (!g) return;
+      /* 번호는 로비에 보이는 차례. 감춘 놀이는 번호가 없다 */
+      const no = CARDS.indexOf(g) + 1;
       const [min, max] = g.seats;
       /* **차례 놀이만** 편지로 둘 수 있다. 실시간 놀이를 편지로 두면 상대가 링크를 여는
          순간에 이미 판이 끝나 있다. 그건 놀이가 아니라 결과 통보다.
@@ -1094,7 +1177,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<div class="ac-dwrap">' +
         '<div class="ac-dface">' + iconOf(g.id) + '</div>' +
         '<div class="ac-dinfo">' +
-        '<h3><i>' + (CARDS.indexOf(g) + 1) + '</i>' + esc(t('arcade.game.' + g.id + '.name')) + '</h3>' +
+        '<h3>' + (no > 0 ? '<i>' + no + '</i>' : '') + esc(t('arcade.game.' + g.id + '.name')) + '</h3>' +
         '<p>' + esc(t('arcade.game.' + g.id + '.desc')) + '</p>' +
         '<div class="ac-dmeta">' +
         '<span>' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</span>' +
@@ -1104,6 +1187,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
         (bestOf(g.id) ? '<span>🏅 ' + esc(t('arcade.best.card', { n: String(bestOf(g.id)?.score ?? 0) })) + '</span>' : '') +
         '</div>' +
+        setupRow(g.id) +
         '<div class="ac-go">' +
         '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
         '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
@@ -1113,8 +1197,54 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acShelfAll').style.display = 'none';
       d.style.display = '';
       wireCards();
+      wireSetup(g.id);
       const back = container.querySelector<HTMLButtonElement>('#acBack');
       if (back) back.onclick = closeDetail;
+    }
+
+    /**
+     * 시작 전에 고르는 줄. **껍데기는 무엇을 고르는지 모른다** (`setups.ts` 가 정본).
+     * 고를 게 없는 놀이는 빈 글자라 아무 자리도 안 차지함
+     */
+    function setupRow(id: string): string {
+      const choices = SETUPS[id];
+      if (!choices) return '';
+      const now = optsFor(id);
+      return (
+        '<div class="ac-setup">' +
+        choices
+          .map(
+            (c) =>
+              '<div class="ac-setrow"><b>' + esc(t(c.label)) + '</b><div class="ac-setpick">' +
+              c.options
+                .map(
+                  (o) =>
+                    '<button data-set="' + esc(id) + '" data-setkey="' + esc(c.key) + '"' +
+                    ' data-setval="' + esc(String(o.value)) + '"' +
+                    ' aria-pressed="' + String(now[c.key] === o.value) + '">' +
+                    esc(t(o.label)) + '</button>'
+                )
+                .join('') +
+              '</div></div>'
+          )
+          .join('') +
+        '</div>'
+      );
+    }
+
+    /** 고른 값을 적고 그 줄만 다시 그린다. 판을 다시 열면 사람이 어디였는지 잊는다 */
+    function wireSetup(id: string): void {
+      container.querySelectorAll<HTMLButtonElement>('#acDetail button[data-set]').forEach((b) => {
+        b.onclick = () => {
+          const key = b.dataset.setkey as string;
+          const raw = b.dataset.setval as string;
+          const value: number | boolean = raw === 'true' ? true : raw === 'false' ? false : Number(raw);
+          chooseOpt(id, key, value);
+          const box = container.querySelector<HTMLElement>('#acDetail .ac-setup');
+          if (box) box.outerHTML = setupRow(id);
+          wireSetup(id);
+        };
+      });
     }
 
     function closeDetail(): void {
@@ -1497,7 +1627,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 이 판이 **언제 저절로 끝나나**(`endsAt`)도 같이 내놓는다. 놀이마다 제한이 25초에서 300초까지 다르다.
          밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 안 끝났다고 적는다(2026-08-17 실측:
          참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       seatsEl.innerHTML =
         (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
         v.seats
@@ -1723,6 +1853,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const gv = viewFor(id);
       viewEl.innerHTML = '';
       render = gv ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
+      /* 껍데기를 걷을지는 표현이 정한다(`views.ts` 의 `bare`). 판 하나가 다 말하는 놀이가 있다 */
+      play.classList.toggle('ac-bare', gv?.bare === true);
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다. 판은 커널이 들고 있어서
          화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
@@ -1739,11 +1871,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 지금 표현. 사람이 고른 것이 브라우저에 남는다. */
+    /**
+     * 지금 표현. **입체가 정본이고 평면은 물러설 자리다** (사용자 확정).
+     *
+     * 그래서 안 고른 사람은 입체로 본다. 평면으로 내려오는 길은 셋뿐이다: 사람이 골랐거나,
+     * 그 판에 입체 화면이 없거나, WebGL 을 못 얻었거나. 앞의 둘은 여기서, 마지막은
+     * `three-board.ts` 가 `ok:false` 를 내면 부르는 쪽이 조용히 내려옴
+     */
     function dim(): '2d' | '3d' {
       try {
-        return localStorage.getItem('karmolab.arcade.dim') === '3d' ? '3d' : '2d';
+        return localStorage.getItem('karmolab.arcade.dim') === '2d' ? '2d' : '3d';
       } catch {
-        return '2d';
+        return '3d';
       }
     }
 
@@ -1825,7 +1964,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         withCrew[gseat] = { name: GHOST_NAME, bot: true };
         def = withGhost(def, gseat, past as never) as typeof def;
       }
-      match = new Match(def, seed, withCrew) as Match<unknown, unknown>;
+      match = new Match(def, seed, withCrew, optsFor(id)) as Match<unknown, unknown>;
       /* 되살릴 재료. 씨앗과 자리. 이 둘과 누른 것이면 판이 다시 만들어진다(`replay.ts`). */
       lastSeed = seed;
       lastSeats = withCrew;
@@ -1993,7 +2132,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각은 아직 없어도 된다. 새 편지 판은 이름과 씨앗만 있으면 접힌다.
          받아 오는 것은 `openLetter` 한 곳에서만 기다린다(문을 둘로 만들지 않는다). */
       if (!cardById(id)) return;
-      openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [] });
+      openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [], opts: optsFor(id) });
     }
 
     /**

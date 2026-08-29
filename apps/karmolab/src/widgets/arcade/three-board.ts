@@ -16,6 +16,7 @@ import {
   CanvasTexture,
   CircleGeometry,
   Color,
+  CylinderGeometry,
   DirectionalLight,
   Mesh,
   MeshStandardMaterial,
@@ -60,6 +61,13 @@ export interface Board3dOpts {
   star?: (i: number) => boolean;
   /** 어두운 칸 (체커) */
   dark?: (i: number) => boolean;
+  /**
+   * 판 곁에 통 둘을 놓는다 (오목, 바둑).
+   *
+   * 판만 덩그러니 두면 화면 네 귀가 빈다. 거기를 글자로 채우면 판을 보는 눈이 글자로 감
+   * 실제 판 앞에 앉으면 통이 대각으로 놓여 있고, 그 그림자가 여백을 채움
+   */
+  bowls?: boolean;
   /** 칸을 눌렀을 때 */
   onCell: (i: number) => void;
 }
@@ -116,8 +124,18 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 처음엔 가까이 붙여 뒀더니 앞뒤 줄이 화면 밖으로 잘렸다(실측). 시야각(34°)과 판 크기로
    * 필요한 거리를 계산해 두면 칸 수가 달라져도 판이 늘 화면에 들어온다.
    */
-  const fit = (size * 0.72) / Math.tan((34 * Math.PI) / 180 / 2);
-  camera.position.set(0, fit * 0.82, fit * 0.66);
+  /**
+   * ★ **판이 화면을 채워야 한다** (2026-08-29 실측). 여태 판이 캔버스의 54% 였다. 레퍼런스로
+   * 잰 실제 오목 게임은 65~97%. 판이 작으면 줄 사이가 좁아 어디를 누르는지 헷갈림
+   *
+   * 그리고 **더 위에서** 봄. 눕혀 보면 원근 때문에 먼 줄 간격이 가까운 줄의 절반이 됨
+   * 판놀이는 줄 간격이 고르게 보여야 읽힌다. 그렇다고 완전한 부감은 그림이 되므로
+   * 비스듬함은 남긴다(알의 두께와 그림자가 보이는 각).
+   */
+  /* 화면에 담아야 하는 반지름. 통을 놓으면 판 밖으로 그만큼 더 나간다 */
+  const reach = size * 0.5 * (opts.bowls ? 1.42 : 1.06);
+  const fit = reach / Math.tan((34 * Math.PI) / 180 / 2);
+  camera.position.set(0, fit * 0.93, fit * 0.36);
   camera.lookAt(0, 0, 0);
 
   /* 빛 둘: 넓게 깔리는 것 + 그림자를 만드는 것. 하나만 쓰면 그늘이 새까매진다. */
@@ -131,15 +149,29 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 알만 그림자를 지므로 틀은 판 크기면 충분하다.
    */
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -size * 0.62;
-  sun.shadow.camera.right = size * 0.62;
-  sun.shadow.camera.top = size * 0.62;
-  sun.shadow.camera.bottom = -size * 0.62;
+  /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
+  const shadowSpan = size * (opts.bowls ? 0.95 : 0.62);
+  sun.shadow.camera.left = -shadowSpan;
+  sun.shadow.camera.right = shadowSpan;
+  sun.shadow.camera.top = shadowSpan;
+  sun.shadow.camera.bottom = -shadowSpan;
   sun.shadow.camera.near = size * 0.4;
   sun.shadow.camera.far = size * 3.2;
   sun.shadow.bias = -0.0008;
   sun.shadow.normalBias = 0.02;
   scene.add(sun);
+
+  /**
+   * ── 바닥 ── 판이 놓인 자리. 없으면 판이 허공에 뜬다(그림자가 받을 면이 없다).
+   * 어두운 나무. 판보다 훨씬 어두워야 판이 앞으로 나옴
+   */
+  const floorMap = new CanvasTexture(woodTexture(31, 256));
+  floorMap.colorSpace = SRGBColorSpace;
+  const floorMat = new MeshStandardMaterial({ map: floorMap, color: 0x2b1d10, roughness: 0.98 });
+  const floor = new Mesh(new PlaneGeometry(size * 6, size * 6), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
 
   /* ── 판 ── 나무 상자 한 덩이. 윗면이 두께만큼 올라와 있다.
      결은 **코드로 굽는다**(`texture.ts`). 그림 파일 0개, 매끈한 플라스틱 면을 면한다. */
@@ -207,7 +239,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   }
 
   /* ── 알 ── 매 수마다 새로 만들지 않는다. 칸 수만큼 미리 만들어 두고 보였다 감췄다 한다. */
-  const stoneGeo = new SphereGeometry(CELL * 0.4, 24, 16);
+  /* 지름 = 칸의 0.88 (레퍼런스 실측 0.84~0.94). 작으면 판이 헐렁해 보인다 */
+  const stoneGeo = new SphereGeometry(CELL * 0.44, 24, 16);
   const mats = new Map<number, MeshStandardMaterial>();
   const matFor = (who: number): MeshStandardMaterial => {
     let m = mats.get(who);
@@ -226,6 +259,37 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return m;
   };
 
+  /* ── 통 둘 ── 판의 대각에 놓인다. 왼쪽 위가 흑, 오른쪽 아래가 백(레퍼런스와 같은 자리). */
+  const bowlMats: MeshStandardMaterial[] = [];
+  if (opts.bowls) {
+    const r = CELL * 1.45;
+    const h = CELL * 0.86;
+    const away = size / 2 + r * 0.72;
+    const bowlWoodMap = new CanvasTexture(woodTexture(13, 256));
+    bowlWoodMap.colorSpace = SRGBColorSpace;
+    const bowlWood = new MeshStandardMaterial({ map: bowlWoodMap, color: 0xd8a865, roughness: 0.7 });
+    bowlMats.push(bowlWood);
+    for (const who of [1, 2]) {
+      const sx = who === 1 ? -away : away;
+      const sz = who === 1 ? -away : away;
+      const cup = new Mesh(new CylinderGeometry(r, r * 0.74, h, 32), bowlWood);
+      cup.position.set(sx, h / 2, sz);
+      cup.castShadow = true;
+      cup.receiveShadow = true;
+      scene.add(cup);
+      /* 통 안의 알. 낱알 일곱이면 무더기로 읽힌다. 하나만 크게 두면 접시에 담긴 것이 된다 */
+      const pileGeo = new SphereGeometry(CELL * 0.33, 16, 12);
+      const spots: Array<[number, number]> = [[0, 0], [0.5, 0.2], [-0.45, 0.35], [0.2, -0.5], [-0.3, -0.4], [0.6, -0.25], [-0.6, -0.05]];
+      spots.forEach(([ox, oz], k) => {
+        const bead = new Mesh(pileGeo, matFor(who));
+        bead.scale.set(1, 0.46, 1);
+        bead.position.set(sx + ox * r * 0.9, h * (k === 0 ? 1.02 : 0.96), sz + oz * r * 0.9);
+        bead.castShadow = true;
+        scene.add(bead);
+      });
+    }
+  }
+
   const pool: Mesh[] = [];
   const stoneOf = (k: number): Mesh => {
     let m = pool[k];
@@ -243,7 +307,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
 
   /* 마지막 수 표. 붉은 고리 하나를 옮겨 쓴다. */
   const markMat = new MeshStandardMaterial({ color: 0xe2503c, roughness: 0.5 });
-  const mark = new Mesh(new CircleGeometry(CELL * 0.16, 20), markMat);
+  const mark = new Mesh(new CircleGeometry(CELL * 0.11, 20), markMat);
   mark.rotation.x = -Math.PI / 2;
   mark.visible = false;
   scene.add(mark);
@@ -329,7 +393,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
         m.scale.set(1, st.king ? 0.92 : 0.46, 1);
         m.visible = true;
         if (st.last) {
-          mark.position.set(cx(st.cell), boardTop + 0.004, cz(st.cell));
+          /* 알 밑에 깔면 안 보인다(실측). 알 꼭대기 위에 얹는다 */
+          mark.position.set(cx(st.cell), boardTop + CELL * 0.19 + CELL * 0.44 * (st.king ? 0.92 : 0.46) + 0.006, cz(st.cell));
           mark.visible = true;
         }
         if (st.pick) {
@@ -353,9 +418,10 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
         const m = o as Mesh;
         if (m.geometry) m.geometry.dispose();
       });
-      [...mats.values(), wood, side, ink, dot, darkMat, markMat, hintMat, pickMat].forEach((mm) => mm.dispose());
+      [...mats.values(), ...bowlMats, wood, side, ink, dot, darkMat, markMat, hintMat, pickMat, floorMat].forEach((mm) => mm.dispose());
       woodMap.dispose();
       sideMap.dispose();
+      floorMap.dispose();
       renderer.dispose();
       canvas.remove();
     }

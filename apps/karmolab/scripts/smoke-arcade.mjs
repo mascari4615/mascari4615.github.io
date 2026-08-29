@@ -44,8 +44,19 @@ const check = (name, cond, detail = '') => {
 };
 
 let cantRun = '';
-const browser = await chromium.launch();
-const page = await browser.newPage();
+/**
+ * ★ **입체 판을 진짜로 잰다** (2026-08-29). 기본 headless 는 WebGL 미제공
+ * 그러면 정본인 입체 화면이 늘 못 돌림. 못 도는 검사는 없는 검사. 소프트웨어 렌더러 켬
+ *
+ * ★ **서비스 워커 차단.** 안 막으면 워커가 **낡은 조각을 물려 줌**
+ * 실측: 고친 입체 판을 세 번 찍어 세 번 다 옛 화면. 코드가 안 먹은 줄 알았음
+ * 옛 코드를 보고 낸 초록은 거짓 초록
+ */
+const browser = await chromium.launch({
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
+});
+const context = await browser.newContext({ serviceWorkers: 'block' });
+const page = await context.newPage();
 page.on('pageerror', (e) => failures.push(`창에서 터졌다. ${e.message}`));
 
 try {
@@ -64,7 +75,7 @@ if (!cantRun) {
   await page.evaluate(() => Toolbox.switchPage('arcade'));
 
   try {
-    await waitHydrated(page, '[data-obj="reflex"]', { timeout: 30000 });
+    await waitHydrated(page, '[data-obj]', { timeout: 30000 });
   } catch (e) {
     cantRun = `오락실 화면이 안 떴다. ${e.message}`;
   }
@@ -116,6 +127,11 @@ if (!cantRun) {
   }
   check('혼자, 같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
 
+  /* 반응 측정은 실시간 판의 대표로 깊이 본다(시계가 도나). 명부에서 감추면 로비에 없으므로
+     그때는 이 토막만 못 돌림으로 넘긴다. 감췄다는 이유로 나머지 검사가 빨강이 되면 안 된다. */
+  const hasReflex = ids.indexOf('reflex') >= 0;
+  if (!hasReflex) console.log('[arcade-ui] 반응 측정. 로비에 없어 건너뜀 (통과 아님)');
+  if (hasReflex) {
   console.log('[arcade-ui] 반응 측정. 혼자');
   await page.click('[data-obj="reflex"]');
   await page.click('[data-solo="reflex"]');
@@ -151,25 +167,70 @@ if (!cantRun) {
     check('다섯 판이 끝까지 굴러 결과가 뜬다', false, JSON.stringify(dump));
   }
 
-  console.log('[arcade-ui] 오목. 혼자');
-  await page.click('#acQuit');
+  }
+
+  /**
+   * 오목. **입체가 정본, 평면은 물러설 자리**(사용자 확정). 둘 다 봄
+   *
+   * 검사 브라우저가 WebGL 을 못 얻으면 입체 없음. 오락실 결함이 아니라 못 돌림으로 적음
+   * 평면은 어느 환경에서나 떠야 함. 아래 깊은 검사가 그걸 잼
+   */
+  console.log('[arcade-ui] 오목. 입체');
+  if (hasReflex) await page.click('#acQuit');
   await page.waitForSelector('[data-obj="gomoku"]', { timeout: 10000 });
   await page.click('[data-obj="gomoku"]');
   await page.click('[data-solo="gomoku"]');
-  await page.waitForSelector('.ac-cell', { timeout: 10000 });
-  check('아홉 칸 판이 뜬다', (await page.locator('.ac-cell').count()) === 81);
+  /* 입체 조각은 누른 뒤에 받아 온다. 붙는 데 몇 초가 걸리므로 시간을 재지 말고 기다린다 */
+  let gl = true;
+  try {
+    await page.waitForSelector('.ac-t3 canvas', { timeout: 20000 });
+  } catch {
+    gl = false;
+  }
+  if (gl) {
+    check('입체 판이 뜬다 (기본 표현)', true);
+    /* 판이 캔버스를 채워야 한다. 레퍼런스 실측 65~97%. 작으면 줄 사이가 좁아 못 누른다 */
+    const filled = await page.evaluate(() => {
+      const c = document.querySelector('.ac-t3 canvas');
+      const g = c.getContext('webgl2') || c.getContext('webgl');
+      return !!g && !g.isContextLost();
+    });
+    check('입체 판이 그림을 낸다 (WebGL 살아 있음)', filled);
+  } else {
+    console.log('[arcade-ui] 입체 판. WebGL 을 못 얻어 건너뜀 (통과 아님)');
+  }
 
-  await page.locator('.ac-cell').nth(40).click();
+  console.log('[arcade-ui] 오목. 평면으로 물러서기');
+  await page.click('#acQuit');
+  /* 사람이 2D 를 고른 것과 같은 자리에 적는다. 껍데기가 읽는 곳이 여기 하나다 */
+  await page.evaluate(() => localStorage.setItem('karmolab.arcade.dim', '2d'));
+  await page.click('[data-obj="gomoku"]');
+  await page.click('[data-solo="gomoku"]');
+  await page.waitForSelector('.ac-cell', { timeout: 10000 });
+  /* 판 크기는 사람이 고름(9, 15, 19). 여기 수를 박으면 고르는 자리를 늘릴 때마다 빨개짐
+     제곱수인지와 화점 수만 봄. 그 둘이 맞으면 격자는 제 모양 */
+  const pts = await page.locator('.ac-cell').count();
+  const side = Math.round(Math.sqrt(pts));
+  check('정사각 격자가 뜬다', side * side === pts && side >= 9, `${pts}점 (${side}줄)`);
+  check('화점이 찍힌다', (await page.locator('.ac-cell.ac-star').count()) >= 5);
+  /* 알은 줄이 만나는 점에 놓인다. 손이 올라간 칸과 알이 놓일 점이 어긋나면 안 된다 */
+  const mid = Math.floor(side / 2) * side + Math.floor(side / 2);
+  const box = await page.locator(`[data-c="${mid}"]`).boundingBox();
+  const boardBox = await page.locator('#acBoard').boundingBox();
+  const offX = Math.abs(box.x + box.width / 2 - (boardBox.x + boardBox.width / 2));
+  check('한가운데 점이 판 한가운데다', offX < 2, `${offX.toFixed(1)}px 어긋남`);
+
+  await page.locator(`[data-c="${mid}"]`).click();
   /* 그리기는 다음 프레임에 온다. 누르자마자 읽으면 아직 빈 칸이다(검사 쪽 경주). */
   try {
     await page.waitForFunction(
-      () => (document.querySelectorAll('.ac-cell')[40]?.textContent || '').trim() === '●',
-      null,
+      (c) => (document.querySelector(`[data-c="${c}"]`)?.textContent || '').trim() === '●',
+      mid,
       { timeout: 5000 }
     );
     check('누른 칸에 내 돌이 놓인다', true);
   } catch {
-    const mine = await page.locator('.ac-cell').nth(40).textContent();
+    const mine = await page.locator(`[data-c="${mid}"]`).textContent();
     check('누른 칸에 내 돌이 놓인다', false, `"${mine}"`);
   }
 

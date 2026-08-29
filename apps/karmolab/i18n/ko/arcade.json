@@ -456,5 +456,12 @@
   "arcade.memory.miss": "{who}. 못 맞혔다",
   "arcade.tuho.in": "{who}. 통에 넣었다",
   "arcade.tuho.ear": "{who}. 귀에 걸렸다",
-  "arcade.tuho.out": "{who}. 빗나갔다"
+  "arcade.tuho.out": "{who}. 빗나갔다",
+  "arcade.setup.size": "판",
+  "arcade.setup.size.9": "9줄",
+  "arcade.setup.size.15": "15줄",
+  "arcade.setup.size.19": "19줄",
+  "arcade.setup.renju": "금수",
+  "arcade.setup.renju.on": "렌주",
+  "arcade.setup.renju.off": "없음"
 }

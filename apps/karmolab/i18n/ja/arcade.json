@@ -456,5 +456,12 @@
   "arcade.memory.miss": "{who}. 不一致",
   "arcade.tuho.in": "{who}. 壺に入った",
   "arcade.tuho.ear": "{who}. 耳に掛かった",
-  "arcade.tuho.out": "{who}. 外れた"
+  "arcade.tuho.out": "{who}. 外れた",
+  "arcade.setup.size": "盤",
+  "arcade.setup.size.9": "9路",
+  "arcade.setup.size.15": "15路",
+  "arcade.setup.size.19": "19路",
+  "arcade.setup.renju": "禁手",
+  "arcade.setup.renju.on": "連珠",
+  "arcade.setup.renju.off": "なし"
 }

@@ -23,8 +23,13 @@ const check = (name, cond, detail = '') => {
 };
 
 let cantRun = '';
+/* ★ **평면으로 잰다** (2026-08-29). 입체가 정본이 된 뒤로, 판을 열면 평면이 잠깐 떴다가
+   입체로 갈린다. 그 사이에 칸을 누르면 `element was detached from the DOM` 으로 60초를 헤맨다.
+   여기서 재려는 것은 그림이 아니라 편지가 오가나이므로, 사람이 2D 를 고른 것과 같은 자리에 적는다.
+   ★ **서비스 워커도 막는다.** 안 막으면 워커가 낡은 조각을 물려 주고 검사가 옛 코드를 본다. */
 const br = await chromium.launch();
-const ctx = await br.newContext();
+const ctx = await br.newContext({ serviceWorkers: 'block' });
+await ctx.addInitScript(() => { try { localStorage.setItem('karmolab.arcade.dim', '2d'); } catch { /* 못 적어도 돈다 */ } });
 /* ★ **찬 러너는 느리다** (2026-08-14). 이 검사를 묶음(gates)에 넣자마자 CI 에서 32초에 섰다 . 
    내 자리에서는 7초다. 오락실 화면 검사가 앞서 같은 병을 겪고 60초로 늘렸다(2026-08-13).
    못 기다려서 나는 거짓 빨강이 기다림보다 비싸다. */

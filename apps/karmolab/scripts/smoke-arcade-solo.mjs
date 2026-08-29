@@ -79,12 +79,25 @@ if (server) await server.close();
   const course = await page.$eval('#acSolo .ac-solocourse', (n) => n.textContent.trim()).catch(() => '');
   check('오늘의 코스 줄이 붙는다', /\d/.test(course), course || '(줄 자체가 없다)');
 
-  await page.fill('#acFind', '스무고개');
+  /* 찾기가 **두 명부를 한꺼번에** 훑나. 방 게임과 혼자 놀이가 같은 창에
+     이름 박기 금지. 그 판을 감추는 날 빨개짐 (스무고개로 박아 뒀다가 실제로 그랬음)
+     그래서 지금 로비에 뜬 방 게임 이름으로 찾음 */
+  const roomName = await page.$eval('#acGames .ac-obj b', (n) => n.textContent.trim());
+  await page.fill('#acFind', roomName);
   await page.waitForTimeout(300);
   const hits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-obj b', (n) =>
     n.map((x) => x.textContent.trim())
   );
-  check('찾기가 방 게임과 혼자 놀이를 함께 잡는다', hits.length >= 2, hits.join(' / '));
+  check('찾기가 로비의 방 게임을 잡는다', hits.includes(roomName), `${roomName} -> ${hits.join(' / ')}`);
+
+  /* 혼자 놀이 쪽도 같은 창이 훑나. 이쪽 명부는 감출 수 없어 이름을 물어 와 쓴다 */
+  const soloName = expected[0].title;
+  await page.fill('#acFind', soloName);
+  await page.waitForTimeout(300);
+  const soloHits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-obj b', (n) =>
+    n.map((x) => x.textContent.trim())
+  );
+  check('찾기가 혼자 놀이도 잡는다', soloHits.includes(soloName), `${soloName} -> ${soloHits.join(' / ')}`);
   check(
     '이름이 겹치지 않는다 (같은 글자가 둘이면 어느 쪽인지 모른다)',
     new Set(hits).size === hits.length,

@@ -81,6 +81,7 @@ const meta = CATALOG.map((e, i) => ({
   kind: e.kind,
   seats: [e.def.seats[0], e.def.seats[1]],
   realtime: e.def.realtime === true,
+  hidden: e.hidden === true,
   chunk: rows[i].defMod,
   view: rows[i].viewMod,
   defVar: rows[i].defVar,
@@ -101,7 +102,7 @@ const lines = meta
     (m) =>
       `  { id: ${q(m.id)}, icon: ${q(m.icon)}, kind: ${q(m.kind)}` +
       `, seats: [${m.seats[0]}, ${m.seats[1]}], realtime: ${m.realtime}, chunk: ${q(m.chunk)}` +
-      (m.d3 ? ', d3: true' : '') + ` }`
+      (m.d3 ? ', d3: true' : '') + (m.hidden ? ', hidden: true' : '') + ` }`
   )
   .join(',' + NL);
 
@@ -123,11 +124,16 @@ const ts =
   `  chunk: string;` + NL +
   `  /** 입체 화면이 있나 (\`games/<chunk>-view3d.ts\` 실재). 있으면 2D/3D 를 사람이 고른다 */` + NL +
   `  d3?: boolean;` + NL +
+  `  /** 로비에 안 보인다. 주소로 들어온 방과 다시보기는 그대로 돈다 */` + NL +
+  `  hidden?: boolean;` + NL +
   `}` + NL + NL +
-  `export const CARDS: GameCard[] = [` + NL +
+  `/** 감춘 것까지 전부. 이름표를 찾을 때만 쓴다 */` + NL +
+  `export const ALL_CARDS: GameCard[] = [` + NL +
   lines + NL +
   `];` + NL + NL +
-  `export const cardById = (id: string): GameCard | undefined => CARDS.find((c) => c.id === id);` + NL;
+  `/** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */` + NL +
+  `export const CARDS: GameCard[] = ALL_CARDS.filter((c) => !c.hidden);` + NL + NL +
+  `export const cardById = (id: string): GameCard | undefined => ALL_CARDS.find((c) => c.id === id);` + NL;
 
 writeFileSync(join(root, 'src/widgets/arcade/catalog-meta.generated.ts'), '/*' + ts.slice(2), 'utf8');
 /* 조각 굽기가 읽는 표. 이름 → 규칙 파일, 화면 파일 */

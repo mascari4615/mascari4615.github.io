@@ -17,5 +17,5 @@ export { META, KINDS, iconOf, kindOf } from './meta';
 export { PARTY, partySize } from './seating';
 export { Match } from './kernel';
 export { seedFrom, mulberry32 } from './rng';
-export type { GameDef, GameCtx, Seat, Outcome, BotMove, Note } from './types';
+export type { GameDef, GameCtx, GameOpts, Seat, Outcome, BotMove, Note } from './types';
 export type { MatchView, SeatSpec } from './kernel';

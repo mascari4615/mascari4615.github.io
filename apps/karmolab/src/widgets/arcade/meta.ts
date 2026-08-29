@@ -10,7 +10,7 @@
  * 갈래를 두는 이유: 스물이 넘으면 **나열은 목록이 아니라 벽**이 된다. 클럽하우스 51 도 보드, 카드, 
  * 장난감 스포츠로 나눠 놨다. 51개가 되어도 사람이 하고 싶은 결로 먼저 좁힐 수 있어야 한다.
  */
-import { CARDS } from './catalog-meta.generated';
+import { ALL_CARDS } from './catalog-meta.generated';
 
 export type Kind = 'board' | 'card' | 'sport' | 'quick' | 'puzzle';
 
@@ -21,7 +21,7 @@ export interface GameMeta {
 }
 
 /** 화면에 보일 차례 = 카탈로그 차례. 갈래 안에서는 쉬운 것부터. */
-export const META: GameMeta[] = CARDS.map((c) => ({ id: c.id, icon: c.icon, kind: c.kind }));
+export const META: GameMeta[] = ALL_CARDS.map((c) => ({ id: c.id, icon: c.icon, kind: c.kind }));
 
 export const iconOf = (id: string): string => META.find((m) => m.id === id)?.icon ?? '🎲';
 export const kindOf = (id: string): Kind => META.find((m) => m.id === id)?.kind ?? 'board';

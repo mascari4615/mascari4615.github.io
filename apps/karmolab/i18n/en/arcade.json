@@ -456,5 +456,12 @@
   "arcade.memory.miss": "{who}. no match",
   "arcade.tuho.in": "{who}. in the pot",
   "arcade.tuho.ear": "{who}. on the ear",
-  "arcade.tuho.out": "{who}. missed"
+  "arcade.tuho.out": "{who}. missed",
+  "arcade.setup.size": "Board",
+  "arcade.setup.size.9": "9 lines",
+  "arcade.setup.size.15": "15 lines",
+  "arcade.setup.size.19": "19 lines",
+  "arcade.setup.renju": "Renju",
+  "arcade.setup.renju.on": "On",
+  "arcade.setup.renju.off": "Off"
 }

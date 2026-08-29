@@ -11,6 +11,14 @@ import type { MatchView } from './kernel';
 
 export interface GameView<S, A> {
   id: string;
+  /**
+   * **껍데기를 걷는다.** 자리표, 상태 줄이 사라지고 아래 버튼은 손이 갈 때만 나타남
+   *
+   * 판 자체가 이미 다 말하는 놀이가 있음. 오목판은 돌 색과 놓인 자리만으로 차례를 알려 줌
+   * 그런 판 옆에 이름표와 글자를 세우면, 사람이 보는 것은 판이 아니라 화면
+   * 무엇을 걷을지는 규칙이 아니라 **표현**이 정함. 같은 오목이 다른 표현에서는 껍데기를 씀
+   */
+  bare?: boolean;
   mount(el: HTMLElement, act: (a: A) => void): Render<S>;
 }
 

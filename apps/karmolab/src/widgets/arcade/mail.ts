@@ -20,7 +20,7 @@
  */
 
 import { Match } from './kernel';
-import type { GameDef } from './types';
+import type { GameDef, GameOpts } from './types';
 import { toolPage } from '../../lib/site-base';
 
 /** 편지 한 통 = 판 하나. */
@@ -31,6 +31,19 @@ export interface Letter {
   who: string[];
   /** 둔 수, 순서대로. 자리는 차례에서 나오므로 안 싣는다. */
   moves: unknown[];
+  /** 시작할 때 고른 값 (판 크기 등). 안 실으면 받는 쪽이 다른 판을 편다 */
+  opts?: GameOpts;
+}
+
+/** 남이 준 값이라 못 믿는다. 숫자와 참거짓만 남긴다 */
+function safeOpts(v: unknown): GameOpts {
+  const out: Record<string, number | boolean> = {};
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+      if (typeof x === 'number' || typeof x === 'boolean') out[k] = x;
+    }
+  }
+  return out;
 }
 
 /** 링크가 감당할 길이. 넘으면 편지로는 못 보낸다. 그때는 방을 열어야 한다. */
@@ -43,7 +56,7 @@ const fromUrl = (s: string): string => s.replace(/-/g, '+').replace(/_/g, '/');
 /** 편지를 접는다. 너무 길면 null. 부르는 쪽이 이건 방으로 하세요라고 말할 수 있게. */
 export function fold(letter: Letter): string | null {
   try {
-    const json = JSON.stringify([letter.game, letter.seed, letter.who, letter.moves]);
+    const json = JSON.stringify([letter.game, letter.seed, letter.who, letter.moves, letter.opts ?? {}]);
     /* 한글 이름이 들어오므로 UTF-8 로 바꾼 뒤 접는다. `btoa` 는 바이트만 받는다. */
     const bytes = new TextEncoder().encode(json);
     let bin = '';
@@ -61,12 +74,13 @@ export function unfold(packed: string): Letter | null {
     const bin = atob(fromUrl(packed.trim()));
     const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
     const raw: unknown = JSON.parse(new TextDecoder().decode(bytes));
-    if (!Array.isArray(raw) || raw.length !== 4) return null;
-    const [game, seed, who, moves] = raw as [unknown, unknown, unknown, unknown];
+    /* 옛 편지는 넷이다. 다섯째(고른 값)가 나중에 붙었으므로 없어도 편다 */
+    if (!Array.isArray(raw) || raw.length < 4 || raw.length > 5) return null;
+    const [game, seed, who, moves, opts] = raw as [unknown, unknown, unknown, unknown, unknown];
     if (typeof game !== 'string' || typeof seed !== 'number') return null;
     if (!Array.isArray(who) || !who.every((n) => typeof n === 'string')) return null;
     if (!Array.isArray(moves)) return null;
-    return { game, seed, who, moves };
+    return { game, seed, who, moves, opts: safeOpts(opts) };
   } catch {
     return null;
   }
@@ -94,7 +108,7 @@ export function letterFromUrl(): Letter | null {
  */
 export function deal<S, A>(game: GameDef<S, A>, letter: Letter): Match<S, A> {
   const seats = letter.who.map((name) => ({ name, bot: false }));
-  const m = new Match(game, letter.seed, seats);
+  const m = new Match(game, letter.seed, seats, letter.opts ?? {});
   let now = 0;
   letter.moves.forEach((action, i) => {
     m.dispatch(i % seats.length, action as A);

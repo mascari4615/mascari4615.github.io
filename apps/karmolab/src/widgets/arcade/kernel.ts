@@ -11,7 +11,7 @@
  * 그대로 돌려준다(게임의 약속 ①). 예약을 상태가 바뀔 때마다 지우면 실시간 게임에서 봇이
  * 영영 못 둔다(제한시간이 매 tick 상태를 바꾸므로).
  */
-import type { GameDef, GameCtx, Seat, Outcome, Note } from './types';
+import type { GameDef, GameCtx, GameOpts, Seat, Outcome, Note } from './types';
 import { mulberry32 } from './rng';
 
 export interface SeatSpec {
@@ -79,10 +79,13 @@ export class Match<S, A> {
    * `ctx.rng` 를 부르면 되고, 커널이 그때만 이쪽 흐름을 건네준다.
    */
   private botRand: () => number;
+  /** 시작할 때 고른 값. 방과 편지와 다시보기가 씨앗과 함께 나른다 */
+  readonly opts: GameOpts;
 
-  constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[]) {
+  constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[], opts: GameOpts = {}) {
     this.game = game;
     this.seed = seed;
+    this.opts = opts;
     this.rand = mulberry32(seed);
     /* 씨앗을 비틀어 나눈다. 같은 씨앗에서 두 흐름이 같은 값을 내면 나눈 뜻이 없다. */
     this.botRand = mulberry32((seed ^ 0x5bf03635) >>> 0);
@@ -102,12 +105,12 @@ export class Match<S, A> {
    * 게임은 영원히 같은 눈**이 나온다. 그래서 rng 는 상태다.
    */
   private ctx(): GameCtx {
-    return { seats: this.seats, rng: this.rand, now: this.now, round: this.round };
+    return { seats: this.seats, rng: this.rand, now: this.now, round: this.round, opts: this.opts };
   }
 
   /** 봇에게 줄 자리. 난수만 다르다. */
   private botCtx(): GameCtx {
-    return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round };
+    return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round, opts: this.opts };
   }
 
   /** 커널의 시계. 밖에서 준 시각이 아니라 **칸으로 옮긴** 값이다. */

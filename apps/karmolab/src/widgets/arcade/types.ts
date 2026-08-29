@@ -27,9 +27,19 @@ export interface Seat {
   score: number;
 }
 
+/**
+ * 판을 시작할 때 한 번 고른 값. 판 크기, 규칙 갈래처럼 **판이 도는 내내 안 바뀌는 것**만.
+ *
+ * 상태가 아니라 사정이다. 그래서 `init` 이 읽어 상태로 옮기고, 그 뒤로는 상태만 봄
+ * 방과 편지와 다시보기가 이 값을 같이 나름. 안 나르면 같은 씨앗이 다른 판을 만듦
+ */
+export type GameOpts = Readonly<Record<string, number | boolean>>;
+
 /** 게임이 볼 수 있는 판의 바깥 사정. */
 export interface GameCtx {
   seats: readonly Seat[];
+  /** 시작할 때 고른 값 (판 크기 등). 안 고르면 빈 것 */
+  opts: GameOpts;
   /** 씨앗에서 나온 난수. 게임 안에서 `Math.random` 을 부르면 판이 갈라진다 */
   rng: () => number;
   /** 판이 시작된 뒤 흐른 밀리초 (실제 시계가 아니라 커널이 준 값. 테스트가 이걸 밀어 준다) */
