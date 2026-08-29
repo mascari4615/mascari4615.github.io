@@ -186,6 +186,9 @@ const xml =
         .join('\n') +
     `\n</urlset>\n`;
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), xml);
+// 같은 목록을 두 번째 주소로도 낸다. GSC 는 이미 제출된 주소를 새 행으로 안 만들어서,
+// 뿌리 이관(2026-08-27) 뒤 바뀐 목록을 읽히려면 다른 주소가 필요하다 (seo-ops 공백 ②).
+fs.writeFileSync(path.join(OUT, 'sitemap-root.xml'), xml);
 
 console.log(
     `[assemble] 머리말 장 ${processed}, 정적 복사 ${copied}, 사이트맵 ${listed.length}장 (후보 ${pages.length}) → ${path.relative(process.cwd(), OUT)}`
