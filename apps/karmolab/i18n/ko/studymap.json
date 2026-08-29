@@ -56,5 +56,14 @@
   "studymap.lesson.prevpart": "이전 장",
   "studymap.lesson.nextpart": "다음 장",
   "studymap.open": "열기",
-  "studymap.path": "거기까지 가는 길"
+  "studymap.path": "거기까지 가는 길",
+  "studymap.focus.web": "웹 프론트",
+  "studymap.focus.server": "서버 · 인프라",
+  "studymap.focus.game": "게임 · 그래픽스",
+  "studymap.focus.data": "데이터 · AI",
+  "studymap.focus.basic": "아직 모름",
+  "studymap.focus.ask": "지금 뭘 하고 있어?",
+  "studymap.focus.sub": "고른 쪽 갈래만 보여 준다. 언제든 바꾸고, 전부 펴 볼 수도 있다.",
+  "studymap.focus.all": "전부 보기",
+  "studymap.focus.only": "이 방향만"
 }

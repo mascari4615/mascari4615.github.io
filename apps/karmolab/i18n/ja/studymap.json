@@ -56,5 +56,14 @@
   "studymap.lesson.prevpart": "前の章",
   "studymap.lesson.nextpart": "次の章",
   "studymap.open": "開く",
-  "studymap.path": "そこまでの道"
+  "studymap.path": "そこまでの道",
+  "studymap.focus.web": "Web フロント",
+  "studymap.focus.server": "サーバ・インフラ",
+  "studymap.focus.game": "ゲーム・グラフィックス",
+  "studymap.focus.data": "データ・AI",
+  "studymap.focus.basic": "まだ分からない",
+  "studymap.focus.ask": "今なにをしている?",
+  "studymap.focus.sub": "選んだ分野だけ出す。いつでも変えられるし、全部を開くこともできる。",
+  "studymap.focus.all": "全部見る",
+  "studymap.focus.only": "この分野だけ"
 }

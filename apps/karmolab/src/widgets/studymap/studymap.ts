@@ -315,6 +315,20 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
 /* ── 나무 눈 ── 관계를 보는 화면. 선은 「먼저 이것」을 뜻한다. */
+/* 방향 고르는 화면 — 이것 말고 아무것도 없음 */
+.sm-wrap.is-picking .sm-head { display: none; }
+.sm-pick { max-width: 560px; margin: 48px auto; }
+.sm-pick-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; }
+.sm-pick-sub { font-size: var(--font-size-2xs); color: var(--text-secondary); margin: 0 0 24px; line-height: 1.7; }
+.sm-pick-row { display: grid; gap: 8px; }
+.sm-pick-btn { display: grid; gap: 4px; text-align: left; font: inherit; cursor: pointer;
+  padding: 16px; border-radius: var(--radius-xl); border: 1px solid var(--border);
+  background: var(--bg-secondary); color: var(--text-primary); transition: border-color .15s, background .15s; }
+.sm-pick-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
+.sm-pick-name { font-size: var(--font-size-sm); font-weight: 700; }
+.sm-pick-tracks { font-size: 12px; color: var(--text-tertiary); }
+.sm-focus-btn { font-weight: 700; }
+
 /* 무게 1군 — 화면에서 제일 큰 것 하나, 강조색도 여기서만.
    전에는 카드 아홉과 같은 상자라 다음 한 칸이 목록의 한 줄로 보임 */
 .sm-resume { display: grid; gap: 8px; width: 100%; text-align: left; margin-bottom: 24px;
@@ -529,6 +543,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             <span class="sm-meter-num"><b data-sm="pdone">0</b> / <span data-sm="ptotal">0</span></span>
           </div>
           <div class="sm-findbar">
+            <button type="button" class="sm-find-btn sm-focus-btn" data-sm="focusbtn" hidden></button>
+            <button type="button" class="sm-find-btn" data-sm="allbtn" hidden></button>
             <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
             <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
                    placeholder="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}"
@@ -671,7 +687,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     function paintTracks(): void {
       let scopeMarked = false;
-      elTracks.innerHTML = tracks
+      elTracks.innerHTML = shownTracks()
         .map((tr) => {
           let divider = '';
           if (tr.scope === 'personal' && !scopeMarked) {
@@ -704,6 +720,39 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         .join('');
     }
 
+
+    /**
+     * 방향 — 41갈래를 한 번에 펴 놓고 고르라 하면 아무 것도 못 고름.
+     * 커리어로 공부하는 사람에게 필요한 건 전부가 아니라 지금 자리의 서너 갈래.
+     * 처음 한 번만 묻고 그 뒤로는 그 갈래만. 전부는 언제든 펴기 가능
+     */
+    const FOCUS_KEY = 'karmolab-studymap-focus';
+    const FOCUSES: { id: string; label: string; tracks: string[] }[] = [
+      { id: 'web', label: t('studymap.focus.web', undefined, '웹 프론트'), tracks: ['web', 'a11y', 'qa'] },
+      { id: 'server', label: t('studymap.focus.server', undefined, '서버 · 인프라'), tracks: ['api', 'devops', 'db'] },
+      { id: 'game', label: t('studymap.focus.game', undefined, '게임 · 그래픽스'), tracks: ['game', 'gfx', 'math'] },
+      { id: 'data', label: t('studymap.focus.data', undefined, '데이터 · AI'), tracks: ['data', 'ml', 'analytics'] },
+      { id: 'basic', label: t('studymap.focus.basic', undefined, '아직 모름'), tracks: ['cs', 'git', 'web'] },
+    ];
+    let focusId: string | null = (() => {
+      try {
+        return localStorage.getItem(FOCUS_KEY);
+      } catch {
+        return null;
+      }
+    })();
+    /** 전부 펴 놓고 보는 중인가 — 방향과 별개, 이번 화면에서만 */
+    let showAll = false;
+    const focusOf = (): { id: string; label: string; tracks: string[] } | null =>
+      FOCUSES.find((f) => f.id === focusId) || null;
+    /** 지금 화면이 다루는 갈래 — 방향이 없거나 전부 보기면 41개 전부 */
+    const shownTracks = (): SmTrack[] => {
+      const f = focusOf();
+      if (!f || showAll) return tracks;
+      const ids = new Set(f.tracks);
+      const mine = tracks.filter((tr) => ids.has(tr.id));
+      return mine.length ? mine : tracks;
+    };
 
     /** 지금 복습할 때가 된 칸 · 끝냄의 근거 — 그릴 때마다 한 번만 읽는다. */
     let dueSet = new Set<string>();
@@ -1061,12 +1110,51 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
     }
 
+    /** 방향 고르는 화면 — 처음 한 번만 */
+    function focusPickHtml(): string {
+      return `<div class="sm-pick">
+        <h2 class="sm-pick-title">${esc(t('studymap.focus.ask', undefined, '지금 뭘 하고 있어?'))}</h2>
+        <p class="sm-pick-sub">${esc(t('studymap.focus.sub', undefined, '고른 쪽 갈래만 보여 준다. 언제든 바꾸고, 전부 펴 볼 수도 있다.'))}</p>
+        <div class="sm-pick-row">${FOCUSES.map((f) => {
+          const names = f.tracks
+            .map((id) => tracks.find((tr) => tr.id === id)?.title)
+            .filter(Boolean)
+            .join(', ');
+          return `<button type="button" class="sm-pick-btn" data-focus="${esc(f.id)}">
+            <span class="sm-pick-name">${esc(f.label)}</span>
+            <span class="sm-pick-tracks">${esc(names)}</span>
+          </button>`;
+        }).join('')}</div>
+      </div>`;
+    }
+
     function paint(): void {
       lessonOpen = null;
       const wrapEl = container.querySelector('.sm-wrap');
       wrapEl?.classList.remove('is-reading');
       stopWatching?.();
       stopWatching = null;
+
+      /* 방향을 아직 안 골랐으면 그것부터. 이때는 머리도 옆줄도 안 그림 —
+         고르는 화면에 다른 게 같이 뜨면 그것도 정신없음 */
+      const focus = focusOf();
+      wrapEl?.classList.toggle('is-picking', !focus);
+      q<HTMLElement>('focusbtn').hidden = !focus;
+      q<HTMLElement>('allbtn').hidden = !focus;
+      if (!focus) {
+        elTracks.innerHTML = '';
+        elView.innerHTML = focusPickHtml();
+        return;
+      }
+      q<HTMLElement>('focusbtn').textContent = `${focus.label} ▾`;
+      q<HTMLElement>('allbtn').textContent = showAll
+        ? t('studymap.focus.only', undefined, '이 방향만')
+        : t('studymap.focus.all', undefined, '전부 보기');
+
+      /* 고른 방향 밖의 갈래를 보고 있으면 방향 안으로 */
+      const shown = shownTracks();
+      if (!shown.some((x) => x.id === current)) current = shown[0].id;
+
       const tr = trackOf(current);
       const all = nodesOf(tr);
       const d = all.filter((n) => done.has(n.id)).length;
@@ -1296,6 +1384,35 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             : t('studymap.mdd.step', undefined, '한 칸 나아갔어요.'),
         });
       }
+    });
+
+    elView.addEventListener('click', (e) => {
+      const pick = (e.target as HTMLElement).closest('[data-focus]') as HTMLElement | null;
+      if (!pick) return;
+      focusId = pick.dataset.focus || null;
+      showAll = false;
+      try {
+        localStorage.setItem(FOCUS_KEY, focusId || '');
+      } catch {
+        /* 못 적어도 이번 화면은 바뀐다 */
+      }
+      paint();
+    });
+
+    q<HTMLButtonElement>('focusbtn').addEventListener('click', () => {
+      focusId = null;
+      showAll = false;
+      try {
+        localStorage.removeItem(FOCUS_KEY);
+      } catch {
+        /* 무시 */
+      }
+      paint();
+    });
+
+    q<HTMLButtonElement>('allbtn').addEventListener('click', () => {
+      showAll = !showAll;
+      paint();
     });
 
     const elFindBtn = q<HTMLButtonElement>('findbtn');

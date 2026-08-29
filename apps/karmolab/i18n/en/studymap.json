@@ -56,5 +56,14 @@
   "studymap.lesson.prevpart": "Previous chapter",
   "studymap.lesson.nextpart": "Next chapter",
   "studymap.open": "Open",
-  "studymap.path": "The way there"
+  "studymap.path": "The way there",
+  "studymap.focus.web": "Web frontend",
+  "studymap.focus.server": "Server & infra",
+  "studymap.focus.game": "Games & graphics",
+  "studymap.focus.data": "Data & AI",
+  "studymap.focus.basic": "Not sure yet",
+  "studymap.focus.ask": "What are you working on?",
+  "studymap.focus.sub": "Only those tracks show. Change it anytime, or open everything.",
+  "studymap.focus.all": "Show all",
+  "studymap.focus.only": "This one only"
 }
