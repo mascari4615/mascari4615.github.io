@@ -11,7 +11,7 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { layoutTree, type TreeNode } from './tree';
+import { layoutTree, layoutMeaning, type TreeNode } from './tree';
 import { mountTree } from './graph-view';
 import {
   collectHeadings,
@@ -467,12 +467,31 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null);
 
-    Promise.all([base, over])
-      .then(([data, overlay]: [SmData, SmOverlay | null]) => render(container, overlay ? applyOverlay(data, overlay) : data))
+    /* 자리는 **미리 구워 온다** (`data/studymap-atlas.json`). 뜻을 재는 일은 이 기계에서만 돌고,
+       브라우저는 결과 표만 받는다 — 화면에서 모델을 돌리면 아무도 못 쓴다.
+       표가 없으면 옛 방식(선수 층 쌓기)으로 그대로 그린다. */
+    const atlas = fetch('/apps/karmolab/data/studymap-atlas.json')
+      .then((r) => (r.ok ? (r.json() as Promise<SmAtlas>) : null))
+      .catch(() => null);
+
+    Promise.all([base, over, atlas])
+      .then(([data, overlay, at]: [SmData, SmOverlay | null, SmAtlas | null]) => {
+        atlasCoords = at;
+        render(container, overlay ? applyOverlay(data, overlay) : data);
+      })
       .catch(() => {
         container.innerHTML = `<div class="sm-empty">${esc(t('studymap.failed', undefined, '지도를 못 불러왔다. 새로고침해 보라.'))}</div>`;
       });
   }
+
+  /** 뜻으로 구운 자리 — 갈래는 두 축, 칸은 층 안 순서 하나. */
+  interface SmAtlas {
+    tier?: string;
+    baked?: string;
+    tracks: Record<string, [number, number]>;
+    clusters?: { id: string; label: string; members: string[] }[];
+  }
+  let atlasCoords: SmAtlas | null = null;
 
   function render(container: HTMLElement, data: SmData): void {
     const tracks = data.tracks || [];
@@ -707,6 +726,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           ratio: all.length ? d / all.length : 0,
           prereq: [...(parents.get(tr.id) as Set<string>)],
           tag: tr.emoji,
+          at: atlasCoords?.tracks?.[tr.id],
         };
       });
     }
@@ -720,16 +740,18 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       const ids = new Set(nodesOf(tr).map((n) => n.id));
       const out: TreeNode[] = [];
       tr.stages.forEach((st, depth) => {
-        for (const n of st.nodes) {
+        st.nodes.forEach((n, at) => {
           out.push({
             id: n.id,
             title: n.title,
             ratio: done.has(n.id) ? 1 : 0,
             prereq: (n.prereq || []).filter((p) => ids.has(p)),
             tag: done.has(n.id) ? '✓' : '',
+            /* 한 단계 안의 차례 = 사람이 적어 둔 그대로. 사이드바 목록과 지도가 같은 말을 해야 한다. */
+            order: at,
             depth,
           });
-        }
+        });
       });
       return out;
     }
@@ -1161,13 +1183,18 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
         /* 좁은 화면에서는 사이를 좁힌다 — 손가락으로 굴리는 거리가 짧아야 길을 안 잃는다. */
         const narrow = (elStages.clientWidth || window.innerWidth) < 700;
+        /* 1층은 **뜻 지도**다 — 구운 자리가 있으면 그것으로, 없으면 옛 층 쌓기로. */
+        const trackNodes = trackTreeNodes();
+        const haveAt = trackNodes.every((n) => Array.isArray(n.at));
         const layer =
           zoom === 'tracks'
-            ? layoutTree(trackTreeNodes(), narrow ? 122 : 168, narrow ? 96 : 118)
+            ? haveAt
+              ? layoutMeaning(trackNodes, narrow ? 760 : 1180, narrow ? 108 : 132)
+              : layoutTree(trackNodes, narrow ? 122 : 168, narrow ? 96 : 118)
             : layoutTree(nodeTreeNodes(tr), narrow ? 116 : 150, narrow ? 88 : 104);
         const head =
           zoom === 'tracks'
-            ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
+            ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 가까이 있을수록 강의 내용이 비슷하다 · 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
         elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree"><div class="sm-tree-in" data-sm="treehost"></div></div>`;
@@ -1206,6 +1233,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
                     }
                     return byDepth;
                   })(),
+            /* 이웃 묶음은 뜻 지도에만 — 갈래 안은 「단계」가 이미 배경을 맡는다(둘을 겹치면 둘 다 안 읽힌다). */
+            groups: zoom === 'tracks' && haveAt ? atlasCoords?.clusters ?? [] : [],
             pathIds: zoom === 'tracks' ? pathTo(current) : pathTo(next?.id),
             onPick: (id) => {
               if (zoom === 'tracks') {

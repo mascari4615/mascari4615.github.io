@@ -23,6 +23,22 @@ export interface TreeNode {
    * 지도가 아니라 목록이 된다(실제로 그렇게 나왔다).
    */
   depth?: number;
+  /**
+   * 뜻으로 구운 자리 (0..1 두 축) — `data/studymap-atlas.json`.
+   * 왜: 선수관계만으로 자리를 잡으면 옆에 붙은 두 갈래가 서로 아무 관계도 아니다
+   * (41갈래는 아예 손으로 적은 선이 없다 — 선이 칸에서 우연히 파생됐다).
+   * 모든 노드에 이 값이 있으면 층 대신 **이 자리**로 그린다.
+   */
+  at?: [number, number];
+  /**
+   * 층 안 자리 — 작을수록 왼쪽. 없으면 부모의 가로 위치를 따라간다.
+   *
+   * 왜 필요한가: 한 단계 안의 차례는 **사람이 적어 둔 것**이다(HTML → CSS → JS → DOM).
+   * 부모 x 평균으로 정렬하면 그 차례가 흐트러져 지도가 사이드바 목록과 다른 말을 한다.
+   * 뜻으로 정렬해 봤더니 더 나빴다 — HTML 이 맨 오른쪽으로 갔다(실측). 차례가 있는 자리에서는
+   * 차례가 이긴다. 뜻은 **차례가 아예 없는 곳**(갈래 성좌)에서만 자리를 정한다.
+   */
+  order?: number;
 }
 
 export interface TreePlaced extends TreeNode {
@@ -90,6 +106,8 @@ export function layoutTree(nodes: TreeNode[], gapX = 168, gapY = 118): TreeLayou
   for (let d = 0; d <= maxDepth; d++) {
     const row = layers.get(d) || [];
     row.sort((a, b) => {
+      /* 적어 둔 차례가 있으면 그것이 먼저다 — 부모 x 평균은 「누가 옆인가」를 아무렇게나 정한다. */
+      if (typeof a.order === 'number' && typeof b.order === 'number' && a.order !== b.order) return a.order - b.order;
       const pa = (a.prereq || []).map((p) => placed.get(p)?.x ?? 0);
       const pb = (b.prereq || []).map((p) => placed.get(p)?.x ?? 0);
       const ma = pa.length ? pa.reduce((s, v) => s + v, 0) / pa.length : 0;
@@ -125,6 +143,55 @@ export function layoutTree(nodes: TreeNode[], gapX = 168, gapY = 118): TreeLayou
   });
 
   return { nodes: [...placed.values()], edges, width, height: (maxDepth + 1) * gapY };
+}
+
+/**
+ * **뜻 지도** — 구운 자리(`at`)를 그대로 화면 좌표로 편다.
+ *
+ * 층으로 쌓지 않는다: 41갈래에는 배울 차례가 아예 안 적혀 있다. 없는 순서를 지어내는 대신
+ * 「무엇과 무엇이 가까운가」를 그린다. 선(선수관계)은 그대로 긋는다 — 자리는 뜻, 선은 순서.
+ *
+ * 겹침만 푼다. 뜻이 아주 가까운 둘은 좌표도 거의 같아서 글씨가 포개진다 — 서로 밀어
+ * 최소 거리만 확보한다(자리 순서는 그대로 두는 만큼만 민다).
+ */
+export function layoutMeaning(nodes: TreeNode[], span = 1180, minGap = 132): TreeLayout {
+  const pts = nodes.map((n) => ({ n, x: (n.at as [number, number])[0] * span, y: (n.at as [number, number])[1] * span * 0.62 }));
+  for (let round = 0; round < 220; round += 1) {
+    let moved = false;
+    for (let i = 0; i < pts.length; i += 1) {
+      for (let j = i + 1; j < pts.length; j += 1) {
+        const dx = pts[j].x - pts[i].x;
+        const dy = pts[j].y - pts[i].y;
+        const d = Math.hypot(dx, dy);
+        if (d >= minGap) continue;
+        /* 완전히 겹친 둘은 방향이 없다 — 번호로 갈라 놓는다(같은 입력이면 같은 그림이어야 한다). */
+        const ux = d > 1e-6 ? dx / d : Math.cos(i + j);
+        const uy = d > 1e-6 ? dy / d : Math.sin(i + j);
+        const push = (minGap - d) / 2;
+        pts[i].x -= ux * push;
+        pts[i].y -= uy * push;
+        pts[j].x += ux * push;
+        pts[j].y += uy * push;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  const minX = Math.min(...pts.map((p) => p.x));
+  const minY = Math.min(...pts.map((p) => p.y));
+  const placed: TreePlaced[] = pts.map((p) => ({ ...p.n, depth: 0, x: p.x - minX, y: p.y - minY }));
+  const byId = new Map(placed.map((p) => [p.id, p]));
+  const edges: TreeEdge[] = [];
+  for (const n of placed) {
+    /* 뜻 지도에서는 뼈대·곁가지를 안 나눈다 — 위아래가 없으니 「방금 어디서 왔나」도 없다. */
+    for (const p of n.prereq || []) if (byId.has(p)) edges.push({ from: p, to: n.id, weak: true });
+  }
+  return {
+    nodes: placed,
+    edges,
+    width: Math.max(...placed.map((p) => p.x)) + 1,
+    height: Math.max(...placed.map((p) => p.y)) + 1,
+  };
 }
 
 const esc = (v: unknown): string =>

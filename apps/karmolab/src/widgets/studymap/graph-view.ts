@@ -8,7 +8,7 @@
  * 이 파일이 하는 일은 번역 하나뿐: `TreeLayout` → `GraphSpec`.
  */
 import { GraphCanvas } from '../../lib/karmograph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, LaneDef } from '../../lib/karmograph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, LaneDef, GroupDef } from '../../lib/karmograph/spec';
 import type { TreeLayout } from './tree';
 
 /** 칸의 상태 — 색과 아이콘이 여기서 갈린다. */
@@ -27,7 +27,15 @@ export interface TreeViewOptions {
   fitAll?: boolean;
   /** 동그라미 지름. 갈래 지도는 크게, 칸 트리는 조금 작게. */
   size?: number;
+  /**
+   * 이웃 묶음 — 뜻 지도에서 「이 근처는 무엇인가」를 배경이 말하게 한다.
+   * 자리만 있으면 사람은 왜 거기 있는지 모른다(점 41개는 그냥 흩어진 점이다).
+   */
+  groups?: { id: string; label: string; members: string[] }[];
 }
+
+/** 묶음 바탕색 — 서로 구분되되 노드보다 뒤로 물러나야 한다(배경이지 주인공이 아니다). */
+const GROUP_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
 
 const KIND_COLORS: Record<TreeState, string> = {
   done: '#22c55e',
@@ -47,9 +55,16 @@ export function stateOf(ratio: number, prereqDone: boolean): TreeState {
  * 자리 계산 결과를 엔진이 읽는 표로 옮긴다.
  * 노드는 **동그라미**(shape: 'circle'), 선은 위→아래로 흐르는 곡선.
  */
-export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] = []): GraphSpec {
+export function toGraphSpec(
+  layout: TreeLayout,
+  size = 64,
+  laneLabels: string[] = [],
+  groupDefs: { id: string; label: string; members: string[] }[] = [],
+): GraphSpec {
   const byId = new Map(layout.nodes.map((n) => [n.id, n]));
   const doneOf = (id: string): boolean => (byId.get(id)?.ratio ?? 0) >= 1;
+  const groupOf = new Map<string, string>();
+  for (const g of groupDefs) for (const m of g.members) if (byId.has(m)) groupOf.set(m, g.id);
 
   const nodes: GraphNode[] = layout.nodes.map((n) => {
     const prereqDone = (n.prereq || []).filter((p) => byId.has(p)).every(doneOf);
@@ -58,7 +73,7 @@ export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] 
       id: n.id,
       kind: state,
       label: n.title,
-      group: '',
+      group: groupOf.get(n.id) ?? '',
       /* 자리 계산은 가운데 좌표를 준다 — 엔진은 왼쪽 위 기준이라 반지름만큼 민다. */
       x: Math.round(n.x - size / 2),
       y: Math.round(n.y - size / 2),
@@ -93,10 +108,33 @@ export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] 
       })
     : [];
 
+  /* 묶음 상자는 **멤버를 감싸는 윤곽**으로 — 네모로 그리면 남의 빈 자리를 물어 소속이 흐려진다. */
+  const groups: GroupDef[] = groupDefs
+    .map((g, i): GroupDef | null => {
+      const mine = g.members.map((m) => byId.get(m)).filter((n): n is NonNullable<typeof n> => !!n);
+      if (!mine.length) return null;
+      const pad = size;
+      const x = Math.min(...mine.map((n) => n.x)) - pad;
+      const y = Math.min(...mine.map((n) => n.y)) - pad;
+      return {
+        id: g.id,
+        label: g.label,
+        color: GROUP_COLORS[i % GROUP_COLORS.length],
+        shape: 'hull' as const,
+        bbox: {
+          x: Math.round(x),
+          y: Math.round(y),
+          w: Math.round(Math.max(...mine.map((n) => n.x)) + pad - x),
+          h: Math.round(Math.max(...mine.map((n) => n.y)) + pad - y),
+        },
+      };
+    })
+    .filter((g): g is GroupDef => !!g);
+
   return {
     version: 1,
     _meta: {},
-    groups: [],
+    groups,
     lanes,
     nodes,
     edges,
@@ -120,7 +158,7 @@ export function mountTree(host: HTMLElement, layout: TreeLayout, opts: TreeViewO
     defaultKindColor: KIND_COLORS.open,
     onNodeClick: (id) => opts.onPick(id),
   });
-  canvas.setSpec(toGraphSpec(layout, opts.size ?? 64, opts.laneLabels ?? []));
+  canvas.setSpec(toGraphSpec(layout, opts.size ?? 64, opts.laneLabels ?? [], opts.groups ?? []));
   canvas.render();
 
   /* 추천 경로에 불을 켠다 — 엔진의 활성 집합을 그대로 쓴다(같은 장치를 두 벌 만들지 않는다). */

@@ -273,6 +273,7 @@
     "test:sketchy",
     "test:shell",
     "test:soundscape",
+    "test:studymap:atlas",
     "test:studymap:i18n",
     "test:studymap:lessons",
     "test:sniff",
