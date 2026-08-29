@@ -152,6 +152,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 /* 스터디 맵 — 읽는 화면이다. 글줄 길이와 여백이 첫 번째 기능. */
 /* 사이는 8의 배수로만 벌린다. 전에는 6, 7, 10, 12, 14, 18, 22 가 섞여 있었다. */
 .sm-wrap { display: flex; flex-direction: column; gap: 16px; }
+/* 껍데기의 도구 장 폭 상한(1200px)을 이 도구에서만 푼다 — 넓은 화면에서 오른쪽 절반이
+   그냥 비어 있었다(2552px 화면에서 쓰는 자리 1200px). 글줄이 길어지지 않게 1680 에서 멈춘다. */
+#page-studymap.layout-wide { max-width: min(1680px, 100%); }
 
 /* 머리는 한 줄이다. 갈래 이름, 진도, 찾기. 전에는 제목과 설명과 진도와 찾기가 네 줄로 쌓여
    화면 위 180px 를 글자만으로 먹었고, 정작 할 일인 다음 한 칸은 접힌 자리 아래에 있었다. */
@@ -167,8 +170,8 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-stage-find::before { display: none; }
 .sm-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--secondary), var(--accent)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
 
-.sm-body { display: grid; grid-template-columns: 1fr; gap: 20px; }
-@media (min-width: 900px) { .sm-body { grid-template-columns: 216px minmax(0, 1fr); gap: 28px; align-items: start; } }
+.sm-body { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .sm-body { grid-template-columns: 216px minmax(0, 1fr); gap: 24px; align-items: start; } }
 .sm-main { min-width: 0; }
 .sm-tracks { display: flex; flex-wrap: wrap; gap: 8px; }
 /* 좁은 화면 — 갈래 41개를 펼치면 지도가 화면 밖으로 밀린다. 한 줄 레일로 눕히고 옆으로 굴린다. */
@@ -227,7 +230,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-stage.is-clear .sm-stage-dot { border-color: var(--success); background: var(--success); }
 .sm-stage-name { font-size: var(--font-size-xs); font-weight: 650; margin-bottom: 2px; }
 .sm-stage-sub { font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-.sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin: 14px 0 26px; }
+.sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 16px 0 24px; }
 
 .sm-node { position: relative; display: flex; gap: 12px; padding: 14px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg-secondary); transition: border-color .15s, transform .15s, background .15s; }
 .sm-node:hover { border-color: var(--border-hover); transform: translateY(-1px); }
