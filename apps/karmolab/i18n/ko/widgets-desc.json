@@ -233,5 +233,6 @@
   "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다",
   "widgets-desc.cleanup.desc": "사진에서 거슬리는 것을 칠해서 지웁니다 — 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다",
   "widgets-desc.videobg.desc": "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다",
-  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"
+  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다",
+  "widgets-desc.recall.desc": "오늘 여섯 개. 먼저 답하고 본문과 대조한다. 못 한 것은 내일 다시 묻는다"
 }

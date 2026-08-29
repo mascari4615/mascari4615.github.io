@@ -233,5 +233,6 @@
   "widgets-desc.ytdownloader.desc": "Download a YouTube video",
   "widgets-desc.ziptool.desc": "Bundles files into a ZIP, and lists and extracts a ZIP you received",
   "widgets-desc.works.desc": "Things I made — games, VRChat content, tools",
-  "widgets-desc.about.desc": "KarmoDDrine — Unity game dev and VRChat content"
+  "widgets-desc.about.desc": "KarmoDDrine — Unity game dev and VRChat content",
+  "widgets-desc.recall.desc": "Six a day. Answer first, then compare with the source. What you miss comes back tomorrow"
 }

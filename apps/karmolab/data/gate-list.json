@@ -273,6 +273,7 @@
     "test:sketchy",
     "test:shell",
     "test:soundscape",
+    "test:recall:pool",
     "test:studymap:atlas",
     "test:studymap:trust",
     "test:studymap:i18n",

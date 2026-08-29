@@ -249,5 +249,6 @@
   "widgets.ytdownloader.title": "YouTube Download",
   "widgets.ziptool.title": "ZIP file maker · extractor",
   "widgets.works.title": "Works",
-  "widgets.about.title": "About"
+  "widgets.about.title": "About",
+  "widgets.recall.title": "Recall"
 }

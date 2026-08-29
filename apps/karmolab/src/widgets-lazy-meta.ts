@@ -2524,6 +2524,23 @@ window.KARMOLAB_LAZY_META = [
 
   /* 스터디 맵 — 웹·Git·컴퓨터 과학을 「왜 배우나 / 언제 넘어가나」까지 붙여 그린다.
    * 내용은 `data/studymap.json` 한 곳 — 주제를 늘릴 때 코드는 안 건드린다. */
+  /* 되묻기. 오늘 여섯 개를 먼저 답하고 확인.
+   * 읽는 도구가 아니라 재는 도구. 근거는 memo 의 학습 수치 장부.
+   * 재료는 스터디맵 것 그대로, 세트를 고를 때는 얇은 표(recall-pool.json)만 봄 */
+  {
+    id: 'recall',
+    get title() { return t('widgets.recall.title', undefined, '되묻기'); },
+    category: 'ref',
+    get desc() { return t('widgets-desc.recall.desc', undefined, '오늘 여섯 개. 먼저 답하고 본문과 대조한다. 못 한 것은 내일 다시 묻는다'); },
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M9 9.5a3 3 0 1 1 3.6 3c-.6.2-.9.7-.9 1.3v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<circle cx="11.7" cy="17" r="1" fill="currentColor"/>',
+    lazyScriptPaths: ['recall/recall']
+  },
+
   {
     id: 'studymap',
     get title() { return t('widgets.studymap.title', undefined, "개발자 스터디 맵"); },

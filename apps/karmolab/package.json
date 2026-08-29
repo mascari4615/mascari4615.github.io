@@ -411,6 +411,8 @@
     "test:soundscape": "node scripts/test-soundscape-core.mjs",
     "test:spectate": "node scripts/test-spectate.mjs",
     "test:studymap": "node scripts/check-studymap-links.mjs",
+    "gen:recall-pool": "node scripts/gen-recall-pool.mjs",
+    "test:recall:pool": "node scripts/gen-recall-pool.mjs --check",
     "test:studymap:atlas": "node scripts/build-studymap-atlas.mjs --check",
     "test:studymap:trust": "node scripts/audit-studymap-atlas-trust.mjs",
     "test:studymap:i18n": "node scripts/check-studymap-i18n.mjs",
