@@ -6,6 +6,7 @@
  *
  * 저장 키에는 평문 경로를 넣지 않는다. 이름, 목록은 idx 암호문 안에만 있다.
  */
+import { normalizeTrash } from './trash.mjs';
 const MAGIC = new TextEncoder().encode('KARMVLT1');
 const KDF_PBKDF2 = 1;
 const HEADER_LEN = 30;
@@ -143,6 +144,34 @@ function decodeIndex(bytes) {
 async function writeIndex(session, index) {
   const packed = await seal(session.key, encodeIndex(index), AAD_INDEX);
   await session.store.put('idx', packed);
+}
+
+const AAD_TRASH = new TextEncoder().encode('karmvlt:trash');
+
+/**
+ * 휴지통 읽기. 없으면 빈 것. 없는 것은 고장이 아니다.
+ * 깨져 있어도 빈 것으로 떨어뜨린다. 휴지통 하나 때문에 화면 전체가 안 열리면 안 된다.
+ */
+export async function readTrash(session) {
+  let packed = null;
+  try {
+    packed = await session.store.get('trash');
+  } catch {
+    return normalizeTrash(null);
+  }
+  if (!packed) return normalizeTrash(null);
+  try {
+    const raw = JSON.parse(new TextDecoder().decode(await open(session.key, packed, AAD_TRASH)));
+    return normalizeTrash(raw);
+  } catch {
+    return normalizeTrash(null);
+  }
+}
+
+/** 휴지통 쓰기. 화면이 쓸 수 있는 **유일한** 자리다 */
+export async function writeTrash(session, trash) {
+  const body = new TextEncoder().encode(JSON.stringify(normalizeTrash(trash)));
+  await session.store.put('trash', await seal(session.key, body, AAD_TRASH));
 }
 
 async function readIndex(session) {
@@ -391,6 +420,10 @@ export async function getFile(session, path, opts = {}) {
 }
 
 /** 브라우저, 원격 읽기 전용. 올리기는 PC rclone. */
+/**
+ * 화면이 쓰는 저장소. 읽기는 다 되고, **쓰기는 휴지통 하나뿐**이다.
+ * Worker 도 같은 규칙으로 막는다 (`src/blob-key.mjs`). 두 자리에서 같이 막는다.
+ */
 export function fetchStore(base, fetchFn = globalThis.fetch) {
   const prefix = String(base).replace(/\/+$/, '');
   return {
@@ -400,8 +433,10 @@ export function fetchStore(base, fetchFn = globalThis.fetch) {
       if (!r.ok) throw new Error('get ' + r.status);
       return new Uint8Array(await r.arrayBuffer());
     },
-    async put() {
-      throw new Error('read-only');
+    async put(key, bytes) {
+      if (key !== 'trash') throw new Error('read-only');
+      const r = await fetchFn(`${prefix}/${key}`, { method: 'PUT', body: bytes });
+      if (!r.ok) throw new Error('put ' + r.status);
     },
   };
 }

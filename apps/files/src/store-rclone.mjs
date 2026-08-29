@@ -156,5 +156,16 @@ export function rcloneStore(prefix, opts = {}) {
         throw e;
       }
     },
+    /**
+     * 하나 지우기. **되돌릴 수 없다.** 휴지통 비우기만 이걸 부른다.
+     * 이미 없으면 지운 것으로 친다. 두 저장소 중 한쪽에만 있던 것이 흔하다.
+     */
+    async del(key) {
+      try {
+        await withRetry(() => run(['deletefile', `${base}/${key}`]), tries, retryBaseMs);
+      } catch (e) {
+        if (!isMissing(e)) throw e;
+      }
+    },
   };
 }

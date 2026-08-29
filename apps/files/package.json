@@ -8,6 +8,7 @@
     "upload": "node src/upload.mjs",
     "probe": "node scripts/probe-rclone.mjs",
     "health": "node src/health.mjs",
-    "thumbs": "node src/thumb-backfill.mjs"
+    "thumbs": "node src/thumb-backfill.mjs",
+    "empty-trash": "node src/empty-trash.mjs"
   }
 }

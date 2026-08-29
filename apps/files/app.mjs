@@ -6,6 +6,8 @@ import {
   listDir,
   listFiles,
   mimeFor,
+  readTrash,
+  writeTrash,
   previewKind,
   unlockVault,
 } from './src/vault.mjs';
@@ -15,6 +17,7 @@ import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 import { KINDS, SORTS, activeSummary, arrange, arrangeFolders, timeOf } from './src/browse.mjs';
 import { infoRows } from './src/fileinfo.mjs';
 import { MAX_TOTAL, makeZip } from './src/zip.mjs';
+import { applyTrash, inTrash, normalizeTrash, putTrash, takeTrash, trashSummary } from './src/trash.mjs';
 import {
   armScrollMemory,
   bindViewerKeys,
@@ -61,6 +64,11 @@ function setLoop(on) {
 let selecting = false;
 const chosen = new Set();
 let chosenDir = null;
+
+/* 휴지통. 화면이 쓸 수 있는 유일한 자리 (src/trash.mjs) */
+let vaultTrash = normalizeTrash(null);
+let showTrash = false;
+let vaultDirNow = '';
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
 let siblings = [];
 /** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
@@ -495,6 +503,7 @@ async function ensureVault() {
   const store = fetchStore(vaultBase.href);
   vaultSession = await unlockVault(store, pass);
   vaultListing = await listFiles(vaultSession);
+  vaultTrash = await readTrash(vaultSession);
   /* 열렸으니 이제 업로드 패널을 붙인다 */
   mountUploader();
   return vaultSession;
@@ -526,6 +535,38 @@ function viewMode() {
   }
 }
 
+/** 휴지통에 몇 개 들었나 */
+function trashCount() {
+  return Object.keys(vaultTrash.items).length;
+}
+
+/**
+ * 버리거나 되살리기. **청크는 안 지운다.** 표시만 바꾼다.
+ * 영영 지우기는 열쇠와 rclone 이 있는 기계에서만 (`npm run empty-trash`).
+ */
+async function moveTrash(paths, toTrash, button) {
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = '적는 중';
+  const before = vaultTrash;
+  try {
+    vaultTrash = toTrash ? putTrash(vaultTrash, paths) : takeTrash(vaultTrash, paths);
+    await writeTrash(vaultSession, vaultTrash);
+    chosen.clear();
+    selecting = false;
+    renderVaultDir(vaultDirNow);
+  } catch (e) {
+    /* 못 적었으면 화면도 되돌린다. 지운 줄 알았는데 다음에 다시 뜨면 더 나쁘다 */
+    vaultTrash = before;
+    button.textContent = '못 적음';
+    console.error('[files] 휴지통 적기 실패', e);
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = label;
+    }, 2500);
+  }
+}
+
 /** 좁히기 줄. 정렬, 갈래 칩, 이름 찾기. 목록과 액자 둘 다 이 결과를 씀 */
 function siftBar(total, shown) {
   const chips = KINDS.map(
@@ -540,6 +581,8 @@ function siftBar(total, shown) {
     (note ? '<span class="sf-note">' + esc(note) + '</span>' : '') +
     '<button type="button" class="sf-chip' + (selecting ? ' on' : '') +
     '" data-sel="1">고르기</button>' +
+    '<button type="button" class="sf-chip' + (showTrash ? ' on' : '') +
+    '" data-trashview="1">휴지통' + (trashCount() ? ' ' + trashCount() : '') + '</button>' +
     '</div>';
 }
 
@@ -553,6 +596,8 @@ function pickBar(files) {
     '<span class="fb-gap"></span>' +
     '<button type="button" class="fb-btn" data-pick="get"' + (chosen.size ? '' : ' disabled') +
     '>받기</button>' +
+    '<button type="button" class="fb-btn" data-pick="' + (showTrash ? 'restore' : 'trash') + '"' +
+    (chosen.size ? '' : ' disabled') + '>' + (showTrash ? '되살리기' : '휴지통으로') + '</button>' +
     '</div>';
 }
 
@@ -667,7 +712,10 @@ function renderVaultDir(dir) {
     unbindKeys = null;
   }
   if (unwatchScroll) unwatchScroll();
-  const listed = listDir(vaultListing, dir);
+  /* 버린 것은 목록에서 뺀다. 휴지통 보기에서는 반대로 그것만 */
+  vaultDirNow = dir;
+  const visible = applyTrash(vaultListing ?? [], vaultTrash, { showTrash });
+  const listed = listDir(visible, dir);
   /* 폴더가 바뀌면 고른 것을 푼다. 안 보이는 것을 받게 되면 사람이 무엇을 받는지 모른다 */
   if (chosenDir !== listed.dir) {
     chosen.clear();
@@ -786,6 +834,15 @@ function renderVaultDir(dir) {
       }, 160);
     });
   }
+  const trashBtn = box.querySelector('.siftbar [data-trashview]');
+  if (trashBtn) {
+    trashBtn.addEventListener('click', () => {
+      showTrash = !showTrash;
+      chosen.clear();
+      selecting = false;
+      renderVaultDir(dir);
+    });
+  }
   const selBtn = box.querySelector('.siftbar [data-sel]');
   if (selBtn) {
     selBtn.addEventListener('click', () => {
@@ -811,6 +868,9 @@ function renderVaultDir(dir) {
     for (const b of box.querySelectorAll('.pickbar [data-pick]')) {
       b.addEventListener('click', () => {
         if (b.dataset.pick === 'get') return void downloadChosen(shownFiles, b);
+        if (b.dataset.pick === 'trash' || b.dataset.pick === 'restore') {
+          return void moveTrash([...chosen], b.dataset.pick === 'trash', b);
+        }
         if (b.dataset.pick === 'all') for (const f of shownFiles) chosen.add(f.path);
         else chosen.clear();
         for (const c of box.querySelectorAll('input.pick')) {

@@ -21,9 +21,12 @@
  * CF: 이 파일을 Worker `files` 에 붙이고 R2 버킷을 VAULT 로 바인딩.
  * img.mascari4615.com 공개 버킷에 클라우드를 넣지 마.
  */
-import { allowedKey, immutableKey } from './src/blob-key.mjs';
+import { allowedKey, immutableKey, writableKey } from './src/blob-key.mjs';
 
 const PAGES = 'https://blog.mascari4615.com/files';
+
+/** 휴지통은 경로 목록뿐이다. 이보다 크면 뭔가 잘못된 것이다 */
+const TRASH_MAX = 2 * 1024 * 1024;
 
 export default {
   async fetch(request, env) {
@@ -34,6 +37,23 @@ export default {
         return new Response('bad key', { status: 400 });
       }
       if (!env || !env.VAULT) return new Response('no vault', { status: 503 });
+
+      /* 화면에서 오는 유일한 쓰기. 휴지통 표시뿐이다.
+         Access 뒤라 인증은 이미 걸려 있고, 여기서는 **무엇을** 쓸 수 있나만 좁힌다. */
+      if (request.method === 'PUT') {
+        if (!writableKey(key)) return new Response('read only', { status: 405 });
+        const len = Number(request.headers.get('content-length') || 0);
+        if (len > TRASH_MAX) return new Response('too big', { status: 413 });
+        /* 덮기 전에 이전 판을 남긴다. 잘못 쓰면 이것으로 되돌린다 */
+        const cur = await env.VAULT.get(key);
+        if (cur) await env.VAULT.put(key + '.bak', cur.body);
+        await env.VAULT.put(key, request.body);
+        return new Response(null, { status: 204 });
+      }
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        return new Response('read only', { status: 405 });
+      }
+
       const obj = await env.VAULT.get(key);
       if (!obj) return new Response('missing', { status: 404 });
       const immutable = immutableKey(key);
