@@ -1,6 +1,6 @@
 # 전송. WebRTC 가 더 좋은 길, MJPEG 이 늘 있는 길
 
-> 코드: `HandheldWebRtc.cs`, 폴백 = `HandheldServer` 의 MJPEG 경로
+> 코드: `HandheldWebRtc.cs`, 폴백: `HandheldServer` 의 MJPEG 경로
 
 ## 전송. WebRTC 가 더 좋은 길, MJPEG 이 늘 있는 길
 
@@ -24,11 +24,11 @@
 Edit 모드엔 그 신호가 없다. 그 루프 본문은 **영상 텍스처 제출 전용**이라, 데이터채널은
 `ExecutePendingTasks` 로 Edit 모드에서도 돈다. 그래서:
 
-- Edit 모드 = 포즈는 DataChannel, 영상은 MJPEG (화면이 안 끊긴다)
-- Play 모드 = 둘 다 WebRTC
+- Edit 모드: 포즈는 DataChannel, 영상은 MJPEG (화면이 안 끊김)
+- Play 모드: 둘 다 WebRTC
 
 시그널링은 **이미 있는 WS** 를 탄다. 서버를 하나 더 세우지 않는다. WebRTC 영상이 붙으면
 폰은 들어오는 JPEG 을 **안 그린다**(디코드 비용이 그대로 폰 CPU 다). 끊기면 그리로 돌아간다.
 
-캡처 경로는 **하나뿐**이다. 영상 트랙이 리그의 뷰파인더 RT 를 그대로 싣는다. 16:9 고정, 
+캡처 경로는 **하나뿐**이다. 영상 트랙이 리그의 뷰파인더 RT 를 그대로 싣는다. 16:9 고정,
 해상도 손잡이, 게이트 핏이 전부 그대로 산다.

@@ -12,7 +12,7 @@
                   (그 앱 안에서 돈다)
 ```
 
-VMC 도 Spout 도 NDI 도 **프로세스가 갈릴 때만** 필요하다. 안 갈리면 쓰지 마라 . 
+VMC 도 Spout 도 NDI 도 **프로세스가 갈릴 때만** 필요하다. 안 갈리면 쓰지 마라 .
 전선을 하나 늘릴 때마다 지연, 포맷, 끊김이 하나씩 는다.
 
 | 배치 | 포즈 | 그림 |
@@ -25,8 +25,8 @@ VMC 도 Spout 도 NDI 도 **프로세스가 갈릴 때만** 필요하다. 안 �
 
 ## 붙이는 법. 두 걸음
 
-1. 방송 카메라에 `HandheldRig` 를 붙이고 **`keepScreenOutput` 을 켠다**
-2. 아무 오브젝트에 `HandheldServer` 를 붙인다 (조종석이 QR, 터널까지 봐 준다)
+1. 방송 카메라에 `HandheldRig` 를 붙이고 **`keepScreenOutput` 을 켬**
+2. 아무 오브젝트에 `HandheldServer` 를 붙인다 (조종석이 QR, 터널까지 봐 줌)
 
 ## 왜 `keepScreenOutput` 이 필요한가
 

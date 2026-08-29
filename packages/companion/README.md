@@ -30,20 +30,20 @@ TASK-KAR-201. **여기엔 캐릭터가 없다.** 욘도, 말투도, 이름도 �
 | --- | --- | --- |
 | `Sense` | 느낌 → 코어로 | 창 입력, 화면 보기, 받아쓰기, 시계, 닿음, 디스코드 |
 | `Attention` | 지금 말 걸어도 되나 (두뇌 부르기 **전**) | always, never, cooldown, 눈치(`attention/tact`) |
-| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo, claude-cli(격리), assistant(`@karmo/ai` 위임) |
+| `Brain` | 재료 → 할 말 (`null`: 침묵) | echo, claude-cli(격리), assistant(`@karmo/ai` 위임) |
 | `Memory` | 느낀 것, 말한 것 + 오래 남는 앎 | 메모리, 파일, 졸이는 기억, 뜻 색인 |
 | `Voice` | 말 → 밖으로 | 흉내(GPT-SoVITS), 내 컴퓨터(piper), 인터넷(edge) |
-| `Character` | 누구인가 | `characters/*.md` (기본 `무명` = 이름 없음, 말버릇만) |
+| `Character` | 누구인가 | `characters/*.md` (기본 `무명`: 이름 없음, 말버릇만) |
 
-**몸(Body) = Sense + Voice 한 쌍.** 몸을 늘려도 `src/core.ts` 는 안 바뀐다. 디스코드 몸을 붙일 때 코어 변경 **0줄**로 증명됐다.
+**몸(Body): Sense + Voice 한 쌍.** 몸을 늘려도 `src/core.ts` 는 안 바뀐다. 디스코드 몸을 붙일 때 코어 변경 **0줄**로 증명됐다.
 
 ## 두 줄로 돈다 (계통 분리)
 
-- **말 줄**. 사람 말, 반사, 대답. 일 줄이 무엇을 하든 **바로 시작한다.**
-- **일 줄**. 화면 보기, 되새김, 뜻 색인, 손 미리쓰기, 대사 창고. 밀려도 되고, 결과는 다음 turn 재료가 된다.
-- 두뇌는 하나뿐이라 일 줄은 **말 줄이 빌 때만** 새 turn 을 연다.
+- **말 줄**. 사람 말, 반사, 대답. 일 줄이 무엇을 하든 **바로 시작함.**
+- **일 줄**. 화면 보기, 되새김, 뜻 색인, 손 미리쓰기, 대사 창고. 밀려도 되고, 결과는 다음 turn 재료가 됨.
+- 두뇌는 하나뿐이라 일 줄은 **말 줄이 빌 때만** 새 turn 을 염.
 
-재는 자리: `node scripts/measure-recall.mjs`(옛말 회수), `node scripts/measure-persona.mjs`(욘다움) , 
+재는 자리: `node scripts/measure-recall.mjs`(옛말 회수), `node scripts/measure-persona.mjs`(욘다움) ,
 `node scripts/measure-lanes.mjs`. 무거운 일이 도는 중 말 걸면 얼마나 기다리나(2793ms → 1ms 로 고친 자리).
 
 ## 무거운 것은 쓸 때 켜고 안 쓰면 끈다
@@ -62,9 +62,9 @@ node demo/run.mjs                # 터미널만
 
 서버 모니터 동반자 (말하는 봇) 카드로도 켠다.
 
-환경변수: `COMPANION_BRAIN`(claude|grok|echo|assistant|preview), `COMPANION_TOOLS`(talk|work), `COMPANION_WORK_DIR`, `COMPANION_SURFACE`(desk|page), `COMPANION_CHARACTER_DIR`(기본 패키지 `characters/`. 다른 저장소 폴더를 꽂을 수 있다. 본문은 이 레포가 모른다), `COMPANION_CHARACTER`, `COMPANION_PORT`(기본 **4620**. 4615 는 yawnbot dev 웹훅이 쓴다), `COMPANION_SCREEN_MS`, `COMPANION_CLOCK_MS`, `COMPANION_MEMORY_FILE`, `COMPANION_DESKTOP`(0=창 없이), `COMPANION_DISCORD_TOKEN` + `COMPANION_DISCORD_CHANNELS`, `COMPANION_MODEL_YON`, `COMPANION_PIPER_DIR`, `COMPANION_CLONE_REF`.
+환경변수: `COMPANION_BRAIN`(claude|grok|echo|assistant|preview), `COMPANION_TOOLS`(talk|work), `COMPANION_WORK_DIR`, `COMPANION_SURFACE`(desk|page), `COMPANION_CHARACTER_DIR`(기본 패키지 `characters/`. 다른 저장소 폴더를 꽂을 수 있다. 본문은 이 레포가 모른다), `COMPANION_CHARACTER`, `COMPANION_PORT`(기본 **4620**. 4615 는 yawnbot dev 웹훅이 쓴다), `COMPANION_SCREEN_MS`, `COMPANION_CLOCK_MS`, `COMPANION_MEMORY_FILE`, `COMPANION_DESKTOP`(0 는 창 없이), `COMPANION_DISCORD_TOKEN` + `COMPANION_DISCORD_CHANNELS`, `COMPANION_MODEL_YON`, `COMPANION_PIPER_DIR`, `COMPANION_CLONE_REF`.
 
-채팅 창: 벤더 세션 목록을 대신하지 않는다. 왼쪽 **일** = 코딩 CLI, **말** = 곁에만. 그 아래 G 는 이미 떠 있는 그록 창 내려다보기.
+채팅 창: 벤더 세션 목록을 대신하지 않는다. 왼쪽 **일**: 코딩 CLI, **말**: 곁에만. 그 아래 G 는 이미 떠 있는 그록 창 내려다보기.
 
 ```
 npm run page           # 일 방
@@ -89,25 +89,25 @@ npm run page:preview   # 가짜 미리보기
 
 ## 검사
 
-- `npm test`. 1274개. 그중 `test/face-screen.test.mjs` 5개는 **진짜 브라우저**로 창을 띄운다(실패가 빨갛게 뜨나, 알아챔이 말 방에도 뜨나, 설정창이 닫히나, 열자마자 터지는 자리 없나). 글자 맞춰보기로는 못 잡는 종류라 여기만 크로뮴을 쓴다. 없으면 건너뛰지 않고 실패한다(`npx playwright install chromium`).
+- `npm test`. 1274개. 그중 `test/face-screen.test.mjs` 5개는 **진짜 브라우저**로 창을 띄운다(실패가 빨갛게 뜨나, 알아챔이 말 방에도 뜨나, 설정창이 닫히나, 열자마자 터지는 자리 없나). 글자 맞춰보기로는 못 잡는 종류라 여기만 크로뮴을 씀. 없으면 건너뛰지 않고 실패한다(`npx playwright install chromium`).
 - `scripts/probe.mjs`. 진짜로 띄우고 말 걸어 대답이 나오는지(단위가 전부 초록인데 얘가 죽어 있던 적이 있다).
 - `scripts/measure-lanes.mjs`. 줄 서기 때문에 생기는 지연.
-- 저장소 게이트(`npm run verify`)가 이 패키지의 `npm test` 를 부른다. KarmoLab 쪽에서는 동반자 위젯이 실제로 붙는지도 본다(봇이 안 떠 있으면 건너뜀).
-- **검사는 사람의 기억을 더럽히지 않는다**. 시험 표시(`x-companion-test: 1`)를 달면 처리는 하되 기억에 안 담긴다. 사용자 경로를 밟는 검사는 끝나고 제 자국을 지운다.
+- 저장소 게이트(`npm run verify`)가 이 패키지의 `npm test` 를 부름. KarmoLab 쪽에서는 동반자 위젯이 실제로 붙는지도 본다(봇이 안 떠 있으면 건너뜀).
+- **검사는 사람의 기억을 더럽히지 않는다**. 시험 표시(`x-companion-test: 1`)를 달면 처리는 하되 기억에 안 담김. 사용자 경로를 밟는 검사는 끝나고 제 자국을 지움.
 
 ## 막힌 것
 
-- **디스코드 접속** = 토큰 대기. 몸, 코어는 시험 끝. `COMPANION_DISCORD_TOKEN`(+ 들을 방)만 오면 붙는다. 봇을 서버에 초대하고 **Message Content Intent** 를 켜야 글 내용이 온다.
-- **노래** = 보류. 흉내 목소리는 말 전용이고, 노래는 별도 모델 + 노래 데이터 학습이 필요하다.
-- **지연** = 사용자 결정 대기(**TASK-KAR-237**). 첫낱말이 **19~21초**다(143회차 실측 . 
+- **디스코드 접속**: 토큰 대기. 몸, 코어는 시험 끝. `COMPANION_DISCORD_TOKEN`(+ 들을 방)만 오면 붙음. 봇을 서버에 초대하고 **Message Content Intent** 를 켜야 글 내용이 옴.
+- **노래**: 보류. 흉내 목소리는 말 전용이고, 노래는 별도 모델 + 노래 데이터 학습이 필요함.
+- **지연**: 사용자 결정 대기(**TASK-KAR-237**). 첫낱말이 **19~21초**다(143회차 실측 .
   화면을 꺼도 안 줄어드니 화면 탓이 아니다). 고를 것 셋: **A** 내 컴퓨터에 작은 모델
   상주, **B** 열쇠 꽂기(두뇌는 이미 붙어 있다), **C** 그대로 둔다.
-- **마이크로 실제 말해 본 판**은 아직 못 봤다. 사람 몫. 문 판정 정확도도 **잰 적이
+- **마이크로 실제 말해 본 판**은 아직 못 봤음. 사람 몫. 문 판정 정확도도 **잰 적이
   없다**(**TASK-KAR-249**).
 
 ## 레퍼런스
 
-살아 있는 원장 = [`references.md`](references.md) (밖에서 배운 것). 2026-08-21 에 10분 루프로 채웠고, 그날 껐다. 다음은 손으로 잇는다.
+살아 있는 원장: [`references.md`](references.md) (밖에서 배운 것). 2026-08-21 에 10분 루프로 채웠고, 그날 껐다. 다음은 손으로 잇는다.
 
 
 - [AIRI](https://github.com/moeru-ai/airi). 코어 하나에 몸이 플러그인으로 붙는 구조

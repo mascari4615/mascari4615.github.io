@@ -71,4 +71,4 @@ Unity.exe -batchmode -nographics -projectPath <프로젝트>   -runTests -testPl
 
 - 실제 앱(VSeeFace 등)이 `/VMC/Ext/Cam` 을 **수신**하는지는 앱마다 다르다. 규격은
   양방향이지만 구현이 다 따라간다는 보장이 없다.
-- 그림 되받기(Spout2 / NDI)는 컴파일과 배선까지만 확인했다. `embedding.md` § 참조.
+- 그림 되받기(Spout2 / NDI)는 컴파일과 배선까지만 확인했음. `embedding.md` § 참조.

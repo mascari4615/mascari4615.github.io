@@ -1,6 +1,6 @@
 # KarmoLabAI (`@karmo/ai`) 사용 가이드
 
-> **원본 경로:** 레포 루트 `packages/ai/`. npm 패키지 이름 `@karmo/ai`  
+> **원본 경로:** 레포 루트 `packages/ai/`. npm 패키지 이름 `@karmo/ai`
 > **역할:** Google **AI Studio**(Generative Language API)와 **Vertex AI**를 함께 쓸 때, 모델 ID, REST URL, 문서 링크, 기본값을 **한곳(SSOT)**에서 맞춥니다. 루트 엔트리(`.`)는 `fetch`, API 키, DOM을 넣지 않습니다. Node에서는 서브패스 **`@karmo/ai/node`** 로 AI Studio(SDK) 또는 Vertex(**REST `fetch`**, 브라우저 `gemini.ts`와 동일 엔드포인트) 텍스트 호출을 맞출 수 있습니다.
 
 ---
@@ -92,7 +92,7 @@ flowchart TB
 - **엔트리 분리:** 루트 `@karmo/ai`는 계약(URL, 카탈로그)만, **`@karmo/ai/node`** 에서 AI Studio(SDK) 또는 Vertex(REST) 텍스트 호출을 제공합니다. (`peerDependencies`: `@google/generative-ai`. AI Studio 경로에만 사용)
 - **호출 표면 전환 (`.env`):**
   - **기본 AI Studio:** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
-  - **Vertex:** `KARMO_AI_SURFACE=vertex` (또는 `GEMINI_SURFACE=vertex`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`, `GEMINI_MODEL` 선택  
+  - **Vertex:** `KARMO_AI_SURFACE=vertex` (또는 `GEMINI_SURFACE=vertex`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`, `GEMINI_MODEL` 선택
   - env 키 이름 참고: 루트 패키지 `ENV_GOOGLE_AI`
 - **욘봇 `/yawn`:** 슬래시 옵션 `api`, `model`로 **이번 호출만** Studio/Vertex, 모델 ID를 고를 수 있음(각 API에 맞는 키는 `.env`에 미리 있어야 함). 구현은 `generateBlobTextFromEnvWithOptions` (`@karmo/ai/node`).
 - **`@karmo/ai/node` API (요약):**
@@ -132,9 +132,9 @@ npm run build
 
 ## 모델 목록을 바꿀 때
 
-1. **`packages/ai/src/index.ts`** 의 `MODEL_CATALOG` / `isDefault` 만 수정  
-2. `packages/ai`에서 `npm run build`  
-3. KarmoLab, 욘봇 쪽을 각각 다시 빌드  
+1. **`packages/ai/src/index.ts`** 의 `MODEL_CATALOG` / `isDefault` 만 수정
+2. `packages/ai`에서 `npm run build`
+3. KarmoLab, 욘봇 쪽을 각각 다시 빌드
 
 브라우저와 봇이 같은 ID 문자열을 쓰게 유지할 수 있습니다.
 
@@ -142,14 +142,14 @@ npm run build
 
 ## 관련 문서
 
-- 사용자 **가이드** 탭: API 키 입력 위치 등 기본 사용법  
-- [google_api_setup_for_planner.md](google_api_setup_for_planner.md): 플래너용 Google API 설정 메모  
-- **로드맵** 탭: [roadmap.md](roadmap.md)  
+- 사용자 **가이드** 탭: API 키 입력 위치 등 기본 사용법
+- [google_api_setup_for_planner.md](google_api_setup_for_planner.md): 플래너용 Google API 설정 메모
+- **로드맵** 탭: [roadmap.md](roadmap.md)
 
 ---
 
 ## 참고 링크
 
-- [Google AI Studio API 키](https://aistudio.google.com/app/apikey)  
-- [Vertex AI. API 키](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys)  
+- [Google AI Studio API 키](https://aistudio.google.com/app/apikey)
+- [Vertex AI. API 키](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys)
 - [Vertex AI REST 참고](https://cloud.google.com/vertex-ai/docs/reference/rest)

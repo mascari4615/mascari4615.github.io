@@ -2,7 +2,7 @@
 
 이 저장소는 **공개**다. 여기 있는 파일은 우리가 만든 것이 아니라 받아서 추린 뒤
 **같이 배포하는** 것이므로, 각각의 조건을 여기 적어 둔다.
-생성기는 `apps/karmolab/scripts/gen-territory-data.mjs`(가게 점) , 
+생성기는 `apps/karmolab/scripts/gen-territory-data.mjs`(가게 점) ,
 `gen-territory-sgg.mjs`(시군구 경계, 점유율) 이고, 거기 적힌 주소가 원본이다.
 
 | 파일 | 원본 | 저작자 / 출처 | 조건 |
@@ -20,7 +20,7 @@
 
 - 아래 문장 줄에 자료 출처가 늘 뜬다 (`territory.msg.source`. 지금은
   `OpenStreetMap (ODbL) — 표본`).
-- 지도 타일은 `tile.openstreetmap.org` 이고 오른쪽 아래에 `© OpenStreetMap` 을 그린다
+- 지도 타일은 `tile.openstreetmap.org` 이고 오른쪽 아래에 `© OpenStreetMap` 을 그림
   (`geomap.ts` 의 `attribution`). 타일 서버는 [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/)
   아래 있는 **호의**다. 트래픽이 커지면 우리 타일로 옮겨야 한다.
 

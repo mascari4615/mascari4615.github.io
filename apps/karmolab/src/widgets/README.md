@@ -8,10 +8,10 @@
 
 - [ ] **같은 카테고리, layout 위젯 1~2개 정독**. `widgets-lazy-meta.ts` 에서 같은 `layout` (`'full'` / `'form'`) 또는 `category` (`'desktop'` / `'lab'` / `'tool'` / `'play'`) 위젯 골라 *컨테이너 / 디자인 토큰 / 폴링, 라이프사이클 / 외부 lib 처리* 패턴 확인.
 - [ ] **공통 helper 모듈 검토**. `Toolbox`, `chatbot/markdown.ts` (마크다운→HTML), `lib/karmoworld/parse-md.ts` (frontmatter), `widgets/docs/docs.ts` (마크다운+mermaid+Prism+동일 출처 lib), `@karmo/ai` 패키지. 같은 기능 거의 다 *이미 있음*. 새로 만들기 전 grep.
-- [ ] **외부 lib 동일 출처**. mermaid, marked, prism 등은 `assets/lib/<lib>/<lib>.min.js` 에 동일 출처로 박혀있음 (Tauri webview 의 Tracking Prevention 회피). CDN (`cdn.jsdelivr.net` 등) 우선 안 쓴다.
+- [ ] **외부 lib 동일 출처**. mermaid, marked, prism 등은 `assets/lib/<lib>/<lib>.min.js` 에 동일 출처로 박혀있음 (Tauri webview 의 Tracking Prevention 회피). CDN (`cdn.jsdelivr.net` 등) 우선 안 씀.
 - [ ] **글로벌 디자인 토큰 사용**. 자체 색, 폰트, spacing 박지 말 것. CSS 변수: `--bg-primary` / `--bg-secondary` / `--bg-tertiary` / `--text-primary` / `--text-tertiary` / `--accent` / `--border` / `--border-color` / `--radius-sm` / `--radius-md` / `--font-mono`. 다른 위젯이 쓰는 패턴 그대로.
-- [ ] **자체 CSS injection 최소화**. `injectStyles()` 패턴은 *위젯 한정 클래스* 만. 컨테이너 / 카드 / 버튼 / 표 / 코드블록은 글로벌 스타일에 맡긴다. 다른 위젯과 외관 톤 어긋나면 사용자가 *이질감* 느낀다.
-- [ ] **탭 컨테이너와 내부 레이아웃 분리**. `build(container)`의 `container`는 공용 `.tab-panel`이기도 하다. `display:grid/flex` 같은 화면 레이아웃은 컨테이너에 직접 걸지 말고, 내부 전용 wrapper에 건다. 공용 `.tab-panel.active` 규칙과 충돌하면 넓은 화면에서만 레이아웃이 풀릴 수 있다.
+- [ ] **자체 CSS injection 최소화**. `injectStyles()` 패턴은 *위젯 한정 클래스* 만. 컨테이너 / 카드 / 버튼 / 표 / 코드블록은 글로벌 스타일에 맡김. 다른 위젯과 외관 톤 어긋나면 사용자가 *이질감* 느낌.
+- [ ] **탭 컨테이너와 내부 레이아웃 분리**. `build(container)`의 `container`는 공용 `.tab-panel`이기도 함. `display:grid/flex` 같은 화면 레이아웃은 컨테이너에 직접 걸지 말고, 내부 전용 wrapper에 검. 공용 `.tab-panel.active` 규칙과 충돌하면 넓은 화면에서만 레이아웃이 풀릴 수 있음.
 
 체크 안 하고 자체 구현하면 *사용자 부정적 경험* (재구현, 디자인 일관성 깨짐, 유지보수 부담 증가). 룰 단일 출처: `memo/UMBRELLA.md` § 새 기능, 위젯, 모듈. 기존 정독 우선.
 
@@ -34,7 +34,7 @@
 1. `apps/karmolab/src/widgets/<slug>/<slug>.ts` (또는 단일 파일 `<slug>.ts`). IIFE + `Toolbox.register({ ...Toolbox.getLazyWidgetPublicMeta(slug), tabs: [...] })`.
 2. `apps/karmolab/src/widgets-lazy-meta.ts`. 메타 entry 추가 (id / title / category / desc / layout / icon / lazyScriptPaths).
    → 묶을 목록은 **여기서 기계가 뽑는다.** `build.mjs` 의 `entryPoints` 에 손으로 적지 않는다.
-3. **말 묶음**. 새 `loadNamespace('<ns>')` 를 쓰면 `apps/karmolab/i18n/<언어>/<ns>.json` 을 **세 언어 다** 만들고,
+3. **i18n 묶음**. 새 `loadNamespace('<ns>')` 를 쓰면 `apps/karmolab/i18n/<언어>/<ns>.json` 을 **세 언어 다** 만들고,
    `widgets.<id>.title`, `widgets-desc.<id>.desc` 를 `widgets.json`, `widgets-desc.json` 에 넣는다.
    ⚠ **파일만 만들고 안 구우면 위젯이 통째로 안 그려진다**. 화면은 `js/i18n/<언어>/<ns>.js` 를 받는데
    그게 404 면 받기가 실패하고 그 뒤 코드가 아예 안 돈다. **오류도 안 뜬다.**

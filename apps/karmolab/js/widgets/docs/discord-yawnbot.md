@@ -20,7 +20,7 @@ KarmoLab **문서** 위젯 **Discord, 욘봇** 탭. 음성, DAVE 참고, 구현 
 
 **DAVE**(Discord Audio & Video Encryption)는 Discord가 도입한 **음성, 영상 E2EE(종단 간 암호화)** 프로토콜입니다. 이름 그대로 오디오/비디오 미디어에 추가 암호화 계층을 두고, **MLS(Message Layer Security)** 등으로 참가자 간 키를 맞춥니다. 클라이언트(공식 앱, 지원 봇 라이브러리)가 DAVE를 구현해야 해당 방식의 채널에 참여할 수 있습니다.
 
-- Discord 개발자 문서에서는 음성 연결 종료 코드 **`4017`**을 *E2EE/DAVE protocol required. This channel requires a client supporting E2EE via the DAVE Protocol*로 정의합니다.  
+- Discord 개발자 문서에서는 음성 연결 종료 코드 **`4017`**을 *E2EE/DAVE protocol required. This channel requires a client supporting E2EE via the DAVE Protocol*로 정의합니다.
   [Voice Close Event Codes](https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice-voice-close-event-codes)
 - Node 봇 쪽에서는 `@discordjs/voice`의 `joinVoiceChannel({ daveEncryption: true })`와 **`@snazzah/davey`** 등 의존성이 DAVE 경로를 담당합니다.
 
@@ -54,7 +54,7 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결, 재생 �
 | `url` | 브라우저나 `curl`로 **직접 받을 수 있는** `http(s)` 오디오 주소입니다. **YouTube 영상 페이지 URL은 `/music play`** 를 사용하세요. URL 길이는 대략 2000자까지입니다. |
 | `clip` | 봇 패키지의 **`resources/audio/`** 아래에 넣은 파일의 **파일명만** 적습니다. `foo/bar.mp3` 같은 경로나 `..` 는 허용하지 않아 **경로 조작을 막습니다**. |
 
-**`clip`에서 허용하는 확장자:** `.mp3` `.ogg` `.wav` `.m4a` `.opus` `.flac` `.webm`  
+**`clip`에서 허용하는 확장자:** `.mp3` `.ogg` `.wav` `.m4a` `.opus` `.flac` `.webm`
 
 레포 기준 폴더: [`apps/discord-bots/apps/yawnbot/resources/audio/`](https://github.com/mascari4615/mascari4615.github.io/tree/master/apps/discord-bots/apps/yawnbot/resources/audio). 여기에 파일을 두고 `/music sound clip:파일명.wav` 형태로 호출합니다. 기본 샘플로 `demo.wav` 등을 둘 수 있습니다.
 
@@ -80,7 +80,7 @@ YouTube 검색/재생용 **`/music play`** 와 **같은 음성 연결, 재생 �
 #### 원인 파악의 전환점
 
 - 로그상 흐름은 **Identify → Hello(`op:8`)까지는 성공**하지만, 그 직후 **Ready(`op:2`) 전에 WebSocket이 닫힘** → **UDP 소켓을 만들 타이밍 자체에 도달하지 못한 것**과 일치합니다.
-- `@discordjs/voice`는 음성 WebSocket **close code가 `4014`일 때만** `VoiceConnection`을 **`Disconnected` 상태로 두고 `closeCode`를 남깁니다.**  
+- `@discordjs/voice`는 음성 WebSocket **close code가 `4014`일 때만** `VoiceConnection`을 **`Disconnected` 상태로 두고 `closeCode`를 남깁니다.**
   **`4014`가 아니면** 라이브러리가 **자동 재접속**을 위해 곧바로 **`signalling`으로 되돌리기 때문에**, `Disconnected`, `reason` 로그가 **안 찍힐 수 있습니다.**
 - 그래서 **`[voice] disconnected, reason:`** 만으로는 원인이 안 보였고, 내부 **`Networking`의 `close` 이벤트**에 훅을 걸어 **Discord가 준 종료 코드 숫자**를 로그로 남기는 쪽이 필요했습니다.
 

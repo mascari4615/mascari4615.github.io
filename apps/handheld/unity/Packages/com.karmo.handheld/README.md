@@ -65,5 +65,5 @@ rig.CameraFrameUpdated += f => { myCamera.position = f.Position; myCamera.rotati
 
 ## 아직 없는 것
 
-- 인증. 지금은 링크를 아는 사람이면 누구나 붙는다
-- 실제 앱에 붙여 본 기록. 컴파일과 단위 시험까지만 확인했다
+- 인증. 지금은 링크를 아는 사람이면 누구나 붙음
+- 실제 앱에 붙여 본 기록. 컴파일과 단위 시험까지만 확인했음

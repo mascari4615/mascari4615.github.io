@@ -21,7 +21,7 @@ rig.CameraFrameUpdated += f =>
 ### ① 오일러를 그냥 보간하면 반대로 한 바퀴 돈다
 
 자세를 사원수가 아니라 **오일러 세 개로 들고 보간하는 앱이 흔하다**
-(`Mathf.Lerp(pitch, target.pitch, t)` 같은 꼴). 그 보간은 최단 경로를 모른다 . 
+(`Mathf.Lerp(pitch, target.pitch, t)` 같은 꼴). 그 보간은 최단 경로를 모른다 .
 359 → 1 을 건널 때 358° 를 거꾸로 돈다. 생방에서 카메라가 한 바퀴 도는 사고다.
 
 그래서 <see>EulerContinuous</see> 는 **감기지 않는다**. 359 다음이 361 이다.

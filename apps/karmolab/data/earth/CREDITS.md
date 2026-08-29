@@ -16,9 +16,9 @@
 
 ## 화면에서의 표기
 
-- 화성을 보고 있을 때 문장 줄에 `화성 지도: Solar System Scope (CC BY 4.0)` 이 뜬다
+- 화성을 보고 있을 때 문장 줄에 `화성 지도: Solar System Scope (CC BY 4.0)` 이 뜸
   (`i18n/*/bluemarble.json` 의 `bluemarble.credit.mars`).
-- 지구, 달은 표기가 **의무**는 아니지만, NASA 가 요청하는 형식이라 같은 자리에 함께 둔다.
+- 지구, 달은 표기가 **의무**는 아니지만, NASA 가 요청하는 형식이라 같은 자리에 함께 둠.
 
 ## 늘릴 때
 

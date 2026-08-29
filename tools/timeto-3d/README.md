@@ -42,7 +42,7 @@
 ## 레퍼런스 실측 (caelestisart 치비 사쿠라 GIF)
 
 - 렌더 캔버스 **90×90px**, 캐릭터 **58px**, 머리 폭 30px, **눈 4×5px**
-- 픽셀은 텍스처가 아니라 화면에 있다. 배경, 꽃잎, 바닥이 전부 같은 격자
+- 픽셀은 텍스처가 아니라 화면에 있음. 배경, 꽃잎, 바닥이 전부 같은 격자
 - 형태 = 둥근 다면체 + 조각된 머리카락 셸, 실제 조명으로 면마다 밝기가 다름
 
 ## 환경 셋업 (이 기계에서 실제로 밟은 순서)
@@ -54,7 +54,7 @@
    순서대로 이런 벽이 나온다:
    - `CUDA_HOME not set` → CUDA Toolkit 12.9 설치 (`winget install Nvidia.CUDA --version 12.9`)
    - `Unable to find a compatible Visual Studio installation` → VS 2022 Build Tools + VCTools 워크로드
-   - `cl.exe failed` → pip 을 `vcvars64.bat` 환경 **안에서** 실행해야 한다
+   - `cl.exe failed` → pip 을 `vcvars64.bat` 환경 **안에서** 실행해야 함
    - `nvcc: unsupported Microsoft Visual Studio version` → **VS2022 쪽 `vcvars64.bat` 안에서** pip 실행
      (`C:\Program Files (x86)\Microsoft Visual Studio2\BuildTools\...`). VS18(2026, MSVC 14.51)은
      CUDA 12.9 와 호환되지 않는다. 이 조합으로 `custom_rasterizer` · `mesh_processor` 컴파일 성공.
