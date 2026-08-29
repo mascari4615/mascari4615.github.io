@@ -20,6 +20,7 @@ import { MAX_TOTAL, makeZip } from './src/zip.mjs';
 import { applyTrash, normalizeTrash, putTrash, takeTrash } from './src/trash.mjs';
 import {
   armScrollMemory,
+  bindDirKeys,
   bindViewerKeys,
   neighbors,
   restoreScroll,
@@ -71,6 +72,8 @@ let showTrash = false;
 let vaultDirNow = '';
 /** 마지막으로 찍은 자리. Shift 범위의 시작점 */
 let lastPick = '';
+/** 폴더 화면 키보드 떼는 손 */
+let unbindDirKeys = null;
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
 let siblings = [];
 /** 파일 화면에서만 사는 키보드. 폴더로 나갈 때 뗀다. */
@@ -719,6 +722,23 @@ function renderVaultDir(dir) {
   if (unwatchScroll) unwatchScroll();
   /* 버린 것은 목록에서 뺀다. 휴지통 보기에서는 반대로 그것만 */
   vaultDirNow = dir;
+  /* 폴더 화면 키보드. 전부 고르기와 그만두기 */
+  if (unbindDirKeys) unbindDirKeys();
+  unbindDirKeys = bindDirKeys({
+    onAll: () => {
+      if (!selecting) selecting = true;
+      for (const f of arrange(listDir(applyTrash(vaultListing ?? [], vaultTrash, { showTrash }), dir).files,
+        { ...sift, kindOf: previewKind })) chosen.add(f.path);
+      renderVaultDir(dir);
+    },
+    onEscape: () => {
+      if (!selecting) return;
+      selecting = false;
+      chosen.clear();
+      lastPick = '';
+      renderVaultDir(dir);
+    },
+  });
   const visible = applyTrash(vaultListing ?? [], vaultTrash, { showTrash });
   const listed = listDir(visible, dir);
   /* 폴더가 바뀌면 고른 것을 푼다. 안 보이는 것을 받게 되면 사람이 무엇을 받는지 모른다 */
@@ -1057,6 +1077,11 @@ function closeFile(path) {
 
 async function renderVaultFile(path) {
   closeGallery();
+  /* 폴더 키보드 해제. 파일 화면에서 Esc 는 닫기다 */
+  if (unbindDirKeys) {
+    unbindDirKeys();
+    unbindDirKeys = null;
+  }
   /* 파일 주소로 바로 들어온 경우 (새로고침, 남이 준 링크).
      폴더를 그린 적이 없어 형제 목록이 빔. 같은 폴더를 여기서 한 번 읽음 */
   if (!siblings.includes(path)) {

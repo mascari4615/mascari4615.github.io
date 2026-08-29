@@ -77,6 +77,29 @@ export function neighbors(paths, current) {
  * 파일 화면 키보드. 반환값 호출하면 해제.
  * @param {{onPrev:()=>void,onNext:()=>void,onClose:()=>void}} on
  */
+/**
+ * 폴더 화면 키보드. 고르기가 켜져 있을 때만 뜻이 있다.
+ *
+ * 탐색기와 같은 자리: Ctrl+A 는 전부, Esc 는 그만두기.
+ * 글자 치는 중에는 안 가로챈다. 이름 찾기 칸에서 Ctrl+A 는 글자 전체 고르기여야 한다.
+ */
+export function bindDirKeys(on, target) {
+    const on1 = target ?? globalThis.window;
+    const handler = (e) => {
+        const tag = globalThis.document?.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            on.onAll();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            on.onEscape();
+        }
+    };
+    on1.addEventListener('keydown', handler);
+    return () => on1.removeEventListener('keydown', handler);
+}
+
 export function bindViewerKeys(on) {
     const handler = (e) => {
         /* 글자 치는 중이면 화살표는 그쪽 몫 */
