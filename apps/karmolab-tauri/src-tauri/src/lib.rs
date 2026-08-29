@@ -916,6 +916,12 @@ fn allow_in_webview(url: &Url) -> bool {
             if host == "blog.mascari4615.com" || host == "mascari4615.github.io" {
                 return true;
             }
+            /* Files 는 제 도메인에 산다 — 여기 없으면 머리띠 Files 단추가 창을 갈아타지
+             * 못하고 **시스템 브라우저로 튄다**(2026-08-29 조수님이 봤다). 창 안에서
+             * 여는 표면이므로 `capabilities/default.json` remote 목록에도 이미 있다. */
+            if host == "files.mascari4615.com" {
+                return true;
+            }
             // localhost/127.0.0.1 항상 허용. 트레이의 "개발 모드" 토글이 spawn 한 정적 서버를
             // production 빌드에서도 webview 가 로드해야 하므로. 외부 페이지가 localhost 로 유도해도
             // 8899 포트가 닫혀 있으면 응답 자체가 없어서 의미 없음.
@@ -1454,6 +1460,8 @@ mod tests {
     fn the_app_itself_stays_inside() {
         assert!(allows("https://blog.mascari4615.com/karmolab/?kl_login=ok"));
         assert!(allows("http://127.0.0.1:8898/apps/karmolab/"));
+        // Files = 제 도메인이지만 **앱 안에서 여는 표면**이다 (밖으로 튀면 단추가 헛돈다).
+        assert!(allows("https://files.mascari4615.com/#laptop/"));
     }
 
     #[test]
