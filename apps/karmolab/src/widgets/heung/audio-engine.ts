@@ -24,7 +24,11 @@ function noteFrequency(note: number): number {
   return 440 * Math.pow(2, (note - 69) / 12);
 }
 
+const impulseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+
 function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
+  const cached = impulseCache.get(context);
+  if (cached) return cached;
   const length = Math.floor(context.sampleRate * seconds);
   const impulse = context.createBuffer(2, length, context.sampleRate);
   for (let channel = 0; channel < 2; channel++) {
@@ -33,6 +37,7 @@ function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
       data[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / length, 2.8);
     }
   }
+  impulseCache.set(context, impulse);
   return impulse;
 }
 
@@ -48,7 +53,8 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
   const output = context.createGain(); output.gain.value = track.mute ? 0 : track.volume;
   const reverbSend = context.createGain(); reverbSend.gain.value = track.reverb;
   input.connect(low).connect(mid).connect(high).connect(compressor).connect(pan).connect(output).connect(destination);
-  pan.connect(reverbSend).connect(reverb);
+  /* send 는 페이더 **뒤**, 앞에서 갈리면 mute, solo 무력화, 스템 교차 오염 */
+  output.connect(reverbSend).connect(reverb);
   /* 오프라인 렌더에는 미터가 필요 없다. 표본을 읽는 노드를 달면 렌더만 느려진다. */
   let analyser: AnalyserNode | null = null;
   if (typeof (context as AudioContext).createAnalyser === 'function' && !('startRendering' in context)) {
@@ -195,6 +201,9 @@ export class HeungEngine {
   private assets = new Map<string, StudioAssetRuntime>();
   private scheduled = new Set<string>();
   onEnded: (() => void) | null = null;
+  /** 미리듣기 실패 통보, 조용한 죽음 방지 */
+  onPreviewError: ((message: string) => void) | null = null;
+  private previewContext: AudioContext | null = null;
   /** 박자 소리. 녹음, 연습용. 마디 첫 박은 높게 친다. */
   metronome = false;
 
@@ -242,14 +251,27 @@ export class HeungEngine {
     if (this.context) void this.context.close();
     this.context = null;
   }
+  /** 음 하나 미리듣기, 컨텍스트 **1개 재사용**. 호출마다 생성 시 문서당 상한(크롬 약 6개) 초과로 무음 */
   async preview(track: StudioTrack, pitch: number, velocity = 0.8): Promise<void> {
-    const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    const context = new AC();
-    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
-    scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
-    window.setTimeout(() => void context.close(), 700);
+    try {
+      if (!this.previewContext) {
+        const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        this.previewContext = new AC();
+      }
+      const context = this.previewContext;
+      if (context.state === 'suspended') await context.resume();
+      const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
+      scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
+    } catch (error) {
+      this.previewContext = null;
+      this.onPreviewError?.(error instanceof Error ? error.message : '미리듣기 실패');
+    }
   }
-  dispose(): void { this.stop(); }
+  dispose(): void {
+    this.stop();
+    if (this.previewContext) void this.previewContext.close();
+    this.previewContext = null;
+  }
 
   private scheduleTick(): void {
     const context=this.context,project=this.project;if(!this.playing||!context||!project)return;

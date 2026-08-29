@@ -169,7 +169,7 @@ export function newProject(): StudioProject {
   midi.clips.push(clip);
   return {
     version: 1, id: studioId('project'), name: 'Untitled Song', bpm: 120, beatsPerBar: 4,
-    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 8, snap: 0.25, swing: 0,
+    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 4, snap: 0.25, swing: 0,
     tracks: [midi, newTrack('audio', 2)], assets: [], markers: [], updatedAt: new Date().toISOString()
   };
 }

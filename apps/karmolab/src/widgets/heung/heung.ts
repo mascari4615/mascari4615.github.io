@@ -5,7 +5,7 @@ import {
   TRACK_HEIGHT, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
-import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
+import { addAsset, backupCurrent, hydrateAssets, importPortable, loadPrevious, loadProject, portableProject, savedAt, saveProject } from './storage';
 import { ProjectHistory } from './history';
 import { HEUNG_CSS } from './styles';
 import { HEUNG_SHELL } from './shell';
@@ -93,7 +93,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
     const root = container.querySelector('.hu-root') as HTMLElement;
     const $ = <T extends HTMLElement>(selector: string): T => root.querySelector(selector) as T;
     const status = (message: string): void => { $<HTMLElement>('[data-role=status]').textContent = message; };
-    const saveSoon = (mergeKey = ''): void => { history.record(project,mergeKey);engine.updateProject(project);if (saveTimer !== undefined) clearTimeout(saveTimer); saveTimer = window.setTimeout(() => { try { saveProject(project); status('Saved locally'); } catch (_) { status('Local save is full. export the project'); } }, 250); };
+    const saveSoon = (mergeKey = ''): void => { history.record(project,mergeKey);engine.updateProject(project);if (saveTimer !== undefined) clearTimeout(saveTimer); saveTimer = window.setTimeout(() => { try { saveProject(project); status('저장됨'); } catch (_) { status('브라우저 저장이 꽉 찼다. 프로젝트 받기로 파일을 내려라'); } }, 250); };
     const restoreHistory = (direction: 'undo'|'redo'): void => { const result=direction==='undo'?history.undo(project):history.redo(project);if(!result.changed){status(direction==='undo'?'Nothing to undo':'Nothing to redo');return;}project=result.value;selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;engine.updateProject(project);if(saveTimer!==undefined)clearTimeout(saveTimer);saveTimer=window.setTimeout(()=>saveProject(project),250);renderAll();void refreshAssets();status(direction==='undo'?'Undone':'Redone'); };
     const beatText = (beat: number): string => { const bar = Math.floor(beat / project.beatsPerBar) + 1; const within = beat % project.beatsPerBar; return `${bar}.${Math.floor(within) + 1}.${String(Math.floor((within % 1) * 100)).padStart(2, '0')}`; };
     const trackWidth = (): number => Math.max(900, projectLength(project) * pxPerBeat);
@@ -262,6 +262,9 @@ import { decodeMidi, encodeMidi } from './midi-file';
       root.querySelector('[data-act=metronome]')?.classList.toggle('is-on',metronome);
       root.querySelector('[data-act=count-in]')?.classList.toggle('is-on',countIn);
       root.querySelector('[data-act=loop]')?.classList.toggle('is-on',project.loop);
+      /* 되찾기 버튼, 백업이 있을 때만 노출 */
+      const restore=root.querySelector('[data-act=restore-prev]') as HTMLElement|null;
+      if(restore)restore.hidden=!loadPrevious();
     }
     function renderRuler(): void {
       const ruler = $<HTMLElement>('[data-role=ruler]'); const length = Math.ceil(projectLength(project));
@@ -514,7 +517,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
       if (recording) { recording.stop(); return; }
       if (countInTimer!==undefined) { window.clearInterval(countInTimer); countInTimer=undefined; engine.stop(); engine.metronome=metronome; status('Count-in cancelled'); return; }
       if (countIn) { root.querySelector('[data-act=record]')?.classList.add('is-recording'); await runCountIn(); }
-      try { const stream=await navigator.mediaDevices.getUserMedia({audio:true}); recordChunks=[]; recording=new MediaRecorder(stream); recordStart=playhead; recording.ondataavailable=(event)=>{if(event.data.size)recordChunks.push(event.data);}; recording.onstop=()=>{const blob=new Blob(recordChunks,{type:recording?.mimeType||'audio/webm'});stream.getTracks().forEach((track)=>track.stop());recording=null;root.querySelector('[data-act=record]')?.classList.remove('is-recording');playhead=recordStart;void importAudio([new File([blob],`Recording ${new Date().toLocaleTimeString()}.webm`,{type:blob.type})]);}; recording.start(); root.querySelector('[data-act=record]')?.classList.add('is-recording'); if(!engine.isPlaying())play(); status('Recording microphone...'); } catch(_){status('Microphone permission was not granted');}
+      try { /* 통화용 처리 끄기, 자동 게인은 셈여림 뭉갬, 잡음 억제는 잔향 꼬리 절단 */
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,autoGainControl:false,noiseSuppression:false}}); recordChunks=[]; recording=new MediaRecorder(stream); recordStart=playhead; recording.ondataavailable=(event)=>{if(event.data.size)recordChunks.push(event.data);}; recording.onstop=()=>{const blob=new Blob(recordChunks,{type:recording?.mimeType||'audio/webm'});stream.getTracks().forEach((track)=>track.stop());recording=null;root.querySelector('[data-act=record]')?.classList.remove('is-recording');playhead=recordStart;void importAudio([new File([blob],`Recording ${new Date().toLocaleTimeString()}.webm`,{type:blob.type})]);}; recording.start(); root.querySelector('[data-act=record]')?.classList.add('is-recording'); if(!engine.isPlaying())play(); status('Recording microphone...'); } catch(_){status('Microphone permission was not granted');}
     }
     const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
     function exportMidiFile(): void {const clip=selectedClip();if(!clip||clip.kind!=='midi'){status('MIDI 클립을 먼저 골라라');return;}const encoded=encodeMidi(clip.notes,project.bpm);const bytes=new Uint8Array(encoded.length);bytes.set(encoded);download(new Blob([bytes.buffer],{type:'audio/midi'}),`${clip.name||'clip'}.mid`);status(`${clip.notes.length}개 음 MIDI 내보냄`);}
@@ -599,7 +603,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(act==='metronome'){metronome=!metronome;engine.metronome=metronome;renderToggles();status(metronome?'Metronome on':'Metronome off');} else if(act==='count-in'){countIn=!countIn;renderToggles();status(countIn?'Count-in: one bar before recording':'Count-in off');}
       else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
       else if(act==='import-audio')$<HTMLInputElement>('[data-file=audio]').click();else if(act==='import-midi')$<HTMLInputElement>('[data-file=midi]').click();else if(act==='export-midi')exportMidiFile(); else if(act==='open')$<HTMLInputElement>('[data-file=project]').click();
-      else if(act==='new'&&confirm('Start a new project? Export the current one first if you need it.')){stop();project=newProject();assets.clear();selection={type:'clip',trackId:project.tracks[0].id,clipId:project.tracks[0].clips[0].id};playhead=0;saveSoon();renderAll();}
+      else if(act==='new'&&confirm('새 곡을 시작한다. 지금 곡은 한 칸 뒤로 밀리고 Ctrl+Z 로 돌아올 수 있다. 계속할까.')){stop();backupCurrent();project=newProject();assets.clear();selection={type:'clip',trackId:project.tracks[0].id,clipId:project.tracks[0].clips[0].id};playhead=0;saveSoon();renderAll();}
       else if(act==='save'){void portableProject(project).then((json)=>download(new Blob([json],{type:'application/json'}),`${project.name||'흥'}.karmo.json`));}
       else if(act==='export-wav'){openExport();}
       else if(act==='zoom-in'||act==='zoom-out'){pxPerBeat=Math.max(28,Math.min(180,pxPerBeat*(act==='zoom-in'?1.25:.8)));renderAll();}
@@ -608,6 +612,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(act==='undo')restoreHistory('undo');else if(act==='redo')restoreHistory('redo');
       else if(act==='toggle-editor')setEditorExpanded(!editorExpanded);
       else if(act==='split'){const clip=selectedClip();const track=selectedTrack();if(clip&&track){const right=splitClip(clip,snapBeat(playhead,project.snap));if(right){track.clips.push(right);selection={type:'clip',trackId:track.id,clipId:right.id};saveSoon();renderAll();}else status('Place the playhead inside the selected clip');}}
+      else if(act==='restore-prev'){const previous=loadPrevious();if(!previous){status('되찾을 곡이 없다');return;}if(!confirm('직전 곡으로 되돌린다. 지금 곡은 다시 한 칸 뒤로 밀린다. 계속할까.'))return;stop();backupCurrent();project=previous;history.reset(project);selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;saveSoon();renderAll();void refreshAssets();status(`${project.name||'직전 곡'} 되찾음`);}
       else if(act==='delete-clip'){deleteSelection();}
     });
 
@@ -670,7 +675,10 @@ import { decodeMidi, encodeMidi } from './midi-file';
         cancel:()=>{note.velocity=original;renderEditor();}
       });
     });
-const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
+const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file){projectInput.value='';return;}
+      /* 열기 전 확인과 직전 곡 백업, 파일 고르기 1회로 곡 증발하던 자리 */
+      if(!confirm(`${file.name} 을 연다. 지금 곡은 한 칸 뒤로 밀린다. 계속할까.`)){projectInput.value='';return;}
+      void file.text().then(importPortable).then(async(next)=>{stop();backupCurrent();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;saveSoon();renderAll();status(`${file.name} 열었다`);}).catch((error:Error)=>status(`열기 실패: ${error.message}`));projectInput.value='';};
 
     const scroll=$<HTMLElement>('[data-role=scroll]'); 
     /* 화면 밖 클립은 안 그리므로 스크롤로 새로 드러난 구간을 채운다. 단 **이미 그려 둔 범위
@@ -1045,12 +1053,17 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(!command&&event.key.toLowerCase()==='m'&&selection?.type==='clip'){event.preventDefault();const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.mute;for(const item of chosen)item.clip.mute=next;engine.updateProject(project);saveSoon('clip-mute');renderAll();status(next?`${chosen.length}개 소리 끔`:`${chosen.length}개 소리 켬`);}return;}
       if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.altKey&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();const marker=stepMarker(project.markers,playhead,event.key==='ArrowRight'?1:-1);if(!marker){status(event.key==='ArrowRight'?'뒤에 구간이 없다':'앞에 구간이 없다');return;}playhead=marker.beat;updatePlayhead();status(`${marker.name}, ${beatText(marker.beat)}`);return;}if(event.code==='Space'){event.preventDefault();if(event.shiftKey){engine.isPlaying()?stop():playSelection();return;}if(engine.isPlaying()){stop();return;}if(playhead>0){playhead=0;updatePlayhead();status('처음으로');return;}play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
     $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>{if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}setEditorExpanded(false);});
-    Toolbox.onHandoff?.('heung',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});
+    Toolbox.onHandoff?.('heung',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{backupCurrent();project=next;history.reset(project);return refreshAssets();}).then(()=>{saveSoon();renderAll();});});
     Toolbox.onDispose?.(()=>{stop();engine.dispose();if(countInTimer!==undefined)clearInterval(countInTimer);document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
+    /* 시작 문구, 이전 작업 복구인지 샘플인지 구분. 둘 다 이름이 Untitled Song */
+    const openedAt=savedAt();
+    const openedMessage=openedAt?`이전 작업 복구, 마지막 저장 ${new Date(openedAt).toLocaleString()}`:'샘플로 시작, 자동 저장 켜짐';
+    /* 미리듣기 실패 알림, 조용한 죽음 방지 */
+    engine.onPreviewError=(message)=>status(`미리듣기 실패: ${message}`);
     /* 처음 여는 사람에게만 세 줄. 알겠다를 누르면 다시 안 뜬다. */
     const GUIDE_KEY='karmolab_heung_guide_v1';
     try{ if(!localStorage.getItem(GUIDE_KEY)&&localStorage.getItem('karmolab_karmo_studio_guide_v1')){localStorage.setItem(GUIDE_KEY,'1');localStorage.removeItem('karmolab_karmo_studio_guide_v1');} }catch(_){ /* 막혀 있으면 그냥 띄운다 */ }
     try{ if(!localStorage.getItem(GUIDE_KEY)) $<HTMLElement>('[data-role=guide]').hidden=false; }catch(_){ /* 저장소가 막혀 있으면 그냥 안 띄운다 */ }
-    renderAll(); void refreshAssets().then(()=>{renderAll();status('Ready, autosave on');}); Mdd.linePreset('tool_run',{mood:'idle',msg:'흥. 편곡부터 WAV까지 한 프로젝트에서.'});
+    renderAll(); void refreshAssets().then(()=>{renderAll();status(openedMessage);}); Mdd.linePreset('tool_run',{mood:'idle',msg:'흥. 편곡부터 WAV까지 한 프로젝트에서.'});
   }
 })();

@@ -80,7 +80,7 @@ const ramped = automationHtml({ trackId: 't1', param: 'volume', points: [{ id: '
 assert.equal((ramped.match(/data-auto-point/g) || []).length, 2);
 assert.ok(ramped.indexOf('L72,') < ramped.indexOf('L288,'), '점을 시간순으로 잇는다');
 assert.ok(ramped.includes('L900,'), '마지막 점 뒤로 끝까지 연장');
-assert.ok(ramped.includes(',  2점'));
+assert.ok(ramped.includes(', 2점'), '점 개수를 이름표에 쓴다');
 assert.ok(ramped.includes('b1') && ramped.includes('b4'), '점 설명에 위치를 쓴다');
 
 // 화면에 걸리는 클립만 고른다. 큰 곡에서 편집 한 번이 통째로 멈추던 원인
