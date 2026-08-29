@@ -324,19 +324,27 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
    닫았을 때 지도가 보던 그 자리 그대로다(전에는 카메라가 처음으로 돌아갔다).
    흐림은 뒤 그림을 지우려는 것이 아니라 **글자를 읽히게** 하려는 것이다. */
 .sm-main { position: relative; }
+/* 덮개는 **지도를 지우지 않는다** — 옅게 흐려 뒤로 물릴 뿐이다. 글은 가운데 한 폭으로만 앉는다
+   (글줄이 길면 못 읽고, 화면을 다 덮으면 「지도에서 열었다」가 사라진다). */
 .sm-reader { position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
-  min-height: 60svh; padding: 20px 22px 32px; border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
-  backdrop-filter: blur(16px) saturate(1.08); -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  min-height: 60svh; padding: 0; border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
+  backdrop-filter: blur(4px) saturate(.9); -webkit-backdrop-filter: blur(4px) saturate(.9);
   animation: sm-reader-in .18s ease-out; }
+/* 글이 앉는 판 — 여기만 또렷하다. 뒤 지도가 살짝 비치되 글자를 안 흔든다. */
+.sm-reader > * { max-width: 860px; margin: 22px auto; padding: 20px 24px 30px;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .38); }
 @keyframes sm-reader-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 /* 흐림을 못 그리는 브라우저에서는 **불투명하게** — 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .sm-reader { background: var(--bg-primary); }
+  .sm-reader { background: color-mix(in srgb, var(--bg-primary) 78%, transparent); }
+  .sm-reader > * { background: var(--bg-primary); }
 }
 @media (prefers-reduced-motion: reduce) { .sm-reader { animation: none; } }
-@media (max-width: 899px) { .sm-reader { padding: 14px 14px 24px; } }
+@media (max-width: 899px) { .sm-reader > * { margin: 10px 8px; padding: 14px 14px 24px; } }
 .tt-svg { display: block; max-width: none; }
 .tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
 .tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
