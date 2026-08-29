@@ -113,6 +113,11 @@ function sitemapEligible(page, thin, hubs) {
     if (NOINDEX.test(page.html)) return false; // drop-noindex
     // 검색엔진 소유 확인 파일. 색인 대상이 아니고 대표 주소도 없다 (2026-08-29 audit-canonical 로 드러남)
     if (/^\/(google|naver)[0-9a-f]+\.html$/.test(url)) return false;
+    // `/c/docs/` 14장 제외 (사용자 결정 2026-08-29)
+    //   - 위젯은 커뮤니티로 접혔는데 정적 장만 남아 사이트맵에 실려 있었음
+    //   - 내부 개발 문서와 세계관 메모. 검색으로 부를 자리가 아님
+    //   - 주소는 그대로 삶. 링크로 오는 사람은 그대로 봄
+    if (/^\/c\/docs\//.test(url)) return false;
     const tool = url.match(TOOL_URL);
     if (tool && thin && thin.has(tool[1]) && hubs.has(tool[1]) === false) return false; // focus. 얇은 도구 (모이는 자리 면제)
     return true;

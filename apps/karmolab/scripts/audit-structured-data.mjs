@@ -19,7 +19,7 @@ const CONCURRENCY = 8;
 
 /* 2026-08-29 실측으로 빠져 있던 자리. 채우면 여기서 뺄 것
    `/play/` 허브는 `apps/play/scripts/build.mjs` 가 굽는다. 놀이 상세와 생성기가 다름.
-   `/c/docs/*` 는 색인 대상인지 자체가 사용자 결정 대기 (seo-ops 공백). */
+   `/c/docs/*` 는 사이트맵에서 뺐다 (사용자 결정 2026-08-29). 그래서 이 목록에도 없다 */
 const KNOWN = new Set([
   '/about/',
   '/play/',
@@ -30,20 +30,6 @@ const KNOWN = new Set([
   '/daily/genshin/past/',
   '/daily/lol/past/',
   '/daily/pokemon/past/',
-  '/c/docs/docs-discord-yawnbot/',
-  '/c/docs/docs-guide/',
-  '/c/docs/docs-intro/',
-  '/c/docs/docs-karmo-ai/',
-  '/c/docs/docs-laptop/',
-  '/c/docs/docs-local-dev/',
-  '/c/docs/docs-project-commands/',
-  '/c/docs/docs-roadmap/',
-  '/c/docs/docs-servermonitor-deploy-log-design/',
-  '/c/docs/wiki-characters-alisa/',
-  '/c/docs/wiki-characters-ling/',
-  '/c/docs/wiki-characters-timeto/',
-  '/c/docs/wiki-characters-yon/',
-  '/c/docs/wiki-systems-meta-loop/',
 ]);
 
 const done = (code, line) => {
