@@ -325,6 +325,7 @@
     "test:badapple:load",
     "test:chat",
     "test:copresence",
+    "test:widget-idle",
     "test:offline",
     "audit:handoff",
     "test:paperask",

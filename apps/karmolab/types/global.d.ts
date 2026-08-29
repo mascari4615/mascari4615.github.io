@@ -303,6 +303,19 @@ declare global {
      * DOM 리스너는 노드가 갈리며 같이 죽으므로 적을 필요 없다. 타이머가 진짜 대상이다.
      */
     onDispose?: (fn: () => void) => void;
+    /**
+     * 안 보는 동안 멈춘다 (change.widget-idle-cost).
+     *
+     * 장은 화면을 옮겨도 DOM 에 남는다(입력하던 값이 살아 있는 것이 계약이다) — 그래서 위젯이
+     * 건 그리기 루프도 같이 남았다. 정원 하나로 rAF 콜백이 2초에 120 → 1220 이 됐다(실측).
+     * `onDispose` 와 다르다: **지우는 것이 아니라 멈추는 것**이고, 다시 오면 이어서 돈다.
+     */
+    onHide?: (fn: () => void) => void;
+    onShow?: (fn: () => void) => void;
+    /** 보이는 동안만 도는 rAF 루프 — `requestAnimationFrame` 을 직접 쓰는 자리를 이걸로 바꾼다. */
+    raf?: (fn: (time: number) => void) => { stop: () => void; start: () => void; readonly running: boolean };
+    /** 안 보여도 계속 돌아야 하면 **이유를 적는다**(소리 깔개처럼). 이유 없는 예외는 없다. */
+    keepAlive?: (why: string) => void;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;

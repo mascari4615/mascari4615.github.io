@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n';
+import { gloop, type GardenLoop } from './gloop';
 import { rng } from './rules';
 import { createObservationControls } from './observation-controls';
 import { makeParticleLifeConfig, ParticleLife, ParticleLifeWatcher, type ParticleLifeStats } from './particle-life';
@@ -34,7 +35,7 @@ export function buildParticleLife(container: HTMLElement): void {
   const day = new Date().toISOString().slice(0, 10);
   let seedNo = 0;
   let paused = false;
-  let raf: number | undefined;
+  let loop: GardenLoop | undefined;
   let sim: ParticleLife;
   let stats: ParticleLifeStats = { step: 0, kinetic: 0, neighborRate: 0, separation: 0, ringScore: 0 };
   const watcher = new ParticleLifeWatcher();
@@ -72,7 +73,6 @@ export function buildParticleLife(container: HTMLElement): void {
     stepEl.textContent = t('garden.pl.step', { n: stats.step });
   }
   function frame(): void {
-    raf = requestAnimationFrame(frame);
     if (paused) return;
     controls.run(1, () => { stats = sim.step(); });
     const event = watcher.observe(stats);
@@ -84,7 +84,7 @@ export function buildParticleLife(container: HTMLElement): void {
   pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); };
   reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause');
   name.textContent = t('garden.pl.name'); code.textContent = t('garden.pl.code'); hint.textContent = t('garden.pl.hint');
-  resize(); plant(); line.textContent = t('garden.pl.today'); raf = requestAnimationFrame(frame);
+  resize(); plant(); line.textContent = t('garden.pl.today'); loop = gloop(frame);
   const ro = new ResizeObserver(resize); ro.observe(wrap);
-  Toolbox.onDispose?.(() => { if (raf !== undefined) cancelAnimationFrame(raf); ro.disconnect(); });
+  Toolbox.onDispose?.(() => { loop?.stop(); ro.disconnect(); });
 }

@@ -561,6 +561,80 @@ const Toolbox = (() => {
         disposers.set(buildingTool, list);
     }
 
+    /* ── 안 보는 동안은 멈춘다 (change.widget-idle-cost) ──
+     *
+     * 장(`.tool-page`)은 화면을 옮겨도 **DOM 에 남는다** — 입력하던 값과 열어 둔 탭이 살아
+     * 있는 것이 이 셸의 계약이라서다. 그런데 그 말은 위젯이 걸어 둔 그리기 루프도 같이
+     * 남는다는 뜻이었다: 정원 하나를 열었다 나오면 rAF 콜백이 2초에 120 → 1220 이 됐다
+     * (실측 2026-08-29). 브라우저는 **안 보이는 요소의 rAF 를 안 멈춘다.**
+     *
+     * 그래서 뒷정리(`onDispose`)와는 다른 계약을 둔다: **멈춤과 재개**.
+     * 위젯은 자기 상태를 그대로 들고 멈췄다가 이어서 돈다 — 지우는 것이 아니다. */
+    const hiders = new Map();        // toolId → fn[]
+    const showers = new Map();       // toolId → fn[]
+    const keepAlives = new Map();    // toolId → 왜 안 멈추는가 (말로 남긴 것만 예외다)
+
+    function addLifecycle(map, fn) {
+        if (typeof fn !== 'function' || !buildingTool) return;
+        const list = map.get(buildingTool) || [];
+        list.push(fn);
+        map.set(buildingTool, list);
+    }
+
+    /** 이 장이 화면에서 물러날 때. 루프·소리·연결을 멈춘다(상태는 그대로 둔다). */
+    function onHide(fn) { addLifecycle(hiders, fn); }
+
+    /** 다시 앞으로 올 때. 이어서 돈다. */
+    function onShow(fn) { addLifecycle(showers, fn); }
+
+    /** 안 보여도 계속 돌아야 하면 **이유를 적는다**. 이유 없는 예외는 없다. */
+    function keepAlive(why) {
+        if (!buildingTool || !why) return;
+        keepAlives.set(buildingTool, String(why));
+    }
+
+    /**
+     * **보이는 동안만** 도는 rAF 루프. 안 보이면 다음 프레임을 안 건다.
+     *
+     * 위젯이 `requestAnimationFrame(frame)` 을 직접 쓰던 자리를 이 한 줄로 바꾼다.
+     * 돌려받은 것으로 `stop()` 할 수 있지만, 화면 전환은 셸이 알아서 멈춘다.
+     */
+    function raf(fn) {
+        if (typeof fn !== 'function') return { stop() {} };
+        let handle;
+        let running = false;
+        const tick = (time) => {
+            if (!running) return;
+            handle = requestAnimationFrame(tick);
+            fn(time);
+        };
+        const start = () => {
+            if (running) return;
+            running = true;
+            handle = requestAnimationFrame(tick);
+        };
+        const stop = () => {
+            running = false;
+            if (handle !== undefined) cancelAnimationFrame(handle);
+            handle = undefined;
+        };
+        onHide(stop);
+        onShow(start);
+        onDispose(stop);
+        start();
+        return { stop, start, get running() { return running; } };
+    }
+
+    function runLifecycle(map, id) {
+        if (!id) return;
+        if (keepAlives.has(id)) return;   // 이유를 적어 둔 것은 안 건드린다
+        const list = map.get(id);
+        if (!list) return;
+        for (const fn of list) {
+            try { fn(); } catch (err) { console.warn('[KarmoLab] 멈춤/재개 실패 —', id, err); }
+        }
+    }
+
     /** 위젯 그리기는 **전부 이걸 거친다** — 그래야 onDispose 가 누구 것인지 안다.
      *  한 군데라도 빼먹으면 그 위젯만 뒷정리가 안 되고, 그건 눈에 안 보인다. */
     /* 눈금은 여기 하나에만 붙인다 (TASK-KL-201) — 모든 위젯의 그리기가 이 문을 지난다.
@@ -610,6 +684,9 @@ const Toolbox = (() => {
     }
 
     function disposeTool(id) {
+        hiders.delete(id);
+        showers.delete(id);
+        keepAlives.delete(id);
         const list = disposers.get(id);
         if (!list) return;
         disposers.delete(id);
@@ -2083,6 +2160,9 @@ const Toolbox = (() => {
         }
 
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
+        /* 떠나는 장은 멈추고 들어오는 장은 이어서 돈다 (change.widget-idle-cost).
+           도구를 여는 길이 이 함수 하나뿐이라 화면마다 따로 부를 필요가 없다. */
+        if (currentPageId !== pageId) runLifecycle(hiders, currentPageId);
         currentPageId = pageId;
         /* 지금 어느 화면인지 뿌리에 적어 둔다 — 장식은 도구 화면에서 한 겹 물러난다.
            첫 화면에선 주인공이고, 도구 화면에선 읽는 것을 방해하면 안 된다 (TASK-KL-101). */
@@ -2126,6 +2206,7 @@ const Toolbox = (() => {
             page.classList.add('active');
             try { localStorage.setItem(LAST_PAGE_KEY, pageId); } catch (_) {}
         }
+        runLifecycle(showers, pageId);
         document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
 
         /* 계정 캡슐이 곧 「내 정보」 단추다 (통합). account.js 가 그 안을 갈아 끼우므로
@@ -2941,6 +3022,8 @@ const Toolbox = (() => {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
         takeBundleRequest,
         onDispose,
+        // 안 보는 동안 멈춘다 (change.widget-idle-cost) — 상태는 살리고 그리기만 멈춘다
+        onHide, onShow, raf, keepAlive,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
         offerNext, result, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
         // 형식 규약은 **한 자로 잰다** (TASK-KL-191) — 흐름 화면도 이 셋을 쓴다

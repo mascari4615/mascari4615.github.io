@@ -14,6 +14,7 @@
  * 규칙은 **날짜로 뽑는다** — 같은 날 연 사람은 같은 세계를 본다(`rules.ts`).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { gloop, type GardenLoop } from './gloop';
 import { ruleForDay, ruleTable, rng, type Rule } from './rules';
 import { Life, Watcher, quality, type Stats, type Event } from './life';
 import { findObjects, type Found, type Kind } from './dex';
@@ -156,7 +157,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           let life = new Life(1, 1);
           const watcher = new Watcher();
           let img: ImageData | null = null;
-          let raf: number | undefined;
+          let running: GardenLoop | undefined;
           let alive = true;
           let paused = false;
           let seedNo = 0;
@@ -480,7 +481,6 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           const GPS = 18;
 
           function loop(now: number): void {
-            raf = requestAnimationFrame(loop);
             const dt = Math.min(120, now - prev);
             prev = now;
             if (paused) return;
@@ -534,14 +534,13 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           }
 
           function start(): void {
-            if (raf === undefined) {
-              prev = performance.now();
-              raf = requestAnimationFrame(loop);
-            }
+            if (running) return;
+            prev = performance.now();
+            running = gloop(() => loop(performance.now()));
           }
           function stop(): void {
-            if (raf !== undefined) cancelAnimationFrame(raf);
-            raf = undefined;
+            running?.stop();
+            running = undefined;
           }
 
           /* ── 단추 ─────────────────────────────────────────────────────── */

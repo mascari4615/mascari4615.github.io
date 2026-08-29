@@ -281,6 +281,7 @@
     "test:contrast": "node scripts/smoke-contrast.mjs",
     "test:copyable": "node scripts/test-copyable.mjs",
     "test:copresence": "node scripts/smoke-copresence.mjs",
+    "test:widget-idle": "node scripts/smoke-widget-idle.mjs garden particle bluemarble servermonitor activity chat imageedit arcade",
     "test:core": "node scripts/test-core.mjs",
     "test:meaning": "node ../../packages/meaning/test/parity.mjs",
     "test:3d": "node --test ../../packages/3d/test/*.mjs",

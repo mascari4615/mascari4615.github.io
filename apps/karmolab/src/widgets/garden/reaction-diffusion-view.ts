@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n';
+import { gloop, type GardenLoop } from './gloop';
 import { ReactionDiffusion, ReactionWatcher, presetForDay, type ReactionStats } from './reaction-diffusion';
 import { rng } from './rules';
 import { createObservationControls } from './observation-controls';
@@ -53,7 +54,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   let sim = new ReactionDiffusion(1, 1);
   const watcher = new ReactionWatcher();
   let pixels = fieldCtx.createImageData(1, 1);
-  let raf: number | undefined;
+  let loop: GardenLoop | undefined;
   let alive = true;
   let paused = false;
   let seedNo = 0;
@@ -97,7 +98,6 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   }
 
   function frame(): void {
-    raf = requestAnimationFrame(frame);
     if (paused) return;
     let stats: ReactionStats = { step: sim.stepNo, active: 0, edge: 0, delta: 0 };
     controls.run(3, () => { stats = sim.step(preset); });
@@ -120,7 +120,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   hint.textContent = t('garden.rd.hint');
   line.textContent = t('garden.rd.today', { name: name.textContent });
   build();
-  raf = requestAnimationFrame(frame);
+  loop = gloop(frame);
 
   const ro = new ResizeObserver(() => {
     const rect = wrap.getBoundingClientRect();
@@ -131,7 +131,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   ro.observe(wrap);
   Toolbox.onDispose?.(() => {
     alive = false;
-    if (raf !== undefined) cancelAnimationFrame(raf);
+    loop?.stop();
     ro.disconnect();
   });
 }
