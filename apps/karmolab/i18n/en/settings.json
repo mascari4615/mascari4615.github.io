@@ -117,5 +117,6 @@
   "settings.machine.saving": "Checking...",
   "settings.machine.nopick": "Could not open the folder picker. type the path instead.",
   "settings.machine.webonly": "This is desktop-app only. a browser has no folder on this machine.",
-  "settings.machine.guessed": "Guessed this path. press Save if it is right."
+  "settings.machine.guessed": "Guessed this path. press Save if it is right.",
+  "settings.label.setHeaderNav": "Top menu"
 }

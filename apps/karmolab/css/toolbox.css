@@ -2426,7 +2426,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 
 .sidebar { display: none; }
 
-html[data-nav="sidebar"] .header-nav { display: none !important; }
+/* 상단 메뉴는 스위치가 끌 때만 숨김. 왼쪽 목록과 무관 */
+html[data-headernav="off"] .header-nav { display: none !important; }
 html[data-nav="sidebar"] .header-bar-right { grid-column: 3; }
 
 /* 왼쪽 목록. 늘 펼침
@@ -2591,6 +2592,46 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
 }
 
 /* 목록 상시 펼침이라 이름도 상시 노출. 예전엔 마우스 얹기 전까지 opacity 0 */
+
+/* ── 창(모달). 지금은 환경 설정 하나가 씀 ──
+   설정은 도구가 아니라 창. 보던 화면 위에 뜸 */
+.kl-modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(8, 8, 12, 0.62);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--space-lg);
+    animation: fadeIn 140ms ease;
+}
+.kl-modal {
+    position: relative;
+    width: min(880px, 100%);
+    max-height: min(86vh, 860px);
+    display: flex; flex-direction: column;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+.kl-modal-close {
+    position: absolute; top: 10px; right: 10px; z-index: 1;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid transparent; border-radius: var(--radius-md);
+    background: transparent; color: var(--text-tertiary); cursor: pointer;
+}
+.kl-modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.kl-modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kl-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-lg); }
+/* 창 안의 도구 판은 바깥 여백 없음. 창이 이미 여백을 가짐 */
+.kl-modal-body .tool-page { margin: 0; }
+.kl-modal-body .tool-page-next { display: none; }
+/* 창이 뜬 동안 뒤 화면 스크롤 잠금 */
+html.has-modal, html.has-modal body { overflow: hidden; }
+
+@media (max-width: 640px) {
+    .kl-modal-overlay { padding: 0; }
+    .kl-modal { width: 100%; max-height: 100%; height: 100%; border-radius: 0; border: none; }
+}
 
 /* 갈래 이름 옆 도구 수. 234개가 다 있다는 것을 접힌 채로 보여 준다 */
 .sidebar-group-count {

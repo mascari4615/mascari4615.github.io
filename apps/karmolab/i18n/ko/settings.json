@@ -117,5 +117,6 @@
   "settings.machine.saving": "확인하는 중...",
   "settings.machine.nopick": "폴더 고르기 창을 못 열었다. 경로를 손으로 적어라.",
   "settings.machine.webonly": "이 칸은 데스크톱 앱에서만 쓴다. 브라우저에는 이 컴퓨터의 폴더가 없다.",
-  "settings.machine.guessed": "이 자리로 짐작했다. 맞으면 저장을 눌러라."
+  "settings.machine.guessed": "이 자리로 짐작했다. 맞으면 저장을 눌러라.",
+  "settings.label.setHeaderNav": "상단 메뉴"
 }

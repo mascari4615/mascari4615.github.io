@@ -117,5 +117,6 @@
   "settings.machine.saving": "確認中...",
   "settings.machine.nopick": "フォルダ選択を開けませんでした. パスを直接入力してください。",
   "settings.machine.webonly": "これはデスクトップアプリ専用です. ブラウザにはこのPCのフォルダがありません。",
-  "settings.machine.guessed": "この場所と推測しました. 合っていれば保存を押してください。"
+  "settings.machine.guessed": "この場所と推測しました. 合っていれば保存を押してください。",
+  "settings.label.setHeaderNav": "上部メニュー"
 }

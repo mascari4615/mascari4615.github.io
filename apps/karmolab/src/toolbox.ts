@@ -503,6 +503,20 @@ const Toolbox = (() => {
         try { localStorage.setItem(NAV_LAYOUT_KEY, layout); } catch (_) {}
     }
 
+    /* 왼쪽 목록과 상단 메뉴는 택일 아님
+       왼쪽 목록은 도구 목록, 상단 메뉴는 검색과 계정. 역할이 갈리므로 둘 다
+       예전: 왼쪽 목록을 켜면 상단 메뉴가 통째로 사라짐 */
+    const HEADER_NAV_KEY = 'toolbox_header_nav';
+
+    function getHeaderNavOn() {
+        try { return localStorage.getItem(HEADER_NAV_KEY) !== 'off'; } catch (_) { return true; }
+    }
+
+    function setHeaderNavOn(on) {
+        document.documentElement.setAttribute('data-headernav', on ? 'on' : 'off');
+        try { localStorage.setItem(HEADER_NAV_KEY, on ? 'on' : 'off'); } catch (_) {}
+    }
+
     function getSidebarGroupState() {
         try {
             const raw = localStorage.getItem(SIDEBAR_GROUP_KEY);
@@ -1277,7 +1291,7 @@ const Toolbox = (() => {
 
         // 1. 설정 장으로
         item('settingsMenuOpen', text2('shell.settings', '환경 설정'))
-            .addEventListener('click', () => { closeSettingsMenu(); switchPage('settings'); });
+            .addEventListener('click', () => { closeSettingsMenu(); openSettingsModal(); });
 
         /* 2. 언어와 지역. 목록 실체는 `lang-switch.ts` 것 하나
            여기 한 벌 더 그리면 켜진 언어나 지역이 늘 때 한쪽만 낡음 */
@@ -2197,8 +2211,74 @@ const Toolbox = (() => {
         play: 'arcade'
     };
 
+    /* 환경 설정은 도구가 아니라 창
+       Claude, Codex 처럼 보던 화면 위에 뜸. 도구 목록에도 안 섬(hidden)
+       위젯 코드는 그대로. buildToolPage 가 만든 판을 창 안에 넣을 뿐 */
+    let settingsModalEl = null;
+
+    function closeSettingsModal() {
+        if (!settingsModalEl) return;
+        settingsModalEl.remove();
+        settingsModalEl = null;
+        document.documentElement.classList.remove('has-modal');
+        document.getElementById('settingsPageBtn')?.focus();
+    }
+
+    function openSettingsModal() {
+        if (settingsModalEl) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'kl-modal-overlay';
+        overlay.innerHTML =
+            '<div class="kl-modal" role="dialog" aria-modal="true" aria-label="'
+            + escapeHtml(text2('shell.settings', '환경 설정')) + '">'
+            + '<button type="button" class="kl-modal-close" aria-label="'
+            + escapeHtml(text2('common.close', '닫기')) + '">'
+            + '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" '
+            + 'stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+            + '</button><div class="kl-modal-body"></div></div>';
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSettingsModal(); });
+        overlay.querySelector('.kl-modal-close').addEventListener('click', closeSettingsModal);
+        document.body.appendChild(overlay);
+        document.documentElement.classList.add('has-modal');
+        settingsModalEl = overlay;
+
+        const body = overlay.querySelector('.kl-modal-body');
+        const paint = () => {
+            const tool = tools.find(t => t.id === 'settings');
+            if (!tool || !tool.tabs || tool._deferred) {
+                body.innerHTML = '<div class="tool-status error">'
+                    + escapeHtml(text2('shell.settings.fail', '환경 설정을 불러오지 못했어요')) + '</div>';
+                return;
+            }
+            body.textContent = '';
+            const page = buildToolPage(tool);
+            /* .tool-page 기본값은 display:none. 화면에서는 switchPage 가 active 를 붙임
+               창에는 그 손이 없어 여기서 직접. 안 붙이면 창 높이 50px 로 납작 */
+            page.classList.add('active');
+            body.appendChild(page);
+            overlay.querySelector('.kl-modal-close')?.focus();
+        };
+        const tool0 = tools.find(t => t.id === 'settings');
+        if (tool0 && tool0._deferred) {
+            body.innerHTML = '<div class="tool-status">'
+                + escapeHtml(text2('common.loading', '불러오는 중...')) + '</div>';
+            void kickLazyLoad('settings').then(paint).catch(paint);
+        } else {
+            paint();
+        }
+    }
+
+    addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsModalEl) { e.preventDefault(); closeSettingsModal(); }
+    });
+
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
+        /* 설정은 화면이 아니라 창. 다만 /t/settings/ 로 바로 들어온 사람은 그 장이 본문이라 그대로 둔다 */
+        if (pageId === 'settings' && (window.KARMOLAB_ENTRY_TOOL || null) !== 'settings') {
+            openSettingsModal();
+            return;
+        }
         if (MOVED[pageId]) pageId = MOVED[pageId];
         /* 화면이 바뀌는 순간 = 부팅 지표의 끝 (TASK-KL-201). 여기를 안 알려 주면 제일 큰 그림이
            방금 연 위젯 쪽으로 밀려서, 부팅이 아니라 그 위젯 크기를 재게 된다(실측 192ms → 2960ms). */
@@ -3156,6 +3236,8 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        getHeaderNavOn, setHeaderNavOn,
+        openSettingsModal, closeSettingsModal,
         takeBundleRequest,
         onDispose,
         // 안 보는 동안 멈춘다 (change.widget-idle-cost). 상태는 살리고 그리기만 멈춘다

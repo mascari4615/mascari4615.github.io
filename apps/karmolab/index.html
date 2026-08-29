@@ -205,6 +205,7 @@ permalink: /
   if(tcm) tcm.setAttribute('content', t==='light' ? '#ffffff' : '#0e0d14');
   document.documentElement.setAttribute('data-bg',bg);
   document.documentElement.setAttribute('data-nav',nav);
+  document.documentElement.setAttribute('data-headernav',(localStorage.getItem('toolbox_header_nav')==='off')?'off':'on');
   /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
      여기서 안 정하고 스크립트가 다 돈 뒤에 정하면 첫 화면이 한 번 번쩍인다(실제로 그랬다). */
   var lp=localStorage.getItem('toolbox_last_page');

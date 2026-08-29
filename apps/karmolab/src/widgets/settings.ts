@@ -74,6 +74,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
         const bgThemes = Toolbox.getBgThemes?.() ?? [];
         const navLayout = Toolbox.getNavLayout?.() ?? 'header';
+        const headerNavOn = Toolbox.getHeaderNavOn?.() ?? true;
         const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
 
         container.innerHTML = `
@@ -83,8 +84,15 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     <div class="settings-row">
                         <label for="setNavLayout">${esc(t('settings.label.setNavLayout'))}</label>
                         <select id="setNavLayout" class="settings-control">
-                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>${esc(t('settings.opt.header'))}</option>
                             <option value="sidebar" ${navLayout === 'sidebar' ? 'selected' : ''}>${esc(t('settings.opt.sidebar'))}</option>
+                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>${esc(t('settings.opt.header'))}</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="setHeaderNav">${esc(t('settings.label.setHeaderNav'))}</label>
+                        <select id="setHeaderNav" class="settings-control">
+                            <option value="on" ${headerNavOn ? 'selected' : ''}>${esc(t('settings.opt.on'))}</option>
+                            <option value="off" ${headerNavOn ? '' : 'selected'}>${esc(t('settings.opt.off'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
@@ -139,6 +147,10 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                 </div>
             </div>`;
 
+        container.querySelector<HTMLSelectElement>('#setHeaderNav')?.addEventListener('change', (e: Event) => {
+            const target = e.target as HTMLSelectElement;
+            Toolbox.setHeaderNavOn?.(target.value === 'on');
+        });
         container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
