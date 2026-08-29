@@ -2380,6 +2380,12 @@ const Toolbox = (() => {
            도구를 여는 길이 이 함수 하나뿐이라 화면마다 따로 부를 필요가 없다. */
         if (currentPageId !== pageId) runLifecycle(hiders, currentPageId);
         currentPageId = pageId;
+        /* 머리띠에 지금 연 도구 이름. 왼쪽 목록이 접혀 있어도 여기가 어디인지 보인다 */
+        const nowEl = document.getElementById('headerNow');
+        if (nowEl) {
+            const nowTool = tools.find(x => x.id === pageId);
+            nowEl.textContent = (pageId === 'home' || !nowTool) ? '' : (nowTool.title || '');
+        }
         /* 지금 어느 화면인지 뿌리에 적어 둔다. 장식은 도구 화면에서 한 겹 물러난다.
            첫 화면에선 주인공이고, 도구 화면에선 읽는 것을 방해하면 안 된다 (TASK-KL-101). */
         document.documentElement.setAttribute('data-view', pageId === 'home' ? 'home' : 'tool');
