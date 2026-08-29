@@ -18,7 +18,8 @@
  * 글 주소 = `/?p=<글id>#community`. 앱이 한 페이지라 물음표로 글을 가리킨다.
  * 뒤로 가기로 목록↔글을 오간다.
  */
-import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
+import { renderMarkdown, plainPreview, postCover, escapeHtml as escapeMd } from './community-markdown';
+import { coverAttrs } from '../lib/markdown/frontmatter';
 import { loadPostsIndex, blogBoardSummary, buildBlogBoardBody, type BlogBoardSummary } from './community-blog';
 import { t, loadNamespace, locale } from '../lib/i18n';
 
@@ -1584,12 +1585,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         host.innerHTML = `<div class="c-wrap">
             <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? t('community.t129'))}</button></div>
             <article class="c-post">
+                <header class="c-post-head"${coverAttrs(postCover(post.text))}>
                 <h2 class="c-post-title">${detailIsIssue && post.seq ? `<span class="c-seq">#${post.seq}</span> ` : ''}${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
                     ${detailIsIssue && post.status !== 'open' ? `<span class="c-tag" data-status="${esc(post.status)}">${detailLabels[post.status]}</span>` : ''}
                     ${post.pinned ? t('community.t169') : ''}</h2>
                 <div class="c-post-meta">${who(post)}
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
                     <span class="c-dot">조회 ${post.views}</span></div>
+                </header>
                 ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
                 <div class="c-actions">
                     <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}"

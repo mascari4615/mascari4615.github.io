@@ -25,8 +25,17 @@ function loadMarked() {
 
 /** 렌더러(TS)를 그 자리에서 묶어 불러온다 — 빌드 산출물 순서에 안 얽매인다. */
 async function loadRenderer() {
+    return loadTs('render.ts');
+}
+
+/** 앞머리(front matter) 모듈 — 블로그 글과 커뮤니티 글이 같이 쓰는 그 한 벌. */
+async function loadFrontMatter() {
+    return loadTs('frontmatter.ts');
+}
+
+async function loadTs(file) {
     const bundled = esbuild.buildSync({
-        entryPoints: [path.join(ROOT, 'src', 'lib', 'markdown', 'render.ts')],
+        entryPoints: [path.join(ROOT, 'src', 'lib', 'markdown', file)],
         bundle: true,
         write: false,
         format: 'esm',
@@ -103,6 +112,27 @@ function check(name, ok, got) {
 {
     const html = self_('<kbd>Ctrl</kbd> 를 눌러라');
     check('self 원문 HTML 유지', html.includes('<kbd>Ctrl</kbd>'), html);
+}
+
+// ── 앞머리(front matter) — 글 설정은 한 문법, 그리고 본문으로 새지 않는다
+{
+    const { splitFrontMatter, coverImage, coverAttrs } = await loadFrontMatter();
+
+    const withHead = splitFrontMatter('---\nimage: /assets/img/a.jpg\ntitle: "따옴표"\n---\n\n본문 첫 줄\n');
+    check('앞머리를 읽는다', coverImage(withHead.meta) === '/assets/img/a.jpg', JSON.stringify(withHead.meta));
+    check('따옴표를 벗긴다', withHead.meta.title === '따옴표', withHead.meta.title);
+    check('본문에 앞머리가 안 남는다', withHead.body.trim() === '본문 첫 줄', JSON.stringify(withHead.body));
+
+    const plain = splitFrontMatter('그냥 글\n---\n가운데 구분선은 앞머리가 아니다');
+    check('앞머리 없으면 원문 그대로', plain.body.startsWith('그냥 글') && !plain.meta.image, JSON.stringify(plain.meta));
+
+    check('그림 없으면 속성도 없다', coverAttrs(null) === '', coverAttrs(null));
+    const evil = coverImage(splitFrontMatter('---\nimage: javascript:alert(1)\n---\n').meta);
+    check('수상한 주소는 표지가 아니다', evil === null, String(evil));
+
+    // 표지 주소가 style 속성을 벗어나 다른 규칙을 심지 못한다.
+    const quoteOut = coverAttrs("/a');background:url(x");
+    check('주소가 style 속성을 못 벗어난다', !quoteOut.includes("');"), quoteOut);
 }
 
 if (failed) {

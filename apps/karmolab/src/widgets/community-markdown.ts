@@ -10,16 +10,23 @@
  * escape 한 글자만 보여 준다 — 서식이 없는 것이 스크립트가 사는 것보다 낫다.
  */
 import { renderMarkdown as renderShared, escapeHtml as escapeShared } from '../lib/markdown/render';
+import { splitFrontMatter, coverImage } from '../lib/markdown/frontmatter';
 
 export const escapeHtml = escapeShared;
 
+/** 글 맨 앞의 `---` 덩어리 = 설정이다 (블로그 글과 같은 문법). 본문으로도 미리보기로도 안 샌다. */
+export function postCover(source: string): string | null {
+    return coverImage(splitFrontMatter(String(source ?? '')).meta);
+}
+
 /** 글 한 편을 화면에 넣을 수 있는 HTML 로. */
 export function renderMarkdown(source: string): string {
+    const body = splitFrontMatter(String(source ?? '')).body;
     if (typeof marked === 'undefined' || typeof marked.Marked !== 'function') {
         // marked 가 안 실린 화면 — 서식 없이, 그러나 안전하게.
-        return `<p>${escapeHtml(source).replace(/\n/g, '<br>')}</p>`;
+        return `<p>${escapeHtml(body).replace(/\n/g, '<br>')}</p>`;
     }
-    const html = renderShared(source, { trust: 'user', marked, breaks: true });
+    const html = renderShared(body, { trust: 'user', marked, breaks: true });
     // 화면의 큰제목과 안 부딪히게 글 안 제목은 h3~h5 로 내린다 (자작 파서 시절 규칙 유지).
     return html
         .replace(/<(\/?)h3>/g, '<$1h5>')
@@ -29,7 +36,7 @@ export function renderMarkdown(source: string): string {
 
 /** 목록에 쓸 한 줄 미리보기 — 서식 기호는 걷어내고 글만 남긴다. */
 export function plainPreview(source: string, max = 90): string {
-    const text = String(source ?? '')
+    const text = splitFrontMatter(String(source ?? '')).body
         .replace(/```[\s\S]*?```/g, ' ')
         .replace(/`([^`]+)`/g, '$1')
         .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')

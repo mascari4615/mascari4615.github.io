@@ -24,8 +24,17 @@ export function loadMarked() {
 
 /** 렌더러 모듈(render.ts)을 묶어서 가져온다 — { renderMarkdown, safeHref, escapeHtml, … } */
 export async function loadMarkdownLib() {
+    return loadLib('render.ts');
+}
+
+/** 앞머리 모듈(frontmatter.ts) — { splitFrontMatter, coverImage, coverAttrs } */
+export async function loadFrontMatterLib() {
+    return loadLib('frontmatter.ts');
+}
+
+async function loadLib(file) {
     const bundled = esbuild.buildSync({
-        entryPoints: [path.join(APP_ROOT, 'src', 'lib', 'markdown', 'render.ts')],
+        entryPoints: [path.join(APP_ROOT, 'src', 'lib', 'markdown', file)],
         bundle: true,
         write: false,
         format: 'esm',

@@ -4,8 +4,14 @@
  * 바깥 셸은 `shell-page.mjs`, 게시판 모양은 `css/community.css` 한 곳이 맡는다. 답글은
  * `blog-comments.ts`가 yawnbot 커뮤니티 원장에 붙이며, 실패해도 이 정적 본문은 그대로 산다.
  */
+import { loadFrontMatterLib } from './markdown-node.mjs';
+
 const SITE = 'https://blog.mascari4615.com';
 const CDN = 'https://img.mascari4615.com';
+
+/* 글 머리 표지 속성은 커뮤니티 글과 **같은 함수**가 만든다 (`src/lib/markdown/frontmatter.ts`).
+   여기 따로 적으면 같은 모양을 두 곳이 정하게 된다 — 렌더러를 한 벌로 모은 이유와 같다. */
+const { coverAttrs } = await loadFrontMatterLib();
 
 const esc = (s) =>
     String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -130,14 +136,17 @@ export function postBody(meta, bodyHtml, nav) {
        「겉모습이 같으면 된다 — 기능은 달라도」). 규칙은 `css/community.css` 한 곳이 정본이고
        앱과 이 장이 그 파일을 각자 링크한다 — 여기에 스타일을 적으면 두 집이 갈라진다.
        안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험). */
+    const cover = meta.image ? (meta.image.startsWith('/') ? `${CDN}${meta.image}` : meta.image) : '';
     return `<div class="c-wrap">
     <div class="c-crumb"><a class="c-linkbtn" href="/?board=blog#community">← 글</a></div>
     <article class="c-post">
+        <header class="c-post-head"${coverAttrs(cover || null)}>
         <h2 class="c-post-title">${esc(meta.title)}</h2>
         <div class="c-post-meta"><span>${meta.categories.map(esc).join(' › ')}</span>
             <span class="c-dot"><time datetime="${esc(meta.date)}">${dateHuman}</time></span>${
                 meta.lastmod ? `<span class="c-dot">수정 ${meta.lastmod.slice(0, 10)}</span>` : ''
             }</div>
+        </header>
         <div class="c-post-body md">
 ${bodyHtml}
         </div>
