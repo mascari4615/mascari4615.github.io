@@ -1245,6 +1245,10 @@ const Toolbox = (() => {
     function openSettingsMenu(btn) {
         ensureSettingsMenuStyle();
         closeSettingsMenu();
+        /* 머리띠 목록은 한 번에 하나 (2026-08-29 버그)
+           언어 목록이나 계정 메뉴가 떠 있으면 그쪽이 스스로 닫음
+           각 버튼의 `stopPropagation` 탓에 서로의 바깥 클릭 검사가 안 도는 게 원인 */
+        dispatchEvent(new CustomEvent('karmolab:popover-open', { detail: 'settings' }));
         const box = document.createElement('div');
         box.id = 'settingsMenu';
         box.className = 'header-settings-menu';
@@ -1863,6 +1867,9 @@ const Toolbox = (() => {
                 e.stopPropagation();
                 if (settingsMenuEl) closeSettingsMenu();
                 else openSettingsMenu(settingsHeaderBtn);
+            });
+            addEventListener('karmolab:popover-open', (e) => {
+                if (e.detail !== 'settings') closeSettingsMenu();
             });
         }
         window.addEventListener('keydown', (e) => {

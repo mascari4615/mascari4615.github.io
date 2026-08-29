@@ -640,7 +640,8 @@ function mountHeaderAccount(): void {
      *
      * 예전에는 누르면 곧장 내 정보로 갔다. 그래서 **로그아웃하는 길이 화면 안쪽 한 곳뿐**이었다 . 
      * 계정이 있는 사이트에서 로그아웃은 어느 화면에서든 두 번 눌러 닿아야 한다(GitHub, Discord 둘 다
-     * 아바타 메뉴에 둔다). 환경 설정도 여기 둔다: 나에서 떼어 낸 화면이라 갈 길이 있어야 한다. */
+     * 아바타 메뉴에 둔다). 환경 설정은 여기 없음 (2026-08-29, 사용자 지적)
+     * 바로 옆 머리띠 설정 버튼이 그 길. 한 뼘 안에 같은 곳으로 가는 문이 둘이면 헷갈림 */
     let menuOpen = false;
 
     /** 로그인 전에도 쓰는 얼굴 자리. 화면(index.html)에 박아 둔 것과 같은 모양이어야 한다. */
@@ -660,7 +661,7 @@ function mountHeaderAccount(): void {
     const paint = (state: AccountState): void => {
         /* 서버에 못 닿아도 **단추는 남는다** (사용자 요청 통합).
          * 이 캡슐이 곧 내 정보 단추라, 비우면 내 정보로 가는 길이 통째로 사라진다.
-         * 계정과 무관한 것(내 정보, 환경 설정)만 메뉴에 남기고, 계정 것은 안 그린다 . 
+         * 계정과 무관한 것(내 정보)만 메뉴에 남기고, 계정 것은 안 그린다 . 
          * 눌러도 아무 일 없는 단추를 안 만든다는 원칙은 그대로다. */
         const me = state.loading ? null : state.account;
         const canAccount = !state.loading && state.reachable;
@@ -677,7 +678,6 @@ function mountHeaderAccount(): void {
                 ? `<div class="header-account-menu" role="menu">
                        <button type="button" role="menuitem" data-go="user">${esc(t('account.t01'))}</button>
                        ${me ? `<a role="menuitem" href="${me.profileUrl}">${esc(t('account.t02'))}</a>` : ''}
-                       <button type="button" role="menuitem" data-go="settings">${esc(t('account.t03'))}</button>
                        ${me ? t('account.t08') : ''}
                        ${!me && canAccount ? t('account.t09') : ''}
                        ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined'
@@ -697,6 +697,9 @@ function mountHeaderAccount(): void {
              * (실측: 메뉴가 열렸다가 같은 클릭에 도로 닫혀 영영 안 보였다.) */
             event.stopPropagation();
             menuOpen = !menuOpen;
+            /* 머리띠 목록은 한 번에 하나. 아래 바깥 클릭 검사는 다른 버튼의
+               `stopPropagation` 때문에 안 돈다 (2026-08-29 버그) */
+            if (menuOpen) dispatchEvent(new CustomEvent('karmolab:popover-open', { detail: 'account' }));
             paint(state);
         });
         slot.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((button) => {
@@ -711,6 +714,12 @@ function mountHeaderAccount(): void {
             void KarmoAccount.signOut();
         });
     };
+
+    addEventListener('karmolab:popover-open', (event) => {
+        if ((event as CustomEvent<string>).detail === 'account' || !menuOpen) return;
+        menuOpen = false;
+        paint(state);
+    });
 
     // 바깥을 누르면 닫힌다. 열어 둔 채로 다른 걸 누르면 방해가 된다.
     document.addEventListener('click', (event) => {
@@ -918,6 +927,7 @@ function mountBell(): void {
             // 바깥으로 보고 방금 연 것을 도로 닫는다 (다시 그리면서 눌린 단추가 떨어져 나가므로).
             event.stopPropagation();
             open = !open;
+            if (open) dispatchEvent(new CustomEvent('karmolab:popover-open', { detail: 'bell' }));
             paint();
             if (open) void load();
         });
@@ -974,6 +984,12 @@ function mountBell(): void {
             });
         });
     }
+
+    addEventListener('karmolab:popover-open', (event) => {
+        if ((event as CustomEvent<string>).detail === 'bell' || !open) return;
+        open = false;
+        paint();
+    });
 
     // 바깥을 누르면 닫힌다. 열어 둔 채로 다른 걸 누르면 방해가 된다.
     document.addEventListener('click', (event) => {

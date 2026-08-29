@@ -117,6 +117,7 @@ function closeMenu(): void {
 function openMenu(btn: HTMLElement): void {
   ensureStyle();
   closeMenu();
+  dispatchEvent(new CustomEvent('karmolab:popover-open', { detail: 'lang' }));
   const box = document.createElement('div');
   box.className = 'lang-menu';
   box.setAttribute('role', 'listbox');
@@ -202,6 +203,14 @@ function onAway(e: MouseEvent): void {
   if (menu && !menu.contains(e.target as Node)) closeMenu();
   else if (menu) setTimeout(() => addEventListener('click', onAway, { once: true }), 0);
 }
+
+/* 머리띠에서 뜨는 목록은 한 번에 하나 (2026-08-29 버그).
+   각 버튼이 자기 클릭에 `stopPropagation` 을 걸어 문서까지 안 올라가므로, 위 바깥 클릭
+   검사만으로는 서로 안 닫혔다. 언어 목록을 연 채 설정 버튼을 누르면 둘이 겹쳐 떴다.
+   여는 쪽이 먼저 알리고, 나머지가 스스로 닫는다. */
+addEventListener('karmolab:popover-open', (e) => {
+  if ((e as CustomEvent<string>).detail !== 'lang') closeMenu();
+});
 
 /* 머리띠 붙박이 언어 단추(`#langBtn`) 폐지 (2026-08-29, 사용자 결정)
    여는 자리는 설정 목록의 언어 칸 하나, `KarmoLang.openMenu`
