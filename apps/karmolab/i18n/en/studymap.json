@@ -65,5 +65,17 @@
   "studymap.focus.ask": "What are you working on?",
   "studymap.focus.sub": "Only those tracks show. Change it anytime, or open everything.",
   "studymap.focus.all": "Show all",
-  "studymap.focus.only": "This one only"
+  "studymap.focus.only": "This one only",
+  "studymap.ask.hint": "Explain why, out loud. Two or three sentences, like an interview.",
+  "studymap.ask.ph": "Write your answer here",
+  "studymap.ask.submit": "Compare",
+  "studymap.ask.dunno": "No idea",
+  "studymap.ask.read": "Just read it",
+  "studymap.ask.empty": "You pressed no idea. Recorded as a miss.",
+  "studymap.ask.mine": "Your answer",
+  "studymap.ask.model": "The lesson's answer",
+  "studymap.ask.verdict": "Judge the gap yourself. This verdict is kept.",
+  "studymap.ask.hit": "Got it",
+  "studymap.ask.half": "Halfway",
+  "studymap.ask.miss": "Missed"
 }

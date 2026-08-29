@@ -65,5 +65,17 @@
   "studymap.focus.ask": "지금 뭘 하고 있어?",
   "studymap.focus.sub": "고른 쪽 갈래만 보여 준다. 언제든 바꾸고, 전부 펴 볼 수도 있다.",
   "studymap.focus.all": "전부 보기",
-  "studymap.focus.only": "이 방향만"
+  "studymap.focus.only": "이 방향만",
+  "studymap.ask.hint": "왜 그런지 말로 설명해 보라. 면접에서 말하듯 두세 줄이면 된다.",
+  "studymap.ask.ph": "여기에 답을 쓴다",
+  "studymap.ask.submit": "대조하기",
+  "studymap.ask.dunno": "모르겠다",
+  "studymap.ask.read": "그냥 읽기",
+  "studymap.ask.empty": "모르겠다를 눌렀다. 못 썼음으로 남는다.",
+  "studymap.ask.mine": "내가 쓴 답",
+  "studymap.ask.model": "본문의 답",
+  "studymap.ask.verdict": "격차를 직접 고른다. 이 판정이 남는다.",
+  "studymap.ask.hit": "맞았다",
+  "studymap.ask.half": "반쯤",
+  "studymap.ask.miss": "못 썼다"
 }

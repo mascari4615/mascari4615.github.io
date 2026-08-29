@@ -65,5 +65,17 @@
   "studymap.focus.ask": "今なにをしている?",
   "studymap.focus.sub": "選んだ分野だけ出す。いつでも変えられるし、全部を開くこともできる。",
   "studymap.focus.all": "全部見る",
-  "studymap.focus.only": "この分野だけ"
+  "studymap.focus.only": "この分野だけ",
+  "studymap.ask.hint": "なぜそうなるか言葉で説明する。面接のように二三行で。",
+  "studymap.ask.ph": "ここに答えを書く",
+  "studymap.ask.submit": "照らし合わせる",
+  "studymap.ask.dunno": "分からない",
+  "studymap.ask.read": "そのまま読む",
+  "studymap.ask.empty": "分からないを押した。書けなかったとして残る。",
+  "studymap.ask.mine": "自分の答え",
+  "studymap.ask.model": "本文の答え",
+  "studymap.ask.verdict": "差を自分で選ぶ。この判定が残る。",
+  "studymap.ask.hit": "合っていた",
+  "studymap.ask.half": "半分",
+  "studymap.ask.miss": "書けなかった"
 }

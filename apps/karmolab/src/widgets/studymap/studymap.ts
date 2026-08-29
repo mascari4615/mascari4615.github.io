@@ -329,6 +329,37 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-pick-tracks { font-size: 12px; color: var(--text-tertiary); }
 .sm-focus-btn { font-weight: 700; }
 
+/* 먼저 답하기 화면. 본문 대신 질문 하나만 선다 */
+.sm-ask { max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
+.sm-ask-meta { font-size: 12px; color: var(--text-tertiary); }
+.sm-ask-q { font-size: 24px; font-weight: 700; line-height: 1.35; margin: 0; letter-spacing: -0.01em; }
+.sm-ask-hint { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.7; }
+.sm-ask-input {
+  width: 100%; font: inherit; font-size: 15px; line-height: 1.8; resize: vertical;
+  color: var(--text-primary); background: var(--bg-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px;
+}
+.sm-ask-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sm-ask-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.sm-ask-go, .sm-ask-skip, .sm-v {
+  font: inherit; font-size: 14px; cursor: pointer; padding: 9px 18px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary);
+}
+.sm-ask-go { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.sm-ask-skip:hover, .sm-v:hover { border-color: var(--accent); color: var(--accent); }
+/* 대조. 내 답과 본문 답을 나란히 */
+.sm-ask-cmp { display: grid; gap: 16px; }
+@media (min-width: 760px) { .sm-ask-cmp { grid-template-columns: 1fr 1fr; } }
+.sm-ask-pane { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sm-ask-label { font-size: 11px; letter-spacing: .06em; color: var(--text-tertiary); }
+.sm-ask-body {
+  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 16px; font-size: 14px; line-height: 1.8; min-height: 120px; white-space: pre-wrap;
+}
+.sm-ask-pane.is-model .sm-ask-body { border-left: 2px solid var(--accent); }
+.sm-ask-body i { color: var(--text-tertiary); font-style: normal; }
+.sm-v.is-half:hover { border-color: var(--secondary); color: var(--secondary); }
+
 /* 무게 1군 — 화면에서 제일 큰 것 하나, 강조색도 여기서만.
    전에는 카드 아홉과 같은 상자라 다음 한 칸이 목록의 한 줄로 보임 */
 .sm-resume { display: grid; gap: 8px; width: 100%; text-align: left; margin-bottom: 24px;
@@ -754,6 +785,76 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       return mine.length ? mine : tracks;
     };
 
+    /**
+     * 먼저 답하기 — 설명이 먼저 가면 학습이 0 (career/CLAUDE.md 4-4).
+     * 칸을 열면 본문 대신 질문 먼저. 답을 쓰고 대조한 뒤에 본문 열림.
+     * 질문은 지어내지 않음 — 장 제목이 이미 주장문이고 첫 문단이 답
+     */
+    const RECALL_KEY = 'karmolab-studymap-recall';
+    type Recall = Record<string, { at: string; verdict: 'hit' | 'half' | 'miss'; answer: string }>;
+    const readRecall = (): Recall => {
+      try {
+        return JSON.parse(localStorage.getItem(RECALL_KEY) || '{}') as Recall;
+      } catch {
+        return {};
+      }
+    };
+    const writeRecall = (id: string, verdict: 'hit' | 'half' | 'miss', answer: string): void => {
+      try {
+        const all = readRecall();
+        all[id] = { at: new Date().toISOString().slice(0, 10), verdict, answer: answer.slice(0, 400) };
+        localStorage.setItem(RECALL_KEY, JSON.stringify(all));
+      } catch {
+        /* 못 적어도 이번 대조는 끝났다 */
+      }
+    };
+    /** 이번 판에서 질문을 건너뛴 칸 — 그냥 읽기를 눌렀거나 방금 대조를 끝낸 자리 */
+    const askedNow = new Set<string>();
+
+    /**
+     * 질문 화면 — 본문 안 보임.
+     * 장 제목이 이미 주장문이라 그대로 질문. 없는 말 지어내기 금지
+     */
+    function askHtml(id: string, title: string, track: string, partTitle: string, model: string): string {
+      return `<div class="sm-ask" data-ask-for="${esc(id)}">
+        <div class="sm-ask-meta">${esc(track)} · ${esc(title)}</div>
+        <h3 class="sm-ask-q">${esc(partTitle)}</h3>
+        <p class="sm-ask-hint">${esc(t('studymap.ask.hint', undefined, '왜 그런지 말로 설명해 보라. 면접에서 말하듯 두세 줄이면 된다.'))}</p>
+        <textarea class="sm-ask-input" data-ask="answer" rows="5"
+          placeholder="${esc(t('studymap.ask.ph', undefined, '여기에 답을 쓴다'))}"></textarea>
+        <div class="sm-ask-row">
+          <button type="button" class="sm-ask-go" data-ask="submit">${esc(t('studymap.ask.submit', undefined, '대조하기'))}</button>
+          <button type="button" class="sm-ask-skip" data-ask="dunno">${esc(t('studymap.ask.dunno', undefined, '모르겠다'))}</button>
+          <button type="button" class="sm-ask-skip" data-ask="read">${esc(t('studymap.ask.read', undefined, '그냥 읽기'))}</button>
+        </div>
+        <div class="sm-ask-model" data-ask="model" hidden>${strong(model)}</div>
+      </div>`;
+    }
+
+    /** 대조 화면 — 내 답과 본문 답을 나란히, 격차는 사람이 고름 */
+    function compareHtml(id: string, partTitle: string, mine: string, model: string): string {
+      const empty = t('studymap.ask.empty', undefined, '모르겠다를 눌렀다. 못 썼음으로 남는다.');
+      return `<div class="sm-ask" data-ask-for="${esc(id)}">
+        <h3 class="sm-ask-q">${esc(partTitle)}</h3>
+        <div class="sm-ask-cmp">
+          <div class="sm-ask-pane">
+            <span class="sm-ask-label">${esc(t('studymap.ask.mine', undefined, '내가 쓴 답'))}</span>
+            <div class="sm-ask-body">${mine.trim() ? esc(mine.trim()) : `<i>${esc(empty)}</i>`}</div>
+          </div>
+          <div class="sm-ask-pane is-model">
+            <span class="sm-ask-label">${esc(t('studymap.ask.model', undefined, '본문의 답'))}</span>
+            <div class="sm-ask-body">${strong(model)}</div>
+          </div>
+        </div>
+        <p class="sm-ask-hint">${esc(t('studymap.ask.verdict', undefined, '격차를 직접 고른다. 이 판정이 남는다.'))}</p>
+        <div class="sm-ask-row">
+          <button type="button" class="sm-v" data-verdict="hit">${esc(t('studymap.ask.hit', undefined, '맞았다'))}</button>
+          <button type="button" class="sm-v is-half" data-verdict="half">${esc(t('studymap.ask.half', undefined, '반쯤'))}</button>
+          <button type="button" class="sm-v is-miss" data-verdict="miss">${esc(t('studymap.ask.miss', undefined, '못 썼다'))}</button>
+        </div>
+      </div>`;
+    }
+
     /** 지금 복습할 때가 된 칸 · 끝냄의 근거 — 그릴 때마다 한 번만 읽는다. */
     let dueSet = new Set<string>();
     let doneSrc: DoneSrc = {};
@@ -940,6 +1041,17 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 장 고르기 — 지정이 없으면 **아직 통과 못 한 첫 장**부터. 공부는 이어서 하는 것이다. */
       const parts = partsOf(lesson, node.title);
+
+      /* 먼저 답하기. 이 칸을 아직 안 재봤고 이번 판에 건너뛰지도 않았으면 질문이 먼저 */
+      if (!wantPart && !askedNow.has(id) && !readRecall()[id]) {
+        const p0 = parts[0];
+        const model = (p0.blocks || []).find((b0) => b0.type === 'p')?.text || node.why || '';
+        if (p0 && model) {
+          elView.innerHTML = askHtml(id, node.title, trackOf(found.trackId).title, p0.title, model);
+          elView.querySelector<HTMLTextAreaElement>('[data-ask="answer"]')?.focus();
+          return;
+        }
+      }
       const partDone = readParts();
       const isPartDone = (pid: string): boolean => partDone.has(`${id}#${pid}`);
       let pIdx = wantPart ? parts.findIndex((p) => p.id === wantPart) : -1;
@@ -1393,7 +1505,41 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     });
 
     elView.addEventListener('click', (e) => {
-      const pick = (e.target as HTMLElement).closest('[data-focus]') as HTMLElement | null;
+      const t0 = e.target as HTMLElement;
+
+      /* 먼저 답하기 흐름. 대조 전에는 본문이 없다 */
+      const ask = t0.closest('[data-ask]') as HTMLElement | null;
+      const askBox = t0.closest('[data-ask-for]') as HTMLElement | null;
+      if (ask && askBox) {
+        const id = askBox.dataset.askFor || '';
+        const kind = ask.dataset.ask;
+        if (kind === 'read') {
+          askedNow.add(id);
+          void openLesson(id, true);
+          return;
+        }
+        if (kind === 'submit' || kind === 'dunno') {
+          const box = askBox.querySelector<HTMLTextAreaElement>('[data-ask="answer"]');
+          const mine = kind === 'dunno' ? '' : box?.value || '';
+          const model = askBox.querySelector<HTMLElement>('[data-ask="model"]')?.innerHTML || '';
+          const q = askBox.querySelector<HTMLElement>('.sm-ask-q')?.textContent || '';
+          askBox.outerHTML = compareHtml(id, q, mine, '');
+          const pane = elView.querySelector('.sm-ask-pane.is-model .sm-ask-body');
+          if (pane) pane.innerHTML = model;
+          return;
+        }
+      }
+      const v = t0.closest('[data-verdict]') as HTMLElement | null;
+      if (v && askBox) {
+        const id = askBox.dataset.askFor || '';
+        const mine = askBox.querySelector('.sm-ask-pane:not(.is-model) .sm-ask-body')?.textContent || '';
+        writeRecall(id, v.dataset.verdict as 'hit' | 'half' | 'miss', mine);
+        askedNow.add(id);
+        void openLesson(id, true);
+        return;
+      }
+
+      const pick = t0.closest('[data-focus]') as HTMLElement | null;
       if (!pick) return;
       focusId = pick.dataset.focus || null;
       showAll = false;
