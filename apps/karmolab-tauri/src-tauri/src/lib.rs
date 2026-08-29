@@ -922,6 +922,15 @@ fn allow_in_webview(url: &Url) -> bool {
             if host == "files.mascari4615.com" {
                 return true;
             }
+            /* Files 앞을 Cloudflare Access 가 지킨다. 세션이 없으면 302 로 이 주소로
+               보내는데, 여기가 막혀 있으면 앱이 모르는 손님으로 보고 시스템 브라우저로
+               내보낸다 (2026-08-29 실측: curl -I files.mascari4615.com 이 302).
+               브라우저에서 로그인해 봐야 쿠키 창고가 달라 앱은 계속 튄다.
+               로그인 방식이 이메일 일회용 코드라 다른 로그인 사이트로 넘어가지 않는다.
+               남의 비밀번호를 앱 창에서 받지 않는다는 원칙(RFC 8252)과 어긋나지 않는다. */
+            if host == "mascari4615.cloudflareaccess.com" {
+                return true;
+            }
             // localhost/127.0.0.1 항상 허용. 트레이의 "개발 모드" 토글이 spawn 한 정적 서버를
             // production 빌드에서도 webview 가 로드해야 하므로. 외부 페이지가 localhost 로 유도해도
             // 8899 포트가 닫혀 있으면 응답 자체가 없어서 의미 없음.
@@ -1462,6 +1471,8 @@ mod tests {
         assert!(allows("http://127.0.0.1:8898/apps/karmolab/"));
         // Files = 제 도메인이지만 **앱 안에서 여는 표면**이다 (밖으로 튀면 단추가 헛돈다).
         assert!(allows("https://files.mascari4615.com/#laptop/"));
+        // Access 로그인 주소. 막히면 창 전환이 브라우저로 샘
+        assert!(allows("https://mascari4615.cloudflareaccess.com/cdn-cgi/access/login/files.mascari4615.com"));
     }
 
     #[test]
