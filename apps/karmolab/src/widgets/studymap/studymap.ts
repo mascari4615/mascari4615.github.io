@@ -320,6 +320,32 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
    작은 화면에서도 420px 는 되고, 커도 화면을 넘지 않는다. */
 .sm-tree { height: clamp(420px, calc(100svh - 200px), 900px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .sm-tree-in { width: 100%; height: 100%; }
+/* 나무 보기 = **지도가 화면이다.** 상자 안에 넣어 두니 41갈래가 우표였다(폭 956px 에 글판 860px —
+   덮개를 열면 지도가 손톱만큼만 남았다). 갈래 목록은 지도 위에 떠 있는 유리 조각으로 올린다
+   (블루마블의 조작부와 같은 규약). --sm-sbw = 세로 스크롤막대 폭, JS 가 재서 넣는다 —
+   100vw 만 쓰면 그 폭만큼 가로 스크롤이 생긴다. */
+.sm-wrap.is-map .sm-body { position: relative; display: block;
+  width: calc(100vw - var(--sm-sbw, 0px)); margin-left: calc(50% - (100vw - var(--sm-sbw, 0px)) / 2); }
+.sm-wrap.is-map .sm-main { min-width: 0; }
+.sm-wrap.is-map .sm-tree { border-radius: 0; border-left: 0; border-right: 0;
+  height: clamp(460px, calc(100svh - 150px), 1100px); }
+/* 지도만 화면 끝까지 간다 — 「이어서」와 안내 한 줄은 읽는 물건이라 가운데 한 폭에 둔다
+   (끝까지 늘리면 글이 화면을 가로지른다). */
+.sm-wrap.is-map .sm-view > :not(.sm-tree) { max-width: 1180px; margin-left: auto; margin-right: auto; }
+@media (min-width: 900px) {
+  /* 유리 조각은 **지도 위**에만 뜬다 — 위의 「이어서」를 덮으면 그 줄을 못 누른다. */
+  .sm-wrap.is-map .sm-tracks { position: absolute; top: 108px; left: 18px; z-index: 6; width: 242px;
+    max-height: calc(100% - 128px); padding: 10px 8px; border-radius: var(--radius-lg);
+    border: 1px solid var(--border); box-shadow: 0 14px 44px rgba(0, 0, 0, .34);
+    background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+}
+@media (max-width: 899px) {
+  /* 좁은 화면에서는 유리 조각을 띄울 자리가 없다 — 지도만 넓히고 갈래 레일은 원래대로 아래에 둔다. */
+  .sm-wrap.is-map .sm-body { display: flex; flex-direction: column; }
+  .sm-wrap.is-map .sm-tree { height: clamp(380px, calc(100svh - 210px), 900px); }
+}
+
 /* 강의는 지도를 **덮는다** — 갈아 끼우지 않는다. 뒤가 비쳐야 「어디에서 열었는지」를 안 잃고,
    닫았을 때 지도가 보던 그 자리 그대로다(전에는 카메라가 처음으로 돌아갔다).
    흐림은 뒤 그림을 지우려는 것이 아니라 **글자를 읽히게** 하려는 것이다. */
@@ -332,7 +358,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   backdrop-filter: blur(4px) saturate(.9); -webkit-backdrop-filter: blur(4px) saturate(.9);
   animation: sm-reader-in .18s ease-out; }
 /* 글이 앉는 판 — 여기만 또렷하다. 뒤 지도가 살짝 비치되 글자를 안 흔든다. */
-.sm-reader > * { max-width: 860px; margin: 22px auto; padding: 20px 24px 30px;
+.sm-reader > * { max-width: 780px; margin: 22px auto; padding: 20px 24px 30px;
   border: 1px solid var(--border); border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
   backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
@@ -1155,9 +1181,22 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
     }
 
+    /* 세로 스크롤막대 폭 — 지도를 화면 끝까지 펴려면 이 값을 빼야 가로 스크롤이 안 생긴다. */
+    const measureBar = (): void => {
+      const bar = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+      container.querySelector<HTMLElement>('.sm-wrap')?.style.setProperty('--sm-sbw', `${bar}px`);
+    };
+    window.addEventListener('resize', () => {
+      if (elStages.isConnected) measureBar();
+    });
+
     function paint(): void {
       lessonOpen = null;
-      container.querySelector('.sm-wrap')?.classList.remove('is-reading');
+      const wrapEl = container.querySelector('.sm-wrap');
+      wrapEl?.classList.remove('is-reading');
+      /* 나무 보기에서만 지도가 화면을 차지한다 — 목록 보기는 글이라 원래 폭이 맞다. */
+      wrapEl?.classList.toggle('is-map', view === 'tree');
+      measureBar();
       elReader.hidden = true;
       elReader.innerHTML = '';
       stopWatching?.();
