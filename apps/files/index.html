@@ -204,6 +204,20 @@ body {
 }
 .fb-btn:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
 .fb-btn[disabled] { opacity: .38; cursor: default; }
+.fb-btn.on { border-color: var(--accent); color: var(--accent); }
+
+/* 정보 패널. 탐색기 속성 창 자리. 이름과 값 두 칸 */
+.fileinfo {
+  margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--line);
+  background: var(--surface-2); font-size: .82rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 18px;
+}
+.fileinfo > div { display: flex; gap: 8px; min-width: 0; }
+.fileinfo dt { color: var(--mute); flex: 0 0 62px; }
+.fileinfo dd {
+  margin: 0; min-width: 0; overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
 
 /* 그림 아닌 칸. 빈 자리 대신 갈래 글자와 크기 (2026-08-29: 빗금만 두니 고장처럼 보임) */
 .frame-face {

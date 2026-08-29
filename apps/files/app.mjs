@@ -12,6 +12,7 @@ import { pickVaultBase } from './src/vault-base.mjs';
 import { mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
 import { KINDS, SORTS, activeSummary, arrange, arrangeFolders } from './src/browse.mjs';
+import { infoRows } from './src/fileinfo.mjs';
 import {
   armScrollMemory,
   bindViewerKeys,
@@ -615,6 +616,43 @@ function renderVaultDir(dir) {
   }
 }
 
+/* 정보 패널을 열어 뒀는지. 다음과 이전으로 넘겨도 유지되게 한 자리에 적는다 */
+const INFO_KEY = 'files.info';
+function infoOpen() {
+  try {
+    return sessionStorage.getItem(INFO_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function setInfoOpen(on) {
+  try {
+    sessionStorage.setItem(INFO_KEY, on ? '1' : '0');
+  } catch {
+    /* 못 적어도 이번 화면은 바꾼다 */
+  }
+}
+
+/**
+ * 정보 패널 그리기. 가로세로와 길이는 화면이 이미 그린 것에서 읽으므로
+ * 미디어가 실린 뒤 한 번 더 부른다.
+ */
+function paintInfo(path, entry, kind, el) {
+  const panel = box.querySelector('.fileinfo');
+  if (!panel) return;
+  const media = el
+    ? {
+        width: el.naturalWidth || el.videoWidth || 0,
+        height: el.naturalHeight || el.videoHeight || 0,
+        duration: el.duration || 0,
+      }
+    : {};
+  const rows = infoRows(path, entry, { kind, fmtSize, media });
+  panel.innerHTML = rows
+    .map((r) => '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>')
+    .join('');
+}
+
 /** 파일 화면 맨 위 줄. 몇 번째인지, 앞뒤로 가기, 받기 */
 function fileBar(path, blobUrl) {
   const { prev, next, at, total } = neighbors(siblings, path);
@@ -632,6 +670,7 @@ function fileBar(path, blobUrl) {
       : '') +
     /* 앱에서만. WebView 가 못 푸는 코덱을 OS 재생기가 연다 */
     (isDesktop() ? '<button type="button" class="fb-btn" data-go="external">재생기로 열기</button>' : '') +
+    '<button type="button" class="fb-btn' + (infoOpen() ? ' on' : '') + '" data-go="info">정보</button>' +
     '<button type="button" class="fb-btn" data-go="close">닫기 (Esc)</button>' +
     '</div>';
 }
@@ -731,12 +770,27 @@ async function renderVaultFile(path) {
   const put = (el) => {
     box.innerHTML = bar;
     box.appendChild(el);
+    const panel = document.createElement('dl');
+    panel.className = 'fileinfo';
+    panel.hidden = !infoOpen();
+    box.appendChild(panel);
+    paintInfo(path, entry, kind, el);
+    /* 가로세로와 길이는 실린 뒤에 온다. 그때 한 번 더 그린다 */
+    const again = () => paintInfo(path, entry, kind, el);
+    el.addEventListener('load', again, { once: true });
+    el.addEventListener('loadedmetadata', again, { once: true });
     for (const b of box.querySelectorAll('.filebar [data-go]')) {
       b.addEventListener('click', () => {
         const go = b.dataset.go;
         if (go === 'close') closeFile(path);
         else if (go === 'external') openExternal(path, got.bytes, b);
-        else if (go) goSibling(path, go);
+        else if (go === 'info') {
+          const on = panel.hidden;
+          panel.hidden = !on;
+          setInfoOpen(on);
+          b.classList.toggle('on', on);
+          if (on) paintInfo(path, entry, kind, el);
+        } else if (go) goSibling(path, go);
       });
     }
   };
