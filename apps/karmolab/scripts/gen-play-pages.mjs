@@ -105,6 +105,32 @@ const STYLE = `<style>
   .play-card span:last-child { font-size: var(--font-size-xs); color: var(--text-tertiary); }
 </style>`;
 
+/**
+ * 놀이 한 장의 구조화 데이터 (2026-08-29)
+ *   - 왜: 도구 장에는 있는데 놀이 장에는 하나도 없었음. 검색 결과에서 그냥 파란 줄 하나
+ *   - 지어내지 않음. 이름, 설명, 주소, 무료, 웹, 한국어, 어느 사이트 것인지만
+ *   - 별점, 평가 수 같은 없는 값은 안 적음. 없는 것을 적으면 통째로 무시당함
+ */
+function jsonLdBlock(game, text, permalink) {
+  const card = `img/og/${game.id}.jpg`;
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: text.title,
+    url: `${SITE}${permalink}`,
+    description: text.description,
+    applicationCategory: 'GameApplication',
+    gamePlatform: 'Web',
+    operatingSystem: 'Web',
+    inLanguage: 'ko-KR',
+    isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
+    ...(fs.existsSync(path.join(root, card)) ? { image: `${SITE}/apps/karmolab/${card}` } : {}),
+  };
+  return `
+<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+}
+
 let made = 0;
 for (const game of roster) {
   const text = copy[game.id];
@@ -115,6 +141,11 @@ for (const game of roster) {
   html = replaceMeta(html, 'property', 'og:title', text.title);
   html = replaceMeta(html, 'property', 'og:description', text.description);
   html = replaceMeta(html, 'property', 'og:url', `${SITE}${permalink}`);
+  /* 놀이마다 찍어 둔 공유 카드를 쓴다 (2026-08-29). 카드가 있는데도 default.jpg 가 나가고 있었음 */
+  const card = `img/og/${game.id}.jpg`;
+  if (fs.existsSync(path.join(root, card))) {
+    html = replaceMeta(html, 'property', 'og:image', `${SITE}/apps/karmolab/${card}`);
+  }
   /* 대표 주소를 제 주소로 (2026-08-29). 셸에서 온 뿌리 canonical 을 안 갈면 이 장은
      뿌리의 사본 취급이라 색인에서 통째로 빠진다. `/play/worldcup/` 이 그렇게 빠져 있었고
      그 검색어 수요가 3개월 93.1K 다 */
@@ -122,7 +153,7 @@ for (const game of roster) {
     `<link rel="canonical" href="${SITE}/">`,
     `<link rel="canonical" href="${SITE}${permalink}">`
   );
-  html = asStaticPage(html, { kind: 'play', bodyHtml: body(game, text), head: STYLE });
+  html = asStaticPage(html, { kind: 'play', bodyHtml: body(game, text), head: STYLE + jsonLdBlock(game, text, permalink) });
 
   const dir = path.join(OUT, 'play', game.id);
   fs.mkdirSync(dir, { recursive: true });
