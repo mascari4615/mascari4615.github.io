@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -94,9 +95,28 @@ for (const tool of toolsFromMeta()) {
   }
 }
 
+/* 번들 문법 검사 (2026-08-29)
+   저장소 전체 문자 쓸기가 vendor 안까지 들어가 pdf-lib 의 PDF 문자표를 고침
+   그 판이 통째로 안 읽혀 PDF 고쳐 만들기가 죽음. catch 가 삼켜 화면에도 콘솔에도 흔적 0
+   smoke:pdfshell 3건이 그때부터 빨강 */
+const vendorDir = path.join(root, 'js', 'vendor');
+let broken = 0;
+if (fs.existsSync(vendorDir)) {
+  for (const name of fs.readdirSync(vendorDir)) {
+    if (!name.endsWith('.js')) continue;
+    const full = path.join(vendorDir, name);
+    const res = spawnSync(process.execPath, ['--check', full], { encoding: 'utf8' });
+    if (res.status !== 0) {
+      broken += 1;
+      const why = (String(res.stderr || '').split(/\r?\n/).find((l) => /Error/.test(l)) || '').slice(0, 100);
+      problems.push(`js/vendor/${name}: 문법이 깨졌다. ${why}`);
+    }
+  }
+}
+
 if (problems.length) {
   console.error(`[audit-vendor-globals] 문제 ${problems.length}건. 앱 안에서는 묶음이 대신 받아 줘서 안 보인다`);
   problems.forEach((x) => console.error('  - ' + x));
   process.exit(1);
 }
-console.log(`[audit-vendor-globals] 라이브러리 ${Object.keys(VENDOR_GLOBALS).length}종, 안 부르고 쓰는 도구 0`);
+console.log(`[audit-vendor-globals] 라이브러리 ${Object.keys(VENDOR_GLOBALS).length}종, 안 부르고 쓰는 도구 0, 문법 깨진 번들 ${broken}`);
