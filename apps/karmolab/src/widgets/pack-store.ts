@@ -144,7 +144,7 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
         const n = numberish(raw);
         if (n) it[f.key] = n.value;
       } else if (f.kind === 'set') {
-        it[f.key] = raw.split(/[,, ]/).map((x) => x.trim()).filter(Boolean);
+        it[f.key] = raw.split(/[,·]/).map((x) => x.trim()).filter(Boolean);
       } else {
         it[f.key] = raw;
       }

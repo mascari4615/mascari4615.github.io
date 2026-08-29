@@ -25,10 +25,10 @@ export function isQuestion(text: string): boolean {
      안 잡혀서 짧다는 이유로 걸러졌다. 공을 돌려주는 가장 좋은 답이었는데. 한국말은
      끝맺음으로 묻는다. */
   if (/[?？]\s*$/.test(text2)) return true;
-  if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[....]?\s*$/.test(text2)) return true;
+  if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(text2)) return true;
   // ~는데 ~을까 ~야? 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
   const questionWord = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
-  return questionWord.test(text2) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[....]?\s*$/.test(text2);
+  return questionWord.test(text2) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(text2);
 }
 
 export interface TossBackInput {

@@ -65,7 +65,9 @@ export function whileAway(
 
 /** 곁눈질 기록에서 창 이름을 되읽는다. 아니면 null. */
 function windowName(text: string): string | null {
-  const m = /창은 (.+?)/.exec(text);
+  // 창 이름은 끝 마침표 앞까지. 게으른 매칭이면 한 글자
+  // 2026-08-29 스윕이 울타리(겹낫표) 제거, 이름 한 글자로 축소
+  const m = /창은 (.+)\.$/.exec(text);
   return m === null ? null : m[1];
 }
 

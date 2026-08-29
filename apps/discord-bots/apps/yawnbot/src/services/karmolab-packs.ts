@@ -210,7 +210,7 @@ export function sanitizePack(raw: unknown): { title: string; emoji: string; fiel
         const num = Number(value);
         if (Number.isFinite(num)) item[field.key] = num;
       } else if (field.kind === 'set') {
-        const list = (Array.isArray(value) ? value : String(value).split(/[,, ]/))
+        const list = (Array.isArray(value) ? value : String(value).split(/[,·]/))
           .map((v) => text(v, PACK_TEXT_MAX))
           .filter(Boolean)
           .slice(0, 16);
@@ -310,7 +310,7 @@ function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: Pa
         const value = Number(raw);
         if (Number.isFinite(value)) item[field.key] = value;
       } else if (field.kind === 'set') {
-        const list = (Array.isArray(raw) ? raw : String(raw).split(/[,, ]/)).map((v) => String(v).trim()).filter(Boolean);
+        const list = (Array.isArray(raw) ? raw : String(raw).split(/[,·]/)).map((v) => String(v).trim()).filter(Boolean);
         if (list.length) item[field.key] = list;
       } else {
         const text = String(raw).trim();

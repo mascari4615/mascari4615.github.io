@@ -115,7 +115,7 @@ export function fold(name: string): string {
   return name
     .toLowerCase()
     .replace(/\(주\)|\(유\)|주식회사/g, '')
-    .replace(/[\s.,'`, \-_()[\]{}]/g, '');
+    .replace(/[\s.,'`·\-_()[\]{}]/g, '');
 }
 
 /**

@@ -7,7 +7,7 @@ import { enableSpeech, worthSpeaking, anySpeech } from '../dist/index.js';
    됐다(실측 2026-08-08). 한 글자 때문에 한 마디를 잃지 않게 한다. */
 
 test('읽을 수 없는 그림 기호는 걷어낸다. 실제로 목소리를 죽였던 글자', () => {
-  assert.equal(enableSpeech('⠂ F만 띄워져 있네'), 'F 만 띄워져 있네');
+  assert.equal(enableSpeech('\u300C⠂ F\u300D만 띄워져 있네'), 'F 만 띄워져 있네');
   assert.equal(enableSpeech('박스 ┌─┐ 그림'), '박스 그림');
 });
 

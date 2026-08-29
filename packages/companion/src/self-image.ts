@@ -46,7 +46,8 @@ export function asksAboutSelf(text: string): boolean {
  * 이 얘는 소파... 이불...처럼 세 자로 답한다. 짧은 게 인격이다. 길이로 재면 이
  * 얘한테는 영영 자기상이 안 쌓인다. 그래서 **길이가 아니라 알맹이**로 가른다.
  */
-const noCore = /^[...\s]*(응|어|음|아|그래|글쎄|몰라|모르겠어|모르겠는데|모르겠|ㅇㅇ|넵)[...\s.?!]*$/;
+// 말줄임 두 꼴 허용. 한 글자와 마침표 세 개, 하나만 받으면 나머지가 노트로 샘
+const noCore = /^[….\s]*(응|어|음|아|그래|글쎄|몰라|모르겠어|모르겠는데|모르겠|ㅇㅇ|넵)[…\s.?!]*$/;
 
 /**
  * 오간 말에서 자기를 말한 자리를 뽑는다.
@@ -157,4 +158,4 @@ export class SelfImage {
 }
 
 /** 물음을 견주기 좋게 다듬는다. 뭐 좋아해?와 뭐 좋아해는 같은 물음이다. */
-const trim2 = (text: string): string => text.replace(/[\s?？!....,]/g, '');
+const trim2 = (text: string): string => text.replace(/[\s?？!.…,]/g, '');

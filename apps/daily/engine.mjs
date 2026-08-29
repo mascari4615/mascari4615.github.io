@@ -97,7 +97,7 @@ const norm = (v) => String(v ?? '').trim().toLowerCase();
  * 누누와 윌럼프, 미스터 마임, 라이덴 쇼군 처럼 띄어 쓴 이름이 22개인데,
  * 사람은 대개 붙여 친다. 붙여 쳤다고 못 찾으면 그건 우리 잘못이다.
  */
-const nameKey = (v) => norm(v).replace(/[\s, ・‧~''.-]/g, '');
+const nameKey = (v) => norm(v).replace(/[\s·・‧~'’.-]/g, '');
 
 /**
  * 속성 한 칸 비교.

@@ -81,7 +81,7 @@ export function tidy(text: string): string {
   const kept: string[] = [];
   for (const line of lines) {
     /* 쪽 번호만 있는 줄은 글이 아니다 (붙여 놓으면 문장 가운데에 숫자가 낀다) */
-    if (/^[--. ]?\s*\d{1,4}\s*[--. ]?$/.test(line)) continue;
+    if (/^[-–—]?\s*\d{1,4}\s*[-–—]?$/.test(line)) continue;
     kept.push(line);
   }
 

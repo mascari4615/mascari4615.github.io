@@ -104,9 +104,11 @@ export class Watching {
 /** 창 제목에서 사람이 부를 만한 이름만 남긴다. */
 export function shortTitle(title: string, max = 24): string {
   // 파일 - 프로그램 - 어쩌고 꼴이면 맨 앞이 대개 무엇인지를 말한다.
-  const head = title.split(/\s+[--. |]\s+/)[0].trim();
+  const head = title.split(/\s+[-–—|]\s+/)[0].trim();
   const toWrite = head === '' ? title.trim() : head;
-  return toWrite.length <= max ? toWrite : `${toWrite.slice(0, max)}...`;
+  // 잘림 표시 포함 max 이내. 표시가 한 글자에서 세 글자로 바뀐 뒤
+  // 결과가 max + 3 (2026-08-29 스윕)
+  return toWrite.length <= max ? toWrite : `${toWrite.slice(0, Math.max(1, max - 3))}...`;
 }
 
 /**

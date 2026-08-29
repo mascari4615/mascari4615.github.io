@@ -52,8 +52,8 @@ export function select(raw: string, maxChars2 = 20): string[] {
   for (const line of raw.split('\n')) {
     // 목록 기호, 번호, 따옴표는 말이 아니라 포장이다. 벗겨서 본다.
     const stripped = line
-      .replace(/^\s*(\d+[.)]|[-*-])\s*/, '')
-      .replace(/^["']|["']$/g, '')
+      .replace(/^\s*(\d+[.)]|[-*•])\s*/, '')
+      .replace(/^["'「『]|["'」』]$/g, '')
       .trim();
     if (stripped === '') continue;
     if (stripped.length > maxChars2) continue;

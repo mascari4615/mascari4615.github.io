@@ -27,7 +27,7 @@ export interface Correction {
 }
 
 const negation = /(아니야|아니고|아닌데|아니라|틀렸|잘못|그게 아니|안 그래|안그래|내가 언제|그런 적 없|한 적 없|아니거든)/;
-const agreementNegation = /^(아니|아니요|아뇨|노)[....!?\s]*$/;
+const agreementNegation = /^(아니|아니요|아뇨|노)[.…!?\s]*$/;
 
 /** 이 말이 틀렸다는 뜻인가. */
 export function deniesSomething(text: string): boolean {
@@ -47,7 +47,7 @@ export function findCorrection(said: string, lastSaid: MemoryEntry | undefined):
 
   const denied = lastSaid.text.trim();
   // 아니야, X 야처럼 대신 알려 준 게 있으면 그것도 들고 간다.
-  const rest = said.replace(negation, '').replace(/^[,\s....]+/, '').trim();
+  const rest = said.replace(negation, '').replace(/^[,\s.…]+/, '').trim();
 
   // 지울 낱말은 **얘 말과 조수님의 정정문 양쪽**에서 뽑는다.
   //

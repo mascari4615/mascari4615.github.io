@@ -35,7 +35,7 @@ export interface LandingOptions extends ConversationOptions {
 }
 
 const laugh = /(ㅋ|ㅎ|😂|🤣|ㅠㅋ|하하|ㄲㄲ)/;
-const flat = /^(응|어|ㅇㅇ|그래|ok|오케이|넵|음)[....!?~ ]*$/i;
+const flat = /^(응|어|ㅇㅇ|그래|ok|오케이|넵|음)[.…!?~ ]*$/i;
 
 /**
  * 얘의 한마디와 바로 다음에 온 사람 말을 놓고 잰다.

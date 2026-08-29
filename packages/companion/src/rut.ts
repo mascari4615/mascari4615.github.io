@@ -34,11 +34,11 @@ export function brainSaid(entries: readonly MemoryEntry[]): MemoryEntry[] {
 export function opener(text: string, words = 1): string {
   return text
     .trim()
-    .replace(/^[...\s.,]+/, '')
+    .replace(/^[…\s.,]+/, '')
     .split(/\s+/)
     .slice(0, words)
     .join(' ')
-    .replace(/[....,!?]+$/, '');
+    .replace(/[.…,!?]+$/, '');
 }
 
 export interface Rut {

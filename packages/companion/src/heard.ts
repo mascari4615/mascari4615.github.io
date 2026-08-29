@@ -20,7 +20,7 @@ const phantom = [
   'thankyou', 'thanksforwatching', 'you', 'bye', 'okay', 'ok',
 ];
 
-const pushedText = (content: string): string => content.replace(/[\s.,!?~...。、, "''"]/g, '').toLowerCase();
+const pushedText = (content: string): string => content.replace(/[\s.,!?~…。、·"'’”]/g, '').toLowerCase();
 
 /**
  * 이 받아쓴 글을 사람이 한 말로 볼까.

@@ -100,7 +100,7 @@ test('오래전 일은 왔다갔다로 안 센다', () => {
 
 test('창 제목에서 부를 만한 이름만 남긴다', () => {
   assert.equal(shortTitle('WitchMendokusai - Stage_Home - Unity 6000'), 'WitchMendokusai');
-  assert.equal(shortTitle('보고서.docx. Word'), '보고서.docx');
+  assert.equal(shortTitle('보고서.docx \u2014 Word'), '보고서.docx');
 });
 
 test('너무 길면 자른다', () => {

@@ -114,7 +114,7 @@ export class Playing {
 export function looksLikeMove(said: string): boolean {
   const t = said.trim();
   if (t === '' || /[\s]/.test(t)) return false;
-  if (/[?？!！....,]/.test(t)) return false;
+  if (/[?？!！.…,]/.test(t)) return false;
   return t.length <= 8;
 }
 

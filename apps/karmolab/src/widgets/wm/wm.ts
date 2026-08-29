@@ -267,7 +267,7 @@ interface WorldBook {
       const h = /^#{2,4}\s+(.+)$/.exec(line);
       if (h) { if (on) break; on = headingRe.test(h[1]); continue; }
       if (!on) continue;
-      const m = /^-\s*\*\*(.+?)\*\*\s*[. -]\s*(.+)$/.exec(line.trim());
+      const m = /^-\s*\*\*(.+?)\*\*\s*[—-]\s*(.+)$/.exec(line.trim());
       if (m) out.push({ name: m[1].trim(), desc: m[2].trim() });
     }
     return out;

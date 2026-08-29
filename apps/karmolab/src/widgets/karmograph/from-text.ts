@@ -44,7 +44,7 @@ function indentOf(line: string): number {
 }
 
 function stripBullet(s: string): string {
-  return s.replace(/^\s*(?:[-*-]|#{1,6})\s*/, '').trim();
+  return s.replace(/^\s*(?:[-*•]|#{1,6})\s*/, '').trim();
 }
 
 function parseProps(raw: string): Partial<Pick<TextNode, 'kind' | 'shape' | 'group' | 'groups' | 'tags' | 'note'>> {

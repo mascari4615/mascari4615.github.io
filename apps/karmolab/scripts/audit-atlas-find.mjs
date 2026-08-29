@@ -50,7 +50,7 @@ let falsePositive = false;
 /* 찾을 말은 **지도에서 뽑는다**. 손으로 박아 두면 글이 바뀌는 날 검사가 거짓으로 빨개진다. */
 const parsed = JSON.parse(atlas);
 const sample = (parsed.docs.find((d) => d.title && d.title.length > 4) || {}).title || '';
-const word = sample.split(/[\s. , ]+/).filter((w) => w.length >= 2)[0] || sample.slice(0, 4);
+const word = sample.split(/[\s—·]+/).filter((w) => w.length >= 2)[0] || sample.slice(0, 4);
 for (const q of [word, '없을말zzq9']) {
   await page.fill('#host .atlas-find', q);
   await untilSettled(page, () => page.evaluate(() => window.__atlasFound ?? null));

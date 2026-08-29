@@ -231,6 +231,9 @@ const commonWords = new Set([
  * 규칙을 고쳐도 **어제까지 쌓인 쓰레기는 그대로 남는다.** 실측(31회차): 30개가 쌓여 있는데
  * 쓸 만한 게 0개였다. 새 규칙만 넣고 옛것을 안 치우면 얘는 계속 그 쓰레기를 꺼내려 한다.
  */
+// 우리가 뽑은 것의 꼬리. 지금은 마침표, 옛 기록은 긴 줄표, 둘 다 허용
+const PICKED_MARK = /\s*[.—]\s*조수님이 꺼낸 얘기/;
+
 export function unusableCuriosity(about: string, skip: ReadonlySet<string> = commonWords): boolean {
   // 옛 형식(조수님이 ... 라고 했던 것. X 에 대해 더)은 통째로 못 쓴다 . 
   // 문장을 그대로 물고 있어서 꺼내면 그 문장을 읊는다.
@@ -239,6 +242,6 @@ export function unusableCuriosity(about: string, skip: ReadonlySet<string> = com
   if (about.includes('라고 했던 것') || about.startsWith('조수님이 ')) return true;
   // 우리가 뽑은 형식(낱말. 조수님이 꺼낸 얘기)만 알맹이를 본다.
   // **사람이 손으로 적은 것은 건드리지 않는다**. 규칙에 안 맞는다고 남의 메모를 버리면 안 된다.
-  if (about.includes('.  조수님이 꺼낸 얘기') === false) return false;
-  return worthWondering(about.split('. ')[0].trim(), skip) === false;
+  if (PICKED_MARK.test(about) === false) return false;
+  return worthWondering(about.split(PICKED_MARK)[0].trim(), skip) === false;
 }

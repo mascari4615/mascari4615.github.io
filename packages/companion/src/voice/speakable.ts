@@ -25,7 +25,7 @@ export function enableSpeech(content: string): string {
   return (
     content
       // 사람이 읽는 것들만 남긴다 (한글 자모 포함. ㅋㅋ 같은 건 그대로 둔다).
-      .replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ\s.,!?..., '"()\-~:;%°]/gu, ' ')
+      .replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ\s.,!?…·'"()\-~:;%°]/gu, ' ')
       .replace(/\s+/g, ' ')
       .trim()
   );

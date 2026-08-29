@@ -31,7 +31,7 @@ export interface KnownStampsOptions {
 
 /** 줄 하나를 견주기 좋게 다듬는다. 앞머리 기호와 공백 차이로 딴 줄이 되지 않게. */
 function trim2(line: string): string {
-  return line.replace(/^[\s\-*, -]+/, '').replace(/\s+/g, ' ').trim();
+  return line.replace(/^[\s\-*·•]+/, '').replace(/\s+/g, ' ').trim();
 }
 
 export class KnownStamps {
