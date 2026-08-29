@@ -115,6 +115,26 @@ body {
   border-bottom: 1px solid var(--line); background: var(--surface-2);
   font-size: .76rem; font-weight: 700; color: var(--mute); letter-spacing: .02em;
 }
+/* 머리글을 눌러 정렬한다. 같은 자리를 다시 누르면 뒤집는다 */
+.head { padding: 0 14px; }
+.th {
+  background: none; border: 0; cursor: pointer; color: inherit;
+  font: inherit; letter-spacing: inherit; padding: 9px 0;
+  display: inline-flex; align-items: center; gap: 4px; width: 100%;
+}
+.th:hover { color: var(--ink); }
+.th.on { color: var(--accent); }
+.th i { font-style: normal; font-size: .68rem; }
+.head .th-kind .th { font-size: .7rem; }
+.head .size .th, .head .when .th { justify-content: flex-start; }
+/* 액자에는 표가 없어 보기 줄에 같은 버튼을 둔다 */
+.sortsw { display: flex; gap: 2px; margin-left: 14px; }
+.sortsw .th {
+  width: auto; padding: 4px 8px; font-size: .8rem; font-weight: 600;
+  color: var(--mute); border-radius: 6px;
+}
+.sortsw .th.on { color: var(--accent); background: var(--surface); }
+
 .row {
   display: grid; grid-template-columns: 34px 1fr 110px 140px 92px; gap: 12px;
   align-items: center; padding: 9px 14px; border-top: 1px solid var(--line);
@@ -221,6 +241,10 @@ input.pick { width: 16px; height: 16px; accent-color: var(--accent); cursor: poi
 .fb-btn:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
 .fb-btn[disabled] { opacity: .38; cursor: default; }
 .fb-btn.on { border-color: var(--accent); color: var(--accent); }
+.fb-btn.sm { font-size: .74rem; padding: 3px 8px; font-weight: 600; }
+/* 액자의 폴더 칩. 이름과 받기가 한 덩이 */
+.fb-item { display: inline-flex; align-items: center; gap: 4px; }
+.fb-item > a { border-radius: 8px 0 0 8px; }
 
 /* 정보 패널. 탐색기 속성 창 자리. 이름과 값 두 칸 */
 .fileinfo {

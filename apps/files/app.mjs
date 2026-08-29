@@ -38,6 +38,23 @@ let vaultListing = null;
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
 const CELL_KEY = 'files.vault.cell';
+const LOOP_KEY = 'files.vault.loop';
+
+/* 되풀이. 한 번 켜면 다음 영상에서도 켜져 있다 */
+function loopOn() {
+  try {
+    return sessionStorage.getItem(LOOP_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function setLoop(on) {
+  try {
+    sessionStorage.setItem(LOOP_KEY, on ? '1' : '0');
+  } catch {
+    /* 못 적어도 이번 화면은 바꾼다 */
+  }
+}
 
 /* 여럿 고르기. 폴더를 옮기면 푼다. 다른 폴더의 것까지 담고 있으면
    화면에 안 보이는 것을 받게 되어 사람이 무엇을 받는지 모른다 */
@@ -78,8 +95,26 @@ function row(kind, nameHtml, size, when, acts) {
     '</div><div class="size">' + (size || '') + '</div><div class="when">' + (when || '') +
     '</div><div class="acts">' + (acts || '') + '</div></div>';
 }
-function listHead() {
-  return '<div class="head"><div></div><div>이름</div><div>크기</div><div>수정한 날짜</div><div></div></div>';
+/**
+ * 목록 머리글을 눌러 정렬한다.
+ *
+ * 왜 바꿨나: 정렬 칩과 뒤집기 버튼이 표와 **떨어진 줄**에 있었다. 무엇에 걸리는 값인지
+ * 안 보이고, 뒤집기가 따로 있어 두 번 눌러야 했다 (2026-08-29 사용자: 정렬 바 UX 최악).
+ * 탐색기, Finder, Drive 는 전부 머리글을 눌러 정렬하고 **같은 자리를 다시 눌러** 뒤집는다.
+ */
+function sortHead() {
+  const cell = (id, label, cls) => {
+    const on = sift.sort === id;
+    return '<div' + (cls ? ' class="' + cls + '"' : '') + '>' +
+      '<button type="button" class="th' + (on ? ' on' : '') + '" data-sort="' + id + '">' +
+      label + (on ? '<i>' + (sift.desc ? '▼' : '▲') + '</i>' : '') + '</button></div>';
+  };
+  return '<div class="head">' +
+    cell('kind', '갈래', 'th-kind') +
+    cell('name', '이름') +
+    cell('size', '크기', 'size') +
+    cell('date', '수정한 날짜', 'when') +
+    '<div></div></div>';
 }
 function crumbHtml(bits) {
   return bits.join('<span class="sep">/</span>');
@@ -164,6 +199,7 @@ function showVaultGate(msg) {
     ev.preventDefault();
     sessionStorage.setItem(VAULT_KEY, document.getElementById('pass').value);
     vaultSession = null;
+    unmountUploader();
     vaultListing = null;
     load();
   });
@@ -459,6 +495,8 @@ async function ensureVault() {
   const store = fetchStore(vaultBase.href);
   vaultSession = await unlockVault(store, pass);
   vaultListing = await listFiles(vaultSession);
+  /* 열렸으니 이제 업로드 패널을 붙인다 */
+  mountUploader();
   return vaultSession;
 }
 
@@ -495,18 +533,10 @@ function siftBar(total, shown) {
       '<button type="button" class="sf-chip' + (sift.kind === k.id ? ' on' : '') +
       '" data-kind="' + k.id + '">' + k.label + '</button>',
   ).join('');
-  const sorts = SORTS.map(
-    (o) =>
-      '<button type="button" class="sf-chip' + (sift.sort === o.id ? ' on' : '') +
-      '" data-sort="' + o.id + '">' + o.label + '</button>',
-  ).join('');
   const note = activeSummary(sift, total, shown);
   return '<div class="siftbar">' +
     '<input type="search" id="sf-q" placeholder="이름으로 찾기" value="' + esc(sift.query) + '">' +
     '<span class="sf-group">' + chips + '</span>' +
-    '<span class="sf-group">' + sorts +
-    '<button type="button" class="sf-chip" data-desc="1" title="차례 뒤집기">' +
-    (sift.desc ? '내림' : '오름') + '</button></span>' +
     (note ? '<span class="sf-note">' + esc(note) + '</span>' : '') +
     '<button type="button" class="sf-chip' + (selecting ? ' on' : '') +
     '" data-sel="1">고르기</button>' +
@@ -533,7 +563,20 @@ function pickBar(files) {
  * 그리고 복호는 어차피 여기서 한 번씩 해야 하므로, 묶는 값은 거의 안 든다.
  */
 async function downloadChosen(files, button) {
-  const targets = files.filter((f) => chosen.has(f.path));
+  return downloadFiles(files.filter((f) => chosen.has(f.path)), button, chosenDir);
+}
+
+/**
+ * 폴더 하나를 통째로. 그 아래 것을 다 담는다 (더 깊은 폴더까지).
+ * 이름은 폴더 이름을 쓰고, 안쪽 자리는 zip 안의 경로로 남긴다.
+ */
+async function downloadFolder(dir, button) {
+  const prefix = dir ? dir + '/' : '';
+  const targets = (vaultListing ?? []).filter((f) => f.path.startsWith(prefix));
+  return downloadFiles(targets, button, dir, { keepPath: prefix });
+}
+
+async function downloadFiles(targets, button, dirName, opts = {}) {
   const total = targets.reduce((n, f) => n + f.size, 0);
   if (total > MAX_TOTAL) {
     button.textContent = '너무 큼';
@@ -553,17 +596,22 @@ async function downloadChosen(files, button) {
           button.textContent = all > 1 ? `${at}, ${done}/${all} 조각` : at;
         },
       });
-      if (got) parts.push({ name: targets[i].path.split('/').pop(), bytes: got.bytes });
+      /* 폴더째면 안쪽 자리를 zip 안에 그대로 남긴다 */
+      const name = opts.keepPath
+        ? targets[i].path.slice(opts.keepPath.length)
+        : targets[i].path.split('/').pop();
+      if (got) parts.push({ name, bytes: got.bytes });
     }
     if (!parts.length) throw new Error('none');
-    const one = parts.length === 1;
+    /* 폴더째 받을 때는 한 장뿐이어도 묶는다. 안쪽 자리를 지켜야 하므로 */
+    const one = parts.length === 1 && !opts.keepPath;
     const blob = one
       ? new Blob([parts[0].bytes], { type: mimeFor(parts[0].name) })
       : new Blob([makeZip(parts)], { type: 'application/zip' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = one ? parts[0].name : (chosenDir ? chosenDir.split('/').pop() : 'files') + '.zip';
+    a.download = one ? parts[0].name : (dirName ? dirName.split('/').pop() : 'files') + '.zip';
     a.click();
     /* 누른 뒤 바로 거두면 큰 것은 저장이 중간에 끊긴다 */
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -590,6 +638,13 @@ function cellMode() {
 /** 보기 전환 버튼. 그림이 있는 폴더에서만 뜻이 있음. 액자일 때는 칸 크기도 */
 function viewSwitch(mode) {
   const cell = cellMode();
+  const sorts = mode === 'grid'
+    ? '<span class="sortsw">' + SORTS.map(
+        (o) => '<button type="button" class="th' + (sift.sort === o.id ? ' on' : '') +
+          '" data-sort="' + o.id + '">' + o.label +
+          (sift.sort === o.id ? '<i>' + (sift.desc ? '▼' : '▲') + '</i>' : '') + '</button>',
+      ).join('') + '</span>'
+    : '';
   const sizes = mode === 'grid'
     ? '<span class="cellsw">' + CELL_SIZES.map(
         (c) => '<button type="button" data-cell="' + c.id + '"' +
@@ -599,6 +654,7 @@ function viewSwitch(mode) {
   return '<div class="viewsw">' +
     '<button type="button" data-view="list"' + (mode === 'list' ? ' class="on"' : '') + '>목록</button>' +
     '<button type="button" data-view="grid"' + (mode === 'grid' ? ' class="on"' : '') + '>액자</button>' +
+    sorts +
     sizes +
     '</div>';
 }
@@ -628,7 +684,7 @@ function renderVaultDir(dir) {
 
   const folders = shownFolders.map((name) => {
     const rel = listed.dir ? listed.dir + '/' + name : name;
-    return { name, href: '#vault/' + encodeURIComponent(rel) };
+    return { name, rel, href: '#vault/' + encodeURIComponent(rel) };
   });
 
   if (mode === 'grid') {
@@ -638,7 +694,9 @@ function renderVaultDir(dir) {
       (canGrid ? viewSwitch(mode) : '') +
       (folders.length
         ? '<div class="folderbar">' +
-          folders.map((f) => '<a href="' + f.href + '">' + icon('folder') + esc(f.name) + '</a>').join('') +
+          folders.map((f) => '<span class="fb-item"><a href="' + f.href + '">' + icon('folder') +
+            esc(f.name) + '</a><button type="button" class="fb-btn sm" data-folder="' +
+            encodeURIComponent(f.rel) + '">받기</button></span>').join('') +
           '</div>'
         : '') +
       (selecting ? pickBar(shownFiles) : '') +
@@ -678,7 +736,12 @@ function renderVaultDir(dir) {
     }
   } else {
     const rows = [];
-    for (const f of folders) rows.push(row(icon('folder'), link(f.href, esc(f.name)), '', '', ''));
+    for (const f of folders) {
+      /* 폴더째 받기. 그 아래 것을 다 담는다 */
+      const get = '<button type="button" class="fb-btn sm" data-folder="' +
+        encodeURIComponent(f.rel) + '">받기</button>';
+      rows.push(row(icon('folder'), link(f.href, esc(f.name)), '', '', get));
+    }
     for (const f of shownFiles) {
       const name = f.path.split('/').pop();
       const href = '#vault/' + encodeURIComponent(f.path);
@@ -696,7 +759,7 @@ function renderVaultDir(dir) {
       (canGrid ? viewSwitch(mode) : '') +
       (selecting ? pickBar(shownFiles) : '') +
       (rows.length
-        ? listHead() + rows.join('')
+        ? sortHead() + rows.join('')
         : '<p class="none">' +
           (sift.kind || sift.query.trim() ? '조건에 맞는 것이 없습니다.' : '이 폴더는 비어 있습니다.') +
           '</p>');
@@ -760,11 +823,27 @@ function renderVaultDir(dir) {
     }
   }
   bindPickBar();
-  for (const b of box.querySelectorAll('.siftbar [data-kind], .siftbar [data-sort], .siftbar [data-desc]')) {
+  for (const b of box.querySelectorAll('.siftbar [data-kind]')) {
     b.addEventListener('click', () => {
-      if (b.dataset.kind) sift.kind = sift.kind === b.dataset.kind ? '' : b.dataset.kind;
-      else if (b.dataset.sort) sift.sort = b.dataset.sort;
-      else sift.desc = !sift.desc;
+      sift.kind = sift.kind === b.dataset.kind ? '' : b.dataset.kind;
+      renderVaultDir(dir);
+    });
+  }
+  for (const b of box.querySelectorAll('[data-folder]')) {
+    b.addEventListener('click', (e) => {
+      e.preventDefault();
+      downloadFolder(decodeURIComponent(b.dataset.folder), b);
+    });
+  }
+  /* 머리글과 액자의 정렬 버튼. 같은 자리를 다시 누르면 뒤집는다 */
+  for (const b of box.querySelectorAll('[data-sort]')) {
+    b.addEventListener('click', () => {
+      if (sift.sort === b.dataset.sort) sift.desc = !sift.desc;
+      else {
+        sift.sort = b.dataset.sort;
+        /* 새 기준으로 바꿀 때는 늘 오름부터. 앞의 뒤집기가 따라오면 놀란다 */
+        sift.desc = false;
+      }
       renderVaultDir(dir);
     });
   }
@@ -843,6 +922,9 @@ function fileBar(path, blobUrl) {
       ? '<a class="fb-btn" href="' + blobUrl + '" download="' + esc(name) + '">받기</a>'
       : '') +
     /* 앱에서만. WebView 가 못 푸는 코덱을 OS 재생기가 연다 */
+    (previewKind(path) === 'video'
+      ? '<button type="button" class="fb-btn' + (loopOn() ? ' on' : '') + '" data-go="loop">되풀이</button>'
+      : '') +
     (isDesktop() ? '<button type="button" class="fb-btn" data-go="external">재생기로 열기</button>' : '') +
     '<button type="button" class="fb-btn' + (infoOpen() ? ' on' : '') + '" data-go="info">정보</button>' +
     '<button type="button" class="fb-btn" data-go="close">닫기 (Esc)</button>' +
@@ -995,8 +1077,18 @@ async function renderVaultFile(path) {
     const video = document.createElement('video');
     video.className = 'preview-vid';
     video.controls = true;
+    /* 되풀이. 짧은 것을 볼 때 매번 다시 누르지 않게. 고른 값은 유지한다 */
+    video.loop = loopOn();
     video.src = lastBlob;
     put(video);
+    const loop = box.querySelector('.filebar [data-go=loop]');
+    if (loop) {
+      loop.addEventListener('click', () => {
+        video.loop = !video.loop;
+        setLoop(video.loop);
+        loop.classList.toggle('on', video.loop);
+      });
+    }
     /* 브라우저가 비디오 트랙을 못 푸는 경우 (실측 2026-08-29: mp4 표본 12개 중 10개가 HEVC).
        그때도 오디오는 나오고 오류도 안 난다. 화면만 검고 소리만 들려 고장처럼 보인다.
        메타데이터가 온 뒤 화소 크기가 0 이면 그 상태로 판정 */
@@ -1056,7 +1148,11 @@ function load() {
   setTabs();
   revokeBlob();
   if (extFromHash() === 'vault') {
-    mountUploader();
+    /* 업로드 패널은 **연 뒤에만**. 전에는 비번을 치기도 전에 폴더 고르기와 시작이 떴다.
+       전송기는 그 기계의 .env 에서 열쇠를 읽으므로, 그 화면만으로 올리기가 돌았다
+       (2026-08-29 사용자 지적) */
+    if (vaultSession) mountUploader();
+    else unmountUploader();
     loadVault();
   } else {
     unmountUploader();
