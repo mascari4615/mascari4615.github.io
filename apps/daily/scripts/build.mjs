@@ -207,6 +207,25 @@ function gameLd({ name, desc, url }) {
   }).replace(/</g, '\\u003c')}</script>`;
 }
 
+/**
+ * 지난 정답 장 (2026-08-29)
+ *   - 왜: 이 넉 장에만 구조화 데이터가 없었음. 검색 결과에서 파란 줄 하나
+ *   - 푸는 자리가 아니라 모아 보는 자리라 CollectionPage. 그 게임은 about 으로
+ *   - 지어내지 않음. 이름, 설명, 주소, 언어, 어느 게임의 것인지만
+ */
+function pastLd({ name, desc, url, gameName, gameUrl }) {
+  return `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    description: desc,
+    url,
+    inLanguage: 'ko',
+    isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+    about: { '@type': 'WebApplication', name: gameName, url: gameUrl, applicationCategory: 'GameApplication' },
+  }).replace(/</g, '\u003c')}</script>`;
+}
+
 function head({ title, desc, url, up, image, ld = '', noindex = false }) {
   return `<!doctype html>
 <html lang="ko">
@@ -331,12 +350,21 @@ for (const topic of topics) {
   for (let d = newest; d >= Math.max(EPOCH_DAY_NUMBER, newest - PAST_BAKED + 1); d -= 1) {
     rows.push(pastRow(topic, d, modes));
   }
+  const pastTitle = `${topic.title} 지난 문제 정답 모아보기`;
+  const pastDesc = `오늘의 ${topic.title} 맞히기의 지난 30일 정답. 오늘 답은 들어 있지 않습니다.`;
   const html = `${head({
-    title: `${topic.title} 지난 문제 정답 모아보기`,
-    desc: `오늘의 ${topic.title} 맞히기의 지난 30일 정답. 오늘 답은 들어 있지 않습니다.`,
+    title: pastTitle,
+    desc: pastDesc,
     url,
     up: '../../',
     image: topic.id,
+    ld: pastLd({
+      name: pastTitle,
+      desc: pastDesc,
+      url,
+      gameName: `오늘의 ${topic.title} 맞히기`,
+      gameUrl: `${SITE}${BASE}/${topic.id}/`,
+    }),
   })}
 <div class="wrap" id="past" data-topic="${esc(topic.id)}" data-stamp="${stamp}" data-data="../../data/${esc(topic.id)}.json">
   <div class="top">
