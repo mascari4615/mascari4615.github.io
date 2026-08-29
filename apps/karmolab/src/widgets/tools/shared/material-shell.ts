@@ -469,6 +469,9 @@ function injectStyles(): void {
 .pf-meta{font-size:12px;opacity:.65;}
 .pf-file .btn{margin-left:auto;}
 .pf-body{display:grid;grid-template-columns:minmax(200px,300px) 1fr;gap:var(--space-lg);align-items:start;}
+/* 미리보기 빈 도구(글 다루는 것들)는 왼쪽 300px 이 통째로 빈칸. 그때는 열 제거 */
+.pf-body:has(#pfPreview:empty){grid-template-columns:1fr;}
+.pf-body:has(#pfPreview:empty) .pf-left{display:none;}
 @media (max-width:720px){.pf-body{grid-template-columns:1fr;}}
 .pf-preview{min-height:120px;}
 .pf-empty{font-size:12px;opacity:.5;}

@@ -2173,6 +2173,15 @@ a.landing-cta-card:hover { color: inherit; }
     margin-bottom: 8px;
     letter-spacing: 0.02em;
 }
+/* 입력칸을 감싼 라벨(<label>이름<input></label>)은 세로 쌓기
+   가로 flex 면 이름이 flex 항목으로 눌려 두 줄로 쪼개짐
+   (jqplay 의 고르는 말 이 고르는 / 말 로 잘림. 1600px 화면 실측) */
+.field-label:has(input, select, textarea, output) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
 /* number, date, url, search 가 빠져 있어서 그 칸들만 브라우저 기본 모양(밝은 배경, 낮은 높이)으로
