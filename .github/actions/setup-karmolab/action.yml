@@ -1,8 +1,8 @@
 name: KarmoLab 짓기 전 채비
 description: >
-  KarmoLab 을 지으려면 늘 같은 것이 먼저 있어야 한다 — 의존 설치와 공용 꾸러미 두 개(@karmo/ai ·
+  KarmoLab 을 지으려면 늘 같은 것이 먼저 있어야 한다. 의존 설치와 공용 꾸러미 두 개(@karmo/ai , 
   badapple)의 dist, 그리고 build 사슬이 무는 @karmo/mcp 의존. 이 목록이 워크플로 네 곳에 각각
-  손으로 적혀 있었고, 한 곳만 고친 값이 실제 사고였다 — badapple 단계가 라이브 점검에만 빠져
+  손으로 적혀 있었고, 한 곳만 고친 값이 실제 사고였다. badapple 단계가 라이브 점검에만 빠져
   **25판 연속 죽었다**(그 주석이 karmolab-live-check.yml 에 남아 있었다). 채비는 한 곳에 둔다.
 
 inputs:
@@ -33,13 +33,13 @@ runs:
 
     # ★ **yawnbot 도 깐다** (2026-08-16 실측). 안 깔았더니 `verify` 의 yawnbot build 조건이
     #   늘 거짓이 되어 **한 번도 안 돌았고**, 그 뒤에 오는 `test:chat`(창 둘이 같은 방에서
-    #   실시간으로 말이 오가나)도 영원히 「못 돌림」이었다. 검사는 있는데 도는 곳이 없었다.
+    #   실시간으로 말이 오가나)도 영원히 못 돌림이었다. 검사는 있는데 도는 곳이 없었다.
     #   여기는 자체 워크스페이스(자기 lockfile)라 루트 설치로는 안 채워진다.
     - name: 의존 설치 (yawnbot 워크스페이스)
       shell: bash
       # ★ **설치가 남의 서버 문을 두드린다** (2026-08-17 실측). `youtube-dl-exec` 는 설치 뒤
       #   GitHub API 로 실행 파일을 받아 오는데, **토큰 없이** 부르면 러너 아이피가 공용이라
-      #   금세 한도에 걸린다("API rate limit exceeded for 20.109.38.176") — 그날 verify 가
+      #   금세 한도에 걸린다("API rate limit exceeded for 20.109.38.176"). 그날 verify 가
       #   우리 코드와 아무 상관없이 빨갰다. 토큰을 주면 한도가 몇 십 배로 올라간다.
       #   그 파일은 **봇이 도는 노트북에서만** 쓰이므로, 검증 판에서는 아예 안 받아도 된다.
       #   둘 다 건다: 토큰(있으면 쓰고) + 검증 판에서는 내려받기 건너뛰기.
@@ -48,10 +48,10 @@ runs:
         YOUTUBE_DL_SKIP_DOWNLOAD: 'true'
       run: cd apps/discord-bots && npm ci --no-audit --no-fund
 
-    # ★ **지어 놓은 것을 또 짓지 않는다** (2026-08-13). 이 채비는 한 판에 여러 번 돈다 —
-    #   verify 두 잡 · 배포 · 라이브 점검 세 조각 · 카모그래프. 꾸러미 셋을 매번 새로 지으면
+    # ★ **지어 놓은 것을 또 짓지 않는다** (2026-08-13). 이 채비는 한 판에 여러 번 돈다 . 
+    #   verify 두 잡, 배포, 라이브 점검 세 조각, 카모그래프. 꾸러미 셋을 매번 새로 지으면
     #   같은 1분을 예닐곱 번 쓴다. 소스가 그대로면 결과도 그대로이므로 **소스 해시로** 재사용한다.
-    #   (해시가 다르면 캐시는 자동으로 안 맞고 그냥 다시 짓는다 — 낡은 dist 를 쓸 위험이 없다.)
+    #   (해시가 다르면 캐시는 자동으로 안 맞고 그냥 다시 짓는다. 낡은 dist 를 쓸 위험이 없다.)
     - name: 공용 꾸러미 dist 캐시
       id: pkgcache
       uses: actions/cache@v4
@@ -65,23 +65,23 @@ runs:
           packages/mcp/node_modules
         key: pkgdist-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('packages/ai/src/**', 'packages/ai/package-lock.json', 'packages/badapple/src/**', 'packages/badapple/package-lock.json', 'packages/mcp/src/**', 'packages/mcp/package-lock.json') }}
 
-    # 앱이 타입으로 무는 공용 꾸러미들 — **지어야 형태가 생긴다**. 새 체크아웃엔 dist 가 없어서
-    # 안 지으면 typecheck 이 「모듈을 못 찾겠다」로 서고, 그 뒤 검사들은 없는 기준과 대조한다.
-    - name: 공용 꾸러미 짓기 (@karmo/ai · badapple)
+    # 앱이 타입으로 무는 공용 꾸러미들. **지어야 형태가 생긴다**. 새 체크아웃엔 dist 가 없어서
+    # 안 지으면 typecheck 이 모듈을 못 찾겠다로 서고, 그 뒤 검사들은 없는 기준과 대조한다.
+    - name: 공용 꾸러미 짓기 (@karmo/ai, badapple)
       if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
-      # 자리를 **또박또박** 적는다 — `cd ../badapple` 처럼 상대로 적으면 사람도 검사도
-      # 「어느 꾸러미를 짓는지」를 못 읽는다(실측: 전제 감사가 badapple 을 못 보고 빨강).
+      # 자리를 **또박또박** 적는다. `cd ../badapple` 처럼 상대로 적으면 사람도 검사도
+      # 어느 꾸러미를 짓는지를 못 읽는다(실측: 전제 감사가 badapple 을 못 보고 빨강).
       run: |
         cd packages/ai && npm ci --no-audit --no-fund && npm run build
         cd "$GITHUB_WORKSPACE/packages/badapple" && npm ci --no-audit --no-fund && npm run build
 
     # build 사슬 안의 test:mcp 가 이 꾸러미의 의존(pdf-lib)을 여기서 찾는다.
-    # 짓기까지 해 둔다 — karmolab build 가 이 dist 를 불러오는 자리가 있다.
-    # ⚠ 따옴표를 벗기지 마라 — `@` 는 YAML 이 **값의 첫 글자로 못 받는** 예약문자다.
-    #   이름 이관(karmolab-mcp → @karmo/mcp)이 이 자리를 맨몸 `@…` 로 만들면서 이 파일이
-    #   통째로 파싱 불가가 됐고, verify 가 **채비 단계에서 즉시 죽었다** — 검사는 한 개도 안 돌았다.
-    - name: '@karmo/mcp 의존 설치·짓기'
+    # 짓기까지 해 둔다. karmolab build 가 이 dist 를 불러오는 자리가 있다.
+    # ⚠ 따옴표를 벗기지 마라. `@` 는 YAML 이 **값의 첫 글자로 못 받는** 예약문자다.
+    #   이름 이관(karmolab-mcp → @karmo/mcp)이 이 자리를 맨몸 `@...` 로 만들면서 이 파일이
+    #   통째로 파싱 불가가 됐고, verify 가 **채비 단계에서 즉시 죽었다**. 검사는 한 개도 안 돌았다.
+    - name: '@karmo/mcp 의존 설치, 짓기'
       if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
       run: cd packages/mcp && npm ci --no-audit --no-fund && npm run build
@@ -96,17 +96,17 @@ runs:
         key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
         restore-keys: playwright-${{ runner.os }}-
 
-    # `--with-deps` 는 apt 로 폰트·라이브러리를 받는다. 그건 위 캐시(브라우저 알맹이)
-    # **밖**이라 미러가 느린 날 그대로 배포 지연이 된다 — 2026-08-19 실측: 이 단계 하나가
+    # `--with-deps` 는 apt 로 폰트, 라이브러리를 받는다. 그건 위 캐시(브라우저 알맹이)
+    # **밖**이라 미러가 느린 날 그대로 배포 지연이 된다. 2026-08-19 실측: 이 단계 하나가
     # 13.9분(폰트 7.5MB 에 1분 27초). 평소는 42초~2분38초라 매 판 문제가 아니라 **꼬리**다.
     # 캐시가 맞으면 브라우저는 이미 있고 러너 이미지에 필요한 라이브러리도 들어 있다 →
     # 그때는 apt 를 아예 안 부른다. 미스일 때만 예전대로 `--with-deps` 로 받는다.
-    - name: 브라우저 준비 (캐시 적중 — apt 안 부른다)
+    - name: 브라우저 준비 (캐시 적중. apt 안 부른다)
       if: inputs.chromium == 'true' && steps.browsercache.outputs.cache-hit == 'true'
       shell: bash
       run: cd apps/karmolab && npx playwright install chromium
 
-    - name: 브라우저 준비 (캐시 미스 — 시스템 꾸러미까지)
+    - name: 브라우저 준비 (캐시 미스. 시스템 꾸러미까지)
       if: inputs.chromium == 'true' && steps.browsercache.outputs.cache-hit != 'true'
       shell: bash
       run: cd apps/karmolab && npx playwright install --with-deps chromium

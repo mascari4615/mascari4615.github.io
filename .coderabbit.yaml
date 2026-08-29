@@ -1,5 +1,5 @@
 # CodeRabbit 설정 - mascari4615.github.io
-# 코드 리뷰 룰의 정본은 CLAUDE.md (레포 루트 + 디렉토리별 sub-CLAUDE.md) — CodeRabbit 이 자동 픽업.
+# 코드 리뷰 룰의 정본은 CLAUDE.md (레포 루트 + 디렉토리별 sub-CLAUDE.md). CodeRabbit 이 자동 픽업.
 # 본 yaml 은 CodeRabbit 자체에 대한 메타 설정만 (path_filters, profile 등).
 # https://docs.coderabbit.ai/knowledge-base/code-guidelines
 

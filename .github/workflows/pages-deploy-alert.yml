@@ -2,29 +2,29 @@
 #
 # 왜: 2026-08-07 15시대에 배포가 세 번 죽었는데 **아무 신호도 안 갔다**. 여섯 세션이 계속
 # 밀어넣는 중이라 다음 푸시가 앞의 실패를 덮었고, 사이트는 옛 판본 그대로 몇십 분을 서 있었다.
-# 아무도 `gh` 로 들여다보지 않으면 알 길이 없다 — 실패는 조용한 게 가장 나쁘다.
+# 아무도 `gh` 로 들여다보지 않으면 알 길이 없다. 실패는 조용한 게 가장 나쁘다.
 #
-# 무엇을 하나: 배포가 끝났을 때 **결과가 실패면** 어디서 죽었는지(작업·단계)와 그 커밋 한 줄을
-# 디스코드로 보낸다. 취소(cancelled)는 안 보낸다 — 뒤 푸시가 앞 배포를 접는 것은 정상이고,
+# 무엇을 하나: 배포가 끝났을 때 **결과가 실패면** 어디서 죽었는지(작업, 단계)와 그 커밋 한 줄을
+# 디스코드로 보낸다. 취소(cancelled)는 안 보낸다. 뒤 푸시가 앞 배포를 접는 것은 정상이고,
 # 그것까지 울리면 알림이 소음이 되어 진짜 빨강을 못 본다.
 #
-# 손으로도 돌릴 수 있다(run_id 를 주면 그 실행을 본다). 기본은 **안 보내고 내용만 찍는다** —
+# 손으로도 돌릴 수 있다(run_id 를 주면 그 실행을 본다). 기본은 **안 보내고 내용만 찍는다** . 
 # 알림 배선이 살아 있는지 확인하려고 남의 채널에 시험 글을 던지지 않으려고.
 #
-# 알림 자리는 이미 있는 것을 쓴다(새 secret 0) — yawnbot 감시가 쓰는 그 webhook.
+# 알림 자리는 이미 있는 것을 쓴다(새 secret 0). yawnbot 감시가 쓰는 그 webhook.
 name: 배포 빨강 알림
 
 on:
   workflow_run:
     # ★ **verify 도 여기서 본다** (2026-08-16). 여태 이 알림은 배포만 봤는데,
     #   2026-08-16 09:23~10:22 에 verify 가 **15판 연속 빨강**이었고 아무 데도 안 울렸다.
-    #   verify 는 main 불변식 단일 게이트다 — 그게 빨간 채로 한 시간을 가면
+    #   verify 는 main 불변식 단일 게이트다. 그게 빨간 채로 한 시간을 가면
     #   그 사이 밀린 커밋 전부가 검증 안 된 것이다. 배포보다 조용히 위험하다.
     workflows: ['Build and Deploy', 'verify']
     types: [completed]
   # **시작도 못 하고 죽은 배포**는 위 이벤트를 안 만든다 (2026-08-08, TASK-KL-128 ㉓).
   # 워크플로 표현식 문법이 틀리면 job 이 0개인 채로 끝나는데, 그러면 `workflow_run` 이
-  # 아예 안 오고 로그도 안 남는다 — 실제로 그렇게 4연속 죽는 동안 알림이 한 번도 안 갔다.
+  # 아예 안 오고 로그도 안 남는다. 실제로 그렇게 4연속 죽는 동안 알림이 한 번도 안 갔다.
   # 그 한 경우만 여기서 따로 훑는다(정상 실패는 위 이벤트가 이미 잡는다).
   schedule:
     - cron: '*/30 * * * *'
@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   alert:
-    # 실패만. 성공·취소·건너뜀은 조용히 지나간다. (손으로 돌릴 때는 언제나 돈다.)
+    # 실패만. 성공, 취소, 건너뜀은 조용히 지나간다. (손으로 돌릴 때는 언제나 돈다.)
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
@@ -59,11 +59,11 @@ jobs:
           RUN_ID="${FROM_EVENT:-$GIVEN}"
           [ -n "$GIVEN" ] && RUN_ID="$GIVEN"
           if [ -z "$RUN_ID" ]; then
-            # 손으로 돌리면서 id 를 안 준 경우 — 가장 최근에 빨갛게 죽은 배포를 본다.
+            # 손으로 돌리면서 id 를 안 준 경우. 가장 최근에 빨갛게 죽은 배포를 본다.
             RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/pages-deploy.yml/runs?status=failure&per_page=1" --jq '.workflow_runs[0].id // empty')
           fi
           if [ -z "$RUN_ID" ]; then
-            echo "::warning::볼 실행이 없다 — 최근 실패한 배포가 없다(좋은 일이다)"
+            echo "::warning::볼 실행이 없다. 최근 실패한 배포가 없다(좋은 일이다)"
             echo "skip=1" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -71,10 +71,10 @@ jobs:
 
           # ★ **빨강이 이어질 때는 처음 한 번만 운다** (2026-08-17 실측).
           #   verify 를 이 알림에 물린 날, 같은 빨강이 이어지며 **9분 동안 여섯 번** 울렸다
-          #   (커밋마다 한 판씩 도니까). 이 파일 스스로 적어 둔 말이 그대로 맞는다 —
-          #   「빨간 게 기본값이 되면 메일은 소음이 되고, 소음이 되면 진짜 회귀도 안 보인다」.
+          #   (커밋마다 한 판씩 도니까). 이 파일 스스로 적어 둔 말이 그대로 맞는다 . 
+          #   빨간 게 기본값이 되면 메일은 소음이 되고, 소음이 되면 진짜 회귀도 안 보인다.
           #   그래서 **직전 판이 이미 빨갰으면 건너뛴다.** 처음 빨개진 순간만 알린다.
-          #   (계속 빨간 것은 gate-health 가 「방치된 검사」로 따로 센다 — 그 자리가 있다.)
+          #   (계속 빨간 것은 gate-health 가 방치된 검사로 따로 센다. 그 자리가 있다.)
           if [ -n "$FROM_EVENT" ] && [ -z "$GIVEN" ]; then
             WF_FILE=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq '.path | split("/") | last' || echo "")
             BRANCH=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq .head_branch || echo "")
@@ -83,7 +83,7 @@ jobs:
                 --jq "[.workflow_runs[] | select(.id != $RUN_ID) | select(.conclusion == \"success\" or .conclusion == \"failure\")][0].conclusion" || echo "")
               echo "직전 판정 = ${PREV:-(모름)}"
               if [ "$PREV" = "failure" ]; then
-                echo "::notice::직전 판도 빨강이었다 — 이어지는 빨강은 한 번만 알린다(여기서 멈춤)"
+                echo "::notice::직전 판도 빨강이었다. 이어지는 빨강은 한 번만 알린다(여기서 멈춤)"
                 echo "skip=1" >> "$GITHUB_OUTPUT"
                 exit 0
               fi
@@ -101,50 +101,50 @@ jobs:
         run: |
           JOBS=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq '.jobs | length' || echo 1)
           if [ "$JOBS" != "0" ]; then
-            echo "::notice::가장 최근 실패는 job $JOBS 개 — 이벤트 쪽이 이미 알린다. 조용히 지나간다."
+            echo "::notice::가장 최근 실패는 job $JOBS 개. 이벤트 쪽이 이미 알린다. 조용히 지나간다."
             echo "skip=1" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: 어디서 죽었는지 · 무슨 커밋인지
+      - name: 어디서 죽었는지, 무슨 커밋인지
         id: what
         if: steps.pick.outputs.skip != '1' && steps.startup.outputs.skip != '1'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ steps.pick.outputs.run_id }}
         run: |
-          # 죽은 작업과 그 안의 죽은 단계 이름. 「빌드가 실패했다」보다 「어느 단계」가 훨씬 빠르다.
+          # 죽은 작업과 그 안의 죽은 단계 이름. 빌드가 실패했다보다 어느 단계가 훨씬 빠르다.
           WHERE=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" \
             --jq '[.jobs[] | select(.conclusion=="failure") | .name + " › " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join(" / ")' \
             || echo '')
-          [ -n "$WHERE" ] || WHERE='(어느 단계인지 못 읽었다 — 실행 기록을 열어 봐라)'
-          # ★ verify 는 **단계가 하나**다 — 「verify › Run verify」라고 말해 봐야 아무것도 안 알려 준다
+          [ -n "$WHERE" ] || WHERE='(어느 단계인지 못 읽었다. 실행 기록을 열어 봐라)'
+          # ★ verify 는 **단계가 하나**다. verify › Run verify라고 말해 봐야 아무것도 안 알려 준다
           #   (2026-08-16 실측 dry-run). 정작 알고 싶은 건 **어느 검사**가 빨간지고,
           #   verify.mjs 가 그걸 `[verify] X <이름> 실패 (exit N)` 로 이미 찍고 있다. 그 줄을 들고 온다.
           WF_NAME=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" --jq .name || echo '')
           if [ "$WF_NAME" = "verify" ]; then
             LOG=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>&1 || true)
             # ★ `--repo` 가 있어야 한다 (2026-08-16, 진단 한 줄로 잡았다). 이 잡은 저장소를
-            #   체크아웃하지 않는데 `gh run view` 는 자리(git)에서 저장소를 알아내려 한다 —
-            #   그래서 「failed to determine base repo … not a git repository」로 118 바이트만 오고
+            #   체크아웃하지 않는데 `gh run view` 는 자리(git)에서 저장소를 알아내려 한다 . 
+            #   그래서 failed to determine base repo ... not a git repository로 118 바이트만 오고
             #   줄을 못 찾은 채 조용히 지나갔다. 진단 줄은 남겨 둔다: 다음에 또 비면 왜인지 바로 보인다.
-            # 가설 박지 말고 재라 — 로그가 아예 안 온 건지, 왔는데 줄이 없는 건지.
-            echo "[진단] 실패 로그 ${#LOG} 바이트 · 첫 줄: $(printf %s "$LOG" | head -1 | cut -c1-140)"
-            GATES=$(printf %s "$LOG"               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd' · ' -)
-            # 못 읽으면 **그렇다고 말한다** — 조용히 옛 문구로 돌아가면
-            # 「고쳤는데 왜 그대로지」로 사람을 헤매게 한다(2026-08-16 실제로 그랬다:
+            # 가설 박지 말고 재라. 로그가 아예 안 온 건지, 왔는데 줄이 없는 건지.
+            echo "[진단] 실패 로그 ${#LOG} 바이트, 첫 줄: $(printf %s "$LOG" | head -1 | cut -c1-140)"
+            GATES=$(printf %s "$LOG"               | grep -oE '\[verify\] X .*실패 \(exit [0-9?]+\)' | sed 's/^\[verify\] X //' | sort -u | head -5 | paste -sd', ' -)
+            # 못 읽으면 **그렇다고 말한다**. 조용히 옛 문구로 돌아가면
+            # 고쳤는데 왜 그대로지로 사람을 헤매게 한다(2026-08-16 실제로 그랬다:
             # 로컬에선 뽑히는데 CI 에서만 빈 채로 지나가 두 판을 헛돌았다).
             if [ -n "$GATES" ]; then
               WHERE="$GATES"
             elif printf %s "$WHERE" | grep -q "Run verify"; then
-              # 단계 이름이 「verify › Run verify」뿐이라 아무것도 안 알려 준다 — 그때만 사유를 붙인다.
-              WHERE="$WHERE (어느 검사인지 못 읽었다 — 실패 로그에서 verify 줄을 못 찾았다)"
+              # 단계 이름이 verify › Run verify뿐이라 아무것도 안 알려 준다. 그때만 사유를 붙인다.
+              WHERE="$WHERE (어느 검사인지 못 읽었다. 실패 로그에서 verify 줄을 못 찾았다)"
             fi
             # ★ **단계 이름이 이미 말해 주면 잠자코 있는다** (2026-08-17 실측).
             #   앞 판에서 진짜 빨강은 `Typos check (다시)` 단계였다. verify.mjs 안에서 죽은 게
-            #   아니니 그 줄이 없는 게 당연한데, 알림은 「어느 검사인지 못 읽었다」를 덧붙였다 —
+            #   아니니 그 줄이 없는 게 당연한데, 알림은 어느 검사인지 못 읽었다를 덧붙였다 . 
             #   멀쩡히 이름이 적혀 있는데 못 읽었다고 말하면 그 말 자체가 잡음이 된다.
           fi
-          # 커밋 메시지는 첫 줄만 — 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
+          # 커밋 메시지는 첫 줄만. 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
           gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" \
             --jq '{title: (.head_commit.message | split("\n")[0]), sha: .head_sha[0:8], who: .head_commit.author.name, url: .html_url, wf: .name}' > run.json
           {
@@ -168,13 +168,13 @@ jobs:
           RUN_URL: ${{ steps.what.outputs.url }}
           WF: ${{ steps.what.outputs.wf }}
         run: |
-          # 무엇이 죽었는지에 따라 말이 달라야 한다 — 「사이트가 옛 판본 그대로다」는
-          # 배포에만 맞는 말이고, verify 가 빨간 것은 「이 커밋이 검증 안 됐다」는 뜻이다.
+          # 무엇이 죽었는지에 따라 말이 달라야 한다. 사이트가 옛 판본 그대로다는
+          # 배포에만 맞는 말이고, verify 가 빨간 것은 이 커밋이 검증 안 됐다는 뜻이다.
           if [ "$WF" = "verify" ]; then
             HEAD_TITLE="main 불변식(verify)이 빨갛다"
             TAIL="고칠 때까지 이 커밋과 그 뒤 커밋들은 검증 안 된 상태다."
           else
-            HEAD_TITLE="블로그·KarmoLab 배포가 죽었다"
+            HEAD_TITLE="블로그, KarmoLab 배포가 죽었다"
             TAIL="고칠 때까지 사이트는 옛 판본 그대로다."
           fi
           PAYLOAD=$(jq -nc \
@@ -189,18 +189,18 @@ jobs:
               username: "빨강 감시",
               embeds: [{
                 title: $head_title,
-                description: ("죽은 자리: " + $where + "\n커밋: " + $title + " (" + $sha + " · " + $who + ")\n\n" + $tail),
+                description: ("죽은 자리: " + $where + "\n커밋: " + $title + " (" + $sha + ", " + $who + ")\n\n" + $tail),
                 color: 15158332,
                 fields: [{ name: "실행 기록", value: $run_url, inline: false }]
               }]
             }')
           echo "보낼 내용:"; echo "$PAYLOAD" | jq -r '.embeds[0].description'
           if [ "$DRY" = "true" ]; then
-            echo "::notice::시험 실행 — 보내지 않았다 (배선은 여기까지 살아 있다)"
+            echo "::notice::시험 실행. 보내지 않았다 (배선은 여기까지 살아 있다)"
             exit 0
           fi
           if [ -z "$ALERT_WEBHOOK" ]; then
-            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정 — 알림 건너뜀 (실패 자체는 위 기록에 남는다)"
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정. 알림 건너뜀 (실패 자체는 위 기록에 남는다)"
             exit 0
           fi
           curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"

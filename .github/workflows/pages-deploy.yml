@@ -17,7 +17,7 @@ on:
       - packages/ai/**
       - packages/badapple/**
       - .github/workflows/pages-deploy.yml
-      # 이 워크플로가 <b>부르는 스크립트</b>도 방아쇠에 넣는다 — 이 파일만 고치면 검사가 안 돈다.
+      # 이 워크플로가 <b>부르는 스크립트</b>도 방아쇠에 넣는다. 이 파일만 고치면 검사가 안 돈다.
       - scripts/indexnow-submit.mjs
       - scripts/audit-sitemap-lastmod.mjs
 
@@ -29,13 +29,13 @@ permissions:
   pages: write
   id-token: write
 
-# 배포는 한 번에 하나. 단 **돌던 것을 끊지 않는다** —
+# 배포는 한 번에 하나. 단 **돌던 것을 끊지 않는다** . 
 # 여러 세션이 몇 분 간격으로 밀어 넣는데 배포가 5~10분이라, 끊는 설정에서는
 # 배포가 끝까지 가는 일 자체가 드물었다 (실측: 연속 3건이 완주 못 하고 취소).
 # 끊지 않으면 돌던 것은 끝나고, 대기 중이던 것만 최신 것으로 교체된다.
 # ★ 손으로 부른 배포는 **줄 뒤로 밀려 지워지지 않게** 따로 선다 (2026-08-12).
-#   한 그룹에 두면 깃허브가 기다리는 것 하나만 남기므로, 「지금 올려 보자」고 부른 판이
-#   다음 push 에 조용히 취소됐다(실측). 겹침 방지는 그대로다 — push 레인은 여전히 하나.
+#   한 그룹에 두면 깃허브가 기다리는 것 하나만 남기므로, 지금 올려 보자고 부른 판이
+#   다음 push 에 조용히 취소됐다(실측). 겹침 방지는 그대로다. push 레인은 여전히 하나.
 concurrency:
   group: pages-${{ github.event_name == 'workflow_dispatch' && 'manual' || 'auto' }}
   cancel-in-progress: false
@@ -47,16 +47,16 @@ jobs:
   # (`cancel-in-progress: false`), 다섯 번 push 하면 5분짜리 배포가 **다섯 번 차례로** 돈다.
   # 앞의 넷은 어차피 최신 판을 짓지도 않는데 뒤에 온 사람의 차례를 밀어낸다.
   #
-  # 겹침은 위의 `concurrency: pages` 하나로 충분하다 — 돌던 것은 끝까지 가고, 대기는 최신
+  # 겹침은 위의 `concurrency: pages` 하나로 충분하다. 돌던 것은 끝까지 가고, 대기는 최신
   # 하나만 남는다(깃허브가 오래된 대기를 스스로 지운다).
   #
-  # ⚠ 예전에 그 위에 「시작할 때 내가 최신인지 묻고 아니면 비킨다」(tip 잡)를 얹었다가
+  # ⚠ 예전에 그 위에 시작할 때 내가 최신인지 묻고 아니면 비킨다(tip 잡)를 얹었다가
   # **배포가 통째로 멈췄다** (2026-08-09 실측). 세션 여섯이 3분 간격으로 밀어서 **아무도 최신이
-  # 못 됐고**, 그래서 모든 실행이 「성공」인데 build 는 skipped 였다 — 최근 성공 5건 전부
+  # 못 됐고**, 그래서 모든 실행이 성공인데 build 는 skipped 였다. 최근 성공 5건 전부
   # 그랬다. 실제로 올라간 판은 하루 종일 0. 로그는 초록이라 아무도 몰랐다.
   #
-  # 「비키기」는 **누군가는 남는다**는 전제가 있어야 성립한다. 밀어대는 속도가 빌드보다 빠르면
-  # 그 전제가 깨지고 전원이 비킨다. 그래서 뺐다 — 겹침 관리는 concurrency 한 곳에서만.
+  # 비키기는 **누군가는 남는다**는 전제가 있어야 성립한다. 밀어대는 속도가 빌드보다 빠르면
+  # 그 전제가 깨지고 전원이 비킨다. 그래서 뺐다. 겹침 관리는 concurrency 한 곳에서만.
 
   build:
     runs-on: ubuntu-latest
@@ -65,26 +65,26 @@ jobs:
       HUSKY: "0"
 
     steps:
-      # 예전에 여기 「3분 기다렸다 시작」 + 「기다리는 중이면 새 push 가 취소」가 있었다.
-      # 겹치는 배포를 없애려던 것인데, 세션이 여섯이라 **3분이 한 번도 안 닫혔다** —
+      # 예전에 여기 3분 기다렸다 시작 + 기다리는 중이면 새 push 가 취소가 있었다.
+      # 겹치는 배포를 없애려던 것인데, 세션이 여섯이라 **3분이 한 번도 안 닫혔다** . 
       # 기다리다 취소되고, 새 것이 다시 3분을 기다리고, 그 사이 또 push 가 온다.
-      # 실측(2026-08-08): 40건 중 취소 22 · 성공 3, 취소된 것의 **21건이 200초를 못 넘겼고
+      # 실측(2026-08-08): 40건 중 취소 22, 성공 3, 취소된 것의 **21건이 200초를 못 넘겼고
       # 중앙값이 39초**였다. 내 번들이 한 시간 넘게 실사이트에 못 나갔다.
       #
-      # 겹침을 막는 일은 위(run 단위) `concurrency: pages` 가 이미 한다 — 돌던 것은 끝까지
+      # 겹침을 막는 일은 위(run 단위) `concurrency: pages` 가 이미 한다. 돌던 것은 끝까지
       # 가고, 대기는 **최신 하나만** 남는다(깃허브가 오래된 대기를 스스로 지운다).
       # 그래서 여기서 또 기다릴 이유가 없고, 기다리면 굶는다.
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          # submodules 는 컷오버로 끝 — 유일 서브모듈이 chirpy-static-assets(assets/lib) 였다.
+          # submodules 는 컷오버로 끝. 유일 서브모듈이 chirpy-static-assets(assets/lib) 였다.
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
-      # Setup Ruby 는 Node 조립기 전환으로 소멸 (change.blog-finish ①) — 사이트에 Ruby 0.
+      # Setup Ruby 는 Node 조립기 전환으로 소멸 (change.blog-finish ①). 사이트에 Ruby 0.
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -93,17 +93,17 @@ jobs:
           cache: npm
           cache-dependency-path: apps/karmolab/package-lock.json
 
-      # Chirpy 테마 빌드(npm ci·build·build:graph)는 컷오버로 제거 (change.blog-cutover).
-      # 글 렌더 = 아래 gen-post-pages · post graph = 추적된 스냅샷(assets/js/data/post-graph.json,
-      # postgraph 위젯이 읽음 — 재생성 경로는 graph 이식 Change 에서 재설계).
+      # Chirpy 테마 빌드(npm ci, build, build:graph)는 컷오버로 제거 (change.blog-cutover).
+      # 글 렌더 = 아래 gen-post-pages, post graph = 추적된 스냅샷(assets/js/data/post-graph.json,
+      # postgraph 위젯이 읽음. 재생성 경로는 graph 이식 Change 에서 재설계).
 
       # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
-      #   @karmo/ai · badapple · @karmo/mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
+      #   @karmo/ai, badapple, @karmo/mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 . 
       #   mcp 설치가 이 배포 잡에만 빠져 **7월 중순부터 배포가 계속 섰고**(실주소 28일 정체),
       #   badapple 이 라이브 점검에만 빠져 25판 연속 죽었다. 목록이 하나면 그 사고가 안 난다.
-      #   (badapple 은 이제 잠금 파일이 있어 `npm ci` 로 지어진다 — 옛 주석의 전제는 끝났다.)
-      # 브라우저는 **여기서** 받는다 — 채비 action 이 잠금파일로 캐시를 태운다(찬 캐시 54초 → 더운 캐시 몇 초).
-      # 뒤 「미리 그리기」 단계가 따로 `npx playwright install` 을 부르던 것을 여기로 합쳤다.
+      #   (badapple 은 이제 잠금 파일이 있어 `npm ci` 로 지어진다. 옛 주석의 전제는 끝났다.)
+      # 브라우저는 **여기서** 받는다. 채비 action 이 잠금파일로 캐시를 태운다(찬 캐시 54초 → 더운 캐시 몇 초).
+      # 뒤 미리 그리기 단계가 따로 `npx playwright install` 을 부르던 것을 여기로 합쳤다.
       - uses: ./.github/actions/setup-karmolab
         with:
           node-version: '20'
@@ -111,36 +111,36 @@ jobs:
 
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
-        # `npm run build` 안에는 **화면을 실제로 열어 보는 검사**가 여럿 있다(글판 마크다운·성능
-        # 예산·커버리지·뒷정리 …). `npm ci` 는 playwright 꾸러미만 깔고 **브라우저는 안 깐다** —
-        # 그래서 배포 잡에서 「Executable doesn't exist」로 통째로 섰다(2026-08-09 실측).
-        # 검사 쪽에도 관문을 뒀지만(없으면 「못 돌림」으로 빠진다) 관문 없는 남의 검사가 더 많고,
-        # 무엇보다 **여기서는 실제로 재는 편이 맞다** — 배포 직전이 마지막 그물이다.
+        # `npm run build` 안에는 **화면을 실제로 열어 보는 검사**가 여럿 있다(글판 마크다운, 성능
+        # 예산, 커버리지, 뒷정리 ...). `npm ci` 는 playwright 꾸러미만 깔고 **브라우저는 안 깐다** . 
+        # 그래서 배포 잡에서 Executable doesn't exist로 통째로 섰다(2026-08-09 실측).
+        # 검사 쪽에도 관문을 뒀지만(없으면 못 돌림으로 빠진다) 관문 없는 남의 검사가 더 많고,
+        # 무엇보다 **여기서는 실제로 재는 편이 맞다**. 배포 직전이 마지막 그물이다.
         # ★ **배포는 찍어 올리는 일이다** (2026-08-12). 여기서 `npm run build` 를 부르면
-        #   28단계 중 16단계가 검사다 — 브라우저까지 깔아 도구 시험을 돌린다. 그래서
+        #   28단계 중 16단계가 검사다. 브라우저까지 깔아 도구 시험을 돌린다. 그래서
         #   ① 배포가 오래 걸리고 ② 검사 하나가 빨개지면 **고친 화면이 사람에게 안 나간다**.
         #   검증은 `verify` 가 같은 커밋에서 이미 전부 돌린다(그쪽이 main invariant 정본).
-        #   배포는 산출물만 찍는다 — 브라우저도 필요 없다.
-        # `npm ci` 는 위 채비 action 이 이미 했다 — 여기서 또 부르면 같은 설치를 두 번 한다.
+        #   배포는 산출물만 찍는다. 브라우저도 필요 없다.
+        # `npm ci` 는 위 채비 action 이 이미 했다. 여기서 또 부르면 같은 설치를 두 번 한다.
         run: npm run build:artifacts
-        # 플래너의 구글 연동 클라이언트 id — 비밀이 아니라 **사람마다 다른 값**이라 여기서 넣는다
+        # 플래너의 구글 연동 클라이언트 id. 비밀이 아니라 **사람마다 다른 값**이라 여기서 넣는다
         # (TASK-KL-321, 예전에는 걷어 낸 React 앱 빌드가 같은 값을 받고 있었다).
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
       # 앱 셸이 **뿌리**에 앉는다 (change.karmolab-at-root ②).
-      # 아래 「Generate blog pages」 는 글 장을 apps/blog/posts/ 에 쓴다 — 여기를 덮지 않는다.
+      # 아래 Generate blog pages 는 글 장을 apps/blog/posts/ 에 쓴다. 여기를 덮지 않는다.
       - name: Prepare KarmoLab root page
         run: cp apps/karmolab/index.html apps/blog/index.html
 
-      # TASK-KL-129: 봇 소개(/bot/)·프로필(/u/)을 **앱 셸에 얹어** 찍는다.
-      # 예전에는 원본을 그대로 복사했다 — 그러면 도구를 쓰다 그리로 갈 때 머리띠도 옆줄도
+      # TASK-KL-129: 봇 소개(/bot/), 프로필(/u/)을 **앱 셸에 얹어** 찍는다.
+      # 예전에는 원본을 그대로 복사했다. 그러면 도구를 쓰다 그리로 갈 때 머리띠도 옆줄도
       # 테마 단추도 ⌘K 도 없는 다른 집으로 떨어졌다. 내용의 주인은 여전히 원본 문서다.
-      - name: Generate KarmoLab shell pages (bot · profile)
+      - name: Generate KarmoLab shell pages (bot, profile)
         working-directory: apps/karmolab
         run: npm run gen:shell-pages
 
-      # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
+      # TASK-KAR-202: 오늘의 하나 맞히기(/daily/). 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
       - name: Build daily guess game
         working-directory: apps/daily
@@ -150,11 +150,11 @@ jobs:
           mkdir -p apps/blog/daily
           cp -r apps/daily/dist/. apps/blog/daily/
 
-      # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」·「오늘의 문제」는 KarmoLab 앱 안으로 들어갔다
-      # (`/#higher` · `/#quest`). 알맹이(위젯 js·문제 표)는 앱 빌드와
-      # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 —
+      # TASK-KL-089: 놀이 둘. 높은 쪽 고르기, 오늘의 문제는 KarmoLab 앱 안으로 들어갔다
+      # (`/#higher`, `/#quest`). 알맹이(위젯 js, 문제 표)는 앱 빌드와
+      # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 . 
       # 두 파일 다 새 자리로 넘겨보내는 한 장짜리다.
-      # 조각 목록은 **손으로 적지 않는다** — `collect-web.mjs` 가 화면의 import 를 따라간다.
+      # 조각 목록은 **손으로 적지 않는다**. `collect-web.mjs` 가 화면의 import 를 따라간다.
       # 손으로 적던 동안 새 모듈(src/gallery.mjs)이 빠져 액자 보기가 통째로 404 였다 (2026-08-29).
       - name: Prepare files app
         run: |
@@ -172,14 +172,14 @@ jobs:
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
       # TASK-KL-098: 커뮤니티 글의 정적 페이지(/c/<글id>/).
       # 화면이 스크립트로 그리는 글은 검색엔진이 못 읽어 **하나도 색인되지 않는다**.
-      # 서버(노트북)에 못 닿으면 그냥 건너뛴다 — 노트북이 꺼졌다고 사이트 배포가 막히면 안 된다.
+      # 서버(노트북)에 못 닿으면 그냥 건너뛴다. 노트북이 꺼졌다고 사이트 배포가 막히면 안 된다.
       - name: Generate KarmoLab community pages
         working-directory: apps/karmolab
         run: npm run gen:community
 
-      # TASK-KL-151 ⑪: 놀이마다 한 장씩 — 놀이는 앱 안 해시로만 살아서 검색에 걸릴 글이
-      # 한 줄도 없었다. 사람은 「놀이터」가 아니라 「이상형 월드컵」으로 검색한다.
-      # TASK-KL-151 ⑬: 「도구 월드컵」 표를 굽는다 — 남의 그림을 퍼다 심지 않으려고
+      # TASK-KL-151 ⑪: 놀이마다 한 장씩. 놀이는 앱 안 해시로만 살아서 검색에 걸릴 글이
+      # 한 줄도 없었다. 사람은 놀이터가 아니라 이상형 월드컵으로 검색한다.
+      # TASK-KL-151 ⑬: 도구 월드컵 표를 굽는다. 남의 그림을 퍼다 심지 않으려고
       # **우리가 구운** 도구 공유 카드로만 만든다. 봇이 뜰 때 이 파일을 씨앗 표로 심는다.
       - name: Generate KarmoLab tools worldcup table
         working-directory: apps/karmolab
@@ -193,11 +193,11 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:tool-pages
 
-      # 블로그 = KarmoLab 파이프 산출 (change.blog-cutover — Chirpy 철거 완료).
+      # 블로그 = KarmoLab 파이프 산출 (change.blog-cutover. Chirpy 철거 완료).
       # 글 정본 = apps/karmolab/content/{posts,drafts,about.md} (git). gen-post-pages 가
-      # 상세 328장 + `/`·`/posts/` 목록 + `/about/` + `/feed.xml` + `/404.html` 을 굽고,
-      # 여기서 apps/blog 로 복사하면 Jekyll 이 front matter(permalink·lastmod)만 처리해 싣는다.
-      # `data/posts-index.json`(공개 글만)은 아래 rsync 로 실려 커뮤니티 「글」 탭이 읽는다.
+      # 상세 328장 + `/`, `/posts/` 목록 + `/about/` + `/feed.xml` + `/404.html` 을 굽고,
+      # 여기서 apps/blog 로 복사하면 Jekyll 이 front matter(permalink, lastmod)만 처리해 싣는다.
+      # `data/posts-index.json`(공개 글만)은 아래 rsync 로 실려 커뮤니티 글 탭이 읽는다.
       - name: Generate blog pages (posts, home, about, feed)
         working-directory: apps/karmolab
         run: |
@@ -209,26 +209,26 @@ jobs:
           cp content/pages/feed.xml ../blog/feed.xml
           cp content/pages/404.html ../blog/404.html
 
-      # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다 — 스크립트 없이도 도구가 보인다.
+      # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다. 스크립트 없이도 도구가 보인다.
       # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄우고, 그 화면을 열 브라우저를 받는다.
       #
       # 2026-08-08: 이 단계는 **한 번도 실제로 돈 적이 없다**. 브라우저를 안 받아 둬서
       # `browserType.launch: Executable doesn't exist` 로 죽었는데 `|| true` 가 그걸 삼켰다.
-      # 그래서 로컬에는 129장이 다 박혀 있는데 실제 사이트는 0장이었다 — 배포는 내내 초록.
+      # 그래서 로컬에는 129장이 다 박혀 있는데 실제 사이트는 0장이었다. 배포는 내내 초록.
       # 이제 브라우저를 명시적으로 받고, 실패는 배포를 세운다(조용히 넘어가는 길 없음).
-      # (브라우저는 위 「Build KarmoLab JavaScript」 단계에서 이미 받았다 — 그 단계의 검사들도
+      # (브라우저는 위 Build KarmoLab JavaScript 단계에서 이미 받았다. 그 단계의 검사들도
       #  브라우저가 있어야 돌기 때문이다. 여기서 또 받을 필요 없다.)
 
-      # 2026-08-12: 브라우저를 여기서 받는다. 앞 단계가 「산출물만 찍는다」로 바뀌면서 설치가
+      # 2026-08-12: 브라우저를 여기서 받는다. 앞 단계가 산출물만 찍는다로 바뀌면서 설치가
       # 같이 사라졌고, 배포가 이 자리에서 Executable doesn't exist 로 섰다.
 
       - name: Prerender KarmoLab tool pages
         # ★ **한 단계가 멈추면 판 전체가 45분을 태운다** (2026-08-17 실측). 자물쇠 지문이
         #   어긋나 도구 장이 안 뜨자 이 단계가 18분째 서 있었고, 그동안 **뒤에 온 배포가 전부
-        #   취소**돼 실사이트가 한 시간 가까이 옛 판이었다. 잰 값은 50초 — 8분이면 열 배 여유다.
+        #   취소**돼 실사이트가 한 시간 가까이 옛 판이었다. 잰 값은 50초. 8분이면 열 배 여유다.
         timeout-minutes: 8
         working-directory: apps/karmolab
-        # 브라우저는 채비 action 이 캐시로 깔았다 — 여기서 또 받으면 캐시를 안 타고 매번 54초.
+        # 브라우저는 채비 action 이 캐시로 깔았다. 여기서 또 받으면 캐시를 안 타고 매번 54초.
         run: |
           npm run serve:gzip &
           for i in $(seq 1 30); do
@@ -237,55 +237,55 @@ jobs:
           done
           npm run prerender
           # 첫 화면도 같은 서버가 떠 있는 동안 미리 그린다 (TASK-KL-201).
-          # 지금 값이 들어가는 칸(오늘의 판·쓰임·같이 보는 중)은 **비운 채 자리만** 박는다 —
+          # 지금 값이 들어가는 칸(오늘의 판, 쓰임, 같이 보는 중)은 **비운 채 자리만** 박는다 . 
           # 어제 숫자를 먼저 보여 주는 것보다 빈 자리가 낫다. 자세한 이유는 스크립트 머리말.
           npm run prerender:home
-          # 박은 것이 「브라우저가 처음 만들 그것」과 같은지 파일만 보고 확인(브라우저 불요).
+          # 박은 것이 브라우저가 처음 만들 그것과 같은지 파일만 보고 확인(브라우저 불요).
           node scripts/audit-prerender-home.mjs
           kill %1 || true
 
       # 도구 장의 **언어 판** (TASK-KL-203). 반드시 이 자리다:
-      #  - `gen:tool-pages` 와 `prerender` **뒤** — 한국어 장을 입력으로 받아 옮기므로,
+      #  - `gen:tool-pages` 와 `prerender` **뒤**. 한국어 장을 입력으로 받아 옮기므로,
       #    앞에서 돌면 볼 것이 없어 조용히 0장을 찍는다(로컬엔 지난 산출물이 남아 초록으로 보인다).
-      #  - `stamp` **앞** — 파일 이름에 지문을 박는 단계가 언어 장까지 함께 손봐야 한다.
-      # 검사도 여기서 같이 돈다 — `npm run build` 안의 같은 검사는 장이 생기기 전이라 건너뛴다.
+      #  - `stamp` **앞**. 파일 이름에 지문을 박는 단계가 언어 장까지 함께 손봐야 한다.
+      # 검사도 여기서 같이 돈다. `npm run build` 안의 같은 검사는 장이 생기기 전이라 건너뛴다.
       - name: Generate KarmoLab tool pages (other languages)
         working-directory: apps/karmolab
         run: |
           npm run gen:tool-pages-locale
           npm run test:i18n:pages
-          # 브라우저를 쓰는 검사는 **여기서** 돈다 — 앞쪽 `npm run build` 자리에는 아직 브라우저가
-          # 없어서 거기서는 스스로 「못 돈다」고 말하고 비킨다(TASK-KL-203 S17). 실제로 보는 곳은 여기.
+          # 브라우저를 쓰는 검사는 **여기서** 돈다. 앞쪽 `npm run build` 자리에는 아직 브라우저가
+          # 없어서 거기서는 스스로 못 돈다고 말하고 비킨다(TASK-KL-203 S17). 실제로 보는 곳은 여기.
           #
           # ★ `test:widget-i18n` 은 **여기서 뺐다** (2026-08-16 실측, TASK-KAR-217).
-          #   한 판에 **4분 32초** — 이 배포 전체(8분)의 절반이 넘었다. 그런데 그 검사는
+          #   한 판에 **4분 32초**. 이 배포 전체(8분)의 절반이 넘었다. 그런데 그 검사는
           #   **구조적으로 배포를 못 막는다**: 대상 목록에서 원본 언어(ko)를 빼고 도는데
-          #   (`smoke-widget-i18n.mjs` 57행) 막는 조건은 「ko/ 로 시작하는 실패」다(220행) —
-          #   맞을 수가 없다. 즉 배포를 4분 반 세우고 내는 것은 늘 「경고(막지 않음)」뿐이었다.
+          #   (`smoke-widget-i18n.mjs` 57행) 막는 조건은 ko/ 로 시작하는 실패다(220행) . 
+          #   맞을 수가 없다. 즉 배포를 4분 반 세우고 내는 것은 늘 경고(막지 않음)뿐이었다.
           #   **막지 못하는 검사는 배포 길에 설 이유가 없다.** 두 시간마다 도는 라이브 점검으로
-          #   옮겼다(`scripts/live-checks.mjs`) — 판정은 그대로 나오고 배포만 빨라진다.
+          #   옮겼다(`scripts/live-checks.mjs`). 판정은 그대로 나오고 배포만 빨라진다.
           npm run test:region
           npm run test:lang
 
-      # TASK-KL-128 ②③: 화면을 옮기는 길이 실제로 빠른가 (미리 실행·이어 붙이기·뒤로 가기).
+      # TASK-KL-128 ②③: 화면을 옮기는 길이 실제로 빠른가 (미리 실행, 이어 붙이기, 뒤로 가기).
       #
       # 2026-08-08: 이 검사가 `npm run build` 안에 있어서 **도구 페이지가 만들어지기도 전에**
-      # 돌았다. 볼 화면이 없으니 늘 「링크를 못 찾았다」로 죽었고, 그 한 줄이 사이트 배포를
+      # 돌았다. 볼 화면이 없으니 늘 링크를 못 찾았다로 죽었고, 그 한 줄이 사이트 배포를
       # 통째로 세웠다(로컬은 지난 빌드 산출물이 남아 있어 초록이었다).
-      # 이제 도구 페이지를 다 찍은 **뒤에** 돈다 — 재는 대상이 실제로 있는 자리.
-      - name: Check KarmoLab navigation (prerender · view transitions · bfcache)
+      # 이제 도구 페이지를 다 찍은 **뒤에** 돈다. 재는 대상이 실제로 있는 자리.
+      - name: Check KarmoLab navigation (prerender, view transitions, bfcache)
         working-directory: apps/karmolab
         run: npm run test:navigation
 
       # TASK-KL-128: 파일 이름에 내용 지문을 박고, 찍어 둔 화면들이 그 이름을 부르게 바꾼다.
-      # 그래야 서비스 워커가 「한 번 받은 것은 영원히 그대로」로 둘 수 있다(재방문 = 네트워크 0).
-      # 도구 페이지를 다 찍은 **뒤**에 돌아야 한다 — 바꿀 화면이 그때 생긴다.
+      # 그래야 서비스 워커가 한 번 받은 것은 영원히 그대로로 둘 수 있다(재방문 = 네트워크 0).
+      # 도구 페이지를 다 찍은 **뒤**에 돌아야 한다. 바꿀 화면이 그때 생긴다.
       - name: Stamp KarmoLab assets with content hashes
         working-directory: apps/karmolab
         run: npm run stamp
 
-      # 관문은 도구 페이지가 만들어진 **뒤에** 만든다 — 놀이가 그 페이지로 가므로,
-      # 먼저 돌면 「그 자리에 파일이 없다」고 옳게 멈춘다(실제로 그렇게 배포가 섰다).
+      # 관문은 도구 페이지가 만들어진 **뒤에** 만든다. 놀이가 그 페이지로 가므로,
+      # 먼저 돌면 그 자리에 파일이 없다고 옳게 멈춘다(실제로 그렇게 배포가 섰다).
       - name: Build playground hub
         run: node apps/play/scripts/build.mjs
       - name: Copy playground hub
@@ -293,27 +293,27 @@ jobs:
           mkdir -p apps/blog/play
           cp apps/play/index.html apps/blog/play/index.html
 
-      # Jekyll → Node 조립기 (change.blog-finish ①). 로컬 검증 = Jekyll 산출과 트리 diff 0 ·
-      # sitemap 388/388 동일 · lastmod·CSP 감사 초록. Ruby 는 이 저장소에서 소멸.
+      # Jekyll → Node 조립기 (change.blog-finish ①). 로컬 검증 = Jekyll 산출과 트리 diff 0 , 
+      # sitemap 388/388 동일, lastmod, CSP 감사 초록. Ruby 는 이 저장소에서 소멸.
       - name: Build site
         working-directory: apps/blog
         run: node ../karmolab/scripts/assemble-site.mjs --site . --out "_site${{ steps.pages.outputs.base_path }}"
 
-      # 사이트맵은 **지어져야만 존재한다** — 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
+      # 사이트맵은 **지어져야만 존재한다**. 미는 자리에서는 못 본다. 그래서 여기가 유일한 자리다.
       # 날짜가 빠지면 크롤러가 다시 올지 못 정하고, IndexNow 알림에서도 통째로 빠진다.
-      # 2026-08-16 실측 — 905개 중 70개(태그·분류 장)가 그렇게 빠져 있었고 전부 초록이었다.
+      # 2026-08-16 실측. 905개 중 70개(태그, 분류 장)가 그렇게 빠져 있었고 전부 초록이었다.
       - name: Audit sitemap lastmod
         run: node scripts/audit-sitemap-lastmod.mjs "apps/blog/_site${{ steps.pages.outputs.base_path }}"
 
       # 글 속 사진 743MB 를 배포 꾸러미에서 뺀다. Pages 는 사이트 전체를 매번 통째로 올려 펼치므로,
-      # 도구 파일 한 줄만 고쳐도 이 무게를 다시 물었다 — 배포 단계가 5분 → 10분 → 타임아웃으로 늘었다.
+      # 도구 파일 한 줄만 고쳐도 이 무게를 다시 물었다. 배포 단계가 5분 → 10분 → 타임아웃으로 늘었다.
       # 사진은 `_config.yml` 의 cdn 주소(img.mascari4615.com)에서 나오므로 결과물에 있을 이유가 없다.
       # 저장소 원본은 그대로다. 되돌리려면 이 단계만 지우고 cdn 을 비우면 된다.
-      # exclude 로는 안 된다 — 이 저장소가 자기 테마라 사진이 테마 파일로 복사된다(_config.yml 참고).
+      # exclude 로는 안 된다. 이 저장소가 자기 테마라 사진이 테마 파일로 복사된다(_config.yml 참고).
       - name: Drop post images from artifact (served from R2)
         run: |
           SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
-          # 빼기 전에, 화면이 아직 옛 경로를 가리키는 곳이 없는지 본다. 실제로 한 건 있었다 —
+          # 빼기 전에, 화면이 아직 옛 경로를 가리키는 곳이 없는지 본다. 실제로 한 건 있었다 . 
           # 글에 슬래시가 두 번 찍힌 오타가 있으면 테마가 외부 주소로 착각해 사진 주소를 안 붙이고,
           # 그 사진만 조용히 깨진다. 200 응답만 봐서는 절대 안 잡히므로 여기서 막는다.
           LEFT=$(grep -rl '"/assets/img/post' "$SITE" --include=*.html || true)
@@ -329,9 +329,9 @@ jobs:
           rsync -a --exclude 'node_modules' apps/karmolab/ apps/blog/_site/apps/karmolab/
 
       # room(간판 방) 이 /packages/three-kit/** 를 import map 으로 부른다 (KL-345).
-      # 안 실으면 페이지는 뜨는데 3D 만 영원히 「불러오는 중」 — 2026-08-23 라이브에서 실측.
+      # 안 실으면 페이지는 뜨는데 3D 만 영원히 불러오는 중. 2026-08-23 라이브에서 실측.
       # 이름이 `three-kit` → `3d` 로 바뀌었다 (@karmo/* 이관). 여기가 안 따라와서 배포가
-      # rsync exit 23 으로 죽었다 — 없는 폴더를 옮기려 했다(2026-08-24 실측).
+      # rsync exit 23 으로 죽었다. 없는 폴더를 옮기려 했다(2026-08-24 실측).
       # 폴더 이름을 다시 바꾸면 여기도 같이 고쳐야 한다: room 화면이 이 경로를 import map 으로 부른다.
       - name: Merge 3d kit to site
         run: |
@@ -342,17 +342,17 @@ jobs:
       #
       # 미리 그린 첫 화면은 `apps/blog/index.html` 에 박히는데, 그 파일은 앞뒤로 여러
       # 단계가 만지고 복사한다. 실제로 오늘 로컬에서 **뒤에 온 복사 한 줄이 박아 둔 것을 통째로
-      # 덮었다** — 아무 오류도 안 났고, 화면도 멀쩡했고, 그냥 밀림만 도로 나빠졌을 뿐이다.
+      # 덮었다**. 아무 오류도 안 났고, 화면도 멀쩡했고, 그냥 밀림만 도로 나빠졌을 뿐이다.
       # 그런 건 아무도 안 본다. 그래서 나가기 직전에 한 번 묻는다.
       #
-      # 없다고 배포를 세우지는 않는다(사이트는 그것 없이도 멀쩡하다) — 대신 **빨간 글씨로 남긴다**.
-      # 보안 한 줄(CSP meta)은 GitHub Pages 에서 **유일한 자리**다 — 헤더를 못 붙인다.
+      # 없다고 배포를 세우지는 않는다(사이트는 그것 없이도 멀쩡하다). 대신 **빨간 글씨로 남긴다**.
+      # 보안 한 줄(CSP meta)은 GitHub Pages 에서 **유일한 자리**다. 헤더를 못 붙인다.
       # 미는 자리 검사는 앱 폴더만 본다. 정말 나가는 장(찍힌 도구 상세 129장 포함)은 여기서만 보인다.
       - name: Audit CSP meta (built site)
-        # ⚠ **자리 순서**가 중요하다 (2026-08-16 실측): 앱 알맹이는 바로 위 「Merge KarmoLab output」
+        # ⚠ **자리 순서**가 중요하다 (2026-08-16 실측): 앱 알맹이는 바로 위 Merge KarmoLab output
         #   단계에서 _site 로 들어온다. 그 앞에 두었더니 `_site/apps/karmolab` 이 없어 exit 2 로 죽었다.
         #   그래서 합친 **뒤**에 선다.
-        # 컷오버(change.blog-cutover) 뒤 블로그 글 장도 우리가 찍는다 — CSP meta 가 박혀 나가므로
+        # 컷오버(change.blog-cutover) 뒤 블로그 글 장도 우리가 찍는다. CSP meta 가 박혀 나가므로
         #   `/posts` 도 감시 대상에 넣는다 (옛 Chirpy 680장 예외는 끝났다).
         run: |
           SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
@@ -362,11 +362,11 @@ jobs:
         run: |
           F=apps/blog/_site/index.html
           if [ ! -f "$F" ]; then
-            echo "::warning::첫 화면 파일이 없다 ($F) — 경로가 바뀌었는지 봐라"
+            echo "::warning::첫 화면 파일이 없다 ($F). 경로가 바뀌었는지 봐라"
           elif grep -q "KARMOLAB_HOME_PRERENDERED" "$F"; then
             echo "미리 그린 첫 화면 있음"
           else
-            echo "::warning::미리 그린 첫 화면이 사라졌다 — 뒤 단계의 복사가 덮었는지 봐라 (밀림이 도로 나빠진다)"
+            echo "::warning::미리 그린 첫 화면이 사라졌다. 뒤 단계의 복사가 덮었는지 봐라 (밀림이 도로 나빠진다)"
             echo "미리 그린 첫 화면이 최종 산출물에 없다" >> "$GITHUB_STEP_SUMMARY"
           fi
 
@@ -390,22 +390,22 @@ jobs:
     timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     needs: build
     steps:
-      # (같은 커밋에서 브라우저 설치 단계도 빠졌다 — 도구 동작 시험을 test:behavior 로 갈라낸 뒤
+      # (같은 커밋에서 브라우저 설치 단계도 빠졌다. 도구 동작 시험을 test:behavior 로 갈라낸 뒤
       #  이 배포 빌드에는 브라우저가 필요 없어졌다. 빌드 사슬 전수로 확인했다: 필요 0.)
       # 오래된 판이 새 판을 덮어쓰는 것을 막는다 (TASK-KL-088).
       # 배포는 사이트 전체를 통째로 바꾸므로, 뒤늦게 끝난 옛 커밋의 판이 나중에 배포되면
       # 방금 나간 것들이 도로 사라진다. 실제로 오늘 새벽 그 일이 나서 손으로 취소해 왔다.
-      # 물러나는 조건은 아래 단계가 정한다 — 「이미 더 새 판이 배포했는가」 하나뿐이다.
+      # 물러나는 조건은 아래 단계가 정한다. 이미 더 새 판이 배포했는가 하나뿐이다.
       # (실패가 아니다. 여기서 붉은불을 켜면 진짜 고장과 구분이 안 된다.)
       - name: 나보다 새 판이 이미 배포했는가
         id: freshness
         # 이 게이트는 두 번 틀렸다. 기록해 둔다 (2026-08-07 실측).
         #
-        # ① 「내가 main 의 끝인가」 — 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
+        # ① 내가 main 의 끝인가. 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
         #    물러난다. 그 새 커밋의 판도 도착할 때쯤엔 또 끝이 아니다. 아무도 배포 안 하는데
         #    다섯 판 연속 초록이었다.
-        # ② 「나보다 새 판이 돌고 있는가」 — 같은 이유로 굶는다. 돌고 있는 판도 자기 차례엔
-        #    또 다른 새 판을 보고 물러난다. 「앞으로 일어날 일」을 조건에 넣으면 줄이 안 끝난다.
+        # ② 나보다 새 판이 돌고 있는가. 같은 이유로 굶는다. 돌고 있는 판도 자기 차례엔
+        #    또 다른 새 판을 보고 물러난다. 앞으로 일어날 일을 조건에 넣으면 줄이 안 끝난다.
         #
         # 그래서 **이미 일어난 일**만 본다: 나보다 새 판이 *실제로 배포에 성공했나?*
         # 그랬다면 내가 나가면 사이트가 뒤로 간다 → 물러난다 (KL-088 이 막으려던 그 사고).
@@ -421,10 +421,10 @@ jobs:
           done
           if [ "$DEPLOYED" = "1" ]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::더 새 판이 이미 배포했다 — 물러난다 (나가면 사이트가 뒤로 간다)"
+            echo "::notice::더 새 판이 이미 배포했다. 물러난다 (나가면 사이트가 뒤로 간다)"
           else
             echo "stale=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::나보다 새 판이 배포한 적 없다 — 배포한다"
+            echo "::notice::나보다 새 판이 배포한 적 없다. 배포한다"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
@@ -433,7 +433,7 @@ jobs:
       #
       # 예전에는 건강 검사가 실패 이유를 알려고 실패한 판마다 로그를 통째로 내려받아 읽었다.
       # 한 건에 몇 초씩 걸려서, 실패가 잦은 날에는 재는 일 자체가 느려졌다.
-      # 죽은 자리는 죽은 쪽이 제일 잘 안다 — 여기서 한 줄로 적어 두면 아무도 안 캐도 된다.
+      # 죽은 자리는 죽은 쪽이 제일 잘 안다. 여기서 한 줄로 적어 두면 아무도 안 캐도 된다.
       # 실패한 단계 이름만으로 충분하다(무엇이 죽었나). 자세한 것은 그때 로그를 보면 된다.
       # ★ **바뀐 주소 알림은 배포한 판이 낸다** (2026-08-13). 예전엔 라이브 점검이 냈는데,
       #   그 점검이 배포 꼬리에서 떨어져 나와 시계(30분)로 돌게 되면서 **아무것도 안 바뀐
@@ -446,15 +446,15 @@ jobs:
       - name: 왜 죽었는지 남긴다
         if: failure()
         run: |
-          # `join(steps.*.outcome, …)` 은 여기서 못 쓴다 — 워크플로가 **아예 안 뜬다**
-          # (job 0개 · startup failure). 2026-08-08 배포가 4연속 그렇게 죽어 사이트 전체가 섰다.
-          echo "::error::배포 실패 — 위 단계들 중 빨간 것을 봐라"
-          echo "배포 실패 — 위 단계 목록에서 빨간 것을 확인" >> "$GITHUB_STEP_SUMMARY"
+          # `join(steps.*.outcome, ...)` 은 여기서 못 쓴다. 워크플로가 **아예 안 뜬다**
+          # (job 0개, startup failure). 2026-08-08 배포가 4연속 그렇게 죽어 사이트 전체가 섰다.
+          echo "::error::배포 실패. 위 단계들 중 빨간 것을 봐라"
+          echo "배포 실패. 위 단계 목록에서 빨간 것을 확인" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy to GitHub Pages
         if: steps.freshness.outputs.stale != 'true'
         id: deployment
-        # 대기 시간은 못 늘린다 — `timeout` 을 30분으로 줘 봤지만 이 액션이 10분을 최대치로
+        # 대기 시간은 못 늘린다. `timeout` 을 30분으로 줘 봤지만 이 액션이 10분을 최대치로
         # 못 박아 놔서 그대로 10분에 끊겼다(로그에 timeout: 1800000 이 찍히고도 정확히 10분).
         # 즉 GitHub 이 10분 안에 못 끝내면 방법이 없다. 우리가 줄일 수 있는 건 꾸러미뿐이라
         # 사진 743MB 를 뺐다(위 단계). 그래도 10분을 넘으면 GitHub 쪽 지연이니 재시도가 답이다.

@@ -1,6 +1,6 @@
 name: Deploy Discord Bots (yawnbot)
 
-# TASK-YB-002-C — yawnbot prod 자동 deploy.
+# TASK-YB-002-C. yawnbot prod 자동 deploy.
 # main push 시 self-hosted runner (노트북) 가 build + .env 주입 + nssm restart.
 # pull_request_target 절대 사용 X (포크 PR RCE 경로).
 
@@ -31,7 +31,7 @@ jobs:
   # (`cancel-in-progress: false`), 다섯 번 push 하면 5분짜리 배포가 **다섯 번 차례로** 돈다.
   # 앞의 넷은 어차피 최신 판을 짓지도 않는데 뒤에 온 사람의 차례를 밀어낸다.
   #
-  # 예전에 「3분 기다렸다 시작 + 새 push 면 취소」로 풀려다 실패했다 — 세션이 여섯이라
+  # 예전에 3분 기다렸다 시작 + 새 push 면 취소로 풀려다 실패했다. 세션이 여섯이라
   # 3분이 한 번도 안 닫혔다(취소 22 / 성공 3). 기다리는 게 아니라 **비키는** 것이 답이다.
   #
   # 취소(`cancel-in-progress: true`)를 안 쓰는 이유: 배포 도중 잘리면 어중간한 상태가 남는다.
@@ -48,17 +48,17 @@ jobs:
           tip=$(gh api "repos/${{ github.repository }}/commits/${{ github.ref_name }}" --jq .sha)
           if [ "$tip" = "${{ github.sha }}" ]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
-            echo "이 판이 최신이다 — 배포한다 ($tip)"
+            echo "이 판이 최신이다. 배포한다 ($tip)"
           else
             echo "current=false" >> "$GITHUB_OUTPUT"
-            echo "밀린 판이다 — 비킨다. 내 sha=${{ github.sha }} · 지금 최신=$tip"
+            echo "밀린 판이다. 비킨다. 내 sha=${{ github.sha }}, 지금 최신=$tip"
             echo "밀린 판이라 비켰습니다. 최신 판($tip)이 배포합니다." >> "$GITHUB_STEP_SUMMARY"
           fi
 
   # === TASK-YB-045: 시험이 배포를 **막는다** ===
   #
   # 유닛 시험 1014개가 있었는데 이 워크플로가 한 번도 안 불렀다. 그래서 그중 4개가
-  # 몇 달 동안 빨강인 채로 계속 배포가 나갔다 — 검사기가 게이트에 안 걸려 있으면
+  # 몇 달 동안 빨강인 채로 계속 배포가 나갔다. 검사기가 게이트에 안 걸려 있으면
   # 없는 것과 같다 (`memo/rules/quality.md`).
   #
   # **왜 노트북이 아니라 ubuntu 인가**: 아래 배포 job 은 npm install 전에 봇을 세운다.
@@ -78,15 +78,15 @@ jobs:
         working-directory: apps/discord-bots
         run: npm install --prefer-offline --no-audit --no-fund
       # `@karmo/ai` 는 이 워크스페이스 **밖**의 별도 패키지다(`file:` 로 물려 있을 뿐).
-      # 그래서 위 install 이 그 패키지의 devDependencies(`@types/node`·`typescript`)를 안 깐다.
-      # 노트북에서 지금까지 지어진 건 그 폴더가 **언젠가 한 번 깔린 잔재** 덕이었다 —
+      # 그래서 위 install 이 그 패키지의 devDependencies(`@types/node`, `typescript`)를 안 깐다.
+      # 노트북에서 지금까지 지어진 건 그 폴더가 **언젠가 한 번 깔린 잔재** 덕이었다 . 
       # 새 기계에서는 `error TS2688: Cannot find type definition file for 'node'` 로 죽는다(실측).
-      - name: npm install (@karmo/ai — 워크스페이스 밖)
+      - name: npm install (@karmo/ai. 워크스페이스 밖)
         working-directory: packages/ai
         run: npm install --prefer-offline --no-audit --no-fund
       # 시험 두 개(`agent-daemon` `discovery-nonagentic`)가 `@karmo/ai` 를 **지어진 모양**
       # (`dist/`)으로 가져온다. 새 체크아웃엔 그게 없으니 먼저 짓는다. 덤으로 타입 오류도
-      # 여기서 걸린다 — prod 를 짓기 전에.
+      # 여기서 걸린다. prod 를 짓기 전에.
       - name: npm run build:yawnbot
         working-directory: apps/discord-bots
         run: npm run build:yawnbot
@@ -100,7 +100,7 @@ jobs:
     runs-on: [self-hosted, windows, laptop, yawnbot]
     timeout-minutes: 15
 
-    # 노트북의 prod 폴더 직접 사용 — actions/checkout 의 _work 폴더 X.
+    # 노트북의 prod 폴더 직접 사용. actions/checkout 의 _work 폴더 X.
     # NSSM 이 보는 폴더 = build 폴더 = runner working dir. 통일.
     env:
       REPO_DIR: 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io'
@@ -113,11 +113,11 @@ jobs:
         working-directory: ${{ env.REPO_DIR }}
         run: |
           $ErrorActionPreference = 'Continue'
-          # LocalSystem (NSSM runner) 가 사용자 masca 의 폴더 git 소유권 인식 못 함 — safe.directory 등록 (idempotent)
+          # LocalSystem (NSSM runner) 가 사용자 masca 의 폴더 git 소유권 인식 못 함. safe.directory 등록 (idempotent)
           $repoUnix = '${{ env.REPO_DIR }}' -replace '\\', '/'
           & git config --global --add safe.directory $repoUnix 2>&1 | Out-Null
           & git switch main 2>&1 | Out-Null
-          # NSSM prod 폴더는 deploy 전용 (사용자 작업 영역 X — 작업은 .worktrees/* 에서). dirty state 는 항상 잔재 (line ending 변환 / 이전 deploy 잔재 / 잘못 복사 등) — 강제 동기화로 폐기.
+          # NSSM prod 폴더는 deploy 전용 (사용자 작업 영역 X. 작업은 .worktrees/* 에서). dirty state 는 항상 잔재 (line ending 변환 / 이전 deploy 잔재 / 잘못 복사 등). 강제 동기화로 폐기.
           # git pull --ff-only 는 working tree dirty 면 fail (yawnbot-defaults.txt CRLF 변환 사고 2026-05-09).
           & git fetch origin main 2>&1
           if ($LASTEXITCODE -ne 0) { throw "git fetch failed (exit $LASTEXITCODE)" }
@@ -126,7 +126,7 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
-      - name: Sync prod memo (결정화 — fetch + reset --hard, 런타임 untracked 보존)
+      - name: Sync prod memo (결정화. fetch + reset --hard, 런타임 untracked 보존)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: 'C:\Users\masca\repos\karmoddrine\memo'
         env:
@@ -135,14 +135,14 @@ jobs:
           # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14 등록).
           MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
           # 같은 머신(노트북)에서 도는 yawnbot express 인그레스로 ops 알림.
-          # LOCAL_WEBHOOK_SECRET 미설정 시 dev bypass (local-webhook.ts) —
+          # LOCAL_WEBHOOK_SECRET 미설정 시 dev bypass (local-webhook.ts) . 
           # 동일 머신 신뢰 모델. 설정돼 있으면 X-Yawnbot-Secret 헤더로 전달.
           YB_LOCAL_WEBHOOK_SECRET: ${{ secrets.LOCAL_WEBHOOK_SECRET }}
           # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
           GIT_TERMINAL_PROMPT: '0'
-        # 에이전트 코어·스킨·캐릭터 *정의* 정본 = memo. prod 봇이 이 체크아웃을
-        # 런타임에 읽는다. 봇이 *쓰는* 파일(.active.json·characters/*/memory/*·
-        # relationship.json·image-cache/*) 은 TASK-KAR-MEMOSYNC 에서 .gitignore
+        # 에이전트 코어, 스킨, 캐릭터 *정의* 정본 = memo. prod 봇이 이 체크아웃을
+        # 런타임에 읽는다. 봇이 *쓰는* 파일(.active.json, characters/*/memory/*, 
+        # relationship.json, image-cache/*) 은 TASK-KAR-MEMOSYNC 에서 .gitignore
         # 처리됨(yawnbot src commitIfDirty/commitToGit no-op 화) → 더는 tracked
         # 정본을 mutate 안 함 → origin divergence 가 *구조적으로 불가능*.
         # 그래서 merge 댄스(ff-only→merge--no-edit→abort, KAR-018-Y) 폐기 →
@@ -152,22 +152,22 @@ jobs:
         # 헤드리스 재현 증명 = apps/discord-bots/apps/yawnbot/scripts/
         # memo-sync-divergence-repro.sh (#1 divergence 불가 / #2 reset 보존 /
         # #3 대조: tracked 면 reset 이 런타임 파괴 = part2 가 고침 입증).
-        # ⚠ part2(런타임 untrack, memo 레포) 와 *동시 착륙 필수* — 분리 착륙
+        # ⚠ part2(런타임 untrack, memo 레포) 와 *동시 착륙 필수*. 분리 착륙
         # 시 (untrack 없이 reset --hard) prod 봇 런타임 origin 으로 파괴.
         run: |
           $ErrorActionPreference = 'Continue'
           $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
           & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
-          # LOUD skip — silent Write-Warning 단독 = prod memo 동결 무관측
+          # LOUD skip. silent Write-Warning 단독 = prod memo 동결 무관측
           # 근본(2026-05-18 KAR-018-ESC). 같은 머신 yawnbot 인그레스로 #ops
           # 알림 + Actions ::warning:: + exit 0 (bot-code deploy 는 계속).
           # 직전 YB_OPS_WEBHOOK=secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL 은
-          # 404 였음(deploy 26037374635 "ops alert 송신 실패 404" 실증) —
+          # 404 였음(deploy 26037374635 "ops alert 송신 실패 404" 실증) . 
           # 그 secret 은 raw Discord webhook 아님. 봇은 같은 노트북에서
           # WEBHOOK_PORT(기본 4615) express 로 POST /webhook/local 을 이미
           # 서빙(local-webhook.ts, TASK-WM-087) → 그게 올바른 ops 경로.
           function Skip-Loud($reason) {
-            $msg = "🧊 [memo-sync] prod memo 동기 skip — $reason (prod memo 동결 가능, 수동 해소 필요. host=$env:COMPUTERNAME)"
+            $msg = "🧊 [memo-sync] prod memo 동기 skip. $reason (prod memo 동결 가능, 수동 해소 필요. host=$env:COMPUTERNAME)"
             Write-Warning $msg
             Write-Output "::warning title=memo-sync skip::$msg"
             $port = if ($env:WEBHOOK_PORT) { $env:WEBHOOK_PORT } else { '4615' }
@@ -194,9 +194,9 @@ jobs:
             Skip-Loud "브랜치 '$branch' != main (강제전환 X, prod 안전)"
           }
           if ([string]::IsNullOrEmpty($env:MEMO_PAT)) {
-            Skip-Loud 'MEMO_GITHUB_PAT secret 미설정 — 인증 fetch 불가 (github.io repo secret 등록 필요)'
+            Skip-Loud 'MEMO_GITHUB_PAT secret 미설정. 인증 fetch 불가 (github.io repo secret 등록 필요)'
           }
-          # 인증 URL fetch (토큰은 출력 안 함 — git fetch 는 URL 미인쇄).
+          # 인증 URL fetch (토큰은 출력 안 함. git fetch 는 URL 미인쇄).
           $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
           & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
           if ($LASTEXITCODE -ne 0) { Skip-Loud '인증 fetch 실패 (토큰 만료/scope/네트워크 의심)' }
@@ -204,10 +204,10 @@ jobs:
           $remote = (& git rev-parse FETCH_HEAD 2>$null)
           if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
           # 결정화: tracked 는 origin 과 항상 일치, untracked 런타임은 생존.
-          # 봇이 tracked 정본을 mutate 안 하므로(part2) 영영 안전·결정적.
+          # 봇이 tracked 정본을 mutate 안 하므로(part2) 영영 안전, 결정적.
           & git reset --hard FETCH_HEAD 2>&1
           if ($LASTEXITCODE -ne 0) {
-            Skip-Loud "git reset --hard 실패 (exit $LASTEXITCODE) — 인덱스 잠금/디스크 의심"
+            Skip-Loud "git reset --hard 실패 (exit $LASTEXITCODE). 인덱스 잠금/디스크 의심"
           }
           Write-Host "[memo-sync] reset --hard -> $(& git rev-parse --short HEAD) (prod==origin, 런타임 untracked 보존)"
           exit 0
@@ -229,10 +229,10 @@ jobs:
           YB_PROD_MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
           # KAR-018-Y: agentic 워커 push/PR 자격. 데이터 체인:
           # ① MEMO_GITHUB_PAT=memo-scope → github.io denied(06:52 KST)
-          # ② "App 재사용"(사용자 결정 05-18)=불가 — gh secret list 결과
+          # ② "App 재사용"(사용자 결정 05-18)=불가. gh secret list 결과
           #    GH_APP_ID/GH_APP_PRIVATE_KEY *부재*(App 미생성, KL-048 미완,
           #    resolve-merge-token 줄곧 PAT 폴백). 전제 데이터 반증.
-          # ③ 정답 = PAT_FOR_AUTO_MERGE — github.io 실재 secret, auto-merge/
+          # ③ 정답 = PAT_FOR_AUTO_MERGE. github.io 실재 secret, auto-merge/
           #    autopilot-graduate 가 그걸로 github.io PR 머지 중 = github.io
           #    write 확정. 머지=push 자격 정체 일치. 새 secret 0.
           # GH_APP_* 주입 보존 = KL-048 App 생성 시 getInstallationToken
@@ -241,21 +241,21 @@ jobs:
           YB_PROD_GH_APP_ID: ${{ secrets.GH_APP_ID }}
           YB_PROD_GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
           # KAR-018-Y: wm-worker → Witch-Mendokusai push 자격(별 repo,
-          # PAT_FOR_AUTO_MERGE=github.io-scope 라 403). 사용자 발급·등록
-          # 시 wm-worker 가 우선 사용. 미등록=빈값→기존 폴백(현 동작·회귀0).
+          # PAT_FOR_AUTO_MERGE=github.io-scope 라 403). 사용자 발급, 등록
+          # 시 wm-worker 가 우선 사용. 미등록=빈값→기존 폴백(현 동작, 회귀0).
           YB_PROD_WM_GITHUB_PAT: ${{ secrets.WM_GITHUB_PAT }}
           # TASK-WM-201: 폰이 실행 로그를 밀어 넣을 때 쓰는 전용 토큰. 주소가 공개(터널)라
           # 이게 없으면 누구나 로그를 밀어 넣을 수 있다. 같은 값이 WM 레포 secret
           # WM_DEVICE_LOG_TOKEN 에도 있어야 APK 가 인증된 채로 보낸다(둘 중 하나만 바꾸면 401).
-          # 유출 시 할 수 있는 일 = 로그 밀어넣기뿐 — 다른 토큰과 절대 겸용하지 말 것.
+          # 유출 시 할 수 있는 일 = 로그 밀어넣기뿐. 다른 토큰과 절대 겸용하지 말 것.
           YB_PROD_DEVICE_LOG_TOKEN: ${{ secrets.DEVICE_LOG_TOKEN }}
-          # TASK-KL-098: KarmoLab 「디스코드로 시작하기」. 봇 토큰과 **다른 값**이다 —
+          # TASK-KL-098: KarmoLab 디스코드로 시작하기. 봇 토큰과 **다른 값**이다 . 
           # Developer Portal 의 OAuth2 탭 Client Secret. 없으면 로그인 단추가 안 뜨고
           # (`/kl/health` 가 login:disabled), 도구는 지금까지와 똑같이 돈다.
           YB_PROD_DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
           # TASK-KL-339: 잠깐 쓰는 메일. Cloudflare Email Worker 가 편지를 밀어 넣을 때 쓰는
-          # 열쇠 — **Worker 쪽 KL_MAIL_HOOK 과 같은 값**이어야 한다(둘 중 하나만 바꾸면 403).
-          # 없으면 수신 문이 아예 안 열리고, 도구는 화면에 「아직 안 켜졌다」고 말한다.
+          # 열쇠. **Worker 쪽 KL_MAIL_HOOK 과 같은 값**이어야 한다(둘 중 하나만 바꾸면 403).
+          # 없으면 수신 문이 아예 안 열리고, 도구는 화면에 아직 안 켜졌다고 말한다.
           YB_PROD_KL_MAIL_HOOK_TOKEN: ${{ secrets.KL_MAIL_HOOK_TOKEN }}
           # 편지를 받을 도메인. 대시보드에서 Email Routing 을 켠 그 도메인과 같아야 한다.
           YB_PROD_KL_MAIL_DOMAIN: ${{ secrets.KL_MAIL_DOMAIN }}
@@ -267,13 +267,13 @@ jobs:
             'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT', 'DEVICE_LOG_TOKEN', 'DISCORD_CLIENT_SECRET', 'KL_MAIL_HOOK_TOKEN', 'KL_MAIL_DOMAIN'
           )
 
-          # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
+          # 필수 검증. DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
           if ([string]::IsNullOrEmpty($env:YB_PROD_DISCORD_TOKEN)) {
-            throw "필수 secret YB_PROD_DISCORD_TOKEN 누락 — GitHub Actions secrets 확인"
+            throw "필수 secret YB_PROD_DISCORD_TOKEN 누락. GitHub Actions secrets 확인"
           }
 
           # ④ .env = YAWNBOT_ENV=prod 리터럴(비밀 아님, ② prod 프로파일 선택용) + ③ 주입 비밀.
-          # 비밀 아닌 채널/길드/ID 는 .env 에 안 씀 — ② config/yawnbot.prod.txt 가 정본.
+          # 비밀 아닌 채널/길드/ID 는 .env 에 안 씀. ② config/yawnbot.prod.txt 가 정본.
           $lines = @('YAWNBOT_ENV=prod')
           $missing = @()
           foreach ($key in $keys) {
@@ -299,7 +299,7 @@ jobs:
           if ($missing.Count -gt 0) {
             Write-Host "  missing (skip): $($missing -join ', ')" -ForegroundColor DarkGray
           }
-          # 주입 검증 — 토큰·키는 마스킹
+          # 주입 검증. 토큰, 키는 마스킹
           Get-Content $envPath | Select-String -Pattern '^(DISCORD_TOKEN|YAWNBOT_ENV)=' | ForEach-Object {
             $line = $_ -replace '(DISCORD_TOKEN=.{15}).*','$1***MASKED***'
             Write-Host $line
@@ -311,7 +311,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Continue'
           # KAR-150: 실행 중 봇이 node_modules (@discordjs/opus.node 등) 파일을 잠가
-          # npm install 이 EPERM. install 전 봇 stop 으로 잠금 해제 — 뒤의 NSSM restart
+          # npm install 이 EPERM. install 전 봇 stop 으로 잠금 해제. 뒤의 NSSM restart
           # step 이 재기동. (opus 는 optionalDependencies 로 내려 prebuild 부재 시에도
           # install 통과 → @discordjs/voice 가 opusscript 폴백.)
           $nssm = (Get-Command nssm.exe -ErrorAction SilentlyContinue).Source
@@ -322,12 +322,12 @@ jobs:
             if ($f) { $nssm = $f.FullName }
           }
           if ($nssm) { & $nssm stop yawnbot-prod 2>&1 | Out-Null; Start-Sleep -Seconds 2; Write-Host "[KAR-150] yawnbot-prod stopped for clean npm install" }
-          else { Write-Warning "[KAR-150] nssm 못 찾음 — stop skip" }
+          else { Write-Warning "[KAR-150] nssm 못 찾음. stop skip" }
 
           # === KL-190 ①: 짓다 실패해도 **돌아갈 판**을 남긴다 ===
           # 이 step 은 봇을 세워 놓고 짓는다. 그런데 짓다 죽으면 아래 재기동 step 까지 못 가서
           # **봇이 멈춘 채로 남는다.** 2026-08-08 하루에 세 번 그랬고(누가 push 할 때마다),
-          # 아무 경보도 없이 웹훅·로그인·놀이 순위판이 전부 죽어 있었다.
+          # 아무 경보도 없이 웹훅, 로그인, 놀이 순위판이 전부 죽어 있었다.
           # 그래서 짓기 전에 직전 판을 통째로 복사해 두고, 실패하면 그걸 되돌린다.
           $distDir = Join-Path $PWD 'apps\yawnbot\dist'
           $lastGood = Join-Path $PWD 'apps\yawnbot\dist.last-good'
@@ -344,7 +344,7 @@ jobs:
           # === 곁 꾸러미의 연장도 챙긴다 (2026-08-24, prod 30분 정지) ===
           # `build:yawnbot` 은 `npm --prefix ../../packages/ai run build` 를 부르는데, 그 폴더는
           # 이 워크스페이스 **밖**이라 위 `npm install` 이 손대지 않는다. 여태 안 터진 건 노트북에
-          # 옛 `node_modules` 가 남아 있었기 때문 — 이름 이관(`karmolab-ai` → `@karmo/ai`)으로
+          # 옛 `node_modules` 가 남아 있었기 때문. 이름 이관(`karmolab-ai` → `@karmo/ai`)으로
           # 폴더가 새로 생기자 `@types/node` 가 없어 `TS2688` 로 빌드가 죽었다.
           # 짓기 전에 그 폴더의 의존을 보장한다. 있으면 npm 이 알아서 빨리 끝낸다.
           if (-not $failed) {
@@ -361,22 +361,22 @@ jobs:
           }
 
           if ($failed) {
-            # 되돌린다. 새 기능은 안 나가지만 **봇은 산다** — 죽은 봇보다 어제 봇이 낫다.
+            # 되돌린다. 새 기능은 안 나가지만 **봇은 산다**. 죽은 봇보다 어제 봇이 낫다.
             #
-            # ★ 단, 「산다」를 **말로 하지 않는다** (2026-08-24, prod 30분 정지).
+            # ★ 단, 산다를 **말로 하지 않는다** (2026-08-24, prod 30분 정지).
             #   되돌리는 것은 `dist` 뿐인데 `node_modules` 는 이미 새 판이다. 이름 이관 때
             #   옛 dist 가 사라진 꾸러미(`karmolab-ai/node`)를 불러 기동 즉시 MODULE_NOT_FOUND,
-            #   nssm 이 PAUSED 로 남겼다 — 그런데 이 자리는 「bot keeps running」이라 적고 있었다.
-            #   되돌린 판이 **실제로 뜨는지**는 아래 재기동·health step 이 판정한다.
+            #   nssm 이 PAUSED 로 남겼다. 그런데 이 자리는 bot keeps running이라 적고 있었다.
+            #   되돌린 판이 **실제로 뜨는지**는 아래 재기동, health step 이 판정한다.
             if (Test-Path $lastGood) {
               if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force -ErrorAction SilentlyContinue }
               Copy-Item $lastGood $distDir -Recurse -Force
               Write-Output "::warning title=deploy-failed-rolled-back::$failed - restored previous dist. NOTE: node_modules are already updated, so the old build may not boot - check the health step."
-              # 그림글자는 **한 칸짜리만** 쓴다. 두 칸을 차지하는 것(되돌림·경보 그림)을 넣었더니
+              # 그림글자는 **한 칸짜리만** 쓴다. 두 칸을 차지하는 것(되돌림, 경보 그림)을 넣었더니
               # 러너가 이 파일을 옛 글자표로 읽으면서 문자열이 중간에 끊겨, 이 step 이
               # 통째로 파서 오류로 죽었다(2026-08-08 두 판 연속). 안전망이 자기 문법으로 죽으면
               # 아무도 안 지킨다. ⚠ 는 한 칸이라 안전하다.
-              # 문자열은 영문으로 — 한글이 들어가면 러너가 옛 글자표로 읽다 따옴표를 먹는다(실측).
+              # 문자열은 영문으로. 한글이 들어가면 러너가 옛 글자표로 읽다 따옴표를 먹는다(실측).
               Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "ROLLED BACK: $failed - restored dist.last-good. New changes did NOT ship. Old build runs against NEW node_modules - if the health step is silent, the bot is down and needs a manual rebuild."
             } else {
               Write-Output "::warning title=deploy-failed-no-rollback::$failed"
@@ -397,7 +397,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Continue'
           # nssm 이 LocalSystem PATH 에 없을 수 있음 (winget 가 사용자 LOCALAPPDATA 에 설치).
-          # Get-Command 우선 + 일반 fallback path 들 (사용자 masca 고정 — 노트북 한정 self-hosted runner).
+          # Get-Command 우선 + 일반 fallback path 들 (사용자 masca 고정. 노트북 한정 self-hosted runner).
           $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
           $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
           if (-not $nssm) {
@@ -412,18 +412,18 @@ jobs:
               if ($found) { $nssm = $found.FullName; break }
             }
           }
-          if (-not $nssm) { throw "nssm.exe 못 찾음 — sub-A Phase A 의 winget install NSSM.NSSM 확인 또는 system PATH 에 추가" }
+          if (-not $nssm) { throw "nssm.exe 못 찾음. sub-A Phase A 의 winget install NSSM.NSSM 확인 또는 system PATH 에 추가" }
           Write-Host "Using nssm: $nssm"
 
           # === KAR-018 nssm 영구화 (2026-05-20 yawnbot-prod 12h silent fail 실증) ===
-          # 본 서비스 ObjectName=LocalSystem default — 사용자 OAuth 자격
+          # 본 서비스 ObjectName=LocalSystem default. 사용자 OAuth 자격
           # (C:\Users\masca\.claude\.credentials.json, plain JSON+ACL SYSTEM:(F)) 못 봄.
           # claude CLI 가 인증 에러 본문을 stderr 가 아닌 stdout 으로 박음 → 봇 spawn
           # 래퍼의 stderr.slice 빈 결과 → 디스코드 "종료 코드 1:" 휑 → 12h 진단 마비.
-          # 정본 = memo/rules/quality.md § 환경트랩 — NSSM 서비스 LocalSystem default.
-          # 본 step 의 nssm set 라인들은 idempotent — 매 deploy 재박힘 (drift 0).
+          # 정본 = memo/rules/quality.md § 환경트랩. NSSM 서비스 LocalSystem default.
+          # 본 step 의 nssm set 라인들은 idempotent. 매 deploy 재박힘 (drift 0).
 
-          # ① stderr/stdout 로깅 영구화 (자식 출력 휘발 방지 — 미설정 = silent fail 12h+ trap)
+          # ① stderr/stdout 로깅 영구화 (자식 출력 휘발 방지. 미설정 = silent fail 12h+ trap)
           $logDir = 'C:\nssm-logs\yawnbot-prod'
           if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Force $logDir | Out-Null }
           & $nssm set yawnbot-prod AppStderr "$logDir\stderr.log" | Out-Null
@@ -431,15 +431,15 @@ jobs:
           & $nssm set yawnbot-prod AppRotateFiles 1 | Out-Null
           & $nssm set yawnbot-prod AppRotateBytes 10485760 | Out-Null
 
-          # ② USERPROFILE 마스킹 — LocalSystem 컨텍스트가 사용자 자격 가시.
+          # ② USERPROFILE 마스킹. LocalSystem 컨텍스트가 사용자 자격 가시.
           # AppEnvironmentExtra 는 *전체 교체* 라 prod env + USERPROFILE 둘 다 명시.
-          # 새 env 추가 시 이 라인에 추가 (별도 nssm set 호출 X — 마지막 호출이 전체 덮어씀).
-          # 2026-06-09: 에이전트 팀 폐기 — AGENT_CADENCE/DIALOGUE env 제거 (봇 reactive 기능만).
+          # 새 env 추가 시 이 라인에 추가 (별도 nssm set 호출 X. 마지막 호출이 전체 덮어씀).
+          # 2026-06-09: 에이전트 팀 폐기. AGENT_CADENCE/DIALOGUE env 제거 (봇 reactive 기능만).
           & $nssm set yawnbot-prod AppEnvironmentExtra 'YAWNBOT_ENV=prod' 'USERPROFILE=C:\Users\masca' | Out-Null
 
-          # ③ safe.directory '*' — 봇이 USERPROFILE 마스킹 후 보는 사용자 gitconfig
+          # ③ safe.directory '*'. 봇이 USERPROFILE 마스킹 후 보는 사용자 gitconfig
           # (C:\Users\masca\.gitconfig). 미박으면 git fetch 시 'dubious ownership'
-          # (LocalSystem ↔ 사용자 owned repo) fail. idempotent — 이미 있으면 add 가 no-op 처리.
+          # (LocalSystem ↔ 사용자 owned repo) fail. idempotent. 이미 있으면 add 가 no-op 처리.
           $userGitconfig = 'C:\Users\masca\.gitconfig'
           if (-not (Test-Path $userGitconfig)) { New-Item -ItemType File -Force $userGitconfig | Out-Null }
           $existing = & git config --file $userGitconfig --get-all safe.directory 2>$null
@@ -462,20 +462,20 @@ jobs:
           # ops-self-report 의 reportShutdown → reportStartup 두 임베드가 운영 채널에 도착
           Write-Host "yawnbot-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
 
-      # === 2026-06-09: 에이전트 팀 폐기 (사용자 결정 — "에이전트 팀 개발 중단, 부질없음") ===
+      # === 2026-06-09: 에이전트 팀 폐기 (사용자 결정. "에이전트 팀 개발 중단, 부질없음") ===
       # agent-orchestrator / agent-worker-* / agent-ambient-* daemon NSSM 설치 step 전부 제거.
-      # yawnbot-prod 는 reactive 봇(슬래시·웹훅·게임·뉴스·캐릭터)만 — 자율 cadence 0.
+      # yawnbot-prod 는 reactive 봇(슬래시, 웹훅, 게임, 뉴스, 캐릭터)만. 자율 cadence 0.
       #
-      # ⚠ 2026-08-13 정정: 「노트북 잔존 서비스는 수동 sc delete 로 제거 완료」라고 적혀 있었지만
+      # ⚠ 2026-08-13 정정: 노트북 잔존 서비스는 수동 sc delete 로 제거 완료라고 적혀 있었지만
       #   <b>실제로는 12개가 두 달 넘게 남아 있었다</b>(ambient 8 + worker 4).
       #   ambient 는 memo 의 core.md 정본이 폐기(2026-08-01)돼 부팅마다 exit 2 → nssm 무한 재시작 →
       #   nssm 하나당 핸들 3.2만 개 → 커널 메모리 26GB 잠김 → 노트북 메모리 99% 로 강제 재부팅.
-      #   worker 4 는 기능 플래그 전부 false·notify=stub 라 부팅 로그만 찍고 무동작이었다.
-      #   그날 12개를 실제로 nssm remove 했다(남은 nssm 서비스 = yawnbot-prod · wm-world ·
-      #   laptop-ops · gha-runner-yawnbot). 교훈 = memo/rules/lessons/
+      #   worker 4 는 기능 플래그 전부 false, notify=stub 라 부팅 로그만 찍고 무동작이었다.
+      #   그날 12개를 실제로 nssm remove 했다(남은 nssm 서비스 = yawnbot-prod, wm-world , 
+      #   laptop-ops, gha-runner-yawnbot). 교훈 = memo/rules/lessons/
       #   reference_laptop_memory_ambient_agent_handle_leak.md
       #
-      # ★ 기록만 지우고 <b>기계는 안 지운</b> 것이 이 사고의 뿌리다 — 「제거 완료」라고 적기 전에
+      # ★ 기록만 지우고 <b>기계는 안 지운</b> 것이 이 사고의 뿌리다. 제거 완료라고 적기 전에
       #   그 기계에 물어봐야 한다(node memo/scripts/pc-say.mjs 가 그 자리를 대신한다).
 
 
@@ -489,29 +489,29 @@ jobs:
           $ErrorActionPreference = 'Continue'
           # 이 단계는 **배포의 곁가지**다 (웹훅 주소 등록). 여기서 실패했다고 배포를 빨갛게
           # 만들면, 앞으로 모든 배포가 빨간 채로 남아 **진짜 실패를 아무도 못 알아본다.**
-          # 그렇다고 조용히 넘기지도 않는다 — 경고와 요약에 남겨 눈에 띄게 둔다 (KL-098).
+          # 그렇다고 조용히 넘기지도 않는다. 경고와 요약에 남겨 눈에 띄게 둔다 (KL-098).
           if ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
             Write-Output "::warning title=웹훅 주소 등록 건너뜀::YB_PROD_GH_WEBHOOK_TOKEN 이 없습니다. 봇 배포 자체는 정상입니다."
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 건너뜀 — secret ``YB_PROD_GH_WEBHOOK_TOKEN`` 없음 (봇 배포는 정상)"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 건너뜀. secret ``YB_PROD_GH_WEBHOOK_TOKEN`` 없음 (봇 배포는 정상)"
             exit 0
           }
           & npm run webhook:upsert
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::warning title=웹훅 주소 등록 실패::토큰이 만료됐거나 권한이 모자랍니다. admin:repo_hook 권한으로 새로 발급해 secret YB_PROD_GH_WEBHOOK_TOKEN 을 바꿔 주세요. 봇 배포 자체는 정상입니다."
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 실패 — 토큰 만료/권한 부족. 새 토큰을 ``YB_PROD_GH_WEBHOOK_TOKEN`` 에 넣어 주세요 (봇 배포는 정상)"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 실패. 토큰 만료/권한 부족. 새 토큰을 ``YB_PROD_GH_WEBHOOK_TOKEN`` 에 넣어 주세요 (봇 배포는 정상)"
             exit 0
           }
           # cloudflared named tunnel (yawnbot.mascari4615.com) 은 별도 영구 service (KarmoLab Server Monitor 의 yawnbot-tunnel-prod 카드 또는 NSSM)
 
       # === KL-190 ①: 무슨 일이 있어도 봇은 켜 놓고 나간다 ===
       # 앞의 어느 step 이 죽든 이 step 은 돈다(`if: always()`). 배포가 실패하는 것과
-      # **봇이 멈춰 있는 것**은 전혀 다른 사고다 — 전자는 새 기능이 안 나간 것이고,
+      # **봇이 멈춰 있는 것**은 전혀 다른 사고다. 전자는 새 기능이 안 나간 것이고,
       # 후자는 이미 쓰던 사람의 화면이 죽은 것이다. 실측(2026-08-08): 후자가 세 번 났고
       # 사람이 알아채고 손으로 살릴 때까지 아무도 몰랐다.
       #
       # **이 step 안의 글자열은 전부 영문이다.** 러너가 이 파일을 옛 글자표로 읽는 바람에
       # 한글이 든 문자열의 닫는 따옴표가 먹혀 세 판 연속 파서 오류로 죽었다(실측).
-      # 주석의 한글은 괜찮다(따옴표가 없다) — 죽는 것은 **문자열**이다.
+      # 주석의 한글은 괜찮다(따옴표가 없다). 죽는 것은 **문자열**이다.
       # 안전망이 자기 문법으로 죽으면 아무도 안 지킨다.
       - name: 봇이 켜져 있는지 확인하고, 꺼져 있으면 켠다
         if: always()
@@ -539,7 +539,7 @@ jobs:
             Write-Host "[KL-190] status after start: $status"
           }
 
-          # 「서비스가 돈다」와 「사람이 쓸 수 있다」는 다른 말이다 — 실제로 찔러 본다.
+          # 서비스가 돈다와 사람이 쓸 수 있다는 다른 말이다. 실제로 찔러 본다.
           $ok = $false
           for ($i = 0; $i -lt 6; $i++) {
             try {
@@ -553,8 +553,8 @@ jobs:
             # ★ 여기서 초록으로 끝내지 않는다 (2026-08-24, prod 30분 정지).
             #   여태 이 자리는 `::warning` 만 찍고 step 을 성공으로 끝냈다. 그래서 봇이 죽은
             #   배포가 **초록으로 지나갔고**, 사람이 502 를 볼 때까지 아무도 몰랐다.
-            #   30초(5초 x 6) 를 기다려도 안 뜨면 그것은 「느린 것」이 아니라 「안 뜨는 것」이다.
-            #   빨강이어야 「배포 빨강 알림」이 울린다.
+            #   30초(5초 x 6) 를 기다려도 안 뜨면 그것은 느린 것이 아니라 안 뜨는 것이다.
+            #   빨강이어야 배포 빨강 알림이 울린다.
             Write-Output "::error title=bot-not-answering::service started but /kl/health does not answer after 30s - see C:\nssm-logs\yawnbot-prod\stderr.log"
             Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'FAIL: bot does not answer - service started but /kl/health silent after 30s. Bot is DOWN.'
             throw 'bot does not answer /kl/health after deploy'
