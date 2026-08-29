@@ -18,7 +18,7 @@ import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
-import { getFile, listFiles, putThumb, setTimes, unlockVault } from './vault.mjs';
+import { flushIndex, getFile, listFiles, putThumb, setTimes, unlockVault } from './vault.mjs';
 import { takenAtOf } from './vault-node.mjs';
 import { teeStore } from './store-tee.mjs';
 import { thumbKind } from './thumb.mjs';
@@ -57,6 +57,10 @@ const extra = extraRemote ? rcloneStore(extraRemote, { rcUrl, delayMs: rcUrl ? 0
 const store = extra ? teeStore(primary, extra) : primary;
 
 const session = await unlockVault(store, pass);
+/* 색인을 **모아서** 쓴다. 안 그러면 파일 하나 손볼 때마다 6,470줄짜리 색인을 통째로
+   rclone 으로 다시 올린다. 2026-08-29 에 그 상태로 28분을 돌렸는데 CPU 는 20초만 썼다.
+   전부 색인 올리기를 기다린 시간이었다. 전송기(upload.mjs)는 처음부터 이렇게 한다 */
+session.deferIndex = true;
 console.log('클라우드 염');
 
 const files = await listFiles(session);
@@ -73,8 +77,16 @@ let fromCloud = 0;
 let skipped = 0;
 let failed = 0;
 
+/** 이만큼마다 색인을 올린다. 중간에 끊겨도 여기까지는 남는다 */
+const FLUSH_EVERY = 200;
+let touched = 0;
+
 for (const f of todo) {
     if (made >= limit) break;
+    if (touched && touched % FLUSH_EVERY === 0) {
+        await flushIndex(session);
+        console.log(`색인 올림 (손본 것 ${touched})`);
+    }
     let bytes = null;
     let abs = '';
     if (root) {
@@ -96,6 +108,7 @@ for (const f of todo) {
             const shot = video ? video.createdAt : await takenAtOf(abs, f.path);
             if (!dry) await setTimes(session, f.path, { mtime: Math.round(st.mtimeMs), shot });
             timed += 1;
+            touched += 1;
         }
         /* 미리보기가 이미 있거나 애초에 굽지 않는 갈래면 여기까지가 할 일이다 */
         if (f.thumb || !thumbKind(f.path, f.size)) continue;
@@ -120,11 +133,15 @@ for (const f of todo) {
         }
         if (!dry) await putThumb(session, f.path, thumb);
         made += 1;
+        touched += 1;
         if (made % 20 === 0) console.log(`구움 ${made} (디스크 ${fromDisk}, 클라우드 ${fromCloud}), 못 구움 ${failed}`);
     } catch {
         failed += 1;
     }
 }
+
+/* 마지막 한 판. 이걸 빼먹으면 마지막 묶음이 통째로 사라진다 */
+await flushIndex(session);
 
 console.log(
     `끝. 구움 ${made} (디스크 ${fromDisk}, 클라우드 ${fromCloud}), 시각 ${timed}, ` +
