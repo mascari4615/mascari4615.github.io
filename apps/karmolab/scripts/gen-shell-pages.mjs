@@ -36,6 +36,32 @@ const SITE = 'https://blog.mascari4615.com';
 const outArg = process.argv.indexOf('--out');
 const OUT = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog');
 
+/**
+ * 이 장이 무엇인지 (2026-08-29)
+ *   - 왜: `/wm/` 과 `/bot/` 에 구조화 데이터가 하나도 없었음. 검색 결과에서 파란 줄 하나
+ *   - 종류가 다름. `/wm/` 은 게임, `/bot/` 은 소개 장. 같은 틀로 뭉뚱그리지 않음
+ *   - 지어내지 않음. 이름, 설명, 주소, 언어, 어느 사이트 것인지만
+ *   - `noindex` 장(`/u/`)은 안 붙임. 색인 안 할 장에 설명을 달 이유가 없음
+ */
+function jsonLdBlock(page, title, description) {
+  if (page.kind === 'profile') return '';
+  const url = `${SITE}${page.permalink}`;
+  const common = {
+    '@context': 'https://schema.org',
+    name: title,
+    description,
+    url,
+    inLanguage: 'ko-KR',
+    isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+  };
+  const ld =
+    page.kind === 'wm'
+      ? { ...common, '@type': 'VideoGame', gamePlatform: 'PC', applicationCategory: 'GameApplication' }
+      : { ...common, '@type': 'WebPage' };
+  return `
+<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\u003c')}</script>`;
+}
+
 /** 들일 페이지들. `src` 가 내용의 주인, `permalink` 가 사람이 보는 주소. */
 const PAGES = [
   {
@@ -186,7 +212,7 @@ for (const page of PAGES) {
 
   html = asStaticPage(html, {
     kind: page.kind,
-    head: renamed.css.trim() ? `<style>\n${scopeStyles(renamed.css, scope)}\n    </style>` : '',
+    head: (renamed.css.trim() ? `<style>\n${scopeStyles(renamed.css, scope)}\n    </style>` : '') + jsonLdBlock(page, title, description),
     bodyHtml: `<div class="shell-page ${scope.slice(1)}">\n${body}\n</div>`,
   });
 
