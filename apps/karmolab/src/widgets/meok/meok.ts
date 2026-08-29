@@ -19,6 +19,7 @@ import { composite, compositeAll, spriteSheet } from './composite';
    먹이 뜬 시점에는 이미 와 있다 (`widgets-lazy-meta.ts` 의 image 묶음 lazyScriptPaths). */
 import { getKarmoGif } from '../../lib/karmogif';
 import { encodeApng } from './apng';
+import { EMOTE_PRESETS, emoteName, fitBox, findPreset, limitRatio, overBudgetHint, type EmotePreset } from './emote';
 import {
   BLEND_MODES, activeLayer, addLayer, celAt, cloneSurface, createDoc, createSurface,
   ensureCel, findLayer, insertFrame, isHold, mergeDown, moveLayer, removeFrame, removeLayer,
@@ -300,6 +301,14 @@ function buildMeok(container: HTMLElement): void {
           '</div>' +
           '<div class="meok-filters" data-filters></div>' +
         '</details>' +
+        '<details class="meok-emote"><summary>' + esc(T('emote', '이모트')) + '</summary>' +
+          '<div class="meok-emote-picks" data-emote-picks></div>' +
+          '<div class="meok-emote-shots" data-emote-shots></div>' +
+          '<p class="meok-emote-note" data-emote-note></p>' +
+          '<div class="meok-fix-row">' +
+            '<button data-act="emote-save">' + esc(T('emoteSave', '한 벌 뽑기')) + '</button>' +
+          '</div>' +
+        '</details>' +
       '</aside>' +
     '</div></div>';
 
@@ -347,6 +356,61 @@ function buildMeok(container: HTMLElement): void {
   }
 
   /** 가림막이 있는 레이어에서만 뒤집기, 굳히기, 없애기가 눌린다. */
+  /* ===== 이모트 ===== */
+
+  let emotePreset: EmotePreset = EMOTE_PRESETS[0];
+  let shotTimer = 0;
+
+  /** 규격 고르는 줄. 고른 것이 미리보기와 뽑기에 그대로 이어진다. */
+  function renderEmotePicks(): void {
+    const box = pick<HTMLElement>('[data-emote-picks]');
+    box.innerHTML = EMOTE_PRESETS.map(preset =>
+      '<button data-emote-pick="' + preset.id + '"' + (preset.id === emotePreset.id ? ' class="active"' : '') + '>'
+      + esc(T('emote.' + preset.id, preset.label)) + '</button>'
+    ).join('');
+    box.querySelectorAll<HTMLButtonElement>('[data-emote-pick]').forEach(button => {
+      button.onclick = () => {
+        emotePreset = findPreset(button.dataset.emotePick || '');
+        renderEmotePicks();
+        renderEmoteShots();
+      };
+    });
+  }
+
+  /**
+   * 올라갈 크기 그대로 미리 보기. 28 에서 뭉개진 것을 **올린 뒤에** 아는 것이 이모트 만드는
+   * 사람의 가장 흔한 낭비. 굽는 것은 지금 프레임 하나뿐 (장수만큼 구우면 손이 끊김).
+   */
+  function renderEmoteShots(): void {
+    const box = pick<HTMLElement>('[data-emote-shots]');
+    const note = pick<HTMLElement>('[data-emote-note]');
+    box.innerHTML = '';
+    const baked = composite(doc, doc.activeFrame);
+    const source = surfaceToCanvas(baked);
+    emotePreset.sizes.forEach(size => {
+      const fit = fitBox(doc.w, doc.h, size);
+      const shot = document.createElement('canvas');
+      shot.width = fit.w;
+      shot.height = fit.h;
+      const ctx = shot.getContext('2d');
+      if (ctx) {
+        /* 격자 그림은 뭉개면 안 된다. 그 외에는 부드럽게 줄이는 쪽이 실물에 가깝다. */
+        ctx.imageSmoothingEnabled = doc.grid === 0;
+        ctx.drawImage(source, 0, 0, fit.w, fit.h);
+      }
+      const cell = document.createElement('div');
+      cell.className = 'meok-emote-shot';
+      shot.style.width = fit.w + 'px';
+      shot.style.height = fit.h + 'px';
+      cell.appendChild(shot);
+      const caption = document.createElement('small');
+      caption.textContent = fit.w + 'x' + fit.h;
+      cell.appendChild(caption);
+      box.appendChild(cell);
+    });
+    note.textContent = T('emote.' + emotePreset.id + '.note', emotePreset.note);
+  }
+
   function syncMaskButtons(): void {
     const layer = activeLayer(doc);
     const has = !!(layer && layer.mask);
@@ -369,6 +433,8 @@ function buildMeok(container: HTMLElement): void {
     renderLayers();
     renderFrames();
     renderPalette();
+    renderEmotePicks();
+    renderEmoteShots();
     repaint();
   }
 
@@ -811,6 +877,11 @@ function buildMeok(container: HTMLElement): void {
   function touched(): void {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => { saveTimer = 0; writeNow(); }, 1200);
+    /* 이모트 미리보기는 **펴 놓았을 때만** 다시 굽는다. 접힌 것을 굽는 것은 버리는 시간.
+       획마다 굽지 않고 저장과 같은 박자로 미룸. */
+    if (shotTimer) clearTimeout(shotTimer);
+    const panel = root.querySelector<HTMLDetailsElement>('.meok-emote');
+    if (panel && panel.open) shotTimer = window.setTimeout(() => { shotTimer = 0; renderEmoteShots(); }, 400);
   }
   const savedMark = (): void => {
     const now = new Date();
@@ -1235,6 +1306,72 @@ function buildMeok(container: HTMLElement): void {
         });
       }, 0);
     },
+    /**
+     * 고른 규격대로 한 벌 뽑는다. 장이 하나면 멈춘 PNG, 둘 이상이면 규격이 정한 움직이는 형식.
+     * 크기마다 파일 하나씩, 사이는 조금 띄움 (한꺼번에 내리면 브라우저가 뒤엣것을 막는다).
+     * 뽑은 뒤에는 **실제 용량**을 한도와 나란히 적는다. 어림이 아니라 올라갈 그 파일의 크기.
+     */
+    'emote-save': () => {
+      const button = root.querySelector<HTMLButtonElement>('[data-act="emote-save"]');
+      if (button) button.disabled = true;
+      const preset = emotePreset;
+      const animated = doc.frames > 1;
+      const format = animated ? preset.animated : 'png';
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      const base = safeName(doc.name);
+      const report: string[] = [];
+      say(T('emoteBaking', '뽑는 중'));
+
+      /* 원본은 **한 번만** 굽는다. 크기마다 다시 구우면 1024^2 세 장을 세 번 섞게 되고,
+         그동안 손이 멈춘다 (Twitch 세 크기에서 합성 3회가 1회로). 줄이는 것만 크기마다. */
+      const baked = animated ? compositeAll(doc) : [composite(doc, doc.activeFrame)];
+
+      const bakeOne = async (size: number): Promise<void> => {
+        const fit = fitBox(doc.w, doc.h, size);
+        const smooth = doc.grid === 0;
+        if (!animated) {
+          const one = resize(baked[0], fit.w, fit.h, smooth);
+          const blob = await encode(surfaceToCanvas(one), 'png');
+          report.push(size + ': ' + Math.round(blob.size / 1024) + 'KB');
+          download(blob, emoteName(base, size, 'png', preset.sizes.length));
+          return;
+        }
+        const frames = baked.map(surface => ({
+          data: resize(surface, fit.w, fit.h, smooth).data,
+          delayMs
+        }));
+        let blob: Blob;
+        if (format === 'apng') {
+          blob = await encodeApng({ width: fit.w, height: fit.h, frames });
+        } else {
+          const gif = getKarmoGif();
+          if (!gif) throw new Error('no gif encoder');
+          blob = await gif.encodeAsync({ width: fit.w, height: fit.h, frames });
+        }
+        const over = overBudgetHint(blob.size, doc.frames, preset, true);
+        report.push(size + ': ' + Math.round(blob.size / 1024) + 'KB'
+          + (limitRatio(blob.size, preset, true) > 1 ? ' ' + T('emoteOver', '한도 넘음') : ''));
+        if (over) say(over);
+        download(blob, emoteName(base, size, format, preset.sizes.length));
+      };
+
+      void (async () => {
+        try {
+          for (const size of preset.sizes) {
+            say(T('emoteBaking', '뽑는 중') + ' ' + size);
+            await bakeOne(size);
+            /* 사이를 띄운다. 브라우저가 잇단 내려받기를 막는 자리다. */
+            await new Promise(resolve => { setTimeout(resolve, 350); });
+          }
+          const limit = Math.round((animated ? preset.limitAnimated : preset.limitStill) / 1024);
+          say(report.join(', ') + ' (' + T('emoteLimit', '한도') + ' ' + limit + 'KB)');
+        } catch {
+          say(T('emoteFailed', '이모트를 못 뽑았다'));
+        } finally {
+          if (button) button.disabled = false;
+        }
+      })();
+    },
     'save-meok': () => {
       const stored = packDoc(doc);
       download(new Blob([JSON.stringify(stored)], { type: 'application/json' }), safeName(doc.name) + '.meok');
@@ -1275,6 +1412,14 @@ function buildMeok(container: HTMLElement): void {
   root.querySelectorAll<HTMLButtonElement>('[data-act]').forEach(button => {
     button.onclick = () => actions[button.dataset.act || '']?.();
   });
+
+  /* 이모트 판 첫 그림. `reflowDoc` 은 새 그림과 파일 열기에서만 돌아 첫 진입을 못 덮음.
+     미리보기는 접혀 있으면 안 굽고, 펴는 순간 굽는다. */
+  renderEmotePicks();
+  const emotePanel = root.querySelector<HTMLDetailsElement>('.meok-emote');
+  if (emotePanel) {
+    emotePanel.ontoggle = () => { if (emotePanel.open) renderEmoteShots(); };
+  }
 
   pick<HTMLInputElement>('[data-open]').onchange = async (event) => {
     const input = event.target as HTMLInputElement;
@@ -1503,6 +1648,19 @@ function injectStyles(): void {
     '.meok-fix-row button{flex:1 1 0;min-width:0;font-size:10.5px;padding:5px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.meok-fix-row button[disabled]{opacity:.35;cursor:default}',
     '.meok-filters{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}',
+    /* 이모트 판. 미리보기는 올라갈 크기 그대로. 키우거나 줄이면 보는 뜻이 없음.
+       `meok-fix` 를 같이 걸지 마라. 실브라우저 검사가 `.meok-fix summary` 하나를 집는데
+       둘이 되면 그 자리에서 죽는다 (2026-08-29 실측). 생김새만 여기서 따로 맞춘다. */
+    '.meok-emote{border-top:1px solid var(--border);padding:6px 8px 10px}',
+    '.meok-emote summary{cursor:pointer;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);padding:2px 0}',
+    '.meok-emote-picks{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:4px 0 8px}',
+    '.meok-emote-picks button{font-size:10.5px;padding:5px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.meok-emote-picks button.active{border-color:var(--accent,#4f7cff);color:var(--text-primary)}',
+    '.meok-emote-shots{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:6px;background:var(--bg-primary);border-radius:6px;min-height:40px}',
+    '.meok-emote-shot{display:flex;flex-direction:column;align-items:center;gap:2px}',
+    '.meok-emote-shot canvas{background:#fff;border-radius:2px;image-rendering:auto}',
+    '.meok-emote-shot small{font-size:9px;color:var(--text-tertiary)}',
+    '.meok-emote-note{margin:6px 0 0;font-size:10.5px;color:var(--text-tertiary);line-height:1.4}',
     '.meok-filters button{font-size:11px;padding:5px 4px}',
     '.meok-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
     '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',

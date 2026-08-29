@@ -161,5 +161,19 @@
   "meok.saveApng": "APNG",
   "meok.saveApngHelp": "움직이는 PNG. 반투명 가장자리가 살아 있다. 디스코드 스티커가 이 형식",
   "meok.apngDone": "APNG 나왔다",
-  "meok.apngFailed": "APNG 를 못 구웠다"
+  "meok.apngFailed": "APNG 를 못 구웠다",
+  "meok.emote": "이모트",
+  "meok.emoteSave": "한 벌 뽑기",
+  "meok.emoteBaking": "뽑는 중",
+  "meok.emoteFailed": "이모트를 못 뽑았다",
+  "meok.emoteOver": "한도 넘음",
+  "meok.emoteLimit": "한도",
+  "meok.emote.twitch": "Twitch",
+  "meok.emote.discord-emoji": "Discord 이모지",
+  "meok.emote.discord-sticker": "Discord 스티커",
+  "meok.emote.seventv": "7TV",
+  "meok.emote.twitch.note": "28 에서 디테일이 죽는다. 올리기 전에 그 크기를 봐라",
+  "meok.emote.discord-emoji.note": "2초 애니가 256KB 를 쉽게 넘는다. 넘으면 프레임을 줄여라",
+  "meok.emote.discord-sticker.note": "움직이는 것은 APNG 만 받는다",
+  "meok.emote.seventv.note": "32 이하로 올리면 최근접 확대가 걸린다"
 }

@@ -161,5 +161,19 @@
   "meok.saveApng": "APNG",
   "meok.saveApngHelp": "動くPNG。半透明の縁が残る。Discordのステッカーはこの形式",
   "meok.apngDone": "APNGができた",
-  "meok.apngFailed": "APNGを焼けなかった"
+  "meok.apngFailed": "APNGを焼けなかった",
+  "meok.emote": "エモート",
+  "meok.emoteSave": "一式を出す",
+  "meok.emoteBaking": "出している",
+  "meok.emoteFailed": "エモートを出せなかった",
+  "meok.emoteOver": "上限超え",
+  "meok.emoteLimit": "上限",
+  "meok.emote.twitch": "Twitch",
+  "meok.emote.discord-emoji": "Discord絵文字",
+  "meok.emote.discord-sticker": "Discordステッカー",
+  "meok.emote.seventv": "7TV",
+  "meok.emote.twitch.note": "28で細部が死ぬ。上げる前にその大きさを見よ",
+  "meok.emote.discord-emoji.note": "2秒のアニメは256KBを簡単に超える。超えたらコマを減らす",
+  "meok.emote.discord-sticker.note": "動くステッカーはAPNGのみ",
+  "meok.emote.seventv.note": "32以下で上げると最近傍で拡大される"
 }

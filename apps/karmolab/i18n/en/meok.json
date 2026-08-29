@@ -161,5 +161,19 @@
   "meok.saveApng": "APNG",
   "meok.saveApngHelp": "Animated PNG. Soft edges survive. Discord stickers use this format",
   "meok.apngDone": "APNG ready",
-  "meok.apngFailed": "Could not bake the APNG"
+  "meok.apngFailed": "Could not bake the APNG",
+  "meok.emote": "Emote",
+  "meok.emoteSave": "Export a set",
+  "meok.emoteBaking": "Exporting",
+  "meok.emoteFailed": "Could not export the emote",
+  "meok.emoteOver": "over limit",
+  "meok.emoteLimit": "limit",
+  "meok.emote.twitch": "Twitch",
+  "meok.emote.discord-emoji": "Discord emoji",
+  "meok.emote.discord-sticker": "Discord sticker",
+  "meok.emote.seventv": "7TV",
+  "meok.emote.twitch.note": "Detail dies at 28. Check that size before uploading",
+  "meok.emote.discord-emoji.note": "A 2s animation passes 256KB easily. Cut frames if it does",
+  "meok.emote.discord-sticker.note": "Animated stickers must be APNG",
+  "meok.emote.seventv.note": "Uploads at 32 or below get nearest-neighbour upscaling"
 }
