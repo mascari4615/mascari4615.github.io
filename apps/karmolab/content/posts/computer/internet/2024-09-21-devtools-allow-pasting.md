@@ -4,6 +4,7 @@ date: "2024-09-21T14:29:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 문제

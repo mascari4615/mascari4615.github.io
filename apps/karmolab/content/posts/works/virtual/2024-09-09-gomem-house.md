@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:36:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-house/scretto/241001-221336.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 티파니의 집 역대급 퀄리티로 나왔습니다.  

@@ -4,7 +4,7 @@ date: "2025-04-18T18:07:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Heap

@@ -4,6 +4,7 @@ date: "2023-01-08T18:08:00+09:00"
 categories: [컴퓨터, 프로그래밍, Convention]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## Yoda Notation(Condition)

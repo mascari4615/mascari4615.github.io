@@ -245,5 +245,9 @@
   "community.docs.demo.run": "다시 그리기",
   "community.docs.demo.reset": "되돌리기",
   "community.docs.demo.code": "예제 코드",
-  "community.docs.demo.result": "실행 결과"
+  "community.docs.demo.result": "실행 결과",
+  "community.board.info": "정보",
+  "community.board.me": "나",
+  "community.board.info-desc": "알아낸 것을 적은 글. 읽기는 글 장에서",
+  "community.board.me-desc": "만든 것과 생각한 것. 읽기는 글 장에서"
 }

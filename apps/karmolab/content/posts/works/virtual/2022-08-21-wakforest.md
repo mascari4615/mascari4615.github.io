@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:19:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/wakforest/wakforest-banner.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 왁타버스 전용 만화책방이 오픈했습니다! - 왁숲 (독점만화 왁켓몬스터 등)  

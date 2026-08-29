@@ -5,7 +5,7 @@ last_modified_at: "2024-09-16T16:02:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Web Browser | 웹 브라우저

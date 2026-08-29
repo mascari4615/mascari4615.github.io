@@ -4,7 +4,7 @@ date: "2025-10-12T01:43:00+09:00"
 categories: [수필, 생각]
 tags: [문화]
 image: /assets/img/background/backtop.gif
-hidden: true
+board: me
 ---
 
 ## 림일기

@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:26:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/isd-home-party/isd-home-party-banner.jpg
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 20230821 이세계 홈 파티 작업후기,왁물원 등 - 고세구 다시보기  

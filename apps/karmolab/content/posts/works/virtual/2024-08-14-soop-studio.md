@@ -6,13 +6,13 @@ last_modified_at: "2024-11-09T08:35:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/soop-studio/240814-185806.png
-hidden: true
 work:
   field: 버추얼
   org: 패러블 엔터테인먼트
   role: [아트, UI, 프로그래밍]
   platform: VRChat
   period: 2024-05~2024-08
+board: me
 ---
 
 https://youtu.be/g4nRz7nlEqw

@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:31:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, 유니티]
 image: /assets/img/post/works/everything/230629-222847.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [아트]
   platform: Unity
+board: me
 ---
 
 SKYSIX (육광천) 'Everything' Official MV  

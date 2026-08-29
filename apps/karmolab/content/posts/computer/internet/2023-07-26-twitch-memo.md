@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:17:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 추천 채널 목록에서 특정 채널 숨기기

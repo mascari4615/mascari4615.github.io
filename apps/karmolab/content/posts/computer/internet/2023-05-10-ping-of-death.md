@@ -5,7 +5,7 @@ last_modified_at: "2023-05-10T09:18:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 [참고 - Ping Of Death](https://run-it.tistory.com/52)  

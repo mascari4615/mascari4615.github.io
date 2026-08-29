@@ -5,7 +5,7 @@ last_modified_at: "2024-07-26T12:22:00+09:00"
 categories: [컴퓨터, 그래픽]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 https://youtu.be/Xwlm5V-bnBc

@@ -5,6 +5,7 @@ last_modified_at: "2024-08-29T22:15:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 > [!WARNING]

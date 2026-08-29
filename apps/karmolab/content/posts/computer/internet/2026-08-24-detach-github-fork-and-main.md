@@ -5,6 +5,7 @@ date: "2026-08-24T20:19:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Git, GitHub, Chirpy]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 이 블로그 저장소는 처음부터 독립 프로젝트가 아니었다. [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy)를 fork해서 시작했다.

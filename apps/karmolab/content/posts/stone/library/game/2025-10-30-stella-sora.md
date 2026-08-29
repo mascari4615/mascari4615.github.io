@@ -5,7 +5,7 @@ last_modified_at: "2025-11-10T19:43:00+09:00"
 categories: [수필, 생각]
 tags: [문화]
 image: /assets/img/background/backtop.gif
-hidden: true
+board: me
 ---
 
 ## 마스터 링크

@@ -5,6 +5,7 @@ last_modified_at: "2024-10-20T12:55:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 왜 Why

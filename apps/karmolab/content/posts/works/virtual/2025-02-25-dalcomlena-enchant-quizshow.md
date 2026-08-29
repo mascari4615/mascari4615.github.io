@@ -6,12 +6,12 @@ last_modified_at: "2025-03-09T21:05:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/tt-vGVAu71k/mqdefault.jpg"
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 【25.02.25】🎉경🎈 달콤레나^^ㅣ 인챈트 입장 🎈축🎉  

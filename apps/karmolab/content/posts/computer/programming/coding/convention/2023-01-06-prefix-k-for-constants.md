@@ -5,6 +5,7 @@ last_modified_at: "2023-11-08T13:46:00+09:00"
 categories: [컴퓨터, 프로그래밍, Convention]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 헝가리안 표기법

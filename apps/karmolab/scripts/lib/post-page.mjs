@@ -30,7 +30,7 @@ export function applyCdn(html) {
 /**
  * 글 **목록 장은 없다** (change.karmolab-at-root ②).
  *
- * 목록의 집은 앱 안 커뮤니티 글 판이다 (`/?board=blog#community`,
+ * 목록의 집은 앱 안 커뮤니티 글 판이다 (`/?board=info#community` 와 `me`,
  * change.board-unify ①). 정적 목록 장을 따로 찍으면 같은 목록이 두 군데가 되고
  * 검색 신호도 갈라진다. 여기서는 **글 한 장씩**(`/posts/<slug>/`)만 찍는다.
  * 목록 데이터 정본 = `data/posts-index.json` (빌드 산출, 공개 글만).
@@ -44,7 +44,7 @@ export function notFoundBody() {
     return `    <div style="text-align:center;padding-top:80px">
         <h1>여기엔 아무것도 없다</h1>
         <p style="color:var(--text-secondary)">주소가 바뀌었거나, 처음부터 없던 곳이다.</p>
-        <p><a href="/?board=blog#community">글 목록</a>, <a href="/">KarmoLab</a></p>
+        <p><a href="/?board=info#community">글 목록</a>, <a href="/">KarmoLab</a></p>
         <!-- 도구 주소로 잘못 들어온 사람 건지기 (TASK-KL-089 승계).
              도구가 이름을 바꾸거나 사라지면 옛 링크와 옛 검색 결과가 전부 그 주소로 온다.
              그냥 두면 여기서 통째로 버려진다. 이름이 닮은 것을 찾아 그 자리에서 보여 준다.

@@ -79,6 +79,8 @@ function parsePost(file) {
         tags: list(head.tags),
         image: unquote(head.image),
         hidden: head.hidden === 'true',
+        /* 어느 게시판에 설 글인가 (change.post-boards). `info` 아니면 `me` */
+        board: unquote(head.board) === 'info' ? 'info' : 'me',
         work: work && {
             field: unquote(work.field) || null,
             org: unquote(work.org) || null,
@@ -304,6 +306,7 @@ const index = visible
         categories: p.categories,
         tags: p.tags,
         image: p.image,
+        board: p.board,
         excerpt: p.body
             .replace(/```[\s\S]*?```/g, ' ')
             .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')

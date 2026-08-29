@@ -5,6 +5,7 @@ last_modified_at: "2025-05-07T22:50:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## Windows 시작메뉴 Bing 검색 비활성화

@@ -5,7 +5,7 @@ last_modified_at: "2025-08-01T22:10:00+09:00"
 categories: [컴퓨터, 소프트웨어]
 tags: [유니티]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Resources

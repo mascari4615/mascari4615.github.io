@@ -4,6 +4,7 @@ date: "2022-11-18T10:42:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 프로토콜 식별자 (Protocol Identifier)

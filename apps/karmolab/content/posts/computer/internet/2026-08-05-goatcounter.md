@@ -5,6 +5,7 @@ date: "2026-08-05T23:10:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 [KarmoLab](/)에 도구를 스무 개쯤 만들어 놓고 나서야 깨달았다. **누가 무엇을 쓰는지 볼 방법이 없었다.**

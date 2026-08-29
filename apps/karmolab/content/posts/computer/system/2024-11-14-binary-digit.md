@@ -5,7 +5,7 @@ last_modified_at: "2024-11-14T00:26:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 머리말

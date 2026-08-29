@@ -245,5 +245,9 @@
   "community.docs.demo.run": "Run again",
   "community.docs.demo.reset": "Reset",
   "community.docs.demo.code": "Example code",
-  "community.docs.demo.result": "Result"
+  "community.docs.demo.result": "Result",
+  "community.board.info": "Notes",
+  "community.board.me": "Me",
+  "community.board.info-desc": "What I figured out. Read on the post page",
+  "community.board.me-desc": "What I made and thought. Read on the post page"
 }

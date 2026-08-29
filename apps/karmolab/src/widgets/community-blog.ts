@@ -15,6 +15,8 @@ import { fromBlogRow, postDate, type KarmoPost } from '../lib/post-model';
 
 export interface BlogPostRow {
     slug: string;
+    /** 어느 판에 설 글인가 (change.post-boards). 없으면 나 */
+    board?: 'info' | 'me';
     title: string;
     date: string;
     categories: string[];

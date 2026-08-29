@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:13:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 [여치의 프로그래밍 강좌 #6](http://yuchi.duckdns.org/xe/Programming_QA/5950)  

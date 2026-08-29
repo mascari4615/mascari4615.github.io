@@ -6,12 +6,12 @@ last_modified_at: "2024-11-18T05:15:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/love-with-jrr/love-with-jrr-1/love-with-jrr-1-banner.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 르르와 연애중 1  

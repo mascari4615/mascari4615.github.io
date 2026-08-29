@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T21:36:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Dynamic-Programming, Back-Tracking]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 0-1 배낭 문제

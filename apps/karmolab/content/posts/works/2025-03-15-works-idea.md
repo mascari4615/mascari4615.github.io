@@ -4,7 +4,7 @@ date: "2025-03-15T09:52:00+09:00"
 categories: [작업물]
 tags: [작업물]
 image: /assets/img/background/20230112-151539.jpg
-hidden: true
+board: me
 ---
 
 ## 머리말

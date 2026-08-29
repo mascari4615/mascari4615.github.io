@@ -415,13 +415,26 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     let host: HTMLElement | null = null;
     let boards: Board[] = [];
     /** 글 판(블로그) 요약. 서버 판이 아니라 git 색인이 정본이다 (change.board-unify ①). */
-    let blogSummary: BlogBoardSummary | null = null;
+    let blogSummary: Partial<Record<BlogBoardId, BlogBoardSummary>> = {};
     /** 글쓰기 칸을 펼쳐 두었나. 다시 그려도 접히지 않게 밖에 둔다. */
     let writerOpen = false;
 
     /** 블로그 판의 고정 id. 서버 갤러리 id 와 충돌하지 않는 예약어. */
-    const BLOG_BOARD_ID = 'blog';
-    const blogLabel = (): string => t('community.tab.blog', undefined, '글');
+    /* 주인장 글은 두 판으로 선다 (change.post-boards). 정보성 글과 나에 관한 글은
+       읽는 마음이 다르다. 옛 주소 `?board=blog` 는 정보 판으로 보낸다 */
+    const BLOG_BOARD_IDS = ['info', 'me'] as const;
+    type BlogBoardId = (typeof BLOG_BOARD_IDS)[number];
+    const LEGACY_BLOG_ID = 'blog';
+    const blogLabel = (id: BlogBoardId): string =>
+        id === 'info'
+            ? t('community.board.info', undefined, '정보')
+            : t('community.board.me', undefined, '나');
+    const blogDesc = (id: BlogBoardId): string =>
+        id === 'info'
+            ? t('community.board.info-desc', undefined, '알아낸 것을 적은 글. 읽기는 글 장에서')
+            : t('community.board.me-desc', undefined, '만든 것과 생각한 것. 읽기는 글 장에서');
+    const isBlogBoard = (id: string | null): id is BlogBoardId =>
+        id === 'info' || id === 'me';
 
     /** 문서 판 요약. 이것도 서버 판이 아니라 git 이 정본이다 (change.docs-into-community). */
     let docsSummary: DocsBoardSummary | null = null;
@@ -579,20 +592,23 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /** 아직 아무 글도 없는 판을 펴 두었나 (TASK-KL-161). */
     let emptyBoardsOpen = false;
 
-    /** 홈의 글 판 카드. 다른 갤러리 카드와 같은 옷, 데이터만 git 색인 (색인을 못 받았으면 자리를 안 만든다). */
+    /** 홈의 글 판 카드 둘. 다른 갤러리 카드와 같은 옷, 데이터만 git 색인 */
     function blogHomeCard(): string {
-        if (!blogSummary) return '';
-        return `<div class="c-gal-wrap">
-            <button type="button" class="c-gal" data-gal="${BLOG_BOARD_ID}">
-                <span class="c-gal-name"><b>${esc(blogLabel())}</b><em>${blogSummary.count}</em></span>
-                <span class="c-gal-desc">${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}</span>
-                <span class="c-gal-last ${blogSummary.lastTitle ? '' : 'c-gal-quiet'}">${
-                    blogSummary.lastTitle
-                        ? `${esc(plainPreview(blogSummary.lastTitle, 28))}, ${relativeTime(blogSummary.lastAt ?? '')}`
-                        : t('community.t104')
-                }</span>
-            </button>
-        </div>`;
+        return BLOG_BOARD_IDS.map((id) => {
+            const summary = blogSummary[id];
+            if (!summary) return '';
+            return `<div class="c-gal-wrap">
+                <button type="button" class="c-gal" data-gal="${id}">
+                    <span class="c-gal-name"><b>${esc(blogLabel(id))}</b><em>${summary.count}</em></span>
+                    <span class="c-gal-desc">${esc(blogDesc(id))}</span>
+                    <span class="c-gal-last ${summary.lastTitle ? '' : 'c-gal-quiet'}">${
+                        summary.lastTitle
+                            ? `${esc(plainPreview(summary.lastTitle, 28))}, ${relativeTime(summary.lastAt ?? '')}`
+                            : t('community.t104')
+                    }</span>
+                </button>
+            </div>`;
+        }).join('');
     }
 
     /** 홈의 문서 판 카드. 목록을 못 받았으면 자리를 안 만든다. */
@@ -875,10 +891,13 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다. 둘 다 동그란 칩이라 똑같아 보인다.
         /* 글(블로그) 판은 서버 목록에 없는 붙박이다. 데이터가 git 색인이라 서버가 모른다.
            칩 줄에서는 다른 판과 똑같이 선다 (겉보기엔 다 게시판, change.board-unify ①). */
-        const blogChip = `<button type="button" class="c-board" data-board="${BLOG_BOARD_ID}" data-on="${active === BLOG_BOARD_ID ? '1' : '0'}"
-                    title="${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}">${esc(blogLabel())}${
-                        blogSummary ? `<span class="c-board-count">${blogSummary.count}</span>` : ''
+        const blogChip = BLOG_BOARD_IDS.map((id) => {
+            const summary = blogSummary[id];
+            return `<button type="button" class="c-board" data-board="${id}" data-on="${active === id ? '1' : '0'}"
+                    title="${esc(blogDesc(id))}">${esc(blogLabel(id))}${
+                        summary ? `<span class="c-board-count">${summary.count}</span>` : ''
                     }</button>`;
+        }).join('');
         /* 문서 판도 같은 붙박이다 (change.docs-into-community). */
         const docsChip = `<button type="button" class="c-board" data-board="${DOCS_BOARD_ID}" data-on="${active === DOCS_BOARD_ID ? '1' : '0'}"
                     title="${esc(docsBoardDesc())}">${esc(docsBoardLabel())}${
@@ -1587,7 +1606,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
      * 글 판 화면. 다른 판과 같은 머리, 칩 줄, 표 골격, 다만 글쓰기 칸이 없다
      * (이 판의 글쓰기 = git 커밋). 줄을 누르면 정적 장으로 간다 (change.board-unify ①).
      */
-    async function renderBlogBoard(): Promise<void> {
+    async function renderBlogBoard(boardId: BlogBoardId): Promise<void> {
         if (!host) return;
         /* 다른 판 칩도 같이 세우고 싶을 뿐이다. 못 받으면 글 칩만 선다 (막지 않는다). */
         if (boards.length === 0) {
@@ -1603,19 +1622,22 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             wireFailure();
             return;
         }
-        blogSummary = blogBoardSummary(posts);
+        const mine = posts.filter((row) => (row.board === 'info' ? 'info' : 'me') === boardId);
+        for (const id of BLOG_BOARD_IDS) {
+            blogSummary[id] = blogBoardSummary(posts.filter((row) => (row.board === 'info' ? 'info' : 'me') === id));
+        }
 
         host.innerHTML = `<div class="c-wrap">
             <div class="c-gal-head">
                 <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
-                <h2>${esc(blogLabel())}</h2>
-                <p>${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}, 글 ${posts.length}</p>
+                <h2>${esc(blogLabel(boardId))}</h2>
+                <p>${esc(blogDesc(boardId))}, 글 ${mine.length}</p>
             </div>
-            ${renderBoards(BLOG_BOARD_ID)}
+            ${renderBoards(boardId)}
             <div data-blog-body></div>
         </div>`;
 
-        buildBlogBoardBody(host.querySelector('[data-blog-body]') as HTMLElement, posts);
+        buildBlogBoardBody(host.querySelector('[data-blog-body]') as HTMLElement, mine);
         host.querySelector('[data-board-home]')?.addEventListener('click', () => go({ board: null, p: null, page: null, q: null }));
         host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
             b.addEventListener('click', () => {
@@ -1956,8 +1978,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         /* 글 판은 **서버보다 먼저** 갈라진다. 데이터가 git 색인이라 봇이 꺼져 있어도
            이 판만은 열린다 (change.board-unify ①: fail-open, 서버 죽어도 글은 읽힌다). */
-        if (param('board') === BLOG_BOARD_ID) {
-            await renderBlogBoard();
+        const boardParam = param('board');
+        // 옛 주소(`?board=blog`)로 온 사람은 정보 판으로 (change.post-boards)
+        if (boardParam === LEGACY_BLOG_ID) {
+            go({ board: 'info' });
+            return;
+        }
+        if (isBlogBoard(boardParam)) {
+            await renderBlogBoard(boardParam);
             return;
         }
 
@@ -2002,7 +2030,11 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 // 문서 판 요약. 실패해도 홈은 그대로 뜸
                 loadDocEntries(),
             ]);
-            if (blogPosts) blogSummary = blogBoardSummary(blogPosts);
+            if (blogPosts) {
+                for (const id of BLOG_BOARD_IDS) {
+                    blogSummary[id] = blogBoardSummary(blogPosts.filter((row) => (row.board === 'info' ? 'info' : 'me') === id));
+                }
+            }
             if (docList.length > 0) {
                 docsEntries = docList;
                 docsSummary = docsBoardSummary(docList);

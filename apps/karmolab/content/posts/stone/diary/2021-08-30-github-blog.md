@@ -5,6 +5,7 @@ last_modified_at: "2024-08-29T22:25:00+09:00"
 categories: [수필, 일기]
 tags: []
 image: /assets/img/background/20230112-151539.jpg
+board: me
 ---
 
 안녕하세요.  

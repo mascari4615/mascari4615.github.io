@@ -4,7 +4,7 @@ date: "2025-12-20T15:31:00+09:00"
 categories: [컴퓨터, 소프트웨어]
 tags: [유니티]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 문제

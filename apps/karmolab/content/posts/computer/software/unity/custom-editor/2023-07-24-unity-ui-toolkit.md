@@ -5,6 +5,7 @@ last_modified_at: "2025-04-30T07:00:00+09:00"
 categories: [컴퓨터, 소프트웨어]
 tags: [유니티, UIToolkit]
 image: /assets/img/background/20240827-140647.jpg
+board: info
 ---
 
 ## UI Toolkit

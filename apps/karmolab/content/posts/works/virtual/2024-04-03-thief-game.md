@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:31:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/thief-game/240131-232028.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 내가 마피아라고? 쏴 봐 그럼  

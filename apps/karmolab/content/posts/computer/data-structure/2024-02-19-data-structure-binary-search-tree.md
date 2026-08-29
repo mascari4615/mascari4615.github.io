@@ -5,7 +5,7 @@ last_modified_at: "2024-10-04T17:37:00+09:00"
 categories: [컴퓨터, 자료구조]
 tags: [자료구조, Tree]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 https://youtu.be/IKnjzmyk70U

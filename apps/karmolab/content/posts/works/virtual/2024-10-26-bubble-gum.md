@@ -6,7 +6,7 @@ last_modified_at: "2024-10-26T15:22:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/bubble-gum/241026-165542.png
-hidden: true
+board: me
 ---
 
 ## 머리말

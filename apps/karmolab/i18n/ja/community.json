@@ -245,5 +245,9 @@
   "community.docs.demo.run": "再描画",
   "community.docs.demo.reset": "元に戻す",
   "community.docs.demo.code": "サンプルコード",
-  "community.docs.demo.result": "実行結果"
+  "community.docs.demo.result": "実行結果",
+  "community.board.info": "情報",
+  "community.board.me": "わたし",
+  "community.board.info-desc": "調べて分かったこと。読むのは記事ページで",
+  "community.board.me-desc": "作ったものと考えたこと。読むのは記事ページで"
 }

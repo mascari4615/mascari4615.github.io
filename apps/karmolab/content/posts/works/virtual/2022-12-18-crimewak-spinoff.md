@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:23:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/crime-wak-spinoff/221218-022228.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 이세돌 중 1명이... 범인? 왁타전자 살인사건 - 크라임왁 외전  

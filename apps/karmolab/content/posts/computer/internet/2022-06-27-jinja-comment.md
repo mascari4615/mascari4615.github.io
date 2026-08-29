@@ -4,6 +4,7 @@ date: "2022-06-27T07:45:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 💫

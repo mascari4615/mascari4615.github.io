@@ -6,7 +6,7 @@ last_modified_at: "2024-11-11T02:55:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티, 루석바]
 image: /assets/img/post/works/rusuk-bar/rusuk-bar-banner.png
-hidden: true
+board: me
 ---
 
 https://youtu.be/I5bkJ4S9qic

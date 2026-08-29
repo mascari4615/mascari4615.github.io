@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:12:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 주소 지정 모드

@@ -6,13 +6,13 @@ last_modified_at: "2024-11-09T08:11:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/girls-reverse/230220-064057.png
-hidden: true
 work:
   field: 버추얼
   org: 패러블 엔터테인먼트
   role: [프로그래밍]
   platform: VRChat
   period: 2022-05~2023-03
+board: me
 ---
 
 (ENG) [1화] 30인 여돌들이 서로 등급을 매기는 냉혹한 서바이벌ㅣ소녀 리버스  
