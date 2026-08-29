@@ -2604,8 +2604,8 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
 }
 .kl-modal {
     position: relative;
-    width: min(880px, 100%);
-    max-height: min(86vh, 860px);
+    width: min(940px, 100%);
+    height: min(88vh, 680px);
     display: flex; flex-direction: column;
     background: var(--bg-primary);
     border: 1px solid var(--border);
@@ -2621,9 +2621,60 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
 }
 .kl-modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
 .kl-modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.kl-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-lg); }
-/* 창 안의 도구 판은 바깥 여백 없음. 창이 이미 여백을 가짐 */
-.kl-modal-body .tool-page { margin: 0; }
+.kl-modal-body { flex: 1 1 auto; min-height: 0; display: flex; }
+/* 창 안도 바깥 화면과 같은 짜임. 왼쪽 목록 + 오른쪽 본문
+   Claude, 디스코드 설정 창이 그 모양이고 우리 메인 화면도 그 모양이다 */
+.kl-modal-body .tool-page { margin: 0; padding: 0; flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.kl-modal-body .tool-page-hero {
+    padding: var(--space-lg) var(--space-lg) var(--space-md);
+    margin: 0;
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+.kl-modal-body .tool-tab-sidebar-layout {
+    display: flex; align-items: stretch; gap: 0;
+    flex: 1 1 auto; min-height: 0; width: 100%;
+}
+.kl-modal-body .tab-row--sidebar {
+    display: flex; flex-direction: column; gap: 2px;
+    flex: 0 0 auto; width: 190px;
+    padding: var(--space-md) var(--space-sm);
+    background: var(--bg-void);
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    margin: 0;
+    overflow-y: auto;
+}
+.kl-modal-body .tab-row--sidebar .tab-btn {
+    text-align: left; justify-content: flex-start;
+    border: none; border-radius: var(--radius-md);
+    margin: 0; padding: 8px 10px;
+    min-height: 32px;
+    font-size: var(--font-size-xs); font-weight: 500;
+    text-transform: none; letter-spacing: 0;
+    white-space: normal; word-break: break-word;
+    font-family: var(--font-sans);
+}
+.kl-modal-body .tab-row--sidebar .tab-btn.active {
+    background: var(--accent-subtle); color: var(--accent);
+    border-bottom-color: transparent;
+}
+.kl-modal-body .tab-panels-column {
+    flex: 1 1 auto; min-width: 0; min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-lg);
+}
+.kl-modal-body .tab-panel { margin: 0; }
+
+@media (max-width: 640px) {
+    .kl-modal-body .tool-tab-sidebar-layout { flex-direction: column; }
+    .kl-modal-body .tab-row--sidebar {
+        flex-direction: row; width: 100%;
+        border-right: none; border-bottom: 1px solid var(--border);
+        overflow-x: auto; overflow-y: hidden;
+    }
+    .kl-modal-body .tab-row--sidebar .tab-btn { flex: 0 0 auto; white-space: nowrap; }
+}
 .kl-modal-body .tool-page-next { display: none; }
 /* 창이 뜬 동안 뒤 화면 스크롤 잠금 */
 html.has-modal, html.has-modal body { overflow: hidden; }
