@@ -313,10 +313,6 @@
         "yawnbot.mascari4615.com"
       ]
     },
-    "studymap": {
-      "where": "assets",
-      "sends": "학습 자료를 우리 사이트에서 내려받습니다. 넣은 내용은 안 나갑니다."
-    },
     "tempmail": {
       "where": "ours",
       "sends": "임시 편지함과 받은 메일이 KarmoLab 중계 서버를 거칩니다.",
@@ -386,6 +382,13 @@
       "sends": "남이 만든 묶음을 받아 오고, 고른 결과를 서버에 남깁니다.",
       "to": [
         "yawnbot.mascari4615.com"
+      ]
+    },
+    "recall": {
+      "where": "assets",
+      "sends": "문항과 강의 본문을 우리 사이트에서 받아 옵니다. 답과 기록은 이 기기에만 남고 어디로도 안 보냅니다.",
+      "to": [
+        "blog.mascari4615.com"
       ]
     }
   }

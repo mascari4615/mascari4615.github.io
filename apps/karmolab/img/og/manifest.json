@@ -129,7 +129,6 @@
   "charconv": "1e0969ada1e1",
   "comparepic": "964d1c883555",
   "livecount": "259b28a45150",
-  "studymap": "7014a85d5f05",
   "mesh3d": "37c005b538b0",
   "arcade": "11015552a573",
   "arcade-reflex": "be9e0665d94e",
@@ -209,5 +208,6 @@
   "protobuf": "30806421d323",
   "territory": "89f89b95ed22",
   "my-ai": "f9497fb6ec04",
-  "memo-atlas": "a8c92d24c262"
+  "memo-atlas": "a8c92d24c262",
+  "recall": "8a13263ea087"
 }

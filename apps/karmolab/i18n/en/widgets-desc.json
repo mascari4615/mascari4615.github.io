@@ -194,7 +194,6 @@
   "widgets-desc.stash.desc": "Unsorted experiments, alive in one box",
   "widgets-desc.status.desc": "Whether it is running well and what changed recently — all measured",
   "widgets-desc.stone.desc": "Throw stones and read the omen",
-  "widgets-desc.studymap.desc": "Web, Git and computer science in order — a learning map that also tells you why each topic matters and when you can move on (progress saved)",
   "widgets-desc.subtitle.desc": "Shifts or stretches subtitles back into sync. Converts between SRT and VTT",
   "widgets-desc.tableconv.desc": "Turns a table copied from a spreadsheet into Markdown, CSV or JSON. Just paste",
   "widgets-desc.tempmail.desc": "Makes a mail address that lives 10 minutes so you can receive a verification mail. Knowing the address is not enough to read it",

@@ -476,10 +476,6 @@
       "print": "zlj64u",
       "date": "2026-08-09"
     },
-    "studymap": {
-      "print": "y8nkp6",
-      "date": "2026-08-13"
-    },
     "arcade": {
       "print": "4cwbch",
       "date": "2026-08-13"
@@ -591,6 +587,10 @@
     "memo-atlas": {
       "print": "1d32zrn",
       "date": "2026-08-22"
+    },
+    "recall": {
+      "print": "19zxzx7",
+      "date": "2026-08-29"
     }
   }
 }

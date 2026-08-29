@@ -314,7 +314,7 @@ const KarmoPalette = (() => {
       studyEntries = studyMapDocuments(await response.json()).map((document) => ({
         id: document.value.id, title: document.value.title, desc: document.value.description,
         category: document.value.trackTitle, icon: '', alias: document.aliases || '', cho: '', bundle: null,
-        source: 'study', pageId: 'studymap', nodeId: document.value.nodeId,
+        source: 'study', pageId: 'recall', nodeId: document.value.nodeId,
       }));
       searchIndex.refresh('studymap');
       if (inline?.input.value) render(inline);
@@ -331,7 +331,7 @@ const KarmoPalette = (() => {
       lessonEntries = lessonDocuments(await response.json()).map((document) => ({
         id: `lesson:${document.value.id}`, title: document.value.title, desc: document.value.description,
         category: document.value.nodeTitle, icon: '', alias: document.aliases || '', cho: '', bundle: null,
-        source: 'lesson', pageId: 'studymap', nodeId: document.value.nodeId, partId: document.value.partId,
+        source: 'lesson', pageId: 'recall', nodeId: document.value.nodeId, partId: document.value.partId,
       }));
       searchIndex.refresh('lessons');
       if (inline?.input.value) render(inline);
@@ -884,8 +884,8 @@ const KarmoPalette = (() => {
 
   function choose(inst: Instance, entry: Entry): void {
     if (inst.mode === 'overlay') close();
-    if (entry.nodeId) sessionStorage.setItem('karmolab-studymap-open-node', entry.nodeId);
-    if (entry.partId) sessionStorage.setItem('karmolab-studymap-open-part', entry.partId);
+    if (entry.nodeId) sessionStorage.setItem('karmolab-recall-open-lesson', entry.nodeId);
+    if (entry.partId) sessionStorage.setItem('karmolab-recall-open-part', entry.partId);
     if (entry.docId) sessionStorage.setItem('karmolab-docs-open', JSON.stringify({ id: entry.docId, heading: entry.heading || '' }));
     if (typeof Toolbox !== 'undefined') Toolbox.switchPage(entry.pageId || entry.id);
     const retryUntilMounted = (run: () => void, isPending: () => boolean, attempts = 120): void => {
@@ -894,9 +894,9 @@ const KarmoPalette = (() => {
       if (isPending()) requestAnimationFrame(() => retryUntilMounted(run, isPending, attempts - 1));
     };
     if (entry.nodeId) retryUntilMounted(
-      () => (window as unknown as { KarmoStudyMapOpen?: (id: string, partId?: string) => void })
-        .KarmoStudyMapOpen?.(entry.nodeId as string, entry.partId),
-      () => sessionStorage.getItem('karmolab-studymap-open-node') === entry.nodeId,
+      () => (window as unknown as { KarmoRecallOpen?: (id: string, partId?: string) => void })
+        .KarmoRecallOpen?.(entry.nodeId as string, entry.partId),
+      () => sessionStorage.getItem('karmolab-recall-open-lesson') === entry.nodeId,
     );
     if (entry.docId) retryUntilMounted(
       () => (window as unknown as { KarmoDocsOpen?: (id: string, heading?: string) => void })

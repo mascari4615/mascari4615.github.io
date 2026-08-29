@@ -2522,16 +2522,14 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['karmograph/karmograph']
   },
 
-  /* 스터디 맵 — 웹·Git·컴퓨터 과학을 「왜 배우나 / 언제 넘어가나」까지 붙여 그린다.
-   * 내용은 `data/studymap.json` 한 곳 — 주제를 늘릴 때 코드는 안 건드린다. */
   /* 되묻기. 오늘 여섯 개를 먼저 답하고 확인.
    * 읽는 도구가 아니라 재는 도구. 근거는 memo 의 학습 수치 장부.
    * 재료는 스터디맵 것 그대로, 세트를 고를 때는 얇은 표(recall-pool.json)만 봄 */
   {
     id: 'recall',
-    get title() { return t('widgets.recall.title', undefined, '되묻기'); },
+    get title() { return t('widgets.recall.title', undefined, "되묻기"); },
     category: 'ref',
-    get desc() { return t('widgets-desc.recall.desc', undefined, '오늘 여섯 개. 먼저 답하고 본문과 대조한다. 못 한 것은 내일 다시 묻는다'); },
+    get desc() { return t('widgets-desc.recall.desc', undefined, "오늘 여섯 개. 먼저 답하고 본문과 대조한다. 못 한 것은 내일 다시 묻는다"); },
     layout: 'wide',
     noHero: true,
     icon:
@@ -2541,20 +2539,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['recall/recall']
   },
 
-  {
-    id: 'studymap',
-    get title() { return t('widgets.studymap.title', undefined, "개발자 스터디 맵"); },
-    category: 'ref',
-    get desc() { return t('widgets-desc.studymap.desc', undefined, "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)"); },
-    layout: 'wide',
-    /* 제목 카드를 안 그린다. 위젯이 제 머리를 한 줄로 갖고 있어서, 껍데기 제목까지 얹으면
-       화면 위 180px 가 글자만으로 차고 본문이 접힌 화면 밖으로 밀린다. */
-    noHero: true,
-    icon:
-      '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' +
-      '<path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
-    lazyScriptPaths: ['studymap/studymap']
-  },
 
   /* 논문에게 묻기 — 구현은 08-14 에 들어왔는데 명부에 못 올라 목록·찾기창·주소 어느 쪽으로도
    * 못 닿고 있었다(`audit:registry-impl` 이 꺼져 있어 아무도 몰랐다). */

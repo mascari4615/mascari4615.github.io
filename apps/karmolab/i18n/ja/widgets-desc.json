@@ -194,7 +194,6 @@
   "widgets-desc.stash.desc": "片づいていない実験が一つの箱で生きています",
   "widgets-desc.status.desc": "いまちゃんと動いているか、最近なにが変わったか — すべて実測",
   "widgets-desc.stone.desc": "石を投げて占います",
-  "widgets-desc.studymap.desc": "ウェブ・Git・コンピュータサイエンスを順番に — なぜ学ぶのか、どこまでやれば次へ進めるのかまで書いた学習マップ（進捗を保存）",
   "widgets-desc.subtitle.desc": "ずれた字幕を寄せたり伸ばしたりして合わせます。SRT と VTT を相互変換します",
   "widgets-desc.tableconv.desc": "表計算からコピーした表を Markdown · CSV · JSON に変えます。貼るだけです",
   "widgets-desc.tempmail.desc": "10分だけ生きるメール住所を作って確認メールを受け取ります。住所を知っていても鍵がなければ読めません",

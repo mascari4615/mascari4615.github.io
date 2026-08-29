@@ -12,6 +12,8 @@
  * 본문은 고른 칸의 강의 파일만 받음. 강의 전체가 17MB 라 다 못 받음
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { isDesktop, invoke } from '../../tauri-bridge';
+import { addCopyButtons, highlightCode, mountDemos } from '../../lib/doc-view';
 
 (function () {
 type Kind = 'pick' | 'say';
@@ -33,16 +35,26 @@ interface Slot {
   track: string;
 }
 
-/** 본문까지 받은 문항 */
+/** 본문까지 받은 문항. blocks 는 답한 뒤 펼쳐 읽을 그 장 전체 */
 interface Item extends Slot {
   q: string;
   choices?: string[];
   answer?: number;
   why?: string;
   model?: string;
+  partTitle?: string;
+  blocks?: LessonBlock[];
 }
 
-interface LessonBlock { type: string; text?: string }
+interface LessonBlock {
+  type: 'p' | 'h' | 'code' | 'note' | 'try' | 'demo';
+  text?: string;
+  lang?: string;
+  label?: string;
+  kind?: string;
+  height?: string;
+  controls?: unknown[];
+}
 interface LessonQuiz { q: string; choices: string[]; answer: number; why?: string }
 interface LessonPart { id: string; title: string; blocks?: LessonBlock[]; quiz?: LessonQuiz[] }
 interface LessonFile { id: string; parts: LessonPart[] }
@@ -51,9 +63,27 @@ const SET_SIZE = 6;
 const SEEN_KEY = 'karmolab-recall-seen';
 const DROP_KEY = 'karmolab-recall-drop';
 
-/** 판정이 다음에 다시 묻는 날을 정함. 하루 안은 g 0.56, 1~6일 뒤는 0.82 */
-const AFTER: Record<Verdict, number> = { hit: 10, half: 3, miss: 1 };
 const DROP_AFTER: Record<DropWhy, number> = { known: 3650, off: 3650, later: 30 };
+
+/* 간격은 사람마다 문항마다 다르게 벌어짐. 고정표로 두면 백 번 맞힌 것도 늘 열흘 뒤에 또 물음.
+   FSRS 계열이 같은 유지에 복습을 20~30% 줄인다는 값이 여기서 나옴 (학습 수치 장부).
+   여기 것은 그 축소판. 자료는 판정 하나뿐이라 쉬움 계수와 간격만 굴림 */
+const EASE0 = 2.3;
+const EASE_MIN = 1.3;
+const EASE_MAX = 2.8;
+const CAP = 180;
+const FIRST_OK = 3;
+
+/** 다음 간격과 쉬움 계수. 하루 안은 g 0.56, 1~6일 뒤는 0.82 라 최소가 1 */
+function nextGap(prev: { i?: number; e?: number } | undefined, v: Verdict): { i: number; e: number } {
+  const e0 = prev?.e ?? EASE0;
+  const i0 = prev?.i ?? 0;
+  const clamp = (x: number): number => Math.min(EASE_MAX, Math.max(EASE_MIN, Number(x.toFixed(2))));
+  if (v === 'miss') return { i: 1, e: clamp(e0 - 0.2) };
+  if (v === 'half') return { i: Math.max(2, Math.round(i0 * 0.4)), e: clamp(e0 - 0.15) };
+  const e = clamp(e0 + 0.05);
+  return { i: Math.min(CAP, i0 ? Math.max(FIRST_OK, Math.round(i0 * e)) : FIRST_OK), e };
+}
 
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -63,7 +93,8 @@ const strong = (s: string): string => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b
 
 const today = (): number => Math.floor(Date.now() / 86400000);
 
-interface SeenRow { d: number; v: Verdict | 'drop'; n: number }
+/** d 마지막 날, v 마지막 판정, n 다시 물을 날, i 그때 쓴 간격, e 쉬움 계수 */
+interface SeenRow { d: number; v: Verdict | 'drop'; n: number; i?: number; e?: number }
 const readJson = <T,>(key: string, dflt: T): T => {
   try {
     return JSON.parse(localStorage.getItem(key) || '') as T;
@@ -104,6 +135,14 @@ function buildSet(pool: Pool, seen: Record<string, SeenRow>, dropped: Record<str
     if (!row) fresh.push(s);
     else if (row.n <= day) due.push(s);
   }
+
+  /* 밀린 날이 많은 것부터, 같으면 못 한 것부터. 어제 못 한 것이 오늘 맨 앞에 와야 함 */
+  const rank: Record<string, number> = { miss: 0, half: 1, hit: 2, drop: 3 };
+  due.sort((a, b) => {
+    const ra = seen[keyOf(a)];
+    const rb = seen[keyOf(b)];
+    return ra.n - rb.n || (rank[ra.v] ?? 9) - (rank[rb.v] ?? 9);
+  });
 
   /* 안 본 것은 매번 다른 데서 뽑음. 같은 순서면 앞쪽 갈래만 계속 나옴 */
   for (let i = fresh.length - 1; i > 0; i -= 1) {
@@ -156,17 +195,59 @@ async function fill(slots: Slot[], pool: Pool): Promise<Item[]> {
     const lesson = cache.get(s.lesson);
     const part = lesson?.parts?.[s.part];
     if (!part) continue;
+    const rest = { partTitle: part.title, blocks: part.blocks || [] };
     if (s.kind === 'pick') {
       const quiz = (part.quiz || [])[s.quiz ?? 0];
       if (!quiz) continue;
-      out.push({ ...s, q: quiz.q, choices: quiz.choices, answer: quiz.answer, why: quiz.why });
+      out.push({ ...s, ...rest, q: quiz.q, choices: quiz.choices, answer: quiz.answer, why: quiz.why });
     } else {
       const first = (part.blocks || []).find((b) => b.type === 'p');
       if (!first?.text) continue;
-      out.push({ ...s, q: part.title, model: first.text });
+      out.push({ ...s, ...rest, q: part.title, model: first.text });
     }
   }
   return out;
+}
+
+/**
+ * 답한 뒤에 읽는 그 장 본문. 블록 다섯 종이 전부 (p, h, code, note, try, demo).
+ * 코드 강조와 실행 예제는 문서 위젯과 같은 공용 모듈이 맡음
+ */
+function lessonHtml(blocks: LessonBlock[] | undefined): string {
+  return (blocks || [])
+    .map((blk) => {
+      if (blk.type === 'h') return `<h4>${esc(blk.text)}</h4>`;
+      if (blk.type === 'code') {
+        const lang = /^[\w-]+$/.test(blk.lang || '') ? (blk.lang as string) : 'text';
+        return `<div class="rc-code">${blk.label ? `<div class="rc-code-label">${esc(blk.label)}</div>` : ''}<pre><code class="language-${esc(lang)}">${esc(blk.text)}</code></pre></div>`;
+      }
+      if (blk.type === 'demo') {
+        const kind = blk.kind === 'js' || blk.kind === 'shader' ? blk.kind : 'html';
+        const h = /^\d{2,4}px$/.test(blk.height || '') ? blk.height : '';
+        const ctl = blk.controls?.length ? ` data-demo-controls="${esc(JSON.stringify(blk.controls))}"` : '';
+        return `<div class="rc-demo">${blk.label ? `<div class="rc-code-label">${esc(blk.label)}</div>` : ''}<div data-demo="${kind}"${h ? ` data-demo-height="${esc(h)}"` : ''}${ctl}>${esc(blk.text)}</div></div>`;
+      }
+      if (blk.type === 'note' || blk.type === 'try') {
+        const tag = blk.type === 'try'
+          ? t('recall.read.try', undefined, '직접 해보기')
+          : t('recall.read.note', undefined, '기억할 것');
+        return `<div class="rc-callout${blk.type === 'try' ? ' is-try' : ''}"><span class="rc-callout-tag">${esc(tag)}</span>${strong(blk.text || '')}</div>`;
+      }
+      return `<p>${strong(blk.text || '')}</p>`;
+    })
+    .join('');
+}
+
+/** 펼친 본문에 실행기와 강조를 붙임. 붙이지 않으면 예제가 그냥 글자로 남는다 */
+function wireLesson(root: HTMLElement): void {
+  addCopyButtons(root, t('recall.read.copy', undefined, '복사'), t('recall.read.copied', undefined, '복사됨'));
+  mountDemos(root, {
+    run: t('recall.read.run', undefined, '다시 그리기'),
+    reset: t('recall.read.reset', undefined, '되돌리기'),
+    code: t('recall.read.code', undefined, '예제 코드'),
+    result: t('recall.read.result', undefined, '실행 결과'),
+  });
+  void highlightCode(root);
 }
 
 function mount(container: HTMLElement): void {
@@ -189,7 +270,19 @@ function run(container: HTMLElement, pool: Pool): void {
   const dropped = readJson<Record<string, number>>(DROP_KEY, {});
   let items: Item[] = [];
   let at = 0;
-  const log: { q: string; v: Verdict | 'drop'; after: number }[] = [];
+  /** 한 판의 기록. mine 과 tail 은 내보낼 때 쓰는 원문이라 지우지 않음 */
+  const log: {
+    q: string;
+    v: Verdict | 'drop';
+    after: number;
+    kind: Kind;
+    track: string;
+    mine?: string;
+    model?: string;
+    tail?: string;
+  }[] = [];
+  let mine = '';
+  let tail = '';
 
   const keyOf = (s: Slot): string => `${s.lesson}#${s.part}${s.kind === 'pick' ? `q${s.quiz}` : 's'}`;
   const el = (): HTMLElement => container.querySelector('.rc-wrap') as HTMLElement;
@@ -226,6 +319,7 @@ function run(container: HTMLElement, pool: Pool): void {
           <div class="rc-why" data-rc="why" hidden></div>
           <div class="rc-row">
             <button type="button" class="rc-go" data-rc="next" hidden>${esc(t('recall.next', undefined, '다음'))}</button>
+            <button type="button" class="rc-skip" data-rc="read" hidden>${esc(t('recall.read.go', undefined, '이 장 읽기'))}</button>
             <button type="button" class="rc-skip" data-rc="drop">${esc(t('recall.drop', undefined, '이건 안 배울래'))}</button>
           </div>
         </div>`;
@@ -246,7 +340,7 @@ function run(container: HTMLElement, pool: Pool): void {
     el().querySelector<HTMLTextAreaElement>('[data-rc="answer"]')?.focus();
   }
 
-  function paintCompare(mine: string): void {
+  function paintCompare(): void {
     const it = items[at];
     el().innerHTML = `${strip()}
       <div class="rc-card">
@@ -262,13 +356,57 @@ function run(container: HTMLElement, pool: Pool): void {
             <div class="rc-pane-b">${strong(it.model || '')}</div>
           </div>
         </div>
+        <div class="rc-tail" data-rc="tailbox" hidden></div>
         <p class="rc-hint">${esc(t('recall.verdict.ask', undefined, '격차를 직접 고른다. 이 판정이 다음에 언제 다시 물을지를 정한다.'))}</p>
         <div class="rc-row">
           <button type="button" class="rc-vd" data-vd="hit">${esc(t('recall.verdict.hit', undefined, '답했다'))}</button>
           <button type="button" class="rc-vd is-half" data-vd="half">${esc(t('recall.verdict.half', undefined, '반쯤'))}</button>
           <button type="button" class="rc-vd is-miss" data-vd="miss">${esc(t('recall.verdict.miss', undefined, '못 했다'))}</button>
+          <button type="button" class="rc-skip" data-rc="read">${esc(t('recall.read.go', undefined, '이 장 읽기'))}</button>
+          ${isDesktop() && mine.trim() ? `<button type="button" class="rc-skip" data-rc="tail">${esc(t('recall.tail.go', undefined, '꼬리질문'))}</button>` : ''}
         </div>
       </div>`;
+  }
+
+  /** 본문은 답한 뒤에만 편다. 먼저 읽으면 되묻기가 아니라 그냥 읽기가 됨 */
+  function toggleRead(btn: HTMLButtonElement): void {
+    const open = el().querySelector<HTMLElement>('.rc-read');
+    if (open) {
+      open.remove();
+      btn.textContent = t('recall.read.go', undefined, '이 장 읽기');
+      return;
+    }
+    const it = items[at];
+    const card = el().querySelector<HTMLElement>('.rc-card');
+    if (!card) return;
+    card.insertAdjacentHTML(
+      'beforeend',
+      `<article class="rc-read"><h3>${esc(it.partTitle || it.q)}</h3>${lessonHtml(it.blocks)}</article>`,
+    );
+    const root = el().querySelector<HTMLElement>('.rc-read');
+    if (root) wireLesson(root);
+    btn.textContent = t('recall.read.close', undefined, '본문 접기');
+  }
+
+  /* 꼬리질문은 데스크톱에서만. career 폴더를 읽어야 하고 그건 로컬에만 있음.
+     AI 는 묻기만 함. 등급은 사람이 매김 (판정 버튼이 그 자리) */
+  async function askTail(): Promise<void> {
+    const box = el().querySelector<HTMLElement>('[data-rc="tailbox"]');
+    const btn = el().querySelector<HTMLButtonElement>('[data-rc="tail"]');
+    if (!box) return;
+    box.hidden = false;
+    box.textContent = t('recall.tail.wait', undefined, '꼬리질문을 만드는 중');
+    if (btn) btn.disabled = true;
+    try {
+      const got = await invoke<string>('recall_followup', {
+        payload: { question: items[at].q, mine, source: items[at].model || '' },
+      });
+      tail = String(got || '').trim();
+      box.innerHTML = `<span class="rc-pane-l">${esc(t('recall.tail.tag', undefined, '꼬리질문'))}</span><div>${strong(tail)}</div>`;
+    } catch (err) {
+      box.textContent = `${t('recall.tail.fail', undefined, '꼬리질문 실패')}. ${String(err).slice(0, 160)}`;
+      if (btn) btn.disabled = false;
+    }
   }
 
   function paintDrop(): void {
@@ -289,7 +427,7 @@ function run(container: HTMLElement, pool: Pool): void {
     const c: Record<string, number> = { hit: 0, half: 0, miss: 0, drop: 0 };
     log.forEach((r) => { c[r.v] += 1; });
     const rows = log
-      .map((r) => `<div class="rc-sched"><span class="rc-when">${r.after >= 365 ? esc(t('recall.when.never', undefined, '아주 뒤')) : esc(t('recall.when.days', { n: r.after }, '{n}일 뒤'))}</span><span>${esc(r.q)}</span></div>`)
+      .map((r) => `<div class="rc-sched"><span class="rc-when">${r.after >= 365 ? esc(t('recall.when.never', undefined, '한참 뒤')) : esc(t('recall.when.days', { n: r.after }, '{n}일 뒤'))}</span><span>${esc(r.q)}</span></div>`)
       .join('');
     el().innerHTML = `${strip()}
       <div class="rc-card">
@@ -302,15 +440,96 @@ function run(container: HTMLElement, pool: Pool): void {
           ${c.drop ? `<span class="rc-chip">${esc(t('recall.drop.tag', undefined, '빼기'))} ${c.drop}</span>` : ''}
         </div>
         <div class="rc-scheds">${rows}</div>
-        <div class="rc-row"><button type="button" class="rc-go" data-rc="again">${esc(t('recall.again', undefined, '한 판 더'))}</button></div>
+        <div class="rc-row">
+          <button type="button" class="rc-go" data-rc="again">${esc(t('recall.again', undefined, '한 번 더'))}</button>
+          <button type="button" class="rc-skip" data-rc="export">${esc(
+            isDesktop()
+              ? t('recall.export.file', undefined, '측정 기록으로 남기기')
+              : t('recall.export.copy', undefined, '측정 기록 복사'),
+          )}</button>
+          <span class="rc-note" data-rc="note"></span>
+        </div>
       </div>`;
   }
 
-  function record(v: Verdict | 'drop', after: number): void {
+  /** 판정 하나를 기록하고 다음 날을 잡음. 빼기는 계수를 안 건드림 */
+  /**
+   * 한 번 끝낸 것을 측정 기록으로. career/log/baseline 의 형식을 따름.
+   * 답 원문을 손대지 않음. 오타까지 그대로 두는 것이 그 폴더의 규칙
+   */
+  function toMarkdown(): string {
+    const d = new Date();
+    const pad = (n: number): string => String(n).padStart(2, '0');
+    const ymd = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const name: Record<string, string> = { hit: '답했다', half: '반쯤', miss: '못 했다', drop: '뺐다' };
+    const out: string[] = [`# 되묻기 측정 원본 (${ymd})`, '', '> 수정 금지. 답 원문 그대로 (오타 포함).', ''];
+    log.forEach((r, k) => {
+      out.push(`## ${k + 1}. ${r.q}`, '');
+      out.push(`- 갈래 ${r.track} · ${r.kind === 'say' ? '설명' : '기억'} · 판정 ${name[r.v]} · 다음 ${r.after}일 뒤`, '');
+      if (r.mine?.trim()) out.push('**내 답**', '', r.mine.trim().split('\n').map((l) => `> ${l}`).join('\n'), '');
+      else if (r.kind === 'say') out.push('**내 답**', '', '> 모르겠다를 눌렀다', '');
+      if (r.model?.trim()) out.push('**근거**', '', r.model.trim().split('\n').map((l) => `> ${l}`).join('\n'), '');
+      if (r.tail?.trim()) out.push('**꼬리질문**', '', r.tail.trim(), '');
+    });
+    return `${out.join('\n')}\n`;
+  }
+
+  async function exportLog(): Promise<void> {
+    const note = el().querySelector<HTMLElement>('[data-rc="note"]');
+    const say = (s: string): void => { if (note) note.textContent = s; };
+    const md = toMarkdown();
+    if (isDesktop()) {
+      try {
+        const path = await invoke<string>('recall_save_baseline', { payload: { markdown: md } });
+        say(t('recall.export.saved', { path: String(path) }, '{path} 에 남겼다'));
+      } catch (err) {
+        say(`${t('recall.export.fail', undefined, '못 남겼다')}. ${String(err).slice(0, 160)}`);
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(md);
+      say(t('recall.export.copied', undefined, '복사했다. career/log/baseline 에 붙이면 된다'));
+    } catch {
+      /* 브라우저가 클립보드를 막는 자리가 있음. 그때 글을 안 보여 주면 한 판이 통째로 날아감 */
+      say(t('recall.export.manual', undefined, '복사가 막혔다. 아래 글을 직접 고르면 된다'));
+      const card = el().querySelector<HTMLElement>('.rc-card');
+      if (card && !card.querySelector('.rc-out')) {
+        const box = document.createElement('textarea');
+        box.className = 'rc-input rc-out';
+        box.rows = 12;
+        box.readOnly = true;
+        box.value = md;
+        card.appendChild(box);
+        box.focus();
+        box.select();
+      }
+    }
+  }
+
+  function record(v: Verdict | 'drop', after?: number): void {
     const it = items[at];
-    seen[keyOf(it)] = { d: today(), v, n: today() + after };
+    const key = keyOf(it);
+    const prev = seen[key];
+    if (v === 'drop') seen[key] = { ...prev, d: today(), v, n: today() + (after ?? 30) };
+    else {
+      const g = nextGap(prev, v);
+      after = g.i;
+      seen[key] = { d: today(), v, n: today() + g.i, i: g.i, e: g.e };
+    }
     writeJson(SEEN_KEY, seen);
-    log.push({ q: it.q, v, after });
+    log.push({
+      q: it.q,
+      v,
+      after: after ?? 30,
+      kind: it.kind,
+      track: pool.tracks[it.track] || it.track,
+      mine: it.kind === 'say' ? mine : undefined,
+      model: it.model,
+      tail,
+    });
+    mine = '';
+    tail = '';
     at += 1;
     paintItem();
   }
@@ -329,9 +548,13 @@ function run(container: HTMLElement, pool: Pool): void {
     if (kind === 'drop') { paintDrop(); return; }
     if (kind === 'check' || kind === 'dunno') {
       const box = el().querySelector<HTMLTextAreaElement>('[data-rc="answer"]');
-      paintCompare(kind === 'dunno' ? '' : box?.value || '');
+      mine = kind === 'dunno' ? '' : box?.value || '';
+      paintCompare();
       return;
     }
+    if (kind === 'tail') { void askTail(); return; }
+    if (kind === 'read') { toggleRead(rc as HTMLButtonElement); return; }
+    if (kind === 'export') { void exportLog(); return; }
     if (kind === 'next') { at += 1; paintItem(); return; }
 
     const pick = target.closest('[data-pick]') as HTMLElement | null;
@@ -350,19 +573,29 @@ function run(container: HTMLElement, pool: Pool): void {
         why.innerHTML = `<b>${esc(right ? t('recall.right', undefined, '맞음') : t('recall.wrong', undefined, '틀림'))}.</b> ${esc(it.why || '')}`;
         why.hidden = false;
       }
-      const next = el().querySelector<HTMLElement>('[data-rc="next"]');
-      if (next) next.hidden = false;
+      el().querySelectorAll<HTMLElement>('[data-rc="next"], [data-rc="read"]').forEach((b) => {
+        b.hidden = false;
+      });
       const v: Verdict = right ? 'hit' : 'miss';
-      seen[keyOf(it)] = { d: today(), v, n: today() + AFTER[v] };
+      const key = keyOf(it);
+      const g = nextGap(seen[key], v);
+      seen[key] = { d: today(), v, n: today() + g.i, i: g.i, e: g.e };
       writeJson(SEEN_KEY, seen);
-      log.push({ q: it.q, v, after: AFTER[v] });
+      log.push({
+        q: it.q,
+        v,
+        after: g.i,
+        kind: it.kind,
+        track: pool.tracks[it.track] || it.track,
+        mine: it.choices?.[k],
+        model: it.choices?.[it.answer ?? 0],
+      });
       return;
     }
 
     const vd = target.closest('[data-vd]') as HTMLElement | null;
     if (vd) {
-      const v = vd.dataset.vd as Verdict;
-      record(v, AFTER[v]);
+      record(vd.dataset.vd as Verdict);
       return;
     }
 
@@ -388,6 +621,47 @@ function run(container: HTMLElement, pool: Pool): void {
     }
     at = 0;
     paintItem();
+  }
+
+  /**
+   * 검색으로 특정 장에 바로 들어오는 길. ⌘K 가 이 계약을 부름.
+   * 여기서는 판정을 안 받음. 찾아서 읽으러 온 사람에게 문제를 먼저 내밀지 않음
+   */
+  async function openLesson(lessonId: string, partId?: string): Promise<void> {
+    el().innerHTML = `<p class="rc-loading">${esc(t('recall.loading', undefined, '오늘 것을 고르는 중'))}</p>`;
+    const file = await fetch(`/apps/karmolab/data/lessons/ko/${lessonId}.json`)
+      .then((r) => (r.ok ? (r.json() as Promise<LessonFile>) : null))
+      .catch(() => null);
+    const parts = file?.parts || [];
+    const part = (partId && parts.find((p) => p.id === partId)) || parts[0];
+    if (!part) {
+      el().innerHTML = `<p class="rc-loading">${esc(t('recall.failed', undefined, '문항을 못 불러왔다. 새로고침해 보라.'))}</p>`;
+      return;
+    }
+    const track = pool.tracks[pool.lessons[lessonId]?.t] || '';
+    el().innerHTML = `
+      <div class="rc-card">
+        <span class="rc-tag">${esc(track)}</span>
+        <h2 class="rc-q">${esc(part.title)}</h2>
+        <div class="rc-row"><button type="button" class="rc-go" data-rc="begin">${esc(t('recall.read.back', undefined, '오늘 되묻기로'))}</button></div>
+        <article class="rc-read">${lessonHtml(part.blocks)}</article>
+      </div>`;
+    const root = el().querySelector<HTMLElement>('.rc-read');
+    if (root) wireLesson(root);
+    sessionStorage.removeItem('karmolab-recall-open-lesson');
+    sessionStorage.removeItem('karmolab-recall-open-part');
+  }
+  (window as unknown as { KarmoRecallOpen?: (id: string, partId?: string) => void }).KarmoRecallOpen = (
+    id,
+    partId,
+  ) => {
+    void openLesson(id, partId);
+  };
+
+  const waiting = sessionStorage.getItem('karmolab-recall-open-lesson');
+  if (waiting) {
+    void openLesson(waiting, sessionStorage.getItem('karmolab-recall-open-part') || undefined);
+    return;
   }
 
   items = [];
@@ -432,7 +706,7 @@ function injectStyles(): void {
 .rc-pick:hover { border-color: var(--accent); }
 .rc-pick.is-done { cursor: default; }
 .rc-pick.is-right { border-color: var(--success); color: var(--success); background: var(--success-subtle, var(--bg-tertiary)); font-weight: 600; }
-.rc-pick.is-wrong { border-color: var(--danger, var(--secondary)); color: var(--danger, var(--secondary)); }
+.rc-pick.is-wrong { border-color: var(--secondary); color: var(--secondary); }
 .rc-pick.is-dim { opacity: .5; }
 .rc-why { font-size: 13px; color: var(--text-secondary); line-height: 1.75; padding: 12px 14px; border-radius: var(--radius-lg); background: var(--bg-tertiary); border-left: 2px solid var(--border-hover); }
 
@@ -448,6 +722,18 @@ function injectStyles(): void {
 .rc-pane-b i { font-style: normal; color: var(--text-tertiary); }
 .rc-pane-b b { color: var(--accent); }
 
+.rc-read { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 4px; display: flex; flex-direction: column; gap: 14px; }
+.rc-read h3 { font-size: 17px; font-weight: 700; margin: 0; }
+.rc-read h4 { font-size: 15px; font-weight: 700; margin: 8px 0 0; }
+.rc-read p { font-size: 15px; line-height: 1.85; margin: 0; max-width: 68ch; color: var(--text-primary); }
+.rc-read b { color: var(--accent); }
+.rc-callout { border-left: 2px solid var(--border-hover); background: var(--bg-tertiary); border-radius: var(--radius-lg); padding: 14px 16px; font-size: 14px; line-height: 1.8; display: flex; flex-direction: column; gap: 6px; }
+.rc-callout.is-try { border-left-color: var(--accent); }
+.rc-callout-tag { font-size: 11px; letter-spacing: .06em; color: var(--text-tertiary); }
+.rc-code-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; }
+.rc-code pre { margin: 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; background: var(--bg-tertiary); font-size: 12px; line-height: 1.7; }
+.rc-tail { display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.8; color: var(--text-primary); padding: 14px 16px; border-radius: var(--radius-lg); background: var(--bg-tertiary); border-left: 2px solid var(--accent); white-space: pre-wrap; }
+.rc-note { font-size: 12px; color: var(--text-tertiary); }
 .rc-chip { font-size: 12px; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .rc-chip.is-hit { border-color: var(--accent); color: var(--accent); }
 .rc-chip.is-half { border-color: var(--secondary); color: var(--secondary); }

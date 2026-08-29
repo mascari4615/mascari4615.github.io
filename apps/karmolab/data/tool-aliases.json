@@ -268,17 +268,6 @@
     "specialchar": "special character symbol 특수기호",
     "sshkey": "ssh 열쇠 공개키 지문 fingerprint authorized_keys ed25519 rsa PEM openssh",
     "stash": "잡동사니 임시 보관 메모 stash",
-    "studymap": [
-      "학습지도",
-      "공부지도",
-      "개발자 로드맵",
-      "로드맵",
-      "커리큘럼",
-      "study map",
-      "roadmap",
-      "developer roadmap",
-      "learning path"
-    ],
     "subtitle": "subtitle srt vtt 자막 싱크",
     "tableconv": "table markdown csv html convert 표 변환",
     "tempmail": "임시메일 일회용메일 버리는메일 tempmail 확인코드 인증메일 가입용메일",
@@ -317,6 +306,7 @@
     "works": "작업물 포트폴리오 만든것 전시 works portfolio",
     "worldclock": "timezone world clock utc 타임존",
     "worldcup": "월드컵 이상형 토너먼트 고르기",
-    "ziptool": "zip unzip archive 압축"
+    "ziptool": "zip unzip archive 압축",
+    "recall": "되묻기 복습 암기 문제풀이 퀴즈 면접준비 스터디 recall quiz review flashcard spaced repetition"
   }
 }

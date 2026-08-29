@@ -135,6 +135,15 @@ commands = [
 ]
 
 [[group]]
+name = "recall"
+identifier = "allow-recall"
+description = "되묻기 위젯의 로컬 전용 두 갈래. (1) recall_followup: 답 원문과 memo/career 현황을 claude CLI 에 넘겨 꼬리질문을 받는다 (Pro/Max OAuth, API key 없음). (2) recall_save_baseline: 한 판을 memo/career/log/baseline/recall-<날짜>.md 에 측정 원본으로 붙인다."
+commands = [
+  "recall_followup",
+  "recall_save_baseline",
+]
+
+[[group]]
 name = "alarm"
 identifier = "allow-alarm"
 description = "데스크톱 알람 (TASK-KL-064) — Free Alarm Clock 레퍼런스. 알람 CRUD + on/off + dismiss/snooze. 상주 스케줄러가 alarm-fired 이벤트 emit, 발화 창이 dismiss/snooze 호출. store = app_data_dir/alarms.json."

@@ -487,6 +487,10 @@
     "narrow": 1055,
     "wide": 1123
   },
+  "recall": {
+    "narrow": 249,
+    "wide": 340
+  },
   "redact": {
     "narrow": 464,
     "wide": 502
@@ -534,10 +538,6 @@
   "sshkey": {
     "narrow": 867,
     "wide": 924
-  },
-  "studymap": {
-    "narrow": 1156,
-    "wide": 1118
   },
   "subtitle": {
     "narrow": 1276,

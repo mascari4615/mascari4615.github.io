@@ -20,6 +20,7 @@ mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
 mod quest_writeback;
+mod recall;
 mod repo_file;
 mod terminal;
 mod tray_menu;
@@ -44,6 +45,7 @@ use ai_environment::ai_environment_audit;
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };
+use recall::{recall_followup, recall_save_baseline};
 use desktop_login::desktop_login_start;
 use cockpit_graph::{cockpit_get_graph_spec, cockpit_save_graph_coords, cockpit_get_activity};
 use questlog_hub::get_questlog_hub;

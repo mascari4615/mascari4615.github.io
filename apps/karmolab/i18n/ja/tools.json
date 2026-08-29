@@ -267,8 +267,6 @@
   "tools.specialchar.lead": "矢印 · 星 · 図形 · 数学 · 単位 · 括弧 — 押してコピー",
   "tools.sshkey.description": "SSH 公開鍵の行を貼ると種類・長さ・コメント・指紋(SHA256)を出します。PEM 公開鍵を OpenSSH の一行に変換もします。",
   "tools.sshkey.lead": "authorized_keys の行を読む · SHA256 指紋 · PEM → OpenSSH",
-  "tools.studymap.description": "Web・コンピュータ科学・セキュリティ・AI・データ・システムまで41トラックの学習マップ。カードごとに講義（解説・例・確認問題）が付いていて、何から見るか決められます。",
-  "tools.studymap.lead": "41トラック311カード・カードごとに講義・確認問題・進捗保存",
   "tools.subtitle.description": "字幕が動画より早い・遅いときに時間をずらして合わせます。後ろへ行くほど広がるずれは比率で伸ばし、SRT と VTT を相互に変換します。",
   "tools.subtitle.lead": "時間のずらし · フレームレート差の補正 · SRT↔VTT · 最初と最後の行で照合 · アップロードなし",
   "tools.tableconv.description": "表計算からコピーした表を Markdown・CSV・JSON に変えます。貼り付けるだけで形式を自動で見分けます。",
@@ -328,5 +326,7 @@
   "tools.worldclock.description": "世界の主要都市の現在時刻と、基準の都市との時差を一緒に見ます。サマータイムの有無と切り替え日が自動で反映されるので、季節が変わってもずれません。",
   "tools.worldclock.lead": "都市40か所以上 · 時差 · サマータイム自動反映",
   "tools.ziptool.description": "複数のファイルを ZIP にまとめ、受け取った ZIP の中身を見てから必要なものだけ取り出します。解凍ソフトを入れられない環境でも使えます。",
-  "tools.ziptool.lead": "まとめる · 中身を見る · 個別に取り出す · 圧縮の強さ"
+  "tools.ziptool.lead": "まとめる · 中身を見る · 個別に取り出す · 圧縮の強さ",
+  "tools.recall.description": "開発の主題311マスから今日の六つを引いて先に答えさせます。答えたあとに本文と照らし、判定に応じて次に聞く日が決まります。",
+  "tools.recall.lead": "今日六つ・選択と記述・照合・次に聞く日"
 }
