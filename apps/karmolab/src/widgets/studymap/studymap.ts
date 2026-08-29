@@ -1191,8 +1191,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 첫 화면이 답하는 질문은 하나다. 무엇부터.
          밀린 복습이 먼저 오고(새로 배우는 것보다 잊는 것이 빠르다), 그 다음이 이어서 할 한 칸이다. */
+      /* 이어서는 **지금 방향 안의 칸일 때만**. 방향을 바꿨는데 옛 갈래의 칸이 그대로 떠 있어서
+         고른 것과 화면이 따로 놀았다(웹 프론트를 골라도 내 프로젝트 칸이 1군에 남음) */
+      const shownIds = new Set(shown.map((x) => x.id));
       const lastId = readLast();
-      const lastWhere = lastId ? whereIs.get(lastId) : undefined;
+      const lastRaw = lastId ? whereIs.get(lastId) : undefined;
+      const lastWhere = lastRaw && shownIds.has(lastRaw.trackId) ? lastRaw : undefined;
       /* 1군 하나 — 강조색은 여기서만, 나머지는 회색조 */
       const headNode = lastWhere ? lastWhere.node : next;
       const headTrack = lastWhere ? trackOf(lastWhere.trackId) : tr;
@@ -1213,9 +1217,11 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 2군 — 거기까지 가는 길. 지금 칸의 앞뒤 다섯 칸만.
          41갈래 311칸을 펴는 대신 지금 어디고 다음이 무엇인가에만 답 */
-      const at = headNode ? orderAt.get(headNode.id) ?? -1 : -1;
+      /* 가는 길도 방향 안에서만 잇는다. 41갈래 전체 순서로 자르면 옆 칸이 딴 분야다 */
+      const focusOrder = flatOrder.filter((x) => shownIds.has(x.trackId));
+      const at = headNode ? focusOrder.findIndex((x) => x.id === headNode.id) : -1;
       const path = at >= 0
-        ? flatOrder.slice(Math.max(0, at - 1), at + 4)
+        ? focusOrder.slice(Math.max(0, at - 1), at + 4)
         : [];
       const pathRow = path.length > 1
         ? `<nav class="sm-path" aria-label="${esc(t('studymap.path', undefined, '거기까지 가는 길'))}">
