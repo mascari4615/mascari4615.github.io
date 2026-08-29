@@ -1235,7 +1235,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
                   })(),
             /* 이웃 묶음은 뜻 지도에만 — 갈래 안은 「단계」가 이미 배경을 맡는다(둘을 겹치면 둘 다 안 읽힌다). */
             groups: zoom === 'tracks' && haveAt ? atlasCoords?.clusters ?? [] : [],
-            pathIds: zoom === 'tracks' ? pathTo(current) : pathTo(next?.id),
+            /* 뜻 지도에는 「여기까지 가는 길」이 없다 — 갈래 사이 순서를 사람이 안 적었기 때문이다.
+               지금 갈래 하나만 밝힌다(없는 길에 불을 켜면 그것도 거짓말이다). */
+            pathIds: zoom === 'tracks' ? (haveAt ? [current] : pathTo(current)) : pathTo(next?.id),
             onPick: (id) => {
               if (zoom === 'tracks') {
                 current = id;

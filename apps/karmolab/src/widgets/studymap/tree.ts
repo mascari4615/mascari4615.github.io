@@ -180,15 +180,12 @@ export function layoutMeaning(nodes: TreeNode[], span = 1180, minGap = 132): Tre
   const minX = Math.min(...pts.map((p) => p.x));
   const minY = Math.min(...pts.map((p) => p.y));
   const placed: TreePlaced[] = pts.map((p) => ({ ...p.n, depth: 0, x: p.x - minX, y: p.y - minY }));
-  const byId = new Map(placed.map((p) => [p.id, p]));
-  const edges: TreeEdge[] = [];
-  for (const n of placed) {
-    /* 뜻 지도에서는 뼈대·곁가지를 안 나눈다 — 위아래가 없으니 「방금 어디서 왔나」도 없다. */
-    for (const p of n.prereq || []) if (byId.has(p)) edges.push({ from: p, to: n.id, weak: true });
-  }
+  /* 선을 **안 긋는다**. 갈래 사이에는 사람이 적어 둔 순서가 없다 — 지금 그을 수 있는 선 100개는
+     전부 칸의 선수관계에서 우연히 파생된 것이라, 그으면 「자리는 뜻」과 「선은 순서」 두 논리가
+     겹쳐 둘 다 안 읽힌다. 갈래 순서를 정말 말하려면 `track.prereq` 를 사람이 적어야 한다. */
   return {
     nodes: placed,
-    edges,
+    edges: [],
     width: Math.max(...placed.map((p) => p.x)) + 1,
     height: Math.max(...placed.map((p) => p.y)) + 1,
   };
