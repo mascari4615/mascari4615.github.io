@@ -2,7 +2,10 @@
  * files.mascari4615.com Cloudflare Worker 정본.
  * 화면 = Pages /files/ 프록시. 클라우드 암호문 = R2 바인딩 VAULT → /blob/<key>
  *
- * 캐시: 청크(`c/<id>/<n>`)는 **한 번 쓰이면 안 바뀐다**. 같은 자리에 다른 내용이 오지 않는다
+ * 내줄 키의 규칙은 `src/blob-key.mjs` 다. 여기 정규식으로 박혀 있던 것을 옮겼다.
+ * 미리보기(`t/<id>`)를 새로 담은 날 그 줄을 같이 안 고쳐 전부 400 이 될 뻔했다 (2026-08-29).
+ *
+ * 캐시: 청크(`c/<id>/<n>`)와 미리보기(`t/<id>`)는 **한 번 쓰이면 안 바뀐다**. 같은 자리에 다른 내용이 오지 않는다
  * (내용이 달라지면 새 id 를 받는다). 그래서 오래 잡아 둔다. 반대로 `hdr`, `idx` 는 파일이
  * 늘 때마다 바뀌므로 매번 물어본다. 전에는 셋 다 60초여서, 액자를 다시 열 때마다 그림을
  * 통째로 다시 받아 왔다 (2026-08-29 사용자 관측: 매번 새로 받는 것 같다).
@@ -18,6 +21,8 @@
  * CF: 이 파일을 Worker `files` 에 붙이고 R2 버킷을 VAULT 로 바인딩.
  * img.mascari4615.com 공개 버킷에 클라우드를 넣지 마.
  */
+import { allowedKey, immutableKey } from './src/blob-key.mjs';
+
 const PAGES = 'https://blog.mascari4615.com/files';
 
 export default {
@@ -25,13 +30,13 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/blob' || url.pathname.startsWith('/blob/')) {
       const key = decodeURIComponent(url.pathname.replace(/^\/blob\/?/, ''));
-      if (!/^(hdr|idx|c\/[0-9a-f]+\/\d+)$/.test(key)) {
+      if (!allowedKey(key)) {
         return new Response('bad key', { status: 400 });
       }
       if (!env || !env.VAULT) return new Response('no vault', { status: 503 });
       const obj = await env.VAULT.get(key);
       if (!obj) return new Response('missing', { status: 404 });
-      const immutable = key.startsWith('c/');
+      const immutable = immutableKey(key);
       return new Response(obj.body, {
         headers: {
           'content-type': 'application/octet-stream',
