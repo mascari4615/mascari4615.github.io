@@ -26,6 +26,17 @@ function noteFrequency(note: number): number {
 }
 
 const impulseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+/** 고정 씨앗 난수. 잔향이 매번 달라지면 같은 곡을 두 번 뽑아도 다른 파일이 나온다 */
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 const noiseCache = new WeakMap<AudioContextLike, AudioBuffer>();
 
 /** 잡음 1초. 타악기의 재료 */
@@ -35,7 +46,9 @@ function noiseBuffer(context: AudioContextLike): AudioBuffer {
   const length = Math.floor(context.sampleRate);
   const buffer = context.createBuffer(1, length, context.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let index = 0; index < length; index++) data[index] = Math.random() * 2 - 1;
+  /* 고정 씨앗. 난수로 구우면 같은 곡을 두 번 뽑을 때 타악기가 매번 달라진다 */
+  const random = seededRandom(0x4b41524d);
+  for (let index = 0; index < length; index++) data[index] = random() * 2 - 1;
   noiseCache.set(context, buffer);
   return buffer;
 }
@@ -79,16 +92,6 @@ export function scheduleDrum(context: AudioContextLike, input: AudioNode, pitch:
   else noise('highpass', 4600, 1.15, 0.42);
 }
 
-/** 고정 씨앗 난수. 잔향이 매번 달라지면 같은 곡을 두 번 뽑아도 다른 파일이 나온다 */
-function seededRandom(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let value = Math.imul(state ^ (state >>> 15), 1 | state);
-    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 export function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
   const cached = impulseCache.get(context);

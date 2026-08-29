@@ -202,6 +202,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
         <label>피크 맞추기 (-1 dBFS) <input type="checkbox" data-export="normalize"${exportOptions.normalize?' checked':''}></label>
         <label>트랙별로 따로 (ZIP) <input type="checkbox" data-export="stems"${exportOptions.stems?' checked':''}></label>
         <label>루프 지점 넣기 (게임용) <input type="checkbox" data-export="loopPoints"${exportOptions.loopPoints?' checked':''}></label>
+        ${exportOptions.loopPoints||exportOptions.sections?`<p class="hu-hint">Unity 는 임포트할 때 기본으로 Vorbis 로 다시 압축한다. 그러면 루프 지점이 조용히 깨진다. Compression Format 을 PCM 이나 ADPCM 으로, 또는 Load Type 을 Decompress On Load 로 두어라.</p>`:''}
         <label>인트로, 루프, 아웃트로 3파일 (ZIP) <input type="checkbox" data-export="sections"${exportOptions.sections?' checked':''}></label>
         <p class="hu-export-note" data-role="export-note">끄면 1 을 넘는 표본은 깎인다. 켜면 가장 큰 소리를 -1 dBFS 에 맞춘다.</p>
         <div class="hu-export-actions"><button class="hu-btn" data-export-act="cancel">취소</button><button class="hu-btn" data-export-act="seam" title="루프 끝과 시작이 얼마나 벌어졌는지 재고, 그 자리만 반복해 들려줍니다">이음매 듣기</button><button class="hu-btn" data-export-act="go">내보내기</button></div>
@@ -266,6 +267,19 @@ import { decodeMidi, encodeMidi } from './midi-file';
         const chunk=sections[index].name==='loop'?smplChunk(buffer.sampleRate,0,beatToSample(sections[index].to-sections[index].from,project.bpm,buffer.sampleRate)):undefined;
         zip.file(`${project.name||'heung'}-${sections[index].name}.wav`,toWav(buffer,chunk));
       }
+      zip.file('읽어보기.txt',new Blob([[
+        `${project.name||'흥'} 게임 루프 묶음`,
+        '',
+        `intro 는 한 번, loop 는 계속, outro 는 끝날 때.`,
+        `loop 파일 안에 루프 지점(smpl)이 들어 있다. 단위는 초가 아니라 표본이다.`,
+        '',
+        'Unity 로 가져갈 때:',
+        '- Compression Format 을 PCM 이나 ADPCM 으로 두어라. 기본값 Vorbis 는 다시 압축하면서 루프 지점을 깨뜨린다.',
+        '- 또는 Load Type 을 Decompress On Load 로.',
+        '- Preload Audio Data 를 켜면 루프 시작이 밀리지 않는다.',
+        '',
+        `BPM ${project.bpm}, 루프 ${(project.loopEnd-project.loopStart).toFixed(2)}박`
+      ].join(String.fromCharCode(10))],{type:'text/plain'}));
       const blob=await zip.generateAsync({type:'blob'});
       download(blob,`${project.name||'흥'}-sections.zip`);
       status(`${sections.map((section)=>section.name).join(', ')} ${sections.length}파일, ${(blob.size/1048576).toFixed(1)} MB`);
@@ -779,8 +793,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(key==='mono')exportOptions.mono=field.value==='1';
       else if(key==='normalize')exportOptions.normalize=(field as HTMLInputElement).checked;
       else if(key==='stems')exportOptions.stems=(field as HTMLInputElement).checked;
-      else if(key==='loopPoints')exportOptions.loopPoints=(field as HTMLInputElement).checked;
-      else if(key==='sections')exportOptions.sections=(field as HTMLInputElement).checked;
+      else if(key==='loopPoints'){exportOptions.loopPoints=(field as HTMLInputElement).checked;openExport();return;}
+      else if(key==='sections'){exportOptions.sections=(field as HTMLInputElement).checked;openExport();return;}
     });
     root.addEventListener('input',(event)=>{
       const input=event.target as HTMLInputElement;

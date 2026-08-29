@@ -504,9 +504,45 @@ const seamClosed=await page.locator('.hu-export').count()===0;
 const seamPlaying=await page.locator('[data-act=play].is-on, [data-act=play]').first().isVisible();
 await page.click('[data-act=stop]');await page.waitForTimeout(150);
 
+/* 재현성. 같은 프로젝트를 두 번 뽑으면 같은 소리.
+   바이트 하나까지 같기를 바라지는 않는다. 브라우저 렌더가 1 LSB 쯤은 흔들린다(실측 12표본/114k).
+   난수가 섞이면 이 수치가 아니라 수만 표본이 어긋난다. */
+let renderDrift=null, unityHint=0;
+{
+  const grab=async()=>{
+    await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
+    const wait=page.waitForEvent('download',{timeout:30000});
+    await page.click('[data-export-act=go]');
+    const event=await wait;await page.waitForTimeout(150);
+    return fs.readFileSync(await event.path());
+  };
+  /* 잴 소리에 잡음이 섞여 있어야 한다. 타악기가 없으면 난수가 있어도 안 드러난다 */
+  await page.keyboard.press('Escape'); await page.waitForTimeout(150);
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().click();
+  await page.waitForTimeout(150);
+  await page.selectOption('[data-ins=instrument]','drum');
+  await page.waitForTimeout(200);
+  try{
+    const first=await grab();
+    const second=await grab();
+    let differing=0,worst=0,total=0;
+    for(let index=44;index+1<Math.min(first.length,second.length);index+=2){
+      const gap=Math.abs(first.readInt16LE(index)-second.readInt16LE(index));
+      total++; if(gap){differing++; if(gap>worst)worst=gap;}
+    }
+    renderDrift={differing,worst,total,sameLength:first.length===second.length};
+  }catch(error){ renderDrift=null; }
+  await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().click();
+  await page.waitForTimeout(150);
+  await page.selectOption('[data-ins=instrument]','sawtooth');
+  await page.waitForTimeout(200);
+}
+
 /* 게임용 루프 지점. 켜면 WAV 안에 smpl 덩어리가 들어가야 한다 */
 await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
 await page.check('[data-export=loopPoints]');
+await page.waitForTimeout(150);
+unityHint=await page.locator('.hu-export .hu-hint').count();
 const loopDownload=page.waitForEvent('download',{timeout:20000});
 await page.click('[data-export-act=go]');
 let loopWav=null;
@@ -690,6 +726,13 @@ if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'
 if(!seamNote.includes('이음매 차이'))problems.push(`이음매 수치가 안 나온다 (${seamNote.slice(0,40)})`);
 if(!seamClosed)problems.push('이음매를 듣는데 내보내기 창이 안 닫혔다');
 if(!seamPlaying)problems.push('이음매 듣기가 재생을 안 켰다');
+if(!renderDrift)problems.push('재현성을 못 쟀다');
+else{
+  if(!renderDrift.sameLength)problems.push('두 번 뽑은 파일 길이가 다르다');
+  if(renderDrift.worst>2)problems.push(`두 번 뽑은 소리가 ${renderDrift.worst} LSB 어긋난다. 난수가 섞였다`);
+  if(renderDrift.differing>renderDrift.total*0.001)problems.push(`어긋난 표본이 ${renderDrift.differing}개다 (전체 ${renderDrift.total})`);
+}
+if(!unityHint)problems.push('루프 지점을 켰는데 Unity 임포트 안내가 없다');
 if(!loopWav)problems.push('루프 지점을 켠 WAV 를 못 받았다');
 else{
   const smplAt=loopWav.indexOf('smpl');
