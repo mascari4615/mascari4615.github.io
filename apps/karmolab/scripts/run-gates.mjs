@@ -198,13 +198,13 @@ function usesBrowser(gate) {
 const TAIL_LINES = 12;
 function runGate(gate) {
   return new Promise((resolve) => {
-    const tailLinesilLinesilLines = [];
+    const tail = [];
     const collected = [];
     const collect = (chunk) => {
       for (const line of String(chunk).split(String.fromCharCode(10))) {
         if (!line.trim()) continue;
-        tailLinesilLinesilLines.push(line.replace(/\s+$/, ''));
-        if (tailLinesilLinesilLines.length > TAIL_LINES) tailLinesilLinesilLines.shift();
+        tail.push(line.replace(/\s+$/, ''));
+        if (tail.length > TAIL_LINES) tail.shift();
       }
     };
     /* ★ 인자 배열 대신 **한 줄 명령**으로 넘긴다. 윈도우의 `npm.cmd` 는 shell 이 있어야
@@ -222,8 +222,8 @@ function runGate(gate) {
        한 덩이로 낸다(머리글 + 그 검사의 output). */
     child.stdout.on('data', (c) => { collected.push(String(c)); collect(c); });
     child.stderr.on('data', (c) => { collected.push(String(c)); collect(c); });
-    child.on('error', (error) => resolve({ status: null, error, tailLinesilLinesilLines, output: collected.join('') }));
-    child.on('close', (status) => resolve({ status, error: null, tailLinesilLinesilLines, output: collected.join('') }));
+    child.on('error', (error) => resolve({ status: null, error, tail, output: collected.join('') }));
+    child.on('close', (status) => resolve({ status, error: null, tail, output: collected.join('') }));
   });
 }
 
@@ -289,7 +289,7 @@ await Promise.all(
       const sec = Math.round((Date.now() - started) / 1000);
       /* 죽은 방식도 구분해 남긴다. 빨강과 아예 못 돌았다는 손 갈 데가 다르다. */
       const how = run.error ? `못 돌림 (${run.error.message.slice(0, 60)})` : run.status === 0 ? null : `exit ${run.status}`;
-      results.push({ gate: nextGate.gate, i: nextGate.i, sec, how, cantRun: !run.error && run.status === 2, tailLines: run.tail });
+      results.push({ gate: nextGate.gate, i: nextGate.i, sec, how, cantRun: !run.error && run.status === 2, tail: run.tail });
       finishedCount += 1;
       const mark = run.error ? ', ' : run.status === 0 ? '✓' : run.status === 2 ? ', ' : '✘';
       console.log(`
