@@ -330,15 +330,15 @@ function buildMeok(container: HTMLElement): void {
   /* ===== 그리기 한 길 ===== */
 
   function repaint(rect?: { x: number; y: number; w: number; h: number }): void {
-    const onion = onionBefore || onionAfter;
-    /* 어니언스킨이 켜져 있으면 부분 갱신이 유령까지 다시 그려야 하므로 그냥 전체를 섞는다. */
-    const area = onion ? undefined : rect;
+    /* 어니언스킨을 켜도 사각형만 다시 섞는다. `composite` 가 유령도 그 사각형 안에서만 그리므로
+       밖으로 번질 자리가 없다. 예전에는 여기서 전체로 돌렸고, 그래서 **애니를 그리는 동안**
+       (곧 어니언을 켜 두는 그 시간에) 붓질마다 판 전체가 다시 섞였다. */
     composite(doc, doc.activeFrame, undefined, {
       into: flat,
-      rect: area,
+      rect,
       onionBefore, onionAfter
     });
-    view.blit(flat, area);
+    view.blit(flat, rect);
     view.invalidate();
   }
 

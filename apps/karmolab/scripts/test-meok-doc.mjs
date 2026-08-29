@@ -262,4 +262,24 @@ console.log('[test-meok-doc] ✓ 레이어, 셀 hold, 블렌드 12, 마스크, �
   /* 판 밖으로 나간 사각형은 잘린다(터지지 않는다). */
   C.composite(doc, 0, undefined, { rect: { x: 3, y: 3, w: 99, h: 99 }, into: flat });
 }
+
+/* 어니언스킨을 켜도 부분 갱신이 전체와 같은 답.
+   화면 쪽이 어니언일 때만 전체로 돌리던 것을 걷어냈으므로, 여기서 그 근거를 잠근다. */
+{
+  const doc = D.createDoc(4, 4);
+  D.setFrameCount(doc, 3);
+  const layer = doc.layers[0];
+  /* 프레임마다 다른 색. 유령이 실제로 섞여야 답이 갈린다. */
+  [[200, 40, 40, 255], [40, 200, 40, 255], [40, 40, 200, 255]].forEach((color, frame) => {
+    const cel = D.ensureCel(doc, layer, frame);
+    for (let i = 0; i < cel.data.length; i += 4) cel.data.set(color, i);
+  });
+  const onion = { onionBefore: 1, onionAfter: 1 };
+  const full = C.composite(doc, 1, undefined, onion);
+  const partial = C.composite(doc, 1, undefined, onion);
+  /* 한 칸만 다시 섞어도 통짜와 같아야 한다. */
+  C.composite(doc, 1, undefined, { ...onion, rect: { x: 1, y: 2, w: 1, h: 1 }, into: partial });
+  assert.deepEqual([...partial.data], [...full.data], '어니언 켠 부분 갱신 = 전체 합성');
+}
+console.log('[test-meok-doc] ✓ 어니언 켠 부분 갱신');
 console.log('[test-meok-doc] ✓ 부분 갱신(rect, into)');

@@ -279,37 +279,79 @@ export function adjust(surface: Surface, values: Adjust, selection?: Uint8Array 
 
 export type FilterName = 'grayscale' | 'sepia' | 'invert' | 'blur' | 'sharpen' | 'edge' | 'emboss' | 'posterize';
 
-/** 3×3 컨볼루션. 가장자리는 바깥 대신 가장 가까운 픽셀을 본다(테두리가 어두워지지 않게). */
+/**
+ * 3x3 컨볼루션. 가장자리는 바깥 대신 가장 가까운 픽셀을 본다(테두리가 어두워지지 않게).
+ *
+ * 안쪽과 테두리를 갈라 돈다. 예전에는 모든 픽셀이 `at()` 을 지났고, 거기서 픽셀마다 경계
+ * 클램프를 36번 불렀다 (min/max 네 번 곱하기 커널 아홉 탭). 그런데 테두리 한 겹을 빼면
+ * 클램프가 필요한 픽셀이 하나도 없다. 안쪽은 이웃 자리를 미리 더해 둔 값으로 바로 집기.
+ */
 function convolve(surface: Surface, kernel: number[], divisor: number, offset: number, selection?: Uint8Array | null): Surface {
   const out = createSurface(surface.w, surface.h);
   out.data.set(surface.data);
+  const w = surface.w;
+  const h = surface.h;
+  const src = surface.data;
   const at = (x: number, y: number): number =>
-    (Math.min(surface.h - 1, Math.max(0, y)) * surface.w + Math.min(surface.w - 1, Math.max(0, x))) * 4;
-  for (let y = 0; y < surface.h; y += 1) {
-    for (let x = 0; x < surface.w; x += 1) {
-      const p = y * surface.w + x;
-      const weight = selection ? selection[p] / 255 : 1;
-      if (weight <= 0) continue;
-      let r = 0; let g = 0; let b = 0;
-      for (let ky = -1; ky <= 1; ky += 1) {
-        for (let kx = -1; kx <= 1; kx += 1) {
-          const k = kernel[(ky + 1) * 3 + (kx + 1)];
-          if (!k) continue;
-          const from = at(x + kx, y + ky);
-          r += surface.data[from] * k;
-          g += surface.data[from + 1] * k;
-          b += surface.data[from + 2] * k;
-        }
-      }
-      const i = p * 4;
-      const nr = clamp255(r / divisor + offset);
-      const ng = clamp255(g / divisor + offset);
-      const nb = clamp255(b / divisor + offset);
-      out.data[i] = clamp255(surface.data[i] + (nr - surface.data[i]) * weight);
-      out.data[i + 1] = clamp255(surface.data[i + 1] + (ng - surface.data[i + 1]) * weight);
-      out.data[i + 2] = clamp255(surface.data[i + 2] + (nb - surface.data[i + 2]) * weight);
+    (Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))) * 4;
+
+  /** 커널에서 0 이 아닌 탭만 남긴다. 자리는 안쪽 픽셀 기준의 **상대 오프셋**. */
+  const taps: Array<[number, number]> = [];
+  for (let ky = -1; ky <= 1; ky += 1) {
+    for (let kx = -1; kx <= 1; kx += 1) {
+      const k = kernel[(ky + 1) * 3 + (kx + 1)];
+      if (k) taps.push([(ky * w + kx) * 4, k]);
     }
   }
+
+  const write = (i: number, weight: number, r: number, g: number, b: number): void => {
+    const nr = clamp255(r / divisor + offset);
+    const ng = clamp255(g / divisor + offset);
+    const nb = clamp255(b / divisor + offset);
+    out.data[i] = clamp255(src[i] + (nr - src[i]) * weight);
+    out.data[i + 1] = clamp255(src[i + 1] + (ng - src[i + 1]) * weight);
+    out.data[i + 2] = clamp255(src[i + 2] + (nb - src[i + 2]) * weight);
+  };
+
+  /* 안쪽. 이웃이 언제나 판 안이라 클램프가 없다. */
+  for (let y = 1; y < h - 1; y += 1) {
+    for (let x = 1; x < w - 1; x += 1) {
+      const p = y * w + x;
+      const weight = selection ? selection[p] / 255 : 1;
+      if (weight <= 0) continue;
+      const i = p * 4;
+      let r = 0; let g = 0; let b = 0;
+      for (let t = 0; t < taps.length; t += 1) {
+        const from = i + taps[t][0];
+        const k = taps[t][1];
+        r += src[from] * k;
+        g += src[from + 1] * k;
+        b += src[from + 2] * k;
+      }
+      write(i, weight, r, g, b);
+    }
+  }
+
+  /* 테두리 한 겹. 여기만 가장 가까운 픽셀로 접어 준다. */
+  const edge = (x: number, y: number): void => {
+    const p = y * w + x;
+    const weight = selection ? selection[p] / 255 : 1;
+    if (weight <= 0) return;
+    let r = 0; let g = 0; let b = 0;
+    for (let ky = -1; ky <= 1; ky += 1) {
+      for (let kx = -1; kx <= 1; kx += 1) {
+        const k = kernel[(ky + 1) * 3 + (kx + 1)];
+        if (!k) continue;
+        const from = at(x + kx, y + ky);
+        r += src[from] * k;
+        g += src[from + 1] * k;
+        b += src[from + 2] * k;
+      }
+    }
+    write(p * 4, weight, r, g, b);
+  };
+  for (let x = 0; x < w; x += 1) { edge(x, 0); if (h > 1) edge(x, h - 1); }
+  for (let y = 1; y < h - 1; y += 1) { edge(0, y); if (w > 1) edge(w - 1, y); }
   return out;
 }
 

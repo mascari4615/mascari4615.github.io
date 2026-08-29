@@ -353,7 +353,7 @@
     "test:mcp": "node ../../packages/mcp/build.mjs && node scripts/smoke-mcp.mjs",
     "test:mcp:install": "node scripts/smoke-mcp-install.mjs",
     "test:md": "node scripts/test-community-markdown.mjs",
-    "test:meok": "node scripts/test-meok-doc.mjs && node scripts/test-meok-brush.mjs && node scripts/test-meok-selection.mjs && node scripts/test-meok-ops.mjs && node scripts/test-meok-storage.mjs && node scripts/test-meok-apng.mjs && node scripts/test-meok-emote.mjs",
+    "test:meok": "node scripts/test-meok-doc.mjs && node scripts/test-meok-brush.mjs && node scripts/test-meok-selection.mjs && node scripts/test-meok-ops.mjs && node scripts/test-meok-storage.mjs && node scripts/test-meok-apng.mjs && node scripts/test-meok-emote.mjs && node scripts/test-meok-perf.mjs",
     "test:meok:screen": "node scripts/smoke-meok.mjs",
     "test:meong": "node scripts/smoke-meong.mjs",
     "test:mesh3d": "node scripts/smoke-mesh3d.mjs",
