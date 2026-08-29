@@ -20,6 +20,7 @@ import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore } from './store-rclone.mjs';
 import { getFile, listFiles, unlockVault } from './vault.mjs';
 import { mirrorable } from './mirror-policy.mjs';
+import { budgetLine, budgetState, capFromEnv, measureRemote } from './mirror-budget.mjs';
 
 await loadFilesEnv();
 
@@ -70,6 +71,18 @@ if (r2Remote) {
     if (!same) fails.push('Drive 와 R2 의 hdr 이 다르다. 열쇠 재료가 어긋나 아무것도 안 열린다');
 } else {
     say('[health] FILES_VAULT_R2 없음. hdr 대조 생략');
+}
+
+/* 값. 상한을 넘었으면 전송기가 미러링을 껐다는 뜻이라 실패로 친다 */
+if (r2Remote) {
+    const bytes = await measureRemote(r2Remote);
+    if (bytes === null) {
+        say('[health] 열람 저장 총량을 못 쟀다');
+    } else {
+        const state = budgetState(bytes, capFromEnv());
+        say('[health] 열람 저장', budgetLine(state));
+        if (state.level === 'stop') fails.push(`열람 저장이 상한을 넘었다. ${budgetLine(state)}`);
+    }
 }
 
 /* 문이 열려 있으면 암호문을 누구나 받아감 */

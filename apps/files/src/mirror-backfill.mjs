@@ -15,6 +15,7 @@ import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { fileChunkKeys, listFiles, unlockVault } from './vault.mjs';
 import { mirrorable } from './mirror-policy.mjs';
+import { budgetLine, capFromEnv, makeBudget, measureRemote } from './mirror-budget.mjs';
 
 await loadFilesEnv();
 
@@ -64,6 +65,14 @@ const have = await new Promise((resolve) => {
 });
 console.log(`열람 저장에 이미 ${have.size}개`);
 
+/* 값 상한. 여기가 R2 를 제일 크게 불리는 자리다.
+   넘으면 옮기기를 멈춘다. 정본(Drive)은 이미 다 들어 있으므로 잃는 것은 없다. */
+const capGb = capFromEnv();
+const startBytes = await measureRemote(extraRemote);
+const budget = startBytes === null ? null : makeBudget(startBytes, capGb);
+console.log('열람 저장', budget ? budgetLine(budget.state()) : '총량을 못 쟀다. 상한 검사 생략');
+
+let stoppedByBudget = false;
 let copied = 0;
 let already = 0;
 let failed = 0;
@@ -81,6 +90,7 @@ for (const key of ['hdr', 'idx']) {
 }
 
 for (const f of targets) {
+  if (stoppedByBudget) break;
   for (const key of f.keys) {
     try {
       if (have.has(key)) {
@@ -91,6 +101,11 @@ for (const f of targets) {
       if (!bytes) {
         failed += 1;
         continue;
+      }
+      if (budget && !budget.allow(bytes.length)) {
+        console.log(`멈춤. 열람 저장 ${budgetLine(budget.state())}`);
+        stoppedByBudget = true;
+        break;
       }
       if (!dry) await extra.put(key, bytes);
       copied += 1;
@@ -103,5 +118,6 @@ for (const f of targets) {
   }
 }
 
-console.log(`끝. 옮김 ${copied}, 이미 있음 ${already}, 못 옮김 ${failed}${dry ? ' (연습)' : ''}`);
+const tail = stoppedByBudget ? ' (값 상한에 걸려 멈춤)' : dry ? ' (연습)' : '';
+console.log(`끝. 옮김 ${copied}, 이미 있음 ${already}, 못 옮김 ${failed}${tail}`);
 await daemon?.stop?.();

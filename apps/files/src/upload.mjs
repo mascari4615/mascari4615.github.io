@@ -13,6 +13,7 @@ import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
 import { mirrorable } from './mirror-policy.mjs';
+import { budgetLine, capFromEnv, makeBudget, measureRemote } from './mirror-budget.mjs';
 import { loadFilesEnv } from './env-file.mjs';
 
 await loadFilesEnv();
@@ -57,7 +58,28 @@ const daemon = await startRcloneDaemon();
 const rcUrl = daemon?.url;
 const primary = rcloneStore(remote, { rcUrl, delayMs: rcUrl ? 0 : 400 });
 const extra = extraRemote ? rcloneStore(extraRemote, { rcUrl, delayMs: rcUrl ? 0 : 400 }) : null;
-const mirrored = extra ? teeStore(primary, extra) : primary;
+
+/* 값 상한. 시작 총량을 한 번 재고 보내는 바이트를 더해 간다.
+   못 재면 막지 않는다. 모른다는 이유로 정본 전송을 세우지 않는다.
+   `hdr`, `idx` 는 상한 밖이다. 그게 R2 에 없으면 화면이 클라우드 자체를 못 연다. */
+const capGb = capFromEnv();
+const startBytes = extra ? await measureRemote(extraRemote) : null;
+const budget = startBytes === null ? null : makeBudget(startBytes, capGb);
+if (budget) console.log('열람 저장', budgetLine(budget.state()));
+else if (extra) console.log('열람 저장 총량을 못 쟀다. 상한 검사 생략');
+let budgetTold = false;
+function allowExtra(key, bytes) {
+  if (key === 'hdr' || key === 'idx') return true;
+  if (!budget) return true;
+  const ok = budget.allow(bytes);
+  if (!ok && !budgetTold) {
+    budgetTold = true;
+    console.log(`열람 저장 ${budgetLine(budget.state())}. 이후 정본만 올린다`);
+  }
+  return ok;
+}
+
+const mirrored = extra ? teeStore(primary, extra, { allowExtra }) : primary;
 const store = mirrored;
 let session;
 const hdr = await store.get('hdr');
