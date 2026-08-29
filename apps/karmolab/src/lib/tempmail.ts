@@ -146,10 +146,15 @@ export function leftSay(expiresAt: number, now = Date.now()): string {
   return t('tempmail.left.min', { n: Math.ceil(sec / 60) }, `${Math.ceil(sec / 60)}분 남음`);
 }
 
-/** 편지 한 줄 미리보기. 줄바꿈을 눌러 한 줄로. 길면 자른다. */
+/** 편지 한 줄 미리보기. 줄바꿈을 눌러 한 줄로, 길면 자름
+ *
+ * ★ **자른 표까지 넣어 `max` 안에 든다** (2026-08-29). 예전에는 `max` 글자를 남기고 그 뒤에
+ *   표를 붙여 결과가 `max + 3` 이었다. 표가 한 글자(말줄임표)일 때는 티가 안 났는데,
+ *   AI 티 나는 문자를 걷어내며 점 세 개로 바뀌자 길이가 두 글자 늘어 시험이 깨진 것
+ *   길이를 재는 쪽이 옳다. 잘린 줄은 화면 한 줄에 들어가야 한다. */
 export function preview(text: string, max = 90): string {
   const one = String(text ?? '').replace(/\s+/g, ' ').trim();
-  return one.length > max ? one.slice(0, max) + '...' : one;
+  return one.length > max ? one.slice(0, Math.max(0, max - 3)) + '...' : one;
 }
 
 /**
