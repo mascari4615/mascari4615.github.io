@@ -5,7 +5,7 @@
   "my-ai.panel_missing": "パネルを読み込めなかった。",
   "my-ai.environment_loading": "環境を検査中...",
   "my-ai.environment_title": "AI 開発環境",
-  "my-ai.environment_desc": "この PC の実際の配置先を検査した結果。状態にカーソルを置くと根拠のパスを確認できる。",
+  "my-ai.environment_desc": "製品の対応状況とローカル設定を分けて検査した結果。アカウントやクラウドでしか分からない値は要確認として残す。状態にカーソルを置くと根拠のパスを確認できる。",
   "my-ai.environment_feature": "機能",
   "my-ai.status.applied": "適用済み",
   "my-ai.status.partial": "一部",

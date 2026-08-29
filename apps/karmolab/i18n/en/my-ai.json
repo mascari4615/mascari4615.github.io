@@ -5,7 +5,7 @@
   "my-ai.panel_missing": "The panel could not be loaded.",
   "my-ai.environment_loading": "Inspecting the environment...",
   "my-ai.environment_title": "AI development environment",
-  "my-ai.environment_desc": "Live inspection of deployment paths on this machine. Hover a status to see its evidence paths.",
+  "my-ai.environment_desc": "Separates product support from local wiring. Account- or cloud-only facts remain marked for review. Hover a status to see its evidence paths.",
   "my-ai.environment_feature": "Feature",
   "my-ai.status.applied": "Applied",
   "my-ai.status.partial": "Partial",

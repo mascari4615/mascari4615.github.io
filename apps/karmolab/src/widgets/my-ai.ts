@@ -560,7 +560,7 @@ import { t, loadNamespace } from '../lib/i18n';
         audit.innerHTML = `
           <div class="myai-env-head">
             <div><h3>${esc(t('my-ai.environment_title', undefined, 'AI 개발환경'))}</h3>
-            <p>${esc(t('my-ai.environment_desc', undefined, '이 컴퓨터의 실제 배포 경로를 검사한 결과다. 상태에 마우스를 올리면 근거 경로를 볼 수 있다.'))}</p></div>
+            <p>${esc(t('my-ai.environment_desc', undefined, '제품 지원과 로컬 배선을 구분해 검사한 결과다. 계정, 클라우드에서만 알 수 있는 값은 확인 필요로 남긴다. 상태에 마우스를 올리면 근거 경로를 볼 수 있다.'))}</p></div>
             <span>${esc(ago(result.checked_at))}</span>
           </div>
           <div class="myai-env-scroll"><table class="myai-env-table">
