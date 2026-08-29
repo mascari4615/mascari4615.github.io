@@ -453,7 +453,8 @@
     "verify:live": "node scripts/run-live-checks.mjs",
     "verify:prepush": "node scripts/run-prepush.mjs",
     "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak",
-    "verify:tonight": "node scripts/verify-tonight.mjs"
+    "verify:tonight": "node scripts/verify-tonight.mjs",
+    "test:post-model": "node scripts/test-post-model.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",

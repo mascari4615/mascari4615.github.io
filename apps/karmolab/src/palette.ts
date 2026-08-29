@@ -30,6 +30,8 @@ import { createSearchSystem } from './search/search-system';
 import { studyMapDocuments } from './search/providers/studymap-provider';
 import { lessonDocuments } from './search/providers/lesson-provider';
 import { docsDocuments } from './search/providers/docs-provider';
+import { originLabel } from './lib/post-model';
+import { postDocuments, type BlogIndexRow } from './search/providers/post-provider';
 import { toolIndexPath } from './lib/site-base';
 
 type PaletteTool = {
@@ -54,7 +56,9 @@ type Entry = {
   cho: string;
   /** 이 도구가 어느 묶음의 탭인지 (아니면 null). 둘러보기에서 부모 밑에 붙인다. */
   bundle: string | null;
-  source?: 'tool' | 'study' | 'lesson' | 'docs';
+  source?: 'tool' | 'study' | 'lesson' | 'docs' | 'post';
+  /** 앱 밖 주소(정적 장 등). 있으면 페이지 전환 대신 그리로 간다 */
+  href?: string;
   pageId?: string;
   nodeId?: string;
   partId?: string;
@@ -216,9 +220,11 @@ const KarmoPalette = (() => {
   let studyEntries: Entry[] = [];
   let lessonEntries: Entry[] = [];
   let docsEntries: Entry[] = [];
+  let postEntries: Entry[] = [];
   let studyLoaded = false;
   let lessonsLoaded = false;
   let docsLoaded = false;
+  let postsLoaded = false;
   searchIndex.register({ id: 'studymap', documents: () => studyEntries.map((entry) => ({
     value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
   })) });
@@ -226,6 +232,10 @@ const KarmoPalette = (() => {
     value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
   })) });
   searchIndex.register({ id: 'docs', documents: () => docsEntries.map((entry) => ({
+    value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
+  })) });
+  /* 블로그 글도 같은 창에서 찾힌다 (change.post-model). 색인은 빌드 산출 한 벌. */
+  searchIndex.register({ id: 'posts', documents: () => postEntries.map((entry) => ({
     value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
   })) });
   /** 이번 주에 많이 쓴 도구 id. 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
@@ -354,6 +364,25 @@ const KarmoPalette = (() => {
       if (inline?.input.value) render(inline);
       if (overlay?.input.value) render(overlay);
     } catch (_) { /* 문서 색인이 없어도 나머지 검색은 계속 돈다. */ }
+  }
+
+  /** 블로그 글 색인. 못 받아도 나머지 찾기는 그대로 돈다. */
+  async function loadPosts(): Promise<void> {
+    if (postsLoaded) return;
+    postsLoaded = true;
+    try {
+      const response = await fetch('/apps/karmolab/data/posts-index.json');
+      if (!response.ok) return;
+      const rows = (await response.json()) as BlogIndexRow[];
+      postEntries = postDocuments(rows).map((document) => ({
+        id: document.id, title: document.title, desc: document.description ?? '',
+        category: originLabel('blog'), icon: '', alias: document.aliases || '', cho: '', bundle: null,
+        source: 'post' as const, href: document.value.href,
+      }));
+      searchIndex.refresh('posts');
+      if (inline?.input.value) render(inline);
+      if (overlay?.input.value) render(overlay);
+    } catch (_) { /* 글 색인이 없어도 나머지 찾기는 계속 돈다. */ }
   }
 
   function buildIndex(): void {
@@ -822,7 +851,8 @@ const KarmoPalette = (() => {
       if (answers.length) inst.list.appendChild(sectionEl('도구'));
       extra.forEach((e) => addRow(inst, e, null));
       hits.forEach((h) => addRow(inst, h.entry, h.range,
-        h.entry.source === 'lesson' ? '강의' : h.entry.source === 'study' ? '학습' : h.entry.source === 'docs' ? '문서' : undefined));
+        h.entry.source === 'lesson' ? '강의' : h.entry.source === 'study' ? '학습'
+          : h.entry.source === 'docs' ? originLabel('docs') : h.entry.source === 'post' ? originLabel('blog') : undefined));
     }
     /* 잘라낸 것이 있으면 **말해 준다**. 안 그러면 이게 전부로 읽힌다 (TASK-KL-136).
      * 첫 화면 칸에서는 ⌘K 창이 이어받고, 그 창마저 넘치면 전체 목록 페이지로 보낸다. */
@@ -887,6 +917,11 @@ const KarmoPalette = (() => {
     if (entry.nodeId) sessionStorage.setItem('karmolab-studymap-open-node', entry.nodeId);
     if (entry.partId) sessionStorage.setItem('karmolab-studymap-open-part', entry.partId);
     if (entry.docId) sessionStorage.setItem('karmolab-docs-open', JSON.stringify({ id: entry.docId, heading: entry.heading || '' }));
+    if (entry.href) {
+      // 정적 장은 페이지 전환이 아니라 주소 이동이다 (change.post-model)
+      location.assign(entry.href);
+      return;
+    }
     if (typeof Toolbox !== 'undefined') Toolbox.switchPage(entry.pageId || entry.id);
     const retryUntilMounted = (run: () => void, isPending: () => boolean, attempts = 120): void => {
       if (!isPending() || attempts <= 0) return;
@@ -1065,6 +1100,7 @@ const KarmoPalette = (() => {
     void loadStudyMap();
     void loadLessons();
     void loadDocs();
+    void loadPosts();
     void loadAliases().then(() => {
       if (inline && !inline.input.value) render(inline);
     });
@@ -1098,6 +1134,7 @@ const KarmoPalette = (() => {
     void loadStudyMap();
     void loadLessons();
     void loadDocs();
+    void loadPosts();
     void loadAliases();
 
     const inst = buildSurface('overlay');

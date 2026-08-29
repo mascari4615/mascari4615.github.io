@@ -126,6 +126,14 @@
       ]
     },
     "test:md",
+    {
+      "name": "test:post-model",
+      "볼것": [
+        "src/lib/post-model.ts",
+        "src/search/providers/post-provider.ts",
+        "scripts/test-post-model.mjs"
+      ]
+    },
     "test:tools",
     "test:pulse",
     "test:tool-url",

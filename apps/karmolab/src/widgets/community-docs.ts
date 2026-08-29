@@ -14,6 +14,7 @@
  */
 import { t, loadNamespace } from '../lib/i18n';
 import { renderRichMarkdown, type RichViewLabels } from '../lib/markdown/rich-view';
+import { fromDocEntry, type KarmoPost } from '../lib/post-model';
 
 export const DOCS_BOARD_ID = 'docs';
 
@@ -261,17 +262,19 @@ export function buildDocsBoardBody(container: HTMLElement, entries: DocEntry[], 
     let query = '';
     const rows: { el: HTMLTableRowElement; group: string; text: string }[] = [];
 
+    /* 줄 하나는 글 모델 한 벌로 (change.post-model). 블로그 판과 같은 모양이 나온다 */
     entries.forEach((entry, i) => {
+        const post: KarmoPost = fromDocEntry(entry);
         const tr = document.createElement('tr');
         tr.innerHTML =
             `<td class="c-num">${i + 1}</td>` +
             '<td class="c-td-title"><button type="button" class="c-title-btn">' +
-            `<span class="t"></span><span class="cb-cat">${mdEsc(entry.group)}</span></button></td>`;
-        (tr.querySelector('.c-title-btn .t') as HTMLElement).textContent = entry.label;
-        if (entry.desc) tr.querySelector('button')?.setAttribute('title', entry.desc);
-        tr.querySelector('button')?.addEventListener('click', () => open(entry.id));
+            `<span class="t"></span><span class="cb-cat">${mdEsc(post.label)}</span></button></td>`;
+        (tr.querySelector('.c-title-btn .t') as HTMLElement).textContent = post.title;
+        if (post.excerpt) tr.querySelector('button')?.setAttribute('title', post.excerpt);
+        tr.querySelector('button')?.addEventListener('click', () => open(post.id));
         tbody.appendChild(tr);
-        rows.push({ el: tr, group: entry.group, text: `${entry.label} ${entry.desc} ${entry.group}`.toLowerCase() });
+        rows.push({ el: tr, group: post.label, text: `${post.title} ${post.excerpt} ${post.label}`.toLowerCase() });
     });
 
     const apply = (): void => {

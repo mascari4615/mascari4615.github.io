@@ -11,6 +11,7 @@
  * 정적 장이 게시판 테마를 입는 것은 ② 단계 (gen-post-pages 껍데기).
  */
 import { t } from '../lib/i18n';
+import { fromBlogRow, postDate, type KarmoPost } from '../lib/post-model';
 
 export interface BlogPostRow {
     slug: string;
@@ -92,19 +93,20 @@ export function buildBlogBoardBody(container: HTMLElement, posts: BlogPostRow[])
     let query = '';
     const rows: { el: HTMLTableRowElement; category: string; text: string }[] = [];
 
-    posts.forEach((post, i) => {
+    /* 줄 하나는 글 모델 한 벌로 그린다 (change.post-model). 판마다 줄 모양이 갈리지 않게 */
+    posts.forEach((row, i) => {
+        const post: KarmoPost = fromBlogRow(row);
         const tr = document.createElement('tr');
-        const categoryPath = post.categories.join(' › ');
         tr.innerHTML =
             `<td class="c-num">${posts.length - i}</td>` +
-            `<td class="c-td-title"><a class="c-title-btn" href="/posts/${encodeURIComponent(post.slug)}/">` +
-            `<span class="t"></span><span class="cb-cat">${esc(categoryPath)}</span></a></td>` +
-            `<td class="c-when"><time datetime="${esc(post.date)}">${esc(post.date.slice(0, 10))}</time></td>`;
-        // 제목은 textContent 로. 색인은 내 글이지만, 넣는 길을 하나로 굳혀 두면 실수가 없다.
+            `<td class="c-td-title"><a class="c-title-btn" href="${esc(post.href)}">` +
+            `<span class="t"></span><span class="cb-cat">${esc(post.label)}</span></a></td>` +
+            `<td class="c-when"><time datetime="${esc(post.at ?? '')}">${esc(postDate(post))}</time></td>`;
+        // 제목은 textContent 로 (넣는 길 하나로 굳히기)
         (tr.querySelector('.c-title-btn .t') as HTMLElement).textContent = post.title;
         if (post.excerpt) tr.querySelector('a')?.setAttribute('title', post.excerpt);
         tbody.appendChild(tr);
-        rows.push({ el: tr, category: post.categories[0] ?? '', text: `${post.title} ${categoryPath}`.toLowerCase() });
+        rows.push({ el: tr, category: row.categories[0] ?? '', text: `${post.title} ${post.label}`.toLowerCase() });
     });
 
     const apply = (): void => {
