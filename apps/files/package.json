@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "upload": "node src/upload.mjs",
-    "probe": "node scripts/probe-rclone.mjs"
+    "probe": "node scripts/probe-rclone.mjs",
+    "health": "node src/health.mjs"
   }
 }
