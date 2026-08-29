@@ -23,6 +23,7 @@ mod quest_writeback;
 mod repo_file;
 mod terminal;
 mod tray_menu;
+mod vault_open;
 mod vault_upload;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
@@ -64,6 +65,7 @@ use local_dev::{
     LocalDevState,
 };
 use files_window::{files_navigate, files_window_open, karmolab_navigate};
+use vault_open::{clear_scratch, vault_open_external};
 use vault_upload::{
     restore_upload_state, vault_upload_pick_target, vault_upload_start, vault_upload_status,
     vault_upload_stop, vault_upload_targets,
@@ -1219,6 +1221,8 @@ pub fn run() {
                     restore_persisted_state(&h);
                     // 클라우드 전송기도 같은 자리에서 다시 붙인다 (PID 생존 확인 = 외부 호출).
                     restore_upload_state(&h);
+                    /* 지난 판이 재생기에 넘기려고 만든 임시 파일 정리. 재생 중 지우면 재생기가 죽으므로 시작 때만 */
+                    clear_scratch();
                 });
             }
 

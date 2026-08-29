@@ -11,6 +11,7 @@ import {
 import { pickVaultBase } from './src/vault-base.mjs';
 import { mountGallery, worthGallery } from './src/gallery.mjs';
 import { VIDEO_MAX_BYTES, mirrorable } from './src/mirror-policy.mjs';
+import { KINDS, SORTS, activeSummary, arrange, arrangeFolders } from './src/browse.mjs';
 import {
   armScrollMemory,
   bindViewerKeys,
@@ -39,6 +40,8 @@ let siblings = [];
 let unbindKeys = null;
 /** 폴더를 보는 동안 스크롤을 적는 손. 폴더를 뜰 때 뗀다. */
 let unwatchScroll = null;
+/** 좁히기 상태. 폴더를 옮겨도 그대로 둔다. 같은 갈래를 이어 볼 때가 많다 */
+const sift = { kind: '', query: '', sort: 'name', desc: false };
 
 const fixtureBase = new URL('v/', import.meta.url);
 let vaultBase = fixtureBase;
@@ -475,7 +478,30 @@ function viewMode() {
   }
 }
 
-/** 보기 전환 단추. 그림이 있는 폴더에서만 뜻이 있다. */
+/** 좁히기 줄. 정렬, 갈래 칩, 이름 찾기. 목록과 액자 둘 다 이 결과를 씀 */
+function siftBar(total, shown) {
+  const chips = KINDS.map(
+    (k) =>
+      '<button type="button" class="sf-chip' + (sift.kind === k.id ? ' on' : '') +
+      '" data-kind="' + k.id + '">' + k.label + '</button>',
+  ).join('');
+  const sorts = SORTS.map(
+    (o) =>
+      '<button type="button" class="sf-chip' + (sift.sort === o.id ? ' on' : '') +
+      '" data-sort="' + o.id + '">' + o.label + '</button>',
+  ).join('');
+  const note = activeSummary(sift, total, shown);
+  return '<div class="siftbar">' +
+    '<input type="search" id="sf-q" placeholder="이름으로 찾기" value="' + esc(sift.query) + '">' +
+    '<span class="sf-group">' + chips + '</span>' +
+    '<span class="sf-group">' + sorts +
+    '<button type="button" class="sf-chip" data-desc="1" title="차례 뒤집기">' +
+    (sift.desc ? '내림' : '오름') + '</button></span>' +
+    (note ? '<span class="sf-note">' + esc(note) + '</span>' : '') +
+    '</div>';
+}
+
+/** 보기 전환 버튼. 그림이 있는 폴더에서만 뜻이 있음 */
 function viewSwitch(mode) {
   return '<div class="viewsw">' +
     '<button type="button" data-view="list"' + (mode === 'list' ? ' class="on"' : '') + '>목록</button>' +
@@ -492,13 +518,15 @@ function renderVaultDir(dir) {
   }
   if (unwatchScroll) unwatchScroll();
   const listed = listDir(vaultListing, dir);
-  /* 다음과 이전은 화면에 보이는 차례. 목록과 액자가 같은 순서라 여기서 한 번만 기록 */
-  siblings = listed.files.map((f) => f.path);
+  /* 거른 뒤의 차례가 화면 차례. 다음과 이전이 이걸 따르므로 여기서 한 번만 정한다 */
+  const shownFiles = arrange(listed.files, { ...sift, kindOf: previewKind });
+  const shownFolders = arrangeFolders(listed.folders, sift);
+  siblings = shownFiles.map((f) => f.path);
   crumb.innerHTML = vaultCrumbs(listed.dir);
-  const canGrid = worthGallery(listed.files, previewKind);
+  const canGrid = worthGallery(shownFiles, previewKind);
   const mode = canGrid ? viewMode() : 'list';
 
-  const folders = listed.folders.map((name) => {
+  const folders = shownFolders.map((name) => {
     const rel = listed.dir ? listed.dir + '/' + name : name;
     return { name, href: '#vault/' + encodeURIComponent(rel) };
   });
@@ -506,6 +534,7 @@ function renderVaultDir(dir) {
   if (mode === 'grid') {
     /* 폴더는 액자 위에 한 줄로 남긴다. 그림만 보이면 위로 올라갈 길이 사라진다. */
     box.innerHTML =
+      siftBar(listed.files.length, shownFiles.length) +
       (canGrid ? viewSwitch(mode) : '') +
       (folders.length
         ? '<div class="folderbar">' +
@@ -514,10 +543,10 @@ function renderVaultDir(dir) {
         : '') +
       '<div class="grid" id="vgrid"></div>';
     const host = document.getElementById('vgrid');
-    if (listed.files.length) {
+    if (shownFiles.length) {
       gallery = mountGallery({
         host,
-        files: listed.files,
+        files: shownFiles,
         kindOf: previewKind,
         load: (path) => getFile(vaultSession, path),
         mimeOf: mimeFor,
@@ -529,19 +558,50 @@ function renderVaultDir(dir) {
   } else {
     const rows = [];
     for (const f of folders) rows.push(row(icon('folder'), link(f.href, esc(f.name)), '', '', ''));
-    for (const f of listed.files) {
+    for (const f of shownFiles) {
       const name = f.path.split('/').pop();
       const href = '#vault/' + encodeURIComponent(f.path);
       rows.push(row(iconFor(name), link(href, esc(name)), fmtSize(f.size), '', link(href, '열기')));
     }
     box.innerHTML =
+      siftBar(listed.files.length, shownFiles.length) +
       (canGrid ? viewSwitch(mode) : '') +
-      (rows.length ? listHead() + rows.join('') : '<p class="none">이 폴더는 비어 있습니다.</p>');
+      (rows.length
+        ? listHead() + rows.join('')
+        : '<p class="none">' +
+          (sift.kind || sift.query.trim() ? '조건에 맞는 것이 없습니다.' : '이 폴더는 비어 있습니다.') +
+          '</p>');
   }
 
   restoreScroll(listed.dir);
   /* 보는 동안 계속 기록. 파일 열 때 적으면 이미 0 (주소 바뀌며 꼭대기행) */
   unwatchScroll = watchScroll(listed.dir);
+
+  const q = box.querySelector('#sf-q');
+  if (q) {
+    let timer = 0;
+    q.addEventListener('input', () => {
+      clearTimeout(timer);
+      /* 한 글자마다 다시 그리면 큰 폴더에서 입력이 끊김. 잠깐 모아서 한 번 */
+      timer = setTimeout(() => {
+        sift.query = q.value;
+        renderVaultDir(dir);
+        const again = box.querySelector('#sf-q');
+        if (again) {
+          again.focus();
+          again.setSelectionRange(again.value.length, again.value.length);
+        }
+      }, 160);
+    });
+  }
+  for (const b of box.querySelectorAll('.siftbar [data-kind], .siftbar [data-sort], .siftbar [data-desc]')) {
+    b.addEventListener('click', () => {
+      if (b.dataset.kind) sift.kind = sift.kind === b.dataset.kind ? '' : b.dataset.kind;
+      else if (b.dataset.sort) sift.sort = b.dataset.sort;
+      else sift.desc = !sift.desc;
+      renderVaultDir(dir);
+    });
+  }
 
   for (const b of box.querySelectorAll('.viewsw button')) {
     b.addEventListener('click', () => {
@@ -570,8 +630,46 @@ function fileBar(path, blobUrl) {
     (blobUrl
       ? '<a class="fb-btn" href="' + blobUrl + '" download="' + esc(name) + '">받기</a>'
       : '') +
+    /* 앱에서만. WebView 가 못 푸는 코덱을 OS 재생기가 연다 */
+    (isDesktop() ? '<button type="button" class="fb-btn" data-go="external">재생기로 열기</button>' : '') +
     '<button type="button" class="fb-btn" data-go="close">닫기 (Esc)</button>' +
     '</div>';
+}
+
+/**
+ * 복호본을 앱에 넘겨 OS 기본 프로그램으로 열기.
+ *
+ * 왜 필요한가: 저장된 mp4 대부분이 HEVC. WebView 가 비디오 트랙을 못 품.
+ * 소리만 나고 화면은 검음. OS 재생기는 시스템 코덱을 쓰므로 그냥 열림
+ */
+async function openExternal(path, bytes, button) {
+  /* IPC 는 JSON 이라 바이트가 배열로 부풀어 오름. 큰 파일은 메모리를 크게 먹으므로 차단.
+     열람 저장에 오는 영상은 100MB 이하라 이 문턱 안 */
+  const IPC_MAX = 200 * 1024 * 1024;
+  if (bytes.length > IPC_MAX) {
+    button.textContent = '너무 큼';
+    setTimeout(() => {
+      button.textContent = '재생기로 열기';
+    }, 2000);
+    return;
+  }
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = '여는 중';
+  try {
+    await desktopInvoke('vault_open_external', {
+      name: path.split('/').pop(),
+      bytes: Array.from(bytes),
+    });
+    button.textContent = '열었음';
+  } catch (e) {
+    button.textContent = '못 엶';
+    console.error('[files] 재생기로 열기 실패', e);
+  }
+  setTimeout(() => {
+    button.disabled = false;
+    button.textContent = label;
+  }, 2000);
 }
 
 /** 같은 폴더의 앞뒤 파일로. 폴더 복귀는 그 폴더 주소로. 뒤로가기 안 씀 */
@@ -637,6 +735,7 @@ async function renderVaultFile(path) {
       b.addEventListener('click', () => {
         const go = b.dataset.go;
         if (go === 'close') closeFile(path);
+        else if (go === 'external') openExternal(path, got.bytes, b);
         else if (go) goSibling(path, go);
       });
     }

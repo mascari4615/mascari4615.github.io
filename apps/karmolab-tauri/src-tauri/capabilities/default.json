@@ -60,6 +60,7 @@
       ]
     },
     "allow-vault-upload",
+    "allow-vault-open",
     "allow-files-window"
   ]
 }

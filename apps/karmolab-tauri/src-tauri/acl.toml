@@ -203,6 +203,12 @@ description = "Files 클라우드 전송기를 데스크톱이 붙든다 — 시
 commands = ["vault_upload_status", "vault_upload_start", "vault_upload_stop", "vault_upload_targets", "vault_upload_pick_target"]
 
 [[group]]
+name = "vault-open"
+identifier = "allow-vault-open"
+description = "복호한 파일을 OS 기본 프로그램으로 연다. WebView 가 못 푸는 코덱(HEVC 등) 때문. 화면이 준 바이트와 이름만 오간다."
+commands = ["vault_open_external"]
+
+[[group]]
 name = "files-window"
 identifier = "allow-files-window"
 description = "Files 전용 창을 연다 — 파일 화면은 카모랩 위젯이 아니라 자기 창에서 산다."

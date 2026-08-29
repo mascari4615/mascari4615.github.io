@@ -172,6 +172,24 @@ body {
   background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px);
 }
 @keyframes framewait { 0%, 100% { opacity: .18; } 50% { opacity: .4; } }
+/* 좁히기 줄. 정렬, 갈래, 찾기. 목록과 액자 위에 늘 같은 자리 */
+.siftbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.siftbar input {
+  flex: 1; min-width: 140px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 7px; color: var(--ink); font: inherit; font-size: .84rem; padding: 5px 10px;
+}
+.sf-group { display: inline-flex; gap: 4px; }
+.sf-chip {
+  background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+  color: var(--mute); font: inherit; font-size: .78rem; font-weight: 600; padding: 4px 11px;
+}
+.sf-chip:hover { color: var(--ink); }
+.sf-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.sf-note { color: var(--mute); font-size: .78rem; margin-left: auto; }
+
 /* 파일 화면 맨 위. 몇 번째인지, 앞뒤, 받기. 갈래와 무관하게 같은 줄 */
 .filebar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
