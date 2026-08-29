@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Float32Array });
-const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds } = module.exports;
+const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds, smplChunk, beatToSample, loopSections } = module.exports;
 
 const pcm = (channels) => ({
   numberOfChannels: channels.length,
@@ -93,4 +93,31 @@ assert.ok(Math.abs(exportTailSeconds([4, 0.1], false) - 4.2) < 1e-9, '긴 패드
 assert.ok(Math.abs(exportTailSeconds([0.1], true) - 2) < 1e-9, '잔향이 있으면 최소 잔향 길이');
 assert.ok(exportTailSeconds([0.1], false) < exportTailSeconds([0.1], true), '잔향이 켜지면 더 길다');
 
-console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이');
+// 표본 번호. 게임 루프 지점의 단위는 초가 아니라 표본
+assert.equal(beatToSample(0, 120, 44100), 0);
+assert.equal(beatToSample(2, 120, 44100), 44100, '120 BPM 에서 두 박이 1초');
+assert.equal(beatToSample(4, 60, 48000), 4 * 48000, '60 BPM 에서 한 박이 1초');
+
+// smpl 덩어리. 게임 엔진이 읽는 자리
+const chunk = smplChunk(44100, 0, 88200);
+assert.equal(chunk.length, 68, '머리 36 + 루프 24 + 이름표 8');
+const chunkView = new DataView(chunk.buffer);
+assert.equal(String.fromCharCode(...chunk.slice(0, 4)), 'smpl');
+assert.equal(chunkView.getUint32(4, true), 60, '덩어리 길이');
+assert.equal(chunkView.getUint32(36, true), 1, '루프 한 개');
+assert.equal(chunkView.getUint32(52, true), 0, '루프 시작 표본');
+assert.equal(chunkView.getUint32(56, true), 88200, '루프 끝 표본');
+assert.equal(chunkView.getUint32(16, true), Math.round(1e9 / 44100), '표본 주기(ns)');
+const backwards = smplChunk(44100, 500, 100);
+assert.ok(new DataView(backwards.buffer).getUint32(56, true) > new DataView(backwards.buffer).getUint32(52, true), '끝이 시작보다 앞이면 바로잡는다');
+
+// 세 구간. 루프가 곡 안쪽이면 인트로와 아웃트로까지
+const three = loopSections({ from: 0, to: 32 }, { from: 8, to: 24 });
+assert.equal(three.map((section) => section.name).join(), 'intro,loop,outro');
+assert.equal(JSON.stringify(three.map((section) => [section.from, section.to])), '[[0,8],[8,24],[24,32]]');
+const whole = loopSections({ from: 0, to: 16 }, { from: 0, to: 16 });
+assert.equal(whole.map((section) => section.name).join(), 'loop', '루프가 곡 전체면 하나');
+const tailOnly = loopSections({ from: 0, to: 16 }, { from: 0, to: 8 });
+assert.equal(tailOnly.map((section) => section.name).join(), 'loop,outro');
+
+console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간');

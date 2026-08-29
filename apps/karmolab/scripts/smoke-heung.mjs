@@ -423,6 +423,14 @@ const wavDownload=page.waitForEvent('download');await page.click('[data-export-a
 const exportStatus=await page.locator('[data-role=status]').textContent();
 await page.waitForTimeout(200);
 const exportClosed=await page.locator('.hu-export').count()===0;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
+/* 게임용 루프 지점. 켜면 WAV 안에 smpl 덩어리가 들어가야 한다 */
+await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
+await page.check('[data-export=loopPoints]');
+const loopDownload=page.waitForEvent('download',{timeout:20000});
+await page.click('[data-export-act=go]');
+let loopWav=null;
+try{ const event=await loopDownload; loopWav=fs.readFileSync(await event.path()); }catch(_){ loopWav=null; }
+await page.waitForTimeout(200);
 /* 같은 종류의 다른 트랙으로 세로 drag. 클립이 실제로 다른 lane 으로 옮겨져야 한다.
    390px 화면에서는 세로 drop 지점의 hit-test 가 lane 을 안정적으로 집지 못해 desktop 에서만 잰다. */
 const midiLaneCounts=async()=>page.locator('.hu-lane[data-kind=midi]').evaluateAll((elements)=>elements.map((element)=>element.querySelectorAll('.hu-clip').length));
@@ -593,6 +601,16 @@ if(!/peak .* dBFS/.test(exportStatus||''))problems.push(`내보내기 결과에 
 if(wav.readUInt16LE(22)!==1)problems.push(`모노로 골랐는데 채널이 ${wav.readUInt16LE(22)}개다`);
 if(wav.readUInt32LE(24)!==22050)problems.push(`표본율 선택이 안 먹었다 (${wav.readUInt32LE(24)})`);
 if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'||wav.length<10000)problems.push(`WAV 출력 실패 (${wav.length} bytes)`);
+if(!loopWav)problems.push('루프 지점을 켠 WAV 를 못 받았다');
+else{
+  const smplAt=loopWav.indexOf('smpl');
+  if(smplAt<0)problems.push('루프 지점을 켰는데 WAV 에 smpl 덩어리가 없다');
+  else{
+    if(loopWav.readUInt32LE(smplAt+36)!==1)problems.push('smpl 에 루프가 한 개가 아니다');
+    if(loopWav.readUInt32LE(smplAt+56)<=loopWav.readUInt32LE(smplAt+52))problems.push('루프 끝이 시작보다 앞이다');
+    if(loopWav.readUInt32LE(4)!==loopWav.length-8)problems.push(`RIFF 길이가 실제와 다르다 (${loopWav.readUInt32LE(4)} vs ${loopWav.length-8})`);
+  }
+}
 if(initial.layout!=='grid')problems.push(`작업공간 레이아웃 오류 (${initial.layout})`);
 if(errors.length)problems.push(`브라우저 오류: ${errors.slice(0,3).join(' | ')}`);
 /* 눈 게이트. 잘리고 튀어나온 것을 브라우저 안에서 직접 잰다 (33회차 교훈).

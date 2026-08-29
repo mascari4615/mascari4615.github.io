@@ -14,7 +14,7 @@ import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
-import { analysePeak, applyGain, clampBuffer, commonNormalizeGain, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
+import { analysePeak, applyGain, beatToSample, clampBuffer, commonNormalizeGain, exportRange, loopSections, normalizeGain, smplChunk, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 import { decodeMidi, encodeMidi } from './midi-file';
 
@@ -37,7 +37,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
     let armedTrackId=''; let taps:number[]=[]; let stepMode=false; let stepOctave=4; let stepBeat=0; let stepAdded:string[]=[]; let midiOn=false; let midiLabel='MIDI 건반 연결'; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
-    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false};
+    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false,loopPoints:false,sections:false};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorListenMode: 'clip' | 'song' = 'clip'; let editorLoopStart = 0; let editorLoopEnd = 0;
     let editorTimePx = pxPerBeat; let editorRowHeight: number = PIANO_GEOMETRY.row; let editorRangeStart: number | null = null; let editorRangeEnd: number | null = null; let lastNoteDuration = project.snap * 2; let suppressPianoRulerClick = false;
@@ -199,6 +199,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
         </select></label>
         <label>피크 맞추기 (-1 dBFS) <input type="checkbox" data-export="normalize"${exportOptions.normalize?' checked':''}></label>
         <label>트랙별로 따로 (ZIP) <input type="checkbox" data-export="stems"${exportOptions.stems?' checked':''}></label>
+        <label>루프 지점 넣기 (게임용) <input type="checkbox" data-export="loopPoints"${exportOptions.loopPoints?' checked':''}></label>
+        <label>인트로, 루프, 아웃트로 3파일 (ZIP) <input type="checkbox" data-export="sections"${exportOptions.sections?' checked':''}></label>
         <p class="hu-export-note" data-role="export-note">끄면 1 을 넘는 표본은 깎인다. 켜면 가장 큰 소리를 -1 dBFS 에 맞춘다.</p>
         <div class="hu-export-actions"><button class="hu-btn" data-export-act="cancel">취소</button><button class="hu-btn" data-export-act="go">내보내기</button></div>
       </div>`;
@@ -239,6 +241,34 @@ import { decodeMidi, encodeMidi } from './midi-file';
       status(`트랙 ${live.length}개, ${(blob.size/1048576).toFixed(1)} MB, 최대 peak ${loudest.toFixed(1)} dBFS`);
       closeExport();
     }
+    /** 게임에 넣는 세 파일. 인트로와 루프와 아웃트로를 한 번에 굽는다 */
+    async function runSectionExport(range:{from:number;to:number}, note: HTMLElement | null): Promise<void> {
+      const sections=loopSections(range,{from:project.loopStart,to:project.loopEnd});
+      if(sections.length<2){status('루프 구간이 곡 전체라 나눌 것이 없다');if(note)note.textContent='루프 구간을 곡 안쪽으로 잡아라';return;}
+      await Toolbox.ensureScript?.('vendor/jszip.min');
+      const JSZipCtor=(window as unknown as {JSZip?:new()=>{file(name:string,data:Blob):void;generateAsync(options:{type:'blob'}):Promise<Blob>}}).JSZip;
+      if(!JSZipCtor){status('ZIP 도구를 못 불러왔다');if(note)note.textContent='ZIP 도구를 못 불러왔다';return;}
+      const zip=new JSZipCtor();
+      const rendered:AudioBuffer[]=[];
+      for(let index=0;index<sections.length;index++){
+        const section=sections[index];
+        if(note)note.textContent=`${index+1}/${sections.length}, ${section.name}`;
+        status(`굽는 중 ${index+1}/${sections.length}, ${section.name}`);
+        rendered.push(await renderProject(project,assets,section.from,section.to,exportOptions.sampleRate,exportOptions.mono?1:2));
+      }
+      const gain=exportOptions.normalize?commonNormalizeGain(rendered.map((buffer)=>analysePeak(buffer).peak),-1):1;
+      for(let index=0;index<sections.length;index++){
+        const buffer=rendered[index];
+        if(exportOptions.normalize)applyGain(buffer,gain);else clampBuffer(buffer);
+        /* 루프 조각에만 루프 지점을 박는다. 인트로와 아웃트로는 한 번만 나가는 소리다 */
+        const chunk=sections[index].name==='loop'?smplChunk(buffer.sampleRate,0,beatToSample(sections[index].to-sections[index].from,project.bpm,buffer.sampleRate)):undefined;
+        zip.file(`${project.name||'heung'}-${sections[index].name}.wav`,toWav(buffer,chunk));
+      }
+      const blob=await zip.generateAsync({type:'blob'});
+      download(blob,`${project.name||'흥'}-sections.zip`);
+      status(`${sections.map((section)=>section.name).join(', ')} ${sections.length}파일, ${(blob.size/1048576).toFixed(1)} MB`);
+      closeExport();
+    }
     async function runExport(): Promise<void> {
       stop();
       const note=$<HTMLElement>('[data-role=export-note]');
@@ -247,12 +277,17 @@ import { decodeMidi, encodeMidi } from './midi-file';
       status('Rendering WAV...');if(note)note.textContent='렌더 중...';
       try {
         if(exportOptions.stems){await runStemExport(range,note);return;}
+        if(exportOptions.sections){await runSectionExport(range,note);return;}
         const rendered=await renderProject(project,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2);
         const before=analysePeak(rendered);
         if(exportOptions.normalize)applyGain(rendered,normalizeGain(before.peak,-1));
         const clamped=exportOptions.normalize?0:clampBuffer(rendered);
         const after=analysePeak(rendered);
-        const blob=toWav(rendered);
+        /* 게임용 루프 지점. 값은 초가 아니라 표본 번호다 */
+        const loopChunk=exportOptions.loopPoints?smplChunk(rendered.sampleRate,
+          beatToSample(Math.max(0,project.loopStart-range.from),project.bpm,rendered.sampleRate),
+          beatToSample(Math.max(0,Math.min(range.to,project.loopEnd)-range.from),project.bpm,rendered.sampleRate)):undefined;
+        const blob=toWav(rendered,loopChunk);
         const suffix=exportOptions.range==='song'?'':`-${exportOptions.range}`;
         download(blob,`${project.name||'흥'}${suffix}.wav`);
         Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}${suffix}.wav`,from:'heung'});
@@ -675,6 +710,8 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(key==='mono')exportOptions.mono=field.value==='1';
       else if(key==='normalize')exportOptions.normalize=(field as HTMLInputElement).checked;
       else if(key==='stems')exportOptions.stems=(field as HTMLInputElement).checked;
+      else if(key==='loopPoints')exportOptions.loopPoints=(field as HTMLInputElement).checked;
+      else if(key==='sections')exportOptions.sections=(field as HTMLInputElement).checked;
     });
     root.addEventListener('input',(event)=>{
       const input=event.target as HTMLInputElement;

@@ -53,6 +53,54 @@ export function normalizeGain(peak: number, targetDb = -1): number {
   return Math.pow(10, targetDb / 20) / peak;
 }
 
+/**
+ * WAV 의 smpl 덩어리. 게임 엔진이 읽는 루프 지점.
+ *
+ * 단위는 초가 아니라 **표본 번호**. 손으로 적다 가장 많이 틀리는 자리라
+ * 여기서 한 번만 엮는다. 36바이트 머리 + 루프 하나 24바이트.
+ */
+export function smplChunk(sampleRate: number, loopStartSample: number, loopEndSample: number, rootPitch = 60): Uint8Array {
+  const start = Math.max(0, Math.floor(loopStartSample));
+  const end = Math.max(start + 1, Math.floor(loopEndSample));
+  const bytes = new Uint8Array(68);
+  const view = new DataView(bytes.buffer);
+  const tag = (offset: number, text: string): void => { for (let index = 0; index < text.length; index++) view.setUint8(offset + index, text.charCodeAt(index)); };
+  tag(0, 'smpl');
+  view.setUint32(4, 60, true);
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+  view.setUint32(16, Math.round(1e9 / Math.max(1, sampleRate)), true);
+  view.setUint32(20, Math.max(0, Math.min(127, Math.round(rootPitch))), true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+  view.setUint32(32, 0, true);
+  view.setUint32(36, 1, true);
+  view.setUint32(40, 0, true);
+  view.setUint32(44, 0, true);
+  view.setUint32(48, 0, true);
+  view.setUint32(52, start, true);
+  view.setUint32(56, end, true);
+  view.setUint32(60, 0, true);
+  view.setUint32(64, 0, true);
+  return bytes;
+}
+
+/** 박을 표본 번호로. 게임에 넣는 루프 지점은 초가 아니라 표본으로 적는다 */
+export function beatToSample(beat: number, bpm: number, sampleRate: number): number {
+  return Math.round(beat * (60 / bpm) * sampleRate);
+}
+
+/** 인트로, 루프, 아웃트로 세 구간. 루프 구간이 곡 전체면 루프 하나만 나온다 */
+export function loopSections(song: BeatRange, loop: BeatRange): { name: 'intro' | 'loop' | 'outro'; from: number; to: number }[] {
+  const start = Math.max(song.from, Math.min(loop.from, song.to));
+  const end = Math.min(song.to, Math.max(loop.to, start));
+  const sections: { name: 'intro' | 'loop' | 'outro'; from: number; to: number }[] = [];
+  if (start > song.from) sections.push({ name: 'intro', from: song.from, to: start });
+  sections.push({ name: 'loop', from: start, to: Math.max(start + 0.001, end) });
+  if (song.to > end) sections.push({ name: 'outro', from: end, to: song.to });
+  return sections;
+}
+
 /** 여러 벌을 한 배수로 맞춘다. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
 export function commonNormalizeGain(peaks: number[], targetDb = -1): number {
   const loudest = peaks.reduce((high, peak) => (peak > high ? peak : high), 0);

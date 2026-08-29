@@ -9,10 +9,16 @@
 import { t, loadNamespace } from '../../../lib/i18n';
 import { sniffSampleRate } from './audio-rate';
 
-/** AudioBuffer → WAV(16비트 PCM). 브라우저에 저장 기능이 없어 머리말을 직접 엮는다. */
-export function toWav(buffer: AudioBuffer): Blob {
+/**
+ * AudioBuffer → WAV(16비트 PCM). 브라우저에 저장 기능이 없어 머리말은 직접 엮음.
+ *
+ * `extraChunks` 는 data 뒤에 그대로 붙는다. 게임용 루프 지점(smpl) 같은 것.
+ * 안 넘기면 예전과 같은 바이트.
+ */
+export function toWav(buffer: AudioBuffer, extraChunks?: Uint8Array): Blob {
   const numCh = buffer.numberOfChannels;
-  const len = buffer.length * numCh * 2 + 44;
+  const extra = extraChunks?.length ?? 0;
+  const len = buffer.length * numCh * 2 + 44 + extra;
   const view = new DataView(new ArrayBuffer(len));
   const w = (off: number, s: string): void => {
     for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
@@ -29,7 +35,7 @@ export function toWav(buffer: AudioBuffer): Blob {
   view.setUint16(32, numCh * 2, true); // 한 묶음 크기
   view.setUint16(34, 16, true); // 표본 하나가 16비트
   w(36, 'data');
-  view.setUint32(40, len - 44, true);
+  view.setUint32(40, len - 44 - extra, true);
 
   const chans: Float32Array[] = [];
   for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
@@ -42,6 +48,7 @@ export function toWav(buffer: AudioBuffer): Blob {
       off += 2;
     }
   }
+  if (extraChunks && extra) new Uint8Array(view.buffer).set(extraChunks, off);
   return new Blob([view], { type: 'audio/wav' });
 }
 
