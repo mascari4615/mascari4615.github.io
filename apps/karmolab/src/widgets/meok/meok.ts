@@ -163,7 +163,9 @@ async function loadLast(): Promise<StoredDoc | null> {
 
 function buildMeok(container: HTMLElement): void {
   let doc: Doc = createDoc(1024, 1024, T('untitled', '새 그림'));
-  const history = new History(300);
+  /* 되돌리기 300 단계, 그리고 무게로 512MB. 개수만 두면 큰 판에서 터진다 (2048^2 전면 필터
+     하나가 전과 후 두 벌로 32MB). 무게가 넘으면 오래된 것부터 버리고 한 단계는 남긴다. */
+  const history = new History(300, 900, 512 * 1024 * 1024);
   let brush: BrushSettings = defaultBrush();
   let tool: ToolId = 'brush';
   let onionBefore = 0;
@@ -171,7 +173,6 @@ function buildMeok(container: HTMLElement): void {
   /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. 그리기만 하는 시계다. */
   let stopPlaying: (() => void) | null = null;
   let stroke: Stroke | null = null;
-  let strokeBase: Surface | null = null;
   let panning: { x: number; y: number } | null = null;
   let spaceDown = false;
   let selection: Selection = createSelection(doc.w, doc.h);
@@ -634,7 +635,8 @@ function buildMeok(container: HTMLElement): void {
       return;
     }
     /* 붓, 지우개. 획이 끝날 때 한 단계로 굳는다. */
-    strokeBase = cloneSurface(cel);
+    /* 원본 사본은 `Stroke` 가 이미 하나 들고 있다 (`stroke.base`). 여기서 또 뜨면 획 하나에
+       판이 두 장 뜬다 (4096^2 이면 128MB). 되돌리기 패치도 그 한 장을 기준으로 만든다. */
     stroke = new Stroke(cel, {
       ...brush,
       mode: tool === 'eraser' ? 'erase' : 'paint',
@@ -711,16 +713,16 @@ function buildMeok(container: HTMLElement): void {
       selectionChanged();
       return;
     }
-    if (!stroke || !strokeBase) { stroke = null; strokeBase = null; return; }
+    if (!stroke) return;
     const layer = activeLayer(doc);
     const cel = layer ? layer.cels[doc.activeFrame] : null;
+    const before = stroke.base;
     stroke.end();
     if (cel) {
-      const patch = pixelPatch(cel, strokeBase, tool === 'eraser' ? T('toolEraser', '지우개') : T('toolBrush', '붓'));
+      const patch = pixelPatch(cel, before, tool === 'eraser' ? T('toolEraser', '지우개') : T('toolBrush', '붓'));
       if (patch) history.push(patch);
     }
     stroke = null;
-    strokeBase = null;
     renderLayers();
     renderFrames();
     touched();

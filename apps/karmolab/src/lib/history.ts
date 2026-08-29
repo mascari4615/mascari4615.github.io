@@ -22,6 +22,11 @@ export interface Command {
    * 묶을 때 새 커맨드의 `redo` 만 살아남고, 되돌리기는 **처음 것**으로 돌아간다.
    */
   coalesceKey?: string;
+  /**
+   * 이 동작이 붙들고 있는 바이트. 적어 두면 History 가 **개수만이 아니라 무게로도** 버림.
+   * 안 적으면 0 으로 친다 (값 하나 바꾸기 같은 가벼운 동작).
+   */
+  bytes?: number;
 }
 
 export interface HistoryEntry {
@@ -39,9 +44,26 @@ export class History {
   private mergeWindow: number;
   private listeners: Array<() => void> = [];
 
-  constructor(limit = 200, mergeWindow = 900) {
+  /** 지금 쌓인 동작들이 붙들고 있는 바이트 합. */
+  private bytes = 0;
+  /**
+   * 무게 상한. 개수 상한만 두면 판이 큰 그림에서 터진다. 전면 필터 하나가 원본과 결과를 함께
+   * 들고 있어 2048^2 이면 32MB. 그런 동작 300 개면 상한이 없는 것과 같음.
+   */
+  private byteLimit: number;
+
+  constructor(limit = 200, mergeWindow = 900, byteLimit = Infinity) {
     this.limit = Math.max(1, limit);
     this.mergeWindow = mergeWindow;
+    this.byteLimit = byteLimit;
+  }
+
+  /** 개수와 무게 둘 다 상한 안으로. 오래된 것부터 버린다. 하나는 남긴다. */
+  private trim(): void {
+    while (this.done.length > this.limit) this.bytes -= this.done.shift()?.bytes || 0;
+    while (this.done.length > 1 && this.bytes > this.byteLimit) {
+      this.bytes -= this.done.shift()?.bytes || 0;
+    }
   }
 
   onChange(fn: () => void): () => void {
@@ -67,13 +89,16 @@ export class History {
       this.done[this.done.length - 1] = {
         label: command.label,
         coalesceKey: key,
+        bytes: (first.bytes || 0) + (command.bytes || 0),
         redo: () => command.redo(),
         undo: () => first.undo()
       };
+      this.bytes += command.bytes || 0;
     } else {
       this.done.push(command);
-      if (this.done.length > this.limit) this.done.shift();
+      this.bytes += command.bytes || 0;
     }
+    this.trim();
     this.undone.length = 0;
     this.lastKey = key || '';
     this.lastAt = now;
@@ -92,6 +117,8 @@ export class History {
   get undoLabel(): string { return this.done.length ? this.done[this.done.length - 1].label : ''; }
   get redoLabel(): string { return this.undone.length ? this.undone[this.undone.length - 1].label : ''; }
   get depth(): number { return this.done.length; }
+  /** 지금 되돌리기가 붙들고 있는 바이트. 검사와 화면 표시용. */
+  get heldBytes(): number { return this.bytes; }
 
   undo(): boolean {
     const command = this.done.pop();

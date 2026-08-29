@@ -73,6 +73,8 @@ export class Stroke {
   /** 도장 간격을 채우고 남은 거리 */
   private carry = 0;
   private minX = Infinity; private minY = Infinity; private maxX = -Infinity; private maxY = -Infinity;
+  /** 지난 `flush` 뒤로 **새로 바뀐** 자리. 굽는 것은 여기까지다. */
+  private pendMinX = Infinity; private pendMinY = Infinity; private pendMaxX = -Infinity; private pendMaxY = -Infinity;
 
   /** 고른 자리 밖에는 안 그린다(픽셀당 0..255). 없으면 판 전체가 대상. */
   private selection: Uint8Array | null;
@@ -202,14 +204,30 @@ export class Stroke {
         if (x > this.maxX) this.maxX = x;
         if (y < this.minY) this.minY = y;
         if (y > this.maxY) this.maxY = y;
+        if (x < this.pendMinX) this.pendMinX = x;
+        if (x > this.pendMaxX) this.pendMaxX = x;
+        if (y < this.pendMinY) this.pendMinY = y;
+        if (y > this.pendMaxY) this.pendMaxY = y;
       }
     }
   }
 
-  /** 더러워진 자리를 원본 + 획 마스크로 다시 굽는다. */
+  /**
+   * **이번에 새로 바뀐 자리만** 원본 더하기 획 마스크로 다시 굽기.
+   *
+   * 예전에는 획이 지나온 자리 전체를 매번 다시 구웠다. 그래서 획이 길수록 한 번의 굽기가
+   * 커졌다 (1024^2 에서 한 획 100번 움직일 때 뒤쪽 구간이 앞쪽의 2.2배). 마스크가 실제로
+   * 달라진 픽셀은 붓 크기만 하므로, 그 자리만 다시 구우면 획 길이와 무관.
+   * 되돌리기 패치가 보는 `dirty` 는 그대로 누적 범위.
+   */
   private flush(): void {
-    const rect = this.dirty;
-    if (!rect) return;
+    if (this.pendMaxX < this.pendMinX) return;
+    const rect = {
+      x: this.pendMinX, y: this.pendMinY,
+      w: this.pendMaxX - this.pendMinX + 1, h: this.pendMaxY - this.pendMinY + 1
+    };
+    this.pendMinX = Infinity; this.pendMinY = Infinity;
+    this.pendMaxX = -Infinity; this.pendMaxY = -Infinity;
     const s = this.settings;
     const [r, g, b] = s.color;
     const out = this.surface.data;

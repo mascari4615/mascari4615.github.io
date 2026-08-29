@@ -105,5 +105,30 @@ const fullSmall = bytesOf(() => C.composite(small, 0));
 const fullBig = bytesOf(() => C.composite(big, 0));
 assert.ok(fullBig > fullSmall * 100, '전체 합성은 문서 크기를 따라간다');
 
+/* ⑥ 되돌리기는 무게로도 버린다. 개수만 두면 큰 판에서 상한이 사실상 없다. */
+const H = load('history');
+{
+  /* 판 전체를 칠하는 동작 하나가 전과 후 두 벌로 32KB (64x64x4 x2). 상한을 100KB 로 두면
+     세 개까지만 남아야 한다. 전면 필터가 판을 통째로 붙드는 것을 작게 흉내 낸 것. */
+  const cap = 100 * 1024;
+  const history = new H.History(300, 900, cap);
+  const surface = D.createSurface(64, 64);
+  const before = D.cloneSurface(surface);
+  for (let n = 0; n < 12; n += 1) {
+    for (let i = 0; i < surface.data.length; i += 4) {
+      surface.data[i] = (n * 17 + i) % 255;
+      surface.data[i + 3] = 255;
+    }
+    const patch = H.pixelPatch(surface, before, '칠');
+    assert.ok(patch.bytes >= 30000, '패치가 제 무게를 안 적었다 (' + patch.bytes + 'B)');
+    history.push(patch, n * 10000);
+    before.data.set(surface.data);
+  }
+  assert.ok(history.heldBytes <= cap,
+    '무게 상한을 넘겼다 (' + history.heldBytes + 'B, 상한 ' + cap + 'B)');
+  assert.ok(history.depth >= 1, '한 단계는 남아야 한다');
+  assert.ok(history.depth <= 4, '무게 때문에 오래된 것이 버려져야 한다 (' + history.depth + '단계, ' + history.heldBytes + 'B)');
+}
+
 console.log('[test-meok-perf] ✓ 부분 갱신 메모리가 문서 크기와 무관 (256^2 와 4096^2 둘 다 '
-  + Math.round(smallBytes / 1024) + 'KB), 레이어 수와도 무관, clip 밑판도 사각형 크기');
+  + Math.round(smallBytes / 1024) + 'KB), 레이어 수와도 무관, clip 밑판도 사각형 크기, 되돌리기 무게 상한');

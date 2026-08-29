@@ -74,6 +74,8 @@ export function pixelPatch(
   return {
     label,
     coalesceKey,
+    /* 이 동작이 붙들고 있는 무게. 전과 후 두 벌이다. */
+    bytes: oldPixels.byteLength + newPixels.byteLength,
     redo: () => pasteRect(surface, rect, newPixels),
     undo: () => pasteRect(surface, rect, oldPixels)
   };
